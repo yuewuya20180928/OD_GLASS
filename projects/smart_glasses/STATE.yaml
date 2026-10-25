@@ -1,0 +1,1767 @@
+meta:
+  version: 1
+  generated_at: '2026-10-25T19:44:07+08:00'
+  generator: state/merge.py
+  source_of_truth: PROJECT_TRACKER.md
+  note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
+    / 证据链 / 锁死变量在 PROJECT_TRACKER.md; 本文件每项都带 ref 指过去。
+  write_rule: 每个总工只写 state/fragments/<自己的id>.yaml; STATE.yaml 由合并器唯一写
+  fragments:
+    hw-lead:
+      file: hw.yaml
+      size: 9216
+      sha1: 9417fdc22b4c
+      mtime_ns: 1792898701966077076
+    mech-lead:
+      file: mech.yaml
+      size: 17961
+      sha1: 913d2f6359c4
+      mtime_ns: 1792902617831896564
+    main:
+      file: pm.yaml
+      size: 14954
+      sha1: 0b7193c31693
+      mtime_ns: 1792928645695071179
+    sw-lead:
+      file: sw.yaml
+      size: 7181
+      sha1: d9d26d3d367e
+      mtime_ns: 1792892145921834051
+  incomplete_fragments: []
+project:
+  name: ARS45 智能眼镜
+  phase: P0 (拿纸面资料) + P1 (选型)
+  health: red
+  tracked_by: main
+  locked_variables_ref: PROJECT_TRACKER.md#0 已锁死的变量
+domains:
+  main:
+    agent: main
+    role: 项目总工
+    updated_at: '2026-10-25T01:05:00+08:00'
+    updated_by: main
+    status:
+      phase: P0 (拿纸面资料) + P1 (选型)
+      progress_pct: 20
+      health: red
+      summary: 4-Agent 职能制落地, 三个总工首轮产出全部收口; 炸出两个硬指标可能不成立 (端到端 67ms 超 60ms 预算 / 皮肤侧 96°C 超 43°C 红线), 等老板拍板口径。
+    artifacts:
+    - path: PROJECT_TRACKER.md
+      kind: tracker
+      version: 10-25
+      updated_at: '2026-10-25T00:45:00+08:00'
+      summary: '唯一真源: 锁死变量 / 架构 / 延迟与功耗预算 / 风险 / 开放问题 / 研发组织'
+    - path: INTERFACES.md
+      kind: interface
+      version: v1.0
+      updated_at: '2026-10-25T00:40:00+08:00'
+      summary: 跨模块接口契约, 星型拓扑的必要配套
+    - path: DECISIONS.md
+      kind: decisions
+      version: 10-25
+      updated_at: '2026-10-25T00:30:00+08:00'
+      summary: 决策日志 (只追加)
+    - path: state/README.md
+      kind: protocol
+      version: v1.0
+      updated_at: '2026-10-25T01:05:00+08:00'
+      summary: 'STATE 协议: 分片所有权 / 合并器 / 冲突检测'
+    blockers:
+    - id: PM-B1
+      desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
+      severity: high
+      needs_from: &id001
+      - vendor
+      waiting_since: '2026-10-21'
+    - id: PM-B2
+      desc: '两个硬指标口径待老板拍板: Q1 (60ms 口径, 第一优先) + Q4 (续航口径, 高优先)'
+      severity: high
+      needs_from: &id002
+      - boss
+      waiting_since: '2026-10-25'
+    - id: PM-B3
+      desc: Q16 显示 TX 接口 (DSI TX / DP TX / 两者) 未确认 → 决定要不要多一颗桥接芯片 (采购 4-8 周, 不能等)
+      severity: high
+      needs_from: &id003
+      - vendor
+      waiting_since: '2026-10-24'
+    - id: PM-B4
+      desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
+      severity: medium
+      needs_from: &id015
+      - jbd
+      waiting_since: '2026-10-21'
+    needs_from:
+    - key: q1_latency_scope
+      to: boss
+      item: Q1 端到端 60ms 口径 (曝光→出光 / ISP输出→出光 / 读出完成→出光) — 差 24.67ms, 直接决定能不能达标
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: 'A (曝光开始→出光, 最严口径)。老板 10-25 19:16 拍板: 选 A。不接受用改口径的方式达标。'
+      decided_at: '2026-10-25'
+      answers:
+      - by: boss
+        value: 'A (曝光开始→出光, 最严口径)。老板 10-25 19:16 拍板: 选 A。不接受用改口径的方式达标。'
+        ref: 老板决策 2026-10-25 (项目总工代录)
+      foreign_answers: []
+    - key: q4_battery_scope
+      to: boss
+      item: Q4 续航 1h 是持续满载还是按需触发 — 同时决定散热/电池/镜腿厚度
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: 按需触发。老板 10-25 19:16 拍板。续航口径写成『按需触发场景下 ≥1h』, 不写『持续满载 ≥1h』(持续满载 1.22W → 皮肤 96.1°C, 热学上不成立)。
+      decided_at: '2026-10-25'
+      answers:
+      - by: boss
+        value: 按需触发。老板 10-25 19:16 拍板。续航口径写成『按需触发场景下 ≥1h』, 不写『持续满载 ≥1h』(持续满载 1.22W → 皮肤 96.1°C, 热学上不成立)。
+        ref: 老板决策 2026-10-25 (项目总工代录)
+      foreign_answers: []
+    - key: q17_display_fps
+      to: boss
+      item: Q17 显示帧率要不要 60fps (放宽到 25-30fps → 端到端 55.7ms 直接达标)
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: '60fps 优先。老板 10-25 19:16 拍板: 60 优先, 班子到位之后 60 搞不定转 30。★ 判定条件 (19:26 经软件总工核算修正): T_od ≤16.67ms
+        → age=1 → 端到端 50.3ms 达标, 保持 60fps; T_od >16.67ms → age=2 → 67.0ms 超预算 → 兜底必须两件一起切 (显示槽位 60→30Hz
+        且 合成策略 异步→等OD) → 端到端 55.7ms @ 25.6fps 达标。⚠️ 只切帧率不切策略 = 仍 67.0ms ❌ (我 19:16 那版只写『切 30fps→50.3ms』,
+        不完整, 以此为准)。依据: SW/DISPLAY_MODE.md (含可复现的 B6 判据复核器, SELF-TEST PASS)'
+      decided_at: '2026-10-25'
+      answers:
+      - by: boss
+        value: '60fps 优先。老板 10-25 19:16 拍板: 60 优先, 班子到位之后 60 搞不定转 30。★ 判定条件 (19:26 经软件总工核算修正): T_od ≤16.67ms
+          → age=1 → 端到端 50.3ms 达标, 保持 60fps; T_od >16.67ms → age=2 → 67.0ms 超预算 → 兜底必须两件一起切 (显示槽位 60→30Hz
+          且 合成策略 异步→等OD) → 端到端 55.7ms @ 25.6fps 达标。⚠️ 只切帧率不切策略 = 仍 67.0ms ❌ (我 19:16 那版只写『切 30fps→50.3ms』,
+          不完整, 以此为准)。依据: SW/DISPLAY_MODE.md (含可复现的 B6 判据复核器, SELF-TEST PASS)'
+        ref: 老板决策 2026-10-25 (项目总工代录)
+      foreign_answers: []
+    - key: q18_highspeed_cam
+      to: boss
+      item: Q18 能不能借高速摄影/示波器测光机逐帧延迟 (现在 0 数据, 软件打不了点)
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: "老板 10-25 19:23 决定: 光机延迟不外部测设备, 改用 **目测/感官验收 (看有没有眩晕)**。\n★ 客观说明: 眩晕/拖影是主观验收, 零设备成本, 1\
+        \ 台样机即可做 → 记为新实测项 M-DIZZY (主观)。\n★ 但它验不了 '60ms' 这个数: 决定 60fps 成败的是 **M-NPU (纯 NPU 耗时)**, 那个**软件打点就能测,\
+        \ 不需要任何设备**;\n   口径C (读出完成→出光) 也只需软件打点。需外部设备的只有 口径A 起点 (曝光) 与光机逐帧延迟 (M-OPTIC) → 暂标未验 + 用推算兜底。"
+      decided_at: '2026-10-25'
+      answers:
+      - by: boss
+        value: "老板 10-25 19:23 决定: 光机延迟不外部测设备, 改用 **目测/感官验收 (看有没有眩晕)**。\n★ 客观说明: 眩晕/拖影是主观验收, 零设备成本, 1\
+          \ 台样机即可做 → 记为新实测项 M-DIZZY (主观)。\n★ 但它验不了 '60ms' 这个数: 决定 60fps 成败的是 **M-NPU (纯 NPU 耗时)**, 那个**软件打点就能测,\
+          \ 不需要任何设备**;\n   口径C (读出完成→出光) 也只需软件打点。需外部设备的只有 口径A 起点 (曝光) 与光机逐帧延迟 (M-OPTIC) → 暂标未验 + 用推算兜底。"
+        ref: 老板决策 2026-10-25 (项目总工代录)
+      foreign_answers: []
+    - key: q16_aspect_ratio
+      to: boss
+      item: Q16 sensor 宽高比 A(4:3零裁剪)/B(16:9裁剪丢16.3°FOV)/C(16:9 letterbox) — 卡 sensor 选型
+      since: '2026-10-24'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: "宽高比无所谓。老板 10-25 19:16 拍板: 宽高比无所谓的, sensor 只要能够输出 1920×1080@60fps 或以上即可。★ 原 A/B/C 三选一作废,\
+        \ 选型判据改为『≥1080p60 出图能力』; sensor 选型即刻解冻。\n老板 10-25 19:33 决定: **sensor 输出先不裁剪, 由后级模块缩放到目标分辨率, 暂时先接受畸变,\
+        \ 后继看效果**。\n★ 这条解掉了『裁剪/畸变』那一半: 不裁剪 = 有效视场最大, 缩放由 ISP 做 (已在管线里: ISP → 640×480@60 或 1280×960@15)。\n\
+        ★ 但『俯角 vs 垂直半视场』那一半**没有被这条消掉**: 16:9 对角 100° → 垂直半视场仅 30.3° → 俯角 32° 时正前方仍差 1.7° 掉出画面。\n★ 项目总工据此定的工作基线\
+        \ (可回退, 未下单): **对角 FOV 提到 120° (垂直半视场 40.3°) + 俯角收到 ≤25°** → 俯角 25° 余量 +15.3°, 俯角 32° 余量 +8.3°,\
+        \ 两种俯角都安全。110° 只够俯角 ≤30°, 不够稳。→ 镜头焦距要更短 → 镜头筒/窗口尺寸要结构跟 (ISS-047 一并复核)。★ 前提: 老板已明确『先接受畸变』→ 更大 FOV\
+        \ 的边缘畸变代价可接受。\n★ **19:42 修正 (硬件总工核算后)**: 我 19:33 那版基线用的是**直行 (rectilinear)** 口径 —— 对角 120° → 垂直半视场\
+        \ 40.45°。**但 1/3\"~1/2.6\" 靶面上量产的 120° 镜头是鱼眼 (等距)** → 同一个\"120° 对角\"的垂直半视场只有 **29.53° (OV04C10)\
+        \ / 31.80° (AR0234CS 16:10)**, 不是 40.45°。\n★ **撤回我那句\"两种俯角都安全\"** —— 走鱼眼路线时俯角 32° 仍会掉出画面。\n★ **修正后的工作基线**:\
+        \ **鱼眼 (等距/等立体角) + 对角 120° + 俯角 ≤25° (OV04C10) / ≤28° (AR0234CS 16:10)**\n  · 畸变代价 (老板已接受, 不构成否决):\
+        \ 角落桶形 -39.5% / 水平边 -29.4% / 垂直边 -9.0%\n  · **反向收益**: 不做 LDC → ISP 省掉畸变校正重采样 (缓解 §5.7.1 LDC 占\
+        \ pipeline 预算); 鱼眼角分辨率均匀 (0.0389°/px), 直行 120° 角落比中心粗 4.0 倍 → 对边缘目标检测鱼眼反而更好\n  · 为什么必须走鱼眼: 直行\
+        \ 120° 在 1/3\" 靶面要 f=1.78mm、等效光圈缩到 ⌀0.6-0.7mm (f/2.6-3.0) → 弱光信噪比不可接受\n  · ★ **投影模型必须和 FOV 数字一起写进\
+        \ RFQ**, 否则报价回来的大概率是鱼眼而结构拿到的余量是错的\n  · ★ 结构侧好消息: 三档 (100/110/120) 的镜筒与窗口需求只差 ≤0.9mm → **可以不等镜头定档就开模**\n\
+        依据: HW/LENS_SELECTION.md"
+      decided_at: '2026-10-25'
+      answers:
+      - by: boss
+        value: "宽高比无所谓。老板 10-25 19:16 拍板: 宽高比无所谓的, sensor 只要能够输出 1920×1080@60fps 或以上即可。★ 原 A/B/C 三选一作废,\
+          \ 选型判据改为『≥1080p60 出图能力』; sensor 选型即刻解冻。\n老板 10-25 19:33 决定: **sensor 输出先不裁剪, 由后级模块缩放到目标分辨率,\
+          \ 暂时先接受畸变, 后继看效果**。\n★ 这条解掉了『裁剪/畸变』那一半: 不裁剪 = 有效视场最大, 缩放由 ISP 做 (已在管线里: ISP → 640×480@60 或 1280×960@15)。\n\
+          ★ 但『俯角 vs 垂直半视场』那一半**没有被这条消掉**: 16:9 对角 100° → 垂直半视场仅 30.3° → 俯角 32° 时正前方仍差 1.7° 掉出画面。\n★ 项目总工据此定的工作基线\
+          \ (可回退, 未下单): **对角 FOV 提到 120° (垂直半视场 40.3°) + 俯角收到 ≤25°** → 俯角 25° 余量 +15.3°, 俯角 32° 余量 +8.3°,\
+          \ 两种俯角都安全。110° 只够俯角 ≤30°, 不够稳。→ 镜头焦距要更短 → 镜头筒/窗口尺寸要结构跟 (ISS-047 一并复核)。★ 前提: 老板已明确『先接受畸变』→ 更大\
+          \ FOV 的边缘畸变代价可接受。\n★ **19:42 修正 (硬件总工核算后)**: 我 19:33 那版基线用的是**直行 (rectilinear)** 口径 —— 对角 120°\
+          \ → 垂直半视场 40.45°。**但 1/3\"~1/2.6\" 靶面上量产的 120° 镜头是鱼眼 (等距)** → 同一个\"120° 对角\"的垂直半视场只有 **29.53°\
+          \ (OV04C10) / 31.80° (AR0234CS 16:10)**, 不是 40.45°。\n★ **撤回我那句\"两种俯角都安全\"** —— 走鱼眼路线时俯角 32°\
+          \ 仍会掉出画面。\n★ **修正后的工作基线**: **鱼眼 (等距/等立体角) + 对角 120° + 俯角 ≤25° (OV04C10) / ≤28° (AR0234CS 16:10)**\n\
+          \  · 畸变代价 (老板已接受, 不构成否决): 角落桶形 -39.5% / 水平边 -29.4% / 垂直边 -9.0%\n  · **反向收益**: 不做 LDC → ISP 省掉畸变校正重采样\
+          \ (缓解 §5.7.1 LDC 占 pipeline 预算); 鱼眼角分辨率均匀 (0.0389°/px), 直行 120° 角落比中心粗 4.0 倍 → 对边缘目标检测鱼眼反而更好\n\
+          \  · 为什么必须走鱼眼: 直行 120° 在 1/3\" 靶面要 f=1.78mm、等效光圈缩到 ⌀0.6-0.7mm (f/2.6-3.0) → 弱光信噪比不可接受\n  · ★\
+          \ **投影模型必须和 FOV 数字一起写进 RFQ**, 否则报价回来的大概率是鱼眼而结构拿到的余量是错的\n  · ★ 结构侧好消息: 三档 (100/110/120) 的镜筒与窗口需求只差\
+          \ ≤0.9mm → **可以不等镜头定档就开模**\n依据: HW/LENS_SELECTION.md"
+        ref: 老板决策 2026-10-25 (项目总工代录)
+      foreign_answers: []
+    - key: vendor_q19_boot_storage
+      to: hw-lead
+      item: 'HW-03 启动存储/固件分区: ARS45 是否内置 boot storage, 容量多少 (要并入给原厂的邮件)'
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: hw-lead
+        value: '已并入原厂邮件问题清单第7问(内置boot storage? 容量?); 当前按无内置boot storage设计: 外挂 SPI-NOR 16-64MB, 吃镜脚空间,
+          板宽可能 12->15mm; 请并入第一轮跟进邮件'
+        ref: HW/HARDWARE_BREAKDOWN.md#1.1(HW-03) + HANDOFF#阻塞-原厂第7问
+      foreign_answers: []
+    - key: bridge_chip_quote
+      to: hw-lead
+      item: 并行启动 DP→MIPI-DSI 桥芯片询价 (4-8 周周期, 不能等 Q16 回复)
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-27'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: hw-lead
+        value: '询价规格已给全: 800x600@60 / <300mW / DSI侧lane数可控 / 交期4-8周 / 面积待镜脚空间预算; 商务走main, 我不外联; 建议并行保留原生DSI方案A为首选'
+        ref: 'HW/HARDWARE_BREAKDOWN.md#1.4(HW-15) + #2-卡点A'
+      foreign_answers: []
+    - key: vendor_fccsp_pitch
+      to: hw-lead
+      item: 向原厂追加要 FCCSP 球间距 + 引脚图 + 电源域表 (并入第一轮跟进邮件)
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: hw-lead
+        value: '已并入原厂邮件问题清单第1问(FCCSP ball pitch + 完整引脚图/球位图); 判据已给: >=0.4mm 常规4-6层可行 / 0.35mm 极限需PCB厂书面确认
+          / <=0.3mm 须HDI=一票否决; 电源域表=第2问; 请并入第一轮跟进邮件'
+        ref: HW/HARDWARE_BREAKDOWN.md#2-卡点B
+      foreign_answers: []
+    - key: emc_mech_interface_ask
+      to: mech-lead
+      item: 'EMC 需要的 3 项结构数据 (来源 HW/EMC_PRECHECK.md D7/D8/D9): ① 外露金属件清单 + 各件搭接位 + 能否做到全单点接地 (R-04/R-07
+        卡这里) ② 跨铰链段走线长度预算 (框内段+铰链段+脚内段, R-01/R-02/R-08) ③ 充电板↔主板互连形式 (FPC/线束/芯数/长度, R-08)'
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: emc_hw_interface_ask
+      to: hw-lead
+      item: 'EMC 需要的 4 项硬件数据 (来源 SW/INTEGRATION_PLAN.md IR-01~05 + EMC_PRECHECK D1~D4): ① 充电状态读取接口 (若无状态寄存器且无
+        VBUS 分压检测 → 充电时禁 OD 门禁无法实现, M-CHRG 判未验) ② 电源域标称电压 ③ 帧同步信号能否引出 ④ 测流点位置 + 贴片测温点位'
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: test_equipment_budget
+      to: boss
+      item: '测试设备/工装需求 (无设备则 G3 那一关不可判通过): 高速相机 ≥240fps + 示波器 ≥100MHz ≥2ch + 光电探头 + 热电偶采集仪 + 假皮肤工装; 另需打印与量测条件
+        (打印机 192.168.1.68 与本机 192.168.2.4/24 跨网段不可达, 且无切片器/卡尺/千分尺) —— M-PRINT / M-E2E / M-OPTIC / M-SKIN
+        全部卡在这里'
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-26'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: q4_thermal_struct
+      to: boss
+      item: '老板 10-25 19:23 拍板 散热三件套: ① SoC+充电板挪到镜框 (同意) ② 充电时摘下眼镜充电 (接受) ③ 待机功耗<0.05W 作硬约束 (同意)'
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: '老板 10-25 19:23 拍板 散热三件套: ① SoC+充电板挪到镜框 (同意) ② 充电时摘下眼镜充电 (接受) ③ 待机功耗<0.05W 作硬约束 (同意)'
+      decided_at: '2026-10-25'
+      answers:
+      - by: boss
+        value: '老板 10-25 19:23 拍板 散热三件套: ① SoC+充电板挪到镜框 (同意) ② 充电时摘下眼镜充电 (接受) ③ 待机功耗<0.05W 作硬约束 (同意)'
+        ref: 老板决策 2026-10-25 (项目总工代录)
+      foreign_answers: []
+    - key: cert_target_market
+      to: boss
+      item: 老板 10-25 19:23 拍板 销售区域 = 仅国内 → 认证清单按国内 (GB 31241 锂电 / GB 4943.1 安全 / 光生物安全 / RoHS) 走
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: 老板 10-25 19:23 拍板 销售区域 = 仅国内 → 认证清单按国内 (GB 31241 锂电 / GB 4943.1 安全 / 光生物安全 / RoHS) 走
+      decided_at: '2026-10-25'
+      answers:
+      - by: boss
+        value: 老板 10-25 19:23 拍板 销售区域 = 仅国内 → 认证清单按国内 (GB 31241 锂电 / GB 4943.1 安全 / 光生物安全 / RoHS) 走
+        ref: 老板决策 2026-10-25 (项目总工代录)
+      foreign_answers: []
+    - key: fov_tilt_decision
+      to: boss
+      item: '老板 10-25 19:33 决定: **sensor 输出先不裁剪, 由后级模块缩放到目标分辨率, 暂时先接受畸变, 后继看效果**。
+
+        ★ 这条解掉了『裁剪/畸变』那一半: 不裁剪 = 有效视场最大, 缩放由 ISP 做 (已在管线里: ISP → 640×480@60 或 1280×960@15)。
+
+        ★ 但『俯角 vs 垂直半视场』那一半**没有被这条消掉**: 16:9 对角 100° → 垂直半视场仅 30.3° → 俯角 32° 时正前方仍差 1.7° 掉出画面。
+
+        ★ 项目总工据此定的工作基线 (可回退, 未下单): **对角 FOV 提到 120° (垂直半视场 40.3°) + 俯角收到 ≤25°** → 俯角 25° 余量 +15.3°, 俯角
+        32° 余量 +8.3°, 两种俯角都安全。110° 只够俯角 ≤30°, 不够稳。→ 镜头焦距要更短 → 镜头筒/窗口尺寸要结构跟 (ISS-047 一并复核)。★ 前提: 老板已明确『先接受畸变』→
+        更大 FOV 的边缘畸变代价可接受。'
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: '老板 10-25 19:33 决定: **sensor 输出先不裁剪, 由后级模块缩放到目标分辨率, 暂时先接受畸变, 后继看效果**。
+
+        ★ 这条解掉了『裁剪/畸变』那一半: 不裁剪 = 有效视场最大, 缩放由 ISP 做 (已在管线里: ISP → 640×480@60 或 1280×960@15)。
+
+        ★ 但『俯角 vs 垂直半视场』那一半**没有被这条消掉**: 16:9 对角 100° → 垂直半视场仅 30.3° → 俯角 32° 时正前方仍差 1.7° 掉出画面。
+
+        ★ 项目总工据此定的工作基线 (可回退, 未下单): **对角 FOV 提到 120° (垂直半视场 40.3°) + 俯角收到 ≤25°** → 俯角 25° 余量 +15.3°, 俯角
+        32° 余量 +8.3°, 两种俯角都安全。110° 只够俯角 ≤30°, 不够稳。→ 镜头焦距要更短 → 镜头筒/窗口尺寸要结构跟 (ISS-047 一并复核)。★ 前提: 老板已明确『先接受畸变』→
+        更大 FOV 的边缘畸变代价可接受。'
+      decided_at: '2026-10-25'
+      answers:
+      - by: boss
+        value: '老板 10-25 19:33 决定: **sensor 输出先不裁剪, 由后级模块缩放到目标分辨率, 暂时先接受畸变, 后继看效果**。
+
+          ★ 这条解掉了『裁剪/畸变』那一半: 不裁剪 = 有效视场最大, 缩放由 ISP 做 (已在管线里: ISP → 640×480@60 或 1280×960@15)。
+
+          ★ 但『俯角 vs 垂直半视场』那一半**没有被这条消掉**: 16:9 对角 100° → 垂直半视场仅 30.3° → 俯角 32° 时正前方仍差 1.7° 掉出画面。
+
+          ★ 项目总工据此定的工作基线 (可回退, 未下单): **对角 FOV 提到 120° (垂直半视场 40.3°) + 俯角收到 ≤25°** → 俯角 25° 余量 +15.3°,
+          俯角 32° 余量 +8.3°, 两种俯角都安全。110° 只够俯角 ≤30°, 不够稳。→ 镜头焦距要更短 → 镜头筒/窗口尺寸要结构跟 (ISS-047 一并复核)。★ 前提: 老板已明确『先接受畸变』→
+          更大 FOV 的边缘畸变代价可接受。'
+        ref: 老板决策 2026-10-25 (项目总工代录)
+      foreign_answers: []
+    - key: drafts_hold_decision
+      to: boss
+      item: '老板 10-25 19:33 决定: **3 份外发草稿先保留 (暂不发送)** —— 原厂问询 / JBD 问询 / 桥接芯片询价。
+
+        ★ 代价 (已知悉): ① ISS-001/003/005/006/007/008/009/011/015 共 9 条原厂问题继续等, G1 原理图开不了 ② ISS-004/013/016
+        三条 JBD 问题继续等, 镜框 3D 打印件不能开工 (采购 4-8 周) ③ 光生物安全所需的光机参数 (ISS-048) 也卡在 JBD 草稿上。
+
+        ★ 草稿已按 EMC 0 数据项补过问 (原厂新增时钟频率/MIPI-CSI 输入侧/帧同步/充电状态读取; JBD 新增纹波与 π 滤波; 桥接新增 EMI 指标) —— 保留期间不改动,
+        一旦说发就能直接发。'
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: '老板 10-25 19:33 决定: **3 份外发草稿先保留 (暂不发送)** —— 原厂问询 / JBD 问询 / 桥接芯片询价。
+
+        ★ 代价 (已知悉): ① ISS-001/003/005/006/007/008/009/011/015 共 9 条原厂问题继续等, G1 原理图开不了 ② ISS-004/013/016
+        三条 JBD 问题继续等, 镜框 3D 打印件不能开工 (采购 4-8 周) ③ 光生物安全所需的光机参数 (ISS-048) 也卡在 JBD 草稿上。
+
+        ★ 草稿已按 EMC 0 数据项补过问 (原厂新增时钟频率/MIPI-CSI 输入侧/帧同步/充电状态读取; JBD 新增纹波与 π 滤波; 桥接新增 EMI 指标) —— 保留期间不改动,
+        一旦说发就能直接发。'
+      decided_at: '2026-10-25'
+      answers:
+      - by: boss
+        value: '老板 10-25 19:33 决定: **3 份外发草稿先保留 (暂不发送)** —— 原厂问询 / JBD 问询 / 桥接芯片询价。
+
+          ★ 代价 (已知悉): ① ISS-001/003/005/006/007/008/009/011/015 共 9 条原厂问题继续等, G1 原理图开不了 ② ISS-004/013/016
+          三条 JBD 问题继续等, 镜框 3D 打印件不能开工 (采购 4-8 周) ③ 光生物安全所需的光机参数 (ISS-048) 也卡在 JBD 草稿上。
+
+          ★ 草稿已按 EMC 0 数据项补过问 (原厂新增时钟频率/MIPI-CSI 输入侧/帧同步/充电状态读取; JBD 新增纹波与 π 滤波; 桥接新增 EMI 指标) —— 保留期间不改动,
+          一旦说发就能直接发。'
+        ref: 老板决策 2026-10-25 (项目总工代录)
+      foreign_answers: []
+    answers: []
+    open_questions:
+    - id: PM-Q1
+      to: sw-lead
+      text: OD 负载曲线 (供硬件定 DC-DC 瞬态与电容) + 调试口形态确认
+    - id: PM-Q2
+      to: mech-lead
+      text: JBD 催波导 2D 外形图 + 走鹃Ⅱ 长宽高 (卡镜框开工)
+    - id: PM-Q3
+      to: hw-lead
+      text: 器件发热分布 + NTC 位置 (给散热路径)
+    risks:
+    - id: R-R15-bypass
+      text: '星型拓扑残余绕过通道: 绝对路径调真实 openclaw 二进制仍可横向投递 (工具层 deny + PATH shim 已双保险封死)'
+      severity: medium
+    - id: R-dsi-unknown
+      text: ARS45 显示 TX 接口未确认 (媒体二手证据) — 若既无 DSI TX 也无 DP TX, 则显示链不成立
+      severity: high
+  hw-lead:
+    agent: hw-lead
+    role: 硬件总工
+    updated_at: '2026-10-25T09:34:04+08:00'
+    updated_by: hw-lead
+    status:
+      phase: P2(原理图/BOM启动)
+      progress_pct: 35
+      health: red
+      summary: P1拆解100%完成(26模块/5排除项/3卡点对策成型);P2原理图实体0页(datasheet未到,已出顶层骨架+接口定义+12条接口取值);较上轮+5=需求闭环登记(5条answers)+v2交接单B1-B6+1条新答复(NTC位置)
+    artifacts:
+    - path: HW/HARDWARE_BREAKDOWN.md
+      kind: breakdown
+      version: v1.0
+      updated_at: '2026-10-25T00:22:00+08:00'
+      summary: 26 个硬件模块 + 5 项排除项, 每项标归属/关键参数/数据来源/状态/风险; 全文 15 处标「推算」12 处标「未确认」, 零条冒充实测
+    - path: HANDOFF/2026-10-25_hw-lead_硬件模块拆解.md
+      kind: handoff
+      version: v2.0
+      updated_at: '2026-10-25T09:34:00+08:00'
+      summary: '第2轮 v2 模板: B1-B6 六块 6/6 齐 + 需求闭环登记表 + 硬指标 5/5 类; 第3轮补登 5 条外部等待(waiting_on+due); 首轮内容一字未删'
+    blockers:
+    - id: HW-B1
+      desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
+      severity: high
+      needs_from: &id004
+      - vendor
+      - main
+      waiting_since: '2026-10-24'
+    - id: HW-B2
+      desc: 'FCCSP 球间距未拿到 → 逃线/叠层结论给不出 (已把 pitch 升级为 SoC 选型一票否决项: ≥0.4mm 可行 / 0.35mm 极限 / ≤0.3mm 须 HDI
+        直接违反 4-6 层锁死)'
+      severity: high
+      needs_from: &id005
+      - vendor
+      waiting_since: '2026-10-25'
+    - id: HW-B3
+      desc: 电源域电压/电流上限全未知 → 电压域清单写不出来, 原理图只能画顶层骨架
+      severity: high
+      needs_from: &id006
+      - vendor
+      waiting_since: '2026-10-25'
+    - id: HW-B4
+      desc: 'HW-03 启动存储/固件分区是 tracker 漏项: rootfs + yolov5 权重 + ISP/NPU 固件必须放哪, ARS45 有无内置 boot storage
+        未知'
+      severity: high
+      needs_from: &id007
+      - vendor
+      - main
+      waiting_since: '2026-10-25'
+    needs_from:
+    - key: pcb_outline_confirm
+      to: mech-lead
+      item: PCB 外形 50x12mm 确认 + 器件发热分布 + NTC 位置 (定桥接芯片上主板还是小板 / 散热路径)
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: mech-lead
+        value: PCB 50x12mm; 厚 0.8mm(4层)/1.0mm(6层); 固定 2xM1.2(孔心到板边2.5mm)+1x⌀2.0H7; 板宽跟 FCCSP pitch 走 (pitch<=0.3mm
+          -> 板宽 15mm, 投板前必须 close); Type-C 面板开孔 9.5x3.6mm (母座 8.94x3.26, 末端壁厚>=1.5mm); 器件距板边>=0.8mm
+        ref: MECH/MECH_BUDGET.md#5.1 + HANDOFF/2026-10-25_mech-lead_空间预算.md#B4
+      - by: mech-lead
+        value: '镜脚内腔需求(下限): 前后厚>=7.3mm / 根部净高>=38mm / 内腔长>=110mm (前提: 充电板挪出镜脚, 长度需求 105.5/110/108mm);
+          分配: 电池+主PCB+充电板 沿长度串行 (垂直并排放不下: 22+12=34mm); 光机+分光件不在镜脚, 在镜框正中 (光学舱 14x10x6mm, 镜框正中厚需>=11.8mm)'
+        ref: 'MECH/MECH_BUDGET.md#1.4.2 + #1.4.5 + HANDOFF#3.0'
+      - by: mech-lead
+        value: '摄像头: 装镜框上沿正中, 光轴俯角<=25度 (装上沿的 20-32度偏置不可回避), 水平偏置<=10度, 凸出<=2.5mm, 凹进<=1.5mm; 对角 FOV>=100度
+          (100度 -> H92.2/V60.6, 16:9); 凹进5mm 吃掉上半视场31%; 镜框上沿摄像头位需局部加厚 10-12mm'
+        ref: 'MECH/MECH_BUDGET.md#1.5.2 + #1.5.1 + HANDOFF#3.0'
+      - by: mech-lead
+        value: '散热接触路径: SoC底面散热焊盘 -> 0.3mm导热垫 -> 铝/铜骨架(纵向延伸, 兼PCB支撑) -> 石墨(面内扩展到上表面+铰链侧) -> 对流; 路径不得有塑料隔断
+          (打印件k=0.2, 插进去热阻+94K/W); SoC 必须放远离皮肤侧的一侧; 上下分壳 (上壳装PCB/骨架, 下壳贴皮肤只放电池); 必须加 1 颗 NTC (贴SoC背面/骨架,
+          走I2C)'
+        ref: 'MECH/MECH_BUDGET.md#5.1 + #2.4 + #2.5 + HANDOFF#3.0'
+      - by: mech-lead
+        value: 'M-FIT 结果 (设计态计算, MECH/fit_check.py): 镜脚侧 340mAh 档 前后需求 7.00mm (下壳壁0.8 + 电池4.6 + 隔热垫0.5
+          + 空气隙0.3 + 上壳顶壁0.8) vs 可用 7.30 → 余 0.30mm, 与 FDM 单边公差 ±0.2-0.3 同量级 → 临界, 建议镜腿做到 7.6-7.8mm; PCB/骨架区仅
+          4.50mm (4层) / 4.70mm (6层) → 板厚 4层/6层 都不卡空间 (但若按 §1.4.2 ''电池与PCB同区叠放'' 模型 → 前后干涉 0.80mm + 垂直干涉
+          3.50mm, v1.1 两个排列模型必须锁定一个); 长度: 电池40.5 + PCB50 + 余量15 = 105.5 ≤ 130 (充电板必须挪出镜脚, 否则 +0.50mm 干涉);
+          Type-C 尾端截面宽需 ≥12.5mm (开口9.5 + 两侧1.5 承力壁)、高需 ≥6.6mm (可用7.3, 余0.7)'
+        ref: MECH/fit_check.py + HANDOFF/2026-10-25_mech-lead_空间预算.md#B2-16
+      foreign_answers:
+      - by: hw-lead
+        value: PCB 50x12mm 确认 (板宽跟 FCCSP pitch 走, pitch<=0.3mm 则板宽 12->15mm); 发热主源 SoC 500-900mW + 桥接
+          100-300mW (推算); NTC 贴 SoC 底面散热焊盘边缘 (本轮新增建议); 底面散热焊盘是否存在待 datasheet
+    - key: debug_port_form
+      to: sw-lead
+      item: 调试口形态 + OD 负载曲线 (定 DC-DC 瞬态与电容)
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: sw-lead
+        value: 调试口=Type-C USB2.0 (ADB over USB + CDC-ACM 串口共用一个口, 依赖 SoC USB Device PHY); OD 是连续推理 100%
+          占空比、无空闲窗口 -> DC-DC 瞬态与去耦电容请按连续满载设计, 不要按平均功耗x占空比; 分段负载曲线口径见 SW §11.2 (实测待投板)
+        ref: 'HANDOFF/2026-10-25_sw-lead_软件需求拆解.md#B4 + #接口请求(hw-lead) ; SW/SW_REQUIREMENTS.md#9.3 + #11.2'
+      foreign_answers:
+      - by: hw-lead
+        value: Type-C 复用 USB, ADB+CDC-ACM 双模式=硬要求(不可二选一); 若 ARS45 无 USB Device PHY 则外挂 UART 转 USB; OD
+          帧间负载曲线仍待你出, 我先按持续满载60fps 设计 DC-DC 瞬态(峰值>=均值x1.5)
+    - key: q16_display_iface
+      to: main
+      item: Q16 显示 TX 接口结论 (DSI TX / DP TX / 两者) + 宽高比 A/B/C 拍板
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: q16_aspect_ratio
+      to: boss
+      item: 'Q16-A 宽高比三选一: A(4:3 sensor零裁剪) / B(16:9+裁剪丢16.3度HFOV) / C(16:9+letterbox有效像素-36%) — 卡 sensor
+        选型 -> 卡 MIPI-CSI lane数/电压域 -> 卡 HW-10/11/13 接口定义'
+      since: '2026-10-24'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-27'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: q4_battery_scope
+      to: boss
+      item: 'Q4 续航 1h 口径: 持续满载 vs 按需触发 — 决定电池容量档位(无桥接340-575mAh/有桥接575-675mAh) + DC-DC 峰值策略 + 是否必须加电流采样
+        + 散热可行性(贴皮肤镜腿可持续上限仅0.15-0.2W)'
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-26'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: q3_storage_and_audio
+      to: boss
+      item: Q3 模型/rootfs 怎么存(只ADB push是否接受外挂 SPI-NOR 16-64MB, 板宽12->15mm) + 音频到底做不做(tracker全文无音频条目, 我不擅自加也不擅自排除)
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-27'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: vendor_ars45_paper_q11_q16
+      to: vendor
+      item: '原厂纸面资料8问(10-21邮件已发未回, 全部经main转发): 1 FCCSP ball pitch + 完整引脚图/球位图 2 各电源域(轨名/电压/典型电流/峰值电流/上电顺序/电压容差)
+        3 显示TX(有无DSI TX/有无DP TX/lane数/分辨率帧率/能否与DP RX同时工作) 4 有无USB Device PHY 5 有无内置boot storage及容量 6 MCLK源+sensor
+        RESET极性 7 SoC底面散热焊盘(整块/分块) 8 MIPI-CSI单sensor用2lane还是4lane+输入电压域1.2V/1.8V+是否需外部AC耦合电容'
+      since: '2026-10-21'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: jbd_zoushe_dsi_spec
+      to: jbd
+      item: '走鹃II: 1 MIPI DSI几lane/最高速率 2 800x600@60fps官方验证过吗 3 I2C做什么用+从机地址(与sensor是否冲突) 4 供电电压范围+峰值电流(电源树的一路输入)
+        — 全部经main转达'
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: jbd
+      due: '2026-10-28'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    answers:
+    - key: pcb_outline_confirm
+      to: mech-lead
+      value: PCB 50x12mm 确认 (板宽跟 FCCSP pitch 走, pitch<=0.3mm 则板宽 12->15mm); 发热主源 SoC 500-900mW + 桥接 100-300mW
+        (推算); NTC 贴 SoC 底面散热焊盘边缘 (本轮新增建议); 底面散热焊盘是否存在待 datasheet
+      ref: 'HW/HARDWARE_BREAKDOWN.md#2-卡点B + #1.6(HW-23/HW-24)'
+    - key: debug_port_form
+      to: sw-lead
+      value: Type-C 复用 USB, ADB+CDC-ACM 双模式=硬要求(不可二选一); 若 ARS45 无 USB Device PHY 则外挂 UART 转 USB; OD 帧间负载曲线仍待你出,
+        我先按持续满载60fps 设计 DC-DC 瞬态(峰值>=均值x1.5)
+      ref: 'HW/HARDWARE_BREAKDOWN.md#1.5(HW-19) + #4.3(S1/S2)'
+    - key: vendor_q19_boot_storage
+      to: main
+      value: '已并入原厂邮件问题清单第7问(内置boot storage? 容量?); 当前按无内置boot storage设计: 外挂 SPI-NOR 16-64MB, 吃镜脚空间, 板宽可能
+        12->15mm; 请并入第一轮跟进邮件'
+      ref: HW/HARDWARE_BREAKDOWN.md#1.1(HW-03) + HANDOFF#阻塞-原厂第7问
+    - key: bridge_chip_quote
+      to: main
+      value: '询价规格已给全: 800x600@60 / <300mW / DSI侧lane数可控 / 交期4-8周 / 面积待镜脚空间预算; 商务走main, 我不外联; 建议并行保留原生DSI方案A为首选'
+      ref: 'HW/HARDWARE_BREAKDOWN.md#1.4(HW-15) + #2-卡点A'
+    - key: vendor_fccsp_pitch
+      to: main
+      value: '已并入原厂邮件问题清单第1问(FCCSP ball pitch + 完整引脚图/球位图); 判据已给: >=0.4mm 常规4-6层可行 / 0.35mm 极限需PCB厂书面确认
+        / <=0.3mm 须HDI=一票否决; 电源域表=第2问; 请并入第一轮跟进邮件'
+      ref: HW/HARDWARE_BREAKDOWN.md#2-卡点B
+    open_questions:
+    - id: HW-Q1
+      to: main
+      text: Q16 显示接口结论什么时候能 close? 桥接芯片采购 4-8 周, 不能等
+    risks:
+    - id: R-hw-display-chain
+      text: 若既无 DSI TX 也无 DP TX, 则不是加颗桥芯片的事, 而是显示链不成立
+      severity: high
+    - id: R-hw-pitch
+      text: FCCSP pitch ≤0.3mm → 须 HDI → 违反 4-6 层锁死 → SoC 选型一票否决
+      severity: high
+    - id: R-hw-boot-storage
+      text: 若无内置 boot storage → 需外挂 SPI-NOR/eMMC (吃 PCB 面积, 板宽 12→15mm), 投板前必须 close
+      severity: high
+  sw-lead:
+    agent: sw-lead
+    role: 软件总工
+    updated_at: '2026-10-25T09:30:00+08:00'
+    updated_by: sw-lead
+    status:
+      phase: P1(软件需求拆解)→P2(方案设计)
+      progress_pct: 30
+      health: red
+      summary: 8模块/52条验收标准(自证更正,原写48);端到端口径A=67.0ms超60ms预算(不达标);内存175-188MB非瓶颈;A7S复用32项;B1-B6已补齐,接口取值11条,已答复hw-lead/mech-lead各1条;等外部4条已标waiting_on+due(Q1/Q17/Q18=boss,Q8+Q9=vendor)
+    artifacts:
+    - path: SW/SW_REQUIREMENTS.md
+      kind: requirements
+      version: v1.0
+      updated_at: '2026-10-25T00:25:00+08:00'
+      summary: 8 模块需求 + 52 条验收标准 (v2 自证逐条计数, 原写 48 少计 4) + 端到端延迟建模 (口径/框龄/显示帧率/证据等级) + A7S 可复用清单 32 项
+        + M0-M7 里程碑; 内存 §12.1 逐行相加 = 175.1/187.9MB (原写 178/191 差 ~3MB, 待 PM 决定是否出 v1.1)
+    - path: HANDOFF/2026-10-25_sw-lead_软件需求拆解.md
+      kind: handoff
+      version: v2.0
+      updated_at: '2026-10-25T09:30:00+08:00'
+      summary: 'v2 模板: B1 结论摘要 / B2 验收标准自评 20 条 (含 67ms 不达标 ❌) / B3 证据分级 / B4 接口取值 11 项 / B5 未决项 10 条
+        / B6 自证复现命令 6 条; v1 §1-§9 原文未删'
+    - path: REQ/REQUIREMENTS.md
+      kind: requirements
+      version: v1.0
+      updated_at: '2026-10-25T00:25:00+08:00'
+      summary: 补了软件子模块段 (指向 SW/SW_REQUIREMENTS.md)
+    blockers:
+    - id: SW-B1
+      desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
+      severity: high
+      needs_from: &id008
+      - vendor
+      waiting_since: '2026-10-21'
+    - id: SW-B2
+      desc: 光机逐帧延迟 = 完全 0 数据 (走鹃Ⅱ 只公开 480Hz 刷新率; 光机出光没法用软件打点, 需高速摄影/示波器)
+      severity: high
+      needs_from: &id009
+      - boss
+      - vendor
+      waiting_since: '2026-10-25'
+    - id: SW-B3
+      desc: NPU 输出是否强制 FP32 未知 → A733 上 tensor_to_fp 9.29ms 占 SDK 总 25%; 若强制则端到端多 7.3ms, 框龄跳档
+      severity: high
+      needs_from: &id010
+      - vendor
+      waiting_since: '2026-10-21'
+    - id: SW-B4
+      desc: 'Q1 60ms 口径 + Q17 显示帧率 待老板拍板 (needs: q1_latency_scope / q17_display_fps, waiting_on=boss,
+        due 2026-10-25) → 端到端 ''达标/不达标'' 结论定不下来: 口径A=67.0ms 不达标 / 口径C=42.3ms 达标, 同一套硬件两个口径'
+      severity: high
+      needs_from: &id011
+      - boss
+      - main
+      waiting_since: '2026-10-25'
+    needs_from:
+    - key: q1_latency_scope
+      to: main
+      item: Q1 60ms 口径 — 口径A vs C 差 24.67ms, 模式B 在口径A下 67ms 不达标 / 口径C下 42.3ms 达标 (走 main 转老板拍板)
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-25'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: q17_display_fps
+      to: main
+      item: Q17 显示帧率 — 若放宽到 25-30fps, 显示等 OD 模式端到端 55.7ms 达标 (最省事的解法; 走 main 转老板拍板)
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-25'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: q18_highspeed_cam
+      to: main
+      item: Q18 能不能借高速摄影/示波器实测光机逐帧延迟 (设备资源类, 走 main 转老板)
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-28'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: debug_port_form
+      to: hw-lead
+      item: '调试口形态确认 (Type-C 复用) + 我出 OD 负载曲线供 DC-DC 瞬态设计 (hw-lead 已于 10-25 09:32 正式答复: Type-C 复用 USB,
+        ADB+CDC-ACM 双模式)'
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: hw-lead
+        value: Type-C 复用 USB, ADB+CDC-ACM 双模式=硬要求(不可二选一); 若 ARS45 无 USB Device PHY 则外挂 UART 转 USB; OD
+          帧间负载曲线仍待你出, 我先按持续满载60fps 设计 DC-DC 瞬态(峰值>=均值x1.5)
+        ref: 'HW/HARDWARE_BREAKDOWN.md#1.5(HW-19) + #4.3(S1/S2)'
+      foreign_answers:
+      - by: sw-lead
+        value: 调试口=Type-C USB2.0 (ADB over USB + CDC-ACM 串口共用一个口, 依赖 SoC USB Device PHY); OD 是连续推理 100%
+          占空比、无空闲窗口 -> DC-DC 瞬态与去耦电容请按连续满载设计, 不要按平均功耗x占空比; 分段负载曲线口径见 SW §11.2 (实测待投板)
+    - key: ntc_placement
+      to: mech-lead
+      item: NTC 位置 (配合软件做温度策略) + 实测功耗需求 (按需触发 vs 持续满载的 DVFS 策略) — 我已先答, 待 mech-lead 正式回复
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: mech-lead
+        value: NTC 贴 SoC 背面散热焊盘边缘或铝/铜骨架, 走 I2C, 不贴皮肤侧 (皮肤侧读数滞后会让降频滞后=反而更热); 读数粒度>=1Hz (建议5Hz) 即可, 上报 SoC
+          结温 Tj 即可; 皮肤侧没有传感器, 温控必须建在结温上
+        ref: MECH/MECH_BUDGET.md#2.5 + HANDOFF#B4
+      - by: mech-lead
+        value: 持续功耗上限 0.16-0.21W (43°C红线对应的贴皮肤镜腿上限, 模型敏感性区间; 持续满载1.22W会到皮肤侧96.1°C/82.0°C, 必须按持续满载最保守设计);
+          结温4档 <70/70-85/85-95/>95C 已登记为 thermal_control_tiers; 切档须<=16.67ms; 充电场景 0.8W 充电IC耗散 -> 充电时必须禁
+          OD
+        ref: 'MECH/MECH_BUDGET.md#2.5 + #2.3.1 + HANDOFF#B4'
+      - by: mech-lead
+        value: '结构侧本轮新增硬约束 (会限制你的 DVFS 散热方案): 镜脚前后厚余量只有 0.30mm → 导热垫 (0.3mm) 与金属骨架 (厚度 v1.1 未给, 我按 1.0mm
+          假设) 都加不厚; 若你要求更厚的骨架/更多散热面积来压结温, 必须同步把镜腿前后厚从 7.3 加到 7.6-7.8mm (华为 6.25 基准会进一步被突破, 需老板拍板形态)。另外:
+          持续满载 1.22W → 皮肤侧推算 96.1/82.0°C, 43°C 红线只允许贴皮肤镜腿持续 0.16-0.21W, 这个数字没变, 降温只能靠降功耗不能靠加散热片'
+        ref: MECH/fit_check.py + MECH/MECH_BUDGET.md#2.3.1
+      foreign_answers:
+      - by: sw-lead
+        value: '软件只读 SoC 结温(Tj), 粒度>=1Hz; NTC 贴 SoC 背面或金属骨架, 不贴皮肤侧 (皮肤侧读数滞后会让降频滞后); 接受你 §2.5 的 4 档温控表,
+          加软件约束: 切档须在 1 帧周期 16.67ms 内完成, 否则 age 跳档端到端 +16.67ms; 实测功耗待投板, 按需vs持续待 Q4'
+    - key: vendor_q8_q9_scope
+      to: vendor
+      item: Q8 口径写死 (纯NPU 耗时 vs SDK 总耗时) + Q9 追加4问 (INT8输出直通/分阶段profiling/连续推理降频与首帧预热/输出DMA直连) — 走 main
+        发第二轮邮件, 我不单独对外
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-28'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    answers:
+    - key: debug_port_form
+      to: hw-lead
+      value: 调试口=Type-C USB2.0 (ADB over USB + CDC-ACM 串口共用一个口, 依赖 SoC USB Device PHY); OD 是连续推理 100%
+        占空比、无空闲窗口 -> DC-DC 瞬态与去耦电容请按连续满载设计, 不要按平均功耗x占空比; 分段负载曲线口径见 SW §11.2 (实测待投板)
+      ref: 'HANDOFF/2026-10-25_sw-lead_软件需求拆解.md#B4 + #接口请求(hw-lead) ; SW/SW_REQUIREMENTS.md#9.3 + #11.2'
+    - key: ntc_placement
+      to: mech-lead
+      value: '软件只读 SoC 结温(Tj), 粒度>=1Hz; NTC 贴 SoC 背面或金属骨架, 不贴皮肤侧 (皮肤侧读数滞后会让降频滞后); 接受你 §2.5 的 4 档温控表, 加软件约束:
+        切档须在 1 帧周期 16.67ms 内完成, 否则 age 跳档端到端 +16.67ms; 实测功耗待投板, 按需vs持续待 Q4'
+      ref: 'HANDOFF/2026-10-25_sw-lead_软件需求拆解.md#B4 + #接口请求(mech-lead) ; SW/SW_REQUIREMENTS.md#8.2'
+    open_questions:
+    - id: SW-Q1
+      to: main
+      text: 'A7S 封档项目里 cyl_iou_nms / cylindrical 0.40 阈值没带过来 —— 与锁死变量 #2 (80 类 COCO 不做场景定制) 冲突, 需项目总工裁决'
+    - id: SW-Q2
+      to: main
+      text: 显示帧率若降到 25-30fps, 老板的'60fps'锁死项是否要改写
+    risks:
+    - id: R-sw-step
+      text: 'NPU 延迟台阶效应: 纯 NPU 跨过 16.67ms 边界 → age 从 2 跳 3 → 端到端直接多一整个帧周期 (67→83.7ms)。差 2ms 可能等于差 17ms'
+      severity: high
+    - id: R-sw-fp32
+      text: NPU 强制 FP32 输出 → 反量化占 SDK 总 25% (A733 实测 9.29ms) → 框龄跳档
+      severity: high
+  mech-lead:
+    agent: mech-lead
+    role: 结构总工(带散热)
+    updated_at: '2026-10-25T00:35:00+08:00'
+    updated_by: mech-lead
+    status:
+      phase: P2(打印包+干涉检查已交,待实物打印实测)→ISS-017部分闭环
+      progress_pct: 70
+      health: yellow
+      summary: 第3轮闭环ISS-017:交付打印包MECH/print/(2个可下片STL+41项测量清单+模型级自检41/41+ENV_PROBE.log本机不可打印/量测)_新增MECH/fit_check.py(M-FIT设计态干涉检查:镜脚侧340mAh档条件通过但前后余仅0.30mm临界_3项条件性不通过已量化_镜框侧未验)_measurements.yaml登记M-PRINT与M-FIT(kind=推算诚实标注_未拿推算冒充实测)_B2自评扩到17条(新增M-PRINT/M-FIT/彩虹纹缺失状态)_B6新增3条复现命令_needs_from新增boss_local_print_measure(due10-28)+jbd_optical_engine_dims(due10-28)_answers新增2条(hw-lead_M-FIT对PCB布局约束_sw-lead_0.30mm余量限制骨架加厚)_interface_claims新增5条
+    artifacts:
+    - path: MECH/MECH_BUDGET.md
+      kind: budget
+      version: v1.1
+      updated_at: '2026-10-25'
+      summary: 空间预算 (镜脚侧+镜框侧累加) + 电池三档位 + 散热稳态热模型 (含充电峰值场景) + 重量核算 + 摄像头窗口/FOV + 一拖二分光 + 彩虹纹专章 + P2S 工艺参数/打印vs量产;
+        第二轮新增 §1.4.5 / §2.3.1 / §4(d) / §5.4 / §5.5, 并更正 3 处数值 (0.23W 皮肤侧 42→46.5°C, 重量合计 49-66→50.1-74.0g,
+        凸出俯角 1.8→0.7-0.8°/mm)
+    - path: MECH/verify_budget.py
+      kind: script
+      version: v1.0
+      updated_at: '2026-10-25'
+      summary: '自证脚本: 一条命令复算 热模型/充电峰值/电池三档位/重量求和/摄像头几何/截面叠层/分光公差, 并自动与文档对表 (39/39 一致); 输入参数全部显式列在文件头部'
+    - path: HANDOFF/2026-10-25_mech-lead_空间预算.md
+      kind: handoff
+      version: v2.0
+      updated_at: '2026-10-25'
+      summary: '质量门 v2: B1-B6 六块 6/6; B2 自评 14 条 (✅9/⚠️3/❌2); B3 证据分级 18 条; B4 接口取值 18 条; B5 未决项 10 条
+        (5 条标 waiting_on+due); B6 = 一条命令复算全部关键数字'
+    - path: MECH/print/
+      kind: print-pack
+      version: v1.0
+      updated_at: '2026-10-25'
+      summary: 'P2S 打印包: fit_coupon_340.stl (壁厚阶梯/间隙梳/螺钉柱含沿Z开槽拉脱试样/配作孔/悬空角/标定块/波导槽间隙) + temple_cage_340.stl
+        (电池槽40.8x23.8x4.9/配作销/走线槽6x2/Type-C面板9.5x3.6+1.5承力壁) + optical_cage_TEMPLATE.stl (待JBD尺寸) + gen_print_pack.py
+        + verify_pack.py (模型级41/41) + MEASURE_CHECKLIST.md (41项逐项测量清单) + ENV_PROBE.log (本机不可打印/量测的探测记录)'
+    - path: MECH/fit_check.py
+      kind: script
+      version: v1.0
+      updated_at: '2026-10-25'
+      summary: 'M-FIT 装配干涉检查 (设计态确定性计算, 每层厚度标 MECH_BUDGET v1.1 章节号): 镜脚侧 340mAh 档条件通过(前后余0.30mm临界) + 3项条件性不通过(叠层模型+0.80/+3.50mm,
+        充电板不移出+0.50mm, ⌀2.0H7打印件做不到) + 镜框侧未验(JBD/波导/形态缺口)'
+    blockers:
+    - id: MECH-B1
+      desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
+        11.8mm 全是推算)
+      severity: high
+      needs_from: &id012
+      - jbd
+      - main
+      waiting_since: '2026-10-21'
+    - id: MECH-B2
+      desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
+        0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
+      severity: high
+      needs_from: &id013
+      - boss
+      - main
+      waiting_since: '2026-10-25'
+    - id: MECH-B4
+      desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置
+        boot storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
+      severity: high
+      needs_from: &id014
+      - hw-lead
+      - main
+      waiting_since: '2026-10-25'
+    - id: MECH-B3
+      desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
+      severity: medium
+      needs_from: &id016
+      - jbd
+      waiting_since: '2026-10-25'
+    - id: MECH-B5
+      desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
+        → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
+      severity: medium
+      needs_from: &id017
+      - mech-lead
+      waiting_since: '2026-10-25'
+    needs_from:
+    - key: q4_battery_scope
+      to: boss
+      item: 'Q4 续航 1h 口径: 持续满载 vs 按需触发 — 决定电池档位(340/575/675mAh)/镜腿厚度(7.3/8.7/11.2mm)/散热可行性(43°C红线只允许0.16-0.21W);
+        经项目总工转老板'
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-26'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: q16_aspect_ratio
+      to: boss
+      item: Q16 显示宽高比 A(4:3零裁剪)/B(16:9裁剪丢16.3度HFOV)/C(16:9 letterbox有效像素-36%) — 决定镜框光学舱尺寸/波导耦入角/摄像头 FOV
+        预算; 经项目总工转老板
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-27'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: jbd_waveguide_2d
+      to: jbd
+      item: 'JBD/波导厂: 波导 2D 外形图(卡镜框开工, 采购周期4-8周) + 耦入区位置与容差角 + 是否自带定位基准 + 彩虹纹指标(亮度均匀性/色差/应力敏感度/AR镀膜);
+        经项目总工走 JBD 销售, 我不外联'
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: jbd
+      due: '2026-10-28'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: jbd_dual_eye_module
+      to: jbd
+      item: 'JBD: 走鹃Ⅱ 一拖二双目模组或分光方案 (R13 高风险) — 若无, 结构走 Plan B 双光机 (镜框正中厚 5.8mm vs 一拖二 11.8mm); 经项目总工走
+        JBD'
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: jbd
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: vendor_ars45_thermal_pad
+      to: vendor
+      item: '原厂(酷芯微): ARS45 底面是否有散热焊盘(整块/分块, 决定散热路径) + 是否内置 boot storage(决定 PCB 板宽 12 还是 15mm); 经项目总工转原厂邮件,
+        我不外联'
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: pcb_outline_confirm
+      to: hw-lead
+      item: PCB 外形/厚度/固定孔/connector 位置 + 器件发热分布 + NTC 位置 (已答 4 条, 见 answers)
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: hw-lead
+        value: PCB 50x12mm 确认 (板宽跟 FCCSP pitch 走, pitch<=0.3mm 则板宽 12->15mm); 发热主源 SoC 500-900mW + 桥接
+          100-300mW (推算); NTC 贴 SoC 底面散热焊盘边缘 (本轮新增建议); 底面散热焊盘是否存在待 datasheet
+        ref: 'HW/HARDWARE_BREAKDOWN.md#2-卡点B + #1.6(HW-23/HW-24)'
+      foreign_answers:
+      - by: mech-lead
+        value: PCB 50x12mm; 厚 0.8mm(4层)/1.0mm(6层); 固定 2xM1.2(孔心到板边2.5mm)+1x⌀2.0H7; 板宽跟 FCCSP pitch 走 (pitch<=0.3mm
+          -> 板宽 15mm, 投板前必须 close); Type-C 面板开孔 9.5x3.6mm (母座 8.94x3.26, 末端壁厚>=1.5mm); 器件距板边>=0.8mm
+      - by: mech-lead
+        value: '镜脚内腔需求(下限): 前后厚>=7.3mm / 根部净高>=38mm / 内腔长>=110mm (前提: 充电板挪出镜脚, 长度需求 105.5/110/108mm);
+          分配: 电池+主PCB+充电板 沿长度串行 (垂直并排放不下: 22+12=34mm); 光机+分光件不在镜脚, 在镜框正中 (光学舱 14x10x6mm, 镜框正中厚需>=11.8mm)'
+      - by: mech-lead
+        value: '摄像头: 装镜框上沿正中, 光轴俯角<=25度 (装上沿的 20-32度偏置不可回避), 水平偏置<=10度, 凸出<=2.5mm, 凹进<=1.5mm; 对角 FOV>=100度
+          (100度 -> H92.2/V60.6, 16:9); 凹进5mm 吃掉上半视场31%; 镜框上沿摄像头位需局部加厚 10-12mm'
+      - by: mech-lead
+        value: '散热接触路径: SoC底面散热焊盘 -> 0.3mm导热垫 -> 铝/铜骨架(纵向延伸, 兼PCB支撑) -> 石墨(面内扩展到上表面+铰链侧) -> 对流; 路径不得有塑料隔断
+          (打印件k=0.2, 插进去热阻+94K/W); SoC 必须放远离皮肤侧的一侧; 上下分壳 (上壳装PCB/骨架, 下壳贴皮肤只放电池); 必须加 1 颗 NTC (贴SoC背面/骨架,
+          走I2C)'
+      - by: mech-lead
+        value: 'M-FIT 结果 (设计态计算, MECH/fit_check.py): 镜脚侧 340mAh 档 前后需求 7.00mm (下壳壁0.8 + 电池4.6 + 隔热垫0.5
+          + 空气隙0.3 + 上壳顶壁0.8) vs 可用 7.30 → 余 0.30mm, 与 FDM 单边公差 ±0.2-0.3 同量级 → 临界, 建议镜腿做到 7.6-7.8mm; PCB/骨架区仅
+          4.50mm (4层) / 4.70mm (6层) → 板厚 4层/6层 都不卡空间 (但若按 §1.4.2 ''电池与PCB同区叠放'' 模型 → 前后干涉 0.80mm + 垂直干涉
+          3.50mm, v1.1 两个排列模型必须锁定一个); 长度: 电池40.5 + PCB50 + 余量15 = 105.5 ≤ 130 (充电板必须挪出镜脚, 否则 +0.50mm 干涉);
+          Type-C 尾端截面宽需 ≥12.5mm (开口9.5 + 两侧1.5 承力壁)、高需 ≥6.6mm (可用7.3, 余0.7)'
+    - key: ntc_placement
+      to: sw-lead
+      item: NTC 位置配合 + 持续功耗上限/结温档位 + 切档时限 (已答 2 条, 见 answers)
+      since: '2026-10-25'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: sw-lead
+        value: '软件只读 SoC 结温(Tj), 粒度>=1Hz; NTC 贴 SoC 背面或金属骨架, 不贴皮肤侧 (皮肤侧读数滞后会让降频滞后); 接受你 §2.5 的 4 档温控表,
+          加软件约束: 切档须在 1 帧周期 16.67ms 内完成, 否则 age 跳档端到端 +16.67ms; 实测功耗待投板, 按需vs持续待 Q4'
+        ref: 'HANDOFF/2026-10-25_sw-lead_软件需求拆解.md#B4 + #接口请求(mech-lead) ; SW/SW_REQUIREMENTS.md#8.2'
+      foreign_answers:
+      - by: mech-lead
+        value: NTC 贴 SoC 背面散热焊盘边缘或铝/铜骨架, 走 I2C, 不贴皮肤侧 (皮肤侧读数滞后会让降频滞后=反而更热); 读数粒度>=1Hz (建议5Hz) 即可, 上报 SoC
+          结温 Tj 即可; 皮肤侧没有传感器, 温控必须建在结温上
+      - by: mech-lead
+        value: 持续功耗上限 0.16-0.21W (43°C红线对应的贴皮肤镜腿上限, 模型敏感性区间; 持续满载1.22W会到皮肤侧96.1°C/82.0°C, 必须按持续满载最保守设计);
+          结温4档 <70/70-85/85-95/>95C 已登记为 thermal_control_tiers; 切档须<=16.67ms; 充电场景 0.8W 充电IC耗散 -> 充电时必须禁
+          OD
+      - by: mech-lead
+        value: '结构侧本轮新增硬约束 (会限制你的 DVFS 散热方案): 镜脚前后厚余量只有 0.30mm → 导热垫 (0.3mm) 与金属骨架 (厚度 v1.1 未给, 我按 1.0mm
+          假设) 都加不厚; 若你要求更厚的骨架/更多散热面积来压结温, 必须同步把镜腿前后厚从 7.3 加到 7.6-7.8mm (华为 6.25 基准会进一步被突破, 需老板拍板形态)。另外:
+          持续满载 1.22W → 皮肤侧推算 96.1/82.0°C, 43°C 红线只允许贴皮肤镜腿持续 0.16-0.21W, 这个数字没变, 降温只能靠降功耗不能靠加散热片'
+    - key: boss_local_print_measure
+      to: boss
+      item: '本机物理上无法打印/量测 (打印机 192.168.1.68 与本机 192.168.2.4/24 不同网段不可达: ping 无响应 + TCP 990/8883/6000/4000
+        全 closed; 无切片器; 无卡尺/千分尺/塞尺; 无 USB 串口; 证据 MECH/print/ENV_PROBE.log) → 请指定打印与量测执行方 (本地 P2S + 人工量测
+        / 委托打印服务 / 下次到车间集中打印)。已交付: 可直接下片 STL (MECH/print/fit_coupon_340.stl + temple_cage_340.stl) + 逐项测量清单
+        41 项 (MECH/print/MEASURE_CHECKLIST.md) + 模型级自检 41/41; 谁执行谁按表填, 回填 measurements.yaml (M-PRINT kind=实测)
+        即可解锁阶段门 G2。经项目总工转达'
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-28'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: jbd_optical_engine_dims
+      to: jbd
+      item: 'JBD: 走鹃Ⅱ 光机 长×宽×高 三维尺寸 (官网只给 0.18cc / 0.5g / 98mW / 800×600 / 30° / 480Hz) → 镜框正中光学舱 11.8mm
+        厚度与光机安装位姿/干涉检查全靠它; 缺它 M-FIT 镜框侧无法判定, 且 optical_cage_TEMPLATE.stl 只能停在模板态。经项目总工走 JBD 销售, 我不外联'
+      since: '2026-10-25'
+      state: waiting_external
+      target_missing: false
+      waiting_on: jbd
+      due: '2026-10-28'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    answers:
+    - key: pcb_outline_confirm
+      to: hw-lead
+      value: PCB 50x12mm; 厚 0.8mm(4层)/1.0mm(6层); 固定 2xM1.2(孔心到板边2.5mm)+1x⌀2.0H7; 板宽跟 FCCSP pitch 走 (pitch<=0.3mm
+        -> 板宽 15mm, 投板前必须 close); Type-C 面板开孔 9.5x3.6mm (母座 8.94x3.26, 末端壁厚>=1.5mm); 器件距板边>=0.8mm
+      ref: MECH/MECH_BUDGET.md#5.1 + HANDOFF/2026-10-25_mech-lead_空间预算.md#B4
+    - key: pcb_outline_confirm
+      to: hw-lead
+      value: '镜脚内腔需求(下限): 前后厚>=7.3mm / 根部净高>=38mm / 内腔长>=110mm (前提: 充电板挪出镜脚, 长度需求 105.5/110/108mm); 分配:
+        电池+主PCB+充电板 沿长度串行 (垂直并排放不下: 22+12=34mm); 光机+分光件不在镜脚, 在镜框正中 (光学舱 14x10x6mm, 镜框正中厚需>=11.8mm)'
+      ref: 'MECH/MECH_BUDGET.md#1.4.2 + #1.4.5 + HANDOFF#3.0'
+    - key: pcb_outline_confirm
+      to: hw-lead
+      value: '摄像头: 装镜框上沿正中, 光轴俯角<=25度 (装上沿的 20-32度偏置不可回避), 水平偏置<=10度, 凸出<=2.5mm, 凹进<=1.5mm; 对角 FOV>=100度
+        (100度 -> H92.2/V60.6, 16:9); 凹进5mm 吃掉上半视场31%; 镜框上沿摄像头位需局部加厚 10-12mm'
+      ref: 'MECH/MECH_BUDGET.md#1.5.2 + #1.5.1 + HANDOFF#3.0'
+    - key: pcb_outline_confirm
+      to: hw-lead
+      value: '散热接触路径: SoC底面散热焊盘 -> 0.3mm导热垫 -> 铝/铜骨架(纵向延伸, 兼PCB支撑) -> 石墨(面内扩展到上表面+铰链侧) -> 对流; 路径不得有塑料隔断
+        (打印件k=0.2, 插进去热阻+94K/W); SoC 必须放远离皮肤侧的一侧; 上下分壳 (上壳装PCB/骨架, 下壳贴皮肤只放电池); 必须加 1 颗 NTC (贴SoC背面/骨架,
+        走I2C)'
+      ref: 'MECH/MECH_BUDGET.md#5.1 + #2.4 + #2.5 + HANDOFF#3.0'
+    - key: ntc_placement
+      to: sw-lead
+      value: NTC 贴 SoC 背面散热焊盘边缘或铝/铜骨架, 走 I2C, 不贴皮肤侧 (皮肤侧读数滞后会让降频滞后=反而更热); 读数粒度>=1Hz (建议5Hz) 即可, 上报 SoC
+        结温 Tj 即可; 皮肤侧没有传感器, 温控必须建在结温上
+      ref: MECH/MECH_BUDGET.md#2.5 + HANDOFF#B4
+    - key: ntc_placement
+      to: sw-lead
+      value: 持续功耗上限 0.16-0.21W (43°C红线对应的贴皮肤镜腿上限, 模型敏感性区间; 持续满载1.22W会到皮肤侧96.1°C/82.0°C, 必须按持续满载最保守设计);
+        结温4档 <70/70-85/85-95/>95C 已登记为 thermal_control_tiers; 切档须<=16.67ms; 充电场景 0.8W 充电IC耗散 -> 充电时必须禁
+        OD
+      ref: 'MECH/MECH_BUDGET.md#2.5 + #2.3.1 + HANDOFF#B4'
+    - key: pcb_outline_confirm
+      to: hw-lead
+      value: 'M-FIT 结果 (设计态计算, MECH/fit_check.py): 镜脚侧 340mAh 档 前后需求 7.00mm (下壳壁0.8 + 电池4.6 + 隔热垫0.5 +
+        空气隙0.3 + 上壳顶壁0.8) vs 可用 7.30 → 余 0.30mm, 与 FDM 单边公差 ±0.2-0.3 同量级 → 临界, 建议镜腿做到 7.6-7.8mm; PCB/骨架区仅
+        4.50mm (4层) / 4.70mm (6层) → 板厚 4层/6层 都不卡空间 (但若按 §1.4.2 ''电池与PCB同区叠放'' 模型 → 前后干涉 0.80mm + 垂直干涉
+        3.50mm, v1.1 两个排列模型必须锁定一个); 长度: 电池40.5 + PCB50 + 余量15 = 105.5 ≤ 130 (充电板必须挪出镜脚, 否则 +0.50mm 干涉);
+        Type-C 尾端截面宽需 ≥12.5mm (开口9.5 + 两侧1.5 承力壁)、高需 ≥6.6mm (可用7.3, 余0.7)'
+      ref: MECH/fit_check.py + HANDOFF/2026-10-25_mech-lead_空间预算.md#B2-16
+    - key: ntc_placement
+      to: sw-lead
+      value: '结构侧本轮新增硬约束 (会限制你的 DVFS 散热方案): 镜脚前后厚余量只有 0.30mm → 导热垫 (0.3mm) 与金属骨架 (厚度 v1.1 未给, 我按 1.0mm
+        假设) 都加不厚; 若你要求更厚的骨架/更多散热面积来压结温, 必须同步把镜腿前后厚从 7.3 加到 7.6-7.8mm (华为 6.25 基准会进一步被突破, 需老板拍板形态)。另外:
+        持续满载 1.22W → 皮肤侧推算 96.1/82.0°C, 43°C 红线只允许贴皮肤镜腿持续 0.16-0.21W, 这个数字没变, 降温只能靠降功耗不能靠加散热片'
+      ref: MECH/fit_check.py + MECH/MECH_BUDGET.md#2.3.1
+    open_questions:
+    - id: MECH-Q1
+      to: main
+      text: 675mAh 形态否决的兜底方案 (拆左右镜脚分摊电池) 是否走? 还是靠 Q4 口径把电池压下来
+    risks:
+    - id: R-mech-heat
+      text: 持续满载 1.22W 与'眼镜贴皮肤佩戴'热学上不相容 (差 6-8 倍)。出路是降功耗不是加散热片
+      severity: high
+    - id: R-mech-thickness
+      text: '电池容量直接决定镜腿厚度: 340→7.3mm / 575→8.7mm / 675→11.2mm (华为 6.25mm 的 1.8 倍, 形态否决)'
+      severity: high
+    - id: R-mech-splitter
+      text: 'R13 分光件自研: 必须与光机共基准 (0.25°→40mm 臂长 0.175mm), 分光面需 ≤5µm 而 FDM 是 Ra 10-30µm → Plan B 双光机在结构上比一拖二更简单'
+      severity: high
+    - id: R-mech-chargeboard
+      text: 充电板只 0.2cc 但吃 25mm 长度, 是镜脚长度超标唯一元凶 → 必须挪出镜脚
+      severity: medium
+interface_claims:
+  pcb_outline:
+    values:
+      hw-lead: 50x12mm
+      mech-lead: 50x12mm
+    notes:
+      hw-lead: 与 mech-lead MECH_BUDGET#1.3 同值; 板宽跟 FCCSP pitch 走, pitch<=0.3mm 则板宽 12->15mm
+      mech-lead: 镜脚截面随电池档位 7.3/8.7/11.2mm; 板宽跟 FCCSP pitch 走 (pitch<=0.3mm -> 15mm, 投板前必须 close); 与 hw-lead/main
+        同值
+    by:
+    - hw-lead
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  board_layer_count:
+    values:
+      hw-lead: 4-6层
+      main: 4-6层
+    notes:
+      hw-lead: 锁死; 与 main 同 key 同值 -> 值一变即报冲突; pitch<=0.3mm 须 HDI = 违反锁死
+      main: 锁死
+    by:
+    - hw-lead
+    - main
+    noncanonical_by: []
+    conflict: false
+  battery_capacity_tier:
+    values:
+      hw-lead: 无桥接340-575mAh/有桥接575-675mAh
+      mech-lead: 无桥接340-575mAh/有桥接575-675mAh
+    notes:
+      hw-lead: 与 mech-lead 同值; 有无桥接芯片直接决定电池档位
+      mech-lead: 675mAh 形态否决 (镜腿 11.2mm = 华为 6.25mm 的 1.8 倍); 与 hw-lead/main 同值
+    by:
+    - hw-lead
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  typec_opening:
+    values:
+      hw-lead: 9.5x3.6mm
+      mech-lead: 9.5x3.6mm
+    notes:
+      hw-lead: 与 mech-lead 同值; 受 P2S 3D 打印公差限制
+      mech-lead: 母座本体 8.94x3.26; 末端壁厚留>=1.5mm 承力 + 铝框防刮; 受 P2S FDM 公差限制; 与 hw-lead 同值
+    by:
+    - hw-lead
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mipi_csi_lanes:
+    values:
+      hw-lead: TBD
+    notes:
+      hw-lead: 单 sensor 用 2 lane 还是 4 lane 待 datasheet (ARS45 支持双路 MIPI); 决定连接器与走线宽度
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  debug_port_mode:
+    values:
+      hw-lead: ADB+CDC-ACM
+    notes:
+      hw-lead: 'Type-C 复用 USB, 双模式硬要求不可二选一; sw-lead 已确认: ADB over USB + CDC-ACM 串口共用一个 Type-C USB2.0 口,
+        依赖 SoC USB Device PHY (无 PHY 则外挂 UART 转 USB)'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  optical_connector_pins:
+    values:
+      hw-lead: DSI+I2C+RESET+VDD+GND
+    notes:
+      hw-lead: 光机侧连接器定死; 原生 DSI 与 DP+桥 两种接法共用同一连接器, 波导/光机选型不被卡
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  bridge_chip_spec:
+    values:
+      hw-lead: 800x600@60/<300mW
+    notes:
+      hw-lead: 并行询价 4-8 周交期, 需 DSI 侧 lane 数可控; 商务走 main, 我不外联
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  fccsp_pitch_min:
+    values:
+      hw-lead: 0.4mm
+    notes:
+      hw-lead: '>=0.4 常规4-6层可行 / 0.35 极限需PCB厂书面确认 / <=0.3 须HDI=一票否决; 是 SoC 选型条款不是工艺细节'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  mipi_diff_impedance:
+    values:
+      hw-lead: 100Ω±10%
+    notes:
+      hw-lead: 每 lane 差分, 等长匹配; 需 AC 耦合电容 + 1.2V/1.8V 电平对齐, 不能直连
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  dc_dc_overshoot:
+    values:
+      hw-lead: 1.5x峰值
+    notes:
+      hw-lead: 核心轨 DC-DC 额定>=均值x1.5, 且负载跃变响应须写进选型条款 (静态达标≠动态达标); sw-lead 已确认 OD=连续推理100%占空比无空闲窗口 -> 按连续满载设计,
+        不按平均功耗x占空比
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  battery_charge_current:
+    values:
+      hw-lead: 550mA@5V/2A
+    notes:
+      hw-lead: 460mAh 1h 充满需>=550mA, 超 USB2.0 默认500mA -> 建议上 PD sink (5V only, 2A)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  pcb_thickness:
+    values:
+      mech-lead: 0.8mm(4层)/1.0mm(6层)
+    notes:
+      mech-lead: 锁死 4-6 层; 4层=0.8mm / 6层=1.0mm; 阻抗控 MIPI 走线
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  pcb_mounting:
+    values:
+      mech-lead: 2xM1.2+1x⌀2.0H7
+    notes:
+      mech-lead: 孔心到板边 2.5mm; 定位靠金属骨架不靠打印面 (FDM 打不出 H7); 器件距板边>=0.8mm
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  temple_thickness:
+    values:
+      mech-lead: 7.3-8.7mm
+    notes:
+      mech-lead: 340mAh 档 7.3mm / 575mAh 档 8.7mm; 675mAh 档 11.2mm 已否决; 华为镜腿 6.25mm 基准
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  temple_cavity_length:
+    values:
+      mech-lead: ≥110mm
+    notes:
+      mech-lead: 充电板挪出镜脚后的长度需求 (105.5/110/108mm); 130mm 内腔基准; 镜腿根部净高>=38mm
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  skin_temp_limit:
+    values:
+      mech-lead: 38-40C(红线43C)
+      main: 38-40C(红线43C)
+    notes:
+      mech-lead: ISO 13732-1 / CENELEC Guide 29 (8h 及以上接触全部材质 43°C); 皮肤温度测量与验收归 mech-lead; 与 main 同值
+      main: ''
+    by:
+    - main
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  skin_sustainable_power:
+    values:
+      mech-lead: 0.16-0.21W
+    notes:
+      mech-lead: 43°C 红线对应的贴皮肤镜腿持续功耗上限 (主模型 0.16W / 壳壁剥离变体 0.21W); 1.22W 持续满载 -> 皮肤侧 96.1/82.0°C
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  thermal_control_tiers:
+    values:
+      mech-lead: 4档 <70/70-85/85-95/>95C
+      sw-lead: 4档 <70/70-85/85-95/>95C
+    notes:
+      mech-lead: SoC 结温(Tj)档位, 不是皮肤温度; 皮肤侧无传感器; 切档须<=16.67ms; 与 sw-lead 同值
+      sw-lead: SoC 结温(Tj)档位, 来自 MECH_BUDGET §2.5; 皮肤温度验收归 mech-lead; 切档须<=16.67ms
+    by:
+    - mech-lead
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  camera_window:
+    values:
+      mech-lead: 俯角20-32度/FOV>=100度/边框凹进<=1.5mm
+    notes:
+      mech-lead: 装镜框上沿的俯角偏置不可回避; 凹进5mm 吃掉上半视场31%; 镜框上沿需局部加厚10-12mm; 凸出1mm 俯角+0.7~0.8度
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  camera_fov_16x9:
+    values:
+      mech-lead: 对角100度→H92.2/V60.6
+    notes:
+      mech-lead: 16:9 sensor 分解; 边框遮挡后实际可用视场更小; 对角110度→H102.4/V70.0, 120度→H113.0/V80.7
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  splitter_volume:
+    values:
+      mech-lead: 0.79cc
+    notes:
+      mech-lead: 一拖二分光组件 (平板10x10x1.5 + 2棱镜8x8x5), 比光机本体 0.18cc 大 4 倍; 全推算, JBD 无成品
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  splitter_mount_tolerance:
+    values:
+      mech-lead: ≤0.25度/0.175mm@40mm
+    notes:
+      mech-lead: 分光件必须与光机共基准 (不能各自胶粘); 分光面需<=5µm 加工件, 不能用打印面 (FDM Ra 10-30µm)
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  optical_cavity_size:
+    values:
+      mech-lead: 14x10x6mm
+    notes:
+      mech-lead: 镜框正中光学舱 (光机+分光件串联); 镜框正中厚需>=11.8mm; 双光机 Plan B 只需 4.8mm
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  waveguide_slot_parallel:
+    values:
+      mech-lead: ±0.3度
+    notes:
+      mech-lead: U形卡槽面内平行度; 泡棉软压不硬压 (防装配应力彩虹纹); 平行度由金属压条保证不靠打印面
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  p2s_min_wall:
+    values:
+      mech-lead: 0.8mm
+    notes:
+      mech-lead: P2S 0.4 喷嘴 4 圈; 受力肋>=1.2mm; 螺钉柱>=2.4mm 直径; 装配间隙 单边 0.15-0.3mm
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  p2s_overhang:
+    values:
+      mech-lead: ≤45deg
+    notes:
+      mech-lead: 目标 0 支撑; >60deg 必须拆件; PA-CF 层间结合 50-60% -> 受力必须在 XY 平面内
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  temple_h_stack:
+    values:
+      mech-lead: 7.00mm(340档)
+    notes:
+      mech-lead: 镜脚电池区前后需求 = 下壳壁0.8 + 电池4.6 + 隔热垫0.5 + 空气隙0.3 + 上壳顶壁0.8; 可用 7.3 (§1.6.2) → 余 0.30mm; PCB/骨架区
+        4.50-4.70mm; 设计态计算, 非实物实测
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  temple_h_margin:
+    values:
+      mech-lead: 0.30mm
+    notes:
+      mech-lead: 前后余量, 与 FDM 单边公差 ±0.2-0.3mm 同量级 → 临界; 建议镜腿 7.6-7.8mm; 若按 §1.4.2 叠层模型则干涉 0.80mm (v1.1
+        两模型并存, 需锁定)
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  tail_section_width:
+    values:
+      mech-lead: ≥12.5mm
+    notes:
+      mech-lead: 镜腿尾端截面宽下限 (Type-C 开口 9.5 + 两侧 1.5 承力壁); 高度 ≥6.6mm (可用 7.3, 余 0.7); 末端宽度 v1.1 未定义 (u8)
+        → 需老板/PM 定镜腿形态
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mfit_scope:
+    values:
+      mech-lead: 镜脚侧通过(临界)/镜框侧未验
+    notes:
+      mech-lead: 'M-FIT 设计态结论 (MECH/fit_check.py): 镜脚侧 340mAh 档条件通过; 3 项条件性不通过已量化 (叠层模型 +0.80/+3.50mm,
+        充电板不移出 +0.50mm, ⌀2.0H7 FDM 做不到); 镜框侧缺 JBD 走鹃Ⅱ尺寸(u1)+波导2D图(u4)+镜框形态(u8)'
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  print_pack:
+    values:
+      mech-lead: MECH/print/*.stl
+    notes:
+      mech-lead: 可下片 STL (fit_coupon_340 + temple_cage_340) + MEASURE_CHECKLIST.md (41 项测量清单) + verify_pack.py
+        (模型级 41/41) 已交付; M-PRINT 仍 0 实测 (本机不可打印/量测, 已升级 boss)
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  display_frame_rate:
+    values:
+      main: 60fps
+      sw-lead: 60fps
+    notes:
+      main: 待老板 Q17; 现按 60fps 异步模型算 = 67ms 超预算
+      sw-lead: 现状 age=2 -> 67ms; 若 25-30fps -> 55.7ms 达标
+    by:
+    - main
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  latency_budget:
+    values:
+      main: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
+      sw-lead: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
+    notes:
+      main: 原 42-45ms 结论已作废
+      sw-lead: 模式A 显示 25.6fps / 模式B age=2 / 模式B' age=3 / 模式C 需 T_od<=16.67ms; 全部为推算
+    by:
+    - main
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  od_input_size:
+    values:
+      sw-lead: 640x640
+    notes:
+      sw-lead: letterbox; 建议 INT8 输出直通 (自反量化 0.1-0.3ms 而非 SDK 9.29ms)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  memory_budget:
+    values:
+      sw-lead: 178-191MB/512MB
+    notes:
+      sw-lead: R7 降级为低; 待确认 NPU SDK workspace + CMA 预留策略; 与 memory_budget_recomputed 差 2.9-3.1MB
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  memory_budget_recomputed:
+    values:
+      sw-lead: 175-188MB/512MB
+    notes:
+      sw-lead: SW §12.1 表行逐行相加 (自证命令 B6-4); 疑似显示帧buffer行重复计入; 结论不变 (占34-37%, 非瓶颈)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  od_duty_cycle:
+    values:
+      sw-lead: 100%
+    notes:
+      sw-lead: OD 连续推理, 无空闲窗口; DC-DC 瞬态/去耦按连续满载设计 (SW §6.1 + §11.2)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  debug_port_iface:
+    values:
+      sw-lead: USB2.0-ADB+CDC
+    notes:
+      sw-lead: 'Type-C 复合设备: ADB 走 bulk + CDC 走日志; 依赖 SoC USB Device PHY (未确认)'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  od_segment_budget_ms:
+    values:
+      sw-lead: pre1/npu16/quant2/nms3/draw1
+    notes:
+      sw-lead: S4-S8 分段预算; 打点口径 SW §11.2, 实测待投板
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  box_age_frames:
+    values:
+      sw-lead: '2'
+    notes:
+      sw-lead: age=ceil(T_od/16.67); T_od>16.67ms 即跳到3 -> 端到端 67->83.7ms
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  thermal_sensor_iface:
+    values:
+      sw-lead: I2C-NTC+1Hz
+    notes:
+      sw-lead: 软件只读 SoC Tj; NTC 贴 SoC 背面/金属骨架, 不贴皮肤侧
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+needs_matrix:
+  pending:
+  - key: emc_mech_interface_ask
+    to: mech-lead
+    item: 'EMC 需要的 3 项结构数据 (来源 HW/EMC_PRECHECK.md D7/D8/D9): ① 外露金属件清单 + 各件搭接位 + 能否做到全单点接地 (R-04/R-07
+      卡这里) ② 跨铰链段走线长度预算 (框内段+铰链段+脚内段, R-01/R-02/R-08) ③ 充电板↔主板互连形式 (FPC/线束/芯数/长度, R-08)'
+    waiting_on: agent
+    due: '2026-10-29'
+    since: '2026-10-25'
+    _by: main
+    state: pending
+  - key: emc_hw_interface_ask
+    to: hw-lead
+    item: 'EMC 需要的 4 项硬件数据 (来源 SW/INTEGRATION_PLAN.md IR-01~05 + EMC_PRECHECK D1~D4): ① 充电状态读取接口 (若无状态寄存器且无
+      VBUS 分压检测 → 充电时禁 OD 门禁无法实现, M-CHRG 判未验) ② 电源域标称电压 ③ 帧同步信号能否引出 ④ 测流点位置 + 贴片测温点位'
+    waiting_on: agent
+    due: '2026-10-29'
+    since: '2026-10-25'
+    _by: main
+    state: pending
+  answered_count: 36
+  total: 38
+blockers:
+- id: PM-B1
+  desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
+  severity: high
+  needs_from: *id001
+  waiting_since: '2026-10-21'
+  owner: main
+- id: PM-B2
+  desc: '两个硬指标口径待老板拍板: Q1 (60ms 口径, 第一优先) + Q4 (续航口径, 高优先)'
+  severity: high
+  needs_from: *id002
+  waiting_since: '2026-10-25'
+  owner: main
+- id: PM-B3
+  desc: Q16 显示 TX 接口 (DSI TX / DP TX / 两者) 未确认 → 决定要不要多一颗桥接芯片 (采购 4-8 周, 不能等)
+  severity: high
+  needs_from: *id003
+  waiting_since: '2026-10-24'
+  owner: main
+- id: HW-B1
+  desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
+  severity: high
+  needs_from: *id004
+  waiting_since: '2026-10-24'
+  owner: hw-lead
+- id: HW-B2
+  desc: 'FCCSP 球间距未拿到 → 逃线/叠层结论给不出 (已把 pitch 升级为 SoC 选型一票否决项: ≥0.4mm 可行 / 0.35mm 极限 / ≤0.3mm 须 HDI 直接违反
+    4-6 层锁死)'
+  severity: high
+  needs_from: *id005
+  waiting_since: '2026-10-25'
+  owner: hw-lead
+- id: HW-B3
+  desc: 电源域电压/电流上限全未知 → 电压域清单写不出来, 原理图只能画顶层骨架
+  severity: high
+  needs_from: *id006
+  waiting_since: '2026-10-25'
+  owner: hw-lead
+- id: HW-B4
+  desc: 'HW-03 启动存储/固件分区是 tracker 漏项: rootfs + yolov5 权重 + ISP/NPU 固件必须放哪, ARS45 有无内置 boot storage 未知'
+  severity: high
+  needs_from: *id007
+  waiting_since: '2026-10-25'
+  owner: hw-lead
+- id: SW-B1
+  desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
+  severity: high
+  needs_from: *id008
+  waiting_since: '2026-10-21'
+  owner: sw-lead
+- id: SW-B2
+  desc: 光机逐帧延迟 = 完全 0 数据 (走鹃Ⅱ 只公开 480Hz 刷新率; 光机出光没法用软件打点, 需高速摄影/示波器)
+  severity: high
+  needs_from: *id009
+  waiting_since: '2026-10-25'
+  owner: sw-lead
+- id: SW-B3
+  desc: NPU 输出是否强制 FP32 未知 → A733 上 tensor_to_fp 9.29ms 占 SDK 总 25%; 若强制则端到端多 7.3ms, 框龄跳档
+  severity: high
+  needs_from: *id010
+  waiting_since: '2026-10-21'
+  owner: sw-lead
+- id: SW-B4
+  desc: 'Q1 60ms 口径 + Q17 显示帧率 待老板拍板 (needs: q1_latency_scope / q17_display_fps, waiting_on=boss, due
+    2026-10-25) → 端到端 ''达标/不达标'' 结论定不下来: 口径A=67.0ms 不达标 / 口径C=42.3ms 达标, 同一套硬件两个口径'
+  severity: high
+  needs_from: *id011
+  waiting_since: '2026-10-25'
+  owner: sw-lead
+- id: MECH-B1
+  desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
+    11.8mm 全是推算)
+  severity: high
+  needs_from: *id012
+  waiting_since: '2026-10-21'
+  owner: mech-lead
+- id: MECH-B2
+  desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
+    0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
+  severity: high
+  needs_from: *id013
+  waiting_since: '2026-10-25'
+  owner: mech-lead
+- id: MECH-B4
+  desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置 boot
+    storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
+  severity: high
+  needs_from: *id014
+  waiting_since: '2026-10-25'
+  owner: mech-lead
+- id: PM-B4
+  desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
+  severity: medium
+  needs_from: *id015
+  waiting_since: '2026-10-21'
+  owner: main
+- id: MECH-B3
+  desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
+  severity: medium
+  needs_from: *id016
+  waiting_since: '2026-10-25'
+  owner: mech-lead
+- id: MECH-B5
+  desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
+    → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
+  severity: medium
+  needs_from: *id017
+  waiting_since: '2026-10-25'
+  owner: mech-lead
+conflicts: []
+needs_normalization: []
+lint:
+- agent: mech-lead
+  key: mfit_scope
+  value: 镜脚侧通过(临界)/镜框侧未验
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+risks:
+- id: R-dsi-unknown
+  text: ARS45 显示 TX 接口未确认 (媒体二手证据) — 若既无 DSI TX 也无 DP TX, 则显示链不成立
+  severity: high
+  owner: main
+- id: R-hw-display-chain
+  text: 若既无 DSI TX 也无 DP TX, 则不是加颗桥芯片的事, 而是显示链不成立
+  severity: high
+  owner: hw-lead
+- id: R-hw-pitch
+  text: FCCSP pitch ≤0.3mm → 须 HDI → 违反 4-6 层锁死 → SoC 选型一票否决
+  severity: high
+  owner: hw-lead
+- id: R-hw-boot-storage
+  text: 若无内置 boot storage → 需外挂 SPI-NOR/eMMC (吃 PCB 面积, 板宽 12→15mm), 投板前必须 close
+  severity: high
+  owner: hw-lead
+- id: R-sw-step
+  text: 'NPU 延迟台阶效应: 纯 NPU 跨过 16.67ms 边界 → age 从 2 跳 3 → 端到端直接多一整个帧周期 (67→83.7ms)。差 2ms 可能等于差 17ms'
+  severity: high
+  owner: sw-lead
+- id: R-sw-fp32
+  text: NPU 强制 FP32 输出 → 反量化占 SDK 总 25% (A733 实测 9.29ms) → 框龄跳档
+  severity: high
+  owner: sw-lead
+- id: R-mech-heat
+  text: 持续满载 1.22W 与'眼镜贴皮肤佩戴'热学上不相容 (差 6-8 倍)。出路是降功耗不是加散热片
+  severity: high
+  owner: mech-lead
+- id: R-mech-thickness
+  text: '电池容量直接决定镜腿厚度: 340→7.3mm / 575→8.7mm / 675→11.2mm (华为 6.25mm 的 1.8 倍, 形态否决)'
+  severity: high
+  owner: mech-lead
+- id: R-mech-splitter
+  text: 'R13 分光件自研: 必须与光机共基准 (0.25°→40mm 臂长 0.175mm), 分光面需 ≤5µm 而 FDM 是 Ra 10-30µm → Plan B 双光机在结构上比一拖二更简单'
+  severity: high
+  owner: mech-lead
+- id: R-R15-bypass
+  text: '星型拓扑残余绕过通道: 绝对路径调真实 openclaw 二进制仍可横向投递 (工具层 deny + PATH shim 已双保险封死)'
+  severity: medium
+  owner: main
+- id: R-mech-chargeboard
+  text: 充电板只 0.2cc 但吃 25mm 长度, 是镜脚长度超标唯一元凶 → 必须挪出镜脚
+  severity: medium
+  owner: mech-lead
+summary:
+  health: red
+  artifacts: 14
+  blockers: 17
+  high_blockers: 14
+  open_needs: 2
+  waiting_external_needs: 18
+  overdue_needs: 0
+  target_missing_needs: 0
+  conflicts: 0
+  needs_normalization: 0
+  lint: 1
+  agents_reporting: 4
+  incomplete_fragments: 0

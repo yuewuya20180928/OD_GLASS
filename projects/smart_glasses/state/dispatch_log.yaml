@@ -1,0 +1,37 @@
+dispatches:
+- issue: ISS-017
+  agent: mech-lead
+  at: '2026-10-25'
+  brief: '目标: 闭环 ISS-017 —— ① P2S 打印件打样并量出关键配合尺寸 (目前 0 件) ② 完成电池/PCB/光机装配干涉检查 ③ 记录波导彩虹纹指标的缺失状态
+
+    输出: HANDOFF/2026-10-25_mech-lead_空间预算.md 的 B2 自评表 + B6 复现命令; state/measurements.yaml 登记 M-PRINT / M-FIT 两项 (kind 必须是 实测)
+
+    写入范围: 只写 HANDOFF/ 与 state/fragments/mech.yaml (用 frag_write.py 原子写) + state/measurements.yaml;'
+- issue: ISS-042
+  agent: mech-lead
+  at: '2026-10-25'
+  brief: 'mech-lead 设计态干涉计算结果: 镜脚侧 (340mAh 档 + 充电板挪出 + 沿长度串行) 前后余 0.30mm — 与 FDM 单边公差 ±0.2-0.3mm 同量级 = 临界, 不是真通过。叠放模型 → 前后 +0.80mm / 垂直 +3.50mm → 实际不通过。
+
+    另: ⌀2.0 H7 定位销孔 FDM 做不到, 必须金属件。
+
+    要求: ① 给出不改变总体方案的解 (材料/工艺/公差分配/结构调整) ② 若必须改 MECH_BUDGET v1.1 的方案, 走变更流程并在 FRAMEWORK/CHANGE_LOG.md 登记 (§4.2 已有 v1.1 变更记录先例)'
+- issue: ISS-044
+  agent: sw-lead
+  at: '2026-10-25'
+  brief: '目标: 把『60fps 优先, 搞不定转 30』做成**可切换**的配置, 并写清判定逻辑
+
+    输出: SW/DISPLAY_MODE.md
+
+    验收: ① 明确两种模式 (同步等OD / 异步最新帧) 各自的端到端与帧率 ② 给出**切换开关的判据**: M-NPU 实测 >16.67ms → 切 30fps, 并写进 B6 自证命令 ③ 切换不需要改架构, 只改配置 ④ 与 frame-age 模型 (age=ceil(T_od/16.67ms)) 对齐
+
+    边界: 不许把 60fps 的 67.0ms 说成达标; 兜底方案必须写进文档正文'
+- issue: ISS-045
+  agent: hw-lead
+  at: '2026-10-25'
+  brief: '目标: 按『sensor 只需输出 ≥1920×1080@60fps』这一唯一判据, 给出 2-3 个候选 sensor 型号 + 对比表
+
+    输出: HW/SENSOR_SELECTION.md
+
+    验收: ① 每个候选给: 型号/分辨率@帧率/接口(MIPI-CSI lane 数与速率)/供电/封装/是否有现货/单价区间 ② 明确哪个满足『≥1080p60』 ③ 镜头侧约束一并列 (对角 FOV ≥100°, 装镜框上沿俯角 20-32° 不可回避, 凸出≤2.5mm/凹进≤1.5mm) ④ 0 数据的地方标 0数据, 不许编
+
+    边界: 宽高比不再是选型判据 (老板已拍板『无所谓』), 别再纠结 4'

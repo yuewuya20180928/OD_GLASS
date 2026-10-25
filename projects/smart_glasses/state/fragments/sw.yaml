@@ -1,0 +1,149 @@
+agent: sw-lead
+role: 软件总工
+updated_at: '2026-10-25T09:30:00+08:00'
+updated_by: sw-lead
+status:
+  phase: P1(软件需求拆解)→P2(方案设计)
+  progress_pct: 30
+  health: red
+  summary: 8模块/52条验收标准(自证更正,原写48);端到端口径A=67.0ms超60ms预算(不达标);内存175-188MB非瓶颈;A7S复用32项;B1-B6已补齐,接口取值11条,已答复hw-lead/mech-lead各1条;等外部4条已标waiting_on+due(Q1/Q17/Q18=boss,Q8+Q9=vendor)
+artifacts:
+- path: SW/SW_REQUIREMENTS.md
+  kind: requirements
+  version: v1.0
+  updated_at: '2026-10-25T00:25:00+08:00'
+  summary: 8 模块需求 + 52 条验收标准 (v2 自证逐条计数, 原写 48 少计 4) + 端到端延迟建模 (口径/框龄/显示帧率/证据等级) + A7S 可复用清单 32 项 + M0-M7
+    里程碑; 内存 §12.1 逐行相加 = 175.1/187.9MB (原写 178/191 差 ~3MB, 待 PM 决定是否出 v1.1)
+- path: HANDOFF/2026-10-25_sw-lead_软件需求拆解.md
+  kind: handoff
+  version: v2.0
+  updated_at: '2026-10-25T09:30:00+08:00'
+  summary: 'v2 模板: B1 结论摘要 / B2 验收标准自评 20 条 (含 67ms 不达标 ❌) / B3 证据分级 / B4 接口取值 11 项 / B5 未决项 10 条 / B6
+    自证复现命令 6 条; v1 §1-§9 原文未删'
+- path: REQ/REQUIREMENTS.md
+  kind: requirements
+  version: v1.0
+  updated_at: '2026-10-25T00:25:00+08:00'
+  summary: 补了软件子模块段 (指向 SW/SW_REQUIREMENTS.md)
+blockers:
+- id: SW-B1
+  desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
+  severity: high
+  needs_from:
+  - vendor
+  waiting_since: '2026-10-21'
+- id: SW-B2
+  desc: 光机逐帧延迟 = 完全 0 数据 (走鹃Ⅱ 只公开 480Hz 刷新率; 光机出光没法用软件打点, 需高速摄影/示波器)
+  severity: high
+  needs_from:
+  - boss
+  - vendor
+  waiting_since: '2026-10-25'
+- id: SW-B3
+  desc: NPU 输出是否强制 FP32 未知 → A733 上 tensor_to_fp 9.29ms 占 SDK 总 25%; 若强制则端到端多 7.3ms, 框龄跳档
+  severity: high
+  needs_from:
+  - vendor
+  waiting_since: '2026-10-21'
+- id: SW-B4
+  desc: 'Q1 60ms 口径 + Q17 显示帧率 待老板拍板 (needs: q1_latency_scope / q17_display_fps, waiting_on=boss, due
+    2026-10-25) → 端到端 ''达标/不达标'' 结论定不下来: 口径A=67.0ms 不达标 / 口径C=42.3ms 达标, 同一套硬件两个口径'
+  severity: high
+  needs_from:
+  - boss
+  - main
+  waiting_since: '2026-10-25'
+needs_from:
+- key: q1_latency_scope
+  to: main
+  item: Q1 60ms 口径 — 口径A vs C 差 24.67ms, 模式B 在口径A下 67ms 不达标 / 口径C下 42.3ms 达标 (走 main 转老板拍板)
+  since: '2026-10-25'
+  waiting_on: boss
+  due: '2026-10-25'
+- key: q17_display_fps
+  to: main
+  item: Q17 显示帧率 — 若放宽到 25-30fps, 显示等 OD 模式端到端 55.7ms 达标 (最省事的解法; 走 main 转老板拍板)
+  since: '2026-10-25'
+  waiting_on: boss
+  due: '2026-10-25'
+- key: q18_highspeed_cam
+  to: main
+  item: Q18 能不能借高速摄影/示波器实测光机逐帧延迟 (设备资源类, 走 main 转老板)
+  since: '2026-10-25'
+  waiting_on: boss
+  due: '2026-10-28'
+- key: debug_port_form
+  to: hw-lead
+  item: '调试口形态确认 (Type-C 复用) + 我出 OD 负载曲线供 DC-DC 瞬态设计 (hw-lead 已于 10-25 09:32 正式答复: Type-C 复用 USB, ADB+CDC-ACM
+    双模式)'
+  since: '2026-10-25'
+- key: ntc_placement
+  to: mech-lead
+  item: NTC 位置 (配合软件做温度策略) + 实测功耗需求 (按需触发 vs 持续满载的 DVFS 策略) — 我已先答, 待 mech-lead 正式回复
+  since: '2026-10-25'
+- key: vendor_q8_q9_scope
+  to: vendor
+  item: Q8 口径写死 (纯NPU 耗时 vs SDK 总耗时) + Q9 追加4问 (INT8输出直通/分阶段profiling/连续推理降频与首帧预热/输出DMA直连) — 走 main 发第二轮邮件,
+    我不单独对外
+  since: '2026-10-25'
+  waiting_on: vendor
+  due: '2026-10-28'
+answers:
+- key: debug_port_form
+  to: hw-lead
+  value: 调试口=Type-C USB2.0 (ADB over USB + CDC-ACM 串口共用一个口, 依赖 SoC USB Device PHY); OD 是连续推理 100% 占空比、无空闲窗口
+    -> DC-DC 瞬态与去耦电容请按连续满载设计, 不要按平均功耗x占空比; 分段负载曲线口径见 SW §11.2 (实测待投板)
+  ref: 'HANDOFF/2026-10-25_sw-lead_软件需求拆解.md#B4 + #接口请求(hw-lead) ; SW/SW_REQUIREMENTS.md#9.3 + #11.2'
+- key: ntc_placement
+  to: mech-lead
+  value: '软件只读 SoC 结温(Tj), 粒度>=1Hz; NTC 贴 SoC 背面或金属骨架, 不贴皮肤侧 (皮肤侧读数滞后会让降频滞后); 接受你 §2.5 的 4 档温控表, 加软件约束:
+    切档须在 1 帧周期 16.67ms 内完成, 否则 age 跳档端到端 +16.67ms; 实测功耗待投板, 按需vs持续待 Q4'
+  ref: 'HANDOFF/2026-10-25_sw-lead_软件需求拆解.md#B4 + #接口请求(mech-lead) ; SW/SW_REQUIREMENTS.md#8.2'
+interface_claims:
+- key: latency_budget
+  value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
+  note: 模式A 显示 25.6fps / 模式B age=2 / 模式B' age=3 / 模式C 需 T_od<=16.67ms; 全部为推算
+- key: od_input_size
+  value: 640x640
+  note: letterbox; 建议 INT8 输出直通 (自反量化 0.1-0.3ms 而非 SDK 9.29ms)
+- key: memory_budget
+  value: 178-191MB/512MB
+  note: R7 降级为低; 待确认 NPU SDK workspace + CMA 预留策略; 与 memory_budget_recomputed 差 2.9-3.1MB
+- key: memory_budget_recomputed
+  value: 175-188MB/512MB
+  note: SW §12.1 表行逐行相加 (自证命令 B6-4); 疑似显示帧buffer行重复计入; 结论不变 (占34-37%, 非瓶颈)
+- key: display_frame_rate
+  value: 60fps
+  note: 现状 age=2 -> 67ms; 若 25-30fps -> 55.7ms 达标
+- key: od_duty_cycle
+  value: 100%
+  note: OD 连续推理, 无空闲窗口; DC-DC 瞬态/去耦按连续满载设计 (SW §6.1 + §11.2)
+- key: debug_port_iface
+  value: USB2.0-ADB+CDC
+  note: 'Type-C 复合设备: ADB 走 bulk + CDC 走日志; 依赖 SoC USB Device PHY (未确认)'
+- key: od_segment_budget_ms
+  value: pre1/npu16/quant2/nms3/draw1
+  note: S4-S8 分段预算; 打点口径 SW §11.2, 实测待投板
+- key: box_age_frames
+  value: '2'
+  note: age=ceil(T_od/16.67); T_od>16.67ms 即跳到3 -> 端到端 67->83.7ms
+- key: thermal_control_tiers
+  value: 4档 <70/70-85/85-95/>95C
+  note: SoC 结温(Tj)档位, 来自 MECH_BUDGET §2.5; 皮肤温度验收归 mech-lead; 切档须<=16.67ms
+- key: thermal_sensor_iface
+  value: I2C-NTC+1Hz
+  note: 软件只读 SoC Tj; NTC 贴 SoC 背面/金属骨架, 不贴皮肤侧
+open_questions:
+- id: SW-Q1
+  to: main
+  text: 'A7S 封档项目里 cyl_iou_nms / cylindrical 0.40 阈值没带过来 —— 与锁死变量 #2 (80 类 COCO 不做场景定制) 冲突, 需项目总工裁决'
+- id: SW-Q2
+  to: main
+  text: 显示帧率若降到 25-30fps, 老板的'60fps'锁死项是否要改写
+risks:
+- id: R-sw-step
+  text: 'NPU 延迟台阶效应: 纯 NPU 跨过 16.67ms 边界 → age 从 2 跳 3 → 端到端直接多一整个帧周期 (67→83.7ms)。差 2ms 可能等于差 17ms'
+  severity: high
+- id: R-sw-fp32
+  text: NPU 强制 FP32 输出 → 反量化占 SDK 总 25% (A733 实测 9.29ms) → 框龄跳档
+  severity: high

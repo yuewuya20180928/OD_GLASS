@@ -1,0 +1,193 @@
+agent: hw-lead
+role: 硬件总工
+updated_at: '2026-10-25T09:34:04+08:00'
+updated_by: hw-lead
+status:
+  phase: P2(原理图/BOM启动)
+  progress_pct: 35
+  health: red
+  summary: P1拆解100%完成(26模块/5排除项/3卡点对策成型);P2原理图实体0页(datasheet未到,已出顶层骨架+接口定义+12条接口取值);较上轮+5=需求闭环登记(5条answers)+v2交接单B1-B6+1条新答复(NTC位置)
+artifacts:
+- path: HW/HARDWARE_BREAKDOWN.md
+  kind: breakdown
+  version: v1.0
+  updated_at: '2026-10-25T00:22:00+08:00'
+  summary: 26 个硬件模块 + 5 项排除项, 每项标归属/关键参数/数据来源/状态/风险; 全文 15 处标「推算」12 处标「未确认」, 零条冒充实测
+- path: HANDOFF/2026-10-25_hw-lead_硬件模块拆解.md
+  kind: handoff
+  version: v2.0
+  updated_at: '2026-10-25T09:34:00+08:00'
+  summary: '第2轮 v2 模板: B1-B6 六块 6/6 齐 + 需求闭环登记表 + 硬指标 5/5 类; 第3轮补登 5 条外部等待(waiting_on+due);
+    首轮内容一字未删'
+blockers:
+- id: HW-B1
+  desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX
+    双出口走 0Ω/DNP'
+  severity: high
+  needs_from:
+  - vendor
+  - main
+  waiting_since: '2026-10-24'
+- id: HW-B2
+  desc: 'FCCSP 球间距未拿到 → 逃线/叠层结论给不出 (已把 pitch 升级为 SoC 选型一票否决项: ≥0.4mm 可行 / 0.35mm 极限
+    / ≤0.3mm 须 HDI 直接违反 4-6 层锁死)'
+  severity: high
+  needs_from:
+  - vendor
+  waiting_since: '2026-10-25'
+- id: HW-B3
+  desc: 电源域电压/电流上限全未知 → 电压域清单写不出来, 原理图只能画顶层骨架
+  severity: high
+  needs_from:
+  - vendor
+  waiting_since: '2026-10-25'
+- id: HW-B4
+  desc: 'HW-03 启动存储/固件分区是 tracker 漏项: rootfs + yolov5 权重 + ISP/NPU 固件必须放哪, ARS45 有无内置
+    boot storage 未知'
+  severity: high
+  needs_from:
+  - vendor
+  - main
+  waiting_since: '2026-10-25'
+needs_from:
+- key: pcb_outline_confirm
+  to: mech-lead
+  item: PCB 外形 50x12mm 确认 + 器件发热分布 + NTC 位置 (定桥接芯片上主板还是小板 / 散热路径)
+  since: '2026-10-25'
+- key: debug_port_form
+  to: sw-lead
+  item: 调试口形态 + OD 负载曲线 (定 DC-DC 瞬态与电容)
+  since: '2026-10-25'
+- key: q16_display_iface
+  to: main
+  waiting_on: vendor
+  due: '2026-10-29'
+  item: Q16 显示 TX 接口结论 (DSI TX / DP TX / 两者) + 宽高比 A/B/C 拍板
+  since: '2026-10-25'
+- key: q16_aspect_ratio
+  to: boss
+  waiting_on: boss
+  due: '2026-10-27'
+  since: '2026-10-24'
+  item: 'Q16-A 宽高比三选一: A(4:3 sensor零裁剪) / B(16:9+裁剪丢16.3度HFOV) / C(16:9+letterbox有效像素-36%)
+    — 卡 sensor 选型 -> 卡 MIPI-CSI lane数/电压域 -> 卡 HW-10/11/13 接口定义'
+- key: q4_battery_scope
+  to: boss
+  waiting_on: boss
+  due: '2026-10-26'
+  since: '2026-10-25'
+  item: 'Q4 续航 1h 口径: 持续满载 vs 按需触发 — 决定电池容量档位(无桥接340-575mAh/有桥接575-675mAh) + DC-DC
+    峰值策略 + 是否必须加电流采样 + 散热可行性(贴皮肤镜腿可持续上限仅0.15-0.2W)'
+- key: q3_storage_and_audio
+  to: boss
+  waiting_on: boss
+  due: '2026-10-27'
+  since: '2026-10-25'
+  item: Q3 模型/rootfs 怎么存(只ADB push是否接受外挂 SPI-NOR 16-64MB, 板宽12->15mm) + 音频到底做不做(tracker全文无音频条目,
+    我不擅自加也不擅自排除)
+- key: vendor_ars45_paper_q11_q16
+  to: vendor
+  waiting_on: vendor
+  due: '2026-10-29'
+  since: '2026-10-21'
+  item: '原厂纸面资料8问(10-21邮件已发未回, 全部经main转发): 1 FCCSP ball pitch + 完整引脚图/球位图 2 各电源域(轨名/电压/典型电流/峰值电流/上电顺序/电压容差)
+    3 显示TX(有无DSI TX/有无DP TX/lane数/分辨率帧率/能否与DP RX同时工作) 4 有无USB Device PHY 5 有无内置boot
+    storage及容量 6 MCLK源+sensor RESET极性 7 SoC底面散热焊盘(整块/分块) 8 MIPI-CSI单sensor用2lane还是4lane+输入电压域1.2V/1.8V+是否需外部AC耦合电容'
+- key: jbd_zoushe_dsi_spec
+  to: jbd
+  waiting_on: jbd
+  due: '2026-10-28'
+  since: '2026-10-25'
+  item: '走鹃II: 1 MIPI DSI几lane/最高速率 2 800x600@60fps官方验证过吗 3 I2C做什么用+从机地址(与sensor是否冲突)
+    4 供电电压范围+峰值电流(电源树的一路输入) — 全部经main转达'
+answers:
+- key: pcb_outline_confirm
+  to: mech-lead
+  value: PCB 50x12mm 确认 (板宽跟 FCCSP pitch 走, pitch<=0.3mm 则板宽 12->15mm); 发热主源 SoC 500-900mW
+    + 桥接 100-300mW (推算); NTC 贴 SoC 底面散热焊盘边缘 (本轮新增建议); 底面散热焊盘是否存在待 datasheet
+  ref: 'HW/HARDWARE_BREAKDOWN.md#2-卡点B + #1.6(HW-23/HW-24)'
+- key: debug_port_form
+  to: sw-lead
+  value: Type-C 复用 USB, ADB+CDC-ACM 双模式=硬要求(不可二选一); 若 ARS45 无 USB Device PHY 则外挂 UART
+    转 USB; OD 帧间负载曲线仍待你出, 我先按持续满载60fps 设计 DC-DC 瞬态(峰值>=均值x1.5)
+  ref: 'HW/HARDWARE_BREAKDOWN.md#1.5(HW-19) + #4.3(S1/S2)'
+- key: vendor_q19_boot_storage
+  to: main
+  value: '已并入原厂邮件问题清单第7问(内置boot storage? 容量?); 当前按无内置boot storage设计: 外挂 SPI-NOR 16-64MB,
+    吃镜脚空间, 板宽可能 12->15mm; 请并入第一轮跟进邮件'
+  ref: HW/HARDWARE_BREAKDOWN.md#1.1(HW-03) + HANDOFF#阻塞-原厂第7问
+- key: bridge_chip_quote
+  to: main
+  value: '询价规格已给全: 800x600@60 / <300mW / DSI侧lane数可控 / 交期4-8周 / 面积待镜脚空间预算; 商务走main,
+    我不外联; 建议并行保留原生DSI方案A为首选'
+  ref: 'HW/HARDWARE_BREAKDOWN.md#1.4(HW-15) + #2-卡点A'
+- key: vendor_fccsp_pitch
+  to: main
+  value: '已并入原厂邮件问题清单第1问(FCCSP ball pitch + 完整引脚图/球位图); 判据已给: >=0.4mm 常规4-6层可行 / 0.35mm
+    极限需PCB厂书面确认 / <=0.3mm 须HDI=一票否决; 电源域表=第2问; 请并入第一轮跟进邮件'
+  ref: HW/HARDWARE_BREAKDOWN.md#2-卡点B
+interface_claims:
+- key: pcb_outline
+  value: 50x12mm
+  note: 与 mech-lead MECH_BUDGET#1.3 同值; 板宽跟 FCCSP pitch 走, pitch<=0.3mm 则板宽 12->15mm
+  ref: HW/HARDWARE_BREAKDOWN.md#2-卡点B
+- key: board_layer_count
+  value: 4-6层
+  note: 锁死; 与 main 同 key 同值 -> 值一变即报冲突; pitch<=0.3mm 须 HDI = 违反锁死
+  ref: HW/HARDWARE_BREAKDOWN.md#1.6(HW-23)
+- key: battery_capacity_tier
+  value: 无桥接340-575mAh/有桥接575-675mAh
+  note: 与 mech-lead 同值; 有无桥接芯片直接决定电池档位
+  ref: HW/HARDWARE_BREAKDOWN.md#2-卡点C
+- key: typec_opening
+  value: 9.5x3.6mm
+  note: 与 mech-lead 同值; 受 P2S 3D 打印公差限制
+  ref: HW/HARDWARE_BREAKDOWN.md#1.2(HW-09)
+- key: mipi_csi_lanes
+  value: TBD
+  note: 单 sensor 用 2 lane 还是 4 lane 待 datasheet (ARS45 支持双路 MIPI); 决定连接器与走线宽度
+  ref: HW/HARDWARE_BREAKDOWN.md#1.3(HW-10)
+- key: debug_port_mode
+  value: ADB+CDC-ACM
+  note: 'Type-C 复用 USB, 双模式硬要求不可二选一; sw-lead 已确认: ADB over USB + CDC-ACM 串口共用一个 Type-C
+    USB2.0 口, 依赖 SoC USB Device PHY (无 PHY 则外挂 UART 转 USB)'
+  ref: HW/HARDWARE_BREAKDOWN.md#1.5(HW-19)
+- key: optical_connector_pins
+  value: DSI+I2C+RESET+VDD+GND
+  note: 光机侧连接器定死; 原生 DSI 与 DP+桥 两种接法共用同一连接器, 波导/光机选型不被卡
+  ref: HW/HARDWARE_BREAKDOWN.md#2-卡点A-对策1
+- key: bridge_chip_spec
+  value: 800x600@60/<300mW
+  note: 并行询价 4-8 周交期, 需 DSI 侧 lane 数可控; 商务走 main, 我不外联
+  ref: HW/HARDWARE_BREAKDOWN.md#1.4(HW-15)
+- key: fccsp_pitch_min
+  value: 0.4mm
+  note: '>=0.4 常规4-6层可行 / 0.35 极限需PCB厂书面确认 / <=0.3 须HDI=一票否决; 是 SoC 选型条款不是工艺细节'
+  ref: HW/HARDWARE_BREAKDOWN.md#2-卡点B
+- key: mipi_diff_impedance
+  value: 100Ω±10%
+  note: 每 lane 差分, 等长匹配; 需 AC 耦合电容 + 1.2V/1.8V 电平对齐, 不能直连
+  ref: HW/HARDWARE_BREAKDOWN.md#1.3(HW-10)
+- key: dc_dc_overshoot
+  value: 1.5x峰值
+  note: 核心轨 DC-DC 额定>=均值x1.5, 且负载跃变响应须写进选型条款 (静态达标≠动态达标); sw-lead 已确认 OD=连续推理100%占空比无空闲窗口
+    -> 按连续满载设计, 不按平均功耗x占空比
+  ref: HW/HARDWARE_BREAKDOWN.md#2-结论C-2
+- key: battery_charge_current
+  value: 550mA@5V/2A
+  note: 460mAh 1h 充满需>=550mA, 超 USB2.0 默认500mA -> 建议上 PD sink (5V only, 2A)
+  ref: HW/HARDWARE_BREAKDOWN.md#2-结论C-4
+open_questions:
+- id: HW-Q1
+  to: main
+  text: Q16 显示接口结论什么时候能 close? 桥接芯片采购 4-8 周, 不能等
+risks:
+- id: R-hw-display-chain
+  text: 若既无 DSI TX 也无 DP TX, 则不是加颗桥芯片的事, 而是显示链不成立
+  severity: high
+- id: R-hw-pitch
+  text: FCCSP pitch ≤0.3mm → 须 HDI → 违反 4-6 层锁死 → SoC 选型一票否决
+  severity: high
+- id: R-hw-boot-storage
+  text: 若无内置 boot storage → 需外挂 SPI-NOR/eMMC (吃 PCB 面积, 板宽 12→15mm), 投板前必须 close
+  severity: high

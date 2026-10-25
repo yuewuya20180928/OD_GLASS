@@ -1,0 +1,115 @@
+{
+  "_note": "脱敏后的 agent 配置摘录 (只含 agents 定义与 tools 拓扑); 凭据 (gateway token / tavily apiKey / 模型 authHeader) 已在源头剔除, 原件不入库。",
+  "tools": {
+    "profile": "coding",
+    "agentToAgent": {
+      "enabled": true,
+      "allow": [
+        "main",
+        "hw-lead",
+        "sw-lead",
+        "mech-lead"
+      ]
+    },
+    "sessions": {
+      "visibility": "all"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "workspace": "<OPENCLAW_HOME>/workspace",
+      "model_primary": "minimax/MiniMax-M3",
+      "subagents": {
+        "allowAgents": [
+          "main",
+          "hw-lead",
+          "sw-lead",
+          "mech-lead"
+        ]
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "name": "项目总工",
+        "subagents": {
+          "allowAgents": [
+            "main",
+            "hw-lead",
+            "sw-lead",
+            "mech-lead"
+          ]
+        }
+      },
+      {
+        "id": "hw-lead",
+        "name": "硬件总工",
+        "workspace": "<OPENCLAW_HOME>",
+        "agentDir": "<OPENCLAW_HOME>",
+        "model": "minimax/MiniMax-M3",
+        "subagents": {
+          "allowAgents": [
+            "hw-lead"
+          ]
+        },
+        "tools": {
+          "profile": "coding",
+          "deny": [
+            "sessions_send"
+          ],
+          "exec": {
+            "pathPrepend": [
+              "/home/yuewuya/.openclaw/guards/hw-lead"
+            ]
+          }
+        }
+      },
+      {
+        "id": "sw-lead",
+        "name": "软件总工",
+        "workspace": "<OPENCLAW_HOME>",
+        "agentDir": "<OPENCLAW_HOME>",
+        "model": "minimax/MiniMax-M3",
+        "subagents": {
+          "allowAgents": [
+            "sw-lead"
+          ]
+        },
+        "tools": {
+          "profile": "coding",
+          "deny": [
+            "sessions_send"
+          ],
+          "exec": {
+            "pathPrepend": [
+              "/home/yuewuya/.openclaw/guards/sw-lead"
+            ]
+          }
+        }
+      },
+      {
+        "id": "mech-lead",
+        "name": "结构总工(带散热)",
+        "workspace": "<OPENCLAW_HOME>",
+        "agentDir": "<OPENCLAW_HOME>",
+        "model": "minimax/MiniMax-M3",
+        "subagents": {
+          "allowAgents": [
+            "mech-lead"
+          ]
+        },
+        "tools": {
+          "profile": "coding",
+          "deny": [
+            "sessions_send"
+          ],
+          "exec": {
+            "pathPrepend": [
+              "/home/yuewuya/.openclaw/guards/mech-lead"
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

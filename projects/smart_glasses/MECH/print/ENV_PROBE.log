@@ -1,0 +1,36 @@
+# 打印/量测环境探测记录 (mech-lead, 2026-10-25)
+# 目的: 证明本机为何无法完成 M-PRINT 实测 (而不是没做)
+
+## 1) 打印机连通性 (拓竹 P2S/P1S @ 192.168.1.68)
+$ ping -c 2 192.168.1.68   → 无响应 (超时)
+$ tcp 990/8883/6000/4000 → 全 closed
+  990 closed
+  8883 closed
+  6000 closed
+  4000 closed
+$ 本机网段: lo 127.0.0.1/8
+enp4s0 192.168.2.4/24
+  → 打印机在 192.168.1.0/24, 本机在 192.168.2.0/24 → 不同网段, 无路由 → 不可达
+
+## 2) 切片器
+  bambu-studio: missing
+  orca-slicer: missing
+  slicer: missing
+  cura: missing
+  prusa-slicer: missing
+  openscad: missing
+  → 无切片器: 无法从 STL 生成 gcode/3mf
+
+## 3) 量测器具
+  caliper: missing
+  vernier: missing
+  micrometer: missing
+  feeler: missing
+  /dev/ttyUSB* /dev/ttyACM*: ls: cannot access '/dev/ttyUSB*': No such file or directory
+ls: cannot access '/dev/ttyACM*': No such file or directory
+  → 无卡尺/千分尺/塞尺; 无 USB 串口 → 电子卡尺也接不上
+
+## 4) CAD 库
+ModuleNotFoundError: No module named 'cadquery'
+ModuleNotFoundError: No module named 'trimesh'
+  → 无 CAD 库 → 打印包用纯 numpy 自写 STL 生成器 (MECH/print/gen_print_pack.py)

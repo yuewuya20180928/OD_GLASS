@@ -1,0 +1,313 @@
+agent: mech-lead
+role: 结构总工(带散热)
+updated_at: '2026-10-25T00:35:00+08:00'
+updated_by: mech-lead
+status:
+  phase: P2(打印包+干涉检查已交,待实物打印实测)→ISS-017部分闭环
+  progress_pct: 70
+  health: yellow
+  summary: 第3轮闭环ISS-017:交付打印包MECH/print/(2个可下片STL+41项测量清单+模型级自检41/41+ENV_PROBE.log本机不可打印/量测)_新增MECH/fit_check.py(M-FIT设计态干涉检查:镜脚侧340mAh档条件通过但前后余仅0.30mm临界_3项条件性不通过已量化_镜框侧未验)_measurements.yaml登记M-PRINT与M-FIT(kind=推算诚实标注_未拿推算冒充实测)_B2自评扩到17条(新增M-PRINT/M-FIT/彩虹纹缺失状态)_B6新增3条复现命令_needs_from新增boss_local_print_measure(due10-28)+jbd_optical_engine_dims(due10-28)_answers新增2条(hw-lead_M-FIT对PCB布局约束_sw-lead_0.30mm余量限制骨架加厚)_interface_claims新增5条
+artifacts:
+- path: MECH/MECH_BUDGET.md
+  kind: budget
+  version: v1.1
+  updated_at: '2026-10-25'
+  summary: 空间预算 (镜脚侧+镜框侧累加) + 电池三档位 + 散热稳态热模型 (含充电峰值场景) + 重量核算 + 摄像头窗口/FOV + 一拖二分光
+    + 彩虹纹专章 + P2S 工艺参数/打印vs量产; 第二轮新增 §1.4.5 / §2.3.1 / §4(d) / §5.4 / §5.5, 并更正 3
+    处数值 (0.23W 皮肤侧 42→46.5°C, 重量合计 49-66→50.1-74.0g, 凸出俯角 1.8→0.7-0.8°/mm)
+- path: MECH/verify_budget.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '自证脚本: 一条命令复算 热模型/充电峰值/电池三档位/重量求和/摄像头几何/截面叠层/分光公差, 并自动与文档对表 (39/39 一致);
+    输入参数全部显式列在文件头部'
+- path: HANDOFF/2026-10-25_mech-lead_空间预算.md
+  kind: handoff
+  version: v2.0
+  updated_at: '2026-10-25'
+  summary: '质量门 v2: B1-B6 六块 6/6; B2 自评 14 条 (✅9/⚠️3/❌2); B3 证据分级 18 条; B4 接口取值 18
+    条; B5 未决项 10 条 (5 条标 waiting_on+due); B6 = 一条命令复算全部关键数字'
+- path: MECH/print/
+  kind: print-pack
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'P2S 打印包: fit_coupon_340.stl (壁厚阶梯/间隙梳/螺钉柱含沿Z开槽拉脱试样/配作孔/悬空角/标定块/波导槽间隙)
+    + temple_cage_340.stl (电池槽40.8x23.8x4.9/配作销/走线槽6x2/Type-C面板9.5x3.6+1.5承力壁) + optical_cage_TEMPLATE.stl
+    (待JBD尺寸) + gen_print_pack.py + verify_pack.py (模型级41/41) + MEASURE_CHECKLIST.md
+    (41项逐项测量清单) + ENV_PROBE.log (本机不可打印/量测的探测记录)'
+- path: MECH/fit_check.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'M-FIT 装配干涉检查 (设计态确定性计算, 每层厚度标 MECH_BUDGET v1.1 章节号): 镜脚侧 340mAh 档条件通过(前后余0.30mm临界)
+    + 3项条件性不通过(叠层模型+0.80/+3.50mm, 充电板不移出+0.50mm, ⌀2.0H7打印件做不到) + 镜框侧未验(JBD/波导/形态缺口)'
+blockers:
+- id: MECH-B1
+  desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区
+    14×10×6mm 光学舱、厚度 11.8mm 全是推算)
+  severity: high
+  needs_from:
+  - jbd
+  - main
+  waiting_since: '2026-10-21'
+- id: MECH-B2
+  desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C;
+    **43°C 红线只允许贴皮肤镜腿持续 0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把
+    SoC+充电板挪出镜脚'
+  severity: high
+  needs_from:
+  - boss
+  - main
+  waiting_since: '2026-10-25'
+- id: MECH-B3
+  desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
+  severity: medium
+  needs_from:
+  - jbd
+  waiting_since: '2026-10-25'
+- id: MECH-B4
+  desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加;
+    且 ARS45 是否内置 boot storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
+  severity: high
+  needs_from:
+  - hw-lead
+  - main
+  waiting_since: '2026-10-25'
+- id: MECH-B5
+  desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿
+    Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到** → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
+  severity: medium
+  needs_from:
+  - mech-lead
+  waiting_since: '2026-10-25'
+needs_from:
+- key: q4_battery_scope
+  to: boss
+  item: 'Q4 续航 1h 口径: 持续满载 vs 按需触发 — 决定电池档位(340/575/675mAh)/镜腿厚度(7.3/8.7/11.2mm)/散热可行性(43°C红线只允许0.16-0.21W);
+    经项目总工转老板'
+  waiting_on: boss
+  due: '2026-10-26'
+  since: '2026-10-25'
+- key: q16_aspect_ratio
+  to: boss
+  item: Q16 显示宽高比 A(4:3零裁剪)/B(16:9裁剪丢16.3度HFOV)/C(16:9 letterbox有效像素-36%) — 决定镜框光学舱尺寸/波导耦入角/摄像头
+    FOV 预算; 经项目总工转老板
+  waiting_on: boss
+  due: '2026-10-27'
+  since: '2026-10-25'
+- key: jbd_waveguide_2d
+  to: jbd
+  item: 'JBD/波导厂: 波导 2D 外形图(卡镜框开工, 采购周期4-8周) + 耦入区位置与容差角 + 是否自带定位基准 + 彩虹纹指标(亮度均匀性/色差/应力敏感度/AR镀膜);
+    经项目总工走 JBD 销售, 我不外联'
+  waiting_on: jbd
+  due: '2026-10-28'
+  since: '2026-10-25'
+- key: jbd_dual_eye_module
+  to: jbd
+  item: 'JBD: 走鹃Ⅱ 一拖二双目模组或分光方案 (R13 高风险) — 若无, 结构走 Plan B 双光机 (镜框正中厚 5.8mm vs 一拖二
+    11.8mm); 经项目总工走 JBD'
+  waiting_on: jbd
+  due: '2026-10-29'
+  since: '2026-10-25'
+- key: vendor_ars45_thermal_pad
+  to: vendor
+  item: '原厂(酷芯微): ARS45 底面是否有散热焊盘(整块/分块, 决定散热路径) + 是否内置 boot storage(决定 PCB 板宽 12
+    还是 15mm); 经项目总工转原厂邮件, 我不外联'
+  waiting_on: vendor
+  due: '2026-10-29'
+  since: '2026-10-25'
+- key: pcb_outline_confirm
+  to: hw-lead
+  item: PCB 外形/厚度/固定孔/connector 位置 + 器件发热分布 + NTC 位置 (已答 4 条, 见 answers)
+  since: '2026-10-25'
+- key: ntc_placement
+  to: sw-lead
+  item: NTC 位置配合 + 持续功耗上限/结温档位 + 切档时限 (已答 2 条, 见 answers)
+  since: '2026-10-25'
+- key: boss_local_print_measure
+  to: boss
+  item: '本机物理上无法打印/量测 (打印机 192.168.1.68 与本机 192.168.2.4/24 不同网段不可达: ping 无响应 + TCP
+    990/8883/6000/4000 全 closed; 无切片器; 无卡尺/千分尺/塞尺; 无 USB 串口; 证据 MECH/print/ENV_PROBE.log)
+    → 请指定打印与量测执行方 (本地 P2S + 人工量测 / 委托打印服务 / 下次到车间集中打印)。已交付: 可直接下片 STL (MECH/print/fit_coupon_340.stl
+    + temple_cage_340.stl) + 逐项测量清单 41 项 (MECH/print/MEASURE_CHECKLIST.md) + 模型级自检
+    41/41; 谁执行谁按表填, 回填 measurements.yaml (M-PRINT kind=实测) 即可解锁阶段门 G2。经项目总工转达'
+  waiting_on: boss
+  due: '2026-10-28'
+  since: '2026-10-25'
+- key: jbd_optical_engine_dims
+  to: jbd
+  item: 'JBD: 走鹃Ⅱ 光机 长×宽×高 三维尺寸 (官网只给 0.18cc / 0.5g / 98mW / 800×600 / 30° / 480Hz)
+    → 镜框正中光学舱 11.8mm 厚度与光机安装位姿/干涉检查全靠它; 缺它 M-FIT 镜框侧无法判定, 且 optical_cage_TEMPLATE.stl
+    只能停在模板态。经项目总工走 JBD 销售, 我不外联'
+  waiting_on: jbd
+  due: '2026-10-28'
+  since: '2026-10-25'
+answers:
+- key: pcb_outline_confirm
+  to: hw-lead
+  value: PCB 50x12mm; 厚 0.8mm(4层)/1.0mm(6层); 固定 2xM1.2(孔心到板边2.5mm)+1x⌀2.0H7; 板宽跟 FCCSP
+    pitch 走 (pitch<=0.3mm -> 板宽 15mm, 投板前必须 close); Type-C 面板开孔 9.5x3.6mm (母座 8.94x3.26,
+    末端壁厚>=1.5mm); 器件距板边>=0.8mm
+  ref: MECH/MECH_BUDGET.md#5.1 + HANDOFF/2026-10-25_mech-lead_空间预算.md#B4
+- key: pcb_outline_confirm
+  to: hw-lead
+  value: '镜脚内腔需求(下限): 前后厚>=7.3mm / 根部净高>=38mm / 内腔长>=110mm (前提: 充电板挪出镜脚, 长度需求 105.5/110/108mm);
+    分配: 电池+主PCB+充电板 沿长度串行 (垂直并排放不下: 22+12=34mm); 光机+分光件不在镜脚, 在镜框正中 (光学舱 14x10x6mm,
+    镜框正中厚需>=11.8mm)'
+  ref: 'MECH/MECH_BUDGET.md#1.4.2 + #1.4.5 + HANDOFF#3.0'
+- key: pcb_outline_confirm
+  to: hw-lead
+  value: '摄像头: 装镜框上沿正中, 光轴俯角<=25度 (装上沿的 20-32度偏置不可回避), 水平偏置<=10度, 凸出<=2.5mm, 凹进<=1.5mm;
+    对角 FOV>=100度 (100度 -> H92.2/V60.6, 16:9); 凹进5mm 吃掉上半视场31%; 镜框上沿摄像头位需局部加厚 10-12mm'
+  ref: 'MECH/MECH_BUDGET.md#1.5.2 + #1.5.1 + HANDOFF#3.0'
+- key: pcb_outline_confirm
+  to: hw-lead
+  value: '散热接触路径: SoC底面散热焊盘 -> 0.3mm导热垫 -> 铝/铜骨架(纵向延伸, 兼PCB支撑) -> 石墨(面内扩展到上表面+铰链侧)
+    -> 对流; 路径不得有塑料隔断 (打印件k=0.2, 插进去热阻+94K/W); SoC 必须放远离皮肤侧的一侧; 上下分壳 (上壳装PCB/骨架, 下壳贴皮肤只放电池);
+    必须加 1 颗 NTC (贴SoC背面/骨架, 走I2C)'
+  ref: 'MECH/MECH_BUDGET.md#5.1 + #2.4 + #2.5 + HANDOFF#3.0'
+- key: ntc_placement
+  to: sw-lead
+  value: NTC 贴 SoC 背面散热焊盘边缘或铝/铜骨架, 走 I2C, 不贴皮肤侧 (皮肤侧读数滞后会让降频滞后=反而更热); 读数粒度>=1Hz (建议5Hz)
+    即可, 上报 SoC 结温 Tj 即可; 皮肤侧没有传感器, 温控必须建在结温上
+  ref: MECH/MECH_BUDGET.md#2.5 + HANDOFF#B4
+- key: ntc_placement
+  to: sw-lead
+  value: 持续功耗上限 0.16-0.21W (43°C红线对应的贴皮肤镜腿上限, 模型敏感性区间; 持续满载1.22W会到皮肤侧96.1°C/82.0°C,
+    必须按持续满载最保守设计); 结温4档 <70/70-85/85-95/>95C 已登记为 thermal_control_tiers; 切档须<=16.67ms;
+    充电场景 0.8W 充电IC耗散 -> 充电时必须禁 OD
+  ref: 'MECH/MECH_BUDGET.md#2.5 + #2.3.1 + HANDOFF#B4'
+- key: pcb_outline_confirm
+  to: hw-lead
+  value: 'M-FIT 结果 (设计态计算, MECH/fit_check.py): 镜脚侧 340mAh 档 前后需求 7.00mm (下壳壁0.8 +
+    电池4.6 + 隔热垫0.5 + 空气隙0.3 + 上壳顶壁0.8) vs 可用 7.30 → 余 0.30mm, 与 FDM 单边公差 ±0.2-0.3
+    同量级 → 临界, 建议镜腿做到 7.6-7.8mm; PCB/骨架区仅 4.50mm (4层) / 4.70mm (6层) → 板厚 4层/6层 都不卡空间
+    (但若按 §1.4.2 ''电池与PCB同区叠放'' 模型 → 前后干涉 0.80mm + 垂直干涉 3.50mm, v1.1 两个排列模型必须锁定一个);
+    长度: 电池40.5 + PCB50 + 余量15 = 105.5 ≤ 130 (充电板必须挪出镜脚, 否则 +0.50mm 干涉); Type-C 尾端截面宽需
+    ≥12.5mm (开口9.5 + 两侧1.5 承力壁)、高需 ≥6.6mm (可用7.3, 余0.7)'
+  ref: MECH/fit_check.py + HANDOFF/2026-10-25_mech-lead_空间预算.md#B2-16
+- key: ntc_placement
+  to: sw-lead
+  value: '结构侧本轮新增硬约束 (会限制你的 DVFS 散热方案): 镜脚前后厚余量只有 0.30mm → 导热垫 (0.3mm) 与金属骨架 (厚度 v1.1
+    未给, 我按 1.0mm 假设) 都加不厚; 若你要求更厚的骨架/更多散热面积来压结温, 必须同步把镜腿前后厚从 7.3 加到 7.6-7.8mm (华为
+    6.25 基准会进一步被突破, 需老板拍板形态)。另外: 持续满载 1.22W → 皮肤侧推算 96.1/82.0°C, 43°C 红线只允许贴皮肤镜腿持续
+    0.16-0.21W, 这个数字没变, 降温只能靠降功耗不能靠加散热片'
+  ref: MECH/fit_check.py + MECH/MECH_BUDGET.md#2.3.1
+interface_claims:
+- key: pcb_outline
+  value: 50x12mm
+  note: 镜脚截面随电池档位 7.3/8.7/11.2mm; 板宽跟 FCCSP pitch 走 (pitch<=0.3mm -> 15mm, 投板前必须 close);
+    与 hw-lead/main 同值
+  ref: MECH/MECH_BUDGET.md#5.1
+- key: pcb_thickness
+  value: 0.8mm(4层)/1.0mm(6层)
+  note: 锁死 4-6 层; 4层=0.8mm / 6层=1.0mm; 阻抗控 MIPI 走线
+  ref: MECH/MECH_BUDGET.md#5.1
+- key: pcb_mounting
+  value: 2xM1.2+1x⌀2.0H7
+  note: 孔心到板边 2.5mm; 定位靠金属骨架不靠打印面 (FDM 打不出 H7); 器件距板边>=0.8mm
+  ref: MECH/MECH_BUDGET.md#5.1
+- key: battery_capacity_tier
+  value: 无桥接340-575mAh/有桥接575-675mAh
+  note: 675mAh 形态否决 (镜腿 11.2mm = 华为 6.25mm 的 1.8 倍); 与 hw-lead/main 同值
+  ref: MECH/MECH_BUDGET.md#1.6.2
+- key: temple_thickness
+  value: 7.3-8.7mm
+  note: 340mAh 档 7.3mm / 575mAh 档 8.7mm; 675mAh 档 11.2mm 已否决; 华为镜腿 6.25mm 基准
+  ref: MECH/MECH_BUDGET.md#1.6.2
+- key: temple_cavity_length
+  value: ≥110mm
+  note: 充电板挪出镜脚后的长度需求 (105.5/110/108mm); 130mm 内腔基准; 镜腿根部净高>=38mm
+  ref: 'MECH/MECH_BUDGET.md#1.4.2 + #1.6.3'
+- key: typec_opening
+  value: 9.5x3.6mm
+  note: 母座本体 8.94x3.26; 末端壁厚留>=1.5mm 承力 + 铝框防刮; 受 P2S FDM 公差限制; 与 hw-lead 同值
+  ref: MECH/MECH_BUDGET.md#5.1
+- key: skin_temp_limit
+  value: 38-40C(红线43C)
+  note: ISO 13732-1 / CENELEC Guide 29 (8h 及以上接触全部材质 43°C); 皮肤温度测量与验收归 mech-lead;
+    与 main 同值
+  ref: MECH/MECH_BUDGET.md#2.2
+- key: skin_sustainable_power
+  value: 0.16-0.21W
+  note: 43°C 红线对应的贴皮肤镜腿持续功耗上限 (主模型 0.16W / 壳壁剥离变体 0.21W); 1.22W 持续满载 -> 皮肤侧 96.1/82.0°C
+  ref: 'MECH/MECH_BUDGET.md#2.3 + #2.3.1'
+- key: thermal_control_tiers
+  value: 4档 <70/70-85/85-95/>95C
+  note: SoC 结温(Tj)档位, 不是皮肤温度; 皮肤侧无传感器; 切档须<=16.67ms; 与 sw-lead 同值
+  ref: MECH/MECH_BUDGET.md#2.5
+- key: camera_window
+  value: 俯角20-32度/FOV>=100度/边框凹进<=1.5mm
+  note: 装镜框上沿的俯角偏置不可回避; 凹进5mm 吃掉上半视场31%; 镜框上沿需局部加厚10-12mm; 凸出1mm 俯角+0.7~0.8度
+  ref: MECH/MECH_BUDGET.md#1.5.2
+- key: camera_fov_16x9
+  value: 对角100度→H92.2/V60.6
+  note: 16:9 sensor 分解; 边框遮挡后实际可用视场更小; 对角110度→H102.4/V70.0, 120度→H113.0/V80.7
+  ref: MECH/MECH_BUDGET.md#1.5.1
+- key: splitter_volume
+  value: 0.79cc
+  note: 一拖二分光组件 (平板10x10x1.5 + 2棱镜8x8x5), 比光机本体 0.18cc 大 4 倍; 全推算, JBD 无成品
+  ref: MECH/MECH_BUDGET.md#1.2
+- key: splitter_mount_tolerance
+  value: ≤0.25度/0.175mm@40mm
+  note: 分光件必须与光机共基准 (不能各自胶粘); 分光面需<=5µm 加工件, 不能用打印面 (FDM Ra 10-30µm)
+  ref: 'MECH/MECH_BUDGET.md#1.2 + #5.2'
+- key: optical_cavity_size
+  value: 14x10x6mm
+  note: 镜框正中光学舱 (光机+分光件串联); 镜框正中厚需>=11.8mm; 双光机 Plan B 只需 4.8mm
+  ref: MECH/MECH_BUDGET.md#1.4.5
+- key: waveguide_slot_parallel
+  value: ±0.3度
+  note: U形卡槽面内平行度; 泡棉软压不硬压 (防装配应力彩虹纹); 平行度由金属压条保证不靠打印面
+  ref: 'MECH/MECH_BUDGET.md#4(d) + #5.2'
+- key: p2s_min_wall
+  value: 0.8mm
+  note: P2S 0.4 喷嘴 4 圈; 受力肋>=1.2mm; 螺钉柱>=2.4mm 直径; 装配间隙 单边 0.15-0.3mm
+  ref: MECH/MECH_BUDGET.md#5.4
+- key: p2s_overhang
+  value: ≤45deg
+  note: 目标 0 支撑; >60deg 必须拆件; PA-CF 层间结合 50-60% -> 受力必须在 XY 平面内
+  ref: MECH/MECH_BUDGET.md#5.4
+- key: temple_h_stack
+  value: 7.00mm(340档)
+  note: 镜脚电池区前后需求 = 下壳壁0.8 + 电池4.6 + 隔热垫0.5 + 空气隙0.3 + 上壳顶壁0.8; 可用 7.3 (§1.6.2) →
+    余 0.30mm; PCB/骨架区 4.50-4.70mm; 设计态计算, 非实物实测
+  ref: MECH/fit_check.py
+- key: temple_h_margin
+  value: 0.30mm
+  note: 前后余量, 与 FDM 单边公差 ±0.2-0.3mm 同量级 → 临界; 建议镜腿 7.6-7.8mm; 若按 §1.4.2 叠层模型则干涉 0.80mm
+    (v1.1 两模型并存, 需锁定)
+  ref: MECH/fit_check.py
+- key: tail_section_width
+  value: ≥12.5mm
+  note: 镜腿尾端截面宽下限 (Type-C 开口 9.5 + 两侧 1.5 承力壁); 高度 ≥6.6mm (可用 7.3, 余 0.7); 末端宽度 v1.1
+    未定义 (u8) → 需老板/PM 定镜腿形态
+  ref: MECH/fit_check.py
+- key: mfit_scope
+  value: 镜脚侧通过(临界)/镜框侧未验
+  note: 'M-FIT 设计态结论 (MECH/fit_check.py): 镜脚侧 340mAh 档条件通过; 3 项条件性不通过已量化 (叠层模型 +0.80/+3.50mm,
+    充电板不移出 +0.50mm, ⌀2.0H7 FDM 做不到); 镜框侧缺 JBD 走鹃Ⅱ尺寸(u1)+波导2D图(u4)+镜框形态(u8)'
+  ref: MECH/fit_check.py
+- key: print_pack
+  value: MECH/print/*.stl
+  note: 可下片 STL (fit_coupon_340 + temple_cage_340) + MEASURE_CHECKLIST.md (41 项测量清单)
+    + verify_pack.py (模型级 41/41) 已交付; M-PRINT 仍 0 实测 (本机不可打印/量测, 已升级 boss)
+  ref: MECH/fit_check.py
+open_questions:
+- id: MECH-Q1
+  to: main
+  text: 675mAh 形态否决的兜底方案 (拆左右镜脚分摊电池) 是否走? 还是靠 Q4 口径把电池压下来
+risks:
+- id: R-mech-heat
+  text: 持续满载 1.22W 与'眼镜贴皮肤佩戴'热学上不相容 (差 6-8 倍)。出路是降功耗不是加散热片
+  severity: high
+- id: R-mech-thickness
+  text: '电池容量直接决定镜腿厚度: 340→7.3mm / 575→8.7mm / 675→11.2mm (华为 6.25mm 的 1.8 倍, 形态否决)'
+  severity: high
+- id: R-mech-splitter
+  text: 'R13 分光件自研: 必须与光机共基准 (0.25°→40mm 臂长 0.175mm), 分光面需 ≤5µm 而 FDM 是 Ra 10-30µm
+    → Plan B 双光机在结构上比一拖二更简单'
+  severity: high
+- id: R-mech-chargeboard
+  text: 充电板只 0.2cc 但吃 25mm 长度, 是镜脚长度超标唯一元凶 → 必须挪出镜脚
+  severity: medium
