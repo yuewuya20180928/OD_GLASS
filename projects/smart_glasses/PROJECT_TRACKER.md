@@ -1050,6 +1050,26 @@ python3 state/advance.py --apply    # 落盘: 标 fixing + 写 dispatch_log + �
 - 光生物安全所需光机参数 (ISS-048) 也卡在 JBD 草稿上
 - 草稿已按 EMC 0 数据项补过问, 保留期间不改动, **说发就能发**
 
+#### (1.14) ★ 项目信息已发布到 GitHub (19:45) —— `github.com/yuewuya20180928/OD_GLASS`
+
+**仓库是公开的** (`private: false`) → 按公开仓库标准做脱敏。
+
+| 目录 | 内容 |
+|---|---|
+| `README.md` | 项目入口: 是什么 / 4-Agent 架构图 / 当前状态 / 怎么跑 / 三条教训 |
+| `docs/AGENT_SYSTEM.md` | ★ **4 个 Agent 的职责/边界/配置/三层守卫/状态源协议/质量门** (老板点名要的核心) |
+| `docs/PROJECT_STATUS.md` | 当前状态快照 (**自动生成**, 数字与真源一致) |
+| `docs/DECISIONS.md` | 决策日志 (12 条, 含推导与更正记录) |
+| `docs/OPEN_ISSUES.md` | 未闭环问题清单 (自动生成) |
+| `docs/FRAMEWORK_SCOPE.md` / `CERT_CHECKLIST.md` / `STRESS_TEST_2026-10-25.md` / `DECISION_TABLE_*` / `INTERFACES.md` / `PRINT_SETUP.md` | 裁剪表 / 认证 / 压测 / 决策表 / 接口契约 / 打印卡 |
+| `config/openclaw.agents.json` | ★ **脱敏后的 4-Agent 配置** (只含 agents + tools 拓扑, 路径换占位符) |
+| `config/agents/{main,hw-lead,sw-lead,mech-lead}/AGENTS.md` | ★ 四个角色的岗位说明书原文 |
+| `projects/smart_glasses/` | 完整项目库 (99 文件) |
+
+**脱敏方式 = 真值反查** (不靠正则猜): 从 `openclaw.json` 取出 3 个凭据真值 (`gateway.auth.token` / `tavily.apiKey` / 模型 `authHeader`), 拿它们反查整棵发布树 → **命中 0** 才允许推。
+**剔除**: 各 agent 的 `MEMORY.md` / `HEARTBEAT.md` / `USER.md` / `IDENTITY.md` / `SOUL.md` (个人上下文) + **星型守卫脚本源码** (含可绕过的实现细节) + `openclaw.json` 原件。
+**推完反向验证**: GitHub API 拉回目录树 / 提交历史 + raw 拉回关键文件 (全部 200) + 敏感词复查 (0 命中)。
+
 #### (2) 还没调整完的 (诚实列出, 不粉饰)
 - **交叉评审未做** (老板未拍板) → 三个总工各自声明的假设没有互相挑刺
 - **第二封原厂邮件未发** → ISS-001/003/005/006/007/008/009/011/015 共 9 条全卡在这

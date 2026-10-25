@@ -406,7 +406,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-28'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: 把 REQ/REQUIREMENTS.md 从 64 行草稿补成可判定的需求书
@@ -418,11 +418,12 @@ issues:
     验收: ① 顶层需求每条都有 可机械判的验收标准 (不是''体验良好''这种) ② ''验收标准'' 章节不再是''待填'' ③ 每条需求标注来源 (老板原话/锁死变量/推算)
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: REQ/REQUIREMENTS.md v1.0 (20 条顶层需求, 每条带来源+可机械判验收标准; 三条验收标准(端到端/精度/续航)已填)
+  verify_by: boss
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: 'v0.1 是 64 行草稿 (''子模块需求待填/验收标准待填'') → v1.0 补完: ① 20 条顶层需求逐条带来源与机械可判验收标准 ② 子模块需求改为索引(三个总工已全部交卷) ③ 端到端/精度/续航三条验收标准给出具体测法 ④ 追溯指向 FRAMEWORK/RTM.md + CHANGE_LOG.md。诚实边界写明: 硬指标三条一条都还没测。 [验证人: boss ——
+    main 自产的框架文档不能自己验 (铁律: 自己修的必须别人验); 老板是读者与批准者]'
 - id: ISS-021
   title: 缺系统架构图 / 尺寸堆叠图 / 电源拓扑图 (现在全是文字表)
   severity: high
@@ -433,7 +434,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: 补 3 张图 —— ① 系统架构图 (数据流+信号流+电源分配拓扑) ② 尺寸堆叠图 (镜框侧剖面, 重点正中 11.8mm 光学舱) ③ 电源树图
@@ -445,11 +446,12 @@ issues:
     验收: ① 三张图都在, 图里的每个数值都能指到来源 (tracker 章节/交接单) ② 架构图覆盖 相机→ISP→NPU→画框→光机→波导 全链 + 电源域
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: FRAMEWORK/ARCH_DIAGRAM.md + STACKUP.md + POWER_TREE.md
+  verify_by: boss
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '三张图: ① 架构/信号流/数据流 (mermaid, 含显示链双路线 DSI_TX/DP_TX) ② 尺寸堆叠 (镜脚侧解 A 修后余量 0.95mm / 镜框正中 11.8mm / 镜框上沿镜头需求) ③ 电源拓扑 (3 域 + 热账表 + 散热三件套 + 散热接触路径 + 温控)。每个数值都指到来源, 标 [推算]/[0数据]。 [验证人: boss —— main 自产的框架文档不能自己验
+    (铁律: 自己修的必须别人验); 老板是读者与批准者]'
 - id: ISS-022
   title: EMC 预评估缺失 (只有 HW-25 一条 ESD 器件)
   severity: high
@@ -665,7 +667,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: 把 INTERFACES.md 从 60 行补成真正的接口规格书
@@ -677,11 +679,12 @@ issues:
     边界: 与三个总工的 interface_claims 保持一致, 冲突由 merge 检出后由我裁决
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: FRAMEWORK/INTERFACE_SPEC.md
+  verify_by: boss
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '补上 41 条 claims 缺的那一层: 电气(器件/引脚/电平/速率/时序/阻抗) + 机械(尺寸/公差/配合/紧固件/装配顺序) + 热(接触路径/隔热/热路终点) + 软件契约。★装配顺序与紧固件清单原为''未定义'' → 标 ⬜ 待补, 并写明''补上之前不能进 G1 原理图定稿''。 [验证人: boss —— main 自产的框架文档不能自己验 (铁律: 自己修的必须别人验);
+    老板是读者与批准者]'
 - id: ISS-031
   title: 规格变更追踪表缺失 (作废结论散在正文, 追溯不到谁改的)
   severity: medium
@@ -692,7 +695,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-28'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: 规格变更追踪表 (H2-08)
@@ -702,11 +705,12 @@ issues:
     验收: ① 每条变更含: 规格项/原值/新值/原因/决策人/日期/影响的下游 ② 把 tracker 里散落的''作废''声明 (如 42-45ms→67ms) 全部收进来 ③ DECISIONS.md 与本表双向索引
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: FRAMEWORK/CHANGE_LOG.md
+  verify_by: boss
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '规格变更追踪表: ① 决策类变更 (12 条, 带日期/决定者/内容/影响文档) ② ★已作废结论 10 条 (42-45ms→67ms / 0.23W 42→46.5°C / 重量 49-66→50.1-74.0g / 凸出俯角 1.8→0.7-0.8 / 0.15-0.2W→0.16-0.21W / 余量 0.30mm 临界=不通过 / Q16 A/B/C→无所谓 / 直行40.45°→鱼眼29.53°
+    / 切30fps要两件一起切 / 镜脚余量 0.95mm) ③ 变更流程表 (谁改什么走哪条路) ④ 一条纪律: 旧结论必须显式标注作废并写明改成什么。 [验证人: boss —— main 自产的框架文档不能自己验 (铁律: 自己修的必须别人验); 老板是读者与批准者]'
 - id: ISS-032
   title: 风险登记册缺失 (tracker §5 是清单, 不是矩阵)
   severity: medium
@@ -717,7 +721,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-28'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: 风险登记册 (H9-02)
@@ -727,11 +731,12 @@ issues:
     验收: 每条风险含: 描述/类别/概率/影响/等级/**责任人**/**触发条件**/**缓解动作**/**应急备选**/复查日期。★责任人和触发条件是现在缺的
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: FRAMEWORK/RISK_REGISTER.md
+  verify_by: boss
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '风险登记册: 21 条风险 (tracker §5 全部, 含 R1b/R1c/R11/R15-R19) + 39 条问题实例对应表。★比 tracker §5 多 4 个字段: 责任人/升级路径/**应急备选**/复查日期。应急备选按风险 id **显式映射** (不靠正则猜 —— 猜过, 错过: R4 桥芯片被归到软件)。附 3 个每天要问自己的问题。★发现 tracker §5
+    存在重复风险 id (两条 R16) → 本表把后者改号 R19, tracker 需同步。 [验证人: boss —— main 自产的框架文档不能自己验 (铁律: 自己修的必须别人验); 老板是读者与批准者]'
 - id: ISS-033
   title: 需求→设计→验证 追溯矩阵 (RTM) 缺失
   severity: low
@@ -742,7 +747,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: RTM —— 从老板锁死变量 → 各域设计取值 → 验证方法 → 验证结果
@@ -752,11 +757,12 @@ issues:
     验收: ① tracker §0 每条锁死变量一行 ② 对应设计取值 (来自 41 条 claims) ③ 对应验证方法 (来自 measurements.yaml 的 10 项) ④ 未覆盖的高亮
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: FRAMEWORK/RTM.md
+  verify_by: boss
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '追溯矩阵: ① 两个硬指标的 7 步完整追溯链 (承诺→口径→设计→预算→判据→实测→结论, 明确标出''实测=0数据'') ② 35+ 条锁死变量逐条 → 验证方法 → 责任方 → 覆盖状态 (⚠️无对应验证项 / 🟡方法已定实测未做) ③ 10 项实测清单 (G3 清零对象)。覆盖缺口显式列出, 不藏。 [验证人: boss —— main 自产的框架文档不能自己验 (铁律: 自己修的必须别人验);
+    老板是读者与批准者]'
 - id: ISS-034
   title: 外部方管理域缺失 (原厂/JBD/PCB厂 是关键路径, 但没框架)
   severity: medium
@@ -767,7 +773,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: 外部方管理框架 (PC-EXT-01)
@@ -777,11 +783,12 @@ issues:
     验收: 每个外部方一份: 联系人/承诺项/承诺日期/当前状态/升级路径/**未回时的备份方案** (尤其''原厂不答 DSI TX''和''原厂不借板''两条备选)
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: FRAMEWORK/EXTERNAL_PARTIES.md
+  verify_by: boss
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '外部方管理: 6 个外部方 (原厂/JBD/PCB厂/桥接芯片/认证机构/量产件) × 承诺项/优先级/到期/草稿/升级路径。★每个外部方都有''未回时的备份方案'' —— 尤其: 原厂不答显示TX → 双出口DNP; 原厂不答pitch ≤0.3mm → 违反4-6层锁死 → **可能推翻主控选型** (备份 AR9481); 无评估板 → M-NPU 永远 0 数据 = 商业风险。
+    [验证人: boss —— main 自产的框架文档不能自己验 (铁律: 自己修的必须别人验); 老板是读者与批准者]'
 - id: ISS-035
   title: 来料检验 + 整机测试项 (QCP) 缺失
   severity: low
@@ -792,7 +799,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: QCP 最小版 (1 台也要定义''什么算合格'')
@@ -802,11 +809,12 @@ issues:
     验收: ① 来料检验项 (每类物料看什么/判据) ② 整机测试项 (对应 measurements.yaml 的 10 项实测, 写清用什么仪器/什么步骤/记录格式)
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: FRAMEWORK/QCP.md
+  verify_by: boss
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: 'QCP 最小版: ① 来料检验 12 类物料 (看什么/判据/谁检; 电池必须印 GB 31241; 打印件壁厚≥0.8/螺钉柱沿Z开槽; 金属骨架定位面≤5µm) ② 整机测试项 = measurements.yaml 的 10 项 (仪器/方法/合格判据) ③ 主观验收 M-DIZZY + 佩戴舒适 + 充电行为 ④ 上电自检 6 段 (EVT 模板) ⑤ 缺陷处理走 issue_log。
+    [验证人: boss —— main 自产的框架文档不能自己验 (铁律: 自己修的必须别人验); 老板是读者与批准者]'
 - id: ISS-036
   title: 售后支持/故障诊断缺失
   severity: low
@@ -817,7 +825,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: 售后支持体系 (1 台样机也用得上)
@@ -827,11 +835,12 @@ issues:
     验收: ① 常见故障 → 现象 → 诊断步骤 → 处理 ② 返修流程 ③ 需要客户配合的步骤写成用户能照做的语言
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: FRAMEWORK/AFTERSALES.md
+  verify_by: boss
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '售后 (1 台版): ① 三类故障三条路 (软件自助/返修/打印件自制重打) ② 客户可自行排查 5 步 (写成能照做的语言, 含''充电时发烫是安全项不是故障''/''弯的框是预期行为'') ③ 诊断信息采集清单 (省一轮来回) ④ 返修流程 (复测必须跑完 10 项实测) ⑤ 故障码表预留 ⑥ 明确不做 5 项 (客服系统/备件/云端/反馈闭环/召回) ⑦ 一条纪律: 每个故障都要登记进
+    issue_log —— 1 台的每个故障都是免费的用户测试数据。 [验证人: boss —— main 自产的框架文档不能自己验 (铁律: 自己修的必须别人验); 老板是读者与批准者]'
 - id: ISS-037
   title: 模型资产与 INT8 量化管理缺失 (权重是资产, 现在散在 sw 需求里)
   severity: low

@@ -74,7 +74,19 @@ config/
 projects/smart_glasses/    完整项目库 (真源)
   PROJECT_TRACKER.md         ★ 唯一真源 (35+ 条锁死变量 + 全部章节)
   state/                     状态源协议 + 11 个质量门/巡检脚本 (可复现)
-  HW/ SW/ MECH/ REQ/ HANDOFF/ PRINT/ FRAMEWORK/  三个总工的产出区
+  HW/ SW/ MECH/ REQ/ HANDOFF/ PRINT/  三个总工的产出区
+  FRAMEWORK/                 ★ 框架层文档 (项目总工产出)
+    ARCH_DIAGRAM.md            系统架构 / 信号流 / 数据流
+    STACKUP.md                 尺寸堆叠 (镜脚/镜框/镜头)
+    POWER_TREE.md              电源拓扑 + 热账 + 散热三件套
+    INTERFACE_SPEC.md          ★ 接口规格书 (电气/机械/热/软件四层)
+    RISK_REGISTER.md           ★ 风险登记册 (21 风险 + 应急备选 + 复查节奏)
+    RTM.md                     ★ 需求→设计→验证 追溯矩阵
+    CHANGE_LOG.md              ★ 规格变更追踪 (含 10 条已作废结论)
+    EXTERNAL_PARTIES.md        ★ 外部方管理 (含"未回时的备份方案")
+    QCP.md                     来料检验 + 整机测试项
+    AFTERSALES.md              售后诊断 + 返修流程
+    FRAMEWORK_SCOPE.md         9 域 68 项逐条裁剪基线
 ```
 
 ---
