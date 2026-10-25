@@ -57,12 +57,11 @@ measurements:
   kind: 推算
   by: mech-lead
   when: '2026-10-25'
-  evidence: MECH/print/MEASURE_CHECKLIST.md (逐项测量清单, 41 项) + MECH/print/ENV_PROBE.log (本机无法打印/量测的探测记录)
-    + MECH/print/verify_pack.py (模型级自检 41/41, 仅证明 STL 尺寸正确, 非实物)
-  note: '★ 未实测, 诚实登记为 [推算]: 本机物理上无法打印/量测 —— 打印机 192.168.1.68 与本机 192.168.2.4/24 不同网段不可达 (ping 无响应, TCP
-    990/8883/6000/4000 全 closed)、无切片器 (STL→gcode)、无卡尺/千分尺/塞尺、无 USB 串口。 已交付: ① 可直接下片 STL (MECH/print/fit_coupon_340.stl
-    + temple_cage_340.stl) ② 逐项测量清单 ③ 模型级光线投射自检 41/41。 升级为 [实测] 的唯一路径: 实物打印 + 按清单量 + 回填 (needs_from boss_local_print_measure,
-    due 2026-10-28)。按纪律, 绝不拿推算/模型值冒充实测。'
+  evidence: 'MECH/print/MEASURE_CHECKLIST.md (逐项测量清单, Rev A 49 项) + MECH/print/ENV_PROBE.log (本机无法打印/量测的探测记录) + MECH/print/GEOM_SPEC_REVA.md (Rev A 几何规格: 解 A 电池座 4.75 非对称 + 0.8 顶板 + 0.4 压垫槽 + ⌀2.4 间隙孔)
+    + MECH/print/verify_pack.py (模型级自检 46 项 Rev A 判据; 当前旧 STL (12:31, Rev 0) 38/46 — 差 8 项, 待按规格重生成; 仅证明模型尺寸, 非实物)'
+  note: '★ 未实测, 诚实登记为 [推算]: 本机物理上无法打印/量测 —— 打印机 192.168.1.68 与本机 192.168.2.4/24 不同网段不可达 (ping 无响应, TCP 990/8883/6000/4000 全 closed)、无切片器 (STL→gcode)、无卡尺/千分尺/塞尺、无 USB 串口。 已交付: ① 可直接下片 STL (MECH/print/fit_coupon_340.stl
+    + temple_cage_340.stl, **Rev 0 旧几何, 待按 GEOM_SPEC_REVA.md 重生成**) ② 逐项测量清单 49 项 ③ 模型级光线投射自检 (46 项 Rev A 判据)。 升级为 [实测] 的唯一路径: 实物打印 + 按清单量 + 回填 (needs_from boss_local_print_measure, due 2026-10-28)。按纪律,
+    绝不拿推算/模型值冒充实测。'
 - id: M-FIT
   name: 电池 / PCB / 光机 装配干涉检查
   value: '镜脚侧: 通过但临界 (前后余0.30mm); 3项条件性不通过; 镜框侧: 未验'
@@ -70,10 +69,7 @@ measurements:
   kind: 推算
   by: mech-lead
   when: '2026-10-25'
-  evidence: MECH/fit_check.py (设计态确定性几何计算, 逐项可复现, 全部尺寸标 MECH_BUDGET v1.1 章节号) + MECH/print/temple_cage_340.stl
-    (实物检具已交付)
-  note: '★ 这是设计态几何干涉检查, 不是物理装配实测, 因此 kind 诚实写 [推算], 阶段门 G2 不认 (符合预期)。 镜脚侧 (340mAh 档 + 充电板挪出镜脚 + 沿长度串行):
-    前后需 7.00 vs 可用 7.30 (余 0.30mm, 与 FDM 单边公差 ±0.2-0.3 同量级 → 临界, 建议镜腿 7.6-7.8mm)、长度余 24.5mm、垂直余 8.5mm、Type-C
-    尾端高余 0.7mm。 条件性不通过 (已量化): ① 按 v1.1 §1.4.2 ''电池与PCB同区叠放'' 模型 → 前后干涉 0.80mm + 垂直干涉 3.50mm (v1.1 两个排列模型并存,
-    必须锁定一个); ② 充电板不移出镜脚 → 长度干涉 0.50mm; ③ ⌀2.0 H7 定位销孔 FDM 做不到 (±0.2-0.3 vs H7 ±0.01) → 必须金属骨架+销。 镜框侧 (光机
-    11.8 / 摄像头 10-12 / 波导卡槽 ±0.3°): 未验 —— 缺 JBD 走鹃Ⅱ 三维尺寸 (u1) + 波导 2D 外形图 (u4) + 镜框形态 (u8)。'
+  evidence: MECH/fit_check.py (设计态确定性几何计算, 逐项可复现, 全部尺寸标 MECH_BUDGET v1.1 章节号) + MECH/print/temple_cage_340.stl (实物检具已交付)
+  note: '★ 这是设计态几何干涉检查, 不是物理装配实测, 因此 kind 诚实写 [推算], 阶段门 G2 不认 (符合预期)。 镜脚侧 (340mAh 档 + 充电板挪出镜脚 + 沿长度串行): 前后需 7.00 vs 可用 7.30 (余 0.30mm, 与 FDM 单边公差 ±0.2-0.3 同量级 → 临界, 建议镜腿 7.6-7.8mm)、长度余 24.5mm、垂直余 8.5mm、Type-C
+    尾端高余 0.7mm。 条件性不通过 (已量化): ① 按 v1.1 §1.4.2 ''电池与PCB同区叠放'' 模型 → 前后干涉 0.80mm + 垂直干涉 3.50mm (v1.1 两个排列模型并存, 必须锁定一个); ② 充电板不移出镜脚 → 长度干涉 0.50mm; ③ ⌀2.0 H7 定位销孔 FDM 做不到 (±0.2-0.3 vs H7 ±0.01) → 必须金属骨架+销。 镜框侧
+    (光机 11.8 / 摄像头 10-12 / 波导卡槽 ±0.3°): 未验 —— 缺 JBD 走鹃Ⅱ 三维尺寸 (u1) + 波导 2D 外形图 (u4) + 镜框形态 (u8)。'

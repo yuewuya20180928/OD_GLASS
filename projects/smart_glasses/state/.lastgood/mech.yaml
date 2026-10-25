@@ -3,10 +3,17 @@ role: 结构总工(带散热)
 updated_at: '2026-10-25T00:35:00+08:00'
 updated_by: mech-lead
 status:
-  phase: P2(打印包+干涉检查已交,待实物打印实测)→ISS-017部分闭环
-  progress_pct: 70
+  phase: P2(Rev A 几何规格已交, 待项目总工重生成 STL)
+  progress_pct: 72
   health: yellow
-  summary: 第3轮闭环ISS-017:交付打印包MECH/print/(2个可下片STL+41项测量清单+模型级自检41/41+ENV_PROBE.log本机不可打印/量测)_新增MECH/fit_check.py(M-FIT设计态干涉检查:镜脚侧340mAh档条件通过但前后余仅0.30mm临界_3项条件性不通过已量化_镜框侧未验)_measurements.yaml登记M-PRINT与M-FIT(kind=推算诚实标注_未拿推算冒充实测)_B2自评扩到17条(新增M-PRINT/M-FIT/彩虹纹缺失状态)_B6新增3条复现命令_needs_from新增boss_local_print_measure(due10-28)+jbd_optical_engine_dims(due10-28)_answers新增2条(hw-lead_M-FIT对PCB布局约束_sw-lead_0.30mm余量限制骨架加厚)_interface_claims新增5条
+  summary: '第4轮 ISS-050 第1步 (只出规格不碰 STL): 新增 MECH/print/GEOM_SPEC_REVA.md (Rev A 几何修订规格,
+    10 条特征变更 + 参考实现 + 46 项期望值 + 包围盒 + P0/P1 风险) + 修订 MECH/print/MEASURE_CHECKLIST.md
+    (43→49 项: 改 4/作废 1 (H6 打印件不再做 ⌀2.0 H7 定位孔, 基准迁到金属骨架)/新增 7, 加 §2.0 判据口径) + 修订 MECH/print/verify_pack.py
+    (41→46 项 Rev A 判据; 旧 STL 跑新判据 38/46 差 8 项 = 预期) + 新增 MECH/print/verify_reva_ref.py
+    (参考实现离线复核, 全一致, 不写任何 STL) + measurements.yaml M-PRINT 保持 kind=推算/value=未测 (0件已打),
+    只更新 evidence 计数 (41→49 清单 / 46 项自检 38/46) + needs_from 新增 3 条 (reva_stl_regen→main
+    / reva_cell_thickness_tol→boss 电芯公差 ≤±0.10 / reva_asym_direction→main 非对称方向+压垫槽板厚)。未碰
+    .stl / gen_print_pack.py / PRINT/。'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -29,18 +36,29 @@ artifacts:
     条; B5 未决项 10 条 (5 条标 waiting_on+due); B6 = 一条命令复算全部关键数字'
 - path: MECH/print/
   kind: print-pack
-  version: v1.0
+  version: v1.1 (Rev A 判据)
   updated_at: '2026-10-25'
-  summary: 'P2S 打印包: fit_coupon_340.stl (壁厚阶梯/间隙梳/螺钉柱含沿Z开槽拉脱试样/配作孔/悬空角/标定块/波导槽间隙)
-    + temple_cage_340.stl (电池槽40.8x23.8x4.9/配作销/走线槽6x2/Type-C面板9.5x3.6+1.5承力壁) + optical_cage_TEMPLATE.stl
-    (待JBD尺寸) + gen_print_pack.py + verify_pack.py (模型级41/41) + MEASURE_CHECKLIST.md
-    (41项逐项测量清单) + ENV_PROBE.log (本机不可打印/量测的探测记录)'
+  summary: 'P2S 打印包: fit_coupon_340.stl (壁厚阶梯/间隙梳/螺钉柱含沿Z开槽拉脱试样/配作孔试样含 Rev A 新增 ⌀2.4+⌀2.5/悬空角/标定块/波导槽间隙)
+    + temple_cage_340.stl (Rev A: 电池座 4.75 非对称 + 0.8 顶板 + 0.4 压垫槽 + PCB 定位 ⌀2.4 间隙孔
+    + 2×⌀1.6 过孔/走线槽 6x2/Type-C 面板 9.5x3.6+1.5 承力壁) + optical_cage_TEMPLATE.stl (待JBD尺寸,
+    不动) + gen_print_pack.py (待项目总工按 GEOM_SPEC_REVA.md 改) + verify_pack.py (46 项 Rev
+    A 判据, 当前旧 STL 38/46 待重生成) + GEOM_SPEC_REVA.md (Rev A 规格) + verify_reva_ref.py
+    (参考实现离线复核) + MEASURE_CHECKLIST.md (49 项逐项测量清单) + ENV_PROBE.log (本机不可打印/量测的探测记录)'
 - path: MECH/fit_check.py
   kind: script
   version: v1.0
   updated_at: '2026-10-25'
   summary: 'M-FIT 装配干涉检查 (设计态确定性计算, 每层厚度标 MECH_BUDGET v1.1 章节号): 镜脚侧 340mAh 档条件通过(前后余0.30mm临界)
     + 3项条件性不通过(叠层模型+0.80/+3.50mm, 充电板不移出+0.50mm, ⌀2.0H7打印件做不到) + 镜框侧未验(JBD/波导/形态缺口)'
+- path: MECH/print/GEOM_SPEC_REVA.md
+  kind: spec
+  version: Rev A
+  updated_at: '2026-10-25'
+  summary: 'Rev A 几何修订规格 (解 A): 10 条特征变更 (电池座 4.90→4.75 非对称[皮肤侧 0.00/内侧 0.15] + 0.8
+    整片顶板 + 0.4×40.8×16 压垫槽 + PCB 定位 ⌀2.0→⌀2.4 间隙孔 + M1.2 ⌀1.4→⌀1.6 过孔×2 + coupon 新增
+    ⌀2.4/⌀2.5 试样 + 走线槽改到电芯上方 + 隔热层缩到 PCB/SoC 段 + 骨架止于 PCB 段后缘) + 参考实现 (纯加法 box, 无布尔)
+    + 46 项期望值 (verify_pack 新判据) + 包围盒 (两个件都不变, 明确写了它不能当验收判据) + P0 待确认 2 条 (压垫压缩预算
+    0.25 vs 需吸收 0.25; 非对称方向) + P1 2 条 (槽区板厚 0.40 < 0.8; 盲槽轴必须水平打印)'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区
@@ -141,6 +159,33 @@ needs_from:
     只能停在模板态。经项目总工走 JBD 销售, 我不外联'
   waiting_on: jbd
   due: '2026-10-28'
+  since: '2026-10-25'
+- key: reva_stl_regen
+  to: main
+  item: 'Rev A 打印包重生成: 按 MECH/print/GEOM_SPEC_REVA.md (解 A) 改 gen_print_pack.py 并重出
+    fit_coupon_340.stl + temple_cage_340.stl (电池座 4.75 非对称 + 0.8 整片顶板 + 0.4 压垫槽 +
+    PCB 定位 ⌀2.4 间隙孔 + 2×⌀1.6 过孔 + coupon 新增 ⌀2.4/⌀2.5 试样), 然后 python3 MECH/print/verify_pack.py
+    应 46/46。当前旧 STL (12:31, Rev 0) 在 Rev A 判据下 38/46 —— 差 8 项: 座净厚 4.90/压垫槽 0/顶板厚
+    2.0/⌀1.6@X=6/⌀2.4@X=16/⌀1.6@X=46/coupon ⌀2.4/coupon ⌀2.5 (见 GEOM_SPEC_REVA.md
+    §3.3)。我不碰 .stl / gen_print_pack.py / PRINT/ 下任何文件。规格里的参考实现已离线复核通过 (MECH/print/verify_reva_ref.py
+    → 全一致, 包围盒 150×90×22 / 60×123×27.8)。'
+  since: '2026-10-25'
+- key: reva_cell_thickness_tol
+  to: boss
+  item: '电芯厚度公差要写进采购要求: ≤±0.10 (Renata ICP582035PR-01 现按 4.60±0.15 算)。理由: 解 A 的 0.40
+    硅胶压垫在名义状态已被压 0.25 (只占 0.15 间隙), 剩余压缩预算只有 0.25; 若座深最短 4.50 vs 电芯最厚 4.75 → 需吸收 0.25
+    = 预算 0.25, 零余量。收紧到 ±0.10 → 需吸收 0.20 ≤ 0.25, 有 0.05 余量。不收紧则最坏情况电芯顶到顶板 (硬干涉 0.25)。经项目总工走
+    JBD / 电芯厂, 我不外联。'
+  waiting_on: boss
+  due: '2026-10-28'
+  since: '2026-10-25'
+- key: reva_asym_direction
+  to: main
+  item: '确认解 A ''非对称座 4.75'' 的方向: 我按 **厚度 (H) 向** 执行 (皮肤侧间隙 0.00 电芯贴座底 / 内侧 0.15 压垫工作间隙),
+    见 GEOM_SPEC_REVA.md §2.2。若原意是 **长度 (X) 向** (电芯前端抵电池段前端壁、尾端留 0.15), 则产品件座净长应为 40.65
+    而不是 40.80 —— 打印包检具的 X 尺寸两种都能用 (保持 40.80), 只影响产品件加工图。另: 压垫槽挖在 0.8 顶板内侧后, 槽区板厚只剩
+    0.40 (< FDM 最小壁 0.80) —— 产品件要么顶板局部加厚到 1.20 (H 链 6.75 → 余量 0.55 < 0.60, 破 2×公差规矩),
+    要么压垫不设槽改背胶固定, 要么 boss 裁决。'
   since: '2026-10-25'
 answers:
 - key: pcb_outline_confirm

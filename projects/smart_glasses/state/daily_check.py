@@ -89,6 +89,8 @@ def main() -> int:
         except Exception:  # noqa: BLE001
             prev = None
 
+    import datetime as _dt
+    ts = _dt.datetime.now().strftime("%Y-%m-%d %H:%M")
     cur = {
         "readiness": {k: v for k, v in (ready or {}).items() if k != "criteria"},
         "gate": (gate or {}).get("summary", {}),
@@ -115,6 +117,34 @@ def main() -> int:
         cb = sum(1 for x in (issue or {}).get("issues", [])
                  if x.get("severity") == "blocker" and x.get("status") not in ("closed", "deferred", "wontfix"))
         drift.append(f"  (未闭环 blocker: {cb} 条)")
+
+    # ★ 人读摘要 (投递通知不可靠时的兜底: 结论落盘, 随时可查, 也会随 GitHub 同步)
+    if not args.no_snapshot:
+        dig = [
+            f"# 每日状态摘要 ({ts})", "",
+            "> 自动生成 (源: `state/daily_check.py`) | 微信推送不可靠时的兜底 —— 结论永远落在这里",
+            "", "```",
+        ]
+        _st = cur.get("stage") or {}
+        _gt = cur.get("gate") or {}
+        _is = cur.get("issues") or {}
+        _rd = cur.get("readiness") or {}
+        dig.append(f"阶段门      {_st.get('current_gate')}  (已过 {_st.get('passed_gates') or '无'})")
+        dig.append(f"齐备率      {_gt.get('blocks_ok')}/{_gt.get('blocks_total')}")
+        dig.append(f"需求闭环    问方 {_gt.get('needs_answered_incoming')}/{_gt.get('needs_total')} | 内部未闭合 {_gt.get('global_pending')} | 等外部 {_gt.get('global_waiting_external')}")
+        dig.append(f"接口声明    {_gt.get('interface_claims_total') or _gt.get('interface_claims') or '?'} 条")
+        dig.append(f"实测        {_rd.get('measurements',{}).get('have')}/{_rd.get('measurements',{}).get('needed')} 项")
+        dig.append(f"问题单      {_is.get('total')} 条 (逾期 {_is.get('overdue')} | 违规 {len(_is.get('errors') or [])})")
+        dig.append(f"就绪度      纸面 {'✅' if _rd.get('paper_ready') else '❌'} | 样机 {'✅' if _rd.get('sample_ready') else '❌'}")
+        dig.append(f"漂移        {'无 ✅' if not [d for d in drift if d.startswith('★')] else '有 ⚠️'}")
+        dig.append("```")
+        if problems:
+            dig += ["", "## 异常", ""] + [f"- {x}" for x in problems]
+        try:
+            with open(os.path.join(HERE, "STATUS_DIGEST.md"), "w", encoding="utf-8") as f:
+                f.write("\n".join(dig))
+        except Exception:  # noqa: BLE001
+            pass
 
     if not args.no_snapshot:
         import datetime as dt

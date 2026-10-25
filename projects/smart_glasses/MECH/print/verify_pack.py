@@ -6,15 +6,21 @@
 对交付的 STL 做 **光线投射实测** (不是"我以为标称是多少"): 把每个关键配合特征的
 **实体几何真值** 量出来, 与标称值对表。
 
+★ Rev A (2026-10-25 20:xx) —— 判据已切到 **解 A** 几何
+  契约源: MECH/print/GEOM_SPEC_REVA.md (打印件几何修订规格)
+  变化: 41 项 → **46 项**; 电池座 4.90→**4.75 非对称** + **0.8 整片顶板** + **0.4 压垫槽**;
+        PCB 定位孔 ⌀2.0→**⌀2.4 间隙孔**, M1.2 ⌀1.4→**⌀1.6 过孔 ×2**; coupon 新增 ⌀2.4/⌀2.5 试样。
+  ⚠️ 旧 STL (12:31) 跑新判据 = **8 项不过** (预期)。项目总工按 GEOM_SPEC_REVA.md 重生成后 → 46/46。
+
 ⚠️ 口径声明 (重要, 别误读):
   本脚本量的是 **模型网格**, 不是打印出来的实物。
-  → 它证明"交付的 STL 尺寸是对的" (v1.1 的数字被正确实体化);
+  → 它证明"交付的 STL 尺寸是对的" (Rev A 的数字被正确实体化);
   → 它**不能**替代 M-PRINT (实物打印件实测尺寸) —— 实物还有 FDM 工艺偏差;
   → 因此 M-PRINT 在 measurements.yaml 里仍是 [推算]/未测, 阶段门照样不认。
   实物实测清单见 MECH/print/MEASURE_CHECKLIST.md
 
 用法: python3 MECH/print/verify_pack.py
-退出码: 0 = 模型与标称一致; 1 = 有偏差 (说明 STL 与 v1.1 不同步)
+退出码: 0 = 模型与标称一致; 1 = 有偏差 (说明 STL 与 Rev A 不同步)
 """
 from __future__ import annotations
 
@@ -29,6 +35,38 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from gen_print_pack import (GAPS, OVERHANGS, P, WALLS,  # noqa: E402
                             build_coupon, build_temple_cage, v)
+
+
+# =====================================================================
+# Rev A 契约值 (source of truth: MECH/print/GEOM_SPEC_REVA.md)
+# ---------------------------------------------------------------------
+# 这些值是 **打印件几何规格** 里的数字, 不是生成器参数表的镜像。
+# 生成器 (gen_print_pack.py) 重生成时必须把它们实体化成本文件量得到的样子。
+# 若生成器将来把这些键写进自己的 P 表, 本文件会自动核对 (不一致会报出来)。
+# =====================================================================
+REVA = {
+    "batt_seat_depth": 4.75,   # 电池座净厚 (非对称: 皮肤侧 0.00 / 内侧 0.15)
+    "pad_groove_depth": 0.40,  # 顶板内侧压垫槽深
+    "top_plate_thk": 0.80,     # 电池段整片顶板厚
+    "clr_hole": 2.40,          # PCB 定位间隙孔 (定位基准在金属骨架)
+    "screw_clr": 1.60,         # M1.2 螺钉过孔 (只让过, 不定位)
+    "coupon_holes": (2.40, 2.50),   # fit_coupon 新增间隙孔试样
+    "seat_probe_z_plain": 24.0,    # 量座净厚 (避开压垫槽)
+    "seat_probe_z_groove": 12.0,   # 量压垫槽深 (落在槽区内)
+}
+
+
+def check_reva_contract():
+    """若生成器的 P 表里出现了 Rev A 键, 核对是否与本文件一致 (防两边漂移)"""
+    pairs = (("batt_seat_depth", "batt_seat_reva"),
+             ("pad_groove_depth", "pad_groove_reva"),
+             ("top_plate_thk", "top_plate_reva"))
+    bad = []
+    for mine, theirs in pairs:
+        if theirs in P:
+            if abs(float(P[theirs][0]) - REVA[mine]) > 1e-9:
+                bad.append(f"{theirs}={P[theirs][0]} (生成器) ≠ {REVA[mine]} (本文件)")
+    return bad
 
 
 # ---------------------------------------------------------------- STL 读取
@@ -139,14 +177,16 @@ def build_probes():
         out.append(Probe("fit_coupon", f"螺钉柱孔 {name}", nom, "mm", meas, 0.02,
                          "沿 +X 量柱内空腔"))
 
-    # ---- (4) 配作孔: 沿 +X, Y=40 ----
+    # ---- (4) 配作孔试样: 沿 +X, Y=40 ----
+    #   Rev A: ⌀2.0 / 2.1 / 2.2 保留 (FDM 孔径收缩表征) + 新增 ⌀2.4 / 2.5 (间隙孔试样)
     hits = ray_hits(coupon, (0.0, 40.0, 8.0), (1, 0, 0))
     g_all = gaps(intervals(hits))
-    for cx, d in ((10.0, 2.0), (18.0, 2.1), (26.0, 2.2)):
+    for cx, d in ((10.0, 2.0), (18.0, 2.1), (26.0, 2.2),
+                   (34.0, REVA["coupon_holes"][0]), (42.0, REVA["coupon_holes"][1])):
         gg = nearest(g_all, cx)
         meas = (gg[1] - gg[0]) if gg else None
-        out.append(Probe("fit_coupon", f"配作孔 ⌀{d}", d, "mm", meas, 0.01,
-                         "打印件与金属骨架配作孔"))
+        out.append(Probe("fit_coupon", f"配作孔试样 ⌀{d}", d, "mm", meas, 0.01,
+                         "打印件与金属骨架配作孔 (Rev A: ⌀2.4 = 产品间隙孔试样)"))
 
     # ---- (5) 悬空角: 两个高度各打一条 +X 射线, 由 x 位置差反算斜面角 ----
     for i, ang in enumerate(OVERHANGS):
@@ -196,20 +236,41 @@ def build_probes():
     out.append(Probe("temple_cage", "电池槽高度", v("batt_v") + 2 * clr, "mm", meas, 0.01,
                      "沿 +Z 量槽底面到侧挡底面"))
 
-    # 电池槽厚: 沿 +Y 量两挡板之间
-    iv = intervals(ray_hits(cage, (20.0, -5.0, 12.0), (0, 1, 0)))
+    # ---- Rev A: 电池座净厚 / 压垫槽深 / 顶板厚 (解 A) ----
+    # 座净厚: 沿 +Y 量"皮肤侧壁内面 → 顶板内侧面"; 探针 Z=24.0 **避开压垫槽**
+    iv = intervals(ray_hits(cage, (20.0, -5.0, REVA["seat_probe_z_plain"]), (0, 1, 0)))
     gg = gaps(iv)
-    meas = (gg[0][1] - gg[0][0]) if gg else None
-    out.append(Probe("temple_cage", "电池槽厚度", v("batt_thk") + 2 * clr, "mm", meas, 0.01,
-                     "沿 +Y 量两挡板之间"))
+    seat_meas = (gg[0][1] - gg[0][0]) if gg else None
+    out.append(Probe("temple_cage", "电池座净厚 (Rev A, 非对称)", REVA["batt_seat_depth"], "mm",
+                     seat_meas, 0.005,
+                     "沿 +Y @ Z=24.0 量座底面到顶板内侧面 (旧值 4.90 对称)"))
 
-    # 配作销孔
+    # 压垫槽深: 槽是顶板内侧的 **让位凹槽** (材料从 Y=5.55 挖到 5.95) ⇒ 槽内净厚比槽外 **大**
+    #           探针 Z=12.0 落在槽内 → 槽深 = 槽内净厚 − 槽外净厚
+    iv_g = intervals(ray_hits(cage, (20.0, -5.0, REVA["seat_probe_z_groove"]), (0, 1, 0)))
+    gg_g = gaps(iv_g)
+    inner_meas = (gg_g[0][1] - gg_g[0][0]) if gg_g else None
+    groove_meas = None if (seat_meas is None or inner_meas is None) else (inner_meas - seat_meas)
+    out.append(Probe("temple_cage", "顶板压垫槽深 (Rev A)", REVA["pad_groove_depth"], "mm",
+                     groove_meas, 0.005,
+                     "沿 +Y @ Z=12.0 (槽内): 槽内净厚 − 槽外净厚 = 槽深"))
+
+    # 顶板厚: 射线从空腔里 (Y=5.0) 出发 → 首末命中之差 = 顶板实体厚
+    #         (用 首末差 而非 相邻区间, 因为槽区板与边条与板基共面会被去重合并)
+    h_p = ray_hits(cage, (20.0, 5.0, REVA["seat_probe_z_plain"]), (0, 1, 0))
+    meas = (float(h_p[-1]) - float(h_p[0])) if len(h_p) >= 2 else None
+    out.append(Probe("temple_cage", "电池段顶板厚 (Rev A)", REVA["top_plate_thk"], "mm",
+                     meas, 0.005,
+                     "沿 +Y @ Z=24.0 从空腔内打首末命中差 (旧件是 2.0 挡板, 无顶板)"))
+
+    # 配作销孔 (Rev A: 定位基准迁到金属骨架 → 打印件只做间隙孔 + 过孔)
     iv = intervals(ray_hits(cage, (0.0, 68.0, 10.0), (1, 0, 0)))
     g_all = gaps(iv)
-    for cx, nom, name in ((6.0, v("hole_m12"), "M1.2 配作销"),
-                          (16.0, v("dowel_h7"), "⌀2.0 H7 定位销"),
-                          (26.0, 2.1, "打印件配作孔 ⌀2.1"),
-                          (36.0, 2.2, "打印件配作孔 ⌀2.2")):
+    for cx, nom, name in ((6.0, REVA["screw_clr"], "M1.2 螺钉过孔 ⌀1.6 (X=6, 让过不定位)"),
+                          (16.0, REVA["clr_hole"], "PCB 定位间隙孔 ⌀2.4 (X=16, 取代 ⌀2.0 H7)"),
+                          (26.0, 2.1, "FDM 孔径试样 ⌀2.1"),
+                          (36.0, 2.2, "FDM 孔径试样 ⌀2.2"),
+                          (46.0, REVA["screw_clr"], "M1.2 螺钉过孔 ⌀1.6 (X=46, 第 2 处)")):
         gg = nearest(g_all, cx)
         meas = (gg[1] - gg[0]) if gg else None
         out.append(Probe("temple_cage", f"配作销 {name}", nom, "mm", meas, 0.01, "沿 +X 量孔"))
@@ -248,6 +309,15 @@ def main():
     print("=" * 100)
     print("打印包模型自检 (光线投射实测 STL 网格) —— ⚠️ 模型级, 不等于实物打印实测")
     print("=" * 100)
+    bad = check_reva_contract()
+    print(f"Rev A 判据 (契约: MECH/print/GEOM_SPEC_REVA.md): "
+          f"座净厚 {REVA['batt_seat_depth']} / 压垫槽 {REVA['pad_groove_depth']} / "
+          f"顶板 {REVA['top_plate_thk']} / 间隙孔 ⌀{REVA['clr_hole']} / "
+          f"螺钉过孔 ⌀{REVA['screw_clr']}")
+    if bad:
+        print("⚠️  生成器 P 表与 Rev A 契约不一致: " + "; ".join(bad))
+    else:
+        print("     生成器 P 表: 无 Rev A 键 → 以本文件 + GEOM_SPEC_REVA.md 为准")
     probes = build_probes()
     ok = 0
     cur = None
@@ -264,7 +334,11 @@ def main():
               f"实测 {m:>8} {p.unit:<3} Δ {d:>8}  {p.note}")
     print("\n" + "-" * 100)
     print(f"模型与标称一致: {ok}/{len(probes)}")
-    print("★ 口径: 上面是 **模型真值** (证明 STL 把 v1.1 的数字实体化对了)。")
+    if ok != len(probes):
+        print("⚠️  旧 STL (12:31, Rev 0 几何) 在 Rev A 判据下的差异项 —— **这是预期的**:")
+        print("    项目总工按 MECH/print/GEOM_SPEC_REVA.md 重生成 STL 后应转绿 "
+              f"{len(probes)}/{len(probes)}")
+    print("★ 口径: 上面是 **模型真值** (证明 STL 把 Rev A 的数字实体化对了)。")
     print("  M-PRINT (实物打印件实测尺寸) 仍为 0 数据 —— 必须实物打印 + 卡尺实测, 见")
     print("  MECH/print/MEASURE_CHECKLIST.md")
     return 0 if ok == len(probes) else 1
