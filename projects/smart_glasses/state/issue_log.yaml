@@ -63,7 +63,9 @@ issues:
   verify_by: main
   verify_result: null
   verify_date: null
-  note: ' | 10-25 19:23 老板问''桥接芯片是否可以去除'' → 结论: **能不能去除取决于原厂 ARS45 有无 DSI TX (原厂信 P0 问题1)**; 但**不阻塞**: 原理图对策是双出口 (DSI_TX / DP_TX 都留, 走 0Ω/DNP) → PCB 出板前再定用哪条; 并行询价成本≈0 (只买 1 片), 保留询价但降级为''不阻塞项''。'
+  note: ' | 10-25 19:23 老板问''桥接芯片是否可以去除'' → 结论: **能不能去除取决于原厂 ARS45 有无 DSI TX (原厂信 P0 问题1)**; 但**不阻塞**: 原理图对策是双出口 (DSI_TX / DP_TX 都留, 走 0Ω/DNP) → PCB 出板前再定用哪条; 并行询价成本≈0 (只买 1 片), 保留询价但降级为''不阻塞项''。 | **20:20
+    网上查证新增 3 条证据**: ① 官网 ARS45 页 ''与 AR9481 为同 Die 产品'' (AR9481 是 2024-05 已量产出货产品, 是最佳代理参考) ② 百科/媒体 ''支持**多屏异显**'' → 暗示确有显示输出, 但**仍没说接口类型** ③ 百科 ''集成 ISP、**DP1.4 RX**、高性能显示'' → DP1.4 明确是 RX → ★**结论不变: 无法区分
+    DSI TX / DP TX, 仍必须问原厂**; 但已把''索取 AR9481 资料作为同 Die 代理''加进邮件草稿 (比要 ARS45 全新资料容易拿到)'
   need_keys: []
   email_draft: vendor_round2_email.md
 - id: ISS-004
@@ -139,7 +141,7 @@ issues:
   verify_by: main
   verify_result: null
   verify_date: null
-  note: ''
+  note: ' | 20:20 查证: 官网无公开下载区, 站内搜索 404, 电源域表**仍只能问原厂**'
   need_keys: []
   email_draft: vendor_round2_email.md
 - id: ISS-008
@@ -177,7 +179,7 @@ issues:
   verify_by: main
   verify_result: null
   verify_date: null
-  note: ''
+  note: ' | 20:20 媒体级佐证: 沈泊演讲 ''NPU 核心 12nm 下能效比约 10Tops/W, **延迟仅几毫秒**'' → 与 M-NPU ≤16.67ms 判据一致, 60fps 路径可行性提升; **证据等级仍是 [媒体], 不能替代实测**'
   need_keys: []
   email_draft: vendor_round2_email.md
 - id: ISS-010
@@ -1178,7 +1180,9 @@ issues:
   verify_by: null
   verify_result: null
   verify_date: null
-  note: ''
+  note: '20:0x 第一轮派活**空转**: 8分30秒 / 149.7k tokens 全部消耗在读文件 (fit_check 28KB + CLEARANCE_FIX 29KB + 生成器 16KB + 测量清单 10KB), 回执只有一句''我先读一下当前状态'', **所有文件 mtime 未变 (0 产出)**。★ 根因 = 任务书太重: 同时改 2 个 STL + **重写几何生成器**
+    + 自检 + 测量清单 + 3MF 同步。→ 20:1x 拆成两步: ① mech 只出『几何修订规格 + 测量清单 + 自检判据』(不碰 STL/生成器) ② 项目总工按规格机械重生成 STL + 3MF + 切片配置 (打包器本来就是我维护的)'
+  dispatched_at: '2026-10-25'
 - id: ISS-051
   title: 镜头选型目标改为 对角 FOV 120° (垂直半视场 40.3°) + 俯角 ≤25°
   severity: high
@@ -1243,7 +1247,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-30'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '背景: 老板 19:33 拍板『不裁剪, 后级只缩放』+ 硬件总工定路线 = 鱼眼(等距) 对角 120° → 画面保持鱼眼原始形状。
@@ -1255,8 +1259,135 @@ issues:
     验收: ① 反投影公式与参数 (f 与畸变系数) 明确写出 ② 框龄口径从''像素行差''改为''方位角差'' ③ 给出不做 LDC 的精度影响评估与兜底 (必要时只对画面中心区做校正)
 
     依据: HW/LENS_SELECTION.md §B6.4 RFQ 第 9 条 + §B7 卡点 6'
+  fix_ref: SW/FISHEYE_GEOMETRY.md (52KB) + SW/DISPLAY_MODE.md §8 追加 (原 §1-§7 未改)
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '独立核验: 52KB, 关键数字全在 (85.61 / 13.68 / 9.88 / 3.6% / 17.9% / 0.05ms / 55.72 / LUT4096 / k1 / ω); sw.yaml mtime 未变=没越界; 原判定链 (67.01 / 55.67 / 16.67) 一字未改。
+
+    ★三个重要结论: ① **畸变本身不降 IoU** (全局单调径向映射, 检测框与 GT 同域 → 偏差=0) → 老板『暂接受畸变』的决策**代价几乎为零**; 真正受损的是**框→方位角** (用直行反解: 角落错 13.68° / 水平边 9.88°) → 解法 = **框级解析反投影** (100 框 ≤0.05ms, 端到端 55.67→55.72ms, 达标结论不变) ② **中心区校正不可行**:
+    |D|≤1% 只覆盖画面 3.6% 面积, ≤5% 覆盖 17.9%, 而成本是 ISP 几何流水线 30-50% + 拼接缝 → **不做 LDC (含中心区)** ③ ★★ **新发现: ISP 若用 ROI (crop+scale) 实现 1080p, 等于偷偷裁剪 → 对角 FOV 从 120° 砍到 85.61°** → 缩放必须是**整幅 scale** 而非 ROI (已开 ISS-056)'
+  dispatched_at: '2026-10-25'
+- id: ISS-054
+  title: '原理图可画部分落地: 顶层接口定义 + 低速接口 + 外围 IC 选型 (全部不等原厂)'
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: '原理图可画部分落地: 顶层接口定义 + 低速接口 + 外围 IC 选型 (全部不等原厂)'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-25'
+  due: '2026-10-29'
+  status: closed
+  external: false
+  need_keys: []
+  task_brief: '背景: 老板 20:05 要求先评估''当前信息能不能直接开始画原理图''。评估结论: **不能画完整原理图** (ARS45 引脚表缺失 = 连线都连不上), 但**能画约 30%**, 且这部分不等原厂。
+
+    本任务 = 把那 30% 画掉, 让原厂回信后 1-2 周能出完整图 (而不是等回信才开始)。
+
+    要做: ① **顶层接口定义**: 光机连接器引脚表 (MIPI-DSI + DDC + 供电 + 地) + 显示链**双出口预留** (DSI_TX/DP_TX 各留, 走 0Ω/DNP 切换, 互斥不同时装) + 电源树**骨架** (3 域: SoC域/外设域/充电域) + 测试点/按键/LED/复位/BOOT 预留 ② **低速接口** (I2C ×4 路: sensor/光机/NTC/桥接芯片,
+    地址规划防冲突; GPIO/LED/按键) ③ **外围 IC 选型** (★不等原厂★): 充电 IC (1S, Type-C PD sink, ≥1A) + 电池保护 (1S 过充/过放/短路) + DC-DC (SoC 域, 按 NPU 突发峰值选) + LDO (外设域) + Type-C 母座 + sensor 型号从 6 候选中**拍板一个** (4 个满足 ≥1080p60: AR0234CS/OV04C10/OV02C10/SC1220IOT)
+    ④ **板级接口定义表**: 每条跨域接口的 信号名/方向/电平/阻抗要求/连接器/测试点/责任人/版本
+
+    输出: HW/SCHEMATIC_L1.md (顶层+低速接口定义与连接表) + HW/POWER_IC_SELECTION.md (外围选型对比) + HW/INTERFACE_TABLE.md (板级信号表)
+
+    验收: ① 每条连接都写清 两端引脚/信号名/电平/阻抗/是否 DNP ② 电源树每个轨给出 目标电压/最大电流/候选 IC/选型理由 ③ sensor 拍板给理由 (含镜头配套: 鱼眼 120° → 镜筒 ⌀6.0-6.5/总高 3.7-4.6) ④ **明确列出哪些电路还画不了 + 卡在原厂哪一条** (作为等 datasheet 时的对照表) ⑤ 标注证据等级
+
+    边界: ① **不许编 ARS45 的引脚** —— 引脚相关一律标 [待原厂] 并列进对照表 ② 不许联系供应商 (询价走项目总工) ③ 选型只到''候选+推荐'', 不下单'
+  fix_ref: HW/SCHEMATIC_L1.md (42KB) + HW/INTERFACE_TABLE.md (18KB) + HW/POWER_IC_SELECTION.md (31KB)
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '独立核验: 三份文件 42+18+31KB; hw.yaml mtime 未变=没越界; 7 个选型型号全在 (BQ25896 / TPS25730 / BQ2970 / TPS62130A / TPS7A20 / TMP117 / Type-C 16P沉板) + **sensor 拍板 豪威 OV04C10** (17 处引用); 双出口 0Ω/DNP 方案已在信号表里逐条落到具体引脚
+    (Pin7/8 vs Pin25/26)。
+
+    ★最有价值的三条: ① **56 条可落笔连接** (高速差分 21 / 低速控制 24 / 电源 11), 其中 **31 条两端引脚已完全确定**、25 条仅 SoC 侧待原厂 ② **13 项画不了**的对照表, 🔴6/🟡4/🟢3, 且其中 **2 项 (帧同步/充电状态) 已被测试点设计绕过** → 不再卡项目 ③ ★**草稿缺项 2 条** (USB PHY / 存储挂载接口) +
+    建议补 7 条 → 已补进草稿问题 4d; ④ ★★**4c-1 (AR9481 同 Die 参考) 可部分解锁 3 项卡点 → 先画''同 Die 参考版''把出图周期从 1-2 周压到 2-3 天** (已开 ISS-057)'
+  dispatched_at: '2026-10-25'
+- id: ISS-055
+  title: ★用官方口径 <300mW 重算整机功耗预算 —— 可能翻案 46.5°C 的散热结论
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: ★用官方口径 <300mW 重算整机功耗预算 —— 可能翻案 46.5°C 的散热结论
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-25'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '触发: 20:20 网上查证 → 媒体 (2026-06-05 沈泊松山湖演讲, [媒体]级) 称 ARS45 ''在 **1080p 30fps EIS 录像**场景下, **整芯片功耗 (含 DDR) 低于 300mW**''。
+
+    ★ 我们现在的整机功耗预算是 **1.22W 持续满载** (其中约 1W 给了 SoC) → **若 SoC 实际只有 ~300mW 量级, 则按需触发方案的 46.5°C 可能偏保守, 散热结论要重算**。
+
+    要做: ① 用官方 300mW 口径**重算整机功耗预算** (SoC 域 + 外设域 + 光机 98mW + 充电域), 给出新的 满载/按需触发/待机 三档功耗 ② 用新预算**重算皮肤侧温度** (MECH §2.3 模型), 给出新的 46.5°C 是多少 ③ **明确对比**: 官方 300mW 是 1080p30+EIS录像场景, 我们是 1080p60+OD+显示 → 两者场景不同,
+    换算系数要给依据 (算力 6Tops vs 实际用多少 / 帧率 30 vs 60 / EIS 开 vs 关) ④ 结论若变, 同步 MECH_BUDGET §2.3/§2.3.1
+
+    验收: 给出 三档功耗新值 + 皮肤温度新值 + 换算依据; **不许把 300mW 直接当我们的值用** (场景不同)
+
+    边界: 证据等级标 [媒体]; 300mW 的测试条件要写明''官方未给'''
   fix_ref: null
   verify_by: null
   verify_result: null
   verify_date: null
   note: ''
+- id: ISS-056
+  title: ★ISP 缩放必须整幅 scale, 禁用 ROI 裁剪 (ROI 会把对角 FOV 从 120° 砍到 85.61°)
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: ★ISP 缩放必须整幅 scale, 禁用 ROI 裁剪 (ROI 会把对角 FOV 从 120° 砍到 85.61°)
+  owner: sw-lead
+  reporter: main
+  raised: '2026-10-25'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '背景: 老板 19:33 拍板『sensor 输出先不裁剪, 由后级模块缩放到目标分辨率』; 硬件总工定鱼眼 对角 120°。
+
+    ★但软件总工在 ISS-053 里发现: **ISP 若用 ROI (crop+scale) 实现 1080p 处理, 等于偷偷裁剪 → 对角 FOV 从 120° 砍到 85.61°** (OV04C10 口径), 与老板『不裁剪』的决定直接冲突, 且会同时毁掉: ① 俯角余量 (25°/28° 的安全边界是按 120° 算的) ② 鱼眼角分辨率均匀的优势 (0.0389°/px) ③ 边缘目标检测精度
+    (角落畸变最大的区域直接被切掉) ④ 波导耦入光锥的覆盖范围。
+
+    要做: ① 在 ISP 调参需求 (M2) 里写死**硬约束: 缩放路径必须为整幅 scale, 禁止 ROI 裁剪**, 并给出 1080p→640×480@60 与 1080p→1280×960@15 两条链路的**实际 FOV 保持值** (应 = 传感器全视场) ② 给出 ROI vs scale 的对比表 (视场保持 / 角分辨率均匀性 / 算力 / 实现代价) ③ 在 EVT 模板加一条**可测的检查项**:
+    画面四角是否完整保留 (用标定图/棋盘格验证 FOV 未被裁) ④ 与硬件总工的镜头选型对齐: 镜头是按『全视场不被裁』设计的, 若 ISP 裁, 则 120° 镜头的价值归零 → 结论反馈给 ISS-051/ISS-054
+
+    验收: ① 硬约束写进 SW 需求 + EVT 模板 ② FOV 对比表 ③ EVT 里有一条**机械可判**的 FOV 未裁检查方法 ④ 不许用''基本无影响''这类无依据结论'
+  fix_ref: null
+  verify_by: null
+  verify_result: null
+  verify_date: null
+  note: ''
+- id: ISS-057
+  title: ★先画 AR9481 同 Die 参考版原理图 (每脚标证据等级) —— 出图周期从 1-2 周压到 2-3 天
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: ★先画 AR9481 同 Die 参考版原理图 (每脚标证据等级) —— 出图周期从 1-2 周压到 2-3 天
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-25'
+  due: '2026-10-29'
+  status: fixing
+  external: false
+  need_keys: []
+  task_brief: '触发: 官网写明 **ARS45 与 AR9481 为同 Die 产品** (ARS45 是同 Die 的更小封装版本); AR9481 是 2024-05 已量产出货的产品。
+
+    ★hw-lead 在 ISS-054 的对照表里发现: **4c-1 (索取 AR9481 datasheet/HRM 作同 Die 参考) 可部分解锁 3 项卡点** (#1 引脚表 / #2 电源域 / #5 pitch+球位图)。
+
+    ★做法: **不等 AR9481 资料到手, 先画一版''同 Die 参考版''原理图** —— 按 AR9481 的功能/引脚语义做参考, **每一脚都标证据等级** (如 [同Die参考-待官方确认] / [官网brief] / [推算]), 凡 ARS45 可能有差异的地方显式标注。
+
+    价值: ① 原本被原厂回信卡住的 70% 原理图工作量, **今天就能先做掉一大部分** (版图/连接/布线规则), 等原厂回信只做**差异修订**而不是从零画 ② 出图周期 **1-2 周 → 2-3 天** ③ 与已画好的 56 条连接直接对接 (双出口 0Ω/DNP 方案不变)
+
+    ★边界: ① **每一脚必须标证据等级, 绝不含糊** —— 这版是**参考版不是定版**, 不得直接拿去投板 ② AR9481 与 ARS45 **同 Die ≠ 同封装同引脚** → 凡涉及封装/球位/pitch 的必须标 [待原厂] ③ 电源域数值一律标 [待原厂], 只能画拓扑不能标电压 ④ 交付物要明确写''哪些脚是同 Die 参考推断''
+
+    输出: HW/SCHEMATIC_REFDIE.md (参考版原理图 + 逐脚证据等级表 + 与 ISS-054 的 56 条连接的差异标注)
+
+    验收: ① 每一脚/每条连接都有证据等级, 无 [未标] ② 明确列出''同 Die 参考推断的脚''与''必须等原厂确认的脚''两份清单 ③ 差异标注与 HW/INTERFACE_TABLE.md 逐条对齐 ④ **不得声称这版可直接投板**'
+  fix_ref: null
+  verify_by: null
+  verify_result: null
+  verify_date: null
+  note: ''
+  dispatched_at: '2026-10-25'
