@@ -48,6 +48,7 @@ done
 cp "$PROJ/TODO.md" docs/TODO.md
 cp "$PROJ/docs/PROJECT_STATUS.md" docs/PROJECT_STATUS.md
 cp "$PROJ/docs/OPEN_ISSUES.md" docs/OPEN_ISSUES.md
+cp "$PROJ/docs/START_HERE.md" docs/START_HERE.md
 cp "$PROJ/state/STATUS_DIGEST.md" docs/STATUS_DIGEST.md
 cp "$PROJ/CERT_CHECKLIST.md" docs/CERT_CHECKLIST.md
 cp "$PROJ/DECISIONS.md" docs/DECISIONS.md
