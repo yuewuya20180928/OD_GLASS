@@ -144,7 +144,17 @@ else
   git commit -q -m "$MSG" && git push -q origin main && echo "[5] 已 push: $(git rev-parse --short HEAD)"
 fi
 
-# ---- 6. 验证 (用 GitHub API 比 blob SHA, 不用 raw.githubusercontent) ----
+# ---- 6. 验证 (① 远端 SHA == 本地 HEAD (不需要 API, 免限流) ② blob SHA 逐个比, API 限流时跳过) ----
+echo "[6] 远端 SHA 校验 (ls-remote, 不吃 API 限流)"
+REMOTE_SHA=$(git ls-remote origin main | cut -f1)
+LOCAL_SHA=$(git rev-parse HEAD)
+if [ "$REMOTE_SHA" = "$LOCAL_SHA" ]; then
+  echo "  ✅ 远端 main = 本地 HEAD = ${LOCAL_SHA:0:8} → 推送已落地"
+else
+  echo "  ❌ 远端 ${REMOTE_SHA:0:8} != 本地 ${LOCAL_SHA:0:8}"
+  exit 1
+fi
+
 python3 - "$PUB" "$REPO" <<'PY'
 import json, os, subprocess, sys, urllib.request
 pub, repo = sys.argv[1], sys.argv[2]
@@ -170,6 +180,10 @@ for f in files:
     try:
         remote = gh(f"/contents/{f}?ref=main").get("sha", "")
     except Exception as e:
+        msg = str(e)
+        if "403" in msg or "rate limit" in msg.lower():
+            print(f"  ⏭  {f} (API 限流 → 跳过逐文件校验; 远端 SHA 已在上一步核对)")
+            continue
         print(f"  ❌ {f} → API 取不到: {e}")
         bad += 1
         continue
