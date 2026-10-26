@@ -97,3 +97,13 @@ dispatches:
   at: '2026-10-26'
   brief: '按项目总工裁决落地: (a) UVP 抬到 3.5V (兜底必做, 保证 SYS 末段不低于 3.41V) (b) 基线按方案 A 出 3.3V 轨供电改法, 并把 12-15% 容量损失换算成新的电池容量需求与续航影响 (c) 评估第三条路: 有没有办法不牺牲容量 (更低 dropout 的 3.3V LDO / IO 轨直吃 SYS / 加 buck-boost), 给出各自的代价与推荐。输出:
     改后的电源拓扑 + 对电池容量/续航口径/镜腿厚度的影响 + 给 mech-lead 的结构侧输入 (发给项目总工转达)'
+- issue: ISS-029
+  agent: sw-lead
+  at: '2026-10-26'
+  brief: '目标: 固件烧录与版本管理方案 (USB/ADB)
+
+    输出: SW/FLASH_AND_VERSION.md
+
+    验收: ① 烧录链路 (工具/接口/权限/失败处理) ② 版本号规则 + 变更记录 ③ 回滚策略 (双分区? 备份分区? 救砖流程) ④ 首次出厂烧录 + 返修烧录两套流程
+
+    自证: python3 state/merge.py && python3 state/gate_check.py'

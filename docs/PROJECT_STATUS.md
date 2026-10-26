@@ -1,6 +1,6 @@
 # 项目状态快照 (自动生成)
 
-> 生成时间: **2026-10-26 19:06** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-10-26 19:11** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 
 ## 1. 一屏总览
@@ -50,8 +50,8 @@
 ## 3. 问题闭环门
 
 ```
-登记问题 72 条 | 状态: open=32 closed=35 fixing=5
-  ├─ 内部可自行推进: 47 条 | 外部依赖 (等老板/原厂/JBD): 25 条
+登记问题 73 条 | 状态: open=32 closed=36 fixing=5
+  ├─ 内部可自行推进: 48 条 | 外部依赖 (等老板/原厂/JBD): 25 条
   ├─ 逾期未闭环: 0 条
   └─ 未闭环 blocker 级: 10 条
 ```
