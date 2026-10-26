@@ -1,0 +1,107 @@
+{
+  "_readme": [
+    "ARS45 S2 救砖链路 —— 参数化配置模板 (示例)。",
+    "本文件是 SW/FLASH_AND_VERSION.md §4.5 的机器可读附件。",
+    "规则: params 里 4 个 0 数据项 (P1..P4) 在原厂回复前 value 一律留 null, 状态 TODO。",
+    "★ 脚本在 params 未填满时不会假装能跑: 会以 exit=2 明确报 '参数不全', 不做静默降级。",
+    "★ partition_layout 里的容量/分区是 [推算] 的占位值 (按 §4.1 条件式推荐 C 造), 不是本项目数据。",
+    "   真实分区表必须由原厂参考设计 (needs_from.fw_vendor_toolchain 第4问) 替换。"
+  ],
+
+  "params": {
+    "P1_BOOT_ENTER_SPEC": {
+      "value": null,
+      "status": "TODO",
+      "owner": "vendor (经项目总工) + hw-lead",
+      "need_key": "fw_boot_entry_cond / fw_boot_mode_hw",
+      "desc": "进入 BOOT/下载模式的硬件条件: BOOT 引脚电平 + 是否需按键组合 + 时序",
+      "self_measure": "见 §4.5.2 —— 无原厂答案时, 用逻辑分析仪抓 BOOT/RESET 波形 + 枚举特征反推"
+    },
+    "P2_DL_TOOL": {
+      "value": null,
+      "status": "TODO",
+      "owner": "vendor (经项目总工)",
+      "need_key": "fw_vendor_toolchain",
+      "desc": "原厂下载工具: 名称/版本/支持平台/刷写命令/分区表导入方式",
+      "self_measure": "无 (必须原厂给)。本仓库只能把'怎么调它'的调用层参数化"
+    },
+    "P3_USB_PHY": {
+      "value": null,
+      "status": "TODO",
+      "owner": "vendor (经项目总工)",
+      "need_key": "fw_usb_boot_phy",
+      "desc": "ARS45 有无 USB Device PHY + 是否有 fastboot/DFU/UF2 协议 + BOOT 态枚举特征 (VID:PID)",
+      "self_measure": "枚举特征可在空板/半板阶段用 USB 协议分析仪抓 (见 §4.5.5 L2)"
+    },
+    "P4_BOOT_STORE": {
+      "value": null,
+      "status": "TODO",
+      "owner": "vendor (经项目总工) + hw-lead",
+      "need_key": "fw_vendor_toolchain / fw_boot_storage_bom",
+      "desc": "启动存储类型/容量/分区表参考设计 (决定 partition_layout 是否成立)",
+      "self_measure": "无 (必须原厂给)"
+    }
+  },
+
+  "boot_enter": {
+    "_readme": "P1 落地后填这里。t* 全部单位 ms。method: A=BOOT引脚+RESET按键 / B=按键组合 / C=测试点跳线",
+    "method": null,
+    "boot_pin_name": "BOOT",
+    "boot_pin_level": null,
+    "keys": [],
+    "t0_hold_boot_ms": null,
+    "t1_reset_pulse_ms": null,
+    "t2_release_all_ms": null,
+    "t3_enum_timeout_s": 15
+  },
+
+  "usb_signatures": {
+    "_readme": [
+      "BOOT 态枚举特征签名表。★ 下面 3 条是**通用示例**(其它平台的常见下载模式), 不是 ARS45 的!",
+      "ARS45 的 VID:PID 必须原厂给 (P3) 或在空板阶段用协议分析仪抓 (L2)。",
+      "source 字段标证据等级: generic-example / vendor-official / measured"
+    ],
+    "entries": [
+      {"vid": "0451", "pid": "6146", "label": "TI DFU (通用示例, 非 ARS45)", "source": "generic-example"},
+      {"vid": "0483", "pid": "df11", "label": "STM32 DFU (通用示例, 非 ARS45)", "source": "generic-example"},
+      {"vid": "0525", "pid": "a4a7", "label": "Linux gadget serial (通用示例, 非 ARS45)", "source": "generic-example"}
+    ]
+  },
+
+  "partition_layout": {
+    "_readme": [
+      "[推算] 占位分区表 —— 依据 §4.1 条件式推荐 C (rootfs 只读 + app/model A/B)。真实值待 P4。",
+      "★ 容量算术 (可用 flash_layout_check.py 复核): 本示例按 128MB SPI-NOR 假设,",
+      "  bootloader 1 + kernel 8 + rootfs 30 + app 8x2 + model 15x2 + isp 1 = 86MB, 128MB 装得下。",
+      "  ★ 若按 §4.1 的 15MB/模型槽 且 rootfs 取 30MB, 64MB SPI-NOR **装不下** (需 86MB) →",
+      "    这条要靠 128MB 或 eMMC, 是 §4.1 条件式推荐里被漏掉的第二个约束 (见 §4.5.1 P4)。",
+      "  若强行用 64MB: 把 --device-size 64MB 传给 flash_layout_check.py 复现 LAY-03 FAIL。"
+    ],
+    "device_total_size": 134217728,
+    "align": 4096,
+    "erase_block": 4096,
+    "active_slot": "a",
+    "crc_slots": ["bootloader", "kernel", "rootfs", "app", "model", "isp"],
+    "partitions": [
+      {"name": "bootloader",    "size": 1048576,  "file": "bootloader.bin",      "crc_slot": 0, "slot": null},
+      {"name": "kernel",        "size": 8388608,  "file": "kernel.bin",          "crc_slot": 1, "slot": null},
+      {"name": "rootfs",        "size": 31457280, "file": "rootfs.squashfs",     "crc_slot": 2, "slot": null},
+      {"name": "app_a",         "size": 8388608,  "file": "app_a.bin",           "crc_slot": 3, "slot": "a"},
+      {"name": "app_b",         "size": 8388608,  "file": "app_b.bin",           "crc_slot": 3, "slot": "b"},
+      {"name": "model_a",       "size": 15728640, "file": "model_a.bin",         "crc_slot": 4, "slot": "a"},
+      {"name": "model_b",       "size": 15728640, "file": "model_b.bin",         "crc_slot": 4, "slot": "b"},
+      {"name": "isp",           "size": 1048576,  "file": "isp.bin",            "crc_slot": 5, "slot": null},
+      {"name": "version_block", "size": 32768,    "file": null,                 "crc_slot": null, "slot": null}
+    ]
+  },
+
+  "version_meta": {
+    "_readme": "版本块字段 (§3.2)。version 串格式见 §3.1.3。",
+    "version": "ARS45-SW 1.0.0+g1234abc board=EVT1 sn=ARS45-EVT1-0007 build=20261026T1930+0800 boot=0.0.0 kern=5.10.0-gdeadbee rootfs=R20261026.3 app=1.0.0+g1234abc model=yolov5s-int8-ag2-1a2b3c4d isp=ISP-CALIB-0003-r2 mode=prod calib=ISP-CALIB-0003-r2",
+    "sn": "ARS45-EVT1-0007",
+    "calib_id": "ISP-CALIB-0003-r2",
+    "tool_ver": "VENDOR-TOOL-0.1",
+    "mode": "prod",
+    "build_time": 1793032200
+  }
+}
