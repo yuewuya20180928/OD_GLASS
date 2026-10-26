@@ -140,7 +140,7 @@ files = ["docs/PROJECT_STATUS.md", "docs/OPEN_ISSUES.md", "docs/TODO.md",
          "docs/STATUS_SUMMARY.md", "projects/smart_glasses/STATUS_SUMMARY.md",
          "projects/smart_glasses/HW/ONLINE_FINDINGS_2026-10-26.md",
          "README.md", "projects/smart_glasses/REPO_README.md",
-         "HW/SCHEMATIC_V1.md"]
+         "projects/smart_glasses/HW/SCHEMATIC_V1.md"]
 ok = bad = 0
 for f in files:
     if not os.path.exists(os.path.join(pub, f)):
