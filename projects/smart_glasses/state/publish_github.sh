@@ -3,6 +3,10 @@
 # 流程: 刷新生成物 → rsync 项目库 → 拷贝 docs/config 映射件 → **真值反查脱敏** → commit → push → 用 GitHub API 验 blob SHA
 # 纪律: ① 仓库公开, 推前必须过真值反查 (命中 0 才推) ② 验证不许用 raw.githubusercontent (CDN 缓存旧版)
 set -u
+# ★并发锁: 多个来源 (我手动 / cron 自动 / 队列) 同时推同一棵树会撞 git 锁 → 用 flock 串行化
+LOCK=/tmp/od_glass_publish.lock
+exec 9>"$LOCK"
+flock -w 120 9 || { echo "❌ 拿不到发布锁 (另一个发布在跑), 跳过"; exit 0; }
 WS=/home/yuewuya/.openclaw/workspace
 PROJ=$WS/projects/smart_glasses
 PUB=/tmp/od_glass_publish
