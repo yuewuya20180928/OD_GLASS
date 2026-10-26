@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-10-27T01:23:40+08:00'
+  generated_at: '2026-10-27T01:28:37+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1793033448985625834
     sw-lead:
       file: sw.yaml
-      size: 18137
-      sha1: d0b502839e0a
-      mtime_ns: 1793031709249138191
+      size: 20049
+      sha1: ef722c4c13ac
+      mtime_ns: 1793035578583274570
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -799,24 +799,30 @@ domains:
   sw-lead:
     agent: sw-lead
     role: 软件总工
-    updated_at: '2026-10-27T00:30:00+08:00'
+    updated_at: '2026-10-27T01:30:00+08:00'
     updated_by: sw-lead
     status:
       phase: P2(方案设计) -> S2 救砖链路实测方案已交 (板端实测待板)
       progress_pct: 44
       health: red
-      summary: '10-27 ISS-080 交卷: §4.5 S2 救砖链路**可执行实测方案** (BOOT 进入按键/时序/引脚 SOP + 3 条识别刷写分支 + CB-01~09
-        机械判据 + 无板三层先验 + BR-01~12 用例 + 失败决策树) + EVT_TEMPLATE §11 可判项 BR-01 (谁执行/怎么判过/失败怎么办) + SW/tools/
-        4 件套 (一键复现 10/10 rc=0, 抓到 4 个版本块真 bug)。★板端实测 0 次, 4 个 0 数据项 (P1~P4) 待原厂; ★新约束: 推荐C分区表 90MB → 64MB
-        SPI-NOR 装不下, 容量下限升到 128MB (已登记 interface_claims.flash_capacity_floor)。健康度仍 red: 主因是原厂 3 个决定性 0
-        数据 + 无板'
+      summary: '10-27 ISS-073 交卷: §12.1 内存规划表 ''显示帧 buffer (800×600 NV12)'' 与 ''合成帧 (800×600 RGBA)'' 两行依据列加注
+        **800×600 = 老板锁死的显示分辨率 (OD 640×480 上采样 ×1.25), 不是旧链路命名** + 表下加 ISS-073 加注段; 硬规则守住: 0.72MB/1.92MB/2.9MB/3.8MB
+        与合计 ~202/~215MB **一字未动** (不按 640×480 重算); 只动 SW/SW_REQUIREMENTS.md 一个文件 (其余文件 mtime 未变); 证据分级:
+        决策文本·项目总工裁决(ISS-073)+官方(光机 800×600)+推算(buffer 尺寸). ★附带发现 (未改, 报项目总工): 表行逐行相加 = 199.3MB(乐观)/216.4MB(悲观)
+        vs 表头 ~202/~215MB, 差 ~2.7MB —— 这是 ISS-071 重算之前就存在的 ~3MB 缺口, 非本轮引入, 按硬规则本轮不动合计. || 10-27 ISS-080
+        交卷: §4.5 S2 救砖链路**可执行实测方案** (BOOT 进入按键/时序/引脚 SOP + 3 条识别刷写分支 + CB-01~09 机械判据 + 无板三层先验 + BR-01~12
+        用例 + 失败决策树) + EVT_TEMPLATE §11 可判项 BR-01 (谁执行/怎么判过/失败怎么办) + SW/tools/ 4 件套 (一键复现 10/10 rc=0, 抓到
+        4 个版本块真 bug)。★板端实测 0 次, 4 个 0 数据项 (P1~P4) 待原厂; ★新约束: 推荐C分区表 90MB → 64MB SPI-NOR 装不下, 容量下限升到 128MB
+        (已登记 interface_claims.flash_capacity_floor)。健康度仍 red: 主因是原厂 3 个决定性 0 数据 + 无板'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
-      version: v1.0
-      updated_at: '2026-10-25T00:25:00+08:00'
-      summary: 8 模块需求 + 52 条验收标准 (v2 自证逐条计数, 原写 48 少计 4) + 端到端延迟建模 (口径/框龄/显示帧率/证据等级) + A7S 可复用清单 32 项
-        + M0-M7 里程碑; 内存 §12.1 逐行相加 = 175.1/187.9MB (原写 178/191 差 ~3MB, 待 PM 决定是否出 v1.1)
+      version: v1.1
+      updated_at: '2026-10-27'
+      summary: '8 模块需求 + 52 条验收标准 (v2 自证逐条计数, 原写 48 少计 4) + 端到端延迟建模 (口径/框龄/显示帧率/证据等级) + A7S 可复用清单 32 项
+        + M0-M7 里程碑; 内存 §12.1 逐行相加 = 175.1/187.9MB (原写 178/191 差 ~3MB, 待 PM 决定是否出 v1.1) || ★ISS-073 (2026-10-27):
+        §12.1 显示帧 buffer / 合成帧 两行依据列加注 ''800×600 = 老板锁死的显示分辨率 (OD 640×480 上采样 ×1.25), 不是旧链路命名; 不按 640×480
+        重算'' + 表下 ISS-073 加注段; 四行数字 0.72/1.92/2.9/3.8MB 与合计 ~202/~215MB 一字未动; 证据分级 [决策文本·项目总工裁决]+[官方]+[推算]'
     - path: HANDOFF/2026-10-25_sw-lead_软件需求拆解.md
       kind: handoff
       version: v2.0
@@ -2159,18 +2165,20 @@ interface_claims:
     conflict: false
   memory_budget:
     values:
-      sw-lead: 178-191MB/512MB
+      sw-lead: 202-215MB/512MB
     notes:
-      sw-lead: R7 降级为低; 待确认 NPU SDK workspace + CMA 预留策略; 与 memory_budget_recomputed 差 2.9-3.1MB
+      sw-lead: R7 降级为低; 待确认 NPU SDK workspace + CMA 预留策略; ★10-27 同步 ISS-071 重算后的文档值 (原 178-191MB 是重算前的旧数);
+        与 memory_budget_recomputed 差 ~2.7-1.4MB
     by:
     - sw-lead
     noncanonical_by: []
     conflict: false
   memory_budget_recomputed:
     values:
-      sw-lead: 175-188MB/512MB
+      sw-lead: 199-216MB/512MB
     notes:
-      sw-lead: SW §12.1 表行逐行相加 (自证命令 B6-4); 疑似显示帧buffer行重复计入; 结论不变 (占34-37%, 非瓶颈)
+      sw-lead: 'SW §12.1 表行逐行相加 (10-27 重算: 乐观 199.3MB / 悲观 216.4MB); 与表头 ~202/~215MB 差 ~2.7MB (ISS-071
+        之前就存在的缺口, 非本轮引入); 显示帧buffer行无重复计入 (原''疑似重复计入''假设已排除); 结论不变 (占 39-42%, 非瓶颈)'
     by:
     - sw-lead
     noncanonical_by: []
@@ -2315,6 +2323,17 @@ interface_claims:
       sw-lead: '★新约束 (10-27): §4.1 推荐C的分区表总量 90MB (rootfs30+model15x2+app8x2+kernel8+boot1+isp1) → 64MB
         SPI-NOR 装不下; 真实条件 = rootfs<=30MB 且 flash>=128MB; 若硬件只给64MB 则 A/B 槽必须缩; 证据 [实测](布局检查器 --device-size
         64MB → LAY-03/04 FAIL) + [推算](分区大小)'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  display_resolution:
+    values:
+      sw-lead: 800x600
+    notes:
+      sw-lead: '老板锁死的显示分辨率 (PROJECT_TRACKER §0 变量 23/27, 10-21 锁定; 光机 JBD 走鹃Ⅱ 原生同为 800×600); 源数据 = OD
+        640×480 上采样 x1.25 (ISS-061 锁定链路)。SW §12.1 的''显示帧 buffer''与''合成帧''两行按此算, 不按 640×480 重算 (项目总工 ISS-073
+        裁决 2026-10-26); 证据: 决策文本·项目总工裁决 + 官方(光机规格)'
     by:
     - sw-lead
     noncanonical_by: []

@@ -15,6 +15,7 @@ cd "$PROJ" || exit 1
 python3 state/gen_todo.py        >/dev/null 2>&1 && echo "[1] TODO.md 已刷新"
 python3 state/daily_check.py     >/dev/null 2>&1
 python3 state/gen_publish_docs.py --out "$PROJ/docs" >/dev/null 2>&1 && echo "[1] docs/PROJECT_STATUS.md + docs/OPEN_ISSUES.md 已刷新"
+python3 state/gen_start_here.py >/dev/null 2>&1 && echo "[1] docs/START_HERE.md (接手指南) 已刷新"
 python3 state/merge.py            >/dev/null 2>&1
 
 # ---- 2. 发布树 ----

@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-10-27 01:23** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-10-27 01:28** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -21,9 +21,9 @@
    sw-lead    标签: ['实测', '官方', '推算', '0数据', '0 数据']
    mech-lead  标签: ['实测', '官方', '推算', '0数据']
 
-【Q3 接口声明率】 全员 interface_claims 共 73 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+【Q3 接口声明率】 全员 interface_claims 共 74 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
    hw-lead    18 条
-   sw-lead    21 条
+   sw-lead    22 条
    mech-lead  34 条
 
 【Q4 需求闭环率】
@@ -61,7 +61,7 @@
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 86 条 | 状态: open=42 closed=41 fixed=2 fixing=1
+登记问题 86 条 | 状态: open=40 closed=41 fixing=3 fixed=2
   ├─ 内部可自行推进: 61 条 | 外部依赖 (等老板/原厂/JBD): 25 条
   ├─ 逾期未闭环: 0 条
   └─ 未闭环 blocker 级: 14 条
@@ -167,7 +167,7 @@
        S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项
   🟠 ISS-082  open      owner=hw-lead    due=2026-10-29  
        ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + P
-  🟠 ISS-084  open      owner=mech-lead  due=2026-10-29  
+  🟠 ISS-084  fixing    owner=mech-lead  due=2026-10-29  
        SoC 载板化/模组化的结构与代价评估 (把 引脚映射 风险从项目级压到载板级) + 兜底 SoC 路线 (用现成模组做 EVT 验
   🟠 ISS-085  open      owner=mech-lead  due=2026-10-29  
        ★USB 跨铰链方案落地 (Type-C 留镜框充电板 + USB 差分跨铰链到镜脚主 PCB) + 跨铰链 USB 可靠性要求 +
@@ -227,7 +227,7 @@
        测量清单补 H14 (temple_cage 上的 ⌀2.4 PCB 定位间隙孔独立量测行) + measurements.yaml
   🟡 ISS-069  closed    owner=sw-lead    due=2026-10-28  
        需求条目旧链路命名对齐 (SW_REQUIREMENTS 3.1 职责行 + M2-R1/M2-R3 + DISPLAY_MODE 
-  🟡 ISS-073  open      owner=sw-lead    due=2026-10-28  
+  🟡 ISS-073  fixing    owner=sw-lead    due=2026-10-28  
        显示帧 buffer 与合成帧两行加注 (800x600 = 老板锁死的显示分辨率, 不是旧链路) —— 不许按 640x480 重
   🟡 ISS-076  open      owner=mech-lead  due=2026-10-28  
        新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1

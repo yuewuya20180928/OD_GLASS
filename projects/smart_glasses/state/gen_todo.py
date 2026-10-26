@@ -59,6 +59,20 @@ B = [i for i in open_iss if i.get("owner") == "boss"]
 C = [i for i in open_iss if i.get("owner") in ("vendor", "jbd")]
 Cext = [i for i in open_iss if i.get("owner") in ("boss", "vendor", "jbd")]
 
+# ---- 在飞清单 (fixing/fixed) ----
+INFLIGHT = []
+_flying = [i for i in issues if i.get("status") in ("fixing", "fixed")]
+if _flying:
+    INFLIGHT.append("| id | 状态 | owner | 事项 | due |")
+    INFLIGHT.append("|---|---|---|---|---|")
+    for i in sorted(_flying, key=lambda x: str(x.get("id"))):
+        INFLIGHT.append("| %s | %s | %s | %s | %s |" % (
+            i.get("id"), i.get("status"), i.get("owner"),
+            str(i.get("title", ""))[:66].replace("|", "/"), i.get("due")))
+else:
+    INFLIGHT.append("_(当前没有在飞的任务)_")
+
+
 md = [
     "# 下一步行动清单 (TODO)",
     "",
@@ -71,6 +85,12 @@ md = [
     f"**A 桶 (内部可派) {len(A)} 条** · **B 桶 (等你) {len(B)} 条** · **C 桶 (等外部) {len(C)} 条**",
     "",
     "> 内部能干的都干了 → 现在推项目的**唯一瓶颈是外部** (原厂纸面资料 + JBD 外形图 + 3 份草稿未发)。",
+    "",
+    "## 🔄 在飞 (已开工, **别重复派**)",
+    "",
+    "> 状态 = fixing/fixed 的 issue → 队列不会重复派, 但**接手的人别再开一条一样的**。",
+    "",
+    *INFLIGHT,
     "",
     "## A. 立刻可派 —— 内部可自行推进 (不等任何人)",
     "",
@@ -162,6 +182,7 @@ md += [
     "```",
     "",
 ]
+
 out = os.path.join(PROJ, "TODO.md")   # 与 CERT_CHECKLIST.md 同级 (发布时拷到 docs/)
 open(out, "w", encoding="utf-8").write("\n".join(md))
 print(f"✅ docs/TODO.md 已生成 (A={len(A)} B={len(B)} C={len(C)})")
