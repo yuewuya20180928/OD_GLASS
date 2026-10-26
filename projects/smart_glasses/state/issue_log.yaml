@@ -1759,18 +1759,22 @@ issues:
   reporter: mech-lead
   raised: '2026-10-26'
   due: '2026-10-29'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   task_brief: '五处, 全在 MECH/MECH_BUDGET.md: (a) §1.4.3 空间对比表加两行 (315mAh → Renata ICP582035PR-01 340mAh 4.6mm → 镜腿 7.3mm; 387mAh → 丰江 432243 >=420mAh 4.3mm → 7.3mm 名义 7.0), 旧的 575-675mAh→8.7-11.2mm 行保留但标注
     作废 (旧口径, 满载容量从 441mAh 降到 315/387mAh) (b) §1.6.2 / §1.6.3 厚度映射表同样加两行 + 旧行标作废; §1.6.2 的 575mAh 行电芯型号继续标 未验 (不许反推) (c) §2.6 散热结论改成 皮肤侧 80.1°C (镜腿内主口径) / 96.1°C (整机上界) (d) §7 结论摘要补 80.1°C 并把 575-675mAh→8.7-11.2mm
     换成 315/387mAh→7.3mm (e) §3 重量表按两个新电芯重算 (Renata 约 4.8g / 丰江 6.0g, 两行), 其余器件重量不许动。硬边界: 只 MECH_BUDGET.md 这五处, 几何/厚度以外的表/打印包/state/HW/SW/TRACKER 全不许动; 改完 fit_check.py 与 verify_pack.py 仍须原样通过'
-  fix_ref: null
+  fix_ref: MECH/MECH_BUDGET.md (§1.4.3 D/E 行 + §1.6.2 电芯型号列与 315/387 行 + §1.6.3 长度行 + §2.6 口径 + §3 重量表 W7a/W7b + §7 摘要)
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: '10-26 19:2x 项目总工批准 mech-lead 的 3 条提问, 合并成一单 (全是同一件事: 新容量口径的落地)。★重点结论: 老板锁死的镜腿 7.3mm 不用改, 675mAh→11.2mm 的形态否决解除 (但降容只解形态不解散热) | 10-26 19:1x 项目总工直接派 (sessions_spawn), 不是队列派。★ISS-074 与并行跑的 ISS-067
-    边界已隔开: 不许碰 state/ 分片, 不许碰 HW/POWER_TOPOLOGY_RF1.md'
+  verify_result: pass
+  verify_date: '2026-10-26'
+  note: '10-26 19:1x 由项目总工派 (ISS-064 交卷时 mech-lead 指出的 3 处授权外旧口径)。★项目总工独立复核: ① 五处改动逐条 grep 到: 1.4.3 表 D 行 315mAh→Renata ICP582035PR-01 (340mAh 4.6mm) 与 E 行 387mAh→丰江 432243 (>=420mAh 4.3mm), 旧口径 441mAh→575-675
+    档行保留划掉标已作废 + 表下作废说明; 1.6.2 加了电芯型号列 + 315/387 两行 (解A 余 0.95 最坏 0.65 / 解B 余 1.25 最坏 0.95), 575 行型号仍标未验不反推厚度, 675 行标作废; 1.6.3 加 315/387 长度行 105.5 / 108.5mm + 旧行作废 + 更正块 (作废 持续满载→形态崩, 保留 按需触发→5.5-6.0mm
+    仍成立); 2.6 第1条 96°C→80.1°C (镜腿内主口径 0.90W) / 96.1°C (整机上界 1.22W) + 新增第6条 降容只解形态不解散热; 7 的四条与 3 重量表 W7 拆 W7a/W7b 全部到位 ② 禁改路径未动: MECH/fit_check.py mtime 仍 10-25 19:29, MECH/print/gen_print_pack.py 18:50
+    与 fit_coupon_340.stl 18:53 是 ISS-059 的产物, MECH/verify_budget.py 仍 10-25 11:29, state/fragments/mech.yaml 仍 10-25 20:28, PROJECT_TRACKER.md 是项目总工 19:21 改的 → 本轮唯一写入 = MECH/MECH_BUDGET.md ③ 自证我自己跑过: fit_check
+    通过 (解A 余 0.95 / 最坏 0.65 >= 0.60) + verify_pack 46/46 ★结论: 老板锁死的镜腿 7.3mm 一毫米不用改, 旧的 675mAh→11.2mm 形态否决档作废, 整机重量 48.9-74.0g ★它提的 3 条我全部批准 (ISS-076): ① 3.1 对标表 50.1-74.0g/+25% 是 387mAh 口径, 315mAh 口径实为
+    48.9-72.8g/+22% → 下轮同步 ② MECH/verify_budget.py 的 DOC_WEIGHT 写死 (50.1, 74.0) 与文档不一致 → 下轮同步 (这是判据文件, 必须与文档同口径) ③ 1.6.2/1.6.3 标题仍写 三个容量档位 (现 5 行) → 下轮改标题'
   dispatched_at: '2026-10-26'
 - id: ISS-073
   title: 显示帧 buffer 与合成帧两行加注 (800x600 = 老板锁死的显示分辨率, 不是旧链路) —— 不许按 640x480 重算
@@ -1842,4 +1846,92 @@ issues:
   verify_result: null
   verify_date: null
   note: '10-26 19:2x 项目总工登记 (为了满足 issue_check 的 双向覆盖: STATE 里的 SW-FW-B2 阻塞必须有 issue 盯着)'
+  dispatched_at: '2026-10-26'
+- id: ISS-076
+  title: 新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1.6.2-1.6.3 标题)
+  severity: low
+  source_blocker: null
+  source_agent: mech-lead
+  desc: 'ISS-072 交卷时 mech-lead 自查出的 3 处授权外尾巴: (1) 3.1 对标表仍写 整机 50.1-74.0g / +25% (387mAh 配置口径), 而 315mAh 配置实为 48.9-72.8g / +22% (2) MECH/verify_budget.py 的 DOC_WEIGHT 常量写死 (50.1, 74.0) → 与文档新口径不一致, 自检会跟文档对不上
+    (3) 1.6.2 / 1.6.3 标题仍写 三个容量档位, 现在是 5 行 (含 2 行作废)'
+  owner: mech-lead
+  reporter: mech-lead
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: fixing
+  external: false
+  need_keys: []
+  task_brief: '三处, 都在 MECH/: (a) MECH_BUDGET.md 3.1 对标表: 重量口径分两配置写清 (315mAh → 48.9-72.8g / +22%; 387mAh → 50.1-74.0g / +25%), 别只留一个数 (b) MECH/verify_budget.py 的 DOC_WEIGHT: 改成能同时表达两档 (或改成区间/两行), 让脚本判据与
+    MECH_BUDGET.md 3 重量表同口径 (改完 verify_budget.py 必须仍 rc=0, 且它要真的判得出来, 不是把检查删了) (c) MECH_BUDGET.md 1.6.2 / 1.6.3 的标题: 三个容量档位 改成符合现在的行数 (5 行, 含 2 行已作废)。硬边界: 不许动 3 重量表里其它 12 件的重量, 不许动几何/打印包/state/HW/SW/TRACKER;
+    改完 fit_check.py 与 verify_pack.py 仍须原样通过'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 19:2x 项目总工批准 mech-lead 的 3 条提问, 合并成一单。★重点: (b) 是判据文件与文档口径必须一致, 不许为了过关把检查删掉'
+  dispatched_at: '2026-10-26'
+- id: ISS-077
+  title: '功耗预算 V3: 按官网 250mW 口径重算 (媒体 300mW → 官网 250mW, 差 20%) + V_CORE 上界按 1.0V'
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: '10-26 19:35 网上查证: 酷芯微官网 2026-06-05 新闻原文 整机功耗低至 250mW (含DDR) —— 我们一直用的媒体口径是低于 300mW, 差 20%。SoC 域要按 250mW 重算, 连带重算: 满载整机功耗 / 皮肤侧温度 (镜腿内口径) / 电池容量 (315-387mAh 档) / 镜腿厚度。另: 百度百科给出工作电压范围 0.65-1V (DVFS)
+    [媒体·百科级] → V_CORE 上界按 1.0V 而不是我们假设的 0.9V → DC-DC (TPS62130A) 输出范围与压差核算要改'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '以 HW/POWER_BUDGET_V2.md 为基线, 出一版 V3: (a) SoC 域按官网 250mW 口径 (原来按 300mW) 重算, 给出新的 满载/按需/待机 三档 + 皮肤侧温度 (镜腿内 0.90W 口径与整机上界两个口径都要) + 电池容量 (1h 口径) (b) V_CORE 电压按 0.65-1.0V 区间核算 DC-DC 选型余量 (TPS62130A)
+    (c) 明确标注哪个数是 [官网] (250mW) 哪个是 [媒体·百科] (0.65-1V), 哪些仍是 [推算]。边界: 只写 HW/POWER_BUDGET_V3.md (新文件) + 结论摘要, 不许改 MECH (那是 mech-lead 的域), 不许碰 state/ 分片; 改完 merge+gate 必须 rc=0'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 19:45 项目总工根据 HW/ONLINE_FINDINGS_2026-10-26.md 的 W-2 / B-1 登记。★排期: hw-lead 同时在跑 ISS-074 (原理图), 串行'
+  dispatched_at: '2026-10-26'
+- id: ISS-078
+  title: ★板宽/逃线/叠层复核 (官网 宽度≤8mm 硬约束 + FCCSP pitch 推断 0.4-0.5mm) —— 可能推翻 12mm 板宽与 4-6 层假设
+  severity: blocker
+  source_blocker: null
+  source_agent: main
+  desc: '10-26 19:40 网上查证发现两件事同时指向我们 PCB 外形假设过于乐观: (1) 酷芯微官网 2026-06-05 原文 封装尺寸须压缩至 宽度≤8mm 否则无法适配轻量化眼镜结构设计 → 芯片宽 8mm 已占满, 主板可用宽度可能只有 8-9mm, 而我们假设 12mm (2) 8x10mm FCCSP 集成 DRAM 的球间距通常 0.4-0.5mm 而非 0.3mm
+    [推算] → 我们 4-6 层叠层与逃线假设要重算。这是本次查证对项目最有价值的一条, 但结论仍是 [推算], 不能当原厂数据 (关联原 issue ISS-015 板宽跟 FCCSP pitch 走, 但 ISS-015 是 issue 不是 STATE blocker, 故 source_blocker 留空)'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '重算 PCB 外形与可行性: (a) 主板可用宽度 = 8mm (芯片宽) + 逃线区 + 器件边 → 给 3 档 (最小 8-9mm / 现状 12mm / 富余 15mm) 各自的可行性与代价 (b) 球间距取 0.3/0.4/0.5mm 三档, 给出各自的逃线/叠层/层数需求与能否满足 4-6 层锁死 (c) 结论必须标明哪些是 [推算] 哪些是 [官网] (宽度≤8mm)
+    (d) 给出 板宽 12mm 假设若不成立, 对 SW/机械/热/结构各域的连带影响清单。边界: 只写 HW/ 下的新文件 (例如 HW/PCB_FORM_FACTOR_RECHECK.md), 不许改 MECH/ 与 SW/ 与 PROJECT_TRACKER.md, 不许碰 state/ 分片; 改完 merge+gate 必须 rc=0'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 19:45 项目总工根据 HW/ONLINE_FINDINGS_2026-10-26.md 的 W-1 与 §6 登记。★这是 blocker 级: 板宽定不下来 → 原理图/PCB 外形都定不下来'
+  dispatched_at: '2026-10-26'
+- id: ISS-079
+  title: '情报检索: 采用 ARS45 的 AI 翻译眼镜拆解 + 港交所招股书直链 (封装/走线/供应链/交付)'
+  severity: medium
+  source_blocker: null
+  source_agent: main
+  desc: 官网新闻提到酷芯已与十余家眼镜厂商基于 ARS45 开发, 且 近期发布的 AI 翻译眼镜采用 ARS45 方案 → 那款眼镜的公开拆解可能给出 SoC 封装/走线/引脚线索; 另外酷芯微 2026-01-28 已向港交所递表 (2026-10 获证监会批准赴港上市) → 招股书申请版本 (PHIP) 在 hkexnews 公开, 可能有技术/供应链/产能/交付信息
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '两条情报线: (a) 找出 近期发布的 采用 ARS45 方案的 AI 翻译眼镜 是哪一家哪一款, 检索其公开拆解 (B站/知乎/芯片之家/维科) 里的 SoC 封装与走线信息 (b) 在 hkexnews 找到 酷芯微 (合肥酷芯微电子) 的上市申请版本招股书, 检索 产品线/技术/供应链/产能/交付周期/客户 相关页。输出: HW/ONLINE_INTEL_2026-10-26.md,
+    每条信息标来源 URL + 证据等级 + 原文引用。边界: 只写这一个新文件, 不许改任何既有文件, 不许碰 state/; 检索不到就写 检索不到 + 试过的路径'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: 10-26 19:45 项目总工根据 HW/ONLINE_FINDINGS_2026-10-26.md 的 W-5 / I-5 登记
   dispatched_at: '2026-10-26'

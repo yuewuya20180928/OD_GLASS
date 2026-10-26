@@ -43,6 +43,7 @@ cp "$PROJ/FRAMEWORK_SCOPE.md" docs/FRAMEWORK_SCOPE.md
 cp "$PROJ/INTERFACES.md" docs/INTERFACES.md
 cp "$PROJ/PRINT/PRINTER_SETUP.md" docs/PRINT_SETUP.md
 cp "$PROJ/STRESS_TEST_2026-10-25.md" docs/STRESS_TEST_2026-10-25.md
+cp "$PROJ/STATUS_SUMMARY.md" docs/STATUS_SUMMARY.md
 # 框架文档 (若项目树里有 FRAMEWORK/ 则整目录带过去)
 [ -d "$PROJ/FRAMEWORK" ] && rsync -a --delete "$PROJ/FRAMEWORK/" docs/FRAMEWORK/
 
@@ -127,7 +128,9 @@ files = ["docs/PROJECT_STATUS.md", "docs/OPEN_ISSUES.md", "docs/TODO.md",
          "projects/smart_glasses/PROJECT_TRACKER.md",
          "projects/smart_glasses/state/issue_log.yaml",
          "projects/smart_glasses/HW/SCHEMATIC_V1_SPEC.json",
-         "projects/smart_glasses/state/check_netlist.py"]
+         "projects/smart_glasses/state/check_netlist.py",
+         "docs/STATUS_SUMMARY.md", "projects/smart_glasses/STATUS_SUMMARY.md",
+         "projects/smart_glasses/HW/ONLINE_FINDINGS_2026-10-26.md"]
 ok = bad = 0
 for f in files:
     if not os.path.exists(os.path.join(pub, f)):

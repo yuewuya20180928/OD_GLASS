@@ -88,11 +88,21 @@ def main() -> int:
         f"已用 {len(used_tbd)}/{len(legal_tbd)}: {sorted(used_tbd)[:6]}")
 
     # 5) 高速差分阻抗规则 (A 组 = 100Ω ±10%)
-    a_rows = [r for r in rows if cell(r, "conn_id").startswith("A-")]
-    bad_i = [f"{cell(r,'conn_id')}:{cell(r,'value')}" for r in a_rows
-             if cell(r, "value") and "100" not in cell(r, "value")]
-    chk(f"A 组高速差分阻抗 100Ω ±10% ({len(a_rows)} 行)", not bad_i,
-        f"不合规 {bad_i[:5]}" if bad_i else "")
+    spec_imp = {c["id"]: (c.get("imp") or "") for c in spec["connections"]}
+    bad_i = []
+    for r in rows:
+        cid = cell(r, "conn_id")
+        want = spec_imp.get(cid, "")
+        if not want or not cid.startswith("A-"):
+            continue
+        if cell(r, "type") != "NET":
+            continue
+        got = cell(r, "value")
+        if got != want:
+            bad_i.append(f"{cid}: 规格 {want!r} vs netlist {got!r}")
+    a_nets = [r for r in rows if cell(r, "conn_id").startswith("A-") and cell(r, "type") == "NET"]
+    chk(f"A 组阻抗逐条对照规格 ({len(a_nets)} 条 net)", not bad_i,
+        f"不一致 {bad_i[:4]}" if bad_i else "全部一致")
 
     # 6) 差分对完整 (每个 _P 有 _N)
     pset = {cell(r, "conn_id") for r in rows if cell(r, "conn_id").startswith("A-")}
