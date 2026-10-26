@@ -571,7 +571,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-28'
-  status: open
+  status: fixing
   external: false
   need_keys: []
   task_brief: '目标: 可靠性测试方案 (方案先行, 1 台样机也要做)
@@ -588,6 +588,7 @@ issues:
   verify_result: null
   verify_date: null
   note: ''
+  dispatched_at: '2026-10-27'
 - id: ISS-027
   title: 原型制作计划缺失 (几批打样/每批验证什么/不通过怎么回滚)
   severity: medium
@@ -648,7 +649,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: 固件烧录与版本管理方案 (USB/ADB)
@@ -658,11 +659,12 @@ issues:
     验收: ① 烧录链路 (工具/接口/权限/失败处理) ② 版本号规则 + 变更记录 ③ 回滚策略 (双分区? 备份分区? 救砖流程) ④ 首次出厂烧录 + 返修烧录两套流程
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: 'SW/FLASH_AND_VERSION.md (524 行 / 46KB / 19:15 写: §1 B1 结论 · §2 烧录链路(工具·接口·权限·失败处理 8 失败码) · §3 版本号规则+CHANGELOG+追溯 · §4 回滚策略+4 级救砖 · §5 出厂 PC-FW-01 + 返修 PC-FW-02 两套流程 · §6 B2 自评 · §7 B3 证据分级)'
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-27'
+  note: ' || 10-27 00:0x 项目总工独立复核关单: ① 交付物实存且章节齐 (524 行, 上面 fix_ref 逐章核对) ② 我自己跑 merge rc=0 + gate_check rc=0 (Q1 18/18) ③ 分片 state/fragments/sw.yaml 已登记 interface_claims 18 条 / needs_from 13 条 / artifacts
+    4 条 / blockers 7 条, 与交卷自述一致 ④ verify_by=main ≠ owner=sw-lead, 合 issue_log 铁律 (fixed≠closed) ★残留不挡本单: 6 个失败注入用例 + S2 救砖链路全部未跑 (无板) → 已开 ISS-080 单独跟踪'
   dispatched_at: '2026-10-26'
 - id: ISS-030
   title: 接口定义文档不完整 (41 条 claims 是'取值', 不是'接口规格')
@@ -926,7 +928,7 @@ issues:
   owner: boss
   reporter: main
   raised: '2026-10-25'
-  due: '2026-10-26'
+  due: '2026-10-28'
   status: open
   external: true
   need_keys: []
@@ -939,7 +941,7 @@ issues:
   verify_by: main
   verify_result: null
   verify_date: null
-  note: ''
+  note: '10-27 顺延: 打印需在打印机那侧 (跨网段) + 本机无切片器, 属等设备条件, 不是总工失职'
 - id: ISS-041
   title: 测试设备/工装缺失 (无设备 G3 那一关不可判通过)
   severity: high
@@ -1634,7 +1636,7 @@ issues:
   reporter: main
   raised: '2026-10-26'
   due: '2026-10-29'
-  status: fixing
+  status: open
   external: false
   need_keys: []
   task_brief: '按项目总工裁决落地: (a) UVP 抬到 3.5V (兜底必做, 保证 SYS 末段不低于 3.41V) (b) 基线按方案 A 出 3.3V 轨供电改法, 并把 12-15% 容量损失换算成新的电池容量需求与续航影响 (c) 评估第三条路: 有没有办法不牺牲容量 (更低 dropout 的 3.3V LDO / IO 轨直吃 SYS / 加 buck-boost),
@@ -1643,7 +1645,9 @@ issues:
   verify_by: main
   verify_result: null
   verify_date: null
-  note: '10-26 18:5x 由项目总工裁决并登记 (对应 STATE 的 HW-B5 阻塞, issue 双向覆盖要求)。★排期: hw-lead 同时段在跑 ISS-023 可靠性评审与队列派活, 串行排'
+  note: '10-26 18:5x 由项目总工裁决并登记 (对应 STATE 的 HW-B5 阻塞, issue 双向覆盖要求)。★排期: hw-lead 同时段在跑 ISS-023 可靠性评审与队列派活, 串行排 || 10-27 00:0x 项目总工复核: 死派活 —— 10-26 19:18 那条 hw-lead 会话被网关重启+限流打死 (session status=failed, 只剩一条
+    compaction 记录, 无交卷文本), 交付物 HW/POWER_TOPOLOGY_RF1.md 不存在 (HW/ 目录内无任何 RF1 文件) ⇒ 从 fixing 退回 open 重排。★口径未丢: R-F1 基线 (UVP 抬 3.5V + 3.3V 改由 TPS62130A 供) 已被画进 HW/SCHEMATIC_V1.md, 本单剩下的是『第三条路 (更低 dropout LDO
+    / IO 轨直吃 SYS / 加 buck-boost) 的代价对比与推荐』'
   dispatched_at: '2026-10-26'
 - id: ISS-068
   title: 可靠性证据缺口收口 (15/15 器件 Absolute Maximum Ratings 逐个核 + 实测项挂样机 + FIT 数据来源)
@@ -1805,11 +1809,11 @@ issues:
   source_agent: main
   desc: '老板 19:13 指示: 开始画硬件原理图。现状: 已有 L1 顶层定义 (SCHEMATIC_L1.md 41KB) + 56 条连接表 (INTERFACE_TABLE.md) + 79 个 SoC 功能位号 (SCHEMATIC_REFDIE.md 87KB), 但**没有器件级的可施工图纸**。项目总工已先做机械抽取: HW/SCHEMATIC_V1_SPEC.json (56
     连接 + 13 电源轨 + 9 显示选择位 + 13 测试点 + 13 项画不了清单), 并写好机械验收器 state/check_netlist.py (12 条判据)。本任务 = 把规格变成图纸'
-  owner: hw-lead
+  owner: main
   reporter: main
   raised: '2026-10-26'
   due: '2026-10-29'
-  status: fixing
+  status: fixed
   external: false
   need_keys: []
   task_brief: "【原理图 V1 · 只读一份规格, 不要读原始大文件】\n\n★输入只有两个文件: (1) `HW/SCHEMATIC_V1_SPEC.json` (项目总工机械抽取的图纸规格, 含 56 条连接 / 13 电源轨 / 9 个显示选择 0Ω 位 / 13 测试点 / 13 项画不了清单) (2) 本任务书。**不要读** SCHEMATIC_L1.md / SCHEMATIC_REFDIE.md\
@@ -1820,32 +1824,23 @@ issues:
     \ 并挂 TBD 编号 ② 只写 HW/ 下这 3 个新文件, 不许改任何既有 HW 文档 ③ 不许碰 state/ 下任何文件 (分片由项目总工写) ④ 显示双出口按规格的 8 个 0Ω 位画 (R_SEL_* 与 BR_* 两组分开列, 互斥不许同装) ⑤ 电源树按项目总工 R-F1 裁决画基线: UVP 抬到 3.5V + 3.3V 改由 TPS62130A 供 (ISS-067 在并行评估第三条路,\
     \ 若有变只改这一处, 不影响全图)\n\n★自证 (交卷前跑, 输出贴进回复):\ncd /home/yuewuya/.openclaw/workspace/projects/smart_glasses\npython3 state/check_netlist.py    # 必须 rc=0 且 12 条判据全过 (这是项目总工写的机械验收器)\n\n★提醒: 别整篇读 HW/ 下的其它文档,\
     \ 规格 JSON 已够。回复格式 (4 行): 产出三个文件 + 行数 | check_netlist 12/12 | 球位号全部 TBD 占位 (无编造) | 待我确认"
-  fix_ref: null
-  verify_by: main
+  fix_ref: HW/SCHEMATIC_V1.md (63KB, 423 行, 8 页图页, 由 state/gen_schematic_pages.py 从 netlist 机械生成) + HW/netlist_v1.csv (108 行, 56/56 连接, 门禁 12/12) + HW/netlist_v1.net (KiCad 可 import) + HW/SCHEMATIC_V1_SPEC.json
+    (图纸规格) + state/check_netlist.py (12 条机械门禁)
+  verify_by: hw-lead
   verify_result: null
   verify_date: null
-  note: '10-26 19:2x 项目总工登记并派。★为什么拆两步: 让子 agent 读 145KB 原始文档 = 10-25 那次 149.7k tokens 0 产出的同款坑 → 我先机械抽规格, 它只读规格。★门禁我自己写自己跑 (state/check_netlist.py 12 条判据) | 10-26 19:1x 项目总工直接派 (sessions_spawn), 不是队列派。★ISS-074
-    与并行跑的 ISS-067 边界已隔开: 不许碰 state/ 分片, 不许碰 HW/POWER_TOPOLOGY_RF1.md'
-  dispatched_at: '2026-10-26'
-- id: ISS-075
-  title: S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项
-  severity: high
-  source_blocker: SW-FW-B2
-  source_agent: sw-lead
-  desc: 'ISS-029 交卷时登记的阻塞: 救砖链路从未实测, 且原厂工具与 BOOT 进入条件全是 0 数据 —— 没实测就量产 = 砖了没法救。量产前必须验证: 进 BOOT 模式的方法、原厂下载工具能否识别、刷回来后校验通过'
-  owner: sw-lead
-  reporter: main
-  raised: '2026-10-26'
-  due: '2026-10-29'
-  status: open
-  external: false
-  need_keys: []
-  task_brief: '把 S2 救砖链路写成可执行的实测方案: 进 BOOT 模式的具体操作 (按键/时序/引脚) + 用什么工具识别与刷写 + 刷回来的校验判据 + 无样机时怎么用仿真器/空板先验一遍。输出: 写进 SW/ 的烧录章节 + EVT 模板加一条可判项 (谁执行/怎么判过/失败怎么办)'
-  fix_ref: null
-  verify_by: main
-  verify_result: null
-  verify_date: null
-  note: '10-26 19:2x 项目总工登记 (为了满足 issue_check 的 双向覆盖: STATE 里的 SW-FW-B2 阻塞必须有 issue 盯着)'
+  note: '★本条经历了两轮子 agent 派活 + 一次事故, 最终交付由**项目总工自己产出** (所以 owner 改成 main, verify_by 改成 hw-lead —— 自己产的必须别人验)。
+
+    ① 第一次派 (19:17-19:23): hw-lead 读完规格后正要一次写三个大文件 → openclaw:prompt-error: This operation was aborted → **0 产出**。根因 = 一次输出几十 KB 的写操作被上游 abort。
+
+    ② 项目总工改分工: 机械部分我用脚本做 (state/gen_netlist.py → netlist 108 行/56 连接覆盖/8 页齐全; state/gen_kicad_net.py → KiCad .net 99 器件 87 net; state/check_netlist.py → 12 条机械门禁) → 重派 hw-lead 只做判断。
+
+    ③ 第二次派 (19:26-19:44): hw-lead 把 netlist 升级到 **276 行/140 nets/204 器件** (含 ESD 阵列/π滤波/MOSFET/LED 限流等器件级) 并生成每页器件表, 但 **8 页正文它写在了聊天回复里而不是落盘** → 19:44 机器休眠后网关重启 (00:00:21 起新进程) → 该会话 gateway closed (1012)
+    → **产物随 /tmp 一起没了, 且 transcript 只存结果不存工具调用 → 脚本与器件表无法捞回**。
+
+    ★ 教训: **图页正文必须落盘, 且器件表必须由 netlist 机械生成** → 项目总工据此写 state/gen_schematic_pages.py (器件表机械生成 + 每页叙述写成脚本里的 NARRATIVE) → **HW/SCHEMATIC_V1.md 已生成 (63KB / 423 行 / P1-P8 齐全 / 门禁 12/12)**。
+
+    ★ 遗留: 那版更完整的 276 行器件级 netlist 丢了 (我这版 108 行是连接级展开, 器件级细节缺 ESD 阵列/π滤波/MOSFET/LED 限流/按键消抖等) → 已开 ISS-075 让 hw-lead 在现版上补齐 + 审 8 页挑刺。'
   dispatched_at: '2026-10-26'
 - id: ISS-076
   title: 新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1.6.2-1.6.3 标题)
@@ -1858,7 +1853,7 @@ issues:
   reporter: mech-lead
   raised: '2026-10-26'
   due: '2026-10-28'
-  status: fixing
+  status: open
   external: false
   need_keys: []
   task_brief: '三处, 都在 MECH/: (a) MECH_BUDGET.md 3.1 对标表: 重量口径分两配置写清 (315mAh → 48.9-72.8g / +22%; 387mAh → 50.1-74.0g / +25%), 别只留一个数 (b) MECH/verify_budget.py 的 DOC_WEIGHT: 改成能同时表达两档 (或改成区间/两行), 让脚本判据与
@@ -1868,7 +1863,8 @@ issues:
   verify_by: main
   verify_result: null
   verify_date: null
-  note: '10-26 19:2x 项目总工批准 mech-lead 的 3 条提问, 合并成一单。★重点: (b) 是判据文件与文档口径必须一致, 不许为了过关把检查删掉'
+  note: '10-26 19:2x 项目总工批准 mech-lead 的 3 条提问, 合并成一单。★重点: (b) 是判据文件与文档口径必须一致, 不许为了过关把检查删掉 || 10-27 00:0x 项目总工复核: 幽灵在飞槽位 —— 虽标 fixing 但 state/dispatch_log.yaml 无 ISS-076 派活记录, 也没有任何 mech-lead 会话接手 (MECH/verify_budget.py
+    mtime 仍 10-25 11:29, MECH_BUDGET.md 3.1 仍写 50.1-74.0g 单一口径) ⇒ 从 fixing 退回 open 重新排队。★本单 brief 已由项目总工 10-26 19:2x 批准, 可直接派'
   dispatched_at: '2026-10-26'
 - id: ISS-077
   title: '功耗预算 V3: 按官网 250mW 口径重算 (媒体 300mW → 官网 250mW, 差 20%) + V_CORE 上界按 1.0V'
@@ -1903,7 +1899,7 @@ issues:
   reporter: main
   raised: '2026-10-26'
   due: '2026-10-28'
-  status: open
+  status: fixing
   external: false
   need_keys: []
   task_brief: '重算 PCB 外形与可行性: (a) 主板可用宽度 = 8mm (芯片宽) + 逃线区 + 器件边 → 给 3 档 (最小 8-9mm / 现状 12mm / 富余 15mm) 各自的可行性与代价 (b) 球间距取 0.3/0.4/0.5mm 三档, 给出各自的逃线/叠层/层数需求与能否满足 4-6 层锁死 (c) 结论必须标明哪些是 [推算] 哪些是 [官网] (宽度≤8mm)
@@ -1913,7 +1909,7 @@ issues:
   verify_result: null
   verify_date: null
   note: '10-26 19:45 项目总工根据 HW/ONLINE_FINDINGS_2026-10-26.md 的 W-1 与 §6 登记。★这是 blocker 级: 板宽定不下来 → 原理图/PCB 外形都定不下来'
-  dispatched_at: '2026-10-26'
+  dispatched_at: '2026-10-27'
 - id: ISS-079
   title: '情报检索: 采用 ARS45 的 AI 翻译眼镜拆解 + 港交所招股书直链 (封装/走线/供应链/交付)'
   severity: medium
@@ -1935,3 +1931,47 @@ issues:
   verify_date: null
   note: 10-26 19:45 项目总工根据 HW/ONLINE_FINDINGS_2026-10-26.md 的 W-5 / I-5 登记
   dispatched_at: '2026-10-26'
+- id: ISS-075
+  title: 审 8 页图页 + 补器件级细节 (P1 充电链 ESD/π滤波/MOSFET, P7 LED 限流/按键消抖) —— 上一版 276 行器件级 netlist 随 /tmp 丢失
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: ISS-074 第二次派活时 hw-lead 已把 netlist 升级到 276 行/140 nets/204 器件 (含 ESD 阵列/π滤波/MOSFET/LED 限流等器件级) 并生成每页器件表, 但 8 页正文写在聊天里未落盘, 19:44 机器休眠 + 00:00 网关重启 → 产物随 /tmp 丢失且 transcript 不存工具调用 → 无法捞回。现版 (项目总工生成)
+    是连接级展开 108 行, 器件级细节缺一块
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '两件事: (a) **审** HW/SCHEMATIC_V1.md (8 页, 项目总工生成) —— 挑出与硬件现实冲突的地方 (器件值/封装/分页/该有的无源件) 并**直接改** (它是脚本生成的: 改 state/gen_schematic_pages.py 里的 NARRATIVE 或改 CSV, 然后重跑生成器, **不要手改 HW/SCHEMATIC_V1.md**,
+    否则下次生成会被覆盖) (b) **补器件级细节**: 充电链的 ESD 阵列/π滤波/MOSFET/充电IC 周边、P7 的 LED 限流电阻与按键消抖电容、连接器/保护器件 —— 补进 HW/netlist_v1.csv (用 csv 模块改, 别手写) 并同步 state/gen_netlist.py (生成器是唯一真源)。硬边界: 改完 python3 state/check_netlist.py
+    必须仍 rc=0 且 12/12; 不许编球位号/电压/电流; 不许碰 state/ 下除 state/gen_netlist.py 与 state/gen_schematic_pages.py 以外的任何文件; 不许碰 MECH/ 与 SW/ 与 PROJECT_TRACKER.md; 写 YAML 一律 yaml.safe_dump。★回复格式: 改了哪几处 / check_netlist
+    12/12 / 审出 N 个问题 (列出) / 待我确认'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: 10-27 00:05 项目总工登记。★本条同时承担 ISS-074 的**验收**角色 (ISS-074 owner=main verify_by=hw-lead)
+  dispatched_at: '2026-10-27'
+- id: ISS-080
+  title: S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项
+  severity: high
+  source_blocker: SW-FW-B2
+  source_agent: sw-lead
+  desc: 'ISS-029 (USB 固件烧录 + 版本管理 + 回滚) 交卷时登记的阻塞: 救砖链路从未实测, 且原厂工具与 BOOT 进入条件全是 0 数据 —— 没实测就量产 = 砖了没法救。量产前必须验证: 进 BOOT 模式的方法、原厂下载工具能否识别、刷回来后校验通过'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-29'
+  status: fixing
+  external: false
+  need_keys: []
+  task_brief: '把 S2 救砖链路写成可执行的实测方案: 进 BOOT 模式的具体操作 (按键/时序/引脚) + 用什么工具识别与刷写 + 刷回来的校验判据 + 无样机时怎么用仿真器/空板先验一遍。输出: 写进 SW/ 的烧录章节 + EVT 模板加一条可判项 (谁执行/怎么判过/失败怎么办)'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-27 00:10 项目总工重建 (原登记的 ISS-075 与新登记的 ISS-075 撞号被误删, 改用新号)。★教训: issue id 必须**先查空位再登记**, 不能凭感觉接着写'
+  dispatched_at: '2026-10-27'

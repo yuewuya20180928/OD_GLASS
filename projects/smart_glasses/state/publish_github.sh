@@ -24,7 +24,11 @@ if [ ! -d "$PUB/.git" ]; then
   git remote add origin git@github.com:$REPO.git
 fi
 cd "$PUB" || exit 1
-git fetch -q origin main 2>/dev/null
+# ★从远端 rehydrate (机器重启会清空 /tmp → 发布树会变空仓库; 每次先拉回远端状态)
+git fetch -q origin main 2>/dev/null && git reset -q --hard origin/main 2>/dev/null
+# git 身份 (新仓库没有身份 → commit 会失败)
+git config user.name "yuewuya20180928"
+git config user.email "yuewuya20180928@users.noreply.github.com"
 
 rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
       "$PROJ/" projects/smart_glasses/
@@ -32,6 +36,10 @@ rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
 # ---- 3. docs / config 映射件 ----
 mkdir -p docs config/agents/main
 cp "$WS/AGENTS.md" config/agents/main/AGENTS.md
+[ -f "$PROJ/REPO_README.md" ] && cp "$PROJ/REPO_README.md" README.md
+for a in hw-lead sw-lead mech-lead; do
+  [ -f "/home/yuewuya/.openclaw/workspace-$a/AGENTS.md" ] && cp "/home/yuewuya/.openclaw/workspace-$a/AGENTS.md" "config/agents/$a/AGENTS.md"
+done
 cp "$PROJ/TODO.md" docs/TODO.md
 cp "$PROJ/docs/PROJECT_STATUS.md" docs/PROJECT_STATUS.md
 cp "$PROJ/docs/OPEN_ISSUES.md" docs/OPEN_ISSUES.md
@@ -130,7 +138,9 @@ files = ["docs/PROJECT_STATUS.md", "docs/OPEN_ISSUES.md", "docs/TODO.md",
          "projects/smart_glasses/HW/SCHEMATIC_V1_SPEC.json",
          "projects/smart_glasses/state/check_netlist.py",
          "docs/STATUS_SUMMARY.md", "projects/smart_glasses/STATUS_SUMMARY.md",
-         "projects/smart_glasses/HW/ONLINE_FINDINGS_2026-10-26.md"]
+         "projects/smart_glasses/HW/ONLINE_FINDINGS_2026-10-26.md",
+         "README.md", "projects/smart_glasses/REPO_README.md",
+         "HW/SCHEMATIC_V1.md"]
 ok = bad = 0
 for f in files:
     if not os.path.exists(os.path.join(pub, f)):

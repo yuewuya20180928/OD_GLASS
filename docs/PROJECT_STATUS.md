@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-10-26 19:40** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-10-27 00:08** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -60,8 +60,8 @@
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 79 条 | 状态: open=37 closed=38 fixing=4
-  ├─ 内部可自行推进: 54 条 | 外部依赖 (等老板/原厂/JBD): 25 条
+登记问题 80 条 | 状态: open=37 closed=39 fixing=3 fixed=1
+  ├─ 内部可自行推进: 55 条 | 外部依赖 (等老板/原厂/JBD): 25 条
   ├─ 逾期未闭环: 0 条
   └─ 未闭环 blocker 级: 12 条
 
@@ -78,7 +78,7 @@
        光机逐帧延迟 0 数据 (软件打不了点, 需高速摄影/示波器)
   🔴 ISS-013  open      owner=jbd        due=2026-10-28   [外部]
        波导未选型 → 缺 2D 外形图/容差角/彩虹纹 → 镜框不能开工
-  🔴 ISS-078  open      owner=hw-lead    due=2026-10-28  
+  🔴 ISS-078  fixing    owner=hw-lead    due=2026-10-28  
        ★板宽/逃线/叠层复核 (官网 宽度≤8mm 硬约束 + FCCSP pitch 推断 0.4-0.5mm) —— 可能推翻 12m
   🔴 ISS-001  open      owner=vendor     due=2026-10-29   [外部]
        原厂纸面资料 10 天未回 (显示接口/电源域/FCCSP pinout/启动存储)
@@ -98,10 +98,8 @@
        NPU 输出是否强制 FP32 未知 → 端到端多 7.3ms 风险
   🔴 ISS-015  open      owner=vendor     due=2026-10-29   [外部]
        PCB 板宽跟 FCCSP pitch 走 + 启动存储未知 → 板宽定不下来
-  🔴 ISS-074  fixing    owner=hw-lead    due=2026-10-29  
+  🔴 ISS-074  fixed     owner=main       due=2026-10-29  
        ★开始画硬件原理图 V1 (8 页图页 + 完整 netlist + KiCad 可导入 .net) —— 球位号统一用 TBD 占
-  🟠 ISS-040  open      owner=boss       due=2026-10-26   [外部]
-       打印与量测条件不具备 (打印机跨网段不可达 + 无切片器/量具) → M-PRINT 卡死
   🟠 ISS-038  open      owner=boss       due=2026-10-27   [外部]
        【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否加第 4 个总工
   🟠 ISS-039  closed    owner=boss       due=2026-10-27   [外部]
@@ -110,8 +108,10 @@
        ★FOV 与俯角正面冲突: 对角 100° → 垂直半视场仅 30.3°, 俯角 32° 时正前方掉出画面
   🟠 ISS-019  closed    owner=main       due=2026-10-28  
        桥接芯片并行询价 (不等原厂回信, 抢 4-8 周采购周期)
-  🟠 ISS-026  open      owner=mech-lead  due=2026-10-28  
+  🟠 ISS-026  fixing    owner=mech-lead  due=2026-10-28  
        可靠性测试方案缺失 (跌落/扭转/弯折/汗液/盐雾/UV 全 0)
+  🟠 ISS-040  open      owner=boss       due=2026-10-28   [外部]
+       打印与量测条件不具备 (打印机跨网段不可达 + 无切片器/量具) → M-PRINT 卡死
   🟠 ISS-041  open      owner=boss       due=2026-10-28   [外部]
        测试设备/工装缺失 (无设备 G3 那一关不可判通过)
   🟠 ISS-058  closed    owner=mech-lead  due=2026-10-28  
@@ -122,6 +122,8 @@
        显示端 120 度到 30 度的映射方式 (看得广但糊 vs 看得清但窄) —— 120 度这个卖点对用户可见吗
   🟠 ISS-077  open      owner=hw-lead    due=2026-10-28  
        功耗预算 V3: 按官网 250mW 口径重算 (媒体 300mW → 官网 250mW, 差 20%) + V_CORE 上界按 
+  🟠 ISS-075  open      owner=hw-lead    due=2026-10-28  
+       审 8 页图页 + 补器件级细节 (P1 充电链 ESD/π滤波/MOSFET, P7 LED 限流/按键消抖) —— 上一版 27
   🟠 ISS-021  closed    owner=main       due=2026-10-29  
        缺系统架构图 / 尺寸堆叠图 / 电源拓扑图 (现在全是文字表)
   🟠 ISS-022  closed    owner=hw-lead    due=2026-10-29  
@@ -152,11 +154,11 @@
        ★先画 AR9481 同 Die 参考版原理图 (每脚标证据等级) —— 出图周期从 1-2 周压到 2-3 天
   🟠 ISS-062  open      owner=hw-lead    due=2026-10-29  
        R-GEO-2 四问转原厂/镜头厂 (边缘畸变区是检测价值最高处 / 4-lane MIPI / ISP 吞吐余量 98.1% / 
-  🟠 ISS-067  fixing    owner=hw-lead    due=2026-10-29  
+  🟠 ISS-067  open      owner=hw-lead    due=2026-10-29  
        R-F1 3.3V 轨拓扑裁决落地 (UVP 抬 3.5V + 3.3V 改供 + 评估不牺牲容量的替代方案)
   🟠 ISS-068  open      owner=hw-lead    due=2026-10-29  
        可靠性证据缺口收口 (15/15 器件 Absolute Maximum Ratings 逐个核 + 实测项挂样机 + FIT 数据
-  🟠 ISS-075  open      owner=sw-lead    due=2026-10-29  
+  🟠 ISS-080  fixing    owner=sw-lead    due=2026-10-29  
        S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项
   🟠 ISS-052  open      owner=mech-lead  due=2026-10-30  
        结构侧: 镜头镜筒/窗口/高度需求 (可不等镜头定档就开模) + 俯角收窄到 ≤25-28°
@@ -190,7 +192,7 @@
        两处旧命名 + M1-R2 裸 1080p 语义张力 (sensor 必须支持全幅输出模式 → 升为 Q24 选型硬约束)
   🟡 ISS-071  closed    owner=sw-lead    due=2026-10-28  
        全幅口径的尾巴清理 (3 处): 内存规划表按全幅重算 + Q10 原厂问法改全幅 + §3.3 吞吐段与 S1 依据表述
-  🟡 ISS-029  fixing    owner=sw-lead    due=2026-10-29  
+  🟡 ISS-029  closed    owner=sw-lead    due=2026-10-29  
        USB 固件烧录 + 版本管理 + 回滚 缺失 (无线 OTA 不做, 但返修必需)
   🟡 ISS-030  closed    owner=main       due=2026-10-29  
        接口定义文档不完整 (41 条 claims 是'取值', 不是'接口规格')
@@ -214,7 +216,7 @@
        需求条目旧链路命名对齐 (SW_REQUIREMENTS 3.1 职责行 + M2-R1/M2-R3 + DISPLAY_MODE 
   🟡 ISS-073  open      owner=sw-lead    due=2026-10-28  
        显示帧 buffer 与合成帧两行加注 (800x600 = 老板锁死的显示分辨率, 不是旧链路) —— 不许按 640x480 重
-  🟡 ISS-076  fixing    owner=mech-lead  due=2026-10-28  
+  🟡 ISS-076  open      owner=mech-lead  due=2026-10-28  
        新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1
   🟡 ISS-033  closed    owner=main       due=2026-10-29  
        需求→设计→验证 追溯矩阵 (RTM) 缺失
@@ -410,17 +412,18 @@
 | ISS-009 | vendor | 2026-10-29 | NPU 纯硬件耗时未知 → 框龄 age 算不准 (±16.67ms 台阶) |
 | ISS-011 | vendor | 2026-10-29 | NPU 输出是否强制 FP32 未知 → 端到端多 7.3ms 风险 |
 | ISS-015 | vendor | 2026-10-29 | PCB 板宽跟 FCCSP pitch 走 + 启动存储未知 → 板宽定不下来 |
-| ISS-074 | hw-lead | 2026-10-29 | ★开始画硬件原理图 V1 (8 页图页 + 完整 netlist + KiCad 可导入 .net) —— 球位号统一用 TBD 占位, 原厂回信后只填球号 |
-| ISS-040 | boss | 2026-10-26 | 打印与量测条件不具备 (打印机跨网段不可达 + 无切片器/量具) → M-PRINT 卡死 |
+| ISS-074 | main | 2026-10-29 | ★开始画硬件原理图 V1 (8 页图页 + 完整 netlist + KiCad 可导入 .net) —— 球位号统一用 TBD 占位, 原厂回信后只填球号 |
 | ISS-038 | boss | 2026-10-27 | 【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否加第 4 个总工 |
 | ISS-026 | mech-lead | 2026-10-28 | 可靠性测试方案缺失 (跌落/扭转/弯折/汗液/盐雾/UV 全 0) |
+| ISS-040 | boss | 2026-10-28 | 打印与量测条件不具备 (打印机跨网段不可达 + 无切片器/量具) → M-PRINT 卡死 |
 | ISS-041 | boss | 2026-10-28 | 测试设备/工装缺失 (无设备 G3 那一关不可判通过) |
 | ISS-060 | boss | 2026-10-28 | 产品件三条几何待老板裁决 (压垫吸收量零余量 / 非对称方向 / 压垫槽区板厚小于 FDM 最小壁) —— 打印包转绿不等于解 A 收口 |
 | ISS-063 | boss | 2026-10-28 | 显示端 120 度到 30 度的映射方式 (看得广但糊 vs 看得清但窄) —— 120 度这个卖点对用户可见吗 |
 | ISS-077 | hw-lead | 2026-10-28 | 功耗预算 V3: 按官网 250mW 口径重算 (媒体 300mW → 官网 250mW, 差 20%) + V_CORE 上界按 1.0V |
+| ISS-075 | hw-lead | 2026-10-28 | 审 8 页图页 + 补器件级细节 (P1 充电链 ESD/π滤波/MOSFET, P7 LED 限流/按键消抖) —— 上一版 276 行器件级 netlist 随 /tmp 丢失 |
 | ISS-049 | hw-lead | 2026-10-29 | PCB 定位方式变更 + 骨架长度上限 (来自 ISS-042 解 A) —— 需 hw-lead 改孔位 |
 | ISS-062 | hw-lead | 2026-10-29 | R-GEO-2 四问转原厂/镜头厂 (边缘畸变区是检测价值最高处 / 4-lane MIPI / ISP 吞吐余量 98.1% / scaler 能否填黑边) |
 | ISS-067 | hw-lead | 2026-10-29 | R-F1 3.3V 轨拓扑裁决落地 (UVP 抬 3.5V + 3.3V 改供 + 评估不牺牲容量的替代方案) |
 | ISS-068 | hw-lead | 2026-10-29 | 可靠性证据缺口收口 (15/15 器件 Absolute Maximum Ratings 逐个核 + 实测项挂样机 + FIT 数据来源) |
-| ISS-075 | sw-lead | 2026-10-29 | S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项 |
+| ISS-080 | sw-lead | 2026-10-29 | S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项 |
 | ISS-052 | mech-lead | 2026-10-30 | 结构侧: 镜头镜筒/窗口/高度需求 (可不等镜头定档就开模) + 俯角收窄到 ≤25-28° |
