@@ -25,14 +25,37 @@ from collections import OrderedDict
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
 
-FOOTPRINT = {  # 规格里明写的用规格值, 其余给占位 (标 待定)
+FOOTPRINT = {  # 规格里明写的用规格值; 器件级新增类型给**明确占位** (TBD: = 待选型, 不假装已定)
     "R": "Resistor_SMD:R_0402_1005Metric",
     "C": "Capacitor_SMD:C_0402_1005Metric",
+    "L": "Inductor_SMD:L_0805_2012Metric",
+    "D": "Diode_SMD:D_SOD-323",
+    "LED": "LED_SMD:LED_0603_1608Metric",
+    "SW": "TBD:SW_PLACEHOLDER",
     "TP": "TestPoint:TestPoint_Pad_D1.0mm",
-    "RAIL": "Regulator_Linear:",
+    "IC": "TBD:IC_PLACEHOLDER",
+    "CONN": "TBD:CONN_PLACEHOLDER",
+    "RAIL": "TBD:RAIL_PLACEHOLDER",
     "NET": "",
 }
 VALUE_HINT = {"R": "0402", "C": "0402"}
+
+# 节点前缀 → 器件 (连接器/SoC/晶振/电池 必须在 .net 里出现, 否则“结构一眼看得出”做不到)
+NODE_COMPS = [
+    ("SoC[",       "U_SOC",      "ARS45 (同 Die 参考版)",    "IC"),
+    ("CONN_LIGHT", "CONN_LIGHT", "40p 光机连接器",           "CONN"),
+    ("CONN_CAM",   "CONN_CAM",   "40p 摄像头连接器",         "CONN"),
+    ("CONN_USB",   "CONN_USB",   "USB 跨铰链连接器 4p",      "CONN"),
+    ("J_TYPE_C",   "J_TYPE_C",   "Type-C 16p 座 (充电板侧)", "CONN"),
+    ("J_CHG",      "J_CHG",      "1×6 跨铰链排线座",         "CONN"),
+    ("J_DEBUG",    "J_DEBUG",    "1×4 1.27mm 排针 (JTAG)",  "CONN"),
+    ("J_UART",     "J_UART",     "1×2 1.27mm 排针 (UART)",  "CONN"),
+    ("J_BOOT",     "J_BOOT1",    "启动存储焊盘位",           "CONN"),
+    ("BT_432243",  "BT_432243",  "电池 432243 3.7V",         "CONN"),
+    ("X1",         "X1",         "晶振焊盘位 (不装)",        "CONN"),
+    ("RAIL_",      None,         "电源轨节点",               "RAIL"),
+    ("GND",        "GND",        "机壳地/数字地",            "PWR"),
+]
 
 
 def main() -> int:
@@ -64,20 +87,31 @@ def main() -> int:
             continue
         val = (r.get("value") or "").strip()
         comp(ref, val, typ, r.get("page", ""))
-    # 端点里的连接器/SoC 也作为器件
+    # 端点里的连接器/SoC/电源轨 也作为器件
+    known_refs = {r["ref"].strip() for r in rows if (r.get("ref") or "").strip()}
+
+    def node_comp(node: str):
+        """节点名 → (器件 ref, 器件值, 类型) 或 None (不是专用器件)"""
+        node = (node or "").strip()
+        if not node:
+            return None
+        for pre, ref, label, typ in NODE_COMPS:
+            if node.startswith(pre):
+                return (ref if ref else node.split(" ")[0]), label, typ
+        base = node.split(" ")[0]
+        if base in known_refs:
+            return base, None, None
+        return None
+
     for r in rows:
         for node in ((r.get("node1") or ""), (r.get("node2") or "")):
-            node = node.strip()
-            if node.startswith("SoC["):
-                comp("U_SOC", "ARS45 (同 Die 参考版)", "IC", r.get("page", ""))
-            elif node.startswith("CONN_LIGHT"):
-                comp("CONN_LIGHT", "40p 光机连接器", "CONN", r.get("page", ""))
-            elif node.startswith("CONN_CAM"):
-                comp("CONN_CAM", "40p 摄像头连接器", "CONN", r.get("page", ""))
-            elif node.startswith("J_BOOT"):
-                comp("J_BOOT1", "启动存储焊盘位", "CONN", r.get("page", ""))
-            elif node == "GND":
-                comp("GND", "机壳地/数字地", "PWR", r.get("page", ""))
+            hit = node_comp(node)
+            if hit:
+                ref, label, typ = hit
+                if label:
+                    comp(ref, label, typ, r.get("page", ""))
+                elif ref not in comps:
+                    comp(ref, (r.get("value") or "").strip(), r.get("type", ""), r.get("page", ""))
 
     # 2) 分配临时 pin 号
     pinno: dict[str, int] = {}
@@ -95,16 +129,10 @@ def main() -> int:
             node = node.strip()
             if not node:
                 continue
-            if node.startswith("SoC["):
-                ref, pin = "U_SOC", pin_of("U_SOC")
-            elif node.startswith("CONN_LIGHT"):
-                ref, pin = "CONN_LIGHT", pin_of("CONN_LIGHT")
-            elif node.startswith("CONN_CAM"):
-                ref, pin = "CONN_CAM", pin_of("CONN_CAM")
-            elif node.startswith("J_BOOT"):
-                ref, pin = "J_BOOT1", pin_of("J_BOOT1")
-            elif node == "GND":
-                ref, pin = "GND", pin_of("GND")
+            hit = node_comp(node)
+            if hit:
+                ref, _label, _typ = hit
+                pin = pin_of(ref)
             else:
                 # 器件端: 用本行的 ref (NET_* 行时用信号名当伪器件)
                 ref = (r.get("ref") or "NET").strip() or "NET"

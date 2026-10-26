@@ -1944,19 +1944,22 @@ issues:
   reporter: main
   raised: '2026-10-26'
   due: '2026-10-28'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   task_brief: '两件事: (a) **审** HW/SCHEMATIC_V1.md (8 页, 项目总工生成) —— 挑出与硬件现实冲突的地方 (器件值/封装/分页/该有的无源件) 并**直接改** (它是脚本生成的: 改 state/gen_schematic_pages.py 里的 NARRATIVE 或改 CSV, 然后重跑生成器, **不要手改 HW/SCHEMATIC_V1.md**,
     否则下次生成会被覆盖) (b) **补器件级细节**: 充电链的 ESD 阵列/π滤波/MOSFET/充电IC 周边、P7 的 LED 限流电阻与按键消抖电容、连接器/保护器件 —— 补进 HW/netlist_v1.csv (用 csv 模块改, 别手写) 并同步 state/gen_netlist.py (生成器是唯一真源)。硬边界: 改完 python3 state/check_netlist.py
     必须仍 rc=0 且 12/12; 不许编球位号/电压/电流; 不许碰 state/ 下除 state/gen_netlist.py 与 state/gen_schematic_pages.py 以外的任何文件; 不许碰 MECH/ 与 SW/ 与 PROJECT_TRACKER.md; 写 YAML 一律 yaml.safe_dump。★回复格式: 改了哪几处 / check_netlist
     12/12 / 审出 N 个问题 (列出) / 待我确认'
-  fix_ref: null
+  fix_ref: state/gen_netlist.py (763 行, 器件级已进生成器) + HW/netlist_v1.csv (348 行) + state/gen_schematic_pages.py (175 行) + HW/SCHEMATIC_V1.md (511 行) + HW/netlist_v1.net (1284 行) + HANDOFF/2026-10-27_hw-lead_ISS075_*.md
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: '10-27 00:05 项目总工登记。★本条同时承担 ISS-074 的**验收**角色 (ISS-074 owner=main verify_by=hw-lead) | 10-27 00:15 项目总工重派 (队列派, 非手动): 任务书已加三条硬规矩 —— ①只写项目树, 绝对不许写 /tmp (上一轮写 /tmp → 机器重启被清空 → 18 分钟白干) ②必须用 write
-    工具落盘, 不许把正文写在回复里 (上一轮就死在这) ③分批写, 每次 ≤150 行 (一次写大文件会被 abort)'
+  verify_result: pass
+  verify_date: '2026-10-27'
+  note: '10-27 00:1x 由项目总工派 (第 3 次派活, 前两次分别死于 abort 与我误 steer 造成的 session takeover)。★项目总工独立复核: ① **幂等**: 重跑 gen_netlist.py + gen_schematic_pages.py, 与改前 cmp **字节一致** → CSV 从"手改物"变成纯生成物, 任何人重跑不再丢那 168 行
+    (这是本条最关键的一条) ② check_netlist **12/12 全过**, P1..P8 齐全, 56/56 连接覆盖, **62 个 SoC 节点全是 SoC[TBD-01]. 占位, 编造 0 处** ③ 它自己审出 17 处问题并全改在生成器 (数字错 4: LDO 6→7 路 / TP 13 逻辑→40 物理 / 按键 3→4 位 / 8 个 0Ω→8 逻辑位 16 颗实物
+    (一颗 0Ω 串差分对会短接 P/N, 必须拆 _P/_N); 乱码错号 2 处 (U+FFFD 修掉 / P2 的 TBD-09 指向纠正); 漏件矛盾 11 处 (补 ESD/2×MOS/连接器/去耦/按键 RC 消抖/LED 限流; P3 内置 DRAM ≠ 内置 boot storage 口径改掉; MCLK 串阻位 DNP→必装; P6 补 90Ω 不可改; P8 UART 改独立
+    1×2) ④ **它自己查出 2 个硬伤**: (a) 上一版 277 行 CSV 里 KEY_VOL+ / KEY_VOL- 的 node2 都是 NET_KEY_VOL → **两个音量键被短接** → 已拆 NET_KEY_VP/NET_KEY_VM (b) U_BRIDGE 定位矛盾 (规格 A-21 叫 redriver, P4 的 BR_* 要桥接芯片) → 已按桥接芯片画并全 DNP
+    + 标 TBD-04 ⑤ **它自己发现的最有价值一条**: Type-C 在充电板 (ISS-014 决策 5 挪镜框) 而 USB D+/D− 对端是镜脚主 PCB → **USB 差分必然跨铰链**, 而它是唯一外露烧录口 → CONN_USB 由 DNP 改必留, 两条出路写进 P6 → 我已裁决见下'
   dispatched_at: '2026-10-27'
 - id: ISS-080
   title: S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项
@@ -2067,3 +2070,49 @@ issues:
   note: 10-27 00:20 项目总工登记 (失联预案第 4 条)
   dispatched_at: '2026-10-27'
   id: ISS-084
+- id: ISS-085
+  title: ★USB 跨铰链方案落地 (Type-C 留镜框充电板 + USB 差分跨铰链到镜脚主 PCB) + 跨铰链 USB 可靠性要求 + 连接器 pin/型号/pitch 结构复核
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: 'ISS-075 审图页时发现的最有价值一条: Type-C 座在充电板 (ISS-014 决策 5: SoC+充电板挪镜框) 而 USB D+/D− 的对端是镜脚主 PCB → USB 差分必然跨铰链, 而它是唯一外露烧录口。项目总工裁决: 两个口都留 —— Type-C 在镜框 (充电 + 量产烧录, 售后不用拆镜脚), USB 差分跨铰链到镜脚主 PCB (加 ESD + 共模扼流
+    + 阻抗连续 + 铰链柔性段), 另保留 J_DEBUG/J_UART (镜脚内 1×2) 作开发调试与产线备用烧录口; 并把 跌落/扭转时 USB 通信不中断 写进可靠性测试项。同时 hw-lead 自拟的三个连接器 pin 编号/型号/pitch 需结构与装配复核'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-10-27'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '(a) 跨铰链 USB 的结构与可靠性要求: 铰链处柔性段长度/固定方式/应力释放, 加上 ESD 阵列与共模扼流的位置要求 (靠近两端连接器), 给出跌落/扭转/开合循环时 不允许通信中断 的判据 (并同步到 MECH/RELIABILITY_TEST_PLAN.md 的对应用例) (b) 复核 hw-lead 自拟的三个连接器 pin 编号与型号: J_CHG (Type-C)
+    / J_TYPE_C (Type-C) / CONN_CAM (40p) / CONN_LIGHT (40p) —— pin 排布与 pitch 是否与实际器件匹配, 是否有键位/防呆冲突 (c) 复核 J_DEBUG/J_UART (1×2 排针) 的位置是否够得着且不与电池/铰链冲突。边界: 只写 MECH/ 下文件与 RELIABILITY_TEST_PLAN, 不许改 HW/ 与 SW/
+    与 PROJECT_TRACKER.md, 不许碰 state/ 分片'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: 10-27 01:0x 项目总工裁决 USB 跨铰链方案后登记
+  dispatched_at: '2026-10-27'
+- id: ISS-086
+  title: 'netlist 收尾: NTC 改数字温度计 (I2C_A 第 4 个从设备) + USB 跨铰链保护件 (ESD/共模扼流/端接) + U_BRIDGE 按 DP→DSI 桥接定位'
+  severity: medium
+  source_blocker: null
+  source_agent: main
+  desc: 'ISS-075 交卷后项目总工的 3 条裁决要落进 netlist: ① NTC 用**数字温度计** (TMP117 类, 接 I2C_A 做成第 4 个从设备) —— 裸分压在 1.8V IO 域分辨率不足且跨铰链易受扰; ② USB 差分跨铰链 → 加 ESD 阵列 + 共模扼流 + 端接 (与 ISS-085 结构要求配套) ③ U_BRIDGE 定位为 **DP→DSI 桥接芯片**
+    (方案B, 与 P4 的 BR_* 一致); 规格 A-21 的 redriver 说法属**规格内部矛盾** → 保留原文并标注 待原厂澄清 (进原厂问询草稿)'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-27'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '改 state/gen_netlist.py (生成器是唯一真源, 改完重跑 gen_netlist.py + gen_schematic_pages.py + gen_kicad_net.py): (a) NTC 换成数字温度计 (I2C_A 上第 4 个从设备, 型号标 TMP117 类 + [待选型]) (b) USB D+/D− 跨铰链段加 ESD 阵列 + 共模扼流
+    + 对地端接 (位置与 ISS-085 的结构要求配套, 型号标 [待选型]) (c) U_BRIDGE 的定位写成 DP→DSI 桥接芯片 (与 P4 BR_* 一致), 并在 A-21 相关行加一句 规格把同一位置称作 redriver 属规格内部矛盾 待原厂澄清。硬规则: check_netlist 仍 12/12, 幂等 (两次重跑字节一致), 球位号仍全 TBD 占位, 不许碰 state/
+    下其它文件与 MECH/ SW/ PROJECT_TRACKER.md'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: 10-27 01:0x 项目总工裁决后登记
+  dispatched_at: '2026-10-27'
