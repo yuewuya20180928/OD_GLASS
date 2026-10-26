@@ -89,6 +89,14 @@ VB = {
 }
 VERSION_STR_MAX = 512
 CRC_SLOT_COUNT = 6
+# 版本块 payload CRC 的覆盖区间 (两段, 跳过 flags 字节 —— 因为 flags 是"最后一步"才改写的
+# bootable 开关, 它若被算进 CRC, 写完 magic 后 CRC 必然对不上)
+VB_CRC_RANGES = [(0x004, 0x006), (0x008, 0x278)]
+
+
+def strip_pad(raw: bytes) -> bytes:
+    """去掉 0x00 / 0xFF 填充 (擦除态是 0xFF, 空字段是 0x00)。"""
+    return raw.rstrip(b"\x00\xff")
 
 
 # ----------------------------------------------------------------------------- 工具函数
@@ -165,10 +173,11 @@ def build_version_block(meta: dict, crc_values: list[int], active_slot: str) -> 
         struct.pack_into("<I", payload, VB["partition_crc"] + 4 * i, int(crc_values[i]))
     payload[VB["version_str"]:VB["version_str"] + len(version)] = version
 
-    # payload CRC 覆盖 [payload_len .. payload_crc32) 这段有效载荷
-    crc_start = VB["payload_len"]
-    crc_end = VB["payload_crc32"]
-    pcrc = zlib.crc32(bytes(payload[crc_start:crc_end])) & 0xFFFFFFFF
+    # payload CRC 覆盖 VB_CRC_RANGES 两段 (跳过 flags 字节)
+    pcrc = 0
+    for s, e in VB_CRC_RANGES:
+        pcrc = zlib.crc32(bytes(payload[s:e]), pcrc)
+    pcrc &= 0xFFFFFFFF
     struct.pack_into("<I", payload, VB["payload_crc32"], pcrc)
 
     final = bytearray(payload)
@@ -240,14 +249,15 @@ def cmd_write(args, cfg: dict) -> int:
             fh.seek(p["offset"])
             fh.write(data)
             crc = zlib.crc32(data) & 0xFFFFFFFF
-            if p["crc_slot"] is not None:
+            # ★ 只有活动槽那一路写入 CRC 槽 (与 verify 侧 active_partitions 对齐)
+            if p["crc_slot"] is not None and (p["slot"] is None or p["slot"] == active_slot):
                 crc_values[int(p["crc_slot"])] = crc
             written.append({"name": p["name"], "offset": p["offset"], "size": p["size"],
                             "crc32": f"0x{crc:08X}", "slot": p["slot"]})
             if args.fail_after and args.fail_after == p["name"]:
                 fh.flush()
                 os.fsync(fh.fileno())
-                print(f"⚡ 断电注入: 写完 {p['name'] 后中止 (模拟写到一半掉电)", file=sys.stderr)
+                print(f"⚡ 断电注入: 写完 {p['name']} 后中止 (模拟写到一半掉电)", file=sys.stderr)
                 print(f"   → 版本块 magic/bootable **未写** → 按 §2.5.2 板端应当拒绝启动", file=sys.stderr)
                 return 5
 
@@ -313,31 +323,35 @@ def cmd_verify(args, cfg: dict) -> int:
         block = fh.read(vb["size"])
 
         magic = block[VB["magic"]:VB["magic"] + 4]
-        bootable = block[VB["flags"]] & BOOTABLE_BIT
+        flags_byte = block[VB["flags"]]
+        # ★ 擦除态 (0xFF) 不算 bootable —— 否则"半写状态"会被误判成"已生效"
+        bootable = flags_byte != 0xFF and bool(flags_byte & BOOTABLE_BIT)
         checks.append(("CB-02a 版本块 magic == 'AR45'", magic == MAGIC,
                        f"magic={magic!r} (期望 b'AR45')"))
-        checks.append(("CB-02b bootable 标志置位", bool(bootable),
-                       f"flags=0x{block[VB['flags']]:02X} bootable={bool(bootable)}"))
+        checks.append(("CB-02b bootable 标志置位 (擦除态 0xFF 不算)", bootable,
+                       f"flags=0x{flags_byte:02X} bootable={bootable}"))
 
         mode = MODE_VALUES.get(block[VB["mode"]], "unknown")
         checks.append(("CB-03a mode 字段合法", mode in ("dev", "prod", "service"), f"mode={mode}"))
 
         vlen = struct.unpack_from("<H", block, VB["payload_len"])[0]
-        version = block[VB["version_str"]:VB["version_str"] + vlen].decode("utf-8", "replace")
-        checks.append(("CB-03b 版本串非空", vlen > 0, f"version_str_len={vlen}"))
+        version = block[VB["version_str"]:VB["version_str"] + min(vlen, VERSION_STR_MAX)].decode("utf-8", "replace")
+        # ★ 长度字段自身必须在合法区间 (擦除态是 0xFFFF, 不能当"非空")
+        checks.append(("CB-03b 版本串非空 (长度字段合法)", 0 < vlen <= VERSION_STR_MAX,
+                       f"version_str_len={vlen} (合法区间 1..{VERSION_STR_MAX})"))
 
         required = ["boot=", "kern=", "rootfs=", "app=", "model=", "isp="]
         missing = [k for k in required if k not in version]
         checks.append(("CB-03c 版本串 6 分项齐全 (boot/kern/rootfs/app/model/isp)",
                        not missing, f"缺={missing or '无'}"))
 
-        sn = block[VB["sn"]:VB["sn"] + 16].split(b"\x00")[0].decode("utf-8", "replace")
+        sn = strip_pad(block[VB["sn"]:VB["sn"] + 16]).decode("utf-8", "replace")
         checks.append(("CB-03d SN 非空", bool(sn), f"sn={sn!r}"))
 
-        calib = block[VB["calib_id"]:VB["calib_id"] + 32].split(b"\x00")[0].decode("utf-8", "replace")
+        calib = strip_pad(block[VB["calib_id"]:VB["calib_id"] + 32]).decode("utf-8", "replace")
         checks.append(("CB-07  标定 ID 非空 (F6 防线)", bool(calib), f"calib={calib!r}"))
 
-        tool = block[VB["tool_ver"]:VB["tool_ver"] + 16].split(b"\x00")[0].decode("utf-8", "replace")
+        tool = strip_pad(block[VB["tool_ver"]:VB["tool_ver"] + 16]).decode("utf-8", "replace")
         checks.append(("CB-03e 烧录工具版本非空", bool(tool), f"tool_ver={tool!r}"))
 
         stored_crcs = [struct.unpack_from("<I", block, VB["partition_crc"] + 4 * i)[0]
@@ -354,7 +368,10 @@ def cmd_verify(args, cfg: dict) -> int:
                            f"回读=0x{actual:08X} 版本块=0x{stored_crcs[idx]:08X}"))
 
         pcrc = struct.unpack_from("<I", block, VB["payload_crc32"])[0]
-        calc = zlib.crc32(block[VB["payload_len"]:VB["payload_crc32"]]) & 0xFFFFFFFF
+        calc = 0
+        for s, e in VB_CRC_RANGES:
+            calc = zlib.crc32(block[s:e], calc)
+        calc &= 0xFFFFFFFF
         checks.append(("CB-02c 版本块 payload CRC 一致", pcrc == calc,
                        f"存=0x{pcrc:08X} 算=0x{calc:08X}"))
 

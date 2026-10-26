@@ -3,17 +3,17 @@ role: 结构总工(带散热)
 updated_at: '2026-10-25T00:35:00+08:00'
 updated_by: mech-lead
 status:
-  phase: P2(Rev A 几何规格已交, 待项目总工重生成 STL)
-  progress_pct: 72
+  phase: P2(可靠性测试方案已交, 待样机+场地/工装)
+  progress_pct: 78
   health: yellow
-  summary: '第4轮 ISS-050 第1步 (只出规格不碰 STL): 新增 MECH/print/GEOM_SPEC_REVA.md (Rev A 几何修订规格,
-    10 条特征变更 + 参考实现 + 46 项期望值 + 包围盒 + P0/P1 风险) + 修订 MECH/print/MEASURE_CHECKLIST.md
-    (43→49 项: 改 4/作废 1 (H6 打印件不再做 ⌀2.0 H7 定位孔, 基准迁到金属骨架)/新增 7, 加 §2.0 判据口径) + 修订 MECH/print/verify_pack.py
-    (41→46 项 Rev A 判据; 旧 STL 跑新判据 38/46 差 8 项 = 预期) + 新增 MECH/print/verify_reva_ref.py
-    (参考实现离线复核, 全一致, 不写任何 STL) + measurements.yaml M-PRINT 保持 kind=推算/value=未测 (0件已打),
-    只更新 evidence 计数 (41→49 清单 / 46 项自检 38/46) + needs_from 新增 3 条 (reva_stl_regen→main
-    / reva_cell_thickness_tol→boss 电芯公差 ≤±0.10 / reva_asym_direction→main 非对称方向+压垫槽板厚)。未碰
-    .stl / gen_print_pack.py / PRINT/。'
+  summary: '第5轮 ISS-026: 新增 MECH/RELIABILITY_TEST_PLAN.md (可靠性测试方案, 12 类用例: 跌落/扭转/弯折开合/镜腿拉力/汗液浸泡/化妆品/酒精擦拭/UV老化
+    + 盐雾/温循/插拔FPC/振动; 每类给样品数+次数+判据; §B3.2 逐项区分 1 台阶段 vs 后续批次; §B6 试验顺序 S0-S10 含不可逆性;
+    §B7 通过/失败/不可判三态+条件容差; §B8 设备三分类+里程碑 M0-M4; §B9 数据表模板; §B10 失效追溯表; §B11 盲区) + 新增
+    MECH/reliability_plan_check.py (机械自检, rc=0) + 新增 interface_claims 11 条 (mech_reltest_*)
+    + 回答 hw-lead 的 rel_mount_stiffness (面接触>=40x8mm, 2xM1.2 只防翘/销只防转, PCB 不进弯折区, 弯折由
+    FPC 承担) + 新增 needs_from 3 条 (mech_reltest_kit_site->boss / mech_reltest_xray_sampling->hw-lead
+    / mech_reltest_cell_samples->main) + 新增 blocker MECH-B6。 ★ 本单只交方案: 全文 [实测] 条数
+    = 0, 未测项一律写 [0数据]/[待实测]。'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -59,6 +59,25 @@ artifacts:
     ⌀2.4/⌀2.5 试样 + 走线槽改到电芯上方 + 隔热层缩到 PCB/SoC 段 + 骨架止于 PCB 段后缘) + 参考实现 (纯加法 box, 无布尔)
     + 46 项期望值 (verify_pack 新判据) + 包围盒 (两个件都不变, 明确写了它不能当验收判据) + P0 待确认 2 条 (压垫压缩预算
     0.25 vs 需吸收 0.25; 非对称方向) + P1 2 条 (槽区板厚 0.40 < 0.8; 盲槽轴必须水平打印)'
+- path: MECH/RELIABILITY_TEST_PLAN.md
+  kind: plan
+  version: v1.0
+  updated_at: '2026-10-27'
+  summary: '可靠性测试方案 (ISS-026): 12 类用例 (跌落/扭转/弯折开合/镜腿拉力/汗液浸泡/化妆品/酒精擦拭/UV老化 + 盐雾/温循/插拔FPC/振动),
+    每类给样品数+次数+判据, §B3.2 逐项区分 1 台阶段 vs 后续批次, §B6 顺序 S0-S10 (含不可逆性), §B7 三态判定+条件容差,
+    §B8 设备三分类+里程碑, §B9 数据表模板, §B10 失效追溯表, §B11 盲区。★ 方案非报告: 本文 [实测] 条数 = 0, 全部结果写 [0数据]/[待实测]'
+- path: MECH/reliability_plan_check.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-10-27'
+  summary: '方案机械自检: 用例数(>=12)/8 类必选覆盖/每卡三要素(样品数·次数·判据·1台可行性)/§B3.2 分配覆盖/禁用措辞(未测写成已通过)/证据分级四标签/[实测]条数=0
+    声明 → 一条命令复核验收①②③ (当前 rc=0)'
+- path: HANDOFF/2026-10-27_mech-lead_可靠性测试方案.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-27'
+  summary: '质量门 v2: B1-B6 六块 6/6; B2 自评 10 条 (✅10); B3 证据分级 4 标签 (实测条数=0); B4 接口取值
+    11 条新增; B5 未决项 8 条 (K-1~K-8, 其中 K-8 已答); B6 自证命令 4 条'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区
@@ -98,6 +117,13 @@ blockers:
   needs_from:
   - mech-lead
   waiting_since: '2026-10-25'
+- id: MECH-B6
+  desc: '本机物理上无法执行任何可靠性实测 (无量具/无打印机/无恒温箱/无老化箱/无振动台/无X-ray) -> ISS-026 交付的是方案, 12 类用例的实测全部待场地+工装
+    (needs_from boss mech_reltest_kit_site)。另: 1 台样机做 12 类必然撞上 ''样本量不足只能筛查'' 与 ''一次失败后续全废''
+    两个硬边界 (见 MECH/RELIABILITY_TEST_PLAN.md §B2.3 / §B3.3)。'
+  severity: medium
+  needs_from:
+  - boss
 needs_from:
 - key: q4_battery_scope
   to: boss
@@ -187,6 +213,29 @@ needs_from:
     0.40 (< FDM 最小壁 0.80) —— 产品件要么顶板局部加厚到 1.20 (H 链 6.75 → 余量 0.55 < 0.60, 破 2×公差规矩),
     要么压垫不设槽改背胶固定, 要么 boss 裁决。'
   since: '2026-10-25'
+- key: mech_reltest_kit_site
+  to: boss
+  waiting_on: boss
+  due: '2026-10-30'
+  item: '可靠性测试的场地与工装预算: 本机物理上无法做任何实测 (无量具/无打印机/无恒温箱/无老化箱/无振动台/无X-ray, 见 measurements.yaml
+    M-PRINT 实证)。方案 §B8 需要: A 自购小件 ¥800-1500 (扭力计/拉力计/人工汗液试剂/酒精/色卡) + B 借用 (恒温箱/UVA-340老化箱/振动台/FPC动态弯折机)
+    + C 外委 (X-ray抽检+切片 ¥3000-8000, MTF)。★ 与主线 test_equipment_budget 是同一总账, 本条只报结构侧的场地需求,
+    不重复申请金额。不批的话 12 类用例全部停在方案阶段 (UV 单项就占 83 天设备窗口)。'
+- key: mech_reltest_xray_sampling
+  to: hw-lead
+  waiting_on: agent
+  due: '2026-10-29'
+  item: '1 台阶段的跌落后 X-ray 抽样口径: 你 §4.3 写 ''跌落 30 次后抽检 3 块板 (FCCSP+BTB+电感)'', 但 1 台样机只有
+    1 块主板 -> 建议改为 ''同一块板 3 个位置 (FCCSP/BTB/电感) + 1 处切片'', 抽样量按位置计而非按板计。另请确认跌落后判据最终取值:
+    接触电阻 ΔR<=+10mΩ / 阻抗 ±10% / MTF 衰减 <=10% / 电池 ΔR<=+20% / 电感 ΔL<=±10% —— 我的 T-01
+    用例卡按这组写的。'
+- key: mech_reltest_cell_samples
+  to: main
+  waiting_on: vendor
+  due: '2026-10-30'
+  item: T-05 汗液浸泡需要 2 只备件电芯 (Renata ICP582035PR-01 340mAh / 丰江 432243 >=420mAh, 当前形态口径)
+    + 电芯规格书 (膨胀曲线/循环寿命/内阻/允许充电倍率)。电芯是消耗品, 1 只样本无法判鼓包与循环分布。★ 请经你转供应商, 我不直接外联; 与你已登记的
+    rel_battery_cell_spec 同源, 本条只追加 '试样数量' 要求。
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -238,6 +287,15 @@ answers:
     6.25 基准会进一步被突破, 需老板拍板形态)。另外: 持续满载 1.22W → 皮肤侧推算 96.1/82.0°C, 43°C 红线只允许贴皮肤镜腿持续
     0.16-0.21W, 这个数字没变, 降温只能靠降功耗不能靠加散热片'
   ref: MECH/fit_check.py + MECH/MECH_BUDGET.md#2.3.1
+- key: rel_mount_stiffness
+  to: hw-lead
+  value: '面接触。① 金属骨架托架沿 PCB 长边托住, 接触面 >=40x8mm (有效跨距约3mm) -> 板弯 sigma≈17MPa, 满足 <=板材许用x0.5
+    (50-70MPa); 2xM1.2 螺钉只做防翘压紧, ⌀2.0H7 定位销只防转, 均不承担弯矩。② 承力面必须是金属骨架/机加工件, 不是 P2S 打印面
+    (FDM ±0.2-0.3mm 打不出 H7, 且打印层纹垂直受力方向会层间剥离)。③ PCB 不进铰链弯折区: 弯折全部由跨铰链 FPC 承担 (R>=3.0mm),
+    故 PCB 与焊点弯折应力≈0, MLCC 陶瓷开裂风险归零。④ 跌落 10 次后用同一块板的 3 个位置 (FCCSP/BTB/电感) X-ray + 1
+    处切片复核。 [推算-设计承诺, 未实测] 依据: MECH/MECH_BUDGET.md §1.3 M1 + §5.5, MECH/RELIABILITY_TEST_PLAN.md
+    §B12 K-8 / §B5 T-01'
+  ref: MECH/RELIABILITY_TEST_PLAN.md#b12 + MECH/MECH_BUDGET.md §1.3 M1
 interface_claims:
 - key: pcb_outline
   value: 50x12mm
@@ -338,6 +396,50 @@ interface_claims:
   note: 可下片 STL (fit_coupon_340 + temple_cage_340) + MEASURE_CHECKLIST.md (41 项测量清单)
     + verify_pack.py (模型级 41/41) 已交付; M-PRINT 仍 0 实测 (本机不可打印/量测, 已升级 boss)
   ref: MECH/fit_check.py
+- key: mech_reltest_cases
+  value: 12类(8必选+盐雾/温循/插拔FPC/振动)
+  note: ISS-026 交付; 判据与用例卡见 MECH/RELIABILITY_TEST_PLAN.md §B4/§B5
+  ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: mech_reltest_sample_plan
+  value: 整机1台+备件7类(电芯2/拉脱3/胶接3/材料5/FPC3)
+  note: 1 台阶段样品消耗模型; 换件规则见 §B3.3 (换件后数据不回溯判定前项)
+  ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: mech_reltest_drop
+  value: 1.0m x 10次/台 x 3台(沿用hw)
+  note: 与 hw-lead 的 drop_test_profile 同值同源; 6面4角; 吸能2.0mm->500g; 等级待boss拍板(见 rel_drop_target_level)
+  ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: mech_reltest_hinge_cycles
+  value: 整机5000次+FPC试样200000次
+  note: FPC 200000 次覆盖 5 年 182500 次开合需求(R>=3.0mm); 整机 5000 次仅早期筛查
+  ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: mech_reltest_tensile
+  value: 镜腿根部30N/60s/3加载点
+  note: 30N = 佩戴压持力<5N x 安全系数6 [推算]; 目标值待boss确认
+  ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: mech_reltest_sweat
+  value: 人工汗液25C x 24h(电芯72h)
+  note: NaCl5+NH4Cl1+尿素2 g/L, pH5.5 (ISO105-E04类通用档, 条款未核)
+  ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: mech_reltest_cosmetic
+  value: 3介质 x 30次擦拭+24h贴附x3天
+  note: 粉底/防晒霜/香水; 判据 ΔE<=3 + 胶层剪切保持>=90%
+  ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: mech_reltest_alcohol
+  value: 500次 x 75%乙醇
+  note: 覆盖 3 年日常擦拭量 2190 次的 23% -> 寿命判定留给批次
+  ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: mech_reltest_uv
+  value: 2000h UVA-340(AF3.5=5年户外当量)
+  note: 4h/天 x 365 x 5 = 7300h ÷ AF3.5 = 2086h; AF 需实验室按本项目4种材料确认
+  ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: mech_reltest_temp_cycle
+  value: -20~60C x 50循环(4h/循环)
+  note: +60C = 上游组件环境上限 55C + 5C 超额(故意取边界); 50 循环仅筛查
+  ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: mech_reltest_vibration
+  value: 5-200Hz PSD0.005g2/Hz 2grms 30min/轴x3轴
+  note: 沿用 hw 上游; 主风险=摄像头模组界面预紧(允许离焦29um, 以 MTF<=10% 间接判)
+  ref: MECH/RELIABILITY_TEST_PLAN.md
 open_questions:
 - id: MECH-Q1
   to: main

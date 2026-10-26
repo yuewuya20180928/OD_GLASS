@@ -30,7 +30,11 @@ git fetch -q origin main 2>/dev/null && git reset -q --hard origin/main 2>/dev/n
 git config user.name "yuewuya20180928"
 git config user.email "yuewuya20180928@users.noreply.github.com"
 
+# ★排除运行时垃圾 (BOOTSTRAP.md 是 runtime 在 cwd 生成的通用提示, 不是项目文件;
+#   .openclaw/ 是 runtime 状态) —— 上一版它被推上了 GitHub 公开发布树
 rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
+      --exclude 'BOOTSTRAP.md' --exclude '.openclaw' --exclude 'workspace-state.json' \
+      --exclude '*.tmp' --exclude '.DS_Store' \
       "$PROJ/" projects/smart_glasses/
 
 # ---- 3. docs / config 映射件 ----
@@ -52,6 +56,17 @@ cp "$PROJ/INTERFACES.md" docs/INTERFACES.md
 cp "$PROJ/PRINT/PRINTER_SETUP.md" docs/PRINT_SETUP.md
 cp "$PROJ/STRESS_TEST_2026-10-25.md" docs/STRESS_TEST_2026-10-25.md
 cp "$PROJ/STATUS_SUMMARY.md" docs/STATUS_SUMMARY.md
+# 发布树 .gitignore (防垃圾再进来)
+cat > .gitignore <<'GITIGNORE'
+__pycache__/
+*.pyc
+.DS_Store
+*.tmp
+state/.lastgood/
+BOOTSTRAP.md
+.openclaw/
+workspace-state.json
+GITIGNORE
 # 框架文档 (若项目树里有 FRAMEWORK/ 则整目录带过去)
 [ -d "$PROJ/FRAMEWORK" ] && rsync -a --delete "$PROJ/FRAMEWORK/" docs/FRAMEWORK/
 

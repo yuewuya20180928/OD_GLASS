@@ -1,15 +1,16 @@
 agent: sw-lead
 role: 软件总工
-updated_at: '2026-10-25T09:30:00+08:00'
+updated_at: '2026-10-27T00:30:00+08:00'
 updated_by: sw-lead
 status:
-  phase: P1(软件需求拆解)->P2(方案设计)
-  progress_pct: 38
+  phase: P2(方案设计) -> S2 救砖链路实测方案已交 (板端实测待板)
+  progress_pct: 44
   health: red
-  summary: '8模块/52条验收标准; P2 方案设计新增: SW/FLASH_AND_VERSION.md (烧录链路/版本号规则/回滚策略/出厂+返修两套流程,
-    验收14条自评 ✅6 ⚠️5 ❌3); 端到端口径A=67.0ms超60ms预算(不达标); 内存175-188MB非瓶颈; 接口取值11+7=18条; 新增
-    needs_from 7条 (3条vendor经main/2条hw-lead/2条boss); 等外部4+3=7条已标waiting_on+due; 健康度
-    red 的主因仍是原厂纸面资料(3个决定性0数据: rootfs体积/USB PHY/烧录工具链)'
+  summary: '10-27 ISS-080 交卷: §4.5 S2 救砖链路**可执行实测方案** (BOOT 进入按键/时序/引脚 SOP + 3 条识别刷写分支
+    + CB-01~09 机械判据 + 无板三层先验 + BR-01~12 用例 + 失败决策树) + EVT_TEMPLATE §11 可判项 BR-01 (谁执行/怎么判过/失败怎么办)
+    + SW/tools/ 4 件套 (一键复现 10/10 rc=0, 抓到 4 个版本块真 bug)。★板端实测 0 次, 4 个 0 数据项 (P1~P4)
+    待原厂; ★新约束: 推荐C分区表 90MB → 64MB SPI-NOR 装不下, 容量下限升到 128MB (已登记 interface_claims.flash_capacity_floor)。健康度仍
+    red: 主因是原厂 3 个决定性 0 数据 + 无板'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -31,14 +32,31 @@ artifacts:
   summary: 补了软件子模块段 (指向 SW/SW_REQUIREMENTS.md)
 - path: SW/FLASH_AND_VERSION.md
   kind: design
+  version: v1.1
+  updated_at: '2026-10-27'
+  summary: '固件烧录与版本管理方案 v1.1 (10-27 新增 §4.5 S2 救砖链路可执行实测方案, ISS-080): 4 个 0 数据项参数化为
+    P1~P4 (BOOT进入条件/下载工具链/USB PHY+枚举VID:PID/启动存储+分区表) + 进 BOOT 的 3 种方式 (A 跳线+RESET
+    / B 按键组合 / C USB 触发) 与时序骨架 t1~t4 + 3 条识别刷写分支 (原厂工具/fastboot/DFU) + CB-01~09 机械校验判据
+    + 无板三层先验 (L0 静态 / L1 PC 侧仿真 / L2 空板; L0+L1 已实跑 10/10, 并当场抓出 4 个版本块真 bug) + BR-01~12
+    用例表 + 失败决策树 (S2连挂2次→S3) + SW/tools/ 4 件套。★板端实测 0 次; ★新约束: 推荐C的分区表总量 90MB → 64MB
+    SPI-NOR 装不下, 真实条件 = rootfs<=30MB 且 flash>=128MB。 (原 10-26 v1.0 内容未删)'
+- path: SW/EVT_TEMPLATE.md
+  kind: template
+  version: v1.1
+  updated_at: '2026-10-27'
+  summary: 'EVT 报告模板 v1.1: 新增 §11 EVT-8 S2 救砖链路 (单条可判项 BR-01) —— 谁执行 (sw-lead 执行 /
+    hw-lead 配合 / 项目总工裁决+验证 / 原厂经项目总工) + 怎么判过 (CB-01~09 九条子判据 9/9 全过才 ✅; 任一未验→⚠️; 任一不符→❌)
+    + 失败怎么办 (6 类现象决策树 + 连挂2次升级S3硬规则 + 量产红线) + 数据文件清单 + 5 条遗留问题。★不参与 G3 准出, 是 G4/量产放行前置项;
+    当前状态 [0数据] 一条未跑'
+- path: SW/tools/
+  kind: tooling
   version: v1.0
-  updated_at: '2026-10-26'
-  summary: '固件烧录与版本管理方案 (USB/ADB): ①烧录链路=2条物理路径共用1个Type-C口(量产BOOT+厂商下载工具 / 日常ADB push),
-    工具/接口/权限(dev-prod-service三态)/失败处理(8失败码+断电原子性+6失败注入用例) ②版本号=semver+6分项(boot/kern/rootfs/app/model/isp)+版本串3落点+5条机器可校验规则+CHANGELOG(含是否需重刷/需重标定列)+SN追溯  ③回滚=条件式推荐
-    ro_rootfs+ab_app_model (条件rootfs<=30MB), 论证: 锁死#11无无线->双分区省不掉插线, 根fs级A/B需eMMC->板宽12->15mm结构冲突;
-    救砖4级(S1看门狗/S2 BOOT下载/S3 JTAG/S4返厂), S2/S3待原厂确认  ④两套流程: 出厂11步(含自检6项+prod回读验证) /
-    返修7步(含标定数据恢复, 返修最大坑不是刷固件是标定丢失)  ⚠️ 3个决定性0数据(rootfs体积/USB PHY/原厂工具链) -> 原厂回复前不可作产线SOP;
-    验收14条自评: ✅6 / ⚠️未验5 / ❌不通过3'
+  updated_at: '2026-10-27'
+  summary: 'S2 救砖链路 4 件套: flash_layout_check.py (分区表/版本块布局静态检查 LAY-01~08) + flash_writer.py
+    (分区写入 + 版本块原子写 payload→magic/bootable + 回读校验 CB-02/03/06/07 + 断电注入) + boot_rescue_probe.py
+    (BOOT 模式识别探针: sysfs+lsusb 枚举/签名匹配/日志关键字/参数齐备性/自测) + s2_rescue_config.example.json
+    (P1~P4 参数化配置模板) + s2_selftest.sh (一键复现)。★[实测](PC 侧, 10-27): 一键复现 10/10 rc=0; 并当场抓出
+    4 个版本块真 bug (A/B槽CRC串台/payloadCRC误含bootable开关/擦除态0xFF误判已生效/长度字段0xFFFF误判非空)'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -75,8 +93,10 @@ blockers:
   - vendor
   waiting_since: '2026-10-26'
 - id: SW-FW-B2
-  desc: 'S2 救砖链路 (进 BOOT 模式 -> 厂商下载工具识别 -> 刷回来) 从未实测, 且原厂工具/BOOT 进入条件全 0 数据 -> 量产前的一票否决项:
-    没实测就量产 = 砖了没法救'
+  desc: 'S2 救砖链路 (进 BOOT 模式 -> 厂商下载工具识别 -> 刷回来) **板端从未实测** —— 量产前的一票否决项: 没实测就量产 =
+    砖了没法救。★10-27 已把方案落成可执行实测方案 (SW/FLASH_AND_VERSION §4.5, ISS-080): 软件层先验 (L0 布局
+    8/8 + L1 写入回读 15/15 + 断电注入 2 例 + 探针自测 10/10) 已实跑, 并抓到 4 个版本块真 bug; 但 **板端 0 次**,
+    且 4 个 0 数据项 (P1~P4) 仍未填'
   severity: high
   needs_from:
   - vendor
@@ -89,6 +109,14 @@ blockers:
   - hw-lead
   - vendor
   waiting_since: '2026-10-26'
+- id: SW-FW-B4
+  desc: S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序)
+    与 P3 (BOOT 态 VID:PID) 只能干等原厂, 拿不到任何一手数据
+  severity: medium
+  needs_from:
+  - main
+  - hw-lead
+  waiting_since: '2026-10-27'
 needs_from:
 - key: q1_latency_scope
   to: main
@@ -151,16 +179,19 @@ needs_from:
   due: '2026-10-29'
 - key: fw_boot_storage_bom
   to: hw-lead
-  item: '启动存储选型 (接口请求, 经 main 转达): SPI-NOR 容量型号 vs eMMC, 以及 rootfs 体积上限约束(多少 MB 以内必须用
-    NOR) -> 这是回滚方案的总分叉点: rootfs>64MB 则 SPI-NOR 出局必须 eMMC -> 板宽 12->15mm -> 结构返工; tracker
-    已标''投板前必须 close'''
+  item: '启动存储选型 (接口请求, 经 main 转达): SPI-NOR 容量型号 vs eMMC, 以及 rootfs 体积上限约束 (多少 MB 以内必须用
+    NOR) → 这是回滚方案的总分叉点: rootfs>64MB 则 SPI-NOR 出局必须 eMMC → 板宽 12→15mm → 结构返工; tracker
+    已标''投板前必须 close''。★10-27 追加**容量下限**: 按 §4.1 推荐C 的分区表 (boot1+kernel8+rootfs30+app8x2+model15x2+isp1
+    = 90MB) → **64MB SPI-NOR 装不下**, 启动存储容量需 **>=128MB** (证据: SW/tools/flash_layout_check.py
+    --device-size 64MB → FAIL)'
   since: '2026-10-26'
   due: '2026-10-29'
 - key: fw_boot_mode_hw
   to: hw-lead
   item: 'HW-21 BOOT/RESET 硬件通路定稿 (接口请求, 经 main 转达): BOOT 引脚电平/上下拉/是否配按键 + HW-22 预留按键位数够不够
-    (烧录用 BOOT 组合 + 客户用侧键显示版本号, 见 FRAMEWORK/AFTERSALES ''长按侧键3秒显示版本号'') -> 同时卡救砖 S2
-    / 权限模式 / 售后版本查询'
+    (烧录用 BOOT 组合 + 客户用侧键显示版本号)。★10-27 追加: 建议 BOOT 走**独立通路 (测试点/跳线) 或独立按键, 不要复用侧键**
+    —— 售后已占 长按3s=版本号 / 长按10s=关机 (FRAMEWORK/AFTERSALES §2), 复用会造成用户误触进 BOOT 变砖; 另需预留
+    BOOT/RESET 测试点供半板抓波形 (§4.5.5 L2)'
   since: '2026-10-26'
   due: '2026-10-29'
 - key: fw_q3_scope
@@ -176,6 +207,13 @@ needs_from:
     允许则 L1 回滚可半自动; 不允许则维持纯手工 (走 main 转老板, 低优先不卡主线)
   since: '2026-10-26'
   waiting_on: boss
+  due: '2026-10-29'
+- key: fw_s2_test_gear
+  to: main
+  item: 'S2 无板先验 L2 层 (空板/半板) 的器材与排期 (走 main): ①逻辑分析仪 (>=8ch, >=100MS/s) 抓 BOOT/RESET
+    时序 ②USB 协议分析仪 (可与逻辑分析仪合并) 抓 BOOT 态 VID:PID ③SPI-NOR 空板 (128MB) + 焊台 + Type-C 数据线
+    x2。→ 这三样能把 P1 (BOOT 电平/时序) 和 P3 (枚举特征) 从''完全空白''变成''知道一半''; 没有它们, P1/P3 只能等原厂'
+  since: '2026-10-27'
   due: '2026-10-29'
 answers:
 - key: debug_port_form
@@ -258,6 +296,23 @@ interface_claims:
   value: adbd-off/fastboot-off
   note: prod 模式关 adbd 与 fastboot (USB 是唯一物理攻击面); service 模式仅返修工位开; 开关位在版本块, 与版本串原子写
   ref: SW/FLASH_AND_VERSION.md#B4
+- key: s2_boot_entry_methods
+  value: A:boot-pin+reset / B:key-combo / C:usb-trigger
+  note: 进 BOOT 的 3 种方式 (SW/FLASH_AND_VERSION §4.5.2.2); 推荐 A (跳线+RESET, 不依赖 bootloader
+    按键逻辑); B 不得复用侧键 (售后已占 长按3s=版本号 / 长按10s=关机, FRAMEWORK/AFTERSALES §2); t1~t4 具体数值待原厂
+    (P1)
+  ref: SW/FLASH_AND_VERSION.md#4.5.2
+- key: s2_rescue_checklist
+  value: CB-01..CB-09 / BR-01..BR-12
+  note: §4.5.4 的 9 条机械校验判据 + §4.5.6 的 12 条用例; BR-01 判过 = CB-01~09 全过; 与 EVT_TEMPLATE
+    §11 一一对应; 板端全部 [待实测]
+  ref: SW/FLASH_AND_VERSION.md#4.5.4 + SW/EVT_TEMPLATE.md#11
+- key: flash_capacity_floor
+  value: 128MB-NOR-min
+  note: '★新约束 (10-27): §4.1 推荐C的分区表总量 90MB (rootfs30+model15x2+app8x2+kernel8+boot1+isp1)
+    → 64MB SPI-NOR 装不下; 真实条件 = rootfs<=30MB 且 flash>=128MB; 若硬件只给64MB 则 A/B 槽必须缩;
+    证据 [实测](布局检查器 --device-size 64MB → LAY-03/04 FAIL) + [推算](分区大小)'
+  ref: SW/FLASH_AND_VERSION.md#4.5.1
 open_questions:
 - id: SW-Q1
   to: main

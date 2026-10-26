@@ -1,6 +1,7 @@
 # ARS45 智能眼镜 — 固件烧录与版本管理方案 (USB/ADB)
 
-> **作者**: sw-lead (软件总工) · **日期**: 2026-10-26 · **版本**: v1.0 (首轮)
+> **作者**: sw-lead (软件总工) · **日期**: 2026-10-26 (v1.0) / **2026-10-27 (v1.1)** · **版本**: v1.1
+> **v1.1 变更 (2026-10-27, ISS-080)**: 新增 **§4.5 S2 救砖链路可执行实测方案** —— 4 个 0 数据项参数化为 P1..P4 + 进 BOOT 的**按键/时序/引脚** SOP + 3 条识别/刷写分支 (原厂工具 / fastboot / DFU) + **9 条机械校验判据** (CB-01~09) + **无板三层先验** (L0 静态 / L1 PC 侧仿真 / L2 空板) + 12 条用例表 (BR-01~12) + 失败决策树 (S2→S3→S4); 配套 `SW/tools/` 4 件套 (3 脚本 + 1 参数化配置模板 + 一键复现)。**板端实测仍是 0 次。**
 > **真源**: `../PROJECT_TRACKER.md` (唯一 source of truth)。本文**不复制也不修改** §0 已锁死的变量表, 只做软件侧方案。
 > **产出区**: `SW/` — 与 `SW_REQUIREMENTS.md` (需求基线) / `SW/INTEGRATION_PLAN.md` (集成测试) 同目录。
 > **上游依赖**: `HW/HARDWARE_BREAKDOWN.md` HW-03 (启动存储/固件分区) / HW-09 (Type-C) / HW-21 (RESET·BOOT) / HW-22 (按键·测试点预留)
@@ -44,6 +45,8 @@
 | **6** | **两套流程必须物理分开**: 出厂烧录 (PC-FW-01, 8 步, 含标定数据写入与出厂自检) 与返修烧录 (PC-FW-02, 7 步, 含**标定数据恢复**与 SN↔版本↔故障单关联)。返修最大的坑不是刷固件, 是**重刷后 ISP 标定/LDC 标定丢了 → 画质退化** | 8 步 / 7 步 | `[推算]` (基于 SW/INTEGRATION_PLAN §2.2 + EVT 模板的标定字段) |
 | **7** | **本方案有 3 个决定性 0 数据**: ①启动存储容量与 rootfs 体积 ②ARS45 有无 USB Device PHY ③原厂下载工具/bootloader/fastboot 是否存在。**第 ①项是分区策略的总分叉点** —— rootfs 若 >64MB, SPI-NOR 方案直接出局必须 eMMC, 板宽 12→15mm, 结构返工 | 3 个 0 数据 / 1 个总分叉点 | `[0数据]` |
 | **8** | **不建议现在做无线 OTA**: 锁死 #11 (不上无线) + 第一款 1 台样机 + 无安全启动/签名机制未知 → OTA 会引入"砖在野外"的不可控风险, 且违反锁死变量 | — | `[推算]` |
+| **9** | **S2 救砖链路已从"方案描述"落到"可执行实测方案" (§4.5)**: 4 个 0 数据项参数化成 P1..P4 (填了就能跑, 没填脚本明确报 rc=2 不假装) + 进 BOOT 的 3 种方式与时序骨架 + 9 条机械校验判据 + 无板三层先验。**本轮已实跑的是软件层 (L0/L1)**: 布局检查 8/8、写入回读 15/15、断电注入 2 例均判"未生效"、探针自测 10/10 —— **并当场抓出 4 个真 bug** (A/B 槽 CRC 串台 / payload CRC 误含 bootable 开关 / 擦除态 0xFF 被误判成已生效 / 长度字段 0xFFFF 被当成非空)。**板端实测 0 次, 量产前必须 close** | L0/L1 实跑 4 组 | `[实测]` (PC 侧仿真, 2026-10-27) + `[0数据]` (板端 4 个 0 数据项) |
+| **10** | **★ 新增约束: 64MB SPI-NOR 装不下 §4.1 推荐 C 的分区表** —— 该分区表总量 **90MB** (bootloader 1 + kernel 8 + rootfs 30 + app 8×2 + model 15×2 + isp 1), 即使 rootfs 压到 30MB 以内也装不下 ⇒ 推荐 C 的真实条件是 "`rootfs ≤ 30MB` **且** `flash ≥ 128MB`"; 若硬件只能给 64MB, app/model A/B 双槽必须缩 | 90MB vs 64MB | `[实测]` (布局检查器 `--device-size 64MB` → LAY-03/04 FAIL) + `[推算]` (分区大小取自 §4.1 量级) |
 
 ---
 
@@ -256,6 +259,7 @@ model=yolov5s-int8-ag2-<sha8> isp=ISP-CALIB-0003-r2 mode=prod calib=ISP-CALIB-00
 |---|---|---|---|---|---|---|---|---|
 | `1.0.0` | 2026-10-26 | `docs` | M8 | 首版烧录与版本管理方案 (本文); 需求基线见 `SW/SW_REQUIREMENTS.md` | N | N | ISS-008 | — |
 | `1.0.0+g1234abc` (待发布) | — | `build` | M1-M8 | 首次出厂基线镜像 (bootloader + kernel + rootfs + OD 应用 + yolov5s INT8 + ISP 参数集) | — | — | IT-P0-02 | — |
+| `1.1.0` (文档版) | 2026-10-27 | `docs` | M8 | **§4.5 S2 救砖链路可执行实测方案** (ISS-080): 4 个 0 数据项参数化 (P1..P4) + BOOT 进入 SOP + 识别/刷写 3 分支 + CB-01~09 校验判据 + 无板三层先验 (L0/L1 已实跑, 抓到 4 个版本块 bug) + BR-01~12 用例表 + 失败决策树; 配套 `SW/tools/` 4 件套 | N | N | ISS-080 / ISS-029 | — |
 
 > ⚠️ 上表"git sha"与"首次出厂基线"两行留空是有意的: **投板前没有真实版本串**。不得填占位 sha 冒充可追溯版本。
 
@@ -335,6 +339,274 @@ model=yolov5s-int8-ag2-<sha8> isp=ISP-CALIB-0003-r2 mode=prod calib=ISP-CALIB-00
 > ⚠️ **S2/S3 全部是"待原厂确认"**, 不是我算出来的。
 > ⚠️ **BOOT 模式是硬件级的**: HW-21 状态为 "⬜ 未选" (风险 🟢 低, 说明硬件总工认为这是通用要求), 但 **BOOT 引脚的电平/时序/是否需要按键组合** 必须原厂给 → 已登记 `needs_from.fw_boot_mode_hw` (给 hw-lead) + `needs_from.fw_vendor_toolchain` (给 vendor)。
 > ⚠️ **产线硬要求**: **每台眼镜交付前必须实测走通一次 S2** —— 即"进 BOOT 模式 → 下载工具能识别设备 → 能刷回来"。不实测 S2 就量产 = 几百台砖了没法救。**这条是本方案对产线的硬性要求, 也是 §9 里我最想要的一条结论。**
+>
+> 📌 **S2 的可执行实测方案见 §4.5** (ISS-080, 2026-10-27 补)。§4.4 只给出"4 级链路"的骨架; §4.5 把它落成: 进 BOOT 的按键/时序/引脚 SOP (方式 A 跳线 / B 按键组合 / C USB 触发) + 3 条识别分支 + 9 条机械校验判据 (CB-01~09) + **无板三层先验** (L0/L1 已实跑) + 12 条用例表 (BR-01~12) + 失败决策树。**板端实测 0 次。**
+
+
+## 4.5 S2 救砖链路 —— 可执行实测方案 (ISS-080)
+
+> **状态**: 🟡 **方案已交 (v1.1, 2026-10-27) · 板端实测 0 次**。本节写的是"怎么做", 不是"做过了"。
+> **产出**: 本节 + `SW/tools/` 工具包 (3 个可执行脚本 + 1 个参数化配置模板 + 1 个一键复现脚本) + `SW/EVT_TEMPLATE.md` §11 可判项 **BR-01**。
+> **铁律**: 下面 4 个 0 数据项在原厂书面回复前**一律留空**。本方案按**参数化 SOP** 写 —— 参数一填, 流程即可跑; 参数没填, 脚本明确报 `rc=2`, **不假装能跑**。本节任何一行都不许写成"已实测通过"。
+
+### 4.5.1 前置依赖: 4 个 0 数据项 → 4 个具名参数 (P1..P4)
+
+| 参数 | 含义 | 现状 | 谁给 (needs_from key) | 没有它卡住哪一步 | 我们自己怎么测出来 |
+|---|---|---|---|---|---|
+| **P1** `BOOT_ENTER_SPEC` | 进 BOOT/下载模式的**硬件条件**: BOOT 引脚电平 + 是否需按键组合 + 时序 | `[0数据]` | `fw_boot_entry_cond` (vendor) + `fw_boot_mode_hw` (hw-lead) | §4.5.2 SOP-1 全步 | 半板阶段用逻辑分析仪抓 BOOT/RESET 波形 (§4.5.5 L2) |
+| **P2** `DL_TOOL` | 原厂下载工具: 名称/版本/平台/**刷写命令**/分区表导入方式 | `[0数据]` | `fw_vendor_toolchain` (vendor) | §4.5.3 SOP-2 刷写步 | **不能自测** —— 必须原厂给 |
+| **P3** `USB_PHY` | ARS45 有无 USB Device PHY + 有无 fastboot/DFU/UF2 + **BOOT 态枚举特征 VID:PID** | `[0数据]` | `fw_usb_boot_phy` (vendor) | §4.5.3 识别步 | 枚举特征可半板抓包 (L2); PHY 有无不能自测 |
+| **P4** `BOOT_STORE` | 启动存储类型/容量/**官方分区表参考设计** | `[0数据]` | `fw_vendor_toolchain` (vendor) + `fw_boot_storage_bom` (hw-lead) | §4.5.4 校验步 + 整个 §4 分区方案 | **不能自测** —— 必须原厂给 |
+
+> 配置载体: `SW/tools/s2_rescue_config.example.json` 的 `params` 段。**P1..P4 全部 `value: null` = 未填**。
+> 未填时 `boot_rescue_probe.py --dry-run` 明确返回 `rc=2` 并打印 "参数不全 → 现在还不能真跑 S2"。**脚本不降级、不假装。**
+
+> ★ **本单新发现的第 5 个约束 (容量算术) —— §4.1 漏掉的那一条**:
+> §4.1 条件式推荐 C 的成立条件只写了 "rootfs ≤ ~30MB", 但**这套分区表的总量是 90MB**
+> (bootloader 1 + kernel 8 + rootfs 30 + app 8×2 + model 15×2 + isp 1 = 90MB) →
+> **64MB SPI-NOR 装不下**, 哪怕 rootfs 压到 30MB 以内也一样装不下。
+> ⇒ 推荐 C 的真实条件是 **`rootfs ≤ 30MB` 且 `flash ≥ 128MB`**; 若硬件只给 64MB, 则 app/model A/B 双槽必须缩 (或 rootfs 降到 ~20MB), 否则 §4.1 结论要改。
+> **可复现**: `python3 SW/tools/flash_layout_check.py --config SW/tools/s2_rescue_config.example.json --device-size 64MB` → LAY-03/LAY-04 FAIL。
+> 证据: `[实测]`(PC 侧布局检查, 2026-10-27) + 容量算术为 `[推算]` (分区大小取自 §4.1 的量级假设)。
+
+### 4.5.2 SOP-1 — 进 BOOT 模式 (按键 / 时序 / 引脚)
+
+#### 4.5.2.1 通用时序 (参数化, 具体数值待 P1)
+
+```
+  状态:  设备未上电 / 已断电
+   │
+   │  t0 ───────────── 设备上电 (或从休眠唤醒)
+   │                   ★ 关键: BOOT 引脚必须在 RESET 之前就位
+   │  t0+t1 ────────── 建立 BOOT 条件
+   │                     方式 A: BOOT 引脚拉高到有效电平 (经测试点/跳线)
+   │                     方式 B: 按住 BOOT 组合键
+   │                     方式 C: 插线时主机侧拉起某个信号 (若平台支持)
+   │  t0+t1+t2 ──────── 按下 RESET (脉冲宽度 t3)
+   │                     ★ 部分平台要求 RESET 上升沿后 BOOT 条件仍保持 ≥ t4
+   │  t0+t1+t2+t4 ──── 释放 BOOT 条件 / 按键
+   │  t0+t1+t2+t4+t5 ─ 设备开始 USB 枚举 (超时 t_enum_timeout, 建议 ≥15s)
+   ▼
+  判定: 是否进入 BOOT 模式 (见 §4.5.2.3 三条证据)
+```
+
+| 时序参数 | 含义 | 取值 | 证据 |
+|---|---|---|---|
+| `t1` | 上电 → 建立 BOOT 条件的窗口 | **待 P1** | `[0数据]` |
+| `t2` | 建立 BOOT → 按 RESET 的间隔 | **待 P1** | `[0数据]` |
+| `t3` | RESET 按键脉冲宽度 | **待 P1** (常见 100ms 级) | `[0数据]` + `[推算]` (量级) |
+| `t4` | RESET 释放后 BOOT 条件保持时间 | **待 P1** | `[0数据]` |
+| `t_enum_timeout` | 枚举超时 | 15s | `[推算]` (取值理由: 给 USB 枚举 + 工具握手留余量) |
+| `boot_pin_level` | BOOT 引脚有效电平 | **待 P1** (高/低有效不确定) | `[0数据]` |
+
+#### 4.5.2.2 三种进入方式 (选型表)
+
+| 方式 | 操作 | 适用前提 | 优点 | 风险 / 代价 | 建议 |
+|---|---|---|---|---|---|
+| **A. BOOT 引脚 + RESET 键** | 断电 → 短接 BOOT 测试点到有效电平 → 上电 → 按 RESET → 释放 | HW-21/22 预留了 BOOT 测试点 (硬件侧 HW-22 明确要求"各电源轨/关键信号测试点") | **不依赖 bootloader 按键逻辑**, 与固件版本无关, 最可靠 | 产线要带跳线夹; 用户侧做不了 | ⭐ **产线/返修工位首选** |
+| **B. 按键组合** | 按住 BOOT 键 + 按 RESET (顺序/时长待 P1) | 原厂 bootloader 支持 | 用户/售后可自助 | 与售后手势可能冲突 (见下); bootloader 改版可能失效 | 次选, 仅当 P1 明确支持 |
+| **C. USB 触发** | 插线瞬间主机侧拉某个信号 | 原厂支持 "插线进下载" | 无需按键 | 依赖 PC 端工具行为, 不可控 | 不作产线依赖 |
+
+> ⚠️ **与售后手势的冲突检查 (必须做, 否则用户误触变砖)**:
+> `FRAMEWORK/AFTERSALES.md` §2/§3 已经占用侧键两个手势 —— **长按 10 秒 = 关机**, **长按 3 秒 = 显示版本号**。
+> 若 BOOT 组合复用同一颗侧键, 三者在时间轴上重叠 (3s < 10s), 必须让 bootloader 做**长按阈值分层**, 否则:
+> - 用户想看版本号 → 顺手插线 → 进了 BOOT → 眼镜"变砖" (只是看起来像砖);
+> - 用户长按关机 → 误进 BOOT → 开机不工作 → 报修。
+> ⇒ **建议 BOOT 走方式 A (独立测试点/跳线), 不复用侧键**; 若必须用键, 则 BOOT 键必须是**独立按键** (HW-22 预留 ≥2 个按键焊盘, 够用: 1 个侧键 + 1 个 BOOT 键)。
+> 这条已并入 `needs_from.fw_boot_mode_hw` (给 hw-lead) —— **要一条独立 BOOT 通路, 不要挤侧键**。
+
+#### 4.5.2.3 怎么确认"我真的进了 BOOT" —— 3 条独立证据
+
+| 证据 | 内容 | 怎么取 | 强度 | 工具 |
+|---|---|---|---|---|
+| **E1 枚举特征** | BOOT 态的 USB VID:PID / product 字符串 **与正常态不同** | `lsusb` / `/sys/bus/usb/devices` | ⭐⭐⭐ 最强 | `SW/tools/boot_rescue_probe.py` |
+| **E2 日志特征** | 串口/内核日志出现 `bootloader` / `u-boot` / `fastboot` / `dfu` / `download mode` | `dmesg` 尾部 / CDC-ACM 串口 | ⭐⭐ | `boot_rescue_probe.py` (自动扫) |
+| **E3 引脚电平** | BOOT 引脚实测电平 = 有效电平, 且 RESET 脉冲符合时序 | 万用表 (静态) / 逻辑分析仪 (动态) | ⭐⭐ | 硬件侧 (L2) |
+
+> **判据**: E1 与 E2/E3 **至少一条成立**, 且 E1 成立时才算"确定进 BOOT"; E2 单独成立只能判 `BOOT_SUSPECTED_BY_LOG` (**不算过** —— 探针脚本对此返回 `rc=1`, 防止用日志猜)。
+> **对照**: 正常态也要采一次基线 (VID:PID + 日志特征), 否则"变了"无从谈起 → 采基线是 BR-01 的第 0 步。
+
+**执行命令**:
+
+```bash
+# 进 BOOT 之前: 采正常态基线
+python3 SW/tools/boot_rescue_probe.py --config SW/tools/s2_rescue_config.example.json --out /tmp/s2_normal.json
+
+# 进 BOOT 之后: 再采一次 (两条输出对比 = E1 的"变了"证据)
+python3 SW/tools/boot_rescue_probe.py --config SW/tools/s2_rescue_config.example.json --out /tmp/s2_boot.json
+```
+
+### 4.5.3 SOP-2 — 用什么工具识别与刷写
+
+#### 4.5.3.1 三条分支 (P2/P3 定了走哪条)
+
+| 分支 | 工具 | 识别判据 (机械) | 刷写动作 (形态) | 依赖参数 | 证据 |
+|---|---|---|---|---|---|
+| **T1 原厂下载工具** | 原厂下载工具 (名/版本 **待 P2**) | 工具日志出现设备信息 (序列号/存储容量/芯片型号) **且** 状态从"未连接"变"已连接" | 工具内"导入官方分区表 → 全量下载 → 校验" (命令形态 **待 P2**) | P2 + P4 | `[0数据]` |
+| **T2 fastboot** | `fastboot` (原厂是否提供 **待 P2/P3**) | `fastboot devices` 列出该板序列号, 且行数为 1 | `fastboot flash <partition> <image>` → `fastboot reboot bootloader` → `fastboot reboot` (是否需 `flashing unlock` 待 P2) | P2 + P3 | `[0数据]` |
+| **T3 USB DFU / UF2** | `dfu-util` / 原厂 DFU 工具 | `dfu-util -l` 列出目标 VID:PID, 状态 = `dfuERROR_NONE` | `dfu-util -D <vid:pid> -d <image> -U` | P3 | `[0数据]` |
+
+> ★ **不要现在押注任何一条**: 三条分支的工具可用性全部依赖 P2/P3。
+> 但**本方案的做法是"分支无关"的** —— SOP-1 (进 BOOT) 与 SOP-3 (校验判据) 与用哪条分支无关, 所以**即使 P2 晚到, 前后的活也能先干**。
+
+#### 4.5.3.2 PC 侧统一入口 (把"换工具"变成"换一行配置")
+
+```
+S2 一次完整执行 = 4 步, 每步都有独立证据文件:
+
+  ① boot_rescue_probe.py   → 进 BOOT 的证据      (E1/E2)          → s2_step1_boot.json
+  ② <下载工具/fastboot>    → 刷写 (P2/P3 决定)                      → <工具>_flash.log
+  ③ flash_writer.py verify → 回读校验            (CB-02/03/06)    → s2_step3_verify.json
+  ④ adb / 串口             → 板端自检 + 版本串 + 3 次重启         → s2_step4_selftest.log
+```
+
+> `②` 这一步**暂时无法自动化** —— 不是没写脚本, 是 **P2 未定**。脚本层已经把"怎么调它"的接口预留好: 配置 `params.P2_DL_TOOL.value` 一填, 调用层即可接上。
+> `③` 的实现 (`flash_writer.py verify`) 已在本节交付并**在 PC 侧仿真跑通** (15/15, 见 §4.5.5)。
+
+### 4.5.4 SOP-3 — 刷回来的校验判据 (CB-01 ~ CB-09, 全部机械判)
+
+> 判据与 `SW/EVT_TEMPLATE.md` §11 的 **BR-01** 一一对应; 判据 5 条校验规则来自 §3.1.3。
+
+| 编号 | 判据 | 怎么测 | 判过的标准 (机械) | 对应失败码 | 现在具备工具? |
+|---|---|---|---|---|---|
+| **CB-01** | 设备重新枚举回正常态 | `boot_rescue_probe.py` 二次扫描 | VID:PID 与 §4.5.2.3 的正常态基线**一致**, 且不再匹配任何 BOOT 签名 | F1 | ✅ 已具备 |
+| **CB-02** | 版本块 magic + bootable + payload CRC | `flash_writer.py verify` (板端需有回读通道, 或用原厂工具回读) | magic == `AR45` **且** bootable=1 **且** payload CRC 一致 | F3 / F5 | ✅ PC 侧已具备; 板端回读通道待 P2 |
+| **CB-03** | 版本串 6 分项齐全 + 5 条校验规则 | `adb shell cat /etc/version` (或串口) | `boot/kern/rootfs/app/model/isp` **6 个字段全非空**, 且 §3.1.3 的 5 条校验全过 (格式/sn/模型 sha/mode) | F3 / F4 | ✅ (ADB 路径依赖 P3) |
+| **CB-04** | 启动自检 6 项 | §5.1 第 8 步自检程序 | DDR 自检 → sensor 枚举 → 光机 I2C 应答 → NPU 模型加载 → OD 跑通 1 帧 → 版本块回显, **6/6 过** | F4 / F5 | 🟡 脚本待投板后写 |
+| **CB-05** | 重启 3 次自启动 | `adb reboot` ×3 + 每次等串口首行 | **3/3** 进系统, 无 kernel panic | F5 | 🟡 依赖板端 |
+| **CB-06** | 分区回读 CRC = 写入镜像 CRC | `flash_writer.py verify` / 原厂工具校验 | 6 个 CRC 槽**全部一致** (boot/kern/rootfs/app/model/isp) | F2 / F3 | ✅ PC 侧已具备 (仿真 15/15) |
+| **CB-07** | 标定 ID 与出厂台账一致 | 版本块 `calib=` vs 工厂标定台账 | **字符串完全一致** (F6 的正面对策) | **F6** | 🟡 台账随样机 |
+| **CB-08** | mode 位正确 | 版本块 `mode=` 字段 + 插线看 adb | 返修完成 = `prod`; prod 下 `adb devices` **无设备** (adbd 已关) | — | 🟡 依赖板端 |
+| **CB-09** | 日志无错误码 | 串口/`adb logcat` 全量扫 | **不出现** `E_MODEL_MISMATCH` / `E_CALIB_MISSING` / `E_VER_*` / `E_SN_MISMATCH` | F3/F4/F6 | 🟡 依赖板端 |
+
+> **BR-01 判过条件 (机械)**: CB-01 ~ CB-09 **全部 ✅** 才算 S2 通过。
+> **任一项 ⚠️未验 → 整条判 ⚠️未验** (不算过); **任一项 ❌ → 整条判 ❌**, 并按 §4.5.7 走失败处置。
+
+### 4.5.5 没有样机时怎么先验 (三层 L0 / L1 / L2)
+
+> 核心思路: **S2 里真正会炸的是软件逻辑, 不是硬件**。软件逻辑现在就能验 —— 而且本单已经验掉了一部分。
+
+#### L0 —— 纯静态先验 (今天就能做, 0 器材)
+
+| 交付物 | 命令 | 判据 | 本单状态 |
+|---|---|---|---|
+| 分区表/版本块布局检查器 | `python3 SW/tools/flash_layout_check.py --config SW/tools/s2_rescue_config.example.json` | LAY-01 ~ LAY-08 **8/8 通过** | ✅ **已跑, 8/8 通过** |
+| 容量算术复核 | 同上加 `--device-size 64MB` | **必然 FAIL** (装不下) —— 这是**要拿去做决策的发现**, 不是 bug | ✅ **已跑, LAY-03/04 FAIL (=90MB > 64MB)** |
+| BOOT 探针纯逻辑自测 | `python3 SW/tools/boot_rescue_probe.py --selftest` | T1 ~ T10 **10/10 通过** | ✅ **已跑, 10/10 通过** |
+| 参数齐备性检查 | `python3 SW/tools/boot_rescue_probe.py --dry-run --config ...` | 返回 `rc=2` + 列出 4 个未填参数 (**不许静默降级**) | ✅ **已跑, rc=2, 4/4 未填** |
+| 一键复现 | `bash SW/tools/s2_selftest.sh` | 10/10 通过, rc=0 | ✅ **已跑, 10/10, rc=0** |
+
+#### L1 —— PC 侧仿真先验 (假 flash 文件, 0 器材)
+
+> 把"刷写 + 校验"这段最容易出事的软件逻辑, 放到**一个普通文件**当 flash 跑一遍。
+
+| 交付物 | 命令 | 判据 | 本单状态 |
+|---|---|---|---|
+| 分区写入 + 版本块原子写 (先内容后标志) | `flash_writer.py write --config ... --target /tmp/f.img --synth` | 8 个分区写完 + 版本块 magic/bootable **最后** 写 | ✅ 已实现 |
+| 回读校验 (CB-02/03/06/07 的机器实现) | `flash_writer.py verify --config ... --target /tmp/f.img` | **15/15 通过** | ✅ **已跑, 15/15** |
+| **断电注入 A** (写到 model_a 掉电) | `write ... --fail-after model_a` 然后 `verify` | verify 必须**判未生效** (0/15) | ✅ **已跑: 0/15, rc=1** |
+| **断电注入 B** (版本块 payload 写完、magic 未写) | `write ... --fail-after version_block_payload` 然后 `verify` | verify 必须**判未生效** (13/15, 只差 magic + bootable) | ✅ **已跑: 13/15, rc=1** |
+| 失败注入 FI-3 对应板端行为 | 同上 | 结论: "先内容后标志" 在软件层**成立**; 板端 bootloader 是否真的校验 = **P1/P2, `[0数据]`** | ⚠️ 只证了写入侧 |
+
+> ★★ **本单 L1 阶段的实际收获 (不是走过场)**: 仿真器**当场抓出我自己写的 4 个真 bug** —— 全部在"版本块"这一块:
+> ① **A/B 槽 CRC 串台**: 写侧把 app_b 的 CRC 覆盖了 app_a 的 (只有活动槽才该占 CRC 槽) → 回读必然对不上;
+> ② **payload CRC 把 bootable 开关算了进去**: magic/flags 是"最后一步"才写的, 它一变 CRC 必然对不上 → 改成**排除 flags 字节**的两段覆盖;
+> ③ **擦除态 0xFF 被误判成 bootable**: 半写状态的 flags=0xFF, `0xFF & 0x01 = 1` → **"未生效"会被误判成"已生效"** —— 这是最危险的一个 bug, 投板后才暴露就是一次批量刷砖;
+> ④ **长度字段 0xFFFF 被当成"版本串非空"** → 半写状态居然能通过 CB-03。
+> ⇒ **结论: §2.5.2 的"先内容后标志"不是一句口号, 它在实现上有 4 个坑, 现在就挖掉了 4 个。** 这 4 条同时是 §2.5.3 失败注入用例 FI-3 的实现依据。
+
+#### L2 —— 空板 / 半板先验 (需要器材, **不需要真 SoC 板**)
+
+> 目的: 在真板回来之前, 把 **BOOT/RESET 硬件通路** 和 **USB 枚举特征** 拿下来, 从而把 P1/P3 从"完全空白"变成"至少知道一半"。
+
+| # | 先验项 | 用什么器材 | 怎么做 | 判据 | 能关掉哪个 0 数据项 |
+|---|---|---|---|---|---|
+| **L2-1** | BOOT/RESET 通路电平时序 | 逻辑分析仪 (≥8ch, ≥100MS/s, 如 Saleae Flex / 国产 24 位) + 测试夹 | 夹 BOOT / RESET / 3.3V / GND, 复现 §4.5.2.1 的 t1/t2/t3/t4 | 抓到的波形**能读出 t2/t3/t4 数值**, 与 P1 给的值一致 | **P1 的一半** (时序) |
+| **L2-2** | BOOT 引脚有效电平 | 万用表 | 短接 BOOT 测试点 → 测对地电压 | 高有效 / 低有效**测出来**, 不再靠猜 | **P1 的另一半** (电平) |
+| **L2-3** | USB 枚举特征 | USB 协议分析仪 (或 Saleae 的 USB 抓包) | 让 BOOT 态设备枚举, 抓包读 VID/PID/product 字符串 | **拿到 BOOT 态的 VID:PID**, 填进配置 `usb_signatures` (source=measured) | **P3 的枚举特征部分** |
+| **L2-4** | 半板 flash 通路 | SPI-NOR 空板 (焊 1 片 128MB NOR + 电源 + Type-C) + 烧录器 | 空板当"假 flash", 用 `flash_writer.py` 对它跑一遍写入+回读 | 15/15 通过, 且能读到写进去的 magic | **P4 的容量/分区落地验证** (需 P4 给的官方分区表) |
+| **L2-5** | 按键/售后手势冲突 | 万用表 + 示波器 | 侧键长按 3s / 10s 的电平与时序 | 能测出 3s/10s 两个阈值的**硬件余量**, 确认 BOOT 组合能否避开 | 售后手势冲突风险 |
+
+> **L2 的器材需求 (需项目总工支持采购/借调)**: 逻辑分析仪 ×1、USB 协议分析仪 ×1 (可与逻辑分析仪合并)、SPI-NOR 空板 ×1、Type-C 数据线 ×2、焊台。
+> **谁做**: hw-lead 主导 (L2-1/L2-2/L2-5), sw-lead 主导 (L2-3/L2-4 的脚本侧), 项目总工负责器材与对外协调。
+> **状态**: `[待实测]` —— 器材与排期未定, 已登记为 `needs_from` (见 §4.5.8)。
+
+### 4.5.6 S2 测试用例表 (BR-01 ~ BR-12)
+
+> 状态列一律 **[待实测]** —— **没有一条跑过板端**。本表是投板后的执行清单, 不是成绩单。
+
+| 用例 | 场景 | 步骤 (摘要) | 判据 | 落盘证据 | 状态 |
+|---|---|---|---|---|---|
+| BR-01 | **S2 全链路** (总判定项) | 进 BOOT → 识别 → 刷回 → 校验 | CB-01 ~ CB-09 全 ✅ | ①~④ 四份文件 | **[待实测]** |
+| BR-02 | 正常态基线采集 | 不进 BOOT, 采枚举+日志 | 基线文件存在, VID:PID 已记录 | `s2_step0_normal.json` | **[待实测]** |
+| BR-03 | 方式 A 进 BOOT | 跳线 + RESET | E1 或 E2+E3 成立 | `s2_step1_boot.json` | **[待实测]** |
+| BR-04 | 方式 B 进 BOOT (若 P1 支持) | 按键组合 | 同上 | 同上 | **[待实测]** ⬜ 依赖 P1 |
+| BR-05 | 工具识别 | 跑下载工具 / fastboot / dfu | 工具列出设备 (行数=1) | 工具 log | **[待实测]** ⬜ 依赖 P2/P3 |
+| BR-06 | 全量刷写 | 分区表 + 全部镜像 | 工具报全部成功, 无失败分区 | 工具 log + 写入 JSON | **[待实测]** ⬜ 依赖 P2 |
+| BR-07 | 回读校验 | `flash_writer.py verify` | CB-02 / CB-06 全过 | `s2_step3_verify.json` | **[待实测]** |
+| BR-08 | 版本串校验 | `cat /etc/version` | CB-03 全过 | 串口 log | **[待实测]** |
+| BR-09 | 启动自检 | 上电自检 | CB-04 6/6 | 自检 log | **[待实测]** |
+| BR-10 | 重启 3 次 | `adb reboot` ×3 | CB-05 3/3 | 串口 log | **[待实测]** |
+| BR-11 | **负向: 断电原子性** | 写到一半拔电 ×3 (分别断在 bootloader/rootfs/版本块 payload) | 上电后**不启动**; 回读 verify 判**未生效** | 3 份 verify JSON | **[待实测]** (软件侧已在 L1 验过, 板端未验) |
+| BR-12 | **负向: 标定丢失** | 刷一个不含标定 ID 的镜像 | 启动自检报 `E_CALIB_MISSING` 并**拒绝进入 OD** | 串口 log | **[待实测]** |
+
+### 4.5.7 失败怎么办 (S2 → S3 → S4 决策树)
+
+| 现象 (哪条 CB 挂了) | 最可能的原因 | 立即动作 | 上限 |
+|---|---|---|---|
+| 进不了 BOOT (E1/E2/E3 全无) | BOOT 通路/时序错 (P1) / BOOT 引脚电平不对 | 查 L2-1/L2-2 的波形; 换方式 A/B 试 | S2 重试 **≤2 次** |
+| 枚举了但工具不认 | 协议不匹配 (P3) / 线不是数据线 / 工具版本不对 | 换线换口; 核对工具版本; 走另一条分支 (T1/T2/T3) | ≤2 次 |
+| 识别了但写不进去 | 存储类型与分区表不匹配 (P4) / 中途断电 (F2) | **不自动重试** (半写状态未知) → 全量重刷; 仍失败 → S3 | ≤2 次 |
+| 刷完起不来 | bootloader 校验失败 / 分区表错 (P4) / magic 缺失 | `flash_writer.py verify` 看是不是"未生效"; 是 → 重刷; 否 → S3 | ≤2 次 |
+| 起来了但画质退化 | **标定数据丢失 (F6)** —— 返修最大坑 | 从出厂台账按 SN 恢复标定 + 重刷 L2 (CB-07) | 按 §5.2 第 5 步 |
+| 起来了但 OD 不出框 | 模型 hash / 格式版本不匹配 (F4) | 重刷 L2 + 核对 `model=` 版本串 | 按 §2.5.1 F4 |
+
+> 🔴 **硬规则 (与 §5.1 "失败即停"同源)**: **S2 连续失败 2 次 → 必须升级 S3 (JTAG), 不得"多刷几次试试"**。
+> 半写状态反复覆盖会制造更复杂的问题 (F2 已说明)。升级 S3 由**项目总工**裁决, sw-lead 不自行升级。
+> **S2 全链路失败 = 该板判"进 S4 返厂"**, 不得进产线。
+
+### 4.5.8 谁执行 / 谁验证 / 依赖登记
+
+| 环节 | 执行人 | 验证人 | 依赖 (needs_from key) | 期望时间 |
+|---|---|---|---|---|
+| P1 BOOT 进入条件 (问原厂) | 项目总工 (sw-lead 不直接对外) | — | `fw_boot_entry_cond` | 2026-10-29 |
+| P1' BOOT 硬件通路定稿 | hw-lead | 项目总工 | `fw_boot_mode_hw` | 2026-10-29 |
+| P2 下载工具链 | 项目总工 (经 vendor) | — | `fw_vendor_toolchain` | 2026-10-29 |
+| P3 USB PHY + 枚举特征 | 项目总工 (经 vendor) | — | `fw_usb_boot_phy` | 2026-10-29 |
+| P4 启动存储 + 分区表 | hw-lead + 项目总工 (经 vendor) | — | `fw_boot_storage_bom` / `fw_vendor_toolchain` | 2026-10-29 |
+| L0/L1 先验 (本单已交付) | sw-lead | 项目总工 | — | ✅ **已完成 (2026-10-27)** |
+| L2 空板先验 | hw-lead (硬件侧) + sw-lead (脚本侧) | 项目总工 | 器材采购 (项目总工) | 待定 |
+| BR-01 ~ BR-12 板端实测 | sw-lead | **项目总工** (verify_by=main) | 样机到位 | 投板后, **量产前必须 close** |
+
+### 4.5.9 自证复现命令 (B6)
+
+```bash
+# B6-13 S2 无板先验一键复现 (期望: 10/10 通过, rc=0)
+cd projects/smart_glasses && bash SW/tools/s2_selftest.sh
+
+# B6-14 分区表/版本块布局静态检查 (期望: 8/8, rc=0)
+cd projects/smart_glasses && python3 SW/tools/flash_layout_check.py --config SW/tools/s2_rescue_config.example.json
+
+# B6-15 ★ 容量算术复核 (期望: FAIL —— 64MB 装不下这套分区, 这是要拿去做决策的发现)
+cd projects/smart_glasses && python3 SW/tools/flash_layout_check.py --config SW/tools/s2_rescue_config.example.json --device-size 64MB
+
+# B6-16 写入 + 回读校验 (期望: 15/15, rc=0)
+cd projects/smart_glasses && python3 SW/tools/flash_writer.py write --config SW/tools/s2_rescue_config.example.json --target /tmp/f.img --synth \
+  && python3 SW/tools/flash_writer.py verify --config SW/tools/s2_rescue_config.example.json --target /tmp/f.img
+
+# B6-17 断电注入 (期望: write rc=5, verify rc=1 = 判未生效)
+cd projects/smart_glasses && python3 SW/tools/flash_writer.py write --config SW/tools/s2_rescue_config.example.json --target /tmp/c.img --synth --fail-after model_a; \
+  python3 SW/tools/flash_writer.py verify --config SW/tools/s2_rescue_config.example.json --target /tmp/c.img
+
+# B6-18 BOOT 探针自测 + 参数齐备性 (期望: 自测 rc=0 10/10; dry-run rc=2 = 4 个 0 数据项未填)
+cd projects/smart_glasses && python3 SW/tools/boot_rescue_probe.py --selftest; \
+  python3 SW/tools/boot_rescue_probe.py --dry-run --config SW/tools/s2_rescue_config.example.json
+
+# B6-19 本节引用的 4 个 0 数据项仍为未填 (期望: 4 行全 value=null / status=TODO)
+cd projects/smart_glasses && python3 -c "import json;d=json.load(open('SW/tools/s2_rescue_config.example.json'));[print(k,v.get('value'),v.get('status')) for k,v in d['params'].items()]"
+```
+
+---
 
 ---
 
@@ -396,7 +668,7 @@ model=yolov5s-int8-ag2-<sha8> isp=ISP-CALIB-0003-r2 mode=prod calib=ISP-CALIB-00
 | **D1** | **④ 首次出厂烧录流程** | ✅ **通过 (流程完备)** | §5.1 | 11 步, 每步带判据 + 验收 + 失败即停规则 + 出厂回读验证 |
 | **D2** | **④ 返修烧录流程** | ✅ **通过 (流程完备)** | §5.2 | 7 步 + 3 条与出厂的差异 (标定恢复 / 默认全擦 / mode 默认 prod) |
 | **E1** | 失败注入用例可执行性 | ❌ **不通过** | §2.5.3 | 6 个用例**全部未执行** (无板) → 不算通过, 列为投板后 P0 必做 |
-| **E2** | S2 救砖链路实测 | ❌ **不通过** | §4.4 | 量产前必须实测走通一次 → 现在**连工具都没有**, 不算通过 |
+| **E2** | S2 救砖链路实测 | ❌ **不通过** (方案 ✅ / 实测 ❌) | §4.4 + **§4.5** | **方案已落成可执行实测方案** (§4.5: 4 个 0 数据项参数化 + BOOT 进入 SOP + 3 条识别分支 + CB-01~09 机械判据 + 无板三层先验), 软件层 (L0/L1) 已实跑并抓到 4 个版本块 bug; **但板端 0 次, 连原厂工具都还没有** → 量产前必须实测走通一次, **不算通过** |
 
 **统计**: ✅ 通过 6 / ⚠️ 未验 5 / ❌ 不通过 3 —— **共 14 条**。
 
@@ -409,21 +681,21 @@ model=yolov5s-int8-ag2-<sha8> isp=ISP-CALIB-0003-r2 mode=prod calib=ISP-CALIB-00
 
 | 等级 | 本文条数 (去重后的结论项) | 具体项 |
 |---|---|---|
-| `[实测]` | 2 | ① A7S: NBG format version 用错 → `0x8c8a82ac garbage` (§2.3) ② A7S: systemd 拉起/watchdog (§4.4 S1) —— **均标注"平台不同, 仅类比"** |
+| `[实测]` | 3 | ① A7S: NBG format version 用错 → `0x8c8a82ac garbage` (§2.3) ② A7S: systemd 拉起/watchdog (§4.4 S1) —— **均标注"平台不同, 仅类比"** ③ **PC 侧无板先验 (2026-10-27, §4.5.5)**: 分区布局检查 8/8 + 写入回读 15/15 + 断电注入 2 例均判"未生效" + 探针自测 10/10 + 一键复现 10/10 —— **是 PC 侧仿真, 不代表板端 S2 已通** |
 | `[官方]` | 6 | ① Type-C 充电+调试双用 (锁死 #15 + HW-09) ② 第一款不上无线 (锁死 #11) ③ EVT 报告头 5 项固件版本 (EVT_TEMPLATE) ④ 产测 6 项工具 (M8-R6) ⑤ Art.Galaxy 工具链名称 (tracker) ⑥ 集成计划 IT-P0-02 烧录基线 5 项 |
-| `[推算]` | 24 | 版本号规则全节 / 版本块格式 / 断电原子性顺序 / 权限三态模型 / 失败码表 / 3 方案对比 / 条件式推荐 / 4 级救砖 / 两套流程步骤 / 追溯字段 / CHANGELOG 规则 / 标定数据为返修最大坑 |
-| `[0数据]` | 11 | ① ARS45 有无 USB PHY ② 有无内置 boot storage + 容量 ③ rootfs 体积 ④ bootloader 类型与版本命名 ⑤ 原厂下载工具 (名/版本/平台) ⑥ fastboot / 切槽能力 ⑦ BOOT 模式进入条件 ⑧ secure boot / 签名机制 ⑨ 分区表参考设计 ⑩ JTAG 可用性与调试器 ⑪ 存储控制器 (NAND/eMMC/SD) 引脚 |
+| `[推算]` | 27 | 版本号规则全节 / 版本块格式 / 断电原子性顺序 / 权限三态模型 / 失败码表 / 3 方案对比 / 条件式推荐 / 4 级救砖 / 两套流程步骤 / 追溯字段 / CHANGELOG 规则 / 标定数据为返修最大坑 / **SOP-1 进 BOOT 的时序骨架 (t1~t4) 与枚举超时 15s** / **BOOT 进入方式 A/B/C 的选型与售后手势冲突推断** / **分区表总量 90MB 的容量算术 (§4.5.1)** |
+| `[0数据]` | 13 | ① ARS45 有无 USB PHY ② 有无内置 boot storage + 容量 ③ rootfs 体积 ④ bootloader 类型与版本命名 ⑤ 原厂下载工具 (名/版本/平台) ⑥ fastboot / 切槽能力 ⑦ BOOT 模式进入条件 ⑧ secure boot / 签名机制 ⑨ 分区表参考设计 ⑩ JTAG 可用性与调试器 ⑪ 存储控制器 (NAND/eMMC/SD) 引脚 ⑫ **BOOT 态 USB 枚举特征 VID:PID** (§4.5.2.3 E1) ⑬ **BOOT 引脚有效电平与 t1~t4 时序具体数值** (§4.5.2.1, 原厂给) |
 
 > ⚠️ **本文引用的"原厂已问"清单**: `state/outbox/vendor_round2_email.md` 问题 3 (启动存储/固件分区) + 问题 4d 第 1 问 (USB PHY) + 第 2 问 (存储挂载接口) + 问题 8 (工具链) → **10-25 提, 至今未回**。本文**没有引入任何新的对外提问**, 只在 §9 登记了**在既有提问范围之外需要补充的 3 个点**。
 
-**标签出现次数 (机械可核, 用 B6-11 复现)**: 实测 8 / 官方 7 / 推算 36 / 0数据 32 (四类标签的总出现次数, 含正文/表格/摘要三处重复标注)。
+**标签出现次数 (机械可核, 用 B6-11 复现)**: 实测 12 / 官方 7 / 推算 41 / 0数据 46 (四类标签的总出现次数, 含正文/表格/摘要三处重复标注)。
 > 上表是**去重后的结论项数**, 与上面的**标签出现次数**不是同一个口径 —— 同一项结论会在正文、表格、结论摘要里各标一次。**两个数都列出来, 避免读者对不上。**
 
 ---
 
 ## 8. B4 — 接口取值声明 (interface_claims)
 
-> 与 `state/fragments/sw.yaml` 的 `interface_claims` **同源同文**, 已在本次提交中登记 (共 6 条新增, 现有 11 + 6 = 17 条)。**value 一律短规范值**, 说明写 note。
+> 与 `state/fragments/sw.yaml` 的 `interface_claims` **同源同文**, 已在本次提交中登记 (10-26 新增 7 条 + 10-27 新增 3 条, 现有 **21 条**)。**value 一律短规范值**, 说明写 note。
 
 | key | value (短规范值) | note |
 |---|---|---|
@@ -434,6 +706,9 @@ model=yolov5s-int8-ag2-<sha8> isp=ISP-CALIB-0003-r2 mode=prod calib=ISP-CALIB-00
 | `rollback_levels` | `L1:ab-slot-switch / L2:full-reflash` | L1=push 旧版到备用槽+重启(<=30s, 不刷 rootfs); L2=插线厂商下载工具重刷出厂镜像 (无 OTA, 唯一兜底) |
 | `brick_rescue_levels` | `S1-wd/S2-dl/S3-jtag/S4-reflow` | S1=软件自恢复(watchdog+systemd); **S2=BOOT+厂商下载工具 / S3=JTAG, 两者均依赖原厂未确认工具链**; S4=返厂换件; 量产前必须实测走通 S2 |
 | `flash_prod_mode` | `adbd-off/fastboot-off` | prod 模式关 adbd 与 fastboot; service 模式仅返修工位开; 开关位在版本块, 与版本串原子写 |
+| `s2_boot_entry_methods` | `A:boot-pin+reset / B:key-combo / C:usb-trigger` | §4.5.2.2 进 BOOT 的 3 种方式; **推荐 A (跳线+RESET, 不依赖 bootloader 按键逻辑)**; B 不得复用侧键 (售后已占长按 3s=版本号 / 10s=关机, 见 FRAMEWORK/AFTERSALES §2); t1~t4 具体数值待原厂 |
+| `s2_rescue_checklist` | `CB-01..CB-09 / BR-01..BR-12` | §4.5.4 的 9 条机械校验判据 + §4.5.6 的 12 条用例; 判过 = CB-01~09 全过; 与 EVT_TEMPLATE §11 的 BR-01 一一对应; **板端全部 [待实测]** |
+| `flash_capacity_floor` | `128MB-NOR-min` | ★ **新约束 (2026-10-27)**: §4.1 推荐 C 的分区表总量 90MB (rootfs 30 + model 15x2 + app 8x2 + kernel 8 + boot 1 + isp 1) ⇒ **64MB SPI-NOR 装不下**; 真实条件 = `rootfs<=30MB` **且** `flash>=128MB`; 硬件若只能给 64MB 则 A/B 槽必须缩 (与 §4.1 的总分叉点合并看); 证据 [实测](布局检查器 --device-size 64MB → FAIL) + [推算](分区大小) |
 
 > 已有条目 (10-25 登记, 本次不改): `debug_port_iface = USB2.0-ADB+CDC` (note: 依赖 SoC USB Device PHY, 未确认) / `memory_budget*` / `latency_budget` / `od_input_size` / `display_frame_rate` / `od_duty_cycle` / `od_segment_budget_ms` / `box_age_frames` / `thermal_*`
 
@@ -468,7 +743,7 @@ model=yolov5s-int8-ag2-<sha8> isp=ISP-CALIB-0003-r2 mode=prod calib=ISP-CALIB-00
 | ID | 卡点 | 严重度 | 解法时点 |
 |---|---|---|---|
 | `SW-FW-B1` | 6 个失败注入用例 (FI-1 ~ FI-6) 一个都没跑过 (无板) | high | 投板后 P0, 接 `SW/INTEGRATION_PLAN.md` IT-P0-02 |
-| `SW-FW-B2` | **S2 救砖链路 (进 BOOT → 下载工具识别 → 刷回来) 从未实测** —— 这是**量产前的一票否决项**: 没实测就量产 = 砖了没法救 | **high** | 投板后, 且**必须在量产前**逐台验证 |
+| `SW-FW-B2` | **S2 救砖链路 (进 BOOT → 下载工具识别 → 刷回来) 从未实测** —— 这是**量产前的一票否决项**: 没实测就量产 = 砖了没法救。★**2026-10-27 已把方案落成可执行实测方案 (§4.5, ISS-080)**: 软件层 (L0/L1 先验) 已实跑, 但**板端 0 次**, 且 4 个 0 数据项 (P1~P4) 仍未填 | **high** | 投板后, 且**必须在量产前**逐台验证 (EVT BR-01) |
 | `SW-FW-B3` | rootfs 实际体积未知 → §4.1 的容量测算全是区间估计 | medium | 投板后第一次构建即知 |
 
 ---
@@ -506,19 +781,28 @@ cd projects/smart_glasses && grep -n "固件版本 (git commit)" SW/EVT_TEMPLATE
 # B6-10 合并器自测 (协议回归)
 cd projects/smart_glasses && python3 state/test_merge.py
 
-# B6-11 本文证据分级标签出现次数 (应输出: 实测 8 / 官方 7 / 推算 36 / 0数据 32)
+# B6-11 本文证据分级标签出现次数 (应输出: 实测 12 / 官方 7 / 推算 41 / 0数据 46)
 cd projects/smart_glasses && for t in 实测 官方 推算 0数据; do printf "%s: " "$t"; grep -o "\[$t\]" SW/FLASH_AND_VERSION.md | wc -l; done
 
 # B6-12 确认本文没有引入新的对外提问 (7 条 needs_from 里 3 条是 vendor, 全部经 main 转达; 接口取值另有 2 条 fw_ 前缀, 共 9)
 cd projects/smart_glasses && grep -c "^\- key: fw_" state/fragments/sw.yaml
+
+# B6-13 ~ B6-19 §4.5 的 S2 无板先验复现命令 (详见 §4.5.9; 期望 s2_selftest.sh 10/10 rc=0)
+cd projects/smart_glasses && bash SW/tools/s2_selftest.sh
+
+# B6-20 EVT 模板的 S2 可判项已就位 (应输出 1 = 命中 BR-01 段)
+cd projects/smart_glasses && grep -c "BR-01" SW/EVT_TEMPLATE.md
+
+# B6-21 本文的 interface_claims 与分片一致 (应输出 21)
+cd projects/smart_glasses && python3 -c "import yaml;print(len(yaml.safe_load(open('state/fragments/sw.yaml'))['interface_claims']))"
 ```
 
 **本文与上游产出的一致性声明**:
 - 与 `SW/SW_REQUIREMENTS.md` §9 (M8 调试升级通道) 一致: M8-R1 "换模型不拆眼镜, <2min" → 本文 §2.3 的 L2 热换路径 + §4.3 的 app/model A/B 槽即为其实现手段; M8-R3 日志导出 → §5.2 第 2 步备份; M8-R4/R5 → §4.4 S1; M8-R6 → §5.1 第 10 步。
 - 与 `HW/HARDWARE_BREAKDOWN.md` HW-03 一致: **本文不新增 BOM、不指定存储型号、不编造容量**; 存储选型权归 hw-lead (登记为 `needs_from.fw_boot_storage_bom`)。
 - 与 `SW/INTEGRATION_PLAN.md` IT-P0-02 一致: 烧录三件套 + 版本记录 5 项 + 重启 3 次自启动 → 本文 §5.1 第 10/11 步直接沿用。
-- 与 `SW/EVT_TEMPLATE.md` 一致: 固件版本 5 项 → 本文 §3.5 增加"烧录工具版本"与"标定数据 ID"两项, 其余不变。
+- 与 `SW/EVT_TEMPLATE.md` 一致: 固件版本 5 项 → 本文 §3.5 增加"烧录工具版本"与"标定数据 ID"两项, 其余不变。**v1.1 新增**: EVT 模板 §11 新增可判项 **BR-01 (S2 救砖链路)**, 判据就是本文 §4.5.4 的 CB-01~CB-09。
 
 ---
 
-*— sw-lead · 2026-10-26 · v1.0 · 3 个决定性参数 0 数据, 原厂回复后出 v1.1*
+*— sw-lead · 2026-10-27 · v1.1 · §4.5 S2 可执行实测方案已交 (ISS-080); 板端实测 0 次; 4 个 0 数据项 (P1~P4) 待原厂回复*

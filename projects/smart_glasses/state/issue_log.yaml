@@ -571,7 +571,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-28'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: 可靠性测试方案 (方案先行, 1 台样机也要做)
@@ -583,11 +583,13 @@ issues:
     边界: 这是**方案**不是报告, 现在没实物也能写; 但不许把没测的写成已通过
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: MECH/RELIABILITY_TEST_PLAN.md (57.8KB, 12 类用例 + 样品/次数/判据 + 相对判据原则 + 1 台可行性判定) + MECH/reliability_plan_check.py (自检) + HANDOFF/2026-10-27_mech-lead_可靠性测试方案.md
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-27'
+  note: '10-27 00:14 由 mech-lead 交卷 (队列派出)。★项目总工独立复核: ① 12 类用例 >= 任务要求的 8 类 (跌落/扭转/弯折/镜腿拉力/汗液/化妆品/酒精/UV 等), 每类都给了 样品数×次数×判据 三要素 ② ★它的方案里最值钱的是 相对判据原则: 单台样机没有失效率概念, 所以 1 台只做筛查 (U1 × N 次), 判定必须靠 3 台 (例: 跌落
+    1 台 10 次筛查 / 3 台 30 次判定; 扭转 200 次只覆盖摘戴寿命 3 年的 0.9%) ③ 诚实: T-09 盐雾明确写 本轮不做 (设备占用 10 天 + 破坏性最强) 而不是假装能做; 文档头部明写 [实测] 0 条, 不代表任何实测已通过 ④ 它自己的检查器 MECH/reliability_plan_check.py → 全部通过 (12 用例覆盖 / 证据分级 4 档
+    / 单台可行性 T-01..T-12 判定 / 禁用措辞 0 命中) ⑤ 交接单在 HANDOFF/2026-10-27_mech-lead_可靠性测试方案.md。★结论: 这是**方案**不是报告, 1 台样机也做得动 (11/12 类), 但所有实测项仍为 0 → 与 measurements.yaml 的 0 实测状态一致'
   dispatched_at: '2026-10-27'
 - id: ISS-027
   title: 原型制作计划缺失 (几批打样/每批验证什么/不通过怎么回滚)
@@ -1966,13 +1968,102 @@ issues:
   reporter: main
   raised: '2026-10-26'
   due: '2026-10-29'
-  status: fixing
+  status: fixed
   external: false
   need_keys: []
   task_brief: '把 S2 救砖链路写成可执行的实测方案: 进 BOOT 模式的具体操作 (按键/时序/引脚) + 用什么工具识别与刷写 + 刷回来的校验判据 + 无样机时怎么用仿真器/空板先验一遍。输出: 写进 SW/ 的烧录章节 + EVT 模板加一条可判项 (谁执行/怎么判过/失败怎么办)'
+  fix_ref: SW/FLASH_AND_VERSION.md#4.5 (S2 可执行实测方案) + SW/EVT_TEMPLATE.md#11 (EVT-8 可判项 BR-01) + SW/tools/ (4 件套)
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-27 00:10 项目总工重建 (原登记的 ISS-075 与新登记的 ISS-075 撞号被误删, 改用新号)。★教训: issue id 必须**先查空位再登记**, 不能凭感觉接着写 || 10-27 00:35 sw-lead 交卷 (状态 fixing->fixed, **板端实测仍未做**): ①SW/FLASH_AND_VERSION.md §4.5 新增 S2
+    可执行实测方案 (4 个 0 数据项参数化为 P1~P4 + 进 BOOT 的 3 种方式/时序骨架 t1~t4 + 3 条识别刷写分支 + CB-01~09 机械校验判据 + 无板三层先验 L0/L1/L2 + BR-01~12 用例表 + 失败决策树 S2连挂2次->S3) ②SW/EVT_TEMPLATE.md §11 新增 EVT-8 单条可判项 BR-01 (谁执行=sw-lead执行/hw-lead配合/项目总工裁决+验证;
+    怎么判过=CB-01~09 9/9 全过; 失败怎么办=6 类现象决策树+量产红线) ③SW/tools/ 4 件套 + 一键复现 (10/10 rc=0, **并当场抓出 4 个版本块真 bug**: A/B槽CRC串台 / payloadCRC误含bootable开关 / 擦除态0xFF被误判成已生效 / 长度字段0xFFFF被当成非空)。★新约束: 推荐C分区表总量90MB -> **64MB
+    SPI-NOR 装不下**, 容量下限升到 128MB (已登记 interface_claims.flash_capacity_floor)。★**本单交付的是方案, 不是实测通过** —— 板端实测 0 次, 4 个 0 数据项 (P1~P4) 仍待原厂; 板端实测归 EVT BR-01, 量产前必须 close。请项目总工验证 (verify_by=main)'
+  dispatched_at: '2026-10-27'
+- title: 球数预算 + 最小引脚集分析 (证明封装/球数不是风险, 只剩映射问题) + 8x10 FCCSP 在 pitch 0.3/0.4/0.5mm 下的逃线可行性
+  severity: blocker
+  source_blocker: null
+  source_agent: main
+  desc: '原厂可能长期联系不上 → 必须自证: ① 我们真正需要的 SoC 引脚最少是多少 (电源 8-10 + CSI 8 + 显示 8 + I2C 2 + USB 4 + 复位/启动 3 + 调试 4 + GPIO 6 ≈ 45-50 脚) ② 8x10mm FCCSP 在 pitch 0.3/0.4/0.5mm 三档下的球数上限与逃线规则 (0402 焊盘 1.0mm 从 0.4mm pitch
+    球逃出需要什么: via-in-pad / 交错 / 6 层) ③ 结论: 封装与球数是**非风险项** (只需 45-80 脚, 8x10 FCCSP 放得下), 真正卡住的只有 引脚→功能的映射 —— 这个不能自证, 要用结构手段压影响面'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-27'
+  due: '2026-10-28'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '出 HW/SOC_PIN_BUDGET.md: (a) 最小引脚集 (逐项列出 SoC 侧功能 → 数量 → 依据, 目标是证明 45-50 脚够用) (b) pitch 0.3/0.4/0.5mm 三档下 8x10 FCCSP 的球数上限 + 逃线可行性 (0402/0603 焊盘 1.0-1.6mm, 需要 via-in-pad 还是交错, 6 层够不够) (c) 明确结论:
+    封装/球数/逃线是风险还是非风险, 以及真正剩下的风险是什么。不要猜球位号'
   fix_ref: null
   verify_by: main
   verify_result: null
   verify_date: null
-  note: '10-27 00:10 项目总工重建 (原登记的 ISS-075 与新登记的 ISS-075 撞号被误删, 改用新号)。★教训: issue id 必须**先查空位再登记**, 不能凭感觉接着写'
+  note: 10-27 00:20 项目总工登记 (失联预案第 1 条)
   dispatched_at: '2026-10-27'
+  id: ISS-081
+- title: ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + PGOOD 链式 RESET) → 把 TBD-02 从 blocker 降级
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: '原厂电源域表拿不到时的解法: 不等表, 把不确定性做成选件的灵活性 —— ① 6 路 IO LDO 从固定电压 (TPS7A20-28/-18/-12/-33) 改成**可编程 TPS7A20 (1.2-5.5V, 一颗覆盖全部 IO 轨) + 不同反馈电阻** → 零件号从 6 种降到 1 种, 电压域表晚到只改电阻不改板 ② DC-DC (TPS62130A 3A, 输出 0.6-5V
+    可编程) 按最坏情况选: V_CORE 0.65-1.0V 区间 (查证) + SoC 域 550mW/0.8V×1.5 = 1.03A → 3A 有 3 倍余量 → 电流/电压不确定都不阻塞 ③ 上电时序不依赖原厂: 全部轨同时上电 + RESET 由 PGOOD 链式释放'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-27'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '改 HW/POWER_IC_SELECTION.md 的电源域章节: (a) 6 路 IO LDO 统一改成可编程 TPS7A20 (反馈电阻逐轨给出目标电压下的阻值, 1.2/1.8/2.8/3.3 各算一组) 并说明 电压域表晚到时只改电阻 (b) DC-DC 选型留余量论证 (按 0.65-1.0V + 1.03A) (c) 上电时序方案: 同时上电 + PGOOD
+    链式释放 RESET, 不依赖原厂时序。**同时把 netlist 与 8 页图页的对应改掉** (改生成器, 不手改生成物)。不许编电压/电流'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: 10-27 00:20 项目总工登记 (失联预案第 2 条) ★这是把 TBD-02 从 blocker 降级的关键改造
+  dispatched_at: '2026-10-27'
+  id: ISS-082
+- title: ★显示 TX 公开渠道穷举 (AR9481 模组厂/模组规格书/公开板卡 + 酷芯模组供应商) —— 不等原厂也能判 DSI TX 还是 DP TX
+  severity: blocker
+  source_blocker: null
+  source_agent: main
+  desc: '显示 TX 是唯一无法自证的项 (但桥接芯片路径无论如何都要准备)。公开渠道候选: ① AR9481 的**模组厂/模组规格书** (模组厂要卖模组, 引脚定义常公开) ② AR9481 公版板卡/开发板 ③ 酷芯微代理商/方案商页面的规格书 ④ AR9481 的实际 AR/VR 客户产品拆解 (AR/VR 必须有显示输出 → 同 Die → 强证据)'
+  owner: main
+  reporter: main
+  raised: '2026-10-27'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '★项目总工自己做 (owner=main): 穷举公开渠道, 每条线索写进 HW/ONLINE_FINDINGS_2026-10-27.md (来源 URL + 原文 + 证据等级 + 结论)。找不到也要写 试过的路径。**重点找模组厂/模组规格书** (比找原厂 datasheet 现实得多)'
+  fix_ref: null
+  verify_by: hw-lead
+  verify_result: null
+  verify_date: null
+  note: 10-27 00:20 项目总工登记 (失联预案第 3 条) ★注意 verify_by 不能是 main (自己产的自己验)
+  dispatched_at: '2026-10-27'
+  id: ISS-083
+- title: SoC 载板化/模组化的结构与代价评估 (把 引脚映射 风险从项目级压到载板级) + 兜底 SoC 路线 (用现成模组做 EVT 验证)
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: '如果 ARS45 长期失联, 唯一无法自证的 引脚→功能映射 怎么消化? 结构性解法: 主板不直接接 SoC 球位 → SoC 放独立**载板 (LGA/interposer)** 或用**板对板连接器 (BTB/FPC)** → 球位图晚到只影响载板, 主板与 PCB 主体不动 → 风险从项目级降到载板级。代价: 面积/厚度/成本/一颗连接器/多一层装配 —— 眼镜里厚度极敏感,
+    必须量化。另一条兜底: EVT 样机用**现成能买到的模组/开发板** 验证 ISP+显示+OD 全链路, 产品化 SoC 集成留到最后'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-10-27'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '评估 SoC 载板化 (或模组化) 的结构代价: 在镜框主板位置加一层载板对 板宽/厚度/堆叠/热/重量/装配 的影响 (给 3 档方案: 直接焊 / BTB 载板 / FPC 载板), 并给出 是否值得 (结论可以是 不值得, 但要有数)。同时给 兜底路线 的可行性初判: 用现成 AR9481/ARS45 模组做 EVT 样机来验证 ISP+显示+OD 全链路的可行性
+    (要解决什么/差在哪)。不许拍板'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: 10-27 00:20 项目总工登记 (失联预案第 4 条)
+  dispatched_at: '2026-10-27'
+  id: ISS-084
