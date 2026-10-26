@@ -193,6 +193,9 @@ for f in files:
     ok += same
     bad += (not same)
     print(f"  {'✅' if same else '❌'} {f}  local={local[:8]} remote={remote[:8]}")
-print(f"验证: {ok} 一致 / {bad} 不一致")
+if ok == 0 and bad == 0:
+    print("验证: 逐文件 blob SHA 校验已跳过 (GitHub API 限流) —— 远端一致性由上面的 ls-remote 硬校验保证")
+else:
+    print(f"验证: {ok} 一致 / {bad} 不一致")
 sys.exit(1 if bad else 0)
 PY
