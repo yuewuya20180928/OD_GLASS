@@ -132,6 +132,11 @@ fi
 echo "[4] 真值反查 0 命中 ✅"
 
 # ---- 5. commit + push ----
+# ★被跟踪过的运行时垃圾要显式 untrack (rsync 排除 = 保护不被删, 所以它会留在仓库里)
+for junk in projects/smart_glasses/BOOTSTRAP.md projects/smart_glasses/.openclaw/workspace-state.json; do
+  git rm -q --cached --ignore-unmatch "$junk" 2>/dev/null
+  rm -f "$junk" 2>/dev/null
+done
 git add -A
 if git diff --cached --quiet; then
   echo "[5] 无变化 (跳过 push)"
