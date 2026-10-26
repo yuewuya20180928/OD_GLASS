@@ -56,12 +56,38 @@ def main() -> int:
             return None
 
     # ---------- A. 内部可立即推进 (owner 是三个总工) ----------
+    # ★铁律 (2026-10-26 19:20 加): 同一 agent **同时只允许一个在飞任务**。
+    #   两个写会话会互相覆盖 state/fragments/<agent>.yaml (R18, 压测实证 12%~38% 合并丢失)。
+    #   → 判据: 该 agent 名下已有 status == fixing 的 issue ⇒ 本轮不再给它派新活 (留给它干完)。
+    in_flight: dict[str, str] = {}
+    for it in issues:
+        if it.get("owner") in AGENT_ROLE and it.get("status") == "fixing":
+            in_flight.setdefault(it.get("owner"), it.get("id"))
+
     internal = []
+    picked: dict[str, str] = {}   # ★每个 agent 本轮最多派 1 条 (同一 agent 两个写会话会互相覆盖分片)
+    SEV_RANK = {"blocker": 0, "high": 1, "medium": 2, "low": 3}
+    cand = []
     for it in issues:
         if it.get("owner") not in AGENT_ROLE:
             continue
         if it.get("status") in ("closed", "deferred", "wontfix"):
             continue
+        if it.get("status") != "open":
+            # 只有 open 可派; fixing/fixed/verified 一律不重复派
+            continue
+        held = in_flight.get(it.get("owner"))
+        if held and held != it.get("id"):
+            continue  # ★该 agent 正在干别的, 本轮跳过 (等它交卷)
+        dd = days_to(it.get("due"))
+        cand.append((SEV_RANK.get(it.get("severity"), 9), dd if dd is not None else 9999, it))
+    # 排序: 严重度优先, 其次到期近的
+    cand.sort(key=lambda t: (t[0], t[1]))
+    for _rank, _dd, it in cand:
+        ag = it.get("owner")
+        if ag in picked:
+            continue  # ★本轮该 agent 已领到一条
+        picked[ag] = it.get("id")
         dd = days_to(it.get("due"))
         internal.append({
             "issue": it.get("id"), "title": it.get("title"), "agent": it.get("owner"),

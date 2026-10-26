@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-10-26T19:11:23+08:00'
+  generated_at: '2026-10-26T19:20:37+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1793012044408248509
     sw-lead:
       file: sw.yaml
-      size: 7181
-      sha1: d9d26d3d367e
-      mtime_ns: 1792892145921834051
+      size: 14130
+      sha1: bbe205ec7246
+      mtime_ns: 1793013297457631488
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -88,7 +88,7 @@ domains:
     - id: PM-B4
       desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
       severity: medium
-      needs_from: &id017
+      needs_from: &id019
       - jbd
       waiting_since: '2026-10-21'
     needs_from:
@@ -795,10 +795,12 @@ domains:
     updated_at: '2026-10-25T09:30:00+08:00'
     updated_by: sw-lead
     status:
-      phase: P1(软件需求拆解)→P2(方案设计)
-      progress_pct: 30
+      phase: P1(软件需求拆解)->P2(方案设计)
+      progress_pct: 38
       health: red
-      summary: 8模块/52条验收标准(自证更正,原写48);端到端口径A=67.0ms超60ms预算(不达标);内存175-188MB非瓶颈;A7S复用32项;B1-B6已补齐,接口取值11条,已答复hw-lead/mech-lead各1条;等外部4条已标waiting_on+due(Q1/Q17/Q18=boss,Q8+Q9=vendor)
+      summary: '8模块/52条验收标准; P2 方案设计新增: SW/FLASH_AND_VERSION.md (烧录链路/版本号规则/回滚策略/出厂+返修两套流程, 验收14条自评 ✅6
+        ⚠️5 ❌3); 端到端口径A=67.0ms超60ms预算(不达标); 内存175-188MB非瓶颈; 接口取值11+7=18条; 新增 needs_from 7条 (3条vendor经main/2条hw-lead/2条boss);
+        等外部4+3=7条已标waiting_on+due; 健康度 red 的主因仍是原厂纸面资料(3个决定性0数据: rootfs体积/USB PHY/烧录工具链)'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -817,6 +819,15 @@ domains:
       version: v1.0
       updated_at: '2026-10-25T00:25:00+08:00'
       summary: 补了软件子模块段 (指向 SW/SW_REQUIREMENTS.md)
+    - path: SW/FLASH_AND_VERSION.md
+      kind: design
+      version: v1.0
+      updated_at: '2026-10-26'
+      summary: '固件烧录与版本管理方案 (USB/ADB): ①烧录链路=2条物理路径共用1个Type-C口(量产BOOT+厂商下载工具 / 日常ADB push), 工具/接口/权限(dev-prod-service三态)/失败处理(8失败码+断电原子性+6失败注入用例)
+        ②版本号=semver+6分项(boot/kern/rootfs/app/model/isp)+版本串3落点+5条机器可校验规则+CHANGELOG(含是否需重刷/需重标定列)+SN追溯  ③回滚=条件式推荐
+        ro_rootfs+ab_app_model (条件rootfs<=30MB), 论证: 锁死#11无无线->双分区省不掉插线, 根fs级A/B需eMMC->板宽12->15mm结构冲突;
+        救砖4级(S1看门狗/S2 BOOT下载/S3 JTAG/S4返厂), S2/S3待原厂确认  ④两套流程: 出厂11步(含自检6项+prod回读验证) / 返修7步(含标定数据恢复, 返修最大坑不是刷固件是标定丢失)  ⚠️
+        3个决定性0数据(rootfs体积/USB PHY/原厂工具链) -> 原厂回复前不可作产线SOP; 验收14条自评: ✅6 / ⚠️未验5 / ❌不通过3'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -845,6 +856,27 @@ domains:
       - boss
       - main
       waiting_since: '2026-10-25'
+    - id: SW-FW-B1
+      desc: 6 个烧录失败注入用例 (FI-1~FI-6) 一个都没跑过 (无板) -> 断电原子性/版本块校验/模型格式版本拦截全部未验证
+      severity: high
+      needs_from: &id014
+      - vendor
+      waiting_since: '2026-10-26'
+    - id: SW-FW-B2
+      desc: 'S2 救砖链路 (进 BOOT 模式 -> 厂商下载工具识别 -> 刷回来) 从未实测, 且原厂工具/BOOT 进入条件全 0 数据 -> 量产前的一票否决项: 没实测就量产 =
+        砖了没法救'
+      severity: high
+      needs_from: &id015
+      - vendor
+      - hw-lead
+      waiting_since: '2026-10-26'
+    - id: SW-FW-B3
+      desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
+      severity: medium
+      needs_from: &id020
+      - hw-lead
+      - vendor
+      waiting_since: '2026-10-26'
     needs_from:
     - key: q1_latency_scope
       to: main
@@ -950,6 +982,106 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: fw_vendor_toolchain
+      to: vendor
+      item: '原厂烧录工具链 (经 main 转达, 我不单独对外): ①下载工具名称/版本/支持平台(Win?Linux?)/支持的 flash 类型/能否脚本化批量 ②bootloader
+        类型与版本命名规则 ③是否提供 fastboot 或等效切槽机制 ④官方分区表参考设计(rootfs/app/model/版本块 划分与对齐) ⑤官方''烧录+版本回读''流程文档 ->
+        卡 SW/FLASH_AND_VERSION.md §2.3/§3.2/§4.1 分区方案'
+      since: '2026-10-26'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: fw_usb_boot_phy
+      to: vendor
+      item: 'USB 下载能力 (经 main 转达): ①ARS45 USB2.0 Device 控制器是否支持 ADB 协议 ②是否支持 fastboot ③是否支持 USB DFU/UF2
+        类下载模式 ④USB 枚举是否需 BOOT 引脚拉高 -> 烧录链路 §2.2 的唯一支点; 若答''无 USB PHY'' 则 Type-C 母座引脚定义要改(原理图级返工), 烧录/回滚方案需整体重写'
+      since: '2026-10-26'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: fw_boot_entry_cond
+      to: vendor
+      item: 'BOOT 模式与校验机制 (经 main 转达): ①进入下载/BOOT 模式的硬件条件(BOOT 引脚电平/是否需按键组合/超时自动进) ②bootloader 启动是否校验分区
+        CRC/SHA256, 不通过如何处理 ③A/B 槽自动回滚是否可配(尝试次数阈值) ④secure boot/镜像签名是否启用, 密钥如何管理 -> 卡救砖 S2 + 断电原子性 §2.5.2
+        + 自动回滚 N=3 假设'
+      since: '2026-10-26'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: fw_boot_storage_bom
+      to: hw-lead
+      item: '启动存储选型 (接口请求, 经 main 转达): SPI-NOR 容量型号 vs eMMC, 以及 rootfs 体积上限约束(多少 MB 以内必须用 NOR) -> 这是回滚方案的总分叉点:
+        rootfs>64MB 则 SPI-NOR 出局必须 eMMC -> 板宽 12->15mm -> 结构返工; tracker 已标''投板前必须 close'''
+      since: '2026-10-26'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: fw_boot_mode_hw
+      to: hw-lead
+      item: 'HW-21 BOOT/RESET 硬件通路定稿 (接口请求, 经 main 转达): BOOT 引脚电平/上下拉/是否配按键 + HW-22 预留按键位数够不够 (烧录用 BOOT
+        组合 + 客户用侧键显示版本号, 见 FRAMEWORK/AFTERSALES ''长按侧键3秒显示版本号'') -> 同时卡救砖 S2 / 权限模式 / 售后版本查询'
+      since: '2026-10-26'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: fw_q3_scope
+      to: main
+      item: Q3 (不联网怎么更新模型) 的答案 — 本方案假设'只允许 ADB push'(与锁死#11不冲突, Type-C已有) -> Q3至今⬜待答; 若答'必须无线' 则本方案'无OTA'前提失效,
+        回滚策略要重做 (走 main 转老板)
+      since: '2026-10-26'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-28'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: fw_sample_ota
+      to: main
+      item: 样机阶段是否允许保留'USB 侧 OTA 代理'(PC 上跑 agent, 通过 ADB 下发脚本做升级) — 这不是无线, 不违反锁死#11 -> 允许则 L1 回滚可半自动;
+        不允许则维持纯手工 (走 main 转老板, 低优先不卡主线)
+      since: '2026-10-26'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: debug_port_form
       to: hw-lead
@@ -1039,7 +1171,7 @@ domains:
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
         11.8mm 全是推算)
       severity: high
-      needs_from: &id014
+      needs_from: &id016
       - jbd
       - main
       waiting_since: '2026-10-21'
@@ -1047,7 +1179,7 @@ domains:
       desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
         0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
       severity: high
-      needs_from: &id015
+      needs_from: &id017
       - boss
       - main
       waiting_since: '2026-10-25'
@@ -1055,21 +1187,21 @@ domains:
       desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置
         boot storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
       severity: high
-      needs_from: &id016
+      needs_from: &id018
       - hw-lead
       - main
       waiting_since: '2026-10-25'
     - id: MECH-B3
       desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
       severity: medium
-      needs_from: &id018
+      needs_from: &id021
       - jbd
       waiting_since: '2026-10-25'
     - id: MECH-B5
       desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
         → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
       severity: medium
-      needs_from: &id019
+      needs_from: &id022
       - mech-lead
       waiting_since: '2026-10-25'
     needs_from:
@@ -1829,6 +1961,73 @@ interface_claims:
     - sw-lead
     noncanonical_by: []
     conflict: false
+  flash_link_layers:
+    values:
+      sw-lead: L-A:USB-DL / L-B:ADB+CDC
+    notes:
+      sw-lead: 两条物理路径共用同一个 Type-C 口; L-A=量产/救烧(BOOT 模式+厂商下载工具); L-B=日常升级(ADB push, 目标<2min); 依赖 ARS45
+        USB Device PHY (未确认)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  flash_storage_model:
+    values:
+      sw-lead: ro_rootfs+ab_app_model
+    notes:
+      sw-lead: '条件式推荐: rootfs 只读 squashfs + app/model A/B 双槽; 条件 rootfs<=30MB; 不做 rootfs 级 A/B (需 eMMC
+        -> 板宽 12->15mm, 结构冲突); 推算'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  fw_version_fields:
+    values:
+      sw-lead: boot/kern/rootfs/app/model/isp
+    notes:
+      sw-lead: 6 项必录, 缺一报 E_VER_INCOMPLETE; 与 EVT 报告头 5 项一致 + 新增 isp 参数集版本
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  fw_version_format:
+    values:
+      sw-lead: ARS45-SW semver+gitsha8
+    notes:
+      sw-lead: MAJOR=分区/启动接口变; MINOR=新功能; PATCH=修缺陷; PRERELEASE 禁入产线; 版本串落 3 处 (/etc/version + flash 版本块
+        + 屏幕)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  rollback_levels:
+    values:
+      sw-lead: L1:ab-slot-switch / L2:full-reflash
+    notes:
+      sw-lead: L1=push 旧版到备用槽+重启 (<=30s, 不刷 rootfs); L2=插线用厂商下载工具重刷出厂镜像 (无 OTA, 唯一兜底); 锁死#11 不上无线是前提
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  brick_rescue_levels:
+    values:
+      sw-lead: S1-wd/S2-dl/S3-jtag/S4-reflow
+    notes:
+      sw-lead: S1=软件自恢复(watchdog+systemd); S2=BOOT+厂商下载工具 / S3=JTAG, 两者均依赖原厂未确认工具链; S4=返厂换件; 量产前必须实测走通
+        S2
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  flash_prod_mode:
+    values:
+      sw-lead: adbd-off/fastboot-off
+    notes:
+      sw-lead: prod 模式关 adbd 与 fastboot (USB 是唯一物理攻击面); service 模式仅返修工位开; 开关位在版本块, 与版本串原子写
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
 needs_matrix:
   pending:
   - key: emc_mech_interface_ask
@@ -1867,8 +2066,24 @@ needs_matrix:
     since: '2026-10-26'
     _by: hw-lead
     state: pending
-  answered_count: 43
-  total: 47
+  - key: fw_boot_storage_bom
+    to: hw-lead
+    item: '启动存储选型 (接口请求, 经 main 转达): SPI-NOR 容量型号 vs eMMC, 以及 rootfs 体积上限约束(多少 MB 以内必须用 NOR) -> 这是回滚方案的总分叉点:
+      rootfs>64MB 则 SPI-NOR 出局必须 eMMC -> 板宽 12->15mm -> 结构返工; tracker 已标''投板前必须 close'''
+    since: '2026-10-26'
+    due: '2026-10-29'
+    _by: sw-lead
+    state: pending
+  - key: fw_boot_mode_hw
+    to: hw-lead
+    item: 'HW-21 BOOT/RESET 硬件通路定稿 (接口请求, 经 main 转达): BOOT 引脚电平/上下拉/是否配按键 + HW-22 预留按键位数够不够 (烧录用 BOOT
+      组合 + 客户用侧键显示版本号, 见 FRAMEWORK/AFTERSALES ''长按侧键3秒显示版本号'') -> 同时卡救砖 S2 / 权限模式 / 售后版本查询'
+    since: '2026-10-26'
+    due: '2026-10-29'
+    _by: sw-lead
+    state: pending
+  answered_count: 48
+  total: 54
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -1952,44 +2167,62 @@ blockers:
   needs_from: *id013
   waiting_since: '2026-10-25'
   owner: sw-lead
+- id: SW-FW-B1
+  desc: 6 个烧录失败注入用例 (FI-1~FI-6) 一个都没跑过 (无板) -> 断电原子性/版本块校验/模型格式版本拦截全部未验证
+  severity: high
+  needs_from: *id014
+  waiting_since: '2026-10-26'
+  owner: sw-lead
+- id: SW-FW-B2
+  desc: 'S2 救砖链路 (进 BOOT 模式 -> 厂商下载工具识别 -> 刷回来) 从未实测, 且原厂工具/BOOT 进入条件全 0 数据 -> 量产前的一票否决项: 没实测就量产 = 砖了没法救'
+  severity: high
+  needs_from: *id015
+  waiting_since: '2026-10-26'
+  owner: sw-lead
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
     11.8mm 全是推算)
   severity: high
-  needs_from: *id014
+  needs_from: *id016
   waiting_since: '2026-10-21'
   owner: mech-lead
 - id: MECH-B2
   desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
     0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
   severity: high
-  needs_from: *id015
+  needs_from: *id017
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B4
   desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置 boot
     storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
   severity: high
-  needs_from: *id016
+  needs_from: *id018
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: PM-B4
   desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
   severity: medium
-  needs_from: *id017
+  needs_from: *id019
   waiting_since: '2026-10-21'
   owner: main
+- id: SW-FW-B3
+  desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
+  severity: medium
+  needs_from: *id020
+  waiting_since: '2026-10-26'
+  owner: sw-lead
 - id: MECH-B3
   desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
   severity: medium
-  needs_from: *id018
+  needs_from: *id021
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B5
   desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
     → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
   severity: medium
-  needs_from: *id019
+  needs_from: *id022
   waiting_since: '2026-10-25'
   owner: mech-lead
 conflicts: []
@@ -2054,11 +2287,11 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 16
-  blockers: 19
-  high_blockers: 16
-  open_needs: 4
-  waiting_external_needs: 22
+  artifacts: 17
+  blockers: 22
+  high_blockers: 18
+  open_needs: 6
+  waiting_external_needs: 27
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0

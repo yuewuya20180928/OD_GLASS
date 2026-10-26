@@ -327,7 +327,7 @@ issues:
   reporter: mech-lead
   raised: '2026-10-25'
   due: '2026-10-28'
-  status: fixing
+  status: open
   external: false
   fix_ref: null
   verify_by: null
@@ -492,7 +492,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   task_brief: '目标: 硬件可靠性设计评审 —— 元件降额 + 应力分析 + MTBF 估算
@@ -502,11 +502,14 @@ issues:
     验收: ① 每个 IC/电源/电池给降额规则 (温度/电压/电流) ② 板级应力 (弯折/振动/跌落对 BGA/连接器/焊点) ③ MTBF 估算写清假设
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: 'HW/RELIABILITY_DESIGN.md (632 行: 48 行降额表 + 17 组应力 + 3 档 MTBF + 14 条未验项 + 5 章证据分级)'
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-26'
+  note: '10-26 18:5x-19:1x 由 hw-lead 主会话交卷 (项目总工通过队列看到)。★项目总工独立复核: 文件在位 HW/RELIABILITY_DESIGN.md (59KB, 632 行); 含 48 行降额表 (15 类器件 × 温度/电压/电流 三档) + 17 组应力 E1-E17 + 系统级 MTBF 522,510h (按需触发 40 度) / 93,396h
+    (满载 55 度) + 元件级 236,742h; 15/15 器件绝对最大额定全为 [0数据] 已明写; 3 个硬问题 R-F1/R-F2/R-F3 均已登记成 need/blocker。★它自查出的两个诚实交代我采纳并转成登记: (1) 降额表不能对供应商声称器件合规 (15/15 绝对最大额定一份没核) -> ISS-068 (source_blocker=HW-B6) (2) MTBF
+    59.6 年不能对外用 (FIT 全是通用代表值 + 光学件占 39.1% + 焊点被低估) -> 只能做相对比较与找主导项。★它还标出一个我没要求的口径冲突: sw-lead 登记 od_duty_cycle=100% (OD 连续推理) 与 MECH 的 0.23W/1.22W 隐含 D=0.19 不能同时成立, 差 5.6 倍系统级 MTBF -> 已挂 need rel_od_duty_for_mtbf
+    给 sw-lead'
   dispatched_at: '2026-10-26'
 - id: ISS-024
   title: 材料选型与表面耐受缺失 (汗液/化妆品/酒精/UV 全未考虑)
@@ -638,7 +641,7 @@ issues:
 - id: ISS-029
   title: USB 固件烧录 + 版本管理 + 回滚 缺失 (无线 OTA 不做, 但返修必需)
   severity: medium
-  source_blocker: null
+  source_blocker: SW-FW-B1
   source_agent: main
   desc: USB 固件烧录 + 版本管理 + 回滚 缺失 (无线 OTA 不做, 但返修必需)
   owner: sw-lead
@@ -1766,7 +1769,8 @@ issues:
   verify_by: main
   verify_result: null
   verify_date: null
-  note: '10-26 19:2x 项目总工批准 mech-lead 的 3 条提问, 合并成一单 (全是同一件事: 新容量口径的落地)。★重点结论: 老板锁死的镜腿 7.3mm 不用改, 675mAh→11.2mm 的形态否决解除 (但降容只解形态不解散热)'
+  note: '10-26 19:2x 项目总工批准 mech-lead 的 3 条提问, 合并成一单 (全是同一件事: 新容量口径的落地)。★重点结论: 老板锁死的镜腿 7.3mm 不用改, 675mAh→11.2mm 的形态否决解除 (但降容只解形态不解散热) | 10-26 19:1x 项目总工直接派 (sessions_spawn), 不是队列派。★ISS-074 与并行跑的 ISS-067
+    边界已隔开: 不许碰 state/ 分片, 不许碰 HW/POWER_TOPOLOGY_RF1.md'
   dispatched_at: '2026-10-26'
 - id: ISS-073
   title: 显示帧 buffer 与合成帧两行加注 (800x600 = 老板锁死的显示分辨率, 不是旧链路) —— 不许按 640x480 重算
@@ -1789,4 +1793,53 @@ issues:
   verify_result: null
   verify_date: null
   note: '10-26 19:2x 项目总工驳回它的重算建议 + 给出替代动作 (只加注)。★排期: 等网关重启后派 (与 ISS-072 一起)'
+  dispatched_at: '2026-10-26'
+- id: ISS-074
+  title: ★开始画硬件原理图 V1 (8 页图页 + 完整 netlist + KiCad 可导入 .net) —— 球位号统一用 TBD 占位, 原厂回信后只填球号
+  severity: blocker
+  source_blocker: null
+  source_agent: main
+  desc: '老板 19:13 指示: 开始画硬件原理图。现状: 已有 L1 顶层定义 (SCHEMATIC_L1.md 41KB) + 56 条连接表 (INTERFACE_TABLE.md) + 79 个 SoC 功能位号 (SCHEMATIC_REFDIE.md 87KB), 但**没有器件级的可施工图纸**。项目总工已先做机械抽取: HW/SCHEMATIC_V1_SPEC.json (56
+    连接 + 13 电源轨 + 9 显示选择位 + 13 测试点 + 13 项画不了清单), 并写好机械验收器 state/check_netlist.py (12 条判据)。本任务 = 把规格变成图纸'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-29'
+  status: fixing
+  external: false
+  need_keys: []
+  task_brief: "【原理图 V1 · 只读一份规格, 不要读原始大文件】\n\n★输入只有两个文件: (1) `HW/SCHEMATIC_V1_SPEC.json` (项目总工机械抽取的图纸规格, 含 56 条连接 / 13 电源轨 / 9 个显示选择 0Ω 位 / 13 测试点 / 13 项画不了清单) (2) 本任务书。**不要读** SCHEMATIC_L1.md / SCHEMATIC_REFDIE.md\
+    \ / INTERFACE_TABLE.md (合计 145KB, 会把上下文读爆 —— 这是项目总工已经替你做完的活)。\n\n要交三样:\n1. `HW/SCHEMATIC_V1.md` —— 8 页图页: P1 电源树 / P2 SoC 主控 / P3 启动存储 / P4 显示双出口 / P5 MIPI-CSI 传感器 / P6 高速差分与连接器 / P7 板级接口与测试点 / P8 时钟复位调试。每页\
+    \ = 功能块框图 (ASCII 或 mermaid) + 器件表 (位号/值/封装/容差/DNP) + 该页 net 清单。\n2. `HW/netlist_v1.csv` —— 完整 netlist, **表头必须正好这 12 列**: page,net,node1,node2,ref,value,type,dnp,evidence,tbd,note,conn_id\n   - dnp ∈\
+    \ {必装, DNP, 可选}; evidence ∈ {[官方],[推算],[实测],[待原厂],[待JBD],[同Die参考-待官方确认],[0数据]}; tbd 用 TBD-01..TBD-13 (对应规格里的 13 项画不了清单, 编号顺序一致); conn_id 填规格里的 A-01..C-11 连接编号 (规格 connections[] 里的 id)\n   - SoC 侧球位号**一律用\
+    \ TBD-xx 占位**, 不要编球号; 规格里 56 条连接的信号名直接用\n3. `HW/netlist_v1.net` —— KiCad 可导入的 netlist (s-expression 格式), 让老板本地装 KiCad 后直接 import 出图 (本机没有 KiCad 也没 sudo 装不了)\n\n★硬边界: ① 球位号不许编, 电压域/电流不许编 —— 规格里没有的标 [待原厂]\
+    \ 并挂 TBD 编号 ② 只写 HW/ 下这 3 个新文件, 不许改任何既有 HW 文档 ③ 不许碰 state/ 下任何文件 (分片由项目总工写) ④ 显示双出口按规格的 8 个 0Ω 位画 (R_SEL_* 与 BR_* 两组分开列, 互斥不许同装) ⑤ 电源树按项目总工 R-F1 裁决画基线: UVP 抬到 3.5V + 3.3V 改由 TPS62130A 供 (ISS-067 在并行评估第三条路,\
+    \ 若有变只改这一处, 不影响全图)\n\n★自证 (交卷前跑, 输出贴进回复):\ncd /home/yuewuya/.openclaw/workspace/projects/smart_glasses\npython3 state/check_netlist.py    # 必须 rc=0 且 12 条判据全过 (这是项目总工写的机械验收器)\n\n★提醒: 别整篇读 HW/ 下的其它文档,\
+    \ 规格 JSON 已够。回复格式 (4 行): 产出三个文件 + 行数 | check_netlist 12/12 | 球位号全部 TBD 占位 (无编造) | 待我确认"
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 19:2x 项目总工登记并派。★为什么拆两步: 让子 agent 读 145KB 原始文档 = 10-25 那次 149.7k tokens 0 产出的同款坑 → 我先机械抽规格, 它只读规格。★门禁我自己写自己跑 (state/check_netlist.py 12 条判据) | 10-26 19:1x 项目总工直接派 (sessions_spawn), 不是队列派。★ISS-074
+    与并行跑的 ISS-067 边界已隔开: 不许碰 state/ 分片, 不许碰 HW/POWER_TOPOLOGY_RF1.md'
+  dispatched_at: '2026-10-26'
+- id: ISS-075
+  title: S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项
+  severity: high
+  source_blocker: SW-FW-B2
+  source_agent: sw-lead
+  desc: 'ISS-029 交卷时登记的阻塞: 救砖链路从未实测, 且原厂工具与 BOOT 进入条件全是 0 数据 —— 没实测就量产 = 砖了没法救。量产前必须验证: 进 BOOT 模式的方法、原厂下载工具能否识别、刷回来后校验通过'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '把 S2 救砖链路写成可执行的实测方案: 进 BOOT 模式的具体操作 (按键/时序/引脚) + 用什么工具识别与刷写 + 刷回来的校验判据 + 无样机时怎么用仿真器/空板先验一遍。输出: 写进 SW/ 的烧录章节 + EVT 模板加一条可判项 (谁执行/怎么判过/失败怎么办)'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 19:2x 项目总工登记 (为了满足 issue_check 的 双向覆盖: STATE 里的 SW-FW-B2 阻塞必须有 issue 盯着)'
   dispatched_at: '2026-10-26'

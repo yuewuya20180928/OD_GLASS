@@ -1,0 +1,1109 @@
+{
+ "meta": {
+  "title": "ARS45 原理图 V1 图纸规格 (项目总工机械抽取)",
+  "generated": "2026-10-26 19:20",
+  "sources": [
+   "HW/INTERFACE_TABLE.md",
+   "HW/SCHEMATIC_L1.md",
+   "HW/SCHEMATIC_REFDIE.md (79 个 SoC 功能位号, 本轮不读, 球位号统一用 TBD 占位)"
+  ],
+  "note": "这是画图用的**输入规格**, 由项目总工从三份既有文档机械抽取 → 目的: 画图方只需读本文件, 不必读 145KB 原始文档 (避免上下文爆掉)"
+ },
+ "counts": {
+  "connections": 56,
+  "A": 21,
+  "B": 24,
+  "C": 11,
+  "power_rails": 13,
+  "display_select": 9,
+  "testpoints": 13,
+  "undrawable": 13
+ },
+ "connections": [
+  {
+   "id": "A-01",
+   "group": "A",
+   "signal": "CSI_D0_CK_P",
+   "dir": "SoC→sensor",
+   "level": "1.2V CML [待原厂]",
+   "imp": "100Ω ±10%",
+   "conn": "CONN_CAM 40p (跨铰链) + AC 耦合电容位",
+   "tp": "TP_CSI_CK_P",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-02",
+   "group": "A",
+   "signal": "CSI_D0_CK_N",
+   "dir": "SoC→sensor",
+   "level": "1.2V CML [待原厂]",
+   "imp": "100Ω ±10%",
+   "conn": "同上",
+   "tp": "TP_CSI_CK_N",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-03",
+   "group": "A",
+   "signal": "CSI_D0_D0_P",
+   "dir": "SoC→sensor",
+   "level": "1.2V CML [待原厂]",
+   "imp": "100Ω ±10%",
+   "conn": "同上",
+   "tp": "TP_CSI_D0_P",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-04",
+   "group": "A",
+   "signal": "CSI_D0_D0_N",
+   "dir": "SoC→sensor",
+   "level": "1.2V CML [待原厂]",
+   "imp": "100Ω ±10%",
+   "conn": "同上",
+   "tp": "TP_CSI_D0_N",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-05",
+   "group": "A",
+   "signal": "CSI_D0_D1_P",
+   "dir": "SoC→sensor",
+   "level": "1.2V CML [待原厂]",
+   "imp": "100Ω ±10%",
+   "conn": "同上",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-06",
+   "group": "A",
+   "signal": "CSI_D0_D1_N",
+   "dir": "SoC→sensor",
+   "level": "1.2V CML [待原厂]",
+   "imp": "100Ω ±10%",
+   "conn": "同上",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-07",
+   "group": "A",
+   "signal": "CSI_D0_D2_P",
+   "dir": "SoC→sensor",
+   "level": "1.2V CML [待原厂]",
+   "imp": "100Ω ±10%",
+   "conn": "同上 + 100Ω 对地端接",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "DNP (预留 4-lane)",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-08",
+   "group": "A",
+   "signal": "CSI_D0_D2_N",
+   "dir": "SoC→sensor",
+   "level": "1.2V CML [待原厂]",
+   "imp": "100Ω ±10%",
+   "conn": "同上 + 100Ω 对地端接",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "DNP",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-09",
+   "group": "A",
+   "signal": "CSI_D0_D3_P",
+   "dir": "SoC→sensor",
+   "level": "1.2V CML [待原厂]",
+   "imp": "100Ω ±10%",
+   "conn": "同上 + 100Ω 对地端接",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "DNP",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-10",
+   "group": "A",
+   "signal": "CSI_D0_D3_N",
+   "dir": "SoC→sensor",
+   "level": "1.2V CML [待原厂]",
+   "imp": "100Ω ±10%",
+   "conn": "同上 + 100Ω 对地端接",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "DNP",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-11",
+   "group": "A",
+   "signal": "CSI_MCLK",
+   "dir": "SoC→sensor",
+   "level": "[待原厂]",
+   "imp": "单端, 需包地",
+   "conn": "CONN_CAM; 单独包地, 与电源并行 ≤5mm, 间距 ≥3mm",
+   "tp": "TP_MCLK",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-12",
+   "group": "A",
+   "signal": "CSI_RESET_N",
+   "dir": "SoC→sensor",
+   "level": "1.8V [待原厂]",
+   "imp": "单端, 10k 上拉",
+   "conn": "CONN_CAM",
+   "tp": "TP_CSI_RST",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-13",
+   "group": "A",
+   "signal": "DSI_D0_CK_P",
+   "dir": "SoC(或桥接)→光机",
+   "level": "1.2V CML",
+   "imp": "100Ω ±10%",
+   "conn": "CONN_LIGHT pin3 + R_SEL_CK 0Ω",
+   "tp": "TP_DSI_CK_P",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-14",
+   "group": "A",
+   "signal": "DSI_D0_CK_N",
+   "dir": "SoC(或桥接)→光机",
+   "level": "1.2V CML",
+   "imp": "100Ω ±10%",
+   "conn": "CONN_LIGHT pin4 + R_SEL_CK 0Ω",
+   "tp": "TP_DSI_CK_N",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-15",
+   "group": "A",
+   "signal": "DSI_D0_D0_P",
+   "dir": "SoC(或桥接)→光机",
+   "level": "1.2V CML",
+   "imp": "100Ω ±10%",
+   "conn": "CONN_LIGHT pin5 + R_SEL_D0",
+   "tp": "TP_DSI_D0_P",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-16",
+   "group": "A",
+   "signal": "DSI_D0_D0_N",
+   "dir": "SoC(或桥接)→光机",
+   "level": "1.2V CML",
+   "imp": "100Ω ±10%",
+   "conn": "CONN_LIGHT pin6 + R_SEL_D0",
+   "tp": "TP_DSI_D0_N",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-17",
+   "group": "A",
+   "signal": "DSI_D0_D1_P",
+   "dir": "SoC(或桥接)→光机",
+   "level": "1.2V CML",
+   "imp": "100Ω ±10%",
+   "conn": "CONN_LIGHT pin7 + R_SEL_D1",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-18",
+   "group": "A",
+   "signal": "DSI_D0_D1_N",
+   "dir": "SoC(或桥接)→光机",
+   "level": "1.2V CML",
+   "imp": "100Ω ±10%",
+   "conn": "CONN_LIGHT pin8 + R_SEL_D1",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-19",
+   "group": "A",
+   "signal": "DSI_D0_D2_P",
+   "dir": "SoC→光机",
+   "level": "1.2V CML",
+   "imp": "100Ω ±10%",
+   "conn": "CONN_LIGHT pin9 + R_SEL_D2 + 100Ω 对地端接",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "DNP",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-20",
+   "group": "A",
+   "signal": "DSI_D0_D3_N (+D2_N/D3_P 同规格)",
+   "dir": "SoC→光机",
+   "level": "1.2V CML",
+   "imp": "100Ω ±10%",
+   "conn": "CONN_LIGHT pin10/11/12 + 100Ω 对地端接",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "DNP",
+   "ver": "v0.1"
+  },
+  {
+   "id": "A-21",
+   "group": "A",
+   "signal": "DP_TX_A0..A3_P/N (4 lane)",
+   "dir": "SoC→桥接芯片",
+   "level": "差分 [待原厂]",
+   "imp": "100Ω ±10% (DP 1.4)",
+   "conn": "主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 + 对地电容位)",
+   "tp": "TP_DP_A0_P/N",
+   "owner": "hw-lead",
+   "dnp": "必装 (引出), 端接随方案",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-01",
+   "group": "B",
+   "signal": "I2C_A_SCL",
+   "dir": "双向 (主机)",
+   "level": "3.3V",
+   "imp": "上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF)",
+   "conn": "SoC [待原厂] + sensor/NTC/桥接/充电IC",
+   "tp": "TP_I2CA_SCL",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-02",
+   "group": "B",
+   "signal": "I2C_A_SDA",
+   "dir": "双向 (主机)",
+   "level": "3.3V",
+   "imp": "上拉 4.7k 到 3.3V",
+   "conn": "同上",
+   "tp": "TP_I2CA_SDA",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-03",
+   "group": "B",
+   "signal": "I2C_B_SCL (= DSI_DDC_SCL)",
+   "dir": "双向",
+   "level": "3.3V",
+   "imp": "上拉 4.7k, 放主板侧",
+   "conn": "CONN_LIGHT pin13 → 光机",
+   "tp": "TP_I2CB_SCL",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-04",
+   "group": "B",
+   "signal": "I2C_B_SDA (= DSI_DDC_SDA)",
+   "dir": "双向",
+   "level": "3.3V",
+   "imp": "上拉 4.7k, 放主板侧",
+   "conn": "CONN_LIGHT pin14 → 光机",
+   "tp": "TP_I2CB_SDA",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-05",
+   "group": "B",
+   "signal": "CHG_STAT",
+   "dir": "充电IC→SoC",
+   "level": "3.3V (开漏)",
+   "imp": "单端",
+   "conn": "BQ25896 STAT 脚 → SoC GPIO",
+   "tp": "TP_CHG_STAT",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-06",
+   "group": "B",
+   "signal": "PWR_GOOD",
+   "dir": "充电IC→SoC",
+   "level": "3.3V (开漏)",
+   "imp": "单端",
+   "conn": "BQ25896 PG 脚 → SoC GPIO",
+   "tp": "TP_PG",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-07",
+   "group": "B",
+   "signal": "VBUS_DET",
+   "dir": "充电板→SoC",
+   "level": "0-3.3V (分压)",
+   "imp": "1M+1M 分压 + 100nF",
+   "conn": "Type-C VBUS → ADC",
+   "tp": "TP_VBUS",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-08",
+   "group": "B",
+   "signal": "BAT_DET",
+   "dir": "充电板→SoC",
+   "level": "0-3.3V (分压)",
+   "imp": "1M+1M 分压 + 100nF",
+   "conn": "电池 BAT → ADC",
+   "tp": "TP_BAT",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-09",
+   "group": "B",
+   "signal": "FSIN",
+   "dir": "SoC→外部",
+   "level": "[待原厂]",
+   "imp": "单端, 50Ω 串阻",
+   "conn": "SoC FSIN/VSYNC 脚 → 测试点",
+   "tp": "TP_FSIN",
+   "owner": "hw-lead",
+   "dnp": "必装 (若 SoC 无此脚则 DNP)",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-10",
+   "group": "B",
+   "signal": "RESET_N",
+   "dir": "双向",
+   "level": "1.8V [待原厂]",
+   "imp": "上拉 10k + RC(1k/100nF)",
+   "conn": "SoC RESET_N + 按键到 GND",
+   "tp": "TP_RESET",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-11",
+   "group": "B",
+   "signal": "BOOT_N",
+   "dir": "双向",
+   "level": "1.8V [待原厂]",
+   "imp": "上拉 10k",
+   "conn": "SoC BOOT 脚 + 按键到 GND",
+   "tp": "TP_BOOT",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-12",
+   "group": "B",
+   "signal": "LED_R",
+   "dir": "SoC→LED",
+   "level": "3.3V",
+   "imp": "1k 串阻 → LED → GND",
+   "conn": "主 PCB",
+   "tp": "TP_LED_R",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-13",
+   "group": "B",
+   "signal": "LED_G",
+   "dir": "SoC→LED",
+   "level": "3.3V",
+   "imp": "1k 串阻 → LED → GND",
+   "conn": "主 PCB",
+   "tp": "TP_LED_G",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-14",
+   "group": "B",
+   "signal": "LED_B",
+   "dir": "SoC→LED",
+   "level": "3.3V",
+   "imp": "1k 串阻 → LED → GND",
+   "conn": "主 PCB",
+   "tp": "TP_LED_B",
+   "owner": "hw-lead",
+   "dnp": "DNP (无无线)",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-15",
+   "group": "B",
+   "signal": "KEY_PWR",
+   "dir": "按键→SoC",
+   "level": "0/3.3V",
+   "imp": "上拉 10k, 按下到 GND, 支持长按",
+   "conn": "主 PCB",
+   "tp": "TP_KEY_PWR",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-16",
+   "group": "B",
+   "signal": "KEY_VOL+",
+   "dir": "按键→SoC",
+   "level": "0/3.3V",
+   "imp": "同上",
+   "conn": "主 PCB",
+   "tp": "TP_KEY_VP",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-17",
+   "group": "B",
+   "signal": "KEY_VOL-",
+   "dir": "按键→SoC",
+   "level": "0/3.3V",
+   "imp": "同上",
+   "conn": "主 PCB",
+   "tp": "TP_KEY_VM",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-18",
+   "group": "B",
+   "signal": "KEY_CAM",
+   "dir": "按键→SoC",
+   "level": "0/3.3V",
+   "imp": "同上",
+   "conn": "主 PCB (焊盘留, 不装)",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "DNP (焊盘必留)",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-19",
+   "group": "B",
+   "signal": "JTAG_TCK/TMS/TDI/TDO (4 线)",
+   "dir": "双向",
+   "level": "[待原厂]",
+   "imp": "单端, 100Ω 串阻",
+   "conn": "1×4 1.27mm 排针 (调试用, 不装贴片)",
+   "tp": "TP_JTAG",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-20",
+   "group": "B",
+   "signal": "UART_TX/RX (2 线)",
+   "dir": "双向",
+   "level": "3.3V [待原厂]",
+   "imp": "单端",
+   "conn": "同 B-19 排针 (复用脚)",
+   "tp": "TP_UART",
+   "owner": "hw-lead",
+   "dnp": "预留, 与 USB 二选一",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-21",
+   "group": "B",
+   "signal": "USB_D+",
+   "dir": "SoC↔Type-C",
+   "level": "3.3V [待原厂]",
+   "imp": "90Ω ±10% (与 MIPI 不同模板!)",
+   "conn": "Type-C → 主 PCB (跨铰链则经 CONN_USB)",
+   "tp": "TP_USB_D+",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-22",
+   "group": "B",
+   "signal": "USB_D-",
+   "dir": "SoC↔Type-C",
+   "level": "3.3V [待原厂]",
+   "imp": "90Ω ±10%",
+   "conn": "同上",
+   "tp": "TP_USB_D-",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-23",
+   "group": "B",
+   "signal": "USB_CC1/CC2",
+   "dir": "Type-C→PD控制器",
+   "level": "—",
+   "imp": "Rd 5.1k 到 GND ×2 (PD sink 时由 TPS25730 接管)",
+   "conn": "Type-C",
+   "tp": "—",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "B-24",
+   "group": "B",
+   "signal": "ID_DETECT",
+   "dir": "板级→SoC",
+   "level": "3.3V",
+   "imp": "GPIO 编码 (2 位)",
+   "conn": "主 PCB (焊盘跳线)",
+   "tp": "TP_ID",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-01",
+   "group": "C",
+   "rail": "VBUS_5V",
+   "dir": "Type-C→充电板",
+   "volt": "5.0V ±5%",
+   "max_i": "2.0A (PD 5V/2A)",
+   "source_ic": "Type-C 座 + ESD + π滤波",
+   "tp": "TP_VBUS",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-02",
+   "group": "C",
+   "rail": "SYS",
+   "dir": "电池→主PCB",
+   "volt": "3.0-4.2V",
+   "max_i": "0.55A (330mA×1.5 + 瞬态)",
+   "source_ic": "电池 432243 3.7V ≥420mAh",
+   "tp": "TP_SYS",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-03",
+   "group": "C",
+   "rail": "BAT",
+   "dir": "电池↔充电板",
+   "volt": "4.2V 满 / 3.0V 截止",
+   "max_i": "1.0-1.5A 充电",
+   "source_ic": "电池 + BQ2970 + 2×MOS",
+   "tp": "TP_BAT",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-04",
+   "group": "C",
+   "rail": "V_CORE",
+   "dir": "DC-DC→SoC",
+   "volt": "[待原厂] (典型 0.8-0.9V)",
+   "max_i": "≥2.0A",
+   "source_ic": "TPS62130A (3A)",
+   "tp": "TP_VCORE",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-05",
+   "group": "C",
+   "rail": "V_SOC_IO",
+   "dir": "DC-DC→SoC",
+   "volt": "[待原厂] (3.3/1.8/1.2V)",
+   "max_i": "≥1.0A",
+   "source_ic": "TPS62130A (3A)",
+   "tp": "TP_VIO",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-06",
+   "group": "C",
+   "rail": "SENSOR_AVDD",
+   "dir": "LDO→sensor",
+   "volt": "2.8V",
+   "max_i": "30mA",
+   "source_ic": "TPS7A20-28",
+   "tp": "TP_SENSOR_2V8",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-07",
+   "group": "C",
+   "rail": "SENSOR_VDD_IO",
+   "dir": "LDO→sensor",
+   "volt": "1.8V",
+   "max_i": "30mA",
+   "source_ic": "TPS7A20-18",
+   "tp": "TP_SENSOR_1V8",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-08",
+   "group": "C",
+   "rail": "SENSOR_CORE",
+   "dir": "LDO→sensor",
+   "volt": "1.2V",
+   "max_i": "50mA",
+   "source_ic": "TPS7A20-12",
+   "tp": "TP_SENSOR_1V2",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-09",
+   "group": "C",
+   "rail": "LIGHT_3V3",
+   "dir": "LDO→光机",
+   "volt": "3.3V",
+   "max_i": "150mA",
+   "source_ic": "TPS7A20-33",
+   "tp": "TP_LIGHT_3V3",
+   "owner": "hw-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-10",
+   "group": "C",
+   "rail": "LIGHT_1V8 / LIGHT_5V",
+   "dir": "LDO/直供→光机",
+   "volt": "[待 JBD]",
+   "max_i": "50mA",
+   "source_ic": "TPS7A20-18 / VBUS 直供",
+   "tp": "TP_LIGHT_1V8",
+   "owner": "hw-lead",
+   "dnp": "DNP 待 JBD",
+   "ver": "v0.1"
+  },
+  {
+   "id": "C-11",
+   "group": "C",
+   "rail": "GND (机壳地 / 数字地)",
+   "dir": "—",
+   "volt": "—",
+   "max_i": "—",
+   "source_ic": "单点汇流",
+   "tp": "—",
+   "owner": "mech-lead",
+   "dnp": "必装",
+   "ver": "v0.1"
+  }
+ ],
+ "power_rails": [
+  {
+   "rail": "VBUS_5V",
+   "volt": "5.0V ±5%",
+   "max_i": "2.0A (PD 5V/2A)",
+   "ic": "Type-C 座 + ESD 阵列",
+   "status": "✅ 可画",
+   "evidence": "[官方] USB-IF Type-C"
+  },
+  {
+   "rail": "SYS",
+   "volt": "3.0-4.2V",
+   "max_i": "0.55A (整机 1.22W/3.7V=330mA ×1.5 + 瞬态)",
+   "ic": "电池 432243 3.7V ≥420mAh",
+   "status": "✅ 可画",
+   "evidence": "[推算] tracker §3.4 + INTERFACES.md"
+  },
+  {
+   "rail": "BAT",
+   "volt": "4.2V 满充 / 3.0V 截止",
+   "max_i": "1.0-1.5A 充电",
+   "ic": "BQ25896 (3A 能力, 我们用 1.0A)",
+   "status": "✅ 可画",
+   "evidence": "[官方] TI"
+  },
+  {
+   "rail": "V_CORE",
+   "volt": "[待原厂] (典型 0.8-0.9V)",
+   "max_i": "≥2.0A (0.9W/0.8V×1.5=1.69A)",
+   "ic": "TPS62130A (3A)",
+   "status": "⛔ 电压待原厂, IC 可画",
+   "evidence": "[推算] §4.3"
+  },
+  {
+   "rail": "V_SOC_IO",
+   "volt": "[待原厂] (3.3V / 1.8V / 1.2V)",
+   "max_i": "≥1.0A",
+   "ic": "TPS62130A (3A)",
+   "status": "⛔ 电压待原厂, IC 可画",
+   "evidence": "—"
+  },
+  {
+   "rail": "SENSOR_AVDD",
+   "volt": "2.8V",
+   "max_i": "30mA",
+   "ic": "TPS7A20-28",
+   "status": "✅ 可画",
+   "evidence": "[官方] OV04C10 product brief"
+  },
+  {
+   "rail": "SENSOR_VDD_IO",
+   "volt": "1.8V",
+   "max_i": "30mA",
+   "ic": "TPS7A20-18",
+   "status": "✅ 可画",
+   "evidence": "[官方]"
+  },
+  {
+   "rail": "SENSOR_CORE",
+   "volt": "1.2V",
+   "max_i": "50mA",
+   "ic": "TPS7A20-12",
+   "status": "✅ 可画",
+   "evidence": "[官方]"
+  },
+  {
+   "rail": "LIGHT_3V3",
+   "volt": "3.3V",
+   "max_i": "150mA",
+   "ic": "TPS7A20-33",
+   "status": "⚠️ 电压 [待 JBD]",
+   "evidence": "—"
+  },
+  {
+   "rail": "LIGHT_1V8",
+   "volt": "1.8V",
+   "max_i": "50mA",
+   "ic": "TPS7A20-18",
+   "status": "⚠️ 电压 [待 JBD]",
+   "evidence": "—"
+  },
+  {
+   "rail": "LIGHT_5V",
+   "volt": "5.0V",
+   "max_i": "50mA",
+   "ic": "经 LIGHT_3V3 轨升压或直接取 VBUS",
+   "status": "⚠️ [待 JBD]",
+   "evidence": "—"
+  },
+  {
+   "rail": "VDD_3V3_IO",
+   "volt": "3.3V",
+   "max_i": "200mA",
+   "ic": "TPS7A20-33 或 TPS62130A",
+   "status": "✅ 可画",
+   "evidence": "—"
+  },
+  {
+   "rail": "VDD_1V8_IO",
+   "volt": "1.8V",
+   "max_i": "100mA",
+   "ic": "TPS7A20-18",
+   "status": "✅ 可画",
+   "evidence": "—"
+  }
+ ],
+ "display_select": [
+  {
+   "ref": "R_SEL_CK",
+   "conn": "ARS45 DSI_TX_CK ↔ Pin3/4",
+   "planA": "装 0Ω",
+   "planB": "DNP",
+   "note": ""
+  },
+  {
+   "ref": "R_SEL_D0",
+   "conn": "ARS45 DSI_TX_D0 ↔ Pin5/6",
+   "planA": "装 0Ω",
+   "planB": "DNP",
+   "note": ""
+  },
+  {
+   "ref": "R_SEL_D1",
+   "conn": "ARS45 DSI_TX_D1 ↔ Pin7/8",
+   "planA": "装 0Ω",
+   "planB": "DNP",
+   "note": ""
+  },
+  {
+   "ref": "R_SEL_D2",
+   "conn": "ARS45 DSI_TX_D2 ↔ Pin9/10",
+   "planA": "DNP",
+   "planB": "DNP",
+   "note": "2-lane 不够时再装"
+  },
+  {
+   "ref": "R_SEL_D3",
+   "conn": "ARS45 DSI_TX_D3 ↔ Pin11/12",
+   "planA": "DNP",
+   "planB": "DNP",
+   "note": ""
+  },
+  {
+   "ref": "BR_CK",
+   "conn": "桥接 DSI_CK ↔ Pin21/22",
+   "planA": "DNP",
+   "planB": "装 0Ω",
+   "note": ""
+  },
+  {
+   "ref": "BR_D0",
+   "conn": "桥接 DSI_D0 ↔ Pin23/24",
+   "planA": "DNP",
+   "planB": "装 0Ω",
+   "note": ""
+  },
+  {
+   "ref": "BR_D1",
+   "conn": "桥接 DSI_D1 ↔ Pin25/26",
+   "planA": "DNP",
+   "planB": "装 0Ω",
+   "note": ""
+  },
+  {
+   "ref": "R_TERM_*",
+   "conn": "每条未用差分对各 100Ω 对地",
+   "planA": "按方案装",
+   "planB": "按方案装",
+   "note": "0402, ±1%, 手工可补装"
+  }
+ ],
+ "testpoints": [
+  {
+   "tp": "TP_VBUS",
+   "what": "Type-C 入口 5V",
+   "where": "Type-C 出口侧 ≤3mm",
+   "form": "测试点 + π 滤波后"
+  },
+  {
+   "tp": "TP_SYS",
+   "what": "系统 3.7V 主轨",
+   "where": "电池保护后",
+   "form": "测试点"
+  },
+  {
+   "tp": "TP_BAT",
+   "what": "电池电压",
+   "where": "BQ25896 BAT 脚",
+   "form": "测试点"
+  },
+  {
+   "tp": "TP_VCORE",
+   "what": "SoC 核心轨",
+   "where": "DC-DC 输出",
+   "form": "测试点 + 引线可及"
+  },
+  {
+   "tp": "TP_VIO",
+   "what": "SoC IO 轨",
+   "where": "DC-DC/LDO 输出",
+   "form": "测试点"
+  },
+  {
+   "tp": "TP_SENSOR_3V3/1V8/2V8",
+   "what": "sensor 三条轨",
+   "where": "LDO 输出",
+   "form": "测试点 ×3"
+  },
+  {
+   "tp": "TP_LIGHT_3V3",
+   "what": "光机轨",
+   "where": "LDO 输出",
+   "form": "测试点"
+  },
+  {
+   "tp": "TP_CSI_D0_CK_P / _N",
+   "what": "CSI 时钟差分 (示波器测眼图/摆幅)",
+   "where": "连接器出口",
+   "form": "测试点 ×2"
+  },
+  {
+   "tp": "TP_DSI_D0_CK_P / _N",
+   "what": "DSI 时钟差分",
+   "where": "连接器出口",
+   "form": "测试点 ×2"
+  },
+  {
+   "tp": "TP_USB_D+ / D-",
+   "what": "USB 2.0 差分",
+   "where": "Type-C 出口",
+   "form": "测试点 ×2"
+  },
+  {
+   "tp": "TP_FSIN",
+   "what": "帧同步 (FSIN/VSYNC) 引出",
+   "where": "SoC 侧",
+   "form": "测试点 → 回答原厂问询 Q4b.3"
+  },
+  {
+   "tp": "TP_CHG_STAT",
+   "what": "充电状态",
+   "where": "BQ25896 STAT 脚",
+   "form": "测试点 → 回答 Q4b.4"
+  },
+  {
+   "tp": "TP_ID",
+   "what": "板级版本识别 (I2C EEPROM 或 GPIO 编码)",
+   "where": "主 PCB",
+   "form": "测试点"
+  }
+ ],
+ "undrawable": [
+  {
+   "n": "1",
+   "circuit": "ARS45 引脚表 / 球位图 (所有 SoC 引脚)",
+   "blocked_on": "完整引脚表 + 球位图",
+   "email_ref": "草稿 问题 2 (pitch + 完整球位图/引脚图)",
+   "after_get": "把本文的 [待原厂] 位全部填上球号; 核对逃线可行性",
+   "level": "🔴 一票否决"
+  },
+  {
+   "n": "2",
+   "circuit": "ARS45 电源域表 (轨名/电压/典型电流/最大电流/上电时序/是否需外部 LDO)",
+   "blocked_on": "电源域清单",
+   "email_ref": "草稿 问题 4 (各电源域清单: 轨名/标称电压/典型电流/最大电流/上电时序/负载开关/外部 LDO/内部 DCDC)",
+   "after_get": "替换 §4.2 的 [待原厂]; 核对 DC-DC 额定是否够 (≥2A)",
+   "level": "🔴 高"
+  },
+  {
+   "n": "3",
+   "circuit": "MIPI-CSI 输入侧 (lane 数/速率/电压域/AC 耦合是否内置/MCLK)",
+   "blocked_on": "CSI 规格",
+   "email_ref": "草稿 问题 4b-2",
+   "after_get": "定 lane 数 → 定 AC 耦合电容位 (我们侧预留) → 定 MCLK 电压",
+   "level": "🔴 高"
+  },
+  {
+   "n": "4",
+   "circuit": "显示 TX 结论 (有无 DSI TX / DP 是 RX 还是 TX / lane 数 / 能否同时工作)",
+   "blocked_on": "Q16",
+   "email_ref": "草稿 问题 1 (5 小问)",
+   "after_get": "选 §3 方案 A 还是 B; 定 BR_* 是否装",
+   "level": "🔴 高"
+  },
+  {
+   "n": "5",
+   "circuit": "FCCSP pitch + 球位图 → 逃线可行性 / 叠层",
+   "blocked_on": "pitch 数值",
+   "email_ref": "草稿 问题 2",
+   "after_get": "代入 6 层叠层草案核算",
+   "level": "🔴 一票否决 (违反 4-6 层锁死)"
+  },
+  {
+   "n": "6",
+   "circuit": "启动存储方案 (内置 boot storage? 外挂 SPI-NOR/eMMC?)",
+   "blocked_on": "Q19",
+   "email_ref": "草稿 问题 3 (3 小问)",
+   "after_get": "定 SPI-NOR vs eMMC → PCB 面积 (+25%) 与板宽 12→15mm",
+   "level": "🔴 高 (卡 PCB 外形)"
+  },
+  {
+   "n": "7",
+   "circuit": "帧同步能否引出 (FSIN/VSYNC)",
+   "blocked_on": "Q",
+   "email_ref": "草稿 问题 4b-3",
+   "after_get": "已有 TP_FSIN 兜底, 不卡项目, 只影响测延迟的方法",
+   "level": "🟡 中"
+  },
+  {
+   "n": "8",
+   "circuit": "充电状态能否读出 (充电 IC 状态脚回读 SoC, 还是只有 VBUS 检测)",
+   "blocked_on": "Q",
+   "email_ref": "草稿 问题 4b-4",
+   "after_get": "已有 TP_CHG_STAT + TP_VBUS 兜底 (BQ25896 有 STAT 脚), 不卡项目",
+   "level": "🟡 中"
+  },
+  {
+   "n": "9",
+   "circuit": "DSI DDC I2C 是否独立于 SoC 通用 I2C",
+   "blocked_on": "Q",
+   "email_ref": "草稿 问题 1-4 (DSI TX 的 I2C 通道是独立还是共用 / DDC 地址可否配置)",
+   "after_get": "决定光机 I2C 走总线 B 还是 A → 地址规划已在本文预留双份 (§INTERFACE_TABLE.md §3.2), 两种都成立",
+   "level": "🟢 低 (已绕过)"
+  },
+  {
+   "n": "10",
+   "circuit": "SoC 有无 USB PHY (有无 USB 2.0 控制器)",
+   "blocked_on": "Q",
+   "email_ref": "草稿 问题 2/4b 均未问 → 草稿缺项",
+   "after_get": "决定 USB D+/D- 走 Type-C 还是走 UART 调试",
+   "level": "🟡 中"
+  },
+  {
+   "n": "11",
+   "circuit": "SoC 的 NAND/eMMC/SD 控制器引脚 (启动存储外挂方案的挂载点)",
+   "blocked_on": "Q19 关联",
+   "email_ref": "草稿 问题 3 只问存储方案, 未问挂载接口",
+   "after_get": "定外挂存储是走 SPI-NOR (SPI 控制器) 还是 eMMC (MMC 控制器) → 引脚占用差别大",
+   "level": "🟡 中"
+  },
+  {
+   "n": "12",
+   "circuit": "SoC 上电/复位时序要求 (哪些轨先起 / RESET 何时释放 / 内部 DCDC 同步)",
+   "blocked_on": "时序",
+   "email_ref": "草稿 问题 4 只问了\"上电时序要求\", 未问 RESET 释放时序与内部 DCDC 同步机制",
+   "after_get": "决定 PWR_GOOD → RESET_N 的连接逻辑",
+   "level": "🟡 中"
+  },
+  {
+   "n": "13",
+   "circuit": "SoC 是否支持 FSIN 从外部输入 (做示波器对齐)",
+   "blocked_on": "Q",
+   "email_ref": "草稿 问题 4b-3 只问\"能否引出\"",
+   "after_get": "若只能引出不能输入, 测量方法要换 (用光机 VSYNC)",
+   "level": "🟢 低"
+  }
+ ]
+}
