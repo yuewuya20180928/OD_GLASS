@@ -3,10 +3,13 @@ role: 硬件总工
 updated_at: '2026-10-25T09:34:04+08:00'
 updated_by: hw-lead
 status:
-  phase: P2(原理图/BOM启动)
-  progress_pct: 35
+  phase: P2(原理图/BOM)+可靠性评审
+  progress_pct: 42
   health: red
-  summary: P1拆解100%完成(26模块/5排除项/3卡点对策成型);P2原理图实体0页(datasheet未到,已出顶层骨架+接口定义+12条接口取值);较上轮+5=需求闭环登记(5条answers)+v2交接单B1-B6+1条新答复(NTC位置)
+  summary: 'P1拆解100%+P2原理图骨架(56条接口/31条两端已定)+可靠性评审(ISS-023)完成: 降额15器件x3轴+应力3工况x17元件组+MTBF假设链12条; 新增 6 条
+    needs (2 vendor/1 boss/3 agent) + 6 条 interface_claims + 2 条 blocker; 查出 R-F1(3.3V轨 dropout 硬伤,待main裁决)
+    R-F2(1.0A充电对575mAh=1.74C超规格,待电芯规格书) R-F3(PCB支架须面接触否则跌落sigma 115MPa超许用); 本文不改变 MECH 46.5C 散热结论; 实测
+    0 项, 跌落/振动/弯折/热全部待样机'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -18,6 +21,13 @@ artifacts:
   version: v2.0
   updated_at: '2026-10-25T09:34:00+08:00'
   summary: '第2轮 v2 模板: B1-B6 六块 6/6 齐 + 需求闭环登记表 + 硬指标 5/5 类; 第3轮补登 5 条外部等待(waiting_on+due); 首轮内容一字未删'
+- path: HW/RELIABILITY_DESIGN.md
+  kind: design-review
+  version: v1.0
+  updated_at: '2026-10-26T18:42:00+08:00'
+  summary: 'ISS-023 可靠性评审: 降额表 15 器件 x 温度/电压/电流 (abs max 列 15/15 为 [0数据]) + 板级应力 弯折/振动/跌落 x 17 元件组 (跌落
+    R-F3 面接触 vs 点接触 sigma 17 vs 115MPa) + MTBF 元件级 236742h / 系统级 522510h(按需触发基) 假设链 12 条; 查出 R-F1 3.3V
+    轨 dropout 硬伤 + R-F2 充电倍率超规格; 明确不改变 MECH 46.5C 散热结论'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -46,6 +56,22 @@ blockers:
   - vendor
   - main
   waiting_since: '2026-10-25'
+- id: HW-B5
+  desc: 'R-F1 3.3V 轨拓扑未决: SYS 下限 3.0V vs TPS7A20 dropout 110mV -> SYS<3.41V 时 LIGHT_3V3/VDD_3V3_IO 失效
+    (放电末段 12-15% 电量突然黑屏); 三方案 A/B/C 待 main 裁决, 选 A 需同步重算 Q4 续航口径'
+  severity: high
+  needs_from:
+  - main
+  - vendor
+  waiting_since: '2026-10-26'
+- id: HW-B6
+  desc: '可靠性证据缺口: 15/15 器件 Absolute Maximum Ratings 未核 (降额表只能当设计约束) + 跌落/振动/弯折/热 实测 0 项 (无样机) + 全板 FIT
+    无器件级数据 (MTBF 只能用通用代表值, 光学子系统占 39.1%)'
+  severity: high
+  needs_from:
+  - vendor
+  - main
+  waiting_since: '2026-10-26'
 needs_from:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -96,6 +122,49 @@ needs_from:
   since: '2026-10-25'
   item: '走鹃II: 1 MIPI DSI几lane/最高速率 2 800x600@60fps官方验证过吗 3 I2C做什么用+从机地址(与sensor是否冲突) 4 供电电压范围+峰值电流(电源树的一路输入)
     — 全部经main转达'
+- key: rel_vendor_absmax_rating
+  to: main
+  waiting_on: vendor
+  due: '2026-10-30'
+  item: '15 个器件的 Absolute Maximum Ratings 表 (温度/电压/电流) + 可靠性数据 (FIT/MTBF/降额曲线): 现降额表 绝对最大 列 15/15 全为 [0数据],
+    降额表只能当设计约束不能当器件符合性声明; 另需 BQ25896 工作温度范围 / TMP117 供电范围 / Type-C 母座温升-电流曲线'
+  since: '2026-10-26'
+- key: rel_battery_cell_spec
+  to: main
+  waiting_on: vendor
+  due: '2026-10-30'
+  item: '1S LiPo 电芯规格书: 允许充电倍率 (R-F2: 1.0A@575mAh=1.74C 超典型 1C; 340mAh@1.0A=2.94C 更差) + 循环寿命 + 内阻 + 膨胀曲线
+    + 允许充电/放电温度窗口 (电池轴降额只能按规格书判)'
+  since: '2026-10-26'
+- key: rel_mount_stiffness
+  to: mech-lead
+  due: '2026-10-29'
+  item: 'PCB 支架是面接触还是点接触? (R-F3 跌落): 面接触 有效跨距3mm -> 板弯 sigma=17MPa 通过; 点接触 跨距20mm + 4层0.8mm -> sigma=115MPa
+    超板材弯曲许用 100-140MPa. 需求: 金属骨架托架接触面 >=40x8mm 面接触 + 2xM1.2 螺钉只做防翘压紧 + 定位销只防转, 不承担弯矩; 另需确认 PCB 是否被铰链带弯
+    (不弯则 FPC 承担全部弯折)'
+  since: '2026-10-26'
+- key: rel_sys_min_voltage
+  to: main
+  due: '2026-10-29'
+  item: 'R-F1 裁决 (电源拓扑硬伤): SYS=VBAT 下限 3.0V 与 3.3V 轨冲突 - TPS7A20 dropout 110mV typ [官方] -> 3.3V 输出需 VIN>=3.41V
+    -> SYS<3.41V 时 LIGHT_3V3(150mA)+VDD_3V3_IO(200mA) 失效, 覆盖放电末段 12-15% 电量, 现场=用到快没电突然黑屏. 三方案: A(UVP 抬到3.5V
+    + 3.3V改由TPS62130A供, 牺牲12-15%容量, 续航口径要重算) / B(3.3V 改 buck-boost, +1颗IC) / C(接受末段黑屏). 我推荐 A 但不改 tracker
+    锁死表, 裁决权在你'
+  since: '2026-10-26'
+- key: rel_od_duty_for_mtbf
+  to: sw-lead
+  due: '2026-10-29'
+  item: 'MTBF 工作占空比口径对齐: 你已登记 od_duty_cycle=100% (OD 连续推理, DC-DC 按连续满载设计), 而 MECH 2.3 的按需触发 0.23W/1.22W
+    隐含 D=0.19. 两者不能同时成立, 差 5.6 倍系统级 MTBF (522510h vs 93396h). 请明确: OD 是连续跑还是按需触发? 这决定整机 MTBF 取 59.6 年还是
+    10.7 年'
+  since: '2026-10-26'
+- key: rel_drop_target_level
+  to: main
+  waiting_on: boss
+  due: '2026-10-29'
+  item: '跌落目标等级未拍板: 本文按 1.0m 自由跌落 x (6面各1次+4角各1次=10次/台) x 3台 假设. 消费1.0m/工业1.2m/军规1.5m 判据不同, 直接影响 R-F3
+    面接触要求的松紧'
+  since: '2026-10-26'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -172,6 +241,34 @@ interface_claims:
   value: 550mA@5V/2A
   note: 460mAh 1h 充满需>=550mA, 超 USB2.0 默认500mA -> 建议上 PD sink (5V only, 2A)
   ref: HW/HARDWARE_BREAKDOWN.md#2-结论C-4
+- key: pcb_mount_contact
+  value: 面接触>=40x8mm
+  note: 'R-F3 跌落: 面接触(有效跨距3mm) 板弯 sigma=17MPa 通过 / 点接触(跨距20mm)+4层0.8mm sigma=115MPa 超板材许用100-140MPa; 2xM1.2
+    只防翘+定位销只防转; 不改 mech-lead 已登记的 pcb_mounting, 是补充约束'
+  ref: HW/RELIABILITY_DESIGN.md#43-跌落工况
+- key: sys_min_voltage
+  value: 3.41V(3.3V轨最低SYS)
+  note: 'R-F1: TPS7A20 dropout 110mV typ[官方] + SYS=VBAT 3.0-4.2V[推算] -> SYS<3.41V 时 LIGHT_3V3/VDD_3V3_IO
+    失效(放电末段12-15%); 2.8V轨需>=2.91V 不受影响; 待 main 裁决 A/B/C 三方案'
+  ref: HW/RELIABILITY_DESIGN.md#32--降额评审发现
+- key: bat_chg_rate_cap
+  value: 1.0A(待电芯规格书)
+  note: 'R-F2: 575mAh@1.0A=1.74C 超典型1C; 340mAh@1.0A=2.94C 更差; 处置 降到0.575A(1C, 充满1.5h) 或选2C电芯; 与已登记 battery_charge_current=550mA@5V/2A
+    含义不同(那是1h充满所需电流, 不是倍率上限)'
+  ref: HW/RELIABILITY_DESIGN.md#32--降额评审发现
+- key: component_env_temp_max
+  value: 55C(组件环境上限)
+  note: 贴皮肤镜脚内; BQ2970(-40~85C)与TypeC母座(-25~85C)按x0.85 建议设计上限=72C -> 余量仅17C, 充电域必须挪离皮肤侧 (与 MECH 2.3.1
+    独立佐证); 跌落/振动/热全部未实测
+  ref: HW/RELIABILITY_DESIGN.md#30-逐器件降额表
+- key: drop_test_profile
+  value: 1.0m x 10次/台 x 3台
+  note: 6面各1次+4角各1次; 吸能行程2mm -> 冲击加速度500g; 目标等级待boss拍板(消费1.0m/工业1.2m/军规1.5m)
+  ref: HW/RELIABILITY_DESIGN.md#22-应力工况假设
+- key: derating_rule_set
+  value: 温度x0.85/电压x0.80/电流x0.80
+  note: IPC-9701/GJB-Z35A 通用降额档(条款原文未核->规则本身[推算]); 电池轴例外改用电芯规格书判据; 占用率=工作值/建议设计上限, >=100%不通过/80-100%贴边/<80%通过
+  ref: HW/RELIABILITY_DESIGN.md#21-降额规则
 open_questions:
 - id: HW-Q1
   to: main

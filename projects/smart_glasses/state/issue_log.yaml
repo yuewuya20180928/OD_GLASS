@@ -492,7 +492,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: open
+  status: fixing
   external: false
   need_keys: []
   task_brief: '目标: 硬件可靠性设计评审 —— 元件降额 + 应力分析 + MTBF 估算
@@ -507,6 +507,7 @@ issues:
   verify_result: null
   verify_date: null
   note: ''
+  dispatched_at: '2026-10-26'
 - id: ISS-024
   title: 材料选型与表面耐受缺失 (汗液/化妆品/酒精/UV 全未考虑)
   severity: medium
@@ -1166,7 +1167,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '背景: ISS-042 的推荐解 A 改了镜脚侧几何, 而**当前打印包 (MECH/print/*.stl + 项目总工的 PRINT/ 3MF) 还是旧几何** → 若现在按旧件打印, 量出来的尺寸对不上新方案。
@@ -1176,12 +1177,14 @@ issues:
     验收: 打印包自检全过 (项目总工已建 PRINT/verify_print_pack.py, 16/16) + M-PRINT 的回填项与新几何一致
 
     ★项目总工的 PRINT/ 包 (3MF + 3 个 JSON + 打印卡) 与 MECH/print/ 同源, 修订后需同步'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: '20:0x 第一轮派活**空转**: 8分30秒 / 149.7k tokens 全部消耗在读文件 (fit_check 28KB + CLEARANCE_FIX 29KB + 生成器 16KB + 测量清单 10KB), 回执只有一句''我先读一下当前状态'', **所有文件 mtime 未变 (0 产出)**。★ 根因 = 任务书太重: 同时改 2 个 STL + **重写几何生成器**
-    + 自检 + 测量清单 + 3MF 同步。→ 20:1x 拆成两步: ① mech 只出『几何修订规格 + 测量清单 + 自检判据』(不碰 STL/生成器) ② 项目总工按规格机械重生成 STL + 3MF + 切片配置 (打包器本来就是我维护的)'
+  fix_ref: MECH/print/GEOM_SPEC_REVA.md (22KB) + MEASURE_CHECKLIST.md (16KB) + verify_pack.py (17KB)
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '独立核验: ① GEOM_SPEC_REVA.md 特征表齐全 (F1 电池座净厚 4.75 非对称 皮肤侧0.00/内侧0.15 / F2 皮肤侧壁厚 0.80 / F3 电池段整片顶板 0.80 / F4 顶板压垫槽 0.40深×40.80×16.00 / PCB 定位销孔 ⌀2.4 间隙孔) ② verify_pack.py 已改 Rev A 判据 → 当前 **38/46**
+    (差的 8 项正是''旧 STL vs 新判据''的预期差, 与 hw/sw 报告一致) ③ MEASURE_CHECKLIST 49 项。
+
+    ★本轮会话先因把 measurements.yaml 写成非法 YAML (多行折行值未加引号) 挂掉 3 个门 → 已 steer 纠正 + 我兜底修复; **教训: 写 YAML 必须用 yaml.safe_dump**。★下一步 = 项目总工按本规格机械重生成 STL + 3MF (打包器是我维护的)'
   dispatched_at: '2026-10-25'
 - id: ISS-051
   title: 镜头选型目标改为 对角 FOV 120° (垂直半视场 40.3°) + 俯角 ≤25°
@@ -1314,7 +1317,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: open
+  status: closed
   external: false
   need_keys: []
   task_brief: '触发: 20:20 网上查证 → 媒体 (2026-06-05 沈泊松山湖演讲, [媒体]级) 称 ARS45 ''在 **1080p 30fps EIS 录像**场景下, **整芯片功耗 (含 DDR) 低于 300mW**''。
@@ -1327,11 +1330,19 @@ issues:
     验收: 给出 三档功耗新值 + 皮肤温度新值 + 换算依据; **不许把 300mW 直接当我们的值用** (场景不同)
 
     边界: 证据等级标 [媒体]; 300mW 的测试条件要写明''官方未给'''
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
+  fix_ref: 'HW/POWER_BUDGET_V2.md (44.8KB, 12 章: 三档功耗 + 皮肤温度 + 翻案结论 + 8 条原厂问 + 5 条结构侧建议)'
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-26'
+  note: '10-26 18:4x 由项目总工直接派 (队列 cron 同时段在跑, 先落 fixing 防重复派)。★项目总工独立复核: ① 文件在位 44.8KB; 禁改路径确认: MECH_BUDGET.md mtime 仍 10-25 12:31, PROJECT_TRACKER.md 与其它 HW 文件无它写入 (HW/RELIABILITY_DESIGN.md 的 18:50 写入是
+    hw-lead 主会话的 ISS-023 任务, 不是本任务, 已查会话记录确认); state/ 分片非它所写 ② ★我把它的热模型自己复算了一遍: T_skin = 35.0 + 50.13×P (°C, P=镜腿内发热量 W) → 0.05W→37.5°C, 0.10W→40.0°C, 0.132W→41.6°C, 0.16W→43.0°C (红线), 0.87W→78.6°C, 1.07W→88.6°C,
+    1.59W→114.7°C —— 与文档每一个数一致 (同一模型, 与 MEMORY 里的 1.22W→96.2°C 也自洽) ③ 电池算式自己验: 1.22W/(3.7×0.83×0.9)×1000 = 441mAh, 1.07→387, 0.87→315 全对 ④ SYS 轨: 0.87/3.7×1.5 = 0.35A, 1.07/3.7×1.5 = 0.43A 全对 ⑤ ★结论: 不翻案
+    —— 满载仍 78.6-88.6°C vs 43°C 红线 (差 1.8-2.1 倍), R11 维持红色高风险。但有 3 处局部修正要跟: SoC 域 500-900mW→400-660mW (高估 20-27%); 46.5°C 只在待机 0.15W 口径下成立, 换待机 0.05W → 41.6-42.6°C (首次进红线, 仍超 40°C 目标); 贴皮肤上限口径纠正为 43°C↔0.16W
+    / 40°C↔0.10W / 0.05W↔37.5°C。★它自查 10 条我全采纳, 关键 4 条: (a) EET China 2026-06-03 沈泊演讲原文确有 双路 MIPI 及 DSI 1080p@60fps 异显 → 桥接芯片可能整个不需要 (省 100-300mW + 4-8 周采购 + PCB 面积) → 但证据等级仍是 媒体方案级, 不是官方 datasheet, 所以建议改但**不撤销并行询价**;
+    (b) AR0234CS 0.92W 是含第三方 ISP 的整模组功耗, 与我们自带 ISP 的架构不可比 → 处置写成拒绝理由 (并入则整机 1.59W/皮肤 114.7°C = 整机否决) + 选型准入线 (sensor-only、模组级 ≤300mW); (c) 鱼眼路线与功耗账耦合 (高 CRA 可能逼换 sensor, OV04C10 155mW vs AR0234CS 0.92W
+    差 6 倍) → 建议 sensor 选型与 Q16 宽高比一起拍板; (d) 皮肤侧模型该喂 镜腿内发热量 不是整机功耗 (sensor+光机本来在镜框) → 满载 96.2→80.1°C, 结论不变。★拆出去: MECH_BUDGET 数字同步 (ISS-064, mech-lead) + 结构侧 5 条建议 (ISS-065, mech-lead) + R-GEO-2 四问 (ISS-062,
+    hw-lead, 等 ISS-023 主会话结束再派) + sensor 准入线进老板 Q24'
+  dispatched_at: '2026-10-26'
 - id: ISS-056
   title: ★ISP 缩放必须整幅 scale, 禁用 ROI 裁剪 (ROI 会把对角 FOV 从 120° 砍到 85.61°)
   severity: high
@@ -1342,7 +1353,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   task_brief: '背景: 老板 19:33 拍板『sensor 输出先不裁剪, 由后级模块缩放到目标分辨率』; 硬件总工定鱼眼 对角 120°。
@@ -1354,12 +1365,20 @@ issues:
     画面四角是否完整保留 (用标定图/棋盘格验证 FOV 未被裁) ④ 与硬件总工的镜头选型对齐: 镜头是按『全视场不被裁』设计的, 若 ISP 裁, 则 120° 镜头的价值归零 → 结论反馈给 ISS-051/ISS-054
 
     验收: ① 硬约束写进 SW 需求 + EVT 模板 ② FOV 对比表 ③ EVT 里有一条**机械可判**的 FOV 未裁检查方法 ④ 不许用''基本无影响''这类无依据结论'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: ''
-  dispatched_at: '2026-10-25'
+  fix_ref: SW/ISP_SCALING_MODE.md (28.5KB, ROI vs 整幅 7 维对比 + 宽高比子路线 + 改动请求) + SW/SW_REQUIREMENTS.md 3.4 (M2-R7/R8 硬约束) + SW/EVT_TEMPLATE.md 10 (EVT-7 FOV 保持检查)
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-26'
+  note: '20:29 由自动队列派出, 但会话在写文件前就失败 (status=failed, gateway closed 1012 服务重启) → 0 产出, 退回 open。10-26 18:39 由项目总工重派 (加严: 补 16:9→4:3 宽高比子路线盲区 + 两条链路的 FOV 保持值 + 复用 REQ-GEO-08 的 fov_mismatch 判据)。⚠️ 教训: 派完必须立刻落
+    status=fixing, 否则队列 cron 会重复派同一个 agent。 ★项目总工独立复核 (不只看回执): ① 禁改路径全部未被它动过 (FISHEYE_GEOMETRY.md / DISPLAY_MODE.md mtime 仍 10-25 20:18; HW/ MECH/ PROJECT_TRACKER.md 无它写入; state/ 只跑了只读 merge+gate) ② 我自己跑
+    SW/tools/fov_scale_check.py → rc=0 且自检 A1~A6 全过, 输出的关键数字我逐个复算: OV04C10 等距反算 f=2.9459mm / f_px=1474.41 / 全幅 120.00° / 垂直半 29.53° / 水平半 52.23°; ROI 1080p 路线 85.61° / 20.98° / 37.31° / 立体角只剩 52.30% / 俯角
+    25 度余量 -4.02 度 掉出画面 —— 与文档一致 ③ 各向异性: OV04C10 16:9→4:3 = 480/1520 ÷ (640/2688) = 1.326, AR0234CS 16:10→4:3 = 1.200, 与文档 1.326/1.200 一致 ④ 黑边: k=min(640/2688,480/1520)=0.238095 → 640x362 内容 + 59px 黑边 =
+    24.58%; AR0234CS k=0.333333 → 640x400 + 40px = 16.67% 一致 ⑤ f_out = f_px × k: 1474.41×0.238095=351.05 / 1081.05×0.333333=360.35 一致 ⑥ EVT-7 FOV-07 俯角余量: 29.53-25=4.53 需 ≥2.53 (=设计值-2.00) 与 31.80-28=3.80
+    需 ≥1.80 一致。 ★它自查发现的 6 条我全采纳: fov_mismatch 抓不到整幅但被拉伸 (补 scale_anisotropy 告警 + EVT-7-03 负向测试) / 显示光机只有 30 度 FOV vs 采集 120 度的映射问题 (CR-4, 转老板 Q23) / YOLOv5 640x640 二次 letterbox 陷阱 / ISS-053 网格链与锁定链路不一致
+    (CR-1) / 像素口径 1.998um 与 2.0um 差 0.01px / 原厂官网四个片上缩放器 1/64~2 倍 支撑整幅可行性 (但 245.1 MP/s = 250 口径的 98.1%, 吞吐余量必须问原厂)。 ★裁决: 宽高比子路线取等比 scale + letterbox (各向异性 1.000; 子路线 1 的 1.326 会造成 32.6% 全局失真 > 鱼眼角落 20.9%,
+    违反 REQ-GEO-07)。CR-1/CR-2/CR-3 转 sw-lead 改文档 (ISS-061); R-GEO-2 四问转 hw-lead (ISS-062, 等 ISS-055 结束再派); CR-4 转老板 (ISS-063 = Q23); CR-5 由项目总工裁决: 1280x960@15 不进 e2e 关键路径 (15fps 喂显示 = 帧周期 66.7ms > 60ms 硬指标,
+    与硬指标直接冲突)'
+  dispatched_at: '2026-10-26'
 - id: ISS-057
   title: ★先画 AR9481 同 Die 参考版原理图 (每脚标证据等级) —— 出图周期从 1-2 周压到 2-3 天
   severity: high
@@ -1370,7 +1389,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   task_brief: '触发: 官网写明 **ARS45 与 AR9481 为同 Die 产品** (ARS45 是同 Die 的更小封装版本); AR9481 是 2024-05 已量产出货的产品。
@@ -1386,9 +1405,372 @@ issues:
     输出: HW/SCHEMATIC_REFDIE.md (参考版原理图 + 逐脚证据等级表 + 与 ISS-054 的 56 条连接的差异标注)
 
     验收: ① 每一脚/每条连接都有证据等级, 无 [未标] ② 明确列出''同 Die 参考推断的脚''与''必须等原厂确认的脚''两份清单 ③ 差异标注与 HW/INTERFACE_TABLE.md 逐条对齐 ④ **不得声称这版可直接投板**'
+  fix_ref: HW/SCHEMATIC_REFDIE.md (87KB, 逐脚证据等级 95 处)
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-25'
+  note: '独立核验: 87KB; 免责声明段齐全(明写''参考版/不得直接投板''); 证据等级体系 4 档自洽; 逐脚标注 95 处; §2 依据清单分 官方/媒体/我没有的 三块。★会话末尾工具报错(frag_write --add-artifact 拒绝带空格的 summary) → **我已修 frag_write.py: 参数解析 spec.split() → shlex.split()**
+    (带空格的引号值不再被切碎), 5 处全改, 已自测通过。→ 出图不再等原厂: 这版 + ISS-054 的 56 条连接 = 可开图的参考版'
+  dispatched_at: '2026-10-25'
+- id: ISS-058
+  title: ★打印包按 Rev A 参考实现重生成 (verify_pack 38/46 → 46/46) —— 否则量出来的尺寸对不上解 A 几何
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: ISS-050 规格已闭环 (GEOM_SPEC_REVA.md), 但 MECH/print/*.stl 还是 Rev 0 几何 → 按新几何打印, 量出来的数与方案对不上, 白打样
+  owner: mech-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: closed
+  external: false
+  need_keys: []
+  task_brief: '把 verify_reva_ref.py 里已通过全部判据的 Rev A 参考实现 (build_coupon_reva / build_temple_cage_reva) 移植进 gen_print_pack.py, 重新生成 fit_coupon_340.stl + temple_cage_340.stl; optical_cage_TEMPLATE.stl 不许动
+    (走鹃Ⅱ 尺寸未到); P 表加 batt_seat_reva/pad_groove_reva/top_plate_reva 三键对齐 REVA 字典; fit_check.py 判据阈值不许改。验收: verify_pack 46/46 + 包围盒 fit_coupon 150.00×90.00×22.00 / temple_cage 60.00×123.00×27.80'
+  fix_ref: MECH/print/gen_print_pack.py (移植 Rev A 参考实现) + fit_coupon_340.stl (md5 99214b61) + temple_cage_340.stl (md5 21173a44)
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-26'
+  note: '10-26 18:4x 由项目总工直接派 (非队列)。★可复用的捷径: verify_reva_ref.py 已有通过判据的参考实现 → 本任务是移植不是重新设计。★交卷链路: 该会话被网关重启杀过 (1012) 一次 → 18:42:50-54 重派会话已落盘 (gen_print_pack.py + 两个 STL)。项目总工独立复核 (非只看回执): ① verify_pack.py
+    46/46 (光线投射实测模型真值, 原 38/46) ② fit_check.py 仍判 解A 前后余 0.95mm (最坏 0.65) ≥ 2×0.60 ✅ 且 fit_check.py / verify_pack.py 两个判据文件 mtime 仍为 10-25 (阈值没被放松) ③ 包围盒 fit_coupon 150.000×90.000×22.000 / temple_cage 60.000×123.000×27.800
+    = spec 期望 ④ optical_cage_TEMPLATE.stl md5 6f23c2e2... 与 10-25 旧件字节相同 (禁改项没被动) ⑤ 项目总工补打包: PRINT/build_print_pack.py (新, 可复现) → ars45_print_pack.3mf 重打 → verify_print_pack 18/18 ✅'
+  dispatched_at: '2026-10-26'
+- id: ISS-059
+  title: 打印包 P 表口径漂移 + verify_pack 文案过时 + 测量清单要区分两类孔 (mech-lead 交卷自查发现的 3 个小尾巴)
+  severity: low
+  source_blocker: null
+  source_agent: mech-lead
+  desc: 'ISS-058 交卷时 mech-lead 自查发现 4 处尾巴: (1) gen_print_pack.py 表头仍写全部尺寸来自 MECH_BUDGET.md v1.1, 但 P 表已混入 3 个 Rev A 键 (batt_seat_reva 4.75 / pad_groove_reva 0.40 / top_plate_reva 0.80) -> 口径漂移 (2) F5/F6
+    (M1.2 过孔 1.60 / PCB 间隙孔 2.40) 只在模块常量里没进 P 表 (3) verify_pack.py 第 320 行文案仍打印生成器 P 表无 Rev A 键, 实际已核对通过 -> 误导读者 (4) MEASURE_CHECKLIST 没把 coupon 的 1.4 柱孔试样与打印件的 1.6 过孔分开 -> 实测后容易拿错数据标定'
+  owner: mech-lead
+  reporter: mech-lead
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: closed
+  external: false
+  need_keys: []
+  task_brief: '四处小改, 都是文案与口径, 不许动几何: (a) gen_print_pack.py 的 P 表口径扩成 v1.1 + Rev A, 把 F5/F6 也登记成带来源的键 (REVA_SCREW_CLR 1.60 / REVA_CLR_HOLE 2.40) (b) 改掉 gen_print_pack.py 表头那句全部来自 v1.1 (c) 改 verify_pack.py
+    第 320 行的 else 文案, 让它打印真实的契约核对结果 (d) MEASURE_CHECKLIST 里把 coupon 柱孔试样与打印件过孔分成两类量测项并注明公差目标不同。边界: 判据阈值不许动, 几何不许动, 改完 verify_pack 仍须 46/46, 两个 STL 的 md5 不许变'
+  fix_ref: MECH/print/gen_print_pack.py (P 表 35 键逐个标来源 + F5/F6 登记为键) + MECH/print/verify_pack.py (只改文案) + MECH/print/MEASURE_CHECKLIST.md (新增 2.0.1 两类孔径)
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-26'
+  note: '''10-26 18:5x 由项目总工派。★项目总工独立复核: ① 我把 gen_print_pack.py 重跑了一遍, 两个 STL 的 md5 与改前完全一致 (99214b61e5e1ef4cd100a6e6bf3862e2 / 21173a44f3c800c4047317506779be54), optical_cage_TEMPLATE 仍是 6f23c2e2... (禁改项没动)
+    ② verify_pack.py 仍 46/46 (光线投射实测模型真值) ③ 判据期望值我逐个抽查: batt_seat_depth 4.75 / pad_groove_depth 0.40 / top_plate_thk 0.80 / clr_hole 2.40 / screw_clr 1.60 / coupon_holes (2.40,2.50) / 契约容差 1e-9 / 探针默认 tol
+    0.01 全部未动 ④ MEASURE_CHECKLIST 新增 2.0.1 两类孔径表 (类A FDM收缩试样 C1/C3 1.30~1.55 vs 类B 产品件让过孔 H5 1.55~1.75) 已在位, 量测项计数仍是 49 未增删 ⑤ 它没碰 state/ 下任何文件, 没碰 PRINT/。★它提的 1 条待确认我批准: temple_cage 上实际的 ⌀2.4 PCB 定位间隙孔
+    (特征 B3) 清单里没有独立量测行 (D4 只是 coupon 试样, 替代不了) -> 另开 ISS-066 加 H14 并同步 measurements.yaml 索引'' 46/46 + 18/18), 属于文档口径卫生'''
+  dispatched_at: '2026-10-26'
+- id: ISS-060
+  title: 产品件三条几何待老板裁决 (压垫吸收量零余量 / 非对称方向 / 压垫槽区板厚小于 FDM 最小壁) —— 打印包转绿不等于解 A 收口
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: 'mech-lead 在 ISS-058 交卷时明确指出 GEOM_SPEC_REVA.md 第 6 节的 P0-1 / P0-2 / P1-1 仍未裁决。三条都只影响产品件下壳, 不影响检具打印包, 所以打印可以照打, 但产品件几何不能定稿。P0-1 压垫吸收量: 预算 0.25 用完即零余量, 差 0.05 就硬干涉, 解法是电芯厚度公差从 ±0.15 收紧到 ±0.10 (需电芯厂或采购确认)。P0-2
+    非对称方向: 厚度 Y 方向 (本规格执行, 皮肤侧 0.00 / 内侧 0.15) 还是长度 X 方向 (产品件座净长 40.65 而非 40.80)。P1-1 压垫槽区板厚 0.40 小于 FDM 最小壁 0.80: 槽改浅到 0.20 仍不够, 顶板加厚到 1.20 则 H 链 6.75 破 2 倍公差规矩, 第三条路是压垫贴顶板表面用背胶 (不占厚度但没有定位槽)'
+  owner: boss
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: open
+  external: true
+  need_keys: []
+  task_brief: '三个决策点, 每条都有选项和代价, 请直接给口径: (1) 电芯厚度公差能不能收紧到 ±0.10 (决定压垫是否零余量硬干涉) (2) 非对称按厚度方向还是长度方向 (3) 产品件压垫槽区板厚怎么处理 (a 浅槽 / b 加厚并接受破规矩 / c 背胶贴面不占厚度)。裁决后由 mech-lead 更新 GEOM_SPEC_REVA 第 6 节与产品件几何'
   fix_ref: null
-  verify_by: null
+  verify_by: main
   verify_result: null
   verify_date: null
-  note: ''
-  dispatched_at: '2026-10-25'
+  note: 10-26 18:5x 由项目总工登记。★这三条不卡打印包 (检具已可打), 但卡产品件结构定稿, 所以不能因为打印包 46/46 就以为解 A 收口
+  dispatched_at: '2026-10-26'
+- id: ISS-061
+  title: ISP 整幅 scale 收口后的三处文档同步 (CR-1 网格链 / CR-2 标定表加 f_out+(ox,oy) / CR-3 黑边归属) + CR-5 关键路径裁决同步
+  severity: medium
+  source_blocker: null
+  source_agent: sw-lead
+  desc: 'ISS-056 交卷时 sw-lead 提了 5 条改动请求, 项目总工裁决后转它自己改文档 (不许它直接联系别的总工)。CR-1: SW/FISHEYE_GEOMETRY.md 第 2.3 节网格链写的是 sensor → ISP 800x600 → letterbox → OD 640x640, 而跟踪表第 0 节变量 8/27 与第 5.6 节锁定链路是 ISP 输出 640x480@60
+    (上采样 800x600) 或 1280x960@15, 两处输出集合不一致。CR-2: FISHEYE_GEOMETRY 第 3.6 节参数来源表要加两行: 输出系 f_out = f_px × k (OV04C10 351.05 / AR0234CS 360.35) 与 bars 偏移 (ox,oy) 来源 (ISP scaler padding 参数)。CR-3: DISPLAY_MODE.md
+    要写死黑边在哪一级生成, 项目总工裁决为在 ISP 侧生成一次, 全链路 (OD letterbox / 显示上采样) 复用同一组 (ox,oy), 不许每级各生成。CR-5 裁决同步: 1280x960@15 不进 e2e 关键路径 (15fps 喂显示 = 帧周期 66.7ms > 60ms 硬指标), 要在 SW_REQUIREMENTS 与 FISHEYE_GEOMETRY 标注清楚'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: closed
+  external: false
+  need_keys: []
+  task_brief: '四处同步, 都是文档, 一行几何代码都不许动: (a) FISHEYE_GEOMETRY 第 2.3 节网格链图改成与锁定链路一致 (ISP 输出 = 640x480@60 或 1280x960@15), 800x600 标成显示上采样而不是 ISP 输出 (b) FISHEYE_GEOMETRY 第 3.6 节参数来源表加 f_out 行 (OV04C10 351.05
+    / AR0234CS 360.35) 与 bars 偏移 (ox,oy) 来源行 (c) DISPLAY_MODE.md 写死黑边在 ISP 侧生成一次并全链路复用 (ox,oy) (d) SW_REQUIREMENTS 与 FISHEYE_GEOMETRY 标注 1280x960@15 不进 e2e 关键路径。边界: 不许改 ISP_SCALING_MODE.md 的结论, 不许改 EVT_TEMPLATE
+    的 EVT-7 判据, 不许碰 state/, HW/, MECH/, PROJECT_TRACKER.md; 改完跑 fov_scale_check.py 仍须 rc=0'
+  fix_ref: SW/FISHEYE_GEOMETRY.md (§2.3 网格链 + §3.6 加 f_out 与 bars 偏移) + SW/DISPLAY_MODE.md (§8.10 黑边只生成一次 + ACC-GEO-11) + SW/SW_REQUIREMENTS.md (§3.4.2 1280×960@15 定位注)
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-26'
+  note: '"10-26 18:5x 由项目总工派 (ISS-056 交卷后的改动请求 CR-1/CR-2/CR-3 + CR-5 标注)。★项目总工独立复核: ① 我自己跑 SW/tools/fov_scale_check.py → rc=0 且自检 A1~A6 全过 ② FISHEYE_GEOMETRY 2.3 节网格链已改成 sensor 全幅 → ISP 640×480@60 (另一档
+    1280×960@15 分析/拍照预留不喂显示) → OD letterbox k=1.0 → 640×640 → 回 640×480 → 显示上采样 ×1.25 → 800×600, 并写明 黑边只在这一级生成一次 ③ 3.6 节新增 f_out = f_px × k 行 (351.05 / 360.35; 1280 档 702.10 / 720.70) 与 bars 偏移 (ox,oy)
+    来源 = ISP scaler padding (59/40px, 24.58%/16.67%) ④ DISPLAY_MODE 新增 8.10 黑边只生成一次 + ACC-GEO-11 (框坐标往返误差 ≤2px, 代码里只有一处算 padding) ⑤ 数字口径未动: f_out / k / 黑边 / 各向异性 1.000 / FOV 120.00° 原样, 它自检 新旧映射系数差 0.0px、往返误差
+    0.0px。★它提的 2 条我全部批准 (ISS-069): ① SW_REQUIREMENTS 3.1 职责行与 M2-R1/M2-R3 仍写 1080p in / 800×600 输出 (旧链路命名) → 改命名与表述, 但数字与判据一个字不许动, 且要保留 旧命名 的痕迹以便追溯 ② DISPLAY_MODE 2.4 证据分级表 S3 行 刷新表述 —— 同上规则" border 数值已由项目总工复算过)'''
+  dispatched_at: '2026-10-26'
+- id: ISS-062
+  title: R-GEO-2 四问转原厂/镜头厂 (边缘畸变区是检测价值最高处 / 4-lane MIPI / ISP 吞吐余量 98.1% / scaler 能否填黑边)
+  severity: high
+  source_blocker: null
+  source_agent: sw-lead
+  desc: 'sw-lead 在 ISS-056 提出 R-GEO-2, 要 hw-lead 在 R-GEO-1 基础上追加四问: (1) 120 度鱼眼的边缘负 39.5% 畸变区是检测价值最高处, ISP 一旦裁剪目标在被检测到之前就已出画, 这个代价必须写进给原厂/镜头厂的沟通材料 (2) 全幅 RAW10 2.451 Gbps 对应 4-lane MIPI 的确认 (3) ISP 吞吐余量:
+    全幅 245.1 MP/s 在 250 MP/s 口径下等于 98.1%, 问原厂 2688x1520@60 缩放到 640x480@60 的吞吐余量多少, 并 close 跟踪表第 3.1 节 250 与 497.7 的口径矛盾 (4) scaler 能否缩放后指定区域填黑边, 不能就只能走各向异性拉伸'
+  owner: hw-lead
+  reporter: sw-lead
+  raised: '2026-10-26'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '把 R-GEO-2 四问并进 hw-lead 现有的 R-GEO-1 原厂/镜头厂沟通材料, 并给出这四问各自卡住什么决策 (120 度对角是否成立 / 宽高比子路线 / 全幅吞吐是否留得住)。边界: 不许发邮件 (外发一律经项目总工), 只出材料草稿放 state/outbox/'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 18:5x 登记。★排期原因: hw-lead 当时正在跑 ISS-055 (功耗预算 V2), 同一 agent 同时只开一个写会话 (两个写会话会互相覆盖分片), 所以 ISS-055 结束后再派'
+  dispatched_at: '2026-10-26'
+- id: ISS-063
+  title: 显示端 120 度到 30 度的映射方式 (看得广但糊 vs 看得清但窄) —— 120 度这个卖点对用户可见吗
+  severity: high
+  source_blocker: null
+  source_agent: sw-lead
+  desc: 'sw-lead 在 ISS-056 提出 CR-4: 采集端对角 120 度 (鱼眼等距), 但显示光机 JBD 走鹃II 只有 30 度 FOV [官方], 采集与显示之间必须有个映射, 映射方式决定 120 度这个卖点对用户可见与否。方案 a 全幅压缩进 30 度视场: 显示端有效角分辨率 0.1632 度每像素 (被 OD 链路决定, 比 sensor 原生 0.0389 度每像素粗
+    4.2 倍), 用户一眼看全 120 度。方案 b 显示 30 度中心窗口: 有效角分辨率等于 sensor 原生 0.0389 度每像素 (受 640x362 内容限制), 但用户只看到 120 度里的 30 度, 立体角 0.131 sr 仅为采集视场的 7.41%。注意方案 b 意味着显示侧要 crop, 与不裁剪的边界要划清 (裁剪只发生在显示映射, 不发生在 ISP 输入)'
+  owner: boss
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: open
+  external: true
+  need_keys: []
+  task_brief: '请在方案 a (全幅压进 30 度, 看得广但糊) 与方案 b (30 度中心窗口, 看得清但窄) 之间给一个口径。不拍板的后果: 120 度鱼眼这个卖点对最终用户不可见也不可验证, 且 EVT-7 的光学侧检查没有基准 (标定图该拍多大都没法定)'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: 10-26 18:5x 由项目总工登记 (= 跟踪表 Q23)。★不卡打印包, 卡 EVT-7 光学侧标定图规格与产品卖点口径
+  dispatched_at: '2026-10-26'
+- id: ISS-064
+  title: MECH_BUDGET §2.3/§2.3.1 数字同步 (46.5°C → 41.6-42.6°C 口径 + 镜腿内发热量口径 + 贴皮肤上限 43°C↔0.16W)
+  severity: medium
+  source_blocker: null
+  source_agent: hw-lead
+  desc: 'ISS-055 (HW/POWER_BUDGET_V2.md) 重算后, MECH/MECH_BUDGET.md §2.3 与 §2.3.1 里的 46.5°C 与皮肤侧模型口径已过时。硬件总工给了 5 条书面建议 (不改它自己的文件, 交项目总工转达): S-1 §2.3 增 镜腿内发热量 口径并写明光机与 sensor 在镜框不进镜腿皮肤路径 (满载镜腿内 0.90W → 皮肤
+    80.1°C), 现在把镜框的热算到镜腿上对镜腿薄这个决策过度保守; S-2 §2.3.1 待机 0.05W→37.5°C 保留, 补一句 40°C 目标对应 0.10W; S-3 扩对流面积 150→250-300mm² 在贴皮肤方案下只值 +5-8% (R_skin_path 主导), 只在上下分壳方案下是必需; S-4 挪到镜框不等于安全 (镜框正中=鼻梁上方, 鼻梁皮肤同样适用 43°C),
+    上下分壳后镜腿皮肤侧只剩 3-5 mW → 35.1-35.3°C; S-5 电池按口径 b 满载 315/387mAh 重新出镜腿厚度映射'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: closed
+  external: false
+  need_keys: []
+  task_brief: '把 S-1~S-5 五条同步进 MECH/MECH_BUDGET.md §2.3 与 §2.3.1 (只改这两节的文字与数字, 不动几何与厚度映射表, 不动打印包)。边界: 不许碰 HW/ 文件, 不许碰 state/ 分片, 不许改 PROJECT_TRACKER.md; 同步后 fit_check.py 与 verify_pack.py 仍须原样通过'
+  fix_ref: 'MECH/MECH_BUDGET.md (§2.3 模型口径与参数表 + §2.3.1 更正表口径列/0.75-0.90W 行/降级方案前提/新增 S-5 厚度重算节)'
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-26'
+  note: "10-26 19:0x 由项目总工派 (ISS-055 硬件总工 §10 S-1~S-5 转达)。★项目总工独立复核: ① 禁改路径全部未动: MECH/fit_check.py mtime 仍 10-25 19:29, MECH/print/gen_print_pack.py 18:50 与 fit_coupon_340.stl 18:53 是 ISS-059 的产物不是本轮, state/fragments/mech.yaml 10-25 与 state/measurements.yaml 10-32... (实为 10-25 20:32) 未动, HW/ SW/ PROJECT_TRACKER.md 未动 → 本轮唯一写入 = MECH/MECH_BUDGET.md (19:01) ② 新口径数字逐个核对: 0.90W 镜腿内满载 → 皮肤 80.1°C 主 / 70.3°C 剥离; 0.75W 口径b 有桥 → 72.6/64.4°C; 0.132W 待机-B → 41.6°C 进红线; 0.05-0.16W 口径说明已加; 旧 46.5°C 的 8 处全部带 整机口径/旧口径 限定与 指向 2.3.1 更正 的指针, 不是漏改 ③ 电芯映射我从文档自己的电池表核对: 丰江 432243 = 420mAh / 4.3mm, Renata ICP582035PR-01 = 340mAh / 4.6mm → 315 与 387 两个新容量都落在这两个 4.3-4.6mm 薄电芯档 → 镜腿 7.3mm 锁死值不用改, 与它结论一致 ④ fit_check 解A (余 0.95 / 最坏 0.65) 与 verify_pack 46/46 它自报通过, 判据文件 mtime 未动。★它提的 3 条我全部批准 (ISS-072): ① 1.4.3/1.6.2/1.6.3 的厚度映射表仍写 575-675mAh→8.7-11.2mm (旧口径, 授权外) → 下一轮加 315/387 两行并把旧行标注作废 ② 2.6 仍写 96°C / 7 仍写 575-675mAh→8.7-11.2mm / 3 重量表需按新电芯重算 → 同一轮一起改 ③ 1.6.2 的 575mAh 行没写电芯型号 → 它没替它反推电芯厚度、标未验, 这个做法对, 保持未验。★三条实质结论 (我复核后全部采纳): (1) 315/387mAh 都在 4.3-4.6mm 薄电芯档 → 老板锁死的镜腿 7.3mm 一毫米不用改, 旧表 8.7-11.2mm 作废 → 形态否决解除 (但降容只解形态不解散热, 持续满载热学仍不可行) (2) 镜框正中 = 鼻梁上方, 43°C 同样适用 → 挪到镜框 是 换接触点不是消热, 必须配鼻梁隔热 + 顶部对流 + 鼻梁侧实测 (3) 贴皮肤方案下扩对流面积只值 +5-8%, 只有上下分壳方案里才是必需条件"
+  dispatched_at: '2026-10-26'
+- id: ISS-065
+  title: 结构侧 5 条书面建议的落地评估 (镜腿内发热量口径 / 鼻梁也适用 43°C / 上下分壳后镜腿 35.1-35.3°C / 新容量厚度映射)
+  severity: medium
+  source_blocker: null
+  source_agent: hw-lead
+  desc: 'ISS-055 的 §10 S-4 与 S-5 指向两个结构侧的实质改动: (1) 上下分壳方案下镜腿皮肤侧只剩 3-5 mW → 35.1-35.3°C, 这是把 43°C 问题从 镜腿 挪到 镜框/鼻梁 的换法, 但鼻梁皮肤同样适用 43°C (ISO 13732-1) → 鼻梁区热设计要单独算 (2) 电池容量按口径 b 满载 315/387mAh 重出镜腿厚度映射 (现表是按
+    575-675mAh 出的 8.7-11.2mm)'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '评估两条: (a) 鼻梁区热设计 (镜框正中 43°C 适用性 + 隔热 + 顶部对流) (b) 按 315/387mAh 重出镜腿厚度映射表。输出: 结构侧的书面结论 + 需要改哪几处 (含与 MECH_BUDGET 的交叉引用), 先别直接改几何'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 18:5x 由项目总工从 ISS-055 的 §10 转达, 与 ISS-064 分开: 064 是同步数字, 065 是要重新算的两处结构改动'
+  dispatched_at: '2026-10-26'
+- id: ISS-066
+  title: 测量清单补 H14 (temple_cage 上的 ⌀2.4 PCB 定位间隙孔独立量测行) + measurements.yaml 索引同步
+  severity: low
+  source_blocker: null
+  source_agent: mech-lead
+  desc: 'ISS-059 交卷时 mech-lead 自查发现: temple_cage_340.stl 上真实的 PCB 定位间隙孔 ⌀2.4 (特征 B3, F5) 在 MEASURE_CHECKLIST 里没有独立量测行, D4 量的是 coupon 上的 ⌀2.4 试样 (类A 工艺表征), 替代不了产品件上这个孔 (类B 装配合格)。它按当轮 只改文案不动项数 的红线没擅自加行, 请项目总工裁决'
+  owner: mech-lead
+  reporter: mech-lead
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '在 MECH/print/MEASURE_CHECKLIST.md 的 H 段加一行 (建议编号 H14): 特征 B3 PCB 定位间隙孔 ⌀2.40, 判据带 1.55~1.75 (类B 装配合格, 与 H5 同一判法), 量具 数显卡尺, 数据文件路径留空待实测。同时把 M-PRINT 的项数索引与 state/measurements.yaml 的 Rev A 项索引同步
+    (49 -> 50)。边界: 只加这一行 + 同步索引, 不许改任何已有行的判据'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 18:5x 项目总工批准 mech-lead 的提问。★排期: 与 ISS-064 (MECH_BUDGET 数字同步) 同一 agent 串行, ISS-064 先跑'
+  dispatched_at: '2026-10-26'
+- id: ISS-067
+  title: R-F1 3.3V 轨拓扑裁决落地 (UVP 抬 3.5V + 3.3V 改供 + 评估不牺牲容量的替代方案)
+  severity: high
+  source_blocker: HW-B5
+  source_agent: hw-lead
+  desc: 'hw-lead 在可靠性评审里提出 R-F1 电源拓扑硬伤: SYS=VBAT 下限 3.0V 与 3.3V 轨冲突 (TPS7A20 dropout 110mV typ 官方) -> 3.3V 输出需 VIN>=3.41V -> SYS<3.41V 时 LIGHT_3V3(150mA) 与 VDD_3V3_IO(200mA) 失效, 覆盖放电末段 12-15% 电量, 现场表现是用到快没电突然黑屏。三方案:
+    A(UVP 抬到 3.5V + 3.3V 改由 TPS62130A 供, 牺牲 12-15% 容量, 续航口径要重算) / B(3.3V 改 buck-boost, 多一颗 IC) / C(接受末段黑屏)。项目总工裁决: 兜底必做 UVP 抬到 3.5V, 基线取方案 A, 并要求评估不牺牲容量的替代 (更低 dropout 的 3.3V LDO / IO 轨直吃 SYS / 加 buck-boost)'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-29'
+  status: fixing
+  external: false
+  need_keys: []
+  task_brief: '按项目总工裁决落地: (a) UVP 抬到 3.5V (兜底必做, 保证 SYS 末段不低于 3.41V) (b) 基线按方案 A 出 3.3V 轨供电改法, 并把 12-15% 容量损失换算成新的电池容量需求与续航影响 (c) 评估第三条路: 有没有办法不牺牲容量 (更低 dropout 的 3.3V LDO / IO 轨直吃 SYS / 加 buck-boost),
+    给出各自的代价与推荐。输出: 改后的电源拓扑 + 对电池容量/续航口径/镜腿厚度的影响 + 给 mech-lead 的结构侧输入 (发给项目总工转达)'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 18:5x 由项目总工裁决并登记 (对应 STATE 的 HW-B5 阻塞, issue 双向覆盖要求)。★排期: hw-lead 同时段在跑 ISS-023 可靠性评审与队列派活, 串行排'
+  dispatched_at: '2026-10-26'
+- id: ISS-068
+  title: 可靠性证据缺口收口 (15/15 器件 Absolute Maximum Ratings 逐个核 + 实测项挂样机 + FIT 数据来源)
+  severity: high
+  source_blocker: HW-B6
+  source_agent: hw-lead
+  desc: 'hw-lead 的可靠性评审 (HW/RELIABILITY_DESIGN.md) 自报证据缺口: 15/15 器件 Absolute Maximum Ratings 未核 (降额表目前只能当设计约束) + 跌落/振动/弯折/热 实测 0 项 (无样机) + 全板 FIT 无器件级数据 (MTBF 只能用通用代表值, 光学子系统占 39.1%)。其中器件级 Absolute Maximum
+    Ratings 与 FIT 来源是现在就能补的 (查器件 datasheet), 实测项必须挂样机'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-29'
+  status: open
+  external: false
+  need_keys: []
+  task_brief: '把可靠性证据缺口分成两堆: (a) 现在就能做的: 15 个器件逐个查 datasheet 补 Absolute Maximum Ratings, 并把降额表从 设计约束 升级成 有据可依 的判据; FIT 数据给出处 (通用代表值必须标明来源与适用范围, 光学子系统占 39.1% 的部分要单独说明怎么处理) (b) 只能等样机的: 跌落/振动/弯折/热 实测 -> 挂
+    EVT 模板的对应段, 写明测法与判据, 状态标 未验。输出: 器件级绝对最大额定表 + 降额表升级 + EVT 实测项清单'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 18:5x 登记 (对应 STATE 的 HW-B6 阻塞)。★注意: 这条不等于 hw-lead 的 ISS-023 可靠性评审交卷 (那是另一个任务)'
+  dispatched_at: '2026-10-26'
+- id: ISS-069
+  title: 需求条目旧链路命名对齐 (SW_REQUIREMENTS 3.1 职责行 + M2-R1/M2-R3 + DISPLAY_MODE 2.4 S3 证据行) —— 只改命名表述, 数字与判据不许动
+  severity: low
+  source_blocker: null
+  source_agent: sw-lead
+  desc: 'ISS-061 交卷时 sw-lead 自查发现两处旧链路命名残留: ① SW/SW_REQUIREMENTS.md 3.1 职责行与 M2-R1/M2-R3 仍写 1080p in / 800×600 输出, 而锁定链路已是 ISP 输出 640×480@60 或 1280×960@15 (800×600 是显示上采样) ② SW/DISPLAY_MODE.md 2.4 证据分级表
+    S3 行仍写 ISP 含缩放 1080p→800×600。两处都是表述与命名问题, 正是 CR-1 要消灭的 两处数字对不上 的同源问题'
+  owner: sw-lead
+  reporter: sw-lead
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: closed
+  external: false
+  need_keys: []
+  task_brief: '两处措辞与命名对齐: ① SW_REQUIREMENTS 3.1 职责行与 M2-R1/M2-R3 的链路命名改成锁定链路 (ISP 输出 640×480@60 或 1280×960@15; 800×600 标成显示上采样), 并在条目里保留一行说明 原 1080p/800×600 命名 = 旧链路 以便追溯 ② DISPLAY_MODE 2.4 证据分级表 S3 行的
+    1080p→800×600 表述刷新成当前链路。硬规则: 判据阈值/期望值/数字一个字不许动, 不许新增或删除需求条目 (M2-R1/M2-R3 条目本身保留), 不许碰 SW/ISP_SCALING_MODE.md 与 EVT_TEMPLATE.md, 不许碰 state/ 与 HW/ 与 MECH/; 改完 fov_scale_check.py 仍须 rc=0'
+  fix_ref: 'SW/SW_REQUIREMENTS.md (§3.1 职责行 + 命名追溯子行 + M2-R1 + M2-R3) + SW/DISPLAY_MODE.md (§2.4 证据分级表 S3 行)'
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-26'
+  note: "10-26 19:0x 由项目总工派 (ISS-061 交卷后 sw-lead 自查出的 2 处旧链路命名残留)。★项目总工独立复核: ① 自己跑 SW/tools/fov_scale_check.py → rc=0 且自检 A1~A6 全过 ② 4 处改动逐行看过: SW_REQUIREMENTS 3.1 职责行 (输入 全幅 2688×1520@60, 输出 640×480@60 主链路或 1280×960@15 分析拍照预留, 800×600=显示帧上采样 ×1.25) + 命名追溯子行; M2-R1 与 M2-R3 命名换成锁定链路, 每处内嵌斜体追溯说明, 旧名没删干净 ③ DISPLAY_MODE 2.4 S3 行改成 含缩放 全幅 2688×1520→640×480@60 ④ M2 条目数 8 条 (R1~R8) 未增未删, R1 判据 连续跑 10 分钟无丢帧 + ISP 吞吐占用 <60% 与 R3 判据 不用重启或重启 <3s 逐字未动 ⑤ 禁改文件 mtime 全部早于本轮 (ISP_SCALING_MODE 18:47 / EVT_TEMPLATE 18:46 / FISHEYE_GEOMETRY 18:54) → 本轮没碰。★它提的 2 条我全部批准 (ISS-070): ① SW_REQUIREMENTS 10.1 预算表 S3 行仍是 缩放 1080p→800×600 旧命名 (与本轮改的 DISPLAY_MODE S3 同源) ② M1-R2 sensor 驱动能出图 1080p@60 是裸 1080p, 对 OV04C10 它等于 ROI 模式 (85.61 度裁剪), 与 3.4.1 C2 禁止 sensor ROI 读出有语义张力 → 我裁决: M1-R2 表述要写全幅, 并把 这条升级为 sensor 选型硬约束 (sensor 必须支持全幅输出模式) 写进 Q24"
+  dispatched_at: '2026-10-26'
+- id: ISS-070
+  title: 两处旧命名 + M1-R2 裸 1080p 语义张力 (sensor 必须支持全幅输出模式 → 升为 Q24 选型硬约束)
+  severity: medium
+  source_blocker: null
+  source_agent: sw-lead
+  desc: 'ISS-069 交卷时 sw-lead 自查发现: (1) SW/SW_REQUIREMENTS.md 10.1 预算表 S3 行仍是 缩放 1080p→800×600
+    (与本轮已改的 DISPLAY_MODE 2.4 S3 行同源旧命名) (2) M1-R2 的需求表述是 sensor 驱动能出图 1080p@60 ——
+    裸 1080p 对 OV04C10 就是 ROI 模式 (对角 FOV 从 120 度掉到 85.61 度), 与 3.4.1 C2 禁止 sensor ROI
+    读出有语义张力。项目总工裁决: M1-R2 表述要写全幅, 并把这条升级为 sensor 选型硬约束 (sensor 必须支持全幅输出模式, 不能只有 1080p
+    ROI 模式)'
+  owner: sw-lead
+  reporter: sw-lead
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: closed
+  external: false
+  need_keys: []
+  task_brief: '两处: (a) SW_REQUIREMENTS 10.1 预算表 S3 行的 缩放 1080p→800×600 旧命名对齐成当前链路
+    (全幅 2688×1520→640×480@60, 800×600 是显示上采样), 内嵌斜体追溯说明保留旧名 (b) M1-R2 的需求表述改成 sensor
+    驱动能出图 全幅 2688×1520@60 (或 sensor 支持的全幅模式), 并加一句与 3.4.1 C2 的关系 (1080p 对 OV04C10
+    等于 ROI 模式, 不满足 C2)。硬规则: M1-R2 的判据 (600 帧无丢帧 / 60fps 误差 <1%) 与 S3 的 8.0ms 一个字不许动,
+    不许新增或删除需求条目, 不许碰 ISP_SCALING_MODE/EVT_TEMPLATE/FISHEYE_GEOMETRY/HW/MECH/TRACKER/state'
+  fix_ref: 'SW/SW_REQUIREMENTS.md (§10.1 预算表 S3 行 + §2.2 M1-R2 需求表述)'
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-10-26'
+  note: "10-26 19:1x 由项目总工派 (ISS-069 交卷后 sw-lead 自查出的 2 处)。★项目总工独立复核: ① 自己跑 SW/tools/fov_scale_check.py → rc=0 且 A1~A6 全过 ② 10.1 预算表 S3 行已改成 含缩放 全幅 2688×1520→640×480@60 并内嵌旧命名追溯说明, 而 8.0 (ms) 与其后原厂口径说明/证据等级/余量三列一字未动 ③ M1-R2 需求表述已改成 sensor 驱动能出图 全幅 2688×1520@60 (或 sensor 支持的全幅输出模式) 并加了裸 1080p = ROI 模式 (120.00°→85.61°) 与 C2 的关系说明, 判据 /dev/video* 出流 + 600 帧无丢帧 + 60fps 误差 <1% 一字未动 ④ M1 条目 8 条 / M2 条目 6+2 条 / 文件 913 行 未增未删 ⑤ 禁改文件 mtime 全部早于本轮 (ISP_SCALING_MODE 18:47 / EVT_TEMPLATE 18:46 / FISHEYE_GEOMETRY 18:54)。★★但我 grep 全文 1080p 时又抓出它漏掉的 2 处, 其中 1 处是真数字错误 → 派生 ISS-071: (1) 12.1 内存规划表仍按 1920x1080 NV12 3.11MB 算 ISP framebuffer 与 CSI capture queue, 但锁定链路输入是 全幅 2688x1520 → NV12 6.13MB, 两行各 4 份 = 12.4MB→24.5MB, 合计 178→~202MB / 191→~215MB, 占比 37%→~42% (结论 内存不是瓶颈 仍成立, 但数字必须改) (2) 848 行 Q10 原厂问法仍是裸 1080p 输入"
+  dispatched_at: '2026-10-26'
+- id: ISS-071
+  title: '全幅口径的尾巴清理 (3 处): 内存规划表按全幅重算 + Q10 原厂问法改全幅 + §3.3 吞吐段与 S1 依据表述'
+  severity: medium
+  source_blocker: null
+  source_agent: sw-lead
+  desc: 'ISS-070 交卷后项目总工自己 grep 全文 1080p, 抓出 sw-lead 漏掉的 4 处: (1) ★真数字错误: 12.1 内存规划表仍按
+    1920x1080 NV12 3.11MB 算 ISP 内部 framebuffer 与 CSI capture queue (各 4 份 = 12.4MB),
+    但锁定链路的 ISP 输入是 全幅 2688x1520 → NV12 单份 6.13MB, 两行各 4 份 = 24.5MB, 合计从 ~178MB 变 ~202MB
+    (FP32 悲观 ~191→~215MB), 占 512MB 从 ~37% 变 ~42% (结论 内存不是瓶颈 仍成立, 但数字必须改) (2) 848 行
+    Q10 原厂问法仍是裸 1080p 输入 (第二封邮件要用) (3) 139 行 §3.3 吞吐矛盾段引用跟踪表的 1080p@60 关 EIS 占 49.8%
+    (数字 49.8% 不许动, 只改表述并留追溯) (4) 516 行 S1 依据列 1080p@60 典型曝光 约等于半帧 (8.3ms 推算值不许动, 改依据表述
+    + 补一句 全幅下 sensor readout 是否仍约等于半帧 需原厂确认, 并入 Q10)'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-10-26'
+  due: '2026-10-28'
+  status: fixing
+  external: false
+  need_keys: []
+  task_brief: '四处, 都在 SW/SW_REQUIREMENTS.md: (a) 12.1 内存规划表: ISP 内部 framebuffer 与
+    CSI capture queue 两行按 全幅 2688x1520 NV12 6.13MB x4 = 24.5MB 重算, 合计行 (乐观 ~178→~202MB
+    / 悲观 ~191→~215MB) 与 12.2 结论里的占比 37%→~42% 和余量 320MB→~296MB 同步; ★结论方向不许改 (内存仍不是瓶颈,
+    512MB 足够), 但数字必须算对并在依据列写清 2688x1520x1.5=6.13MB (b) 848 行 Q10 问法改成 全幅 2688x1520@60
+    输入 (c) 139 行 §3.3 吞吐段的裸 1080p 改成全幅口径并留斜体追溯说明 (49.8% 数字不许动) (d) 516 行 S1 依据列改成全幅口径
+    (8.3ms 推算值不许动, 补一句 全幅下 readout 是否仍约等于半帧 需原厂确认, 并把这个确认点并进 Q10)。硬规则: 除 (a) 的内存重算外,
+    任何数字不许动; 需求条目数 (M1 8 / M2 8) 不许变; 不许碰 ISP_SCALING_MODE/EVT_TEMPLATE/FISHEYE_GEOMETRY/HW/MECH/TRACKER/state'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: 10-26 19:2x 项目总工派。★这轮是项目总工自己 grep 出来的 (子 agent 只报了 2 处, 漏了内存表这个真错误) —— 又一次说明
+    收活必须自己再扫一遍全文
+  dispatched_at: '2026-10-26'
+- id: ISS-072
+  title: 新电池容量口径的落地 (厚度映射表加 315/387 两行 + 旧 8.7-11.2mm 作废 + 2.6 散热口径 + 3 重量表重算)
+  severity: medium
+  source_blocker: null
+  source_agent: mech-lead
+  desc: 'ISS-064 交卷时 mech-lead 指出 3 处本轮授权外但必须同步的旧口径: (1) §1.4.3 / §1.6.2 / §1.6.3
+    的厚度映射表仍写 575-675mAh → 8.7-11.2mm, 而新口径下满载只要 315mAh (无桥) / 387mAh (有桥), 都落在 4.3-4.6mm
+    薄电芯档 (Renata ICP582035PR-01 340mAh 4.6mm / 丰江 432243 >=420mAh 4.3mm) → 镜腿 7.3mm
+    锁死值一毫米不用改, 旧档位作废 (2) §2.6 仍写皮肤侧推算 96°C, 应写清 80.1°C (镜腿内主口径) / 96.1°C (整机上界) (3)
+    §7 结论摘要仍写 0.23W→46.5°C (缺镜腿内 80.1°C) 与 575-675mAh→8.7-11.2mm; 且 §3 重量表需按新电芯重算
+    (丰江 432243 6.0g vs Renata 340mAh 约 4.8g)'
+  owner: mech-lead
+  reporter: mech-lead
+  raised: '2026-10-26'
+  due: '2026-10-29'
+  status: fixing
+  external: false
+  need_keys: []
+  task_brief: '五处, 全在 MECH/MECH_BUDGET.md: (a) §1.4.3 空间对比表加两行 (315mAh → Renata ICP582035PR-01
+    340mAh 4.6mm → 镜腿 7.3mm; 387mAh → 丰江 432243 >=420mAh 4.3mm → 7.3mm 名义 7.0), 旧的
+    575-675mAh→8.7-11.2mm 行保留但标注 作废 (旧口径, 满载容量从 441mAh 降到 315/387mAh) (b) §1.6.2 /
+    §1.6.3 厚度映射表同样加两行 + 旧行标作废; §1.6.2 的 575mAh 行电芯型号继续标 未验 (不许反推) (c) §2.6 散热结论改成
+    皮肤侧 80.1°C (镜腿内主口径) / 96.1°C (整机上界) (d) §7 结论摘要补 80.1°C 并把 575-675mAh→8.7-11.2mm
+    换成 315/387mAh→7.3mm (e) §3 重量表按两个新电芯重算 (Renata 约 4.8g / 丰江 6.0g, 两行), 其余器件重量不许动。硬边界:
+    只 MECH_BUDGET.md 这五处, 几何/厚度以外的表/打印包/state/HW/SW/TRACKER 全不许动; 改完 fit_check.py
+    与 verify_pack.py 仍须原样通过'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '10-26 19:2x 项目总工批准 mech-lead 的 3 条提问, 合并成一单 (全是同一件事: 新容量口径的落地)。★重点结论: 老板锁死的镜腿
+    7.3mm 不用改, 675mAh→11.2mm 的形态否决解除 (但降容只解形态不解散热)'
+  dispatched_at: '2026-10-26'

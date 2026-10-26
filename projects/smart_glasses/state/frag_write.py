@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shlex
 import sys
 import tempfile
 
@@ -136,7 +137,7 @@ def main() -> int:
             d[field] = val
             return
         for spec in args.add_need:
-            kv = dict(_kv(x) for x in spec.split())
+            kv = dict(_kv(x) for x in shlex.split(spec))
             d.setdefault("needs_from", []).append({
                 "key": kv.get("key"),
                 "to": kv.get("to"),
@@ -144,7 +145,7 @@ def main() -> int:
                 "since": kv.get("since", "2026-10-25"),
             })
         for spec in args.add_answer:
-            kv = dict(_kv(x) for x in spec.split())
+            kv = dict(_kv(x) for x in shlex.split(spec))
             d.setdefault("answers", []).append({
                 "key": kv.get("key"),
                 "to": kv.get("to"),
@@ -152,7 +153,7 @@ def main() -> int:
                 "ref": kv.get("ref", ""),
             })
         for spec in args.add_artifact:
-            kv = dict(_kv(x) for x in spec.split())
+            kv = dict(_kv(x) for x in shlex.split(spec))
             d.setdefault("artifacts", []).append({
                 "path": kv.get("path", ""),
                 "kind": kv.get("kind", "note"),
@@ -161,7 +162,7 @@ def main() -> int:
                 "summary": kv.get("summary", ""),
             })
         for spec in args.add_claim:
-            kv = dict(_kv(x) for x in spec.split())
+            kv = dict(_kv(x) for x in shlex.split(spec))
             d.setdefault("interface_claims", []).append({
                 "key": kv.get("key"),
                 "value": kv.get("value", ""),

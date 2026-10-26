@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-10-25T20:32:09+08:00'
+  generated_at: '2026-10-26T19:03:34+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 9216
-      sha1: 9417fdc22b4c
-      mtime_ns: 1792898701966077076
+      size: 15274
+      sha1: 954bc0345e76
+      mtime_ns: 1793011894811262655
     mech-lead:
       file: mech.yaml
       size: 21491
@@ -19,9 +19,9 @@ meta:
       mtime_ns: 1792931307474191391
     main:
       file: pm.yaml
-      size: 14954
-      sha1: 0b7193c31693
-      mtime_ns: 1792928645695071179
+      size: 15661
+      sha1: 95c5fef34b6e
+      mtime_ns: 1793012044408248509
     sw-lead:
       file: sw.yaml
       size: 7181
@@ -88,7 +88,7 @@ domains:
     - id: PM-B4
       desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
       severity: medium
-      needs_from: &id015
+      needs_from: &id017
       - jbd
       waiting_since: '2026-10-21'
     needs_from:
@@ -409,7 +409,19 @@ domains:
           一旦说发就能直接发。'
         ref: 老板决策 2026-10-25 (项目总工代录)
       foreign_answers: []
-    answers: []
+    answers:
+    - key: reva_stl_regen
+      to: mech-lead
+      value: 46/46
+      ref: ISS-058_2026-10-26_18:4x:verify_pack_46/46;STL_md5=99214b61+21173a44;3MF_重打_自检18/18
+    - key: reva_asym_direction
+      to: mech-lead
+      value: 厚度Y向
+      ref: GEOM_SPEC_REVA_§2.2_为基线(皮肤侧0.00/内侧0.15);检具X=40.80_两方向兼容;产品件待Q21(ISS-060)
+    - key: rel_sys_min_voltage
+      to: hw-lead
+      value: 方案A基线+评估更省替代
+      ref: 裁决2026-10-26:兜底必做UVP抬到3.5V;基线=方案A(3.3V改TPS62130A供,代价12-15%容量不可用->容量与续航口径重算+镜腿厚度结构复核);另派评估不牺牲容量的替代(低dropout_3V3_LDO/IO轨直吃SYS/buck-boost)=>ISS-067;方案C接受末段黑屏=否决
     open_questions:
     - id: PM-Q1
       to: sw-lead
@@ -433,10 +445,13 @@ domains:
     updated_at: '2026-10-25T09:34:04+08:00'
     updated_by: hw-lead
     status:
-      phase: P2(原理图/BOM启动)
-      progress_pct: 35
+      phase: P2(原理图/BOM)+可靠性评审
+      progress_pct: 42
       health: red
-      summary: P1拆解100%完成(26模块/5排除项/3卡点对策成型);P2原理图实体0页(datasheet未到,已出顶层骨架+接口定义+12条接口取值);较上轮+5=需求闭环登记(5条answers)+v2交接单B1-B6+1条新答复(NTC位置)
+      summary: 'P1拆解100%+P2原理图骨架(56条接口/31条两端已定)+可靠性评审(ISS-023)完成: 降额15器件x3轴+应力3工况x17元件组+MTBF假设链12条; 新增
+        6 条 needs (2 vendor/1 boss/3 agent) + 6 条 interface_claims + 2 条 blocker; 查出 R-F1(3.3V轨 dropout
+        硬伤,待main裁决) R-F2(1.0A充电对575mAh=1.74C超规格,待电芯规格书) R-F3(PCB支架须面接触否则跌落sigma 115MPa超许用); 本文不改变 MECH
+        46.5C 散热结论; 实测 0 项, 跌落/振动/弯折/热全部待样机'
     artifacts:
     - path: HW/HARDWARE_BREAKDOWN.md
       kind: breakdown
@@ -448,6 +463,13 @@ domains:
       version: v2.0
       updated_at: '2026-10-25T09:34:00+08:00'
       summary: '第2轮 v2 模板: B1-B6 六块 6/6 齐 + 需求闭环登记表 + 硬指标 5/5 类; 第3轮补登 5 条外部等待(waiting_on+due); 首轮内容一字未删'
+    - path: HW/RELIABILITY_DESIGN.md
+      kind: design-review
+      version: v1.0
+      updated_at: '2026-10-26T18:42:00+08:00'
+      summary: 'ISS-023 可靠性评审: 降额表 15 器件 x 温度/电压/电流 (abs max 列 15/15 为 [0数据]) + 板级应力 弯折/振动/跌落 x 17 元件组
+        (跌落 R-F3 面接触 vs 点接触 sigma 17 vs 115MPa) + MTBF 元件级 236742h / 系统级 522510h(按需触发基) 假设链 12 条; 查出 R-F1
+        3.3V 轨 dropout 硬伤 + R-F2 充电倍率超规格; 明确不改变 MECH 46.5C 散热结论'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -477,6 +499,22 @@ domains:
       - vendor
       - main
       waiting_since: '2026-10-25'
+    - id: HW-B5
+      desc: 'R-F1 3.3V 轨拓扑未决: SYS 下限 3.0V vs TPS7A20 dropout 110mV -> SYS<3.41V 时 LIGHT_3V3/VDD_3V3_IO
+        失效 (放电末段 12-15% 电量突然黑屏); 三方案 A/B/C 待 main 裁决, 选 A 需同步重算 Q4 续航口径'
+      severity: high
+      needs_from: &id008
+      - main
+      - vendor
+      waiting_since: '2026-10-26'
+    - id: HW-B6
+      desc: '可靠性证据缺口: 15/15 器件 Absolute Maximum Ratings 未核 (降额表只能当设计约束) + 跌落/振动/弯折/热 实测 0 项 (无样机) + 全板
+        FIT 无器件级数据 (MTBF 只能用通用代表值, 光学子系统占 39.1%)'
+      severity: high
+      needs_from: &id009
+      - vendor
+      - main
+      waiting_since: '2026-10-26'
     needs_from:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -621,6 +659,97 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: rel_vendor_absmax_rating
+      to: main
+      item: '15 个器件的 Absolute Maximum Ratings 表 (温度/电压/电流) + 可靠性数据 (FIT/MTBF/降额曲线): 现降额表 绝对最大 列 15/15
+        全为 [0数据], 降额表只能当设计约束不能当器件符合性声明; 另需 BQ25896 工作温度范围 / TMP117 供电范围 / Type-C 母座温升-电流曲线'
+      since: '2026-10-26'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-30'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: rel_battery_cell_spec
+      to: main
+      item: '1S LiPo 电芯规格书: 允许充电倍率 (R-F2: 1.0A@575mAh=1.74C 超典型 1C; 340mAh@1.0A=2.94C 更差) + 循环寿命 + 内阻
+        + 膨胀曲线 + 允许充电/放电温度窗口 (电池轴降额只能按规格书判)'
+      since: '2026-10-26'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-30'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: rel_mount_stiffness
+      to: mech-lead
+      item: 'PCB 支架是面接触还是点接触? (R-F3 跌落): 面接触 有效跨距3mm -> 板弯 sigma=17MPa 通过; 点接触 跨距20mm + 4层0.8mm -> sigma=115MPa
+        超板材弯曲许用 100-140MPa. 需求: 金属骨架托架接触面 >=40x8mm 面接触 + 2xM1.2 螺钉只做防翘压紧 + 定位销只防转, 不承担弯矩; 另需确认 PCB 是否被铰链带弯
+        (不弯则 FPC 承担全部弯折)'
+      since: '2026-10-26'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: rel_sys_min_voltage
+      to: main
+      item: 'R-F1 裁决 (电源拓扑硬伤): SYS=VBAT 下限 3.0V 与 3.3V 轨冲突 - TPS7A20 dropout 110mV typ [官方] -> 3.3V 输出需
+        VIN>=3.41V -> SYS<3.41V 时 LIGHT_3V3(150mA)+VDD_3V3_IO(200mA) 失效, 覆盖放电末段 12-15% 电量, 现场=用到快没电突然黑屏.
+        三方案: A(UVP 抬到3.5V + 3.3V改由TPS62130A供, 牺牲12-15%容量, 续航口径要重算) / B(3.3V 改 buck-boost, +1颗IC) / C(接受末段黑屏).
+        我推荐 A 但不改 tracker 锁死表, 裁决权在你'
+      since: '2026-10-26'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: main
+        value: 方案A基线+评估更省替代
+        ref: 裁决2026-10-26:兜底必做UVP抬到3.5V;基线=方案A(3.3V改TPS62130A供,代价12-15%容量不可用->容量与续航口径重算+镜腿厚度结构复核);另派评估不牺牲容量的替代(低dropout_3V3_LDO/IO轨直吃SYS/buck-boost)=>ISS-067;方案C接受末段黑屏=否决
+      foreign_answers: []
+    - key: rel_od_duty_for_mtbf
+      to: sw-lead
+      item: 'MTBF 工作占空比口径对齐: 你已登记 od_duty_cycle=100% (OD 连续推理, DC-DC 按连续满载设计), 而 MECH 2.3 的按需触发 0.23W/1.22W
+        隐含 D=0.19. 两者不能同时成立, 差 5.6 倍系统级 MTBF (522510h vs 93396h). 请明确: OD 是连续跑还是按需触发? 这决定整机 MTBF 取 59.6
+        年还是 10.7 年'
+      since: '2026-10-26'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: rel_drop_target_level
+      to: main
+      item: '跌落目标等级未拍板: 本文按 1.0m 自由跌落 x (6面各1次+4角各1次=10次/台) x 3台 假设. 消费1.0m/工业1.2m/军规1.5m 判据不同, 直接影响 R-F3
+        面接触要求的松紧'
+      since: '2026-10-26'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -692,27 +821,27 @@ domains:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
       severity: high
-      needs_from: &id008
+      needs_from: &id010
       - vendor
       waiting_since: '2026-10-21'
     - id: SW-B2
       desc: 光机逐帧延迟 = 完全 0 数据 (走鹃Ⅱ 只公开 480Hz 刷新率; 光机出光没法用软件打点, 需高速摄影/示波器)
       severity: high
-      needs_from: &id009
+      needs_from: &id011
       - boss
       - vendor
       waiting_since: '2026-10-25'
     - id: SW-B3
       desc: NPU 输出是否强制 FP32 未知 → A733 上 tensor_to_fp 9.29ms 占 SDK 总 25%; 若强制则端到端多 7.3ms, 框龄跳档
       severity: high
-      needs_from: &id010
+      needs_from: &id012
       - vendor
       waiting_since: '2026-10-21'
     - id: SW-B4
       desc: 'Q1 60ms 口径 + Q17 显示帧率 待老板拍板 (needs: q1_latency_scope / q17_display_fps, waiting_on=boss,
         due 2026-10-25) → 端到端 ''达标/不达标'' 结论定不下来: 口径A=67.0ms 不达标 / 口径C=42.3ms 达标, 同一套硬件两个口径'
       severity: high
-      needs_from: &id011
+      needs_from: &id013
       - boss
       - main
       waiting_since: '2026-10-25'
@@ -725,7 +854,7 @@ domains:
       target_missing: false
       waiting_on: boss
       due: '2026-10-25'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -738,7 +867,7 @@ domains:
       target_missing: false
       waiting_on: boss
       due: '2026-10-25'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -910,7 +1039,7 @@ domains:
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
         11.8mm 全是推算)
       severity: high
-      needs_from: &id012
+      needs_from: &id014
       - jbd
       - main
       waiting_since: '2026-10-21'
@@ -918,7 +1047,7 @@ domains:
       desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
         0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
       severity: high
-      needs_from: &id013
+      needs_from: &id015
       - boss
       - main
       waiting_since: '2026-10-25'
@@ -926,21 +1055,21 @@ domains:
       desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置
         boot storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
       severity: high
-      needs_from: &id014
+      needs_from: &id016
       - hw-lead
       - main
       waiting_since: '2026-10-25'
     - id: MECH-B3
       desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
       severity: medium
-      needs_from: &id016
+      needs_from: &id018
       - jbd
       waiting_since: '2026-10-25'
     - id: MECH-B5
       desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
         → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
       severity: medium
-      needs_from: &id017
+      needs_from: &id019
       - mech-lead
       waiting_since: '2026-10-25'
     needs_from:
@@ -1118,14 +1247,17 @@ domains:
         (见 GEOM_SPEC_REVA.md §3.3)。我不碰 .stl / gen_print_pack.py / PRINT/ 下任何文件。规格里的参考实现已离线复核通过 (MECH/print/verify_reva_ref.py
         → 全一致, 包围盒 150×90×22 / 60×123×27.8)。'
       since: '2026-10-25'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: main
+        value: 46/46
+        ref: ISS-058_2026-10-26_18:4x:verify_pack_46/46;STL_md5=99214b61+21173a44;3MF_重打_自检18/18
       foreign_answers: []
     - key: reva_cell_thickness_tol
       to: boss
@@ -1149,14 +1281,17 @@ domains:
         40.80), 只影响产品件加工图。另: 压垫槽挖在 0.8 顶板内侧后, 槽区板厚只剩 0.40 (< FDM 最小壁 0.80) —— 产品件要么顶板局部加厚到 1.20 (H 链 6.75
         → 余量 0.55 < 0.60, 破 2×公差规矩), 要么压垫不设槽改背胶固定, 要么 boss 裁决。'
       since: '2026-10-25'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: main
+        value: 厚度Y向
+        ref: GEOM_SPEC_REVA_§2.2_为基线(皮肤侧0.00/内侧0.15);检具X=40.80_两方向兼容;产品件待Q21(ISS-060)
       foreign_answers: []
     answers:
     - key: pcb_outline_confirm
@@ -1342,6 +1477,66 @@ interface_claims:
       hw-lead: 550mA@5V/2A
     notes:
       hw-lead: 460mAh 1h 充满需>=550mA, 超 USB2.0 默认500mA -> 建议上 PD sink (5V only, 2A)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  pcb_mount_contact:
+    values:
+      hw-lead: 面接触>=40x8mm
+    notes:
+      hw-lead: 'R-F3 跌落: 面接触(有效跨距3mm) 板弯 sigma=17MPa 通过 / 点接触(跨距20mm)+4层0.8mm sigma=115MPa 超板材许用100-140MPa;
+        2xM1.2 只防翘+定位销只防转; 不改 mech-lead 已登记的 pcb_mounting, 是补充约束'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sys_min_voltage:
+    values:
+      hw-lead: 3.41V(3.3V轨最低SYS)
+    notes:
+      hw-lead: 'R-F1: TPS7A20 dropout 110mV typ[官方] + SYS=VBAT 3.0-4.2V[推算] -> SYS<3.41V 时 LIGHT_3V3/VDD_3V3_IO
+        失效(放电末段12-15%); 2.8V轨需>=2.91V 不受影响; 待 main 裁决 A/B/C 三方案'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  bat_chg_rate_cap:
+    values:
+      hw-lead: 1.0A(待电芯规格书)
+    notes:
+      hw-lead: 'R-F2: 575mAh@1.0A=1.74C 超典型1C; 340mAh@1.0A=2.94C 更差; 处置 降到0.575A(1C, 充满1.5h) 或选2C电芯; 与已登记
+        battery_charge_current=550mA@5V/2A 含义不同(那是1h充满所需电流, 不是倍率上限)'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  component_env_temp_max:
+    values:
+      hw-lead: 55C(组件环境上限)
+    notes:
+      hw-lead: 贴皮肤镜脚内; BQ2970(-40~85C)与TypeC母座(-25~85C)按x0.85 建议设计上限=72C -> 余量仅17C, 充电域必须挪离皮肤侧 (与 MECH
+        2.3.1 独立佐证); 跌落/振动/热全部未实测
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  drop_test_profile:
+    values:
+      hw-lead: 1.0m x 10次/台 x 3台
+    notes:
+      hw-lead: 6面各1次+4角各1次; 吸能行程2mm -> 冲击加速度500g; 目标等级待boss拍板(消费1.0m/工业1.2m/军规1.5m)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  derating_rule_set:
+    values:
+      hw-lead: 温度x0.85/电压x0.80/电流x0.80
+    notes:
+      hw-lead: IPC-9701/GJB-Z35A 通用降额档(条款原文未核->规则本身[推算]); 电池轴例外改用电芯规格书判据; 占用率=工作值/建议设计上限, >=100%不通过/80-100%贴边/<80%通过
     by:
     - hw-lead
     noncanonical_by: []
@@ -1654,28 +1849,26 @@ needs_matrix:
     since: '2026-10-25'
     _by: main
     state: pending
-  - key: reva_stl_regen
-    to: main
-    item: 'Rev A 打印包重生成: 按 MECH/print/GEOM_SPEC_REVA.md (解 A) 改 gen_print_pack.py 并重出 fit_coupon_340.stl
-      + temple_cage_340.stl (电池座 4.75 非对称 + 0.8 整片顶板 + 0.4 压垫槽 + PCB 定位 ⌀2.4 间隙孔 + 2×⌀1.6 过孔 + coupon
-      新增 ⌀2.4/⌀2.5 试样), 然后 python3 MECH/print/verify_pack.py 应 46/46。当前旧 STL (12:31, Rev 0) 在 Rev A 判据下
-      38/46 —— 差 8 项: 座净厚 4.90/压垫槽 0/顶板厚 2.0/⌀1.6@X=6/⌀2.4@X=16/⌀1.6@X=46/coupon ⌀2.4/coupon ⌀2.5 (见 GEOM_SPEC_REVA.md
-      §3.3)。我不碰 .stl / gen_print_pack.py / PRINT/ 下任何文件。规格里的参考实现已离线复核通过 (MECH/print/verify_reva_ref.py
-      → 全一致, 包围盒 150×90×22 / 60×123×27.8)。'
-    since: '2026-10-25'
-    _by: mech-lead
+  - key: rel_mount_stiffness
+    to: mech-lead
+    due: '2026-10-29'
+    item: 'PCB 支架是面接触还是点接触? (R-F3 跌落): 面接触 有效跨距3mm -> 板弯 sigma=17MPa 通过; 点接触 跨距20mm + 4层0.8mm -> sigma=115MPa
+      超板材弯曲许用 100-140MPa. 需求: 金属骨架托架接触面 >=40x8mm 面接触 + 2xM1.2 螺钉只做防翘压紧 + 定位销只防转, 不承担弯矩; 另需确认 PCB 是否被铰链带弯
+      (不弯则 FPC 承担全部弯折)'
+    since: '2026-10-26'
+    _by: hw-lead
     state: pending
-  - key: reva_asym_direction
-    to: main
-    item: '确认解 A ''非对称座 4.75'' 的方向: 我按 **厚度 (H) 向** 执行 (皮肤侧间隙 0.00 电芯贴座底 / 内侧 0.15 压垫工作间隙), 见 GEOM_SPEC_REVA.md
-      §2.2。若原意是 **长度 (X) 向** (电芯前端抵电池段前端壁、尾端留 0.15), 则产品件座净长应为 40.65 而不是 40.80 —— 打印包检具的 X 尺寸两种都能用 (保持
-      40.80), 只影响产品件加工图。另: 压垫槽挖在 0.8 顶板内侧后, 槽区板厚只剩 0.40 (< FDM 最小壁 0.80) —— 产品件要么顶板局部加厚到 1.20 (H 链 6.75
-      → 余量 0.55 < 0.60, 破 2×公差规矩), 要么压垫不设槽改背胶固定, 要么 boss 裁决。'
-    since: '2026-10-25'
-    _by: mech-lead
+  - key: rel_od_duty_for_mtbf
+    to: sw-lead
+    due: '2026-10-29'
+    item: 'MTBF 工作占空比口径对齐: 你已登记 od_duty_cycle=100% (OD 连续推理, DC-DC 按连续满载设计), 而 MECH 2.3 的按需触发 0.23W/1.22W
+      隐含 D=0.19. 两者不能同时成立, 差 5.6 倍系统级 MTBF (522510h vs 93396h). 请明确: OD 是连续跑还是按需触发? 这决定整机 MTBF 取 59.6
+      年还是 10.7 年'
+    since: '2026-10-26'
+    _by: hw-lead
     state: pending
-  answered_count: 37
-  total: 41
+  answered_count: 43
+  total: 47
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -1720,74 +1913,96 @@ blockers:
   needs_from: *id007
   waiting_since: '2026-10-25'
   owner: hw-lead
+- id: HW-B5
+  desc: 'R-F1 3.3V 轨拓扑未决: SYS 下限 3.0V vs TPS7A20 dropout 110mV -> SYS<3.41V 时 LIGHT_3V3/VDD_3V3_IO 失效
+    (放电末段 12-15% 电量突然黑屏); 三方案 A/B/C 待 main 裁决, 选 A 需同步重算 Q4 续航口径'
+  severity: high
+  needs_from: *id008
+  waiting_since: '2026-10-26'
+  owner: hw-lead
+- id: HW-B6
+  desc: '可靠性证据缺口: 15/15 器件 Absolute Maximum Ratings 未核 (降额表只能当设计约束) + 跌落/振动/弯折/热 实测 0 项 (无样机) + 全板 FIT
+    无器件级数据 (MTBF 只能用通用代表值, 光学子系统占 39.1%)'
+  severity: high
+  needs_from: *id009
+  waiting_since: '2026-10-26'
+  owner: hw-lead
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
   severity: high
-  needs_from: *id008
+  needs_from: *id010
   waiting_since: '2026-10-21'
   owner: sw-lead
 - id: SW-B2
   desc: 光机逐帧延迟 = 完全 0 数据 (走鹃Ⅱ 只公开 480Hz 刷新率; 光机出光没法用软件打点, 需高速摄影/示波器)
   severity: high
-  needs_from: *id009
+  needs_from: *id011
   waiting_since: '2026-10-25'
   owner: sw-lead
 - id: SW-B3
   desc: NPU 输出是否强制 FP32 未知 → A733 上 tensor_to_fp 9.29ms 占 SDK 总 25%; 若强制则端到端多 7.3ms, 框龄跳档
   severity: high
-  needs_from: *id010
+  needs_from: *id012
   waiting_since: '2026-10-21'
   owner: sw-lead
 - id: SW-B4
   desc: 'Q1 60ms 口径 + Q17 显示帧率 待老板拍板 (needs: q1_latency_scope / q17_display_fps, waiting_on=boss, due
     2026-10-25) → 端到端 ''达标/不达标'' 结论定不下来: 口径A=67.0ms 不达标 / 口径C=42.3ms 达标, 同一套硬件两个口径'
   severity: high
-  needs_from: *id011
+  needs_from: *id013
   waiting_since: '2026-10-25'
   owner: sw-lead
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
     11.8mm 全是推算)
   severity: high
-  needs_from: *id012
+  needs_from: *id014
   waiting_since: '2026-10-21'
   owner: mech-lead
 - id: MECH-B2
   desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
     0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
   severity: high
-  needs_from: *id013
+  needs_from: *id015
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B4
   desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置 boot
     storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
   severity: high
-  needs_from: *id014
+  needs_from: *id016
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: PM-B4
   desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
   severity: medium
-  needs_from: *id015
+  needs_from: *id017
   waiting_since: '2026-10-21'
   owner: main
 - id: MECH-B3
   desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
   severity: medium
-  needs_from: *id016
+  needs_from: *id018
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B5
   desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
     → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
   severity: medium
-  needs_from: *id017
+  needs_from: *id019
   waiting_since: '2026-10-25'
   owner: mech-lead
 conflicts: []
 needs_normalization: []
 lint:
+- agent: hw-lead
+  key: bat_chg_rate_cap
+  value: 1.0A(待电芯规格书)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: component_env_temp_max
+  value: 55C(组件环境上限)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: mech-lead
   key: mfit_scope
   value: 镜脚侧通过(临界)/镜框侧未验
@@ -1839,15 +2054,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 15
-  blockers: 17
-  high_blockers: 14
+  artifacts: 16
+  blockers: 19
+  high_blockers: 16
   open_needs: 4
-  waiting_external_needs: 19
+  waiting_external_needs: 22
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 1
+  lint: 3
   agents_reporting: 4
   incomplete_fragments: 0

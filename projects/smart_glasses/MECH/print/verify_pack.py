@@ -314,10 +314,18 @@ def main():
           f"座净厚 {REVA['batt_seat_depth']} / 压垫槽 {REVA['pad_groove_depth']} / "
           f"顶板 {REVA['top_plate_thk']} / 间隙孔 ⌀{REVA['clr_hole']} / "
           f"螺钉过孔 ⌀{REVA['screw_clr']}")
+    # ⚠️ 文案说明: 这里打印的是 check_reva_contract() 的**真实结果** (通过/不通过 + 差在哪个键)。
+    #    check_reva_contract() 实际核对的键 = batt_seat_reva / pad_groove_reva / top_plate_reva;
+    #    改动那个函数的 pairs 时, 这里的文案要同步改。判据/阈值/期望值一律不动。
     if bad:
-        print("⚠️  生成器 P 表与 Rev A 契约不一致: " + "; ".join(bad))
+        print(f"❌ Rev A 契约核对不通过 —— 差在以下键: " + "; ".join(bad))
     else:
-        print("     生成器 P 表: 无 Rev A 键 → 以本文件 + GEOM_SPEC_REVA.md 为准")
+        print("✅ Rev A 契约核对通过 (差分项 0 个): 生成器 P 表的 "
+              "batt_seat_reva / pad_groove_reva / top_plate_reva 与 "
+              "GEOM_SPEC_REVA.md 一致 (容差 1e-9)")
+        print("   P 表另登记 F5/F6: REVA_SCREW_CLR ⌀1.60 / REVA_CLR_HOLE ⌀2.40 —— "
+              "这两键不由 check_reva_contract() 核对, 由下方光线投射探针实测核对 "
+              "(探针标称取自本文件 REVA 字典)")
     probes = build_probes()
     ok = 0
     cur = None
