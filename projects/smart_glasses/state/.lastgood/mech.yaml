@@ -78,6 +78,16 @@ artifacts:
   updated_at: '2026-10-27'
   summary: '质量门 v2: B1-B6 六块 6/6; B2 自评 10 条 (✅10); B3 证据分级 4 标签 (实测条数=0); B4 接口取值
     11 条新增; B5 未决项 8 条 (K-1~K-8, 其中 K-8 已答); B6 自证命令 4 条'
+- path: MECH/SOC_CARRIER_EVAL.md
+  kind: eval
+  version: v2
+  updated_at: '2026-10-27'
+  summary: ISS-084_SoC载板化结构代价评估_3档直接焊BTB-FPC加兜底模组_给板宽厚度堆叠热重量装配全维度数字_结论字面提法不值得_真收益是主板长度76→69mm修掉镜脚超差1.3mm_兜底路线台架可行眼镜形态几何否决_拍板权留给项目总工
+- path: MECH/carrier_eval.py
+  kind: script
+  version: v2
+  updated_at: '2026-10-27'
+  summary: 自证脚本_rc0_自检12-12_含v1三处实算错误修正记录(SoC封装高度漏计_镜框上沿平面预算_热扩散公式单位)
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区
@@ -236,6 +246,18 @@ needs_from:
   item: T-05 汗液浸泡需要 2 只备件电芯 (Renata ICP582035PR-01 340mAh / 丰江 432243 >=420mAh, 当前形态口径)
     + 电芯规格书 (膨胀曲线/循环寿命/内阻/允许充电倍率)。电芯是消耗品, 1 只样本无法判鼓包与循环分布。★ 请经你转供应商, 我不直接外联; 与你已登记的
     rel_battery_cell_spec 同源, 本条只追加 '试样数量' 要求。
+- key: soc_carrier_mainboard_site
+  to: main
+  item: ISS-084上游卡点_主板位定镜脚还是镜框(解D走不走变更流程)_载板化的全部结构结论都随它变_请裁_经项目总工转老板
+  since: '2026-10-25'
+- key: iss081_pin_budget_carrier
+  to: hw-lead
+  item: ISS-081引脚预算结论_能否缩到50脚以内_直接决定BTB是60位还是40位及载板16x16还是12x12_我按60位预留_经项目总工转达
+  since: '2026-10-25'
+- key: u8_frame_section_carrier
+  to: main
+  item: u8镜框截面口径_镜框上沿载板位余量0.45mm能否成立_还卡u4波导2D图_经项目总工走JBD
+  since: '2026-10-25'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -440,6 +462,62 @@ interface_claims:
   value: 5-200Hz PSD0.005g2/Hz 2grms 30min/轴x3轴
   note: 沿用 hw 上游; 主风险=摄像头模组界面预紧(允许离焦29um, 以 MTF<=10% 间接判)
   ref: MECH/RELIABILITY_TEST_PLAN.md
+- key: soc_carrier_tier
+  value: A直接焊/B-BTB/C-FPC/D模组
+  note: ISS-084三档加兜底档结构侧分类
+  ref: ''
+- key: soc_carrier_h_add
+  value: B+2.30mm/C+2.10mm/D+2.50mm
+  note: SoC位前后叠层增量_连接器叠高官方_载板FPC厚推算
+  ref: ''
+- key: soc_site_h_base
+  value: 5.35mm
+  note: SoC位基线H叠层含SoC封装0.85_fit_check原报4.50mm缺封装高
+  ref: ''
+- key: soc_site_h_margin
+  value: 1.95mm
+  note: 镜脚SoC位余量7.30减5.35_B/C载板放不进镜脚
+  ref: ''
+- key: mainboard_len_carrier
+  value: 69mm
+  note: 载板化后主板长12mm宽6层双面贴面积模型
+  ref: ''
+- key: mainboard_len_direct
+  value: 76mm
+  note: 直接焊时主板长_与hw-lead_ISS-078一致76x12=912mm2
+  ref: ''
+- key: temple_len_overrun_direct
+  value: +1.3mm
+  note: 直接焊在镜脚里的长度超差_载板化修掉
+  ref: ''
+- key: carrier_board_size
+  value: 16x16x0.8mm
+  note: B档载板外形4层_含SoC加逃线加去耦加BTB座
+  ref: ''
+- key: btb_conn_60pos
+  value: DF40-0.4mm-60P/1.5mm/3.38mm深
+  note: 60位0.4mm_BTB_长度13.6mm推算_位数待ISS-081
+  ref: ''
+- key: frame_brow_run_side
+  value: 43mm
+  note: 镜框上沿单侧连续可用长度_140减2x15铰链减正中区
+  ref: ''
+- key: soc_mod_geom_reject
+  value: 45x55mm>38mm净高
+  note: 供应商模组进镜脚的几何否决判据
+  ref: ''
+- key: carrier_thermal_path
+  value: 金属衬板直贴(ΔTj≈0)
+  note: 推荐装法1_装法2热穿连接器加3.5C
+  ref: ''
+- key: carrier_mass_delta
+  value: B+1.06g/C+1.11g/D+11.0g
+  note: 含金属衬板0.48g
+  ref: ''
+- key: assembly_order_conflict
+  value: SoC朝向被上下分壳锁死
+  note: B/C/D三档共同结构级冲突
+  ref: ''
 open_questions:
 - id: MECH-Q1
   to: main

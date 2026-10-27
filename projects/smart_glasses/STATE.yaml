@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-10-27T01:41:40+08:00'
+  generated_at: '2026-10-27T08:27:16+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -14,9 +14,9 @@ meta:
       mtime_ns: 1793011894811262655
     mech-lead:
       file: mech.yaml
-      size: 28290
-      sha1: 1aed785c5923
-      mtime_ns: 1793031244520757951
+      size: 31251
+      sha1: 5810fc0414a0
+      mtime_ns: 1793037241787704889
     main:
       file: pm.yaml
       size: 16123
@@ -1241,6 +1241,16 @@ domains:
       updated_at: '2026-10-27'
       summary: '质量门 v2: B1-B6 六块 6/6; B2 自评 10 条 (✅10); B3 证据分级 4 标签 (实测条数=0); B4 接口取值 11 条新增; B5 未决项
         8 条 (K-1~K-8, 其中 K-8 已答); B6 自证命令 4 条'
+    - path: MECH/SOC_CARRIER_EVAL.md
+      kind: eval
+      version: v2
+      updated_at: '2026-10-27'
+      summary: ISS-084_SoC载板化结构代价评估_3档直接焊BTB-FPC加兜底模组_给板宽厚度堆叠热重量装配全维度数字_结论字面提法不值得_真收益是主板长度76→69mm修掉镜脚超差1.3mm_兜底路线台架可行眼镜形态几何否决_拍板权留给项目总工
+    - path: MECH/carrier_eval.py
+      kind: script
+      version: v2
+      updated_at: '2026-10-27'
+      summary: 自证脚本_rc0_自检12-12_含v1三处实算错误修正记录(SoC封装高度漏计_镜框上沿平面预算_热扩散公式单位)
     blockers:
     - id: MECH-B1
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -1547,6 +1557,45 @@ domains:
       target_missing: false
       waiting_on: vendor
       due: '2026-10-30'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: soc_carrier_mainboard_site
+      to: main
+      item: ISS-084上游卡点_主板位定镜脚还是镜框(解D走不走变更流程)_载板化的全部结构结论都随它变_请裁_经项目总工转老板
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss081_pin_budget_carrier
+      to: hw-lead
+      item: ISS-081引脚预算结论_能否缩到50脚以内_直接决定BTB是60位还是40位及载板16x16还是12x12_我按60位预留_经项目总工转达
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: u8_frame_section_carrier
+      to: main
+      item: u8镜框截面口径_镜框上沿载板位余量0.45mm能否成立_还卡u4波导2D图_经项目总工走JBD
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
       overdue: false
       decision: null
       decided_at: null
@@ -2103,6 +2152,134 @@ interface_claims:
     - mech-lead
     noncanonical_by: []
     conflict: false
+  soc_carrier_tier:
+    values:
+      mech-lead: A直接焊/B-BTB/C-FPC/D模组
+    notes:
+      mech-lead: ISS-084三档加兜底档结构侧分类
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  soc_carrier_h_add:
+    values:
+      mech-lead: B+2.30mm/C+2.10mm/D+2.50mm
+    notes:
+      mech-lead: SoC位前后叠层增量_连接器叠高官方_载板FPC厚推算
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  soc_site_h_base:
+    values:
+      mech-lead: 5.35mm
+    notes:
+      mech-lead: SoC位基线H叠层含SoC封装0.85_fit_check原报4.50mm缺封装高
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  soc_site_h_margin:
+    values:
+      mech-lead: 1.95mm
+    notes:
+      mech-lead: 镜脚SoC位余量7.30减5.35_B/C载板放不进镜脚
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mainboard_len_carrier:
+    values:
+      mech-lead: 69mm
+    notes:
+      mech-lead: 载板化后主板长12mm宽6层双面贴面积模型
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mainboard_len_direct:
+    values:
+      mech-lead: 76mm
+    notes:
+      mech-lead: 直接焊时主板长_与hw-lead_ISS-078一致76x12=912mm2
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  temple_len_overrun_direct:
+    values:
+      mech-lead: +1.3mm
+    notes:
+      mech-lead: 直接焊在镜脚里的长度超差_载板化修掉
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  carrier_board_size:
+    values:
+      mech-lead: 16x16x0.8mm
+    notes:
+      mech-lead: B档载板外形4层_含SoC加逃线加去耦加BTB座
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  btb_conn_60pos:
+    values:
+      mech-lead: DF40-0.4mm-60P/1.5mm/3.38mm深
+    notes:
+      mech-lead: 60位0.4mm_BTB_长度13.6mm推算_位数待ISS-081
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  frame_brow_run_side:
+    values:
+      mech-lead: 43mm
+    notes:
+      mech-lead: 镜框上沿单侧连续可用长度_140减2x15铰链减正中区
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  soc_mod_geom_reject:
+    values:
+      mech-lead: 45x55mm>38mm净高
+    notes:
+      mech-lead: 供应商模组进镜脚的几何否决判据
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  carrier_thermal_path:
+    values:
+      mech-lead: 金属衬板直贴(ΔTj≈0)
+    notes:
+      mech-lead: 推荐装法1_装法2热穿连接器加3.5C
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  carrier_mass_delta:
+    values:
+      mech-lead: B+1.06g/C+1.11g/D+11.0g
+    notes:
+      mech-lead: 含金属衬板0.48g
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  assembly_order_conflict:
+    values:
+      mech-lead: SoC朝向被上下分壳锁死
+    notes:
+      mech-lead: B/C/D三档共同结构级冲突
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
   display_frame_rate:
     values:
       main: 60fps
@@ -2404,8 +2581,26 @@ needs_matrix:
       衰减 <=10% / 电池 ΔR<=+20% / 电感 ΔL<=±10% —— 我的 T-01 用例卡按这组写的。'
     _by: mech-lead
     state: pending
+  - key: soc_carrier_mainboard_site
+    to: main
+    item: ISS-084上游卡点_主板位定镜脚还是镜框(解D走不走变更流程)_载板化的全部结构结论都随它变_请裁_经项目总工转老板
+    since: '2026-10-25'
+    _by: mech-lead
+    state: pending
+  - key: iss081_pin_budget_carrier
+    to: hw-lead
+    item: ISS-081引脚预算结论_能否缩到50脚以内_直接决定BTB是60位还是40位及载板16x16还是12x12_我按60位预留_经项目总工转达
+    since: '2026-10-25'
+    _by: mech-lead
+    state: pending
+  - key: u8_frame_section_carrier
+    to: main
+    item: u8镜框截面口径_镜框上沿载板位余量0.45mm能否成立_还卡u4波导2D图_经项目总工走JBD
+    since: '2026-10-25'
+    _by: mech-lead
+    state: pending
   answered_count: 51
-  total: 58
+  total: 61
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -2594,6 +2789,14 @@ lint:
   key: mech_reltest_cosmetic
   value: 3介质 x 30次擦拭+24h贴附x3天
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: carrier_thermal_path
+  value: 金属衬板直贴(ΔTj≈0)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: assembly_order_conflict
+  value: SoC朝向被上下分壳锁死
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
   key: s2_boot_entry_methods
   value: A:boot-pin+reset / B:key-combo / C:usb-trigger
@@ -2645,15 +2848,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 22
+  artifacts: 24
   blockers: 24
   high_blockers: 18
-  open_needs: 7
+  open_needs: 10
   waiting_external_needs: 29
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 8
+  lint: 10
   agents_reporting: 4
   incomplete_fragments: 0
