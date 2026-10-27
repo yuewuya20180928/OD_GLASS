@@ -109,10 +109,11 @@
 
 | ID | 平台 | 状态 | 格式 | 来源路径 | 大小 (B) | sha256[:16] | 许可 | 备注 |
 |---|---|---|---|---|---|---|---|---|
-| **MOD-YOLOV5S-320-INT8** | candidate | candidate | ONNX | `~/.openclaw/workspace/yolov5s-sim_320_clean.onnx` | 29,337,706 | `340978ec59391f69` | **[0数据]** | ★ **ARS45 主模型候选**。opset 14 / 245 节点 / 12 算子类型 / initializer 29,307,008 B; 输入 `[1,3,320,320]`; 输出 `output[1,25200,85]` + 3 路特征图 (80/40/20) |
-| MOD-YOLOV5S-320-INT8-DUP | candidate | **quarantined** | ONNX | `~/.openclaw/workspace/yolov5s-sim_320_v2.onnx` | 29,337,706 | `340978ec59391f69` | [0数据] | ★ 与上一条**逐字节相同** → 台账去重, 只留一条 |
-| **MOD-YOLOV8S-COCO80-ONNX** | candidate | candidate | ONNX | `/work/object_detection/yolov8s_coco80/workspace/yolov8s.onnx` | 44,842,647 | `111da30a25b6c585` | **AGPL-3.0** | ★ 备选主模型。opset 13 / 263 节点 / 17 算子类型; 输入 `[1,3,640,640]`; 输出 `output0[1,84,8400]`; metadata: version 8.4.80, producer pytorch 2.12.1 |
-| MOD-YOLOV5S-320-INT8-ACUITY | A733-ref | reference | ONNX | `~/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx` | 29,337,706 | `20368be665f6f59a` | [0数据] | ★ 同名第三份, 输入是 **[1,3,640,640]** → 同名不同尺寸, R-1/R-2 的活样本 |
+| ~~MOD-YOLOV5S-320-INT8~~ | candidate | **quarantined** | ONNX | `~/.openclaw/workspace/yolov5s-sim_320_clean.onnx` | 29,337,706 | `340978ec59391f69` | **AGPL-3.0** | ★ **已判死 (2026-10-28)**: C9 冒烟实测 onnxruntime 加载即失败 (只改输入 dim, 图内常量仍 640 尺度) → 模型本身是坏的; 许可 = AGPL-3.0 (溯源见 `SW/MODEL_LICENSE.md` §1) |
+| MOD-YOLOV5S-320-INT8-DUP | candidate | **quarantined** | ONNX | `~/.openclaw/workspace/yolov5s-sim_320_v2.onnx` | 29,337,706 | `340978ec59391f69` | **AGPL-3.0** | ★ 与上一条**逐字节相同** → 台账去重, 只留一条 (同因同坏) |
+| **MOD-YOLOV5S-640-ARS45-SRC** | candidate | **licensing-hold** | ONNX | `~/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx` | 29,337,706 | `20368be665f6f59a` | **AGPL-3.0** | ★ **唯一实测可推理的 yolov5s ONNX (640)** —— C9 冒烟 OK; 血缘: ultralytics/yolov5 v6.0 → onnxsim → 抽 3 路 head; 旧 ID `MOD-YOLOV5S-320-INT8-ACUITY` 名不副实 (ID 写 320 实为 640) → 已由本条取代 |
+| **MOD-YOLOV8S-COCO80-ONNX** | candidate | **licensing-hold** | ONNX | `/work/object_detection/yolov8s_coco80/workspace/yolov8s.onnx` | 44,842,647 | `111da30a25b6c585` | **AGPL-3.0** | ★ 备选主模型; opset 13 / 263 节点 / 17 算子类型; 输入 `[1,3,640,640]`; C9 冒烟 OK; **未采购 Enterprise 前禁入交付物** |
+| **MOD-SSDMBV2-FPNLITE-320-COCO90-TFODAPI** | candidate | **candidate** | SavedModel | `/work/object_detection/pretrained/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8` | 9,640,645 (saved_model.pb) | — | **Apache-2.0** | ★ **交付集里唯一许可干净的候选** (TF OD API, pipeline.config `num_classes: 90` → COCO 可用 80 类); ⚠️ NPU 可转换性 = [0数据] |
 | MOD-YOLOV8S-COCO80-NB | A733-ref | **quarantined** | NBG | `/work/object_detection/yolov8s_coco80/workspace/yolov8s_coco80.nb` | 8,450,776 | `7fa016615610adaa` | — | ★ chip ID **0x10000020 (错)** → 板端不可加载 |
 | MOD-YOLOV8S-SCENEFT-NB | A733-ref | reference | NBG | `/work/object_detection/yolov8s_scene_ft/deploy/yolov8s_scene_ft.nb` | 12,559,680 | `6ac6975036524637` | — | ★ chip **0x1000003B ✓**, format 2 ✓; 板端实测可加载 (2026-08-17); 12.0 MiB ≤ 15 MiB ✓ |
 | MOD-YOLOV8S-SCENEFT-V2-NB | A733-ref | reference | NBG | `/work/object_detection/yolov8s_scene_ft_v2/deploy/yolov8s_scene_ft_v2.nb` | 7,873,008 | `e8a53286029272a4` | — | chip ✓; 7.5 MiB, 本地最小可用 NBG |
@@ -149,18 +150,34 @@ $ ls -la ~/.openclaw/workspace/yolov5s-sim_320_clean.onnx \
 | 三份**体积完全相同**但 sha256 不同 | 体积不能当版本标识 (体积只反映 initializer 个数) | R-2 同上 |
 | 同名 `yolov5s-sim` 却是 **320 与 640 两种输入** | 转换时拿错文件 → 板端 shape 不匹配, 推理结果全错且不报错 | R-1 + 转换脚本**固定 sha256 校验** (§2.3 P1 前置检查) |
 
-### 1.5 ★ 许可栏 (量产放行阻断项)
+### 1.5 ★ 许可栏 (量产放行阻断项) —— ISS-087 修订版
 
-| 资产 | 许可 | 商用结论 | 等级 |
-|---|---|---|---|
-| MOD-YOLOV8S-COCO80-ONNX | **AGPL-3.0** (`metadata_props.license` 原值) | ⚠️ AGPL-3.0 是**强 copyleft**: 商业产品需向 Ultralytics 采购 **Enterprise License**, 否则有开源义务 → **不能默认用** | [实测] |
-| MOD-YOLOV5S-320-INT8 (及 DUP / ACUITY) | **无** (`metadata_props` 为空) | ⚠️ **许可 [0数据]** → 主模型候选的许可**未知** → 阻断项 **L1** | [实测] + [0数据] |
-| MOD-YOLOV8S-SCENEFT*.NB | 无 (NBG 无许可字段) | 派生自 yolov8s, **继承上游许可** → 同 AGPL-3.0 问题 | [推算] |
+> **判定口径 (2026-10-28 起)**: **"许可未判定" 才是阻断项**; "`metadata_props` 为空" 只是取数方式问题。
+> 台账新增 `license_state` (`permissive` / `agpl-granted` / `agpl-no-grant` / `unknown`) 与 `license_grant` (Enterprise 授权号)。
+> **完整判定证据链 / 采购与法务路径 / 成本区间 → `SW/MODEL_LICENSE.md`**。
+
+| 资产 | 许可 | license_state | 商用结论 | 等级 |
+|---|---|---|---|---|
+| MOD-YOLOV5S-320-INT8 (+DUP) | **AGPL-3.0** | agpl-no-grant | ⚠️ 已隔离 (模型是坏的); 许可本身同下 | [实测·溯源] + [官方] |
+| MOD-YOLOV5S-640-ARS45-SRC | **AGPL-3.0** | agpl-no-grant | ⚠️ AGPL 强 copyleft: 商用须采购 **Enterprise License**, 否则不得随闭源固件分发 | [实测·溯源] + [官方] |
+| MOD-YOLOV8S-COCO80-ONNX | **AGPL-3.0** (metadata 原值) | agpl-no-grant | ⚠️ 同上 → 采购 Enterprise License 或改用 Apache-2.0 栈 | [实测] + [官方] |
+| MOD-YOLOV8S-SCENEFT*.NB / MOD-YOLOV5S-A733-NB-BASELINE / *.quantize | **AGPL-3.0** (继承上游) | agpl-no-grant | 派生资产继承上游许可 | [推算] |
+| **MOD-SSDMBV2-FPNLITE-320-COCO90-TFODAPI** | **Apache-2.0** | permissive | ✅ 商用无附加义务 | [官方] |
+
+**阻断项定义 (新)**:
+
+| 阻断项 | 定义 | 现状 |
+|---|---|---|
+| **L1** | 许可**未判定** (台账 `expected_license` 为空) | **0** ✅ (原: 1 条 [0数据]) |
+| **L2** | 板端产物超 15 MiB 槽位 | 0 ✅ |
+| **L3** | chip ID 与目标 NPU 不符 | 0 ✅ |
+| **L4** | AGPL-3.0 且**无** Enterprise 授权记录 → 商用受阻 | **0** ✅ (2 条 AGPL 资产已置 `licensing-hold` 禁入交付物; 采购后填 `license_grant` 即复活) |
+| **L5** | 交付集资产 PC 侧推理冒烟失败 (C9) → 模型本身是坏的 | 0 ✅ |
 
 **处置 (不自行外发, 走项目总工)**:
-1. **L1**: 确认 `yolov5s-sim` 的**来源与许可** —— 这份 ONNX 是从哪来的 (Radxa awnpu_model_zoo 示例? Ultralytics 导出?)、上游 LICENSE 是什么。**本机范围内查不到 LICENSE 文件** → 需项目总工向来源方问 (或向原厂确认 ARS45 官方 model zoo 提供的预编译模型及其许可)。
-2. **L4**: 若最终选 yolov8s 系 → 走商业许可采购 (周期 + 费用, **必须进 BOM 与采购计划**, 不能等到量产前)。
-3. **替代路线 (推荐, 供项目总工裁决)**: 用**原厂 model zoo 提供的预编译板端模型** (A733 当年就有官方 `yolov5s_rt_uint8_a733.nb`) —— 许可由原厂承担, 我们只做回归验证。⚠️ 但 A733 那份官方 .nb 实测**类别映射错 → 422 false positive**, 官方资产也要跑回归 (§4)。
+1. **L1 已闭合**: `yolov5s-sim` 系许可由 [0数据] **判定为 AGPL-3.0** (证据链: `SW/MODEL_LICENSE.md` §1.2, 一条命令 `python3 SW/tools/license_probe.py` 可复现)。
+2. **L4 待老板拍板**: 采购 Enterprise License (预算量级 10⁴–10⁵ USD [推算], 无公开价 [0数据]) **或** 改用 Apache-2.0 栈 (YOLOX-s / PP-YOLOE / TF OD API) —— **不采购则商用受阻** (AGPL §6 要求随硬件分发即提供完整对应源码, 与闭源固件直接冲突)。
+3. **替代路线**: 原厂 (酷芯微) 若能提供**许可由原厂承担**的官方预编译模型 → 最省事 (已列入 Q9 追加问题)。⚠️ 但 A733 那份官方 .nb 实测**类别映射错 → 422 false positive**, 官方资产也要跑回归 (§4)。
 
 ### 1.6 容量门禁 (板端槽位)
 
@@ -328,6 +345,9 @@ offset 8  : uint32   target chip ID    (小端)
 | B7 | 板端加载 + 首帧输出 shape 与 PC 端对齐 | — | ⬜ 无板 |
 | B8 | 纯 NPU 耗时 vs SDK 总耗时 打点 (口径写死) | Q8 | ⬜ 无板 |
 | B9 | 登记进台账 (§1.2) + 跑 §3 精度评估 + §4 回归 | — | ⬜ 无板 |
+
+> ★ **ISS-087 (2026-10-28) 已把上表的"全部 [0数据]"改成逐条机器判定** → 详见 **`SW/ARS45_INT8_CHAIN.md`**:
+> READY 4 / PARTIAL 3 / BLOCKED 5 (共 9 步), 每步带阻塞原因与解锁条件; 驱动器 `SW/tools/int8_chain.py`。
 
 ### 2.10 追加到 Q9 的 10 条 (模型转换专项, 走项目总工转原厂)
 
@@ -592,16 +612,25 @@ offset 8  : uint32   target chip ID    (小端)
 ## 7. 自证复现命令 (B6)
 
 ```bash
-# 一条命令复核本文全部关键数字 (台账 10 条 × 检查项 + 放行阻断项计数)
+# 一条命令复核本文全部关键数字 (台账 11 条 × 检查项 + 放行阻断项计数)
 cd projects/smart_glasses && python3 SW/tools/model_asset_check.py
-# 预期: rc=0 · 资产 10 条 · FAIL 0 · 重复组 1 · 放行阻断项 L=2
-#       (L1 = yolov5s-sim 系许可 [0数据]; L4 = yolov8s AGPL-3.0 商用受限)
+# 预期 (2026-10-28 实跑): rc=0 · 资产 11 条 · FAIL 0 · 重复组 1 · **量产放行阻断项 L=0**
+#       交付集 1 条 (Apache-2.0) | licensing-hold 2 条 (AGPL) | quarantined 4 条 | reference 4 条
+#       L1 许可未判定 0 · L2 超槽 0 · L3 chip ID 0 · L4 AGPL 0 (AGPL 资产已禁入交付物) · L5 坏模型 0
+
+# 许可溯源 (ISS-087 新增: 把 [0数据] 变成有物证的判定)
+python3 SW/tools/license_probe.py
+# 预期: yolov5s-sim 系 3 份 → AGPL-3.0 (证据: 本机文档 + pip 包许可 + checkpoint 命名空间)
+
+# 转换链 readiness (ISS-087 新增: B0~B9 逐条判定)
+python3 SW/tools/int8_chain.py
+# 预期: READY 4 · PARTIAL 3 · BLOCKED 5 (共 9 步)
 
 # 机读输出 (给 CI / 门禁用)
-python3 SW/tools/model_asset_check.py --json | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d['assets']),'assets,',len(d['release_blockers']),'blockers')"
+python3 SW/tools/model_asset_check.py --json | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d['assets']),'assets,',len(d['release_blockers']),'blockers, ship=',d['ship_set'])"
 
 # 单条资产细查
-python3 SW/tools/model_asset_check.py --id MOD-YOLOV5S-320-INT8
+python3 SW/tools/model_asset_check.py --id MOD-YOLOV5S-640-ARS45-SRC
 
 # 新模型入库 (打印台账行骨架 + 头部信息 + 许可判定)
 python3 SW/tools/model_asset_check.py --new /path/to/new_model.onnx
@@ -614,9 +643,10 @@ cd projects/smart_glasses && python3 state/merge.py && python3 state/gate_check.
 
 | 数字 | 出处 |
 |---|---|
-| 10 条资产 / sha256 / 大小 | `model_asset_check.py` 输出 (2026-10-27 实跑) |
+| 11 条资产 / sha256 / 大小 | `model_asset_check.py` 输出 (2026-10-28 实跑) |
 | 三份 `yolov5s-sim` 输入 320/320/640 | 同上 C7 |
-| 许可 AGPL-3.0 / metadata 为空 | 同上 C5 |
+| 许可 AGPL-3.0 (yolov5s 系由 [0数据] 判定而来) | 同上 C5 + `SW/tools/license_probe.py` |
+| 320/416 版模型 PC 侧推理失败 (C9) | 同上 C9 (onnxruntime 冒烟) |
 | chip ID 0x10000020 vs 0x1000003B | 同上 C7 |
 | 算子 12 类 / 245 节点 | onnx 解析 (`n_op_types` / `n_nodes`) |
 | 校准集 100 张 | 同上 C4 (目录计数) |

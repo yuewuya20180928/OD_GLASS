@@ -39,7 +39,7 @@
 - **可回退分支 (跟老板的续航口径挂钩)**: 若拍板"按需触发 130mAh" 方案 (体积 1.8cc), 电池**可能装进镜框** → 跨铰链大电流就降回 **SYS 0.55A**, 充电电流完全不过铰链 (铰链发热更小)。⇒ `J_CHG` 的 pin map 留了 3 个预留位, 两种形态**都能落板**, 不用改板。
 - **电池 NTC 跟着搬**: NTC 贴电芯 → 在镜脚 → `BQ25896` 的 TS 脚在镜框 → **TS 走线要跨铰链** (高阻, OK) —— 已在图上标出。
 
-### 器件表 (110 行 netlist 记录)
+### 器件表 (127 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | VBUS_5V | J_TYPE_C A4+A9+B4+B9 | D_ESD_TC | RAIL_VBUS_5V | 5.0V ±5% | RAIL | 必装 | CHG_BOARD | [推算] |  | 电源域: 目标 5.0V ±5% / 最大电流 2.0A (PD 5V/2A); **充电链整条在充电板**, SYS 经 J_CHG 回主 PCB; SoC 侧球位号 TBD-0 |
@@ -58,8 +58,12 @@
 | BAT_CHG | RAIL_BAT_CHG | J_CHG pin1 | RAIL_BAT_CHG | 跨铰链 1.5A (双 pin 并联) | NET | 必装 | HINGE | [推算] |  | [BAT_CHG] 充电电流跨铰链 (J_CHG pin1/pin2 并联); 载流/压降/发热核算见 P9 页 |
 | BAT_CHG | J_CHG pin1 | J_CHG pin2 | J_CHG | 跨铰链 1.5A (双 pin 并联) | NET | 必装 | HINGE | [推算] |  | [BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算 |
 | BAT_CHG | J_CHG pin2 | U_BATPROT | NET_BAT_PROT | 单端 | NET | 必装 | HINGE | [官方] |  | [BAT_CHG] 充电电流进镜脚侧电池保护 IC (BQ2970) —— **保护 IC 与电池同板 (镜脚)** |
-| HINGE_RSV | J_CHG pin9 | J_CHG pin9 | J_CHG | 预留 (不装) | NET | DNP | HINGE | [推算] |  | [INVENTORY] [HINGE_RSV] J_CHG pin9 预留位 (★V1.5 裁决: 充电 IC 的 I2C **不跨铰链** —— 充电电流靠 R_ILIM 硬件限 |
-| HINGE_RSV | J_CHG pin10 | J_CHG pin10 | J_CHG | 预留 (不装) | NET | DNP | HINGE | [推算] |  | [INVENTORY] [HINGE_RSV] J_CHG pin10 预留位 (★V1.5 裁决: 充电 IC 的 I2C **不跨铰链** —— 充电电流靠 R_ILIM 硬件 |
+| TS_BAT | R_NTC_BAT | TS_RTN | R_NTC_BAT | 103AT NTC ±1% (贴电芯, 另一端接 TS 专用回流) | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] ★V1.8 修正 (ISS-091 结构核算): NTC 下端**不接系统地**, 接 **TS 专用回流** —— 1A 充电电流会把 TS 参考地抬高 14- |
+| TS_BAT | R_TS_PULL | TS_RTN | R_TS_PULL | 30.31k ±1% | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] ★V1.8: RT2 30.31k 下端同样接 **TS 专用回流** (与 NTC 并联构成三件式检测网络) |
+| TS_RTN | R_NTC_BAT | TS_RTN | R_NTC_BAT | 103AT NTC (贴电芯) | R | 必装 | MAIN_PCB | [官方] |  | [TS_RTN] ★V1.8: NTC 另一端接 **TS 专用回流** (不接系统地) |
+| TS_RTN | J_CHG pin10 | J_CHG | TS_RTN | 跨铰链 (TS 专用回流) | NET | 必装 | MAIN_PCB | [推算] |  | [INVENTORY] [TS_RTN] ★V1.8 新增: **TS 专用回流跨铰链** (走 J_CHG pin10, 原来 pin9/pin10 都是预留); 充电板侧接 B |
+| TS_RTN | J_CHG pin10 | U_CHG pin17+pin18 | U_CHG | BQ25896 PGND (模拟地) | NET | 必装 | CHG_BOARD | [推算] |  | [TS_RTN] 充电板侧: TS 专用回流接 BQ25896 的 PGND (pin17/18) ⇒ 偏差 <0.01°C |
+| HINGE_RSV | J_CHG pin9 | J_CHG pin9 | J_CHG | 预留 (不装) | NET | DNP | HINGE | [推算] |  | [INVENTORY] [HINGE_RSV] J_CHG pin9 预留位 (★V1.8: pin10 已改作 **TS 专用回流**, pin9 仍预留; 充电 IC 的 I2 |
 | GND | J_CHG pin3 | J_CHG pin4 | J_CHG | 回流 (双 pin) | NET | 必装 | HINGE | [推算] |  | [GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 · 环路面积最小) |
 | GND | J_CHG pin4 | GND | J_CHG | 回流 (双 pin) | NET | 必装 | HINGE | [推算] |  | [GND_CHG] 回流进镜脚侧数字地 |
 | BAT | RAIL_BAT | U_BATPROT | RAIL_BAT | 4.2V 满 / 3.0V 截止 | RAIL | 必装 | MAIN_PCB | [官方] |  | 电源域: 目标 4.2V 满 / 3.0V 截止 / 最大电流 1.0-1.5A 充电; 电流路径 电池·Q2·Q1·本轨; ★V1.2: **电池在镜脚主 PCB** (MECH |
@@ -70,18 +74,31 @@
 | BAT_GATE | U_BATPROT GATE | Q1 GATE | U_BATPROT | BQ2970 | IC | 必装 | MAIN_PCB | [官方] |  | [BAT_GATE] ★F2 修正: **两管栅极由 BQ2970 同驱** (原来完全没有栅极连接 · MOS 永远不导通/不受控); 栅极网络按 BQ2970 数据手册确认是否 |
 | BAT_GATE | Q1 GATE | Q2 GATE | Q1 | [待选型] N-MOS | SW | 必装 | MAIN_PCB | [推算] |  | [BAT_GATE] 两管共栅 (back-to-back 接法, 按 BQ2970 数据手册确认体二极管方向) |
 | BAT_CELL_N | BT_432243 B- | U_BATPROT B- | BT_432243 | 432243 3.7V ≥420mAh | CONN | 必装 | MAIN_PCB | [推算] |  | [BAT_CELL_N] ★F2 修正: **电芯负极 · BQ2970 的 B- 脚** (原来电芯只有一个端子 · 电池回路不闭合) |
-| SYS | RAIL_SYS | U_BATPROT | RAIL_SYS | 3.0-4.2V | RAIL | 必装 | MAIN_PCB | [推算] |  | 电源域: 目标 3.0-4.2V / 最大电流 0.55A (330mA×1.5 + 瞬态); **R-F1 裁决: SYS 下限抬到 3.5V**; ★V1.2: **SYS 在 |
+| SYS | RAIL_SYS | U_PWR_SW VOUT | RAIL_SYS | 3.0-4.2V | RAIL | 必装 | MAIN_PCB | [推算] |  | 电源域: 目标 3.0-4.2V / 最大电流 0.55A (330mA×1.5 + 瞬态); **R-F1 裁决: SYS 下限抬到 3.5V**; ★V1.2: **SYS 在 |
 | BAT_CHG | J_CHG | J_CHG pin1 | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | [SYS] ★V1.5 定稿 pin map (1×10p@0.5mm): pin1/pin2=BAT_CHG (充电电流**双 pin 并联**), pin3/pin4=GND  |
 | TS_BAT | U_CHG pin11 | R_NTC_BAT | NET_TS_BAT | 单端 | NET | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★电池温度检测: 103AT NTC 接 BQ25896 的 TS 脚 (过温/欠温时**硬件直接停充**; 分压网络按 datasheet 三件式) (不依赖  |
-| TS_BAT | R_NTC_BAT | GND | R_NTC_BAT | 103AT NTC ±1% (贴电芯, 另一端接电芯负极=系统 GND) | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 · **TS 必须跨铰链**  |
-| TS_BAT | R_TS_PULL | GND | R_TS_PULL | 30.31k ±1% | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压); ★V1.6 挪到**镜脚** (NTC 侧) —— 下拉 |
+| TS_BAT | R_NTC_BAT | R_TS_PULL | R_NTC_BAT | 103AT NTC ±1% (贴电芯) | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 · **TS 必须跨铰链**  |
+| TS_RTN | R_TS_PULL | TS_RTN | R_TS_PULL | 30.31k ±1% (RT2) | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压); ★V1.6 挪到**镜脚** (NTC 侧) —— 下拉 |
 | TS_BAT | J_CHG pin8 | R_NTC_BAT | J_CHG | 跨铰链 (高阻) | NET | 必装 | HINGE | [推算] |  | [TS_BAT] ★V1.5 补画: **TS 跨铰链这一段** (V1.2 把电池/NTC 搬镜脚时漏了) · 走 J_CHG pin8 |
 | REGN | U_CHG pin22 | R_TS_TOP | U_CHG | BQ25896 内部 5V (REGN) | NET | 必装 | CHG_BOARD | [官方] |  | [REGN] ★V1.6 补: BQ25896 的 **REGN 5V** (内部 LDO 输出, RT1 的参考端) —— 原来 R_TS_TOP 的 REGN 端没有对应节点  |
 | REGN | C_REGN | U_CHG pin22 | C_REGN | [待选型] 1µF | C | 必装 | CHG_BOARD | [官方] |  | [REGN] BQ25896 REGN 去耦电容 (datasheet 要求) |
 | GND | C_REGN | GND | C_REGN | [待选型] 1µF | C | 必装 | MAIN_PCB | [官方] |  | [REGN] REGN 去耦电容 地端 |
 | TS_BAT | R_TS_TOP | U_CHG pin22 | R_TS_TOP | 5.24k ±1% (RT1: REGN 到 TS) | R | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, 原来只画了 NTC + |
-| IINLIM | U_CHG pin10 | R_ILIM | R_ILIM | 470Ω ±1% (IINMAX ≈0.71-0.87A → ICHG ≈0.68A) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] ★★V1.7 按 ISS-091 结构核算定 **470Ω**: BQ25896 的 IINLIM 复位默认 **2048mA** [官方] (不装 = 铰链吃  |
-| GND | R_ILIM | GND | R_ILIM | 470Ω ±1% (IINMAX ≈0.71-0.87A → ICHG ≈0.68A) | R | 必装 | MAIN_PCB | [官方] |  | [IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限) |
+| IINLIM | U_CHG pin10 | R_ILIM | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] ★★V1.7 按 ISS-091 结构核算定 **470Ω**: BQ25896 的 IINLIM 复位默认 **2048mA** [官方] (不装 = 铰链吃  |
+| GND | R_ILIM | GND | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A) | R | 必装 | MAIN_PCB | [官方] |  | [IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限) |
+| BAT_SW | U_PWR_SW VIN | U_BATPROT | U_PWR_SW | VIN (输入) | NET | 必装 | MAIN_PCB | [推算] |  | [BAT_SW] 电池保护 (BQ2970 + 2×MOS) 引脚 · **负载开关输入**; ★V1.8: 开关装镜脚 (与电池/保护板同板); 关机时充电链仍在电池侧带电 ⇒  |
+| SYS | U_PWR_SW VOUT | RAIL_SYS | U_PWR_SW | [待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断) | IC | 必装 | MAIN_PCB | [推算] |  | [SYS] ★V1.8 硬件断电通路的主器件: VOUT · 镜脚系统轨 SYS (SoC + 2×DC-DC + 7×LDO + sensor + 光机 全在其下游); **反向 |
+| GND | U_PWR_SW GND | GND | U_PWR_SW | 地脚 | NET | 必装 | MAIN_PCB | [推算] |  | [SYS] 负载开关 地脚 |
+| BAT_SW | C_SW_IN | U_PWR_SW VIN | C_SW_IN | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [BAT_SW] 开关输入端去耦 (紧贴 VIN; 另一端接地) |
+| GND | C_SW_IN | GND | C_SW_IN | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [BAT_SW] 开关输入端去耦 的地端 |
+| SYS | C_SW_OUT | U_PWR_SW VOUT | C_SW_OUT | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [SYS] 开关引脚端去耦 (紧贴 VOUT, 承 SoC 上电冲击; 另一端接地) |
+| GND | C_SW_OUT | GND | C_SW_OUT | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [SYS] 开关引脚端去耦 的地端 |
+| PWR_ON | R_PD_ON | U_PWR_SW ON | R_PD_ON | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★V1.8: ON 脚 **10k 下拉 = 默认关** (关机态就是默认态); SoC GPIO 拉高即保持开机; SoC 关机时把该 GPIO 配成高阻 ·  |
+| GND | R_PD_ON | GND | R_PD_ON | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ON 脚下拉的接地端 |
+| PWR_ON | U_PWR_SW ON | SoC[TBD-01].PWR_CTRL | U_PWR_SW | ON 输入 (高电平 = 导通 = 开机) | NET | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), 脚号与是否可配开漏**待原厂** |
+| PWR_ON | Q_PG | U_PWR_SW ON | Q_PG | [待选型] N-MOS (电平转换) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★V1.8: **PG 反相** —— BQ25896 的 PG 是开漏且 **LOW = 输入源良好**; 用一颗 N-MOS 反相: PG 低 · Q_PG  |
+| GND | Q_PG | GND | Q_PG | [待选型] N-MOS (电平转换) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] Q_PG 源极接地 |
+| PWR_GOOD | Q_PG | J_CHG pin6 | Q_PG | [待选型] N-MOS (电平转换) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_GOOD] Q_PG 栅极 = 充电板 PG (经 J_CHG pin6 跨铰链, 镜框侧开漏信号) |
 | BAT_CHG | J_CHG pin1 | TP_BAT_CHG | TP_BAT_CHG | 跨铰链段压降测点 | TP | 必装 | MAIN_PCB | [推算] |  | [BAT_CHG] ★跨铰链充电电流段压降测点 (1.5A 下压降 = 接触电阻×1.5A); 铰链段发热与压降按结构实际长度核算 (结构总工) |
 | V_CORE | RAIL_V_CORE | U_DCDC_VCORE | RAIL_V_CORE | [待原厂] (典型 0.8-0.9V) | RAIL | 必装 | MAIN_PCB | [官方] | TBD-02 | 电源域: 目标 [待原厂] (典型 0.8-0.9V) / 最大电流 ≥2.0A (0.9W/0.8V×1.5=1.69A); IC TPS62130A; SoC 侧球位号 TBD |
 | SYS_PCB | RAIL_SYS | U_DCDC_VCORE | RAIL_SYS | 3.5-4.2V (R-F1 抬下限后) | NET | 必装 | MAIN_PCB | [推算] |  | [V_CORE] U_DCDC_VCORE 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方] |
@@ -365,9 +382,10 @@
 - ★**V1.1 已把 `U_BRIDGE` 定位统一**: 之前 P4 写"DSI→光机桥接芯片"、P6 写"DP→DSI 桥接芯片" —— **同一颗芯片两种说法 = BOM 会对不上**。现在统一为 **DP1.4 TX → MIPI DSI TX 桥接芯片 (方案B 专用)**, `redriver` 作为候选兼列 (若原厂给的是 DP TX 而光机吃 DSI, 那就得靠它转)。
 - ★**V1.1 显示 TX 公开渠道穷举结论 (ISS-083)**: ① 官网产品页对 ARS45 **只字未提显示接口**; ② 官网「智能可穿戴」应用页写"集成 **Display Port 1.4** 与 **USB 3.0**" [官网·方案级, 未说 TX/RX 方向]; ③ 百度百科写"**DP1.4 RX**" [媒体级]; ④ **没有任何官方渠道出现 "DSI" 字样** → ⇒ **"ARS45 原生带 DSI TX" 至今未证实** ⇒ **双出口互斥 (R_SEL_* vs BR_*) 必须保留, 桥接芯片 fallback 不能删** (采购周期 4-8 周, 不能等回信)。⑤ 官网确认"集成 USB 3.0" → 但 **USB 3.0 的 SS 差分绝不能跨铰链** (4 对差分 + 刚度要求) ⇒ Type-C 座按 **16p (USB2 + 充电)** 定, 烧录走 USB 2.0 D+/D− (P6)。
 
-### 器件表 (45 行 netlist 记录)
+### 器件表 (46 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
+| VBUS_DET | SoC[TBD-01].USB_VBUS_DET | J_CHG pin7 | SoC[TBD-01] | SoC USB VBUS 检测脚 (脚号待原厂) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | [VBUS_DET] ★V1.8 补上 sw-lead 指出的缺件: **SoC 侧没有任何 USB VBUS 连接** · USB 枚举与 S2 救砖链路 (ISS-080) 的 |
 | DP_TX_A0_P_SRC | SoC[TBD-01].DP_TX_A0_P | R_SER_DP_A0_P | NET_DP_TX_A0_P_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
 | DP_TX_A0_P | R_SER_DP_A0_P | U_BRIDGE pin21 | R_SER_DP_A0_P | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A0_P] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
 | DP_TX_A0_P_SRC | C_AC_DP_A0_P | R_SER_DP_A0_P | C_AC_DP_A0_P | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A0_P_SRC] DP TX **对地**电容位 (并联到 GND, 不是 AC 耦合电容; ★V1.6 修正: 原来 P/N 两路共用一颗且 N 路错接到 P 路 |
@@ -521,9 +539,23 @@
 - **[待原厂]**: 上下电/复位时序要求 (TBD-12, 含 RESET 释放时机与内部 DCDC 同步机制) · 是否有 USB PHY 及其版本 (TBD-10) · 启动介质与挂载接口 (TBD-06/11)。
 - ★**V1.1 上电监督链**: 两路 DC-DC 的 **PG** 各引一个测试点 (`TP_PG_VCORE` / `TP_PG_VIO`, 开漏需上拉) → 原厂若要求 PG 参与时序, 在此补上拉位。`RESET_N` 增加一路**监督器开漏释放** (`U_SUPV`, TPS3808G01 类, 挂常供电轨): 监督电压用**分压** (`R_SUPV_DIV1/2`) 实现 → 原厂电压定了**只改两颗电阻**。与已有 10k 上拉 + RC + 复位键共存 (任一路拉低都生效)。
 
-### 器件表 (42 行 netlist 记录)
+### 器件表 (56 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
+| PG_AND | R_PG_PULL | U_DCDC_VCORE PG | R_PG_PULL | 10k ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-12 | [PG_AND] ★V1.8 复位链 ①: 两路 DC-DC 的 **PG 开漏信号直接并联** (任一路不 ok · 本网被上拉拉高); PG 极性 (ok=低/高) **待原厂 |
+| VDD_1V8_IO | R_PG_PULL | RAIL_VDD_1V8_IO | R_PG_PULL | 10k ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-12 | [PG_AND] ★V1.8 复位链 ①: 并联后的上拉 (10k 挂常供电轨); 阻值偏大则 PG 上升沿慢 (跨铰链还要算分布电容) |
+| PG_AND | U_DCDC_VIO PG | U_DCDC_VCORE PG | NET_PG_AND | PG 开漏并联 (两路 DC-DC) | NET | 必装 | MAIN_PCB | [官方] | TBD-12 | [PG_AND] ★V1.8 复位链 ①: 两路 DC-DC 的 PG 脚并到同一网 (开漏信号可以直接并联) |
+| RESET_N | Q_AND | NET_RESET_N | Q_AND | [待选型] N-MOS (硬件 AND) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [RESET_N] ★V1.8 复位链 ②: **Q_AND 把『两路 PG 都好』变成硬件许可** —— 漏极 = RESET_N; 任一路 PG 坏 · PG_AND 高 ·  |
+| GND | Q_AND | GND | Q_AND | [待选型] N-MOS (硬件 AND) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [RESET_N] Q_AND 源极接地 |
+| PG_AND | Q_AND | U_DCDC_VIO PG | Q_AND | [待选型] N-MOS (硬件 AND) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [PG_AND] Q_AND 栅极 = PG_AND (两路 PG 都好时为低 · Q_AND 关) |
+| EN_VCORE | R_EN_VCORE | RAIL_VDD_1V8_IO | R_EN_VCORE | 10k ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-12 | [EN_VCORE] ★V1.8 复位链 ③: V_CORE 的 DC-DC **EN 脚上拉** (默认关) —— 由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动 ⇒ |
+| VDD_1V8_IO | R_EN_VCORE | RAIL_VDD_1V8_IO | R_EN_VCORE | 10k ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-12 | [EN_VCORE] EN 上拉的另一端 (常供电轨) |
+| EN_VCORE | U_DCDC_VCORE EN | R_EN_VCORE | U_DCDC_VCORE | EN 输入 (高 = 使能) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-12 | [EN_VCORE] ★V1.8: V_CORE buck 的 EN 节点 (由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动) |
+| PG_VIO | Q_ENVC | U_DCDC_VIO PG | Q_ENVC | [待选型] N-MOS (反相) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [PG_VIO] ★V1.8: V_SOC_IO 的 PG 有效 (低) · Q_ENVC 关 · EN_VCORE 被上拉为高 · V_CORE 使能 ⇒ **顺序链**; PG |
+| GND | Q_ENVC | GND | Q_ENVC | [待选型] N-MOS (反相) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [PG_VIO] Q_ENVC 源极接地 |
+| EN_VCORE | Q_ENVC | R_EN_VCORE | Q_ENVC | [待选型] N-MOS (反相) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [EN_VCORE] Q_ENVC 漏极 = EN_VCORE (把 EN 拉低 = 不使能) |
+| EN_VIO | U_DCDC_VIO EN | NET_PWR_ON | U_DCDC_VIO | EN 输入 (高 = 使能) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-12 | [EN_VIO] ★V1.8: V_SOC_IO buck 的 EN **直接由 PWR_ON 开机节点驱动** (它是上电第一路; PG 极性/EN 极性待原厂核) |
+| SUPV_CT | U_SUPV CT | RAIL_VDD_1V8_IO | U_SUPV | CT 脚 (阈值/延时选择) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-12 | [SUPV_CT] ★V1.8: 监督器 CT 脚原来**悬空** (网表里没有) · 补上 (阈值/延时选择, 脚号与接法待原厂核) |
 | XTAL_IN | SoC[TBD-01].XTAL_IN | X1 | NET_XTAL_IN | 12pF | NET | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | 时钟: 外部晶振位 (XTAL_IN); 参考版**同时**给 内部RC(不装) 与 外部晶振(焊盘位+2×12pF, 不装) 两套 |
 | XTAL_IN | C_XTAL_IN | NET_XTAL_IN | C_XTAL_IN | 12pF ±10% | C | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | [XTAL_IN] 晶振负载电容 (XTAL_IN 侧) |
 | GND | C_XTAL_IN | GND | C_XTAL_IN | 12pF ±10% | C | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | 晶振负载电容 地端 |
@@ -603,7 +635,7 @@
 | USB_D_P | CONN_USB pin1 | D_ESD_USB | D_ESD_USB | ESD 阵列 [待选型] (2 通道 USB) | D | 必装 | MAIN_PCB | [推算] |  | [USB_D_P] ★跨铰链 USB 主板侧 ESD 阵列 (紧贴 CONN_USB); ★**不装共模扼流圈** (USB 2.0 眼图对共模转差分极敏感, 扼流圈会恶化眼图)  |
 | USB_D_N | CONN_USB pin2 | D_ESD_USB | D_ESD_USB | ESD 阵列 [待选型] (2 通道 USB) | D | 必装 | MAIN_PCB | [推算] |  | [USB_D_N] USB 主板侧 ESD 阵列 (同一位, 2 通道) |
 | USB_D_N | CONN_USB pin3 | GND | NET_USB_GND_H | 单端 | NET | 必装 | HINGE | [推算] |  | [USB_D_N] 跨铰链 USB 回流地 (独立 pin, 不与电源共 pin · 环路面积最小) |
-| HINGE_RSV | CONN_USB pin4 | CONN_USB pin4 | CONN_USB | 预留 (不装) | NET | DNP | HINGE | [推算] |  | [INVENTORY] [HINGE_RSV] CONN_USB pin4 预留位 (不装) |
+| GND | CONN_USB pin4 | GND | CONN_USB | 回流地 (第二脚, 与 pin3 并联) | NET | 必装 | HINGE | [推算] |  | [CONN_USB pin4] ★V1.8 补: 跨铰链 USB 的回流脚与信号脚**成对** (ISS-085 自定规则) · pin4 由预留改 **GND** (双回流, 零 |
 | GND | D_ESD_USB | GND | D_ESD_USB | ESD 阵列 [待选型] | D | 必装 | MAIN_PCB | [推算] |  | [USB_D_P] USB ESD 阵列 地端 |
 | CSI_D0_CK_P | CONN_CAM pin1 | D_ESD_CAM | D_ESD_CAM | ESD 阵列 [待选型] (多通道 CSI) | D | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_CK_P] ★跨铰链 CSI 主板侧 ESD 阵列位 (紧贴 CONN_CAM); 通道数随 lane 数定 |
 | GND | D_ESD_CAM | GND | D_ESD_CAM | ESD 阵列 [待选型] | D | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_CK_P] CSI ESD 地端 |

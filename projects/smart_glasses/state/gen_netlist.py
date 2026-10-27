@@ -62,7 +62,7 @@ CHG_BOARD_REFS = {
     "R_PSEL", "R_CE", "R_OTG", "R_PU_SCL", "R_PU_SDA", "R_PU_INT", "R_STAR_PGND",
     "C_VBUS_IC", "C_PMID", "C_BST", "C_BAT", "C_SYS", "L_CHG", "D_TVS_VBUS", "TP_TS",
     # ★它发现的缺陷: VBUS_DET 的 1M+1M 分压物理上必须在**充电板**
-    #   (充电板 VBUS 不过铰链到主板 → 分压放在主板 = 采不到电)
+    #   (充电板 VBUS 不过铰链到主板 · 分压放在主板 = 采不到电)
     "R_VBUS_DET_1", "R_VBUS_DET_2",
 }
 
@@ -223,12 +223,27 @@ def build_p1(by_id, spec):
     add("P1", "BAT_CHG", "J_CHG pin2", "U_BATPROT", "NET_BAT_PROT", "单端", "NET", "必装",
         "[官方]", "",
         "[BAT_CHG] 充电电流进镜脚侧电池保护 IC (BQ2970) —— **保护 IC 与电池同板 (镜脚)**", "C-03")
-    for pn in (9, 10):
+    add("P1", "TS_BAT", "R_NTC_BAT", "TS_RTN", "R_NTC_BAT", "103AT NTC ±1% (贴电芯, 另一端接 TS 专用回流)",
+        "R", "必装", "[官方]", "",
+        "[TS_BAT] ★V1.8 修正 (ISS-091 结构核算): NTC 下端**不接系统地**, 接 **TS 专用回流** —— 1A 充电电流会把 TS "
+        "参考地抬高 14-32mV (= 0.44-0.99°C 温度偏差), 而 TS 是**停充安全门限**; 专用回流后偏差 <0.01°C", "C-01")
+    add("P1", "TS_BAT", "R_TS_PULL", "TS_RTN", "R_TS_PULL", "30.31k ±1%", "R", "必装", "[官方]", "",
+        "[TS_BAT] ★V1.8: RT2 30.31k 下端同样接 **TS 专用回流** (与 NTC 并联构成三件式检测网络)", "C-01")
+    add("P1", "TS_RTN", "R_NTC_BAT", "TS_RTN", "R_NTC_BAT", "103AT NTC (贴电芯)", "R", "必装",
+        "[官方]", "",
+        "[TS_RTN] ★V1.8: NTC 另一端接 **TS 专用回流** (不接系统地)", "C-01")
+    add("P1", "TS_RTN", "J_CHG pin10", "J_CHG", "TS_RTN", "跨铰链 (TS 专用回流)", "NET", "必装",
+        "[推算]", "",
+        "[TS_RTN] ★V1.8 新增: **TS 专用回流跨铰链** (走 J_CHG pin10, 原来 pin9/pin10 都是预留); "
+        "充电板侧接 BQ25896 的模拟地 ⇒ TS 的参考与地不再经 J_CHG pin3/pin4 的系统回流", "C-02")
+    add("P1", "TS_RTN", "J_CHG pin10", "U_CHG pin17+pin18", "U_CHG", "BQ25896 PGND (模拟地)", "NET",
+        "必装", "[推算]", "",
+        "[TS_RTN] 充电板侧: TS 专用回流接 BQ25896 的 PGND (pin17/18) ⇒ 偏差 <0.01°C", "C-01")
+    for pn in (9,):
         add("P1", "HINGE_RSV", f"J_CHG pin{pn}", f"J_CHG pin{pn}", "J_CHG", "预留 (不装)",
             "NET", "DNP", "[推算]", "",
-            f"[HINGE_RSV] J_CHG pin{pn} 预留位 (★V1.5 裁决: 充电 IC 的 I2C **不跨铰链** —— "
-            f"充电电流靠 R_ILIM 硬件限流, 状态靠 CHG_STAT/PWR_GOOD GPIO 兜底; 将来若要在线配置 "
-            f"充电电流/截止电压, 把这 2 个脚用上即可, 不用改板)", "C-02")
+            f"[HINGE_RSV] J_CHG pin{pn} 预留位 (★V1.8: pin10 已改作 **TS 专用回流**, pin9 仍预留; "
+            f"充电 IC 的 I2C 本板自闭环不跨铰链, 用不上这脚)", "C-02")
     add("P1", "GND_CHG", "J_CHG pin3", "J_CHG pin4", "J_CHG", "回流 (双 pin)", "NET", "必装",
         "[推算]", "",
         "[GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 · 环路面积最小)", "C-02")
@@ -266,11 +281,12 @@ def build_p1(by_id, spec):
     add("P1", "BAT_CELL_N", "BT_432243 B-", "U_BATPROT B-", "BT_432243", "432243 3.7V ≥420mAh",
         "CONN", "必装", "[推算]", "",
         "[BAT_CELL_N] ★F2 修正: **电芯负极 · BQ2970 的 B- 脚** (原来电芯只有一个端子 · 电池回路不闭合)", "C-03")
-    add("P1", "SYS", "RAIL_SYS", "U_BATPROT", "RAIL_SYS", "3.0-4.2V", "RAIL",
+    add("P1", "SYS", "RAIL_SYS", "U_PWR_SW VOUT", "RAIL_SYS", "3.0-4.2V", "RAIL",
         "必装", "[推算]", "",
         "电源域: 目标 3.0-4.2V / 最大电流 0.55A (330mA×1.5 + 瞬态); **R-F1 裁决: SYS 下限抬到 3.5V**; "
         "★V1.2: **SYS 在镜脚本地产生** (电池在镜脚 · 电池保护后就是 SYS) · **SYS 不过铰链** "
-        "(跨铰链的只有充电电流 1.0-1.5A); SoC 侧球位号 TBD-01", "C-02")
+        "(跨铰链的只有充电电流 1.0-1.5A); ★V1.8: SYS 现在**经过负载开关** (老板 10-28 拍板关机=断电) · "
+        "开关关时 SYS 全断, 而充电链 (BQ25896 在镜框) 仍在电池侧带电 ⇒ 关机也能充电; SoC 侧球位号 TBD-01", "C-02")
     add("P1", "BAT_CHG", "J_CHG", "J_CHG pin1", "J_CHG", "1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",
         "CONN", "必装", "[推算]", "",
         "[SYS] ★V1.5 定稿 pin map (1×10p@0.5mm): pin1/pin2=BAT_CHG (充电电流**双 pin 并联**), "
@@ -284,12 +300,12 @@ def build_p1(by_id, spec):
         "[官方]", "",
         "[TS_BAT] ★电池温度检测: 103AT NTC 接 BQ25896 的 TS 脚 (过温/欠温时**硬件直接停充**; 分压网络按 datasheet 三件式) "
         "(不依赖 SoC, 属安全项); 与 P2 的 SoC 侧数字温度计 U_TEMP 是两回事, 不能互相替代", "C-01")
-    add("P1", "TS_BAT", "R_NTC_BAT", "GND", "R_NTC_BAT", "103AT NTC ±1% (贴电芯, 另一端接电芯负极=系统 GND)",
+    add("P1", "TS_BAT", "R_NTC_BAT", "R_TS_PULL", "R_NTC_BAT", "103AT NTC ±1% (贴电芯)",
         "R", "必装", "[官方]", "",
         "[TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 "
         "· **TS 必须跨铰链** (J_CHG pin8, 高阻无电流); NTC 按 BQ25896 datasheet 取 **103AT** "
         "(与 30.31k 并联构成温度检测网络); ★V1.6 修正: NTC 另一端按 datasheet 三件式接 **GND** (电芯负极侧), 原来接电芯正极 = 与分压公式不符", "C-01")
-    add("P1", "TS_BAT", "R_TS_PULL", "GND", "R_TS_PULL", "30.31k ±1%", "R", "必装", "[官方]", "",
+    add("P1", "TS_RTN", "R_TS_PULL", "TS_RTN", "R_TS_PULL", "30.31k ±1% (RT2)", "R", "必装", "[官方]", "",
         "[TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压); ★V1.6 挪到**镜脚** (NTC 侧) —— "
         "下拉放在连接器远端, FPC 漏电流不进入分压 (FPC 漏电 µA 级, 30k 下拉远大于它)", "C-01")
     add("P1", "TS_BAT", "J_CHG pin8", "R_NTC_BAT", "J_CHG", "跨铰链 (高阻)",
@@ -312,18 +328,121 @@ def build_p1(by_id, spec):
     #   不装这颗电阻 · 铰链段可能被灌 ~1.68A (ICHG≈0.822×IIN) · 铰链发热 + 压降失控。
     #   装 300Ω · IINMAX = KILIM/RILIM ≈ 1.07-1.30A · ICHG ≈ 0.88-1.07A (ISS-091 核算输入)
     #   ⇒ 换料不换板: 若结构核算说铰链只吃 1.0A, 改 390Ω · ICHG 0.67-0.82A
-    add("P1", "IINLIM", "U_CHG pin10", "R_ILIM", "R_ILIM", "470Ω ±1% (IINMAX ≈0.71-0.87A → ICHG ≈0.68A)",
+    add("P1", "IINLIM", "U_CHG pin10", "R_ILIM", "R_ILIM", "390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A)",
         "R", "必装", "[官方]", "",
         "[IINLIM] ★★V1.7 按 ISS-091 结构核算定 **470Ω**: BQ25896 的 IINLIM 复位默认 **2048mA** [官方] "
         "(不装 = 铰链吃 ~1.68A); 结构总工核算 (MECH/HINGE_POWER_CALC.md, 可跑): "
-        "**300Ω → ICHG 1.07A → 充电时皮肤侧 47.1°C 超 ISO 13732-1 的 43°C 红线** (加厚铜箔到 2oz 也只能到 45.2°C, 救不了); "
-        "390Ω → 0.82A → 42.1°C (余量太薄, 只在**不佩戴**充电时可用); **470Ω → 0.68A → 39.9°C ✅** "
-        "(充电 ~35min, 换料不换板, 零 PCB 改动); 680Ω → 0.47A → 37.3°C (余量最大但充电慢一倍)。"
-        "★真正的热源是**电芯内阻** (0.10Ω → 114mW @1.07A) 而非铰链段 (110.8mW) —— 电芯直接贴皮肤侧, "
+        "**300Ω · ICHG 1.07A · 充电时皮肤侧 47.1°C 超 ISO 13732-1 的 43°C 红线** (加厚铜箔到 2oz 也只能到 45.2°C, 救不了); "
+        "470Ω · 0.68A · 39.9°C (充电 ~35min); 680Ω · 0.47A · 37.3°C. "
+        "★★★**V1.8 改 (老板 10-28 拍板『边戴边充不允许』)**: 充电时眼镜不在皮肤上 ⇒ **皮肤温度不再是充电时的硬约束** ⇒ "
+        "充电电流可以提上来 ⇒ **定为 390Ω (ICHG 0.82A, 充电 ~29min)**: 单 pin 0.411A ≤ 常见 0.5A 触点 (ISS-099 待查回规格), "
+        "充电板/电芯温升仍在可控范围; ★待 ISS-099 查回 J_CHG 触点额定: 若 ≥0.5A 则可再改 **300Ω** (1.07A, ~22min, 换料不换板)"
+        "★真正的热源是**电芯内阻** (0.10Ω · 114mW @1.07A) 而非铰链段 (110.8mW) —— 电芯直接贴皮肤侧, "
         "所以『边戴边充』必须按 470Ω 口径设计; 要 1A 充电就只能**充电时摘下眼镜** (产品语义待老板拍)", "C-01")
-    add("P1", "GND", "R_ILIM", "GND", "R_ILIM", "470Ω ±1% (IINMAX ≈0.71-0.87A → ICHG ≈0.68A)", "R", "必装",
+    add("P1", "GND", "R_ILIM", "GND", "R_ILIM", "390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A)", "R", "必装",
         "[官方]", "",
         "[IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限)")
+
+    # ---- ★V1.8 (2026-10-28): 硬件断电通路 + 复位链闭环 (老板拍板关机=断电; ISS-096/098 项目总工接手) ----
+    #   ★网表规范 (V1.8 明确): **一行 = 一根导线 = 两个同网的器件脚** ⇒ 每个 2 脚器件必须出现在 **2 行** (一脚一行),
+    #   3 脚器件 (MOS) 出现 3 行 (G/D/S 各一行)。违反这条 = 导出 .net 时该脚悬空 (门禁 "两脚件恰好 2 脚" 就是判这个)。
+    #   断电拓扑 (为何不用 SR 锁存): ON 脚 **10k 下拉 = 默认关**; SoC GPIO 拉高 = 保持开机;
+    #   SoC 关机时把该 GPIO 配成高阻 · ON 掉回下拉 · 开关关 · SoC 断电 · **状态自动保持** (无需自保持电路)
+    #   "插电即开机": BQ25896 的 PG (开漏, LOW=输入源良好) 经 Q_PG 反相 · PG 低时 Q_PG 关 · ON 可被拉高 · 开
+    add("P1", "BAT_SW", "U_PWR_SW VIN", "U_BATPROT", "U_PWR_SW", "VIN (输入)", "NET", "必装",
+        "[推算]", "",
+        "[BAT_SW] 电池保护 (BQ2970 + 2×MOS) 引脚 · **负载开关输入**; ★V1.8: 开关装镜脚 (与电池/保护板同板); "
+        "关机时充电链仍在电池侧带电 ⇒ 关机也能充电", "C-02")
+    add("P1", "SYS", "U_PWR_SW VOUT", "RAIL_SYS", "U_PWR_SW",
+        "[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)", "IC", "必装",
+        "[推算]", "",
+        "[SYS] ★V1.8 硬件断电通路的主器件: VOUT · 镜脚系统轨 SYS (SoC + 2×DC-DC + 7×LDO + sensor + 光机 全在其下游); "
+        "**反向阻断必查** (关机插 USB 时防 5V 经 SoC IO 反灌电池); 选型判据 8 条见 HW/POWER_SHUTDOWN_V3.md §2 (型号待选型, 询价经项目总工)", "C-02")
+    add("P1", "GND", "U_PWR_SW GND", "GND", "U_PWR_SW", "地脚", "NET", "必装",
+        "[推算]", "", "[SYS] 负载开关 地脚")
+    add("P1", "BAT_SW", "C_SW_IN", "U_PWR_SW VIN", "C_SW_IN", "10µF ±20%", "C", "必装", "[推算]", "",
+        "[BAT_SW] 开关输入端去耦 (紧贴 VIN; 另一端接地)", "C-02")
+    add("P1", "GND", "C_SW_IN", "GND", "C_SW_IN", "10µF ±20%", "C", "必装", "[推算]", "",
+        "[BAT_SW] 开关输入端去耦 的地端", "C-02")
+    add("P1", "SYS", "C_SW_OUT", "U_PWR_SW VOUT", "C_SW_OUT", "10µF ±20%", "C", "必装", "[推算]", "",
+        "[SYS] 开关引脚端去耦 (紧贴 VOUT, 承 SoC 上电冲击; 另一端接地)", "C-02")
+    add("P1", "GND", "C_SW_OUT", "GND", "C_SW_OUT", "10µF ±20%", "C", "必装", "[推算]", "",
+        "[SYS] 开关引脚端去耦 的地端", "C-02")
+    add("P1", "PWR_ON", "R_PD_ON", "U_PWR_SW ON", "R_PD_ON", "10k ±1%", "R", "必装", "[推算]", "",
+        "[PWR_ON] ★V1.8: ON 脚 **10k 下拉 = 默认关** (关机态就是默认态); SoC GPIO 拉高即保持开机; "
+        "SoC 关机时把该 GPIO 配成高阻 · ON 掉回下拉 · 开关关 · SoC 断电 · 状态自动保持 (无需锁存电路)", "C-02")
+    add("P1", "GND", "R_PD_ON", "GND", "R_PD_ON", "10k ±1%", "R", "必装", "[推算]", "",
+        "[PWR_ON] ON 脚下拉的接地端", "C-02")
+    add("P1", "PWR_ON", "U_PWR_SW ON", "SoC[TBD-01].PWR_CTRL", "U_PWR_SW", "ON 输入 (高电平 = 导通 = 开机)",
+        "NET", "必装", "[推算]", "",
+        "[PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), "
+        "脚号与是否可配开漏**待原厂**", "C-02")
+    add("P1", "PWR_ON", "Q_PG", "U_PWR_SW ON", "Q_PG", "[待选型] N-MOS (电平转换)", "SW",
+        "必装", "[推算]", "",
+        "[PWR_ON] ★V1.8: **PG 反相** —— BQ25896 的 PG 是开漏且 **LOW = 输入源良好**; 用一颗 N-MOS 反相: "
+        "PG 低 · Q_PG 关 · ON 不被拉低 (可开机); PG 高 (无输入) · Q_PG 导通 · ON 拉低 (关) "
+        "⇒ 插上充电线即开机, 且关机时仍能充电 (PG 有效不依赖 SoC)", "C-02")
+    add("P1", "GND", "Q_PG", "GND", "Q_PG", "[待选型] N-MOS (电平转换)", "SW", "必装", "[推算]", "",
+        "[PWR_ON] Q_PG 源极接地", "C-02")
+    add("P1", "PWR_GOOD", "Q_PG", "J_CHG pin6", "Q_PG", "[待选型] N-MOS (电平转换)", "SW",
+        "必装", "[推算]", "", "[PWR_GOOD] Q_PG 栅极 = 充电板 PG (经 J_CHG pin6 跨铰链, 镜框侧开漏信号)", "C-06")
+
+    # ---- ★V1.8 复位链闭环 (ISS-096 接手: hw-lead 连续两轮 0 产出) ----
+    #   ① 两路 DC-DC 的 PG 开漏并联 · PG_AND (任一路坏 · 高)
+    #   ② Q_AND (N-MOS): 栅极 = PG_AND, 漏极 = RESET_N · **两路都好才允许释放复位** (硬件 AND, 不等原厂)
+    #   ③ DC-DC 的 EN 脚补上: V_SOC_IO 由 PWR_ON 直接使能 (第一路); V_CORE 由 V_SOC_IO 的 PG 经 Q_ENVC 反相使能 (顺序链)
+    #   ④ V_CORE **不单独监督** —— 它是 SoC 内部 DVFS 轨 (0.65-1.0V, 电压本来就变), 监督它没意义;
+    #      该监督的是固定电压的 V_SOC_IO (U_SUPV 已在做) · 我原先"要监督 V_CORE"的担心不成立
+    add("P8", "PG_AND", "R_PG_PULL", "U_DCDC_VCORE PG", "R_PG_PULL", "10k ±1%", "R", "必装",
+        "[推算]", "TBD-12",
+        "[PG_AND] ★V1.8 复位链 ①: 两路 DC-DC 的 **PG 开漏信号直接并联** (任一路不 ok · 本网被上拉拉高); "
+        "PG 极性 (ok=低/高) **待原厂核** (TPS62130A) —— 画法按最通用的『开漏 + 上拉』, 极性反了只需改 Q_AND 接法", "B-10")
+    add("P8", "VDD_1V8_IO", "R_PG_PULL", "RAIL_VDD_1V8_IO", "R_PG_PULL", "10k ±1%", "R", "必装",
+        "[推算]", "TBD-12",
+        "[PG_AND] ★V1.8 复位链 ①: 并联后的上拉 (10k 挂常供电轨); 阻值偏大则 PG 上升沿慢 (跨铰链还要算分布电容)", "B-10")
+    add("P8", "PG_AND", "U_DCDC_VIO PG", "U_DCDC_VCORE PG", "NET_PG_AND", "PG 开漏并联 (两路 DC-DC)",
+        "NET", "必装", "[官方]", "TBD-12",
+        "[PG_AND] ★V1.8 复位链 ①: 两路 DC-DC 的 PG 脚并到同一网 (开漏信号可以直接并联)", "B-10")
+    add("P8", "RESET_N", "Q_AND", "NET_RESET_N", "Q_AND", "[待选型] N-MOS (硬件 AND)", "SW",
+        "必装", "[推算]", "TBD-12",
+        "[RESET_N] ★V1.8 复位链 ②: **Q_AND 把『两路 PG 都好』变成硬件许可** —— 漏极 = RESET_N; "
+        "任一路 PG 坏 · PG_AND 高 · Q_AND 导通 · 拉住复位; 两路都好 · PG_AND 低 · Q_AND 关 · 允许释放 "
+        "(与 U_SUPV 的开漏信号并联, 两路都放行才算复位释放) ⇒ **不依赖 TBD-12 也能定住上电时序**", "B-10")
+    add("P8", "GND", "Q_AND", "GND", "Q_AND", "[待选型] N-MOS (硬件 AND)", "SW", "必装", "[推算]",
+        "TBD-12", "[RESET_N] Q_AND 源极接地", "B-10")
+    add("P8", "PG_AND", "Q_AND", "U_DCDC_VIO PG", "Q_AND", "[待选型] N-MOS (硬件 AND)", "SW",
+        "必装", "[推算]", "TBD-12", "[PG_AND] Q_AND 栅极 = PG_AND (两路 PG 都好时为低 · Q_AND 关)", "B-10")
+    add("P8", "EN_VCORE", "R_EN_VCORE", "RAIL_VDD_1V8_IO", "R_EN_VCORE", "10k ±1%", "R", "必装",
+        "[推算]", "TBD-12",
+        "[EN_VCORE] ★V1.8 复位链 ③: V_CORE 的 DC-DC **EN 脚上拉** (默认关) —— 由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动 "
+        "⇒ 上电顺序 = V_SOC_IO 先起 · V_CORE 后起 (DVFS 轨最后)", "B-10")
+    add("P8", "VDD_1V8_IO", "R_EN_VCORE", "RAIL_VDD_1V8_IO", "R_EN_VCORE", "10k ±1%", "R", "必装",
+        "[推算]", "TBD-12", "[EN_VCORE] EN 上拉的另一端 (常供电轨)", "B-10")
+    add("P8", "EN_VCORE", "U_DCDC_VCORE EN", "R_EN_VCORE", "U_DCDC_VCORE", "EN 输入 (高 = 使能)",
+        "NET", "必装", "[待原厂]", "TBD-12",
+        "[EN_VCORE] ★V1.8: V_CORE buck 的 EN 节点 (由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动)", "B-10")
+    add("P8", "PG_VIO", "Q_ENVC", "U_DCDC_VIO PG", "Q_ENVC", "[待选型] N-MOS (反相)", "SW",
+        "必装", "[推算]", "TBD-12",
+        "[PG_VIO] ★V1.8: V_SOC_IO 的 PG 有效 (低) · Q_ENVC 关 · EN_VCORE 被上拉为高 · V_CORE 使能 ⇒ **顺序链**; "
+        "PG 极性**待原厂核** (TPS62130A PG 为开漏信号)", "B-10")
+    add("P8", "GND", "Q_ENVC", "GND", "Q_ENVC", "[待选型] N-MOS (反相)", "SW", "必装", "[推算]",
+        "TBD-12", "[PG_VIO] Q_ENVC 源极接地", "B-10")
+    add("P8", "EN_VCORE", "Q_ENVC", "R_EN_VCORE", "Q_ENVC", "[待选型] N-MOS (反相)", "SW", "必装",
+        "[推算]", "TBD-12", "[EN_VCORE] Q_ENVC 漏极 = EN_VCORE (把 EN 拉低 = 不使能)", "B-10")
+    add("P8", "EN_VIO", "U_DCDC_VIO EN", "NET_PWR_ON", "U_DCDC_VIO", "EN 输入 (高 = 使能)",
+        "NET", "必装", "[待原厂]", "TBD-12",
+        "[EN_VIO] ★V1.8: V_SOC_IO buck 的 EN **直接由 PWR_ON 开机节点驱动** (它是上电第一路; "
+        "PG 极性/EN 极性待原厂核)", "B-10")
+    add("P8", "SUPV_CT", "U_SUPV CT", "RAIL_VDD_1V8_IO", "U_SUPV", "CT 脚 (阈值/延时选择)",
+        "NET", "必装", "[待原厂]", "TBD-12",
+        "[SUPV_CT] ★V1.8: 监督器 CT 脚原来**悬空** (网表里没有) · 补上 (阈值/延时选择, 脚号与接法待原厂核)", "B-10")
+
+    # ---- ★V1.8 SoC 侧 USB VBUS 检测 (ISS-098 接手): VBUS_DET 分压在充电板, 经 J_CHG pin7 跨铰链 ----
+    add("P6", "VBUS_DET", "SoC[TBD-01].USB_VBUS_DET", "J_CHG pin7", "SoC[TBD-01]",
+        "SoC USB VBUS 检测脚 (脚号待原厂)", "NET", "必装", "[待原厂]", "TBD-10",
+        "[VBUS_DET] ★V1.8 补上 sw-lead 指出的缺件: **SoC 侧没有任何 USB VBUS 连接** · USB 枚举与 S2 救砖链路 (ISS-080) "
+        "的前提缺失。★**零新增 pin**: VBUS_DET 分压本来就在**充电板** (镜框), 经 **J_CHG pin7** 跨铰链 "
+        "送到 SoC 的 VBUS 检测脚 ⇒ USB 枚举前提补齐; 脚号待原厂 (TBD-10)", "B-07")
 
     # ---- ★V1.2 改: 原 V1.1 加的 "SYS 过铰链 π 滤波" **删掉** (SYS 已不过铰链) ----
     #   跨铰链的是**充电电流** · 充电路径上**不能加 π 滤波** (会破坏 BQ25896 环路稳定性)
@@ -973,9 +1092,10 @@ def build_p9(by_id, spec):
     add("P9", "USB_D_N", "CONN_USB pin3", "GND", "NET_USB_GND_H", "单端", "NET", "必装",
         "[推算]", "",
         "[USB_D_N] 跨铰链 USB 回流地 (独立 pin, 不与电源共 pin · 环路面积最小)", "")
-    add("P9", "HINGE_RSV", "CONN_USB pin4", "CONN_USB pin4", "CONN_USB", "预留 (不装)",
-        "NET", "DNP", "[推算]", "",
-        "[HINGE_RSV] CONN_USB pin4 预留位 (不装)", "")
+    add("P9", "GND", "CONN_USB pin4", "GND", "CONN_USB", "回流地 (第二脚, 与 pin3 并联)", "NET",
+        "必装", "[推算]", "",
+        "[CONN_USB pin4] ★V1.8 补: 跨铰链 USB 的回流脚与信号脚**成对** (ISS-085 自定规则) · pin4 由预留改 **GND** (双回流, 零成本); "
+        "★并发关系: 充电板侧的 D+/D− 已在 P10 画过, 本行是镜脚侧", "")
     add("P9", "GND", "D_ESD_USB", "GND", "D_ESD_USB", "ESD 阵列 [待选型]", "D", "必装",
         "[推算]", "", "[USB_D_P] USB ESD 阵列 地端")
     add("P9", "CSI_D0_CK_P", "CONN_CAM pin1", "D_ESD_CAM", "D_ESD_CAM",

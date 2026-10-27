@@ -9,7 +9,9 @@ ISS-037 (sw-lead, 2026-10-27): 模型资产与 INT8 量化管理缺失
 本脚本把 SW/MODEL_ASSETS.md §1 的"资产台账"变成**可机械复核**的东西:
   ① 逐个资产核对: 存在 / 大小 / sha256 前缀 —— 防止"文件名改了内容没改"或"张冠李戴"
   ② ONNX: 读 metadata_props → 抽 license / version / opset / 输入输出 shape
-        ⚠️ metadata_props 为空 = **许可信息 [0数据]** → 量产放行阻断项 L1
+        ⚠️ metadata_props 为空 **不等于** 许可未知 —— ISS-087 起, 许可由
+        `SW/tools/license_probe.py` 溯源判定并登记进台账 (expected_license);
+        台账里 expected_license 仍为空 = 许可真的没判定 → 量产放行阻断项 L1
   ③ .nb (NBG): 解析头部 4 个字段
         byte 0-3  magic "VPMN"
         byte 4-5  version
@@ -18,18 +20,37 @@ ISS-037 (sw-lead, 2026-10-27): 模型资产与 INT8 量化管理缺失
      ★ chip ID 错 = 板端 NPU 加载后 SRAM size 报错 (A733 实测踩过)
   ④ 容量门禁: 板端 model_a/model_b 分区 = 15 MiB → 板端产物超了刷不进去
   ⑤ 重复资产: sha256 相同但 id 不同 → 名字骗人 (实测 yolov5s-sim_320_clean 与 _v2 完全同内容)
+  ⑥ C9 PC 侧 1 帧推理冒烟 (onnxruntime): **光看 shape 查不出坏模型** ——
+        实测 `yolov5s-sim_320_clean.onnx` 输入改成 320 但图内 Reshape/anchor 常量
+        仍是 640 尺度 → onnxruntime 直接 ShapeInferenceError 加载失败
+        → 交付集里的模型若 C9 失败 = 阻断项 L5 (模型本身是坏的)
+
+许可口径 (ISS-087, 2026-10-28)
+---------------------------
+  license_state:
+    permissive    = 宽松许可 (Apache-2.0/MIT/BSD) → 商用无附加义务
+    agpl-granted  = AGPL + **有** Enterprise 授权记录 (license_grant 非空) → 商用可行
+    agpl-no-grant = AGPL + **无**授权记录 → 商用受阻 (阻断项 L4)
+    unknown       = 许可未判定 → 阻断项 L1
+  ★ "metadata_props 为空" 是**取数方式**的问题, "许可未判定" 才是**阻断项**。
+    两者从 ISS-087 起分开记。
 
 用法:
     python3 SW/tools/model_asset_check.py                # 全量检查
+    python3 SW/tools/model_asset_check.py --no-smoke     # 跳过 C9 冒烟 (快)
     python3 SW/tools/model_asset_check.py --json         # 机读输出
     python3 SW/tools/model_asset_check.py --id MOD-YOLOV5S-320-INT8   # 只查一条
     python3 SW/tools/model_asset_check.py --new /path/to/new.onnx      # 新模型入库: 打印台账行骨架
 
 退出码: 0 = 台账与实物一致 (允许 WARN) | 1 = 有 FAIL | 2 = 用法/文件错
 ★ 语义: rc=0 **不等于可以量产**。量产放行看单独统计的 "放行阻断项 (L)" 计数 = 0
-    L1 = 许可信息 [0数据] (未确认 license, 商用风险未清)
+    L1 = 许可未判定 (台账 expected_license 为空; 与 metadata 是否为空无关)
     L2 = 板端产物超 15 MiB 槽位 (刷不进)
     L3 = active 资产的 target chip ID 与目标 NPU 不符 (板端加载后报错)
+    L4 = AGPL-3.0 且无 Enterprise 授权记录 (商用受阻)
+    L5 = 交付集资产的 PC 侧推理冒烟失败 (模型本身是坏的)
+  ★ L 只统计**交付集** (state = candidate / active); reference / quarantined /
+    licensing-hold 不进交付集, 但会单独列出 —— 不许静默消失。
 
 证据分级 (与 SW/MODEL_ASSETS.md 一致):
     [实测] = 本脚本跑出来的 | [官方] = 原厂书面/官网 | [推算] = 推导 | [0数据] = 拿不到
@@ -53,25 +74,34 @@ MODEL_SLOT_MIB = 15
 
 # 已登记资产台账 (唯一真源 = SW/MODEL_ASSETS.md §1.2; 本表必须与文档逐字段一致)
 #   platform        : "candidate" (PC 侧源, 待转板端格式) | "A733-ref" (上一项目, 仅方法论参考)
-#   state           : "candidate" | "reference" (A733 板端产物/工具产物, 作方法论与回归基准)
-#                   | "quarantined" (已判死: chip ID 错, 不进任何流程)
-#   expected_license: 期望 license 串; None = 登记为"未知" → 判 L1 阻断项
+#   state           : "candidate" (交付集: 待定版) | "active" (交付集: 在用)
+#                   | "reference" (他项目参考) | "quarantined" (已判死: 坏模型 / chip ID 错)
+#                   | "licensing-hold" (许可受限, 未采购前禁入交付物, 但随时可因采购而复活)
+#   expected_license: 台账判定的许可串 (ISS-087 起: 由 license_probe.py 溯源判定, 不再等于
+#                   metadata_props 原值); None = 仍未判定 → 判 L1 阻断项
+#   license_state   : permissive | agpl-granted | agpl-no-grant | unknown  (见文件头)
+#   license_grant   : Enterprise 授权记录号 (有值 → agpl-granted); None = 未采购
 #   expected_chip   : 期望 NBG target chip ID (LE); None = 不适用
 MANIFEST = [
     {
         "id": "MOD-YOLOV5S-320-INT8",
         "platform": "candidate",
-        "state": "candidate",
-        "role": "主 OD 模型候选 (PC 侧源, 320x320, 80 类)",
+        "state": "quarantined",
+        "role": "★ 原'主 OD 模型候选' (320x320, 80 类) —— 【已判死】图内常量与输入尺寸不一致",
         "path": "/home/yuewuya/.openclaw/workspace/yolov5s-sim_320_clean.onnx",
         "fmt": "onnx",
         "size": 29337706,
         "sha256_16": "340978ec59391f69",
-        "expected_license": None,          # [0数据] onnx 无 metadata_props
+        "expected_license": "AGPL-3.0",
+        "license_state": "agpl-no-grant",
+        "license_grant": None,
         "expected_opset": 14,
         "expected_input": [1, 3, 320, 320],
         "expected_chip": None,
-        "note": "initializer 29,307,008 B / 245 节点 / 12 算子类型; 无 metadata_props → 许可未知",
+        "note": "★ 2026-10-28 C9 冒烟实测: onnxruntime 加载即失败 (Concat_527 "
+                "ShapeInferenceError: Inferred=10 Declared=20) —— 只把输入改成 320, "
+                "图内 Reshape/anchor 常量仍是 640 尺度 → **模型本身是坏的**; "
+                "许可 = AGPL-3.0 (溯源见 SW/MODEL_LICENSE.md §1); 已隔离",
     },
     {
         "id": "MOD-YOLOV5S-320-INT8-DUP",
@@ -82,41 +112,72 @@ MANIFEST = [
         "fmt": "onnx",
         "size": 29337706,
         "sha256_16": "340978ec59391f69",
-        "expected_license": None,
+        "expected_license": "AGPL-3.0",
+        "license_state": "agpl-no-grant",
+        "license_grant": None,
         "expected_opset": 14,
         "expected_input": [1, 3, 320, 320],
         "expected_chip": None,
-        "note": "文件名带 _v2 但内容与 clean 版逐字节相同 → 版本名不可信, 以 sha256 为准; 已去重隔离",
+        "note": "文件名带 _v2 但内容与 clean 版逐字节相同 → 版本名不可信, 以 sha256 为准; "
+                "已去重隔离 (同 clean 版, 同样是坏模型)",
+    },
+    {
+        "id": "MOD-YOLOV5S-640-ARS45-SRC",
+        "platform": "candidate",
+        "state": "licensing-hold",
+        "role": "★ 唯一实测可推理的 yolov5s ONNX (640x640) —— 走'采购'路线的转换链输入",
+        "path": "/home/yuewuya/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx",
+        "fmt": "onnx",
+        "size": 29337706,
+        "sha256_16": "20368be665f6f59a",
+        "expected_license": "AGPL-3.0",
+        "license_state": "agpl-no-grant",
+        "license_grant": None,
+        "expected_opset": 14,
+        "expected_input": [1, 3, 640, 640],
+        "expected_chip": None,
+        "note": "★ 2026-10-28 实测 onnxruntime @640 推理 OK (输出 [1,25200,85] + 3 路 "
+                "80/40/20 网格特征图); 血缘: ultralytics/yolov5 v6.0 → onnxsim → "
+                "onnx_extract 抽 3 路 head; 许可 AGPL-3.0 → 未采购前禁入交付物",
     },
     {
         "id": "MOD-YOLOV8S-COCO80-ONNX",
         "platform": "candidate",
-        "state": "candidate",
-        "role": "COCO 80 类 yolov8s (备选主模型)",
+        "state": "licensing-hold",
+        "role": "COCO 80 类 yolov8s (备选主模型) —— AGPL-3.0, 未采购前禁入交付物",
         "path": "/work/object_detection/yolov8s_coco80/workspace/yolov8s.onnx",
         "fmt": "onnx",
         "size": 44842647,
         "sha256_16": "111da30a25b6c585",
         "expected_license": "AGPL-3.0 License (https://ultralytics.com/license)",
+        "license_state": "agpl-no-grant",
+        "license_grant": None,
         "expected_opset": 13,
         "expected_input": [1, 3, 640, 640],
         "expected_chip": None,
-        "note": "★ AGPL-3.0 → 商用需向 Ultralytics 采购商业许可; 44.8MB 源文件本身不刷板",
+        "note": "★ AGPL-3.0 (metadata_props.license 原值) → 商用须向 Ultralytics 采购 "
+                "Enterprise License; 2026-10-28 C9 冒烟实测 @640 推理 OK; "
+                "44.8MB 源文件本身不刷板",
     },
     {
-        "id": "MOD-YOLOV5S-320-INT8-ACUITY",
-        "platform": "A733-ref",
-        "state": "reference",
-        "role": "A733 ACUITY 导入产物 (.onnx 副本, 量化链输入)",
-        "path": "/home/yuewuya/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx",
-        "fmt": "onnx",
-        "size": 29337706,
-        "sha256_16": "20368be665f6f59a",
-        "expected_license": None,
+        "id": "MOD-SSDMBV2-FPNLITE-320-COCO90-TFODAPI",
+        "platform": "candidate",
+        "state": "candidate",
+        "role": "★ 交付集里唯一许可干净的 80 类候选 (Apache-2.0) —— '不采购'路线的起点",
+        "path": "/work/object_detection/pretrained/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8",
+        "fmt": "savedmodel",
+        "size": 9640645,
+        "sha256_16": None,
+        "expected_license": "Apache-2.0",
+        "license_state": "permissive",
+        "license_grant": None,
         "expected_opset": None,
-        "expected_input": [1, 3, 640, 640],
+        "expected_input": [1, 320, 320, 3],
         "expected_chip": None,
-        "note": "★ 与上面两条同名 (yolov5s-sim) 不同内容不同输入尺寸 (320 vs 640) → 名字不带尺寸 = 资产失控, 必须靠 sha 区分",
+        "note": "TF OD API ssd_mobilenet_v2_fpnlite 320x320 (pipeline.config num_classes=90 "
+                "→ COCO 90 含 10 padding, 可用 80 类); 许可 Apache-2.0 (tensorflow/models "
+                "/research 子目录) → 商用无附加义务; ★ 但 NPU 可转换性 = [0数据] "
+                "(TF SavedModel → ONNX → Art.Galaxy 三段都没跑过)",
     },
     {
         "id": "MOD-YOLOV8S-COCO80-NB",
@@ -127,7 +188,9 @@ MANIFEST = [
         "fmt": "nb",
         "size": 8450776,
         "sha256_16": "7fa016615610adaa",
-        "expected_license": None,
+        "expected_license": "AGPL-3.0",
+        "license_state": "agpl-no-grant",
+        "license_grant": None,
         "expected_opset": None,
         "expected_input": None,
         "expected_chip": 0x1000003B,
@@ -142,7 +205,9 @@ MANIFEST = [
         "fmt": "nb",
         "size": 12559680,
         "sha256_16": "6ac6975036524637",
-        "expected_license": None,
+        "expected_license": "AGPL-3.0",
+        "license_state": "agpl-no-grant",
+        "license_grant": None,
         "expected_opset": None,
         "expected_input": None,
         "expected_chip": 0x1000003B,
@@ -157,7 +222,9 @@ MANIFEST = [
         "fmt": "nb",
         "size": 7873008,
         "sha256_16": "e8a53286029272a4",
-        "expected_license": None,
+        "expected_license": "AGPL-3.0",
+        "license_state": "agpl-no-grant",
+        "license_grant": None,
         "expected_opset": None,
         "expected_input": None,
         "expected_chip": 0x1000003B,
@@ -172,7 +239,9 @@ MANIFEST = [
         "fmt": "nb",
         "size": 6479672,
         "sha256_16": "e6827040cb29c60d",
-        "expected_license": None,
+        "expected_license": "AGPL-3.0",
+        "license_state": "agpl-no-grant",
+        "license_grant": None,
         "expected_opset": None,
         "expected_input": None,
         "expected_chip": 0x1000003B,
@@ -187,7 +256,9 @@ MANIFEST = [
         "fmt": "quantize",
         "size": 620518,
         "sha256_16": "c1d884d2f196fe45",
-        "expected_license": None,
+        "expected_license": "AGPL-3.0",
+        "license_state": "agpl-no-grant",
+        "license_grant": None,
         "expected_opset": None,
         "expected_input": None,
         "expected_chip": None,
@@ -202,7 +273,9 @@ MANIFEST = [
         "fmt": "dir",
         "size": None,
         "sha256_16": None,
-        "expected_license": None,
+        "expected_license": "AGPL-3.0",
+        "license_state": "agpl-no-grant",
+        "license_grant": None,
         "expected_opset": None,
         "expected_input": None,
         "expected_chip": None,
@@ -258,6 +331,34 @@ def onnx_meta(path: str) -> dict:
     }
 
 
+SMOKE = True   # C9: PC 侧 1 帧推理冒烟 (--no-smoke 可关, 约省 10 s)
+
+
+def smoke_test_onnx(path: str, inputs: dict) -> tuple:
+    """C9: onnxruntime 建 session + 跑 1 帧随机输入。
+       返回 (ok|None, msg); None = 环境不具备 (onnxruntime 不可用) → 不判 FAIL。
+       ★ 动机: 实测 yolov5s-sim_320_clean.onnx 的输入改成 320 但图内常量仍是 640
+         → onnxruntime 加载即报 ShapeInferenceError —— 光看 metadata/shape 查不出来。"""
+    try:
+        import numpy as np  # noqa: PLC0415
+        import onnxruntime as ort  # noqa: PLC0415
+    except Exception as e:  # noqa: BLE001
+        return None, f"⚠️ onnxruntime/numpy 不可用 ({e}) → 跳过 C9"
+    try:
+        so = ort.SessionOptions()
+        so.log_severity_level = 3
+        sess = ort.InferenceSession(path, so, providers=["CPUExecutionProvider"])
+        name = sess.get_inputs()[0].name
+        shape = [d if isinstance(d, int) and d > 0 else 1 for d in sess.get_inputs()[0].shape]
+        x = np.zeros(shape, dtype=np.float32)
+        outs = sess.run(None, {name: x})
+        shapes = [list(o.shape) for o in outs]
+        return True, f"PC 侧 1 帧推理 OK (onnxruntime) · 输出 {shapes}"
+    except Exception as e:  # noqa: BLE001
+        msg = str(e).split("\n")[0][:180]
+        return False, f"★ PC 侧 1 帧推理失败 → 模型本身是坏的: {msg}"
+
+
 def check_one(a: dict) -> dict:
     """返回一条检查结果: {id, checks:[(code, ok|None, msg)], ...}"""
     res = {"id": a["id"], "platform": a["platform"], "state": a["state"],
@@ -276,6 +377,31 @@ def check_one(a: dict) -> dict:
         n = len([f for f in os.listdir(p) if f.lower().endswith((".jpg", ".jpeg", ".png"))])
         add("C1", True, f"目录存在, 图像 {n} 张")
         add("C4", n >= 100, f"校准集 {n} 张 (要求 ≥100 张; A733 实测踩坑: 6 张不够)")
+        return res
+
+    if a["fmt"] == "savedmodel":
+        # TF SavedModel 目录型资产 (Apache-2.0 路线用)
+        if not os.path.isdir(p):
+            add("C1", False, "目录不存在")
+            return res
+        pb = os.path.join(p, "saved_model", "saved_model.pb")
+        add("C1", os.path.exists(pb),
+            f"目录存在, saved_model.pb {'存在' if os.path.exists(pb) else '缺失'}")
+        if os.path.exists(pb):
+            sz_pb = os.path.getsize(pb)
+            if a.get("size") is not None:
+                add("C2", sz_pb == a["size"],
+                    f"saved_model.pb 大小 {sz_pb} B (台账 {a['size']} B)")
+            if a.get("sha256_16"):
+                got = sha256_of(pb)[:16]
+                add("C3", got == a["sha256_16"], f"sha256[:16] {got} (台账 {a['sha256_16']})")
+        add("C4", None, "PC 侧源 (SavedModel, 不直接刷板; 15 MiB 门禁管转换后的板端产物)")
+        lic = a.get("expected_license")
+        if lic:
+            add("C5", True,
+                f"许可 = {lic!r} (台账判定; SavedModel 无 metadata → 溯源见 SW/MODEL_LICENSE.md)")
+        else:
+            add("C5", None, "★ 许可未判定 → 量产放行阻断项 L1")
         return res
 
     if not os.path.exists(p):
@@ -308,15 +434,34 @@ def check_one(a: dict) -> dict:
             add("C5", None, f"onnx 解析跳过: {m['_err']}")
         else:
             lic = m.get("license")
-            if a.get("expected_license"):
-                add("C5", lic == a["expected_license"], f"license = {lic!r}")
+            exp = a.get("expected_license")
+            if exp:
+                if lic:
+                    # metadata 自带许可 → 必须与台账判定一致 (防台账与实物脱节)
+                    add("C5", lic == exp, f"license = {lic!r} (台账 {exp!r})")
+                else:
+                    # metadata 空 ≠ 许可未知: 台账已用 license_probe.py 溯源判定
+                    add("C5", True,
+                        f"metadata_props 无 license → 台账判定许可 = {exp!r} "
+                        f"(溯源: SW/tools/license_probe.py; 证据链见 SW/MODEL_LICENSE.md)")
             else:
-                add("C5", None, "★ metadata_props 无 license 字段 → 许可 [0数据] (量产放行阻断项 L1)")
+                add("C5", None, "★ 许可未判定 (台账 expected_license 为空) → 量产放行阻断项 L1")
             if a.get("expected_opset") is not None:
                 add("C6", m.get("opset") == a["expected_opset"], f"opset = {m.get('opset')}")
             if a.get("expected_input"):
                 got = list(m["inputs"].values())[0] if m["inputs"] else None
                 add("C7", got == a["expected_input"], f"输入 shape = {got}")
+        # C9 PC 侧 1 帧推理冒烟 (ISS-087 新增): 光看 shape 查不出坏模型
+        if SMOKE and a["fmt"] == "onnx":
+            ok, msg = smoke_test_onnx(p, m.get("inputs") if "_err" not in m else {})
+            if ok is None:
+                add("C9", None, msg)
+            elif a["state"] in ("candidate", "active"):
+                # 交付集里失败 = 真阻断项 (L5)
+                add("C9", ok, msg)
+            else:
+                # 已隔离/禁入交付物: 失败正是隔离理由 → 只报信息, 不判 FAIL
+                add("C9", None, f"[{a['state']}] {msg}")
 
     if a["fmt"] == "nb":
         h = read_nbg_header(p)
@@ -352,32 +497,54 @@ def duplicate_scan() -> list:
 
 
 def count_release_blockers(results: list) -> list:
-    """量产放行阻断项 (只算 candidate/active; reference/quarantined 不进 ARS45 流程)
-       L1 许可 [0数据] | L2 超 15MiB 槽位 | L3 chip ID 不符 | L4 许可商用受限 (AGPL)"""
+    """量产放行阻断项 —— **只算交付集 (state = candidate / active)**。
+       reference / quarantined / licensing-hold 不进交付集, 但会在输出里单列,
+       不许静默消失 (ISS-087)。
+
+       L1 许可未判定 (台账 expected_license 为空)
+       L2 板端产物超 15 MiB 槽位
+       L3 chip ID 与目标 NPU 不符
+       L4 许可为 AGPL-3.0 且无 Enterprise 授权记录 → 商用受阻
+       L5 交付集资产的 PC 侧推理冒烟失败 (模型本身是坏的)"""
     out = []
+    by_id = {a["id"]: a for a in MANIFEST}
     for r in results:
         if r["state"] not in ("candidate", "active"):
             continue
+        a = by_id.get(r["id"], {})
+        lic_state = a.get("license_state", "unknown")
         for code, ok, msg in r["checks"]:
-            if code == "C5" and ok is None and "license" in msg:
-                out.append(("L1 许可[0数据]", r["id"], msg))
-            if code == "C5" and ok is True and "AGPL" in msg:
-                out.append(("L4 许可商用受限(AGPL)", r["id"],
-                            msg + "  → 商用须向 Ultralytics 采购商业许可"))
+            if code == "C5" and ok is None and "许可未判定" in msg:
+                out.append(("L1 许可未判定", r["id"], msg))
             if code == "C4" and ok is False:
                 out.append(("L2 超 15MiB 槽位", r["id"], msg))
             if code == "C7" and ok is False:
                 out.append(("L3 chip ID 不符", r["id"], msg))
+            if code == "C9" and ok is False:
+                out.append(("L5 PC 侧推理冒烟失败", r["id"], msg))
+        if lic_state == "agpl-no-grant":
+            out.append(("L4 许可商用受限(AGPL)", r["id"],
+                        f"许可 = {a.get('expected_license')!r} 且无 Enterprise 授权记录 "
+                        f"→ 商用受阻: 须向 Ultralytics 采购 Enterprise License, "
+                        f"或改用许可干净的模型栈 (SW/MODEL_LICENSE.md §3)"))
     return out
 
 
 def print_human(results: list, dups: list) -> None:
     print("=" * 100)
-    print("模型资产登记检查器 (ISS-037) — SW/MODEL_ASSETS.md §1 台账机器复核")
+    print("模型资产登记检查器 (ISS-037/ISS-087) — SW/MODEL_ASSETS.md §1 台账机器复核")
     print("=" * 100)
+    by_id = {a["id"]: a for a in MANIFEST}
+    ship = [r for r in results if r["state"] in ("candidate", "active")]
+    hold = [r for r in results if r["state"] == "licensing-hold"]
+    quar = [r for r in results if r["state"] == "quarantined"]
+    ref = [r for r in results if r["state"] == "reference"]
     for r in results:
+        a = by_id.get(r["id"], {})
         print(f"\n▶ {r['id']}  [{r['fmt']} | {r['platform']} | {r['state']}]")
         print(f"  {r['path']}")
+        print(f"  许可: {a.get('expected_license')!r} · license_state="
+              f"{a.get('license_state')} · license_grant={a.get('license_grant')!r}")
         for code, ok, msg in r["checks"]:
             mark = "✅" if ok is True else ("❌" if ok is False else "⚠️ ")
             print(f"    {mark} {code}  {msg}")
@@ -390,10 +557,24 @@ def print_human(results: list, dups: list) -> None:
     blockers = count_release_blockers(results)
     print("\n" + "-" * 100)
     print(f"汇总: 资产 {len(results)} 条 · FAIL {n_fail} · WARN {n_warn} · 重复组 {len(dups)}")
+    print(f"交付集 (candidate/active): {len(ship)} 条 | licensing-hold: {len(hold)} 条 | "
+          f"quarantined: {len(quar)} 条 | reference: {len(ref)} 条")
     print(f"量产放行阻断项 (L): {len(blockers)} 条 "
           f"{'→ ✅ 可进量产评审' if not blockers else '→ ❌ 不许进量产评审 (见 §1.5)'}")
     for tag, aid, msg in blockers:
         print(f"    - {tag}  [{aid}]  {msg}")
+    if hold:
+        print("\n▶ licensing-hold (许可受限, 未采购前**禁入交付物**; 采购后可复活)")
+        for r in hold:
+            a = by_id.get(r["id"], {})
+            print(f"    - {r['id']}: 许可 {a.get('expected_license')!r} "
+                  f"→ 须向 Ultralytics 采购 Enterprise License, 或改用 Apache-2.0 栈")
+    if quar:
+        print("\n▶ quarantined (已判死, 不进任何流程)")
+        for r in quar:
+            why = [f"{c}: {m[:110]}" for c, ok, m in r["checks"]
+                   if ok is False or (ok is None and ("失败" in m or "不存在" in m))]
+            print(f"    - {r['id']}: " + ("; ".join(why) if why else "(登记为已隔离)"))
     print(f"退出码 rc = {1 if n_fail else 0}")
     print("-" * 100)
 
@@ -414,7 +595,10 @@ def cmd_new(path: str) -> int:
     print(f'        "path": "{os.path.abspath(path)}",')
     print(f'        "size": {sz},')
     print(f'        "sha256_16": "{sha[:16]}",')
-    print('        "expected_license": <从 metadata_props 取, 取不到填 null = [0数据]>,')
+    print('        "expected_license": <metadata_props 取; 取不到就用 '
+          'SW/tools/license_probe.py 溯源判定>,')
+    print('        "license_state": "permissive|agpl-granted|agpl-no-grant|unknown",')
+    print('        "license_grant": <Enterprise 授权记录号; 无则 null>,')
     print('        "expected_opset": <null>,')
     print('        "expected_input": <null>,')
     print('        "expected_chip": <null>,')
@@ -433,7 +617,8 @@ def cmd_new(path: str) -> int:
         if "_err" not in m:
             print(f"producer = {m['producer']} · opset = {m['opset']} · "
                   f"nodes = {m['n_nodes']} · 算子类型 = {m['n_op_types']}")
-            print(f"license = {m.get('license')!r}  ← null = [0数据], 必须人工向来源方确认")
+            print(f"license = {m.get('license')!r}  ← null = metadata 没写, "
+                  f"不代表许可未知: 用 SW/tools/license_probe.py 溯源判定")
             print(f"inputs  = {m['inputs']}")
             print(f"outputs = {m['outputs']}")
     if path.endswith((".nb", ".nbg")):
@@ -446,11 +631,16 @@ def cmd_new(path: str) -> int:
 
 
 def main() -> int:
+    global SMOKE
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--id", default=None, help="只检查某一条资产 id")
     ap.add_argument("--new", default=None, help="新模型入库: 打印台账行骨架")
+    ap.add_argument("--no-smoke", action="store_true", help="跳过 C9 PC 侧推理冒烟 (更快)")
     args = ap.parse_args()
+
+    if args.no_smoke:
+        SMOKE = False
 
     if args.new:
         return cmd_new(args.new)
@@ -468,6 +658,8 @@ def main() -> int:
     if args.json:
         print(json.dumps({
             "model_slot_mib": MODEL_SLOT_MIB,
+            "ship_set": [r["id"] for r in results if r["state"] in ("candidate", "active")],
+            "licensing_hold": [r["id"] for r in results if r["state"] == "licensing-hold"],
             "assets": results,
             "duplicates": dups,
             "release_blockers": count_release_blockers(results),
