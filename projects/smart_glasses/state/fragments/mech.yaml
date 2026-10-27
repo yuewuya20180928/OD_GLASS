@@ -1,17 +1,22 @@
 agent: mech-lead
 role: 结构总工(带散热)
-updated_at: '2026-10-25T00:35:00+08:00'
+updated_at: '2026-10-27T08:30:00+08:00'
 updated_by: mech-lead
 status:
-  phase: P2(可靠性测试方案已交, 待样机+场地/工装)
-  progress_pct: 78
+  phase: P2(ISS-085 跨铰链 USB 结构要求 + 连接器复核已交; 待电池侧裁决/连接器选型/样机)
+  progress_pct: 82
   health: yellow
-  summary: '第5轮 ISS-026: 新增 MECH/RELIABILITY_TEST_PLAN.md (可靠性测试方案, 12 类用例: 跌落/扭转/弯折开合/镜腿拉力/汗液浸泡/化妆品/酒精擦拭/UV老化
-    + 盐雾/温循/插拔FPC/振动; 每类给样品数+次数+判据; §B3.2 逐项区分 1 台阶段 vs 后续批次; §B6 试验顺序 S0-S10 含不可逆性; §B7 通过/失败/不可判三态+条件容差;
-    §B8 设备三分类+里程碑 M0-M4; §B9 数据表模板; §B10 失效追溯表; §B11 盲区) + 新增 MECH/reliability_plan_check.py (机械自检, rc=0)
-    + 新增 interface_claims 11 条 (mech_reltest_*) + 回答 hw-lead 的 rel_mount_stiffness (面接触>=40x8mm, 2xM1.2
-    只防翘/销只防转, PCB 不进弯折区, 弯折由 FPC 承担) + 新增 needs_from 3 条 (mech_reltest_kit_site->boss / mech_reltest_xray_sampling->hw-lead
-    / mech_reltest_cell_samples->main) + 新增 blocker MECH-B6。 ★ 本单只交方案: 全文 [实测] 条数 = 0, 未测项一律写 [0数据]/[待实测]。'
+  summary: '第6轮 ISS-085: 新增 MECH/USB_HINGE_STRUCTURE.md (跨铰链 USB 结构与可靠性要求 + 连接器 pin/型号/pitch 复核 + J_DEBUG/J_UART
+    位置复核) + MECH/hinge_usb_check.py (机械自检 rc=0, 解析 netlist 复算 pin 占用/铰链区几何/长度预算并与正文对表) + RELIABILITY_TEST_PLAN.md
+    增补 T-13 (跨铰链 USB 链路连续性, 挂测式) 与 T-14 (跨铰链柔性段/连接器机械, 含 J_CHG 防呆反插试验), 计划自检 rc=0 14/14 + 新增 interface_claims
+    18 条 (mech_hinge_*/mech_usb_*/mech_conn_*/mech_j_*) + 回答 main 的 emc_mech_interface_ask (EMC D8 跨铰链长度预算
+    CSI 102-144/DSI 87-129/USB 42-84/PWR 27-59mm; D9 互连形式 1×8@0.5mm 电源 FPC + 4p@0.5mm USB 差分 FPC; D7 只答一半,
+    金属件间距已给, ''外露''定义待 EMC) + 新增 needs_from 7 条 (iss085_battery_side->main / iss085_conn_pin_convergence->hw-lead
+    / iss085_esd_cmc_placement->hw-lead / iss085_emc_grounding_definition->hw-lead / iss085_usb_crc_threshold->hw-lead
+    / iss085_service_port_form->main / mech_reltest_usb_mon_kit->boss) + 新增 blocker MECH-B7 (电池侧别 + J_CHG
+    防呆)。 ★ 核心结论: 跨铰链链路 4 条 (上游只预留 3 条, 漏 USB); 声明版 4 条在铰链区高度方向堆叠 49.62mm > 镜脚净高 37.0mm 放不下, 收敛到 16p/20p/4p/8p@0.5
+    后 24.00mm; 径向 4.40 vs 可用 5.40 余 1.00; ESD<=3.0mm/CMC>=5.0mm 且一律 PCB 端不上 FPC; 通信不中断判据 = 0 次总线复位 + CRC<=1
+    次/分钟 + 90ohm±10%。 ★ 本单只交方案与复核: 实物类 [实测] 条数 = 0 (唯二 [实测] 是脚本解析网表, 可复现)。'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -56,11 +61,13 @@ artifacts:
     P0 待确认 2 条 (压垫压缩预算 0.25 vs 需吸收 0.25; 非对称方向) + P1 2 条 (槽区板厚 0.40 < 0.8; 盲槽轴必须水平打印)'
 - path: MECH/RELIABILITY_TEST_PLAN.md
   kind: plan
-  version: v1.0
+  version: v1.1 (ISS-085 增补 T-13/T-14)
   updated_at: '2026-10-27'
-  summary: '可靠性测试方案 (ISS-026): 12 类用例 (跌落/扭转/弯折开合/镜腿拉力/汗液浸泡/化妆品/酒精擦拭/UV老化 + 盐雾/温循/插拔FPC/振动), 每类给样品数+次数+判据,
-    §B3.2 逐项区分 1 台阶段 vs 后续批次, §B6 顺序 S0-S10 (含不可逆性), §B7 三态判定+条件容差, §B8 设备三分类+里程碑, §B9 数据表模板, §B10 失效追溯表,
-    §B11 盲区。★ 方案非报告: 本文 [实测] 条数 = 0, 全部结果写 [0数据]/[待实测]'
+  summary: '可靠性测试方案 (ISS-026 首版 + ISS-085 增补): 14 类用例 (跌落/扭转/弯折开合/镜腿拉力/汗液/化妆品/酒精/UV + 盐雾/温循/插拔FPC/振动 +
+    ★T-13 跨铰链 USB 链路连续性(挂测式, 判据 0 总线复位 + CRC<=1 次/分钟 + 90ohm±10% + 断点续传哈希一致) + ★T-14 跨铰链柔性段/连接器机械 (弯折区结构审查
+    + J_CHG 反插 20 次 + 试样 200,000 次)), 每类给样品数+次数+判据, §B3.2 逐项区分 1 台阶段 vs 后续批次, §B6 顺序 S0-S10, §B7 三态+容差,
+    §B9 模板, §B10 追溯, §B11 盲区。 ★ 方案非报告: 本文 [实测] 条数 = 0, 全部结果写 [0数据]/[待实测]; 自检 MECH/reliability_plan_check.py
+    rc=0 14/14'
 - path: MECH/reliability_plan_check.py
   kind: script
   version: v1.0
@@ -83,6 +90,28 @@ artifacts:
   version: v2
   updated_at: '2026-10-27'
   summary: 自证脚本_rc0_自检12-12_含v1三处实算错误修正记录(SoC封装高度漏计_镜框上沿平面预算_热扩散公式单位)
+- path: MECH/USB_HINGE_STRUCTURE.md
+  kind: structure-req
+  version: v1.0
+  updated_at: '2026-10-27'
+  summary: 'ISS-085 跨铰链 USB 结构与可靠性要求 + 连接器复核: 4 条跨铰链链路 (J_CHG/CONN_USB/CONN_CAM/CONN_LIGHT, 上游只预留 3 条漏
+    USB) + 铰链区几何账 (径向 4.40 vs 可用 5.40; 垂直 声明版 49.62 > 镜脚净高 37.0 放不下, 收敛版 24.00) + 柔性段/固定/应力释放要求 (R>=3.0mm,
+    应力释放段>=5.0mm, 固定夹滑移<=0.1mm, 弯折区只允许连续铜箔) + ESD(<=3.0mm)/CMC(>=5.0mm, 一律 PCB 端不上 FPC) 位置要求 + 通信不中断判据
+    (0 次总线复位 + CRC<=1 次/分钟 + 90ohm±10% + 断点续传哈希一致) + 4 个连接器 pin/pitch/防呆逐个复核 + 7 条 finding (J_CHG pin6
+    无网表行 / CONN_USB 断链 / 40p 堆叠超差 / CONN_LIGHT 未声明 pin 数 / 电池侧别互斥 / J_CHG 无防呆 / Type-C 逻辑编号) + J_DEBUG/J_UART
+    位置复核 (末端空腔可行, 但必须开检修口才够得着) + EMC D8/D9 长度预算 (CSI 102-144 / DSI 87-129 / USB 42-84 / PWR 27-59mm)'
+- path: MECH/hinge_usb_check.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-10-27'
+  summary: 'ISS-085 机械自检 rc=0: 解析 HW/netlist_v1.csv 统计 7 个连接器 pin 占用 (必装/DNP 分开) + 复算铰链区径向与垂直占位 + 跨铰链长度预算
+    + 与正文对表 (关键数字 4.40/24.00 与 finding F-1/F-2/F-3 必须在正文出现, 否则 FAIL)'
+- path: HANDOFF/2026-10-27_mech-lead_高速差分跨铰链结构要求与连接器复核.md
+  kind: handoff
+  version: v2.0
+  updated_at: '2026-10-27'
+  summary: '质量门 v2: B1-B6 六块 6/6; B2 自评 15 条 (✅12/⚠️1/❌2); B3 证据分级 4 标签 (实物类 [实测]=0, 唯二 [实测] 是脚本解析网表);
+    B4 接口取值 18 条; B5 未决项 9 条 (U-1~U-9); B6 自证命令 4 条 + 实跑输出'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -128,6 +157,15 @@ blockers:
   severity: medium
   needs_from:
   - boss
+- id: MECH-B7
+  desc: 'ISS-085: 跨铰链供电链路的方案悬空 —— 电池在镜框还是镜脚两边假设互斥 (netlist 标充电板侧=镜框 vs MECH_BUDGET 放镜脚), 决定 J_CHG 扛 0.55A
+    还是 1.5A、8p 还是 10p、载流与型号; 同时 J_CHG 无机械防呆 (反插 = SYS 短接 GND = 充电板 MOS 直通)。未裁之前: J_CHG 型号定不了、跨铰链 FPC 芯数定不了、铰链区走线槽开不出来
+    (打印包不能开工)。'
+  severity: high
+  needs_from:
+  - main
+  - hw-lead
+  waiting_since: '2026-10-27'
 needs_from:
 - key: q4_battery_scope
   to: boss
@@ -245,6 +283,64 @@ needs_from:
   to: main
   item: u8镜框截面口径_镜框上沿载板位余量0.45mm能否成立_还卡u4波导2D图_经项目总工走JBD
   since: '2026-10-25'
+- key: iss085_battery_side
+  to: main
+  waiting_on: agent
+  due: '2026-10-29'
+  since: '2026-10-27'
+  item: 'ISS-085 U-1 电池在镜框还是镜脚 (经项目总工裁): netlist 把 BT_432243 标 ''充电板侧''=镜框, 我的 MECH_BUDGET §1.3 M2 放镜脚
+    → 两边假设互斥。决定 J_CHG 扛 0.55A (SYS) 还是 1.5A (含充电) → 决定 J_CHG 脚数 8p 还是 10p、载流与型号。我的假设: 电池留镜脚 (4.12cc 是最大件,
+    空间账在镜脚) → J_CHG 改 10p 并按 >=1.5A 选型; 若裁 ''电池跟充电板一起在镜框'' → J_CHG 保持 8p 但镜框端件要装 4.3cc 电池 (镜框厚度要重算)。'
+- key: iss085_conn_pin_convergence
+  to: hw-lead
+  waiting_on: agent
+  due: '2026-10-29'
+  since: '2026-10-27'
+  item: 'ISS-085 U-2 跨铰链 4 条链路 pin 数收敛 (经项目总工转达): 声明版 (CONN_CAM 40p + CONN_LIGHT 40p + CONN_USB 4p + J_CHG
+    1×6@1.27) 在铰链区高度方向堆叠 49.62mm > 镜脚净高 37.0mm, 放不下。建议收敛到 CONN_CAM 16p@0.5 / CONN_LIGHT 20p@0.5 / CONN_USB
+    4p@0.5 / J_CHG 8p@0.5 (SYS 双脚并联) → 堆叠 24.00mm 余 13.00mm。附 3 条网表问题: ① J_CHG pin6=GND 无网表行 (信号地在铰链处断开)
+    ② CONN_USB 在网表上还没展开完整 (声明 4p, 需 D+/D−/GND/SHIELD; 与 ISS-086 的 ESD/CMC/端接配套 —— 我 08:41 快照时是 2 脚, 你正在改,
+    以你改完为准) ③ CONN_LIGHT 的 pin 数网表未声明 (面积预算按 26p 算, 差 ~60mm²)。另: Type-C 焊盘请按器件数据手册物理 A/B 脚位画 (网表现在是逻辑编号)。'
+- key: iss085_esd_cmc_placement
+  to: hw-lead
+  waiting_on: agent
+  due: '2026-10-29'
+  since: '2026-10-27'
+  item: 'ISS-085 ESD/CMC 结构位置要求 (经项目总工转达): ① 两端各 1 组 ESD, 距连接器 <=3.0mm, 共面接地 (回路 <=1 过孔), 结电容 <=0.5pF,
+    封装 <=0.5mm 高 ② 两端各 1 个 CMC, 距弯折起点 >=5.0mm 且距连接器 <=10.0mm, 260°C 回流焊耐受, <=0805 封装 ③ ★ 一律装 PCB 端, 不许装到跨铰链
+    FPC 上 (FPC 弯折区只允许连续铜箔) ④ 顺序 连接器→ESD→CMC→串阻/端接, 两端对称 ⑤ BAT_DET/VBUS_DET 两根高阻检测线 (1M+1M, 源阻抗 500kΩ)
+    跨铰链必须被 GND 夹持, 与 USB 差分对间距 >=3mm。'
+- key: iss085_emc_grounding_definition
+  to: hw-lead
+  waiting_on: agent
+  due: '2026-10-30'
+  since: '2026-10-27'
+  item: 'ISS-085 U-3 EMC D7 剩余部分 (经项目总工转达): ''外露金属件'' 的定义 (是否指用户可触及) + 活动铰链能否做全单点接地 (铰链是活动接地路径, 通常要断开)。我给的
+    5 类金属件与 FPC 间距: 金属骨架>=3.0mm / Type-C 屏蔽壳>=3.0mm / 充电板铝屏蔽罩 / 铰链销与 FPC>=0.5mm / PCB 定位销>=0.5mm; 建议屏蔽壳与骨架单点接地。这条不清,
+    R-04/R-07 没法收敛。'
+- key: iss085_usb_crc_threshold
+  to: hw-lead
+  waiting_on: agent
+  due: '2026-10-30'
+  since: '2026-10-27'
+  item: 'ISS-085 T-13 判据确认 (经项目总工转达): 我把 ''通信中断'' 定义成 0 次总线复位/掉线/枚举丢失, 并把 CRC 错误阈值写成 <=1 次/分钟连续传输 (USB
+    2.0 的 CRC 重传是协议自带机制, 写 0 错误会把正常重传误判成失败)。请按实际误码基线确认或收紧这个阈值, 并确认 ''0 复位 + CRC 频次'' 的口径可作为量产抽检项。'
+- key: iss085_service_port_form
+  to: main
+  waiting_on: agent
+  due: '2026-10-30'
+  since: '2026-10-27'
+  item: 'ISS-085 U-6 镜脚末端检修口形态 + J_DEBUG 座型 (经项目总工裁): 位置本身可行 (末端 1/3 是空腔, 与电池/铰链不冲突), 但镜脚封闭 → 必须开 1 个可开启检修口才够得着排针。请裁:
+    ① 盖板 (磁吸+自攻螺钉防丢, 开在外侧或下方, 不能开贴皮肤面) / 滑盖 / 底盖 ② J_DEBUG 是否从 1×4@1.27 改成标准 2×5 Cortex-10@1.27 (产线 pogo
+    夹具有现成探针; J_UART 保持 1×2 共用一个开口)。我的假设: 末端盖板 + J_DEBUG 改 2×5。'
+- key: mech_reltest_usb_mon_kit
+  to: boss
+  waiting_on: boss
+  due: '2026-10-30'
+  since: '2026-10-27'
+  item: 'ISS-085 T-13 监测设备 (与 mech_reltest_kit_site 同一笔预算, 不重复申请): 跨铰链 USB 链路连续性是挂测式, 不占额外样机, 但要这几样: USB
+    协议分析器 或 示波器+差分探头 (量 D+/D− 与 VBUS) + 主机端自动批量传输脚本 (1MB×10 轮, 必须关主机自动重连) + 自制扭转保载夹具 (人工手捏不住 0.5N·m 稳态)
+    + FPC 动态弯折机 (试样段 200,000 次) + 阻抗仪。没有这些, T-01/T-02/T-03 照做, 只是少了 T-13 的数据。'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -298,6 +394,14 @@ answers:
     X-ray + 1 处切片复核。 [推算-设计承诺, 未实测] 依据: MECH/MECH_BUDGET.md §1.3 M1 + §5.5, MECH/RELIABILITY_TEST_PLAN.md
     §B12 K-8 / §B5 T-01'
   ref: MECH/RELIABILITY_TEST_PLAN.md#b12 + MECH/MECH_BUDGET.md §1.3 M1
+- key: emc_mech_interface_ask
+  to: main
+  value: 'D8 跨铰链走线长度预算(mm, 框内+铰链+脚内): CSI 102-144 / DSI 87-129 / USB 42-84 / 电源 27-59 (铰链段=90°弧长4.71+间隙2-4);
+    D9 互连形式: 充电板↔主板 = 1×8@0.5mm 跨铰链 FPC (SYS×2/检测×2/状态×2/GND×2, 电池在镜脚则 10p 扛 1.5A) + 独立 4p@0.5mm USB 差分
+    FPC (>=4层, 90Ω±10%, 全 0.5mm pitch), 全 0.5mm pitch (1.27mm FFC 达不到 R3.0 弯折寿命); D7 只能答一半: 5 类金属件与 FPC
+    间距 (骨架>=3.0mm/Type-C 屏蔽壳>=3.0mm/铰链件>=0.5mm/PCB 定位销>=0.5mm/充电板铝罩), 建议屏蔽壳+骨架单点接地, 但 ''外露金属件'' 定义与活动铰链能否做全单点接地需
+    EMC 给口径 (已发需求)'
+  ref: 'MECH/USB_HINGE_STRUCTURE.md#3.3 + #4.5 + #5.3'
 interface_claims:
 - key: pcb_outline
   value: 50x12mm
@@ -496,6 +600,78 @@ interface_claims:
   value: SoC朝向被上下分壳锁死
   note: B/C/D三档共同结构级冲突
   ref: ''
+- key: mech_hinge_links_count
+  value: '4'
+  note: 跨铰链链路数 (J_CHG/CONN_USB/CONN_CAM/CONN_LIGHT); 上游 RELIABILITY_DESIGN §(11) 只预留 3 条, 漏 USB
+  ref: MECH/USB_HINGE_STRUCTURE.md#3.1
+- key: mech_hinge_radial_mm
+  value: '4.40'
+  note: 铰链区前后向占位 = R3.0 + 4×(0.20+0.15); 可用 5.40 → 余 1.00
+  ref: MECH/USB_HINGE_STRUCTURE.md#3.2a
+- key: mech_hinge_stack_declared_mm
+  value: '49.62'
+  note: 声明版 4 条链路高度方向堆叠 > 镜脚净高 37.0 → 放不下
+  ref: MECH/USB_HINGE_STRUCTURE.md#3.2b
+- key: mech_hinge_stack_fixed_mm
+  value: '24.00'
+  note: 收敛版 (16p/20p/4p/8p @0.5mm) 堆叠, 余 13.00
+  ref: MECH/USB_HINGE_STRUCTURE.md#3.2b
+- key: mech_usb_diff_z
+  value: 90ohm±10%
+  note: USB 2.0 FS 差分阻抗 (不是 100Ω, 与 MIPI/DSI 模板不同)
+  ref: MECH/USB_HINGE_STRUCTURE.md#4.1
+- key: mech_usb_fpc_layers
+  value: '>=4'
+  note: 跨铰链 USB FPC 层数 (要有完整连续参考地平面)
+  ref: MECH/USB_HINGE_STRUCTURE.md#4.1
+- key: mech_usb_fpc_pitch
+  value: 0.5mm
+  note: 跨铰链 FPC 统一 pitch; 1.27mm FFC 动态弯折最小半径 >=5mm 级, 达不到 R3.0 铰链预算
+  ref: MECH/USB_HINGE_STRUCTURE.md#5.3
+- key: mech_usb_esd_offset
+  value: <=3.0mm
+  note: ESD 阵列到连接器走线上限 (两端各一, 共面接地, 回路 <=1 过孔)
+  ref: MECH/USB_HINGE_STRUCTURE.md#4.3
+- key: mech_usb_cmc_offset
+  value: '>=5.0mm'
+  note: CMC 到弯折起点最小距离; CMC 一律装 PCB 端, 不装 FPC 上
+  ref: MECH/USB_HINGE_STRUCTURE.md#4.4
+- key: mech_hinge_fpc_bend_r
+  value: '>=3.0mm'
+  note: 跨铰链 FPC 弯折半径 (沿用上游锁死值)
+  ref: MECH/USB_HINGE_STRUCTURE.md#4.2
+- key: mech_hinge_strain_relief
+  value: '>=5.0mm'
+  note: 弯折起点到任何器件/焊点/固定夹的自由直线段
+  ref: MECH/USB_HINGE_STRUCTURE.md#4.2
+- key: mech_usb_no_interrupt
+  value: 0reset
+  note: 应力全程 0 次总线复位/掉线/枚举丢失; CRC 另按 <=1 次/分钟 (USB2.0 协议自带重传, 不能写 0 错误)
+  ref: MECH/USB_HINGE_STRUCTURE.md#4.6
+- key: mech_conn_cam_pins
+  value: 16p@0.5mm
+  note: 建议 pin 数 (网表必装 13, 声明 40p 宽 19.5mm 超 12mm 板宽)
+  ref: MECH/USB_HINGE_STRUCTURE.md#5.3
+- key: mech_conn_light_pins
+  value: 20p@0.5mm
+  note: 建议 pin 数 (网表必装 9, 上游按 40p 预留; 方案B 桥接则 26p@0.4)
+  ref: MECH/USB_HINGE_STRUCTURE.md#5.3
+- key: mech_j_chg_pins
+  value: 8p@0.5mm
+  note: 建议 pin 数 (SYS×2 载流 + 检测×2 + 状态×2 + GND×2); 若电池在镜脚需 10p 扛 1.5A
+  ref: MECH/USB_HINGE_STRUCTURE.md#5.3
+- key: mech_j_debug_service_port
+  value: '1'
+  note: 镜脚末端必须有 1 个可开启检修口 (外侧/下方), 否则排针够不着=功能没有
+  ref: MECH/USB_HINGE_STRUCTURE.md#6.1
+- key: mech_hinge_runlen_csi_mm
+  value: 102-144
+  note: CSI 跨铰链总长 (框内+铰链+脚内) → 答 EMC D8
+  ref: MECH/USB_HINGE_STRUCTURE.md#3.3
+- key: mech_hinge_runlen_usb_mm
+  value: 42-84
+  note: USB 跨铰链总长 → 答 EMC D8
+  ref: MECH/USB_HINGE_STRUCTURE.md#3.3
 open_questions:
 - id: MECH-Q1
   to: main

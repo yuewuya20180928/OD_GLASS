@@ -3,10 +3,10 @@ role: 项目总工
 updated_at: '2026-10-25T01:05:00+08:00'
 updated_by: main
 status:
-  phase: P0 (拿纸面资料) + P1 (选型)
-  progress_pct: 20
-  health: red
-  summary: 4-Agent 职能制落地, 三个总工首轮产出全部收口; 炸出两个硬指标可能不成立 (端到端 67ms 超 60ms 预算 / 皮肤侧 96°C 超 43°C 红线), 等老板拍板口径。
+  phase: 原理图V1.2已交付待交叉评审
+  progress_pct: 72
+  health: amber
+  summary: 9页+BOM+26条门禁,修3个真缺陷,电池位置裁决后跨铰链1.5A待结构核算
 artifacts:
 - path: PROJECT_TRACKER.md
   kind: tracker
@@ -28,6 +28,26 @@ artifacts:
   version: v1.0
   updated_at: '2026-10-25T01:05:00+08:00'
   summary: 'STATE 协议: 分片所有权 / 合并器 / 冲突检测'
+- path: HW/SCHEMATIC_V1.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 原理图V1.2(9页P1-P9,新增P9跨铰链界面页),器件表由gen_schematic_pages.py机械生成
+- path: HW/netlist_v1.csv
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 器件级netlist_391行_13列(含board板级归属列),唯一真源=state/gen_netlist.py
+- path: HW/BOM_v1.csv
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: BOM_292位号(采购状态+板级归属),生成器=state/gen_bom.py
+- path: HW/SCHEMATIC_V1_1_CHANGELOG.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: V1到V1.2变更记录(12项变更+3个自发现缺陷+证据分级+自证命令)
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -237,6 +257,30 @@ interface_claims:
 - key: ubridge_role
   value: DP2DSI_BRIDGE
   note: 裁决_U_BRIDGE按DP到DSI桥接芯片画_规格A-21称redriver属内部矛盾待原厂澄清
+  ref: ''
+- key: schematic_pages
+  value: '9'
+  note: P1-P9,P9为10-27新增跨铰链界面页
+  ref: ''
+- key: netlist_rows
+  value: '391'
+  note: 含board列(CHG_BOARD/MAIN_PCB/HINGE)
+  ref: ''
+- key: bom_refs
+  value: '292'
+  note: 采购状态+板级归属,封装/容差/替代料待回填
+  ref: ''
+- key: hinge_channels
+  value: '4'
+  note: J_CHG充电电流1.5A/CONN_USB_USB差分/CONN_CAM_CSI4lane/CONN_LIGHT_DSI加光机
+  ref: ''
+- key: battery_location
+  value: 镜脚侧
+  note: V1.2裁决:电池+电池保护装镜脚(MECH体积硬约束),SYS不过铰链
+  ref: ''
+- key: netlist_gate_criteria
+  value: '26'
+  note: check_netlist.py由15条增至26条全过
   ref: ''
 open_questions:
 - id: PM-Q1

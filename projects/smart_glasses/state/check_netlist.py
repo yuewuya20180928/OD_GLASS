@@ -23,10 +23,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
 SPEC_P = os.path.join(PROJ, "HW", "SCHEMATIC_V1_SPEC.json")
 
-REQUIRED_COLS = ["page", "net", "node1", "node2", "ref", "value", "type", "dnp", "evidence", "tbd", "note", "conn_id"]
+REQUIRED_COLS = ["page", "net", "node1", "node2", "ref", "value", "type", "dnp", "evidence", "tbd", "note", "conn_id",
+                 "board"]
 LEGAL_DNP = {"必装", "DNP", "可选"}
 LEGAL_EVIDENCE = {"[官方]", "[推算]", "[实测]", "[待原厂]", "[待JBD]", "[同Die参考-待官方确认]", "[0数据]"}
-PAGES = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]
+LEGAL_BOARD = {"CHG_BOARD", "MAIN_PCB", "HINGE"}
+PAGES = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9"]
 
 
 def main() -> int:
@@ -53,7 +55,7 @@ def main() -> int:
 
     # 0) 表头
     miss = [c for c in REQUIRED_COLS if c not in cols]
-    chk("netlist 表头齐全 (12 列)", not miss, f"缺 {miss}" if miss else f"{len(cols)} 列")
+    chk("netlist 表头齐全 (13 列)", not miss, f"缺 {miss}" if miss else f"{len(cols)} 列")
     if miss:
         print(json.dumps({"total": len(R), "failed": len(R), "criteria": R}, ensure_ascii=False, indent=2))
         return 1
@@ -133,7 +135,7 @@ def main() -> int:
     # 10) 8 页齐全
     got_pages = {cell(r, "page") for r in rows if cell(r, "page")}
     miss_p = [p for p in PAGES if p not in got_pages]
-    chk("8 页齐全 (P1-P8)", not miss_p, f"缺页 {miss_p}" if miss_p else f"实际 {sorted(got_pages)}")
+    chk("9 页齐全 (P1-P9)", not miss_p, f"缺页 {miss_p}" if miss_p else f"实际 {sorted(got_pages)}")
 
     # 11) 同一 net 不得有多个输出驱动 (DRC 近似: 同 net 不同 ref 且方向冲突)
     by_net: dict[str, list] = {}
@@ -152,6 +154,108 @@ def main() -> int:
     noreref = [cell(r, "net") for r in rows if not cell(r, "ref")]
     chk("每行都有位号 (ref)", not noreref, f"{len(noreref)} 行无 ref" if noreref else "")
 
+    # ---- ★V1.1 (2026-10-27) 新增判据: 板级归属 / 跨铰链 / 安全项 / 回归判据 ----
+
+    # 13) 板级归属列存在且取值合法
+    bad_b = sorted({cell(r, "board") for r in rows if cell(r, "board") not in LEGAL_BOARD})
+    cnt_b: dict[str, int] = {}
+    for r in rows:
+        cnt_b[cell(r, "board")] = cnt_b.get(cell(r, "board"), 0) + 1
+    chk("板级归属合法 (CHG_BOARD/MAIN_PCB/HINGE)", not bad_b,
+        f"非法 {bad_b}" if bad_b else f"{cnt_b}")
+
+    # 14) 跨铰链 4 个连接器必须标 HINGE
+    hinge_conn = {"J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"}
+    bad_h = sorted({cell(r, "ref") for r in rows
+                    if cell(r, "ref") in hinge_conn and cell(r, "board") != "HINGE"})
+    chk("跨铰链 4 个连接器标 HINGE", not bad_h,
+        f"错标 {bad_h}" if bad_h else "J_CHG / CONN_USB / CONN_CAM / CONN_LIGHT")
+
+    # 15) SoC 侧节点必须在主 PCB (镜脚), 不许在充电板
+    bad_s = sorted({cell(r, "ref") for r in rows
+                    if "SoC[TBD-01]." in (cell(r, "node1") + cell(r, "node2"))
+                    and cell(r, "board") != "MAIN_PCB"})
+    chk("SoC 侧节点全在主 PCB (MAIN_PCB)", not bad_s, f"错标 {bad_s}" if bad_s else "")
+
+    # 16) 充电链器件必须在充电板 (镜框) —— ★V1.2: 电池与电池保护移到镜脚, 所以拆成两半判
+    chg_must = {"J_TYPE_C", "U_CHG", "D_ESD_TC", "FB_VBUS"}
+    bad_c = sorted({cell(r, "ref") for r in rows
+                    if cell(r, "ref") in chg_must and cell(r, "board") != "CHG_BOARD"})
+    chk("充电板器件在充电板 (CHG_BOARD)", not bad_c, f"错标 {bad_c}" if bad_c else "")
+    bat_must = {"BT_432243", "U_BATPROT", "Q1", "Q2"}
+    bad_bat = sorted({cell(r, "ref") for r in rows
+                      if cell(r, "ref") in bat_must and cell(r, "board") != "MAIN_PCB"})
+    chk("电池与电池保护在主 PCB (MECH 体积硬约束)", not bad_bat,
+        f"错标 {bad_bat}" if bad_bat else "BT/U_BATPROT/Q1/Q2 全在 MAIN_PCB")
+
+    # 17) P9 跨铰链界面页存在且行数足够
+    p9 = [r for r in rows if cell(r, "page") == "P9"]
+    chk("P9 跨铰链界面页存在 (≥10 行)", len(p9) >= 10, f"{len(p9)} 行")
+
+    # 18) 电池 NTC → BQ25896 TS 脚 (硬件停充, 安全项) 必须在图
+    has_ntc = (any(cell(r, "ref") == "R_NTC_BAT" for r in rows)
+               and any(cell(r, "net") == "TS_BAT" for r in rows))
+    chk("电池 NTC → BQ25896 TS 脚 (硬件停充) 在图", has_ntc, "R_NTC_BAT + TS_BAT 已在图" if has_ntc else "缺 R_NTC_BAT / TS_BAT")
+
+    # 19) 回归判据: USB 差分主干网不得直连 Type-C (V1 把跨铰链短接了)
+    short = [f"{cell(r,'net')}@{cell(r,'page')}" for r in rows
+             if cell(r, "net") in ("USB_D_P", "USB_D_N")
+             and "J_TYPE_C" in (cell(r, "node1") + cell(r, "node2"))]
+    chk("USB 差分不得直连 Type-C (跨铰链不得短接)", not short, f"短接 {short[:4]}" if short else "")
+
+    # 20) U_BRIDGE 定位统一 (DP1.4 TX → MIPI DSI TX 桥接) 且方案A 下 DNP
+    ub = [r for r in rows if cell(r, "ref") == "U_BRIDGE"]
+    bad_ub = [f"{cell(r,'page')}:{cell(r,'value')[:28]}" for r in ub
+              if cell(r, "dnp") != "DNP" or "DSI" not in cell(r, "value")]
+    chk("U_BRIDGE 定位统一 (DP→DSI 桥接) 且方案A 下 DNP", not bad_ub,
+        f"{bad_ub}" if bad_ub else f"{len(ub)} 行 (P4+P6 同一颗)")
+
+    # 21) U_TEMP 已定型为数字温度计 TMP117 (I2C 0x48)
+    ut = [r for r in rows if cell(r, "ref") == "U_TEMP"]
+    bad_t = [cell(r, "value")[:28] for r in ut if "TMP117" not in cell(r, "value")]
+    chk("U_TEMP 已定型 TMP117 (I2C 0x48)", not bad_t, f"{bad_t}" if bad_t else f"{len(ut)} 行")
+
+    # 22) 回归判据: SYS 轨不得跨铰链 (V1.2 起 SYS 在镜脚本地产生)
+    sys_cross = [f"{cell(r,'net')}@{cell(r,'page')}" for r in rows
+                 if cell(r, "net") in ("SYS", "SYS_PCB", "RAIL_SYS")
+                 and "J_CHG" in (cell(r, "node1") + cell(r, "node2"))]
+    chk("SYS 轨不得跨铰链 (电池在镜脚, SYS 本地产生)", not sys_cross,
+        f"跨铰链 {sys_cross[:4]}" if sys_cross else "")
+
+    # 23) ★跨铰链连接器: **声明 pin 数 == 网表实际引用 pin 数** (mech-lead ISS-085 F-1/F-2: 断链)
+    hinge_pins = {}
+    for ref in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+        decl = 0
+        for r in rows:
+            if cell(r, "ref") == ref:
+                m = re.search(r"(\d+)\s*[×x]?\s*(\d*)\s*p\b", cell(r, "value"))
+                if m:
+                    decl = max(decl, int(m.group(1)) * (int(m.group(2)) if m.group(2) else 1))
+        used = set()
+        for r in rows:
+            for node in (cell(r, "node1"), cell(r, "node2")):
+                m = re.match(rf"^{re.escape(ref)} (.+)$", node)
+                if m:
+                    used.add(m.group(1))
+        hinge_pins[ref] = (decl, len(used))
+    bad_link = [f"{k}: 声明 {v[0]}p / 实际 {v[1]}p" for k, v in hinge_pins.items() if v[0] != v[1]]
+    chk("跨铰链连接器无断链 (声明 pin 数 == 实际引用)", not bad_link,
+        f"{bad_link}" if bad_link else "J_CHG10/CONN_USB4/CONN_CAM18/CONN_LIGHT21 全对")
+
+    # 24) ★铰链区高度预算: 4 条链路触点区堆叠 ≤ 镜脚根部净高 37.0mm (mech-lead ISS-085 F-3)
+    stack = sum(v[0] for v in hinge_pins.values()) * 0.5
+    chk("铰链区堆叠高度 ≤ 镜脚根部净高 37.0mm", stack <= 37.0,
+        f"{stack:.1f}mm (余 {37.0 - stack:.1f}mm)")
+
+    # 23) 跨铰链大电流必须双 pin 并联 (J_CHG pin1/pin2 同网)
+    bat_net = {cell(r, "net") for r in rows if cell(r, "ref") == "J_CHG"
+               and "BAT_CHG" in (cell(r, "note") or "")}
+    pins = {cell(r, "node1") for r in rows if cell(r, "net") in bat_net} | \
+           {cell(r, "node2") for r in rows if cell(r, "net") in bat_net}
+    need = {"J_CHG pin1", "J_CHG pin2"}
+    chk("跨铰链充电电流双 pin 并联 (pin1/pin2)", need.issubset(pins),
+        f"缺 {sorted(need - pins)}" if not need.issubset(pins) else "pin1/pin2 同网")
+
     bad_rows = [x for x in R if not x["ok"]]
     if args.json:
         print(json.dumps({"total": len(R), "passed": len(R) - len(bad_rows), "failed": len(bad_rows),
@@ -166,7 +270,7 @@ def main() -> int:
         if x["detail"]:
             print(f"       {x['detail']}")
     print()
-    print(f"  {'✅ 全过 — 原理图 V1 可进交叉评审' if not bad_rows else f'❌ {len(bad_rows)} 项不通过'}")
+    print(f"  {'✅ 全过 — 原理图 V1.1 可进交叉评审' if not bad_rows else f'❌ {len(bad_rows)} 项不通过'}")
     print("=" * 72)
     return 1 if bad_rows else 0
 

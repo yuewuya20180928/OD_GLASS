@@ -251,7 +251,9 @@ def main() -> int:
                             "(信号地在铰链处断开) -> 见正文 §5.2 F-1")
         if ref == "CONN_USB" and len(d["conn"]) < 4:
             findings.append(f"CONN_USB: 声明 4p, 网表只落到 {sorted(d['conn'])} "
-                            "(跨铰链 USB 链路在网表上是断的) -> 见正文 §5.2 F-2")
+                            "(跨铰链 USB 链路在网表上还没展开完整: 需 D+/D−/GND/SHIELD) "
+                            "-> 见正文 §5.2 F-2; 注: hw-lead 正在改 netlist (ISS-086), "
+                            "本条以'未展开完整'表述, 结论不随快照变")
 
     # ---- ② 铰链区几何账 ----
     print("\n[2] 铰链区几何账")

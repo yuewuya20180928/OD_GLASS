@@ -86,7 +86,7 @@ def main() -> int:
             return None
 
     # ---------- 分桶待办 ----------
-    buckets = {"me": [], "boss": [], "vendor": [], "jbd": [], "agent": []}
+    buckets = {"me": [], "boss": [], "vendor": [], "jbd": [], "agent": [], "verify": []}
     for it in issues:
         if it.get("status") in ("closed", "deferred", "wontfix"):
             continue
@@ -98,7 +98,11 @@ def main() -> int:
         row = {"id": it.get("id"), "title": it.get("title"), "severity": it.get("severity"),
                "due": it.get("due"), "tag": tag, "source": it.get("source_blocker")}
         if own == "main":
-            buckets["me"].append(row)
+            # 我产的但还没人验 (fixed/verified) → 不是"等我做", 是"等别人验证"
+            if it.get("status") in ("fixed", "verified"):
+                buckets["verify"].append(row)
+            else:
+                buckets["me"].append(row)
         elif own in ("boss", "vendor", "jbd"):
             buckets[own].append(row)
         else:
@@ -200,7 +204,7 @@ def main() -> int:
           f"外部 {sum(1 for i in issues if i.get('external'))}) | 门禁违规 {len((issue or {}).get('errors') or [])} 条")
     print()
     print("── 待办 (按责任方) " + "─" * 53)
-    labels = [("me", "🔧 等我做 (项目总工)"), ("boss", "👤 等你拍板"),
+    labels = [("me", "🔧 等我做 (项目总工)"), ("verify", "🔍 等别人验证 (我产的)"), ("boss", "👤 等你拍板"),
               ("vendor", "🏭 等酷芯微原厂"), ("jbd", "🏢 等 JBD"),
               ("agent", "👷 三个总工可自行推进")]
     for k, lab in labels:

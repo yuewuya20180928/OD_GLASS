@@ -1,7 +1,7 @@
 # 硬件原理图投板前检查清单 (ERC / DRC) —— V1
 
 > **归属**: 项目总工 (main)。**作用**: 把"图看起来对"变成"每一项都能机械判或明确签字"。
-> **对应交付物**: `HW/SCHEMATIC_V1.md` (8 页图页) · `HW/netlist_v1.csv` (netlist) · `HW/netlist_v1.net` (KiCad 可 import) · `HW/SCHEMATIC_V1_SPEC.json` (图纸规格) · `HW/SCHEMATIC_REFDIE.md` (SoC 侧 79 功能位号 + 证据等级) · `HW/INTERFACE_TABLE.md` (56 条连接) · `HW/POWER_BUDGET_V2.md` (功耗与皮肤温度)
+> **对应交付物**: `HW/SCHEMATIC_V1.md` (**V1.1 · 9 页**) · `HW/netlist_v1.csv` (392 行 / 13 列) · `HW/netlist_v1.net` (KiCad 可 import) · `HW/BOM_v1.csv` (**295 位号**) · `HW/SCHEMATIC_V1_1_CHANGELOG.md` (**本轮变更记录**) · `HW/SCHEMATIC_V1_SPEC.json` (图纸规格) · `HW/SCHEMATIC_REFDIE.md` (SoC 侧 79 功能位号 + 证据等级) · `HW/INTERFACE_TABLE.md` (56 条连接) · `HW/POWER_BUDGET_V2.md` (功耗与皮肤温度)
 > **原则**: 每条判据要么**有脚本能跑** (§A), 要么**有明确责任人签字** (§D) —— 不许有"看着没问题"这种判据。
 
 ---
@@ -10,14 +10,14 @@
 
 | # | 条件 | 怎么判 | 现在 |
 |---|---|---|---|
-| 1 | **机械门禁全绿** | `python3 state/check_netlist.py` → rc=0 且 12/12 | ✅ 已过 |
-| 2 | **8 页齐全且与 netlist 同步** | `grep -o '^## P[0-9]' HW/SCHEMATIC_V1.md \| sort -u` = P1..P8 | ✅ 已过 |
-| 3 | **生成器幂等** | 重跑 `gen_netlist.py` / `gen_schematic_pages.py` / `gen_kicad_net.py` → 两个 STL 无关, 但 **CSV 与 .md 的 md5 不变** | ⚠️ 待 hw-lead 交卷后重跑核对 |
+| 1 | **机械门禁全绿** | `python3 state/check_netlist.py` → rc=0 且 **24/24** | ✅ 已过 (V1.1) |
+| 2 | **9 页齐全且与 netlist 同步** | `grep -o '^## P[0-9]' HW/SCHEMATIC_V1.md \| sort -u` = P1..P9 | ✅ 已过 (V1.1 新增 P9 跨铰链页) |
+| 3 | **生成器幂等** | 重跑 `gen_netlist.py` / `gen_schematic_pages.py` / `gen_kicad_net.py` → **CSV / .md / .net 的 md5 不变** | ✅ 已过 (V1.1 重跑 3 次 md5 一致) |
 | 4 | **原厂 4 项闭合** | 引脚表+球位图+pitch · 电源域表 · 显示 TX 结论 · 启动存储方案 | 🔴 **未闭 (TBD-01/02/04/06/11)** |
 | 5 | **板宽/叠层复核通过** | ISS-078 (官网"宽度≤8mm" + pitch 0.3/0.4/0.5mm 三档) | 🔴 未闭 |
 | 6 | **交叉评审两方通过** | mech-lead (机械/热/装配) + sw-lead (时序/信号/电源时序) 各出结论 | ⚠️ 未做 |
-| 7 | **器件级 netlist 补齐** | 充电链 ESD/π滤波/MOSFET + LED 限流 + 按键消抖 + 去耦 | ⚠️ ISS-075 在做 |
-| 8 | **BOM 齐** | 每行有: 位号 / 值 / 封装 / 容差 / DNP / 替代料 | ⚠️ 随 ISS-075 |
+| 7 | **器件级 netlist 补齐** | 充电链 ESD/π滤波/MOSFET + LED 限流 + 按键消抖 + 去耦 | ✅ 已过 (ISS-075, 392 行) |
+| 8 | **BOM 齐** | 每行有: 位号 / 值 / 封装 / 容差 / DNP / 替代料 | ⚠️ **部分**: `HW/BOM_v1.csv` 已出 (295 位号, 带采购状态 + 板级归属); **封装/容差/替代料仍 `待定`** (器件没定档, 不许编) |
 | 9 | **投板前 3 个"人眼项"签字** | 见 §D | 🔴 未签 |
 
 ---
@@ -41,6 +41,15 @@
 | A13 | **SoC 侧零编造球号** (grep `SoC[` 必须是 `SoC[TBD-01].` 形式, 不许出现具体球号) | `grep -n 'SoC\[' HW/netlist_v1.csv \| grep -v 'TBD-01'` → 应为空 | ⚠️ 随 ISS-075 复跑 |
 | A14 | **禁改文件未被 sub agent 动过** (mtime 比对) | `ls -l --time-style=+%m-%d\ %H:%M MECH/fit_check.py MECH/print/verify_pack.py state/measurements.yaml` | ⚠️ 随 ISS-075 复跑 |
 | A15 | 重量表与温度表口径一致 (MECH_BUDGET ↔ POWER_BUDGET_V2) | 人工 + grep 关键数 | ✅ 41.6-42.6°C / 80.1°C 口径已对齐 |
+| A16 | **板级归属合法** (CHG_BOARD / MAIN_PCB / HINGE) | `check_netlist.py` ⑬ | ✅ V1.1 |
+| A17 | **跨铰链 4 个连接器必须标 HINGE** (J_CHG / CONN_USB / CONN_CAM / CONN_LIGHT) | ⑭ | ✅ V1.1 |
+| A18 | **SoC 侧节点全在主 PCB** (不得在充电板) | ⑮ | ✅ V1.1 |
+| A19 | **充电链器件在充电板** (J_TYPE_C / U_CHG / U_BATPROT / Q1 / Q2 / BT / ESD / 磁珠) | ⑯ | ✅ V1.1 |
+| A20 | **P9 跨铰链页存在** (≥10 行) | ⑰ | ✅ V1.1 |
+| A21 | **电池 NTC → BQ25896 TS 脚在图** (硬件停充, 安全项) | ⑱ | ✅ V1.1 (V1 漏画) |
+| A22 | **USB 差分不得直连 Type-C** (跨铰链被短接的回归判据) | ⑲ | ✅ V1.1 (V1 短接过) |
+| A23 | **`U_BRIDGE` 定位统一** (DP1.4 TX → MIPI DSI TX 桥接) 且方案A 下 DNP | ⑳ | ✅ V1.1 (V1 P4/P6 说法冲突) |
+| A24 | **`U_TEMP` 已定型 TMP117** (I2C 0x48) | ㉑ | ✅ V1.1 |
 
 ---
 
@@ -60,6 +69,10 @@
 | B10 | **双出口互斥在 BOM 层也成立** (两组 0Ω 分开列, 装配决定) | ✅ A10 + BOM 要求 |
 | B11 | **未用 4-lane CSI 的 D2/D3 与 BR_* 全 DNP** | ✅ A10 + netlist dnp 列 |
 | B12 | **XTAL 双方案**: 内部 RC 不装 / 外部晶振焊盘位不装 (原厂一句话定生死) | ✅ P8 页 |
+| B13 | **电池过温硬件停充**: NTC 接 BQ25896 TS 脚 (不依赖 SoC) | ✅ V1.1 补画 |
+| B14 | **供电器件输入侧齐全**: 9 颗 IC 输入脚都接到 `RAIL_SYS_PCB` | ✅ V1.1 补画 |
+| B15 | **上电时序有硬件保障**: 2×DC-DC PG → 测试点; `U_SUPV` 开漏释放 RESET_N; 监督窗口用分压 (换料/换阻值不换板) | ✅ V1.1 补画 (阈值待原厂 TBD-02) |
+| B16 | **跨铰链 USB 不装共模扼流圈** (USB 2.0 眼图对共模转差分极敏感) → 只靠 FPC 阻抗控制 + 两端 ESD | ✅ V1.1 写入 P9 |
 
 ## §C 物理 / 布线判据 (DRC 类 —— 交给 PCB 阶段逐条签)
 
@@ -74,14 +87,16 @@
 | C7 | **散热铜箔与热点**: SoC 下方/上方导热路径, 不与敏感信号冲突 | MECH 热模型 | ⚠️ 待 ISS-077 功耗 V3 后复核 |
 | C8 | **板宽 12mm + 4-6 层** 假设 | 老板锁死 | 🔴 **ISS-078 复核中 (官网宽度≤8mm)** |
 | C9 | **地平面完整性与回流路径** (跨铰链段的回流) | EMC_PRECHECK R-01~R-12 | ⚠️ 随 PCB |
-| C10 | **保护器件靠近接口** (ESD 在 Type-C/连接器侧) | EMC | ⚠️ 随 ISS-075 补器件级 |
+| C10 | **保护器件靠近接口** (ESD 在 Type-C/连接器侧) | EMC | ✅ V1.1 补器件级 (D_ESD_TC / D_ESD_USB / D_ESD_CAM / D_ESD_LIGHT) |
+| C11 | **跨铰链段的 GND 必须是连续参考面** (不能细线), 两端各留 ≥2 个 GND pin | EMC + 回流路径 | ⚠️ **V1.1 写入 P9, 等结构总工定位 (ISS-065)** |
+| C12 | **跨铰链段阻抗控制**: CSI/DSI 100Ω±10% + USB 90Ω±10%, 柔性段走线随结构件过铰链 | 规格 A 组 + ISS-085 | ⚠️ 等结构总工给柔性段长度/固定方式 |
 
 ## §D 必须人工签字的 3 项 (脚本判不了, 也不许含糊)
 
 | # | 项 | 责任人 | 判据 |
 |---|---|---|---|
 | D1 | **原厂 4 项闭合**: 引脚表+球位图+pitch (TBD-01/05) · 电源域表 (TBD-02) · 显示 TX 结论 (TBD-04) · 启动存储 (TBD-06/11) | 酷芯微书面答复 | 回信后按 `SCHEMATIC_REFDIE.md` §9 的差异修订清单逐条打勾, **不重画** |
-| D2 | **交叉评审**: mech-lead 挑机械/热/装配刺 + sw-lead 挑时序/信号/电源时序刺 | 两个总工 | 各自出书面结论 (进 `HANDOFF/`), 我裁决 |
+| D2 | **交叉评审**: mech-lead 挑机械/热/装配刺 + sw-lead 挑时序/信号/电源时序刺 | 两个总工 | ⚠️ **V1.1 已重新派** (输入 = P9 跨铰链页 + 24 条门禁) |
 | D3 | **投板决定**: 老板拍板 G1 (原理图/PCB 定稿) | boss | 阶段门 `state/stage_gate.py` 从 G0 → G1 |
 
 ## §E 本清单与已有门禁的对应 (别重复造轮子)
@@ -100,5 +115,7 @@
 
 ## §F 一句话
 
-> **机械的 15 条现在全绿, 但 §D 的 3 项 (原厂 4 条 + 交叉评审 + 投板决定) 一项都没闭 → 所以现在的状态是"可评审", 不是"可投板"。**
+> **机械的 24 条现在全绿 (V1.1), 但 §D 的 3 项 (原厂 4 条 + 交叉评审 + 投板决定) 一项都没闭 → 所以现在的状态是"可评审", 不是"可投板"。**
 > **原厂回信后, 按 REFDIE §9 差异清单逐条打勾, 不重画。**
+>
+> ★**V1.1 (2026-10-27) 变化**: ① 门禁 15 → **24 条** ② 页面 8 → **9 页** (新增 P9 跨铰链界面) ③ netlist 新增 **`board` 板级归属列** ④ **修掉 3 个真缺陷** (USB 差分跨铰链被短接 / 电池 NTC 漏画 / IC 输入侧漏画) + **1 个定位矛盾** (U_BRIDGE) ⑤ **ISS-082 前提修正** (TPS7A20 无可编程版本) ⑥ **BOM 首次生成** (295 位号)
