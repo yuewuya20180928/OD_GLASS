@@ -3,6 +3,7 @@
 > **作者**: 结构总工 (带散热) (mech-lead) · **日期**: 2026-10-28
 > **议题**: ISS-091 第 2 轮 —— 跨铰链充电电流 1.0A 的载流/压降/发热核算 (上一轮随网关重启 1012 死亡, 0 产出, 本轮重派)
 > **复现**: `cd projects/smart_glasses && python3 MECH/hinge_power_calc.py` (rc=0, 输出即本文全部数字)
+> **交接单**: `HANDOFF/2026-10-28_mech-lead_铰链充电电流核算.md` (B1-B6 六块, gate_check 6/6 通过)
 > **上游**: `HW/CHARGE_BOARD_SPEC.md` §2.4/§2.8 · `MECH/USB_HINGE_STRUCTURE.md` §4.1/§4.2 (ISS-085) · `MECH/MECH_BUDGET.md` §2.2/§2.3
 > **决策依据**: `DECISIONS.md` 2026-10-27 (电池锁镜脚 · J_CHG 1×10p@0.5 定稿 · R_ILIM 300Ω 必装)
 
