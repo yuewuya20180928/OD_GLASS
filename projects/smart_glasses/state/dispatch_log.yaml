@@ -171,3 +171,8 @@ dispatches:
   at: '2026-10-27'
   brief: '以 HW/POWER_BUDGET_V2.md 为基线, 出一版 V3: (a) SoC 域按官网 250mW 口径 (原来按 300mW) 重算, 给出新的 满载/按需/待机 三档 + 皮肤侧温度 (镜腿内 0.90W 口径与整机上界两个口径都要) + 电池容量 (1h 口径) (b) V_CORE 电压按 0.65-1.0V 区间核算 DC-DC 选型余量 (TPS62130A)
     (c) 明确标注哪个数是 [官网] (250mW) 哪个是 [媒体·百科] (0.65-1V), 哪些仍是 [推算]。边界: 只写 HW/POWER_BUDGET_V3.md (新文件) + 结论摘要, 不许改 '
+- issue: ISS-087
+  agent: sw-lead
+  at: '2026-10-28'
+  brief: '闭合两个 0 数据项: ①模型许可 (yolov5s-sim 系 3 份 ONNX metadata_props 全空 → 许可 [0数据]; yolov8s.onnx 实测 AGPL-3.0 → 商用须向 Ultralytics 采购 Enterprise License) ②ARS45 板端 INT8 转换链跑通 (B0~B9 九步, 其中 B0 工具链/B5 文件头+chip
+    ID 依赖原厂追加问)。验收: 放行阻断项 L 计数 = 0 (python3 SW/tools/model_asset_check.py 输出), 且给出 AGPL 商业许可的**采购/法务路径与成本区间** ('
