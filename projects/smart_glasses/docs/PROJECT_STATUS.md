@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-10-27 09:03** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-10-27 09:20** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```

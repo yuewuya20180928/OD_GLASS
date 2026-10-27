@@ -152,6 +152,15 @@ python3 state/daily_check.py   # 巡检 + 漂移检测
 - When you make a mistake → document it so future-you doesn't repeat it
 - **Text > Brain** 📝
 
+### ★★ 写文件铁律 (2026-10-27 09:0x 踩坑实测, 差点冲掉 3 个文件)
+
+- **绝不要写 `open(p,'w').write(open(p).read() + x)`** —— Python 先求值 `open(p,'w')` → **文件当场被截断** → 再 `read()` 读到的已经是空的 → 写出去只剩新增部分。10-27 09:0x 我用这个模式写 HEARTBEAT / daily log / changelog, 差点把 3 个文件的历史内容清零 (幸而用发布树快照 + git 兜底救回)。
+- **正确写法二选一**:
+  1. **先 read 存进变量, 再写** (`s = read(p); write(p, s + new)`)
+  2. **原子写** (tmp 文件 + `os.replace`) —— `state/frag_write.py` 就是这个模式, 优先用它
+- **路径一律用绝对路径** (`/home/yuewuya/.openclaw/workspace/...`), 不要靠 cwd: 10-27 那次我在 `projects/smart_glasses/` 下运行脚本, 结果把根目录的 `HEARTBEAT.md` / `memory/2026-10-27.md` 误建成了项目目录下的同名文件 (同名不同物 = 以后必然看错)。
+- **写完必须核对体积**: `wc -c` 前后对一下, 掉一半就是被截断了。
+
 ## Red Lines
 
 - Don't exfiltrate private data. Ever.
