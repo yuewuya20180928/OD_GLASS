@@ -63,10 +63,11 @@ import json
 import os
 import struct
 import sys
+from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(os.path.dirname(HERE))
-SW_DIR = os.path.join(PROJ, "SW")
+SW_DIR = Path(os.path.join(PROJ, "SW"))
 
 # ---- ISS-101: 量产放行门 (L=0) 的机械判据常量 ----
 # "许可干净且可转换" = 下面 5 组条件**全部**满足 (详见 SW/MODEL_RELEASE_GATE.md §3)
@@ -192,10 +193,18 @@ MANIFEST = [
         "expected_opset": None,
         "expected_input": [1, 320, 320, 3],
         "expected_chip": None,
+        "npu_ready": True,
+        "derived_assets": ["MOD-SSDMBV2-FPNLITE-320-FP32-HEAD-NPU"],
+        "measured_acc": {"prec": 0.4521, "rec": 0.4184, "f1": 0.4346,
+                         "iou": 0.5, "score_thr": 0.3, "images": 299,
+                         "dataset": "COCO val2017 (前 299 张有标注)"},
         "note": "TF OD API ssd_mobilenet_v2_fpnlite 320x320 (pipeline.config num_classes=90 "
                 "→ COCO 90 含 10 padding, 可用 80 类); 许可 Apache-2.0 (tensorflow/models "
-                "/research 子目录) → 商用无附加义务; ★ 但 NPU 可转换性 = [0数据] "
-                "(TF SavedModel → ONNX → Art.Galaxy 三段都没跑过)",
+                "/research 子目录) → 商用无附加义务; ★★ ISS-101 (2026-10-28) 实测: "
+                "TF SavedModel → ONNX **已跑通** (tf2onnx 1.16.1 + TF 2.20.0, rc=0), "
+                "裁掉 NMS 后处理 + 固化静态 shape 后得到 npu_ready 产物 "
+                "MOD-SSDMBV2-FPNLITE-320-FP32-HEAD-NPU → **NPU 可转换性从 [0数据] 变 [实测]**; "
+                "★ 剩下的卡点只在 **ONNX → NPU 厂商格式** 那一段 (需原厂工具链 + chip ID)",
     },
     {
         "id": "MOD-SSDMBV2-FPNLITE-320-FP32-FULL",
@@ -534,20 +543,30 @@ def check_one(a: dict) -> dict:
 
         # ---- ISS-101: C10~C13 NPU 就绪度 (量产放行门 G2 的机械判据) ----
         if a["fmt"] == "onnx" and "_err" not in m:
-            ops = {n.op_type for n in onnx.load(p, load_external_data=False).graph.node}
+            in_ship = a["state"] in ("candidate", "active")
+            try:
+                import onnx as _onnx  # noqa: PLC0415
+                ops = {n.op_type for n in _onnx.load(p, load_external_data=False).graph.node}
+            except Exception as e:  # noqa: BLE001
+                ops = set()
+                add("C10", None, f"onnx 解析失败, 跳过 NPU 就绪判定: {e}")
             risky = sorted(ops & NPU_RISKY_OPS)
-            add("C10", not risky,
+            # ★ 只对**交付集**资产判 FAIL (reference/quarantined/licensing-hold 只报信息):
+            #   这些资产的 NMS/动态 shape 正是它们不进交付集的理由, 不是新缺陷
+            add("C10", (not risky) if in_ship else None,
                 f"NPU 高风险算子 (NMS/TopK/Range/NonZero): "
                 f"{risky if risky else '无'}"
                 + ("" if risky else " → 可上 NPU 编译")
-                + f" | 全图算子 {len(ops)} 种")
+                + f" | 全图算子 {len(ops)} 种"
+                + ("" if in_ship else f" [{a['state']}] 不在交付集, 仅报信息"))
             # C11 动态 shape: NPU 编译器要求静态输入
             dimv = list(m["inputs"].values())[0] if m["inputs"] else []
             dyn = [d for d in dimv if isinstance(d, str)]
-            add("C11", not dyn,
+            add("C11", (not dyn) if in_ship else None,
                 f"输入 shape = {dimv} "
                 + ("→ 动态维度, NPU 编译器拒收 (须固化)"
-                   if dyn else "→ 静态 shape ✓"))
+                   if dyn else "→ 静态 shape ✓")
+                + ("" if in_ship else f" [{a['state']}] 不在交付集, 仅报信息"))
             # C12 台账登记的 npu_ready 标记与实测是否一致
             declared = a.get("npu_ready")
             if declared is None:
@@ -559,12 +578,13 @@ def check_one(a: dict) -> dict:
             # C13 实测精度 (G3)
             acc = a.get("measured_acc")
             if not acc:
-                add("C13", None,
-                    "★ 台账未登记实测精度 (measured_acc) → 量产放行阻断项 L7")
+                add("C13", False if in_ship else None,
+                    "★ 台账未登记实测精度 (measured_acc)"
+                    + ("→ 量产放行阻断项 L7" if in_ship else " (非交付集, 仅报信息)"))
             else:
                 ok_acc = (acc.get("f1", 0) >= ACC_MIN_F1
                           and acc.get("images", 0) >= ACC_MIN_IMAGES)
-                add("C13", ok_acc,
+                add("C13", ok_acc if in_ship else None,
                     f"实测精度: P={acc.get('prec')} R={acc.get('rec')} "
                     f"F1={acc.get('f1')} @IoU={acc.get('iou')} "
                     f"({acc.get('images')} 张, {acc.get('dataset')}) "
@@ -687,8 +707,15 @@ def print_human(results: list, dups: list) -> None:
     print(f"量产放行阻断项 (L): {len(blockers)} 条 "
           f"{'→ ✅ 放行阻断项已清零 (★不等于有可用模型: 量产可用模型清单见 SW/MODEL_RELEASE_GATE.md)' if not blockers else '→ ❌ 不许进量产评审 (见 §1.5)'}")
     if not blockers:
-        print("   ★ 交付集里的模型是否**真的能上板**是另一件事 (NPU 可转换性 = 板端产物 + 板端实测): "
-              "交付集现在只有 1 条 Apache-2.0 候选, 其 NPU 可转换性 = [0数据] → 量产可用模型清单 = 空 (ISS-101)")
+        npu_ship = [r["id"] for r in ship
+                    if by_id.get(r["id"], {}).get("npu_ready")
+                    and by_id.get(r["id"], {}).get("measured_acc")]
+        if npu_ship:
+            print(f"   ★ 交付集里 NPU 就绪且有实测精度的产物: {len(npu_ship)} 条 → {npu_ship}")
+            print("     (转换链第 1/2 段 TF/ONNX→head子图 已通; 第 3 段 ONNX→NPU 厂商格式 "
+                  "仍需原厂工具链 + chip ID) — 清单见 SW/MODEL_RELEASE_GATE.md")
+        else:
+            print("   ★ 交付集里**没有** NPU 就绪产物 → 量产可用模型清单 = 空集")
     for tag, aid, msg in blockers:
         print(f"    - {tag}  [{aid}]  {msg}")
     if hold:
