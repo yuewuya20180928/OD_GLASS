@@ -37,6 +37,10 @@ git config user.email "yuewuya20180928@users.noreply.github.com"
 
 # ★排除运行时垃圾 (BOOTSTRAP.md 是 runtime 在 cwd 生成的通用提示, 不是项目文件;
 #   .openclaw/ 是 runtime 状态) —— 上一版它被推上了 GitHub 公开发布树
+# ★备份目录清理 (源树与发布树都要清): rsync 的 --delete **不会删被 exclude 保护的目标端文件**
+#   → 之前推过一次 .v11_backup/ 与 HW/.iss075_bak/ (公开仓库里不该有)
+find "$PROJ" -maxdepth 3 \( -name '.*_bak' -o -name '*_backup' -o -name '.*_backup' \) -type d -exec rm -rf {} + 2>/dev/null
+find "$PUB" -maxdepth 5 \( -name '.*_bak' -o -name '*_backup' -o -name '.*_backup' \) -type d -exec rm -rf {} + 2>/dev/null
 rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
       --exclude 'BOOTSTRAP.md' --exclude '.openclaw' --exclude 'workspace-state.json' \
       --exclude '*.tmp' --exclude '.DS_Store' \
