@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-10-27T19:13:15+08:00'
+  generated_at: '2026-10-27T19:19:31+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1793062133410891755
     sw-lead:
       file: sw.yaml
-      size: 39015
-      sha1: a20ea312646a
-      mtime_ns: 1793099480600199854
+      size: 40194
+      sha1: 23271da7a9af
+      mtime_ns: 1793099743345948715
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -3748,6 +3748,37 @@ interface_claims:
     noncanonical_by:
     - sw-lead
     conflict: false
+  chg_state_semantics:
+    values:
+      sw-lead: STAT低=充电中/高=完成或禁用/1Hz闪=故障;PG低=源良好
+    notes:
+      sw-lead: P10 页 (19:08 落地) 写明的 BQ25896 极性; 充电状态机要解三态 + 闪烁检测 —— 二态判断会把'故障'误判成'完成'或'未充电'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  chg_state_fail_safe:
+    values:
+      sw-lead: 状态未知→当作在充电→禁OD
+    notes:
+      sw-lead: '★CE 被 R_CE 拉低 = 允许充电 (P10 note: ''拉低的好处 = SoC 死机也能充电'') ⇒ 读不到充电状态时实际可能正在充电 ⇒ 失效安全方向是''当作在充电''
+        (禁 OD), 不能按''没充电''放行 M-CHRG 门禁'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  signal_naming:
+    values:
+      sw-lead: chg_pg_src_ok/dcdc_pg_good/soc_reset_n
+    notes:
+      sw-lead: '★本设计三个都叫 ''PG'' 的信号语义相反: BQ25896 PG 低=输入源良好 / TPS62130A PG 高阻=在 regulation / U_SUPV RESET
+        低=复位中 ⇒ SW 按来源命名防写反'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
 needs_matrix:
   pending:
   - key: emc_hw_interface_ask
@@ -4211,6 +4242,14 @@ lint:
   key: first_temp_read
   value: 丢弃首读(-256C)
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: chg_state_semantics
+  value: STAT低=充电中/高=完成或禁用/1Hz闪=故障;PG低=源良好
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: chg_state_fail_safe
+  value: 状态未知→当作在充电→禁OD
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 risks:
 - id: R-dsi-unknown
   text: ARS45 显示 TX 接口未确认 (媒体二手证据) — 若既无 DSI TX 也无 DP TX, 则显示链不成立
@@ -4267,6 +4306,6 @@ summary:
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 18
+  lint: 20
   agents_reporting: 4
   incomplete_fragments: 0

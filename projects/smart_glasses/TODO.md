@@ -1,6 +1,6 @@
 # 下一步行动清单 (TODO)
 
-> 生成 **2026-10-27 19:13** | 自动生成 (源: `state/issue_log.yaml` + `state/fragments/pm.yaml`)
+> 生成 **2026-10-27 19:19** | 自动生成 (源: `state/issue_log.yaml` + `state/fragments/pm.yaml`)
 > 分桶依据 = **能不能真的动** (内部 / 等你 / 等外部), 不是按严重度排
 > 总量: 登记 **98** 条 | 未闭环 **54** | 已关闭 **44**
 
@@ -21,7 +21,6 @@
 | ISS-082 | fixed | main | ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + P | 2026-10-29 |
 | ISS-083 | fixed | main | ★显示 TX 公开渠道穷举 (AR9481 模组厂/模组规格书/公开板卡 + 酷芯模组供应商) —— 不等原厂也能判 DSI TX  | 2026-10-29 |
 | ISS-086 | fixed | main | netlist 收尾: NTC 改数字温度计 (I2C_A 第 4 个从设备) + USB 跨铰链保护件 (ESD/共模扼流/端接) | 2026-10-29 |
-| ISS-090 | fixing | sw-lead | ★软件侧交叉评审 (时序/信号/电源时序) + TMP117 测点物理位置 + 跨铰链 USB 烧录可行性 | 2026-10-29 |
 | ISS-091 | fixing | mech-lead | ★跨铰链充电电流 1.0-1.5A 的载流/压降/发热核算 + J_CHG (1×10) 机械可行性 (MECH-B7 的后续) | 2026-10-29 |
 | ISS-096 | fixing | hw-lead | ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位 | 2026-10-29 |
 | ISS-098 | fixing | hw-lead | ★SoC 侧没有 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失, S2 救砖链路成立性未验; 且 CO | 2026-10-29 |

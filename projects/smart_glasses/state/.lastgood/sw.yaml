@@ -602,6 +602,20 @@ interface_claims:
   value: 丢弃首读(-256C)
   note: TMP117 复位后温度寄存器读 -256°C 直到首次转换完成 [官方]; 8 averages/1-Hz ⇒ 首次有效读数最坏 ~1s, 期间不得判过温/低温
   ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: chg_state_semantics
+  value: STAT低=充电中/高=完成或禁用/1Hz闪=故障;PG低=源良好
+  note: P10 页 (19:08 落地) 写明的 BQ25896 极性; 充电状态机要解三态 + 闪烁检测 —— 二态判断会把'故障'误判成'完成'或'未充电'
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: chg_state_fail_safe
+  value: 状态未知→当作在充电→禁OD
+  note: '★CE 被 R_CE 拉低 = 允许充电 (P10 note: ''拉低的好处 = SoC 死机也能充电'') ⇒ 读不到充电状态时实际可能正在充电
+    ⇒ 失效安全方向是''当作在充电'' (禁 OD), 不能按''没充电''放行 M-CHRG 门禁'
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: signal_naming
+  value: chg_pg_src_ok/dcdc_pg_good/soc_reset_n
+  note: '★本设计三个都叫 ''PG'' 的信号语义相反: BQ25896 PG 低=输入源良好 / TPS62130A PG 高阻=在 regulation
+    / U_SUPV RESET 低=复位中 ⇒ SW 按来源命名防写反'
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
 open_questions:
 - id: SW-Q1
   to: main
