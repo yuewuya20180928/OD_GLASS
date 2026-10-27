@@ -167,7 +167,7 @@ else
 fi
 
 python3 - "$PUB" "$REPO" <<'PY'
-import json, os, subprocess, sys, urllib.request
+import json, os, subprocess, sys, urllib.request, time
 pub, repo = sys.argv[1], sys.argv[2]
 def gh(path):
     req = urllib.request.Request(f"https://api.github.com/repos/{repo}{path}",
@@ -188,20 +188,29 @@ for f in files:
         print(f"  ⏭  {f} (本地没有, 跳过)")
         continue
     local = subprocess.run(["git", "-C", pub, "rev-parse", f"HEAD:{f}"], capture_output=True, text=True).stdout.strip()
+    # ★权威基准 = git 协议的远端树 (origin/main:<file>), 不吃 CDN/API 缓存, 也不吃 API 限流
+    tree = subprocess.run(["git", "-C", pub, "rev-parse", f"origin/main:{f}"], capture_output=True, text=True).stdout.strip()
     try:
-        remote = gh(f"/contents/{f}?ref=main").get("sha", "")
+        # ★加 cache-buster: GitHub contents API 会缓存刚推的文件的 blob sha
+        #   (2026-10-27 实测: 推送后 contents API 返回上一版的 sha → 误报 3 个文件不一致;
+        #    git ls-remote + git rev-parse origin/main:<file> 与加 _= 后重查都证明远端是对的)
+        remote = gh(f"/contents/{f}?ref=main&_={int(time.time()*1000)}").get("sha", "")
     except Exception as e:
         msg = str(e)
         if "403" in msg or "rate limit" in msg.lower():
-            print(f"  ⏭  {f} (API 限流 → 跳过逐文件校验; 远端 SHA 已在上一步核对)")
+            print(f"  ⏭  {f} (API 限流 → 用 git 远端树判定)")
+            same = (local == tree and local != "")
+            ok += same
+            bad += (not same)
+            print(f"  {'✅' if same else '❌'} {f}  local={local[:8]} tree={tree[:8]} (git 协议)")
             continue
         print(f"  ❌ {f} → API 取不到: {e}")
         bad += 1
         continue
-    same = local == remote
+    same = (local == remote == tree)
     ok += same
     bad += (not same)
-    print(f"  {'✅' if same else '❌'} {f}  local={local[:8]} remote={remote[:8]}")
+    print(f"  {'✅' if same else '❌'} {f}  local={local[:8]} api={remote[:8]} tree={tree[:8]}")
 if ok == 0 and bad == 0:
     print("验证: 逐文件 blob SHA 校验已跳过 (GitHub API 限流) —— 远端一致性由上面的 ls-remote 硬校验保证")
 else:
