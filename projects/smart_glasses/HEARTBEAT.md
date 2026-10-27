@@ -1,3 +1,16 @@
+# 2026-10-27 09:50 GMT+8 — 原理图 V1.5: 充电板规格查出 4 处缺陷 + 7 条裁决 + P10 页开工
+
+**唯一跟踪表**: `PROJECT_TRACKER.md` §(1.29) · **变更记录**: `HW/SCHEMATIC_V1_1_CHANGELOG.md`
+
+**09:35-09:50 做了什么**:
+- **充电板整页规格交卷** (`HW/CHARGE_BOARD_SPEC.md` 691 行, USB-IF + TI datasheet 一手核对) → **它在我的网表里查出 3 个硬缺陷**: Type-C GND 少接 B1/B12 · **TS 没跨铰链** (我 V1.2 搬电池时漏的) · TS 分压值错 (该是三件式 RT1/RT2/NTC) → 已全修; 另我自查出 11 行板级误标
+- **7 条裁决进 DECISIONS.md**: 不上 PD 控制器 · **R_ILIM 300Ω 硬件限流必装** (IINLIM 默认 2048mA 会把铰链灌到 1.68A) · J_CHG 定稿 1×10p (加 TS) · 充电 IC I2C 不跨铰链 · 电池位置锁镜脚 · TS 三件式 · Type-C GND 四脚
+- **P10 充电板页开工**: 加载器 + 页面叙述 + 门禁判据已写好, 数据由子 agent 按规格产出 (**当前该页 0 行 → 门禁如实红**)
+
+**门禁基线**: check_netlist 30 条 (**P10 页 2 条红 = 还没画完**) | check_kicad_net 5/5 | issue_check/merge/gate/daily rc=0
+**在跑**: ISS-088 第 2 轮 (hw-lead 复审落盘) · P10 行数据任务 · ISS-091 (结构: 铰链段载流/压降核算, 答案已给: 300Ω → ICHG 0.88-1.07A)
+**🔴 等老板**: 板宽 12 vs 15mm · 跨铰链大电流 (跟 Q4 耦合) · 原厂 4 条 + 追加问 · 5 条口径 · 3 封草稿 · 打印包开打
+
 # 2026-10-27 09:35 GMT+8 — 原理图 V1.4: 独立复审挖出 3 类真缺陷 + KiCad 导出件重写
 
 **唯一跟踪表**: `PROJECT_TRACKER.md` §(1.29) · **变更记录**: `HW/SCHEMATIC_V1_1_CHANGELOG.md`

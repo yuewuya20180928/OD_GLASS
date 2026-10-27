@@ -130,3 +130,28 @@ python3 state/gen_netlist.py && python3 state/gen_schematic_pages.py \
 **新增门禁**: `state/check_kicad_net.py` **5 条** (无 pin 冲突 / 无幽灵器件 / 无隐式短路 / 无孤儿器件 / 单点网清单) · `check_netlist.py` 26 → **28 条**。
 **新增欠账**: **ISS-094** —— 投板前网表要 **pin-centric 重整** (现在 CSV 是"连接清单"模型: 2 脚件的 pin 号是按所在网反推的, `RAIL_*` 别名与网名指同一节点, 导出后仍有 6 个单点网) → 投板前必须重整或用 KiCad/Altium 手工重录。
 **教训**: ★**"KiCad 可 import" 这句宣传此前是不成立的** —— 没有人写过一行脚本去判 .net。**导出件和源件一样要进门禁。**
+
+---
+
+## 八、★V1.5 (2026-10-27 09:35-09:50) —— 充电板规格交卷 → 又查出 4 处缺陷 + 7 条裁决 + P10 页开工
+
+**触发**: 充电板整页规格任务交卷 (`HW/CHARGE_BOARD_SPEC.md` 691 行, USB-IF Type-C Spec 2.0 + TI BQ25896 datasheet 一手核对)。**它在我的网表里查出 3 个硬缺陷**, 我独立复核全部坐实:
+
+| # | 缺陷 | 后果 | 修法 |
+|---|---|---|---|
+| **D8** | **Type-C GND 只接了 A1+A12** | USB-IF 16p 的 GND 是 **A1/A12/B1/B12** → B1/B12 悬空 = **USB 回流路径减半** | 补 B1+B12 |
+| **D9** | **TS 不在 `J_CHG` pin map 里** | V1.2 把电池/NTC 搬到镜脚后, NTC 在镜脚而 BQ25896 在镜框 → **TS 必须跨铰链, 但我漏画了这一段** | 补 `J_CHG pin8` + 补画 TS 跨铰链行 |
+| **D10** | **TS 分压值错** (10k NTC + 10k 下拉) | BQ25896 是**三件式**: RT1 5.24k (REGN→TS) + RT2 30.31k (TS→GND) + **103AT NTC ∥ RT2** (datasheet 0°C→73.25%, 60°C→34.375%) → 原来的分压比完全不对 | 按 datasheet 重画 |
+| **D11** (我自查) | **11 行 `board` 误标 CHG_BOARD** (RAIL_SYS / RAIL_BAT) | V1.2 把电池搬镜脚后, 板级归属没同步 → 装配/备料会按错板 | 修 board 规则 |
+
+**7 条裁决 (进 `DECISIONS.md`)**:
+1. **充电板不上 PD 控制器 (TPS25730)** —— 充电板无 3.3V 轨 (VIN_3V3 abs max 4V) + 25×10mm 放不下 QFN-38; ★而且 **PD 5V/2A 不会把 2A 灌进铰链** (铰链走 ICHG ≈ 0.822×IIN)
+2. **R_ILIM 300Ω 必装** (IINLIM 复位默认 2048mA → 不装铰链吃 ~1.68A) → ICHG 0.88-1.07A; 换 390Ω → 0.67-0.82A (**换料不换板**)
+3. **J_CHG 定稿 1×10p@0.5mm** (加 TS, 铰链区堆叠仍 26.5mm, 余 10.5mm)
+4. **充电 IC 的 I2C 不跨铰链** (靠 R_ILIM 硬件限流 + CHG_STAT/PG GPIO 兜底; pin9/10 预留)
+5. **电池位置锁镜脚** ("放镜框"的回退分支与本 pin map **不兼容**, 布局前不得切换)
+6. TS 检测三件式 + TS 跨铰链
+7. Type-C GND 四脚全接
+
+**P10 页**: 网表加载器 `state/gen_netlist.py::build_p10_json()` 已写好 (行数据来自 `state/p10_rows.json`, 由子 agent 按规格产出 → **规格先行、机械转换我来做**) + 页面叙述 + 门禁判据。**当前该页 0 行 → 门禁如实红** (等数据落盘)。
+**门禁**: `check_netlist` 30 条 (P10 页判据未达标 = 红) · `check_kicad_net` 5 条全过。
