@@ -862,7 +862,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-10-29'
-  status: open
+  status: fixing
   external: false
   need_keys: []
   task_brief: '目标: 模型资产登记与量化流程
@@ -877,6 +877,7 @@ issues:
   verify_result: null
   verify_date: null
   note: ''
+  dispatched_at: '2026-10-27'
 - id: ISS-038
   title: 【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否加第 4 个总工
   severity: high
@@ -1793,16 +1794,20 @@ issues:
   reporter: main
   raised: '2026-10-26'
   due: '2026-10-28'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   task_brief: '一处: SW/SW_REQUIREMENTS.md 12.1 内存规划表里 显示帧 buffer (800x600 NV12) 与 合成帧 (800x600 RGBA) 两行, 在依据列或行内加一句 注 800x600 = 老板锁死的显示分辨率 (OD 640x480 上采样 x1.25), 不是旧链路命名。硬规则: 0.72MB / 1.92MB / 2.9MB / 3.8MB
     这四个数字一个字不许动 (不许按 640x480 重算), 合计 202/215MB 也不许动; 其余任何文件不许碰'
-  fix_ref: null
+  fix_ref: SW/SW_REQUIREMENTS.md §12.1 内存规划表 (显示帧 buffer 800×600 NV12 行 + 合成帧 800×600 RGBA 行, 依据列各加一句注) + §12.1 表下 ISS-073 加注段 (707 行起) · HANDOFF/2026-10-27_sw-lead_... (交接单)
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: '10-26 19:2x 项目总工驳回它的重算建议 + 给出替代动作 (只加注)。★排期: 等网关重启后派 (与 ISS-072 一起)'
+  verify_result: pass
+  verify_date: '2026-10-27'
+  note: '10-26 19:2x 项目总工驳回它的重算建议 + 给出替代动作 (只加注)。★排期: 等网关重启后派 (与 ISS-072 一起)
+
+    ★项目总工独立复核 (2026-10-27 08:3x): ① 硬规则四个数字逐字未动 (0.72 / 1.92 / 2.9 / 3.8 MB) + 合计 ~202 / ~215 MB 未动 —— grep 复核通过 ② 两行依据列各有一句注, 表下有独立加注段 (说明 800×600 = 老板锁死的显示分辨率, 源数据是 OD 640×480 上采样 ×1.25) ③ 未按 640×480
+    重算 (全文无 0.44/0.46/1.15/2.3/2.46MB 一类重算值; 命中的一处 1.23MB 是 NPU 输入 tensor 行, 与本单无关) ④ 证据分级标了 [决策文本·项目总工裁决]/[官方]/[推算] ⑤ 边界守住: 本轮内容写入只有 SW/SW_REQUIREMENTS.md, 分片经 frag_write.py 原子写 ⑥ 已知的 ~2.7MB 老缺口 (表头 202/215
+    vs 逐行 199.3/216.4) 非本单引入, 按硬规则未动, 另案处理。→ verify_result=pass, 闭环'
   dispatched_at: '2026-10-27'
 - id: ISS-074
   title: ★开始画硬件原理图 V1 (8 页图页 + 完整 netlist + KiCad 可导入 .net) —— 球位号统一用 TBD 占位, 原厂回信后只填球号
@@ -1901,16 +1906,20 @@ issues:
   reporter: main
   raised: '2026-10-26'
   due: '2026-10-28'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   task_brief: '重算 PCB 外形与可行性: (a) 主板可用宽度 = 8mm (芯片宽) + 逃线区 + 器件边 → 给 3 档 (最小 8-9mm / 现状 12mm / 富余 15mm) 各自的可行性与代价 (b) 球间距取 0.3/0.4/0.5mm 三档, 给出各自的逃线/叠层/层数需求与能否满足 4-6 层锁死 (c) 结论必须标明哪些是 [推算] 哪些是 [官网] (宽度≤8mm)
     (d) 给出 板宽 12mm 假设若不成立, 对 SW/机械/热/结构各域的连带影响清单。边界: 只写 HW/ 下的新文件 (例如 HW/PCB_FORM_FACTOR_RECHECK.md), 不许改 MECH/ 与 SW/ 与 PROJECT_TRACKER.md, 不许碰 state/ 分片; 改完 merge+gate 必须 rc=0'
-  fix_ref: null
+  fix_ref: HW/PCB_FORM_FACTOR_RECHECK.md (439 行 / 36KB) —— 板宽/逃线/叠层/面积复核 · HANDOFF/2026-10-27_hw-lead_... (交接单)
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: '10-26 19:45 项目总工根据 HW/ONLINE_FINDINGS_2026-10-26.md 的 W-1 与 §6 登记。★这是 blocker 级: 板宽定不下来 → 原理图/PCB 外形都定不下来'
+  verify_result: pass
+  verify_date: '2026-10-27'
+  note: '10-26 19:45 项目总工根据 HW/ONLINE_FINDINGS_2026-10-26.md 的 W-1 与 §6 登记。★这是 blocker 级: 板宽定不下来 → 原理图/PCB 外形都定不下来
+
+    ★项目总工独立复核 (2026-10-27 08:3x): ① 任务书四项验收全部有: (a) 三档板宽 8-9mm/12mm/15mm 各自可行性与代价 (b) 三档 pitch 0.3/0.4/0.5mm 的逃线/叠层/层数需求 + 能否满足 4-6 层锁死 (c) 证据分级 [官网]15/[官方]5/[推算]45/[实测]3/[0数据]10 已 grep 复核 (d) §7 连带影响清单按
+    SW(5条)/机械(8条)/热(6条)/结构(6条) 分域列出 ② 结论方向合理且已标清: 官网"宽度≤8mm"主语是封装不是主板 → 8-9mm 分支关闭; 12mm 板宽暂锁但依据换成面积预算; p=0.3mm 需 HDI → 实质违反"4-6 层常规刚性板" → 一票否决 ③ 边界守住: 只新建 HW/PCB_FORM_FACTOR_RECHECK.md, 未改 MECH/SW/PROJECT_TRACKER/state
+    ④ 球位号全 TBD 占位, 型号只用规格已有件 ⑤ ★两条待项目总工裁决 (已入 DECISION 队列): 补面积走"加宽 15mm"还是"加长 60mm+砍 BOM"; 以及原厂 pitch+散热焊盘 / PCB 厂工艺两封问询 —— 外发一律经我, 未自行发出。→ verify_result=pass, 闭环'
   dispatched_at: '2026-10-27'
 - id: ISS-079
   title: '情报检索: 采用 ARS45 的 AI 翻译眼镜拆解 + 港交所招股书直链 (封装/走线/供应链/交付)'
@@ -1994,16 +2003,31 @@ issues:
   reporter: main
   raised: '2026-10-27'
   due: '2026-10-28'
-  status: open
+  status: fixed
   external: false
   need_keys: []
   task_brief: '出 HW/SOC_PIN_BUDGET.md: (a) 最小引脚集 (逐项列出 SoC 侧功能 → 数量 → 依据, 目标是证明 45-50 脚够用) (b) pitch 0.3/0.4/0.5mm 三档下 8x10 FCCSP 的球数上限 + 逃线可行性 (0402/0603 焊盘 1.0-1.6mm, 需要 via-in-pad 还是交错, 6 层够不够) (c) 明确结论:
     封装/球数/逃线是风险还是非风险, 以及真正剩下的风险是什么。不要猜球位号'
-  fix_ref: null
+  fix_ref: HW/SOC_PIN_BUDGET.md (含附录A可复现脚本) + HANDOFF/2026-10-27_hw-lead_SOC_PIN_BUDGET.md
   verify_by: main
   verify_result: null
   verify_date: null
-  note: 10-27 00:20 项目总工登记 (失联预案第 1 条)
+  note: '10-27 00:20 项目总工登记 (失联预案第 1 条) || 10-27 08:40 hw-lead 交卷 (状态 fixing->fixed): ①**最小引脚集**:
+    C-min=41 / C-base=57 / C-max=91 球 (SoC侧功能位号数, 28组逐项列功能→数量→依据) -> **45-50 目标成立**
+    (C-min 41<=45); C-base 57 比目标多 7 球 = 双显示路径 (DSI/DP+桥接) 0Ω二选一的保险费; C-max 91 是"什么都
+    不砍"的数学上界, 不是我们要做的板 ②**球数判为非风险** (双向): 最保守封装排布 (pitch 0.5 仅外围1圈) 68 球
+    >= C-base 57 (装得下), 满阵列上界 320 球 vs C-max 91 = 余量 3.5x (球多是厂商的事, 对我方是好事) ③**逃线**:
+    p>=0.40mm **不需要 via-in-pad**, 交错 dog-bone 够 (同排过孔净间隙 0.100mm, 占用率 17-27%); p=0.30 被迫 HDI ->
+    破"4-6层常规刚性板"锁死 -> 一票否决; 0402 三档全放得下, **0603 只能长轴平行于逃线带** ④**6层够, 4层无解**
+    (实测 netlist: 触SoC的net 62 / 全板152 / 器件~190 / 高速4组 CSI12 DSI10 DP8 USB2) ⑤**真风险只剩"引脚→功能
+    映射(球位图)"**, 不可自证, 只能靠原厂/ISS-084载板化/ISS-083模组线三条腿走; 另**12mm板宽对逃线带误差容忍只有
+    0.20-0.30mm** (真风险在板宽轴不在球数轴), 建议第一台样机锁 15mm (顺带把SoC横向热扩散通道 2->3.5mm) ⑥**新增3条
+    SoC选型条款**: P-1 pitch>=0.40mm / P-2 封装总球数>=72 (ARS45实际球数=0数据, **本单新问题, 需PM追加给原厂**) /
+    P-3 显示出口不焊死 ⑦**诚实披露**: 双显示hedge 不只是 11球+52mm2+1颗芯片, **还加 100-300mW** (满载 1.22W->
+    1.32-1.52W), 而皮肤侧已超标 (96.1C vs ISO13732-1 红线 43C, 43C 只允许持续 0.16-0.21W) -> PM 裁决"买不买"
+    是"能出图 vs 更超红线"的取舍 ⑧**球位号 0 编造**: 全文无任何 ball position, "球数"一律定义为功能位号数。
+    **待PM裁决2条** (板宽12/15mm + hedge买不买) + **待PM转达mech-lead 1条** (宽度缩放规则方向反了, p越小逃线带越窄)。
+    **本单交付的是分析+选型条款, 不是实测通过** —— 实测项 0 (无样机), 硬件侧全待 EVT。请项目总工验证 (verify_by=main)'
   dispatched_at: '2026-10-27'
   id: ISS-081
 - title: ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + PGOOD 链式 RESET) → 把 TBD-02 从 blocker 降级
@@ -2058,16 +2082,22 @@ issues:
   reporter: main
   raised: '2026-10-27'
   due: '2026-10-29'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   task_brief: '评估 SoC 载板化 (或模组化) 的结构代价: 在镜框主板位置加一层载板对 板宽/厚度/堆叠/热/重量/装配 的影响 (给 3 档方案: 直接焊 / BTB 载板 / FPC 载板), 并给出 是否值得 (结论可以是 不值得, 但要有数)。同时给 兜底路线 的可行性初判: 用现成 AR9481/ARS45 模组做 EVT 样机来验证 ISP+显示+OD 全链路的可行性
     (要解决什么/差在哪)。不许拍板'
-  fix_ref: null
+  fix_ref: MECH/SOC_CARRIER_EVAL.md (正文) + MECH/carrier_eval.py (自证脚本, rc=0, 自检 12/12) + HANDOFF/2026-10-27_mech-lead_载板化结构代价评估.md + state/fragments/mech.yaml (经 frag_write.py 原子写)
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: 10-27 00:20 项目总工登记 (失联预案第 4 条)
+  verify_result: pass
+  verify_date: '2026-10-27'
+  note: '10-27 00:20 项目总工登记 (失联预案第 4 条)
+
+    ★项目总工独立复核 (2026-10-27 08:3x): ① 任务书要求"3 档方案 + 对板宽/厚度/堆叠/热/重量/装配 的影响 + 是否值得 (结论可以是 不值得 但要有数) + 兜底路线可行性初判 + 不许拍板" —— 逐条有: A直接焊/B BTB/C FPC 三档给全 6 个维度 (B +2.30mm / C +2.10mm / D +2.50mm 厚度增量, 主板 76→69mm,
+    镜脚长度超差 1.3mm, 总 PCB 面积 910→1215mm²(+34%)/1142mm²(+25%), 重量 +1.06g/+1.11g/+11.0g) ② "值不值得"给了硬结论: 镜框主板位加载板 → 不值得; 镜脚主板位加载板 → 不可能 (叠层余量 1.95mm, B/C 分别超 0.35/0.15mm); 真收益在别处 (载板化把主板 76→69mm 修掉镜脚长度超差 1.3mm)
+    ③ 兜底路线拆成两问给判: 台架 EVT 可行 / 眼镜形态几何否决 (模组 45×55mm vs 镜脚净高 38mm, 超 17mm) ④ 边界守住: 只新建 2 个 MECH 文件, 未改 MECH_BUDGET/CLEARANCE_FIX/fit_check/verify_budget/别人的分片 ⑤ 未拍板, 三项留给我裁 (主板位定镜脚还是镜框 / ISS-083 是否升主线 / 镜框截面口径)
+    ⑥ 自证脚本我实跑过: rc=0, 自检 12/12, [实测] 条数 = 0 (无实物, 没有把推算冒充实测)。★另附一条实算错误待我裁决: fit_check.py 的 SoC 位 H 叠层漏计 SoC 封装 0.85mm (报 4.50/余 2.80, 实为 5.35/余 1.95) —— 旧件未改, 影响 ISS-042 已闭环结论, 需走变更流程。→ verify_result=pass,
+    闭环'
   dispatched_at: '2026-10-27'
   id: ISS-084
 - id: ISS-085
@@ -2081,7 +2111,7 @@ issues:
   reporter: main
   raised: '2026-10-27'
   due: '2026-10-29'
-  status: open
+  status: fixing
   external: false
   need_keys: []
   task_brief: '(a) 跨铰链 USB 的结构与可靠性要求: 铰链处柔性段长度/固定方式/应力释放, 加上 ESD 阵列与共模扼流的位置要求 (靠近两端连接器), 给出跌落/扭转/开合循环时 不允许通信中断 的判据 (并同步到 MECH/RELIABILITY_TEST_PLAN.md 的对应用例) (b) 复核 hw-lead 自拟的三个连接器 pin 编号与型号: J_CHG (Type-C)

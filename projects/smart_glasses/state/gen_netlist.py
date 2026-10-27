@@ -39,7 +39,27 @@ PROJ = os.path.dirname(HERE)
 SPEC = os.path.join(PROJ, "HW", "SCHEMATIC_V1_SPEC.json")
 OUT = os.path.join(PROJ, "HW", "netlist_v1.csv")
 
-COLS = ["page", "net", "node1", "node2", "ref", "value", "type", "dnp", "evidence", "tbd", "note", "conn_id"]
+COLS = ["page", "net", "node1", "node2", "ref", "value", "type", "dnp", "evidence", "tbd", "note", "conn_id",
+        "board"]
+
+# ★板级归属 (2026-10-27 V1.1 新增列 board) —— 充电板在镜框 / 主 PCB 在镜脚, 两者跨铰链
+#   CHG_BOARD = 充电板 (镜框): Type-C + 充电链 + 电池
+#   MAIN_PCB  = 主 PCB (镜脚): SoC + 全部外设 + 保护/滤波件
+#   HINGE     = 跨铰链界面本体 (连接器 / 跨铰链那一段)
+BOARD_CHG = "CHG_BOARD"
+BOARD_MAIN = "MAIN_PCB"
+BOARD_HINGE = "HINGE"
+LEGAL_BOARD = {BOARD_CHG, BOARD_MAIN, BOARD_HINGE}
+
+# 跨铰链界面上的 4 个连接器 (全部 HINGE)
+HINGE_REFS = {"J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"}
+# 充电板 (镜框) 上的器件
+CHG_BOARD_REFS = {
+    "J_TYPE_C", "D_ESD_TC", "FB_VBUS", "C_VBUS_IN", "C_VBUS_OUT", "U_CHG", "U_BATPROT",
+    "Q1", "Q2", "BT_432243", "RAIL_VBUS_5V", "RAIL_BAT", "RAIL_SYS",
+    "TP_VBUS", "TP_SYS", "TP_BAT", "R_CC1", "R_CC2",
+    "NET_VBUS_5V_CHG", "NET_BAT_PROT", "R_NTC_BAT", "R_TS_PULL",
+}
 
 PAGES = {
     "P1": "电源树 (13 电源域 + 充电链)",
@@ -50,6 +70,7 @@ PAGES = {
     "P6": "高速差分与连接器 (DP_TX / USB / Type-C)",
     "P7": "板级接口与测试点 (TP + 按键 + LED + ID 跳线)",
     "P8": "时钟 · 复位 · 调试 (XTAL / RESET / BOOT / JTAG / UART)",
+    "P9": "跨铰链界面 (4 组跨铰链通道 + 保护/滤波件 + 板级归属)",
 }
 
 # 关键词 → TBD 编号 (对应规格 undrawable[] 顺序: 1 引脚表 2 电源域 3 CSI 规格 4 显示TX
@@ -97,6 +118,30 @@ def clean_net(s: str) -> str:
     s = s.replace("+", "_P").replace("-", "_M")
     s = re.sub(r"[^A-Za-z0-9_]", "_", s)
     return re.sub(r"_+", "_", s).strip("_")
+
+
+def board_for(r: dict) -> str:
+    """板级归属: 充电链器件在充电板 (镜框), SoC 与外设在主 PCB (镜脚), 跨铰链界面本身标 HINGE
+
+    ★为什么要这一列 (2026-10-27): 充电板在镜框 / 主 PCB 在镜脚 → **有两块板**, 必然跨铰链。
+      V1 的 netlist 没有板级归属 → 看图的人分不清"这颗器件装哪块板", 而跨铰链的通道数
+      (4 组) 与应力点直接决定结构方案与板宽 → 必须画清楚。
+    """
+    ref = (r.get("ref") or "").strip()
+    blob = f"{ref} {r.get('node1', '')} {r.get('node2', '')}"
+    if ref in HINGE_REFS:
+        return BOARD_HINGE
+    if ref in CHG_BOARD_REFS:
+        return BOARD_CHG
+    if ref.startswith("RAIL_") or ref.startswith("NET_"):
+        if re.search(r"J_CHG|CONN_USB|CONN_CAM|CONN_LIGHT", blob):
+            return BOARD_HINGE
+        if ref in ("RAIL_VBUS_5V", "RAIL_BAT", "RAIL_SYS", "NET_VBUS_5V_CHG", "NET_BAT_PROT"):
+            return BOARD_CHG
+        return BOARD_MAIN
+    if re.search(r"J_TYPE_C|U_CHG|U_BATPROT", blob):
+        return BOARD_CHG
+    return BOARD_MAIN
 
 
 ROWS: list[dict] = []
@@ -180,6 +225,35 @@ def build_p1(by_id, spec):
         "pin5=PWR_GOOD, pin6=GND; 型号/间距待结构与板宽确认; ★pin 编号为**本版自拟** "
         "(充电板在镜框 / 主 PCB 在镜脚, 必然跨铰链)", "C-02")
 
+    # ---- ★V1.1 补画 1: 电池 NTC 接 BQ25896 的 TS 脚 (硬件停充, 安全项, V1 漏画) ----
+    add("P1", "TS_BAT", "U_CHG TS", "R_NTC_BAT", "NET_TS_BAT", "单端", "NET", "必装",
+        "[官方]", "",
+        "[TS_BAT] ★电池温度检测: 10k NTC (B=3435) 接 BQ25896 的 TS 脚 → 电池过温/欠温时**硬件直接停充** "
+        "(不依赖 SoC, 属安全项); 与 P2 的 SoC 侧数字温度计 U_TEMP 是两回事, 不能互相替代", "C-01")
+    add("P1", "TS_BAT", "R_NTC_BAT", "BAT_PROT", "R_NTC_BAT", "10k NTC B=3435 ±1% (贴电芯)",
+        "R", "必装", "[推算]", "",
+        "[TS_BAT] NTC 本体位 (贴电芯表面, 引线尽量短; 阈值档随 BQ25896 数据手册确认)", "C-01")
+    add("P1", "TS_BAT", "R_TS_PULL", "GND", "R_TS_PULL", "10k ±1%", "R", "必装", "[推算]", "",
+        "[TS_BAT] TS 脚对地下拉 (与 NTC 分压, BQ25896 按阈值判温度)", "C-01")
+
+    # ---- ★V1.1 补画 2: SYS 过跨铰链后, 在主 PCB 侧补 π 滤波 (铰链反复开合是机械噪声源) ----
+    add("P1", "SYS_H", "J_CHG pin1", "FB_SYS", "NET_SYS_3V3", "单端", "NET", "必装",
+        "[推算]", "",
+        "[SYS_H] SYS 过跨铰链连接器后, 在**主 PCB 侧**先过 π 滤波再进 DC-DC 输入 "
+        "(铰链反复开合会把机械噪声灌进主轨)", "C-02")
+    add("P1", "SYS_H", "FB_SYS", "C_SYS_IN", "FB_SYS", "π 滤波磁珠 [待选型] (≥600Ω@100MHz)",
+        "L", "必装", "[推算]", "",
+        "[SYS_H] 跨铰链侧磁珠 (阻抗/电流随 DC-DC 输入端环路稳定性定)", "C-02")
+    add("P1", "SYS_H", "C_SYS_IN", "GND", "C_SYS_IN", "10µF ±20%", "C", "必装", "[推算]", "",
+        "[SYS_H] 跨铰链侧输入电容", "C-02")
+    add("P1", "SYS_H", "C_SYS_OUT", "RAIL_SYS_PCB", "C_SYS_OUT", "10µF ±20%", "C", "必装",
+        "[推算]", "",
+        "[SYS_H] 跨铰链侧后级电容 (紧贴 DC-DC 输入脚)", "C-02")
+    add("P1", "GND", "C_SYS_IN", "GND", "C_SYS_IN", "10µF ±20%", "C", "必装", "[推算]", "",
+        "[SYS_H] 输入电容 地端", "C-02")
+    add("P1", "GND", "C_SYS_OUT", "GND", "C_SYS_OUT", "10µF ±20%", "C", "必装", "[推算]", "",
+        "[SYS_H] 后级电容 地端", "C-02")
+
     # ---- 13 条电源轨 + 供电器件 + 去耦 ----
     rails = {r["rail"]: r for r in spec["power_rails"]}
     power_ics = [
@@ -199,9 +273,24 @@ def build_p1(by_id, spec):
             ev, tbd,
             f"电源域: 目标 {r.get('volt','')} / 最大电流 {r.get('max_i','')}; IC {part}; "
             f"SoC 侧球位号 TBD-01", cid)
+        # ★V1.1 补画 3: 输入侧连接 (V1 只画了供电器件与去耦, **没画 IC 输入脚接哪条轨** → ERC B1 "来源" 缺失)
+        add("P1", "SYS_PCB", "RAIL_SYS_PCB", ref, "RAIL_SYS_PCB", "3.5-4.2V (R-F1 抬下限后)",
+            "NET", dnp, "[推算]", "",
+            f"[{rail}] {ref} 输入脚供电 (SYS 过跨铰链 + π 滤波); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",
+            cid)
+        # ★V1.1 补画 4: 电压不确定性的吸收方式写进图纸 (ISS-082 前提修正)
+        extra = ""
+        if part.startswith("TPS7A20"):
+            extra = ("; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** "
+                     "[官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] → 原厂/JBD 回信后**换料不换板** "
+                     "(7µVrms / PSRR 60dB 留给 sensor 轨, 噪声优先)")
+        elif part.startswith("TPS62130A"):
+            extra = ("; ★电压不确定性吸收: TPS62130A **引脚可选 (标称 ±5%)** [官方] → "
+                     "原厂电压落在档内则**换料不换板** (VQFN-16 RGT); 落在档外则换同封装可调型号 "
+                     "(改两颗反馈电阻), 仍不改板")
         add("P1", rail, f"RAIL_{rail}", ref, ref, part, "IC", dnp, ev, tbd,
             f"[{rail}] {desc}; 电压 {r.get('volt','—')} / 最大电流 {r.get('max_i','—')}; "
-            f"选型依据 规格 power_rails[{rail}]", cid)
+            f"选型依据 规格 power_rails[{rail}]{extra}", cid)
         # 去耦: 每条轨 1×10µF 体电容 + 1×100nF 高频电容 (标准 PDN 做法, 值最终随负载核)
         add("P1", rail, f"RAIL_{rail}", f"C_BULK_{rail}", f"C_BULK_{rail}", "10µF", "C", dnp,
             "[推算]", "",
@@ -270,12 +359,23 @@ def build_p2(by_id, spec):
         "上拉 4.7k 到 3.3V", "NET", "必装", "[推算]", "",
         "[I2C_A_SDA] 附加节点 (同 net)", "B-02")
     # NTC / 温度检测位: 规格 B-01 把 "NTC" 挂在 I2C_A 上, 但没说是裸 NTC 分压还是数字温度计
-    add("P2", "I2C_A_SCL", "U_TEMP pin2", "NET_I2C_A_SCL", "U_TEMP", "[待选型] 数字温度计",
-        "IC", "DNP", "[推算]", "",
-        "[I2C_A_SCL] 温度检测位: 规格 B-01 写 'NTC' 挂 I2C_A, 但**裸 NTC 是分压不是 I2C** → "
-        "按数字温度计留位; 若实为裸 NTC 则改 ADC 分压位 (等 SW 总工 + 原厂确认)", "B-01")
-    add("P2", "VDD_3V3_IO", "U_TEMP pin3", "RAIL_VDD_3V3_IO", "U_TEMP", "[待选型] 数字温度计",
-        "IC", "DNP", "[推算]", "", "[I2C_A_SCL] 温度检测位 供电 (3.3V)", "B-01")
+    # ★V1.1 定型 (ISS-086): 规格 B-01 的 "NTC 挂 I2C" 只能是**数字温度计** (裸 NTC 是分压不是 I2C)
+    add("P2", "I2C_A_SCL", "U_TEMP pin2", "NET_I2C_A_SCL", "U_TEMP",
+        "TMP117 数字温度计 (I2C 地址 0x48, ±0.1°C max, 16bit)", "IC", "必装", "[官方]", "",
+        "[I2C_A_SCL] ★V1.1 定型: 选 TI TMP117 [官方 ti.com/product/TMP117] (1.7-5.5V 供电, 5µA max, "
+        "WSON-2 2×2mm); I2C_A 从设备地址 0x48, 与 sensor 0x36 / 桥接 0x50 / 充电 IC 0x12 / "
+        "光机 0x72 都不冲突; 若原厂坚持裸 NTC, 改 ADC 分压位 (不换板)", "B-01")
+    add("P2", "I2C_A_SDA", "U_TEMP pin1", "NET_I2C_A_SDA", "U_TEMP",
+        "TMP117 数字温度计", "IC", "必装", "[官方]", "", "[I2C_A_SDA] TMP117 SDA", "B-01")
+    add("P2", "VDD_3V3_IO", "U_TEMP pin3", "RAIL_VDD_3V3_IO", "U_TEMP",
+        "TMP117 数字温度计", "IC", "必装", "[官方]", "", "[I2C_A_SCL] TMP117 供电 (3.3V, 5µA max)",
+        "B-01")
+    add("P2", "GND", "U_TEMP pin4", "GND", "U_TEMP", "TMP117 数字温度计", "IC", "必装",
+        "[官方]", "", "[I2C_A_SCL] TMP117 地脚", "B-01")
+    add("P2", "VDD_3V3_IO", "C_TEMP", "RAIL_VDD_3V3_IO", "C_TEMP", "100nF ±10%", "C", "必装",
+        "[推算]", "", "[I2C_A_SCL] TMP117 就近去耦", "B-01")
+    add("P2", "GND", "C_TEMP", "GND", "C_TEMP", "100nF ±10%", "C", "必装", "[推算]", "",
+        "[I2C_A_SCL] TMP117 去耦 地端", "B-01")
 
     # ---- VBUS_DET / BAT_DET (分压 + RC 到 ADC) ----
     for cid, src, srcnode, tp, cap in (
@@ -336,7 +436,9 @@ def build_p3(by_id, spec):
     add("P3", "VDD_3V3_IO", "J_BOOT1 pin5", "RAIL_VDD_3V3_IO", "J_BOOT1",
         "启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留)", "CONN", "必装", "[待原厂]", "TBD-06",
         "[VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; "
-        "pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND", "")
+        "pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): "
+        "rootfs ≤30MB → **flash ≥128MB** (64MB SPI-NOR 装不下) → 回原厂答复后选 ≥128MB 的 SPI-NOR "
+        "或 eMMC; 供电走 VDD_3V3_IO (200mA 够写入电流)", "")
     add("P3", "GND", "J_BOOT1 pin6", "GND", "J_BOOT1",
         "启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留)", "CONN", "必装", "[待原厂]", "TBD-06",
         "焊盘位 GND 预留 (外挂 SPI-NOR 用)", "")
@@ -395,7 +497,8 @@ def build_p4(by_id, spec):
                 f"[DSI_BR_{lane}_{pol}] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — "
                 f"★与 R_SEL_* 互斥, 不得同装")
     add("P4", "DSI_BR", "U_BRIDGE", "DSI_BR_CK_P_SRC", "U_BRIDGE",
-        "[待选型] DSI→光机桥接芯片", "IC", "DNP", "[推算]", "TBD-04",
+        "[待选型] DP1.4 TX → MIPI DSI TX 桥接芯片 (方案B 专用; 与 P6 同一位)", "IC", "DNP",
+        "[推算]", "TBD-04",
         "[DSI_BR] 方案B 才需要的桥接芯片位 (接口类型/功耗/封装随原厂 TBD-04 结论定; "
         "本版只留位不选型)")
     # ---- DSI DDC (I2C_B) ----
@@ -505,7 +608,8 @@ def build_p6(by_id, spec):
                 f"[{net}] DP TX 对地电容位 (值随桥接芯片而定)")
             dp_pin += 1
     add("P6", "DP_TX", "U_BRIDGE", "DP_TX_A0_P_SRC", "U_BRIDGE",
-        "[待选型] DP→DSI 桥接芯片", "IC", "DNP", "[推算]", "TBD-04",
+        "[待选型] DP1.4 TX → MIPI DSI TX 桥接芯片 (方案B 专用; 候选 redriver 兼列)", "IC", "DNP",
+        "[推算]", "TBD-04",
         "[DP_TX] 方案B 才需要: SoC DP_TX 4 lane 进桥接芯片, DSI 出桥接芯片走 BR_* 到光机; "
         "**方案A (SoC 原生 DSI) 下整条链冗余 → 本行 DNP**; DP TX 是输出脚, 方案A 下悬空不违规")
     # ---- USB 2.0 (Type-C → 主 PCB) ----
@@ -513,12 +617,13 @@ def build_p6(by_id, spec):
              "NET_USB_D_P_SRC")
     conn_row(by_id, "B-22", "P6", "USB_D_N_SRC", "SoC[TBD-01].USB_D_N", "R_SER_USB_D_N",
              "NET_USB_D_N_SRC")
-    add("P6", "USB_D_P", "R_SER_USB_D_P", "J_TYPE_C pin4", "R_SER_USB_D_P", "22Ω ±1%", "R",
+    add("P6", "USB_D_P", "R_SER_USB_D_P", "CONN_USB pin1", "R_SER_USB_D_P", "22Ω ±1%", "R",
         "必装", "[推算]", "TBD-10",
-        "[USB_D_P] USB 2.0 源端串阻 (D+); SoC 有无 USB PHY 未回 (TBD-10)")
-    add("P6", "USB_D_N", "R_SER_USB_D_N", "J_TYPE_C pin5", "R_SER_USB_D_N", "22Ω ±1%", "R",
+        "[USB_D_P] USB 2.0 源端串阻 (D+, 22Ω 放在**主板侧 SoC 端**); ★V1.1 修: V1 把 D+ 直接接 "
+        "J_TYPE_C pin4 = **把跨铰链短接了** → 改为接跨铰链连接器 CONN_USB pin1, 充电板侧再接 Type-C")
+    add("P6", "USB_D_N", "R_SER_USB_D_N", "CONN_USB pin2", "R_SER_USB_D_N", "22Ω ±1%", "R",
         "必装", "[推算]", "TBD-10",
-        "[USB_D_N] USB 2.0 源端串阻 (D-); SoC 有无 USB PHY 未回 (TBD-10)")
+        "[USB_D_N] USB 2.0 源端串阻 (D-, 主板侧); ★V1.1 修: 同上, 改接 CONN_USB pin2")
     # ---- Type-C CC (Rd 下拉; 接 PD 控制器时由控制器接管) ----
     conn_row(by_id, "B-23", "P6", "USB_CC1", "J_TYPE_C pin2", "R_CC1", "NET_USB_CC1")
     add("P6", "USB_CC2", "J_TYPE_C pin3", "R_CC2", "R_CC2", "5.1k ±1%", "R", "必装", "[推算]",
@@ -584,9 +689,9 @@ TPS = [
     ("TP_I2CA_SDA", "I2C_A_SDA", "CONN_CAM pin14", "I2C_A 数据", "连接器出口", "必装"),
     ("TP_I2CB_SCL", "I2C_B_SCL", "CONN_LIGHT pin13", "DDC 时钟 (I2C_B)", "连接器出口", "必装"),
     ("TP_I2CB_SDA", "I2C_B_SDA", "CONN_LIGHT pin14", "DDC 数据 (I2C_B)", "连接器出口", "必装"),
-    ("TP_USB_D_P", "USB_D_P", "J_TYPE_C pin4", "USB 2.0 差分",
+    ("TP_USB_D_P", "USB_D_P", "CONN_USB pin1", "USB 2.0 差分",
      "Type-C 出口 (规格合并名 TP_USB_D+ / D-)", "必装"),
-    ("TP_USB_D_N", "USB_D_N", "J_TYPE_C pin5", "USB 2.0 差分 (规格合并名 TP_USB_D+ / D-)",
+    ("TP_USB_D_N", "USB_D_N", "CONN_USB pin2", "USB 2.0 差分 (规格合并名 TP_USB_D+ / D-)",
      "Type-C 出口", "必装"),
     ("TP_FSIN", "FSIN_OUT", "R_SER_FSIN", "帧同步 (FSIN/VSYNC) 引出",
      "SoC 侧 -> 回答原厂问询 Q4b.3", "必装"),
@@ -695,6 +800,98 @@ def build_p8(by_id, spec):
     add("P8", "FSIN_OUT", "R_SER_FSIN", "TP_FSIN", "R_SER_FSIN", "50Ω ±1%", "R", "必装",
         "[推算]", "TBD-13", "[FSIN_OUT] FSIN 引出串阻 (50Ω 源端匹配)")
 
+    # ---- ★V1.1 补画: 上电时序链 (DC-DC PG 状态 + 电压监控 → RESET 链式释放) ----
+    add("P8", "PG_VCORE", "U_DCDC_VCORE PG", "TP_PG_VCORE", "TP_PG_VCORE",
+        "PG (开漏, 需上拉)", "TP", "必装", "[官方]", "TBD-12",
+        "[PG_VCORE] V_CORE 轨 PG 状态引出 (开漏, 需上拉到对应域); 若原厂要求 PG 参与上电时序, "
+        "在此补上拉电阻位 (R_PG_VCORE, 待原厂确认 TBD-12)")
+    add("P8", "PG_VIO", "U_DCDC_VIO PG", "TP_PG_VIO", "TP_PG_VIO",
+        "PG (开漏, 需上拉)", "TP", "必装", "[官方]", "TBD-12",
+        "[PG_VIO] V_SOC_IO 轨 PG 状态引出 (开漏, 需上拉); 同上")
+    # 电压监控 → RESET 链式释放 (分压比随原厂电压定, 只改电阻不改板)
+    add("P8", "SUPV_SENSE", "RAIL_V_SOC_IO", "R_SUPV_DIV1", "R_SUPV_DIV1",
+        "[待选型] 分压上臂 (0Ω 跳线位)", "R", "必装", "[推算]", "TBD-02",
+        "[SUPV_SENSE] ★V1.1: 电压监控分压 (把 V_SOC_IO 的实际电压映射到监控芯片窗口) → "
+        "**原厂电压定了只改两颗电阻, 不改板** (ISS-082 的正确解法: 换料 + 换阻值, 不用可编程器件)")
+    add("P8", "SUPV_SENSE", "R_SUPV_DIV1", "R_SUPV_DIV2", "R_SUPV_DIV2",
+        "[待选型] 分压下臂 (0Ω 跳线位)", "R", "必装", "[推算]", "TBD-02",
+        "[SUPV_SENSE] 分压下臂 (到地)")
+    add("P8", "GND", "R_SUPV_DIV2", "GND", "R_SUPV_DIV2", "[待选型] 分压下臂 (0Ω 跳线位)",
+        "R", "必装", "[推算]", "TBD-02", "[SUPV_SENSE] 分压下臂 地端")
+    add("P8", "VDD_1V8_IO", "U_SUPV VDD", "RAIL_VDD_1V8_IO", "U_SUPV",
+        "[待选型] 电压监控 + 复位 (TPS3808G01 类)", "IC", "必装", "[推算]", "TBD-12",
+        "[VDD_1V8_IO] 上电监督器 (挂常供电轨); 监控窗口电压待原厂电源域表定 (TBD-02)")
+    add("P8", "SUPV_SENSE", "U_SUPV IN", "U_SUPV", "U_SUPV",
+        "[待选型] 电压监控 + 复位 (TPS3808G01 类)",
+        "IC", "必装", "[推算]", "TBD-02", "[SUPV_SENSE] 监督器采样脚 (经分压)")
+    add("P8", "RESET_N", "U_SUPV RESET (开漏)", "NET_RESET_N", "U_SUPV", "开漏释放",
+        "IC", "必装", "[推算]", "TBD-12",
+        "[RESET_N] ★V1.1: RESET_N 增加一路监督器开漏释放 (与已有 10k 上拉 + RC + 复位键共存: "
+        "任一路拉低都生效)")
+    add("P8", "VDD_1V8_IO", "C_SUPV", "RAIL_VDD_1V8_IO", "C_SUPV", "100nF ±10%", "C", "必装",
+        "[推算]", "", "[VDD_1V8_IO] 监督器 就近去耦", "B-10")
+    add("P8", "GND", "C_SUPV", "GND", "C_SUPV", "100nF ±10%", "C", "必装", "[推算]", "",
+        "[VDD_1V8_IO] 监督器 去耦 地端", "B-10")
+
+
+# ------------------------------------------------- P9 跨铰链界面 (V1.1 新增页)
+def build_p9(by_id, spec):
+    """跨铰链界面页 —— 充电板 (镜框) 与主 PCB (镜脚) 之间的 4 组通道 + 保护/滤波件
+
+    ★为什么要单独一页 (2026-10-27 V1.1):
+      V1 把跨铰链的东西散在 P1/P5/P6 里 → 看图的人**数不出到底有几组跨铰链、走多少 pin** →
+      结构总工拿不到明确的接口请求, 跨铰链方案 (柔性段长度 / 应力 / 连接器) 只能靠猜。
+      本页把 4 组通道 + 保护件 + 板级归属一次列清, 并把"是否合并成一个跨铰链连接器"列为待评估项。
+    """
+    # ---- 4 个跨铰链连接器 (本体标 HINGE) ----
+    add("P9", "HINGE_CHG", "J_CHG", "J_CHG pin1", "J_CHG",
+        "1×6 1.27mm 排线座 (充电板↔主 PCB, 跨铰链)", "CONN", "必装", "[推算]", "",
+        "[HINGE_CHG] 通道 1/4 **主供电 + 充电状态回读**: pin1=SYS, pin2=VBUS_DET, pin3=BAT_DET, "
+        "pin4=CHG_STAT, pin5=PWR_GOOD, pin6=GND; 走柔性段过铰链; ★pin 编号为本版自拟 "
+        "(型号/间距待结构确认, ISS-085)")
+    add("P9", "HINGE_USB", "CONN_USB", "CONN_USB pin1", "CONN_USB",
+        "4p 跨铰链连接器 (D+/D-/GND/预留)", "CONN", "必装", "[推算]", "",
+        "[HINGE_USB] 通道 2/4 **USB 2.0 差分**: Type-C 在镜框充电板, SoC 在镜脚主 PCB → "
+        "**烧录/调试口必然跨铰链**; 本位必留 (ISS-085 裁决: Type-C 留充电板)")
+    add("P9", "HINGE_CSI", "CONN_CAM", "CONN_CAM pin1", "CONN_CAM",
+        "40p 跨铰链连接器 (主 PCB ↔ sensor 板)", "CONN", "必装", "[推算]", "TBD-03",
+        "[HINGE_CSI] 通道 3/4 **MIPI-CSI**: pin1/2=CK, 3-10=D0-D3, 11=MCLK, 12=RESET_N, "
+        "13/14=I2C_A, 15-17=sensor 三条电源; ★4 lane 全跨铰链 = 8 根 100Ω 差分 + MCLK 包地")
+    add("P9", "HINGE_DSI", "CONN_LIGHT", "CONN_LIGHT pin3", "CONN_LIGHT",
+        "光机连接器 (板对板/FFC, 跨铰链到镜框光机)", "CONN", "必装", "[待JBD]", "TBD-04",
+        "[HINGE_DSI] 通道 4/4 **显示 + 光机供电**: pin3/4=CK, 5/6=D0, 7/8=D1, 9-12=2 lane 预留, "
+        "13/14=DDC(I2C_B), 21-26=桥接位, 27-29=光机电源; 型号待 JBD 接口定义")
+    # ---- 跨铰链段的保护/滤波件 (装主 PCB 侧, 紧贴连接器) ----
+    add("P9", "USB_D_P", "CONN_USB pin1", "D_ESD_USB", "D_ESD_USB",
+        "ESD 阵列 [待选型] (2 通道 USB)", "D", "必装", "[推算]", "",
+        "[USB_D_P] ★跨铰链 USB 主板侧 ESD 阵列 (紧贴 CONN_USB); ★**不装共模扼流圈** "
+        "(USB 2.0 眼图对共模转差分极敏感, 扼流圈会恶化眼图) → 靠 FPC 阻抗控制 + 两端 ESD")
+    add("P9", "USB_D_N", "CONN_USB pin2", "D_ESD_USB", "D_ESD_USB",
+        "ESD 阵列 [待选型] (2 通道 USB)", "D", "必装", "[推算]", "",
+        "[USB_D_N] USB 主板侧 ESD 阵列 (同一位, 2 通道)")
+    add("P9", "GND", "D_ESD_USB", "GND", "D_ESD_USB", "ESD 阵列 [待选型]", "D", "必装",
+        "[推算]", "", "[USB_D_P] USB ESD 阵列 地端")
+    add("P9", "CSI_D0_CK_P", "CONN_CAM pin1", "D_ESD_CAM", "D_ESD_CAM",
+        "ESD 阵列 [待选型] (多通道 CSI)", "D", "必装", "[推算]", "TBD-03",
+        "[CSI_D0_CK_P] ★跨铰链 CSI 主板侧 ESD 阵列位 (紧贴 CONN_CAM); 通道数随 lane 数定")
+    add("P9", "GND", "D_ESD_CAM", "GND", "D_ESD_CAM", "ESD 阵列 [待选型]", "D", "必装",
+        "[推算]", "TBD-03", "[CSI_D0_CK_P] CSI ESD 地端")
+    # ---- 充电板侧: USB 差分从跨铰链连接器接到 Type-C (V1 漏画这一段) ----
+    add("P9", "USB_D_P_CHG", "CONN_USB pin1", "J_TYPE_C pin4", "NET_USB_D_P_CHG",
+        "板内走线 (充电板侧)", "NET", "必装", "[推算]", "",
+        "[USB_D_P_CHG] ★V1.1 补画: 充电板侧 USB 差分从跨铰链连接器到 Type-C D+ (板内走线)")
+    add("P9", "USB_D_N_CHG", "CONN_USB pin2", "J_TYPE_C pin5", "NET_USB_D_N_CHG",
+        "板内走线 (充电板侧)", "NET", "必装", "[推算]", "",
+        "[USB_D_N_CHG] 充电板侧 USB 差分从跨铰链连接器到 Type-C D- (板内走线)")
+    # ---- 跨铰链回流/地要求 (画成位号行, 便于结构总工提要求) ----
+    add("P9", "GND", "CHG_GND_STAR", "GND", "CHG_GND_STAR", "单点汇流位", "CONN", "必装",
+        "[推算]", "",
+        "[GND] ★跨铰链回流要求: 柔性段的 GND 必须走**连续参考面**(不能细线), 两端各留 ≥2 个 GND pin; "
+        "单点汇流位置由结构总工定 (ISS-065)")
+    add("P9", "SYS_H", "J_CHG pin1", "FB_SYS", "FB_SYS", "π 滤波磁珠 [待选型]", "L", "必装",
+        "[推算]", "",
+        "[SYS_H] 跨铰链电源侧 π 滤波磁珠 (主 PCB 侧; 电源轨允许加磁珠/滤波, 与 USB 差分不同)")
+
 
 # --------------------------------------------------------------- 写盘 + 门禁
 def main() -> int:
@@ -715,6 +912,11 @@ def main() -> int:
     build_p6(by_id, spec)
     build_p7(by_id, spec)
     build_p8(by_id, spec)
+    build_p9(by_id, spec)
+
+    # ---- 板级归属 (2026-10-27 V1.1 新增): 充电板 / 主 PCB / 跨铰链 ----
+    for r in ROWS:
+        r["board"] = board_for(r)
 
     # ---- 出口自检 1: net 名必须是合法标识符 (无 + - 空格等) ----
     bad_nets = sorted({r["net"] for r in ROWS if not NET_RE.match(r["net"] or "")})

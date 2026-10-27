@@ -137,3 +137,23 @@ dispatches:
   at: '2026-10-27'
   brief: '一处: SW/SW_REQUIREMENTS.md 12.1 内存规划表里 显示帧 buffer (800x600 NV12) 与 合成帧 (800x600 RGBA) 两行, 在依据列或行内加一句 注 800x600 = 老板锁死的显示分辨率 (OD 640x480 上采样 x1.25), 不是旧链路命名。硬规则: 0.72MB / 1.92MB / 2.9MB / 3.8MB
     这四个数字一个字不许动 (不许按 640x480 重算), 合计 202/215MB 也不许动; 其余任何文件不许碰'
+- issue: ISS-081
+  agent: hw-lead
+  at: '2026-10-27'
+  brief: '出 HW/SOC_PIN_BUDGET.md: (a) 最小引脚集 (逐项列出 SoC 侧功能 → 数量 → 依据, 目标是证明 45-50 脚够用) (b) pitch 0.3/0.4/0.5mm 三档下 8x10 FCCSP 的球数上限 + 逃线可行性 (0402/0603 焊盘 1.0-1.6mm, 需要 via-in-pad 还是交错, 6 层够不够) (c) 明确结论:
+    封装/球数/逃线是风险还是非风险, 以及真正剩下的风险是什么。不要猜球位号'
+- issue: ISS-085
+  agent: mech-lead
+  at: '2026-10-27'
+  brief: '(a) 跨铰链 USB 的结构与可靠性要求: 铰链处柔性段长度/固定方式/应力释放, 加上 ESD 阵列与共模扼流的位置要求 (靠近两端连接器), 给出跌落/扭转/开合循环时 不允许通信中断 的判据 (并同步到 MECH/RELIABILITY_TEST_PLAN.md 的对应用例) (b) 复核 hw-lead 自拟的三个连接器 pin 编号与型号: J_CHG (Type-C)
+    / J_TYPE_C (Type-C) / CONN_CAM (40p) / CONN_LIGHT (40p) —— pin 排布与 pitch 是否与实际器件匹配, 是否有键位/防呆冲突 (c) 复核 J_DEB'
+- issue: ISS-037
+  agent: sw-lead
+  at: '2026-10-27'
+  brief: '目标: 模型资产登记与量化流程
+
+    输出: SW/MODEL_ASSETS.md
+
+    验收: ① 当前模型清单 (来源/版本/许可/大小) ② INT8 量化流程与工具 ③ 量化精度损失评估方法 ④ 模型更新后的回归验证要求
+
+    自证: python3 state/merge.py && python3 state/gate_check.py'

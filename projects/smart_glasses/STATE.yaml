@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-10-27T08:27:16+08:00'
+  generated_at: '2026-10-27T08:40:14+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 15274
-      sha1: 954bc0345e76
-      mtime_ns: 1793011894811262655
+      size: 19284
+      sha1: e2c1e2a99974
+      mtime_ns: 1793061407694346242
     mech-lead:
       file: mech.yaml
       size: 31251
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1793033448985625834
     sw-lead:
       file: sw.yaml
-      size: 20049
-      sha1: ef722c4c13ac
-      mtime_ns: 1793035578583274570
+      size: 25913
+      sha1: 20c9cb2732c9
+      mtime_ns: 1793061610823587321
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -88,7 +88,7 @@ domains:
     - id: PM-B4
       desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
       severity: medium
-      needs_from: &id019
+      needs_from: &id020
       - jbd
       waiting_since: '2026-10-21'
     needs_from:
@@ -446,12 +446,9 @@ domains:
     updated_by: hw-lead
     status:
       phase: P2(原理图/BOM)+可靠性评审
-      progress_pct: 42
+      progress_pct: 46
       health: red
-      summary: 'P1拆解100%+P2原理图骨架(56条接口/31条两端已定)+可靠性评审(ISS-023)完成: 降额15器件x3轴+应力3工况x17元件组+MTBF假设链12条; 新增
-        6 条 needs (2 vendor/1 boss/3 agent) + 6 条 interface_claims + 2 条 blocker; 查出 R-F1(3.3V轨 dropout
-        硬伤,待main裁决) R-F2(1.0A充电对575mAh=1.74C超规格,待电芯规格书) R-F3(PCB支架须面接触否则跌落sigma 115MPa超许用); 本文不改变 MECH
-        46.5C 散热结论; 实测 0 项, 跌落/振动/弯折/热全部待样机'
+      summary: '"ISS-081闭:SoC最小引脚集C-min=41/C-base=57/C-max=91球(45-50目标成立);球数与封装判为非风险(最保守封装68球>C-base57,满阵列320球余量3.5x);逃线p>=0.4mm交错dog-bone够不需via-in-pad,p=0.30因HDI一票否决;6层够4层无解;新增14条interface_claims+2条needs+答mech-lead(iss081_pin_budget_carrier→BTB按60位+载板16x16);真风险只剩引脚→功能映射(球位图,不可自证);实测:41/57/91球与net数62/152由脚本实跑"'
     artifacts:
     - path: HW/HARDWARE_BREAKDOWN.md
       kind: breakdown
@@ -470,6 +467,13 @@ domains:
       summary: 'ISS-023 可靠性评审: 降额表 15 器件 x 温度/电压/电流 (abs max 列 15/15 为 [0数据]) + 板级应力 弯折/振动/跌落 x 17 元件组
         (跌落 R-F3 面接触 vs 点接触 sigma 17 vs 115MPa) + MTBF 元件级 236742h / 系统级 522510h(按需触发基) 假设链 12 条; 查出 R-F1
         3.3V 轨 dropout 硬伤 + R-F2 充电倍率超规格; 明确不改变 MECH 46.5C 散热结论'
+    - path: HW/SOC_PIN_BUDGET.md
+      kind: budget
+      version: v1.0
+      updated_at: '2026-10-27T09:10:00+08:00'
+      summary: 'ISS-081 交付: SoC 最小引脚集 C-min=41/C-base=57/C-max=91 球 (45-50 目标成立, 41<=45); 球数非风险 (最保守封装
+        68 球 >= C-base 57, 满阵列 320 球余量 3.5x); 逃线 p>=0.4mm 交错 dog-bone 够, 不需要 via-in-pad; 6 层够/4 层无解; 真风险只剩
+        引脚->功能映射 (球位图, 不可自证); 含可复现脚本'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -757,6 +761,34 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss081_pm_decisions
+      to: main
+      item: '板宽12mm还是15mm + 双显示hedge买不买, 两条PM裁决: 1) 板宽我建议15mm(逃线带误差容忍0.20-0.30mm->1.25mm, 且SoC横向热扩散通道2->3.5mm对散热是增益;
+        代价镜腿根部净高+3mm顶上限) 2) 双显示路径hedge(11球+52mm2+1桥接芯片, 桥接芯片再加100-300mW)我建议买: 原厂失联预案下唯一能出图开机的路径; Q16回信确认原生DSI可立刻省'
+      since: '2026-10-27'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss081_vendor_ball_count
+      to: main
+      item: '给酷芯微原厂追加一问: ARS45 FCCSP 封装总球数(现有邮件第1问只问了pitch+引脚表/球位图, 没问球数) - 这是选型条款P-2(>=72球)的唯一输入, 也是双显示hedge放不放得下的唯一输入;
+        外发一律经项目总工'
+      since: '2026-10-27'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -782,6 +814,14 @@ domains:
       value: '已并入原厂邮件问题清单第1问(FCCSP ball pitch + 完整引脚图/球位图); 判据已给: >=0.4mm 常规4-6层可行 / 0.35mm 极限需PCB厂书面确认
         / <=0.3mm 须HDI=一票否决; 电源域表=第2问; 请并入第一轮跟进邮件'
       ref: HW/HARDWARE_BREAKDOWN.md#2-卡点B
+    - key: iss081_pin_budget_carrier
+      to: mech-lead
+      value: C-min=41/C-base=57/C-max=91; <=50脚仅C-min可行; BTB按60位/载板16x16预留(勿因pin预算缩到40位)
+      ref: HW/SOC_PIN_BUDGET.md#1.1
+    - key: iss081_pin_budget_carrier
+      to: main
+      value: C-min=41/C-base=57/C-max=91; 封装球数非风险; 建议BTB 60位+载板16x16
+      ref: HW/SOC_PIN_BUDGET.md
     open_questions:
     - id: HW-Q1
       to: main
@@ -799,21 +839,18 @@ domains:
   sw-lead:
     agent: sw-lead
     role: 软件总工
-    updated_at: '2026-10-27T01:30:00+08:00'
+    updated_at: '2026-10-27'
     updated_by: sw-lead
     status:
-      phase: P2(方案设计) -> S2 救砖链路实测方案已交 (板端实测待板)
-      progress_pct: 44
+      phase: P2(方案设计)
+      progress_pct: 46
       health: red
-      summary: '10-27 ISS-073 交卷: §12.1 内存规划表 ''显示帧 buffer (800×600 NV12)'' 与 ''合成帧 (800×600 RGBA)'' 两行依据列加注
-        **800×600 = 老板锁死的显示分辨率 (OD 640×480 上采样 ×1.25), 不是旧链路命名** + 表下加 ISS-073 加注段; 硬规则守住: 0.72MB/1.92MB/2.9MB/3.8MB
-        与合计 ~202/~215MB **一字未动** (不按 640×480 重算); 只动 SW/SW_REQUIREMENTS.md 一个文件 (其余文件 mtime 未变); 证据分级:
-        决策文本·项目总工裁决(ISS-073)+官方(光机 800×600)+推算(buffer 尺寸). ★附带发现 (未改, 报项目总工): 表行逐行相加 = 199.3MB(乐观)/216.4MB(悲观)
-        vs 表头 ~202/~215MB, 差 ~2.7MB —— 这是 ISS-071 重算之前就存在的 ~3MB 缺口, 非本轮引入, 按硬规则本轮不动合计. || 10-27 ISS-080
-        交卷: §4.5 S2 救砖链路**可执行实测方案** (BOOT 进入按键/时序/引脚 SOP + 3 条识别刷写分支 + CB-01~09 机械判据 + 无板三层先验 + BR-01~12
-        用例 + 失败决策树) + EVT_TEMPLATE §11 可判项 BR-01 (谁执行/怎么判过/失败怎么办) + SW/tools/ 4 件套 (一键复现 10/10 rc=0, 抓到
-        4 个版本块真 bug)。★板端实测 0 次, 4 个 0 数据项 (P1~P4) 待原厂; ★新约束: 推荐C分区表 90MB → 64MB SPI-NOR 装不下, 容量下限升到 128MB
-        (已登记 interface_claims.flash_capacity_floor)。健康度仍 red: 主因是原厂 3 个决定性 0 数据 + 无板'
+      summary: '10-27 ISS-037 交卷: SW/MODEL_ASSETS.md v1.0 (模型资产台账 10 条 + INT8 量化流程 + 量化精度评估 L0~L4 + 模型变更回归
+        R-01~R-14) + SW/tools/model_asset_check.py (机器复核, 60 项判定 rc=0)。★[实测]查出: 3 份同名 yolov5s-sim sha256
+        互不相同 (clean/v2 逐字节相同, 输入 320/320/640) → 立 唯一 ID + 版本只认 sha256 两条硬规则; 2 条 .nb 的 NBG chip ID = 0x10000020
+        (错, A733 真值 0x1000003B) → 隔离作废; 许可栏 yolov5s-sim 系 [0数据] + yolov8s 实测 AGPL-3.0 → 放行阻断项 L=2。★ARS45
+        板端模型 0 个 / 转换 0 次 / 板端实测 0 次; 端到端预算与锁死变量一字未改。健康度仍 red: 主因是原厂 3 个决定性 0 数据 (工具链/chip ID/板端耗时) +
+        无板'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -858,6 +895,22 @@ domains:
         + 版本块原子写 payload→magic/bootable + 回读校验 CB-02/03/06/07 + 断电注入) + boot_rescue_probe.py (BOOT 模式识别探针:
         sysfs+lsusb 枚举/签名匹配/日志关键字/参数齐备性/自测) + s2_rescue_config.example.json (P1~P4 参数化配置模板) + s2_selftest.sh
         (一键复现)。★[实测](PC 侧, 10-27): 一键复现 10/10 rc=0; 并当场抓出 4 个版本块真 bug (A/B槽CRC串台/payloadCRC误含bootable开关/擦除态0xFF误判已生效/长度字段0xFFFF误判非空)'
+    - path: SW/MODEL_ASSETS.md
+      kind: design
+      version: v1.0
+      updated_at: '2026-10-27'
+      summary: '模型资产登记与INT8量化管理 v1.0 (ISS-037): 10条资产台账(来源/sha256[:16]/大小/许可/输入输出shape/算子类型/NBG头4字段/状态机
+        candidate·active·reference·quarantined) + 机器复核工具 + INT8量化流程(路线A ACUITY/VIVANTE已跑通5步 P1..P5 / 路线B
+        Art.Galaxy骨架B0..B9) + NBG头三件套铁律6条 + 量化精度评估 L0~L4 五层金字塔 + Q-1~Q-10放行判据 + 模型变更回归 R-01~R-14 矩阵 +
+        变更记录模板。★[实测](2026-10-27): 60项判定 rc=0, 查出2个量产阻断项(L1许可[0数据]+L4 AGPL-3.0商用受限)+2条死资产(chip ID 0x10000020错)+3份同名yolov5s-sim
+        sha256互不相同(两份逐字节相同, 输入320/320/640)。★ARS45板端模型0个/转换0次/板端实测0次; 端到端预算与锁死变量一字未改'
+    - path: SW/tools/model_asset_check.py
+      kind: tooling
+      version: v1.0
+      updated_at: '2026-10-27'
+      summary: '模型资产登记检查器: 逐条核对存在/大小/sha256[:16]/许可/opset/输入shape/NBG头(magic VPMN + format + chip ID 小端uint32)/板端15MiB槽位/重复sha256组;
+        产出量化放行阻断项 L1许可未知 L2超槽 L3chipID L4AGPL; --new 模式打印新模型台账行骨架; --json 机读供门禁。★[实测](10-27): 10条资产60项判定
+        rc=0, 放行阻断项 L=2'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -901,10 +954,20 @@ domains:
       - vendor
       - hw-lead
       waiting_since: '2026-10-26'
+    - id: SW-MODEL-B1
+      desc: 模型许可未清 + ARS45 板端模型 0 个 -> 量产评审前必须有 (a) 许可确认 (放行阻断项 L1 许可[0数据] 与 L4 AGPL-3.0 商用受限, 当前 L=2)
+        与 (b) 一条跑通 SW/MODEL_ASSETS.md §2.9 B0~B9 的转换链 (无板 + 无 Art.Galaxy 工具链 + 无 ARS45 chip ID -> 转换 0
+        次、板端实测 0 次)
+      severity: high
+      needs_from: &id016
+      - vendor
+      - main
+      - boss
+      waiting_since: '2026-10-27'
     - id: SW-FW-B3
       desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
       severity: medium
-      needs_from: &id020
+      needs_from: &id021
       - hw-lead
       - vendor
       waiting_since: '2026-10-26'
@@ -912,7 +975,7 @@ domains:
       desc: S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序) 与 P3 (BOOT 态
         VID:PID) 只能干等原厂, 拿不到任何一手数据
       severity: medium
-      needs_from: &id021
+      needs_from: &id022
       - main
       - hw-lead
       waiting_since: '2026-10-27'
@@ -1139,6 +1202,67 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: model_toolchain_q9_addendum
+      to: vendor
+      item: 'Q9 追加 10 条 (模型转换专项, 经 main 转达, 我不单独对外): ①Art.Galaxy 支持的输入格式与 opset 范围 ②yolov5s 12 类算子 (Conv/Sigmoid/Mul/Concat/Slice/Resize/Pow/Sub/MaxPool/Reshape/Transpose/Add)
+        覆盖情况 ③支持的量化方案 + 输出能否直通量化整数而不强制 FP32 (A733 上反量化占 SDK 总 25~29%) ④校准集最少张数与推荐分布 ⑤板端模型文件头布局 + ARS45
+        的 chip ID 是多少 (错则板端加载后报 SRAM size 错) ⑥Art.Galaxy 是否与 VeriSilicon ACUITY/VIPLite 同源 (假设 H1, 决定
+        A733 的 p1/p2 脚本能否复用) ⑦官方是否提供预编译的 yolov5 板端模型及其许可与类别映射是否正确 (A733 官方 .nb 实测类别映射错→422 false positive)
+        ⑧转换产物体积上限 (板端槽位 15MiB) ⑨冷启动加载耗时 ⑩工具链运行平台与是否需要授权/NDA -> 卡 SW/MODEL_ASSETS.md §2.9 转换骨架 B0~B9 全部九步'
+      since: '2026-10-27'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: model_license_yolov5sim
+      to: vendor
+      item: '模型许可确认 (经 main 转达, 量产阻断项 L1): yolov5s-sim 系列 ONNX 的来源与上游许可是什么 (3 份 onnx 的 metadata_props
+        全空, 本机也查不到 LICENSE 文件) -> 不确认则不许进量产评审; 同时请确认原厂 model zoo 是否提供带明确许可的预编译板端模型 (可绕开第三方权重许可风险)'
+      since: '2026-10-27'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: model_license_agpl_ultralytics
+      to: main
+      item: 'yolov8s 的 AGPL-3.0 商业许可采购决策 (走 main 转老板, 阻断项 L4): yolov8s.onnx 的 metadata 许可实测为 AGPL-3.0
+        -> 商用眼镜产品需向 Ultralytics 采购 Enterprise License, 否则有开源义务; 费用与周期必须进 BOM/采购计划, 不能等量产前 -> 若最终选 yolov5s
+        系则此条作废'
+      since: '2026-10-27'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: model_od_input_size
+      to: main
+      item: 'ARS45 OD 输入尺寸裁决 (走 main): 决定 ONNX 静态化 shape + 转换产物体积 + 端到端预算 (我给的约束: 端到端 <60ms, 纯 NPU 跨 16.67ms
+        会让框龄 age 从 2 跳 3 直接 +16.67ms; 板端 model 槽位 15MiB) -> 我的默认假设是 640x480 (与锁定的 ISP 缩放链一致), 若裁决不同我按新值重算并重出静态
+        shape'
+      since: '2026-10-27'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-29'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: debug_port_form
       to: hw-lead
@@ -1256,7 +1380,7 @@ domains:
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
         11.8mm 全是推算)
       severity: high
-      needs_from: &id016
+      needs_from: &id017
       - jbd
       - main
       waiting_since: '2026-10-21'
@@ -1264,7 +1388,7 @@ domains:
       desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
         0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
       severity: high
-      needs_from: &id017
+      needs_from: &id018
       - boss
       - main
       waiting_since: '2026-10-25'
@@ -1272,21 +1396,21 @@ domains:
       desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置
         boot storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
       severity: high
-      needs_from: &id018
+      needs_from: &id019
       - hw-lead
       - main
       waiting_since: '2026-10-25'
     - id: MECH-B3
       desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
       severity: medium
-      needs_from: &id022
+      needs_from: &id023
       - jbd
       waiting_since: '2026-10-25'
     - id: MECH-B5
       desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
         → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
       severity: medium
-      needs_from: &id023
+      needs_from: &id024
       - mech-lead
       waiting_since: '2026-10-25'
     - id: MECH-B6
@@ -1294,7 +1418,7 @@ domains:
         boss mech_reltest_kit_site)。另: 1 台样机做 12 类必然撞上 ''样本量不足只能筛查'' 与 ''一次失败后续全废'' 两个硬边界 (见 MECH/RELIABILITY_TEST_PLAN.md
         §B2.3 / §B3.3)。'
       severity: medium
-      needs_from: &id024
+      needs_from: &id025
       - boss
     needs_from:
     - key: q4_battery_scope
@@ -1579,14 +1703,20 @@ domains:
       to: hw-lead
       item: ISS-081引脚预算结论_能否缩到50脚以内_直接决定BTB是60位还是40位及载板16x16还是12x12_我按60位预留_经项目总工转达
       since: '2026-10-25'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: hw-lead
+        value: C-min=41/C-base=57/C-max=91; <=50脚仅C-min可行; BTB按60位/载板16x16预留(勿因pin预算缩到40位)
+        ref: HW/SOC_PIN_BUDGET.md#1.1
+      - by: hw-lead
+        value: C-min=41/C-base=57/C-max=91; 封装球数非风险; 建议BTB 60位+载板16x16
+        ref: HW/SOC_PIN_BUDGET.md
       foreign_answers: []
     - key: u8_frame_section_carrier
       to: main
@@ -1853,6 +1983,132 @@ interface_claims:
       hw-lead: 温度x0.85/电压x0.80/电流x0.80
     notes:
       hw-lead: IPC-9701/GJB-Z35A 通用降额档(条款原文未核->规则本身[推算]); 电池轴例外改用电芯规格书判据; 占用率=工作值/建议设计上限, >=100%不通过/80-100%贴边/<80%通过
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  soc_pin_budget_min:
+    values:
+      hw-lead: '41'
+    notes:
+      hw-lead: C-min 最小引脚集(SoC侧功能位号数含GND); 目标45-50成立
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  soc_pin_budget_base:
+    values:
+      hw-lead: '57'
+    notes:
+      hw-lead: C-base 设计基线(双显示路径0Ω二选一); 比目标多7球=DP fallback保险费
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  soc_pin_budget_max:
+    values:
+      hw-lead: '91'
+    notes:
+      hw-lead: C-max 什么都不砍的数学上界; 不是我们要做的板子
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  soc_pkg_balls_required:
+    values:
+      hw-lead: '72'
+    notes:
+      hw-lead: '选型条款P-2: 封装总球数>=72 (C-base 57 +15%余量); 砍DP hedge则可降48; ARS45实际球数=0数据'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  soc_pkg_balls_worstcase:
+    values:
+      hw-lead: '68'
+    notes:
+      hw-lead: pitch 0.5 仅外围1圈的最保守排布; C-base 57 仍装得下 -> 球数非风险
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  fccsp_escape_band_p040:
+    values:
+      hw-lead: 0.70mm
+    notes:
+      hw-lead: p=0.40 单排dog-bone逃线带/边; p=0.50->0.80mm; 与ISS-078 5.1一致
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  fccsp_via_in_pad_required:
+    values:
+      hw-lead: 'no'
+    notes:
+      hw-lead: p>=0.40 交错dog-bone足够(同排净间隙0.100mm); p=0.30才被迫且已被一票否决
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  soc_pkg_escape_via_rows:
+    values:
+      hw-lead: '1'
+    notes:
+      hw-lead: C-base 57球在p=0.4/0.5下1排(单排容量72/90); C-max 91球需2排
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  pcb_layer_count_target:
+    values:
+      hw-lead: '6'
+    notes:
+      hw-lead: 4层在4组高速+62个SoC net+190器件下无解; 先锁6层, Q16回信再评估降4层
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  pcb_stackup_6l:
+    values:
+      hw-lead: L1sig/L2GND/L3sig/L4PWR/L5GND/L6sig
+    notes:
+      hw-lead: 6层目标叠层; 电源球L1->L4常规盲孔; 板厚1.0mm(4层0.8mm)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  soc_dec_cap_0402_fit_12mm:
+    values:
+      hw-lead: 'yes'
+    notes:
+      hw-lead: 12mm板宽余带1.20-1.45mm; 0402(0.5mm深)放得下; 单排可放36颗
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  soc_dec_cap_0603_fit_12mm:
+    values:
+      hw-lead: parallel-only
+    notes:
+      hw-lead: 0603(0.8mm深)只能长轴平行于逃线带; 垂直(1.6mm深)12mm板宽放不下
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  pcb_width_recommend:
+    values:
+      hw-lead: 15mm
+    notes:
+      hw-lead: 建议第一台样机锁15mm(逃线带误差容忍+1.25mm vs 12mm的+0.20mm); 代价镜腿根部净高+3mm; 待PM裁决, 不改pcb_outline
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  soc_display_hedge_cost:
+    values:
+      hw-lead: 11ball+52mm2+1bridge
+    notes:
+      hw-lead: 双显示路径hedge代价; Q16确认原生DSI则立刻可省
     by:
     - hw-lead
     noncanonical_by: []
@@ -2515,6 +2771,84 @@ interface_claims:
     - sw-lead
     noncanonical_by: []
     conflict: false
+  model_asset_id_scheme:
+    values:
+      sw-lead: MOD-<FAMILY>-<VER>-<RES>
+    notes:
+      sw-lead: 模型唯一 ID 规则 (例 MOD-YOLOV5S-320-INT8); 版本只认 sha256[:16], 不认文件名 —— 依据 [实测] 三份同名 yolov5s-sim
+        sha256 互不相同且 clean/v2 两份逐字节相同 (输入 320/320/640)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  model_asset_slot_budget:
+    values:
+      sw-lead: 15MiB
+    notes:
+      sw-lead: 板端 model_a/model_b 单槽上限 = 15,728,640 B; 来源 FLASH_AND_VERSION §4.1 + s2_rescue_config.example.json;
+        只管板端产物, 不管 PC 侧 ONNX; 与 flash_capacity_floor=128MB-NOR-min 是同一条容量线的两半
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  model_asset_registry_tool:
+    values:
+      sw-lead: SW/tools/model_asset_check.py
+    notes:
+      sw-lead: 台账机器复核入口; rc=0 = 台账与实物一致 (不等于可量产, 量产看 L 计数)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  model_asset_release_gate:
+    values:
+      sw-lead: L=0
+    notes:
+      sw-lead: '量产放行判据: 放行阻断项计数必须 0 — L1 许可[0数据] / L2 超 15MiB 槽 / L3 chip ID 不符 / L4 AGPL 商用受限; 当前 L=2
+        (L1 yolov5s-sim 许可未知 + L4 yolov8s AGPL-3.0)'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  model_version_string_fmt:
+    values:
+      sw-lead: yolov5s-int8-ag2-<sha8>
+    notes:
+      sw-lead: 与 FLASH_AND_VERSION §2.5.1 一致, 不改; <sha8> = 板端模型文件 sha256 前 8 位; <ag2> = 板端格式版本, 必填 (A7S
+        NBG format version 坑); 换格式版本必须换版本串
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  model_calib_min_images:
+    values:
+      sw-lead: '100'
+    notes:
+      sw-lead: INT8 校准集最少张数 (A733 实测 6 张不够用); 现有 100 张 = COCO 通用集, 与眼镜场景分布不符, 需自建
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  model_quant_scheme:
+    values:
+      sw-lead: pcq
+    notes:
+      sw-lead: A733 侧真正 INT8 的量化方案名 (per-channel symmetric affine); Art.Galaxy 侧方案名 [0数据] (Q9 追加第 3 条);
+        .quantize 量化参数表本身是资产, 换参数=换模型
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  model_regression_gate:
+    values:
+      sw-lead: R-01..R-14
+    notes:
+      sw-lead: 模型变更后必跑的回归用例编号集合 (台账/许可/文件头/容量/加载/数值/量化器/总体精度/逐类精度/阈值/性能/端到端/版本串/刷写回滚), 全过才允许刷板; 与 BR-01..BR-12
+        不重叠 (一个测模型, 一个测刷写救砖)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
 needs_matrix:
   pending:
   - key: emc_mech_interface_ask
@@ -2542,6 +2876,20 @@ needs_matrix:
       隐含 D=0.19. 两者不能同时成立, 差 5.6 倍系统级 MTBF (522510h vs 93396h). 请明确: OD 是连续跑还是按需触发? 这决定整机 MTBF 取 59.6
       年还是 10.7 年'
     since: '2026-10-26'
+    _by: hw-lead
+    state: pending
+  - key: iss081_pm_decisions
+    to: main
+    item: '板宽12mm还是15mm + 双显示hedge买不买, 两条PM裁决: 1) 板宽我建议15mm(逃线带误差容忍0.20-0.30mm->1.25mm, 且SoC横向热扩散通道2->3.5mm对散热是增益;
+      代价镜腿根部净高+3mm顶上限) 2) 双显示路径hedge(11球+52mm2+1桥接芯片, 桥接芯片再加100-300mW)我建议买: 原厂失联预案下唯一能出图开机的路径; Q16回信确认原生DSI可立刻省'
+    since: '2026-10-27'
+    _by: hw-lead
+    state: pending
+  - key: iss081_vendor_ball_count
+    to: main
+    item: '给酷芯微原厂追加一问: ARS45 FCCSP 封装总球数(现有邮件第1问只问了pitch+引脚表/球位图, 没问球数) - 这是选型条款P-2(>=72球)的唯一输入, 也是双显示hedge放不放得下的唯一输入;
+      外发一律经项目总工'
+    since: '2026-10-27'
     _by: hw-lead
     state: pending
   - key: fw_boot_storage_bom
@@ -2572,6 +2920,15 @@ needs_matrix:
     due: '2026-10-29'
     _by: sw-lead
     state: pending
+  - key: model_od_input_size
+    to: main
+    item: 'ARS45 OD 输入尺寸裁决 (走 main): 决定 ONNX 静态化 shape + 转换产物体积 + 端到端预算 (我给的约束: 端到端 <60ms, 纯 NPU 跨 16.67ms
+      会让框龄 age 从 2 跳 3 直接 +16.67ms; 板端 model 槽位 15MiB) -> 我的默认假设是 640x480 (与锁定的 ISP 缩放链一致), 若裁决不同我按新值重算并重出静态
+      shape'
+    since: '2026-10-27'
+    due: '2026-10-29'
+    _by: sw-lead
+    state: pending
   - key: mech_reltest_xray_sampling
     to: hw-lead
     waiting_on: agent
@@ -2587,20 +2944,14 @@ needs_matrix:
     since: '2026-10-25'
     _by: mech-lead
     state: pending
-  - key: iss081_pin_budget_carrier
-    to: hw-lead
-    item: ISS-081引脚预算结论_能否缩到50脚以内_直接决定BTB是60位还是40位及载板16x16还是12x12_我按60位预留_经项目总工转达
-    since: '2026-10-25'
-    _by: mech-lead
-    state: pending
   - key: u8_frame_section_carrier
     to: main
     item: u8镜框截面口径_镜框上沿载板位余量0.45mm能否成立_还卡u4波导2D图_经项目总工走JBD
     since: '2026-10-25'
     _by: mech-lead
     state: pending
-  answered_count: 51
-  total: 61
+  answered_count: 55
+  total: 67
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -2698,57 +3049,65 @@ blockers:
   needs_from: *id015
   waiting_since: '2026-10-26'
   owner: sw-lead
+- id: SW-MODEL-B1
+  desc: 模型许可未清 + ARS45 板端模型 0 个 -> 量产评审前必须有 (a) 许可确认 (放行阻断项 L1 许可[0数据] 与 L4 AGPL-3.0 商用受限, 当前 L=2) 与 (b)
+    一条跑通 SW/MODEL_ASSETS.md §2.9 B0~B9 的转换链 (无板 + 无 Art.Galaxy 工具链 + 无 ARS45 chip ID -> 转换 0 次、板端实测 0
+    次)
+  severity: high
+  needs_from: *id016
+  waiting_since: '2026-10-27'
+  owner: sw-lead
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
     11.8mm 全是推算)
   severity: high
-  needs_from: *id016
+  needs_from: *id017
   waiting_since: '2026-10-21'
   owner: mech-lead
 - id: MECH-B2
   desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
     0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
   severity: high
-  needs_from: *id017
+  needs_from: *id018
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B4
   desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置 boot
     storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
   severity: high
-  needs_from: *id018
+  needs_from: *id019
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: PM-B4
   desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
   severity: medium
-  needs_from: *id019
+  needs_from: *id020
   waiting_since: '2026-10-21'
   owner: main
 - id: SW-FW-B3
   desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
   severity: medium
-  needs_from: *id020
+  needs_from: *id021
   waiting_since: '2026-10-26'
   owner: sw-lead
 - id: SW-FW-B4
   desc: S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序) 与 P3 (BOOT 态 VID:PID)
     只能干等原厂, 拿不到任何一手数据
   severity: medium
-  needs_from: *id021
+  needs_from: *id022
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: MECH-B3
   desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
   severity: medium
-  needs_from: *id022
+  needs_from: *id023
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B5
   desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
     → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
   severity: medium
-  needs_from: *id023
+  needs_from: *id024
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B6
@@ -2756,7 +3115,7 @@ blockers:
     boss mech_reltest_kit_site)。另: 1 台样机做 12 类必然撞上 ''样本量不足只能筛查'' 与 ''一次失败后续全废'' 两个硬边界 (见 MECH/RELIABILITY_TEST_PLAN.md
     §B2.3 / §B3.3)。'
   severity: medium
-  needs_from: *id024
+  needs_from: *id025
   owner: mech-lead
 conflicts: []
 needs_normalization: []
@@ -2848,11 +3207,11 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 24
-  blockers: 24
-  high_blockers: 18
-  open_needs: 10
-  waiting_external_needs: 29
+  artifacts: 27
+  blockers: 25
+  high_blockers: 19
+  open_needs: 12
+  waiting_external_needs: 32
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
