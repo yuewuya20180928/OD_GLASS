@@ -4,12 +4,14 @@ updated_at: '2026-10-27'
 updated_by: sw-lead
 status:
   phase: P2(方案设计)
-  progress_pct: 46
+  progress_pct: 50
   health: red
-  summary: '10-27 ISS-090 交卷: SW/SW_TIMING_REVIEW.md (软件侧交叉评审: 上电时序/充电回读链/TMP117测点/跨铰链USB) + SW/tools/timing_check.py
-    (21项自检 rc=0) + 交接单. 关键: 复位释放时刻不由硬件决定 (监督器不盯V_CORE + EN/SS/CT脚0条 + PG悬空 + RC注记差90.9倍) ⇒ 不通过; TMP117测点已定案
-    (镜脚贴皮肤面, 皮肤口径四档); 跨铰链USB有条件可行但三个硬伤, 量产建议改镜脚有线; ★网表无硬件断电通路 ⇒ ''关机''=软件深睡. 15条SW返工点(9条自主发现)+9条CR改动请求.
-    健康度仍 red: 原厂3个决定性0数据 + 无板 + 无硬件断电通路'
+  summary: '10-28 ISS-087 + ISS-101 交卷 (模型许可 + 量产放行门 + ARS45 INT8 转换链): ①许可 —— yolov5s-sim 系 3 份 ONNX
+    由 [0数据] 判定为 AGPL-3.0 (7环证据链), 放行阻断项 L=0 (实测 rc=0), 3 条采购/法务路径 + 成本区间 (官方无公开价 [0数据] / 立项预算 10^4-10^5
+    USD [推算] / 周期 4-12 周), 明确 不采购=商用受阻 (AGPL §6 与闭源固件冲突); ②放行门 —— 两张清单分开: 交付集 L=0 (1 条 Apache-2.0) ≠ 量产可用模型清单
+    (0 个); 新门禁: 量产评审须同时看 L=0 与 可用清单非空 (SW/MODEL_RELEASE_GATE.md); ③转换链 —— B0~B9 共 10 步逐条机器判定 (READY 2
+    / PARTIAL 4 / BLOCKED 4, 带 --build 真跑 READY 4), BLOCKED 全卡原厂工具链+无板; ★查出台账原主模型候选 (320版) PC 侧推理即失败 →
+    新增 C9 门禁 + 已隔离; 健康度仍 red: 量产可用模型 0 个 + 原厂工具链/chipID 未到 + 许可待老板拍板'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -56,20 +58,16 @@ artifacts:
     侧, 10-27): 一键复现 10/10 rc=0; 并当场抓出 4 个版本块真 bug (A/B槽CRC串台/payloadCRC误含bootable开关/擦除态0xFF误判已生效/长度字段0xFFFF误判非空)'
 - path: SW/MODEL_ASSETS.md
   kind: design
-  version: v1.0
-  updated_at: '2026-10-27'
-  summary: '模型资产登记与INT8量化管理 v1.0 (ISS-037): 10条资产台账(来源/sha256[:16]/大小/许可/输入输出shape/算子类型/NBG头4字段/状态机 candidate·active·reference·quarantined)
-    + 机器复核工具 + INT8量化流程(路线A ACUITY/VIVANTE已跑通5步 P1..P5 / 路线B Art.Galaxy骨架B0..B9) + NBG头三件套铁律6条 + 量化精度评估
-    L0~L4 五层金字塔 + Q-1~Q-10放行判据 + 模型变更回归 R-01~R-14 矩阵 + 变更记录模板。★[实测](2026-10-27): 60项判定 rc=0, 查出2个量产阻断项(L1许可[0数据]+L4
-    AGPL-3.0商用受限)+2条死资产(chip ID 0x10000020错)+3份同名yolov5s-sim sha256互不相同(两份逐字节相同, 输入320/320/640)。★ARS45板端模型0个/转换0次/板端实测0次;
-    端到端预算与锁死变量一字未改'
+  version: v1.1
+  updated_at: '2026-10-28'
+  summary: '模型资产台账 v1.1 (ISS-087 同步): §1.2 台账 11 条 (许可判定 + 新增 Apache-2.0 候选 + 隔离坏模型 + 去重名不副实旧ID) · §1.5
+    许可栏改判定口径 (未判定才是阻断项) + L1~L5 新定义 · §2.9 指向 SW/ARS45_INT8_CHAIN.md · §7 复现命令与预期输出'
 - path: SW/tools/model_asset_check.py
   kind: tooling
-  version: v1.0
-  updated_at: '2026-10-27'
-  summary: '模型资产登记检查器: 逐条核对存在/大小/sha256[:16]/许可/opset/输入shape/NBG头(magic VPMN + format + chip ID 小端uint32)/板端15MiB槽位/重复sha256组;
-    产出量化放行阻断项 L1许可未知 L2超槽 L3chipID L4AGPL; --new 模式打印新模型台账行骨架; --json 机读供门禁。★[实测](10-27): 10条资产60项判定 rc=0,
-    放行阻断项 L=2'
+  version: v1.1
+  updated_at: '2026-10-28'
+  summary: '模型资产登记检查器 v1.1 (ISS-087): 新增 C9 PC侧推理冒烟 (抓到台账原主模型候选是坏的) + license_state/license_grant 字段 +
+    L5 阻断项 + licensing-hold 状态与禁入交付物输出段 + savedmodel 格式支持 + --no-smoke 开关'
 - path: SW/SW_TIMING_REVIEW.md
   kind: review
   version: v1.0
@@ -90,6 +88,42 @@ artifacts:
   updated_at: '2026-10-27'
   summary: 'ISS-090 交接单 (B1-B6 六块齐全): 8 条结论摘要 / 16 行验收自评 / 证据分级 (实测21·官方7·推算19·0数据9) / 16 条接口取值 / 8 条未决项
     (TBD-01/02/08/10/12 + hw 9 项 + 结构 3 项 + 裁决 3 项) / 6 条自证命令'
+- path: SW/MODEL_LICENSE.md
+  kind: doc
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: '模型许可判定 + 采购/法务路径 + 成本区间 (ISS-087 第①项): yolov5s-sim 系由 [0数据] 判定为 AGPL-3.0 (7环证据链); 3条采购路径对比;
+    Enterprise 官方无公开价 [0数据] / 立项预算 10^4-10^5 USD [推算] / 周期 4-12 周; 明确写出 不采购=商用受阻 (AGPL §6 与闭源固件冲突)'
+- path: SW/ARS45_INT8_CHAIN.md
+  kind: doc
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ARS45 板端 INT8 转换链 B0~B9 逐条状态与解锁条件 (ISS-087 第②项): 10 步 READY2/PARTIAL4/BLOCKED4 (带 --build
+    真跑 READY4); 工具链接入契约 (ART_GALAXY_HOME); 打点口径 (纯NPU vs SDK总耗时分开报); 校准集要求; A733 5步流程复用映射'
+- path: SW/tools/license_probe.py
+  kind: tool
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: '许可溯源探测器: 把 metadata_props 为空的 ONNX 的许可由 [0数据] 变成有物证的判定 (本机文档/pip包许可/checkpoint命名空间/sha链/官方条款基准表);
+    一条命令复现 ISS-087 全部许可证据'
+- path: SW/tools/int8_chain.py
+  kind: tool
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ARS45 INT8 转换链 B0~B9 驱动器: readiness 报告 (每步状态/阻塞原因/解锁条件) + 可跑步真跑出产物 (静态化 / 抽3路head / 算子覆盖表
+    / 版本串 / PC侧冒烟体检)'
+- path: SW/MODEL_RELEASE_GATE.md
+  kind: doc
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: '量产放行门判定标准 (ISS-101): 两张清单分开 (交付集 ship-set vs 量产可用模型清单 usable-list), L1~L5 逐条定义+机器判据, 量产可用
+    4 条同时成立条件, 8 行放行检查表 (谁在什么时候查什么), 工具口径修正 (L=0 ≠ 有可用模型)'
+- path: HANDOFF/2026-10-28_sw-lead_ISS101_量产放行门判定.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ISS-101 交接单 (B1-B6 齐全): 量产可用模型清单 = 0 个 (唯一许可干净候选 NPU 可转换性 0 数据 / 唯一可推理模型是 AGPL 禁入) + 新增门禁:
+    量产评审须同时看 L=0 与 可用清单非空'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -617,6 +651,66 @@ interface_claims:
   note: '★本设计三个都叫 ''PG'' 的信号语义相反: BQ25896 PG 低=输入源良好 / TPS62130A PG 高阻=在 regulation / U_SUPV RESET 低=复位中
     ⇒ SW 按来源命名防写反'
   ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: model_license_state_scheme
+  value: permissive|granted|ungranted|unknown
+  note: '许可状态机 (ISS-087): permissive=宽松许可(商用无义务); granted=AGPL+有 Enterprise 授权号; ungranted=AGPL+无授权(商用受阻→阻断项
+    L4); unknown=许可未判定(阻断项 L1). 判定口径: 未判定才是阻断项, metadata_props 为空 ≠ 许可未知'
+  ref: SW/MODEL_LICENSE.md §1.1
+- key: model_license_yolov5s_sim
+  value: AGPL-3.0
+  note: '★ISS-087 判定 (证据链7环: Rockchip model zoo examples/yolov5/README.md 指明 upstream=ultralytics/yolov5
+    v6.0 + yolov5s_rt.onnx 与 zoo 发布物 sha256 逐字节相同 + ONNX initializer 命名 model.N.cvM.conv.weight + yolov5su.pt
+    pickle 命名空间 ultralytics.nn.modules.* + 本机 pip ultralytics 8.4.80 License=AGPL-3.0 + GitHub API spdx_id=AGPL-3.0).
+    等级 [实测·溯源]+[官方]'
+  ref: SW/MODEL_LICENSE.md §1.2
+- key: model_license_yolov8s_coco80
+  value: AGPL-3.0
+  note: metadata_props.license 原值 (2026-08-18 导出, ultralytics 8.4.80) [实测]; 同源印证 [官方]. 商用须向 Ultralytics
+    采购 Enterprise License
+  ref: SW/MODEL_LICENSE.md §1.1
+- key: model_license_alternative_stack
+  value: Apache-2.0
+  note: '不采购路线的许可干净栈: YOLOX-s (Megvii, GitHub spdx=Apache-2.0 [官方]; Rockchip 官方 model zoo 已有同族 NPU 完整转换配方
+    examples/yolox/) / PP-YOLOE / RT-DETR / TF OD API (tensorflow/models /research=Apache-2.0 [官方]); 本机已有
+    TF OD API SSD-MobileNetV2-FPNLite 320x320 (pipeline.config num_classes=90 → 可用80类), 但 NPU 可转换性 [0数据]'
+  ref: SW/MODEL_LICENSE.md §3 路径2
+- key: model_release_gate_l
+  value: L=0
+  note: '★ISS-087 实测: 量产放行阻断项计数 = 0 (rc=0, 11条资产). L1 许可未判定 0 / L2 超15MiB 0 / L3 chipID 0 / L4 AGPL无授权
+    0 (2条AGPL资产已置 licensing-hold 禁入交付物) / L5 PC侧冒烟失败 0. ★L=0 ≠ 可量产: 板端INT8模型仍0个, 且不采购则商用受阻'
+  ref: SW/MODEL_LICENSE.md §4
+- key: model_pc_smoke_gate
+  value: C9
+  note: '★ISS-087 新增门禁: onnxruntime 建 session + 跑1帧; 交付集内失败 = 阻断项 L5. 依据: 台账原主模型候选 (320版) 只改输入dim未改图内常量
+    → onnxruntime 加载即失败 (ShapeInferenceError), 光看 metadata/shape 查不出'
+  ref: 'SW/tools/model_asset_check.py :: smoke_test_onnx'
+- key: int8_chain_steps
+  value: B0..B9
+  note: 'ARS45 板端 INT8 转换链 10 步 (ISS-087): B0工具链/B1格式opset自检+PC冒烟/B2静态化/B3摘Detect头/B4量化/B5导出+文件头+chipID/B6算子覆盖/B7板端加载/B8打点/B9登记+精度+回归.
+    当前 READY 2 / PARTIAL 4 / BLOCKED 4 (带 --build 真跑 READY 4)'
+  ref: SW/ARS45_INT8_CHAIN.md §2
+- key: int8_chain_blocked_on
+  value: vendor-toolchain+no-board
+  note: 4 个 BLOCKED 步 (B0/B5/B7/B8) + 4 个 PARTIAL 步缺工具链那半段的统一阻塞源. 工具链落地后设 ART_GALAXY_HOME 即自动识别 (SW/tools/int8_chain.py)
+  ref: SW/ARS45_INT8_CHAIN.md §3
+- key: model_ship_set_current
+  value: MOD-SSDMBV2-FPNLITE-320-COCO90-TFODAPI
+  note: ISS-087 后交付集 (candidate/active) 只剩 1 条 Apache-2.0 候选; 2 条 AGPL 资产 (MOD-YOLOV5S-640-ARS45-SRC /
+    MOD-YOLOV8S-COCO80-ONNX) 在 licensing-hold 禁入交付物, 采购 Enterprise 后填 license_grant 即复活
+  ref: SW/MODEL_LICENSE.md §4
+- key: model_release_gate_criteria
+  value: L1-L5
+  note: '量产放行阻断项编号集合: L1 许可未判定 / L2 超15MiB / L3 chipID不符 / L4 AGPL无授权 / L5 PC冒烟失败. 判定标准全文见 SW/MODEL_RELEASE_GATE.md
+    §2'
+  ref: SW/MODEL_RELEASE_GATE.md §2
+- key: model_ship_set_vs_usable
+  value: ship-set≠usable-list
+  note: '★两张清单必须分开: 交付集 (台账 candidate/active, 现在 1 条, L=0) ≠ 量产可用模型清单 (能上板出框的, 现在 0 个). 量产评审必须同时看两者 (ISS-101)'
+  ref: SW/MODEL_RELEASE_GATE.md §1
+- key: model_usable_entry_criteria
+  value: licence+artifact+board-test+regression
+  note: 进'量产可用模型清单'的 4 条同时成立条件 (许可闭环 / 有板端产物≤15MiB且chip匹配 / 板端实测通过 / R-01~R-14 全过); 现在 4 条里只有第1条对交付集那条成立
+  ref: SW/MODEL_RELEASE_GATE.md §3
 open_questions:
 - id: SW-Q1
   to: main

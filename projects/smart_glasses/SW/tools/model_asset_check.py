@@ -560,7 +560,10 @@ def print_human(results: list, dups: list) -> None:
     print(f"交付集 (candidate/active): {len(ship)} 条 | licensing-hold: {len(hold)} 条 | "
           f"quarantined: {len(quar)} 条 | reference: {len(ref)} 条")
     print(f"量产放行阻断项 (L): {len(blockers)} 条 "
-          f"{'→ ✅ 可进量产评审' if not blockers else '→ ❌ 不许进量产评审 (见 §1.5)'}")
+          f"{'→ ✅ 放行阻断项已清零 (★不等于有可用模型: 量产可用模型清单见 SW/MODEL_RELEASE_GATE.md)' if not blockers else '→ ❌ 不许进量产评审 (见 §1.5)'}")
+    if not blockers:
+        print("   ★ 交付集里的模型是否**真的能上板**是另一件事 (NPU 可转换性 = 板端产物 + 板端实测): "
+              "交付集现在只有 1 条 Apache-2.0 候选, 其 NPU 可转换性 = [0数据] → 量产可用模型清单 = 空 (ISS-101)")
     for tag, aid, msg in blockers:
         print(f"    - {tag}  [{aid}]  {msg}")
     if hold:
