@@ -660,3 +660,82 @@ cd projects/smart_glasses && python3 state/merge.py && python3 state/gate_check.
 *本单只交付: 台账 (含机器复核) + 量化流程 + 精度评估方法 + 回归门禁。*
 *★ 不交付: "模型已转换" —— ARS45 板端模型 0 个, 转换 0 次, 板端实测 0 次。*
 *端到端预算 / 锁定变量 / 分区表**一字未改**; 本单只新增 `SW/MODEL_ASSETS.md` 与 `SW/tools/model_asset_check.py` 两个文件。*
+
+---
+
+# §8. ISS-101 新增章节 (2026-10-28) — 量产可用模型清单 + 放行门 L=0 判定标准
+
+> **来源**: ISS-101「量产可用模型清单」(ISS-087 交卷遗留的 STATE 阻塞 · SW-MODEL-B2) · 派活: 项目总工 (main)
+> **完整结论**: `SW/MODEL_RELEASE_GATE.md` (本节是台账侧的同步, 不重复正文)
+> **本节新增台账 2 条 + 阻断项 3 条 (L6/L7/L8) + 实测精度基线 1 组**
+
+## 8.1 ★ 台账新增 2 条 (Apache-2.0 路线的实测产物)
+
+| ID | 平台 | 状态 | 格式 | 大小 (B) | sha256[:16] | 许可 | npu_ready | 备注 |
+|---|---|---|---|---|---|---|---|---|
+| MOD-SSDMBV2-FPNLITE-320-FP32-FULL | candidate | **reference** | ONNX | 12,259,298 | `8709cc23432340f6` | **Apache-2.0** | **False** | ★ TF SavedModel → ONNX **实测 rc=0**; opset 13 / 3304 节点 / 33 算子; 含 NMS 家族 (NonMaxSuppression 90 / TopK 2 / Range 2 / NonZero 1) + 动态 shape → **不可上 NPU**, 定位为 PC 侧 FP32 精度基准 |
+| MOD-SSDMBV2-FPNLITE-320-FP32-HEAD-NPU | candidate | **candidate** | ONNX | 10,967,518 | `6603df1e12391cfc` | **Apache-2.0** | **True** | ★ **NPU 就绪 head 子图** = 裁掉 NMS 后处理 (299 节点 / 18 算子, 高风险算子 0) + 固化静态 shape `[1,320,320,3]`; 与全图输出 **max_abs_diff = 0.000e+00** |
+
+**产物路径**: `SW/artifacts/models/` (两文件均在本仓内, `sha256` 已登记, 复核器 C2/C3 会校验)。
+
+## 8.2 ★ 阻断项新增 3 条 (L6/L7/L8) —— 放行门从"许可维度"扩到"可转换维度"
+
+| 码 | 定义 | 判定方式 | 现状 |
+|---|---|---|---|
+| **L6** | 交付集资产含 **NPU 不支持算子** (NonMaxSuppression/TopK/Range/NonZero) **或 动态 shape** | C10 (算子) + C11 (shape) | 0 ✅ |
+| **L7** | 交付集资产**无实测精度** / 低于门限 (F1@IoU0.5 ≥ 0.30 且 ≥100 张) | C13 | 0 ✅ (F1=0.4346 / 299 张) |
+| **L8** | 交付集**无任何 NPU 就绪产物** (转换链第 1/2 段没跑通) | 全表扫 `npu_ready` | 0 ✅ (1 条 HEAD-NPU) |
+
+**L0 判定的完整定义 (G1~G5)** 见 `SW/MODEL_RELEASE_GATE.md` §3.1:
+**G1 许可 / G2 转换链产出物 / G3 实测精度 / G4 PC 侧推理 / G5 板端产物**。
+★ **L=0 只覆盖 G1~G4; G5 (板端产物 + 板端实测) 目前 [0数据] 不满足**。
+
+## 8.3 ★ 实测精度基线 (第一组真实数字, 之前是 0 数据)
+
+| 项 | 值 | 口径 |
+|---|---|---|
+| 模型 | `ssd_mbv2_fpnlite_320_fp32_full.onnx` | TF OD API SSD-MobileNetV2-FPNLite-320, Apache-2.0 |
+| **Precision** | **0.4521** | 逐类 IoU=0.5 贪心匹配, score≥0.3 |
+| **Recall** | **0.4184** | 同上 |
+| **F1** | **0.4346** | 同上 (TP=907 / FP=1099 / FN=1261) |
+| person 类 | P=0.549 / R=0.532 (TP=372 FP=306 FN=327) | 同上 |
+| 数据集 | COCO val2017 前 299 张 (有标注) | 本地已有 |
+| ⚠️ **不是官方 mAP** | 本机用自写匹配器 (`SW/tools/eval_od_accuracy.py`), **不可与论文 mAP 直接比**; 只用于同口径门限自比 | 量产前须跑满 5000 张 + 官方 COCOeval + 逐类阈值回归 |
+
+**★ 坐标口径坑 (必记)**: `detection_boxes` 是**归一化 [ymin,xmin,ymax,xmax]**, 坐标系是**原图**尺寸。
+乘 resize 尺寸 (320) 会得到**完全错误**的分数 (实测 P=0.0176); 乘**原图宽高**才正确 (P=0.4521)。
+
+## 8.4 ★ 复核器修复 (ISS-101)
+
+| 项 | 说明 |
+|---|---|
+| **C9 dtype bug (高危)** | `smoke_test_onnx()` 原硬编码 `np.float32` 造输入; 而本模型输入 dtype = **uint8** → `INVALID_ARGUMENT` → **好模型被判坏模型** (实测 FAIL=1 / L=1)。已改为按 `session.get_inputs()[0].type` 造输入 |
+| C10 / C11 / C12 / C13 | 新增: NPU 高风险算子 / 静态 shape / `npu_ready` 标记自洽 / 实测精度门限 |
+| 交付集摘要 | 输出新增「★ 交付集里 NPU 就绪且有实测精度的产物: N 条」—— 区分 **L=0** (无已知阻断) 与 **有可用模型** |
+| 新工具 | `SW/tools/cut_postprocessor.py` (裁 NMS) · `SW/tools/fix_static_shape.py` (固化 shape) · `SW/tools/tf2onnx_wrap.py` (NumPy 2.x 垫片) · `SW/tools/eval_od_accuracy.py` (精度评测) |
+
+## 8.5 ★ 交付集现状 (2026-10-28 00:53)
+
+```
+交付集 (candidate/active): 2 条
+  MOD-SSDMBV2-FPNLITE-320-COCO90-TFODAPI      (Apache-2.0, TF SavedModel 源)
+  MOD-SSDMBV2-FPNLITE-320-FP32-HEAD-NPU       (Apache-2.0, NPU 就绪 head 子图) ★
+licensing-hold: 2 条  (yolov5s-640 / yolov8s, AGPL-3.0 未采购 → 禁入交付物)
+quarantined:    4 条
+reference:      5 条
+放行阻断项 (L): 0 条
+```
+
+★ **转换链第 1 段 (TF→ONNX) 与第 2 段 (裁 NMS + 固化 shape) 已实测跑通**;
+★ **第 3 段 (ONNX → NPU 厂商格式) 仍阻塞**: 缺 Art.Galaxy 工具链 + ARS45 chip ID (Q9/Q11);
+★ **板端 INT8 产物仍是 0 个** —— "量产可用模型清单"从**空集**变成**1 条待第 3 段落地的候选**。
+
+## 8.6 ISS-101 复现命令
+
+```bash
+cd projects/smart_glasses
+python3 SW/tools/model_asset_check.py
+# 预期: 资产 13 条 · FAIL 0 · rc=0 · L=0 · 交付集 2 条 · NPU 就绪 2 条
+python3 SW/tools/eval_od_accuracy.py --model SW/artifacts/models/ssd_mbv2_fpnlite_320_fp32_full.onnx --images 300
+# 预期: TP=907 FP=1099 FN=1261 · P=0.4521 R=0.4184 F1=0.4346
+```

@@ -426,12 +426,25 @@ def smoke_test_onnx(path: str, inputs: dict) -> tuple:
         so = ort.SessionOptions()
         so.log_severity_level = 3
         sess = ort.InferenceSession(path, so, providers=["CPUExecutionProvider"])
-        name = sess.get_inputs()[0].name
-        shape = [d if isinstance(d, int) and d > 0 else 1 for d in sess.get_inputs()[0].shape]
-        x = np.zeros(shape, dtype=np.float32)
+        inp = sess.get_inputs()[0]
+        name = inp.name
+        shape = [d if isinstance(d, int) and d > 0 else 1 for d in inp.shape]
+        # ★★ ISS-101 修的 bug: 原实现硬编码 np.float32 造输入, 但**输入 dtype 由模型
+        #   自己声明** —— TF OD API 转出来的 SSD 是 uint8 输入, 喂 float32 直接
+        #   INVALID_ARGUMENT "Unexpected input data type" → 会把好模型误判成坏模型。
+        #   现在按 session 声明的 type 造输入。
+        dt_map = {
+            "tensor(float)": np.float32, "tensor(float16)": np.float16,
+            "tensor(double)": np.float64, "tensor(uint8)": np.uint8,
+            "tensor(int8)": np.int8, "tensor(int32)": np.int32,
+            "tensor(int64)": np.int64, "tensor(bool)": np.bool_,
+        }
+        dt = dt_map.get(inp.type, np.float32)
+        x = np.zeros(shape, dtype=dt)
         outs = sess.run(None, {name: x})
         shapes = [list(o.shape) for o in outs]
-        return True, f"PC 侧 1 帧推理 OK (onnxruntime) · 输出 {shapes}"
+        return True, (f"PC 侧 1 帧推理 OK (onnxruntime, 输入 dtype={inp.type}) "
+                      f"· 输出 {shapes}")
     except Exception as e:  # noqa: BLE001
         msg = str(e).split("\n")[0][:180]
         return False, f"★ PC 侧 1 帧推理失败 → 模型本身是坏的: {msg}"

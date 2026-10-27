@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-10-28 00:56** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-10-28 01:02** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -46,7 +46,7 @@
 
 【Q5 硬指标覆盖】 2/3 个总工报出了 ≥3 类硬指标数字
    hw-lead    5/5 类: ['功耗(W)', '皮肤温度(°C)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)', 'FCCSP 球间距(pitch)']
-   sw-lead    0/5 类: []
+   sw-lead    1/5 类: ['端到端延迟(ms)']
    mech-lead  3/5 类: ['皮肤温度(°C)', '镜腿/镜脚厚度(mm)', 'FCCSP 球间距(pitch)']
 
 【缺口清单】(可直接转成下一轮派活项) —— 3 条
