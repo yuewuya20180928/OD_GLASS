@@ -200,3 +200,19 @@ python3 state/gen_netlist.py && python3 state/gen_schematic_pages.py \
 - **ISS-090** (sw): 时序/信号交叉评审 + ★TMP117 测点定位 + 跨铰链 USB 烧录可行性
 - **P10 充电板页行数据** (重派, 上一轮随死 session 一起没了)
 - **ISS-087 / ISS-089 / ISS-092**: 任务书已补全 → 自动队列可派 (等对应 agent 空出)
+
+### 9.5 ★P10 充电板页落地 (ISS-093 验收)
+
+子 agent 交 `state/p10_rows.json` (56 行 / 19 位号 / 51 条 [官方] + 5 条 [推算]) → 我验收并**裁了它 5 条待裁决**:
+| 待裁决 | 裁决 |
+|---|---|
+VSYS (pin15/16) 的网名 | ★**NC 不接** —— 电池与负载都在镜脚 ⇒ 充电板没有系统侧负载; 充电路径 = IN → 内部 BATFET → BAT → 跨铰链 → 电芯 (反向阻断由 BATFET 提供); 若 TI 要求 VSYS 必接 → 走 J_CHG pin9/10 (记 **ISS-095**) |
+R_STAR_PGND (DNP 会让 PGND 悬空) | ★**必装**, 但 **1A 回流走铜皮不走 0402 0Ω** (0.1V/0.1W) |
+充电 IC 的 I2C 上拉 | ★**必装** (本板自闭环, 挂 REGN 5V; 不跨铰链) |
+D_TVS_VBUS (规格 §7 漏列) | ★**必装** (Type-C 入口 TVS 是标配; VRWM 5-6V, 脉冲额定 ≥3A) |
+NTC 下臂 (datasheet 写 GND, 我接了电芯正极) | ★按 datasheet **三件式接 GND** (电芯负极侧) |
+
+它另外发现的 2 个**主网表缺陷**我一起修了: ① **VBUS_DET 的 1M+1M 分压物理上必须在充电板** —— 充电板 VBUS 不过铰链到主板, 分压放主板 = **这个测点永远采不到电** ② NTC 另一端接 GND。
+它要我动的 3 处也全做了: `U_CHG` 的 BAT/REGN/IINLIM/TS 改显式脚号 (pin13+14 / pin22 / pin10 / pin11) · 15 个新件归 CHG_BOARD · `gen_bom` 的 DNP 计数口径统一。
+
+**收口数字**: netlist **475 行** (10 页) · BOM **316 位号** · `check_netlist` **30/30** · `check_kicad_net` **6/6** · 其余 4 道门 rc=0 · 幂等。

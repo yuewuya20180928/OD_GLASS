@@ -54,7 +54,7 @@
 | VBUS_5V_CHG | C_VBUS_OUT | U_CHG pin1 | C_VBUS_OUT | [待选型] 100µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波电容 (后级, 串联) 位 |
 | VBUS_5V_CHG | C_VBUS_GND | C_VBUS_OUT | C_VBUS_GND | [待选型] 100µF | C | DNP | MAIN_PCB | [推算] |  | π 滤波后级对地电容的信号端 (与 C_VBUS_OUT 同一节点) |
 | VBUS_5V_CHG | U_CHG | NET_VBUS_5V_CHG | U_CHG | BQ25896 | IC | 必装 | CHG_BOARD | [官方] |  | [VBUS_5V_CHG] 1A 单节锂电充电 IC (TI); 输入接 VBUS_5V_F1, BAT 脚接 BAT 轨, STAT/PG 脚回主 PCB (见 P2) |
-| BAT_CHG | U_CHG BAT | RAIL_BAT_CHG | NET_BAT_PROT | 单端 | NET | 必装 | CHG_BOARD | [官方] |  | [BAT_CHG] ★V1.2: 充电电流路径 (1.0-1.5A) 镜框充电板 BQ25896 · 跨铰链 · 镜脚电池; **铰链段不加 π 滤波** (会破坏充电 IC 的环 |
+| BAT_CHG | U_CHG pin13+pin14 | RAIL_BAT_CHG | NET_BAT_PROT | 单端 | NET | 必装 | CHG_BOARD | [官方] |  | [BAT_CHG] ★V1.2: 充电电流路径 (1.0-1.5A) 镜框充电板 BQ25896 · 跨铰链 · 镜脚电池; **铰链段不加 π 滤波** (会破坏充电 IC 的环 |
 | BAT_CHG | RAIL_BAT_CHG | J_CHG pin1 | RAIL_BAT_CHG | 跨铰链 1.5A (双 pin 并联) | NET | 必装 | HINGE | [推算] |  | [BAT_CHG] 充电电流跨铰链 (J_CHG pin1/pin2 并联); 载流/压降/发热核算见 P9 页 |
 | BAT_CHG | J_CHG pin1 | J_CHG pin2 | J_CHG | 跨铰链 1.5A (双 pin 并联) | NET | 必装 | HINGE | [推算] |  | [BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算 |
 | BAT_CHG | J_CHG pin2 | U_BATPROT | NET_BAT_PROT | 单端 | NET | 必装 | HINGE | [官方] |  | [BAT_CHG] 充电电流进镜脚侧电池保护 IC (BQ2970) —— **保护 IC 与电池同板 (镜脚)** |
@@ -72,15 +72,15 @@
 | BAT_CELL_N | BT_432243 B- | U_BATPROT B- | BT_432243 | 432243 3.7V ≥420mAh | CONN | 必装 | MAIN_PCB | [推算] |  | [BAT_CELL_N] ★F2 修正: **电芯负极 · BQ2970 的 B- 脚** (原来电芯只有一个端子 · 电池回路不闭合) |
 | SYS | RAIL_SYS | U_BATPROT | RAIL_SYS | 3.0-4.2V | RAIL | 必装 | MAIN_PCB | [推算] |  | 电源域: 目标 3.0-4.2V / 最大电流 0.55A (330mA×1.5 + 瞬态); **R-F1 裁决: SYS 下限抬到 3.5V**; ★V1.2: **SYS 在 |
 | BAT_CHG | J_CHG | J_CHG pin1 | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | [SYS] ★V1.5 定稿 pin map (1×10p@0.5mm): pin1/pin2=BAT_CHG (充电电流**双 pin 并联**), pin3/pin4=GND  |
-| TS_BAT | U_CHG TS | R_NTC_BAT | NET_TS_BAT | 单端 | NET | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★电池温度检测: 103AT NTC 接 BQ25896 的 TS 脚 (过温/欠温时**硬件直接停充**; 分压网络按 datasheet 三件式) (不依赖  |
-| TS_BAT | R_NTC_BAT | BAT_PROT_CELL | R_NTC_BAT | 103AT NTC ±1% (贴电芯) | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 · **TS 必须跨铰链**  |
+| TS_BAT | U_CHG pin11 | R_NTC_BAT | NET_TS_BAT | 单端 | NET | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★电池温度检测: 103AT NTC 接 BQ25896 的 TS 脚 (过温/欠温时**硬件直接停充**; 分压网络按 datasheet 三件式) (不依赖  |
+| TS_BAT | R_NTC_BAT | GND | R_NTC_BAT | 103AT NTC ±1% (贴电芯, 另一端接电芯负极=系统 GND) | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 · **TS 必须跨铰链**  |
 | TS_BAT | R_TS_PULL | GND | R_TS_PULL | 30.31k ±1% | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压); ★V1.6 挪到**镜脚** (NTC 侧) —— 下拉 |
 | TS_BAT | J_CHG pin8 | R_NTC_BAT | J_CHG | 跨铰链 (高阻) | NET | 必装 | HINGE | [推算] |  | [TS_BAT] ★V1.5 补画: **TS 跨铰链这一段** (V1.2 把电池/NTC 搬镜脚时漏了) · 走 J_CHG pin8 |
-| REGN | U_CHG REGN | R_TS_TOP | U_CHG | BQ25896 内部 5V (REGN) | NET | 必装 | CHG_BOARD | [官方] |  | [REGN] ★V1.6 补: BQ25896 的 **REGN 5V** (内部 LDO 输出, RT1 的参考端) —— 原来 R_TS_TOP 的 REGN 端没有对应节点  |
-| REGN | C_REGN | U_CHG REGN | C_REGN | [待选型] 1µF | C | 必装 | CHG_BOARD | [官方] |  | [REGN] BQ25896 REGN 去耦电容 (datasheet 要求) |
+| REGN | U_CHG pin22 | R_TS_TOP | U_CHG | BQ25896 内部 5V (REGN) | NET | 必装 | CHG_BOARD | [官方] |  | [REGN] ★V1.6 补: BQ25896 的 **REGN 5V** (内部 LDO 输出, RT1 的参考端) —— 原来 R_TS_TOP 的 REGN 端没有对应节点  |
+| REGN | C_REGN | U_CHG pin22 | C_REGN | [待选型] 1µF | C | 必装 | CHG_BOARD | [官方] |  | [REGN] BQ25896 REGN 去耦电容 (datasheet 要求) |
 | GND | C_REGN | GND | C_REGN | [待选型] 1µF | C | 必装 | MAIN_PCB | [官方] |  | [REGN] REGN 去耦电容 地端 |
-| TS_BAT | R_TS_TOP | U_CHG REGN | R_TS_TOP | 5.24k ±1% (RT1: REGN 到 TS) | R | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, 原来只画了 NTC + |
-| IINLIM | U_CHG IINLIM | R_ILIM | R_ILIM | 300Ω ±1% (IINMAX ≈1.07-1.30A) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] ★V1.5 补画: **输入限流电阻** —— BQ25896 的 IINLIM 复位默认 **2048mA** [官方], 不装 = 铰链段被灌 ~1.68A  |
+| TS_BAT | R_TS_TOP | U_CHG pin22 | R_TS_TOP | 5.24k ±1% (RT1: REGN 到 TS) | R | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, 原来只画了 NTC + |
+| IINLIM | U_CHG pin10 | R_ILIM | R_ILIM | 300Ω ±1% (IINMAX ≈1.07-1.30A) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] ★V1.5 补画: **输入限流电阻** —— BQ25896 的 IINLIM 复位默认 **2048mA** [官方], 不装 = 铰链段被灌 ~1.68A  |
 | GND | R_ILIM | GND | R_ILIM | 300Ω ±1% (IINMAX ≈1.07-1.30A) | R | 必装 | MAIN_PCB | [官方] |  | [IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限) |
 | BAT_CHG | J_CHG pin1 | TP_BAT_CHG | TP_BAT_CHG | 跨铰链段压降测点 | TP | 必装 | MAIN_PCB | [推算] |  | [BAT_CHG] ★跨铰链充电电流段压降测点 (1.5A 下压降 = 接触电阻×1.5A); 铰链段发热与压降按结构实际长度核算 (结构总工) |
 | V_CORE | RAIL_V_CORE | U_DCDC_VCORE | RAIL_V_CORE | [待原厂] (典型 0.8-0.9V) | RAIL | 必装 | MAIN_PCB | [官方] | TBD-02 | 电源域: 目标 [待原厂] (典型 0.8-0.9V) / 最大电流 ≥2.0A (0.9W/0.8V×1.5=1.69A); IC TPS62130A; SoC 侧球位号 TBD |
@@ -182,8 +182,8 @@
 | VDD_3V3_IO | C_TEMP | RAIL_VDD_3V3_IO | C_TEMP | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [I2C_A_SCL] TMP117 就近去耦 |
 | GND | C_TEMP | GND | C_TEMP | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [I2C_A_SCL] TMP117 去耦 地端 |
 | VBUS_DET | R_VBUS_DET_1 | R_VBUS_DET_2 | NET_VBUS_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | 方向 充电板→SoC; 电平 0-3.3V (分压); 阻抗 1M+1M 分压 + 100nF; 连接 Type-C VBUS → ADC; 测试点 TP_VBUS |
-| VBUS_5V | RAIL_VBUS_5V | R_VBUS_DET_1 | R_VBUS_DET_1 | 1M ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 VBUS_5V 已归一到源节点] |
-| VBUS_DET | R_VBUS_DET_2 | GND | R_VBUS_DET_2 | 1M ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] 分压下臂 地端 |
+| VBUS_5V | RAIL_VBUS_5V | R_VBUS_DET_1 | R_VBUS_DET_1 | 1M ±1% | R | 必装 | CHG_BOARD | [推算] |  | [VBUS_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 VBUS_5V 已归一到源节点] |
+| VBUS_DET | R_VBUS_DET_2 | GND | R_VBUS_DET_2 | 1M ±1% | R | 必装 | CHG_BOARD | [推算] |  | [VBUS_DET] 分压下臂 地端 |
 | VBUS_DET | C_DET_VBUS | J_CHG pin7 | C_DET_VBUS | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] ADC 滤波电容 (跨铰链侧 (充电板测 VBUS, 高阻分压)) |
 | GND | C_DET_VBUS | GND | C_DET_VBUS | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] ADC 滤波电容 地端 |
 | VBUS_DET | SoC[TBD-01].VBUS_DET | NET_VBUS_DET | NET_VBUS_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] SoC ADC 输入节点 (跨板那一侧) |
@@ -625,9 +625,65 @@
 - ★**温度检测是三件式, 不是两件式**: RT1 5.24k (REGN→TS) + RT2 30.31k (TS→GND) + **103AT NTC ∥ RT2** (datasheet: 0°C→73.25%, 60°C→34.375%)。★并且 **TS 必须跨铰链** —— NTC 贴电芯在镜脚, 而 BQ25896 在镜框充电板 → 走 `J_CHG pin8` (高阻, 无电流)。
 - 电池位置**锁镜脚** (V1.2 裁决) → 电池的过充/过放/过温保护 (BQ2970 + 2×MOS) 也在镜脚, 充电板这边不重复画。
 
-### 器件表 (0 行 netlist 记录)
+### 器件表 (56 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
+| VBUS_5V | J_TYPE_C A4 | D_ESD_TC | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★USB-IF Type-C Cable and Connector Spec R2.0 (2019-08) Table 3-5: A4/A9/B4/B9 四个 VBUS 在座内并 |
+| VBUS_5V | J_TYPE_C A9 | D_ESD_TC | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★USB-IF Type-C Cable and Connector Spec R2.0 (2019-08) Table 3-5: A4/A9/B4/B9 四个 VBUS 在座内并 |
+| VBUS_5V | J_TYPE_C B4 | D_ESD_TC | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★USB-IF Type-C Cable and Connector Spec R2.0 (2019-08) Table 3-5: A4/A9/B4/B9 四个 VBUS 在座内并 |
+| VBUS_5V | J_TYPE_C B9 | D_ESD_TC | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★USB-IF Type-C Cable and Connector Spec R2.0 (2019-08) Table 3-5: A4/A9/B4/B9 四个 VBUS 在座内并 |
+| USB_CC1 | J_TYPE_C A5 | R_CC1 | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★CC1 触点: Type-C Rd 5.1kΩ ±20% 到 GND (R_CC1 已在主网表 P6 第 285/287 行画出, 本行只登记触点归属); 本板只做 Rd, 不上 |
+| USB_CC2 | J_TYPE_C B5 | R_CC2 | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★CC2 触点: Rd 5.1kΩ ±20% 到 GND (R_CC2 已在主网表 P6 第 286/288 行画出, 本行只登记触点归属) |
+| USB_D_P | J_TYPE_C A6 | J_TYPE_C B6 | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★D+ 双份并联 (A6+B6 同一节点): USB-IF Table 3-5 Note 2 要求并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 416 行, 本行只画 Ty |
+| USB_D_N | J_TYPE_C A7 | J_TYPE_C B7 | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★D− 双份并联 (A7+B7 同一节点): 并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 417 行, 本行只画 Type-C 侧焊盘; 不装共模扼流圈 |
+| GND | J_TYPE_C A1 | GND | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★GND 四脚全并联 A1/A12/B1/B12 (USB-IF Table 3-5; 现行网表只写了 A1+A12 的合并写法, B1/B12 两脚没列 = 回流减半); 本页按 |
+| GND | J_TYPE_C A12 | GND | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★GND 四脚全并联 A1/A12/B1/B12 (USB-IF Table 3-5; 现行网表只写了 A1+A12 的合并写法, B1/B12 两脚没列 = 回流减半); 本页按 |
+| GND | J_TYPE_C B1 | GND | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★GND 四脚全并联 A1/A12/B1/B12 (USB-IF Table 3-5; 现行网表只写了 A1+A12 的合并写法, B1/B12 两脚没列 = 回流减半); 本页按 |
+| GND | J_TYPE_C B12 | GND | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★GND 四脚全并联 A1/A12/B1/B12 (USB-IF Table 3-5; 现行网表只写了 A1+A12 的合并写法, B1/B12 两脚没列 = 回流减半); 本页按 |
+| NC | J_TYPE_C A8 | NC | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | DNP | CHG_BOARD | [官方] |  | ★SBU1 不接: USB-IF Table 3-5 Note 3 'Contacts A8 and B8 (SBU1 and SBU2) shall be not connect |
+| NC | J_TYPE_C B8 | NC | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | DNP | CHG_BOARD | [官方] |  | ★SBU2 不接: 同 A8 (USB-IF Table 3-5 Note 3); 本机不做 Alt Mode |
+| GND | J_TYPE_C shield | GND | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | 屏蔽壳 接 GND 单点 (短粗铜皮, 不用细线); 与机壳地的接法待结构总工定 (ISS-065) |
+| VBUS_5V_CHG | U_CHG pin1 | C_VBUS_IC | C_VBUS_IC | 1µF X7R 25V | C | 必装 | CHG_BOARD | [官方] |  | ★BQ25896 pin1 VBUS: 'Place a 1-µF ceramic capacitor from VBUS to PGND and place it as clos |
+| PGND | C_VBUS_IC | U_CHG pin17+pin18 | C_VBUS_IC | 1µF X7R 25V | C | 必装 | CHG_BOARD | [官方] |  | 去耦地端 = BQ25896 PGND (pin17/18) 同一地网; datasheet 'A single point connection is recommended b |
+| PMID | U_CHG pin23 | C_PMID | C_PMID | 10µF X7R 25V | C | 必装 | CHG_BOARD | [官方] |  | ★datasheet: 'put 1µF on VBUS to PGND, and the rest capacitance on PMID to PGND' ⇒ PMID 电容不 |
+| PGND | C_PMID | U_CHG pin17+pin18 | C_PMID | 10µF X7R 25V | C | 必装 | CHG_BOARD | [官方] |  | PMID 电容 地端 (PGND) |
+| PMID | L_CHG | U_CHG pin23 | L_CHG | 2.2µH Isat≥1.5A DCR≤50mΩ | L | 必装 | CHG_BOARD | [官方] |  | 开关电感 一端接 PMID; IRIPPLE=0.29A (见上) ⇒ Isat 选 ≥1.5A; 型号待选型 (询价经项目总工) |
+| SW | U_CHG pin19 | L_CHG | L_CHG | 2.2µH Isat≥1.5A DCR≤50mΩ | L | 必装 | CHG_BOARD | [官方] |  | 开关电感 另一端接 SW 开关节点; 铜箔面积最小化, 远离 TS 分压与 ADC |
+| SW | U_CHG pin20 | U_CHG pin19 | U_CHG | BQ25896 | IC | 必装 | CHG_BOARD | [官方] |  | pin19/20 SW 开关节点 (两脚同网); datasheet: 'Connect the 0.047µF bootstrap capacitor from SW to BT |
+| BTST | U_CHG pin21 | C_BST | C_BST | 47nF 25V | C | 必装 | CHG_BOARD | [官方] |  | ★自举电容 0.047µF from SW to BTST (datasheet pin21 原文) |
+| SW | C_BST | U_CHG pin19 | C_BST | 47nF 25V | C | 必装 | CHG_BOARD | [官方] |  | 自举电容 另一端接 SW |
+| REGN | U_CHG pin22 | R_TS_TOP | R_TS_TOP | 5.24k ±1% (RT1: REGN 到 TS) | R | 必装 | CHG_BOARD | [官方] |  | ★TS 分压上臂 RT1 = 5.24k (datasheet Equation 2 原文), 取自 REGN (BQ25896 内部 LDO 5.0V, 4.8-5.5V, 限流 |
+| TS_BAT | R_TS_TOP | U_CHG pin11 | R_TS_TOP | 5.24k ±1% (RT1: REGN 到 TS) | R | 必装 | CHG_BOARD | [官方] |  | RT1 下端接 TS 网 (与 U_CHG pin11 同网); ★温度检测三件式: RT1 5.24k (充电板 REGN 到 TS) + RT2 30.31k (镜脚 TS 到 |
+| TS_BAT | U_CHG pin11 | J_CHG pin8 | J_CHG | 跨铰链 (高阻) | NET | 必装 | HINGE | [推算] |  | ★TS 跨铰链走 J_CHG pin8 (NTC 在镜脚, BQ25896 在镜框): 源阻抗仅 3-4kΩ ⇒ 跨铰链可用; 安全副产品: TS 线断开时充电板侧只剩 RT1 ⇒ |
+| PSEL | U_CHG pin2 | R_PSEL | R_PSEL | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | PSEL 拉低 = 适配器/DCP (本机无 USB PHY 主机; 拉高会锁 500mA); datasheet: 'High indicates a USB host sour |
+| PGND | R_PSEL | U_CHG pin17+pin18 | R_PSEL | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | PSEL 下拉 地端 (PGND) |
+| PWR_GOOD | U_CHG pin3 | J_CHG pin6 | U_CHG | BQ25896 | IC | 必装 | CHG_BOARD | [官方] |  | ★PG (开漏): LOW = 输入源良好 (VBUS 在 VVBUS_OP 内且 IBATSRC>30mA); 上拉 10k 只放主板侧 (充电板无 3.3V); 主网表 P2  |
+| CHG_STAT | U_CHG pin4 | J_CHG pin5 | U_CHG | BQ25896 | IC | 必装 | CHG_BOARD | [官方] |  | ★STAT (开漏): LOW = 充电中, HIGH = 完成或禁用, 1Hz 闪烁 = 故障; 上拉 10k 只放主板侧; 主网表 P2 第 138 行用的是裸 'U_CHG' |
+| I2C_CHG_SCL | U_CHG pin5 | R_PU_SCL | R_PU_SCL | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | ★I2C 不跨铰链 (PM 裁决) ⇒ J_CHG pin9/pin10 本版留空不接 (仍在主网表 P1 第 17/18 行占位); 上拉位留在充电板本地 (充电板没有 3.3V |
+| REGN | R_PU_SCL | U_CHG pin22 | R_PU_SCL | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | SCL 上拉位的另一端 (REGN 5V; 充电板无 3.3V 逻辑轨) ★裁决 (PM): **必装** —— 充电 IC 的 I2C 本板自闭环 (不跨铰链, 见 J_CHG  |
+| I2C_CHG_SDA | U_CHG pin6 | R_PU_SDA | R_PU_SDA | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | ★同 SCL (I2C 不跨铰链, PM 裁决); ⚠️ 待裁决: 上拉装不装, 建议装 10k 上拉到 REGN (datasheet 原文要求) ★裁决 (PM): **必装* |
+| REGN | R_PU_SDA | U_CHG pin22 | R_PU_SDA | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | SDA 上拉位的另一端 (REGN 5V) ★裁决 (PM): **必装** —— 充电 IC 的 I2C 本板自闭环 (不跨铰链, 见 J_CHG pin9/10 预留); 上拉 |
+| INT_CHG | U_CHG pin7 | R_PU_INT | R_PU_INT | 10k ±1% | R | DNP | CHG_BOARD | [官方] |  | INT 开漏 256µs 脉冲; 本版不跨铰链 (J_CHG 无余量, 状态走 STAT+PG), 留位不装; 若将来要跨铰链, 上拉必须移到主板侧 3.3V 并占用 J_CHG  |
+| REGN | R_PU_INT | U_CHG pin22 | R_PU_INT | 10k ±1% | R | DNP | CHG_BOARD | [官方] |  | INT 上拉位的另一端 (REGN 5V; INT 不跨铰链, 拉高只用于把脚定义住) |
+| OTG_SET | U_CHG pin8 | R_OTG | R_OTG | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | OTG 拉低 = 关 boost 模式 (本机不做 OTG): 'The boost mode is activated when OTG_CONFIG = 1' |
+| PGND | R_OTG | U_CHG pin17+pin18 | R_OTG | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | OTG 下拉 地端 (PGND) |
+| CE_SET | U_CHG pin9 | R_CE | R_CE | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | CE 拉低 = 允许充电 (CHG_CONFIG 复位默认 1): 'CE pin must be pulled High or Low' ⇒ 不得悬空; 拉低的好处 = SoC  |
+| PGND | R_CE | U_CHG pin17+pin18 | R_CE | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | CE 下拉 地端 (PGND) |
+| IINLIM | U_CHG pin10 | IINLIM | U_CHG | BQ25896 | IC | 必装 | CHG_BOARD | [官方] |  | ★pin10 ILIM: R_ILIM = 300Ω ±1% 必装 (已在主网表 P1 第 39/40 行画出, 本行不重复画电阻, 只登记引脚归属); IINMAX = KILI |
+| NC | U_CHG pin12 | NC | U_CHG | BQ25896 | IC | DNP | CHG_BOARD | [官方] |  | QON 不接: datasheet 'The pin contains an internal pull-up to maintain default high logic'; 按 |
+| BAT_CHG | U_CHG pin13 | C_BAT | C_BAT | 10µF X7R 6.3V | C | 必装 | CHG_BOARD | [官方] |  | ★datasheet 'Connect a 10uF closely to the BAT pin' (pin13/14); BAT 脚是跨铰链载流路径起点 |
+| PGND | C_BAT | U_CHG pin17+pin18 | C_BAT | 10µF X7R 6.3V | C | 必装 | CHG_BOARD | [官方] |  | BAT 去耦 地端 (PGND) |
+| BAT_CHG | U_CHG pin14 | J_CHG pin1 | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | 充电电流跨铰链: J_CHG pin1/pin2 双 pin 并联 (每 pin ≤0.75A); 铰链段不装 π 滤波 (会破坏 BQ25896 环路稳定性); 载流/压降/发热 |
+| SYS_CHG | U_CHG pin15 | U_CHG pin16 | U_CHG | BQ25896 | IC | DNP | CHG_BOARD | [官方] |  | ★pin15/16 SYS: 本板不供电 (SYS 在镜脚由 BQ2970 + 2×MOS 产生); ⚠️ 待裁决: 网名用 SYS_CHG 而不是 SYS — 现行网表的 SYS |
+| SYS_CHG | U_CHG pin16 | C_SYS | C_SYS | 20µF 6.3V | C | DNP | CHG_BOARD | [官方] |  | ★C_SYS 留位不装 = 保留 '电池挪镜框' 可回退分支 (将来接 2 根线 + 贴这颗电容即可, 不用改板); 本板 SYS 无负载, 装 20µF 只占 25×10mm 板 |
+| PGND | C_SYS | U_CHG pin17+pin18 | C_SYS | 20µF 6.3V | C | DNP | CHG_BOARD | [官方] |  | SYS 电容 地端 (PGND); DNP 时不占板面 |
+| PGND | U_CHG pin17 | U_CHG pin18 | U_CHG | BQ25896 | IC | 必装 | CHG_BOARD | [官方] |  | ★pin17/18 PGND 功率地 (开关节点回流); 'connect directly to the PGND'; PowerPAD 同接 PGND + ≥6 过孔 (散热焊 |
+| PGND | R_STAR_PGND | U_CHG pin17+pin18 | R_STAR_PGND | 0Ω / 铜皮短接 (PGND 单点星接) | R | 必装 | CHG_BOARD | [官方] |  | ★PGND 与 GND 的单点汇流位 (datasheet: 'A single point connection is recommended between power PGN |
+| GND | R_STAR_PGND | J_TYPE_C A1 | R_STAR_PGND | 0Ω / 铜皮短接 (PGND 单点星接) | R | 必装 | CHG_BOARD | [官方] |  | 星接位的 GND 端 (充电板地 = Type-C GND 四脚 + J_CHG pin3/pin4 回流) ★裁决 (PM): **必装** (DNP 会让 PGND 整个悬空  |
+| NC | U_CHG pin24 | NC | U_CHG | BQ25896 | IC | DNP | CHG_BOARD | [官方] |  | pin24 NC (datasheet: No Connect); 全 24 脚对照: 1 VBUS / 2 PSEL / 3 PG / 4 STAT / 5 SCL / 6 SD |
+| VBUS_5V | D_TVS_VBUS | J_TYPE_C A4 | D_TVS_VBUS | 5V 级单向 TVS [待选型] | D | 必装 | CHG_BOARD | [推算] |  | ⚠️ 待裁决: 规格 §4.3 提到但 §7 连接清单未列的件 (插线尖峰 TVS: VRWM ≥5.0V, 钳位电压 < BQ25896 绝对最大 22V); 位置紧靠 Type |
+| GND | D_TVS_VBUS | J_TYPE_C A1 | D_TVS_VBUS | 5V 级单向 TVS [待选型] | D | 必装 | CHG_BOARD | [推算] |  | TVS 地端 (与座侧 GND 同网) ★裁决 (PM): **必装** (Type-C 入口 TVS 是标配); VRWM 5-6V 档, **脉冲电流额定 ≥3A** (PD  |
+| TS_BAT | TP_TS | U_CHG pin11 | TP_TS | 测试点 | TP | 必装 | CHG_BOARD | [推算] |  | TS 电压测点 (调 TS 分压 / 验证 NTC 跨铰链通断): 0°C 应读 ~3.663V (73.25% REGN), 60°C 应读 ~1.719V (34.375% R |
 
 ---
 

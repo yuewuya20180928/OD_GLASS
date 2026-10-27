@@ -58,6 +58,12 @@ CHG_BOARD_REFS = {
     "J_TYPE_C", "D_ESD_TC", "FB_VBUS", "C_VBUS_IN", "C_VBUS_OUT", "U_CHG",
     "TP_VBUS", "R_CC1", "R_CC2", "R_TS_TOP",
     "NET_VBUS_5V_CHG",
+    # ★V1.6: P10 充电板页新增的件 (BQ25896 外围) 全在镜框充电板
+    "R_PSEL", "R_CE", "R_OTG", "R_PU_SCL", "R_PU_SDA", "R_PU_INT", "R_STAR_PGND",
+    "C_VBUS_IC", "C_PMID", "C_BST", "C_BAT", "C_SYS", "L_CHG", "D_TVS_VBUS", "TP_TS",
+    # ★它发现的缺陷: VBUS_DET 的 1M+1M 分压物理上必须在**充电板**
+    #   (充电板 VBUS 不过铰链到主板 → 分压放在主板 = 采不到电)
+    "R_VBUS_DET_1", "R_VBUS_DET_2",
 }
 
 PAGES = {
@@ -204,7 +210,7 @@ def build_p1(by_id, spec):
     #   MECH_BUDGET: 电池 4.12cc **镜框装不下** · 电池在镜脚; 充电板 (Type-C + BQ25896) 按 ISS-014 决策 5 在镜框
     #   ⇒ **跨铰链的大电流是充电电流 (1.0-1.5A), 不是 SYS (0.55A)** · SYS 全程在镜脚产生, 不过铰链 ✅
     #   ⇒ 电池保护 IC (BQ2970) + 2×MOS 与电池同板 (镜脚) · 保护回路短, 更对
-    add("P1", "BAT_CHG", "U_CHG BAT", "RAIL_BAT_CHG", "NET_BAT_PROT", "单端", "NET", "必装",
+    add("P1", "BAT_CHG", "U_CHG pin13+pin14", "RAIL_BAT_CHG", "NET_BAT_PROT", "单端", "NET", "必装",
         "[官方]", "",
         "[BAT_CHG] ★V1.2: 充电电流路径 (1.0-1.5A) 镜框充电板 BQ25896 · 跨铰链 · 镜脚电池; "
         "**铰链段不加 π 滤波** (会破坏充电 IC 的环路稳定性); 靠双 pin 并联 + 载流铜箔 + 压降核算", "C-03")
@@ -274,30 +280,30 @@ def build_p1(by_id, spec):
         "★pin 编号为**本版自拟**", "C-02")
 
     # ---- ★V1.1 补画 1: 电池 NTC 接 BQ25896 的 TS 脚 (硬件停充, 安全项, V1 漏画) ----
-    add("P1", "TS_BAT", "U_CHG TS", "R_NTC_BAT", "NET_TS_BAT", "单端", "NET", "必装",
+    add("P1", "TS_BAT", "U_CHG pin11", "R_NTC_BAT", "NET_TS_BAT", "单端", "NET", "必装",
         "[官方]", "",
         "[TS_BAT] ★电池温度检测: 103AT NTC 接 BQ25896 的 TS 脚 (过温/欠温时**硬件直接停充**; 分压网络按 datasheet 三件式) "
         "(不依赖 SoC, 属安全项); 与 P2 的 SoC 侧数字温度计 U_TEMP 是两回事, 不能互相替代", "C-01")
-    add("P1", "TS_BAT", "R_NTC_BAT", "BAT_PROT_CELL", "R_NTC_BAT", "103AT NTC ±1% (贴电芯)",
+    add("P1", "TS_BAT", "R_NTC_BAT", "GND", "R_NTC_BAT", "103AT NTC ±1% (贴电芯, 另一端接电芯负极=系统 GND)",
         "R", "必装", "[官方]", "",
         "[TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 "
         "· **TS 必须跨铰链** (J_CHG pin8, 高阻无电流); NTC 按 BQ25896 datasheet 取 **103AT** "
-        "(与 30.31k 并联构成温度检测网络)", "C-01")
+        "(与 30.31k 并联构成温度检测网络); ★V1.6 修正: NTC 另一端按 datasheet 三件式接 **GND** (电芯负极侧), 原来接电芯正极 = 与分压公式不符", "C-01")
     add("P1", "TS_BAT", "R_TS_PULL", "GND", "R_TS_PULL", "30.31k ±1%", "R", "必装", "[官方]", "",
         "[TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压); ★V1.6 挪到**镜脚** (NTC 侧) —— "
         "下拉放在连接器远端, FPC 漏电流不进入分压 (FPC 漏电 µA 级, 30k 下拉远大于它)", "C-01")
     add("P1", "TS_BAT", "J_CHG pin8", "R_NTC_BAT", "J_CHG", "跨铰链 (高阻)",
         "NET", "必装", "[推算]", "",
         "[TS_BAT] ★V1.5 补画: **TS 跨铰链这一段** (V1.2 把电池/NTC 搬镜脚时漏了) · 走 J_CHG pin8", "C-01")
-    add("P1", "REGN", "U_CHG REGN", "R_TS_TOP", "U_CHG", "BQ25896 内部 5V (REGN)", "NET",
+    add("P1", "REGN", "U_CHG pin22", "R_TS_TOP", "U_CHG", "BQ25896 内部 5V (REGN)", "NET",
         "必装", "[官方]", "",
         "[REGN] ★V1.6 补: BQ25896 的 **REGN 5V** (内部 LDO 输出, RT1 的参考端) —— 原来 R_TS_TOP 的"
         " REGN 端没有对应节点 · 导出后一脚悬空; 同时补 REGN 去耦电容位", "C-01")
-    add("P1", "REGN", "C_REGN", "U_CHG REGN", "C_REGN", "[待选型] 1µF", "C",
+    add("P1", "REGN", "C_REGN", "U_CHG pin22", "C_REGN", "[待选型] 1µF", "C",
         "必装", "[官方]", "", "[REGN] BQ25896 REGN 去耦电容 (datasheet 要求)", "C-01")
     add("P1", "GND", "C_REGN", "GND", "C_REGN", "[待选型] 1µF", "C",
         "必装", "[官方]", "", "[REGN] REGN 去耦电容 地端", "C-01")
-    add("P1", "TS_BAT", "R_TS_TOP", "U_CHG REGN", "R_TS_TOP", "5.24k ±1% (RT1: REGN 到 TS)",
+    add("P1", "TS_BAT", "R_TS_TOP", "U_CHG pin22", "R_TS_TOP", "5.24k ±1% (RT1: REGN 到 TS)",
         "R", "必装", "[官方]", "",
         "[TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, "
         "原来只画了 NTC + 10k 下拉 = 分压比完全不对 (datasheet: 0°C·73.25%, 60°C·34.375%)", "C-01")
@@ -306,7 +312,7 @@ def build_p1(by_id, spec):
     #   不装这颗电阻 · 铰链段可能被灌 ~1.68A (ICHG≈0.822×IIN) · 铰链发热 + 压降失控。
     #   装 300Ω · IINMAX = KILIM/RILIM ≈ 1.07-1.30A · ICHG ≈ 0.88-1.07A (ISS-091 核算输入)
     #   ⇒ 换料不换板: 若结构核算说铰链只吃 1.0A, 改 390Ω · ICHG 0.67-0.82A
-    add("P1", "IINLIM", "U_CHG IINLIM", "R_ILIM", "R_ILIM", "300Ω ±1% (IINMAX ≈1.07-1.30A)",
+    add("P1", "IINLIM", "U_CHG pin10", "R_ILIM", "R_ILIM", "300Ω ±1% (IINMAX ≈1.07-1.30A)",
         "R", "必装", "[官方]", "",
         "[IINLIM] ★V1.5 补画: **输入限流电阻** —— BQ25896 的 IINLIM 复位默认 **2048mA** [官方], "
         "不装 = 铰链段被灌 ~1.68A (ICHG≈0.822×IIN), 发热/压降失控; 300Ω 给 ICHG≈0.88-1.07A; "

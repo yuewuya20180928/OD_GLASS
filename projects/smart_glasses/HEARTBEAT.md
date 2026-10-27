@@ -1,3 +1,16 @@
+# 2026-10-27 19:50 GMT+8 — 原理图 V1.6 收口: P10 充电板页落地 + 4 条裁决 + 2 个主网表缺陷
+
+**唯一跟踪表**: `PROJECT_TRACKER.md` §(1.29) · **变更记录**: `HW/SCHEMATIC_V1_1_CHANGELOG.md` §九
+
+**19:30-19:50 做了什么**:
+- **P10 充电板页落地** (ISS-093 验收): 子 agent 交 56 行数据 → **它的 5 条待裁决我全裁了** (VSYS→NC 不接 · PGND 必装但走铜皮 · I2C 上拉必装 · TVS 必装 · NTC 下臂按 datasheet 接 GND); **它另外发现的 2 个主网表缺陷也修了** (① VBUS_DET 分压物理上必须在充电板, 放主板 = 这个测点永远采不到电 ② NTC 另一端接 GND)
+- **门禁**: check_netlist **30/30** (P10 页 2 条已转绿) | check_kicad_net **6/6** | issue_check/merge/gate/daily rc=0 | 幂等
+- **规模**: netlist **475 行 / 10 页** · BOM **316 位号** · 新增登记 ISS-095 (待 TI 确认 VSYS 是否必接)
+
+**在跑**: ISS-091 (mech 铰链 1.0A 载流核算 + R_ILIM 档位表) · ISS-090 (sw 时序评审 + TMP117 测点)
+**待派**: ISS-087 (sw 模型许可) · ISS-089 (mech 硬件交叉评审) · ISS-092 (mech 检修口)
+**🔴 等老板**: 板宽 12 vs 15mm · 跨铰链大电流 (ISS-091 出档位表后拍) · 原厂 4 条 + 追加问 (含 ISS-095) · 5 条口径 · 3 封草稿 · 打印包开打
+
 # 2026-10-27 19:30 GMT+8 — 机制修复 (9 小时空转的根因) + 复审处理 + 导出器第三次重写
 
 **唯一跟踪表**: `PROJECT_TRACKER.md` §(1.29) · **变更记录**: `HW/SCHEMATIC_V1_1_CHANGELOG.md` §九

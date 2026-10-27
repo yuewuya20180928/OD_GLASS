@@ -125,7 +125,13 @@ def main() -> int:
     no_status = [ref for ref, b in bom.items() if not b["procurement"]]
     if no_status:
         fails.append(f"无采购状态的位号: {no_status[:5]}")
-    dnp_net = len({r["ref"] for r in rows if r.get("ref") and r.get("dnp") == "DNP"})
+    # ★口径与 BOM 侧一致 (2026-10-27 19:5x, P10 子 agent 指出): **所有行都 DNP 才算不装**
+    by_ref_dnp: dict[str, set] = {}
+    for r in rows:
+        ref = (r.get("ref") or "").strip()
+        if ref:
+            by_ref_dnp.setdefault(ref, set()).add(r.get("dnp") or "")
+    dnp_net = sum(1 for v in by_ref_dnp.values() if v == {"DNP"})
     dnp_bom = sum(1 for b in bom.values() if b["dnp"] == "DNP")
     if dnp_net != dnp_bom:
         fails.append(f"DNP 位号数不一致: netlist {dnp_net} vs BOM {dnp_bom}")
