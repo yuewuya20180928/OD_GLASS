@@ -1,12 +1,16 @@
 agent: hw-lead
 role: 硬件总工
-updated_at: '2026-10-25T09:34:04+08:00'
+updated_at: '2026-10-27T19:35:00+08:00'
 updated_by: hw-lead
 status:
   phase: P2(原理图/BOM)+可靠性评审
-  progress_pct: 46
+  progress_pct: 48
   health: red
-  summary: '"ISS-081闭:SoC最小引脚集C-min=41/C-base=57/C-max=91球(45-50目标成立);球数与封装判为非风险(最保守封装68球>C-base57,满阵列320球余量3.5x);逃线p>=0.4mm交错dog-bone够不需via-in-pad,p=0.30因HDI一票否决;6层够4层无解;新增14条interface_claims+2条needs+答mech-lead(iss081_pin_budget_carrier→BTB按60位+载板16x16);真风险只剩引脚→功能映射(球位图,不可自证);实测:41/57/91球与net数62/152由脚本实跑"'
+  summary: ISS-077闭:功耗预算V3按官网250mW口径换基准(模型常量沿用V2未改)。SoC域400-660->300-610mW(中位500/M1,550/M2保守=V2原值);V2乐观分支C反推s=-20mW物理不成立作废;下界300mW由s>=50且x>=60推出。满载整机0.55-1.01W无桥(中0.82)/0.65-1.31W有桥(中1.02);皮肤两口径:镜腿内60.1/70.1C
+    vs 整机上界76.3/86.3C(差额16.2C=镜框侧发热自洽);R11维持红高;43C<->0.16W等模型常数不变;待机B(0.05W)+f10%=41.4-42.4C仍进红线。★新增选型阻塞(b):TPS62130A
+    Vout0.9-6V[官方]覆盖不了V_CORE0.65-0.9V[媒体百科](覆盖率28.6%),同封装四颗皆0.9V起换料无解->确认0.65V则换封装(牵连FCCSP逃线/板宽,与ISS-078耦合);电流侧2.13-4.00x宽裕,压差100%占空比无dropout。电池1h
+    198-365/234-473mAh->镜腿7.3mm锁死值不变(厚度被电芯最小档4.6mm锁住非被功耗)。充电域纠正:2048mA是REG04的ICHG复位默认(非REG00),R_ILIM=300R->IINMAX1.07-1.30A/CC0.88-1.07A;充电与满载互斥->0.8W不进满载,相对占比65%->78-97%->充电必须摘下眼镜结论强化。★跨域耦合:官网250mW大概率依赖0.65V档(P_dyn~C*V^2*f),0.65V能不能用同时卡功耗账与DC-DC选型->原厂问询优先级提高。新增18条interface_claims+2条artifact;未改MECH/SW/tracker/其它HW文件,未碰他人分片,未联系原厂;ISS-077已置fixed(verify_by保持main,verify_result/date未动);merge
+    rc=0+gate rc=0(Q1 18/18)
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -32,6 +36,23 @@ artifacts:
   summary: 'ISS-081 交付: SoC 最小引脚集 C-min=41/C-base=57/C-max=91 球 (45-50 目标成立, 41<=45); 球数非风险 (最保守封装 68
     球 >= C-base 57, 满阵列 320 球余量 3.5x); 逃线 p>=0.4mm 交错 dog-bone 够, 不需要 via-in-pad; 6 层够/4 层无解; 真风险只剩 引脚->功能映射
     (球位图, 不可自证); 含可复现脚本'
+- path: HW/POWER_BUDGET_V3.md
+  kind: budget
+  version: v3.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-077 交付: 功耗预算 V3 (官网 250mW 口径换基准, 模型常量沿用 V2 未改)。SoC 域 400-660 -> 300-610mW (中位 500 M1 /
+    550 M2 保守); V2 乐观分支 C 反推 s=-20mW 物理不成立 -> 作废; 下界 300mW 由 s>=50 且 x>=60 推出。满载整机 0.55-1.01W (无桥 中位0.82)
+    / 0.65-1.31W (有桥 中位1.02); 皮肤两口径 镜腿内 60.1/70.1C vs 整机上界 76.3/86.3C (差额16.2C = 镜框侧发热自洽); R11 维持红高。新增选型阻塞:
+    TPS62130A Vout 0.9-6V 覆盖不了 V_CORE 0.65-0.9V (覆盖率28.6%), 同封装四颗皆 0.9V 起换料无解 -> 确认则换封装 (牵连 FCCSP 逃线/板宽);
+    电流侧 2.13-4.00x 宽裕。电池 1h 198-365/234-473mAh -> 镜腿 7.3mm 锁死值不变。充电域按 CHARGE_BOARD_SPEC 2.8 纠正: 2048mA
+    是 REG04 ICHG 复位默认 (非 REG00), R_ILIM=300R -> IINMAX 1.07-1.30A / CC 0.88-1.07A; 充电与满载互斥 -> 0.8W 不进满载,
+    相对占比 65% -> 78-97% -> 充电必须摘下眼镜结论强化'
+- path: HANDOFF/2026-10-27_hw-lead_功耗预算V3_ISS077.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-077 交接单 (B1-B6 六块齐全): 结论=换基准不翻案; B5 列 8 条未决 (其中 V_CORE DVFS 档位表建议提到第二轮邮件第2位, 因它同时卡 DC-DC
+    选型与功耗账)'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -347,6 +368,87 @@ interface_claims:
   value: 11ball+52mm2+1bridge
   note: 双显示路径hedge代价; Q16确认原生DSI则立刻可省
   ref: HW/SOC_PIN_BUDGET.md#1.3
+- key: soc_power_budget_v3
+  value: 300-610mW
+  note: SoC 域 (芯片级含片上 DDR) V3 区间; 中位 500mW (M1 同工况) / 550mW (M2 保守); 下界 300mW 由 s>=50mW 且 x>=60mW 推出,
+    V2 的 400mW 下界作废
+  ref: HW/POWER_BUDGET_V3.md#2.5
+- key: soc_power_mid_v3
+  value: 500mW
+  note: M1 口径 (官网 250mW 与媒体 300mW 同工况); M2 口径 (官网那档不带 EIS) 中位 550mW = V2 原值; 待原厂确认
+  ref: HW/POWER_BUDGET_V3.md#2.4
+- key: full_load_total_v3_nobridge
+  value: 0.55-1.01W
+  note: 满载整机 (SoC域+桥0+外设150-300mW+光机98mW); 中位 0.82W
+  ref: HW/POWER_BUDGET_V3.md#3.1
+- key: full_load_total_v3_bridge
+  value: 0.65-1.31W
+  note: 满载整机含 DP->DSI 桥 100-300mW; 中位 1.02W
+  ref: HW/POWER_BUDGET_V3.md#3.1
+- key: temple_heat_v3_nobridge
+  value: 0.30-0.61W
+  note: 镜腿内发热量 (SoC域+桥) 无桥; 中位 0.50W; 做结构决策用这个
+  ref: HW/POWER_BUDGET_V3.md#3.1
+- key: temple_heat_v3_bridge
+  value: 0.40-0.91W
+  note: 镜腿内发热量含桥; 中位 0.70W
+  ref: HW/POWER_BUDGET_V3.md#3.1
+- key: skin_temp_full_v3
+  value: 60.1C
+  note: 满载皮肤侧 镜腿内口径 (主模型 50.13 K/W) 无桥中位; 有桥 70.1C; 红线 43C; R11 维持红高
+  ref: HW/POWER_BUDGET_V3.md#4.1
+- key: skin_temp_full_v3_upper
+  value: 76.3C
+  note: 满载皮肤侧 整机上界口径 无桥中位; 有桥 86.3C; 与镜腿内口径差额恒为 16.2C = 镜框侧发热 (光机98+外设225mW) x50.13
+  ref: HW/POWER_BUDGET_V3.md#4.1
+- key: skin_temp_duty_b
+  value: 41.4C
+  note: 方案C 待机B 0.05W + f=10% 触发 -> 41.4-42.4C, 唯一进 43C 红线的路径; 待机A 0.15W -> 45.9-46.9C 仍超 3-4C
+  ref: HW/POWER_BUDGET_V3.md#4.2
+- key: battery_cap_1h_v3_nobridge
+  value: 298mAh
+  note: 1h 口径中位档 (无桥); 全档 198-365mAh; 下界档热学已否决只是数学下界
+  ref: HW/POWER_BUDGET_V3.md#5.1
+- key: battery_cap_1h_v3_bridge
+  value: 370mAh
+  note: 1h 口径中位档 (有桥); 全档 234-473mAh
+  ref: HW/POWER_BUDGET_V3.md#5.1
+- key: temple_thickness_v3
+  value: 7.3mm
+  note: 老板锁死值, 本轮未改; V3 容量档仍落 4.3-4.6mm 薄电芯 -> 厚度影响=0; 厚度实际被电芯最小档 4.6mm 而非功耗锁住
+  ref: HW/POWER_BUDGET_V3.md#5.2
+- key: vcore_range
+  value: 0.65-1.0V
+  note: V_CORE 工作电压范围 (DVFS) 媒体百科级; 上界 1.0V 顶格; 与 TPS62130A Vout 0.9-6V 交集只有 0.1V (覆盖率28.6%)
+  ref: HW/POWER_BUDGET_V3.md#6.1
+- key: dcdc_vcore_part
+  value: TPS62130A
+  note: V_CORE DC-DC 3A VQFN-16 3x3; Vout 0.9-6V 覆盖不了 0.65-0.9V 段 -> 选型前提待原厂确认; 同封装 TPS62130/62140/62150
+    Vout 下限皆 0.9V 换料无解 -> 确认 0.65V 则需换封装
+  ref: HW/POWER_BUDGET_V3.md#6.2
+- key: dcdc_vcore_iout_req
+  value: 1.408A
+  note: 最坏角 (0.61W @0.65V 含 x1.5 裕量); 器件 3A -> 2.13x 余量; 压差侧 SYS 3.5-4.2V 且器件支持 100% 占空比无 dropout 风险
+  ref: HW/POWER_BUDGET_V3.md#6.3
+- key: sys_rail_current_v3
+  value: 0.415A
+  note: SYS 轨电流中位档 (有桥满载 1.02W); 无桥 0.334A; 极端档 (有桥上界 1.31W @ SYS 3.5V) = 0.561A 击穿 0.55A 上限 -> 待 PM 与
+    R-F1 一起裁决
+  ref: HW/POWER_BUDGET_V3.md#9
+- key: chg_input_limit
+  value: 1.07-1.30A
+  note: R_ILIM=300R -> IINMAX min/typ/max; CC 段电池电流 0.88-1.07A; 390R -> 0.82-1.00A / CC 0.67-0.82A; R_ILIM
+    是必装件
+  ref: HW/CHARGE_BOARD_SPEC.md#2.4
+- key: chg_ichg_reset_default
+  value: 2048mA
+  note: REG04 (Fast Charge Current) 复位默认值, 非 REG00; REG00 (IINLIM) 复位默认 500mA, PSEL=Low 源检测后改写 3.25A;
+    实际上限=min(ILIM 脚设定, IINLIM 寄存器设定)
+  ref: HW/CHARGE_BOARD_SPEC.md#2.8
+- key: chg_domain_excluded_from_full_load
+  value: 'true'
+  note: 充电与满载互斥 (老板已拍板充电禁 OD) -> 0.8W 耗散不进满载三档; 但相对满载整机占比 65% -> 78-97% -> 充电必须摘下眼镜结论强化
+  ref: HW/POWER_BUDGET_V3.md#7.3
 open_questions:
 - id: HW-Q1
   to: main

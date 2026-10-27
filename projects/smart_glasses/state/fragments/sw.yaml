@@ -6,11 +6,10 @@ status:
   phase: P2(方案设计)
   progress_pct: 46
   health: red
-  summary: '10-27 ISS-037 交卷: SW/MODEL_ASSETS.md v1.0 (模型资产台账 10 条 + INT8 量化流程 + 量化精度评估 L0~L4 + 模型变更回归
-    R-01~R-14) + SW/tools/model_asset_check.py (机器复核, 60 项判定 rc=0)。★[实测]查出: 3 份同名 yolov5s-sim sha256 互不相同
-    (clean/v2 逐字节相同, 输入 320/320/640) → 立 唯一 ID + 版本只认 sha256 两条硬规则; 2 条 .nb 的 NBG chip ID = 0x10000020
-    (错, A733 真值 0x1000003B) → 隔离作废; 许可栏 yolov5s-sim 系 [0数据] + yolov8s 实测 AGPL-3.0 → 放行阻断项 L=2。★ARS45 板端模型
-    0 个 / 转换 0 次 / 板端实测 0 次; 端到端预算与锁死变量一字未改。健康度仍 red: 主因是原厂 3 个决定性 0 数据 (工具链/chip ID/板端耗时) + 无板'
+  summary: '10-27 ISS-090 交卷: SW/SW_TIMING_REVIEW.md (软件侧交叉评审: 上电时序/充电回读链/TMP117测点/跨铰链USB) + SW/tools/timing_check.py
+    (21项自检 rc=0) + 交接单. 关键: 复位释放时刻不由硬件决定 (监督器不盯V_CORE + EN/SS/CT脚0条 + PG悬空 + RC注记差90.9倍) ⇒ 不通过; TMP117测点已定案
+    (镜脚贴皮肤面, 皮肤口径四档); 跨铰链USB有条件可行但三个硬伤, 量产建议改镜脚有线; ★网表无硬件断电通路 ⇒ ''关机''=软件深睡. 15条SW返工点(9条自主发现)+9条CR改动请求.
+    健康度仍 red: 原厂3个决定性0数据 + 无板 + 无硬件断电通路'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -71,6 +70,26 @@ artifacts:
   summary: '模型资产登记检查器: 逐条核对存在/大小/sha256[:16]/许可/opset/输入shape/NBG头(magic VPMN + format + chip ID 小端uint32)/板端15MiB槽位/重复sha256组;
     产出量化放行阻断项 L1许可未知 L2超槽 L3chipID L4AGPL; --new 模式打印新模型台账行骨架; --json 机读供门禁。★[实测](10-27): 10条资产60项判定 rc=0,
     放行阻断项 L=2'
+- path: SW/SW_TIMING_REVIEW.md
+  kind: review
+  version: v1.0
+  updated_at: '2026-10-27'
+  summary: '★ISS-090 软件侧交叉评审正文 (时序/信号/电源时序): 复位释放逐段拆解 (轨爬升 0数据 + 监督器 20ms + RC 1.324ms) / 5 条上电不通过 (含
+    RC 注记差 90.9 倍、U_SUPV 分压 0Ω 短路风险、EN/SS/CT/MR 全网表 0 条、两条 1.8V 轨共驱复位网、PG 未接) / 充电回读链 (上拉板级归属矛盾 + ADC
+    500kΩ/451ms/漏电 15.2%FS) / ★TMP117 测点定案 + 四档温控 + 失效安全 / 跨铰链 USB 三个硬伤 + 量产改镜脚有线刷写器 / 15 条 SW 返工点 (9
+    条自主发现) + 9 条改动请求 CR-1~CR-9'
+- path: SW/tools/timing_check.py
+  kind: tool
+  version: v1.0
+  updated_at: '2026-10-27'
+  summary: '本文全部可算数字的机械复核器 (21 项自检, 期望 SELFTEST 21/21 rc=0): 复位 RC / 监督器分压与延时 / I2C 上升沿 / ADC 检测通道 / TMP117
+    / 跨铰链 USB 刷写时间 / 皮肤温度档位 / 无断电通路'
+- path: HANDOFF/2026-10-27_sw-lead_时序交叉评审.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-27'
+  summary: 'ISS-090 交接单 (B1-B6 六块齐全): 8 条结论摘要 / 16 行验收自评 / 证据分级 (实测21·官方7·推算19·0数据9) / 16 条接口取值 / 8 条未决项
+    (TBD-01/02/08/10/12 + hw 9 项 + 结构 3 项 + 裁决 3 项) / 6 条自证命令'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -138,6 +157,30 @@ blockers:
   - vendor
   - main
   - boss
+  waiting_since: '2026-10-27'
+- id: SW-TIM-B1
+  desc: '★ISS-090: 复位释放时刻不由已画出的器件决定 —— 监督器只监督 V_SOC_IO 不监督 V_CORE; 两路 DC-DC 的 PG 只引到测试点 (无上拉/不参与复位); 9
+    颗供电器件的 EN/SS 脚与监督器 CT 脚 在网表里 0 条; U_SUPV 分压是两颗 0Ω 位 (同时装 = V_SOC_IO 短路); 网表 RC 注记 ''τ=100ms'' 实为 1.1ms
+    (差 90.9×) ⇒ SW 的 S2 救砖时序表与启动自检都要按保守假设重写'
+  severity: high
+  needs_from:
+  - hw-lead
+  - vendor
+  waiting_since: '2026-10-27'
+- id: SW-TIM-B2
+  desc: '★ISS-090: 网表里没有任何硬件断电通路 (负载开关/电源开关 = 0 颗, 电池经 BQ2970 直连 SYS) ⇒ ''关机''只能是软件深睡, 所有轨带电 ⇒ 售后 ''长按10s=关机''
+    / 老板锁死的 ''待机<0.05W'' / 关机充电指示灯 三条口径都要重定义 (待项目总工裁决)'
+  severity: high
+  needs_from:
+  - main
+  waiting_since: '2026-10-27'
+- id: SW-TIM-B3
+  desc: '★ISS-090: SoC 侧没有任何 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失 ⇒ S2 救砖链路 的成立性未验; 且 CONN_USB 只有 1 个
+    GND pin (违反 ISS-085 自定规则), Type-C 侧 D+/D− 无独立 ESD (一次 ESD 就能打死唯一的救砖口) ⇒ 三个硬伤修掉前, S2 只能判未验'
+  severity: high
+  needs_from:
+  - vendor
+  - hw-lead
   waiting_since: '2026-10-27'
 needs_from:
 - key: q1_latency_scope
@@ -263,6 +306,48 @@ needs_from:
     shape'
   since: '2026-10-27'
   due: '2026-10-29'
+- key: sw_reset_timing_spec
+  to: vendor
+  item: '★TBD-12 追加问 (请项目总工并进第二轮邮件, 我不外发): ① RESET 释放要求 (拉低最少多久/释放前各轨须稳定多久) ② 内部上电顺序与内部 DCDC 同步机制 ③ 是否提供
+    PG 输入 ④ 是否带片上温度传感器 (能否读, 是 Tj 还是近似) ⑤ BOOT 脚有效电平与所属电源域 ⑥ RESET/BOOT 脚电源域是否 = V_SOC_IO'
+  since: '2026-10-27'
+  waiting_on: vendor
+  due: '2026-10-29'
+- key: sw_usb_phy_spec
+  to: vendor
+  item: '★TBD-10 追加问 (请项目总工并进第二轮邮件): ① USB 设备控制器是 FS(12Mbit/s) 还是 HS(480Mbit/s) ② ★是否需要 USB VBUS 连接 (网表里
+    SoC 侧无任何 VBUS 线 ⇒ 枚举前提缺失, 直接决定 S2 救砖链路成不成立) ③ BOOT 态枚举特征 VID:PID (S2 证据 E1)'
+  since: '2026-10-27'
+  waiting_on: vendor
+  due: '2026-10-29'
+- key: sw_reset_hw_changes
+  to: hw-lead
+  item: '★9 项硬件改动请求 (经项目总工转达): P0-1 两路 DC-DC 的 PG 并联进复位链 (开漏可线与 + 上拉 + 1 颗 N-MOS 做 AND, 零新增 IC 级别, 不依赖
+    TBD-12 也能定住时序; 先核 TPS62130A PG 极性) P0-2 U_SUPV 分压改实值 + 装配规则写死 (两颗 0Ω 位同时装 = V_SOC_IO 对地短路) P0-3 补
+    EN/SS/CT/MR (现全网表 0 条) P1-4 CONN_USB pin4 改 GND (现在只有 1 个地脚, 违反 ISS-085 自定规则) P1-5 Type-C 侧 D+/D−
+    补 ESD P1-6 镜脚加 USB pogo 4 点 (可 DNP) P1-7 BOOT 加 0Ω 跳线位 P1-8 ADC 分压 1M→100k/47k (现 500kΩ 源阻抗/451ms
+    建立/漏电 15.2%FS) P1-9 U_TEMP note 补物理测点 (镜脚 PCB 贴皮肤面, SoC 投影 ≤10mm)'
+  since: '2026-10-27'
+  due: '2026-10-28'
+- key: sw_temp_mount_point
+  to: mech-lead
+  item: 'TMP117 测点我已定 (镜脚主 PCB 贴皮肤面, SoC 投影 ≤10mm) ⇒ 需要结构给: ① 镜脚贴皮肤面的确切位置 (TMP117 贴装落点) ② 金属骨架/石墨与镜脚 PCB
+    的热隔离边界 (别让传感器被烤热) ③ 光机 (镜框正中, 鼻梁上方) 能否给温度遥测 —— 没有它则镜框侧 43°C 无任何监控手段 (需 JBD 接口)'
+  since: '2026-10-27'
+  due: '2026-10-28'
+- key: sw_poweroff_semantics
+  to: main
+  item: '★请项目总工裁决 3 项: ① ''关机'' 语义 = 软件深睡 (硬件无断电通路) 是否接受 —— 连带 FRAMEWORK/AFTERSALES.md 的 ''长按10s=关机''
+    与老板锁死的 ''待机<0.05W'' ② 量产刷写口是否采纳 ''镜脚 USB pogo'' (与 ISS-092 检修口建议合并裁决, 免得两单各开一条路) ③ ★统一 ''SoC 在镜脚还是镜框''
+    的口径 (ISS-014 决策文字写挪镜框, 而 SCHEMATIC_V1 P1/P9 与 MECH_BUDGET §1.1 都是镜脚; 本单按图上现状=镜脚执行 TMP117 测点)'
+  since: '2026-10-27'
+  due: '2026-10-28'
+- key: sw_charge_page_full
+  to: main
+  item: 'ISS-093 充电板整页未画 ⇒ 我对 CHG_STAT/PWR_GOOD 的评审只覆盖网表现状不是最终电路: 需要 BQ25896 的 STAT/PG 极性书面确认 (开漏拉低=充电中?)
+    + CE/OTG/PSEL/INT 的接法 + Type-C 完整页'
+  since: '2026-10-27'
+  due: '2026-10-29'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -271,9 +356,13 @@ answers:
   ref: 'HANDOFF/2026-10-25_sw-lead_软件需求拆解.md#B4 + #接口请求(hw-lead) ; SW/SW_REQUIREMENTS.md#9.3 + #11.2'
 - key: ntc_placement
   to: mech-lead
-  value: '软件只读 SoC 结温(Tj), 粒度>=1Hz; NTC 贴 SoC 背面或金属骨架, 不贴皮肤侧 (皮肤侧读数滞后会让降频滞后); 接受你 §2.5 的 4 档温控表, 加软件约束:
-    切档须在 1 帧周期 16.67ms 内完成, 否则 age 跳档端到端 +16.67ms; 实测功耗待投板, 按需vs持续待 Q4'
-  ref: 'HANDOFF/2026-10-25_sw-lead_软件需求拆解.md#B4 + #接口请求(mech-lead) ; SW/SW_REQUIREMENTS.md#8.2'
+  value: '★10-27 ISS-090 更新 (NTC 已被 ISS-086 换成 TMP117, 测点由 SW 定): TMP117 装**镜脚主 PCB 的贴皮肤面一侧, SoC/电源级热源与皮肤接触面之间,
+    投影距 SoC ≤10mm** —— 依据: 它对应 ISO 13732-1 43°C 红线唯一直接相关的部位; 皮肤是热沉 ⇒ T_PCB≥T_skin ⇒ 用它当皮肤代理是**保守方向** (宁可提前降载,
+    不可漏判超温); 皮肤侧读数滞后是对的 (我们要限的是皮肤温度), 而**结温保护另找源** (SoC 片上温度传感器, 待 TBD-12)。不选 SoC die (TMP117 测不到 Tj),
+    不选电池 (NTC→BQ25896 TS 已硬件停充, 重复且更慢)。软件约束: ① 四档皮肤口径 <38/<41/<43/>43°C (迟滞 2°C), 取代旧 4 档 70/85/95 结温口径
+    ② 切档**执行**须 ≤1 帧 (16.67ms), 否则 frame age 跳档端到端 +16.67ms; **检测**延迟 ~1~3s (TMP117 1Hz + PCB 热惯性) 对皮肤暴露无意义
+    ③ 读失败 3 周期 → 按 T2 降载 + 告警 (I2C_A 与 camera 跨铰链同总线, camera 卡死会致盲温度保护) ④ 首读 -256°C 必须丢弃。实测功耗仍待投板。'
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -306,10 +395,15 @@ interface_claims:
   note: age=ceil(T_od/16.67); T_od>16.67ms 即跳到3 -> 端到端 67->83.7ms
 - key: thermal_control_tiers
   value: 4档 <70/70-85/85-95/>95C
-  note: SoC 结温(Tj)档位, 来自 MECH_BUDGET §2.5; 皮肤温度验收归 mech-lead; 切档须<=16.67ms
+  note: '★10-27 ISS-090 注记 (不改取值): 本表是 **mech-lead 的 SoC 结温(Tj) 口径** (其 note: ''不是皮肤温度; 皮肤侧无传感器'')。★TMP117
+    定点到**镜脚贴皮肤面**后, ''皮肤侧无传感器'' 这个前提不再成立 ⇒ 两个表是**不同物理量**: Tj 口径继续归 mech-lead; SW 的降载/关机触发阈值改用新增的 `thermal_tiers_skin`
+    (<38/<41/<43/>43°C, 皮肤口径, ISO 13732-1 43°C 红线)。合并器已检出同 key 冲突 ⇒ 请项目总工统一注记, 不要让两个 agent 抢同一个 key'
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
 - key: thermal_sensor_iface
-  value: I2C-NTC+1Hz
-  note: 软件只读 SoC Tj; NTC 贴 SoC 背面/金属骨架, 不贴皮肤侧
+  value: TMP117-I2C_A-0x48-1Hz
+  note: '★10-27 ISS-090: 旧值 ''I2C-NTC+1Hz'' 作废 —— NTC 已按 ISS-086 换成 TMP117 (I2C_A 地址 0x48, 16bit, 8 averages/1-Hz
+    [官方]); 测点 = 镜脚 PCB 贴皮肤面'
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
 - key: flash_link_layers
   value: L-A:USB-DL / L-B:ADB+CDC
   note: 两条物理路径共用同一个 Type-C 口; L-A=量产/救烧(BOOT 模式+厂商下载工具); L-B=日常升级(ADB push, 目标<2min); 依赖 ARS45 USB Device
@@ -399,6 +493,77 @@ interface_claims:
   note: 模型变更后必跑的回归用例编号集合 (台账/许可/文件头/容量/加载/数值/量化器/总体精度/逐类精度/阈值/性能/端到端/版本串/刷写回滚), 全过才允许刷板; 与 BR-01..BR-12
     不重叠 (一个测模型, 一个测刷写救砖)
   ref: SW/MODEL_ASSETS.md#4.2
+- key: reset_release_policy
+  value: PG_AND(V_CORE,V_IO)+SUPV_20ms+RC_1.1ms
+  note: 复位释放须 V_CORE 与 V_SOC_IO 同时在 regulation; TPS3808G01 CT 悬空=20ms [官方]; RC 释放 τ=1.1ms [实测]; 监督器当前只盯
+    V_SOC_IO ⇒ 需把两路 PG 并联进复位链 (开漏可线与)
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: reset_tau_release
+  value: 1.1ms
+  note: (10k+1k)×100nF 实算 [实测]; 网表注记 'τ=100ms' 有误 (差 90.9×) ⇒ SW/FLASH_AND_VERSION.md §4.5.2.1 的 t1~t4
+    时序表要重写
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: supv_divider_rule
+  value: R1/R2=6.407@3V0V,no-0R-on-both
+  note: VIT=0.405×(1+R1/R2) [官方 TPS3808]; 两颗分压都是 0Ω 位, 同时装 ⇒ 下臂 0Ω ⇒ V_SOC_IO 对地短路; 必须改实值 + 写死装配规则
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: boot_entry_hw
+  value: BOOT-static-strap+上电
+  note: 复位释放时刻不可预测 (轨爬升 0数据) ⇒ 不用时序化按键; BOOT 需加 0Ω 跳线位 (现在只有 10k 上拉+按键+TP_BOOT); 不得把 TP_BOOT 接 3.3V (会把
+    5V 灌进 1.8V LDO)
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: chg_stat_pullup
+  value: 10k@3V3-镜脚本地-接收端
+  note: R_PU_CHG_STAT 标 CHG_BOARD 但上拉的 RAIL_VDD_3V3_IO 在 MAIN_PCB (充电板无 3.3V 轨), 与 R_PU_PG(MAIN_PCB) 不一致
+    ⇒ 必须挪到镜脚本地; 不加施密特, 接收端加 10~100nF (状态位是秒级慢量)
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: chg_state_source
+  value: CHG_STAT-主,PG-备,ADC-辅
+  note: 充电 IC 的 I2C 不过铰链 (V1.5 裁决 4) ⇒ SW 不许读充电 IC 寄存器; 模拟链 451ms 建立 ⇒ 不能当主判据 (禁 OD 门禁靠数字链)
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: adc_det_sampling
+  value: 长采样+丢弃N+中位数+迟滞
+  note: VBUS_DET/BAT_DET 1M+1M+100nF ⇒ 源阻抗 500kΩ/τ=50ms/12bit 建立 451ms/漏电 1µA⇒0.50V 偏移(15.2%FS) [推算];
+    M7-R6 '软件侧确认电量读取正常' 判据要重写, 电量百分比只能标低精度
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: i2ca_speed_max
+  value: 100kHz
+  note: I2C_A 4.7k 上拉在主板侧, 负载跨铰链到 CONN_CAM; 300pF 时 t_r=1195ns > 标准模式 1µs 上限 [官方 I2C] ⇒ 速率写死 100kHz
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: tmp117_meas_point
+  value: 镜脚PCB-贴皮肤面-SoC投影≤10mm
+  note: '★TMP117 测点定案 (ISS-090): 对应 ISO 13732-1 43°C 红线唯一直接相关部位; 皮肤是热沉 ⇒ T_PCB≥T_skin 保守方向; 自热 16.5µW
+    可忽略, 误差由热耦合路径主导 [官方 TMP117 贴装要求]; 不选 SoC die (测不到 Tj), 不选电池 (NTC→TS 已硬件停充)'
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: thermal_tiers_skin
+  value: T0<38/T1<41/T2<43/T3>43C,滞回2C
+  note: 取代旧 4 档 <70/70-85/85-95/>95C (那是结温口径, 与 43°C 皮肤红线不同源); 依据 MECH 模型 0.05W→37.5/0.10W→40.0/0.16W→43.0°C;
+    切档执行必须 ≤1 帧 (16.67ms), 否则 frame age 跳档端到端 +16.67ms
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: thermal_failsafe
+  value: 读失败3周期→按T2降载+告警
+  note: TMP117 与 camera 同在 I2C_A (跨铰链) ⇒ camera 拉死 SDA 会一起致盲温度保护; SW 必须做 I2C 总线恢复 (9 时钟+STOP) + 失效安全降载;
+    首读 = -256°C 必须丢弃 [官方 TMP117]
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: usb_flash_role
+  value: 跨铰链=救援/售后,量产=镜脚有线
+  note: 跨铰链 USB 不是产线可控环境; 镜脚已有 J_DEBUG(1×4)+J_UART(1×2)+ISS-092 检修口 ⇒ 建议现在就把 USB pogo 4 点 (VBUS/GND/D+/D−)
+    画上 (可 DNP), 否则后加要改板重投; Type-C 留镜框做充电+售后自助
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: usb_conn_gnd_pins
+  value: ≥2 (CONN_USB pin4→GND)
+  note: CONN_USB 只有 1 个 GND pin, 违反 ISS-085 自定规则 (两端各留 ≥2 个 GND pin); pin4 现为预留 DNP ⇒ 改 GND 零成本; 同规则还波及
+    CONN_CAM(1 个) 与 CONN_LIGHT(1 个)
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: power_off_semantics
+  value: 无硬件断电-软件深睡-轨带电
+  note: '★网表无负载开关/电源开关 (0 颗) ⇒ 电池经 BQ2970 直连 SYS ⇒ ''关机''只能软件深睡; 影响: 售后''长按10s=关机''、老板锁死''待机<0.05W''、关机充电指示灯
+    三条都要重定义'
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: first_temp_read
+  value: 丢弃首读(-256C)
+  note: TMP117 复位后温度寄存器读 -256°C 直到首次转换完成 [官方]; 8 averages/1-Hz ⇒ 首次有效读数最坏 ~1s, 期间不得判过温/低温
+  ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
 open_questions:
 - id: SW-Q1
   to: main

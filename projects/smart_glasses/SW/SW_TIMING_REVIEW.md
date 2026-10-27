@@ -219,7 +219,9 @@
 
 ### 4.3 软件侧配套策略 (本次一并定档, 替换旧档)
 
-**旧档作废**: 分片里已登记的 `thermal_control_tiers = 4档 <70/70-85/85-95/>95C` 是**结温口径**, 与 43°C 皮肤红线不同源 ⇒ 在 TMP117 定点后必须重定。
+**旧档 (SW 侧不再作触发阈值)**: 分片里已登记的 `thermal_control_tiers = 4档 <70/70-85/85-95/>95C` 是 **mech-lead 的 SoC 结温 (Tj) 口径** 表 (其 note 原文: "SoC 结温(Tj)档位, **不是皮肤温度**; 皮肤侧无传感器")。★**TMP117 装到贴皮肤面之后, "皮肤侧无传感器" 这个前提不再成立** ⇒ 两个表不再是同一物理量, 必须分开:
+- `thermal_control_tiers` = Tj 口径表 (归 mech-lead, 本单**不改它的值** —— 两个 agent 抢同一个 key 会打架; 合并器已报冲突, 由项目总工统一注记)
+- `thermal_tiers_skin` = **SW 新增**, 皮肤口径, 以下为定案
 
 **新档 (TMP117 读数 = 镜脚 PCB 温度, 作为皮肤代理, 偏保守)**:
 
@@ -346,7 +348,7 @@ Type-C: VBUS A4+A9+B4+B9 · CC1 A5 / CC2 B5 (Rd 5.1k×2) · GND A1+A12+B1+B12 ·
 | **11** | **I2C_A 跨铰链 + 4.7k 上拉 ⇒ t_r 可能超标准模式上限** (300pF 时 1195ns > 1000ns) | P2: 4.7k 上拉在 MAIN_PCB, 负载跨铰链到 CONN_CAM | I2C 速率要写死 **100kHz** 进需求; 若 sensor 要求 400kHz ⇒ 要加缓冲器/降上拉 (硬件) | 中 |
 | **12** | **网表 I2C t_r 注记 2.38µs 与算术不符 (实为 398ns@100pF)** | P2 note "灌 702µA, t_r=2.38µs@100pF" | 注记错会让"这条总线能不能跑 400kHz"的判断反了 ⇒ 需修注记 | 中 |
 | **13** | **TMP117 复位后首读 = −256°C** | [官方] TMP117 | 启动自检必须丢弃首读, 且首次有效读数最坏 ~1s ⇒ 这 1s 内不得判过温/低温 | 中 |
-| **14** | **温控档位口径要换源 (旧 4 档是结温口径, 与 43°C 皮肤红线不同源)** | 分片 `thermal_control_tiers` 已登记 4 档 70/85/95 | §4.3 新档要写进 `SW_REQUIREMENTS` M7; 旧 claim 要改 | 中 |
+| **14** | **温控档位要换源 (SW 侧的触发阈值从 Tj 口径换成皮肤口径)** | 分片 `thermal_control_tiers` (mech-lead 的 Tj 口径) + P2 TMP117 测点 | SW 的降载/关机触发阈值改用新增的 `thermal_tiers_skin` (皮肤口径); Tj 口径表保留给 mech-lead 用, 两个 key 不混 | 中 |
 | **15** | **P2 叙述与网表矛盾: VBUS_DET 分压到底在充电板还是主板** | P2 叙述 "跨铰链侧 (充电板测 VBUS, 高阻分压)" vs 网表 `R_VBUS_DET_1/2` board=MAIN_PCB | 若按网表 (5V 原始轨跨铰链), 铰链 ESD 直打 SoC ADC 脚 ⇒ 需要钳位; 软件要知道"跨铰链上是 5V 还是 2.5V"才能设 ADC 输入保护 | 中 |
 
 > 另有一条**跨域口径冲突** (不算 SW 返工, 但影响 §4 的测点): `ISS-014` 的决策文字写 "SoC+充电板挪镜框", 而 `HW/SCHEMATIC_V1.md` P1/P9 与 `MECH/MECH_BUDGET.md` §1.1 都是 **SoC 主 PCB 在镜脚** (本单按"图上现状 = 镜脚"写)。⇒ 若 SoC 之后真挪到镜框, **TMP117 跟着挪, §4.3 的档位要按镜框/鼻梁侧重算** (ISS-064 已证 "挪到镜框 = 换接触点不是消热, 鼻梁皮肤同样适用 43°C")。**请项目总工统一口径。**
@@ -416,7 +418,7 @@ Type-C: VBUS A4+A9+B4+B9 · CC1 A5 / CC2 B5 (Rd 5.1k×2) · GND A1+A12+B1+B12 ·
 | `i2ca_speed_max` | `100kHz` | 跨铰链 300pF ⇒ t_r 1195ns > 1µs |
 | `thermal_sensor_iface` | `TMP117-I2C_A-0x48-1Hz` | 取代旧的 `I2C-NTC+1Hz` |
 | `tmp117_meas_point` | `镜脚PCB-贴皮肤面-SoC投影≤10mm` | 皮肤温度合规依据; T_PCB ≥ T_skin (保守) |
-| `thermal_tiers_skin` | `T0<38/T1<41/T2<43/T3>43C,滞回2C` | 取代旧的 4 档 70/85/95 (结温口径) |
+| `thermal_tiers_skin` | `T0<38/T1<41/T2<43/T3>43C,滞回2C` | **SW 新增的皮肤口径**; 取代 SW 侧对 `thermal_control_tiers` (mech-lead 的 Tj 口径 70/85/95°C) 的使用 —— 两个是不同物理量, 不改对方取值 (合并器已检出同 key 冲突, 待项目总工统一注记) |
 | `thermal_failsafe` | `读失败3周期→按T2降载+告警` | I2C_A 被 camera 卡死时不能盲 |
 | `usb_flash_role` | `跨铰链=救援/售后,量产=镜脚有线` | 建议加 4 点 pogo (VBUS/GND/D+/D−) |
 | `usb_conn_gnd_pins` | `≥2 (CONN_USB pin4→GND)` | 满足 ISS-085 自定规则 |
