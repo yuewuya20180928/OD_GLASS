@@ -3,19 +3,28 @@
 """
 KiCad legacy netlist 导出器 (gen_kicad_net) —— 从 HW/netlist_v1.csv 出 .net
 ================================================================================
-★V1.4 (2026-10-27 09:2x) 重写。原因: 旧版**引脚号是按出现顺序编的**, 导致:
-  ① 连接器/IC 的**真实引脚名丢失** (node 名里本来就写着 "J_CHG pin1" / "U_CHG TS" / "J_TYPE_C A6+B6")
-     → 旧版把 J_TYPE_C 的 A4/A9/B4/B9 全编成 pin1/2/3/9, **电气上是错的**
-  ② **伪 ref 变成幽灵器件** (RAIL_*/NET_*/GND 出现在 components 段)
-  ③ 同一个器件在同一 net 里出现多次 → 旧版给同一物理脚发多个 pin 号 → KiCad 判 pin 冲突
-  ④ node 名复用 (信号网名里混进 GND 端) → **分压电阻在 .net 里被短接** (hw-lead ISS-088 复审 F6)
+★V1.6 (2026-10-27 18:5x) 第三次重写。起因: hw-lead 复审 ISS-088 报出的 A-3/A-5 + B-4/B-5/B-7。
 
-★新版的规则 (全部可机械判, 见 state/check_kicad_net.py):
-  - **引脚号来自 node 名里的引脚提示** (连接器/IC/SoC) → 稳定、可追溯
-  - **裸器件名** (2 脚无源件) → 按它出现在哪些网来定 pin1/pin2 (先到先得, 但**按网定**不按行定)
-  - **伪 ref** (RAIL_*/NET_*/GND/SYS_PCB) 是**网名不是器件** → 不进 components, 也不占 pin
-  - 一行 = 一根连接 → 该行两端若是器件脚, 则这两个脚都在该行的 net 上
-  - `SoC[TBD-01].<信号>` → 合成为器件 `SoC_TBD01`, pin = 信号名 (原厂回信后替换)
+★网表模型的正确解读 (前两版都错在这):
+  我们的 CSV 是"**一行 = 一根连接**"(node1 ↔ node2, ref = 这根连接上经过的器件),
+  但**一行 ≠ 一个引脚归属的节点**。一个 2 脚器件 (如分压电阻) 必然出现在**两行**里:
+    行 1: net=SENSE,  node1=分压上端, node2=R_DIV1      ← R_DIV1 的这一脚在 SENSE 上
+    行 2: net=SENSE,  node1=R_DIV1,    node2=分压下端    ← R_DIV1 的另一脚也在 SENSE 上?
+  → 只有当**一行里恰好有一个器件端 + 一个"网别名"端**时, 才能判定该器件脚挂在**别名**那一侧;
+    这就是 A-3 (R_SUPV_DIV1 的 V_SOC_IO 端被当成"同一网" → 导出后悬空 → U_SUPV.IN≈0V → RESET 永不释放) 的成因。
+
+★本版的判定规则:
+  1) **别名规范化**: `RAIL_X` → `X` (电源轨与网名同指一个节点) · `NET_X` → `X` ·
+     少数特例走显式表 (`NET_BAT_PROT`→`BAT_CHG`, `NET_SYS_3V3`→`SYS`)
+  2) **一行里 2 个器件端** → 这两个脚都在该行的 net 上 (一根线)
+  3) **一行里 1 个器件端 + 1 个别名端** → 该器件脚挂在**别名**那一侧, 该行 net 是它的**另一侧**
+  4) **一行里 1 个器件端 + 1 个自引用端** (node == net) → 该器件脚挂在该行 net 上
+  5) 每个器件的脚 = 它出现过的各个 net (按首次出现顺序编号) ⇒ 一个器件跨两个网 = 它在两者之间
+  6) `[INVENTORY]` 登记行 → 只用来占位 (那些脚进 NC 网, 让 PCB 工程师看见"这个脚故意不接"),
+     本身不产生连接 (B-5)
+  7) 节点名带引脚提示 (`J_CHG pin1` / `U_CHG TS` / `SoC[TBD-01].<信号>`) → **真实物理脚**, 直接用
+  8) 裸器件名 (2 脚无源件) → 脚号按"它出现在哪个网"顺序推定 (B-4: 幻影脚号只出现在多脚 IC 上,
+     那种器件必须用带提示的节点名 —— 见本文末尾的约定)
 
 用法:  python3 state/gen_kicad_net.py
 """
@@ -23,10 +32,11 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import os
 import re
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
@@ -47,13 +57,25 @@ FOOTPRINT = {
     "RAIL": "TBD:RAIL_PLACEHOLDER",
 }
 
-# 伪 ref = 网名, 不是器件
-PSEUDO_PREFIX = ("RAIL_", "NET_")
-PSEUDO_EXACT = {"GND", "SYS_PCB", "CHG_GND_STAR"}
+# 别名 → 规范网名
+ALIAS_MAP = {
+    "NET_BAT_PROT": "BAT_CHG",
+    "NET_SYS_3V3": "SYS",
+    "RAIL_SYS_PCB": "SYS",
+    "RAIL_GND": "GND",
+}
 
 
-def is_pseudo(ref: str) -> bool:
-    return ref.startswith(PSEUDO_PREFIX) or ref in PSEUDO_EXACT
+def canon(node: str) -> str:
+    """别名规范化: RAIL_X / NET_X → X (特例走表)"""
+    node = (node or "").strip()
+    if node in ALIAS_MAP:
+        return ALIAS_MAP[node]
+    if node.startswith("RAIL_"):
+        return node[5:]
+    if node.startswith("NET_"):
+        return node[4:]
+    return node
 
 
 def main() -> int:
@@ -69,25 +91,36 @@ def main() -> int:
         print("❌ netlist 是空的", file=sys.stderr)
         return 2
 
-    comps: "OrderedDict[str, dict]" = OrderedDict()
-    nets: "OrderedDict[str, list]" = OrderedDict()
     known = {r["ref"].strip() for r in rows if (r.get("ref") or "").strip()}
-    known -= {x for x in known if is_pseudo(x)}
+    # 网名集合 (行标签) —— 用来判断某个节点是不是"网别名"
+    net_labels = {r["net"].strip() for r in rows if (r.get("net") or "").strip()}
+    # 真实器件 (ref 列, 排除纯网名伪 ref)
+    netlike = {n for n in known if n.startswith("RAIL_") or n.startswith("NET_") or n == "GND"}
+    devices = known - netlike
+
+    comps: "OrderedDict[str, dict]" = OrderedDict()
 
     def comp(ref: str, value: str, typ: str, page: str):
         if ref not in comps:
-            comps[ref] = {"value": value, "footprint": FOOTPRINT.get(typ, "TBD:PLACEHOLDER"),
-                          "page": page}
+            comps[ref] = {"value": value, "footprint": FOOTPRINT.get(typ, "TBD:PLACEHOLDER")}
 
-    # 1) 真实器件 (ref 列) —— 伪 ref 不进器件表
+    # 器件表: 从 ref 列取; 连接器的 value/footprint 优先取"带声明格式"的那一行 (B-7)
     for r in rows:
         ref = (r.get("ref") or "").strip()
-        if not ref or is_pseudo(ref):
+        if not ref or ref not in devices:
             continue
-        comp(ref, (r.get("value") or "").strip(), (r.get("type") or "").strip(), r.get("page", ""))
+        val = (r.get("value") or "").strip()
+        typ = (r.get("type") or "").strip()
+        cur = comps.get(ref)
+        if cur is None:
+            comp(ref, val, typ, r.get("page", ""))
+            continue
+        # 声明式 value (含 Np / N×Mp) 更权威 → 覆盖
+        if re.search(r"\d+\s*[×x]?\s*\d*\s*p\b", val) and not re.search(r"\d+\s*[×x]?\s*\d*\s*p\b", cur["value"]):
+            cur["value"] = val
 
-    # 2) 节点解析 → [(ref, pin)]  (pin 可能为 None = 裸器件名, 后面按网定)
     def parse_node(node: str):
+        """节点 → [(ref, pin_hint or None)]"""
         node = (node or "").strip()
         if not node:
             return []
@@ -99,41 +132,90 @@ def main() -> int:
             return []
         if " " in node:
             head, rest = node.split(" ", 1)
-            if head in known:
-                # 引脚提示: "pin1" / "TS" / "A6+B6" (多物理脚用 + 连写)
+            if head in devices:
                 pins = [p.strip() for p in rest.split("+") if p.strip()]
                 return [(head, p) for p in pins]
-        if node in known:
+        if node in devices:
             return [(node, None)]
-        return []   # 伪 ref / 未知节点 = 网名, 不算器件脚
+        return []
 
-    # 3) 收集: 每个 (ref, net) → 引脚号
-    #    裸器件名: 按它所在的**网**定 pin (同网同脚, 不同网不同脚) —— 稳定, 不按行数编
-    bare_pins: dict[str, "OrderedDict[str, int]"] = {}
+    def is_alias(node: str) -> bool:
+        node = (node or "").strip()
+        if node in devices:
+            return False
+        return canon(node) in net_labels or node in net_labels
 
-    def pin_for_bare(ref: str, net: str) -> int:
-        m = bare_pins.setdefault(ref, OrderedDict())
-        if net not in m:
-            m[net] = len(m) + 1
-        return m[net]
+    # ---- 收集: 器件脚 → 网 ----
+    # ★核心规则 (V1.6): **一个器件跨的网 = 它出现过的所有"行网" + 同行出现的"别名网"**
+    #   例: 行 (net=KEY_PWR, node1=C_KEY_PWR, node2=GND) → 电容跨 {KEY_PWR, GND} (两个脚)
+    #       行 (net=SUPV_SENSE, node1=RAIL_V_SOC_IO, node2=R_SUPV_DIV1) → 电阻跨 {SUPV_SENSE, V_SOC_IO}
+    #   前一版只记了别名那一侧 → 器件只剩 1 个脚 → 导出后悬空 (就是复审报的 A-3)。
+    pin_net: dict[tuple, str] = {}          # (ref, pin) → net
+    dev_nets: dict[str, list] = defaultdict(list)   # ref → 依次遇到的网 (裸器件用来定脚号)
+    hinted_pins: dict[str, list] = defaultdict(list)  # ref → 明确点名的脚
+    nc_pins: list[tuple] = []               # INVENTORY 声明但没连的脚 → NC
+
+    def dev_of(node: str):
+        return parse_node(node)
 
     for r in rows:
         net = (r.get("net") or "").strip()
         if not net:
             continue
-        if (r.get("note") or "").startswith("[INVENTORY]"):
-            continue   # 器件登记行, 不是一根连接 → 混进去会让同一物理脚落多个网
-        for node in ((r.get("node1") or ""), (r.get("node2") or "")):
-            for ref, pin in parse_node(node):
-                if pin is None:
-                    pin = pin_for_bare(ref, net)
-                nets.setdefault(net, [])
-                if not any(n[0] == ref and n[1] == pin for n in nets[net]):
-                    nets[net].append((ref, pin))
+        inv = (r.get("note") or "").startswith("[INVENTORY]")
+        n1, n2 = (r.get("node1") or "").strip(), (r.get("node2") or "").strip()
+        d1, d2 = dev_of(n1), dev_of(n2)
+        a1, a2 = is_alias(n1), is_alias(n2)
+        alias_net = canon(n2 if a2 else (n1 if a1 else ""))
+        if inv:
+            for ref, pin in d1 + d2:
+                if pin is not None and (ref, pin) not in pin_net:
+                    nc_pins.append((ref, pin))
+            continue
+        devs = d1 + d2
+        # 行 ref 也是这根连接上的器件 (裸名时它就是这根线的中继点)
+        rowref = (r.get("ref") or "").strip()
+        if rowref in devices and rowref not in {x[0] for x in devs}:
+            devs = devs + [(rowref, None)]
+        for ref, pin in devs:
+            if net and net not in dev_nets[ref]:
+                dev_nets[ref].append(net)
+            if alias_net and alias_net not in dev_nets[ref]:
+                dev_nets[ref].append(alias_net)
+            if pin is not None:
+                hinted_pins[ref].append(pin)
+                # 明确点名的脚: 挂在**行网**上; 若同行有别名且别名≠行网, 该脚在别名侧
+                target = alias_net if (alias_net and alias_net != net) else net
+                pin_net.setdefault((ref, pin), target)
 
-    # 4) 输出 KiCad legacy netlist
+    # 裸器件: 脚号按"它跨了哪些网"顺序推定 (2 脚件 → pin1/pin2)
+    for ref, nets in dev_nets.items():
+        if hinted_pins.get(ref):
+            continue
+        for i, net in enumerate(nets, start=1):
+            pin_net.setdefault((ref, str(i)), net)
+
+    # 组网
+    nets_out: "OrderedDict[str, list]" = OrderedDict()
+    for (ref, pin), net in pin_net.items():
+        nets_out.setdefault(net, [])
+        if not any(x[0] == ref and x[1] == pin for x in nets_out[net]):
+            nets_out[net].append((ref, pin))
+    for ref, pin in nc_pins:
+        if (ref, pin) in pin_net:
+            continue
+        nets_out.setdefault("NC", [])
+        if not any(x[0] == ref and x[1] == pin for x in nets_out["NC"]):
+            nets_out["NC"].append((ref, pin))
+
+    # 组件清单: 所有真实器件都要有 (即使没进网)
+    for r in rows:
+        ref = (r.get("ref") or "").strip()
+        if ref and ref in devices:
+            comp(ref, (r.get("value") or "").strip(), (r.get("type") or "").strip(), r.get("page", ""))
+
     out = ['(export (version "E")',
-           '  (design (source "ARS45_V1.4") (date "2026-10-27") (tool "ARS45-SCH"))',
+           '  (design (source "ARS45_V1.6") (date "2026-10-27") (tool "ARS45-SCH"))',
            '  (components']
     for ref, c in comps.items():
         out.append('    (comp (ref "%s") (value "%s") (footprint "%s"))'
@@ -141,7 +223,7 @@ def main() -> int:
     out.append('  )')
     out.append('  (nets')
     code = 0
-    for net, nodes in nets.items():
+    for net, nodes in nets_out.items():
         code += 1
         out.append('    (net (code "%d") (name "%s")' % (code, net))
         for ref, pin in nodes:
@@ -152,8 +234,10 @@ def main() -> int:
     with open(args.out, "w", encoding="utf-8") as f:
         f.write("\n".join(out) + "\n")
 
-    print(f"✅ 已导出 {args.out}: {len(comps)} 个器件 / {len(nets)} 个 net / {code} 行 net")
+    print(f"✅ 已导出 {args.out}: {len(comps)} 个器件 / {len(nets_out)} 个 net / {code} 行 net")
     print("⚠️ SoC 侧 pin = 信号名占位 (原厂球位图未回, TBD-01) → 这不是投板文件")
+    print("★约定: **多脚器件 (IC/连接器) 的节点名必须带引脚提示** (如 'U_CHG TS' / 'J_CHG pin1'), "
+          "否则导出的脚号是按网序推的幻影脚号 (B-4)")
     return 0
 
 

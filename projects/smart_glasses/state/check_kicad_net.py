@@ -23,7 +23,7 @@ from collections import OrderedDict
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
 PSEUDO_PREFIX = ("RAIL_", "NET_")
-PSEUDO_EXACT = {"GND", "SYS_PCB", "CHG_GND_STAR"}
+PSEUDO_EXACT = {"GND", "SYS_PCB"}   # CHG_GND_STAR 是**真实的单点汇流位**, 不是网名
 
 
 def is_pseudo(ref: str) -> bool:
@@ -83,7 +83,28 @@ def main() -> int:
     chk("CSV 里每个真实器件都进了 .net (无孤儿)", not orphan,
         f"孤儿 {orphan[:6]}" if orphan else f"{len(want)} 个器件全部落网")
 
-    # 5) 单点网 = **提示项** (不判失败)。
+    # 5) ★两脚无源件在 .net 里必须**恰好 2 个脚** (A-3 的判据: 分压上端被并进同一网 →
+    #    另一端悬空 → 监督器读 0V → RESET 永不释放)
+    rows = list(csv.DictReader(open(args.csv, encoding="utf-8")))
+    type_of = {r["ref"].strip(): (r.get("type") or "").strip()
+               for r in rows if (r.get("ref") or "").strip()}
+    pin_count: dict[str, int] = {}
+    for net, nodes in nodes_by_net.items():
+        if net == "NC":
+            continue
+        for ref, _pin in nodes:
+            pin_count[ref] = pin_count.get(ref, 0) + 1
+    two_pin = {"R", "C", "L"}
+    bad_pin = {r: c for r, c in pin_count.items()
+               if type_of.get(r) in two_pin and c != 2}
+    # D 类 (ESD 阵列 / TVS) 是多脚件 → 3-4 脚合法 (2 路 I/O + 地)
+    bad_d = {r: c for r, c in pin_count.items()
+             if type_of.get(r) == "D" and c < 2}
+    chk("两脚无源件 (R/C/L) 在 .net 里恰好 2 个脚 (无悬空脚/无同网并脚)", not bad_pin and not bad_d,
+        f"脚数不对: {list(bad_pin.items())[:6]}" if bad_pin else
+        (f"D 类多脚件脚数异常: {list(bad_d.items())[:4]}" if bad_d else f"{len(pin_count)} 个器件脚数全对"))
+
+    # 6) 单点网 = **提示项** (不判失败)。
     #    根因: 我们的网表是"连接清单"模型 (一行 = 一根连接), 而 KiCad 网表要的是
     #    "每引脚一行" (pin-centric)。RAIL_* 别名 (如 RAIL_VBUS_5V 与 VBUS_5V 指同一个节点)
     #    与若干 1 脚连接件, 会在导出后表现为单点网 → **投板前必须做一次 pin-centric 重整**

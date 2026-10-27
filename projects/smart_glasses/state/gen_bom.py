@@ -96,8 +96,10 @@ def main() -> int:
         else:
             # 同一 ref 多行 (netlist 里一个电阻会出现在多段网) → 合并, 不重复计数
             bom[ref]["qty"] = 1
-            if r.get("dnp") == "DNP":
-                # DNP 从严: 只要有一行标 DNP 就整颗按 DNP (例: RAIL_SYS_PCB 同时喂必装轨与 DNP 轨)
+            # ★B-6 修正 (2026-10-27 18:4x, hw-lead ISS-088 复审): DNP 判定必须是 **ref 级** →
+            #   一个连接器既有 DNP 预留脚、又有必装脚时, 整颗被判 "DNP-不装" → 备料会漏买!
+            #   正确口径: **所有行都是 DNP 才算不装**; 有任一必装行 → 必装 (预留脚不贴而已)。
+            if r.get("dnp") == "DNP" and bom[ref]["dnp"] != "必装":
                 bom[ref]["dnp"] = "DNP"
                 bom[ref]["procurement"] = "DNP-不装"
             if bom[ref]["value"] != r.get("value", "") and not bom[ref]["value"]:
