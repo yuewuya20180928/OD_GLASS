@@ -51,7 +51,7 @@ GEOM = {
     "fpc_t_mm":         (0.20,  "4 层 0.5mm pitch FPC 成品厚 0.20mm (通用值, [推算])"),
     "fpc_gap_mm":       (0.15,  "FPC 嵌套间隙 0.15mm (装配靠导槽, [推算])"),
     "ffc_pitch_mm":     (0.50,  "跨铰链 FPC 统一 0.5mm pitch (HW/RELIABILITY_DESIGN §(11))"),
-    "j_chg_pitch_mm":   (1.27,  "J_CHG 自拟 1.27mm 排线座 (HW/netlist_v1.csv C-02)"),
+    "j_chg_pitch_mm":   (0.50,  "J_CHG 定稿 0.5mm pitch (网表 V1.5 起; ISS-085 已定 0.5mm —— 原来这里写 1.27 是过期口径, 导致 [FAIL] 假警报)"),
     "frame_h_mm":       (40.0,  "镜框高度 ~40mm (推算, MECH_BUDGET §1.4.2 根高区间)"),
 }
 

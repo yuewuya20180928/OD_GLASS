@@ -66,6 +66,24 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(os.path.dirname(HERE))
+SW_DIR = os.path.join(PROJ, "SW")
+
+# ---- ISS-101: 量产放行门 (L=0) 的机械判据常量 ----
+# "许可干净且可转换" = 下面 5 组条件**全部**满足 (详见 SW/MODEL_RELEASE_GATE.md §3)
+#   G1 许可字段: license_state ∈ {permissive, agpl-granted} (见文件头)
+#   G2 转换链产出物: 至少一条 npu_ready 产物 (静态 shape + 无高风险算子)
+#   G3 实测精度: measured_acc 存在且 F1 ≥ ACC_MIN_F1 且样本 ≥ ACC_MIN_IMAGES
+#   G4 PC 侧推理: C9 冒烟通过 (模型不是坏的)
+#   G5 板端产物: .nb / Art.Galaxy 产物存在 + ≤15 MiB + chip ID 对
+# NPU 编译器普遍不支持的算子 (ACUITY/VIPLite/Art.Galaxy 类):
+#   NonMaxSuppression / TopK / Range / NonZero → 必须在裁图阶段移出
+NPU_RISKY_OPS = {"NonMaxSuppression", "TopK", "Range", "NonZero"}
+# 转换链产出物判据 (允许存在于图中但需登记说明的算子)
+NPU_SUSPECT_OPS = {"Expand", "Resize", "Shape", "Cast", "Pad",
+                    "Greater", "Less", "Equal", "GreaterOrEqual",
+                    "Clip", "Min", "Max", "Not"}
+ACC_MIN_F1 = 0.30          # 实测精度地板 (IoU=0.5, score>=0.3)
+ACC_MIN_IMAGES = 100       # 精度评测最少图数 (与校准集下限同量级)
 
 # 板端 model_a / model_b 分区大小
 # (SW/FLASH_AND_VERSION.md §4.1 推荐 C + SW/tools/s2_rescue_config.example.json)
@@ -178,6 +196,57 @@ MANIFEST = [
                 "→ COCO 90 含 10 padding, 可用 80 类); 许可 Apache-2.0 (tensorflow/models "
                 "/research 子目录) → 商用无附加义务; ★ 但 NPU 可转换性 = [0数据] "
                 "(TF SavedModel → ONNX → Art.Galaxy 三段都没跑过)",
+    },
+    {
+        "id": "MOD-SSDMBV2-FPNLITE-320-FP32-FULL",
+        "platform": "candidate",
+        "state": "reference",
+        "role": "★ ISS-101 实测产出: Apache-2.0 候选的 TF SavedModel → ONNX **全图** "
+                "(含 NMS 后处理) —— **PC 侧 FP32 精度基准 / 裁图对照**, 不是上板产物",
+        "path": str(SW_DIR / "artifacts" / "models" / "ssd_mbv2_fpnlite_320_fp32_full.onnx"),
+        "fmt": "onnx",
+        "size": 12259298,
+        "sha256_16": "8709cc23432340f6",
+        "expected_license": "Apache-2.0",
+        "license_state": "permissive",
+        "license_grant": None,
+        "expected_opset": 13,
+        "expected_input": [1, "unk__5514", "unk__5515", 3],
+        "expected_chip": None,
+        "npu_ready": False,
+        "measured_acc": {"prec": 0.4521, "rec": 0.4184, "f1": 0.4346,
+                         "iou": 0.5, "score_thr": 0.3, "images": 299,
+                         "dataset": "COCO val2017 (前 299 张有标注)"},
+        "note": "★ ISS-101 (2026-10-28) 实测产出: tf2onnx 1.16.1 + TF 2.20.0 "
+                "--saved-model → ONNX **成功** (rc=0), opset 13, 3304 节点 / 33 算子; "
+                "⚠️ 含 NonMaxSuppression(90)/TopK(2)/Range(2)/NonZero(1) → **不可上 NPU**; "
+                "输入是动态 shape → NPU 编译器拒收; 故 state=reference (PC 侧基准)",
+    },
+    {
+        "id": "MOD-SSDMBV2-FPNLITE-320-FP32-HEAD-NPU",
+        "platform": "candidate",
+        "state": "candidate",
+        "role": "★ ISS-101 实测产出: Apache-2.0 候选的 **NPU 就绪 head 子图** "
+                "(裁掉 NMS 后处理 + 固化静态 shape) —— 转换链第 1/2 段的板端输入",
+        "path": str(SW_DIR / "artifacts" / "models" / "ssd_mbv2_fpnlite_320_fp32_head_npu.onnx"),
+        "fmt": "onnx",
+        "size": 10967518,
+        "sha256_16": "6603df1e12391cfc",
+        "expected_license": "Apache-2.0",
+        "license_state": "permissive",
+        "license_grant": None,
+        "expected_opset": 13,
+        "expected_input": [1, 320, 320, 3],
+        "expected_chip": None,
+        "npu_ready": True,
+        "measured_acc": {"prec": 0.4521, "rec": 0.4184, "f1": 0.4346,
+                         "iou": 0.5, "score_thr": 0.3, "images": 299,
+                         "dataset": "COCO val2017 (前 299 张有标注)"},
+        "note": "★ ISS-101 (2026-10-28) 实测产出: 由 SW/tools/cut_postprocessor.py "
+                "从全图裁出 (保留 raw_detection_boxes/raw_detection_scores) + "
+                "SW/tools/fix_static_shape.py 固化 shape → 299 节点 / 18 算子, "
+                "**无 NMS 家族算子**; 与全图输出 max_abs_diff = 0.000e+00 (逐位相同); "
+                "x86 CPU 实测 5.34 ms/帧 (vs 全图 35.08 ms) — 转换链第 1/2 段已通",
     },
     {
         "id": "MOD-YOLOV8S-COCO80-NB",
@@ -463,6 +532,44 @@ def check_one(a: dict) -> dict:
                 # 已隔离/禁入交付物: 失败正是隔离理由 → 只报信息, 不判 FAIL
                 add("C9", None, f"[{a['state']}] {msg}")
 
+        # ---- ISS-101: C10~C13 NPU 就绪度 (量产放行门 G2 的机械判据) ----
+        if a["fmt"] == "onnx" and "_err" not in m:
+            ops = {n.op_type for n in onnx.load(p, load_external_data=False).graph.node}
+            risky = sorted(ops & NPU_RISKY_OPS)
+            add("C10", not risky,
+                f"NPU 高风险算子 (NMS/TopK/Range/NonZero): "
+                f"{risky if risky else '无'}"
+                + ("" if risky else " → 可上 NPU 编译")
+                + f" | 全图算子 {len(ops)} 种")
+            # C11 动态 shape: NPU 编译器要求静态输入
+            dimv = list(m["inputs"].values())[0] if m["inputs"] else []
+            dyn = [d for d in dimv if isinstance(d, str)]
+            add("C11", not dyn,
+                f"输入 shape = {dimv} "
+                + ("→ 动态维度, NPU 编译器拒收 (须固化)"
+                   if dyn else "→ 静态 shape ✓"))
+            # C12 台账登记的 npu_ready 标记与实测是否一致
+            declared = a.get("npu_ready")
+            if declared is None:
+                add("C12", None, "台账未登记 npu_ready 标记 (非交付集资产, 不阻断)")
+            else:
+                add("C12", bool(declared) == (not risky and not dyn),
+                    f"台账 npu_ready = {bool(declared)} | 实测: 高风险算子 "
+                    f"{len(risky)} 种, 动态维度 {len(dyn)} 个")
+            # C13 实测精度 (G3)
+            acc = a.get("measured_acc")
+            if not acc:
+                add("C13", None,
+                    "★ 台账未登记实测精度 (measured_acc) → 量产放行阻断项 L7")
+            else:
+                ok_acc = (acc.get("f1", 0) >= ACC_MIN_F1
+                          and acc.get("images", 0) >= ACC_MIN_IMAGES)
+                add("C13", ok_acc,
+                    f"实测精度: P={acc.get('prec')} R={acc.get('rec')} "
+                    f"F1={acc.get('f1')} @IoU={acc.get('iou')} "
+                    f"({acc.get('images')} 张, {acc.get('dataset')}) "
+                    f"门限 F1≥{ACC_MIN_F1} / ≥{ACC_MIN_IMAGES} 张")
+
     if a["fmt"] == "nb":
         h = read_nbg_header(p)
         add("C5", h.get("magic") == "VPMN", f"magic = {h.get('magic')!r} (期望 'VPMN')")
@@ -505,7 +612,13 @@ def count_release_blockers(results: list) -> list:
        L2 板端产物超 15 MiB 槽位
        L3 chip ID 与目标 NPU 不符
        L4 许可为 AGPL-3.0 且无 Enterprise 授权记录 → 商用受阻
-       L5 交付集资产的 PC 侧推理冒烟失败 (模型本身是坏的)"""
+       L5 交付集资产的 PC 侧推理冒烟失败 (模型本身是坏的)
+       --- ISS-101 新增 ---
+       L6 交付集资产含 NPU 不支持算子 (NMS/TopK/Range/NonZero) 或动态 shape
+          → NPU 编译器拒收, 模型上不了板
+       L7 交付集资产无实测精度 (measured_acc 未登记 / 低于门限)
+       L8 交付集无任何 NPU 就绪产物 (转换链第 1/2 段没跑通)
+    """
     out = []
     by_id = {a["id"]: a for a in MANIFEST}
     for r in results:
@@ -522,11 +635,23 @@ def count_release_blockers(results: list) -> list:
                 out.append(("L3 chip ID 不符", r["id"], msg))
             if code == "C9" and ok is False:
                 out.append(("L5 PC 侧推理冒烟失败", r["id"], msg))
+            if code == "C10" and ok is False:
+                out.append(("L6 含 NPU 不支持算子", r["id"], msg))
+            if code == "C11" and ok is False:
+                out.append(("L6 动态 shape", r["id"], msg))
+            if code == "C13" and (ok is False or ok is None):
+                out.append(("L7 无实测精度", r["id"], msg))
         if lic_state == "agpl-no-grant":
             out.append(("L4 许可商用受限(AGPL)", r["id"],
                         f"许可 = {a.get('expected_license')!r} 且无 Enterprise 授权记录 "
                         f"→ 商用受阻: 须向 Ultralytics 采购 Enterprise License, "
                         f"或改用许可干净的模型栈 (SW/MODEL_LICENSE.md §3)"))
+    # L8: 交付集里至少要有 1 条 npu_ready 产物 (转换链第 1/2 段跑通)
+    ship = [r for r in results if r["state"] in ("candidate", "active")]
+    if ship and not any(by_id.get(r["id"], {}).get("npu_ready") for r in ship):
+        out.append(("L8 交付集无 NPU 就绪产物", "(全体)",
+                    "交付集里没有任何 npu_ready=True 的资产 → "
+                    "TF/ONNX → NPU 转换链第 1/2 段未跑通 → 不许进量产评审"))
     return out
 
 

@@ -75,7 +75,7 @@
 | BAT_GATE | Q1 GATE | Q2 GATE | Q1 | [待选型] N-MOS | SW | 必装 | MAIN_PCB | [推算] |  | [BAT_GATE] 两管共栅 (back-to-back 接法, 按 BQ2970 数据手册确认体二极管方向) |
 | BAT_CELL_N | BT_432243 B- | U_BATPROT B- | BT_432243 | 432243 3.7V ≥420mAh | CONN | 必装 | MAIN_PCB | [推算] |  | [BAT_CELL_N] ★F2 修正: **电芯负极 · BQ2970 的 B- 脚** (原来电芯只有一个端子 · 电池回路不闭合) |
 | SYS | RAIL_SYS | U_PWR_SW VOUT | RAIL_SYS | 3.0-4.2V | RAIL | 必装 | MAIN_PCB | [推算] |  | 电源域: 目标 3.0-4.2V / 最大电流 0.55A (330mA×1.5 + 瞬态); **R-F1 裁决: SYS 下限抬到 3.5V**; ★V1.2: **SYS 在 |
-| BAT_CHG | J_CHG | J_CHG pin1 | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | [SYS] ★V1.5 定稿 pin map (1×10p@0.5mm): pin1/pin2=BAT_CHG (充电电流**双 pin 并联**), pin3/pin4=GND  |
+| BAT_CHG | J_CHG | J_CHG pin1 | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | ★V1.9 结构侧回执: **J_CHG 实物是一对** (框侧座 + 脚侧座), 采购/备料别只算一只; 单触点额定判据收紧到 **≥0.5A**; 首选 Hirose FH12 |
 | TS_BAT | U_CHG pin11 | R_NTC_BAT | NET_TS_BAT | 单端 | NET | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★电池温度检测: 103AT NTC 接 BQ25896 的 TS 脚 (过温/欠温时**硬件直接停充**; 分压网络按 datasheet 三件式) (不依赖  |
 | TS_BAT | R_NTC_BAT | R_TS_PULL | R_NTC_BAT | 103AT NTC ±1% (贴电芯) | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 · **TS 必须跨铰链**  |
 | TS_RTN | R_TS_PULL | TS_RTN | R_TS_PULL | 30.31k ±1% (RT2) | R | 必装 | MAIN_PCB | [官方] |  | [TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压); ★V1.6 挪到**镜脚** (NTC 侧) —— 下拉 |
@@ -84,8 +84,8 @@
 | REGN | C_REGN | U_CHG pin22 | C_REGN | [待选型] 1µF | C | 必装 | CHG_BOARD | [官方] |  | [REGN] BQ25896 REGN 去耦电容 (datasheet 要求) |
 | GND | C_REGN | GND | C_REGN | [待选型] 1µF | C | 必装 | MAIN_PCB | [官方] |  | [REGN] REGN 去耦电容 地端 |
 | TS_BAT | R_TS_TOP | U_CHG pin22 | R_TS_TOP | 5.24k ±1% (RT1: REGN 到 TS) | R | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, 原来只画了 NTC + |
-| IINLIM | U_CHG pin10 | R_ILIM | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] ★★V1.7 按 ISS-091 结构核算定 **470Ω**: BQ25896 的 IINLIM 复位默认 **2048mA** [官方] (不装 = 铰链吃  |
-| GND | R_ILIM | GND | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A) | R | 必装 | MAIN_PCB | [官方] |  | [IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限) |
+| IINLIM | U_CHG pin10 | R_ILIM | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A · 单 pin 0.411A) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] ★★V1.7 按 ISS-091 结构核算定 **470Ω**: BQ25896 的 IINLIM 复位默认 **2048mA** [官方] (不装 = 铰链吃  |
+| GND | R_ILIM | GND | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A · 单 pin 0.411A) | R | 必装 | MAIN_PCB | [官方] |  | [IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限) |
 | BAT_SW | U_PWR_SW VIN | U_BATPROT | U_PWR_SW | VIN (输入) | NET | 必装 | MAIN_PCB | [推算] |  | [BAT_SW] 电池保护 (BQ2970 + 2×MOS) 引脚 · **负载开关输入**; ★V1.8: 开关装镜脚 (与电池/保护板同板); 关机时充电链仍在电池侧带电 ⇒  |
 | SYS | U_PWR_SW VOUT | RAIL_SYS | U_PWR_SW | [待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断) | IC | 必装 | MAIN_PCB | [推算] |  | [SYS] ★V1.8 硬件断电通路的主器件: VOUT · 镜脚系统轨 SYS (SoC + 2×DC-DC + 7×LDO + sensor + 光机 全在其下游); **反向 |
 | GND | U_PWR_SW GND | GND | U_PWR_SW | 地脚 | NET | 必装 | MAIN_PCB | [推算] |  | [SYS] 负载开关 地脚 |

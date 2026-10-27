@@ -1,22 +1,16 @@
 agent: mech-lead
 role: 结构总工(带散热)
-updated_at: '2026-10-27T08:30:00+08:00'
+updated_at: '2026-10-28T01:10:00+08:00'
 updated_by: mech-lead
 status:
-  phase: P2(ISS-091 第2轮 跨铰链充电电流 1.0A 载流/压降/发热核算已交; 待 R_ILIM 档位裁决 + J_CHG 型号 + FPC
-    厂商能力)
-  progress_pct: 84
-  health: yellow
-  summary: '第7轮 ISS-091 (第2轮, 上一轮随网关重启1012死亡0产出, 本轮重派): 新增 MECH/HINGE_POWER_CALC.md
-    + MECH/hinge_power_calc.py (rc=0, 全部数字可复现, --json 另存) + HANDOFF/2026-10-27_mech-lead_铰链充电电流核算.md
-    (B1-B6六块齐)。核心结论: (1) 铰链段 R_path 37-111mΩ -> ΔV 37-111mV @1.0A (保守110.8mV), 发热15-127mW
-    -> 皮肤+0.8~+6.4C (MECH_BUDGET §2.3 口径); (2) SYS 不过铰链 -> 下限3.5V不受影响, 只是上限被压低30-120mV,
-    方向是欠充, 建议不补偿; (3) ★R_ILIM档位表 300/390/470/680Ω -> 皮肤 47.1/42.1/39.9/37.3C, 300Ω档超43C红线,
-    建议470Ω(换料不换板); (4) ★自发现8条: 加厚铜箔救不了(300Ω+2oz仍45.2C FAIL)/铜厚与弯折寿命冲突(弯折段必须留1oz)/电芯内阻才是充电发热主项(114mW,
-    电芯直接贴皮肤侧)/TS参考地被1A回流抬高0.44-0.99C/FPC地平面会分流回流(需keep-out)/触点额定0.5A才是真瓶颈/压降方向不要补偿/BQ25896会提前判满;
-    (5) 机械: J_CHG 触点区5.0mm, FPC宽>=6.0mm, 承力余量22-75x, 本轮所有建议对垂直堆叠影响=0.00mm (径向+0.16~0.20mm,
-    余量1.00->0.80mm); 新增9条 needs_from + 新增 blocker MECH-B8 + 新增 interface_claims 15条。★
-    本单只交方案与核算: 实物类[实测]=0, 接触电阻/座体尺寸/触点额定/电芯内阻/FPC厂商能力/疲劳幂律m 全部标[0数据]并给可查证清单; 未联系任何供应商(外发经PM)。'
+  phase: ISS-099+ISS-100 交卷 (板宽 15mm 结构侧连带 + J_CHG 选型 + FPC 加工图要求)
+  progress_pct: 100
+  health: 'green (4 文件落盘 + 分片原子写; ⚠️ 三处待厂商书面确认: J_CHG 10p 规格/报价, 70% 降额条款, ZIF 座可插
+    FPC 厚度上限)'
+  summary: 板宽 15mm 在镜脚腔体上装得下且几乎免费 (H/V/L 余量 0.95/8.50/24.50mm, 净高不用动); 面积缺口 310→160mm²,
+    建议板长 60 补到 -10mm² 基本闭合; J_CHG 选型 = Hirose FH12-10S-0.5SH(55) (0.5A/触点, 座高 2.0mm),
+    但判据建议从 ≥0.35A 收紧到 ≥0.5A, 且 R_ILIM 300Ω 在 0.5mm pitch 下建议判死; FPC 加工图 6+8+7+5+5
+    条硬要求 + 4 条自发现
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -137,6 +131,43 @@ artifacts:
   summary: '铰链充电电流核算脚本 (rc=0): 算 FPC 铜箔电阻 rho*L/(w*t) / 铰链段总压降发热 (口径A保守+口径B乐观双口径)
     / R_ILIM 4档 x min-typ-max 全表 / ''加厚铜箔能否替代降R_ILIM档'' 对比表 / 机械 (EI 弯折力矩 触点电流密度 堆叠高度影响)
     / SYS 与电芯端电压影响 + TS 参考地偏移; --json 另存 MECH/hinge_power_calc.json'
+- path: MECH/BOARD_WIDTH_15MM.md
+  kind: note
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ISS-100 板宽 12→15mm 结构侧连带复核: 镜脚腔体 H/V/L 三方向余量 (0.95 最坏0.65 / 8.50 / 24.50mm)
+    + 面积缺口账 (吸收 150mm², 建议 60x15=900mm² 闭合) + 定位孔位板框坐标 + 6 条自发现 (含更正 hw-lead 两条基于作废模型的板宽代价)'
+- path: MECH/board_width_15mm_check.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: '自证脚本 rc=0: 复算板宽 15 的腔体三方向余量 / J_CHG 座体宽 (0.5 vs 1.27 两种 pitch 口径) / 面积缺口
+    / 定位孔可达性; --json 另存 board_width_15mm.json'
+- path: MECH/board_width_15mm.json
+  kind: data
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: board_width_15mm_check.py --json 的输出快照
+- path: MECH/FPC_FAB_NOTES.md
+  kind: note
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ISS-099 跨铰链 FPC 加工图硬要求单: 6 条不可协商项 (含分段铜厚 / L2-L3 keep-out / 禁止上调终止电压补偿)
+    + 8 条载流专项 + 7 条弯折段 + 5 条 PCB↔FPC 界面 + 5 条装配 + 4 条''不要做'' + 4 条自发现 (A-1~A-4) +
+    3 项待厂商确认能力'
+- path: HW/J_CHG_SELECTION.md
+  kind: note
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ISS-099 J_CHG 选型: 4 个候选型号 (主推 Hirose FH12-10S-0.5SH(55), 0.5A/触点, 座高 2.0mm)
+    + 5 个厂商待查清单 + 每项参数标证据等级 (10p 尺寸标 [0数据]) + 0.35A 判据的两个读法 + 300Ω 判死 + 4 条自发现 (含
+    ''J_CHG 实际需 2 只, 网表只声明 1 只'')'
+- path: HANDOFF/2026-10-28_mech-lead_镜脚板宽15mm与J_CHG选型.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: ISS-099 + ISS-100 交接单 (B1-B6 六块齐全) + 3 条接口请求 (hw-lead 固定孔位/J_CHG 数量, sw-lead
+    装配解锁流程)
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区
@@ -452,6 +483,86 @@ needs_from:
   item: '充电板规格加一条注记: BQ25896 的 BAT 监测点在【框侧】, 跨铰链压降(37-111mV)使真实电芯欠充 ΔV -> BQ25896
     会提前判满并终止。方向是欠充(永不过充), 容量损失<1%, 建议【不做补偿】(上调终止电压会把真实电芯推过4.2V, 过充方向危险)。请在 HW/CHARGE_BOARD_SPEC.md
     §2.x 落这条注记 (我不改 HW/)'
+- key: iss100_board_length
+  to: main
+  item: '板长 50 还是 60 (板宽 15 已由老板拍板)? 我建议 60: 60x15=900mm² → 双面贴面积缺口 310→10mm² 基本闭合,
+    长度余量 24.50→14.50mm 仍过 0.60 判据; 代价 板重 +0.24g + 骨架 +0.27g'
+  waiting_on: boss
+  due: '2026-10-30'
+  since: '2026-10-28'
+- key: iss100_jchg_pitch_fix
+  to: main
+  item: MECH/hinge_usb_check.py 的 j_chg_pitch_mm 仍是 1.27 (旧口径) → 那个 [FAIL] 'J_CHG
+    座体 13.43mm > 板宽 12mm' 是脚本口径过期, 不是板宽问题; 网表 V1.5 已定稿 0.5mm → 座体 6.50mm, 12mm 板就装得下
+    (余 5.50mm)。请改这一行 (本轮授权不含改既有脚本)。另 netlist 第 16 行 '1.27mm 排线' 旧注记与第 35 行 '0.5mm'
+    自相矛盾, 建议同轮清掉
+  waiting_on: agent
+  due: '2026-10-29'
+  since: '2026-10-28'
+- key: iss100_hw_pcb_outline_stale
+  to: main
+  item: '★分片取值冲突: 硬件总工的 interface_claims.pcb_outline 仍为 ''50x12mm'' (板宽 12 已作废), chg_input_limit
+    仍是 1.07-1.30A (300Ω 档, 现已拍板 390Ω → 0.674-0.822A)。请在合并器检出冲突后统一更正; 我已把本域的 pcb_outline
+    改成 50x15mm'
+  waiting_on: agent
+  due: '2026-10-30'
+  since: '2026-10-28'
+- key: iss099_jchg_rfq
+  to: main
+  item: 'J_CHG 选型外发 (询价/样品, 我未联系任何厂商): 主推 Hirose FH12-10S-0.5SH(55) (0.5mm/1x10p/0.5A每触点/座高2.0mm)。RFQ
+    必问 3 条: ① 单触点 ≥0.5A 的书面确认 (FH12 ''全触点导通用70%'' 条款在我们工况下不触发) ② 10p 的 A/B/C 外形尺寸
+    (我未核, 标 [0数据]) ③ 可插 FPC 厚度上限 ≥0.25mm (固定段 2oz 成品 0.24-0.25mm, FH12 规格 0.18±0.05
+    → 可能超上限!)'
+  waiting_on: vendor
+  due: '2026-10-31'
+  since: '2026-10-28'
+- key: iss099_fpc_vendor_capability
+  to: main
+  item: 'FPC 厂三项能力外发: ① 分段铜厚 (固定段 2oz / 弯折段 1oz + 过渡斜坡 ≥1.0mm) ② L2/L3 在 pin1-4 区域
+    keep-out 且 CAM 不自动修复 ③ 0.5mm pitch 下 0.40mm 线宽 + 0.10mm 最小间隙。做不到 ① → 固定段也用 1oz
+    (压降回基准, 结论方向不变); 做不到 ② → 改 6 层 FPC (铰链区径向余量 1.00mm 会被挤掉, 需重算)'
+  waiting_on: vendor
+  due: '2026-11-02'
+  since: '2026-10-28'
+- key: iss099_poka_yoke_decision
+  to: main
+  item: 'J_CHG 的机械防呆是否升级为硬判据? ISS-085 F-6: 反插 = BAT_CHG 短接 GND = 充电板 MOS 直通 + 电芯侧短路风险。FH12
+    只有 ''polarizing mark indicator'' (人工标记, 不是机械防呆); Amphenol ICC AutoLock 明确 poka-yoke
+    但高 0.5mm (铰链端 H 链余量 1.40mm 仍过) 且非 ZIF (二次解锁动作要与滑移≤0.1mm 流程一起核)'
+  waiting_on: boss
+  due: '2026-10-30'
+  since: '2026-10-28'
+- key: iss099_rilim_300_dead
+  to: main
+  item: 'R_ILIM 300Ω 建议正式判死: 单 pin 0.534A > 0.5mm pitch FPC ZIF 的额定天花板 0.5A (FH12/Amphenol
+    0.5A, GCTGCT/Kyocera 0.4A), 要开 300Ω 只能换 1.0mm pitch (座体宽翻倍, 铰链区装不下)。请写进 DECISIONS'
+  waiting_on: boss
+  due: '2026-10-30'
+  since: '2026-10-28'
+- key: iss099_hw_mounting_holes
+  to: main
+  item: 'PCB 固定孔位定稿 (ISS-049): 我给了板框坐标 —— 2x M1.2 (⌀1.4, 孔心到板边 2.50) 对角分布 (板长 60:
+    (5.0,2.50) 与 (55.0,12.50)) + 1x ⌀2.0 H7 (15.0,7.50) 中心线。理由: 15mm 板宽下 SoC 逃线带占
+    Y∈[2.70,12.30], 器件带仅 2.70mm/边, M1.2 孔占板边 1.80-3.20 必然压逃线带 0.50mm (12mm 板时压 2.00mm),
+    必须沿板长移出逃线区。我的假设: 采用对角分布, 骨架按两个方向的攻丝面做'
+  waiting_on: agent
+  due: '2026-10-30'
+  since: '2026-10-28'
+- key: iss099_hw_jchg_qty
+  to: main
+  item: J_CHG 实际需要 2 只 (框侧充电板 1 + 脚侧主 PCB 1, MECH/HINGE_POWER_CALC.md §1.2 口径), 但
+    netlist 只有一行器件声明 → BOM 备料会少买一半。建议拆成 J_CHG_A (框侧) / J_CHG_B (脚侧) 两个 ref
+  waiting_on: agent
+  due: '2026-10-30'
+  since: '2026-10-28'
+- key: iss100_stale_cost_rows
+  to: main
+  item: 'HW/PCB_FORM_FACTOR_RECHECK.md §5/§7 的 15mm 行有三条基于已作废模型的代价, 留着会持续误导决策: ① ''镜腿根部净高
+    37→40mm + 打印件要改版'' (出自 §1.4.2 叠放模型, fit_check.py 已证伪作废; 串行下净高 38mm 一毫米不用动) ② ''加长
+    50→60 撞镜腿长度硬缺口'' (出自充电板未挪镜脚时的旧长度模型; 现余量 24.50mm) ③ J_CHG 装不下 (实为脚本 pitch 口径过期)。建议同轮更正'
+  waiting_on: agent
+  due: '2026-10-30'
+  since: '2026-10-28'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -522,19 +633,6 @@ answers:
     EMC 给口径 (已发需求)'
   ref: 'MECH/USB_HINGE_STRUCTURE.md#3.3 + #4.5 + #5.3'
 interface_claims:
-- key: pcb_outline
-  value: 50x12mm
-  note: 镜脚截面随电池档位 7.3/8.7/11.2mm; 板宽跟 FCCSP pitch 走 (pitch<=0.3mm -> 15mm, 投板前必须 close);
-    与 hw-lead/main 同值
-  ref: MECH/MECH_BUDGET.md#5.1
-- key: pcb_thickness
-  value: 0.8mm(4层)/1.0mm(6层)
-  note: 锁死 4-6 层; 4层=0.8mm / 6层=1.0mm; 阻抗控 MIPI 走线
-  ref: MECH/MECH_BUDGET.md#5.1
-- key: pcb_mounting
-  value: 2xM1.2+1x⌀2.0H7
-  note: 孔心到板边 2.5mm; 定位靠金属骨架不靠打印面 (FDM 打不出 H7); 器件距板边>=0.8mm
-  ref: MECH/MECH_BUDGET.md#5.1
 - key: battery_capacity_tier
   value: 无桥接340-575mAh/有桥接575-675mAh
   note: 675mAh 形态否决 (镜腿 11.2mm = 华为 6.25mm 的 1.8 倍); 与 hw-lead/main 同值
@@ -862,6 +960,101 @@ interface_claims:
   value: temple_local
   note: SoC的BAT_DET在镜脚本地(不在J_CHG 10p pin map) -> 读到真实电芯电压, 不会被铰链压降虚高 [推算]
   ref: MECH/HINGE_POWER_CALC.md#2.3
+- key: pcb_outline
+  value: 50x15mm
+  note: ★板宽 15 = 老板 10-27 拍板 (不再评估 12mm); 板长暂维持 50, 本单建议 60 (见 pcb_length_proposed);
+    镜脚截面 H7.30/V38.00/L130.00 不因板宽改变 (板宽是 V 向尺寸, 不进 H 链)
+  ref: MECH/BOARD_WIDTH_15MM.md#2.1
+- key: pcb_board_width
+  value: 15mm
+  note: '老板 10-27 拍板; 依据: 逃线带误差 0.20-0.30mm (ISS-081) + 面积缺 300mm² + SoC 横向热扩散 2→3.5mm;
+    ★结构侧代价 = 几乎为零 (V 余量 8.50mm 不变)'
+  ref: MECH/BOARD_WIDTH_15MM.md#0
+- key: pcb_length_proposed
+  value: 60mm
+  note: '本单建议 (未拍板): 60x15=900mm² → 双面贴面积缺口 310→10mm² 基本闭合; 长度余量 24.50→14.50mm 仍过
+    0.60 判据; 代价 板重 +0.24g 骨架 +0.27g'
+  ref: MECH/BOARD_WIDTH_15MM.md#4.2
+- key: pcb_thickness
+  value: 0.8mm(4层)/1.0mm(6层)
+  note: 不变 (板宽是 V 向, 不进 H 尺寸链)
+  ref: MECH/MECH_BUDGET.md#5.1
+- key: pcb_mounting
+  value: 2xM1.2+1x⌀2.0H7
+  note: 孔心到板边 2.50mm; 定位靠金属骨架 (铣削面≤5µm + ⌀2.0 H7 销), 打印件只让过不定位; ★15mm 板宽下 SoC 逃线带占
+    Y∈[2.70,12.30], 器件带仅 2.70mm/边 ⇒ M1.2 孔必然压逃线带 0.50mm ⇒ 必须沿板长移出逃线区 (建议对角分布)
+  ref: MECH/BOARD_WIDTH_15MM.md#5.3
+- key: temple_cross_section
+  value: 7.30x38.00x130.00mm
+  note: 镜脚内腔 H×V×L; ★净高 38mm 一毫米不用动 (15mm 板宽的 '净高37→40' 代价出自已作废的叠放模型)
+  ref: MECH/BOARD_WIDTH_15MM.md#2.2
+- key: temple_layout
+  value: 串行
+  note: 沿长度串行; 叠放分支已由 MECH/fit_check.py 用 H/V/L 三重证明裁决作废
+  ref: MECH/fit_check.py#3
+- key: skeleton_extent
+  value: 止于PCB段后缘
+  note: 金属骨架/石墨不得延伸进电池段 (否则并联热路 4.50 K/W → 进皮肤热量 92.5%→95.7%); 板长 50→60 时骨架长度 +10mm
+    但截面不变
+  ref: MECH/CLEARANCE_FIX.md
+- key: j_chg_pitch
+  value: 0.5mm
+  note: ★网表 V1.5 定稿 1x10p@0.5mm; MECH/hinge_usb_check.py 的 1.27mm 是脚本口径过期 → 那个 [FAIL]
+    不是板宽问题 (0.5mm 口径座体 6.50mm, 12mm 板就装得下)
+  ref: MECH/BOARD_WIDTH_15MM.md#3
+- key: j_chg_pin_map
+  value: 1x10p:1/2=BAT_CHG,3/4=GND,5=CHG_STAT,6=PWR_GOOD,7=VBUS_DET,8=TS,9=RSV,10=TS_RTN
+  note: pin1/2 载流双 pin 并联 (单 pin 0.411A @390Ω), pin3/4 回流双 pin; pin10 = TS 专用回流 (偏差
+    0.44-0.99°C → <0.01°C)
+  ref: HW/netlist_v1.csv
+- key: j_chg_contact_rating_min
+  value: 0.5A
+  note: '★建议从任务给的 0.35A 收紧: 0.35A 是 FH12 ''全触点导通用70%'' 的降额值; 按 0.35A 判, 390Ω 档单 pin
+    0.411A 在保守读法下不合格'
+  ref: HW/J_CHG_SELECTION.md#3.3
+- key: j_chg_seat_height_max
+  value: 2.5mm
+  note: 铰链端 H 链余量 ≥1.40mm; Hirose FH12 = 2.00mm (余 1.90mm)
+  ref: HW/J_CHG_SELECTION.md#4.2
+- key: j_chg_qty
+  value: '2'
+  note: 框侧充电板 1 + 脚侧主 PCB 1; ★网表当前只声明 1 只 → BOM 备料会少买一半
+  ref: HW/J_CHG_SELECTION.md#5
+- key: hinge_stack_v
+  value: 27.00mm
+  note: 4 条 FPC 触点区宽之和 (18+22+4+10 x 0.5mm) vs 镜脚根部净高 37.0 → 余 10.00mm; ★与 PCB 板宽无关
+  ref: MECH/board_width_15mm_check.py#2
+- key: hinge_radial_margin
+  value: 1.00mm
+  note: 径向占位 4.40 vs 前后内净空 5.40 (按镜腿 7.0 保守); 固定段 2oz 后 → 0.80mm
+  ref: MECH/USB_HINGE_STRUCTURE.md#3.2
+- key: fpc_copper_split
+  value: 固定段2oz/弯折段1oz
+  note: '弯折段 ε = t/(2R): 1oz 0.583% / 2oz 1.167% → 寿命掉到 1/16~1/32; 过渡段须落在固定段内 + ≥1.0mm
+    斜坡'
+  ref: MECH/FPC_FAB_NOTES.md#2
+- key: fpc_keepout_l2l3
+  value: pin1-4区
+  note: 内层地平面 (31mm 段 3.4mΩ) 会分流回流 (pin3/4 铜箔 50.8mΩ) → 阻抗与温升失控; 图上必须显式标注 (CAM 会自动修复)
+  ref: MECH/FPC_FAB_NOTES.md#1
+- key: fpc_bend_radius
+  value: 3.0mm
+  note: ISS-085 已定
+  ref: MECH/USB_HINGE_STRUCTURE.md#5.4
+- key: fpc_fixed_len
+  value: 8.0mm
+  note: 固定段每端 ≥8.0mm; 其中紧邻固定夹的直线段 ≥5.0mm; 滑移 ≤0.1mm
+  ref: MECH/USB_HINGE_STRUCTURE.md#5.4
+- key: fpc_hinge_len_min
+  value: 25.5mm
+  note: 最小 = 固定段 8 + 弯折弧 πx3.0=9.42 + 固定段 8 = 25.42mm; 标称 31mm 余 5.58mm; 压到 <25.5mm
+    会与固定段/应力释放段冲突
+  ref: MECH/FPC_FAB_NOTES.md#7
+- key: r_ilim_set
+  value: 390ohm
+  note: 老板 10-28 拍板 (边戴边充不允许 → 皮肤温度不再是充电时硬约束); ICHG 0.822A (max), 单 pin 0.411A; ★300Ω
+    档单 pin 0.534A > 0.5mm ZIF 的 0.5A 额定天花板 → 建议正式判死
+  ref: HW/POWER_SHUTDOWN_V3.md
 open_questions:
 - id: MECH-Q1
   to: main

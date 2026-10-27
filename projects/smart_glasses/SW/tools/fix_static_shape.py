@@ -23,12 +23,12 @@ def main() -> int:
     for d, val in zip(vi.type.tensor_type.shape.dim, dims):
         d.ClearField("dim_param")
         d.dim_value = val
-    # 2) shape inference: **fixed_input_shape = 真实输入 shape** → 从输入往前推
-    #    (不传 fixed_input_shape 的话, 后处理里 90 个 NMS 的动态维度推不出来)
+    # 2) shape inference: 先固定输入 shape, 再跑 infer_shapes(data_prop=True)
+    #    → 维度从输入往前传播 (onnx 1.17+ 的 infer_shapes 无 fixed_input_shape 参数,
+    #    固定输入 dim 本身就能起到传播锚点的作用)
     try:
         m = shape_inference.infer_shapes(
-            m, strict_mode=False, data_prop=True,
-            fixed_input_shape={vi.name: dims})
+            m, strict_mode=False, data_prop=True)
     except Exception as e:  # noqa: BLE001
         print(f"[fix] ⚠️ shape_inference 部分失败 (不影响后续): {e}")
     # 3) 兜底: 只把**仍然**是动态且不在输出上的 dim_param 换成 1
