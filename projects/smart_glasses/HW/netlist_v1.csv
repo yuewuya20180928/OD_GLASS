@@ -10,16 +10,15 @@ P1,VBUS_5V_F1,VBUS_5V_F1,C_VBUS_OUT,C_VBUS_OUT,[待选型] 100µF,C,DNP,[推算]
 P1,GND,C_VBUS_OUT,GND,C_VBUS_OUT,[待选型] 100µF,C,DNP,[推算],,π 滤波后级电容 地端,C-01,CHG_BOARD
 P1,VBUS_5V_CHG,C_VBUS_OUT,U_CHG pin1,C_VBUS_OUT,[待选型] 100µF,C,DNP,[推算],,π 滤波电容 (后级) 位,C-01,CHG_BOARD
 P1,VBUS_5V_CHG,U_CHG,NET_VBUS_5V_CHG,U_CHG,BQ25896,IC,必装,[官方],,"[VBUS_5V_CHG] 1A 单节锂电充电 IC (TI); 输入接 VBUS_5V_F1, BAT 脚接 BAT 轨, STAT/PG 脚回主 PCB (见 P2)",C-01,CHG_BOARD
-P1,BAT_CHG,U_CHG BAT,RAIL_BAT_CHG,NET_BAT_PROT,单端,NET,必装,[官方],,[BAT_CHG] ★V1.2: 充电电流路径 (1.0-1.5A) 镜框充电板 BQ25896 · 跨铰链 · 镜脚电池; **铰链段不加 π 滤波** (会破坏充电 IC 的环路稳定性) → 靠双 pin 并联 + 载流铜箔 + 压降核算,C-03,CHG_BOARD
+P1,BAT_CHG,U_CHG BAT,RAIL_BAT_CHG,NET_BAT_PROT,单端,NET,必装,[官方],,[BAT_CHG] ★V1.2: 充电电流路径 (1.0-1.5A) 镜框充电板 BQ25896 · 跨铰链 · 镜脚电池; **铰链段不加 π 滤波** (会破坏充电 IC 的环路稳定性); 靠双 pin 并联 + 载流铜箔 + 压降核算,C-03,CHG_BOARD
 P1,BAT_CHG,RAIL_BAT_CHG,J_CHG pin1,RAIL_BAT_CHG,跨铰链 1.5A (双 pin 并联),NET,必装,[推算],,[BAT_CHG] 充电电流跨铰链 (J_CHG pin1/pin2 并联); 载流/压降/发热核算见 P9 页,C-02,HINGE
 P1,BAT_CHG,J_CHG pin1,J_CHG pin2,J_CHG,跨铰链 1.5A (双 pin 并联),NET,必装,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算",C-02,HINGE
 P1,BAT_CHG,J_CHG pin2,U_BATPROT,NET_BAT_PROT,单端,NET,必装,[官方],,[BAT_CHG] 充电电流进镜脚侧电池保护 IC (BQ2970) —— **保护 IC 与电池同板 (镜脚)**,C-03,HINGE
-P1,HINGE_RSV,J_CHG pin8,J_CHG pin8,J_CHG,预留 (0Ω/不装),NET,DNP,[推算],,[INVENTORY] [HINGE_RSV] J_CHG pin8 预留位 (将来 USB3 SS 差分或额外信号; 0Ω 占位不装),C-02,HINGE
-P1,HINGE_RSV,J_CHG pin9,J_CHG pin9,J_CHG,预留 (0Ω/不装),NET,DNP,[推算],,[INVENTORY] [HINGE_RSV] J_CHG pin9 预留位 (将来 USB3 SS 差分或额外信号; 0Ω 占位不装),C-02,HINGE
-P1,HINGE_RSV,J_CHG pin10,J_CHG pin10,J_CHG,预留 (0Ω/不装),NET,DNP,[推算],,[INVENTORY] [HINGE_RSV] J_CHG pin10 预留位 (将来 USB3 SS 差分或额外信号; 0Ω 占位不装),C-02,HINGE
+P1,HINGE_RSV,J_CHG pin9,J_CHG pin9,J_CHG,预留 (不装),NET,DNP,[推算],,"[INVENTORY] [HINGE_RSV] J_CHG pin9 预留位 (★V1.5 裁决: 充电 IC 的 I2C **不跨铰链** —— 充电电流靠 R_ILIM 硬件限流, 状态靠 CHG_STAT/PWR_GOOD GPIO 兜底; 将来若要在线配置 充电电流/截止电压, 把这 2 个脚用上即可, 不用改板)",C-02,HINGE
+P1,HINGE_RSV,J_CHG pin10,J_CHG pin10,J_CHG,预留 (不装),NET,DNP,[推算],,"[INVENTORY] [HINGE_RSV] J_CHG pin10 预留位 (★V1.5 裁决: 充电 IC 的 I2C **不跨铰链** —— 充电电流靠 R_ILIM 硬件限流, 状态靠 CHG_STAT/PWR_GOOD GPIO 兜底; 将来若要在线配置 充电电流/截止电压, 把这 2 个脚用上即可, 不用改板)",C-02,HINGE
 P1,GND,J_CHG pin3,J_CHG pin4,J_CHG,回流 (双 pin),NET,必装,[推算],,[GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 → 环路面积最小),C-02,HINGE
 P1,GND,J_CHG pin4,GND,J_CHG,回流 (双 pin),NET,必装,[推算],,[GND_CHG] 回流进镜脚侧数字地,C-02,HINGE
-P1,BAT,RAIL_BAT,U_BATPROT,RAIL_BAT,4.2V 满 / 3.0V 截止,RAIL,必装,[官方],,电源域: 目标 4.2V 满 / 3.0V 截止 / 最大电流 1.0-1.5A 充电; 电流路径 电池→Q2→Q1→本轨; ★V1.2: **电池在镜脚主 PCB** (MECH 体积硬约束: 4.12cc 镜框装不下); SoC 侧球位号 TBD-01,C-03,CHG_BOARD
+P1,BAT,RAIL_BAT,U_BATPROT,RAIL_BAT,4.2V 满 / 3.0V 截止,RAIL,必装,[官方],,电源域: 目标 4.2V 满 / 3.0V 截止 / 最大电流 1.0-1.5A 充电; 电流路径 电池→Q2→Q1→本轨; ★V1.2: **电池在镜脚主 PCB** (MECH 体积硬约束: 4.12cc 镜框装不下); SoC 侧球位号 TBD-01,C-03,MAIN_PCB
 P1,BAT,U_BATPROT,RAIL_BAT,U_BATPROT,BQ2970,IC,必装,[官方],,"[BAT] 1 节锂电保护 IC (配 2×MOS), **与电池同板 (镜脚)**; 具体型号/封装待选型 (BQ2970 系列为规格原文所指)",C-03,MAIN_PCB
 P1,BAT_CELL_P,BT_432243 B+,Q1,BT_432243,432243 3.7V ≥420mAh,CONN,必装,[推算],,"[BAT_CELL_P] 电芯正极 → 第 1 只保护 MOS (Q1) 漏极; 尺寸 4.3×2.4mm 级, 焊接方式待结构确认",C-03,MAIN_PCB
 P1,BAT_PROT_CELL,Q1,Q2,Q1,[待选型] N-MOS,SW,必装,[推算],,"[BAT_PROT_CELL] ★F2 修正: Q1 与 Q2 **串联** (原来两管同网 = 并联, 保护无效); V_DS / 栅压 / R_DS(on) / 封装待 BQ2970 数据手册确认",C-03,MAIN_PCB
@@ -27,70 +26,74 @@ P1,BAT_PROT_CELL2,Q2,U_BATPROT,Q2,[待选型] N-MOS,SW,必装,[推算],,[BAT_PRO
 P1,BAT_GATE,U_BATPROT GATE,Q1 GATE,U_BATPROT,BQ2970,IC,必装,[官方],,[BAT_GATE] ★F2 修正: **两管栅极由 BQ2970 同驱** (原来完全没有栅极连接 → MOS 永远不导通/不受控); 栅极网络按 BQ2970 数据手册确认是否需要上拉,C-03,MAIN_PCB
 P1,BAT_GATE,Q1 GATE,Q2 GATE,Q1,[待选型] N-MOS,SW,必装,[推算],,"[BAT_GATE] 两管共栅 (back-to-back 接法, 按 BQ2970 数据手册确认体二极管方向)",C-03,MAIN_PCB
 P1,BAT_CELL_N,BT_432243 B-,U_BATPROT B-,BT_432243,432243 3.7V ≥420mAh,CONN,必装,[推算],,[BAT_CELL_N] ★F2 修正: **电芯负极 → BQ2970 的 B- 脚** (原来电芯只有一个端子 → 电池回路不闭合),C-03,MAIN_PCB
-P1,SYS,RAIL_SYS,U_BATPROT,RAIL_SYS,3.0-4.2V,RAIL,必装,[推算],,电源域: 目标 3.0-4.2V / 最大电流 0.55A (330mA×1.5 + 瞬态); **R-F1 裁决: SYS 下限抬到 3.5V**; ★V1.2: **SYS 在镜脚本地产生** (电池在镜脚 → 电池保护后就是 SYS) → **SYS 不过铰链** (跨铰链的只有充电电流 1.0-1.5A); SoC 侧球位号 TBD-01,C-02,CHG_BOARD
-P1,BAT_CHG,J_CHG,J_CHG pin1,J_CHG,"1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",CONN,必装,[推算],,"[SYS] ★V1.2 改 pin map (原 1×6 是因为 V1 假定电池在镜框): pin1/pin2=BAT_CHG (充电电流 1.5A 双 pin 并联), pin3/pin4=GND (回流双 pin), pin5=CHG_STAT, pin6=PWR_GOOD, pin7=VBUS_DET, pin8-10=预留; ★BAT_DET 不再跨铰链 (电池在镜脚本地检测); 型号/间距/载流待结构与板宽确认; ★pin 编号为**本版自拟**",C-02,HINGE
-P1,TS_BAT,U_CHG TS,R_NTC_BAT,NET_TS_BAT,单端,NET,必装,[官方],,"[TS_BAT] ★电池温度检测: 10k NTC (B=3435) 接 BQ25896 的 TS 脚 → 电池过温/欠温时**硬件直接停充** (不依赖 SoC, 属安全项); 与 P2 的 SoC 侧数字温度计 U_TEMP 是两回事, 不能互相替代",C-01,CHG_BOARD
-P1,TS_BAT,R_NTC_BAT,BAT_PROT_CELL,R_NTC_BAT,10k NTC B=3435 ±1% (贴电芯),R,必装,[推算],,"[TS_BAT] NTC 本体位 (贴电芯表面, 引线尽量短; 阈值档随 BQ25896 数据手册确认)",C-01,CHG_BOARD
-P1,GND,R_TS_PULL,GND,R_TS_PULL,10k ±1%,R,必装,[推算],,"[TS_BAT] TS 脚对地下拉 (与 NTC 分压, BQ25896 按阈值判温度) [F6: 本行属 GND 网]",C-01,CHG_BOARD
+P1,SYS,RAIL_SYS,U_BATPROT,RAIL_SYS,3.0-4.2V,RAIL,必装,[推算],,电源域: 目标 3.0-4.2V / 最大电流 0.55A (330mA×1.5 + 瞬态); **R-F1 裁决: SYS 下限抬到 3.5V**; ★V1.2: **SYS 在镜脚本地产生** (电池在镜脚 → 电池保护后就是 SYS) → **SYS 不过铰链** (跨铰链的只有充电电流 1.0-1.5A); SoC 侧球位号 TBD-01,C-02,MAIN_PCB
+P1,BAT_CHG,J_CHG,J_CHG pin1,J_CHG,"1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",CONN,必装,[推算],,"[SYS] ★V1.5 定稿 pin map (1×10p@0.5mm): pin1/pin2=BAT_CHG (充电电流**双 pin 并联**), pin3/pin4=GND (回流双 pin), pin5=CHG_STAT, pin6=PWR_GOOD, pin7=VBUS_DET, pin8=**TS** (电池 NTC 在镜脚, TS 跨铰链), pin9/10=预留 (充电 IC I2C 不跨铰链); ★BAT_DET 不跨铰链 (电池在镜脚本地检测); 型号/载流待结构复核 (ISS-091 算压降发热); ★pin 编号为**本版自拟**",C-02,HINGE
+P1,TS_BAT,U_CHG TS,R_NTC_BAT,NET_TS_BAT,单端,NET,必装,[官方],,"[TS_BAT] ★电池温度检测: 103AT NTC 接 BQ25896 的 TS 脚 (过温/欠温时**硬件直接停充**; 分压网络按 datasheet 三件式) (不依赖 SoC, 属安全项); 与 P2 的 SoC 侧数字温度计 U_TEMP 是两回事, 不能互相替代",C-01,CHG_BOARD
+P1,TS_BAT,R_NTC_BAT,BAT_PROT_CELL,R_NTC_BAT,103AT NTC ±1% (贴电芯),R,必装,[官方],,"[TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 · **TS 必须跨铰链** (J_CHG pin8, 高阻无电流); NTC 按 BQ25896 datasheet 取 **103AT** (与 30.31k 并联构成温度检测网络)",C-01,MAIN_PCB
+P1,GND,R_TS_PULL,GND,R_TS_PULL,30.31k ±1%,R,必装,[官方],,"[TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压), 在镜框充电板侧 [F6: 本行属 GND 网]",C-01,CHG_BOARD
+P1,TS_BAT,J_CHG pin8,R_NTC_BAT,J_CHG,跨铰链 (高阻),NET,必装,[推算],,[TS_BAT] ★V1.5 补画: **TS 跨铰链这一段** (V1.2 把电池/NTC 搬镜脚时漏了) · 走 J_CHG pin8,C-01,HINGE
+P1,TS_BAT,R_TS_TOP,U_CHG REGN,R_TS_TOP,5.24k ±1% (RT1: REGN 到 TS),R,必装,[官方],,"[TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, 原来只画了 NTC + 10k 下拉 = 分压比完全不对 (datasheet: 0°C→73.25%, 60°C→34.375%)",C-01,CHG_BOARD
+P1,IINLIM,U_CHG IINLIM,R_ILIM,R_ILIM,300Ω ±1% (IINMAX ≈1.07-1.30A),R,必装,[官方],,"[IINLIM] ★V1.5 补画: **输入限流电阻** —— BQ25896 的 IINLIM 复位默认 **2048mA** [官方], 不装 = 铰链段被灌 ~1.68A (ICHG≈0.822×IIN), 发热/压降失控; 300Ω 给 ICHG≈0.88-1.07A; 按 ISS-091 结构结论可换 390Ω (换料不换板)",C-01,CHG_BOARD
+P1,GND,R_ILIM,GND,R_ILIM,300Ω ±1% (IINMAX ≈1.07-1.30A),R,必装,[官方],,[IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限),,MAIN_PCB
 P1,BAT_CHG,J_CHG pin1,TP_BAT_CHG,TP_BAT_CHG,跨铰链段压降测点,TP,必装,[推算],,[BAT_CHG] ★跨铰链充电电流段压降测点 (1.5A 下压降 = 接触电阻×1.5A); 铰链段发热与压降按结构实际长度核算 (结构总工),C-02,MAIN_PCB
 P1,V_CORE,RAIL_V_CORE,U_DCDC_VCORE,RAIL_V_CORE,[待原厂] (典型 0.8-0.9V),RAIL,必装,[官方],TBD-02,电源域: 目标 [待原厂] (典型 0.8-0.9V) / 最大电流 ≥2.0A (0.9W/0.8V×1.5=1.69A); IC TPS62130A; SoC 侧球位号 TBD-01,C-04,MAIN_PCB
-P1,SYS_PCB,RAIL_SYS,U_DCDC_VCORE,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[V_CORE] U_DCDC_VCORE 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-04,CHG_BOARD
+P1,SYS_PCB,RAIL_SYS,U_DCDC_VCORE,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[V_CORE] U_DCDC_VCORE 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-04,MAIN_PCB
 P1,V_CORE,RAIL_V_CORE,U_DCDC_VCORE,U_DCDC_VCORE,TPS62130A,IC,必装,[官方],TBD-02,"[V_CORE] DC-DC (3A) 供 V_CORE; 电压 [待原厂] (典型 0.8-0.9V) / 最大电流 ≥2.0A (0.9W/0.8V×1.5=1.69A); 选型依据 规格 power_rails[V_CORE]; ★电压不确定性吸收: TPS62130A **引脚可选 (标称 ±5%)** [官方] · 原厂电压落在档内则**换料不换板** (VQFN-16 RGT); 落在档外则换同封装可调型号 (改两颗反馈电阻), 仍不改板",C-04,MAIN_PCB
 P1,V_CORE,RAIL_V_CORE,C_BULK_V_CORE,C_BULK_V_CORE,10µF,C,必装,[推算],,"[V_CORE] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)",C-04,MAIN_PCB
 P1,GND,C_BULK_V_CORE,GND,C_BULK_V_CORE,10µF,C,必装,[推算],,[V_CORE] 体电容 地端,C-04,MAIN_PCB
 P1,V_CORE,RAIL_V_CORE,C_HF_V_CORE,C_HF_V_CORE,100nF,C,必装,[推算],,[V_CORE] 高频去耦电容位 (紧贴 IC 引脚),C-04,MAIN_PCB
 P1,GND,C_HF_V_CORE,GND,C_HF_V_CORE,100nF,C,必装,[推算],,[V_CORE] 高频去耦电容 地端,C-04,MAIN_PCB
 P1,V_SOC_IO,RAIL_V_SOC_IO,U_DCDC_VIO,RAIL_V_SOC_IO,[待原厂] (3.3V / 1.8V / 1.2V),RAIL,必装,[官方],TBD-02,电源域: 目标 [待原厂] (3.3V / 1.8V / 1.2V) / 最大电流 ≥1.0A; IC TPS62130A; SoC 侧球位号 TBD-01,C-05,MAIN_PCB
-P1,SYS_PCB,RAIL_SYS,U_DCDC_VIO,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[V_SOC_IO] U_DCDC_VIO 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-05,CHG_BOARD
+P1,SYS_PCB,RAIL_SYS,U_DCDC_VIO,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[V_SOC_IO] U_DCDC_VIO 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-05,MAIN_PCB
 P1,V_SOC_IO,RAIL_V_SOC_IO,U_DCDC_VIO,U_DCDC_VIO,TPS62130A,IC,必装,[官方],TBD-02,"[V_SOC_IO] DC-DC (3A) 供 V_SOC_IO; 电压 [待原厂] (3.3V / 1.8V / 1.2V) / 最大电流 ≥1.0A; 选型依据 规格 power_rails[V_SOC_IO]; ★电压不确定性吸收: TPS62130A **引脚可选 (标称 ±5%)** [官方] · 原厂电压落在档内则**换料不换板** (VQFN-16 RGT); 落在档外则换同封装可调型号 (改两颗反馈电阻), 仍不改板",C-05,MAIN_PCB
 P1,V_SOC_IO,RAIL_V_SOC_IO,C_BULK_V_SOC_IO,C_BULK_V_SOC_IO,10µF,C,必装,[推算],,"[V_SOC_IO] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)",C-05,MAIN_PCB
 P1,GND,C_BULK_V_SOC_IO,GND,C_BULK_V_SOC_IO,10µF,C,必装,[推算],,[V_SOC_IO] 体电容 地端,C-05,MAIN_PCB
 P1,V_SOC_IO,RAIL_V_SOC_IO,C_HF_V_SOC_IO,C_HF_V_SOC_IO,100nF,C,必装,[推算],,[V_SOC_IO] 高频去耦电容位 (紧贴 IC 引脚),C-05,MAIN_PCB
 P1,GND,C_HF_V_SOC_IO,GND,C_HF_V_SOC_IO,100nF,C,必装,[推算],,[V_SOC_IO] 高频去耦电容 地端,C-05,MAIN_PCB
 P1,SENSOR_AVDD,RAIL_SENSOR_AVDD,U_LDO_S28,RAIL_SENSOR_AVDD,2.8V,RAIL,必装,[官方],,电源域: 目标 2.8V / 最大电流 30mA; IC TPS7A20-28; SoC 侧球位号 TBD-01,C-06,MAIN_PCB
-P1,SYS_PCB,RAIL_SYS,U_LDO_S28,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[SENSOR_AVDD] U_LDO_S28 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-06,CHG_BOARD
+P1,SYS_PCB,RAIL_SYS,U_LDO_S28,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[SENSOR_AVDD] U_LDO_S28 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-06,MAIN_PCB
 P1,SENSOR_AVDD,RAIL_SENSOR_AVDD,U_LDO_S28,U_LDO_S28,TPS7A20-28,IC,必装,[官方],,"[SENSOR_AVDD] LDO 供 SENSOR_AVDD (2.8V/30mA); 电压 2.8V / 最大电流 30mA; 选型依据 规格 power_rails[SENSOR_AVDD]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料不换板** (7µVrms / PSRR 60dB 留给 sensor 轨, 噪声优先)",C-06,MAIN_PCB
 P1,SENSOR_AVDD,RAIL_SENSOR_AVDD,C_BULK_SENSOR_AVDD,C_BULK_SENSOR_AVDD,10µF,C,必装,[推算],,"[SENSOR_AVDD] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)",C-06,MAIN_PCB
 P1,GND,C_BULK_SENSOR_AVDD,GND,C_BULK_SENSOR_AVDD,10µF,C,必装,[推算],,[SENSOR_AVDD] 体电容 地端,C-06,MAIN_PCB
 P1,SENSOR_AVDD,RAIL_SENSOR_AVDD,C_HF_SENSOR_AVDD,C_HF_SENSOR_AVDD,100nF,C,必装,[推算],,[SENSOR_AVDD] 高频去耦电容位 (紧贴 IC 引脚),C-06,MAIN_PCB
 P1,GND,C_HF_SENSOR_AVDD,GND,C_HF_SENSOR_AVDD,100nF,C,必装,[推算],,[SENSOR_AVDD] 高频去耦电容 地端,C-06,MAIN_PCB
 P1,SENSOR_VDD_IO,RAIL_SENSOR_VDD_IO,U_LDO_S18,RAIL_SENSOR_VDD_IO,1.8V,RAIL,必装,[官方],,电源域: 目标 1.8V / 最大电流 30mA; IC TPS7A20-18; SoC 侧球位号 TBD-01,C-07,MAIN_PCB
-P1,SYS_PCB,RAIL_SYS,U_LDO_S18,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[SENSOR_VDD_IO] U_LDO_S18 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-07,CHG_BOARD
+P1,SYS_PCB,RAIL_SYS,U_LDO_S18,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[SENSOR_VDD_IO] U_LDO_S18 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-07,MAIN_PCB
 P1,SENSOR_VDD_IO,RAIL_SENSOR_VDD_IO,U_LDO_S18,U_LDO_S18,TPS7A20-18,IC,必装,[官方],,"[SENSOR_VDD_IO] LDO 供 SENSOR_VDD_IO (1.8V/30mA); 电压 1.8V / 最大电流 30mA; 选型依据 规格 power_rails[SENSOR_VDD_IO]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料不换板** (7µVrms / PSRR 60dB 留给 sensor 轨, 噪声优先)",C-07,MAIN_PCB
 P1,SENSOR_VDD_IO,RAIL_SENSOR_VDD_IO,C_BULK_SENSOR_VDD_IO,C_BULK_SENSOR_VDD_IO,10µF,C,必装,[推算],,"[SENSOR_VDD_IO] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)",C-07,MAIN_PCB
 P1,GND,C_BULK_SENSOR_VDD_IO,GND,C_BULK_SENSOR_VDD_IO,10µF,C,必装,[推算],,[SENSOR_VDD_IO] 体电容 地端,C-07,MAIN_PCB
 P1,SENSOR_VDD_IO,RAIL_SENSOR_VDD_IO,C_HF_SENSOR_VDD_IO,C_HF_SENSOR_VDD_IO,100nF,C,必装,[推算],,[SENSOR_VDD_IO] 高频去耦电容位 (紧贴 IC 引脚),C-07,MAIN_PCB
 P1,GND,C_HF_SENSOR_VDD_IO,GND,C_HF_SENSOR_VDD_IO,100nF,C,必装,[推算],,[SENSOR_VDD_IO] 高频去耦电容 地端,C-07,MAIN_PCB
 P1,SENSOR_CORE,RAIL_SENSOR_CORE,U_LDO_S12,RAIL_SENSOR_CORE,1.2V,RAIL,必装,[官方],,电源域: 目标 1.2V / 最大电流 50mA; IC TPS7A20-12; SoC 侧球位号 TBD-01,C-08,MAIN_PCB
-P1,SYS_PCB,RAIL_SYS,U_LDO_S12,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[SENSOR_CORE] U_LDO_S12 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-08,CHG_BOARD
+P1,SYS_PCB,RAIL_SYS,U_LDO_S12,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[SENSOR_CORE] U_LDO_S12 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-08,MAIN_PCB
 P1,SENSOR_CORE,RAIL_SENSOR_CORE,U_LDO_S12,U_LDO_S12,TPS7A20-12,IC,必装,[官方],,"[SENSOR_CORE] LDO 供 SENSOR_CORE (1.2V/50mA); 电压 1.2V / 最大电流 50mA; 选型依据 规格 power_rails[SENSOR_CORE]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料不换板** (7µVrms / PSRR 60dB 留给 sensor 轨, 噪声优先)",C-08,MAIN_PCB
 P1,SENSOR_CORE,RAIL_SENSOR_CORE,C_BULK_SENSOR_CORE,C_BULK_SENSOR_CORE,10µF,C,必装,[推算],,"[SENSOR_CORE] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)",C-08,MAIN_PCB
 P1,GND,C_BULK_SENSOR_CORE,GND,C_BULK_SENSOR_CORE,10µF,C,必装,[推算],,[SENSOR_CORE] 体电容 地端,C-08,MAIN_PCB
 P1,SENSOR_CORE,RAIL_SENSOR_CORE,C_HF_SENSOR_CORE,C_HF_SENSOR_CORE,100nF,C,必装,[推算],,[SENSOR_CORE] 高频去耦电容位 (紧贴 IC 引脚),C-08,MAIN_PCB
 P1,GND,C_HF_SENSOR_CORE,GND,C_HF_SENSOR_CORE,100nF,C,必装,[推算],,[SENSOR_CORE] 高频去耦电容 地端,C-08,MAIN_PCB
 P1,LIGHT_3V3,RAIL_LIGHT_3V3,U_LDO_L33,RAIL_LIGHT_3V3,3.3V,RAIL,必装,[推算],TBD-02,电源域: 目标 3.3V / 最大电流 150mA; IC TPS7A20-33; SoC 侧球位号 TBD-01,C-09,MAIN_PCB
-P1,SYS_PCB,RAIL_SYS,U_LDO_L33,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[LIGHT_3V3] U_LDO_L33 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-09,CHG_BOARD
+P1,SYS_PCB,RAIL_SYS,U_LDO_L33,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[LIGHT_3V3] U_LDO_L33 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-09,MAIN_PCB
 P1,LIGHT_3V3,RAIL_LIGHT_3V3,U_LDO_L33,U_LDO_L33,TPS7A20-33,IC,必装,[推算],TBD-02,"[LIGHT_3V3] LDO 供 LIGHT_3V3 (3.3V/150mA); 电压 3.3V / 最大电流 150mA; 选型依据 规格 power_rails[LIGHT_3V3]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料不换板** (7µVrms / PSRR 60dB 留给 sensor 轨, 噪声优先)",C-09,MAIN_PCB
 P1,LIGHT_3V3,RAIL_LIGHT_3V3,C_BULK_LIGHT_3V3,C_BULK_LIGHT_3V3,10µF,C,必装,[推算],,"[LIGHT_3V3] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)",C-09,MAIN_PCB
 P1,GND,C_BULK_LIGHT_3V3,GND,C_BULK_LIGHT_3V3,10µF,C,必装,[推算],,[LIGHT_3V3] 体电容 地端,C-09,MAIN_PCB
 P1,LIGHT_3V3,RAIL_LIGHT_3V3,C_HF_LIGHT_3V3,C_HF_LIGHT_3V3,100nF,C,必装,[推算],,[LIGHT_3V3] 高频去耦电容位 (紧贴 IC 引脚),C-09,MAIN_PCB
 P1,GND,C_HF_LIGHT_3V3,GND,C_HF_LIGHT_3V3,100nF,C,必装,[推算],,[LIGHT_3V3] 高频去耦电容 地端,C-09,MAIN_PCB
 P1,LIGHT_1V8,RAIL_LIGHT_1V8,U_LDO_L18,RAIL_LIGHT_1V8,1.8V,RAIL,DNP,[推算],TBD-02,电源域: 目标 1.8V / 最大电流 50mA; IC TPS7A20-18; SoC 侧球位号 TBD-01,C-10,MAIN_PCB
-P1,SYS_PCB,RAIL_SYS,U_LDO_L18,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,DNP,[推算],,"[LIGHT_1V8] U_LDO_L18 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-10,CHG_BOARD
+P1,SYS_PCB,RAIL_SYS,U_LDO_L18,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,DNP,[推算],,"[LIGHT_1V8] U_LDO_L18 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",C-10,MAIN_PCB
 P1,LIGHT_1V8,RAIL_LIGHT_1V8,U_LDO_L18,U_LDO_L18,TPS7A20-18,IC,DNP,[推算],TBD-02,"[LIGHT_1V8] LDO 供 LIGHT_1V8 (1.8V/50mA); 电压 1.8V / 最大电流 50mA; 选型依据 规格 power_rails[LIGHT_1V8]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料不换板** (7µVrms / PSRR 60dB 留给 sensor 轨, 噪声优先)",C-10,MAIN_PCB
 P1,LIGHT_1V8,RAIL_LIGHT_1V8,C_BULK_LIGHT_1V8,C_BULK_LIGHT_1V8,10µF,C,DNP,[推算],,"[LIGHT_1V8] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)",C-10,MAIN_PCB
 P1,GND,C_BULK_LIGHT_1V8,GND,C_BULK_LIGHT_1V8,10µF,C,DNP,[推算],,[LIGHT_1V8] 体电容 地端,C-10,MAIN_PCB
 P1,LIGHT_1V8,RAIL_LIGHT_1V8,C_HF_LIGHT_1V8,C_HF_LIGHT_1V8,100nF,C,DNP,[推算],,[LIGHT_1V8] 高频去耦电容位 (紧贴 IC 引脚),C-10,MAIN_PCB
 P1,GND,C_HF_LIGHT_1V8,GND,C_HF_LIGHT_1V8,100nF,C,DNP,[推算],,[LIGHT_1V8] 高频去耦电容 地端,C-10,MAIN_PCB
 P1,VDD_3V3_IO,RAIL_VDD_3V3_IO,U_LDO_IO33,RAIL_VDD_3V3_IO,3.3V,RAIL,必装,[推算],,电源域: 目标 3.3V / 最大电流 200mA; IC TPS7A20-33; SoC 侧球位号 TBD-01,,MAIN_PCB
-P1,SYS_PCB,RAIL_SYS,U_LDO_IO33,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[VDD_3V3_IO] U_LDO_IO33 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",,CHG_BOARD
+P1,SYS_PCB,RAIL_SYS,U_LDO_IO33,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[VDD_3V3_IO] U_LDO_IO33 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",,MAIN_PCB
 P1,VDD_3V3_IO,RAIL_VDD_3V3_IO,U_LDO_IO33,U_LDO_IO33,TPS7A20-33,IC,必装,[推算],,"[VDD_3V3_IO] LDO 供 VDD_3V3_IO (3.3V/200mA); 电压 3.3V / 最大电流 200mA; 选型依据 规格 power_rails[VDD_3V3_IO]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料不换板** (7µVrms / PSRR 60dB 留给 sensor 轨, 噪声优先)",,MAIN_PCB
 P1,VDD_3V3_IO,RAIL_VDD_3V3_IO,C_BULK_VDD_3V3_IO,C_BULK_VDD_3V3_IO,10µF,C,必装,[推算],,"[VDD_3V3_IO] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)",,MAIN_PCB
 P1,GND,C_BULK_VDD_3V3_IO,GND,C_BULK_VDD_3V3_IO,10µF,C,必装,[推算],,[VDD_3V3_IO] 体电容 地端,,MAIN_PCB
 P1,VDD_3V3_IO,RAIL_VDD_3V3_IO,C_HF_VDD_3V3_IO,C_HF_VDD_3V3_IO,100nF,C,必装,[推算],,[VDD_3V3_IO] 高频去耦电容位 (紧贴 IC 引脚),,MAIN_PCB
 P1,GND,C_HF_VDD_3V3_IO,GND,C_HF_VDD_3V3_IO,100nF,C,必装,[推算],,[VDD_3V3_IO] 高频去耦电容 地端,,MAIN_PCB
 P1,VDD_1V8_IO,RAIL_VDD_1V8_IO,U_LDO_IO18,RAIL_VDD_1V8_IO,1.8V,RAIL,必装,[推算],,电源域: 目标 1.8V / 最大电流 100mA; IC TPS7A20-18; SoC 侧球位号 TBD-01,,MAIN_PCB
-P1,SYS_PCB,RAIL_SYS,U_LDO_IO18,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[VDD_1V8_IO] U_LDO_IO18 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",,CHG_BOARD
+P1,SYS_PCB,RAIL_SYS,U_LDO_IO18,RAIL_SYS,3.5-4.2V (R-F1 抬下限后),NET,必装,[推算],,"[VDD_1V8_IO] U_LDO_IO18 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",,MAIN_PCB
 P1,VDD_1V8_IO,RAIL_VDD_1V8_IO,U_LDO_IO18,U_LDO_IO18,TPS7A20-18,IC,必装,[推算],,"[VDD_1V8_IO] LDO 供 VDD_1V8_IO (1.8V/100mA); 电压 1.8V / 最大电流 100mA; 选型依据 规格 power_rails[VDD_1V8_IO]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料不换板** (7µVrms / PSRR 60dB 留给 sensor 轨, 噪声优先)",,MAIN_PCB
 P1,VDD_1V8_IO,RAIL_VDD_1V8_IO,C_BULK_VDD_1V8_IO,C_BULK_VDD_1V8_IO,10µF,C,必装,[推算],,"[VDD_1V8_IO] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)",,MAIN_PCB
 P1,GND,C_BULK_VDD_1V8_IO,GND,C_BULK_VDD_1V8_IO,10µF,C,必装,[推算],,[VDD_1V8_IO] 体电容 地端,,MAIN_PCB
@@ -281,7 +284,7 @@ P6,USB_CC2,J_TYPE_C B5,R_CC2,R_CC2,5.1k ±1%,R,必装,[推算],,[USB_CC2] Type-C
 P6,GND,R_CC1,GND,R_CC1,5.1k ±1%,R,必装,[推算],,Type-C Rd 下拉端,,CHG_BOARD
 P6,GND,R_CC2,GND,R_CC2,5.1k ±1%,R,必装,[推算],,Type-C Rd 下拉端,,CHG_BOARD
 P6,USB_CC2,USB_CC2,J_TYPE_C B5,NET_USB_CC2,单端,NET,必装,[推算],,[USB_CC2] CC2 网节点 (同 net),B-23,CHG_BOARD
-P6,GND,J_TYPE_C A1+A12,GND,J_TYPE_C,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,[官方],,Type-C GND 脚,,CHG_BOARD
+P6,GND,J_TYPE_C A1+A12+B1+B12,GND,J_TYPE_C,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 → B1/B12 悬空 = 回流路径减半)",,CHG_BOARD
 P6,GND,J_TYPE_C shield,GND,J_TYPE_C,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,[官方],,"Type-C 屏蔽壳 接 GND (单点, 与机壳地的接法待结构定)",,CHG_BOARD
 P6,CONN_USB,CONN_USB,CONN_USB pin1,CONN_USB,4p@0.5mm USB 跨铰链连接器 (D+/D-/GND/预留),CONN,必装,[推算],,"[INVENTORY] [CONN_USB] ★USB 差分对**必然跨铰链** (Type-C 在充电板=镜框, SoC 在主 PCB=镜脚) → 本位必留; ⚠️ USB 2.0 (及可能的 USB 3.0 SS) 差分跨铰链是 SI 风险, 建议 Type-C 挪主 PCB 侧 或调试改走 J_DEBUG/J_UART → 已列 P6 叙述 + 待项目总工/结构总工拍板",,HINGE
 P7,LED_R,SoC[TBD-01].LED_R,R_LED_R,NET_LED_R,1k 串阻 → LED → GND,NET,必装,[推算],,方向 SoC→LED; 电平 3.3V; 阻抗 1k 串阻 → LED → GND; 连接 主 PCB; 测试点 TP_LED_R,B-12,MAIN_PCB

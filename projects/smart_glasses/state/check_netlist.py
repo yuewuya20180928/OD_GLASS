@@ -28,7 +28,7 @@ REQUIRED_COLS = ["page", "net", "node1", "node2", "ref", "value", "type", "dnp",
 LEGAL_DNP = {"必装", "DNP", "可选"}
 LEGAL_EVIDENCE = {"[官方]", "[推算]", "[实测]", "[待原厂]", "[待JBD]", "[同Die参考-待官方确认]", "[0数据]"}
 LEGAL_BOARD = {"CHG_BOARD", "MAIN_PCB", "HINGE"}
-PAGES = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9"]
+PAGES = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10"]
 
 
 def main() -> int:
@@ -135,7 +135,7 @@ def main() -> int:
     # 10) 8 页齐全
     got_pages = {cell(r, "page") for r in rows if cell(r, "page")}
     miss_p = [p for p in PAGES if p not in got_pages]
-    chk("9 页齐全 (P1-P9)", not miss_p, f"缺页 {miss_p}" if miss_p else f"实际 {sorted(got_pages)}")
+    chk("10 页齐全 (P1-P10)", not miss_p, f"缺页 {miss_p}" if miss_p else f"实际 {sorted(got_pages)}")
 
     # 11) 同一 net 不得有多个输出驱动 (DRC 近似: 同 net 不同 ref 且方向冲突)
     by_net: dict[str, list] = {}
@@ -212,6 +212,10 @@ def main() -> int:
             miss_usb.append(netn)
     chk("USB 差分必经跨铰链连接器 (网里有 CONN_USB 脚)", not miss_usb,
         f"缺铰链连接器 {miss_usb}" if miss_usb else "USB_D_P/USB_D_N 都经 CONN_USB")
+
+    # 19b) P10 充电板页必须有行 (数据来自 state/p10_rows.json; 未到就红 —— 诚实反映"还没画完")
+    p10 = [r for r in rows if cell(r, "page") == "P10"]
+    chk("P10 充电板页有内容 (≥30 行)", len(p10) >= 30, f"{len(p10)} 行")
 
     # 20) U_BRIDGE 定位统一 (DP1.4 TX → MIPI DSI TX 桥接) 且方案A 下 DNP
     ub = [r for r in rows if cell(r, "ref") == "U_BRIDGE"]

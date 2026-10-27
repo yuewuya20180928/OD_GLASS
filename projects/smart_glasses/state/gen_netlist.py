@@ -56,8 +56,8 @@ HINGE_REFS = {"J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"}
 # 充电板 (镜框) 上的器件 —— ★V1.2: 电池 + 电池保护 IC + 2×MOS 移到**镜脚主 PCB** (MECH 体积硬约束)
 CHG_BOARD_REFS = {
     "J_TYPE_C", "D_ESD_TC", "FB_VBUS", "C_VBUS_IN", "C_VBUS_OUT", "U_CHG",
-    "TP_VBUS", "R_CC1", "R_CC2",
-    "NET_VBUS_5V_CHG", "R_NTC_BAT", "R_TS_PULL",
+    "TP_VBUS", "R_CC1", "R_CC2", "R_TS_PULL", "R_TS_TOP",
+    "NET_VBUS_5V_CHG",
 }
 
 PAGES = {
@@ -70,6 +70,7 @@ PAGES = {
     "P7": "板级接口与测试点 (TP + 按键 + LED + ID 跳线)",
     "P8": "时钟 · 复位 · 调试 (XTAL / RESET / BOOT / JTAG / UART)",
     "P9": "跨铰链界面 (4 组跨铰链通道 + 保护/滤波件 + 板级归属)",
+    "P10": "充电板 (镜框) 整页: Type-C 16p 物理脚位 + BQ25896 24 脚 + 温度检测三件式 + R_ILIM 硬件限流",
 }
 
 # 关键词 → TBD 编号 (对应规格 undrawable[] 顺序: 1 引脚表 2 电源域 3 CSI 规格 4 显示TX
@@ -137,8 +138,9 @@ def board_for(r: dict) -> str:
             return BOARD_CHG
         if re.search(r"J_CHG|CONN_USB|CONN_CAM|CONN_LIGHT", blob):
             return BOARD_HINGE
-        if ref in ("RAIL_VBUS_5V", "RAIL_BAT", "RAIL_SYS", "NET_VBUS_5V_CHG", "NET_BAT_PROT"):
+        if ref in ("RAIL_VBUS_5V", "NET_VBUS_5V_CHG"):
             return BOARD_CHG
+        # ★V1.5 修正: RAIL_BAT / RAIL_SYS / R_NTC_BAT 都在**镜脚** (电池在镜脚, V1.2 裁决) → MAIN_PCB
         return BOARD_MAIN
     if re.search(r"J_TYPE_C|U_CHG", blob):
         return BOARD_CHG
@@ -200,7 +202,7 @@ def build_p1(by_id, spec):
     add("P1", "BAT_CHG", "U_CHG BAT", "RAIL_BAT_CHG", "NET_BAT_PROT", "单端", "NET", "必装",
         "[官方]", "",
         "[BAT_CHG] ★V1.2: 充电电流路径 (1.0-1.5A) 镜框充电板 BQ25896 · 跨铰链 · 镜脚电池; "
-        "**铰链段不加 π 滤波** (会破坏充电 IC 的环路稳定性) → 靠双 pin 并联 + 载流铜箔 + 压降核算", "C-03")
+        "**铰链段不加 π 滤波** (会破坏充电 IC 的环路稳定性); 靠双 pin 并联 + 载流铜箔 + 压降核算", "C-03")
     add("P1", "BAT_CHG", "RAIL_BAT_CHG", "J_CHG pin1", "RAIL_BAT_CHG", "跨铰链 1.5A (双 pin 并联)",
         "NET", "必装", "[推算]", "",
         "[BAT_CHG] 充电电流跨铰链 (J_CHG pin1/pin2 并联); 载流/压降/发热核算见 P9 页", "C-02")
@@ -210,10 +212,12 @@ def build_p1(by_id, spec):
     add("P1", "BAT_CHG", "J_CHG pin2", "U_BATPROT", "NET_BAT_PROT", "单端", "NET", "必装",
         "[官方]", "",
         "[BAT_CHG] 充电电流进镜脚侧电池保护 IC (BQ2970) —— **保护 IC 与电池同板 (镜脚)**", "C-03")
-    for pn in (8, 9, 10):
-        add("P1", "HINGE_RSV", f"J_CHG pin{pn}", f"J_CHG pin{pn}", "J_CHG", "预留 (0Ω/不装)",
+    for pn in (9, 10):
+        add("P1", "HINGE_RSV", f"J_CHG pin{pn}", f"J_CHG pin{pn}", "J_CHG", "预留 (不装)",
             "NET", "DNP", "[推算]", "",
-            f"[HINGE_RSV] J_CHG pin{pn} 预留位 (将来 USB3 SS 差分或额外信号; 0Ω 占位不装)", "C-02")
+            f"[HINGE_RSV] J_CHG pin{pn} 预留位 (★V1.5 裁决: 充电 IC 的 I2C **不跨铰链** —— "
+            f"充电电流靠 R_ILIM 硬件限流, 状态靠 CHG_STAT/PWR_GOOD GPIO 兜底; 将来若要在线配置 "
+            f"充电电流/截止电压, 把这 2 个脚用上即可, 不用改板)", "C-02")
     add("P1", "GND_CHG", "J_CHG pin3", "J_CHG pin4", "J_CHG", "回流 (双 pin)", "NET", "必装",
         "[推算]", "",
         "[GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 → 环路面积最小)", "C-02")
@@ -258,21 +262,44 @@ def build_p1(by_id, spec):
         "(跨铰链的只有充电电流 1.0-1.5A); SoC 侧球位号 TBD-01", "C-02")
     add("P1", "BAT_CHG", "J_CHG", "J_CHG pin1", "J_CHG", "1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",
         "CONN", "必装", "[推算]", "",
-        "[SYS] ★V1.2 改 pin map (原 1×6 是因为 V1 假定电池在镜框): pin1/pin2=BAT_CHG "
-        "(充电电流 1.5A 双 pin 并联), pin3/pin4=GND (回流双 pin), pin5=CHG_STAT, pin6=PWR_GOOD, "
-        "pin7=VBUS_DET, pin8-10=预留; ★BAT_DET 不再跨铰链 (电池在镜脚本地检测); "
-        "型号/间距/载流待结构与板宽确认; ★pin 编号为**本版自拟**", "C-02")
+        "[SYS] ★V1.5 定稿 pin map (1×10p@0.5mm): pin1/pin2=BAT_CHG (充电电流**双 pin 并联**), "
+        "pin3/pin4=GND (回流双 pin), pin5=CHG_STAT, pin6=PWR_GOOD, pin7=VBUS_DET, "
+        "pin8=**TS** (电池 NTC 在镜脚, TS 跨铰链), pin9/10=预留 (充电 IC I2C 不跨铰链); "
+        "★BAT_DET 不跨铰链 (电池在镜脚本地检测); 型号/载流待结构复核 (ISS-091 算压降发热); "
+        "★pin 编号为**本版自拟**", "C-02")
 
     # ---- ★V1.1 补画 1: 电池 NTC 接 BQ25896 的 TS 脚 (硬件停充, 安全项, V1 漏画) ----
     add("P1", "TS_BAT", "U_CHG TS", "R_NTC_BAT", "NET_TS_BAT", "单端", "NET", "必装",
         "[官方]", "",
-        "[TS_BAT] ★电池温度检测: 10k NTC (B=3435) 接 BQ25896 的 TS 脚 → 电池过温/欠温时**硬件直接停充** "
+        "[TS_BAT] ★电池温度检测: 103AT NTC 接 BQ25896 的 TS 脚 (过温/欠温时**硬件直接停充**; 分压网络按 datasheet 三件式) "
         "(不依赖 SoC, 属安全项); 与 P2 的 SoC 侧数字温度计 U_TEMP 是两回事, 不能互相替代", "C-01")
-    add("P1", "TS_BAT", "R_NTC_BAT", "BAT_PROT_CELL", "R_NTC_BAT", "10k NTC B=3435 ±1% (贴电芯)",
-        "R", "必装", "[推算]", "",
-        "[TS_BAT] NTC 本体位 (贴电芯表面, 引线尽量短; 阈值档随 BQ25896 数据手册确认)", "C-01")
-    add("P1", "TS_BAT", "R_TS_PULL", "GND", "R_TS_PULL", "10k ±1%", "R", "必装", "[推算]", "",
-        "[TS_BAT] TS 脚对地下拉 (与 NTC 分压, BQ25896 按阈值判温度)", "C-01")
+    add("P1", "TS_BAT", "R_NTC_BAT", "BAT_PROT_CELL", "R_NTC_BAT", "103AT NTC ±1% (贴电芯)",
+        "R", "必装", "[官方]", "",
+        "[TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 "
+        "· **TS 必须跨铰链** (J_CHG pin8, 高阻无电流); NTC 按 BQ25896 datasheet 取 **103AT** "
+        "(与 30.31k 并联构成温度检测网络)", "C-01")
+    add("P1", "TS_BAT", "R_TS_PULL", "GND", "R_TS_PULL", "30.31k ±1%", "R", "必装", "[官方]", "",
+        "[TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压), 在镜框充电板侧", "C-01")
+    add("P1", "TS_BAT", "J_CHG pin8", "R_NTC_BAT", "J_CHG", "跨铰链 (高阻)",
+        "NET", "必装", "[推算]", "",
+        "[TS_BAT] ★V1.5 补画: **TS 跨铰链这一段** (V1.2 把电池/NTC 搬镜脚时漏了) · 走 J_CHG pin8", "C-01")
+    add("P1", "TS_BAT", "R_TS_TOP", "U_CHG REGN", "R_TS_TOP", "5.24k ±1% (RT1: REGN 到 TS)",
+        "R", "必装", "[官方]", "",
+        "[TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, "
+        "原来只画了 NTC + 10k 下拉 = 分压比完全不对 (datasheet: 0°C→73.25%, 60°C→34.375%)", "C-01")
+
+    # ---- ★V1.5 补画: R_ILIM 硬件限流 (BQ25896 的 IINLIM **复位默认 2048mA**) ----
+    #   不装这颗电阻 → 铰链段可能被灌 ~1.68A (ICHG≈0.822×IIN) → 铰链发热 + 压降失控。
+    #   装 300Ω → IINMAX = KILIM/RILIM ≈ 1.07-1.30A → ICHG ≈ 0.88-1.07A (ISS-091 核算输入)
+    #   ⇒ 换料不换板: 若结构核算说铰链只吃 1.0A, 改 390Ω → ICHG 0.67-0.82A
+    add("P1", "IINLIM", "U_CHG IINLIM", "R_ILIM", "R_ILIM", "300Ω ±1% (IINMAX ≈1.07-1.30A)",
+        "R", "必装", "[官方]", "",
+        "[IINLIM] ★V1.5 补画: **输入限流电阻** —— BQ25896 的 IINLIM 复位默认 **2048mA** [官方], "
+        "不装 = 铰链段被灌 ~1.68A (ICHG≈0.822×IIN), 发热/压降失控; 300Ω 给 ICHG≈0.88-1.07A; "
+        "按 ISS-091 结构结论可换 390Ω (换料不换板)", "C-01")
+    add("P1", "GND", "R_ILIM", "GND", "R_ILIM", "300Ω ±1% (IINMAX ≈1.07-1.30A)", "R", "必装",
+        "[官方]", "",
+        "[IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限)")
 
     # ---- ★V1.2 改: 原 V1.1 加的 "SYS 过铰链 π 滤波" **删掉** (SYS 已不过铰链) ----
     #   跨铰链的是**充电电流** → 充电路径上**不能加 π 滤波** (会破坏 BQ25896 环路稳定性)
@@ -678,8 +705,9 @@ def build_p6(by_id, spec):
     add("P6", "USB_CC2", "USB_CC2", "J_TYPE_C B5", "NET_USB_CC2", "单端", "NET", "必装",
         "[推算]", "", "[USB_CC2] CC2 网节点 (同 net)", "B-23")
     # ---- Type-C 座 GND / 屏蔽 + 跨铰链预留 ----
-    add("P6", "GND", "J_TYPE_C A1+A12", "GND", "J_TYPE_C", "Type-C 16p 座 (物理脚位 A/B 编号)", "CONN", "必装",
-        "[官方]", "", "Type-C GND 脚")
+    add("P6", "GND", "J_TYPE_C A1+A12+B1+B12", "GND", "J_TYPE_C", "Type-C 16p 座 (物理脚位 A/B 编号)", "CONN", "必装",
+        "[官方]", "", "Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, "
+        "原来只接 A1+A12 → B1/B12 悬空 = 回流路径减半)")
     add("P6", "GND", "J_TYPE_C shield", "GND", "J_TYPE_C", "Type-C 16p 座 (物理脚位 A/B 编号)", "CONN", "必装",
         "[官方]", "", "Type-C 屏蔽壳 接 GND (单点, 与机壳地的接法待结构定)")
     add("P6", "CONN_USB", "CONN_USB", "CONN_USB pin1", "CONN_USB",
@@ -944,6 +972,21 @@ def build_p9(by_id, spec):
         "**充电路径上不装 π 滤波** (会破坏 BQ25896 环路稳定性)")
 
 
+# ------------------------------------------- P10 充电板页 (V1.5): 数据来自 state/p10_rows.json
+def build_p10_json() -> int:
+    """充电板整页的行数据由 `state/p10_rows.json` 提供 (子 agent 按 HW/CHARGE_BOARD_SPEC.md 产出,
+    我只做加载 + 门禁) —— 遵循"规格先行、机械转换我来做"的分工铁律。"""
+    p = os.path.join(HERE, "p10_rows.json")
+    if not os.path.exists(p):
+        return 0
+    data = json.load(open(p, encoding="utf-8"))
+    for r in data:
+        add(r.get("page", "P10"), r["net"], r["node1"], r["node2"], r["ref"], r["value"],
+            r.get("type", ""), r.get("dnp", "必装"), r.get("evidence", "[推算]"),
+            r.get("tbd", ""), r.get("note", ""), r.get("conn_id", ""))
+    return len(data)
+
+
 # --------------------------------------------------------------- 写盘 + 门禁
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -964,6 +1007,7 @@ def main() -> int:
     build_p7(by_id, spec)
     build_p8(by_id, spec)
     build_p9(by_id, spec)
+    n_p10 = build_p10_json()
 
     # ---- 板级归属 (2026-10-27 V1.1 新增): 充电板 / 主 PCB / 跨铰链 ----
     for r in ROWS:
@@ -1025,7 +1069,8 @@ def main() -> int:
     for r in ROWS:
         per_page[r["page"]] = per_page.get(r["page"], 0) + 1
     covered = len({r["conn_id"] for r in ROWS if r["conn_id"]})
-    print(f"✅ 已生成 {OUT}: {len(ROWS)} 行, 覆盖 {covered} 条连接")
+    print(f"✅ 已生成 {OUT}: {len(ROWS)} 行, 覆盖 {covered} 条连接"
+          + (f" (含 P10 充电板页 {n_p10} 行)" if n_p10 else " (★P10 充电板页数据未到, 该页为空)"))
     for p in PAGES:
         print(f"   {p} {PAGES[p]:<42} {per_page.get(p, 0):>4} 行")
     if args.summary:
