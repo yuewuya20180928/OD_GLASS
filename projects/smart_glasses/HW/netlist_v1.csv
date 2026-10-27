@@ -506,3 +506,12 @@ P10,NC,U_CHG pin24,NC,U_CHG,BQ25896,IC,DNP,[官方],,pin24 NC (datasheet: No Con
 P10,VBUS_5V,D_TVS_VBUS,J_TYPE_C A4,D_TVS_VBUS,5V 级单向 TVS [待选型],D,必装,[推算],,"⚠️ 待裁决: 规格 §4.3 提到但 §7 连接清单未列的件 (插线尖峰 TVS: VRWM ≥5.0V, 钳位电压 < BQ25896 绝对最大 22V); 位置紧靠 Type-C 座; PM 确认是否纳入 BOM, 不纳入则删本 2 行; 型号待选型 (询价经项目总工) ★裁决 (PM): **必装** (Type-C 入口 TVS 是标配); VRWM 5-6V 档, **脉冲电流额定 ≥3A** (PD 5V/2A 场景); 选型待定 [待选型]",C-01,CHG_BOARD
 P10,GND,D_TVS_VBUS,J_TYPE_C A1,D_TVS_VBUS,5V 级单向 TVS [待选型],D,必装,[推算],,"TVS 地端 (与座侧 GND 同网) ★裁决 (PM): **必装** (Type-C 入口 TVS 是标配); VRWM 5-6V 档, **脉冲电流额定 ≥3A** (PD 5V/2A 场景); 选型待定 [待选型]",C-01,CHG_BOARD
 P10,TS_BAT,TP_TS,U_CHG pin11,TP_TS,测试点,TP,必装,[推算],,"TS 电压测点 (调 TS 分压 / 验证 NTC 跨铰链通断): 0°C 应读 ~3.663V (73.25% REGN), 60°C 应读 ~1.719V (34.375% REGN)",,CHG_BOARD
+P10,VBUS_5V_CHG,R_CHG_LED,U_CHG pin1,R_CHG_LED,1k ±1% (按 LED Vf 定),R,必装,[推算],,"★V1.9 充电灯 (老板 10-28 拍板『关机时充电灯要亮』): 电阻把 **VBUS 供电** 接到 LED 阳极 —— 关机插电时 VBUS 有电而 SoC 已断电 ⇒ 灯照样亮, 且**不耗电池**",C-01,CHG_BOARD
+P10,LED_CHG_A,R_CHG_LED,D_CHG_LED,R_CHG_LED,1k ±1% (按 LED Vf 定),R,必装,[推算],,[LED_CHG_A] 限流电阻的 LED 侧 (与 LED 阳极同网),C-01,MAIN_PCB
+P10,LED_CHG_A,D_CHG_LED,D_CHG_LED,D_CHG_LED,"LED (待选型, 充电板侧)",LED,必装,[推算],,"[LED_CHG_A] ★充电灯阳极; 装在**充电板 (镜框) 靠近 Type-C 座**的位置 → 用户插线时可见 (结构需开导光孔, 见 ISS-103)",C-01,MAIN_PCB
+P10,CHG_LED_K,D_CHG_LED,Q_CHG_LED,D_CHG_LED,"LED (待选型, 充电板侧)",LED,必装,[推算],,[CHG_LED_K] 充电灯阴极 (与 Q_CHG_LED 漏极同网),C-01,MAIN_PCB
+P10,CHG_LED_K,Q_CHG_LED,Q_CHG_LED,Q_CHG_LED,[待选型] N-MOS,SW,必装,[推算],,"[CHG_LED_K] ★充电灯的本地开关管: 漏极 = LED 阴极, 源极 = GND, 栅极 = 本地 STAT; 充电中 (STAT 低) → 导通 → 灯亮; 完成/禁用 (STAT 高) → 灯灭; **故障 1Hz 闪 → 灯跟着闪 (免费得到故障指示)**; 电流回路全在充电板本地, 不经跨铰链",C-01,MAIN_PCB
+P10,GND,Q_CHG_LED,GND,Q_CHG_LED,[待选型] N-MOS,SW,必装,[推算],,[CHG_LED_K] Q_CHG_LED 源极接地,C-01,MAIN_PCB
+P10,CHG_STAT_L,Q_CHG_LED,U_CHG pin4,Q_CHG_LED,[待选型] N-MOS,SW,必装,[推算],,"[CHG_STAT_L] ★Q_CHG_LED 栅极 = 充电板**本地**的 STAT (pin4, 开漏: 低=充电中/高=完成或禁用/1Hz 闪=故障) —— 与跨铰链的 CHG_STAT 是**同一个开漏源**, 两路负载互不影响 (栅极电流≈0)",C-01,CHG_BOARD
+P10,CHG_STAT_L,R_PU_STAT_L,U_CHG pin4,R_PU_STAT_L,10k ±1% (到 REGN 5V),R,必装,[推算],,"[CHG_STAT_L] ★充电板**本地**上拉 (挂 REGN 5V): 主板断电时跨铰链的 STAT 线会悬空, 这颗保证 Q_CHG_LED 栅极有确定电平 (STAT=高 → 灯灭)",C-01,CHG_BOARD
+P10,REGN,R_PU_STAT_L,U_CHG pin22,R_PU_STAT_L,10k ±1% (到 REGN 5V),R,必装,[推算],,[CHG_STAT_L] 本地上拉的 REGN 端 (BQ25896 内部 5V),C-01,CHG_BOARD

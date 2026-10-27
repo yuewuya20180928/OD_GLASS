@@ -657,7 +657,7 @@
 - ★**温度检测是三件式, 不是两件式**: RT1 5.24k (REGN→TS) + RT2 30.31k (TS→GND) + **103AT NTC ∥ RT2** (datasheet: 0°C→73.25%, 60°C→34.375%)。★并且 **TS 必须跨铰链** —— NTC 贴电芯在镜脚, 而 BQ25896 在镜框充电板 → 走 `J_CHG pin8` (高阻, 无电流)。
 - 电池位置**锁镜脚** (V1.2 裁决) → 电池的过充/过放/过温保护 (BQ2970 + 2×MOS) 也在镜脚, 充电板这边不重复画。
 
-### 器件表 (56 行 netlist 记录)
+### 器件表 (65 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | VBUS_5V | J_TYPE_C A4 | D_ESD_TC | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | ★USB-IF Type-C Cable and Connector Spec R2.0 (2019-08) Table 3-5: A4/A9/B4/B9 四个 VBUS 在座内并 |
@@ -716,6 +716,15 @@
 | VBUS_5V | D_TVS_VBUS | J_TYPE_C A4 | D_TVS_VBUS | 5V 级单向 TVS [待选型] | D | 必装 | CHG_BOARD | [推算] |  | ⚠️ 待裁决: 规格 §4.3 提到但 §7 连接清单未列的件 (插线尖峰 TVS: VRWM ≥5.0V, 钳位电压 < BQ25896 绝对最大 22V); 位置紧靠 Type |
 | GND | D_TVS_VBUS | J_TYPE_C A1 | D_TVS_VBUS | 5V 级单向 TVS [待选型] | D | 必装 | CHG_BOARD | [推算] |  | TVS 地端 (与座侧 GND 同网) ★裁决 (PM): **必装** (Type-C 入口 TVS 是标配); VRWM 5-6V 档, **脉冲电流额定 ≥3A** (PD  |
 | TS_BAT | TP_TS | U_CHG pin11 | TP_TS | 测试点 | TP | 必装 | CHG_BOARD | [推算] |  | TS 电压测点 (调 TS 分压 / 验证 NTC 跨铰链通断): 0°C 应读 ~3.663V (73.25% REGN), 60°C 应读 ~1.719V (34.375% R |
+| VBUS_5V_CHG | R_CHG_LED | U_CHG pin1 | R_CHG_LED | 1k ±1% (按 LED Vf 定) | R | 必装 | CHG_BOARD | [推算] |  | ★V1.9 充电灯 (老板 10-28 拍板『关机时充电灯要亮』): 电阻把 **VBUS 供电** 接到 LED 阳极 —— 关机插电时 VBUS 有电而 SoC 已断电 ⇒ 灯 |
+| LED_CHG_A | R_CHG_LED | D_CHG_LED | R_CHG_LED | 1k ±1% (按 LED Vf 定) | R | 必装 | MAIN_PCB | [推算] |  | [LED_CHG_A] 限流电阻的 LED 侧 (与 LED 阳极同网) |
+| LED_CHG_A | D_CHG_LED | D_CHG_LED | D_CHG_LED | LED (待选型, 充电板侧) | LED | 必装 | MAIN_PCB | [推算] |  | [LED_CHG_A] ★充电灯阳极; 装在**充电板 (镜框) 靠近 Type-C 座**的位置 → 用户插线时可见 (结构需开导光孔, 见 ISS-103) |
+| CHG_LED_K | D_CHG_LED | Q_CHG_LED | D_CHG_LED | LED (待选型, 充电板侧) | LED | 必装 | MAIN_PCB | [推算] |  | [CHG_LED_K] 充电灯阴极 (与 Q_CHG_LED 漏极同网) |
+| CHG_LED_K | Q_CHG_LED | Q_CHG_LED | Q_CHG_LED | [待选型] N-MOS | SW | 必装 | MAIN_PCB | [推算] |  | [CHG_LED_K] ★充电灯的本地开关管: 漏极 = LED 阴极, 源极 = GND, 栅极 = 本地 STAT; 充电中 (STAT 低) → 导通 → 灯亮; 完成/禁用 |
+| GND | Q_CHG_LED | GND | Q_CHG_LED | [待选型] N-MOS | SW | 必装 | MAIN_PCB | [推算] |  | [CHG_LED_K] Q_CHG_LED 源极接地 |
+| CHG_STAT_L | Q_CHG_LED | U_CHG pin4 | Q_CHG_LED | [待选型] N-MOS | SW | 必装 | CHG_BOARD | [推算] |  | [CHG_STAT_L] ★Q_CHG_LED 栅极 = 充电板**本地**的 STAT (pin4, 开漏: 低=充电中/高=完成或禁用/1Hz 闪=故障) —— 与跨铰链的 C |
+| CHG_STAT_L | R_PU_STAT_L | U_CHG pin4 | R_PU_STAT_L | 10k ±1% (到 REGN 5V) | R | 必装 | CHG_BOARD | [推算] |  | [CHG_STAT_L] ★充电板**本地**上拉 (挂 REGN 5V): 主板断电时跨铰链的 STAT 线会悬空, 这颗保证 Q_CHG_LED 栅极有确定电平 (STAT=高 |
+| REGN | R_PU_STAT_L | U_CHG pin22 | R_PU_STAT_L | 10k ±1% (到 REGN 5V) | R | 必装 | CHG_BOARD | [推算] |  | [CHG_STAT_L] 本地上拉的 REGN 端 (BQ25896 内部 5V) |
 
 ---
 
