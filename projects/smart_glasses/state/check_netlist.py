@@ -145,6 +145,8 @@ def main() -> int:
             by_net.setdefault(n, []).append(r)
     multi_out = []
     for n, rs in by_net.items():
+        if n == "GND":
+            continue   # GND 是单电气节点, "多驱动"判据不适用
         outs = [r for r in rs if "输出" in cell(r, "note") or "→" in cell(r, "note")]
         if len(outs) > 1:
             multi_out.append(n)
@@ -197,11 +199,19 @@ def main() -> int:
                and any(cell(r, "net") == "TS_BAT" for r in rows))
     chk("电池 NTC → BQ25896 TS 脚 (硬件停充) 在图", has_ntc, "R_NTC_BAT + TS_BAT 已在图" if has_ntc else "缺 R_NTC_BAT / TS_BAT")
 
-    # 19) 回归判据: USB 差分主干网不得直连 Type-C (V1 把跨铰链短接了)
-    short = [f"{cell(r,'net')}@{cell(r,'page')}" for r in rows
-             if cell(r, "net") in ("USB_D_P", "USB_D_N")
-             and "J_TYPE_C" in (cell(r, "node1") + cell(r, "node2"))]
-    chk("USB 差分不得直连 Type-C (跨铰链不得短接)", not short, f"短接 {short[:4]}" if short else "")
+    # 19) 回归判据: USB 差分**必经跨铰链连接器** (V1 把铰链短接了: 网里没有 CONN_USB 的脚)
+    #     ★V1.4 口径更新: V1.4 起跨铰链连接器的同一物理脚在两侧是同一节点 → 网名合并,
+    #     所以"USB_D_P 网里同时有 CONN_USB 脚与 Type-C 脚"是**正确**的 (线确实穿铰链)。
+    miss_usb = []
+    for netn in ("USB_D_P", "USB_D_N"):
+        nodelist = []
+        for r in rows:
+            if cell(r, "net") == netn:
+                nodelist += [cell(r, "node1"), cell(r, "node2")]
+        if not any(x.startswith("CONN_USB pin") for x in nodelist):
+            miss_usb.append(netn)
+    chk("USB 差分必经跨铰链连接器 (网里有 CONN_USB 脚)", not miss_usb,
+        f"缺铰链连接器 {miss_usb}" if miss_usb else "USB_D_P/USB_D_N 都经 CONN_USB")
 
     # 20) U_BRIDGE 定位统一 (DP1.4 TX → MIPI DSI TX 桥接) 且方案A 下 DNP
     ub = [r for r in rows if cell(r, "ref") == "U_BRIDGE"]

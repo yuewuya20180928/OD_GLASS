@@ -157,3 +157,12 @@ dispatches:
     验收: ① 当前模型清单 (来源/版本/许可/大小) ② INT8 量化流程与工具 ③ 量化精度损失评估方法 ④ 模型更新后的回归验证要求
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
+- issue: ISS-087
+  agent: sw-lead
+  at: '2026-10-27'
+  brief: '闭合两个 0 数据项: ①模型许可 (走项目总工 → 原厂/来源方 + 老板拍板 AGPL 商业许可) ②ARS45 转换链跑通 (SW/MODEL_ASSETS.md §2.9 的 B0~B9 九步, 其中 B0 工具链/B5 文件头+chip ID 依赖原厂 Q9 追加的 10 条)。验收: 放行阻断项 L 计数 = 0 (python3 SW/tools/model_asset_check.py
+    输出末尾) + 板端有一个 registered 的 ARS45 模型资产 (state=active, 带 sha256/大小/许可/文件头字段)。硬规则: 不许为了把 L 清零而把 expe'
+- issue: ISS-089
+  agent: mech-lead
+  at: '2026-10-27'
+  brief: '闭环 ISS-089: ★硬件交叉评审 (机械/热/装配) —— 以 V1.1 的 9 页为输入, 挑出会打回来重画的点'

@@ -227,16 +227,30 @@ def build_p1(by_id, spec):
         "必装", "[官方]", "",
         "[BAT] 1 节锂电保护 IC (配 2×MOS), **与电池同板 (镜脚)**; 具体型号/封装待选型 "
         "(BQ2970 系列为规格原文所指)", "C-03")
-    add("P1", "BAT_PROT_CELL", "U_BATPROT", "Q1", "Q1", "[待选型] N-MOS", "SW",
+    # ★F2 修正 (2026-10-27 09:1x, hw-lead ISS-088 复审发现): 原来 Q1/Q2 落在**同一个 net** = 两管并联
+    #   (并联 MOS 不提供断开功能 = 保护无效), 而且**没有栅极连接**、**电芯负端 (B-) 没画**。
+    #   正确拓扑 (BQ2970): 电芯+ → Q1 → Q2 → 保护后 B+ (两管**串联**), 两管栅极由 BQ2970 同驱,
+    #   电芯- → BQ2970 的 B- 脚。
+    add("P1", "BAT_CELL_P", "BT_432243 B+", "Q1", "BT_432243", "432243 3.7V ≥420mAh", "CONN",
         "必装", "[推算]", "",
-        "[BAT_PROT_CELL] 电池保护 MOS 之一 (BQ2970 驱动, 串在电池回路); V_DS / 栅压 / R_DS(on) / 封装 "
-        "待 BQ2970 数据手册确认 → 本行不写型号", "C-03")
-    add("P1", "BAT_CELL", "Q1", "Q2", "Q2", "[待选型] N-MOS", "SW",
+        "[BAT_CELL_P] 电芯正极 → 第 1 只保护 MOS (Q1) 漏极; 尺寸 4.3×2.4mm 级, 焊接方式待结构确认", "C-03")
+    add("P1", "BAT_PROT_CELL", "Q1", "Q2", "Q1", "[待选型] N-MOS", "SW",
         "必装", "[推算]", "",
-        "[BAT_CELL] 电池保护 MOS 之二 (与 Q1 串联); 参数同 Q1, 待 BQ2970 数据手册确认", "C-03")
-    add("P1", "BAT_CELL", "Q2", "BT_432243", "BT_432243", "432243 3.7V ≥420mAh", "CONN",
+        "[BAT_PROT_CELL] ★F2 修正: Q1 与 Q2 **串联** (原来两管同网 = 并联, 保护无效); "
+        "V_DS / 栅压 / R_DS(on) / 封装待 BQ2970 数据手册确认", "C-03")
+    add("P1", "BAT_PROT_CELL2", "Q2", "U_BATPROT", "Q2", "[待选型] N-MOS", "SW",
         "必装", "[推算]", "",
-        "[BAT_CELL] 电池 (**镜脚主 PCB 侧**); 尺寸 4.3×2.4mm 级, 焊接/连接方式待结构确认", "C-03")
+        "[BAT_PROT_CELL2] 第 2 只保护 MOS → 电池保护 IC (BQ2970) 的 B+ 脚; 参数同 Q1", "C-03")
+    add("P1", "BAT_GATE", "U_BATPROT GATE", "Q1 GATE", "U_BATPROT", "BQ2970", "IC",
+        "必装", "[官方]", "",
+        "[BAT_GATE] ★F2 修正: **两管栅极由 BQ2970 同驱** (原来完全没有栅极连接 → MOS 永远不导通/不受控); "
+        "栅极网络按 BQ2970 数据手册确认是否需要上拉", "C-03")
+    add("P1", "BAT_GATE", "Q1 GATE", "Q2 GATE", "Q1", "[待选型] N-MOS", "SW",
+        "必装", "[推算]", "",
+        "[BAT_GATE] 两管共栅 (back-to-back 接法, 按 BQ2970 数据手册确认体二极管方向)", "C-03")
+    add("P1", "BAT_CELL_N", "BT_432243 B-", "U_BATPROT B-", "BT_432243", "432243 3.7V ≥420mAh",
+        "CONN", "必装", "[推算]", "",
+        "[BAT_CELL_N] ★F2 修正: **电芯负极 → BQ2970 的 B- 脚** (原来电芯只有一个端子 → 电池回路不闭合)", "C-03")
     add("P1", "SYS", "RAIL_SYS", "U_BATPROT", "RAIL_SYS", "3.0-4.2V", "RAIL",
         "必装", "[推算]", "",
         "电源域: 目标 3.0-4.2V / 最大电流 0.55A (330mA×1.5 + 瞬态); **R-F1 裁决: SYS 下限抬到 3.5V**; "
@@ -254,7 +268,7 @@ def build_p1(by_id, spec):
         "[官方]", "",
         "[TS_BAT] ★电池温度检测: 10k NTC (B=3435) 接 BQ25896 的 TS 脚 → 电池过温/欠温时**硬件直接停充** "
         "(不依赖 SoC, 属安全项); 与 P2 的 SoC 侧数字温度计 U_TEMP 是两回事, 不能互相替代", "C-01")
-    add("P1", "TS_BAT", "R_NTC_BAT", "BAT_PROT", "R_NTC_BAT", "10k NTC B=3435 ±1% (贴电芯)",
+    add("P1", "TS_BAT", "R_NTC_BAT", "BAT_PROT_CELL", "R_NTC_BAT", "10k NTC B=3435 ±1% (贴电芯)",
         "R", "必装", "[推算]", "",
         "[TS_BAT] NTC 本体位 (贴电芯表面, 引线尽量短; 阈值档随 BQ25896 数据手册确认)", "C-01")
     add("P1", "TS_BAT", "R_TS_PULL", "GND", "R_TS_PULL", "10k ±1%", "R", "必装", "[推算]", "",
@@ -327,6 +341,12 @@ def build_p1(by_id, spec):
         "[LIGHT_5V] 光机 5V 供电口 ESD 阵列位 (跨铰链, 随光机接口确认后定)", "C-10")
     add("P1", "GND", "D_ESD_LIGHT", "GND", "D_ESD_LIGHT", "ESD 阵列 [待选型]", "D",
         "DNP", "[推算]", "", "[LIGHT_5V] 光机侧 ESD 地端", "C-10")
+    # ★V1.4: ESD 阵列的**地脚**补齐 (原来只有 I/O 脚, 阵列没接地 → 保护不生效)
+    for dref, note in (("D_ESD_TC", "Type-C 入口 ESD 阵列 地脚"),
+                       ("D_ESD_USB", "跨铰链 USB ESD 阵列 地脚"),
+                       ("D_ESD_CAM", "跨铰链 CSI ESD 阵列 地脚")):
+        add("P9", "GND", dref, "GND", dref, "ESD 阵列 [待选型]", "D", "必装", "[推算]", "",
+            f"[GND] ★V1.4 补: {note} (原来只有 I/O 脚, 阵列没接地 → ESD 不工作)")
     # GND 轨 (机壳地 / 数字地, 单点汇流)
     add("P1", "GND", "RAIL_GND", "GND", "RAIL_GND", "机壳地 / 数字地 (单点汇流)", "RAIL",
         "必装", "[推算]", "",
@@ -623,9 +643,12 @@ def build_p6(by_id, spec):
                 "[待原厂]", "",
                 f"[{sig}] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, "
                 f"装配按实际 lane 数裁剪)")
-            add("P6", net, net, "GND", f"C_AC_DP_A{lane}", "[待选型]", "C", "DNP", "[待原厂]",
+            add("P6", net, f"C_AC_DP_A{lane}", f"R_SER_DP_A{lane}_P", f"C_AC_DP_A{lane}", "[待选型]", "C", "DNP", "[待原厂]",
                 "TBD-04",
                 f"[{net}] DP TX 对地电容位 (值随桥接芯片而定)")
+            add("P6", "GND", f"C_AC_DP_A{lane}", "GND", f"C_AC_DP_A{lane}", "[待选型]", "C",
+                "DNP", "[待原厂]", "",
+                f"[{net}] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上)")
             dp_pin += 1
     add("P6", "DP_TX", "U_BRIDGE", "DP_TX_A0_P_SRC", "U_BRIDGE",
         "[待选型] DP1.4 TX → MIPI DSI TX 桥接芯片 (方案B 专用; 候选 redriver 兼列)", "IC", "DNP",
@@ -945,6 +968,35 @@ def main() -> int:
     # ---- 板级归属 (2026-10-27 V1.1 新增): 充电板 / 主 PCB / 跨铰链 ----
     for r in ROWS:
         r["board"] = board_for(r)
+
+    # ---- ★V1.4 (2026-10-27 09:2x): 标出**器件清单行** (net == ref 或 HINGE_* 开头) ----
+    #   这些行是"器件登记"而不是一根连接 (例: net=CONN_CAM, node=CONN_CAM) →
+    #   混进 .net 导出会让同一物理脚出现在多个 net → KiCad 判 pin 冲突。
+    for r in ROWS:
+        if r["net"] == r["ref"] or r["net"].startswith("HINGE_"):
+            r["note"] = "[INVENTORY] " + (r["note"] or "")
+
+    # ---- ★V1.4 (2026-10-27 09:2x): 跨铰链连接器的**同一物理脚**在两侧是同一个节点 → 网名必须一致 ----
+    #   ① USB_D_P_CHG / USB_D_N_CHG → 合并进 USB_D_P / USB_D_N (穿铰链连接器的一根线是**一个**节点)
+    #   ② GND_CHG → 合并进 GND (充电回流脚本来就是地, 单独成网会让同一物理脚落两个网)
+    for r in ROWS:
+        if r["net"] == "USB_D_P_CHG":
+            r["net"] = "USB_D_P"
+        elif r["net"] == "USB_D_N_CHG":
+            r["net"] = "USB_D_N"
+        elif r["net"] == "GND_CHG":
+            r["net"] = "GND"
+
+    # ---- ★F6 修正 (2026-10-27 09:1x, hw-lead ISS-088 复审发现): ----
+    #   原来"信号网"里混进了 GND 端 (例: net=VBUS_DET 的一行是 R_VBUS_DET_2 → GND)。
+    #   一行 = 一根连接, net 名必须是**这根连接所连的那个电气节点**; 一端是 GND ⇒ 这行属于 GND 网。
+    #   否则 KiCad 导出时 VBUS_DET 会和 GND 并成一个网 → **分压电阻被短接, ADC 永远读 0V**。
+    for r in ROWS:
+        if r["net"] == "GND":
+            continue
+        if "GND" in (r["node1"], r["node2"]):
+            r["net"] = "GND"
+            r["note"] = (r["note"] or "") + " [F6: 本行属 GND 网]"
 
     # ---- 出口自检 1: net 名必须是合法标识符 (无 + - 空格等) ----
     bad_nets = sorted({r["net"] for r in ROWS if not NET_RE.match(r["net"] or "")})

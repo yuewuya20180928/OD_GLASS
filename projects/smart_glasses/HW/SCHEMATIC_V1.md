@@ -39,7 +39,7 @@
 - **可回退分支 (跟老板的续航口径挂钩)**: 若拍板"按需触发 130mAh" 方案 (体积 1.8cc), 电池**可能装进镜框** → 跨铰链大电流就降回 **SYS 0.55A**, 充电电流完全不过铰链 (铰链发热更小)。⇒ `J_CHG` 的 pin map 留了 3 个预留位, 两种形态**都能落板**, 不用改板。
 - **电池 NTC 跟着搬**: NTC 贴电芯 → 在镜脚 → `BQ25896` 的 TS 脚在镜框 → **TS 走线要跨铰链** (高阻, OK) —— 已在图上标出。
 
-### 器件表 (100 行 netlist 记录)
+### 器件表 (103 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | VBUS_5V | J_TYPE_C A4+A9+B4+B9 | D_ESD_TC | RAIL_VBUS_5V | 5.0V ±5% | RAIL | 必装 | CHG_BOARD | [推算] |  | 电源域: 目标 5.0V ±5% / 最大电流 2.0A (PD 5V/2A); **充电链整条在充电板**, SYS 经 J_CHG 回主 PCB; SoC 侧球位号 TBD-0 |
@@ -57,21 +57,24 @@
 | BAT_CHG | RAIL_BAT_CHG | J_CHG pin1 | RAIL_BAT_CHG | 跨铰链 1.5A (双 pin 并联) | NET | 必装 | HINGE | [推算] |  | [BAT_CHG] 充电电流跨铰链 (J_CHG pin1/pin2 并联); 载流/压降/发热核算见 P9 页 |
 | BAT_CHG | J_CHG pin1 | J_CHG pin2 | J_CHG | 跨铰链 1.5A (双 pin 并联) | NET | 必装 | HINGE | [推算] |  | [BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算 |
 | BAT_CHG | J_CHG pin2 | U_BATPROT | NET_BAT_PROT | 单端 | NET | 必装 | HINGE | [官方] |  | [BAT_CHG] 充电电流进镜脚侧电池保护 IC (BQ2970) —— **保护 IC 与电池同板 (镜脚)** |
-| HINGE_RSV | J_CHG pin8 | J_CHG pin8 | J_CHG | 预留 (0Ω/不装) | NET | DNP | HINGE | [推算] |  | [HINGE_RSV] J_CHG pin8 预留位 (将来 USB3 SS 差分或额外信号; 0Ω 占位不装) |
-| HINGE_RSV | J_CHG pin9 | J_CHG pin9 | J_CHG | 预留 (0Ω/不装) | NET | DNP | HINGE | [推算] |  | [HINGE_RSV] J_CHG pin9 预留位 (将来 USB3 SS 差分或额外信号; 0Ω 占位不装) |
-| HINGE_RSV | J_CHG pin10 | J_CHG pin10 | J_CHG | 预留 (0Ω/不装) | NET | DNP | HINGE | [推算] |  | [HINGE_RSV] J_CHG pin10 预留位 (将来 USB3 SS 差分或额外信号; 0Ω 占位不装) |
-| GND_CHG | J_CHG pin3 | J_CHG pin4 | J_CHG | 回流 (双 pin) | NET | 必装 | HINGE | [推算] |  | [GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 → 环路面积最小) |
-| GND_CHG | J_CHG pin4 | GND | J_CHG | 回流 (双 pin) | NET | 必装 | HINGE | [推算] |  | [GND_CHG] 回流进镜脚侧数字地 |
+| HINGE_RSV | J_CHG pin8 | J_CHG pin8 | J_CHG | 预留 (0Ω/不装) | NET | DNP | HINGE | [推算] |  | [INVENTORY] [HINGE_RSV] J_CHG pin8 预留位 (将来 USB3 SS 差分或额外信号; 0Ω 占位不装) |
+| HINGE_RSV | J_CHG pin9 | J_CHG pin9 | J_CHG | 预留 (0Ω/不装) | NET | DNP | HINGE | [推算] |  | [INVENTORY] [HINGE_RSV] J_CHG pin9 预留位 (将来 USB3 SS 差分或额外信号; 0Ω 占位不装) |
+| HINGE_RSV | J_CHG pin10 | J_CHG pin10 | J_CHG | 预留 (0Ω/不装) | NET | DNP | HINGE | [推算] |  | [INVENTORY] [HINGE_RSV] J_CHG pin10 预留位 (将来 USB3 SS 差分或额外信号; 0Ω 占位不装) |
+| GND | J_CHG pin3 | J_CHG pin4 | J_CHG | 回流 (双 pin) | NET | 必装 | HINGE | [推算] |  | [GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 → 环路面积最小) |
+| GND | J_CHG pin4 | GND | J_CHG | 回流 (双 pin) | NET | 必装 | HINGE | [推算] |  | [GND_CHG] 回流进镜脚侧数字地 |
 | BAT | RAIL_BAT | U_BATPROT | RAIL_BAT | 4.2V 满 / 3.0V 截止 | RAIL | 必装 | CHG_BOARD | [官方] |  | 电源域: 目标 4.2V 满 / 3.0V 截止 / 最大电流 1.0-1.5A 充电; 电流路径 电池→Q2→Q1→本轨; ★V1.2: **电池在镜脚主 PCB** (MECH |
 | BAT | U_BATPROT | RAIL_BAT | U_BATPROT | BQ2970 | IC | 必装 | MAIN_PCB | [官方] |  | [BAT] 1 节锂电保护 IC (配 2×MOS), **与电池同板 (镜脚)**; 具体型号/封装待选型 (BQ2970 系列为规格原文所指) |
-| BAT_PROT_CELL | U_BATPROT | Q1 | Q1 | [待选型] N-MOS | SW | 必装 | MAIN_PCB | [推算] |  | [BAT_PROT_CELL] 电池保护 MOS 之一 (BQ2970 驱动, 串在电池回路); V_DS / 栅压 / R_DS(on) / 封装 待 BQ2970 数据手册确认 |
-| BAT_CELL | Q1 | Q2 | Q2 | [待选型] N-MOS | SW | 必装 | MAIN_PCB | [推算] |  | [BAT_CELL] 电池保护 MOS 之二 (与 Q1 串联); 参数同 Q1, 待 BQ2970 数据手册确认 |
-| BAT_CELL | Q2 | BT_432243 | BT_432243 | 432243 3.7V ≥420mAh | CONN | 必装 | MAIN_PCB | [推算] |  | [BAT_CELL] 电池 (**镜脚主 PCB 侧**); 尺寸 4.3×2.4mm 级, 焊接/连接方式待结构确认 |
+| BAT_CELL_P | BT_432243 B+ | Q1 | BT_432243 | 432243 3.7V ≥420mAh | CONN | 必装 | MAIN_PCB | [推算] |  | [BAT_CELL_P] 电芯正极 → 第 1 只保护 MOS (Q1) 漏极; 尺寸 4.3×2.4mm 级, 焊接方式待结构确认 |
+| BAT_PROT_CELL | Q1 | Q2 | Q1 | [待选型] N-MOS | SW | 必装 | MAIN_PCB | [推算] |  | [BAT_PROT_CELL] ★F2 修正: Q1 与 Q2 **串联** (原来两管同网 = 并联, 保护无效); V_DS / 栅压 / R_DS(on) / 封装待 BQ2 |
+| BAT_PROT_CELL2 | Q2 | U_BATPROT | Q2 | [待选型] N-MOS | SW | 必装 | MAIN_PCB | [推算] |  | [BAT_PROT_CELL2] 第 2 只保护 MOS → 电池保护 IC (BQ2970) 的 B+ 脚; 参数同 Q1 |
+| BAT_GATE | U_BATPROT GATE | Q1 GATE | U_BATPROT | BQ2970 | IC | 必装 | MAIN_PCB | [官方] |  | [BAT_GATE] ★F2 修正: **两管栅极由 BQ2970 同驱** (原来完全没有栅极连接 → MOS 永远不导通/不受控); 栅极网络按 BQ2970 数据手册确认是否 |
+| BAT_GATE | Q1 GATE | Q2 GATE | Q1 | [待选型] N-MOS | SW | 必装 | MAIN_PCB | [推算] |  | [BAT_GATE] 两管共栅 (back-to-back 接法, 按 BQ2970 数据手册确认体二极管方向) |
+| BAT_CELL_N | BT_432243 B- | U_BATPROT B- | BT_432243 | 432243 3.7V ≥420mAh | CONN | 必装 | MAIN_PCB | [推算] |  | [BAT_CELL_N] ★F2 修正: **电芯负极 → BQ2970 的 B- 脚** (原来电芯只有一个端子 → 电池回路不闭合) |
 | SYS | RAIL_SYS | U_BATPROT | RAIL_SYS | 3.0-4.2V | RAIL | 必装 | CHG_BOARD | [推算] |  | 电源域: 目标 3.0-4.2V / 最大电流 0.55A (330mA×1.5 + 瞬态); **R-F1 裁决: SYS 下限抬到 3.5V**; ★V1.2: **SYS 在 |
 | BAT_CHG | J_CHG | J_CHG pin1 | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | [SYS] ★V1.2 改 pin map (原 1×6 是因为 V1 假定电池在镜框): pin1/pin2=BAT_CHG (充电电流 1.5A 双 pin 并联), pin3 |
 | TS_BAT | U_CHG TS | R_NTC_BAT | NET_TS_BAT | 单端 | NET | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★电池温度检测: 10k NTC (B=3435) 接 BQ25896 的 TS 脚 → 电池过温/欠温时**硬件直接停充** (不依赖 SoC, 属安全项);  |
-| TS_BAT | R_NTC_BAT | BAT_PROT | R_NTC_BAT | 10k NTC B=3435 ±1% (贴电芯) | R | 必装 | CHG_BOARD | [推算] |  | [TS_BAT] NTC 本体位 (贴电芯表面, 引线尽量短; 阈值档随 BQ25896 数据手册确认) |
-| TS_BAT | R_TS_PULL | GND | R_TS_PULL | 10k ±1% | R | 必装 | CHG_BOARD | [推算] |  | [TS_BAT] TS 脚对地下拉 (与 NTC 分压, BQ25896 按阈值判温度) |
+| TS_BAT | R_NTC_BAT | BAT_PROT_CELL | R_NTC_BAT | 10k NTC B=3435 ±1% (贴电芯) | R | 必装 | CHG_BOARD | [推算] |  | [TS_BAT] NTC 本体位 (贴电芯表面, 引线尽量短; 阈值档随 BQ25896 数据手册确认) |
+| GND | R_TS_PULL | GND | R_TS_PULL | 10k ±1% | R | 必装 | CHG_BOARD | [推算] |  | [TS_BAT] TS 脚对地下拉 (与 NTC 分压, BQ25896 按阈值判温度) [F6: 本行属 GND 网] |
 | BAT_CHG | J_CHG pin1 | TP_BAT_CHG | TP_BAT_CHG | 跨铰链段压降测点 | TP | 必装 | MAIN_PCB | [推算] |  | [BAT_CHG] ★跨铰链充电电流段压降测点 (1.5A 下压降 = 接触电阻×1.5A); 铰链段发热与压降按结构实际长度核算 (结构总工) |
 | V_CORE | RAIL_V_CORE | U_DCDC_VCORE | RAIL_V_CORE | [待原厂] (典型 0.8-0.9V) | RAIL | 必装 | MAIN_PCB | [官方] | TBD-02 | 电源域: 目标 [待原厂] (典型 0.8-0.9V) / 最大电流 ≥2.0A (0.9W/0.8V×1.5=1.69A); IC TPS62130A; SoC 侧球位号 TBD |
 | SYS_PCB | RAIL_SYS | U_DCDC_VCORE | RAIL_SYS | 3.5-4.2V (R-F1 抬下限后) | NET | 必装 | CHG_BOARD | [推算] |  | [V_CORE] U_DCDC_VCORE 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方] |
@@ -173,13 +176,13 @@
 | GND | C_TEMP | GND | C_TEMP | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [I2C_A_SCL] TMP117 去耦 地端 |
 | VBUS_DET | R_VBUS_DET_1 | R_VBUS_DET_2 | NET_VBUS_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | 方向 充电板→SoC; 电平 0-3.3V (分压); 阻抗 1M+1M 分压 + 100nF; 连接 Type-C VBUS → ADC; 测试点 TP_VBUS |
 | VBUS_DET_RAW | RAIL_VBUS_5V | R_VBUS_DET_1 | R_VBUS_DET_1 | 1M ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET_RAW] 分压上臂 (1M); 上臂阻值大 → 漏电流 ~1.65µA @5V |
-| VBUS_DET | R_VBUS_DET_2 | GND | R_VBUS_DET_2 | 1M ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] 分压下臂 地端 |
+| GND | R_VBUS_DET_2 | GND | R_VBUS_DET_2 | 1M ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] 分压下臂 地端 [F6: 本行属 GND 网] |
 | VBUS_DET | C_DET_VBUS | J_CHG pin7 | C_DET_VBUS | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] ADC 滤波电容 (跨铰链侧 (充电板测 VBUS, 高阻分压)) |
 | GND | C_DET_VBUS | GND | C_DET_VBUS | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] ADC 滤波电容 地端 |
 | VBUS_DET | SoC[TBD-01].VBUS_DET | NET_VBUS_DET | NET_VBUS_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] SoC ADC 输入节点 (跨板那一侧) |
 | BAT_DET | R_BAT_DET_1 | R_BAT_DET_2 | NET_BAT_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | 方向 充电板→SoC; 电平 0-3.3V (分压); 阻抗 1M+1M 分压 + 100nF; 连接 电池 BAT → ADC; 测试点 TP_BAT |
 | BAT_DET_RAW | RAIL_BAT | R_BAT_DET_1 | R_BAT_DET_1 | 1M ±1% | R | 必装 | MAIN_PCB | [推算] |  | [BAT_DET_RAW] 分压上臂 (1M); 上臂阻值大 → 漏电流 ~1.65µA @5V |
-| BAT_DET | R_BAT_DET_2 | GND | R_BAT_DET_2 | 1M ±1% | R | 必装 | MAIN_PCB | [推算] |  | [BAT_DET] 分压下臂 地端 |
+| GND | R_BAT_DET_2 | GND | R_BAT_DET_2 | 1M ±1% | R | 必装 | MAIN_PCB | [推算] |  | [BAT_DET] 分压下臂 地端 [F6: 本行属 GND 网] |
 | BAT_DET | C_DET_BAT | R_BAT_DET_2 | C_DET_BAT | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [BAT_DET] ADC 滤波电容 (★V1.2: 电池在镜脚, 本地检测, 不跨铰链) |
 | GND | C_DET_BAT | GND | C_DET_BAT | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [BAT_DET] ADC 滤波电容 地端 |
 | BAT_DET | SoC[TBD-01].BAT_DET | NET_BAT_DET | NET_BAT_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | [BAT_DET] SoC ADC 输入节点 (跨板那一侧) |
@@ -280,7 +283,7 @@
 | I2C_B_SDA | CONN_LIGHT pin18 | NET_I2C_B_SDA | NET_I2C_B_SDA | 上拉 4.7k, 放主板侧 | NET | 必装 | HINGE | [推算] | TBD-04 | [I2C_B_SDA] 附加节点 (同 net) |
 | VDD_3V3_IO | R_PU_I2CB_SCL | RAIL_VDD_3V3_IO | R_PU_I2CB_SCL | 4.7k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] DSI DDC 上拉 (放主板侧) |
 | VDD_3V3_IO | R_PU_I2CB_SDA | RAIL_VDD_3V3_IO | R_PU_I2CB_SDA | 4.7k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] DSI DDC 上拉 |
-| CONN_LIGHT | CONN_LIGHT | CONN_LIGHT pin1 | CONN_LIGHT | 1×21p@0.5mm 光机连接器 (板对板/FFC, 待 JBD 确认) | CONN | 必装 | HINGE | [待JBD] | TBD-04 | [CONN_LIGHT] 光机↔主板连接器; pin3/4=DSI_CK, 5/6=DSI_D0, 7/8=DSI_D1, 9/10=DSI_D2, 11/12=DSI_D3, 1 |
+| CONN_LIGHT | CONN_LIGHT | CONN_LIGHT pin1 | CONN_LIGHT | 1×21p@0.5mm 光机连接器 (板对板/FFC, 待 JBD 确认) | CONN | 必装 | HINGE | [待JBD] | TBD-04 | [INVENTORY] [CONN_LIGHT] 光机↔主板连接器; pin3/4=DSI_CK, 5/6=DSI_D0, 7/8=DSI_D1, 9/10=DSI_D2, 11/ |
 
 ## P5 MIPI-CSI 传感器
 > CONN_CAM 40p 跨铰链; 4-lane 预留; AC 耦合 + 对地端接
@@ -334,7 +337,7 @@
 | SENSOR_AVDD | RAIL_SENSOR_AVDD | CONN_CAM pin15 | NET_SENSOR_AVDD | 2.8V | NET | 必装 | HINGE | [官方] |  | [SENSOR_AVDD] sensor 供电 接 CONN_CAM pin15 (跨铰链, 走线与 MCLK 并行 ≤5mm, 间距 ≥3mm) |
 | SENSOR_VDD_IO | RAIL_SENSOR_VDD_IO | CONN_CAM pin16 | NET_SENSOR_VDD_IO | 1.8V | NET | 必装 | HINGE | [官方] |  | [SENSOR_VDD_IO] sensor 供电 接 CONN_CAM pin16 (跨铰链, 走线与 MCLK 并行 ≤5mm, 间距 ≥3mm) |
 | SENSOR_CORE | RAIL_SENSOR_CORE | CONN_CAM pin17 | NET_SENSOR_CORE | 1.2V | NET | 必装 | HINGE | [官方] |  | [SENSOR_CORE] sensor 供电 接 CONN_CAM pin17 (跨铰链, 走线与 MCLK 并行 ≤5mm, 间距 ≥3mm) |
-| CONN_CAM | CONN_CAM | CONN_CAM pin1 | CONN_CAM | 18p@0.5mm 跨铰链连接器 (型号待结构确认) | CONN | 必装 | HINGE | [推算] | TBD-03 | [CONN_CAM] 主 PCB ↔ sensor 板 40p 跨铰链连接器; pin1/2=CSI_CK, 3..10=CSI_D0..D3, 11=MCLK, 12=CSI_R |
+| CONN_CAM | CONN_CAM | CONN_CAM pin1 | CONN_CAM | 18p@0.5mm 跨铰链连接器 (型号待结构确认) | CONN | 必装 | HINGE | [推算] | TBD-03 | [INVENTORY] [CONN_CAM] 主 PCB ↔ sensor 板 40p 跨铰链连接器; pin1/2=CSI_CK, 3..10=CSI_D0..D3, 11=MC |
 | GND | CONN_CAM pin18 | GND | CONN_CAM | 跨铰链回流地 (独立 pin) | NET | 必装 | HINGE | [推算] | TBD-03 | [GND] ★CONN_CAM 18p 的第 18 脚 = 跨铰链回流地 (不与电源共脚 → 环路面积最小); 17 脚电源 16 脚是 SENSOR_CORE 1.2V |
 
 ## P6 高速差分与连接器
@@ -354,33 +357,41 @@
 - ★**V1.1 已把 `U_BRIDGE` 定位统一**: 之前 P4 写"DSI→光机桥接芯片"、P6 写"DP→DSI 桥接芯片" —— **同一颗芯片两种说法 = BOM 会对不上**。现在统一为 **DP1.4 TX → MIPI DSI TX 桥接芯片 (方案B 专用)**, `redriver` 作为候选兼列 (若原厂给的是 DP TX 而光机吃 DSI, 那就得靠它转)。
 - ★**V1.1 显示 TX 公开渠道穷举结论 (ISS-083)**: ① 官网产品页对 ARS45 **只字未提显示接口**; ② 官网「智能可穿戴」应用页写"集成 **Display Port 1.4** 与 **USB 3.0**" [官网·方案级, 未说 TX/RX 方向]; ③ 百度百科写"**DP1.4 RX**" [媒体级]; ④ **没有任何官方渠道出现 "DSI" 字样** → ⇒ **"ARS45 原生带 DSI TX" 至今未证实** ⇒ **双出口互斥 (R_SEL_* vs BR_*) 必须保留, 桥接芯片 fallback 不能删** (采购周期 4-8 周, 不能等回信)。⑤ 官网确认"集成 USB 3.0" → 但 **USB 3.0 的 SS 差分绝不能跨铰链** (4 对差分 + 刚度要求) ⇒ Type-C 座按 **16p (USB2 + 充电)** 定, 烧录走 USB 2.0 D+/D− (P6)。
 
-### 器件表 (37 行 netlist 记录)
+### 器件表 (45 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | DP_TX_A0_P_SRC | SoC[TBD-01].DP_TX_A0_P | R_SER_DP_A0_P | NET_DP_TX_A0_P_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
 | DP_TX_A0_P | R_SER_DP_A0_P | U_BRIDGE pin21 | R_SER_DP_A0_P | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A0_P] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A0_P_SRC | DP_TX_A0_P_SRC | GND | C_AC_DP_A0 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A0_P_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| DP_TX_A0_P_SRC | C_AC_DP_A0 | R_SER_DP_A0_P | C_AC_DP_A0 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A0_P_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| GND | C_AC_DP_A0 | GND | C_AC_DP_A0 | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A0_P_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
 | DP_TX_A0_N_SRC | SoC[TBD-01].DP_TX_A0_N | R_SER_DP_A0_N | NET_DP_TX_A0_N_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
 | DP_TX_A0_N | R_SER_DP_A0_N | U_BRIDGE pin22 | R_SER_DP_A0_N | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A0_N] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A0_N_SRC | DP_TX_A0_N_SRC | GND | C_AC_DP_A0 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A0_N_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| DP_TX_A0_N_SRC | C_AC_DP_A0 | R_SER_DP_A0_P | C_AC_DP_A0 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A0_N_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| GND | C_AC_DP_A0 | GND | C_AC_DP_A0 | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A0_N_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
 | DP_TX_A1_P_SRC | SoC[TBD-01].DP_TX_A1_P | R_SER_DP_A1_P | NET_DP_TX_A1_P_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
 | DP_TX_A1_P | R_SER_DP_A1_P | U_BRIDGE pin23 | R_SER_DP_A1_P | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A1_P] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A1_P_SRC | DP_TX_A1_P_SRC | GND | C_AC_DP_A1 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A1_P_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| DP_TX_A1_P_SRC | C_AC_DP_A1 | R_SER_DP_A1_P | C_AC_DP_A1 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A1_P_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| GND | C_AC_DP_A1 | GND | C_AC_DP_A1 | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A1_P_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
 | DP_TX_A1_N_SRC | SoC[TBD-01].DP_TX_A1_N | R_SER_DP_A1_N | NET_DP_TX_A1_N_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
 | DP_TX_A1_N | R_SER_DP_A1_N | U_BRIDGE pin24 | R_SER_DP_A1_N | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A1_N] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A1_N_SRC | DP_TX_A1_N_SRC | GND | C_AC_DP_A1 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A1_N_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| DP_TX_A1_N_SRC | C_AC_DP_A1 | R_SER_DP_A1_P | C_AC_DP_A1 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A1_N_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| GND | C_AC_DP_A1 | GND | C_AC_DP_A1 | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A1_N_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
 | DP_TX_A2_P_SRC | SoC[TBD-01].DP_TX_A2_P | R_SER_DP_A2_P | NET_DP_TX_A2_P_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
 | DP_TX_A2_P | R_SER_DP_A2_P | U_BRIDGE pin25 | R_SER_DP_A2_P | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A2_P] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A2_P_SRC | DP_TX_A2_P_SRC | GND | C_AC_DP_A2 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A2_P_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| DP_TX_A2_P_SRC | C_AC_DP_A2 | R_SER_DP_A2_P | C_AC_DP_A2 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A2_P_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| GND | C_AC_DP_A2 | GND | C_AC_DP_A2 | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A2_P_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
 | DP_TX_A2_N_SRC | SoC[TBD-01].DP_TX_A2_N | R_SER_DP_A2_N | NET_DP_TX_A2_N_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
 | DP_TX_A2_N | R_SER_DP_A2_N | U_BRIDGE pin26 | R_SER_DP_A2_N | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A2_N] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A2_N_SRC | DP_TX_A2_N_SRC | GND | C_AC_DP_A2 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A2_N_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| DP_TX_A2_N_SRC | C_AC_DP_A2 | R_SER_DP_A2_P | C_AC_DP_A2 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A2_N_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| GND | C_AC_DP_A2 | GND | C_AC_DP_A2 | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A2_N_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
 | DP_TX_A3_P_SRC | SoC[TBD-01].DP_TX_A3_P | R_SER_DP_A3_P | NET_DP_TX_A3_P_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
 | DP_TX_A3_P | R_SER_DP_A3_P | U_BRIDGE pin27 | R_SER_DP_A3_P | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A3_P] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A3_P_SRC | DP_TX_A3_P_SRC | GND | C_AC_DP_A3 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A3_P_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| DP_TX_A3_P_SRC | C_AC_DP_A3 | R_SER_DP_A3_P | C_AC_DP_A3 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A3_P_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| GND | C_AC_DP_A3 | GND | C_AC_DP_A3 | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A3_P_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
 | DP_TX_A3_N_SRC | SoC[TBD-01].DP_TX_A3_N | R_SER_DP_A3_N | NET_DP_TX_A3_N_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
 | DP_TX_A3_N | R_SER_DP_A3_N | U_BRIDGE pin28 | R_SER_DP_A3_N | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A3_N] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A3_N_SRC | DP_TX_A3_N_SRC | GND | C_AC_DP_A3 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A3_N_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| DP_TX_A3_N_SRC | C_AC_DP_A3 | R_SER_DP_A3_P | C_AC_DP_A3 | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A3_N_SRC] DP TX 对地电容位 (值随桥接芯片而定) |
+| GND | C_AC_DP_A3 | GND | C_AC_DP_A3 | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A3_N_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
 | DP_TX | U_BRIDGE | DP_TX_A0_P_SRC | U_BRIDGE | [待选型] DP1.4 TX → MIPI DSI TX 桥接芯片 (方案B 专用; 候选 redriver 兼列) | IC | DNP | MAIN_PCB | [推算] | TBD-04 | [DP_TX] 方案B 才需要: SoC DP_TX 4 lane 进桥接芯片, DSI 出桥接芯片走 BR_* 到光机; **方案A (SoC 原生 DSI) 下整条链冗余 →  |
 | USB_D_P_SRC | SoC[TBD-01].USB_D_P | R_SER_USB_D_P | NET_USB_D_P_SRC | 90Ω ±10% (与 MIPI 不同模板!) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 90Ω ±10% (与 MIPI 不同模板!); 连接 Type-C → 主 PCB (跨铰链则经 CONN_US |
 | USB_D_N_SRC | SoC[TBD-01].USB_D_N | R_SER_USB_D_N | NET_USB_D_N_SRC | 90Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 90Ω ±10%; 连接 同上; 测试点 TP_USB_D- |
@@ -393,7 +404,7 @@
 | USB_CC2 | USB_CC2 | J_TYPE_C B5 | NET_USB_CC2 | 单端 | NET | 必装 | CHG_BOARD | [推算] |  | [USB_CC2] CC2 网节点 (同 net) |
 | GND | J_TYPE_C A1+A12 | GND | J_TYPE_C | Type-C 16p 座 (物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | Type-C GND 脚 |
 | GND | J_TYPE_C shield | GND | J_TYPE_C | Type-C 16p 座 (物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | Type-C 屏蔽壳 接 GND (单点, 与机壳地的接法待结构定) |
-| CONN_USB | CONN_USB | CONN_USB pin1 | CONN_USB | 4p@0.5mm USB 跨铰链连接器 (D+/D-/GND/预留) | CONN | 必装 | HINGE | [推算] |  | [CONN_USB] ★USB 差分对**必然跨铰链** (Type-C 在充电板=镜框, SoC 在主 PCB=镜脚) → 本位必留; ⚠️ USB 2.0 (及可能的 USB  |
+| CONN_USB | CONN_USB | CONN_USB pin1 | CONN_USB | 4p@0.5mm USB 跨铰链连接器 (D+/D-/GND/预留) | CONN | 必装 | HINGE | [推算] |  | [INVENTORY] [CONN_USB] ★USB 差分对**必然跨铰链** (Type-C 在充电板=镜框, SoC 在主 PCB=镜脚) → 本位必留; ⚠️ USB 2. |
 
 ## P7 板级接口与测试点
 > 13 个逻辑 TP (展开 **40 个物理测点**) + 4 个按键位 + 3 LED + ID 跳线
@@ -433,22 +444,22 @@
 | KEY_PWR | SW_KEY_PWR | NET_KEY_PWR | SW_KEY_PWR | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | [KEY_PWR] 电源键 按键 |
 | VDD_3V3_IO | R_KEY_PWR | RAIL_VDD_3V3_IO | R_KEY_PWR | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] 电源键 上拉 (按下到 GND, 支持长按) |
 | GND | SW_KEY_PWR | GND | SW_KEY_PWR | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | 电源键 另一端 -> GND |
-| KEY_PWR | C_KEY_PWR | GND | C_KEY_PWR | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [KEY_PWR] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) |
+| GND | C_KEY_PWR | GND | C_KEY_PWR | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [KEY_PWR] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) [F6: |
 | KEY_VOL_P | SoC[TBD-01].KEY_VOL_P | R_KEY_VP | NET_KEY_VP | 同上 | NET | 必装 | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 同上; 连接 主 PCB; 测试点 TP_KEY_VP |
 | KEY_VOL_P | SW_KEY_VP | NET_KEY_VP | SW_KEY_VP | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | [KEY_VOL_P] 音量+ 键 按键 |
 | VDD_3V3_IO | R_KEY_VP | RAIL_VDD_3V3_IO | R_KEY_VP | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] 音量+ 键 上拉 (按下到 GND, 支持长按) |
 | GND | SW_KEY_VP | GND | SW_KEY_VP | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | 音量+ 键 另一端 -> GND |
-| KEY_VOL_P | C_KEY_VP | GND | C_KEY_VP | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [KEY_VOL_P] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) |
+| GND | C_KEY_VP | GND | C_KEY_VP | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [KEY_VOL_P] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) [F |
 | KEY_VOL_M | SoC[TBD-01].KEY_VOL_M | R_KEY_VM | NET_KEY_VM | 同上 | NET | 必装 | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 同上; 连接 主 PCB; 测试点 TP_KEY_VM |
 | KEY_VOL_M | SW_KEY_VM | NET_KEY_VM | SW_KEY_VM | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | [KEY_VOL_M] 音量- 键 按键 |
 | VDD_3V3_IO | R_KEY_VM | RAIL_VDD_3V3_IO | R_KEY_VM | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] 音量- 键 上拉 (按下到 GND, 支持长按) |
 | GND | SW_KEY_VM | GND | SW_KEY_VM | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | 音量- 键 另一端 -> GND |
-| KEY_VOL_M | C_KEY_VM | GND | C_KEY_VM | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [KEY_VOL_M] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) |
+| GND | C_KEY_VM | GND | C_KEY_VM | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [KEY_VOL_M] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) [F |
 | KEY_CAM | SoC[TBD-01].KEY_CAM | R_KEY_CAM | NET_KEY_CAM | 同上 | NET | DNP | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 同上; 连接 主 PCB (焊盘留, 不装); 测试点 — |
 | KEY_CAM | SW_KEY_CAM | NET_KEY_CAM | SW_KEY_CAM | 按键 (待选型) | SW | DNP | MAIN_PCB | [推算] |  | [KEY_CAM] CAM 键 (焊盘必留, 不装) 按键 |
 | VDD_3V3_IO | R_KEY_CAM | RAIL_VDD_3V3_IO | R_KEY_CAM | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] CAM 键 (焊盘必留, 不装) 上拉 (按下到 GND, 支持长按) |
 | GND | SW_KEY_CAM | GND | SW_KEY_CAM | 按键 (待选型) | SW | DNP | MAIN_PCB | [推算] |  | CAM 键 (焊盘必留, 不装) 另一端 -> GND |
-| KEY_CAM | C_KEY_CAM | GND | C_KEY_CAM | 100nF ±10% | C | DNP | MAIN_PCB | [推算] |  | [KEY_CAM] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) |
+| GND | C_KEY_CAM | GND | C_KEY_CAM | 100nF ±10% | C | DNP | MAIN_PCB | [推算] |  | [KEY_CAM] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) [F6: |
 | VBUS_5V | TP_VBUS | J_TYPE_C A4+A9+B4+B9 | TP_VBUS | 测试点 | TP | 必装 | CHG_BOARD | [推算] |  | 测什么: Type-C 入口 5V; 位置: Type-C 出口侧 ≤3mm |
 | SYS | TP_SYS | RAIL_SYS | TP_SYS | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: 系统 3.7V 主轨; 位置: 电池保护后 (镜脚本地) |
 | BAT | TP_BAT | U_BATPROT | TP_BAT | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: 电池电压; 位置: BQ25896 BAT 脚 |
@@ -531,7 +542,7 @@
 | JTAG_TDI | R_JTAG_TDI | J_DEBUG pin3 | R_JTAG_TDI | 100Ω ±1% | R | 必装 | MAIN_PCB | [推算] |  | [JTAG_TDI] JTAG TDI 串阻 (隔离 SoC 调试脚) |
 | JTAG_TDO_SOC | SoC[TBD-01].JTAG_TDO | R_JTAG_TDO | NET_JTAG_TDO_SOC | 单端, 100Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG |
 | JTAG_TDO | R_JTAG_TDO | J_DEBUG pin4 | R_JTAG_TDO | 100Ω ±1% | R | 必装 | MAIN_PCB | [推算] |  | [JTAG_TDO] JTAG TDO 串阻 (隔离 SoC 调试脚) |
-| J_DEBUG | J_DEBUG | J_DEBUG pin1 | J_DEBUG | 1×4 1.27mm 排针 (JTAG) | CONN | 必装 | MAIN_PCB | [推算] |  | [J_DEBUG] JTAG 调试排针 (不装贴片, 手工可焊); pin1=TCK, 2=TMS, 3=TDI, 4=TDO |
+| J_DEBUG | J_DEBUG | J_DEBUG pin1 | J_DEBUG | 1×4 1.27mm 排针 (JTAG) | CONN | 必装 | MAIN_PCB | [推算] |  | [INVENTORY] [J_DEBUG] JTAG 调试排针 (不装贴片, 手工可焊); pin1=TCK, 2=TMS, 3=TDI, 4=TDO |
 | UART_TX | SoC[TBD-01].UART_TX | J_UART pin1 | NET_UART_TX | 单端 | NET | 可选 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 3.3V [待原厂]; 阻抗 单端; 连接 同 B-19 排针 (复用脚); 测试点 TP_UART |
 | UART_RX | SoC[TBD-01].UART_RX | J_UART pin2 | NET_UART_RX | 单端 | NET | 可选 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 3.3V [待原厂]; 阻抗 单端; 连接 同 B-19 排针 (复用脚); 测试点 TP_UART |
 | UART_RX | J_UART | J_UART pin2 | J_UART | 1×2 1.27mm 排针 (UART) | CONN | 可选 | MAIN_PCB | [推算] |  | [UART_RX] 规格: UART 与 JTAG 复用同一排针 -> 本版拆成 1×2 独立排针 (原厂要求复用则再合并) |
@@ -571,22 +582,25 @@
 - ★**Type-C 的双份并联 (V1.3 补的真缺陷)**: USB-C 母座的 D+ 是 **A6+B6 两脚**、D- 是 **A7+B7**、VBUS 是 **A4+A9+B4+B9** → **只接单份的话插头一翻面就不通**。V1 只画了逻辑 pin4/pin5 (单份) ⇒ V1.3 改成物理脚位集合, 充电板那边必须双份并联。
 - ★**V1.1 修掉一个真缺陷**: V1 的 netlist 里 `USB_D_P/D_N` **直接接到 `J_TYPE_C` pin4/5** = **把跨铰链短接了** (物理上不可能)。现在改成: SoC → 22Ω 串阻 (主板侧) → `CONN_USB` (跨铰链) → 充电板侧板内走线 → Type-C。门禁加了回归判据 (§A19)。
 
-### 器件表 (15 行 netlist 记录)
+### 器件表 (18 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| HINGE_CHG | J_CHG | J_CHG pin1 | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | [HINGE_CHG] 通道 1/4 **充电电流 + 状态回读** (★V1.2 改: 电池在镜脚 ⇒ 跨铰链的是**充电电流 1.0-1.5A**, **SYS 0.55A 不 |
-| HINGE_USB | CONN_USB | CONN_USB pin1 | CONN_USB | 4p 跨铰链连接器 (D+/D-/GND/预留) | CONN | 必装 | HINGE | [推算] |  | [HINGE_USB] 通道 2/4 **USB 2.0 差分**: Type-C 在镜框充电板, SoC 在镜脚主 PCB → **烧录/调试口必然跨铰链**; 本位必留 (IS |
-| HINGE_CSI | CONN_CAM | CONN_CAM pin1 | CONN_CAM | 18p@0.5mm 跨铰链连接器 (主 PCB ↔ sensor 板) | CONN | 必装 | HINGE | [推算] | TBD-03 | [HINGE_CSI] 通道 3/4 **MIPI-CSI**: pin1/2=CK, 3-10=D0-D3, 11=MCLK, 12=RESET_N, 13/14=I2C_A,  |
-| HINGE_DSI | CONN_LIGHT | CONN_LIGHT pin1 | CONN_LIGHT | 1×21p@0.5mm 光机连接器 (板对板/FFC, 跨铰链到镜框光机) | CONN | 必装 | HINGE | [待JBD] | TBD-04 | [HINGE_DSI] 通道 4/4 **显示 + 光机供电**: pin3/4=CK, 5/6=D0, 7/8=D1, 9-12=2 lane 预留, 13/14=DDC(I2C |
+| GND | D_ESD_TC | GND | D_ESD_TC | ESD 阵列 [待选型] | D | 必装 | CHG_BOARD | [推算] |  | [GND] ★V1.4 补: Type-C 入口 ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 → ESD 不工作) |
+| GND | D_ESD_USB | GND | D_ESD_USB | ESD 阵列 [待选型] | D | 必装 | MAIN_PCB | [推算] |  | [GND] ★V1.4 补: 跨铰链 USB ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 → ESD 不工作) |
+| GND | D_ESD_CAM | GND | D_ESD_CAM | ESD 阵列 [待选型] | D | 必装 | MAIN_PCB | [推算] |  | [GND] ★V1.4 补: 跨铰链 CSI ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 → ESD 不工作) |
+| HINGE_CHG | J_CHG | J_CHG pin1 | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | [INVENTORY] [HINGE_CHG] 通道 1/4 **充电电流 + 状态回读** (★V1.2 改: 电池在镜脚 ⇒ 跨铰链的是**充电电流 1.0-1.5A**, * |
+| HINGE_USB | CONN_USB | CONN_USB pin1 | CONN_USB | 4p 跨铰链连接器 (D+/D-/GND/预留) | CONN | 必装 | HINGE | [推算] |  | [INVENTORY] [HINGE_USB] 通道 2/4 **USB 2.0 差分**: Type-C 在镜框充电板, SoC 在镜脚主 PCB → **烧录/调试口必然跨铰链 |
+| HINGE_CSI | CONN_CAM | CONN_CAM pin1 | CONN_CAM | 18p@0.5mm 跨铰链连接器 (主 PCB ↔ sensor 板) | CONN | 必装 | HINGE | [推算] | TBD-03 | [INVENTORY] [HINGE_CSI] 通道 3/4 **MIPI-CSI**: pin1/2=CK, 3-10=D0-D3, 11=MCLK, 12=RESET_N, 1 |
+| HINGE_DSI | CONN_LIGHT | CONN_LIGHT pin1 | CONN_LIGHT | 1×21p@0.5mm 光机连接器 (板对板/FFC, 跨铰链到镜框光机) | CONN | 必装 | HINGE | [待JBD] | TBD-04 | [INVENTORY] [HINGE_DSI] 通道 4/4 **显示 + 光机供电**: pin3/4=CK, 5/6=D0, 7/8=D1, 9-12=2 lane 预留, 1 |
 | USB_D_P | CONN_USB pin1 | D_ESD_USB | D_ESD_USB | ESD 阵列 [待选型] (2 通道 USB) | D | 必装 | MAIN_PCB | [推算] |  | [USB_D_P] ★跨铰链 USB 主板侧 ESD 阵列 (紧贴 CONN_USB); ★**不装共模扼流圈** (USB 2.0 眼图对共模转差分极敏感, 扼流圈会恶化眼图)  |
 | USB_D_N | CONN_USB pin2 | D_ESD_USB | D_ESD_USB | ESD 阵列 [待选型] (2 通道 USB) | D | 必装 | MAIN_PCB | [推算] |  | [USB_D_N] USB 主板侧 ESD 阵列 (同一位, 2 通道) |
-| USB_D_N | CONN_USB pin3 | GND | NET_USB_GND_H | 单端 | NET | 必装 | HINGE | [推算] |  | [USB_D_N] 跨铰链 USB 回流地 (独立 pin, 不与电源共 pin → 环路面积最小) |
-| HINGE_RSV | CONN_USB pin4 | CONN_USB pin4 | CONN_USB | 预留 (不装) | NET | DNP | HINGE | [推算] |  | [HINGE_RSV] CONN_USB pin4 预留位 (不装) |
+| GND | CONN_USB pin3 | GND | NET_USB_GND_H | 单端 | NET | 必装 | HINGE | [推算] |  | [USB_D_N] 跨铰链 USB 回流地 (独立 pin, 不与电源共 pin → 环路面积最小) [F6: 本行属 GND 网] |
+| HINGE_RSV | CONN_USB pin4 | CONN_USB pin4 | CONN_USB | 预留 (不装) | NET | DNP | HINGE | [推算] |  | [INVENTORY] [HINGE_RSV] CONN_USB pin4 预留位 (不装) |
 | GND | D_ESD_USB | GND | D_ESD_USB | ESD 阵列 [待选型] | D | 必装 | MAIN_PCB | [推算] |  | [USB_D_P] USB ESD 阵列 地端 |
 | CSI_D0_CK_P | CONN_CAM pin1 | D_ESD_CAM | D_ESD_CAM | ESD 阵列 [待选型] (多通道 CSI) | D | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_CK_P] ★跨铰链 CSI 主板侧 ESD 阵列位 (紧贴 CONN_CAM); 通道数随 lane 数定 |
 | GND | D_ESD_CAM | GND | D_ESD_CAM | ESD 阵列 [待选型] | D | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_CK_P] CSI ESD 地端 |
-| USB_D_P_CHG | CONN_USB pin1 | J_TYPE_C A6+B6 | NET_USB_D_P_CHG | 板内走线 (充电板侧) | NET | 必装 | CHG_BOARD | [推算] |  | [USB_D_P_CHG] ★V1.1 补画: 充电板侧 USB 差分从跨铰链连接器到 Type-C D+ (板内走线) |
-| USB_D_N_CHG | CONN_USB pin2 | J_TYPE_C A7+B7 | NET_USB_D_N_CHG | 板内走线 (充电板侧) | NET | 必装 | CHG_BOARD | [推算] |  | [USB_D_N_CHG] 充电板侧 USB 差分从跨铰链连接器到 Type-C D- (板内走线) |
+| USB_D_P | CONN_USB pin1 | J_TYPE_C A6+B6 | NET_USB_D_P_CHG | 板内走线 (充电板侧) | NET | 必装 | CHG_BOARD | [推算] |  | [USB_D_P_CHG] ★V1.1 补画: 充电板侧 USB 差分从跨铰链连接器到 Type-C D+ (板内走线) |
+| USB_D_N | CONN_USB pin2 | J_TYPE_C A7+B7 | NET_USB_D_N_CHG | 板内走线 (充电板侧) | NET | 必装 | CHG_BOARD | [推算] |  | [USB_D_N_CHG] 充电板侧 USB 差分从跨铰链连接器到 Type-C D- (板内走线) |
 | GND | CHG_GND_STAR | GND | CHG_GND_STAR | 单点汇流位 | CONN | 必装 | MAIN_PCB | [推算] |  | [GND] ★跨铰链回流要求: 柔性段的 GND 必须走**连续参考面**(不能细线), 两端各留 ≥2 个 GND pin; 单点汇流位置由结构总工定 (ISS-065) |
 | BAT_CHG | J_CHG pin1 | TP_BAT_CHG | TP_BAT_CHG | 跨铰链段压降测点 | TP | 必装 | MAIN_PCB | [推算] |  | [BAT_CHG] ★跨铰链充电电流段: 双 pin 并联载流 + 压降/发热核算 (1.5A × 接触电阻); **充电路径上不装 π 滤波** (会破坏 BQ25896 环路稳 |
 
