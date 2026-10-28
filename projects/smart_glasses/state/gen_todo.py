@@ -19,6 +19,7 @@ from __future__ import annotations
 import collections
 import datetime as dt
 import os
+import re
 import sys
 
 import yaml
@@ -144,20 +145,55 @@ md += [
 for i in sorted(C, key=lambda x: str(x.get("due"))):
     md.append(f"| {i.get('id')} | {EXT_ROLE.get(i.get('owner'), i.get('owner'))} | {i.get('due')} {due_tag(i.get('due'))} | "
               f"到期未回自动升级项目总工 | {str(i.get('title'))[:50]} |")
+# ★2026-10-28: 依赖关系段的三个数字原来写死 → 实时算
+_n_drafts = len([f for f in os.listdir(os.path.join(PROJ, "state", "outbox"))
+                 if f.endswith(".md") and f != "README.md"])
+_n_ext = len(C)
+_n_internal = len(A) + len(B) if "A" in dir() and "B" in dir() else 0
+
 md += [
     "",
     "### ★ 草稿状态 (外发一律经老板)",
     "",
     "| 草稿 | 覆盖 issue | 状态 |",
     "|---|---|---|",
-    "| `state/outbox/vendor_round2_email.md` | 9 条 | 🟡 已就绪, **老板决定保留不发** |",
-    "| `state/outbox/jbd_query.md` | 3 条 | 🟡 已就绪, **老板决定保留不发** |",
-    "| `state/outbox/bridge_chip_rfq.md` | 1 条 | 🟡 已就绪, **老板决定保留不发** |",
+]
+# ★2026-10-28 改: 原来把 3 份草稿写死在表里 → 加到 6 份后文档与实物脱节。
+#   现在扫 state/outbox/ 实时列出 (README.md 是清单说明, 不是草稿)。
+_DRAFT_DESC = {
+    "vendor_round2_email.md": "酷芯微第二轮",
+    "vendor_round3_addendum.md": "酷芯微追加问",
+    "jbd_query.md": "JBD 问询",
+    "jbd_query_addendum.md": "JBD 追加",
+    "ti_bq25896_query.md": "TI BQ25896",
+    "j_chg_rfq.md": "J_CHG + FPC RFQ",
+    "bridge_chip_rfq.md": "桥接芯片 RFQ",
+}
+_outbox = os.path.join(PROJ, "state", "outbox")
+for _fn in sorted(os.listdir(_outbox)):
+    if not _fn.endswith(".md") or _fn == "README.md":
+        continue
+    _desc = _DRAFT_DESC.get(_fn, "—")
+    _fq = os.path.join(_outbox, _fn)
+    _txt = open(_fq, encoding="utf-8").read()
+    # 数问句: 两种来源 ——
+    # ① 编号行 "N. 标题" / "## N. 标题" (邮件体格式)
+    # ② 草稿自己声明的条数 (标题里写 "— 3 条" / "硬判据 C-1~C-8 + F-1~F-5" 这类表格格式)
+    _ns = set()
+    for _m in re.finditer(r"(?m)^#{0,2}\s*(\d+)\.\s+\S", _txt):
+        _ns.add(int(_m.group(1)))
+    if _ns:
+        _cov = f"{len(_ns)} 问"
+    else:
+        _m = re.search(r"(?m)^#.*?—\s*(\d+)\s*条", _txt)
+        _cov = f"{_m.group(1)} 问" if _m else "—"
+    md.append(f"| `state/outbox/{_fn}` | {_cov} ({_desc}) | 🟡 已就绪, **等老板一句『可以发』** |")
+md += [
     "",
     "## D. 依赖关系 —— 谁解锁谁",
     "",
     "```",
-    "① 3 份草稿发出 ──► 12 条外部 issue 解锁 ──► G1 原理图/PCB 定稿",
+    f"① {_n_drafts} 份草稿发出 ──► {_n_ext} 条外部 issue 解锁 ──► G1 原理图/PCB 定稿",
     "                    └─► JBD 的 2D 外形图 ──► 镜框开模 ──► G2",
     "                    └─► 光机 LED 波长/亮度/光通量 ──► 光生物安全评估",
     "",
@@ -165,7 +201,7 @@ md += [
     "",
     "③ 测试设备 (高速相机/示波器/热电偶) ──► M-E2E 口径A + M-OPTIC ──► G3",
     "",
-    "④ 内部 22 条 ──► 纸面滴水不漏 (不直接解锁 G0, 但让外部一解锁就能直接进 G1)",
+    f"④ 内部 {_n_internal} 条 ──► 纸面滴水不漏 (不直接解锁 G0, 但让外部一解锁就能直接进 G1)",
     "```",
     "",
     "**结论**: ①②③ 全是**一次性的外部动作**; ④ 是**我们自己能做的**。所以接下来只有两类活: 等老板一句话, 以及把 ④ 推完。",

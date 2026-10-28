@@ -16,11 +16,27 @@ MSG="${1:-自动同步: 状态刷新}"
 cd "$PROJ" || exit 1
 
 # ---- 1. 刷新生成物 ----
-python3 state/gen_todo.py        >/dev/null 2>&1 && echo "[1] TODO.md 已刷新"
-python3 state/daily_check.py     >/dev/null 2>&1
-python3 state/gen_publish_docs.py --out "$PROJ/docs" >/dev/null 2>&1 && echo "[1] docs/PROJECT_STATUS.md + docs/OPEN_ISSUES.md 已刷新"
-python3 state/gen_start_here.py >/dev/null 2>&1 && echo "[1] docs/START_HERE.md (接手指南) 已刷新"
-python3 state/merge.py            >/dev/null 2>&1
+# ★2026-10-28 加固: 生成器失败必须**当场报错并退出**, 不能吞掉错误继续推。
+#   事故: gen_todo.py 有语法错误时, `>/dev/null 2>&1` 把错误吞了, 文档没更新但脚本继续跑,
+#   结果**推的是旧文档却以为刷新了** ⇒ 老板在 GitHub 上看到过期数据而无人知道。
+#   ⇒ 统一: 失败即退出 (set -e 之外再加显式检查), 且失败时把 stderr 原文打出来。
+gen() {  # gen <说明> <命令...>
+  local desc="$1"; shift
+  local err
+  if ! err=$("$@" 2>&1 >/dev/null); then
+    echo "[1] ❌ 生成失败: $desc"
+    echo "$err" | head -20
+    echo "[1] ★已中止发布 —— 不推陈旧文档 (修好后重跑)"
+    exit 1
+  fi
+  echo "[1] $desc 已刷新"
+}
+gen "TODO.md"                    python3 state/gen_todo.py
+gen "门禁快照"                    python3 state/daily_check.py
+gen "docs/PROJECT_STATUS.md + docs/OPEN_ISSUES.md" python3 state/gen_publish_docs.py --out "$PROJ/docs"
+gen "docs/START_HERE.md (接手指南)" python3 state/gen_start_here.py
+gen "STATUS_SUMMARY.md (一页看懂)" python3 state/gen_status_summary.py
+gen "STATE.yaml"                 python3 state/merge.py
 
 # ---- 2. 发布树 ----
 if [ ! -d "$PUB/.git" ]; then

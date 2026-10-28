@@ -229,6 +229,60 @@ def main() -> int:
         f"余 {BASE['pcb_w'] - (22 * BASE['pitch'] + 1.5):.2f}mm (≥{BASE['judge']:.2f}) —— 单个座放得下, "
         "4 个座不能沿 Y 并排")
 
+    # ---------------------------------------------------------- (3b) 合并可行性
+    print("\n" + "-" * 100)
+    print("【3b】★ 是否合并成 1 个连接器 (任务明确问的)")
+    print("-" * 100)
+    total_pins = sum(r["declared_physical"] for r in pin_rows)
+    merged_band = total_pins * BASE["pitch"] + 2 * BASE["fpc_edge_margin"]
+    merged_body = total_pins * BASE["pitch"] + 2 * 1.50   # 座体壳边 ~1.5mm/侧
+    rec("MRG-54P", "全合并成 1 个连接器 (54p@0.5mm)",
+        f"触点区 {total_pins * BASE['pitch']:.2f} / FPC 带宽 {merged_band:.2f} / 座体 Y 向 {merged_body:.2f} mm",
+        "FAIL",
+        f"座体 Y 向 {merged_body:.2f}mm > 板宽 {BASE['pcb_w']:.2f}mm → 放不下; "
+        "且接触排沿 V (镜脚高度) 方向 → FPC 带宽方向被锁死, 改成沿 X 会与'铰链轴竖直'矛盾 "
+        "(FPC 绕竖直轴弯折 ⇒ 带宽 ∥ 竖直轴 = 镜脚高度)")
+    # J_CHG + CONN_USB 合并 (两者框侧都落充电板)
+    m14_pins = 10 + 4
+    m14_band = m14_pins * BASE["pitch"] + 2 * BASE["fpc_edge_margin"]
+    m14_body = m14_pins * BASE["pitch"] + 2 * 1.50
+    rec("MRG-14P", "★部分合并: J_CHG(10p) + CONN_USB(4p) → 1×14p@0.5mm",
+        f"FPC 带宽 {m14_band:.2f} / 座体 Y 向 {m14_body:.2f} mm vs 板宽 {BASE['pcb_w']:.2f}", "PASS",
+        "结构上可行 (框侧两端都落充电板, 脚侧两端都落主 PCB); "
+        "★ 但电气代价: 1.5A 充电电流与 90Ω USB 差分同缆 ⇒ 需独立层 + 间距>=3mm, 由 hw-lead 判")
+    # 合并后铰链端 X 缺口
+    for label, depths in (("4 座分开", [6.40, 5.00, 6.40, 6.40]),
+                           ("3 座 (J_CHG+USB 合并)", [6.40, 6.40, 6.40]),
+                           ("3 座 (深度上界 7.5)", [7.50, 7.50, 7.50])):
+        tot = sum(depths) + 0.50 * (len(depths) - 1)
+        rec(f"MRG-X-{len(depths)}", f"铰链端 X 占位 ({label})",
+            f"需 {tot:.2f} vs 可用 {avail:.2f} → 缺 {tot - avail:+.2f} mm",
+            "PASS" if tot <= avail else "FAIL",
+            "固定孔 X=5.00 / X=15.00 仍在这段里, 需一并重排")
+
+    # ---------------------------------------------------------- (3c) 走线拓扑
+    print("\n" + "-" * 100)
+    print("【3c】★ 铰链区 4 条 FPC 的走线拓扑 —— P9 页没说清是哪一种 (自己发现)")
+    print("-" * 100)
+    v_sum_band = total_stack_fpc
+    rec("TOPO-1", "拓扑 A: V 向叠放 (P9 隐含的假设)",
+        f"4 条 FPC 带宽合计 {v_sum_band:.2f}mm vs 净高 {BASE['cav_v_now']:.2f} → 余 "
+        f"{BASE['cav_v_now'] - v_sum_band:.2f}mm", "COND",
+        "★ 后果: 4 个座在主 PCB 上 (板宽仅 15.00mm = V 向) 各自要占一条 V 带, "
+        f"而带宽合计 {v_sum_band:.2f}mm 远超板宽 → 必须在铰链前做 V 向扇开 "
+        "(最大 ~16mm), 且是板面内的面内弯 (半径受带宽限制, 12mm 宽的带做不出小半径) "
+        "⇒ 拓扑 A 下 4 个座不可能全在主 PCB 同一面")
+    rec("TOPO-2", "拓扑 B: H 向径向嵌套 (USB_HINGE_STRUCTURE §3.2(a) 已算过)",
+        f"径向占位 4.40mm (固定段 2oz 时 4.45) vs 内净空 "
+        f"{BASE['cav_h'] - 2 * BASE['wall']:.2f} → 余 1.25mm", "PASS",
+        "★ 若 4 条 FPC 在铰链区沿径向嵌套 (不同半径), 则 V 向只需最宽的一条 (12.00mm), "
+        "4 个座可以同 V 带不同 X ⇒ X 向仍是 4 座排不开, 但不再有 V 扇开问题 "
+        "⇒ 结构侧建议按拓扑 B 走, 并请 P9 页补一句拓扑定义")
+    rec("TOPO-3", "★P9 页的堆叠账缺 2 项 (自己发现)",
+        "① FPC 走线边距未计 (4 条 × 2 × 0.50 = +4.00mm) ② 拓扑未定义", "FAIL",
+        f"触点区口径 {p9_decl:.2f} → FPC 带宽口径 {v_sum_band:.2f} (+{v_sum_band - p9_decl:.2f}mm); "
+        "P9 写'堆叠 26.5mm'但同页器件表/网表是 22p (=27.00mm), 且用的是 21p 算式 ⇒ 页面自相矛盾")
+
     # ---------------------------------------------------------- (4) 充电板
     print("\n" + "-" * 100)
     print("【4】充电板 (镜框) —— 面积 / 承力 / 开孔")
@@ -263,27 +317,42 @@ def main() -> int:
 
     # ---------------------------------------------------------- (5) 热
     print("\n" + "-" * 100)
-    print("【5】充电板耗散 —— buck 口径 vs 线性口径 (P10 页拓扑)")
+    print("【5】充电板耗散 + ICHG/IIN 关系复核 (P10 页拓扑 = buck)")
     print("-" * 100)
-    ichg = 0.822      # ICHG = 0.822 × IIN [推算, CHARGE_BOARD_SPEC §3.4]
+    ichg = 0.822      # CHARGE_BOARD_SPEC §3.4 给的 ICHG (按其自述口径)
     eta = 0.90
     for vbat in (3.70, 4.20):
-        iin = vbat * ichg / (5.0 * eta)
+        iin = vbat * ichg / (5.0 * eta)      # 规格书口径: ICHG = IIN×(Vbat/Vbus)/η
         pin = 5.0 * iin
         pout = vbat * ichg
         loss = pin - pout
-        rec(f"THM-{vbat:.2f}", f"充电板耗散 @Vbat={vbat:.2f}V (ICHG={ichg:.3f}A, η={eta:.2f})",
-            f"Pin {pin:.2f}W - Pout {pout:.2f}W = {loss:.2f} W", "INFO",
-            "BQ25896 有 SW/L_CHG/C_BST 节点 ⇒ 开关型 buck; "
-            "MECH_BUDGET §2.1 的 0.8W 是线性稳压器公式 (5-4.2)×I → 高估")
-    loss_hi = 4.20 * ichg / (5.0 * eta) * 5.0 - 4.20 * ichg
+        rec(f"THM-{vbat:.2f}", f"充电板耗散 @Vbat={vbat:.2f}V (按 CHARGE_BOARD_SPEC §3.4 口径)",
+            f"IIN {iin:.3f}A / Pin {pin:.2f}W - Pout {pout:.2f}W = {loss:.2f} W", "INFO",
+            "MECH_BUDGET §2.1 写 0.8W = (5-4.2)×I 是线性稳压器公式; "
+            "P10 网表有 SW/L_CHG/C_BST/PMID ⇒ 开关型 buck → 耗散应为 Pin-Pout")
+    # ★ buck 功率守恒复核 ICHG 与 IIN 的关系 (是否方向写反)
+    for vbat in (3.70, 4.20):
+        ratio_buck = eta * 5.0 / vbat             # ICHG = IIN × η × Vbus/Vbat
+        rec(f"THM-RATIO-{vbat:.2f}", f"★buck 功率守恒: ICHG/IIN 比值 @Vbat={vbat:.2f}V",
+            f"{ratio_buck:.3f} (规格书写的是 {vbat / 5.0 / eta:.3f} = 倒数)", "FAIL",
+            "5V→3.7V 降压 ⇒ 输出电流必然 > 输入电流; 规格书 ICHG=0.822×IIN 方向反了 ⇒ "
+            "若真值是 ICHG=1.216×IIN, 则 390Ω 档实际 ICHG 是表值 0.67-0.82A 的 1.48 倍 "
+            "⇒ 单 pin 0.50-0.61A 超 0.5A 额定 ⇒ 390Ω 档的判据要重算 "
+            "(★ 需 hw-lead 用 datasheet 原文确认, 我给的是功率守恒推导)")
+    # 端件表面温度 (按两种耗散口径)
     conv_a = 0.030 * 0.020          # 镜框端件外表面 ~600mm² [推算]
     r_conv = 1.0 / (10.0 * conv_a)   # 自然对流 h≈10 W/m²K [推算]
-    dt = loss_hi * r_conv
-    rec("THM-SURF", "端件外表面温升 (只有端件自身对流, 无导热路径)",
-        f"{dt:.0f} K → 表面 {25 + dt:.0f} °C", "FAIL",
-        "0.35W 级耗散打在 25×10mm 端件上 ⇒ 必须有导热路径到镜框主体, "
-        "否则'充电时端件烫手' (USB-C 插口附近)")
+    for p_diss, tag in ((0.35, "buck 口径 (Pin-Pout)"), (1.65, "线性口径 (规格书 ICHG/IIN 反了)")):
+        dt = p_diss * r_conv
+        rec(f"THM-SURF-{tag[:4]}", f"端件外表面温升 ({tag})",
+            f"P={p_diss:.2f}W → ΔT {dt:.0f} K → 表面 {25 + dt:.0f} °C", "FAIL",
+            "打印件 k=0.2 W/m·K, 端件无金属骨架 ⇒ 只能靠铝屏蔽罩 + 镜框主体导热; "
+            "两个口径差 4.7 倍 ⇒ 散热路径设计前必须先定死耗散口径")
+    # 镜框侧 (鼻梁) 温升 —— 充电板挪到镜框后
+    rec("THM-NOSE", "充电板挪镜框后的鼻梁侧温升",
+        "未验", "INFO",
+        "ISS-065 (a) 鼻梁区热设计未做; 镜框正中已被光机+分光件占 11.8mm, 充电板只能去端件, "
+        "端件在镜框外侧角上 (离鼻梁远) ⇒ 鼻梁风险相对低, 但仍需项目总工裁位置")
 
     # ---------------------------------------------------------- (6) 装配/检修
     print("\n" + "-" * 100)
@@ -319,6 +388,21 @@ def main() -> int:
         m = avail - need
         rec(cid, f"{cid.split()[0]}: {what}", f"需求 {need:.2f} / 可用 {avail:.2f} → 余 {m:.2f} mm",
             "PASS" if m >= BASE["judge"] else "FAIL", f"判据 ≥{BASE['judge']:.2f}mm")
+
+    # ---------------------------------------------------------- (8) 网表板级归属一致性
+    print("\n" + "-" * 100)
+    print("【8】网表板级归属 (board 列) 一致性抽查")
+    print("-" * 100)
+    rows = list(csv.reader(open(NETLIST, encoding="utf-8")))
+    hdr = rows[0]
+    bi, ni, ri = hdr.index("board"), hdr.index("note"), hdr.index("ref")
+    led_rows = [r for r in rows[1:] if r and r[ri] in ("D_CHG_LED", "Q_CHG_LED", "R_CHG_LED")]
+    boards = sorted({r[bi] for r in led_rows})
+    rec("NET-LED", "★充电灯电路 (D_CHG_LED/Q_CHG_LED/R_CHG_LED) 的 board 列",
+        f"网表 board = {boards}, 但同页注记写'装在充电板 (镜框) 靠近 Type-C 座'", "FAIL",
+        "R_CHG_LED 的两端分别标 CHG_BOARD (net VBUS_5V_CHG) 与 MAIN_PCB; "
+        "而 VBUS_5V_CHG 只存在于充电板 ⇒ LED 链条物理上只能在镜框 ⇒ board 列标错 ⇒ "
+        "BOM 备料 / 装配 / ISS-103 导光孔位置会跟着做错")
 
     # ---------------------------------------------------------- 汇总
     npass = sum(1 for r in RESULTS if r["verdict"] == "PASS")

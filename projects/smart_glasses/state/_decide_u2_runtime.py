@@ -120,8 +120,12 @@ def main() -> int:
         s = f.read()
 
     anchor = "#### (1.33) ★★★ 阶段门 G0 纸面冻结 **通过**"
-    if "U2 续航算式口径裁定" in s:
-        print("ℹ️  tracker 已有 U2 裁决记录, 跳过写入")
+    # ★幂等检查必须用**实际写入的标题**做判据 —— 原来写的是 "U2 续航算式口径裁定",
+    #   而标题是 "★ 续航算式口径统一" ⇒ 判据对不上 ⇒ 连跑 3 次插了 3 份重复节。
+    #   ★教训: 幂等检查串和写入串必须是**同一个常量**, 不能各写各的。
+    _SECTION_HEADING = "#### (1.34) ★ 续航算式口径统一"
+    if _SECTION_HEADING in s:
+        print("ℹ️  tracker 已有 U2 裁决记录 (§(1.34)), 跳过写入")
     else:
         block = """#### (1.34) ★ 续航算式口径统一 (U2 裁决, 2026-10-28 08:4x) —— 旧值偏低 3.33 倍
 
@@ -154,6 +158,7 @@ def main() -> int:
 
 """
         s = s.replace(anchor, block + anchor, 1)
+        assert s.count(_SECTION_HEADING) == 1, "写入后 §(1.34) 出现次数 != 1 (重复插入)"
         with open(trk, "w", encoding="utf-8") as f:
             f.write(s)
         print(f"✅ 已在 PROJECT_TRACKER.md 写入 §(1.34) U2 裁决记录")
