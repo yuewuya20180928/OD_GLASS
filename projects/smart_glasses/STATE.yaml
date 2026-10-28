@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-10-28T18:54:33+08:00'
+  generated_at: '2026-10-28T19:06:59+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 44022
-      sha1: b7af156a2495
-      mtime_ns: 1793146729952002849
+      size: 50321
+      sha1: 07047fb5eb47
+      mtime_ns: 1793185061704118988
     mech-lead:
       file: mech.yaml
       size: 75503
@@ -484,13 +484,16 @@ domains:
       phase: P2(原理图/BOM)+结构接口
       progress_pct: 50
       health: red
-      summary: 'ISS-049 闭: PCB 固定方式定版 PIN-SET-2 = 2x⌀2.0H7 定位销孔(P1(8,7.5)圆销全基准 / P2(52,7.5)菱形销只定Y) + 2x⌀1.4
-        M1.2 压紧孔(S1(8,2.5)/S2(52,12.5), 纯压紧零定位); 4/4孔与 SoC 逃线带 X[20.20,31.80] 重叠 0.000mm²; 老口径(2xM1.2+1x⌀2.0H7@边距2.50)在15mm板下
-        3/3孔压带(0.50/2.00x2.00)已机械判死 -> 作废; 骨架长度上限 60.00mm(止于PCB段后缘, 建议实现58.00退2.00给电芯前壁空气隙), 石墨铺装 X[0,60]xY[0,15]x0.30;
-        ★隔热层未牺牲(0.50垫+0.30空隙 R=165.1K/W), 新增硬约束: 螺钉头只压PCB皮肤侧沉孔严禁压下壳(否则金属跨隔热层), 隔热垫2处开⌀3.0让位孔; 新引入螺钉热旁路
-        2颗并联 9.6K/W 已量化交mech; ⚠️骨架重量 满宽4.86g/对判死/台阶3.62g/对超MECH口径0.62g -> 截面形状待mech; 新增12条interface_claims(含任务指定的
-        skeleton_extent, canon与mech同串不判冲突)+6条接口请求+5条产出; 未改MECH/SW/tracker/netlist/BOM, 未碰他人分片, 未联系供应商;
-        merge rc=0 + gate Q1 18/18'
+      summary: 'ISS-062 闭: R-GEO-2 四问并入 hw-lead 现有 R-GEO-1 原厂/镜头厂沟通材料, 产出 3 份 state/outbox/ 草稿 (原厂信 vendor_round4_geo_isp_addendum.md
+        Q1-Q5 / 镜头厂 RFQ lens_rfq_rgeo2_addendum.md RFQ-13~16 / 决策映射 R_GEO_2_DECISION_MAP.md)。★核心交付 = 四问x三决策(120度对角/宽高比子路线/全幅吞吐)双向分支映射:
+        问01+问02 卡 120度对角(ROI则 120.00->85.61度, 立体角只52.30%, 俯角25度正前方掉出画面余量-4.02度), 问04 卡 宽高比子路线(不支持letterbox则各向异性1.326+全局失真32.6%违反REQ-GEO-07),
+        问03 卡 全幅吞吐且唯一一票否决(245.1MP/s 在250口径占98.1%余1.9% vs 497.7口径占49.3%, 两结论相反)。★自查出 3 条硬结论: (a) 问01 决定问03
+        的分母 (全幅245.1 vs ROI 124.4 MP/s), 两问必须成对问; (b) 我方网表 P5 的 CSI D2/D3 现为 DNP(只按1080p60 2-lane设计),
+        而全幅RAW10@60=2.451Gbps 需4-lane => 原厂回信前板级预留方向未定, 投板后改=2-4周; (c) 问04 有原材料没写的第三条路: letterbox 可在ISP之后软件侧生成(CR-3
+        已裁决黑边只生成一次/复用ox,oy), 故原厂只需等比缩放+输出非4:3有效帧, 等价子路线2。★缺口登记: R-GEO-1 自 10-26 提出至今从未进入任何对外材料(逐份核 state/outbox
+        7草稿+3附件, 零命中''裁切/ROI/全幅/缩放/scaler/MP.s/吞吐'') —— 本轮已补齐并入原厂信 Q1/Q2。6 条 interface_claims 已登记(全为要求态,
+        确认态[0数据])。边界: 未发任何邮件, 未联系任何供应商/原厂, 只写 state/outbox/ 3文件 + 自己分片 + 1份交接单, 未动 HW/SW/MECH/PROJECT_TRACKER/issue_log/STATE.yaml/他人分片。merge
+        rc=0 + gate Q1 18/18'
     artifacts:
     - path: HW/HARDWARE_BREAKDOWN.md
       kind: breakdown
@@ -576,6 +579,24 @@ domains:
       version: '1.0'
       updated_at: '2026-10-28'
       summary: ISS-049 交接单 (B1-B6 六块齐全)
+    - path: state/outbox/vendor_round4_geo_isp_addendum.md
+      kind: draft
+      version: '1.0'
+      updated_at: '2026-10-28'
+      summary: 'ISS-062: 发给酷芯微(原厂)的第4轮追加问草稿; R-GEO-1+R-GEO-2 并入 (Q1 全幅vsROI / Q2 4-lane 2.451Gbps / Q3
+        ISP吞吐余量250vs497.7 / Q4 scaler能否letterbox / Q5 上电默认模式+寄存器读回); 未发, 待项目总工批准'
+    - path: state/outbox/lens_rfq_rgeo2_addendum.md
+      kind: draft
+      version: '1.0'
+      updated_at: '2026-10-28'
+      summary: 'ISS-062: 给舜宇/欧菲模组厂的RFQ追加件草稿 (RFQ-13 三个ROI档位等效视场表 / RFQ-14 角落检测区 MTF>=30%+相对照度>=40% 硬线
+        / RFQ-15 角度口径机器可读畸变曲线 / RFQ-16 不做LDC前提下的ISP几何参数协同); 未发, 待项目总工批准'
+    - path: state/outbox/R_GEO_2_DECISION_MAP.md
+      kind: note
+      version: '1.0'
+      updated_at: '2026-10-28'
+      summary: 'ISS-062 核心交付: 四问x三决策(120度对角/宽高比子路线/全幅吞吐)双向分支映射表 + B1-B6 六块 + 复现脚本; 含缺口登记 G-1 (R-GEO-1
+        从未进过任何对外材料)'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -621,6 +642,13 @@ domains:
       - vendor
       - main
       waiting_since: '2026-10-26'
+    - id: HW-B7
+      severity: high
+      desc: 'R-GEO-1/R-GEO-2 六问全部 0 答复 (全幅vsROI模式表 / 4-lane 2.451Gbps / ISP吞吐余量 / scaler输出窗口 / 上电默认模式+寄存器读回
+        / 角落实测暗角MTF)。其中问03(吞吐余量)是一票否决级: 250 vs 497.7 两口径差 2 倍 => 余量 1.9% 或 50.7% 完全相反; 且 ISP 动态功耗按全幅60重估会连带
+        HW/POWER_BUDGET_V3.md 皮肤温度结论可能翻案。该阻塞不解决, 采集链(全幅60fps)与散热结论都不能定版'
+      since: '2026-10-28'
+      source: ISS-062
     needs_from:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -1047,6 +1075,50 @@ domains:
       to: main
       item: 'MECH_BUDGET 版本口径 (ISS-049): 任务写''与 MECH_BUDGET v1.2 对齐'', 但 MECH/MECH_BUDGET.md 文件头仍标 v1.1
         (''首轮预算''), 我按 v1.1 正文 + MECH/BOARD_WIDTH_15MM.md (10-28) 两份对齐并逐条列了表; 请确认结构侧是否另有 v1.2 修订版, 若在我手上我再核一遍'
+      since: '2026-10-28'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss062_rgeo2_vendor_send
+      to: main
+      item: 'ISS-062: R-GEO-1+R-GEO-2 六问材料草稿已就位, 请项目总工审后决定发出 (原厂信 state/outbox/vendor_round4_geo_isp_addendum.md
+        的 Q1-Q5 + 镜头厂 RFQ state/outbox/lens_rfq_rgeo2_addendum.md 的 RFQ-13~16)。建议把原厂 Q1~Q5 并进第3轮那封 (21条->26条)
+        一起发, 不要单发; 代理附件一 (attach/01_ARS45_技术确认项_21条.md) 是否同步升版为 26 条请项目总工定。边界: 硬件总工不直接外发, 全程未发任何邮件'
+      since: '2026-10-28'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss062_rgeo2_sw_q4_correction
+      to: main
+      item: 'ISS-062: 问04 我补了原材料没有的第三条路 —— letterbox 可在 ISP 之后的软件侧生成 (CR-3 已裁决黑边只生成一次/全链路复用同一组 ox,oy),
+        所以原厂只要能等比缩放 + 输出非 4:3 有效帧 (640x362 或 640x400) 即可, 等价于子路线2。我的假设 (若 sw-lead 不回应): 问04 按 A/B 两案写、排除非等比拉伸;
+        子路线2 维持项目总工 10-26 裁决不变, 不因问04 答复重开。请项目总工转达 sw-lead 核对 SW/ISP_SCALING_MODE.md §6.2 表述'
+      since: '2026-10-28'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss062_rgeo2_roi_fallback_decision
+      to: main
+      item: 'ISS-062 预警: 若原厂 Q1 回信是''ISP 只能 ROI 不能全幅'', 则老板 10-25 19:33/19:42 定的''不裁剪 + 对角120度 + 俯角<=25度''基线要重开
+        (ROI 垂直半视场 20.98deg < 俯角25deg, 正前方掉出画面), 需请老板裁决新议题 (建议编号 Q24)。此条在原厂回信前无法预判, 我方默认按''全幅''设计'
       since: '2026-10-28'
       state: pending
       target_missing: false
@@ -3857,6 +3929,66 @@ interface_claims:
     - hw-lead
     noncanonical_by: []
     conflict: false
+  isp_input_mode_req:
+    values:
+      hw-lead: full-frame
+    notes:
+      hw-lead: ISP 输入必须是 sensor 全幅 (OV04C10 2688x1520@60); 禁 ROI/crop/为凑宽高比的 aspect crop。全幅对角 120.00deg
+        vs ROI 85.61deg, 立体角保留率 52.30%; 俯角25deg 时 ROI 路线正前方掉出画面 (余量 -4.02deg)。确认态 [0数据] (待原厂 Q1)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  isp_scale_mode_req:
+    values:
+      hw-lead: equal-ratio+letterbox
+    notes:
+      hw-lead: 16:9.03->4:3 必须等比 scale + letterbox (k=0.238095, 内容区 640x362, 上下各 59px = 24.58%); AR0234CS
+        k=0.333333 -> 640x400 + 40px = 16.67%。非等比拉伸各向异性 1.326 + 全局失真 32.6% (大于鱼眼角落切向 20.9%) 违反 REQ-GEO-07
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  csi_lane_mode_req:
+    values:
+      hw-lead: 4-lane
+    notes:
+      hw-lead: 全幅 RAW10@60 = 2.451 Gbps -> 4-lane (613 Mbps/lane 净, 705 含 15% 协议开销); 2-lane 需 1410 Mbps/lane
+        未知能否支持。我方网表 P5 的 D2/D3 现为 DNP, 原厂确认后改必装 (含 AC 耦合+对地端接+8 根差分)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  isp_throughput_req:
+    values:
+      hw-lead: 245.1MP/s@60
+    notes:
+      hw-lead: 全幅 2688x1520@60 输入吞吐; vs 250 口径占 98.1% (余量仅 1.9%), vs 497.7 口径占 49.3% (余量 50.7%) —— 两口径差
+        2 倍, 未 close 前该值为 [0数据]。走 ROI 则只要 124.4 MP/s (占 49.8%), 故问03 必须与问01 成对回答
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  lens_fov_basis:
+    values:
+      hw-lead: full-array-120deg
+    notes:
+      hw-lead: 镜头 RFQ 必须按全画幅有效阵列口径报对角 FOV; 等距投影 f=2.9459mm (OV04C10) / 3.2432mm (AR0234CS), f_px 1474.41/1081.06;
+        直行与等距的垂直半视场差 10.92deg (40.45 vs 29.53), 报错模型结构余量就错
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  corner_perf_floor:
+    values:
+      hw-lead: MTF>=30%/RI>=40%
+    notes:
+      hw-lead: 角落 (角距 45-60deg) 是检测价值最高处 (目标刚入画), 需独立量化验收线; 角落桶形畸变 -39.5% 老板已接受不构成否决。cos^4 外推角落仅 6.3%
+        但对鱼眼不适用 (行业经验 40-70%), 须模组厂实测给曲线
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
   temple_thickness:
     values:
       mech-lead: 7.3-8.7mm
@@ -5772,6 +5904,29 @@ needs_matrix:
       (''首轮预算''), 我按 v1.1 正文 + MECH/BOARD_WIDTH_15MM.md (10-28) 两份对齐并逐条列了表; 请确认结构侧是否另有 v1.2 修订版, 若在我手上我再核一遍'
     _by: hw-lead
     state: pending
+  - key: iss062_rgeo2_vendor_send
+    to: main
+    since: '2026-10-28'
+    item: 'ISS-062: R-GEO-1+R-GEO-2 六问材料草稿已就位, 请项目总工审后决定发出 (原厂信 state/outbox/vendor_round4_geo_isp_addendum.md
+      的 Q1-Q5 + 镜头厂 RFQ state/outbox/lens_rfq_rgeo2_addendum.md 的 RFQ-13~16)。建议把原厂 Q1~Q5 并进第3轮那封 (21条->26条)
+      一起发, 不要单发; 代理附件一 (attach/01_ARS45_技术确认项_21条.md) 是否同步升版为 26 条请项目总工定。边界: 硬件总工不直接外发, 全程未发任何邮件'
+    _by: hw-lead
+    state: pending
+  - key: iss062_rgeo2_sw_q4_correction
+    to: main
+    since: '2026-10-28'
+    item: 'ISS-062: 问04 我补了原材料没有的第三条路 —— letterbox 可在 ISP 之后的软件侧生成 (CR-3 已裁决黑边只生成一次/全链路复用同一组 ox,oy), 所以原厂只要能等比缩放
+      + 输出非 4:3 有效帧 (640x362 或 640x400) 即可, 等价于子路线2。我的假设 (若 sw-lead 不回应): 问04 按 A/B 两案写、排除非等比拉伸; 子路线2
+      维持项目总工 10-26 裁决不变, 不因问04 答复重开。请项目总工转达 sw-lead 核对 SW/ISP_SCALING_MODE.md §6.2 表述'
+    _by: hw-lead
+    state: pending
+  - key: iss062_rgeo2_roi_fallback_decision
+    to: main
+    since: '2026-10-28'
+    item: 'ISS-062 预警: 若原厂 Q1 回信是''ISP 只能 ROI 不能全幅'', 则老板 10-25 19:33/19:42 定的''不裁剪 + 对角120度 + 俯角<=25度''基线要重开
+      (ROI 垂直半视场 20.98deg < 俯角25deg, 正前方掉出画面), 需请老板裁决新议题 (建议编号 Q24)。此条在原厂回信前无法预判, 我方默认按''全幅''设计'
+    _by: hw-lead
+    state: pending
   - key: fw_boot_storage_bom
     to: hw-lead
     item: '启动存储选型 (接口请求, 经 main 转达): SPI-NOR 容量型号 vs eMMC, 以及 rootfs 体积上限约束 (多少 MB 以内必须用 NOR) → 这是回滚方案的总分叉点:
@@ -6077,7 +6232,7 @@ needs_matrix:
     _by: mech-lead
     state: pending
   answered_count: 81
-  total: 125
+  total: 128
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -6135,6 +6290,14 @@ blockers:
   severity: high
   needs_from: *id009
   waiting_since: '2026-10-26'
+  owner: hw-lead
+- id: HW-B7
+  severity: high
+  desc: 'R-GEO-1/R-GEO-2 六问全部 0 答复 (全幅vsROI模式表 / 4-lane 2.451Gbps / ISP吞吐余量 / scaler输出窗口 / 上电默认模式+寄存器读回
+    / 角落实测暗角MTF)。其中问03(吞吐余量)是一票否决级: 250 vs 497.7 两口径差 2 倍 => 余量 1.9% 或 50.7% 完全相反; 且 ISP 动态功耗按全幅60重估会连带
+    HW/POWER_BUDGET_V3.md 皮肤温度结论可能翻案。该阻塞不解决, 采集链(全幅60fps)与散热结论都不能定版'
+  since: '2026-10-28'
+  source: ISS-062
   owner: hw-lead
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -6467,10 +6630,10 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 70
-  blockers: 31
-  high_blockers: 25
-  open_needs: 44
+  artifacts: 73
+  blockers: 32
+  high_blockers: 26
+  open_needs: 47
   waiting_external_needs: 49
   overdue_needs: 0
   target_missing_needs: 0
