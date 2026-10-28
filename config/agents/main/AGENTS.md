@@ -161,6 +161,18 @@ python3 state/daily_check.py   # 巡检 + 漂移检测
 - **路径一律用绝对路径** (`/home/yuewuya/.openclaw/workspace/...`), 不要靠 cwd: 10-27 那次我在 `projects/smart_glasses/` 下运行脚本, 结果把根目录的 `HEARTBEAT.md` / `memory/2026-10-27.md` 误建成了项目目录下的同名文件 (同名不同物 = 以后必然看错)。
 - **写完必须核对体积**: `wc -c` 前后对一下, 掉一半就是被截断了。
 
+### ★★★ 僵尸 `fixing` 会锁死整个 agent 的队列 (2026-10-28 18:3x 实测, 断线 9.5 小时)
+
+- **现象**: `advance.py` 的 A 段只列 **1 条** internal, 但 issue_log 里 open 的 internal 实际有 **38 条** (mech-lead 名下就 11 条)。**队列看着是空的, 实际是被挡住的** —— 从 A 段看是"没活可派", 从 issue_log 看是"11 条 open 没人接", 两边对不上, 极易误判成"没活干"。
+- **机制**: `advance.py` 的 in_flight 规则 = "同一 agent 名下只要有 status==fixing 的 issue, 该 agent 本轮不再派新活" (两个写会话会互相覆盖分片, 这条规则本身**是对的**)。
+  ⇒ **ISS-089 (owner=mech-lead) 08:56 就已交卷** (HANDOFF 20.8KB + 主文档 30KB + 自检脚本 54 项机器判定 rc=0), **但 owner 忘了把 status 从 fixing 推到 fixed** ⇒ 这条僵尸 fixing 把 mech-lead 名下 11 条 open 待办全挡在队列外, **一直挡到 18:3x (9.5 小时)**。
+- **铁律**:
+  1. **owner 交卷 ≠ 状态推进** —— 子 agent 交卷时必须**自己**把 status 推到 `fixed` 并落 `fix_ref`; 不推 = 那个 agent 当天断线。
+  2. **每轮 cron 除了看 A 段, 还要扫 issue_log 里 `status=fixing` 且 `fix_ref` 为空的僵尸条** —— `fix_ref` 必填 ⇒ **有 fix_ref 才是真在干**; 没有 fix_ref 却卡在 fixing ⇒ 交卷了但没推进, 当场解堵。
+  3. **解堵关单由我 (main) 亲核, 不照抄交卷自评** —— 核对三件套: 交卷单体积 + B1~B6 齐全 · 自检脚本实跑 rc · merge/gate rc, 然后才置 `verified` (verify_by=main ≠ owner, 验证分离成立)。
+  4. ⚠️ **交卷自评里的 "FAIL N 项" 要读懂**: 交叉评审单的 FAIL 是"按现在的图纸做出来会出问题", **不是"交卷不合格"** —— 交卷本身就是挑出这些点的, 别把 FAIL 当不合格给关掉。
+- **配套**: 上轮对 boss 承诺过"某条冲突下一轮直接派" ⇒ 就要登记成**正式 issue** 走 advance.py 正常派活路径, 而不是口头记着 (承诺要有单号可追)。
+
 ### ★ 网关会重启 → 所有在跑的 agent 会话一起死 (2026-10-27 20:0x 实测)
 
 - **现象**: `gateway closed (1012): service restart` → 那一刻正在跑的**所有**子 agent 会话一起死 (mech-lead ISS-091 跑了 34 分钟, hw-lead ISS-096+098 跑了 30 多分钟, **全部 0 产出**); 同样的 1012 之前也让 4 个 cron 连续失败 9 次。

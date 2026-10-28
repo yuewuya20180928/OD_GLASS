@@ -138,6 +138,17 @@ def main() -> int:
     chk("10 页齐全 (P1-P10)", not miss_p, f"缺页 {miss_p}" if miss_p else f"实际 {sorted(got_pages)}")
 
     # 11) 同一 net 不得有多个输出驱动 (DRC 近似: 同 net 不同 ref 且方向冲突)
+    # ★2026-10-28 修判据 (假阳性): 旧实现用 `"输出" in note or "→" in note` 扫全文 ——
+    #   ⇒ note 正文里任何**说明性箭头** (如 "PG 低 → 栅极≈0 → P-MOS 导通") 都被当成信号方向,
+    #     一行就误判成"输出驱动" ⇒ 改一行 note 就让门禁变红 (V1.9 Q_PG 改 P-MOS 时踩中)。
+    # ★新判据: 只认 note **开头**的结构化方向声明 ("方向 A→B" / "输出: ..." / "A 输出 → B"),
+    #   不认正文中间的箭头 ⇒ 注释怎么写都不会误报。
+    def _is_output_driver(r) -> bool:
+        n = (cell(r, "note") or "").strip()
+        if not n:
+            return False
+        head = n[:24]          # 只看开头 (方向声明都写在开头)
+        return ("方向" in head) or ("输出" in head)
     by_net: dict[str, list] = {}
     for r in rows:
         n = cell(r, "net")
@@ -147,7 +158,7 @@ def main() -> int:
     for n, rs in by_net.items():
         if n == "GND":
             continue   # GND 是单电气节点, "多驱动"判据不适用
-        outs = [r for r in rs if "输出" in cell(r, "note") or "→" in cell(r, "note")]
+        outs = [r for r in rs if _is_output_driver(r)]
         if len(outs) > 1:
             multi_out.append(n)
     chk("同一 net 不得有多个输出驱动", not multi_out, f"冲突 net {multi_out[:5]}" if multi_out else "")

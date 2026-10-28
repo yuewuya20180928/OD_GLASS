@@ -46,7 +46,25 @@ if [ ! -d "$PUB/.git" ]; then
 fi
 cd "$PUB" || exit 1
 # ★从远端 rehydrate (机器重启会清空 /tmp → 发布树会变空仓库; 每次先拉回远端状态)
-git fetch -q origin main 2>/dev/null && git reset -q --hard origin/main 2>/dev/null
+# ★★2026-10-28 18:3x 加固: 原写法 `git fetch -q ... 2>/dev/null && git reset ...` —
+#   **fetch 失败时错误被吞掉, 脚本继续跑** ⇒ rsync --delete 把发布树覆盖成只有新内容
+#   ⇒ 随后 commit+push 会把**远端全部历史压成一个新 commit** (历史丢失!)
+#   ⇒ 现在: fetch 失败 = **中止发布** (宁可今天不推, 也不能毁历史)
+if ! git fetch -q origin main 2>/tmp/_fetch_err.log; then
+  echo "[2] ❌ 从远端 rehydrate 失败 —— ★中止发布 (避免把远端历史压扁)"
+  echo "--- fetch 错误 ---"
+  head -10 /tmp/_fetch_err.log 2>/dev/null
+  echo "[2] ★网络恢复后重跑即可; 本次未推送任何内容"
+  exit 1
+fi
+git reset -q --hard origin/main 2>/dev/null || { echo "[2] ❌ reset 失败, 中止"; exit 1; }
+# ★检查要用 HEAD (不是 main 分支) —— fetch 后 `git reset --hard origin/main` 才把 HEAD 指过去;
+#   查 main 分支会在"本地分支还没跟上"时误判为空 (2026-10-28 18:4x 实测踩中: fetch 其实成功了)
+if [ -z "$(git rev-parse HEAD 2>/dev/null)" ]; then
+  echo "[2] ❌ rehydrate 后仍无 commit —— 中止发布 (★绝不能推一个空历史的仓库)"
+  exit 1
+fi
+echo "[2] rehydrate OK: HEAD = $(git rev-parse --short HEAD)"
 # git 身份 (新仓库没有身份 → commit 会失败)
 git config user.name "yuewuya20180928"
 git config user.email "yuewuya20180928@users.noreply.github.com"

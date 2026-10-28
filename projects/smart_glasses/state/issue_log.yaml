@@ -1540,7 +1540,7 @@ issues:
   reporter: sw-lead
   raised: '2026-10-26'
   due: '2026-10-29'
-  status: open
+  status: fixing
   external: false
   need_keys: []
   task_brief: '把 R-GEO-2 四问并进 hw-lead 现有的 R-GEO-1 原厂/镜头厂沟通材料, 并给出这四问各自卡住什么决策 (120 度对角是否成立 / 宽高比子路线 / 全幅吞吐是否留得住)。边界: 不许发邮件 (外发一律经项目总工), 只出材料草稿放 state/outbox/'
@@ -1552,7 +1552,7 @@ issues:
 
     ★2026-10-28 09:3x 项目总工 cron 推进: 本轮**跳过未派** —— hw-lead 当时有写会话在跑 (agent:hw-lead:subagent:65d92536 (ISS-104 追加 SoC 侧关机接口 第2轮), 09:32 仍在写 netlist/分片), 按『一个 agent 同时只开一个写会话』铁律不重复派。待该会话交卷后由 advance.py 重新列为
     internal 再派。'
-  dispatched_at: '2026-10-26'
+  dispatched_at: '2026-10-28'
 - id: ISS-063
   title: 显示端 120 度到 30 度的映射方式 (看得广但糊 vs 看得清但窄) —— 120 度这个卖点对用户可见吗
   severity: high
@@ -2266,18 +2266,36 @@ issues:
   reporter: main
   raised: '2026-10-27'
   due: '2026-10-29'
-  status: fixing
+  status: verified
   external: false
   need_keys: []
   task_brief: '以 HW/SCHEMATIC_V1.md (V1.6, 10 页) 为输入做**硬件侧交叉评审** (机械/热/装配/跨铰链): (a) P9 页 4 组跨铰链通道 (J_CHG 1×10p@0.5mm / CONN_USB 4p / CONN_CAM 18p / CONN_LIGHT 1×22p) 的机械可行性: 镜脚腔体放不放得下 (ISS-078 说面积缺 300mm²)
     / 柔性段长度与固定方式 / 应力释放 / **是否合并成 1 个连接器** (P9 页给了 pin 账, 铰链区堆叠 26.5mm vs 净高 37.0mm) (b) P10 充电板 (镜框) 的机械位置与承力 (Type-C 座开孔 9.5×3.6mm / 末端壁厚 ≥1.5mm / ≥2 承力柱) (c) 电池在镜脚 + 充电板在镜框的**装配顺序与检修路径** (d) 挑出装配/开孔/公差上会打回来重画的点。验收:
     逐条给 通过/不通过/未验 + 证据等级; **至少 3 条你自己发现的、我没要求的问题**; 把结构侧结论落进 MECH/ 的尺寸链/公差表 + HANDOFF 交接单 (B1-B6 齐全)。边界: 只读 HW/ 与 state/, 不许改 HW/ state/ PROJECT_TRACKER.md DECISIONS.md; 不许拍板 (结论可以是''要加宽到 15mm'', 但拍板是我和
     boss); 写分片用 state/frag_write.py。自证: python3 state/merge.py (rc=0) && python3 state/gate_check.py (Q1 18/18)'
-  fix_ref: null
+  fix_ref: MECH/HW_CROSS_REVIEW.md + MECH/hw_cross_review_check.py + HANDOFF/2026-10-28_mech-lead_风险复核_ISS089_硬件交叉评审.md
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: '2026-10-27 08:50 项目总工登记 (等 mech-lead 空出写会话); ★2026-10-27 18:5x 项目总工核对: 09:44 那批随 cron session 一起死的派活里就有本条 → **0 产出** (SW/ MECH/ 无 09:44 后的改动) → 退回 open 重派 (任务书已补全)'
+  verify_result: pass
+  verify_date: '2026-10-28'
+  note: '2026-10-27 08:50 项目总工登记 (等 mech-lead 空出写会话); ★2026-10-27 18:5x 项目总工核对: 09:44 那批随 cron session 一起死的派活里就有本条 → **0 产出** (SW/ MECH/ 无 09:44 后的改动) → 退回 open 重派 (任务书已补全)
+
+    ★2026-10-28 18:3x 项目总工 cron 解堵验收关单 (不是新活, 是补上 owner 漏掉的状态推进)。
+
+    【为什么现在关】mech-lead 08:56 已交卷 (HANDOFF 20.8KB B1-B6 + MECH/HW_CROSS_REVIEW.md 30KB + hw_cross_review_check.py 54 项机器判定 rc=0), 但 issue_log 里 status 一直卡在 **fixing** —— 而 **advance.py 的 in_flight 规则规定「同一
+    agent 名下只要有 status==fixing 的 issue, 该 agent 本轮就不再派新活」** ⇒ 这条僵尸 fixing 实际把 mech-lead 名下 **11 条 open 待办全挡在队列外** (ISS-017/024/025/027/047/052/065/066/076/092/103), 队列断线。现按项目总工验收 (verify_by=main ≠ owner=mech-lead,
+    验证分离成立) 置 verified。
+
+    【验收依据 (项目总工亲核, 非照抄交卷自评)】HANDOFF/2026-10-28_mech-lead_风险复核_ISS089_硬件交叉评审.md = 20803 B 且 B1~B6 六块齐全; MECH/HW_CROSS_REVIEW.md = 30104 B; MECH/hw_cross_review_check.py = 28374 B; 实跑 `python3 MECH/hw_cross_review_check.py`
+    → rc=0, 汇总 **PASS 15 / FAIL 16 / 条件通过 8 / 说明 15 (共 54 项)**; state/fragments/mech.yaml 已落 6 条 ISS-089 相关 needs_from + 产出/claims; merge rc=0 (产出 70 | 阻塞 31/高危 25 | 冲突 1); gate_check Q1 18/18 (mech-lead
+    6/6)。
+
+    【交卷要点 (供后续拍板, 不重复展开)】① 跨铰链 4 组通道腔体本身放得下 (V 向余 7.00mm / 径向余 1.25mm / 面积 900 vs 909.72mm² 已闭合), 但 **P9 页堆叠数自相矛盾 (26.5/27.0/31.00 三数并存) + 漏 4×2×0.50mm 走线边距 + 净高分母用已作废的 37.00 (现行 38.00)** ⇒ 报的余量偏乐观 3.50mm
+    (A-5 判不通过)。② **全合并成 1 个连接器 = 几何否决** (54p 座体 Y 30.00 > 板宽 15.00 + 接触排沿 V 被竖直铰链轴物理锁死), 部分合并 14p 结构可行但 X 缺口仍 0.50mm ⇒ **建议不合并**。③ Type-C 座开孔单边 Y 向仅 0.17mm, FDM ±0.30 吃掉 0.13, 与 M-15 的 ±0.10 差 3.0× ⇒ 建议开口放大到
+    10.0×4.2mm 或改金属嵌件 (A-7 判不通过)。④ **ICHG=IIN×0.822 方向反了** (buck 功率守恒是 Pout=η·Pin ⇒ 系数 1.216), 连带 390Ω 档单 pin 0.50-0.61A **超 0.5A 额定** ⇒ 判据要重算。⑤ 充电灯 D_CHG_LED/Q_CHG_LED/R_CHG_LED board 列标 MAIN_PCB, 但 VBUS_5V_CHG
+    只存在于充电板 ⇒ **board 列标错** (BOM 备料/装配/ISS-103 导光孔位置会跟着做错)。⑥ 打印包 temple_cage_340.stl 的 Type-C 试样还挂在镜脚检具上 (充电板已按 ISS-014 决策 5 挪镜框)。⑦ 端件沿臂导热阻 ≈1944 K/W (打印件 k=0.2) ⇒ 端件无金属导热路径。
+
+    【诚实边界】实物类 [实测] = 0; 4 项 [0数据] 未编造 (u8 镜框截面 / Type-C 插拔力规格 / 厂商尺寸图 / 对手请求项); 自评 ✅通过 10 / ⚠️条件通过 6 / ❌不通过 2 (A-5 / A-7 已在 §5 给处置路线, 走项目总工与 hw-lead 决策); 其中 u8 镜框截面已请求升为阻塞级 (框侧要同时装 充电板 25×10 + Type-C 沉板
+    + 铝屏蔽罩 + 铰链件 + 4 条跨铰链 FPC 固定段, 合计 V 向带宽 31.00mm, 而 u8 截面未给 ⇒ 镜框端件装不下与否**仍未知**)。'
   dispatched_at: '2026-10-28'
 - id: ISS-090
   title: ★软件侧交叉评审 (时序/信号/电源时序) + TMP117 测点物理位置 + 跨铰链 USB 烧录可行性
@@ -2669,49 +2687,32 @@ issues:
   external: false
   need_keys: []
   task_brief: ''
-  fix_ref: SW/POWER_STATE_SEMANTICS.md + SW/SW_REQUIREMENTS.md + HANDOFF/2026-10-28_sw-lead_ISS104_电源状态术语统一.md
+  fix_ref: SW/POWER_STATE_SEMANTICS.md + SW/SW_REQUIREMENTS.md + HW/POWER_SHUTDOWN_V3.md §3 (V1.9 P0 修正) + HANDOFF/2026-10-28_sw-lead_ISS104_电源状态术语统一.md
   verify_by: main
   verify_result: pass
   verify_date: '2026-10-28'
-  note: '2026-10-28 00:5x 项目总工登记 (老板拍板连带; sw-lead 现在在跑 ISS-101, 交卷后我转达)
-
-
-    ★2026-10-28 08:3x-08:5x 项目总工验收关单。sw-lead 交卷 (08:3x) 后 issue_log 一直挂在 fixing 没落 fix_ref ⇒ 现补。
-
-
-    【机械验收 5 条逐条核对通过】① 状态表 3 状态 × 7 列 (超出要求的 2×5), 每格非空 ② "深度休眠" 4 处全部带 [旧称·已作废] ③ 唤醒路径 VBUS/PG/按键 三条写清 ④ 续航两行分列 ⑤ "待机 <0.05W" 每处同行带 [旧口径·已作废], 新口径只写「关机(断电) <0.05W」。
-
-
-    【★它自查挖出的真问题 U2 —— 本轮最有价值的产出】`HW/POWER_SHUTDOWN_V3.md` §6 待机/按需/满载 三行的续航是按 **`mAh ÷ (把 W 当 mA)`** 直算的 (漏除电池电压 3.7V + DoD 0.9) ⇒ **三行全部偏低 3.33 倍**。它**没自行改 HW/ 或锁死表**, 走 needs_from 请项目总工裁决 ⇒ ★这正是要的纪律 (跨域改动不自己动手)。
-
-
-    【★项目总工独立复算 + 裁决 (比它的报告精确一档)】库内其实有**两套算式**, 必须说清哪套对:
-
-    - **A 口径 (放电续航, 物理正确)**: `t[h] = Capacity[mAh] × DoD × V / P[W]` ⇒ 420mAh: 待机 **9.32h** / 按需 **6.08h** / 满载 **1.15h** (340mAh: 7.55/4.92/0.93h)
-
-    - **B 口径 (选电芯, 保守)**: `mAh = P × 361.81` (含 ÷0.83 充电效率) —— **0.83 是「充电输入→电池」的效率, 只影响充电时间, 不影响电池放电续航**; 用它选电芯偏保守 20% ⇒ **安全, 选型结论不动**
-
-    ⇒ 裁: **续航读数用 A; 选电芯继续用 B** (两套并存, 各司其职, 写死进 PROJECT_TRACKER §(1.34))
-
-    ⚠️ 裁决过程中我自己的脚本先出了个 1000× 单位错 (9324h) ⇒ 被输出表当场抓住并修掉 ⇒ 自证复现的价值实打实。
-
-
-    【老板锁死项全部不受影响 ⇒ 无需重新拍板】① 关机(断电) <0.05W ✅ (关机行用真电流 108µA, 从未用错算式) ② 关机续航 5-11 个月 ✅ ③ §0 #38 续航=按需触发≥1h ✅ **更宽裕** (旧值 1.8h → 真值 6.08h/4.92h) ④ §0 #12 续航≥1h ✅。热学结论不变 (算的是功耗侧) ⇒ 43°C 红线结论全部不动; ⚠️ 方向提醒: 续航变长
-    ⇒ 超标时间窗口变长 ⇒ "满载 88.6-96.1°C ❌" 这条**更强不是更弱**。
-
-
-    【★回写已落地】HW/POWER_SHUTDOWN_V3.md §1+§6+§关键决策1 · SW/POWER_STATE_SEMANTICS.md (状态表/§3/§5/§6/实测项表/需求4) · SW/SW_REQUIREMENTS.md M7 段 · PROJECT_TRACKER.md §0 锁死表 + §(1.34) · state/fragments/sw.yaml 的 sw_standby_runtime
-    声明值 2.8h→9.3h。★旧值一律**保留并标 [旧口径·已作废]** (留变更痕迹, 不删)。
-
-
-    【它主动登记的 3 条 needs_from 处置】① sw_runtime_recalc → **已裁** (本条) ② sw_poweroff_gpio_pin (to hw-lead) → 经我转达, 需并进下一轮原厂问/硬件确认 ③ sw_aon_deepsleep_spec (to vendor) → 已并入酷芯微第二轮问询草稿 (AON 唤醒脚/静态电流 + DDR retention
-    + 深睡外设 rail) ⇒ 仍等 4 封草稿放行。
-
-
-    【自证复现】python3 state/_decide_u2_runtime.py (复算表 + 裁决记录) · python3 SW/tools/model_asset_check.py rc=0 · merge rc=0 · gate_check rc=0 (Q1 18/18)
-
-
-    【诚实缺口】本单全部功耗/续航数字为 **[推算], 无一条实测**; 板端 INT8 产物仍 0 个 (与本单无关)。健康度仍 red。'
+  note: "2026-10-28 00:5x 项目总工登记 (老板拍板连带; sw-lead 现在在跑 ISS-101, 交卷后我转达)\n\n★2026-10-28 08:3x-08:5x 项目总工验收关单。sw-lead 交卷 (08:3x) 后 issue_log 一直挂在 fixing 没落 fix_ref ⇒ 现补。\n\n【机械验收 5 条逐条核对通过】① 状态表 3 状态 × 7\
+    \ 列 (超出要求的 2×5), 每格非空 ② \"深度休眠\" 4 处全部带 [旧称·已作废] ③ 唤醒路径 VBUS/PG/按键 三条写清 ④ 续航两行分列 ⑤ \"待机 <0.05W\" 每处同行带 [旧口径·已作废], 新口径只写「关机(断电) <0.05W」。\n\n【★它自查挖出的真问题 U2 —— 本轮最有价值的产出】`HW/POWER_SHUTDOWN_V3.md` §6 待机/按需/满载\
+    \ 三行的续航是按 **`mAh ÷ (把 W 当 mA)`** 直算的 (漏除电池电压 3.7V + DoD 0.9) ⇒ **三行全部偏低 3.33 倍**。它**没自行改 HW/ 或锁死表**, 走 needs_from 请项目总工裁决 ⇒ ★这正是要的纪律 (跨域改动不自己动手)。\n\n【★项目总工独立复算 + 裁决 (比它的报告精确一档)】库内其实有**两套算式**, 必须说清哪套对:\n\
+    - **A 口径 (放电续航, 物理正确)**: `t[h] = Capacity[mAh] × DoD × V / P[W]` ⇒ 420mAh: 待机 **9.32h** / 按需 **6.08h** / 满载 **1.15h** (340mAh: 7.55/4.92/0.93h)\n- **B 口径 (选电芯, 保守)**: `mAh = P × 361.81` (含 ÷0.83 充电效率)\
+    \ —— **0.83 是「充电输入→电池」的效率, 只影响充电时间, 不影响电池放电续航**; 用它选电芯偏保守 20% ⇒ **安全, 选型结论不动**\n⇒ 裁: **续航读数用 A; 选电芯继续用 B** (两套并存, 各司其职, 写死进 PROJECT_TRACKER §(1.34))\n⚠️ 裁决过程中我自己的脚本先出了个 1000× 单位错 (9324h) ⇒ 被输出表当场抓住并修掉\
+    \ ⇒ 自证复现的价值实打实。\n\n【老板锁死项全部不受影响 ⇒ 无需重新拍板】① 关机(断电) <0.05W ✅ (关机行用真电流 108µA, 从未用错算式) ② 关机续航 5-11 个月 ✅ ③ §0 #38 续航=按需触发≥1h ✅ **更宽裕** (旧值 1.8h → 真值 6.08h/4.92h) ④ §0 #12 续航≥1h ✅。热学结论不变 (算的是功耗侧) ⇒ 43°C 红线结论全部不动;\
+    \ ⚠️ 方向提醒: 续航变长 ⇒ 超标时间窗口变长 ⇒ \"满载 88.6-96.1°C ❌\" 这条**更强不是更弱**。\n\n【★回写已落地】HW/POWER_SHUTDOWN_V3.md §1+§6+§关键决策1 · SW/POWER_STATE_SEMANTICS.md (状态表/§3/§5/§6/实测项表/需求4) · SW/SW_REQUIREMENTS.md M7 段 · PROJECT_TRACKER.md\
+    \ §0 锁死表 + §(1.34) · state/fragments/sw.yaml 的 sw_standby_runtime 声明值 2.8h→9.3h。★旧值一律**保留并标 [旧口径·已作废]** (留变更痕迹, 不删)。\n\n【它主动登记的 3 条 needs_from 处置】① sw_runtime_recalc → **已裁** (本条) ② sw_poweroff_gpio_pin\
+    \ (to hw-lead) → 经我转达, 需并进下一轮原厂问/硬件确认 ③ sw_aon_deepsleep_spec (to vendor) → 已并入酷芯微第二轮问询草稿 (AON 唤醒脚/静态电流 + DDR retention + 深睡外设 rail) ⇒ 仍等 4 封草稿放行。\n\n【自证复现】python3 state/_decide_u2_runtime.py (复算表 +\
+    \ 裁决记录) · python3 SW/tools/model_asset_check.py rc=0 · merge rc=0 · gate_check rc=0 (Q1 18/18)\n\n【诚实缺口】本单全部功耗/续航数字为 **[推算], 无一条实测**; 板端 INT8 产物仍 0 个 (与本单无关)。健康度仍 red。\n\n★★**2026-10-28 18:0x-18:3x\
+    \ 补充: hw-lead 在 ISS-104 追加复查中查出一个 P0 级拓扑缺陷 —— 项目总工独立复核确认并已修复**\n\n【★P0 缺陷 (原设计会让板子永远开不了机)】`HW/POWER_SHUTDOWN_V3.md` §3 的\"插电即开机\"拓扑: **Q_PG 用了 N-MOS 低边反相** (栅极接 PG · 源极接 GND · 漏极接 ON)。\n- BQ25896 的\
+    \ PG 是**开漏, LOW = 输入源良好** [官方, CHARGE_BOARD_SPEC §2.1 \"LOW indicates a good input source\"]\n- ⇒ PG 低(有电)时 N-MOS **关** ⇒ ON 节点只剩 R_PD_ON 10k 下拉 = 低 = **负载开关关**\n- ⇒ **①插电反而开不了机; ②SoC 拉高 PWR_CTRL 时若\
+    \ Q_PG 导通会被拉到 GND 拉不高 ⇒ 开机路径彻底不通**\n- ⇒ **这块板做出来永远开不了机** —— 是本次整个关机语义设计里最严重的一个错\n\n【★项目总工独立复核 + 拓扑求解 (不是照抄它的结论)】我自己把四种接法推了一遍:\n- 方案A 原 N-MOS 低边 ⇒ ❌ 逻辑颠倒 (上面已述)\n- 方案B P-MOS 高边 + 漏极接 3.3V ⇒ 逻辑对, **但库内\
+    \ 3.3V 全部挂在 SYS 下** (`U_LDO_IO33` 输入 = RAIL_SYS) ⇒ 关机断电后即灭 ⇒ 漏极无电位 ⇒ **插电开机仍不成立** ⇒ 我第一版改法有洞, 自己否掉了\n- 方案C N-MOS + 额外反相器 ⇒ 多 1 颗 IC, 不划算\n- **方案D P-MOS 高边 + 漏极接 BAT_SW ⇒ ★采纳**: BAT_SW 是电池轨 (3.0-4.2V),\
+    \ **关机态仍带电** ⇒ **零新增 pin、零新增轨**\n  - PG 低(良好) ⇒ 栅极≈0 ⇒ Vgs ≈ -4.2V ⇒ P-MOS 导通 ⇒ ON = BAT_SW = 高 ⇒ 开机 ✔\n  - PG 高(无输入) ⇒ ON 被 10k 下拉到 0 ⇒ Vgs = +3.3V ⇒ P-MOS 关 ⇒ ON 低 ⇒ 关 ✔\n  - 选型硬判据写死: 低漏 · Vgs(th)\
+    \ 明确 · 栅极最大耐压 ±20V · 关断漏电 nA 级\n  - 备选: 若原厂确认有 AON 常开 3.3V 轨, 漏极也可接该轨 ⇒ 已并入原厂追加问 §7 第 19 问\n\n【落盘范围】① `state/gen_netlist.py` (V1.9) ⇒ 重生成网表 (516 行不变) ② `HW/POWER_SHUTDOWN_V3.md` §0/§2(新增第 9 条判据)/§3\
+    \ (拓扑图 + 状态机 + 对照表) ③ 网表 note 里带 \"★V1.9 P0 修正\" 标记。\n\n【★顺带修掉一个门禁判据缺陷 (我自己的)】改完网表后 `check_netlist.py` 报 \"PWR_GOOD 多驱动\" ⇒ 查下去发现是**判据脆弱**: 第 11 条用 `\"→\" in note` **扫全文** ⇒ 我在 note 里写的说明性箭头 (\"PG 低\
+    \ → 栅极≈0 → P-MOS 导通\") 被当成信号方向 ⇒ **改一行注释就把门禁改红了**。\n- 修法: 判据只认 note **开头 24 字符**内的结构化方向声明 (\"方向 A→B\" / \"输出: ...\"), 不认正文中间箭头\n- ★**放宽判据必须配反例测试** ⇒ 新增 `state/test_netlist_drc.py` **9/9 通过**, 含 ★**反向验证**:\
+    \ 往网表注入一个真·多驱动 (第二个结构化 \"方向\" 声明) ⇒ 判据必须变红 ⇒ 证明它没被改废\n\n【自证复现】python3 state/gen_netlist.py (516 行) · python3 state/check_netlist.py ✅ 全过 · python3 state/check_kicad_net.py ✅ 6/6 · python3 state/test_netlist_drc.py\
+    \ ✅ 9/9 · merge/gate_check/issue_check rc=0\n\n【★honest 记录: hw-lead 这两轮都是 0 产出】第 1 轮交卷只有一句 \"found a P0-level topology defect\"; 第 2 轮交卷只有一句 \"Now the decisive mechanical check —— the actual .net file\
+    \ node membership for the ON node\" ⇒ **盘上零文件** (§9/§10 无 · 交接单无 · hw.yaml 未更新)。**但它指出的 P0 是真的** ⇒ 本单最终由项目总工接手完成 (含网表改动 + 文档 + 门禁判据修复)。\n★**教训**: 子 agent 说\"我发现了个 P0\"但没落盘时, **别直接判它没干** —— 先看它说的东西是否成立\
+    \ (本例成立), 再决定谁做。**它给对了问题, 只是没交作业**。"
   dispatched_at: '2026-10-28'
 - id: ISS-105
   title: ★更正 hw-lead 分片过期值 (pcb_outline 仍 50×12 / chg_input_limit 仍 1.07-1.30A) + J_CHG 按一对备料 + 机械防呆升为硬判据
@@ -2776,3 +2777,42 @@ issues:
 
     ★修正: source_blocker 原填 ISS-001 (issue 号) —— 但该字段指 STATE.yaml 里的 need key, 填不存在的 key = 幻觉引用, 被 issue_check 抓出 ⇒ 已置空。'
   dispatched_at: null
+- id: ISS-107
+  title: '★更正 mech-lead 分片 pcb_mounting 旧取值 (2xM1.2+1x⌀2.0H7 → PIN-SET-2: 2x⌀2.0H7+2x⌀1.4) —— 合并器长期报冲突'
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: '合并器 (`state/merge.py`) 长期报唯一 1 条冲突: `pcb_mounting` = {hw-lead: ''PIN-SET-2:2x⌀2.0H7+2x⌀1.4'', mech-lead: ''2xM1.2+1x⌀2.0H7''}。
+
+    【为什么必须改 mech 侧 (不是 hw 侧)】hw-lead 已在 ISS-049 交卷里把老口径 **机械判死**: 在 15mm 板宽下老口径 3/3 孔压带 (M1.2 压 Y 0.50mm; ⌀2.0 压 2.00×2.00mm) ⇒ 加宽不解, 必须沿板长移出 SoC 逃线带 X[20.20, 31.80]。定版 PIN-SET-2 = P1 主定位销孔 ⌀2.0 H7 @ (8.00,
+    7.50) / P2 副定位销孔 ⌀2.0 H7 @ (52.00, 7.50) (菱形销, 只定 Y 消过定位) / S1 S2 压紧螺钉孔 ⌀1.4 @ (8.00, 2.50) 与 (52.00, 12.50), 4/4 孔与逃线带 2D 重叠 = 0.000mm² (36 项复算 rc=0)。**hw-lead 的值是新的, mech 的值是旧的** ⇒ 改 mech 侧。
+
+    【代价】不改 ⇒ merge 一直红 (冲突 1) ⇒ gate_check/daily_check 都被这条脏数据挂着, 合并器的冲突检测能力形同虚设。
+
+    【边界】只改 mech-lead 自己的分片取值 (state/fragments/mech.yaml) + MECH/ 里引用老口径的那处文档; 不改 hw-lead 的 HW/ 任何文件; 不改 netlist/BOM/生成器 (那是 hw-lead 的地界)。'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-10-28'
+  due: '2026-10-29'
+  status: fixing
+  external: false
+  need_keys: []
+  task_brief: '把 mech-lead 分片里的 `pcb_mounting` 旧取值 **2xM1.2+1x⌀2.0H7** 改成 **hw-lead 已定版的 PIN-SET-2** = `2x⌀2.0H7+2x⌀1.4`, 让合并器的 `pcb_mounting` 冲突消掉 (现在它是唯一 1 条冲突)。
+
+    【定版依据 (hw-lead ISS-049, 36 项复算 rc=0)】P1 主定位销孔 ⌀2.0 H7 @ (8.00, 7.50) (配压装 ⌀2.0 h6 圆销, 定 X+Y+θz); P2 副定位销孔 ⌀2.0 H7 @ (52.00, 7.50) (配压装 ⌀2.0 菱形销, 对边 1.94, 只定 Y ⇒ 消过定位); S1/S2 压紧螺钉孔 ⌀1.4 @ (8.00, 2.50)
+    / (52.00, 12.50) (纯压紧, 零定位); 板坐标 = 原点左下角, X=板长 0→60 (铰链端在 X=0), Y=板宽 0→15。
+
+    【为什么老口径必须废掉】老口径 2×M1.2 @边距2.50 + 1×⌀2.0 H7 在 15mm 板宽下 **3/3 孔压带** (M1.2 压 Y 0.50mm; ⌀2.0 压 2.00×2.00mm) ⇒ 加宽不解, 必须沿板长移出 SoC 逃线带 X[20.20, 31.80]; PIN-SET-2 的 4/4 孔与逃线带 2D 重叠 = **0.000mm²**。
+
+    【你要做的】① state/fragments/mech.yaml 里 `pcb_mounting` 改成 PIN-SET-2 (走 state/frag_write.py 原子写, 禁止 open(p,"w")); ② 顺带核一遍 MECH/ 里还有没有别处引用老口径 (2xM1.2 / 1x⌀2.0H7 / 边距2.50), 有就一并更正; ③ **只写你自己的文件** (MECH/ +
+    state/fragments/mech.yaml + 你的 HANDOFF 交接单), 不碰 HW/、不改 netlist/BOM/生成器、不改别人的分片; ④ 交卷时把这条冲突的处置写进交接单, 并让 `python3 state/merge.py` 输出里的 **冲突数从 1 变 0** (贴输出)。
+
+    ★不要顺手改别的: 你自己 ISS-089 交卷里的 6 条 needs_from (u8 镜框截面升阻塞级 / 打印包改版授权 / DECISIONS 口径更正 等) 走项目总工拍板, 不在本单范围。'
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '★2026-10-28 18:3x 项目总工 cron 登记 (解冲突 + 兑现上轮对 boss 的承诺: "pcb_mounting 那条冲突要 mech-lead 把旧口径更新成 PIN-SET-2, 否则合并器一直报红 —— 这条我下一轮可以直接派")。
+
+    ★背景: 本条与 ISS-089 解堵同批处理 —— ISS-089 卡在 fixing 把 mech-lead 名下 11 条 open 待办全挡住, 解堵后本条是 mech-lead 名下**到期最早 + severity 最高**的一条, 由 advance.py 正常派发。'
+  dispatched_at: '2026-10-28'
