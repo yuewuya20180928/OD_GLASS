@@ -1,6 +1,6 @@
 # 下一步行动清单 (TODO)
 
-> 生成 **2026-10-28 18:52** | 自动生成 (源: `state/issue_log.yaml` + `state/fragments/pm.yaml`)
+> 生成 **2026-10-28 18:54** | 自动生成 (源: `state/issue_log.yaml` + `state/fragments/pm.yaml`)
 > 分桶依据 = **能不能真的动** (内部 / 等你 / 等外部), 不是按严重度排
 > 总量: 登记 **107** 条 | 未闭环 **63** | 已关闭 **44**
 
@@ -136,12 +136,13 @@
 | `state/outbox/ti_bq25896_query.md` | 3 问 (TI BQ25896) | 🟡 已就绪, **等老板一句『可以发』** |
 | `state/outbox/vendor_round2_email.md` | 5 问 (酷芯微第二轮) | 🟡 已就绪, **等老板一句『可以发』** |
 | `state/outbox/vendor_round3_addendum.md` | 21 问 (酷芯微追加问) | 🟡 已就绪, **等老板一句『可以发』** |
+| `state/outbox/vendor_round4_geo_isp_addendum.md` | 4 问 (—) | 🟡 已就绪, **等老板一句『可以发』** |
 | `state/outbox/vendor_via_agent_email.md` | 3 问 (—) | 🟡 已就绪, **等老板一句『可以发』** |
 
 ## D. 依赖关系 —— 谁解锁谁
 
 ```
-① 8 份草稿发出 ──► 13 条外部 issue 解锁 ──► G1 原理图/PCB 定稿
+① 9 份草稿发出 ──► 13 条外部 issue 解锁 ──► G1 原理图/PCB 定稿
                     └─► JBD 的 2D 外形图 ──► 镜框开模 ──► G2
                     └─► 光机 LED 波长/亮度/光通量 ──► 光生物安全评估
 

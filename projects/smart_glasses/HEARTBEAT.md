@@ -1,3 +1,24 @@
+# 2026-10-28 18:50 GMT+8 — ★★★ P0 级拓扑缺陷修复 (板子会永远开不了机) + 2 个工具缺陷 + 代理信附件
+
+**唯一跟踪表**: `PROJECT_TRACKER.md` §(1.35) · **正本**: `HW/POWER_SHUTDOWN_V3.md` §2/§3 · **网表**: `state/gen_netlist.py` V1.9
+
+**09:0x 发现 → 18:2x 收口 做了什么**:
+- ★★★ **P0 缺陷**: 关机拓扑的 "插电即开机" 用 **Q_PG = N-MOS 低边反相** (栅极=PG · 源极=GND · 漏极=ON)。而 BQ25896 的 PG 是**开漏 LOW=输入源良好** [官方] ⇒ PG 低(有电)时 MOS **关** ⇒ ON 只剩 10k 下拉 = 低 = **开关关** ⇒ **①插电反而开不了机 ②SoC 拉高 PWR_CTRL 会被 Q_PG 拉到 GND 拉不高 ⇒ 开机路径彻底不通** ⇒ **这板打出来是死的**
+- ★**我的独立复核 + 拓扑求解 (不是照抄)**: 四种接法推演 —— A 原 N-MOS ❌ 逻辑颠倒 / B P-MOS+3.3V ⚠️ **我第一版改法有洞** (库内 3.3V 全挂 SYS 下, 关机即灭 ⇒ 漏极无电位) / C 多加反相器 ❌ / **D P-MOS 高边 + 漏极接 `BAT_SW` ✅ 采纳** (电池轨, 关机后仍带电 ⇒ 零新增 pin、零新增轨)
+  - 电平推演: PG低⇒栅极≈0⇒Vgs≈-4.2V⇒导通⇒ON=BAT_SW=高⇒**开机** ✔ ｜ PG高⇒ON落10k下拉⇒Vgs=+3.3V⇒关⇒ON低⇒**关** ✔
+- **落盘**: `gen_netlist.py` V1.9 (网表 516 行不变, note 带 "★V1.9 P0 修正") + `POWER_SHUTDOWN_V3.md` §0/§2(新增第9条选型判据)/§3(拓扑图+对照表+状态机) + `PROJECT_TRACKER.md` §0 锁死表加 1 条 + §(1.35)
+- ★**顺带修掉一个门禁判据缺陷 (我自己的)**: 改完网表 `check_netlist.py` 报 "PWR_GOOD 多驱动" ⇒ 查下去是**判据脆弱**: 第11条用 `"→" in note` **扫全文** ⇒ 我 note 里的说明性箭头 ("PG 低 → 栅极≈0 → P-MOS 导通") 被当成信号方向 ⇒ **改一行注释就把门禁改红了**。修法: 只认 note **开头24字符**内的结构化方向声明 ⇒ 新增 `state/test_netlist_drc.py` **9/9** (含 ★反向验证: 注入真·多驱动 ⇒ 判据必须变红)
+- **ISS-104 关单** (verify_by=main) + **代理信 + 3 份可转发附件** (`state/outbox/attach/`) 同步推上 GitHub
+- **发布脚本加 2 道保险**: ① fetch 失败 = **中止发布** (原写法 `2>/dev/null &&` 会吞掉失败 ⇒ rsync --delete 覆盖后 push 会把远端历史压成一个 commit) ② rehydrate 后检查 **HEAD** 而非 `main` 分支 (fetch 其实成功了, 但查 main 分支会误判为空)
+- 门禁: check_netlist ✅ | check_kicad_net 6/6 ✅ | issue_check/merge/gate rc=0 | frag_write 16/16 | stage_gate 12/12 | **netlist_drc 9/9**
+- 推送 `76206ee`, 远端 13/13 SHA 一致
+
+**★honest 记录**: hw-lead 这两轮**都是 0 产出** (交卷只有两句话, 盘上零文件), **但它指出的 P0 是真的** ⇒ 本单最终由项目总工接手完成。★**教训**: 子 agent 说"我发现了个 P0"却没落盘时, **别直接判它没干** —— 先看它说的东西是否成立 (本例成立), 再决定谁做。**它给对了问题, 只是没交作业。**
+
+**在跑**: mech-lead (ISS-089 已交卷, 待验收) · sw-lead 空闲 · hw-lead 空闲 (ISS-104 追加已被我接手)
+**⚠️ 待收**: 2 个 merge 冲突 (mech 分片过期: pcb_outline 50x15mm / pcb_mounting 旧螺钉孔位) ⇒ 等 mech-lead 自己改
+**🔴 等老板**: ★**代理信放行** (需补 3 处: 代理信息/我方署名/是否抄送原厂) + **4 封草稿** + 打印包开打 + 测试设备预算 (逾期)
+
 # 2026-10-28 08:50 GMT+8 — sw-lead ISS-104 交卷验收 + ★U2 续航算式口径裁决 (旧值偏低 3.33 倍)
 
 **唯一跟踪表**: `PROJECT_TRACKER.md` §(1.34) · **裁决脚本**: `state/_decide_u2_runtime.py` · **SW 正本**: `SW/POWER_STATE_SEMANTICS.md`
