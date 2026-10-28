@@ -120,7 +120,7 @@
 | **7** | INT | DO | **不跨铰链**; 本板留 `R_PU_INT` 位 (DNP) | 开漏 256µs 脉冲 | [官方] "The INT pin sends active low, 256-µs pulse to host" | J_CHG 无余量; 状态靠 STAT+PG |
 | **8** | OTG | DI | `R_OTG` 10k → PGND (**拉低 = 关 boost**) | 低 | [官方] "The boost mode is activated when OTG_CONFIG = 1, OTG pin is high..." | 本机不做 OTG |
 | **9** | CE | DI | `R_CE` 10k → PGND (**拉低 = 允许充电**) | 低 | [官方] "CE pin must be pulled High or Low" | **不能悬空**; 拉低的好处 = SoC 死机也能充电 |
-| **10** | ILIM | AI | `R_ILIM` → PGND | **300Ω ±1% (0402)** | [官方] "IINMAX = KILIM/RILIM", KILIM = 320/355/390 AΩ | 见 §2.4; ILIM 脚被稳在 **0.8V**, 电阻功耗 = 0.8²/R ≈ 2.1mW |
+| **10** | ILIM | AI | `R_ILIM` → PGND | **390Ω ±1% (0402)** | [官方] "IINMAX = KILIM/RILIM", KILIM = 320/355/390 AΩ | 见 §2.4; ILIM 脚被稳在 **0.8V**, 电阻功耗 = 0.8²/R ≈ 2.1mW |
 | **11** | TS | AI | `R_TS1` 5.24k ← REGN_5V; TS 网**跨铰链** → 镜脚 `R_TS2` 30.31k ∥ `R_NTC_BAT` 10k(103AT) → GND | 见 §2.5 | [官方] + [推算-可复算] | 硬件级电池过温/欠温停充 (不依赖 SoC) |
 | **12** | QON | DI | **NC** (内部上拉) | — | [官方] "The pin contains an internal pull-up to maintain default high logic" | SYS 在镜脚, 按键功能放镜脚侧; 本板留焊盘不装 |
 | **13,14** | BAT | P | `BAT_CHG` → `C_BAT` 10µF → PGND → `J_CHG pin1/pin2` (双 pin 并联) → 镜脚 BQ2970 → 电池 | 充电 1.0-1.5A | [官方] "Connect a 10uF closely to the BAT pin" | **跨铰链载流路径起点**; 见 §5 |
@@ -165,11 +165,11 @@ IINMAX = KILIM / RILIM          (KILIM = 320 / 355 / 390 AΩ, min/typ/max)
 
 | `R_ILIM` | IINMAX (min/typ/max) | CC 段电池电流上限 (×Vbat/Vbus/η ≈ 0.822) | 铰链段实际载流 | 用途 |
 |---|---|---|---|---|
-| **300Ω ±1%** | 1.07 / 1.18 / 1.30 A | 0.88 / 0.97 / **1.07 A** | **~1.0 A** | ★**本规格推荐值** (对齐 §3.1.3 "推荐充电电流 1.0A") |
-| 390Ω ±1% | 0.82 / 0.91 / 1.00 A | 0.67 / 0.75 / 0.82 A | ~0.75 A | ISS-091 判定铰链只能过 1.0A 时换这颗 (**换料不换板**) |
+| **390Ω ±1%** | 0.82 / 0.91 / **1.00 A** | 0.67 / 0.75 / **0.82 A** | **~0.75 A** | ★★**本规格推荐值** (V1.9, 老板 10-28 拍板『边戴边充不允许』⇒ 皮肤温度不再是充电时硬约束 ⇒ 充电电流可提速; 单 pin 0.411A ≤ 0.5A 触点天花板, 余量 1.22×) |
+| 300Ω ±1% | 1.07 / 1.18 / 1.30 A | 0.88 / 0.97 / 1.07 A | ~1.0 A | ❌ **300Ω 档正式判死** (V1.9): 单 pin 0.534A > 任何 0.5mm pitch FPC ZIF 的 0.5A 触点天花板 (只能靠 1.0mm pitch, 而铰链区装不下) ⇒ **不可选** |
 | 260Ω ±1% | 1.23 / 1.37 / 1.50 A | 1.01 / 1.13 / 1.23 A | ~1.1 A | datasheet 官方示例值 (KILIM=390 max 时 1.5A) |
 
-> ★**电阻功耗不是问题**: ILIM 脚被稳在 0.8V → P = 0.8²/300 = **2.1 mW** → 0402 足够 (不需要大功率电阻)。
+> ★**电阻功耗不是问题**: ILIM 脚被稳在 0.8V → P = 0.8²/390 = **1.64 mW** → 0402 足够 (不需要大功率电阻)。
 > ⚠️ **[待原厂]**: datasheet 的 KILIM 规格只在 "IINMAX = 1.5A" 工况点给出 (min/typ/max 320/355/390 AΩ)。**低电流档 (本设计 1.0A) 的 KILIM trim 是否同值, datasheet 原文未给** → 需 TI 确认 (见 §8 待决项 3)。若 KILIM 在低电流档偏大, 实际 IINMAX 会高于上表 → 仍被 1.3A 内的最坏值封住。
 
 ### 2.5 ★电池 NTC / TS 分压 (datasheet 原文算法复算)
@@ -234,7 +234,7 @@ V_TS = VREGN × (RTH ∥ RT2) / (RT1 + (RTH ∥ RT2))
 | REG04 (Fast Charge Current) **复位默认值** | **2048 mA** (0100000), 可编程范围 0-3008 mA | [官方] REG04 Table 10 |
 | REG00 (IINLIM) 复位默认值 | 500 mA; 输入源检测后按 PSEL 自动改写 (PSEL=Low → 3.25A) | [官方] REG00 Table 6 |
 | **实际输入电流上限** | = min(ILIM 脚设定, IINLIM 寄存器设定) | [官方] §9.2.3.3 |
-| **本规格的封顶链** | ILIM 脚 `R_ILIM` = 300Ω → **1.07-1.30A 硬件上限**, 与寄存器无关 | [官方] |
+| **本规格的封顶链** | ILIM 脚 `R_ILIM` = 390Ω → **0.82-1.00A 硬件上限**, 与寄存器无关 | [官方] |
 
 > ⇒ **只要 `R_ILIM` 装上, 就算 SoC 死机、就算 I2C 不跨铰链、就算 ICHG 寄存器停在 2048mA, 充电电流也被硬件压在 ~1.0A** —— 铰链段安全。
 > ⇒ **如果 `R_ILIM` 不装 (或被误装成大阻值) 而 ICHG 又停在 2048mA, 铰链会过 2.05A → 超设计点 1.5A 的 1.37 倍** —— 这是本板**唯一一处"一颗电阻兜住一条安全链"**的地方, 门禁里应加"必须有 ILIM 电阻"判据。
@@ -294,9 +294,9 @@ V_TS = VREGN × (RTH ∥ RT2) / (RT1 + (RTH ∥ RT2))
 - **所以 I2C 跨铰链不是"为了 PD", 而是为了"源侧合规 + 充电电流可编程"** —— 这两件事 Rd 方案都做不了。
 
 **补丁 2 —— 把 ILIM 电阻选成"保守但够用", 留出软件调整空间**:
-- `R_ILIM` = 300Ω (→ 输入 1.07-1.30A, CC 段电池电流 ~0.88-1.07A)。
+- `R_ILIM` = 390Ω (→ 输入 0.82-1.00A, CC 段电池电流 ~0.67-0.82A)。
 - 若源只支持 500mA (Rp=56k), 我们拉 0.5A 就停 —— **源不会过流** ✔; 若源支持 1.5A/2A, 我们最多拉 1.0A (ILIM 封顶), **仍可能略超源的 500mA 广告值** → 这正是补丁 1 (I2C + BC1.2) 要解决的。
-- ⇒ **`R_ILIM` = 300Ω 是"无软件依赖"的基线; 有软件时 SoC 按 BC1.2 结果写 REG00 (IINLIM) 来精确贴合源能力。**
+- ⇒ **`R_ILIM` = 390Ω 是"无软件依赖"的基线; 有软件时 SoC 按 BC1.2 结果写 REG00 (IINLIM) 来精确贴合源能力。**
 
 ### 3.4 ★★对"跨铰链充电电流 1.0-1.5A"的影响 (量化)
 
@@ -305,20 +305,20 @@ V_TS = VREGN × (RTH ∥ RT2) / (RT1 + (RTH ∥ RT2))
 
 | 场景 | 源侧能力 | `R_ILIM` | IIN 上限 | **铰链段 ICHG** | 相对 1.5A 设计点的余量 |
 |---|---|---|---|---|---|
-| ① Rd-only + 常见 Rp=56k 充电器 | 500 mA | 300Ω | 0.5A (源封顶) | **~0.41 A** | **3.7×** |
-| ② Rd-only + Rp=22k 充电器 | 1.5 A | 300Ω | 1.07-1.30A | **~0.88-1.07 A** | **1.4-1.7×** |
-| ③ 加 PD 5V/2A + `R_ILIM`=300Ω | 2 A | 300Ω | 1.07-1.30A | **~0.88-1.07 A** | **1.4-1.7×** |
-| ④ 加 PD 5V/2A + `R_ILIM`=390Ω (保守) | 2 A | 390Ω | 0.82-1.00A | **~0.67-0.82 A** | **1.8-2.2×** |
-| ⑤ 加 PD 5V/2A + `R_ILIM`=260Ω | 2 A | 260Ω | 1.23-1.50A | **~1.01-1.23 A** | **1.2-1.5×** |
+| ① Rd-only + 常见 Rp=56k 充电器 | 500 mA | 390Ω | 0.5A (源封顶) | **~0.41 A** | **3.7×** |
+| ② Rd-only + Rp=22k 充电器 | 1.5 A | 390Ω | 0.82-1.00A | **~0.67-0.82 A** | **1.8-2.2×** |
+| ③ 加 PD 5V/2A + `R_ILIM`=390Ω | 2 A | 390Ω | 0.82-1.00A | **~0.67-0.82 A** | **1.8-2.2×** |
+| ④ 加 PD 5V/2A + `R_ILIM`=260Ω (更激进) | 2 A | 260Ω | 1.23-1.50A | **~1.01-1.23 A** | **1.2-1.5×** |
+| ⑤ 加 PD 5V/2A + `R_ILIM`=300Ω ❌ | 2 A | 300Ω | 1.07-1.30A | **~0.88-1.07 A** | ❌ **判死**: 单 pin 0.534A > 0.5A 触点天花板 |
 | ⑥ ★**最坏** ★: 不编程 ICHG + `R_ILIM` 不装 + 源支持 2A | 2 A | 无 | 寄存器 REG00 3.25A | **2.048 A (REG04 复位默认)** | ❌ **超 1.37×** |
 
 **结论 (三条)**:
 1. **铰链段载流规格 (1.5A) 不需要因为"上 PD"而改** —— 场景 ① 到 ⑤ 全部 ≤1.23A, 都在 1.5A 内。
 2. **PD 5V/2A 真正改变的是"我们敢拉多少"**: 从 0.41A (场景 ①) 提到 1.0-1.2A (场景 ③/⑤)。**铰链段余量从 3.7× 缩到 1.4×** —— 这才是 ISS-091 核算时该盯的数, 而不是"PD 能不能拉到 2A"。
-3. ★**真正的风险不是 PD, 是场景 ⑥**: BQ25896 的 **REG04 复位默认 ICHG = 2048 mA** [官方]。只要 `R_ILIM` 装上, 场景 ⑥ 被硬件压回 ~1.0A; **`R_ILIM` 不装 = 铰链过 2.05A**。⇒ **`R_ILIM` 是必装件, 不是选配件。**
+3. ★**真正的风险不是 PD, 是场景 ⑥**: BQ25896 的 **REG04 复位默认 ICHG = 2048 mA** [官方]。只要 `R_ILIM` 装上, 场景 ⑥ 被硬件压回 ~1.0A (390Ω 档 max 1.00A); **`R_ILIM` 不装 = 铰链过 2.05A**。⇒ **`R_ILIM` 是必装件, 不是选配件。**
 
 **⇒ 提交项目总工拍板的问题**: 是否接受"第一版只留 Rd 5.1k ×2 (充电电流 0.4-1.1A 随充电器而变)"?
-- 若**接受** → 按本规格出 P10, `R_ILIM`=300Ω, J_CHG pin9/pin10 留空给未来的 I2C。
+- 若**接受** → 按本规格出 P10, `R_ILIM`=390Ω, J_CHG pin9/pin10 留空给未来的 I2C。
 - 若**不接受** (要求"必须 5V/2A 可控") → 上 TPS25730, 但**必须同时解决 VIN_3V3 的 3.3V 来源** (加 LDO 还是走 VBUS LDO 路径 → **需 TI 确认, 见 §8 待决项 1**), 且充电板面积 +8-10%, J_CHG 仍建议保留 pin9/pin10 (PD 控制器在充电板, 但充电 IC 的 I2C 仍在镜脚 → 仍要跨铰链)。
 
 ---
@@ -461,7 +461,7 @@ V_TS = VREGN × (RTH ∥ RT2) / (RT1 + (RTH ∥ RT2))
 
 ```csv
 page,net,node1,node2,ref,value,type,dnp,evidence,tbd,note,conn_id,board
-P10,VBUS_5V,J_TYPE_C A4+A9+B4+B9,D_ESD_TC,RAIL_VBUS_5V,5.0V ±5%,RAIL,必装,[推算],,电源域: 5.0V ±5% / 输入电流硬件上限 1.07-1.30A (R_ILIM=300Ω) / 充电链整条在充电板(镜框); SoC 侧球位号 TBD-01,C-01,CHG_BOARD
+P10,VBUS_5V,J_TYPE_C A4+A9+B4+B9,D_ESD_TC,RAIL_VBUS_5V,5.0V ±5%,RAIL,必装,[推算],,电源域: 5.0V ±5% / 输入电流硬件上限 0.82-1.00A (R_ILIM=390Ω) / 充电链整条在充电板(镜框); SoC 侧球位号 TBD-01,C-01,CHG_BOARD
 P10,USB_VBUS_RAW,J_TYPE_C A4+A9+B4+B9,D_ESD_TC,J_TYPE_C,Type-C 16p 母座 (沉板 4脚插板),CONN,必装,[官方],,USB-IF Type-C Spec R2.0 Table 3-5: A4/A9/B4/B9=VBUS (座内并联); 座→ESD 走线 ≤3.0mm (MECH E-1); 型号待选型,C-01,CHG_BOARD
 P10,USB_VBUS_RAW,D_ESD_TC,USB_VBUS_RAW,D_ESD_TC,ESD 阵列 5~6 通道 [待选型],D,必装,[推算],,"Type-C 入口 ESD: 保护 VBUS/D+/D-/CC1/CC2 共 5 网; D+/D- 容值 ≤1pF, CC/VBUS ≤3pF; 距座 ≤3.0mm; 型号待选型/询价走项目总工",C-01,CHG_BOARD
 P10,GND,D_ESD_TC,GND,D_ESD_TC,ESD 阵列 5~6 通道 [待选型],D,必装,[推算],,ESD 阵列地端 (Type-C 座侧地),C-01,CHG_BOARD
@@ -489,8 +489,8 @@ P10,BTST,U_CHG pin21,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin21 BTST,C-01,CHG
 P10,REGN_5V,U_CHG pin22,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,"pin22 REGN (内部 LDO 5.0V, 4.8-5.5V, 限流 50mA) = TS 分压基准",C-01,CHG_BOARD
 P10,PMID,U_CHG pin23,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin23 PMID (RBFET 漏极 + HSFET 漏极),C-01,CHG_BOARD
 P10,PGND,U_CHG pin17+pin18,PGND,U_CHG,BQ25896,IC,必装,[官方],,pin17/18 PGND 功率地 (开关节点地); 'A single point connection is recommended between power PGND and the analog GND near the IC PGND pin'; PowerPAD 同接 PGND + ≥6 过孔,C-01,CHG_BOARD
-P10,ILIM,U_CHG pin10,R_ILIM,R_ILIM,300Ω ±1% (0402),R,必装,[官方],,"★输入电流硬件上限: IINMAX=KILIM/RILIM (KILIM 320/355/390 AΩ) → 1.07-1.30A; CC 段电池电流 ~0.88-1.07A; ILIM 脚稳在 0.8V, 功耗 0.8²/300=2.1mW; **必装件** (不装 → REG04 复位默认 ICHG=2048mA 会让铰链过 2.05A); ISS-091 若判定铰链只能 1.0A 则换 390Ω (换料不换板)",C-01,CHG_BOARD
-P10,PGND,R_ILIM,PGND,R_ILIM,300Ω ±1% (0402),R,必装,[官方],,ILIM 电阻 地端,C-01,CHG_BOARD
+P10,ILIM,U_CHG pin10,R_ILIM,R_ILIM,390Ω ±1% (0402),R,必装,[官方],,"★输入电流硬件上限: IINMAX=KILIM/RILIM (KILIM 320/355/390 AΩ) → 0.82-1.00A; CC 段电池电流 ~0.67-0.82A; ILIM 脚稳在 0.8V, 功耗 0.8²/390=1.64mW; **必装件** (不装 → REG04 复位默认 ICHG=2048mA 会让铰链过 2.05A); ★★V1.9 (老板 10-28): 定 390Ω (单 pin 0.411A, 触点 ≥0.5A 余量 1.22×); 300Ω 档判死 (单 pin 0.534A > 0.5A 天花板)",C-01,CHG_BOARD
+P10,PGND,R_ILIM,PGND,R_ILIM,390Ω ±1% (0402),R,必装,[官方],,ILIM 电阻 地端,C-01,CHG_BOARD
 P10,PSEL,U_CHG pin2,R_PSEL,R_PSEL,10k ±1%,R,必装,[官方],,"PSEL 拉低 = 适配器/DCP → 源检测后 IINLIM 自动切 3.25A, 实际由 ILIM 电阻封顶; 拉高会锁 500mA",C-01,CHG_BOARD
 P10,PGND,R_PSEL,PGND,R_PSEL,10k ±1%,R,必装,[官方],,PSEL 下拉 地端,C-01,CHG_BOARD
 P10,CE_SET,U_CHG pin9,R_CE,R_CE,10k ±1%,R,必装,[官方],,CE 拉低 = 允许充电 (CHG_CONFIG 复位默认 1); 'CE pin must be pulled High or Low' → 不得悬空; 拉低的好处: SoC 死机也能充电,C-01,CHG_BOARD
@@ -573,7 +573,7 @@ P10,TS_BAT,TP_TS,TS_BAT,TP_TS,测试点,TP,必装,[推算],,TS 电压测点 (调
 | **待选型-3** | π 滤波磁珠 (≥2A, DCR ≤50mΩ) + `D_TVS_VBUS` (5V 级 TVS) | **厂商询价 (经项目总工)** | 备料前 | §4.2 / §4.3 |
 | **待选型-4** | 电感 2.2µH (Isat ≥1.5A, DCR ≤50mΩ) | **厂商询价 (经项目总工)** | 备料前 | §2.3 |
 | **待选型-5** | ESD 阵列 VRWM 档: ≥24V (为将来上 PD 留后路) vs 5-6V (钳位更低, 当前 5V 足够) | **项目总工拍板** | 投板前 | §4.1 |
-| **待复算-1** | **ISS-091**: 铰链段 1.5A 载流 / 压降 / 发热核算 (0.5mm pitch FPC 每 pin 载流) | **结构总工** | 投板前 | §2.4 (`R_ILIM` 选 300Ω 还是 390Ω) |
+| ~~待复算-1~~ ✅ | **ISS-091** 已闭环 (10-28): 铰链段载流/压降/发热核算完成 → **定 390Ω**, 300Ω 判死 | **结构总工** | 已闭环 | §2.4 (`R_ILIM` = 390Ω) |
 | **待改-1** | `HW/INTERFACE_TABLE.md` §4.2 / §4.4: BQ25896 的 I2C 地址 **0x12 → 0x6B** (datasheet 原文) | 项目总工 (本单只提规格, 不改文件) | 下轮 | §2.9 |
 | **待改-2** | 现行网表 `R_NTC_BAT` / `R_TS_PULL` 的**板别与接法** (见 §2.5 注) | 项目总工 (落 P10 时改) | 落 P10 时 | §2.5 |
 | **待改-3** | 现行网表 P1 里 **SYS / SYS_PCB / DC-DC / LDO 共 22 行被标成 `board=CHG_BOARD`**, 但按 V1.2 它们全在**镜脚主 PCB** | 项目总工 (生成器 board 列) | 落 P10 时 | 备料/装配口径 |
@@ -603,7 +603,7 @@ P10,TS_BAT,TP_TS,TS_BAT,TP_TS,测试点,TP,必装,[推算],,TS 电压测点 (调
 | TPS25730: VIN_3V3 3.0-3.6V (绝对最大 4V), QFN-38 4×4mm, 内部 dead-battery Rd, ADCIN 配 5V/2A | **[官方]** | TI TPS25730 datasheet §6.1/§6.5/§5/§8.3.11-13 |
 | Type-C 座外形 / 开孔 / 沉板深度 / 寿命 | **[官方·厂商页]** | `HW/POWER_IC_SELECTION.md` §3.5 (航宏) —— 本单只转引 |
 | 承力柱 ≥2 + 限位台阶 / 壁厚 ≥1.5mm / 开孔 9.5×3.6 / 热隔离 ≥5mm | **[官方·结构]** | `MECH/USB_HINGE_STRUCTURE.md` §5.2 F-4/F-5, §7 —— 本单只转引 |
-| `R_ILIM` = 300Ω → IIN 1.07-1.30A → ICHG ~0.88-1.07A | **[推算·可复算]** | 公式见 §2.4 / §3.4, B6 可复现 |
+| `R_ILIM` = 390Ω → IIN 0.82-1.00A → ICHG ~0.67-0.82A | **[推算·可复算]** | 公式见 §2.4 / §3.4, B6 可复现 |
 | 电感纹波 IRIPPLE = 0.29A @ 2.2µH | **[推算·可复算]** | datasheet §10.2.2.1 公式, B6 可复现 |
 | 铰链载流余量 (场景 ①-⑥) | **[推算]** | §3.4 表, 假设 VBAT=3.7V / η=90% |
 | 充电板 25×10×0.8mm / M1.2 固定 + 铝屏蔽罩 | **[推算]** | `MECH/MECH_BUDGET.md` §1.3 M3 —— 转引 |

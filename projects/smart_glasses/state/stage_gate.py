@@ -80,6 +80,31 @@ def load_yaml(path: str):
         return yaml.safe_load(f)
 
 
+def decision_done(pm: dict, key: str) -> bool:
+    """老板决策是否已答。★两条判据 (与 merge.py 同源, 2026-10-28 修):
+    ① 需求带 `decision` 字段 = 老板已拍板 (原话), 由项目总工代录 → 直接算已答
+    ② needs_from 的 key 被 pm.yaml 的 answers 闭合 (answer 的 by == 需求的 to)
+    ★旧实现只有 ② ⇒ 老板 10-25 19:16 拍过板的 Q1/Q4/Q16/Q17 在 pm.yaml 里有 decision 字段,
+      但配对不上 -> G0 被 4 个**已答**问题假性卡死 (2026-10-28 08:1x 实测发现)。
+    ★★本函数是模块级的 (判据唯一真源) —— 自测 state/test_stage_gate_decisions.py
+       直接 import 它, 不再复制一份 (复制 = 必然漂移 = 测试变成摆设)。
+    """
+    ans_by_key: dict[str, list] = {}
+    for a in (pm.get("answers") or []):
+        if a.get("key"):
+            ans_by_key.setdefault(a["key"], []).append(a.get("by"))
+    pm_needs = {n.get("key"): n for n in (pm.get("needs_from") or [])}
+    n = pm_needs.get(key)
+    if not n:
+        return False
+    # ① 老板决策已代录 (★空白/纯空格不算决策, 防空壳字段蒙混过关)
+    if str(n.get("decision") or "").strip():
+        return True
+    # ② answers 配对
+    to = n.get("to")
+    return bool(to) and to in (ans_by_key.get(key) or [])
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true")
@@ -109,12 +134,8 @@ def main() -> int:
             ans_by_key.setdefault(a["key"], []).append(a.get("by"))
     pm_needs = {n.get("key"): n for n in (pm.get("needs_from") or [])}
 
-    def decision_done(key: str) -> bool:
-        n = pm_needs.get(key)
-        if not n:
-            return False
-        to = n.get("to")
-        return bool(to) and to in (ans_by_key.get(key) or [])
+    def _decision_done(key: str) -> bool:
+        return decision_done(pm, key)
 
     def issue_done(iid: str) -> bool:
         it = issues.get(iid)
@@ -137,7 +158,7 @@ def main() -> int:
                 if it.get("status") not in ("verified", "closed"):
                     miss_issue.append(f"{iid} [{it.get('status')}] {str(it.get('title'))[:40]}")
         for k in g.get("decisions", []):
-            if not decision_done(k):
+            if not _decision_done(k):
                 n = pm_needs.get(k) or {}
                 miss_dec.append(f"{k} (waiting_on={n.get('waiting_on', 'agent')}, due={n.get('due', '-')})")
         for mid in g.get("measurements", []):

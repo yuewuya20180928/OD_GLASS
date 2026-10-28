@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import sys
 import tempfile
@@ -34,7 +35,8 @@ import tempfile
 import yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FRAG_DIR = os.path.join(HERE, "fragments")
+# 分片目录: 默认 state/fragments; FRAG_WRITE_DIR 仅供自动化测试指向临时目录 (防自测写坏真分片)
+FRAG_DIR = os.environ.get("FRAG_WRITE_DIR") or os.path.join(HERE, "fragments")
 # agent id → 分片文件名 (与现有分片保持一致)
 FILE_OF = {
     "main": "pm.yaml",
@@ -97,6 +99,10 @@ def _kv(arg: str) -> tuple[str, str]:
     return k.strip(), v.strip()
 
 
+# --status 的 key=value 解析: value 可带引号 (含空格), 也可裸写 (无空格)
+_STATUS_KV_RE = re.compile(r'(?P<k>\w+)=(?P<v>"[^"]*"|\'[^\']*\'|\S+)')
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--agent", required=True)
@@ -123,8 +129,25 @@ def main() -> int:
         print(yaml.safe_dump(load_fragment(args.agent), allow_unicode=True, sort_keys=False))
         return 0
 
+    # ---- 互斥检查 (V1.1 修复: --set 分支静默吞掉其余参数, 2026-10-28 sw-lead 实测踩中) ----
+    # 旧行为: --set/--set-json 命中就 `return`, 同一命令行的 --add-*/--status 全被忽略,
+    #          却照样打印 "✅ 已原子更新" => 分片看着写成功了, 实际数据全丢, 零告警。
+    # 新行为: --set 与增量类参数互斥; 混用直接报错退出 (非 0), 不落盘。
+    set_mode = bool(args.set_arg or args.set_json)
+    incr_mode = bool(args.add_need or args.add_answer or args.add_artifact
+                     or args.add_claim or args.status)
+    if set_mode and incr_mode:
+        raise SystemExit(
+            "[frag_write] X --set/--set-json 与 --add-*/--status 互斥, 不能同命令行混用。\n"
+            "  --set 会**整段替换**某个列表字段; 混用会让增量被静默丢弃 (V1.0 实测坑)。\n"
+            "  请拆成两条命令: 先 --set 落整段, 再 --add-* 追加。\n"
+            "  (本次未落盘, 分片保持原样)"
+        )
+    if args.set_json and not args.set_field_name:
+        raise SystemExit("[frag_write] X --set-json 必须配 --set-field <字段名>")
+
     def mutate(d: dict):
-        if args.set_arg or args.set_json:
+        if set_mode:
             if args.set_json:
                 field = args.set_field_name
                 with open(args.set_json, encoding="utf-8") as f:
@@ -170,7 +193,12 @@ def main() -> int:
                 "ref": kv.get("ref", ""),
             })
         if args.status:
-            kv = dict(_kv(x) for x in " ".join(args.status).split())
+            kv = {}
+            for m in _STATUS_KV_RE.finditer(" ".join(args.status)):
+                v = m.group("v")
+                if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
+                    v = v[1:-1]          # 去掉包裹引号, 保留内部空格
+                kv[m.group("k")] = v
             st = d.setdefault("status", {})
             for k in ("phase", "progress_pct", "health", "summary"):
                 if k in kv:

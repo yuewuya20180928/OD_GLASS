@@ -176,3 +176,20 @@ dispatches:
   at: '2026-10-28'
   brief: '闭合两个 0 数据项: ①模型许可 (yolov5s-sim 系 3 份 ONNX metadata_props 全空 → 许可 [0数据]; yolov8s.onnx 实测 AGPL-3.0 → 商用须向 Ultralytics 采购 Enterprise License) ②ARS45 板端 INT8 转换链跑通 (B0~B9 九步, 其中 B0 工具链/B5 文件头+chip
     ID 依赖原厂追加问)。验收: 放行阻断项 L 计数 = 0 (python3 SW/tools/model_asset_check.py 输出), 且给出 AGPL 商业许可的**采购/法务路径与成本区间** ('
+- issue: ISS-049
+  agent: hw-lead
+  at: '2026-10-28'
+  brief: '背景: mech-lead 的解 A (镜脚侧余量 0.30→0.95mm) 要求把**定位基准整体移到金属骨架**: 铣削面 ≤5µm + ⌀2.0 H7 定位销; 打印件只保留 ⌀2.4 间隙孔 (打印公差不进定位链)。
+
+    要做: ① PCB 固定方式从 M1.2 螺钉 + ⌀2.0H7 改为配合金属骨架的 H7 销 → **PCB 孔位要改** ② **金属骨架/石墨不得延伸进电池段** (否则并联热路 4.50 K/W, 进皮肤热量 92.5%→95.7%) —— 确认骨架长度上限 = PCB 段后缘, 石墨片铺装范围同步
+
+    验收: 给出改后的 PCB 固定孔位图 + 骨架长度上限数值 +'
+- issue: ISS-089
+  agent: mech-lead
+  at: '2026-10-28'
+  brief: '以 HW/SCHEMATIC_V1.md (V1.6, 10 页) 为输入做**硬件侧交叉评审** (机械/热/装配/跨铰链): (a) P9 页 4 组跨铰链通道 (J_CHG 1×10p@0.5mm / CONN_USB 4p / CONN_CAM 18p / CONN_LIGHT 1×22p) 的机械可行性: 镜脚腔体放不放得下 (ISS-078 说面积缺 300mm²) /
+    柔性段长度与固定方式 / 应力释放 / **是否合并成 1 个连接器** (P9 页给了 pin 账, 铰链区堆叠 26.5mm vs 净高 37.0mm) (b) P10 充电板 (镜框) 的机械位置与承力 (T'
+- issue: ISS-104
+  agent: sw-lead
+  at: '2026-10-28'
+  brief: '闭环 ISS-104: ★术语统一: 关机(真断电) / 待机(深度休眠 0.15W, 2.8h) —— SW 侧 API 与省电策略语义要跟上'

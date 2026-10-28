@@ -1,3 +1,19 @@
+# 2026-10-28 08:25 GMT+8 — ★阶段门 G0 纸面冻结 **通过** (卡了 3 天的 4 项是"假卡") + 2 个工具缺陷修掉
+
+**唯一跟踪表**: `PROJECT_TRACKER.md` §(1.33) · **门禁**: `state/stage_gate.py` · **判据自测**: `state/test_stage_gate_decisions.py` (12/12)
+
+**08:10-08:25 做了什么**:
+- ★★★ **G0 过关** —— 之前一直显示"还差 4 项, 老板拍板项未答 (Q1/Q4/Q16/Q17)", **但这 4 项老板 10-25 19:16 就拍过板了** (session 原文: "Q1 选A / Q17 60优先转30 / Q4 按需 / Q16 宽高比无所谓")。**根因不是人漏了, 是两个工具判据不一致**: `merge.py` 认 needs_from 的 `decision` 字段 (STATE 里 4 条一直是 `answered`), 而 `stage_gate.py` 的 `decision_done` **只查 needs×answers 配对, 完全不看 `decision`** ⇒ **G0 被 4 个已答问题假性卡死 3 天**。修法: 判据抽成模块级函数 + 加 decision 判据 ⇒ **与 merge.py 同源**。★**自测必须含"真待办的仍过不了"** (`test_equipment_budget` 判未答) ⇒ 12/12 通过, 证明不是改宽成橡皮章
+- ★**顺手修掉 frag_write.py 的静默丢数据坑** (sw-lead 实测踩中): `--set` 分支直接 `return` ⇒ 同命令行的 `--add-*/--status` **全被静默吞掉**却照样打印"✅ 已原子更新"。现在**互斥即报错不落盘**; 附带修 `--status` 长摘要被空白 split 打碎。自测 `state/test_frag_write.py` **16/16** (测试还抓出我自己 2 个 bug: 引号没剥 / 判据被复制成两份必然漂移)
+- **ISS-105 收口** (hw-lead 01:06 死在 rate_limit, 只留了 `HW/PCB_OUTLINE_60x15.md`): 我跑它自己的 `_apply_iss105.py` ⇒ 分片 `pcb_outline` 50x12→**60x15mm** / `chg_input_limit` →**390Ω 档** (1.00A/0.82A/0.411A)
+- **关单 2 条** (sw-lead 交了但 issue_log 一直挂着没落 fix_ref): **ISS-087** (AGPL-3.0 溯源 + INT8 链 READY2/PARTIAL4/BLOCKED4) + **ISS-101** (Apache-2.0 候选 NPU 可转换性 **[0数据]→[实测]**: TF→ONNX 实测 → 切掉 74.7% NMS 后处理 + 静态 shape → 299 节点 / 与全图 **max_abs_diff=0.000e+00** / 299 张 COCO **F1=0.4346**) ⇒ verify_by=main (验证分离)
+- ★**库内 300Ω→390Ω 统一** (3 文件, 19+2 处): `p10_rows.json` + `CHARGE_BOARD_SPEC.md` + `gen_netlist.py` ⇒ 重生成网表/BOM ⇒ **同一份网表内部自相矛盾已清零** (P1 行 44/45 与 P10 行 484/494 曾一个写 390Ω 一个写 300Ω)。BOM 现在 **0 处 300Ω**; 档位对比表里的 300Ω 行**保留并标"判死"** (留变更痕迹)
+- 门禁: check_netlist 30/30 | check_kicad_net 6/6 | issue_check/merge/gate rc=0 | frag_write 16/16 | stage_gate 12/12
+
+**在跑**: hw-lead (ISS-049 已交卷 PIN-SET-2 双销定位) · mech-lead (ISS-089 硬件交叉评审) · sw-lead (ISS-104 电源状态术语统一)
+**⚠️ 待收**: 2 个 merge 冲突 (mech 分片过期: pcb_outline 50x15mm / pcb_mounting 旧螺钉孔位) —— 等 mech-lead 交卷后由它自己改, 我不并发写它的分片
+**🔴 等老板**: ★**4 封草稿放行** (酷芯微 6 天未回 / TI 3 问 / JBD 追加 / J_CHG RFQ) · 打印包开打 · 测试设备预算 (已逾期)
+
 # 2026-10-28 01:15 GMT+8 — mech-lead 交卷验收: 板宽 15mm "几乎免费" + 3 个新裁决 + 我改了它一行脚本
 
 **唯一跟踪表**: `PROJECT_TRACKER.md` §(1.32) · **选型表**: `HW/J_CHG_SELECTION.md` · **加工图要求**: `MECH/FPC_FAB_NOTES.md`
