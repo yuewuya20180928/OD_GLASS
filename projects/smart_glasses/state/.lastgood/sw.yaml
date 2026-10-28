@@ -4,15 +4,19 @@ updated_at: '2026-10-27'
 updated_by: sw-lead
 status:
   phase: P2(方案设计)
-  progress_pct: 50
+  progress_pct: 52
   health: red
-  summary: '10-28 ISS-087 + ISS-101 交卷 (模型许可 + 量产放行门 + ARS45 INT8 转换链): ①许可 —— yolov5s-sim
-    系 3 份 ONNX 由 [0数据] 判定为 AGPL-3.0 (7环证据链), 放行阻断项 L=0 (实测 rc=0), 3 条采购/法务路径 + 成本区间
-    (官方无公开价 [0数据] / 立项预算 10^4-10^5 USD [推算] / 周期 4-12 周), 明确 不采购=商用受阻 (AGPL §6 与闭源固件冲突);
-    ②放行门 —— 两张清单分开: 交付集 L=0 (1 条 Apache-2.0) ≠ 量产可用模型清单 (0 个); 新门禁: 量产评审须同时看 L=0 与
-    可用清单非空 (SW/MODEL_RELEASE_GATE.md); ③转换链 —— B0~B9 共 10 步逐条机器判定 (READY 2 / PARTIAL
-    4 / BLOCKED 4, 带 --build 真跑 READY 4), BLOCKED 全卡原厂工具链+无板; ★查出台账原主模型候选 (320版) PC
-    侧推理即失败 → 新增 C9 门禁 + 已隔离; 健康度仍 red: 量产可用模型 0 个 + 原厂工具链/chipID 未到 + 许可待老板拍板'
+  summary: '10-28 ISS-101 (量产可用模型清单 / 放行门 L=0): ①Apache-2.0 候选 NPU 可转换性 [0数据]→[实测]:
+    TF SavedModel→ONNX 实测 rc=0 (tf2onnx1.16.1+TF2.20, 12259298B/3304节点/33算子/opset13);
+    ②★查实 74.7% 的图 (2465/3304节点) 是 NMS 后处理段 (NonMaxSuppression90/TopK2/Range2/NonZero1)
+    → NPU 编译器不支持, 自写 cut_postprocessor.py 裁出 NPU 就绪 head 子图 (299节点/18算子) + fix_static_shape.py
+    固化静态shape [1,320,320,3], 与全图输出 max_abs_diff=0.000e+00 逐位相同; 做法与本机 awnpu_model_zoo
+    YOLOX 官方配方同构; ③第一组真实精度 P=0.4521 R=0.4184 F1=0.4346 (299张 COCO val2017, IoU0.5,
+    自写匹配非官方mAP); ④★修掉复核器 C9 硬编码 float32 的高危 bug (本模型输入是 uint8 → 好模型会被误判成坏模型, 曾实测 FAIL=1/L=1,
+    会导致''Apache-2.0路线不可用''的错误架构决策); 复核器新增 C10~C13 + L6/L7/L8, 实跑 rc=0 且 L=0; ⑤G1~G5
+    五组门禁判据写死 + 反例验证; 第3段 (ONNX→NPU厂商格式) 缺件 M1~M10 逐条列出 (M3/M4/M9/M10 新增建议并入Q9); ⑥AGPL
+    商用三路径对比, 签字人=boss (sw-lead 不拍板), 建议路径1与路径2并行准备; ★健康度仍 red: 板端INT8产物0个 + 第3段等原厂工具链/chipID
+    + 采购待老板拍板'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -121,17 +125,56 @@ artifacts:
   summary: 'ARS45 INT8 转换链 B0~B9 驱动器: readiness 报告 (每步状态/阻塞原因/解锁条件) + 可跑步真跑出产物 (静态化
     / 抽3路head / 算子覆盖表 / 版本串 / PC侧冒烟体检)'
 - path: SW/MODEL_RELEASE_GATE.md
-  kind: doc
+  kind: design
   version: v1.0
   updated_at: '2026-10-28'
-  summary: '量产放行门判定标准 (ISS-101): 两张清单分开 (交付集 ship-set vs 量产可用模型清单 usable-list), L1~L5
-    逐条定义+机器判据, 量产可用 4 条同时成立条件, 8 行放行检查表 (谁在什么时候查什么), 工具口径修正 (L=0 ≠ 有可用模型)'
+  summary: 'ISS-101 量产放行门 (L=0) 判定标准 + Apache-2.0 可转换性实测 + AGPL 商用路径: ①Apache-2.0
+    候选 TF SavedModel→ONNX 实测 rc=0 (tf2onnx 1.16.1+TF2.20, 12259298B/3304节点/33算子/opset13)
+    → NPU 可转换性从[0数据]变[实测]; ②裁掉 NMS 后处理 (2465/3304节点=74.7% 是 Postprocessor, 含 NonMaxSuppression90/TopK2/Range2/NonZero1
+    → NPU 不支持) + 固化静态 shape → 299节点/18算子 head 子图, 与全图输出 max_abs_diff=0.000e+00 逐位相同,
+    与本机 awnpu_model_zoo YOLOX 官方配方同构; ③第一组真实精度 P=0.4521 R=0.4184 F1=0.4346 (299张 COCO
+    val2017 IoU0.5 score0.3, 自写匹配非官方mAP); ④复核器新增 C10~C13 + L6/L7/L8 三条阻断项 + 修掉 C9
+    硬编码 float32 的高危 bug (会误杀 uint8 好模型 → 导致错误架构决策); ⑤G1~G5 五组判据写死 + 反例验证; ⑥第3段缺件 M1~M10
+    逐条列出 (M3/M4/M9/M10 新增, 建议并入Q9); ⑦AGPL 三路径对比 + 签字人=boss (sw-lead 不拍板)'
 - path: HANDOFF/2026-10-28_sw-lead_ISS101_量产放行门判定.md
   kind: handoff
   version: v1.0
   updated_at: '2026-10-28'
-  summary: 'ISS-101 交接单 (B1-B6 齐全): 量产可用模型清单 = 0 个 (唯一许可干净候选 NPU 可转换性 0 数据 / 唯一可推理模型是
-    AGPL 禁入) + 新增门禁: 量产评审须同时看 L=0 与 可用清单非空'
+  summary: 'ISS-101 交接单 (B1~B6 六块): 交付集 2 条 (Apache-2.0), NPU 就绪 1 条, 转换链前 2 段实测通,
+    第 3 段缺件 M1~M10; R-U1 采购与否 = boss 拍板 (经项目总工); R-U6 建议同意用本机 ACUITY 工具链试跑第 3 段'
+- path: SW/tools/cut_postprocessor.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ISS-101 新增: 裁掉 OD 模型的 NMS 后处理段 (反向可达性分析), 保留 raw_detection_boxes/raw_detection_scores
+    → NPU 就绪 head 子图; 用法: python3 cut_postprocessor.py in.onnx out.onnx --keep raw_detection_boxes
+    raw_detection_scores'
+- path: SW/tools/fix_static_shape.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ISS-101 新增: 把 tf2onnx 产出的动态 shape ONNX 固化成静态 shape (NPU 编译器要求静态输入); 用法:
+    python3 fix_static_shape.py in.onnx out.onnx 1 320 320 3'
+- path: SW/tools/tf2onnx_wrap.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ISS-101 新增: tf2onnx + NumPy 2.x 垫片 (np.cast 在 NumPy 2.0 已删 → AttributeError);
+    不改 tf2onnx 源码'
+- path: SW/tools/eval_od_accuracy.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ISS-101 新增: OD 模型实测精度评测 (自写逐类 IoU 贪心匹配, 输出 P/R/F1); ★ 坐标口径坑: detection_boxes
+    是归一化[ymin,xmin,ymax,xmax] 且坐标系是原图尺寸, 必须乘原图宽高, 乘 resize 尺寸会得到完全错误的分数 (实测 0.0176
+    vs 0.4521)'
+- path: SW/artifacts/models/
+  kind: artifact
+  version: v1.0
+  updated_at: '2026-10-28'
+  summary: 'ISS-101 实测产物 2 条: ssd_mbv2_fpnlite_320_fp32_full.onnx (12259298B, sha
+    8709cc23432340f6, PC侧FP32基准, 含NMS不可上NPU) + ssd_mbv2_fpnlite_320_fp32_head_npu.onnx
+    (10967518B, sha 6603df1e12391cfc, NPU就绪head子图)'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -450,6 +493,26 @@ needs_from:
   due: '2026-10-29'
   item: 'ISS-087 换栈路线的唯一阻塞: YOLOX-s 官方权重 (Apache-2.0) 在本机下载卡在 3.48MB 停滞 (github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.onnx)
     → ①能否走公司代理/内网镜像? ②或由项目总工下载后放到共享目录? 权重入库后我登记台账 (sha256 + Apache-2.0 + NPU 转换可行性待验)'
+- key: SW-MODEL-B2-ISS101-RU1
+  to: main
+  item: '【ISS-101·R-U1·需 boss 拍板】采购 Ultralytics Enterprise License 还是走 Apache-2.0
+    栈? sw-lead 已给 3 路径对比 (SW/MODEL_RELEASE_GATE.md §2.2) + 建议 (路径1与路径2并行准备), sw-lead
+    不拍板。★时限=投板前: 晚于投板则第3段工具链调试白跑一轮 (换模型=换图=重跑裁图+量化)。外发一律经你, sw-lead 不接触任何供应商。'
+  since: '2026-10-28'
+- key: SW-MODEL-B2-ISS101-RU5
+  to: main
+  item: '【ISS-101·Q9 追加 4 条·请并入 Q9 一起发原厂】M3: 该 OD 模型输入是 uint8 且图内无 pre-process 节点
+    → 板端是否需挂 pre-process 节点? M4: head 裁图版里仅剩 Resize(1)/Shape(1)/Cast(1) 三个非主流算子 →
+    Art.Galaxy 是否支持? M9: Expand 算子支持结论 (换 YOLOX 路线会再遇到, 对两条路线都适用); M10: 320x320 输入对检出小目标的影响
+    (实测 person R=0.532, 小目标漏检是真实的)。另重申 M1 Art.Galaxy 工具链 / M2 ARS45 chip ID / M5 导出格式
+    / M6 量化方案 / M7 一个官方可跑通的参考 ONNX。'
+  since: '2026-10-28'
+- key: SW-MODEL-B2-ISS101-RU6
+  to: main
+  item: '【ISS-101·R-U6·建议 boss 同意】是否同意 sw-lead 下一步用本机 ACUITY 工具链试跑转换链第3段? 目的: 把第3段风险从
+    [0数据] 降到一个具体错误信息 (先看编译器在哪一步报错)。只花 PC 侧时间, 不占板子, 不影响其他路线。⚠️ 边界: ACUITY ≠ Art.Galaxy
+    (MODEL_ASSETS §2.2 假设H1未验证), 结论不得当作 ARS45 实测。不回=默认做。'
+  since: '2026-10-28'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -762,6 +825,47 @@ interface_claims:
   note: 进'量产可用模型清单'的 4 条同时成立条件 (许可闭环 / 有板端产物≤15MiB且chip匹配 / 板端实测通过 / R-01~R-14 全过);
     现在 4 条里只有第1条对交付集那条成立
   ref: SW/MODEL_RELEASE_GATE.md §3
+- key: model_release_gate_rule
+  value: G1..G5
+  note: '量产放行 5 组判据: 许可/转换链产出物/实测精度/PC侧推理/板端产物 (SW/MODEL_RELEASE_GATE.md §3.1)'
+  ref: SW/MODEL_RELEASE_GATE.md
+- key: model_release_blocker_codes
+  value: L1..L8
+  note: 8 条放行阻断项; ISS-101 新增 L6(NPU算子+动态shape)/L7(无实测精度)/L8(无NPU就绪产物)
+  ref: SW/MODEL_RELEASE_GATE.md
+- key: model_npu_ready_criteria
+  value: no-NMS-ops+static-shape
+  note: NPU 就绪 = 图内无 {NonMaxSuppression,TopK,Range,NonZero} 且输入 shape 全静态
+  ref: SW/MODEL_RELEASE_GATE.md
+- key: model_npu_risky_ops
+  value: NonMaxSuppression,TopK,Range,NonZero
+  note: NPU 编译器不支持、必须裁出图外的算子集合
+  ref: SW/MODEL_RELEASE_GATE.md
+- key: model_ship_list
+  value: MOD-SSDMBV2-FPNLITE-320-FP32-HEAD-NPU
+  note: 当前唯一 NPU 就绪的交付集产物 (板端 NBG 仍缺)
+  ref: SW/MODEL_RELEASE_GATE.md
+- key: model_acc_gate_f1_min
+  value: '0.30'
+  note: 量产放行实测精度地板 (F1@IoU0.5)
+  ref: SW/MODEL_RELEASE_GATE.md
+- key: model_acc_gate_images_min
+  value: '100'
+  note: 精度评测最少图数
+  ref: SW/MODEL_RELEASE_GATE.md
+- key: model_fp32_acc_baseline_ssdmbv2
+  value: F1=0.4346,P=0.4521,R=0.4184
+  note: SSD-MobileNetV2-FPNLite-320 FP32 实测基线 (299张 COCO val2017, IoU0.5, score0.3,
+    自写匹配非官方mAP)
+  ref: SW/MODEL_RELEASE_GATE.md
+- key: model_od_input_dtype
+  value: uint8
+  note: OD 模型输入 dtype (影响板端 pre-process 节点与 ISP 输出格式)
+  ref: SW/MODEL_RELEASE_GATE.md
+- key: model_od_input_shape
+  value: 1x320x320x3
+  note: OD 模型输入 shape (NHWC, uint8)
+  ref: SW/MODEL_RELEASE_GATE.md
 open_questions:
 - id: SW-Q1
   to: main

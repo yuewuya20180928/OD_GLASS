@@ -458,6 +458,25 @@ needs_from:
   due: '2026-10-29'
   item: 'ISS-087 换栈路线的唯一阻塞: YOLOX-s 官方权重 (Apache-2.0) 在本机下载卡在 3.48MB 停滞 (github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.onnx)
     → ①能否走公司代理/内网镜像? ②或由项目总工下载后放到共享目录? 权重入库后我登记台账 (sha256 + Apache-2.0 + NPU 转换可行性待验)'
+- key: SW-MODEL-B2-ISS101-RU1
+  to: main
+  item: '【ISS-101·R-U1·需 boss 拍板】采购 Ultralytics Enterprise License 还是走 Apache-2.0 栈? sw-lead 已给 3 路径对比
+    (SW/MODEL_RELEASE_GATE.md §2.2) + 建议 (路径1与路径2并行准备), sw-lead 不拍板。★时限=投板前: 晚于投板则第3段工具链调试白跑一轮 (换模型=换图=重跑裁图+量化)。外发一律经你,
+    sw-lead 不接触任何供应商。'
+  since: '2026-10-28'
+- key: SW-MODEL-B2-ISS101-RU5
+  to: main
+  item: '【ISS-101·Q9 追加 4 条·请并入 Q9 一起发原厂】M3: 该 OD 模型输入是 uint8 且图内无 pre-process 节点 → 板端是否需挂 pre-process
+    节点? M4: head 裁图版里仅剩 Resize(1)/Shape(1)/Cast(1) 三个非主流算子 → Art.Galaxy 是否支持? M9: Expand 算子支持结论 (换 YOLOX
+    路线会再遇到, 对两条路线都适用); M10: 320x320 输入对检出小目标的影响 (实测 person R=0.532, 小目标漏检是真实的)。另重申 M1 Art.Galaxy 工具链 /
+    M2 ARS45 chip ID / M5 导出格式 / M6 量化方案 / M7 一个官方可跑通的参考 ONNX。'
+  since: '2026-10-28'
+- key: SW-MODEL-B2-ISS101-RU6
+  to: main
+  item: '【ISS-101·R-U6·建议 boss 同意】是否同意 sw-lead 下一步用本机 ACUITY 工具链试跑转换链第3段? 目的: 把第3段风险从 [0数据] 降到一个具体错误信息
+    (先看编译器在哪一步报错)。只花 PC 侧时间, 不占板子, 不影响其他路线。⚠️ 边界: ACUITY ≠ Art.Galaxy (MODEL_ASSETS §2.2 假设H1未验证), 结论不得当作
+    ARS45 实测。不回=默认做。'
+  since: '2026-10-28'
 answers:
 - key: debug_port_form
   to: hw-lead
