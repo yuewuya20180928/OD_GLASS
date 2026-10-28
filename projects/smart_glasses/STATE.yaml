@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-10-28T08:25:53+08:00'
+  generated_at: '2026-10-28T08:39:24+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -19,14 +19,14 @@ meta:
       mtime_ns: 1793119892735519914
     main:
       file: pm.yaml
-      size: 17416
-      sha1: 208b6e597520
-      mtime_ns: 1793062133410891755
+      size: 18472
+      sha1: dc951c59a574
+      mtime_ns: 1793147869234018364
     sw-lead:
       file: sw.yaml
-      size: 55894
-      sha1: f79eabb3e029
-      mtime_ns: 1793120569442765458
+      size: 62169
+      sha1: 55765082f58b
+      mtime_ns: 1793147854807774572
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -449,6 +449,15 @@ domains:
       to: hw-lead
       value: 方案A基线+评估更省替代
       ref: 裁决2026-10-26:兜底必做UVP抬到3.5V;基线=方案A(3.3V改TPS62130A供,代价12-15%容量不可用->容量与续航口径重算+镜腿厚度结构复核);另派评估不牺牲容量的替代(低dropout_3V3_LDO/IO轨直吃SYS/buck-boost)=>ISS-067;方案C接受末段黑屏=否决
+    - key: sw_runtime_recalc
+      to: sw-lead
+      value: '口径A: t[h] = Capacity[mAh] × DoD × V / P[W] (放电续航, 物理正确) ⇒ 420mAh: 待机 ~9.32h / 按需 ~6.08h
+        / 满载 ~1.15h; 340mAh: ~7.55h / ~4.92h / ~0.93h. 旧值 2.8h/1.8h/20min 是 mAh÷(把W当mA) 错算式 (漏 ÷3.7V 与
+        DoD 0.9), 偏低 3.33 倍, 已标 [旧口径·已作废]. 选电芯仍用 B 口径 P×361.81 (含 ÷0.83 充电效率, 偏保守 20% ⇒ 安全) —— 0.83 是充电输入→电池的效率,
+        只影响充电时间, 不影响电池放电续航. 老板锁死项全部不受影响 (关机行用真电流 108µA 从未用错算式; §0#38 按需 ≥1h 更宽裕 6.08h/4.92h). 热学结论不变 (算的是功耗侧),
+        但续航变长 ⇒ 超标时间窗口变长 ⇒ 满载 88.6-96.1°C 这条更强不是更弱. 对外话术: 待机说 ~9 小时 (无桥 340mAh ~7.5 小时), 按需 ~6 小时, 满载
+        ~1 小时. 自证复现: python3 state/_decide_u2_runtime.py + PROJECT_TRACKER §(1.34)'
+      ref: PROJECT_TRACKER.md#(1.34) + HW/POWER_SHUTDOWN_V3.md#6
     open_questions:
     - id: PM-Q1
       to: sw-lead
@@ -1112,17 +1121,18 @@ domains:
     updated_by: sw-lead
     status:
       phase: P2(方案设计)
-      progress_pct: 52
+      progress_pct: 54
       health: red
-      summary: '10-28 ISS-101 (量产可用模型清单 / 放行门 L=0): ①Apache-2.0 候选 NPU 可转换性 [0数据]→[实测]: TF SavedModel→ONNX
-        实测 rc=0 (tf2onnx1.16.1+TF2.20, 12259298B/3304节点/33算子/opset13); ②★查实 74.7% 的图 (2465/3304节点) 是 NMS
-        后处理段 (NonMaxSuppression90/TopK2/Range2/NonZero1) → NPU 编译器不支持, 自写 cut_postprocessor.py 裁出 NPU
-        就绪 head 子图 (299节点/18算子) + fix_static_shape.py 固化静态shape [1,320,320,3], 与全图输出 max_abs_diff=0.000e+00
-        逐位相同; 做法与本机 awnpu_model_zoo YOLOX 官方配方同构; ③第一组真实精度 P=0.4521 R=0.4184 F1=0.4346 (299张 COCO val2017,
-        IoU0.5, 自写匹配非官方mAP); ④★修掉复核器 C9 硬编码 float32 的高危 bug (本模型输入是 uint8 → 好模型会被误判成坏模型, 曾实测 FAIL=1/L=1,
-        会导致''Apache-2.0路线不可用''的错误架构决策); 复核器新增 C10~C13 + L6/L7/L8, 实跑 rc=0 且 L=0; ⑤G1~G5 五组门禁判据写死 + 反例验证;
-        第3段 (ONNX→NPU厂商格式) 缺件 M1~M10 逐条列出 (M3/M4/M9/M10 新增建议并入Q9); ⑥AGPL 商用三路径对比, 签字人=boss (sw-lead 不拍板),
-        建议路径1与路径2并行准备; ★健康度仍 red: 板端INT8产物0个 + 第3段等原厂工具链/chipID + 采购待老板拍板'
+      summary: '10-28 ISS-104 电源状态术语统一闭环: ①新增 SW/POWER_STATE_SEMANTICS.md: 关机(poweroff,真断电,SoC无电,零行为承诺,唤醒仅
+        VBUS/PG/按键)/待机(standby,原深度休眠,SoC低功耗运行,进待机遇落盘) 两态×7列分列 + 命名对照(poweroff/standby 唯一叫法, suspend 禁用别名,
+        深度休眠=旧称) + 续航两行分列(待机2.8h vs 关机5-11个月) ②SW_REQUIREMENTS.md 只改电源相关条目: 新增 M7-R7/R8/R9/R10 + M7-R2
+        续航口径按 Q4 改为 按需触发≥1h + 旧口径 待机<0.05W 标作废 + §15.2 加 Q17 原厂追加问 ③interface_claims +9条 (sw_power_state_names=poweroff/standby,
+        sw_poweroff_w=0.21-0.40mW, sw_standby_power_w=0.15W, sw_poweroff_soc_state=no-power, sw_standby_soc_state=running-lowpower,
+        sw_poweroff_wakeup=VBUS/PG/KEY, sw_poweroff_runtime=5-11months, sw_standby_runtime=2.8h, sw_poweroff_sw_commitment=none),
+        并修正过期取值 power_off_semantics 无硬件断电-软件深睡-轨带电 → true-poweroff-loadswitch ④新登记4条 needs_from (命名确认/续航算式裁决
+        to main, PWR_CTRL脚号 to hw-lead, AON+深睡规格 to vendor) ⑤★自查发现 HW/POWER_SHUTDOWN_V3.md §6 续航列算式漏除电池电压3.7V
+        (待机2.8h 实为~9.3h/满载20min 实为~1.15h/按需1.8h 实为~6.1h, 差~3.3倍), 关机行用真电流故锁死值不受影响 ⇒ 走 U2 请项目总工裁决; ⑥★健康度仍
+        red: 板端INT8产物0个 + 本轮所有功耗续航数字均为[推算]无实测'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -1272,6 +1282,23 @@ domains:
       summary: 'ISS-101 实测产物 2 条: ssd_mbv2_fpnlite_320_fp32_full.onnx (12259298B, sha 8709cc23432340f6,
         PC侧FP32基准, 含NMS不可上NPU) + ssd_mbv2_fpnlite_320_fp32_head_npu.onnx (10967518B, sha 6603df1e12391cfc,
         NPU就绪head子图)'
+    - path: SW/POWER_STATE_SEMANTICS.md
+      kind: note
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-104 电源状态语义统一: 关机(poweroff,真断电,SoC无电,0.21-0.40mW,5-11个月) / 待机(standby,原深度休眠,SoC低功耗,0.15W,2.8h)
+        两态分列 + 逐态行为边界 + 命名对照 + 续航分列; 附续航算式自检(待机2.8h实为~9.3h,差3.3倍)'
+    - path: SW/SW_REQUIREMENTS.md
+      kind: requirements
+      version: '1.1'
+      updated_at: '2026-10-25'
+      summary: 'ISS-104 增量: M7 新增 R7(关机态零行为承诺)/R8(关机态唤醒仅 VBUS+PG+按键)/R9(待机关机严格分离)/R10(进待机遇落盘); M7-R2 续航验收口径改为
+        按需触发场景≥1h (Q4已答); 旧口径 待机<0.05W 标作废; §15.2 新增 Q17 原厂追加问'
+    - path: HANDOFF/2026-10-28_sw-lead_ISS104_电源状态术语统一.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-104 交接单: 电源状态术语与语义统一, B1-B6 六块齐全'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -1842,6 +1869,75 @@ domains:
       target_missing: false
       waiting_on: agent
       due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: sw_power_state_naming
+      to: main
+      item: '★ISS-104 SW 侧电源状态命名请项目总工确认并落进 §0 锁死表/INTERFACES.md: 关机=poweroff(真断电,SoC无电), 待机=standby(原深度休眠,SoC低功耗运行);
+        ★禁用别名 suspend (Linux 里 suspend 常被当关机用, 本项目对外只允许 poweroff/standby); 旧称 深度休眠 标 [旧称·已作废]; 旧口径 待机<0.05W
+        标 [旧口径·已作废] (现锁死项为 关机(断电)<0.05W)。SW 侧取值已登记 interface_claims: sw_power_state_names=poweroff/standby'
+      since: '2026-10-28'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-30'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: sw_runtime_recalc
+      to: main
+      item: '★ISS-104 续航列算式自检不一致, 请项目总工裁决对外口径: HW/POWER_SHUTDOWN_V3.md §6 四行里, 待机2.8h/满载20min/按需1.8h 三行是按
+        mAh÷(把W当mA) 直算 (漏除电池电压 3.7V), 按 I=P/V@3.7V + DoD0.9 应为 待机~9.3h/满载~1.15h/按需~6.1h (差~3.3倍); 关机行用真电流108µA
+        算得对 ⇒ 老板锁死的 关机(断电)<0.05W 与 5-11个月 两项不受影响。请裁: 对外续航话术用 2.8h 还是 ~9h? ★不改变热学结论(皮肤温度算的是功耗侧) 也不改变 §0
+        #38 按需触发场景下≥1h (真值~6.1h 更宽裕)。我已把算式拆解写进 SW/POWER_STATE_SEMANTICS.md §6.1'
+      since: '2026-10-28'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-30'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: main
+        value: '口径A: t[h] = Capacity[mAh] × DoD × V / P[W] (放电续航, 物理正确) ⇒ 420mAh: 待机 ~9.32h / 按需 ~6.08h
+          / 满载 ~1.15h; 340mAh: ~7.55h / ~4.92h / ~0.93h. 旧值 2.8h/1.8h/20min 是 mAh÷(把W当mA) 错算式 (漏 ÷3.7V
+          与 DoD 0.9), 偏低 3.33 倍, 已标 [旧口径·已作废]. 选电芯仍用 B 口径 P×361.81 (含 ÷0.83 充电效率, 偏保守 20% ⇒ 安全) —— 0.83
+          是充电输入→电池的效率, 只影响充电时间, 不影响电池放电续航. 老板锁死项全部不受影响 (关机行用真电流 108µA 从未用错算式; §0#38 按需 ≥1h 更宽裕 6.08h/4.92h).
+          热学结论不变 (算的是功耗侧), 但续航变长 ⇒ 超标时间窗口变长 ⇒ 满载 88.6-96.1°C 这条更强不是更弱. 对外话术: 待机说 ~9 小时 (无桥 340mAh ~7.5
+          小时), 按需 ~6 小时, 满载 ~1 小时. 自证复现: python3 state/_decide_u2_runtime.py + PROJECT_TRACKER §(1.34)'
+        ref: PROJECT_TRACKER.md#(1.34) + HW/POWER_SHUTDOWN_V3.md#6
+      foreign_answers: []
+    - key: sw_poweroff_gpio_pin
+      to: hw-lead
+      item: '★ISS-104 接口请求 (经项目总工转达): ①SoC PWR_CTRL GPIO 的确切脚号 (网表现写 TBD-01) 与该脚在关机瞬间的确切动作 (SW 写高阻→负载开关
+        ON 脚掉回10k下拉→SYS断电) —— SW 关机序列最后一步要精确到这个粒度才能验收 ②关机前是否有通知充电板的通路 (现无 ⇒ SW 不做该动作, 充电灯是充电板本地硬件行为)。参考
+        HW/POWER_SHUTDOWN_V3.md §3'
+      since: '2026-10-28'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-10-30'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: sw_aon_deepsleep_spec
+      to: vendor
+      item: '★ISS-104 原厂追加问 (经项目总工并进第二轮邮件, 我不单独对外): ①ARS45 有没有 AON 域/常开唤醒脚? 脚号? AON 静态电流多少 µA? (关机态 0.40mW
+        里最大单项 ~50µA; 也决定 关机态长按按键唤醒 是否成立) ②深睡/低功耗态下 DDR 内容是否保留 (决定 SW 进 standby 前是否必须落盘, 现按不可保留设计) ③进低功耗态时
+        sensor/光机 rail 能否真断 (决定 0.15W 口径成立与否)。见 SW/POWER_STATE_SEMANTICS.md §7 U1/U5'
+      since: '2026-10-28'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-31'
       overdue: false
       decision: null
       decided_at: null
@@ -4973,14 +5069,13 @@ interface_claims:
     conflict: false
   power_off_semantics:
     values:
-      sw-lead: 无硬件断电-软件深睡-轨带电
+      sw-lead: true-poweroff-loadswitch
     notes:
-      sw-lead: '★网表无负载开关/电源开关 (0 颗) ⇒ 电池经 BQ2970 直连 SYS ⇒ ''关机''只能软件深睡; 影响: 售后''长按10s=关机''、老板锁死''待机<0.05W''、关机充电指示灯
-        三条都要重定义'
+      sw-lead: ★10-27 老板拍板 关机=真断电 (负载开关 U_PWR_SW 切 SYS, SoC 断电); 旧值"无硬件断电-软件深睡-轨带电"已作废 (那是 10-27 之前的老网表);
+        关机态 SW 零行为承诺, 唤醒仅 VBUS/PG/按键 三条硬件路径
     by:
     - sw-lead
-    noncanonical_by:
-    - sw-lead
+    noncanonical_by: []
     conflict: false
   first_temp_read:
     values:
@@ -5236,6 +5331,89 @@ interface_claims:
     - sw-lead
     noncanonical_by: []
     conflict: false
+  sw_power_state_names:
+    values:
+      sw-lead: poweroff/standby
+    notes:
+      sw-lead: '★SW 对外只允许这两个电源状态名: 关机=poweroff, 待机=standby; 禁用 suspend 混用; "深度休眠"=旧称[旧称·已作废]; 依据 SW/POWER_STATE_SEMANTICS.md
+        §4'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_poweroff_w:
+    values:
+      sw-lead: 0.21-0.40mW
+    notes:
+      sw-lead: 关机(真断电)静态功耗 ~108µA@3.7V [推算]; 锁死口径"关机(断电)<0.05W"成立; 旧口径"待机<0.05W"[旧口径·已作废]
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_standby_power_w:
+    values:
+      sw-lead: 0.15W
+    notes:
+      sw-lead: 待机(原深度休眠)SoC 低功耗运行 0.15W [推算]; 达不到旧口径0.05W, 改名"待机"且续航单列 2.8h
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_poweroff_soc_state:
+    values:
+      sw-lead: no-power
+    notes:
+      sw-lead: 关机态 SoC 不在运行态 => SW 零行为承诺 (无定时任务/无日志/无LED反馈/不响应输入); 充电灯是充电板本地硬件行为
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_standby_soc_state:
+    values:
+      sw-lead: running-lowpower
+    notes:
+      sw-lead: 待机态 SoC 仍在运行态 (低功耗); 进 standby 前必须落盘 (DDR retention 未确认 [0数据])
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_poweroff_wakeup:
+    values:
+      sw-lead: VBUS/PG/KEY
+    notes:
+      sw-lead: '关机态唯一三条唤醒路径全是硬件: VBUS 接入 / 充电IC PG / 长按按键; SW 不可承诺第四条; 按键路径依赖 SoC AON [0数据]'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_poweroff_runtime:
+    values:
+      sw-lead: 5-11months
+    notes:
+      sw-lead: 420mAh 电芯关机续航 ~5-11 个月 [推算] (随 AON 静态电流 10-50µA 变) —— 与待机 2.8h 分列两行, 不可混算
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_standby_runtime:
+    values:
+      sw-lead: 9.3h
+    notes:
+      sw-lead: '420mAh 电芯待机续航 ~9.3h [推算] (★U2 裁决口径 A: t=Cap×DoD×V/P = 420×0.9×3.7/0.15; 旧值 2.8h [旧口径·已作废]
+        是漏除 3.7V 与 DoD 的错算式, 偏低 3.33 倍; 340mAh 无桥档 ~7.6h)。关机 5-11 个月用真电流 108µA 算, 不受影响。'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_poweroff_sw_commitment:
+    values:
+      sw-lead: none
+    notes:
+      sw-lead: 关机态 SW 承诺为零; "关机后还会做某事"的代码分支一律不许存在 (验收项 M7-R7)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
 needs_matrix:
   pending:
   - key: emc_hw_interface_ask
@@ -5433,6 +5611,24 @@ needs_matrix:
     since: '2026-10-28'
     _by: sw-lead
     state: pending
+  - key: sw_power_state_naming
+    to: main
+    item: '★ISS-104 SW 侧电源状态命名请项目总工确认并落进 §0 锁死表/INTERFACES.md: 关机=poweroff(真断电,SoC无电), 待机=standby(原深度休眠,SoC低功耗运行);
+      ★禁用别名 suspend (Linux 里 suspend 常被当关机用, 本项目对外只允许 poweroff/standby); 旧称 深度休眠 标 [旧称·已作废]; 旧口径 待机<0.05W
+      标 [旧口径·已作废] (现锁死项为 关机(断电)<0.05W)。SW 侧取值已登记 interface_claims: sw_power_state_names=poweroff/standby'
+    since: '2026-10-28'
+    due: '2026-10-30'
+    _by: sw-lead
+    state: pending
+  - key: sw_poweroff_gpio_pin
+    to: hw-lead
+    item: '★ISS-104 接口请求 (经项目总工转达): ①SoC PWR_CTRL GPIO 的确切脚号 (网表现写 TBD-01) 与该脚在关机瞬间的确切动作 (SW 写高阻→负载开关
+      ON 脚掉回10k下拉→SYS断电) —— SW 关机序列最后一步要精确到这个粒度才能验收 ②关机前是否有通知充电板的通路 (现无 ⇒ SW 不做该动作, 充电灯是充电板本地硬件行为)。参考
+      HW/POWER_SHUTDOWN_V3.md §3'
+    since: '2026-10-28'
+    due: '2026-10-30'
+    _by: sw-lead
+    state: pending
   - key: mech_reltest_xray_sampling
     to: hw-lead
     waiting_on: agent
@@ -5577,8 +5773,8 @@ needs_matrix:
     since: '2026-10-28'
     _by: mech-lead
     state: pending
-  answered_count: 76
-  total: 115
+  answered_count: 78
+  total: 119
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -5905,10 +6101,6 @@ lint:
   value: 跨铰链=救援/售后,量产=镜脚有线
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
-  key: power_off_semantics
-  value: 无硬件断电-软件深睡-轨带电
-  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
-- agent: sw-lead
   key: first_temp_read
   value: 丢弃首读(-256C)
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
@@ -5967,15 +6159,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 65
+  artifacts: 68
   blockers: 31
   high_blockers: 25
-  open_needs: 39
-  waiting_external_needs: 48
+  open_needs: 41
+  waiting_external_needs: 49
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 2
   needs_normalization: 1
-  lint: 24
+  lint: 23
   agents_reporting: 4
   incomplete_fragments: 0

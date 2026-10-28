@@ -1,3 +1,23 @@
+# 2026-10-28 08:50 GMT+8 — sw-lead ISS-104 交卷验收 + ★U2 续航算式口径裁决 (旧值偏低 3.33 倍)
+
+**唯一跟踪表**: `PROJECT_TRACKER.md` §(1.34) · **裁决脚本**: `state/_decide_u2_runtime.py` · **SW 正本**: `SW/POWER_STATE_SEMANTICS.md`
+
+**08:30-08:50 做了什么**:
+- **ISS-104 验收关单** (sw-lead 12 分钟交卷): 状态表 3 状态 × 7 列 (超出要求的 2×5) + 逐态行为边界 + 命名对照 (suspend/deep_sleep 列为禁用别名) + 关机序列 6 步 + 续航两行分列 + "深度休眠" 4 处全标 [旧称·已作废] ⇒ 5 条机械判据逐条通过, verify_by=main
+- ★★**U2 裁决 (本轮最有价值的产出, 由 sw-lead 自查挖出)**: `HW/POWER_SHUTDOWN_V3.md` §6 待机/按需/满载 三行的续航是按 **`mAh ÷ (把 W 当 mA)`** 直算的 (漏除 3.7V + DoD 0.9) ⇒ **三行全部偏低 3.33 倍**
+  - ★**它没自行改 HW/ 或锁死表**, 走 needs_from 请我裁 ⇒ 正是要的纪律 (跨域改动不自己动手)
+  - ★**我独立复算后比它的报告精确一档**: 库里有**两套算式** —— A 口径 `t=Cap×DoD×V/P` (放电续航, 物理正确) vs B 口径 `P×361.81` (含 ÷0.83 充电效率)。**0.83 是「充电输入→电池」的效率, 只影响充电时间不影响放电续航** ⇒ 裁: **续航读数用 A, 选电芯继续用 B** (偏保守 20%, 安全), 两套并存各司其职写死
+  - ★**老板锁死项全不受影响 ⇒ 无需重新拍板**: 关机(断电)<0.05W ✅ / 关机 5-11 个月 ✅ / §0#38 按需≥1h ✅ **更宽裕** (1.8h→6.08h) / §0#12 ✅
+  - ★**热学结论不变** (算的是功耗侧) ⇒ 43°C 红线结论不动; ⚠️ 但**续航变长 ⇒ 超标时间窗口变长** ⇒ "满载 88.6-96.1°C ❌" 这条**更强不是更弱**
+  - ⚠️ **裁决过程中我自己的脚本出了 1000× 单位错** (9324h) ⇒ **被输出表当场抓住并修掉** ⇒ 自证复现的价值实打实
+- **回写落地** (5 处, 旧值一律保留并标 [旧口径·已作废]): `HW/POWER_SHUTDOWN_V3.md` §1+§6+§决策1 · `SW/POWER_STATE_SEMANTICS.md` (状态表/§3/§5/§6/实测项表/需求4/U2行已标闭环) · `SW/SW_REQUIREMENTS.md` M7 段 · `PROJECT_TRACKER.md` §0 锁死表 + §(1.34) · `state/fragments/sw.yaml` 的 `sw_standby_runtime` 2.8h→9.3h (走 frag_write 原子写)
+- **sw-lead 登记的 3 条 needs 处置**: ① `sw_runtime_recalc` → **已裁** (答复录进 pm.yaml, 未闭合需求 42→41) ② `sw_aon_deepsleep_spec` → **已并进酷芯微问询草稿** (新增 §7 三问: AON 唤醒脚+静态电流 / 关机态唤醒 / DDR retention + 深睡外设 rail; 草稿 18→21 问) ③ `sw_poweroff_gpio_pin` → **已转 hw-lead** (08:5x 派出, 2 件小事: PWR_CTRL 脚号+关机瞬间电气动作 / 关机前是否通知充电板)
+- 门禁: check_netlist 30/30 | check_kicad_net 6/6 | issue_check/merge/gate rc=0 | frag_write 16/16 | stage_gate 12/12
+
+**在跑**: hw-lead (ISS-104 追加: SoC 侧关机接口) · mech-lead (ISS-089 硬件交叉评审)
+**⚠️ 待收**: 2 个 merge 冲突 (mech 分片过期: pcb_outline 50x15mm / pcb_mounting 旧螺钉孔位) —— 等 mech-lead 交卷后由它自己改, 我不并发写它的分片
+**🔴 等老板**: ★**4 封草稿放行** (酷芯微 7 天未回, 问询已扩到 21 问 / TI 3 问 / JBD 追加 / J_CHG RFQ) · 打印包开打 · 测试设备预算 (已逾期) · 模型许可三选一 (采购 Enterprise / 换 Apache-2.0 栈 / 等原厂预编译 —— 签字人 boss)
+
 # 2026-10-28 08:25 GMT+8 — ★阶段门 G0 纸面冻结 **通过** (卡了 3 天的 4 项是"假卡") + 2 个工具缺陷修掉
 
 **唯一跟踪表**: `PROJECT_TRACKER.md` §(1.33) · **门禁**: `state/stage_gate.py` · **判据自测**: `state/test_stage_gate_decisions.py` (12/12)

@@ -253,6 +253,16 @@ answers:
   to: hw-lead
   value: 方案A基线+评估更省替代
   ref: 裁决2026-10-26:兜底必做UVP抬到3.5V;基线=方案A(3.3V改TPS62130A供,代价12-15%容量不可用->容量与续航口径重算+镜腿厚度结构复核);另派评估不牺牲容量的替代(低dropout_3V3_LDO/IO轨直吃SYS/buck-boost)=>ISS-067;方案C接受末段黑屏=否决
+- key: sw_runtime_recalc
+  to: sw-lead
+  value: '口径A: t[h] = Capacity[mAh] × DoD × V / P[W] (放电续航, 物理正确) ⇒ 420mAh: 待机 ~9.32h
+    / 按需 ~6.08h / 满载 ~1.15h; 340mAh: ~7.55h / ~4.92h / ~0.93h. 旧值 2.8h/1.8h/20min
+    是 mAh÷(把W当mA) 错算式 (漏 ÷3.7V 与 DoD 0.9), 偏低 3.33 倍, 已标 [旧口径·已作废]. 选电芯仍用 B 口径 P×361.81
+    (含 ÷0.83 充电效率, 偏保守 20% ⇒ 安全) —— 0.83 是充电输入→电池的效率, 只影响充电时间, 不影响电池放电续航. 老板锁死项全部不受影响
+    (关机行用真电流 108µA 从未用错算式; §0#38 按需 ≥1h 更宽裕 6.08h/4.92h). 热学结论不变 (算的是功耗侧), 但续航变长 ⇒
+    超标时间窗口变长 ⇒ 满载 88.6-96.1°C 这条更强不是更弱. 对外话术: 待机说 ~9 小时 (无桥 340mAh ~7.5 小时), 按需 ~6
+    小时, 满载 ~1 小时. 自证复现: python3 state/_decide_u2_runtime.py + PROJECT_TRACKER §(1.34)'
+  ref: PROJECT_TRACKER.md#(1.34) + HW/POWER_SHUTDOWN_V3.md#6
 interface_claims:
 - key: display_frame_rate
   value: 60fps
