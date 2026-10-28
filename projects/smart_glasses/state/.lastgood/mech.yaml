@@ -1,16 +1,15 @@
 agent: mech-lead
 role: 结构总工(带散热)
-updated_at: '2026-10-28T01:10:00+08:00'
+updated_at: '2026-10-28T08:40:00+08:00'
 updated_by: mech-lead
 status:
-  phase: ISS-099+ISS-100 交卷 (板宽 15mm 结构侧连带 + J_CHG 选型 + FPC 加工图要求)
+  phase: ISS-089 交卷 (硬件侧交叉评审 机械/热/装配/跨铰链)
   progress_pct: 100
-  health: 'green (4 文件落盘 + 分片原子写; ⚠️ 三处待厂商书面确认: J_CHG 10p 规格/报价, 70% 降额条款, ZIF 座可插
-    FPC 厚度上限)'
-  summary: 板宽 15mm 在镜脚腔体上装得下且几乎免费 (H/V/L 余量 0.95/8.50/24.50mm, 净高不用动); 面积缺口 310→160mm²,
-    建议板长 60 补到 -10mm² 基本闭合; J_CHG 选型 = Hirose FH12-10S-0.5SH(55) (0.5A/触点, 座高 2.0mm),
-    但判据建议从 ≥0.35A 收紧到 ≥0.5A, 且 R_ILIM 300Ω 在 0.5mm pitch 下建议判死; FPC 加工图 6+8+7+5+5
-    条硬要求 + 4 条自发现
+  health: yellow (16项FAIL全是'按现图纸做出来会出问题'不是做不出来; 其中4条要hw-lead改网表/选型, 3条要项目总工裁, 1条u8镜框截面升阻塞,
+    1条打印包待授权; 5项[0数据]待厂商/原厂)
+  summary: '跨铰链的净高与径向都还过得去(V向余7.00mm/径向余1.25mm), 真会打回重画的是4件事: 铰链端X缺6.00mm(4座排不开+固定孔同段)/走线拓扑未定义(V叠则4座不能同面)/充电耗散口径错(0.8W线性vs0.45-0.57W
+    buck 且ICHG-IIN系数方向反了390欧档要重判)/Type-C开孔公差差3.0倍且Y向单边间隙只剩0.17mm; 另7条自己发现(P9页堆叠数自相矛盾/拓扑未定义/ICHG系数反了/耗散口径错/打印包Type-C试样挂错件/充电灯board列错/端件无金属导热路径);
+    全部给建议不拍板'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -168,6 +167,19 @@ artifacts:
   updated_at: '2026-10-28'
   summary: ISS-099 + ISS-100 交接单 (B1-B6 六块齐全) + 3 条接口请求 (hw-lead 固定孔位/J_CHG 数量, sw-lead
     装配解锁流程)
+- path: MECH/HW_CROSS_REVIEW.md
+  kind: report
+  version: '1.0'
+  updated_at: '2026-10-28'
+  summary: 'ISS-089 硬件侧交叉评审(机械/热/装配/跨铰链): P9页4组跨铰链通道机械可行性(pin账实测+堆叠两口径两净高+走线拓扑未定义+铰链端X缺6.00mm+是否合并的结论)
+    + P10充电板(镜框)位置与承力(Type-C开孔公差不可达+沉板深度选型建议1.6mm) + 电池镜脚/充电板镜框的装配顺序与检修路径(三条硬冲突) +
+    10条会打回来重画的点 + 7条自己发现的问题 + 尺寸链/公差表(C1-C7/T1-T6)'
+- path: MECH/hw_cross_review_check.py
+  kind: script
+  version: '1.0'
+  updated_at: '2026-10-28'
+  summary: 'ISS-089 机械自检脚本 rc=0: 54项判定(PASS 15/FAIL 16/条件通过8/说明15), 全部数字机器复算不靠人肉数:
+    解析netlist_v1.csv取4连接器pin占用与board列、复算堆叠两口径两净高/径向嵌套/PCB铰链端X排布/合并可行性/框侧汇流/充电板land与开孔间隙/buck耗散与ICHG-IIN比值/装配顺序/5条公差链'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区
@@ -563,6 +575,50 @@ needs_from:
   waiting_on: agent
   due: '2026-10-30'
   since: '2026-10-28'
+- key: iss089_ichg_ratio_datasheet
+  to: hw-lead
+  item: 'ISS-089交叉评审发现: CHARGE_BOARD_SPEC §3.4 的 ICHG=IIN×(VBAT/VBUS)/η=0.822 方向反了
+    —— buck降压的功率守恒是 Pout=η·Pin, 故 ICHG=η·Vbus·IIN/VBAT=0.9×5/3.7=1.216 (0.822是它的倒数)。请用BQ25896
+    datasheet原文确认ICHG与IIN的真实关系。若真值是1.216, 则390欧档实际ICHG是表值0.67-0.82A的约1.48倍, 单pin(双pin并联)达0.50-0.61A,
+    超过0.5mm pitch ZIF触点的0.5A额定 => 390欧档要重判(可能退680欧), 而这会连带影响ISS-091的铰链压降发热核算与R_ILIM选型。我的假设(不回我就按这个走):
+    真值1.216 => 按单pin 0.61A判 => R_ILIM退到680欧'
+  since: '2026-10-28'
+- key: iss089_p9_topology_and_stack
+  to: hw-lead
+  item: 'ISS-089交叉评审: P9页的跨铰链堆叠账有两处要改 —— (1) 同页自相矛盾: §功能块写CONN_LIGHT 1x21p并用(10+4+18+21)x0.5=26.5mm自算,
+    而§器件表与网表都是22p(=27.00mm), 物理FPC带宽口径应为31.00mm(漏4条x2x0.50mm走线边距); (2) P9页没定义4条FPC在铰链区的走线拓扑(V向叠放
+    vs H向径向嵌套), 两者结论相反: V向叠放则4条带宽合计31.00mm远大于板宽15.00mm, 需在铰链前做约16mm面内扇开(12mm宽FPC做不出小半径)
+    => 4座不可能全在主PCB同一面; H向径向嵌套则V向只需最宽一条12.00mm、径向4.40mm(余1.25mm) => 4座可同V带不同X。结构侧建议按H向径向嵌套写进P9并把堆叠数统一为31.00mm(vs净高38.00余7.00mm)。不拍板,
+    请你与项目总工定'
+  since: '2026-10-28'
+- key: iss089_chg_led_board_column
+  to: hw-lead
+  item: 'ISS-089交叉评审: 充电灯电路的网表board列标错 —— D_CHG_LED/Q_CHG_LED/R_CHG_LED 标 MAIN_PCB,
+    但同页注记写''装在充电板(镜框)靠近Type-C座'', 且 VBUS_5V_CHG 只存在于充电板 => 这条链物理上只能在镜框。请把board列改成CHG_BOARD;
+    改完ISS-103的镜框导光孔位置才能定(否则会开在镜脚上)。另: 打印包 MECH/print/temple_cage_340.stl 的Type-C面板试样(Y120-123)还挂在镜脚检具上,
+    而充电板已按ISS-014决策5挪到镜框 => 打印包要改版(试样移到镜框端件件)'
+  since: '2026-10-28'
+- key: iss089_frame_section_u8_block
+  to: main
+  item: 'ISS-089交叉评审请求: 把 u8 镜框截面口径提到阻塞级。理由: 镜框端件要同时装 充电板25x10 + Type-C沉板 + 铝屏蔽罩 +
+    铰链件 + 4条跨铰链FPC的固定段(合计V向带宽31.00mm), 端件可用V高只有约30-40mm => 余量-1.00~+9.00mm; 且CSI(10mm宽70-80mm)与DSI(12mm宽55-65mm)两条必须绕过镜框正中已占满11.8mm的光学舱
+    => 镜框上沿/下沿走线槽宽度是硬需求。截面不定, (a)框侧汇流、(b)充电板位置与承力、(c)装配顺序三条都无法判定。我的假设: 端件全高35mm可用,
+    内深>=8mm'
+  since: '2026-10-28'
+- key: iss089_decision_stack_correction
+  to: main
+  item: 'ISS-089交叉评审请求更正 DECISIONS.md 2026-10-27 那条: 它记的''铰链区堆叠仍26.5mm(余10.5mm)''口径已过期
+    —— 同页器件表与网表都是CONN_LIGHT 22p(=27.00mm), 而物理FPC带宽口径是31.00mm(每条FPC两侧各0.50mm走线边距,
+    ISS-091 §5.1已定); 净高分母也该用现行的38.00mm(沿长度串行模型, fit_check.py BASE cav_v)而不是37.00mm(已作废的叠放模型)。建议改为''堆叠31.00mm,
+    vs净高38.00余7.00mm''。另外该条只写26.5mm没写走线拓扑, 建议同时补''按H向径向嵌套''。这条不改也不影响通过判定, 但继续引用会误导下游'
+  since: '2026-10-28'
+- key: iss089_typec_opening_and_print_pack
+  to: main
+  item: 'ISS-089交叉评审请求授权打印包改版: (1) MECH/print/temple_cage_340.stl 的Type-C面板试样(Y120-123)还挂在镜脚检具上,
+    而充电板+Type-C已按ISS-014决策5挪到镜框 => 镜脚侧Type-C特征应删除、试样移到镜框端件件; (2) CHARGE_BOARD_SPEC
+    M-15的印刷公差判据±0.10mm在P2S上不可达(FDM±0.30mm, 差3.0倍), 且开孔单边间隙Y向只剩0.17mm => 建议开口放大到10.0x4.2mm或改用金属嵌件(铝框)保证开孔公差;
+    (3) 充电板25x10mm器件land已占71%, 双面贴才够。授权后我同轮改打印包与测量清单'
+  since: '2026-10-28'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -632,6 +688,33 @@ answers:
     屏蔽壳>=3.0mm/铰链件>=0.5mm/PCB 定位销>=0.5mm/充电板铝罩), 建议屏蔽壳+骨架单点接地, 但 ''外露金属件'' 定义与活动铰链能否做全单点接地需
     EMC 给口径 (已发需求)'
   ref: 'MECH/USB_HINGE_STRUCTURE.md#3.3 + #4.5 + #5.3'
+- key: iss049_hole_windows
+  to: hw-lead
+  value: '铰链端4条跨铰链连接器(54触点@0.5mm)的X占位算完了(ISS-089本单补上你ISS-105 F-2那栏''没人算过''的): 4座沿板长排开需25.70mm
+    (3x座体进深6.40 + 1x4p的5.00 + 3x间隔0.50), 但铰链端可用X只有19.70mm (板边0.50到SoC逃线带起点X=20.20)
+    => 缺6.00mm, 且固定孔X=5.00与X=15.00正好落在这一段里; 单个座Y向放得下(最宽CONN_LIGHT 12.50 vs 板宽15.00余2.50)但4座不能沿Y并排;
+    我的建议(不是拍板): 合并CONN_USB(4p)+CONN_CAM(18p)成一个22p座 => 3座需19.30mm刚好塞进19.70, 但要先由你判USB
+    90欧与CSI 100欧两种阻抗同FPC的可行性; 另一条路是SoC逃线带起点后移或板长加到66mm; 注意: 走线拓扑建议按H向径向嵌套 (V向叠放则4条带宽31.00mm远大于板宽15.00mm,
+    4座不能同面)'
+  ref: MECH/HW_CROSS_REVIEW.md §2.3/§2.4/§5 R-1
+- key: iss105_pcb_outline_sync_60x15
+  to: hw-lead
+  value: '已同步: mech.yaml 的 pcb_outline 从 50x15mm 改成 60x15mm (板宽15不变), pcb_outline
+    冲突即消。另: 你的 pcb_mounting 写 ''PIN-SET-2:2x⌀2.0H7+2x⌀1.4'' 与你自己 ISS-105 定版的 HW/PCB_OUTLINE_60x15.md
+    §0-2 (2xM1.2⌀1.4 + 1x⌀2.0H7, 3孔) 不一致, 合并器报的 pcb_mounting 冲突是这个, 请按你 ISS-105 定版那版改;
+    我这边的值已按 ISS-105 定版保持 (2xM1.2 + 1x⌀2.0H7)。再: ISS-089本单发现两条会打回重画的结构侧问题, 建议一并处理:
+    (1) 充电灯 D_CHG_LED/Q_CHG_LED/R_CHG_LED 的 board 列标成 MAIN_PCB, 但同页注记写''装在充电板(镜框)靠近Type-C座''
+    而 VBUS_5V_CHG 只存在于充电板 => board列标错, BOM备料/装配/ISS-103导光孔位置会跟着做错; (2) CHARGE_BOARD_SPEC
+    §3.4 的 ICHG=0.822xIIN 方向反了 (buck功率守恒应为1.216), 390欧档的单pin电流要重算'
+  ref: MECH/HW_CROSS_REVIEW.md §2.4/§5 R-7/R-9/§6 自-3/自-6
+- key: sw_temp_mount_point
+  to: sw-lead
+  value: '结构侧答: (1) TMP117 贴装落点建议放镜脚主PCB的贴皮肤面一侧、SoC投影<=10mm范围内, 用0402/0603贴PCB背面(非皮肤面)并用0.3mm导热垫连到骨架,
+    不直接贴皮肤面(皮肤侧读数滞后会让降频滞后=反而更热), 与NTC同策略; (2) 金属骨架/石墨与镜脚PCB的热隔离边界: 骨架止于PCB段后缘(不延伸进电池段),
+    石墨只做面内扩展不跨隔热垫, 两者前端(Z<0)默认不延伸进铰链端余量区; 隔热垫0.5mm+空气隙0.3mm是皮肤侧热路, TMP117若在骨架正下方会被烤热
+    => 建议TMP117与骨架水平距离>=8mm; (3) 光机(镜框正中鼻梁上方)温度遥测: 结构侧无独立器件位(镜框正中已被光机+分光件占11.8mm厚),
+    若要监控只能靠镜框上沿或端件的器件位, 需JBD接口定义 => 属[0数据], 不拍板'
+  ref: MECH_BUDGET §5.1/§2.5 + MECH/HW_CROSS_REVIEW.md §7.3
 interface_claims:
 - key: battery_capacity_tier
   value: 无桥接340-575mAh/有桥接575-675mAh
@@ -961,10 +1044,10 @@ interface_claims:
   note: SoC的BAT_DET在镜脚本地(不在J_CHG 10p pin map) -> 读到真实电芯电压, 不会被铰链压降虚高 [推算]
   ref: MECH/HINGE_POWER_CALC.md#2.3
 - key: pcb_outline
-  value: 50x15mm
-  note: ★板宽 15 = 老板 10-27 拍板 (不再评估 12mm); 板长暂维持 50, 本单建议 60 (见 pcb_length_proposed);
-    镜脚截面 H7.30/V38.00/L130.00 不因板宽改变 (板宽是 V 向尺寸, 不进 H 链)
-  ref: MECH/BOARD_WIDTH_15MM.md#2.1
+  value: 60x15mm
+  note: 板宽15 (老板10-27拍板) + 板长60 (项目总工10-28裁); 60x15=900mm2使双面贴面积缺口闭合; 铰链端4个跨铰链座沿板长排开需25.70mm,
+    可用19.70mm => 缺6.00mm (见 hw_cross_review_check.py)
+  ref: HW/PCB_OUTLINE_60x15.md + MECH/HW_CROSS_REVIEW.md §2.4
 - key: pcb_board_width
   value: 15mm
   note: '老板 10-27 拍板; 依据: 逃线带误差 0.20-0.30mm (ISS-081) + 面积缺 300mm² + SoC 横向热扩散 2→3.5mm;
@@ -1021,9 +1104,11 @@ interface_claims:
   note: 框侧充电板 1 + 脚侧主 PCB 1; ★网表当前只声明 1 只 → BOM 备料会少买一半
   ref: HW/J_CHG_SELECTION.md#5
 - key: hinge_stack_v
-  value: 27.00mm
-  note: 4 条 FPC 触点区宽之和 (18+22+4+10 x 0.5mm) vs 镜脚根部净高 37.0 → 余 10.00mm; ★与 PCB 板宽无关
-  ref: MECH/board_width_15mm_check.py#2
+  value: 31.00mm
+  note: 'FPC带宽口径: 4条FPC (J_CHG 6.00 + CONN_USB 3.00 + CONN_CAM 10.00 + CONN_LIGHT
+    12.00) 合计; 触点区口径=27.00mm; vs 镜脚根部净高38.00mm 余7.00mm; P9页的26.5/27.0口径偏乐观4.00mm (漏4条x2x0.50mm走线边距)
+    且同页自相矛盾(正文21p vs 器件表/网表22p)'
+  ref: MECH/HW_CROSS_REVIEW.md §2.1/§2.2/§7.1
 - key: hinge_radial_margin
   value: 1.00mm
   note: 径向占位 4.40 vs 前后内净空 5.40 (按镜腿 7.0 保守); 固定段 2oz 后 → 0.80mm
@@ -1055,6 +1140,68 @@ interface_claims:
   note: 老板 10-28 拍板 (边戴边充不允许 → 皮肤温度不再是充电时硬约束); ICHG 0.822A (max), 单 pin 0.411A; ★300Ω
     档单 pin 0.534A > 0.5mm ZIF 的 0.5A 额定天花板 → 建议正式判死
   ref: HW/POWER_SHUTDOWN_V3.md
+- key: hinge_stack_touch_zone
+  value: 27.00mm
+  note: 触点区口径 (10+4+18+22)x0.5 = 27.00mm; P9页§功能块写26.5mm用的是21p算式, 与同页器件表/网表矛盾
+  ref: MECH/HW_CROSS_REVIEW.md §2.1
+- key: hinge_fpc_topology
+  value: H向径向嵌套
+  note: '4条FPC在铰链区沿径向嵌套(半径递增), 不是V向叠放: 径向占位4.40mm(固定段2oz时4.45) vs 内净空5.70mm 余1.25mm;
+    若按V向叠放则4条带宽合计31.00mm远大于板宽15.00mm, 需在铰链前做约16mm面内扇开 (12mm宽FPC做不出小半径) => 4个连接器不可能全在主PCB同一面;
+    结构侧建议按H向嵌套 (待hw-lead/项目总工定)'
+  ref: MECH/HW_CROSS_REVIEW.md §2.3
+- key: hinge_conn_x_gap
+  value: 缺6.00mm
+  note: 主PCB铰链端4个跨铰链座沿板长排开需25.70mm (3x座体进深6.40 + 1x4p的5.00 + 3x间隔0.50), 可用只有19.70mm
+    (板边0.50到SoC逃线带起点X=20.20); 且固定孔X=5.00/X=15.00落在同一段; 单个座Y向放得下(最宽CONN_LIGHT 12.50
+    vs 板宽15.00余2.50)但4座不能沿Y并排; 建议合并CONN_USB+CONN_CAM成22p => 3座19.30mm (电气代价待hw-lead判)
+  ref: MECH/HW_CROSS_REVIEW.md §2.4/§5 R-1
+- key: hinge_conn_merge
+  value: 不合并
+  note: 全合并54p几何否决(座体Y向30.00mm>板宽15.00mm; 且接触排沿V被竖直铰链轴物理锁死); 部分合并J_CHG+CONN_USB->1x14p结构可行(座体10.00mm/FPC带宽8.00mm)但铰链端X缺口仍0.50mm,
+    且1.5A充电电流与90欧USB差分同缆的代价重 (由hw-lead判)
+  ref: MECH/HW_CROSS_REVIEW.md §2.5
+- key: frame_fpc_band_sum
+  value: 31.00mm
+  note: 镜框端件侧4条FPC的V向带宽合计 (与铰链区同数); 端件可用V高约30-40mm且还要装充电板25x10+Type-C+铝罩+铰链件 => 余量-1.00~+9.00mm;
+    镜框截面口径未定义(u8)故判未验; CSI(10mm宽70-80mm)与DSI(12mm宽55-65mm)两条必须绕过镜框正中已占满11.8mm的光学舱
+  ref: MECH/HW_CROSS_REVIEW.md §2.6/§7.1 C7
+- key: typec_panel_clearance
+  value: X0.28/Y0.17mm
+  note: 面板开孔9.50x3.60 vs 母座本体8.94x3.26的单边间隙; FDM外形公差±0.30mm吃掉Y向0.13mm => 座体装不进/装晃;
+    CHARGE_BOARD_SPEC M-15要的印刷公差±0.10mm与FDM能力差3.0倍不可达; 建议开口放大到10.0x4.2mm或改用金属嵌件(铝框)
+  ref: MECH/HW_CROSS_REVIEW.md §3.2/§7.2
+- key: typec_sink_depth
+  value: 1.6mm
+  note: '沉板深度四档(0.8/1.0/1.6/2.10mm)选型建议: 1.0档太浅法兰会凸出面板0.5mm; 2.10档太深会顶到腔内件; 1.6档可完全沉进>=1.5mm承力壁且座体法兰落在承力台阶上;
+    各档A/B/C尺寸[0数据]需厂商图确认 (CHARGE_BOARD_SPEC M-7 指派结构总工, 本单已答)'
+  ref: MECH/HW_CROSS_REVIEW.md §3.3
+- key: chg_board_dissipation
+  value: 0.45-0.57W
+  note: P10拓扑是开关型buck(网表有SW/L_CHG/C_BST/PMID)故耗散=Pin-Pout+DCR; MECH_BUDGET §2.1的0.8W是线性稳压器公式(5-4.2)xI;
+    端件表面温升口径随之改为83-108C; 打印件k=0.2 W/mK沿臂70mm导热阻约1944 K/W => 必须有金属导热路径
+  ref: MECH/HW_CROSS_REVIEW.md §3.3/§5 R-4/§6 自-4/自-7
+- key: ichg_iin_ratio
+  value: '1.216'
+  note: buck功率守恒 Pout=eta*Pin => ICHG=eta*Vbus*IIN/Vbat = 0.9*5/3.7 = 1.216 (CHARGE_BOARD_SPEC
+    §3.4写的0.822是倒数, 方向反了); 若真值1.216则390欧档实际ICHG是表值0.67-0.82A的约1.48倍, 单pin 0.50-0.61A超0.5A额定
+    => 390欧档判据要重算; 需hw-lead用datasheet原文确认
+  ref: MECH/HW_CROSS_REVIEW.md §5 R-9/§6 自-3
+- key: chg_board_area_util
+  value: 71%
+  note: 充电板25x10mm=250mm2, 器件land约179mm2 (Type-C沉板座66.6+J_CHG座41.6+BQ25896 9+电感16+电容16+电阻15+ESD/TVS/TP
+    10+充电灯4.5) => 余71mm2给走线与爬电, 双面贴才够, 单面贴装不下
+  ref: MECH/HW_CROSS_REVIEW.md §3.1
+- key: frame_endpiece_service
+  value: 可逆拆
+  note: '镜框端件必须可逆拆: 框侧4条FPC固定段(>=8mm直线+>=5mm应力释放=13mm)必须在端件封盖前完成 => 端件不能是打印一体的死件;
+    且充电板应做成独立可抽出小盒(拆它不碰波导±0.3度与分光件5um基准)'
+  ref: MECH/HW_CROSS_REVIEW.md §4.2
+- key: print_pack_typec_location
+  value: 镜框端件
+  note: Type-C面板与充电板已按ISS-014决策5挪到镜框 => 打印包 MECH/print/temple_cage_340.stl 的Type-C试样(Y120-123)挂错件,
+    镜脚侧Type-C特征应删除、试样移到镜框端件件 (待项目总工授权改版)
+  ref: MECH/HW_CROSS_REVIEW.md §5 R-8/§6 自-5
 open_questions:
 - id: MECH-Q1
   to: main
