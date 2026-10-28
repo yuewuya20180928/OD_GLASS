@@ -332,22 +332,42 @@ def main() -> int:
             "P10 网表有 SW/L_CHG/C_BST/PMID ⇒ 开关型 buck → 耗散应为 Pin-Pout")
     # ★ buck 功率守恒复核 ICHG 与 IIN 的关系 (是否方向写反)
     for vbat in (3.70, 4.20):
-        ratio_buck = eta * 5.0 / vbat             # ICHG = IIN × η × Vbus/Vbat
+        ratio_buck = eta * 5.0 / vbat             # ICHG = IIN × η × Vbus/Vbat (buck 降压)
+        ratio_spec = vbat / 5.0 / eta            # CHARGE_BOARD_SPEC §3.4 写的
         rec(f"THM-RATIO-{vbat:.2f}", f"★buck 功率守恒: ICHG/IIN 比值 @Vbat={vbat:.2f}V",
-            f"{ratio_buck:.3f} (规格书写的是 {vbat / 5.0 / eta:.3f} = 倒数)", "FAIL",
-            "5V→3.7V 降压 ⇒ 输出电流必然 > 输入电流; 规格书 ICHG=0.822×IIN 方向反了 ⇒ "
-            "若真值是 ICHG=1.216×IIN, 则 390Ω 档实际 ICHG 是表值 0.67-0.82A 的 1.48 倍 "
-            "⇒ 单 pin 0.50-0.61A 超 0.5A 额定 ⇒ 390Ω 档的判据要重算 "
-            "(★ 需 hw-lead 用 datasheet 原文确认, 我给的是功率守恒推导)")
+            f"物理真值 {ratio_buck:.3f} (规格书写 {ratio_spec:.3f} = 倒数)", "FAIL",
+            "5V→3.7V 降压 ⇒ 输出电流必然 > 输入电流 (Pout=η·Pin ⇒ ICHG=η·Vbus·IIN/Vbat); "
+            f"规格书 ICHG=0.822×IIN 方向反了 ⇒ 若真值是 {ratio_buck:.3f}×IIN, "
+            "则 390Ω 档实际 ICHG 是表值 0.67-0.82A 的 ~1.48 倍 "
+            "⇒ 单 pin 0.50-0.61A 超 0.5A 额定 ⇒ 390Ω 档判据要重算 "
+            "(★ 需 hw-lead 用 datasheet 原文确认, 我给的是功率守恒推导 [推算])")
+    # 充电板耗散 (buck 正确口径): η 转换损耗 + 电感 DCR
+    for iin in (0.91, 1.00):    # 390Ω 档 IINMAX typ / 上界
+        ichg_b = iin * eta * 5.0 / 3.70
+        pin = 5.0 * iin
+        p_out = 3.70 * ichg_b
+        dcr = 0.050 * ichg_b ** 2
+        rec(f"THM-LOSS-{iin:.2f}", f"充电板耗散 @IIN={iin:.2f}A (buck, η=0.90)",
+            f"IIN {iin:.2f}A → ICHG {ichg_b:.3f}A / Pin {pin:.2f}W / Pout {p_out:.2f}W "
+            f"/ 转换损耗 {pin - p_out:.2f}W / 电感 DCR {dcr * 1000:.0f}mW", "INFO",
+            "★ MECH_BUDGET §2.1 的 0.8W = (5-4.2)×1A 是线性稳压器公式, 而 P10 网表有 "
+            "SW/L_CHG/C_BST/PMID ⇒ 开关型 buck ⇒ 耗散应按 Pin-Pout + DCR 算, 约 0.35-0.55W "
+            "(不是 0.8W) ⇒ 端件温升口径要改")
     # 端件表面温度 (按两种耗散口径)
     conv_a = 0.030 * 0.020          # 镜框端件外表面 ~600mm² [推算]
     r_conv = 1.0 / (10.0 * conv_a)   # 自然对流 h≈10 W/m²K [推算]
-    for p_diss, tag in ((0.35, "buck 口径 (Pin-Pout)"), (1.65, "线性口径 (规格书 ICHG/IIN 反了)")):
+    for p_diss, tag in ((0.50, "buck 正确口径 (Pin-Pout+DCR)"), (0.80, "MECH_BUDGET 线性口径")):
         dt = p_diss * r_conv
         rec(f"THM-SURF-{tag[:4]}", f"端件外表面温升 ({tag})",
             f"P={p_diss:.2f}W → ΔT {dt:.0f} K → 表面 {25 + dt:.0f} °C", "FAIL",
             "打印件 k=0.2 W/m·K, 端件无金属骨架 ⇒ 只能靠铝屏蔽罩 + 镜框主体导热; "
-            "两个口径差 4.7 倍 ⇒ 散热路径设计前必须先定死耗散口径")
+            "两个口径差 1.6 倍 ⇒ 散热路径设计前必须先定死耗散口径")
+    rec("THM-PATH", "★端件散热路径 (自己发现)",
+        "未验 → 必须有金属导热路径", "FAIL",
+        "端件是打印件 (k=0.2 W/m·K), 沿臂长 70mm 的导热阻 = 0.070/(0.2×1.8e-4) ≈ 1944 K/W "
+        "⇒ 0.5W 打进去靠塑料传到镜框桥根本不可能 ⇒ 必须有金属件 (铝屏蔽罩→金属骨架/桥) "
+        "或把充电板耗散降到可忽略; 老板已拍板'边戴边充不允许' ⇒ 充电时眼镜不戴 ⇒ "
+        "43°C 皮肤红线不适用, 但端件表面温度仍要过 60°C 判据 (烫手)")
     # 镜框侧 (鼻梁) 温升 —— 充电板挪到镜框后
     rec("THM-NOSE", "充电板挪镜框后的鼻梁侧温升",
         "未验", "INFO",
