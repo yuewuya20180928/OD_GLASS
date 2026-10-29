@@ -1683,6 +1683,16 @@ Rev A temple_cage: 2176 面 | 重复面 0 | 边多重性 {2:3244, 4:10} | 开放
 
 **新增第 4 封外发草稿**: `state/outbox/j_chg_rfq.md` (J_CHG 10p 规格书+报价 + FPC 三项能力 + ZIF 可插厚度上限 + 触点 ≥0.5A + 防呆) —— 外发经老板。
 
+#### (1.42) ★ ISS-113 验收: RKNN 复现链自愈 (干净机一条命令可跑通) (2026-10-29 19:1x)
+
+**问题**: `SW/RKNN_BENCH.md` §7 把 `acc` 列为可单独执行的复现命令, 但它依赖 `calib` 步生成的 `/tmp/rknn_bench/dataset.txt` ⇒ 干净机器上直接 AssertionError 崩掉 (项目总工 09:0x 亲自撞到)。
+
+**修法**: 新增 `ensure_dataset()` + `BenchError` + `--no-auto-calib` ⇒ convert/sim/acc 三步缺 dataset.txt 时**自动补跑 calib**, 裸 assert 全换成带行动指引的报错; §7 重写成 7.1 步间依赖表 / 7.2 命令清单 / 7.3 退出码 / 7.4 干净机复算核对表。
+
+**验收 (项目总工自己重跑)**: `rm -rf /tmp/rknn_bench` 后 `acc --no-auto-calib` → **rc=1 + 人话报错** ✅; 同状态跑 `convert` → 打印 `[dep] ⇒ 自动先跑 calib` → **rc=0** ✅。
+
+**★遗留 (已开 ISS-117)**: §3.3.1/§3.3.2 的逐值在干净机上复算不出来 (383.26ms vs 实测 354.51ms), 原因未查清 ⇒ sw-lead **没有脑补也没有偷偷改数** ⇒ 单开一条跟踪 (会连带影响 3.5 端到端推算口径)。
+
 #### (1.41) ★★★ 换芯选型打分裁决完成 (ISS-114/115 闭环, 2026-10-29 19:1x)
 
 **输入**: `HW/CHIP_SHORTLIST_EVIDENCE.md` (26 款 × 13 列证据, hw-lead) → **输出**: `HW/CHIP_SCORING_RESULT.md` (由 `state/gen_chip_scoring.py` 生成, 分数表硬编码 ⇒ 可复算)。
