@@ -1,15 +1,15 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-10-29 19:18)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-10-29 19:21)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
 
 ## 一、当前状态
 
-- 阶段门: 【总体】 阶段门 G1 ⏸️ | 健康度 red | 距通过 G1 还差 8 项 | 未闭环高危 12 条 | 逾期 0 条
+- 阶段门: 【总体】 阶段门 G2 ⏸️ | 健康度 red | 距通过 G2 还差 7 项 | 未闭环高危 3 条 | 逾期 0 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
-- 门禁: merge rc=0 · issue rc=0
-- 问题单: 共 118 条 · closed=47 · fixed=9 · fixing=3 · open=35 · verified=24
-- GitHub 上次推送: 2026-10-29T19:08:49+08:00
+- 门禁: merge rc=0 · issue rc=1
+- 问题单: 共 119 条 · closed=57 · fixed=8 · fixing=3 · open=27 · verified=24
+- GitHub 上次推送: 2026-10-29T19:19:06+08:00
 
 ## 二、执行中 (谁在干什么)
 
@@ -34,6 +34,7 @@
 - ISS-095 · ★[待 TI 确认] BQ25896 的 VSYS 脚是否必须接 —— 决定'电池挪镜框'回退分支要不要多两根电源 pin
 - ISS-102 · ★[待原厂] 追加问 4 条: AON 域静态电流 / USB VBUS detect 脚 / TPS62130A PG 极性 / BQ25896 VSYS
 - ISS-109 · ★R-GEO 六问全 0 答复: ISP 吞吐余量 1.9% vs 50.7% 完全相反 (一票否决级) + 采集链/散热结论都不能定版
+- ISS-119 · ★★换芯定案 + 迁移方案 (A7/A8): 选哪颗 + 网表/原理图/BOM 重做清单 + 为 RK3588 预留的可执行后手
 
 ### 3.3 三个总工可自行推进 (队列 cron 每 30 分钟自动派)
 
@@ -61,9 +62,10 @@
 
 ```
 {
-  "current_gate": "G1",
+  "current_gate": "G2",
   "passed_gates": [
-    "G0"
+    "G0",
+    "G1"
   ],
   "results": [
     {
@@ -78,9 +80,15 @@
     {
       "gate": "G1",
       "name": "原理图 / PCB 定稿",
+      "passed": true,
+      "missing": 0,
+      "miss_issue": [],
+      "miss_dec": [],
+      "miss_meas": []
+    },
+    {
+      "gate": "G2",
+      "name": "结构样机装配 (打印件 + 电池 + 光机位姿)",
       "passed": false,
-      "missing": 8,
-      "miss_issue": [
-        "ISS-001 [open] 原厂纸面资料 7 天未回 (第一轮 10-21 发出; 显示接口/电源域/FCC",
-        "ISS-003 [open] Q16 显示 TX 接口未确认 → 是否要加桥接芯片"
+      "mi
 ```
