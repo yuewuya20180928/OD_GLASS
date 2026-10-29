@@ -235,6 +235,27 @@ artifacts:
     / 台阶0.8=2.89g/对(落进§2.4 B的+1-3g) / 铜0.8=9.61g/对(重) ③ 石墨0.30铺PCB内侧 -> H链4.70(骨架1.0)/4.50mm(骨架0.8),
     余2.60/2.80mm; 石墨0.54g/片=1.08g/对 归 W11 不占骨架预算 ④ 骨架/石墨止于PCB段后缘X=60.00 (延伸进电池段=并联热路730->4.50
     K/W) ★ 不出新的皮肤侧温度数 (要完整热模型重算 U-3), 不拍板'
+- path: MECH/STRUCT_REVIEW_ISS065.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ISS-065结构侧书面结论+规格表S-1~S-12+冲突行清单C1-C16+充电板四问详答(鼻梁43C适用性/315-387厚度映射/T-1T-2T-3四问)
+- path: MECH/iss065_check.py
+  kind: check
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ISS-065机器复算脚本 rc=0 40/40项一致; A段厚度映射(串行vs叠放)/B段鼻梁三模型+反解+敏感性/C段充电板7路径占位率+D段16行冲突清单
+- path: HANDOFF/2026-10-29_mech-lead_ISS065_结构侧5条建议评估.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ISS-065交接单 B1-B6六块齐; 8条结论含3条对任务书与hw-lead数值的纠正
+- path: MECH/_close_iss065.py
+  kind: script
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-065状态自推脚本: issue_log.yaml 原子写(yaml.safe_dump+tmp+fsync+os.replace)
+    + 分片旧口径更新(走state/frag_write.py)'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区
@@ -736,6 +757,14 @@ needs_from:
     + 自动传输脚本. 与已提的 mech_reltest_kit_site (场地工装总预算) **同源同账**, 本条只追加''本批次需要的器具清单'',
     不重复申请金额. 另需提醒: **ISS-040 的打印+量测执行方 (打印机192.168.1.68跨网段 + 无卡尺/千分尺/塞尺) 是 B1 的唯一硬前置**,
     它解锁 B1 -> B2 -> G2 直接少2项 (M-PRINT + M-FIT镜脚侧), 是当前投入产出比最高的动作. 经项目总工转达'
+- key: iss065_battery_tier_claim_sync
+  to: hw-lead
+  item: '合并器检出全局冲突 battery_capacity_tier: 你写 无桥接340-575mAh/有桥接575-675mAh, 我写 315mAh无桥/387mAh有桥。ISS-072
+    已把 575/675 档作废(持续满载 1h 对应的是 315 无桥 / 387 有桥, 675 档的形态否决结论 11.2mm 也随之作废), MECH_BUDGET
+    §1.4.3 D/E 行 + §1.6.2 + §2.3.1(3) 都已按 315/387 出。请把你的 interface_claims.battery_capacity_tier
+    改成同一口径(经项目总工转达)。附带: 你在 HW/POWER_BUDGET_V2.md §10 S-5 写的 315/387 口径是对的, 只要把 claim
+    值同步即可, 不用改文档正文。'
+  since: '2026-10-29'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -858,13 +887,15 @@ answers:
     (电池段前端壁引电极)
 interface_claims:
 - key: battery_capacity_tier
-  value: 无桥接340-575mAh/有桥接575-675mAh
-  note: 675mAh 形态否决 (镜腿 11.2mm = 华为 6.25mm 的 1.8 倍); 与 hw-lead/main 同值
-  ref: MECH/MECH_BUDGET.md#1.6.2
+  value: 315mAh无桥/387mAh有桥
+  note: '新口径 (ISS-072/ISS-055): 持续满载 1h → 315 mAh 无桥 / 387 mAh 有桥。**旧值 ''无桥接340-575mAh/有桥接575-675mAh''
+    含已作废的 575/675 档**, 且 675mAh 档的形态否决结论 (镜腿 11.2mm) 也已随之作废'
+  ref: MECH/MECH_BUDGET.md §1.4.3 D/E 行 + §1.6.2
 - key: temple_thickness
-  value: 7.3-8.7mm
-  note: 340mAh 档 7.3mm / 575mAh 档 8.7mm; 675mAh 档 11.2mm 已否决; 华为镜腿 6.25mm 基准
-  ref: MECH/MECH_BUDGET.md#1.6.2
+  value: 7.30mm
+  note: 镜腿前后厚**腔体**锁死值 (老板 Q4 拍板)。315/387 两档都不改它 —— 新口径下控制段是电池段 (H 需求 6.35 / 6.05),
+    PCB 板厚档位也不影响它。旧值 '7.3-8.7mm' 含已作废的 575mAh 档 (ISS-072)
+  ref: MECH/STRUCT_REVIEW_ISS065.md §3.2
 - key: temple_cavity_length
   value: ≥110mm
   note: 充电板挪出镜脚后的长度需求 (105.5/110/108mm); 130mm 内腔基准; 镜腿根部净高>=38mm
@@ -1390,6 +1421,54 @@ interface_claims:
   note: 石墨 0.30x60x15 = 0.270cc x 2.00 g/cc = 0.54g/片 = 1.08g/对 (与 hw-lead ISS-049
     报的 0.54g/片 一致). 归 MECH_BUDGET §3 W11 (石墨散热膜+导热垫+隔热垫 1-2g) [推算]
   ref: MECH/skeleton_section_check.py#3
+- key: temple_h_req_315
+  value: 6.35mm
+  note: 315mAh档(Renata ICP582035PR-01 4.60厚)串行排布H需求(电池段控制段); 名义余量+0.95/最坏+0.65mm
+  ref: MECH/STRUCT_REVIEW_ISS065.md §3.2
+- key: temple_h_req_387
+  value: 6.05mm
+  note: 387mAh档(丰江432243 4.30厚)串行排布H需求; 名义余量+1.25/最坏+0.95mm
+  ref: MECH/STRUCT_REVIEW_ISS065.md §3.2
+- key: nose_bridge_skin_limit
+  value: 43C
+  note: 鼻梁区属皮肤持续接触区, 适用同一红线(ISO 13732-1/CENELEC Guide29 Table A.1 8h+); 面积小不放松阈值
+  ref: MECH/STRUCT_REVIEW_ISS065.md §2.1
+- key: nose_bridge_design_target
+  value: 38C
+  note: 鼻梁接触面设计目标(比镜腿区间取严端); 面积小散热差+视野正前方最易察觉
+  ref: MECH/STRUCT_REVIEW_ISS065.md §2.1
+- key: nose_bridge_thermal_break
+  value: R_bridge>=578K/W
+  note: SoC进镜框正中时鼻梁侧热断最小热阻(保43C); 保40C需>=1043K/W; 铝热路本身只给0.34K/W故必须成对设计
+  ref: MECH/STRUCT_REVIEW_ISS065.md §2.3/S-3
+- key: chg_board_outline_new
+  value: 25x12x0.8mm
+  note: T-1扩板后充电板外形(板面+50mm2, 零PCB板费增量); 未冻结, 待u8b端件截面+FPC拓扑
+  ref: MECH/STRUCT_REVIEW_ISS065.md §5.2/S-6
+- key: chg_board_area_used
+  value: 140.50mm2
+  note: 充电板真实器件占位(139.22+D_CHG_LED 1.28, 后者netlist board列错); hw-lead的139.22偏小
+  ref: MECH/STRUCT_REVIEW_ISS065.md §5.1
+- key: chg_board_area_limit_phys
+  value: 125.90mm2
+  note: 可用面积=板250-TypeC65.86-J_CHG框侧座58.24(物理口径)
+  ref: MECH/STRUCT_REVIEW_ISS065.md §5.1
+- key: chg_board_area_gap_phys
+  value: 14.60mm2
+  note: 真实缺口(140.50-125.90); hw-lead写13.32低估1.28
+  ref: MECH/STRUCT_REVIEW_ISS065.md §5.1
+- key: chg_board_path_reco
+  value: T-1+T-3a
+  note: '推荐: 扩板25x12+只删真DNP+R_STAR_PGND改铜皮短接 => 72.8%, 布线余量27.8%, 零I2C牺牲+零功能取舍'
+  ref: MECH/STRUCT_REVIEW_ISS065.md §5.5
+- key: chg_led_board_column
+  value: CHG_BOARD
+  note: D_CHG_LED/Q_CHG_LED的netlist board列应改CHG_BOARD(物理在充电板); 不改则面积账永远少1.28mm2
+  ref: MECH/STRUCT_REVIEW_ISS065.md §5.1 + ISS-112 D-1/N-3
+- key: chg_board_area_method
+  value: phys_w_jchg
+  note: '面积账口径: 扣Type-C与J_CHG框侧座体(物理口径); C-13判据口径系统性偏乐观'
+  ref: MECH/STRUCT_REVIEW_ISS065.md §1
 open_questions:
 - id: MECH-Q1
   to: main

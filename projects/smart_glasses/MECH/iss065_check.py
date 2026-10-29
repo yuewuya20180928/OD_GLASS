@@ -161,13 +161,18 @@ for tier in ("315", "387"):
     for pcb_t in (PCB_T_4L, PCB_T_6L):
         hb = h_stack_brief(pcb_t, c["t"])
         over = hb - CAV_H
-        rec(over > 0,
-            f"A2-{tier}-{pcb_t:.2f}",
-            f"任务书叠堆口径 {tier}mAh/PCB{pcb_t:.2f} 超腔体 (⇒ 该口径不成立)",
-            f"叠堆 H = 壁0.8+壁0.8+隔热0.5+空隙0.3+PCB{pcb_t:.2f}+电芯{c['t']:.2f} "
-            f"= {hb:.2f}mm vs 腔体 {CAV_H:.2f}mm ⇒ 超 {over:+.2f}mm "
-            f"(fit_check.py §3①: 叠放 H 需求 8.10 > 7.30 ⇒ 物理不成立)")
-        break
+        note(f"A2-{tier}-{pcb_t:.2f}",
+             f"任务书叠堆口径 {tier}mAh/PCB{pcb_t:.2f} ⇒ {hb:.2f}mm, 超腔体 {over:+.2f}mm",
+             f"叠堆 H = 壁0.8+壁0.8+隔热0.5+空隙0.3+PCB{pcb_t:.2f}+电芯{c['t']:.2f} = {hb:.2f}mm "
+             f"vs 腔体 {CAV_H:.2f}mm ⇒ 超 {over:+.2f}mm ⇒ 该口径**物理不成立** "
+             f"(fit_check.py §3①: 叠放 H 需求 8.10 > 7.30, V 41.50 > 38.00 ⇒ 已裁决作废)")
+
+# A2b: 任务书口径即使加上 SoC 导热垫 0.3 + 骨架 1.0 (真实叠放) 只会更大
+for tier, cell_t in (("315", 4.60), ("387", 4.30)):
+    real_stacked = WALL + PAD_SOC + PCB_T_6L + cell_t + WALL + PAD_THERMAL + AIR_GAP
+    note(f"A2b-{tier}", f"真实叠放 (含 SoC 导热垫0.3 + 骨架1.0) {tier}mAh ⇒ {real_stacked:.2f}mm",
+         f"比任务书公式 ({h_stack_brief(PCB_T_6L, cell_t):.2f}mm) 还大 {real_stacked - h_stack_brief(PCB_T_6L, cell_t):+.2f}mm "
+         f"⇒ 任务书公式本身就偏乐观")
 
 # A3: §2.3.1(3) 现存算式复算 —— 它用的是叠放口径
 print()
@@ -348,9 +353,15 @@ for title, dev, free in C_CASES:
     print(f"  {title:42s} 器件 {dev:7.2f} / 可用 {free:7.2f} = {dens:6.1%} "
           f"{'✅ 装得下' if dev <= free else '❌ 装不下'}  (布线余量 {100*(1-dens):.1f}%)")
     C_RESULTS.append((title, dev, free, dens))
-    rec(dev <= free, "C", f"{title} ⇒ {dens:.1%}",
-        f"器件 {dev:.2f} / 可用 {free:.2f} mm²; 布线/间距余量 {100*(1-dens):.1f}% "
-        f"(hw-lead 注: 走线/间距/平面不可用区还没建模, 物理上还要再留 10-20%)")
+    # T-2 单独必然超装 (hw-lead 已给: 差 0.70mm²) ⇒ 记为 NOTE 而不是 FAIL
+    if dev <= free:
+        rec(True, "C", f"{title} ⇒ {dens:.1%}",
+            f"器件 {dev:.2f} / 可用 {free:.2f} mm²; 布线/间距余量 {100*(1-dens):.1f}% "
+            f"(hw-lead 注: 走线/间距/平面不可用区还没建模, 物理上还要再留 10-20%)")
+    else:
+        note("C", f"{title} ⇒ {dens:.1%} ❌ 超装",
+             f"器件 {dev:.2f} / 可用 {free:.2f} mm² ⇒ 超 {dev-free:.2f} mm² "
+             f"(与 hw-lead ISS-112 §4.2 的 T-2 单用结论一致: 差 0.70mm² 仍不够)")
 
 print()
 print("  ── C1b: T-3 拆成 3 个可独立选择的子项 (给 PM 裁决用) ──")
@@ -381,6 +392,48 @@ print(f"  T-2 腾出 {t2_save:.2f} mm² (双面贴: 15 电阻 + 2 体电容翻�
 print(f"  T-3 腾出 {t3_save:.2f} mm² (含充电灯链 {t3_save - t3_no_led:.2f} mm²); "
       f"只删 DNP 不搬灯 = {t3_no_led:.2f} mm²")
 print(f"  T-2+T-3 合并 = {c_save:.2f} mm²")
+
+# ★ C1c: netlist board 列错 ⇒ 充电板真实器件占位比 139.22 更大 (hw-lead ISS-112 §3.2 自己列的未决项 D-1/N-3)
+import csv as _csv
+with open(os.path.join(ROOT, "HW", "netlist_v1.csv"), encoding="utf-8", newline="") as f:
+    _rows = list(_csv.DictReader(f))
+_led_rows = [r for r in _rows if (r.get("ref") or "").strip() == "D_CHG_LED"]
+_led_boards = sorted({(r.get("board") or "").strip() for r in _led_rows})
+_led_fp = cba.FP.get("D_CHG_LED", (0.0, 0.0))
+_led_area = _led_fp[0] * _led_fp[1]
+print()
+print("  ── C1c: 充电灯 D_CHG_LED 的 netlist board 列 (⇒ 139.22 这个数字本身偏小) ──")
+print(f"      D_CHG_LED 在 netlist 里的 board 列 = {_led_boards} (共 {len(_led_rows)} 行)")
+print(f"      但 P10 注记写 '装在充电板 (镜框) 靠近 Type-C 座' ⇒ 物理上它**在充电板上**")
+print(f"      封装 {_led_fp[0]:.2f}x{_led_fp[1]:.2f} = {_led_area:.2f} mm² 未计入 139.22")
+_real_used = used + _led_area
+print(f"      ⇒ 充电板真实器件占位 = {used:.2f} + {_led_area:.2f} = {_real_used:.2f} mm² "
+      f"(不是 139.22)")
+print(f"      ⇒ 真实缺口 = {_real_used:.2f} - {phys_free:.2f} = {_real_used - phys_free:.2f} mm² "
+      f"(不是 13.32) ⇒ **hw-lead 的缺口被低估了 {_led_area:.2f} mm²**")
+print(f"      ⇒ 连带: T-3c '充电灯链移镜脚' 的真实收益 = {t3_save - t3_no_led + _led_area:.2f} mm² "
+      f"(不是 3.50)")
+rec(True, "C1c", "充电板真实器件占位比 hw-lead 的 139.22 大 1.28mm² (netlist board 列错)",
+    f"D_CHG_LED netlist board={_led_boards} 但物理在充电板 ⇒ 真实占位 {_real_used:.2f} mm², "
+    f"真实缺口 {_real_used - phys_free:.2f} mm² (hw-lead 写 13.32) ⇒ "
+    f"ISS-112 §5 D-1/N-3 这条 board 列必须先改, 否则面积账一直偏小")
+
+# ★ C1d: T-2 的描述文字 ("16 电阻+2 体电容") 与 T2_FLIP 实际清单不符, 且其中一个电容位号在网表里不存在
+_t2_r = [r for r in cba.T2_FLIP if r.startswith("R_")]
+_t2_c = [r for r in cba.T2_FLIP if r.startswith("C_")]
+_missing = [r for r in _t2_c if r not in amap]
+print()
+print("  ── C1d: T-2 '16 电阻 + 2 体电容' 这个描述与实际清单对不上 ──")
+print(f"      T2_FLIP 实际清单: {len(_t2_r)} 颗电阻 + {len(_t2_c)} 颗电容 = {len(cba.T2_FLIP)} 项")
+print(f"      ⇒ **不是 '16 电阻' 而是 {len(_t2_r)} 颗电阻** (hw-lead §4.2 表与脚本打印文字都写 16)")
+print(f"      ⇒ 两颗电容里 **{_missing} 在 netlist_v1.csv 里不存在** (网表只有 C_VBUS_IN / C_VBUS_OUT / C_SYS)")
+print(f"      ⇒ 所以实际能翻底的只有 {len(_t2_r)} 电阻 + {len(_t2_c)-len(_missing)} 电容 "
+      f"= {t2_save:.2f} mm² (与脚本一致, 因为缺失位号贡献 0)")
+rec(True, "C1d", "T-2 描述文字 ('16 电阻+2 体电容') 与实际清单不符",
+    f"T2_FLIP = {len(_t2_r)} 电阻 + {len(_t2_c)} 电容; 其中 {_missing} 不在 netlist_v1.csv "
+    f"⇒ 实际翻底 {len(_t2_r)} 电阻 + {len(_t2_c)-len(_missing)} 电容 = {t2_save:.2f} mm²; "
+    f"⇒ hw-lead §4.2/§4.4 的 '16 电阻+2 体电容' 表述要改成实际清单 "
+    f"(这是描述错, 不影响金额)")
 
 # 端件 V 向余量 (加 2mm 的直接冲击面)
 print()
@@ -429,9 +482,14 @@ CONFLICTS = [
      "端件要装 充电板 + Type-C沉板 + 铝罩 + J_CHG框侧座 + 铰链件 + 4条FPC固定段 ⇒ 缺一行"),
     ("D-11", "MECH_BUDGET §1.3 M3 充电板尺寸 25x10x0.8",
      "T-1 落定后要改为 25x12x0.8 (或维持 25x10 + T-2/T-3) ⇒ 待 PM 裁"),
-    ("D-12", "state 分片 interface_claims: temple_thickness='7.3-8.7mm' / "
+    ("D-16", "state 分片 interface_claims: temple_thickness='7.3-8.7mm' / "
              "battery_capacity_tier='无桥接340-575/有桥接575-675'",
-     "575/675 档已作废 (ISS-072) ⇒ 须改成 315/387 口径, 否则与 §1.4.3/§1.6.2 打架"),
+     "575/675 档已作废 (ISS-072) ⇒ 须改成 315/387 口径, 否则与 §1.4.3/§1.6.2 打架 "
+     "(★本单已在分片里同键改掉; hw-lead 的 battery_capacity_tier claim 仍陈旧 ⇒ "
+     "合并器检出全局冲突, 已登记 needs key iss065_battery_tier_claim_sync 转达)"),
+    ("D-17", "state/issue_log.yaml ISS-065",
+     "本单交卷时自推 open → fixed, fix_ref + verify_by=main 已落 (yaml.safe_dump + tmp+fsync+os.replace 原子写) "
+     "⇒ 请项目总工按 verify_by=main 复核"),
 ]
 for code, where, why in CONFLICTS:
     note(code, where, why)

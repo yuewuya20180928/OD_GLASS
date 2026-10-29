@@ -140,7 +140,14 @@ def main() -> int:
 
         # C4 逾期
         due = parse_date(it.get("due"))
-        overdue = bool(due and due < t and st not in ("closed", "deferred", "wontfix"))
+        # ★2026-10-30 00:0x 细化: **verified 不再算逾期** —— verified = 已交付且已被独立验收, due 已无意义;
+        #   C4 的目的是「到点没干完 → 升级到项目总工」, 对已验收的单没有意义。
+        overdue = bool(due and due < t and st not in ("closed", "deferred", "wontfix", "verified"))
+        # ★2026-10-30 00:3x (cron 会话补登记): **verified 必须带 verify_date** ——
+        #   否则「什么时候闭环的」不可查, 下一轮 due 一翻牌又会刷出一堆假阳性 (10-30 这次刷了 19 条)。
+        #   ★这条只查**数据缺口**, 不动上面的逾期口径 (不跟另一个会话改同一行, 免得互相覆盖)。
+        if st == "verified" and not it.get("verify_date"):
+            problems.append("verified 但没有 verify_date (闭环时间不可查)")
 
         # C5 双向覆盖
         sb = it.get("source_blocker")

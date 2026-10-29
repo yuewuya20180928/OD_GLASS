@@ -174,6 +174,12 @@ python3 state/daily_check.py   # 巡检 + 漂移检测
 - **配套**: 上轮对 boss 承诺过"某条冲突下一轮直接派" ⇒ 就要登记成**正式 issue** 走 advance.py 正常派活路径, 而不是口头记着 (承诺要有单号可追)。
 
 ### ★★★ 手动派活会跟队列 cron 撞车 —— 一个 agent 两个写会话 (2026-10-29 09:1x 实测)
+★★★ 派活顺序必须是 **先落 fixing, 再 spawn** (第三例撞车的真根因)
+- **血证 (10-29 19:07 vs 19:18, 第三例)**: 队列 cron 在 **19:07** 给 hw-lead 派了 ISS-043; 我在 **19:18** 手动派 ISS-118 给同一个 agent ⇒ **两个写会话同时写 HW/** ⇒ 19:32 两个会话双双结束, **两条都是 0 产出**。
+- ★**真根因不是"没查 sessions_list" (我查了, 但查完到 spawn 之间隔了 30 分钟)**, 而是**落盘顺序**: 我是 **先 spawn, 后落 fixing** ⇒ 中间那个窗口里 (19:07 cron 派活时) 该 issue 在 issue_log 里还是 `open` ⇒ cron 看到"这个 agent 空闲 + 这条 open" ⇒ 又派一条给同一个 agent。
+- ⇒ ★**铁律: 派活顺序反过来 —— ①先 `python3 state/advance.py --apply --only <ISS-ID>` 落 `fixing` (立刻) ②再 `sessions_spawn`**。落了 fixing, 下一轮 cron 的 in_flight 规则就会跳过这个 agent ⇒ **窗口消失**。★spawn 失败再回滚成 open。
+- ★**这与本文件另一条铁律是同一件事**: "派活出去的那一秒, 就把 issue 状态落成 fixing" —— 之前我把它理解成"spawn 完再落", 现在明确是"**spawn 之前就落**"。
+
 
 - **现象**: 09:11-09:12 我手动派 ISS-112 (hw-lead) + ISS-113 (sw-lead); **同一分钟, 队列 cron (`ARS45 队列自动派活`, 表达式 `7,37 * * * *`) 也派了同一批** ⇒ 结果 **hw-lead 开 2 个写会话 / sw-lead 开 3 个**。两边 brief 内容不同但**写同一批文件** (HW/CHARGE_BOARD_SPEC.md / BOM_v1.csv / SW/tools/rknn_bench.py …) ⇒ 并发写同一文件 = 截断/互相覆盖。
 - **根因 (两个都踩了)**:
@@ -425,3 +431,25 @@ python3 state/advance.py       # 下一批可执行动作 (--apply 落盘派活)
 python3 state/stage_gate.py    # 阶段门 G0-G4 实时判定 (--json 结构化)
 python3 state/gate_check.py    # 交付质量门 18/18
 ```
+
+### ★★★ `state/issue_log.yaml` 有并发写者 (2026-10-30 00:2x 实测) —— 同一 agent 的两个会话会互相覆盖
+- **现象 (血证)**: 00:05 我读到 ISS-049 = `fixed / verify_date=None`; 00:20 再读 = `verified / 2026-10-30`
+  ⇒ 老板的 **webchat 会话 (= 同一个 main agent 的另一个会话)** 在 00:06 也写了 `issue_log.yaml`
+  (顺延 due + 关 ISS-049) ⇒ **"读-改-写"隔几秒, 文件就换人了**。
+- **铁律 (写 issue_log.yaml 必守)**:
+  1. `flock state/.issue_log.lock` 串行 ⇒ ②**锁内重读** (锁外读的那份是过期的) ⇒ ③锁内改 + **原子写** (tmp + `os.replace`)。
+  2. 已经被人做掉的动作**不重复做** (脚本里判 `status` 再改), 只补一条独立复核 note。
+  3. ★判定口径文件 (`state/issue_check.py` 等) 若另一个会话已改过同一行 ⇒ **不要硬改回去**: 认它的版本,
+     只加**不冲突**的增量行 (我这轮就是这么处理的: 它把 `verified` 排除出逾期口径, 我只补了
+     "verified 必须带 verify_date" 的数据缺口检查)。⇒ 少改一行 = 少一次互相覆盖。
+- ★**推论**: 同一时刻只让**一个会话**改同一个真源文件; 另一个会话在跑的时候, 我这边只读 + 等。
+
+### ★★ 逾期口径: `verified` = 已闭环, 不该再算"未闭环" (2026-10-30 00:2x)
+- **现象**: 10-30 跨零点, 10-29 的 due 集体翻牌 ⇒ `issue_check` 一次刷出 **37 条逾期**, 其中 **26 条是已经
+  verified/fixed 的单** (10-27/10-28 就闭环了) ⇒ 假阳性淹没真信号 (drift 报警 "逾期 0 → 37")。
+- **根因**: 判定口径只把 `closed/deferred/wontfix` 排除在逾期外 ⇒ `verified` (已独立验收) 被当成"未闭环"。
+- **修法 (两处都要, 缺一就复发)**:
+  ①**判定口径**: `verified` 不再算逾期;
+  ②**数据**: `verified` 的单必须带 `verify_date` —— 否则"什么时候闭环的"不可查 ⇒ 下次 due 一翻牌又是假阳性。
+     (我这轮回填了 8 条: 依据 = 各单 `verify_result` 首段里写的复核日期, **抄的, 不是编的**。)
+- ★**铁律**: 看到"逾期条数暴涨"先分清**真逾期** vs **已闭环但 due 翻牌** —— 前者要催办, 后者要修口径 + 补数据。

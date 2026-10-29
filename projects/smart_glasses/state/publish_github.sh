@@ -62,14 +62,14 @@ cd "$PUB" || exit 1
 #   while reading sideband packet") ⇒ 普通 fetch 失败。**浅克隆 (--depth=1 --single-branch)
 #   的包小得多, 实测能过** ⇒ fetch 失败时降级到浅克隆, 而不是直接放弃发布。
 #   ★★2026-10-29 09:28 修正: 浅克隆**不要加 --filter=blob:none** (见下面 65 行附近的注释)。
-if ! timeout 120 git fetch -q origin main 2>/tmp/_fetch_err.log; then
+if ! timeout 600 git fetch -q origin main 2>/tmp/_fetch_err.log; then
   echo "[2] ⚠️ 普通 fetch 失败 —— 降级试浅克隆 (--depth=1 --single-branch)"
-  rm -rf "$PUB/.git"
+  # ★★2026-10-29 23:5x 改动: **失败时不要先删 $PUB/.git** —— 删了就毁掉"可推增量的本地发布树", 下一轮只能重新全量克隆 (这个网络下要 10 分钟+ 且常挂) ⇒ 改成: 克隆到 tmp_clone 成功后再整体换。
   # ★★2026-10-29 09:28 实测修正: **不要加 --filter=blob:none** —— 加了之后 git-pack 传输本身能过,
   #   但 **checkout 阶段要按需拉 blob ⇒ 卡在 "Clone succeeded, but checkout failed"** ⇒ 整个 clone 返非零
   #   ⇒ 脚本误判"浅克隆失败"并把已经下好的仓库 rm 掉。去掉 filter 后 (blob 全下) 实测 10 分钟内完整跑通。
   #   ⇒ 超时给足 (600s): 这个网络下全 blob 浅克隆要 ~10 分钟。
-  if ! timeout 600 git clone -q --depth=1 --single-branch \
+  if ! timeout 900 git clone -q --depth=1 --single-branch \
        git@github.com:$REPO.git "$PUB.tmp_clone" 2>>/tmp/_fetch_err.log; then
     rm -rf "$PUB.tmp_clone"
     echo "[2] ❌ 浅克隆也失败 —— ★中止发布 (避免把远端历史压扁)"
