@@ -177,7 +177,7 @@ def synth_version() -> str:
             "model=yolov5s-int8-ag2-1a2b3c4d isp=ISP-CALIB-0003-r2 mode=prod calib=ISP-CALIB-0003-r2")
 
 
-def selftest_mode(break_item: str = "") -> int:
+def selftest_mode(break_item: str = "", out_path: str | None = None) -> int:
     """离线自测: 合成数据 → 判 rc。不需要板子。"""
     res = synth_selftest(break_item)
     statuses = [v["status"] for v in res.values()]
@@ -195,6 +195,19 @@ def selftest_mode(break_item: str = "") -> int:
     print("-" * 78)
     print(f"结论: rc={rc} (0=全过 1=有项不通过 2=有项未验)")
     print("证据: [实测] PC 侧合成自测 (判定逻辑), 不代表板端 S2 已通")
+    if out_path:
+        rec = {
+            "tool": "s2_board_selftest.py (selftest)",
+            "selftest": res,
+            "version_string": synth_version(),
+            "version_source": "合成数据 (自测)",
+            "model_sha8": "1a2b3c4d",
+            "log_scan": {"scanned_lines": 0, "errors": []},
+            "evidence": "[实测] PC 侧合成自测数据, 不代表板端 S2 已通",
+        }
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(rec, f, ensure_ascii=False, indent=2)
+        print(f"合成结果已落盘: {out_path}")
     return rc
 
 
@@ -210,7 +223,7 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.selftest:
-        return selftest_mode(args.break_item)
+        return selftest_mode(args.break_item, args.out)
 
     if not os.path.exists(args.config):
         print(f"❌ 配置不存在: {args.config}", file=sys.stderr)

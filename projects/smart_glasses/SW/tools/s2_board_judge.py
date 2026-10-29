@@ -241,6 +241,13 @@ def judge_cb01(ev: dict, cfg: dict) -> dict:
     matched_generic = [m for m in matched if str((m or {}).get("source", "")).lower() == "generic-example"]
     matched_real = [m for m in matched if m not in matched_generic]
 
+    # ★ 签名表里没有真值签名 ⇒ "不再匹配任何 BOOT 签名" 这句是**空判** —— 判不出就不许判过
+    if not real_sigs:
+        return {"id": "CB-01", "name": "设备重新枚举回正常态", "result": UNVER,
+                "why": ("P3 未落地 (usb_signatures 里没有真值签名) —— "
+                        "『刷完后不再匹配任何 BOOT 签名』无法机械判定, 不许判过"),
+                "evidence": ["s2_step5_reenum.json"]}
+
     now_vid = reenum.get("vidpid")
     base_vid = base.get("vidpid")
     if not now_vid or not base_vid:
@@ -608,6 +615,14 @@ def selftest() -> int:
         rep6 = judge_all(ev6, json.loads(json.dumps(_cfg_all())))
         cb05 = next(c for c in rep6["cbs"] if c["id"] == "CB-05")
         cases.append(("T6 只重启 1 次 → CB-05 判未验", cb05["result"] == UNVER))
+
+        # T7 签名表里没有真值签名 → CB-01 判未验 ("不匹配任何 BOOT 签名"是空判)
+        ev7 = make_ev(root, "all")
+        cfg7 = json.loads(json.dumps(_cfg_all()))
+        cfg7["usb_signatures"]["entries"] = []
+        rep7 = judge_all(ev7, cfg7)
+        cb01b = next(c for c in rep7["cbs"] if c["id"] == "CB-01")
+        cases.append(("T7 无真值签名 → CB-01 判未验 (空判不算过)", cb01b["result"] == UNVER))
 
     print("=" * 78)
     print("s2_board_judge 自测 (纯逻辑, 无需硬件)")

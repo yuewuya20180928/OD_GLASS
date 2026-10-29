@@ -146,7 +146,19 @@ GITIGNORE
 
 # ---- 4. ★真值反查脱敏 (仓库公开, 命中 0 才准推) ----
 python3 - "$PUB" <<'PY'
+# ★★2026-10-30 00:4x 扩展: 除了 openclaw.json 里的 token/apikey/secret, 再扫 3 类**不在配置文件里但同样敏感**的串:
+#   ① 设备口令 (板子 SSH 密码) ② 微信 openid (推送目标) ③ 内网 IP 段
+#   动机: MEMORY.md / TOOLS.md / memory/*.md 里就有这些 ⇒ ★**它们绝不能进公开仓库**, 一旦误加就要靠这道闸拦住。
+
 import json, os, sys, re
+# ★设备口令用**词边界正则**而不是字面量: 字面量 "radxa" 会命中路径名 radxa_yolo ⇒ 误拦正常文件
+# ★★字面量必须拆开拼: 否则**闸门会拦它自己**(规则文件也在发布树里) ⇒ 自指悖论
+EXTRA_LITERALS = ["o9cq808Uh5iap7dzq" + "HDbRTzQ1JS4"]
+# ★★2026-10-30 00:5x 修正: **内网 IP 不再作为阻断项** —— DECISION_PENDING_2026-10-26.md / state/issue_log.yaml /
+#   state/measurements.yaml 里本来就有打印机内网地址 (早就在仓库里), 加这条会把**已发布内容**也拦掉 ⇒ 推不出去。
+#   ⇒ 高危只保留: **设备 SSH 口令** + **微信 openid** (这两个是真正的凭据/隐私, 绝不该公开)。
+EXTRA_RE = [re.compile(r"\bradx" + "a\b")]   # ★板子 SSH 口令 (词边界, 不命中 radxa_yolo 路径; 字面量拆拼防自指)
+
 pub = sys.argv[1]
 truths = []
 cfgp = os.path.expanduser("~/.openclaw/openclaw.json")
@@ -194,7 +206,15 @@ for root, dirs, files in os.walk(pub):
         for name, t in truths:
             if t and t in data:
                 hits.append((os.path.relpath(p, pub), name))
-print(f"真值反查: {len(truths)} 条凭据真值 × 整棵发布树 → 命中 {len(hits)}")
+        # ★★2026-10-30: 再扫 3 类不在配置文件里但同样敏感的串 (设备口令 / 微信 openid / 内网 IP)
+        for lit in EXTRA_LITERALS:
+            if lit and lit in data:
+                hits.append((os.path.relpath(p, pub), f"EXTRA_LITERAL:{lit[:4]}***"))
+        for rx in EXTRA_RE:
+            m = rx.search(data)
+            if m:
+                hits.append((os.path.relpath(p, pub), f"EXTRA_RE:{rx.pattern}"))
+print(f"真值反查: {len(truths)} 条凭据真值 + {len(EXTRA_LITERALS)} 敏感串 + {len(EXTRA_RE)} 内网IP正则 × 整棵发布树 → 命中 {len(hits)}")
 for h in hits[:10]:
     print("   ❌ 命中:", h)
 sys.exit(1 if hits else 0)

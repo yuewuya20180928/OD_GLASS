@@ -1,0 +1,29 @@
+{
+  "_readme": "6 个 cron 任务模板 —— 换机后重建。★把 <WS> 换成新机的 workspace 绝对路径, <WEIXIN_TO_ID> 换成老板的微信 ID。★最关键的是 token 守护那条 (每 15 分钟): 它是『限额用完前把进展推进 GitHub』的执行者, 没有它照样会断电丢信息。",
+  "jobs": [
+    { "name": "ARS45 队列自动派活", "expr": "7,37 * * * *", "tz": "Asia/Shanghai",
+      "model": "minimax/MiniMax-M3.1-Flash", "sessionTarget": "isolated",
+      "delivery": { "mode": "announce", "to": "<WEIXIN_TO_ID>" },
+      "note": "每 30 分钟按 state/advance.py 派活。★硬规则: 先落 fixing 再 spawn; spawn 后 subagents list 核对; 发现同一 agent 两条会话 kill 后起的" },
+    { "name": "ARS45 GitHub 自动同步", "expr": "13,43 * * * *", "tz": "Asia/Shanghai",
+      "model": "minimax/MiniMax-M3.1-Flash", "sessionTarget": "isolated", "timeoutSeconds": 2400,
+      "delivery": { "mode": "none" },
+      "note": "跑 bash state/publish_github.sh。★这个网络下 git 传输慢, timeout 给 2400s" },
+    { "name": "ARS45 项目每日巡检", "expr": "0 9 * * *", "tz": "Asia/Shanghai",
+      "model": "minimax/MiniMax-M3.1-Flash", "sessionTarget": "isolated", "timeoutSeconds": 300,
+      "delivery": { "mode": "announce", "to": "<WEIXIN_TO_ID>" },
+      "note": "跑 python3 state/daily_check.py, 只报事实" },
+    { "name": "ARS45 继续执行后继计划", "expr": "30 9 * * *", "tz": "Asia/Shanghai",
+      "model": "minimax/MiniMax-M3.1-Flash", "sessionTarget": "isolated",
+      "delivery": { "mode": "announce", "to": "<WEIXIN_TO_ID>" },
+      "note": "四段推进: A 内部可派 / B 外发只备草稿不发送 / C 老板拍板整理 / 核验四道门 + 推 GitHub" },
+    { "name": "ARS45 token 守护 (每 15 分钟, 限额前推进度快照到 GitHub)", "expr": "*/15 * * * *", "tz": "Asia/Shanghai",
+      "model": "minimax/MiniMax-M3.1-Flash", "sessionTarget": "isolated", "timeoutSeconds": 1200,
+      "delivery": { "mode": "none" },
+      "note": "★老板 09:59 亲自要求: rc=0 只回一行别做事; rc=3 ⇒ 写 PROGRESS_SNAPSHOT.md + 推 GitHub + 写 state/.last_github_push" },
+    { "name": "ARS45 三总工周交付窗口", "expr": "0 10 * * 5", "tz": "Asia/Shanghai",
+      "model": "minimax/MiniMax-M3.1-Flash", "sessionTarget": "isolated",
+      "delivery": { "mode": "announce", "to": "<WEIXIN_TO_ID>" },
+      "note": "每周五 10:00 汇总三个总工的交付窗口" }
+  ]
+}

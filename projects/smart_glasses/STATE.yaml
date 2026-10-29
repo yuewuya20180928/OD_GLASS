@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-10-30T00:23:31+08:00'
+  generated_at: '2026-10-30T00:45:39+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1793147869234018364
     sw-lead:
       file: sw.yaml
-      size: 64368
-      sha1: 954699503ed3
-      mtime_ns: 1793236961356434942
+      size: 72151
+      sha1: 308b837b6e62
+      mtime_ns: 1793291629373775256
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -1342,23 +1342,18 @@ domains:
     updated_by: sw-lead
     status:
       phase: P2(方案设计)
-      progress_pct: 54
-      health: red
-      summary: '10-29 ISS-113 闭环 (项目总工登记→sw-lead 修): ①SW/tools/rknn_bench.py 修步间依赖 —— convert/sim/acc
-        三步的 INT8 量化需要 calib 步生成的 /tmp/rknn_bench/dataset.txt, 旧代码是裸 assert ⇒ 干净机器直接跑 acc 崩成 AssertionError;
-        现在缺 dataset.txt 时**自动先跑 calib** (新增 --no-auto-calib 可关, 关掉后给指向 calib 步的明确报错并 rc=1), 裸 assert 全部换成
-        BenchError (0 剩余); ②SW/RKNN_BENCH.md §7 重写: 每条命令都能在干净机器上独立跑通 + 新增步间依赖表 + 明确写 ''WORK=/tmp/rknn_bench
-        会被系统清理, 重跑需重新 calib''; ③既有结论数字一个未改 (e2e 台阶表 56.99/54.98/67.01/48.47ms 与 10.09MiB 产物 10575159B
-        复算逐个吻合) || 10-28 ISS-104 电源状态术语统一闭环: ①新增 SW/POWER_STATE_SEMANTICS.md: 关机(poweroff,真断电,SoC无电,零行为承诺,唤醒仅
-        VBUS/PG/按键)/待机(standby,原深度休眠,SoC低功耗运行,进待机遇落盘) 两态×7列分列 + 命名对照(poweroff/standby 唯一叫法, suspend 禁用别名,
-        深度休眠=旧称) + 续航两行分列(待机2.8h vs 关机5-11个月) ②SW_REQUIREMENTS.md 只改电源相关条目: 新增 M7-R7/R8/R9/R10 + M7-R2
-        续航口径按 Q4 改为 按需触发≥1h + 旧口径 待机<0.05W 标作废 + §15.2 加 Q17 原厂追加问 ③interface_claims +9条 (sw_power_state_names=poweroff/standby,
-        sw_poweroff_w=0.21-0.40mW, sw_standby_power_w=0.15W, sw_poweroff_soc_state=no-power, sw_standby_soc_state=running-lowpower,
-        sw_poweroff_wakeup=VBUS/PG/KEY, sw_poweroff_runtime=5-11months, sw_standby_runtime=2.8h, sw_poweroff_sw_commitment=none),
-        并修正过期取值 power_off_semantics 无硬件断电-软件深睡-轨带电 → true-poweroff-loadswitch ④新登记4条 needs_from (命名确认/续航算式裁决
-        to main, PWR_CTRL脚号 to hw-lead, AON+深睡规格 to vendor) ⑤★自查发现 HW/POWER_SHUTDOWN_V3.md §6 续航列算式漏除电池电压3.7V
-        (待机2.8h 实为~9.3h/满载20min 实为~1.15h/按需1.8h 实为~6.1h, 差~3.3倍), 关机行用真电流故锁死值不受影响 ⇒ 走 U2 请项目总工裁决; ⑥★健康度仍
-        red: 板端INT8产物0个 + 本轮所有功耗续航数字均为[推算]无实测'
+      progress_pct: 58
+      health: yellow
+      summary: '10-30 ISS-120 闭环 (板端实测准备, 板端实测仍 0 次): ①SW/S2_BOARD_TEST_CHECKLIST.md — EVT-8/BR-01 可勾选执行清单
+        (CB-01~09 九条机械判据 + BR-01~12 十二条用例 + S2连挂2次→S3失败决策树 + 工位准备表 + 三态判定栏), 每条写死「执行前置/判定口径/记录字段/谁判过」四栏
+        ②SW/S2_VENDOR_QUESTION_LIST.md — P1~P4 原厂问询清单 (每节「问什么/什么格式回/填进 s2_rescue_config 的哪个字段」), ★sw-lead
+        未联系任何原厂, 本件为交项目总工的外发草稿 ③SW/tools/s2_board_run.sh 一条命令跑测 (读配置→6步跑测→自动出 CB-01~09+BR-01 判定, 失败自动抓串口日志/下载工具版本/电流表读数)
+        + 判定器 s2_board_judge.py + 板端自检 + 板端实跑配置 s2_rescue_config.json + 端到端自检 s2_board_e2e.sh, 自检全绿 (6/6
+        + 7/7 + 10/10 + 5/5, 既有 ISS-080 s2_selftest.sh 未破仍 10/10) ④★把 ISS-080 的口径做进代码 (不只写文档): 缺失即判未验绝不判PASS
+        / generic-example签名不算证据且空签名表算空判 / P4未填则CB-06判未验 / 仅日志命中不算进BOOT ⑤★顺手查出必须先裁决的口径冲突: ISS-119 已换芯到
+        RK3588 但 S2 全套仍按 ARS45 (版本块 magic AR45 + 版本串前缀 ARS45-SW + parameter.txt 扇区vs字节 512倍坑 + 问谁变了),
+        已报项目总工裁决 (needs s2_chip_swap_scope) ⑥health 仍 yellow: 板端实测 0 次 + P1~P4 四个 [0数据] 项仍 null/TODO +
+        标定台账/回读通道未定 + 换芯口径未裁决 => BR-01 现在最高只能判未验, 量产放行前必须 close'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -1542,6 +1537,63 @@ domains:
       summary: 'RKNN 转换链实测 + RK3576 端到端 ≤60ms 判定报告 v1.1 (ISS-113 修 §7): §7 重写为 ''§7.1 步间依赖表 + §7.2 命令清单
         + §7.3 退出码'', 每条命令都能在干净机器上独立跑通 (convert/sim/acc 缺 dataset.txt 自动补跑 calib), 并明确写出 ''WORK=/tmp/rknn_bench
         会被系统清理, 重跑需重新 calib'' (含半残状态识别); §3.1 加步间依赖交叉引用。★ 既有结论数字 (§0/§3/§4/§5) 一个未改'
+    - path: SW/S2_BOARD_TEST_CHECKLIST.md
+      kind: checklist
+      version: v1.0
+      updated_at: '2026-10-30'
+      summary: '① S2 板端实测执行清单 (ISS-120): CB-01~09 九条机械判据 + BR-01~12 十二条用例, 每条写死「执行前置/判定口径/记录字段/谁判过」四栏并带
+        ☐ 可勾选; S2 连挂 2 次→S3 失败决策树 (6 行 + 硬规则, 升级与判 S4 由项目总工裁决); 工位准备表 (器材/软件/人员) + 三态判定栏 + 追溯字段。★板端实测仍
+        0 次, P1~P4 全 [0数据]。'
+    - path: SW/S2_VENDOR_QUESTION_LIST.md
+      kind: question_list
+      version: v1.0
+      updated_at: '2026-10-30'
+      summary: '② S2 原厂问询清单 (ISS-120): P1 BOOT进入条件 / P2 下载工具 / P3 USB枚举特征 / P4 启动存储与分区表 各一节, 每节写「问什么/什么格式回(给对方的可填表格)/拿到后填进
+        s2_rescue_config 的哪个字段(精确到 JSON 路径)」; 附 ISS-119 换芯口径分叉 (线路A 模组厂 / 线路B ARS45供应商) 与 RK3588 公开工具链事实作提问靶子。★sw-lead
+        未联系任何原厂, 本件为交项目总工的外发草稿。'
+    - path: SW/tools/s2_board_run.sh
+      kind: tooling
+      version: v1.0
+      updated_at: '2026-10-30'
+      summary: '③ S2 板端一条命令跑测主脚本 (ISS-120): 读配置(P1~P4 不齐 rc=3 并逐条列缺哪几个) → 6步跑测(基线/进BOOT/刷写/回读/板端自检/重启3次/重新枚举)
+        → 证据按 EVT §11.7 文件名落盘 → 自动出 CB-01~09 + BR-01 机械判定; 任一步失败自动抓现场(串口日志/下载工具版本/电流表读数)。--selftest rc=0
+        (6/6)。'
+    - path: SW/tools/s2_board_judge.py
+      kind: tooling
+      version: v1.0
+      updated_at: '2026-10-30'
+      summary: '③ CB-01~09 机械判定器 (ISS-120): 三态 (PASS/FAIL/UNVERIFIED), 4 条硬规则做进代码 —— 缺失即未验绝不判PASS / generic-example签名不算证据且空签名表算空判
+        / P4未填则CB-06判未验 / 仅日志命中不算进BOOT。--selftest rc=0 (7/7 含 4 条反例)。'
+    - path: SW/tools/s2_board_selftest.sh
+      kind: tooling
+      version: v1.0
+      updated_at: '2026-10-30'
+      summary: '③ 板端启动自检 6 项 (CB-04) 封装 (ISS-120): 6 条命令全部配置化 (board_test.selftest.*), 未配判未验不跳过; rc=0但输出为空判FAIL(防命令空跑)。--selftest
+        rc=0 (5/5)。'
+    - path: SW/tools/s2_board_selftest.py
+      kind: tooling
+      version: v1.0
+      updated_at: '2026-10-30'
+      summary: '③ 板端自检 6 项实现 (ISS-120): DDR自检/sensor枚举/光机I2C/NPU模型加载/OD跑1帧/版本块回显 + 版本串 + 模型sha8实测 + 日志扫错码。'
+    - path: SW/tools/s2_board_e2e.sh
+      kind: tooling
+      version: v1.0
+      updated_at: '2026-10-30'
+      summary: '③ 端到端链路自检 (ISS-120): 合成证据跑通 10 个场景 (全PASS→rc=0 / 缺证据→rc=2 / 有FAIL→rc=1 / P4未填→rc=2 / 空签名表→rc=2
+        / preflight→rc=3 / forensics→rc=0 / 工具缺失记[0数据] / 电流表记null)。rc=0 (10/10)。'
+    - path: SW/tools/s2_rescue_config.json
+      kind: config
+      version: v1.0
+      updated_at: '2026-10-30'
+      summary: '③ 板端实跑配置 (ISS-120): P1~P4 四个 [0数据] 项的落点 (value=null/status=TODO), usb_signatures.entries
+        故意留空 (通用示例不算真值), partition_layout.source=placeholder-推算 (P4未填时 CB-02/CB-06 判未验), board_test.*
+        工位参数 (串口/检测/刷写/回读/自检/重启/工具版本)。'
+    - path: HANDOFF/2026-10-30_sw-lead_ISS120_S2板端实测准备.md
+      kind: handoff
+      version: v1.0
+      updated_at: '2026-10-30'
+      summary: 'ISS-120 交接单 (B1-B6): 三件套交付说明 + 4 条判定硬规则 + ★换芯口径冲突 (ISS-119 RK3588 vs 文档仍按 ARS45) + 8 条未决项
+        (B5-1~B5-8)。'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -2187,6 +2239,56 @@ domains:
       target_missing: false
       waiting_on: vendor
       due: '2026-10-31'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: s2_chip_swap_scope
+      to: main
+      item: '★ISS-120 换芯口径裁决 (投板前必须定, 否则 S2 全套判据对着错误的板): ISS-119 已把 SoC 基线从 ARS45 换成 RK3588 (RK3576 为可机械触发的翻转后手;
+        HW/CHIP_SELECTION_DECISION.md, verify_by=boss 待老板点头), 但 S2 救砖链路文档与工具链仍按 ARS45 写。三个子问题: ①版本块 magic
+        (flash_writer.py 写死 AR45) 与版本串行首 (写死 ARS45-SW ) 要不要沿用 ②分区表按 RK3588 parameter.txt 重排 (★原厂按 512B
+        扇区计, 我方按字节, 差 512 倍), 由谁改换算 ③原厂问询走哪条线 (线路A 模组厂/板级设计方 vs 线路B ARS45 供应商) —— 问错对象白等一轮。详见 SW/S2_BOARD_TEST_CHECKLIST.md
+        §0.2 与 SW/S2_VENDOR_QUESTION_LIST.md §0.2/§5。'
+      since: '2026-10-30'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: s2_vendor_inquiry_draft
+      to: main
+      item: '★ISS-120 原厂问询清单已就绪, 请项目总工外发 (sw-lead 不直接联系原厂): SW/S2_VENDOR_QUESTION_LIST.md 整理了 P1 BOOT进入条件
+        / P2 下载工具 / P3 USB枚举特征 / P4 启动存储与分区表 四节, 每节含「问什么 / 什么格式回(给对方的可填表格) / 拿到后填进 s2_rescue_config 的哪个字段(精确到
+        JSON 路径)」; 回复落到 SW/tools/s2_rescue_config.json 的唯一落点见该文 §1.3/§2.3/§3.3/§4.3, 回填后跑 §7 的 5 条自检命令
+        + preflight。★注意既有 fw_vendor_toolchain / fw_usb_boot_phy / fw_boot_entry_cond / sw_usb_phy_spec
+        四条 vendor 需求 due 2026-10-29 已逾期, 本清单是它们的具体化, 不重复问。同时请并行催 hw-lead 的 fw_boot_mode_hw / fw_boot_storage_bom
+        (与原厂回复互补, 不用等)。'
+      since: '2026-10-30'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: s2_param_fill_backfill
+      to: main
+      item: '★ISS-120 板端回读通道与标定台账 (投板前必须定, 否则 CB-02/CB-06/CB-07 永远判未验): ①板端回读通道怎么走 (board_test.verify.readback_cmd
+        + readback_target) —— 靠原厂工具回读还是自研? ②工厂标定台账何时建 (board_test.checks.calib_ledger = 该 SN 的标定 ID),
+        台账是标定工位出还是返修工位出? F6 标定丢失是返修最大的坑, CB-07 判不过等于 BR-01 判不过。'
+      since: '2026-10-30'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
       overdue: false
       decision: null
       decided_at: null
@@ -6720,6 +6822,81 @@ interface_claims:
     - sw-lead
     noncanonical_by: []
     conflict: false
+  s2_board_test_state:
+    values:
+      sw-lead: prepared-untested
+    notes:
+      sw-lead: S2 板端实测准备完成 / 板端实测 0 次; P1~P4 四个 [0数据] 项仍 null/TODO, BR-01 最高只能判未验; 量产放行前必须 close (ISS-120)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  s2_br01_pass_rule:
+    values:
+      sw-lead: CB-01..09 9/9
+    notes:
+      sw-lead: BR-01 判过的机械条件 (EVT §11.4 R1); 任一未验→最高未验, 任一违反→不通过; 修复人不能自验, 判过由项目总工签
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  s2_cb_evidence_rule:
+    values:
+      sw-lead: missing=UNVERIFIED
+    notes:
+      sw-lead: '判定器硬规则: 证据文件缺失一律判未验, 绝不判通过; 无有效实测数据不得冒充通过 (ISS-080 口径延续)'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  s2_generic_sig_rule:
+    values:
+      sw-lead: generic-example!=evidence
+    notes:
+      sw-lead: USB 签名 source=generic-example 命中不算证据; 且签名表内无真值签名时 CB-01 判未验 (不匹配任何 BOOT 签名 属空判, 空判不算过)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  s2_p4_gate_rule:
+    values:
+      sw-lead: P4!=DONE->CB-06=UNVERIFIED
+    notes:
+      sw-lead: 分区表为 [推算] 占位时不得判回读 CRC 通过; 换真实分区表须把 partition_layout.source 改成 vendor-official
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  s2_partition_source_marker:
+    values:
+      sw-lead: vendor-official / placeholder-推算
+    notes:
+      sw-lead: 'partition_layout.source 取值域; 只有 vendor-official 才允许 CB-02/CB-06 判过; 另附单位陷阱: 原厂 parameter.txt
+        按 512B 扇区计, 我方按字节, 转录必须换算'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  s2_vendor_reply_format:
+    values:
+      sw-lead: field+value+unit+pid-per-mode
+    notes:
+      sw-lead: 原厂回复必须给到字段级 (具体值+单位+BOOT态各态PID分列); 散文回复落不了字段; 通用示例不算回复
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  s2_param_fill_targets:
+    values:
+      sw-lead: params.P1..P4+boot_enter+usb_signatures+partition_layout+board_test
+    notes:
+      sw-lead: 原厂回复落到 SW/tools/s2_rescue_config.json 的唯一落点; 四个 params 的 value/status 同步改, 回填后跑 preflight
+        + 判定器 --selftest 复核
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
 needs_matrix:
   pending:
   - key: emc_hw_interface_ask
@@ -6925,6 +7102,35 @@ needs_matrix:
       HW/POWER_SHUTDOWN_V3.md §3'
     since: '2026-10-28'
     due: '2026-10-30'
+    _by: sw-lead
+    state: pending
+  - key: s2_chip_swap_scope
+    to: main
+    item: '★ISS-120 换芯口径裁决 (投板前必须定, 否则 S2 全套判据对着错误的板): ISS-119 已把 SoC 基线从 ARS45 换成 RK3588 (RK3576 为可机械触发的翻转后手;
+      HW/CHIP_SELECTION_DECISION.md, verify_by=boss 待老板点头), 但 S2 救砖链路文档与工具链仍按 ARS45 写。三个子问题: ①版本块 magic
+      (flash_writer.py 写死 AR45) 与版本串行首 (写死 ARS45-SW ) 要不要沿用 ②分区表按 RK3588 parameter.txt 重排 (★原厂按 512B 扇区计,
+      我方按字节, 差 512 倍), 由谁改换算 ③原厂问询走哪条线 (线路A 模组厂/板级设计方 vs 线路B ARS45 供应商) —— 问错对象白等一轮。详见 SW/S2_BOARD_TEST_CHECKLIST.md
+      §0.2 与 SW/S2_VENDOR_QUESTION_LIST.md §0.2/§5。'
+    since: '2026-10-30'
+    _by: sw-lead
+    state: pending
+  - key: s2_vendor_inquiry_draft
+    to: main
+    item: '★ISS-120 原厂问询清单已就绪, 请项目总工外发 (sw-lead 不直接联系原厂): SW/S2_VENDOR_QUESTION_LIST.md 整理了 P1 BOOT进入条件
+      / P2 下载工具 / P3 USB枚举特征 / P4 启动存储与分区表 四节, 每节含「问什么 / 什么格式回(给对方的可填表格) / 拿到后填进 s2_rescue_config 的哪个字段(精确到
+      JSON 路径)」; 回复落到 SW/tools/s2_rescue_config.json 的唯一落点见该文 §1.3/§2.3/§3.3/§4.3, 回填后跑 §7 的 5 条自检命令 +
+      preflight。★注意既有 fw_vendor_toolchain / fw_usb_boot_phy / fw_boot_entry_cond / sw_usb_phy_spec 四条
+      vendor 需求 due 2026-10-29 已逾期, 本清单是它们的具体化, 不重复问。同时请并行催 hw-lead 的 fw_boot_mode_hw / fw_boot_storage_bom
+      (与原厂回复互补, 不用等)。'
+    since: '2026-10-30'
+    _by: sw-lead
+    state: pending
+  - key: s2_param_fill_backfill
+    to: main
+    item: '★ISS-120 板端回读通道与标定台账 (投板前必须定, 否则 CB-02/CB-06/CB-07 永远判未验): ①板端回读通道怎么走 (board_test.verify.readback_cmd
+      + readback_target) —— 靠原厂工具回读还是自研? ②工厂标定台账何时建 (board_test.checks.calib_ledger = 该 SN 的标定 ID), 台账是标定工位出还是返修工位出?
+      F6 标定丢失是返修最大的坑, CB-07 判不过等于 BR-01 判不过。'
+    since: '2026-10-30'
     _by: sw-lead
     state: pending
   - key: mech_reltest_xray_sampling
@@ -7212,7 +7418,7 @@ needs_matrix:
     _by: mech-lead
     state: pending
   answered_count: 90
-  total: 146
+  total: 149
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -7592,6 +7798,10 @@ lint:
   key: chg_state_fail_safe
   value: 状态未知→当作在充电→禁OD
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: s2_param_fill_targets
+  value: params.P1..P4+boot_enter+usb_signatures+partition_layout+board_test
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 risks:
 - id: R-dsi-unknown
   text: ARS45 显示 TX 接口未确认 (媒体二手证据) — 若既无 DSI TX 也无 DP TX, 则显示链不成立
@@ -7657,15 +7867,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 90
+  artifacts: 99
   blockers: 34
   high_blockers: 26
-  open_needs: 56
+  open_needs: 59
   waiting_external_needs: 54
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 1
-  lint: 31
+  lint: 32
   agents_reporting: 4
   incomplete_fragments: 0

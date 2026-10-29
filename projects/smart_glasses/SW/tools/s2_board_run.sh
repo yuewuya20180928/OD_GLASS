@@ -115,7 +115,7 @@ if [ "$SELFTEST" = "1" ]; then
 
   say ""
   say "[S4] 配置齐备性检查 (P1..P4 全未填 → 期望报缺 4 个)"
-  python3 SW/tools/s2_board_run.sh --preflight --config SW/tools/s2_rescue_config.json >/tmp/s2_pf.txt 2>&1
+  bash SW/tools/s2_board_run.sh --preflight --config SW/tools/s2_rescue_config.json >/tmp/s2_pf.txt 2>&1
   PFRC=$?
   if [ "$PFRC" = "3" ]; then ok "未填参数 → rc=3 (明说差哪几个, 不降级)"; else bad "未填参数 → rc=$PFRC (期望 3)"; RC=1; fi
   grep -q "P1_BOOT_ENTER_SPEC" /tmp/s2_pf.txt && ok "preflight 明确列出了缺失的参数" || { bad "preflight 没列出缺失参数"; RC=1; }
@@ -127,6 +127,11 @@ if [ "$SELFTEST" = "1" ]; then
   check "forensics 子命令" 0 $?
   [ -f "$TMPD/s2_forensics.json" ] && ok "落了 s2_forensics.json" || { bad "没落 s2_forensics.json"; RC=1; }
   rm -rf "$TMPD"
+
+  say ""
+  say "[S6] 端到端链路自检 (合成证据, 期望 rc=0)"
+  bash SW/tools/s2_board_e2e.sh >/tmp/s2_e2e.txt 2>&1
+  check "s2_board_e2e.sh" 0 $?
 
   say ""
   say "=============================================================================="
@@ -154,7 +159,16 @@ for P in P1_BOOT_ENTER_SPEC P2_DL_TOOL P3_USB_PHY P4_BOOT_STORE; do
   fi
 done
 
-if [ -n "$MISSING" ]; then
+# ★ 取证路径: 参数没填齐也要能跑 —— 出故障的时候, 现场证据恰恰是最缺的
+FORENSICS_ONLY=0
+if [ "$ONLY_STEP" = "forensics" ]; then
+  FORENSICS_ONLY=1
+  if [ -n "$MISSING" ]; then
+    warn "注意: S2 配置里这 4 个 0 数据项还没到位 ($MISSING ) —— 取证照跑, 但 BR-01 判不了"
+  fi
+fi
+
+if [ -n "$MISSING" ] && [ "$FORENSICS_ONLY" != "1" ]; then
   bad "S2 配置里这 4 个 0 数据项还没到位:$MISSING"
   say ""
   say "  ┌─ 这 4 项在原厂书面回复前一律留空 (ISS-080 口径)。没它们, 救砖链路跑不了。"
@@ -167,7 +181,9 @@ if [ -n "$MISSING" ]; then
   say "      python3 SW/tools/s2_board_run.sh --preflight --config $CFG"
   exit 3
 fi
-ok "P1..P4 全部已填 (status=DONE)"
+if [ "$FORENSICS_ONLY" != "1" ]; then
+  ok "P1..P4 全部已填 (status=DONE)"
+fi
 
 if [ "$PREFLIGHT" = "1" ]; then
   say ""
@@ -194,7 +210,6 @@ BOARD_SN=$(cfg_get "board_test.board_sn")
 OPERATOR=$(cfg_get "board_test.operator")
 if [ -n "$BOARD_SN" ]; then ok "板卡 SN: $BOARD_SN"; else warn "board_sn 未填 → CB-02/03/07 的板级比对会判未验"; fi
 if [ -n "$OPERATOR" ]; then ok "执行人: $OPERATOR"; else warn "operator 未填 → 证据追溯会缺一栏"; fi
-
 # ------------------------------------------------------------------ 取证
 collect_forensics() {
   step "★ 失败现场取证 (串口日志 / 下载工具版本 / 电流表读数)"
