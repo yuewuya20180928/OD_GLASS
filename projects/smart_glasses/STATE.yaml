@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-10-28T19:13:20+08:00'
+  generated_at: '2026-10-29T09:29:24+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,14 +9,14 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 50321
-      sha1: 07047fb5eb47
-      mtime_ns: 1793185061704118988
+      size: 58028
+      sha1: 0b5796dfdecb
+      mtime_ns: 1793206375076735716
     mech-lead:
       file: mech.yaml
-      size: 75503
-      sha1: e9bc1d86eae7
-      mtime_ns: 1793148896943695852
+      size: 76520
+      sha1: 277e051b348b
+      mtime_ns: 1793204240922048030
     main:
       file: pm.yaml
       size: 18472
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1793147869234018364
     sw-lead:
       file: sw.yaml
-      size: 62169
-      sha1: 55765082f58b
-      mtime_ns: 1793147854807774572
+      size: 64368
+      sha1: 954699503ed3
+      mtime_ns: 1793236961356434942
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -108,7 +108,7 @@ domains:
     - id: PM-B4
       desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
       severity: medium
-      needs_from: &id026
+      needs_from: &id025
       - jbd
       waiting_since: '2026-10-21'
     needs_from:
@@ -482,18 +482,24 @@ domains:
     updated_by: hw-lead
     status:
       phase: P2(原理图/BOM)+结构接口
-      progress_pct: 50
-      health: red
-      summary: 'ISS-062 闭: R-GEO-2 四问并入 hw-lead 现有 R-GEO-1 原厂/镜头厂沟通材料, 产出 3 份 state/outbox/ 草稿 (原厂信 vendor_round4_geo_isp_addendum.md
-        Q1-Q5 / 镜头厂 RFQ lens_rfq_rgeo2_addendum.md RFQ-13~16 / 决策映射 R_GEO_2_DECISION_MAP.md)。★核心交付 = 四问x三决策(120度对角/宽高比子路线/全幅吞吐)双向分支映射:
-        问01+问02 卡 120度对角(ROI则 120.00->85.61度, 立体角只52.30%, 俯角25度正前方掉出画面余量-4.02度), 问04 卡 宽高比子路线(不支持letterbox则各向异性1.326+全局失真32.6%违反REQ-GEO-07),
-        问03 卡 全幅吞吐且唯一一票否决(245.1MP/s 在250口径占98.1%余1.9% vs 497.7口径占49.3%, 两结论相反)。★自查出 3 条硬结论: (a) 问01 决定问03
-        的分母 (全幅245.1 vs ROI 124.4 MP/s), 两问必须成对问; (b) 我方网表 P5 的 CSI D2/D3 现为 DNP(只按1080p60 2-lane设计),
-        而全幅RAW10@60=2.451Gbps 需4-lane => 原厂回信前板级预留方向未定, 投板后改=2-4周; (c) 问04 有原材料没写的第三条路: letterbox 可在ISP之后软件侧生成(CR-3
-        已裁决黑边只生成一次/复用ox,oy), 故原厂只需等比缩放+输出非4:3有效帧, 等价子路线2。★缺口登记: R-GEO-1 自 10-26 提出至今从未进入任何对外材料(逐份核 state/outbox
-        7草稿+3附件, 零命中''裁切/ROI/全幅/缩放/scaler/MP.s/吞吐'') —— 本轮已补齐并入原厂信 Q1/Q2。6 条 interface_claims 已登记(全为要求态,
-        确认态[0数据])。边界: 未发任何邮件, 未联系任何供应商/原厂, 只写 state/outbox/ 3文件 + 自己分片 + 1份交接单, 未动 HW/SW/MECH/PROJECT_TRACKER/issue_log/STATE.yaml/他人分片。merge
-        rc=0 + gate Q1 18/18'
+      progress_pct: 55
+      health: yellow
+      summary: 'ISS-067 交卷 (R-F1 3.3V 轨拓扑裁决落地): 产出 HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md + HW/calc_rf1_3v3v_uvp.py
+        + HANDOFF/2026-10-29_hw-lead_ISS067_RF1_3V3V_UVP.md (B1-B6 六块齐全)。核心结论: (1) 方案A (UVP 3.5V + 3.3V
+        由 TPS62130A buck 供) 的真实代价≈0, 不是裁决说的牺牲12-15%容量 —— 那12-15%在现状里本来就用不到 (TPS7A20 dropout 110mV typ
+        -> 3.3V轨在SYS<3.41V已失效), 方案A只多切3.41->3.50V窄带(标称3%=12.6mAh); (2) 口径A续航 (420mAh电芯, 满载无桥中位0.82W):
+        现状1.195h(末段突然黑屏) -> 方案A 1.241h(+3.9%) -> 方案A''(UVP3.35V) 1.325h(+10.9%) -> buck-boost 1.475h(+23.4%);
+        (3) 口径B选电芯: 方案A需408mAh -> 420mAh刚好够(余3%); 满载上界1.01W需492mAh/有桥中位需496mAh -> 420不够, 下一档650mAh/8.5mm
+        = 镜腿~10-11mm 形态否决 => ''持续满载1h'' 现在有第二条独立否决理由(电芯档位), 与热学否决同向; (4) 镜腿7.3mm锁死值不变(电芯仍丰江432243 4.3mm,
+        加第3颗DC-DC不新增高度等级), 真正落地的是按需触发口径(141mAh需求, 余199%); (5) 温度: LDO->buck 把镜腿内损耗175mW->100mW = 相对现状皮肤侧-2.94~-3.76C(改善),
+        但现论文热模型从未计入3.3V轨转换损耗 => 方案A落地后要补+100mW => 皮肤侧46.5C->50.4-51.5C, 43C红线缺口从3.5C扩到7.4-8.5C; (6) 第三条路逐条评估:
+        buck-boost只比方案A''多+11.4分钟却多1颗新IC+~35mm2+新料量产风险+新EMI/FIT项(且4开关效率在boost段更低85-90% vs buck 88-93%)
+        -> 不进第一台样机; 低dropout LDO被方案A''完全支配(只多2-4%容量却要换料); IO轨直吃SYS否决(SYS满电4.2V超典型3.3V IO绝对最大值~3.6V, 且SoC
+        IO/光机容差均[0数据]); ★(7) 最硬的实现风险: 裁决原文''把BQ2970的UVP阈值抬到3.5V''在器件层面没有落点 —— BQ2970是1S电芯级保护(OVP 4.275V[官方],
+        UV门限[0数据])抬不到3.5V, 系统级欠压关断必须落在负载开关U_PWR_SW的输入欠压门限(>=3.35V)或外挂电压监控器, 而U_PWR_SW还在[待选型] => 现在加选型判据零板费,
+        投板后加=2-4周返工; (8) 连带UX后果: UVP 3.35V + 充电板VSYS=NC => 电池没电时插USB开不了机, 待老板裁决。已登记11条interface_claims
+        + 9条未决项(其中3条waiting_on=boss/vendor/jbd) + 3份artifact; 边界: 未发任何邮件/未联系供应商/未改MECH与SW与PROJECT_TRACKER/未改别人分片;
+        merge rc=0 + gate Q1 18/18'
     artifacts:
     - path: HW/HARDWARE_BREAKDOWN.md
       kind: breakdown
@@ -597,6 +603,22 @@ domains:
       updated_at: '2026-10-28'
       summary: 'ISS-062 核心交付: 四问x三决策(120度对角/宽高比子路线/全幅吞吐)双向分支映射表 + B1-B6 六块 + 复现脚本; 含缺口登记 G-1 (R-GEO-1
         从未进过任何对外材料)'
+    - path: HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md
+      kind: spec
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-067 R-F1 3.3V 轨拓扑/UVP 裁决落地: 方案A 拓扑+网表级改法7条+容量窗口/口径A/B 数字+第三条路四路径对比+镜腿厚度影响+mech-lead
+        结构侧输入 M-1~M-8'
+    - path: HW/calc_rf1_3v3v_uvp.py
+      kind: tool
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-067 数字自证脚本 (全文唯一数字出处): 容量窗口/口径A续航/口径B选电芯/转换损耗与皮肤侧温度/SYS电流/六路径对比'
+    - path: HANDOFF/2026-10-29_hw-lead_ISS067_RF1_3V3V_UVP.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-067 交接单 (B1-B6 六块齐全): 结论摘要/验收自评/证据分级11条/接口取值11条/未决项9条/自证命令'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -626,19 +648,11 @@ domains:
       - vendor
       - main
       waiting_since: '2026-10-25'
-    - id: HW-B5
-      desc: 'R-F1 3.3V 轨拓扑未决: SYS 下限 3.0V vs TPS7A20 dropout 110mV -> SYS<3.41V 时 LIGHT_3V3/VDD_3V3_IO
-        失效 (放电末段 12-15% 电量突然黑屏); 三方案 A/B/C 待 main 裁决, 选 A 需同步重算 Q4 续航口径'
-      severity: high
-      needs_from: &id008
-      - main
-      - vendor
-      waiting_since: '2026-10-26'
     - id: HW-B6
       desc: '可靠性证据缺口: 15/15 器件 Absolute Maximum Ratings 未核 (降额表只能当设计约束) + 跌落/振动/弯折/热 实测 0 项 (无样机) + 全板
         FIT 无器件级数据 (MTBF 只能用通用代表值, 光学子系统占 39.1%)'
       severity: high
-      needs_from: &id009
+      needs_from: &id008
       - vendor
       - main
       waiting_since: '2026-10-26'
@@ -649,6 +663,19 @@ domains:
         HW/POWER_BUDGET_V3.md 皮肤温度结论可能翻案。该阻塞不解决, 采集链(全幅60fps)与散热结论都不能定版'
       since: '2026-10-28'
       source: ISS-062
+    - id: HW-B5
+      desc: 'R-F1 3.3V 轨拓扑: 已按 PM 10-26 裁决落地 (ISS-067, 2026-10-29 hw-lead 交卷, status=fixed, fix_ref=HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md)。结论:
+        方案A (UVP 3.50V + 3.3V 由 TPS62130A buck 供) 真实代价≈0 (口径A 1.241h vs 现状 1.195h, +3.9%); 推荐 UVP 压到 3.35V
+        (方案A'', +10.9%, 零新增 IC); 第三条路 buck-boost 只多 +11.4 分钟但多 1 IC + 35mm2 + 新料量产风险 => 不进第一台样机; ★残留:
+        UVP 落点从 BQ2970 改到负载开关 U_PWR_SW 输入欠压门限 (BQ2970 是电芯级保护, 抬不到 3.5V) ⇒ 须写进 ISS-099 负载开关选型判据第 10 条 (U_PWR_SW
+        仍 [待选型], 现在加零板费); 另 3 条外部依赖 (原厂 TPS62130A R_on / JBD 光机 3.3V 容差 / 老板拍板没电插电开不了机) 见 needs_from。
+        ★本单遗留: 库内 netlist_v1.csv 的 U_LDO_L33/U_LDO_IO33 还是 LDO => 方案A 尚未落进网表, 改法清单见主文 §2.1, 需下一单调生成器。'
+      severity: medium
+      needs_from: &id026
+      - main
+      - vendor
+      waiting_since: '2026-10-26'
+      resolved_by: ISS-067
     needs_from:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -788,7 +815,7 @@ domains:
       target_missing: false
       waiting_on: jbd
       due: '2026-10-28'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -942,7 +969,10 @@ domains:
           1x⌀2.0H7, 3孔) 不一致, 合并器报的 pcb_mounting 冲突是这个, 请按你 ISS-105 定版那版改; 我这边的值已按 ISS-105 定版保持 (2xM1.2
           + 1x⌀2.0H7)。再: ISS-089本单发现两条会打回重画的结构侧问题, 建议一并处理: (1) 充电灯 D_CHG_LED/Q_CHG_LED/R_CHG_LED 的 board
           列标成 MAIN_PCB, 但同页注记写''装在充电板(镜框)靠近Type-C座'' 而 VBUS_5V_CHG 只存在于充电板 => board列标错, BOM备料/装配/ISS-103导光孔位置会跟着做错;
-          (2) CHARGE_BOARD_SPEC §3.4 的 ICHG=0.822xIIN 方向反了 (buck功率守恒应为1.216), 390欧档的单pin电流要重算'
+          (2) CHARGE_BOARD_SPEC §3.4 的 ICHG=0.822xIIN 方向反了 (buck功率守恒应为1.216), 390欧档的单pin电流要重算 || ★2026-10-29
+          ISS-107 更正: 上句 ''我这边的值已按 ISS-105 定版保持 (2xM1.2 + 1x⌀2.0H7)'' **已作废** —— mech 侧的 pcb_mounting
+          已于 2026-10-29 改成 PIN-SET-2 = ''2x⌀2.0H7+2x⌀1.4'' (与 hw-lead ISS-049 定版一致, 合并器冲突已消)。老口径 2xM1.2+1x⌀2.0H7
+          @边距2.50 在 15mm 板下 3/3 孔压 SoC 逃线带 ⇒ 机械判死。'
         ref: MECH/HW_CROSS_REVIEW.md §2.4/§5 R-7/R-9/§6 自-3/自-6
       foreign_answers: []
     - key: iss105_chg_spec_consistency_390
@@ -1129,6 +1159,96 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss067_uvp_landing_to_main
+      to: main
+      item: 'ISS-067: UVP 抬到 3.35/3.5V 在 BQ2970 上没有落点 (BQ2970=1S 电芯级过放保护, OVP 4.275V, UV 门限库内未核)。系统级欠压关断必须落在负载开关
+        U_PWR_SW 的输入欠压门限 (>=3.35V) 或外挂电压监控器。U_PWR_SW 还在 [待选型] => 请把该条写进 ISS-099 负载开关选型判据第 10 条, 现在加零板费,
+        投板后加=2-4 周返工'
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss067_mech_transmit_m1_m8
+      to: main
+      item: 'ISS-067: 请把 HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md §6 的 M-1~M-8 结构侧输入转达 mech-lead: 电池档位不变(丰江432243
+        4.3mm)/镜腿7.3mm不变; 满载1h需>=492mAh(下一档650mAh=8.5mm, 镜腿~10-11mm 形态否决, 请写进截面预算); 新增DC-DC占板+30-40mm2(15mm板宽后面积缺口148-160mm2
+        扩到180-200mm2, 请给位置优先级); 现有电感高度是否已计入7.0mm叠层(我核不到); 热模型补3.3V轨100mW(皮肤侧46.5->50.4-51.5C); 新buck建议放骨架侧远离皮肤;
+        UVP改关机语义'
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss067_caliber_b_converter_loss
+      to: main
+      item: 'ISS-067 口径校正: 口径B选电芯公式 mAh=P*1000/3.7/0.83/有效DoD 里, 我把 3.3V 轨转换损耗计入 P (方案A: 350mA buck eta=0.92
+        => +100mW)。与 V2/V3 旧公式 (不含转换损耗) 差 15-20%。计入后: 满载无桥中位 0.82W 需 408mAh (420mAh 够, 余3%), 上界1.01W需492mAh
+        (不够=>650mAh/8.5mm 形态否决)。请裁: 口径B 是否计入转换损耗? 我默认按计入 (更保守更接近真值)'
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss067_decide_lowbat_insert
+      to: main
+      item: 'ISS-067 待老板裁决: UVP 抬到 3.35V (方案A'') + 充电板 VSYS=NC (PM 10-26 裁决) => 电池低于 3.35V 时 3.3V 轨起不来,
+        插 USB 也开不了机 (SYS 只来自电池), 只能先充电到 3.35V 再开机。选项: (a) 接受 (默认按我的假设继续: 先充电再开机, 不加铰链 pin); (b) 充电板 VSYS
+        接通 (多 2 根铰链 pin, 触发结构接口变更); (c) UVP 降到 3.0V (必须走 buck-boost 方案 B, +1 IC +35mm2)。请老板/项目总工拍板'
+      since: '2026-10-29'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-10-31'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss067_vendor_r_on_u1
+      to: main
+      item: 'ISS-067 需原厂回复 (外发经项目总工, 我不直接联系): TPS62130A 的高边 R_on + 推荐电感 DCR 合计值。这个数决定 UVP 能不能从 3.50V 压到
+        3.35V (buck 100% 占空比地板 = 3.300 + 350mA x R_total)。我的假设: R_total=100mΩ => 地板 3.335V => 方案A'' 成立,
+        续航比方案A 多 +7 个点。若实测 >150mΩ => 退回 UVP 3.50V (方案A)'
+      since: '2026-10-29'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-10-31'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss067_jbd_vdd_tol_u2
+      to: main
+      item: 'ISS-067 需 JBD 回复 (外发经项目总工): 光机 3.3V 输入电压容差与下限 (LIGHT_3V3 由新 buck 供, UVP 3.35V 时 buck 输出约
+        3.305V)。我的假设: ±5% (3.135-3.465V) => 成立; 若要求 3.3V±2% => 3.305V 卡边, 需实测确认后再定 UVP'
+      since: '2026-10-29'
+      state: waiting_external
+      target_missing: false
+      waiting_on: jbd
+      due: '2026-10-31'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -1204,13 +1324,18 @@ domains:
   sw-lead:
     agent: sw-lead
     role: 软件总工
-    updated_at: '2026-10-27'
+    updated_at: '2026-10-29'
     updated_by: sw-lead
     status:
       phase: P2(方案设计)
       progress_pct: 54
       health: red
-      summary: '10-28 ISS-104 电源状态术语统一闭环: ①新增 SW/POWER_STATE_SEMANTICS.md: 关机(poweroff,真断电,SoC无电,零行为承诺,唤醒仅
+      summary: '10-29 ISS-113 闭环 (项目总工登记→sw-lead 修): ①SW/tools/rknn_bench.py 修步间依赖 —— convert/sim/acc
+        三步的 INT8 量化需要 calib 步生成的 /tmp/rknn_bench/dataset.txt, 旧代码是裸 assert ⇒ 干净机器直接跑 acc 崩成 AssertionError;
+        现在缺 dataset.txt 时**自动先跑 calib** (新增 --no-auto-calib 可关, 关掉后给指向 calib 步的明确报错并 rc=1), 裸 assert 全部换成
+        BenchError (0 剩余); ②SW/RKNN_BENCH.md §7 重写: 每条命令都能在干净机器上独立跑通 + 新增步间依赖表 + 明确写 ''WORK=/tmp/rknn_bench
+        会被系统清理, 重跑需重新 calib''; ③既有结论数字一个未改 (e2e 台阶表 56.99/54.98/67.01/48.47ms 与 10.09MiB 产物 10575159B
+        复算逐个吻合) || 10-28 ISS-104 电源状态术语统一闭环: ①新增 SW/POWER_STATE_SEMANTICS.md: 关机(poweroff,真断电,SoC无电,零行为承诺,唤醒仅
         VBUS/PG/按键)/待机(standby,原深度休眠,SoC低功耗运行,进待机遇落盘) 两态×7列分列 + 命名对照(poweroff/standby 唯一叫法, suspend 禁用别名,
         深度休眠=旧称) + 续航两行分列(待机2.8h vs 关机5-11个月) ②SW_REQUIREMENTS.md 只改电源相关条目: 新增 M7-R7/R8/R9/R10 + M7-R2
         续航口径按 Q4 改为 按需触发≥1h + 旧口径 待机<0.05W 标作废 + §15.2 加 Q17 原厂追加问 ③interface_claims +9条 (sw_power_state_names=poweroff/standby,
@@ -1386,38 +1511,55 @@ domains:
       version: '1.0'
       updated_at: '2026-10-25'
       summary: 'ISS-104 交接单: 电源状态术语与语义统一, B1-B6 六块齐全'
+    - path: SW/tools/rknn_bench.py
+      kind: tooling
+      version: v1.1
+      updated_at: '2026-10-29'
+      summary: 'RKNN 转换链实测器 v1.1 (ISS-113 修步间依赖): 新增 ensure_dataset() 步间依赖自愈 —— convert/sim/acc 三步做 INT8
+        量化时缺 /tmp/rknn_bench/dataset.txt 会**自动先跑 calib 步** (--no-auto-calib 可关); _build_session_for_sim
+        的 3 处裸 assert 换成 BenchError (全文件 0 个剩余 assert); step_calib/convert/sim/acc 增加校准集源目录与 COCO 数据目录的明确报错;
+        main() 统一捕获 BenchError → 打印行动指引 + rc=1。★ 既有结论数字一个未改。 [实测] 干净机器复算: acc --images 5 rc=0 / convert
+        产物 10575159B=10.09MiB / e2e 56.99·54.98·67.01·48.47ms 与报告逐个吻合; --no-auto-calib 缺依赖时 rc=1 且打印指向
+        calib 步的指引'
+    - path: SW/RKNN_BENCH.md
+      kind: doc
+      version: v1.1
+      updated_at: '2026-10-29'
+      summary: 'RKNN 转换链实测 + RK3576 端到端 ≤60ms 判定报告 v1.1 (ISS-113 修 §7): §7 重写为 ''§7.1 步间依赖表 + §7.2 命令清单
+        + §7.3 退出码'', 每条命令都能在干净机器上独立跑通 (convert/sim/acc 缺 dataset.txt 自动补跑 calib), 并明确写出 ''WORK=/tmp/rknn_bench
+        会被系统清理, 重跑需重新 calib'' (含半残状态识别); §3.1 加步间依赖交叉引用。★ 既有结论数字 (§0/§3/§4/§5) 一个未改'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
       severity: high
-      needs_from: &id010
+      needs_from: &id009
       - vendor
       waiting_since: '2026-10-21'
     - id: SW-B2
       desc: 光机逐帧延迟 = 完全 0 数据 (走鹃Ⅱ 只公开 480Hz 刷新率; 光机出光没法用软件打点, 需高速摄影/示波器)
       severity: high
-      needs_from: &id011
+      needs_from: &id010
       - boss
       - vendor
       waiting_since: '2026-10-25'
     - id: SW-B3
       desc: NPU 输出是否强制 FP32 未知 → A733 上 tensor_to_fp 9.29ms 占 SDK 总 25%; 若强制则端到端多 7.3ms, 框龄跳档
       severity: high
-      needs_from: &id012
+      needs_from: &id011
       - vendor
       waiting_since: '2026-10-21'
     - id: SW-B4
       desc: 'Q1 60ms 口径 + Q17 显示帧率 待老板拍板 (needs: q1_latency_scope / q17_display_fps, waiting_on=boss,
         due 2026-10-25) → 端到端 ''达标/不达标'' 结论定不下来: 口径A=67.0ms 不达标 / 口径C=42.3ms 达标, 同一套硬件两个口径'
       severity: high
-      needs_from: &id013
+      needs_from: &id012
       - boss
       - main
       waiting_since: '2026-10-25'
     - id: SW-FW-B1
       desc: 6 个烧录失败注入用例 (FI-1~FI-6) 一个都没跑过 (无板) -> 断电原子性/版本块校验/模型格式版本拦截全部未验证
       severity: high
-      needs_from: &id014
+      needs_from: &id013
       - vendor
       waiting_since: '2026-10-26'
     - id: SW-FW-B2
@@ -1425,7 +1567,7 @@ domains:
         (SW/FLASH_AND_VERSION §4.5, ISS-080): 软件层先验 (L0 布局 8/8 + L1 写入回读 15/15 + 断电注入 2 例 + 探针自测 10/10)
         已实跑, 并抓到 4 个版本块真 bug; 但 **板端 0 次**, 且 4 个 0 数据项 (P1~P4) 仍未填'
       severity: high
-      needs_from: &id015
+      needs_from: &id014
       - vendor
       - hw-lead
       waiting_since: '2026-10-26'
@@ -1437,7 +1579,7 @@ domains:
         SW/tools/int8_chain.py), 5 个 BLOCKED 全部卡在原厂工具链 + 无板 → **板端 INT8 模型仍 0 个, 转换 0 次, 板端实测 0 次**; ★另查出台账原''主模型候选''
         (320 版) **PC 侧推理即失败** (C9) → 已隔离'
       severity: high
-      needs_from: &id016
+      needs_from: &id015
       - vendor
       - main
       - boss
@@ -1447,7 +1589,7 @@ domains:
         9 颗供电器件的 EN/SS 脚与监督器 CT 脚 在网表里 0 条; U_SUPV 分压是两颗 0Ω 位 (同时装 = V_SOC_IO 短路); 网表 RC 注记 ''τ=100ms''
         实为 1.1ms (差 90.9×) ⇒ SW 的 S2 救砖时序表与启动自检都要按保守假设重写'
       severity: high
-      needs_from: &id017
+      needs_from: &id016
       - hw-lead
       - vendor
       waiting_since: '2026-10-27'
@@ -1455,20 +1597,20 @@ domains:
       desc: '★ISS-090: 网表里没有任何硬件断电通路 (负载开关/电源开关 = 0 颗, 电池经 BQ2970 直连 SYS) ⇒ ''关机''只能是软件深睡, 所有轨带电 ⇒ 售后
         ''长按10s=关机'' / 老板锁死的 ''待机<0.05W'' / 关机充电指示灯 三条口径都要重定义 (待项目总工裁决)'
       severity: high
-      needs_from: &id018
+      needs_from: &id017
       - main
       waiting_since: '2026-10-27'
     - id: SW-TIM-B3
       desc: '★ISS-090: SoC 侧没有任何 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失 ⇒ S2 救砖链路 的成立性未验; 且 CONN_USB 只有
         1 个 GND pin (违反 ISS-085 自定规则), Type-C 侧 D+/D− 无独立 ESD (一次 ESD 就能打死唯一的救砖口) ⇒ 三个硬伤修掉前, S2 只能判未验'
       severity: high
-      needs_from: &id019
+      needs_from: &id018
       - vendor
       - hw-lead
       waiting_since: '2026-10-27'
     - id: SW-MODEL-B2
       severity: high
-      needs_from: &id020
+      needs_from: &id019
       - vendor
       - boss
       waiting_since: '2026-10-28'
@@ -1526,7 +1668,7 @@ domains:
       target_missing: false
       waiting_on: boss
       due: '2026-10-28'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -1596,7 +1738,7 @@ domains:
       target_missing: false
       waiting_on: vendor
       due: '2026-10-28'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -1685,7 +1827,7 @@ domains:
       target_missing: false
       waiting_on: boss
       due: '2026-10-28'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -1822,7 +1964,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-10-28'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -1857,7 +1999,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-10-28'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -2244,7 +2386,7 @@ domains:
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
         11.8mm 全是推算)
       severity: high
-      needs_from: &id021
+      needs_from: &id020
       - jbd
       - main
       waiting_since: '2026-10-21'
@@ -2252,7 +2394,7 @@ domains:
       desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
         0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
       severity: high
-      needs_from: &id022
+      needs_from: &id021
       - boss
       - main
       waiting_since: '2026-10-25'
@@ -2260,7 +2402,7 @@ domains:
       desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置
         boot storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
       severity: high
-      needs_from: &id023
+      needs_from: &id022
       - hw-lead
       - main
       waiting_since: '2026-10-25'
@@ -2269,7 +2411,7 @@ domains:
         扛 0.55A 还是 1.5A、8p 还是 10p、载流与型号; 同时 J_CHG 无机械防呆 (反插 = SYS 短接 GND = 充电板 MOS 直通)。未裁之前: J_CHG 型号定不了、跨铰链
         FPC 芯数定不了、铰链区走线槽开不出来 (打印包不能开工)。'
       severity: high
-      needs_from: &id024
+      needs_from: &id023
       - main
       - hw-lead
       waiting_since: '2026-10-27'
@@ -2279,7 +2421,7 @@ domains:
       desc: 'ISS-091: 跨铰链充电电流核算已交 (MECH/HINGE_POWER_CALC.md), 但两个前置未裁: (1) J_CHG 单触点额定电流未知 [0数据] -> 直接锁死
         R_ILIM 档位 (若只有0.3A型号则只能选680Ω); (2) FPC 厂商三项能力未知 [0数据] (分段铜厚/0.4mm加宽/地平面keep-out) -> 固定段能否加厚不确定,
         影响压降 111->65mV 区间。未裁之前: R_ILIM 最终档位定不了、FPC 加工图定不了、铰链段 FPC 不能下单。'
-      needs_from: &id025
+      needs_from: &id024
       - main
       - hw-lead
     - id: MECH-B3
@@ -2340,7 +2482,7 @@ domains:
       target_missing: false
       waiting_on: jbd
       due: '2026-10-28'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -2454,7 +2596,7 @@ domains:
       target_missing: false
       waiting_on: boss
       due: '2026-10-28'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -2468,7 +2610,7 @@ domains:
       target_missing: false
       waiting_on: jbd
       due: '2026-10-28'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -2504,7 +2646,7 @@ domains:
       target_missing: false
       waiting_on: boss
       due: '2026-10-28'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -3194,7 +3336,10 @@ domains:
         3孔) 不一致, 合并器报的 pcb_mounting 冲突是这个, 请按你 ISS-105 定版那版改; 我这边的值已按 ISS-105 定版保持 (2xM1.2 + 1x⌀2.0H7)。再:
         ISS-089本单发现两条会打回重画的结构侧问题, 建议一并处理: (1) 充电灯 D_CHG_LED/Q_CHG_LED/R_CHG_LED 的 board 列标成 MAIN_PCB,
         但同页注记写''装在充电板(镜框)靠近Type-C座'' 而 VBUS_5V_CHG 只存在于充电板 => board列标错, BOM备料/装配/ISS-103导光孔位置会跟着做错; (2)
-        CHARGE_BOARD_SPEC §3.4 的 ICHG=0.822xIIN 方向反了 (buck功率守恒应为1.216), 390欧档的单pin电流要重算'
+        CHARGE_BOARD_SPEC §3.4 的 ICHG=0.822xIIN 方向反了 (buck功率守恒应为1.216), 390欧档的单pin电流要重算 || ★2026-10-29
+        ISS-107 更正: 上句 ''我这边的值已按 ISS-105 定版保持 (2xM1.2 + 1x⌀2.0H7)'' **已作废** —— mech 侧的 pcb_mounting 已于
+        2026-10-29 改成 PIN-SET-2 = ''2x⌀2.0H7+2x⌀1.4'' (与 hw-lead ISS-049 定版一致, 合并器冲突已消)。老口径 2xM1.2+1x⌀2.0H7
+        @边距2.50 在 15mm 板下 3/3 孔压 SoC 逃线带 ⇒ 机械判死。'
       ref: MECH/HW_CROSS_REVIEW.md §2.4/§5 R-7/R-9/§6 自-3/自-6
     - key: sw_temp_mount_point
       to: sw-lead
@@ -3792,18 +3937,22 @@ interface_claims:
   pcb_mounting:
     values:
       hw-lead: PIN-SET-2:2x⌀2.0H7+2x⌀1.4
-      mech-lead: 2xM1.2+1x⌀2.0H7
+      mech-lead: 2x⌀2.0H7+2x⌀1.4
     notes:
       hw-lead: '★PCB 固定方式定版 (ISS-049): 定位全部由骨架压装的 ⌀2.0 H7 销承担 (P1圆销全基准 + P2菱形销只定Y); 2xM1.2 降级为纯压紧 (⌀1.4
         过孔, 径向间隙0.10/边, 零定位功能); 打印件只留 ⌀2.4 间隙孔 => 打印公差不进定位链; ★mech-lead 的旧值 ''2xM1.2+1x⌀2.0H7'' 已过期 ——
         合并器会报冲突, 请 PM 转告 mech 更新'
-      mech-lead: 孔心到板边 2.50mm; 定位靠金属骨架 (铣削面≤5µm + ⌀2.0 H7 销), 打印件只让过不定位; ★15mm 板宽下 SoC 逃线带占 Y∈[2.70,12.30],
-        器件带仅 2.70mm/边 ⇒ M1.2 孔必然压逃线带 0.50mm ⇒ 必须沿板长移出逃线区 (建议对角分布)
+      mech-lead: '★PIN-SET-2 定版 (采纳 hw-lead ISS-049 定版, 结构侧独立复算 31 项 FAIL 0 / WARN 3): 2x⌀2.0H7 定位销孔 +
+        2x⌀1.4 压紧孔 —— 板坐标 (原点左下角, X=板长 0→60 铰链端在 X=0, Y=板宽 0→15): P1(8.00,7.50) 配骨架压装 ⌀2.0 h6 圆销=全基准(X+Y+θz)
+        / P2(52.00,7.50) 配 ⌀2.0 菱形销(对边1.94)=只定Y⇒消过定位 / S1(8.00,2.50) / S2(52.00,12.50) 为 ⌀1.4 过孔 (M1.2
+        螺钉径向间隙 0.10/边, 纯压紧零定位); 老口径 2xM1.2+1x⌀2.0H7 @孔心到板边2.50 在 15mm 板下按最有利假设仍 3/3 孔压 SoC 逃线带 (M1.2 压
+        Y 0.50mm; ⌀2.0 压 2.00x2.00mm) ⇒ 加宽不解, 已机械判死作废; PIN-SET-2 4/4 孔与逃线带 X[20.20,31.80]xY[2.70,12.30]
+        的 2D 重叠 = 0.000mm²; 定位重复性 ≤0.046mm (骨架铣削面≤5µm + H7销≤0.010), 打印件只让过不定位'
     by:
     - hw-lead
     - mech-lead
     noncanonical_by: []
-    conflict: true
+    conflict: false
   skeleton_extent:
     values: &id032
       hw-lead: 止于PCB段后缘@Z=60.00mm
@@ -3988,6 +4137,119 @@ interface_claims:
     by:
     - hw-lead
     noncanonical_by: []
+    conflict: false
+  rail.sys_min_v:
+    values:
+      hw-lead: 3.35V
+    notes:
+      hw-lead: SYS 轨下限(UVP 后); 3.50V 是兜底, 3.35V=buck 自身地板, 需原厂核 R_on
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  rail.v33_supply:
+    values:
+      hw-lead: TPS62130A
+    notes:
+      hw-lead: 3.3V 轨 (LIGHT_3V3+VDD_3V3_IO 350mA) 的供电器件; 2 颗 TPS7A20 LDO 退场
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  rail.v33_load_ma:
+    values:
+      hw-lead: 350mA
+    notes:
+      hw-lead: LIGHT_3V3 150mA + VDD_3V3_IO 200mA
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  rail.sys_max_ma:
+    values:
+      hw-lead: 0.55A
+    notes:
+      hw-lead: SYS 上限不变; 方案A 实测需求 0.249A x1.5=0.373A
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  battery.cell:
+    values:
+      hw-lead: 丰江432243
+    notes:
+      hw-lead: ≥420mAh 4.3x22.0x43.5mm, 本单不换, 镜腿 7.3mm 不变
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  battery.cell_thickness_mm:
+    values:
+      hw-lead: 4.3mm
+    notes:
+      hw-lead: 电芯厚度, 镜腿仍 7.3mm (名义 7.0)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  temple.thickness_mm:
+    values:
+      hw-lead: 7.3mm
+    notes:
+      hw-lead: 老板锁死值不变; 加第 3 颗 DC-DC 不新增高度等级
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  temple.dcdc_extra_area_mm2:
+    values:
+      hw-lead: 30-40mm2
+    notes:
+      hw-lead: 新增 1 颗 TPS62130A+电感+电容占板; 镜腿主板 15mm 板宽后仍缺 148-160mm2
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  uvp.implementation:
+    values:
+      hw-lead: U_PWR_SW_UVLO
+    notes:
+      hw-lead: 系统级欠压关断落在负载开关输入门限(>=3.35V), 不是 BQ2970
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  thermal.rail33_loss_mw:
+    values:
+      hw-lead: 100mW
+    notes:
+      hw-lead: 3.3V 轨 buck 转换损耗(eta=0.92) 镜腿内; 现论文热模型未含此项
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  endurance.caliber_a:
+    values:
+      hw-lead: t=Cap*DoD*V/P
+    notes:
+      hw-lead: 沿用 PM 10-25 裁决 (V=3.7 写死)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  soc_backup_candidates:
+    values:
+      hw-lead: RK3576/RK3588/RK1828/V881/V821/T527/BES2800/BES6100/BES2700/W517/W527/W917/ATS3609/ATS3017/ATS30xx
+    notes:
+      hw-lead: 'Top5 厂家 × TOP3 = 15 候选 (老板 10-29 00:49: 跳过酷芯微选型, 不限于瑞芯微/全志): 瑞芯微(RK3576 6T / RK3588 6T
+        / RK1828 协处理器) · 全志(V881 1T / V821 无NPU已量产 / T527 2T) · 恒玄(BES2800 4T / BES6100 新品[0数据] / BES2700
+        1T) · 紫光展锐(W517 量产但30fps / W527 / W917 5G) · 炬芯(ATS3609 / ATS3017 / ATS30xx高阶, 偏音频视觉弱)。★核心结论:
+        **15 个候选无一全满足老板 11 条 + 3 否决项** —— ≥6T+资料全的(RK3576/RK3588)违皮肤43°C红线且封装超板框; 眼镜级形态的算力只有 1-4T, 差 6T
+        一到六倍 ⇒ 必须降一项(A保算力改结构 / B保形态降算力 / C双芯片)。'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
     conflict: false
   temple_thickness:
     values:
@@ -5927,6 +6189,31 @@ needs_matrix:
       (ROI 垂直半视场 20.98deg < 俯角25deg, 正前方掉出画面), 需请老板裁决新议题 (建议编号 Q24)。此条在原厂回信前无法预判, 我方默认按''全幅''设计'
     _by: hw-lead
     state: pending
+  - key: iss067_uvp_landing_to_main
+    to: main
+    item: 'ISS-067: UVP 抬到 3.35/3.5V 在 BQ2970 上没有落点 (BQ2970=1S 电芯级过放保护, OVP 4.275V, UV 门限库内未核)。系统级欠压关断必须落在负载开关
+      U_PWR_SW 的输入欠压门限 (>=3.35V) 或外挂电压监控器。U_PWR_SW 还在 [待选型] => 请把该条写进 ISS-099 负载开关选型判据第 10 条, 现在加零板费,
+      投板后加=2-4 周返工'
+    since: '2026-10-25'
+    _by: hw-lead
+    state: pending
+  - key: iss067_mech_transmit_m1_m8
+    to: main
+    item: 'ISS-067: 请把 HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md §6 的 M-1~M-8 结构侧输入转达 mech-lead: 电池档位不变(丰江432243
+      4.3mm)/镜腿7.3mm不变; 满载1h需>=492mAh(下一档650mAh=8.5mm, 镜腿~10-11mm 形态否决, 请写进截面预算); 新增DC-DC占板+30-40mm2(15mm板宽后面积缺口148-160mm2
+      扩到180-200mm2, 请给位置优先级); 现有电感高度是否已计入7.0mm叠层(我核不到); 热模型补3.3V轨100mW(皮肤侧46.5->50.4-51.5C); 新buck建议放骨架侧远离皮肤;
+      UVP改关机语义'
+    since: '2026-10-25'
+    _by: hw-lead
+    state: pending
+  - key: iss067_caliber_b_converter_loss
+    to: main
+    item: 'ISS-067 口径校正: 口径B选电芯公式 mAh=P*1000/3.7/0.83/有效DoD 里, 我把 3.3V 轨转换损耗计入 P (方案A: 350mA buck eta=0.92
+      => +100mW)。与 V2/V3 旧公式 (不含转换损耗) 差 15-20%。计入后: 满载无桥中位 0.82W 需 408mAh (420mAh 够, 余3%), 上界1.01W需492mAh
+      (不够=>650mAh/8.5mm 形态否决)。请裁: 口径B 是否计入转换损耗? 我默认按计入 (更保守更接近真值)'
+    since: '2026-10-25'
+    _by: hw-lead
+    state: pending
   - key: fw_boot_storage_bom
     to: hw-lead
     item: '启动存储选型 (接口请求, 经 main 转达): SPI-NOR 容量型号 vs eMMC, 以及 rootfs 体积上限约束 (多少 MB 以内必须用 NOR) → 这是回滚方案的总分叉点:
@@ -6231,8 +6518,8 @@ needs_matrix:
     since: '2026-10-28'
     _by: mech-lead
     state: pending
-  answered_count: 81
-  total: 128
+  answered_count: 84
+  total: 134
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -6277,18 +6564,11 @@ blockers:
   needs_from: *id007
   waiting_since: '2026-10-25'
   owner: hw-lead
-- id: HW-B5
-  desc: 'R-F1 3.3V 轨拓扑未决: SYS 下限 3.0V vs TPS7A20 dropout 110mV -> SYS<3.41V 时 LIGHT_3V3/VDD_3V3_IO 失效
-    (放电末段 12-15% 电量突然黑屏); 三方案 A/B/C 待 main 裁决, 选 A 需同步重算 Q4 续航口径'
-  severity: high
-  needs_from: *id008
-  waiting_since: '2026-10-26'
-  owner: hw-lead
 - id: HW-B6
   desc: '可靠性证据缺口: 15/15 器件 Absolute Maximum Ratings 未核 (降额表只能当设计约束) + 跌落/振动/弯折/热 实测 0 项 (无样机) + 全板 FIT
     无器件级数据 (MTBF 只能用通用代表值, 光学子系统占 39.1%)'
   severity: high
-  needs_from: *id009
+  needs_from: *id008
   waiting_since: '2026-10-26'
   owner: hw-lead
 - id: HW-B7
@@ -6302,32 +6582,32 @@ blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
   severity: high
-  needs_from: *id010
+  needs_from: *id009
   waiting_since: '2026-10-21'
   owner: sw-lead
 - id: SW-B2
   desc: 光机逐帧延迟 = 完全 0 数据 (走鹃Ⅱ 只公开 480Hz 刷新率; 光机出光没法用软件打点, 需高速摄影/示波器)
   severity: high
-  needs_from: *id011
+  needs_from: *id010
   waiting_since: '2026-10-25'
   owner: sw-lead
 - id: SW-B3
   desc: NPU 输出是否强制 FP32 未知 → A733 上 tensor_to_fp 9.29ms 占 SDK 总 25%; 若强制则端到端多 7.3ms, 框龄跳档
   severity: high
-  needs_from: *id012
+  needs_from: *id011
   waiting_since: '2026-10-21'
   owner: sw-lead
 - id: SW-B4
   desc: 'Q1 60ms 口径 + Q17 显示帧率 待老板拍板 (needs: q1_latency_scope / q17_display_fps, waiting_on=boss, due
     2026-10-25) → 端到端 ''达标/不达标'' 结论定不下来: 口径A=67.0ms 不达标 / 口径C=42.3ms 达标, 同一套硬件两个口径'
   severity: high
-  needs_from: *id013
+  needs_from: *id012
   waiting_since: '2026-10-25'
   owner: sw-lead
 - id: SW-FW-B1
   desc: 6 个烧录失败注入用例 (FI-1~FI-6) 一个都没跑过 (无板) -> 断电原子性/版本块校验/模型格式版本拦截全部未验证
   severity: high
-  needs_from: *id014
+  needs_from: *id013
   waiting_since: '2026-10-26'
   owner: sw-lead
 - id: SW-FW-B2
@@ -6335,7 +6615,7 @@ blockers:
     (SW/FLASH_AND_VERSION §4.5, ISS-080): 软件层先验 (L0 布局 8/8 + L1 写入回读 15/15 + 断电注入 2 例 + 探针自测 10/10) 已实跑,
     并抓到 4 个版本块真 bug; 但 **板端 0 次**, 且 4 个 0 数据项 (P1~P4) 仍未填'
   severity: high
-  needs_from: *id015
+  needs_from: *id014
   waiting_since: '2026-10-26'
   owner: sw-lead
 - id: SW-MODEL-B1
@@ -6346,7 +6626,7 @@ blockers:
     5 个 BLOCKED 全部卡在原厂工具链 + 无板 → **板端 INT8 模型仍 0 个, 转换 0 次, 板端实测 0 次**; ★另查出台账原''主模型候选'' (320 版) **PC
     侧推理即失败** (C9) → 已隔离'
   severity: high
-  needs_from: *id016
+  needs_from: *id015
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: SW-TIM-B1
@@ -6354,26 +6634,26 @@ blockers:
     颗供电器件的 EN/SS 脚与监督器 CT 脚 在网表里 0 条; U_SUPV 分压是两颗 0Ω 位 (同时装 = V_SOC_IO 短路); 网表 RC 注记 ''τ=100ms'' 实为 1.1ms
     (差 90.9×) ⇒ SW 的 S2 救砖时序表与启动自检都要按保守假设重写'
   severity: high
-  needs_from: *id017
+  needs_from: *id016
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: SW-TIM-B2
   desc: '★ISS-090: 网表里没有任何硬件断电通路 (负载开关/电源开关 = 0 颗, 电池经 BQ2970 直连 SYS) ⇒ ''关机''只能是软件深睡, 所有轨带电 ⇒ 售后 ''长按10s=关机''
     / 老板锁死的 ''待机<0.05W'' / 关机充电指示灯 三条口径都要重定义 (待项目总工裁决)'
   severity: high
-  needs_from: *id018
+  needs_from: *id017
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: SW-TIM-B3
   desc: '★ISS-090: SoC 侧没有任何 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失 ⇒ S2 救砖链路 的成立性未验; 且 CONN_USB 只有 1 个
     GND pin (违反 ISS-085 自定规则), Type-C 侧 D+/D− 无独立 ESD (一次 ESD 就能打死唯一的救砖口) ⇒ 三个硬伤修掉前, S2 只能判未验'
   severity: high
-  needs_from: *id019
+  needs_from: *id018
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: SW-MODEL-B2
   severity: high
-  needs_from: *id020
+  needs_from: *id019
   waiting_since: '2026-10-28'
   desc: '★ISS-087 新增: 交付集里唯一的许可干净候选 (TF OD API SSD-MobileNetV2-FPNLite, Apache-2.0) **NPU 可转换性 = 0 数据**
     (TF SavedModel → ONNX → Art.Galaxy 三段都没跑过) —— 即''换栈''这条路目前也只有许可干净, 没有转换可行性证据; 同机 640 版 yolov5s ONNX
@@ -6383,21 +6663,21 @@ blockers:
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
     11.8mm 全是推算)
   severity: high
-  needs_from: *id021
+  needs_from: *id020
   waiting_since: '2026-10-21'
   owner: mech-lead
 - id: MECH-B2
   desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
     0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
   severity: high
-  needs_from: *id022
+  needs_from: *id021
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B4
   desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置 boot
     storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
   severity: high
-  needs_from: *id023
+  needs_from: *id022
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B7
@@ -6405,7 +6685,7 @@ blockers:
     还是 1.5A、8p 还是 10p、载流与型号; 同时 J_CHG 无机械防呆 (反插 = SYS 短接 GND = 充电板 MOS 直通)。未裁之前: J_CHG 型号定不了、跨铰链 FPC 芯数定不了、铰链区走线槽开不出来
     (打印包不能开工)。'
   severity: high
-  needs_from: *id024
+  needs_from: *id023
   waiting_since: '2026-10-27'
   owner: mech-lead
 - id: MECH-B8
@@ -6414,14 +6694,26 @@ blockers:
   desc: 'ISS-091: 跨铰链充电电流核算已交 (MECH/HINGE_POWER_CALC.md), 但两个前置未裁: (1) J_CHG 单触点额定电流未知 [0数据] -> 直接锁死 R_ILIM
     档位 (若只有0.3A型号则只能选680Ω); (2) FPC 厂商三项能力未知 [0数据] (分段铜厚/0.4mm加宽/地平面keep-out) -> 固定段能否加厚不确定, 影响压降 111->65mV
     区间。未裁之前: R_ILIM 最终档位定不了、FPC 加工图定不了、铰链段 FPC 不能下单。'
-  needs_from: *id025
+  needs_from: *id024
   owner: mech-lead
 - id: PM-B4
   desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
   severity: medium
-  needs_from: *id026
+  needs_from: *id025
   waiting_since: '2026-10-21'
   owner: main
+- id: HW-B5
+  desc: 'R-F1 3.3V 轨拓扑: 已按 PM 10-26 裁决落地 (ISS-067, 2026-10-29 hw-lead 交卷, status=fixed, fix_ref=HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md)。结论:
+    方案A (UVP 3.50V + 3.3V 由 TPS62130A buck 供) 真实代价≈0 (口径A 1.241h vs 现状 1.195h, +3.9%); 推荐 UVP 压到 3.35V
+    (方案A'', +10.9%, 零新增 IC); 第三条路 buck-boost 只多 +11.4 分钟但多 1 IC + 35mm2 + 新料量产风险 => 不进第一台样机; ★残留: UVP
+    落点从 BQ2970 改到负载开关 U_PWR_SW 输入欠压门限 (BQ2970 是电芯级保护, 抬不到 3.5V) ⇒ 须写进 ISS-099 负载开关选型判据第 10 条 (U_PWR_SW
+    仍 [待选型], 现在加零板费); 另 3 条外部依赖 (原厂 TPS62130A R_on / JBD 光机 3.3V 容差 / 老板拍板没电插电开不了机) 见 needs_from。 ★本单遗留:
+    库内 netlist_v1.csv 的 U_LDO_L33/U_LDO_IO33 还是 LDO => 方案A 尚未落进网表, 改法清单见主文 §2.1, 需下一单调生成器。'
+  severity: medium
+  needs_from: *id026
+  waiting_since: '2026-10-26'
+  resolved_by: ISS-067
+  owner: hw-lead
 - id: SW-FW-B3
   desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
   severity: medium
@@ -6455,18 +6747,7 @@ blockers:
   severity: medium
   needs_from: *id031
   owner: mech-lead
-conflicts:
-- key: pcb_mounting
-  values:
-    hw-lead: PIN-SET-2:2x⌀2.0H7+2x⌀1.4
-    mech-lead: 2xM1.2+1x⌀2.0H7
-  canon_values:
-    hw-lead: pin-set-2:2x⌀2.0h7+2x⌀1.4
-    mech-lead: 2xm1.2+1x⌀2.0h7
-  refs:
-    hw-lead: HW/PCB_FIXING_PINSET2.md#3.1
-    mech-lead: MECH/BOARD_WIDTH_15MM.md#5.3
-  status: open
+conflicts: []
 needs_normalization:
 - key: skeleton_extent
   values: *id032
@@ -6482,6 +6763,10 @@ lint:
 - agent: hw-lead
   key: component_env_temp_max
   value: 55C(组件环境上限)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: soc_backup_candidates
+  value: RK3576/RK3588/RK1828/V881/V821/T527/BES2800/BES6100/BES2700/W517/W527/W917/ATS3609/ATS3017/ATS30xx
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: mech-lead
   key: mfit_scope
@@ -6630,15 +6915,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 73
+  artifacts: 78
   blockers: 32
-  high_blockers: 26
-  open_needs: 47
-  waiting_external_needs: 49
+  high_blockers: 25
+  open_needs: 50
+  waiting_external_needs: 52
   overdue_needs: 0
   target_missing_needs: 0
-  conflicts: 1
+  conflicts: 0
   needs_normalization: 1
-  lint: 27
+  lint: 28
   agents_reporting: 4
   incomplete_fragments: 0

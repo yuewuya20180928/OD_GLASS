@@ -4,21 +4,26 @@ updated_at: '2026-10-28T08:40:00+08:00'
 updated_by: hw-lead
 status:
   phase: P2(原理图/BOM)+结构接口
-  progress_pct: 50
-  health: red
-  summary: 'ISS-062 闭: R-GEO-2 四问并入 hw-lead 现有 R-GEO-1 原厂/镜头厂沟通材料, 产出 3 份 state/outbox/
-    草稿 (原厂信 vendor_round4_geo_isp_addendum.md Q1-Q5 / 镜头厂 RFQ lens_rfq_rgeo2_addendum.md
-    RFQ-13~16 / 决策映射 R_GEO_2_DECISION_MAP.md)。★核心交付 = 四问x三决策(120度对角/宽高比子路线/全幅吞吐)双向分支映射:
-    问01+问02 卡 120度对角(ROI则 120.00->85.61度, 立体角只52.30%, 俯角25度正前方掉出画面余量-4.02度), 问04 卡
-    宽高比子路线(不支持letterbox则各向异性1.326+全局失真32.6%违反REQ-GEO-07), 问03 卡 全幅吞吐且唯一一票否决(245.1MP/s
-    在250口径占98.1%余1.9% vs 497.7口径占49.3%, 两结论相反)。★自查出 3 条硬结论: (a) 问01 决定问03 的分母 (全幅245.1
-    vs ROI 124.4 MP/s), 两问必须成对问; (b) 我方网表 P5 的 CSI D2/D3 现为 DNP(只按1080p60 2-lane设计),
-    而全幅RAW10@60=2.451Gbps 需4-lane => 原厂回信前板级预留方向未定, 投板后改=2-4周; (c) 问04 有原材料没写的第三条路:
-    letterbox 可在ISP之后软件侧生成(CR-3 已裁决黑边只生成一次/复用ox,oy), 故原厂只需等比缩放+输出非4:3有效帧, 等价子路线2。★缺口登记:
-    R-GEO-1 自 10-26 提出至今从未进入任何对外材料(逐份核 state/outbox 7草稿+3附件, 零命中''裁切/ROI/全幅/缩放/scaler/MP.s/吞吐'')
-    —— 本轮已补齐并入原厂信 Q1/Q2。6 条 interface_claims 已登记(全为要求态, 确认态[0数据])。边界: 未发任何邮件, 未联系任何供应商/原厂,
-    只写 state/outbox/ 3文件 + 自己分片 + 1份交接单, 未动 HW/SW/MECH/PROJECT_TRACKER/issue_log/STATE.yaml/他人分片。merge
-    rc=0 + gate Q1 18/18'
+  progress_pct: 55
+  health: yellow
+  summary: 'ISS-067 交卷 (R-F1 3.3V 轨拓扑裁决落地): 产出 HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md +
+    HW/calc_rf1_3v3v_uvp.py + HANDOFF/2026-10-29_hw-lead_ISS067_RF1_3V3V_UVP.md (B1-B6
+    六块齐全)。核心结论: (1) 方案A (UVP 3.5V + 3.3V 由 TPS62130A buck 供) 的真实代价≈0, 不是裁决说的牺牲12-15%容量
+    —— 那12-15%在现状里本来就用不到 (TPS7A20 dropout 110mV typ -> 3.3V轨在SYS<3.41V已失效), 方案A只多切3.41->3.50V窄带(标称3%=12.6mAh);
+    (2) 口径A续航 (420mAh电芯, 满载无桥中位0.82W): 现状1.195h(末段突然黑屏) -> 方案A 1.241h(+3.9%) -> 方案A''(UVP3.35V)
+    1.325h(+10.9%) -> buck-boost 1.475h(+23.4%); (3) 口径B选电芯: 方案A需408mAh -> 420mAh刚好够(余3%);
+    满载上界1.01W需492mAh/有桥中位需496mAh -> 420不够, 下一档650mAh/8.5mm = 镜腿~10-11mm 形态否决 => ''持续满载1h''
+    现在有第二条独立否决理由(电芯档位), 与热学否决同向; (4) 镜腿7.3mm锁死值不变(电芯仍丰江432243 4.3mm, 加第3颗DC-DC不新增高度等级),
+    真正落地的是按需触发口径(141mAh需求, 余199%); (5) 温度: LDO->buck 把镜腿内损耗175mW->100mW = 相对现状皮肤侧-2.94~-3.76C(改善),
+    但现论文热模型从未计入3.3V轨转换损耗 => 方案A落地后要补+100mW => 皮肤侧46.5C->50.4-51.5C, 43C红线缺口从3.5C扩到7.4-8.5C;
+    (6) 第三条路逐条评估: buck-boost只比方案A''多+11.4分钟却多1颗新IC+~35mm2+新料量产风险+新EMI/FIT项(且4开关效率在boost段更低85-90%
+    vs buck 88-93%) -> 不进第一台样机; 低dropout LDO被方案A''完全支配(只多2-4%容量却要换料); IO轨直吃SYS否决(SYS满电4.2V超典型3.3V
+    IO绝对最大值~3.6V, 且SoC IO/光机容差均[0数据]); ★(7) 最硬的实现风险: 裁决原文''把BQ2970的UVP阈值抬到3.5V''在器件层面没有落点
+    —— BQ2970是1S电芯级保护(OVP 4.275V[官方], UV门限[0数据])抬不到3.5V, 系统级欠压关断必须落在负载开关U_PWR_SW的输入欠压门限(>=3.35V)或外挂电压监控器,
+    而U_PWR_SW还在[待选型] => 现在加选型判据零板费, 投板后加=2-4周返工; (8) 连带UX后果: UVP 3.35V + 充电板VSYS=NC
+    => 电池没电时插USB开不了机, 待老板裁决。已登记11条interface_claims + 9条未决项(其中3条waiting_on=boss/vendor/jbd)
+    + 3份artifact; 边界: 未发任何邮件/未联系供应商/未改MECH与SW与PROJECT_TRACKER/未改别人分片; merge rc=0 +
+    gate Q1 18/18'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -129,6 +134,22 @@ artifacts:
   updated_at: '2026-10-28'
   summary: 'ISS-062 核心交付: 四问x三决策(120度对角/宽高比子路线/全幅吞吐)双向分支映射表 + B1-B6 六块 + 复现脚本; 含缺口登记
     G-1 (R-GEO-1 从未进过任何对外材料)'
+- path: HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-067 R-F1 3.3V 轨拓扑/UVP 裁决落地: 方案A 拓扑+网表级改法7条+容量窗口/口径A/B 数字+第三条路四路径对比+镜腿厚度影响+mech-lead
+    结构侧输入 M-1~M-8'
+- path: HW/calc_rf1_3v3v_uvp.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-067 数字自证脚本 (全文唯一数字出处): 容量窗口/口径A续航/口径B选电芯/转换损耗与皮肤侧温度/SYS电流/六路径对比'
+- path: HANDOFF/2026-10-29_hw-lead_ISS067_RF1_3V3V_UVP.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-067 交接单 (B1-B6 六块齐全): 结论摘要/验收自评/证据分级11条/接口取值11条/未决项9条/自证命令'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX
@@ -160,13 +181,20 @@ blockers:
   - main
   waiting_since: '2026-10-25'
 - id: HW-B5
-  desc: 'R-F1 3.3V 轨拓扑未决: SYS 下限 3.0V vs TPS7A20 dropout 110mV -> SYS<3.41V 时 LIGHT_3V3/VDD_3V3_IO
-    失效 (放电末段 12-15% 电量突然黑屏); 三方案 A/B/C 待 main 裁决, 选 A 需同步重算 Q4 续航口径'
-  severity: high
+  desc: 'R-F1 3.3V 轨拓扑: 已按 PM 10-26 裁决落地 (ISS-067, 2026-10-29 hw-lead 交卷, status=fixed,
+    fix_ref=HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md)。结论: 方案A (UVP 3.50V + 3.3V 由 TPS62130A
+    buck 供) 真实代价≈0 (口径A 1.241h vs 现状 1.195h, +3.9%); 推荐 UVP 压到 3.35V (方案A'', +10.9%,
+    零新增 IC); 第三条路 buck-boost 只多 +11.4 分钟但多 1 IC + 35mm2 + 新料量产风险 => 不进第一台样机; ★残留:
+    UVP 落点从 BQ2970 改到负载开关 U_PWR_SW 输入欠压门限 (BQ2970 是电芯级保护, 抬不到 3.5V) ⇒ 须写进 ISS-099
+    负载开关选型判据第 10 条 (U_PWR_SW 仍 [待选型], 现在加零板费); 另 3 条外部依赖 (原厂 TPS62130A R_on / JBD
+    光机 3.3V 容差 / 老板拍板没电插电开不了机) 见 needs_from。 ★本单遗留: 库内 netlist_v1.csv 的 U_LDO_L33/U_LDO_IO33
+    还是 LDO => 方案A 尚未落进网表, 改法清单见主文 §2.1, 需下一单调生成器。'
+  severity: medium
   needs_from:
   - main
   - vendor
   waiting_since: '2026-10-26'
+  resolved_by: ISS-067
 - id: HW-B6
   desc: '可靠性证据缺口: 15/15 器件 Absolute Maximum Ratings 未核 (降额表只能当设计约束) + 跌落/振动/弯折/热 实测
     0 项 (无样机) + 全板 FIT 无器件级数据 (MTBF 只能用通用代表值, 光学子系统占 39.1%)'
@@ -381,6 +409,51 @@ needs_from:
   item: 'ISS-062 预警: 若原厂 Q1 回信是''ISP 只能 ROI 不能全幅'', 则老板 10-25 19:33/19:42 定的''不裁剪
     + 对角120度 + 俯角<=25度''基线要重开 (ROI 垂直半视场 20.98deg < 俯角25deg, 正前方掉出画面), 需请老板裁决新议题 (建议编号
     Q24)。此条在原厂回信前无法预判, 我方默认按''全幅''设计'
+- key: iss067_uvp_landing_to_main
+  to: main
+  item: 'ISS-067: UVP 抬到 3.35/3.5V 在 BQ2970 上没有落点 (BQ2970=1S 电芯级过放保护, OVP 4.275V,
+    UV 门限库内未核)。系统级欠压关断必须落在负载开关 U_PWR_SW 的输入欠压门限 (>=3.35V) 或外挂电压监控器。U_PWR_SW 还在 [待选型]
+    => 请把该条写进 ISS-099 负载开关选型判据第 10 条, 现在加零板费, 投板后加=2-4 周返工'
+  since: '2026-10-25'
+- key: iss067_mech_transmit_m1_m8
+  to: main
+  item: 'ISS-067: 请把 HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md §6 的 M-1~M-8 结构侧输入转达 mech-lead:
+    电池档位不变(丰江432243 4.3mm)/镜腿7.3mm不变; 满载1h需>=492mAh(下一档650mAh=8.5mm, 镜腿~10-11mm 形态否决,
+    请写进截面预算); 新增DC-DC占板+30-40mm2(15mm板宽后面积缺口148-160mm2 扩到180-200mm2, 请给位置优先级); 现有电感高度是否已计入7.0mm叠层(我核不到);
+    热模型补3.3V轨100mW(皮肤侧46.5->50.4-51.5C); 新buck建议放骨架侧远离皮肤; UVP改关机语义'
+  since: '2026-10-25'
+- key: iss067_caliber_b_converter_loss
+  to: main
+  item: 'ISS-067 口径校正: 口径B选电芯公式 mAh=P*1000/3.7/0.83/有效DoD 里, 我把 3.3V 轨转换损耗计入 P (方案A:
+    350mA buck eta=0.92 => +100mW)。与 V2/V3 旧公式 (不含转换损耗) 差 15-20%。计入后: 满载无桥中位 0.82W
+    需 408mAh (420mAh 够, 余3%), 上界1.01W需492mAh (不够=>650mAh/8.5mm 形态否决)。请裁: 口径B 是否计入转换损耗?
+    我默认按计入 (更保守更接近真值)'
+  since: '2026-10-25'
+- key: iss067_decide_lowbat_insert
+  to: main
+  since: '2026-10-29'
+  waiting_on: boss
+  due: '2026-10-31'
+  item: 'ISS-067 待老板裁决: UVP 抬到 3.35V (方案A'') + 充电板 VSYS=NC (PM 10-26 裁决) => 电池低于 3.35V
+    时 3.3V 轨起不来, 插 USB 也开不了机 (SYS 只来自电池), 只能先充电到 3.35V 再开机。选项: (a) 接受 (默认按我的假设继续:
+    先充电再开机, 不加铰链 pin); (b) 充电板 VSYS 接通 (多 2 根铰链 pin, 触发结构接口变更); (c) UVP 降到 3.0V (必须走
+    buck-boost 方案 B, +1 IC +35mm2)。请老板/项目总工拍板'
+- key: iss067_vendor_r_on_u1
+  to: main
+  since: '2026-10-29'
+  waiting_on: vendor
+  due: '2026-10-31'
+  item: 'ISS-067 需原厂回复 (外发经项目总工, 我不直接联系): TPS62130A 的高边 R_on + 推荐电感 DCR 合计值。这个数决定
+    UVP 能不能从 3.50V 压到 3.35V (buck 100% 占空比地板 = 3.300 + 350mA x R_total)。我的假设: R_total=100mΩ
+    => 地板 3.335V => 方案A'' 成立, 续航比方案A 多 +7 个点。若实测 >150mΩ => 退回 UVP 3.50V (方案A)'
+- key: iss067_jbd_vdd_tol_u2
+  to: main
+  since: '2026-10-29'
+  waiting_on: jbd
+  due: '2026-10-31'
+  item: 'ISS-067 需 JBD 回复 (外发经项目总工): 光机 3.3V 输入电压容差与下限 (LIGHT_3V3 由新 buck 供, UVP 3.35V
+    时 buck 输出约 3.305V)。我的假设: ±5% (3.135-3.465V) => 成立; 若要求 3.3V±2% => 3.305V 卡边, 需实测确认后再定
+    UVP'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -811,6 +884,58 @@ interface_claims:
   note: 角落 (角距 45-60deg) 是检测价值最高处 (目标刚入画), 需独立量化验收线; 角落桶形畸变 -39.5% 老板已接受不构成否决。cos^4
     外推角落仅 6.3% 但对鱼眼不适用 (行业经验 40-70%), 须模组厂实测给曲线
   ref: state/outbox/lens_rfq_rgeo2_addendum.md#RFQ-14
+- key: rail.sys_min_v
+  value: 3.35V
+  note: SYS 轨下限(UVP 后); 3.50V 是兜底, 3.35V=buck 自身地板, 需原厂核 R_on
+  ref: ''
+- key: rail.v33_supply
+  value: TPS62130A
+  note: 3.3V 轨 (LIGHT_3V3+VDD_3V3_IO 350mA) 的供电器件; 2 颗 TPS7A20 LDO 退场
+  ref: ''
+- key: rail.v33_load_ma
+  value: 350mA
+  note: LIGHT_3V3 150mA + VDD_3V3_IO 200mA
+  ref: ''
+- key: rail.sys_max_ma
+  value: 0.55A
+  note: SYS 上限不变; 方案A 实测需求 0.249A x1.5=0.373A
+  ref: ''
+- key: battery.cell
+  value: 丰江432243
+  note: ≥420mAh 4.3x22.0x43.5mm, 本单不换, 镜腿 7.3mm 不变
+  ref: ''
+- key: battery.cell_thickness_mm
+  value: 4.3mm
+  note: 电芯厚度, 镜腿仍 7.3mm (名义 7.0)
+  ref: ''
+- key: temple.thickness_mm
+  value: 7.3mm
+  note: 老板锁死值不变; 加第 3 颗 DC-DC 不新增高度等级
+  ref: ''
+- key: temple.dcdc_extra_area_mm2
+  value: 30-40mm2
+  note: 新增 1 颗 TPS62130A+电感+电容占板; 镜腿主板 15mm 板宽后仍缺 148-160mm2
+  ref: ''
+- key: uvp.implementation
+  value: U_PWR_SW_UVLO
+  note: 系统级欠压关断落在负载开关输入门限(>=3.35V), 不是 BQ2970
+  ref: ''
+- key: thermal.rail33_loss_mw
+  value: 100mW
+  note: 3.3V 轨 buck 转换损耗(eta=0.92) 镜腿内; 现论文热模型未含此项
+  ref: ''
+- key: endurance.caliber_a
+  value: t=Cap*DoD*V/P
+  note: 沿用 PM 10-25 裁决 (V=3.7 写死)
+  ref: ''
+- key: soc_backup_candidates
+  value: RK3576/RK3588/RK1828/V881/V821/T527/BES2800/BES6100/BES2700/W517/W527/W917/ATS3609/ATS3017/ATS30xx
+  note: 'Top5 厂家 × TOP3 = 15 候选 (老板 10-29 00:49: 跳过酷芯微选型, 不限于瑞芯微/全志): 瑞芯微(RK3576 6T
+    / RK3588 6T / RK1828 协处理器) · 全志(V881 1T / V821 无NPU已量产 / T527 2T) · 恒玄(BES2800
+    4T / BES6100 新品[0数据] / BES2700 1T) · 紫光展锐(W517 量产但30fps / W527 / W917 5G) · 炬芯(ATS3609
+    / ATS3017 / ATS30xx高阶, 偏音频视觉弱)。★核心结论: **15 个候选无一全满足老板 11 条 + 3 否决项** —— ≥6T+资料全的(RK3576/RK3588)违皮肤43°C红线且封装超板框;
+    眼镜级形态的算力只有 1-4T, 差 6T 一到六倍 ⇒ 必须降一项(A保算力改结构 / B保形态降算力 / C双芯片)。'
+  ref: HW/SOC_BACKUP_TOP5X3.md
 open_questions:
 - id: HW-Q1
   to: main

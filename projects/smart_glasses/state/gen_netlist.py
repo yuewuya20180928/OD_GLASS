@@ -40,7 +40,31 @@ SPEC = os.path.join(PROJ, "HW", "SCHEMATIC_V1_SPEC.json")
 OUT = os.path.join(PROJ, "HW", "netlist_v1.csv")
 
 COLS = ["page", "net", "node1", "node2", "ref", "value", "type", "dnp", "evidence", "tbd", "note", "conn_id",
-        "board"]
+        "board", "footprint", "opn"]
+
+# ★★器件封装 / OPN 寄存器 (2026-10-29 ISS-112 · R-F6 新增) ★★
+#   为什么要有: BOM_v1.csv 的 **封装列** 之前永远写 "待定" (MECH/cross_review_check.py C-9 判 FAIL:
+#   "332/332 条 footprint = 待定 → 板面积/器件高度/连接器外形全部无法核算")。
+#   而 netlist 里 **连 footprint 列都没有** ⇒ 光改 BOM CSV 是手改生成物 (ISS-075 明令禁止),
+#   必须把封装当 **器件级数据** 落进生成器。
+#   本表是 "位号 → (封装, OPN)" 的**唯一真源**; netlist_v1.csv 带出这两列,
+#   gen_bom.py 再把它们搬到 BOM_v1.csv (BOM 仍是纯生成物, 重跑幂等)。
+#   规则: **没查过官方 datasheet 的器件不许填** —— 宁可留空 (BOM 显示 待定), 不许编。
+#
+#   字段:
+#     footprint —— PCB land pattern (封装尺寸 + pitch + 官方封装图编号)
+#     opn       —— 厂商订购型号 (TI 的 "BQ25896RTWR" 这种), 询价/下单直接用
+PARTS: dict[str, dict] = {
+    # ---- ISS-112: BQ25896 封装从 "VQFN-16 3×3mm (RGT)" 改为官方真实封装 ----
+    # 旧写法 (VQFN-16 3×3 = 9mm²) **该封装根本不存在**, 占板面积少算 7mm²。
+    # 官方三方一致: 产品页 "WQFN (RTW) / 24 / 16 mm² (4 mm × 4 mm)" +
+    #              订购页 "BQ25896RTWR ACTIVE, WQFN (RTW) | 24" +
+    #              datasheet 封装附录 "WQFN - 0.8 mm max height / RTW 24 / 4 x 4, 0.5 mm pitch (4224801/A)"
+    "U_CHG": {
+        "footprint": "WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",
+        "opn": "BQ25896RTWR",
+    },
+}
 
 # ★板级归属 (2026-10-27 V1.1 新增列 board) —— 充电板在镜框 / 主 PCB 在镜脚, 两者跨铰链
 #   CHG_BOARD = 充电板 (镜框): Type-C + 充电链 + 电池
@@ -157,8 +181,10 @@ ROWS: list[dict] = []
 
 
 def add(page, net, node1, node2, ref, value, typ, dnp, ev, tbd, note, cid=""):
+    p = PARTS.get(ref, {})
     ROWS.append(dict(page=page, net=net, node1=node1, node2=node2, ref=ref, value=value, type=typ,
-                     dnp=dnp, evidence=ev, tbd=tbd, note=note, conn_id=cid))
+                     dnp=dnp, evidence=ev, tbd=tbd, note=note, conn_id=cid,
+                     footprint=p.get("footprint", ""), opn=p.get("opn", "")))
 
 
 # ---------------------------------------------------------------- P1 电源树

@@ -203,3 +203,43 @@ dispatches:
   brief: '把 mech-lead 分片里的 `pcb_mounting` 旧取值 **2xM1.2+1x⌀2.0H7** 改成 **hw-lead 已定版的 PIN-SET-2** = `2x⌀2.0H7+2x⌀1.4`, 让合并器的 `pcb_mounting` 冲突消掉 (现在它是唯一 1 条冲突)。
 
     【定版依据 (hw-lead ISS-049, 36 项复算 rc=0)】P1 主定位销孔 ⌀2.0 H7 @ (8.00, 7.50) (配压装 ⌀2.0 h6 圆销, 定 X+Y+θz); P2 副定位销孔 ⌀2.0 H7 @ (52.00, 7.50) (配压装 ⌀2.0 菱形销, 对边 1.9'
+- issue: ISS-067
+  agent: hw-lead
+  at: '2026-10-29'
+  brief: '按项目总工裁决落地: (a) UVP 抬到 3.5V (兜底必做, 保证 SYS 末段不低于 3.41V) (b) 基线按方案 A 出 3.3V 轨供电改法, 并把 12-15% 容量损失换算成新的电池容量需求与续航影响 (c) 评估第三条路: 有没有办法不牺牲容量 (更低 dropout 的 3.3V LDO / IO 轨直吃 SYS / 加 buck-boost), 给出各自的代价与推荐。输出:
+    改后的电源拓扑 + 对电池容量/续航口径/镜腿厚度的影响 + 给 mech-lead 的结构侧输入 (发给项目总工转达)'
+- issue: ISS-107
+  agent: mech-lead
+  at: '2026-10-29'
+  brief: '把 mech-lead 分片里的 `pcb_mounting` 旧取值 **2xM1.2+1x⌀2.0H7** 改成 **hw-lead 已定版的 PIN-SET-2** = `2x⌀2.0H7+2x⌀1.4`, 让合并器的 `pcb_mounting` 冲突消掉 (现在它是唯一 1 条冲突)。
+
+    【定版依据 (hw-lead ISS-049, 36 项复算 rc=0)】P1 主定位销孔 ⌀2.0 H7 @ (8.00, 7.50) (配压装 ⌀2.0 h6 圆销, 定 X+Y+θz); P2 副定位销孔 ⌀2.0 H7 @ (52.00, 7.50) (配压装 ⌀2.0 菱形销, 对边 1.9'
+- issue: ISS-052
+  agent: mech-lead
+  at: '2026-10-29'
+  brief: '背景: 硬件总工 HW/LENS_SELECTION.md 给出镜头侧的结构需求, **三档 (100/110/120°) 只差 ≤0.9mm** → 镜框可以不等镜头定档就开模。
+
+    要跟的数: 镜筒外径 ⌀6.0-6.5mm (净空 ⌀7.5) / 镜头总高 3.7-4.6mm (推荐 4.6) / 模组沿光轴总高 5.0-5.9mm (推荐 6.0) / 前组通光口径 ≥4.0-4.5mm / 窗口通光 ⌀5.0 外径 ⌀6.5 厚 0.3mm (蓝宝石 0.5) AR 镀膜 R<2%@60°入射 / 窗口距前顶点 ≥0.5mm / **前镜片顶点必须齐平或凹进 ≤1.0mm**
+    → 感光面'
+- issue: ISS-068
+  agent: hw-lead
+  at: '2026-10-29'
+  brief: '把可靠性证据缺口分成两堆: (a) 现在就能做的: 15 个器件逐个查 datasheet 补 Absolute Maximum Ratings, 并把降额表从 设计约束 升级成 有据可依 的判据; FIT 数据给出处 (通用代表值必须标明来源与适用范围, 光学子系统占 39.1% 的部分要单独说明怎么处理) (b) 只能等样机的: 跌落/振动/弯折/热 实测 -> 挂 EVT 模板的对应段,
+    写明测法与判据, 状态标 未验。输出: 器件级绝对最大额定表 + 降额表升级 + EVT 实测项清单'
+- issue: ISS-112
+  agent: hw-lead
+  at: '2026-10-29'
+  brief: '把 BQ25896 的封装在库里定死: (a) 改 HW/CHARGE_BOARD_SPEC.md:486 与 HW/RELIABILITY_DESIGN.md:103,506 的 ''VQFN-16 3×3mm (RGT)'' → ''WQFN (RTW) 24pin 4×4mm 16mm², OPN BQ25896RTWR'' [官方, 附 ti.com 链接]; (b) BOM_v1.csv
+    的封装列落 OPN (走 state/gen_netlist.py 生成器, 不要手改 CSV); (c) ★**重算充电板面积** —— footprint 由 9mm² 变 16mm² (+7mm²),'
+- issue: ISS-027
+  agent: mech-lead
+  at: '2026-10-29'
+  brief: '出 `MECH/PROTOTYPE_PLAN.md` (原型制作计划): ①**分批打样计划** (第 1 批打印件 → 装配 → 量测 → 第 2 批改版: 每批做几件、每批验证哪几项、每批的判据是什么) ②**每批的验证矩阵**: 哪些项在打印件阶段就能测 (尺寸/干涉/佩戴), 哪些必须等电路板 (功能/热/续航) ③**不通过怎么回滚** (改哪一层: 打印件/结构/PCB/固件;
+    每层的回滚成本与耗时) ④与既有文件的衔接: `MECH/RELIABILITY_TEST_PLAN.md` (已有 T-13/T-14 跨铰链用例) + `state/measurements.yaml`'
+- issue: ISS-113
+  agent: sw-lead
+  at: '2026-10-29'
+  brief: '修 rknn_bench.py 的步间依赖: (a) acc 步在 dataset.txt 缺失时自动先跑 calib (或直接给一条明确的报错提示指向 calib 步, 不要抛 AssertionError); (b) 同步改 SW/RKNN_BENCH.md §7, 让列出的每条命令都能在干净机器上独立跑通; (c) 加一句 ''WORK=/tmp/rknn_bench 会被系统清理,
+    重跑需重新 calib'' 的说明。
+
+    ★只改 SW/tools/rknn_bench.py + SW/RKNN_BENCH.md, 不许改既有结论数字, 不许碰 state/ 下任何文件。'

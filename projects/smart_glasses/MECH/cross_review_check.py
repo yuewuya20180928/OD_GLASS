@@ -261,7 +261,7 @@ def main():
     hits = sum(1 for r in rows if any(k in (r.get("note", "") + r.get("value", "")) for k in keys))
     rec(hits > 0, "C-11", "网表含安装孔/固定点/keepout",
         f"与机械固定相关的行数 = {hits} → " +
-        ("有" if hits else "★0 条 → PCB 出来没有固定孔, 装不进骨架 (ISS-042 解 A: 2×M1.2 + ⌀2.0H7 定位销)"))
+        ("有" if hits else "★0 条 → PCB 出来没有固定孔, 装不进骨架 (PIN-SET-2: 2×⌀2.0H7 定位销 + 2×⌀1.4 压紧孔)"))
 
     # ============================================================ C-12 板级归属覆盖
     boards = sorted({r.get("board") for r in rows if r.get("board")})

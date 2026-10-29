@@ -95,9 +95,10 @@
 
 | 项 | 取值 | 证据 |
 |---|---|---|
-| 型号 | **TI BQ25896** | [官方] ti.com/lit/ds/symlink/bq25896.pdf (已下载核过) |
+| 型号 | **TI BQ25896** · **OPN = BQ25896RTWR** | [官方] ti.com/lit/ds/symlink/bq25896.pdf (已下载核过) + ti.com/lit/gpn/BQ25896 订购页 (BQ25896RTWR / RTWR.A / RTWR.B / RTWT 在售) |
 | 拓扑 | 开关型 buck, 1S 锂电 | [官方] |
-| 封装 | VQFN-16 (RGT) **3×3 mm**, 带散热焊盘 | [官方] §7 Pin Configuration |
+| 封装 | **WQFN (RTW) 24 pin · 4×4 mm = 16 mm² · 0.5 mm pitch · 0.8 mm max height**, 带散热焊盘 (PowerPAD) | [官方] ti.com/product/BQ25896 产品页 "WQFN (RTW) / 24 / 16 mm² (4 mm × 4 mm)" + ti.com/lit/gpn/BQ25896 封装附录 "WQFN - 0.8 mm max height / RTW 24 PLASTIC QUAD FLATPACK - NO LEAD / 4 x 4, 0.5 mm pitch" (封装图 4224801/A) + datasheet §7 Pin Configuration (SLUSC76C) |
+| ~~封装 (旧写法, 已废)~~ | ~~VQFN-16 (RGT) 3×3 mm~~ | ❌ **该封装不存在** (ISS-112 · R-F6) —— BQ25896 **只有 WQFN (RTW) 24 pin 一种封装**; 旧写法把占板面积少算 **7 mm²** (9 → 16) |
 | 充电电流 | 最高 3.008A (可编程); **我们用硬件封顶 ≤1.30A 输入 / ~1.0A 充电** | [官方] REG04 |
 | 内部 BATFET | 11 mΩ | [官方] |
 | I2C 从机地址 | **0x6B** (1101011B) | [官方] §9.2.16.5 + "I2C Address 6BH" |
@@ -131,7 +132,22 @@
 | **22** | REGN | P | `C_REGN` 4.7µF 10V → GND; 同时是 TS 分压基准 | 5.0V | [官方] "Connect a 4.7 µF (10 V rating) ceramic capacitor from REGN to analog GND" | |
 | **23** | PMID | DO | `L_CHG` 2.2µH 一端 + `C_PMID` 10µF → PGND | — | [官方] "put 1µF on VBUS to PGND, and the rest capacitance on PMID to PGND" | |
 | **24** | NC | — | **NC** | — | [官方] "No Connect" | |
-| — | **PowerPAD** | P | 焊到 PGND 平面, ≥6 个过孔 | — | [官方] "Always solder PowerPAD Pad to the board, and have vias on the PowerPAD plane star-connecting to PGND" | 散热焊盘是 3×3mm 器件在 25×10mm 小板上的唯一散热路径 |
+| — | **PowerPAD** | P | 焊到 PGND 平面, ≥6 个过孔 | — | [官方] "Always solder PowerPAD Pad to the board, and have vias on the PowerPAD plane star-connecting to PGND" | ★散热焊盘是 **4×4mm (16 mm²)** 器件在 25×10mm 小板上的唯一散热路径 (ISS-112 修正: 原写 "3×3mm 器件" 随封装一起作废) |
+
+> ✅ **ISS-112 (d) 机械复核结论 (2026-10-29 · hw-lead)**: 本表 **24/24 脚逐脚与 datasheet SLUSC76C §7 一致, 无错位**
+> (复核脚本 `HW/check_bq25896_pinout.py`, 可重跑)。**错位不在本表, 在网表引用上** —— 见下方告警。
+>
+> 🔴 **告警 (ISS-112 同单查出, 尚未处置) —— 4 个 U_CHG 脚在网表里同时挂在两个网上**:
+>
+> | 脚 | 官方功能 | 网表里出现的两个网 | 后果 | 证据 |
+> |---|---|---|---|---|
+> | **pin17 / pin18** | **PGND** (功率地) | `PGND` **和** `TS_RTN` | ★★**导出后 pin17/18 只落在 TS_RTN 上, PGND 网里没有 BQ25896 的地脚** ⇒ 充电回流的功率地被迫经 `TS_RTN` 细线 + `J_CHG pin10` (0.5mm ZIF, 0.5A 额定) 回镜脚 —— 而充电电流 ~0.82A **超该触点额定**, 且 `J_CHG pin3/pin4` 双 pin 并联回流的设计被绕过, `R_STAR_PGND` 的"单点星接"也失效 | [实测] `HW/netlist_v1.net` net `PGND` 里查无 U_CHG; [官方] 触点额定见 `HW/J_CHG_SELECTION.md` §3.2 |
+> | **pin22** | **REGN** (内部 5V LDO 输出) | `REGN` **和** `TS_BAT` | 若翻到 TS_BAT ⇒ **内部 5V LDO 输出被短进 NTC 分压** ⇒ REGN 崩、TS 停充门限失效 (安全项) | [实测] `HW/netlist_v1.csv` 第 40/43 行; 导出当前落在 REGN (靠行序侥幸) |
+> | **pin4** | **STAT** (开漏状态) | `CHG_STAT` **和** `CHG_STAT_L` | 若翻到 CHG_STAT_L ⇒ STAT 被 `R_PU_STAT_L` 10k 拉到 5V ⇒ 铰链侧永远看不到"充电中" ⇒ SW 侧"状态未知→禁 OD"规则会锁死显示 | [实测] `HW/netlist_v1.csv` 第 483/515/516 行 |
+>
+> ⚠️ **处置权不在本单** (ISS-112 只做封装 + 复核): 这三条要改的是**网表语义** (充电 TS 环 / 充电灯链),
+> 牵涉 ISS-091 (跨铰链压降/发热核算) 与 `R_STAR_PGND` 单点汇流的设计意图 ⇒ **走项目总工裁决**。
+> **在裁决前, `HW/netlist_v1.net` 不要拿去投板。**
 
 ### 2.3 输入去耦与电感 (照 datasheet 原话)
 
@@ -407,6 +423,28 @@ V_TS = VREGN × (RTH ∥ RT2) / (RT1 + (RTH ∥ RT2))
 
 **与现行 pin map 的差异**: 现行 (P9) 是 pin5=CHG_STAT / pin6=PWR_GOOD / pin7=VBUS_DET / pin8-10=预留。本提案把 CHG_STAT/PG/VBUS_DET **各后移 1 位**, 把 pin5 让给 TS, 把 pin9/10 留给 I2C。
 
+> 🔴 **ISS-112 (d) 查出的三方分歧 (2026-10-29 · hw-lead) —— `J_CHG` pin map **尚未锁定**, 三处口径互不相同**
+>
+> | pin | **本表 §5.2 提案** | **本文件 §5.1 表 + P10 csv 镜像块** | **`HW/netlist_v1.csv` 实际 (投板真源)** | **结构侧 `interface_claims` (`j_chg_pin_map`)** |
+> |---|---|---|---|---|
+> | pin5 | `TS_BAT` | `TS_BAT` | **`CHG_STAT`** | `CHG_STAT` |
+> | pin6 | `CHG_STAT` | `CHG_STAT` | **`PWR_GOOD`** | `PWR_GOOD` |
+> | pin7 | `PWR_GOOD` | `PWR_GOOD` | **`VBUS_DET`** | `VBUS_DET` |
+> | pin8 | `VBUS_DET` | `VBUS_DET` | **`TS_BAT`** | `TS` |
+> | pin9 | `I2C_CHG_SCL` (DNP) | `I2C_CHG_SCL` | **`HINGE_RSV`** (预留) | `RSV` |
+> | pin10 | `I2C_CHG_SDA` (DNP) | `I2C_CHG_SDA` | **`TS_RTN`** (TS 专用回流, V1.8 新增) | `TS_RTN` |
+>
+> ★**三处口径不一致 ⇒ 照哪一处画 FPC / 座体, 镜框↔镜脚就有一半信号对不上。**
+> 机器可查: `python3 HW/check_bq25896_pinout.py` (检查项 ⑦)。
+>
+> - **本文件内部**: §5.1 表 + §5.2 提案 + P10 csv 镜像块 = **一致** (是"提案"口径);
+> - **网表 (真源)**: 是 **V1.8 之后的另一个口径** (TS 专用回流占了 pin10, I2C 退到 pin9+预留);
+> - **结构侧**: 与网表一致, 与本文件提案不一致。
+>
+> ⚠️ **本单不自行裁决** (§5.2 开头已写 "pin map 是接口表的地盘, 由项目总工拍板"),
+> 且**改它牵涉 ISS-091 的跨铰链压降/发热核算** ⇒ **走项目总工裁决** (见交接单 B5)。
+> ★**在锁定之前, `J_CHG` 的 FPC 加工图不许下单** —— 这是 10p 座 + FPC, 错位 = 整条铰链排线重做。
+
 **★与结构侧建议的冲突 (需项目总工转达结构总工复核)**:
 - 结构侧 `MECH/USB_HINGE_STRUCTURE.md` §5.3 **C-4** 建议 `J_CHG` → **8p @0.5mm** (8+20+4+8 = 40 脚 = 20mm 触点区)。
 - 本提案是 **10p** (基线实需 8 根 + I2C 预留 2 根)。
@@ -483,7 +521,7 @@ P10,SW,U_CHG pin19+pin20,C_BST,C_BST,47nF 25V,C,必装,[官方],,★自举电容
 P10,BTST,U_CHG pin21,C_BST,C_BST,47nF 25V,C,必装,[官方],,BTST ↔ SW 自举电容 另一端,C-01,CHG_BOARD
 P10,REGN_5V,U_CHG pin22,C_REGN,C_REGN,4.7µF 10V,C,必装,[官方],,★'Connect a 4.7 µF (10 V rating) ceramic capacitor from REGN to analog GND',C-01,CHG_BOARD
 P10,GND,C_REGN,GND,C_REGN,4.7µF 10V,C,必装,[官方],,REGN 去耦 地端 (模拟地),C-01,CHG_BOARD
-P10,VBUS_5V_CHG,U_CHG pin1,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,TI BQ25896 VQFN-16 3×3mm (RGT); 充电 IC 装镜框充电板; 单价/交期 [0数据] 询价走项目总工,C-01,CHG_BOARD
+P10,VBUS_5V_CHG,U_CHG pin1,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,TI BQ25896 **WQFN (RTW) 24pin 4×4mm 16mm², 0.5mm pitch, 0.8mm max height, OPN BQ25896RTWR** (ti.com/lit/gpn/BQ25896 封装附录 + ti.com/product/BQ25896); 充电 IC 装镜框充电板; 单价/交期 [0数据] 询价走项目总工,C-01,CHG_BOARD
 P10,SW,U_CHG pin19+pin20,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin19/20 SW 开关节点,C-01,CHG_BOARD
 P10,BTST,U_CHG pin21,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin21 BTST,C-01,CHG_BOARD
 P10,REGN_5V,U_CHG pin22,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,"pin22 REGN (内部 LDO 5.0V, 4.8-5.5V, 限流 50mA) = TS 分压基准",C-01,CHG_BOARD

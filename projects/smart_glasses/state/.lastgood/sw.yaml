@@ -1,12 +1,18 @@
 agent: sw-lead
 role: 软件总工
-updated_at: '2026-10-27'
+updated_at: '2026-10-29'
 updated_by: sw-lead
 status:
   phase: P2(方案设计)
   progress_pct: 54
   health: red
-  summary: '10-28 ISS-104 电源状态术语统一闭环: ①新增 SW/POWER_STATE_SEMANTICS.md: 关机(poweroff,真断电,SoC无电,零行为承诺,唤醒仅
+  summary: '10-29 ISS-113 闭环 (项目总工登记→sw-lead 修): ①SW/tools/rknn_bench.py 修步间依赖 ——
+    convert/sim/acc 三步的 INT8 量化需要 calib 步生成的 /tmp/rknn_bench/dataset.txt, 旧代码是裸 assert
+    ⇒ 干净机器直接跑 acc 崩成 AssertionError; 现在缺 dataset.txt 时**自动先跑 calib** (新增 --no-auto-calib
+    可关, 关掉后给指向 calib 步的明确报错并 rc=1), 裸 assert 全部换成 BenchError (0 剩余); ②SW/RKNN_BENCH.md
+    §7 重写: 每条命令都能在干净机器上独立跑通 + 新增步间依赖表 + 明确写 ''WORK=/tmp/rknn_bench 会被系统清理, 重跑需重新 calib'';
+    ③既有结论数字一个未改 (e2e 台阶表 56.99/54.98/67.01/48.47ms 与 10.09MiB 产物 10575159B 复算逐个吻合)
+    || 10-28 ISS-104 电源状态术语统一闭环: ①新增 SW/POWER_STATE_SEMANTICS.md: 关机(poweroff,真断电,SoC无电,零行为承诺,唤醒仅
     VBUS/PG/按键)/待机(standby,原深度休眠,SoC低功耗运行,进待机遇落盘) 两态×7列分列 + 命名对照(poweroff/standby
     唯一叫法, suspend 禁用别名, 深度休眠=旧称) + 续航两行分列(待机2.8h vs 关机5-11个月) ②SW_REQUIREMENTS.md
     只改电源相关条目: 新增 M7-R7/R8/R9/R10 + M7-R2 续航口径按 Q4 改为 按需触发≥1h + 旧口径 待机<0.05W 标作废 +
@@ -193,6 +199,24 @@ artifacts:
   version: '1.0'
   updated_at: '2026-10-25'
   summary: 'ISS-104 交接单: 电源状态术语与语义统一, B1-B6 六块齐全'
+- path: SW/tools/rknn_bench.py
+  kind: tooling
+  version: v1.1
+  updated_at: '2026-10-29'
+  summary: 'RKNN 转换链实测器 v1.1 (ISS-113 修步间依赖): 新增 ensure_dataset() 步间依赖自愈 —— convert/sim/acc
+    三步做 INT8 量化时缺 /tmp/rknn_bench/dataset.txt 会**自动先跑 calib 步** (--no-auto-calib 可关);
+    _build_session_for_sim 的 3 处裸 assert 换成 BenchError (全文件 0 个剩余 assert); step_calib/convert/sim/acc
+    增加校准集源目录与 COCO 数据目录的明确报错; main() 统一捕获 BenchError → 打印行动指引 + rc=1。★ 既有结论数字一个未改。
+    [实测] 干净机器复算: acc --images 5 rc=0 / convert 产物 10575159B=10.09MiB / e2e 56.99·54.98·67.01·48.47ms
+    与报告逐个吻合; --no-auto-calib 缺依赖时 rc=1 且打印指向 calib 步的指引'
+- path: SW/RKNN_BENCH.md
+  kind: doc
+  version: v1.1
+  updated_at: '2026-10-29'
+  summary: 'RKNN 转换链实测 + RK3576 端到端 ≤60ms 判定报告 v1.1 (ISS-113 修 §7): §7 重写为 ''§7.1
+    步间依赖表 + §7.2 命令清单 + §7.3 退出码'', 每条命令都能在干净机器上独立跑通 (convert/sim/acc 缺 dataset.txt
+    自动补跑 calib), 并明确写出 ''WORK=/tmp/rknn_bench 会被系统清理, 重跑需重新 calib'' (含半残状态识别); §3.1
+    加步间依赖交叉引用。★ 既有结论数字 (§0/§3/§4/§5) 一个未改'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性

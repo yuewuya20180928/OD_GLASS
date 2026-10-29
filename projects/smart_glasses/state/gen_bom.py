@@ -76,6 +76,10 @@ def main() -> int:
             continue
         status, memo = procurement_status(ref, r.get("value", ""), r.get("type", ""),
                                            r.get("dnp", ""), r.get("evidence", ""))
+        # ★封装 / OPN 从网表行带过来 (2026-10-29 ISS-112) —— 真源是 state/gen_netlist.py 的 PARTS 寄存器,
+        #   这里是搬运, 不是手写。网表行没有 ⇒ 待定 (不许编)。
+        fp = (r.get("footprint") or "").strip()
+        opn = (r.get("opn") or "").strip()
         if ref not in bom:
             bom[ref] = {
                 "ref": ref,
@@ -87,7 +91,8 @@ def main() -> int:
                 "page": r.get("page", ""),
                 "evidence": r.get("evidence", ""),
                 "tbd": r.get("tbd", ""),
-                "footprint": "待定",
+                "footprint": fp or "待定",
+                "opn": opn,
                 "tolerance": "待定",
                 "alt_part": "待定",
                 "procurement": status,
@@ -106,7 +111,7 @@ def main() -> int:
                 bom[ref]["value"] = r.get("value", "")
 
     COLS = ["ref", "qty", "value", "type", "dnp", "board", "page", "evidence", "tbd",
-            "footprint", "tolerance", "alt_part", "procurement", "memo"]
+            "footprint", "opn", "tolerance", "alt_part", "procurement", "memo"]
     with open(args.out, "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=COLS)
         w.writeheader()
@@ -146,11 +151,20 @@ def main() -> int:
     for b in bom.values():
         by_board[b["board"]] = by_board.get(b["board"], 0) + 1
 
+    # ---- 封装 / OPN 落地率 (ISS-112: C-9 "BOM 封装全部回填" 的进度指标) ----
+    fp_done = [r for r, b in bom.items() if b["footprint"] not in ("", "待定")]
+    opn_done = [r for r, b in bom.items() if (b.get("opn") or "").strip()]
+    fp_todo = sorted(r for r, b in bom.items() if b["footprint"] in ("", "待定"))
+
     print("=" * 72)
     print("  BOM 生成 · 项目总工机械验收")
     print("=" * 72)
     print(f"  输出: {args.out}  ({os.path.getsize(args.out)} bytes)")
     print(f"  位号总数: {len(bom)}  (netlist 行数 {len(rows)})")
+    print(f"  封装已回填: {len(fp_done)}/{len(bom)}   OPN 已回填: {len(opn_done)}/{len(bom)}")
+    if fp_done:
+        print(f"     封装已定: {', '.join(sorted(fp_done))}")
+    print(f"     封装待定 {len(fp_todo)} 条 (C-9 仍 FAIL; 需逐颗查官方 datasheet 后回填 PARTS 寄存器)")
     print("  按采购状态:")
     for k, v in sorted(by_status.items(), key=lambda x: -x[1]):
         print(f"     {k:<18} {v:>4}")

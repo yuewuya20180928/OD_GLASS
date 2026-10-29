@@ -57,6 +57,17 @@ FOOTPRINT = {
     "RAIL": "TBD:RAIL_PLACEHOLDER",
 }
 
+# ★ISS-112 (2026-10-29 · R-F6): **位号级封装覆盖** —— 按 type 的通用占位符会把
+#   U_CHG 落成 "TBD:IC_PLACEHOLDER", PCB 工程师照着占位符画就会画出 3×3 VQFN-16 的盘
+#   (那个封装根本不存在), 买回来的片子 24 脚 4×4mm 焊不上 ⇒ 2-4 周返工。
+#   真值: TI BQ25896 = **WQFN (RTW) 24pin · 4×4mm · P0.5 · 16mm² · h<=0.8mm**
+#   (ti.com/lit/gpn/BQ25896 封装附录 4224801/A)。
+#   ★这里用 **TI 自己的 land pattern 代号 (RTW0024H)**, 不编 KiCad 库路径
+#   (本机没装 kicad-footprints, 编一个库名就是假信息); PCB 工程师按此映射到实际库封装。
+REF_FOOTPRINT = {
+    "U_CHG": "TI_RTW0024H (WQFN-24 4x4mm P0.5, TI 封装图 4224801/A)",
+}
+
 # 别名 → 规范网名
 ALIAS_MAP = {
     "NET_BAT_PROT": "BAT_CHG",
@@ -102,7 +113,8 @@ def main() -> int:
 
     def comp(ref: str, value: str, typ: str, page: str):
         if ref not in comps:
-            comps[ref] = {"value": value, "footprint": FOOTPRINT.get(typ, "TBD:PLACEHOLDER")}
+            comps[ref] = {"value": value,
+                          "footprint": REF_FOOTPRINT.get(ref, FOOTPRINT.get(typ, "TBD:PLACEHOLDER"))}
 
     # 器件表: 从 ref 列取; 连接器的 value/footprint 优先取"带声明格式"的那一行 (B-7)
     for r in rows:

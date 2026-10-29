@@ -100,7 +100,7 @@
 
 > ⚠️ **"输入 88% 占用率" 是 SYS 满电 4.2V 打到 LDO 输入上限 4.8V 的结果** —— 真正的约束不是这个, 而是 **dropout (R-F1)**。两条要分开看。
 
-#### (4) TI BQ25896 —— 1S 开关充电 IC (VQFN-16, 3×3mm, 集成 11mΩ BATFET)
+#### (4) TI BQ25896 —— 1S 开关充电 IC (WQFN (RTW) 24pin, 4×4mm 16mm², 集成 11mΩ BATFET)
 
 | 轴 | 设计工作值 | 额定上限 | 绝对最大 | 建议设计上限 | 占用率 | 判定 | 证据 |
 |---|---|---|---|---|---|---|---|
@@ -109,6 +109,8 @@
 | 电流 | 充电 **1.0A** (设计) / 输入限流 IINLIM **1.6A** (设计) | 充电 ≤**3A**; IINLIM 100mA-3.25A | **[0数据]** | 充电 ≤**2.4A**; IINLIM ≤**2.6A** | 充电 **42%** ✅ / 输入 **62%** ✅ | ✅ | 额定 `[官方]`; 工作 `[推算]` §3.1.2/§3.1.3 |
 
 > ⚠️ **温度这一行是"条件通过"**: BQ25896 的工作温度范围本轮**没核** → 若其额定上限是 125°C, 则 Tj 75°C 占 71% ✅; 若是 105°C 则建议上限 89°C, 仍 ✅ 但余量只剩 14°C。**必须核 datasheet 后才能定** → needs_from `rel_vendor_absmax_rating`。
+>
+> ✅ **ISS-112 / R-F6 已处置 (2026-10-29 · hw-lead)**: 本节 (4) 的**封装写法已改** —— 官方只有 **WQFN (RTW) 24pin 4×4mm 16mm² · 0.5mm pitch · 0.8mm max height · OPN BQ25896RTWR** (ti.com/lit/gpn/BQ25896 订购页+封装附录 4224801/A; ti.com/product/BQ25896 产品页 "WQFN (RTW) / 24 / 16 mm²")。原 "VQFN-16 3×3mm (RGT)" **该封装不存在**, 占板面积少算 **7 mm²** (9→16)。充电板面积重算见 `HW/CHG_BOARD_AREA_RECHECK.md`。★**24 脚 pinout 表本身经 datasheet §7 (SLUSC76C) 逐脚复核, 无错位** —— 见 `HW/check_bq25896_pinout.py`。
 
 #### (5) TI TPS25730 —— Type-C PD sink 控制器 (VQFN RSM 4×4 / WQFN REF 6×4)
 
@@ -503,7 +505,7 @@
 |---|---|---|
 | TPS62130A 3A / 3-17V→0.9-6V / -40~125°C | **[官方]** | ti.com/product/TPS62130A (已核于 `POWER_IC_SELECTION §B9`) |
 | TPS7A20 300mA / 1.6-6V / 0.8-5.5V / dropout 110mV typ / -40~125°C | **[官方]** | ti.com/product/TPS7A20 |
-| BQ25896 3A / 3.9-14V / IINLIM 100mA-3.25A / VQFN-16 | **[官方]** | ti.com/lit/gpn/BQ25896 |
+| BQ25896 3A / 3.9-14V / IINLIM 100mA-3.25A / **WQFN (RTW) 24pin 4×4mm 16mm² · 0.5mm pitch · 0.8mm max height · OPN BQ25896RTWR** | **[官方]** | ti.com/lit/gpn/BQ25896 (订购页 + 封装附录 4224801/A) + ti.com/product/BQ25896 (WQFN RTW / 24 / 16 mm²) |
 | BQ25896 **工作温度范围 / 绝对最大额定** | **[0数据]** | 本轮未核 datasheet |
 | TPS25730 20V/5A / PD3.1 / -40~125°C | **[官方]** | ti.com/product/TPS25730 |
 | BQ2970 OVP 4.275V / Vin max 8V / **-40~85°C** / DSE-6 | **[官方]** | ti.com/product/BQ2970 |

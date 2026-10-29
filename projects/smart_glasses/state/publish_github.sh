@@ -20,16 +20,21 @@ cd "$PROJ" || exit 1
 #   事故: gen_todo.py 有语法错误时, `>/dev/null 2>&1` 把错误吞了, 文档没更新但脚本继续跑,
 #   结果**推的是旧文档却以为刷新了** ⇒ 老板在 GitHub 上看到过期数据而无人知道。
 #   ⇒ 统一: 失败即退出 (set -e 之外再加显式检查), 且失败时把 stderr 原文打出来。
-gen() {  # gen <说明> <命令...>
+gen() {  # gen <说明> <命令...>  —— ★允许 rc=0 与 rc=3 (巡检有异常, 快照已生成)
   local desc="$1"; shift
-  local err
-  if ! err=$("$@" 2>&1 >/dev/null); then
-    echo "[1] ❌ 生成失败: $desc"
+  local err rc
+  err=$("$@" 2>&1 >/dev/null); rc=$?
+  if [ "$rc" != "0" ] && [ "$rc" != "3" ]; then
+    echo "[1] ❌ 生成失败 (rc=$rc): $desc"
     echo "$err" | head -20
     echo "[1] ★已中止发布 —— 不推陈旧文档 (修好后重跑)"
     exit 1
   fi
-  echo "[1] $desc 已刷新"
+  if [ "$rc" = "3" ]; then
+    echo "[1] ⚠️ $desc 巡检有异常 (rc=3, 快照已生成) —— 继续发布"
+  else
+    echo "[1] $desc 已刷新"
+  fi
 }
 gen "TODO.md"                    python3 state/gen_todo.py
 gen "门禁快照"                    python3 state/daily_check.py
@@ -50,14 +55,36 @@ cd "$PUB" || exit 1
 #   **fetch 失败时错误被吞掉, 脚本继续跑** ⇒ rsync --delete 把发布树覆盖成只有新内容
 #   ⇒ 随后 commit+push 会把**远端全部历史压成一个新 commit** (历史丢失!)
 #   ⇒ 现在: fetch 失败 = **中止发布** (宁可今天不推, 也不能毁历史)
-if ! git fetch -q origin main 2>/tmp/_fetch_err.log; then
-  echo "[2] ❌ 从远端 rehydrate 失败 —— ★中止发布 (避免把远端历史压扁)"
-  echo "--- fetch 错误 ---"
-  head -10 /tmp/_fetch_err.log 2>/dev/null
-  echo "[2] ★网络恢复后重跑即可; 本次未推送任何内容"
-  exit 1
+# ★加超时: 2026-10-29 00:3x 实测 —— git-pack 传输在网络不稳时会**长时间挂住**,
+#   没有超时 = 整个发布流程卡在那儿 (既不推也不报错, 看起来像"在跑")。
+#   120s 拿不到就当失败 ⇒ 中止 (保险已在, 不会推陈旧文档) ⇒ 下轮重试。
+# ★降级策略 (2026-10-29 00:3x 实测): 网络不稳时 git-pack 传输会断 ("unexpected disconnect
+#   while reading sideband packet") ⇒ 普通 fetch 失败。**浅克隆 (--depth=1 --single-branch)
+#   的包小得多, 实测能过** ⇒ fetch 失败时降级到浅克隆, 而不是直接放弃发布。
+#   ★★2026-10-29 09:28 修正: 浅克隆**不要加 --filter=blob:none** (见下面 65 行附近的注释)。
+if ! timeout 120 git fetch -q origin main 2>/tmp/_fetch_err.log; then
+  echo "[2] ⚠️ 普通 fetch 失败 —— 降级试浅克隆 (--depth=1 --single-branch)"
+  rm -rf "$PUB/.git"
+  # ★★2026-10-29 09:28 实测修正: **不要加 --filter=blob:none** —— 加了之后 git-pack 传输本身能过,
+  #   但 **checkout 阶段要按需拉 blob ⇒ 卡在 "Clone succeeded, but checkout failed"** ⇒ 整个 clone 返非零
+  #   ⇒ 脚本误判"浅克隆失败"并把已经下好的仓库 rm 掉。去掉 filter 后 (blob 全下) 实测 10 分钟内完整跑通。
+  #   ⇒ 超时给足 (600s): 这个网络下全 blob 浅克隆要 ~10 分钟。
+  if ! timeout 600 git clone -q --depth=1 --single-branch \
+       git@github.com:$REPO.git "$PUB.tmp_clone" 2>>/tmp/_fetch_err.log; then
+    rm -rf "$PUB.tmp_clone"
+    echo "[2] ❌ 浅克隆也失败 —— ★中止发布 (避免把远端历史压扁)"
+    echo "--- 错误 ---"; head -10 /tmp/_fetch_err.log 2>/dev/null
+    echo "[2] ★网络恢复后重跑即可; 本次未推送任何内容"
+    exit 1
+  fi
+  rm -rf "$PUB"; mv "$PUB.tmp_clone" "$PUB"
+  cd "$PUB" || exit 1
+  git config user.name "yuewuya20180928"
+  git config user.email "yuewuya20180928@users.noreply.github.com"
+  git remote set-url origin git@github.com:$REPO.git
+  echo "[2] ✅ 浅克隆成功 (HEAD = $(git rev-parse --short HEAD))"
 fi
-git reset -q --hard origin/main 2>/dev/null || { echo "[2] ❌ reset 失败, 中止"; exit 1; }
+git reset -q --hard origin/main 2>/dev/null || git reset -q --hard HEAD 2>/dev/null || { echo "[2] ❌ reset 失败, 中止"; exit 1; }
 # ★检查要用 HEAD (不是 main 分支) —— fetch 后 `git reset --hard origin/main` 才把 HEAD 指过去;
 #   查 main 分支会在"本地分支还没跟上"时误判为空 (2026-10-28 18:4x 实测踩中: fetch 其实成功了)
 if [ -z "$(git rev-parse HEAD 2>/dev/null)" ]; then
