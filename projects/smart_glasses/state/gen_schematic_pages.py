@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-原理图 V1 图页生成器 (gen_schematic_pages) —— 从 netlist_v1.csv 生成 8 页图页
+原理图 V1 图页生成器 (gen_schematic_pages) —— 从 netlist_v1.csv 生成图页 (页数 = len(PAGES), 实时算, 不写死)
 ================================================================================
 ★为什么是脚本生成而不是手写:
   2026-10-26 19:26-19:44, hw-lead 那一轮把 8 页正文写在**聊天回复里**而不是落盘 →
@@ -169,13 +169,14 @@ def main() -> int:
         by_page.setdefault(r["page"], []).append(r)
 
     out = [
-        "# HW/SCHEMATIC_V1.md —— ARS45 硬件原理图 V1.1 (9 页图页)\n",
+        f"# HW/SCHEMATIC_V1.md —— ARS45 硬件原理图 V1.1 ({len(PAGES)} 页图页)\n",
         "> **V1.1 变更 (2026-10-27, 项目总工)**: ① 新增 **P9 跨铰链界面页** (4 组通道 + 板级归属列) ② 补画 **电池 NTC (BQ25896 TS 脚, 安全项)** · **SYS 过铰链后的 π 滤波** · **9 颗供电器件的输入侧接线** · **上电监督链 (PG + RESET)** ③ 修正 **USB 差分跨铰链被短接** 的缺陷 ④ `U_TEMP` 定型 **TMP117** (0x48) ⑤ `U_BRIDGE` 定位统一为 **DP1.4 TX → MIPI DSI TX 桥接** ⑥ 启动存储加 **flash ≥128MB** 硬约束 ⑦ **ISS-082 前提修正** (TPS7A20 只有固定输出, 不是可编程)\n",
         "> **生成方式**: 器件表由 `state/gen_schematic_pages.py` 从 `HW/netlist_v1.csv` **机械生成** (不会与 netlist 漂移); "
         "每页叙述写在生成脚本的 NARRATIVE 里 (**项目总工起草 + hw-lead 2026-10-27 审校**)。\n",
-        "> **本版不是投板文件** —— SoC 侧球位图未回 (原厂, 第 6 天), 全部写成 `SoC[TBD-01].<信号>` 占位; "
+        "> **本版不是投板文件** —— SoC 侧球位图未回 (原厂, 第一封 10-21 已发出), 全部写成 `SoC[TBD-01].<信号>` 占位; "
         "原厂回信后**只填球号 + 改 TBD 项**即可进 PCB。\n",
-        "> **门禁**: `python3 state/check_netlist.py` (20 条机械判据, 项目总工的验收器) + 本文件的 9 页完整性由\n"
+        "> **门禁**: `python3 state/check_netlist.py` (机械判据, 项目总工的验收器) + 本文件的 "
+        f"{len(PAGES)} 页完整性由\n"
         "> `grep -o '^## P[0-9]' HW/SCHEMATIC_V1.md | sort -u` 机械核对。\n",
         "> **相关**: 图纸规格 `HW/SCHEMATIC_V1_SPEC.json` · netlist `HW/netlist_v1.csv` · KiCad 可导入 `HW/netlist_v1.net` ·\n"
         "> 顶层接口 `HW/SCHEMATIC_L1.md` · 连接表 `HW/INTERFACE_TABLE.md` · 查证结果 `HW/ONLINE_FINDINGS_2026-10-26.md`\n",
@@ -204,7 +205,7 @@ def main() -> int:
         ("MIPI-CSI lane 数/速率/AC 耦合是否内置", "P5 传感器页 (AC 耦合位/端接位)", "原厂 (TBD-03)"),
         ("显示 TX 接口类型 (DSI / DP / 两者)", "P4 显示页 + 要不要桥接芯片", "原厂 (TBD-04) + **JBD 开发套件接口定义** (可能更快)"),
         ("启动存储形态 (SPI-NOR vs eMMC) 与挂载口", "P3 启动存储页 + 板宽", "原厂 (TBD-06/11)"),
-        ("球位号 (全部 SoC 侧节点)", "9 页全部", "原厂 (TBD-01)"),
+        ("球位号 (全部 SoC 侧节点)", f"{len(PAGES)} 页全部", "原厂 (TBD-01)"),
         ("★跨铰链 4 组通道的连接器型号 / pitch / 柔性段长度 / 是否合并成 1 个连接器", "P9 页布线 + 镜脚腔体 + 铰链可靠性", "**结构总工** (P9 页已列通道与 pin 账, ISS-085 在做)"),
         ("★`U_BRIDGE` 型号 (定位已定为 DP1.4 TX → MIPI DSI TX 桥接, 但这类芯片极少)", "P4/P6 选型 + BOM + PCB 面积", "原厂 (TBD-04) + JBD 接口定义 + 询价 (外发经项目总工)"),
         ("★SoC 侧温度检测的**物理测点** (die / 镜腿 / 电池) —— 器件已定 TMP117", "P2 + SW 热策略", "SW 总工"),
@@ -214,7 +215,7 @@ def main() -> int:
     out.append("\n> ★**并行风险**: 官网「宽度≤8mm」+ FCCSP 集成 DRAM 的 pitch 通常 0.4-0.5mm [推算] → **12mm 板宽与 4-6 层假设可能被推翻** (ISS-078, blocker)。\n")
 
     open(OUT, "w", encoding="utf-8").write("".join(out))
-    print(f"✅ 已生成 {OUT} ({os.path.getsize(OUT)} bytes, 9 页)")
+    print(f"✅ 已生成 {OUT} ({os.path.getsize(OUT)} bytes, {len(PAGES)} 页)")
     for pg in PAGES:
         print(f"   {pg} {PAGES[pg][0]:<22} {len(by_page.get(pg, [])):>3} 行")
     return 0

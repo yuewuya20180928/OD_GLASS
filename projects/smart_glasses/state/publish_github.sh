@@ -122,6 +122,8 @@ cp "$PROJ/docs/START_HERE.md" docs/START_HERE.md
 cp "$PROJ/state/STATUS_DIGEST.md" docs/STATUS_DIGEST.md
 cp "$PROJ/CERT_CHECKLIST.md" docs/CERT_CHECKLIST.md
 cp "$PROJ/DECISIONS.md" docs/DECISIONS.md
+# ★2026-10-29 加: 待老板拍板页也进 docs/ (老板主要看 GitHub —— 拍板页放项目树里老板看不到)
+ls -1t "$PROJ"/DECISION_PENDING_*.md 2>/dev/null | head -3 | while read -r f; do cp "$f" "docs/$(basename "$f")"; done
 cp "$PROJ/DECISION_TABLE_Q1_Q4_Q17.md" docs/DECISION_TABLE_Q1_Q4_Q17.md
 cp "$PROJ/FRAMEWORK_SCOPE.md" docs/FRAMEWORK_SCOPE.md
 cp "$PROJ/INTERFACES.md" docs/INTERFACES.md

@@ -1,8 +1,8 @@
-# HW/SCHEMATIC_V1.md —— ARS45 硬件原理图 V1.1 (9 页图页)
+# HW/SCHEMATIC_V1.md —— ARS45 硬件原理图 V1.1 (10 页图页)
 > **V1.1 变更 (2026-10-27, 项目总工)**: ① 新增 **P9 跨铰链界面页** (4 组通道 + 板级归属列) ② 补画 **电池 NTC (BQ25896 TS 脚, 安全项)** · **SYS 过铰链后的 π 滤波** · **9 颗供电器件的输入侧接线** · **上电监督链 (PG + RESET)** ③ 修正 **USB 差分跨铰链被短接** 的缺陷 ④ `U_TEMP` 定型 **TMP117** (0x48) ⑤ `U_BRIDGE` 定位统一为 **DP1.4 TX → MIPI DSI TX 桥接** ⑥ 启动存储加 **flash ≥128MB** 硬约束 ⑦ **ISS-082 前提修正** (TPS7A20 只有固定输出, 不是可编程)
 > **生成方式**: 器件表由 `state/gen_schematic_pages.py` 从 `HW/netlist_v1.csv` **机械生成** (不会与 netlist 漂移); 每页叙述写在生成脚本的 NARRATIVE 里 (**项目总工起草 + hw-lead 2026-10-27 审校**)。
-> **本版不是投板文件** —— SoC 侧球位图未回 (原厂, 第 6 天), 全部写成 `SoC[TBD-01].<信号>` 占位; 原厂回信后**只填球号 + 改 TBD 项**即可进 PCB。
-> **门禁**: `python3 state/check_netlist.py` (20 条机械判据, 项目总工的验收器) + 本文件的 9 页完整性由
+> **本版不是投板文件** —— SoC 侧球位图未回 (原厂, 第一封 10-21 已发出), 全部写成 `SoC[TBD-01].<信号>` 占位; 原厂回信后**只填球号 + 改 TBD 项**即可进 PCB。
+> **门禁**: `python3 state/check_netlist.py` (机械判据, 项目总工的验收器) + 本文件的 10 页完整性由
 > `grep -o '^## P[0-9]' HW/SCHEMATIC_V1.md | sort -u` 机械核对。
 > **相关**: 图纸规格 `HW/SCHEMATIC_V1_SPEC.json` · netlist `HW/netlist_v1.csv` · KiCad 可导入 `HW/netlist_v1.net` ·
 > 顶层接口 `HW/SCHEMATIC_L1.md` · 连接表 `HW/INTERFACE_TABLE.md` · 查证结果 `HW/ONLINE_FINDINGS_2026-10-26.md`
@@ -96,9 +96,9 @@
 | PWR_ON | R_PD_ON | U_PWR_SW ON | R_PD_ON | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★V1.8: ON 脚 **10k 下拉 = 默认关** (关机态就是默认态); SoC GPIO 拉高即保持开机; SoC 关机时把该 GPIO 配成高阻 ·  |
 | GND | R_PD_ON | GND | R_PD_ON | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ON 脚下拉的接地端 |
 | PWR_ON | U_PWR_SW ON | SoC[TBD-01].PWR_CTRL | U_PWR_SW | ON 输入 (高电平 = 导通 = 开机) | NET | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), 脚号与是否可配开漏**待原厂** |
-| PWR_ON | Q_PG | U_PWR_SW ON | Q_PG | [待选型] N-MOS (电平转换) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★V1.8: **PG 反相** —— BQ25896 的 PG 是开漏且 **LOW = 输入源良好**; 用一颗 N-MOS 反相: PG 低 · Q_PG  |
-| GND | Q_PG | GND | Q_PG | [待选型] N-MOS (电平转换) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] Q_PG 源极接地 |
-| PWR_GOOD | Q_PG | J_CHG pin6 | Q_PG | [待选型] N-MOS (电平转换) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_GOOD] Q_PG 栅极 = 充电板 PG (经 J_CHG pin6 跨铰链, 镜框侧开漏信号) |
+| PWR_ON | Q_PG | U_PWR_SW ON | Q_PG | [待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— 原 N-MOS 低边接法是**错的 |
+| BAT_SW | Q_PG | NET_BAT_SW | Q_PG | [待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★V1.9: Q_PG **漏极**接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS |
+| PWR_GOOD | Q_PG | J_CHG pin6 | Q_PG | [待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_GOOD] Q_PG **栅极** = 充电板 PG (经 J_CHG pin6 跨铰链, 框侧开漏信号; 主板侧 R_PU_PG 10k 上拉 3.3V)。★V1.9: |
 | BAT_CHG | J_CHG pin1 | TP_BAT_CHG | TP_BAT_CHG | 跨铰链段压降测点 | TP | 必装 | MAIN_PCB | [推算] |  | [BAT_CHG] ★跨铰链充电电流段压降测点 (1.5A 下压降 = 接触电阻×1.5A); 铰链段发热与压降按结构实际长度核算 (结构总工) |
 | V_CORE | RAIL_V_CORE | U_DCDC_VCORE | RAIL_V_CORE | [待原厂] (典型 0.8-0.9V) | RAIL | 必装 | MAIN_PCB | [官方] | TBD-02 | 电源域: 目标 [待原厂] (典型 0.8-0.9V) / 最大电流 ≥2.0A (0.9W/0.8V×1.5=1.69A); IC TPS62130A; SoC 侧球位号 TBD |
 | SYS_PCB | RAIL_SYS | U_DCDC_VCORE | RAIL_SYS | 3.5-4.2V (R-F1 抬下限后) | NET | 必装 | MAIN_PCB | [推算] |  | [V_CORE] U_DCDC_VCORE 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方] |
@@ -701,7 +701,7 @@
 | PGND | R_OTG | U_CHG pin17+pin18 | R_OTG | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | OTG 下拉 地端 (PGND) |
 | CE_SET | U_CHG pin9 | R_CE | R_CE | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | CE 拉低 = 允许充电 (CHG_CONFIG 复位默认 1): 'CE pin must be pulled High or Low' ⇒ 不得悬空; 拉低的好处 = SoC  |
 | PGND | R_CE | U_CHG pin17+pin18 | R_CE | 10k ±1% | R | 必装 | CHG_BOARD | [官方] |  | CE 下拉 地端 (PGND) |
-| IINLIM | U_CHG pin10 | IINLIM | U_CHG | BQ25896 | IC | 必装 | CHG_BOARD | [官方] |  | ★pin10 ILIM: R_ILIM = 300Ω ±1% 必装 (已在主网表 P1 第 39/40 行画出, 本行不重复画电阻, 只登记引脚归属); IINMAX = KILI |
+| IINLIM | U_CHG pin10 | IINLIM | U_CHG | BQ25896 | IC | 必装 | CHG_BOARD | [官方] |  | ★pin10 ILIM: R_ILIM = 390Ω ±1% 必装 (已在主网表 P1 第 44/45 行画出, 本行不重复画电阻, 只登记引脚归属); IINMAX = KILI |
 | NC | U_CHG pin12 | NC | U_CHG | BQ25896 | IC | DNP | CHG_BOARD | [官方] |  | QON 不接: datasheet 'The pin contains an internal pull-up to maintain default high logic'; 按 |
 | BAT_CHG | U_CHG pin13 | C_BAT | C_BAT | 10µF X7R 6.3V | C | 必装 | CHG_BOARD | [官方] |  | ★datasheet 'Connect a 10uF closely to the BAT pin' (pin13/14); BAT 脚是跨铰链载流路径起点 |
 | PGND | C_BAT | U_CHG pin17+pin18 | C_BAT | 10µF X7R 6.3V | C | 必装 | CHG_BOARD | [官方] |  | BAT 去耦 地端 (PGND) |
@@ -736,7 +736,7 @@
 | 3 | MIPI-CSI lane 数/速率/AC 耦合是否内置 | P5 传感器页 (AC 耦合位/端接位) | 原厂 (TBD-03) |
 | 4 | 显示 TX 接口类型 (DSI / DP / 两者) | P4 显示页 + 要不要桥接芯片 | 原厂 (TBD-04) + **JBD 开发套件接口定义** (可能更快) |
 | 5 | 启动存储形态 (SPI-NOR vs eMMC) 与挂载口 | P3 启动存储页 + 板宽 | 原厂 (TBD-06/11) |
-| 6 | 球位号 (全部 SoC 侧节点) | 9 页全部 | 原厂 (TBD-01) |
+| 6 | 球位号 (全部 SoC 侧节点) | 10 页全部 | 原厂 (TBD-01) |
 | 7 | ★跨铰链 4 组通道的连接器型号 / pitch / 柔性段长度 / 是否合并成 1 个连接器 | P9 页布线 + 镜脚腔体 + 铰链可靠性 | **结构总工** (P9 页已列通道与 pin 账, ISS-085 在做) |
 | 8 | ★`U_BRIDGE` 型号 (定位已定为 DP1.4 TX → MIPI DSI TX 桥接, 但这类芯片极少) | P4/P6 选型 + BOM + PCB 面积 | 原厂 (TBD-04) + JBD 接口定义 + 询价 (外发经项目总工) |
 | 9 | ★SoC 侧温度检测的**物理测点** (die / 镜腿 / 电池) —— 器件已定 TMP117 | P2 + SW 热策略 | SW 总工 |
