@@ -398,6 +398,21 @@ This is a starting point. Add your own conventions, style, and rules as you figu
 
 - [Default AGENTS.md](/reference/AGENTS.default)
 
+### ★★★ 收到老板的任务先落盘, 再干活 —— token 断电即丢的防线 (2026-10-29 09:59 老板要求, 当天撞了一次)
+
+- **现象 (血证)**: 老板 10-29 09:59 交代"换掉酷芯微 + 改工作方式", 我 10:00 回了一句"收到" ⇒ **会话 10:02 被掐断**,
+  18:43 才恢复 ⇒ **8.7 小时零产出**: 总表/rubric/token 守护/issue 全没建。**老板亲自指出的风险, 当天就应验在我身上。**
+- **铁律**:
+  1. **接任务 = 落盘, 不是回执**。落盘三件套: ①`TASK_BOARD.md` 加条目 (状态列 `⏳待办`/`🔄执行中`/`✅已完成`) ②
+     `state/issue_log.yaml` 登记 (id/title/owner/due/验收标准) ③派活后立刻落 `fixing`。**没落盘 = 没接住。**
+  2. **断电可恢复** = `TASK_BOARD.md` + `PROGRESS_SNAPSHOT.md` + `PROJECT_TRACKER.md` §(1.x) 三样齐; 缺一即丢信息。
+  3. **token 守护 (cron 每 15 分钟)**: `python3 state/token_watch.py` ⇒ rc=3 就**先写快照 + 推 GitHub 再继续**。
+     三条判据: 5h 窗口 token 超阈值 / **距上次 GitHub 推送 > 45 分钟** / context 用量 > 75%。★第②条最可靠 (限额数值未公开)。
+  4. **快照数字全部实时读** (`state/gen_progress_snapshot.py`) —— 快照本身也不许写死数字。
+  5. **派活前先查上次推送时间**; 超 45 分钟没推 = 上一轮没落盘闭环 ⇒ 先补落盘。
+  6. **恢复时先读 GitHub**: `git pull` → `TASK_BOARD.md` §1/§2/§3 → `PROGRESS_SNAPSHOT.md` → 再动手。
+
+
 ### ★ 本轮 (2026-10-28 08:1x-09:0x) 沉淀速查
 - **阶段门 G0 已过** (卡了 3 天的 4 项是假卡) ⇒ 当前关 **G1 原理图/PCB 定稿**
 - **U2 续航算式裁决**: 旧值偏低 3.33 倍 ⇒ 续航读数用口径 A (`t=Cap×DoD×V/P`), 选电芯用口径 B (`P×361.81`) —— 两套并存各司其职

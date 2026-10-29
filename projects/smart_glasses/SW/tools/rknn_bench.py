@@ -47,12 +47,6 @@ ARS45 · RKNN 转换链实测 + RK3576 端到端 ≤60ms 判定 (sw-lead, 2026-1
 
     ... rknn_bench.py all --json # 机读输出
 
-★ **步间依赖 (ISS-113 修复, 2026-10-29)**: convert / sim / acc 三步都需要 INT8 量化
-  用的校准集 `WORK/dataset.txt` (由 calib 步生成)。`WORK=/tmp/rknn_bench` 是**临时目录,
-  会被系统清理** ⇒ 现在这三步在发现 dataset.txt 缺失/被清空时**自动补跑 calib**
-  (几秒), 不再抛 AssertionError; 补跑不了就给**人话报错**并指向 calib 步。
-  ⇒ §7 列出的每条命令在**干净机器**上都能独立跑通。
-
 退出码: 0 = 本机可执行部分全过 | 1 = 有失败 | 2 = 用法错
 
 ★ 本脚本不联网、不外发、不写任何别人的目录; 产物默认写到 /tmp/rknn_bench。
@@ -198,9 +192,9 @@ def ensure_dataset(args, needer: str) -> dict:
             "(rknn.build(dataset=...)) 需要它。\n"
             "  二选一:\n"
             "    1) 先跑 calib 步 (推荐, 之后 convert/sim/acc 都能独立跑):\n"
-            "         %s %s calib\n"
+            "         cd %s && %s SW/tools/%s calib\n"
             "    2) 去掉 --no-auto-calib, 让本脚本自动补跑 calib。"
-            % (DATASET_TXT, sys.executable, os.path.basename(__file__)))
+            % (DATASET_TXT, PROJ, sys.executable, os.path.basename(__file__)))
 
     # ★ 诊断信息走 stderr ⇒ --json 的 stdout 保持纯净可被机器解析
     print(f"[dep] ⚠ {DATASET_TXT} 不存在 (或引用的校准图已被 /tmp 清理) "
@@ -218,8 +212,8 @@ def ensure_dataset(args, needer: str) -> dict:
     if not _dataset_ok():
         raise BenchError(
             "自动补跑 calib 步之后仍然没有可用的 %s\n"
-            "  → 请检查 calib 步输出 (或手动跑: %s %s calib)"
-            % (DATASET_TXT, sys.executable, os.path.basename(__file__)))
+            "  → 请检查 calib 步输出 (或手动跑: cd %s && %s SW/tools/%s calib)"
+            % (DATASET_TXT, PROJ, sys.executable, os.path.basename(__file__)))
     return {"auto_calib": True, "dataset_txt": DATASET_TXT,
             "n_images": info.get("n_images", 0),
             "note": "★ 本次是自动补跑的 calib 步 (之前 dataset.txt 缺失)"}
@@ -644,67 +638,6 @@ def step_calib(args) -> dict:
         f.write("\n".join(lines) + "\n")
     return {"calib_dir": outdir, "dataset_txt": ds, "n_images": len(lines),
             "source": CALIB_DIR, "letterbox": f"{IMGSZ}x{IMGSZ} 黑边(0) 同推理口径"}
-
-
-def _ensure_dataset(args) -> str:
-    """★ 保证 `WORK/dataset.txt` 存在 (INT8 量化必需) —— 没有就**自动先跑 calib**。
-
-    ── 为什么有这个函数 (ISS-113, 项目总工 2026-10-29 09:0x 实测撞到) ──
-    `convert` / `sim` / `acc` 三步都把 `WORK/dataset.txt` 喂给
-    `RKNN.build(do_quantization=True, dataset=...)`, 而该文件**只由 calib 步生成**
-    ⇒ 步间存在**隐式依赖**, 但报告 §7「复现命令」没写出来。
-    后果: 在**没跑过 calib 的机器**上直接跑 §7 的 `acc` 命令 ⇒
-    `E [0] build: Dataset file /tmp/rknn_bench/dataset.txt not found!` → AssertionError,
-    拿不到任何精度数字。**这是"文档写得像能跑、实际跑不了"的典型缺陷**。
-
-    ── 修法 (2026-10-29) ──
-    ① 缺 dataset.txt → **自动补跑 calib** (100 张 letterbox, 几秒) ⇒ §7 每条命令
-       在干净机器上都能独立跑通;
-    ② calib 也跑不了 (校准图目录不在) → **人话报错 + 指向 calib 步**, 不抛 AssertionError;
-    ③ 顺带处理**半清理**状态: dataset.txt 还在但它列的校准 png 已被系统清掉 ⇒ 重建。
-
-    返回: dataset.txt 的绝对路径。
-    """
-    ds = os.path.join(WORK, "dataset.txt")
-    if os.path.exists(ds) and os.path.getsize(ds) > 0:
-        # 半清理检查: dataset.txt 列出的校准图是否都还在
-        missing = 0
-        try:
-            with open(ds, encoding="utf-8") as f:
-                for ln in f:
-                    ln = ln.strip()
-                    if ln and not os.path.exists(ln):
-                        missing += 1
-        except OSError:
-            missing = 1
-        if missing == 0:
-            return ds
-        print(f"[calib] dataset.txt 还在, 但它列的校准图缺 {missing} 张 "
-              f"(WORK 被部分清理) → 重建校准集")
-    else:
-        print(f"[calib] 缺 {ds} (或已被系统清理) → 自动补跑 calib 步")
-
-    if not os.path.isdir(CALIB_DIR):
-        raise SystemExit(
-            "[calib] ❌ 找不到校准图目录: " + CALIB_DIR + "\n"
-            "        ⇒ INT8 量化必须有校准集 (dataset.txt)。本步**无法自动补跑**。\n"
-            "        请先把 COCO val 校准图放到该目录, 然后跑:\n"
-            "          " + RKNN_PY + " SW/tools/rknn_bench.py calib\n"
-            "        (或直接跑 `... rknn_bench.py all`, 它会先 calib 再往下走)")
-    try:
-        info = step_calib(args)
-    except Exception as e:  # noqa: BLE001
-        raise SystemExit(
-            "[calib] ❌ 自动补跑 calib 步失败: " + repr(e) + "\n"
-            "        请手动跑并检查输出:\n"
-            "          " + RKNN_PY + " SW/tools/rknn_bench.py calib")
-    if not os.path.exists(ds) or os.path.getsize(ds) == 0:
-        raise SystemExit(
-            "[calib] ❌ calib 步跑完, 但 dataset.txt 仍缺失/为空: " + ds + "\n"
-            "        请手动跑:\n"
-            "          " + RKNN_PY + " SW/tools/rknn_bench.py calib")
-    print("[calib] ✅ 已生成 " + str(info["n_images"]) + " 张校准图 + dataset.txt")
-    return ds
 
 
 def _new_rknn(cfg_std=255):
