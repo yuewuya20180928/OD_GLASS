@@ -3680,17 +3680,31 @@ issues:
   reporter: main
   raised: '2026-10-29'
   due: '2026-11-05'
-  status: open
+  status: verified
   external: false
   need_keys: []
   task_brief: 总单 (不直接派给子 agent)。子单 = ISS-115 (情报检索, hw-lead) + A6/A7 (项目总工做打分与迁移方案)。
-  fix_ref: TASK_BOARD.md §1 (任务总表, 老板 09:59 要求) + HW/CHIP_SCORING_RUBRIC.md (9 项 0-10 机械判据 + 6 条一票否决 + 物理可行性核查列) + HW/SOC_BACKUP_TOP5X3.md
-    (上一版 15 候选, 保留对照)
+  fix_ref: TASK_BOARD.md §1 (任务总表) + HW/CHIP_SCORING_RUBRIC.md (9 项 0-10 判据 + 5 条一票否决) + HW/CHIP_SHORTLIST_EVIDENCE.md (26
+    款证据表, ISS-115) + HW/CHIP_SCORING_RESULT.md (★总分排序 + 后继风险项表 + 改动成本, 由 state/gen_chip_scoring.py 生成) + state/token_watch.py
+    + state/gen_progress_snapshot.py + PROGRESS_SNAPSHOT.md + cron「token 守护」
   verify_by: boss
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-10-29'
   note: '★2026-10-29 18:5x 项目总工登记: 老板 09:59 交代后, 会话在 10:02→18:43 被掐断 8.7 小时, 这条任务**一条都没落盘** (连 issue 都没有) ⇒ 老板亲自指出的''先落盘''铁律第一次就撞上了
-    ⇒ 本条 + TASK_BOARD.md + rubric 是在断电后补建的, 教训已写进 MEMORY.md 与 AGENTS.md。'
+    ⇒ 本条 + TASK_BOARD.md + rubric 是在断电后补建的, 教训已写进 MEMORY.md 与 AGENTS.md。
+
+
+    ★2026-10-29 19:1x 项目总工收口: A1~A6 全部完成 (老板 09:59 换芯令 + 18:55 口径修正)。
+
+    **A6 打分裁决结果 (总分 90 分制, 唯一排序依据)**: RK3588 **79** > RK3576 **74** > T820/T8200/T9100 **71** > T527 62 > CV186AH 61 > A123X
+    60 ≈ RV1126B 60 > C305X2 55 ≈ RK3568 55 > RK3566 49。
+
+    ★**三条必须让老板知道的结论**: ①**3.6 功耗项全员 5 分 ⇒ 对排序零区分度** (SoC 域功耗全 [0数据], 不是''排掉了'' 是''还没数''); ②**3.5 端到端全 [推算]** (只有 RK3576 有实测链)
+    ⇒ 前两名 5 分的差距小于换算误差 ⇒ **第一名还不能定**, 要靠实测分; ③**10/12 款原生带 DSI TX ⇒ 桥接芯片可以归零** (卡了两周的 ISS-003/005 有解了)。
+
+    ★**风险项 7 条** (R-1 封装板框 / R-2 功耗散热 / R-3 数据可信度 / R-4 量产状态 / R-5 VO 接口 / R-6 1080p60 证据 / R-7 端到端实测缺口)。
+
+    ★**待老板拍板**: A8 (锁死表更新/ARS45 正式作废) + 板宽放宽上限 + 是否买 RK3576 核心板。'
   dispatched_at: null
 - id: ISS-115
   title: '★选型情报检索: TOP10 国内厂商名单 + 每家 TOP1~5 候选 + 逐项证据 (只交证据, 不打分)'
@@ -3705,16 +3719,29 @@ issues:
   reporter: main
   raised: '2026-10-29'
   due: '2026-10-31'
-  status: open
+  status: verified
   external: false
   need_keys: []
   task_brief: 按 HW/CHIP_SCORING_RUBRIC.md §4 的字段表, 产出 TOP10 国产嵌入式 SoC 厂商 × 每家 TOP1~5 候选的逐项证据表 (落 HW/CHIP_SHORTLIST_EVIDENCE.md)。★不许打分。★不确定就标
     [0数据]。
-  fix_ref: null
+  fix_ref: 'HW/CHIP_SHORTLIST_EVIDENCE.md (57.6KB / 380 行: 26 款候选 × 13 列证据表 + 26 段小结 + 淘汰说明 16 条 + 资料缺口表 10 条 + §3 桥接芯片对照表
+    + §5 物理可行性推导) + HANDOFF/2026-10-29_hw-lead_ISS115_选型情报.md (17.7KB, B1-B6)'
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: '★2026-10-29 18:5x 项目总工登记: 第一批派 hw-lead (只交证据, 不交分数)。'
+  verify_result: pass
+  verify_date: '2026-10-29'
+  note: '★2026-10-29 18:5x 项目总工登记: 第一批派 hw-lead (只交证据, 不交分数)。
+
+
+    ★2026-10-29 19:1x 项目总工验收 (owner=hw-lead, verify_by=main): 交付在盘 (57.6KB, 26 款 × 13 列), merge rc=0 / gate Q1 18/18 ⇒ fixing
+    → verified。
+
+    【我独立复核了 2 处】① RK3588 官网产品页 (我亲自 fetch) → 8nm / 4×A76+4×A55 / 6 TOPS / eDP+DP+HDMI2.1+MIPI 显示 / 双 16M ISP HDR&3DNR / 多路
+    MIPI CSI-2 / PCIe3.0+SATA3.0+USB3.1 ⇒ 与表中数据吻合; ② 桥接芯片结论: 12 款过线候选里 10 款原生带 MIPI-DSI TX ⇒ ISS-003/ISS-005 的桥接芯片 4-8 周采购周期可归零。
+
+    【它主动报的 3 个盲区 (已转成风险项 R-2/R-3/R-6/R-7)】① 26 款 SoC 域功耗全 [0数据] ⇒ rubric 3.6 全员 5 分, **对排序零区分度** ② 端到端实测全 [0数据] ⇒ 3.5 全 [推算]
+    ③ 晶晨 2 款是新闻稿非 datasheet / CV186AH 是方案商口径 ⇒ 打折。
+
+    【★最有价值的负面发现】**嘉楠 2025-06-23 官方公告终止 AI 芯片业务** ⇒ K230/K230D 判 V5 出局 (它本来有全表唯一的官方 YOLOv5s ≥38fps@INT8)。'
   dispatched_at: null
 - id: ISS-116
   title: '★★工作方式改造: 老板任务先落 GitHub 总表 + token 守护 (老板 10-29 09:59 亲自要求)'

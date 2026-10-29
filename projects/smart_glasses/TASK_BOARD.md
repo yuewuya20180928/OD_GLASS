@@ -23,8 +23,8 @@
 | A2 | **任务总表** (本文件) + 落 GitHub | ✅已完成 | 本文件 | 老板 09:59 要求的"先记录到 github" |
 | A3 | token 守护机制 (周期查用量 / 快用完前推 GitHub + 写快照) | ✅已完成 | `state/token_watch.py` + cron | 见 §4 |
 | A4 | 把本任务写进问题台账 (可追踪/可派活) | ✅已完成 | ISS-114 | |
-| A5 | 情报检索: **10 家厂商名单 + 每家 TOP1~5 候选 + 逐项证据 (带 URL)** | 🔄执行中 | `HW/CHIP_SHORTLIST_EVIDENCE.md` (hw-lead) | 派给硬件总工, **只交证据不交分数** |
-| A6 | 我按 rubric **机械打分 + 排总分 + 出选型裁决** | ⏳待办 | `HW/CHIP_SCORING_RESULT.md` | ★**口径已按老板 18:55 改: 总分是唯一排序依据; 物理可行性 → 登记成"后继风险项", 不否决** |
+| A5 | 情报检索: **10 家厂商名单 + 每家 TOP1~5 候选 + 逐项证据 (带 URL)** | ✅已完成 | `HW/CHIP_SHORTLIST_EVIDENCE.md` (57.6KB, 26 款 × 13 列) | **12 款过淘汰线**; 10 款原生带 DSI TX ⇒ 桥接芯片可归零 |
+| A6 | 我按 rubric **机械打分 + 排总分 + 出选型裁决** | ✅已完成 | `HW/CHIP_SCORING_RESULT.md` (由 `state/gen_chip_scoring.py` 生成) | RK3588 79 > RK3576 74 > 展锐×3 71 > … ; 7 条后继风险项 |
 | A7 | 给出**切换方案** (换芯片要重做什么 / 哪些不用重做) | ⏳待办 | `HW/CHIP_SOC_MIGRATION.md` | 网表 157 行 SoC 侧 TBD + 原理图 5 页 |
 | A8 | 旧选型 (ARS45) 正式作废 + 锁死表更新 | ⏳待办 | `PROJECT_TRACKER.md` §0 | 等 A6 裁决后再动, **不先斩后奏** |
 

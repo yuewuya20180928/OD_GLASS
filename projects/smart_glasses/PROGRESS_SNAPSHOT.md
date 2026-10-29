@@ -1,4 +1,4 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-10-29 18:45)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-10-29 19:03)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
@@ -8,13 +8,11 @@
 - 阶段门: 【总体】 阶段门 G1 ⏸️ | 健康度 red | 距通过 G1 还差 8 项 | 未闭环高危 12 条 | 逾期 0 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=0
-- 问题单: 共 116 条 · closed=47 · fixed=9 · fixing=3 · open=37 · verified=20
-- GitHub 上次推送: (未知)
+- 问题单: 共 116 条 · closed=47 · fixed=9 · fixing=1 · open=36 · verified=23
+- GitHub 上次推送: 2026-10-29T18:59:14+08:00
 
 ## 二、执行中 (谁在干什么)
 
-- **ISS-065** · mech-lead · 结构侧 5 条书面建议的落地评估 (镜腿内发热量口径 / 鼻梁也适用 43°C / 上下分壳后镜腿 35.1-35.3°C / 新容量厚度映 · 派出于 2026-10-29
-- **ISS-112** · hw-lead · ★BQ25896 封装 footprint 落库 (WQFN RTW 24pin 4×4mm) + 充电板面积重算 (+7mm²) · 派出于 2026-10-29
 - **ISS-113** · sw-lead · ★RKNN_BENCH 的 B6 复现缺陷: `acc` 步单独跑会崩 (依赖 calib 步的 dataset.txt) · 派出于 2026-10-29
 
 ## 三、待办
@@ -34,7 +32,6 @@
 - ISS-095 · ★[待 TI 确认] BQ25896 的 VSYS 脚是否必须接 —— 决定'电池挪镜框'回退分支要不要多两根电源 pin
 - ISS-102 · ★[待原厂] 追加问 4 条: AON 域静态电流 / USB VBUS detect 脚 / TPS62130A PG 极性 / BQ25896 VSYS
 - ISS-109 · ★R-GEO 六问全 0 答复: ISP 吞吐余量 1.9% vs 50.7% 完全相反 (一票否决级) + 采集链/散热结论都不能定版
-- ISS-114 · ★★换芯片选型总单: 国内 TOP10 厂商 × TOP1~5 芯片 × 9 项打分 (老板 10-29 09:59 改令) —— 正式弃用酷芯微
 
 ### 3.3 三个总工可自行推进 (队列 cron 每 30 分钟自动派)
 
@@ -43,13 +40,13 @@
 - ISS-025 · mech-lead · 结构 DFM 评审缺失 (P2S 打印件 → 量产开模件的可制造性差异)
 - ISS-043 · hw-lead · 充电状态读取接口未确认 → 充电时禁 OD 门禁可能无法实现
 - ISS-047 · mech-lead · 结构侧需复核: 『对角半角』与『垂直半视场』两个口径混用 (MECH §1.5 那张 ≤40° 的表)
+- ISS-065 · mech-lead · 结构侧 5 条书面建议的落地评估 (镜腿内发热量口径 / 鼻梁也适用 43°C / 上下分壳后镜腿 35.1-35.3°C / 新容量厚度映
 - ISS-066 · mech-lead · 测量清单补 H14 (temple_cage 上的 ⌀2.4 PCB 定位间隙孔独立量测行) + measurements.yaml 索引同
 - ISS-076 · mech-lead · 新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1.6.2
 - ISS-079 · hw-lead · 情报检索: 采用 ARS45 的 AI 翻译眼镜拆解 + 港交所招股书直链 (封装/走线/供应链/交付)
 - ISS-092 · mech-lead · ★镜脚末端检修口 (J_DEBUG/J_UART 够不着 → 排针装上也用不了) 的开孔/盖板方案落到 MECH 尺寸链
 - ISS-103 · mech-lead · ★镜框开导光孔/导光柱 (充电灯装充电板靠 Type-C 座, 老板拍板关机时充电灯要亮)
 - ISS-105 · hw-lead · ★更正 hw-lead 分片过期值 (pcb_outline 仍 50×12 / chg_input_limit 仍 1.07-1.30A)
-- ISS-111 · hw-lead · ★[ISS-068 拆出] EVT 可靠性实测项清单 (跌落/振动/弯折/热) —— 文件缺失, 补交
 - …另有 1 条
 
 ## 四、恢复步骤 (token 恢复后照此走)
