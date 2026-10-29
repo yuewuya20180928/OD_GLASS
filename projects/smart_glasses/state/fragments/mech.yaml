@@ -1,14 +1,23 @@
 agent: mech-lead
 role: 结构总工(带散热)
-updated_at: '2026-10-28T08:40:00+08:00'
+updated_at: '2026-10-29T09:12:00+08:00'
 updated_by: mech-lead
 status:
-  phase: ISS-089 交卷 (硬件侧交叉评审 机械/热/装配/跨铰链)
-  progress_pct: 100
-  health: yellow (16项FAIL全是'按现图纸做出来会出问题'不是做不出来; 其中4条要hw-lead改网表/选型, 3条要项目总工裁, 1条u8镜框截面升阻塞, 1条打印包待授权; 5项[0数据]待厂商/原厂)
-  summary: '跨铰链的净高与径向都还过得去(V向余7.00mm/径向余1.25mm), 真会打回重画的是4件事: 铰链端X缺6.00mm(4座排不开+固定孔同段)/走线拓扑未定义(V叠则4座不能同面)/充电耗散口径错(0.8W线性vs0.45-0.57W
-    buck 且ICHG-IIN系数方向反了390欧档要重判)/Type-C开孔公差差3.0倍且Y向单边间隙只剩0.17mm; 另7条自己发现(P9页堆叠数自相矛盾/拓扑未定义/ICHG系数反了/耗散口径错/打印包Type-C试样挂错件/充电灯board列错/端件无金属导热路径);
-    全部给建议不拍板'
+  phase: 'P2(ISS-027 原型制作计划已交: B0-B4 四批 + 验证矩阵 + 回滚五层 + 依赖链 + 20项[0数据]清单; 待 ISS-040 打印+量测执行方)'
+  progress_pct: 86
+  health: yellow
+  summary: '第8轮 ISS-027: 新增 MECH/PROTOTYPE_PLAN.md (分批打样/验证矩阵/回滚阶梯/依赖链) + MECH/prototype_plan_check.py
+    (rc=0 机械判定 ISS-027 五项验收 + 三条铁律) + HANDOFF/2026-10-29_mech-lead_原型制作计划_ISS027.md (B1-B6六块齐)。核心结论: (1)
+    **四批解耦** B1工艺标定(打1件coupon, 34项, 5条硬判据: 孔收缩+0.05~+0.15/0.80壁成型/45°免支撑/拉脱>=15N/0.10塞尺进不去) -> B2镜脚装配验证(打3件
+    = temple_cage×1 + **新增R11 J_CHG防呆试样×2**, 15项H段, 3条硬判据 H13<=0.25/H4晃动<=0.10/类A类B孔不许混用) -> B3镜框与光学(打2件,
+    卡JBD u1+u4) -> B4整机装配(1台, 卡PCB+波导+固件取最晚); §1.6 给第2批改版触发规则表 (现象->改哪层->哪些数据可复用); (2) **验证矩阵三分类**: A打印件阶段可测10项
+    / B必须等电路板7项 / C必须等整机+固件+仪器6项; (3) **回滚五层成本差3个量级**: L1打印参数0.5-1天 / L2打印件几何1-2天 / L3结构方案1-2周(动锁死表需裁)
+    / L4 PCB **2-4周+打样费(打印件全报废)** / L5固件1-3天; 判定顺序: 机械先排L1->L2->L3, L3前不许碰L4, L5永远最后; (4) **给G1->G2的三条排期结论**:
+    ①PCB板框/厚度/层数必须在B1开工前冻结(否则改板->打印件报废+重投板2-4周) ②JBD''回图''与''发货''分两个里程碑催(B3只等u1/u4图不等实物, 实物4-8周) ③**ISS-040是本周唯一催办项**(解锁B1->B2->G2直接少2项,
+    投入产出比最高); (5) 衔接: R11防呆试样现有打印包里没有->放B2, R4拉脱试样可由B1 coupon切出, T-14无损段排B4装配后/S0后/S1前, T-13不占独立步位; M-PRINT升[实测]=B2完成(B1的34项只回填MECH_BUDGET
+    §5.4四行), M-FIT镜脚侧=B2/整机=B3后, M-WEIGHT=B4; (6) ★诚实边界: [实测]实物条数=0, **20项关键量在实物到手前只能标[0数据]**, 打印件与量测环境不具备的证据见
+    ENV_PROBE.log; (7) 新增4条interface_claims + 4条needs_from + 1条blocker(MECH-B9) + 3条artifacts。★ 本单只交计划与判据,
+    不拍板 (裁断点全写P-1~P-5并注明走谁); 未联系任何供应商(外发经PM)。'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -165,6 +174,45 @@ artifacts:
   version: '1.0'
   updated_at: '2026-10-28'
   summary: 'ISS-089 机械自检脚本 rc=0: 54项判定(PASS 15/FAIL 16/条件通过8/说明15), 全部数字机器复算不靠人肉数: 解析netlist_v1.csv取4连接器pin占用与board列、复算堆叠两口径两净高/径向嵌套/PCB铰链端X排布/合并可行性/框侧汇流/充电板land与开孔间隙/buck耗散与ICHG-IIN比值/装配顺序/5条公差链'
+- path: MECH/PROTOTYPE_PLAN.md
+  kind: plan
+  version: v1.0
+  updated_at: '2026-10-29'
+  summary: 'ISS-027 原型制作计划 (分批打样/验证矩阵/回滚阶梯/依赖链): ① 四批解耦 B1 工艺标定 (打1件 coupon, 34项 A5+B6+C7+D5+E5+F3+G3,
+    5条硬判据: 孔收缩+0.05~+0.15 / 0.80壁成型 / 45°免支撑 / 拉脱>=15N / 0.10塞尺进不去) -> B2 镜脚装配验证 (打3件 = temple_cage×1
+    + 新增 R11 J_CHG防呆试样×2, 15项 H段, 3条硬判据 H13<=0.25 / H4晃动<=0.10 / 类A类B孔不许混用) -> B3 镜框与光学 (打2件, 卡 JBD u1+u4)
+    -> B4 整机装配 (1台, 卡 PCB+波导+固件三者取最晚); §1.6 第2批改版触发规则表 (现象->改哪层->产出->哪些数据可复用); ② 验证矩阵三分类 A打印件可测10项 / B必须等电路板7项
+    / C必须等整机+固件+仪器6项; ③ 回滚五层 L1打印参数0.5-1天 / L2打印件几何1-2天 / L3结构方案1-2周 / L4 PCB 2-4周+打样费(打印件全报废) / L5固件1-3天
+    + 六条判定顺序 (机械先排L1->L2->L3, L3前不许碰L4, L5永远最后); ④ 衔接: RELIABILITY_TEST_PLAN (R11防呆试样现有包里没有->放B2; R4拉脱试样可由B1
+    coupon切出; T-14无损段排B4装配后/S0后/S1前; T-13不占独立步位) + measurements.yaml M-PRINT回填口径 (B2完成才升[实测]; B1的34项只回填MECH_BUDGET
+    §5.4四行; M-FIT镜脚侧=B2/整机=B3后; M-WEIGHT=B4) + print_pack.3mf 现状与下一版; ⑤ 时间与依赖链 (JBD回图与发货分两个里程碑) + G1->G2里程碑表;
+    §6 20项 [0数据] 清单; ★ [实测]实物条数=0 (本机无打印机无量具, ENV_PROBE.log 为证), 所有[实测]只指模型/脚本级真值'
+- path: MECH/prototype_plan_check.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-10-29'
+  summary: '原型制作计划机械自检 (rc=0): 机械判定 ISS-027 五项验收 (①分批打样计划含改版触发规则 ②验证矩阵三分类+尺寸/干涉/佩戴/功能/热/续航六维度 ③回滚五层L1-L5含成本与耗时
+    ④与RELIABILITY_TEST_PLAN/measurements.yaml/print_pack.3mf的衔接 ⑤时间与依赖链含JBD/PCB/固件) + 三条铁律 (A 未测即通过措辞=0
+    / B 证据分级四标签齐全且声明''[实测]实物条数=0'' / C 不替别人拍板) + §6 [0数据]清单>=10行 + 关键数字锚点 (46/46 / 0.95 / 0.65 / 24.50
+    / 48.9-74.0) 与 fit_check.py / verify_budget.py 交叉核对'
+- path: HANDOFF/2026-10-29_mech-lead_原型制作计划_ISS027.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-29'
+  summary: 'ISS-027 交接单 (B1-B6 六块齐全): B1 五条带数字结论 (四批件数与验证项 / 矩阵三分类10+7+6项 / 回滚五层成本差3个量级 / 给G1->G2的三条排期结论含''PCB必须在B1开工前冻结''
+    / [实测]实物=0且20项[0数据]) ; B2 自评 13 条 (✅10 / ⚠️3, 其中3条诚实写出不达标与未验); B3 证据分级四档 + 口径纪律; B4 接口取值 4 条 (proto_batch_plan
+    / proto_b1_coupon_measure_items / proto_b2_h_measure_items / proto_pcb_freeze_gate); B5 未决 5 条 (P-1
+    ISS-040 打印+量测执行方 / P-2 PCB冻结 / P-3 ISS-060三条几何 / P-4 B4佩戴可测项定义 / P-5 verify_print_pack文案漂移) + 6 条接口请求各带''我的假设'';
+    B6 七条复现命令'
+- path: MECH/skeleton_section_check.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-10-29'
+  summary: '金属骨架截面形状+重量口径+石墨H链 的独立复算 (rc=0, ISS-049 两问的可复现答复, hw-lead 明确把截面决定权交给结构侧): 独立复算**不共用 hw-lead
+    的代码路径**; ① V覆盖需求 15mm板 = SoC沿板宽8.00+两侧各3.50 = 15.00 = 板宽 (SoC段骨架必须满宽; 12mm板无扩散余量) ② 4候选截面重量: 满宽1.0=4.86g/对(判死)
+    / 台阶1.0=3.62g/对(**与hw-lead报的3.62一致**) / 台阶0.8=2.89g/对(落进§2.4 B的+1-3g) / 铜0.8=9.61g/对(重) ③ 石墨0.30铺PCB内侧
+    -> H链4.70(骨架1.0)/4.50mm(骨架0.8), 余2.60/2.80mm; 石墨0.54g/片=1.08g/对 归 W11 不占骨架预算 ④ 骨架/石墨止于PCB段后缘X=60.00
+    (延伸进电池段=并联热路730->4.50 K/W) ★ 不出新的皮肤侧温度数 (要完整热模型重算 U-3), 不拍板'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -225,6 +273,27 @@ blockers:
   desc: 'ISS-091: 跨铰链充电电流核算已交 (MECH/HINGE_POWER_CALC.md), 但两个前置未裁: (1) J_CHG 单触点额定电流未知 [0数据] -> 直接锁死 R_ILIM
     档位 (若只有0.3A型号则只能选680Ω); (2) FPC 厂商三项能力未知 [0数据] (分段铜厚/0.4mm加宽/地平面keep-out) -> 固定段能否加厚不确定, 影响压降 111->65mV
     区间。未裁之前: R_ILIM 最终档位定不了、FPC 加工图定不了、铰链段 FPC 不能下单。'
+  needs_from:
+  - main
+  - hw-lead
+- id: MECH-B9
+  severity: high
+  waiting_since: '2026-10-29'
+  desc: 'ISS-027: 原型制作计划已交 (MECH/PROTOTYPE_PLAN.md + prototype_plan_check.py rc=0), 但**B1 批次的唯一硬前置 ISS-040
+    (打印+量测执行方) 至今未闭**: 本机物理上无法打印/量测 (打印机 192.168.1.68 与本机 192.168.2.4/24 跨网段 不可达: ping 无响应 + TCP 990/8883/6000/4000
+    全 closed; 无切片器; 无卡尺/千分尺/塞尺; 无 USB 串口 —— 证据 MECH/print/ENV_PROBE.log). 因此 B1 之前所有尺寸仍是图纸值, M-PRINT/M-FIT/M-WEIGHT
+    三项 [实测] 全空, G2 缺 7 项一项没减. **B1+B2 共 49 项实测不需要 PCB 也不需要 JBD**, 是当前唯一不被外部依赖卡死的路径 —— 但要靠 ISS-040 落地才走得动.
+    未闭之前: 打印件0件 -> ISS-017 无法闭 -> G2 不可判.'
+  needs_from:
+  - boss
+  - main
+- id: MECH-B10
+  severity: medium
+  waiting_since: '2026-10-29'
+  desc: 'ISS-049 遗留: 金属骨架的**热学代价**未重算 —— 我给 hw-lead 的截面建议是 0.80mm 厚 (比 1.00 轻 0.73g/对, 落进 MECH_BUDGET
+    §2.4 B 的 ''+1-3g'' 预算), 但**铝的导热截面变小 -> Tj 会升**, 而 §2.3.1 的皮肤侧 46.5°C (0.23W 按需触发口径) **已经超 ISO 13732-1
+    的 43°C 红线 3.5°C**. 也就是说: 重量上省下来的 0.73g, 热学上可能还回去. 这两个数必须**一起**算, 不能只看重量选截面. 重算需完整热模型 (含石墨铺装范围 + 骨架截面形状
+    + 隔热层), 即 PCB_MOUNT_PIN_SET2.md §5 U-3 那张单. 未重算前: **我不出新的皮肤侧温度数**, 也不把 0.80mm 当已定版 —— 只作为待裁候选.'
   needs_from:
   - main
   - hw-lead
@@ -531,12 +600,14 @@ needs_from:
   since: '2026-10-28'
 - key: iss100_stale_cost_rows
   to: main
-  item: 'HW/PCB_FORM_FACTOR_RECHECK.md §5/§7 的 15mm 行有三条基于已作废模型的代价, 留着会持续误导决策: ① ''镜腿根部净高 37→40mm + 打印件要改版''
-    (出自 §1.4.2 叠放模型, fit_check.py 已证伪作废; 串行下净高 38mm 一毫米不用动) ② ''加长 50→60 撞镜腿长度硬缺口'' (出自充电板未挪镜脚时的旧长度模型;
-    现余量 24.50mm) ③ J_CHG 装不下 (实为脚本 pitch 口径过期)。建议同轮更正'
+  item: 'HW/PCB_FORM_FACTOR_RECHECK.md §5/§7 里基于已作废''叠放''模型的 15mm 代价 —— ★2026-10-28 项目总工已在该文开头加了更正声明 (覆盖
+    ①镜腿根部净高37→40mm/打印件改版 ②加长50→60撞镜腿长度硬缺口 ③J_CHG装不下), 文档层面已澄清; **但正文仍有 4 行旧数字未清**: 行185 (§5 15mm 行的 ①镜腿根部净高37→40mm
+    + ③板重0.48→~0.60g, 该板重是把体积当重量的真错误, 真值 1.67g/1.33g) / 行342 (ST-1 镜腿截面净高37→40mm) / 行377 (§3.1 15mm 板宽代价行)
+    / 行425 (M3 反问我''净高37→40mm能不能接受'' —— 答: 串行模型下净高38mm一毫米不用动, 不需要重算)。请 hw-lead 删/改这 4 行即可, 不必再动开头声明。我不碰
+    HW/ 文件。'
   waiting_on: agent
   due: '2026-10-30'
-  since: '2026-10-28'
+  since: '2026-10-29'
 - key: iss089_ichg_ratio_datasheet
   to: hw-lead
   item: 'ISS-089交叉评审发现: CHARGE_BOARD_SPEC §3.4 的 ICHG=IIN×(VBAT/VBUS)/η=0.822 方向反了 —— buck降压的功率守恒是 Pout=η·Pin,
@@ -576,6 +647,38 @@ needs_from:
     => 镜脚侧Type-C特征应删除、试样移到镜框端件件; (2) CHARGE_BOARD_SPEC M-15的印刷公差判据±0.10mm在P2S上不可达(FDM±0.30mm, 差3.0倍),
     且开孔单边间隙Y向只剩0.17mm => 建议开口放大到10.0x4.2mm或改用金属嵌件(铝框)保证开孔公差; (3) 充电板25x10mm器件land已占71%, 双面贴才够。授权后我同轮改打印包与测量清单'
   since: '2026-10-28'
+- key: proto_pcb_freeze_gate
+  to: main
+  since: '2026-10-29'
+  due: '2026-10-31'
+  item: '★ISS-027 排期硬前置: **PCB 板框/厚度/层数/孔位必须在 B1 (工艺标定批) 开工前冻结**. 理由: 老板 10-29 00:49 已令跳过酷芯微改选国内 TOP5,
+    PCB 还开着变更口子; 若 B2 打完再改板 -> L4 回滚 2-4 周 + 打样费 + **B2 打印件全部报废**. 附带账: 板厚 4层0.80mm(1.33g) vs 6层1.00mm(1.67g)
+    差 0.34g, 而整机已推算 48.9-74.0g vs 目标30-40g, 这0.34g不是可忽略量级; PCB段 H 向余量 2.80mm 也会被板厚差 0.20mm 吃掉一部分. **我的建议(不拍板):
+    按 4 层 0.80mm 冻结**. 依据 MECH/PROTOTYPE_PLAN.md §5.3'
+- key: proto_pcb_thickness_tier
+  to: hw-lead
+  since: '2026-10-29'
+  due: '2026-10-31'
+  item: 'ISS-027 接口请求 (经项目总工转达): PCB 最终层数/厚度档位 (4层0.80 vs 6层1.00) + 板重口径 (1.33g vs 1.67g) + 是否带屏蔽罩及高度上限,
+    因为 B2 要按它做 mock 板 (60×15×厚度) 才能验 ⌀2.4 间隙孔 + 2×⌀1.6 让过孔 + 装入姿态. **我的假设 (若不回应我按这个做): 按 4 层 0.80mm**
+    做 mock 板与 H 链校核 (省0.34g, H余量宽0.20mm); 若实际投6层, H链余量按 -0.20 重算并上报. 另: **假定 PCB 面上不需要结构开孔** (散热孔/接地过孔/固定孔避让),
+    打印件按''板平放+2×⌀2.4间隙孔+2×⌀1.6让过孔''预留, 若需开孔请在 B4 前告知'
+- key: proto_wear_criteria
+  to: main
+  since: '2026-10-29'
+  due: '2026-11-05'
+  waiting_on: boss
+  item: 'ISS-027 P-4: **B4 佩戴体验的可测项定义** (夹持力 / 配重分布 / 鼻梁压感, 各测什么、判据多少、用什么器具). 现状: 这三项全标 [0数据] **且没有判据**,
+    而 1 台样机只有一次采集机会 (RELIABILITY_TEST_PLAN §B2.3/B3.3 的样本量硬边界), 漏测后续补不回来. 需老板给可测项定义 (经项目总工转达)'
+- key: proto_b4_reliability_kit
+  to: boss
+  since: '2026-10-29'
+  due: '2026-11-05'
+  waiting_on: boss
+  item: 'ISS-027 附带: B4 整机装配当天要做 **T-14 无损段** (弯折区结构审查 + **J_CHG 反插 20 次**) 与 **T-13 挂测位就位**, 两者都需要零星器具:
+    反插只需 J_CHG 实物一对(打印的 R11 防呆件 B2 出) + 计数; T-13 需要协议分析器/示波器差分探头 + 自动传输脚本. 与已提的 mech_reltest_kit_site
+    (场地工装总预算) **同源同账**, 本条只追加''本批次需要的器具清单'', 不重复申请金额. 另需提醒: **ISS-040 的打印+量测执行方 (打印机192.168.1.68跨网段 +
+    无卡尺/千分尺/塞尺) 是 B1 的唯一硬前置**, 它解锁 B1 -> B2 -> G2 直接少2项 (M-PRINT + M-FIT镜脚侧), 是当前投入产出比最高的动作. 经项目总工转达'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -663,6 +766,24 @@ answers:
     两者前端(Z<0)默认不延伸进铰链端余量区; 隔热垫0.5mm+空气隙0.3mm是皮肤侧热路, TMP117若在骨架正下方会被烤热 => 建议TMP117与骨架水平距离>=8mm; (3) 光机(镜框正中鼻梁上方)温度遥测:
     结构侧无独立器件位(镜框正中已被光机+分光件占11.8mm厚), 若要监控只能靠镜框上沿或端件的器件位, 需JBD接口定义 => 属[0数据], 不拍板'
   ref: MECH_BUDGET §5.1/§2.5 + MECH/HW_CROSS_REVIEW.md §7.3
+- key: iss049_skeleton_profile
+  to: hw-lead
+  value: 台阶形 X19..33满宽15 / 其余10, 厚0.80铝(建议) = 2.89g/对
+  ref: MECH/skeleton_section_check.py rc=0 §2 候选C; 重量口径 3.62g/对(t=1.0) 与你报的一致, 独立复算; 0.80mm 才落进 MECH_BUDGET
+    §2.4 B 的 +1-3g; 满宽 4.86g/对 维持判死
+- key: iss049_graphite_hchain
+  to: hw-lead
+  value: 石墨0.30铺PCB内侧(骨架与PCB之间), PCB段H链4.70mm(骨架1.0)/4.50mm(骨架0.8), 余2.60/2.80mm
+  ref: MECH/skeleton_section_check.py rc=0 §4; 骨架与PCB之间, 与板同长同宽 X[0,60]xY[0,15]; 重量 0.54g/片=1.08g/对 归
+    MECH_BUDGET §3 W11, 不占 §2.4 B 骨架预算; 石墨/骨架一律止于 PCB 段后缘 X=60.00 (延伸进电池段=并联热路 730->4.50 K/W)
+- key: iss049_mount_screw
+  to: hw-lead
+  value: '确认: 螺钉头只落PCB皮肤侧沉孔, 严禁接触皮肤侧下壳; 打印件上壳需2xD2.4+2xD1.6让过孔'
+  ref: 'MECH/PCB_MOUNT_PIN_SET2.md §4 (热学硬约束) + §3 (打印件连带: 让过孔1->2个/螺钉孔距40->44mm/定位板长50->60mm, 随打印包改版授权一并吸收)'
+- key: iss049_segment_order
+  to: hw-lead
+  value: '确认: PCB段在铰链端/电池段在尾端, PCB段后缘=板坐标X=60.00'
+  ref: MECH/BOARD_WIDTH_15MM.md §2.6 (骨架长度上限=止于PCB段后缘, 不因板宽改变) + MECH/CLEARANCE_FIX.md (电池段前端壁引电极)
 interface_claims:
 - key: battery_capacity_tier
   value: 无桥接340-575mAh/有桥接575-675mAh
@@ -1137,6 +1258,45 @@ interface_claims:
   note: Type-C面板与充电板已按ISS-014决策5挪到镜框 => 打印包 MECH/print/temple_cage_340.stl 的Type-C试样(Y120-123)挂错件, 镜脚侧Type-C特征应删除、试样移到镜框端件件
     (待项目总工授权改版)
   ref: MECH/HW_CROSS_REVIEW.md §5 R-8/§6 自-5
+- key: proto_batch_plan
+  value: B0-B4
+  note: '原型制作计划分批编号: B0 打印包就绪 / B1 工艺标定(打1件) / B2 镜脚装配验证(打3件) / B3 镜框与光学(打2件, 卡JBD) / B4 整机装配(1台). 每批硬判据与回滚层见
+    MECH/PROTOTYPE_PLAN.md §1 [推算-计划]'
+  ref: MECH/PROTOTYPE_PLAN.md#1.1
+- key: proto_b1_coupon_measure_items
+  value: '34'
+  note: B1 测量项数 (A5+B6+C7+D5+E5+F3+G3) —— coupon 一件覆盖全部工艺试样, 不多打; 这34项只回填 MECH_BUDGET §5.4 的4行, **不能**用来把
+    M-PRINT 升 [实测] [口径]
+  ref: MECH/PROTOTYPE_PLAN.md#1.2
+- key: proto_b2_h_measure_items
+  value: '15'
+  note: B2 测量项数 (H段) —— M-PRINT 升 [实测] 的充要条件是这15项填完; M-FIT 镜脚侧=H4实物电芯插入, 整机侧须B3完成后才整体升
+  ref: MECH/PROTOTYPE_PLAN.md#1.3
+- key: proto_pcb_freeze_gate
+  value: B1开工前
+  note: PCB 板框/厚度/层数/孔位的冻结点要求 —— 晚于 B1 则 L4 回滚 2-4 周 + B2 打印件全部报废; 板厚 4层0.8 vs 6层1.0 差0.34g 且吃掉 PCB 段
+    H 余量 0.20mm (整机已推算48.9-74.0g vs 目标30-40g) [推算]
+  ref: MECH/PROTOTYPE_PLAN.md#5.3
+- key: mech_skeleton_section_shape
+  value: 台阶形 X19..33满宽15/其余10
+  note: '金属骨架截面形状 (hw-lead ISS-049 把决定权交给结构侧): 15mm 板下 SoC 沿板宽占8.00 + 两侧横向扩散带各3.50 = 15.00 = 板宽 -> SoC
+    段骨架必须满宽; 非 SoC 段只需承PCB, 取10.00. 满宽60x15已判死 [推算]'
+  ref: MECH/skeleton_section_check.py#2
+- key: mech_skeleton_thickness_mm
+  value: '0.80'
+  note: '建议厚度 (非拍板): 0.80mm 铝台阶形 = 2.89g/对 落进 MECH_BUDGET §2.4 B 的 ''+1-3g''; 1.00mm = 3.62g/对 超0.62g
+    (与 hw-lead 独立复算一致). ⚠️ 热学代价: 导热截面变小 -> Tj 会升, 必须并进 U-3 热模型重算一起算, 不能只看重量选截面 [推算]'
+  ref: MECH/skeleton_section_check.py#2
+- key: mech_graphite_placement
+  value: PCB内侧(骨架与PCB之间)
+  note: '石墨片 0.30mm 铺装位置 (ISS-049 问): 与板同长同宽 X[0,60]xY[0,15], 铺在骨架与PCB之间 -> PCB段 H 链 4.70mm(骨架1.0)/4.50mm(骨架0.8),
+    余 2.60/2.80mm (>=0.60 规矩). 重量0.54g/片=1.08g/对 归 MECH_BUDGET §3 W11, 不占 §2.4 B 骨架预算 [推算]'
+  ref: MECH/skeleton_section_check.py#4
+- key: mech_graphite_weight_g_per_pair
+  value: '1.08'
+  note: 石墨 0.30x60x15 = 0.270cc x 2.00 g/cc = 0.54g/片 = 1.08g/对 (与 hw-lead ISS-049 报的 0.54g/片 一致). 归 MECH_BUDGET
+    §3 W11 (石墨散热膜+导热垫+隔热垫 1-2g) [推算]
+  ref: MECH/skeleton_section_check.py#3
 open_questions:
 - id: MECH-Q1
   to: main
