@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-10-29 23:54** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-10-30 00:18** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -62,8 +62,8 @@
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 119 条 | 状态: closed=57 open=26 verified=26 fixed=9 fixing=1
-  ├─ 内部可自行推进: 93 条 | 外部依赖 (等老板/原厂/JBD): 26 条
+登记问题 120 条 | 状态: closed=57 open=25 verified=28 fixed=7 fixing=3
+  ├─ 内部可自行推进: 94 条 | 外部依赖 (等老板/原厂/JBD): 26 条
   ├─ 逾期未闭环: 0 条
   └─ 未闭环 blocker 级: 3 条
 
@@ -132,16 +132,12 @@
        可靠性设计评审缺失 (降额/应力/MTBF 全空)
   🟠 ISS-028  closed    owner=sw-lead    due=2026-10-29  
        缺 EVT 报告模板 + 软硬件联调计划 (G3 无载体)
-  🟠 ISS-038  open      owner=boss       due=2026-10-29   [外部]
-       【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否加第 4 个总工
   🟠 ISS-042  closed    owner=mech-lead  due=2026-10-29  
        镜脚侧装配余量临界 (前后余 0.30mm vs FDM 公差 ±0.2-0.3mm) → 叠放模型实际不通过
   🟠 ISS-044  closed    owner=sw-lead    due=2026-10-29  
        Q17=60fps 的达标判定条件已写死: M-NPU ≤16.67ms (age=1) 才成立, 否则自动切 30fps
   🟠 ISS-045  closed    owner=hw-lead    due=2026-10-29  
        sensor 选型解冻 (Q16 已拍板: 只需 ≥1920×1080@60fps) —— 立即启动
-  🟠 ISS-049  fixed     owner=hw-lead    due=2026-10-29  
-       PCB 定位方式变更 + 骨架长度上限 (来自 ISS-042 解 A) —— 需 hw-lead 改孔位
   🟠 ISS-050  closed    owner=mech-lead  due=2026-10-29  
        打印包需按解 A 修订几何 (电池座 4.90→4.75 非对称 + 0.8 顶板 + 配作孔 ⌀2.0→⌀2.4)
   🟠 ISS-051  closed    owner=hw-lead    due=2026-10-29  
@@ -160,10 +156,6 @@
        R-F1 3.3V 轨拓扑裁决落地 (UVP 抬 3.5V + 3.3V 改供 + 评估不牺牲容量的替代方案)
   🟠 ISS-068  verified  owner=hw-lead    due=2026-10-29  
        可靠性证据缺口收口 (15/15 器件 Absolute Maximum Ratings 逐个核 + 实测项挂样机 + FIT 数据
-  🟠 ISS-080  fixed     owner=sw-lead    due=2026-10-29  
-       S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项
-  🟠 ISS-082  fixed     owner=main       due=2026-10-29  
-       ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + P
   🟠 ISS-084  closed    owner=mech-lead  due=2026-10-29  
        SoC 载板化/模组化的结构与代价评估 (把 引脚映射 风险从项目级压到载板级) + 兜底 SoC 路线 (用现成模组做 EVT 验
   🟠 ISS-085  verified  owner=mech-lead  due=2026-10-29  
@@ -176,24 +168,12 @@
        ★软件侧交叉评审 (时序/信号/电源时序) + TMP117 测点物理位置 + 跨铰链 USB 烧录可行性
   🟠 ISS-091  verified  owner=mech-lead  due=2026-10-29  
        ★跨铰链充电电流 1.0-1.5A 的载流/压降/发热核算 + J_CHG (1×10) 机械可行性 (MECH-B7 的后续)
-  🟠 ISS-094  open      owner=main       due=2026-10-29  
-       ★投板前网表要做 pin-centric 重整 (现在 CSV 是『连接清单』模型, KiCad 网表要的是『每引脚一行』)
-  🟠 ISS-096  fixed     owner=main       due=2026-10-29  
-       ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位
-  🟠 ISS-097  fixed     owner=main       due=2026-10-29  
-       ★"关机"语义: 硬件断电通路 (负载开关) + 真关机拓扑 + 功耗预算 V3
-  🟠 ISS-098  fixed     owner=main       due=2026-10-29  
-       ★SoC 侧没有 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失, S2 救砖链路成立性未验; 且 CO
   🟠 ISS-099  verified  owner=hw-lead    due=2026-10-29  
        ★J_CHG 选型与 FPC 加工图要求 (触点额定 ≥0.35A / 分段铜厚 固定段2oz·弯折段1oz / 内层地 keep-
   🟠 ISS-100  verified  owner=mech-lead  due=2026-10-29  
        ★板宽 12mm → 15mm 的结构侧连带 (镜脚腔体/骨架长度/PCB 定位孔位/面积缺口 300mm² 复核)
   🟠 ISS-101  verified  owner=sw-lead    due=2026-10-29  
        ★模型许可: 唯一许可干净候选 (Apache-2.0) 的 NPU 可转换性 = 0 数据 → 量产可用模型清单为空
-  🟠 ISS-102  open      owner=main       due=2026-10-29  
-       ★[待原厂] 追加问 4 条: AON 域静态电流 / USB VBUS detect 脚 / TPS62130A PG 极性 / 
-  🟠 ISS-106  open      owner=boss       due=2026-10-29   [外部]
-       ★新增渠道: 经酷芯微代理转达 (老板 10-28 找到代理) —— 代理信 + 3 份可转发附件已就绪
   🟠 ISS-107  verified  owner=mech-lead  due=2026-10-29  
        ★更正 mech-lead 分片 pcb_mounting 旧取值 (2xM1.2+1x⌀2.0H7 → PIN-SET-2: 2x
   🟠 ISS-110  verified  owner=sw-lead    due=2026-10-29  
@@ -210,20 +190,42 @@
        ★选型情报检索: TOP10 国内厂商名单 + 每家 TOP1~5 候选 + 逐项证据 (只交证据, 不打分)
   🟠 ISS-118  fixing    owner=hw-lead    due=2026-10-31  
        ★板宽 15mm → 30mm 的硬件连带重算 (板框/网表/面积/逃线/跨铰链排布) —— 老板 10-29 19:16 放宽
+  🟠 ISS-038  open      owner=boss       due=2026-11-05   [外部]
+       【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否加第 4 个总工
   🟠 ISS-040  open      owner=boss       due=2026-11-05   [外部]
        打印与量测条件不具备 (打印机跨网段不可达 + 无切片器/量具) → M-PRINT 卡死
   🟠 ISS-041  open      owner=boss       due=2026-11-05   [外部]
        测试设备/工装缺失 (无设备 G3 那一关不可判通过)
+  🟠 ISS-049  verified  owner=hw-lead    due=2026-11-05  
+       PCB 定位方式变更 + 骨架长度上限 (来自 ISS-042 解 A) —— 需 hw-lead 改孔位
   🟠 ISS-060  open      owner=boss       due=2026-11-05   [外部]
        产品件三条几何待老板裁决 (压垫吸收量零余量 / 非对称方向 / 压垫槽区板厚小于 FDM 最小壁) —— 打印包转绿不等于解 A 
   🟠 ISS-063  open      owner=boss       due=2026-11-05   [外部]
        显示端 120 度到 30 度的映射方式 (看得广但糊 vs 看得清但窄) —— 120 度这个卖点对用户可见吗
+  🟠 ISS-080  verified  owner=sw-lead    due=2026-11-05  
+       S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项
+  🟠 ISS-082  fixed     owner=main       due=2026-11-05  
+       ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + P
+  🟠 ISS-094  open      owner=main       due=2026-11-05  
+       ★投板前网表要做 pin-centric 重整 (现在 CSV 是『连接清单』模型, KiCad 网表要的是『每引脚一行』)
+  🟠 ISS-096  fixed     owner=main       due=2026-11-05  
+       ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位
+  🟠 ISS-097  fixed     owner=main       due=2026-11-05  
+       ★"关机"语义: 硬件断电通路 (负载开关) + 真关机拓扑 + 功耗预算 V3
+  🟠 ISS-098  fixed     owner=main       due=2026-11-05  
+       ★SoC 侧没有 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失, S2 救砖链路成立性未验; 且 CO
+  🟠 ISS-102  open      owner=main       due=2026-11-05  
+       ★[待原厂] 追加问 4 条: AON 域静态电流 / USB VBUS detect 脚 / TPS62130A PG 极性 / 
+  🟠 ISS-106  open      owner=boss       due=2026-11-05   [外部]
+       ★新增渠道: 经酷芯微代理转达 (老板 10-28 找到代理) —— 代理信 + 3 份可转发附件已就绪
   🟠 ISS-112  verified  owner=hw-lead    due=2026-11-05  
        ★BQ25896 封装 footprint 落库 (WQFN RTW 24pin 4×4mm) + 充电板面积重算 (+7mm²)
   🟠 ISS-114  verified  owner=main       due=2026-11-05  
        ★★换芯片选型总单: 国内 TOP10 厂商 × TOP1~5 芯片 × 9 项打分 (老板 10-29 09:59 改令) —— 
   🟠 ISS-108  verified  owner=hw-lead    due=2026-11-12  
        ★备选 SoC 选型: 老板 10-29 00:49 改令 (跳过酷芯微选型) ⇒ 扩到 TOP5 厂家 × TOP3 = 15 候
+  🟠 ISS-120  fixing    owner=sw-lead    due=2026-11-30  
+       ★S2 救砖链路板端实测 (量产一票否决项) —— 方案+自检已闭环 (ISS-080), 待 EVT 有板后真跑 (EVT-8/B
   🟡 ISS-020  closed    owner=main       due=2026-10-28  
        PRD 补完: REQ/REQUIREMENTS.md 还是草稿 (子模块需求待填/验收标准待填)
   🟡 ISS-031  closed    owner=main       due=2026-10-28  
@@ -246,30 +248,14 @@
        接口定义文档不完整 (41 条 claims 是'取值', 不是'接口规格')
   🟡 ISS-034  closed    owner=main       due=2026-10-29  
        外部方管理域缺失 (原厂/JBD/PCB厂 是关键路径, 但没框架)
-  🟡 ISS-043  open      owner=hw-lead    due=2026-10-29  
-       充电状态读取接口未确认 → 充电时禁 OD 门禁可能无法实现
-  🟡 ISS-048  open      owner=jbd        due=2026-10-29   [外部]
-       光生物安全所需的光机参数缺失 (LED 波长/亮度/光通量/辐亮度) —— 已并入 JBD 问询草稿
   🟡 ISS-065  verified  owner=mech-lead  due=2026-10-29  
        结构侧 5 条书面建议的落地评估 (镜腿内发热量口径 / 鼻梁也适用 43°C / 上下分壳后镜腿 35.1-35.3°C / 新容
   🟡 ISS-072  closed    owner=mech-lead  due=2026-10-29  
        新电池容量口径的落地 (厚度映射表加 315/387 两行 + 旧 8.7-11.2mm 作废 + 2.6 散热口径 + 3 重量表
-  🟡 ISS-079  open      owner=hw-lead    due=2026-10-29  
-       情报检索: 采用 ARS45 的 AI 翻译眼镜拆解 + 港交所招股书直链 (封装/走线/供应链/交付)
-  🟡 ISS-086  fixed     owner=main       due=2026-10-29  
-       netlist 收尾: NTC 改数字温度计 (I2C_A 第 4 个从设备) + USB 跨铰链保护件 (ESD/共模扼流/端接)
-  🟡 ISS-092  open      owner=mech-lead  due=2026-10-29  
-       ★镜脚末端检修口 (J_DEBUG/J_UART 够不着 → 排针装上也用不了) 的开孔/盖板方案落到 MECH 尺寸链
   🟡 ISS-093  verified  owner=main       due=2026-10-29  
        ★充电板 (镜框) 的完整原理图页未画全 —— 现在主网表里只有 Type-C + BQ25896 的子集
-  🟡 ISS-095  open      owner=main       due=2026-10-29  
-       ★[待 TI 确认] BQ25896 的 VSYS 脚是否必须接 —— 决定'电池挪镜框'回退分支要不要多两根电源 pin
-  🟡 ISS-103  open      owner=mech-lead  due=2026-10-29  
-       ★镜框开导光孔/导光柱 (充电灯装充电板靠 Type-C 座, 老板拍板关机时充电灯要亮)
   🟡 ISS-104  verified  owner=sw-lead    due=2026-10-29  
        ★术语统一: 关机(真断电) / 待机(深度休眠 0.15W, ~9.3h) —— SW 侧 API 与省电策略语义要跟上
-  🟡 ISS-105  open      owner=hw-lead    due=2026-10-29  
-       ★更正 hw-lead 分片过期值 (pcb_outline 仍 50×12 / chg_input_limit 仍 1.07-1.
   🟡 ISS-117  verified  owner=sw-lead    due=2026-10-31  
        ★RKNN_BENCH §3.3.1/§3.3.2 的数字在干净机上复算不出来 (383.26ms vs 实测 354.51ms) 
   🟡 ISS-004  open      owner=jbd        due=2026-11-05   [外部]
@@ -282,8 +268,24 @@
        材料选型与表面耐受缺失 (汗液/化妆品/酒精/UV 全未考虑)
   🟡 ISS-025  open      owner=mech-lead  due=2026-11-05  
        结构 DFM 评审缺失 (P2S 打印件 → 量产开模件的可制造性差异)
+  🟡 ISS-043  open      owner=hw-lead    due=2026-11-05  
+       充电状态读取接口未确认 → 充电时禁 OD 门禁可能无法实现
   🟡 ISS-047  open      owner=mech-lead  due=2026-11-05  
        结构侧需复核: 『对角半角』与『垂直半视场』两个口径混用 (MECH §1.5 那张 ≤40° 的表)
+  🟡 ISS-048  open      owner=jbd        due=2026-11-05   [外部]
+       光生物安全所需的光机参数缺失 (LED 波长/亮度/光通量/辐亮度) —— 已并入 JBD 问询草稿
+  🟡 ISS-079  open      owner=hw-lead    due=2026-11-05  
+       情报检索: 采用 ARS45 的 AI 翻译眼镜拆解 + 港交所招股书直链 (封装/走线/供应链/交付)
+  🟡 ISS-086  fixed     owner=main       due=2026-11-05  
+       netlist 收尾: NTC 改数字温度计 (I2C_A 第 4 个从设备) + USB 跨铰链保护件 (ESD/共模扼流/端接)
+  🟡 ISS-092  fixing    owner=mech-lead  due=2026-11-05  
+       ★镜脚末端检修口 (J_DEBUG/J_UART 够不着 → 排针装上也用不了) 的开孔/盖板方案落到 MECH 尺寸链
+  🟡 ISS-095  open      owner=main       due=2026-11-05  
+       ★[待 TI 确认] BQ25896 的 VSYS 脚是否必须接 —— 决定'电池挪镜框'回退分支要不要多两根电源 pin
+  🟡 ISS-103  open      owner=mech-lead  due=2026-11-05  
+       ★镜框开导光孔/导光柱 (充电灯装充电板靠 Type-C 座, 老板拍板关机时充电灯要亮)
+  🟡 ISS-105  open      owner=hw-lead    due=2026-11-05  
+       ★更正 hw-lead 分片过期值 (pcb_outline 仍 50×12 / chg_input_limit 仍 1.07-1.
   🟡 ISS-111  open      owner=hw-lead    due=2026-11-05  
        ★[ISS-068 拆出] EVT 可靠性实测项清单 (跌落/振动/弯折/热) —— 文件缺失, 补交
   🟡 ISS-059  closed    owner=mech-lead  due=2026-10-28  
@@ -344,9 +346,9 @@
           - M-CHRG 充电场景皮肤侧温度 (°C)
           - M-OPTIC 光机逐帧延迟 (高速摄影或示波器) (ms)
 
-【G4】体验验收 (DoD 全过)  —  ⏳ 未到   缺 36 项
+【G4】体验验收 (DoD 全过)  —  ⏳ 未到   缺 35 项
       为什么要这一关: 所有问题单关闭 + 质量门全绿 + DoD 清单逐条签
-      ▸ 问题单未闭环 (36):
+      ▸ 问题单未闭环 (35):
           - ISS-004 [open] 波导未选型 (等 JBD) → 卡镜框打印开工
           - ISS-013 [open] 波导未选型 → 缺 2D 外形图/容差角/彩虹纹 → 镜框不能开工
           - ISS-016 [open] 走鹃Ⅱ 长宽高未知 → 光机位姿/干涉检查做不了
@@ -355,7 +357,7 @@
           - ISS-025 [open] 结构 DFM 评审缺失 (P2S 打印件 → 量产开模件的可制造性差异)
           - ISS-038 [open] 【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否
           - ISS-040 [open] 打印与量测条件不具备 (打印机跨网段不可达 + 无切片器/量具) → M-PRI
-          ... 另 28 条
+          ... 另 27 条
 
 ▶ 当前在 **G2 结构样机装配 (打印件 + 电池 + 光机位姿)**, 还差 **7** 项才能进下一关 (G3 上电联调 + 硬指标实测)
 ```
@@ -424,7 +426,7 @@
 ── 项目级终判 ───────────────────────────────────────────────────────
   📄 纸面阶段 (G0 纸面冻结 / G1 原理图 / G2 结构样机准备): ✅ 组织与机制已就绪
      → 判据: 4 个角色机制全绿 + 质量门/问题门/阶段门/推进器可用 + 框架裁剪基线在位
-     → 当前卡点: 老板 10 条决策 + 原厂/JBD 外部; 内部可自行推进 52 条
+     → 当前卡点: 老板 10 条决策 + 原厂/JBD 外部; 内部可自行推进 53 条
   🔧 样机阶段 (G3 上电联调 + 硬指标实测): ❌ 不就绪
      → 实测 0/10 项 | 无板 / 无打印环境 / 无示波器高速相机 / 无独立验证方
      → 阶段门判: ▶ 当前在 **G2 结构样机装配 (打印件 + 电池 + 光机位姿)**, 还差 **7** 项才能进下一关 (G3 上电联调 + 硬指标实测)
@@ -468,27 +470,17 @@
 | ISS-074 | main | 2026-10-29 | ★开始画硬件原理图 V1 (8 页图页 + 完整 netlist + KiCad 可导入 .net) —— 球位号统一用 TBD 占位, 原厂回信后只填球号 |
 | ISS-119 | main | 2026-10-31 | ★★换芯定案 + 迁移方案 (A7/A8): 选哪颗 + 网表/原理图/BOM 重做清单 + 为 RK3588 预留的可执行后手 |
 | ISS-013 | jbd | 2026-11-05 | 波导未选型 → 缺 2D 外形图/容差角/彩虹纹 → 镜框不能开工 |
-| ISS-038 | boss | 2026-10-29 | 【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否加第 4 个总工 |
-| ISS-049 | hw-lead | 2026-10-29 | PCB 定位方式变更 + 骨架长度上限 (来自 ISS-042 解 A) —— 需 hw-lead 改孔位 |
 | ISS-062 | hw-lead | 2026-10-29 | R-GEO-2 四问转原厂/镜头厂 (边缘畸变区是检测价值最高处 / 4-lane MIPI / ISP 吞吐余量 98.1% / scaler 能否填黑边) |
 | ISS-067 | hw-lead | 2026-10-29 | R-F1 3.3V 轨拓扑裁决落地 (UVP 抬 3.5V + 3.3V 改供 + 评估不牺牲容量的替代方案) |
 | ISS-068 | hw-lead | 2026-10-29 | 可靠性证据缺口收口 (15/15 器件 Absolute Maximum Ratings 逐个核 + 实测项挂样机 + FIT 数据来源) |
-| ISS-080 | sw-lead | 2026-10-29 | S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项 |
-| ISS-082 | main | 2026-10-29 | ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + PGOOD 链式 RESET) → 把 TBD-02 从 blocker 降级 |
 | ISS-085 | mech-lead | 2026-10-29 | ★USB 跨铰链方案落地 (Type-C 留镜框充电板 + USB 差分跨铰链到镜脚主 PCB) + 跨铰链 USB 可靠性要求 + 连接器 pin/型号/pitch 结构复核 |
 | ISS-087 | sw-lead | 2026-10-29 | 模型许可未清 (L1 许可[0数据] + L4 AGPL-3.0 商用受限) + ARS45 板端模型 0 个 → 量产评审放行门禁 |
 | ISS-089 | mech-lead | 2026-10-29 | ★硬件交叉评审 (机械/热/装配) —— 以 V1.1 的 9 页为输入, 挑出会打回来重画的点 |
 | ISS-090 | sw-lead | 2026-10-29 | ★软件侧交叉评审 (时序/信号/电源时序) + TMP117 测点物理位置 + 跨铰链 USB 烧录可行性 |
 | ISS-091 | mech-lead | 2026-10-29 | ★跨铰链充电电流 1.0-1.5A 的载流/压降/发热核算 + J_CHG (1×10) 机械可行性 (MECH-B7 的后续) |
-| ISS-094 | main | 2026-10-29 | ★投板前网表要做 pin-centric 重整 (现在 CSV 是『连接清单』模型, KiCad 网表要的是『每引脚一行』) |
-| ISS-096 | main | 2026-10-29 | ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位, 9 颗供电器件的 EN/SS 与监督器 CT 脚在网表里根本没有 |
-| ISS-097 | main | 2026-10-29 | ★"关机"语义: 硬件断电通路 (负载开关) + 真关机拓扑 + 功耗预算 V3 |
-| ISS-098 | main | 2026-10-29 | ★SoC 侧没有 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失, S2 救砖链路成立性未验; 且 CONN_USB 只有 1 个 GND pin (违反 ISS-085 自定规则) |
 | ISS-099 | hw-lead | 2026-10-29 | ★J_CHG 选型与 FPC 加工图要求 (触点额定 ≥0.35A / 分段铜厚 固定段2oz·弯折段1oz / 内层地 keep-out / pin10 改 NTC 专用回流) |
 | ISS-100 | mech-lead | 2026-10-29 | ★板宽 12mm → 15mm 的结构侧连带 (镜脚腔体/骨架长度/PCB 定位孔位/面积缺口 300mm² 复核) |
 | ISS-101 | sw-lead | 2026-10-29 | ★模型许可: 唯一许可干净候选 (Apache-2.0) 的 NPU 可转换性 = 0 数据 → 量产可用模型清单为空 |
-| ISS-102 | main | 2026-10-29 | ★[待原厂] 追加问 4 条: AON 域静态电流 / USB VBUS detect 脚 / TPS62130A PG 极性 / BQ25896 VSYS 是否必接 |
-| ISS-106 | boss | 2026-10-29 | ★新增渠道: 经酷芯微代理转达 (老板 10-28 找到代理) —— 代理信 + 3 份可转发附件已就绪 |
 | ISS-107 | mech-lead | 2026-10-29 | ★更正 mech-lead 分片 pcb_mounting 旧取值 (2xM1.2+1x⌀2.0H7 → PIN-SET-2: 2x⌀2.0H7+2x⌀1.4) —— 合并器长期报冲突 |
 | ISS-110 | sw-lead | 2026-10-29 | ★RKNN 转换链实测 (RK3576 资料维度实测 + 端到端 ≤60ms 判定) —— 已交付并验收 |
 | ISS-052 | mech-lead | 2026-10-30 | 结构侧: 镜头镜筒/窗口/高度需求 (可不等镜头定档就开模) + 俯角收窄到 ≤25-28° |
@@ -496,10 +488,21 @@
 | ISS-116 | main | 2026-10-30 | ★★工作方式改造: 老板任务先落 GitHub 总表 + token 守护 (老板 10-29 09:59 亲自要求) |
 | ISS-115 | hw-lead | 2026-10-31 | ★选型情报检索: TOP10 国内厂商名单 + 每家 TOP1~5 候选 + 逐项证据 (只交证据, 不打分) |
 | ISS-118 | hw-lead | 2026-10-31 | ★板宽 15mm → 30mm 的硬件连带重算 (板框/网表/面积/逃线/跨铰链排布) —— 老板 10-29 19:16 放宽 |
+| ISS-038 | boss | 2026-11-05 | 【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否加第 4 个总工 |
 | ISS-040 | boss | 2026-11-05 | 打印与量测条件不具备 (打印机跨网段不可达 + 无切片器/量具) → M-PRINT 卡死 |
 | ISS-041 | boss | 2026-11-05 | 测试设备/工装缺失 (无设备 G3 那一关不可判通过) |
+| ISS-049 | hw-lead | 2026-11-05 | PCB 定位方式变更 + 骨架长度上限 (来自 ISS-042 解 A) —— 需 hw-lead 改孔位 |
 | ISS-060 | boss | 2026-11-05 | 产品件三条几何待老板裁决 (压垫吸收量零余量 / 非对称方向 / 压垫槽区板厚小于 FDM 最小壁) —— 打印包转绿不等于解 A 收口 |
 | ISS-063 | boss | 2026-11-05 | 显示端 120 度到 30 度的映射方式 (看得广但糊 vs 看得清但窄) —— 120 度这个卖点对用户可见吗 |
+| ISS-080 | sw-lead | 2026-11-05 | S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项 |
+| ISS-082 | main | 2026-11-05 | ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + PGOOD 链式 RESET) → 把 TBD-02 从 blocker 降级 |
+| ISS-094 | main | 2026-11-05 | ★投板前网表要做 pin-centric 重整 (现在 CSV 是『连接清单』模型, KiCad 网表要的是『每引脚一行』) |
+| ISS-096 | main | 2026-11-05 | ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位, 9 颗供电器件的 EN/SS 与监督器 CT 脚在网表里根本没有 |
+| ISS-097 | main | 2026-11-05 | ★"关机"语义: 硬件断电通路 (负载开关) + 真关机拓扑 + 功耗预算 V3 |
+| ISS-098 | main | 2026-11-05 | ★SoC 侧没有 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失, S2 救砖链路成立性未验; 且 CONN_USB 只有 1 个 GND pin (违反 ISS-085 自定规则) |
+| ISS-102 | main | 2026-11-05 | ★[待原厂] 追加问 4 条: AON 域静态电流 / USB VBUS detect 脚 / TPS62130A PG 极性 / BQ25896 VSYS 是否必接 |
+| ISS-106 | boss | 2026-11-05 | ★新增渠道: 经酷芯微代理转达 (老板 10-28 找到代理) —— 代理信 + 3 份可转发附件已就绪 |
 | ISS-112 | hw-lead | 2026-11-05 | ★BQ25896 封装 footprint 落库 (WQFN RTW 24pin 4×4mm) + 充电板面积重算 (+7mm²) |
 | ISS-114 | main | 2026-11-05 | ★★换芯片选型总单: 国内 TOP10 厂商 × TOP1~5 芯片 × 9 项打分 (老板 10-29 09:59 改令) —— 正式弃用酷芯微 |
 | ISS-108 | hw-lead | 2026-11-12 | ★备选 SoC 选型: 老板 10-29 00:49 改令 (跳过酷芯微选型) ⇒ 扩到 TOP5 厂家 × TOP3 = 15 候选, 已交付 |
+| ISS-120 | sw-lead | 2026-11-30 | ★S2 救砖链路板端实测 (量产一票否决项) —— 方案+自检已闭环 (ISS-080), 待 EVT 有板后真跑 (EVT-8/BR-01) |
