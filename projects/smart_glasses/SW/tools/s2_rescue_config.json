@@ -1,0 +1,197 @@
+{
+  "_readme": [
+    "ARS45 S2 救砖链路 —— ★板端实跑配置 (live config, ISS-120)。",
+    "配套: SW/S2_BOARD_TEST_CHECKLIST.md (执行清单) + SW/S2_VENDOR_QUESTION_LIST.md (原厂问询) + SW/tools/s2_board_run.sh (一条命令跑测)。",
+    "★ 本文件是『板端实跑时真正被脚本读的那一份』。SW/tools/s2_rescue_config.example.json 是 ISS-080 留的模板 (含通用示例签名), 只用于 PC 侧 L0/L1 先验。",
+    "",
+    "★★ 三条铁律 (沿用 ISS-080 口径):",
+    "  1) params 里 P1..P4 是原厂 4 个 [0数据] 项 —— 原厂书面回复前一律 value=null / status=TODO。",
+    "  2) ★ usb_signatures.entries 故意留 **空** —— example 文件里那 3 条 TI/STM32/Linux gadget 是**通用示例, 不是本项目真值**;",
+    "     本文件留空 ⇒ 板端探针在拿到原厂 VID:PID 前只会判 NOT_IDENTIFIED (判不出就判不出, 不许猜)。",
+    "  3) partition_layout 仍是 [推算] 占位 —— 真实分区表必须由原厂参考设计替换 (P4)。占位值 PASS 了也不等于 P4 已填。",
+    "",
+    "★ 填表来源: SW/S2_VENDOR_QUESTION_LIST.md 每条都写了『拿到后填进本文件哪个字段』+ 回填自检命令。",
+    "★ 回填后必须跑: python3 SW/tools/s2_board_run.sh --preflight --config SW/tools/s2_rescue_config.json  (期望 rc=0)"
+  ],
+
+  "params": {
+    "P1_BOOT_ENTER_SPEC": {
+      "value": null,
+      "status": "TODO",
+      "owner": "vendor (经项目总工) + hw-lead",
+      "need_key": "fw_boot_entry_cond / fw_boot_mode_hw",
+      "desc": "进入 BOOT/下载模式的硬件条件: BOOT 引脚电平 + 是否需按键组合 + 时序 (t1..t4)",
+      "fill_hint": "原厂回复 → 填本字段 value (字符串摘要) + 同时填 boot_enter 段 (method/boot_pin_level/keys/t*) + status 改 DONE + source 写 'vendor-official'"
+    },
+    "P2_DL_TOOL": {
+      "value": null,
+      "status": "TODO",
+      "owner": "vendor (经项目总工)",
+      "need_key": "fw_vendor_toolchain",
+      "desc": "原厂下载工具: 名称/版本/支持平台/刷写命令/分区表导入方式",
+      "fill_hint": "原厂回复 → 填本字段 value + 同时填 board_test.flash.cmd (argv 数组) + board_test.tools[].version_cmd + status 改 DONE"
+    },
+    "P3_USB_PHY": {
+      "value": null,
+      "status": "TODO",
+      "owner": "vendor (经项目总工)",
+      "need_key": "fw_usb_boot_phy",
+      "desc": "ARS45 有无 USB Device PHY + 有无 fastboot/DFU/UF2 + BOOT 态枚举特征 (VID:PID)",
+      "fill_hint": "原厂回复 → 填本字段 value + 同时填 usb_signatures.entries (每条 source='vendor-official', label 写清是 Maskrom 还是 Loader) + status 改 DONE"
+    },
+    "P4_BOOT_STORE": {
+      "value": null,
+      "status": "TODO",
+      "owner": "vendor (经项目总工) + hw-lead",
+      "need_key": "fw_vendor_toolchain / fw_boot_storage_bom",
+      "desc": "启动存储类型/容量/官方分区表参考设计 (决定 partition_layout 是否成立)",
+      "fill_hint": "原厂回复 → 填本字段 value + 同时替换 partition_layout (device_total_size / partitions / crc_slots) + status 改 DONE"
+    }
+  },
+
+  "boot_enter": {
+    "_readme": "P1 落地后填这里。t* 全部单位 ms。method: A=BOOT引脚+RESET按键 / B=按键组合 / C=测试点跳线",
+    "method": null,
+    "boot_pin_name": "BOOT",
+    "boot_pin_level": null,
+    "keys": [],
+    "t0_hold_boot_ms": null,
+    "t1_reset_pulse_ms": null,
+    "t2_release_all_ms": null,
+    "t3_enum_timeout_s": 15
+  },
+
+  "usb_signatures": {
+    "_readme": [
+      "★ 本板端配置故意留空 entries —— example 文件里那 3 条标 source=generic-example 的是**别的平台**的通用示例。",
+      "原厂给出 ARS45/RK3588 实际 BOOT 态 VID:PID 后, 每条写成 {vid, pid, label, source:'vendor-official'}。",
+      "source 只允许 vendor-official (原厂书面) / measured (协议分析仪抓包) —— 不许出现 generic-example。"
+    ],
+    "entries": []
+  },
+
+  "partition_layout": {
+    "_readme": [
+      "★★★ [推算] 占位分区表 —— 不是本项目真值! 真实值待 P4 (原厂参考设计) 替换。",
+      "容量算术 (可用 flash_layout_check.py 复核): 本占位按 128MB SPI-NOR 假设,",
+      "  bootloader 1 + kernel 8 + rootfs 30 + app 8x2 + model 15x2 + isp 1 = 90MB, 128MB 装得下;",
+      "  ★ 若硬件只给 64MB SPI-NOR → **装不下** (LAY-03/04 FAIL) ⇒ 启动存储容量下限 = 128MB。",
+      "★ 板端跑测脚本对本段的要求: P4 未填 (status != DONE) 时, CB-06/CB-02 一律判『不可执行』而不是『通过』 —— 禁止用占位表冒充实测。"
+    ],
+    "source": "placeholder-推算",
+    "device_total_size": 134217728,
+    "align": 4096,
+    "erase_block": 4096,
+    "active_slot": "a",
+    "crc_slots": ["bootloader", "kernel", "rootfs", "app", "model", "isp"],
+    "partitions": [
+      {"name": "bootloader",    "size": 1048576,  "file": "bootloader.bin",      "crc_slot": 0, "slot": null},
+      {"name": "kernel",        "size": 8388608,  "file": "kernel.bin",          "crc_slot": 1, "slot": null},
+      {"name": "rootfs",        "size": 31457280, "file": "rootfs.squashfs",     "crc_slot": 2, "slot": null},
+      {"name": "app_a",         "size": 8388608,  "file": "app_a.bin",           "crc_slot": 3, "slot": "a"},
+      {"name": "app_b",         "size": 8388608,  "file": "app_b.bin",           "crc_slot": 3, "slot": "b"},
+      {"name": "model_a",       "size": 15728640, "file": "model_a.bin",         "crc_slot": 4, "slot": "a"},
+      {"name": "model_b",       "size": 15728640, "file": "model_b.bin",         "crc_slot": 4, "slot": "b"},
+      {"name": "isp",           "size": 1048576,  "file": "isp.bin",            "crc_slot": 5, "slot": null},
+      {"name": "version_block", "size": 32768,    "file": null,                 "crc_slot": null, "slot": null}
+    ]
+  },
+
+  "version_meta": {
+    "_readme": "版本块字段 (§3.2)。version 串格式见 §3.1.3。★ 板端跑测时下面的 sn/calib_id 必须替换成被测板真实值。",
+    "version": null,
+    "sn": null,
+    "calib_id": null,
+    "tool_ver": null,
+    "mode": "prod",
+    "build_time": 0
+  },
+
+  "board_test": {
+    "_readme": [
+      "★★ 板端跑测段 (ISS-120 新增) —— 全部 null = 还没到位, 脚本会明确报『不可执行』而不是假装通过。",
+      "字段说明见 SW/S2_BOARD_TEST_CHECKLIST.md §2 (工位准备表)。"
+    ],
+
+    "board_sn": null,
+    "operator": null,
+    "evidence_dir": "SW/artifacts/s2",
+
+    "serial": {
+      "_readme": "板端串口 (取日志用)。device 常见 /dev/ttyUSB0 (USB-TTL) 或 /dev/ttyACM0 (CDC-ACM)。",
+      "device": null,
+      "baud": 115200,
+      "capture_seconds": 20
+    },
+
+    "detect": {
+      "_readme": [
+        "BOOT 态识别 (E1)。★ 优先用 P2 决定的原厂工具自己的列设备命令 (它的输出本身就是 E1 证据, 最硬);",
+        "list_cmd 填了才用, 否则回落到 boot_rescue_probe.py (依赖 usb_signatures.entries, 未填则判不出)。",
+        "★ 两个都没有 ⇒ CB-01/BR-05 判『不可执行』, 不许用日志关键字单独顶替 (探针对此返回 rc=1)。"
+      ],
+      "list_cmd": null,
+      "boot_markers": ["Maskrom", "Loader", "maskrom", "loader", "download", "fastboot", "dfu"]
+    },
+
+    "flash": {
+      "_readme": [
+        "★ 全量刷写命令 (argv 数组, 不走 shell 字符串 ⇒ 无引号/注入歧义)。由 P2 决定。",
+        "★ 刷写前脚本会先自动备份当前分区表 (若工具支持读回)。cmd 未填 ⇒ BR-06 判『不可执行』。"
+      ],
+      "cmd": null,
+      "backup_cmd": null
+    },
+
+    "verify": {
+      "_readme": [
+        "★ 回读校验通道 (argv 数组): 读回整个 flash 到本地文件 → 再用 flash_writer.py verify 判 CB-02/CB-06/CB-07。",
+        "★ readback_cmd 未填 或 P4 未填 ⇒ CB-02/CB-06 判『不可执行』(不许拿 [推算] 占位表判过)。"
+      ],
+      "readback_cmd": null,
+      "readback_target": null
+    },
+
+    "selftest": {
+      "_readme": [
+        "★ 板端自检 6 项 (CB-04) 的具体命令。键名固定: ddr / sensor / i2c / npu / od / version。",
+        "★ 命令未填 ⇒ 对应项判『未验 [0数据]』, 不许跳过 (BR-01 最高只能判 ⚠️未验)。",
+        "★ model_path 用于 CB-03 的 model sha8 比对 (需板上有 sha256sum)。"
+      ],
+      "ddr": null,
+      "sensor": null,
+      "i2c": null,
+      "npu": null,
+      "od": null,
+      "version": null,
+      "model_path": null,
+      "version_file": "/etc/version"
+    },
+
+    "reboot": {
+      "_readme": "CB-05 重启 3 次。cmd 填 adb reboot 之类 (argv); wait_cmd 填等待系统起来的命令。",
+      "cmd": ["adb", "reboot"],
+      "wait_cmd": null,
+      "timeout_s": 120
+    },
+
+    "checks": {
+      "_readme": [
+        "★ CB-07 标定台账比对基准 (工厂标定台账里该 SN 的标定 ID)。未建台账 ⇒ CB-07 判『未验』。",
+        "★ CB-08 mode=prod 时插线 adb 设备应为空 —— 脚本用 adb devices 自动核。"
+      ],
+      "calib_ledger": null
+    },
+
+    "tools": {
+      "_readme": "★ 取证用的工具版本 (失败现场必采)。argv 数组; 未找到该命令 ⇒ 记『工具缺失 [0数据]』, 不许编版本号。",
+      "entries": [
+        {"name": "adb",         "version_cmd": ["adb", "version"]},
+        {"name": "fastboot",    "version_cmd": ["fastboot", "--version"]},
+        {"name": "dfu-util",    "version_cmd": ["dfu-util", "--version"]},
+        {"name": "rkdeveloptool", "version_cmd": ["rkdeveloptool", "--version"]},
+        {"name": "RKDevTool",   "version_cmd": null}
+      ]
+    }
+  }
+}

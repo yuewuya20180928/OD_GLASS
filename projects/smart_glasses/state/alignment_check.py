@@ -50,7 +50,12 @@ def main() -> int:
 
     # ── 1. 总表 §2 执行中 == 台账 fixing ──
     sec2 = section(tb, "## §2", "## §3")
-    tb_running = set(re.findall(r"ISS-\d+", sec2))
+    # ★只取表格第一列 (描述文字里出现的 ISS-xxx 不是"在跑"; 10-30 00:2x 误报过一次)
+    tb_running = set()
+    for ln in sec2.split("\n"):
+        m = re.match(r"^\|\s*(ISS-\d+)\s*\|", ln)
+        if m:
+            tb_running.add(m.group(1))
     log_running = {it.get("id") for it in items if it.get("status") == "fixing"}
     info["总表§2"] = sorted(tb_running)
     info["台账 fixing"] = sorted(log_running)
