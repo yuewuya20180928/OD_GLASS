@@ -2911,7 +2911,7 @@ issues:
   reporter: mech-lead
   raised: '2026-10-27'
   due: '2026-11-05'
-  status: fixed
+  status: verified
   external: false
   need_keys: []
   task_brief: '镜脚末端**检修口**方案落到 MECH 尺寸链 (ISS-085 的结论: J_DEBUG/J_UART 位置不冲突但**够不着** → 镜脚封闭 = 排针装上也用不了): 要给 ①开孔位置与尺寸 (外侧或下方,
@@ -2927,11 +2927,7 @@ issues:
     条: mech_service_port_face / _opening_mm / _cover_mm / _cavity_mm / _clearance_mm / _weight_g / _ip / _fixture_depth_mm
     / _fixture_datum + mech_j_debug_conn; needs_from 新增 7 条 (iss092_* 经项目总工); risks 新增 4 条)'
   verify_by: main
-  verify_result: '2026-10-30 00:4x 项目总工独立复核 (三件套全查): ① 交接单 HANDOFF/2026-10-30_mech-lead_ISS092_镜脚末端检修口.md (20.9KB, **B1-B6
-    六块齐全**) ② 自证脚本 `python3 MECH/service_port_check.py` → **rc=0, 54/54 项一致, FAIL 0** (口径提醒: 全为设计态几何+公差栈 [推算], 实物 [实测]=0)
-    ③ 主文档 MECH/SERVICE_PORT_ISS092.md (38.2KB, 尺寸表 C-1~C-15) 在盘 ④ 关键数字我逐条对上: 开口 10.20×4.60 / 盖板 13.20×7.60×1.20 / 内腔 4.90
-    ≥4.50 / 三条锁死尺寸链 Δ=0.00 / 重量 +0.364g·侧 / 与电芯间距 49.21mm 与铰链 74.71mm —— 与正文一致 ⑤ ★本单 4 条 PM 裁决点 (I-2 形态+重量 / I-3 装前压针 / I-4
-    IP 措辞 / I-7 打印包排批) 已由项目总工裁完并写进 DECISIONS.md ⇒ 判定 pass (设计态; 实物实测仍 0, 随打印包 B2 批验证)'
+  verify_result: pass
   verify_date: '2026-10-30'
   note: '2026-10-27 09:0x 项目总工从 ISS-085 交卷里拆出来单列
 
@@ -3025,7 +3021,11 @@ issues:
     【诚实边界】实物 [实测] = **0 条** (0 件打印 / 0 台样机 / 0 个实测温度/IP/磁力)。**6 项 [0数据]**: ① 镜脚末端 V 净高 (未定义 ⇒ 本文给的是要求 S-2 不是断言, 很可能被这条打回)
     ② J_DEBUG 座体型号与焊盘尺寸 ③ 磁铁拉脱力/牌号 ④ MEMS 麦克风磁场敏感度 (本单**新发现**的风险) ⑤ 自攻螺钉扭矩与塑料螺纹寿命 ⑥ IP 实测 (原型 FDM 本就不可测)。**本单未拍板**: 形态 (外侧面
     vs 下方) / 是否接受 +0.73 g / 采不采纳''装前压针'' / 规格书写不写 IPx4 —— 这 4 条裁决点与 3 条硬件请求 (I-1~I-7) 全部登记 needs 经项目总工转达, **未直接联系任何总工或供应商**,
-    未改 HW/ 与 PROJECT_TRACKER.md 与 DECISIONS.md, 未碰 MECH/print/ 与任何 STL。'
+    未改 HW/ 与 PROJECT_TRACKER.md 与 DECISIONS.md, 未碰 MECH/print/ 与任何 STL。
+
+
+    ★2026-10-30 00:3x 重置: 子 agent 的自推脚本在项目总工验收后又把本条推回 fixed ⇒ 按『状态只能前进』重置为 verified。★**这条已暴露一个机制缺陷: 子 agent 交卷自推 fixed 会覆盖项目总工的验收结果
+    ⇒ 已在派活模板里加『若项目总工已置 verified, 不得回退』。**'
   dispatched_at: '2026-10-30'
 - id: ISS-093
   title: ★充电板 (镜框) 的完整原理图页未画全 —— 现在主网表里只有 Type-C + BQ25896 的子集

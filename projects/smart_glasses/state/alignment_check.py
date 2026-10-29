@@ -133,11 +133,15 @@ def main() -> int:
             if any(_fn.fnmatch(f, pat) for pat in EXCL_PAT):
                 continue
             local.add("projects/smart_glasses/" + os.path.relpath(os.path.join(root, f), PROJ))
-    missing = sorted(x for x in local if x not in remote)
-    info["GitHub 文件数"] = len(remote)
-    info["本地未推"] = missing
-    if missing:
-        problems.append(f"本地有 {len(missing)} 个文件还没上 GitHub: {missing[:6]}")
+    if not remote:
+        problems.append("GitHub 树查询失败/被限流 (API) ⇒ 本轮不判『未推』, 下一轮再核")
+        info["GitHub 文件数"] = "查询失败(限流?)"
+    else:
+        missing = sorted(x for x in local if x not in remote)
+        info["GitHub 文件数"] = len(remote)
+        info["本地未推"] = missing
+        if missing:
+            problems.append(f"本地有 {len(missing)} 个文件还没上 GitHub: {missing[:6]}")
 
     # ── 7. 台账里 fixing 的有没有对应交接单/产出 ──
     import datetime as _dt
