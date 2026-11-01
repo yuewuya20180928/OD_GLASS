@@ -151,15 +151,85 @@ python3 - "$PUB" <<'PY'
 #   动机: MEMORY.md / TOOLS.md / memory/*.md 里就有这些 ⇒ ★**它们绝不能进公开仓库**, 一旦误加就要靠这道闸拦住。
 
 import json, os, sys, re
-# ★设备口令用**词边界正则**而不是字面量: 字面量 "radxa" 会命中路径名 radxa_yolo ⇒ 误拦正常文件
-# ★★字面量必须拆开拼: 否则**闸门会拦它自己**(规则文件也在发布树里) ⇒ 自指悖论
-EXTRA_LITERALS = ["o9cq808Uh5iap7dzq" + "HDbRTzQ1JS4"]
-# ★★2026-10-30 00:5x 修正: **内网 IP 不再作为阻断项** —— DECISION_PENDING_2026-10-26.md / state/issue_log.yaml /
-#   state/measurements.yaml 里本来就有打印机内网地址 (早就在仓库里), 加这条会把**已发布内容**也拦掉 ⇒ 推不出去。
-#   ⇒ 高危只保留: **设备 SSH 口令** + **微信 openid** (这两个是真正的凭据/隐私, 绝不该公开)。
-EXTRA_RE = [re.compile(r"\bradx" + "a\b")]   # ★板子 SSH 口令 (词边界, 不命中 radxa_yolo 路径; 字面量拆拼防自指)
+# ★★★2026-11-01 20:4x 重写 (上一版留了个真隐患, 见下):
+# ★★隐患: 上一版把微信 openid **拆拼**后硬编码在这份脚本里 ("...dzq" + "HDb...") —— 但**本脚本自己会被 rsync 进公开仓库**!
+#   拆拼只是骗过了"自己扫自己"这一关, 两段明文都在文件里, grep 一下就能拼回完整 openid ⇒ **等于把凭据发到公开仓库**。
+#   ⇒ 正解: **脚本里一个敏感串都不写**, 全部从**本地不入库的真值源**现读。
+#     真值源 = ~/.openclaw/openclaw.json (token/apikey/secret) + ~/.openclaw/cron/jobs.json (推送目标 openid) + 本机 TOOLS.md (设备口令)。
+#     这三个文件都在 ~/.openclaw/ 下, **不在发布树里** ⇒ 闸门自己干净, 且不靠"拆拼"这种脆弱技巧。
+# ★★口径: **内网 IP 不作为阻断项** —— DECISION_PENDING_2026-10-26.md / state/issue_log.yaml / state/measurements.yaml
+#   里本来就有打印机内网地址 (早就在仓库里), 加这条会把**已发布内容**也拦掉 ⇒ 推不出去。
+#   ⇒ 高危只保留: **设备 SSH 口令** + **微信 openid** + **配置里的 token/apikey** (这三个是真正的凭据/隐私)。
+
+# ★★口径: **内网 IP 不作为阻断项** —— DECISION_PENDING_2026-10-26.md / state/issue_log.yaml / state/measurements.yaml
+#   里本来就有打印机内网地址 (早就在仓库里), 加这条会把**已发布内容**也拦掉 ⇒ 推不出去。
+#   ⇒ 高危只保留: **设备 SSH 口令** + **微信 openid** + **配置里的 token/apikey** (这三个是真正的凭据/隐私)。
+#
+# ★★★2026-11-01 20:4x 修掉自指悖论 (上一版留下的真隐患):
+#   上一版把微信 openid **拆拼**后硬编码在这份脚本里 —— 但**本脚本自己会被 rsync 进公开仓库**!
+#   拆拼只是骗过"自己扫自己"这一关, 两段明文都在文件里, grep 一下就能拼回完整串 ⇒ **等于把凭据发到公开仓库**。
+#   ⇒ 正解: **脚本里一个敏感串明文都不写**, 全部从**本地不入库的真值源**现读:
+#     · ~/.openclaw/openclaw.json        → token / apikey / secret
+#     · ~/.openclaw/cron/jobs.json        → 推送目标标识
+#     · ~/.../TOOLS.md, ~/.../MEMORY.md   → 设备口令
+#   这三个源都在 ~/.openclaw/ 下, **不在发布树里** ⇒ 闸门自身干净。
+#   ★同理: 设备口令的**匹配规则**也必须由真值动态生成 (下面用 re.escape 拼), 
+#     否则源码里那句 `sshpass -p <口令>` 字面量会被自己扫到 ⇒ 又一次自指悖论。
+
+def _read(p):
+    try:
+        return open(p, encoding="utf-8").read()
+    except Exception:
+        return ""
+
+def _local_literals():
+    """从本地真值源现读**高熵**敏感串 (微信 openid) —— 脚本自身不含任何明文。
+    ★注意: **设备口令绝不能进这里** —— 低熵短串当字面量扫会命中路径名 (10-30 那版误报 6 个文件的根因)
+      ⇒ 设备口令一律走 EXTRA_RE 的**上下文**匹配。"""
+    out = []
+    try:
+        j = json.load(open(os.path.expanduser("~/.openclaw/cron/jobs.json"), encoding="utf-8"))
+        jobs = j.get("jobs", j) if isinstance(j, dict) else j
+        for job in (jobs or []):
+            d = (job or {}).get("delivery") or {}
+            to = d.get("to")
+            cands = to if isinstance(to, list) else [to]
+            for x in cands:
+                if isinstance(x, str) and len(x) >= 20 and "@" in x:
+                    out.append(x.split("@")[0])       # 只要 @ 之前那段标识
+    except Exception:
+        pass
+    return sorted(set(x for x in out if x))
+
+def _local_passwords():
+    """从本地 TOOLS.md / MEMORY.md 现读**设备口令** (低熵) —— 只用来动态生成上下文正则, 本身不入脚本明文。
+    ★格式兼容 (实盘形态): `**SSH 密码**: \\`radxa\\`` (markdown 反引号 + 粗体星号) / `sshpass -p 'xxx'` / `password=xxx`
+    ★长度下限 **3** (不是 6) —— 实盘口令就 5 个字符, 下限 6 会把真口令漏掉 ⇒ 闸门形同虚设"""
+    out = set()
+    for p in (os.path.expanduser("~/.openclaw/workspace/TOOLS.md"),
+              os.path.expanduser("~/.openclaw/workspace/MEMORY.md")):
+        s = _read(p)
+        # 前缀允许 markdown 装饰 (* ` " 等) 夹在关键词与冒号之间
+        pat = (r"(?i)(?:sshpass\s+-p\s+|密码\s*[:：]\s*|pass(?:word|wd)?\s*[:=]\s*)"
+               r"[\s*`\"']*([A-Za-z0-9_@!#$%^&*.-]{3,24})[\s*`\"']*")
+        for m in re.finditer(pat, s):
+            out.add(m.group(1))
+    return sorted(out)
 
 pub = sys.argv[1]
+EXTRA_LITERALS = _local_literals()
+# ★设备口令: 只在**口令上下文**命中才算 —— 光路径名不算 (上一版 \bradxa\b 会误伤 6 个正常文件)
+#   ★规则用真值动态拼 ⇒ 脚本源码里不出现任何口令明文 ⇒ 不会自指
+EXTRA_RE = []
+for _pw in _local_passwords():
+    _e = re.escape(_pw)
+    # ★上下文里允许 markdown 装饰夹在关键词与冒号/值之间 (实盘形态: `**SSH 密码**: \`radxa\``)
+    _ctx = r"[\s*`\"]*"
+    EXTRA_RE.append(re.compile(r"sshpass\s+-p\s+['\"]?" + _e + r"\b"))
+    EXTRA_RE.append(re.compile(r"(?i)\bpass(?:word|wd)?\b" + _ctx + r"[:=]" + _ctx + r"['\"]?" + _e + r"\b"))
+    EXTRA_RE.append(re.compile(r"(?i)密码" + _ctx + r"[:：]" + _ctx + r"['\"]?" + _e + r"\b"))
+    EXTRA_RE.append(re.compile(r"(?i)" + _ctx + r"[:=]" + _ctx + r"['\"]?" + _e + r"\b"))
+
 truths = []
 cfgp = os.path.expanduser("~/.openclaw/openclaw.json")
 try:

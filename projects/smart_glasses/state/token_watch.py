@@ -21,6 +21,7 @@ import json
 import os
 import sys
 import time
+import datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WS = "/home/yuewuya/.openclaw/workspace"
@@ -100,10 +101,29 @@ def main() -> int:
 
     last_push_age = None
     if os.path.exists(LAST_PUSH):
+        # ★★2026-11-01 20:5x 修一个**真缺陷**: 原实现用 **文件 mtime** 算“距上次推送多久”。
+        #   而 .last_github_push 是**内容为时间戳**的记录文件 —— 任何一次**重写**它 (哪怕只是把
+        #   旧时间戳写回去) 都会刷新 mtime ⇒ **判据在骗自己「刚推过」**。
+        #   ★实测: 2026-11-01 20:52 我把内容改回真实推送时间 (10-30 00:21) 后, token_watch 报
+        #   「距上次 GitHub 推送 4.5 分钟」—— **内容明明是 2 天前, 它却说 4.5 分钟**。
+        #   ⇒ 这条是老板 10-29 定的**最可靠兜底** (限额数值本身未公开), 它骗自己 = 兜底失效。
+        # ⇒ 修法: **读文件内容里的 ISO 时间戳**, 用内容时间算间隔; 内容缺失/解析失败才回退到 mtime。
+        stamp = None
         try:
-            last_push_age = (time.time() - os.stat(LAST_PUSH).st_mtime) / 60.0
-        except OSError:
-            pass
+            raw = open(LAST_PUSH, encoding="utf-8").read().strip()
+            if raw:
+                stamp = datetime.datetime.fromisoformat(raw)
+                if stamp.tzinfo is None:
+                    stamp = stamp.astimezone()
+        except Exception:
+            stamp = None
+        if stamp is not None:
+            last_push_age = (time.time() - stamp.timestamp()) / 60.0
+        else:
+            try:
+                last_push_age = (time.time() - os.stat(LAST_PUSH).st_mtime) / 60.0
+            except OSError:
+                pass
 
     ctx_pct = None
     try:

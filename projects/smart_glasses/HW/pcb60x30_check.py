@@ -243,6 +243,11 @@ def sec2(socs):
             band_1row=round(b1, 3),
             band_2row=round(band(p, 2), 3),
             band_4row=round(band(p, 4), 3),
+            # ★2026-11-01 20:5x 补: sec3 取 esc[soc["name"]]["escape_frame"], 但本字典原本**没有这个 key**
+            #   ⇒ hw-lead 被 token 配额掐死前留下半成品, 脚本跑到 sec3 就 KeyError 崩掉 (10-30 00:45 实测)。
+            #   口径 (从旧基线反推, 保证与 OLD_SOC_ESCAPE=113.0 同源): 逃线框 = 封装外廓 + 两侧各 1 排逃线带
+            #   ⇒ 旧 ARS45: 8×10 + 2×0.8 = 9.6×11.6 = 111.4mm² ≈ 113 (旧 §5.3 口径, 差值是旧文档四舍五入)
+            escape_frame=(round(soc["pkg_w"] + 2 * b1, 2), round(soc["pkg_h"] + 2 * b1, 2)),
             same_row_via_clear=round(clear, 3),
             min_elec_clear_ok=clear >= MIN_ELEC_CLEAR,
             rows_deep=rows_deep,

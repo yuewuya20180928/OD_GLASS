@@ -1,0 +1,102 @@
+{
+  "issue": "ISS-122",
+  "socs": {
+    "RK3576": {
+      "pkg": [
+        17.2,
+        16.1
+      ],
+      "pitch": 0.6,
+      "arr": [
+        28,
+        26
+      ],
+      "n_balls": 698,
+      "rows_deep": 14,
+      "edge_half_space": 6.4,
+      "edge_rows": 13,
+      "via_rows_needed": 7,
+      "model_A": {
+        "sig_layers": 7,
+        "total_layers": 9,
+        "thickness_est_mm": 1.22
+      },
+      "model_B": {
+        "sig_layers": 1,
+        "total_layers": 3,
+        "thickness_est_mm": 0.41,
+        "edge_sufficient": true
+      },
+      "via_clear_same_row": 0.2
+    },
+    "RK3588": {
+      "pkg": [
+        23.0,
+        23.0
+      ],
+      "pitch": 0.65,
+      "arr": [
+        32,
+        34
+      ],
+      "n_balls": 1088,
+      "rows_deep": 17,
+      "edge_half_space": 3.5,
+      "edge_rows": 6,
+      "via_rows_needed": 9,
+      "model_A": {
+        "sig_layers": 9,
+        "total_layers": 11,
+        "thickness_est_mm": 1.49
+      },
+      "model_B": {
+        "sig_layers": 3,
+        "total_layers": 5,
+        "thickness_est_mm": 0.68,
+        "edge_sufficient": false
+      },
+      "via_clear_same_row": 0.25
+    }
+  },
+  "checks": [
+    {
+      "check": "RK3576 模型A 层数",
+      "status": "PASS",
+      "detail": "9 层 (布线 7 + 参考面 2)",
+      "note": "破 4-6 层锁死; ★但这个模型**没算边带**"
+    },
+    {
+      "check": "RK3576 模型B 层数",
+      "status": "PASS",
+      "detail": "3 层 (边带 13 排 够)",
+      "note": "★与模型 A 的 9 层**结论相反** ⇒ 必须 PCB 厂 DFM 报告定案"
+    },
+    {
+      "check": "RK3576 过孔几何前提",
+      "status": "PASS",
+      "detail": "同排过孔净间隙 0.200mm (判据 ≥0.075)",
+      "note": "★这只证明'过孔排得下', **不证明'1 排能接 2 球圈'** ⇒ 那要 DFM 报告"
+    },
+    {
+      "check": "RK3588 模型A 层数",
+      "status": "PASS",
+      "detail": "11 层 (布线 9 + 参考面 2)",
+      "note": "破 4-6 层锁死; ★但这个模型**没算边带**"
+    },
+    {
+      "check": "RK3588 模型B 层数",
+      "status": "PASS",
+      "detail": "5 层 (边带 6 排 不够)",
+      "note": "★与模型 A 的 11 层**结论相反** ⇒ 必须 PCB 厂 DFM 报告定案"
+    },
+    {
+      "check": "RK3588 过孔几何前提",
+      "status": "PASS",
+      "detail": "同排过孔净间隙 0.250mm (判据 ≥0.075)",
+      "note": "★这只证明'过孔排得下', **不证明'1 排能接 2 球圈'** ⇒ 那要 DFM 报告"
+    }
+  ],
+  "warn": 0,
+  "fail": 0,
+  "total": 6
+}

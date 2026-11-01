@@ -1,0 +1,846 @@
+{
+  "issue": "ISS-118",
+  "board": {
+    "L": 60.0,
+    "W_old": 15.0,
+    "W_new": 30.0,
+    "area_new": 1800.0
+  },
+  "sec1_frame_weight_cavity": {
+    "60x15 (旧)": {
+      "area": 900.0,
+      "weight_6l_g": 1.665,
+      "weight_4l_g": 1.332,
+      "v_pcb": 21.0,
+      "v_cell": 29.5,
+      "v_need": 29.5,
+      "v_margin": 8.5,
+      "v_margin_worst": 7.9,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "max_board_len": 74.5
+    },
+    "60x30 (新)": {
+      "area": 1800.0,
+      "weight_6l_g": 3.33,
+      "weight_4l_g": 2.664,
+      "v_pcb": 36.0,
+      "v_cell": 29.5,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_margin_worst": 1.4,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "max_board_len": 74.5
+    }
+  },
+  "sec2_escape": {
+    "RK3588": {
+      "band_1row": 0.875,
+      "band_2row": 1.325,
+      "band_4row": 2.225,
+      "escape_frame": [
+        24.75,
+        24.75
+      ],
+      "same_row_via_clear": 0.25,
+      "min_elec_clear_ok": true,
+      "rows_deep": 17,
+      "signal_layers_needed": 9,
+      "total_layers_needed": 11,
+      "fits_4_6_layer": false,
+      "edge_half_space": 3.5,
+      "rows_escapable_in_edge": 6,
+      "edge_band_for_that": 3.125
+    },
+    "RK3576": {
+      "band_1row": 0.85,
+      "band_2row": 1.3,
+      "band_4row": 2.2,
+      "escape_frame": [
+        18.9,
+        17.8
+      ],
+      "same_row_via_clear": 0.2,
+      "min_elec_clear_ok": true,
+      "rows_deep": 14,
+      "signal_layers_needed": 7,
+      "total_layers_needed": 9,
+      "fits_4_6_layer": false,
+      "edge_half_space": 6.4,
+      "rows_escapable_in_edge": 13,
+      "edge_band_for_that": 6.25
+    }
+  },
+  "sec3_area": {
+    "RK3588": {
+      "soc_escape_frame": 612.6,
+      "device_land": 1041.5,
+      "land_total": 1654.1,
+      "board_area": 1800.0,
+      "raw_spare": 145.9,
+      "need_2side": 2297.3,
+      "need_1side": 2756.8,
+      "need_optimistic": 2120.6,
+      "verdict_2side": "❌ 缺 497.3mm²",
+      "verdict_1side": "❌ 缺 956.8mm²",
+      "verdict_optimistic": "❌ 缺 320.59294871795mm²",
+      "land_fraction": 0.919,
+      "need_len_at_w30": 76.6,
+      "need_len_at_w30_optimistic": 70.7,
+      "max_board_len": 74.5,
+      "items": [
+        [
+          "netlist 已画器件 (旧 146 器件口径, 换芯后待重画)",
+          246.0,
+          "[推算] 旧 §5.3; ★SoC 侧 157 行 TBD 待重画 (ISS-119), 此处保留旧值"
+        ],
+        [
+          "未画入必需件 (旧口径: DCDC/LDO/PD/晶振/ESD/去耦/连接器/存储/桥接)",
+          296.0,
+          "[推算] 旧 §5.3"
+        ],
+        [
+          "SoC 封装 + 逃线框 (换新封装)",
+          612.6,
+          "[官方] 23.0×23.0 @p=0.65 + 单排逃线带 0.88mm/边 ⇒ 24.75×24.75 = 612.6mm² (旧 113mm²)"
+        ],
+        [
+          "删 U_BRIDGE (QFN6×6 + AC 耦合 + 串阻)",
+          -52.0,
+          "RK3588/RK3576 原生 MIPI-DSI TX ⇒ 不做桥接 (CHIP_SELECTION_DECISION §5)"
+        ],
+        [
+          "外挂 LPDDR4 2 片 (200-ball FBGA 10.0×14.5)",
+          290.0,
+          "[官方] Micron/Alliance 200-ball TFBGA 10×14.5mm = 145mm²/片; 64-bit (Quad-channel x16bit) ⇒ 2× 32-bit 器件 (4× x16 则 580mm², 更差). ★**换芯打破 §0 锁死 #5 'DDR 512MB, 不外挂'** (两颗新 SoC 都无内置 DRAM)"
+        ],
+        [
+          "eMMC 5.1 FBGA153 (11.5×13.0) 替 SPI-NOR SOIC-8",
+          121.5,
+          "[官方] eMMC 5.1 153-ball 11.5×13.0 = 149.5mm² (FLEXXON/Exascend); 旧存储口径 28mm² 是 SPI-NOR SOIC-8"
+        ],
+        [
+          "DDR 周边去耦/体电容 (0402+0603)",
+          20.0,
+          "[推算] LPDDR4 需 VDDQ 体电容 + 每颗电源域去耦; RK3588 4 通道 ⇒ 更多"
+        ],
+        [
+          "电源树 6A 级余量 (电感/大电流铜箔/额外 LDO)",
+          15.0,
+          "[推算] CHIP_SELECTION_DECISION D2 '电源树按 6A 级设计'"
+        ],
+        [
+          "外置 PMIC (8×8 QFN + 周边) —— 两颗新 SoC 都无内置 PMIC",
+          90.0,
+          "[推算] RK3588/RK3576 需外置 PMIC (RK806 类); 8×8 = 64mm² + 周边 ≈ 90mm²"
+        ],
+        [
+          "SoC 去耦电容增加 (电源域变多)",
+          15.0,
+          "[推算] 旧 30 颗 = 30mm²; 新 SoC 电源域更多 ⇒ 35~45 颗"
+        ]
+      ]
+    },
+    "RK3576": {
+      "soc_escape_frame": 336.4,
+      "device_land": 871.5,
+      "land_total": 1207.9,
+      "board_area": 1800.0,
+      "raw_spare": 592.1,
+      "need_2side": 1677.7,
+      "need_1side": 2013.2,
+      "need_optimistic": 1548.6,
+      "verdict_2side": "✅ 装得下 (余 122.3mm²)",
+      "verdict_1side": "❌ 缺 213.2mm²",
+      "verdict_optimistic": "✅ 装得下 (余 251.4mm²)",
+      "land_fraction": 0.671,
+      "need_len_at_w30": 55.9,
+      "need_len_at_w30_optimistic": 51.6,
+      "max_board_len": 74.5,
+      "items": [
+        [
+          "netlist 已画器件 (旧 146 器件口径, 换芯后待重画)",
+          246.0,
+          "[推算] 旧 §5.3; ★SoC 侧 157 行 TBD 待重画 (ISS-119), 此处保留旧值"
+        ],
+        [
+          "未画入必需件 (旧口径: DCDC/LDO/PD/晶振/ESD/去耦/连接器/存储/桥接)",
+          296.0,
+          "[推算] 旧 §5.3"
+        ],
+        [
+          "SoC 封装 + 逃线框 (换新封装)",
+          336.4,
+          "[官方] 17.2×16.1 @p=0.6 + 单排逃线带 0.85mm/边 ⇒ 18.90×17.80 = 336.4mm² (旧 113mm²)"
+        ],
+        [
+          "删 U_BRIDGE (QFN6×6 + AC 耦合 + 串阻)",
+          -52.0,
+          "RK3588/RK3576 原生 MIPI-DSI TX ⇒ 不做桥接 (CHIP_SELECTION_DECISION §5)"
+        ],
+        [
+          "外挂 LPDDR4 1 片 (200-ball FBGA 10.0×14.5)",
+          145.0,
+          "[官方] Micron/Alliance 200-ball TFBGA 10×14.5mm = 145mm²/片; 32-bit ⇒ 1× 32-bit 器件 (2× x16 则 290mm², 多占 145mm²). ★**换芯打破 §0 锁死 #5 'DDR 512MB, 不外挂'** (两颗新 SoC 都无内置 DRAM)"
+        ],
+        [
+          "eMMC 5.1 FBGA153 (11.5×13.0) 替 SPI-NOR SOIC-8",
+          121.5,
+          "[官方] eMMC 5.1 153-ball 11.5×13.0 = 149.5mm² (FLEXXON/Exascend); 旧存储口径 28mm² 是 SPI-NOR SOIC-8"
+        ],
+        [
+          "DDR 周边去耦/体电容 (0402+0603)",
+          10.0,
+          "[推算] LPDDR4 需 VDDQ 体电容 + 每颗电源域去耦; RK3588 4 通道 ⇒ 更多"
+        ],
+        [
+          "电源树 6A 级余量 (电感/大电流铜箔/额外 LDO)",
+          10.0,
+          "[推算] CHIP_SELECTION_DECISION D2 '电源树按 6A 级设计'"
+        ],
+        [
+          "外置 PMIC (8×8 QFN + 周边) —— 两颗新 SoC 都无内置 PMIC",
+          90.0,
+          "[推算] RK3588/RK3576 需外置 PMIC (RK806 类); 8×8 = 64mm² + 周边 ≈ 90mm²"
+        ],
+        [
+          "SoC 去耦电容增加 (电源域变多)",
+          5.0,
+          "[推算] 旧 30 颗 = 30mm²; 新 SoC 电源域更多 ⇒ 35~45 颗"
+        ]
+      ]
+    }
+  },
+  "sec4_holes": {
+    "RK3588": {
+      "soc_pkg": [
+        15.0,
+        38.0,
+        3.5,
+        26.5
+      ],
+      "escape_band": [
+        14.12,
+        38.88,
+        2.62,
+        27.38
+      ],
+      "holes": {
+        "P1": {
+          "fn": "主定位销孔",
+          "x": 8.0,
+          "y": 15.0,
+          "d": 2.0,
+          "role": "全基准 (X/Y/θz)",
+          "ov_escape_band": 0.0,
+          "ov_pkg": 0.0,
+          "ov_jchg_keepout": 0.0,
+          "edge_to_center": 8.0,
+          "edge_wall": 7.0
+        },
+        "P2": {
+          "fn": "副定位销孔",
+          "x": 52.0,
+          "y": 15.0,
+          "d": 2.0,
+          "role": "只定 Y (骨架配菱形销)",
+          "ov_escape_band": 0.0,
+          "ov_pkg": 0.0,
+          "ov_jchg_keepout": 0.0,
+          "edge_to_center": 8.0,
+          "edge_wall": 7.0
+        },
+        "S1": {
+          "fn": "压紧螺钉孔",
+          "x": 8.0,
+          "y": 2.5,
+          "d": 1.4,
+          "role": "只压紧",
+          "ov_escape_band": 0.0,
+          "ov_pkg": 0.0,
+          "ov_jchg_keepout": 0.0,
+          "edge_to_center": 2.5,
+          "edge_wall": 1.8
+        },
+        "S2": {
+          "fn": "压紧螺钉孔",
+          "x": 52.0,
+          "y": 27.5,
+          "d": 1.4,
+          "role": "只压紧",
+          "ov_escape_band": 0.0,
+          "ov_pkg": 0.0,
+          "ov_jchg_keepout": 0.0,
+          "edge_to_center": 2.5,
+          "edge_wall": 1.8
+        }
+      },
+      "min_center_dist": 12.5,
+      "min_wall_dist": 10.8
+    },
+    "RK3576": {
+      "soc_pkg": [
+        15.0,
+        32.2,
+        6.95,
+        23.05
+      ],
+      "escape_band": [
+        14.15,
+        33.05,
+        6.1,
+        23.9
+      ],
+      "holes": {
+        "P1": {
+          "fn": "主定位销孔",
+          "x": 8.0,
+          "y": 15.0,
+          "d": 2.0,
+          "role": "全基准 (X/Y/θz)",
+          "ov_escape_band": 0.0,
+          "ov_pkg": 0.0,
+          "ov_jchg_keepout": 0.0,
+          "edge_to_center": 8.0,
+          "edge_wall": 7.0
+        },
+        "P2": {
+          "fn": "副定位销孔",
+          "x": 52.0,
+          "y": 15.0,
+          "d": 2.0,
+          "role": "只定 Y (骨架配菱形销)",
+          "ov_escape_band": 0.0,
+          "ov_pkg": 0.0,
+          "ov_jchg_keepout": 0.0,
+          "edge_to_center": 8.0,
+          "edge_wall": 7.0
+        },
+        "S1": {
+          "fn": "压紧螺钉孔",
+          "x": 8.0,
+          "y": 2.5,
+          "d": 1.4,
+          "role": "只压紧",
+          "ov_escape_band": 0.0,
+          "ov_pkg": 0.0,
+          "ov_jchg_keepout": 0.0,
+          "edge_to_center": 2.5,
+          "edge_wall": 1.8
+        },
+        "S2": {
+          "fn": "压紧螺钉孔",
+          "x": 52.0,
+          "y": 27.5,
+          "d": 1.4,
+          "role": "只压紧",
+          "ov_escape_band": 0.0,
+          "ov_pkg": 0.0,
+          "ov_jchg_keepout": 0.0,
+          "edge_to_center": 2.5,
+          "edge_wall": 1.8
+        }
+      },
+      "min_center_dist": 12.5,
+      "min_wall_dist": 10.8
+    }
+  },
+  "sec5_hinge": {
+    "total_pins": 54,
+    "pad_row_sum": 27.0,
+    "per_connector": [
+      [
+        "CONN_CAM",
+        18,
+        9.0,
+        10.6
+      ],
+      [
+        "CONN_LIGHT",
+        22,
+        11.0,
+        12.6
+      ],
+      [
+        "CONN_USB",
+        4,
+        2.0,
+        3.6
+      ],
+      [
+        "J_CHG",
+        10,
+        5.0,
+        6.6
+      ]
+    ],
+    "widest_row": 11.0,
+    "widest_row_with_keepout": 12.6,
+    "stack_vs_netheight": 27.0,
+    "stack_margin_vs_37": 10.0,
+    "stack_margin_vs_decisions": 10.5,
+    "stack_anchor": 27.0,
+    "stack_decisions": 26.5,
+    "declared_stack": 49.62,
+    "converged_stack": 24.0,
+    "pcb_single_row_need": 28.6,
+    "pcb_fits_15mm": false,
+    "pcb_fits_30mm": true
+  },
+  "sec6_thermal_inputs": {
+    "RK3588": {
+      "soc_top_pad_projection": 529.0,
+      "soC_center": [
+        26.5,
+        15.0
+      ],
+      "lateral_copper_channel": 3.5,
+      "lateral_usable_after_escape": 2.62,
+      "heat_path_Y_to_edge": 15.0,
+      "heat_path_X_to_hinge": 26.5,
+      "heat_path_X_to_tail": 33.5,
+      "board_area": 1800.0,
+      "device_land": 1041.5,
+      "free_area_per_side": 758.5,
+      "graphite_weight_old": 0.54,
+      "graphite_weight_new": 1.08,
+      "skeleton_weight_full": 4.86,
+      "skeleton_weight_step": 2.957,
+      "skeleton_soc_seg_len": 24.75,
+      "skeleton_step_note": "SoC 段 24.75mm 满板宽 + 其余 35.2mm 宽 10mm"
+    },
+    "RK3576": {
+      "soc_top_pad_projection": 276.9,
+      "soC_center": [
+        23.6,
+        15.0
+      ],
+      "lateral_copper_channel": 6.4,
+      "lateral_usable_after_escape": 5.55,
+      "heat_path_Y_to_edge": 15.0,
+      "heat_path_X_to_hinge": 23.6,
+      "heat_path_X_to_tail": 36.4,
+      "board_area": 1800.0,
+      "device_land": 871.5,
+      "free_area_per_side": 928.5,
+      "graphite_weight_old": 0.54,
+      "graphite_weight_new": 1.08,
+      "skeleton_weight_full": 4.86,
+      "skeleton_weight_step": 2.641,
+      "skeleton_soc_seg_len": 18.9,
+      "skeleton_step_note": "SoC 段 18.90mm 满板宽 + 其余 41.1mm 宽 10mm"
+    }
+  },
+  "checks": [
+    {
+      "name": "板重 (裸板 FR4, 6 层 1.0mm): 60×15 → 60×30",
+      "ok": true,
+      "level": "fail",
+      "detail": "1.67g → 3.33g/侧 (+1.67g/侧, +3.33g/对)",
+      "note": "板重随板宽线性增长 ⇒ 整机重量账 (MECH_BUDGET §3.1 目标 48.9-74.0g) 必须重算"
+    },
+    {
+      "name": "镜脚 V 向余量 (★板宽是 V 向尺寸, 不是 H) —— 30mm 板宽只剩 2.00mm",
+      "ok": true,
+      "level": "warn",
+      "detail": "PCB 段 V 需求 36.00mm (板宽 30 + 走线槽 6) vs 净高 38.00 → 余量 2.00mm (对抗性最坏 1.40mm); 15mm 板宽时是 8.50mm",
+      "note": "★ 板宽在镜脚里是 **垂直 V 向** 尺寸 (MECH/BOARD_WIDTH_15MM.md §1.2) ⇒ 板宽 15→30 直接吃镜脚净高。判据 ≥0.60 仍过, 但余量从 8.50 掉到 2.00mm。⇒ 若净高 38.00 不变, 板宽硬顶 = 38.00-6.00-0.60 = 31.40mm (30mm 刚好在顶)"
+    },
+    {
+      "name": "镜脚 L 向余量 (板长 60 不变) + 板长物理上限",
+      "ok": true,
+      "level": "fail",
+      "detail": "L 需求 115.50mm vs 内长 130.00 → 余量 14.50mm; 板长物理上限 = 130 - 40.5(电芯) - 15(余量) = 74.5mm",
+      "note": "★ L 余量决定 **面积不够时能不能加长**: 60 → 最多 74.5mm (+14.5mm)"
+    },
+    {
+      "name": "RK3588 逃线带 (p=0.65, 常规机械钻 0.20mm)",
+      "ok": true,
+      "level": "fail",
+      "detail": "单排逃线带 0.88mm/边; 同排过孔净间隙 0.250mm (判据 ≥0.075)",
+      "note": "2 排 1.32mm / 4 排 2.23mm/边"
+    },
+    {
+      "name": "RK3588 逃线深度 → 所需层数 (对 '4-6 层' 锁死)",
+      "ok": false,
+      "level": "fail",
+      "detail": "≈32×34 阵列 (1088 球) ⇒ 中心到边 17 圈 ⇒ 需 9 布线层 + 2 参考面 = **11 层**",
+      "note": "★ 对比旧方案: ARS45 只按 C-base 57 球 / C-max 91 球设计 (HW/SOC_PIN_BUDGET.md), 逃 1 排即可 ⇒ 4-6 层轻松。两颗新 SoC 是 **全阵列**, 球数是旧方案的 12-19 倍 ⇒ 4-6 层常规板大概率不可行。解法只有 (a) 加层 (b) via-in-pad HDI (破 '不含 HDI' 锁死, 价 2-3× + 交期 +1-2 周, 见 HW/PCB_FORM_FACTOR_RECHECK.md §6) ⇒ **需 PCB 厂 DFM 报告定案**"
+    },
+    {
+      "name": "RK3588 30mm 板宽下 SoC 边到板边的逃线空间",
+      "ok": true,
+      "level": "fail",
+      "detail": "SoC 边→板边半宽 3.50mm ⇒ 只够排 6 排逃线 (占 3.12mm/边)",
+      "note": "⇒ 剩下 11 圈球**必须靠内层布线层往外走** ⇒ 这是 ② 层数结论的独立佐证"
+    },
+    {
+      "name": "RK3576 逃线带 (p=0.6, 常规机械钻 0.20mm)",
+      "ok": true,
+      "level": "fail",
+      "detail": "单排逃线带 0.85mm/边; 同排过孔净间隙 0.200mm (判据 ≥0.075)",
+      "note": "2 排 1.30mm / 4 排 2.20mm/边"
+    },
+    {
+      "name": "RK3576 逃线深度 → 所需层数 (对 '4-6 层' 锁死)",
+      "ok": false,
+      "level": "fail",
+      "detail": "≈28×26 阵列 (698 球) ⇒ 中心到边 14 圈 ⇒ 需 7 布线层 + 2 参考面 = **9 层**",
+      "note": "★ 对比旧方案: ARS45 只按 C-base 57 球 / C-max 91 球设计 (HW/SOC_PIN_BUDGET.md), 逃 1 排即可 ⇒ 4-6 层轻松。两颗新 SoC 是 **全阵列**, 球数是旧方案的 12-19 倍 ⇒ 4-6 层常规板大概率不可行。解法只有 (a) 加层 (b) via-in-pad HDI (破 '不含 HDI' 锁死, 价 2-3× + 交期 +1-2 周, 见 HW/PCB_FORM_FACTOR_RECHECK.md §6) ⇒ **需 PCB 厂 DFM 报告定案**"
+    },
+    {
+      "name": "RK3576 30mm 板宽下 SoC 边到板边的逃线空间",
+      "ok": true,
+      "level": "fail",
+      "detail": "SoC 边→板边半宽 6.40mm ⇒ 只够排 13 排逃线 (占 6.25mm/边)",
+      "note": "⇒ 剩下 1 圈球**必须靠内层布线层往外走** ⇒ 这是 ② 层数结论的独立佐证"
+    },
+    {
+      "name": "RK3588 面积账 (60×30, 双面贴利用率 0.72)",
+      "ok": false,
+      "level": "fail",
+      "detail": "land 合计 1654.1mm² ⇒ 需板面积 2297mm² vs 可用 1800mm² → ❌ 缺 497.3mm²",
+      "note": "器件占位 1041.5 + SoC 逃线框 612.6 = 1654.1mm² (占板面 91.9%); 单面贴口径 2757mm² (❌ 缺 956.8mm²); 最乐观 0.78 口径 2121mm² (❌ 缺 320.59294871795mm²)"
+    },
+    {
+      "name": "RK3588 面积账 (板长加到物理上限 74.5mm 时)",
+      "ok": false,
+      "level": "fail",
+      "detail": "板宽 30mm 时按 0.72 利用率需板长 76.6mm vs 上限 74.5mm ⇒ ❌ 加长也装不下",
+      "note": "最乐观 0.78 口径需板长 70.7mm ⇒ ✅ 装得下 (余 3.8mm); 板长上限 = 内长 130 - 电芯 40.5 - 余量 15"
+    },
+    {
+      "name": "RK3576 面积账 (60×30, 双面贴利用率 0.72)",
+      "ok": true,
+      "level": "fail",
+      "detail": "land 合计 1207.9mm² ⇒ 需板面积 1678mm² vs 可用 1800mm² → ✅ 装得下 (余 122.3mm²)",
+      "note": "器件占位 871.5 + SoC 逃线框 336.4 = 1207.9mm² (占板面 67.1%); 单面贴口径 2013mm² (❌ 缺 213.2mm²); 最乐观 0.78 口径 1549mm² (✅ 装得下 (余 251.4mm²))"
+    },
+    {
+      "name": "RK3576 面积账 (板长加到物理上限 74.5mm 时)",
+      "ok": true,
+      "level": "fail",
+      "detail": "板宽 30mm 时按 0.72 利用率需板长 55.9mm vs 上限 74.5mm ⇒ ✅ 加长装得下 (余 18.6mm)",
+      "note": "最乐观 0.78 口径需板长 51.6mm ⇒ ✅ 装得下 (余 22.9mm); 板长上限 = 内长 130 - 电芯 40.5 - 余量 15"
+    },
+    {
+      "name": "RK3588 P1 vs SoC 逃线带 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm² (孔心 (8.00,15.00) ⌀2.00)",
+      "note": "逃线带 X[14.12,38.88] Y[2.62,27.38]"
+    },
+    {
+      "name": "RK3588 P1 vs SoC 封装体 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3588 P1 vs J_CHG 座体 keep-out 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3588 P1 孔心到板边 ≥1.50mm / 孔壁 ≥0.80mm",
+      "ok": true,
+      "level": "fail",
+      "detail": "孔心距边 8.00mm / 孔壁距边 7.00mm",
+      "note": "判据: CLEARANCE_FIX 卡点2 孔心 ≥1.50mm; 器件边距 ≥0.80mm"
+    },
+    {
+      "name": "RK3588 P2 vs SoC 逃线带 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm² (孔心 (52.00,15.00) ⌀2.00)",
+      "note": "逃线带 X[14.12,38.88] Y[2.62,27.38]"
+    },
+    {
+      "name": "RK3588 P2 vs SoC 封装体 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3588 P2 vs J_CHG 座体 keep-out 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3588 P2 孔心到板边 ≥1.50mm / 孔壁 ≥0.80mm",
+      "ok": true,
+      "level": "fail",
+      "detail": "孔心距边 8.00mm / 孔壁距边 7.00mm",
+      "note": "判据: CLEARANCE_FIX 卡点2 孔心 ≥1.50mm; 器件边距 ≥0.80mm"
+    },
+    {
+      "name": "RK3588 S1 vs SoC 逃线带 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm² (孔心 (8.00,2.50) ⌀1.40)",
+      "note": "逃线带 X[14.12,38.88] Y[2.62,27.38]"
+    },
+    {
+      "name": "RK3588 S1 vs SoC 封装体 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3588 S1 vs J_CHG 座体 keep-out 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3588 S1 孔心到板边 ≥1.50mm / 孔壁 ≥0.80mm",
+      "ok": true,
+      "level": "fail",
+      "detail": "孔心距边 2.50mm / 孔壁距边 1.80mm",
+      "note": "判据: CLEARANCE_FIX 卡点2 孔心 ≥1.50mm; 器件边距 ≥0.80mm"
+    },
+    {
+      "name": "RK3588 S2 vs SoC 逃线带 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm² (孔心 (52.00,27.50) ⌀1.40)",
+      "note": "逃线带 X[14.12,38.88] Y[2.62,27.38]"
+    },
+    {
+      "name": "RK3588 S2 vs SoC 封装体 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3588 S2 vs J_CHG 座体 keep-out 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3588 S2 孔心到板边 ≥1.50mm / 孔壁 ≥0.80mm",
+      "ok": true,
+      "level": "fail",
+      "detail": "孔心距边 2.50mm / 孔壁距边 1.80mm",
+      "note": "判据: CLEARANCE_FIX 卡点2 孔心 ≥1.50mm; 器件边距 ≥0.80mm"
+    },
+    {
+      "name": "RK3588 孔间中心距 ≥5.00 / 孔壁间距 ≥2.00",
+      "ok": true,
+      "level": "fail",
+      "detail": "最小中心距 12.50mm / 最小孔壁间距 10.80mm",
+      "note": ""
+    },
+    {
+      "name": "RK3576 P1 vs SoC 逃线带 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm² (孔心 (8.00,15.00) ⌀2.00)",
+      "note": "逃线带 X[14.15,33.05] Y[6.10,23.90]"
+    },
+    {
+      "name": "RK3576 P1 vs SoC 封装体 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3576 P1 vs J_CHG 座体 keep-out 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3576 P1 孔心到板边 ≥1.50mm / 孔壁 ≥0.80mm",
+      "ok": true,
+      "level": "fail",
+      "detail": "孔心距边 8.00mm / 孔壁距边 7.00mm",
+      "note": "判据: CLEARANCE_FIX 卡点2 孔心 ≥1.50mm; 器件边距 ≥0.80mm"
+    },
+    {
+      "name": "RK3576 P2 vs SoC 逃线带 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm² (孔心 (52.00,15.00) ⌀2.00)",
+      "note": "逃线带 X[14.15,33.05] Y[6.10,23.90]"
+    },
+    {
+      "name": "RK3576 P2 vs SoC 封装体 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3576 P2 vs J_CHG 座体 keep-out 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3576 P2 孔心到板边 ≥1.50mm / 孔壁 ≥0.80mm",
+      "ok": true,
+      "level": "fail",
+      "detail": "孔心距边 8.00mm / 孔壁距边 7.00mm",
+      "note": "判据: CLEARANCE_FIX 卡点2 孔心 ≥1.50mm; 器件边距 ≥0.80mm"
+    },
+    {
+      "name": "RK3576 S1 vs SoC 逃线带 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm² (孔心 (8.00,2.50) ⌀1.40)",
+      "note": "逃线带 X[14.15,33.05] Y[6.10,23.90]"
+    },
+    {
+      "name": "RK3576 S1 vs SoC 封装体 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3576 S1 vs J_CHG 座体 keep-out 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3576 S1 孔心到板边 ≥1.50mm / 孔壁 ≥0.80mm",
+      "ok": true,
+      "level": "fail",
+      "detail": "孔心距边 2.50mm / 孔壁距边 1.80mm",
+      "note": "判据: CLEARANCE_FIX 卡点2 孔心 ≥1.50mm; 器件边距 ≥0.80mm"
+    },
+    {
+      "name": "RK3576 S2 vs SoC 逃线带 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm² (孔心 (52.00,27.50) ⌀1.40)",
+      "note": "逃线带 X[14.15,33.05] Y[6.10,23.90]"
+    },
+    {
+      "name": "RK3576 S2 vs SoC 封装体 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3576 S2 vs J_CHG 座体 keep-out 2D 重叠",
+      "ok": true,
+      "level": "fail",
+      "detail": "2D 重叠面积 = 0.0000 mm²",
+      "note": ""
+    },
+    {
+      "name": "RK3576 S2 孔心到板边 ≥1.50mm / 孔壁 ≥0.80mm",
+      "ok": true,
+      "level": "fail",
+      "detail": "孔心距边 2.50mm / 孔壁距边 1.80mm",
+      "note": "判据: CLEARANCE_FIX 卡点2 孔心 ≥1.50mm; 器件边距 ≥0.80mm"
+    },
+    {
+      "name": "RK3576 孔间中心距 ≥5.00 / 孔壁间距 ≥2.00",
+      "ok": true,
+      "level": "fail",
+      "detail": "最小中心距 12.50mm / 最小孔壁间距 10.80mm",
+      "note": ""
+    },
+    {
+      "name": "螺钉对角跨距 (30mm 宽下抗扭几何更好)",
+      "ok": true,
+      "level": "fail",
+      "detail": "S1→S2 对角距离 50.61mm (30mm 宽) vs 45.12mm (15mm 宽) ⇒ 抗扭力臂 +5.48mm",
+      "note": "ISS-049 用对角分布抗扭; 板宽翻倍后 Y 向力臂从 10mm 变 25mm ⇒ 这是板宽翻倍的**正收益**"
+    },
+    {
+      "name": "骨架 X 位置不变 (只改 Y)",
+      "ok": true,
+      "level": "fail",
+      "detail": "P1/P2/S1/S2 的 X = 8.00 / 52.00 与 ISS-049 完全一致 ⇒ 金属骨架的销孔/攻丝孔 X 坐标不用改",
+      "note": "★ 换板宽时**只动 Y** ⇒ 骨架件不用重新开孔 ⇒ 结构侧改动最小"
+    },
+    {
+      "name": "跨铰链 54 触点 @0.5mm = 27mm —— 真义是 **FPC 竖向堆叠**, 与板宽无关",
+      "ok": true,
+      "level": "fail",
+      "detail": "4 条排线宽度之和 = (18 + 22 + 4 + 10) × 0.5 = 27.00mm (铰链区竖向堆叠) vs 镜脚根部净高 37.00mm → 余 10.00mm (按 DECISIONS.md 的 26.5 则余 10.50mm)",
+      "note": "★ ISS-091/HINGE_POWER_CALC 记 27.0 (任务锚点) / DECISIONS.md 记 26.5 —— 两数不一致 (ISS-091 §N6 已列), 结论方向不变 (都 < 37.0)。⇒ **板宽 15→30 一分不改这条结论**: 堆叠高度由触点数×pitch 决定, 与 PCB 板宽无关"
+    },
+    {
+      "name": "PCB 侧 27mm 焊盘排在 30mm 板宽下排得下 (15mm 排不下)",
+      "ok": true,
+      "level": "fail",
+      "detail": "27.00mm 焊盘排 + 2×0.80mm 器件边距 = 28.60mm ⇒ 15mm 板宽 ❌ / 30mm 板宽 ✅",
+      "note": "★ 这才是 ISS-105 F-2 ('54 触点焊盘排 vs 板宽') 的正解: 板宽翻倍把 **PCB 侧** 从装不下变成装得下; 但 **铰链区竖向堆叠** 27mm 一分没变 ⇒ **板宽翻倍不能解决 ISS-091 那条超差**"
+    },
+    {
+      "name": "4 条连接器沿板长 X 展开时, 板宽需求 (更省的排法)",
+      "ok": true,
+      "level": "fail",
+      "detail": "最宽一条 CONN_LIGHT 22p = 11.00mm + 2×0.80 边距 = 12.60mm ⇒ 15mm 板宽 ✅ / 30mm 板宽 ✅",
+      "note": "沿 X 展开 (4 条占不同 X 段) 时的板宽需求 —— 30mm 宽下 4 条都有充裕的 Y 向空间; 代价是吃板长 (铰链端 X 段), 板长上限 74.5mm"
+    },
+    {
+      "name": "RK3588 散热输入已就绪 (只给输入, 不算皮肤温度)",
+      "ok": true,
+      "level": "fail",
+      "detail": "SoC 顶面投影 529mm² / 横向铜箔通道 3.50mm/边 (扣逃线带余 2.62mm) / Y 向路径 15.00mm / X 向 26.5+33.5mm",
+      "note": "★ 这些是 mech 热模型的输入; 皮肤温度仍由 mech 用本项目的 R_皮肤/R_隔热 模型算, 本单不越界"
+    },
+    {
+      "name": "RK3588 石墨片重量 (Y 向覆盖 15→30mm)",
+      "ok": true,
+      "level": "fail",
+      "detail": "0.54g/片 → 1.08g/片 (+0.54g)",
+      "note": "石墨 V 向覆盖必须跟板宽一起加, 否则 SoC 横向扩散通道白加"
+    },
+    {
+      "name": "RK3588 金属骨架重量 (满宽 / 台阶形)",
+      "ok": true,
+      "level": "fail",
+      "detail": "满宽 60×30×1.0 铝 = 4.86g/侧 (9.72g/对); 台阶形 (SoC 段 24.8mm 满宽 + 其余 10mm 宽) = 2.96g/侧 (5.91g/对) vs MECH_BUDGET §2.4 B '+1-3g'",
+      "note": "★ 满宽形在 30mm 宽下 **判死得更彻底** (旧 15mm 满宽已 4.86g/对 判死); 台阶形 5.91g/对 仍超 MECH 口径 2.91g ⇒ 截面形状是 mech 的决策, 本单只给数字"
+    },
+    {
+      "name": "RK3576 散热输入已就绪 (只给输入, 不算皮肤温度)",
+      "ok": true,
+      "level": "fail",
+      "detail": "SoC 顶面投影 277mm² / 横向铜箔通道 6.40mm/边 (扣逃线带余 5.55mm) / Y 向路径 15.00mm / X 向 23.6+36.4mm",
+      "note": "★ 这些是 mech 热模型的输入; 皮肤温度仍由 mech 用本项目的 R_皮肤/R_隔热 模型算, 本单不越界"
+    },
+    {
+      "name": "RK3576 石墨片重量 (Y 向覆盖 15→30mm)",
+      "ok": true,
+      "level": "fail",
+      "detail": "0.54g/片 → 1.08g/片 (+0.54g)",
+      "note": "石墨 V 向覆盖必须跟板宽一起加, 否则 SoC 横向扩散通道白加"
+    },
+    {
+      "name": "RK3576 金属骨架重量 (满宽 / 台阶形)",
+      "ok": true,
+      "level": "fail",
+      "detail": "满宽 60×30×1.0 铝 = 4.86g/侧 (9.72g/对); 台阶形 (SoC 段 18.9mm 满宽 + 其余 10mm 宽) = 2.64g/侧 (5.28g/对) vs MECH_BUDGET §2.4 B '+1-3g'",
+      "note": "★ 满宽形在 30mm 宽下 **判死得更彻底** (旧 15mm 满宽已 4.86g/对 判死); 台阶形 5.28g/对 仍超 MECH 口径 2.28g ⇒ 截面形状是 mech 的决策, 本单只给数字"
+    }
+  ],
+  "fail": 4,
+  "warn": 0,
+  "total": 58
+}
