@@ -240,6 +240,68 @@ openclaw cron enable fb67af40-a9eb-4cdd-a842-8cbb8fdd7865
 **为什么**: `openclaw cron add` 的 `--message` 参数是**整个 payload 全文**(每个 job 几百到上千字, 还含引号/换行)⇒ **命令行传参极易踩 shell 转义坑** ⇒ ★**脚本只把 7 个 job 的表达式/名字/model 打出来 + 给模板**, 让执行者逐条粘贴 ⇒ **宁可让人看一眼, 不要自动化踩坑**。
 ⇒ 如果你要全自动, 我可以改成写 `jobs.json` 再 `openclaw cron` 导入(需先验证该 CLI 有导入命令 —— **目前没查, 不能瞎编**)。
 
+## B3.5 ★★★★ 部署包 (老板 2026-11-01 23:0x 要的"直接放过去就能部署")
+
+> ★**背景**: 上一版的一键脚本放在**仓库里** ⇒ 新主机得**先 clone 才能拿到脚本** ⇒ ★**鸡生蛋**。
+> ⇒ 重做成**自包含部署包**: 拷过去 → 解压 → 跑 `install.sh`, **连 GitHub 都不用**。
+
+### 怎么用 (4 步)
+```bash
+# ① 旧主机上生成包 (本地生成, 不入库)
+bash projects/smart_glasses/deploy/make_bundle.sh --out /tmp
+#    ⇒ /tmp/ars45-deploy-20261101-2301.tar.gz  (28MB)
+
+# ② 拷到新主机
+scp /tmp/ars45-deploy-*.tar.gz new-host:~/
+
+# ③ 新主机上: 解压 → 放 4 个凭据 → 跑
+tar xzf ars45-deploy-*.tar.gz && cd ars45-deploy-*/
+mkdir -p credentials
+scp <旧主机>:~/.openclaw/openclaw.json credentials/
+scp <旧主机>:~/.openclaw/workspace/TOOLS.md credentials/
+scp <旧主机>:~/.openclaw/agents/main/agent/auth-profiles.json credentials/
+scp <旧主机>:~/.openclaw/cron/jobs.json credentials/
+./install.sh
+
+# ④ 重启 + 接管
+systemctl --user restart openclaw-gateway && openclaw tui
+```
+
+### 包内结构
+```
+ars45-deploy-20261101-2301/
+├── install.sh        ← 入口 (自包含, ★不依赖先 clone)
+├── README.md         ← 三步走 + 故障排查表
+├── CREDENTIALS.md    ← 4 个凭据文件怎么带 + 传完怎么清
+├── config/           ← agent 配置资产 (102 文件: 人格/记忆/guards/skills/agents.json)
+├── project/          ← 项目库快照 (537 文件, 含 issue 台账 125 条 + 4 分片 + 41 交卷单)
+└── credentials/      ← ★放 4 个带凭据的文件 (不随包分发)
+```
+
+### ★实测 (2026-11-01 23:0x, 隔离假 HOME + **完全离线**)
+```
+② 用包内快照 (不联网)        ✅
+③ 四份 projects inode 一致    ✅ (=1, 只有一份库)
+④ main 4 文件 + 48 篇日记    ✅ 三个总工各 4 文件 ✅ guards 3 ✅ skills 5 ✅
+⑤ 4 个凭据装到位 + agents 段合并 (★原文件自动备份 .bak.*) ✅ model=M3.1-Flash ✅
+⑥ cron jobs.json 就位 (★无需逐条 cron add) ✅
+⑦ 四道门: merge rc=0 (冲突 0) · Q1 18/18 · 违规 0 · **G2 差 6 项** ⇒ ★与旧主机一致
+   ★台账逐条比对: 125 条, **状态 0 差异** ✅
+幂等: 重跑 install.sh ⇒ 0 错 ✅
+```
+
+### ★它比"clone + 跑脚本"好在哪
+| | clone 方案 | ★部署包 |
+|---|---|---|
+| 新主机要联网 | **要** (git clone) | **不要** (包内快照) |
+| 拿到脚本的方式 | 先 clone 才能拿到 ⇒ **鸡生蛋** | ★**拷贝即得** |
+| 项目库版本 | 最新 | 打包时的快照 (⇒ 可用 `--repo` 覆盖) |
+| 装到一半失败 | 半个 clone | ★**包还在, 重跑即可** (幂等) |
+
+### ★★打包注意
+- 包**不入 GitHub** (28MB 会膨胀仓库) ⇒ `.gitignore` 已加 `ars45-deploy-*.tar.gz` ⇒ ★**用 `make_bundle.sh` 本地生成**
+- 打包脚本默认从**发布树副本**取 `config/` (那里最新) ⇒ ⇒ ★**先跑一次 `publish_github.sh` 再打包**
+
 ## B4.5 ★★实测踩到的 3 个坑 (我做这一步时真踩的, 别在新主机上重踩)
 
 | # | 坑 | 现象 | 根因 |
