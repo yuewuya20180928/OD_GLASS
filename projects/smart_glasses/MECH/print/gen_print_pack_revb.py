@@ -205,8 +205,12 @@ L = {
     "tc_duct_y": 100.0,      # C 走线槽 (Y 100..108)
     "tc_wall_y": 120.0,      # D 检修口壁 (Y 120..)
     "tc_wall_t": 0.80,
-    "tc_win_x0": 6.0,        # D 通窗起点 X
-    "tc_win_z0": 8.0,        # D 通窗起点 Z
+    "tc_wall_x1": 30.0,      # D 壁试样长度
+    "tc_win_x0": 14.0,       # D 通窗起点 X (10.20 宽)
+    "tc_win_z0": 8.0,        # D 通窗起点 Z (4.60 高)
+    "tc_mag_x": (4.0, 10.0),  # D 磁铁沉槽孔心 X (Z=3.0)
+    "tc_mag_z": 3.0,
+    "tc_pin_x": (4.0, 10.0),  # D 定位凸台 X (间距 6.00, Z=10.3)
 }
 
 # =====================================================================
@@ -283,7 +287,7 @@ def build_coupon():
     cz0, cz1 = 2.0, 2.0 + v("sp_cover_t")
     thru = [(cx0 + (v("sp_cover_x") - v("sp_pin_pitch")) / 2, cy0 + 1.60, v("sp_pin_hole") / 2),
             (cx0 + (v("sp_cover_x") + v("sp_pin_pitch")) / 2, cy0 + 1.60, v("sp_pin_hole") / 2),
-            (cx0 + v("sp_cover_x") / 2, cy0 + 1.60, v("sp_screw_hole") / 2)]
+            (cx0 + 13.00, cy0 + 1.60, v("sp_screw_hole") / 2)]
     mag = [(cx0 + 3.30, cy0 + 5.00, v("sp_mag_dia") / 2),
            (cx0 + 9.90, cy0 + 5.00, v("sp_mag_dia") / 2)]
     plate_xy(m, cx0, cx0 + v("sp_cover_x"), cy0, cy0 + v("sp_cover_y"),
@@ -379,16 +383,15 @@ def build_temple_cage():
     ox, oy = v("sp_open_x"), v("sp_open_y")
     win_x0, win_z0 = L["tc_win_x0"], L["tc_win_z0"]
     # 壁: 矩形通窗 (10.20 × 4.60) + 磁铁沉槽通孔 ⌀4.00 ×2 (沉槽深度由盖板侧盲槽试样承担)
-    mag_x = (2.0 + v("sp_mag_dia") / 2, 6.0 + ox + 2.0 + v("sp_mag_dia") / 2)
-    plate_xz(m, 0, 24, 0, 20, wx, wx + wall_t,
+    plate_xz(m, 0, L["tc_wall_x1"], 0, 20, wx, wx + wall_t,
              rects=((win_x0, win_x0 + ox, win_z0, win_z0 + oy),),
-             holes=((mx, win_z0 + oy / 2, v("sp_mag_dia") / 2) for mx in mag_x))
-    # 螺钉凸台 ⌀3.20 (沿 +Y 凸出壁面 1.60) —— 圆柱体
+             holes=((mx, L["tc_mag_z"], v("sp_mag_dia") / 2) for mx in L["tc_mag_x"]))
+    # 螺钉凸台 ⌀3.20 (沿 +Y 凸出壁面 1.60) —— 圆柱体, 对准通窗中心
     bcx, bcz = win_x0 + ox / 2, win_z0 + oy / 2
     m.prism(circle_prof(bcx, bcz, v("sp_boss_dia") / 2), "y",
             wx + wall_t, wx + wall_t + v("sp_boss_len"))
     # 定位凸台 2×⌀1.60 高 0.60, 间距 6.00 (沿 +Y 凸出壁面)
-    for dx in (9.0, 15.0):
+    for dx in L["tc_pin_x"]:
         m.prism(circle_prof(dx, bcz, v("sp_pin_dia") / 2), "y",
                 wx + wall_t, wx + wall_t + 0.6)
     return m
