@@ -24,7 +24,8 @@
 
 | 草稿 | 11-01 状态 | 说明 |
 |---|---|---|
-| `vendor_via_agent_email.md` / `vendor_round2_email.md` / `vendor_round3_addendum.md` / `vendor_round4_geo_isp_addendum.md` / `R_GEO_2_DECISION_MAP.md` / `lens_rfq_rgeo2_addendum.md` | ⛔ **一律不发** | 老板 10-29 19:20 拍板"跳过酷芯微芯片选型"; 11-01 基线换成 **瑞芯微 RK3576** ⇒ 问询对象/术语/问题清单全部要按新芯片重写 (显示 TX 方向 / FCCSP pitch / 球位图 三问) —— **重写版 = 上表第 12 份** |
+| `vendor_via_agent_email.md` / `vendor_round2_email.md` / `vendor_round3_addendum.md` / `vendor_round4_geo_isp_addendum.md` / `R_GEO_2_DECISION_MAP.md` | ⛔ **一律不发** (5 份) | 老板 10-29 19:20 拍板"跳过酷芯微芯片选型"; 11-01 基线换成 **瑞芯微 RK3576** ⇒ 问询对象/术语/问题清单全部要按新芯片重写 (显示 TX 方向 / FCCSP pitch / 球位图 三问) —— **重写版 = 上表第 12 份** |
+| `lens_rfq_rgeo2_addendum.md` | 🟡 **等放行 (P2, 与主控选型无关)** | ★收件方是**镜头厂** (舜宇/欧菲), 不是酷芯微 ⇒ **不在作废范围**。内容 = 等效视场表 / 角落 MTF≥30% / 相对照度≥40% / 机器可读畸变曲线 / 不做 LDC 前提下的 ISP 几何协同 —— 这些是**ISP 通用口径**, 换主控后仍成立 ⇒ 等 P1 发完再发 |
 | `jbd_query.md` + `jbd_query_addendum.md` | 🟡 **等放行 (不受换芯影响)** | 波导 2D 外形 / 走鹃Ⅱ 外形与接口 / LED 光生物安全参数 ⇒ **唯一卡住镜框打印开工的外部依赖** (覆盖 ISS-004/013/016/048) |
 | `pcb_foundry_layer_query.md` | 🟡 **等放行 + 等指定厂** | 见上表第 11 行 |
 | `s2_rk3576_module_vendor_query.md` | 🟡 **等放行 + 等指定模组厂** | 见上表第 12 行 |
