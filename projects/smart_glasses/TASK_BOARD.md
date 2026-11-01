@@ -125,7 +125,7 @@
 
 ### ★★缺陷 1: GitHub 发布闸门把**凭据明文写进了要公开的脚本里** (10-30 遗留)
 
-- **现象**: `state/publish_github.sh` 里写着 `EXTRA_LITERALS = ["o9cq808Uh5iap7dzq" + "HDbRTzQ1JS4"]` —— **拆拼**形式, 骗过了"自己扫自己"那关; 但**两段明文都在文件里**, 而这个脚本**本身会被 rsync 进公开仓库** ⇒ grep 一下就能拼回完整凭据 ⇒ **等于把凭据发到公开仓库**。
+- **现象**: `state/publish_github.sh` 里写着 `EXTRA_LITERALS = ["<openid 前半段>" + "<openid 后半段>"]` —— **拆拼**形式, 骗过了"自己扫自己"那关; 但**两段明文都在文件里**, 而这个脚本**本身会被 rsync 进公开仓库** ⇒ grep 一下就能拼回完整凭据 ⇒ **等于把凭据发到公开仓库**。
 - **修法**: **脚本里一个敏感串明文都不写**, 全部从**本地不入库的真值源**现读:
   - `~/.openclaw/openclaw.json` (token/apikey/secret) · `~/.openclaw/cron/jobs.json` (推送目标) · `~/.../TOOLS.md` `MEMORY.md` (设备口令)
 - **★附带修的**: 设备口令 `radxa` 原来用 `radxa` 匹配 ⇒ **误伤 6 个正常文件** (`~/Downloads/radxa/...` 路径) ⇒ 改成**上下文匹配** (`sshpass -p X` / `密码: X` / `password=X`) 且**规则由真值动态生成** ⇒ 脚本源码里也不出现口令字面量。
