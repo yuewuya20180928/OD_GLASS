@@ -31,6 +31,28 @@ AGENT_DIRS = [
 ]
 BUDGET = os.path.join(HERE, "token_budget.json")
 LAST_PUSH = os.path.join(HERE, ".last_github_push")
+
+def write_push_flag() -> int:
+    """★把"刚刚推送成功"记进哨兵文件 (内容 = ISO 时间戳)。
+
+    ★★2026-11-02 01:5x 补实现: `--write-flag` **在用法里写了但脚本里根本没实现**
+    (连 argparse 都没有) ⇒ `.last_github_push` 全项目**只有人读、没有任何自动写点** ⇒
+      ① cron 自动同步 (:13/:43) 推成功 → 记录不更新
+      ② token 守护推成功 → 记录不更新
+      ③ 手动推 → 记录也不更新
+      ⇒ token_watch 报的"距上次 GitHub 推送 N 分钟"**永远是假的**
+      (实测: 手动推过两次, 记录仍停在 41 分钟前) ⇒ 而这条是老板 10-29 定的**最可靠兜底**
+      ⇒ **它在骗自己 = 兜底失效**。
+      ⇒ **修法: 唯一写入点放在 `publish_github.sh` 的"推送成功 + 远端 SHA 校验通过"之后**
+        (cron / token 守护 / 手动 三条推送路径都过它) ⇒ 本函数只提供写入实现。
+    """
+    stamp = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+    tmp = LAST_PUSH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(stamp + "\n")
+    os.replace(tmp, LAST_PUSH)
+    print(f"✅ 推送哨兵已更新: {stamp}")
+    return 0
 DEFAULT_BUDGET = {
     "window_hours": 5,
     "threshold_tokens": 8_000_000,
@@ -164,4 +186,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # ★--write-flag: 写推送哨兵 (由 publish_github.sh 在推送成功后调用)
+    if "--write-flag" in sys.argv:
+        sys.exit(write_push_flag())
     sys.exit(main())

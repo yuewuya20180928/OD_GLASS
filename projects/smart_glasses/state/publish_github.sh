@@ -8,6 +8,7 @@ LOCK=/tmp/od_glass_publish.lock
 exec 9>"$LOCK"
 flock -w 120 9 || { echo "❌ 拿不到发布锁 (另一个发布在跑), 跳过"; exit 0; }
 WS=/home/yuewuya/.openclaw/workspace
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJ=$WS/projects/smart_glasses
 PUB=/tmp/od_glass_publish
 REPO=yuewuya20180928/OD_GLASS
@@ -341,7 +342,7 @@ git add -A
 if git diff --cached --quiet; then
   echo "[5] 无变化 (跳过 push)"
 else
-  git commit -q -m "$MSG" && git push -q origin main && echo "[5] 已 push: $(git rev-parse --short HEAD)"
+  git commit -q -m "$MSG" && git push -q origin main && echo "[5] 已 push: $(git rev-parse --short HEAD)" && PUSHED=1
 fi
 
 # ---- 6. 验证 (① 远端 SHA == 本地 HEAD (不需要 API, 免限流) ② blob SHA 逐个比, API 限流时跳过) ----
@@ -350,6 +351,13 @@ REMOTE_SHA=$(git ls-remote origin main | cut -f1)
 LOCAL_SHA=$(git rev-parse HEAD)
 if [ "$REMOTE_SHA" = "$LOCAL_SHA" ]; then
   echo "  ✅ 远端 main = 本地 HEAD = ${LOCAL_SHA:0:8} → 推送已落地"
+  # ★★2026-11-02 01:5x: **推送成功后写哨兵** —— 此前这个记录**只有人读、没有自动写点**
+  #   ⇒ 手动推 / cron 自动同步推 / token 守护推, 记录都不更新 ⇒ token_watch 报的"距上次推送"永远是假的
+  #   ⇒ 而这条是老板 10-29 定的最可靠兜底 (限额数值本身未公开) ⇒ **它骗自己 = 兜底失效**
+  #   ⇒ 写入点放在这里 (唯一的推送收口, 三条推送路径都过它)
+  if [ "${PUSHED:-0}" = "1" ]; then
+    python3 "$SCRIPT_DIR/token_watch.py" --write-flag 2>/dev/null && echo "[6b] 推送哨兵已更新" || true
+  fi
 else
   echo "  ❌ 远端 ${REMOTE_SHA:0:8} != 本地 ${LOCAL_SHA:0:8}"
   exit 1
