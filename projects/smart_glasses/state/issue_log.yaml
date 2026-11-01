@@ -365,7 +365,11 @@ issues:
   verify_date: null
   note: '部分闭环(不可关单): 本机物理上无法完成实物打印 (打印机 192.168.1.68 与本机 192.168.2.4/24 跨网段不可达, 无切片器/卡尺/千分尺 — 证据 MECH/print/ENV_PROBE.log) → 已交付 2 个可下片 STL + 41 项测量清单 + 模型级自检 41/41; measurements.yaml 诚实登记 kind=推算, 阶段门 G2 仍显示''必须实测'' = 符合预期。★设计态干涉发现: 镜脚侧前后余 0.30mm 与 FDM 单边公差 ±0.2-0.3mm 同量级=临界; 叠放模型 +0.80mm 前后/+3.50mm 垂直 → 实际不通过; ⌀2.0H7 定位销孔 FDM 做不到
 
-    ★2026-10-29 00:2x due 顺延 10-28 → 11-05 (跨零点自然翻成逾期; ★这类真逾期该报给老板/外部, 但不该卡住 GitHub 同步 —— 已改 daily_check 退出码分级, 异常=3 不再中止发布)。'
+    ★2026-10-29 00:2x due 顺延 10-28 → 11-05 (跨零点自然翻成逾期; ★这类真逾期该报给老板/外部, 但不该卡住 GitHub 同步 —— 已改 daily_check 退出码分级, 异常=3 不再中止发布)。
+
+    ★2026-11-01 21:1x **僵尸 fixing 清理** (断电 2.8 天后): 10-30 00:25 派出后, mech-lead 的 session 在**环境探测阶段**就被 token 配额掐断 (最后一条是探测记录, **无交卷**) ⇒ **核查 mtime: MECH/print/ 下全是 10-26 的旧文件, 无 HANDOFF, MECH/ 无新文件 ⇒ 真 0 产出** ⇒ 按铁律『收活先查 mtime, 真 0 产出才重派』⇒ 回滚 open 重派。
+
+    ★**但它探测出的环境结论有价值, 记下来免得重派时再探一遍**: ① 打印机 192.168.1.68 **跨网段不可达** (本机在 192.168.2.4/24, 路由经 192.168.2.1, ping/端口全不通) ② **无切片器** (bambu studio / orca 都没装) ③ ★**pip 能通** (清华镜像可用) ⇒ 10-25 那次『无外网』的结论**是错的** ⇒ pybambu / trimesh 都装得上 ④ gateway 主机 = 本机 (无第二台机器可借道) ⇒ **本环境物理上无法完成打印+量测** ⇒ ★**这条要走 ISS-040 的『交证据不留空口』分支**: 交可打印模型 + 逐项测量清单 + 探测记录 + needs_from(waiting_on=boss)。'
   need_keys: []
   task_brief: '目标: 闭环 ISS-017 —— ① P2S 打印件打样并量出关键配合尺寸 (目前 0 件) ② 完成电池/PCB/光机装配干涉检查 ③ 记录波导彩虹纹指标的缺失状态
 
@@ -382,7 +386,7 @@ issues:
     自证: python3 state/merge.py (rc 必须 0) && python3 state/gate_check.py && python3 state/issue_check.py
 
     回复只给 4 行: 打印件件数 / M-PRINT 实测值 / M-FIT 结论 / merge rc'
-  dispatched_at: '2026-10-30'
+  dispatched_at: '2026-11-01'
 - id: ISS-018
   title: Q16 sensor 宽高比 A/B/C 拍板 (卡 sensor 选型 + 镜头畸变预算)
   severity: blocker
@@ -3301,7 +3305,7 @@ issues:
   reporter: main
   raised: '2026-10-30'
   due: '2026-11-02'
-  status: open
+  status: fixing
   external: false
   need_keys: []
   fix_ref: null
@@ -3309,9 +3313,9 @@ issues:
   verify_result: null
   verify_date: null
   note: 2026-10-30 00:3x 项目总工从 ISS-092 交卷的 I-5 / I-6 两条接口请求转登记 (ISS-092 已 verified, 但这两条 hw-lead 侧还没人接)
-  dispatched_at: null
+  dispatched_at: '2026-11-01'
 - id: ISS-122
-  title: ★★BGA 逃线层数破 4-6 层锁死 (RK3588 需 11 层 / RK3576 需 9 层) —— 三条解法代价 + 必须问 PCB 厂 DFM 报告
+  title: '★★BGA 逃线层数: ★两套模型结论相反 (9 层 vs 3 层) ⇒ 破没破 4-6 层锁是 [0数据] 不是结论 —— 必须问 PCB 厂 DFM 报告'
   severity: high
   source_blocker: null
   source_agent: main
@@ -3352,7 +3356,7 @@ issues:
   reporter: main
   raised: '2026-11-01'
   due: '2026-11-05'
-  status: open
+  status: fixing
   external: false
   need_keys: []
   fix_ref: null
@@ -3360,7 +3364,7 @@ issues:
   verify_result: null
   verify_date: null
   note: '2026-11-01 20:5x 项目总工从 ISS-120 交卷的『顺手查出的口径冲突』转登记。★sw-lead 的原话: 『未拍板, 已报项目总工 (s2_chip_swap_scope) —— 分叉没定就发信会问错对象』⇒ 它**没有脑补也没有偷改**, 这是正确做法。'
-  dispatched_at: null
+  dispatched_at: '2026-11-01'
 - id: ISS-124
   title: ★★[待瑞芯微/RK3576 模组厂] ISP MP/s 吞吐上限 + ISP 动态功耗 vs 吞吐曲线 (2 问, 一票否决级的剩余部分)
   severity: high
