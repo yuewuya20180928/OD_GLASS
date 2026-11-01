@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-02T01:03:17+08:00'
+  generated_at: '2026-11-02T01:13:33+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 91486
-      sha1: a24ba924e17a
-      mtime_ns: 1793548847082819750
+      size: 91088
+      sha1: 179e79c1aa00
+      mtime_ns: 1793552639918119280
     mech-lead:
       file: mech.yaml
       size: 132051
@@ -19,9 +19,9 @@ meta:
       mtime_ns: 1793548847083927517
     main:
       file: pm.yaml
-      size: 18472
-      sha1: dc951c59a574
-      mtime_ns: 1793548847084961618
+      size: 22707
+      sha1: cd1f4acadaa2
+      mtime_ns: 1793552654340275282
     sw-lead:
       file: sw.yaml
       size: 79422
@@ -38,7 +38,7 @@ domains:
   main:
     agent: main
     role: 项目总工
-    updated_at: '2026-10-25T01:05:00+08:00'
+    updated_at: 2026-11-02 01:2x
     updated_by: main
     status:
       phase: 原理图V1.2已交付待交叉评审
@@ -105,10 +105,31 @@ domains:
       needs_from: &id003
       - vendor
       waiting_since: '2026-10-24'
+    - id: PM-B5
+      desc: RK3572 (4 TOPS) 端到端 60ms 硬指标推算已超 (模式A 62.7~65.7ms) 且正中 T2 翻案条件 ⇒ 须板端实测判生死 (ISS-129)
+      severity: high
+      needs_from: &id004
+      - boss
+      - sw-lead
+      waiting_since: '2026-11-02'
+    - id: PM-B6
+      desc: RK3572 功耗 670mW (原厂口径) vs 皮肤 43°C 红线超 3.4~4.5 倍 ⇒ 贴皮肤佩戴热学大概率不成立, 须实测+降功耗三条出路 (ISS-130)
+      severity: high
+      needs_from: &id005
+      - boss
+      - hw-lead
+      waiting_since: '2026-11-02'
+    - id: PM-B7
+      desc: RK3572 无官方 Brief Datasheet (本项目全部证据等级 = [媒体]/[模组厂口径]) ⇒ 缺封装图/pitch/球阵列、ISP MP/s 吞吐上限、DDR 位宽官方口径、VO
+        官方口径、SoC 域功耗官方口径 ⇒ 板面积账与逃线层数只能 [推算]
+      severity: high
+      needs_from: &id006
+      - hw-lead
+      waiting_since: '2026-11-02'
     - id: PM-B4
       desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
       severity: medium
-      needs_from: &id027
+      needs_from: &id030
       - jbd
       waiting_since: '2026-10-21'
     needs_from:
@@ -445,6 +466,56 @@ domains:
           一旦说发就能直接发。'
         ref: 老板决策 2026-10-25 (项目总工代录)
       foreign_answers: []
+    - key: rk3572_bench_board_and_instruments
+      to: boss
+      item: '要判 60ms 与 43°C 两个硬指标, 需要: ①一块 RK3572 板/模组 (Forlinx FET3572-C 已在售, 或瑞芯微官方样板) ②功耗测量手段 (电源表/电流探头)
+        ③皮肤侧贴片热电偶。
+
+        ★这条是 ISS-129 + ISS-130 的共同前置 ⇒ 与 ISS-041 测试设备预算是同一笔钱。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: ''
+      decided_at: ''
+      answers: []
+      foreign_answers: []
+    - key: soc_cost_criterion
+      to: boss
+      item: '★**按老板 10-29 自己定的『总分 = 唯一排序依据』, RK3572 (60 分) 低于 RK3576 (74 分) 14 分, 在 13 款里排第 9** ⇒ 所以选它的理由必然在
+        9 项之外, 最可能是**成本** (RK3572 是瑞芯微官方定位的 RK3576『青春版/降本版』)。
+
+        ★**建议**: 把『BOM 成本/单价』加成 rubric 的**第 10 项**并写清权重与判据 (例如: 单价档位 + 供货年限 + 是否有现货模组), 而不是让每次换芯都停在『标准之外』重开一次会。
+
+        ★**方法论**: 选型定案书必须写『翻案条件 + 判定单号』 —— RK3572 这次就是没有翻案条件、只有一句拍板。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: ''
+      decided_at: ''
+      answers: []
+      foreign_answers: []
+    - key: rk3572_official_datasheet
+      to: hw-lead
+      item: 'RK3572 目前**没有官方 Brief Datasheet** (本项目全部规格证据等级都是 [媒体]/[模组厂口径])。需要: ①官方封装图 (球数/pitch/球阵列分布)
+        ②ISP MP/s 吞吐上限 ③DDR 位宽/速率官方口径 ④VO 接口官方口径 (确认无 DP TX) ⑤SoC 域功耗官方口径。
+
+        ★**拿到第①项之前, 板面积账与逃线层数都只能是 [推算]** (ISS-128 阻塞于此)。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: ''
+      decided_at: ''
+      answers: []
+      foreign_answers: []
     answers:
     - key: reva_stl_regen
       to: mech-lead
@@ -484,10 +555,18 @@ domains:
     - id: R-dsi-unknown
       text: ARS45 显示 TX 接口未确认 (媒体二手证据) — 若既无 DSI TX 也无 DP TX, 则显示链不成立
       severity: high
+    - id: R-R16-e2e
+      text: RK3572 4 TOPS ⇒ 纯 NPU [推算] 23.1~26.1ms ⇒ 模式A 62.7~65.7ms ⇒ 超老板锁死的 60ms 硬指标; 且 RK3576 上的 RKNN
+        实测链 (NPU 15.4~17.4ms) 不可移植 ⇒ 必须板端重测 (ISS-129)
+      severity: high
+    - id: R-R17-thermal
+      text: RK3572 原厂口径 670mW @1080P 播放 vs 贴皮肤可持续上限 0.15-0.2W ⇒ 超 3.4~4.5 倍 ⇒ 43°C 红线大概率违反; 且眼镜腔体无主动散热
+        ⇒ 满载降频会反噬 60ms 判定 ⇒ 两个硬指标必须同一次测量里一起判 (ISS-130)
+      severity: high
   hw-lead:
     agent: hw-lead
     role: 硬件总工
-    updated_at: '2026-11-01'
+    updated_at: 2026-11-02 01:2x
     updated_by: hw-lead
     status:
       phase: P2(原理图/BOM)+结构接口
@@ -715,7 +794,7 @@ domains:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
       severity: high
-      needs_from: &id004
+      needs_from: &id007
       - vendor
       - main
       waiting_since: '2026-10-24'
@@ -723,20 +802,20 @@ domains:
       desc: 'FCCSP 球间距未拿到 → 逃线/叠层结论给不出 (已把 pitch 升级为 SoC 选型一票否决项: ≥0.4mm 可行 / 0.35mm 极限 / ≤0.3mm 须 HDI
         直接违反 4-6 层锁死)'
       severity: high
-      needs_from: &id005
+      needs_from: &id008
       - vendor
       waiting_since: '2026-10-25'
     - id: HW-B3
       desc: 电源域电压/电流上限全未知 → 电压域清单写不出来, 原理图只能画顶层骨架
       severity: high
-      needs_from: &id006
+      needs_from: &id009
       - vendor
       waiting_since: '2026-10-25'
     - id: HW-B4
       desc: 'HW-03 启动存储/固件分区是 tracker 漏项: rootfs + yolov5 权重 + ISP/NPU 固件必须放哪, ARS45 有无内置 boot storage
         未知'
       severity: high
-      needs_from: &id007
+      needs_from: &id010
       - vendor
       - main
       waiting_since: '2026-10-25'
@@ -744,7 +823,7 @@ domains:
       desc: '可靠性证据缺口: 15/15 器件 Absolute Maximum Ratings 未核 (降额表只能当设计约束) + 跌落/振动/弯折/热 实测 0 项 (无样机) + 全板
         FIT 无器件级数据 (MTBF 只能用通用代表值, 光学子系统占 39.1%)'
       severity: high
-      needs_from: &id008
+      needs_from: &id011
       - vendor
       - main
       waiting_since: '2026-10-26'
@@ -763,7 +842,7 @@ domains:
         仍 [待选型], 现在加零板费); 另 3 条外部依赖 (原厂 TPS62130A R_on / JBD 光机 3.3V 容差 / 老板拍板没电插电开不了机) 见 needs_from。
         ★本单遗留: 库内 netlist_v1.csv 的 U_LDO_L33/U_LDO_IO33 还是 LDO => 方案A 尚未落进网表, 改法清单见主文 §2.1, 需下一单调生成器。'
       severity: medium
-      needs_from: &id028
+      needs_from: &id031
       - main
       - vendor
       waiting_since: '2026-10-26'
@@ -1615,6 +1694,25 @@ domains:
           STL↔规格互验 rc=0。'
         ref: MECH/print/gen_print_pack_revb.py (P 表 pinset2_*_y) + MECH/print/verify_pack_revb.py
       foreign_answers: []
+    - key: recompute_all_soc_numbers_for_rk3572
+      to: main
+      item: '主控换 RK3572 ⇒ hw.yaml 里这些以 RK3576 为前提的 claim 必须重算: soc_power_budget_v3(300-610mW) / soc_power_mid_v3
+        / full_load_total_v3_* / temple_heat_v3_* / skin_temp_full_v3(60.1C) / skin_temp_full_v3_upper(76.3C)
+        / skin_temp_duty_b(41.4C) / battery_cap_1h_v3_* / temple_thickness_v3(7.3mm) / soc_pkg_balls_required(72)
+        / soc_pkg_balls_worstcase(68) / soc_pin_budget_* / isp_throughput_req(245.1MP/s@60) / csi_lane_mode_req(4-lane)。
+
+        ★其中 **skin_temp_duty_b=41.4C** 那条最关键: 它是「按需触发 10% 占空 ⇒ 皮肤 41.4°C < 43°C 红线」的唯一依据, 而 RK3572 的原厂口径
+        670mW 比当时假设的 500mW 高 34% ⇒ **这条要重算, 可能直接破线**。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: ''
+      decided_at: ''
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -2089,34 +2187,34 @@ domains:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
       severity: high
-      needs_from: &id009
+      needs_from: &id012
       - vendor
       waiting_since: '2026-10-21'
     - id: SW-B2
       desc: 光机逐帧延迟 = 完全 0 数据 (走鹃Ⅱ 只公开 480Hz 刷新率; 光机出光没法用软件打点, 需高速摄影/示波器)
       severity: high
-      needs_from: &id010
+      needs_from: &id013
       - boss
       - vendor
       waiting_since: '2026-10-25'
     - id: SW-B3
       desc: NPU 输出是否强制 FP32 未知 → A733 上 tensor_to_fp 9.29ms 占 SDK 总 25%; 若强制则端到端多 7.3ms, 框龄跳档
       severity: high
-      needs_from: &id011
+      needs_from: &id014
       - vendor
       waiting_since: '2026-10-21'
     - id: SW-B4
       desc: 'Q1 60ms 口径 + Q17 显示帧率 待老板拍板 (needs: q1_latency_scope / q17_display_fps, waiting_on=boss,
         due 2026-10-25) → 端到端 ''达标/不达标'' 结论定不下来: 口径A=67.0ms 不达标 / 口径C=42.3ms 达标, 同一套硬件两个口径'
       severity: high
-      needs_from: &id012
+      needs_from: &id015
       - boss
       - main
       waiting_since: '2026-10-25'
     - id: SW-FW-B1
       desc: 6 个烧录失败注入用例 (FI-1~FI-6) 一个都没跑过 (无板) -> 断电原子性/版本块校验/模型格式版本拦截全部未验证
       severity: high
-      needs_from: &id013
+      needs_from: &id016
       - vendor
       waiting_since: '2026-10-26'
     - id: SW-FW-B2
@@ -2124,7 +2222,7 @@ domains:
         (SW/FLASH_AND_VERSION §4.5, ISS-080): 软件层先验 (L0 布局 8/8 + L1 写入回读 15/15 + 断电注入 2 例 + 探针自测 10/10)
         已实跑, 并抓到 4 个版本块真 bug; 但 **板端 0 次**, 且 4 个 0 数据项 (P1~P4) 仍未填'
       severity: high
-      needs_from: &id014
+      needs_from: &id017
       - vendor
       - hw-lead
       waiting_since: '2026-10-26'
@@ -2136,7 +2234,7 @@ domains:
         SW/tools/int8_chain.py), 5 个 BLOCKED 全部卡在原厂工具链 + 无板 → **板端 INT8 模型仍 0 个, 转换 0 次, 板端实测 0 次**; ★另查出台账原''主模型候选''
         (320 版) **PC 侧推理即失败** (C9) → 已隔离'
       severity: high
-      needs_from: &id015
+      needs_from: &id018
       - vendor
       - main
       - boss
@@ -2146,7 +2244,7 @@ domains:
         9 颗供电器件的 EN/SS 脚与监督器 CT 脚 在网表里 0 条; U_SUPV 分压是两颗 0Ω 位 (同时装 = V_SOC_IO 短路); 网表 RC 注记 ''τ=100ms''
         实为 1.1ms (差 90.9×) ⇒ SW 的 S2 救砖时序表与启动自检都要按保守假设重写'
       severity: high
-      needs_from: &id016
+      needs_from: &id019
       - hw-lead
       - vendor
       waiting_since: '2026-10-27'
@@ -2154,20 +2252,20 @@ domains:
       desc: '★ISS-090: 网表里没有任何硬件断电通路 (负载开关/电源开关 = 0 颗, 电池经 BQ2970 直连 SYS) ⇒ ''关机''只能是软件深睡, 所有轨带电 ⇒ 售后
         ''长按10s=关机'' / 老板锁死的 ''待机<0.05W'' / 关机充电指示灯 三条口径都要重定义 (待项目总工裁决)'
       severity: high
-      needs_from: &id017
+      needs_from: &id020
       - main
       waiting_since: '2026-10-27'
     - id: SW-TIM-B3
       desc: '★ISS-090: SoC 侧没有任何 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失 ⇒ S2 救砖链路 的成立性未验; 且 CONN_USB 只有
         1 个 GND pin (违反 ISS-085 自定规则), Type-C 侧 D+/D− 无独立 ESD (一次 ESD 就能打死唯一的救砖口) ⇒ 三个硬伤修掉前, S2 只能判未验'
       severity: high
-      needs_from: &id018
+      needs_from: &id021
       - vendor
       - hw-lead
       waiting_since: '2026-10-27'
     - id: SW-MODEL-B2
       severity: high
-      needs_from: &id019
+      needs_from: &id022
       - vendor
       - boss
       waiting_since: '2026-10-28'
@@ -2178,7 +2276,7 @@ domains:
     - id: SW-FW-B3
       desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
       severity: medium
-      needs_from: &id029
+      needs_from: &id032
       - hw-lead
       - vendor
       waiting_since: '2026-10-26'
@@ -2186,7 +2284,7 @@ domains:
       desc: S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序) 与 P3 (BOOT 态
         VID:PID) 只能干等原厂, 拿不到任何一手数据
       severity: medium
-      needs_from: &id030
+      needs_from: &id033
       - main
       - hw-lead
       waiting_since: '2026-10-27'
@@ -3203,7 +3301,7 @@ domains:
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
         11.8mm 全是推算)
       severity: high
-      needs_from: &id020
+      needs_from: &id023
       - jbd
       - main
       waiting_since: '2026-10-21'
@@ -3211,7 +3309,7 @@ domains:
       desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
         0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
       severity: high
-      needs_from: &id021
+      needs_from: &id024
       - boss
       - main
       waiting_since: '2026-10-25'
@@ -3219,7 +3317,7 @@ domains:
       desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置
         boot storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
       severity: high
-      needs_from: &id022
+      needs_from: &id025
       - hw-lead
       - main
       waiting_since: '2026-10-25'
@@ -3228,7 +3326,7 @@ domains:
         扛 0.55A 还是 1.5A、8p 还是 10p、载流与型号; 同时 J_CHG 无机械防呆 (反插 = SYS 短接 GND = 充电板 MOS 直通)。未裁之前: J_CHG 型号定不了、跨铰链
         FPC 芯数定不了、铰链区走线槽开不出来 (打印包不能开工)。'
       severity: high
-      needs_from: &id023
+      needs_from: &id026
       - main
       - hw-lead
       waiting_since: '2026-10-27'
@@ -3238,7 +3336,7 @@ domains:
       desc: 'ISS-091: 跨铰链充电电流核算已交 (MECH/HINGE_POWER_CALC.md), 但两个前置未裁: (1) J_CHG 单触点额定电流未知 [0数据] -> 直接锁死
         R_ILIM 档位 (若只有0.3A型号则只能选680Ω); (2) FPC 厂商三项能力未知 [0数据] (分段铜厚/0.4mm加宽/地平面keep-out) -> 固定段能否加厚不确定,
         影响压降 111->65mV 区间。未裁之前: R_ILIM 最终档位定不了、FPC 加工图定不了、铰链段 FPC 不能下单。'
-      needs_from: &id024
+      needs_from: &id027
       - main
       - hw-lead
     - id: MECH-B9
@@ -3249,27 +3347,27 @@ domains:
         + TCP 990/8883/6000/4000 全 closed; 无切片器; 无卡尺/千分尺/塞尺; 无 USB 串口 —— 证据 MECH/print/ENV_PROBE.log).
         因此 B1 之前所有尺寸仍是图纸值, M-PRINT/M-FIT/M-WEIGHT 三项 [实测] 全空, G2 缺 7 项一项没减. **B1+B2 共 49 项实测不需要 PCB 也不需要
         JBD**, 是当前唯一不被外部依赖卡死的路径 —— 但要靠 ISS-040 落地才走得动. 未闭之前: 打印件0件 -> ISS-017 无法闭 -> G2 不可判.'
-      needs_from: &id025
+      needs_from: &id028
       - boss
       - main
     - id: MECH-B-DFM-1
       desc: 量产外形件几何不存在 => 脱模/分型/收缩/缩痕/飞边/顶针的面级统计 = 0个数据点。Rev B打印包只含检具与试样。不补就开模 = 模具报废风险(本单已算出镜脚H链在1deg脱模下最坏
         -0.577mm, 几何上做不出来)
       severity: high
-      needs_from: &id026
+      needs_from: &id029
       - main
       waiting_since: '2026-11-01'
     - id: MECH-B3
       desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
       severity: medium
-      needs_from: &id031
+      needs_from: &id034
       - jbd
       waiting_since: '2026-10-25'
     - id: MECH-B5
       desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
         → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
       severity: medium
-      needs_from: &id032
+      needs_from: &id035
       - mech-lead
       waiting_since: '2026-10-25'
     - id: MECH-B6
@@ -3277,7 +3375,7 @@ domains:
         boss mech_reltest_kit_site)。另: 1 台样机做 12 类必然撞上 ''样本量不足只能筛查'' 与 ''一次失败后续全废'' 两个硬边界 (见 MECH/RELIABILITY_TEST_PLAN.md
         §B2.3 / §B3.3)。'
       severity: medium
-      needs_from: &id033
+      needs_from: &id036
       - boss
     - id: MECH-B10
       severity: medium
@@ -3287,14 +3385,14 @@ domains:
         13732-1 的 43°C 红线 3.5°C**. 也就是说: 重量上省下来的 0.73g, 热学上可能还回去. 这两个数必须**一起**算, 不能只看重量选截面. 重算需完整热模型 (含石墨铺装范围
         + 骨架截面形状 + 隔热层), 即 PCB_MOUNT_PIN_SET2.md §5 U-3 那张单. 未重算前: **我不出新的皮肤侧温度数**, 也不把 0.80mm 当已定版 ——
         只作为待裁候选.'
-      needs_from: &id034
+      needs_from: &id037
       - main
       - hw-lead
     - id: MECH-B-DFM-2
       desc: 量产级工艺参数(脱模斜度/公差带/收缩率)全部是[推算·通用]或[0数据], 未按牌号/模具厂验证。已登记3条 waiting_on=vendor 的needs(收缩率/阳极均匀性/模具公差),
         未回应前不进入开模
       severity: medium
-      needs_from: &id035
+      needs_from: &id038
       - vendor
       waiting_since: '2026-11-01'
     needs_from:
@@ -5410,7 +5508,7 @@ interface_claims:
     noncanonical_by: []
     conflict: false
   skeleton_extent:
-    values: &id036
+    values: &id039
       hw-lead: 止于PCB段后缘@Z=60.00mm
       mech-lead: 止于PCB段后缘
     notes:
@@ -5854,11 +5952,11 @@ interface_claims:
     conflict: false
   soic_pkg_notes_20261101:
     values:
-      hw-lead: ARS45已停/RK3576基线
+      hw-lead: ARS45已停/RK3572基线(11-02拍板)
     notes:
-      hw-lead: '★新增 (2026-11-01) 口径声明: 11-01 20:5x 基线已换 **瑞芯微 RK3576** (ARS45/酷芯微路线 10-29 19:20 起作废)。⇒
-        所有 ARS45 专属 claim (fccsp_pitch_min / soc_pkg_balls_* / soc_pin_budget_* / mipi_csi_lanes / bridge_chip_spec
-        / vendor_* 系列) **仅作历史口径保留**, 换芯重画时全部要换。★同时暴露新硬冲突: RK3576 逃线需 9 层 ⇒ 破 §0 『4-6 层』锁死 (ISS-122), 比选型更靠前。'
+      hw-lead: ★2026-11-02 01:00 老板拍板主控改 RK3572 (FCCSP550L 14.3×15.5mm/550球) ⇒ 本表里所有以 RK3576 为前提的数 (soc_power_budget_v3
+        / skin_temp_full_v3 / temple_thickness_v3 / battery_cap_1h_v3 等) **全部需按 RK3572 重算** (ISS-128/129/130)
+        ⇒ 在重算前一律视为 [待重算]
     by:
     - hw-lead
     noncanonical_by: []
@@ -7547,6 +7645,55 @@ interface_claims:
     - main
     noncanonical_by: []
     conflict: false
+  soc_baseline:
+    values:
+      main: RK3572
+    notes:
+      main: 2026-11-02 01:00 老板直接拍板; 演进 ARS45→弃用→RK3588→RK3576→RK3572; FCCSP550L 14.3x15.5mm/8nm/4TOPS/12M
+        ISP/32bit LPDDR5/原生4-lane MIPI-DSI(无DP)/原厂口径670mW; 9项60分(第9)
+    by:
+    - main
+    noncanonical_by: []
+    conflict: false
+  soc_npu_tops:
+    values:
+      main: '4'
+    notes:
+      main: RK3572 4 TOPS sparse INT8 (RK3576 是 6) ⇒ 纯 NPU [推算] 23.1~26.1ms > T2 阈值 20.33ms ⇒ 60ms 硬指标大概率不保
+    by:
+    - main
+    noncanonical_by: []
+    conflict: false
+  soc_pkg_size:
+    values:
+      main: 14.3x15.5mm
+    notes:
+      main: RK3572 FCCSP550L/550球 (RK3576 = 16.1x17.2mm/698球) ⇒ 板面积余量 [推算] 122.3→约480mm2; 逃线层数可能整体下移 ⇒
+        ISS-122/126 有望松绑
+    by:
+    - main
+    noncanonical_by: []
+    conflict: false
+  bridge_chip_needed:
+    values:
+      main: 'no'
+    notes:
+      main: RK3572 无 DP TX 但原生 4-lane MIPI DSI 1.2 (≤2560x1600@60) ⇒ 直驱走鹃Ⅱ 不需要 DP→DSI 桥接芯片 ⇒ 网表里的 U_BRIDGE
+        该删不是 DNP
+    by:
+    - main
+    noncanonical_by: []
+    conflict: false
+  soc_power_official_mw:
+    values:
+      main: '670'
+    notes:
+      main: RK3572 原厂实测口径 1080P 播放 670mW / 二级待机 <10mW ⇒ 全表第一个有具体功耗数的候选 ⇒ vs 皮肤可持续上限 0.15-0.2W = 超 3.4~4.5
+        倍
+    by:
+    - main
+    noncanonical_by: []
+    conflict: false
   od_input_size:
     values:
       sw-lead: 640x640
@@ -8466,6 +8613,44 @@ interface_claims:
     conflict: false
 needs_matrix:
   pending:
+  - key: rk3572_bench_board_and_instruments
+    to: boss
+    item: '要判 60ms 与 43°C 两个硬指标, 需要: ①一块 RK3572 板/模组 (Forlinx FET3572-C 已在售, 或瑞芯微官方样板) ②功耗测量手段 (电源表/电流探头)
+      ③皮肤侧贴片热电偶。
+
+      ★这条是 ISS-129 + ISS-130 的共同前置 ⇒ 与 ISS-041 测试设备预算是同一笔钱。'
+    decision: ''
+    decided_at: ''
+    decided_by: ''
+    since: '2026-11-02'
+    _by: main
+    state: pending
+  - key: soc_cost_criterion
+    to: boss
+    item: '★**按老板 10-29 自己定的『总分 = 唯一排序依据』, RK3572 (60 分) 低于 RK3576 (74 分) 14 分, 在 13 款里排第 9** ⇒ 所以选它的理由必然在
+      9 项之外, 最可能是**成本** (RK3572 是瑞芯微官方定位的 RK3576『青春版/降本版』)。
+
+      ★**建议**: 把『BOM 成本/单价』加成 rubric 的**第 10 项**并写清权重与判据 (例如: 单价档位 + 供货年限 + 是否有现货模组), 而不是让每次换芯都停在『标准之外』重开一次会。
+
+      ★**方法论**: 选型定案书必须写『翻案条件 + 判定单号』 —— RK3572 这次就是没有翻案条件、只有一句拍板。'
+    decision: ''
+    decided_at: ''
+    decided_by: ''
+    since: '2026-11-02'
+    _by: main
+    state: pending
+  - key: rk3572_official_datasheet
+    to: hw-lead
+    item: 'RK3572 目前**没有官方 Brief Datasheet** (本项目全部规格证据等级都是 [媒体]/[模组厂口径])。需要: ①官方封装图 (球数/pitch/球阵列分布)
+      ②ISP MP/s 吞吐上限 ③DDR 位宽/速率官方口径 ④VO 接口官方口径 (确认无 DP TX) ⑤SoC 域功耗官方口径。
+
+      ★**拿到第①项之前, 板面积账与逃线层数都只能是 [推算]** (ISS-128 阻塞于此)。'
+    decision: ''
+    decided_at: ''
+    decided_by: ''
+    since: '2026-11-02'
+    _by: main
+    state: pending
   - key: iss081_pm_decisions
     to: main
     item: '板宽12mm还是15mm + 双显示hedge买不买, 两条PM裁决: 1) 板宽我建议15mm(逃线带误差容忍0.20-0.30mm->1.25mm, 且SoC横向热扩散通道2->3.5mm对散热是增益;
@@ -8616,6 +8801,21 @@ needs_matrix:
     since: '2026-11-01'
     waiting_on: agent
     due: '2026-11-04'
+    _by: hw-lead
+    state: pending
+  - key: recompute_all_soc_numbers_for_rk3572
+    to: main
+    item: '主控换 RK3572 ⇒ hw.yaml 里这些以 RK3576 为前提的 claim 必须重算: soc_power_budget_v3(300-610mW) / soc_power_mid_v3
+      / full_load_total_v3_* / temple_heat_v3_* / skin_temp_full_v3(60.1C) / skin_temp_full_v3_upper(76.3C)
+      / skin_temp_duty_b(41.4C) / battery_cap_1h_v3_* / temple_thickness_v3(7.3mm) / soc_pkg_balls_required(72)
+      / soc_pkg_balls_worstcase(68) / soc_pin_budget_* / isp_throughput_req(245.1MP/s@60) / csi_lane_mode_req(4-lane)。
+
+      ★其中 **skin_temp_duty_b=41.4C** 那条最关键: 它是「按需触发 10% 占空 ⇒ 皮肤 41.4°C < 43°C 红线」的唯一依据, 而 RK3572 的原厂口径
+      670mW 比当时假设的 500mW 高 34% ⇒ **这条要重算, 可能直接破线**。'
+    decision: ''
+    decided_at: ''
+    decided_by: ''
+    since: '2026-11-02'
     _by: hw-lead
     state: pending
   - key: fw_s2_test_gear
@@ -8937,7 +9137,7 @@ needs_matrix:
     _by: mech-lead
     state: pending
   answered_count: 134
-  total: 185
+  total: 189
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -8957,36 +9157,55 @@ blockers:
   needs_from: *id003
   waiting_since: '2026-10-24'
   owner: main
+- id: PM-B5
+  desc: RK3572 (4 TOPS) 端到端 60ms 硬指标推算已超 (模式A 62.7~65.7ms) 且正中 T2 翻案条件 ⇒ 须板端实测判生死 (ISS-129)
+  severity: high
+  needs_from: *id004
+  waiting_since: '2026-11-02'
+  owner: main
+- id: PM-B6
+  desc: RK3572 功耗 670mW (原厂口径) vs 皮肤 43°C 红线超 3.4~4.5 倍 ⇒ 贴皮肤佩戴热学大概率不成立, 须实测+降功耗三条出路 (ISS-130)
+  severity: high
+  needs_from: *id005
+  waiting_since: '2026-11-02'
+  owner: main
+- id: PM-B7
+  desc: RK3572 无官方 Brief Datasheet (本项目全部证据等级 = [媒体]/[模组厂口径]) ⇒ 缺封装图/pitch/球阵列、ISP MP/s 吞吐上限、DDR 位宽官方口径、VO
+    官方口径、SoC 域功耗官方口径 ⇒ 板面积账与逃线层数只能 [推算]
+  severity: high
+  needs_from: *id006
+  waiting_since: '2026-11-02'
+  owner: main
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
   severity: high
-  needs_from: *id004
+  needs_from: *id007
   waiting_since: '2026-10-24'
   owner: hw-lead
 - id: HW-B2
   desc: 'FCCSP 球间距未拿到 → 逃线/叠层结论给不出 (已把 pitch 升级为 SoC 选型一票否决项: ≥0.4mm 可行 / 0.35mm 极限 / ≤0.3mm 须 HDI 直接违反
     4-6 层锁死)'
   severity: high
-  needs_from: *id005
+  needs_from: *id008
   waiting_since: '2026-10-25'
   owner: hw-lead
 - id: HW-B3
   desc: 电源域电压/电流上限全未知 → 电压域清单写不出来, 原理图只能画顶层骨架
   severity: high
-  needs_from: *id006
+  needs_from: *id009
   waiting_since: '2026-10-25'
   owner: hw-lead
 - id: HW-B4
   desc: 'HW-03 启动存储/固件分区是 tracker 漏项: rootfs + yolov5 权重 + ISP/NPU 固件必须放哪, ARS45 有无内置 boot storage 未知'
   severity: high
-  needs_from: *id007
+  needs_from: *id010
   waiting_since: '2026-10-25'
   owner: hw-lead
 - id: HW-B6
   desc: '可靠性证据缺口: 15/15 器件 Absolute Maximum Ratings 未核 (降额表只能当设计约束) + 跌落/振动/弯折/热 实测 0 项 (无样机) + 全板 FIT
     无器件级数据 (MTBF 只能用通用代表值, 光学子系统占 39.1%)'
   severity: high
-  needs_from: *id008
+  needs_from: *id011
   waiting_since: '2026-10-26'
   owner: hw-lead
 - id: HW-B7
@@ -9000,32 +9219,32 @@ blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
   severity: high
-  needs_from: *id009
+  needs_from: *id012
   waiting_since: '2026-10-21'
   owner: sw-lead
 - id: SW-B2
   desc: 光机逐帧延迟 = 完全 0 数据 (走鹃Ⅱ 只公开 480Hz 刷新率; 光机出光没法用软件打点, 需高速摄影/示波器)
   severity: high
-  needs_from: *id010
+  needs_from: *id013
   waiting_since: '2026-10-25'
   owner: sw-lead
 - id: SW-B3
   desc: NPU 输出是否强制 FP32 未知 → A733 上 tensor_to_fp 9.29ms 占 SDK 总 25%; 若强制则端到端多 7.3ms, 框龄跳档
   severity: high
-  needs_from: *id011
+  needs_from: *id014
   waiting_since: '2026-10-21'
   owner: sw-lead
 - id: SW-B4
   desc: 'Q1 60ms 口径 + Q17 显示帧率 待老板拍板 (needs: q1_latency_scope / q17_display_fps, waiting_on=boss, due
     2026-10-25) → 端到端 ''达标/不达标'' 结论定不下来: 口径A=67.0ms 不达标 / 口径C=42.3ms 达标, 同一套硬件两个口径'
   severity: high
-  needs_from: *id012
+  needs_from: *id015
   waiting_since: '2026-10-25'
   owner: sw-lead
 - id: SW-FW-B1
   desc: 6 个烧录失败注入用例 (FI-1~FI-6) 一个都没跑过 (无板) -> 断电原子性/版本块校验/模型格式版本拦截全部未验证
   severity: high
-  needs_from: *id013
+  needs_from: *id016
   waiting_since: '2026-10-26'
   owner: sw-lead
 - id: SW-FW-B2
@@ -9033,7 +9252,7 @@ blockers:
     (SW/FLASH_AND_VERSION §4.5, ISS-080): 软件层先验 (L0 布局 8/8 + L1 写入回读 15/15 + 断电注入 2 例 + 探针自测 10/10) 已实跑,
     并抓到 4 个版本块真 bug; 但 **板端 0 次**, 且 4 个 0 数据项 (P1~P4) 仍未填'
   severity: high
-  needs_from: *id014
+  needs_from: *id017
   waiting_since: '2026-10-26'
   owner: sw-lead
 - id: SW-MODEL-B1
@@ -9044,7 +9263,7 @@ blockers:
     5 个 BLOCKED 全部卡在原厂工具链 + 无板 → **板端 INT8 模型仍 0 个, 转换 0 次, 板端实测 0 次**; ★另查出台账原''主模型候选'' (320 版) **PC
     侧推理即失败** (C9) → 已隔离'
   severity: high
-  needs_from: *id015
+  needs_from: *id018
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: SW-TIM-B1
@@ -9052,26 +9271,26 @@ blockers:
     颗供电器件的 EN/SS 脚与监督器 CT 脚 在网表里 0 条; U_SUPV 分压是两颗 0Ω 位 (同时装 = V_SOC_IO 短路); 网表 RC 注记 ''τ=100ms'' 实为 1.1ms
     (差 90.9×) ⇒ SW 的 S2 救砖时序表与启动自检都要按保守假设重写'
   severity: high
-  needs_from: *id016
+  needs_from: *id019
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: SW-TIM-B2
   desc: '★ISS-090: 网表里没有任何硬件断电通路 (负载开关/电源开关 = 0 颗, 电池经 BQ2970 直连 SYS) ⇒ ''关机''只能是软件深睡, 所有轨带电 ⇒ 售后 ''长按10s=关机''
     / 老板锁死的 ''待机<0.05W'' / 关机充电指示灯 三条口径都要重定义 (待项目总工裁决)'
   severity: high
-  needs_from: *id017
+  needs_from: *id020
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: SW-TIM-B3
   desc: '★ISS-090: SoC 侧没有任何 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失 ⇒ S2 救砖链路 的成立性未验; 且 CONN_USB 只有 1 个
     GND pin (违反 ISS-085 自定规则), Type-C 侧 D+/D− 无独立 ESD (一次 ESD 就能打死唯一的救砖口) ⇒ 三个硬伤修掉前, S2 只能判未验'
   severity: high
-  needs_from: *id018
+  needs_from: *id021
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: SW-MODEL-B2
   severity: high
-  needs_from: *id019
+  needs_from: *id022
   waiting_since: '2026-10-28'
   desc: '★ISS-087 新增: 交付集里唯一的许可干净候选 (TF OD API SSD-MobileNetV2-FPNLite, Apache-2.0) **NPU 可转换性 = 0 数据**
     (TF SavedModel → ONNX → Art.Galaxy 三段都没跑过) —— 即''换栈''这条路目前也只有许可干净, 没有转换可行性证据; 同机 640 版 yolov5s ONNX
@@ -9081,21 +9300,21 @@ blockers:
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
     11.8mm 全是推算)
   severity: high
-  needs_from: *id020
+  needs_from: *id023
   waiting_since: '2026-10-21'
   owner: mech-lead
 - id: MECH-B2
   desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
     0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
   severity: high
-  needs_from: *id021
+  needs_from: *id024
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B4
   desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置 boot
     storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
   severity: high
-  needs_from: *id022
+  needs_from: *id025
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B7
@@ -9103,7 +9322,7 @@ blockers:
     还是 1.5A、8p 还是 10p、载流与型号; 同时 J_CHG 无机械防呆 (反插 = SYS 短接 GND = 充电板 MOS 直通)。未裁之前: J_CHG 型号定不了、跨铰链 FPC 芯数定不了、铰链区走线槽开不出来
     (打印包不能开工)。'
   severity: high
-  needs_from: *id023
+  needs_from: *id026
   waiting_since: '2026-10-27'
   owner: mech-lead
 - id: MECH-B8
@@ -9112,7 +9331,7 @@ blockers:
   desc: 'ISS-091: 跨铰链充电电流核算已交 (MECH/HINGE_POWER_CALC.md), 但两个前置未裁: (1) J_CHG 单触点额定电流未知 [0数据] -> 直接锁死 R_ILIM
     档位 (若只有0.3A型号则只能选680Ω); (2) FPC 厂商三项能力未知 [0数据] (分段铜厚/0.4mm加宽/地平面keep-out) -> 固定段能否加厚不确定, 影响压降 111->65mV
     区间。未裁之前: R_ILIM 最终档位定不了、FPC 加工图定不了、铰链段 FPC 不能下单。'
-  needs_from: *id024
+  needs_from: *id027
   owner: mech-lead
 - id: MECH-B9
   severity: high
@@ -9122,19 +9341,19 @@ blockers:
     全 closed; 无切片器; 无卡尺/千分尺/塞尺; 无 USB 串口 —— 证据 MECH/print/ENV_PROBE.log). 因此 B1 之前所有尺寸仍是图纸值, M-PRINT/M-FIT/M-WEIGHT
     三项 [实测] 全空, G2 缺 7 项一项没减. **B1+B2 共 49 项实测不需要 PCB 也不需要 JBD**, 是当前唯一不被外部依赖卡死的路径 —— 但要靠 ISS-040 落地才走得动.
     未闭之前: 打印件0件 -> ISS-017 无法闭 -> G2 不可判.'
-  needs_from: *id025
+  needs_from: *id028
   owner: mech-lead
 - id: MECH-B-DFM-1
   desc: 量产外形件几何不存在 => 脱模/分型/收缩/缩痕/飞边/顶针的面级统计 = 0个数据点。Rev B打印包只含检具与试样。不补就开模 = 模具报废风险(本单已算出镜脚H链在1deg脱模下最坏
     -0.577mm, 几何上做不出来)
   severity: high
-  needs_from: *id026
+  needs_from: *id029
   waiting_since: '2026-11-01'
   owner: mech-lead
 - id: PM-B4
   desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
   severity: medium
-  needs_from: *id027
+  needs_from: *id030
   waiting_since: '2026-10-21'
   owner: main
 - id: HW-B5
@@ -9145,34 +9364,34 @@ blockers:
     仍 [待选型], 现在加零板费); 另 3 条外部依赖 (原厂 TPS62130A R_on / JBD 光机 3.3V 容差 / 老板拍板没电插电开不了机) 见 needs_from。 ★本单遗留:
     库内 netlist_v1.csv 的 U_LDO_L33/U_LDO_IO33 还是 LDO => 方案A 尚未落进网表, 改法清单见主文 §2.1, 需下一单调生成器。'
   severity: medium
-  needs_from: *id028
+  needs_from: *id031
   waiting_since: '2026-10-26'
   resolved_by: ISS-067
   owner: hw-lead
 - id: SW-FW-B3
   desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
   severity: medium
-  needs_from: *id029
+  needs_from: *id032
   waiting_since: '2026-10-26'
   owner: sw-lead
 - id: SW-FW-B4
   desc: S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序) 与 P3 (BOOT 态 VID:PID)
     只能干等原厂, 拿不到任何一手数据
   severity: medium
-  needs_from: *id030
+  needs_from: *id033
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: MECH-B3
   desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
   severity: medium
-  needs_from: *id031
+  needs_from: *id034
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B5
   desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
     → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
   severity: medium
-  needs_from: *id032
+  needs_from: *id035
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B6
@@ -9180,7 +9399,7 @@ blockers:
     boss mech_reltest_kit_site)。另: 1 台样机做 12 类必然撞上 ''样本量不足只能筛查'' 与 ''一次失败后续全废'' 两个硬边界 (见 MECH/RELIABILITY_TEST_PLAN.md
     §B2.3 / §B3.3)。'
   severity: medium
-  needs_from: *id033
+  needs_from: *id036
   owner: mech-lead
 - id: MECH-B10
   severity: medium
@@ -9189,19 +9408,19 @@ blockers:
     §2.4 B 的 ''+1-3g'' 预算), 但**铝的导热截面变小 -> Tj 会升**, 而 §2.3.1 的皮肤侧 46.5°C (0.23W 按需触发口径) **已经超 ISO 13732-1
     的 43°C 红线 3.5°C**. 也就是说: 重量上省下来的 0.73g, 热学上可能还回去. 这两个数必须**一起**算, 不能只看重量选截面. 重算需完整热模型 (含石墨铺装范围 + 骨架截面形状
     + 隔热层), 即 PCB_MOUNT_PIN_SET2.md §5 U-3 那张单. 未重算前: **我不出新的皮肤侧温度数**, 也不把 0.80mm 当已定版 —— 只作为待裁候选.'
-  needs_from: *id034
+  needs_from: *id037
   owner: mech-lead
 - id: MECH-B-DFM-2
   desc: 量产级工艺参数(脱模斜度/公差带/收缩率)全部是[推算·通用]或[0数据], 未按牌号/模具厂验证。已登记3条 waiting_on=vendor 的needs(收缩率/阳极均匀性/模具公差),
     未回应前不进入开模
   severity: medium
-  needs_from: *id035
+  needs_from: *id038
   waiting_since: '2026-11-01'
   owner: mech-lead
 conflicts: []
 needs_normalization:
 - key: skeleton_extent
-  values: *id036
+  values: *id039
   canon_values:
     hw-lead: 止于PCB段后缘
     mech-lead: 止于pcb段后缘
@@ -9348,6 +9567,16 @@ risks:
   text: ARS45 显示 TX 接口未确认 (媒体二手证据) — 若既无 DSI TX 也无 DP TX, 则显示链不成立
   severity: high
   owner: main
+- id: R-R16-e2e
+  text: RK3572 4 TOPS ⇒ 纯 NPU [推算] 23.1~26.1ms ⇒ 模式A 62.7~65.7ms ⇒ 超老板锁死的 60ms 硬指标; 且 RK3576 上的 RKNN 实测链
+    (NPU 15.4~17.4ms) 不可移植 ⇒ 必须板端重测 (ISS-129)
+  severity: high
+  owner: main
+- id: R-R17-thermal
+  text: RK3572 原厂口径 670mW @1080P 播放 vs 贴皮肤可持续上限 0.15-0.2W ⇒ 超 3.4~4.5 倍 ⇒ 43°C 红线大概率违反; 且眼镜腔体无主动散热 ⇒ 满载降频会反噬
+    60ms 判定 ⇒ 两个硬指标必须同一次测量里一起判 (ISS-130)
+  severity: high
+  owner: main
 - id: R-hw-display-chain
   text: 若既无 DSI TX 也无 DP TX, 则不是加颗桥芯片的事, 而是显示链不成立
   severity: high
@@ -9409,9 +9638,9 @@ risks:
 summary:
   health: red
   artifacts: 120
-  blockers: 36
-  high_blockers: 27
-  open_needs: 51
+  blockers: 39
+  high_blockers: 30
+  open_needs: 55
   waiting_external_needs: 73
   overdue_needs: 0
   target_missing_needs: 0

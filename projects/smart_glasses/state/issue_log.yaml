@@ -2683,8 +2683,7 @@ issues:
   verify_by: main
   verify_result: pass
   verify_date: '2026-10-28'
-  note: "2026-10-28 00:5x 项目总工登记 (老板拍板连带; sw-lead 现在在跑 ISS-101, 交卷后我转达)\n\n★2026-10-28 08:3x-08:5x 项目总工验收关单。sw-lead 交卷 (08:3x) 后 issue_log 一直挂在 fixing 没落 fix_ref ⇒ 现补。\n\n【机械验收 5 条逐条核对通过】① 状态表 3 状态 × 7 列 (超出要求的 2×5), 每格非空 ② \"深度休眠\" 4 处全部带 [旧称·已作废] ③ 唤醒路径 VBUS/PG/按键 三条写清 ④ 续航两行分列 ⑤ \"待机 <0.05W\" 每处同行带 [旧口径·已作废], 新口径只写「关机(断电) <0.05W」。\n\n【★它自查挖出的真问题 U2 —— 本轮最有价值的产出】`HW/POWER_SHUTDOWN_V3.md` §6 待机/按需/满载 三行的续航是按 **`mAh ÷ (把 W 当 mA)`** 直算的 (漏除电池电压 3.7V + DoD 0.9) ⇒ **三行全部偏低 3.33 倍**。它**没自行改 HW/ 或锁死表**, 走 needs_from 请项目总工裁决 ⇒ ★这正是要的纪律 (跨域改动不自己动手)。\n\n【★项目总工独立复算 + 裁决 (比它的报告精确一档)】库内其实有**两套算式**, 必须说清哪套对:\n- **A 口径 (放电续航, 物理正确)**: `t[h] = Capacity[mAh] × DoD × V / P[W]` ⇒ 420mAh: 待机 **9.32h** / 按需 **6.08h** / 满载 **1.15h** (340mAh: 7.55/4.92/0.93h)\n- **B 口径 (选电芯, 保守)**: `mAh = P × 361.81` (含 ÷0.83 充电效率) —— **0.83 是「充电输入→电池」的效率, 只影响充电时间, 不影响电池放电续航**; 用它选电芯偏保守 20% ⇒ **安全, 选型结论不动**\n⇒ 裁: **续航读数用 A; 选电芯继续用 B** (两套并存, 各司其职, 写死进 PROJECT_TRACKER §(1.34))\n⚠️ 裁决过程中我自己的脚本先出了个 1000× 单位错 (9324h) ⇒ 被输出表当场抓住并修掉 ⇒ 自证复现的价值实打实。\n\n【老板锁死项全部不受影响 ⇒ 无需重新拍板】① 关机(断电) <0.05W ✅ (关机行用真电流 108µA, 从未用错算式) ② 关机续航 5-11 个月 ✅ ③ §0 #38 续航=按需触发≥1h ✅ **更宽裕** (旧值 1.8h → 真值 6.08h/4.92h) ④ §0 #12 续航≥1h ✅。热学结论不变 (算的是功耗侧) ⇒ 43°C 红线结论全部不动; ⚠️ 方向提醒: 续航变长 ⇒ 超标时间窗口变长 ⇒ \"满载 88.6-96.1°C ❌\" 这条**更强不是更弱**。\n\n【★回写已落地】HW/POWER_SHUTDOWN_V3.md §1+§6+§关键决策1 · SW/POWER_STATE_SEMANTICS.md (状态表/§3/§5/§6/实测项表/需求4) · SW/SW_REQUIREMENTS.md M7 段 · PROJECT_TRACKER.md §0 锁死表 + §(1.34) · state/fragments/sw.yaml 的 sw_standby_runtime 声明值 2.8h→9.3h。★旧值一律**保留并标 [旧口径·已作废]** (留变更痕迹, 不删)。\n\n【它主动登记的 3 条 needs_from 处置】① sw_runtime_recalc → **已裁** (本条) ② sw_poweroff_gpio_pin (to hw-lead) → 经我转达, 需并进下一轮原厂问/硬件确认 ③ sw_aon_deepsleep_spec (to vendor) → 已并入酷芯微第二轮问询草稿 (AON 唤醒脚/静态电流 + DDR retention + 深睡外设 rail) ⇒ 仍等 4 封草稿放行。\n\n【自证复现】python3 state/_decide_u2_runtime.py (复算表 + 裁决记录) · python3 SW/tools/model_asset_check.py rc=0 · merge rc=0 · gate_check rc=0 (Q1 18/18)\n\n【诚实缺口】本单全部功耗/续航数字为 **[推算], 无一条实测**; 板端 INT8 产物仍 0 个 (与本单无关)。健康度仍 red。\n\n★★**2026-10-28 18:0x-18:3x 补充: hw-lead 在 ISS-104 追加复查中查出一个 P0 级拓扑缺陷 —— 项目总工独立复核确认并已修复**\n\n【★P0 缺陷 (原设计会让板子永远开不了机)】`HW/POWER_SHUTDOWN_V3.md` §3 的\"插电即开机\"拓扑: **Q_PG 用了 N-MOS 低边反相** (栅极接 PG · 源极接 GND · 漏极接 ON)。\n- BQ25896 的 PG 是**开漏, LOW = 输入源良好** [官方, CHARGE_BOARD_SPEC §2.1 \"LOW indicates a good input source\"]\n- ⇒ PG 低(有电)时 N-MOS **关** ⇒ ON 节点只剩 R_PD_ON 10k 下拉 = 低 = **负载开关关**\n- ⇒ **①插电反而开不了机; ②SoC 拉高 PWR_CTRL 时若 Q_PG 导通会被拉到 GND 拉不高 ⇒ 开机路径彻底不通**\n- ⇒ **这块板做出来永远开不了机** —— 是本次整个关机语义设计里最严重的一个错\n\n【★项目总工独立复核 + 拓扑求解 (不是照抄它的结论)】我自己把四种接法推了一遍:\n- 方案A 原 N-MOS 低边 ⇒ ❌ 逻辑颠倒 (上面已述)\n- 方案B P-MOS 高边 + 漏极接 3.3V ⇒ 逻辑对, **但库内 3.3V 全部挂在 SYS 下** (`U_LDO_IO33` 输入 = RAIL_SYS) ⇒ 关机断电后即灭 ⇒ 漏极无电位 ⇒ **插电开机仍不成立** ⇒ 我第一版改法有洞, 自己否掉了\n- 方案C N-MOS + 额外反相器 ⇒ 多 1 颗 IC, 不划算\n- **方案D P-MOS 高边 + 漏极接 BAT_SW ⇒ ★采纳**: BAT_SW 是电池轨 (3.0-4.2V), **关机态仍带电** ⇒ **零新增 pin、零新增轨**\n  - PG 低(良好) ⇒ 栅极≈0 ⇒ Vgs ≈ -4.2V ⇒ P-MOS 导通 ⇒ ON = BAT_SW = 高 ⇒ 开机 ✔\n  - PG 高(无输入) ⇒ ON 被 10k 下拉到 0 ⇒ Vgs = +3.3V ⇒ P-MOS 关 ⇒ ON 低 ⇒ 关 ✔\n  - 选型硬判据写死: 低漏 · Vgs(th) 明确 · 栅极最大耐压 ±20V · 关断漏电 nA 级\n  - 备选: 若原厂确认有 AON 常开 3.3V 轨, 漏极也可接该轨 ⇒ 已并入原厂追加问 §7 第 19 问\n\n【落盘范围】① `state/gen_netlist.py` (V1.9) ⇒ 重生成网表 (516 行不变) ② `HW/POWER_SHUTDOWN_V3.md` §0/§2(新增第 9 条判据)/§3 (拓扑图 + 状态机 + 对照表) ③ 网表 note 里带 \"★V1.9 P0 修正\" 标记。\n\n【★顺带修掉一个门禁判据缺陷 (我自己的)】改完网表后 `check_netlist.py` 报 \"PWR_GOOD 多驱动\" ⇒ 查下去发现是**判据脆弱**: 第 11 条用 `\"→\" in note` **扫全文** ⇒ 我在 note 里写的说明性箭头 (\"PG 低 → 栅极≈0 → P-MOS 导通\") 被当成信号方向 ⇒ **改一行注释就把门禁改红了**。\n- 修法: 判据只认 note **开头 24 字符**内的结构化方向声明 (\"方向 A→B\" / \"输出: ...\"), 不认正文中间箭头\n- ★**放宽判据必须配反例测试** ⇒ 新增 `state/test_netlist_drc.py` **9/9 通过**, 含 ★**反向验证**: 往网表注入一个真·多驱动 (第二个结构化 \"方向\" 声明) ⇒ 判据必须变红 ⇒ 证明它没被改废\n\n【自证复现】python3 state/gen_netlist.py (516 行) · python3 state/check_netlist.py ✅ 全过 · python3 state/check_kicad_net.py ✅ 6/6 · python3 state/test_netlist_drc.py ✅ 9/9 · merge/gate_check/issue_check rc=0\n\n【★honest 记录: hw-lead 这两轮都是 0 产出】第 1 轮交卷只有一句 \"found a P0-level topology defect\"; 第 2 轮交卷只有一句 \"Now the decisive mechanical check —— the actual .net file node membership for the ON node\" ⇒ **盘上零文件** (§9/§10 无 · 交接单无 · hw.yaml 未更新)。**但它指出的\
-    \ P0 是真的** ⇒ 本单最终由项目总工接手完成 (含网表改动 + 文档 + 门禁判据修复)。\n★**教训**: 子 agent 说\"我发现了个 P0\"但没落盘时, **别直接判它没干** —— 先看它说的东西是否成立 (本例成立), 再决定谁做。**它给对了问题, 只是没交作业**。"
+  note: "2026-10-28 00:5x 项目总工登记 (老板拍板连带; sw-lead 现在在跑 ISS-101, 交卷后我转达)\n\n★2026-10-28 08:3x-08:5x 项目总工验收关单。sw-lead 交卷 (08:3x) 后 issue_log 一直挂在 fixing 没落 fix_ref ⇒ 现补。\n\n【机械验收 5 条逐条核对通过】① 状态表 3 状态 × 7 列 (超出要求的 2×5), 每格非空 ② \"深度休眠\" 4 处全部带 [旧称·已作废] ③ 唤醒路径 VBUS/PG/按键 三条写清 ④ 续航两行分列 ⑤ \"待机 <0.05W\" 每处同行带 [旧口径·已作废], 新口径只写「关机(断电) <0.05W」。\n\n【★它自查挖出的真问题 U2 —— 本轮最有价值的产出】`HW/POWER_SHUTDOWN_V3.md` §6 待机/按需/满载 三行的续航是按 **`mAh ÷ (把 W 当 mA)`** 直算的 (漏除电池电压 3.7V + DoD 0.9) ⇒ **三行全部偏低 3.33 倍**。它**没自行改 HW/ 或锁死表**, 走 needs_from 请项目总工裁决 ⇒ ★这正是要的纪律 (跨域改动不自己动手)。\n\n【★项目总工独立复算 + 裁决 (比它的报告精确一档)】库内其实有**两套算式**, 必须说清哪套对:\n- **A 口径 (放电续航, 物理正确)**: `t[h] = Capacity[mAh] × DoD × V / P[W]` ⇒ 420mAh: 待机 **9.32h** / 按需 **6.08h** / 满载 **1.15h** (340mAh: 7.55/4.92/0.93h)\n- **B 口径 (选电芯, 保守)**: `mAh = P × 361.81` (含 ÷0.83 充电效率) —— **0.83 是「充电输入→电池」的效率, 只影响充电时间, 不影响电池放电续航**; 用它选电芯偏保守 20% ⇒ **安全, 选型结论不动**\n⇒ 裁: **续航读数用 A; 选电芯继续用 B** (两套并存, 各司其职, 写死进 PROJECT_TRACKER §(1.34))\n⚠️ 裁决过程中我自己的脚本先出了个 1000× 单位错 (9324h) ⇒ 被输出表当场抓住并修掉 ⇒ 自证复现的价值实打实。\n\n【老板锁死项全部不受影响 ⇒ 无需重新拍板】① 关机(断电) <0.05W ✅ (关机行用真电流 108µA, 从未用错算式) ② 关机续航 5-11 个月 ✅ ③ §0 #38 续航=按需触发≥1h ✅ **更宽裕** (旧值 1.8h → 真值 6.08h/4.92h) ④ §0 #12 续航≥1h ✅。热学结论不变 (算的是功耗侧) ⇒ 43°C 红线结论全部不动; ⚠️ 方向提醒: 续航变长 ⇒ 超标时间窗口变长 ⇒ \"满载 88.6-96.1°C ❌\" 这条**更强不是更弱**。\n\n【★回写已落地】HW/POWER_SHUTDOWN_V3.md §1+§6+§关键决策1 · SW/POWER_STATE_SEMANTICS.md (状态表/§3/§5/§6/实测项表/需求4) · SW/SW_REQUIREMENTS.md M7 段 · PROJECT_TRACKER.md §0 锁死表 + §(1.34) · state/fragments/sw.yaml 的 sw_standby_runtime 声明值 2.8h→9.3h。★旧值一律**保留并标 [旧口径·已作废]** (留变更痕迹, 不删)。\n\n【它主动登记的 3 条 needs_from 处置】① sw_runtime_recalc → **已裁** (本条) ② sw_poweroff_gpio_pin (to hw-lead) → 经我转达, 需并进下一轮原厂问/硬件确认 ③ sw_aon_deepsleep_spec (to vendor) → 已并入酷芯微第二轮问询草稿 (AON 唤醒脚/静态电流 + DDR retention + 深睡外设 rail) ⇒ 仍等 4 封草稿放行。\n\n【自证复现】python3 state/_decide_u2_runtime.py (复算表 + 裁决记录) · python3 SW/tools/model_asset_check.py rc=0 · merge rc=0 · gate_check rc=0 (Q1 18/18)\n\n【诚实缺口】本单全部功耗/续航数字为 **[推算], 无一条实测**; 板端 INT8 产物仍 0 个 (与本单无关)。健康度仍 red。\n\n★★**2026-10-28 18:0x-18:3x 补充: hw-lead 在 ISS-104 追加复查中查出一个 P0 级拓扑缺陷 —— 项目总工独立复核确认并已修复**\n\n【★P0 缺陷 (原设计会让板子永远开不了机)】`HW/POWER_SHUTDOWN_V3.md` §3 的\"插电即开机\"拓扑: **Q_PG 用了 N-MOS 低边反相** (栅极接 PG · 源极接 GND · 漏极接 ON)。\n- BQ25896 的 PG 是**开漏, LOW = 输入源良好** [官方, CHARGE_BOARD_SPEC §2.1 \"LOW indicates a good input source\"]\n- ⇒ PG 低(有电)时 N-MOS **关** ⇒ ON 节点只剩 R_PD_ON 10k 下拉 = 低 = **负载开关关**\n- ⇒ **①插电反而开不了机; ②SoC 拉高 PWR_CTRL 时若 Q_PG 导通会被拉到 GND 拉不高 ⇒ 开机路径彻底不通**\n- ⇒ **这块板做出来永远开不了机** —— 是本次整个关机语义设计里最严重的一个错\n\n【★项目总工独立复核 + 拓扑求解 (不是照抄它的结论)】我自己把四种接法推了一遍:\n- 方案A 原 N-MOS 低边 ⇒ ❌ 逻辑颠倒 (上面已述)\n- 方案B P-MOS 高边 + 漏极接 3.3V ⇒ 逻辑对, **但库内 3.3V 全部挂在 SYS 下** (`U_LDO_IO33` 输入 = RAIL_SYS) ⇒ 关机断电后即灭 ⇒ 漏极无电位 ⇒ **插电开机仍不成立** ⇒ 我第一版改法有洞, 自己否掉了\n- 方案C N-MOS + 额外反相器 ⇒ 多 1 颗 IC, 不划算\n- **方案D P-MOS 高边 + 漏极接 BAT_SW ⇒ ★采纳**: BAT_SW 是电池轨 (3.0-4.2V), **关机态仍带电** ⇒ **零新增 pin、零新增轨**\n  - PG 低(良好) ⇒ 栅极≈0 ⇒ Vgs ≈ -4.2V ⇒ P-MOS 导通 ⇒ ON = BAT_SW = 高 ⇒ 开机 ✔\n  - PG 高(无输入) ⇒ ON 被 10k 下拉到 0 ⇒ Vgs = +3.3V ⇒ P-MOS 关 ⇒ ON 低 ⇒ 关 ✔\n  - 选型硬判据写死: 低漏 · Vgs(th) 明确 · 栅极最大耐压 ±20V · 关断漏电 nA 级\n  - 备选: 若原厂确认有 AON 常开 3.3V 轨, 漏极也可接该轨 ⇒ 已并入原厂追加问 §7 第 19 问\n\n【落盘范围】① `state/gen_netlist.py` (V1.9) ⇒ 重生成网表 (516 行不变) ② `HW/POWER_SHUTDOWN_V3.md` §0/§2(新增第 9 条判据)/§3 (拓扑图 + 状态机 + 对照表) ③ 网表 note 里带 \"★V1.9 P0 修正\" 标记。\n\n【★顺带修掉一个门禁判据缺陷 (我自己的)】改完网表后 `check_netlist.py` 报 \"PWR_GOOD 多驱动\" ⇒ 查下去发现是**判据脆弱**: 第 11 条用 `\"→\" in note` **扫全文** ⇒ 我在 note 里写的说明性箭头 (\"PG 低 → 栅极≈0 → P-MOS 导通\") 被当成信号方向 ⇒ **改一行注释就把门禁改红了**。\n- 修法: 判据只认 note **开头 24 字符**内的结构化方向声明 (\"方向 A→B\" / \"输出: ...\"), 不认正文中间箭头\n- ★**放宽判据必须配反例测试** ⇒ 新增 `state/test_netlist_drc.py` **9/9 通过**, 含 ★**反向验证**: 往网表注入一个真·多驱动 (第二个结构化 \"方向\" 声明) ⇒ 判据必须变红 ⇒ 证明它没被改废\n\n【自证复现】python3 state/gen_netlist.py (516 行) · python3 state/check_netlist.py ✅ 全过 · python3 state/check_kicad_net.py ✅ 6/6 · python3 state/test_netlist_drc.py ✅ 9/9 · merge/gate_check/issue_check rc=0\n\n【★honest 记录: hw-lead 这两轮都是 0 产出】第 1 轮交卷只有一句 \"found a P0-level topology defect\"; 第 2 轮交卷只有一句 \"Now the decisive mechanical check —— the actual .net file node membership for the ON node\" ⇒ **盘上零文件** (§9/§10 无 · 交接单无 · hw.yaml 未更新)。**但它指出的 P0 是真的** ⇒ 本单最终由项目总工接手完成 (含网表改动 + 文档 + 门禁判据修复)。\n★**教训**: 子 agent 说\"我发现了个 P0\"但没落盘时, **别直接判它没干** —— 先看它说的东西是否成立 (本例成立), 再决定谁做。**它给对了问题, 只是没交作业**。"
   dispatched_at: '2026-10-28'
 - id: ISS-105
   title: ★更正 hw-lead 分片过期值 (pcb_outline 仍 50×12 / chg_input_limit 仍 1.07-1.30A) + J_CHG 按一对备料 + 机械防呆升为硬判据
@@ -3572,4 +3571,102 @@ issues:
   verify_result: null
   verify_date: null
   note: '2026-11-01 23:5x 项目总工从 ISS-025 交卷转登记 (★P0 级: 几何不可行, 不是余量紧张)。★**与 ISS-122/ISS-126 的关系**: 那两条是『层数/板厚未定』的**待定**问题; 这一条是**已定的不可能** —— 就算层数定成 6 层, H 链这个 −0.577 也还在 ⇒ ★**它比层数更靠前**。★verify_by=mech-lead: 项目总工自办 ⇒ 别人验。'
+  dispatched_at: null
+- id: ISS-128
+  title: ★★主控换 RK3572 ⇒ 板面积账 + 逃线层数全部重算 (封装 FCCSP550L 14.3×15.5mm / 550 球, 比 RK3576 小)
+  severity: high
+  source_blocker: PM-B7
+  source_agent: main
+  desc: '2026-11-02 01:0x 老板拍板基线 RK3576 → **RK3572** ⇒ ISS-118 (板宽 30mm 板面积账) 与 ISS-122 (BGA 逃线层数 9 层 vs 3 层两套模型对撞) **的前提全部失效, 必须重算**。
+
+    ★已知 (证据等级 [媒体]/[模组厂口径], **无官方 Brief Datasheet**): 封装 **FCCSP550L 14.3 × 15.5mm**, **550 球** (RK3576 = FCCSP698L 16.1×17.2mm / 698 球) ⇒ 球数少 **21%**, 封装小 **1.8×1.7mm**。
+
+    ★**收益方向**: ① 板面积余量 [推算] 从 RK3576 的 122.3mm² 涨到 ≈480mm² ⇒ **不再贴边**; ② 逃线: 球圈少 + 边带相对更宽 ⇒ **两套模型结论很可能都下移** ⇒ 若落到 3~5 层 ⇒ 板厚 0.41~0.68mm ⇒ **ISS-126 检修口净空 4.90 那档就能用** ⇒ ★**ISS-122/126 这条连环扣可能整体松绑**。
+
+    ★**但必须先拿到**: ① 官方 Brief Datasheet 的封装图/pitch/球阵列分布 (媒体只给了尺寸, 没给 pitch 与球图) ② PCB 厂 DFM 报告 (草稿 `state/outbox/pcb_foundry_layer_query.md`, **未发**) ⇒ ⇒ **两套模型重算 + DFM 报告, 缺一不可**。'
+  owner: main
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-05'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: hw-lead
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 01:1x 随基线换芯产生。★这是**换芯的正面收益单** —— 结构/PCB 侧第一次看到余量变大的方向。★verify_by=hw-lead: 项目总工自办 ⇒ 别人验 (铁律)。 ★source_blocker=PM-B7 (STATE 阻塞登记)'
+  dispatched_at: null
+- id: ISS-129
+  title: ★★★RK3572 (4 TOPS) 板端纯 NPU 实测 ⇒ 端到端 60ms 硬指标生死判定 (★T2 翻案条件推算已命中)
+  severity: high
+  source_blocker: PM-B5
+  source_agent: main
+  desc: '★**这是换 RK3572 之后最要紧的一条**。算式: RK3576 实测链 (sw-lead RKNN bench, model_zoo 57.5~65.0 FPS) ⇒ 纯 NPU **15.4~17.4ms**, 模式A **55~57ms**; RK3572 = **4/6 TOPS** ⇒ 纯 NPU [推算] **23.1~26.1ms** ⇒ 模式A [推算] **62.7~65.7ms** ⇒ **超老板锁死的 60ms 硬指标 2.7~5.7ms** (仍在 3.5 项 ≤70ms 容差内)。
+
+    ★**正中老板 10-29 自己定的 T2 翻案条件「纯 NPU S5 >20.33ms」** ⇒ 按那条条款, 这是**主动踩线**的选型 ⇒ **不能靠推算签字, 必须板端实测**。
+
+    ★**旧实测链不可移植**: RK3576 上的 INT8 F1 0.3139 / 量化损失 −1.4% 是**工具链级**结论 (RKNN 同族可移植), 但 **NPU 吞吐不可移植** —— 4 TOPS 标称是 **sparse INT8** (int4/8/16/FP4/FP8/FP16/BF16 + W4A16 非对称 MAC), **不保证按 6/4 等比缩放**。
+
+    ★要测的: ① 板端 RK3572 上 YOLOv5s INT8 640×480 的**纯 NPU 单帧耗时** (判据 ≤20.33ms, 与 RK3576 同口径) ② 端到端模式A 打点 ③ INT8 F1 (看量化损失是否也在 4 TOPS 档劣化) ④ **供电方式与散热条件** (影响降频, 眼镜腔体无主动散热)。
+
+    ★**前置**: 需要 RK3572 板/模组 (Forlinx FET3572-C 已在售) ⇒ 依赖 ISS-041 测试设备预算。'
+  owner: main
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-05'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: sw-lead
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 01:1x 随基线换芯产生 (★P0 级: 硬指标生死)。★若实测 >20.33ms ⇒ 60ms 不可保 ⇒ 出路只剩: ①降 OD 负载 (640×480@60 → 640×480@30, 或换更小模型) ②ISP 侧降载 ③**回到 RK3576** (74 分, 但面积装不下 ⇒ 只能等 PCB 厂确认 6 层板能不能塞下 RK3576) ⇒ ★**这是唯一一条会反向推翻老板 01:00 决定的 issue**。★verify_by=sw-lead: 项目总工自办 ⇒ 别人验 (铁律)。 ★source_blocker=PM-B5 (STATE 阻塞登记)'
+  dispatched_at: null
+- id: ISS-130
+  title: ★★★RK3572 功耗 670mW (原厂口径) vs 贴皮肤 43°C 红线 —— 从「待定」变「可判」
+  severity: high
+  source_blocker: PM-B6
+  source_agent: main
+  desc: '★RK3572 是**全候选表里第一个有具体功耗数的 SoC**: 原厂实测口径 **1080P 播放 670mW / 二级待机 <10mW** (媒体引原厂) ⇒ 而 RK3576/RK3588 全是 [0数据] ⇒ ★**RISK R-2 从「还没数据」升级成「已可判」**。
+
+    ★对标: 贴皮肤镜腿自然对流下**可持续承受的功耗上限只有 0.15-0.2W** (ISO 13732-1 / CENELEC Guide 29 表 A.1, 皮肤 8h+ 接触 43°C 燃烧阈值; 设计目标 38-40°C) ⇒ 670mW = **超 3.4~4.5 倍**。★而且 670mW 只是**视频播放** (解码+显示, 无 NPU 满载) ⇒ 我们的场景 (ISP 满载 + NPU 满载 + DSI 出光) **大概率更高**。
+
+    ★**出路只剩三条** (都在 §3 后继风险项里): ①**按需触发** (待机 <10mW 是 RK3572 唯一亮点; 触发 670mW @ 1s/10s ⇒ 平均 ≈0.077W 理论值, 但 ISP+NPU 满载窗口仍需实测) ②**降 ISP/NPU 负载** (OD 640×480@60 → 降帧/降分辨率, 与 ISS-129 耦合) ③**SoC + 光机分体, 主板移出贴皮肤区** (镜框承载 ⇒ 但镜框体积/重量代价)。
+
+    ★**要测的**: ①SoC 域实测功耗 (持续满载 / 待机两档) ② 皮肤侧温度贴片热电偶 (M-SKIN) ③ 满载时的降频曲线 (眼镜腔体无主动散热 ⇒ 降频会直接反噬 ISS-129 的 60ms 判定 ⇒ ★**这两条必须一起测, 不能分开测**)。'
+  owner: main
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-05'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: hw-lead
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 01:1x 随基线换芯产生 (★P0 级: 安全/合规级, 超 ISO 13732-1 红线 3-4 倍)。★**与 ISS-129 强耦合**: 眼镜腔体无散热 ⇒ 满载降频 ⇒ 降频又拉长端到端 ⇒ ★**两个硬指标是同一个物理问题的两面, 必须在同一台样机、同一次测量里同时判**。★verify_by=hw-lead: 项目总工自办 ⇒ 别人验 (铁律)。 ★source_blocker=PM-B6 (STATE 阻塞登记)'
+  dispatched_at: null
+- id: ISS-131
+  title: ★★ISS-124/125 问询口径改 RK3572 (ISP 16M→12M, CSI 3×→2×) + 球位号问询对象改瑞芯微/RK3576→RK3572 模组厂
+  severity: medium
+  source_blocker: PM-B7
+  source_agent: main
+  desc: '换芯 ⇒ 问询口径全部要改: ①**ISS-124 问 03a (MP/s 吞吐上限)**: RK3572 的 ISP 是 **12M** (比 RK3576 的 16M 低一档), 且只有 **2× MIPI CSI-2** (各 4-lane) + DVP ⇒ 我们的 2688×1520@60 = 245.1 MP/s 能否吃下, **公开资料依然判不了** ⇒ 按 12M 口径重问; ②**ISS-124 问 03b′ (ISP 动态功耗 vs 吞吐曲线)**: 原 60mW 是按 1080p30 反推的 [推算], 现在有 RK3572 的 670mW 原厂实测口径可作交叉校验锚点; ③**ISS-125 R-GEO 六问其余五问** (问 01/02/04/05/06 全 0 答复) 全部按 RK3572 口径重写; ④**球位图问询对象**: 原为 ARS45 原厂/代理线 (10-29 19:20 全部作废) ⇒ 现在是 **瑞芯微官方 / RK3572 模组厂 (Forlinx FET3572-C 等)**。
+
+    ★**顺带**: RK3572 的 VO **无 DP TX**, 但**原生 4-lane MIPI DSI 1.2 (≤2560×1600@60)** ⇒ 走鹃Ⅱ (800×600/30°/0.18cc/98mW) 直驱**不需要桥接芯片** ⇒ ★**JBD 问询里的「DSI lane 数/时序/分辨率/驱动电压」这条约束已被 RK3572 满足** ⇒ 该问**从「必须问」降为「需要确认时序匹配」** ⇒ 问询可以瘦身。'
+  owner: main
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-05'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: hw-lead
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 01:1x 随基线换芯产生 (原 ISS-124/125 不作废, 是**改口径**)。★外发一律经项目总工, 草稿放 `state/outbox/`, **等老板放行才发**。★verify_by=hw-lead: 项目总工自办 ⇒ 别人验 (铁律)。 ★source_blocker=PM-B7 (STATE 阻塞登记)'
   dispatched_at: null

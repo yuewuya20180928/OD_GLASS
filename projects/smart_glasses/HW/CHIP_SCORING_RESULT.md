@@ -1,6 +1,6 @@
 # HW/CHIP_SCORING_RESULT.md —— 换芯片选型打分裁决 (老板 09:59 换芯令 / 18:55 口径修正)
 
-> **生成**: 2026-11-02 01:02 · `state/gen_chip_scoring.py` (分数表硬编码 ⇒ 可复算/可审计) · 证据来源 `HW/CHIP_SHORTLIST_EVIDENCE.md` (hw-lead, ISS-115) · 判据 `HW/CHIP_SCORING_RUBRIC.md`
+> **生成**: 2026-11-02 01:04 · `state/gen_chip_scoring.py` (分数表硬编码 ⇒ 可复算/可审计) · 证据来源 `HW/CHIP_SHORTLIST_EVIDENCE.md` (hw-lead, ISS-115) · 判据 `HW/CHIP_SCORING_RUBRIC.md`
 > **口径 (老板两次拍板)**: ①9 项各 0-10, **总分 = 唯一排序依据** ②**物理可行性不否决**, 进「后继风险项」表 ③功耗/端到端查不到 ⇒ **中间分 5** (不因缺数据淘汰)
 
 ## 0. 先读这三条 (会改变结论的)

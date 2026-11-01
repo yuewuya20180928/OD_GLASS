@@ -1,6 +1,6 @@
 agent: hw-lead
 role: 硬件总工
-updated_at: '2026-11-01'
+updated_at: 2026-11-02 01:2x
 updated_by: hw-lead
 status:
   phase: P2(原理图/BOM)+结构接口
@@ -688,6 +688,20 @@ needs_from:
   since: '2026-11-01'
   waiting_on: agent
   due: '2026-11-04'
+- key: recompute_all_soc_numbers_for_rk3572
+  to: main
+  item: '主控换 RK3572 ⇒ hw.yaml 里这些以 RK3576 为前提的 claim 必须重算: soc_power_budget_v3(300-610mW)
+    / soc_power_mid_v3 / full_load_total_v3_* / temple_heat_v3_* / skin_temp_full_v3(60.1C)
+    / skin_temp_full_v3_upper(76.3C) / skin_temp_duty_b(41.4C) / battery_cap_1h_v3_*
+    / temple_thickness_v3(7.3mm) / soc_pkg_balls_required(72) / soc_pkg_balls_worstcase(68)
+    / soc_pin_budget_* / isp_throughput_req(245.1MP/s@60) / csi_lane_mode_req(4-lane)。
+
+    ★其中 **skin_temp_duty_b=41.4C** 那条最关键: 它是「按需触发 10% 占空 ⇒ 皮肤 41.4°C < 43°C 红线」的唯一依据,
+    而 RK3572 的原厂口径 670mW 比当时假设的 500mW 高 34% ⇒ **这条要重算, 可能直接破线**。'
+  decision: ''
+  decided_at: ''
+  decided_by: ''
+  since: '2026-11-02'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -1379,11 +1393,10 @@ interface_claims:
     3 个位置 (FCCSP/BTB/电感) + 1 处切片**, 抽样量按**位置**计; 判据 空洞率≤25% 不变。'
   ref: HW/EVT_RELIABILITY_TEST_ITEMS.md#4.1 R-D-06
 - key: soic_pkg_notes_20261101
-  value: ARS45已停/RK3576基线
-  note: '★新增 (2026-11-01) 口径声明: 11-01 20:5x 基线已换 **瑞芯微 RK3576** (ARS45/酷芯微路线 10-29
-    19:20 起作废)。⇒ 所有 ARS45 专属 claim (fccsp_pitch_min / soc_pkg_balls_* / soc_pin_budget_*
-    / mipi_csi_lanes / bridge_chip_spec / vendor_* 系列) **仅作历史口径保留**, 换芯重画时全部要换。★同时暴露新硬冲突:
-    RK3576 逃线需 9 层 ⇒ 破 §0 『4-6 层』锁死 (ISS-122), 比选型更靠前。'
+  value: ARS45已停/RK3572基线(11-02拍板)
+  note: ★2026-11-02 01:00 老板拍板主控改 RK3572 (FCCSP550L 14.3×15.5mm/550球) ⇒ 本表里所有以 RK3576
+    为前提的数 (soc_power_budget_v3 / skin_temp_full_v3 / temple_thickness_v3 / battery_cap_1h_v3
+    等) **全部需按 RK3572 重算** (ISS-128/129/130) ⇒ 在重算前一律视为 [待重算]
   ref: PROJECT_TRACKER.md#0 (主控基线行, 11-01 20:5x)
 open_questions:
 - id: HW-Q1
