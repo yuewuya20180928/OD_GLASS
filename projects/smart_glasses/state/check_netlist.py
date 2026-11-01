@@ -26,7 +26,8 @@ SPEC_P = os.path.join(PROJ, "HW", "SCHEMATIC_V1_SPEC.json")
 REQUIRED_COLS = ["page", "net", "node1", "node2", "ref", "value", "type", "dnp", "evidence", "tbd", "note", "conn_id",
                  "board"]
 LEGAL_DNP = {"必装", "DNP", "可选"}
-LEGAL_EVIDENCE = {"[官方]", "[推算]", "[实测]", "[待原厂]", "[待JBD]", "[同Die参考-待官方确认]", "[0数据]"}
+# ★2026-11-02 显示件换 视涯 ⇒ 新增 "[待视涯]" 一档 (JBD 只剩波导, 所以 [待JBD] 保留)
+LEGAL_EVIDENCE = {"[官方]", "[推算]", "[实测]", "[待原厂]", "[待JBD]", "[待视涯]", "[同Die参考-待官方确认]", "[0数据]"}
 LEGAL_BOARD = {"CHG_BOARD", "MAIN_PCB", "HINGE"}
 PAGES = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10"]
 
@@ -228,12 +229,14 @@ def main() -> int:
     p10 = [r for r in rows if cell(r, "page") == "P10"]
     chk("P10 充电板页有内容 (≥30 行)", len(p10) >= 30, f"{len(p10)} 行")
 
-    # 20) U_BRIDGE 定位统一 (DP1.4 TX → MIPI DSI TX 桥接) 且方案A 下 DNP
-    ub = [r for r in rows if cell(r, "ref") == "U_BRIDGE"]
-    bad_ub = [f"{cell(r,'page')}:{cell(r,'value')[:28]}" for r in ub
-              if cell(r, "dnp") != "DNP" or "DSI" not in cell(r, "value")]
-    chk("U_BRIDGE 定位统一 (DP→DSI 桥接) 且方案A 下 DNP", not bad_ub,
-        f"{bad_ub}" if bad_ub else f"{len(ub)} 行 (P4+P6 同一颗)")
+    # 20) ★2026-11-02 11:00 换主控 RK3572 ⇒ **RK3572 无 DP TX** ⇒ 方案B (DP→DSI 桥接) 不可能成立
+    #     ⇒ 网表里**不许再有** U_BRIDGE / DP_TX / R_SER_DP_* / C_AC_DP_* / BR_* 任何残留
+    dead = [f"{cell(r,'page')}:{cell(r,'ref')}" for r in rows
+            if cell(r, "ref") == "U_BRIDGE"
+            or "DP_TX" in str(cell(r, "net")) or "DP_TX" in str(cell(r, "node1"))
+            or str(cell(r, "ref")).startswith(("R_SER_DP", "C_AC_DP", "BR_"))]
+    chk("RK3572 无 DP TX ⇒ 方案B 已整条删除 (无 U_BRIDGE/DP_TX/串阻/对地电容/BR_*)",
+        not dead, f"{dead}" if dead else "0 行残留 ✅")
 
     # 21) U_TEMP 已定型为数字温度计 TMP117 (I2C 0x48)
     ut = [r for r in rows if cell(r, "ref") == "U_TEMP"]

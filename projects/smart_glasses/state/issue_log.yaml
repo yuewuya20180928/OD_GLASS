@@ -2431,18 +2431,18 @@ issues:
   reporter: main
   raised: '2026-10-27'
   due: '2026-11-05'
-  status: open
+  status: fixed
   external: false
   need_keys: []
   task_brief: ''
-  fix_ref: null
+  fix_ref: HW/netlist_v1_pins.csv + state/gen_netlist_pins.py
   verify_by: hw-lead
   verify_result: null
   verify_date: null
   note: '2026-10-27 09:3x 项目总工自登记 (V1.4 导出修完后剩下的模型级欠账); ★2026-10-27 18:5x hw-lead 复审 (ISS-088) 的剩余项转来: **B-4 多脚 IC 的裸名节点脚号仍是幻影** (如 U_BATPROT/U_CHG 的裸名节点) → 约定: 多脚器件的节点名必须带引脚提示 (如 ''U_CHG TS''), 导出器已写进注释; 剩余: B-3 CONN_LIGHT 的 P4 页叙述与新 pin map 同步
 
 
-    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**'
+    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。** ★★2026-11-02 03:0x **已做完** (项目总工自办 ⇒ verify_by 仍是 hw-lead): ① 新增 `state/gen_netlist_pins.py` ⇒ 产出 `HW/netlist_v1_pins.csv` (**550 行 = 每引脚一行, 覆盖 220 个器件**) —— 口径: **`.net` 才是带显式引脚号的那一份** ⇒ 从 .net 解析 (ref,pin)→net, 再回 CSV 取器件级元信息 (value/footprint/dnp/type/board/opn 是器件级属性) ⇒ **不改生成器就能得到真 pin 表** ② 自带 5 类交叉校验: 一个引脚只能属于一个网(且须落在 pinout 真源允许集合内) / .net 器件都要在 CSV 有出处 / CSV 器件都要在 .net 出现 / 2 脚无源件(R/C/L)恰好 2 脚 / 复用 `HW/check_bq25896_pinout.py` 的 PINMAP 当别名白名单 ③ **顺带抓到一个真缺陷并修了**: P1 页 TS_BAT 那行把 RT1 的 TS 端写成 "U_CHG pin22" (=REGN) 而不是 pin11 (=TS) ⇒ 表面是写法不一致, 实际是 **REGN 被短到电池 NTC 节点** ⇒ 充电链失效; ★这个错逃过了全部原有门禁 —— 因为 `.net` 生成器会按连通性重排引脚, .net 一直是对的, 错的只有 CSV ⇒ **这正是 pin-centric 表的价值** ④ 同步收紧 `HW/check_bq25896_pinout.py` 的 REGN 允许网集合 (去掉 TS_BAT) ⇒ 同类错以后会被抓住'
   dispatched_at: null
 - id: ISS-095
   title: ★[待 TI 确认] BQ25896 的 VSYS 脚是否必须接 —— 决定'电池挪镜框'回退分支要不要多两根电源 pin
@@ -3748,4 +3748,58 @@ issues:
   verify_result: null
   verify_date: null
   note: '2026-11-02 01:3x 随显示件换型产生。★**注意**: 波导选型 ISS-004/013 (JBD) 仍是 G2 阶段的真 blocker ⇒ **不能因为换了显示件就把 JBD 关系断掉** —— 波导 + 耦合方案仍然卡着镜框开工。★verify_by=boss: 外发与供应商归属都要老板点头。 ★source_blocker=PM-B8 (STATE 阻塞登记)'
+  dispatched_at: null
+- id: ISS-136
+  title: ★★J_CHG 跨铰链 pin map 与 CHARGE_BOARD_SPEC.md §5 漂移 (spec 是旧的, 网表是对的) + check_bq25896 的规格快照已过期
+  severity: medium
+  source_blocker: null
+  source_agent: main
+  desc: '★2026-11-02 03:0x 跑 `HW/check_bq25896_pinout.py` 时暴露 (它此前一直 FAIL 但没人跑 ⇒ 门禁链缺它):
+
+    **规格快照 (旧)**: pin5=TS_BAT / pin6=CHG_STAT / pin7=PWR_GOOD / pin8=VBUS_DET / pin9=I2C_CHG_SCL / pin10=I2C_CHG_SDA
+
+    **网表实际 (新)**: pin5=CHG_STAT / pin6=PWR_GOOD / pin7=VBUS_DET / pin8=TS_BAT / pin9=HINGE_RSV / pin10=TS_RTN
+
+    ⇒ **判定: 网表是对的, 规格文档与检查器里的快照是旧的** —— V1.8 把 TS_BAT 从 pin5 挪到 pin8 (pin5 改给 CHG_STAT), 其余信号整体前移一位; 而 pin9/pin10 的 BQ25896-I2C 跨铰链方案**未采用** (见 CHARGE_BOARD_SPEC.md §5.3 "若要据此调充电电流, 就需要 BQ25896 的 I2C 跨铰链" —— 本轮不做) ⇒ pin9=预留 HINGE_RSV, pin10=TS 专用回流。
+
+    ★**本单要做**: ①`HW/CHARGE_BOARD_SPEC.md` §5 的 J_CHG pin map 表更新成网表实际 (并注明 V1.8 变更理由) ②`HW/check_bq25896_pinout.py` 的 `spec_proposal` 已由本轮更新 ⇒ **它以后能当门禁跑** ③★**把这个脚本接进 `state/gate_check.py` 的门禁链** —— 它一直是绿的假象 (其实 FAIL 但没人跑)'
+  owner: main
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-06'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: hw-lead
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 03:0x。★**门禁链缺一个一直 FAIL 的脚本** —— 这是方法论问题, 不是单个脚本问题: 门禁脚本必须进 gate_check.py, 否则等于没有。★verify_by=hw-lead: 项目总工自办 ⇒ 别人验 (铁律)。'
+  dispatched_at: null
+- id: ISS-137
+  title: ★★[可执行, 一行代码的活] 把「显示合成段」从 T_FIXED 里单独打点 —— 它是 RK3572 + 1920×1080 下 60ms 成败的关键未知数
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: '★2026-11-02 01:3x 用 `HW/e2e_budget_rk3572.py` (可复算, 自检复现 sw-lead 已发布数字 ✅) 重算发现:
+
+    端到端模型 = **T_FIXED 34.0ms + T_od (S5 + 后处理 5.6ms)**, T_FIXED 里含**曝光→OD 输入就绪 + 显示合成/输出段**。
+
+    ★**问题**: 显示件从 800×600 换到 1920×1080 (像素 ×4.32) ⇒ **显示合成段要涨多少, 现在是 [0数据]** —— T_FIXED 里显示段占多少从来没人算过 ⇒ 敏感性分析显示: 显示段只要占 T_FIXED 的 **15% 以上**, 即使换 yolov5n, 模式A 也会重新破 60ms。
+
+    ⇒ **解法 (不需要板)**: 把 sw-lead 的 `SW/tools/timing_check.py` 拆出「显示合成/缩放」单独打点 (或在 RK3576 板上打点对比 640×480 与 1920×1080 两档) ⇒ 一行代码/一次测量。
+
+    ★**这条不做, 60ms 的判定就只能停在「推算」** —— 而 RK3572 的推算已经是 62.7~65.7ms (超线)。'
+  owner: main
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-06'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: sw-lead
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 03:0x 随 RK3572 + 视涯两条决定产生。★**这是当前唯一能把 60ms 从推算变成实测的内部动作**, 且不依赖任何外部回复。★verify_by=sw-lead: 项目总工自办 ⇒ 别人验 (铁律)。'
   dispatched_at: null

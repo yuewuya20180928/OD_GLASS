@@ -397,6 +397,8 @@ V_TS = VREGN × (RTH ∥ RT2) / (RT1 + (RTH ∥ RT2))
 | 1 | **充电电流 (双 pin)** | 镜框 → 镜脚 | `U_CHG` pin13/14 (BAT) → `BAT_CHG` → `J_CHG` pin1 **+** pin2 | `J_CHG` → BQ2970 → 电池 | **1.0-1.5A**, 双 pin 并联 (每 pin ≤0.75A); 1.27mm→0.5mm 改后每 pin 载流下降 → 用并联解决 | [推算] `MECH/USB_HINGE_STRUCTURE.md` §5.3 C-1 + P1 §V1.2 |
 | 2 | **回流 (双 pin)** | 镜框 → 镜脚 | `J_CHG` pin3 **+** pin4 → 充电板 GND | 镜脚数字地 | 与电源 pin **相邻** → 环路面积最小 | [推算] P9 |
 | 3 | **VBUS_DET (高阻分压)** | 镜框 → 镜脚 | `R_VDET_TOP` 1M ← VBUS; `R_VDET_BOT` 1M → GND; 中点 → `J_CHG` pin8 | SoC ADC | 源阻抗 **500 kΩ** → **必须被 GND 夹持** (每根至少一侧相邻 GND) 且与 USB 差分对 **≥3mm** | [推算] `MECH/USB_HINGE_STRUCTURE.md` §5.2 第 5 条 |
+> ★★2026-11-02 03:0x 订正 (ISS-136): 上表与网表**有一处整体错位** —— 网表实际是 **pin5=CHG_STAT / pin6=PWR_GOOD / pin7=VBUS_DET / pin8=TS_BAT / pin9=HINGE_RSV(预留) / pin10=TS 专用回流**, 原因是 **V1.8 把 TS_BAT 从 pin5 挪到 pin8** (pin5 改给 CHG_STAT), 其余信号各前移一位; 而 **BQ25896 的 I2C 跨铰链方案未采用** (§5.3: "若要据此调充电电流, 就需要 BQ25896 的 I2C 跨铰链" —— 本轮不做) ⇒ pin9 留空、pin10 改走 TS 专用回流。**网表是对的, 本表待更新** ⇒ `HW/check_bq25896_pinout.py` 的快照已同步。
+
 | 4 | **CHG_STAT (开漏)** | 镜框 → 镜脚 | `U_CHG` pin4 → `J_CHG` pin6 | SoC GPIO, **主板侧** 10k 上拉 → 3.3V | LOW=充电中 / HIGH=完成或禁用 / **1Hz 闪烁=故障** | [官方] datasheet + STAT 状态表 |
 | 5 | **PWR_GOOD (开漏)** | 镜框 → 镜脚 | `U_CHG` pin3 → `J_CHG` pin7 | SoC GPIO, **主板侧** 10k 上拉 → 3.3V | LOW = 输入源良好 (VBUS 在 VVBUS_OP 内 & IBATSRC>30mA) | [官方] datasheet |
 | 6 | **USB D+/D−** | 镜脚 → 镜框 | `CONN_USB` pin1/2 → 板内走线 → `J_TYPE_C` A6+B6 / A7+B7 | SoC → 22Ω 串阻 (主板侧) → `CONN_USB` | **90Ω ±10% 差分**; D+/D− 双份并联 **≤3.5mm**; **不装共模扼流圈**; 两端各一组 ESD | [官方] USB-IF Table 3-5 Note 2 + [推算] P9 两条硬规则 |

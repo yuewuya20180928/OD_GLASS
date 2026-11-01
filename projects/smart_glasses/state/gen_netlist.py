@@ -345,7 +345,12 @@ def build_p1(by_id, spec):
         "必装", "[官方]", "", "[REGN] BQ25896 REGN 去耦电容 (datasheet 要求)", "C-01")
     add("P1", "GND", "C_REGN", "GND", "C_REGN", "[待选型] 1µF", "C",
         "必装", "[官方]", "", "[REGN] REGN 去耦电容 地端", "C-01")
-    add("P1", "TS_BAT", "R_TS_TOP", "U_CHG pin22", "R_TS_TOP", "5.24k ±1% (RT1: REGN 到 TS)",
+    # ★★2026-11-02 02:0x 修一个**真缺陷**: 这里的 node2 原写 "U_CHG pin22" (BQ25896 的 REGN 脚),
+    #   正确是 **pin11 (TS 脚)** —— RT1 是 REGN→TS 的上拉, 另一端必须落在 TS。
+    #   ★为什么一直没被抓到: `.net` 生成器会**按连通性重排引脚**, 所以 .net 一直是对的,
+    #   错的是 **CSV (连接清单)** ⇒ PCB 工程师按 CSV 接线就会把 REGN 短到 NTC 节点 ⇒ 充电链失效。
+    #   ⇒ 新增 `state/gen_netlist_pins.py` (pin-centric 表) + check_netlist 判据 31 把这类错变成常驻门禁。
+    add("P1", "TS_BAT", "R_TS_TOP", "U_CHG pin11", "R_TS_TOP", "5.24k ±1% (RT1: REGN 到 TS)",
         "R", "必装", "[官方]", "",
         "[TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, "
         "原来只画了 NTC + 10k 下拉 = 分压比完全不对 (datasheet: 0°C·73.25%, 60°C·34.375%)", "C-01")
@@ -551,7 +556,7 @@ def build_p1(by_id, spec):
             "[推算]", "", f"[{rail}] 高频去耦电容 地端", cid)
 
     # LIGHT_5V: 无独立 IC, 直接取 VBUS (规格 C-10 'VBUS 直供')
-    add("P1", "LIGHT_5V", "RAIL_LIGHT_5V", "CONN_LIGHT pin21", "RAIL_LIGHT_5V", "5.0V", "RAIL",
+    add("P1", "LIGHT_5V", "RAIL_LIGHT_5V", "CONN_LIGHT pin15", "RAIL_LIGHT_5V", "5.0V", "RAIL",
         "DNP", "[推算]", "TBD-02",
         "电源域: 目标 [待 JBD] / 最大电流 50mA; 供电方式 [待 JBD] 确认 (VBUS 直供 或 升压); "
         "SoC 侧球位号 TBD-01", "C-10")
@@ -715,10 +720,10 @@ DSI_LANES = [
     ("D3", "DSI_D0_D3_P", "DSI_D0_D3_N", "A-20", "A-20",
      "DSI_TX_D3_P", "DSI_TX_D3_N", 9, 10, "DNP", True),
 ]
-BR_LANES = [  # 方案B 桥接位 (只有 2-lane: CK/D0/D1) —— 规格 display_select 只给了这三条
-    # lane, CONN_LIGHT pin P/N, U_BRIDGE 输出脚 P/N
-    ("CK", 11, 12, 1, 2), ("D0", 13, 14, 3, 4), ("D1", 15, 16, 5, 6),
-]
+# ★★2026-11-02 01:0x 老板换主控 RK3572 ⇒ **RK3572 无 DP TX** ⇒ 方案B (DP→DSI 桥接) **不可能成立**
+#   ⇒ BR_LANES 常量与全部方案B 器件行 (U_BRIDGE + 12 颗 0Ω 桥接位 + 8 颗 DP 串阻 + 8 颗对地电容)
+#   **整条删除** ⇒ 板面积/BOM/位号同时受益 (约 29 个位号消失)。
+#   ⇒ 显示链从此只有一条路: SoC 原生 MIPI-DSI → CONN_LIGHT → 光机/面板 (无桥接芯片)。
 
 
 def build_p4(by_id, spec):
@@ -728,7 +733,7 @@ def build_p4(by_id, spec):
             conn_row(by_id, cid, "P4", f"{net}_SRC", f"SoC[TBD-01].{src}", rsel, f"NET_{net}_SRC")
             add("P4", net, rsel, f"CONN_LIGHT pin{pin}", rsel, "0Ω", "R", sel_dnp, "[官方]",
                 "TBD-04",
-                (f"[{net}] 显示双出口选择位 (方案A 装 0Ω / 方案B DNP) — ★规格位 R_SEL_* 必须拆 "
+                (f"[{net}] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 "
                  f"P/N 两颗, 单颗 0Ω 会把差分对短接") if sel_dnp == "必装" else
                 (f"[{net}] 4-lane 预留位 (2-lane 不够时再装) — ★规格位 R_SEL_* 必须拆 P/N 两颗, "
                  f"单颗 0Ω 会把差分对短接"))
@@ -739,32 +744,17 @@ def build_p4(by_id, spec):
                     f"[{net}_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装)")
                 add("P4", "GND", rt, "GND", rt, "100Ω ±1%", "R", "DNP", "[推算]", "",
                     f"未用差分对 100Ω 对地端接 ({lane}_{pol} 才装)")
-    # ---- 方案B 桥接位 (与 R_SEL_* 互斥) ----
-    for lane, pinP, pinN, brP, brN in BR_LANES:
-        for pol, pin, brpin in (("P", pinP, brP), ("N", pinN, brN)):
-            br = f"BR_{lane}_{pol}"
-            add("P4", f"DSI_BR_{lane}_{pol}_SRC", f"U_BRIDGE pin{brpin}", br, br,
-                "0Ω", "R", "DNP", "[官方]", "TBD-04",
-                f"[DSI_BR_{lane}_{pol}_SRC] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — "
-                f"★与 R_SEL_* 互斥, 不得同装")
-            add("P4", f"DSI_BR_{lane}_{pol}", br, f"CONN_LIGHT pin{pin}", br, "0Ω", "R", "DNP",
-                "[官方]", "TBD-04",
-                f"[DSI_BR_{lane}_{pol}] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — "
-                f"★与 R_SEL_* 互斥, 不得同装")
-    add("P4", "DSI_BR", "U_BRIDGE", "DSI_BR_CK_P_SRC", "U_BRIDGE",
-        "[待选型] DP1.4 TX · MIPI DSI TX 桥接芯片 (方案B 专用; 与 P6 同一位)", "IC", "DNP",
-        "[推算]", "TBD-04",
-        "[DSI_BR] 方案B 才需要的桥接芯片位 (接口类型/功耗/封装随原厂 TBD-04 结论定; "
-        "本版只留位不选型)")
+    # ★★方案B 桥接位已整条删除 (RK3572 无 DP TX) —— 见上面 BR_LANES 处的说明。
+    # ⇒ R_SEL_* 现在是**唯一通路** (不再是"方案A/方案B 二选一") ⇒ note 已同步改写。
     # ---- DSI DDC (I2C_B) ----
     conn_row(by_id, "B-03", "P4", "I2C_B_SCL", "SoC[TBD-01].I2C_B_SCL", "R_PU_I2CB_SCL",
              "NET_I2C_B_SCL")
     conn_row(by_id, "B-04", "P4", "I2C_B_SDA", "SoC[TBD-01].I2C_B_SDA", "R_PU_I2CB_SDA",
              "NET_I2C_B_SDA")
-    add("P4", "I2C_B_SCL", "CONN_LIGHT pin17", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
+    add("P4", "I2C_B_SCL", "CONN_LIGHT pin11", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
         "上拉 4.7k, 放主板侧", "NET", "必装", "[推算]", "TBD-04",
         "[I2C_B_SCL] 附加节点 (同 net)", "B-03")
-    add("P4", "I2C_B_SDA", "CONN_LIGHT pin18", "NET_I2C_B_SDA", "NET_I2C_B_SDA",
+    add("P4", "I2C_B_SDA", "CONN_LIGHT pin12", "NET_I2C_B_SDA", "NET_I2C_B_SDA",
         "上拉 4.7k, 放主板侧", "NET", "必装", "[推算]", "TBD-04",
         "[I2C_B_SDA] 附加节点 (同 net)", "B-04")
     add("P4", "VDD_3V3_IO", "R_PU_I2CB_SCL", "RAIL_VDD_3V3_IO", "R_PU_I2CB_SCL", "4.7k ±1%",
@@ -773,10 +763,12 @@ def build_p4(by_id, spec):
         "R", "必装", "[推算]", "", "[VDD_3V3_IO] DSI DDC 上拉", "B-04")
     # ---- 光机连接器 ----
     add("P4", "CONN_LIGHT", "CONN_LIGHT", "CONN_LIGHT pin1", "CONN_LIGHT",
-        "1×22p@0.5mm 光机连接器 (板对板/FFC, 待 JBD 确认; 末脚 GND = 差分回流)", "CONN", "必装", "[待JBD]", "TBD-04",
-        "[CONN_LIGHT] 光机↔主板连接器; pin3/4=DSI_CK, 5/6=DSI_D0, 7/8=DSI_D1, 9/10=DSI_D2, "
-        "11/12=DSI_D3, 13/14=DDC, 21..26=桥接方案 B 差分, 27/28/29=3V3/1V8/5V; "
-        "型号/间距/pin 数待 JBD 开发套件接口定义; ★pin 编号为**本版自拟**, 非 JBD 给定")
+        "1×16p@0.5mm 显示/光机连接器 (板对板/FFC, 待视涯确认; 末脚 GND = 差分回流)", "CONN", "必装", "[待视涯]", "TBD-04",
+        "[CONN_LIGHT] 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, "
+        "7/8=DSI_D2 预留(DNP), 9/10=DSI_D3 预留(DNP), 11/12=DDC(I2C_B), 13=LIGHT_3V3, "
+        "14=LIGHT_1V8, 15=LIGHT_5V 预留(DNP), 16=GND 回流; "
+        "★★**2026-11-02: 由 22p 改 16p** —— 删掉的是桥接方案B 的 6 个差分脚 (RK3572 无 DP TX ⇒ 无桥接芯片); "
+        "型号/间距/pin 数待视涯接口定义; ★pin 编号为**本版自拟**, 非视涯给定")
 
 
 # ------------------------------------------------------- P5 MIPI-CSI 传感器
@@ -850,31 +842,8 @@ def by_id_cid_rail(spec, rail):
 
 # -------------------------------------------------- P6 高速差分与连接器
 def build_p6(by_id, spec):
-    # ---- DP_TX 4 lane (A-21 覆盖全部 8 条 P/N) ----
-    dp_pin = 21
-    for lane in range(4):
-        for pol in ("P", "N"):
-            sig = f"DP_TX_A{lane}_{pol}"
-            rser = f"R_SER_DP_A{lane}_{pol}"
-            net = f"{sig}_SRC"
-            conn_row(by_id, "A-21", "P6", net, f"SoC[TBD-01].{sig}", rser, f"NET_{net}")
-            add("P6", sig, rser, f"U_BRIDGE pin{dp_pin}", rser, "100Ω ±10%", "R", "必装",
-                "[待原厂]", "",
-                f"[{sig}] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, "
-                f"装配按实际 lane 数裁剪)")
-            add("P6", net, f"C_AC_DP_A{lane}_{pol}", f"R_SER_DP_A{lane}_{pol}", f"C_AC_DP_A{lane}_{pol}",
-                "[待选型]", "C", "DNP", "[待原厂]", "TBD-04",
-                f"[{net}] DP TX **对地**电容位 (并联到 GND, 不是 AC 耦合电容; ★V1.6 修正: 原来 P/N 两路"
-                f"共用一颗且 N 路错接到 P 路串阻 · 等于把差分对短接)")
-            add("P6", "GND", f"C_AC_DP_A{lane}_{pol}", "GND", f"C_AC_DP_A{lane}_{pol}", "[待选型]", "C",
-                "DNP", "[待原厂]", "",
-                f"[{net}] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上)")
-            dp_pin += 1
-    add("P6", "DP_TX", "U_BRIDGE", "DP_TX_A0_P_SRC", "U_BRIDGE",
-        "[待选型] DP1.4 TX · MIPI DSI TX 桥接芯片 (方案B 专用; 候选 redriver 兼列)", "IC", "DNP",
-        "[推算]", "TBD-04",
-        "[DP_TX] 方案B 才需要: SoC DP_TX 4 lane 进桥接芯片, DSI 出桥接芯片走 BR_* 到光机; "
-        "**方案A (SoC 原生 DSI) 下整条链冗余 · 本行 DNP**; DP TX 是输出脚, 方案A 下悬空不违规")
+    # ★★DP_TX 4 lane 整块已删除 (RK3572 无 DP TX ⇒ 无桥接芯片 ⇒ 8 串阻 + 8 对地电容 + 桥接位全无)
+    #   ⇒ P6 现在只剩 USB 2.0 / Type-C CC / 跨铰链预留。
     # ---- USB 2.0 (Type-C · 主 PCB) ----
     conn_row(by_id, "B-21", "P6", "USB_D_P_SRC", "SoC[TBD-01].USB_D_P", "R_SER_USB_D_P",
              "NET_USB_D_P_SRC")
@@ -932,8 +901,8 @@ TPS = [
      "LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8)", "必装"),
     ("TP_SENSOR_1V2", "SENSOR_CORE", "CONN_CAM pin17", "sensor 三条轨",
      "LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8)", "必装"),
-    ("TP_LIGHT_3V3", "LIGHT_3V3", "CONN_LIGHT pin19", "光机轨", "LDO 输出", "必装"),
-    ("TP_LIGHT_1V8", "LIGHT_1V8", "CONN_LIGHT pin20", "光机 1.8V 轨 (待 JBD)",
+    ("TP_LIGHT_3V3", "LIGHT_3V3", "CONN_LIGHT pin13", "光机轨", "LDO 输出", "必装"),
+    ("TP_LIGHT_1V8", "LIGHT_1V8", "CONN_LIGHT pin14", "光机 1.8V 轨 (待 JBD)",
      "LDO 输出 (待 JBD 确认后)", "DNP"),
     ("TP_CSI_CK_P", "CSI_D0_CK_P", "CONN_CAM pin1", "CSI 时钟差分 (示波器测眼图/摆幅)",
      "连接器出口 (规格合并名 TP_CSI_D0_CK_P / _N)", "必装"),
@@ -951,8 +920,8 @@ TPS = [
     ("TP_DSI_D0_N", "DSI_D0_D0_N", "CONN_LIGHT pin4", "DSI D0 数据差分", "连接器出口", "必装"),
     ("TP_I2CA_SCL", "I2C_A_SCL", "CONN_CAM pin13", "I2C_A 时钟", "连接器出口", "必装"),
     ("TP_I2CA_SDA", "I2C_A_SDA", "CONN_CAM pin14", "I2C_A 数据", "连接器出口", "必装"),
-    ("TP_I2CB_SCL", "I2C_B_SCL", "CONN_LIGHT pin17", "DDC 时钟 (I2C_B)", "连接器出口", "必装"),
-    ("TP_I2CB_SDA", "I2C_B_SDA", "CONN_LIGHT pin18", "DDC 数据 (I2C_B)", "连接器出口", "必装"),
+    ("TP_I2CB_SCL", "I2C_B_SCL", "CONN_LIGHT pin11", "DDC 时钟 (I2C_B)", "连接器出口", "必装"),
+    ("TP_I2CB_SDA", "I2C_B_SDA", "CONN_LIGHT pin12", "DDC 数据 (I2C_B)", "连接器出口", "必装"),
     ("TP_USB_D_P", "USB_D_P", "CONN_USB pin1", "USB 2.0 差分",
      "Type-C 出口 (规格合并名 TP_USB_D+ / D-)", "必装"),
     ("TP_USB_D_N", "USB_D_N", "CONN_USB pin2", "USB 2.0 差分 (规格合并名 TP_USB_D+ / D-)",
@@ -1122,14 +1091,15 @@ def build_p9(by_id, spec):
         "18p@0.5mm 跨铰链连接器 (主 PCB ↔ sensor 板; 18 脚 = 独立回流地)", "CONN", "必装", "[推算]", "TBD-03",
         "[HINGE_CSI] 通道 3/4 **MIPI-CSI**: pin1/2=CK, 3-10=D0-D3, 11=MCLK, 12=RESET_N, "
         "13/14=I2C_A, 15-17=sensor 三条电源; ★4 lane 全跨铰链 = 8 根 100Ω 差分 + MCLK 包地")
-    add("P4", "GND", "CONN_LIGHT pin22", "GND", "CONN_LIGHT", "跨铰链回流地 (独立脚)", "NET",
+    add("P4", "GND", "CONN_LIGHT pin16", "GND", "CONN_LIGHT", "跨铰链回流地 (独立脚)", "NET",
         "必装", "[推算]", "TBD-04",
         "[GND] ★V1.6 补: CONN_LIGHT 原来 21 个脚里**一个 GND 都没有** · DSI 差分无回流路径 "
-        "(跨铰链 100Ω 差分必须与地成对) · 22p 的末脚接 GND")
+        "(跨铰链 100Ω 差分必须与地成对) · 16p 的末脚接 GND")
     add("P9", "HINGE_DSI", "CONN_LIGHT", "CONN_LIGHT pin1", "CONN_LIGHT",
-        "1×22p@0.5mm 光机连接器 (板对板/FFC, 跨铰链到镜框光机; 末脚 GND = 差分回流)", "CONN", "必装", "[待JBD]", "TBD-04",
-        "[HINGE_DSI] 通道 4/4 **显示 + 光机供电** (1×22p@0.5mm): pin1/2=CK, 3/4=D0, 5/6=D1, 7-10=D2/D3 预留(DNP), "
-        "11-16=桥接位(方案B), 17/18=DDC(I2C_B), 19=LIGHT_3V3, 20=LIGHT_1V8, 21=LIGHT_5V 预留(DNP), **22=GND 回流**; 型号待 JBD 接口定义")
+        "1×16p@0.5mm 显示/光机连接器 (板对板/FFC, 跨铰链到镜框显示/光机; 末脚 GND = 差分回流)", "CONN", "必装", "[待视涯]", "TBD-04",
+        "[HINGE_DSI] 通道 4/4 **显示 + 光机供电** (1×16p@0.5mm): pin1/2=CK, 3/4=D0, 5/6=D1, "
+        "7/8=D2 预留(DNP), 9/10=D3 预留(DNP), 11/12=DDC(I2C_B), 13=LIGHT_3V3, 14=LIGHT_1V8, "
+        "15=LIGHT_5V 预留(DNP), **16=GND 回流**; ★方案B 桥接位已随 RK3572 删除; 型号待视涯接口定义")
     # ---- 跨铰链段的保护/滤波件 (装主 PCB 侧, 紧贴连接器) ----
     add("P9", "USB_D_P", "CONN_USB pin1", "D_ESD_USB", "D_ESD_USB",
         "ESD 阵列 [待选型] (2 通道 USB)", "D", "必装", "[推算]", "",

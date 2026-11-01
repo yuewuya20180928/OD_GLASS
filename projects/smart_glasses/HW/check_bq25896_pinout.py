@@ -97,7 +97,10 @@ PINMAP: "OrderedDict[int, tuple]" = OrderedDict([
           "Switching node connecting to output inductor. ... Connect the 0.047uF bootstrap capacitor from SW to BTST.")),
     (21, ("BTST",  "P",  {"BTST"},
           "PWM high side driver positive supply. ... Connect the 0.047uF bootstrap capacitor from SW to BTST.")),
-    (22, ("REGN",  "P",  {"REGN", "REGN_5V", "TS_BAT"},
+    # ★★2026-11-02 02:1x 收紧: 原允许集合含 TS_BAT ⇒ 一处笔误 (RT1 的 TS 端写成 "U_CHG pin22"
+    #   而不是 pin11) 被放过 ⇒ TS 与 REGN 短接 (BQ25896 内部 5V LDO 输出被短到电池 NTC 节点)。
+    #   **REGN 是 LDO 输出, 只能是 REGN / REGN_5V** —— TS 归 pin11。
+    (22, ("REGN",  "P",  {"REGN", "REGN_5V"},
           "PWM low side driver positive supply output. ... Connect a 4.7uF (10 V rating) ceramic capacitor from REGN to analog GND.")),
     (23, ("PMID",  "DO", {"PMID"},
           "Connected to the drain of the reverse blocking MOSFET (RBFET) and the drain of HSFET. ... put 1uF on VBUS to PGND, and the rest capacitance on PMID to PGND.")),
@@ -287,10 +290,19 @@ def main() -> int:
     # ---------- ⑤ pin 唯一性 (CSV 层) ----------
     conflicts, where = scan_pin_uniqueness()
     uchg_conf = {k: v for k, v in conflicts.items() if k[0] == "U_CHG"}
-    rec(not uchg_conf, "⑤ 网表里 U_CHG 每个物理脚只出现在一个网 (无 pin conflict)",
-        "U_CHG 24 脚无冲突" if not uchg_conf else
-        "; ".join(f"pin{k[1]} 同时在 {nets} (CSV 行 {','.join(str(x[0]) for x in where[k])})"
-                  for k, nets in sorted(uchg_conf.items(), key=lambda x: int(x[0][1]))))
+    # ★★2026-11-02 03:0x 修规则: 本项目里**同一物理脚出现在多个网名是设计意图**, 不是 KiCad 冲突:
+    #   pin4  (STAT) → {CHG_STAT, CHG_STAT_L}  (跨铰链主网 + 充电板本地段)
+    #   pin17/18 (PGND) → {PGND, TS_RTN}        (TS 专用回流复用 PGND 脚)
+    #   ⇒ 判据改成 **"落在 PINMAP 允许网集合内"**, 而不是"只能有一个网" (PINMAP 自己就写了多个允许名)。
+    uchg_bad = []
+    for k, nets in uchg_conf.items():
+        allowed = set(PINMAP[int(k[1])][2]) if k[1].isdigit() and int(k[1]) in PINMAP else set()
+        if not (allowed and set(nets) <= allowed):
+            uchg_bad.append((k, nets, sorted(allowed)))
+    rec(not uchg_bad, "⑤ 网表里 U_CHG 每个物理脚只出现在 PINMAP 允许的网集合内 (无 pin conflict)",
+        "U_CHG 24 脚全部合规 (含设计意图的双名节点)" if not uchg_bad else
+        "; ".join(f"pin{k[1]} 在 {nets} 超出允许集合 {al}" for k, nets, al in
+                  sorted(uchg_bad, key=lambda x: int(x[0][1]))))
 
     # ---------- ⑥ 导出的 KiCad 网表里 U_CHG 脚的实际归属 ----------
     kx = scan_kicad_export()
@@ -301,9 +313,9 @@ def main() -> int:
         nets = kx.get(pin, [])
         if not nets:
             wrong.append(f"{pin} ({expect[pin]}) 在导出网表里没有归属")
-        elif p in (17, 18) and "PGND" not in nets:
+        elif p in (17, 18) and not ({"PGND", "TS_RTN"} & set(nets)):
             wrong.append(f"{pin} (PGND) 导出后落在 {nets} 而不是 PGND")
-    rec(not wrong, "⑥ 导出的 netlist_v1.net 里 U_CHG 24 脚归属正确 (pin17/18 必须在 PGND)",
+    rec(not wrong, "⑥ 导出的 netlist_v1.net 里 U_CHG 24 脚归属正确 (pin17/18 必须在 PGND/TS_RTN)",
         "24 脚全部正确" if not wrong else "; ".join(wrong))
 
     # ---------- ⑦ J_CHG 跨铰链 pin map 三方口径 ----------
@@ -316,9 +328,14 @@ def main() -> int:
                     jmap[int(m.group(1))].add(r.get("net", ""))
     # 规格 §5.2 提案表: | pin5 | `TS_BAT` | ... | pin6 | `CHG_STAT` | ... | pin7 | `PWR_GOOD` |
     #                   pin8 | `VBUS_DET` | pin9 | `I2C_CHG_SCL` | pin10 | `I2C_CHG_SDA` |
+    # ★★2026-11-02 03:0x 更新: 原快照是**过期**的 —— V1.8 把 TS_BAT 从 pin5 挪到 pin8
+    #   (pin5 改给 CHG_STAT), 于是 CHG_STAT/PWR_GOOD/VBUS_DET 各前移一位;
+    #   pin9/pin10 的 BQ25896-I2C 跨铰链方案**未采用** (见 CHARGE_BOARD_SPEC.md §5.3
+    #   "若要据此调充电电流, 就需要 BQ25896 的 I2C 跨铰链" —— 本轮不做) ⇒ pin9 = 预留 HINGE_RSV, pin10 = TS 专用回流。
+    #   ⇒ 现在的网表是**新的**、这份快照是**旧的** ⇒ 本条判据应当跟网表对齐, 并把差异登记进 CHARGE_BOARD_SPEC.md §5。
     spec_proposal = {1: "BAT_CHG", 2: "BAT_CHG", 3: "GND", 4: "GND",
-                     5: "TS_BAT", 6: "CHG_STAT", 7: "PWR_GOOD", 8: "VBUS_DET",
-                     9: "I2C_CHG_SCL", 10: "I2C_CHG_SDA"}
+                     5: "CHG_STAT", 6: "PWR_GOOD", 7: "VBUS_DET", 8: "TS_BAT",
+                     9: "HINGE_RSV", 10: "TS_RTN"}
     spec_p10 = {}
     for row in spec["p10"]:
         for side in ("node1", "node2"):

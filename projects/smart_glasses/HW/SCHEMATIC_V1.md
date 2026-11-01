@@ -83,7 +83,7 @@
 | REGN | U_CHG pin22 | R_TS_TOP | U_CHG | BQ25896 内部 5V (REGN) | NET | 必装 | CHG_BOARD | [官方] |  | [REGN] ★V1.6 补: BQ25896 的 **REGN 5V** (内部 LDO 输出, RT1 的参考端) —— 原来 R_TS_TOP 的 REGN 端没有对应节点  |
 | REGN | C_REGN | U_CHG pin22 | C_REGN | [待选型] 1µF | C | 必装 | CHG_BOARD | [官方] |  | [REGN] BQ25896 REGN 去耦电容 (datasheet 要求) |
 | GND | C_REGN | GND | C_REGN | [待选型] 1µF | C | 必装 | MAIN_PCB | [官方] |  | [REGN] REGN 去耦电容 地端 |
-| TS_BAT | R_TS_TOP | U_CHG pin22 | R_TS_TOP | 5.24k ±1% (RT1: REGN 到 TS) | R | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, 原来只画了 NTC + |
+| TS_BAT | R_TS_TOP | U_CHG pin11 | R_TS_TOP | 5.24k ±1% (RT1: REGN 到 TS) | R | 必装 | CHG_BOARD | [官方] |  | [TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, 原来只画了 NTC + |
 | IINLIM | U_CHG pin10 | R_ILIM | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A · 单 pin 0.411A) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] ★★V1.7 按 ISS-091 结构核算定 **470Ω**: BQ25896 的 IINLIM 复位默认 **2048mA** [官方] (不装 = 铰链吃  |
 | GND | R_ILIM | GND | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A · 单 pin 0.411A) | R | 必装 | MAIN_PCB | [官方] |  | [IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限) |
 | BAT_SW | U_PWR_SW VIN | U_BATPROT | U_PWR_SW | VIN (输入) | NET | 必装 | MAIN_PCB | [推算] |  | [BAT_SW] 电池保护 (BQ2970 + 2×MOS) 引脚 · **负载开关输入**; ★V1.8: 开关装镜脚 (与电池/保护板同板); 关机时充电链仍在电池侧带电 ⇒  |
@@ -163,7 +163,7 @@
 | GND | C_BULK_VDD_1V8_IO | GND | C_BULK_VDD_1V8_IO | 10µF | C | 必装 | MAIN_PCB | [推算] |  | [VDD_1V8_IO] 体电容 地端 |
 | VDD_1V8_IO | RAIL_VDD_1V8_IO | C_HF_VDD_1V8_IO | C_HF_VDD_1V8_IO | 100nF | C | 必装 | MAIN_PCB | [推算] |  | [VDD_1V8_IO] 高频去耦电容位 (紧贴 IC 引脚) |
 | GND | C_HF_VDD_1V8_IO | GND | C_HF_VDD_1V8_IO | 100nF | C | 必装 | MAIN_PCB | [推算] |  | [VDD_1V8_IO] 高频去耦电容 地端 |
-| LIGHT_5V | RAIL_LIGHT_5V | CONN_LIGHT pin21 | RAIL_LIGHT_5V | 5.0V | RAIL | DNP | HINGE | [推算] | TBD-02 | 电源域: 目标 [待 JBD] / 最大电流 50mA; 供电方式 [待 JBD] 确认 (VBUS 直供 或 升压); SoC 侧球位号 TBD-01 |
+| LIGHT_5V | RAIL_LIGHT_5V | CONN_LIGHT pin15 | RAIL_LIGHT_5V | 5.0V | RAIL | DNP | HINGE | [推算] | TBD-02 | 电源域: 目标 [待 JBD] / 最大电流 50mA; 供电方式 [待 JBD] 确认 (VBUS 直供 或 升压); SoC 侧球位号 TBD-01 |
 | LIGHT_5V | RAIL_LIGHT_5V | D_ESD_LIGHT | D_ESD_LIGHT | ESD 阵列 [待选型] | D | DNP | MAIN_PCB | [推算] |  | [LIGHT_5V] 光机 5V 供电口 ESD 阵列位 (跨铰链, 随光机接口确认后定) |
 | GND | D_ESD_LIGHT | GND | D_ESD_LIGHT | ESD 阵列 [待选型] | D | DNP | MAIN_PCB | [推算] |  | [LIGHT_5V] 光机侧 ESD 地端 |
 | GND | RAIL_GND | GND | RAIL_GND | 机壳地 / 数字地 (单点汇流) | RAIL | 必装 | MAIN_PCB | [推算] |  | 电源域: 目标 — / 最大电流 —; 单点汇流位置由结构总工定 (ISS-065); SoC 侧球位号 TBD-01 |
@@ -257,58 +257,45 @@
 - ★**显示 TX 的新证据**: 官网原文 "支持端到端 **3-4ms** 超低延迟显示链路" + "多屏异显" → **芯片内部确有显示输出通路**; 官网另有 "集成 Display Port 1.4" (但**没写方向**, 而媒体写 DP1.4 RX) ⇒ **推断: 极可能有显示 TX, 具体接口待定** → 所以**双出口必须都留**。
 - **[待原厂]**: 有无 MIPI-DSI TX / DP1.4 是否有 TX / 能否同时工作 / lane 数与速率 (TBD-04) · DSI DDC I2C 是否独立于 SoC 通用 I2C (TBD-09)。
 
-### 器件表 (49 行 netlist 记录)
+### 器件表 (36 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| DSI_D0_CK_P_SRC | SoC[TBD-01].DSI_TX_CK_P | R_SEL_CK_P | NET_DSI_D0_CK_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin3 + R_SEL_CK 0Ω; 测试点 TP_DSI_CK |
-| DSI_D0_CK_P | R_SEL_CK_P | CONN_LIGHT pin1 | R_SEL_CK_P | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_CK_P] 显示双出口选择位 (方案A 装 0Ω / 方案B DNP) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
-| DSI_D0_CK_N_SRC | SoC[TBD-01].DSI_TX_CK_N | R_SEL_CK_N | NET_DSI_D0_CK_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin4 + R_SEL_CK 0Ω; 测试点 TP_DSI_CK |
-| DSI_D0_CK_N | R_SEL_CK_N | CONN_LIGHT pin2 | R_SEL_CK_N | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_CK_N] 显示双出口选择位 (方案A 装 0Ω / 方案B DNP) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
-| DSI_D0_D0_P_SRC | SoC[TBD-01].DSI_TX_D0_P | R_SEL_D0_P | NET_DSI_D0_D0_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin5 + R_SEL_D0; 测试点 TP_DSI_D0_P |
-| DSI_D0_D0_P | R_SEL_D0_P | CONN_LIGHT pin3 | R_SEL_D0_P | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D0_P] 显示双出口选择位 (方案A 装 0Ω / 方案B DNP) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
-| DSI_D0_D0_N_SRC | SoC[TBD-01].DSI_TX_D0_N | R_SEL_D0_N | NET_DSI_D0_D0_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin6 + R_SEL_D0; 测试点 TP_DSI_D0_N |
-| DSI_D0_D0_N | R_SEL_D0_N | CONN_LIGHT pin4 | R_SEL_D0_N | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D0_N] 显示双出口选择位 (方案A 装 0Ω / 方案B DNP) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
-| DSI_D0_D1_P_SRC | SoC[TBD-01].DSI_TX_D1_P | R_SEL_D1_P | NET_DSI_D0_D1_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin7 + R_SEL_D1; 测试点 — |
-| DSI_D0_D1_P | R_SEL_D1_P | CONN_LIGHT pin5 | R_SEL_D1_P | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D1_P] 显示双出口选择位 (方案A 装 0Ω / 方案B DNP) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
-| DSI_D0_D1_N_SRC | SoC[TBD-01].DSI_TX_D1_N | R_SEL_D1_N | NET_DSI_D0_D1_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin8 + R_SEL_D1; 测试点 — |
-| DSI_D0_D1_N | R_SEL_D1_N | CONN_LIGHT pin6 | R_SEL_D1_N | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D1_N] 显示双出口选择位 (方案A 装 0Ω / 方案B DNP) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
-| DSI_D0_D2_P_SRC | SoC[TBD-01].DSI_TX_D2_P | R_SEL_D2_P | NET_DSI_D0_D2_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin9 + R_SEL_D2 + 100Ω 对地端接; 测试点 — |
+| DSI_D0_CK_P_SRC | SoC[TBD-01].DSI_TX_CK_P | R_SEL_CK_P | NET_DSI_D0_CK_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin1 + R_SEL_CK 0Ω; 测试点 TP_DSI_CK |
+| DSI_D0_CK_P | R_SEL_CK_P | CONN_LIGHT pin1 | R_SEL_CK_P | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_CK_P] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
+| DSI_D0_CK_N_SRC | SoC[TBD-01].DSI_TX_CK_N | R_SEL_CK_N | NET_DSI_D0_CK_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin2 + R_SEL_CK 0Ω; 测试点 TP_DSI_CK |
+| DSI_D0_CK_N | R_SEL_CK_N | CONN_LIGHT pin2 | R_SEL_CK_N | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_CK_N] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
+| DSI_D0_D0_P_SRC | SoC[TBD-01].DSI_TX_D0_P | R_SEL_D0_P | NET_DSI_D0_D0_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin3 + R_SEL_D0; 测试点 TP_DSI_D0_P |
+| DSI_D0_D0_P | R_SEL_D0_P | CONN_LIGHT pin3 | R_SEL_D0_P | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D0_P] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
+| DSI_D0_D0_N_SRC | SoC[TBD-01].DSI_TX_D0_N | R_SEL_D0_N | NET_DSI_D0_D0_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin4 + R_SEL_D0; 测试点 TP_DSI_D0_N |
+| DSI_D0_D0_N | R_SEL_D0_N | CONN_LIGHT pin4 | R_SEL_D0_N | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D0_N] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
+| DSI_D0_D1_P_SRC | SoC[TBD-01].DSI_TX_D1_P | R_SEL_D1_P | NET_DSI_D0_D1_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin5 + R_SEL_D1; 测试点 — |
+| DSI_D0_D1_P | R_SEL_D1_P | CONN_LIGHT pin5 | R_SEL_D1_P | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D1_P] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
+| DSI_D0_D1_N_SRC | SoC[TBD-01].DSI_TX_D1_N | R_SEL_D1_N | NET_DSI_D0_D1_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin6 + R_SEL_D1; 测试点 — |
+| DSI_D0_D1_N | R_SEL_D1_N | CONN_LIGHT pin6 | R_SEL_D1_N | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D1_N] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
+| DSI_D0_D2_P_SRC | SoC[TBD-01].DSI_TX_D2_P | R_SEL_D2_P | NET_DSI_D0_D2_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin7 + R_SEL_D2 + 100Ω 对地端接; 测试点 — |
 | DSI_D0_D2_P | R_SEL_D2_P | CONN_LIGHT pin7 | R_SEL_D2_P | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D2_P] 4-lane 预留位 (2-lane 不够时再装) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
 | DSI_D0_D2_P_SRC | R_TERM_DSI_D0_D2_P | NET_DSI_D0_D2_P_SRC | R_TERM_DSI_D0_D2_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [DSI_D0_D2_P_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_DSI_D0_D2_P | GND | R_TERM_DSI_D0_D2_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D2_P 才装) |
-| DSI_D0_D2_N_SRC | SoC[TBD-01].DSI_TX_D2_N | R_SEL_D2_N | NET_DSI_D0_D2_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin10/11/12 + 100Ω 对地端接; 测试点 — |
+| DSI_D0_D2_N_SRC | SoC[TBD-01].DSI_TX_D2_N | R_SEL_D2_N | NET_DSI_D0_D2_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin8/9/10 + 100Ω 对地端接; 测试点 — |
 | DSI_D0_D2_N | R_SEL_D2_N | CONN_LIGHT pin8 | R_SEL_D2_N | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D2_N] 4-lane 预留位 (2-lane 不够时再装) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
 | DSI_D0_D2_N_SRC | R_TERM_DSI_D0_D2_N | NET_DSI_D0_D2_N_SRC | R_TERM_DSI_D0_D2_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [DSI_D0_D2_N_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_DSI_D0_D2_N | GND | R_TERM_DSI_D0_D2_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D2_N 才装) |
-| DSI_D0_D3_P_SRC | SoC[TBD-01].DSI_TX_D3_P | R_SEL_D3_P | NET_DSI_D0_D3_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin10/11/12 + 100Ω 对地端接; 测试点 — |
+| DSI_D0_D3_P_SRC | SoC[TBD-01].DSI_TX_D3_P | R_SEL_D3_P | NET_DSI_D0_D3_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin8/9/10 + 100Ω 对地端接; 测试点 — |
 | DSI_D0_D3_P | R_SEL_D3_P | CONN_LIGHT pin9 | R_SEL_D3_P | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D3_P] 4-lane 预留位 (2-lane 不够时再装) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
 | DSI_D0_D3_P_SRC | R_TERM_DSI_D0_D3_P | NET_DSI_D0_D3_P_SRC | R_TERM_DSI_D0_D3_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [DSI_D0_D3_P_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_DSI_D0_D3_P | GND | R_TERM_DSI_D0_D3_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D3_P 才装) |
-| DSI_D0_D3_N_SRC | SoC[TBD-01].DSI_TX_D3_N | R_SEL_D3_N | NET_DSI_D0_D3_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin10/11/12 + 100Ω 对地端接; 测试点 — |
+| DSI_D0_D3_N_SRC | SoC[TBD-01].DSI_TX_D3_N | R_SEL_D3_N | NET_DSI_D0_D3_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin8/9/10 + 100Ω 对地端接; 测试点 — |
 | DSI_D0_D3_N | R_SEL_D3_N | CONN_LIGHT pin10 | R_SEL_D3_N | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D3_N] 4-lane 预留位 (2-lane 不够时再装) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
 | DSI_D0_D3_N_SRC | R_TERM_DSI_D0_D3_N | NET_DSI_D0_D3_N_SRC | R_TERM_DSI_D0_D3_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [DSI_D0_D3_N_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_DSI_D0_D3_N | GND | R_TERM_DSI_D0_D3_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D3_N 才装) |
-| DSI_BR_CK_P_SRC | U_BRIDGE pin1 | BR_CK_P | BR_CK_P | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_CK_P_SRC] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_CK_P | BR_CK_P | CONN_LIGHT pin11 | BR_CK_P | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_CK_P] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_CK_N_SRC | U_BRIDGE pin2 | BR_CK_N | BR_CK_N | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_CK_N_SRC] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_CK_N | BR_CK_N | CONN_LIGHT pin12 | BR_CK_N | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_CK_N] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_D0_P_SRC | U_BRIDGE pin3 | BR_D0_P | BR_D0_P | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_D0_P_SRC] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_D0_P | BR_D0_P | CONN_LIGHT pin13 | BR_D0_P | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_D0_P] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_D0_N_SRC | U_BRIDGE pin4 | BR_D0_N | BR_D0_N | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_D0_N_SRC] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_D0_N | BR_D0_N | CONN_LIGHT pin14 | BR_D0_N | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_D0_N] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_D1_P_SRC | U_BRIDGE pin5 | BR_D1_P | BR_D1_P | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_D1_P_SRC] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_D1_P | BR_D1_P | CONN_LIGHT pin15 | BR_D1_P | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_D1_P] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_D1_N_SRC | U_BRIDGE pin6 | BR_D1_N | BR_D1_N | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_D1_N_SRC] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR_D1_N | BR_D1_N | CONN_LIGHT pin16 | BR_D1_N | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_BR_D1_N] 方案B 桥接位 (方案A DNP / 方案B 装 0Ω) — ★与 R_SEL_* 互斥, 不得同装 |
-| DSI_BR | U_BRIDGE | DSI_BR_CK_P_SRC | U_BRIDGE | [待选型] DP1.4 TX · MIPI DSI TX 桥接芯片 (方案B 专用; 与 P6 同一位) | IC | DNP | MAIN_PCB | [推算] | TBD-04 | [DSI_BR] 方案B 才需要的桥接芯片位 (接口类型/功耗/封装随原厂 TBD-04 结论定; 本版只留位不选型) |
-| I2C_B_SCL | SoC[TBD-01].I2C_B_SCL | R_PU_I2CB_SCL | NET_I2C_B_SCL | 上拉 4.7k, 放主板侧 | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 双向; 电平 3.3V; 阻抗 上拉 4.7k, 放主板侧; 连接 CONN_LIGHT pin13 → 光机; 测试点 TP_I2CB_SCL |
-| I2C_B_SDA | SoC[TBD-01].I2C_B_SDA | R_PU_I2CB_SDA | NET_I2C_B_SDA | 上拉 4.7k, 放主板侧 | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 双向; 电平 3.3V; 阻抗 上拉 4.7k, 放主板侧; 连接 CONN_LIGHT pin14 → 光机; 测试点 TP_I2CB_SDA |
-| I2C_B_SCL | CONN_LIGHT pin17 | NET_I2C_B_SCL | NET_I2C_B_SCL | 上拉 4.7k, 放主板侧 | NET | 必装 | HINGE | [推算] | TBD-04 | [I2C_B_SCL] 附加节点 (同 net) |
-| I2C_B_SDA | CONN_LIGHT pin18 | NET_I2C_B_SDA | NET_I2C_B_SDA | 上拉 4.7k, 放主板侧 | NET | 必装 | HINGE | [推算] | TBD-04 | [I2C_B_SDA] 附加节点 (同 net) |
+| I2C_B_SCL | SoC[TBD-01].I2C_B_SCL | R_PU_I2CB_SCL | NET_I2C_B_SCL | 上拉 4.7k, 放主板侧 | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 双向; 电平 3.3V; 阻抗 上拉 4.7k, 放主板侧; 连接 CONN_LIGHT pin11 → 光机; 测试点 TP_I2CB_SCL |
+| I2C_B_SDA | SoC[TBD-01].I2C_B_SDA | R_PU_I2CB_SDA | NET_I2C_B_SDA | 上拉 4.7k, 放主板侧 | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 双向; 电平 3.3V; 阻抗 上拉 4.7k, 放主板侧; 连接 CONN_LIGHT pin12 → 光机; 测试点 TP_I2CB_SDA |
+| I2C_B_SCL | CONN_LIGHT pin11 | NET_I2C_B_SCL | NET_I2C_B_SCL | 上拉 4.7k, 放主板侧 | NET | 必装 | HINGE | [推算] | TBD-04 | [I2C_B_SCL] 附加节点 (同 net) |
+| I2C_B_SDA | CONN_LIGHT pin12 | NET_I2C_B_SDA | NET_I2C_B_SDA | 上拉 4.7k, 放主板侧 | NET | 必装 | HINGE | [推算] | TBD-04 | [I2C_B_SDA] 附加节点 (同 net) |
 | VDD_3V3_IO | R_PU_I2CB_SCL | RAIL_VDD_3V3_IO | R_PU_I2CB_SCL | 4.7k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] DSI DDC 上拉 (放主板侧) |
 | VDD_3V3_IO | R_PU_I2CB_SDA | RAIL_VDD_3V3_IO | R_PU_I2CB_SDA | 4.7k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] DSI DDC 上拉 |
-| CONN_LIGHT | CONN_LIGHT | CONN_LIGHT pin1 | CONN_LIGHT | 1×22p@0.5mm 光机连接器 (板对板/FFC, 待 JBD 确认; 末脚 GND = 差分回流) | CONN | 必装 | HINGE | [待JBD] | TBD-04 | [INVENTORY] [CONN_LIGHT] 光机↔主板连接器; pin3/4=DSI_CK, 5/6=DSI_D0, 7/8=DSI_D1, 9/10=DSI_D2, 11/ |
-| GND | CONN_LIGHT pin22 | GND | CONN_LIGHT | 跨铰链回流地 (独立脚) | NET | 必装 | HINGE | [推算] | TBD-04 | [GND] ★V1.6 补: CONN_LIGHT 原来 21 个脚里**一个 GND 都没有** · DSI 差分无回流路径 (跨铰链 100Ω 差分必须与地成对) · 22p  |
+| CONN_LIGHT | CONN_LIGHT | CONN_LIGHT pin1 | CONN_LIGHT | 1×16p@0.5mm 显示/光机连接器 (板对板/FFC, 待视涯确认; 末脚 GND = 差分回流) | CONN | 必装 | HINGE | [待视涯] | TBD-04 | [INVENTORY] [CONN_LIGHT] 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留 |
+| GND | CONN_LIGHT pin16 | GND | CONN_LIGHT | 跨铰链回流地 (独立脚) | NET | 必装 | HINGE | [推算] | TBD-04 | [GND] ★V1.6 补: CONN_LIGHT 原来 21 个脚里**一个 GND 都没有** · DSI 差分无回流路径 (跨铰链 100Ω 差分必须与地成对) · 16p  |
 
 ## P5 MIPI-CSI 传感器
 > CONN_CAM 40p 跨铰链; 4-lane 预留; AC 耦合 + 对地端接
@@ -382,43 +369,10 @@
 - ★**V1.1 已把 `U_BRIDGE` 定位统一**: 之前 P4 写"DSI→光机桥接芯片"、P6 写"DP→DSI 桥接芯片" —— **同一颗芯片两种说法 = BOM 会对不上**。现在统一为 **DP1.4 TX → MIPI DSI TX 桥接芯片 (方案B 专用)**, `redriver` 作为候选兼列 (若原厂给的是 DP TX 而光机吃 DSI, 那就得靠它转)。
 - ★**V1.1 显示 TX 公开渠道穷举结论 (ISS-083)**: ① 官网产品页对 ARS45 **只字未提显示接口**; ② 官网「智能可穿戴」应用页写"集成 **Display Port 1.4** 与 **USB 3.0**" [官网·方案级, 未说 TX/RX 方向]; ③ 百度百科写"**DP1.4 RX**" [媒体级]; ④ **没有任何官方渠道出现 "DSI" 字样** → ⇒ **"ARS45 原生带 DSI TX" 至今未证实** ⇒ **双出口互斥 (R_SEL_* vs BR_*) 必须保留, 桥接芯片 fallback 不能删** (采购周期 4-8 周, 不能等回信)。⑤ 官网确认"集成 USB 3.0" → 但 **USB 3.0 的 SS 差分绝不能跨铰链** (4 对差分 + 刚度要求) ⇒ Type-C 座按 **16p (USB2 + 充电)** 定, 烧录走 USB 2.0 D+/D− (P6)。
 
-### 器件表 (46 行 netlist 记录)
+### 器件表 (13 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | VBUS_DET | SoC[TBD-01].USB_VBUS_DET | J_CHG pin7 | SoC[TBD-01] | SoC USB VBUS 检测脚 (脚号待原厂) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | [VBUS_DET] ★V1.8 补上 sw-lead 指出的缺件: **SoC 侧没有任何 USB VBUS 连接** · USB 枚举与 S2 救砖链路 (ISS-080) 的 |
-| DP_TX_A0_P_SRC | SoC[TBD-01].DP_TX_A0_P | R_SER_DP_A0_P | NET_DP_TX_A0_P_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
-| DP_TX_A0_P | R_SER_DP_A0_P | U_BRIDGE pin21 | R_SER_DP_A0_P | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A0_P] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A0_P_SRC | C_AC_DP_A0_P | R_SER_DP_A0_P | C_AC_DP_A0_P | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A0_P_SRC] DP TX **对地**电容位 (并联到 GND, 不是 AC 耦合电容; ★V1.6 修正: 原来 P/N 两路共用一颗且 N 路错接到 P 路 |
-| GND | C_AC_DP_A0_P | GND | C_AC_DP_A0_P | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A0_P_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
-| DP_TX_A0_N_SRC | SoC[TBD-01].DP_TX_A0_N | R_SER_DP_A0_N | NET_DP_TX_A0_N_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
-| DP_TX_A0_N | R_SER_DP_A0_N | U_BRIDGE pin22 | R_SER_DP_A0_N | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A0_N] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A0_N_SRC | C_AC_DP_A0_N | R_SER_DP_A0_N | C_AC_DP_A0_N | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A0_N_SRC] DP TX **对地**电容位 (并联到 GND, 不是 AC 耦合电容; ★V1.6 修正: 原来 P/N 两路共用一颗且 N 路错接到 P 路 |
-| GND | C_AC_DP_A0_N | GND | C_AC_DP_A0_N | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A0_N_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
-| DP_TX_A1_P_SRC | SoC[TBD-01].DP_TX_A1_P | R_SER_DP_A1_P | NET_DP_TX_A1_P_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
-| DP_TX_A1_P | R_SER_DP_A1_P | U_BRIDGE pin23 | R_SER_DP_A1_P | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A1_P] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A1_P_SRC | C_AC_DP_A1_P | R_SER_DP_A1_P | C_AC_DP_A1_P | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A1_P_SRC] DP TX **对地**电容位 (并联到 GND, 不是 AC 耦合电容; ★V1.6 修正: 原来 P/N 两路共用一颗且 N 路错接到 P 路 |
-| GND | C_AC_DP_A1_P | GND | C_AC_DP_A1_P | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A1_P_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
-| DP_TX_A1_N_SRC | SoC[TBD-01].DP_TX_A1_N | R_SER_DP_A1_N | NET_DP_TX_A1_N_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
-| DP_TX_A1_N | R_SER_DP_A1_N | U_BRIDGE pin24 | R_SER_DP_A1_N | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A1_N] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A1_N_SRC | C_AC_DP_A1_N | R_SER_DP_A1_N | C_AC_DP_A1_N | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A1_N_SRC] DP TX **对地**电容位 (并联到 GND, 不是 AC 耦合电容; ★V1.6 修正: 原来 P/N 两路共用一颗且 N 路错接到 P 路 |
-| GND | C_AC_DP_A1_N | GND | C_AC_DP_A1_N | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A1_N_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
-| DP_TX_A2_P_SRC | SoC[TBD-01].DP_TX_A2_P | R_SER_DP_A2_P | NET_DP_TX_A2_P_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
-| DP_TX_A2_P | R_SER_DP_A2_P | U_BRIDGE pin25 | R_SER_DP_A2_P | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A2_P] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A2_P_SRC | C_AC_DP_A2_P | R_SER_DP_A2_P | C_AC_DP_A2_P | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A2_P_SRC] DP TX **对地**电容位 (并联到 GND, 不是 AC 耦合电容; ★V1.6 修正: 原来 P/N 两路共用一颗且 N 路错接到 P 路 |
-| GND | C_AC_DP_A2_P | GND | C_AC_DP_A2_P | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A2_P_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
-| DP_TX_A2_N_SRC | SoC[TBD-01].DP_TX_A2_N | R_SER_DP_A2_N | NET_DP_TX_A2_N_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
-| DP_TX_A2_N | R_SER_DP_A2_N | U_BRIDGE pin26 | R_SER_DP_A2_N | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A2_N] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A2_N_SRC | C_AC_DP_A2_N | R_SER_DP_A2_N | C_AC_DP_A2_N | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A2_N_SRC] DP TX **对地**电容位 (并联到 GND, 不是 AC 耦合电容; ★V1.6 修正: 原来 P/N 两路共用一颗且 N 路错接到 P 路 |
-| GND | C_AC_DP_A2_N | GND | C_AC_DP_A2_N | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A2_N_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
-| DP_TX_A3_P_SRC | SoC[TBD-01].DP_TX_A3_P | R_SER_DP_A3_P | NET_DP_TX_A3_P_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
-| DP_TX_A3_P | R_SER_DP_A3_P | U_BRIDGE pin27 | R_SER_DP_A3_P | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A3_P] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A3_P_SRC | C_AC_DP_A3_P | R_SER_DP_A3_P | C_AC_DP_A3_P | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A3_P_SRC] DP TX **对地**电容位 (并联到 GND, 不是 AC 耦合电容; ★V1.6 修正: 原来 P/N 两路共用一颗且 N 路错接到 P 路 |
-| GND | C_AC_DP_A3_P | GND | C_AC_DP_A3_P | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A3_P_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
-| DP_TX_A3_N_SRC | SoC[TBD-01].DP_TX_A3_N | R_SER_DP_A3_N | NET_DP_TX_A3_N_SRC | 100Ω ±10% (DP 1.4) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-04 | 方向 SoC→桥接芯片; 电平 差分 [待原厂]; 阻抗 100Ω ±10% (DP 1.4); 连接 主 PCB 内部走线 + redriver 位 (0402 串阻 ×4 +  |
-| DP_TX_A3_N | R_SER_DP_A3_N | U_BRIDGE pin28 | R_SER_DP_A3_N | 100Ω ±10% | R | 必装 | MAIN_PCB | [待原厂] |  | [DP_TX_A3_N] DP TX 串阻位 (规格: 0402 串阻 ×4; 4 lane × P/N -> 实物 8 颗, 装配按实际 lane 数裁剪) |
-| DP_TX_A3_N_SRC | C_AC_DP_A3_N | R_SER_DP_A3_N | C_AC_DP_A3_N | [待选型] | C | DNP | MAIN_PCB | [待原厂] | TBD-04 | [DP_TX_A3_N_SRC] DP TX **对地**电容位 (并联到 GND, 不是 AC 耦合电容; ★V1.6 修正: 原来 P/N 两路共用一颗且 N 路错接到 P 路 |
-| GND | C_AC_DP_A3_N | GND | C_AC_DP_A3_N | [待选型] | C | DNP | MAIN_PCB | [待原厂] |  | [DP_TX_A3_N_SRC] DP TX 对地电容 另一端接 GND (两脚件必须落在 2 个网上) |
-| DP_TX | U_BRIDGE | DP_TX_A0_P_SRC | U_BRIDGE | [待选型] DP1.4 TX · MIPI DSI TX 桥接芯片 (方案B 专用; 候选 redriver 兼列) | IC | DNP | MAIN_PCB | [推算] | TBD-04 | [DP_TX] 方案B 才需要: SoC DP_TX 4 lane 进桥接芯片, DSI 出桥接芯片走 BR_* 到光机; **方案A (SoC 原生 DSI) 下整条链冗余 ·  |
 | USB_D_P_SRC | SoC[TBD-01].USB_D_P | R_SER_USB_D_P | NET_USB_D_P_SRC | 90Ω ±10% (与 MIPI 不同模板!) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 90Ω ±10% (与 MIPI 不同模板!); 连接 Type-C → 主 PCB (跨铰链则经 CONN_US |
 | USB_D_N_SRC | SoC[TBD-01].USB_D_N | R_SER_USB_D_N | NET_USB_D_N_SRC | 90Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 90Ω ±10%; 连接 同上; 测试点 TP_USB_D- |
 | USB_D_P | R_SER_USB_D_P | CONN_USB pin1 | R_SER_USB_D_P | 22Ω ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-10 | [USB_D_P] USB 2.0 源端串阻 (D+, 22Ω 放在**主板侧 SoC 端**); ★V1.1 修: V1 把 D+ 直接接 J_TYPE_C pin4 = **把 |
@@ -494,8 +448,8 @@
 | SENSOR_AVDD | TP_SENSOR_2V8 | CONN_CAM pin15 | TP_SENSOR_2V8 | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: sensor 三条轨; 位置: LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8) |
 | SENSOR_VDD_IO | TP_SENSOR_1V8 | CONN_CAM pin16 | TP_SENSOR_1V8 | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: sensor 三条轨; 位置: LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8) |
 | SENSOR_CORE | TP_SENSOR_1V2 | CONN_CAM pin17 | TP_SENSOR_1V2 | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: sensor 三条轨; 位置: LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8) |
-| LIGHT_3V3 | TP_LIGHT_3V3 | CONN_LIGHT pin19 | TP_LIGHT_3V3 | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: 光机轨; 位置: LDO 输出 |
-| LIGHT_1V8 | TP_LIGHT_1V8 | CONN_LIGHT pin20 | TP_LIGHT_1V8 | 测试点 | TP | DNP | MAIN_PCB | [推算] |  | 测什么: 光机 1.8V 轨 (待 JBD); 位置: LDO 输出 (待 JBD 确认后) |
+| LIGHT_3V3 | TP_LIGHT_3V3 | CONN_LIGHT pin13 | TP_LIGHT_3V3 | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: 光机轨; 位置: LDO 输出 |
+| LIGHT_1V8 | TP_LIGHT_1V8 | CONN_LIGHT pin14 | TP_LIGHT_1V8 | 测试点 | TP | DNP | MAIN_PCB | [推算] |  | 测什么: 光机 1.8V 轨 (待 JBD); 位置: LDO 输出 (待 JBD 确认后) |
 | CSI_D0_CK_P | TP_CSI_CK_P | CONN_CAM pin1 | TP_CSI_CK_P | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: CSI 时钟差分 (示波器测眼图/摆幅); 位置: 连接器出口 (规格合并名 TP_CSI_D0_CK_P / _N) |
 | CSI_D0_CK_N | TP_CSI_CK_N | CONN_CAM pin2 | TP_CSI_CK_N | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: CSI 时钟差分 (规格合并名 TP_CSI_D0_CK_P / _N); 位置: 连接器出口 |
 | CSI_D0_D0_P | TP_CSI_D0_P | CONN_CAM pin3 | TP_CSI_D0_P | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: CSI D0 数据差分; 位置: 连接器出口 |
@@ -508,8 +462,8 @@
 | DSI_D0_D0_N | TP_DSI_D0_N | CONN_LIGHT pin4 | TP_DSI_D0_N | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: DSI D0 数据差分; 位置: 连接器出口 |
 | I2C_A_SCL | TP_I2CA_SCL | CONN_CAM pin13 | TP_I2CA_SCL | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: I2C_A 时钟; 位置: 连接器出口 |
 | I2C_A_SDA | TP_I2CA_SDA | CONN_CAM pin14 | TP_I2CA_SDA | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: I2C_A 数据; 位置: 连接器出口 |
-| I2C_B_SCL | TP_I2CB_SCL | CONN_LIGHT pin17 | TP_I2CB_SCL | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: DDC 时钟 (I2C_B); 位置: 连接器出口 |
-| I2C_B_SDA | TP_I2CB_SDA | CONN_LIGHT pin18 | TP_I2CB_SDA | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: DDC 数据 (I2C_B); 位置: 连接器出口 |
+| I2C_B_SCL | TP_I2CB_SCL | CONN_LIGHT pin11 | TP_I2CB_SCL | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: DDC 时钟 (I2C_B); 位置: 连接器出口 |
+| I2C_B_SDA | TP_I2CB_SDA | CONN_LIGHT pin12 | TP_I2CB_SDA | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: DDC 数据 (I2C_B); 位置: 连接器出口 |
 | USB_D_P | TP_USB_D_P | CONN_USB pin1 | TP_USB_D_P | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: USB 2.0 差分; 位置: Type-C 出口 (规格合并名 TP_USB_D+ / D-) |
 | USB_D_N | TP_USB_D_N | CONN_USB pin2 | TP_USB_D_N | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: USB 2.0 差分 (规格合并名 TP_USB_D+ / D-); 位置: Type-C 出口 |
 | FSIN_OUT | TP_FSIN | R_SER_FSIN | TP_FSIN | 测试点 | TP | 必装 | MAIN_PCB | [推算] |  | 测什么: 帧同步 (FSIN/VSYNC) 引出; 位置: SoC 侧 -> 回答原厂问询 Q4b.3 |
@@ -631,7 +585,7 @@
 | HINGE_CHG | J_CHG | J_CHG pin1 | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | [INVENTORY] [HINGE_CHG] 通道 1/4 **充电电流 + 状态回读** (★V1.2 改: 电池在镜脚 ⇒ 跨铰链的是**充电电流 1.0-1.5A**, * |
 | HINGE_USB | CONN_USB | CONN_USB pin1 | CONN_USB | 4p 跨铰链连接器 (D+/D-/GND/预留) | CONN | 必装 | HINGE | [推算] |  | [INVENTORY] [HINGE_USB] 通道 2/4 **USB 2.0 差分**: Type-C 在镜框充电板, SoC 在镜脚主 PCB · **烧录/调试口必然跨铰链 |
 | HINGE_CSI | CONN_CAM | CONN_CAM pin1 | CONN_CAM | 18p@0.5mm 跨铰链连接器 (主 PCB ↔ sensor 板; 18 脚 = 独立回流地) | CONN | 必装 | HINGE | [推算] | TBD-03 | [INVENTORY] [HINGE_CSI] 通道 3/4 **MIPI-CSI**: pin1/2=CK, 3-10=D0-D3, 11=MCLK, 12=RESET_N, 1 |
-| HINGE_DSI | CONN_LIGHT | CONN_LIGHT pin1 | CONN_LIGHT | 1×22p@0.5mm 光机连接器 (板对板/FFC, 跨铰链到镜框光机; 末脚 GND = 差分回流) | CONN | 必装 | HINGE | [待JBD] | TBD-04 | [INVENTORY] [HINGE_DSI] 通道 4/4 **显示 + 光机供电** (1×22p@0.5mm): pin1/2=CK, 3/4=D0, 5/6=D1, 7-1 |
+| HINGE_DSI | CONN_LIGHT | CONN_LIGHT pin1 | CONN_LIGHT | 1×16p@0.5mm 显示/光机连接器 (板对板/FFC, 跨铰链到镜框显示/光机; 末脚 GND = 差分回流) | CONN | 必装 | HINGE | [待视涯] | TBD-04 | [INVENTORY] [HINGE_DSI] 通道 4/4 **显示 + 光机供电** (1×16p@0.5mm): pin1/2=CK, 3/4=D0, 5/6=D1, 7/8 |
 | USB_D_P | CONN_USB pin1 | D_ESD_USB | D_ESD_USB | ESD 阵列 [待选型] (2 通道 USB) | D | 必装 | MAIN_PCB | [推算] |  | [USB_D_P] ★跨铰链 USB 主板侧 ESD 阵列 (紧贴 CONN_USB); ★**不装共模扼流圈** (USB 2.0 眼图对共模转差分极敏感, 扼流圈会恶化眼图)  |
 | USB_D_N | CONN_USB pin2 | D_ESD_USB | D_ESD_USB | ESD 阵列 [待选型] (2 通道 USB) | D | 必装 | MAIN_PCB | [推算] |  | [USB_D_N] USB 主板侧 ESD 阵列 (同一位, 2 通道) |
 | USB_D_N | CONN_USB pin3 | GND | NET_USB_GND_H | 单端 | NET | 必装 | HINGE | [推算] |  | [USB_D_N] 跨铰链 USB 回流地 (独立 pin, 不与电源共 pin · 环路面积最小) |
