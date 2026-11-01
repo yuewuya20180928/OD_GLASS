@@ -50,7 +50,12 @@
 | 5 | **项目级 skills** | **3** | `config/skills/{qa-requirement-review,smart-glasses-pm,smart-hardware-reference}/` |
 | 6 | **全局 skills** | **2** | `config/skills-global/{nimo-glasses,state-protocol}/` |
 | 7 | **迁移操作手册** (本文) | **1** | `HW/AGENT_MIGRATION_PLAN.md` |
-| 8 | **差集分析脚本** | **1** | `HW/agent_migration_diff.py` |
+| 8 | **补推脚本** (一键重跑, 可复现) | **1** | `state/_migrate_assets.py` |
+| 9 | **带外传输清单** | **1** | `config/OFFLINE_TRANSFER_CHECKLIST.md` |
+
+**★已实测推送 (2026-11-01 21:5x)**: 远端 commit `4d62791` ⇒ `config/` 共 **102 个文件**:
+`main 日记 48 + 其它 agent 人格/配置 21 + guards 4 + 项目 skills 14 + 全局 skills 11 + 其它 4` ⇒
+**另一台主机 clone 完就有了全部 agent 配置** (凭据除外, 走带外)。
 
 ### ★★ 绝对不能推 (带凭据, 走带外通道)
 | 文件 | 含什么 | 出处 |
@@ -153,6 +158,14 @@ python3 state/stage_gate.py   # G2, 差 7 项
 ```
 
 ---
+
+## B4.5 ★★实测踩到的 3 个坑 (我做这一步时真踩的, 别在新主机上重踩)
+
+| # | 坑 | 现象 | 根因 |
+|---|---|---|---|
+| 1 | ★**发布脚本只 cp 4 个 AGENTS.md** | 我把 85 个迁移资产放进项目树的 `config/`, 推上去**远端只有 AGENTS.md** | 发布脚本第 3 步是 `cp` 单个文件, **不是 rsync 整个目录** ⇒ 已改成 `rsync -a --delete "$PROJ/config/" config/` |
+| 2 | ★**agent id ≠ workspace 目录名** | `hw-lead` 的 workspace 是 `workspace-hw` (不是 `workspace-hw-lead`) ⇒ 拷贝脚本报"源不存在" | agent id 带角色后缀, workspace 用短名 ⇒ 脚本里用 `aid.split("-")[0]` |
+| 3 | ★**占位符路径写错** | `config/openclaw.agents.json` 里写成了 `<OPENCLAW_HOME>/workspace-hw-lead` | 同上 ⇒ 已改成 `workspace-hw` / `workspace-sw` / `workspace-mech` |
 
 ## B5 ★★另一台主机会踩的 5 个坑 (按踩到概率排序)
 
