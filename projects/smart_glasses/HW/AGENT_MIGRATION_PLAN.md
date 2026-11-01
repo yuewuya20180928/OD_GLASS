@@ -189,6 +189,53 @@ python3 state/stage_gate.py   # G2, 差 7 项
 幂等性       ✅ 重跑 0 错
 ```
 
+### ★★cron 不用逐条 add —— **直接拷 jobs.json** (★2026-11-01 22:5x 实测, 比原方案可靠)
+
+**依据 (openclaw 官方文档 `automation/cron-jobs.md` 第 44-47 行)**:
+> "Job definitions persist at `~/.openclaw/cron/jobs.json` so restarts do not lose schedules."
+> "Runtime execution state persists next to it in `jobs-state.json`. **If you track cron definitions in git, track `jobs.json` and gitignore `jobs-state.json`.**"
+
+⇒ ★**结论: 拷 `jobs.json` 即可, 千万不要拷 `jobs-state.json`** (后者是运行时 pending slot, 带旧状态会串)。
+
+**★实测 (2026-11-01 22:5x, 隔离 gateway 端口 19099 + 独立 STATE_DIR)**:
+```
+只放一份 jobs.json (7 个 job) ⇒ openclaw cron list 读出全部:
+  ✅ 表达式 / model / 投递目标 / nextRun 全部正确
+  ✅ ★**停用的 '队列自动派活' 也完整保留** (jobs.json 里仍是 7 个, gateway 写回 jobs-state.json 后仍是 7 个)
+  ⇒ 状态保真, 不需要逐条重建
+```
+
+**★为什么不用 `openclaw cron add --message`** (我上一轮说要"人工逐条粘贴", 现在有更好的办法):
+`--message` 要传**整个 payload 全文** (每个 job 几百到上千字, 含引号/换行/中文)⇒ **命令行传参极易踩 shell 转义坑** ⇒ ★**拷文件没有这个问题**。
+
+**★新主机上的操作**:
+```bash
+# ① 带外传 jobs.json (★含微信 openid ⇒ 绝不能进 GitHub)
+scp old-host:~/.openclaw/cron/jobs.json  ~/ars45-transfer/
+# ② 跑铺装脚本 (它会把它装到 ~/.openclaw/cron/jobs.json)
+bash bootstrap_ars45.sh
+# ③ 重启网关 + 验证
+systemctl --user restart openclaw-gateway
+openclaw cron list
+# ④ ★决定 '队列自动派活' 要不要恢复 (旧主机上它是 disabled)
+openclaw cron enable fb67af40-a9eb-4cdd-a842-8cbb8fdd7865
+```
+
+### ★★"任务"分三类, 处理方式完全不同 (老板问的就是这个)
+
+| 类别 | 内容 | 在 GitHub? | 怎么到新主机 |
+|---|---|---|---|
+| **① 项目任务台账** | `state/issue_log.yaml` (125 条) + `state/fragments/` (4 个 agent 分片) + `HANDOFF/` (41 份交卷单) + `state/dispatch_log.yaml` | ✅ **都在** | ★**clone 就有了, 不用做任何事** ⇒ ★**新主机接管后, issue 状态、分片、交卷历史全都在** |
+| **② 自动派活任务 (cron)** | 7 个 job (队列派活 / GitHub 同步 / token 守护 / 巡检 / 周交付) | ❌ 含 openid | ★**带外拷 `cron/jobs.json`** (见上) ⇒ gateway 启动自动读 |
+| **③ 对话历史 (sessions)** | `~/.openclaw/agents/*/sessions/*.jsonl` (120 个会话, main 535MB) | ❌ 含凭据痕迹 | ★**建议不搬** —— 体积大且含上下文; ★**但这意味着新主机上 agent 看不到旧对话** ⇒ 若要连续性, 只搬 main 最近几条 |
+
+### ★★★ 接管前**必须**做的 3 件事 (顺序不能反)
+1. **★停旧主机的 cron** ⇒ `openclaw cron disable <jobId>` × 7 (或直接停它的 gateway 服务)
+   ⇒ ★**理由**: 两边同时派活 ⇒ 同一个 agent 两个写会话 ⇒ **互相覆盖分片** (10-29 第三例撞车, 两条都 0 产出)
+2. **新主机跑铺装脚本** + 重启网关 + `openclaw cron list` 核对 7 个 job
+3. **新主机只留一个 GitHub 推送方** ⇒ ★**旧主机的 GitHub 同步 cron 也要停**, 否则两边推同一个仓库会撞 git 锁
+   (发布脚本自带 flock 串行化, 但两边的 `state/` 是**两份**, 内容会漂移 ⇒ 以新主机为准)
+
 ### ★★但有一件事脚本**故意不做** —— cron 不自动恢复
 **为什么**: `openclaw cron add` 的 `--message` 参数是**整个 payload 全文**(每个 job 几百到上千字, 还含引号/换行)⇒ **命令行传参极易踩 shell 转义坑** ⇒ ★**脚本只把 7 个 job 的表达式/名字/model 打出来 + 给模板**, 让执行者逐条粘贴 ⇒ **宁可让人看一眼, 不要自动化踩坑**。
 ⇒ 如果你要全自动, 我可以改成写 `jobs.json` 再 `openclaw cron` 导入(需先验证该 CLI 有导入命令 —— **目前没查, 不能瞎编**)。

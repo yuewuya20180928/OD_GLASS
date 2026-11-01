@@ -282,13 +282,26 @@ for j in jobs:
     if sch.get("kind") == "cron":
         print(f"{sch.get('expr')}\t{j.get('name')}\t{(j.get('payload') or {}).get('model','')}")
 PY
-  echo "  ── 用 'openclaw cron add' 逐条恢复 (payload 原文见 $HOME_DIR/cron/jobs.json) ──"
-  echo "     ★模板: openclaw cron add --name '<名字>' --cron '<表达式>' --session isolated \\"
-  echo "                --message '<payload 全文>' --model minimax/MiniMax-M3.1-Flash --announce --channel openclaw-weixin --to <openid>"
-  echo "     ★⚠️ '队列自动派活' 在旧主机上当前是 **disabled** ⇒ 迁过来时决定要不要恢复"
-  echo "     ★⚠️ 旧主机上的 cron 必须**先停**, 否则两边同时派活 ⇒ 互相覆盖分片"
-else
-  warn "cron/jobs.json 未找到 ⇒ 跳过 (手动恢复)"
+  # ★★★2026-11-01 22:5x: **cron 直接拷文件** (实测可行, 比 cron add --message 可靠得多)
+  #   依据: openclaw docs automation/cron-jobs.md 第 44-47 行 ——
+  #     "Job definitions persist at ~/.openclaw/cron/jobs.json"
+  #     "Runtime execution state persists next to it in jobs-state.json"
+  #     "If you track cron definitions in git, track jobs.json and gitignore jobs-state.json"
+  #   ⇒ **拷 jobs.json 即可, 千万不要拷 jobs-state.json** (那是运行时 pending slot, 会带旧状态)
+  #   ⇒ 实测 (2026-11-01 隔离 gateway 19099): 只放一份 jobs.json ⇒ cron list 读出全部 7 个 job
+  #      (含表达式/model/投递目标/nextRun), **停用的 '队列自动派活' 也完整保留** ⇒ 状态保真
+  #   ⇒ 为什么不用 `openclaw cron add --message`: payload 是**几百到上千字**的长文本,
+  #      走命令行参数极易踩 shell 转义坑 ⇒ ★**拷文件没有这个问题**
+  if [ -f "$HOME_DIR/cron/jobs.json" ]; then
+    ok "cron jobs.json 已就位 ⇒ **无需逐条 add** (gateway 启动自动读)"
+    echo "     ★**不要拷 jobs-state.json** (运行时状态, 带旧 pending slot)"
+    echo "     ★**重启网关后验证**: openclaw cron list"
+    echo "     ★⚠️ '队列自动派活' 在旧主机上当前是 **disabled** ⇒ 迁过来时决定要不要恢复:"
+    echo "        openclaw cron enable <jobId>"
+    echo "     ★⚠️ 旧主机上的 cron 必须**先停**, 否则两边同时派活 ⇒ 互相覆盖分片"
+  else
+    warn "cron/jobs.json 未找到 ⇒ 跳过 (手动恢复, 见 config/OFFLINE_TRANSFER_CHECKLIST.md)"
+  fi
 fi
 
 # =============================================================================
