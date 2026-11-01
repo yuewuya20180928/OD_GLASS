@@ -11,7 +11,7 @@ netlist 生成器 (gen_netlist) —— **器件级 netlist 的唯一真源**
 ★内容边界:
   ① 只从 `HW/SCHEMATIC_V1_SPEC.json` (56 连接 / 13 电源轨 / 9 选择位 / 13 测试点) 展开
      · **不发明连接**; 器件级 (无源件/保护件/连接器/消抖) 是把规格原文落到器件行, 不改连接关系
-  ② SoC 侧球位号一律 `SoC[TBD-01].<信号>` 占位 (原厂引脚表/球位图未回) · **0 编造球位号**
+  ② SoC 侧球位号一律 `SoC[RK3572].<信号>` 占位 (原厂引脚表/球位图未回) · **0 编造球位号**
   ③ 器件值: 能从规格/官方数据手册拿到的直接引; 拿不到的写 `[待选型]` / `[待原厂]`, 不写死
   ④ 所有 [待原厂] 行都挂 TBD-01..TBD-13 编号 (对应规格 undrawable[] 顺序)
 
@@ -418,7 +418,7 @@ def build_p1(by_id, spec):
         "SoC 关机时把该 GPIO 配成高阻 · ON 掉回下拉 · 开关关 · SoC 断电 · 状态自动保持 (无需锁存电路)", "C-02")
     add("P1", "GND", "R_PD_ON", "GND", "R_PD_ON", "10k ±1%", "R", "必装", "[推算]", "",
         "[PWR_ON] ON 脚下拉的接地端", "C-02")
-    add("P1", "PWR_ON", "U_PWR_SW ON", "SoC[TBD-01].PWR_CTRL", "U_PWR_SW", "ON 输入 (高电平 = 导通 = 开机)",
+    add("P1", "PWR_ON", "U_PWR_SW ON", "SoC[RK3572].PWR_CTRL", "U_PWR_SW", "ON 输入 (高电平 = 导通 = 开机)",
         "NET", "必装", "[推算]", "",
         "[PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), "
         "脚号与是否可配开漏**待原厂**", "C-02")
@@ -492,7 +492,7 @@ def build_p1(by_id, spec):
         "[SUPV_CT] ★V1.8: 监督器 CT 脚原来**悬空** (网表里没有) · 补上 (阈值/延时选择, 脚号与接法待原厂核)", "B-10")
 
     # ---- ★V1.8 SoC 侧 USB VBUS 检测 (ISS-098 接手): VBUS_DET 分压在充电板, 经 J_CHG pin7 跨铰链 ----
-    add("P6", "VBUS_DET", "SoC[TBD-01].USB_VBUS_DET", "J_CHG pin7", "SoC[TBD-01]",
+    add("P6", "VBUS_DET", "SoC[RK3572].USB_VBUS_DET", "J_CHG pin7", "SoC[RK3572]",
         "SoC USB VBUS 检测脚 (脚号待原厂)", "NET", "必装", "[待原厂]", "TBD-10",
         "[VBUS_DET] ★V1.8 补上 sw-lead 指出的缺件: **SoC 侧没有任何 USB VBUS 连接** · USB 枚举与 S2 救砖链路 (ISS-080) "
         "的前提缺失。★**零新增 pin**: VBUS_DET 分压本来就在**充电板** (镜框), 经 **J_CHG pin7** 跨铰链 "
@@ -601,9 +601,9 @@ def conn_row(by_id, cid, page, net, n1, n2, ref, value=None, note_extra=""):
 # ---------------------------------------------------------------- P2 SoC 主控
 def build_p2(by_id, spec):
     # ---- I2C_A (总线 A: sensor / NTC / 桥接 / 充电 IC) ----
-    conn_row(by_id, "B-01", "P2", "I2C_A_SCL", "SoC[TBD-01].I2C_A_SCL", "R_PU_I2CA_SCL",
+    conn_row(by_id, "B-01", "P2", "I2C_A_SCL", "SoC[RK3572].I2C_A_SCL", "R_PU_I2CA_SCL",
              "NET_I2C_A_SCL")
-    conn_row(by_id, "B-02", "P2", "I2C_A_SDA", "SoC[TBD-01].I2C_A_SDA", "R_PU_I2CA_SDA",
+    conn_row(by_id, "B-02", "P2", "I2C_A_SDA", "SoC[RK3572].I2C_A_SDA", "R_PU_I2CA_SDA",
              "NET_I2C_A_SDA")
     add("P2", "VDD_3V3_IO", "R_PU_I2CA_SCL", "RAIL_VDD_3V3_IO", "R_PU_I2CA_SCL", "4.7k ±1%",
         "R", "必装", "[推算]", "",
@@ -653,7 +653,7 @@ def build_p2(by_id, spec):
             cid)
         add("P2", "GND", cap, "GND", cap, "100nF ±10%", "C", "必装", "[推算]", "",
             f"[{src}] ADC 滤波电容 地端", cid)
-        add("P2", src, f"SoC[TBD-01].{src}", f"NET_{src}", f"NET_{src}",
+        add("P2", src, f"SoC[RK3572].{src}", f"NET_{src}", f"NET_{src}",
             by_id[cid].get("imp", ""), "NET", "必装", "[推算]", "",
             f"[{src}] SoC ADC 输入节点 (跨板那一侧)", cid)
 
@@ -669,7 +669,7 @@ def build_p2(by_id, spec):
 
     # ---- ID_DETECT (2 位板级编码, 焊盘跳线) ----
     for bit, cid in (("0", "B-24"), ("1", "B-24")):
-        conn_row(by_id, cid, "P7", f"ID_DETECT_{bit}", f"SoC[TBD-01].ID{bit}",
+        conn_row(by_id, cid, "P7", f"ID_DETECT_{bit}", f"SoC[RK3572].ID{bit}",
                  f"R_PU_ID{bit}", f"NET_ID_DETECT_{bit}")
         add("P7", f"ID_DETECT_{bit}", f"R_ID_JMP{bit}", f"NET_ID_DETECT_{bit}", f"R_ID_JMP{bit}",
             "0Ω (跳线位)", "R", "DNP", "[推算]", "",
@@ -689,7 +689,7 @@ def build_p3(by_id, spec):
     boot_note = ("启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 "
                  "SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +25% 且板宽 12->15mm)")
     for sig, tbd, pin in spi:
-        add("P3", sig, f"SoC[TBD-01].{sig}", f"R_SER_{sig}", f"NET_{sig}", "0Ω (串阻位)",
+        add("P3", sig, f"SoC[RK3572].{sig}", f"R_SER_{sig}", f"NET_{sig}", "0Ω (串阻位)",
             "NET", "必装", "[待原厂]", tbd, boot_note, "")
         add("P3", f"{sig}_BOOT", f"R_SER_{sig}", pin, f"R_SER_{sig}", "0Ω (串阻位)",
             "R", "必装", "[待原厂]", tbd, f"[{sig}_BOOT] {sig} 串阻位 (0Ω 调试用)", "")
@@ -730,7 +730,7 @@ def build_p4(by_id, spec):
     for lane, netP, netN, cidP, cidN, srcP, srcN, pinP, pinN, sel_dnp, term in DSI_LANES:
         for pol, net, cid, src, pin in (("P", netP, cidP, srcP, pinP), ("N", netN, cidN, srcN, pinN)):
             rsel = f"R_SEL_{lane}_{pol}"
-            conn_row(by_id, cid, "P4", f"{net}_SRC", f"SoC[TBD-01].{src}", rsel, f"NET_{net}_SRC")
+            conn_row(by_id, cid, "P4", f"{net}_SRC", f"SoC[RK3572].{src}", rsel, f"NET_{net}_SRC")
             add("P4", net, rsel, f"CONN_LIGHT pin{pin}", rsel, "0Ω", "R", sel_dnp, "[官方]",
                 "TBD-04",
                 (f"[{net}] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 "
@@ -747,9 +747,9 @@ def build_p4(by_id, spec):
     # ★★方案B 桥接位已整条删除 (RK3572 无 DP TX) —— 见上面 BR_LANES 处的说明。
     # ⇒ R_SEL_* 现在是**唯一通路** (不再是"方案A/方案B 二选一") ⇒ note 已同步改写。
     # ---- DSI DDC (I2C_B) ----
-    conn_row(by_id, "B-03", "P4", "I2C_B_SCL", "SoC[TBD-01].I2C_B_SCL", "R_PU_I2CB_SCL",
+    conn_row(by_id, "B-03", "P4", "I2C_B_SCL", "SoC[RK3572].I2C_B_SCL", "R_PU_I2CB_SCL",
              "NET_I2C_B_SCL")
-    conn_row(by_id, "B-04", "P4", "I2C_B_SDA", "SoC[TBD-01].I2C_B_SDA", "R_PU_I2CB_SDA",
+    conn_row(by_id, "B-04", "P4", "I2C_B_SDA", "SoC[RK3572].I2C_B_SDA", "R_PU_I2CB_SDA",
              "NET_I2C_B_SDA")
     add("P4", "I2C_B_SCL", "CONN_LIGHT pin11", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
         "上拉 4.7k, 放主板侧", "NET", "必装", "[推算]", "TBD-04",
@@ -786,7 +786,7 @@ def build_p5(by_id, spec):
     for lane, sigP, sigN, cidP, cidN, pinP, pinN, dnp, term in CSI_LANES:
         for pol, sig, cid, pin in (("P", sigP, cidP, pinP), ("N", sigN, cidN, pinN)):
             cac = f"C_AC_{sig}"
-            conn_row(by_id, cid, "P5", f"{sig}_SRC", f"SoC[TBD-01].{sig}", cac, f"NET_{sig}_SRC")
+            conn_row(by_id, cid, "P5", f"{sig}_SRC", f"SoC[RK3572].{sig}", cac, f"NET_{sig}_SRC")
             add("P5", sig, cac, f"CONN_CAM pin{pin}", cac, "100nF ±10%", "C", dnp, "[推算]",
                 "TBD-03",
                 f"[{sig}] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); "
@@ -799,14 +799,14 @@ def build_p5(by_id, spec):
                 add("P5", "GND", rt, "GND", rt, "100Ω ±1%", "R", "DNP", "[推算]", "",
                     f"未用差分对 100Ω 对地端接 ({lane}_{pol} 才装)")
     # ---- MCLK (单端, 单独包地) ----
-    conn_row(by_id, "A-11", "P5", "CSI_MCLK_SRC", "SoC[TBD-01].CSI_MCLK", "R_SER_CSI_MCLK",
+    conn_row(by_id, "A-11", "P5", "CSI_MCLK_SRC", "SoC[RK3572].CSI_MCLK", "R_SER_CSI_MCLK",
              "NET_CSI_MCLK_SRC")
     add("P5", "CSI_MCLK", "R_SER_CSI_MCLK", "CONN_CAM pin11", "R_SER_CSI_MCLK", "[待原厂]",
         "R", "必装", "[待原厂]", "TBD-03",
         "[CSI_MCLK] MCLK 串阻位 (**位必留**: MCLK 是时钟输出, 串阻兼做源端匹配/阻尼); "
         "值随 TBD-03 的 MCLK 电平与速率定, 不写死")
     # ---- CSI_RESET_N (10k 上拉到 1.8V 域) ----
-    conn_row(by_id, "A-12", "P5", "CSI_RESET_N", "SoC[TBD-01].CSI_RESET_N", "R_PU_CSI_RST",
+    conn_row(by_id, "A-12", "P5", "CSI_RESET_N", "SoC[RK3572].CSI_RESET_N", "R_PU_CSI_RST",
              "NET_CSI_RESET_N")
     add("P5", "VDD_1V8_IO", "R_PU_CSI_RST", "RAIL_VDD_1V8_IO", "R_PU_CSI_RST", "10k ±1%",
         "R", "必装", "[推算]", "", "[VDD_1V8_IO] CSI_RESET_N 上拉 (1.8V 域)", "A-12")
@@ -845,9 +845,9 @@ def build_p6(by_id, spec):
     # ★★DP_TX 4 lane 整块已删除 (RK3572 无 DP TX ⇒ 无桥接芯片 ⇒ 8 串阻 + 8 对地电容 + 桥接位全无)
     #   ⇒ P6 现在只剩 USB 2.0 / Type-C CC / 跨铰链预留。
     # ---- USB 2.0 (Type-C · 主 PCB) ----
-    conn_row(by_id, "B-21", "P6", "USB_D_P_SRC", "SoC[TBD-01].USB_D_P", "R_SER_USB_D_P",
+    conn_row(by_id, "B-21", "P6", "USB_D_P_SRC", "SoC[RK3572].USB_D_P", "R_SER_USB_D_P",
              "NET_USB_D_P_SRC")
-    conn_row(by_id, "B-22", "P6", "USB_D_N_SRC", "SoC[TBD-01].USB_D_N", "R_SER_USB_D_N",
+    conn_row(by_id, "B-22", "P6", "USB_D_N_SRC", "SoC[RK3572].USB_D_N", "R_SER_USB_D_N",
              "NET_USB_D_N_SRC")
     add("P6", "USB_D_P", "R_SER_USB_D_P", "CONN_USB pin1", "R_SER_USB_D_P", "22Ω ±1%", "R",
         "必装", "[推算]", "TBD-10",
@@ -948,7 +948,7 @@ TPS = [
 
 def build_p7(by_id, spec):
     for col, cid, dnp in LEDS:
-        conn_row(by_id, cid, "P7", f"LED_{col}", f"SoC[TBD-01].LED_{col}", f"R_LED_{col}",
+        conn_row(by_id, cid, "P7", f"LED_{col}", f"SoC[RK3572].LED_{col}", f"R_LED_{col}",
                  f"NET_LED_{col}")
         add("P7", f"LED_{col}_D", f"R_LED_{col}", f"D_LED_{col}", f"R_LED_{col}", "1k ±1%",
             "R", dnp, "[推算]", "",
@@ -956,7 +956,7 @@ def build_p7(by_id, spec):
         add("P7", "GND", f"D_LED_{col}", "GND", f"D_LED_{col}", "LED (待选型)", "LED", dnp,
             "[推算]", "", f"LED_{col} 阴极 -> GND")
     for sig, net, tag, cid, dnp, desc in KEYS:
-        conn_row(by_id, cid, "P7", net, f"SoC[TBD-01].{net}", f"R_KEY_{tag}", f"NET_KEY_{tag}")
+        conn_row(by_id, cid, "P7", net, f"SoC[RK3572].{net}", f"R_KEY_{tag}", f"NET_KEY_{tag}")
         add("P7", net, f"SW_KEY_{tag}", f"NET_KEY_{tag}", f"SW_KEY_{tag}", "按键 (待选型)",
             "SW", dnp, "[推算]", "", f"[{net}] {desc} 按键")
         add("P7", "VDD_3V3_IO", f"R_KEY_{tag}", "RAIL_VDD_3V3_IO", f"R_KEY_{tag}", "10k ±1%",
@@ -977,7 +977,7 @@ def build_p7(by_id, spec):
 def build_p8(by_id, spec):
     # ---- XTAL: 内部 RC 不装 / 外部晶振焊盘位不装 (原厂一句话定生死) ----
     for pol in ("IN", "OUT"):
-        add("P8", f"XTAL_{pol}", f"SoC[TBD-01].XTAL_{pol}", "X1", f"NET_XTAL_{pol}", "12pF",
+        add("P8", f"XTAL_{pol}", f"SoC[RK3572].XTAL_{pol}", "X1", f"NET_XTAL_{pol}", "12pF",
             "NET", "DNP", "[同Die参考-待官方确认]", "TBD-12",
             f"时钟: 外部晶振位 (XTAL_{pol}); 参考版**同时**给 内部RC(不装) 与 外部晶振(焊盘位+2×12pF, 不装) 两套")
         add("P8", f"XTAL_{pol}", f"C_XTAL_{pol}", f"NET_XTAL_{pol}", f"C_XTAL_{pol}",
@@ -993,7 +993,7 @@ def build_p8(by_id, spec):
     conn_row(by_id, "B-10", "P8", "RESET_N", "R_PU_RESET_N", "R_SER_RESET_N", "NET_RESET_N")
     add("P8", "VDD_1V8_IO", "R_PU_RESET_N", "RAIL_VDD_1V8_IO", "R_PU_RESET_N", "10k ±1%",
         "R", "必装", "[推算]", "", "[VDD_1V8_IO] RESET_N 上拉 (1.8V 域)", "B-10")
-    add("P8", "RESET_N_SOC", "R_SER_RESET_N", "SoC[TBD-01].RESET_N", "R_SER_RESET_N", "1k ±1%",
+    add("P8", "RESET_N_SOC", "R_SER_RESET_N", "SoC[RK3572].RESET_N", "R_SER_RESET_N", "1k ±1%",
         "R", "必装", "[推算]", "", "[RESET_N_SOC] RESET_N RC 串联 (与 C_RST 构成 RC 复位)", "B-10")
     add("P8", "RESET_N_SOC", "C_RST", "NET_RESET_N_SOC", "C_RST", "100nF ±10%", "C", "必装",
         "[推算]", "", "[RESET_N_SOC] RESET_N 对地 RC 电容 (τ=100ms; **释放时期待原厂 TBD-12**)",
@@ -1005,7 +1005,7 @@ def build_p8(by_id, spec):
     add("P8", "GND", "SW_RST", "GND", "SW_RST", "复位按键 (待选型)", "SW", "必装", "[推算]", "",
         "复位键 -> GND", "B-10")
     # ---- BOOT_N ----
-    conn_row(by_id, "B-11", "P8", "BOOT_N", "SoC[TBD-01].BOOT_N", "R_PU_BOOT_N", "NET_BOOT_N")
+    conn_row(by_id, "B-11", "P8", "BOOT_N", "SoC[RK3572].BOOT_N", "R_PU_BOOT_N", "NET_BOOT_N")
     add("P8", "VDD_1V8_IO", "R_PU_BOOT_N", "RAIL_VDD_1V8_IO", "R_PU_BOOT_N", "10k ±1%", "R",
         "必装", "[推算]", "", "[VDD_1V8_IO] BOOT_N 上拉 (1.8V 域)", "B-11")
     add("P8", "BOOT_N", "SW_BOOT", "NET_BOOT_N", "SW_BOOT", "BOOT 按键 (待选型)", "SW", "必装",
@@ -1015,7 +1015,7 @@ def build_p8(by_id, spec):
     # ---- JTAG 4 线 ----
     for sig, pin in (("JTAG_TCK", "pin1"), ("JTAG_TMS", "pin2"), ("JTAG_TDI", "pin3"),
                      ("JTAG_TDO", "pin4")):
-        conn_row(by_id, "B-19", "P8", f"{sig}_SOC", f"SoC[TBD-01].{sig}", f"R_{sig}",
+        conn_row(by_id, "B-19", "P8", f"{sig}_SOC", f"SoC[RK3572].{sig}", f"R_{sig}",
                  f"NET_{sig}_SOC")
         add("P8", sig, f"R_{sig}", f"J_DEBUG {pin}", f"R_{sig}", "100Ω ±1%", "R", "必装",
             "[推算]", "", f"[{sig}] JTAG {sig[5:]} 串阻 (隔离 SoC 调试脚)", "B-19")
@@ -1023,13 +1023,13 @@ def build_p8(by_id, spec):
         "CONN", "必装", "[推算]", "",
         "[J_DEBUG] JTAG 调试排针 (不装贴片, 手工可焊); pin1=TCK, 2=TMS, 3=TDI, 4=TDO")
     # ---- UART 2 线 (与 USB 二选一) ----
-    conn_row(by_id, "B-20", "P8", "UART_TX", "SoC[TBD-01].UART_TX", "J_UART pin1", "NET_UART_TX")
-    conn_row(by_id, "B-20", "P8", "UART_RX", "SoC[TBD-01].UART_RX", "J_UART pin2", "NET_UART_RX")
+    conn_row(by_id, "B-20", "P8", "UART_TX", "SoC[RK3572].UART_TX", "J_UART pin1", "NET_UART_TX")
+    conn_row(by_id, "B-20", "P8", "UART_RX", "SoC[RK3572].UART_RX", "J_UART pin2", "NET_UART_RX")
     add("P8", "UART_RX", "J_UART", "J_UART pin2", "J_UART", "1×2 1.27mm 排针 (UART)", "CONN",
         "可选", "[推算]", "",
         "[UART_RX] 规格: UART 与 JTAG 复用同一排针 -> 本版拆成 1×2 独立排针 (原厂要求复用则再合并)")
     # ---- FSIN (帧同步引出) ----
-    conn_row(by_id, "B-09", "P8", "FSIN", "SoC[TBD-01].FSIN", "R_SER_FSIN", "NET_FSIN")
+    conn_row(by_id, "B-09", "P8", "FSIN", "SoC[RK3572].FSIN", "R_SER_FSIN", "NET_FSIN")
     add("P8", "FSIN_OUT", "R_SER_FSIN", "TP_FSIN", "R_SER_FSIN", "50Ω ±1%", "R", "必装",
         "[推算]", "TBD-13", "[FSIN_OUT] FSIN 引出串阻 (50Ω 源端匹配)")
 

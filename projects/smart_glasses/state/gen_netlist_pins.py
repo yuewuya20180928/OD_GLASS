@@ -53,7 +53,7 @@ COLS = ["pin_id", "net", "ref", "pin", "page", "value", "type", "dnp", "board",
 ALLOWED: dict[str, dict[str, set[str]]] = {}
 
 # 伪器件 (不是真器件: 轨/网络标记/接地)
-PSEUDO_REFS = re.compile(r"^(NET_|RAIL_|GND$|VSS$|VDD$|SoC_TBD)")
+PSEUDO_REFS = re.compile(r"^(NET_|RAIL_|GND$|VSS$|VDD$|SoC_)")
 
 
 def load_pinout_authorities() -> list[str]:
@@ -137,6 +137,22 @@ def main() -> int:
     no_csv = sorted(r for r in (net_refs - csv_refs) if not PSEUDO_REFS.match(r))
     if no_csv:
         errors.append(f".net 里的器件在 CSV 里没有出处: {no_csv[:8]}")
+
+    # ★★校验 3b (2026-11-02 02:3x 新增, 防回归): .net 里必须有 SoC 占位器件, 且引脚数 >= 50
+    #   ★**为什么加这条**: 把占位从 SoC[TBD-01] 改名成 SoC[RK3572] 时, gen_kicad_net.py 里硬编码的正则
+    #   没跟着改 ⇒ **SoC 的 56 个引脚整条从 .net 里消失** (550→494 行) 而**所有原有门禁都没报**
+    #   ⇒ ⇒ "全局字符串改名"这类动作必须配一条**结构回归检查**。
+    soc_pin_n = defaultdict(int)
+    for n_ in nodes:
+        if n_["ref"].startswith("SoC_"):
+            soc_pin_n[n_["ref"]] += 1
+    if not soc_pin_n:
+        errors.append(".net 里没有 SoC 占位器件 ⇒ ★**SoC 引脚整条丢了** "
+                      "(检查 gen_kicad_net.py 的 SoC[xxx] 正则是否跟着改名更新)")
+    else:
+        for sr, n_ in sorted(soc_pin_n.items()):
+            if n_ < 50:
+                errors.append(f".net 里 SoC 占位器件 {sr} 只有 {n_} 个脚 (应 >=50) ⇒ SoC 引脚丢失")
 
     # 校验 3: 2 脚无源件恰好 2 脚 (只查 R/C/L —— D 可能是 ESD 阵列等多脚器件, 与 check_kicad_net 同口径)
     pin_cnt: dict[str, int] = defaultdict(int)

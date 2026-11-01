@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-02T01:48:50+08:00'
+  generated_at: '2026-11-02T02:10:46+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 91088
-      sha1: 179e79c1aa00
-      mtime_ns: 1793552639918119280
+      size: 91228
+      sha1: dc6762bb8c2a
+      mtime_ns: 1793556558018287579
     mech-lead:
       file: mech.yaml
       size: 131456
@@ -611,7 +611,7 @@ domains:
   hw-lead:
     agent: hw-lead
     role: 硬件总工
-    updated_at: 2026-11-02 01:2x
+    updated_at: 2026-11-02 02:4x
     updated_by: hw-lead
     status:
       phase: P2(原理图/BOM)+结构接口
@@ -5711,10 +5711,11 @@ interface_claims:
     conflict: false
   isp_input_mode_req:
     values:
-      hw-lead: full-frame
+      hw-lead: 1080p60(OV04C10原生模式)
     notes:
-      hw-lead: ISP 输入必须是 sensor 全幅 (OV04C10 2688x1520@60); 禁 ROI/crop/为凑宽高比的 aspect crop。全幅对角 120.00deg
-        vs ROI 85.61deg, 立体角保留率 52.30%; 俯角25deg 时 ROI 路线正前方掉出画面 (余量 -4.02deg)。确认态 [0数据] (待原厂 Q1)
+      hw-lead: '★2026-11-02 02:0x 改: 由 "full-frame 禁止裁剪" 改为 **用 sensor 的 1080p60 原生模式** (不裁剪, 也不出 4MP
+        全幅) ⇒ ★**代价**: 对角 FOV/角分辨率要重算 (见 HW/DISPLAY_SENSOR_CHAIN.md §2.2) ⇒ 等老板在 C (镜头改短到 1.2704mm) /
+        D (换 AR0234CS 1920×1200@60) 两条路里选一条'
     by:
     - hw-lead
     noncanonical_by: []
@@ -5733,28 +5734,30 @@ interface_claims:
     values:
       hw-lead: 4-lane
     notes:
-      hw-lead: 全幅 RAW10@60 = 2.451 Gbps -> 4-lane (613 Mbps/lane 净, 705 含 15% 协议开销); 2-lane 需 1410 Mbps/lane
-        未知能否支持。我方网表 P5 的 D2/D3 现为 DNP, 原厂确认后改必装 (含 AC 耦合+对地端接+8 根差分)
+      hw-lead: 1080p60 RAW10 净载荷 1.244 Gbps ⇒ 4-lane 绰绰有余 (2-lane 亦可); 保持 4-lane 布线 ⇒ ★**可省 4 个跨铰链触点 (CONN_CAM
+        18p→14p) 的优化留待评估**
     by:
     - hw-lead
     noncanonical_by: []
     conflict: false
   isp_throughput_req:
     values:
-      hw-lead: 245.1MP/s@60
+      hw-lead: 124.4MP/s@60
     notes:
-      hw-lead: 全幅 2688x1520@60 输入吞吐; vs 250 口径占 98.1% (余量仅 1.9%), vs 497.7 口径占 49.3% (余量 50.7%) —— 两口径差
-        2 倍, 未 close 前该值为 [0数据]。走 ROI 则只要 124.4 MP/s (占 49.8%), 故问03 必须与问01 成对回答
+      hw-lead: '★2026-11-02 02:0x: 老板定 OV04C10 按 **1920×1080@60 直出** ⇒ 需求 = 1920×1080×60 = 124.4 MP/s
+        (原 2688×1520@60 的 245.1 已作废); vs 250 口径余量 **50.2%** (占 49.8%), vs 497.7 口径余量 **75.0%** ⇒ ★**"1.9%
+        vs 50.7%"的一票否决级矛盾消解**'
     by:
     - hw-lead
     noncanonical_by: []
     conflict: false
   lens_fov_basis:
     values:
-      hw-lead: full-array-120deg
+      hw-lead: 待老板选路(1080p/1920x1200)
     notes:
-      hw-lead: 镜头 RFQ 必须按全画幅有效阵列口径报对角 FOV; 等距投影 f=2.9459mm (OV04C10) / 3.2432mm (AR0234CS), f_px 1474.41/1081.06;
-        直行与等距的垂直半视场差 10.92deg (40.45 vs 29.53), 报错模型结构余量就错
+      hw-lead: '★2026-11-02 02:0x: sensor 模式改 1080p60 ⇒ 镜头口径要重算: ① OV04C10 1080p 有效阵列要 120° ⇒ f 从 2.9459
+        改到 **1.2704mm** ⇒ 角分辨率 0.0814→0.1887 °/px (差 2.32×) ② 换 AR0234CS 1920×1200@60 ⇒ ROI 路线 FOV **116.75°**,
+        立体角只丢 9.70% ⇒ ★**等老板选路**'
     by:
     - hw-lead
     noncanonical_by: []

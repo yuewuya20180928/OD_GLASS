@@ -22,7 +22,7 @@ KiCad legacy netlist 导出器 (gen_kicad_net) —— 从 HW/netlist_v1.csv 出 
   5) 每个器件的脚 = 它出现过的各个 net (按首次出现顺序编号) ⇒ 一个器件跨两个网 = 它在两者之间
   6) `[INVENTORY]` 登记行 → 只用来占位 (那些脚进 NC 网, 让 PCB 工程师看见"这个脚故意不接"),
      本身不产生连接 (B-5)
-  7) 节点名带引脚提示 (`J_CHG pin1` / `U_CHG TS` / `SoC[TBD-01].<信号>`) → **真实物理脚**, 直接用
+  7) 节点名带引脚提示 (`J_CHG pin1` / `U_CHG TS` / `SoC[RK3572].<信号>`) → **真实物理脚**, 直接用
   8) 裸器件名 (2 脚无源件) → 脚号按"它出现在哪个网"顺序推定 (B-4: 幻影脚号只出现在多脚 IC 上,
      那种器件必须用带提示的节点名 —— 见本文末尾的约定)
 
@@ -137,10 +137,14 @@ def main() -> int:
         if not node:
             return []
         if node.startswith("SoC["):
-            m = re.match(r"^SoC\[TBD-01\]\.(.+)$", node)
+            # ★★2026-11-02 02:3x: 主控换 RK3572 ⇒ 占位由 SoC[TBD-01] 改成 SoC[RK3572]
+            #   ⇒ **正则必须跟着改**, 否则匹配不到 ⇒ **SoC 的全部引脚会从 .net 里消失** (实测 550→494 行)
+            #   ⇒ 教训: 改占位命名要连带 grep 所有引用它的脚本 (这里已加回归检查, 见 gen_netlist_pins.py)
+            m = re.match(r"^SoC\[([A-Za-z0-9_\-]+)\]\.(.+)$", node)
             if m:
-                comp("SoC_TBD01", "ARS45 (8x10 FCCSP, 球位图未回)", "IC", "P2")
-                return [("SoC_TBD01", m.group(1))]
+                soc_ref = "SoC_" + m.group(1).replace("-", "_")
+                comp(soc_ref, "RK3572 (FCCSP 14.3x15.5mm, 球位图未回)", "IC", "P2")
+                return [(soc_ref, m.group(2))]
             return []
         if " " in node:
             head, rest = node.split(" ", 1)
@@ -247,7 +251,7 @@ def main() -> int:
         f.write("\n".join(out) + "\n")
 
     print(f"✅ 已导出 {args.out}: {len(comps)} 个器件 / {len(nets_out)} 个 net / {code} 行 net")
-    print("⚠️ SoC 侧 pin = 信号名占位 (原厂球位图未回, TBD-01) → 这不是投板文件")
+    print("⚠️ SoC 侧 pin = 信号名占位 (RK3572 球位图未回, TBD-01) → 这不是投板文件")
     print("★约定: **多脚器件 (IC/连接器) 的节点名必须带引脚提示** (如 'U_CHG TS' / 'J_CHG pin1'), "
           "否则导出的脚号是按网序推的幻影脚号 (B-4)")
     return 0

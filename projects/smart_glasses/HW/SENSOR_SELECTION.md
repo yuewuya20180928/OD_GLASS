@@ -431,3 +431,18 @@ PY
 - **只追加**本节到 `HW/SENSOR_SELECTION.md`; **新建** `HW/LENS_SELECTION.md`。
 - **未**改动本文件 B1-B11 的任何既有内容; **未**改 `state/fragments/hw.yaml` / `state/STATE.yaml` / `PROJECT_TRACKER.md` / `MECH/` / `SW/`。
 - **未联系任何供应商 / 原厂。**
+
+---
+
+## ★★2026-11-02 02:0x 老板决定: sensor 定为 **OV (豪威) 1920×1080@60**
+
+> **老板 11-02 02:04 指示**: "sensor 选用 OV 的 1920*1080@60FPS 的摄像头" ⇒ **同型号 = 豪威 `OV04C10`** (该芯片官方支持 **1920×1080@80** ⇒ 按 1080p60 跑成立 `[官方 product brief v1.0]`) ⇒ ★**不换料、不破「豪威优先」(§0 变量 30)、不推翻本文件 §B1 的备选首推**。
+>
+> ★**这条决定的三重后果**:
+> ① ✔ **ISP 吞吐需求 245.1 → 124.4 MP/s** ⇒ ★**解掉一票否决级矛盾** (原: "余量 1.9% 或 50.7% 完全相反, 必须等原厂回信才能定分母" ⇒ 现: **我们自己选了模式 ⇒ 分母定死 ⇒ 两个口径都过 (余量 50.2% / 75.0%)**) —— 详见 `HW/DISPLAY_SENSOR_CHAIN.md` §2.1
+> ② ⚠️ **sensor 不再出全幅 ⇒ 对角 FOV / 角分辨率要重算**: 原方案 (全幅 2688×1520 + f=2.9459mm) 的 **120.00° / 0.0814°px** 拿不到了 ⇒ 三条路 (A 保持全幅 / **B 1080p+原镜头 ⇒ FOV 只剩 85.61° 且俯角 25° 掉出画面 ⇒ 结构不成立** / **C 1080p+镜头改短到 f=1.2704mm ⇒ FOV 保住但角分辨率差 2.32×** / **D 换 AR0234CS 1920×1200@60 ⇒ FOV 116.75° + 立体角只丢 9.7%**)
+> ③ ⚠️ **快门类型**: OV04C10 是**滚动快门** `[官方]`, 而本文件 §B1 的首推 AR0234CS 是**全局快门** ⇒ 对 OD 运动目标召回率有直接影响
+>
+> ★**⇒ 等老板一句拍板选路 (B 结构上不成立, 实际是 C 与 D 二选一)** —— 详见 `HW/DISPLAY_SENSOR_CHAIN.md` §2.3 的决策表。
+>
+> ★**口径同步已做**: `state/outbox/R_GEO_2_DECISION_MAP.md` (问③ 从"一票否决级"降级) · `state/outbox/vendor_round4_geo_isp_addendum.md` (作废, 收件对象是已作废的 ARS45 线) · `state/outbox/lens_rfq_rgeo2_addendum.md` (口径待选路后更新再发) · `state/fragments/hw.yaml` 四条 claim (`isp_throughput_req` / `isp_input_mode_req` / `csi_lane_mode_req` / `lens_fov_basis`)。

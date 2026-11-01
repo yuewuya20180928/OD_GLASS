@@ -95,7 +95,7 @@
 | GND | C_SW_OUT | GND | C_SW_OUT | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [SYS] 开关引脚端去耦 的地端 |
 | PWR_ON | R_PD_ON | U_PWR_SW ON | R_PD_ON | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★V1.8: ON 脚 **10k 下拉 = 默认关** (关机态就是默认态); SoC GPIO 拉高即保持开机; SoC 关机时把该 GPIO 配成高阻 ·  |
 | GND | R_PD_ON | GND | R_PD_ON | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ON 脚下拉的接地端 |
-| PWR_ON | U_PWR_SW ON | SoC[TBD-01].PWR_CTRL | U_PWR_SW | ON 输入 (高电平 = 导通 = 开机) | NET | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), 脚号与是否可配开漏**待原厂** |
+| PWR_ON | U_PWR_SW ON | SoC[RK3572].PWR_CTRL | U_PWR_SW | ON 输入 (高电平 = 导通 = 开机) | NET | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), 脚号与是否可配开漏**待原厂** |
 | PWR_ON | Q_PG | U_PWR_SW ON | Q_PG | [待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— 原 N-MOS 低边接法是**错的 |
 | BAT_SW | Q_PG | NET_BAT_SW | Q_PG | [待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★V1.9: Q_PG **漏极**接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS |
 | PWR_GOOD | Q_PG | J_CHG pin6 | Q_PG | [待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_GOOD] Q_PG **栅极** = 充电板 PG (经 J_CHG pin6 跨铰链, 框侧开漏信号; 主板侧 R_PU_PG 10k 上拉 3.3V)。★V1.9: |
@@ -186,8 +186,8 @@
 ### 器件表 (30 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| I2C_A_SCL | SoC[TBD-01].I2C_A_SCL | R_PU_I2CA_SCL | NET_I2C_A_SCL | 上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF) | NET | 必装 | MAIN_PCB | [推算] |  | 方向 双向 (主机); 电平 3.3V; 阻抗 上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF); 连接 SoC [待原厂] + sensor/ |
-| I2C_A_SDA | SoC[TBD-01].I2C_A_SDA | R_PU_I2CA_SDA | NET_I2C_A_SDA | 上拉 4.7k 到 3.3V | NET | 必装 | MAIN_PCB | [推算] |  | 方向 双向 (主机); 电平 3.3V; 阻抗 上拉 4.7k 到 3.3V; 连接 同上; 测试点 TP_I2CA_SDA |
+| I2C_A_SCL | SoC[RK3572].I2C_A_SCL | R_PU_I2CA_SCL | NET_I2C_A_SCL | 上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF) | NET | 必装 | MAIN_PCB | [推算] |  | 方向 双向 (主机); 电平 3.3V; 阻抗 上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF); 连接 SoC [待原厂] + sensor/ |
+| I2C_A_SDA | SoC[RK3572].I2C_A_SDA | R_PU_I2CA_SDA | NET_I2C_A_SDA | 上拉 4.7k 到 3.3V | NET | 必装 | MAIN_PCB | [推算] |  | 方向 双向 (主机); 电平 3.3V; 阻抗 上拉 4.7k 到 3.3V; 连接 同上; 测试点 TP_I2CA_SDA |
 | VDD_3V3_IO | R_PU_I2CA_SCL | RAIL_VDD_3V3_IO | R_PU_I2CA_SCL | 4.7k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] I2C_A 上拉 (规格: 4.7k 到 3.3V; 灌 702µA, t_r=2.38µs@100pF) |
 | VDD_3V3_IO | R_PU_I2CA_SDA | RAIL_VDD_3V3_IO | R_PU_I2CA_SDA | 4.7k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] I2C_A 上拉 |
 | I2C_A_SCL | CONN_CAM pin13 | NET_I2C_A_SCL | NET_I2C_A_SCL | 上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF) | NET | 必装 | HINGE | [推算] |  | [I2C_A_SCL] 附加节点 (同 net) |
@@ -203,13 +203,13 @@
 | VBUS_DET | R_VBUS_DET_2 | GND | R_VBUS_DET_2 | 1M ±1% | R | 必装 | CHG_BOARD | [推算] |  | [VBUS_DET] 分压下臂 地端 |
 | VBUS_DET | C_DET_VBUS | J_CHG pin7 | C_DET_VBUS | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] ADC 滤波电容 (跨铰链侧 (充电板测 VBUS, 高阻分压)) |
 | GND | C_DET_VBUS | GND | C_DET_VBUS | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] ADC 滤波电容 地端 |
-| VBUS_DET | SoC[TBD-01].VBUS_DET | NET_VBUS_DET | NET_VBUS_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] SoC ADC 输入节点 (跨板那一侧) |
+| VBUS_DET | SoC[RK3572].VBUS_DET | NET_VBUS_DET | NET_VBUS_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | [VBUS_DET] SoC ADC 输入节点 (跨板那一侧) |
 | BAT_DET | R_BAT_DET_1 | R_BAT_DET_2 | NET_BAT_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | 方向 充电板→SoC; 电平 0-3.3V (分压); 阻抗 1M+1M 分压 + 100nF; 连接 电池 BAT → ADC; 测试点 TP_BAT |
 | BAT | RAIL_BAT | R_BAT_DET_1 | R_BAT_DET_1 | 1M ±1% | R | 必装 | MAIN_PCB | [推算] |  | [BAT_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 BAT 已归一到源节点] |
 | BAT_DET | R_BAT_DET_2 | GND | R_BAT_DET_2 | 1M ±1% | R | 必装 | MAIN_PCB | [推算] |  | [BAT_DET] 分压下臂 地端 |
 | BAT_DET | C_DET_BAT | R_BAT_DET_2 | C_DET_BAT | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [BAT_DET] ADC 滤波电容 (★V1.2: 电池在镜脚, 本地检测, 不跨铰链) |
 | GND | C_DET_BAT | GND | C_DET_BAT | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [BAT_DET] ADC 滤波电容 地端 |
-| BAT_DET | SoC[TBD-01].BAT_DET | NET_BAT_DET | NET_BAT_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | [BAT_DET] SoC ADC 输入节点 (跨板那一侧) |
+| BAT_DET | SoC[RK3572].BAT_DET | NET_BAT_DET | NET_BAT_DET | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [推算] |  | [BAT_DET] SoC ADC 输入节点 (跨板那一侧) |
 | CHG_STAT | U_CHG | R_PU_CHG_STAT | NET_CHG_STAT | 单端 | NET | 必装 | CHG_BOARD | [推算] |  | 方向 充电IC→SoC; 电平 3.3V (开漏); 阻抗 单端; 连接 BQ25896 STAT 脚 → SoC GPIO; 测试点 TP_CHG_STAT |
 | VDD_3V3_IO | R_PU_CHG_STAT | RAIL_VDD_3V3_IO | R_PU_CHG_STAT | 10k ±1% | R | 必装 | CHG_BOARD | [推算] |  | [VDD_3V3_IO] CHG_STAT 开漏上拉 (BQ25896 状态脚) |
 | CHG_STAT | J_CHG pin5 | NET_CHG_STAT | NET_CHG_STAT | 单端 | NET | 必装 | HINGE | [推算] |  | [CHG_STAT] 附加节点 (同 net, 经 J_CHG 到主 PCB) |
@@ -232,13 +232,13 @@
 ### 器件表 (10 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| SPI_SCLK | SoC[TBD-01].SPI_SCLK | R_SER_SPI_SCLK | NET_SPI_SCLK | 0Ω (串阻位) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-06 | 启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +2 |
+| SPI_SCLK | SoC[RK3572].SPI_SCLK | R_SER_SPI_SCLK | NET_SPI_SCLK | 0Ω (串阻位) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-06 | 启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +2 |
 | SPI_SCLK_BOOT | R_SER_SPI_SCLK | J_BOOT1 pin1 | R_SER_SPI_SCLK | 0Ω (串阻位) | R | 必装 | MAIN_PCB | [待原厂] | TBD-06 | [SPI_SCLK_BOOT] SPI_SCLK 串阻位 (0Ω 调试用) |
-| SPI_CSn | SoC[TBD-01].SPI_CSn | R_SER_SPI_CSn | NET_SPI_CSn | 0Ω (串阻位) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-06 | 启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +2 |
+| SPI_CSn | SoC[RK3572].SPI_CSn | R_SER_SPI_CSn | NET_SPI_CSn | 0Ω (串阻位) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-06 | 启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +2 |
 | SPI_CSn_BOOT | R_SER_SPI_CSn | J_BOOT1 pin2 | R_SER_SPI_CSn | 0Ω (串阻位) | R | 必装 | MAIN_PCB | [待原厂] | TBD-06 | [SPI_CSn_BOOT] SPI_CSn 串阻位 (0Ω 调试用) |
-| SPI_MOSI | SoC[TBD-01].SPI_MOSI | R_SER_SPI_MOSI | NET_SPI_MOSI | 0Ω (串阻位) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-11 | 启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +2 |
+| SPI_MOSI | SoC[RK3572].SPI_MOSI | R_SER_SPI_MOSI | NET_SPI_MOSI | 0Ω (串阻位) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-11 | 启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +2 |
 | SPI_MOSI_BOOT | R_SER_SPI_MOSI | J_BOOT1 pin3 | R_SER_SPI_MOSI | 0Ω (串阻位) | R | 必装 | MAIN_PCB | [待原厂] | TBD-11 | [SPI_MOSI_BOOT] SPI_MOSI 串阻位 (0Ω 调试用) |
-| SPI_MISO | SoC[TBD-01].SPI_MISO | R_SER_SPI_MISO | NET_SPI_MISO | 0Ω (串阻位) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-11 | 启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +2 |
+| SPI_MISO | SoC[RK3572].SPI_MISO | R_SER_SPI_MISO | NET_SPI_MISO | 0Ω (串阻位) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-11 | 启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +2 |
 | SPI_MISO_BOOT | R_SER_SPI_MISO | J_BOOT1 pin4 | R_SER_SPI_MISO | 0Ω (串阻位) | R | 必装 | MAIN_PCB | [待原厂] | TBD-11 | [SPI_MISO_BOOT] SPI_MISO 串阻位 (0Ω 调试用) |
 | VDD_3V3_IO | J_BOOT1 pin5 | RAIL_VDD_3V3_IO | J_BOOT1 | 启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留) | CONN | 必装 | MAIN_PCB | [待原厂] | TBD-06 | [VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR |
 | GND | J_BOOT1 pin6 | GND | J_BOOT1 | 启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留) | CONN | 必装 | MAIN_PCB | [待原厂] | TBD-06 | 焊盘位 GND 预留 (外挂 SPI-NOR 用) |
@@ -260,36 +260,36 @@
 ### 器件表 (36 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| DSI_D0_CK_P_SRC | SoC[TBD-01].DSI_TX_CK_P | R_SEL_CK_P | NET_DSI_D0_CK_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin1 + R_SEL_CK 0Ω; 测试点 TP_DSI_CK |
+| DSI_D0_CK_P_SRC | SoC[RK3572].DSI_TX_CK_P | R_SEL_CK_P | NET_DSI_D0_CK_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin1 + R_SEL_CK 0Ω; 测试点 TP_DSI_CK |
 | DSI_D0_CK_P | R_SEL_CK_P | CONN_LIGHT pin1 | R_SEL_CK_P | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_CK_P] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
-| DSI_D0_CK_N_SRC | SoC[TBD-01].DSI_TX_CK_N | R_SEL_CK_N | NET_DSI_D0_CK_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin2 + R_SEL_CK 0Ω; 测试点 TP_DSI_CK |
+| DSI_D0_CK_N_SRC | SoC[RK3572].DSI_TX_CK_N | R_SEL_CK_N | NET_DSI_D0_CK_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin2 + R_SEL_CK 0Ω; 测试点 TP_DSI_CK |
 | DSI_D0_CK_N | R_SEL_CK_N | CONN_LIGHT pin2 | R_SEL_CK_N | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_CK_N] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
-| DSI_D0_D0_P_SRC | SoC[TBD-01].DSI_TX_D0_P | R_SEL_D0_P | NET_DSI_D0_D0_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin3 + R_SEL_D0; 测试点 TP_DSI_D0_P |
+| DSI_D0_D0_P_SRC | SoC[RK3572].DSI_TX_D0_P | R_SEL_D0_P | NET_DSI_D0_D0_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin3 + R_SEL_D0; 测试点 TP_DSI_D0_P |
 | DSI_D0_D0_P | R_SEL_D0_P | CONN_LIGHT pin3 | R_SEL_D0_P | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D0_P] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
-| DSI_D0_D0_N_SRC | SoC[TBD-01].DSI_TX_D0_N | R_SEL_D0_N | NET_DSI_D0_D0_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin4 + R_SEL_D0; 测试点 TP_DSI_D0_N |
+| DSI_D0_D0_N_SRC | SoC[RK3572].DSI_TX_D0_N | R_SEL_D0_N | NET_DSI_D0_D0_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin4 + R_SEL_D0; 测试点 TP_DSI_D0_N |
 | DSI_D0_D0_N | R_SEL_D0_N | CONN_LIGHT pin4 | R_SEL_D0_N | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D0_N] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
-| DSI_D0_D1_P_SRC | SoC[TBD-01].DSI_TX_D1_P | R_SEL_D1_P | NET_DSI_D0_D1_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin5 + R_SEL_D1; 测试点 — |
+| DSI_D0_D1_P_SRC | SoC[RK3572].DSI_TX_D1_P | R_SEL_D1_P | NET_DSI_D0_D1_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin5 + R_SEL_D1; 测试点 — |
 | DSI_D0_D1_P | R_SEL_D1_P | CONN_LIGHT pin5 | R_SEL_D1_P | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D1_P] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
-| DSI_D0_D1_N_SRC | SoC[TBD-01].DSI_TX_D1_N | R_SEL_D1_N | NET_DSI_D0_D1_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin6 + R_SEL_D1; 测试点 — |
+| DSI_D0_D1_N_SRC | SoC[RK3572].DSI_TX_D1_N | R_SEL_D1_N | NET_DSI_D0_D1_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin6 + R_SEL_D1; 测试点 — |
 | DSI_D0_D1_N | R_SEL_D1_N | CONN_LIGHT pin6 | R_SEL_D1_N | 0Ω | R | 必装 | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D1_N] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 |
-| DSI_D0_D2_P_SRC | SoC[TBD-01].DSI_TX_D2_P | R_SEL_D2_P | NET_DSI_D0_D2_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin7 + R_SEL_D2 + 100Ω 对地端接; 测试点 — |
+| DSI_D0_D2_P_SRC | SoC[RK3572].DSI_TX_D2_P | R_SEL_D2_P | NET_DSI_D0_D2_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin7 + R_SEL_D2 + 100Ω 对地端接; 测试点 — |
 | DSI_D0_D2_P | R_SEL_D2_P | CONN_LIGHT pin7 | R_SEL_D2_P | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D2_P] 4-lane 预留位 (2-lane 不够时再装) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
 | DSI_D0_D2_P_SRC | R_TERM_DSI_D0_D2_P | NET_DSI_D0_D2_P_SRC | R_TERM_DSI_D0_D2_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [DSI_D0_D2_P_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_DSI_D0_D2_P | GND | R_TERM_DSI_D0_D2_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D2_P 才装) |
-| DSI_D0_D2_N_SRC | SoC[TBD-01].DSI_TX_D2_N | R_SEL_D2_N | NET_DSI_D0_D2_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin8/9/10 + 100Ω 对地端接; 测试点 — |
+| DSI_D0_D2_N_SRC | SoC[RK3572].DSI_TX_D2_N | R_SEL_D2_N | NET_DSI_D0_D2_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin8/9/10 + 100Ω 对地端接; 测试点 — |
 | DSI_D0_D2_N | R_SEL_D2_N | CONN_LIGHT pin8 | R_SEL_D2_N | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D2_N] 4-lane 预留位 (2-lane 不够时再装) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
 | DSI_D0_D2_N_SRC | R_TERM_DSI_D0_D2_N | NET_DSI_D0_D2_N_SRC | R_TERM_DSI_D0_D2_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [DSI_D0_D2_N_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_DSI_D0_D2_N | GND | R_TERM_DSI_D0_D2_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D2_N 才装) |
-| DSI_D0_D3_P_SRC | SoC[TBD-01].DSI_TX_D3_P | R_SEL_D3_P | NET_DSI_D0_D3_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin8/9/10 + 100Ω 对地端接; 测试点 — |
+| DSI_D0_D3_P_SRC | SoC[RK3572].DSI_TX_D3_P | R_SEL_D3_P | NET_DSI_D0_D3_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin8/9/10 + 100Ω 对地端接; 测试点 — |
 | DSI_D0_D3_P | R_SEL_D3_P | CONN_LIGHT pin9 | R_SEL_D3_P | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D3_P] 4-lane 预留位 (2-lane 不够时再装) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
 | DSI_D0_D3_P_SRC | R_TERM_DSI_D0_D3_P | NET_DSI_D0_D3_P_SRC | R_TERM_DSI_D0_D3_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [DSI_D0_D3_P_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_DSI_D0_D3_P | GND | R_TERM_DSI_D0_D3_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D3_P 才装) |
-| DSI_D0_D3_N_SRC | SoC[TBD-01].DSI_TX_D3_N | R_SEL_D3_N | NET_DSI_D0_D3_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin8/9/10 + 100Ω 对地端接; 测试点 — |
+| DSI_D0_D3_N_SRC | SoC[RK3572].DSI_TX_D3_N | R_SEL_D3_N | NET_DSI_D0_D3_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [推算] | TBD-04 | 方向 SoC→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin8/9/10 + 100Ω 对地端接; 测试点 — |
 | DSI_D0_D3_N | R_SEL_D3_N | CONN_LIGHT pin10 | R_SEL_D3_N | 0Ω | R | DNP | MAIN_PCB | [官方] | TBD-04 | [DSI_D0_D3_N] 4-lane 预留位 (2-lane 不够时再装) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接 |
 | DSI_D0_D3_N_SRC | R_TERM_DSI_D0_D3_N | NET_DSI_D0_D3_N_SRC | R_TERM_DSI_D0_D3_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [DSI_D0_D3_N_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_DSI_D0_D3_N | GND | R_TERM_DSI_D0_D3_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D3_N 才装) |
-| I2C_B_SCL | SoC[TBD-01].I2C_B_SCL | R_PU_I2CB_SCL | NET_I2C_B_SCL | 上拉 4.7k, 放主板侧 | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 双向; 电平 3.3V; 阻抗 上拉 4.7k, 放主板侧; 连接 CONN_LIGHT pin11 → 光机; 测试点 TP_I2CB_SCL |
-| I2C_B_SDA | SoC[TBD-01].I2C_B_SDA | R_PU_I2CB_SDA | NET_I2C_B_SDA | 上拉 4.7k, 放主板侧 | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 双向; 电平 3.3V; 阻抗 上拉 4.7k, 放主板侧; 连接 CONN_LIGHT pin12 → 光机; 测试点 TP_I2CB_SDA |
+| I2C_B_SCL | SoC[RK3572].I2C_B_SCL | R_PU_I2CB_SCL | NET_I2C_B_SCL | 上拉 4.7k, 放主板侧 | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 双向; 电平 3.3V; 阻抗 上拉 4.7k, 放主板侧; 连接 CONN_LIGHT pin11 → 光机; 测试点 TP_I2CB_SCL |
+| I2C_B_SDA | SoC[RK3572].I2C_B_SDA | R_PU_I2CB_SDA | NET_I2C_B_SDA | 上拉 4.7k, 放主板侧 | NET | 必装 | MAIN_PCB | [推算] | TBD-04 | 方向 双向; 电平 3.3V; 阻抗 上拉 4.7k, 放主板侧; 连接 CONN_LIGHT pin12 → 光机; 测试点 TP_I2CB_SDA |
 | I2C_B_SCL | CONN_LIGHT pin11 | NET_I2C_B_SCL | NET_I2C_B_SCL | 上拉 4.7k, 放主板侧 | NET | 必装 | HINGE | [推算] | TBD-04 | [I2C_B_SCL] 附加节点 (同 net) |
 | I2C_B_SDA | CONN_LIGHT pin12 | NET_I2C_B_SDA | NET_I2C_B_SDA | 上拉 4.7k, 放主板侧 | NET | 必装 | HINGE | [推算] | TBD-04 | [I2C_B_SDA] 附加节点 (同 net) |
 | VDD_3V3_IO | R_PU_I2CB_SCL | RAIL_VDD_3V3_IO | R_PU_I2CB_SCL | 4.7k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] DSI DDC 上拉 (放主板侧) |
@@ -313,37 +313,37 @@
 ### 器件表 (38 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| CSI_D0_CK_P_SRC | SoC[TBD-01].CSI_D0_CK_P | C_AC_CSI_D0_CK_P | NET_CSI_D0_CK_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 CONN_CAM 40p (跨铰链) + AC 耦合电容位; 测试点 TP_C |
+| CSI_D0_CK_P_SRC | SoC[RK3572].CSI_D0_CK_P | C_AC_CSI_D0_CK_P | NET_CSI_D0_CK_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 CONN_CAM 40p (跨铰链) + AC 耦合电容位; 测试点 TP_C |
 | CSI_D0_CK_P | C_AC_CSI_D0_CK_P | CONN_CAM pin1 | C_AC_CSI_D0_CK_P | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_CK_P] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装 |
-| CSI_D0_CK_N_SRC | SoC[TBD-01].CSI_D0_CK_N | C_AC_CSI_D0_CK_N | NET_CSI_D0_CK_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上; 测试点 TP_CSI_CK_N |
+| CSI_D0_CK_N_SRC | SoC[RK3572].CSI_D0_CK_N | C_AC_CSI_D0_CK_N | NET_CSI_D0_CK_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上; 测试点 TP_CSI_CK_N |
 | CSI_D0_CK_N | C_AC_CSI_D0_CK_N | CONN_CAM pin2 | C_AC_CSI_D0_CK_N | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_CK_N] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装 |
-| CSI_D0_D0_P_SRC | SoC[TBD-01].CSI_D0_D0_P | C_AC_CSI_D0_D0_P | NET_CSI_D0_D0_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上; 测试点 TP_CSI_D0_P |
+| CSI_D0_D0_P_SRC | SoC[RK3572].CSI_D0_D0_P | C_AC_CSI_D0_D0_P | NET_CSI_D0_D0_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上; 测试点 TP_CSI_D0_P |
 | CSI_D0_D0_P | C_AC_CSI_D0_D0_P | CONN_CAM pin3 | C_AC_CSI_D0_D0_P | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_D0_P] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装 |
-| CSI_D0_D0_N_SRC | SoC[TBD-01].CSI_D0_D0_N | C_AC_CSI_D0_D0_N | NET_CSI_D0_D0_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上; 测试点 TP_CSI_D0_N |
+| CSI_D0_D0_N_SRC | SoC[RK3572].CSI_D0_D0_N | C_AC_CSI_D0_D0_N | NET_CSI_D0_D0_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上; 测试点 TP_CSI_D0_N |
 | CSI_D0_D0_N | C_AC_CSI_D0_D0_N | CONN_CAM pin4 | C_AC_CSI_D0_D0_N | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_D0_N] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装 |
-| CSI_D0_D1_P_SRC | SoC[TBD-01].CSI_D0_D1_P | C_AC_CSI_D0_D1_P | NET_CSI_D0_D1_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上; 测试点 — |
+| CSI_D0_D1_P_SRC | SoC[RK3572].CSI_D0_D1_P | C_AC_CSI_D0_D1_P | NET_CSI_D0_D1_P_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上; 测试点 — |
 | CSI_D0_D1_P | C_AC_CSI_D0_D1_P | CONN_CAM pin5 | C_AC_CSI_D0_D1_P | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_D1_P] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装 |
-| CSI_D0_D1_N_SRC | SoC[TBD-01].CSI_D0_D1_N | C_AC_CSI_D0_D1_N | NET_CSI_D0_D1_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上; 测试点 — |
+| CSI_D0_D1_N_SRC | SoC[RK3572].CSI_D0_D1_N | C_AC_CSI_D0_D1_N | NET_CSI_D0_D1_N_SRC | 100Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上; 测试点 — |
 | CSI_D0_D1_N | C_AC_CSI_D0_D1_N | CONN_CAM pin6 | C_AC_CSI_D0_D1_N | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_D1_N] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装 |
-| CSI_D0_D2_P_SRC | SoC[TBD-01].CSI_D0_D2_P | C_AC_CSI_D0_D2_P | NET_CSI_D0_D2_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上 + 100Ω 对地端接; 测试点 — |
+| CSI_D0_D2_P_SRC | SoC[RK3572].CSI_D0_D2_P | C_AC_CSI_D0_D2_P | NET_CSI_D0_D2_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上 + 100Ω 对地端接; 测试点 — |
 | CSI_D0_D2_P | C_AC_CSI_D0_D2_P | CONN_CAM pin7 | C_AC_CSI_D0_D2_P | 100nF ±10% | C | DNP | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_D2_P] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装 |
 | CSI_D0_D2_P_SRC | R_TERM_CSI_D0_D2_P | NET_CSI_D0_D2_P_SRC | R_TERM_CSI_D0_D2_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [CSI_D0_D2_P_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_CSI_D0_D2_P | GND | R_TERM_CSI_D0_D2_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D2_P 才装) |
-| CSI_D0_D2_N_SRC | SoC[TBD-01].CSI_D0_D2_N | C_AC_CSI_D0_D2_N | NET_CSI_D0_D2_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上 + 100Ω 对地端接; 测试点 — |
+| CSI_D0_D2_N_SRC | SoC[RK3572].CSI_D0_D2_N | C_AC_CSI_D0_D2_N | NET_CSI_D0_D2_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上 + 100Ω 对地端接; 测试点 — |
 | CSI_D0_D2_N | C_AC_CSI_D0_D2_N | CONN_CAM pin8 | C_AC_CSI_D0_D2_N | 100nF ±10% | C | DNP | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_D2_N] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装 |
 | CSI_D0_D2_N_SRC | R_TERM_CSI_D0_D2_N | NET_CSI_D0_D2_N_SRC | R_TERM_CSI_D0_D2_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [CSI_D0_D2_N_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_CSI_D0_D2_N | GND | R_TERM_CSI_D0_D2_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D2_N 才装) |
-| CSI_D0_D3_P_SRC | SoC[TBD-01].CSI_D0_D3_P | C_AC_CSI_D0_D3_P | NET_CSI_D0_D3_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上 + 100Ω 对地端接; 测试点 — |
+| CSI_D0_D3_P_SRC | SoC[RK3572].CSI_D0_D3_P | C_AC_CSI_D0_D3_P | NET_CSI_D0_D3_P_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上 + 100Ω 对地端接; 测试点 — |
 | CSI_D0_D3_P | C_AC_CSI_D0_D3_P | CONN_CAM pin9 | C_AC_CSI_D0_D3_P | 100nF ±10% | C | DNP | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_D3_P] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装 |
 | CSI_D0_D3_P_SRC | R_TERM_CSI_D0_D3_P | NET_CSI_D0_D3_P_SRC | R_TERM_CSI_D0_D3_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [CSI_D0_D3_P_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_CSI_D0_D3_P | GND | R_TERM_CSI_D0_D3_P | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D3_P 才装) |
-| CSI_D0_D3_N_SRC | SoC[TBD-01].CSI_D0_D3_N | C_AC_CSI_D0_D3_N | NET_CSI_D0_D3_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上 + 100Ω 对地端接; 测试点 — |
+| CSI_D0_D3_N_SRC | SoC[RK3572].CSI_D0_D3_N | C_AC_CSI_D0_D3_N | NET_CSI_D0_D3_N_SRC | 100Ω ±10% | NET | DNP | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.2V CML [待原厂]; 阻抗 100Ω ±10%; 连接 同上 + 100Ω 对地端接; 测试点 — |
 | CSI_D0_D3_N | C_AC_CSI_D0_D3_N | CONN_CAM pin10 | C_AC_CSI_D0_D3_N | 100nF ±10% | C | DNP | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_D3_N] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装 |
 | CSI_D0_D3_N_SRC | R_TERM_CSI_D0_D3_N | NET_CSI_D0_D3_N_SRC | R_TERM_CSI_D0_D3_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | [CSI_D0_D3_N_SRC] 未用差分对 100Ω 对地端接 (0402, 手工可补装) |
 | GND | R_TERM_CSI_D0_D3_N | GND | R_TERM_CSI_D0_D3_N | 100Ω ±1% | R | DNP | MAIN_PCB | [推算] |  | 未用差分对 100Ω 对地端接 (D3_N 才装) |
-| CSI_MCLK_SRC | SoC[TBD-01].CSI_MCLK | R_SER_CSI_MCLK | NET_CSI_MCLK_SRC | 单端, 需包地 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 [待原厂]; 阻抗 单端, 需包地; 连接 CONN_CAM; 单独包地, 与电源并行 ≤5mm, 间距 ≥3mm; 测试点 TP_MCLK |
+| CSI_MCLK_SRC | SoC[RK3572].CSI_MCLK | R_SER_CSI_MCLK | NET_CSI_MCLK_SRC | 单端, 需包地 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 [待原厂]; 阻抗 单端, 需包地; 连接 CONN_CAM; 单独包地, 与电源并行 ≤5mm, 间距 ≥3mm; 测试点 TP_MCLK |
 | CSI_MCLK | R_SER_CSI_MCLK | CONN_CAM pin11 | R_SER_CSI_MCLK | [待原厂] | R | 必装 | MAIN_PCB | [待原厂] | TBD-03 | [CSI_MCLK] MCLK 串阻位 (**位必留**: MCLK 是时钟输出, 串阻兼做源端匹配/阻尼); 值随 TBD-03 的 MCLK 电平与速率定, 不写死 |
-| CSI_RESET_N | SoC[TBD-01].CSI_RESET_N | R_PU_CSI_RST | NET_CSI_RESET_N | 单端, 10k 上拉 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.8V [待原厂]; 阻抗 单端, 10k 上拉; 连接 CONN_CAM; 测试点 TP_CSI_RST |
+| CSI_RESET_N | SoC[RK3572].CSI_RESET_N | R_PU_CSI_RST | NET_CSI_RESET_N | 单端, 10k 上拉 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-03 | 方向 SoC→sensor; 电平 1.8V [待原厂]; 阻抗 单端, 10k 上拉; 连接 CONN_CAM; 测试点 TP_CSI_RST |
 | VDD_1V8_IO | R_PU_CSI_RST | RAIL_VDD_1V8_IO | R_PU_CSI_RST | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_1V8_IO] CSI_RESET_N 上拉 (1.8V 域) |
 | CSI_RESET_N | CONN_CAM pin12 | NET_CSI_RESET_N | NET_CSI_RESET_N | 单端, 10k 上拉 | NET | 必装 | HINGE | [待原厂] | TBD-03 | [CSI_RESET_N] 附加节点 (同 net) |
 | SENSOR_AVDD | RAIL_SENSOR_AVDD | CONN_CAM pin15 | NET_SENSOR_AVDD | 2.8V | NET | 必装 | HINGE | [官方] |  | [SENSOR_AVDD] sensor 供电 接 CONN_CAM pin15 (跨铰链, 走线与 MCLK 并行 ≤5mm, 间距 ≥3mm) |
@@ -372,9 +372,9 @@
 ### 器件表 (13 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| VBUS_DET | SoC[TBD-01].USB_VBUS_DET | J_CHG pin7 | SoC[TBD-01] | SoC USB VBUS 检测脚 (脚号待原厂) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | [VBUS_DET] ★V1.8 补上 sw-lead 指出的缺件: **SoC 侧没有任何 USB VBUS 连接** · USB 枚举与 S2 救砖链路 (ISS-080) 的 |
-| USB_D_P_SRC | SoC[TBD-01].USB_D_P | R_SER_USB_D_P | NET_USB_D_P_SRC | 90Ω ±10% (与 MIPI 不同模板!) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 90Ω ±10% (与 MIPI 不同模板!); 连接 Type-C → 主 PCB (跨铰链则经 CONN_US |
-| USB_D_N_SRC | SoC[TBD-01].USB_D_N | R_SER_USB_D_N | NET_USB_D_N_SRC | 90Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 90Ω ±10%; 连接 同上; 测试点 TP_USB_D- |
+| VBUS_DET | SoC[RK3572].USB_VBUS_DET | J_CHG pin7 | SoC[RK3572] | SoC USB VBUS 检测脚 (脚号待原厂) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | [VBUS_DET] ★V1.8 补上 sw-lead 指出的缺件: **SoC 侧没有任何 USB VBUS 连接** · USB 枚举与 S2 救砖链路 (ISS-080) 的 |
+| USB_D_P_SRC | SoC[RK3572].USB_D_P | R_SER_USB_D_P | NET_USB_D_P_SRC | 90Ω ±10% (与 MIPI 不同模板!) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 90Ω ±10% (与 MIPI 不同模板!); 连接 Type-C → 主 PCB (跨铰链则经 CONN_US |
+| USB_D_N_SRC | SoC[RK3572].USB_D_N | R_SER_USB_D_N | NET_USB_D_N_SRC | 90Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 90Ω ±10%; 连接 同上; 测试点 TP_USB_D- |
 | USB_D_P | R_SER_USB_D_P | CONN_USB pin1 | R_SER_USB_D_P | 22Ω ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-10 | [USB_D_P] USB 2.0 源端串阻 (D+, 22Ω 放在**主板侧 SoC 端**); ★V1.1 修: V1 把 D+ 直接接 J_TYPE_C pin4 = **把 |
 | USB_D_N | R_SER_USB_D_N | CONN_USB pin2 | R_SER_USB_D_N | 22Ω ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-10 | [USB_D_N] USB 2.0 源端串阻 (D-, 主板侧); ★V1.1 修: 同上, 改接 CONN_USB pin2 |
 | USB_CC1 | J_TYPE_C A5 | R_CC1 | NET_USB_CC1 | Rd 5.1k 到 GND ×2 (PD sink 时由 TPS25730 接管) | NET | 必装 | CHG_BOARD | [推算] | TBD-10 | 方向 Type-C→PD控制器; 电平 —; 阻抗 Rd 5.1k 到 GND ×2 (PD sink 时由 TPS25730 接管); 连接 Type-C; 测试点 — |
@@ -403,39 +403,39 @@
 ### 器件表 (77 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| ID_DETECT_0 | SoC[TBD-01].ID0 | R_PU_ID0 | NET_ID_DETECT_0 | GPIO 编码 (2 位) | NET | 必装 | MAIN_PCB | [推算] |  | 方向 板级→SoC; 电平 3.3V; 阻抗 GPIO 编码 (2 位); 连接 主 PCB (焊盘跳线); 测试点 TP_ID |
+| ID_DETECT_0 | SoC[RK3572].ID0 | R_PU_ID0 | NET_ID_DETECT_0 | GPIO 编码 (2 位) | NET | 必装 | MAIN_PCB | [推算] |  | 方向 板级→SoC; 电平 3.3V; 阻抗 GPIO 编码 (2 位); 连接 主 PCB (焊盘跳线); 测试点 TP_ID |
 | ID_DETECT_0 | R_ID_JMP0 | NET_ID_DETECT_0 | R_ID_JMP0 | 0Ω (跳线位) | R | DNP | MAIN_PCB | [推算] |  | [ID_DETECT_0] 板级 ID 位 0 跳线位 (焊盘跳线编码 2 位) |
 | VDD_3V3_IO | R_PU_ID0 | RAIL_VDD_3V3_IO | R_PU_ID0 | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] 板级 ID 位 0 上拉 |
 | GND | R_ID_JMP0 | GND | R_ID_JMP0 | 0Ω (跳线位) | R | DNP | MAIN_PCB | [推算] |  | ID 跳线位 0 -> GND (装上 = 该位 0) |
-| ID_DETECT_1 | SoC[TBD-01].ID1 | R_PU_ID1 | NET_ID_DETECT_1 | GPIO 编码 (2 位) | NET | 必装 | MAIN_PCB | [推算] |  | 方向 板级→SoC; 电平 3.3V; 阻抗 GPIO 编码 (2 位); 连接 主 PCB (焊盘跳线); 测试点 TP_ID |
+| ID_DETECT_1 | SoC[RK3572].ID1 | R_PU_ID1 | NET_ID_DETECT_1 | GPIO 编码 (2 位) | NET | 必装 | MAIN_PCB | [推算] |  | 方向 板级→SoC; 电平 3.3V; 阻抗 GPIO 编码 (2 位); 连接 主 PCB (焊盘跳线); 测试点 TP_ID |
 | ID_DETECT_1 | R_ID_JMP1 | NET_ID_DETECT_1 | R_ID_JMP1 | 0Ω (跳线位) | R | DNP | MAIN_PCB | [推算] |  | [ID_DETECT_1] 板级 ID 位 1 跳线位 (焊盘跳线编码 2 位) |
 | VDD_3V3_IO | R_PU_ID1 | RAIL_VDD_3V3_IO | R_PU_ID1 | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] 板级 ID 位 1 上拉 |
 | GND | R_ID_JMP1 | GND | R_ID_JMP1 | 0Ω (跳线位) | R | DNP | MAIN_PCB | [推算] |  | ID 跳线位 1 -> GND (装上 = 该位 0) |
-| LED_R | SoC[TBD-01].LED_R | R_LED_R | NET_LED_R | 1k 串阻 → LED → GND | NET | 必装 | MAIN_PCB | [推算] |  | 方向 SoC→LED; 电平 3.3V; 阻抗 1k 串阻 → LED → GND; 连接 主 PCB; 测试点 TP_LED_R |
+| LED_R | SoC[RK3572].LED_R | R_LED_R | NET_LED_R | 1k 串阻 → LED → GND | NET | 必装 | MAIN_PCB | [推算] |  | 方向 SoC→LED; 电平 3.3V; 阻抗 1k 串阻 → LED → GND; 连接 主 PCB; 测试点 TP_LED_R |
 | LED_R_D | R_LED_R | D_LED_R | R_LED_R | 1k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [LED_R_D] LED_R 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定) |
 | GND | D_LED_R | GND | D_LED_R | LED (待选型) | LED | 必装 | MAIN_PCB | [推算] |  | LED_R 阴极 -> GND |
-| LED_G | SoC[TBD-01].LED_G | R_LED_G | NET_LED_G | 1k 串阻 → LED → GND | NET | 必装 | MAIN_PCB | [推算] |  | 方向 SoC→LED; 电平 3.3V; 阻抗 1k 串阻 → LED → GND; 连接 主 PCB; 测试点 TP_LED_G |
+| LED_G | SoC[RK3572].LED_G | R_LED_G | NET_LED_G | 1k 串阻 → LED → GND | NET | 必装 | MAIN_PCB | [推算] |  | 方向 SoC→LED; 电平 3.3V; 阻抗 1k 串阻 → LED → GND; 连接 主 PCB; 测试点 TP_LED_G |
 | LED_G_D | R_LED_G | D_LED_G | R_LED_G | 1k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [LED_G_D] LED_G 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定) |
 | GND | D_LED_G | GND | D_LED_G | LED (待选型) | LED | 必装 | MAIN_PCB | [推算] |  | LED_G 阴极 -> GND |
-| LED_B | SoC[TBD-01].LED_B | R_LED_B | NET_LED_B | 1k 串阻 → LED → GND | NET | DNP | MAIN_PCB | [推算] |  | 方向 SoC→LED; 电平 3.3V; 阻抗 1k 串阻 → LED → GND; 连接 主 PCB; 测试点 TP_LED_B |
+| LED_B | SoC[RK3572].LED_B | R_LED_B | NET_LED_B | 1k 串阻 → LED → GND | NET | DNP | MAIN_PCB | [推算] |  | 方向 SoC→LED; 电平 3.3V; 阻抗 1k 串阻 → LED → GND; 连接 主 PCB; 测试点 TP_LED_B |
 | LED_B_D | R_LED_B | D_LED_B | R_LED_B | 1k ±1% | R | DNP | MAIN_PCB | [推算] |  | [LED_B_D] LED_B 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定) |
 | GND | D_LED_B | GND | D_LED_B | LED (待选型) | LED | DNP | MAIN_PCB | [推算] |  | LED_B 阴极 -> GND |
-| KEY_PWR | SoC[TBD-01].KEY_PWR | R_KEY_PWR | NET_KEY_PWR | 上拉 10k, 按下到 GND, 支持长按 | NET | 必装 | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 上拉 10k, 按下到 GND, 支持长按; 连接 主 PCB; 测试点 TP_KEY_PWR |
+| KEY_PWR | SoC[RK3572].KEY_PWR | R_KEY_PWR | NET_KEY_PWR | 上拉 10k, 按下到 GND, 支持长按 | NET | 必装 | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 上拉 10k, 按下到 GND, 支持长按; 连接 主 PCB; 测试点 TP_KEY_PWR |
 | KEY_PWR | SW_KEY_PWR | NET_KEY_PWR | SW_KEY_PWR | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | [KEY_PWR] 电源键 按键 |
 | VDD_3V3_IO | R_KEY_PWR | RAIL_VDD_3V3_IO | R_KEY_PWR | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] 电源键 上拉 (按下到 GND, 支持长按) |
 | GND | SW_KEY_PWR | GND | SW_KEY_PWR | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | 电源键 另一端 -> GND |
 | KEY_PWR | C_KEY_PWR | GND | C_KEY_PWR | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [KEY_PWR] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) |
-| KEY_VOL_P | SoC[TBD-01].KEY_VOL_P | R_KEY_VP | NET_KEY_VP | 同上 | NET | 必装 | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 同上; 连接 主 PCB; 测试点 TP_KEY_VP |
+| KEY_VOL_P | SoC[RK3572].KEY_VOL_P | R_KEY_VP | NET_KEY_VP | 同上 | NET | 必装 | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 同上; 连接 主 PCB; 测试点 TP_KEY_VP |
 | KEY_VOL_P | SW_KEY_VP | NET_KEY_VP | SW_KEY_VP | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | [KEY_VOL_P] 音量+ 键 按键 |
 | VDD_3V3_IO | R_KEY_VP | RAIL_VDD_3V3_IO | R_KEY_VP | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] 音量+ 键 上拉 (按下到 GND, 支持长按) |
 | GND | SW_KEY_VP | GND | SW_KEY_VP | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | 音量+ 键 另一端 -> GND |
 | KEY_VOL_P | C_KEY_VP | GND | C_KEY_VP | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [KEY_VOL_P] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) |
-| KEY_VOL_M | SoC[TBD-01].KEY_VOL_M | R_KEY_VM | NET_KEY_VM | 同上 | NET | 必装 | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 同上; 连接 主 PCB; 测试点 TP_KEY_VM |
+| KEY_VOL_M | SoC[RK3572].KEY_VOL_M | R_KEY_VM | NET_KEY_VM | 同上 | NET | 必装 | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 同上; 连接 主 PCB; 测试点 TP_KEY_VM |
 | KEY_VOL_M | SW_KEY_VM | NET_KEY_VM | SW_KEY_VM | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | [KEY_VOL_M] 音量- 键 按键 |
 | VDD_3V3_IO | R_KEY_VM | RAIL_VDD_3V3_IO | R_KEY_VM | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] 音量- 键 上拉 (按下到 GND, 支持长按) |
 | GND | SW_KEY_VM | GND | SW_KEY_VM | 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | 音量- 键 另一端 -> GND |
 | KEY_VOL_M | C_KEY_VM | GND | C_KEY_VM | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [KEY_VOL_M] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线) |
-| KEY_CAM | SoC[TBD-01].KEY_CAM | R_KEY_CAM | NET_KEY_CAM | 同上 | NET | DNP | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 同上; 连接 主 PCB (焊盘留, 不装); 测试点 — |
+| KEY_CAM | SoC[RK3572].KEY_CAM | R_KEY_CAM | NET_KEY_CAM | 同上 | NET | DNP | MAIN_PCB | [推算] |  | 方向 按键→SoC; 电平 0/3.3V; 阻抗 同上; 连接 主 PCB (焊盘留, 不装); 测试点 — |
 | KEY_CAM | SW_KEY_CAM | NET_KEY_CAM | SW_KEY_CAM | 按键 (待选型) | SW | DNP | MAIN_PCB | [推算] |  | [KEY_CAM] CAM 键 (焊盘必留, 不装) 按键 |
 | VDD_3V3_IO | R_KEY_CAM | RAIL_VDD_3V3_IO | R_KEY_CAM | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_3V3_IO] CAM 键 (焊盘必留, 不装) 上拉 (按下到 GND, 支持长按) |
 | GND | SW_KEY_CAM | GND | SW_KEY_CAM | 按键 (待选型) | SW | DNP | MAIN_PCB | [推算] |  | CAM 键 (焊盘必留, 不装) 另一端 -> GND |
@@ -510,37 +510,37 @@
 | EN_VCORE | Q_ENVC | R_EN_VCORE | Q_ENVC | [待选型] N-MOS (反相) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [EN_VCORE] Q_ENVC 漏极 = EN_VCORE (把 EN 拉低 = 不使能) |
 | EN_VIO | U_DCDC_VIO EN | NET_PWR_ON | U_DCDC_VIO | EN 输入 (高 = 使能) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-12 | [EN_VIO] ★V1.8: V_SOC_IO buck 的 EN **直接由 PWR_ON 开机节点驱动** (它是上电第一路; PG 极性/EN 极性待原厂核) |
 | SUPV_CT | U_SUPV CT | RAIL_VDD_1V8_IO | U_SUPV | CT 脚 (阈值/延时选择) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-12 | [SUPV_CT] ★V1.8: 监督器 CT 脚原来**悬空** (网表里没有) · 补上 (阈值/延时选择, 脚号与接法待原厂核) |
-| XTAL_IN | SoC[TBD-01].XTAL_IN | X1 | NET_XTAL_IN | 12pF | NET | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | 时钟: 外部晶振位 (XTAL_IN); 参考版**同时**给 内部RC(不装) 与 外部晶振(焊盘位+2×12pF, 不装) 两套 |
+| XTAL_IN | SoC[RK3572].XTAL_IN | X1 | NET_XTAL_IN | 12pF | NET | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | 时钟: 外部晶振位 (XTAL_IN); 参考版**同时**给 内部RC(不装) 与 外部晶振(焊盘位+2×12pF, 不装) 两套 |
 | XTAL_IN | C_XTAL_IN | NET_XTAL_IN | C_XTAL_IN | 12pF ±10% | C | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | [XTAL_IN] 晶振负载电容 (XTAL_IN 侧) |
 | GND | C_XTAL_IN | GND | C_XTAL_IN | 12pF ±10% | C | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | 晶振负载电容 地端 |
-| XTAL_OUT | SoC[TBD-01].XTAL_OUT | X1 | NET_XTAL_OUT | 12pF | NET | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | 时钟: 外部晶振位 (XTAL_OUT); 参考版**同时**给 内部RC(不装) 与 外部晶振(焊盘位+2×12pF, 不装) 两套 |
+| XTAL_OUT | SoC[RK3572].XTAL_OUT | X1 | NET_XTAL_OUT | 12pF | NET | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | 时钟: 外部晶振位 (XTAL_OUT); 参考版**同时**给 内部RC(不装) 与 外部晶振(焊盘位+2×12pF, 不装) 两套 |
 | XTAL_OUT | C_XTAL_OUT | NET_XTAL_OUT | C_XTAL_OUT | 12pF ±10% | C | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | [XTAL_OUT] 晶振负载电容 (XTAL_OUT 侧) |
 | GND | C_XTAL_OUT | GND | C_XTAL_OUT | 12pF ±10% | C | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | 晶振负载电容 地端 |
 | XTAL | X1 | NET_XTAL_IN | X1 | 晶振焊盘位 (不装) | CONN | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | [XTAL] 外部晶振**焊盘位** (不装): 频率/负载/封装待原厂确认 (TBD-12); AR9481 同 Die 也不能确定 · 先留位 |
 | RESET_N | R_PU_RESET_N | R_SER_RESET_N | NET_RESET_N | 上拉 10k + RC(1k/100nF) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-12 | 方向 双向; 电平 1.8V [待原厂]; 阻抗 上拉 10k + RC(1k/100nF); 连接 SoC RESET_N + 按键到 GND; 测试点 TP_RESET |
 | VDD_1V8_IO | R_PU_RESET_N | RAIL_VDD_1V8_IO | R_PU_RESET_N | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_1V8_IO] RESET_N 上拉 (1.8V 域) |
-| RESET_N_SOC | R_SER_RESET_N | SoC[TBD-01].RESET_N | R_SER_RESET_N | 1k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [RESET_N_SOC] RESET_N RC 串联 (与 C_RST 构成 RC 复位) |
+| RESET_N_SOC | R_SER_RESET_N | SoC[RK3572].RESET_N | R_SER_RESET_N | 1k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [RESET_N_SOC] RESET_N RC 串联 (与 C_RST 构成 RC 复位) |
 | RESET_N_SOC | C_RST | NET_RESET_N_SOC | C_RST | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | [RESET_N_SOC] RESET_N 对地 RC 电容 (τ=100ms; **释放时期待原厂 TBD-12**) |
 | GND | C_RST | GND | C_RST | 100nF ±10% | C | 必装 | MAIN_PCB | [推算] |  | RESET RC 电容 地端 |
 | RESET_N | SW_RST | NET_RESET_N | SW_RST | 复位按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | [RESET_N] 复位键 -> GND (软上电 / 进下载模式) |
 | GND | SW_RST | GND | SW_RST | 复位按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | 复位键 -> GND |
-| BOOT_N | SoC[TBD-01].BOOT_N | R_PU_BOOT_N | NET_BOOT_N | 上拉 10k | NET | 必装 | MAIN_PCB | [待原厂] | TBD-12 | 方向 双向; 电平 1.8V [待原厂]; 阻抗 上拉 10k; 连接 SoC BOOT 脚 + 按键到 GND; 测试点 TP_BOOT |
+| BOOT_N | SoC[RK3572].BOOT_N | R_PU_BOOT_N | NET_BOOT_N | 上拉 10k | NET | 必装 | MAIN_PCB | [待原厂] | TBD-12 | 方向 双向; 电平 1.8V [待原厂]; 阻抗 上拉 10k; 连接 SoC BOOT 脚 + 按键到 GND; 测试点 TP_BOOT |
 | VDD_1V8_IO | R_PU_BOOT_N | RAIL_VDD_1V8_IO | R_PU_BOOT_N | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [VDD_1V8_IO] BOOT_N 上拉 (1.8V 域) |
 | BOOT_N | SW_BOOT | NET_BOOT_N | SW_BOOT | BOOT 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | [BOOT_N] BOOT 键 -> GND (进下载模式) |
 | GND | SW_BOOT | GND | SW_BOOT | BOOT 按键 (待选型) | SW | 必装 | MAIN_PCB | [推算] |  | BOOT 键 -> GND |
-| JTAG_TCK_SOC | SoC[TBD-01].JTAG_TCK | R_JTAG_TCK | NET_JTAG_TCK_SOC | 单端, 100Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG |
+| JTAG_TCK_SOC | SoC[RK3572].JTAG_TCK | R_JTAG_TCK | NET_JTAG_TCK_SOC | 单端, 100Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG |
 | JTAG_TCK | R_JTAG_TCK | J_DEBUG pin1 | R_JTAG_TCK | 100Ω ±1% | R | 必装 | MAIN_PCB | [推算] |  | [JTAG_TCK] JTAG TCK 串阻 (隔离 SoC 调试脚) |
-| JTAG_TMS_SOC | SoC[TBD-01].JTAG_TMS | R_JTAG_TMS | NET_JTAG_TMS_SOC | 单端, 100Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG |
+| JTAG_TMS_SOC | SoC[RK3572].JTAG_TMS | R_JTAG_TMS | NET_JTAG_TMS_SOC | 单端, 100Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG |
 | JTAG_TMS | R_JTAG_TMS | J_DEBUG pin2 | R_JTAG_TMS | 100Ω ±1% | R | 必装 | MAIN_PCB | [推算] |  | [JTAG_TMS] JTAG TMS 串阻 (隔离 SoC 调试脚) |
-| JTAG_TDI_SOC | SoC[TBD-01].JTAG_TDI | R_JTAG_TDI | NET_JTAG_TDI_SOC | 单端, 100Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG |
+| JTAG_TDI_SOC | SoC[RK3572].JTAG_TDI | R_JTAG_TDI | NET_JTAG_TDI_SOC | 单端, 100Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG |
 | JTAG_TDI | R_JTAG_TDI | J_DEBUG pin3 | R_JTAG_TDI | 100Ω ±1% | R | 必装 | MAIN_PCB | [推算] |  | [JTAG_TDI] JTAG TDI 串阻 (隔离 SoC 调试脚) |
-| JTAG_TDO_SOC | SoC[TBD-01].JTAG_TDO | R_JTAG_TDO | NET_JTAG_TDO_SOC | 单端, 100Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG |
+| JTAG_TDO_SOC | SoC[RK3572].JTAG_TDO | R_JTAG_TDO | NET_JTAG_TDO_SOC | 单端, 100Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG |
 | JTAG_TDO | R_JTAG_TDO | J_DEBUG pin4 | R_JTAG_TDO | 100Ω ±1% | R | 必装 | MAIN_PCB | [推算] |  | [JTAG_TDO] JTAG TDO 串阻 (隔离 SoC 调试脚) |
 | J_DEBUG | J_DEBUG | J_DEBUG pin1 | J_DEBUG | 1×4 1.27mm 排针 (JTAG) | CONN | 必装 | MAIN_PCB | [推算] |  | [INVENTORY] [J_DEBUG] JTAG 调试排针 (不装贴片, 手工可焊); pin1=TCK, 2=TMS, 3=TDI, 4=TDO |
-| UART_TX | SoC[TBD-01].UART_TX | J_UART pin1 | NET_UART_TX | 单端 | NET | 可选 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 3.3V [待原厂]; 阻抗 单端; 连接 同 B-19 排针 (复用脚); 测试点 TP_UART |
-| UART_RX | SoC[TBD-01].UART_RX | J_UART pin2 | NET_UART_RX | 单端 | NET | 可选 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 3.3V [待原厂]; 阻抗 单端; 连接 同 B-19 排针 (复用脚); 测试点 TP_UART |
+| UART_TX | SoC[RK3572].UART_TX | J_UART pin1 | NET_UART_TX | 单端 | NET | 可选 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 3.3V [待原厂]; 阻抗 单端; 连接 同 B-19 排针 (复用脚); 测试点 TP_UART |
+| UART_RX | SoC[RK3572].UART_RX | J_UART pin2 | NET_UART_RX | 单端 | NET | 可选 | MAIN_PCB | [待原厂] | TBD-01 | 方向 双向; 电平 3.3V [待原厂]; 阻抗 单端; 连接 同 B-19 排针 (复用脚); 测试点 TP_UART |
 | UART_RX | J_UART | J_UART pin2 | J_UART | 1×2 1.27mm 排针 (UART) | CONN | 可选 | MAIN_PCB | [推算] |  | [UART_RX] 规格: UART 与 JTAG 复用同一排针 -> 本版拆成 1×2 独立排针 (原厂要求复用则再合并) |
-| FSIN | SoC[TBD-01].FSIN | R_SER_FSIN | NET_FSIN | 单端, 50Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-13 | 方向 SoC→外部; 电平 [待原厂]; 阻抗 单端, 50Ω 串阻; 连接 SoC FSIN/VSYNC 脚 → 测试点; 测试点 TP_FSIN |
+| FSIN | SoC[RK3572].FSIN | R_SER_FSIN | NET_FSIN | 单端, 50Ω 串阻 | NET | 必装 | MAIN_PCB | [待原厂] | TBD-13 | 方向 SoC→外部; 电平 [待原厂]; 阻抗 单端, 50Ω 串阻; 连接 SoC FSIN/VSYNC 脚 → 测试点; 测试点 TP_FSIN |
 | FSIN_OUT | R_SER_FSIN | TP_FSIN | R_SER_FSIN | 50Ω ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-13 | [FSIN_OUT] FSIN 引出串阻 (50Ω 源端匹配) |
 | PG_VCORE | U_DCDC_VCORE PG | TP_PG_VCORE | TP_PG_VCORE | PG (开漏, 需上拉) | TP | 必装 | MAIN_PCB | [官方] | TBD-12 | [PG_VCORE] V_CORE 轨 PG 状态引出 (开漏, 需上拉到对应域); 若原厂要求 PG 参与上电时序, 在此补上拉电阻位 (R_PG_VCORE, 待原厂确认 TB |
 | PG_VIO | U_DCDC_VIO PG | TP_PG_VIO | TP_PG_VIO | PG (开漏, 需上拉) | TP | 必装 | MAIN_PCB | [官方] | TBD-12 | [PG_VIO] V_SOC_IO 轨 PG 状态引出 (开漏, 需上拉); 同上 |

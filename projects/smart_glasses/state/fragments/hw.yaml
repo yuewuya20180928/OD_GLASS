@@ -1,6 +1,6 @@
 agent: hw-lead
 role: 硬件总工
-updated_at: 2026-11-02 01:2x
+updated_at: 2026-11-02 02:4x
 updated_by: hw-lead
 status:
   phase: P2(原理图/BOM)+结构接口
@@ -893,8 +893,8 @@ interface_claims:
   note: '★本单骨架/石墨上限建立在这个前提上: 沿镜脚轴向, PCB 段在铰链端 (BOARD_WIDTH_15MM §2.4 明写''铰链端 PCB 段''), 电池段在尾端 => ''PCB 段后缘'' = PCB 板坐标 X=60.00 = 电池段起点; 请 mech 确认 (若顺序相反, 骨架上限与石墨范围要重定)'
   ref: HW/PCB_FIXING_PINSET2.md#4
 - key: isp_input_mode_req
-  value: full-frame
-  note: ISP 输入必须是 sensor 全幅 (OV04C10 2688x1520@60); 禁 ROI/crop/为凑宽高比的 aspect crop。全幅对角 120.00deg vs ROI 85.61deg, 立体角保留率 52.30%; 俯角25deg 时 ROI 路线正前方掉出画面 (余量 -4.02deg)。确认态 [0数据] (待原厂 Q1)
+  value: 1080p60(OV04C10原生模式)
+  note: '★2026-11-02 02:0x 改: 由 "full-frame 禁止裁剪" 改为 **用 sensor 的 1080p60 原生模式** (不裁剪, 也不出 4MP 全幅) ⇒ ★**代价**: 对角 FOV/角分辨率要重算 (见 HW/DISPLAY_SENSOR_CHAIN.md §2.2) ⇒ 等老板在 C (镜头改短到 1.2704mm) / D (换 AR0234CS 1920×1200@60) 两条路里选一条'
   ref: state/outbox/vendor_round4_geo_isp_addendum.md#Q1 + state/outbox/R_GEO_2_DECISION_MAP.md#D1
 - key: isp_scale_mode_req
   value: equal-ratio+letterbox
@@ -902,15 +902,15 @@ interface_claims:
   ref: state/outbox/vendor_round4_geo_isp_addendum.md#Q4 + state/outbox/R_GEO_2_DECISION_MAP.md#D2
 - key: csi_lane_mode_req
   value: 4-lane
-  note: 全幅 RAW10@60 = 2.451 Gbps -> 4-lane (613 Mbps/lane 净, 705 含 15% 协议开销); 2-lane 需 1410 Mbps/lane 未知能否支持。我方网表 P5 的 D2/D3 现为 DNP, 原厂确认后改必装 (含 AC 耦合+对地端接+8 根差分)
+  note: 1080p60 RAW10 净载荷 1.244 Gbps ⇒ 4-lane 绰绰有余 (2-lane 亦可); 保持 4-lane 布线 ⇒ ★**可省 4 个跨铰链触点 (CONN_CAM 18p→14p) 的优化留待评估**
   ref: state/outbox/vendor_round4_geo_isp_addendum.md#Q2
 - key: isp_throughput_req
-  value: 245.1MP/s@60
-  note: 全幅 2688x1520@60 输入吞吐; vs 250 口径占 98.1% (余量仅 1.9%), vs 497.7 口径占 49.3% (余量 50.7%) —— 两口径差 2 倍, 未 close 前该值为 [0数据]。走 ROI 则只要 124.4 MP/s (占 49.8%), 故问03 必须与问01 成对回答
+  value: 124.4MP/s@60
+  note: '★2026-11-02 02:0x: 老板定 OV04C10 按 **1920×1080@60 直出** ⇒ 需求 = 1920×1080×60 = 124.4 MP/s (原 2688×1520@60 的 245.1 已作废); vs 250 口径余量 **50.2%** (占 49.8%), vs 497.7 口径余量 **75.0%** ⇒ ★**"1.9% vs 50.7%"的一票否决级矛盾消解**'
   ref: state/outbox/vendor_round4_geo_isp_addendum.md#Q3 + state/outbox/R_GEO_2_DECISION_MAP.md#D3
 - key: lens_fov_basis
-  value: full-array-120deg
-  note: 镜头 RFQ 必须按全画幅有效阵列口径报对角 FOV; 等距投影 f=2.9459mm (OV04C10) / 3.2432mm (AR0234CS), f_px 1474.41/1081.06; 直行与等距的垂直半视场差 10.92deg (40.45 vs 29.53), 报错模型结构余量就错
+  value: 待老板选路(1080p/1920x1200)
+  note: '★2026-11-02 02:0x: sensor 模式改 1080p60 ⇒ 镜头口径要重算: ① OV04C10 1080p 有效阵列要 120° ⇒ f 从 2.9459 改到 **1.2704mm** ⇒ 角分辨率 0.0814→0.1887 °/px (差 2.32×) ② 换 AR0234CS 1920×1200@60 ⇒ ROI 路线 FOV **116.75°**, 立体角只丢 9.70% ⇒ ★**等老板选路**'
   ref: state/outbox/lens_rfq_rgeo2_addendum.md#RFQ-13
 - key: corner_perf_floor
   value: MTF>=30%/RI>=40%
