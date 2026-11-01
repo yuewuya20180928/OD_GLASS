@@ -1,6 +1,6 @@
 agent: sw-lead
 role: 软件总工
-updated_at: '2026-10-29'
+updated_at: 2026-11-02 01:3x
 updated_by: sw-lead
 status:
   phase: P2(方案设计)
@@ -719,6 +719,15 @@ needs_from:
     按旧 SoC 写的) **需按 RK3576 重核**: ①SARADC_VIN0_BOOT 的电压门限要谁来定 (模组厂给, 还是 hw-lead 按我们选定的档位设计跳线/治具)
     ②专用 MaskROM USB 口在载板上引不引、走哪个 SoC 引脚 (跨铰链救援通道那侧能否进 Maskrom)。★已并入问询清单 §1 Q1.1c /
     §3 Q3.1a, 请项目总工在外发模组厂的同时**并行**转 hw-lead, 两条**不互相等**。'
+- key: display_recompose_1920x1080
+  to: main
+  item: '显示分辨率 800×600 → **1920×1080** (11-02 01:12 老板拍板) ⇒ ★**SW 侧要重做的**: ①画框/检测结果的分辨率映射与最小线宽判据
+    (★PPD 从 26.7 降到 16 PPD/° ⇒ 1px 细线在 120° FOV 下会被光波导 MTF 吃掉 ⇒ 线宽判据要重定) ②检测框密度与文字字号策略
+    ③合成/缩放负载 (×4.3 像素) 与 60ms 预算的分配 ④ISS-063「120°→30° 映射」前提作废 ⇒ 映射规则要重定义。'
+  decision: ''
+  decided_at: ''
+  decided_by: ''
+  since: '2026-11-02'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -838,10 +847,9 @@ interface_claims:
     证据 [实测](布局检查器 --device-size 64MB → LAY-03/04 FAIL) + [推算](分区大小)'
   ref: SW/FLASH_AND_VERSION.md#4.5.1
 - key: display_resolution
-  value: 800x600
-  note: '老板锁死的显示分辨率 (PROJECT_TRACKER §0 变量 23/27, 10-21 锁定; 光机 JBD 走鹃Ⅱ 原生同为 800×600);
-    源数据 = OD 640×480 上采样 x1.25 (ISS-061 锁定链路)。SW §12.1 的''显示帧 buffer''与''合成帧''两行按此算,
-    不按 640×480 重算 (项目总工 ISS-073 裁决 2026-10-26); 证据: 决策文本·项目总工裁决 + 官方(光机规格)'
+  value: 1920x1080
+  note: ★11-02 01:12 老板拍板显示件改视涯 0.49" SiOLED ⇒ 显示分辨率 800x600→1920×1080; ★像素量×4.3 ⇒
+    合成/缩放路径与 ISP 一处多预算要重算 (与 RK3572 4TOPS 叠加 ⇒ 60ms 更紧)
   ref: SW/SW_REQUIREMENTS.md#12.1
 - key: model_asset_id_scheme
   value: MOD-<FAMILY>-<VER>-<RES>

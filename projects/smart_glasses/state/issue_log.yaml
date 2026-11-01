@@ -3670,3 +3670,82 @@ issues:
   verify_date: null
   note: '2026-11-02 01:1x 随基线换芯产生 (原 ISS-124/125 不作废, 是**改口径**)。★外发一律经项目总工, 草稿放 `state/outbox/`, **等老板放行才发**。★verify_by=hw-lead: 项目总工自办 ⇒ 别人验 (铁律)。 ★source_blocker=PM-B7 (STATE 阻塞登记)'
   dispatched_at: null
+- id: ISS-132
+  title: ★★★[决定性] 视涯 0.49" 1920×1080 是单色还是全彩? —— 这题决定产品定义 (检测框能不能上色)
+  severity: high
+  source_blocker: PM-B8
+  source_agent: main
+  desc: '老板 11-02 01:12 拍板显示件改 **视涯科技 0.49 英寸 1920×1080 硅基 OLED**。★**产品存在性已核实** (视涯 2025-06-26 招股书同档竞品对比表列 ''视涯 0.49 英寸 / 1920×1080'', 与索尼 0.44"、京东方 0.49" 同档; 官网产品线含 0.49" OLEDoS)。
+
+    ★**但颜色这一项是 [0数据], 且它是决定性的**: 若只有**单色** ⇒ ①OD 检测框不能上色 ⇒ ''彩色显示''卖点要改 (改用位置/纹理区分检测类别) ②单色成本大幅低于全彩 ③单色发光面积只 1/3 ⇒ 同亮度功耗更低 ⇒ 对 ISS-130 是正面消息。
+
+    ★**现有线索全都指向''要直接问''**: ①招股书把 0.49" 与索尼/京东方并入 ''0.4-0.49 英寸级别'' —— 该尺寸档是业界''高分辨率 AR 单色''主战场 ②视涯 CIOE 2025 主推的是 **0.6" (全彩 6000nits / 30~120Hz)**, 并称 0.49" 是''爆款'' (上一代走量款) ⇒ ★**暗示 0.49" 大概率是单色或低规格全彩** ③视崖有''高光效叠层全彩''技术 ⇒ 全彩能力存在但在哪个尺寸档未公开。
+
+    ⇒ **必须视涯书面答复**, 不能猜。问询草稿已就位 `state/outbox/visionox_display_inquiry.md` (Q1, **未发**)。'
+  owner: main
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-06'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: boss
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 01:3x 随显示件换型产生。★verify_by=boss: 本条等的是**外部答复 + 老板对''能不能接受单色''的拍板**, 外部件由项目总工盯。★**这是新翻案条件 D1**: 若无全彩且老板不接受单色 ⇒ 显示件选型要重开。 ★source_blocker=PM-B8 (STATE 阻塞登记)'
+  dispatched_at: null
+- id: ISS-133
+  title: '★★★显示架构变更: ''屏'' ≠ ''光机'' ⇒ 必须新增一级耦合光学 ⇒ 镜框光学腔体/分光器/整机空间全部重算'
+  severity: high
+  source_blocker: PM-B9
+  source_agent: main
+  desc: '走鹃Ⅱ 是**光引擎** (自带准直光输出, 直接耦合进波导); 硅基 OLED 是**显示面板** (自身发光的成像面, 屏面视场角仅 ~35°) ⇒ **中间必须多一级耦合光学** ⇒ ★**这是显示侧工作量最大的一条**。
+
+    ★**两条出路**: (A) **买视崖自家光机模组 (推荐)** —— 他们已有 ''极光·无界'' (1.3"+折叠光路 95°FOV / PPD 37.4) 与 ''极光·锐影'' (0.6BB), 官网光学方案线明列 **See-through: Birdbath / Waveguide** ⇒ ''光机+波导''架构可以不变, 只是换一家供; (B) 买屏自己做耦合光学 —— 非球面 + 波导入瞳匹配, 无经验不现实。
+
+    ★**结构侧必须重算的现有数**: `optical_cavity_size = 14×10×6mm` (镜框内光学腔体, 是走鹃Ⅱ 的数) · `splitter_volume = 0.79cc` (分光器) · 镜框内显示仓整体布局 ⇒ **新光机必然比 0.18cc 大** ⇒ 镜框要重新设计 ⇒ ★**这条卡着镜框打印开工** (与 ISS-013 波导一起)。
+
+    ★**同时要定**: 0.49" 屏 (12.38mm 对角) + 耦合光学 + 波导 ⇒ **出瞳直径与瞳距 (eye relief)** 能不能落在镜框内且不压迫鼻梁 ⇒ 要等视崖给模组外形 (ISS-132 的 Q3)。'
+  owner: main
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-06'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: mech-lead
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 01:3x 随显示件换型产生。★**前置**: 视涯模组外形尺寸 (问询草稿 Q3, 未发) ⇒ 在那之前本单只能出''余量预算''不能出定版。★verify_by=mech-lead: 项目总工自办 ⇒ 别人验 (铁律)。 ★source_blocker=PM-B9 (STATE 阻塞登记)'
+  dispatched_at: null
+- id: ISS-134
+  title: ★★JBD 角色收窄为波导 + ISS-016 作废 + ISS-048 光生物安全口径整个变了 (LED 点光源 → OLED 面光源+蓝光+波导散射)
+  severity: medium
+  source_blocker: PM-B8
+  source_agent: main
+  desc: '显示件从 JBD 走鹃Ⅱ 换成视涯 SiOLED ⇒ ★**老板锁死 #19「MIPI-DSI 输入的光机由 JBD 的蜂鸟提供」与 #21「光机型号=走鹃Ⅱ」作废**。
+
+    ★**三条连带**:
+
+    ① **ISS-016 (走鹃Ⅱ 长宽高未知 → 光机位姿/干涉检查做不了) 直接作废** ⇒ 换成问视崖的模组外形 (并入 ISS-133);
+
+    ② ★★**ISS-048 光生物安全口径整个变了**: 走鹃Ⅱ 是 **LED 光源**, 问的是 LED 波长/亮度/光通量/辐亮度; 硅基 OLED 是**面光源自发光**, 且**蓝光 ~460nm 在衍射光波导里散射** ⇒ 判据要重建 (出光面辐亮度/光谱/蓝光占比/45-50°C 下的亮度衰减/IEC 62471 报告) ⇒ **JBD 旧草稿里这条要转问视崖** (问询草稿 Q4);
+
+    ③ ★**波导还在, 但判据变了**: 波导不再''配走鹃Ⅱ 的准直光'', 而要''配 0.49" 面板 + 视崖耦合方案的入瞳/出瞳/耦合角'' ⇒ **波导到底还问 JBD 还是另找供应商, 要老板定** (JBD 的蜂鸟/走鹃都是光机, 波导是其另一条产品线还是外采, 需确认)。
+
+    ⇒ ★**JBD 问询草稿要瘦身改写** (走鹃Ⅱ 两问作废/转写, 波导部分保留但改判据) ⇒ 另发视崖问询草稿 (**两封都未发**)。'
+  owner: main
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-06'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: boss
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 01:3x 随显示件换型产生。★**注意**: 波导选型 ISS-004/013 (JBD) 仍是 G2 阶段的真 blocker ⇒ **不能因为换了显示件就把 JBD 关系断掉** —— 波导 + 耦合方案仍然卡着镜框开工。★verify_by=boss: 外发与供应商归属都要老板点头。 ★source_blocker=PM-B8 (STATE 阻塞登记)'
+  dispatched_at: null

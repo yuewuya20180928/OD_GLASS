@@ -1,6 +1,6 @@
 agent: main
 role: 项目总工
-updated_at: 2026-11-02 01:2x
+updated_at: 2026-11-02 01:3x
 updated_by: main
 status:
   phase: 原理图V1.2已交付待交叉评审
@@ -92,6 +92,18 @@ blockers:
   severity: high
   needs_from:
   - hw-lead
+  waiting_since: '2026-11-02'
+- id: PM-B8
+  desc: 视涯 0.49" 1920×1080 单色/全彩未定 ⇒ 检测框能否上色/产品定义未定 ⇒ 显示件选型不能定案 (ISS-132)
+  severity: high
+  needs_from:
+  - boss
+  waiting_since: '2026-11-02'
+- id: PM-B9
+  desc: '显示架构变更: 硅基OLED是''屏''不是''光机'' ⇒ 耦合光学缺失 ⇒ 镜框光学腔体/分光器/整机空间要重算 ⇒ 镜框不能开工 (ISS-133)'
+  severity: high
+  needs_from:
+  - mech-lead
   waiting_since: '2026-11-02'
 needs_from:
 - key: q1_latency_scope
@@ -242,6 +254,24 @@ needs_from:
   decided_at: ''
   decided_by: ''
   since: '2026-11-02'
+- key: visionox_inquiry_release
+  to: boss
+  item: '**视涯问询草稿已就位** `state/outbox/visionox_display_inquiry.md` (6 大项: Q1 单色/全彩 / Q2 DSI+I2C 时序 / Q3 模组外形+光学方案 / Q4 光生物安全 / Q5 商务供货 / Q6 RK 平台适配) ⇒ ★**这封信是当前显示侧的关键路径**: 显示件 + 耦合光学定不下来, 镜框就不能开工 (ISS-133 卡 G2)。
+
+    ★**JBD 旧草稿同时要瘦身改写** (走鹃Ⅱ 两问作废/转问视崖, 波导部分保留但改判据) ⇒ **两封一起发还是分开发, 等你定**。'
+  decision: ''
+  decided_at: ''
+  decided_by: ''
+  since: '2026-11-02'
+- key: display_color_acceptance
+  to: boss
+  item: '**如果视涯 0.49" 1920×1080 只有单色**, 你能接受吗? 影响: ①检测框不能上色 ⇒ 改用位置/纹理区分检测类别 ②成本大幅低 ③同亮度功耗更低 (对 ISS-130 正面)。
+
+    ★**建议**: 不论答复如何, 单色版可作为**降本 backup** 与全彩版并存评估 (但一份样机只装一种 ⇒ 第一台先定一个)。'
+  decision: ''
+  decided_at: ''
+  decided_by: ''
+  since: '2026-11-02'
 answers:
 - key: reva_stl_regen
   to: mech-lead
@@ -328,6 +358,18 @@ interface_claims:
   value: '670'
   note: RK3572 原厂实测口径 1080P 播放 670mW / 二级待机 <10mW ⇒ 全表第一个有具体功耗数的候选 ⇒ vs 皮肤可持续上限 0.15-0.2W = 超 3.4~4.5 倍
   ref: ISS-130
+- key: display_module
+  value: 视涯0.49"SiOLED
+  note: '2026-11-02 01:12 老板拍板: 走鹃Ⅱ光引擎 → 视涯科技 0.49英寸 1920×1080 硅基OLED; MIPI DSI+I2C / 60~90Hz / 硬件DSC / 1350~2250nits / 90% DCI-P3 / 屏面10.783×6.065mm / 12.38mm对角 / 4391PPI; ★''屏''≠''光机'' ⇒ 必补一级耦合光学; ★颜色(单色/全彩)=[0数据] 是决定性未知项'
+  ref: HW/DISPLAY_MODULE_DECISION.md + PROJECT_TRACKER.md §(1.52)
+- key: display_resolution
+  value: 1920x1080
+  note: 11-02 01:12 起 (原 800x600 作废); 像素量×4.3 ⇒ 合成/缩放负担↑ (与 RK3572 4TOPS 叠加)、DSI带宽@60RGB888≈373Mbps、★PPD反而降 (16 vs 26.7 PPD/°)、ISS-063 前提作废
+  ref: ISS-134 + HW/DISPLAY_MODULE_DECISION.md §2.2
+- key: display_color_status
+  value: TBD
+  note: 0.49" 1920×1080 单色还是全彩 = [0数据]; 视涯招股书列 0.49"/1920×1080 但颜色未公开, CIOE 主推全彩的是 0.6" ⇒ 大概率单色 ⇒ 需视崖书面答复 (问询草稿 Q1, 未发)
+  ref: ISS-132
 open_questions:
 - id: PM-Q1
   to: sw-lead

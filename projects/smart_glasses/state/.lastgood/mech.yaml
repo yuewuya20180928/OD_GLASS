@@ -1,6 +1,6 @@
 agent: mech-lead
 role: 结构总工(带散热)
-updated_at: '2026-11-01T22:30:00+08:00'
+updated_at: 2026-11-02 01:3x
 updated_by: mech-lead
 status:
   phase: P3
@@ -1042,6 +1042,17 @@ needs_from:
   item: 'ISS-025 波导卡槽工艺选型 (经项目总工走JBD): 需要波导2D外形 + 外形公差 + 是否可承受压铸件的收缩与热变形 + 安装面平面度要求,
     才能定波导卡槽是''压铸本体''还是''CNC卡座''。我的假设: 按CNC卡座+3点金属压条做(DFM_REVIEW 1.1-12), 波导按玻璃基假设;
     平行度±0.3deg与0.2mm硅胶垫不变'
+- key: optical_cavity_recompute_for_sioled
+  to: main
+  item: '显示件从走鹃Ⅱ 光引擎 (0.18cc) 换成 **视涯 0.49" 1920×1080 SiOLED 面板 + 【新增】耦合光学** ⇒ ★**镜框侧要重算**:
+    ①光学腔体 (现值 14×10×6mm 是走鹃Ⅱ 的) ②分光器 (现值 0.79cc) 与光路 ③镜框内显示仓整体布局与出瞳/瞳距 ④镜框外形与重量。
+
+    ★**前置**: 视涯模组外形尺寸 (问询草稿 Q3, 未发) ⇒ 在那之前请先出''余量预算''版本 (按 3 种假想外形: 光机模组 15×12×10
+    / 18×14×12 / 22×16×14mm), 不要等数据齐了再动。'
+  decision: ''
+  decided_at: ''
+  decided_by: ''
+  since: '2026-11-02'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -1249,7 +1260,7 @@ interface_claims:
   ref: MECH/MECH_BUDGET.md#1.5.1
 - key: splitter_volume
   value: 0.79cc
-  note: 一拖二分光组件 (平板10x10x1.5 + 2棱镜8x8x5), 比光机本体 0.18cc 大 4 倍; 全推算, JBD 无成品
+  note: ★[待重算] 11-02 01:12 显示件改视涯 0.49" SiOLED ⇒ 分光器位置/体积与光路要按新耦合方案重算 (ISS-133)
   ref: MECH/MECH_BUDGET.md#1.2
 - key: splitter_mount_tolerance
   value: ≤0.25度/0.175mm@40mm
@@ -1257,7 +1268,8 @@ interface_claims:
   ref: 'MECH/MECH_BUDGET.md#1.2 + #5.2'
 - key: optical_cavity_size
   value: 14x10x6mm
-  note: 镜框正中光学舱 (光机+分光件串联); 镜框正中厚需>=11.8mm; 双光机 Plan B 只需 4.8mm
+  note: ★[待重算] 11-02 01:12 显示件改视涯 0.49" SiOLED (屏 ≠ 光机 ⇒ 必补一级耦合光学) ⇒ 本值 (14×10×6mm)
+    是走鹃Ⅱ 光引擎的数 ⇒ 镜框光学腔体要按新光机模组重做 (ISS-133)
   ref: MECH/MECH_BUDGET.md#1.4.5
 - key: waveguide_slot_parallel
   value: ±0.3度
