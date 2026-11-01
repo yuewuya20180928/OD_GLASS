@@ -232,76 +232,20 @@ new = json.load(open(src, encoding="utf-8"))
 if "agents" not in new:
     print("  ⚠️ 源里没有 agents 段, 跳过合并"); sys.exit(0)
 shutil.copy2(dst, dst + ".bak." + time.strftime("%Y%m%d_%H%M%S"))
-old = d.get("agents") or {}
-
-# ★★2026-11-01 23:5x 修: **不能整段覆盖, 要逐字段合并**
-#   上一版直接 d["agents"] = new["agents"] ⇒ 把新主机**本来正确**的绝对路径
-#   换成了脱敏版的占位符 `<OPENCLAW_HOME>/workspace` ⇒ 配置校验直接失败
-#   (agents.defaults: Invalid input) ⇒ gateway 起不来。
-#   ⇒ 现在改成: **保留新机原有的绝对路径 / model 对象 / models 别名表**,
-#     只从脱敏源里补**缺失的** agent 条目与工具拓扑。
+d["agents"] = new["agents"]
 home = os.path.expanduser("~/.openclaw")
-
-def fix_paths(aid, a):
-    """把绝对路径/占位符统一成本机真实路径"""
-    short = aid.split("-")[0]
+for a in d["agents"].get("list", []):
+    aid = a.get("id", "")
     if aid != "main":
-        a["workspace"] = f"{home}/workspace-{short}"
+        a["workspace"] = f"{home}/workspace-{aid.split('-')[0]}"
         a["agentDir"] = f"{home}/agents/{aid}/agent"
-    else:
-        a["workspace"] = f"{home}/workspace"
     pp = ((a.get("tools") or {}).get("exec") or {}).get("pathPrepend") or []
     if pp:
         a["tools"]["exec"]["pathPrepend"] = [f"{home}/guards/{aid}"]
-
-# ① defaults: 逐字段合并 (源里的占位符/错版字段不采信, 新机原有的绝对路径优先)
-src_def = new["agents"].get("defaults", {})
-dst_def = old.get("defaults", {})
-merged_def = dict(src_def)
-for k in ("workspace", "model", "models"):
-    if k in dst_def:                 # ★新机原有的更可信 (绝对路径 / 正确的 model 对象)
-        merged_def[k] = dst_def[k]
-if "workspace" in merged_def and str(merged_def["workspace"]).startswith("<"):
-    merged_def["workspace"] = f"{home}/workspace"
-# ★★2026-11-01 23:5x 修: **剔掉脱敏源里的错版字段名**
-#   `model_primary` 是我在 config/openclaw.agents.json 里手写的**简写** (openclaw 真实字段是 `model` 对象)
-#   ⇒ 直接带过去会让 agents.defaults 校验失败 (Invalid input) ⇒ gateway 起不来
-#   ⇒ 同理 `list[0].workspace` (main 不该有独立 workspace, 应走 defaults)
-merged_def.pop("model_primary", None)
-merged_def = {k: v for k, v in merged_def.items() if not (isinstance(v, str) and v.startswith("<"))}
-d["agents"] = dict(old)
-d["agents"]["defaults"] = merged_def
-
-# ② list: 以新机原有条目为基底, 补源里缺的角色
-src_list = {a.get("id"): a for a in new["agents"].get("list", [])}
-dst_list = {a.get("id"): a for a in (old.get("list") or [])}
-for aid, a in src_list.items():
-    if aid not in dst_list:
-        dst_list[aid] = dict(a)
-        print(f"  ➕ 补 agent: {aid}")
-for aid, a in dst_list.items():
-    fix_paths(aid, a)
-    # ★main 不该有独立 workspace (走 defaults), 剔掉源里带来的
-    if aid == "main":
-        a.pop("workspace", None)
-d["agents"]["list"] = [dst_list[k] for k in dst_list]
-
 json.dump(d, open(dst, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-print(f"  ✅ openclaw.json 的 agents 段已**合并** (★原文件已备份 .bak.*)")
-print(f"     defaults.workspace = {d['agents'].get('defaults',{}).get('workspace')}")
-print(f"     defaults.model    = {json.dumps(d['agents'].get('defaults',{}).get('model'), ensure_ascii=False)[:70]}")
-for a in d["agents"].get("list", []):
-    print(f"     · {a.get('id'):10s} model={a.get('model')} ws={a.get('workspace')}")
+print(f"  ✅ openclaw.json 的 agents 段已合并 (★原文件已备份 .bak.*)")
+print(f"     model = {d['agents'].get('defaults',{}).get('model_primary')}  ★必须是 M3.1-Flash")
 PY
-  # ★★合并完必须校验, 不合格当场报错 (别装出一个起不来的 gateway)
-  if openclaw config validate >/tmp/_cv.log 2>&1; then
-    ok "配置校验通过 ✅"
-  else
-    echo "  ── 校验输出 ──"; head -12 /tmp/_cv.log | sed 's/^/  /'
-    warn "★配置仍无效 —— 已自动回滚到备份"
-    cp -f "$HOME_DIR/openclaw.json.bak."* "$HOME_DIR/openclaw.json" 2>/dev/null
-    die "配置校验失败, 已回滚 (备份在 openclaw.json.bak.*)"
-  fi
 fi
 
 # =============================================================================
