@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-01T22:18:53+08:00'
+  generated_at: '2026-11-01T22:49:27+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -14,9 +14,9 @@ meta:
       mtime_ns: 1793540719492391195
     mech-lead:
       file: mech.yaml
-      size: 115287
-      sha1: 03da5a6191d7
-      mtime_ns: 1793542111056785434
+      size: 132051
+      sha1: 044afcdbfe35
+      mtime_ns: 1793544468635356979
     main:
       file: pm.yaml
       size: 18472
@@ -108,7 +108,7 @@ domains:
     - id: PM-B4
       desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
       severity: medium
-      needs_from: &id026
+      needs_from: &id027
       - jbd
       waiting_since: '2026-10-21'
     needs_from:
@@ -763,7 +763,7 @@ domains:
         仍 [待选型], 现在加零板费); 另 3 条外部依赖 (原厂 TPS62130A R_on / JBD 光机 3.3V 容差 / 老板拍板没电插电开不了机) 见 needs_from。
         ★本单遗留: 库内 netlist_v1.csv 的 U_LDO_L33/U_LDO_IO33 还是 LDO => 方案A 尚未落进网表, 改法清单见主文 §2.1, 需下一单调生成器。'
       severity: medium
-      needs_from: &id027
+      needs_from: &id028
       - main
       - vendor
       waiting_since: '2026-10-26'
@@ -2178,7 +2178,7 @@ domains:
     - id: SW-FW-B3
       desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
       severity: medium
-      needs_from: &id028
+      needs_from: &id029
       - hw-lead
       - vendor
       waiting_since: '2026-10-26'
@@ -2186,7 +2186,7 @@ domains:
       desc: S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序) 与 P3 (BOOT 态
         VID:PID) 只能干等原厂, 拿不到任何一手数据
       severity: medium
-      needs_from: &id029
+      needs_from: &id030
       - main
       - hw-lead
       waiting_since: '2026-10-27'
@@ -2910,25 +2910,20 @@ domains:
   mech-lead:
     agent: mech-lead
     role: 结构总工(带散热)
-    updated_at: '2026-11-01T22:25:00+08:00'
+    updated_at: '2026-11-01T22:30:00+08:00'
     updated_by: mech-lead
     status:
-      phase: 'P3(ISS-017 已 fixed: Rev B 打印包 + 89 项清单 + 探测记录 + 板宽30 干涉重算全交; 实物实测仍 0 件挂 needs(boss); 另答复
-        hw-lead 5 条 (ISS-121/ISS-118) 并回填 PIN-SET-2 板宽30 新 Y 坐标)'
-      progress_pct: 92
+      phase: P3
+      progress_pct: 95
       health: yellow
-      summary: 'ISS-017 (打印件实测 0 件 + 彩虹纹指标缺失) 走任务书允许的 ''本环境无法实际打印/量测'' 分支交付, 4 项全交: ① **Rev B 打印包可直接下片**
-        (MECH/print/*_revb.stl) —— Rev A 已过期 (板宽 12mm 口径), Rev B 按 **板宽 30 / 板长 60 / RK3576 / PIN-SET-2
-        / ISS-092 检修口** 重做, Type-C 面板移到镜框端件; 自检 **93/93 尺寸判据 + 38/38 STL↔规格逐点互验 (rc=0)** —— ★方法论改进: 放弃
-        ''在 STL 上量尺寸'' (绕向不一致/共面内部面/射线内起点/坐标混用 4 个坑), 改成 ''解析模型精确求尺寸 + STL 逐点互验'' 两段式; ② **逐项测量清单 89 项有效待测**
-        (新增板宽30 的 PCB 样板/PIN-SET-2/板厚三档/V余量梳、ISS-092 检修口壁7+盖板9、ISS-065 5 项); ③ **环境探测记录** (ENV_PROBE_20261101.md,
-        本人实测) —— 打印机跨网段不可达/无切片器/无量具/无 USB 串口, 并**更正 10-25 旧记录 ''无外网'' 的错误** (pip 实测可通); ④ **needs_from**:
-        boss (打印+量测执行方, due 11-08) + jbd (波导彩虹纹指标, due 11-08) + hw-lead (板厚档位/PIN-SET-2 的 Y) + main (板宽方向口径)。★**新发现
-        (板宽 30 的连带)**: ① **V 链是唯一被板宽打穿的链** —— V 余量 17.00 → **2.00** (最坏 1.40), 板宽硬顶 31.40mm; ② **板厚 1.22
-        (ISS-122 模型A) ⇒ ISS-092 检修口净空 4.48 < 4.50 硬要求** (0.41/0.80/1.00 → 5.29/4.90/4.70 ✅); ③ 电池空间/续航
-        **不变** (串行排布, 板宽只吃 PCB 段的 V); ④ 重量 PCB +1.33~1.67g + 骨架 +1.22g/侧 ⇒ 整机 +3.76~4.10g ⇒ 52.7-78.1g。**诚实边界**:
-        实物 M-PRINT = 0 件 0 数据 (kind 保持推算, 未冒充实测); 镜框侧光机/波导干涉 **无法判定**; 彩虹纹指标 [0数据] (JBD 未选型)。未联系任何供应商/原厂,
-        未改 HW/ SW/ PROJECT_TRACKER.md DECISIONS.md。'
+      summary: 'ISS-025 结构DFM评审已交 (MECH/DFM_REVIEW.md 9章 + MECH/dfm_check.py rc=0 + HANDOFF B1-B6六块):
+        ① 逐件量产工艺24件 (镁合金ADC12压铸2件/PC-ABS注塑7件/Al6063-T6 CNC 7件/硅胶模压+模切胶垫+标准件8件) ② DFM参数6类 (脱模斜度含深腔截面差/壁厚/圆角/公差带含单向公差/缩水含收缩敏感尺寸移交规则/装配顺序镜脚14步+镜框8步+不可逆工序6项)
+        ③ 打印件验证不了但量产会出问题的清单27条 (几何10+收缩表面5+工艺装配7+测试口径5) ④ 阳极工序顺序选方案A (CNC→阳极→定位面/定位孔二次精加工) + 基准面A-B两点+P1销端面止推
+        => PIN-SET-2 <=0.046mm仍成立 ★核心结论: 量产的杀手不是公差而是脱模斜度 (主腔38.00双面1°=>内腔横截面窄端少1.327mm => 镜脚H链电芯段最坏-0.577mm
+        几何上做不出来; 皮纹面0.5°也只救到0.087<判据0.40) => 电池座/PCB座改CNC嵌件, 延续''打印件造型+CNC金属件承担定位承力''分工 ★另一条: Rev B打印包=检具+试样,
+        不含任何量产外形件 => 脱模/分型/缩痕/顶针目前0个数据点 (high阻塞, 建模前不开模) ★0条实测(本机不可打印/量测) => 全部[推算]或[推算·通用](未按牌号验证); 牌号级参数一律[0数据]并登记needs
+        14条 mech_dfm_* claim + 7条 mech_dfm_* need(全带waiting_on+due) + 2条 blocker. 未联系任何供应商/原厂/模具厂, 未改
+        issue_log/HW/SW/PROJECT_TRACKER/DECISIONS, 未改ISS-024与MECH_BUDGET既有数字(只引用)'
     artifacts:
     - path: MECH/MECH_BUDGET.md
       kind: budget
@@ -3173,6 +3168,36 @@ domains:
       version: '1.0'
       updated_at: '2026-10-30'
       summary: ISS-092 分片原子写脚本 (走 state/frag_write.py 的 update_fragment, 支持 needs 的 waiting_on/due)
+    - path: MECH/MATERIAL_SELECTION.md
+      kind: material-selection
+      version: v1.0
+      updated_at: '2026-11-01T22:30:00+08:00'
+      summary: 'ISS-024 材料选型与表面耐受: 12项选型(镜框/镜腿/鼻托/胶粘剂4类/表面处理6类) + 皮肤接触面清单6项 + 10材料x4介质耐受表(40格, 4格[0数据])
+        + P2S vs量产耐受差异(3条原型独有差距 + 4条量产新风险) + 送检试样R6-1..R6-6; 0条实测(本机不能打印/量测), 全表为预期等级'
+    - path: MECH/DFM_REVIEW.md
+      kind: review
+      version: v1.0
+      updated_at: '2026-11-01'
+      summary: '结构 DFM 评审 (ISS-025): ① 逐件量产工艺 24 件总表 (镁合金ADC12压铸 2件 / PC-ABS注塑 7件 / Al6063-T6 CNC 7件 /
+        硅胶模压+模切胶垫+标准件 8件) + 4 个专项 (压铸镁/注塑/CNC/硅胶胶垫) ② DFM 参数 6 类: 脱模斜度(含深腔截面差 Δ=2·h·tanα) / 壁厚 / 圆角 /
+        公差带(含单向公差原则) / 缩水(收缩敏感性3档 + 收缩敏感尺寸移交规则9项) / 装配顺序(镜脚14步+镜框8步+不可逆工序6项) ③ 打印件验证不了但量产会出问题的清单 27 条
+        (几何10+收缩表面5+工艺装配7+测试口径5) ④ 阳极工序顺序4方案对比+基准面选择规则B1-B6+图纸必标6条 ⑤ 量产件DFM检查表16条 ★核心结论: 量产的杀手不是公差而是脱模斜度
+        (主腔38.00双面1° ⇒ 截面差1.327mm ⇒ 镜脚H链电芯段最坏 -0.577mm 几何上做不出来) ⇒ 电池座/PCB座改CNC嵌件, 延续''打印件造型+CNC金属件承担定位承力''分工。★0条实测(本机不可打印/量测)
+        ⇒ 全部为[推算]或[推算·通用](未按牌号验证), 牌号级参数一律[0数据]并登记needs'
+    - path: MECH/dfm_check.py
+      kind: script
+      version: v1.0
+      updated_at: '2026-11-01'
+      summary: 'DFM 自检脚本 (rc=0): A段脱模斜度/倒扣面级统计 (Rev B 三件解析图元表精确求, 1220面; ZERO_DRAFT 25.0/61.9/59.8%, fit_coupon
+        2个倒扣面 α=-40/-30°) + B段量产公差栈vs打印件公差栈 (V/H/L三链, 打印件侧沿用fit_check_v3_30mm现值) + C段深腔双面脱模截面差 (38mm腔1°⇒1.327mm)
+        与收缩敏感性 (1.0/1.5/2.0%三档). 输入参数全部显式列在文件头, 一条命令复现 DFM_REVIEW.md 的全部关键数字'
+    - path: HANDOFF/2026-11-01_mech-lead_ISS025_结构DFM评审.md
+      kind: handoff
+      version: v2.0
+      updated_at: '2026-11-01'
+      summary: '质量门 v2: B1-B6 六块 6/6; B2 自评 18 条 (✅通过16 / ❌不通过2: 实物实测不可能 + 量产外壳面级统计0数据点); B3 证据分级 16 条
+        (实测条数=0); B4 接口取值 14 条 mech_dfm_*; B5 needs 7 条 (全带waiting_on+due) + 阻塞3条; B6 自证命令 5 条 (核心 python3
+        MECH/dfm_check.py)'
     blockers:
     - id: MECH-B1
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -3227,17 +3252,24 @@ domains:
       needs_from: &id025
       - boss
       - main
+    - id: MECH-B-DFM-1
+      desc: 量产外形件几何不存在 => 脱模/分型/收缩/缩痕/飞边/顶针的面级统计 = 0个数据点。Rev B打印包只含检具与试样。不补就开模 = 模具报废风险(本单已算出镜脚H链在1deg脱模下最坏
+        -0.577mm, 几何上做不出来)
+      severity: high
+      needs_from: &id026
+      - main
+      waiting_since: '2026-11-01'
     - id: MECH-B3
       desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
       severity: medium
-      needs_from: &id030
+      needs_from: &id031
       - jbd
       waiting_since: '2026-10-25'
     - id: MECH-B5
       desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
         → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
       severity: medium
-      needs_from: &id031
+      needs_from: &id032
       - mech-lead
       waiting_since: '2026-10-25'
     - id: MECH-B6
@@ -3245,7 +3277,7 @@ domains:
         boss mech_reltest_kit_site)。另: 1 台样机做 12 类必然撞上 ''样本量不足只能筛查'' 与 ''一次失败后续全废'' 两个硬边界 (见 MECH/RELIABILITY_TEST_PLAN.md
         §B2.3 / §B3.3)。'
       severity: medium
-      needs_from: &id032
+      needs_from: &id033
       - boss
     - id: MECH-B10
       severity: medium
@@ -3255,9 +3287,16 @@ domains:
         13732-1 的 43°C 红线 3.5°C**. 也就是说: 重量上省下来的 0.73g, 热学上可能还回去. 这两个数必须**一起**算, 不能只看重量选截面. 重算需完整热模型 (含石墨铺装范围
         + 骨架截面形状 + 隔热层), 即 PCB_MOUNT_PIN_SET2.md §5 U-3 那张单. 未重算前: **我不出新的皮肤侧温度数**, 也不把 0.80mm 当已定版 ——
         只作为待裁候选.'
-      needs_from: &id033
+      needs_from: &id034
       - main
       - hw-lead
+    - id: MECH-B-DFM-2
+      desc: 量产级工艺参数(脱模斜度/公差带/收缩率)全部是[推算·通用]或[0数据], 未按牌号/模具厂验证。已登记3条 waiting_on=vendor 的needs(收缩率/阳极均匀性/模具公差),
+        未回应前不进入开模
+      severity: medium
+      needs_from: &id035
+      - vendor
+      waiting_since: '2026-11-01'
     needs_from:
     - key: q4_battery_scope
       to: boss
@@ -4422,6 +4461,197 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: mech_mat_vendor_datasheet
+      to: vendor
+      item: 'ISS-024 材料牌号官方耐受数据: ① 3M VHB 5962 在 PA-CF 打印面/阳极铝面上的耐汗液-耐化妆品-耐乙醇分级或报告 ② LOCTITE AA 3311 的耐湿/耐化妆品/耐醇/耐UV数据
+        (本次40格里4格[0数据]全在这里, 而 T-06 硬判据 UV胶剪切>=90% 正卡它) ③ 硅胶牌号的 ISO 10993 / FDA 21 CFR 177-2600 证书。经项目总工走供应商,
+        我不联系。我的假设: 电池固定维持背胶+限位台阶+激光压痕三重冗余; UV胶按AA3311锁死并送R5试样实测; 硅胶按VMQ-A50选有认证牌号'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-11-10'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_mat_skin_coating_decision
+      to: main
+      item: 'ISS-024 皮肤侧PU封闭涂层是否列为必须工序 + 整机是否要做 ISO 10993 生物相容性评价(贴肤消耗品) + 增加的工序/周期/成本。经项目总工走老板。我的假设:
+        按必须工序 + 涂层件需ISO10993声明(暂不做整机评价)推进; 若要求整机评价则排期后移'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-11-10'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_mat_anodize_process
+      to: main
+      item: 'ISS-024 表面处理工艺确认: ① 表面处理方能否做到定位面(⌀2.0 H7/h6孔 + <=5um铣削面)阳极后精加工, 否则 PIN-SET-2 的 <=0.046mm
+        定位重复性不成立 ② 镁合金化学转化体系对 pH5.5 含Cl汗液的点蚀数据 ③ 接地掩蔽区(masking)能否标。铝件按 MIL-A-8625 Type III + 封孔。经项目总工走供应商,
+        我不联系'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-11-10'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_mat_waveguide_uv_cosmetic
+      to: jbd
+      item: 'ISS-024 波导/镀膜的 UV 耐受(透过率Δ<=3%) + 化妆品耐受 + 与硅胶垫(VMQ-A50)的相容性。与已登记的 iss017_waveguide_rainbow_metric(彩虹纹指标)不重复。经项目总工走JBD。我的假设:
+        波导按玻璃基 + 硅胶垫(VMQ-A50); 若波导需防刮涂层, 该涂层同样要过T-06/T-07/T-08'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: jbd
+      due: '2026-11-10'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_mat_sweat_test_spec
+      to: boss
+      item: 'ISS-024 T-05~T-08 材料试样送检执行方: R6-1(PA6-CF无涂层) + R6-2(PA6-CF+PU封闭涂层) + R6-3(VMQ-A50硅胶垫0.2mm)
+        + R6-4(VHB5962贴PA-CF/贴阳极铝) + R6-5(PC窗口无AF) + R6-6(镁合金转化涂层试片, 本单新增) + R5三明治x3 + 老化箱/恒温槽排期。本机物理上无法打印/量测(ENV_PROBE_20261101.md)。与已有
+        mech_reltest_kit_site(场地) / boss_local_print_measure(打印量测) 不重复, 本条只加材料试样与排期。T-08 UVA-340 2000h≈83天是最长一条,
+        建议最先启动排期'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-11-08'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_mat_nose_pad_criteria
+      to: main
+      item: 'ISS-024 鼻托压力/镜腿压力分布/佩戴稳定/可佩戴时长 4 项判据 (ISS-038 已划给 mech-lead, 但本单只交材料, 压力侧无判据)。经项目总工走老板。我的假设:
+        材料侧按 VMQ-A50 交; 压力侧按待立判据处理, 不自造数值'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-11-12'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_dfm_shrink_rate
+      to: vendor
+      item: 'ISS-025 量产收缩率 (经项目总工走供应商/模具厂, 我不联系): ① 镁合金ADC12压铸件线性收缩率(线/面内 + 工艺窗口 + 模温条件); ② PC/ABS镜腿壳注塑件收缩率(须注明原生料比例,
+        回料比例一变收缩率就变); ③ 对应的模具补偿基准。我的假设: 按1.0/1.5/2.0%三档假设做敏感性, 不锁单值; 所有''两件互相配''的界面按DFM_REVIEW 2.5.3移交CNC件/镶件
+        => 结论不因具体S改变'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-11-10'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_dfm_anodize_uniformity
+      to: vendor
+      item: 'ISS-025 阳极工序与均匀性 (经项目总工走表面处理方): ① 硬质阳极Type III膜厚均匀性(标称±?%)与实测报告格式; ② 能否做到''定位面/定位孔阳极后精加工<=5um'',
+        精加工后膜层如何处理(遮蔽/裸铝/重做); ③ 镁合金化学转化+涂层+边缘封孔体系与膜厚。我的假设: 按方案A(CNC->阳极->定位面/定位孔二次精加工)出图; 若只能做方案C(阳极前留量)则要求书面承诺膜厚均匀性<=±10%,
+        否则方案B/C不可用'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-11-10'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_dfm_mold_tolerance
+      to: vendor
+      item: 'ISS-025 量产公差与最小特征 (经项目总工走模具厂): ① 注塑PC/ABS与压铸ADC12的一般公差带(本单用的±0.20/±0.25是通用经验值, 需按实际模具工艺确认);
+        ② 最小特征可达性(⌀1.6让过孔 / ⌀2.4销孔 / 0.6mm壁厚台阶); ③ 顶针/浇口/分型面的可行布置。我的假设: 按DFM_REVIEW 2.4公差带出图并全部设单向公差;
+        若最小特征不可达则该处改CNC镶件'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-11-12'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_dfm_battery_seat
+      to: main
+      item: 'ISS-025 量产架构改动请裁: 电池座与PCB座由''注塑件本体特征''改为CNC金属嵌件(Al6063-T6, 与SoC骨架共基准), 与MECH_BUDGET 5.5既有分工一致。理由:
+        镜脚下壳主腔深38.00mm, 内外双面1deg脱模 => 内腔横截面窄端少1.327mm => 镜脚H链(电芯段)最坏余量-0.577mm, 几何上做不出来; 皮纹面0.5deg也只救到0.087mm<判据0.40
+        => 靠公差或斜度都救不回来。代价: 零件数+2(左右各1电池座)+成本。请裁是否接受'
+      since: '2026-11-01'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-08'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_dfm_draft_texture
+      to: main
+      item: 'ISS-025 镜腿皮肤侧(贴肤, 面积最大)是否接受皮纹面/喷砂面(而非光面), 经项目总工走老板。接受 => 脱模斜度可放宽到0.5deg (深腔截面差1.327=>0.663mm);
+        不接受 => 皮肤侧须1.5deg => 截面差1.990mm。我的假设: 按皮纹面推进(镜腿皮肤侧做细皮纹; 鼻梁区仍可光面, 皮肤接触面清单见ISS-024 2.7)'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-11-10'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_dfm_shell_geometry
+      to: main
+      item: 'ISS-025 量产外形件建模排期请定: Rev B打印包交付的是检具+试样(fit_coupon_revb 150x132x22 / temple_cage_revb 60x122.4x27.8
+        / frame_typec_coupon_revb 33x3x7.2), 不含镜框主体/镜腿上壳/镜腿下壳等任何量产外形件 => 脱模斜度/分型面/缩痕/飞边/顶针目前0个数据点。我的假设:
+        在ISS-027 B3(镜框与光学批)之前完成外形件建模并跑MECH/dfm_check.py面级检查; 未完成则不开模'
+      since: '2026-11-01'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-12'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_dfm_waveguide_seat
+      to: jbd
+      item: 'ISS-025 波导卡槽工艺选型 (经项目总工走JBD): 需要波导2D外形 + 外形公差 + 是否可承受压铸件的收缩与热变形 + 安装面平面度要求, 才能定波导卡槽是''压铸本体''还是''CNC卡座''。我的假设:
+        按CNC卡座+3点金属压条做(DFM_REVIEW 1.1-12), 波导按玻璃基假设; 平行度±0.3deg与0.2mm硅胶垫不变'
+      since: '2026-11-01'
+      state: waiting_external
+      target_missing: false
+      waiting_on: jbd
+      due: '2026-11-10'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: hw-lead
@@ -5180,7 +5410,7 @@ interface_claims:
     noncanonical_by: []
     conflict: false
   skeleton_extent:
-    values: &id034
+    values: &id036
       hw-lead: 止于PCB段后缘@Z=60.00mm
       mech-lead: 止于PCB段后缘
     notes:
@@ -6955,6 +7185,262 @@ interface_claims:
     - mech-lead
     noncanonical_by: []
     conflict: false
+  mech_mat_temple_proto:
+    values:
+      mech-lead: PA6-CF
+    notes:
+      mech-lead: 原型镜框主体+镜腿上下壳外壳材料 (Bambu PA6-CF, 尼龙6+CF); HDT 186C(0.45MPa), 饱和吸水2.35%(25C/55%RH); 官方原厂产品页
+        us.store.bambulab.com/products/pa6-cf 取数2026-11-01
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_temple_prod:
+    values:
+      mech-lead: PC/ABS
+    notes:
+      mech-lead: 量产镜腿外壳 (UV稳定级); 注塑残余应力低 -> 酒精/化妆品ESC风险明显低于打印件; 贴肤下壳建议 PC/ABS + 硅胶包边
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_frame_prod:
+    values:
+      mech-lead: MgAl-ADC12
+    notes:
+      mech-lead: 量产镜框主体(压铸+化学转化+涂层+边缘封孔); 汗液风险高于PA6-CF打印件(Mg电位-2.37V vs Al-1.66V, 划伤即点蚀) -> 镁件不得做贴肤/裸露金属件
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_skeleton:
+    values:
+      mech-lead: Al6063-T6
+    notes:
+      mech-lead: 骨架/散热件/波导压条/分光件基准块基材 (k=237 vs 打印件0.2, 不可替代); 与铜/不锈钢件必须绝缘隔离(汗液电解质下电偶腐蚀)
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_surf_skel:
+    values:
+      mech-lead: MIL-A-8625-III-sealed
+    notes:
+      mech-lead: '铝件表面处理: 硬质阳极Type III + 封孔 (0.002in标称, 60-70HRC, Taber<=1.5mg/1000cyc, 封孔盐雾336h); 定位面须阳极后精加工'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_anodize_hole_comp:
+    values:
+      mech-lead: +0.02~0.05mm-阳极前
+    notes:
+      mech-lead: ⌀2.0 H7/h6 定位销孔与<=5um铣削定位面的阳极前留量 (或阳极后精加工); 不落实则 PIN-SET-2 的 <=0.046mm 定位重复性不成立
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_nose_pad:
+    values:
+      mech-lead: VMQ-A50
+    notes:
+      mech-lead: '鼻托接触面: 硅胶 Shore A 50±5 (耐水/耐候/耐UV Excellent, 乙醇 E); 不得用金属(鼻梁区设计目标38C取严端); 托架用 POM/PA66+GF30'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_gasket:
+    values:
+      mech-lead: VMQ-A50-0.2mm
+    notes:
+      mech-lead: 波导边缘密封垫 0.2mm; T-08 判据(硅胶垫邵氏硬度变化<=5)要求先锁定硬度牌号否则不可测
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_foam:
+    values:
+      mech-lead: VMQ-closed-cell
+    notes:
+      mech-lead: '波导卡紧泡棉: 替代开放孔PU(开放孔吸汗滞水=汗液主战场); 改材料对几何零影响'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_adh_batt:
+    values:
+      mech-lead: 3M-VHB-5962
+    notes:
+      mech-lead: '电池固定结构胶 (1.55mm/640kg/m3, 溶剂耐受High, 120-150C); 原厂: 优异耐溶剂耐湿+抗增塑剂迁移, 推荐IPA/水清洁; 结构上不靠背胶承力(限位台阶+激光压痕冗余)'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_adh_uv:
+    values:
+      mech-lead: Loctite-AA3311
+    notes:
+      mech-lead: 镜筒/分光件点胶 (200-400cP, 间隙<0.25mm, fixture12s, ISO-10993, 不诱导PC应力开裂); 4项化学耐受(汗液/化妆品/醇/UV)官方未给
+        = [0数据] -> 送R5试样实测
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_skin_coat:
+    values:
+      mech-lead: PU-clear-seal
+    notes:
+      mech-lead: '打印件皮肤侧封闭涂层 (2道, 干膜20-50um, 边缘搭接>=2mm) = 必须工序; 原厂原文: 涂覆paint/wax/防水涂层可抑制吸湿并防止变软; 隔热侧,
+        热阻增量2.5e-4 K/W 对43C红线无影响'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_window:
+    values:
+      mech-lead: PC-no-AF
+    notes:
+      mech-lead: 摄像头窗口不做AF防指纹涂层 (AF体系耐油/耐醇/耐UV都弱, 是T-06/T-07/T-08共同薄弱面); 减一道高风险工序, 属产品决策待项目总工裁
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_mat_sweat_class:
+    values:
+      mech-lead: PA6-CF:B
+    notes:
+      mech-lead: 'PA6-CF汗液预期等级B (非贴肤件); 依据官方: 饱和吸水2.35%, 弯曲XY干151->湿95MPa(-37.1%), 层间弯曲Z干80->湿45MPa(-43.8%)
+        -> 螺钉柱沿Z拉脱在湿态余量最小'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_draft_min:
+    values:
+      mech-lead: 1.0deg
+    notes:
+      mech-lead: 注塑/压铸件最小脱模斜度; 外观面1.5deg / 皮纹面0.5deg / 深腔2.0deg / 定位孔0deg(阳极后精加工)。通用经验值, 未按牌号验证
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_draft_skin:
+    values:
+      mech-lead: 0.5deg
+    notes:
+      mech-lead: 镜腿皮肤侧(贴肤面, 面积最大)做皮纹面以放宽脱模斜度 => 深腔截面差1.327=>0.663mm。待boss确认是否接受皮纹面
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_tol_inj:
+    values:
+      mech-lead: ±0.20mm
+    notes:
+      mech-lead: 注塑PC/ABS一般公差带(小件<=30mm)。通用经验值, 需模具厂确认
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_tol_die:
+    values:
+      mech-lead: ±0.25mm
+    notes:
+      mech-lead: 压铸镁合金ADC12一般公差带(小件)。通用经验值, 需模具厂确认
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_tol_cnc:
+    values:
+      mech-lead: ±0.05mm
+    notes:
+      mech-lead: CNC Al6063-T6一般公差带; 定位面±0.01/平面度<=5um/孔H7
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_cavity_loss_38:
+    values:
+      mech-lead: 1.327mm@1.0deg
+    notes:
+      mech-lead: 镜脚下壳主腔深38.00mm双面1deg脱模的截面差(=2*h*tanα); 皮纹面0.5deg时0.663mm
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_h_chain_worst:
+    values:
+      mech-lead: -0.577mm
+    notes:
+      mech-lead: 镜脚H链(电芯段)在'量产公差+1deg脱模'下的最坏余量 => 几何上做不出来, 须靠结构改(电池座/PCB座改CNC嵌件)
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_v_chain_worst:
+    values:
+      mech-lead: 1.60mm
+    notes:
+      mech-lead: 镜脚V链(板宽30)量产公差最坏余量(打印件1.40); 叠加脱模不变(V不被拉出方向直接吃)
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_battery_seat:
+    values:
+      mech-lead: CNC-6063-insert
+    notes:
+      mech-lead: 量产电池座(及PCB座)改为Al6063-T6 CNC嵌件, 与SoC骨架共基准 => 收缩不作用/深腔脱模不作用/电池不靠胶定位。待main裁
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_anodize_seq:
+    values:
+      mech-lead: Anodize-then-locate-mach
+    notes:
+      mech-lead: 铝件阳极工序顺序=方案A(CNC全部->去毛刺->阳极TypeIII+封孔->定位面/定位孔二次精加工), 保PIN-SET-2 <=0.046mm。承ISS-024 4.3-N1
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_datum:
+    values:
+      mech-lead: A-B-plus-P1-pin-face
+    notes:
+      mech-lead: '机加工基准面选择: 同一平面内两条精铣带做A-B, 第三约束用P1圆销端面止推; 不用三点基准(膜厚均匀性敏感度 vs 指标<=0.046mm)'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_shrink_sens:
+    values:
+      mech-lead: 1.0/1.5/2.0%
+    notes:
+      mech-lead: '收缩敏感性假设档(不锁牌号值): 镜框长向1.400/2.100/2.800mm; 镜脚内腔长1.300/1.950/2.600mm => 收缩敏感界面一律移交CNC件/镶件'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_hinge_hole:
+    values:
+      mech-lead: post-machined
+    notes:
+      mech-lead: 镜框压铸件的铰链接口孔距必须后加工(CNC精镗)或改镶件, 不得开在压铸/注塑本体上
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_dfm_shell_geometry:
+    values:
+      mech-lead: 0-shell-geom
+    notes:
+      mech-lead: 量产外形件(镜框主体/镜腿上壳/镜腿下壳)的脱模/分型/缩痕/顶针面级统计现状=0个数据点(Rev B打印包只含检具与试样)
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
   display_frame_rate:
     values:
       main: 60fps
@@ -8430,8 +8916,28 @@ needs_matrix:
     since: '2026-11-01'
     _by: mech-lead
     state: pending
-  answered_count: 123
-  total: 172
+  - key: mech_dfm_battery_seat
+    to: main
+    since: '2026-11-01'
+    waiting_on: agent
+    due: '2026-11-08'
+    item: 'ISS-025 量产架构改动请裁: 电池座与PCB座由''注塑件本体特征''改为CNC金属嵌件(Al6063-T6, 与SoC骨架共基准), 与MECH_BUDGET 5.5既有分工一致。理由:
+      镜脚下壳主腔深38.00mm, 内外双面1deg脱模 => 内腔横截面窄端少1.327mm => 镜脚H链(电芯段)最坏余量-0.577mm, 几何上做不出来; 皮纹面0.5deg也只救到0.087mm<判据0.40
+      => 靠公差或斜度都救不回来。代价: 零件数+2(左右各1电池座)+成本。请裁是否接受'
+    _by: mech-lead
+    state: pending
+  - key: mech_dfm_shell_geometry
+    to: main
+    since: '2026-11-01'
+    waiting_on: agent
+    due: '2026-11-12'
+    item: 'ISS-025 量产外形件建模排期请定: Rev B打印包交付的是检具+试样(fit_coupon_revb 150x132x22 / temple_cage_revb 60x122.4x27.8
+      / frame_typec_coupon_revb 33x3x7.2), 不含镜框主体/镜腿上壳/镜腿下壳等任何量产外形件 => 脱模斜度/分型面/缩痕/飞边/顶针目前0个数据点。我的假设:
+      在ISS-027 B3(镜框与光学批)之前完成外形件建模并跑MECH/dfm_check.py面级检查; 未完成则不开模'
+    _by: mech-lead
+    state: pending
+  answered_count: 134
+  total: 185
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -8618,10 +9124,17 @@ blockers:
     未闭之前: 打印件0件 -> ISS-017 无法闭 -> G2 不可判.'
   needs_from: *id025
   owner: mech-lead
+- id: MECH-B-DFM-1
+  desc: 量产外形件几何不存在 => 脱模/分型/收缩/缩痕/飞边/顶针的面级统计 = 0个数据点。Rev B打印包只含检具与试样。不补就开模 = 模具报废风险(本单已算出镜脚H链在1deg脱模下最坏
+    -0.577mm, 几何上做不出来)
+  severity: high
+  needs_from: *id026
+  waiting_since: '2026-11-01'
+  owner: mech-lead
 - id: PM-B4
   desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
   severity: medium
-  needs_from: *id026
+  needs_from: *id027
   waiting_since: '2026-10-21'
   owner: main
 - id: HW-B5
@@ -8632,34 +9145,34 @@ blockers:
     仍 [待选型], 现在加零板费); 另 3 条外部依赖 (原厂 TPS62130A R_on / JBD 光机 3.3V 容差 / 老板拍板没电插电开不了机) 见 needs_from。 ★本单遗留:
     库内 netlist_v1.csv 的 U_LDO_L33/U_LDO_IO33 还是 LDO => 方案A 尚未落进网表, 改法清单见主文 §2.1, 需下一单调生成器。'
   severity: medium
-  needs_from: *id027
+  needs_from: *id028
   waiting_since: '2026-10-26'
   resolved_by: ISS-067
   owner: hw-lead
 - id: SW-FW-B3
   desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
   severity: medium
-  needs_from: *id028
+  needs_from: *id029
   waiting_since: '2026-10-26'
   owner: sw-lead
 - id: SW-FW-B4
   desc: S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序) 与 P3 (BOOT 态 VID:PID)
     只能干等原厂, 拿不到任何一手数据
   severity: medium
-  needs_from: *id029
+  needs_from: *id030
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: MECH-B3
   desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
   severity: medium
-  needs_from: *id030
+  needs_from: *id031
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B5
   desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
     → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
   severity: medium
-  needs_from: *id031
+  needs_from: *id032
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B6
@@ -8667,7 +9180,7 @@ blockers:
     boss mech_reltest_kit_site)。另: 1 台样机做 12 类必然撞上 ''样本量不足只能筛查'' 与 ''一次失败后续全废'' 两个硬边界 (见 MECH/RELIABILITY_TEST_PLAN.md
     §B2.3 / §B3.3)。'
   severity: medium
-  needs_from: *id032
+  needs_from: *id033
   owner: mech-lead
 - id: MECH-B10
   severity: medium
@@ -8676,12 +9189,19 @@ blockers:
     §2.4 B 的 ''+1-3g'' 预算), 但**铝的导热截面变小 -> Tj 会升**, 而 §2.3.1 的皮肤侧 46.5°C (0.23W 按需触发口径) **已经超 ISO 13732-1
     的 43°C 红线 3.5°C**. 也就是说: 重量上省下来的 0.73g, 热学上可能还回去. 这两个数必须**一起**算, 不能只看重量选截面. 重算需完整热模型 (含石墨铺装范围 + 骨架截面形状
     + 隔热层), 即 PCB_MOUNT_PIN_SET2.md §5 U-3 那张单. 未重算前: **我不出新的皮肤侧温度数**, 也不把 0.80mm 当已定版 —— 只作为待裁候选.'
-  needs_from: *id033
+  needs_from: *id034
+  owner: mech-lead
+- id: MECH-B-DFM-2
+  desc: 量产级工艺参数(脱模斜度/公差带/收缩率)全部是[推算·通用]或[0数据], 未按牌号/模具厂验证。已登记3条 waiting_on=vendor 的needs(收缩率/阳极均匀性/模具公差),
+    未回应前不进入开模
+  severity: medium
+  needs_from: *id035
+  waiting_since: '2026-11-01'
   owner: mech-lead
 conflicts: []
 needs_normalization:
 - key: skeleton_extent
-  values: *id034
+  values: *id036
   canon_values:
     hw-lead: 止于PCB段后缘
     mech-lead: 止于pcb段后缘
@@ -8888,11 +9408,11 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 116
-  blockers: 34
-  high_blockers: 26
-  open_needs: 49
-  waiting_external_needs: 62
+  artifacts: 120
+  blockers: 36
+  high_blockers: 27
+  open_needs: 51
+  waiting_external_needs: 73
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0

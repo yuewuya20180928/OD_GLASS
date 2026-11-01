@@ -1,6 +1,6 @@
 # 下一步行动清单 (TODO)
 
-> 生成 **2026-11-01 22:18** | 自动生成 (源: `state/issue_log.yaml` + `state/fragments/pm.yaml`)
+> 生成 **2026-11-01 22:49** | 自动生成 (源: `state/issue_log.yaml` + `state/fragments/pm.yaml`)
 > 分桶依据 = **能不能真的动** (内部 / 等你 / 等外部), 不是按严重度排
 > 总量: 登记 **125** 条 | 未闭环 **68** | 已关闭 **57**
 
@@ -16,7 +16,7 @@
 
 | id | 状态 | owner | 事项 | due |
 |---|---|---|---|---|
-| ISS-024 | fixing | mech-lead | 材料选型与表面耐受缺失 (汗液/化妆品/酒精/UV 全未考虑) | 2026-11-05 |
+| ISS-025 | fixing | mech-lead | 结构 DFM 评审缺失 (P2S 打印件 → 量产开模件的可制造性差异) | 2026-11-05 |
 | ISS-082 | fixed | main | ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + P | 2026-11-05 |
 | ISS-086 | fixed | main | netlist 收尾: NTC 改数字温度计 (I2C_A 第 4 个从设备) + USB 跨铰链保护件 (ESD/共模扼流/端接) | 2026-11-05 |
 | ISS-096 | fixed | main | ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位 | 2026-11-05 |
