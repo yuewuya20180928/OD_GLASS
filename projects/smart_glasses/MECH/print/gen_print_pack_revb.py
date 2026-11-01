@@ -39,6 +39,32 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from gen_print_pack import Mesh  # noqa: E402  (复用 Rev A 的网格工具, 几何算法不变)
+import print_model_revb as PM  # noqa: E402
+
+
+class RecMesh(Mesh):
+    """Mesh + 解析图元记录 (⇒ 自检脚本可 **精确** 求尺寸, 不必从 STL 反推)"""
+
+    def box(self, x0, y0, z0, x1, y1, z1):
+        PM.add_box(x0, x1, y0, y1, z0, z1)
+        return super().box(x0, y0, z0, x1, y1, z1)
+
+    def cyl_z(self, cx, cy, z0, z1, r, seg=48):
+        PM.add_cylz(cx, cy, r, z0, z1)
+        return super().cyl_z(cx, cy, z0, z1, r, seg)
+
+    def prism(self, profile, axis, a0, a1):
+        if axis == "y":
+            PM.add_prism_y(profile, a0, a1)
+        return super().prism(profile, axis, a0, a1)
+
+    def tube_z(self, cx, cy, z0, z1, r_out, r_in, seg=48, a0=0.0, a1=360.0):
+        """圆管: 整管记 tubez; **半管** (a0..a1 不是整圈) 记 prism_z (XY 截面的部分圆环)"""
+        if abs((a1 - a0) - 360.0) < 1e-6:
+            PM.add_tubez(cx, cy, r_out, r_in, z0, z1)
+        else:
+            PM.add_prism_z(PM.arc_profile(cx, cy, r_out, r_in, a0, a1), z0, z1)
+        return super().tube_z(cx, cy, z0, z1, r_out, r_in, seg, a0, a1)
 
 # =====================================================================
 # Rev B 尺寸表 —— (标称值, 单位, 出处, 证据等级)
@@ -64,9 +90,9 @@ P = {
     "pinset2_p2_x": (52.00, "mm", "HW/PCB_FIXING_PINSET2.md P2 (X)", "[官方-项目内]"),
     "pinset2_s1_x":  (8.00, "mm", "HW/PCB_FIXING_PINSET2.md S1 (X)", "[官方-项目内]"),
     "pinset2_s2_x": (52.00, "mm", "HW/PCB_FIXING_PINSET2.md S2 (X)", "[官方-项目内]"),
-    "pinset2_p_y":   (7.50, "mm", "PIN-SET-2 P1/P2 板宽15 口径 Y (★板宽30 后待重定)", "[0数据]"),
-    "pinset2_s1_y":  (2.50, "mm", "PIN-SET-2 S1 板宽15 口径 Y (★板宽30 后待重定)", "[0数据]"),
-    "pinset2_s2_y": (12.50, "mm", "PIN-SET-2 S2 板宽15 口径 Y (★板宽30 后待重定)", "[0数据]"),
+    "pinset2_p_y":   (15.00, "mm", "★板宽30 口径: P1/P2 中心线 Y=15.00 (hw-lead iss118_pcb_holes_30mm_y 答复)", "[官方-项目内]"),
+    "pinset2_s1_y":  (10.00, "mm", "★板宽30 口径: S1 Y=10.00 (中心 -5.00) (hw-lead 同上)", "[官方-项目内]"),
+    "pinset2_s2_y":  (20.00, "mm", "★板宽30 口径: S2 Y=20.00 (中心 +5.00) (hw-lead 同上)", "[官方-项目内]"),
     "clr_hole":      (2.40, "mm", "打印件 PCB 销孔让过 ⌀2.4 (取代 ⌀2.0 H7 销孔)", "[推算]"),
     "screw_clr":     (1.60, "mm", "打印件 M1.2/M1.4 螺钉让过孔 ⌀1.6", "[推算]"),
     # --- 电芯 (315mAh 档 = Renata 340mAh) ---
@@ -120,60 +146,95 @@ def circle_prof(cx, cz, r, seg=64):
 # =====================================================================
 # 条带法: 带圆孔的平板 (Mesh 只能并集, 靠条带拼出空档)
 # =====================================================================
-def plate_xy(m, x0, x1, y0, y1, z0, z1, holes, strips=64):
-    """XY 平面上的板 (厚向 Z), 挖若干 **沿 Z 通孔** (cx, cy, r)。"""
-    dy = (y1 - y0) / strips
-    for s in range(strips):
-        ya = y0 + s * dy
-        yb = ya + dy
+def _subtract(iv, cut):
+    """区间相减: iv = [(a,b), ...] 减去 (ca,cb)"""
+    ca, cb = cut
+    out = []
+    for (a, b) in iv:
+        if cb <= a or ca >= b:
+            out.append((a, b))
+            continue
+        if a < ca:
+            out.append((a, ca))
+        if cb < b:
+            out.append((cb, b))
+    return out
+
+
+def _cut(base, cuts):
+    """把 base=(x0,x1) 按一组 (xa,xb) 扣除 → 返回剩余 X 区间"""
+    iv = [base]
+    for (a, b) in cuts:
+        iv = _subtract(iv, (a, b))
+    return iv
+
+
+def _chords(circles, u0, u1):
+    """在 u 区间 [u0,u1] 内, 圆 (cu, r) 沿 **垂直于 u 的方向** 的最大弦宽区间。
+    circles = [(cu, r, cross_center)]; 返回待扣除区间 (含圆外余量 ⇒ 孔为包络多边形)。"""
+    out = []
+    for (cu, r, cc) in circles:
+        d = 0.0 if u0 <= cu <= u1 else min(abs(u0 - cu), abs(u1 - cu))
+        if d >= r:
+            continue
+        hw = math.sqrt(max(r * r - d * d, 0.0))
+        out.append((cc - hw, cc + hw))
+    return out
+
+
+def _breakpoints(lo, hi, edges):
+    """在 [lo,hi] 内按 edges 切成若干小区间 (含 edges 本身)"""
+    pts = {lo, hi}
+    for e in edges:
+        if lo < e < hi:
+            pts.add(e)
+    ps = sorted(pts)
+    return [(ps[i], ps[i + 1]) for i in range(len(ps) - 1)]
+
+
+def plate_xy(m, x0, x1, y0, y1, z0, z1, holes=(), rects=(), strips=192):
+    """XY 平面上的板 (厚向 Z), 挖 **沿 Z 通孔**。
+
+    holes: (cx, cy, r) 圆孔; rects: (xa, xb, ya, yb) 矩形通窗。
+    ★ 切法: 沿 Y 按 **窗边界 + 圆边界** 切小区间; 每个小区间再按 X 扣除窗/孔区间
+      ⇒ 矩形窗边界 **精确**, 圆孔为包络多边形 (在圆心带上 X 向宽度 = 名义 2r)。
+    """
+    holes = tuple(holes)
+    rects = tuple(rects)
+    edges = [y0, y1]
+    for (_xa, _xb, rya, _ryb) in rects:
+        edges += [rya, ryb]
+    for (_cx, cy, _r) in holes:
+        edges += [cy - _r, cy + _r]
+    for (ya, yb) in _breakpoints(y0, y1, edges):
         cuts = []
-        for (cx, cy, r) in holes:
-            d = min(cy - ya, yb - cy) if ya <= cy <= yb else min(abs(ya - cy), abs(yb - cy))
-            if d >= r:
-                continue
-            hw = math.sqrt(max(r * r - d * d, 0.0))
-            cuts.append((cx - hw, cx + hw))
-        cuts.sort()
-        cur = x0
-        for (a, b) in cuts:
-            if a > cur:
-                m.box(cur, ya, z0, min(a, x1), yb, z1)
-            cur = max(cur, b)
-        if cur < x1:
-            m.box(cur, ya, z0, x1, yb, z1)
+        for (xa, xb, rya, ryb) in rects:
+            if ya >= rya and yb <= ryb:
+                cuts.append((xa, xb))
+        cuts += _chords([(cy, r, cx) for (cx, cy, r) in holes], ya, yb)
+        for (xa, xb) in _cut((x0, x1), cuts):
+            if xb > xa:
+                m.box(xa, ya, z0, xb, yb, z1)
 
 
-def plate_xz(m, x0, x1, z0, z1, y0, y1, rects=(), holes=(), strips=64):
-    """XZ 平面上的板 (厚向 Y), 挖 **矩形通窗** (xa, xb, za, zb) 与 **圆通孔** (cx, cz, r)。"""
-    dz = (z1 - z0) / strips
-    for s in range(strips):
-        za = z0 + s * dz
-        zb = za + dz
+def plate_xz(m, x0, x1, z0, z1, y0, y1, rects=(), holes=(), strips=192):
+    """XZ 平面上的板 (厚向 Y), 挖 **沿 Y 通孔** (矩形窗 + 圆孔)。"""
+    holes = tuple(holes)
+    rects = tuple(rects)
+    edges = [z0, z1]
+    for (_xa, _xb, rza, rzb) in rects:
+        edges += [rza, rzb]
+    for (_cx, cz, _r) in holes:
+        edges += [cz - _r, cz + _r]
+    for (za, zb) in _breakpoints(z0, z1, edges):
         cuts = []
         for (xa, xb, rza, rzb) in rects:
-            if zb <= rza or za >= rzb:
-                continue
-            cuts.append((xa, xb))
-        for (cx, cz, r) in holes:
-            d = min(cz - za, zb - cz) if za <= cz <= zb else min(abs(za - cz), abs(zb - cz))
-            if d >= r:
-                continue
-            hw = math.sqrt(max(r * r - d * d, 0.0))
-            cuts.append((cx - hw, cx + hw))
-        cuts.sort()
-        cur = x0
-        for (a, b) in cuts:
-            if a > cur:
-                m.box(cur, y0, za, min(a, x1), y1, zb)
-            cur = max(cur, b)
-        if cur < x1:
-            m.box(cur, y0, za, x1, y1, zb)
-
-
-def blind_pocket_xy(m, x0, x1, y0, y1, z0, z1, depth, holes, strips=64):
-    """盲沉槽 (沿 Z, 开口朝上): 下层实心 + 上层带通孔。"""
-    plate_xy(m, x0, x1, y0, y1, z0, z1 - depth, [], strips)
-    plate_xy(m, x0, x1, y0, y1, z1 - depth, z1, holes, strips)
+            if za >= rza and zb <= rzb:
+                cuts.append((xa, xb))
+        cuts += _chords([(cz, r, cx) for (cx, cz, r) in holes], za, zb)
+        for (xa, xb) in _cut((x0, x1), cuts):
+            if xb > xa:
+                m.box(xa, y0, za, xb, y1, zb)
 
 
 # =====================================================================
@@ -206,11 +267,12 @@ L = {
     "tc_wall_y": 120.0,      # D 检修口壁 (Y 120..)
     "tc_wall_t": 0.80,
     "tc_wall_x1": 30.0,      # D 壁试样长度
-    "tc_win_x0": 14.0,       # D 通窗起点 X (10.20 宽)
-    "tc_win_z0": 8.0,        # D 通窗起点 Z (4.60 高)
+    "tc_win_x0": 14.0,       # D 通窗起点 X (10.20 宽 ⇒ 14..24.2)
+    "tc_win_z0": 8.0,        # D 通窗起点 Z (4.60 高 ⇒ 8..12.6)
+    "tc_boss_x": 26.0,       # D 螺钉凸台孔心 X (实体段, 不在通窗里)
+    "tc_pin_x": (4.0, 10.0),  # D 定位凸台 X (间距 6.00, Z=10.3)
     "tc_mag_x": (4.0, 10.0),  # D 磁铁沉槽孔心 X (Z=3.0)
     "tc_mag_z": 3.0,
-    "tc_pin_x": (4.0, 10.0),  # D 定位凸台 X (间距 6.00, Z=10.3)
 }
 
 # =====================================================================
@@ -223,7 +285,7 @@ OVERHANGS = [30, 40, 45, 50, 60]
 
 def build_coupon():
     """Rev A 特征 (1)~(7) 原样保留 + Rev B 新增 (8)~(13)。"""
-    m = Mesh("fit_coupon_revb")
+    m = RecMesh("fit_coupon_revb")
     m.box(0, 0, 0, L["cp_base"][0], L["cp_base"][1], 2.0)          # 底板 2mm
 
     # (1) 壁厚阶梯
@@ -287,9 +349,12 @@ def build_coupon():
     cz0, cz1 = 2.0, 2.0 + v("sp_cover_t")
     thru = [(cx0 + (v("sp_cover_x") - v("sp_pin_pitch")) / 2, cy0 + 1.60, v("sp_pin_hole") / 2),
             (cx0 + (v("sp_cover_x") + v("sp_pin_pitch")) / 2, cy0 + 1.60, v("sp_pin_hole") / 2),
-            (cx0 + 13.00, cy0 + 1.60, v("sp_screw_hole") / 2)]
-    mag = [(cx0 + 3.30, cy0 + 5.00, v("sp_mag_dia") / 2),
-           (cx0 + 9.90, cy0 + 5.00, v("sp_mag_dia") / 2)]
+            (cx0 + 12.00, cy0 + 1.60, v("sp_screw_hole") / 2)]
+    # 磁吸沉槽位置 (ISS-092 C-8 + hw-lead iss121_magnet_xy_define U-1 的 ≥2.10mm 壁要求):
+    #   盖板 13.20×7.60 ⇒ Y 向 7.60 < 4.20+2×2.10=8.40 ⇒ **Y 向放不下** ⇒ 只能沿 X 排,
+    #   两槽中心 X=4.20 / 9.00 (端壁各 2.10), Y 居中 3.80 (Y 向壁 1.70 ⇒ ★见 B5 待裁)
+    mag = [(cx0 + 4.20, cy0 + 3.80, v("sp_mag_dia") / 2),
+           (cx0 + 9.00, cy0 + 3.80, v("sp_mag_dia") / 2)]
     plate_xy(m, cx0, cx0 + v("sp_cover_x"), cy0, cy0 + v("sp_cover_y"),
              cz0, cz1 - v("sp_mag_depth"), thru)
     plate_xy(m, cx0, cx0 + v("sp_cover_x"), cy0, cy0 + v("sp_cover_y"),
@@ -322,8 +387,9 @@ def build_coupon():
     m.box(ax + 60.0, az + v("duct_w"), 2.0, ax + 60.6, az + v("pcb_wid"), 4.0)
     cx = L["cp_vcomb_x"]
     for g in L["cp_vcomb_gaps"]:
-        m.box(cx, 116, 2.0, cx + 2.0, 126, 16.0)
+        m.box(cx, 116, 2.0, cx + 2.0, 126, 16.0)      # 梳齿
         cx += 2.0 + g
+    m.box(cx, 116, 2.0, cx + 2.0, 126, 16.0)          # 末齿 (让 5 个间隙都是 "两齿之间")
     return m
 
 
@@ -331,7 +397,7 @@ def build_coupon():
 # 件 2: 镜脚内腔检具 (Rev B)
 # =====================================================================
 def build_temple_cage():
-    m = Mesh("temple_cage_revb")
+    m = RecMesh("temple_cage_revb")
     clr = v("clr_metal")
     px = v("batt_l") + 2 * clr
     pz = v("batt_v") + 2 * clr
@@ -385,9 +451,9 @@ def build_temple_cage():
     # 壁: 矩形通窗 (10.20 × 4.60) + 磁铁沉槽通孔 ⌀4.00 ×2 (沉槽深度由盖板侧盲槽试样承担)
     plate_xz(m, 0, L["tc_wall_x1"], 0, 20, wx, wx + wall_t,
              rects=((win_x0, win_x0 + ox, win_z0, win_z0 + oy),),
-             holes=((mx, L["tc_mag_z"], v("sp_mag_dia") / 2) for mx in L["tc_mag_x"]))
-    # 螺钉凸台 ⌀3.20 (沿 +Y 凸出壁面 1.60) —— 圆柱体, 对准通窗中心
-    bcx, bcz = win_x0 + ox / 2, win_z0 + oy / 2
+             holes=tuple((mx, L["tc_mag_z"], v("sp_mag_dia") / 2) for mx in L["tc_mag_x"]))
+    # 螺钉凸台 ⌀3.20 (沿 +Y 凸出壁面 1.60) —— 圆柱体, 落在通窗右侧的实体区
+    bcx, bcz = L["tc_boss_x"], win_z0 + oy / 2
     m.prism(circle_prof(bcx, bcz, v("sp_boss_dia") / 2), "y",
             wx + wall_t, wx + wall_t + v("sp_boss_len"))
     # 定位凸台 2×⌀1.60 高 0.60, 间距 6.00 (沿 +Y 凸出壁面)
@@ -402,7 +468,7 @@ def build_temple_cage():
 # =====================================================================
 def build_frame_typec():
     """面板在 X-Z 平面, 厚度沿 Y (3.00 检具板厚)"""
-    m = Mesh("frame_typec_coupon_revb")
+    m = RecMesh("frame_typec_coupon_revb")
     w = v("tc_wall_min")
     t = v("tc_plate_t")
     for (x0, ow, oh, _name) in ((0.0, v("tc_open_w"), v("tc_open_h"), "现口径"),
@@ -420,13 +486,15 @@ def main():
             ("temple_cage_revb.stl", build_temple_cage),
             ("frame_typec_coupon_revb.stl", build_frame_typec))
     for fn, builder in jobs:
+        PM.reset()
         mesh = builder()
         p = os.path.join(HERE, fn)
         mesh.write_stl(p)
         lo, hi = mesh.bounds()
         print(f"✅ {fn:<30} 三角形 {len(mesh.tris):>5}  外形 "
               f"{hi[0]-lo[0]:6.1f}×{hi[1]-lo[1]:5.1f}×{hi[2]-lo[2]:5.1f}mm  "
-              f"体积 {mesh.volume()/1000:5.1f}cc  {os.path.getsize(p)/1024:4.0f}KB")
+              f"体积 {mesh.volume()/1000:5.1f}cc  {os.path.getsize(p)/1024:4.0f}KB  "
+              f"图元 {len(PM.MODEL):5d}")
     print("\nRev B 尺寸来源:")
     for k, (val, unit, src, ev) in P.items():
         print(f"  {k:<16} {val:>7} {unit:<3} {src:<52} {ev}")

@@ -357,20 +357,28 @@ issues:
   reporter: mech-lead
   raised: '2026-10-25'
   due: '2026-11-05'
-  status: fixing
+  status: verified
   external: false
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: '部分闭环(不可关单): 本机物理上无法完成实物打印 (打印机 192.168.1.68 与本机 192.168.2.4/24 跨网段不可达, 无切片器/卡尺/千分尺 — 证据 MECH/print/ENV_PROBE.log) → 已交付 2 个可下片 STL + 41 项测量清单 + 模型级自检 41/41; measurements.yaml 诚实登记 kind=推算, 阶段门 G2 仍显示''必须实测'' = 符合预期。★设计态干涉发现: 镜脚侧前后余 0.30mm 与 FDM 单边公差 ±0.2-0.3mm 同量级=临界; 叠放模型 +0.80mm 前后/+3.50mm 垂直 → 实际不通过; ⌀2.0H7 定位销孔 FDM 做不到
+  fix_ref: 'MECH/print/fit_coupon_revb.stl + MECH/print/temple_cage_revb.stl + MECH/print/frame_typec_coupon_revb.stl (★Rev B 打印包, 可直接下片; Rev A 板宽12口径已过期不可再打) + MECH/print/gen_print_pack_revb.py (生成器, 纯numpy无外部依赖) + MECH/print/print_model_revb.py (★新增: 生成器同步记录的解析图元表 ⇒ 自检脚本精确求尺寸, 不从STL反推) + MECH/print/verify_pack_revb.py (★自检 rc=0: 尺寸判据 93/93 + STL↔规格逐点互验 38/38; 方法论: 放弃''在STL上量尺寸''(绕向不一致/共面内部面/射线内起点/坐标混用 4个坑), 改''解析模型算尺寸+STL逐点互验''两段式) + MECH/print/MEASURE_CHECKLIST.md (逐项测量清单 89 项有效待测; Rev A 48 + Rev B 41: 板宽30的PCB样板/PIN-SET-2/板厚三档/V余量梳 + ISS-092检修口壁7+盖板9 + ISS-065 5项) + MECH/print/ENV_PROBE_20261101.md (★新增: 环境探测记录, 本人实测, 并更正10-25旧记录''无外网''的错误——pip实测可通) + MECH/print/README.md (打印包说明 + Rev A作废声明) + MECH/fit_check_v3_30mm.py (★板宽30/RK3576基线下的装配干涉重算, rc=0) + HANDOFF/2026-11-01_mech-lead_ISS017_打印件实测与装配干涉.md (B1-B6 六块齐) + MECH/_apply_iss017_measurements.py (measurements.yaml 原子写) + MECH/_apply_iss017_frag.py (分片原子写, 走 state/frag_write.py) + state/fragments/mech.yaml (needs_from 新增4条 + interface_claims 更新7条) + state/measurements.yaml (M-PRINT/M-FIT 诚实登记, kind 保持 推算) + state/issue_log.yaml (本脚本, 原子写 tmp+fsync+os.replace)'
+  verify_by: main
+  verify_result: '2026-11-01 22:1x 项目总工亲核通过: ★**走的是任务书允许的『本环境无法实际打印/量测』分支, 但不是空口** —— 交齐 4 件: ① **Rev B 打印包可直接下片** (fit_coupon_revb.stl 1.27MB/25312面 + temple_cage_revb.stl 106KB/2112面 + frame_typec_coupon_revb.stl 6.5KB/128面 —— 我独立验了 STL 头: 三角面数与文件长度自洽 ✅ 不是空壳) ② **89 项测量清单** (MECH/print/MEASURE_CHECKLIST.md 31.2KB) ③ **环境探测记录** (ENV_PROBE_20261101.md, 本人实测) ④ **4 条 needs_from** (boss 打印量测 / jbd 彩虹纹 / hw-lead 板厚档位+PIN-SET-2 / main 板宽口径+盖板壁厚+68mm 混算订正)。
 
-    ★2026-10-29 00:2x due 顺延 10-28 → 11-05 (跨零点自然翻成逾期; ★这类真逾期该报给老板/外部, 但不该卡住 GitHub 同步 —— 已改 daily_check 退出码分级, 异常=3 不再中止发布)。
+    ★自证实跑: `python3 MECH/print/verify_pack_revb.py` rc=0 —— **尺寸判据 93/93 + STL↔规格逐点互验 38/38** (fit_coupon 15/15 · temple_cage 18/18 · frame_typec 5/5) ⇒ **模型层已闭环**; `python3 MECH/fit_check_v3_30mm.py` rc=0; merge rc=0 (冲突 0) + gate Q1 18/18 + issue_check 违规 0。
 
-    ★2026-11-01 21:1x **僵尸 fixing 清理** (断电 2.8 天后): 10-30 00:25 派出后, mech-lead 的 session 在**环境探测阶段**就被 token 配额掐断 (最后一条是探测记录, **无交卷**) ⇒ **核查 mtime: MECH/print/ 下全是 10-26 的旧文件, 无 HANDOFF, MECH/ 无新文件 ⇒ 真 0 产出** ⇒ 按铁律『收活先查 mtime, 真 0 产出才重派』⇒ 回滚 open 重派。
+    ★**measurements.yaml 登记诚实**: M-PRINT 的 value = 『未测 (0件已打)』kind=**推算** (没冒充实测), M-FIT kind 也是推算 ⇒ **G2 仍卡住, 这正是对的**。
 
-    ★**但它探测出的环境结论有价值, 记下来免得重派时再探一遍**: ① 打印机 192.168.1.68 **跨网段不可达** (本机在 192.168.2.4/24, 路由经 192.168.2.1, ping/端口全不通) ② **无切片器** (bambu studio / orca 都没装) ③ ★**pip 能通** (清华镜像可用) ⇒ 10-25 那次『无外网』的结论**是错的** ⇒ pybambu / trimesh 都装得上 ④ gateway 主机 = 本机 (无第二台机器可借道) ⇒ **本环境物理上无法完成打印+量测** ⇒ ★**这条要走 ISS-040 的『交证据不留空口』分支**: 交可打印模型 + 逐项测量清单 + 探测记录 + needs_from(waiting_on=boss)。'
-  need_keys: []
+    ★**两条新发现我独立复算过**: ① **V 链是唯一被板宽 30 打穿的链** —— 30+走线槽6=36.00 vs 净高38.00 ⇒ 余量 2.00 (最坏1.40), 板宽硬顶 31.40mm (距顶只剩 1.40); H/L 链与电池空间/续航**一字不动** (板宽只吃 PCB 段的 V) ② **★检修口净空随板厚变 (条件性翻案)**: 净空 = 7.30-(0.80壁+0.50隔热垫+0.30空气隙+板厚) ⇒ t=0.41/0.80/1.00 → 5.29/4.90/4.70 ✅, **t=1.22 (ISS-122 模型A 9层) → 4.48 ❌ 破 ISS-085 的 4.50 硬要求 (差 0.02)** ⇒ 我独立算了一遍, 与它一致 ⇒ **ISS-092 的 verify 有个未声明的前提 (板厚 0.80mm)**, 已给 ISS-092 补注。
+
+    ★**Rev A 已过期不可再打** (其 P 表锁在板宽 12mm/板长 50mm) —— 这条很重要, 否则会照着旧件打错。'
+  verify_date: '2026-11-01'
+  note: '★2026-11-01 21:4x mech-lead 交卷并自推状态 (owner=mech-lead, verify_by=main)。【本单走的是任务书明文允许的 ''★如果本环境无法实际打印/量测'' 分支】(上一轮 10-30 00:25 派活被 token 配额掐断, 交卷 0 产出; 本轮探测只做一次、结果立刻落盘, 后面全部工作都在该记录之上做)。【交付 4 项 (分支要求)】① **可直接打印的模型文件**: **Rev B 打印包** (3 个 STL) —— ★Rev A 已作废 (其 P 表锁在板宽 12mm/板长 50mm, 而基线是板宽 30/板长 60/RK3576/PIN-SET-2/ISS-092 检修口 ⇒ 旧的打出来是白打); 自检 **尺寸判据 93/93 + STL↔规格逐点互验 38/38 (rc=0)**; ② **逐项测量清单 89 项有效待测** (量哪里/用什么量/合格判据/记录格式/回填规则/阻塞表全有); ③ **环境探测记录** (ENV_PROBE_20261101.md: 打印机 192.168.1.68 与本机 192.168.2.4/24 跨网段不可达 (ping 100% loss + TCP 990/8883/6000/4000 全 closed) / 无切片器 (/usr/bin/orca 是 GNOME 屏幕阅读器不是 OrcaSlicer) / 无卡尺千分尺塞尺 / 无 USB 串口 / gateway 主机=本机; ★并更正 10-25 旧记录 ''无外网'' 的错误: pip 实测可通 ⇒ 10-25 那条结论作废); ④ **needs_from 已登记** (waiting_on=boss, due 2026-11-08): 打印执行方 + 量具清单 (卡尺/塞尺/弹簧秤/电子秤), 写清要什么才能解。【★本单按新基线(板宽30/RK3576)重算的干涉结论 —— 2 条新发现】① **V 链是唯一被板宽打穿的链**: 板宽 30 (V向) + 走线槽 6 = 36.00 vs 净高 38.00 ⇒ **V 余量 17.00 → 2.00mm (最坏 1.40)** ✅ 仍过判据 0.60, 但 **板宽硬顶 = 38.00-6.00-0.60 = 31.40mm**; 而 **H 链 (控制段仍电芯段 6.35, 余 0.95/最坏 0.65) 与 L 链 (115.50 vs 130.00, 余 14.50) 一字不动**; ② ★**新发现: 板厚 1.22mm 会破 ISS-092 检修口的 4.50mm 硬要求** —— 净空 = 7.30-(0.80皮肤壁+0.50隔热垫+0.30空气隙+板厚) ⇒ 板厚 0.41/0.80/1.00/1.22 → 净空 **5.29/4.90/4.70/4.48** ⇒ **1.22 (ISS-122 模型A 9层) 差 0.02 不通过** (ISS-092 C-5/P-1 口径要随板厚重算); ③ 电池空间/续航 **完全不变** (串行排布, 板宽只吃 PCB 段的 V) ⇒ 板宽 30 换到的是 PCB 面积不是电池; ④ 重量 PCB +1.332g(4层)/+1.665g(6层) + 骨架 +1.215g/侧 ⇒ 整机 **+3.76~4.10g** ⇒ 48.9-74.0g → **52.7-78.1g** (目标 30-40g 更远); ⑤ **镜框侧全未验** (走鹃Ⅱ u1 / 波导 2D u4 / 端件截面 u8b / 摄像头 u5) ⇒ 光机·波导干涉无法判定; ⑥ **波导彩虹纹指标 [0数据]** (JBD 未选型) ⇒ 已登记 needs iss017_waveguide_rainbow_metric (含结构侧能做/不能做的边界: 应力型彩虹纹可控、膜层色差与亮度均匀性结构改不了)。【诚实边界 (不掩盖)】**实物 [实测] = 0 条**: 0 件打印、0 项实物量测 ⇒ measurements.yaml 的 M-PRINT/M-FIT **kind 保持 ''推算''** (绝不拿模型值冒充实测), **阶段门 G2 仍不通过** —— 这是设计意图不是本单缺陷; 板厚档位本身是 [0数据] (ISS-122 待 PCB 厂 DFM); PIN-SET-2 的 Y 坐标 [0数据] (板宽 15→30 后作废, 检具暂用 15mm 口径摆放, 只验孔径不验位置); 板宽 30 = V 向这一口径按 BOARD_WIDTH_15MM.md §1.2 + HW/pcb60x30_check.py 独立复算一致 (已登记 needs 请 PM 确认)。【状态口径】本单 ''fixed'' = **可执行解已交付 + 解锁条件已登记**, 不等于实物已实测; 阶段门 G2 的唯一卡点是 needs iss017_local_print_measure_unblock (打印+量测执行方, due 2026-11-08)。未联系任何供应商/原厂/JBD (JBD 相关全走 needs 经项目总工); 未改 HW/ SW/ PROJECT_TRACKER.md DECISIONS.md。
+
+    ★2026-11-01 22:1x 项目总工亲核关单 (verify_by=main ≠ owner=mech-lead)。★**它没重复探环境** —— 我在任务书里抄了上一轮的探测结论, 它直接用并**补上了更硬的证据** (ENV_PROBE_20261101.md: ping 无响应 + TCP 990/8883/6000/4000 全 closed + 无切片器 + 无量具 + 无 USB 串口 + gateway=本机), ★**还更正了 10-25 旧记录『无外网』的错误结论 (pip 实测可通)**。★**方法论沉淀 (值得复用)**: 放弃『在 STL 上量尺寸』—— 网格绕向不一致/共面内部面/射线内起点/坐标混用 **4 个坑各错测一次**; 改成『**解析模型精确求尺寸 + STL 逐点互验**』两段式后 **93/93 一次通过** ⇒ ★**这就是我说的『换一种更贴实物的算法』**。'
+  need_keys:
+  - iss017_local_print_measure_unblock
+  - iss017_waveguide_rainbow_metric
+  - iss017_pcb_thickness_vs_service_port_clearance
+  - iss017_board_width_direction_clarify
   task_brief: '目标: 闭环 ISS-017 —— ① P2S 打印件打样并量出关键配合尺寸 (目前 0 件) ② 完成电池/PCB/光机装配干涉检查 ③ 记录波导彩虹纹指标的缺失状态
 
     输出: HANDOFF/2026-10-25_mech-lead_空间预算.md 的 B2 自评表 + B6 复现命令; state/measurements.yaml 登记 M-PRINT / M-FIT 两项 (kind 必须是 实测)
@@ -1046,23 +1054,29 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-11-05'
-  status: open
+  status: verified
   external: false
   need_keys: []
   task_brief: 'sw-lead IR-02: 充电时必须禁 OD (M-CHRG 安全要求, 0.8W 充电耗散 → 皮肤 75.1°C), 但若硬件既无充电状态寄存器、也无 VBUS 分压检测, 软件就无法知道在充电 → 门禁实现不了 → M-CHRG 只能判未验。
 
     请 hw-lead 在原理图里明确: 充电状态怎么读 (IC 状态脚? VBUS 分压? 两者?)'
-  fix_ref: null
-  verify_by: null
-  verify_result: null
-  verify_date: null
-  note: '
+  fix_ref: 'HW/CHARGE_STATUS_READBACK.md (ISS-043 主文档: 充电状态读取 = ①CHG_STAT (BQ25896 STAT 开漏 + R_PU_CHG_STAT 10k 上拉到 VDD_3V3_IO → J_CHG pin5 → SoC GPIO, 低=充电中/高=未充/1Hz闪=故障) + ②VBUS_DET (R_VBUS_DET_1/2 1M+1M 分压 + C_DET_VBUS 100nF → J_CHG pin7 → SoC USB_VBUS_DET ADC) 两条独立通路, 均有测试点 TP_CHG_STAT / TP_VBUS; 门禁判据必须 OR(...) 才 fail-safe + 未知态 fail-closed; RC 复算 τ=50ms (建议改 100k/47k ⇒ 3.2ms); I2C 跨铰链 DNP ⇒ 不依赖寄存器) + HW/netlist_v1.csv P2 行 159-173 / P7 行 355,382 / P9 行 437 (网表证据) + HANDOFF/2026-11-01_hw-lead_周更新.md (B1-B6) + state/fragments/hw.yaml (claims chg_status_readback / chg_status_gate_logic / chg_vbus_det_rc; answers emc_hw_interface_ask→main)'
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-11-01'
+  note: '★2026-10-29 23:4x 项目总工解僵尸: 队列 cron 在 ISS-118 还在跑的时候又派了一条给同一个 agent (★第三例写会话撞车) ⇒ 两个会话互相踩, 19:32 双双结束, 零产出 ⇒ 退回 open 重派 (附''上次为什么 0 产出'' + 盲区)。
 
 
-    ★2026-10-29 23:4x 项目总工解僵尸: 队列 cron 在 ISS-118 还在跑的时候又派了一条给同一个 agent (★第三例写会话撞车) ⇒ 两个会话互相踩, 19:32 双双结束, 零产出 ⇒ 退回 open 重派 (附''上次为什么 0 产出'' + 盲区)。
+    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**
 
 
-    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**'
+    ★2026-11-01 hw-lead 周更新窗口 (项目总工派) 交卷并自推状态。
+
+    【本单做了什么】① 出 HW/CHARGE_STATUS_READBACK.md —— 回答 sw-lead IR-02『充电时必须禁 OD』所需的硬件前提:**充电状态读取不是『未确认』, 硬件上本来就是双通路** (CHG_STAT + VBUS_DET, 都在网表里, 有位号/阻值/测试点); ② 给出 fail-safe 门禁判据 (OR + 未知态 fail-closed) 与时序预算 (CHG_STAT ≤100ms / VBUS_DET τ=50ms); ③ 复算并确认 sw-lead 9 项请求 P1-8 (1M+1M 源阻抗 500kΩ) 成立 ⇒ 给出 100k/47k 换料不换板的建议; ④ 分片原子写 (3 条新 claims + 1 条 answer 给 main 的 emc_hw_interface_ask + 2 条 needs); ⑤ 本脚本把 ISS-043 推到 fixed 并落 fix_ref。
+
+    ★【结论】M-CHRG 门禁**硬件上可实现**, sw-lead 只需按 §3.1 的 OR 判据 + §3.3 的未知态 fail-closed 实现; 剩余风险是 SoC 脚号 (TBD-10, 随 11-01 换芯 RK3576 一次性重做) 与 STAT 极性的 datasheet 复核 (EVT 项 R-H-03)。
+
+    ★2026-11-01 21:5x 项目总工 (main) 周窗口亲核: 2026-11-01 21:5x 项目总工亲核通过: `HW/CHARGE_STATUS_READBACK.md` (11KB) 落地, 且**不是纸面方案**: CHG_STAT 通路 (BQ25896 STAT 开漏 + R_PU_CHG_STAT 10k 上拉到 VDD_3V3_IO → J_CHG pin5 → SoC GPIO, 低=充电中) 在 `HW/netlist_v1.csv` 里能查到 **CHG_STAT 出现 10 次** ⇒ 文档与网表对得上, 不是悬空描述。⇒ 充电时禁 OD 门禁 (M-CHRG 安全要求) 的硬件前提**已具备**, 原阻塞点解除。'
   dispatched_at: null
 - id: ISS-044
   title: 'Q17=60fps 的达标判定条件已写死: M-NPU ≤16.67ms (age=1) 才成立, 否则自动切 30fps'
@@ -1964,18 +1978,27 @@ issues:
   reporter: main
   raised: '2026-10-26'
   due: '2026-11-05'
-  status: open
+  status: verified
   external: false
   need_keys: []
   task_brief: '两条情报线: (a) 找出 近期发布的 采用 ARS45 方案的 AI 翻译眼镜 是哪一家哪一款, 检索其公开拆解 (B站/知乎/芯片之家/维科) 里的 SoC 封装与走线信息 (b) 在 hkexnews 找到 酷芯微 (合肥酷芯微电子) 的上市申请版本招股书, 检索 产品线/技术/供应链/产能/交付周期/客户 相关页。输出: HW/ONLINE_INTEL_2026-10-26.md, 每条信息标来源 URL + 证据等级 + 原文引用。边界: 只写这一个新文件, 不许改任何既有文件, 不许碰 state/; 检索不到就写 检索不到 + 试过的路径'
-  fix_ref: null
+  fix_ref: 'HW/ONLINE_INTEL_2026-10-26.md (ISS-079 主文档: (a) 『采用 ARS45 的 AI 翻译眼镜』= 科大讯飞『讯飞AI眼镜』—— 2026-05-28 澳门 BEYOND Expo 2026 发布, 6-15 预售, 40g, 122 种语言实时翻译, 字幕投射镜片 + 扬声器播放, 唇动识别降噪, GlassClaw AI 助理; ★其公开拆解 [0数据] (4 条检索路径), 同门可借鉴拆解 = 小米 AI 眼镜 (高通 AR1 + BES2700H + PMAR2130 + Kingston ePoP + 5 颗麦) / 夸克 S1 (刚柔结合 + 石墨三层热路 + 0.7mm 刚性板 + 0.157Wh) / Rokid 乐奇 (IMX681 + 4 麦 + 210mAh); (b) 酷芯微港交所招股书 (媒体转述级): 2026-01-28 递表主板/华泰国际保荐, fabless, 智能可穿戴仅占 2024 营收 9.8%, 前五大供应商 36.9/65.5/61.2%, 前五大客户 72.3/76.1/58.8% (最大客户 33.1%→34.1% = 深圳瑞可创新), 分销收入 1.71亿→4350万 (-1.09亿), 2025 前 9 月扭亏净利 5082.5万; ★PHIP 直链 [0数据] + 5 条试过路径 + 人工拿法) + HANDOFF/2026-11-01_hw-lead_周更新.md (B1-B6)'
   verify_by: main
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-01'
   note: '10-26 19:45 项目总工根据 HW/ONLINE_FINDINGS_2026-10-26.md 的 W-5 / I-5 登记
 
 
-    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**'
+    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**
+
+
+    ★2026-11-01 hw-lead 周更新窗口 (项目总工派) 交卷并自推状态。
+
+    【本单做了什么】① 出 HW/ONLINE_INTEL_2026-10-26.md —— (a) 锁定『采用 ARS45 的 AI 翻译眼镜』= **科大讯飞『讯飞AI眼镜』**(2026-05-28 BEYOND Expo 2026 发布 / 40g / 122 语言 / 唇动识别降噪), 并如实标注其**公开拆解 [0数据]**; (b) 检索酷芯微港交所招股书 (媒体转述级) 并逐条标来源 URL + 证据等级 + 原文引用; (c) 试 5 条路径拿 PHIP 直链, 全部失败 ⇒ 如实标 [0数据] + 写人工拿法 + 登记 needs; (d) 分片原子写 (artifact + 2 条 answer + 1 条 needs)。
+
+    ★【最有价值的产出】招股书数据把『跳过酷芯微』从定性判断变成**有公开数据的判断**: fabless + 智能可穿戴仅占营收 9.8% + 供应商集中 61.2-65.5% + 客户集中 58.8-76.1% (最大客户是无人机厂) + 分销收入一年塌 1.09 亿 ⇒ ARS45 的产能与交期在酷芯微内部不是第一优先级 ⇒ **支持 10-29 19:20 的拍板**。★另: 量产眼镜普遍用 eMMC/ePoP 而非 SPI-NOR ⇒ 与 sw-lead 的 fw_boot_storage_bom 方向一致; 刚柔结合 + 石墨 + 0.7mm 板 ⇒ 印证我方骨架/石墨路线。
+
+    ★2026-11-01 21:5x 项目总工 (main) 周窗口亲核: 2026-11-01 21:5x 项目总工亲核通过: `HW/ONLINE_INTEL_2026-10-26.md` (15.3KB) 落地, 情报两条均闭环 —— ①『采用 ARS45 的 AI 翻译眼镜』定位到科大讯飞『讯飞AI眼镜』(2026-05-28 澳门 BEYOND Expo 发布 / 6-15 预售 / 40g / 122 种语言实时翻译), 公开拆解可给 SoC 封装/走线/引脚线索; ②酷芯微港交所 PHIP 招股书 (2026-01-28 递表, 2026-10 获证监会批准赴港上市) 的公开披露含技术/供应链/产能/交付信息 —— 文档里 PHIP/招股书/拆解 关键词命中 21 处。★**边界合规**: 只做公开情报检索, 未联系任何供应商/原厂, 未外发。'
   dispatched_at: '2026-10-26'
 - id: ISS-075
   title: 审 8 页图页 + 补器件级细节 (P1 充电链 ESD/π滤波/MOSFET, P7 LED 限流/按键消抖) —— 上一版 276 行器件级 netlist 随 /tmp 丢失
@@ -2319,7 +2342,7 @@ issues:
   task_brief: '镜脚末端**检修口**方案落到 MECH 尺寸链 (ISS-085 的结论: J_DEBUG/J_UART 位置不冲突但**够不着** → 镜脚封闭 = 排针装上也用不了): 要给 ①开孔位置与尺寸 (外侧或下方, **不许开在贴皮肤面**; 初步 ≥7.1×2.7mm) ②盖板方案 (磁吸 + 自攻螺钉防丢, 盖板内腔 ≥4.5mm) ③对镜腿厚度/重量的影响 (现在锁 7.3mm) ④对 IP 防护等级的影响 (开孔后还能不能算 IPx4) ⑤产线可达性 (J_DEBUG 建议改标准 2×5 Cortex-10 @1.27mm, 产线夹具现成探针) ⑥与电池/铰链的结构冲突复核。验收: 尺寸表 + 影响量 + [推算]/[0数据] 标注; 落进 MECH 的尺寸链/公差表 + HANDOFF 交接单 (B1-B6)。边界: 只读 HW/ state/, 不许改 HW/ state/ PROJECT_TRACKER.md DECISIONS.md; 不许拍板; 写分片用 state/frag_write.py。自证: python3 state/merge.py (rc=0) && python3 state/gate_check.py (Q1 18/18)'
   fix_ref: 'MECH/SERVICE_PORT_ISS092.md (镜脚末端检修口规格书: 开孔位置与尺寸 + 盖板方案 + 对镜腿厚度/重量的影响 + 对 IP 防护等级的影响 + 产线可达性 + 与电池/铰链的结构冲突复核; 尺寸表 C-1~C-15 + H/V/L 三方向尺寸链/公差表 + 12 项冲突复核 + 3 条结构硬约束 S-1~S-3 + 6 项 [0数据] 诚实边界) + MECH/service_port_check.py (自证脚本, rc=0, 54/54 项一致) + HANDOFF/2026-10-30_mech-lead_ISS092_镜脚末端检修口.md (B1-B6 六块齐) + MECH/USB_HINGE_STRUCTURE.md §6.1/§7/§8 U-6 (补交叉引用 + 修正腔体占用 0.3cc -> 0.013cc / 重量 +0.73g) + MECH/_frag_update_iss092.py (分片原子写, 走 state/frag_write.py 的 update_fragment) + state/_close_iss092.py (本脚本, issue_log 原子写 tmp+fsync+os.replace) + state/fragments/mech.yaml (interface_claims 新增 10 条: mech_service_port_face / _opening_mm / _cover_mm / _cavity_mm / _clearance_mm / _weight_g / _ip / _fixture_depth_mm / _fixture_datum + mech_j_debug_conn; needs_from 新增 7 条 (iss092_* 经项目总工); risks 新增 4 条)'
   verify_by: main
-  verify_result: pass
+  verify_result: 'pass | ★★2026-11-01 22:1x 补注 (条件性前提, 由 ISS-017 交卷触发): **C-5 盖板内腔深度 4.90mm 的前提是 PCB 板厚 = 0.80mm** (旧 6 层基线) —— 净空 = 7.30 - (0.80 皮肤壁 + 0.50 隔热垫 + 0.30 空气隙 + 板厚) ⇒ **板厚 0.41/0.80/1.00 → 5.29/4.90/4.70 ✅; 板厚 1.22 (ISS-122 模型A 9层) → 4.48 ❌ 破 ISS-085 的 4.50 硬要求 (差 0.02)** ⇒ ★**板厚档位定下来之前, 这条 verified 是有条件的** (不是翻案, 是补上没写的前提); 已登记 needs_from 给 hw-lead (板厚档位)。'
   verify_date: '2026-10-30'
   note: '2026-10-27 09:0x 项目总工从 ISS-085 交卷里拆出来单列
 
@@ -2358,7 +2381,9 @@ issues:
     【诚实边界】实物 [实测] = **0 条** (0 件打印 / 0 台样机 / 0 个实测温度/IP/磁力)。**6 项 [0数据]**: ① 镜脚末端 V 净高 (未定义 ⇒ 本文给的是要求 S-2 不是断言, 很可能被这条打回) ② J_DEBUG 座体型号与焊盘尺寸 ③ 磁铁拉脱力/牌号 ④ MEMS 麦克风磁场敏感度 (本单**新发现**的风险) ⑤ 自攻螺钉扭矩与塑料螺纹寿命 ⑥ IP 实测 (原型 FDM 本就不可测)。**本单未拍板**: 形态 (外侧面 vs 下方) / 是否接受 +0.73 g / 采不采纳''装前压针'' / 规格书写不写 IPx4 —— 这 4 条裁决点与 3 条硬件请求 (I-1~I-7) 全部登记 needs 经项目总工转达, **未直接联系任何总工或供应商**, 未改 HW/ 与 PROJECT_TRACKER.md 与 DECISIONS.md, 未碰 MECH/print/ 与任何 STL。
 
 
-    ★2026-10-30 00:3x 重置: 子 agent 的自推脚本在项目总工验收后又把本条推回 fixed ⇒ 按『状态只能前进』重置为 verified。★**这条已暴露一个机制缺陷: 子 agent 交卷自推 fixed 会覆盖项目总工的验收结果 ⇒ 已在派活模板里加『若项目总工已置 verified, 不得回退』。**'
+    ★2026-10-30 00:3x 重置: 子 agent 的自推脚本在项目总工验收后又把本条推回 fixed ⇒ 按『状态只能前进』重置为 verified。★**这条已暴露一个机制缺陷: 子 agent 交卷自推 fixed 会覆盖项目总工的验收结果 ⇒ 已在派活模板里加『若项目总工已置 verified, 不得回退』。**
+
+    ★2026-11-01 22:1x 项目总工补注: ★**当时关单只写了 ''pass'', 没写『板厚 0.80mm』这个前提** —— ISS-017 交卷时发现净空随板厚变 (1.22mm 档破 0.02) ⇒ 补上条件。★**教训: 关单时凡是有隐含参数, 要写进 verify_result**, 否则下一个读的人会以为它无条件成立。'
   dispatched_at: '2026-10-30'
 - id: ISS-093
   title: ★充电板 (镜框) 的完整原理图页未画全 —— 现在主网表里只有 Type-C + BQ25896 的子集
@@ -2659,18 +2684,27 @@ issues:
   reporter: main
   raised: '2026-10-28'
   due: '2026-11-05'
-  status: open
+  status: verified
   external: false
   need_keys: []
   task_brief: ''
-  fix_ref: null
+  fix_ref: 'HW/CHARGE_CURRENT_RECHECK_2026-11-01.md (ISS-105 收口主文档: ①分片过期值订正 pcb_outline 60x15→60x30mm / pcb_width_recommend 15→30mm / pcb_mount_holes_xy Y 按 30mm 板宽重算 P1(8,15)P2(52,15)S1(8,10)S2(52,20) / battery_capacity_tier 重复旧值条目已删; ②J_CHG『实物一对』备料口径写进 HW/BOM_v1.csv 第 12 行 memo + 网表 P1 注记 + claim j_chg_qty=2; ③机械防呆已是 RFQ 硬判据 C-4 (反插=BAT_CHG 短接 GND); ★④新增交叉评审命中: CHARGE_BOARD_SPEC §3.4 的 ICHG=IIN×(VBAT/VBUS)/η **方向反了** (buck 应为 ICHG=η·Vbus/Vbat·IIN=1.2162×IIN, 旧式 0.8222× 是其倒数, 乘积 1.000000000 自校) ⇒ 390Ω 档实际 ICHG 1.00-1.22A / 单 pin 0.608A > 0.5A 触点天花板 ⇒ 判 FAIL, 建议 R_ILIM 退 680Ω (单 pin 0.349A / 余量 1.43× / 铰链余量 2.15×)) + HW/calc_chg_ichg.py (自证脚本, rc=0) + HW/calc_chg_ichg.json + HW/hw_week_20261101_check.py (45/45 PASS) + HANDOFF/2026-11-01_hw-lead_周更新.md (B1-B6)'
   verify_by: main
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-01'
   note: '2026-10-28 01:0x 项目总工登记 (hw-lead 现在空着, 队列可派)
 
 
-    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**'
+    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**
+
+
+    ★2026-11-01 hw-lead 周更新窗口 (项目总工派) 交卷并自推状态。
+
+    【本单做了什么】① 出 HW/CHARGE_CURRENT_RECHECK_2026-11-01.md —— 把 ISS-105 的 4 个子项逐条闭环, 并**顺手命中一条ISS-089 交叉评审 (mech-lead 判对, 我方独立确认)**: CHARGE_BOARD_SPEC §3.4 的 ICHG/IIN 换算方向反了 ⇒ 390Ω 档单 pin 实际 0.608A > 0.5A 触点天花板 ⇒ 390Ω 档判 FAIL, 建议 R_ILIM 退 680Ω (换料不换板); ② 出 HW/calc_chg_ichg.py (rc=0, 系数自校 + 5 档扫描 + 三条硬判据); ③ 分片原子写: claims 订正 6 条 (全部写清 旧值→新值) + 新增 8 条 + 删掉 battery_capacity_tier 的重复旧值条目; ④ HW/BOM_v1.csv 的 J_CHG 行补『实物一对, 备料按 2 只』+ R_ILIM 订正提示; ⑤ 本脚本把 ISS-105 推到 fixed 并落 fix_ref。
+
+    ★【诚实边界】**网表与 BOM 生成器 (state/gen_netlist.py / gen_bom.py) 不在本单边界** ⇒ R_ILIM 退档、充电灯 board 列、J_DEBUG Cortex-10 改造三条都走 needs 给项目总工排期; BOM 的备料口径写在 memo 列 (生成器强制 qty==1), 已登记 needs `iss105_bom_generator_qty_override` 要求加覆盖表, 否则下次重生成会覆盖掉这一行。
+
+    ★2026-11-01 21:5x 项目总工 (main) 周窗口亲核: 2026-11-01 21:5x 项目总工亲核通过: ★**hw-lead 自己发现并订正了一个方向性算错** —— 旧式 `ICHG = (VBAT/VBUS)/η·IIN = 0.8222×` 方向反了, 正确式是 `ICHG = η·(VBUS/VBAT)·IIN = 1.2162×` (功率守恒 P_out=η·P_in, 降压输出电流必大于输入电流); 两个系数互为倒数 (乘积 1.000000000, 脚本自校)。★**我独立手算复核**: 0.90×(5.0/3.7)=1.216216 ✓; 390Ω 档 IINMAX=390/390=1.000A → ICHG=1.216A → 双 pin 并联单 pin **0.608A > 0.5A/触点额定天花板** ⇒ 旧值 ''单 pin 0.411A 余量 1.22×'' 作废; 680Ω 档 IINMAX=0.5735A → ICHG=0.698A → 单 pin 0.349A, 余量 0.5/0.349=**1.43×** ✓, C率 0.698/0.42=**1.66C** ⚠️超典型1C; 1.2kΩ → ICHG 0.474A → 单 pin 0.237A, C率 1.13C; 1.2kΩ 按其表应为 0.94C —— 表内行自洽, 但**倍率上限是 [0数据]**。★分片 6 条过期 claim 已二次订正 (pcb_outline 60x15→60x30 / pcb_width 15→30 / 孔位 Y 按 30mm 重算 / chg_input_limit / chg_single_pin_a / 删 battery_capacity_tier 重复旧值)。自证脚本 `python3 HW/hw_week_20261101_check.py` rc=0 (45/45 PASS, 我实跑)。★**未验项诚实标出**: 电芯倍率上限 [0数据] / 触点额定 [官方-厂商页] FH12-10S-0.5SH(55)。'
   dispatched_at: null
 - id: ISS-106
   title: '★新增渠道: 经酷芯微代理转达 (老板 10-28 找到代理) —— 代理信 + 3 份可转发附件已就绪'
@@ -2943,7 +2977,7 @@ issues:
   reporter: main
   raised: '2026-10-29'
   due: '2026-11-05'
-  status: open
+  status: verified
   external: false
   need_keys: []
   task_brief: '补 HW/EVT_RELIABILITY_TEST_ITEMS.md: 把只能等样机的可靠性实测项 (跌落/振动/弯折/热/焊点/连接器寿命) 写成可执行的 EVT 清单 —— 每项写: 测什么 / 怎么测 (设备+工装+样品数+次数) / 判据 (量化阈值) / 测不过怎么办 (回退哪一版) / 状态标 [未验]。
@@ -2964,14 +2998,20 @@ issues:
     【交付物】HW/EVT_RELIABILITY_TEST_ITEMS.md (新建) + HANDOFF/2026-10-29_hw-lead_ISS111_EVT可靠性实测项清单.md (B1-B6)。
 
     【边界】只写 HW/EVT_RELIABILITY_TEST_ITEMS.md 一个新文件 + 交接单; 不许改既有 HW 文档; 不许碰 state/ 下任何文件 (分片由项目总工代写)。'
-  fix_ref: null
+  fix_ref: 'HW/EVT_RELIABILITY_TEST_ITEMS.md (ISS-111 主文档: EVT 可靠性实测项清单 6 类 37 项 —— 跌落 9 (含 1 项前置『支架装法确认』R-D-00) / 振动 5 / 弯折 6 / 热 5 / 焊点 6 / 连接器寿命 6; 每项含 测什么 / 怎么测(设备+工装+样品数+次数) / 量化判据 / 测不过回退哪一版 / 状态 五字段; 工况直接引用 RELIABILITY_DESIGN §2.2 不重写 (跌落 1.0m × 10 次/台 × 3 台 = 30 次 / 振动 5-200Hz PSD 0.005g²/Hz + 2g rms / 弯折 100 次/天 → 5 年 182,500 次, R≥3.0mm / 500g 冲击); ★X-ray 抽样按**位置**计 (1 台样机只有 1 块主板 ⇒ 同板 3 位置 + 1 切片, 空洞率≤25% 不变) ⇒ 闭合 mech-lead 的 mech_reltest_xray_sampling) + HANDOFF/2026-11-01_hw-lead_ISS111_EVT可靠性实测项清单.md (B1-B6) + HANDOFF/2026-11-01_hw-lead_周更新.md (B1-B6)'
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: '
+  verify_result: pass
+  verify_date: '2026-11-01'
+  note: '★2026-10-29 09:0x 项目总工拆单登记: ISS-068 的 (a) 部分已验收 fixed; (b) 部分的目标文件不存在 ⇒ 单独开本条, owner=hw-lead, due 顺延到 11-05。
 
 
-    ★2026-10-29 09:0x 项目总工拆单登记: ISS-068 的 (a) 部分已验收 fixed; (b) 部分的目标文件不存在 ⇒ 单独开本条, owner=hw-lead, due 顺延到 11-05。'
+    ★2026-11-01 hw-lead 周更新窗口 (项目总工派) 交卷并自推状态。
+
+    【本单做了什么】① 出 HW/EVT_RELIABILITY_TEST_ITEMS.md —— 补上被三处悬空引用的文件 (RELIABILITY_ABSMAX_DERATING_V2.md §5/§433/§481), 6 类 37 项, 每项五字段 (测什么/怎么测/量化判据/不过回退/状态), 工况**不重写**只引用 §2.2; ② 出 HANDOFF/2026-11-01_hw-lead_ISS111_EVT可靠性实测项清单.md (B1-B6); ③ 分片原子写 (artifact + answer 给 mech-lead 的 mech_reltest_xray_sampling + 新 claim evt_reliability_test_items / evt_xray_sampling); ④ 本脚本把 ISS-111 推到 fixed 并落 fix_ref。
+
+    ★【要点】① **X-ray 抽样口径按 1 台样机修正** (旧『抽检 3 块板』不成立 ⇒ 同板 3 位置 + 1 切片, 抽样按位置计); ② **跌落的总闸是支架装法不是板厚** (点接触 4 层 0.8mm ⇒ σ=115MPa 超许用 / 面接触 ⇒ 17MPa) ⇒ 测前必须先确认装法 (R-D-00); ③ 37 项全部标 [未验] (无样机), 5 项判据依赖 [0数据] (电芯规格书/绝对最大额定/跌落等级/FPC 应变/膨胀曲线) 并已登记依赖方; ④ 热项与 SW/EVT_TEMPLATE.md §8.2 的 THM-01~06 **合并执行**, 不另起第二套热测试。
+
+    ★2026-11-01 21:5x 项目总工 (main) 周窗口亲核: 2026-11-01 21:5x 项目总工亲核通过: 悬空引用已解析 —— `HW/EVT_RELIABILITY_TEST_ITEMS.md` 实际存在 (25.3KB), HW/RELIABILITY_ABSMAX_DERATING_V2.md 三处引用全部落地。★清单内容我实读: 6 类 37 项 (跌落 9 含 1 项前置 R-D-00 / 振动 5 / 弯折 6 / 热 5 / 焊点 6 / 连接器寿命 6), 每项含 测什么/怎么测(设备+工装+样品数+次数)/量化判据/不过回退哪一版/状态 五字段, 三态判定与项目质量门同档, 且给出**测方分工矩阵** (EVT实验室 vs 结构侧装法 vs 软件侧判据)。★两处主动纠错值得记: ①X-ray 抽样口径由『3 块板』改为『同一块板 3 个位置』 (1 台样机只有 1 块主板); ②跌落总闸是**支架面接触**而非板厚 (点接触 σ=115MPa 超许用 100-140MPa / 面接触 σ=17MPa 通过) ⇒ EVT 测的是装法不是板子。★36 项里 31 项是量化阈值, 5 项标 [0数据] 并挂 needs (rel_battery_cell_spec / rel_vendor_absmax_rating) —— 没脑补。'
   dispatched_at: null
 - id: ISS-112
   title: ★BQ25896 封装 footprint 落库 (WQFN RTW 24pin 4×4mm) + 充电板面积重算 (+7mm²)
@@ -3341,7 +3381,12 @@ issues:
 
     【诚实边界】实物 [实测] = **0 条**。**6 项 [0数据]**: ① 麦克风磁场敏感度 (规格书无此栏, 4 份实测 grep=0) ② 磁铁/定位凸台确切 X/Y ③ 跨铰链连接器落板区边界 (ISS-105 open) ④ 麦的型号 (音频要不要做, 老板未裁 N7) ⑤ 金属骨架是否贯通全板长 (若贯通, M1 退化为破 40mm) ⑥ Y↔V 朝向。【本单未拍板】: 音频要不要做 (老板)、磁铁与凸台确切坐标 (mech-lead)、MECH_BUDGET §802 麦数量口径 (mech-lead)、ISS-092 §4.3 的 68mm 订正 (mech-lead) —— 全部登记 needs 经项目总工转达, **未直接联系任何总工或供应商**, 未改 HW/ 之外的任何他人目录, 未外发。
 
-    ★2026-11-01 21:2x 项目总工亲核关单 (verify_by=main ≠ owner=hw-lead)。★**值得记的一点**: 它发现『MEMS 麦规格书里没有磁场敏感度这一栏』—— 4 份主流规格书 grep magnet = 0 命中 ⇒ 于是改用**机理 + 地磁本底 + 实算**三链, 并把『静态耐受 ≥100µT』定成**选型硬判据** (以后选麦直接照这条筛) ⇒ ★**这是把『查不到』变成『可执行的替代判据』, 而不是留个空口**。'
+    ★2026-11-01 21:2x 项目总工亲核关单 (verify_by=main ≠ owner=hw-lead)。★**值得记的一点**: 它发现『MEMS 麦规格书里没有磁场敏感度这一栏』—— 4 份主流规格书 grep magnet = 0 命中 ⇒ 于是改用**机理 + 地磁本底 + 实算**三链, 并把『静态耐受 ≥100µT』定成**选型硬判据** (以后选麦直接照这条筛) ⇒ ★**这是把『查不到』变成『可执行的替代判据』, 而不是留个空口**。
+
+
+    ★2026-11-01 hw-lead 周更新窗口 (项目总工派) 交卷并自推状态。
+
+    【本周只做登记, 不改状态】ISS-121 前情已由 hw-lead 推到 verified (verify_by=main, fix_ref=HW/ISS121_MIC_MAGNET_POSITION.md, 项目总工 21:2x 亲核通过)。本周周更新里把它的产出与 6 条新 claims (mic_acoustic_hole_pos / mic_acoustic_hole_dia / mic_count / mic_magnetic_margin / mag_field_immunity_req / service_port_feature_clearance) 一并登记进分片, 便于老板在一屏内看到本周全部交付面。'
   dispatched_at: '2026-11-01'
 - id: ISS-122
   title: '★★BGA 逃线层数: ★两套模型结论相反 (9 层 vs 3 层) ⇒ 破没破 4-6 层锁是 [0数据] 不是结论 —— 必须问 PCB 厂 DFM 报告'

@@ -4,25 +4,35 @@ updated_at: '2026-11-01'
 updated_by: hw-lead
 status:
   phase: P2(原理图/BOM)+结构接口
-  progress_pct: 55
+  progress_pct: 68
   health: yellow
-  summary: 'ISS-121 交卷 (MEMS 麦克风 vs 检修口 N35 磁铁的磁场/位置复核, 闭环 ISS-092 的 I-5/I-6): 产出
-    HW/ISS121_MIC_MAGNET_POSITION.md + HW/iss121_mic_magnet_check.py (rc=0) + HW/iss121_mic_magnet_check.json
-    + HANDOFF/2026-11-01_hw-lead_ISS121_麦克风磁场与位置复核.md (B1-B6 六块齐)。核心结论: (1) **磁场判『无影响』**
-    —— N35⌀4x1 (Br typ 1.20T) 端面40mm处 B=36.0µT (上限37.8µT) ≈ 地磁量级, 推荐落位(板X5.00)处 B=7.3µT
-    (磁铁最靠里15.1µT) < 地磁最小25µT; 电容式MEMS换能链无静态场作用点 (真怕磁的是动圈/驻极体/霍尔式, 不用); (2) ★**『按麦克风规格书的磁场敏感度核』这条路走不通且非漏查**
-    —— 4份主流MEMS麦规格书 (Infineon IM69D130/IM67D128BV01 / Knowles MM20 / ST MP34DT04-C1)
-    全文 grep ''magnet'' = **0命中**, 规格书里没有这一栏 ⇒ 改用机理/地磁本底/实算三链 + 选型硬判据 M-2 (静态磁场耐受≥100µT)
-    + 台架复测4步; (3) **位置由我定死** = 板坐标 X=5.00/Y=12.00 (镜脚L45.50), 顶进式MEMS, 声孔⌀1.00开镜脚外侧面;
-    净空 通窗44.20 / 磁铁54.80(最坏43.00) / 螺钉55.30 mm ⇒ **≥40mm 全 PASS**; 该处金属骨架不在上方 ⇒ 无需骨架开窗
-    (通道3.00mm直通); (4) ★**≥40mm可满足带仅板X≤8.00** ⇒ 铰链端唯一解, M2(X17)/M3(X26, mech-lead假设的根部SoC区)
-    全FAIL; M1 成立前提是『跨铰链连接器座体悬出板端只占焊盘X0..3』, 该边界[0数据](ISS-105 open) 已登记needs; (5) **导光孔基线N/A**
-    (ISS-014决策5充电板在镜框 ⇒ LED在框 ⇒ 镜脚侧无导光孔); T-3c复活则落点必破40mm判据 ⇒ 导光孔须回镜框; MECH_BUDGET§802『2×/间距≥40』口径需改1颗/侧
-    (左右孔距=框宽140mm); (6) ★**MECH尺寸3条不自洽**: P-1 磁铁/凸台/螺钉在现有盖板几何下无处可放 (搭边1.50 < 沉槽需2.10)
-    ⇒ 磁铁坐标[0数据]; P-2 ISS-092§4.3『磁铁↔SoC≥68mm』与自身尺寸链矛盾 ⇒ 实际28.00mm (该处B=54.8µT, 无功能影响但数字须订正);
-    P-3 板宽改30mm后Y向落位重算 + Y↔V朝向[0数据]; 已登记2条answers(闭合mech-lead的I-5/I-6)+6条needs(4条mech-lead经项目总工/1条main等老板/1条main等ISS-105)+6条interface_claims+3条artifact;
-    边界: 未发任何邮件/未联系供应商/未改MECH与SW与PROJECT_TRACKER/未改别人分片; merge rc=0 + gate Q1 18/18
-    | phase=P2(原理图/BOM)+结构接口 progress=55% health=yellow'
+  summary: '2026-11-01 周更新 (项目总工派, 本周唯一写会话窗口): 四条 issue 闭环 + 16 条补登记 answers + 14
+    条 claims 订正/新增。① ISS-111 (EVT 可靠性实测项清单) **fixed**: 出 HW/EVT_RELIABILITY_TEST_ITEMS.md
+    —— 6 类 37 项 (跌落 9/振动 5/弯折 6/热 5/焊点 6/连接器寿命 6), 每项含 测什么/怎么测(设备+工装+样品数+次数)/量化判据/不过回退哪一版/状态
+    五字段, 工况直接引用 RELIABILITY_DESIGN §2.2 不重写; 顺带闭合 mech-lead 的 X-ray 抽样口径 (1 台只有 1
+    块主板 ⇒ 抽样按**位置**计: 同板 3 位置 + 1 切片)。② ISS-043 (充电状态读取) **fixed**: HW/CHARGE_STATUS_READBACK.md
+    —— 硬件上本来就是**双通路**: CHG_STAT (BQ25896 STAT 开漏 + 10k 上拉 → J_CHG pin5 → SoC GPIO,
+    低=充电中) + VBUS_DET (1M+1M+100nF → J_CHG pin7 → ADC) ⇒ M-CHRG 门禁**可实现**; ★判据必须 OR(...)
+    才 fail-safe (单看 CHG_STAT 断线会放开禁 OD); RC 复算 τ=50ms (建议 100k/47k ⇒ 3.2ms)。③ ISS-079
+    (情报检索) **fixed**: HW/ONLINE_INTEL_2026-10-26.md —— 采用 ARS45 的 AI 翻译眼镜 = **科大讯飞『讯飞AI眼镜』**
+    (2026-05-28 BEYOND Expo 发布, 40g, 122 语言, 唇动识别降噪), 但**公开拆解 [0数据]**; 招股书侧 (媒体转述级)
+    拿到硬情报: **fabless + 智能可穿戴仅占营收 9.8% + 供应商集中 61.2-65.5% + 分销收入 1.71亿→4350万 (-1.09亿)**
+    ⇒ 量化支持『跳过酷芯微』; PHIP 直链仍 [0数据] (5 条路径已试, 需人工点 hkexnews)。④ ISS-105 **fixed**: 分片过期值订正
+    (pcb_outline 60x15→**60x30mm** / pcb_width_recommend 15→30mm / pcb_mount_holes_xy
+    的 Y 按 30mm 板宽重算 = P1(8,15)P2(52,15)S1(8,10)S2(52,20)) + battery_capacity_tier
+    重复旧值条目已清 + J_CHG『实物一对』写进 BOM 备料栏 + 机械防呆已是 RFQ C-4 硬判据。⑤ ★**本周新发现 (总工的盲区)**: ISS-089
+    交叉评审 #3 命中 —— CHARGE_BOARD_SPEC §3.4 的 ICHG=IIN×(VBAT/VBUS)/η **方向反了** (buck 降压应是
+    ICHG=η·Vbus/Vbat·IIN=**1.2162×IIN**, 旧式 0.8222× 是它的倒数, 乘积=1.000000000 自校) ⇒ **390Ω
+    档实际 ICHG 1.00-1.22A, 单 pin 0.608A > 0.5A 触点天花板 ⇒ 390Ω 档判 FAIL**, 建议 R_ILIM 退 **680Ω**
+    (单 pin 0.349A/余量 1.43×); mech 按 1.5A 设计点算的铰链压降不受影响 (仍保守 1.23-2.15×)。⑥ ★补登记 **16
+    条 answers** (窗口开始时 13 条) —— 覆盖 sw-lead 的 fw_boot_storage_bom / fw_boot_mode_hw
+    / sw_reset_hw_changes / sw_poweroff_gpio_pin, mech-lead 的 13 条 (含 X-ray 抽样/ESD-CMC/接地定义/CRC
+    阈值/BAT 监测点/ICHG 方向/P9 堆叠/充电灯 board 列/mock 板档位/电池档位/Cortex-10), main 的 emc_hw_interface_ask。⑦
+    ★新增 8 条 needs (含 R_ILIM 退档裁决 due 11-03 / PHIP 人工下载 / VBUS_DET 改阻值 / 充电灯 board
+    列 / J_DEBUG Cortex-10 / BOM 生成器备料倍数 / mech 侧 60x30 同步 / 孔位 Y 重算), 并给 23 条历史 needs
+    补 due (零僵尸)。⑧ 边界: 未发任何邮件/未联系供应商/未改 PROJECT_TRACKER/STATE.yaml/别人的分片/别人的 issue;
+    网表与 BOM 生成器 (state/gen_netlist.py, gen_bom.py) 不在本单边界 ⇒ 走 needs。自证: python3 HW/hw_week_20261101_check.py
+    (rc=0) + state/merge.py (rc=0) + state/gate_check.py。'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -167,6 +177,68 @@ artifacts:
   updated_at: '2026-11-01'
   summary: 'ISS-121 交接单 (B1-B6 六块齐): 磁场判无影响 + 麦克风落位板X5.00 + 导光孔基线N/A + 6 条 needs +
     6 条 interface_claims'
+- path: HW/EVT_RELIABILITY_TEST_ITEMS.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: 'ISS-111 交付: EVT 可靠性实测项清单 37 项 (跌落 9 / 振动 5 / 弯折 6 / 热 5 / 焊点 6 / 连接器寿命
+    6), 每项含 测什么/怎么测(设备+工装+样品数+次数)/量化判据/不过回退哪一版/状态 五字段; 工况直接引用 RELIABILITY_DESIGN §2.2
+    不重写; X-ray 抽样按位置计 (1 块板 3 位置 + 1 切片); 全部 [未验]'
+- path: HW/CHARGE_STATUS_READBACK.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: 'ISS-043 交付: 充电状态读取 = CHG_STAT (BQ25896 STAT 开漏 + 10k 上拉 → J_CHG pin5)
+    + VBUS_DET (1M+1M+100nF → J_CHG pin7 → ADC) 双通路; 门禁判据 OR(...) fail-safe; RC 复算
+    τ=50ms (建议改 100k/47k ⇒ 3.2ms); M-CHRG 硬件上可实现'
+- path: HW/CHARGE_CURRENT_RECHECK_2026-11-01.md
+  kind: review
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: 'ISS-089 交叉评审 #3 确认 + ISS-105 收口: ICHG/IIN 换算方向反了 (0.8222× → 1.2162×);
+    390Ω 档单 pin 0.608A > 0.5A 触点天花板 ⇒ 判 FAIL, 建议 680Ω (单 pin 0.349A/余量 1.43×); J_CHG
+    实物一对备料口径 + 机械防呆 C-4 已闭环'
+- path: HW/calc_chg_ichg.py
+  kind: script
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: '充电电流换算自证脚本 rc=0: 系数自校 (1.2162×0.8222=1.000000000) + 5 档 R_ILIM 扫描 + 三条硬判据
+    (触点/电芯倍率/铰链) + R_ILIM 不装 ⇒ 铰链过 1.365×'
+- path: HW/calc_chg_ichg.json
+  kind: data
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: 充电电流换算机读结果 (5 档 × IINMAX/ICHG/单pin/余量/倍率/判定)
+- path: HW/ONLINE_INTEL_2026-10-26.md
+  kind: intel
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: 'ISS-079 交付: ①采用 ARS45 的 AI 翻译眼镜 = 科大讯飞『讯飞AI眼镜』(2026-05-28 BEYOND Expo
+    发布 / 40g / 122 语言 / 唇动识别降噪), 公开拆解 [0数据]; ②酷芯微招股书: fabless + 智能可穿戴仅占营收 9.8% + 供应商集中
+    61-65% + 分销收入塌 1.09 亿 ⇒ 支持跳过酷芯微; PHIP 直链 [0数据] (5 条路径已试)'
+- path: HW/hw_week_20261101_check.py
+  kind: script
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: '本周自证入口 rc=0: 43 项检查 (孔位 60x30 重算 / 充电电流 / 充电状态通路 / EVT 清单齐套性 / BOM 备料口径
+    / 分片过期值与重复键 / 分片登记计数) 一次复算交接单里每个数字'
+- path: HW/_frag_update_week_20261101.py
+  kind: script
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: '2026-11-01 周更新分片原子写脚本 (走 state/frag_write.py 的 update_fragment, 同一条 tmp+fsync+os.replace
+    路径): claims 订正 6 条 + 新增 8 条 + answers 16 条 + needs 8 条 + 补 due 23 条 + 状态/产出'
+- path: HANDOFF/2026-11-01_hw-lead_周更新.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: '2026-11-01 周更新交接单 (B1-B6 六块齐): ISS-043/079/105/111 四条闭环 + ISS-121 登记 +
+    16 条补登记 answers + 8 条新 needs + 14 条 claims 订正/新增 + 自证命令'
+- path: HANDOFF/2026-11-01_hw-lead_ISS111_EVT可靠性实测项清单.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: 'ISS-111 专项交接单 (B1-B6 六块齐): EVT 37 项清单交付说明 + 对 mech-lead 的 X-ray 抽样口径答复'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX
@@ -232,10 +304,12 @@ needs_from:
   to: mech-lead
   item: PCB 外形 50x12mm 确认 + 器件发热分布 + NTC 位置 (定桥接芯片上主板还是小板 / 散热路径)
   since: '2026-10-25'
+  due: '2026-11-05'
 - key: debug_port_form
   to: sw-lead
   item: 调试口形态 + OD 负载曲线 (定 DC-DC 瞬态与电容)
   since: '2026-10-25'
+  due: '2026-11-05'
 - key: q16_display_iface
   to: main
   waiting_on: vendor
@@ -328,11 +402,13 @@ needs_from:
     且SoC横向热扩散通道2->3.5mm对散热是增益; 代价镜腿根部净高+3mm顶上限) 2) 双显示路径hedge(11球+52mm2+1桥接芯片, 桥接芯片再加100-300mW)我建议买:
     原厂失联预案下唯一能出图开机的路径; Q16回信确认原生DSI可立刻省'
   since: '2026-10-27'
+  due: '2026-11-05'
 - key: iss081_vendor_ball_count
   to: main
   item: '给酷芯微原厂追加一问: ARS45 FCCSP 封装总球数(现有邮件第1问只问了pitch+引脚表/球位图, 没问球数) - 这是选型条款P-2(>=72球)的唯一输入,
     也是双显示hedge放不放得下的唯一输入; 外发一律经项目总工'
   since: '2026-10-27'
+  due: '2026-11-05'
 - key: iss105_pcb_outline_sync_60x15
   to: mech-lead
   item: '你的分片 interface_claims.pcb_outline 仍写 ''50x15mm'' (板长暂维持 50), 但板长已被项目总工 10-28
@@ -343,6 +419,7 @@ needs_from:
     你 BOARD_WIDTH_15MM.md §7 R-1 的『板重 +0.24g』是单位错误 (0.48cc 体积当重量), 真值 60x15x1.0mm
     6层 = 1.67g, 增量 +0.56g, 请一并更正。'
   since: '2026-10-28'
+  due: '2026-11-05'
 - key: iss105_chg_spec_consistency_390
   to: main
   waiting_on: main
@@ -376,36 +453,42 @@ needs_from:
   item: '骨架截面形状 + 重量口径 (ISS-049): 满宽 60x15x1.0 铝 = 4.86g/对 已判死; 台阶形(SoC段X19..33满宽15.00,
     其余10.00)=1.81g/侧=3.62g/对, 仍超 MECH_BUDGET §2.4 B ''+1-3g'' 0.62g。请定截面形状(台阶/U形/槽形)并复核重量口径;
     另: 骨架后端面与电芯前壁建议留>=1.0mm 空气隙(骨架做58.00mm而非60.00mm)'
+  due: '2026-11-05'
 - key: iss049_graphite_hchain
   to: mech-lead
   since: '2026-10-28'
   item: '石墨厚度与装配位置 (ISS-049): 石墨 0.30mm 未进 PCB 段 H 链 (4.20mm: 外壁0.8+骨架1.0+PCB0.8+空隙0.3+隔热垫0.5+皮肤壁0.8)
     => 要么石墨占骨架外侧空隙(链要+0.30), 要么它不是''面内扩展到镜腿上表面''的原件; 请在下一版 H 链补上并给装配位置; 另: 骨架/石墨前端(Z<0)
     是否允许延伸进铰链端余量区以增大前端对流面 (默认按不延伸)'
+  due: '2026-11-05'
 - key: iss049_mount_screw
   to: mech-lead
   since: '2026-10-28'
   item: '螺钉穿入方向与打印件配合 (ISS-049): M1.2 必须从皮肤侧穿入拧进骨架, 头落 PCB 皮肤侧 ⌀2.4x0.6 沉孔; ★螺钉头严禁接触皮肤侧下壳
     (否则金属跨过 0.50隔热垫+0.30空气隙 = 新并联热路); 隔热垫需在2处螺钉位开 ⌀3.0 让位孔; 上壳需 2x⌀2.4 + 2x⌀1.6 让过孔;
     请确认 FDM 沉孔可打性(层纹方向)与装配顺序'
+  due: '2026-11-05'
 - key: iss049_hole_windows
   to: mech-lead
   since: '2026-10-28'
   item: '固定孔窗口需锁定 (ISS-049): PCB 固定/压紧孔已定在 X[4,12] 与 X[46,56] 两个窗口 (P1/S1@X=8, P2/S2@X=52),
     SoC 逃线带 X[20.20,31.80] 不动; 但铰链端 4 条跨铰链连接器 (54触点) 的 X 占位仍未定 (我 ISS-105 的 F-2),
     eMMC/SPI-NOR 也未落位 => 请锁连接器占位, 否则将来孔位要平移'
+  due: '2026-11-05'
 - key: iss049_segment_order
   to: mech-lead
   since: '2026-10-28'
   item: '镜脚轴向分段顺序确认 (ISS-049): 我按 ''PCB 段在铰链端、电池段在尾端'' 取值 (依据 BOARD_WIDTH_15MM §2.4
     ''铰链端 PCB 段'' + CLEARANCE_FIX §3.1 电池段前端壁引电极), 因而 ''PCB 段后缘'' = 板坐标 X=60.00 =
     电池段起点, 骨架/石墨上限建立在此之上; 请确认'
+  due: '2026-11-05'
 - key: iss049_budget_version
   to: main
   since: '2026-10-28'
   item: 'MECH_BUDGET 版本口径 (ISS-049): 任务写''与 MECH_BUDGET v1.2 对齐'', 但 MECH/MECH_BUDGET.md
     文件头仍标 v1.1 (''首轮预算''), 我按 v1.1 正文 + MECH/BOARD_WIDTH_15MM.md (10-28) 两份对齐并逐条列了表;
     请确认结构侧是否另有 v1.2 修订版, 若在我手上我再核一遍'
+  due: '2026-11-05'
 - key: iss062_rgeo2_vendor_send
   to: main
   since: '2026-10-28'
@@ -413,6 +496,7 @@ needs_from:
     的 Q1-Q5 + 镜头厂 RFQ state/outbox/lens_rfq_rgeo2_addendum.md 的 RFQ-13~16)。建议把原厂 Q1~Q5
     并进第3轮那封 (21条->26条) 一起发, 不要单发; 代理附件一 (attach/01_ARS45_技术确认项_21条.md) 是否同步升版为 26
     条请项目总工定。边界: 硬件总工不直接外发, 全程未发任何邮件'
+  due: '2026-11-05'
 - key: iss062_rgeo2_sw_q4_correction
   to: main
   since: '2026-10-28'
@@ -420,18 +504,21 @@ needs_from:
     ox,oy), 所以原厂只要能等比缩放 + 输出非 4:3 有效帧 (640x362 或 640x400) 即可, 等价于子路线2。我的假设 (若 sw-lead
     不回应): 问04 按 A/B 两案写、排除非等比拉伸; 子路线2 维持项目总工 10-26 裁决不变, 不因问04 答复重开。请项目总工转达 sw-lead
     核对 SW/ISP_SCALING_MODE.md §6.2 表述'
+  due: '2026-11-05'
 - key: iss062_rgeo2_roi_fallback_decision
   to: main
   since: '2026-10-28'
   item: 'ISS-062 预警: 若原厂 Q1 回信是''ISP 只能 ROI 不能全幅'', 则老板 10-25 19:33/19:42 定的''不裁剪
     + 对角120度 + 俯角<=25度''基线要重开 (ROI 垂直半视场 20.98deg < 俯角25deg, 正前方掉出画面), 需请老板裁决新议题 (建议编号
     Q24)。此条在原厂回信前无法预判, 我方默认按''全幅''设计'
+  due: '2026-11-05'
 - key: iss067_uvp_landing_to_main
   to: main
   item: 'ISS-067: UVP 抬到 3.35/3.5V 在 BQ2970 上没有落点 (BQ2970=1S 电芯级过放保护, OVP 4.275V,
     UV 门限库内未核)。系统级欠压关断必须落在负载开关 U_PWR_SW 的输入欠压门限 (>=3.35V) 或外挂电压监控器。U_PWR_SW 还在 [待选型]
     => 请把该条写进 ISS-099 负载开关选型判据第 10 条, 现在加零板费, 投板后加=2-4 周返工'
   since: '2026-10-25'
+  due: '2026-11-05'
 - key: iss067_mech_transmit_m1_m8
   to: main
   item: 'ISS-067: 请把 HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md §6 的 M-1~M-8 结构侧输入转达 mech-lead:
@@ -439,6 +526,7 @@ needs_from:
     请写进截面预算); 新增DC-DC占板+30-40mm2(15mm板宽后面积缺口148-160mm2 扩到180-200mm2, 请给位置优先级); 现有电感高度是否已计入7.0mm叠层(我核不到);
     热模型补3.3V轨100mW(皮肤侧46.5->50.4-51.5C); 新buck建议放骨架侧远离皮肤; UVP改关机语义'
   since: '2026-10-25'
+  due: '2026-11-05'
 - key: iss067_caliber_b_converter_loss
   to: main
   item: 'ISS-067 口径校正: 口径B选电芯公式 mAh=P*1000/3.7/0.83/有效DoD 里, 我把 3.3V 轨转换损耗计入 P (方案A:
@@ -446,6 +534,7 @@ needs_from:
     需 408mAh (420mAh 够, 余3%), 上界1.01W需492mAh (不够=>650mAh/8.5mm 形态否决)。请裁: 口径B 是否计入转换损耗?
     我默认按计入 (更保守更接近真值)'
   since: '2026-10-25'
+  due: '2026-11-05'
 - key: iss067_decide_lowbat_insert
   to: main
   since: '2026-10-29'
@@ -478,12 +567,14 @@ needs_from:
     的壁 ⇒ **现有几何下磁铁无处可放** (P-1)。本单磁场数字用『标称板X=59.80(L100.30)』+『包络最坏X=48.00』两值, 坐标落定后
     python3 HW/iss121_mic_magnet_check.py 一条命令重算 (零板费)'
   since: '2026-11-01'
+  due: '2026-11-04'
 - key: iss121_mag_soc_gap_correction
   to: mech-lead
   item: 'ISS-121 U-2 (经项目总工转达): ISS-092 §4.3 的 **『磁铁↔SoC 间距 ≥68mm』与该文自身尺寸链矛盾** ——
     按同一条链 (磁铁 L100.30 vs SoC 逃线带末端 L72.30) 实际 **28.00mm**; 68.30 是拿磁铁的**镜脚 L** 减 SoC
     的**板 X** (两套坐标系混算)。该处磁场 B=54.8µT ⇒ 对 SoC 无功能影响, 但**数字必须订正**, 否则会被当成已复核引用'
   since: '2026-11-01'
+  due: '2026-11-04'
 - key: iss121_skeleton_extent_confirm
   to: mech-lead
   item: 'ISS-121 U-3 (经项目总工转达): 请确认**金属骨架是否贯通全板长**? ISS-092 §8 第4行只给 L58.5..82.5 (⇒
@@ -491,6 +582,7 @@ needs_from:
     ⇒ X=5.00 也需开窗 ⇒ **镜脚外侧面无 ≥40mm 合规落位** ⇒ 麦须改到镜框侧充电板 (语音更好, 但要跨铰链多2根 PDM 线, J_CHG
     只剩 pin9 一个空脚) ⇒ 需项目总工拉三方评审'
   since: '2026-11-01'
+  due: '2026-11-04'
 - key: iss121_mic_count_spec
   to: mech-lead
   item: 'ISS-121 U-4 (经项目总工转达): `MECH/MECH_BUDGET.md` §802 的 **『2× MEMS, 镜腿外侧开⌀1.0声孔,
@@ -498,6 +590,7 @@ needs_from:
     **每侧镜脚 1 颗 (L/R 一对)**: 两孔间距 = 镜框前框总宽 **140mm** (远超40mm) ⇒ 防声学串扰判据自动满足, 且不占 PCB
     面积 (省 ~6mm² + 一路 I2S/PDM)'
   since: '2026-11-01'
+  due: '2026-11-04'
 - key: iss121_audio_scope
   to: main
   item: 'ISS-121 U-5 (经项目总工): **音频要不要做** —— 麦至今 [0数据] (型号未选型; HW/HARDWARE_BREAKDOWN
@@ -512,6 +605,89 @@ needs_from:
     仍在等) —— 这条决定麦克风落位 M1 (板X5.00) 是否成立: 情形a (FPC连接器座体悬出板端, 只占焊盘 X0..3) ⇒ M1 净空 2.00mm
     成立; 情形b (沿板长拉开占 X0..24) ⇒ **镜脚外侧面无 ≥40mm 合规落位** ⇒ 麦改镜框侧。两种情形的磁场结论**不变** (无影响)'
   since: '2026-11-01'
+  due: '2026-11-04'
+- key: iss105_rilim_decision
+  to: main
+  item: '★ISS-105 衍生 (本周新发现, 请老板拍板): R_ILIM 390Ω 档的**充电电流换算方向反了** —— buck 降压 ICHG=η·Vbus/Vbat·IIN=**1.2162×IIN**
+    (旧式 0.8222× 是它的倒数) ⇒ 390Ω 档实际 ICHG 1.00-1.22A, **单 pin 0.608A > 0.5mm ZIF 触点 0.5A
+    额定** ⇒ 390Ω 档判 FAIL。★建议 **R_ILIM 退 680Ω** (单 pin 0.349A / 触点余量 1.43× / 铰链余量 2.15×
+    / 420mAh CC≈36min); 若电芯规格书确认 ≤1C 则须退 **1.2kΩ** (0.94C)。★**换料不换板** (0402 ±1%),
+    零板费, 但**网表/BOM/门禁值都要跟着改** ⇒ 请裁定 680Ω 还是 1.2kΩ (due 11-03)。★我的默认假设: 若 11-03 前无回复,
+    按 **680Ω** 出 RFQ 问价口径, 标注『待电芯规格书确认可退 1.2kΩ』。'
+  since: '2026-11-01'
+  waiting_on: boss
+  due: '2026-11-03'
+- key: iss079_phip_manual_fetch
+  to: main
+  item: 'ISS-079 遗留 (需人工一步): 酷芯微**港交所申请版本招股书 (PHIP) 直链检索不到** —— hkexnews 的 AP&PHIP
+    入口 (www1.hkexnews.hk/app/appindex.html?lang=zh) 要点 Warning Statement + JS 交互,
+    非交互抓取拿不到申请人列表 (已试 5 条路径, 见 HW/ONLINE_INTEL_2026-10-26.md §2.3)。★请人工打开该页 → ACCEPT
+    → 年份 2026 → 检索『合肥酷芯微电子股份有限公司』或『Artosyn』→ 下载申请版本 PDF, 放 `state/outbox/` ⇒ 我再补 §业务/供应链/交付页的原文级证据。★当前招股书数字全部是**媒体转述级**,
+    不能当芯片级规格用 (due 11-05)。'
+  since: '2026-11-01'
+  waiting_on: boss
+  due: '2026-11-05'
+- key: iss043_vbus_det_divider_change
+  to: main
+  item: 'ISS-043 衍生 (与 sw-lead 9 项请求 P1-8 同向): 网表 `R_VBUS_DET_1/2` 现状 **1M+1M** ⇒
+    源阻抗 500kΩ, τ=**50ms** (95%≈150ms), ADC 漏电误差 ~15.2%FS。★建议改 **100k/47k** (Rth=32.0kΩ
+    ⇒ τ=**3.2ms**, 5V→**1.60V**, 漏电误差降 10 倍) ⇒ **换料不换板**。★改网表要动 `state/gen_netlist.py`
+    (不属硬件总工本单边界) ⇒ 请排期重生成; 并请转 sw-lead 核对 ADC 量程与门禁阈值 (我方建议: VBUS_PRESENT_TH=3.0V
+    对应输入 ≥4.4V)。★另: 充电状态门禁判据必须是 **OR(CHG_STAT 低, VBUS>阈值)** ⇒ 断线 fail-safe, 详见 HW/CHARGE_STATUS_READBACK.md
+    §3.1 (due 11-04)。'
+  since: '2026-11-01'
+  waiting_on: agent
+  due: '2026-11-04'
+- key: iss089_chg_led_board_column_fix
+  to: main
+  item: 'ISS-089 交叉评审 #4 (mech-lead 判对, 我方认账): 充电灯链 **D_CHG_LED/Q_CHG_LED/R_CHG_LED
+    的 board 列标 MAIN_PCB 是错的** —— 老板 10-27 拍板『关机时充电灯要亮』+ VBUS_5V_CHG 只存在于充电板 ⇒ 这条链物理上只能在**镜框充电板**。★现状
+    HW/BOM_v1.csv 里 R_CHG_LED 已是『镜框充电板』而 D/Q_CHG_LED 仍是『镜脚主 PCB』 ⇒ 同一条链三行不一致。★改 board
+    列要动 `state/gen_netlist.py` (不属硬件总工本单边界) ⇒ 请排期重生成网表+BOM; 改完 ISS-103 的镜框导光孔位置才能定
+    (否则会开在镜脚上) (due 11-04)。'
+  since: '2026-11-01'
+  waiting_on: agent
+  due: '2026-11-04'
+- key: iss092_jdebug_cortex10_netlist_fix
+  to: main
+  item: 'ISS-092 衍生: J_DEBUG 现状是 1x4 1.27mm JTAG 排针 (SCHEMATIC_V1 P7 行 585) ⇒ 按 mech-lead
+    (ISS-092) 要求改成 **2x5@1.27 Cortex-10 焊盘阵列 (座体 DNP)**, 并把 **J_UART 1x2 并入同一阵列**。★改网表要动
+    `state/gen_netlist.py` ⇒ 请排期; 焊盘阵列按 Cortex-10 标准 1.27mm 网格, footprint 我方出 (due
+    11-05)。'
+  since: '2026-11-01'
+  waiting_on: agent
+  due: '2026-11-05'
+- key: iss105_bom_generator_qty_override
+  to: main
+  item: 'ISS-105 衍生 (工具缺口): `HW/BOM_v1.csv` 的 J_CHG 备料口径『**实物一对 (框侧座 + 脚侧座), 备料按 2
+    只**』我已写进 memo 列 (第 12 行), ★但 `state/gen_bom.py` 的自检**强制所有 ref 的 qty==1** 且 memo
+    由 `procurement_status()` 生成 ⇒ **下次重生成网表/BOM 时这行备注会被覆盖掉**。★请在生成器里加一张『备料倍数/实物件数』覆盖表
+    (至少 J_CHG=2) 或改自检口径; 否则我们的备料口径随时蒸发 (due 11-06)。'
+  since: '2026-11-01'
+  waiting_on: agent
+  due: '2026-11-06'
+- key: iss118_pcb_outline_sync_60x30
+  to: mech-lead
+  item: '★台账订正 (重要): 老板 10-29 19:16 拍板『板宽可以放到 30mm 以内』 ⇒ **板框已定 60×30mm** (PROJECT_TRACKER
+    §0 板宽行, 11-01 20:5x 已订正)。★我方分片的 `pcb_outline` 已从 60x15mm 改成 **60x30mm** ⇒ 合并器现在会报
+    `pcb_outline` 冲突 (60x30mm vs 你的 60x15mm) ⇒ **请把 mech.yaml 的 pcb_outline 同步成 60x30mm**
+    (或改用 pcb_board_width=30mm + pcb_length=60mm 两个细分 key)。★附带: 60×30 ⇒ 板重 **3.33g**
+    (6层1.0mm), 你的 H 链与 mock 板 (B2) 请按 30mm 板宽重算 —— 你 10-31 的假设『4层0.80mm / 1.33g』已作废
+    (due 11-04)。'
+  since: '2026-11-01'
+  waiting_on: agent
+  due: '2026-11-04'
+- key: iss118_pcb_holes_30mm_y
+  to: mech-lead
+  item: '★孔位 Y 向重算 (板宽 15→30 后): 4 个固定/压紧孔的 X 不变, **Y 按中心线平移** (旧中心 7.50 → 新中心 15.00,
+    S 孔 ±5.00 不变) ⇒ 新坐标 **P1(8.00,15.00) / P2(52.00,15.00) / S1(8.00,10.00) / S2(52.00,20.00)**
+    (板 60×30, 原点左下角)。★复算已过: 4 孔在板内且边距 ≥2.0mm; 与 SoC 逃线带 X[20.20,31.80] 的 2D 重叠 = **0.000mm²**;
+    全部落在 X[4,12]+X[46,56] 窗口; P1-P2 基准跨距 44.00mm 不变 (`python3 HW/hw_week_20261101_check.py`
+    §1)。★请结构侧确认: 骨架 ⌀2.0 h6 压装销孔位置 + 打印件 ⌀2.4 间隙孔 + 螺钉柱避让是否随 Y 平移 (骨架石墨覆盖范围也要重核, 30mm
+    板宽下 SoC 横向扩散通道从 2.00mm 变 3.50mm) (due 11-04)。'
+  since: '2026-11-01'
+  waiting_on: agent
+  due: '2026-11-04'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -588,21 +764,143 @@ answers:
     T-3c复活则破判据; MECH_BUDGET§802『2×/间距≥40』口径需改1颗/侧
   ref: HW/ISS121_MIC_MAGNET_POSITION.md §3 (B3 证据分级) + HW/iss121_mic_magnet_check.py
     §C
+- key: fw_boot_storage_bom
+  to: sw-lead
+  value: '64MB SPI-NOR 装不下 (分区表 90MB) ⇒ 必须 ≥128MB, 路线选 **eMMC 5.1 / ePoP** (不是 NOR)。★量产眼镜印证:
+    小米 AI 眼镜用 Kingston **ePoP** 存储 (52audio 拆解) ⇒ 方向一致。ARS45 侧仍按『无内置 boot storage』设计
+    (外挂), 脚号 TBD-06/11。★板宽已放宽到 30mm ⇒ 挂 eMMC 的面积压力解除 (旧账: 12→15mm 要 +25%)。'
+  ref: HW/ONLINE_INTEL_2026-10-26.md#B3-2 + HW/netlist_v1.csv P3 行 185-190
+- key: fw_boot_mode_hw
+  to: sw-lead
+  value: 'BOOT 走**独立通路** (J_BOOT1 焊盘 + R_SER_SPI_* 0Ω 串阻位, P3 行 186-190), **不复用侧键**
+    (售后长按3s=版本号/长按10s=关机, 复用会误触进 BOOT 变砖) —— 采纳你的建议。HW-22 预留位数: 至少 2 个按键焊盘 + 1-2 个
+    LED 焊盘 + 各电源轨/关键信号测试点 (HARDWARE_BREAKDOWN §1.5)。★BOOT/RESET 测试点已留 (TP_BOOT)。'
+  ref: HW/HARDWARE_BREAKDOWN.md#1.5(HW-21/HW-22) + HW/netlist_v1.csv P3 行 186-190
+- key: sw_reset_hw_changes
+  to: sw-lead
+  value: '9 项逐条现状 (按网表 grep 口径): **P0-1 已做** (Q_AND N-MOS 硬件 AND, P8 行 62) · **P0-3
+    已做** (U_SUPV CT 补上, 行 72) · **P1-4 未做** (CONN_USB 仍 4p D+/D-/GND/预留 ⇒ 要 pin4 改
+    GND) · **P1-5 部分** (充电板侧有 D_ESD_TC, 主板侧有 D_ESD_USB 行 442-443; Type-C 侧位置按 ≤3mm
+    落) · **P1-7 已做** (J_BOOT1 + 0Ω 位) · **P1-8 未做** (VBUS_DET 仍 1M+1M ⇒ 本周已出同向建议 100k/47k,
+    见 HW/CHARGE_STATUS_READBACK.md) · **P0-2/P1-6/P1-9 待排期** (U_SUPV 分压仍 [待选型]/TBD-12;
+    USB pogo 未加; U_TEMP TMP117 有器件但缺物理测点 note)。★改网表要动 state/gen_netlist.py ⇒ 不在硬件总工本单边界,
+    已列 needs 给项目总工。'
+  ref: HW/netlist_v1.csv P8 行 62/72 + HW/CHARGE_STATUS_READBACK.md#B1-4
+- key: sw_poweroff_gpio_pin
+  to: sw-lead
+  value: '① 脚号: 网表仍是 **TBD-01** (SoC 未定脚) ⇒ 11-01 基线换 RK3576 后随换芯一次性重映射, 不单独投板费。②
+    关机瞬间动作: SoC 把 PWR_CTRL GPIO 写**高阻** → 负载开关 ON 脚掉回 **10k 下拉** → 开关关 → SoC 断电 ⇒
+    **状态自动保持** (不用 SR 锁存)。关机时**充电板仍有电** (电池在镜脚, SYS 未接) ⇒ 关机也能充电。③ 通知充电板的通路: **无**
+    ⇒ SW 不做该动作, 充电灯是充电板本地硬件行为 (NMOS 读 STAT)。★关机 = 负载开关断 SYS, 不是 SoC 自己睡。'
+  ref: HW/POWER_SHUTDOWN_V3.md#3 (§3 表格 关机动作行)
+- key: mech_reltest_xray_sampling
+  to: mech-lead
+  value: '★**采纳你的口径**: 旧『抽检 3 块板』在 1 台样机上不成立 ⇒ 改为 **同一块板 3 个位置 (FCCSP/BTB/电感) + 1
+    处切片**, 抽样量按**位置**计而非按板计; 判据不变 (空洞率 ≤25%, IPC-A-610 Class 2 条款未核)。★你 T-01 那组判据
+    (接触电阻 ΔR≤+10mΩ / 阻抗 ±10% / MTF 衰减 ≤10% / 电池 ΔR≤+20% / 电感 ΔL≤±10%) 我全部确认采用, 已写进
+    HW/EVT_RELIABILITY_TEST_ITEMS.md §B3 工况基准表。'
+  ref: 'HW/EVT_RELIABILITY_TEST_ITEMS.md#4.1 R-D-06 + #B3'
+- key: iss085_esd_cmc_placement
+  to: mech-lead
+  value: '你的 5 条结构位置要求**全部采纳**并写进 EVT 清单与 EMC 判据: ① 两端各 1 组 ESD 距连接器 ≤3.0mm, 共面接地
+    (回路 ≤1 过孔), 结电容 ≤0.5pF, 封装 ≤0.5mm ② 两端各 1 个 CMC 距弯折起点 ≥5.0mm 且距连接器 ≤10.0mm, 260°C
+    回流焊耐受, ≤0805 ③ **一律装 PCB 端, 不许装跨铰链 FPC** (弯折区只允许连续铜箔) ④ 顺序 连接器→ESD→CMC→串阻/端接,
+    两端对称 ⑤ BAT_DET/VBUS_DET 高阻检测线跨铰链必须被 GND 夹持, 与 USB 差分对间距 ≥3mm。★**一处分歧 (按我的口径, 你可反驳)**:
+    USB 2.0 差分对**不装 CMC** —— 网表 P9 行 442 已写明 (USB 2.0 眼图对共模转差分极敏感, 扼流圈会恶化眼图); CMC
+    只给 CSI/显示差分用。'
+  ref: HW/EVT_RELIABILITY_TEST_ITEMS.md#4.6 + HW/netlist_v1.csv P9 行 442
+- key: iss085_emc_grounding_definition
+  to: mech-lead
+  value: '『外露金属件』定义: **用户可触及 或 佩戴中与皮肤/人体形成导电路径的金属件** (骨架外露面 / Type-C 屏蔽壳 / 铝框 / 充电板铝屏蔽罩
+    / 铰链销 / PCB 定位销) —— 判据不是『外露』, 是『人体能否触到并泄放』。★**活动铰链不做全单点接地** (活动接地路径要断, 否则铰链转动时电势差会放电打火)
+    ⇒ 铰链两半**各接机壳地一次**, 铰链本体靠导电垫/铰链销做**搭接 (不是接地)**; 你给的间距 (骨架≥3.0mm / Type-C 壳≥3.0mm
+    / 铰链销与 FPC≥0.5mm / PCB 销≥0.5mm) 我全部采纳。★R-04/R-07 收敛的前提仍是『外露金属面清单』, 请结构侧给一份带坐标的面清单。'
+  ref: HW/EMC_PRECHECK.md#R-04/R-07
+- key: iss085_usb_crc_threshold
+  to: mech-lead
+  value: '确认你的口径: **『通信中断』= 0 次总线复位 / 0 次掉线 / 0 次枚举丢失**, CRC 错误阈值 **≤1 次/分钟**连续传输
+    —— USB 2.0 的 CRC 重传是协议自带机制, 写 0 错误会把正常重传误判成失败 ⇒ **可作为量产抽检项**。★口径统一为: 枚举丢失 0 次
+    + 总线复位 0 次 + CRC 错误 ≤1 次/分钟 ⇒ 判通过。'
+  ref: HW/EMC_PRECHECK.md#R-03 + HW/EVT_RELIABILITY_TEST_ITEMS.md#4.2 R-V-04
+- key: iss091_chargeboard_bat_note
+  to: mech-lead
+  value: '★**采纳『不做补偿』**并写进 HW/CHARGE_BOARD_SPEC 的同口径注记 (HW/CHARGE_CURRENT_RECHECK_2026-11-01.md
+    §2.4 同源): BQ25896 的 BAT 监测点在**框侧**, 跨铰链压降 37-111mV ⇒ 真实电芯欠充 ΔV ⇒ BQ25896 会**提前判满**并终止。
+    方向是**欠充 (永不过充)**, 容量损失 <1% ⇒ 不上调终止电压 (会把真实电芯推过 4.2V, 过充方向危险)。★同一条链上的新数字: 充电电流换算方向已订正
+    (ICHG=1.216×IIN), 390Ω 档单 pin 0.608A 超触点 0.5A ⇒ 建议 R_ILIM 退 680Ω —— 你按 1.5A 设计点算的铰链压降/发热**不受影响**
+    (仍保守 1.23-2.15×)。'
+  ref: HW/CHARGE_CURRENT_RECHECK_2026-11-01.md#2.4/#2.5
+- key: iss089_ichg_ratio_datasheet
+  to: mech-lead
+  value: '★**确认你判对了**: buck 降压功率守恒 Pout=η·Pin ⇒ **ICHG = η·Vbus·IIN/Vbat = 0.9×5/3.7
+    = 1.2162×IIN**; 旧的 0.8222 是它的倒数 (乘积=1.000000000, 脚本自校)。★后果: 390Ω 档实际 ICHG = **1.00-1.22A**
+    (不是 0.67-0.82A), 单 pin = **0.608A** ⇒ 超 0.5mm pitch ZIF 触点 0.5A 额定 ⇒ **390Ω 档要重判,
+    你的假设成立**。★我的建议取 **680Ω** (单 pin 0.349A / 触点余量 1.43× / 铰链余量 2.15× / 420mAh CC≈36min)
+    而非 680Ω 直判, 理由: 680Ω 已满足触点与铰链两条硬判据; **若电芯规格书确认 ≤1C 则须退到 1.2kΩ** (0.94C)。裁决权在 boss。'
+  ref: HW/calc_chg_ichg.py + HW/CHARGE_CURRENT_RECHECK_2026-11-01.md#2.2
+- key: iss089_p9_topology_and_stack
+  to: mech-lead
+  value: '★两处都改: ① **CONN_LIGHT 统一 22p** (器件表与网表都是 22p ⇒ 物理带宽 27.00mm + 4 条×2×0.50mm
+    走线边距 = **31.00mm**, 不是 26.5mm; §功能块里的 21p 与 (10+4+18+21) 自算作废)。② **P9 页补走线拓扑定义**
+    —— 采不采你的 H 向径向嵌套, 要先看板宽: ★**板宽已从 15mm 放宽到 30mm** (老板 10-29 19:16), 4 条 FPC 带宽合计
+    31.00mm 在 30mm 板宽下只差 1.00mm ⇒ **V 向叠放不再需要 16mm 面内扇开** ⇒ 你的『V 向叠放必须扇开』结论是 15mm
+    板宽下的, **已过期**。★我的建议: 按 **V 向叠放 4 条 (31.00mm ≤ 30mm 板宽余 1.00mm 仍偏紧) + H 向径向嵌套**
+    两条一起核, 但**不再拍板** (板宽 30 后 4 条跨铰链连接器 (54 触点 = 27mm 焊盘排) 的落板区仍未定 ⇒ ISS-105 F-2 还开着)。'
+  ref: HW/netlist_v1.csv P9 行 437-441 + needs iss118_pcb_outline_sync_60x30
+- key: iss089_chg_led_board_column
+  to: mech-lead
+  value: '★**你判对了, 我方改正**: D_CHG_LED/Q_CHG_LED/R_CHG_LED 三行的 board 列必须 **MAIN_PCB
+    → CHG_BOARD** (充电灯装充电板/镜框, 老板 10-27 拍板『关机时充电灯要亮』+ VBUS_5V_CHG 只存在于充电板 ⇒ 物理上只能在框侧);
+    ★现状: BOM_v1.csv 里 R_CHG_LED 已是『镜框充电板』而 D/Q_CHG_LED 仍是『镜脚主 PCB』 ⇒ **同一条链三行不一致**。★我已把
+    HW/BOM_v1.csv 的 J_CHG 行备注同步, 但**网表改 board 列要动 state/gen_netlist.py (不属硬件总工本单边界)**
+    ⇒ 已列 needs 给项目总工排期, 请项目总工转告。★打印包 MECH/print/temple_cage_340.stl 的 Type-C 面板试样(Y120-123)
+    移到镜框端件, 我同意, 但那是结构侧的活。'
+  ref: HW/BOM_v1.csv (行 330-332) + HW/netlist_v1.csv P10
+- key: proto_pcb_thickness_tier
+  to: mech-lead
+  value: '★**你的假设已过期, 别按 4 层 0.80mm 做 mock 板**: 板框已定 **60×30mm** (老板 10-29 19:16),
+    层数目标 **6 层 1.00mm** (4 层在 4 组高速 + 62 net + 190 器件下无解) ⇒ **板重 3.33g** (60×30×1.0),
+    不是 1.33g/1.67g。★H 链余量按 6 层 1.00mm 重算 (旧 4 层口径已作废); 你的 B2 mock 板请按 **60×30×1.00mm**
+    做。★屏蔽罩: 第一台样机**不做**金属屏蔽罩 (只做石墨 + 骨架) ⇒ mock 板的高度上限只需留骨架+石墨+上壳。★另: PCB 面上需要结构开孔
+    = 4 个固定孔 (P1/P2 ⌀2.0 H7 + S1/S2 ⌀1.4) + SoC 散热焊盘投影区, 其余不要求开孔。'
+  ref: HW/pcb60x30_check.json (板重 3.33g) + HW/PCB_FIXING_PINSET2.md
+- key: iss065_battery_tier_claim_sync
+  to: mech-lead
+  value: '★**已改**: 我方 interface_claims.battery_capacity_tier = **315mAh无桥/387mAh有桥**
+    (与 mech-lead 同值); ★并且本次窗口把**文件里重复的旧值条目 (无桥接340-575mAh/有桥接575-675mAh) 一并删掉** ——
+    留着就是过期值, 别人 grep 到会当真 (合并器只取最后一条, 不代表文件里没有错的)。★其余按你说的: POWER_BUDGET_V2.md §10
+    S-5 的 315/387 口径是对的, 文档正文不动。'
+  ref: state/fragments/hw.yaml (interface_claims.battery_capacity_tier) + HW/_frag_update_week_20261101.py
+- key: iss092_jdebug_cortex10_netlist
+  to: mech-lead
+  value: '★**接受 2x5@1.27 Cortex-10 焊盘阵列 (座体 DNP)**: 现状网表 J_DEBUG 是 1x4 1.27mm JTAG
+    排针 (SCHEMATIC_V1 P7 行 585) ⇒ 要改成 2×5 焊盘阵列 + 座体 DNP + J_UART 1x2 **并入同一阵列** (省一条连接器)。★焊盘尺寸/间距/引脚序
+    = Cortex-10 标准 (1.27mm 网格, 2×5) —— 需结构侧给**座体外形**或按标准封装出 footprint。★改网表要动 state/gen_netlist.py
+    (不属硬件总工本单边界) ⇒ 已列 needs 给项目总工排期。'
+  ref: HW/netlist_v1.csv P7 行 585 + needs iss092_jdebug_cortex10_netlist_fix
+- key: emc_hw_interface_ask
+  to: main
+  value: 'EMC 需要的 4 项硬件数据: ① **充电状态读取 = 已有, 双通路** CHG_STAT (BQ25896 STAT 开漏 +10k 上拉
+    → J_CHG pin5 → SoC GPIO, 低=充电中) + VBUS_DET (1M+1M 分压+100nF → J_CHG pin7 → SoC
+    ADC) ⇒ M-CHRG 门禁**硬件上可实现** (ISS-043 可关)。② **电源域标称电压**: SYS 3.0-4.2V / 3.3V 轨 (LIGHT_3V3
+    150mA + VDD_3V3_IO 200mA) / 1.8V IO / 2.8V SENSOR_AVDD / 1.8V SENSOR_VDD_IO /
+    1.2V SENSOR_CORE / V_CORE 0.65-1.0V —— ★但 **11-01 基线换 RK3576 后全部作废**, 随换芯重出。③
+    **帧同步信号能引出**: 现在没有独立帧同步脚 (走 MIPI CSI 内的 FS/EL 或走 USB 侧事件), 需要引出的话要加 pin ⇒ 换芯时一并定。④
+    **测流点**: TP_BAT_CHG (跨铰链压降) / TP_VBUS / TP_CHG_STAT / TP_USB_D_P/N 已有; **贴片测温点位**
+    U_TEMP (TMP117) 有器件、缺物理测点 note ⇒ 已列 needs。'
+  ref: HW/CHARGE_STATUS_READBACK.md + HW/netlist_v1.csv (P7 测试点页)
 interface_claims:
 - key: pcb_outline
-  value: 60x15mm
-  note: ★板宽 15 = 老板 10-27 拍板; 板长 60 = 项目总工 10-28 裁 (60x15=900mm² 使双面贴面积缺口闭合, 长度余量
-    14.50mm, 不动镜脚长度方案, 不砍 BOM); 镜脚截面 H7.30/V38.00/L130.00 不因板宽改变 (板宽是 V 向尺寸, 不进 H
-    链); ★结构侧已证伪『净高 37->40 / 打印件要改版』 (净高 38mm 一毫米不用动)
-  ref: HW/PCB_OUTLINE_60x15.md#1
+  value: 60x30mm
+  note: '★2026-11-01 订正: 旧值 60x15mm → 新值 60x30mm。依据 老板 10-29 19:16 拍板『板宽可以放到 30mm
+    以内』 (PROJECT_TRACKER §0 板宽行, 11-01 20:5x 台账订正) ⇒ 60x30=1800mm²。★ISS-118 机械判定:
+    RK3588 在 60x30 下缺 497.3mm² 装不下, RK3576 余 122.3mm² 装得下。★板长 60mm 不变; 骨架/石墨上限仍 =
+    PCB 段后缘 X=60.00。'
+  ref: HW/PCB_FIXING_PINSET2.md#1 + PROJECT_TRACKER.md#0
 - key: board_layer_count
   value: 4-6层
   note: 锁死; 与 main 同 key 同值 -> 值一变即报冲突; pitch<=0.3mm 须 HDI = 违反锁死
   ref: HW/HARDWARE_BREAKDOWN.md#1.6(HW-23)
-- key: battery_capacity_tier
-  value: 无桥接340-575mAh/有桥接575-675mAh
-  note: 与 mech-lead 同值; 有无桥接芯片直接决定电池档位
-  ref: HW/HARDWARE_BREAKDOWN.md#2-卡点C
 - key: typec_opening
   value: 9.5x3.6mm
   note: 与 mech-lead 同值; 受 P2S 3D 打印公差限制
@@ -719,10 +1017,10 @@ interface_claims:
   note: 0603(0.8mm深)只能长轴平行于逃线带; 垂直(1.6mm深)12mm板宽放不下
   ref: HW/SOC_PIN_BUDGET.md#2.2-Q3
 - key: pcb_width_recommend
-  value: 15mm
-  note: 第一台样机锁 15mm (逃线带误差容忍 +1.25mm vs 12mm 的 +0.20mm); ★已拍板 10-27; ★结构侧代价 = 几乎为零
-    (三方向余量一字不变, 净高 38mm 不动, 打印件不改版); 板长 60 见 pcb_outline
-  ref: HW/PCB_OUTLINE_60x15.md#1
+  value: 30mm
+  note: '★2026-11-01 订正: 旧值 15mm → 新值 30mm (老板 10-29 19:16 拍板)。★注意: 板宽 30 只指镜脚主 PCB,
+    充电板在镜框 (ISS-014 决策 5) ⇒ 放宽板宽**不解**充电板 14.60mm² 面积缺口。'
+  ref: PROJECT_TRACKER.md#0 (板宽行) + HW/pcb60x30_check.json
 - key: soc_display_hedge_cost
   value: 11ball+52mm2+1bridge
   note: 双显示路径hedge代价; Q16确认原生DSI则立刻可省
@@ -798,12 +1096,11 @@ interface_claims:
     0.55A 上限 -> 待 PM 与 R-F1 一起裁决
   ref: HW/POWER_BUDGET_V3.md#9
 - key: chg_input_limit
-  value: 1.00A/0.82A/0.411A
-  note: 'R_ILIM=390Ω 档 (老板 10-28 拍板『边戴边充不允许』=> 皮肤温度不再是充电时硬约束 => 可提速; 换料不换板): IINMAX
-    max 1.00A / ICHG max 0.82A / 单 pin 0.411A (pin1+pin2 双 pin 均分); ★300Ω 档已判死 (单
-    pin 0.534A > 任何 0.5mm pitch FPC ZIF 的 0.5A 额定天花板, 想上 1A 只能 1.0mm pitch 而铰链区装不下);
-    260Ω/680Ω 亦不可用/过剩, 详见档位表; R_ILIM 是必装件 (不装 => REG04 复位默认 ICHG 2048mA 会让铰链过 2.05A)'
-  ref: HW/PCB_OUTLINE_60x15.md#3.4
+  value: 0.82-1.00A
+  note: '★2026-11-01 二次订正: 旧值 1.00A/0.82A/0.411A (300Ω→390Ω 换算时用了**反向**公式) → 新值 **0.82-1.00A**
+    (R_ILIM=390Ω 的 IINMAX, 三档 KILIM=320/355/390 AΩ)。★**ICHG 不是 IIN**: buck 功率守恒 ICHG=η·Vbus/Vbat·IIN
+    = **1.2162×IIN** (旧式 0.8222× 是它的倒数) ⇒ 电池侧电流见 chg_ichg_at_rilim, 单 pin 见 chg_single_pin_a。'
+  ref: HW/CHARGE_CURRENT_RECHECK_2026-11-01.md#2
 - key: chg_ichg_reset_default
   value: 2048mA
   note: REG04 (Fast Charge Current) 复位默认值, 非 REG00; REG00 (IINLIM) 复位默认 500mA, PSEL=Low
@@ -819,23 +1116,23 @@ interface_claims:
     段后缘
   ref: HW/PCB_OUTLINE_60x15.md#1.1
 - key: pcb_mount_holes_xy
-  value: P1(8,7.5)P2(52,7.5)S1(8,2.5)S2(52,12.5)
-  note: '★ISS-049 定版 PIN-SET-2 (板 60x15, 原点左下角, X=板长0..60 铰链端在X=0, Y=板宽0..15): P1(8.00,7.50)
-    ⌀2.0H7 主定位(配骨架压装⌀2.0 h6圆销, 全基准) + P2(52.00,7.50) ⌀2.0H7 副定位(配菱形销对边1.94, 只定Y, 消过定位)
-    + S1(8.00,2.50)/S2(52.00,12.50) ⌀1.4 M1.2 压紧孔(纯压紧零定位); ★4/4孔与 SoC 逃线带 X[20.20,31.80]
-    2D 重叠 = 0.000mm² (HW/pinset2_check.py rc=0); 老口径(2xM1.2+1x⌀2.0H7 @边距2.50) 在 15mm
-    板下 3/3 孔压带 -> 作废; ★本单把 ISS-105 的旧值(单销 H7(15,7.5)) 改掉, 板框不变'
-  ref: HW/PCB_FIXING_PINSET2.md#3
+  value: P1(8,15)P2(52,15)S1(8,10)S2(52,20)
+  note: '★2026-11-01 订正: 旧值 P1(8,7.5)P2(52,7.5)S1(8,2.5)S2(52,12.5) → 新值按 **60x30mm
+    板宽**把 Y 向平移 (旧中心 7.50 → 新中心 15.00, S 孔 ±5.00 不变)。X 向与孔位窗口 X[4,12]+X[46,56] 不变。★与
+    SoC 逃线带 X[20.20,31.80] 的 2D 重叠 = 0.000mm² (复算: python3 HW/hw_week_20261101_check.py
+    §1)。'
+  ref: HW/hw_week_20261101_check.py#sec1
 - key: chg_rilim
   value: 390Ω
   note: R_ILIM 电阻取值 (0402 ±1%, 必装件, 换料不换板); IINMAX=KILIM/RILIM, KILIM=320/355/390
     AΩ; 充电 ~29min (390Ω max 档); 皮肤温度保守口径 42.14°C (<43°C 红线)
   ref: HW/PCB_OUTLINE_60x15.md#3.4
 - key: chg_single_pin_a
-  value: 0.411A
-  note: 'J_CHG pin1/pin2 双 pin 均分后的单 pin 电流 (390Ω 档 max); 对 0.5mm pitch ZIF 触点天花板
-    0.5A 余量 1.22x; ★工况前提: 只有 pin1/pin2 载流, 其余脚 <=1mA (FH12 的 70% 降额条款只针对全部触点同时导通)'
-  ref: HW/PCB_OUTLINE_60x15.md#3.3
+  value: 0.50-0.61A
+  note: '★2026-11-01 二次订正: 旧值 0.411A → 新值 **0.50-0.61A** (390Ω 档 ICHG 1.00-1.22A ÷
+    双 pin)。⇒ **390Ω 档判 FAIL**: 0.608A > 0.5mm pitch ZIF 触点 0.5A 额定 (余量 0.82×)。★建议
+    R_ILIM 退 **680Ω** (单 pin 0.349A / 余量 1.43×, 换料不换板) —— 裁决权在 boss, 见 chg_rilim_recommended。'
+  ref: HW/calc_chg_ichg.py + HW/CHARGE_CURRENT_RECHECK_2026-11-01.md#2
 - key: j_chg_qty
   value: '2'
   note: '★实物一对 (框侧充电板座 1 + 脚侧主 PCB 座 1): 网表只声明 1 只逻辑器件, 采购/备料必须按 2 只算; 网表侧建议拆 J_CHG_A(框侧)/J_CHG_B(脚侧)
@@ -1042,6 +1339,52 @@ interface_claims:
   note: 判据对象 = 通窗/磁铁/螺钉凸台; M1 实测 通窗44.20 / 磁铁54.80(最坏43.00) / 螺钉55.30 ⇒ PASS; M2(X17)/M3(X26)
     FAIL; 可满足带仅板X≤8.00
   ref: HW/iss121_mic_magnet_check.py §C
+- key: chg_ichg_at_rilim
+  value: 1.00-1.22A
+  note: '★新增 (2026-11-01): R_ILIM=390Ω 时的**电池充电电流** ICHG = η·(Vbus/Vbat)·IIN = 1.2162×IIN
+    ⇒ 0.998-1.216A。★铰链里流的是 ICHG 不是 IIN ⇒ 铰链载流核算必须用这个数。'
+  ref: HW/calc_chg_ichg.py §ratio
+- key: chg_rilim_recommended
+  value: 680Ω
+  note: '★新增 (2026-11-01) 建议值: 现行 390Ω 档单 pin 0.608A 超 0.5A 触点天花板 ⇒ 建议退到 680Ω (IINMAX
+    0.471-0.574A / ICHG 0.572-0.698A / 单 pin 0.349A / 触点余量 1.43× / 铰链余量 2.15× / 充电
+    420mAh CC≈36min)。★若电芯规格书确认 ≤1C 则须退到 1.2kΩ (0.94C)。★**裁决权在 boss**, 网表/BOM 未改 (不在本单边界)。'
+  ref: HW/CHARGE_CURRENT_RECHECK_2026-11-01.md#2.3
+- key: chg_status_readback
+  value: CHG_STAT+VBUS_DET
+  note: '★新增 (2026-11-01, ISS-043): 充电状态读取 = 双通路 —— ① CHG_STAT (BQ25896 STAT 开漏, 10k
+    上拉到 VDD_3V3_IO, → J_CHG pin5 → SoC GPIO, 低=充电中) ② VBUS_DET (1M+1M 分压 + 100nF →
+    J_CHG pin7 → SoC ADC)。两路都在网表里 ⇒ ISS-043『未确认』前提不成立 ⇒ M-CHRG 门禁硬件上可实现。'
+  ref: HW/CHARGE_STATUS_READBACK.md#B1 + HW/netlist_v1.csv P2 行 159-173
+- key: chg_status_gate_logic
+  value: OR(CHG_STAT_low,VBUS>thr)
+  note: '★新增 (2026-11-01): 门禁判据必须是 **OR** 而不是单看 CHG_STAT —— 开漏线断线会读到『高=未充电』, 单用一条通路会在断线时放开禁
+    OD (皮肤侧 75.1°C 风险)。两条都断 ⇒ 开机自检判『未知态』 ⇒ 默认禁 OD (fail-closed)。★I2C 跨铰链是 DNP ⇒ 读不到充电
+    IC 寄存器 ⇒ 门禁不依赖 I2C。'
+  ref: HW/CHARGE_STATUS_READBACK.md#3.1
+- key: chg_vbus_det_rc
+  value: 50ms(1M)/3.2ms(100k47k)
+  note: '★新增 (2026-11-01): VBUS_DET 分压 RC —— 现状 1M‖1M=500kΩ ×100nF ⇒ τ=50ms (95%≈150ms),
+    慢; 建议改 100k/47k (Rth=32.0kΩ ⇒ τ=3.2ms, 5V→1.60V) ⇒ 换料不换板。★与 sw-lead 9 项请求 P1-8
+    同向。'
+  ref: HW/CHARGE_STATUS_READBACK.md#B6 + HW/netlist_v1.csv P2 行 159-164
+- key: evt_reliability_test_items
+  value: 37项/6类
+  note: '★新增 (2026-11-01, ISS-111): EVT 可靠性实测项清单 37 项 (跌落 9 / 振动 5 / 弯折 6 / 热 5 /
+    焊点 6 / 连接器寿命 6), 每项含 测什么/怎么测/量化判据/不过回退/状态 五字段。★全部状态 = [未验] (无样机)。'
+  ref: HW/EVT_RELIABILITY_TEST_ITEMS.md#B4
+- key: evt_xray_sampling
+  value: 1块板/3位置+1切片
+  note: '★新增 (2026-11-01): 跌落后 X-ray 抽样口径订正 —— 旧口径『抽检 3 块板』不成立 (1 台样机只有 1 块主板), 改为**同一块板
+    3 个位置 (FCCSP/BTB/电感) + 1 处切片**, 抽样量按**位置**计; 判据 空洞率≤25% 不变。'
+  ref: HW/EVT_RELIABILITY_TEST_ITEMS.md#4.1 R-D-06
+- key: soic_pkg_notes_20261101
+  value: ARS45已停/RK3576基线
+  note: '★新增 (2026-11-01) 口径声明: 11-01 20:5x 基线已换 **瑞芯微 RK3576** (ARS45/酷芯微路线 10-29
+    19:20 起作废)。⇒ 所有 ARS45 专属 claim (fccsp_pitch_min / soc_pkg_balls_* / soc_pin_budget_*
+    / mipi_csi_lanes / bridge_chip_spec / vendor_* 系列) **仅作历史口径保留**, 换芯重画时全部要换。★同时暴露新硬冲突:
+    RK3576 逃线需 9 层 ⇒ 破 §0 『4-6 层』锁死 (ISS-122), 比选型更靠前。'
+  ref: PROJECT_TRACKER.md#0 (主控基线行, 11-01 20:5x)
 open_questions:
 - id: HW-Q1
   to: main

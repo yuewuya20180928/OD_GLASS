@@ -15,6 +15,20 @@
 | 8 | **`vendor_round4_geo_isp_addendum.md`** (新, ISS-062) | 酷芯微 (原厂) | 🟡 草稿就绪 · **等拍板** | ★**R-GEO-1 + R-GEO-2 并入**: Q1 全幅 vs ROI (含模式表) / Q2 4-lane 2.451Gbps / Q3 ISP 吞吐余量 250 vs 497.7 / Q4 scaler 能否 letterbox / Q5 上电默认模式 + 寄存器读回。**建议并进第 3 轮那封一起发 (21→26 条)**, 别单发 |
 | 9 | **`lens_rfq_rgeo2_addendum.md`** (新, ISS-062) | 舜宇 / 欧菲 (模组厂) | 🟡 草稿就绪 · **等拍板** | `HW/LENS_SELECTION.md` §6.4 RFQ-1~12 的**追加件** (RFQ-13~16): 三个 ROI 档位等效视场表 (退路量化) / 角落检测区 MTF≥30% + 相对照度≥40% 硬线 / 角度口径机器可读畸变曲线 / 不做 LDC 前提下的 ISP 几何参数协同 |
 | 10 | **`R_GEO_2_DECISION_MAP.md`** (新, ISS-062) | 内部 (不发) | 🟢 已完成 | ★**四问 → 三决策 (120° 对角 / 宽高比子路线 / 全幅吞吐) 双向分支映射表** + B1-B6 六块 + 复现脚本 + 缺口登记 (R-GEO-1 从未进过任何对外材料) |
+| 11 | **`pcb_foundry_layer_query.md`** (新, ISS-122) | PCB 厂 (**尚未选定**) | 🟡 草稿就绪 · **等拍板 + 等指定厂** | ★**BGA 逃线层数**: RK3576 (FCCSP698L, 16.1×17.2, pitch 0.6, 698 球) / RK3588 (FCBGA1088L, 23×23, pitch 0.65) 两套模型的结论在 **9 层 vs 3 层**之间摆动 ⇒ 要问 PCB 厂"**一排逃线过孔能不能接上下两个球圈**"这个工艺事实 —— 直接决定要不要破"4-6 层"锁死 (板框 60×30mm) |
+| 12 | **`s2_rk3576_module_vendor_query.md`** (新, ISS-123) | **RK3576 模组厂** (提供这块板 BOOT 通路/分区表/存储配置的一方 · **待老板指定**) | 🟡 草稿就绪 · **等拍板** | ★**v2.0 整版重写** (v1.0 按 ARS45 原厂口径的**已作废**): 问询对象 = RK3576 模组厂, 术语 = Maskrom / Loader (Rockusb) / fastboot 三态 + `SARADC_VIN0_BOOT`, 工具 = `rkdeveloptool` / `RKDevTool` / `upgrade_tool`。核心防错点 = **`parameter.txt` 用哪种方言 (十六进制扇区 / 后缀 K-M-G) + 1 扇区 = 多少字节** (不换算差 **512 倍**)。原件在 `SW/S2_VENDOR_QUESTION_LIST.md`, 本目录是副本 |
+
+---
+
+### ★ 2026-11-01 更新 (主控换 RK3576 后的草稿状态)
+
+| 草稿 | 11-01 状态 | 说明 |
+|---|---|---|
+| `vendor_via_agent_email.md` / `vendor_round2_email.md` / `vendor_round3_addendum.md` / `vendor_round4_geo_isp_addendum.md` / `R_GEO_2_DECISION_MAP.md` / `lens_rfq_rgeo2_addendum.md` | ⛔ **一律不发** | 老板 10-29 19:20 拍板"跳过酷芯微芯片选型"; 11-01 基线换成 **瑞芯微 RK3576** ⇒ 问询对象/术语/问题清单全部要按新芯片重写 (显示 TX 方向 / FCCSP pitch / 球位图 三问) —— **重写版 = 上表第 12 份** |
+| `jbd_query.md` + `jbd_query_addendum.md` | 🟡 **等放行 (不受换芯影响)** | 波导 2D 外形 / 走鹃Ⅱ 外形与接口 / LED 光生物安全参数 ⇒ **唯一卡住镜框打印开工的外部依赖** (覆盖 ISS-004/013/016/048) |
+| `pcb_foundry_layer_query.md` | 🟡 **等放行 + 等指定厂** | 见上表第 11 行 |
+| `s2_rk3576_module_vendor_query.md` | 🟡 **等放行 + 等指定模组厂** | 见上表第 12 行 |
+| `ti_bq25896_query.md` / `bridge_chip_rfq.md` / `j_chg_rfq.md` | 🟡 **等放行 (不受换芯影响)** | TI / 桥接芯片 / 充电连接器 / 镜头 —— 与主控选型无关, 照常等老板放行 |
 
 
 > ⚠️⚠️ **2026-10-29 00:49 老板拍板: "跳过酷芯微的芯片选型直接选择其他芯片"** ⇒ **第 1/3/4/7 封 (酷芯微相关的 4 封) 全部暂停, 暂不发出** —— 新芯片定了, 问询对象/问题清单都变 (尤其是 "显示 TX 方向 / FCCSP pitch / 球位图" 这三问, 换成新芯片后要重新问一遍)。

@@ -1,6 +1,6 @@
 # 下一步行动清单 (TODO)
 
-> 生成 **2026-11-01 21:42** | 自动生成 (源: `state/issue_log.yaml` + `state/fragments/pm.yaml`)
+> 生成 **2026-11-01 22:11** | 自动生成 (源: `state/issue_log.yaml` + `state/fragments/pm.yaml`)
 > 分桶依据 = **能不能真的动** (内部 / 等你 / 等外部), 不是按严重度排
 > 总量: 登记 **125** 条 | 未闭环 **68** | 已关闭 **57**
 
@@ -16,7 +16,6 @@
 
 | id | 状态 | owner | 事项 | due |
 |---|---|---|---|---|
-| ISS-017 | fixing | mech-lead | P2S 打印件实测尺寸 0 件 (AGENTS.md 要求未满足) + 彩虹纹指标缺失 | 2026-11-05 |
 | ISS-082 | fixed | main | ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + P | 2026-11-05 |
 | ISS-086 | fixed | main | netlist 收尾: NTC 改数字温度计 (I2C_A 第 4 个从设备) + USB 跨铰链保护件 (ESD/共模扼流/端接) | 2026-11-05 |
 | ISS-096 | fixed | main | ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位 | 2026-11-05 |
@@ -140,6 +139,7 @@
 | `state/outbox/jbd_query_addendum.md` | 10 问 (JBD 追加) | 🟡 已就绪, **等老板一句『可以发』** |
 | `state/outbox/lens_rfq_rgeo2_addendum.md` | 4 问 (—) | 🟡 已就绪, **等老板一句『可以发』** |
 | `state/outbox/pcb_foundry_layer_query.md` | 6 问 (—) | 🟡 已就绪, **等老板一句『可以发』** |
+| `state/outbox/s2_rk3576_module_vendor_query.md` | 9 问 (—) | 🟡 已就绪, **等老板一句『可以发』** |
 | `state/outbox/ti_bq25896_query.md` | 3 问 (TI BQ25896) | 🟡 已就绪, **等老板一句『可以发』** |
 | `state/outbox/vendor_round2_email.md` | 5 问 (酷芯微第二轮) | 🟡 已就绪, **等老板一句『可以发』** |
 | `state/outbox/vendor_round3_addendum.md` | 21 问 (酷芯微追加问) | 🟡 已就绪, **等老板一句『可以发』** |
@@ -149,7 +149,7 @@
 ## D. 依赖关系 —— 谁解锁谁
 
 ```
-① 12 份草稿发出 ──► 4 条外部 issue 解锁 ──► G1 原理图/PCB 定稿
+① 13 份草稿发出 ──► 4 条外部 issue 解锁 ──► G1 原理图/PCB 定稿
                     └─► JBD 的 2D 外形图 ──► 镜框开模 ──► G2
                     └─► 光机 LED 波长/亮度/光通量 ──► 光生物安全评估
 

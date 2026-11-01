@@ -4,18 +4,13 @@ updated_at: '2026-10-29'
 updated_by: sw-lead
 status:
   phase: P2(方案设计)
-  progress_pct: 60
+  progress_pct: 65
   health: yellow
-  summary: '11-01 ISS-123 闭环 (S2 救砖链路按 RK3576 模组厂口径重写): ①★三处硬编码抽成可配置 —— 版本块 magic (b''AR45'' → 配置 identity.version_block_magic,
-    默认 ''RK35'', 4B 宽度 ⇒ §3.2 布局零改动) · 版本串前缀 (''ARS45-SW '' → 配置 identity.version_str_prefix, 保持原值: 它是**产品代号**不是
-    SoC 型号, 换芯不构成改它的理由) · 分区表扇区单位 (→ 配置 partition_layout.sector_size 显式参数, 默认 512, 依据瑞芯微分区文档三处独立一致) ②★512
-    倍差升级为**机械守卫**: 新增 SW/tools/s2_partition_convert.py (parameter.txt 两种方言解析 + 6 条一致性判据 + 2 条 512 倍反例自测
-    14/14) + flash_writer 写入前拦截 + judge 的 CB-02/CB-06 接入守卫 + 证据过期检测 ③问询清单整版重写 v2.0 = **RK3576 模组厂**口径
-    (术语 Maskrom/Loader/Rockusb/SARADC_VIN0_BOOT; 新增必答项: 分区表单位与方言 / 专用 MaskROM USB 口 / 三态 VID:PID; §4.3
-    给出禁止手抄的四步换算法) ④★自证 15/15 全绿: run.sh 9/9 · judge 13/13 · e2e 14/14 · partition_convert 14/14 · selftest.py
-    全过 · ISS-080 既有 10/10 未破 · merge rc=0 冲突 0 · gate Q1 18/18 ⑤★板端实测仍 0 次: P1~P4 四个 [0数据] 项仍 null/TODO
-    ⇒ BR-01 最高只能判 ⚠️未验, 该板不得进产线 ⑥health 仍 yellow: magic 最终取值 / 产品代号改名 / RK3576 下载态入口(SARADC_VIN0_BOOT)
-    三项待裁决 (已登记 3 条 needs)'
+  summary: '11-01 周更新: 闭合 hw-lead 唯一未回 inbound 需求 rel_od_duty_for_mtbf (运行时 OD 占空比 10% = 1s/10s 按需触发,
+    系统级 MTBF 取 522510h/59.6y 档, 非满载 93396h/10.7y); 口径澄清: od_duty_cycle=100% = 连续满载档/电源设计裕量, 非运行时占空比 (旧值不动,
+    新增 1 条 claim mtbf_duty_basis 划边界); P=镜腿内发热量非整机功耗 (ISS-064 S-1); progress 60→65 依据: ISS-123 闭环 (自证
+    15/15, 9 条新取值) + 问询清单 v2.0 + 板端实测清单 v1.0 + 1 条需求闭环; 仍 yellow: 板端实测 0 次 (P1~P4 null) + magic 取值/产品代号/RK3576
+    下载态入口 3 条待裁决 + 原厂 Q17 逾期'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -261,6 +256,13 @@ artifacts:
   version: '1.1'
   updated_at: '2026-11-01'
   summary: '★ISS-123: magic 改从配置读 (magic_from_config) + 写入前跑分区表守卫 + verify 报告带 magic (供判过期)'
+- path: HANDOFF/2026-11-01_sw-lead_周更新.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-01'
+  summary: '11-01 周更新交接单 (B1-B6 六块齐): 答 hw-lead MTBF 占空比口径 (运行时 10% 按需触发, MTBF 取 522510h/59.6y 档) + 口径澄清
+    (od_duty_cycle=100% = 电源设计裕量, 旧值不动) + ISS-123 已闭环复述 (自证 15/15, 9 条新取值) + 板端实测仍 0 次 ⇒ BR-01 未验, 该板不得进产线
+    + 新增 needs 0 条'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -683,6 +685,11 @@ answers:
     ② 切档**执行**须 ≤1 帧 (16.67ms), 否则 frame age 跳档端到端 +16.67ms; **检测**延迟 ~1~3s (TMP117 1Hz + PCB 热惯性) 对皮肤暴露无意义
     ③ 读失败 3 周期 → 按 T2 降载 + 告警 (I2C_A 与 camera 跨铰链同总线, camera 卡死会致盲温度保护) ④ 首读 -256°C 必须丢弃。实测功耗仍待投板。'
   ref: SW/SW_TIMING_REVIEW.md + HANDOFF/2026-10-27_sw-lead_时序交叉评审.md (ISS-090, 2026-10-27)
+- key: rel_od_duty_for_mtbf
+  to: hw-lead
+  value: duty=10%(f=1s/10s) mtbf=按需触发档 P=镜腿内发热量 待机B=0.127/0.147W→46/53mAh
+  ref: HANDOFF/2026-11-01_sw-lead_周更新.md#B1-1+#B4-1 ; SW/POWER_STATE_SEMANTICS.md#6+#6.1 ; MECH/MECH_BUDGET.md#2.3
+    ; HW/RELIABILITY_DESIGN.md#B9
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -1113,6 +1120,12 @@ interface_claims:
   value: magic-mismatch=UNVERIFIED
   note: '★ISS-123: 回读报告里记的 magic 与配置不一致 ⇒ 证据已过期 ⇒ CB-02 判未验 (不许判过)。'
   ref: SW/tools/s2_board_judge.py#magic_mismatch
+- key: mtbf_duty_basis
+  value: 10% (1s/10s) 按需触发
+  note: 运行时 OD 占空比口径 = 方案C 按需触发 (产品口径, Q4 老板 10-25 锁 按需触发场景≥1h)。od_duty_cycle=100% 语义边界 = 连续满载档 + DC-DC/去耦按连续满载设计裕量,
+    非产品运行时占空比 (旧值不动, 只加新 key 划边界)。系统级 MTBF 取按需触发档 522510h (59.6y), 非满载 93396h (10.7y)。P = 镜腿内发热量, 非整机功耗
+    (ISS-064 S-1 同步口径)。落地为待机-B 时均值 0.127/0.147W ⇒ D≈0.10~0.12 ⇒ MTBF 只会更好。
+  ref: HANDOFF/2026-11-01_sw-lead_周更新.md#B4-1 ; HW/RELIABILITY_DESIGN.md#B9 ; MECH/MECH_BUDGET.md#2.3
 open_questions:
 - id: SW-Q1
   to: main
