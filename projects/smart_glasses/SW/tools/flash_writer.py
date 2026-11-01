@@ -19,8 +19,14 @@ flash_writer.py —— 分区写入 + 版本块原子写 (S2 救砖链路的 PC 
         bootable 标志最后写 / 回读校验 (magic、bootable、mode、SN、calib、版本串
         6 分项非空、分区 CRC 一致) / 断电注入 (--fail-after)
 ❌ 不做的: 不调用任何原厂下载工具 (P2 = [0数据]); 不碰真实块设备 (除非显式
-        --allow-real-device, 本项目永不传); 不假装知道 ARS45 的真实分区表
+        --allow-real-device, 本项目永不传); 不假装知道 RK3576 模组板的真实分区表
         (partition_layout 是 [推算] 占位, 待 P4)
+
+★ ISS-123 (2026-11-01): 本文件原来把版本块 magic **写死 b"AR45"** (按已作废的
+  酷芯微 ARS45 定的) ⇒ 现在**从配置读** `identity.version_block_magic`。
+  同样, 分区表写入前会跑 `s2_partition_convert.check_layout()` 守卫 ——
+  ★ **扇区/字节差 512 倍** 的错 (parameter.txt 按 512B 扇区计, 我方按字节计)
+  在这里会被机械拦住, 不许写出去。
 
 子命令
 --------------------------------------------------------------------------------
@@ -65,7 +71,14 @@ import struct
 import sys
 import zlib
 
-MAGIC = b"AR45"
+# ★ ISS-123: 分区表守卫 (扇区↔字节单位错 = 512 倍差) 住在 s2_partition_convert.py
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from s2_partition_convert import check_layout, layout_has_error  # noqa: E402
+except ImportError:  # pragma: no cover
+    check_layout = None
+    layout_has_error = None
+
 BOOTABLE_BIT = 0x01
 MODE_NAMES = {"dev": 0, "prod": 1, "service": 2}
 MODE_VALUES = {v: k for k, v in MODE_NAMES.items()}
@@ -116,6 +129,26 @@ def load_config(path: str) -> dict:
         return json.load(f)
 
 
+def magic_from_config(cfg: dict) -> bytes:
+    """
+    ★ ISS-123: 版本块 magic 从配置读, **不再写死**。
+    原值 b"AR45" 是按已作废的酷芯微 ARS45 定的 ⇒ 基线翻到 RK3576 后取
+    `identity.version_block_magic` (默认 'RK35', 宽度仍 4B ⇒ §3.2 布局零改动)。
+    ★ 配置里缺这一项 ⇒ 直接报错 (rc=2), **不许默默用某个默认值**。
+    """
+    ident = cfg.get("identity") or {}
+    raw = ident.get("version_block_magic")
+    if raw in (None, ""):
+        raise SystemExit("❌ 配置里没有 identity.version_block_magic —— "
+                         "版本块 magic 必须显式配置 (ISS-123: 不许代码写死, 也不许默默用默认值)")
+    m = str(raw).encode("utf-8")
+    want = int(ident.get("version_block_magic_len", 4) or 4)
+    if len(m) != want:
+        raise SystemExit(f"❌ identity.version_block_magic 长度 {len(m)}B ≠ 声明的 {want}B "
+                         f"(§3.2 版本块布局按 4B magic 定义)")
+    return m
+
+
 def partition_plan(layout: dict) -> list[dict]:
     parts = list(layout.get("partitions", []))
     off = 0
@@ -145,12 +178,14 @@ def active_partitions(plan: list[dict], active_slot: str) -> list[dict]:
     return out
 
 
-def build_version_block(meta: dict, crc_values: list[int], active_slot: str) -> tuple[bytes, bytes]:
+def build_version_block(meta: dict, crc_values: list[int], active_slot: str,
+                       magic: bytes = b"RK35") -> tuple[bytes, bytes]:
     """
     返回 (payload, final_block):
       payload    —— 不含 magic、不含 bootable 标志的那一版 (此时 magic 区填 0xFF)
       final_block —— payload + magic + flags(bootable) + payload CRC, 最后写
     写入顺序铁律 (§2.5.2): 先写 payload, 最后写 magic + bootable。
+    ★ ISS-123: magic 由调用方从配置传入 (magic_from_config), 不再写死。
     """
     version = str(meta.get("version", "")).encode("utf-8")
     if len(version) > VERSION_STR_MAX:
@@ -181,7 +216,7 @@ def build_version_block(meta: dict, crc_values: list[int], active_slot: str) -> 
     struct.pack_into("<I", payload, VB["payload_crc32"], pcrc)
 
     final = bytearray(payload)
-    final[VB["magic"]:VB["magic"] + 4] = MAGIC
+    final[VB["magic"]:VB["magic"] + len(magic)] = magic
     final[VB["flags"]] = BOOTABLE_BIT
     return bytes(payload), bytes(final)
 
@@ -207,6 +242,25 @@ def cmd_write(args, cfg: dict) -> int:
     active_slot = layout.get("active_slot", "a")
     plan = partition_plan(layout)
     meta = cfg.get("version_meta", {})
+
+    # ★ ISS-123: 分区表守卫 —— 扇区/字节差 512 倍的错在这里被机械拦住
+    if check_layout is not None:
+        probs = check_layout(layout)
+        if layout_has_error(probs):
+            print("❌ 分区表一致性守卫不通过 ⇒ 拒绝写入", file=sys.stderr)
+            for p in probs:
+                if p.get("level") == "error":
+                    print(f"   [{p.get('code')}] {p.get('msg')}", file=sys.stderr)
+            return 2
+        for p in probs:
+            if p.get("level") == "warn":
+                print(f"⚠️  [{p.get('code')}] {p.get('msg')}", file=sys.stderr)
+
+    try:
+        magic = magic_from_config(cfg)
+    except SystemExit as e:
+        print(str(e), file=sys.stderr)
+        return 2
 
     target = args.target
     if not target.endswith(".img") and not args.allow_real_device:
@@ -262,7 +316,7 @@ def cmd_write(args, cfg: dict) -> int:
                 return 5
 
         # ---- 版本块: 两步写 (payload → magic/bootable) ----
-        payload, final = build_version_block(meta, crc_values, active_slot)
+        payload, final = build_version_block(meta, crc_values, active_slot, magic)
         vb = next(p for p in plan if p["name"] == "version_block")
         fh.seek(vb["offset"])
         fh.write(payload)
@@ -286,7 +340,7 @@ def cmd_write(args, cfg: dict) -> int:
         "version_block": {
             "offset": vb["offset"],
             "size": vb["size"],
-            "magic": "AR45",
+            "magic": magic.decode("utf-8", "replace"),
             "bootable": 1,
             "mode": meta.get("mode"),
             "sn": meta.get("sn"),
@@ -301,7 +355,8 @@ def cmd_write(args, cfg: dict) -> int:
         print(f"✅ 写入完成: {target} ({total} B)")
         for w in written:
             print(f"   - {w['name']:<14} off={w['offset']:>10} size={w['size']:>10} crc32={w['crc32']} slot={w['slot']}")
-        print(f"   - version_block  off={vb['offset']} size={vb['size']} magic=AR45 bootable=1 "
+        print(f"   - version_block  off={vb['offset']} size={vb['size']} "
+              f"magic={magic.decode('utf-8', 'replace')} bootable=1 "
               f"(最后一步写, §2.5.2)")
     return 0
 
@@ -316,7 +371,25 @@ def cmd_verify(args, cfg: dict) -> int:
         print("❌ 分区表里没有 version_block", file=sys.stderr)
         return 2
 
+    try:
+        exp_magic = magic_from_config(cfg)
+    except SystemExit as e:
+        print(str(e), file=sys.stderr)
+        return 2
+    magic_str = exp_magic.decode("utf-8", "replace")
+
     checks: list[tuple[str, bool, str]] = []
+
+    # ★ ISS-123: 分区表守卫 —— ★ 扇区/字节差 512 倍时, 不得判回读 CRC 通过
+    if check_layout is not None:
+        probs = check_layout(layout)
+        errs = [p for p in probs if p.get("level") == "error"]
+        checks.append(("CB-00 分区表单位/容量一致性守卫 (扇区↔字节)", not errs,
+                       "无问题" if not errs else "; ".join(
+                           f"[{p.get('code')}] {p.get('msg')}" for p in errs)))
+        for p in probs:
+            if p.get("level") == "warn":
+                print(f"⚠️  [{p.get('code')}] {p.get('msg')}", file=sys.stderr)
 
     with open(args.target, "rb") as fh:
         fh.seek(vb["offset"])
@@ -326,8 +399,8 @@ def cmd_verify(args, cfg: dict) -> int:
         flags_byte = block[VB["flags"]]
         # ★ 擦除态 (0xFF) 不算 bootable —— 否则"半写状态"会被误判成"已生效"
         bootable = flags_byte != 0xFF and bool(flags_byte & BOOTABLE_BIT)
-        checks.append(("CB-02a 版本块 magic == 'AR45'", magic == MAGIC,
-                       f"magic={magic!r} (期望 b'AR45')"))
+        checks.append((f"CB-02a 版本块 magic == {magic_str!r}", magic == exp_magic,
+                       f"magic={magic!r} (期望 {exp_magic!r})"))
         checks.append(("CB-02b bootable 标志置位 (擦除态 0xFF 不算)", bootable,
                        f"flags=0x{flags_byte:02X} bootable={bootable}"))
 
@@ -380,6 +453,9 @@ def cmd_verify(args, cfg: dict) -> int:
         "tool": "flash_writer.py",
         "action": "verify",
         "target": args.target,
+        # ★ ISS-123: 把本次校验用的 magic 记进报告 ⇒ 判定器能发现「证据过期」
+        #   (配置里的 magic 改了, 但这份回读报告还是用旧 magic 判的)
+        "version_block_magic": magic_str,
         "checks": [{"name": n, "result": "PASS" if ok else "FAIL", "detail": d} for n, ok, d in checks],
         "result": "PASS" if n_fail == 0 else "FAIL",
         "evidence": "[实测] PC 侧回读校验; 分区表为 [推算] 占位",
@@ -398,7 +474,8 @@ def cmd_verify(args, cfg: dict) -> int:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="ARS45 分区写入 + 版本块原子写 (S2 PC 侧仿真)")
+    ap = argparse.ArgumentParser(
+        description="S2 分区写入 + 版本块原子写 (PC 侧仿真) —— magic/单位均从配置读 (ISS-123)")
     ap.add_argument("action", choices=["write", "verify"])
     ap.add_argument("--config", required=True)
     ap.add_argument("--target", required=True)

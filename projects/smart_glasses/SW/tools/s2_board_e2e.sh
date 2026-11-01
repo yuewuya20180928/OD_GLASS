@@ -62,8 +62,8 @@ def w(name, obj):
     json.dump(obj, open(os.path.join(d, name), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 if mode != "empty":
     w("s2_step0_normal.json", {"vidpid": "2207:350a", "devices": []})
-    w("s2_step3_verify.json", {"result": "PASS", "checks": [
-        {"name": "CB-02a 版本块 magic == 'AR45'", "result": "PASS", "detail": "ok"},
+    w("s2_step3_verify.json", {"result": "PASS", "version_block_magic": "RK35", "checks": [
+        {"name": "CB-02a 版本块 magic == 'RK35'", "result": "PASS", "detail": "ok"},
         {"name": "CB-02b bootable 标志置位", "result": "PASS", "detail": "ok"},
         {"name": "CB-02c 版本块 payload CRC 一致", "result": "PASS", "detail": "ok"},
         {"name": "CB-06 分区 CRC 一致 [bootloader]", "result": "PASS", "detail": "ok"},
@@ -73,8 +73,12 @@ if mode != "empty":
         {"name": "CB-06 分区 CRC 一致 [model]", "result": "PASS", "detail": "ok"},
         {"name": "CB-06 分区 CRC 一致 [isp]", "result": "PASS", "detail": "ok"},
     ]})
+    # ★ISS-123: 版本串前缀从**真配置**里取, 不在脚本里写死
+    import json as _json
+    _pref = (_json.load(open("SW/tools/s2_rescue_config.json", encoding="utf-8"))
+             .get("identity", {}).get("version_str_prefix") or "ARS45-SW ")
     w("s2_step4_selftest.json", {
-        "version_string": ("ARS45-SW 1.0.0+g1234abc board=EVT1 sn=SN-SYNTH-0001 "
+        "version_string": (f"{_pref}1.0.0+g1234abc board=EVT1 sn=SN-SYNTH-0001 "
                            "build=20261030T0000+0800 boot=0.0.0 kern=5.10.0-gdeadbee "
                            "rootfs=R20261030.1 app=1.0.0+g1234abc model=yolov5s-int8-ag2-1a2b3c4d "
                            "isp=CALIB-SYNTH-0001 mode=prod calib=CALIB-SYNTH-0001"),
@@ -89,7 +93,7 @@ PY
 }
 
 say "=============================================================================="
-say "ARS45 S2 板端跑测链路 · 端到端自检 (合成证据)"
+say "S2 板端跑测链路 · 端到端自检 (合成证据) —— ★ISS-123: 512 倍反例 + magic/前缀可配置"
 say "=============================================================================="
 
 CFGFULL="$TMP/cfg_full.json"
@@ -167,6 +171,52 @@ if grep -q '"value_ma": null' "$EV7/s2_forensics.json"; then
 else
   say "  ❌ 电流表读数不是 null"; FAILN=$((FAILN+1)); RC=1
 fi
+
+say ""
+say "[E10] ★ISS-123 512 倍反例 (扇区数当字节, ÷512) → CB-06 判未验 (期望 rc=2)"
+EV10="$TMP/ev10"; mk_ev "$EV10" full
+CFG10="$TMP/cfg_div512.json"; cp "$CFGFULL" "$CFG10"
+python3 - "$CFG10" <<'PY2'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+for p in d["partition_layout"]["partitions"]:
+    p["size"] = p["size"] // 512          # ★ 把字节数换成扇区数当字节用
+json.dump(d, open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY2
+python3 SW/tools/s2_board_judge.py --evidence-dir "$EV10" --config "$CFG10" >/dev/null 2>&1
+chk "判定器: ÷512 反例 → 未验 (不许判过)" 2 $?
+
+say ""
+say "[E11] ★ISS-123 512 倍反例 (字节数当扇区数再乘, ×512) → CB-06 判未验 (期望 rc=2)"
+EV11="$TMP/ev11"; mk_ev "$EV11" full
+CFG11="$TMP/cfg_mul512.json"; cp "$CFGFULL" "$CFG11"
+python3 - "$CFG11" <<'PY2'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+for p in d["partition_layout"]["partitions"]:
+    p["size"] = p["size"] * 512            # ★ 多乘了一次 512
+json.dump(d, open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY2
+python3 SW/tools/s2_board_judge.py --evidence-dir "$EV11" --config "$CFG11" >/dev/null 2>&1
+chk "判定器: ×512 反例 → 未验 (不许判过)" 2 $?
+
+say ""
+say "[E12] ★ISS-123 扇区↔字节换算守卫自测 (含 512 倍反例, 期望 rc=0)"
+python3 SW/tools/s2_partition_convert.py --selftest >/dev/null 2>&1
+chk "s2_partition_convert.py --selftest" 0 $?
+
+say ""
+say "[E13] ★ISS-123 版本块 magic 可配置: 换配置里的 magic → 旧回读证据判未验 (期望 rc=2)"
+EV13="$TMP/ev13"; mk_ev "$EV13" full
+CFG13="$TMP/cfg_magic.json"; cp "$CFGFULL" "$CFG13"
+python3 - "$CFG13" <<'PY2'
+import json, sys
+d = json.load(open(sys.argv[1], encoding="utf-8"))
+d["identity"]["version_block_magic"] = "ZZZZ"
+json.dump(d, open(sys.argv[1], "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+PY2
+python3 SW/tools/s2_board_judge.py --evidence-dir "$EV13" --config "$CFG13" >/dev/null 2>&1
+chk "判定器: magic 改了 → 旧证据判未验" 2 $?
 
 say ""
 say "=============================================================================="

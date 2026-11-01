@@ -54,6 +54,16 @@ ITEMS = [
 ERR_CODES = ["E_MODEL_MISMATCH", "E_CALIB_MISSING", "E_SN_MISMATCH"]
 ERR_PREFIX = "E_VER_"
 
+# ★ ISS-123: 版本串前缀**不再写死** —— 从配置的 identity.version_str_prefix 读
+#   (原值 'ARS45-SW ' 是产品代号, 不是 SoC 型号 ⇒ 换芯不构成改它的理由)
+DEFAULT_VERSION_PREFIX = "ARS45-SW "
+
+
+def version_prefix(cfg: dict) -> str:
+    ident = (cfg or {}).get("identity") or {}
+    p = ident.get("version_str_prefix")
+    return str(p) if p not in (None, "") else DEFAULT_VERSION_PREFIX
+
 
 def load_cfg(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
@@ -82,12 +92,13 @@ def board_version(cfg: dict, remote: bool, log_lines: list[str]) -> tuple[str, s
     """读版本串 (CB-03/CB-07 的输入)。优先跑配置里的命令, 其次读版本文件。"""
     st = ((cfg.get("board_test") or {}).get("selftest") or {})
     cmd = st.get("version")
+    pref = version_prefix(cfg).rstrip()
     if cmd:
         rc, out = run_cmd(cmd, remote)
         if rc == 0 and out.strip():
             for line in out.splitlines():
                 line = line.strip()
-                if line.startswith("ARS45-SW"):
+                if line.startswith(pref):
                     return line, "selftest.version 命令"
             return out.strip().splitlines()[0] if out.strip() else "", "selftest.version 命令"
     vf = st.get("version_file") or "/etc/version"
@@ -171,14 +182,20 @@ def synth_selftest(break_item: str = "") -> dict:
     return results
 
 
-def synth_version() -> str:
-    return ("ARS45-SW 1.0.0+g1234abc board=EVT1 sn=ARS45-EVT1-0007 build=20261030T0000+0800 "
+def synth_version(prefix: str = DEFAULT_VERSION_PREFIX) -> str:
+    return (f"{prefix}1.0.0+g1234abc board=EVT1 sn=ARS45-EVT1-0007 build=20261030T0000+0800 "
             "boot=0.0.0 kern=5.10.0-gdeadbee rootfs=R20261030.1 app=1.0.0+g1234abc "
             "model=yolov5s-int8-ag2-1a2b3c4d isp=ISP-CALIB-0003-r2 mode=prod calib=ISP-CALIB-0003-r2")
 
 
-def selftest_mode(break_item: str = "", out_path: str | None = None) -> int:
+def selftest_mode(break_item: str = "", out_path: str | None = None,
+                  cfg_path: str | None = None) -> int:
     """离线自测: 合成数据 → 判 rc。不需要板子。"""
+    cfg = {}
+    try:
+        cfg = load_cfg(cfg_path or "SW/tools/s2_rescue_config.json")
+    except Exception:  # noqa: BLE001
+        cfg = {}
     res = synth_selftest(break_item)
     statuses = [v["status"] for v in res.values()]
     if FAIL in statuses:
@@ -199,7 +216,7 @@ def selftest_mode(break_item: str = "", out_path: str | None = None) -> int:
         rec = {
             "tool": "s2_board_selftest.py (selftest)",
             "selftest": res,
-            "version_string": synth_version(),
+            "version_string": synth_version(version_prefix(cfg)),
             "version_source": "合成数据 (自测)",
             "model_sha8": "1a2b3c4d",
             "log_scan": {"scanned_lines": 0, "errors": []},
@@ -223,7 +240,7 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.selftest:
-        return selftest_mode(args.break_item, args.out)
+        return selftest_mode(args.break_item, args.out, args.config)
 
     if not os.path.exists(args.config):
         print(f"❌ 配置不存在: {args.config}", file=sys.stderr)

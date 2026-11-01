@@ -27,6 +27,14 @@
 #   - 通用示例签名 (source=generic-example) 不算真值 → 判定器会判未验
 #   - 分区表是 [推算] 占位 (P4 未填) → CB-06 判未验, 不用占位表冒充实测
 #   - 电流表读数没有仪器就读不到 → 记 [0数据] + 提示人工填, **不许编一个数**
+# ★ ISS-123 (2026-11-01): 版本块 magic / 版本串前缀 / 分区表扇区单位 三处
+#   **不再写死**, 全部从 s2_rescue_config 的 `identity` 段 + `partition_layout` 读:
+#   ① identity.version_block_magic   (原写死 b'AR45' —— 按已作废的酷芯微 ARS45 定的)
+#   ② identity.version_str_prefix    (原写死 'ARS45-SW ')
+#   ③ partition_layout.sector_size   (模组厂 parameter.txt 按 512B 扇区计, 我方按字节计 ⇒ 差 512 倍)
+#   ⇒ ★ 换芯到 RK3576 后, 改**配置**即可, 代码零改动; ★ 512 倍差由
+#     SW/tools/s2_partition_convert.py 的守卫**机械拦住** (见 --selftest 的两条反例)。
+
 set -u
 
 cd "$(dirname "$0")/../.." || exit 2
@@ -134,6 +142,24 @@ if [ "$SELFTEST" = "1" ]; then
   check "s2_board_e2e.sh" 0 $?
 
   say ""
+  say "[S7] ★ISS-123 扇区↔字节换算守卫自测 (含 512 倍反例, 期望 rc=0)"
+  python3 SW/tools/s2_partition_convert.py --selftest >/tmp/s2_pconvert.txt 2>&1
+  check "s2_partition_convert.py --selftest (512 倍反例)" 0 $?
+
+  say ""
+  say "[S8] ★ISS-123 配置里的 magic/前缀/扇区单位都已显式配置 (期望齐全)"
+  MISS=0
+  for F in identity.version_block_magic identity.version_str_prefix partition_layout.sector_size; do
+    if cfg_has "$F"; then ok "$F"; else bad "$F 缺失"; MISS=1; fi
+  done
+  [ "$MISS" = "0" ] || RC=1
+
+  say ""
+  say "[S9] ★ISS-123 分区表一致性守卫对本仓真配置 0 个 error (期望 rc=0)"
+  python3 SW/tools/s2_partition_convert.py --check "$CFG" >/tmp/s2_pcheck.txt 2>&1
+  check "s2_partition_convert.py --check (真配置)" 0 $?
+
+  say ""
   say "=============================================================================="
   [ "$RC" = "0" ] && say "自检结论: PASS (rc=0)" || say "自检结论: FAIL"
   say "证据: [实测] PC 侧自检 (脚本逻辑), 不代表板端 S2 已实测通过"
@@ -191,7 +217,9 @@ if [ "$PREFLIGHT" = "1" ]; then
   for F in board_test.detect.list_cmd board_test.flash.cmd board_test.verify.readback_cmd \
            board_test.selftest.ddr board_test.selftest.sensor board_test.selftest.i2c \
            board_test.selftest.npu board_test.selftest.od board_test.selftest.version \
-           board_test.serial.device board_test.checks.calib_ledger; do
+           board_test.serial.device board_test.checks.calib_ledger \
+           identity.version_block_magic identity.version_str_prefix \
+           partition_layout.sector_size; do
     if cfg_has "$F"; then ok "$F"; else warn "$F 未填 → 对应 CB 判未验"; fi
   done
   say ""

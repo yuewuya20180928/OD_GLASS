@@ -66,8 +66,63 @@ import tempfile
 VER_FIELDS = ["boot", "kern", "rootfs", "app", "model", "isp"]
 
 # 5 条版本串校验规则 (SW/FLASH_AND_VERSION.md §3.1.3)
-R_FORMAT = re.compile(r"^ARS45-SW\s+(\d+\.\d+\.\d+)(?:\+([0-9A-Za-z._-]+))?(\s|$)")
+# ★ ISS-123: 版本串前缀**不再写死** —— 从配置的 identity.version_str_prefix 读
+#   (原值 'ARS45-SW ' 是**产品代号**, 不是 SoC 型号 ⇒ 换芯不构成改它的理由)。
+#   缺配置时回落到这个默认值, 并在规则 detail 里说明用的是默认值。
+DEFAULT_VERSION_PREFIX = "ARS45-SW "
 R_SHA8 = re.compile(r"^[0-9a-f]{8}$")
+
+# ★ ISS-123: 分区表守卫 (扇区↔字节 = 512 倍差) —— 同一个目录下
+try:
+    from s2_partition_convert import check_layout as _check_layout
+except ImportError:  # pragma: no cover
+    _check_layout = None
+
+
+def version_prefix(cfg: dict) -> tuple[str, bool]:
+    """返回 (前缀, 是否来自配置)。★ ISS-123: 前缀不再写死。"""
+    ident = (cfg or {}).get("identity") or {}
+    p = ident.get("version_str_prefix")
+    if p in (None, ""):
+        return DEFAULT_VERSION_PREFIX, False
+    return str(p), True
+
+
+def version_regex(cfg: dict) -> re.Pattern:
+    """按配置里的前缀动态构造版本串正则 (与原写死版行为一致)。"""
+    pref, _ = version_prefix(cfg)
+    return re.compile(r"^" + re.escape(pref.rstrip())
+                      + r"\s+(\d+\.\d+\.\d+)(?:\+([0-9A-Za-z._-]+))?(\s|$)")
+
+
+def partition_guard(cfg: dict) -> list[dict]:
+    """★ ISS-123: 分区表一致性守卫 (扇区/字节 512 倍差)。返回 error 级问题列表。"""
+    if _check_layout is None:
+        return []
+    try:
+        return [p for p in _check_layout((cfg or {}).get("partition_layout") or {})
+                if p.get("level") == "error"]
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def magic_mismatch(data: dict, cfg: dict) -> str | None:
+    """
+    ★ ISS-123: 检测**证据过期** —— 回读报告里记的 magic 与配置里现在写的 magic 不一致
+    ⇒ 这份证据是用另一个 magic 判的, 不许拿来判过。
+    (证据里没有这个字段 = 老格式证据 ⇒ 不拦)
+    """
+    ident = (cfg or {}).get("identity") or {}
+    want = ident.get("version_block_magic")
+    if want in (None, ""):
+        return None
+    got = (data or {}).get("version_block_magic")
+    if got is None:
+        return None
+    if str(got) != str(want):
+        return (f"回读证据是用 magic={got!r} 判的, 但配置里现在写的是 {want!r} "
+                "⇒ ★ 证据已过期 (magic 改过了), 不许拿来判过")
+    return None
 
 # 日志错误码 (CB-09)
 ERR_CODES = ["E_MODEL_MISMATCH", "E_CALIB_MISSING", "E_SN_MISMATCH"]
@@ -129,9 +184,15 @@ def parse_version(line: str, cfg: dict) -> dict:
     def add(rid, name, result, detail):
         rules.append({"id": rid, "name": name, "result": result, "detail": detail})
 
+    pref, from_cfg = version_prefix(cfg)
+    rfmt = version_regex(cfg)
+    name_fmt = f"行首 {pref!r} + 合法 semver"
+    if not from_cfg:
+        name_fmt += " (配置未写 ⇒ 用默认值)"
+
     line = (line or "").strip()
     if not line:
-        add("R1_FORMAT", "行首 'ARS45-SW ' + 合法 semver", FAIL, "版本串为空")
+        add("R1_FORMAT", name_fmt, FAIL, "版本串为空")
         add("R2_SN", "sn= 非空且与板卡丝印一致", UNVER, "无版本串")
         add("R3_MODEL_SHA", "model= 的 sha8 == 板上模型文件 sha256 前 8", UNVER, "无版本串")
         add("R4_INCOMPLETE", "6 分项 (boot/kern/rootfs/app/model/isp) 全非空", FAIL, "无版本串")
@@ -139,12 +200,12 @@ def parse_version(line: str, cfg: dict) -> dict:
         return {"rules": rules, "fields": fields}
 
     # R1 格式
-    m = R_FORMAT.match(line)
+    m = rfmt.match(line)
     if not m:
-        add("R1_FORMAT", "行首 'ARS45-SW ' + 合法 semver", FAIL,
-            f"行首不匹配 'ARS45-SW <semver>': {line[:60]!r}")
+        add("R1_FORMAT", name_fmt, FAIL,
+            f"行首不匹配 {pref!r} + 合法 semver: {line[:60]!r}")
     else:
-        add("R1_FORMAT", "行首 'ARS45-SW ' + 合法 semver", PASS,
+        add("R1_FORMAT", name_fmt, PASS,
             f"semver={m.group(1)}" + (f"+{m.group(2)}" if m.group(2) else ""))
 
     # 字段切分 (key=value, 值不含空格)
@@ -284,6 +345,18 @@ def judge_verify_checks(ev: str, cfg: dict, prefix: str, cb_id: str, cb_name: st
     if data is None:
         return {"id": cb_id, "name": cb_name, "result": UNVER,
                 "why": f"缺 s2_step3_verify.json ({err})", "evidence": ["s2_step3_verify.json"]}
+    # ★ ISS-123: 分区表守卫 —— ★ 扇区/字节差 512 倍的错, 不得判回读 CRC 通过
+    gprobs = partition_guard(cfg)
+    if gprobs:
+        return {"id": cb_id, "name": cb_name, "result": UNVER,
+                "why": ("分区表一致性守卫不通过 (★ 典型 = 扇区/字节单位错, 差 512 倍): "
+                        + "; ".join(f"[{p.get('code')}] {p.get('msg')}" for p in gprobs)),
+                "evidence": ["s2_step3_verify.json", "s2_rescue_config.json"]}
+    # ★ ISS-123: 证据过期检测 (配置里的 magic 改了 ⇒ 旧回读报告作废)
+    mm = magic_mismatch(data, cfg)
+    if mm:
+        return {"id": cb_id, "name": cb_name, "result": UNVER,
+                "why": mm, "evidence": ["s2_step3_verify.json", "s2_rescue_config.json"]}
     if need_p4 and not param_done(cfg, "P4_BOOT_STORE"):
         return {"id": cb_id, "name": cb_name, "result": UNVER,
                 "why": ("P4_BOOT_STORE 未填 (真实分区表还没有) —— partition_layout 现在是 [推算] 占位, "
@@ -544,16 +617,17 @@ def selftest() -> int:
         with open(os.path.join(ev, "s2_step0_normal.json"), "w", encoding="utf-8") as f:
             json.dump({"vidpid": "2207:350a", "devices": []}, f)
         with open(os.path.join(ev, "s2_step3_verify.json"), "w", encoding="utf-8") as f:
-            json.dump({"result": "PASS", "checks": [
-                {"name": "CB-02a 版本块 magic == 'AR45'", "result": "PASS", "detail": "ok"},
+            json.dump({"result": "PASS", "version_block_magic": "RK35", "checks": [
+                {"name": "CB-02a 版本块 magic == 'RK35'", "result": "PASS", "detail": "ok"},
                 {"name": "CB-02b bootable 标志置位", "result": "PASS", "detail": "ok"},
                 {"name": "CB-02c 版本块 payload CRC 一致", "result": "PASS", "detail": "ok"},
                 {"name": "CB-06 分区 CRC 一致 [bootloader]", "result": "PASS", "detail": "ok"},
                 {"name": "CB-06 分区 CRC 一致 [kernel]", "result": "PASS", "detail": "ok"},
             ]}, f)
+        pref = version_prefix(cfg)[0]
         with open(os.path.join(ev, "s2_step4_selftest.json"), "w", encoding="utf-8") as f:
             json.dump({
-                "version_string": ("ARS45-SW 1.0.0+g1234abc board=EVT1 sn=SN-001 build=20261030T0000+0800 "
+                "version_string": (f"{pref}1.0.0+g1234abc board=EVT1 sn=SN-001 build=20261030T0000+0800 "
                                     "boot=0.0.0 kern=5.10.0-gdeadbee rootfs=R20261030.1 app=1.0.0+g1234abc "
                                     "model=yolov5s-int8-ag2-1a2b3c4d isp=CALIB-001 mode=prod calib=CALIB-001"),
                 "model_sha8": "1a2b3c4d",
@@ -624,6 +698,57 @@ def selftest() -> int:
         cb01b = next(c for c in rep7["cbs"] if c["id"] == "CB-01")
         cases.append(("T7 无真值签名 → CB-01 判未验 (空判不算过)", cb01b["result"] == UNVER))
 
+        # ★ T8 (ISS-123) 512 倍反例 · ÷512 方向: 扇区数被当字节直接填
+        ev8 = make_ev(root, "all")
+        cfg8 = json.loads(json.dumps(_cfg_all()))
+        for p in cfg8["partition_layout"]["partitions"]:
+            p["size"] = p["size"] // 512          # ★ 把字节数换成扇区数当字节用
+        rep8 = judge_all(ev8, cfg8)
+        cb06b = next(c for c in rep8["cbs"] if c["id"] == "CB-06")
+        cb02b = next(c for c in rep8["cbs"] if c["id"] == "CB-02")
+        cases.append(("T8 ★512倍反例(÷512: 扇区数当字节) → CB-06 判未验, 不许判过",
+                      cb06b["result"] == UNVER and "512" in cb06b["why"]))
+        cases.append(("T9 ★512倍反例(÷512) → CB-02 也判未验 (版本块偏移也会错)",
+                      cb02b["result"] == UNVER))
+
+        # ★ T10 (ISS-123) 512 倍反例 · ×512 方向: 字节数被当扇区数再乘 512
+        ev10 = make_ev(root, "all")
+        cfg10 = json.loads(json.dumps(_cfg_all()))
+        for p in cfg10["partition_layout"]["partitions"]:
+            p["size"] = p["size"] * 512            # ★ 多乘了一次 512
+        rep10 = judge_all(ev10, cfg10)
+        cb06c = next(c for c in rep10["cbs"] if c["id"] == "CB-06")
+        cases.append(("T10 ★512倍反例(×512: 字节数当扇区数再乘) → CB-06 判未验, 不许判过",
+                      cb06c["result"] == UNVER))
+
+        # ★ T11 (ISS-123) 版本串前缀可配置: 改配置里的前缀后, 判定跟着改
+        ev11 = make_ev(root, "all")
+        cfg11 = json.loads(json.dumps(_cfg_all()))
+        cfg11["identity"]["version_str_prefix"] = "PROD-SW "
+        rep11 = judge_all(ev11, cfg11)
+        cb03b = next(c for c in rep11["cbs"] if c["id"] == "CB-03")
+        cases.append(("T11 版本串前缀可配置: 前缀改了 → 旧前缀的串判不通过",
+                      cb03b["result"] == FAIL))
+        # 同一份配置下, 用新前缀的串 → 应判过
+        ev11b = make_ev(root, "all")
+        p11 = os.path.join(ev11b, "s2_step4_selftest.json")
+        d11 = json.load(open(p11, encoding="utf-8"))
+        d11["version_string"] = d11["version_string"].replace("ARS45-SW ", "PROD-SW ")  # 旧前缀 → 新前缀
+        json.dump(d11, open(p11, "w", encoding="utf-8"))
+        rep11b = judge_all(ev11b, cfg11)
+        cb03c = next(c for c in rep11b["cbs"] if c["id"] == "CB-03")
+        cases.append(("T12 版本串前缀可配置: 用配置里的新前缀 → CB-03 判过",
+                      cb03c["result"] == PASS))
+
+        # ★ T13 (ISS-123) magic 可配置: 换配置里的 magic → 旧 magic 判不通过
+        ev13 = make_ev(root, "all")
+        cfg13 = json.loads(json.dumps(_cfg_all()))
+        cfg13["identity"]["version_block_magic"] = "ZZZZ"
+        rep13 = judge_all(ev13, cfg13)
+        cb02c = next(c for c in rep13["cbs"] if c["id"] == "CB-02")
+        cases.append(("T13 ★版本块 magic 可配置: magic 改了 → 旧回读证据判未验 (证据过期)",
+                      cb02c["result"] in (UNVER, FAIL)))
+
     print("=" * 78)
     print("s2_board_judge 自测 (纯逻辑, 无需硬件)")
     print("=" * 78)
@@ -635,12 +760,39 @@ def selftest() -> int:
     print("-" * 78)
     print(f"结论: {'PASS' if n_fail == 0 else 'FAIL'} ({len(cases) - n_fail}/{len(cases)} 通过)")
     print("证据: [实测] PC 侧合成证据自测 (判定逻辑), 不代表板端 S2 已通")
+    print("★ ISS-123: 含 512 倍反例 (扇区↔字节) + magic/前缀可配置 用例")
     return 0 if n_fail == 0 else 3
+
+
+def _ref_partitions() -> list[dict]:
+    """[推算] 占位分区表 (字节单位), 与 SW/tools/s2_rescue_config.json 一致。"""
+    return [
+        {"name": "bootloader", "size": 1048576, "file": "bootloader.bin", "crc_slot": 0, "slot": None},
+        {"name": "kernel", "size": 8388608, "file": "kernel.bin", "crc_slot": 1, "slot": None},
+        {"name": "rootfs", "size": 31457280, "file": "rootfs.squashfs", "crc_slot": 2, "slot": None},
+        {"name": "app_a", "size": 8388608, "file": "app_a.bin", "crc_slot": 3, "slot": "a"},
+        {"name": "app_b", "size": 8388608, "file": "app_b.bin", "crc_slot": 3, "slot": "b"},
+        {"name": "model_a", "size": 15728640, "file": "model_a.bin", "crc_slot": 4, "slot": "a"},
+        {"name": "model_b", "size": 15728640, "file": "model_b.bin", "crc_slot": 4, "slot": "b"},
+        {"name": "isp", "size": 1048576, "file": "isp.bin", "crc_slot": 5, "slot": None},
+        {"name": "version_block", "size": 32768, "file": None, "crc_slot": None, "slot": None},
+    ]
 
 
 def _cfg_all() -> dict:
     return {
         "params": {"P4_BOOT_STORE": {"value": "real-partition-table", "status": "DONE"}},
+        # ★ ISS-123: magic / 版本串前缀 都在配置里 (代码不再写死)
+        "identity": {"version_block_magic": "RK35", "version_str_prefix": "ARS45-SW "},
+        # ★ ISS-123: 分区表带显式 sector_size + 声明的期望合计 (守卫的输入)
+        "partition_layout": {
+            "device_total_size": 134217728,
+            "align": 4096,
+            "sector_size": 512,
+            "size_unit": "bytes",
+            "expected_total_bytes": 90210304,
+            "partitions": _ref_partitions(),
+        },
         "version_meta": {"mode": "prod", "sn": "SN-001"},
         "usb_signatures": {"entries": [
             {"vid": "2207", "pid": "330c", "label": "Maskrom", "source": "vendor-official"},

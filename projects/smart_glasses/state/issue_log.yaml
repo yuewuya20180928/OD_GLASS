@@ -3305,14 +3305,43 @@ issues:
   reporter: main
   raised: '2026-10-30'
   due: '2026-11-02'
-  status: fixing
+  status: verified
   external: false
-  need_keys: []
-  fix_ref: null
+  need_keys:
+  - iss121_magnet_xy_define
+  - iss121_mag_soc_gap_correction
+  - iss121_skeleton_extent_confirm
+  - iss121_mic_count_spec
+  - iss121_audio_scope
+  - iss121_conn_zone_dependency
+  fix_ref: 'HW/ISS121_MIC_MAGNET_POSITION.md (ISS-121 主文档: 磁场机理/地磁本底/本项目实算三条证据链 + 位置坐标回归 + ≥40mm 判据逐项 + MECH 尺寸 3 条不自洽 P-1~P-3 + 选型硬判据 M-1~M-5 + 台架复测 4 步) + HW/iss121_mic_magnet_check.py (自证脚本, rc=0; 坐标系回归 4/4 + 磁体模型数值/解析互校 0.000111% + 位置/磁场判据) + HW/iss121_mic_magnet_check.json + HANDOFF/2026-11-01_hw-lead_ISS121_麦克风磁场与位置复核.md (B1-B6 六块齐)'
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: 2026-10-30 00:3x 项目总工从 ISS-092 交卷的 I-5 / I-6 两条接口请求转登记 (ISS-092 已 verified, 但这两条 hw-lead 侧还没人接)
+  verify_result: '2026-11-01 21:2x 项目总工亲核通过: 三件套齐全 (主文档 22.0KB / 自证脚本 23.0KB / json 8.1KB / HANDOFF 10.2KB, B1~B6 齐) + 自证脚本 `python3 HW/iss121_mic_magnet_check.py` rc=0 (坐标回归 4/4, 模型数值↔解析互校 0.000111%) + merge rc=0 (冲突 0) + gate Q1 18/18 + issue_check 违规 0。
+
+    ★**核心结论我独立复算过**: 抽它的 B_axial() 直接调 ⇒ 40mm 处 **37.37 µT** (交卷 36.0, 差 3.8% = Br 取值区间差异) / 80mm 处 4.68 µT ⇒ ★**麦落位磁场远低于地磁本底 (25/50/65 µT)** ⇒ 判『无影响』成立。
+
+    ★**它没有把『按规格书核磁场敏感度』糊过去**: 实测 4 份主流 MEMS 麦规格书 (Infineon IM69D130/IM67D128BV01、Knowles MM20、ST MP34DT04-C1) 全文 grep magnet = **0 命中** (规格书根本没这一栏) ⇒ 改走机理/地磁本底/实算三链 + 定选型硬判据 M-2 (静态耐受 ≥100µT) + 台架复测 4 步 ⇒ **这是正确做法** (规格书没有就标没有, 不脑补)。
+
+    ★**它挑出 3 条 MECH 侧不自洽并登记成 needs_from (没自己改别人的文件)**: P-1 磁铁/凸台/螺钉在 13.20 盖板 + 10.20 通窗下**无处可放** (搭边 1.50 < 沉槽需 2.10) ⇒ 磁铁坐标 [0数据]; P-2 ISS-092 §4.3 『磁铁↔SoC ≥68mm』**实为 28.00mm** 须订正; P-3 板宽 30mm 后 Y 向须重算。⇒ 这三条是**结构侧要返工的真实发现**, 不是挑刺。
+
+    ★**未验项诚实标出**: 麦磁场敏感度 [0数据] / 磁铁确切 XY [0数据] / 骨架若贯通全板则麦落位不成立 (须改镜框侧 + 跨铰链多 2 根 PDM 线) / 连接器落板区边界 (ISS-105) / 麦型号与音频范围 (老板未裁) / 实物 [实测] = **0 条**。'
+  verify_date: '2026-11-01'
+  note: '2026-10-30 00:3x 项目总工从 ISS-092 交卷的 I-5 / I-6 两条接口请求转登记 (ISS-092 已 verified, 但这两条 hw-lead 侧还没人接)
+
+
+    ★2026-11-01 21:0x hw-lead 交卷并自推状态 (owner=hw-lead)。
+
+    【本单做了什么】① 出 HW/ISS121_MIC_MAGNET_POSITION.md —— 闭环 ISS-092 转来的 I-5 (磁场) / I-6 (位置) 两条接口请求; ② 出 HW/iss121_mic_magnet_check.py (rc=0) 把坐标系回归/磁体模型/位置判据做成可机械复算的判定; ③ 出 HANDOFF/2026-11-01_hw-lead_ISS121_麦克风磁场与位置复核.md (B1-B6 六块齐); ④ 分片走 state/frag_write.py 原子写 (2 条 answers 闭合 mech-lead 的 I-5/I-6 + 6 条 needs + 6 条 interface_claims + 3 条 artifact); ⑤ 本脚本把 ISS-121 推到 fixed 并落 fix_ref (verify_by=main, 不填自己)。
+
+    【两条接口请求的答案 (摘要)】① **磁场 (I-5): 判定『无影响』** —— N35 ⌀4.00×1.00 (Br typ 1.20 T, 带宽 1.14-1.26 T) 端面 **40mm 处 B = 36.0 µT** (Br 上限 → 37.8 µT), 与地磁 25/50/65 µT 同一量级; 推荐落位 (板 X=5.00) 处 **B = 7.3 µT** (磁铁最靠里 15.1 µT) **低于地磁最小值 25 µT** ⇒ 远低于任何可用判据线。机理: 电容式 MEMS 麦的换能链 (声压→硅膜位移→电容) **无静态磁场作用点** (真怕磁的是动圈/驻极体/霍尔式, 本项目不用)。★★**任务书要求的『按麦克风规格书的磁场敏感度核』这条路走不通, 且不是本项目漏查**: 4 份主流 MEMS 麦规格书 (Infineon IM69D130 / IM67D128BV01 / Knowles MM20 / ST MP34DT04-C1) 全文检索 ''magnet'' = **0 命中** ⇒ **规格书里没有这一栏** ⇒ 改用三条替代证据链 (机理 / 地磁本底 / 本项目实算), 并把『静态磁场耐受 ≥100 µT (≈IEC 61000-4-8 L5 126 µT)』写成**选型硬判据 M-2**, 另给台架复测 4 步 (1kHz 94dB 灵敏度漂移 ≤±0.5dB)。
+
+    ② **位置 (I-6): 我把位置定死** —— 麦克风 = **板坐标 X=5.00 / Y=12.00 (镜脚 L=45.50)**, 顶进式 MEMS, 声孔 ⌀1.00 开在镜脚**外侧面** + 非磁性粘接防尘网; 净空 **通窗 44.20 / 磁铁 54.80 (最坏 43.00) / 螺钉 55.30 mm** ⇒ **≥40mm 全部 PASS**; 且该处**金属骨架不在上方** (骨架占板 X 18.00..42.00) ⇒ **不需要开骨架窗** (声学通道 3.00mm 直通)。★**≥40mm 判据的可满足带只有板 X ≤ 8.00** (对通窗与最坏磁铁取交集) ⇒ 铰链端是唯一解; M2 (X=17.00) 与 M3 (X=26.00, 即 mech-lead 假设的『根部 SoC 区』) **全部 FAIL** (23.20~31.00mm)。M1 成立前提是『跨铰链连接器座体悬出板端、只占焊盘 X 0..3』, 该边界 [0数据] (ISS-105 open) 已登记 needs。**导光孔那半条在当前基线 N/A** (充电板已按 ISS-014 决策 5 挪到镜框 ⇒ LED 在框 ⇒ 镜脚侧无导光孔); 若 T-3c 复活 (LED 挪回镜脚), 导光孔必落 SoC 区 ⇒ 距通窗 23.20 / 距磁铁最坏 22.00 ⇒ **破 40mm 判据** ⇒ 复活时导光孔必须回镜框。另: **MECH_BUDGET §802 的『2× MEMS / 两孔间距 ≥40mm』口径需修订为 1 颗/侧** (左右孔距 = 镜框前框总宽 140mm)。
+
+    【★在 MECH 尺寸里发现的 3 条不自洽 (我不改 MECH, 已登记 needs)】P-1 **磁铁/凸台/螺钉在现有盖板几何下无处可放** —— 盖板 13.20 × 通窗 10.20 ⇒ X 向搭边仅 1.50/侧, 而 ⌀4.20 磁铁沉槽需 ≥2.10 的壁 ⇒ 磁铁的精确坐标至今 [0数据], 本单只能给『标称板 X=59.80 (L 100.30)』+『包络最坏 X=48.00』两个值, 坐标落定后一条命令重算; P-2 **ISS-092 §4.3 的『磁铁↔SoC ≥68mm』与其自身尺寸链矛盾** —— 按同一条链实际 **28.00mm** (68.30 是拿磁铁的镜脚 L 减 SoC 的板 X, 两套坐标系混算), 该处 B = 54.8 µT ⇒ 对 SoC 无功能影响, **但数字必须订正**; P-3 板宽改 30mm (ISS-118) 后麦的 Y 向落位要重算, 且 Y↔V 朝向 [0数据] (不影响 X 向 ≥40mm 判定)。
+
+    【诚实边界】实物 [实测] = **0 条**。**6 项 [0数据]**: ① 麦克风磁场敏感度 (规格书无此栏, 4 份实测 grep=0) ② 磁铁/定位凸台确切 X/Y ③ 跨铰链连接器落板区边界 (ISS-105 open) ④ 麦的型号 (音频要不要做, 老板未裁 N7) ⑤ 金属骨架是否贯通全板长 (若贯通, M1 退化为破 40mm) ⑥ Y↔V 朝向。【本单未拍板】: 音频要不要做 (老板)、磁铁与凸台确切坐标 (mech-lead)、MECH_BUDGET §802 麦数量口径 (mech-lead)、ISS-092 §4.3 的 68mm 订正 (mech-lead) —— 全部登记 needs 经项目总工转达, **未直接联系任何总工或供应商**, 未改 HW/ 之外的任何他人目录, 未外发。
+
+    ★2026-11-01 21:2x 项目总工亲核关单 (verify_by=main ≠ owner=hw-lead)。★**值得记的一点**: 它发现『MEMS 麦规格书里没有磁场敏感度这一栏』—— 4 份主流规格书 grep magnet = 0 命中 ⇒ 于是改用**机理 + 地磁本底 + 实算**三链, 并把『静态耐受 ≥100µT』定成**选型硬判据** (以后选麦直接照这条筛) ⇒ ★**这是把『查不到』变成『可执行的替代判据』, 而不是留个空口**。'
   dispatched_at: '2026-11-01'
 - id: ISS-122
   title: '★★BGA 逃线层数: ★两套模型结论相反 (9 层 vs 3 层) ⇒ 破没破 4-6 层锁是 [0数据] 不是结论 —— 必须问 PCB 厂 DFM 报告'
@@ -3356,14 +3385,46 @@ issues:
   reporter: main
   raised: '2026-11-01'
   due: '2026-11-05'
-  status: fixing
+  status: verified
   external: false
   need_keys: []
-  fix_ref: null
+  fix_ref: 'HANDOFF/2026-11-01_sw-lead_ISS123_S2救砖链路按RK3576模组厂口径重写.md (B1-B6 六块齐) + SW/S2_VENDOR_QUESTION_LIST.md v2.0 (★问询清单整版重写为 **RK3576 模组厂**口径: 对象/术语(Maskrom/Loader/Rockusb/SARADC_VIN0_BOOT)/格式; ★新增 3 个必答项 = parameter.txt 的**单位与方言** + **专用 MaskROM USB 口** + **三态各自 VID:PID**; §4.3「扇区→字节四步法」禁止手抄; v1.0 线路B 整节作废) + SW/tools/s2_partition_convert.py (★新增: parameter.txt 两种方言解析 + 6 条分区表一致性守卫 + **2 条 512 倍反例**自测 14/14) + SW/tools/s2_rescue_config.json (+ .example.json) (★新增 identity 段 = **magic / 版本串前缀的唯一真源** + 各自 `_basis` 依据; partition_layout 增 **sector_size 显式参数** (默认 512) / size_unit / expected_total_bytes / vendor_size_unit / provenance) + SW/tools/flash_writer.py (magic 改从配置读 + 写入前跑守卫 + verify 报告带 magic 供判证据过期) + SW/tools/s2_board_judge.py (版本串前缀动态化 + 守卫接入 CB-02/CB-06 + 证据过期检测; 自测 7/7 → 13/13) + SW/tools/s2_board_run.sh (preflight 加 identity/sector_size 项; 自测 6 步 → 9 步) + SW/tools/s2_board_e2e.sh (新增 E10~E13; 10/10 → 14/14) + SW/tools/s2_board_selftest.py (版本串前缀改从配置读) + SW/tools/s2_iss123_verify.sh (★新增: **一条命令自证** V1~V9, rc=0, 15/15) + SW/S2_BOARD_TEST_CHECKLIST.md (§0.2 口径提示改写为已闭环 + CB-02/CB-03 判定口径改引配置字段 + C-5 已闭环/新增 C-5b/C-5c)'
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: '2026-11-01 20:5x 项目总工从 ISS-120 交卷的『顺手查出的口径冲突』转登记。★sw-lead 的原话: 『未拍板, 已报项目总工 (s2_chip_swap_scope) —— 分叉没定就发信会问错对象』⇒ 它**没有脑补也没有偷改**, 这是正确做法。'
+  verify_result: '2026-11-01 21:4x 项目总工亲核通过: 一条命令 `bash SW/tools/s2_iss123_verify.sh` → **15/15 rc=0**; ★**既有通过数独立复核, 只增不减** (judge 7→**13/13** · e2e 10→**14/14** · ISS-080 既有 s2_selftest.sh **10/10 未破** · run.sh --selftest / selftest.py / selftest.sh 全 rc=0) ⇒ **没有把已有判据改松**; merge rc=0 (冲突 0) + gate Q1 18/18 + issue_check 违规 0。
+
+    ★**512 倍差做成了机械守卫, 不是靠人肉小心**: 新增 `SW/tools/s2_partition_convert.py` (14/14) —— 两种方言解析 (hex-sector / suffix-bin) + 6 条守卫判据, 其中 ★**混用两种方言 ⇒ 直接拒绝换算** (单位不明就不换) ⇒ 这比单纯的 512 倍反例更严。
+
+    ★**三处硬编码确实抽成可配置且默认值带依据**: version_block_magic=''RK35'' (4B ⇒ §3.2 布局零改动) / version_str_prefix=''ARS45-SW '' / partition_layout.sector_size=512 —— 每个都带 `*_basis` 依据字段。
+
+    ★**它没有偷改「产品代号」**: 版本串前缀 `ARS45-SW` 它判定为**产品代号不是 SoC 型号** ⇒ 保持不变, 改名与否**挂成 needs_from 等老板拍板** ⇒ ★**该它拿主意的它拿了, 不该它拿的它没拿**。
+
+    ★**问询清单整版重写 v2.0 = RK3576 模组厂口径** (术语 Maskrom/Loader/Rockusb/`SARADC_VIN0_BOOT` 电压档位; 新增 3 必答项: parameter.txt 单位与方言 / 专用 MaskROM USB 口 / 三态各自 VID:PID)。
+
+    ★**板端实测仍 0 次** —— P1~P4 四个 [0数据] 仍 null/TODO ⇒ BR-01 最高只能判 ⚠️未验 ⇒ **该板不得进产线** (它自己写明了)。
+
+    ★**一个诚实缺口**: RK3576 自己的 PID **公开查不到** (只查到别家 SoC 的 0x330c/0x350a/0x350b/0x0011) ⇒ 它**没有把别家的值抄进配置**, 而是标 [0数据] 说必须问模组厂。'
+  verify_date: '2026-11-01'
+  note: '2026-11-01 20:5x 项目总工从 ISS-120 交卷的『顺手查出的口径冲突』转登记。★sw-lead 的原话: 『未拍板, 已报项目总工 (s2_chip_swap_scope) —— 分叉没定就发信会问错对象』⇒ 它**没有脑补也没有偷改**, 这是正确做法。
+
+    ★2026-11-01 21:2x sw-lead 交卷 (status fixing → fixed, **板端实测仍未做**):
+
+    【① 三处硬编码 → 可配置 (代码零改动即可换口径)】版本块 magic (`flash_writer.py` 原写死 `b"AR45"` → 配置 `identity.version_block_magic`, 现默认 **`"RK35"`**, **仍 4 字节** ⇒ SW/FLASH_AND_VERSION.md §3.2 版本块二进制布局**零改动**) · 版本串前缀 (原写死 `"ARS45-SW "` → 配置 `identity.version_str_prefix`, **保持原值**: 它取自**产品代号**(PROJECT_TRACKER 标题 "ARS45 Smart Glasses")**不是** SoC 型号 ⇒ 换芯不构成改它的理由; 而『ARS45 作废』指**芯片/方案商**, 产品代号是否同步改名**未见老板拍板** ⇒ **不脑补**, 已登记 s2_product_codename) · 分区表扇区单位 (→ 配置 `partition_layout.sector_size` **显式参数**, 默认 512)。★ 改**配置一处**即全链路生效 (写/判/板端自检/preflight/问询回填 5 个落点)。
+
+    【② ★512 倍差从"文档提醒"升级为"机械守卫"】新增 SW/tools/s2_partition_convert.py: 解析瑞芯微 parameter.txt 的**两种方言**(十六进制扇区 / 后缀 K-M-G, 混用直接拒绝换算) + **6 条**一致性判据 + **2 条 512 倍反例**自测(÷512 方向被 TOTAL_MISMATCH_EXPECTED + ALIGN_VIOLATION + SECTOR_TABLE_NOT_CONVERTED 三条抓住; ×512 方向被 TOTAL_EXCEEDS_DEVICE 抓住) + 写入前拦截 (flash_writer) + 判定器接入 (CB-02/CB-06) + **证据过期检测**(回读报告的 magic 与配置不一致 ⇒ 判未验)。⇒ **这个错不再可能静默发生**。依据 [官方]: 瑞芯微分区文档三处独立一致 "mtdparts 十六进制写法单位 = 扇区, 1 扇区 = 512 字节"(九鼎官方英译/armsom/Vicharak RK3399 实例) + 同族另有后缀方言(8M@9M, 单位=字节) ⇒ **单位由方言决定 ⇒ 必须显式**。
+
+    【③ 问询清单整版重写 v2.0 = RK3576 模组厂口径】v1.0 (ARS45 原厂口径) 整节作废; 术语改瑞芯微口径 (Maskrom/Loader(Rockusb)/fastboot/ `SARADC_VIN0_BOOT` 电压档位); ★**新增 3 个必答项**: ①parameter.txt 的**单位与方言** ②**专用 MaskROM USB 口**在不在 (依据 [官方] RK3576 MaskROM 专页: "only a dedicated MaskROM USB port of the RK3576 is used") ③**三个态各自**的 VID:PID (依据 [官方] 公开只查到别家 SoC 的 PID (0x330c/0x350a/0x350b/0x0011), ★**RK3576 自己的 PID 公开查不到 ⇒ 必须问**)。另附 §5.1 RK3576 芯片级公开事实当"提问的靶子"(含 ★parameter.txt 的 `MAGIC: 0x5041524B` 与**我们自己的版本块 magic 是两码事**的澄清)。
+
+    【★既有判据只增不减, 没改松】run.sh --selftest 6/6 → **9/9** · judge --selftest 7/7 → **13/13** · e2e 10/10 → **14/14** · selftest.py 6/6 项全过 · selftest.sh 5/5 · ISS-080 既有 s2_selftest.sh **10/10 未破** · 新增 partition_convert --selftest **14/14** · ★一条命令自证 `bash SW/tools/s2_iss123_verify.sh` → **15/15, rc=0**。★**新增守卫只会把"本该判过的"降级为判未验, 没有任何一条把 FAIL/UNVER 放宽成 PASS**; ★**P1~P4 未填 ⇒ rc=3 的逻辑原样保留, 未加任何降级路径**。
+
+    【★状态诚实声明】**板端 S2 实测仍 0 次** —— P1~P4 四个 [0数据] 项在 s2_rescue_config.json 里**仍是 value=null / status=TODO, 一个都没填** ⇒ 按 EVT §11.4 R2, BR-01 现在**最高只能判 ⚠️未验**, **该板不得进产线**。★本单交付的是"口径对了 + 错不会再静默发生 + 问对对象问对格式", **不是"测过了"**。
+
+    【自证】bash SW/tools/s2_iss123_verify.sh → **rc=0 (15/15)**; python3 state/merge.py → **rc=0 (冲突 0)**; python3 state/gate_check.py → **rc=0 (Q1 18/18)**。
+
+    【未决 (已登记 needs)】`s2_product_codename` (产品代号是否改名, to=main/boss, due 11-08) / `s2_version_block_magic_decision` (magic 最终取值, to=main/boss, due 11-08) / `s2_boot_entry_hw_rk3576` (★载板下载态入口按 RK3576 重核: SARADC_VIN0_BOOT 电压档位 + 专用 MaskROM USB 口, to=main, due 11-08) / `s2_vendor_inquiry_draft` (请项目总工按 v2.0 外发, due 11-05) / `s2_param_fill_backfill` (板端回读通道 + 标定台账, due 11-10)。另 ★`s2_chip_swap_scope` 已按 11-01 20:5x 裁决闭合 (基线翻案为 RK3576)。
+
+    【验证】**verify_by=main** —— 三处硬编码默认值是否被接受 / 问询清单 v2.0 是否可外发 / 是否解除 BR-01 的口径卡点, 由项目总工签; **修复人不能自验**。
+
+    ★2026-11-01 21:4x 项目总工亲核关单 (verify_by=main ≠ owner=sw-lead)。★**新增 needs 3 条** (s2_product_codename / s2_version_block_magic_decision → 等老板; s2_boot_entry_hw_rk3576 → 载板下载态入口要按 RK3576 重核, `SARADC_VIN0_BOOT` 是 ADC 引脚 + 专用 MaskROM USB 口)。'
   dispatched_at: '2026-11-01'
 - id: ISS-124
   title: ★★[待瑞芯微/RK3576 模组厂] ISP MP/s 吞吐上限 + ISP 动态功耗 vs 吞吐曲线 (2 问, 一票否决级的剩余部分)

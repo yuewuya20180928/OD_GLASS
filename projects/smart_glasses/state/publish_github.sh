@@ -247,8 +247,16 @@ try:
     walk(cfg)
 except Exception as e:
     print("⚠️ 读不到 openclaw.json:", e)
-# agent 目录里的 auth profile 也取真值
-for p in ("/home/yuewuya/.openclaw/agents/main/agent/auth-profiles.json",):
+# ★★★2026-11-01 21:3x 补三条规则 (迁移到另一台主机前必须先补, 否则新主机一上手就在裸奔):
+#   ① **扫全部四个 agent 的 auth-profiles** (原来只扫 main ⇒ 三个子 agent 的 key 漏检)
+#   ② 加**值形态**规则 (sk-cp-… / tvly-… / ghp_… / sk-ant-… 等) ⇒ **不依赖字段名** ——
+#      字段名能被改 (把 "key" 改成 "v" 就绕过), **值形态改不掉**
+#   ③ 扫 agents 目录下的 **models.json** (可能含 authHeader 里的凭据)
+import glob as _glob
+
+_agent_profiles = sorted(_glob.glob(os.path.expanduser("~/.openclaw/agents/*/agent/auth-profiles.json")))
+_agent_models = sorted(_glob.glob(os.path.expanduser("~/.openclaw/agents/*/agent/models.json")))
+for p in _agent_profiles + _agent_models:
     try:
         d = json.load(open(p, encoding="utf-8"))
         def w2(o, pre=""):
@@ -264,6 +272,18 @@ for p in ("/home/yuewuya/.openclaw/agents/main/agent/auth-profiles.json",):
         w2(d)
     except Exception:
         pass
+
+# ★★值形态规则: **不依赖字段名** —— 字段名能被改, 值形态改不掉
+VALUE_PATTERNS = [
+    ("sk-cp-",   re.compile(r"sk-cp-[A-Za-z0-9_\-]{20,}")),
+    ("sk-ant-",  re.compile(r"sk-ant-[A-Za-z0-9_\-]{20,}")),
+    ("tvly-",    re.compile(r"tvly-[A-Za-z0-9_\-]{20,}")),
+    ("ghp_",     re.compile(r"ghp_[A-Za-z0-9]{20,}")),
+    ("github_pat_", re.compile(r"github_pat_[A-Za-z0-9_]{20,}")),
+    ("sk-proj-", re.compile(r"sk-proj-[A-Za-z0-9_\-]{20,}")),
+    ("AKIA",     re.compile(r"AKIA[0-9A-Z]{16}")),
+    ("wechat-openid", re.compile(r"o9cq[0-9A-Za-z]{12,}")),
+]
 hits = []
 for root, dirs, files in os.walk(pub):
     dirs[:] = [d for d in dirs if d != ".git"]
@@ -284,7 +304,13 @@ for root, dirs, files in os.walk(pub):
             m = rx.search(data)
             if m:
                 hits.append((os.path.relpath(p, pub), f"EXTRA_RE:{rx.pattern}"))
-print(f"真值反查: {len(truths)} 条凭据真值 + {len(EXTRA_LITERALS)} 敏感串 + {len(EXTRA_RE)} 内网IP正则 × 整棵发布树 → 命中 {len(hits)}")
+        # ★★2026-11-01: **值形态**规则 —— 不依赖字段名 (字段名能被改, 值形态改不掉)
+        for tag, vrx in VALUE_PATTERNS:
+            m = vrx.search(data)
+            if m:
+                hits.append((os.path.relpath(p, pub), f"VALUE_SHAPE:{tag} ({m.group(0)[:6]}...)"))
+print(f"真值反查: {len(truths)} 条凭据真值 + {len(EXTRA_LITERALS)} 敏感串 + {len(EXTRA_RE)} 口令上下文正则 "
+      f"+ {len(VALUE_PATTERNS)} 值形态规则 × 整棵发布树 → 命中 {len(hits)}")
 for h in hits[:10]:
     print("   ❌ 命中:", h)
 sys.exit(1 if hits else 0)

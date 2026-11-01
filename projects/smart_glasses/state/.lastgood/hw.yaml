@@ -1,29 +1,28 @@
 agent: hw-lead
 role: 硬件总工
-updated_at: '2026-10-28T08:40:00+08:00'
+updated_at: '2026-11-01'
 updated_by: hw-lead
 status:
   phase: P2(原理图/BOM)+结构接口
   progress_pct: 55
   health: yellow
-  summary: 'ISS-067 交卷 (R-F1 3.3V 轨拓扑裁决落地): 产出 HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md +
-    HW/calc_rf1_3v3v_uvp.py + HANDOFF/2026-10-29_hw-lead_ISS067_RF1_3V3V_UVP.md (B1-B6
-    六块齐全)。核心结论: (1) 方案A (UVP 3.5V + 3.3V 由 TPS62130A buck 供) 的真实代价≈0, 不是裁决说的牺牲12-15%容量
-    —— 那12-15%在现状里本来就用不到 (TPS7A20 dropout 110mV typ -> 3.3V轨在SYS<3.41V已失效), 方案A只多切3.41->3.50V窄带(标称3%=12.6mAh);
-    (2) 口径A续航 (420mAh电芯, 满载无桥中位0.82W): 现状1.195h(末段突然黑屏) -> 方案A 1.241h(+3.9%) -> 方案A''(UVP3.35V)
-    1.325h(+10.9%) -> buck-boost 1.475h(+23.4%); (3) 口径B选电芯: 方案A需408mAh -> 420mAh刚好够(余3%);
-    满载上界1.01W需492mAh/有桥中位需496mAh -> 420不够, 下一档650mAh/8.5mm = 镜腿~10-11mm 形态否决 => ''持续满载1h''
-    现在有第二条独立否决理由(电芯档位), 与热学否决同向; (4) 镜腿7.3mm锁死值不变(电芯仍丰江432243 4.3mm, 加第3颗DC-DC不新增高度等级),
-    真正落地的是按需触发口径(141mAh需求, 余199%); (5) 温度: LDO->buck 把镜腿内损耗175mW->100mW = 相对现状皮肤侧-2.94~-3.76C(改善),
-    但现论文热模型从未计入3.3V轨转换损耗 => 方案A落地后要补+100mW => 皮肤侧46.5C->50.4-51.5C, 43C红线缺口从3.5C扩到7.4-8.5C;
-    (6) 第三条路逐条评估: buck-boost只比方案A''多+11.4分钟却多1颗新IC+~35mm2+新料量产风险+新EMI/FIT项(且4开关效率在boost段更低85-90%
-    vs buck 88-93%) -> 不进第一台样机; 低dropout LDO被方案A''完全支配(只多2-4%容量却要换料); IO轨直吃SYS否决(SYS满电4.2V超典型3.3V
-    IO绝对最大值~3.6V, 且SoC IO/光机容差均[0数据]); ★(7) 最硬的实现风险: 裁决原文''把BQ2970的UVP阈值抬到3.5V''在器件层面没有落点
-    —— BQ2970是1S电芯级保护(OVP 4.275V[官方], UV门限[0数据])抬不到3.5V, 系统级欠压关断必须落在负载开关U_PWR_SW的输入欠压门限(>=3.35V)或外挂电压监控器,
-    而U_PWR_SW还在[待选型] => 现在加选型判据零板费, 投板后加=2-4周返工; (8) 连带UX后果: UVP 3.35V + 充电板VSYS=NC
-    => 电池没电时插USB开不了机, 待老板裁决。已登记11条interface_claims + 9条未决项(其中3条waiting_on=boss/vendor/jbd)
-    + 3份artifact; 边界: 未发任何邮件/未联系供应商/未改MECH与SW与PROJECT_TRACKER/未改别人分片; merge rc=0 +
-    gate Q1 18/18'
+  summary: 'ISS-121 交卷 (MEMS 麦克风 vs 检修口 N35 磁铁的磁场/位置复核, 闭环 ISS-092 的 I-5/I-6): 产出
+    HW/ISS121_MIC_MAGNET_POSITION.md + HW/iss121_mic_magnet_check.py (rc=0) + HW/iss121_mic_magnet_check.json
+    + HANDOFF/2026-11-01_hw-lead_ISS121_麦克风磁场与位置复核.md (B1-B6 六块齐)。核心结论: (1) **磁场判『无影响』**
+    —— N35⌀4x1 (Br typ 1.20T) 端面40mm处 B=36.0µT (上限37.8µT) ≈ 地磁量级, 推荐落位(板X5.00)处 B=7.3µT
+    (磁铁最靠里15.1µT) < 地磁最小25µT; 电容式MEMS换能链无静态场作用点 (真怕磁的是动圈/驻极体/霍尔式, 不用); (2) ★**『按麦克风规格书的磁场敏感度核』这条路走不通且非漏查**
+    —— 4份主流MEMS麦规格书 (Infineon IM69D130/IM67D128BV01 / Knowles MM20 / ST MP34DT04-C1)
+    全文 grep ''magnet'' = **0命中**, 规格书里没有这一栏 ⇒ 改用机理/地磁本底/实算三链 + 选型硬判据 M-2 (静态磁场耐受≥100µT)
+    + 台架复测4步; (3) **位置由我定死** = 板坐标 X=5.00/Y=12.00 (镜脚L45.50), 顶进式MEMS, 声孔⌀1.00开镜脚外侧面;
+    净空 通窗44.20 / 磁铁54.80(最坏43.00) / 螺钉55.30 mm ⇒ **≥40mm 全 PASS**; 该处金属骨架不在上方 ⇒ 无需骨架开窗
+    (通道3.00mm直通); (4) ★**≥40mm可满足带仅板X≤8.00** ⇒ 铰链端唯一解, M2(X17)/M3(X26, mech-lead假设的根部SoC区)
+    全FAIL; M1 成立前提是『跨铰链连接器座体悬出板端只占焊盘X0..3』, 该边界[0数据](ISS-105 open) 已登记needs; (5) **导光孔基线N/A**
+    (ISS-014决策5充电板在镜框 ⇒ LED在框 ⇒ 镜脚侧无导光孔); T-3c复活则落点必破40mm判据 ⇒ 导光孔须回镜框; MECH_BUDGET§802『2×/间距≥40』口径需改1颗/侧
+    (左右孔距=框宽140mm); (6) ★**MECH尺寸3条不自洽**: P-1 磁铁/凸台/螺钉在现有盖板几何下无处可放 (搭边1.50 < 沉槽需2.10)
+    ⇒ 磁铁坐标[0数据]; P-2 ISS-092§4.3『磁铁↔SoC≥68mm』与自身尺寸链矛盾 ⇒ 实际28.00mm (该处B=54.8µT, 无功能影响但数字须订正);
+    P-3 板宽改30mm后Y向落位重算 + Y↔V朝向[0数据]; 已登记2条answers(闭合mech-lead的I-5/I-6)+6条needs(4条mech-lead经项目总工/1条main等老板/1条main等ISS-105)+6条interface_claims+3条artifact;
+    边界: 未发任何邮件/未联系供应商/未改MECH与SW与PROJECT_TRACKER/未改别人分片; merge rc=0 + gate Q1 18/18
+    | phase=P2(原理图/BOM)+结构接口 progress=55% health=yellow'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -150,6 +149,24 @@ artifacts:
   version: '1.0'
   updated_at: '2026-10-25'
   summary: 'ISS-067 交接单 (B1-B6 六块齐全): 结论摘要/验收自评/证据分级11条/接口取值11条/未决项9条/自证命令'
+- path: HW/ISS121_MIC_MAGNET_POSITION.md
+  kind: report
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: 'ISS-121 主文档: 磁场 (机理/地磁本底/实算 三链) + 位置 (板X5.00 落位, ≥40mm 判据) + MECH 尺寸 3
+    条不自洽 P-1~P-3 + 麦选型硬判据 M-1~M-5 + 台架复测 4 步'
+- path: HW/iss121_mic_magnet_check.py
+  kind: script
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: 'ISS-121 自证脚本 rc=0: 坐标系回归 4/4 (板X↔镜脚L 偏移40.50) + 磁体模型数值/解析互校 0.000111%
+    + 位置/磁场判据 + JSON 落盘'
+- path: HANDOFF/2026-11-01_hw-lead_ISS121_麦克风磁场与位置复核.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-01'
+  summary: 'ISS-121 交接单 (B1-B6 六块齐): 磁场判无影响 + 麦克风落位板X5.00 + 导光孔基线N/A + 6 条 needs +
+    6 条 interface_claims'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX
@@ -454,6 +471,47 @@ needs_from:
   item: 'ISS-067 需 JBD 回复 (外发经项目总工): 光机 3.3V 输入电压容差与下限 (LIGHT_3V3 由新 buck 供, UVP 3.35V
     时 buck 输出约 3.305V)。我的假设: ±5% (3.135-3.465V) => 成立; 若要求 3.3V±2% => 3.305V 卡边, 需实测确认后再定
     UVP'
+- key: iss121_magnet_xy_define
+  to: mech-lead
+  item: 'ISS-121 U-1 (经项目总工转达): 请给**磁铁 / 2×⌀1.60定位凸台 / M1.6螺钉在盖板下的确切 X/Y 坐标** —— 按
+    ISS-092 §4.1 C-1/C-3, 盖板13.20×通窗10.20 ⇒ X向搭边只有1.50/侧, 而 ⌀4.20×1.00 磁铁沉槽需 ≥2.10
+    的壁 ⇒ **现有几何下磁铁无处可放** (P-1)。本单磁场数字用『标称板X=59.80(L100.30)』+『包络最坏X=48.00』两值, 坐标落定后
+    python3 HW/iss121_mic_magnet_check.py 一条命令重算 (零板费)'
+  since: '2026-11-01'
+- key: iss121_mag_soc_gap_correction
+  to: mech-lead
+  item: 'ISS-121 U-2 (经项目总工转达): ISS-092 §4.3 的 **『磁铁↔SoC 间距 ≥68mm』与该文自身尺寸链矛盾** ——
+    按同一条链 (磁铁 L100.30 vs SoC 逃线带末端 L72.30) 实际 **28.00mm**; 68.30 是拿磁铁的**镜脚 L** 减 SoC
+    的**板 X** (两套坐标系混算)。该处磁场 B=54.8µT ⇒ 对 SoC 无功能影响, 但**数字必须订正**, 否则会被当成已复核引用'
+  since: '2026-11-01'
+- key: iss121_skeleton_extent_confirm
+  to: mech-lead
+  item: 'ISS-121 U-3 (经项目总工转达): 请确认**金属骨架是否贯通全板长**? ISS-092 §8 第4行只给 L58.5..82.5 (⇒
+    板X18.00..42.00), 本单据此假设 X<18 处**骨架不在上方** ⇒ 麦克风顶进式声孔通道 3.00mm 直通、**无需骨架开窗**。 若骨架实际贯通全板
+    ⇒ X=5.00 也需开窗 ⇒ **镜脚外侧面无 ≥40mm 合规落位** ⇒ 麦须改到镜框侧充电板 (语音更好, 但要跨铰链多2根 PDM 线, J_CHG
+    只剩 pin9 一个空脚) ⇒ 需项目总工拉三方评审'
+  since: '2026-11-01'
+- key: iss121_mic_count_spec
+  to: mech-lead
+  item: 'ISS-121 U-4 (经项目总工转达): `MECH/MECH_BUDGET.md` §802 的 **『2× MEMS, 镜腿外侧开⌀1.0声孔,
+    两孔间距 ≥40mm』** 在 ≥40mm 判据下**做不到** (合规带只有板X≤8.00, 第二孔要≥40mm 就得在X≥45 而那里离通窗仅4.2mm)。建议改为
+    **每侧镜脚 1 颗 (L/R 一对)**: 两孔间距 = 镜框前框总宽 **140mm** (远超40mm) ⇒ 防声学串扰判据自动满足, 且不占 PCB
+    面积 (省 ~6mm² + 一路 I2S/PDM)'
+  since: '2026-11-01'
+- key: iss121_audio_scope
+  to: main
+  item: 'ISS-121 U-5 (经项目总工): **音频要不要做** —— 麦至今 [0数据] (型号未选型; HW/HARDWARE_BREAKDOWN
+    N7 ''tracker全文未提, 需老板确认'')。本单假设**第一台样机不做音频** ⇒ 麦不进 BOM/网表, 只保留『磁铁-麦互不影响』结论 + 选型硬判据
+    M-1~M-5 + 台架复测 4 步。若老板定要做, 麦的静态磁场耐受 ≥100µT 一条要写进 RFQ (拿不到书面声明就按 [0数据] 处理并加台架复测)'
+  since: '2026-11-01'
+  waiting_on: boss
+  due: '2026-11-04'
+- key: iss121_conn_zone_dependency
+  to: main
+  item: 'ISS-121 U-6 (经项目总工): **跨铰链 4 连接器的落板区边界** [0数据] (ISS-105 open, 我的 needs `iss105_hinge_end_conn_width`
+    仍在等) —— 这条决定麦克风落位 M1 (板X5.00) 是否成立: 情形a (FPC连接器座体悬出板端, 只占焊盘 X0..3) ⇒ M1 净空 2.00mm
+    成立; 情形b (沿板长拉开占 X0..24) ⇒ **镜脚外侧面无 ≥40mm 合规落位** ⇒ 麦改镜框侧。两种情形的磁场结论**不变** (无影响)'
+  since: '2026-11-01'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -517,6 +575,19 @@ answers:
     1x22p (末脚接 GND, 差分有回流)。★声明 pin 数 == 网表实际引用已是门禁判据 (你提的 F-1 断链已修)。★但新增一条待裁决: 这 4
     条若全落镜脚主 PCB 铰链端, 焊盘排合计 54 触点 = 27mm > 15mm 板宽 (见 needs_from iss105_hinge_end_conn_width)'
   ref: HW/netlist_v1.csv (P9 跨铰链页) + HW/INTERFACE_TABLE.md
+- key: iss092_mic_magnetic_sensitivity
+  to: mech-lead
+  value: '无影响: N35⌀4x1 端面40mm处B=36.0µT(Br1.20T;上限1.26T→37.8µT)≈地磁量级; 落位(板X5.00)处B=7.3µT(最坏15.1µT)<地磁最小25µT;
+    电容式MEMS无静态场作用路径; 规格书无磁场敏感度栏(4份grep=0)→改用机理/地磁本底/实算三链+选型硬判据M-2(≥100µT)+台架复测4步'
+  ref: HW/ISS121_MIC_MAGNET_POSITION.md §2 (B3 证据分级) + HW/iss121_mic_magnet_check.py
+    §B/B2/C
+- key: iss092_outer_face_holes_position
+  to: mech-lead
+  value: 麦克风=板坐标X5.00/Y12.00(镜脚L45.50)顶进式, 声孔⌀1.00开镜脚外侧面+非磁性粘接防尘网; 净空 通窗44.20/磁铁54.80(最坏43.00)/螺钉55.30mm
+    全≥40 PASS; 骨架不在上方→无需骨架开窗; ≥40mm可满足带仅板X≤8.00(铰链端唯一解), M2/M3 FAIL; 导光孔基线N/A(ISS-014决策5充电板在镜框),
+    T-3c复活则破判据; MECH_BUDGET§802『2×/间距≥40』口径需改1颗/侧
+  ref: HW/ISS121_MIC_MAGNET_POSITION.md §3 (B3 证据分级) + HW/iss121_mic_magnet_check.py
+    §C
 interface_claims:
 - key: pcb_outline
   value: 60x15mm
@@ -942,6 +1013,35 @@ interface_claims:
     与 mech-lead 侧 (315/387) 冲突 ⇒ 按 ISS-072 新口径统一为 315/387 (mech-lead ISS-065 文档 §10
     S-5 早已是 315/387)'
   ref: ''
+- key: mic_acoustic_hole_pos
+  value: 板X5.00/Y12.00(镜脚L45.50)
+  note: 顶进式 MEMS 声孔开在镜脚外侧面; ⌀1.00 壁孔 + 非磁性粘接防尘网; 金属骨架不在上方(骨架占板X18.00..42.00) ⇒ 无需骨架开窗;
+    HW/ISS121_MIC_MAGNET_POSITION.md §3.2
+  ref: HW/ISS121_MIC_MAGNET_POSITION.md §3.2
+- key: mic_acoustic_hole_dia
+  value: ⌀1.00mm
+  note: 沿用 MECH_BUDGET §802; 配套非磁性粘接防尘网 (不锈钢松散网会被磁铁吸, 43mm 外吸力虽仅 μg 量级但有掉件风险)
+  ref: HW/ISS121_MIC_MAGNET_POSITION.md §3.2
+- key: mic_count
+  value: 1/侧(L-R一对)
+  note: 两孔间距 = 镜框前框总宽 140mm (≫40mm) ⇒ 防声学串扰判据自动满足; MECH_BUDGET §802 的『2×/间距≥40』口径需修订
+    (needs iss121_mic_count_spec)
+  ref: HW/ISS121_MIC_MAGNET_POSITION.md §3.5
+- key: mic_magnetic_margin
+  value: B≤15.1µT@落位/36.0µT@40mm
+  note: N35 Br=1.20T (带宽1.14-1.26T) 均匀磁化圆柱模型 (数值积分 vs 解析解 0.000111%); 均 ≤ 地磁典型值 50µT
+    ⇒ 判定无影响
+  ref: HW/iss121_mic_magnet_check.py §B/§C
+- key: mag_field_immunity_req
+  value: ≥100µT
+  note: '麦选型硬判据 M-2: 静态磁场耐受书面声明 (≈IEC 61000-4-8 L5 126µT); 拿不到 ⇒ 按 [0数据] 处理并加台架复测
+    (1kHz 94dB 灵敏度漂移 ≤±0.5dB)'
+  ref: HW/ISS121_MIC_MAGNET_POSITION.md §2.7/§2.8
+- key: service_port_feature_clearance
+  value: ≥40mm
+  note: 判据对象 = 通窗/磁铁/螺钉凸台; M1 实测 通窗44.20 / 磁铁54.80(最坏43.00) / 螺钉55.30 ⇒ PASS; M2(X17)/M3(X26)
+    FAIL; 可满足带仅板X≤8.00
+  ref: HW/iss121_mic_magnet_check.py §C
 open_questions:
 - id: HW-Q1
   to: main

@@ -25,16 +25,26 @@
 2. **[推算] 占位不是实测。** `partition_layout` 现在是 [推算] 占位表。**P4 未填时 CB-02 / CB-06 一律判"未验"** —— 拿占位表判回读 CRC 通过 = 拿推算冒充实测。
 3. **没数据 ≠ 没问题。** 任何一项缺有效实测数据 → BR-01 **最高只能判 ⚠️未验**, 并写明缺哪项、什么时候补测。
 
-### 0.2 ★ 口径变更提示 (投板前必须先解决, 否则本清单白勾)
+### 0.2 ★ 口径变更提示 (★ ISS-123 已改完 —— 剩下的是**待模组厂回复**项)
 
-> **ISS-119 (2026-10-29) 把 SoC 基线从 ARS45 换成了 RK3588** (RK3576 为可机械触发的翻转后手; 定案书 `HW/CHIP_SELECTION_DECISION.md`, **verify_by=boss, 待老板点头**)。
+> **基线现状 (2026-11-01)**: SoC 基线 = **瑞芯微 RK3576** (FCCSP698L, 16.1×17.2mm, pitch 0.6, 698 球, 6 TOPS)。
+> 依据 `PROJECT_TRACKER.md` §(1.46)/(1.47) + `HW/CHIP_SELECTION_DECISION.md` §0 —— **RK3588 在 60×30mm 板框内摆不下 ⇒ T4 翻案条件命中 ⇒ 基线由 RK3588 改为 RK3576** (ISS-118)。
+> ★ **ARS45 / AR9481 / 酷芯微 已全部作废** (老板 10-29 19:20) ⇒ 一切对外发信按 **RK3576 模组厂** 口径。
 >
-> ⇒ 本清单与 `SW/FLASH_AND_VERSION.md` §4.5 里写的 "ARS45" 字样**口径已不一致**, 影响三处:
-> 1. **P2/P3 问谁变了** —— 原厂从 ARS45 供应商变成瑞芯微 (RK3588) 链路 → 问询清单 §5 已按两种口径分叉写, **项目总工裁决走哪条**。
-> 2. **版本块 magic / 版本串前缀** —— `flash_writer.py` 里写死 `magic == "AR45"`、版本串行首 `ARS45-SW `, 是按 ARS45 定的。换芯后**要不要沿用** 是个决策, 不由本单拍板 (见交接单 B5-1)。
-> 3. **P4 分区表口径变了** —— RK3588 用 `parameter.txt` 定义分区 (不是我们 [推算] 的自定义表) → 占位表必然要整段替换。
->
-> ⇒ **投板前必须先关掉这个口径问题**, 否则现场勾完的勾, 对着的是一块已经不在计划内的板。
+> ⇒ v1.0 (2026-10-30) 时这里列的"三处口径不一致", **已由 ISS-123 全部处理完**:
+
+| # | 原口径问题 | **ISS-123 现状 (2026-11-01)** | 状态 |
+|---|---|---|---|
+| 1 | **P2/P3 问谁变了** (原厂 → 模组厂) | 问询清单 **v2.0** 已整版按 **RK3576 模组厂** 口径重写 (`SW/S2_VENDOR_QUESTION_LIST.md`): 对象 / 术语 (Maskrom / Loader / Rockusb / `SARADC_VIN0_BOOT`) / 要回的格式 (★ 新增 ★**分区表单位与方言必答** + ★**专用 MaskROM USB 口** + ★**三个态各自的 VID:PID**) 全部改完 | ✅ 已改 |
+| 2 | **版本块 magic / 版本串前缀写死** | ★ 已抽成**可配置**: `identity.version_block_magic` (默认 `"RK35"`) + `identity.version_str_prefix` (默认 `"ARS45-SW "`) —— 代码里不再写死, 改**配置**一处即全链路生效 | ✅ 已改 (取值待裁决, 见下) |
+| 3 | **P4 分区表口径** (`parameter.txt` 扇区 vs 我方字节, 差 512 倍) | ★ 已做成**显式参数** `partition_layout.sector_size` (默认 512) + **机械守卫** `SW/tools/s2_partition_convert.py` (含 **2 条 512 倍反例** 自测) ⇒ 这个错**不再可能静默发生** | ✅ 已改 |
+
+> ★ **仍然待办 (不是本单能关的)**:
+> ① `identity.version_block_magic` 的**最终取值**待模组厂给出版本/元数据分区格式后裁决 (P4) —— 现默认 `"RK35"`;
+> ② `identity.version_str_prefix` 的**产品代号**是否随 "ARS45 作废" 一起改 —— **未见老板拍板** ⇒ 保持原值, 已登记 `s2_product_codename` (needs);
+> ③ **P1~P4 四个 [0数据] 项**仍为 `value: null` / `status: TODO` ⇒ 板端实测仍 0 次, **BR-01 最高只能判 ⚠️未验**。
+
+> ⇒ **投板前必须先关掉 P1~P4**, 否则现场勾完的勾, 对着的是一块参数还没落实的板。
 
 ---
 
@@ -174,7 +184,7 @@ bash SW/tools/s2_board_run.sh --config ... --evidence-dir <dir> --only forensics
 | 项 | 内容 |
 |---|---|
 | **执行前置** | ① 已把整片 flash 回读到本地文件 (BR-07) ② 真实分区表已填 (P4 `status=DONE`, `partition_layout.source` ≠ `placeholder-推算`) |
-| **判定口径** | `s2_step3_verify.json` 里 `CB-02a` magic == `AR45` (或换芯后新定值) **且** `CB-02b` bootable 置位 (擦除态 `0xFF` 不算 bootable) **且** `CB-02c` payload CRC 一致 ⇒ ✅; 任一 FAIL ⇒ ❌; 证据缺失 ⇒ ⚠️未验 |
+| **判定口径** | `s2_step3_verify.json` 里 `CB-02a` magic == **配置里的 `identity.version_block_magic`** (★ ISS-123: 现默认 `"RK35"`, 换芯后改**配置**一处即生效, 不改代码) **且** `CB-02b` bootable 置位 (擦除态 `0xFF` 不算 bootable) **且** `CB-02c` payload CRC 一致 ⇒ ✅; 任一 FAIL ⇒ ❌; 证据缺失 ⇒ ⚠️未验; ★ 回读报告里的 magic 与配置不一致 ⇒ 判**证据过期** ⇒ ⚠️未验 |
 | **记录字段** | `s2_step3_verify.json` → `checks[]` 中 `CB-02a` / `CB-02b` / `CB-02c` 三项的 `result` + `detail` |
 | **谁判过** | 执行: sw-lead · **判定: 项目总工** |
 
@@ -183,7 +193,7 @@ bash SW/tools/s2_board_run.sh --config ... --evidence-dir <dir> --only forensics
 | 项 | 内容 |
 |---|---|
 | **执行前置** | ① 板子能进系统 ② `board_test.selftest.version` 已配 ③ 板上模型文件路径已配 (`model_path`) |
-| **判定口径** | `s2_step4_selftest.json.version_string` 逐条过 §3.1.3 的 5 条规则: ①行首 `ARS45-SW ` + 合法 semver ②`sn=` 非空且与板卡丝印一致 ③`model=` 的 sha8 == **板上模型文件实测** sha256 前 8 ④`boot/kern/rootfs/app/model/isp` 6 分项全非空 ⑤`mode=` 与期望一致 ⇒ 全过才 ✅; 任一违反 ⇒ ❌; ★ 拿不到板上模型文件 sha256 ⇒ 第 ③ 条判 ⚠️未验 (**不许拿版本串里写的 sha8 反推自己**) |
+| **判定口径** | `s2_step4_selftest.json.version_string` 逐条过 §3.1.3 的 5 条规则: ①行首 **配置里的 `identity.version_str_prefix`** (★ ISS-123: 现默认 `ARS45-SW `) + 合法 semver ②`sn=` 非空且与板卡丝印一致 ③`model=` 的 sha8 == **板上模型文件实测** sha256 前 8 ④`boot/kern/rootfs/app/model/isp` 6 分项全非空 ⑤`mode=` 与期望一致 ⇒ 全过才 ✅; 任一违反 ⇒ ❌; ★ 拿不到板上模型文件 sha256 ⇒ 第 ③ 条判 ⚠️未验 (**不许拿版本串里写的 sha8 反推自己**) |
 | **记录字段** | `s2_step4_selftest.json`: `version_string` / `model_sha8` / `version_source` ; 判定器逐条结果在 `s2_br01_verdict.json` → `cbs[CB-03].rules[]` (含 `id` / `result` / `detail`) |
 | **谁判过** | 执行: sw-lead · **判定: 项目总工** |
 
@@ -438,7 +448,9 @@ bash SW/tools/s2_board_run.sh --config ... --evidence-dir <dir> --only forensics
 | C-2 | **下载工具未到位** (即使参数齐了, 没工具跑不了 BR-05/06) | BR-05 / BR-06 | 项目总工 (经 vendor) | 同上 |
 | C-3 | **板端自检 6 项的命令未配** (`board_test.selftest.*`) | CB-04 / BR-09 | sw-lead (投板前, 需板端可执行环境信息) | 投板前 |
 | C-4 | **工厂标定台账未建** | CB-07 / BR-12 | 项目总工 (标定工位) | 标定工位上线前 |
-| C-5 | **★ 换芯口径未裁决** (ISS-119: RK3588 基线待老板点头) —— 版本块 magic / 版本串前缀 / 分区表口径全部要跟着改 | §3 / CB-02 / CB-03 / CB-06 全线 | **项目总工 + 老板** | **投板前** |
+| C-5 | ~~**★ 换芯口径未裁决** (ISS-119)~~ → ★ **ISS-123 (2026-11-01) 已闭环**: 基线 = RK3576, magic / 前缀 / 扇区单位**三处已抽成可配置** + 512 倍差**已上机械守卫** ⇒ 见 §0.2 | §3 / CB-02 / CB-03 / CB-06 全线 | **项目总工** | **已闭环** |
+| C-5b | ★ **P1~P4 四个 [0数据] 项仍未填** (模组厂书面回复前) ⇒ 板端实测 0 次, BR-01 最高 ⚠️未验 | 全线 | **项目总工 → RK3576 模组厂** | **投板前** |
+| C-5c | ★ **版本块 magic 最终取值 / 产品代号是否改名** 待裁决 | CB-02 / CB-03 | **项目总工 + 老板** | **投板前** |
 | C-6 | 板端回读通道未定 (CB-02/CB-06 靠它) | CB-02 / CB-06 / BR-07 | sw-lead + 项目总工 | 投板前 |
 
 ---
