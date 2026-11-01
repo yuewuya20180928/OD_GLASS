@@ -11,7 +11,7 @@
 import os, sys, json, time, glob
 
 BASE = "/home/yuewuya/.openclaw/agents"
-AGENTS = ("hw-lead", "sw-lead", "mech-lead")
+AGENTS = ("mech-lead",)
 TIMEOUT = int(sys.argv[1]) if len(sys.argv) > 1 else 1800
 POLL = int(sys.argv[2]) if len(sys.argv) > 2 else 20
 QUIET = 60  # 秒

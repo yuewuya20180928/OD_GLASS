@@ -1,0 +1,157 @@
+{
+  "issue": "ISS-089(交叉评审#3)/ISS-105",
+  "params": {
+    "vbus_v": 5.0,
+    "vbat_v": 3.7,
+    "eta": 0.9,
+    "kilim_a_ohm": [
+      320.0,
+      355.0,
+      390.0
+    ],
+    "pin_count": 2,
+    "touch_rating_a_per_contact": 0.5,
+    "hinge_design_a": 1.5,
+    "cell_mah": 420.0,
+    "cell_charge_rate_max_c": 1.0,
+    "reg04_reset_default_ichg_ma": 2048.0
+  },
+  "ratio": {
+    "correct_buck_ratio": 1.216216,
+    "old_wrong_ratio": 0.822222,
+    "reciprocal_check": 1.0
+  },
+  "r_ilim_sweep": [
+    {
+      "r_ilim_ohm": 390.0,
+      "iinmax_a": {
+        "min": 0.8205,
+        "typ": 0.9103,
+        "max": 1.0
+      },
+      "ichg_a_correct": {
+        "min": 0.9979,
+        "max": 1.2162
+      },
+      "ichg_a_old_wrong_formula": {
+        "min": 0.6746,
+        "max": 0.8222
+      },
+      "single_pin_a_correct": 0.6081,
+      "single_pin_a_old": 0.4111,
+      "touch_rating_margin_x": 0.822,
+      "hinge_margin_x": 1.233,
+      "cell_charge_rate_c": 2.896,
+      "verdict_touch": "FAIL",
+      "verdict_cell_rate": "FAIL",
+      "verdict_hinge": "PASS"
+    },
+    {
+      "r_ilim_ohm": 510.0,
+      "iinmax_a": {
+        "min": 0.6275,
+        "typ": 0.6961,
+        "max": 0.7647
+      },
+      "ichg_a_correct": {
+        "min": 0.7631,
+        "max": 0.93
+      },
+      "ichg_a_old_wrong_formula": {
+        "min": 0.5159,
+        "max": 0.6288
+      },
+      "single_pin_a_correct": 0.465,
+      "single_pin_a_old": 0.3144,
+      "touch_rating_margin_x": 1.075,
+      "hinge_margin_x": 1.613,
+      "cell_charge_rate_c": 2.214,
+      "verdict_touch": "PASS",
+      "verdict_cell_rate": "FAIL",
+      "verdict_hinge": "PASS"
+    },
+    {
+      "r_ilim_ohm": 680.0,
+      "iinmax_a": {
+        "min": 0.4706,
+        "typ": 0.5221,
+        "max": 0.5735
+      },
+      "ichg_a_correct": {
+        "min": 0.5723,
+        "max": 0.6975
+      },
+      "ichg_a_old_wrong_formula": {
+        "min": 0.3869,
+        "max": 0.4716
+      },
+      "single_pin_a_correct": 0.3488,
+      "single_pin_a_old": 0.2358,
+      "touch_rating_margin_x": 1.434,
+      "hinge_margin_x": 2.15,
+      "cell_charge_rate_c": 1.661,
+      "verdict_touch": "PASS",
+      "verdict_cell_rate": "FAIL",
+      "verdict_hinge": "PASS"
+    },
+    {
+      "r_ilim_ohm": 1000.0,
+      "iinmax_a": {
+        "min": 0.32,
+        "typ": 0.355,
+        "max": 0.39
+      },
+      "ichg_a_correct": {
+        "min": 0.3892,
+        "max": 0.4743
+      },
+      "ichg_a_old_wrong_formula": {
+        "min": 0.2631,
+        "max": 0.3207
+      },
+      "single_pin_a_correct": 0.2372,
+      "single_pin_a_old": 0.1603,
+      "touch_rating_margin_x": 2.108,
+      "hinge_margin_x": 3.162,
+      "cell_charge_rate_c": 1.129,
+      "verdict_touch": "PASS",
+      "verdict_cell_rate": "FAIL",
+      "verdict_hinge": "PASS"
+    },
+    {
+      "r_ilim_ohm": 1200.0,
+      "iinmax_a": {
+        "min": 0.2667,
+        "typ": 0.2958,
+        "max": 0.325
+      },
+      "ichg_a_correct": {
+        "min": 0.3243,
+        "max": 0.3953
+      },
+      "ichg_a_old_wrong_formula": {
+        "min": 0.2193,
+        "max": 0.2672
+      },
+      "single_pin_a_correct": 0.1976,
+      "single_pin_a_old": 0.1336,
+      "touch_rating_margin_x": 2.53,
+      "hinge_margin_x": 3.795,
+      "cell_charge_rate_c": 0.941,
+      "verdict_touch": "PASS",
+      "verdict_cell_rate": "PASS",
+      "verdict_hinge": "PASS"
+    }
+  ],
+  "rilim_not_fitted": {
+    "ichg_a": 2.048,
+    "single_pin_a": 1.024,
+    "hinge_overrun_x": 1.365
+  },
+  "conclusion": {
+    "old_value_in_hw_yaml": "chg_input_limit=1.00A/0.82A/0.411A (300Ω→390Ω 换算时用了反式)",
+    "correct_value_at_390ohm": "IINMAX 0.82-1.00A / ICHG 1.00-1.22A / 单pin 0.50-0.61A",
+    "verdict_390ohm": "FAIL (单pin 0.61A > 0.5A 触点天花板)",
+    "recommended_r_ilim": "680Ω (触点余量 1.43×) 或 1.0kΩ (若电芯按 1C 限, 需电芯规格书确认)"
+  }
+}

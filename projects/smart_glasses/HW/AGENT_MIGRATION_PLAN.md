@@ -159,6 +159,40 @@ python3 state/stage_gate.py   # G2, 差 7 项
 
 ---
 
+## B4 ★★★ 一键铺装 (老板要的"一键搞定" —— 已实测跑通)
+
+> **脚本**: `HW/bootstrap_ars45.sh` · **在新主机上跑**:
+> ```bash
+> bash bootstrap_ars45.sh --check        # 先体检, 不改任何东西
+> bash bootstrap_ars45.sh               # 标准铺装
+> ```
+
+### 它做什么 (7 步, 全自动)
+| 步 | 动作 |
+|---|---|
+| ① | **体检**: openclaw / git / 凭据是否就位 (4 个带外文件逐个报) |
+| ② | **clone 仓库** (SSH 失败自动退 HTTPS) —— 只 clone **一份** |
+| ③ | 铺 workspace 目录 + **★projects 软链拓扑** (复刻旧主机: 四个 inode 相同) |
+| ④ | 铺四个 agent 的 **人格/身份/记忆/岗位说明书** + main 的 48 篇日记 + **guards** + skills |
+| ⑤ | 装**带外凭据** (4 个文件) + 合并 `openclaw.json` 的 agents 段 (★只合并 agents 段, 绝不整file覆盖) |
+| ⑥ | 打印 cron 恢复模板 (★每个 job 带 `model=MiniMax-M3.1-Flash`) |
+| ⑦ | **冒烟验证**: merge / gate / issue / stage 四道门 + 与旧主机对数 |
+
+### ★实测结果 (隔离假 HOME 跑通, 2026-11-01 21:5x)
+```
+① 体检        ✅ 4 个凭据全部识别
+② clone      ✅ (SSH 失败自动退 HTTPS)
+③ 软链拓扑   ✅ 四份 projects/smart_glasses inode 一致 (= 1)
+④ 铺文件     ✅ main 4 文件 + 48 篇日记; 三个总工各 4 文件; guards + skills 全装
+⑤ 凭据       ✅ agents 段合并, model = minimax/MiniMax-M3.1-Flash ✅
+⑦ 四道门     ✅ merge rc=0 (冲突 0) · Q1 18/18 · 违规 0 · G2 差 7 项  ← **与旧主机数字完全一致**
+幂等性       ✅ 重跑 0 错
+```
+
+### ★★但有一件事脚本**故意不做** —— cron 不自动恢复
+**为什么**: `openclaw cron add` 的 `--message` 参数是**整个 payload 全文**(每个 job 几百到上千字, 还含引号/换行)⇒ **命令行传参极易踩 shell 转义坑** ⇒ ★**脚本只把 7 个 job 的表达式/名字/model 打出来 + 给模板**, 让执行者逐条粘贴 ⇒ **宁可让人看一眼, 不要自动化踩坑**。
+⇒ 如果你要全自动, 我可以改成写 `jobs.json` 再 `openclaw cron` 导入(需先验证该 CLI 有导入命令 —— **目前没查, 不能瞎编**)。
+
 ## B4.5 ★★实测踩到的 3 个坑 (我做这一步时真踩的, 别在新主机上重踩)
 
 | # | 坑 | 现象 | 根因 |
@@ -166,6 +200,10 @@ python3 state/stage_gate.py   # G2, 差 7 项
 | 1 | ★**发布脚本只 cp 4 个 AGENTS.md** | 我把 85 个迁移资产放进项目树的 `config/`, 推上去**远端只有 AGENTS.md** | 发布脚本第 3 步是 `cp` 单个文件, **不是 rsync 整个目录** ⇒ 已改成 `rsync -a --delete "$PROJ/config/" config/` |
 | 2 | ★**agent id ≠ workspace 目录名** | `hw-lead` 的 workspace 是 `workspace-hw` (不是 `workspace-hw-lead`) ⇒ 拷贝脚本报"源不存在" | agent id 带角色后缀, workspace 用短名 ⇒ 脚本里用 `aid.split("-")[0]` |
 | 3 | ★**占位符路径写错** | `config/openclaw.agents.json` 里写成了 `<OPENCLAW_HOME>/workspace-hw-lead` | 同上 ⇒ 已改成 `workspace-hw` / `workspace-sw` / `workspace-mech` |
+| 4 | ★**`${a##*-}` 取到 "lead"** | 三个子 agent 全指向 `workspace-lead` | agent id 拆**第一段** (`${a%%-*}`) |
+| 5 | ★**clone 目标套了一层** | 仓库被 clone 进 `smart_glasses/` 里一层 ⇒ 后面全找不到 | 仓库根 = `workspace/` (里面才有 `config/` + `projects/`) |
+| 6 | ★**clone 错误被 `2>/dev/null` 吞了** | 只报"找不到项目库", 查不到真因 | 错误存临时文件并打印原文 |
+| 7 | ★**编辑时把 `else` 分支删掉了** | clone 逻辑只在 `if` 里, 不成立时啥也不干 | ⇒ ★**这就是"写完不实测"的典型后果** |
 
 ## B5 ★★另一台主机会踩的 5 个坑 (按踩到概率排序)
 
