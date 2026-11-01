@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# ============================================================
+# 星型拓扑守卫 (项目总工 2026-10-25 部署)
+# 本 shim 只对 mech-lead 生效, 由 agents.list[].tools.exec.pathPrepend 注入 PATH 前端。
+#
+# 作用: 拦截 "openclaw agent --agent <其他总工>" 这种横向投递,
+#       防止三个总工绕过 tools.deny=["sessions_send"] 直接互发消息。
+#       (老板 10-25 硬规则: 硬件/软件/结构三个总工之间不做直接沟通)
+#
+# 允许: --agent mech-lead  (自己找自己, 合法)
+# 拒绝: --agent main | hw-lead | sw-lead | mech-lead (除自己外)
+# 其他 openclaw 子命令 (config/status/...) 一律放行给真实二进制
+# ============================================================
+SELF="mech-lead"
+export OPENCLAW_CALLER_AGENT="mech-lead"
+REAL="/home/yuewuya/.npm-global/bin/openclaw"
+target=""
+expect_target=0
+for a in "$@"; do
+  if [ "$expect_target" = "1" ]; then target="$a"; expect_target=0; continue; fi
+  case "$a" in
+    --agent) expect_target=1 ;;
+    --agent=*) target="${a#--agent=}" ;;
+  esac
+done
+if [ -n "$target" ] && [ "$target" != "$SELF" ]; then
+  echo "[星型拓扑守卫] 已拦截: $0 $*" >&2
+  echo "[星型拓扑守卫] $AG 不允许直接联系 $target (三个总工之间不做直接沟通, 老板 10-25 硬规则)。" >&2
+  echo "[星型拓扑守卫] 请写交接单到 projects/smart_glasses/HANDOFF/ 交项目总工 (main) 转达。" >&2
+  exit 126
+fi
+exec "$REAL" "$@"

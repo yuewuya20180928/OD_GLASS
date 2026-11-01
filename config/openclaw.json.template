@@ -1,0 +1,15 @@
+{
+  "_readme": "网关配置骨架 —— 复制到 ~/.openclaw/openclaw.json 后把 <...> 占位符换成真值。★密钥绝不入库 (发布脚本的真值反查闸门会扫整棵发布树, 命中即中止推送)。",
+  "agents": { "defaults": { "model": "minimax/MiniMax-M3.1-Flash" } },
+  "models": { "providers": { "minimax": { "enabled": true } } },
+  "plugins": {
+    "entries": {
+      "minimax": { "enabled": true },
+      "openclaw-weixin": { "enabled": true },
+      "tavily": { "enabled": true, "config": { "webSearch": { "apiKey": "<TAVILY_API_KEY>" } } }
+    },
+    "allow": ["minimax", "openclaw-weixin", "tavily"]
+  },
+  "channels": { "openclaw-weixin": { "enabled": true } },
+  "gateway": { "token": "<GATEWAY_TOKEN>" }
+}

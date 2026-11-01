@@ -1,5 +1,5 @@
 {
-  "_note": "脱敏后的 agent 配置摘录 (只含 agents 定义与 tools 拓扑); 凭据 (gateway token / tavily apiKey / 模型 authHeader) 已在源头剔除, 原件不入库。",
+  "_note": "脱敏后的 agent 配置摘录 (只含 agents 定义与 tools 拓扑); 凭据 (gateway token / tavily apiKey / minimax API key / 微信 openid) 已在源头剔除, 原件不入库 —— ★这 4 类走带外传输, 清单见 config/OFFLINE_TRANSFER_CHECKLIST.md。★★model 已从 minimax/MiniMax-M3 改成 minimax/MiniMax-M3.1-Flash (2026-11-01): M3 在 10-28 起实测**挂 token plan 上限**, 照抄会让人在新主机一开局就撞同一个坑。",
   "tools": {
     "profile": "coding",
     "agentToAgent": {
@@ -18,7 +18,7 @@
   "agents": {
     "defaults": {
       "workspace": "<OPENCLAW_HOME>/workspace",
-      "model_primary": "minimax/MiniMax-M3",
+      "model_primary": "minimax/MiniMax-M3.1-Flash",
       "subagents": {
         "allowAgents": [
           "main",
@@ -44,9 +44,9 @@
       {
         "id": "hw-lead",
         "name": "硬件总工",
-        "workspace": "<OPENCLAW_HOME>",
-        "agentDir": "<OPENCLAW_HOME>",
-        "model": "minimax/MiniMax-M3",
+        "workspace": "<OPENCLAW_HOME>/workspace-hw-lead",
+        "agentDir": "<OPENCLAW_HOME>/agents/hw-lead/agent",
+        "model": "minimax/MiniMax-M3.1-Flash",
         "subagents": {
           "allowAgents": [
             "hw-lead"
@@ -59,7 +59,7 @@
           ],
           "exec": {
             "pathPrepend": [
-              "/home/yuewuya/.openclaw/guards/hw-lead"
+              "<OPENCLAW_HOME>/guards/hw-lead"
             ]
           }
         }
@@ -67,9 +67,9 @@
       {
         "id": "sw-lead",
         "name": "软件总工",
-        "workspace": "<OPENCLAW_HOME>",
-        "agentDir": "<OPENCLAW_HOME>",
-        "model": "minimax/MiniMax-M3",
+        "workspace": "<OPENCLAW_HOME>/workspace-sw-lead",
+        "agentDir": "<OPENCLAW_HOME>/agents/sw-lead/agent",
+        "model": "minimax/MiniMax-M3.1-Flash",
         "subagents": {
           "allowAgents": [
             "sw-lead"
@@ -82,7 +82,7 @@
           ],
           "exec": {
             "pathPrepend": [
-              "/home/yuewuya/.openclaw/guards/sw-lead"
+              "<OPENCLAW_HOME>/guards/sw-lead"
             ]
           }
         }
@@ -90,9 +90,9 @@
       {
         "id": "mech-lead",
         "name": "结构总工(带散热)",
-        "workspace": "<OPENCLAW_HOME>",
-        "agentDir": "<OPENCLAW_HOME>",
-        "model": "minimax/MiniMax-M3",
+        "workspace": "<OPENCLAW_HOME>/workspace-mech-lead",
+        "agentDir": "<OPENCLAW_HOME>/agents/mech-lead/agent",
+        "model": "minimax/MiniMax-M3.1-Flash",
         "subagents": {
           "allowAgents": [
             "mech-lead"
@@ -105,7 +105,7 @@
           ],
           "exec": {
             "pathPrepend": [
-              "/home/yuewuya/.openclaw/guards/mech-lead"
+              "<OPENCLAW_HOME>/guards/mech-lead"
             ]
           }
         }

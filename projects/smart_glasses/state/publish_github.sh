@@ -115,6 +115,16 @@ cp "$WS/AGENTS.md" config/agents/main/AGENTS.md
 for a in hw-lead sw-lead mech-lead; do
   [ -f "/home/yuewuya/.openclaw/workspace-$a/AGENTS.md" ] && cp "/home/yuewuya/.openclaw/workspace-$a/AGENTS.md" "config/agents/$a/AGENTS.md"
 done
+# ★★★2026-11-01 21:4x: 迁移资产映射 (老板要把 4-Agent 职能制搬到另一台主机)
+#   `state/_migrate_assets.py` 把 agent 人格/记忆/守卫/skills/局部配置写到 **$PROJ/config/**,
+#   ★但这里原来**只 cp 4 个 AGENTS.md** ⇒ 那些资产**根本没进发布树** (2026-11-01 实测: 远端只有 AGENTS.md)
+#   ⇒ 现在把整个 config/ 目录 rsync 上去 (排除 __pycache__/.git)
+#   ★安全: 这些文件已由真值反查闸门扫过 (值形态 + 口令上下文 + 凭据真值 三层)
+if [ -d "$PROJ/config" ]; then
+  rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
+        "$PROJ/config/" config/
+  echo "[3] config/ 映射件已同步 ($(find config -type f | wc -l) 文件)"
+fi
 cp "$PROJ/TODO.md" docs/TODO.md
 cp "$PROJ/docs/PROJECT_STATUS.md" docs/PROJECT_STATUS.md
 cp "$PROJ/docs/OPEN_ISSUES.md" docs/OPEN_ISSUES.md

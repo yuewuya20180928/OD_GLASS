@@ -55,7 +55,9 @@ def main() -> int:
     # ---------- ① agent 人格 / 身份 / 记忆 ----------
     print("\n【① 四份人格 + 身份 + 记忆】")
     for a in AGENTS:
-        wd = WS if a == "main" else os.path.join(HOME, f"workspace-{a}")
+        # ★agent id (hw-lead) ≠ workspace 目录名 (workspace-hw) —— 踩过这个坑
+        _short = a.split("-")[0]   # hw-lead → hw
+        wd = WS if a == "main" else os.path.join(HOME, f"workspace-{_short}")
         for f in ("SOUL.md", "IDENTITY.md", "USER.md", "MEMORY.md"):
             copy(os.path.join(wd, f), os.path.join(CFG, "agents", a, f))
 
@@ -128,7 +130,7 @@ def main() -> int:
         for a in d.get("agents", {}).get("list", []):
             aid = a.get("id")
             if aid and aid != "main" and a.get("workspace") == "<OPENCLAW_HOME>":
-                a["workspace"] = "<OPENCLAW_HOME>/workspace-" + aid
+                a["workspace"] = "<OPENCLAW_HOME>/workspace-" + aid.split("-")[0]
                 changed.append(f"agents.list[{aid}].workspace")
             if aid and aid != "main" and a.get("agentDir") == "<OPENCLAW_HOME>":
                 a["agentDir"] = "<OPENCLAW_HOME>/agents/" + aid + "/agent"
