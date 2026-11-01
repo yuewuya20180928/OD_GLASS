@@ -590,7 +590,7 @@ issues:
   reporter: main
   raised: '2026-10-25'
   due: '2026-11-05'
-  status: fixing
+  status: fixed
   external: false
   need_keys: []
   task_brief: '目标: 结构 DFM 评审
@@ -600,7 +600,7 @@ issues:
     验收: ① 逐件给出量产工艺 (注塑/机加工/CNC) ② 脱模斜度/壁厚/圆角/公差/缩水/装配顺序 ③ 打印件上验证不了但量产会出问题的清单
 
     自证: python3 state/merge.py && python3 state/gate_check.py'
-  fix_ref: null
+  fix_ref: 'MECH/DFM_REVIEW.md (结构 DFM 评审: 脱模斜度逐面统计 + 注塑/压铸可行性判据 + 量产架构建议 + 收缩敏感性) + MECH/dfm_check.py (自证脚本 rc=0) + HANDOFF/2026-11-01_mech-lead_ISS025_结构DFM评审.md'
   verify_by: null
   verify_result: null
   verify_date: null
@@ -610,7 +610,9 @@ issues:
 
     ★2026-11-01 22:5x 项目总工补 source_blocker: MECH-B-DFM-1 (mech-lead 于 ISS-017 交卷时新登记的 high 级阻塞: 量产外形件几何不存在 ⇒ 脱模/分型/收缩/缩痕/飞边/顶针的面级统计 = **0 个数据点**; Rev B 打印包只含检具与试样; 不补就开模 = 模具报废风险 —— ★**本单已算出镜脚 H 链在 1° 脱模下最坏 -0.577mm, 几何上做不出来**)。
 
-    ★**为什么现在才补**: issue_check 的 C5 判据 (STATE 里每个 high/blocker 阻塞都必须有 issue 登记) 是按 **source_blocker 精确匹配** blocker id ⇒ 本单 source_blocker 一直是 None ⇒ 判据把 MECH-B-DFM-1 判成『未登记』⇒ **门禁抓到了真问题: 是台账字段没填, 不是漏登记**。⇒ 补上后 C5 即通过。'
+    ★**为什么现在才补**: issue_check 的 C5 判据 (STATE 里每个 high/blocker 阻塞都必须有 issue 登记) 是按 **source_blocker 精确匹配** blocker id ⇒ 本单 source_blocker 一直是 None ⇒ 判据把 MECH-B-DFM-1 判成『未登记』⇒ **门禁抓到了真问题: 是台账字段没填, 不是漏登记**。⇒ 补上后 C5 即通过。
+
+    ★2026-11-01 23:5x 项目总工代推状态 (★交卷未推状态形态: 产出 mtime 22:43/22:47 新鲜 + 会话已结束 + fix_ref 空 ⇒ 按三态判据属『交卷但没推』⇒ 项目总工核实产出后代推, 不重派): 自证 `python3 MECH/dfm_check.py` rc=0。★★**关键发现 (比公差更致命的那条)**: **公差不是量产的杀手, 脱模斜度才是** —— ① Rev B 打印包 = **检具+试样**, 不含量产外形件 ⇒ 量产外壳脱模面级统计目前 0 个数据点; ② Rev B 几何里 **ZERO_DRAFT 面占 25-62%** (直壁) ⇒ 量产版每侧壁要加 ≥1° 斜度; fit_coupon 另有 2 个倒扣面 (α=−40°/−30°) ⇒ FDM 能打, 注塑/压铸出不来; ③ 主腔深 38.00 双面 1° ⇒ 内腔横截面窄端少 1.327mm ⇒ 镜脚·H 链 (电芯段) 最坏 0.75 − 1.327 = **−0.577 ⇒ 几何上做不出来** ⇒ 0.5° 只能救到 0.087 仍 < 判据 0.40 ⇒ **必须靠结构改, 不能靠公差改**; ④ 量产架构必须延续『打印件负责造型 + 金属件承担定位/承力』⇒ **电池座/PCB 座改 CNC 嵌件**; ⑤ 收缩敏感性 1.5% ⇒ 镜框长向 2.10mm ⇒ **铰链接口/定位孔距不能留在压铸件本体**。★**这三条是 P0 级**: H 链 −0.577mm 是几何不可行, 不是余量紧张。'
   dispatched_at: '2026-11-01'
 - id: ISS-026
   title: 可靠性测试方案缺失 (跌落/扭转/弯折/汗液/盐雾/UV 全 0)
@@ -3543,4 +3545,31 @@ issues:
   verify_result: null
   verify_date: null
   note: '2026-11-01 23:2x 项目总工从 ISS-017 交卷转登记。★**与 ISS-122 同根因** (层数不确定 ⇒ 板厚不确定 ⇒ 净空不确定) ⇒ 解法优先级: 先解 ISS-122 (PCB 厂 DFM 报告), 本单随之消解或坐实。★verify_by=hw-lead: 项目总工自办 ⇒ 别人验 (铁律)。'
+  dispatched_at: null
+- id: ISS-127
+  title: ★★★脱模斜度致镜脚 H 链最坏 −0.577mm ⇒ 几何上做不出来 (不是余量紧张, 是不可行) —— 量产架构必须改
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: 'ISS-025 (结构 DFM 评审) 的硬发现, ★**比公差严重得多**:
+
+    **公差不是量产的杀手, 脱模斜度才是**。算式: 主腔深 38.00mm, 双面各 1° 斜度 ⇒ 内腔横截面窄端少 **1.327mm** ⇒ 镜脚·H 链 (电芯段) 最坏余量 0.75 − 1.327 = **−0.577mm** ⇒ ★**几何上做不出来**。
+
+    ★0.5° (皮纹面) 只能救到 0.087, 仍 < 判据 0.40 ⇒ **必须靠结构改, 不能靠公差改**。
+
+    ★配套三条: ① Rev B 打印包 = **检具+试样**, 不含量产外形件 ⇒ 量产外壳的脱模面级统计目前 **0 个数据点**; ② Rev B 几何里 **ZERO_DRAFT 面占 25-62%** (直壁) ⇒ 量产版每个侧壁都要加 ≥1° 斜度; fit_coupon 另有 2 个倒扣面 (α=−40°/−30°) ⇒ FDM 能打, 注塑/压铸出不来; ③ 收缩敏感性 1.5% ⇒ 镜框长向 2.10mm ⇒ **铰链接口/定位孔距不能留在压铸件本体**。
+
+    ⇒ **量产架构必须延续『打印件负责造型 + 金属件承担定位/承力』⇒ 电池座/PCB 座改 CNC 嵌件**。'
+  owner: main
+  reporter: main
+  raised: '2026-11-01'
+  due: '2026-11-05'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: mech-lead
+  verify_result: null
+  verify_date: null
+  note: '2026-11-01 23:5x 项目总工从 ISS-025 交卷转登记 (★P0 级: 几何不可行, 不是余量紧张)。★**与 ISS-122/ISS-126 的关系**: 那两条是『层数/板厚未定』的**待定**问题; 这一条是**已定的不可能** —— 就算层数定成 6 层, H 链这个 −0.577 也还在 ⇒ ★**它比层数更靠前**。★verify_by=mech-lead: 项目总工自办 ⇒ 别人验。'
   dispatched_at: null
