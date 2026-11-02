@@ -66,6 +66,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import fnmatch
 import hashlib
 import json
 import os
@@ -132,6 +133,29 @@ WORK = "/tmp/rknn_bench"
 
 # 板端模型槽位上限 (SW/FLASH_AND_VERSION.md §4.1) —— RKNN 产物大小必须比这个
 MODEL_SLOT_BYTES = 15_728_640
+
+# ----------------------------------------------------------------------------
+# 1c. ★★★ ISS-157 (2026-11-02): cut 模型缓存键必须含**模型指纹**
+#
+#     【为什么必须修】旧版 step_cut() 把切完的 ONNX **固定**写到
+#         /tmp/rknn_bench/yolov5s_heads.onnx   (文件名与源模型无关),
+#     而 _build_session_for_sim() 只判 `os.path.exists(dst)` 就复用 ⇒
+#         ★**换源权重后不会重新生成** ⇒ 跑出来的是**上一个模型**的数字,
+#         而且 ★**不报任何错** —— 门禁显示绿灯, 数字是错的 ("绿灯假数据",
+#         比报错危险)。实测: 换 yolov5n 重跑, TP/FP/FN/F1 与 yolov5s **逐字节相同**。
+#
+#     【修法】缓存文件名 = {权重stem}_heads_{模型指纹}.onnx
+#         模型指纹 = sha256( 权重绝对路径 | 权重内容 sha256[:16] | 权重 mtime(ns)
+#                         | 权重大小 | 输入尺寸 | 保留输出名 | cut 工具 sha256[:16] )
+#         ⇒ ★**换权重 / 改权重 / 改输入尺寸 / 改 cut 工具 ⇒ 指纹变 ⇒ 缓存自动失效**
+#         ⇒ ★**根治"忘了删缓存"** (不用再靠人记得 `rm -f`)。
+#
+#     【配套】② 输出里打印"本次用的权重 + 缓存命中/未命中" ⇒ 人一眼看出是不是旧数据
+#             ③ 缓存目录里有多个不同指纹 ⇒ 提示清理 (见 scan_cut_cache())
+# ----------------------------------------------------------------------------
+CUT_KEEP = ("350", "498", "646")       # 保留的 3 路 raw head 输出名
+CUT_CACHE_GLOB = "*_heads_*.onnx"      # 带指纹的 cut 模型缓存 (新)
+CUT_CACHE_GLOB_LEGACY = "*_heads.onnx"  # ★旧版无指纹缓存 (危险 ⇒ 见到就提示删)
 
 # ----------------------------------------------------------------------------
 # 1b. ★★ 步间依赖自愈 (ISS-113, 2026-10-29, 项目总工登记 → sw-lead 修)
@@ -290,6 +314,107 @@ def sha16(path: str) -> str:
         for c in iter(lambda: f.read(1 << 20), b""):
             h.update(c)
     return h.hexdigest()[:16]
+
+
+# ----------------------------------------------------------------------------
+# 1c-2. ★★★ ISS-157: 模型指纹 / cut 缓存键 / 缓存自检
+# ----------------------------------------------------------------------------
+# 权重 sha16 的进程内记忆 (权重 29 MB, 一次 sha256 ≈ 0.1 s; 同一文件不重复算)
+_FP_SHA_CACHE: dict = {}
+
+
+def model_fingerprint(src: str, imgsz: int = None) -> dict:
+    """★ **模型指纹** = cut 模型缓存键的核心 (ISS-157)。
+
+    组成 (★**任何一个变 ⇒ 指纹变 ⇒ 缓存自动失效**):
+      1) 源权重**绝对路径**
+      2) 源权重**内容 sha256[:16]**   ← ★换权重必变 (同路径换文件也变)
+      3) 源权重 **mtime (ns)**
+      4) 源权重 **文件大小**
+      5) **输入尺寸** (IMGSZ)
+      6) 保留的输出名 (CUT_KEEP)
+      7) cut 工具脚本自身 sha256[:16]  ← ★改了 cut 脚本 ⇒ 缓存自动失效
+    """
+    p = os.path.realpath(src)
+    st = os.stat(p)
+    ck = (p, st.st_mtime_ns, st.st_size)
+    sha = _FP_SHA_CACHE.get(ck)
+    if sha is None:
+        sha = sha16(p)
+        _FP_SHA_CACHE[ck] = sha
+    tool = os.path.join(HERE, "cut_postprocessor.py")
+    tool_sha = sha16(tool) if os.path.exists(tool) else "none"
+    imgsz = IMGSZ if imgsz is None else imgsz
+    raw = "|".join([p, sha, str(st.st_mtime_ns), str(st.st_size),
+                    str(imgsz), ",".join(CUT_KEEP), tool_sha])
+    return {
+        "path": p,
+        "sha16": sha,
+        "mtime_ns": st.st_mtime_ns,
+        "mtime": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(st.st_mtime)),
+        "bytes": st.st_size,
+        "imgsz": imgsz,
+        "keep": list(CUT_KEEP),
+        "cut_tool_sha16": tool_sha,
+        "fingerprint": hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16],
+    }
+
+
+def cut_cache_path(src: str) -> str:
+    """★ cut 模型缓存路径 (★**文件名带模型指纹** ⇒ 换权重自动失效)。"""
+    fp = model_fingerprint(src)
+    stem = os.path.splitext(os.path.basename(fp["path"]))[0]
+    return os.path.join(WORK, f"{stem}_heads_{fp['fingerprint']}.onnx")
+
+
+def cut_cache_meta_path(dst: str) -> str:
+    """缓存条目的 sidecar (记录源权重指纹 ⇒ 人可查这份 cut 是从谁切出来的)。"""
+    return dst + ".meta.json"
+
+
+def scan_cut_cache() -> dict:
+    """★ ISS-157 ③ **缓存自检**: 缓存目录里有多个不同指纹的 cut 模型 ⇒ 提示清理。
+
+    返回 {"n", "distinct_fingerprints", "items", "legacy", "warning"}
+    """
+    items, legacy = [], []
+    try:
+        names = sorted(os.listdir(WORK))
+    except OSError:
+        names = []
+    for fn in names:
+        p = os.path.join(WORK, fn)
+        if not os.path.isfile(p):
+            continue
+        if fn.endswith(".onnx") and "_heads_" in fn:
+            fp = fn.split("_heads_")[-1].rsplit(".", 1)[0]
+            meta = {}
+            mp = cut_cache_meta_path(p)
+            if os.path.isfile(mp):
+                try:
+                    with open(mp, encoding="utf-8") as f:
+                        meta = json.load(f)
+                except Exception:  # noqa: BLE001
+                    meta = {}
+            items.append({"file": p, "fingerprint": fp,
+                          "src": meta.get("src"), "src_sha16": meta.get("src_sha16"),
+                          "bytes": os.path.getsize(p),
+                          "mtime": time.strftime("%Y-%m-%d %H:%M:%S",
+                                                 time.localtime(os.path.getmtime(p)))})
+        elif fnmatch.fnmatch(fn, CUT_CACHE_GLOB_LEGACY):
+            legacy.append(p)
+    distinct = len({it["fingerprint"] for it in items})
+    warn = []
+    if distinct > 1:
+        warn.append(f"缓存目录 {WORK} 里有 {distinct} 个**不同指纹**的 cut 模型 "
+                    f"⇒ 建议清理: rm -f {WORK}/{CUT_CACHE_GLOB}")
+    if legacy:
+        warn.append(f"⚠ 发现**旧版无指纹**的 cut 缓存 {len(legacy)} 个 "
+                    f"({', '.join(os.path.basename(x) for x in legacy)}) "
+                    f"⇒ ★可能装着上一个模型的旧数据 ⇒ 建议删除: "
+                    f"rm -f {WORK}/{CUT_CACHE_GLOB_LEGACY}")
+    return {"n": len(items), "distinct_fingerprints": distinct, "items": items,
+            "legacy": legacy, "warning": ("  ".join(warn) if warn else None)}
 
 
 # ----------------------------------------------------------------------------
@@ -578,6 +703,10 @@ def step_probe(args) -> dict:
     st["model_path"] = ONNX_MODEL
     st["model_sha16"] = sha16(ONNX_MODEL)
     st["model_sha16_matches_ledger"] = (st["model_sha16"] == ONNX_MODEL_SHA16)
+    # ★ ISS-157: 指纹 = cut 缓存键 ⇒ 人能直接核对"这次跑的是哪个权重"
+    st["model_fingerprint"] = model_fingerprint(ONNX_MODEL)
+    # ★ ISS-157 ③: 缓存目录自检 (多个不同指纹 ⇒ 提示清理)
+    st["cut_cache_scan"] = scan_cut_cache()
     st["model_inputs"] = [(i.name, sh(i)) for i in m.graph.input]
     st["model_outputs"] = [(o.name, sh(o)) for o in m.graph.output]
     st["model_nodes"] = len(m.graph.node)
@@ -653,7 +782,7 @@ def _new_rknn(cfg_std=255):
     return r
 
 
-def step_cut(args) -> dict:
+def step_cut(args, src: str = None, force: bool = False) -> dict:
     """★ 用 SW/tools/cut_postprocessor.py 把后处理从图里剪掉 (只留 3 路 raw head)
 
     ★★ 为什么必须切 (本单实测的核心发现, 见报告 §3.2.4 坑 3):
@@ -661,22 +790,61 @@ def step_cut(args) -> dict:
        与 **0~1 的概率**混在**同一个 int8 张量**里 ⇒ 量化步长 = 706.9/127 ≈ 5.57
        ⇒ 概率被量化成 0 / ±5.57 ⇒ **INT8 模型一个检测都出不来** (实测 F1 = 0)。
        切掉之后只剩 3 路 raw head (值域约 -41..+11 ⇒ int8 步长 0.16) ⇒ 精度可保。
+
+    ★★★ ISS-157 (2026-11-02): **缓存键 = 模型指纹**
+       旧版固定写 `/tmp/rknn_bench/yolov5s_heads.onnx` ⇒ ★**换权重不失效** ⇒
+       静默跑出上一个模型的数字 (实测两次结果逐字节相同, 不报错)。
+       现在缓存文件名 = `{权重stem}_heads_{指纹}.onnx`,
+       指纹含 路径|内容sha16|mtime|大小|输入尺寸|保留输出名|cut工具sha16
+       ⇒ ★**换权重 ⇒ 指纹变 ⇒ 自动失效 (不用记得删)**。
+       命中时返回 cache="HIT", 未命中/重新生成时返回 cache="MISS"。
     """
-    src = ONNX_MODEL
-    dst = os.path.join(WORK, "yolov5s_heads.onnx")
+    src = src or ONNX_MODEL
+    fp = model_fingerprint(src)
+    dst = cut_cache_path(src)
     os.makedirs(WORK, exist_ok=True)
+
+    # ---------- 缓存命中 ----------
+    if os.path.exists(dst) and not force:
+        return {
+            "ok": True, "cache": "HIT", "src": src, "dst": dst,
+            "fingerprint": fp["fingerprint"], "model": fp,
+            "tool": "SW/tools/cut_postprocessor.py (复用 10-28 那套)",
+            "sha16": sha16(dst), "bytes": os.path.getsize(dst),
+            "stdout": "", "stderr": "",
+            "note": "★ 缓存命中 (文件名里的指纹 = 本次权重指纹 ⇒ 与上次同一个权重)",
+        }
+
+    # ---------- 缓存未命中 ⇒ 重新切 ----------
     r = subprocess.run([sys.executable,
                         os.path.join(HERE, "cut_postprocessor.py"), src, dst,
-                        "--keep", "350", "498", "646"],
+                        "--keep", *CUT_KEEP],
                        capture_output=True, text=True)
+    ok = (r.returncode == 0)
+    if ok:
+        # 写 sidecar: 记录这份 cut 是从哪个权重切出来的 ⇒ 人可查
+        try:
+            with open(cut_cache_meta_path(dst), "w", encoding="utf-8") as f:
+                json.dump({"src": fp["path"], "src_sha16": fp["sha16"],
+                           "src_mtime": fp["mtime"], "src_bytes": fp["bytes"],
+                           "imgsz": fp["imgsz"], "keep": fp["keep"],
+                           "cut_tool_sha16": fp["cut_tool_sha16"],
+                           "fingerprint": fp["fingerprint"],
+                           "created_at": time.strftime("%Y-%m-%d %H:%M:%S")},
+                          f, ensure_ascii=False, indent=2)
+        except OSError:
+            pass
     return {
-        "ok": r.returncode == 0,
+        "ok": ok,
+        "cache": "MISS",
         "src": src, "dst": dst,
+        "fingerprint": fp["fingerprint"], "model": fp,
         "tool": "SW/tools/cut_postprocessor.py (复用 10-28 那套)",
         "stdout": r.stdout[-1500:],
         "stderr": r.stderr[-800:],
         "sha16": sha16(dst) if os.path.exists(dst) else None,
         "bytes": os.path.getsize(dst) if os.path.exists(dst) else None,
+        "note": "★ 缓存未命中 ⇒ 已按本次权重指纹重新生成 cut 模型",
     }
 
 
@@ -687,8 +855,10 @@ def step_convert(args) -> dict:
     dep = ensure_dataset(args, "convert")
     src = ONNX_MODEL
     tag = "full"
+    cut_info = None
     if not args.no_cut:
-        cut = step_cut(args)
+        cut = step_cut(args, force=getattr(args, "force_recut", False))
+        cut_info = cut
         if cut.get("ok"):
             src = cut["dst"]
             tag = "heads"
@@ -710,6 +880,19 @@ def step_convert(args) -> dict:
     r.export_rknn(out)
     r.release()
     sz = os.path.getsize(out)
+    # ★ ISS-157: 给 .rknn 产物写 sidecar (记录它是**从哪个权重**转出来的)
+    #   ⇒ ★文件名不带模型名 (历史兼容), 但 sidecar 能证明"这个产物是谁转的"
+    fp = model_fingerprint(ONNX_MODEL)
+    try:
+        with open(out + ".meta.json", "w", encoding="utf-8") as f:
+            json.dump({"src": fp["path"], "src_sha16": fp["sha16"],
+                       "src_mtime": fp["mtime"], "src_bytes": fp["bytes"],
+                       "imgsz": fp["imgsz"], "target_platform": TARGET_PLATFORM,
+                       "variant": tag, "fingerprint": fp["fingerprint"],
+                       "created_at": time.strftime("%Y-%m-%d %H:%M:%S")},
+                      f, ensure_ascii=False, indent=2)
+    except OSError:
+        pass
     return {
         "ok": True,
         "variant": tag,
@@ -723,10 +906,51 @@ def step_convert(args) -> dict:
         "build_s": round(t_build, 2),
         "cfg_std": args.cfg_std,
         "dep": dep,
+        # ★ ISS-157: 本次用的权重 + cut 缓存命中/未命中
+        "model": fp,
+        "cut_cache": _cut_cache_brief(cut_info),
+        "cut_cache_scan": scan_cut_cache(),
         "quant": {"dtype": "w8a8", "algorithm": "normal", "method": "channel",
                   "target_platform": TARGET_PLATFORM},
         "evidence": "[实测] 本机 rknn-toolkit2 2.3.2 转换",
     }
+
+
+def _cut_cache_brief(cut_info) -> dict:
+    """把 step_cut() 的返回压成一个可打印的 "缓存命中/未命中" 摘要。"""
+    if not cut_info:
+        return {"enabled": False, "hit": None, "path": None,
+                "fingerprint": None,
+                "note": "未切后处理 (--no-cut) ⇒ 无 cut 模型缓存"}
+    return {"enabled": True,
+            "hit": (cut_info.get("cache") == "HIT"),
+            "status": cut_info.get("cache"),          # "HIT" / "MISS"
+            "path": cut_info.get("dst"),
+            "fingerprint": cut_info.get("fingerprint"),
+            "bytes": cut_info.get("bytes"),
+            "note": cut_info.get("note")}
+
+
+def _print_model_cache(tag: str, res: dict) -> None:
+    """★ ISS-157 ②: 打印 "本次用的权重 + 缓存命中/未命中" ⇒ 人一眼看出是不是旧数据。
+
+    ★ 这是防"绿灯假数据"的关键: 数字好看, 但你得能证明它是**这次这份权重**跑出来的。
+    """
+    m = res.get("model")
+    if not m:
+        return
+    print(f"\n[{tag}] ★ 本次用的权重: {m['path']}")
+    print(f"[{tag}]   sha16={m['sha16']} | {m['bytes']:,} B | mtime={m['mtime']} "
+          f"| 输入 {m['imgsz']}x{m['imgsz']} | 指纹={m['fingerprint']}")
+    cc = res.get("cut_cache") or {}
+    if cc.get("enabled"):
+        status = "✅ HIT (命中缓存)" if cc.get("hit") else "❌ MISS (未命中, 已按本次指纹重新生成)"
+        print(f"[{tag}] cut 模型缓存: {status} | {cc.get('path')}")
+    else:
+        print(f"[{tag}] cut 模型缓存: 未启用 (--no-cut)")
+    scan = res.get("cut_cache_scan") or {}
+    if scan.get("warning"):
+        print(f"[{tag}] ⚠ 缓存自检: {scan['warning']}")
 
 
 def _build_session_for_sim(args, needer: str = "sim"):
@@ -738,12 +962,18 @@ def _build_session_for_sim(args, needer: str = "sim"):
          (2) 裸 assert 全部换成带行动指引的 BenchError
     """
     src = ONNX_MODEL
+    cut_info = None
     if not args.no_cut:
-        dst = os.path.join(WORK, "yolov5s_heads.onnx")
-        if not os.path.exists(dst):
-            step_cut(args)
-        if os.path.exists(dst):
-            src = dst
+        # ★ ISS-157: 缓存键含**模型指纹** ⇒ 换权重自动重新生成 (不用记得删缓存)
+        cut_info = step_cut(args, force=getattr(args, "force_recut", False))
+        if not cut_info.get("ok"):
+            raise BenchError(
+                "切后处理失败 (cut_postprocessor.py rc=%s) ⇒ 宁可直接报错, "
+                "也不能拿**未切的完整模型**去按 raw-head 口径解码 (会静默算错)\n"
+                "  src = %s\n  stderr = %s"
+                % (cut_info.get("stderr", "")[-300:] or "?", cut_info.get("src"),
+                   (cut_info.get("stderr") or "")[-300:]))
+        src = cut_info["dst"]
     # ★ ISS-113: 量化校准集清单 (缺 → 自动补跑 calib 步)
     ensure_dataset(args, needer)
     r = _new_rknn(cfg_std=args.cfg_std)
@@ -759,7 +989,7 @@ def _build_session_for_sim(args, needer: str = "sim"):
     rc_init = r.init_runtime()   # target=None ⇒ simulator
     if rc_init != 0:
         raise BenchError("rknn.init_runtime 失败 rc=%s" % rc_init)
-    return r
+    return r, cut_info
 
 
 def _count_dataset() -> int:
@@ -814,7 +1044,7 @@ def step_sim(args) -> dict:
     so.log_severity_level = 3
     sess = ort.InferenceSession(ONNX_MODEL, so, providers=["CPUExecutionProvider"])
     iname = sess.get_inputs()[0].name
-    r = _build_session_for_sim(args, needer="sim")
+    r, cut_info = _build_session_for_sim(args, needer="sim")
     cut = not args.no_cut
     diffs = []
     for blob, blob_ref in blobs:
@@ -838,6 +1068,10 @@ def step_sim(args) -> dict:
         "variant": "heads(cut)" if cut else "full",
         "n_images_compared": len(blobs),
         "max_abs_diff_vs_onnx_fp32": diffs,
+        # ★ ISS-157: 本次用的权重 + 缓存命中/未命中 (防"绿灯假数据")
+        "model": model_fingerprint(ONNX_MODEL),
+        "cut_cache": _cut_cache_brief(cut_info),
+        "cut_cache_scan": scan_cut_cache(),
         "sim_latency_ms": {
             "min": round(float(ts.min()), 2), "avg": round(float(ts.mean()), 2),
             "max": round(float(ts.max()), 2), "p50": round(float(np.median(ts)), 2),
@@ -857,7 +1091,7 @@ def step_acc(args) -> dict:
     if not os.path.isfile(ANN):
         raise BenchError("COCO 标注文件不存在: %s (acc 步需要它)" % ANN)
     ga = load_grid_anchor(ONNX_MODEL)
-    r = _build_session_for_sim(args, needer="acc")
+    r, cut_info = _build_session_for_sim(args, needer="acc")
     cut = not args.no_cut
     files = sorted(os.listdir(VAL_DIR))[:args.images]
     preds = {}
@@ -891,6 +1125,10 @@ def step_acc(args) -> dict:
     res["caliber"] = ("逐类 IoU 贪心匹配 (同 SW/tools/eval_od_accuracy.py) —— "
                       "**不是官方 mAP**, 只可同口径自比")
     res["evidence"] = "[实测] RKNN INT8 模型 (PC simulator) 在 COCO val2017 上的 F1"
+    # ★ ISS-157: 本次用的权重 + 缓存命中/未命中 (★人一眼能看出是不是旧数据)
+    res["model"] = model_fingerprint(ONNX_MODEL)
+    res["cut_cache"] = _cut_cache_brief(cut_info)
+    res["cut_cache_scan"] = scan_cut_cache()
     # FP32 参考 (onnxruntime, 同一个 ONNX + 同一套解码) —— 量化 INT8 精度损失的基线
     if args.fp32_baseline:
         res["fp32_baseline"] = _fp32_baseline(args, ga, cut)
@@ -909,11 +1147,13 @@ def _fp32_baseline(args, ga, cut) -> dict:
     so = ort.SessionOptions()
     so.log_severity_level = 3
     src = ONNX_MODEL
+    cut_info = None
     if cut:
-        dst = os.path.join(WORK, "yolov5s_heads.onnx")
-        if not os.path.exists(dst):
-            step_cut(args)
-        src = dst
+        # ★ ISS-157: 缓存键含模型指纹 ⇒ 换权重自动重新生成
+        cut_info = step_cut(args, force=getattr(args, "force_recut", False))
+        if not cut_info.get("ok"):
+            raise BenchError("FP32 基线步切后处理失败: %s" % (cut_info.get("stderr") or "")[-300:])
+        src = cut_info["dst"]
     sess = ort.InferenceSession(src, so, providers=["CPUExecutionProvider"])
     iname = sess.get_inputs()[0].name
     files = sorted(os.listdir(VAL_DIR))[:args.images]
@@ -940,6 +1180,9 @@ def _fp32_baseline(args, ga, cut) -> dict:
     r["elapsed_s"] = round(time.time() - t0, 1)
     r["variant"] = res_variant = ("heads(cut, CPU 解码)" if cut else "full(output 张量)")
     r["evidence"] = "[实测] ONNX FP32 (onnxruntime CPU) 同口径参考"
+    # ★ ISS-157: FP32 基线也必须绑定**同一份权重指纹** (否则基线与 INT8 不是同一个模型)
+    r["model"] = model_fingerprint(ONNX_MODEL)
+    r["cut_cache"] = _cut_cache_brief(cut_info)
     return r
 
 
@@ -1024,6 +1267,12 @@ def main() -> int:
                     help="同时跑 ONNX FP32 (onnxruntime) 参考, 量化 INT8 精度损失")
     ap.add_argument("--no-cut", action="store_true",
                     help="不切后处理 (用完整 ONNX, 输出 `output` 张量) —— 用于演示坑 3")
+    ap.add_argument("--onnx", default=None,
+                    help="★覆盖源 ONNX 权重路径 (换模型重测用)。"
+                         "缓存键含模型指纹 (路径+sha256+mtime+大小+输入尺寸) ⇒ "
+                         "换权重**自动**失效, 不用记得删缓存 (ISS-157)")
+    ap.add_argument("--force-recut", action="store_true",
+                    help="★强制重新生成 cut 模型 (忽略缓存命中) —— 调试用")
     ap.add_argument("--cfg-std", type=int, default=255,
                     help="rknn.config 的 std_values (0=不设, 255=img/255)")
     ap.add_argument("--input-scale", choices=["raw", "unit"], default="raw",
@@ -1039,6 +1288,15 @@ def main() -> int:
                          "关掉后缺依赖会给出指向 calib 步的明确报错 (不再抛 AssertionError)")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
+
+    # ★ ISS-157: --onnx 覆盖源权重 (换模型重测) ⇒ 缓存键跟着变 ⇒ 自动失效
+    global ONNX_MODEL
+    if args.onnx:
+        ONNX_MODEL = os.path.abspath(os.path.expanduser(args.onnx))
+        if not os.path.isfile(ONNX_MODEL):
+            print("❌ --onnx 指定的权重文件不存在: %s" % ONNX_MODEL, file=sys.stderr)
+            return 2
+        print("[model] ★ 本次使用权重 (--onnx 覆盖): %s" % ONNX_MODEL, file=sys.stderr)
 
     out = {}
     t_start = time.time()
@@ -1082,6 +1340,10 @@ def main() -> int:
         print("[probe] RK3576 板端在不在 :", p["rk3576_board_present"], "| adb devices:", p["adb_devices"])
         print("[probe] 模型:", p["model_path"], "sha16 =", p["model_sha16"],
               "(台账一致:", p["model_sha16_matches_ledger"], ")")
+        print("[probe] 指纹:", p["model_fingerprint"]["fingerprint"],
+              "| mtime:", p["model_fingerprint"]["mtime"],
+              "| 缓存目录里的 cut 模型:",
+              (p.get("cut_cache_scan") or {}).get("n", "?"), "个")
         print("[probe] 输入:", p["model_inputs"])
         print("[probe] 输出:", p["model_outputs"])
         print("[probe] 节点数:", p["model_nodes"], "| 算子表:", p["op_census"])
@@ -1101,17 +1363,20 @@ def main() -> int:
                   f"| 15MiB 槽位够不够: {c['fits_15MiB_slot']}")
             print(f"[convert] load {c['load_s']}s / build(INT8) {c['build_s']}s")
             print(f"[convert] 量化: {c['quant']}")
+            _print_model_cache("convert", c)
         else:
             print(f"\n[convert] ❌ 失败 @ {c.get('stage')} rc={c.get('rc')}")
     if "sim" in out:
         s = out["sim"]
         print("\n[sim] max_abs_diff vs ONNX FP32:", s["max_abs_diff_vs_onnx_fp32"])
         print("[sim] 仿真耗时 ms:", s["sim_latency_ms"])
+        _print_model_cache("sim", s)
         print("[sim] ⚠️", s["evidence"])
     if "acc" in out:
         a = out["acc"]
         print(f"\n[acc] COCO val2017 {a['n_images']} 张 | TP={a['tp']} FP={a['fp']} FN={a['fn']}")
         print(f"[acc] Precision={a['precision']:.4f} Recall={a['recall']:.4f} F1={a['f1']:.4f}")
+        _print_model_cache("acc", a)
         print("[acc] 口径:", a["caliber"])
         if "fp32_baseline" in a:
             b = a["fp32_baseline"]

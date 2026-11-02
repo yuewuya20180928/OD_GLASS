@@ -1,7 +1,7 @@
 agent: hw-lead
 role: 硬件总工
 updated_at: '2026-11-02'
-updated_by: hw-lead
+updated_by: main
 status:
   phase: P2(原理图/BOM)+★ISS-158 三件外购件规格已定(P1/P2 针位表闭环, P3 待引脚定义表)
   progress_pct: 82
@@ -1950,6 +1950,44 @@ interface_claims:
     C2 图纸可解析 / C3 ★**DRC violations=0** / C4 未连接=0 / C5 生成器自检 / C6 生产文件齐(Gerber 25 + 钻孔) ⇒ ★**我们自己画的图,
     用我们自己的标准验** ⇒ ★**本轮真 DRC 抓出我自己骨架的布局错误 (SOM 占位盖住整板 ⇒ 101 项违规 → 修到 0)**。'
   ref: state/check_pcb_drc.py + HW/PCB/
+- key: pcb_drc_nets_gate
+  value: drc0_parity_exact
+  note: '★★demo 主板已达成机器可验证闭环 (23:5x): 板子由**网表驱动**生成 (pcbnew 官方 API, `state/gen_pcb_netlist_board.py`)
+    ⇒ ★**DRC=0** + ★**板子↔网表逐点等价 (359 绑定/缺失0/多余0, `state/check_pcb_nets.py`)** + Gerber 30 个+钻孔 ⇒ 两个门禁已挂进
+    daily_check ⇒ ★**"自己画图"的验收线 = DRC 干净 + 与网表逐点相等 (不是"画得像")**; ★原理图后置: 用 KiCad GUI 从我们的 .net 导入 (一次动作)。'
+  ref: state/check_pcb_drc.py + state/check_pcb_nets.py + HW/PCB/
+- key: step1_three_parts
+  value: IMX415_31p/10FHD_40p/FET3572-C
+  note: '★demo 三件 (ISS-158 已验收): **camera = Radxa Camera 4K (IMX415) 31p/0.3mm** (逐针表 31/31, 座 FH35C-31S-0.3SHW(50),
+    1080p60=1944×1097/0x3020=0x01/VTS 0x0C5D→0x062E, SCCB 0x1a) · **display = Radxa Display 8HD/10FHD
+    40p/0.5mm** (40/40, ★**驱动走 simple-panel-dsi 路线, init code 抄 rk3576-evb.dtsi 263 条**) · **SOM = Forlinx
+    FET3572-C 68×50mm, 4×100pin/0.4mm BTB, DC 5-13V** ⇒ ★**「0.5mm/24p 自研规格」作废**; ★**P3 逐针引脚定义表是唯一硬缺口**
+    (Forlinx 下载中心需注册 ⇒ 公开下载非 L4; ★与 FET3576-C 引脚兼容 ⇒ 拿后者即等于前者)。'
+  ref: HW/STEP1_PARTS_SPEC.md
+- key: som_pin_table_source
+  value: forlinx_github_pages
+  note: '★★SOM 逐针引脚表的公开来源 (P3 硬缺口已解): Forlinx 官方 GitHub Pages 手册 `OK3576-C_User_Hardware_Manual.html`
+    §2.6 (FET3576-C/3576-C2 Pin Definitions: Num/Ball/电平/信号名/SoM 网名) + §2.3 尺寸 (68×50mm ±0.15, 1.6mm 10层沉金,
+    四组 0.4mm/100pin BTB, 四角 2.2mm 孔, DXF) + §2.4.2 电源 (5~13V) + §3.5 载板设计指引 ⇒ ★已解析 399 行 ⇒ `HW/PCB/FET3576C_PIN_TABLE.csv`
+    ⇒ ★**FET3572-C 与 FET3576-C 引脚兼容 ⇒ 这张表就是我们板子的表** ⇒ ISS-162 段 B 解锁。'
+  ref: HW/PCB/FET3576C_PIN_TABLE.csv
+- key: carrier_board_en_power
+  value: must_enable
+  note: '★★★F13 新致命项 (与 F1 EN 悬空同级): **pin87 CARRIER_BOARD_EN (SOM 输出, 控制底板上电)** + **pin91~97 VCC_DCIN
+    (5-13V)** ⇒ ★★**主板电源必须由 CARRIER_BOARD_EN 使能, 不得直连** —— Forlinx 原文警告: 底板早于核心板上电 ⇒ 通电瞬间电流过大/无法启动/**可能对处理器造成不可逆损坏**
+    ⇒ ★**投板后才发现 = 板子起不来 ⇒ 已入 F1~F13 清单**。'
+  ref: ISS-159 (F13) + ISS-162 段 B
+- key: camera_module_power
+  value: 3v3+5v_module_level
+  note: '★★Radxa Camera 4K 31 针表: pin28/29=VCC3.3V, pin30/31=VCC5V ⇒ **模组级供电** ⇒ ★★主板的 SENSOR_CORE/SENSOR_VDD_IO/SENSOR_AVDD
+    三条轨 + 三颗 TPS7A20 + 六个去耦位 **全部不需要** (模组内自稳压) ⇒ ★**推翻 11-02 19:5x 的"三轨按芯片 datasheet 重核"** ⇒ ★**教训: 选型先看模组接口表,
+    再看芯片 datasheet**; 另: CSI **4-lane 必装** + 新增 CAM_RESET_N / CAM_PWDN / DSI_RESET_N 三个 net。'
+  ref: HW/NETLIST_REV2_SPEC.md §0/§1 + HW/STEP1_PARTS_SPEC.md §2
+- key: netlist_rev2_spec
+  value: written
+  note: '★**网表改版规格已写死** (`HW/NETLIST_REV2_SPEC.md`): 31 针/40 针逐针表 + 三个重大结论 + A1/A2 分段 + 9 命令验收链 + 写入范围
+    ⇒ ★**执行方只照抄, 不许再查资料** (同类任务已连续三次 0 产出, 根因是任务里混了查资料) ⇒ **这是派活方法论的实证: 任务书越纯机械, 越容易交出东西**。'
+  ref: HW/NETLIST_REV2_SPEC.md
 open_questions:
 - id: HW-Q1
   to: main

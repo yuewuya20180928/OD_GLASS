@@ -18,7 +18,10 @@ status:
     余量最大 + 误检少 + 产物小一半), 代价是召回低 0.0291 需眼镜场景实拍验证。★记录 2 个会静默出错的坑: 3 路 head 输出名必须改名
     350/498/646 (否则 step_cut 失败), 以及 rknn_bench.py 的 cut 模型缓存不失效 ⇒ 换模型重测会跑出上一个模型的数字
     (本单实测两次结果逐字节相同)。仍 yellow 的原因: 板子 Radxa A7S 192.168.2.5 不可达 (ssh No route to host
-    + ARP FAILED) ⇒ P0-2 板端 librknnrt 版本号 + 板端实测 S5 两项无法闭合; §6 留 18 条待核, 未用推断冒充事实。'
+    + ARP FAILED) ⇒ P0-2 板端 librknnrt 版本号 + 板端实测 S5 两项无法闭合; §6 留 18 条待核, 未用推断冒充事实。
+    ★ISS-157 (2026-11-02 23:3x) 已修: rknn_bench.py 的 cut 模型缓存键**改为含模型指纹** ⇒ 换权重自动失效
+    (修前会静默跑出上一个模型的数字, 且不报错); 输出新增「本次权重 + 缓存 HIT/MISS」打印 + 多指纹自检; 实测验收: 同权重两次结果完全一致
+    / 换权重结果必须不同 (修前是坏的, 现已变绿); 两个模型 F1 已重测 (yolov5s 0.3017 / yolov5n 0.2927)。'
   updated_at: '2026-11-02'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
@@ -1344,14 +1347,22 @@ interface_claims:
   note: '★★2026-11-02 20:3x 实测 (ISS-147): **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target_platform**
     (2.3.2 与最新 2.5.0 都抛 ValueError; rknn/api/rknn.py 与编译后 .so 里 rk3572 命中 0; 官方 Support
     Platform 无 RK3572) ⇒ **不存在升级 toolkit 就有 rk3572 的路** ⇒ RK3572 上只能用 `target_platform=''rk3576''`
-    转 (同代 RKNPU v2, 算力不等 4 vs 6 TOPS ⇒ [推算], 板端须实测) ⇒ ISS-145 的 M1「零转换复用 A7S 的 .rknn」不成立。'
-  ref: ISS-155 + SW/RKNN_BUILD_ENV_RECOVERY.md §2
+    转 (同代 RKNPU v2, 算力不等 4 vs 6 TOPS ⇒ [推算], 板端须实测) ⇒ ISS-145 的 M1「零转换复用 A7S 的 .rknn」不成立,
+    必须重转。★★**ISS-155 已钉 (2026-11-02)**: 板端验证判据三条 = ①板端 acc 能跑完 ②精度不塌 (F1 与 §1.4 同量级)
+    ③NPU 耗时与 HW/e2e_budget_rk3572.py 预算对得上; ★**卡点 = Radxa A7S 不可达 ⇒ 需另取一块能跑的 RK357x
+    板** (ISS-151 清单, 与 demo Step1 载板合流)。★**规格侧已同步**: SW/DEMO_OD_PIPELINE_SPEC.md §0/§1.4/§2.1/§2.3/§6.2
+    凡写 "rk3572 target" 的表述一律改成 rk3576 + 注明"算力不等 (4 vs 6 TOPS) ⇒ 板端待验"。'
+  ref: ISS-147 + ISS-155 + SW/RKNN_BUILD_ENV_RECOVERY.md §2 · SW/DEMO_OD_PIPELINE_SPEC.md
+    §2.3
 - key: demo_model_choice
   value: yolov5n
-  note: '★demo 第一版定 **yolov5n@640 INT8**: 实测同图集 (COCO val2017 + 100 张校准集) yolov5s
-    F1 0.3017 vs yolov5n F1 0.2927 ⇒ **只差 0.0090** (★**订正了原规格『少 ~4 点 mAP50』的错误说法**)
-    ⇒ 选 n (60ms 余量最大 + 误检少 263 个 + 产物小一半), 代价召回低 0.0291。★⚠️ 该数需在 ISS-157 (缓存键) 修完后**重测确认**。'
-  ref: ISS-147 + SW/DEMO_OD_PIPELINE_SPEC.md §1
+  note: '★demo 第一版定 **yolov5n@640 INT8**: 实测同图集 (COCO val2017 前 300 张 + 同一批 100 张校准集)
+    yolov5s F1 0.3017 vs yolov5n F1 0.2927 ⇒ **只差 0.0090** (★**订正了原规格『少 ~4 点 mAP50』的错误说法**)
+    ⇒ 选 n (60ms 余量最大 + 误检少 263 个 + 产物小一半), 代价召回低 0.0291。★★**ISS-157 缓存键修完后已重测确认 (2026-11-02
+    23:3x)**: 同权重跑两次结果**完全一致** (TP/FP/FN/F1 逐个相同), 换权重后结果**必须不同** (修前是坏的 —— 会静默跑出上一个模型的数字)
+    ⇒ ★**这两个数现在可信了**。⚠️ **注意**: yolov5n 的 F1 0.2927 **低于 §6.2 判据 ② 的 0.30 门槛 (差 0.0073)**
+    ⇒ 已登记 SW-Q5 待老板裁决。'
+  ref: ISS-147 + ISS-157 (缓存键修复后重测) + SW/DEMO_OD_PIPELINE_SPEC.md §1.4
 - key: rknn_build_env
   value: restored
   note: '★RKNN 构建环境已恢复 (ISS-147): conda env `~/miniconda3/envs/rknn` (python 3.10.22
@@ -1359,6 +1370,26 @@ interface_claims:
     ⇒ ★**路径与 `rknn_bench.py` 硬编码的 RKNN_PY 一致 ⇒ 仓库脚本零改动可跑** ⇒ probe/calib/convert/acc
     四步 rc=0 真落盘; ★校准集与 COCO val2017 已恢复 ⇒ A2 路线成本 3~5 人天 → ~1 人天。'
   ref: SW/RKNN_BUILD_ENV_RECOVERY.md §1/§4/§5
+- key: panel_init_sequence_source
+  value: rk3576-evb_simple-panel-dsi
+  note: '★★F8 落地: 面板 init code 的**公开开源来源** = Rockchip BSP kernel `develop-6.12` `rk3576-evb.dtsi`
+    的 `dsi_panel: panel@0` (compatible=simple-panel-dsi, 4-lane, MIPI_DSI_FMT_RGB888,
+    flags=VIDEO|VIDEO_BURST|LPM|NO_EOT_PACKET, 263 条 panel-init-sequence) ⇒ 已落 `HW/PCB/panel_simple_dsi_template.dtsi`
+    ⇒ ★**面板 init code 不用问厂家** (demo 屏用公开模板; 视崖 0.49" 的 init 属采购硬判据, 不影响 demo)。★F10
+    ESD 判据: 紧贴接口 + 寄生电容 ≤0.4pF (Forlinx 手册 §3.5)。'
+  ref: HW/PCB/panel_simple_dsi_template.dtsi + HW/PCB/LAYOUT_RULES.md
+- key: rknn_cut_cache_key
+  value: model_fingerprint_in_cache_key
+  note: '★★ISS-157 (2026-11-02 23:2x, sw-lead 修) `SW/tools/rknn_bench.py` 的 **cut
+    模型缓存键改为含模型指纹** ⇒ ★**换权重自动失效**, 根治"忘了删缓存 ⇒ 静默跑出上一个模型的数字" (实测两次结果逐字节相同, 且**不报错**
+    = "绿灯假数据")。指纹 = sha256(权重绝对路径|权重内容sha256[:16]|权重mtime(ns)|权重大小|输入尺寸|保留输出名|cut工具sha256[:16])[:16];
+    缓存文件名 = {权重stem}_heads_{指纹}.onnx (例 yolov5n-sim_heads_3f9943f511a58a9b.onnx);
+    ★每次输出打印 "本次用的权重 (路径/sha16/mtime/指纹) + 缓存 HIT/MISS"; ★缓存目录里有多个不同指纹 ⇒ 提示清理, 见到旧版无指纹缓存
+    ⇒ 提示删除。新增 CLI: --onnx (换权重重测) / --force-recut (忽略缓存强制重切)。★★验收 (机器可验): ①同权重两次结果完全一致
+    (TP=565 FP=1028 FN=1588 F1=0.3017, 两次逐个相同) ②换权重结果必须不同 (yolov5n F1=0.2927 ≠ yolov5s
+    F1=0.3017) ③缓存命中/未命中正确 (MISS→HIT→MISS)。'
+  ref: ISS-157 · SW/tools/rknn_bench.py (1c 节 / step_cut / _build_session_for_sim)
+    · SW/RKNN_BENCH.md §7.5 · SW/DEMO_OD_PIPELINE_SPEC.md §1.4
 open_questions:
 - id: SW-Q1
   to: main
@@ -1377,6 +1408,11 @@ open_questions:
     软件 75% 与 sensor 无关但 sensor 占 ~70% 阻塞风险; 建议三线并行 (面板问询外发 / 路径B / AR0234CS 驱动+tuning),
     待拍板'
   to: main
+- id: SW-Q5
+  to: main
+  text: '★ISS-157 重测: demo 第一版选的 **yolov5n@640 INT8 实测 F1 = 0.2927**, **低于 §6.2 判据
+    ② 的「0.30」门槛 (差 0.0073)** ⇒ 要么 demo 阶段按 §5.4「只记录不设门限」处理 (交卷写明差值), 要么改用 yolov5s
+    (F1 0.3017 过线, 但 60ms 余量退到 62.67~64.18ms ❌超60ms)。★**请老板拍板哪条** (sw-lead 不自行改验收线)。'
 risks:
 - id: R-sw-step
   text: 'NPU 延迟台阶效应: 纯 NPU 跨过 16.67ms 边界 → age 从 2 跳 3 → 端到端直接多一整个帧周期 (67→83.7ms)。差

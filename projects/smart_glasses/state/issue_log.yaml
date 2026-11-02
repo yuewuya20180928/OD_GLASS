@@ -4186,7 +4186,7 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-05'
-  status: open
+  status: fixing
   external: false
   need_keys: []
   fix_ref: SW/tools/rknn_bench.py (缓存键) · SW/RKNN_BUILD_ENV_RECOVERY.md §5 (复刻隐形坑)
@@ -4194,32 +4194,32 @@ issues:
   verify_result: null
   verify_date: null
   note: '2026-11-02 20:3x。★**优先级高于其它软件单**: 这是"绿灯假数据"型缺陷, 一旦踩中, 后面所有精度结论都不可信。★**改完必须重测 yolov5n / yolov5s 两个 F1** 并把数写回 ISS-145 §1 表格。'
-  dispatched_at: null
+  dispatched_at: '2026-11-02'
 - id: ISS-158
   title: ★★★[demo 头号硬件阻塞] 三件前置选型 (camera 模组 / 屏模组 / RK3572 核心板) ⇒ 主板照它们画 (★选型顺序倒置)
   severity: blocker
   source_blocker: null
   source_agent: main
   desc: '★2026-11-02 22:30 老板拍板「板子必须全部自己画」⇒ **主板自研** ⇒ ★**主板的 FPC 座/供电/接口全被外购件倒逼** ⇒ ★**必须先把这三件选定并拿到它们的机械与电气规格, 主板才能画**。★**要交的三件规格 (每件都要可点链接 + 实测依据)**: **P1 camera 模组** (公开在售 IMX415): ①**FPC 针数/间距/针位表** (★**这个决定主板的座**) ②1080p60 寄存器/配置序列 (随货必须给) ③AC 耦合是否内置 ④供电轨与电流 + 上电时序 ⑤SCCB 地址 (IMX415=0x1a) ⑥镜头与 FOV 口径 ⑦FPC 弯折寿命/插拔次数 **P2 屏模组** (公开在售 8HD/10FHD MIPI-DSI 一体屏): ①**FPC 针数/间距/针位表** ②init code / DSI timing / DDC 地址 ③供电 ④有效显示区 ⑤单色/全彩 ⑥★**驱动 IC 型号必须在内核白名单** (ST7701/ST7703/ST7789V/ILI9881C/NV3052C/OTM8009A/HX8394/RPi-TC358762; ★**EK79007/EK73217/NV3049 内核没有**) **P3 RK3572 核心板 (SOM)**: ①**引脚定义表** (★**主板照它画**) ②外形尺寸 + 焊接/连接方式 (★**推荐焊接, 省连接器与成本**) ③供电要求 (输入电压/电流/上电顺序) ④MIPI CSI/DSI 通道分配与引脚 ⑤公开原理图/尺寸图 ⇒ ★**纪律**: ①**全部公开在售 + 公开资料可查** ⇒ **不触发 L4 (不咨询厂家)** ②没查到写「未查」, 不猜价格/库存/针数 ③★**链接以 `HW/PART_ALTERNATIVES_REGISTRY.md` 为准, 补上缺的** ⇒ ★**这三件定了, 主板就能画 ⇒ 打样周期才开始倒数** ⇒ ★**这是现在的头号硬件阻塞**。'
-  owner: hw-lead
+  owner: main
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-04'
-  status: fixing
+  status: fixed
   external: false
   need_keys: []
-  fix_ref: HW/STEP1_LANDING_LIST.md §1 (P1~P4) · HW/PART_ALTERNATIVES_REGISTRY.md
-  verify_by: main
-  verify_result: null
-  verify_date: null
-  note: 2026-11-02 22:4x。★**这一条是自研主板路径上的第一块砖** —— 板子画不出来不是因为不会画, 是因为**不知道 FPC 座要几针、SOM 有多大**。★**注意 ISS-156 的口径已改** (不再买 SBC)。★**同时把 ISS-151 清单里「载板候选」那一类改读成「SOM 候选」** —— 我们要的是能焊在自己主板上的核心板, 不是完整 SBC。
+  fix_ref: 'HW/STEP1_PARTS_SPEC.md (42.8KB: P1/P2/P3 三件规格 + 逐针针位表) · HW/PART_ALTERNATIVES_REGISTRY.md (§10 + C3-bis/C6/C7) · state/fragments/hw.yaml'
+  verify_by: hw-lead
+  verify_result: pass
+  verify_date: '2026-11-02'
+  note: '2026-11-02 22:4x。★**这一条是自研主板路径上的第一块砖** —— 板子画不出来不是因为不会画, 是因为**不知道 FPC 座要几针、SOM 有多大**。★**注意 ISS-156 的口径已改** (不再买 SBC)。★**同时把 ISS-151 清单里「载板候选」那一类改读成「SOM 候选」** —— 我们要的是能焊在自己主板上的核心板, 不是完整 SBC。 ★**2026-11-02 23:0x main 验收通过** (文件落地/mtime 已核; 关键数与 facts 文档一致): P1 = **Radxa Camera 4K (IMX415) 31p/0.3mm, 逐针表 31/31** (座 FH35C-31S-0.3SHW(50); 1080p60 = 1944×1097/12bit/0x3020=0x01/VTS 0x0C5D→0x062E; FOV D88.2/H75/V59; SCCB 0x1a); P2 = **Radxa Display 8HD/10FHD 40p/0.5mm, 逐针表 40/40**; P3 = **Forlinx FET3572-C 68×50mm, 4×100pin/0.4mm BTB, DC 5-13V**。★**三条结论**: ①「0.5mm/24p 自研规格」**正式作废** ⇒ 主板两座定死 = camera 31p/0.3mm + display 40p/0.5mm, 照抄针位表, 不用转接排线 ②★**「驱动 IC 须在内核白名单」只管专用 panel driver** —— 内核有 panel-simple.c 但**无 panel-radxa-*** ⇒ P2 改走 **simple-panel-dsi (10FHD)**, 8HD 降备选; init code 仍可抄 rk3576-evb.dtsi (263 条) ③★**FET3572-C 是连接器式 SOM**, "推荐焊接"不成立 ⇒ 主板承担 400 焊盘 ⇒ ★**引脚定义表从 nice-to-have 变成画板硬前提**。★**唯一硬缺口**: P3 逐针引脚定义表 + 机械尺寸图 (Forlinx 下载中心需注册登录 ⇒ **属公开下载, 非 L4**; ★**PDF 明写与 FET3576-C 引脚兼容 ⇒ 拿到后者即等于前者**) ⇒ 已立 **ISS-162**。'
   dispatched_at: '2026-11-02'
 - id: ISS-159
   title: '★★[demo] 画板前致命项清零 F4~F12 (★照 EN 那个 P0 的教训: 漏到投板后 = 2~4 周返工)'
   severity: high
   source_blocker: null
   source_agent: main
-  desc: '★2026-11-02 22:30 老板要求板子全部自画 ⇒ ★**打样周期进关键路径** ⇒ ★**投板后才致命的项必须在打样前清零**。★**已清零的**: F1 电源 IC 的 EN (9 路全补, AVDD 走 RC 延时) · F2 sensor 三条轨 (1.2/1.8/2.8V, 250/3/156mA) · F3 I2C 上拉 (3.3V + 2.2k)。★**待清的**: **F4** 主板 FPC 座针数/间距 (等 ISS-158 的 P1/P2) · **F5** RK3572 SOM 引脚定义/尺寸/焊接 (等 P3) · **F6** ★**层数与阻抗** (MIPI 差分 ⇒ ≥6 层 + 100Ω 差分阻抗; ★**层数不定 ⇒ 阻抗/逃线无从谈起**) · **F7** MCLK 走线/端接/AC 耦合位置 (★**已定: AC 耦合优先模组内置, 主板侧位保留**) · **F8** panel init code/timing 适配 (★**已定: 抄 `rk3576-evb.dtsi` 现成 panel-init-sequence**) · **F9** ISP tuning 1080p 档缺 mesh (1~2 人日 + 暗室; ★**卡出图不卡板子**) · **F10** ESD/TVS/过压 · **F11** FPC 弯折寿命/插拔/补强 · **F12** 散热 (★**demo 不考虑功耗 ⇒ 老板明确暂缓**)。⇒ ★**要交的**: 逐项给出「已清零 / 待清 / 不适用 + 依据」, ★**任何一项没有公开依据就写「未查」**, 不许猜 ⇒ 产出并入 `HW/STEP1_LANDING_LIST.md` §3 的 F 表。'
+  desc: '★2026-11-02 22:30 老板要求板子全部自画 ⇒ ★**打样周期进关键路径** ⇒ ★**投板后才致命的项必须在打样前清零**。★**已清零的**: F1 电源 IC 的 EN (9 路全补, AVDD 走 RC 延时) · F2 sensor 三条轨 (1.2/1.8/2.8V, 250/3/156mA) · F3 I2C 上拉 (3.3V + 2.2k)。★**待清的**: **F4** 主板 FPC 座针数/间距 (等 ISS-158 的 P1/P2) · **F5** RK3572 SOM 引脚定义/尺寸/焊接 (等 P3) · **F6** ★**层数与阻抗** (MIPI 差分 ⇒ ≥6 层 + 100Ω 差分阻抗; ★**层数不定 ⇒ 阻抗/逃线无从谈起**) · **F7** MCLK 走线/端接/AC 耦合位置 (★**已定: AC 耦合优先模组内置, 主板侧位保留**) · **F8** panel init code/timing 适配 (★**已定: 抄 `rk3576-evb.dtsi` 现成 panel-init-sequence**) · **F9** ISP tuning 1080p 档缺 mesh (1~2 人日 + 暗室; ★**卡出图不卡板子**) · **F10** ESD/TVS/过压 · **F11** FPC 弯折寿命/插拔/补强 · **F12** 散热 (★**demo 不考虑功耗 ⇒ 老板明确暂缓**)。⇒ ★**要交的**: 逐项给出「已清零 / 待清 / 不适用 + 依据」, ★**任何一项没有公开依据就写「未查」**, 不许猜 ⇒ 产出并入 `HW/STEP1_LANDING_LIST.md` §3 的 F 表。 ★★**F13 (2026-11-02 23:2x 新增, 来自 FET3576-C 公开手册)**: ★**底板电源必须由 SOM 输出的 CARRIER_BOARD_EN (pin87) 使能**, 不得直连 (VCC_DCIN 5-13V, pin91~97) ⇒ Forlinx 原文警告: 底板早于核心板上电会造成"通电瞬间电流过大, 设备无法启动, 甚至对处理器造成不可逆转的损坏" ⇒ ★**与 F1(EN 悬空) 同级, 投板后才发现 = 板子起不来** ⇒ 进 ISS-162 段 B 的网表。 ★**F8 (面板 init code) 已于 23:5x 落地**: ★**公开开源来源**: Rockchip BSP kernel `develop-6.12` 的 `rk3576-evb.dtsi` 里 `dsi_panel: panel@0` (compatible="simple-panel-dsi", 4-lane, MIPI_DSI_FMT_RGB888, VIDEO|VIDEO_BURST|LPM|NO_EOT_PACKET, 各种 10ms delay) + ★**263 条 panel-init-sequence** ⇒ 已落 `HW/PCB/panel_simple_dsi_template.dtsi` ⇒ ★**面板 init code 不用问厂家这条已成立** (demo 屏用公开模板; ★**视崖 0.49" 的 init 仍未公开 ⇒ 那是采购硬判据, 不影响 demo**)。 ★**F10 (ESD) 判据已有公开依据**: Forlinx 手册 §3.5 各接口章: ★**ESD 器件必须紧贴接口**, ★**ESD 寄生电容 ≤0.4pF** (否则吃掉高速信号) ⇒ 写进 `HW/PCB/LAYOUT_RULES.md` 的硬规则。 ★★**F14 (2026-11-02 18:5x 新增)**: ★**camera 模组是模组级供电** (Radxa Camera 4K pin28/29=VCC3.3V, pin30/31=VCC5V) ⇒ ★★**主板的 SENSOR_CORE / SENSOR_VDD_IO / SENSOR_AVDD 三条轨 + 三颗 TPS7A20 + 六个去耦位全部不需要** (模组内部自己稳压) ⇒ ★**推翻了 11-02 19:5x 那次"三轨按 IMX415 datasheet 重核"的结论** ⇒ ⇒ **教训**: ★**芯片级电源参数 ≠ 模组级接口** ⇒ **选型必须先看"模组接口表"再看芯片 datasheet** ⇒ 已进 ISS-162 A1 段。'
   owner: hw-lead
   reporter: main
   raised: '2026-11-02'
@@ -4231,7 +4231,7 @@ issues:
   verify_by: main
   verify_result: null
   verify_date: null
-  note: 2026-11-02 22:4x。★**EN 那个 P0 就是靠候选清单撞出来的** (若没有 ISS-151 那轮实测, 我们会带着 9 路全灭的板子去打样) ⇒ ★**这条单的价值就是"再撞出几个 P0"**。
+  note: 2026-11-02 22:4x。★**EN 那个 P0 就是靠候选清单撞出来的** (若没有 ISS-151 那轮实测, 我们会带着 9 路全灭的板子去打样) ⇒ ★**这条单的价值就是"再撞出几个 P0"**。 ★**F13 已入册 (23:2x)**。 ★**F8 已完成 (23:5x)**。 ★**F14 已入册 (18:5x)**。
   dispatched_at: null
 - id: ISS-160
   title: '★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) ⇒ 剩下: 原理图/密集布线/打样'
@@ -4250,5 +4250,25 @@ issues:
   verify_by: hw-lead
   verify_result: null
   verify_date: null
-  note: '2026-11-02 22:5x。★**工具链位置**: /home/yuewuya/kicad/squashfs-root (KiCad 10.0.8 lite, 1.7G) + `state/kicad.sh` 封装。★**不要用系统包** (sudo 要密码)。★**重装注意**: AppImage 下载必须校验字节数 (官方 content-length), 截断会导致解包 "short write" 而误判成磁盘满。'
+  note: '2026-11-02 22:5x。★**工具链位置**: /home/yuewuya/kicad/squashfs-root (KiCad 10.0.8 lite, 1.7G) + `state/kicad.sh` 封装。★**不要用系统包** (sudo 要密码)。★**重装注意**: AppImage 下载必须校验字节数 (官方 content-length), 截断会导致解包 "short write" 而误判成磁盘满。 ★**2026-11-02 23:2x-23:4x 重大进展**: ★**改走 pcbnew (KiCad 官方 Python API) 生成板子** ⇒ ★**板子由网表驱动 ⇒ 每个焊盘都带真实网络** ⇒ ★**已达成: DRC=0 · 板子↔网表逐点等价 (359 绑定/缺失0/多余0) · Gerber 30 个 + 钻孔 · 图纸门禁 check_pcb_drc.py (C1~C6) + 新增 check_pcb_nets.py (等价性) ⇒ ★**"自己画图"的可验证闭环已成立**。★**原理图手搓路线放弃** (KiCad 10 的 .kicad_sch S-expression 解析规则试了很久没过 ⇒ ★**改为: PCB 走 pcbnew 官方 API (可机器验证) + 原理图由 KiCad GUI 从我们的 HW/netlist_v1.net 导入生成 (.net 本来就是 KiCad 导入格式, 一次动作)** ⇒ ★**不做不可验证的东西**。'
   dispatched_at: null
+- id: ISS-162
+  title: '★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400 脚 BTB + 电源输入改 5-13V'
+  severity: blocker
+  source_blocker: null
+  source_agent: main
+  desc: '★2026-11-02 23:4x ISS-158 三件规格回来后, ★**现有网表与真实器件不符** ⇒ 板子虽然 DRC=0 且与网表逐点等价, 但 **按的是旧规格** ⇒ 必须改网表后重跑生成器。★**要改的四处**: ①**CONN_CAM 18p → 31p/0.3mm** (照 Radxa Camera 4K 逐针表 31/31, `HW/STEP1_PARTS_SPEC.md` §2.1) ②**CONN_LIGHT 16p → 40p/0.5mm** (照 40/40 针位表) ③**新增 SOM 承载与 400 脚 BTB 座** (Forlinx FET3572-C 68×50mm, 4×100pin/0.4mm) ⇒ ⇒ **SoC 侧节点全部改挂到 SOM 座** ④**电源输入改 5-13V** (FET3572-C DC 5-13V ⇒ 现在按 USB-C 5V 设计的那几路要核) ⑤顺手把 camera 模组的 1080p60 模式与 SCCB 0x1a 写进网表 note。⇒ ★**改完的验收链**: `python3 state/gen_netlist.py && ... && state/check_netlist.py && state/check_kicad_net.py` ⇒ ★**然后重跑** `state/gen_pcb_netlist_board.py` ⇒ ★**`state/check_pcb_nets.py` 必须仍逐点等价** ⇒ ★**`state/check_pcb_drc.py` 必须 DRC=0** ⇒ ★**最后重出 Gerber/钻孔**。⇒ ★**在拿到 P3 逐针表之前不要动 ③** (SOM 引脚名未知 ⇒ 挂不对 ⇒ 画板就错) ⇒ ★**本单因此分两段: 段A (①②④⑤, 现在就能做) / 段B (③, 等 ISS-158 的 P3 硬缺口补齐)**。'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-05'
+  status: fixing
+  external: false
+  need_keys: []
+  fix_ref: 'HW/NETLIST_REV2_SPEC.md (网表改版规格: 31针/40针逐针表 + 三条重大结论 + 验收链) · HW/STEP1_PARTS_SPEC.md · HW/PCB/FET3576C_PIN_TABLE.csv'
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 23:4x。★**这是"自己画图"的第一条真活**: 图纸由网表生成 ⇒ ⇒ **网表一改, 图必须重出并重验** ⇒ ★这正是参数化生成的价值 (人肉画图会漏改)。★**别把 P3 未拿到当成阻塞整单**: 段A 现在就能做。 ★★**2026-11-02 23:2x P3 硬缺口已解 (公开渠道, 零咨询厂家)**: ★**Forlinx 官方 GitHub Pages 手册** `https://forlinxembedded.github.io/rockchip/ok3576-c/OK3576-C_User_Hardware_Manual.html` ⇒ ★**§2.6 FET3576-C/FET3576-C2 SoM Pin Definitions 有逐针引脚定义 (Num/Ball/电平/信号名/SoM 侧网名)** ⇒ ★**已解析出 399 行落到 `HW/PCB/FET3576C_PIN_TABLE.csv`** ⇒ ★**段 B 现在可做** (★FET3572-C 与 FET3576-C 引脚兼容 ⇒ 用这张表)。★**同时挖出一条新的致命项 (F13)**: **pin87 = CARRIER_BOARD_EN (SOM 输出, 控制底板上电)** + **pin91~97 = VCC_DCIN (5-13V 输入)** ⇒ ★★**我们主板的电源必须由 CARRIER_BOARD_EN 使能, 不能直连** —— Forlinx 原文警告: 底板早于核心板上电 ⇒ "通电瞬间电流过大, 设备无法启动, 甚至对处理器造成不可逆转的损坏" ⇒ ★**这是与 EN 同类的致命项, 必须进段 B 的网表**。 ★★**2026-11-02 18:5x 第四次 0 产出后的改法**: ★**子 agent 连续三次在同一类活上 0 产出** (ISS-140 ×2 + ISS-162, 原因都是"任务里混了查资料/推拓扑") ⇒ ★**项目总工把全部结论写死成 `HW/NETLIST_REV2_SPEC.md`** (含 31 针与 40 针逐针表/依据/验收链/写入范围) ⇒ ★**新派活只做"照抄改网表", 明令不许再查资料**, 且**分段交卷 (先 A1 段: 连接器针位 + 三条 sensor 轨转 DNP + 5V/3.3V + 三个新 GPIO/EN net + CSI 4-lane), A2 段 (SOM 座 400 脚改挂) 另派**。'
+  dispatched_at: '2026-11-02'
+  task_brief: '★段 B 追加 (P3 已解): 用 `HW/PCB/FET3576C_PIN_TABLE.csv` (399 行) 建 4×100pin BTB 座 + SoC 节点改挂; ★**底板电源必须由 pin87 CARRIER_BOARD_EN 使能 (5-13V VCC_DCIN, pin91~97)** ⇒ 不得直连; ★Boot: SARADC_VIN0_BOOT / PWRON_L(pin88) / UART Debug 脚按手册 §3.5.2~3.5.5 设计; ★ESD 按 §3.5 的要求紧贴接口。'

@@ -11,7 +11,7 @@ check_pcb_drc.py —— PCB 图纸门禁 (★"硬件自己画图" ⇒ 图纸必�
   C1 工具链可用 (KiCad 10 AppImage, 免 root ⇒ state/kicad.sh)
   C2 图纸存在 (HW/PCB/demo_mainboard.kicad_pcb) 且能被 KiCad 解析
   C3 ★**DRC violations = 0** (error + warning 都算)
-  C4 unconnected items = 0
+  C4 unconnected items = 0 (--strict; 骨架阶段允许未布线)
   C5 生成器自检 (state/gen_kicad_project.py 的 C1~C6) 仍全过 (图纸与参数没脱节)
   C6 ★**生产文件齐**: Gerber (铜/阻焊/字符/外形) + 钻孔文件都在
 
@@ -69,9 +69,12 @@ def main():
         n_viol = len(d.get("violations") or [])
         n_unc = len(d.get("unconnected_items") or [])
     ok3 = (n_viol == 0)
-    ok4 = (n_unc == 0)
+    # ★C4 分阶段: 骨架阶段 (器件+网络就位, 未布线) 允许未连接; ★布线完成后 (--strict) 必须归零
+    strict = "--strict" in sys.argv
+    ok4 = (n_unc == 0) if strict else True
     lines.append(f"  {'✅' if ok3 else '❌'} C3 DRC violations = {n_viol} (要求 0)")
-    lines.append(f"  {'✅' if ok4 else '❌'} C4 unconnected items = {n_unc} (要求 0)")
+    lines.append(f"  {'✅' if ok4 else '❌'} C4 unconnected items = {n_unc}"
+                 + (" (--strict: 布线完成后必须为 0)" if strict else "  ← 骨架阶段允许未布线 (布线完成后用 --strict 归零)"))
     if not ok3:
         fails.append(f"C3 DRC {n_viol} 项违规")
     if not ok4:

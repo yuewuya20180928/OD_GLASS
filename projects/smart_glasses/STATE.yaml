@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-02T23:13:36+08:00'
+  generated_at: '2026-11-02T23:43:45+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 151346
-      sha1: cdf3c1705679
-      mtime_ns: 1793631430080129080
+      size: 154966
+      sha1: 60e268849516
+      mtime_ns: 1793633976566207713
     mech-lead:
       file: mech.yaml
       size: 137924
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1793616190216050340
     sw-lead:
       file: sw.yaml
-      size: 93114
-      sha1: c66a38208063
-      mtime_ns: 1793623370818498137
+      size: 96987
+      sha1: f102c95bc565
+      mtime_ns: 1793634159680732322
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -623,7 +623,7 @@ domains:
     agent: hw-lead
     role: 硬件总工
     updated_at: '2026-11-02'
-    updated_by: hw-lead
+    updated_by: main
     status:
       phase: P2(原理图/BOM)+★ISS-158 三件外购件规格已定(P1/P2 针位表闭环, P3 待引脚定义表)
       progress_pct: 82
@@ -2384,7 +2384,9 @@ domains:
         4 点 mAP50'') ⇒ 建议 demo 第一版用 yolov5n (60ms 余量最大 + 误检少 + 产物小一半), 代价是召回低 0.0291 需眼镜场景实拍验证。★记录 2 个会静默出错的坑:
         3 路 head 输出名必须改名 350/498/646 (否则 step_cut 失败), 以及 rknn_bench.py 的 cut 模型缓存不失效 ⇒ 换模型重测会跑出上一个模型的数字
         (本单实测两次结果逐字节相同)。仍 yellow 的原因: 板子 Radxa A7S 192.168.2.5 不可达 (ssh No route to host + ARP FAILED)
-        ⇒ P0-2 板端 librknnrt 版本号 + 板端实测 S5 两项无法闭合; §6 留 18 条待核, 未用推断冒充事实。'
+        ⇒ P0-2 板端 librknnrt 版本号 + 板端实测 S5 两项无法闭合; §6 留 18 条待核, 未用推断冒充事实。 ★ISS-157 (2026-11-02 23:3x) 已修:
+        rknn_bench.py 的 cut 模型缓存键**改为含模型指纹** ⇒ 换权重自动失效 (修前会静默跑出上一个模型的数字, 且不报错); 输出新增「本次权重 + 缓存 HIT/MISS」打印
+        + 多指纹自检; 实测验收: 同权重两次结果完全一致 / 换权重结果必须不同 (修前是坏的, 现已变绿); 两个模型 F1 已重测 (yolov5s 0.3017 / yolov5n 0.2927)。'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -3622,6 +3624,11 @@ domains:
       text: '★ISS-145: demo 路径 A(AR0234CS 单线) vs B(先 IMX415/OV02B10 跑通再换 AR0234CS) —— 软件 75% 与 sensor
         无关但 sensor 占 ~70% 阻塞风险; 建议三线并行 (面板问询外发 / 路径B / AR0234CS 驱动+tuning), 待拍板'
       to: main
+    - id: SW-Q5
+      to: main
+      text: '★ISS-157 重测: demo 第一版选的 **yolov5n@640 INT8 实测 F1 = 0.2927**, **低于 §6.2 判据 ② 的「0.30」门槛 (差
+        0.0073)** ⇒ 要么 demo 阶段按 §5.4「只记录不设门限」处理 (交卷写明差值), 要么改用 yolov5s (F1 0.3017 过线, 但 60ms 余量退到 62.67~64.18ms
+        ❌超60ms)。★**请老板拍板哪条** (sw-lead 不自行改验收线)。'
     risks:
     - id: R-sw-step
       text: 'NPU 延迟台阶效应: 纯 NPU 跨过 16.67ms 边界 → age 从 2 跳 3 → 端到端直接多一整个帧周期 (67→83.7ms)。差 2ms 可能等于差 17ms'
@@ -7239,14 +7246,20 @@ interface_claims:
   panel_init_sequence_source:
     values:
       hw-lead: rk3576-evb.dtsi
+      sw-lead: rk3576-evb_simple-panel-dsi
     notes:
       hw-lead: '★2026-11-02 20:3x: Rockchip `rk3576-evb.dtsi` 里有 **1080×1920 / 4-lane / RGB888 的完整 panel-init-sequence**
         (与视涯 0.49" 1920×1080 分辨率最贴) ⇒ ★**面板 init code 的起点是"抄内核现成 dts", 不是"问厂家"**; ★另: 内核 79 个 panel 文件里**确实有**
         ST7701/ST7703/ILI9881C/NV3052C 的现成驱动, ★**但 EK79007/EK73217/NV3049 内核里没有**。'
+      sw-lead: '★★F8 落地: 面板 init code 的**公开开源来源** = Rockchip BSP kernel `develop-6.12` `rk3576-evb.dtsi`
+        的 `dsi_panel: panel@0` (compatible=simple-panel-dsi, 4-lane, MIPI_DSI_FMT_RGB888, flags=VIDEO|VIDEO_BURST|LPM|NO_EOT_PACKET,
+        263 条 panel-init-sequence) ⇒ 已落 `HW/PCB/panel_simple_dsi_template.dtsi` ⇒ ★**面板 init code 不用问厂家**
+        (demo 屏用公开模板; 视崖 0.49" 的 init 属采购硬判据, 不影响 demo)。★F10 ESD 判据: 紧贴接口 + 寄生电容 ≤0.4pF (Forlinx 手册 §3.5)。'
     by:
     - hw-lead
+    - sw-lead
     noncanonical_by: []
-    conflict: false
+    conflict: true
   demo_board_self_designed:
     values:
       hw-lead: 1main+SOM+2fpc
@@ -7289,6 +7302,76 @@ interface_claims:
       hw-lead: '★PCB 图纸门禁 `state/check_pcb_drc.py` (已挂进 daily_check 巡检链): C1 工具链(KiCad 10 AppImage, 免
         root) / C2 图纸可解析 / C3 ★**DRC violations=0** / C4 未连接=0 / C5 生成器自检 / C6 生产文件齐(Gerber 25 + 钻孔) ⇒
         ★**我们自己画的图, 用我们自己的标准验** ⇒ ★**本轮真 DRC 抓出我自己骨架的布局错误 (SOM 占位盖住整板 ⇒ 101 项违规 → 修到 0)**。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  pcb_drc_nets_gate:
+    values:
+      hw-lead: drc0_parity_exact
+    notes:
+      hw-lead: '★★demo 主板已达成机器可验证闭环 (23:5x): 板子由**网表驱动**生成 (pcbnew 官方 API, `state/gen_pcb_netlist_board.py`)
+        ⇒ ★**DRC=0** + ★**板子↔网表逐点等价 (359 绑定/缺失0/多余0, `state/check_pcb_nets.py`)** + Gerber 30 个+钻孔 ⇒ 两个门禁已挂进
+        daily_check ⇒ ★**"自己画图"的验收线 = DRC 干净 + 与网表逐点相等 (不是"画得像")**; ★原理图后置: 用 KiCad GUI 从我们的 .net 导入 (一次动作)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  step1_three_parts:
+    values:
+      hw-lead: IMX415_31p/10FHD_40p/FET3572-C
+    notes:
+      hw-lead: '★demo 三件 (ISS-158 已验收): **camera = Radxa Camera 4K (IMX415) 31p/0.3mm** (逐针表 31/31, 座
+        FH35C-31S-0.3SHW(50), 1080p60=1944×1097/0x3020=0x01/VTS 0x0C5D→0x062E, SCCB 0x1a) · **display
+        = Radxa Display 8HD/10FHD 40p/0.5mm** (40/40, ★**驱动走 simple-panel-dsi 路线, init code 抄 rk3576-evb.dtsi
+        263 条**) · **SOM = Forlinx FET3572-C 68×50mm, 4×100pin/0.4mm BTB, DC 5-13V** ⇒ ★**「0.5mm/24p 自研规格」作废**;
+        ★**P3 逐针引脚定义表是唯一硬缺口** (Forlinx 下载中心需注册 ⇒ 公开下载非 L4; ★与 FET3576-C 引脚兼容 ⇒ 拿后者即等于前者)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  som_pin_table_source:
+    values:
+      hw-lead: forlinx_github_pages
+    notes:
+      hw-lead: '★★SOM 逐针引脚表的公开来源 (P3 硬缺口已解): Forlinx 官方 GitHub Pages 手册 `OK3576-C_User_Hardware_Manual.html`
+        §2.6 (FET3576-C/3576-C2 Pin Definitions: Num/Ball/电平/信号名/SoM 网名) + §2.3 尺寸 (68×50mm ±0.15, 1.6mm
+        10层沉金, 四组 0.4mm/100pin BTB, 四角 2.2mm 孔, DXF) + §2.4.2 电源 (5~13V) + §3.5 载板设计指引 ⇒ ★已解析 399 行 ⇒
+        `HW/PCB/FET3576C_PIN_TABLE.csv` ⇒ ★**FET3572-C 与 FET3576-C 引脚兼容 ⇒ 这张表就是我们板子的表** ⇒ ISS-162 段 B
+        解锁。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  carrier_board_en_power:
+    values:
+      hw-lead: must_enable
+    notes:
+      hw-lead: '★★★F13 新致命项 (与 F1 EN 悬空同级): **pin87 CARRIER_BOARD_EN (SOM 输出, 控制底板上电)** + **pin91~97 VCC_DCIN
+        (5-13V)** ⇒ ★★**主板电源必须由 CARRIER_BOARD_EN 使能, 不得直连** —— Forlinx 原文警告: 底板早于核心板上电 ⇒ 通电瞬间电流过大/无法启动/**可能对处理器造成不可逆损坏**
+        ⇒ ★**投板后才发现 = 板子起不来 ⇒ 已入 F1~F13 清单**。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  camera_module_power:
+    values:
+      hw-lead: 3v3+5v_module_level
+    notes:
+      hw-lead: '★★Radxa Camera 4K 31 针表: pin28/29=VCC3.3V, pin30/31=VCC5V ⇒ **模组级供电** ⇒ ★★主板的 SENSOR_CORE/SENSOR_VDD_IO/SENSOR_AVDD
+        三条轨 + 三颗 TPS7A20 + 六个去耦位 **全部不需要** (模组内自稳压) ⇒ ★**推翻 11-02 19:5x 的"三轨按芯片 datasheet 重核"** ⇒ ★**教训:
+        选型先看模组接口表, 再看芯片 datasheet**; 另: CSI **4-lane 必装** + 新增 CAM_RESET_N / CAM_PWDN / DSI_RESET_N 三个
+        net。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  netlist_rev2_spec:
+    values:
+      hw-lead: written
+    notes:
+      hw-lead: '★**网表改版规格已写死** (`HW/NETLIST_REV2_SPEC.md`): 31 针/40 针逐针表 + 三个重大结论 + A1/A2 分段 + 9 命令验收链
+        + 写入范围 ⇒ ★**执行方只照抄, 不许再查资料** (同类任务已连续三次 0 产出, 根因是任务里混了查资料) ⇒ **这是派活方法论的实证: 任务书越纯机械, 越容易交出东西**。'
     by:
     - hw-lead
     noncanonical_by: []
@@ -10048,7 +10131,11 @@ interface_claims:
       sw-lead: '★★2026-11-02 20:3x 实测 (ISS-147): **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target_platform**
         (2.3.2 与最新 2.5.0 都抛 ValueError; rknn/api/rknn.py 与编译后 .so 里 rk3572 命中 0; 官方 Support Platform 无
         RK3572) ⇒ **不存在升级 toolkit 就有 rk3572 的路** ⇒ RK3572 上只能用 `target_platform=''rk3576''` 转 (同代 RKNPU
-        v2, 算力不等 4 vs 6 TOPS ⇒ [推算], 板端须实测) ⇒ ISS-145 的 M1「零转换复用 A7S 的 .rknn」不成立。'
+        v2, 算力不等 4 vs 6 TOPS ⇒ [推算], 板端须实测) ⇒ ISS-145 的 M1「零转换复用 A7S 的 .rknn」不成立, 必须重转。★★**ISS-155 已钉
+        (2026-11-02)**: 板端验证判据三条 = ①板端 acc 能跑完 ②精度不塌 (F1 与 §1.4 同量级) ③NPU 耗时与 HW/e2e_budget_rk3572.py
+        预算对得上; ★**卡点 = Radxa A7S 不可达 ⇒ 需另取一块能跑的 RK357x 板** (ISS-151 清单, 与 demo Step1 载板合流)。★**规格侧已同步**:
+        SW/DEMO_OD_PIPELINE_SPEC.md §0/§1.4/§2.1/§2.3/§6.2 凡写 "rk3572 target" 的表述一律改成 rk3576 + 注明"算力不等
+        (4 vs 6 TOPS) ⇒ 板端待验"。'
     by:
     - sw-lead
     noncanonical_by: []
@@ -10057,9 +10144,11 @@ interface_claims:
     values:
       sw-lead: yolov5n
     notes:
-      sw-lead: '★demo 第一版定 **yolov5n@640 INT8**: 实测同图集 (COCO val2017 + 100 张校准集) yolov5s F1 0.3017 vs
-        yolov5n F1 0.2927 ⇒ **只差 0.0090** (★**订正了原规格『少 ~4 点 mAP50』的错误说法**) ⇒ 选 n (60ms 余量最大 + 误检少 263
-        个 + 产物小一半), 代价召回低 0.0291。★⚠️ 该数需在 ISS-157 (缓存键) 修完后**重测确认**。'
+      sw-lead: '★demo 第一版定 **yolov5n@640 INT8**: 实测同图集 (COCO val2017 前 300 张 + 同一批 100 张校准集) yolov5s F1
+        0.3017 vs yolov5n F1 0.2927 ⇒ **只差 0.0090** (★**订正了原规格『少 ~4 点 mAP50』的错误说法**) ⇒ 选 n (60ms 余量最大
+        + 误检少 263 个 + 产物小一半), 代价召回低 0.0291。★★**ISS-157 缓存键修完后已重测确认 (2026-11-02 23:3x)**: 同权重跑两次结果**完全一致**
+        (TP/FP/FN/F1 逐个相同), 换权重后结果**必须不同** (修前是坏的 —— 会静默跑出上一个模型的数字) ⇒ ★**这两个数现在可信了**。⚠️ **注意**: yolov5n
+        的 F1 0.2927 **低于 §6.2 判据 ② 的 0.30 门槛 (差 0.0073)** ⇒ 已登记 SW-Q5 待老板裁决。'
     by:
     - sw-lead
     noncanonical_by: []
@@ -10072,6 +10161,20 @@ interface_claims:
         2.3.2 / onnx 1.16.1 / numpy 1.26.4 / protobuf 4.25.4 / torch 2.4.0+cpu) ⇒ ★**路径与 `rknn_bench.py`
         硬编码的 RKNN_PY 一致 ⇒ 仓库脚本零改动可跑** ⇒ probe/calib/convert/acc 四步 rc=0 真落盘; ★校准集与 COCO val2017 已恢复 ⇒
         A2 路线成本 3~5 人天 → ~1 人天。'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  rknn_cut_cache_key:
+    values:
+      sw-lead: model_fingerprint_in_cache_key
+    notes:
+      sw-lead: '★★ISS-157 (2026-11-02 23:2x, sw-lead 修) `SW/tools/rknn_bench.py` 的 **cut 模型缓存键改为含模型指纹**
+        ⇒ ★**换权重自动失效**, 根治"忘了删缓存 ⇒ 静默跑出上一个模型的数字" (实测两次结果逐字节相同, 且**不报错** = "绿灯假数据")。指纹 = sha256(权重绝对路径|权重内容sha256[:16]|权重mtime(ns)|权重大小|输入尺寸|保留输出名|cut工具sha256[:16])[:16];
+        缓存文件名 = {权重stem}_heads_{指纹}.onnx (例 yolov5n-sim_heads_3f9943f511a58a9b.onnx); ★每次输出打印 "本次用的权重
+        (路径/sha16/mtime/指纹) + 缓存 HIT/MISS"; ★缓存目录里有多个不同指纹 ⇒ 提示清理, 见到旧版无指纹缓存 ⇒ 提示删除。新增 CLI: --onnx (换权重重测)
+        / --force-recut (忽略缓存强制重切)。★★验收 (机器可验): ①同权重两次结果完全一致 (TP=565 FP=1028 FN=1588 F1=0.3017, 两次逐个相同)
+        ②换权重结果必须不同 (yolov5n F1=0.2927 ≠ yolov5s F1=0.3017) ③缓存命中/未命中正确 (MISS→HIT→MISS)。'
     by:
     - sw-lead
     noncanonical_by: []
@@ -11106,7 +11209,18 @@ blockers:
   severity: critical
   waiting_since: '2026-11-02'
   owner: sw-lead
-conflicts: []
+conflicts:
+- key: panel_init_sequence_source
+  values:
+    hw-lead: rk3576-evb.dtsi
+    sw-lead: rk3576-evb_simple-panel-dsi
+  canon_values:
+    hw-lead: rk3576-evb.dtsi
+    sw-lead: rk3576-evb_simple-panel-dsi
+  refs:
+    hw-lead: HW/PART_ALTERNATIVES_REGISTRY.md §3 + ISS-156
+    sw-lead: HW/PCB/panel_simple_dsi_template.dtsi + HW/PCB/LAYOUT_RULES.md
+  status: open
 needs_normalization:
 - key: skeleton_extent
   values: *id043
@@ -11379,7 +11493,7 @@ summary:
   waiting_external_needs: 79
   overdue_needs: 0
   target_missing_needs: 0
-  conflicts: 0
+  conflicts: 1
   needs_normalization: 1
   lint: 43
   agents_reporting: 4

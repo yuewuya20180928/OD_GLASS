@@ -69,6 +69,9 @@ def main() -> int:
     # ★2026-11-02 22:5x: PCB 图纸门禁进门禁链 (自己画的图自己验; EN 那个 P0 的教训)
     rc_p, out_p, err_p = run("check_pcb_drc.py")
     pcb_ok = (rc_p == 0)
+    # ★PCB ↔ 网表 等价性 (板子由网表生成 ⇒ 必须逐点相等)
+    rc_pn, out_pn, err_pn = run("check_pcb_nets.py")
+    pcb_net_ok = (rc_pn == 0)
 
     if gate is None:
         problems.append("gate_check.py 输出无法解析")

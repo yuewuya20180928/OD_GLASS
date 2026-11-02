@@ -576,4 +576,91 @@ cd projects/smart_glasses
 > ★ 计时数 (avg/min/max) **受机器负载影响 ±15%** (2026-10-29 同机实测: 完整模型 354.51 / 358.27 / 358.68 / 359.87 / 398.17 ms);
 > **max_abs_diff 是逐位确定的** (连跑 3 次 20 个数全同) ⇒ **要引用差值, 不要引用耗时**。
 
+---
+
+### 7.5 ★★★ ISS-157: **cut 模型缓存键含模型指纹** (2026-11-02, sw-lead)
+
+> ★ **一句话**: ★**换权重 ⇒ 缓存自动失效** ⇒ 不会再出现"换模型重测, 跑出来的却是上一个模型的数字, 而且**不报错**"。
+
+#### 7.5.1 旧版为什么危险 (ISS-157 之前的坑)
+
+| 位置 | 旧代码 | 后果 |
+|---|---|---|
+| `step_cut()` | `dst = os.path.join(WORK, "yolov5s_heads.onnx")` | ★**固定文件名, 与源模型完全无关** |
+| `_build_session_for_sim()` | `if not os.path.exists(dst): step_cut(args)` | ★**文件已存在就不重新生成** ⇒ 换权重后继续用旧 cut 模型 |
+
+⇒ ★**实测现象 (ISS-147, 2026-11-02 20:3x)**: 先跑 yolov5s, 再把源 ONNX 换成 yolov5n 重跑 ⇒
+★**TP/FP/FN/F1 逐字节相同** (TP=565 FP=1028 FN=1588, F1=0.3017) ⇒ ★**那是 yolov5s 的数字, 但你以为在跑 yolov5n**。
+★ **这是"绿灯假数据"型缺陷** —— 门禁显示绿, 数字是错的 ⇒ ★**比报错危险**。
+
+★**本机旧缓存的铁证 (2026-11-02 23:2x 实测)**:
+```
+/tmp/rknn_bench/yolov5s_heads.onnx              sha16=adac68f888bf61c2   7,520,239 B   ← 文件名叫 yolov5s
+/tmp/rknn_bench/yolov5n-sim_heads_3f99...onnx    sha16=adac68f888bf61c2   7,520,239 B   ← 实际是 yolov5n!
+/tmp/rknn_bench/yolov5s-sim_heads_7b3f...onnx    sha16=c6dc35873ccbbec8  28,954,321 B   ← yolov5s 的 cut
+```
+⇒ ★**"yolov5s_heads.onnx" 里装的是 yolov5n 的图** (逐字节相同) —— 这就是"绿灯假数据"的物证。
+
+#### 7.5.2 新版 (ISS-157 修复后)
+
+| 项 | 旧 | 新 |
+|---|---|---|
+| **缓存文件名** | `yolov5s_heads.onnx` (固定) | ★`{权重stem}_heads_{模型指纹}.onnx` (例: `yolov5n-sim_heads_3f9943f511a58a9b.onnx`) |
+| **缓存键** | ★**无** | ★**模型指纹** = `sha256(权重绝对路径 \| 权重内容 sha256[:16] \| 权重 mtime(ns) \| 权重大小 \| 输入尺寸 \| 保留输出名 \| cut 工具 sha256[:16])[:16]` |
+| **换权重** | ★**不失效** (要人记得 `rm -f`) | ★**自动失效** (指纹变 ⇒ 文件名变 ⇒ 重新生成) |
+| **改权重内容 (同路径)** | 不失效 | ★**失效** (内容 sha256 变了) |
+| **改输入尺寸 / 改 cut 工具** | 不失效 | ★**失效** (都在指纹里) |
+| **输出打印** | ★**无** | ★**每次打印 "本次用的权重 (路径 / sha16 / mtime / 指纹) + 缓存 HIT/MISS"** ⇒ 人一眼看出是不是旧数据 |
+| **缓存自检** | 无 | ★**缓存目录里有多个不同指纹 ⇒ 提示清理**; 发现**旧版无指纹**缓存 ⇒ 提示删除 |
+| **cut 失败时** | ★静默回退到未切的完整模型 (还会按 raw-head 口径解码 ⇒ 算错) | ★**直接报 `BenchError`** (宁可直接报错, 也不能静默算错) |
+
+★ **新增 CLI**:
+
+```bash
+# 换权重重测 (★换权重 ⇒ 缓存自动失效, 不用记得删)
+/home/yuewuya/miniconda3/envs/rknn/bin/python SW/tools/rknn_bench.py acc --images 300 \
+    --fp32-baseline --onnx ~/Public/radxa_yolo/acuity_pipeline/model/yolov5n-sim.onnx
+
+# 强制忽略缓存重新切 (调试用)
+/home/yuewuya/miniconda3/envs/rknn/bin/python SW/tools/rknn_bench.py acc --force-recut
+```
+
+★ **机器可读的输出字段** (`--json` 时在 `acc` / `sim` / `convert` 节点里):
+`model.path` / `model.sha16` / `model.mtime` / `model.fingerprint` · `cut_cache.status` (`HIT`/`MISS`) / `cut_cache.hit` / `cut_cache.path` · `cut_cache_scan.distinct_fingerprints` / `cut_cache_scan.warning`。
+★ `.rknn` / cut 模型旁边还会写一个 **sidecar** (`*.meta.json`) ⇒ 记录"这份产物是从哪个权重转出来的"。
+
+#### 7.5.3 ★★★ 验收 (2026-11-02 23:2x~23:4x 实测, 机器可验)
+
+**统一口径**: COCO `val2017` 前 300 张 · 逐类 IoU 0.5 贪心匹配 · NMS IoU 0.45 · score ≥ 0.3 · 同一批 100 张校准集 · RKNN INT8 (w8a8/normal/channel) · target `rk3576` · PC simulator · **全部用 `--fp32-baseline`**。
+
+| 轮次 | 权重 (sha16) | 指纹 | cut 缓存 | TP | FP | FN | 有标注图 | Precision | Recall | **F1** | FP32 F1 | ΔF1 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **A** | yolov5s (`1e2c716bd16ed9d3`) | `7b3fd57159e28b7b` | HIT | 565 | 1028 | 1588 | 292 | 0.354676710608914 | 0.26242452392011145 | **0.3016550987720235** | 0.3072819418511603 | −0.0056 |
+| **C** | yolov5s (同上) | `7b3fd57159e28b7b` | **HIT** | 565 | 1028 | 1588 | 292 | 0.354676710608914 | 0.26242452392011145 | **0.3016550987720235** | 0.3072819418511603 | −0.0056 |
+| **D** | yolov5s (同上) | `7b3fd57159e28b7b` | **MISS** (删缓存后重跑) | 565 | 1028 | 1588 | 292 | 0.354676710608914 | 0.26242452392011145 | **0.3016550987720235** | 0.3072819418511603 | −0.0056 |
+| **B** | yolov5n (`dfb5d060ca36fc27`) | `3f9943f511a58a9b` | **MISS** (指纹不同) | **494** | **765** | **1623** | 281 | 0.39237490071485304 | 0.23334907888521492 | **0.29265402843601895** | 0.29568302779420463 | −0.0030 |
+
+| # | 验收项 | 结果 | 证据 |
+|---|---|---|---|
+| **①** | ★**同一个权重跑两次 ⇒ 结果完全一致** (证明缓存命中也没坏) | **✅ PASS** | A / C / D 三轮 **TP/FP/FN/P/R/F1 逐位相同** (连小数位都一样) |
+| **②** | ★★**换一个权重跑 ⇒ 结果必须不同** (证明缓存失效了; ★**这条修前是坏的**) | **✅ PASS** | B (yolov5n) 与 A/C/D (yolov5s) 的 TP/FP/FN/F1 **全部不同** (565/1028/1588/0.30166 vs 494/765/1623/0.29265) |
+| **③** | ★**两个 F1 重测一遍** (同一校准集 + val2017) | **✅ PASS** | yolov5s **F1 0.3017** / yolov5n **F1 0.2927** ⇒ ★**与 ISS-147 首测逐位一致** (首测是"人记得删缓存"跑出来的 ⇒ 本次是**把那个前提变成脚本自动行为**) |
+| **④** | ★**缓存命中/未命中打印正确** | **✅ PASS** | 同权重第 2 次 = `HIT`; 换权重 = `MISS`; 删缓存重跑 = `MISS` |
+| **⑤** | ★**缓存自检: 多指纹 / 旧版无指纹缓存 ⇒ 提示清理** | **✅ PASS** | 缓存目录有 2 个不同指纹 ⇒ 打印 "建议清理 rm -f /tmp/rknn_bench/*_heads_*.onnx"; 发现旧版 `yolov5s_heads.onnx` ⇒ 打印 "可能装着上一个模型的旧数据 ⇒ 建议删除" |
+| **⑥** | ★**缓存内容本身是可靠的** (命中 ≠ 拿到脏数据) | **✅ PASS** | 删缓存重新 cut 出来的文件与缓存里的 **sha16 逐位相同** (`c6dc35873ccbbec8`, 28,954,321 B) ⇒ cut 是**确定性**的 ⇒ 缓存命中拿到的是同一份字节 |
+
+★ **复现命令**:
+```bash
+cd projects/smart_glasses
+M=~/Public/radxa_yolo/acuity_pipeline/model
+PY=/home/yuewuya/miniconda3/envs/rknn/bin/python
+$PY SW/tools/rknn_bench.py acc --images 300 --fp32-baseline --onnx $M/yolov5s-sim.onnx --json   # HIT
+$PY SW/tools/rknn_bench.py acc --images 300 --fp32-baseline --onnx $M/yolov5s-sim.onnx --json   # HIT, 结果逐位相同
+rm -f /tmp/rknn_bench/*_heads_*.onnx
+$PY SW/tools/rknn_bench.py acc --images 300 --fp32-baseline --onnx $M/yolov5s-sim.onnx --json   # MISS, 结果仍逐位相同
+$PY SW/tools/rknn_bench.py acc --images 300 --fp32-baseline --onnx $M/yolov5n-sim.onnx --json   # MISS, 结果不同
+```
+
+
+
 

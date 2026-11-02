@@ -1789,6 +1789,47 @@ Rev A temple_cage: 2176 面 | 重复面 0 | 边多重性 {2:3244, 4:10} | 开放
 - `lens_rfq_rgeo2_addendum.md` ⇒ ★**标"待选路后更新再发"** (镜头厂有效, 但焦距/角分辨率口径要按选路重算)
 - `hw.yaml` 4 条 claim: `isp_throughput_req` → 124.4MP/s@60 · `isp_input_mode_req` → 1080p60 原生模式 · `csi_lane_mode_req` → 4-lane (含"可省 4 触点"的优化备注) · `lens_fov_basis` → 待选路
 
+#### (1.69) ★★★★ 2026-11-02 18:4x: 网表改版规格落定 (★**三条重大结论, 其中一条推翻 19:5x 的决定**)
+
+> **落账**: ★**`HW/NETLIST_REV2_SPEC.md`** (网表改版规格: 31 针/40 针逐针表 + 依据 + 验收链 + 分段交卷) · ISS-162 改口径 · ISS-159 新增 F14 · tracker (1.69)
+
+★ **三个结论 (全部来自公开针位表, 不是推测)**:
+① ★★**camera 模组是模组级供电** —— Radxa Camera 4K 31 针里 `pin28/29 = VCC3.3V`、`pin30/31 = VCC5V` ⇒ **模组内部自己稳压** ⇒ ★★**主板的 `SENSOR_CORE` / `SENSOR_VDD_IO` / `SENSOR_AVDD` 三条轨 + 三颗 TPS7A20 + 六个去耦位全部不需要** ⇒ ★**这推翻了 11-02 19:5x 那次"三轨按 IMX415 datasheet 重核"的结论** (那是**芯片级**参数, 模组级接口表上没有) ⇒ ★**教训: 选型先看模组接口表, 再看芯片 datasheet**。
+② ★ **CSI 是 4-lane 必装** (原 D2/D3 是 DNP 预留) ⇒ 带宽校核 1920×1080@60 RAW10 = 1.244Gbps ⇒ 4 lane 每 lane 311Mbps ≪ 2.5Gbps/lane ✔。
+③ ★★**主板要新增三个 net**: `CAM_RESET_N` (GPIO 低有效) · `CAM_PWDN` (GPIO 高有效) · `DSI_RESET_N`；★**外加 `CARRIER_BOARD_EN` 驱动的底板主电源使能 (F13)**。
+
+★ **为什么改成"项目总工写规格 + 子 agent 只照抄"**: ★**hw-lead 在"网表大改"这类活上连续三次 0 产出** (ISS-140 ×2 + ISS-162, 每次 20+ 分钟 / 300~350k tokens / 零文件改动), 根因是**任务里混了"查资料 + 推拓扑"** ⇒ ⇒ ★**改成: 结论全写死在一份规格里, 执行方不许查资料, 并且分段交卷 (先 A1: 连接器针位 + 电源轨转 DNP + 三个新 GPIO/EN + CSI 4-lane; A2: SOM 座 400 脚改挂 另派)** ⇒ ★**这条也是"派活方法论"的一条实证: 任务书越纯机械, 越容易交出东西**。
+
+#### (1.68) ★★★★ 2026-11-02 23:5x: ★**F8 落地 (面板 init code 不用问厂家)** + F10 判据到手
+
+★**F8**: ★**公开开源来源 = Rockchip BSP kernel `develop-6.12` 的 `rk3576-evb.dtsi`** ⇒ `dsi_panel: panel@0` (`compatible = "simple-panel-dsi"`, 4-lane, `MIPI_DSI_FMT_RGB888`, flags = `VIDEO|VIDEO_BURST|LPM|NO_EOT_PACKET`, 各类 10ms delay) + ★**263 条 `panel-init-sequence`** ⇒ 已落 **`HW/PCB/panel_simple_dsi_template.dtsi`** ⇒ ★**"面板 init code 不必问厂家"这条成立** (demo 屏直接用公开模板; ★**视崖 0.49" 的 init 仍未公开 ⇒ 属采购硬判据, 不影响 demo**)。
+★**F10 (ESD) 判据**: Forlinx 手册 §3.5 ⇒ ★**ESD 阵列紧贴接口** + ★**寄生电容 ≤0.4pF (超了吃高速信号眼图)** ⇒ 已写进 `HW/PCB/LAYOUT_RULES.md`。
+★**同时派了软件侧那单 (ISS-157)**: `rknn_bench.py` 缓存键加**模型指纹** ⇒ 根治"换模型重测静默跑出旧数字" ⇒ ★**修完两个 F1 才可信**。
+
+#### (1.67) ★★★★ 2026-11-02 23:2x: ★★**P3 硬缺口解开 (公开手册里有逐针表)** + 挖出**致命项 F13** (底板电源必须由 CARRIER_BOARD_EN 使能)
+
+> **落账**: ★**`HW/PCB/FET3576C_PIN_TABLE.csv`** (399 行逐针引脚定义) · ISS-162 段 B 解锁 · ISS-159 新增 F13 · tracker (1.67)
+
+★**来源 (公开渠道, 零咨询厂家)**: Forlinx 官方 GitHub Pages 手册 `OK3576-C_User_Hardware_Manual.html` ⇒ **§2.6 FET3576-C/FET3576-C2 SoM Pin Definitions** (Num=连接器脚号 / Ball=CPU 球号 / 电平 / 信号名 / SoM 侧网名) + **§2.3 尺寸** (68×50mm ±0.15, 1.6mm 10 层沉金, **四组 0.4mm/100pin BTB**, 四角 2.2mm 安装孔, DXF 可下) + **§2.4.2 电源** (typ 12V, **5~13V**, V1.5 由 PCN20251030-063 扩宽) + **§3.5 载板设计指引** (载板电源 / 复位开关机 / Boot 配置 / JTAG+UART Debug / IIC 扩展 / SARADC / TF / RTC / 以太网 / ESD…)。⇒ ★**FET3572-C 与 FET3576-C 引脚兼容 ⇒ 这张表就是我们板子要用的表** ⇒ ★**ISS-162 段 B (400 脚 BTB 座 + SoC 节点改挂) 现在可做**。
+
+★★ **F13 (新致命项, 与 EN 同级)**: **pin87 = CARRIER_BOARD_EN (SOM 输出, 控制底板上电)** + **pin91~97 = VCC_DCIN (5-13V 输入)** ⇒ ★★**我们主板的电源必须由 CARRIER_BOARD_EN 使能, 不能直连** —— Forlinx 原文: 底板早于核心板上电 ⇒ "通电瞬间电流过大, 设备无法启动, **甚至对处理器造成不可逆转的损坏**" ⇒ ★**这类项漏到投板后 = 板子起不来 ⇒ 与 F1(EN 悬空) 同代价 ⇒ 已入 F1~F13 清单 (ISS-159)**。
+
+★**已解析的关键脚** (供段 B 直接用): `87 CARRIER_BOARD_EN` · `88 PWRON_L` · `91/93/95/97 VCC_DCIN` · `50 USB_HUB_RST_3V3` · `56 I2C8_SCL_M2` (I2C 共 14 脚) · `83 MIPI_DPHY_DSI_TX_D3P` (DSI 差分到 83 脚) · 另有 pin/球号/电平三列完整对应 ⇒ ★**SoC 侧节点不再需要"占位符"**。
+
+#### (1.66) ★★★★ 2026-11-02 23:0x-23:5x: **硬件自己画图 = 达成"机器可验证的闭环"** (pcbnew 出板 · DRC=0 · 板子↔网表逐点等价)
+
+> **落账**: `HW/STEP1_PARTS_SPEC.md` (ISS-158 三件规格, 已验收) · ★**`HW/PCB/demo_mainboard.kicad_pcb`** (★**由网表驱动生成**) · ★**`state/gen_pcb_netlist_board.py`** (pcbnew 生成器) · ★**`state/check_pcb_drc.py`** (DRC 门禁) · ★**`state/check_pcb_nets.py`** (★**板子↔网表等价性门禁**, 已挂进 daily_check) · `state/pcbnew_py.sh` (AppImage python 封装) · 新开 **ISS-162** (网表按真实器件规格重出)
+
+**★ 三件选型已定 (ISS-158 验收)**: **P1 camera = Radxa Camera 4K (IMX415) 31p/0.3mm** (逐针表 31/31) · **P2 display = Radxa Display 8HD/10FHD 40p/0.5mm** (40/40) · **P3 SOM = Forlinx FET3572-C 68×50mm, 4×100pin/0.4mm BTB, DC 5-13V** ⇒ ★**「0.5mm/24p 自研规格」正式作废** (两座照抄针位表, 不用转接排线); ★**FET3572-C 是连接器式 ⇒ 主板承担 400 焊盘 ⇒ 逐针引脚定义表成了画板硬前提** (Forlinx 下载中心需注册 ⇒ **属公开下载, 非 L4**; ★**PDF 明写与 FET3576-C 引脚兼容** ⇒ 拿后者即等于前者)。
+
+**★ 画图链最终形态 (关键决策)**: ★**放弃手搓 .kicad_sch** (★**KiCad 10 的原理图 S-expression 解析规则试了半小时没过 ⇒ 不做不可验证的东西**) ⇒ ★**改走 pcbnew 官方 API**: ★**板子由网表生成 ⇒ 每个焊盘都带真实网络** ⇒ ★**于是"画对没有"变成机器可判定**: ★**DRC = 0** + ★**板子 ↔ 网表逐点等价 (359 绑定 / 缺失 0 / 多余 0)** + ★**Gerber 30 个 + 钻孔** ⇒ ★**原理图后置**: 由 KiCad GUI 从我们的 `HW/netlist_v1.net` 导入 (.net 本来就是 KiCad 的导入格式, 一次动作) ⇒ **人读版**.
+
+**★ 这一晚真正学到的东西 (可复用)**:
+① ★**"自己画图"的验收标准不是"画得像", 是"板子与网表逐点等价 + DRC 干净"** ⇒ ★**两个门禁 (check_pcb_drc / check_pcb_nets) 就是我们自己给自己定的验收线**。
+② ★**真 DRC 抓出了我自己骨架的 3 个真错误**: SOM 占位封装盖住整板 (101 项违规) · 两排件的两排焊盘落在同一 x 区间 (**短路**) · BTB 0.4mm 间距用 0.25 焊盘 ⇒ 间隙 0.15 < 0.2 (**396 项 clearance**) ⇒ ⇒ **从 1291 → 7 → 0**。
+③ ★**工具链**: 免 root 装 KiCad 10.0.8 AppImage (★**下载曾被截断 7KB ⇒ 解包报 "short write" ⇒ 必须校验字节数**; ★**pcbnew 只在 AppImage 自带 python 里** ⇒ `state/pcbnew_py.sh`)。
+④ ★**参数化生成 = 改网表就能重出图纸并重验** ⇒ ★**这正是"自己画图"不会漂移的根本** (人肉画的图会漏改 ⇒ EN 那种致命项就是这么漏的)。
+
 #### (1.65) ★★★★ 2026-11-02 22:4x-22:5x: **「硬件自己画图」落地** —— 工具链 + 参数化生成器 + ★**DRC 门禁 (真 KiCad, 0 违规)**
 
 > **老板 22:37**: "模组与核心板我按『公开在售 + 公开资料可查』直接选 —— **可以直接选, 但是必须得硬件自己画图**"

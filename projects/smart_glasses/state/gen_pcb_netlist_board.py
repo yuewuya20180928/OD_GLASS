@@ -70,21 +70,22 @@ def kind_of(ref):
 
 
 def size_of(kind, npins):
-    """(w, h, 每侧脚数, 脚距)"""
+    """(w, h, 每排脚数, 脚距, 排数) —— ★排数决定焊盘排布 (单排件不能被拆成两排!)"""
     if kind in ("R", "C", "LED"):
-        return 1.8, 1.0, 1, 1.6
+        return 1.8, 1.0, 1, 1.6, 1
     if kind == "D":
-        return 2.7, 1.6, 1, 2.3
+        return 2.7, 1.6, 1, 2.3, 1
     if kind == "FB":
-        return 2.0, 1.2, 2, 1.0
+        return 2.0, 1.6, 2, 1.0, 2
     if kind == "SW":
-        return 3.0, 3.0, 1, 2.2
+        return 3.0, 3.0, 1, 2.2, 1
     if kind == "TP":
-        return 1.4, 1.4, 1, 0.0
+        return 1.4, 1.4, 1, 0.0, 1
     if kind == "CONN":
-        return max(6.0, (npins - 1) * 0.5 + 2.6), 4.0, npins, 0.5
+        # ★单排! (FPC 座就是一条排线) ⇒ 之前被拆两排 ⇒ 两排焊盘在同 x 区间重叠 ⇒ 短路
+        return max(6.0, (npins - 1) * 0.5 + 2.6), 4.0, npins, 0.5, 1
     per = max(1, (npins + 1) // 2)
-    return max(4.0, (per - 1) * 1.27 + 2.4), 5.0, per, 1.27
+    return max(4.0, (per - 1) * 1.27 + 2.4), 5.0, per, 1.27, 2
 
 
 def add_outline(board):
@@ -100,8 +101,23 @@ def add_outline(board):
         board.Add(seg)
 
 
+def _mkpad(fp, num, net, px, py, pitch, netmap):
+    pad = pcbnew.PAD(fp)
+    pad.SetNumber(str(num))
+    pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+    pad.SetShape(pcbnew.PAD_SHAPE_RECT)
+    pw = min(0.6, max(0.18, pitch * 0.55))
+    pad.SetSize(V(pw, 0.9))
+    pad.SetPosition(V(px, py))
+    pad.SetLayerSet(pad.SMDMask())
+    if net in netmap:
+        pad.SetNet(netmap[net])
+    fp.Add(pad)
+    return pad
+
+
 def make_footprint(board, ref, value, kind, pins, netmap, x, y, label=True):
-    w, h, per_side, pitch = size_of(kind, len(pins))
+    w, h, per_side, pitch, nrows = size_of(kind, len(pins))
     fp = pcbnew.FOOTPRINT(board)
     fp.SetReference(ref)
     fp.SetValue(value)
@@ -144,21 +160,20 @@ def make_footprint(board, ref, value, kind, pins, netmap, x, y, label=True):
     fp.Add(r4)
     # 焊盘
     n = len(pins)
-    half = (n + 1) // 2
-    for i, (net, _pn, _v) in enumerate(pins):
-        side = 0 if i < half else 1
-        k = i if side == 0 else i - half
-        px = (-w / 2 + 0.9 + k * pitch) if side == 0 else (w / 2 - 0.9 - k * pitch)
-        py = (-h / 2 + 0.5) if side == 0 else (h / 2 - 0.5)
-        pad = pcbnew.PAD(fp)
-        pad.SetNumber(str(i + 1))
-        pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
-        pad.SetShape(pcbnew.PAD_SHAPE_RECT)
-        pad.SetSize(V(0.6, 0.9))
-        pad.SetPosition(V(px, py))
-        pad.SetLayerSet(pad.SMDMask())
-        pad.SetNet(netmap[net])
-        fp.Add(pad)
+    if nrows == 1:
+        for i, (net, _pn, _v) in enumerate(pins):
+            px = -w / 2 + 0.9 + i * pitch
+            py = -h / 2 + 0.6
+            _mkpad(fp, i + 1, net, px, py, pitch, netmap)
+    else:
+        half = (n + 1) // 2
+        for i, (net, _pn, _v) in enumerate(pins):
+            side = 0 if i < half else 1
+            k = i if side == 0 else i - half
+            # ★两排件: 左右两侧对称排 (之前两排落在 w 中间 ⇒ 相距仅 0.2mm ⇒ 短路)
+            px = (-w / 2 + 0.6 + k * pitch) if side == 0 else (w / 2 - 0.6 - k * pitch)
+            py = (-h / 2 + 0.5) if side == 0 else (h / 2 - 0.5)
+            _mkpad(fp, i + 1, net, px, py, pitch, netmap)
     fp.SetPosition(V(x, y))
     board.Add(fp)
     return fp
@@ -187,7 +202,7 @@ def main():
             continue   # ★网别名伪器件 (RAIL_SYS / NET_*) —— 不是元件, 不画封装
         pins = per_ref[ref]
         kind = kind_of(ref)
-        w, h, _per, _pitch = size_of(kind, len(pins))
+        w, h, _per, _pitch, _nr = size_of(kind, len(pins))
         items.append((ref, pins, kind, w, h))
     items.sort(key=lambda it: (round(it[4], 1), it[3]))
     px, py = PK_AREA[0], PK_AREA[1]
@@ -211,6 +226,11 @@ def main():
     som = pcbnew.FOOTPRINT(board)
     som.SetReference("U_SOM_RK3572")
     som.SetValue("FET3572-C SoM 68x50 (PLACEHOLDER)")
+    for _fld in (som.Reference(), som.Value()):
+        try:
+            _fld.SetLayer(pcbnew.F_Fab); _fld.SetVisible(False)
+        except Exception:
+            pass
     rr = pcbnew.PCB_SHAPE(board)
     rr.SetShape(pcbnew.SHAPE_T_SEGMENT)
     rr.SetLayer(pcbnew.F_Fab)
@@ -250,7 +270,7 @@ def main():
         pad.SetNumber(str(i + 1))
         pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
         pad.SetShape(pcbnew.PAD_SHAPE_RECT)
-        pad.SetSize(V(0.25, 0.6))
+        pad.SetSize(V(0.18, 0.6))
         pad.SetPosition(V(px, py))
         pad.SetLayerSet(pad.SMDMask())
         som.Add(pad)
@@ -261,6 +281,11 @@ def main():
     mh = pcbnew.FOOTPRINT(board)
     mh.SetReference("MH_1")
     mh.SetValue("M2.2")
+    for _fld in (mh.Reference(), mh.Value()):
+        try:
+            _fld.SetLayer(pcbnew.F_Fab); _fld.SetVisible(False)
+        except Exception:
+            pass
     for (mx, my) in ((3, 3), (BOARD_W - 3, 3), (3, BOARD_H - 3), (BOARD_W - 3, BOARD_H - 3)):
         pad = pcbnew.PAD(mh)
         pad.SetNumber("")
