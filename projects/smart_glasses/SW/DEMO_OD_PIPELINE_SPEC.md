@@ -58,7 +58,7 @@
 | 路线 | 模型 | RK3572 纯 NPU S5 (推算) | 端到端模式A (显示等 OD) | 判定 | 代价 |
 |---|---|---|---|---|---|
 | **M1 (本单推荐)** | **yolov5s@640 INT8 = 现成 A7S 资产** | **23.07~24.58 ms** | **62.67~64.18 ms** | ❌ 超 60ms | 零转换成本; 但**超 60ms 硬指标** |
-| **M2** | **yolov5n@640 INT8** (需新拿一份 ONNX + 跑一遍转换链) | **13.30 ms** | **52.91 ms** | ✅ 过 60ms | 需要 yolov5n 的 ONNX 源 (**本地没有, [待核]**); 精度要重评 (比 yolov5s 少 ~4 点 mAP50) |
+| **M2** | **yolov5n@640 INT8** (需新拿一份 ONNX + 跑一遍转换链) | **13.30 ms** | **52.91 ms** | ✅ 过 60ms | 需要 yolov5n 的 ONNX 源 (**本地没有, [待核]**); ★★**精度已实测 (ISS-147)**: 同一图集 (COCO val2017 + 100 张校准集) 下 **yolov5s F1 0.3017 vs yolov5n F1 0.2927, 只差 0.0090** ⇒ ★**"少 ~4 点 mAP50"在本项目口径下不成立, 已订正** ⇒ ★**demo 第一版定 yolov5n** (60ms 余量最大 + 误检少 263 个 + 产物小一半; 代价召回低 0.0291) |
 | M3 | yolov5s@320 INT8 (改锁死变量 "OD 640×480") | 6.75 ms | 46.35 ms | ✅ 两个模式都过 | ★**动 §0 锁定变量 ⇒ 需老板拍板** |
 
 > 数据出处: `HW/e2e_budget_rk3572.py` 主表 (RK3572 = RK3576 × 6/4 TOPS **等比换算**, ★**不保证等比**, 4 TOPS 标称是 sparse INT8 ⇒ 只能当保守上界, 必须板端实测) + `SW/RKNN_BENCH.md` §4.1/§4.3 的端到端模型。
@@ -130,7 +130,7 @@ ISP NV12 帧 (W×H)
 
 | # | 前置 | 现状 | 怎么核 |
 |---|---|---|---|
-| **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** | 在构建机上: `python -c "from rknn.api import RKNN; print(RKNN.RKNN_TARGET_PLATFORM)"` + `grep -n "rk3572\|rk3576" <site-packages>/rknn/api/rknn.py`。★若 2.3.2 不含 rk3572 ⇒ 需升级 toolkit2 版本 **[待核]** |
+| **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** | ★★**已核 (ISS-147, 2026-11-02 20:3x)**: `rk3572` **不是任何已发布版 toolkit2 的合法 target** —— 实测 2.3.2 与最新 **2.5.0** 都抛 `ValueError: Invalid target_platform 'rk3572'!`, 而 `target_platform='rk3576'` **rc=0**。★**正确核法 = 直接 config() 试** (`RKNN.RKNN_TARGET_PLATFORM` 属性在 2.3.2 **不存在**, hasattr=False; 且目标列表在编译后的 `rknn_base*.so` 里, 只 grep 源码不够)。⇒ ★**"升级到某版本就有 rk3572"这个选项不存在** ⇒ 本行不再是 [待核], 而是**已定的阻塞** ⇒ 替代路线见 ISS-155。 |
 | **P0-2** | ★**板端 `librknnrt.so` 版本与 2.3.2 产物兼容** | 只有"= rknn-toolkit-lite2"这一句, 无版本号 · [待核] | 以 RK3572 BSP 随附的 runtime 为准; 若 BSP 版本低, 需升级 runtime 或回退用匹配版本的 toolkit2 |
 
 > ★**P0-1 的风险等级**: 如果 2.3.2 不支持 rk3572, 则 "直接复用 A7S 的 .rknn 产物" 这条**不成立**, 必须重转 —— 那 M1 的"零转换成本"优势归零, **必须改选 M2 或升级工具链**。所以 **P0-1 是下一步的第一件事** (见 附录 B)。
@@ -590,7 +590,7 @@ T_od  = S4 + S5 + S6 + S7 = S5 + 6 ms
 
 | # | 待核项 | 为什么重要 | 怎么核 | 阻塞谁 |
 |---|---|---|---|---|
-| **P0-1** | ★**rknn-toolkit2 2.3.2 的 target_platform 是否含 `rk3572`** | 不含 ⇒ "直接复用 A7S 的 .rknn" 不成立, M1 的零转换优势归零 | 构建机上 `from rknn.api import RKNN; print(RKNN.RKNN_TARGET_PLATFORM)` + grep `rknn/api/rknn.py` | §1/§2 的整条路线 |
+| **P0-1** | ★**rknn-toolkit2 2.3.2 的 target_platform 是否含 `rk3572`** | 不含 ⇒ "直接复用 A7S 的 .rknn" 不成立, M1 的零转换优势归零 | ★★**已核**: 直接 `config(target_platform='rk3572')` 试 → ValueError; 同段 `rk3576` rc=0 ⇒ ★**rk3572 不合法, M1 零转换优势归零** (ISS-147/ISS-155) | §1/§2 的整条路线 |
 | **P0-2** | ★**板端 `librknnrt.so` 版本号** 与 2.3.2 产物是否兼容 | 不兼容 ⇒ 板端加载失败 | 以 RK3572 BSP 随附 runtime 为准 | 板端推理 |
 | **P0-3** | ★**本机缺 RKNN 工具链 / 源 ONNX / 校准集 / .rknn** (§2.4 实测) | 没有它就跑不了转换链 | 找回 `~/Public/radxa_yolo/` 或重建 conda env `rknn-toolkit2==2.3.2` | 下一步第 0 步 |
 | **P0-4** | ★**视涯面板 init code / 时序 / DSC 需求** | 显示侧阶段 2 的全部前提 | 发 `visionox_display_inquiry.md` (草稿未发) | 显示侧 (全局最长关键路径) |

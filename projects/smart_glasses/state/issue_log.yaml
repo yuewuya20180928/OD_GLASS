@@ -3999,11 +3999,11 @@ issues:
   status: fixed
   external: false
   need_keys: []
-  fix_ref: SW/RKNN_BUILD_ENV_RECOVERY.md (12 行摘要 + 本机实测 + target 判定 + 转换链跑通 + 源 ONNX 重建 + 校准集 + 路线建议) · 本机 conda env `rknn` (路径与 SW/tools/rknn_bench.py 硬编码一致) · 转换链四步 rc=0 产物真落盘
+  fix_ref: 'SW/RKNN_BUILD_ENV_RECOVERY.md (911 行: 本机现状实测/核心一问/模型选择/恢复路径/复现命令/18 条待核) · state/fragments/sw.yaml (原子写) · 环境: ~/miniconda3/envs/rknn (python 3.10.22 / rknn-toolkit2 2.3.2 / onnx 1.16.1 / torch 2.4.0+cpu)'
   verify_by: sw-lead
   verify_result: pass
   verify_date: '2026-11-02'
-  note: '2026-11-02 19:2x。★**这是 demo 板软件侧的第 0 步, 优先于一切写代码**。★**建议打法**: 先跑 ①找资产 (板子/备份) —— 成本最低, 命中就省掉导出+装工具链的两天; 找不到再走 ②③。★**板子 SSH 提醒**: 密码认证 (sshpass -p <BOARD_SSH_PASSWORD>), ★**IP 会变, 先 getent hosts radxa-cubie-a7s.local 确认, 不要用写死的**。★**别把 yolov5n 当既定**: 本地无 ONNX 且未实测 ⇒ 规格里写的是 M1/M2 二选一。 ★**2026-11-02 19:2x 实测**: 板子 **当前不可达** —— `ssh 192.168.2.5` 返回 *No route to host* (宿主虽有 192.168.2.3 与 192.168.71.4 两块网卡, 但到板子不通), mDNS 也不解析; ★**且本机没装 sshpass** (TOOLS.md 里写的 `sshpass -p <BOARD_SSH_PASSWORD>` 调用方式在这台机上不可用, 要么装 sshpass 要么用其它方式) ⇒ ★**走板子捞资产这条路现在断着** ⇒ 本单要么等板子恢复/换网, 要么直接走『重新导出 ONNX + 装 toolkit2 2.3.2』这条 (成本高 1~2 天)。 ★**关联**: 本单就是 sw-lead 在 STATE 里登记的阻塞 **SW-B15** (rk3572 在 toolkit2 2.3.2 是否受支持 + 本机无工具链/源模型/校准集) ⇒ source_blocker 已挂上, C5 双向覆盖闭合。 ★★**2026-11-02 20:2x 交卷并收口 —— demo 软件侧第 0 步基本打通**。★★**头号结论 (本单核心交付)**: **`rk3572` 不是 rknn-toolkit2 的合法 `target_platform`** —— ★**2.3.2 与最新版 2.5.0 都直接 `ValueError: Invalid target_platform 「rk3572」!`** ⇒ ★**ISS-145 的 M1 路线 ("直接复用 A7S 的 .rknn") 不成立, 必须重转**; ★**但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform=「rk3576」` 转换 + 板端用 RK3572 BSP 自带 runtime 加载** ⇒ **[推算·本文推导, 待板端验证]** ⇒ **★这是 demo 当前的头号卡点 (ISS-155)**。★★**构建环境已在本机恢复并真跑通**: conda env `rknn` (python 3.10.22 / rknn-toolkit2 2.3.2 / onnx 1.16.1 / torch 2.4.0+cpu; ★**路径与 `SW/tools/rknn_bench.py` 硬编码的 RKNN_PY 完全一致**) · ★**转换链四步全 rc=0 真落盘** (config → load_onnx → build(INT8) → export_rknn) · ★**源 ONNX 已重建** (yolov5 v6.0 权重重导出 yolov5s / yolov5n @640, ★**算子直方图与台账里丢失的那份 245 节点 / 12 算子完全一致**) · ★**yolov5n INT8 = 5.13 MiB** (装得进 15 MiB 槽位; yolov5s = 10.47 MiB) · ★**COCO val2017 (5000 张) + instances_val2017.json 已恢复** ⇒ `acc` 步依赖齐 · ★**100 张校准集已重建** (同口径: COCO val2017 → letterbox 640×640 黑边) · ★**模型建议 = demo 第一版用 yolov5n** (理由是量化校准更稳 + 产物更小 + 60ms 余量更大, **不是**因为它更快 (板端没测)) · ★**推荐路线 = A2 (重新导出), A1 (找回原资产) 并行兜底** ⇒ **成本从 3~5 人天降到 ~1 人天**。★**唯一未闭合**: 板子 (Radxa A7S 192.168.2.5) 仍**不可达** (`No route to host` + ARP FAILED) ⇒ **P0-2 板端 librknnrt 版本号本单无法闭合**。'
+  note: '2026-11-02 19:2x。★**这是 demo 板软件侧的第 0 步, 优先于一切写代码**。★**建议打法**: 先跑 ①找资产 (板子/备份) —— 成本最低, 命中就省掉导出+装工具链的两天; 找不到再走 ②③。★**板子 SSH 提醒**: 密码认证 (sshpass -p <BOARD_SSH_PASSWORD>), ★**IP 会变, 先 getent hosts radxa-cubie-a7s.local 确认, 不要用写死的**。★**别把 yolov5n 当既定**: 本地无 ONNX 且未实测 ⇒ 规格里写的是 M1/M2 二选一。 ★**2026-11-02 19:2x 实测**: 板子 **当前不可达** —— `ssh 192.168.2.5` 返回 *No route to host* (宿主虽有 192.168.2.3 与 192.168.71.4 两块网卡, 但到板子不通), mDNS 也不解析; ★**且本机没装 sshpass** (TOOLS.md 里写的 `sshpass -p <BOARD_SSH_PASSWORD>` 调用方式在这台机上不可用, 要么装 sshpass 要么用其它方式) ⇒ ★**走板子捞资产这条路现在断着** ⇒ 本单要么等板子恢复/换网, 要么直接走『重新导出 ONNX + 装 toolkit2 2.3.2』这条 (成本高 1~2 天)。 ★**关联**: 本单就是 sw-lead 在 STATE 里登记的阻塞 **SW-B15** (rk3572 在 toolkit2 2.3.2 是否受支持 + 本机无工具链/源模型/校准集) ⇒ source_blocker 已挂上, C5 双向覆盖闭合。 ★★**2026-11-02 20:2x 交卷并收口 —— demo 软件侧第 0 步基本打通**。★★**头号结论 (本单核心交付)**: **`rk3572` 不是 rknn-toolkit2 的合法 `target_platform`** —— ★**2.3.2 与最新版 2.5.0 都直接 `ValueError: Invalid target_platform 「rk3572」!`** ⇒ ★**ISS-145 的 M1 路线 ("直接复用 A7S 的 .rknn") 不成立, 必须重转**; ★**但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform=「rk3576」` 转换 + 板端用 RK3572 BSP 自带 runtime 加载** ⇒ **[推算·本文推导, 待板端验证]** ⇒ **★这是 demo 当前的头号卡点 (ISS-155)**。★★**构建环境已在本机恢复并真跑通**: conda env `rknn` (python 3.10.22 / rknn-toolkit2 2.3.2 / onnx 1.16.1 / torch 2.4.0+cpu; ★**路径与 `SW/tools/rknn_bench.py` 硬编码的 RKNN_PY 完全一致**) · ★**转换链四步全 rc=0 真落盘** (config → load_onnx → build(INT8) → export_rknn) · ★**源 ONNX 已重建** (yolov5 v6.0 权重重导出 yolov5s / yolov5n @640, ★**算子直方图与台账里丢失的那份 245 节点 / 12 算子完全一致**) · ★**yolov5n INT8 = 5.13 MiB** (装得进 15 MiB 槽位; yolov5s = 10.47 MiB) · ★**COCO val2017 (5000 张) + instances_val2017.json 已恢复** ⇒ `acc` 步依赖齐 · ★**100 张校准集已重建** (同口径: COCO val2017 → letterbox 640×640 黑边) · ★**模型建议 = demo 第一版用 yolov5n** (理由是量化校准更稳 + 产物更小 + 60ms 余量更大, **不是**因为它更快 (板端没测)) · ★**推荐路线 = A2 (重新导出), A1 (找回原资产) 并行兜底** ⇒ **成本从 3~5 人天降到 ~1 人天**。★**唯一未闭合**: 板子 (Radxa A7S 192.168.2.5) 仍**不可达** (`No route to host` + ARP FAILED) ⇒ **P0-2 板端 librknnrt 版本号本单无法闭合**。 ★★**2026-11-02 20:3x 交卷并收口**: ★**工具链已恢复** (conda env `~/miniconda3/envs/rknn`; ★**路径与 `rknn_bench.py` 硬编码的 `RKNN_PY` 一致 ⇒ 仓库脚本零改动可跑**), ★**仓库脚本全链原样跑通** (probe/calib/convert/acc 四步 rc=0, 真落盘) ⇒ ★**A2 路线 (重新导出) 成本从 3~5 人天降到 ~1 人天**。★**校准集与 COCO val2017 已恢复** ⇒ 精度可比。★**核心结论 (P0)**: ★★**`rk3572` 不是任何已发布版 toolkit2 的合法 target_platform** —— 实测 2.3.2 与最新 **2.5.0** 都抛 `ValueError: Invalid target_platform ''rk3572''!`, 而 `target_platform=''rk3576''` **rc=0**; `rknn/api/rknn.py` 的目标列表里 rk3572 出现 **0 次** (含 .so 二进制 grep 也 0 命中), 官方 README 的 Support Platform 列表也没有 RK3572 ⇒ ★★**不存在"升级到某版本就有 rk3572"这个选项** ⇒ ★**ISS-145 的 M1「直接复用 A7S 的 .rknn, 零转换成本」前提不成立, 必须重转** ⇒ 替代路线 (rk3576 target 转换) 在 ISS-155。★**模型选择已定 (demo 第一版 = yolov5n)**: 实测同图集 **yolov5s F1 0.3017 vs yolov5n F1 0.2927 (只差 0.0090)** ⇒ 选 n (60ms 余量最大 + 误检少 263 个 + 产物小一半), 代价召回低 0.0291。★**它同时订正了 ISS-145 规格的两处错** (已由项目总工代改): ①核法 `RKNN.RKNN_TARGET_PLATFORM` 属性在 2.3.2 **不存在**, 且目标列表在编译后的 .so 里 ⇒ 正确核法是直接 `config()` 试 ②"yolov5n 少 ~4 点 mAP50" **不成立** (实测只差 0.0090 F1)。'
   dispatched_at: '2026-11-02'
 - id: ISS-148
   title: ★★[硬件] AR0234CS 硬件数据 (U2 VDD_IO abs max / U4 有无独立模拟轨) + ★demo sensor 改 IMX415 的四问
@@ -4155,7 +4155,7 @@ issues:
   verify_by: sw-lead
   verify_result: null
   verify_date: null
-  note: '2026-11-02 20:2x。★**demo 的头号卡点** (不是软件写得好不好, 是"模型能不能上板")。★**推荐解法**: ★**用 ISS-151 清单里的公开在售 RK357x 板 (Forlinx OK3572-C 首选) 当验证载体** ⇒ 既解本单, 又是 demo Step1 的载体 ⇒ 一举两得, 不必等 Radxa 板回来。★**本机这边已就绪**: 转换链四步 rc=0 真落盘 + yolov5n INT8 5.13 MiB + COCO val2017 与 100 张校准集已恢复 ⇒ ★**只差一块能跑的板**。'
+  note: '2026-11-02 20:2x。★**demo 的头号卡点** (不是软件写得好不好, 是"模型能不能上板")。★**推荐解法**: ★**用 ISS-151 清单里的公开在售 RK357x 板 (Forlinx OK3572-C 首选) 当验证载体** ⇒ 既解本单, 又是 demo Step1 的载体 ⇒ 一举两得, 不必等 Radxa 板回来。★**本机这边已就绪**: 转换链四步 rc=0 真落盘 + yolov5n INT8 5.13 MiB + COCO val2017 与 100 张校准集已恢复 ⇒ ★**只差一块能跑的板**。 ★★**2026-11-02 20:3x ISS-147 已实测闭合**: ★**`rk3572` 不是任何已发布版 toolkit2 的合法 target_platform** (2.3.2 与最新 2.5.0 都抛 ValueError; 官方 Support Platform 列表也没有) ⇒ ★**不存在"升级 toolkit 就有 rk3572"这条路** ⇒ 唯一可行 = **用 `target_platform=''rk3576''` 转换** (RK3572 与 RK3576 同代 RKNPU v2; ★**算力不等: 4 vs 6 TOPS** ⇒ [推算], 板端需实测验证 N1)。★**卡点未变**: 验证需要一块能跑的 RK3572 板 ⇒ ★**Radxa 板当前不可达 (No route to host + ARP FAILED)** ⇒ ★**必须用公开在售的 RK357x 板** ⇒ ★**与 demo Step1 载板合流 (Forlinx OK3572-C 首选) ⇒ 一举两得: 验证 target + 跑 demo 链路**。'
   dispatched_at: null
 - id: ISS-156
   title: '★★[demo 供应链] 公开现货清单的采购口径: camera 模组 FPC 无 0.5mm/24p 现货 + 1920×1080 视涯 SiOLED 无公开对标品 ⇒ demo 走什么料'
@@ -4175,4 +4175,23 @@ issues:
   verify_result: null
   verify_date: null
   note: '2026-11-02 20:3x。★**这是"demo 到底买什么"的最后一道口径** ⇒ 定了就能出 Step1 采购单。★**默认建议 (未拍板)**: ①camera 用**公开现货的 IMX415 模组** (针数随模组, 主板侧不画) ②屏用**公开现货 8HD/10FHD DSI 一体屏** (先验链路) ③视涯 0.49" 只在整机阶段用 ⇒ ★**这样 demo 完全不依赖任何定制件**。'
+  dispatched_at: null
+- id: ISS-157
+  title: ★★[软件] rknn_bench.py 的 cut 模型缓存不失效 ⇒ 换模型重测会静默跑出上一个模型的数字 (实测两次结果逐字节相同)
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: '★2026-11-02 20:3x ISS-147 交卷时实测发现 (sw-lead 报告, main 转登记): ★**`SW/tools/rknn_bench.py` 的 cut 模型缓存不失效** ⇒ ★**换模型 (yolov5s ⇄ yolov5n) 后重测, 会静默跑出上一个模型的数字** —— 实测两次结果**逐字节相同**。⇒ ★**这是"结果看起来正常但其实是旧数据"的那类缺陷**: 比报错更危险 (门禁会显示绿灯, 数字却是错的)。⇒ ★**修法**: ①切模型时**必须删** `/tmp/rknn_bench/yolov5s_heads.onnx` (sw-lead 已在文档里写, 但要变成**脚本自动行为**: 按模型名/哈希决定缓存键) ②★**更稳的修法 = 缓存键带上模型指纹** (权重路径 + mtime/sha256 + 尺寸), 模型一变缓存自动失效 ⇒ ★**根治"忘了删"** ③★**加一条自检**: 输出里打印"本次用的权重 + 缓存命中/未命中", 让人一眼看出是不是旧数据。⇒ ★**影响面**: 所有用 rknn_bench 出的精度数字 (含我们刚定的 yolov5n F1 0.2927 与 yolov5s 0.3017 —— ★**这两个数是在"换模型前先删了缓存"的前提下测的, 但脚本本身没有保护**) ⇒ ★**修完要把两个数重测一遍确认**。'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-11-02'
+  due: '2026-11-05'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: SW/tools/rknn_bench.py (缓存键) · SW/RKNN_BUILD_ENV_RECOVERY.md §5 (复刻隐形坑)
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '2026-11-02 20:3x。★**优先级高于其它软件单**: 这是"绿灯假数据"型缺陷, 一旦踩中, 后面所有精度结论都不可信。★**改完必须重测 yolov5n / yolov5s 两个 F1** 并把数写回 ISS-145 §1 表格。'
   dispatched_at: null

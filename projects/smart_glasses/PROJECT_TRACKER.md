@@ -1789,6 +1789,20 @@ Rev A temple_cage: 2176 面 | 重复面 0 | 边多重性 {2:3244, 4:10} | 开放
 - `lens_rfq_rgeo2_addendum.md` ⇒ ★**标"待选路后更新再发"** (镜头厂有效, 但焦距/角分辨率口径要按选路重算)
 - `hw.yaml` 4 条 claim: `isp_throughput_req` → 124.4MP/s@60 · `isp_input_mode_req` → 1080p60 原生模式 · `csi_lane_mode_req` → 4-lane (含"可省 4 触点"的优化备注) · `lens_fov_basis` → 待选路
 
+#### (1.63) ★★★★ 2026-11-02 20:3x: 软件侧构建环境恢复 + ★★**rk3572 不是 toolkit2 的合法 target** ⇒ demo 模型定 yolov5n
+
+> **落账**: `SW/RKNN_BUILD_ENV_RECOVERY.md` (911 行, ISS-147) · `SW/DEMO_OD_PIPELINE_SPEC.md` 两处订正 · **ISS-147 fixed** · **ISS-155** 追加结论 · 新开 **ISS-157** (rknn_bench 缓存静默错数)
+
+**★ 好消息 (软件侧不再卡)**: ★**工具链已恢复** (conda env `~/miniconda3/envs/rknn`: python 3.10.22 / rknn-toolkit2 2.3.2 / onnx 1.16.1 / torch 2.4.0+cpu; ★**路径与 `rknn_bench.py` 硬编码一致 ⇒ 仓库脚本零改动可跑**) ⇒ ★**probe/calib/convert/acc 四步原样跑通** ⇒ ★**A2 路线 (重新导出 ONNX) 成本 3~5 人天 → ~1 人天** ⇒ ★**校准集与 COCO val2017 已恢复** ⇒ 精度可比。
+
+**★ P0 结论 (会改方案的一条)**: ★★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— 实测 **2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platform 'rk3572'!`**, 而 `rk3576` **rc=0**; 目标列表里 rk3572 出现 **0 次** (含 .so 二进制), 官方 Support Platform 列表也没有 ⇒ ★★**不存在"升级 toolkit 就有 rk3572"这条路** ⇒ ★**ISS-145 的 M1「直接复用 A7S 的 .rknn, 零转换成本」前提不成立** ⇒ 唯一可行 = **用 `target_platform='rk3576'` 转换** (同代 RKNPU v2; ★**算力不等 4 vs 6 TOPS ⇒ [推算], 板端必须实测**) ⇒ **ISS-155**。
+
+**★ 顺带订正 ISS-145 的两处错 (sw-lead 自己指出, 项目总工代改)**: ①核法 `RKNN.RKNN_TARGET_PLATFORM` 属性在 2.3.2 **不存在**, 目标列表在编译后的 .so 里 ⇒ **正确核法是直接 `config()` 试** ②**"yolov5n 少 ~4 点 mAP50" 不成立** ⇒ 实测同图集 **yolov5s F1 0.3017 vs yolov5n F1 0.2927 (只差 0.0090)** ⇒ ★**demo 第一版定 yolov5n** (60ms 余量最大 + 误检少 263 个 + 产物小一半; 代价召回低 0.0291)。
+
+**★ 新开的 ISS-157 (绿灯假数据型缺陷)**: `rknn_bench.py` 的 **cut 模型缓存不失效** ⇒ ★**换模型重测会静默跑出上一个模型的数字** (实测两次结果逐字节相同) ⇒ ★**比报错更危险** ⇒ 修法 = **缓存键带模型指纹 (权重路径+mtime/sha256)** + 输出打印"本次权重 + 缓存命中/未命中" ⇒ 修完**重测两个 F1**。
+
+**★ 现在的硬卡点只有一个**: ★**验证 `rk3576` target 的 .rknn 能不能被 RK3572 的 `librknnrt.so` 加载, 需要一块能跑的 RK3572 板** ⇒ ★**Radxa 板当前不可达 (No route to host + ARP FAILED)** ⇒ ★**必须用公开在售的 RK357x 板** ⇒ ★**与 demo Step1 载板合流** (Forlinx OK3572-C 首选) ⇒ ★**一举两得: 验证 target + 跑 demo 链路**。
+
 #### (1.62) ★★★★ 2026-11-02 19:45: **信息获取四级阶梯 + demo 走公开现货** (厂家咨询挪到最后)
 
 > **老板原话**: "数量太少了, 走不了大批量采购的方案, 还是那句话, 所有需要厂家给的信息都先去网上找, 网上找不到再换一个替换方案, 所有的元件都试了之后还找不到, 再考虑采购方案咨询厂家"

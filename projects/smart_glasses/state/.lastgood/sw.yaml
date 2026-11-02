@@ -1,7 +1,7 @@
 agent: sw-lead
 role: 软件总工
-updated_at: 2026-11-02 01:3x
-updated_by: sw-lead
+updated_at: '2026-11-02'
+updated_by: main
 status:
   phase: P2(方案设计)
   progress_pct: 70
@@ -1339,6 +1339,26 @@ interface_claims:
     522510h (59.6y), 非满载 93396h (10.7y)。P = 镜腿内发热量, 非整机功耗 (ISS-064 S-1 同步口径)。落地为待机-B
     时均值 0.127/0.147W ⇒ D≈0.10~0.12 ⇒ MTBF 只会更好。
   ref: HANDOFF/2026-11-01_sw-lead_周更新.md#B4-1 ; HW/RELIABILITY_DESIGN.md#B9 ; MECH/MECH_BUDGET.md#2.3
+- key: rknn_target_platform
+  value: rk3576_for_rk3572
+  note: '★★2026-11-02 20:3x 实测 (ISS-147): **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target_platform**
+    (2.3.2 与最新 2.5.0 都抛 ValueError; rknn/api/rknn.py 与编译后 .so 里 rk3572 命中 0; 官方 Support
+    Platform 无 RK3572) ⇒ **不存在升级 toolkit 就有 rk3572 的路** ⇒ RK3572 上只能用 `target_platform=''rk3576''`
+    转 (同代 RKNPU v2, 算力不等 4 vs 6 TOPS ⇒ [推算], 板端须实测) ⇒ ISS-145 的 M1「零转换复用 A7S 的 .rknn」不成立。'
+  ref: ISS-155 + SW/RKNN_BUILD_ENV_RECOVERY.md §2
+- key: demo_model_choice
+  value: yolov5n
+  note: '★demo 第一版定 **yolov5n@640 INT8**: 实测同图集 (COCO val2017 + 100 张校准集) yolov5s
+    F1 0.3017 vs yolov5n F1 0.2927 ⇒ **只差 0.0090** (★**订正了原规格『少 ~4 点 mAP50』的错误说法**)
+    ⇒ 选 n (60ms 余量最大 + 误检少 263 个 + 产物小一半), 代价召回低 0.0291。★⚠️ 该数需在 ISS-157 (缓存键) 修完后**重测确认**。'
+  ref: ISS-147 + SW/DEMO_OD_PIPELINE_SPEC.md §1
+- key: rknn_build_env
+  value: restored
+  note: '★RKNN 构建环境已恢复 (ISS-147): conda env `~/miniconda3/envs/rknn` (python 3.10.22
+    / rknn-toolkit2 2.3.2 / onnx 1.16.1 / numpy 1.26.4 / protobuf 4.25.4 / torch 2.4.0+cpu)
+    ⇒ ★**路径与 `rknn_bench.py` 硬编码的 RKNN_PY 一致 ⇒ 仓库脚本零改动可跑** ⇒ probe/calib/convert/acc
+    四步 rc=0 真落盘; ★校准集与 COCO val2017 已恢复 ⇒ A2 路线成本 3~5 人天 → ~1 人天。'
+  ref: SW/RKNN_BUILD_ENV_RECOVERY.md §1/§4/§5
 open_questions:
 - id: SW-Q1
   to: main
