@@ -121,6 +121,23 @@ done
 #   ★但这里原来**只 cp 4 个 AGENTS.md** ⇒ 那些资产**根本没进发布树** (2026-11-01 实测: 远端只有 AGENTS.md)
 #   ⇒ 现在把整个 config/ 目录 rsync 上去 (排除 __pycache__/.git)
 #   ★安全: 这些文件已由真值反查闸门扫过 (值形态 + 口令上下文 + 凭据真值 三层)
+# ★★2026-11-02 08:2x: **MEMORY / 日记 的自动同步 + 一致性门禁** (心跳查出的"真值源分裂"修复)
+#   ★问题: 运行时读的是 `$WS/config/agents/main/MEMORY.md`, 而我 (项目总工) 一直写 `$WS/MEMORY.md`
+#     ⇒ **两份同名文件分叉, 我写的记忆运行时读不到**; 且发布树里的日记停在 2026-06-11
+#     ⇒ ★**"断电续传凭据"这个机制实际上三个月没生效**。
+#   ⇒ 修法: **真值源 = `$WS/MEMORY.md`**, 发布前自动同步到 config/ 与项目树 ⇒ 不用人记得。
+WS_MEM="$WS/MEMORY.md"
+if [ -f "$WS_MEM" ]; then
+  cp -f "$WS_MEM" "$PROJ/config/agents/main/MEMORY.md"
+  if [ -d "$WS/config/agents/main/memory" ]; then
+    mkdir -p "$PROJ/config/agents/main/memory"
+    rsync -a "$WS/config/agents/main/memory/" "$PROJ/config/agents/main/memory/"
+  fi
+  echo "[3a] MEMORY + daily memory 已从工作区真值源同步"
+  # ★同步完立刻自检 (三份 md5 必须一致) ⇒ 分叉就在这里被抓住, 不用等到下次心跳才发现
+  python3 "$SCRIPT_DIR/check_memory_sync.py" 2>&1 | sed 's/^/  /' || true
+fi
+
 if [ -d "$PROJ/config" ]; then
   rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
         "$PROJ/config/" config/
