@@ -876,7 +876,9 @@ def step_convert(args) -> dict:
                 "load_s": t_load, "build_s": t_build, "dep": dep,
                 "error": "rknn.build(INT8) 失败 rc=%s; 校准集清单=%s"
                          % (rc_build, DATASET_TXT)}
-    out = os.path.join(WORK, f"yolov5s_rk3576_int8_{tag}.rknn")
+    # ★2026-11-02 18:5x (ISS-157 待办1): 产物名带**源权重 stem** ⇒ 转 yolov5n 不会再也叫 "yolov5s_..."
+    _stem = os.path.splitext(os.path.basename(src))[0] if src else "model"
+    out = os.path.join(WORK, f"{_stem}_rk3576_int8_{tag}.rknn")
     r.export_rknn(out)
     r.release()
     sz = os.path.getsize(out)

@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-02T23:43:45+08:00'
+  generated_at: '2026-11-03T00:13:36+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 154966
-      sha1: 60e268849516
-      mtime_ns: 1793633976566207713
+      size: 154983
+      sha1: 2c8c4a890e8b
+      mtime_ns: 1793634913047647904
     mech-lead:
       file: mech.yaml
       size: 137924
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1793616190216050340
     sw-lead:
       file: sw.yaml
-      size: 96987
-      sha1: f102c95bc565
-      mtime_ns: 1793634159680732322
+      size: 96832
+      sha1: 0e51b3526b0b
+      mtime_ns: 1793634913195824358
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -4625,7 +4625,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-11-02'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -4718,7 +4718,7 @@ domains:
       target_missing: false
       waiting_on: vendor
       due: '2026-11-02'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -7245,8 +7245,8 @@ interface_claims:
     conflict: false
   panel_init_sequence_source:
     values:
-      hw-lead: rk3576-evb.dtsi
-      sw-lead: rk3576-evb_simple-panel-dsi
+      hw-lead: rk3576-evb.dtsi:simple-panel-dsi
+      sw-lead: rk3576-evb.dtsi:simple-panel-dsi
     notes:
       hw-lead: '★2026-11-02 20:3x: Rockchip `rk3576-evb.dtsi` 里有 **1080×1920 / 4-lane / RGB888 的完整 panel-init-sequence**
         (与视涯 0.49" 1920×1080 分辨率最贴) ⇒ ★**面板 init code 的起点是"抄内核现成 dts", 不是"问厂家"**; ★另: 内核 79 个 panel 文件里**确实有**
@@ -7259,7 +7259,7 @@ interface_claims:
     - hw-lead
     - sw-lead
     noncanonical_by: []
-    conflict: true
+    conflict: false
   demo_board_self_designed:
     values:
       hw-lead: 1main+SOM+2fpc
@@ -10167,14 +10167,22 @@ interface_claims:
     conflict: false
   rknn_cut_cache_key:
     values:
-      sw-lead: model_fingerprint_in_cache_key
+      sw-lead: sha256_fingerprint
     notes:
-      sw-lead: '★★ISS-157 (2026-11-02 23:2x, sw-lead 修) `SW/tools/rknn_bench.py` 的 **cut 模型缓存键改为含模型指纹**
-        ⇒ ★**换权重自动失效**, 根治"忘了删缓存 ⇒ 静默跑出上一个模型的数字" (实测两次结果逐字节相同, 且**不报错** = "绿灯假数据")。指纹 = sha256(权重绝对路径|权重内容sha256[:16]|权重mtime(ns)|权重大小|输入尺寸|保留输出名|cut工具sha256[:16])[:16];
-        缓存文件名 = {权重stem}_heads_{指纹}.onnx (例 yolov5n-sim_heads_3f9943f511a58a9b.onnx); ★每次输出打印 "本次用的权重
-        (路径/sha16/mtime/指纹) + 缓存 HIT/MISS"; ★缓存目录里有多个不同指纹 ⇒ 提示清理, 见到旧版无指纹缓存 ⇒ 提示删除。新增 CLI: --onnx (换权重重测)
-        / --force-recut (忽略缓存强制重切)。★★验收 (机器可验): ①同权重两次结果完全一致 (TP=565 FP=1028 FN=1588 F1=0.3017, 两次逐个相同)
-        ②换权重结果必须不同 (yolov5n F1=0.2927 ≠ yolov5s F1=0.3017) ③缓存命中/未命中正确 (MISS→HIT→MISS)。'
+      sw-lead: '★★ISS-157 已修 (18:4x): cut 模型缓存键 = **sha256(权重绝对路径|内容sha256[:16]|mtime(ns)|大小|输入尺寸|保留输出名|cut工具sha256[:16])[:16]**
+        ⇒ **模型一换缓存自动失效** + 输出打印 HIT/MISS + 多指纹自检 + cut 失败直接抛错。★**物证**: 旧 `yolov5s_heads.onnx` 实装的是 yolov5n
+        的图 (sha16 adac68f888bf61c2 逐字节相同) ⇒ 这就是''绿灯假数据''。★三条验收全过 (同权重逐位一致/换权重必不同/两个 F1 重测 0.3017 vs 0.2927)。'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  demo_precision_line:
+    values:
+      sw-lead: F1>=0.25_recommended
+    notes:
+      sw-lead: '★★SW-Q5 / ISS-164 待老板一句: demo 判据② ''F1 ≥ 0.30'' (那是量产放行线) 与 yolov5n 实测 0.2927 冲突 (差 0.0073);
+        换 yolov5s 过线但端到端退到 62.67~64.18ms 超 60ms ⇒ 两条路都不平。★**建议: demo 线降到 F1 ≥ 0.25 + 80 类 ID 全域覆盖 + IoU
+        > 0.95 ⇒ 保住 yolov5n 与 60ms 余量; 精度门槛归整机阶段**。'
     by:
     - sw-lead
     noncanonical_by: []
@@ -11209,18 +11217,7 @@ blockers:
   severity: critical
   waiting_since: '2026-11-02'
   owner: sw-lead
-conflicts:
-- key: panel_init_sequence_source
-  values:
-    hw-lead: rk3576-evb.dtsi
-    sw-lead: rk3576-evb_simple-panel-dsi
-  canon_values:
-    hw-lead: rk3576-evb.dtsi
-    sw-lead: rk3576-evb_simple-panel-dsi
-  refs:
-    hw-lead: HW/PART_ALTERNATIVES_REGISTRY.md §3 + ISS-156
-    sw-lead: HW/PCB/panel_simple_dsi_template.dtsi + HW/PCB/LAYOUT_RULES.md
-  status: open
+conflicts: []
 needs_normalization:
 - key: skeleton_extent
   values: *id043
@@ -11493,7 +11490,7 @@ summary:
   waiting_external_needs: 79
   overdue_needs: 0
   target_missing_needs: 0
-  conflicts: 1
+  conflicts: 0
   needs_normalization: 1
   lint: 43
   agents_reporting: 4

@@ -346,7 +346,7 @@ yolov5n-sim.onnx    sha16: dfb5d060ca36fc27    7,931,774 B   ← 当时真正的
 
 **解法 (不改脚本)**: ★**换模型前先删缓存**:
 ```bash
-rm -f /tmp/rknn_bench/yolov5s_heads.onnx
+rm -f /tmp/rknn_bench/*_heads*.onnx   # ★仅旧版无指纹缓存需要; 新版缓存自动失效 (ISS-157)
 ```
 ★**删掉后重跑 yolov5n ⇒ 才是真数字**: TP=494 FP=765 FN=1623, **F1 0.2927**, ΔF1 **−0.0030** (与 yolov5s 的 F1 0.3017 不同 ⇒ 证明这次跑的是对的)。
 
@@ -683,7 +683,7 @@ ls | wc -l    # 预期: 100
 
 ### 5.7 Step 6 — ★ 跑仓库脚本 (四步链 + 精度)
 
-> ★★**换模型前必做**: `rm -f /tmp/rknn_bench/yolov5s_heads.onnx` (cut 模型缓存不会自动失效, 见 §3.2.2 —— **不删就会静默跑出上一个模型的数字**)。
+> ⚠️ ★★**2026-11-02 18:5x 已过期 (ISS-157 已修)**: cut 模型缓存**现在带模型指纹** (sha256(权重路径+内容+mtime+尺寸+保留输出名+cut工具)) ⇒ ★**换模型自动失效, 不再需要手动 rm** ⇒ ★**下面那条 `rm -f .../yolov5s_heads.onnx` 只对【旧版无指纹缓存】才需要** (见到就删一次) ⇒ 见 `SW/tools/rknn_bench.py` 的 `scan_cut_cache()` 自检与 `SW/RKNN_BENCH.md` §7.5。
 
 ```bash
 cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
@@ -731,7 +731,7 @@ $PY SW/tools/rknn_bench.py all
 
 ```bash
 # ★★★ 换模型前 **必须删 cut 缓存**, 否则会静默跑出上一个模型的数字 (§3.2.2)
-rm -f /tmp/rknn_bench/yolov5s_heads.onnx
+rm -f /tmp/rknn_bench/*_heads*.onnx   # ★仅旧版无指纹缓存需要; 新版缓存自动失效 (ISS-157)
 
 # 把 yolov5n 放到脚本硬编码的 ONNX_MODEL 路径 (§5.7 已说明)
 cp ~/Public/rknn_weights/yolov5n_sim_renamed.onnx \
@@ -892,7 +892,7 @@ cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
 ~/miniconda3/envs/rknn/bin/python SW/tools/rknn_bench.py acc --images 300 --fp32-baseline
 # => [acc] F1=0.3017 | FP32 F1=0.3073 | ΔF1=-0.0056   (yolov5s)
 # ★ 换 yolov5n 前 **必须**:
-rm -f /tmp/rknn_bench/yolov5s_heads.onnx
+rm -f /tmp/rknn_bench/*_heads*.onnx   # ★仅旧版无指纹缓存需要; 新版缓存自动失效 (ISS-157)
 # => [acc] F1=0.2927 | FP32 F1=0.2957 | ΔF1=-0.0030   (yolov5n)
 
 # ---- COCO ----

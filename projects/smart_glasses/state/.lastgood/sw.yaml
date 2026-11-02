@@ -1371,7 +1371,7 @@ interface_claims:
     四步 rc=0 真落盘; ★校准集与 COCO val2017 已恢复 ⇒ A2 路线成本 3~5 人天 → ~1 人天。'
   ref: SW/RKNN_BUILD_ENV_RECOVERY.md §1/§4/§5
 - key: panel_init_sequence_source
-  value: rk3576-evb_simple-panel-dsi
+  value: rk3576-evb.dtsi:simple-panel-dsi
   note: '★★F8 落地: 面板 init code 的**公开开源来源** = Rockchip BSP kernel `develop-6.12` `rk3576-evb.dtsi`
     的 `dsi_panel: panel@0` (compatible=simple-panel-dsi, 4-lane, MIPI_DSI_FMT_RGB888,
     flags=VIDEO|VIDEO_BURST|LPM|NO_EOT_PACKET, 263 条 panel-init-sequence) ⇒ 已落 `HW/PCB/panel_simple_dsi_template.dtsi`
@@ -1379,17 +1379,18 @@ interface_claims:
     ESD 判据: 紧贴接口 + 寄生电容 ≤0.4pF (Forlinx 手册 §3.5)。'
   ref: HW/PCB/panel_simple_dsi_template.dtsi + HW/PCB/LAYOUT_RULES.md
 - key: rknn_cut_cache_key
-  value: model_fingerprint_in_cache_key
-  note: '★★ISS-157 (2026-11-02 23:2x, sw-lead 修) `SW/tools/rknn_bench.py` 的 **cut
-    模型缓存键改为含模型指纹** ⇒ ★**换权重自动失效**, 根治"忘了删缓存 ⇒ 静默跑出上一个模型的数字" (实测两次结果逐字节相同, 且**不报错**
-    = "绿灯假数据")。指纹 = sha256(权重绝对路径|权重内容sha256[:16]|权重mtime(ns)|权重大小|输入尺寸|保留输出名|cut工具sha256[:16])[:16];
-    缓存文件名 = {权重stem}_heads_{指纹}.onnx (例 yolov5n-sim_heads_3f9943f511a58a9b.onnx);
-    ★每次输出打印 "本次用的权重 (路径/sha16/mtime/指纹) + 缓存 HIT/MISS"; ★缓存目录里有多个不同指纹 ⇒ 提示清理, 见到旧版无指纹缓存
-    ⇒ 提示删除。新增 CLI: --onnx (换权重重测) / --force-recut (忽略缓存强制重切)。★★验收 (机器可验): ①同权重两次结果完全一致
-    (TP=565 FP=1028 FN=1588 F1=0.3017, 两次逐个相同) ②换权重结果必须不同 (yolov5n F1=0.2927 ≠ yolov5s
-    F1=0.3017) ③缓存命中/未命中正确 (MISS→HIT→MISS)。'
-  ref: ISS-157 · SW/tools/rknn_bench.py (1c 节 / step_cut / _build_session_for_sim)
-    · SW/RKNN_BENCH.md §7.5 · SW/DEMO_OD_PIPELINE_SPEC.md §1.4
+  value: sha256_fingerprint
+  note: '★★ISS-157 已修 (18:4x): cut 模型缓存键 = **sha256(权重绝对路径|内容sha256[:16]|mtime(ns)|大小|输入尺寸|保留输出名|cut工具sha256[:16])[:16]**
+    ⇒ **模型一换缓存自动失效** + 输出打印 HIT/MISS + 多指纹自检 + cut 失败直接抛错。★**物证**: 旧 `yolov5s_heads.onnx`
+    实装的是 yolov5n 的图 (sha16 adac68f888bf61c2 逐字节相同) ⇒ 这就是''绿灯假数据''。★三条验收全过 (同权重逐位一致/换权重必不同/两个
+    F1 重测 0.3017 vs 0.2927)。'
+  ref: SW/tools/rknn_bench.py + SW/RKNN_BENCH.md §7.5
+- key: demo_precision_line
+  value: F1>=0.25_recommended
+  note: '★★SW-Q5 / ISS-164 待老板一句: demo 判据② ''F1 ≥ 0.30'' (那是量产放行线) 与 yolov5n 实测 0.2927
+    冲突 (差 0.0073); 换 yolov5s 过线但端到端退到 62.67~64.18ms 超 60ms ⇒ 两条路都不平。★**建议: demo 线降到
+    F1 ≥ 0.25 + 80 类 ID 全域覆盖 + IoU > 0.95 ⇒ 保住 yolov5n 与 60ms 余量; 精度门槛归整机阶段**。'
+  ref: ISS-164 + SW/DEMO_OD_PIPELINE_SPEC.md §6.2
 open_questions:
 - id: SW-Q1
   to: main

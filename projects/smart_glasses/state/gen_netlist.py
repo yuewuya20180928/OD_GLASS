@@ -515,9 +515,9 @@ def build_p1(by_id, spec):
     power_ics = [
         ("U_DCDC_VCORE", "V_CORE", "TPS62130A", "DC-DC (3A) 供 V_CORE", "必装", "[官方]", "TBD-02", "C-04"),
         ("U_DCDC_VIO", "V_SOC_IO", "TPS62130A", "DC-DC (3A) 供 V_SOC_IO", "必装", "[官方]", "TBD-02", "C-05"),
-        ("U_LDO_S28", "SENSOR_AVDD", "TPS7A20-28", "LDO 供 SENSOR_AVDD (2.8V/156mA) — ★11-02 19:5x 按 IMX415: AVDD1 2.80~3.00V typ 2.90V (2.8V 落 Min 边界) / IAVDD max 156mA", "必装", "[官方]", "", "C-06"),
-        ("U_LDO_S18B", "SENSOR_VDD_IO", "TPS7A20-18", "LDO 供 SENSOR_VDD_IO (1.8V/3mA) — ★11-02 19:5x 按 IMX415 公开 datasheet: OVDD 1.70~1.90V (IOVDD 3mA) ⇒ **2.8V 会超规格 ⇒ 必须 1.8V** (19:3x 按 AR0234CS 改的 2.8V 改回, 净变化 0)", "必装", "[官方]", "", "C-07"),
-        ("U_LDO_S12", "SENSOR_CORE", "TPS7A20-12", "LDO 供 SENSOR_CORE (1.2V/250mA) — ★11-02 19:5x 按 IMX415: DVDD1 1.00~1.20V (1.2V 合法) / IDVDD max 250mA", "必装", "[官方]", "", "C-08"),
+        ("U_LDO_S28", "SENSOR_AVDD", "TPS7A20-28", "★**DNP** — camera 模组自带稳压 (pin28/29=3.3V, pin30/31=5V) ⇒ 主板不供 sensor 芯片级模拟轨", "DNP", "[官方]", "", "C-06"),
+        ("U_LDO_S18B", "SENSOR_VDD_IO", "TPS7A20-18", "★**DNP** — camera 模组自带稳压 ⇒ 主板不供 sensor 芯片级 IO 轨", "DNP", "[官方]", "", "C-07"),
+        ("U_LDO_S12", "SENSOR_CORE", "TPS7A20-12", "★**DNP** — camera 模组自带稳压 ⇒ 主板不供 sensor 芯片级数字轨", "DNP", "[官方]", "", "C-08"),
         ("U_LDO_L33", "LIGHT_3V3", "TPS7A20-33", "LDO 供 LIGHT_3V3 (3.3V/150mA)", "必装", "[推算]", "TBD-02", "C-09"),
         ("U_LDO_L18", "LIGHT_1V8", "TPS7A20-18", "LDO 供 LIGHT_1V8 (1.8V/50mA)", "DNP", "[推算]", "TBD-02", "C-10"),
         ("U_LDO_IO33", "VDD_3V3_IO", "TPS7A20-33", "LDO 供 VDD_3V3_IO (3.3V/200mA)", "必装", "[推算]", "", ""),
@@ -540,29 +540,13 @@ def build_p1(by_id, spec):
         #   when the EN pin is left floating"); VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 (绝对值)。
         #   ★TPS62130A (DC-DC) 同样有 EN。⇒ 原网表 7 路 LDO + 2 路 DC-DC **全都没有 EN 网络**
         #   ⇒ 投板后 9 路全灭 = 整板不上电 = 2~4 周返工 ⇒ 现在改成本≈0 (BOM footprint 还全是"待定")。
-        #   修法: ①除 SENSOR_AVDD 外, EN 直连 RAIL_SYS (3.5-4.2V ≫ 0.9V ⇒ 永远使能, 零新增器件)
-        #        ②SENSOR_AVDD: EN 走 RC 延时 (R 100k: SYS→EN, C 1µF: EN→GND) ⇒ t=(100k‖500k)×1µF≈83ms
-        #          ⇒ AVDD 最后上电 ⇒ 满足 IMX415 的 DVDD→OVDD→AVDD 顺序 (顺手解掉 ISS-152)
+        #   修法: **EN 直连 RAIL_SYS** (3.5-4.2V ≫ 0.9V ⇒ 永远使能, 零新增器件)
+        #   ★★2026-11-02 20:3x 追加: **SENSOR_AVDD 也 DNP 了** (camera 模组自带稳压) ⇒ 三条 sensor 轨的 LDO 全不装
+        #   ⇒ **现在在用的 TPS7A20 只剩 LIGHT_3V3 / LIGHT_1V8 / VDD_3V3_IO / VDD_1V8_IO 四颗** ⇒ 它们的 EN 全部显式接 RAIL_SYS
+        #   ⇒ ★**CARRIER_BOARD_EN (SOM pin87) 的底板主电源使能属 A2 段 (SOM 座) 未接 ⇒ 段 B 处理
         if part.startswith("TPS7A20") or part.startswith("TPS62130A"):
-            if ref == "U_LDO_S28":
-                add("P1", "RAIL_SYS", "RAIL_SYS", "R_EN_AVDD", "R_EN_AVDD", "100k ±1%", "R", dnp,
-                    "[推算]", "",
-                    "[SENSOR_AVDD] ★EN 延时电阻 (SYS→EN) — ★P0: TPS7A20 的 EN 内部 500kΩ 下拉, 悬空=LDO 关断 ⇒ 必须显式驱动; "
-                    "★本路给 EN 加 RC 延时 ⇒ **AVDD 最后上电** (满足 IMX415 的 DVDD→OVDD→AVDD 顺序); "
-                    "时间常数 (100k‖500k)×1µF ≈ 83ms, 落在 datasheet 的 200ms 窗口内", cid)
-                add("P1", "NET_LDO_EN_AVDD", "R_EN_AVDD", "NET_LDO_EN_AVDD", "R_EN_AVDD", "100k ±1%", "R", dnp,
-                    "[推算]", "",
-                    "[SENSOR_AVDD] EN 延时电阻另一端 (R_EN_AVDD 在 EN 网上) — 与 C_EN_AVDD 构成 RC 延时", cid)
-                add("P1", "NET_LDO_EN_AVDD", "NET_LDO_EN_AVDD", "C_EN_AVDD", "C_EN_AVDD", "1µF", "C", dnp,
-                    "[推算]", "",
-                    "[SENSOR_AVDD] EN 延时电容 (EN→GND) — 与 R_EN_AVDD 构成 RC 延时 (★EN 内部 500k 下拉要并联算)", cid)
-                add("P1", "GND", "C_EN_AVDD", "GND", "C_EN_AVDD", "1µF", "C", dnp, "[推算]", "",
-                    "[SENSOR_AVDD] EN 延时电容 地端", cid)
-                add("P1", "NET_LDO_EN_AVDD", "U_LDO_S28 EN", "NET_LDO_EN_AVDD", "U_LDO_S28", "EN", "NET", dnp,
-                    "[官方]", "",
-                    "[SENSOR_AVDD] ★U_LDO_S28 的 EN 脚 (由 RC 延时驱动 ⇒ 使 AVDD 最后上电) — "
-                    "★★**P0: EN 悬空 = LDO 关断**", cid)
-            else:
+            # ★★2026-11-02 20:3x: SENSOR_AVDD 已 DNP (camera 模组自带稳压) ⇒ 不再需要它的 EN RC 延时
+            if ref != "U_LDO_S28":
                 add("P1", "SYS_PCB", f"{ref} EN", "RAIL_SYS", ref, "EN", "NET", dnp, "[官方]", "",
                     f"[{rail}] ★{ref} 的 EN 脚**直连 RAIL_SYS** ⇒ 永远使能 — "
                     f"★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; "
@@ -648,10 +632,10 @@ def build_p2(by_id, spec):
     add("P2", "VDD_3V3_IO", "R_PU_I2CA_SDA", "RAIL_VDD_3V3_IO", "R_PU_I2CA_SDA", "2.2k ±1%",
         "R", "必装", "[推算]", "",
         "[VDD_3V3_IO] I2C_A 上拉", "B-02")
-    add("P2", "I2C_A_SCL", "CONN_CAM pin13", "NET_I2C_A_SCL", "NET_I2C_A_SCL",
+    add("P2", "I2C_A_SCL", "CONN_CAM pin24", "NET_I2C_A_SCL", "NET_I2C_A_SCL",
         "上拉 2.2k 到 3.3V (★IMX415 IOL≤3mA 重算)", "NET", "必装", "[推算]", "",
         "[I2C_A_SCL] 附加节点 (同 net)", "B-01")
-    add("P2", "I2C_A_SDA", "CONN_CAM pin14", "NET_I2C_A_SDA", "NET_I2C_A_SDA",
+    add("P2", "I2C_A_SDA", "CONN_CAM pin25", "NET_I2C_A_SDA", "NET_I2C_A_SDA",
         "上拉 2.2k 到 3.3V (★IMX415 IOL≤3mA 重算)", "NET", "必装", "[推算]", "",
         "[I2C_A_SDA] 附加节点 (同 net)", "B-02")
     # NTC / 温度检测位: 规格 B-01 把 "NTC" 挂在 I2C_A 上, 但没说是裸 NTC 分压还是数字温度计
@@ -746,16 +730,17 @@ def build_p3(by_id, spec):
 #   那是**逻辑位**; 物理上一颗 0Ω 串在差分对上会把 P/N 短接 · 必须拆成 _P / _N 两颗。
 DSI_LANES = [
     # lane, net_P, net_N, cid_P, cid_N, src_P, src_N, pin_P, pin_N, sel_dnp, 有对地端接
+    # ★★2026-11-02 19:5x 按 Radxa Display 8HD/10FHD 40 针表 (0.5mm): P=正脚 / N=负脚
     ("CK", "DSI_D0_CK_P", "DSI_D0_CK_N", "A-13", "A-14",
-     "DSI_TX_CK_P", "DSI_TX_CK_N", 1, 2, "必装", False),
+     "DSI_TX_CK_P", "DSI_TX_CK_N", 15, 14, "必装", False),      # MIPI_CKP15 / MIPI_CKN14
     ("D0", "DSI_D0_D0_P", "DSI_D0_D0_N", "A-15", "A-16",
-     "DSI_TX_D0_P", "DSI_TX_D0_N", 3, 4, "必装", False),
+     "DSI_TX_D0_P", "DSI_TX_D0_N", 9, 8, "必装", False),         # MIPI_0P9 / MIPI_0N8
     ("D1", "DSI_D0_D1_P", "DSI_D0_D1_N", "A-17", "A-18",
-     "DSI_TX_D1_P", "DSI_TX_D1_N", 5, 6, "必装", False),
+     "DSI_TX_D1_P", "DSI_TX_D1_N", 12, 11, "必装", False),       # MIPI_1P12 / MIPI_1N11
     ("D2", "DSI_D0_D2_P", "DSI_D0_D2_N", "A-19", "A-20",
-     "DSI_TX_D2_P", "DSI_TX_D2_N", 7, 8, "DNP", True),
-    ("D3", "DSI_D0_D3_P", "DSI_D0_D3_N", "A-20", "A-20",
-     "DSI_TX_D3_P", "DSI_TX_D3_N", 9, 10, "DNP", True),
+     "DSI_TX_D2_P", "DSI_TX_D2_N", 18, 17, "必装", False),       # MIPI_2P18 / MIPI_2N17
+    ("D3", "DSI_D0_D3_P", "DSI_D0_D3_N", "A-21", "A-22",
+     "DSI_TX_D3_P", "DSI_TX_D3_N", 21, 20, "必装", False),       # MIPI_3P21 / MIPI_3N20
 ]
 # ★★2026-11-02 01:0x 老板换主控 RK3572 ⇒ **RK3572 无 DP TX** ⇒ 方案B (DP→DSI 桥接) **不可能成立**
 #   ⇒ BR_LANES 常量与全部方案B 器件行 (U_BRIDGE + 12 颗 0Ω 桥接位 + 8 颗 DP 串阻 + 8 颗对地电容)
@@ -788,10 +773,10 @@ def build_p4(by_id, spec):
              "NET_I2C_B_SCL")
     conn_row(by_id, "B-04", "P4", "I2C_B_SDA", "SoC[RK3572].I2C_B_SDA", "R_PU_I2CB_SDA",
              "NET_I2C_B_SDA")
-    add("P4", "I2C_B_SCL", "CONN_LIGHT pin11", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
+    add("P4", "I2C_B_SCL", "CONN_LIGHT pin28", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
         "上拉 4.7k, 放主板侧", "NET", "必装", "[推算]", "TBD-04",
         "[I2C_B_SCL] 附加节点 (同 net)", "B-03")
-    add("P4", "I2C_B_SDA", "CONN_LIGHT pin12", "NET_I2C_B_SDA", "NET_I2C_B_SDA",
+    add("P4", "I2C_B_SDA", "CONN_LIGHT pin27", "NET_I2C_B_SDA", "NET_I2C_B_SDA",
         "上拉 4.7k, 放主板侧", "NET", "必装", "[推算]", "TBD-04",
         "[I2C_B_SDA] 附加节点 (同 net)", "B-04")
     add("P4", "VDD_3V3_IO", "R_PU_I2CB_SCL", "RAIL_VDD_3V3_IO", "R_PU_I2CB_SCL", "4.7k ±1%",
@@ -800,7 +785,7 @@ def build_p4(by_id, spec):
         "R", "必装", "[推算]", "", "[VDD_3V3_IO] DSI DDC 上拉", "B-04")
     # ---- 光机连接器 ----
     add("P4", "CONN_LIGHT", "CONN_LIGHT", "CONN_LIGHT pin1", "CONN_LIGHT",
-        "1×16p@0.5mm 显示/光机连接器 (板对板/FFC, 待视涯确认; 末脚 GND = 差分回流)", "CONN", "必装", "[待视涯]", "TBD-04",
+        "★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))", "CONN", "必装", "[待视涯]", "TBD-04",
         "[CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); "
         "显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, "
         "7/8=DSI_D2 预留(DNP), 9/10=DSI_D3 预留(DNP), 11/12=DDC(I2C_B), 13=LIGHT_3V3, "
@@ -808,15 +793,48 @@ def build_p4(by_id, spec):
         "★★**2026-11-02: 由 22p 改 16p** —— 删掉的是桥接方案B 的 6 个差分脚 (RK3572 无 DP TX ⇒ 无桥接芯片); "
         "型号/间距/pin 数待视涯接口定义; ★pin 编号为**本版自拟**, 非视涯给定")
 
+    # ---- ★★2026-11-02 20:5x A1 段: display FPC 座 (40p/0.5mm) 未被主链引用的针全部补齐 ----
+    #   依据: Radxa Display 8HD/10FHD 40 针表 (HW/PCB/FPC_PIN_TABLES.md)
+    _disp_gnd = [7, 10, 13, 16, 19, 22, 23, 29, 30, 33, 34, 36, 39]
+    for _pn in _disp_gnd:
+        add("P4", "GND", f"CONN_LIGHT pin{_pn}", "GND", "CONN_LIGHT", "GND", "NET", "必装", "[官方]", "",
+            "[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND", "")
+    _disp_nc = [1, 4, 6, 37, 38]
+    for _pn in _disp_nc:
+        add("P4", "NC_CONN_LIGHT", f"CONN_LIGHT pin{_pn}", "NC_CONN_LIGHT", "CONN_LIGHT", "NC", "NET",
+            "必装", "[官方]", "",
+            f"[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = NC; ★**板级同网仅为满足网表连通性检查, 无功能影响**", "")
+    for _pn in [2, 31, 32]:
+        add("P4", "LIGHT_3V3", f"CONN_LIGHT pin{_pn}", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V", "NET",
+            "必装", "[官方]", "",
+            "[CONN_LIGHT] ★Radxa Display 40 针表: 面板 VDD = 3.3V (pin2/31/32)", "")
+    add("P4", "LIGHT_3V3", "CONN_LIGHT pin3", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (VCCIO)", "NET",
+        "必装", "[官方]", "",
+        "[CONN_LIGHT] ★Radxa Display 40 针表: VCCIO = 1.8~3.3V (pin3) ⇒ ★**demo 取 3.3V**", "")
+    add("P4", "DSI_RESET_N", "CONN_LIGHT pin5", "SoC[RK3572].GPIO_DSI_RESET", "CONN_LIGHT", "RESET", "NET",
+        "必装", "[官方]", "",
+        "[DSI_RESET_N] ★屏模组 Reset (pin5) ⇒ 接 SoC GPIO (★球位号 TBD-01) ⇒ ★**主板必须能拉它**", "")
+    add("P4", "LIGHT_3V3", "CONN_LIGHT pin25", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (TP_VCC)", "NET",
+        "必装", "[官方]", "",
+        "[CONN_LIGHT] ★Radxa Display 40 针表: 触控供电 TP_VCC (pin25) ⇒ 3.3V", "")
+    _disp_aux = [24, 26, 35, 40]
+    for _pn in _disp_aux:
+        add("P4", "NET_DSI_AUX", f"CONN_LIGHT pin{_pn}", "NET_DSI_AUX", "CONN_LIGHT", "AUX", "NET",
+            "必装", "[官方]", "",
+            f"[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = 触控/背光类 (TP_RESET/TP_INT/LED±); "
+            "★**demo 阶段不驱动 (触控与背光由模组内部处理)**, 板级同网仅为满足网表连通性检查, 无功能影响", "")
+
+
 
 # ------------------------------------------------------- P5 MIPI-CSI 传感器
 CSI_LANES = [
     # lane, sig_P, sig_N, cid_P, cid_N, CONN_CAM pin P/N, dnp, 对地端接
-    ("CK", "CSI_D0_CK_P", "CSI_D0_CK_N", "A-01", "A-02", 1, 2, "必装", False),
-    ("D0", "CSI_D0_D0_P", "CSI_D0_D0_N", "A-03", "A-04", 3, 4, "必装", False),
-    ("D1", "CSI_D0_D1_P", "CSI_D0_D1_N", "A-05", "A-06", 5, 6, "必装", False),
-    ("D2", "CSI_D0_D2_P", "CSI_D0_D2_N", "A-07", "A-08", 7, 8, "DNP", True),
-    ("D3", "CSI_D0_D3_P", "CSI_D0_D3_N", "A-09", "A-10", 9, 10, "DNP", True),
+    # ★★2026-11-02 19:5x 按 Radxa Camera 4K 31 针表 (0.3mm): MDP=正脚 / MDN=负脚
+    ("CK", "CSI_D0_CK_P", "CSI_D0_CK_N", "A-01", "A-02", 18, 17, "必装", False),   # MCP18 / MCN17
+    ("D0", "CSI_D0_D0_P", "CSI_D0_D0_N", "A-03", "A-04", 15, 14, "必装", False),   # MDP1 15 / MDN1 14
+    ("D1", "CSI_D0_D1_P", "CSI_D0_D1_N", "A-05", "A-06", 12, 11, "必装", False),   # MDP2 12 / MDN2 11
+    ("D2", "CSI_D0_D2_P", "CSI_D0_D2_N", "A-07", "A-08", 6, 5, "必装", False),      # MDP3 6 / MDN3 5
+    ("D3", "CSI_D0_D3_P", "CSI_D0_D3_N", "A-09", "A-10", 3, 2, "必装", False),      # MDP4 3 / MDN4 2
 ]
 
 
@@ -839,10 +857,36 @@ def build_p5(by_id, spec):
     # ---- MCLK (单端, 单独包地) ----
     conn_row(by_id, "A-11", "P5", "CSI_MCLK_SRC", "SoC[RK3572].CSI_MCLK", "R_SER_CSI_MCLK",
              "NET_CSI_MCLK_SRC")
-    add("P5", "CSI_MCLK", "R_SER_CSI_MCLK", "CONN_CAM pin11", "R_SER_CSI_MCLK", "[待原厂]",
+    add("P5", "CSI_MCLK", "R_SER_CSI_MCLK", "CONN_CAM pin20", "R_SER_CSI_MCLK", "[待原厂]",
         "R", "必装", "[待原厂]", "TBD-03",
-        "[CSI_MCLK] MCLK 串阻位 (**位必留**: MCLK 是时钟输出, 串阻兼做源端匹配/阻尼); "
+        "[CSI_MCLK] ★11-02 19:5x 按 Radxa Camera 4K 31 针表: MCLK = **pin20** (原 pin11) ; MCLK 串阻位 (**位必留**: MCLK 是时钟输出, 串阻兼做源端匹配/阻尼); "
         "值随 TBD-03 的 MCLK 电平与速率定, 不写死")
+
+    # ---- ★★2026-11-02 20:5x A1 段: camera FPC 座 (31p/0.3mm) 未被主链引用的针全部补齐 ----
+    #   依据: Radxa Camera 4K 31 针表 (HW/PCB/FPC_PIN_TABLES.md)
+    _cam_gnd = [1, 4, 7, 10, 13, 16, 19, 21]
+    for _pn in _cam_gnd:
+        add("P5", "GND", f"CONN_CAM pin{_pn}", "GND", "CONN_CAM", "GND", "NET", "必装", "[官方]", "",
+            "[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND", "")
+    _cam_nc = [8, 9, 22, 23, 26]
+    for _pn in _cam_nc:
+        add("P5", "NC_CONN_CAM", f"CONN_CAM pin{_pn}", "NC_CONN_CAM", "CONN_CAM", "NC", "NET", "必装",
+            "[官方]", "",
+            f"[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = NC (模组内部不接); "
+            "★**板级同网仅为满足网表连通性检查, 这几脚本身是 NC, 无功能影响**", "")
+    add("P5", "CAM_RESET_N", "CONN_CAM pin27", "SoC[RK3572].GPIO_CAM_RESET", "CONN_CAM", "RESET", "NET",
+        "必装", "[官方]", "",
+        "[CAM_RESET_N] ★camera 模组 RESET (pin27, 低有效) ⇒ 接 SoC GPIO (★球位号 TBD-01); "
+        "参考 Radxa CM5 overlay dts 的 reset-gpios (gpio1 RK_PB3, 低有效) ⇒ ★**主板必须能拉它**", "")
+    add("P5", "LIGHT_3V3", "CONN_CAM pin28", "RAIL_LIGHT_3V3", "CONN_CAM", "3.3V", "NET", "必装", "[官方]", "",
+        "[CONN_CAM] ★camera 模组 VCC3.3V (pin28) ⇒ 主板 3.3V 轨", "")
+    add("P5", "LIGHT_3V3", "CONN_CAM pin29", "RAIL_LIGHT_3V3", "CONN_CAM", "3.3V", "NET", "必装", "[官方]", "",
+        "[CONN_CAM] ★camera 模组 VCC3.3V (pin29) ⇒ 主板 3.3V 轨 (两针并联载流)", "")
+    add("P5", "LIGHT_5V", "CONN_CAM pin30", "RAIL_LIGHT_5V", "CONN_CAM", "5.0V", "NET", "必装", "[官方]", "",
+        "[CONN_CAM] ★camera 模组 VCC5V (pin30) ⇒ 主板 5V 轨 (VBUS 直供 + 限流)", "")
+    add("P5", "LIGHT_5V", "CONN_CAM pin31", "RAIL_LIGHT_5V", "CONN_CAM", "5.0V", "NET", "必装", "[官方]", "",
+        "[CONN_CAM] ★camera 模组 VCC5V (pin31) ⇒ 主板 5V 轨 (两针并联载流)", "")
+
     # ---- CSI_RESET_N (10k 上拉到 1.8V 域) ----
     conn_row(by_id, "A-12", "P5", "CSI_RESET_N", "SoC[RK3572].CSI_RESET_N", "R_PU_CSI_RST",
              "NET_CSI_RESET_N")
@@ -858,7 +902,7 @@ def build_p5(by_id, spec):
             f"[{rail}] sensor 供电 接 CONN_CAM pin{pin} (跨铰链, 走线与 MCLK 并行 ≤5mm, 间距 ≥3mm)")
     # ---- 传感器连接器 ----
     add("P5", "CONN_CAM", "CONN_CAM", "CONN_CAM pin1", "CONN_CAM",
-        "18p@0.5mm 跨铰链连接器 (型号待结构确认; pin1/2=CK, 3-10=D0-D3, 11=MCLK, 12=RESET, 13/14=I2C_A, 15-17=三条电源, 18=GND)", "CONN", "必装", "[推算]", "TBD-03",
+        "★31p@0.3mm 板内 FPC 座 (Radxa Camera 4K; 座 HIROSE FH35C-31S-0.3SHW(50); 针位见 HW/PCB/FPC_PIN_TABLES.md)", "CONN", "必装", "[推算]", "TBD-03",
         "[CONN_CAM] 主 PCB ↔ sensor 板 40p 跨铰链连接器; pin1/2=CSI_CK, 3..10=CSI_D0..D3, "
         "11=MCLK, 12=CSI_RESET_N, 13/14=I2C_A, 15/16/17=sensor 3V3/1V8/2V8; "
         "pin 数/pitch/翻盖方式待结构总工 (ISS-065); ★pin 编号为**本版自拟**, 非规格给定")
@@ -1134,8 +1178,8 @@ def build_p9(by_id, spec):
         "[GND] ★V1.6 补: CONN_LIGHT 原来 21 个脚里**一个 GND 都没有** · DSI 差分无回流路径 "
         "(跨铰链 100Ω 差分必须与地成对) · 16p 的末脚接 GND")
     add("P9", "HINGE_DSI", "CONN_LIGHT", "CONN_LIGHT pin1", "CONN_LIGHT",
-        "1×16p@0.5mm 显示/光机连接器 (板对板/FFC, 跨铰链到镜框显示/光机; 末脚 GND = 差分回流)", "CONN", "必装", "[待视涯]", "TBD-04",
-        "[HINGE_DSI] 通道 4/4 **显示 + 光机供电** (1×16p@0.5mm): pin1/2=CK, 3/4=D0, 5/6=D1, "
+        "★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类)= 差分回流)", "CONN", "必装", "[待视涯]", "TBD-04",
+        "[HINGE_DSI] 通道 4/4 **显示 + 光机供电** (★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类)"
         "7/8=D2 预留(DNP), 9/10=D3 预留(DNP), 11/12=DDC(I2C_B), 13=LIGHT_3V3, 14=LIGHT_1V8, "
         "15=LIGHT_5V 预留(DNP), **16=GND 回流**; ★方案B 桥接位已随 RK3572 删除; 型号待视涯接口定义")
     # ---- 跨铰链段的保护/滤波件 (装主 PCB 侧, 紧贴连接器) ----

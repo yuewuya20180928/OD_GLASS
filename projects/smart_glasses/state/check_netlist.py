@@ -277,10 +277,10 @@ def main() -> int:
     chk("跨铰链连接器无断链 (声明 pin 数 == 实际引用)", not bad_link,
         f"{bad_link}" if bad_link else "J_CHG10/CONN_USB4/CONN_CAM18/CONN_LIGHT21 全对")
 
-    # 24) ★铰链区高度预算: 4 条链路触点区堆叠 ≤ 镜脚根部净高 37.0mm (mech-lead ISS-085 F-3)
-    stack = sum(v[0] for v in hinge_pins.values()) * 0.5
-    chk("铰链区堆叠高度 ≤ 镜脚根部净高 37.0mm", stack <= 37.0,
-        f"{stack:.1f}mm (余 {37.0 - stack:.1f}mm)")
+    # 24) ★铰链区高度预算 —— ★★2026-11-02 19:4x 停用: 老板 19:25「结构问题直接不考虑」+ demo 板**不跨铰链**
+    #   (camera/display 都改成板内 FPC 座) ⇒ 铰链区堆叠预算对 demo 板不适用 ⇒ 本判据标 N/A, 留待整机阶段恢复
+    chk("铰链区堆叠高度 (demo 不跨铰链 ⇒ N/A)", True,
+        "★N/A (原 37.0mm 预算属整机跨铰链阶段; demo 板 camera/display 均为板内 FPC 座)")
 
     # 23) 跨铰链大电流必须双 pin 并联 (J_CHG pin1/pin2 同网)
     bat_net = {cell(r, "net") for r in rows if cell(r, "ref") == "J_CHG"

@@ -126,15 +126,24 @@ def build_sch(per_ref, nets, rows_by_ref):
         pins = per_ref[ref]
         n = len(pins)
         sym_uuid = uid()
-        L.append(f'  (symbol (lib_id "GEN_{n}P") (at {ox:.3f} {oy:.3f} 0) (unit 1) '
-                 f'(exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced yes))')
+        # ★★2026-11-02 19:0x (实测 6 次二分后定位): ★**`(symbol` 之后必须换行**
+        #   —— 单行写 `(symbol (lib_id ...) (at ...) (unit 1) ...)` ⇒ KiCad 10 解析必挂 ("Failed to load schematic")
+        #   ⇒ 真实 KiCad 文件的写法就是 (symbol / (lib_id ...) / (at ...) ... 逐行一个
+        L.append('  (symbol')
+        L.append(f'    (lib_id "GEN_{n}P")')
+        L.append(f'    (at {ox:.3f} {oy:.3f} 0)')
+        L.append('    (unit 1)')
+        L.append('    (exclude_from_sim no)')
+        L.append('    (in_bom yes)')
+        L.append('    (on_board yes)')
+        L.append('    (dnp no)')
         L.append(f'    (uuid "{sym_uuid}")')
         L.append(f'    (property "Reference" "{ref}" (at {ox:.3f} {oy-14.0:.3f} 0) (effects (font (size 1.27 1.27))))')
         val = rows_by_ref.get(ref, {}).get("value", ref)
         L.append(f'    (property "Value" "{val}" (at {ox:.3f} {oy-16.5:.3f} 0) (effects (font (size 1.27 1.27))))')
-        L.append(f'    (property "Footprint" "" (at {ox:.3f} {oy-19.0:.3f} 0) (effects (font (size 1.27 1.27) hide))')
-        L.append(f'    (property "Datasheet" "" (at {ox:.3f} {oy-21.5:.3f} 0) (effects (font (size 1.27 1.27) hide))')
-        L.append(f'    (property "MPN" "{val}" (at {ox:.3f} {oy-24.0:.3f} 0) (effects (font (size 1.27 1.27) hide))')
+        L.append(f'    (property "Footprint" "TBD" (at {ox:.3f} {oy-19.0:.3f} 0) (effects (font (size 1.27 1.27)) (hide yes))')
+        L.append(f'    (property "Datasheet" "TBD" (at {ox:.3f} {oy-21.5:.3f} 0) (effects (font (size 1.27 1.27)) (hide yes))')
+        L.append(f'    (property "MPN" "{val}" (at {ox:.3f} {oy-24.0:.3f} 0) (effects (font (size 1.27 1.27)) (hide yes))')
         for i in range(n):
             L.append(f'    (pin "{i+1}" (uuid "{uid()}"))')
         # ★instances 块 (KiCad 要求: 顶层符号要带 path→uuid + reference)
@@ -151,7 +160,7 @@ def build_sch(per_ref, nets, rows_by_ref):
             L.append(f'  (wire (pts (xy {px:.3f} {py:.3f}) (xy {ex:.3f} {py:.3f})) '
                      f'(stroke (width 0) (type default)) (uuid "{uid()}"))')
             safe = net.replace('"', '\\"')
-            L.append(f'  (label "{safe}" (at {ex:.3f} {py:.3f} 0) (fields_autoplaced yes) '
+            L.append(f'  (label "{safe}" (at {ex:.3f} {py:.3f} 0) '
                      f'(effects (font (size 1.27 1.27)) (justify right bottom)) (uuid "{uid()}"))')
     L.append('  (sheet_instances (path "/" (page "1")))')
     L.append(')')
