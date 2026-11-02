@@ -66,6 +66,9 @@ def main() -> int:
     # 4) stage
     rc_s, stage = jrun("stage_gate.py")
     rc_r, ready = jrun("readiness.py")
+    # ★2026-11-02 22:5x: PCB 图纸门禁进门禁链 (自己画的图自己验; EN 那个 P0 的教训)
+    rc_p, out_p, err_p = run("check_pcb_drc.py")
+    pcb_ok = (rc_p == 0)
 
     if gate is None:
         problems.append("gate_check.py 输出无法解析")

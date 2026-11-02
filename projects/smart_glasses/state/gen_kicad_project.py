@@ -61,24 +61,24 @@ def fpc_footprint(ref, pins, pitch, label):
     for i in range(half):
         x = i * pitch
         out.append((x, 0.0, "1"))
-        out.append((x, 2.0, "1"))
+        out.append((x, 2.4, "1"))
     w = span + pitch
-    h = 4.0
+    h = 4.4
     lines = [
         f'  (footprint "FPC_{pins}P_{str(pitch).replace(".", "p")}mm"',
         f'    (layer "F.Cu")',
         f'    (uuid "{uuid4()}")',
         f'    (at 0 0)',
-        f'    (property "Reference" "{ref}" (at 0 -2 0) (layer "F.SilkS") (uuid "{uuid4()}")',
+        f'    (property "Reference" "{ref}" (at 0 -2 0) (layer "F.Fab") (uuid "{uuid4()}")',
         f'      (effects (font (size 1 1) (thickness 0.15)))',
         f'    )',
         f'    (property "Value" "{label}" (at 0 -3.6 0) (layer "F.Fab") (uuid "{uuid4()}")',
         f'      (effects (font (size 1 1) (thickness 0.15)))',
         f'    )',
-        f'    (fp_line (start 0 -1) (end {w:.3f} -1) (stroke (width 0.12) (type solid)) (layer "F.SilkS") (uuid "{uuid4()}"))',
-        f'    (fp_line (start 0 {h}) (end {w:.3f} {h}) (stroke (width 0.12) (type solid)) (layer "F.SilkS") (uuid "{uuid4()}"))',
-        f'    (fp_line (start 0 -1) (end 0 {h}) (stroke (width 0.12) (type solid)) (layer "F.SilkS") (uuid "{uuid4()}"))',
-        f'    (fp_line (start {w:.3f} -1) (end {w:.3f} {h}) (stroke (width 0.12) (type solid)) (layer "F.SilkS") (uuid "{uuid4()}"))',
+        f'    (fp_line (start 0 -1) (end {w:.3f} -1) (stroke (width 0.12) (type solid)) (layer "F.Fab") (uuid "{uuid4()}"))',
+        f'    (fp_line (start 0 {h}) (end {w:.3f} {h}) (stroke (width 0.12) (type solid)) (layer "F.Fab") (uuid "{uuid4()}"))',
+        f'    (fp_line (start 0 -1) (end 0 {h}) (stroke (width 0.12) (type solid)) (layer "F.Fab") (uuid "{uuid4()}"))',
+        f'    (fp_line (start {w:.3f} -1) (end {w:.3f} {h}) (stroke (width 0.12) (type solid)) (layer "F.Fab") (uuid "{uuid4()}"))',
     ]
     for (x, y, num) in out:
         lines.append(
@@ -94,7 +94,7 @@ def generic_footprint(ref, value, pins, pitch, width, height, npins_x=1, npins_y
         f'    (layer "F.Cu")',
         f'    (uuid "{uuid4()}")',
         f'    (at 0 0)',
-        f'    (property "Reference" "{ref}" (at 0 {-height/2-1.5:.3f} 0) (layer "F.SilkS") (uuid "{uuid4()}")',
+        f'    (property "Reference" "{ref}" (at 0 {-height/2-1.5:.3f} 0) (layer "F.Fab") (uuid "{uuid4()}")',
         f'      (effects (font (size 1 1) (thickness 0.15)))',
         f'    )',
         f'    (property "Value" "{value}" (at 0 {-height/2-3:.3f} 0) (layer "F.Fab") (uuid "{uuid4()}")',
@@ -227,10 +227,10 @@ def build_pcb(P):
         lines.append('  )')
     # 丝印
     ss = P["silkscreen"]
-    lines.append(f'  (gr_text "PCB: {esc(ss["title"])}" (at {W/2:.3f} {H-2:.3f}) (layer "F.SilkS") '
+    lines.append(f'  (gr_text "PCB: {esc(ss["title"])}" (at {W/2:.3f} {H-2:.3f}) (layer "Cmts.User") '
                  f'(uuid "{uuid4()}") (effects (font (size 1 1) (thickness 0.15))))')
     for i, n in enumerate(ss["notes"]):
-        lines.append(f'  (gr_text "{esc(n)}" (at 3 {6+i*2.2:.3f}) (layer "F.SilkS") '
+        lines.append(f'  (gr_text "{esc(n)}" (at 3 {6+i*2.2:.3f}) (layer "Cmts.User") '
                      f'(uuid "{uuid4()}") (effects (font (size 0.8 0.8) (thickness 0.12))))')
     lines.append(')')
     return "\n".join(lines), fps
@@ -240,7 +240,9 @@ def main():
     os.makedirs(PCB_DIR, exist_ok=True)
     P = json.load(open(PARAMS, encoding="utf-8"))
     pcb, fps = build_pcb(P)
-    out_pcb = os.path.join(PCB_DIR, "demo_mainboard.kicad_pcb")
+    # ★2026-11-02 23:2x: ★**板文件的所有权交给 state/gen_pcb_netlist_board.py (pcbnew 出的真板子, 带真实网络)**
+    #   ⇒ 本脚本只负责 **叠层/阻抗规则文档 + 参数自检**, 不再覆盖 .kicad_pcb (两个生成器抢同一个文件 = 必然打架)
+    out_pcb = os.path.join(PCB_DIR, "_frame_reference.kicad_pcb")
     open(out_pcb, "w", encoding="utf-8").write(pcb + "\n")
 
     # --- 叠层/规则文档 ---

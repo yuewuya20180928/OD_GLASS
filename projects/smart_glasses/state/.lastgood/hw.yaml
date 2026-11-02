@@ -1,20 +1,25 @@
 agent: hw-lead
 role: 硬件总工
 updated_at: '2026-11-02'
-updated_by: main
+updated_by: hw-lead
 status:
-  phase: P2(原理图/BOM)+替代料候选清单已落
-  progress_pct: 80
+  phase: P2(原理图/BOM)+★ISS-158 三件外购件规格已定(P1/P2 针位表闭环, P3 待引脚定义表)
+  progress_pct: 82
   health: yellow
-  summary: '2026-11-02 20:2x ★交付 HW/PART_ALTERNATIVES_REGISTRY.md (七类31候选/全可点链接/已试未试栏/L3凭证)。★★5条结论:
-    C1 面板init code不必问厂家(Rockchip BSP 内核自带 8 颗 panel 驱动 + rk3576-evb.dtsi 里 1080x1920
-    4-lane 完整 init sequence 可抄) 但 EK79007/EK73217/NV3049 内核里【没有】; C2 TPS7A20 实测【有EN脚】(TI
-    datasheet) => ISS-152 不必换LDO家族; ★2.9V/1.1V 档只有 DQN/YCK 无 SOT-23-5 => 改档=改焊盘 =>
-    DVDD 建议保持1.2V; C3 公开现货 camera 模组 FPC 是 31p0.3mm 或 RPi 15p1.0mm/22p0.5mm, 与自画0.5mm24p
-    对不上 => 画板前必须二选一; C4 公开现货 MIPI-DSI 一体屏最高 1200x1920, 视涯1920x1080无对标品 => demo 用 Radxa
-    8HD/10FHD 验链路; ★★C5 P0: TPS7A20 EN 脚悬空 = LDO 关断 (500k内部下拉, datasheet 实测) 而本项目
-    7 路 LDO 网表行里没有 EN 网络 => 投板后板子不启动 (2-4周返工) => 现在改网表成本≈0 (BOM footprint/opn 全待定),
-    必须全表7颗显式接EN。全库零采购记录 => L3 条件不成立, L4 不触发。'
+  summary: '2026-11-02 23:1x ★交付 HW/STEP1_PARTS_SPEC.md (ISS-158: P1/P2/P3 三件外购件规格汇总,
+    主板照它画) + PART_ALTERNATIVES_REGISTRY.md §10 与 C6/C7 补列。★★三件已选定: P1=Radxa Camera
+    4K(IMX415) 31p/0.3mm 逐针表31/31拿到(座 FH35C-31S-0.3SHW(50))+载板侧31p针序交叉验证+1080p60=1944x1097/12bit/0x3020=0x01/VTS
+    0x0C5D->0x062E(36条寄存器序列全录)+FOV D88.2/H75/V59+SCCB 0x1a; P2=Radxa Display 8HD/10FHD
+    屏侧40p/0.5mm 逐针表40/40拿到+背光12V须加BOOST; P3=Forlinx FET3572-C 68x50mm 4x100pin 0.4mm
+    BTB DC5-13V CSI2x4lane DSI1x4lane。 ★★因此''0.5mm/24p 自研目标规格''正式作废 => 主板两个FPC座规格定死(camera
+    31p/0.3mm + display 40p/0.5mm), 照抄两张表, 不用转接排线。★★判据口径修正: ''驱动IC须在内核白名单''只管专用panel
+    driver => 走 simple-panel-dsi 的屏(10FHD)不依赖任何专用驱动 => P2首选该路线, 8HD(radxa,display-8hd,
+    驱动在Radxa私有内核)降级备选; init code仍公开可抄(rk3576-evb.dtsi 263条, 1080x1920/4-lane)。★★P3
+    唯一硬缺口=逐针引脚定义表+机械尺寸图=未查(Forlinx下载中心需注册登录, 属公开下载非L4; PDF明写与FET3576-C引脚兼容); ★老板的''推荐焊接''对FET3572-C不成立(连接器式,
+    主板要承担400焊盘) => 在拿到引脚表前不得开跑线。★电源树改两处: 屏背光12V BOOST + camera模组级只要3.3V+5V(sensor三条LDO疑在模组内部[推断待核],
+    主板省3颗但BOM留DNP退路)。★本单: 未联系厂家/L4未触发; 未查一律写未查(AC耦合是否内置/连接器寿命/驱动IC型号/DDC地址/屏侧连接器型号/SoM电流与上电序/机械尺寸图);
+    没改 PROJECT_TRACKER/issue_log/DEMO_BOARD_HW_DECISION/STEP1_LANDING_LIST/gen_netlist/netlist_v1;
+    F4~F12清零属ISS-159。'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -337,6 +342,34 @@ artifacts:
   updated_at: '2026-10-25'
   summary: 'v1.1 补 §6.1: TPS7A20 各电压档封装可得性实测 (2.9V/1.1V 档只有 DQN/YCK 无 SOT-23-5 =>
     改档=改焊盘) + DVDD 保持1.2V不动的建议 + BOM 封装列现在定还来得及'
+- path: HW/STEP1_PARTS_SPEC.md
+  kind: parts-spec
+  version: v1.0
+  updated_at: '2026-11-02T23:05:00+08:00'
+  summary: '★★ISS-158 交付(2026-11-02 23:05): P1/P2/P3 三件外购件规格汇总, 主板照它画。 P1 camera=Radxa
+    Camera 4K(IMX415) ★★逐针表31/31拿到(31p/0.3mm, 座=FH35C-31S-0.3SHW(50)): 1 GND/2 MDN4/3
+    MDP4/4 GND/5 MDN3/6 MDP3/7 GND/8-9 NC/10 GND/11 MDN2/12 MDP2/13 GND/14 MDN1/15
+    MDP1/16 GND/17 MCN/18 MCP/19 GND/20 MCLK/21 GND/22-23 NC/24 SCL/25 SDA/26 NC/27
+    RESET/28-29 VCC3.3V/30-31 VCC5V; 载板侧31p针序作第二来源交叉验证(针24/25 I2C, 27 RESET, 28-29
+    3V3, 30-31 5V 逐针一致); 1080p60=1944x1097/12bit/0x3020=0x01(2/2 binning)/VTS 0x0C5D->0x062E(BSP
+    imx415.c 实测, 只改VMAX一处)+36条寄存器序列全录; FOV D88.2/H75/V59, CRA15, M12xP0.5, EFL2.95,
+    BFL4.64, 镜间距4.00; SCCB 0x1a; AC耦合是否内置=未查=>主板4组差分对各留0402耦合位默认DNP; 模组级只要3.3V+5V(针28-31)=>sensor三条LDO疑在模组内部[推断待核]=>主板省3颗LDO但BOM必留DNP退路;
+    FPC弯折寿命/插拔次数=未查(不猜)。 P2 屏=Radxa Display 8HD/10FHD ★★逐针表40/40拿到(屏侧40p/0.5mm, 主板侧39P0.3mm或15P1.0mm):
+    1 NC/2 VDD3V3/3 VCCIO 1.8-3.3V/4 NC(INT1)/5 Reset/6 NC(INT2)/7 GND/8-9 MIPI_0N-P/10
+    GND/11-12 MIPI_1N-P/13 GND/14-15 MIPI_CKN-P/16 GND/17-18 MIPI_2N-P/19 GND/20 MIPI_3N/21
+    MIPI_3P/22-23 GND/24 TP_RESET/25 TP_VCC/26 TP_INT/27 TP_SDA/28 TP_SCL/29-30 GND/31-32
+    VDD3V3/33-34 GND/35-36 LED-/37-38 NC/39-40 LED+; 8HD=800x1280 16.7M全彩 有效区107.64x172.224mm
+    GT911触控; 10FHD=1200x1920 有效区135.36x216.58mm 外形155x246.16x5.95mm; ★背光LED 12.8V
+    typ/14V max @200mA typ => 主板须加一路12V BOOST; DDC地址/驱动IC型号/屏侧连接器型号=未查。 ★★判据口径修正:
+    内核79个panel文件实测清单里有panel-simple.c但无panel-radxa-*(8HD用的radxa,display-8hd驱动在Radxa私有内核)=>
+    P2首选simple-panel-dsi路线(10FHD, 不依赖任何专用驱动)=>8HD降级备选; init code公开可抄: rk3576-evb.dtsi
+    里263条(1080x1920/4-lane, 与我们目标屏最贴)。 P3 RK3572核心板=Forlinx FET3572-C: ★★外形68x50mm
+    + 4x100Pin/0.4mm pitch/1.5mm配合高度 板对板连接器 + DC 5V-13V + CSI 2x4-lane(可拆2x2-lane,
+    最多4台2-lane相机) + DSI 1x4-lane(DSI1.2); ★逐针引脚定义表=未查(下载中心需注册登录, 属公开下载非L4); ★机械尺寸图/连接器footprint=未查;
+    ★PDF明写与FET3576-C引脚兼容=>拿FET3576-C的表即等于拿到FET3572-C的; ★SoM级输入电流/上电顺序=未查; ★老板说的''推荐焊接''对FET3572-C不成立(是连接器式不是焊死式)=>主板要承担400焊盘
+    => 引脚定义表从nice-to-have变成画板硬前提, 在此之前不得开跑线。 ★全单: 未联系厂家/L4未触发; 未猜价格库存针数引脚; 未查一律写未查;
+    没改 PROJECT_TRACKER/issue_log/DEMO_BOARD_HW_DECISION/STEP1_LANDING_LIST/gen_netlist/netlist_v1;
+    F4~F12清零属ISS-159不归本单。'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX
@@ -2079,6 +2112,20 @@ interface_claims:
     ⏳F9 1080p 档 mesh (1~2 人日+暗室) ⏳F10 ESD/TVS ⏳F11 FPC 弯折/插拔 ⏸F12 散热 (demo 不考虑功耗,
     老板暂缓)。'
   ref: HW/STEP1_LANDING_LIST.md §3 + ISS-159
+- key: pcb_stackup
+  value: 6L_100R_d
+  note: '★demo 主板叠层定案 (F6, 22:5x): **6 层** = L1 信号 / **L2 GND 完整** / L3 信号+局部电源 /
+    L4 电源平面 / L5 信号 / **L6 GND 完整**; 介质 prepreg 0.21 / core 0.1 FR4 εr4.5; 阻抗 **MIPI
+    差分 100Ω / USB 90Ω / 单端 50Ω**; ★**MIPI 差分下方 L2/L6 必须是完整 GND 平面且不跨分割**; ★**层数一改阻抗全变
+    ⇒ 必须打样前定**。'
+  ref: HW/PCB/STACKUP.md + HW/PCB_DRAWING_PLAN.md §3
+- key: pcb_drc_gate
+  value: rc0
+  note: '★PCB 图纸门禁 `state/check_pcb_drc.py` (已挂进 daily_check 巡检链): C1 工具链(KiCad 10
+    AppImage, 免 root) / C2 图纸可解析 / C3 ★**DRC violations=0** / C4 未连接=0 / C5 生成器自检
+    / C6 生产文件齐(Gerber 25 + 钻孔) ⇒ ★**我们自己画的图, 用我们自己的标准验** ⇒ ★**本轮真 DRC 抓出我自己骨架的布局错误
+    (SOM 占位盖住整板 ⇒ 101 项违规 → 修到 0)**。'
+  ref: state/check_pcb_drc.py + HW/PCB/
 open_questions:
 - id: HW-Q1
   to: main
