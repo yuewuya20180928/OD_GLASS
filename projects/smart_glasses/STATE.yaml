@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-02T09:43:39+08:00'
+  generated_at: '2026-11-02T10:13:32+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,14 +9,14 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 95088
-      sha1: 0c94f85ef55d
-      mtime_ns: 1793583230405156907
+      size: 98342
+      sha1: 50e09758efca
+      mtime_ns: 1793583976377151379
     mech-lead:
       file: mech.yaml
-      size: 131456
-      sha1: 1eabaf7220cd
-      mtime_ns: 1793553398369323330
+      size: 137924
+      sha1: bfabe16fb281
+      mtime_ns: 1793584488572960226
     main:
       file: pm.yaml
       size: 25356
@@ -853,6 +853,30 @@ domains:
       updated_at: '2026-11-02'
       summary: 开源数据证据快照 5 份 (linux_mainline_i2c 201 项 / rockchip_bsp_i2c 363 项 / rkaiq_iqfiles / github_repo_counts
         / openipc_sensors 896 项), 2026-11-02 09:29~09:30 抓取, 离线可复算
+    - path: HW/DISPLAY_SENSOR_CHAIN.md
+      kind: spec
+      version: '1.0'
+      updated_at: '2026-11-02'
+      summary: '11-02 09:41 老板拍板「使用D」后更新: §1 链路图与规格表 sensor 改 AR0234CS (1920×1200@60 全局快门 / VDD 1.2V +
+        VDD_IO 2.8V / 功耗 [0数据]) · §2.2/§2.3 表按 SW/tools/fov_scale_check.py 权威值重写 D 行 (对角 120.00° / 垂直半
+        31.80° / 角分辨率 0.1590°px / 立体角 1.855sr 零损失 / 俯角 ≤28°) · 新增 §2.5 落账与连锁清单'
+    - path: HW/LENS_SELECTION.md
+      kind: spec
+      version: '1.0'
+      updated_at: '2026-11-02'
+      summary: '11-02 09:41 主选靶面切到 AR0234CS: 现行镜头规格 = 等距鱼眼 对角 120.00° / f=3.2432mm / 垂直半 31.80° / 俯角 ≤28°;
+        RFQ-3 焦距口径改为 AR0234CS f=3.24mm (等距)'
+    - path: HW/SENSOR_SELECTION.md
+      kind: spec
+      version: '1.0'
+      updated_at: '2026-11-02'
+      summary: 11-02 09:41 AR0234CS 正式定案 (§B1 首推 + §B7 推荐顺序标『已定案』) + §13 新增『开源数据优先』判据段 (OV04C10 0/10 vs
+        AR0234CS 3/10)
+    - path: state/outbox/onsemi_ar0234cs_query.md
+      kind: outbox
+      version: '1.0'
+      updated_at: '2026-11-02'
+      summary: 'onsemi AR0234CS 问询草稿 (7 项: pinout/电源域/CRA/lane速率/裸片功耗/IQ文件/驱动/商务) —— 未发, 等老板放行 (ISS-142)'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -3086,20 +3110,23 @@ domains:
   mech-lead:
     agent: mech-lead
     role: 结构总工(带散热)
-    updated_at: 2026-11-02 01:3x
+    updated_at: '2026-11-02'
     updated_by: mech-lead
     status:
       phase: P3
-      progress_pct: 95
+      progress_pct: 96
       health: yellow
-      summary: 'ISS-025 结构DFM评审已交 (MECH/DFM_REVIEW.md 9章 + MECH/dfm_check.py rc=0 + HANDOFF B1-B6六块):
-        ① 逐件量产工艺24件 (镁合金ADC12压铸2件/PC-ABS注塑7件/Al6063-T6 CNC 7件/硅胶模压+模切胶垫+标准件8件) ② DFM参数6类 (脱模斜度含深腔截面差/壁厚/圆角/公差带含单向公差/缩水含收缩敏感尺寸移交规则/装配顺序镜脚14步+镜框8步+不可逆工序6项)
-        ③ 打印件验证不了但量产会出问题的清单27条 (几何10+收缩表面5+工艺装配7+测试口径5) ④ 阳极工序顺序选方案A (CNC→阳极→定位面/定位孔二次精加工) + 基准面A-B两点+P1销端面止推
-        => PIN-SET-2 <=0.046mm仍成立 ★核心结论: 量产的杀手不是公差而是脱模斜度 (主腔38.00双面1°=>内腔横截面窄端少1.327mm => 镜脚H链电芯段最坏-0.577mm
-        几何上做不出来; 皮纹面0.5°也只救到0.087<判据0.40) => 电池座/PCB座改CNC嵌件, 延续''打印件造型+CNC金属件承担定位承力''分工 ★另一条: Rev B打印包=检具+试样,
-        不含任何量产外形件 => 脱模/分型/缩痕/顶针目前0个数据点 (high阻塞, 建模前不开模) ★0条实测(本机不可打印/量测) => 全部[推算]或[推算·通用](未按牌号验证); 牌号级参数一律[0数据]并登记needs
-        14条 mech_dfm_* claim + 7条 mech_dfm_* need(全带waiting_on+due) + 2条 blocker. 未联系任何供应商/原厂/模具厂, 未改
-        issue_log/HW/SW/PROJECT_TRACKER/DECISIONS, 未改ISS-024与MECH_BUDGET既有数字(只引用)'
+      summary: 'ISS-047 复核交卷 (2026-11-02): ① hw-lead 指摘成立, 旧 §1.5「对角半角50deg→<=40deg」整表作废 (16:9 对角100deg
+        垂直半视场只有 30.30deg, 旧结论高估 9.70deg), 并补出旧表另两个错 (垂直俯角与水平偏置混列 / FOV 无投影模型, 直行vs等距差10.75deg) ② 交付完整五数对应表
+        MECH/ISS047_FOV_TABLE.md (对角FOV/水平FOV/垂直FOV/垂直半视场/俯角余量) × 现行定案+备选+旧基线 × 直行/等距 × 三档, 每个俯角标注「正前方是否在画面内」
+        (名义余量/有效余量双列) ③ ★★基线已变: 老板 11-02 09:41 拍板「使用D」⇒ AR0234CS 1920x1200 整幅不裁剪 + 等距120deg ⇒ 垂直半视场 31.80deg
+        (比旧 OV04C10 基线 29.53 多 2.27deg) ⇒ 俯角25deg 名义余量 +6.80 / 有效 +4.89 ⇒ <=25deg 基线站得住且从临界点变有余量设计点, h_max
+        仍 13.99/14.92/16.32mm (d=30/32/35) ④ ★新发现: 边框遮挡吃的是「正前方那一侧」(装上沿+光轴朝下俯⇒正前方在画面上半部) ⇒ 必须用有效余量; 俯角30deg
+        名义+1.80 但有效-0.11 ⇒ 被镜框上沿遮掉 ⇒ 25-30deg 都不行 ⑤ 零余量位置 (29.89deg) ⇒ h_max(d=35)=20.12mm > 旧上界20mm ⇒
+        零余量做不到 ⑥ 与上游口径不一致2处 (HW/DISPLAY_SENSOR_CHAIN 路线C 的 f=1.2704 是直行口径、路线D 的 116.75/28.62 是裁切口径) 已列待
+        hw-lead 回写 ⑦ 自证: iss047_fov_table.py rc=0/FAIL0 + iss047_doc_check.py 220/220 一致; 已改 MECH_BUDGET
+        §1.5/§1.5.1/§1.5.2/§4(c) 与 CAMERA_WINDOW_SPEC §B5 重基线 ⑧ 全部[推算] 0 实测 (0件打印件/0片镜头样片/镜头未下单); 未改 HW/SW/PROJECT_TRACKER/DECISIONS;
+        未联系任何供应商'
     artifacts:
     - path: MECH/MECH_BUDGET.md
       kind: budget
@@ -3374,6 +3401,25 @@ domains:
       summary: '质量门 v2: B1-B6 六块 6/6; B2 自评 18 条 (✅通过16 / ❌不通过2: 实物实测不可能 + 量产外壳面级统计0数据点); B3 证据分级 16 条
         (实测条数=0); B4 接口取值 14 条 mech_dfm_*; B5 needs 7 条 (全带waiting_on+due) + 阻塞3条; B6 自证命令 5 条 (核心 python3
         MECH/dfm_check.py)'
+    - path: MECH/ISS047_FOV_TABLE.md
+      kind: spec
+      version: v1.0
+      updated_at: '2026-11-02'
+      summary: 'ISS-047 复核交卷: ① hw-lead 指摘逐条核对 (旧表三个错: 对角半角判俯角/垂直俯角与水平偏置混列/FOV 无投影模型; 旧结论40deg高估9.70deg)
+        ② 完整五数对应表 (对角FOV/水平FOV/垂直FOV/垂直半视场/俯角余量) × 现行定案+备选+旧基线 × 直行/等距 × 三档 ③ 每个俯角的「正前方是否在画面内」判定 (名义余量/有效余量双列,
+        有效余量扣边框遮挡1.91deg) ④ 俯角上限→h_max 三判据+建议判据B'' ⑤ 4个路线映射 ⑥ 与上游口径不一致2处 (DISPLAY_SENSOR_CHAIN 路线C/D 两行)
+        ⑦ 未决6项。全部 [推算], 0 实测'
+    - path: MECH/iss047_fov_table.py
+      kind: script
+      version: v1.0
+      updated_at: '2026-11-02'
+      summary: 'ISS-047 自证脚本: §1 口径核验(复现16:9对角100度→垂直半视场30.30deg) §2 五数对应表(4窗口×2投影×3档) §3 正前方在画面内判定表(名义/有效双列)
+        §4 俯角上限→h_max(判据A/B/B''/C) §5 四路线映射+上游口径不一致2处 §6 自检10条。rc=0, FAIL 0 / WARN 0'
+    - path: MECH/iss047_doc_check.py
+      kind: script
+      version: v1.0
+      updated_at: '2026-11-02'
+      summary: 'ISS-047 文档一致性检查: 把 ISS047_FOV_TABLE.md 的 220 个数抽成清单现场重算逐条比对 ⇒ 220/220 一致, rc=0。文档里的数不许靠人眼核对'
     blockers:
     - id: MECH-B1
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -4845,6 +4891,22 @@ domains:
       decided_at: ''
       answers: []
       foreign_answers: []
+    - key: iss047_margin_criterion_decision
+      to: main
+      item: 'ISS-047 卡点1 (需 PM/老板一句话): 俯角余量口径取 **B'' 有效余量>=4deg** (推荐, 含边框遮挡1.91deg ⇒ 俯角<=25.89deg, h_max
+        d=35 = 16.99mm) 还是 **B 名义余量>=4deg** (<=27.80deg, 18.45mm) 还是 **C 名义>=10deg** (<=21.80deg, 14.00mm)?
+        差 1.91deg/6.00deg ⇒ 差 h_max 1.47mm/3.45mm ⇒ 镜框上沿高度与摄像头能否藏在眉毛里。★我的建议 B'': 遮挡是实物必然 (窗口座沉孔0.35mm
+        就要占深度), 名义余量留不住。★附带: 无论选哪个, 现行定案 AR0234CS 整幅 的 25deg 基线都站得住 (有效余量 +4.89deg)'
+      since: '2026-11-02'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-11-05'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: hw-lead
@@ -6101,6 +6163,57 @@ interface_claims:
     - hw-lead
     noncanonical_by: []
     conflict: false
+  sensor_model:
+    values:
+      hw-lead: AR0234CS
+    notes:
+      hw-lead: '★★2026-11-02 09:41 老板拍板「使用D」⇒ sensor 定案 onsemi AR0234CS 1920×1200@60 (全局快门, 1/2.6", 3.0µm,
+        对角 6.7925mm, ODCSP-83)。★**OV04C10 作废** (开源数据 0/10: 全网零驱动 ⇒ 驱动要等豪威给、常带 NDA ⇒ 可能直接卡死)。★破 §0 变量 30『豪威优先』(代价=供应链/成本/议价
+        + 16:10 letterbox, 技术侧无障碍)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_lens_focal_equidistant:
+    values:
+      hw-lead: 3.2432mm
+    notes:
+      hw-lead: AR0234CS + 等距鱼眼 对角120° ⇒ f=3.2432mm (SW/tools/fov_scale_check.py 权威输出, rc=0); 垂直半视场 31.80°
+        ⇒ 俯角上限 ≤28° (余量 25°:+6.80° / 28°:+3.80° / 32°:-0.20° 掉出画面)。★旧值 f=2.9459mm 是 OV04C10 的, 作废。
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_ang_res_deg_per_px:
+    values:
+      hw-lead: '0.1590'
+    notes:
+      hw-lead: AR0234CS 整幅scale 不裁剪 ⇒ OD 640×480 基准角分辨率 0.1590 °/px (等比 letterbox 有效 640×400); 1280×960
+        基准 0.0795 °/px。★优于原 C 路 (OV04C10+短镜头) 的 0.1887 °/px ⇒ 本次换料在指标上纯赚。
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_power_rails:
+    values:
+      hw-lead: 1.2V+2.8V
+    notes:
+      hw-lead: 'AR0234CS 电源: VDD/VDD_PHY/VDD_DATA=1.2V + VDD_IO=2.8V ⇒ ★网表 SENSOR_VDD_IO 由 1.8V 改 2.8V
+        (ISS-140); ★I2C_A 上拉 3.3V 须核 VDD_IO abs max; ★有无独立模拟轨待 onsemi 核。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_isp_iq_available:
+    values:
+      hw-lead: 'no'
+    notes:
+      hw-lead: 'AR0234CS 与 OV04C10 都**没有**现成 rkaiq isp3x/isp32 IQ 文件 ⇒ ISP tuning 必须自己排 (ISS-139: 1~2
+        人周 + 暗室/灰卡 + 须等镜头模组定版; RK3572 专属 BSP/tuning 不公开 ⇒ 不能套 RK3588 的 IQ)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
   temple_thickness:
     values:
       mech-lead: 7.30mm
@@ -6157,18 +6270,21 @@ interface_claims:
     conflict: false
   camera_window:
     values:
-      mech-lead: 俯角20-32度/FOV>=100度/边框凹进<=1.5mm
+      mech-lead: 俯角<=25deg/凹进<=1.0mm
     notes:
-      mech-lead: 装镜框上沿的俯角偏置不可回避; 凹进5mm 吃掉上半视场31%; 镜框上沿需局部加厚10-12mm; 凸出1mm 俯角+0.7~0.8度
+      mech-lead: '★ISS-047 复核 (2026-11-02) 重写: 俯角上限由旧 ''20-32度'' 收窄为 <=25deg; 依据 = 现行定案 AR0234CS 整幅 等距120度
+        垂直半视场 31.80deg - 4deg 工程余量; 前顶点凹进 <=1.0mm (1.0mm 遮挡 1.91deg, 吃的是正前方那一侧)'
     by:
     - mech-lead
     noncanonical_by: []
     conflict: false
   camera_fov_16x9:
     values:
-      mech-lead: 对角100度→H92.2/V60.6
+      mech-lead: AR0234CS整幅等距120度→H101.8/V63.6/半31.80
     notes:
-      mech-lead: 16:9 sensor 分解; 边框遮挡后实际可用视场更小; 对角110度→H102.4/V70.0, 120度→H113.0/V80.7
+      mech-lead: '★ISS-047 复核 (2026-11-02) 重写: 旧值 ''对角100度→H92.2/V60.6'' 是直行口径且无投影模型/读出窗口标注 ⇒ 无效引用。现行定案
+        = AR0234CS 1920x1200 整幅不裁剪 + 等距(鱼眼) + 对角120度 (f=3.2432mm) ⇒ H101.76/V63.60/垂直半视场31.80/水平半视场50.88。★引用
+        FOV 必须带三元组'
     by:
     - mech-lead
     noncanonical_by: []
@@ -7676,6 +7792,76 @@ interface_claims:
       mech-lead: 0-shell-geom
     notes:
       mech-lead: 量产外形件(镜框主体/镜腿上壳/镜腿下壳)的脱模/分型/缩痕/顶针面级统计现状=0个数据点(Rev B打印包只含检具与试样)
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  camera_vertical_half_fov:
+    values:
+      mech-lead: 31.80deg
+    notes:
+      mech-lead: '★判俯角的量 (ISS-047): 现行定案 AR0234CS 整幅 等距120度 的垂直半视场; 直行口径同靶面同对角是 42.55deg (差 10.75deg);
+        OV04C10 旧基线 29.53deg; AR0234CS 裁1080p 只有 29.42deg (裁切代价 2.38deg)'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  camera_horizontal_half_fov:
+    values:
+      mech-lead: 50.88deg
+    notes:
+      mech-lead: '★判水平偏置的量 (与垂直半视场是两个独立量, 不可互换): 现行定案 AR0234CS 整幅 等距120度; 水平偏置 10deg 的余量 +40.88deg ⇒ ''装镜框上沿正中''
+        成立'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  camera_tilt_max_deg:
+    values:
+      mech-lead: 25deg
+    notes:
+      mech-lead: '★俯角上限 (ISS-047 重基线): 工程基线 <=25deg; 现行定案垂直半视场31.80 ⇒ 名义4deg判据允许<=27.80deg, ★有效余量4deg判据(推荐)允许<=25.89deg;
+        硬上限(零余量)29.89deg ⇒ h_max(d=35)=20.12mm **超过旧MECH上界20mm ⇒ 零余量位置做不到**'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  camera_tilt_margin_effective:
+    values:
+      mech-lead: 4deg
+    notes:
+      mech-lead: '★判据B''(本单建议): 俯角余量须按**有效余量**(名义余量 - 边框遮挡角1.91deg) >= 4deg; 遮挡吃的是正前方那一侧(装上沿+光轴朝下俯⇒正前方在画面上半部)
+        ⇒ 30deg名义+1.80但有效-0.11 ⇒ 25-30deg 都不行。待 PM 拍板口径'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  camera_brow_h_max_mm:
+    values:
+      mech-lead: 16.32mm
+    notes:
+      mech-lead: 摄像头光轴中心高于用户视线的上限 h = d*tan(俯角上限); 25deg 档 d=30/32/35 取 13.99/14.92/16.32mm; MECH 原值 h=12-20mm
+        的上界收紧到 16.3mm; 零余量位置 (29.89deg) ⇒ 20.12mm 做不到
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  camera_border_occlusion_deg:
+    values:
+      mech-lead: 1.91deg
+    notes:
+      mech-lead: 前顶点凹进1.0mm@d=30 的边框遮挡角 atan(1.0/30); 吃上半视场=正前方侧; 占现行定案垂直半视场 6.0%; 凹进1.5mm→2.86deg(9.0%)
+        故上限收紧到1.0mm
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  camera_fov_citation_rule:
+    values:
+      mech-lead: projection+window+diagFOV
+    notes:
+      mech-lead: '★ISS-047 口径铁律: 引用任何 FOV 数必须带三元组 (投影模型+读出窗口+对角FOV); 缺投影模型差10.75deg, 缺读出窗口(整幅vs裁切)差2.38deg
+        ⇒ 少任何一项该数无效。详见 MECH/ISS047_FOV_TABLE.md §B2.2'
     by:
     - mech-lead
     noncanonical_by: []
@@ -9350,8 +9536,8 @@ needs_matrix:
     since: '2026-11-02'
     _by: mech-lead
     state: pending
-  answered_count: 134
-  total: 193
+  answered_count: 135
+  total: 194
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -9863,11 +10049,11 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 123
+  artifacts: 130
   blockers: 41
   high_blockers: 32
   open_needs: 59
-  waiting_external_needs: 73
+  waiting_external_needs: 74
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0

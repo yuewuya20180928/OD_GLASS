@@ -239,6 +239,30 @@ artifacts:
   updated_at: '2026-11-02'
   summary: 开源数据证据快照 5 份 (linux_mainline_i2c 201 项 / rockchip_bsp_i2c 363 项 / rkaiq_iqfiles / github_repo_counts
     / openipc_sensors 896 项), 2026-11-02 09:29~09:30 抓取, 离线可复算
+- path: HW/DISPLAY_SENSOR_CHAIN.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-02'
+  summary: '11-02 09:41 老板拍板「使用D」后更新: §1 链路图与规格表 sensor 改 AR0234CS (1920×1200@60 全局快门 / VDD 1.2V + VDD_IO
+    2.8V / 功耗 [0数据]) · §2.2/§2.3 表按 SW/tools/fov_scale_check.py 权威值重写 D 行 (对角 120.00° / 垂直半 31.80° / 角分辨率
+    0.1590°px / 立体角 1.855sr 零损失 / 俯角 ≤28°) · 新增 §2.5 落账与连锁清单'
+- path: HW/LENS_SELECTION.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-02'
+  summary: '11-02 09:41 主选靶面切到 AR0234CS: 现行镜头规格 = 等距鱼眼 对角 120.00° / f=3.2432mm / 垂直半 31.80° / 俯角 ≤28°;
+    RFQ-3 焦距口径改为 AR0234CS f=3.24mm (等距)'
+- path: HW/SENSOR_SELECTION.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-02'
+  summary: 11-02 09:41 AR0234CS 正式定案 (§B1 首推 + §B7 推荐顺序标『已定案』) + §13 新增『开源数据优先』判据段 (OV04C10 0/10 vs AR0234CS
+    3/10)
+- path: state/outbox/onsemi_ar0234cs_query.md
+  kind: outbox
+  version: '1.0'
+  updated_at: '2026-11-02'
+  summary: 'onsemi AR0234CS 问询草稿 (7 项: pinout/电源域/CRA/lane速率/裸片功耗/IQ文件/驱动/商务) —— 未发, 等老板放行 (ISS-142)'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -1350,6 +1374,32 @@ interface_claims:
     与选谁无关, 必须自己排** (ISS-139): 1~2 人周+暗室/灰卡, 必须等镜头/模组定版 (IQ=sensor×镜头×模组绑定); RK3572 专属 BSP/tuning 不公开 ⇒
     不能套 RK3588 的 IQ。'
   ref: HW/OPEN_SOURCE_AVAILABILITY.md#3.3
+- key: sensor_model
+  value: AR0234CS
+  note: '★★2026-11-02 09:41 老板拍板「使用D」⇒ sensor 定案 onsemi AR0234CS 1920×1200@60 (全局快门, 1/2.6", 3.0µm, 对角
+    6.7925mm, ODCSP-83)。★**OV04C10 作废** (开源数据 0/10: 全网零驱动 ⇒ 驱动要等豪威给、常带 NDA ⇒ 可能直接卡死)。★破 §0 变量 30『豪威优先』(代价=供应链/成本/议价
+    + 16:10 letterbox, 技术侧无障碍)。'
+  ref: PROJECT_TRACKER.md#(1.56) + HW/DISPLAY_SENSOR_CHAIN.md#2.5
+- key: sensor_lens_focal_equidistant
+  value: 3.2432mm
+  note: AR0234CS + 等距鱼眼 对角120° ⇒ f=3.2432mm (SW/tools/fov_scale_check.py 权威输出, rc=0); 垂直半视场 31.80° ⇒ 俯角上限
+    ≤28° (余量 25°:+6.80° / 28°:+3.80° / 32°:-0.20° 掉出画面)。★旧值 f=2.9459mm 是 OV04C10 的, 作废。
+  ref: HW/LENS_SELECTION.md (11-02 09:41 头注) + SW/tools/fov_scale_check.py
+- key: sensor_ang_res_deg_per_px
+  value: '0.1590'
+  note: AR0234CS 整幅scale 不裁剪 ⇒ OD 640×480 基准角分辨率 0.1590 °/px (等比 letterbox 有效 640×400); 1280×960 基准 0.0795
+    °/px。★优于原 C 路 (OV04C10+短镜头) 的 0.1887 °/px ⇒ 本次换料在指标上纯赚。
+  ref: HW/DISPLAY_SENSOR_CHAIN.md#2.5
+- key: sensor_power_rails
+  value: 1.2V+2.8V
+  note: 'AR0234CS 电源: VDD/VDD_PHY/VDD_DATA=1.2V + VDD_IO=2.8V ⇒ ★网表 SENSOR_VDD_IO 由 1.8V 改 2.8V (ISS-140);
+    ★I2C_A 上拉 3.3V 须核 VDD_IO abs max; ★有无独立模拟轨待 onsemi 核。'
+  ref: ISS-140 + state/outbox/onsemi_ar0234cs_query.md
+- key: sensor_isp_iq_available
+  value: 'no'
+  note: 'AR0234CS 与 OV04C10 都**没有**现成 rkaiq isp3x/isp32 IQ 文件 ⇒ ISP tuning 必须自己排 (ISS-139: 1~2 人周 + 暗室/灰卡
+    + 须等镜头模组定版; RK3572 专属 BSP/tuning 不公开 ⇒ 不能套 RK3588 的 IQ)。'
+  ref: HW/OPEN_SOURCE_AVAILABILITY.md#3.3 + ISS-139
 open_questions:
 - id: HW-Q1
   to: main
