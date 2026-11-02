@@ -1,6 +1,6 @@
 agent: hw-lead
 role: 硬件总工
-updated_at: '2026-11-02'
+updated_at: '2026-11-03'
 updated_by: main
 status:
   phase: P2(原理图/BOM)+★ISS-158 三件外购件规格已定(P1/P2 针位表闭环, P3 待引脚定义表)
@@ -2170,6 +2170,29 @@ interface_claims:
     分段 + 9 命令验收链 + 写入范围 ⇒ ★**执行方只照抄, 不许再查资料** (同类任务已连续三次 0 产出, 根因是任务里混了查资料) ⇒ **这是派活方法论的实证:
     任务书越纯机械, 越容易交出东西**。'
   ref: HW/NETLIST_REV2_SPEC.md
+- key: demo_fpc_connectors
+  value: 31p_0.3 + 40p_0.5
+  note: '★★A1 段已落地 (11-02 20:5x, 项目总工亲自做): **camera FPC 座 = 31p/0.3mm** (Radxa Camera
+    4K, HIROSE FH35C-31S-0.3SHW(50); CSI **4-lane 必装**; I2C 24/25; MCLK 20; RESET
+    27→CAM_RESET_N; 供电 28/29=3.3V、30/31=5V) + **display FPC 座 = 40p/0.5mm** (Radxa
+    Display 8HD/10FHD; DSI 4-lane CK14/15 D0 8/9 D1 11/12 D2 17/18 D3 20/21; DDC 28/27;
+    VDD 2/31/32; VCCIO 3; Reset 5→DSI_RESET_N) + ★**三条 sensor 芯片级轨全部 DNP (模组自带稳压)**
+    + ★**F1 EN 补齐 (4 颗 TPS7A20 的 EN 显式接 RAIL_SYS)** ⇒ 针位表见 `HW/PCB/FPC_PIN_TABLES.md`。'
+  ref: HW/NETLIST_REV2_SPEC.md + HW/PCB/FPC_PIN_TABLES.md + state/gen_netlist.py
+- key: board_ready_state
+  value: drc0_parity346
+  note: '★★demo 主板当前状态 (11-02 20:5x): **DRC = 0** + **板子↔网表逐点等价 (346 绑定 / 缺失 0 / 多余
+    0)** + Gerber 30 + 钻孔 + 6 层叠层 (MIPI 100Ω) + 两张 FPC 针位表 ⇒ ★**A1 段完成, 可下单** ⇒ ★**A2
+    段 (SOM 座 400 脚 + CARRIER_BOARD_EN 电源使能) 是最后一块** (ISS-165, 项目总工自办)'
+  ref: HW/PCB/ + state/check_pcb_drc.py + state/check_pcb_nets.py
+- key: som_pin_table_fixed
+  value: 399_rows_num_ball_signal
+  note: '★★A2 段准备 (11-03 00:20): ★**修正了逐针表的解析错误** —— Forlinx 手册 §2.6 的 HTML 表是 **6
+    列 (针|ball|信号|针|ball|信号)**, 我原先按 3 列解析 ⇒ 列全错 ⇒ **已重解析 399 行, 列 = num/ball/signal**
+    (`HW/PCB/FET3576C_PIN_TABLE.csv`); ★并自动映射网表的 58 个 `SoC[RK3572].*` 节点 → SOM 针号
+    (**8 个自动对上, 50 个命名体系不同需逐条对**) ⇒ 配套 `HW/PCB/SOM_RELEVANT_PINS.md` (251 条相关引脚) +
+    `SOM_MAPPING_TODO.md` (58 条待对) + `SOM_PIN_MAPPING.md` (映射结果)。'
+  ref: HW/PCB/ + state/iss165_map_som_pins.py
 open_questions:
 - id: HW-Q1
   to: main

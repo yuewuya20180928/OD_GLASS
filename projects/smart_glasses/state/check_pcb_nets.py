@@ -24,6 +24,10 @@ def main():
             ref = (r.get("ref") or "").strip(); net = (r.get("net") or "").strip()
             if ref and net and not ref.startswith(PSEUDO):
                 want.add((ref, net))
+            # ★SOM 座: 网络挂在节点名 (J_SOM pinN) 上, 不在 ref 列 ⇒ 这里把 (J_SOM, net) 也计入期望集
+            for nd in ((r.get("node1") or ""), (r.get("node2") or "")):
+                if nd.startswith("J_SOM pin") and net:
+                    want.add(("J_SOM", net))
     b = pcbnew.LoadBoard(PCB)
     if b is None:
         print("❌ 板文件读不回来"); return 1

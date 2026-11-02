@@ -224,7 +224,7 @@ def main():
     # SOM 承载区 (FET3572-C 68×50) + 它的 4×100pin/0.4mm BTB 座 (占位: 按 400 脚模型)
     sx, sy, sw, sh = SOM_AREA
     som = pcbnew.FOOTPRINT(board)
-    som.SetReference("U_SOM_RK3572")
+    som.SetReference("J_SOM")  # ★与网表节点名一致 (J_SOM pinN)
     som.SetValue("FET3572-C SoM 68x50 (PLACEHOLDER)")
     for _fld in (som.Reference(), som.Value()):
         try:
@@ -260,44 +260,57 @@ def main():
     rr4.SetWidth(int(0.1 * MM))
     som.Add(rr4)
     # BTB 座 (4 排 × 100 脚 @0.4mm) —— 沿 SOM 下边
-    btb_pins = 400
-    for i in range(btb_pins):
-        side = i // 100
-        k = i % 100
-        px = sx + 3.0 + k * 0.4
-        py = sy + sh - 4.0 + side * 1.2
-        pad = pcbnew.PAD(som)
-        pad.SetNumber(str(i + 1))
-        pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
-        pad.SetShape(pcbnew.PAD_SHAPE_RECT)
-        pad.SetSize(V(0.18, 0.6))
-        pad.SetPosition(V(px, py))
-        pad.SetLayerSet(pad.SMDMask())
-        som.Add(pad)
-    som.SetPosition(V(0, 0))
-    board.Add(som)
-
-    # 安装孔
-    mh = pcbnew.FOOTPRINT(board)
-    mh.SetReference("MH_1")
-    mh.SetValue("M2.2")
-    for _fld in (mh.Reference(), mh.Value()):
-        try:
-            _fld.SetLayer(pcbnew.F_Fab); _fld.SetVisible(False)
-        except Exception:
-            pass
-    for (mx, my) in ((3, 3), (BOARD_W - 3, 3), (3, BOARD_H - 3), (BOARD_W - 3, BOARD_H - 3)):
-        pad = pcbnew.PAD(mh)
-        pad.SetNumber("")
-        pad.SetAttribute(pcbnew.PAD_ATTRIB_NPTH)
-        pad.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
-        pad.SetSize(V(2.2, 2.2))
-        pad.SetDrillSize(V(2.2, 2.2))
-        pad.SetPosition(V(mx, my))
-        pad.SetLayerSet(pad.UnplatedHoleMask())
-        mh.Add(pad)
-    mh.SetPosition(V(0, 0))
-    board.Add(mh)
+    # ★★2026-11-03 00:5x: SOM 座 = **4 个独立 100 脚 BTB (P1..P4)** (Forlinx 脚标识是 P<x>_<num> 形式, 4 个连接器脚号各自独立)
+    #   依据: HW/PCB/som_pin_map.json (全局 num ↔ (连接器, 组内脚)) + HW/PCB/FET3576C_PIN_TABLE.csv
+    #   网络来源: 网表里 "J_SOM_P<x> pin<n>" 节点所在的网
+    import csv as _csv
+    som_net = {}
+    _np = os.path.join(PROJ, "HW", "netlist_v1.csv")
+    if os.path.exists(_np):
+        for _r in _csv.DictReader(open(_np, encoding="utf-8")):
+            _net = (_r.get("net") or "").strip()
+            for _nd in ((_r.get("node1") or ""), (_r.get("node2") or "")):
+                if _nd.startswith("J_SOM_P") and _net:
+                    _pn = _nd.split("pin", 1)[1].strip()
+                    som_net.setdefault(_nd.split()[0], {}).setdefault(_pn, set()).add(_net)
+    _SOM_ORIGIN = {"J_SOM_P1": (sx + 4.0, sy + 6.0), "J_SOM_P2": (sx + 44.0, sy + 6.0),
+                    "J_SOM_P3": (sx + 4.0, sy + 10.0), "J_SOM_P4": (sx + 44.0, sy + 10.0)}
+    for _ref, (_ox, _oy) in _SOM_ORIGIN.items():
+        _fp = pcbnew.FOOTPRINT(board)
+        _fp.SetReference(_ref)
+        _fp.SetValue("Forlinx FET3572-C SoM 100pin BTB 0.4mm")
+        _rr = pcbnew.PCB_SHAPE(board)
+        _rr.SetShape(pcbnew.SHAPE_T_SEGMENT)
+        _rr.SetLayer(pcbnew.F_Fab)
+        _rr.SetStart(V(_ox - 20.0, _oy - 0.8))
+        _rr.SetEnd(V(_ox + 20.0, _oy - 0.8))
+        _rr.SetWidth(int(0.1 * MM))
+        _fp.Add(_rr)
+        for _k in range(1, 101):
+            _px = _ox - 19.8 + (_k - 1) * 0.4
+            _pad = pcbnew.PAD(_fp)
+            _pad.SetNumber(str(_k))
+            _pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+            _pad.SetShape(pcbnew.PAD_SHAPE_RECT)
+            _pad.SetSize(V(0.18, 0.6))
+            _pad.SetPosition(V(_px, _oy))
+            _pad.SetLayerSet(_pad.SMDMask())
+            _nets = sorted(som_net.get(_ref, {}).get(str(_k), ()))
+            if _nets:
+                _ni = netmap.get(_nets[0])
+                if _ni is not None:
+                    _pad.SetNet(_ni)
+            _fp.Add(_pad)
+        _fp.SetPosition(V(0, 0))
+        board.Add(_fp)
+    # SOM 承载区外形 (68×50mm) —— 只作装配参考, 不是铜
+    _so = pcbnew.PCB_SHAPE(board)
+    _so.SetShape(pcbnew.SHAPE_T_SEGMENT)
+    _so.SetLayer(pcbnew.F_Fab)
+    _so.SetStart(V(sx, sy))
+    _so.SetEnd(V(sx + sw, sy))
+    _so.SetWidth(int(0.1 * MM))
+    board.Add(_so)
 
     board.BuildListOfNets()
     pcbnew.SaveBoard(PCB, board)
