@@ -53,7 +53,7 @@ python3 HW/open_source_rank.py --selftest # 自检: 快照可解析 + 已知排�
 | **D1 主线内核驱动** | ✘ **无** (主线 `drivers/media/i2c/` 201 个驱动, 无 ov04c10) | ✘ **无** (主线同样没有 ar0234) | 快照 `linux_mainline_i2c.json` |
 | **D2 Rockchip BSP 驱动** | ✘ **无** (BSP develop-6.1 **363** 个 sensor 驱动, 无 ov04c10) | ✘ **无** (BSP 里也没有 ar0234) | 快照 `rockchip_bsp_i2c.json` |
 | **D3 rkaiq ISP3x IQ 文件** | ✘ **无** | ✘ **无** (isp3x/isp32 目录里都没有) | 快照 `rkaiq_iqfiles.json` |
-| **D4 社区公开实现** | ★**0 个仓库** (GitHub 搜 `ov04c10` = **total_count 0**) | ★**20 个仓库**, 含:<br>· `Kurokesu/ar0234-rpi-driver` (★**42KB 完整 V4L2 驱动 + DT overlay + dkms + setup.sh**, GPL-2.0, 2026-10 仍在更新)<br>· `Kurokesu/ar0234-jetson-driver` (Jetson Orin NX MIPI CSI-2)<br>· ★`opensource206/UC788_AR0234_SENSOR_TO_RK3588` (★**RK3588 同族 bringup** —— 同 ISP3 代, 最贴近本项目)<br>· `LPXingxing/LI-AR0234CS-STEREO-GMSL2` 等 GMSL2 移植 (Xavier)<br>· 商用模组 (Vadzo Bolt-234CGS 等) 随附 Jetson/AGX/Xavier/i.MX8/RPi 驱动 | `github_repo_counts.json` + 各仓库实查 |
+| **D4 社区公开实现** | ★**0 个仓库** (GitHub 搜 `ov04c10` = **total_count 0**) | ★**20 个仓库**, 含:<br>· `Kurokesu/ar0234-rpi-driver` (★**42KB 完整 V4L2 驱动 + DT overlay + dkms + setup.sh**, GPL-2.0, 2026-10 仍在更新)<br>· `Kurokesu/ar0234-jetson-driver` (Jetson Orin NX MIPI CSI-2)<br>· ★`opensource206/UC788_AR0234_SENSOR_TO_RK3588` ⇒ ★★**19:5x 实测: 空仓** (LICENSE + README 82B, 14KB) ⇒ **不能抄**; ★**真正能抄的是上面两条 GPL-2.0 的** (RPi 完整驱动 + Jetson `ar0234_mode_tbls.h`; 骨架从 Rockchip BSP `ov02b10.c` 抄)<br>· `LPXingxing/LI-AR0234CS-STEREO-GMSL2` 等 GMSL2 移植 (Xavier)<br>· 商用模组 (Vadzo Bolt-234CGS 等) 随附 Jetson/AGX/Xavier/i.MX8/RPi 驱动 | `github_repo_counts.json` + 各仓库实查 |
 | **D5 公开规格库** | ✘ **OpenIPC 无此条目** (页面 404 → 跳首页) | ✔ **有** (openipc.org/cameras/sensors/ar0234, 别名 AR0234CS, 标注 In production) | `openipc_sensors.json` + 实查 |
 | **★总分** | ★**0 / 10** | ★**3 / 10** | `python3 HW/open_source_rank.py` |
 
@@ -84,7 +84,7 @@ python3 HW/open_source_rank.py --selftest # 自检: 快照可解析 + 已知排�
 ### 3.2 结论二: ★**C 路真正的风险不是"生态差", 是"驱动要等谁给"**
 
 - **C 路 = 从零写驱动**: 全网零实现 ⇒ 寄存器时序、曝光/增益/HDR 控制只能从**豪威**拿 ⇒ ★**豪威的寄存器文档/驱动常带 NDA, 且我们的问询单 (TBD-03) 目前还没拿到 lane 数/速率** ⇒ ★**如果豪威给不出寄存器表, C 路直接死, 而不是"慢一点"**。
-- **D 路 = 移植**: 已有 GPL-2.0 完整驱动 (42KB) + DT overlay + RK3588 同族 bringup ⇒ 移植到 RK3572 rkisp3 是**工程活**, 不是"等外部"的活。
+- **D 路 = 移植**: 已有 GPL-2.0 完整驱动 (42KB) + DT overlay + Jetson 版 mode 表 ⇒ 移植到 RK3572 rkisp3 是**工程活** (★**但没有同族参考可抄** ⇒ 工作量 5.5→**≈7 人日**, 见 `HW/AR0234CS_RK3572_PORT_SPEC.md`), 不是"等外部"的活。
 - ⇒ ★**这条判据真正改变的是"卡在谁手里"**: C 卡在豪威回信 (外部, 周期不可控), D 卡在我们自己 (内部, 可排期)。
 
 ### 3.3 结论三: ★★ **两个候选都没有现成 ISP tuning** ⇒ "选生态成熟的"在 tuning 这一层**不成立**
@@ -149,3 +149,14 @@ python3 HW/open_source_rank.py --refresh    # 联网重刷快照 (GitHub API / o
 `linux_mainline_i2c.json` (201 项) · `rockchip_bsp_i2c.json` (363 项) · `rkaiq_iqfiles.json` (15+36 项) · `github_repo_counts.json` · `openipc_sensors.json` (896 项)
 
 **证据等级**: D1/D2/D3/D5 = `[实测]` (脚本抓取 + 快照可复算) · D4 = `[实测]` (GitHub API 计数 + 各仓库实查) · ★**§2.1 里非本项目候选的几行 (IMX415 / AR0521 / OV9281 / OV02B10) 的规格数字来自公开库/原厂页, 标 `[公开库/官方]`, 只用于说明"开源数据这条判据管不管用"**, 不作为选型结论; ★C/D 两路的规格数字沿用 `HW/SENSOR_SELECTION.md` §B3/B4 的 `[官方]` 口径, 本文件不重复取源。
+
+---
+
+### ★★2026-11-02 19:5x 实测补记 (hw-lead ISS-144 交卷, main 复核过)
+| 项 | 结论 | 证据 |
+|---|---|---|
+| ★**E1** | `opensource206/UC788_AR0234_SENSOR_TO_RK3588` = **空仓** (LICENSE 35149B + README 82B) ⇒ 不能抄 | GitHub API 实拉 |
+| ★**E2** | ★**AR0234CS 的 I2C 地址 = 0x10** (★**不是 0x36** —— 0x36 是 OV04C10 的旧注释) | RPi overlay 实拉: `ar0234@10 { compatible = "onnn,ar0234cs"; reg = <0x10>; }` |
+| ★**E3** | ★**`rk3572.dtsi` 在 `rockchip-linux/kernel` 的 `develop-6.12` 分支公开** (6.1/6.6 = 404) ⇒ TBD-01 缺的只是"球号", 逻辑拓扑/节点名/ISP 链路/regulator phandle 全有公开来源 | raw.githubusercontent 实拉 (文件头为 Rockchip copyright) |
+| ★**E4** | ISP3 支持 **GRBG** (media-ctl 格式要写 `SRGGB10_1X10`) | `isp/common.h` `RAW_GRBG` + `isp_params_v3x.c` 映射 |
+| ★**E5** | AR0234CS 驱动移植工作量 **≈7 人日** (不是 5.5) —— 涨点: CCI→regmap 重写 24 处 / 增益 0x30BA 按 pixclk 分档 / rkisp3 format 改 4 处 | hw-lead ISS-144 规格 §2 |

@@ -4,14 +4,22 @@ updated_at: 2026-11-02 01:3x
 updated_by: sw-lead
 status:
   phase: P2(方案设计)
-  progress_pct: 65
+  progress_pct: 70
   health: yellow
-  summary: '11-01 周更新: 闭合 hw-lead 唯一未回 inbound 需求 rel_od_duty_for_mtbf (运行时 OD 占空比
-    10% = 1s/10s 按需触发, 系统级 MTBF 取 522510h/59.6y 档, 非满载 93396h/10.7y); 口径澄清: od_duty_cycle=100%
-    = 连续满载档/电源设计裕量, 非运行时占空比 (旧值不动, 新增 1 条 claim mtbf_duty_basis 划边界); P=镜腿内发热量非整机功耗
-    (ISS-064 S-1); progress 60→65 依据: ISS-123 闭环 (自证 15/15, 9 条新取值) + 问询清单 v2.0 +
-    板端实测清单 v1.0 + 1 条需求闭环; 仍 yellow: 板端实测 0 次 (P1~P4 null) + magic 取值/产品代号/RK3576
-    下载态入口 3 条待裁决 + 原厂 Q17 逾期'
+  summary: '11-02 晚: 交出 ISS-147 构建环境恢复单 (SW/RKNN_BUILD_ENV_RECOVERY.md, 只恢复环境+核 P0-1+给模型建议,
+    不写 demo 代码)。★★核心结论 (P0-1 已闭合): rk3572 不是任何已发布版 rknn-toolkit2 的合法 target_platform
+    —— 2.3.2 与最新 2.5.0 的 config(''rk3572'') 均抛 ValueError: Invalid target_platform
+    ''rk3572''! (rk3576 返 0), 源码/二进制/官方 README 三处均无 rk3572 ⇒ ★ISS-145 的 M1 (直接复用 A7S
+    .rknn) 前提不成立, 必须重转; 替代路线 = target_platform=''rk3576'' (RK3572 与 RK3576 同代同架构,
+    但 4 vs 6 TOPS 算力不等) —— 推算, 待板端验证。工具链已在本机恢复 (conda env ~/miniconda3/envs/rknn,
+    与 rknn_bench.py 硬编码路径一致, 仓库脚本零改动可跑), 转换链四步全 rc=0 实测跑通; 源 ONNX 从官方 yolov5 v6.0
+    权重重建, 算子直方图与台账丢失那份逐个一致; ★两个模型精度都实测了 (300 张 COCO): yolov5s F1 0.3017 vs yolov5n
+    F1 0.2927, 差距仅 0.0090 (推翻 ISS-145 引用的''少 4 点 mAP50'') ⇒ 建议 demo 第一版用 yolov5n (60ms
+    余量最大 + 误检少 + 产物小一半), 代价是召回低 0.0291 需眼镜场景实拍验证。★记录 2 个会静默出错的坑: 3 路 head 输出名必须改名
+    350/498/646 (否则 step_cut 失败), 以及 rknn_bench.py 的 cut 模型缓存不失效 ⇒ 换模型重测会跑出上一个模型的数字
+    (本单实测两次结果逐字节相同)。仍 yellow 的原因: 板子 Radxa A7S 192.168.2.5 不可达 (ssh No route to host
+    + ARP FAILED) ⇒ P0-2 板端 librknnrt 版本号 + 板端实测 S5 两项无法闭合; §6 留 18 条待核, 未用推断冒充事实。'
+  updated_at: '2026-11-02'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -282,6 +290,61 @@ artifacts:
   summary: '11-01 周更新交接单 (B1-B6 六块齐): 答 hw-lead MTBF 占空比口径 (运行时 10% 按需触发, MTBF 取 522510h/59.6y
     档) + 口径澄清 (od_duty_cycle=100% = 电源设计裕量, 旧值不动) + ISS-123 已闭环复述 (自证 15/15, 9 条新取值)
     + 板端实测仍 0 次 ⇒ BR-01 未验, 该板不得进产线 + 新增 needs 0 条'
+- path: SW/DEMO_OD_PIPELINE_SPEC.md
+  kind: spec
+  version: v1.0
+  updated_at: '2026-11-02'
+  summary: '★ISS-145 预研 demo 板 OD 管线规格 (只出规格, 不写代码): 7 节固定结构 (模型/推理运行时/后处理与画框/显示通路/帧率与延迟打点/验收判据/路径A
+    vs 路径B)。①模型: 复用 A7S 80 类 INT8 —— ★仓库里唯一转换+实测过的是 yolov5s@640 (F1 0.3139, ΔF1 -0.0043),
+    yolov5n 本地无 ONNX 只有第三方 benchmark 8.87ms ⇒ 写死 M1(yolov5s 直接用)/M2(yolov5n 需新转) 二选一
+    + 5 条重训触发条件; ②运行时: rknn-toolkit2 2.3.2 + 板端 rknn-toolkit-lite2, 预处理 = RGB→等比 letterbox
+    640x640(黑边 pad=0)→/255→NCHW (★值域 [0,1] 不是 0-255, 踩坑实测 maxIoU=0) + P1/P2 两套 letterbox
+    参数表(1920x1200→640x400+上下120px / 640x480→640x480+上下80px); ★P0 前置 3 条: rk3572 是否在
+    toolkit2 2.3.2 的 target_platform 内(只证过 rk3576)/板端 librknnrt 版本/本机缺工具链+模型+校准集;
+    ③画框: ★写死画在 NV12 的 Y 平面不碰 U/V (色度 4:2:0 与亮度不同步→偏色错位), 顺序 = OD 坐标反变换→画框→(可选 YUV→RGB)→DRM
+    plane, ★画框在缩放之前 (16:10→16:9 等比 letterbox k=0.9 内容 1728x1080 左右各 96px 黑边), 框宽配置化;
+    ④显示: DRM/KMS plane + 4-lane MIPI-DSI 1.2 + I2C, ★两阶段验证法 (init code 前只验 DRM/KMS+假画面+DSI
+    PHY 抓包, 后验真面板); ⑤打点: 9 个埋点 (t_capture/t_pre/t_npu/t_sdk_total/t_decode/t_draw/t_compose/t_display/t_e2e)
+    + min/avg/max/p50/p95 + 帧数>=300, ★demo 只记录不设门限 (60ms 留整机阶段), ★铁律 纯 NPU vs SDK
+    总耗时分开报 (A733 27.19 vs 36.51, 差 9.29ms=反量化 25%); ⑥验收 5 条全过=出图/80类框正确/框不错位(往返误差<=2px)/屏上正常/延迟有数;
+    ⑦路径对比: ★软件 75% 与 sensor 无关 (代码量口径) 但 sensor 承担 ~70% 阻塞风险; 路径B(先 IMX415/OV02B10,
+    rkaiq 公开 iqfiles 有现成 IQ) 省 10~14 人天≈2~3 周 ★但真瓶颈是面板 init code (问询函草稿未发) ⇒ 判断=发问询函
+    > 路径B > 并行做 AR0234CS 驱动移植+tuning。 ★纠正一处派单口径: timing_check.py 是硬件时序算术复核器不含端到端打点,
+    真出处 = ARS45_INT8_CHAIN §4 埋点表 + RKNN_BENCH §4.1 分段账。 ★16 条待核项在 §8 全部列出, 未用推断冒充事实。'
+- path: SW/RKNN_BUILD_ENV_RECOVERY.md
+  kind: recovery-spec
+  version: v1.0
+  updated_at: '2026-11-02'
+  summary: '★★ISS-147 (sw-lead, 2026-11-02 19:19~20:40) 构建环境恢复 + 核 P0-1 —— 只写恢复方案/实测数据,
+    不写 demo 代码。★★核心交付 (§2): rk3572 不是任何已发布版 rknn-toolkit2 的合法 target_platform —— 实测
+    2.3.2 与最新 2.5.0 (2026-10-20) 的 config(target_platform=''rk3572'') 均抛 ValueError:
+    Invalid target_platform ''rk3572''! (rk3576 返 0); 源码 rknn/api/rknn.py:88-89 的
+    target 列表无 rk3572, 整包 grep (含 .so 二进制) rk3572 命中 0 次; 官方 GitHub README ''Support
+    Platform'' 列表 (RK3588/RK3576/RK3566-3568/RK3562/RV1103-1106/RV1103B-1106B/RV1126B/RK2118)
+    亦无 RK3572 ⇒ 不存在''升级到某版本就有 rk3572''这个选项 ⇒ ★ISS-145 的 M1 (直接复用 A7S .rknn, 零转换成本)
+    前提不成立, 必须重转; 替代路线 = 用 target_platform=''rk3576'' 转换 (RK3572 NPU 与 RK3576 同代同架构
+    RKNPU v2, 4 vs 6 TOPS 算力不等) —— ★是推算不是实测, 板端验证列 §6 N1。★顺带纠正 ISS-145 §2.3 两处方法错误:
+    RKNN.RKNN_TARGET_PLATFORM 属性在 2.3.2 不存在 (hasattr=False), 正确核法是直接 config() 试 +
+    grep 编译后的 rknn_base*.so。§1 工具链已恢复: conda env ~/miniconda3/envs/rknn (python 3.10.22
+    / rknn-toolkit2 2.3.2 / onnx 1.16.1 / numpy 1.26.4 / protobuf 4.25.4 / torch 2.4.0+cpu),
+    路径与 rknn_bench.py 硬编码 RKNN_PY 一致 ⇒ 仓库脚本零改动可跑; 记录 4 个装环境坑 (pip 声明 onnx>=1.16.1
+    与台账 1.14.1 冲突 / protobuf>=5 致 build 崩 / 装全套依赖拉 2.5GB CUDA 包 / setuptools>=81 删
+    pkg_resources)。§3 模型选择: 从官方 yolov5 v6.0 权重 (走 hf-mirror, GitHub release asset
+    直连不通) 重新导出 yolov5s/yolov5n@640, ★重建件算子直方图与台账丢失那份逐个一致 (245 节点 / Mul69 Conv60 Sigmoid60
+    Concat17 Add10 Slice9 Reshape6 MaxPool3 Transpose3 Sub3 Pow3 Resize2) 但 sha16
+    不同 ⇒ 须登记新资产 ID 不得冒充 MOD-YOLOV5S-640-ARS45-SRC; ★★实测精度 (300 张 COCO val2017 同口径同图集):
+    yolov5s F1 0.3017 (ΔF1 −0.0056) vs yolov5n F1 0.2927 (ΔF1 −0.0030) ⇒ ★差距只有 0.0090,
+    远小于 ISS-145 引用的''少 4 点 mAP50''; yolov5n 精确率反高 (0.3924 vs 0.3547) 误检少 263 个, 但召回低
+    0.0291 (眼镜小目标场景需实拍验证); 产物 5.13 vs 10.47 MiB; build 8.3 vs 15.2s ⇒ ★建议 demo 第一版用
+    yolov5n (60ms 余量最大 + 精度差距已被实测证明很小 + 误检少 + 产物小一半), 切换成本 <5 min。§4 推荐 A2 (重新导出,
+    已跑通) 而非 A1 (找回: 全盘/git/回收站/部署包/备份全查过, 唯一剩板子但不可达)。★★记录 4 个复刻隐形坑: onnxsim 必需 (否则
+    grid/anchor 不在 initializer, load_grid_anchor 抛错) / 3 路 head 输出名必须改名 350·498·646
+    (step_cut 硬编码, 官方导出名是 onnx::Sigmoid_378/449/517) / 改名必须生产者+消费者+图输出+value_info
+    四处同改 (否则 SSA 校验失败) / ★★rknn_bench.py 的 cut 模型缓存不失效 (固定名 yolov5s_heads.onnx + 仅在缺失时重切)
+    ⇒ 换模型重测会静默跑出上一个模型的数字且不报错 (本单实测两次结果逐字节相同, 删缓存后才是真数)。★板子 Radxa A7S 192.168.2.5 仍不可达
+    (ssh No route to host + ARP FAILED + 网关通) ⇒ P0-2 板端 librknnrt 版本号无法闭合, 留 §6 N2。§6
+    共 18 条待核 (N4/N5 精度已闭合)。★未改 PROJECT_TRACKER.md / issue_log.yaml / HW/ 任何文件 / SW/tools/*
+    任何脚本 / DEMO_OD_PIPELINE_SPEC.md / RKNN_BENCH.md。'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -391,6 +454,23 @@ blockers:
     **NPU 可转换性 = 0 数据** (TF SavedModel → ONNX → Art.Galaxy 三段都没跑过) —— 即''换栈''这条路目前也只有许可干净,
     没有转换可行性证据; 同机 640 版 yolov5s ONNX 是唯一实测可推理的 yolov5s 资产 (但它是 AGPL) ⇒ **''许可干净''
     与 ''NPU 可用'' 两个条件在本地暂无交集** → 必须等 Art.Galaxy 工具链才能定主模型'
+- id: SW-B14
+  desc: '★ISS-145 demo: 视涯 0.49" SiOLED 的 DSI init code / 时序 / DSC / 单色全彩 全未拿到 (问询函草稿未发)
+    ⇒ 显示侧只能做阶段1 (DRM/KMS plane 通路 + 假画面 + DSI PHY 层抓包), 阶段2 (真面板上色/亮度/TE撕裂) 全阻塞 ⇒
+    且''屏上有画面''不需要 camera ⇒ 这是整个 demo 最长的关键路径'
+  needs_from:
+  - vendor
+  - boss
+  severity: critical
+  waiting_since: '2026-11-02'
+- id: SW-B15
+  desc: '★ISS-145 demo: RK3572 (4 TOPS) 上 rknn-toolkit2 2.3.2 是否支持 + 板端 librknnrt
+    版本兼容, 均未核 (只证过 rk3576 目标); 且本机无 RKNN 工具链/源模型/校准集 ⇒ ''复用 A7S 现成 .rknn'' 这条最快路线的前置未落实'
+  needs_from:
+  - sw-lead
+  - vendor
+  severity: high
+  waiting_since: '2026-11-02'
 needs_from:
 - key: q1_latency_scope
   to: main
@@ -728,6 +808,50 @@ needs_from:
   decided_at: ''
   decided_by: ''
   since: '2026-11-02'
+- key: demo_od_p0_1_rk3572_target
+  to: main
+  item: '★P0: rknn-toolkit2 2.3.2 的 target_platform 是否含 rk3572 —— RKNN_BENCH.md §5
+    只证过含 rk3576 (rknn/api/rknn.py:89)。若不含 ⇒ ''直接复用 A7S 的 .rknn 产物'' 不成立, M1(yolov5s)
+    的零转换优势归零, 必须改选 M2(yolov5n) 或升级工具链。核法: 构建机上 python -c "from rknn.api import RKNN;
+    print(RKNN.RKNN_TARGET_PLATFORM)" + grep rknn/api/rknn.py'
+  since: '2026-11-02'
+  due: '2026-11-05'
+  waiting_on: sw-lead
+- key: demo_od_p0_3_build_env
+  to: main
+  item: '★P0: 本机缺 RKNN 工具链/源 ONNX/100 张校准集/.rknn 产物 (实测: ~/Public/radxa_yolo 不存在,
+    conda envs 空, 无 *.onnx/*.rknn)。RKNN_BENCH.md 的复现命令是在有该环境的机器上实测的。下一步第 0 步 = 找回
+    ~/Public/radxa_yolo/ 或重建 conda env rknn-toolkit2==2.3.2, 否则转换链跑不了, 谈不上写 demo 代码'
+  since: '2026-11-02'
+  due: '2026-11-05'
+  waiting_on: sw-lead
+- key: demo_od_p0_4_panel_init_code
+  to: main
+  item: '★P0 + ★全局最长关键路径: 视涯 0.49" 1920x1080 的 DSI init code / 时序 / DSC 需求 / 单色还是全彩
+    全未拿到 (state/outbox/visionox_display_inquiry.md 是草稿未发)。★''屏上有画面''不需要 camera (测试图卡即可验
+    DRM/KMS+DSI), 所以这条链路上最短的那根线是面板而不是 sensor ⇒ 请项目总工/老板放行外发问询函 (Q2 的 init sequence
+    + Q1 的单色全彩 是硬项)'
+  since: '2026-11-02'
+  due: '2026-11-04'
+  waiting_on: boss
+- key: demo_od_model_route_m1_vs_m2
+  to: main
+  item: '★待裁决: demo 阶段模型路线 M1(直接用 A7S 的 yolov5s@640 INT8, 零转换, 但 RK3572 推算 模式A 62.67~64.18ms
+    超 60ms) vs M2(yolov5n@640, 需新拿 ONNX + 重转 + 精度重评, 推算 模式A 52.91ms ✅ 但模式B age=2 仍
+    ❌)。sw-lead 建议 M1 (demo 验收判据里没有 60ms 这一条, 60ms 是整机阶段硬指标) + 写死三个换模型触发条件。若 boss 要求
+    demo 阶段就挂 60ms 门限 ⇒ 只能走 M2 或改锁死变量 ''OD 640x480'' (需 boss 拍板)'
+  since: '2026-11-02'
+  due: '2026-11-04'
+  waiting_on: boss
+- key: demo_od_path_a_vs_b
+  to: main
+  item: '★待裁决: 路径A(AR0234CS 单线, 驱动移植 5~8 人天 + ISP tuning 自写 5~10 人天, 因 rkaiq 公开 iqfiles
+    无 ar0234) vs 路径B(先用有现成 BSP 驱动+现成 IQ 的 IMX415/OV02B10 跑通链路, 再换 AR0234CS)。sw-lead
+    判断: 软件 75% 与 sensor 无关但 sensor 承担 ~70% 阻塞风险; 路径B 省 10~14 人天≈2~3 周, 但''最短出画面''的真瓶颈是面板
+    init code ⇒ 建议 面板问询外发 + 路径B + AR0234CS 驱动/tuning 三线并行 (不是二选一)'
+  since: '2026-11-02'
+  due: '2026-11-04'
+  waiting_on: boss
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -1223,6 +1347,16 @@ open_questions:
 - id: SW-Q2
   to: main
   text: 显示帧率若降到 25-30fps, 老板的'60fps'锁死项是否要改写
+- id: SW-Q3
+  text: '★ISS-145: demo 阶段模型路线 M1(yolov5s@640 直接复用, 零转换) vs M2(yolov5n@640 需重转+重评精度)
+    —— M1 推算 模式A 62.67~64.18ms 超 60ms 硬指标, M2 模式A 52.91ms 过但模式B 仍 ❌; sw-lead 建议 M1
+    + 写死换模型触发条件, 待项目总工/老板拍板 (是否 demo 阶段就要挂 60ms 门限)'
+  to: main
+- id: SW-Q4
+  text: '★ISS-145: demo 路径 A(AR0234CS 单线) vs B(先 IMX415/OV02B10 跑通再换 AR0234CS) ——
+    软件 75% 与 sensor 无关但 sensor 占 ~70% 阻塞风险; 建议三线并行 (面板问询外发 / 路径B / AR0234CS 驱动+tuning),
+    待拍板'
+  to: main
 risks:
 - id: R-sw-step
   text: 'NPU 延迟台阶效应: 纯 NPU 跨过 16.67ms 边界 → age 从 2 跳 3 → 端到端直接多一整个帧周期 (67→83.7ms)。差

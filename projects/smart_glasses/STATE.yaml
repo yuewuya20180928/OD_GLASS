@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-02T19:13:50+08:00'
+  generated_at: '2026-11-02T20:41:16+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 98342
-      sha1: 50e09758efca
-      mtime_ns: 1793583976377151379
+      size: 145155
+      sha1: 918c674de3d2
+      mtime_ns: 1793622280794176881
     mech-lead:
       file: mech.yaml
       size: 137924
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1793616190216050340
     sw-lead:
       file: sw.yaml
-      size: 78975
-      sha1: c1a0e5c7b126
-      mtime_ns: 1793553398204321545
+      size: 91471
+      sha1: caafbaf6f4d3
+      mtime_ns: 1793623215920662951
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -141,7 +141,7 @@ domains:
     - id: PM-B4
       desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
       severity: medium
-      needs_from: &id032
+      needs_from: &id033
       - jbd
       waiting_since: '2026-10-21'
     needs_from:
@@ -519,14 +519,17 @@ domains:
 
         ★**拿到第①项之前, 板面积账与逃线层数都只能是 [推算]** (ISS-128 阻塞于此)。'
       since: '2026-11-02'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
       decision: ''
       decided_at: ''
-      answers: []
+      answers:
+      - by: hw-lead
+        value: ISP要求侧124.4MP/s@60;官方上限[待核]
+        ref: HW/IMX415_DEMO_SENSOR_FACTS.md §2.1 + HW/AR0234CS_OPEN_SOURCE_FACTS.md §1.1
       foreign_answers: []
     - key: visionox_inquiry_release
       to: boss
@@ -622,32 +625,17 @@ domains:
     updated_at: '2026-11-02'
     updated_by: main
     status:
-      phase: P2(原理图/BOM)+结构接口
-      progress_pct: 68
+      phase: P2(原理图/BOM)+替代料候选清单已落
+      progress_pct: 80
       health: yellow
-      summary: '2026-11-01 周更新 (项目总工派, 本周唯一写会话窗口): 四条 issue 闭环 + 16 条补登记 answers + 14 条 claims 订正/新增。①
-        ISS-111 (EVT 可靠性实测项清单) **fixed**: 出 HW/EVT_RELIABILITY_TEST_ITEMS.md —— 6 类 37 项 (跌落 9/振动 5/弯折
-        6/热 5/焊点 6/连接器寿命 6), 每项含 测什么/怎么测(设备+工装+样品数+次数)/量化判据/不过回退哪一版/状态 五字段, 工况直接引用 RELIABILITY_DESIGN
-        §2.2 不重写; 顺带闭合 mech-lead 的 X-ray 抽样口径 (1 台只有 1 块主板 ⇒ 抽样按**位置**计: 同板 3 位置 + 1 切片)。② ISS-043 (充电状态读取)
-        **fixed**: HW/CHARGE_STATUS_READBACK.md —— 硬件上本来就是**双通路**: CHG_STAT (BQ25896 STAT 开漏 + 10k 上拉
-        → J_CHG pin5 → SoC GPIO, 低=充电中) + VBUS_DET (1M+1M+100nF → J_CHG pin7 → ADC) ⇒ M-CHRG 门禁**可实现**;
-        ★判据必须 OR(...) 才 fail-safe (单看 CHG_STAT 断线会放开禁 OD); RC 复算 τ=50ms (建议 100k/47k ⇒ 3.2ms)。③ ISS-079
-        (情报检索) **fixed**: HW/ONLINE_INTEL_2026-10-26.md —— 采用 ARS45 的 AI 翻译眼镜 = **科大讯飞『讯飞AI眼镜』** (2026-05-28
-        BEYOND Expo 发布, 40g, 122 语言, 唇动识别降噪), 但**公开拆解 [0数据]**; 招股书侧 (媒体转述级) 拿到硬情报: **fabless + 智能可穿戴仅占营收
-        9.8% + 供应商集中 61.2-65.5% + 分销收入 1.71亿→4350万 (-1.09亿)** ⇒ 量化支持『跳过酷芯微』; PHIP 直链仍 [0数据] (5 条路径已试,
-        需人工点 hkexnews)。④ ISS-105 **fixed**: 分片过期值订正 (pcb_outline 60x15→**60x30mm** / pcb_width_recommend
-        15→30mm / pcb_mount_holes_xy 的 Y 按 30mm 板宽重算 = P1(8,15)P2(52,15)S1(8,10)S2(52,20)) + battery_capacity_tier
-        重复旧值条目已清 + J_CHG『实物一对』写进 BOM 备料栏 + 机械防呆已是 RFQ C-4 硬判据。⑤ ★**本周新发现 (总工的盲区)**: ISS-089 交叉评审 #3 命中
-        —— CHARGE_BOARD_SPEC §3.4 的 ICHG=IIN×(VBAT/VBUS)/η **方向反了** (buck 降压应是 ICHG=η·Vbus/Vbat·IIN=**1.2162×IIN**,
-        旧式 0.8222× 是它的倒数, 乘积=1.000000000 自校) ⇒ **390Ω 档实际 ICHG 1.00-1.22A, 单 pin 0.608A > 0.5A 触点天花板 ⇒
-        390Ω 档判 FAIL**, 建议 R_ILIM 退 **680Ω** (单 pin 0.349A/余量 1.43×); mech 按 1.5A 设计点算的铰链压降不受影响 (仍保守 1.23-2.15×)。⑥
-        ★补登记 **16 条 answers** (窗口开始时 13 条) —— 覆盖 sw-lead 的 fw_boot_storage_bom / fw_boot_mode_hw / sw_reset_hw_changes
-        / sw_poweroff_gpio_pin, mech-lead 的 13 条 (含 X-ray 抽样/ESD-CMC/接地定义/CRC 阈值/BAT 监测点/ICHG 方向/P9 堆叠/充电灯
-        board 列/mock 板档位/电池档位/Cortex-10), main 的 emc_hw_interface_ask。⑦ ★新增 8 条 needs (含 R_ILIM 退档裁决 due
-        11-03 / PHIP 人工下载 / VBUS_DET 改阻值 / 充电灯 board 列 / J_DEBUG Cortex-10 / BOM 生成器备料倍数 / mech 侧 60x30
-        同步 / 孔位 Y 重算), 并给 23 条历史 needs 补 due (零僵尸)。⑧ 边界: 未发任何邮件/未联系供应商/未改 PROJECT_TRACKER/STATE.yaml/别人的分片/别人的
-        issue; 网表与 BOM 生成器 (state/gen_netlist.py, gen_bom.py) 不在本单边界 ⇒ 走 needs。自证: python3 HW/hw_week_20261101_check.py
-        (rc=0) + state/merge.py (rc=0) + state/gate_check.py。'
+      summary: '2026-11-02 20:2x ★交付 HW/PART_ALTERNATIVES_REGISTRY.md (七类31候选/全可点链接/已试未试栏/L3凭证)。★★5条结论:
+        C1 面板init code不必问厂家(Rockchip BSP 内核自带 8 颗 panel 驱动 + rk3576-evb.dtsi 里 1080x1920 4-lane 完整 init
+        sequence 可抄) 但 EK79007/EK73217/NV3049 内核里【没有】; C2 TPS7A20 实测【有EN脚】(TI datasheet) => ISS-152 不必换LDO家族;
+        ★2.9V/1.1V 档只有 DQN/YCK 无 SOT-23-5 => 改档=改焊盘 => DVDD 建议保持1.2V; C3 公开现货 camera 模组 FPC 是 31p0.3mm
+        或 RPi 15p1.0mm/22p0.5mm, 与自画0.5mm24p 对不上 => 画板前必须二选一; C4 公开现货 MIPI-DSI 一体屏最高 1200x1920, 视涯1920x1080无对标品
+        => demo 用 Radxa 8HD/10FHD 验链路; ★★C5 P0: TPS7A20 EN 脚悬空 = LDO 关断 (500k内部下拉, datasheet 实测) 而本项目
+        7 路 LDO 网表行里没有 EN 网络 => 投板后板子不启动 (2-4周返工) => 现在改网表成本≈0 (BOM footprint/opn 全待定), 必须全表7颗显式接EN。全库零采购记录
+        => L3 条件不成立, L4 不触发。'
     artifacts:
     - path: HW/HARDWARE_BREAKDOWN.md
       kind: breakdown
@@ -885,6 +873,69 @@ domains:
       version: '1.0'
       updated_at: '2026-11-02'
       summary: 'onsemi AR0234CS 问询草稿 (7 项: pinout/电源域/CRA/lane速率/裸片功耗/IQ文件/驱动/商务) —— 未发, 等老板放行 (ISS-142)'
+    - path: HW/AR0234CS_RK3572_PORT_SPEC.md
+      kind: spec
+      version: '2.1'
+      updated_at: '2026-11-02'
+      summary: 'AR0234CS → RK3572 rkisp3 驱动移植规格 (ISS-144) v2.1: 6 章齐全 + §0.2 三处硬伤订正 + §6.2 执行顺序表 (面板先解锁
+        + 路径B 先打通)。★★v2.1 新增 (19:18 主控补充后): R12 A7S 板连不上(A1~A5 暂不可实跑) + R13 用 A7S(RK3576) 当先行验证平台 (实测与
+        RK3572 的 ISP 拓扑逐节点同构, 只差 dphy compatible 的 SoC 名 ⇒ 等 RK3572 板不构成 C1~C3/C6 前置) + R14 面板 init code
+        是整个 demo 真瓶颈 + §6.2 优先级表 (P0 面板/onsemi 问询外发, P1 路径B+路径A并行, P2 板网/A7S网络恢复)。'
+    - path: HW/DEMO_BOARD_HW_DECISION.md
+      kind: spec
+      version: '1.0'
+      updated_at: '2026-11-02'
+      summary: 'demo 板硬件方案定案: 三问三答 (sensor/主板 FPC 24p 2-lane · 主控用 RK3572 SOM · 屏模组 FPC 20p 4-lane) +
+        针位总表 + 网表改动 + Step1 公开 SBC 先跑'
+    - path: HW/IMX415_DEMO_SENSOR_FACTS.md
+      kind: facts
+      version: '1.0'
+      updated_at: '2026-11-02'
+      summary: '★demo sensor 改 IMX415 的四问 (ISS-148, 老板 11-02 19:29): ①电源域 (dvdd 1.1V/dovdd 1.8V/avdd 2.9V,
+        ★现网表 2.8V 的 SENSOR_VDD_IO 会烧 sensor) ②1080p60 走 sensor 侧 2/2 行 binning (0x3020=0x01, FOV 不变, 不触犯
+        10-25 禁 ROI/crop) + RK BSP imx415.c 已带该模式, 只需 VMAX 0x0C5D->0x062E ③现成 IQ 只有 1 个 isp3x JSON 且锁死
+        3840x2160 + mesh 也锁 3840x2160 => 需补 1920x1080 网格 + AE 曝光表换算 (1~2 人日) ④模组采购硬判据 12 条 (★必须 4-lane:
+        驱动 2-lane 表里没有 binning 模式)'
+    - path: HW/AR0234CS_OPEN_SOURCE_FACTS.md
+      kind: facts
+      version: v0.9-superseded
+      updated_at: '2026-11-02'
+      summary: '★[已被下一条 superseded] 这是本单前一次半成品登记 (只查 U2/U4)。★20:05 更新: 本单最终版已把 U1/U3 一并查完 (见下一条同路径 artifact),
+        理由 = 19:29 老板那条收敛的是『demo sensor 选型判据』 (功耗/快门/CRA 不作为 demo 筛选条件, demo sensor 已定 IMX415), 而 AR0234CS
+        是留给整机方案的, 本单任务书明确要求 4 个未知量全查且 U1 优先 => U1 裸片功耗与 U3 CRA 的数据对整机账仍然有用 (尤其 U1 直接决定 POWER_BUDGET_V3
+        里那条 0.92W 拒绝理由成不成立)。★若只看 demo 路径, 本文件 §2/§4 可跳过。'
+    - path: HW/AR0234CS_OPEN_SOURCE_FACTS.md
+      kind: facts
+      version: v1.0
+      updated_at: '2026-11-02'
+      summary: 'ISS-148 交付: AR0234CS 原要发邮件问厂家的 4 个未知量 (U1 裸片功耗/U2 VDD_IO abs max/U3 CRA/U4 独立模拟轨), 全部走开源途径查完,
+        0 次对外通信 (未发邮件/未联系代理/未发帖问厂家)。★★四个结论: U1 查到 (datasheet Table 1 p.1: 裸片 Operational Power Consumption
+        <395 mW at 120 FPS Full Resolution, 典型值栏; Table 16 p.18 分轨工作电流 Typ 求和 372.6 mW / Max 646.4 mW,
+        两处互为佐证; datasheet 无 60fps 电流行 ⇒ 取 120fps 行为上界, 中值 ~300mW 标推算) => 换料触发条件不成立, AR0234CS 保留。U2 查到
+        (Table 14 p.17: VSUPPLY All Supplies 4.5V, 但 VIN DC Input Voltage = VDD_IO+0.3 = 3.1V => 3.3V
+        I2C 上拉超绝对最大额定值 0.2V, 改上拉 2.8V, 0 颗新器件, 只改 R_PU_I2CA 顶网到 RAIL_SENSOR_VDD_IO)。U3 部分查到 (Table 1 p.1:
+        CRA = 0 度或 28 度, 是两个 PN 变体不是同一料两档; Figure 19 p.23 给 28 度变体完整 CRA-vs-像高表, 角落 27.97 度 @ 3.396mm
+        对角半长; AND9658-D 存在但正文在 Scribd 付费墙后, 推荐镜头清单与 CRA 容差带判查不到, 按老板规矩永久放弃该文档不追)。U4 查到 (Table 5 p.8-9
+        引脚表: VAA/VAA_PIX/VAA_PHY 三条 2.8V 模拟轨 + VDDIO_PHY 1.8V only (Note 10 明写) + VDD/VDD_PHY/VDD_DATA
+        1.2V + VDD_IO 1.8/2.8V; Note 19 并轨表; Table 22/23 上电断电时序)。★★顺带查出 4 个投板后必改的问题: ①I2C 地址写错 0x36 应为
+        0x10 (datasheet p.11 写明默认 0x20/0x21 即 7-bit 0x10, 拉高 SADDR 选 0x30/0x31 即 0x18) ②I2C 上拉 3.3V 超
+        VIN 绝对最大额定值 ③网表缺 VDDIO_PHY 1.8V 轨且 CONN_CAM 18p 已 18/18 占满加不出第 4 条轨 (三方案 A 20p连接器/B 铰链侧本地LDO/C
+        VDD_IO改1.8V但会打断TMP117, D 并轨已被官方数据排除) ④netlist SENSOR_VDD_IO 在 pin16 的 value 字段残留 1.8V。★★另: 0.92W
+        是 e-CAM 模组级含板载 ISP, 本项目 ISP 在 RK3572, 故 POWER_BUDGET_V3 拒绝 AR0234CS 的那条否决理由口径不成立, 已登记 PM 复算。'
+    - path: HW/PART_ALTERNATIVES_REGISTRY.md
+      kind: registry
+      version: v1.0
+      updated_at: '2026-10-25'
+      summary: '替代料候选清单: 7 类 (主控载体/camera模组/屏幕模组/sensor裸件/FPC连接器/电源/调试接口) 共 31 个候选, 每条给可点公开链接+实测规格+已试/未试;
+        ★核心实测: 面板 init code 不必问厂家 (Rockchip BSP 面板驱动清单 + rk3576-evb.dtsi 里的 1080x1920 init sequence),
+        ★但 EK79007/EK73217/NV3049 内核里其实没有; ★TPS7A20 实测有 EN 脚 (推翻项目内 无EN 的说法) => ISS-152 不必换 LDO 家族; ★公开现货
+        camera 模组 FPC 是 31p0.3mm 或 RPi 15p1.0mm/22p0.5mm, 与自画的 0.5mm24p 对不上'
+    - path: HW/PART_ALTERNATIVES_REGISTRY.md
+      kind: registry
+      version: v1.1
+      updated_at: '2026-10-25'
+      summary: 'v1.1 补 §6.1: TPS7A20 各电压档封装可得性实测 (2.9V/1.1V 档只有 DQN/YCK 无 SOT-23-5 => 改档=改焊盘) + DVDD 保持1.2V不动的建议
+        + BOM 封装列现在定还来得及'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -937,7 +988,7 @@ domains:
         仍 [待选型], 现在加零板费); 另 3 条外部依赖 (原厂 TPS62130A R_on / JBD 光机 3.3V 容差 / 老板拍板没电插电开不了机) 见 needs_from。
         ★本单遗留: 库内 netlist_v1.csv 的 U_LDO_L33/U_LDO_IO33 还是 LDO => 方案A 尚未落进网表, 改法清单见主文 §2.1, 需下一单调生成器。'
       severity: medium
-      needs_from: &id033
+      needs_from: &id034
       - main
       - vendor
       waiting_since: '2026-10-26'
@@ -1808,6 +1859,264 @@ domains:
       decided_at: ''
       answers: []
       foreign_answers: []
+    - key: iss148_imx415_netlist_changes
+      to: main
+      item: '★ISS-148/150 交接: demo sensor 改 IMX415 ⇒ 网表 9 项改动 (改网表要动 state/gen_netlist.py, 不在本单边界): N1
+        SENSOR_CORE 1.2V->**1.1V**; N2 SENSOR_VDD_IO 2.8V->**1.8V** (★不改会烧 sensor, IMX415 OVDD 上限 1.9V);
+        N3 SENSOR_AVDD 2.8V->**2.9V**; N4 三条轨『最大电流』文字 50/30/30mA -> **250/3/156mA** (IMX415 datasheet
+        Max); N5 I2C_A 上拉 (见另条 need); N6 **CSI 2-lane -> 4-lane** (见另条 need); N7 上电顺序 DVDD->OVDD->AVDD
+        (现网表三 LDO 同时使能无 EN); N8 驱动加 1080p60 模式 (VMAX 0x0C5D->0x062E, 不是移植是改一行); N9 IQ 补 1920x1080 mesh
+        + AE 曝光表换算 (1~2 人日)。★另: TPS7A20 固定档位表里有没有 1.1V/1.8V/2.9V 三点要核 (全档共用 X2SON 封装 ⇒ 缺档也是换料不换板)'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-03'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: demo_csi_lanes_2_vs_4
+      to: main
+      item: '★★CSI lane 数冲突待裁 (影响 FPC 针数/网表/BOM/连接器): 已有 claim `demo_csi_lanes=2lane` (demo 板方案) vs 本单
+        `demo_csi_lanes_imx415=4lane` (Rockchip BSP imx415.c 证据)。★**技术事实**: 驱动按 num_data_lanes 选模式表, 2-lane
+        表里**没有 1944x1097 binning 模式** ⇒ 只接 2 lane 拿不到 1080p 模式 ⇒ IMX415 demo 路线要 4-lane; ★**带宽不是约束** (1080p60
+        12bit=1.49Gbps, 2 lane @750Mbps/lane 装得下) ⇒ 瓶颈在驱动模式表。★FPC 针数影响: 2-lane 24p -> 4-lane 需 4 数据lane
+        x2 + 时钟x2 = 10 差分对 = 20 脚 + I2C 2 + MCLK 1 + RESET 1 + 3 电源 + 2 地 ≈ **28-30p** ⇒ 请裁 camera FPC
+        座针数 (24p 够不够 / 改 28p / 30p) 并回写网表。★另注: 已有 claim `csi_lane_mode_req=4-lane` 也是 4-lane ⇒ 分片内部本就不一致,
+        需统一'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-03'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: i2c_a_pullup_two_versions
+      to: main
+      item: '★I2C_A 上拉方案待裁 (两版 sensor 各要不同电平): AR0234CS ⇒ **2.8V** (datasheet 绝对最大 VIN=VDD_IO+0.3=3.1V,
+        3.3V 超规格); IMX415 ⇒ OVDD 1.8V 域 (VIH max 1.9V, 3.3V 合法但 R 须 >=967 ohm) ⇒ ★**建议 AR0234CS 的 VDD_IO
+        也取 1.8V 档** (datasheet 允许 1.7/1.8/1.9) ⇒ 两版 sensor 上拉**都是 1.8V** ⇒ 一颗 LDO + 一次档位选择, 不必做两档。★前置:
+        请核 I2C_A 同总线从设备 (TMP117 1.7-5.5V ✔ / 充电 IC / 光机 / 屏) 各自的电平域, 这是 1.8V 全线改的前提'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-03'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: rk3572_isp_throughput_max
+      to: main
+      item: '★给 `rk3572_official_datasheet` 的部分答复 (我这边能给的已给): ★**要求侧现在钉死了** —— demo 走 1080p60 ⇒ ISP 进线
+        **1920x1080@60 = 124.4MP/s**; 若走全分辨率 3840x2160@60 = **497.7MP/s** ⇒ 本项目一直用的『ISP 250MP/s 口径』是**媒体/模组厂口径,
+        不是瑞芯微官方数字** ⇒ ★**仍缺官方 ISP 吞吐上限** (MP/s @ 什么位深/几路并发) 才能最终确认 250 这个数 ⇒ 请在拿到 RK3572 官方 Brief Datasheet
+        时一并取这个数。另: ISP 进线宽高对齐规则 (驱动注释: 输入宽 16 对齐/高 8 对齐) 已满足 (1920/16=120, 1080/8=135)'
+      since: '2026-11-02'
+      state: waiting_external
+      target_missing: false
+      waiting_on: vendor
+      due: '2026-11-04'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss144_netlist_i2c_addr_comment_0x36_to_0x10
+      to: main
+      item: '★ISS-144 规格 §0.2 E2 实测订正: ★AR0234CS 的 I2C 7-bit 地址是 0x10 不是 0x36 (0x36 是上一代 OV04C10 的)。证据
+        3 个独立来源交叉: ①Kurokesu/ar0234-rpi-driver 的 ar0234-overlay.dts (ar0234@10, reg=<0x10>) ②Kurokesu/ar0234-jetson-driver
+        的 tegra234-p3767-camera-p3768-ar0234-A.dts (rbpcv3_ar0234_a@10, reg=<0x10>) ③同源驱动 DTS。★HW/netlist_v1.csv
+        row 153 的 TMP117 注释「与 sensor 0x36 / 桥接 0x50 / 充电 IC 0x12 / 光机 0x72 都不冲突」里的 0x36 还是 OV 时代的 ⇒ ★请把注释里的
+        sensor 地址改成 0x10 (★地址本身不冲突: 0x10 与 0x48/0x50/0x12/0x72 都不撞, 只是注释错)。★本单不越界改网表, 故走 need (due 11-04)。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-04'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss144_onsemi_query_add_5_items
+      to: main
+      item: '★ISS-144 规格 §5 R11: onsemi 问询函 (ISS-142) 一封未发, 而它同时卡着 R2 (tuning) / R3 (CRA) / R4 (VDD_IO
+        abs max) / R10 (fine exposure) 4 条 ⇒ ★它是本单最长的外部依赖。★请在放行 ISS-142 时把问询单补成 7+5 项: ①lane 速率与位深档位 (450MHz=10bit
+        / 360MHz=8bit, 跟 pixclk 绑定) ②有没有现成 Rockchip ISP3 的 IQ 文件 ③fine exposure 寄存器是否存在 (S2 驱动只写了 coarse
+        0x3012) ④VDD_IO abs max (定 I2C 上拉 2.8V 还是 3.3V) ⑤完整 pinout 与电源域 (SENSOR_AVDD 2.8V 到底对应哪个脚)。★前
+        5 条正好对应规格的 C2/C3/C6/R4/R10, 建议优先问 (due 11-03)。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-03'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss146_demo_board_form_decides_pathB
+      to: main
+      item: '★ISS-144 规格 §6.1 末尾的隐藏前提: ★路径B (先用 IMX415/OV02B10 跑通链路) 能不能成立, 完全取决于 demo 板的 sensor 是不是外接模组。实测网表
+        P5: sensor 走 CONN_CAM (18p 跨铰链连接器) 外接 ⇒ ★只要 demo 板形态选「模组+转接板」, 换 sensor 就只换模组不动主板 ⇒ 路径B 硬件上通,
+        省 C1~C6 的 7 人日 + C7 的 1~2 人周 (合计 15~21 人天)。★但若 ISS-146 定成「自制整板」, 换 sensor 要改板, 路径B 成本会跳上去 ⇒ ★建议
+        ISS-146 选模组+转接板 (与 ISS-146 已有建议一致), 这条建议现在多了一条硬依据 (due 11-04)。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-04'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss148_pm_recalc_sensor_power_bare_die
+      to: main
+      item: ★ISS-148 开源查完 U1 后发现 POWER_BUDGET_V3.md §9-2 那条否决理由口径不成立, 请 PM 复算。★HW/POWER_BUDGET_V3.md 第
+        405 行现记 sensor 0.92 W 模组级是拒绝理由 (V3 下并入则整机 1.54 W -> 整机上界 112.2C = 整机方案否决)。★0.92 W 来自 e-CAM217_CUMI0234_MOD
+        公开 spec, 那是模组级 = 裸片 + 板载 ISP + 镜头座 + 模组板级 (该页明写 has a dedicated Image Signal Processor)。★本项目架构是
+        AR0234CS 裸片 + RK3572 做 ISP (rkisp3), 所以 sensor 侧净增应是裸片数 0.373 W Typ / 0.646 W Max (onsemi datasheet
+        Table 1 p.1 抬头 <395 mW @120 FPS Full Resolution + Table 16 p.18 分轨 Typ 求和 372.6 mW / Max 646.4
+        mW, 两处互证)。★那 0.92 W 里的 ISP 那一块在 RK3572 那边另算, 不该整段记到 sensor 头上。★请 PM 按裸片口径复算 POWER_BUDGET_V3 §9-2
+        + 整机皮肤温度判据 (43C 红线) + 电池续航; 若过, AR0234CS 的否决理由即撤销, ISS-138 选 D 的结论才站得住。★本单禁写 POWER_BUDGET_V3.md,
+        未改一个字节 (due 11-03)。
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss148_vddio_phy_1v8_rail_and_conncam_pins
+      to: main
+      item: '★ISS-148 U4 查完发现板级硬伤, 需要跨专业拍板。★onsemi AR0234CS/D datasheet Table 5 p.8-9 + Note 10 + Note
+        19 + Table 13 p.16 + Table 22 p.20 给出 5 组供电: VAA+VAA_PIX+VAA_PHY (2.8V, 可并成一条) / VDD_IO (1.8 或
+        2.8V) / VDDIO_PHY (1.8V only, Note 10 明写 should be connected to 1.8 V only) / VDD+VDD_PHY+VDD_DATA
+        (1.2V, 可并成一条) + 上电时序 VAA族->VDDIO->VDDIO_PHY->VDD族 (各 0-100ms)。★现状: HW/netlist_v1.csv 只有 3 条 sensor
+        轨 (SENSOR_CORE 1.2V / SENSOR_AVDD 2.8V / SENSOR_VDD_IO 2.8V), 缺 VDDIO_PHY 1.8V 一条; 且跨铰链连接器 CONN_CAM
+        18p 已 18/18 占满 (pin1-12 CSI+MCLK+RESET, pin13/14 I2C_A, pin15/16/17 三条 sensor 轨, pin18 GND) =>
+        加不出第 4 条轨。★VDDIO_PHY 不供电的后果: MIPI PHY 的 I/O 不工作, sensor 直接不出图 => 不补这条轨板子直接废。★三方案供拍板: A 跨铰链连接器
+        18p->20p (最干净, 但动机械最脆的铰链 FPC + 三方协同 + 重投板风险) / B 铰链侧 camera 板本地生成 1.8V (零连接器改动, 加一颗 TPS7A20-18
+        X2SON 与板上其它 LDO 同封装换料不换板, 代价是 camera 板可用供电轨要 mech-lead 确认) / C VDD_IO 也改 1.8V 让两者并成一条 (零新增, 但整条
+        I2C_A 必须降到 1.8V, TMP117 现供电 3.3V 认不了 1.8V 高电平, 影响面反而更大) / D 并到 VDD_IO 2.8V 已被官方 Note 10 + Table
+        13 明确排除不用再讨论。★hw-lead 倾向 B, 但前提是 camera 板上有什么轨可用还没查 (已另登记给 mech-lead)。★同时要定 sensor 轨上电时序怎么实现 (RC
+        延时 or SoC GPIO 拉 TPS7A20 的 EN 脚)。★本单未改 netlist_v1.csv 与 gen_netlist.py (禁写范围) (due 11-04)。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss148_hw_i2c_pullup_3v3_to_2v8
+      to: main
+      item: '★ISS-148 U2 查完: I2C_A 上拉必须从 3.3V 改 2.8V, 否则违反绝对最大额定值。★onsemi AR0234CS/D Table 14 p.17 ABSOLUTE
+        MAXIMUM RATINGS 里 VIN DC Input Voltage = -0.3 .. VDD_IO + 0.3 V, 我们 VDD_IO = 2.8V => I2C 引脚上直流电压上限
+        3.1V, 而现网表 R_PU_I2CA_SCL/SDA 顶网是 RAIL_VDD_3V3_IO (3.3V) => 超 0.2V (不是余量偏小, 是违反绝对最大额定值)。★改法零 BOM
+        增量: 顶网换成 RAIL_SENSOR_VDD_IO (2.8V, U_LDO_S28B TPS7A20-28, 与上拉电阻同在 MAIN_PCB) => 不加器件不动连接器不动跨铰链走线;
+        阻值保持 4.7k (datasheet Table 6 p.13 允许 1.5k..4.7k, 灌流 596uA 远小于 Table 13 的 IOL max 9 mA)。★同批要改:
+        ①I2C 地址 0x36 应为 0x10 (datasheet p.11 默认 0x20 写/0x21 读即 7-bit 0x10; 拉高 SADDR 选 0x30/0x31 即 0x18;
+        Kurokesu RPi 驱动 ar0234-overlay.dts 用 reg=<0x10> 双向确认) —— ★20:05 复核: AR0234CS_RK3572_PORT_SPEC.md
+        的 DT 段已由并发任务改对 (reg = <0x10>), 剩 netlist_v1.csv row 153 的 note 仍写 与 sensor 0x36 不冲突 这句要改; 本单再从
+        datasheet 原文侧独立确认一次 ②SADDR (A5) 必须明确接法否则地址不定驱动枚举不到 ③RSVD (F10) 必须 1.5k 接 DGND ④CAP_1UF_PHY (F12)
+        要 1uF 旁路 (不是 10uF 体电容) ⑤TEST (F5) 接 DGND, Reserved A11/B9 不接。★降上拉后风险方向反转: 现在要核的是从设备能否把 2.8V 认成高电平
+        (VIH), 已列清单 TMP117/桥接/充电IC/光机/RK3572 五项, 后两项要先确认是否真在 I2C_A 上 (光机看着在 I2C_B, 充电IC 看着本板自闭环) (due
+        11-03)。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss148_rk3572_gpio0_vccio_domain_check
+      to: sw-lead
+      item: '★ISS-148 U2 的收尾依赖这一条, 请 sw-lead 配合核 RK3572 的 IO domain。★onsemi AR0234CS/D Table 14 p.17 给出
+        VIN DC Input Voltage 上限 = VDD_IO + 0.3 V, 我们 VDD_IO = 2.8V => sensor 侧 I2C 引脚只能承受 3.1V => I2C_A
+        上拉从 3.3V 改 2.8V (已登记 need iss148_hw_i2c_pullup_3v3_to_2v8)。★但 SoC 侧还没核: I2C0_SCL = GPIO0_B0 (球
+        1K21) / I2C0_SDA = GPIO0_B1 (球 U32), 而本地 HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.txt 的 abs-max
+        表把 VCCIO1_VCC 归在 1.8V only GPIO supply voltage 一栏 (max 1.98 V), 且引脚表里 GPIO0 组紧跟 VCCIO1_VCC 出现
+        => 若属实, SoC 侧 GPIO0 只允许 1.98V, 那 3.3V 与 2.8V 上拉都超 SoC 侧 abs-max, 整条 I2C_A 电平域要重新设计 (整条降 1.8V 或加电平转换),
+        不是只改上拉。★本地 txt 是 pdftotext 转出的扁平引脚表, 没有 bank 对照 GPIO 的权威表, 只能靠引脚表顺序推断, 不能当结论。★请核 Rockchip 官方 RK3572
+        IO domain / VCCIO 分组表, 或 BSP rk3572.dtsi 的 io-domains / pinctrl rockchip,pins 里的 VCCIO 网名 => 这条不核,
+        U2 最终改法不能定稿 (due 11-03)。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss148_lens_cra_curve_and_pn_variant
+      to: mech-lead
+      item: '★ISS-148 U3 查完, 镜头侧要补两项公开资料 (都是问我们自己的镜头供应商, 不是问 onsemi, 不违反老板禁令)。①CRA 曲线: onsemi 的 AND9658-D
+        (AR0234 Sensor Optical Specifications, 含 recommended lenses + CRA tolerances) 正文在 Scribd 付费墙后,
+        按老板规矩永久放弃不追 ⇒ 改走替代路径: 要求镜头厂提供所选镜头在 1/2.6 英寸 (AR0234CS, 对角 6.79mm, 有效阵列 5.760x3.600mm) 靶面上的 CRA-vs-像高曲线,
+        以及该镜头的角畸变与相对照度; CRA 容差带按业界通用 plus or minus 3 度做设计裕量。★AR0234CS 自身的像素接受角已经查实 (datasheet Table 1
+        p.1: CRA = 0 度或 28 度, 两个 PN 变体; Figure 19 p.23 给 28 度变体完整曲线, 角落 27.97 度 @ 3.396mm 对角半长), 这张表可以直接附在
+        RFQ 里给镜头厂做匹配。②PN 变体随镜头一起定: 0 度族还是 28 度族要跟镜头方案一起定 (0 度族在 datasheet Rev 0 (2020-03) 还是工程样品 -E, Rev
+        3 (2020-09) 才变成可订料, onsemi 官网 12 个 orderable part 里已含 0 度族) ⇒ 采购窗口按 Rev 3 的 20 个 PN 表核。★另外提醒:
+        120 度对角 FOV 只能鱼眼 + ISP 鱼眼校正 (Vadzo Bolt-234CGS 默认 S-Mount 74 度 DFOV 佐证生态默认), 直线镜在 28 度 CRA 下角落入射角失配不成立。★camera
+        板上有什么可用供电轨也请一并回 (VDDIO_PHY 1.8V 要在铰链侧本地生, 前提是 camera 板有轨可降) (due 11-04)。'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: part_registry_l3_evidence
+      to: main
+      item: '替代料清单已落 HW/PART_ALTERNATIVES_REGISTRY.md (31候选/7类/全可点链接) ⇒ L3 判据"所有元件都试过了"目前【不成立】(全库零采购记录),
+        L4 不该触发; 请 boss 拍板: ①主板FPC座改成 RPi 15p/22p 标准还是保留24p+转接排线 ②AVDD 留2.8V还是换可调LDO ③demo 屏用 Radxa 8HD/10FHD
+        跑链路'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: ldo_en_netlist_fix
+      to: main
+      item: 'P0: 7路TPS7A20的EN脚网表未定义 (悬空=LDO关断, datasheet 实测 500k内部下拉) => 画板前必须全表7颗显式接EN (S28/S18B 用IN+RC延时做IMX415上电序,
+        S12 与其余4颗直连IN或10k上拉), 不许NC; 同时纠正项目内 TPS7A20无EN 的错误说法'
+      since: '2026-11-02'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -1992,6 +2301,28 @@ domains:
         **测流点**: TP_BAT_CHG (跨铰链压降) / TP_VBUS / TP_CHG_STAT / TP_USB_D_P/N 已有; **贴片测温点位** U_TEMP (TMP117)
         有器件、缺物理测点 note ⇒ 已列 needs。'
       ref: HW/CHARGE_STATUS_READBACK.md + HW/netlist_v1.csv (P7 测试点页)
+    - key: rk3572_official_datasheet
+      to: main
+      value: ISP要求侧124.4MP/s@60;官方上限[待核]
+      ref: HW/IMX415_DEMO_SENSOR_FACTS.md §2.1 + HW/AR0234CS_OPEN_SOURCE_FACTS.md §1.1
+      value_note: '★部分答复: 要求侧钉死 —— demo 走 1080p60 ⇒ ISP 进线 1920x1080@60 = 124.4MP/s; 全分辨率 3840x2160@60
+        = 497.7MP/s (超本项目 250MP/s 口径)。★**仍缺瑞芯微官方 ISP 吞吐上限 (MP/s @ 位深/并发路数)** —— 现在的 250 是媒体/模组厂口径不是官方数字,
+        请在官方 Brief Datasheet 到货时一并取。另: ★顺带把 U2 (AR0234CS VDD_IO abs max = VDD_IO+0.3 = 3.1V ⇒ I2C 上拉定案
+        2.8V) 与 U4 (3 条独立模拟轨 + Note 19/21 并轨表) 两条硬件数据查实了, 见 HW/AR0234CS_OPEN_SOURCE_FACTS.md。'
+    - key: iss148_ar0234cs_u1_u4_closed_by_open_source
+      to: null
+      value: 'ISS-148: AR0234CS 的 4 个未知量 U1/U2/U3/U4 已全部用公开渠道查完 (未发邮件/未联系代理/未发帖问厂家), 交卷 HW/AR0234CS_OPEN_SOURCE_FACTS.md。U1
+        裸片功耗: datasheet Table 1 p.1 抬头 <395 mW @120 FPS Full Resolution, Table 16 p.18 分轨 Typ 求和 372.6
+        mW / Max 646.4 mW, 两处互证; datasheet 无 60fps 电流行, 取 120fps 行为上界, 60fps 精确值待 EVT 实测 => 换料触发条件不成立,
+        AR0234CS 保留。U2 VDD_IO abs max: Table 14 p.17 统一 VSUPPLY 4.5V, 但 VIN DC Input = VDD_IO+0.3 = 3.1V
+        => 3.3V I2C 上拉违规, 改 2.8V (0 颗新器件, 只改 R_PU_I2CA 顶网到 RAIL_SENSOR_VDD_IO)。U3 CRA: Table 1 p.1 = 0
+        度或 28 度两个 PN 变体, Figure 19 p.23 给 28 度变体完整曲线 (角落 27.97 度); AND9658-D 正文在付费墙后判查不到并按规矩永久放弃 => 120
+        度只能鱼眼 + ISP 鱼眼校正, PN 变体随镜头定。U4: Table 5 p.8-9 = 5 组供电含 VDDIO_PHY 1.8V only (Note 10), 网表缺这条轨且
+        CONN_CAM 18p 占满 => 已登记 needs_from 拍板。★★另查出 4 个投板后必改: I2C 地址 0x36 应为 0x10 (datasheet p.11 + RPi
+        驱动 overlay 双向确认; ★20:05 复核 DT 段已由并发任务改对, 剩 netlist row 153 注释待改) / I2C 上拉 3.3V / 缺 VDDIO_PHY 轨
+        / netlist pin16 value 字段残留 1.8V。★★口径修正: 0.92W 是 e-CAM 模组级含板载 ISP, 本项目 ISP 在 RK3572, 故 POWER_BUDGET_V3
+        里那条拒绝 AR0234CS 的否决理由口径不成立, 请 PM 按裸片数复算。'
+      ref: HW/AR0234CS_OPEN_SOURCE_FACTS.md
     open_questions:
     - id: HW-Q1
       to: main
@@ -2013,13 +2344,19 @@ domains:
     updated_by: sw-lead
     status:
       phase: P2(方案设计)
-      progress_pct: 65
+      progress_pct: 70
       health: yellow
-      summary: '11-01 周更新: 闭合 hw-lead 唯一未回 inbound 需求 rel_od_duty_for_mtbf (运行时 OD 占空比 10% = 1s/10s 按需触发,
-        系统级 MTBF 取 522510h/59.6y 档, 非满载 93396h/10.7y); 口径澄清: od_duty_cycle=100% = 连续满载档/电源设计裕量, 非运行时占空比
-        (旧值不动, 新增 1 条 claim mtbf_duty_basis 划边界); P=镜腿内发热量非整机功耗 (ISS-064 S-1); progress 60→65 依据: ISS-123
-        闭环 (自证 15/15, 9 条新取值) + 问询清单 v2.0 + 板端实测清单 v1.0 + 1 条需求闭环; 仍 yellow: 板端实测 0 次 (P1~P4 null) + magic
-        取值/产品代号/RK3576 下载态入口 3 条待裁决 + 原厂 Q17 逾期'
+      summary: '11-02 晚: 交出 ISS-147 构建环境恢复单 (SW/RKNN_BUILD_ENV_RECOVERY.md, 只恢复环境+核 P0-1+给模型建议, 不写 demo
+        代码)。★★核心结论 (P0-1 已闭合): rk3572 不是任何已发布版 rknn-toolkit2 的合法 target_platform —— 2.3.2 与最新 2.5.0 的
+        config(''rk3572'') 均抛 ValueError: Invalid target_platform ''rk3572''! (rk3576 返 0), 源码/二进制/官方
+        README 三处均无 rk3572 ⇒ ★ISS-145 的 M1 (直接复用 A7S .rknn) 前提不成立, 必须重转; 替代路线 = target_platform=''rk3576''
+        (RK3572 与 RK3576 同代同架构, 但 4 vs 6 TOPS 算力不等) —— 推算, 待板端验证。工具链已在本机恢复 (conda env ~/miniconda3/envs/rknn,
+        与 rknn_bench.py 硬编码路径一致, 仓库脚本零改动可跑), 转换链四步全 rc=0 实测跑通; 源 ONNX 从官方 yolov5 v6.0 权重重建, 算子直方图与台账丢失那份逐个一致;
+        ★两个模型精度都实测了 (300 张 COCO): yolov5s F1 0.3017 vs yolov5n F1 0.2927, 差距仅 0.0090 (推翻 ISS-145 引用的''少
+        4 点 mAP50'') ⇒ 建议 demo 第一版用 yolov5n (60ms 余量最大 + 误检少 + 产物小一半), 代价是召回低 0.0291 需眼镜场景实拍验证。★记录 2 个会静默出错的坑:
+        3 路 head 输出名必须改名 350/498/646 (否则 step_cut 失败), 以及 rknn_bench.py 的 cut 模型缓存不失效 ⇒ 换模型重测会跑出上一个模型的数字
+        (本单实测两次结果逐字节相同)。仍 yellow 的原因: 板子 Radxa A7S 192.168.2.5 不可达 (ssh No route to host + ARP FAILED)
+        ⇒ P0-2 板端 librknnrt 版本号 + 板端实测 S5 两项无法闭合; §6 留 18 条待核, 未用推断冒充事实。'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -2278,6 +2615,52 @@ domains:
       summary: '11-01 周更新交接单 (B1-B6 六块齐): 答 hw-lead MTBF 占空比口径 (运行时 10% 按需触发, MTBF 取 522510h/59.6y 档)
         + 口径澄清 (od_duty_cycle=100% = 电源设计裕量, 旧值不动) + ISS-123 已闭环复述 (自证 15/15, 9 条新取值) + 板端实测仍 0 次 ⇒ BR-01
         未验, 该板不得进产线 + 新增 needs 0 条'
+    - path: SW/DEMO_OD_PIPELINE_SPEC.md
+      kind: spec
+      version: v1.0
+      updated_at: '2026-11-02'
+      summary: '★ISS-145 预研 demo 板 OD 管线规格 (只出规格, 不写代码): 7 节固定结构 (模型/推理运行时/后处理与画框/显示通路/帧率与延迟打点/验收判据/路径A
+        vs 路径B)。①模型: 复用 A7S 80 类 INT8 —— ★仓库里唯一转换+实测过的是 yolov5s@640 (F1 0.3139, ΔF1 -0.0043), yolov5n
+        本地无 ONNX 只有第三方 benchmark 8.87ms ⇒ 写死 M1(yolov5s 直接用)/M2(yolov5n 需新转) 二选一 + 5 条重训触发条件; ②运行时: rknn-toolkit2
+        2.3.2 + 板端 rknn-toolkit-lite2, 预处理 = RGB→等比 letterbox 640x640(黑边 pad=0)→/255→NCHW (★值域 [0,1] 不是
+        0-255, 踩坑实测 maxIoU=0) + P1/P2 两套 letterbox 参数表(1920x1200→640x400+上下120px / 640x480→640x480+上下80px);
+        ★P0 前置 3 条: rk3572 是否在 toolkit2 2.3.2 的 target_platform 内(只证过 rk3576)/板端 librknnrt 版本/本机缺工具链+模型+校准集;
+        ③画框: ★写死画在 NV12 的 Y 平面不碰 U/V (色度 4:2:0 与亮度不同步→偏色错位), 顺序 = OD 坐标反变换→画框→(可选 YUV→RGB)→DRM plane,
+        ★画框在缩放之前 (16:10→16:9 等比 letterbox k=0.9 内容 1728x1080 左右各 96px 黑边), 框宽配置化; ④显示: DRM/KMS plane +
+        4-lane MIPI-DSI 1.2 + I2C, ★两阶段验证法 (init code 前只验 DRM/KMS+假画面+DSI PHY 抓包, 后验真面板); ⑤打点: 9 个埋点 (t_capture/t_pre/t_npu/t_sdk_total/t_decode/t_draw/t_compose/t_display/t_e2e)
+        + min/avg/max/p50/p95 + 帧数>=300, ★demo 只记录不设门限 (60ms 留整机阶段), ★铁律 纯 NPU vs SDK 总耗时分开报 (A733 27.19
+        vs 36.51, 差 9.29ms=反量化 25%); ⑥验收 5 条全过=出图/80类框正确/框不错位(往返误差<=2px)/屏上正常/延迟有数; ⑦路径对比: ★软件 75% 与 sensor
+        无关 (代码量口径) 但 sensor 承担 ~70% 阻塞风险; 路径B(先 IMX415/OV02B10, rkaiq 公开 iqfiles 有现成 IQ) 省 10~14 人天≈2~3
+        周 ★但真瓶颈是面板 init code (问询函草稿未发) ⇒ 判断=发问询函 > 路径B > 并行做 AR0234CS 驱动移植+tuning。 ★纠正一处派单口径: timing_check.py
+        是硬件时序算术复核器不含端到端打点, 真出处 = ARS45_INT8_CHAIN §4 埋点表 + RKNN_BENCH §4.1 分段账。 ★16 条待核项在 §8 全部列出, 未用推断冒充事实。'
+    - path: SW/RKNN_BUILD_ENV_RECOVERY.md
+      kind: recovery-spec
+      version: v1.0
+      updated_at: '2026-11-02'
+      summary: '★★ISS-147 (sw-lead, 2026-11-02 19:19~20:40) 构建环境恢复 + 核 P0-1 —— 只写恢复方案/实测数据, 不写 demo 代码。★★核心交付
+        (§2): rk3572 不是任何已发布版 rknn-toolkit2 的合法 target_platform —— 实测 2.3.2 与最新 2.5.0 (2026-10-20) 的 config(target_platform=''rk3572'')
+        均抛 ValueError: Invalid target_platform ''rk3572''! (rk3576 返 0); 源码 rknn/api/rknn.py:88-89 的 target
+        列表无 rk3572, 整包 grep (含 .so 二进制) rk3572 命中 0 次; 官方 GitHub README ''Support Platform'' 列表 (RK3588/RK3576/RK3566-3568/RK3562/RV1103-1106/RV1103B-1106B/RV1126B/RK2118)
+        亦无 RK3572 ⇒ 不存在''升级到某版本就有 rk3572''这个选项 ⇒ ★ISS-145 的 M1 (直接复用 A7S .rknn, 零转换成本) 前提不成立, 必须重转; 替代路线
+        = 用 target_platform=''rk3576'' 转换 (RK3572 NPU 与 RK3576 同代同架构 RKNPU v2, 4 vs 6 TOPS 算力不等) —— ★是推算不是实测,
+        板端验证列 §6 N1。★顺带纠正 ISS-145 §2.3 两处方法错误: RKNN.RKNN_TARGET_PLATFORM 属性在 2.3.2 不存在 (hasattr=False),
+        正确核法是直接 config() 试 + grep 编译后的 rknn_base*.so。§1 工具链已恢复: conda env ~/miniconda3/envs/rknn (python
+        3.10.22 / rknn-toolkit2 2.3.2 / onnx 1.16.1 / numpy 1.26.4 / protobuf 4.25.4 / torch 2.4.0+cpu),
+        路径与 rknn_bench.py 硬编码 RKNN_PY 一致 ⇒ 仓库脚本零改动可跑; 记录 4 个装环境坑 (pip 声明 onnx>=1.16.1 与台账 1.14.1 冲突 /
+        protobuf>=5 致 build 崩 / 装全套依赖拉 2.5GB CUDA 包 / setuptools>=81 删 pkg_resources)。§3 模型选择: 从官方 yolov5
+        v6.0 权重 (走 hf-mirror, GitHub release asset 直连不通) 重新导出 yolov5s/yolov5n@640, ★重建件算子直方图与台账丢失那份逐个一致
+        (245 节点 / Mul69 Conv60 Sigmoid60 Concat17 Add10 Slice9 Reshape6 MaxPool3 Transpose3 Sub3 Pow3
+        Resize2) 但 sha16 不同 ⇒ 须登记新资产 ID 不得冒充 MOD-YOLOV5S-640-ARS45-SRC; ★★实测精度 (300 张 COCO val2017 同口径同图集):
+        yolov5s F1 0.3017 (ΔF1 −0.0056) vs yolov5n F1 0.2927 (ΔF1 −0.0030) ⇒ ★差距只有 0.0090, 远小于 ISS-145
+        引用的''少 4 点 mAP50''; yolov5n 精确率反高 (0.3924 vs 0.3547) 误检少 263 个, 但召回低 0.0291 (眼镜小目标场景需实拍验证); 产物
+        5.13 vs 10.47 MiB; build 8.3 vs 15.2s ⇒ ★建议 demo 第一版用 yolov5n (60ms 余量最大 + 精度差距已被实测证明很小 + 误检少
+        + 产物小一半), 切换成本 <5 min。§4 推荐 A2 (重新导出, 已跑通) 而非 A1 (找回: 全盘/git/回收站/部署包/备份全查过, 唯一剩板子但不可达)。★★记录 4
+        个复刻隐形坑: onnxsim 必需 (否则 grid/anchor 不在 initializer, load_grid_anchor 抛错) / 3 路 head 输出名必须改名 350·498·646
+        (step_cut 硬编码, 官方导出名是 onnx::Sigmoid_378/449/517) / 改名必须生产者+消费者+图输出+value_info 四处同改 (否则 SSA 校验失败)
+        / ★★rknn_bench.py 的 cut 模型缓存不失效 (固定名 yolov5s_heads.onnx + 仅在缺失时重切) ⇒ 换模型重测会静默跑出上一个模型的数字且不报错 (本单实测两次结果逐字节相同,
+        删缓存后才是真数)。★板子 Radxa A7S 192.168.2.5 仍不可达 (ssh No route to host + ARP FAILED + 网关通) ⇒ P0-2 板端 librknnrt
+        版本号无法闭合, 留 §6 N2。§6 共 18 条待核 (N4/N5 精度已闭合)。★未改 PROJECT_TRACKER.md / issue_log.yaml / HW/ 任何文件
+        / SW/tools/* 任何脚本 / DEMO_OD_PIPELINE_SPEC.md / RKNN_BENCH.md。'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -2368,10 +2751,18 @@ domains:
         数据** (TF SavedModel → ONNX → Art.Galaxy 三段都没跑过) —— 即''换栈''这条路目前也只有许可干净, 没有转换可行性证据; 同机 640 版 yolov5s
         ONNX 是唯一实测可推理的 yolov5s 资产 (但它是 AGPL) ⇒ **''许可干净'' 与 ''NPU 可用'' 两个条件在本地暂无交集** → 必须等 Art.Galaxy
         工具链才能定主模型'
+    - id: SW-B15
+      desc: '★ISS-145 demo: RK3572 (4 TOPS) 上 rknn-toolkit2 2.3.2 是否支持 + 板端 librknnrt 版本兼容, 均未核 (只证过 rk3576
+        目标); 且本机无 RKNN 工具链/源模型/校准集 ⇒ ''复用 A7S 现成 .rknn'' 这条最快路线的前置未落实'
+      needs_from: &id025
+      - sw-lead
+      - vendor
+      severity: high
+      waiting_since: '2026-11-02'
     - id: SW-FW-B3
       desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
       severity: medium
-      needs_from: &id034
+      needs_from: &id035
       - hw-lead
       - vendor
       waiting_since: '2026-10-26'
@@ -2379,10 +2770,19 @@ domains:
       desc: S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序) 与 P3 (BOOT 态
         VID:PID) 只能干等原厂, 拿不到任何一手数据
       severity: medium
-      needs_from: &id035
+      needs_from: &id036
       - main
       - hw-lead
       waiting_since: '2026-10-27'
+    - id: SW-B14
+      desc: '★ISS-145 demo: 视涯 0.49" SiOLED 的 DSI init code / 时序 / DSC / 单色全彩 全未拿到 (问询函草稿未发) ⇒ 显示侧只能做阶段1
+        (DRM/KMS plane 通路 + 假画面 + DSI PHY 层抓包), 阶段2 (真面板上色/亮度/TE撕裂) 全阻塞 ⇒ 且''屏上有画面''不需要 camera ⇒ 这是整个
+        demo 最长的关键路径'
+      needs_from: &id042
+      - vendor
+      - boss
+      severity: critical
+      waiting_since: '2026-11-02'
     needs_from:
     - key: q1_latency_scope
       to: main
@@ -3080,6 +3480,83 @@ domains:
       decided_at: ''
       answers: []
       foreign_answers: []
+    - key: demo_od_p0_1_rk3572_target
+      to: main
+      item: '★P0: rknn-toolkit2 2.3.2 的 target_platform 是否含 rk3572 —— RKNN_BENCH.md §5 只证过含 rk3576 (rknn/api/rknn.py:89)。若不含
+        ⇒ ''直接复用 A7S 的 .rknn 产物'' 不成立, M1(yolov5s) 的零转换优势归零, 必须改选 M2(yolov5n) 或升级工具链。核法: 构建机上 python -c
+        "from rknn.api import RKNN; print(RKNN.RKNN_TARGET_PLATFORM)" + grep rknn/api/rknn.py'
+      since: '2026-11-02'
+      state: waiting_external
+      target_missing: false
+      waiting_on: sw-lead
+      due: '2026-11-05'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: demo_od_p0_3_build_env
+      to: main
+      item: '★P0: 本机缺 RKNN 工具链/源 ONNX/100 张校准集/.rknn 产物 (实测: ~/Public/radxa_yolo 不存在, conda envs 空, 无
+        *.onnx/*.rknn)。RKNN_BENCH.md 的复现命令是在有该环境的机器上实测的。下一步第 0 步 = 找回 ~/Public/radxa_yolo/ 或重建 conda env
+        rknn-toolkit2==2.3.2, 否则转换链跑不了, 谈不上写 demo 代码'
+      since: '2026-11-02'
+      state: waiting_external
+      target_missing: false
+      waiting_on: sw-lead
+      due: '2026-11-05'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: demo_od_p0_4_panel_init_code
+      to: main
+      item: '★P0 + ★全局最长关键路径: 视涯 0.49" 1920x1080 的 DSI init code / 时序 / DSC 需求 / 单色还是全彩 全未拿到 (state/outbox/visionox_display_inquiry.md
+        是草稿未发)。★''屏上有画面''不需要 camera (测试图卡即可验 DRM/KMS+DSI), 所以这条链路上最短的那根线是面板而不是 sensor ⇒ 请项目总工/老板放行外发问询函
+        (Q2 的 init sequence + Q1 的单色全彩 是硬项)'
+      since: '2026-11-02'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-11-04'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: demo_od_model_route_m1_vs_m2
+      to: main
+      item: '★待裁决: demo 阶段模型路线 M1(直接用 A7S 的 yolov5s@640 INT8, 零转换, 但 RK3572 推算 模式A 62.67~64.18ms 超 60ms)
+        vs M2(yolov5n@640, 需新拿 ONNX + 重转 + 精度重评, 推算 模式A 52.91ms ✅ 但模式B age=2 仍 ❌)。sw-lead 建议 M1 (demo
+        验收判据里没有 60ms 这一条, 60ms 是整机阶段硬指标) + 写死三个换模型触发条件。若 boss 要求 demo 阶段就挂 60ms 门限 ⇒ 只能走 M2 或改锁死变量 ''OD
+        640x480'' (需 boss 拍板)'
+      since: '2026-11-02'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-11-04'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: demo_od_path_a_vs_b
+      to: main
+      item: '★待裁决: 路径A(AR0234CS 单线, 驱动移植 5~8 人天 + ISP tuning 自写 5~10 人天, 因 rkaiq 公开 iqfiles 无 ar0234)
+        vs 路径B(先用有现成 BSP 驱动+现成 IQ 的 IMX415/OV02B10 跑通链路, 再换 AR0234CS)。sw-lead 判断: 软件 75% 与 sensor 无关但
+        sensor 承担 ~70% 阻塞风险; 路径B 省 10~14 人天≈2~3 周, 但''最短出画面''的真瓶颈是面板 init code ⇒ 建议 面板问询外发 + 路径B + AR0234CS
+        驱动/tuning 三线并行 (不是二选一)'
+      since: '2026-11-02'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: '2026-11-04'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: debug_port_form
       to: hw-lead
@@ -3108,6 +3585,15 @@ domains:
     - id: SW-Q2
       to: main
       text: 显示帧率若降到 25-30fps, 老板的'60fps'锁死项是否要改写
+    - id: SW-Q3
+      text: '★ISS-145: demo 阶段模型路线 M1(yolov5s@640 直接复用, 零转换) vs M2(yolov5n@640 需重转+重评精度) —— M1 推算 模式A
+        62.67~64.18ms 超 60ms 硬指标, M2 模式A 52.91ms 过但模式B 仍 ❌; sw-lead 建议 M1 + 写死换模型触发条件, 待项目总工/老板拍板 (是否
+        demo 阶段就要挂 60ms 门限)'
+      to: main
+    - id: SW-Q4
+      text: '★ISS-145: demo 路径 A(AR0234CS 单线) vs B(先 IMX415/OV02B10 跑通再换 AR0234CS) —— 软件 75% 与 sensor
+        无关但 sensor 占 ~70% 阻塞风险; 建议三线并行 (面板问询外发 / 路径B / AR0234CS 驱动+tuning), 待拍板'
+      to: main
     risks:
     - id: R-sw-step
       text: 'NPU 延迟台阶效应: 纯 NPU 跨过 16.67ms 边界 → age 从 2 跳 3 → 端到端直接多一整个帧周期 (67→83.7ms)。差 2ms 可能等于差 17ms'
@@ -3433,7 +3919,7 @@ domains:
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
         11.8mm 全是推算)
       severity: high
-      needs_from: &id025
+      needs_from: &id026
       - jbd
       - main
       waiting_since: '2026-10-21'
@@ -3441,7 +3927,7 @@ domains:
       desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
         0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
       severity: high
-      needs_from: &id026
+      needs_from: &id027
       - boss
       - main
       waiting_since: '2026-10-25'
@@ -3449,7 +3935,7 @@ domains:
       desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置
         boot storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
       severity: high
-      needs_from: &id027
+      needs_from: &id028
       - hw-lead
       - main
       waiting_since: '2026-10-25'
@@ -3458,7 +3944,7 @@ domains:
         扛 0.55A 还是 1.5A、8p 还是 10p、载流与型号; 同时 J_CHG 无机械防呆 (反插 = SYS 短接 GND = 充电板 MOS 直通)。未裁之前: J_CHG 型号定不了、跨铰链
         FPC 芯数定不了、铰链区走线槽开不出来 (打印包不能开工)。'
       severity: high
-      needs_from: &id028
+      needs_from: &id029
       - main
       - hw-lead
       waiting_since: '2026-10-27'
@@ -3468,7 +3954,7 @@ domains:
       desc: 'ISS-091: 跨铰链充电电流核算已交 (MECH/HINGE_POWER_CALC.md), 但两个前置未裁: (1) J_CHG 单触点额定电流未知 [0数据] -> 直接锁死
         R_ILIM 档位 (若只有0.3A型号则只能选680Ω); (2) FPC 厂商三项能力未知 [0数据] (分段铜厚/0.4mm加宽/地平面keep-out) -> 固定段能否加厚不确定,
         影响压降 111->65mV 区间。未裁之前: R_ILIM 最终档位定不了、FPC 加工图定不了、铰链段 FPC 不能下单。'
-      needs_from: &id029
+      needs_from: &id030
       - main
       - hw-lead
     - id: MECH-B9
@@ -3479,27 +3965,27 @@ domains:
         + TCP 990/8883/6000/4000 全 closed; 无切片器; 无卡尺/千分尺/塞尺; 无 USB 串口 —— 证据 MECH/print/ENV_PROBE.log).
         因此 B1 之前所有尺寸仍是图纸值, M-PRINT/M-FIT/M-WEIGHT 三项 [实测] 全空, G2 缺 7 项一项没减. **B1+B2 共 49 项实测不需要 PCB 也不需要
         JBD**, 是当前唯一不被外部依赖卡死的路径 —— 但要靠 ISS-040 落地才走得动. 未闭之前: 打印件0件 -> ISS-017 无法闭 -> G2 不可判.'
-      needs_from: &id030
+      needs_from: &id031
       - boss
       - main
     - id: MECH-B-DFM-1
       desc: 量产外形件几何不存在 => 脱模/分型/收缩/缩痕/飞边/顶针的面级统计 = 0个数据点。Rev B打印包只含检具与试样。不补就开模 = 模具报废风险(本单已算出镜脚H链在1deg脱模下最坏
         -0.577mm, 几何上做不出来)
       severity: high
-      needs_from: &id031
+      needs_from: &id032
       - main
       waiting_since: '2026-11-01'
     - id: MECH-B3
       desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
       severity: medium
-      needs_from: &id036
+      needs_from: &id037
       - jbd
       waiting_since: '2026-10-25'
     - id: MECH-B5
       desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
         → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
       severity: medium
-      needs_from: &id037
+      needs_from: &id038
       - mech-lead
       waiting_since: '2026-10-25'
     - id: MECH-B6
@@ -3507,7 +3993,7 @@ domains:
         boss mech_reltest_kit_site)。另: 1 台样机做 12 类必然撞上 ''样本量不足只能筛查'' 与 ''一次失败后续全废'' 两个硬边界 (见 MECH/RELIABILITY_TEST_PLAN.md
         §B2.3 / §B3.3)。'
       severity: medium
-      needs_from: &id038
+      needs_from: &id039
       - boss
     - id: MECH-B10
       severity: medium
@@ -3517,14 +4003,14 @@ domains:
         13732-1 的 43°C 红线 3.5°C**. 也就是说: 重量上省下来的 0.73g, 热学上可能还回去. 这两个数必须**一起**算, 不能只看重量选截面. 重算需完整热模型 (含石墨铺装范围
         + 骨架截面形状 + 隔热层), 即 PCB_MOUNT_PIN_SET2.md §5 U-3 那张单. 未重算前: **我不出新的皮肤侧温度数**, 也不把 0.80mm 当已定版 ——
         只作为待裁候选.'
-      needs_from: &id039
+      needs_from: &id040
       - main
       - hw-lead
     - id: MECH-B-DFM-2
       desc: 量产级工艺参数(脱模斜度/公差带/收缩率)全部是[推算·通用]或[0数据], 未按牌号/模具厂验证。已登记3条 waiting_on=vendor 的needs(收缩率/阳极均匀性/模具公差),
         未回应前不进入开模
       severity: medium
-      needs_from: &id040
+      needs_from: &id041
       - vendor
       waiting_since: '2026-11-01'
     needs_from:
@@ -5680,7 +6166,7 @@ interface_claims:
     noncanonical_by: []
     conflict: false
   skeleton_extent:
-    values: &id041
+    values: &id043
       hw-lead: 止于PCB段后缘@Z=60.00mm
       mech-lead: 止于PCB段后缘
     notes:
@@ -6225,6 +6711,510 @@ interface_claims:
     notes:
       hw-lead: 'AR0234CS 与 OV04C10 都**没有**现成 rkaiq isp3x/isp32 IQ 文件 ⇒ ISP tuning 必须自己排 (ISS-139: 1~2
         人周 + 暗室/灰卡 + 须等镜头模组定版; RK3572 专属 BSP/tuning 不公开 ⇒ 不能套 RK3588 的 IQ)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_port_effort_ar0234cs:
+    values:
+      hw-lead: 7人日+1~2人周
+    notes:
+      hw-lead: '★ISS-144 规格 (hw-lead 19:5x 交卷版, main 复核): AR0234CS→RK3572 rkisp3 **能出 RAW ≈7 人日** (C1~C6;
+        ★比初估 5.5 多 1.5 天: CCI→regmap 重写 24 处 / 增益 0x30BA 按 pixclk 分档 / rkisp3 format 改 4 处), tuning 另计
+        1~2 人周 ⇒ ★**路径A 比路径B 晚 15~21 人天 (≈3~4 周)**。★**验收门槛 = A1~A3 (enumerate/media-ctl/抓 60 帧 RAW), 这三条不需要
+        tuning 可独立过** ⇒ 别把 A4/A5 当 demo 门槛。'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  demo_board_form:
+    values:
+      hw-lead: main+SOM+2FPC
+    notes:
+      hw-lead: '★2026-11-02 19:4x demo 硬件方案定案: 主板一块 = RK3572 核心板(SOM) + camera FPC 座(0.5mm/24p, 2-lane
+        CSI) + display FPC 座(0.5mm/20p, 4-lane DSI) + USB-C 5V 供电(不装电池/不上充电链); ★**camera/display 由 HINGE
+        改 MAIN_PCB (板内 FPC, 不跨铰链)**; ★**Step1 = 公开 SBC 零 PCB 先跑链路, Step2 = 自研主板**; ★init code/寄存器表 = 采购硬判据
+        ⇒ 不发问询函。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  demo_csi_lanes:
+    values:
+      hw-lead: 2lane
+    notes:
+      hw-lead: '★demo 相机链路 **2-lane** (原网表即 2-lane 必装 + D2/D3 预留 DNP ⇒ 与决策一致无需改): 1080p60 RAW10 = 1.244Gbps
+        ⇒ 2 lane @ ~700Mbps/lane (RK3572 CSI D-PHY 2.5Gbps/lane); FPC 针位目标 0.5mm/24p。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_model_demo:
+    values:
+      hw-lead: IMX415
+    notes:
+      hw-lead: '★2026-11-02 19:29 老板把 demo 判据收敛成『规格 + 数据来源』后, demo sensor 定 IMX415 (3840x2160@60 全像素 =
+        497.7MP/s 超 ISP 250 口径 ⇒ 必须降分辨率); ★AR0234CS 保留给整机方案 (1/2.6 全局快门 + 120 度鱼眼 f=3.2432mm)。规格达标 + 数据来源
+        10/10: Rockchip BSP imx415.c + mainline imx415.c + rkaiq isp3x 现成 IQ + GitHub 51 个仓库 ⇒ 零移植零自研
+        tuning(除 1920x1080 网格)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_power_rails_demo:
+    values:
+      hw-lead: 1.1V+1.8V+2.9V
+    notes:
+      hw-lead: '★IMX415 三条轨 (datasheet 应用条件: DVDD1 1.00/1.10/1.20, OVDD 1.70/1.80/1.90, AVDD1 2.80/2.90/3.00),
+        ★RK BSP 驱动的 regulator 名就是 dvdd/dovdd/avdd 三条 ⇒ 与网表现三条 sensor 轨一一对应, ★**轨数不变 = 换料不换板**。★现网表 SENSOR_CORE
+        1.2V->1.1V / SENSOR_VDD_IO 2.8V->**1.8V (不改会烧 sensor, OVDD 上限只有 1.9V)** / SENSOR_AVDD 2.8V->2.9V。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_power_rails_ar0234cs:
+    values:
+      hw-lead: 1.2V+1.8V+2.8V
+    notes:
+      hw-lead: '★AR0234CS 8 条电源脚, datasheet Note 19/21 给了并轨表: 组1 VDD+VDD_PHY+VDD_DATA=1.2V / 组2 VDD_IO+VDDIO_PHY(仅当都
+        1.8V) / 组3 VAA+VAA_PHY+VAA_PIX=2.8V ⇒ **★推荐把 VDD_IO 取 1.8V 档, 则整颗芯片只需 3 条轨 (1.2/1.8/2.8), 与 IMX415
+        的 3 条同构 ⇒ 两版 sensor 只差两颗 LDO 的档位 (TPS7A20 全档共用 X2SON => 仍换料不换板), 且 I2C 上拉两版都是 1.8V。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_rail_current_max:
+    values:
+      hw-lead: 250/3/156mA(IMX415)
+    notes:
+      hw-lead: '★现网表三条 sensor 轨的『最大电流』文字 (50/30/30mA) 对两条 sensor 都偏小: IMX415 datasheet 全像素 4lane 12bit
+        60fps Max = IDVDD 250mA / IOVDD 3mA / IAVDD 156mA; AR0234CS MIPI 120fps Max = 数字 250mA / VAA 102mA(+IAA_PIX
+        13mA) / VDD_IO 1mA / VDDIO_PHY 12mA ⇒ ★规格文字必须按 datasheet Max 重写 (降额计算用 Max 不用 Typ)。★器件层面 TPS7A20
+        本体 300mA 够用, 但 250/300=83% 占用率 ★违反常规降额 <80% ⇒ SENSOR_CORE 那颗建议换 600mA 等级 (同封装)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  i2c_a_pullup_ar0234cs:
+    values:
+      hw-lead: 2.8V
+    notes:
+      hw-lead: '★AR0234CS datasheet Table 12 绝对最大: VIN = -0.3 ~ **VDD_IO+0.3 = 3.1V** ⇒ **现网表 I2C_A 上拉
+        3.3V 超绝对最大额定值 (超 0.2V) ⇒ 定案 2.8V**。校核: VIH min = VDD_IO x 0.7 = 1.96V (2.8V 上拉 ✔), VIL max = VDD_IO
+        x 0.3 = 0.84V ✔。★TBD-05 从『未闭环』升级为『datasheet 实测定案』。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  i2c_a_pullup_demo:
+    values:
+      hw-lead: 1.8V
+    notes:
+      hw-lead: '★IMX415 的 SCL/SDA 在 OVDD(1.8V) 域: VIH min = 0.7x1.8 = 1.26V, **VIH max = 1.9V**, 绝对最大
+        VIN = OVDD+0.3 且 <=3.3V ⇒ **3.3V 上拉在 IMX415 上合法但低电平灌流变大 (R 须 >=967 ohm)**。★建议统一 1.8V (与 AR0234CS
+        方案 C 档一致 ⇒ 两版 sensor 共用一颗 LDO 输出 + 一次上拉电阻档位选择)。★前置: I2C_A 同总线从设备 (TMP117/充电IC/光机) 电平域要一起核。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  demo_csi_lanes_imx415:
+    values:
+      hw-lead: 4lane
+    notes:
+      hw-lead: '★★与已有 claim `demo_csi_lanes=2lane` **冲突**, 本单证据倾向 4lane: Rockchip BSP imx415.c 的 supported_modes
+        (4-lane) 里有 **1944x1097 binning 模式**, 但 supported_modes_2lane 里**只有 3864x2192@15fps 和 1284x720@90fps,
+        没有 binning** ⇒ **只接 2 lane 驱动根本不给 1080p 模式** (驱动按 num_data_lanes 选表, L3218)。★**瓶颈是驱动模式表, 不是带宽**:
+        1080p60 = 124.4MP/s; 12bit 需 1.49Gbps (驱动默认 link freq 297M = 594Mbps/lane ⇒ 2 lane 只有 1188Mbps
+        不够 12bit, 10bit 勉强), 但 RK3572 CSI D-PHY 单 lane 可跑 2.5Gbps ⇒ 4 lane 毫无压力。★另: 已有 claim `csi_lane_mode_req=4-lane`
+        也是 4-lane ⇒ fragment 内部本就不一致。★需项目总工裁决 (已登记 needs)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  imx415_1080p60_path:
+    values:
+      hw-lead: sensor 2/2 binning + VMAX 3165->1582
+    notes:
+      hw-lead: '★**sensor 侧 2/2 行 binning, 不是 crop** ⇒ FOV 不变, 不触犯老板 10-25『禁止 ROI/crop 裁画面取景』。证据: ①Sony
+        flyer 官方 readout mode 含 Horizontal/Vertical 2/2-line binning 1920x1080 @90.9fps ②Rockchip BSP
+        imx415.c 的 imx415_linear_12bit_1932x1096_594M_regs 里 {0x3020,0x01} 而全分辨率模式是 {0x3020,0x00} (BINNING_MODE)
+        ③算式: 1H = HMAX 782/74.25MHz = 10.5386us, VMAX 0x0C5D=3165 => 29.98fps; VMAX 0x062E=1582 => 59.98fps
+        (sensor binning 上限 90.9fps => 合法)。★ISP 进线 1920x1080@60 = **124.4MP/s**, 远低于本项目 ISP 250MP/s 口径
+        ⇒ 与已有 claim `isp_throughput_req=124.4MP/s@60` 一致。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  imx415_1080p60_effort:
+    values:
+      hw-lead: 1d+2d
+    notes:
+      hw-lead: '★驱动侧 1 人日 (切到已有的 1944x1097 binning 模式 + 改 vts_def/vblank_min + DT mode 索引 + rkaiq 注册 =
+        改一行, 不是移植) + tuning 侧 1~2 人日 (需灰卡/暗室一次标定)。★对比 AR0234CS 路径 5.5人日+1~2人周 (已有 claim sensor_port_effort_ar0234cs)
+        ⇒ IMX415 路径省 10-14 人天。★tuning 内容: rkaiq isp3x 里 IMX415 只有 1 个 IQ (imx415_CMK-OT2022-PX1_IR0147-50IRC-8M-F20.json,
+        sensor_calib.resolution 明写 3840x2160) 且 mesh 目录名也锁 3840_2160 ⇒ 1080p 档缺 mesh + AE 曝光表要按新帧长换算 (VMAX
+        减半 => 最大曝光时间减半)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  imx415_iq_available:
+    values:
+      hw-lead: 1个isp3x(锁3840x2160)
+    notes:
+      hw-lead: '★rkaiq 仓库整树实测: isp3x 目录下 IMX415 只有 1 个 IQ JSON (CMK-OT2022-PX1_IR0147-50IRC-8M-F20); 另外
+        7 个 imx415 IQ (YT-RK415-V1 / YT10092 的 28/36/60IRC + hdr3) 全在 **isp20/** 且是 xml 格式 ⇒ **RK3572(isp3x)
+        用不了**。mesh: 只有 FEC/LDCH_mesh_**3840_2160**_imx415_3.6mm ⇒ 无 1920x1080 网格。★命名解码: IR0147=镜头代号(呼应
+        mesh 里 3.6mm), 50IRC=IR-cut 规格, 8M=8兆档, F20=F2.0 ⇒ ★采购必须买同镜头+同IRC 的模组, 否则现成 IQ 作废。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  ar0234cs_vddio_absmax:
+    values:
+      hw-lead: 3.1V
+    notes:
+      hw-lead: '★onsemi AR0234CS datasheet Table 12 绝对最大额定值: VIN (DC Input Voltage) = -0.3 ~ **VDD_IO
+        + 0.3** ⇒ VDD_IO=2.8V 时 = 3.1V (VSUPPLY 4.5V 那条是电源脚, 不是 I/O 脚, 别混)。⇒ 决定 I2C 上拉只能 2.8V。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_power_up_order:
+    values:
+      hw-lead: DVDD->OVDD->AVDD(200ms)
+    notes:
+      hw-lead: '★IMX415 datasheet 明写上电顺序 DVDD(1.1V) -> OVDD(1.8V) -> AVDD(2.9V), 三轨须 200ms 内到位。★现网表三条
+        LDO 全部同时接 RAIL_SYS 且**无使能脚** ⇒ 顺序不确定 ⇒ 需给 AVDD 那颗加 EN+RC 延时 (或统一 1.8V 档方案后重排)。★驱动侧另有: 电源->XCLR
+        >=500ns, XCLR->clk >=1us, XCLR->I2C >=20us。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  info_lookup_ladder:
+    values:
+      hw-lead: L1网→L2换料→L3全试→L4问厂
+    notes:
+      hw-lead: '★★2026-11-02 19:45 老板定四级阶梯 (信息获取): ①**先上网找** (公开 datasheet / 公开 panel 驱动树 / 开源驱动源码 / 公开在售模组页
+        / 社区实测) ②**找不到就换替代料** (公开在售同类件) ③**所有元件都试过仍找不到** ④**才走采购渠道咨询厂家** ⇒ ★**纠正 19:25 落的「一律不发」** (ISS-142
+        由 closed 改 deferred) ⇒ 每级都要凭证, ★**"都试过了" = 替代料清单 (ISS-151)**。'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  demo_procurement_channel:
+    values:
+      hw-lead: public_stock
+    notes:
+      hw-lead: '★2026-11-02 19:45: demo 量少 (1 台) ⇒ **不走批量定制采购** ⇒ 物料走**公开现货/样品渠道** (公开在售 camera 模组 / MIPI-DSI
+        屏模组 / RK357x SBC) ⇒ ★**优先用别人已量产在卖的模组** ⇒ ★**Step1 = 公开 SBC + 公开在售模组, 零 PCB 零定制**。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_rails_imx415:
+    values:
+      hw-lead: 1.1V/1.8V/2.9V
+    notes:
+      hw-lead: '★IMX415 三轨 (公开 datasheet, ISS-148 facts §1): 数字 DVDD1 1.00~1.20V typ 1.10 / IO OVDD 1.70~1.90V
+        typ 1.80 (IOVDD 3mA) / 模拟 AVDD1 2.80~3.00V typ 2.90 (IAVDD max 156mA) ⇒ 网表: SENSOR_CORE 1.2V 保持(250mA)
+        · ★**SENSOR_VDD_IO 2.8V→1.8V** (TPS7A20-18, ★不改会烧件) · SENSOR_AVDD 2.8V 保持(156mA) · ★I2C_A 上拉 4.7k→2.2k
+        (IOL≤3mA ⇒ R≥967Ω) 且 ★**上拉电压仍 3.3V 合法 (VI≤3.3V)** ⇒ ★**TBD-05 对 IMX415 不成立**; ★轨数/LDO 家族/封装不变
+        ⇒ 换料不换板。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_1080p60_mode:
+    values:
+      hw-lead: binning_2x2_vmax
+    notes:
+      hw-lead: ★IMX415 出 1080p60 = **sensor 侧 2/2 行 binning** (1944×1097, 寄存器 0x3020=0x01, ★**不是 crop
+        ⇒ 不违反 10-25 禁 ROI**) ⇒ ★**Rockchip BSP `imx415.c` 已带该模式** ⇒ 60fps 只需改 VMAX (0x0C5D→0x062E) ⇒ **零驱动移植**;
+        ★现成 IQ 锁死 3840×2160 (mesh 文件名也锁) ⇒ 1080p 档需补 mesh + AE 表 ⇒ 1~2 人日。
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  sensor_i2c_addr_7bit:
+    values:
+      hw-lead: '0x10'
+    notes:
+      hw-lead: '★2026-11-02 11:20 hw-lead 实测 (ISS-144 规格 §0.2 E2): AR0234CS 的 I2C 7-bit 地址 = 0x10, 不是
+        0x36 (0x36 是上一代 OV04C10 的)。3 个独立来源交叉验证: Kurokesu/ar0234-rpi-driver 的 ar0234-overlay.dts (ar0234@10,
+        reg=<0x10>) + Kurokesu/ar0234-jetson-driver 的 tegra234-p3767-camera-p3768-ar0234-A.dts (rbpcv3_ar0234_a@10,
+        reg=<0x10>) + 同源驱动 DTS。★地址不与同总线冲突 (TMP117 0x48 / 桥接 0x50 / 充电IC 0x12 / 光机 0x72)。★网表 row 153 注释仍写
+        sensor 0x36 ⇒ 已登记 need iss144_netlist_i2c_addr_comment_0x36_to_0x10 (本单不改网表)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  rk3572_kernel_baseline_branch:
+    values:
+      hw-lead: develop-6.12
+    notes:
+      hw-lead: '★2026-11-02 11:15 hw-lead 实测 (ISS-144 规格 §0.2 E3): Rockchip BSP kernel 的 RK3572 DTS 只在
+        develop-6.12 上存在 (rk3572.dtsi: 6.1→404, 6.6→404, 6.12→200 159719B) ⇒ ★移植要落到 6.12 的 drivers/media/i2c/,
+        不是 6.1。★两个分支都无 ar0234.c (6.12 亦 404, 同目录 imx415.c 86805B / ov02b10.c 35448B 都在) ⇒ 「Rockchip 侧零驱动」结论在
+        6.1/6.12 都成立。★RK3572 ISP 拓扑: csi2-dphy(rk3572-csi2-dphy) → rkcif-mipi-lvds → rkisp-vir → rkisp-vir-sditf,
+        全部默认 status=disabled (开链路时必须显式打开)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  ar0234cs_u1_bare_die_power_1920x1200_60fps:
+    values:
+      hw-lead: Typ <=372.6 mW / Max <=646.4 mW (裸片, 上界取 120fps 行; 中值估 ~300 mW 标推算)
+    notes:
+      hw-lead: '★2026-11-02 hw-lead 开源查证 (非问询): onsemi AR0234CS/D datasheet Rev 3 (2020-09, Publication
+        Order Number AR0234CS/D) Table 1 p.1 抬头栏 Typical Value: Operational Power Consumption = <395 mW
+        at 120 FPS, Full Resolution (旧版 Rev 0 2020-03 同一行是 <420 mW, 本单一律用 Rev 3)。Table 16 p.18 OPERATING
+        CURRENT CONSUMPTION FOR MIPI OUTPUT (Full Resolution 120fps, VAA=VAA_PIX=VDD_IO=VAA_PHY=2.8V,
+        VDD=VDD_PHY=VDD_DATA=1.2V, VDDIO_PHY=1.8V, PIXCLK=90MHz, TA=25C, CLOAD=10pF) 分轨: 数字 155/250 mA
+        @1.2V + IDD_IO 0.2/1 mA @2.8V + IDDIO_PHY 10/12 mA @1.8V + 模拟 55/102 mA @2.8V + 像素 5/13 mA @2.8V
+        => Typ 求和 372.6 mW, Max 求和 646.4 mW。★自洽校验: 372.6 < 395 抬头值, 且各轨 Max 求和 378 mA < Table 14 ISUPPLY
+        400 mA, 两处互证。★datasheet 无 60fps 电流行 (只有 Table 16 的 120fps MIPI 与 Table 15 的 30fps Parallel), 但
+        Table 3/4 明确 60fps 是 datasheet 承认的模式 => 取 120fps 行为上界 (帧率与数据率均减半, 偏置项与帧率无关: 30fps IAA 50mA vs
+        120fps 55mA) 不是拍脑袋。★60fps 精确值仍待 EVT 实测。★换料触发条件不成立。'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  ar0234cs_u2_vdd_io_abs_max_and_i2c_pullup:
+    values:
+      hw-lead: VDD_IO 轨 abs-max = 4.5 V; 但 I2C 引脚上 DC 电压上限 = VDD_IO + 0.3 V = 3.1 V => 3.3V 上拉违规, 改 2.8V
+    notes:
+      hw-lead: '★2026-11-02 hw-lead 开源查证: AR0234CS/D Table 14 p.17 ABSOLUTE MAXIMUM RATINGS: VSUPPLY Power
+        Supply Voltage (All Supplies) = -0.3 .. 4.5 V (所有供电轨统一一行); ISUPPLY 400 mA; IGND 400 mA; VIN DC
+        Input Voltage = -0.3 .. VDD_IO + 0.3 V; VOUT 同; TSTG -40..+125C。⇒ 3.3V 上拉不伤 VDD_IO 轨本身, 但把 SDA/SCLK
+        拉到 3.3V 超 VIN 绝对最大额定值 0.2V (VDD_IO=2.8V 时上限 3.1V) => 不是余量偏小, 是违反绝对最大额定值。★改法: R_PU_I2CA_SCL/SDA
+        顶网从 RAIL_VDD_3V3_IO 换到 RAIL_SENSOR_VDD_IO (2.8V, U_LDO_S28B TPS7A20-28, 同在 MAIN_PCB) => 0 颗新器件,
+        不动连接器与跨铰链走线; 阻值保持 4.7k (datasheet Table 6 p.13 允许 1.5k..4.7k, 灌流 596uA 远小于 Table 13 的 IOL max
+        9 mA)。★注意别抄错: AR0237CS (另一个器件) 的 abs-max 表有独立行 VDD_IO_MAX=4V, AR0234CS 没有这行, 用统一 VSUPPLY 4.5V
+        行 + VIN=VDD_IO+0.3 行, 搜索引擎很容易把两份混进来。★I2C 电平: VIH=0.7xVDD_IO=1.96V, VIL=0.3xVDD_IO=0.84V, Table
+        6 Note 3 时序按 0.9x/0.1xVDD_IO。★官方 I2C 地址: 默认 0x20 写 / 0x21 读 即 7-bit 0x10, 拉高 SADDR 选 0x30/0x31
+        即 0x18, 也可用 R0x31FC 改写。★20:05 复核: AR0234CS_RK3572_PORT_SPEC.md 的 DT 段已改对 (reg = <0x10>), 但 netlist_v1.csv
+        row 153 (TMP117 条) 的 note 仍写 与 sensor 0x36 不冲突 这句还是 OV04C10 时代的, 待改。'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  ar0234cs_u3_cra_variants:
+    values:
+      hw-lead: CRA = 0 度 或 28 度, 是两个 PN 变体; 28 度变体完整曲线角落 27.97 度
+    notes:
+      hw-lead: '★2026-11-02 hw-lead 开源查证: AR0234CS/D Table 1 p.1: Chief Ray Angle = 0 度 or 28 度 (两个 PN
+        变体, 不是同一料两档规格)。Table 2 p.2 AVAILABLE PART NUMBERS 20 个 PN 按 CRA 分两族, 编码位在 AR0234CS + S + M/C(Mono/RGB)
+        + 28/00 之后: 28 度族 AR0234CSSM28SUKA0-CP/CR/CP1 + AR0234CSSM28SUD20(Bare Die) + AR0234CSSM28SUKAH3-GEVB(Demo
+        Headboard), 00 度族同结构; Rev 0 (2020-03) 的 00 度族全带 -E 工程样品后缀, Rev 3 (2020-09) 去掉 -E 变成可订料 => 采购窗口按
+        Rev 3 核; onsemi 官网产品页 JSON-LD offers 12 个 orderable part 同时含 28 族与 00 族。Figure 19 p.23 给出 28 度变体的完整
+        CRA-vs-像高表: 0%->0度, 50%->15.38度, 100%->27.97度 @ 3.396mm (该横轴 3.396mm = 对角 6.79mm 的一半即角落径向距离)。★AND9658-D
+        存在性确认 (Scribd doc 947060899, 含 recommended lenses / CRA tolerances) 但正文在付费墙后 => 推荐镜头清单与 CRA 容差带判查不到,
+        按老板规矩不发问询函不追该文档。★处置: 120 度对角 FOV 只能鱼眼 + ISP 鱼眼校正 (Vadzo Bolt-234CGS 默认 S-Mount 74 度 DFOV 佐证生态默认),
+        PN 变体随镜头一起定; CRA 容差带按业界通用 plus or minus 3 度做设计裕量, 镜头 CRA 曲线写进镜头 RFQ (问我们自己的镜头供应商, 不是问 onsemi)。'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  ar0234cs_u4_supply_rails_and_missing_vddio_phy:
+    values:
+      hw-lead: '5 组供电: VAA/VAA_PIX/VAA_PHY 2.8V + VDDIO_PHY 1.8V only + VDD/VDD_PHY/VDD_DATA 1.2V + VDD_IO
+        1.8/2.8V; 网表缺 VDDIO_PHY'
+    notes:
+      hw-lead: '★2026-11-02 hw-lead 开源查证: AR0234CS/D Table 5 p.8-9 PIN DESCRIPTIONS 83-ball CSP: VAA (A10,B1,G2,G7)
+        Analog Power 2.8V / VAA_PIX (B8,C2,G1,G9) Pixel Power 2.8V / VAA_PHY (F8) Analog PHY 2.8V / VDDIO_PHY
+        (D10) I/O Power Supply 1.8V / VDD (A4,A8,A12,B10,D7,E1,G8) 1.2V / VDD_PHY (C8) 1.2V / VDD_DATA
+        (F11) 1.2V / VDD_IO (A7,B4,B5,B11,D3,D6,F1,G12) 1.8 或 2.8V / AGND / DGND / GNDIO_PHY(接 DGND) /
+        CAP_1UF_PHY (F12, MIPI 内部稳压器外部旁路 1uF) / RSVD (F10, 必须 1.5k 接 DGND) / TEST (F5, 接 DGND) / Reserved
+        A11 B9 不接 / SADDR (A5, 决定 I2C 地址 0x10 还是 0x18, 必须明确接法)。Figure 2/3 Note 8: VDD_PHY 与 VDD_DATA 建议并到
+        VDD; Note 9: VAA_PHY 接 2.8V; Note 10: VDDIO_PHY should be connected to 1.8 V only; Note 19/21
+        并轨表: VDD+VDD_PHY+VDD_DATA 可并, VDD_IO 与 VDDIO_PHY 只有都是 1.8V 才可并, VAA+VAA_PHY+VAA_PIX 可并。Table 13
+        p.16 电压窗: VDDIO_PHY 1.7-1.9V。Table 22 p.20 上电时序 (VAA族->VDDIO->VDDIO_PHY->VDD/VDD_PHY->VDD_DATA,
+        各 0-100ms) + Table 23/Figure 16 断电逆序。★网表对照: 现只有 3 条 (SENSOR_CORE 1.2V / SENSOR_AVDD 2.8V / SENSOR_VDD_IO
+        2.8V), 缺 VDDIO_PHY 1.8V 一条; 且 CONN_CAM 18p 已 18/18 占满 (pin15/16/17 三条 sensor 轨 + pin13/14 I2C
+        + pin1-12 CSI/MCLK/RESET + pin18 GND) 加不出第 4 条轨 => 必须拍板: A 跨铰链连接器 18p->20p / B 铰链侧本地生成 1.8V /
+        C VDD_IO 也改 1.8V 但整条 I2C_A 要降到 1.8V 会打断 TMP117 / D 并轨已被官方 Note 10 + Table 13 排除。★未供电后果: VDDIO_PHY
+        不供电则 MIPI PHY 的 I/O 不工作, sensor 直接不出图。'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  sensor_i2c_addr_map:
+    values:
+      hw-lead: IMX415=0x1a/AR0234CS=0x10
+    notes:
+      hw-lead: '★**19:5x 实测订正**: AR0234CS = **0x10** (RPi overlay 实拉: ar0234@10, compatible "onnn,ar0234cs"),
+        IMX415 = **0x1a** ⇒ ★**网表原注释 ''sensor 0x36'' 是 OV04C10 的, 已改** ⇒ ★**每次换 sensor 必须重核整条 I2C_A 地址表**
+        (TMP117 0x48 / 充电IC 0x12 / 光机 0x72; 桥接位 0x50 已随 RK3572 无 DP TX 删除)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  ar0234cs_port_bringup_platform:
+    values:
+      hw-lead: A7S(RK3576)先行, RK3572 后迁
+    notes:
+      hw-lead: '★2026-11-02 20:00 hw-lead 实测 (ISS-144 规格 §0.2 (b) + R13): ★Radxa A7S (RK3576) 与目标 RK3572
+        的 ISP 拓扑逐节点同构 —— 只差 dphy 的 compatible 字符串带 SoC 名: RK3572: rockchip,rk3572-csi2-dphy → rockchip,rkcif-mipi-lvds
+        → rockchip,rkisp-vir → rockchip,rkisp-sditf; RK3576: rockchip,rk3576-csi2-dphy → rockchip,rkcif-mipi-lvds
+        → rockchip,rkisp-vir → rockchip,rkisp-sditf。 ⇒ ★C1/C2/C3/C6 (驱动本体+寄存器+曝光增益+rkaiq注册) 可先在 A7S 上做先验,
+        只差 C4/C5 的 SoC 专属 DT 节点名 ⇒ ★「等 RK3572 板」不构成 C1~C3/C6 的前置。★且 rk3576.dtsi 在 develop-6.1 存在(200)
+        而 rk3572.dtsi 在 6.1 是 404 ⇒ 两块板可共用同一份 ar0234.c。★★保留意见: A1~A5 在 A7S 上过 ≠ 在 RK3572 上过, 别把 A7S 的绿灯当
+        RK3572 的验收。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  rkaiq_isp3x_iq_inventory:
+    values:
+      hw-lead: 10个json, 无ar0234
+    notes:
+      hw-lead: '★2026-11-02 20:00 hw-lead 实拉 rkaiq 仓 (TinkerBoard/rockchip-linux-external-camera_engine_rkaiq)
+        git/trees/HEAD?recursive=1 (2551 项, 未截断): ★iqfiles/ 下有 6 个 ISP 代目录 (isp20/isp21/isp32/isp32_lite/isp3x
+        + 4 个 mesh 目录) ⇒ RK3572 (ISP3) 用 isp3x/。 ★isp3x/ 一共只有 10 个 .json, 其中 ov02b10_default_default.json
+        + imx415_CMK-OT2022-PX1_IR0147-50IRC-8M-F20.json 都在 ⇒ ★路径B 的 IQ 齐备 (两个候选 sensor 都有现成 ISP3 IQ)。
+        ★ar0234 / ov04c10 全树命中数 = 0 ⇒ AR0234CS 的 tuning 确要从零做 (ISS-139)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  ar0234cs_power_120fps:
+    values:
+      hw-lead: 372.6/646.4mW
+    notes:
+      hw-lead: '★AR0234CS 裸片功耗 (公开 datasheet, ISS-148): Typ **372.6 mW** / Max **646.4 mW** @120fps 全分辨
+        (Table 16 p.18), Table 1 p.1 抬头 ''<395 mW @120 FPS'' ⇒ ★**datasheet 无 60fps 电流行** ⇒ 60fps 取行为上界
+        [推算] ~300mW, 精确值 [待核] 等 EVT。★口径修正: 第三方 0.92W 是**模组级含板载 ISP**, 我们 ISP 在 RK3572 ⇒ POWER_BUDGET_V3
+        里『拒绝 AR0234CS』的理由不成立。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  ar0234cs_vin_max:
+    values:
+      hw-lead: 3.1V
+    notes:
+      hw-lead: '★AR0234CS VIN 绝对最大 = **VDD_IO + 0.3 = 3.1V** (Table 14 p.17) ⇒ ★**3.3V I2C 上拉违规** ⇒ 整机阶段改
+        2.8V (零 BOM 增量: 顶网换到 RAIL_SENSOR_VDD_IO, 同 MAIN_PCB) ⇒ ★与 IMX415 相反 (IMX415 VI ≤3.3V ⇒ 3.3V 合法)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  ar0234cs_cra_variants:
+    values:
+      hw-lead: 0deg/28deg
+    notes:
+      hw-lead: ★AR0234CS 有 **0° 与 28° 两个 PN 变体** (Table 1 p.1), 28° 变体给完整 CRA 曲线 (角落 27.97°, Figure 19
+        p.23) ⇒ ★**CRA 查到了** ⇒ 120° 鱼眼需配 28° 变体 + ISP 鱼眼校正 (老板 10-25 已接受畸变)。★AND9658-D 正文在付费墙后 ⇒ 判『查不到』,
+        永久放弃该文档, 改问自家镜头厂要 CRA 曲线。
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  ar0234cs_rail_count:
+    values:
+      hw-lead: 5rails_1v8phy
+    notes:
+      hw-lead: ★AR0234CS 供电 **5 组**, 含 **VDDIO_PHY 1.8V only** (Note 10) ⇒ ★**我们网表只有 3 条 sensor 轨 ⇒ 缺这条
+        ⇒ 不供电出不了图**; 且 CONN_CAM 18p 已 18/18 占满 ⇒ 整机阶段必须 FPC 改 24p + 预留 1.8V PHY 轨 (ISS-154)。
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  panel_driver_ic_whitelist:
+    values:
+      hw-lead: ST7701/ST7703/ST7789V/ILI9881C/NV3052C/OTM8009A/HX8394/RPi-TC358762
+    notes:
+      hw-lead: Rockchip BSP develop-6.1 + 上游主线 drivers/gpu/drm/panel/ 实测; ★EK79007/EK73217/NV3049 不在内核
+        => 选屏按此白名单反推
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  tps7a20_has_en_pin:
+    values:
+      hw-lead: 有EN脚(高有效+500k下拉)
+    notes:
+      hw-lead: 'TI SBVS338H datasheet Pin Functions 实读: DSBGA B1 / X2SON+SOT23 第3脚=EN => ISS-152 上电顺序对策可用同型号加EN+RC延时,
+        不必换LDO家族'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  ldo_en_pin_p0:
+    values:
+      hw-lead: TPS7A20 EN悬空=LDO关断(7路全灭)
+    notes:
+      hw-lead: 'TI SBVS338H 实读: 内部500k下拉 + VEN(LOW)<=0.3V/VEN(HI)>=0.9V; 本项目7路LDO网表行(SCHEMATIC_V1_SPEC.json
+        connections C-06~C-10)无EN网络 => 画板前必须全表7颗显式接EN, 否则投板不启动(2-4周返工)'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  rknn_target_rk3572:
+    values:
+      hw-lead: invalid_use_rk3576
+    notes:
+      hw-lead: '★★2026-11-02 20:2x 实测: **rk3572 不是 rknn-toolkit2 的合法 target_platform** (2.3.2 与最新 2.5.0
+        都 `ValueError: Invalid target_platform 「rk3572」!`) ⇒ ★**M1 复用 A7S 的 .rknn 不成立, 必须重转**; ★**RK3572
+        NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform=「rk3576」` 转 + 板端 RK3572 BSP runtime
+        加载** [推算·待板端验证] ⇒ **demo 头号卡点 ISS-155**; ★本机已就绪 (conda env rknn + 转换四步 rc=0 + yolov5n INT8 5.13MiB
+        + COCO val2017 与 100 张校准集已恢复)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  demo_step1_carrier:
+    values:
+      hw-lead: Forlinx OK3572-C
+    notes:
+      hw-lead: '★ISS-151 实测清单 (9 章 / 7 类 / 每类 ≥3 个公开在售候选 + 实测 HTTP 状态 + 已试-未试栏): ★**主控载体首选 = Forlinx OK3572-C
+        + FET3572-C SoM** (公开产品简介 PDF, 与硬件方案 Step1 一致); 备选 ArmSoM CM5 (CM4 兼容 ⇒ RPi 15p CSI 座可直插) / DFRobot
+        RK3576 核心板 (套件自带 IMX415 模组) / Banana Pi BPI-CM5 Pro; ★**屏幕 init code 不必问厂家** (内核 79 个 panel 文件里有
+        ST7701/ST7703/ILI9881C/NV3052C 现成驱动与完整 init sequence) ⇒ ★**但 EK79007/EK73217/NV3049 内核里没有, 不能当白送**;
+        ★**L3 门槛还没到** (全库无采购记录 ⇒ "已试"= 上手跑通/实物验证)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  ldo_en_net:
+    values:
+      hw-lead: SYS+RC_AVDD
+    notes:
+      hw-lead: '★★2026-11-02 20:3x P0 修复 (原网表缺 EN ⇒ 悬空=关断 ⇒ 投板后 9 路全灭): ★TPS7A20/TPS62130A 都有 EN 脚 (TPS7A20
+        内部 500kΩ 下拉) ⇒ 现网表: ①除 SENSOR_AVDD 外 **EN 直连 RAIL_SYS** (永远使能, 零新增器件) ②**SENSOR_AVDD 的 EN 走 RC
+        延时** (R_EN_AVDD 100k SYS→EN + C_EN_AVDD 1µF EN→GND, t=(100k‖500k)×1µF≈83ms) ⇒ **AVDD 最后上电 ⇒ 满足
+        IMX415 DVDD→OVDD→AVDD** ⇒ ISS-152 闭环 (零换料/零改板层数)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  demo_fpc_spec:
+    values:
+      hw-lead: public_stock_only
+    notes:
+      hw-lead: '★2026-11-02 20:3x (ISS-151 C3): 公开现货 camera 模组 FPC = **31p/0.3mm (FH35C-31S-0.3SHW)**
+        / **RPi 15p/1.0mm (FPC1030-15S-TAG)** / 22p/0.5mm ⇒ ★**几乎没有 0.5mm/24p 现货** ⇒ ★**我们硬件方案里的 0.5mm/24p
+        是自研目标规格 (Step2)**, demo 阶段直接用公开现货模组 (针数随模组, 主板侧不画)。'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  panel_init_sequence_source:
+    values:
+      hw-lead: rk3576-evb.dtsi
+    notes:
+      hw-lead: '★2026-11-02 20:3x: Rockchip `rk3576-evb.dtsi` 里有 **1080×1920 / 4-lane / RGB888 的完整 panel-init-sequence**
+        (与视涯 0.49" 1920×1080 分辨率最贴) ⇒ ★**面板 init code 的起点是"抄内核现成 dts", 不是"问厂家"**; ★另: 内核 79 个 panel 文件里**确实有**
+        ST7701/ST7703/ILI9881C/NV3052C 的现成驱动, ★**但 EK79007/EK73217/NV3049 内核里没有**。'
     by:
     - hw-lead
     noncanonical_by: []
@@ -9005,18 +9995,6 @@ needs_matrix:
     since: '2026-11-02'
     _by: main
     state: pending
-  - key: rk3572_official_datasheet
-    to: hw-lead
-    item: 'RK3572 目前**没有官方 Brief Datasheet** (本项目全部规格证据等级都是 [媒体]/[模组厂口径])。需要: ①官方封装图 (球数/pitch/球阵列分布)
-      ②ISP MP/s 吞吐上限 ③DDR 位宽/速率官方口径 ④VO 接口官方口径 (确认无 DP TX) ⑤SoC 域功耗官方口径。
-
-      ★**拿到第①项之前, 板面积账与逃线层数都只能是 [推算]** (ISS-128 阻塞于此)。'
-    decision: ''
-    decided_at: ''
-    decided_by: ''
-    since: '2026-11-02'
-    _by: main
-    state: pending
   - key: visionox_inquiry_release
     to: boss
     item: '**视涯问询草稿已就位** `state/outbox/visionox_display_inquiry.md` (6 大项: Q1 单色/全彩 / Q2 DSI+I2C 时序 /
@@ -9206,6 +10184,167 @@ needs_matrix:
     decision: ''
     decided_at: ''
     decided_by: ''
+    since: '2026-11-02'
+    _by: hw-lead
+    state: pending
+  - key: iss148_imx415_netlist_changes
+    to: main
+    since: '2026-11-02'
+    due: '2026-11-03'
+    waiting_on: agent
+    item: '★ISS-148/150 交接: demo sensor 改 IMX415 ⇒ 网表 9 项改动 (改网表要动 state/gen_netlist.py, 不在本单边界): N1 SENSOR_CORE
+      1.2V->**1.1V**; N2 SENSOR_VDD_IO 2.8V->**1.8V** (★不改会烧 sensor, IMX415 OVDD 上限 1.9V); N3 SENSOR_AVDD
+      2.8V->**2.9V**; N4 三条轨『最大电流』文字 50/30/30mA -> **250/3/156mA** (IMX415 datasheet Max); N5 I2C_A 上拉
+      (见另条 need); N6 **CSI 2-lane -> 4-lane** (见另条 need); N7 上电顺序 DVDD->OVDD->AVDD (现网表三 LDO 同时使能无 EN);
+      N8 驱动加 1080p60 模式 (VMAX 0x0C5D->0x062E, 不是移植是改一行); N9 IQ 补 1920x1080 mesh + AE 曝光表换算 (1~2 人日)。★另:
+      TPS7A20 固定档位表里有没有 1.1V/1.8V/2.9V 三点要核 (全档共用 X2SON 封装 ⇒ 缺档也是换料不换板)'
+    _by: hw-lead
+    state: pending
+  - key: demo_csi_lanes_2_vs_4
+    to: main
+    since: '2026-11-02'
+    due: '2026-11-03'
+    waiting_on: agent
+    item: '★★CSI lane 数冲突待裁 (影响 FPC 针数/网表/BOM/连接器): 已有 claim `demo_csi_lanes=2lane` (demo 板方案) vs 本单 `demo_csi_lanes_imx415=4lane`
+      (Rockchip BSP imx415.c 证据)。★**技术事实**: 驱动按 num_data_lanes 选模式表, 2-lane 表里**没有 1944x1097 binning 模式**
+      ⇒ 只接 2 lane 拿不到 1080p 模式 ⇒ IMX415 demo 路线要 4-lane; ★**带宽不是约束** (1080p60 12bit=1.49Gbps, 2 lane @750Mbps/lane
+      装得下) ⇒ 瓶颈在驱动模式表。★FPC 针数影响: 2-lane 24p -> 4-lane 需 4 数据lane x2 + 时钟x2 = 10 差分对 = 20 脚 + I2C 2 + MCLK
+      1 + RESET 1 + 3 电源 + 2 地 ≈ **28-30p** ⇒ 请裁 camera FPC 座针数 (24p 够不够 / 改 28p / 30p) 并回写网表。★另注: 已有
+      claim `csi_lane_mode_req=4-lane` 也是 4-lane ⇒ 分片内部本就不一致, 需统一'
+    _by: hw-lead
+    state: pending
+  - key: i2c_a_pullup_two_versions
+    to: main
+    since: '2026-11-02'
+    due: '2026-11-03'
+    waiting_on: agent
+    item: '★I2C_A 上拉方案待裁 (两版 sensor 各要不同电平): AR0234CS ⇒ **2.8V** (datasheet 绝对最大 VIN=VDD_IO+0.3=3.1V,
+      3.3V 超规格); IMX415 ⇒ OVDD 1.8V 域 (VIH max 1.9V, 3.3V 合法但 R 须 >=967 ohm) ⇒ ★**建议 AR0234CS 的 VDD_IO
+      也取 1.8V 档** (datasheet 允许 1.7/1.8/1.9) ⇒ 两版 sensor 上拉**都是 1.8V** ⇒ 一颗 LDO + 一次档位选择, 不必做两档。★前置: 请核
+      I2C_A 同总线从设备 (TMP117 1.7-5.5V ✔ / 充电 IC / 光机 / 屏) 各自的电平域, 这是 1.8V 全线改的前提'
+    _by: hw-lead
+    state: pending
+  - key: iss144_netlist_i2c_addr_comment_0x36_to_0x10
+    to: main
+    item: '★ISS-144 规格 §0.2 E2 实测订正: ★AR0234CS 的 I2C 7-bit 地址是 0x10 不是 0x36 (0x36 是上一代 OV04C10 的)。证据 3
+      个独立来源交叉: ①Kurokesu/ar0234-rpi-driver 的 ar0234-overlay.dts (ar0234@10, reg=<0x10>) ②Kurokesu/ar0234-jetson-driver
+      的 tegra234-p3767-camera-p3768-ar0234-A.dts (rbpcv3_ar0234_a@10, reg=<0x10>) ③同源驱动 DTS。★HW/netlist_v1.csv
+      row 153 的 TMP117 注释「与 sensor 0x36 / 桥接 0x50 / 充电 IC 0x12 / 光机 0x72 都不冲突」里的 0x36 还是 OV 时代的 ⇒ ★请把注释里的
+      sensor 地址改成 0x10 (★地址本身不冲突: 0x10 与 0x48/0x50/0x12/0x72 都不撞, 只是注释错)。★本单不越界改网表, 故走 need (due 11-04)。'
+    since: '2026-11-02'
+    waiting_on: agent
+    due: '2026-11-04'
+    _by: hw-lead
+    state: pending
+  - key: iss144_onsemi_query_add_5_items
+    to: main
+    item: '★ISS-144 规格 §5 R11: onsemi 问询函 (ISS-142) 一封未发, 而它同时卡着 R2 (tuning) / R3 (CRA) / R4 (VDD_IO abs
+      max) / R10 (fine exposure) 4 条 ⇒ ★它是本单最长的外部依赖。★请在放行 ISS-142 时把问询单补成 7+5 项: ①lane 速率与位深档位 (450MHz=10bit
+      / 360MHz=8bit, 跟 pixclk 绑定) ②有没有现成 Rockchip ISP3 的 IQ 文件 ③fine exposure 寄存器是否存在 (S2 驱动只写了 coarse
+      0x3012) ④VDD_IO abs max (定 I2C 上拉 2.8V 还是 3.3V) ⑤完整 pinout 与电源域 (SENSOR_AVDD 2.8V 到底对应哪个脚)。★前 5
+      条正好对应规格的 C2/C3/C6/R4/R10, 建议优先问 (due 11-03)。'
+    since: '2026-11-02'
+    waiting_on: agent
+    due: '2026-11-03'
+    _by: hw-lead
+    state: pending
+  - key: iss146_demo_board_form_decides_pathB
+    to: main
+    item: '★ISS-144 规格 §6.1 末尾的隐藏前提: ★路径B (先用 IMX415/OV02B10 跑通链路) 能不能成立, 完全取决于 demo 板的 sensor 是不是外接模组。实测网表
+      P5: sensor 走 CONN_CAM (18p 跨铰链连接器) 外接 ⇒ ★只要 demo 板形态选「模组+转接板」, 换 sensor 就只换模组不动主板 ⇒ 路径B 硬件上通, 省
+      C1~C6 的 7 人日 + C7 的 1~2 人周 (合计 15~21 人天)。★但若 ISS-146 定成「自制整板」, 换 sensor 要改板, 路径B 成本会跳上去 ⇒ ★建议 ISS-146
+      选模组+转接板 (与 ISS-146 已有建议一致), 这条建议现在多了一条硬依据 (due 11-04)。'
+    since: '2026-11-02'
+    waiting_on: agent
+    due: '2026-11-04'
+    _by: hw-lead
+    state: pending
+  - key: iss148_pm_recalc_sensor_power_bare_die
+    to: main
+    item: ★ISS-148 开源查完 U1 后发现 POWER_BUDGET_V3.md §9-2 那条否决理由口径不成立, 请 PM 复算。★HW/POWER_BUDGET_V3.md 第 405
+      行现记 sensor 0.92 W 模组级是拒绝理由 (V3 下并入则整机 1.54 W -> 整机上界 112.2C = 整机方案否决)。★0.92 W 来自 e-CAM217_CUMI0234_MOD
+      公开 spec, 那是模组级 = 裸片 + 板载 ISP + 镜头座 + 模组板级 (该页明写 has a dedicated Image Signal Processor)。★本项目架构是
+      AR0234CS 裸片 + RK3572 做 ISP (rkisp3), 所以 sensor 侧净增应是裸片数 0.373 W Typ / 0.646 W Max (onsemi datasheet
+      Table 1 p.1 抬头 <395 mW @120 FPS Full Resolution + Table 16 p.18 分轨 Typ 求和 372.6 mW / Max 646.4 mW,
+      两处互证)。★那 0.92 W 里的 ISP 那一块在 RK3572 那边另算, 不该整段记到 sensor 头上。★请 PM 按裸片口径复算 POWER_BUDGET_V3 §9-2 + 整机皮肤温度判据
+      (43C 红线) + 电池续航; 若过, AR0234CS 的否决理由即撤销, ISS-138 选 D 的结论才站得住。★本单禁写 POWER_BUDGET_V3.md, 未改一个字节 (due
+      11-03)。
+    since: '2026-11-02'
+    _by: hw-lead
+    state: pending
+  - key: iss148_vddio_phy_1v8_rail_and_conncam_pins
+    to: main
+    item: '★ISS-148 U4 查完发现板级硬伤, 需要跨专业拍板。★onsemi AR0234CS/D datasheet Table 5 p.8-9 + Note 10 + Note 19
+      + Table 13 p.16 + Table 22 p.20 给出 5 组供电: VAA+VAA_PIX+VAA_PHY (2.8V, 可并成一条) / VDD_IO (1.8 或 2.8V)
+      / VDDIO_PHY (1.8V only, Note 10 明写 should be connected to 1.8 V only) / VDD+VDD_PHY+VDD_DATA (1.2V,
+      可并成一条) + 上电时序 VAA族->VDDIO->VDDIO_PHY->VDD族 (各 0-100ms)。★现状: HW/netlist_v1.csv 只有 3 条 sensor 轨 (SENSOR_CORE
+      1.2V / SENSOR_AVDD 2.8V / SENSOR_VDD_IO 2.8V), 缺 VDDIO_PHY 1.8V 一条; 且跨铰链连接器 CONN_CAM 18p 已 18/18
+      占满 (pin1-12 CSI+MCLK+RESET, pin13/14 I2C_A, pin15/16/17 三条 sensor 轨, pin18 GND) => 加不出第 4 条轨。★VDDIO_PHY
+      不供电的后果: MIPI PHY 的 I/O 不工作, sensor 直接不出图 => 不补这条轨板子直接废。★三方案供拍板: A 跨铰链连接器 18p->20p (最干净, 但动机械最脆的铰链
+      FPC + 三方协同 + 重投板风险) / B 铰链侧 camera 板本地生成 1.8V (零连接器改动, 加一颗 TPS7A20-18 X2SON 与板上其它 LDO 同封装换料不换板,
+      代价是 camera 板可用供电轨要 mech-lead 确认) / C VDD_IO 也改 1.8V 让两者并成一条 (零新增, 但整条 I2C_A 必须降到 1.8V, TMP117 现供电
+      3.3V 认不了 1.8V 高电平, 影响面反而更大) / D 并到 VDD_IO 2.8V 已被官方 Note 10 + Table 13 明确排除不用再讨论。★hw-lead 倾向 B,
+      但前提是 camera 板上有什么轨可用还没查 (已另登记给 mech-lead)。★同时要定 sensor 轨上电时序怎么实现 (RC 延时 or SoC GPIO 拉 TPS7A20 的
+      EN 脚)。★本单未改 netlist_v1.csv 与 gen_netlist.py (禁写范围) (due 11-04)。'
+    since: '2026-11-02'
+    _by: hw-lead
+    state: pending
+  - key: iss148_hw_i2c_pullup_3v3_to_2v8
+    to: main
+    item: '★ISS-148 U2 查完: I2C_A 上拉必须从 3.3V 改 2.8V, 否则违反绝对最大额定值。★onsemi AR0234CS/D Table 14 p.17 ABSOLUTE
+      MAXIMUM RATINGS 里 VIN DC Input Voltage = -0.3 .. VDD_IO + 0.3 V, 我们 VDD_IO = 2.8V => I2C 引脚上直流电压上限
+      3.1V, 而现网表 R_PU_I2CA_SCL/SDA 顶网是 RAIL_VDD_3V3_IO (3.3V) => 超 0.2V (不是余量偏小, 是违反绝对最大额定值)。★改法零 BOM
+      增量: 顶网换成 RAIL_SENSOR_VDD_IO (2.8V, U_LDO_S28B TPS7A20-28, 与上拉电阻同在 MAIN_PCB) => 不加器件不动连接器不动跨铰链走线;
+      阻值保持 4.7k (datasheet Table 6 p.13 允许 1.5k..4.7k, 灌流 596uA 远小于 Table 13 的 IOL max 9 mA)。★同批要改: ①I2C
+      地址 0x36 应为 0x10 (datasheet p.11 默认 0x20 写/0x21 读即 7-bit 0x10; 拉高 SADDR 选 0x30/0x31 即 0x18; Kurokesu
+      RPi 驱动 ar0234-overlay.dts 用 reg=<0x10> 双向确认) —— ★20:05 复核: AR0234CS_RK3572_PORT_SPEC.md 的 DT 段已由并发任务改对
+      (reg = <0x10>), 剩 netlist_v1.csv row 153 的 note 仍写 与 sensor 0x36 不冲突 这句要改; 本单再从 datasheet 原文侧独立确认一次
+      ②SADDR (A5) 必须明确接法否则地址不定驱动枚举不到 ③RSVD (F10) 必须 1.5k 接 DGND ④CAP_1UF_PHY (F12) 要 1uF 旁路 (不是 10uF 体电容)
+      ⑤TEST (F5) 接 DGND, Reserved A11/B9 不接。★降上拉后风险方向反转: 现在要核的是从设备能否把 2.8V 认成高电平 (VIH), 已列清单 TMP117/桥接/充电IC/光机/RK3572
+      五项, 后两项要先确认是否真在 I2C_A 上 (光机看着在 I2C_B, 充电IC 看着本板自闭环) (due 11-03)。'
+    since: '2026-11-02'
+    _by: hw-lead
+    state: pending
+  - key: iss148_rk3572_gpio0_vccio_domain_check
+    to: sw-lead
+    item: '★ISS-148 U2 的收尾依赖这一条, 请 sw-lead 配合核 RK3572 的 IO domain。★onsemi AR0234CS/D Table 14 p.17 给出
+      VIN DC Input Voltage 上限 = VDD_IO + 0.3 V, 我们 VDD_IO = 2.8V => sensor 侧 I2C 引脚只能承受 3.1V => I2C_A
+      上拉从 3.3V 改 2.8V (已登记 need iss148_hw_i2c_pullup_3v3_to_2v8)。★但 SoC 侧还没核: I2C0_SCL = GPIO0_B0 (球 1K21)
+      / I2C0_SDA = GPIO0_B1 (球 U32), 而本地 HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.txt 的 abs-max 表把 VCCIO1_VCC
+      归在 1.8V only GPIO supply voltage 一栏 (max 1.98 V), 且引脚表里 GPIO0 组紧跟 VCCIO1_VCC 出现 => 若属实, SoC 侧 GPIO0
+      只允许 1.98V, 那 3.3V 与 2.8V 上拉都超 SoC 侧 abs-max, 整条 I2C_A 电平域要重新设计 (整条降 1.8V 或加电平转换), 不是只改上拉。★本地 txt
+      是 pdftotext 转出的扁平引脚表, 没有 bank 对照 GPIO 的权威表, 只能靠引脚表顺序推断, 不能当结论。★请核 Rockchip 官方 RK3572 IO domain /
+      VCCIO 分组表, 或 BSP rk3572.dtsi 的 io-domains / pinctrl rockchip,pins 里的 VCCIO 网名 => 这条不核, U2 最终改法不能定稿
+      (due 11-03)。'
+    since: '2026-11-02'
+    _by: hw-lead
+    state: pending
+  - key: iss148_lens_cra_curve_and_pn_variant
+    to: mech-lead
+    item: '★ISS-148 U3 查完, 镜头侧要补两项公开资料 (都是问我们自己的镜头供应商, 不是问 onsemi, 不违反老板禁令)。①CRA 曲线: onsemi 的 AND9658-D
+      (AR0234 Sensor Optical Specifications, 含 recommended lenses + CRA tolerances) 正文在 Scribd 付费墙后, 按老板规矩永久放弃不追
+      ⇒ 改走替代路径: 要求镜头厂提供所选镜头在 1/2.6 英寸 (AR0234CS, 对角 6.79mm, 有效阵列 5.760x3.600mm) 靶面上的 CRA-vs-像高曲线, 以及该镜头的角畸变与相对照度;
+      CRA 容差带按业界通用 plus or minus 3 度做设计裕量。★AR0234CS 自身的像素接受角已经查实 (datasheet Table 1 p.1: CRA = 0 度或 28
+      度, 两个 PN 变体; Figure 19 p.23 给 28 度变体完整曲线, 角落 27.97 度 @ 3.396mm 对角半长), 这张表可以直接附在 RFQ 里给镜头厂做匹配。②PN
+      变体随镜头一起定: 0 度族还是 28 度族要跟镜头方案一起定 (0 度族在 datasheet Rev 0 (2020-03) 还是工程样品 -E, Rev 3 (2020-09) 才变成可订料,
+      onsemi 官网 12 个 orderable part 里已含 0 度族) ⇒ 采购窗口按 Rev 3 的 20 个 PN 表核。★另外提醒: 120 度对角 FOV 只能鱼眼 + ISP
+      鱼眼校正 (Vadzo Bolt-234CGS 默认 S-Mount 74 度 DFOV 佐证生态默认), 直线镜在 28 度 CRA 下角落入射角失配不成立。★camera 板上有什么可用供电轨也请一并回
+      (VDDIO_PHY 1.8V 要在铰链侧本地生, 前提是 camera 板有轨可降) (due 11-04)。'
+    since: '2026-11-02'
+    _by: hw-lead
+    state: pending
+  - key: part_registry_l3_evidence
+    to: main
+    item: '替代料清单已落 HW/PART_ALTERNATIVES_REGISTRY.md (31候选/7类/全可点链接) ⇒ L3 判据"所有元件都试过了"目前【不成立】(全库零采购记录),
+      L4 不该触发; 请 boss 拍板: ①主板FPC座改成 RPi 15p/22p 标准还是保留24p+转接排线 ②AVDD 留2.8V还是换可调LDO ③demo 屏用 Radxa 8HD/10FHD
+      跑链路'
+    since: '2026-11-02'
+    _by: hw-lead
+    state: pending
+  - key: ldo_en_netlist_fix
+    to: main
+    item: 'P0: 7路TPS7A20的EN脚网表未定义 (悬空=LDO关断, datasheet 实测 500k内部下拉) => 画板前必须全表7颗显式接EN (S28/S18B 用IN+RC延时做IMX415上电序,
+      S12 与其余4颗直连IN或10k上拉), 不许NC; 同时纠正项目内 TPS7A20无EN 的错误说法'
     since: '2026-11-02'
     _by: hw-lead
     state: pending
@@ -9551,8 +10690,8 @@ needs_matrix:
     since: '2026-11-02'
     _by: mech-lead
     state: pending
-  answered_count: 135
-  total: 194
+  answered_count: 142
+  total: 213
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -9723,25 +10862,32 @@ blockers:
     (TF SavedModel → ONNX → Art.Galaxy 三段都没跑过) —— 即''换栈''这条路目前也只有许可干净, 没有转换可行性证据; 同机 640 版 yolov5s ONNX
     是唯一实测可推理的 yolov5s 资产 (但它是 AGPL) ⇒ **''许可干净'' 与 ''NPU 可用'' 两个条件在本地暂无交集** → 必须等 Art.Galaxy 工具链才能定主模型'
   owner: sw-lead
+- id: SW-B15
+  desc: '★ISS-145 demo: RK3572 (4 TOPS) 上 rknn-toolkit2 2.3.2 是否支持 + 板端 librknnrt 版本兼容, 均未核 (只证过 rk3576
+    目标); 且本机无 RKNN 工具链/源模型/校准集 ⇒ ''复用 A7S 现成 .rknn'' 这条最快路线的前置未落实'
+  needs_from: *id025
+  severity: high
+  waiting_since: '2026-11-02'
+  owner: sw-lead
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
     11.8mm 全是推算)
   severity: high
-  needs_from: *id025
+  needs_from: *id026
   waiting_since: '2026-10-21'
   owner: mech-lead
 - id: MECH-B2
   desc: '散热 ❌ 不达标: 持续满载 1.22W → 皮肤侧推算 96.1°C (敏感性变体 82.0°C) vs ISO 13732-1 红线 43°C; **43°C 红线只允许贴皮肤镜腿持续
     0.16-0.21W**; 方案 C (0.23W) 也只降到 46.5°C 仍超红线 → 加散热片无效, 只能降功耗/把 SoC+充电板挪出镜脚'
   severity: high
-  needs_from: *id026
+  needs_from: *id027
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B4
   desc: PCB 板宽跟 FCCSP pitch 走; pitch≤0.3mm 装不下 (板宽 12→15mm, 镜脚直接超) → 与 4-6 层/HDI 约束叠加; 且 ARS45 是否内置 boot
     storage 未知 → 板宽 12 还是 15mm 定不下来, 投板前必须 close
   severity: high
-  needs_from: *id027
+  needs_from: *id028
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B7
@@ -9749,7 +10895,7 @@ blockers:
     还是 1.5A、8p 还是 10p、载流与型号; 同时 J_CHG 无机械防呆 (反插 = SYS 短接 GND = 充电板 MOS 直通)。未裁之前: J_CHG 型号定不了、跨铰链 FPC 芯数定不了、铰链区走线槽开不出来
     (打印包不能开工)。'
   severity: high
-  needs_from: *id028
+  needs_from: *id029
   waiting_since: '2026-10-27'
   owner: mech-lead
 - id: MECH-B8
@@ -9758,7 +10904,7 @@ blockers:
   desc: 'ISS-091: 跨铰链充电电流核算已交 (MECH/HINGE_POWER_CALC.md), 但两个前置未裁: (1) J_CHG 单触点额定电流未知 [0数据] -> 直接锁死 R_ILIM
     档位 (若只有0.3A型号则只能选680Ω); (2) FPC 厂商三项能力未知 [0数据] (分段铜厚/0.4mm加宽/地平面keep-out) -> 固定段能否加厚不确定, 影响压降 111->65mV
     区间。未裁之前: R_ILIM 最终档位定不了、FPC 加工图定不了、铰链段 FPC 不能下单。'
-  needs_from: *id029
+  needs_from: *id030
   owner: mech-lead
 - id: MECH-B9
   severity: high
@@ -9768,19 +10914,19 @@ blockers:
     全 closed; 无切片器; 无卡尺/千分尺/塞尺; 无 USB 串口 —— 证据 MECH/print/ENV_PROBE.log). 因此 B1 之前所有尺寸仍是图纸值, M-PRINT/M-FIT/M-WEIGHT
     三项 [实测] 全空, G2 缺 7 项一项没减. **B1+B2 共 49 项实测不需要 PCB 也不需要 JBD**, 是当前唯一不被外部依赖卡死的路径 —— 但要靠 ISS-040 落地才走得动.
     未闭之前: 打印件0件 -> ISS-017 无法闭 -> G2 不可判.'
-  needs_from: *id030
+  needs_from: *id031
   owner: mech-lead
 - id: MECH-B-DFM-1
   desc: 量产外形件几何不存在 => 脱模/分型/收缩/缩痕/飞边/顶针的面级统计 = 0个数据点。Rev B打印包只含检具与试样。不补就开模 = 模具报废风险(本单已算出镜脚H链在1deg脱模下最坏
     -0.577mm, 几何上做不出来)
   severity: high
-  needs_from: *id031
+  needs_from: *id032
   waiting_since: '2026-11-01'
   owner: mech-lead
 - id: PM-B4
   desc: 波导未选型 (等 JBD 销售推荐) → 卡住镜框 3D 打印开工 (缺 2D 外形图)
   severity: medium
-  needs_from: *id032
+  needs_from: *id033
   waiting_since: '2026-10-21'
   owner: main
 - id: HW-B5
@@ -9791,34 +10937,34 @@ blockers:
     仍 [待选型], 现在加零板费); 另 3 条外部依赖 (原厂 TPS62130A R_on / JBD 光机 3.3V 容差 / 老板拍板没电插电开不了机) 见 needs_from。 ★本单遗留:
     库内 netlist_v1.csv 的 U_LDO_L33/U_LDO_IO33 还是 LDO => 方案A 尚未落进网表, 改法清单见主文 §2.1, 需下一单调生成器。'
   severity: medium
-  needs_from: *id033
+  needs_from: *id034
   waiting_since: '2026-10-26'
   resolved_by: ISS-067
   owner: hw-lead
 - id: SW-FW-B3
   desc: rootfs 实际体积未知 -> §4 回滚方案推荐 (C vs B vs A) 的容量测算全是区间估计, 方案选择未定
   severity: medium
-  needs_from: *id034
+  needs_from: *id035
   waiting_since: '2026-10-26'
   owner: sw-lead
 - id: SW-FW-B4
   desc: S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序) 与 P3 (BOOT 态 VID:PID)
     只能干等原厂, 拿不到任何一手数据
   severity: medium
-  needs_from: *id035
+  needs_from: *id036
   waiting_since: '2026-10-27'
   owner: sw-lead
 - id: MECH-B3
   desc: 走鹃Ⅱ 长×宽×高未知 (我用 7.5×5.0×4.8 推算) → 光机在镜框里的安装位姿/干涉检查做不了
   severity: medium
-  needs_from: *id036
+  needs_from: *id037
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B5
   desc: '两项 [0数据]: ① **P2S 打印件实测尺寸全空 (0 件已打)** → AGENTS.md 要求的"含实测尺寸"这一项未满足, 螺钉柱沿 Z 拉脱风险未验证; ② **波导彩虹纹厂家指标未拿到**
     → 视野内彩色边缘/膜层彩虹纹结构无解, 只能解决装配应力那一类'
   severity: medium
-  needs_from: *id037
+  needs_from: *id038
   waiting_since: '2026-10-25'
   owner: mech-lead
 - id: MECH-B6
@@ -9826,7 +10972,7 @@ blockers:
     boss mech_reltest_kit_site)。另: 1 台样机做 12 类必然撞上 ''样本量不足只能筛查'' 与 ''一次失败后续全废'' 两个硬边界 (见 MECH/RELIABILITY_TEST_PLAN.md
     §B2.3 / §B3.3)。'
   severity: medium
-  needs_from: *id038
+  needs_from: *id039
   owner: mech-lead
 - id: MECH-B10
   severity: medium
@@ -9835,24 +10981,44 @@ blockers:
     §2.4 B 的 ''+1-3g'' 预算), 但**铝的导热截面变小 -> Tj 会升**, 而 §2.3.1 的皮肤侧 46.5°C (0.23W 按需触发口径) **已经超 ISO 13732-1
     的 43°C 红线 3.5°C**. 也就是说: 重量上省下来的 0.73g, 热学上可能还回去. 这两个数必须**一起**算, 不能只看重量选截面. 重算需完整热模型 (含石墨铺装范围 + 骨架截面形状
     + 隔热层), 即 PCB_MOUNT_PIN_SET2.md §5 U-3 那张单. 未重算前: **我不出新的皮肤侧温度数**, 也不把 0.80mm 当已定版 —— 只作为待裁候选.'
-  needs_from: *id039
+  needs_from: *id040
   owner: mech-lead
 - id: MECH-B-DFM-2
   desc: 量产级工艺参数(脱模斜度/公差带/收缩率)全部是[推算·通用]或[0数据], 未按牌号/模具厂验证。已登记3条 waiting_on=vendor 的needs(收缩率/阳极均匀性/模具公差),
     未回应前不进入开模
   severity: medium
-  needs_from: *id040
+  needs_from: *id041
   waiting_since: '2026-11-01'
   owner: mech-lead
+- id: SW-B14
+  desc: '★ISS-145 demo: 视涯 0.49" SiOLED 的 DSI init code / 时序 / DSC / 单色全彩 全未拿到 (问询函草稿未发) ⇒ 显示侧只能做阶段1 (DRM/KMS
+    plane 通路 + 假画面 + DSI PHY 层抓包), 阶段2 (真面板上色/亮度/TE撕裂) 全阻塞 ⇒ 且''屏上有画面''不需要 camera ⇒ 这是整个 demo 最长的关键路径'
+  needs_from: *id042
+  severity: critical
+  waiting_since: '2026-11-02'
+  owner: sw-lead
 conflicts: []
 needs_normalization:
 - key: skeleton_extent
-  values: *id041
+  values: *id043
   canon_values:
     hw-lead: 止于PCB段后缘
     mech-lead: 止于pcb段后缘
   hint: 有一方写成散文, 没法机器比较; 请统一成短规范值后重新比较
 lint:
+- agent: hw-lead
+  key: iss148_ar0234cs_u1_u4_closed_by_open_source
+  value: 'ISS-148: AR0234CS 的 4 个未知量 U1/U2/U3/U4 已全部用公开渠道查完 (未发邮件/未联系代理/未发帖问厂家), 交卷 HW/AR0234CS_OPEN_SOURCE_FACTS.md。U1
+    裸片功耗: datasheet Table 1 p.1 抬头 <395 mW @120 FPS Full Resolution, Table 16 p.18 分轨 Typ 求和 372.6 mW
+    / Max 646.4 mW, 两处互证; datasheet 无 60fps 电流行, 取 120fps 行为上界, 60fps 精确值待 EVT 实测 => 换料触发条件不成立, AR0234CS
+    保留。U2 VDD_IO abs max: Table 14 p.17 统一 VSUPPLY 4.5V, 但 VIN DC Input = VDD_IO+0.3 = 3.1V => 3.3V I2C
+    上拉违规, 改 2.8V (0 颗新器件, 只改 R_PU_I2CA 顶网到 RAIL_SENSOR_VDD_IO)。U3 CRA: Table 1 p.1 = 0 度或 28 度两个 PN 变体,
+    Figure 19 p.23 给 28 度变体完整曲线 (角落 27.97 度); AND9658-D 正文在付费墙后判查不到并按规矩永久放弃 => 120 度只能鱼眼 + ISP 鱼眼校正, PN
+    变体随镜头定。U4: Table 5 p.8-9 = 5 组供电含 VDDIO_PHY 1.8V only (Note 10), 网表缺这条轨且 CONN_CAM 18p 占满 => 已登记 needs_from
+    拍板。★★另查出 4 个投板后必改: I2C 地址 0x36 应为 0x10 (datasheet p.11 + RPi 驱动 overlay 双向确认; ★20:05 复核 DT 段已由并发任务改对,
+    剩 netlist row 153 注释待改) / I2C 上拉 3.3V / 缺 VDDIO_PHY 轨 / netlist pin16 value 字段残留 1.8V。★★口径修正: 0.92W
+    是 e-CAM 模组级含板载 ISP, 本项目 ISP 在 RK3572, 故 POWER_BUDGET_V3 里那条拒绝 AR0234CS 的否决理由口径不成立, 请 PM 按裸片数复算。'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: hw-lead
   key: bat_chg_rate_cap
   value: 1.0A(待电芯规格书)
@@ -9868,6 +11034,39 @@ lint:
 - agent: hw-lead
   key: evt_xray_sampling
   value: 1块板/3位置+1切片
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: sensor_port_effort_ar0234cs
+  value: 7人日+1~2人周
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: info_lookup_ladder
+  value: L1网→L2换料→L3全试→L4问厂
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: ar0234cs_u1_bare_die_power_1920x1200_60fps
+  value: Typ <=372.6 mW / Max <=646.4 mW (裸片, 上界取 120fps 行; 中值估 ~300 mW 标推算)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: ar0234cs_u2_vdd_io_abs_max_and_i2c_pullup
+  value: VDD_IO 轨 abs-max = 4.5 V; 但 I2C 引脚上 DC 电压上限 = VDD_IO + 0.3 V = 3.1 V => 3.3V 上拉违规, 改 2.8V
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: ar0234cs_u3_cra_variants
+  value: CRA = 0 度 或 28 度, 是两个 PN 变体; 28 度变体完整曲线角落 27.97 度
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: ar0234cs_u4_supply_rails_and_missing_vddio_phy
+  value: '5 组供电: VAA/VAA_PIX/VAA_PHY 2.8V + VDDIO_PHY 1.8V only + VDD/VDD_PHY/VDD_DATA 1.2V + VDD_IO 1.8/2.8V;
+    网表缺 VDDIO_PHY'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: panel_driver_ic_whitelist
+  value: ST7701/ST7703/ST7789V/ILI9881C/NV3052C/OTM8009A/HX8394/RPi-TC358762
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: tps7a20_has_en_pin
+  value: 有EN脚(高有效+500k下拉)
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: mech-lead
   key: mech_reltest_cases
@@ -10064,15 +11263,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 130
-  blockers: 41
-  high_blockers: 32
-  open_needs: 59
-  waiting_external_needs: 73
+  artifacts: 139
+  blockers: 43
+  high_blockers: 33
+  open_needs: 71
+  waiting_external_needs: 79
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 1
-  lint: 34
+  lint: 43
   agents_reporting: 4
   incomplete_fragments: 0

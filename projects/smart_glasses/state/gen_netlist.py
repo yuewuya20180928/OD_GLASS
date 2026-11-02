@@ -76,7 +76,10 @@ BOARD_HINGE = "HINGE"
 LEGAL_BOARD = {BOARD_CHG, BOARD_MAIN, BOARD_HINGE}
 
 # 跨铰链界面上的 4 个连接器 (全部 HINGE)
-HINGE_REFS = {"J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"}
+# ★★2026-11-02 19:4x demo 板形态 (老板 19:25/19:35): camera/display 改成**板内 FPC 座** ⇒ 不再跨铰链
+#   ⇒ HINGE 只剩**充电链**两个连接器 (J_CHG 充电 + CONN_USB) —— 那属整机阶段的镜框充电板
+#   ⇒ demo 板阶段: 充电链不装 (直接 USB 供电), camera/display 两个模组用 FPC 连主板
+HINGE_REFS = {"J_CHG", "CONN_USB"}
 # 充电板 (镜框) 上的器件 —— ★V1.2: 电池 + 电池保护 IC + 2×MOS 移到**镜脚主 PCB** (MECH 体积硬约束)
 CHG_BOARD_REFS = {
     "J_TYPE_C", "D_ESD_TC", "FB_VBUS", "C_VBUS_IN", "C_VBUS_OUT", "U_CHG",
@@ -95,11 +98,11 @@ PAGES = {
     "P2": "SoC 主控 (低速控制 / ADC / I2C / FSIN)",
     "P3": "启动存储 (焊盘位 + 串阻位, 不画存储芯片)",
     "P4": "显示双出口 (DSI 原生 / 桥接 互斥 0Ω 位)",
-    "P5": "MIPI-CSI 传感器 (CONN_CAM 40p 跨铰链)",
+    "P5": "MIPI-CSI 传感器 (CONN_CAM 40p **板内 FPC 座**, demo 阶段 2-lane)",
     "P6": "高速差分与连接器 (DP_TX / USB / Type-C)",
     "P7": "板级接口与测试点 (TP + 按键 + LED + ID 跳线)",
     "P8": "时钟 · 复位 · 调试 (XTAL / RESET / BOOT / JTAG / UART)",
-    "P9": "跨铰链界面 (4 组跨铰链通道 + 保护/滤波件 + 板级归属)",
+    "P9": "跨铰链界面 (★demo 阶段仅充电链 USB+充电; camera/display 已改板内 FPC)",
     "P10": "充电板 (镜框) 整页: Type-C 16p 物理脚位 + BQ25896 24 脚 + 温度检测三件式 + R_ILIM 硬件限流",
 }
 
@@ -166,7 +169,8 @@ def board_for(r: dict) -> str:
     if ref.startswith("RAIL_") or ref.startswith("NET_"):
         if re.search(r"J_TYPE_C|U_CHG", blob):
             return BOARD_CHG
-        if re.search(r"J_CHG|CONN_USB|CONN_CAM|CONN_LIGHT", blob):
+        # ★★2026-11-02 19:4x: camera/display 的 FPC 座在**主板** (不再跨铰链) ⇒ 不进 HINGE
+        if re.search(r"J_CHG|CONN_USB", blob):
             return BOARD_HINGE
         if ref in ("RAIL_VBUS_5V", "NET_VBUS_5V_CHG"):
             return BOARD_CHG
@@ -511,9 +515,9 @@ def build_p1(by_id, spec):
     power_ics = [
         ("U_DCDC_VCORE", "V_CORE", "TPS62130A", "DC-DC (3A) 供 V_CORE", "必装", "[官方]", "TBD-02", "C-04"),
         ("U_DCDC_VIO", "V_SOC_IO", "TPS62130A", "DC-DC (3A) 供 V_SOC_IO", "必装", "[官方]", "TBD-02", "C-05"),
-        ("U_LDO_S28", "SENSOR_AVDD", "TPS7A20-28", "LDO 供 SENSOR_AVDD (2.8V/30mA)", "必装", "[官方]", "", "C-06"),
-        ("U_LDO_S28B", "SENSOR_VDD_IO", "TPS7A20-28", "LDO 供 SENSOR_VDD_IO (2.8V/30mA) — ★11-02 09:41 sensor 改 AR0234CS: VDD_IO=2.8V (原 1.8V 是 OV04C10 的)", "必装", "[官方]", "", "C-07"),
-        ("U_LDO_S12", "SENSOR_CORE", "TPS7A20-12", "LDO 供 SENSOR_CORE (1.2V/50mA)", "必装", "[官方]", "", "C-08"),
+        ("U_LDO_S28", "SENSOR_AVDD", "TPS7A20-28", "LDO 供 SENSOR_AVDD (2.8V/156mA) — ★11-02 19:5x 按 IMX415: AVDD1 2.80~3.00V typ 2.90V (2.8V 落 Min 边界) / IAVDD max 156mA", "必装", "[官方]", "", "C-06"),
+        ("U_LDO_S18B", "SENSOR_VDD_IO", "TPS7A20-18", "LDO 供 SENSOR_VDD_IO (1.8V/3mA) — ★11-02 19:5x 按 IMX415 公开 datasheet: OVDD 1.70~1.90V (IOVDD 3mA) ⇒ **2.8V 会超规格 ⇒ 必须 1.8V** (19:3x 按 AR0234CS 改的 2.8V 改回, 净变化 0)", "必装", "[官方]", "", "C-07"),
+        ("U_LDO_S12", "SENSOR_CORE", "TPS7A20-12", "LDO 供 SENSOR_CORE (1.2V/250mA) — ★11-02 19:5x 按 IMX415: DVDD1 1.00~1.20V (1.2V 合法) / IDVDD max 250mA", "必装", "[官方]", "", "C-08"),
         ("U_LDO_L33", "LIGHT_3V3", "TPS7A20-33", "LDO 供 LIGHT_3V3 (3.3V/150mA)", "必装", "[推算]", "TBD-02", "C-09"),
         ("U_LDO_L18", "LIGHT_1V8", "TPS7A20-18", "LDO 供 LIGHT_1V8 (1.8V/50mA)", "DNP", "[推算]", "TBD-02", "C-10"),
         ("U_LDO_IO33", "VDD_3V3_IO", "TPS7A20-33", "LDO 供 VDD_3V3_IO (3.3V/200mA)", "必装", "[推算]", "", ""),
@@ -531,6 +535,39 @@ def build_p1(by_id, spec):
             f"[{rail}] {ref} 输入脚供电 (SYS 镜脚本地产生, 电池保护后); "
             f"LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",
             cid)
+        # ★★2026-11-02 20:3x ★★P0 修复: EN 脚必须显式画!
+        #   依据: TPS7A20 datasheet —— EN 内部 500kΩ 下拉, 悬空 = LDO 关断 ("keeps the LDO disabled even
+        #   when the EN pin is left floating"); VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 (绝对值)。
+        #   ★TPS62130A (DC-DC) 同样有 EN。⇒ 原网表 7 路 LDO + 2 路 DC-DC **全都没有 EN 网络**
+        #   ⇒ 投板后 9 路全灭 = 整板不上电 = 2~4 周返工 ⇒ 现在改成本≈0 (BOM footprint 还全是"待定")。
+        #   修法: ①除 SENSOR_AVDD 外, EN 直连 RAIL_SYS (3.5-4.2V ≫ 0.9V ⇒ 永远使能, 零新增器件)
+        #        ②SENSOR_AVDD: EN 走 RC 延时 (R 100k: SYS→EN, C 1µF: EN→GND) ⇒ t=(100k‖500k)×1µF≈83ms
+        #          ⇒ AVDD 最后上电 ⇒ 满足 IMX415 的 DVDD→OVDD→AVDD 顺序 (顺手解掉 ISS-152)
+        if part.startswith("TPS7A20") or part.startswith("TPS62130A"):
+            if ref == "U_LDO_S28":
+                add("P1", "RAIL_SYS", "RAIL_SYS", "R_EN_AVDD", "R_EN_AVDD", "100k ±1%", "R", dnp,
+                    "[推算]", "",
+                    "[SENSOR_AVDD] ★EN 延时电阻 (SYS→EN) — ★P0: TPS7A20 的 EN 内部 500kΩ 下拉, 悬空=LDO 关断 ⇒ 必须显式驱动; "
+                    "★本路给 EN 加 RC 延时 ⇒ **AVDD 最后上电** (满足 IMX415 的 DVDD→OVDD→AVDD 顺序); "
+                    "时间常数 (100k‖500k)×1µF ≈ 83ms, 落在 datasheet 的 200ms 窗口内", cid)
+                add("P1", "NET_LDO_EN_AVDD", "R_EN_AVDD", "NET_LDO_EN_AVDD", "R_EN_AVDD", "100k ±1%", "R", dnp,
+                    "[推算]", "",
+                    "[SENSOR_AVDD] EN 延时电阻另一端 (R_EN_AVDD 在 EN 网上) — 与 C_EN_AVDD 构成 RC 延时", cid)
+                add("P1", "NET_LDO_EN_AVDD", "NET_LDO_EN_AVDD", "C_EN_AVDD", "C_EN_AVDD", "1µF", "C", dnp,
+                    "[推算]", "",
+                    "[SENSOR_AVDD] EN 延时电容 (EN→GND) — 与 R_EN_AVDD 构成 RC 延时 (★EN 内部 500k 下拉要并联算)", cid)
+                add("P1", "GND", "C_EN_AVDD", "GND", "C_EN_AVDD", "1µF", "C", dnp, "[推算]", "",
+                    "[SENSOR_AVDD] EN 延时电容 地端", cid)
+                add("P1", "NET_LDO_EN_AVDD", "U_LDO_S28 EN", "NET_LDO_EN_AVDD", "U_LDO_S28", "EN", "NET", dnp,
+                    "[官方]", "",
+                    "[SENSOR_AVDD] ★U_LDO_S28 的 EN 脚 (由 RC 延时驱动 ⇒ 使 AVDD 最后上电) — "
+                    "★★**P0: EN 悬空 = LDO 关断**", cid)
+            else:
+                add("P1", "SYS_PCB", f"{ref} EN", "RAIL_SYS", ref, "EN", "NET", dnp, "[官方]", "",
+                    f"[{rail}] ★{ref} 的 EN 脚**直连 RAIL_SYS** ⇒ 永远使能 — "
+                    f"★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; "
+                    f"datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 ⇒ 接 SYS (3.5-4.2V) 安全", cid)
+
         # ★V1.1 补画 4: 电压不确定性的吸收方式写进图纸 (ISS-082 前提修正)
         extra = ""
         if part.startswith("TPS7A20"):
@@ -605,24 +642,24 @@ def build_p2(by_id, spec):
              "NET_I2C_A_SCL")
     conn_row(by_id, "B-02", "P2", "I2C_A_SDA", "SoC[RK3572].I2C_A_SDA", "R_PU_I2CA_SDA",
              "NET_I2C_A_SDA")
-    add("P2", "VDD_3V3_IO", "R_PU_I2CA_SCL", "RAIL_VDD_3V3_IO", "R_PU_I2CA_SCL", "4.7k ±1%",
+    add("P2", "VDD_3V3_IO", "R_PU_I2CA_SCL", "RAIL_VDD_3V3_IO", "R_PU_I2CA_SCL", "2.2k ±1%",
         "R", "必装", "[推算]", "",
-        "[VDD_3V3_IO] I2C_A 上拉 (规格: 4.7k 到 3.3V; 灌 702µA, t_r=2.38µs@100pF) — ★[TBD-05] 11-02 09:41 sensor 改 AR0234CS: 其 VDD_IO=2.8V, 本上拉 3.3V 是否超 VDD_IO 绝对最大额定值 **待 onsemi 回信 (ISS-142)**; 若超, 改上拉到 2.8V 并逐个核同总线从设备 (TMP117 1.7-5.5V / 充电IC / 光机) 电平兼容", "B-01")
-    add("P2", "VDD_3V3_IO", "R_PU_I2CA_SDA", "RAIL_VDD_3V3_IO", "R_PU_I2CA_SDA", "4.7k ±1%",
+        "[VDD_3V3_IO] I2C_A 上拉 (★11-02 19:5x 按 IMX415: OVDD 1.8V 域, IOL 只允许 3mA ⇒ R≥(3.3-0.4)/3mA=967Ω ⇒ 取 2.2k; 灌 3.3V/2.2k=1.5mA ≤3mA ✔, t_r=2.2k×100pF×0.847≈186ns ✔; ★**上拉仍留 3.3V**: IMX415 VI 绝对最大 ≤3.3V ⇒ 合法) — ★[TBD-05] 11-02 09:41 sensor 改 AR0234CS: 其 VDD_IO=2.8V, 本上拉 3.3V 是否超 VDD_IO 绝对最大额定值 **待 onsemi 回信 (ISS-142)**; 若超, 改上拉到 2.8V 并逐个核同总线从设备 (TMP117 1.7-5.5V / 充电IC / 光机) 电平兼容", "B-01")
+    add("P2", "VDD_3V3_IO", "R_PU_I2CA_SDA", "RAIL_VDD_3V3_IO", "R_PU_I2CA_SDA", "2.2k ±1%",
         "R", "必装", "[推算]", "",
         "[VDD_3V3_IO] I2C_A 上拉", "B-02")
     add("P2", "I2C_A_SCL", "CONN_CAM pin13", "NET_I2C_A_SCL", "NET_I2C_A_SCL",
-        "上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF)", "NET", "必装", "[推算]", "",
+        "上拉 2.2k 到 3.3V (★IMX415 IOL≤3mA 重算)", "NET", "必装", "[推算]", "",
         "[I2C_A_SCL] 附加节点 (同 net)", "B-01")
     add("P2", "I2C_A_SDA", "CONN_CAM pin14", "NET_I2C_A_SDA", "NET_I2C_A_SDA",
-        "上拉 4.7k 到 3.3V", "NET", "必装", "[推算]", "",
+        "上拉 2.2k 到 3.3V (★IMX415 IOL≤3mA 重算)", "NET", "必装", "[推算]", "",
         "[I2C_A_SDA] 附加节点 (同 net)", "B-02")
     # NTC / 温度检测位: 规格 B-01 把 "NTC" 挂在 I2C_A 上, 但没说是裸 NTC 分压还是数字温度计
     # ★V1.1 定型 (ISS-086): 规格 B-01 的 "NTC 挂 I2C" 只能是**数字温度计** (裸 NTC 是分压不是 I2C)
     add("P2", "I2C_A_SCL", "U_TEMP pin2", "NET_I2C_A_SCL", "U_TEMP",
         "TMP117 数字温度计 (I2C 地址 0x48, ±0.1°C max, 16bit)", "IC", "必装", "[官方]", "",
         "[I2C_A_SCL] ★V1.1 定型: 选 TI TMP117 [官方 ti.com/product/TMP117] (1.7-5.5V 供电, 5µA max, "
-        "WSON-2 2×2mm); I2C_A 从设备地址 0x48, 与 sensor 0x36 / 桥接 0x50 / 充电 IC 0x12 / "
+        "WSON-2 2×2mm); I2C_A 从设备地址 0x48, ★**11-02 19:5x 订正**: sensor 地址随换料变 —— IMX415 = **0x1a** / AR0234CS = **0x10** (实拉 RPi overlay 核过; ★**旧注释写的 0x36 是 OV04C10 的, 已作废**) / 桥接 0x50 / 充电 IC 0x12 / "
         "光机 0x72 都不冲突; 若原厂坚持裸 NTC, 改 ADC 分压位 (不换板)", "B-01")
     add("P2", "I2C_A_SDA", "U_TEMP pin1", "NET_I2C_A_SDA", "U_TEMP",
         "TMP117 数字温度计", "IC", "必装", "[官方]", "", "[I2C_A_SDA] TMP117 SDA", "B-01")
@@ -764,7 +801,8 @@ def build_p4(by_id, spec):
     # ---- 光机连接器 ----
     add("P4", "CONN_LIGHT", "CONN_LIGHT", "CONN_LIGHT pin1", "CONN_LIGHT",
         "1×16p@0.5mm 显示/光机连接器 (板对板/FFC, 待视涯确认; 末脚 GND = 差分回流)", "CONN", "必装", "[待视涯]", "TBD-04",
-        "[CONN_LIGHT] 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, "
+        "[CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); "
+        "显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, "
         "7/8=DSI_D2 预留(DNP), 9/10=DSI_D3 预留(DNP), 11/12=DDC(I2C_B), 13=LIGHT_3V3, "
         "14=LIGHT_1V8, 15=LIGHT_5V 预留(DNP), 16=GND 回流; "
         "★★**2026-11-02: 由 22p 改 16p** —— 删掉的是桥接方案B 的 6 个差分脚 (RK3572 无 DP TX ⇒ 无桥接芯片); "

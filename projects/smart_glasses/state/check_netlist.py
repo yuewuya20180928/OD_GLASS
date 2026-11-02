@@ -178,12 +178,19 @@ def main() -> int:
     chk("板级归属合法 (CHG_BOARD/MAIN_PCB/HINGE)", not bad_b,
         f"非法 {bad_b}" if bad_b else f"{cnt_b}")
 
-    # 14) 跨铰链 4 个连接器必须标 HINGE
-    hinge_conn = {"J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"}
+    # 14) ★★2026-11-02 19:4x (demo 板形态): camera/display 的 FPC 座在**主板**, 只有充电链两个连接器属铰链界面
+    #     ★依据: 老板 19:25「sensor 模组 + 屏幕模组 通过 FPC 软排连主板」+ 19:35「敲定硬件方案」
+    #     ★**判据强度不放松**: 改成"谁必须在主板 / 谁必须在铰链", 不是删判据
+    hinge_conn = {"J_CHG", "CONN_USB"}
+    main_fpc_conn = {"CONN_CAM", "CONN_LIGHT"}
     bad_h = sorted({cell(r, "ref") for r in rows
                     if cell(r, "ref") in hinge_conn and cell(r, "board") != "HINGE"})
-    chk("跨铰链 4 个连接器标 HINGE", not bad_h,
-        f"错标 {bad_h}" if bad_h else "J_CHG / CONN_USB / CONN_CAM / CONN_LIGHT")
+    bad_m = sorted({cell(r, "ref") for r in rows
+                    if cell(r, "ref") in main_fpc_conn and cell(r, "board") != "MAIN_PCB"})
+    chk("camera/display FPC 座在主板 (demo 形态, 不跨铰链)", not bad_m,
+        f"错标 {bad_m}" if bad_m else "CONN_CAM / CONN_LIGHT")
+    chk("充电链连接器仍标 HINGE (整机阶段镜框充电板)", not bad_h,
+        f"错标 {bad_h}" if bad_h else "J_CHG / CONN_USB")
 
     # 15) SoC 侧节点必须在主 PCB (镜脚), 不许在充电板
     bad_s = sorted({cell(r, "ref") for r in rows

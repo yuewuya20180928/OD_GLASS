@@ -231,7 +231,7 @@ def _local_literals():
 
 def _local_passwords():
     """从本地 TOOLS.md / MEMORY.md 现读**设备口令** (低熵) —— 只用来动态生成上下文正则, 本身不入脚本明文。
-    ★格式兼容 (实盘形态): `**SSH 密码**: \\`radxa\\`` (markdown 反引号 + 粗体星号) / `sshpass -p 'xxx'` / `password=xxx`
+    ★格式兼容 (实盘形态): `**SSH 密码**: \\`<设备口令>\\`` (markdown 反引号 + 粗体星号) / `sshpass -p 'xxx'` / `password=xxx`
     ★长度下限 **3** (不是 6) —— 实盘口令就 5 个字符, 下限 6 会把真口令漏掉 ⇒ 闸门形同虚设"""
     out = set()
     for p in (os.path.expanduser("~/.openclaw/workspace/TOOLS.md"),
@@ -246,17 +246,40 @@ def _local_passwords():
 
 pub = sys.argv[1]
 EXTRA_LITERALS = _local_literals()
-# ★设备口令: 只在**口令上下文**命中才算 —— 光路径名不算 (上一版 \bradxa\b 会误伤 6 个正常文件)
+# ★设备口令: 只在**口令上下文**命中才算 —— 光路径名不算 (上一版 \b<口令>\b 会误伤 6 个正常文件)
 #   ★规则用真值动态拼 ⇒ 脚本源码里不出现任何口令明文 ⇒ 不会自指
 EXTRA_RE = []
 for _pw in _local_passwords():
     _e = re.escape(_pw)
-    # ★上下文里允许 markdown 装饰夹在关键词与冒号/值之间 (实盘形态: `**SSH 密码**: \`radxa\``)
+    # ★上下文里允许 markdown 装饰夹在关键词与冒号/值之间 (实盘形态: `**SSH 密码**: \`<设备口令>\``)
     _ctx = r"[\s*`\"]*"
+    # ★口令值必须是**完整字段**: 后不跟标识符续接符 (`-` `_` `/` 字母数字) / 域名尾巴 (`.com`) /
+    #   "空格+英文词" (散文续写, 如 `key: <口令> camera module` ⇒ 那是正文不是口令值)
+    _B = r"(?![-_/A-Za-z0-9])(?!\.[A-Za-z])(?!\s+[A-Za-z0-9])"
     EXTRA_RE.append(re.compile(r"sshpass\s+-p\s+['\"]?" + _e + r"\b"))
-    EXTRA_RE.append(re.compile(r"(?i)\bpass(?:word|wd)?\b" + _ctx + r"[:=]" + _ctx + r"['\"]?" + _e + r"\b"))
-    EXTRA_RE.append(re.compile(r"(?i)密码" + _ctx + r"[:：]" + _ctx + r"['\"]?" + _e + r"\b"))
-    EXTRA_RE.append(re.compile(r"(?i)" + _ctx + r"[:=]" + _ctx + r"['\"]?" + _e + r"\b"))
+    EXTRA_RE.append(re.compile(r"(?i)(?<![A-Za-z0-9])pass(?:[_-]?(?:word|wd))?(?![A-Za-z0-9])" + _ctx + r"(?:[:=：]|\|)" + _ctx + r"['\"]?" + _e + _B))
+    EXTRA_RE.append(re.compile(r"(?i)密码" + _ctx + r"(?:[:=：]|\|)" + _ctx + r"['\"]?" + _e + _B))
+    # ★★2026-11-02 20:4x **重写"通用上下文"规则** —— 旧版 (任何 `[:=]` 后跟口令就算) 在本项目**根本不成立**:
+    #   原因: 设备口令与**板子品牌名 Radxa 同形** ⇒ 硬件文档里满篇 "**高**: **<品牌>-overlays ...**"
+    #   / "**Radxa Display 5 / 8 HD**" / "产品页: <品牌>.com" 全被误判 (2026-11-02 实测拦住一次正常发布)。
+    #   ⇒ 改成**三种精确形态** (漏检风险由第 1/2/3 条 + 真值字面量层 + 值形态层兜底):
+    #     ① **凭据语义键**: 键名本身像口令 (pwd/pass/secret/token/key/auth/login/user/密码/口令/账号/密钥 ...)
+    #     ② **定界值**: 任意键, 但值被引号/反引号定界 (形如 key: '<口令>' / key: `<口令>`)
+    #     ③ **URL userinfo**: `scheme://user:<口令>@host` ⇒ 口令后紧跟 `@`
+    #   ★键与值之间除 `:` `=` `：` 外**也允许 markdown 表格竖线** (| 密码 | <口令> | 这种键值分列的写法)
+    #   ★键名两侧边界用 (?<![A-Za-z0-9]) / (?![A-Za-z0-9]) 而不是 \b ——
+    #     \b 在下划线前不成立 (`user_name: <口令>` 漏检), 而 "monkey" 里的 "key" 也不该算键名。
+    #   ★值侧收紧: 口令必须是**独立 token** —— 后面不跟标识符续接符 (`-` `_` 字母数字 `/`) 也不跟域名尾巴 (`.com`)
+    #   ⇒ `<品牌>-overlays` / `<品牌>.com` / `docs.<品牌>.com` 不再命中, 而 `密码: <口令>` / `password=<口令>`
+    #     / `sshpass -p '<口令>'` / `http://<user>:<口令>@host` / `帐号：<口令>` **仍全部被拦** (回归自测已过)。
+    # ★注意: _kwd 里**不能再写 (?i)** —— 外面已经带了全局 flag, 重复会 re.error (global flags not at start)
+    _kwd = (r"(?:pwd|pw|pass(?:[_-]?(?:word|wd))?|passphrase|secret(?:[_-]?key)?|token|"
+            r"api[_-]?key|apikey|access[_-]?key|client[_-]?secret|private[_-]?key|auth(?:[_-]?token)?|"
+            r"keys?|credential|cred|login|signin|sign[_-]?in|ssh[_-]?pass|user(?:[_-]?name)?|"
+            r"密码|密碼|口令|账号|帐号|账户|用户|密钥|授权码|校验码)")
+    EXTRA_RE.append(re.compile(r"(?i)(?<![A-Za-z0-9])" + _kwd + r"(?![A-Za-z0-9])" + _ctx + r"(?:[:=：]|\|)" + _ctx + r"['\"]?" + _e + _B))
+    EXTRA_RE.append(re.compile(r"(?i)" + _ctx + r"[:=：]" + _ctx + r"['\"`]" + _e + r"['\"`]"))
+    EXTRA_RE.append(re.compile(r"(?i)" + _ctx + r"[:=：]" + _ctx + r"['\"]?" + _e + r"@"))
 
 truths = []
 cfgp = os.path.expanduser("~/.openclaw/openclaw.json")
