@@ -2064,6 +2064,21 @@ interface_claims:
     dts", 不是"问厂家"**; ★另: 内核 79 个 panel 文件里**确实有** ST7701/ST7703/ILI9881C/NV3052C 的现成驱动,
     ★**但 EK79007/EK73217/NV3049 内核里没有**。'
   ref: HW/PART_ALTERNATIVES_REGISTRY.md §3 + ISS-156
+- key: demo_board_self_designed
+  value: 1main+SOM+2fpc
+  note: '★★2026-11-02 22:30 老板拍板「板子必须全部自己画」⇒ demo 用**自研主板** (不用公开 SBC 承载) ⇒ 主板 = RK3572
+    核心板(SOM) + camera/display 两个板内 FPC 座 + 电源树(USB-C 5V, 不装电池) + 调试口 ⇒ ★★**选型顺序倒置**:
+    先选 camera 模组(拿 FPC 针位表) → 再选屏模组(针位表+init code) → 再选 SOM(引脚定义/尺寸) → 主板照这三件画 ⇒ ★**「0.5mm/24p
+    自研目标规格」作废** (公开现货 31p/0.3mm / RPi 15p/1.0mm / 22p/0.5mm)。'
+  ref: HW/STEP1_LANDING_LIST.md §0/§1 + PROJECT_TRACKER.md#(1.64)
+- key: board_fatal_items_status
+  value: F1F2F3_done
+  note: '★★画板前致命项 (漏到投板后 = 2~4 周返工): ✅F1 9 路电源 EN 全补 (AVDD 走 RC 延时 ⇒ 最后上电) ✅F2 sensor
+    三轨 (1.2/1.8/2.8V, 250/3/156mA) ✅F3 I2C 上拉 (3.3V+2.2k) ⏳F4/F5 主板 FPC 座与 SOM (等
+    ISS-158) ⏳F6 层数与 100Ω 差分阻抗 (≥6 层) ⏳F7 MCLK/端接 ⏳F8 panel init code (抄 rk3576-evb.dtsi)
+    ⏳F9 1080p 档 mesh (1~2 人日+暗室) ⏳F10 ESD/TVS ⏳F11 FPC 弯折/插拔 ⏸F12 散热 (demo 不考虑功耗,
+    老板暂缓)。'
+  ref: HW/STEP1_LANDING_LIST.md §3 + ISS-159
 open_questions:
 - id: HW-Q1
   to: main
