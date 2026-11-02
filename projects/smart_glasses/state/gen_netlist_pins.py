@@ -146,13 +146,22 @@ def main() -> int:
     for n_ in nodes:
         if n_["ref"].startswith("SoC_"):
             soc_pin_n[n_["ref"]] += 1
-    if not soc_pin_n:
-        errors.append(".net 里没有 SoC 占位器件 ⇒ ★**SoC 引脚整条丢了** "
+    # ★★2026-11-03 00:9x: SoC 引脚现在**改挂在 SOM 座 (J_SOM_P1..P4)** ⇒ 判据升级:
+    #   「SoC 引脚总脚数 ≥ 50」, 且**逐个 SoC 占位器件**不得少于 20 (只挂一部分时是正常的)
+    som_pin_n = 0
+    for n_ in nodes:
+        if str(n_["ref"]).startswith("J_SOM_P"):
+            som_pin_n += 1
+    tot = sum(soc_pin_n.values()) + som_pin_n
+    if not soc_pin_n and not som_pin_n:
+        errors.append(".net 里既没有 SoC 占位器件、也没有 SOM 座 ⇒ ★**SoC 引脚整条丢了** "
                       "(检查 gen_kicad_net.py 的 SoC[xxx] 正则是否跟着改名更新)")
     else:
+        if tot < 50:
+            errors.append(f".net 里 SoC 引脚合计只有 {tot} 个 (SoC 占位 {sum(soc_pin_n.values())} + SOM 座 {som_pin_n}; 应 >=50) ⇒ SoC 引脚丢失")
         for sr, n_ in sorted(soc_pin_n.items()):
-            if n_ < 50:
-                errors.append(f".net 里 SoC 占位器件 {sr} 只有 {n_} 个脚 (应 >=50) ⇒ SoC 引脚丢失")
+            if n_ < 20:
+                errors.append(f".net 里 SoC 占位器件 {sr} 只有 {n_} 个脚 (<20) ⇒ 疑似引脚丢失")
 
     # 校验 3: 2 脚无源件恰好 2 脚 (只查 R/C/L —— D 可能是 ESD 阵列等多脚器件, 与 check_kicad_net 同口径)
     pin_cnt: dict[str, int] = defaultdict(int)

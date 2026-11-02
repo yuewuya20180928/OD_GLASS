@@ -26,8 +26,9 @@ def main():
                 want.add((ref, net))
             # ★SOM 座: 网络挂在节点名 (J_SOM pinN) 上, 不在 ref 列 ⇒ 这里把 (J_SOM, net) 也计入期望集
             for nd in ((r.get("node1") or ""), (r.get("node2") or "")):
-                if nd.startswith("J_SOM pin") and net:
-                    want.add(("J_SOM", net))
+                # ★座名带连接器号 (J_SOM_P1..P4) ⇒ 期望集用**同一个座名**, 否则会误报"多余"
+                if nd.startswith("J_SOM") and net:
+                    want.add((nd.split()[0], net))
     b = pcbnew.LoadBoard(PCB)
     if b is None:
         print("❌ 板文件读不回来"); return 1

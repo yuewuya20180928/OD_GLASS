@@ -1,130 +1,115 @@
 {
   "assign": {
+    "PWR_CTRL": {
+      "somsig": "PWRON_L",
+      "conn": "P3",
+      "num": 88
+    },
     "RESET_N": {
       "somsig": "RESET_L",
-      "conn": 2,
+      "conn": "P2",
       "num": 100
     },
     "BOOT_N": {
       "somsig": "SARADC_VIN0_BOOT",
-      "conn": 1,
+      "conn": "P1",
       "num": 28
     },
-    "ID": {
+    "ID_DETECT_0": {
       "somsig": "SARADC_VIN2_HW_ID",
-      "conn": 1,
+      "conn": "P1",
       "num": 32
     },
     "USB_VBUS_DET": {
       "somsig": "USB2_OTG1_VBUSDET",
-      "conn": 1,
+      "conn": "P1",
       "num": 100
+    },
+    "USB_D_P": {
+      "somsig": "USB2_HOST1_DP",
+      "conn": "P1",
+      "num": 92
+    },
+    "USB_D_N": {
+      "somsig": "USB2_HOST1_DM",
+      "conn": "P1",
+      "num": 94
     },
     "UART_TX": {
       "somsig": "UART0_TX_M0_DEBUG",
-      "conn": 2,
+      "conn": "P2",
       "num": 7
     },
     "UART_RX": {
       "somsig": "UART0_RX_M0_DEBUG",
-      "conn": 2,
+      "conn": "P2",
       "num": 9
     },
     "I2C_A_SCL": {
       "somsig": "I2C8_SCL_M2",
-      "conn": 1,
+      "conn": "P1",
       "num": 56
     },
     "I2C_A_SDA": {
       "somsig": "I2C8_SDA_M2",
-      "conn": 1,
+      "conn": "P1",
       "num": 60
     },
     "I2C_B_SCL": {
       "somsig": "I2C7_SCL_M1",
-      "conn": 1,
+      "conn": "P1",
       "num": 70
     },
     "I2C_B_SDA": {
       "somsig": "I2C7_SDA_M1",
-      "conn": 1,
+      "conn": "P1",
       "num": 72
     },
-    "CSI_MCLK": {
-      "somsig": "MIPI_DPHY_CSI0_RX_CLK_P",
-      "conn": 3,
-      "num": 70
+    "GPIO_CAM_RESET": {
+      "somsig": "GPIO2_B5_d",
+      "conn": "P1",
+      "num": 50
     },
-    "SOM_DCIN": {
-      "somsig": "SOM_DCIN",
-      "conn": 3,
-      "num": 91,
-      "all": [
-        [
-          3,
-          91
-        ],
-        [
-          3,
-          93
-        ],
-        [
-          3,
-          95
-        ],
-        [
-          3,
-          97
-        ],
-        [
-          3,
-          98
-        ],
-        [
-          3,
-          99
-        ],
-        [
-          3,
-          100
-        ]
-      ]
+    "GPIO_DSI_RESET": {
+      "somsig": "GPIO2_B3_d",
+      "conn": "P1",
+      "num": 76
     },
-    "CARRIER_EN": {
-      "somsig": "CARRIER_EN",
-      "conn": 1,
-      "num": 87,
-      "all": [
-        [
-          1,
-          87
-        ]
-      ]
+    "LED_0": {
+      "somsig": "GPIO2_B1_d",
+      "conn": "P1",
+      "num": 80
     },
-    "PWRON_L": {
-      "somsig": "PWRON_L",
-      "conn": 3,
-      "num": 88,
-      "all": [
-        [
-          3,
-          88
-        ]
-      ]
+    "LED_1": {
+      "somsig": "GPIO3_D4_d",
+      "conn": "P2",
+      "num": 19
     }
   },
   "missing": [
-    "PWR_CTRL",
-    "USB_D_P",
-    "USB_D_N",
     "CSI_RESET_N",
-    "GPIO_CAM_RESET",
-    "GPIO_DSI_RESET",
-    "LED_0",
-    "LED_1",
+    "CSI_MCLK",
+    "ID_DETECT_1",
     "FSIN",
     "XTAL_0",
     "XTAL_1"
   ],
-  "note": "★脚标识 = 手册权威形式 P<x>_<n> (4 个连接器各 100 脚) ⇒ 主板上是 4 个独立 100 脚 BTB 座 (J_SOM_P1..P4)"
+  "vcc_dcin_p3": [
+    91,
+    93,
+    95,
+    97,
+    99,
+    98,
+    100
+  ],
+  "carrier_board_en": [
+    "P3",
+    87
+  ],
+  "pwr_on_l": [
+    "P3",
+    88
+  ],
+  "note": "★唯一键 = (conn, num); 同一信号名可能出现在多组 ⇒ 我们只取一个, 已在 assign 里显式选定"
 }

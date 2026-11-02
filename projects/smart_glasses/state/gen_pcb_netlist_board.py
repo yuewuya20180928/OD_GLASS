@@ -27,8 +27,8 @@ NETLIST = os.path.join(PROJ, "HW", "netlist_v1.csv")
 PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
 REPORT = os.path.join(PROJ, "HW", "PCB", "PCB_NETLIST_FILL.txt")
 
-BOARD_W, BOARD_H = 145.0, 100.0
-GRID_X0, GRID_Y0 = 76.0, 8.0
+BOARD_W, BOARD_H = 160.0, 100.0   # ★11-03: SOM 4 排 100 脚座占 x 8..85 ⇒ 器件网格移到 x>=92
+GRID_X0, GRID_Y0 = 92.0, 8.0   # ★避开 SOM 座区 (x 8..85)
 GRID_PITCH_X, GRID_PITCH_Y = 4.2, 4.2
 GRID_COLS = 16
 SOM_AREA = (8.0, 6.0, 68.0, 50.0)   # SOM 承载区 x,y,w,h
@@ -260,49 +260,14 @@ def main():
     rr4.SetWidth(int(0.1 * MM))
     som.Add(rr4)
     # BTB 座 (4 排 × 100 脚 @0.4mm) —— 沿 SOM 下边
-    # ★★2026-11-03 00:5x: SOM 座 = **4 个独立 100 脚 BTB (P1..P4)** (Forlinx 脚标识是 P<x>_<num> 形式, 4 个连接器脚号各自独立)
-    #   依据: HW/PCB/som_pin_map.json (全局 num ↔ (连接器, 组内脚)) + HW/PCB/FET3576C_PIN_TABLE.csv
-    #   网络来源: 网表里 "J_SOM_P<x> pin<n>" 节点所在的网
-    import csv as _csv
-    som_net = {}
-    _np = os.path.join(PROJ, "HW", "netlist_v1.csv")
-    if os.path.exists(_np):
-        for _r in _csv.DictReader(open(_np, encoding="utf-8")):
-            _net = (_r.get("net") or "").strip()
-            for _nd in ((_r.get("node1") or ""), (_r.get("node2") or "")):
-                if _nd.startswith("J_SOM_P") and _net:
-                    _pn = _nd.split("pin", 1)[1].strip()
-                    som_net.setdefault(_nd.split()[0], {}).setdefault(_pn, set()).add(_net)
-    _SOM_ORIGIN = {"J_SOM_P1": (sx + 4.0, sy + 6.0), "J_SOM_P2": (sx + 44.0, sy + 6.0),
-                    "J_SOM_P3": (sx + 4.0, sy + 10.0), "J_SOM_P4": (sx + 44.0, sy + 10.0)}
-    for _ref, (_ox, _oy) in _SOM_ORIGIN.items():
-        _fp = pcbnew.FOOTPRINT(board)
-        _fp.SetReference(_ref)
-        _fp.SetValue("Forlinx FET3572-C SoM 100pin BTB 0.4mm")
-        _rr = pcbnew.PCB_SHAPE(board)
-        _rr.SetShape(pcbnew.SHAPE_T_SEGMENT)
-        _rr.SetLayer(pcbnew.F_Fab)
-        _rr.SetStart(V(_ox - 20.0, _oy - 0.8))
-        _rr.SetEnd(V(_ox + 20.0, _oy - 0.8))
-        _rr.SetWidth(int(0.1 * MM))
-        _fp.Add(_rr)
-        for _k in range(1, 101):
-            _px = _ox - 19.8 + (_k - 1) * 0.4
-            _pad = pcbnew.PAD(_fp)
-            _pad.SetNumber(str(_k))
-            _pad.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
-            _pad.SetShape(pcbnew.PAD_SHAPE_RECT)
-            _pad.SetSize(V(0.18, 0.6))
-            _pad.SetPosition(V(_px, _oy))
-            _pad.SetLayerSet(_pad.SMDMask())
-            _nets = sorted(som_net.get(_ref, {}).get(str(_k), ()))
-            if _nets:
-                _ni = netmap.get(_nets[0])
-                if _ni is not None:
-                    _pad.SetNet(_ni)
-            _fp.Add(_pad)
-        _fp.SetPosition(V(0, 0))
-        board.Add(_fp)
+    # ★★2026-11-03 01:0x: SOM 座 = **4 个独立 100 脚 BTB (P1..P4)** —— ★**布局待修** (当前与器件网格冲突 ⇒ DRC 非零)
+    #   ★**已就绪的部分**: 引脚映射 (`HW/PCB/som_pin_full_map.json` 399 行) + 分配表 (`HW/PCB/SOM_PIN_ASSIGNMENT.md`) + 网表脚本 (`state/_iss165_assign_final.py`)
+    #   ⇒ **明早**: 重跑 A2 网表脚本 ⇒ 板生成器里把 4 排座放到与器件网格不重叠的位置 ⇒ 重跑 DRC/parity
+    #   ★★**当前刻意不画 4 排座** ⇒ 板子保持 A1 状态 (DRC=0 / parity 全过), 避免带着未修的布局进 Gerber
+    som = pcbnew.FOOTPRINT(board)
+    som.SetReference("J_SOM")
+    som.SetValue("Forlinx FET3572-C SoM 68x50 (4x100pin BTB) - FOOTPRINT PENDING")
+
     # SOM 承载区外形 (68×50mm) —— 只作装配参考, 不是铜
     _so = pcbnew.PCB_SHAPE(board)
     _so.SetShape(pcbnew.SHAPE_T_SEGMENT)
