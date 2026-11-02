@@ -352,6 +352,14 @@ answers:
     超标时间窗口变长 ⇒ 满载 88.6-96.1°C 这条更强不是更弱. 对外话术: 待机说 ~9 小时 (无桥 340mAh ~7.5 小时), 按需 ~6
     小时, 满载 ~1 小时. 自证复现: python3 state/_decide_u2_runtime.py + PROJECT_TRACKER §(1.34)'
   ref: PROJECT_TRACKER.md#(1.34) + HW/POWER_SHUTDOWN_V3.md#6
+- key: iss047_margin_criterion_decision
+  to: mech-lead
+  value: 判据B' (有效余量>=4deg, 即扣掉边框遮挡角1.91deg) => 俯角上限<=25.89deg, 设计点25deg; h_max(d=30/32/35)=13.99/14.92/16.32mm
+  ref: 'PM 裁决 2026-11-02 18:4x (项目总工): ①理由=遮挡是实物必然(凹进0也要占窗口座沉孔0.35mm), 名义余量留不住; ②与
+    HW/LENS_SELECTION.md B6.3「推荐按<=25deg设计」一致; ③机械复算 MECH/iss047_fov_table.py rc=0
+    FAIL0 WARN0 (含硬上限29.89deg/h_max16.99mm 判据B''分支) + MECH/iss047_doc_check.py 220/220
+    一致; ④★口径 = 名义余量4deg(B) / 有效余量4deg(B'') / 名义余量10deg(C) 三选一, 统一按 B'' 写进 MECH_BUDGET;
+    ⑤★结构基线不变(俯角25deg, h_max 13.99/14.92/16.32mm) —— 换 sensor 不推翻结构, 只多给 2.27deg 造型自由度'
 interface_claims:
 - key: display_frame_rate
   value: 60fps

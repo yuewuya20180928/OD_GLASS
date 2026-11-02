@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-02T18:36:56+08:00'
+  generated_at: '2026-11-02T18:43:55+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -19,9 +19,9 @@ meta:
       mtime_ns: 1793584488572960226
     main:
       file: pm.yaml
-      size: 25356
-      sha1: 3692f7261ded
-      mtime_ns: 1793553398099320409
+      size: 26446
+      sha1: 772a5ce3ce26
+      mtime_ns: 1793616190216050340
     sw-lead:
       file: sw.yaml
       size: 78975
@@ -583,6 +583,14 @@ domains:
         但续航变长 ⇒ 超标时间窗口变长 ⇒ 满载 88.6-96.1°C 这条更强不是更弱. 对外话术: 待机说 ~9 小时 (无桥 340mAh ~7.5 小时), 按需 ~6 小时, 满载
         ~1 小时. 自证复现: python3 state/_decide_u2_runtime.py + PROJECT_TRACKER §(1.34)'
       ref: PROJECT_TRACKER.md#(1.34) + HW/POWER_SHUTDOWN_V3.md#6
+    - key: iss047_margin_criterion_decision
+      to: mech-lead
+      value: 判据B' (有效余量>=4deg, 即扣掉边框遮挡角1.91deg) => 俯角上限<=25.89deg, 设计点25deg; h_max(d=30/32/35)=13.99/14.92/16.32mm
+      ref: 'PM 裁决 2026-11-02 18:4x (项目总工): ①理由=遮挡是实物必然(凹进0也要占窗口座沉孔0.35mm), 名义余量留不住; ②与 HW/LENS_SELECTION.md
+        B6.3「推荐按<=25deg设计」一致; ③机械复算 MECH/iss047_fov_table.py rc=0 FAIL0 WARN0 (含硬上限29.89deg/h_max16.99mm
+        判据B''分支) + MECH/iss047_doc_check.py 220/220 一致; ④★口径 = 名义余量4deg(B) / 有效余量4deg(B'') / 名义余量10deg(C)
+        三选一, 统一按 B'' 写进 MECH_BUDGET; ⑤★结构基线不变(俯角25deg, h_max 13.99/14.92/16.32mm) —— 换 sensor 不推翻结构, 只多给
+        2.27deg 造型自由度'
     open_questions:
     - id: PM-Q1
       to: sw-lead
@@ -4898,14 +4906,21 @@ domains:
         差 1.91deg/6.00deg ⇒ 差 h_max 1.47mm/3.45mm ⇒ 镜框上沿高度与摄像头能否藏在眉毛里。★我的建议 B'': 遮挡是实物必然 (窗口座沉孔0.35mm
         就要占深度), 名义余量留不住。★附带: 无论选哪个, 现行定案 AR0234CS 整幅 的 25deg 基线都站得住 (有效余量 +4.89deg)'
       since: '2026-11-02'
-      state: waiting_external
+      state: answered
       target_missing: false
       waiting_on: boss
       due: '2026-11-05'
       overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: main
+        value: 判据B' (有效余量>=4deg, 即扣掉边框遮挡角1.91deg) => 俯角上限<=25.89deg, 设计点25deg; h_max(d=30/32/35)=13.99/14.92/16.32mm
+        ref: 'PM 裁决 2026-11-02 18:4x (项目总工): ①理由=遮挡是实物必然(凹进0也要占窗口座沉孔0.35mm), 名义余量留不住; ②与 HW/LENS_SELECTION.md
+          B6.3「推荐按<=25deg设计」一致; ③机械复算 MECH/iss047_fov_table.py rc=0 FAIL0 WARN0 (含硬上限29.89deg/h_max16.99mm
+          判据B''分支) + MECH/iss047_doc_check.py 220/220 一致; ④★口径 = 名义余量4deg(B) / 有效余量4deg(B'') / 名义余量10deg(C)
+          三选一, 统一按 B'' 写进 MECH_BUDGET; ⑤★结构基线不变(俯角25deg, h_max 13.99/14.92/16.32mm) —— 换 sensor 不推翻结构,
+          只多给 2.27deg 造型自由度'
       foreign_answers: []
     answers:
     - key: pcb_outline_confirm
@@ -10053,7 +10068,7 @@ summary:
   blockers: 41
   high_blockers: 32
   open_needs: 59
-  waiting_external_needs: 74
+  waiting_external_needs: 73
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
