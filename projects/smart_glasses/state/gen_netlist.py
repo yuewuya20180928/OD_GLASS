@@ -512,7 +512,7 @@ def build_p1(by_id, spec):
         ("U_DCDC_VCORE", "V_CORE", "TPS62130A", "DC-DC (3A) 供 V_CORE", "必装", "[官方]", "TBD-02", "C-04"),
         ("U_DCDC_VIO", "V_SOC_IO", "TPS62130A", "DC-DC (3A) 供 V_SOC_IO", "必装", "[官方]", "TBD-02", "C-05"),
         ("U_LDO_S28", "SENSOR_AVDD", "TPS7A20-28", "LDO 供 SENSOR_AVDD (2.8V/30mA)", "必装", "[官方]", "", "C-06"),
-        ("U_LDO_S18", "SENSOR_VDD_IO", "TPS7A20-18", "LDO 供 SENSOR_VDD_IO (1.8V/30mA)", "必装", "[官方]", "", "C-07"),
+        ("U_LDO_S28B", "SENSOR_VDD_IO", "TPS7A20-28", "LDO 供 SENSOR_VDD_IO (2.8V/30mA) — ★11-02 09:41 sensor 改 AR0234CS: VDD_IO=2.8V (原 1.8V 是 OV04C10 的)", "必装", "[官方]", "", "C-07"),
         ("U_LDO_S12", "SENSOR_CORE", "TPS7A20-12", "LDO 供 SENSOR_CORE (1.2V/50mA)", "必装", "[官方]", "", "C-08"),
         ("U_LDO_L33", "LIGHT_3V3", "TPS7A20-33", "LDO 供 LIGHT_3V3 (3.3V/150mA)", "必装", "[推算]", "TBD-02", "C-09"),
         ("U_LDO_L18", "LIGHT_1V8", "TPS7A20-18", "LDO 供 LIGHT_1V8 (1.8V/50mA)", "DNP", "[推算]", "TBD-02", "C-10"),
@@ -607,7 +607,7 @@ def build_p2(by_id, spec):
              "NET_I2C_A_SDA")
     add("P2", "VDD_3V3_IO", "R_PU_I2CA_SCL", "RAIL_VDD_3V3_IO", "R_PU_I2CA_SCL", "4.7k ±1%",
         "R", "必装", "[推算]", "",
-        "[VDD_3V3_IO] I2C_A 上拉 (规格: 4.7k 到 3.3V; 灌 702µA, t_r=2.38µs@100pF)", "B-01")
+        "[VDD_3V3_IO] I2C_A 上拉 (规格: 4.7k 到 3.3V; 灌 702µA, t_r=2.38µs@100pF) — ★[TBD-05] 11-02 09:41 sensor 改 AR0234CS: 其 VDD_IO=2.8V, 本上拉 3.3V 是否超 VDD_IO 绝对最大额定值 **待 onsemi 回信 (ISS-142)**; 若超, 改上拉到 2.8V 并逐个核同总线从设备 (TMP117 1.7-5.5V / 充电IC / 光机) 电平兼容", "B-01")
     add("P2", "VDD_3V3_IO", "R_PU_I2CA_SDA", "RAIL_VDD_3V3_IO", "R_PU_I2CA_SDA", "4.7k ±1%",
         "R", "必装", "[推算]", "",
         "[VDD_3V3_IO] I2C_A 上拉", "B-02")
@@ -897,8 +897,8 @@ TPS = [
     ("TP_VIO", "V_SOC_IO", "U_DCDC_VIO", "SoC IO 轨", "DC-DC/LDO 输出", "必装"),
     ("TP_SENSOR_2V8", "SENSOR_AVDD", "CONN_CAM pin15", "sensor 三条轨",
      "LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8)", "必装"),
-    ("TP_SENSOR_1V8", "SENSOR_VDD_IO", "CONN_CAM pin16", "sensor 三条轨",
-     "LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8)", "必装"),
+    ("TP_SENSOR_IO2V8", "SENSOR_VDD_IO", "CONN_CAM pin16", "sensor IO 轨 (2.8V, AR0234CS VDD_IO)",
+     "LDO 输出 (U_LDO_S28B); ★原名 TP_SENSOR_1V8 (1.8V 是 OV04C10 的, 已随换料改 2.8V)", "必装"),
     ("TP_SENSOR_1V2", "SENSOR_CORE", "CONN_CAM pin17", "sensor 三条轨",
      "LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8)", "必装"),
     ("TP_LIGHT_3V3", "LIGHT_3V3", "CONN_LIGHT pin13", "光机轨", "LDO 输出", "必装"),
