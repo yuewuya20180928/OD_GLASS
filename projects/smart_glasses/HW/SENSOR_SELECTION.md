@@ -446,3 +446,32 @@ PY
 > ★**⇒ 等老板一句拍板选路 (B 结构上不成立, 实际是 C 与 D 二选一)** —— 详见 `HW/DISPLAY_SENSOR_CHAIN.md` §2.3 的决策表。
 >
 > ★**口径同步已做**: `state/outbox/R_GEO_2_DECISION_MAP.md` (问③ 从"一票否决级"降级) · `state/outbox/vendor_round4_geo_isp_addendum.md` (作废, 收件对象是已作废的 ARS45 线) · `state/outbox/lens_rfq_rgeo2_addendum.md` (口径待选路后更新再发) · `state/fragments/hw.yaml` 四条 claim (`isp_throughput_req` / `isp_input_mode_req` / `csi_lane_mode_req` / `lens_fov_basis`)。
+
+---
+
+## ★★2026-11-02 09:23 追加: 老板新判据 —— **「优先使用开源数据更多的 sensor」** ⇒ **C 路出局, 走 D (AR0234CS)**
+
+> **老板 11-02 09:23 指示**: "ISS-138 中, 对比下 C/D 中那个 sensor 的开源数据更多, **优先使用开源数据更多的 sensor**, **其他物料同理**"
+> **本节只追加, 不改动上面 B1-B12 的任何既有内容** · 完整分析在 ★**`HW/OPEN_SOURCE_AVAILABILITY.md`** (新建) · 评分器 `HW/open_source_rank.py` (含 `--selftest`) · 快照 `HW/_os_snapshots/`
+
+### 13.1 C/D 两路的开源数据实测对比 (满分 10)
+
+| 数据源 | **C. OV04C10** | **D. AR0234CS** |
+|---|---|---|
+| D1 上游 Linux 主线 `drivers/media/i2c/` 驱动 | ✘ 无 | ✘ 无 |
+| D2 ★**Rockchip BSP kernel 驱动 (本项目实际编译的内核)** | ✘ 无 (363 个里没有) | ✘ 无 |
+| D3 rkaiq ISP3x / ISP32 **IQ (tuning) 文件** | ✘ 无 | ✘ 无 |
+| D4 社区公开实现 (GitHub) | ★**0 个仓库** | ★**20 个** (含 GPL-2.0 完整 V4L2 驱动 + DT overlay + ★**RK3588 同族 bringup**) |
+| D5 公开规格库 (OpenIPC) | ✘ **连条目都没有** | ✔ 有 |
+| **总分** | ★**0/10** | ★**3/10** |
+
+### 13.2 三条要点 (只看"3 vs 0"会误导)
+
+1. ★**两个候选都没有现成 ISP tuning** ⇒ "选生态成熟的"在 tuning 层不成立 ⇒ **ISP tuning 要立项** (与选谁无关的一笔账)。
+2. ★**C 路真正的风险是"驱动要等谁给"**: 全网零实现 ⇒ 寄存器时序只能从豪威拿 (常带 NDA) ⇒ **豪威给不出寄存器表 = C 路直接死**; D 路是**移植**, 卡在自己手里。
+3. ★**"其他物料同理"已扫描**: 全项目只有 3 个物料有"开源数据"维度 (sensor / 面板 init code / 主控 ISP tuning) ⇒ **本轮能改变选型的只有 sensor**; 镜头/电源/连接器/结构件该判据不产生排序。
+
+### 13.3 落账
+
+- **ISS-138**: desc 追加 "⑤ 开源数据判据" 段 ⇒ **结论: 按 11-02 09:23 判据走 D** (待老板一句确认即可落 §0 变量)。
+- **§0 变量 30「豪威优先」**: 本次**破例** ⇒ 需在 `PROJECT_TRACKER.md` §0 落账 (代价: 供应链/成本/议价, 非技术不可行)。

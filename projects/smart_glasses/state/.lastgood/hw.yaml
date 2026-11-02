@@ -1,7 +1,7 @@
 agent: hw-lead
 role: 硬件总工
-updated_at: 2026-11-02 02:4x
-updated_by: hw-lead
+updated_at: '2026-11-02'
+updated_by: main
 status:
   phase: P2(原理图/BOM)+结构接口
   progress_pct: 68
@@ -239,6 +239,26 @@ artifacts:
   version: '1.0'
   updated_at: '2026-11-01'
   summary: 'ISS-111 专项交接单 (B1-B6 六块齐): EVT 37 项清单交付说明 + 对 mech-lead 的 X-ray 抽样口径答复'
+- path: HW/OPEN_SOURCE_AVAILABILITY.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-02'
+  summary: 'ISS-138 新判据落账 (老板 11-02 09:23『优先用开源数据更多的 sensor, 其他物料同理』): 判据定义 + 5 数据源口径
+    + C/D 实测对比 (OV04C10 0/10 vs AR0234CS 3/10) + 三条要点 (都没现成 IQ tuning / C 路卡在豪威给驱动
+    / 其他物料只 3 项有此维度) + 其他物料同规则扫描 + 复算命令'
+- path: HW/open_source_rank.py
+  kind: script
+  version: '1.0'
+  updated_at: '2026-11-02'
+  summary: 开源数据可得性评分器 (满分 10; D1 主线驱动 2 / D2 Rockchip BSP 驱动 3 / D3 rkaiq ISP3x IQ
+    2 / D4 社区仓库 2 / D5 公开规格库 1); --refresh 联网刷快照 / --selftest 自检 (已知排序 AR0234CS>OV04C10
+    成立)
+- path: HW/_os_snapshots/
+  kind: data
+  version: '1.0'
+  updated_at: '2026-11-02'
+  summary: 开源数据证据快照 5 份 (linux_mainline_i2c 201 项 / rockchip_bsp_i2c 363 项 / rkaiq_iqfiles
+    / github_repo_counts / openipc_sensors 896 项), 2026-11-02 09:29~09:30 抓取, 离线可复算
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX
@@ -1399,6 +1419,29 @@ interface_claims:
     为前提的数 (soc_power_budget_v3 / skin_temp_full_v3 / temple_thickness_v3 / battery_cap_1h_v3
     等) **全部需按 RK3572 重算** (ISS-128/129/130) ⇒ 在重算前一律视为 [待重算]
   ref: PROJECT_TRACKER.md#0 (主控基线行, 11-01 20:5x)
+- key: sensor_open_source_pick
+  value: AR0234CS
+  note: '★2026-11-02 09:23 老板新判据『优先用开源数据更多的 sensor』的落账: OV04C10 开源数据 0/10 (主线无驱动/RK
+    BSP 无驱动/无 IQ 文件/GitHub 0 仓库/公开规格库无条目) vs AR0234CS 3/10 (20 个社区实现含 GPL-2.0 完整驱动+DT
+    overlay+RK3588 同族 bringup, 有公开规格库条目) ⇒ ISS-138 指向 D。★**待老板一句确认**; ★破 §0 变量 30『豪威优先』(代价=供应链/成本/议价+16:10,
+    非技术不可行)。'
+  ref: HW/OPEN_SOURCE_AVAILABILITY.md#2 + PROJECT_TRACKER.md#0 (变量 41)
+- key: sensor_open_source_score_ar0234cs
+  value: 3/10
+  note: AR0234CS 开源数据评分 (D1 主线驱动 ✘ / D2 Rockchip BSP 驱动 ✘ / D3 rkaiq ISP3x IQ ✘ /
+    D4 GitHub 20 仓库 =2 / D5 OpenIPC 有条目 =1) ⇒ 3/10。
+  ref: HW/open_source_rank.py
+- key: sensor_open_source_score_ov04c10
+  value: 0/10
+  note: 'OV04C10 开源数据评分: 五个数据源全空 (GitHub 搜 ov04c10 total_count=0; OpenIPC 无条目) ⇒ 0/10
+    ⇒ 驱动必须等豪威给 (常带 NDA), 不是『慢一点』而是可能直接卡死。'
+  ref: HW/open_source_rank.py
+- key: sensor_isp_tuning_status
+  value: no_iq_both
+  note: '★2026-11-02 09:23 实测: rkaiq 公开 iqfiles/isp3x 与 isp32 里 ov04c10 与 ar0234 都没有
+    IQ 文件 ⇒ **ISP tuning 与选谁无关, 必须自己排** (ISS-139): 1~2 人周+暗室/灰卡, 必须等镜头/模组定版 (IQ=sensor×镜头×模组绑定);
+    RK3572 专属 BSP/tuning 不公开 ⇒ 不能套 RK3588 的 IQ。'
+  ref: HW/OPEN_SOURCE_AVAILABILITY.md#3.3
 open_questions:
 - id: HW-Q1
   to: main
