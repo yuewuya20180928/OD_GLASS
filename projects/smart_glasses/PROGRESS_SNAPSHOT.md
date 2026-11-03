@@ -1,15 +1,15 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-03 20:14)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-04 01:38)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
 
 ## 一、当前状态
 
-- 阶段门: 【总体】 阶段门 G2 ⏸️ | 健康度 red | 距通过 G2 还差 6 项 | 未闭环高危 16 条 | 逾期 22 条
+- 阶段门: 【总体】 阶段门 G2 ⏸️ | 健康度 red | 距通过 G2 还差 6 项 | 未闭环高危 16 条 | 逾期 23 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=0
-- 问题单: 共 172 条 · closed=60 · deferred=10 · fixed=27 · fixing=2 · open=32 · verified=41
-- GitHub 上次推送: 2026-11-03T20:14:03+08:00
+- 问题单: 共 173 条 · closed=61 · deferred=10 · fixed=28 · fixing=2 · open=31 · verified=41
+- GitHub 上次推送: 2026-11-04T01:14:01+08:00
 
 ## 二、执行中 (谁在干什么)
 
@@ -51,9 +51,8 @@
 - ISS-160 · ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) 
 - ISS-169 · ★★[demo 板可制造性] demo 主板的边界已定 (Type-C 供电 · 不装电池 · 板上只有这一块) + SoM 座的 pin1 排向待查证 +
 - ISS-172 · ★★[选型待裁] 负载开关 U_PWR_SW / U_EN_SW: 原厂在售型号的判据互斥 (RON vs IQ vs 反向阻断)
-- ISS-173 · ★★★[demo 能不能看见屏幕] 显示器背光需 12.8V@200mA ⇒ 5V 输入必须加 12V BOOST (且会撑爆 USB-C 900mA 预算
 - ISS-174 · ★★[demo 触控收不到中断] display 触控的 TP_INT (pin26) 没接到 SoM 任何脚 ⇒ 触控中断收不到
-- ISS-175 · ★★★[选型变更 · 老板拍板] demo 屏换 ≤3 寸 (原 Radxa Display 8HD = 8.0" 太��) ⇒ 背光 12V BOOST 
+- ISS-176 · ★★[显示接口重画] 显示器座换 Pi5 同规 22 位/0.5mm (吃 Waveshare 15→22 线) + 屏的控制 I2C 必须接
 
 ### 3.3 三个总工可自行推进 (队列 cron 每 30 分钟自动派)
 

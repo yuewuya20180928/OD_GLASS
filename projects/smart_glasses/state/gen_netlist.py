@@ -890,9 +890,9 @@ DSI_LANES = [
     ("D1", "DSI_D0_D1_P", "DSI_D0_D1_N", "A-17", "A-18",
      "DSI_TX_D1_P", "DSI_TX_D1_N", 11, 10, "必装", False),       # ★板侧 39p: MIPI_1P11 / MIPI_1N10 (屏侧 12/11)
     ("D2", "DSI_D0_D2_P", "DSI_D0_D2_N", "A-19", "A-20",
-     "DSI_TX_D2_P", "DSI_TX_D2_N", 17, 16, "必装", False),       # ★板侧 39p: MIPI_2P17 / MIPI_2N16 (屏侧 18/17)
+     "DSI_TX_D2_P", "DSI_TX_D2_N", 17, 16, "DNP", False),       # ★板侧 39p: MIPI_2P17 / MIPI_2N16 (屏侧 18/17)
     ("D3", "DSI_D0_D3_P", "DSI_D0_D3_N", "A-21", "A-22",
-     "DSI_TX_D3_P", "DSI_TX_D3_N", 20, 19, "必装", False),       # ★板侧 39p: MIPI_3P20 / MIPI_3N19 (屏侧 21/20)
+     "DSI_TX_D3_P", "DSI_TX_D3_N", 20, 19, "DNP", False),       # ★板侧 39p: MIPI_3P20 / MIPI_3N19 (屏侧 21/20)
 ]
 # ★★2026-11-02 01:0x 老板换主控 RK3572 ⇒ **RK3572 无 DP TX** ⇒ 方案B (DP→DSI 桥接) **不可能成立**
 #   ⇒ BR_LANES 常量与全部方案B 器件行 (U_BRIDGE + 12 颗 0Ω 桥接位 + 8 颗 DP 串阻 + 8 颗对地电容)
@@ -927,10 +927,10 @@ def build_p4(by_id, spec):
              "NET_I2C_B_SDA")
     add("P4", "I2C_B_SCL", "R_PU_I2CB_SCL", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
         "上拉 4.7k, 放主板侧", "NET", "必装", "[推算]", "TBD-04",
-        "[I2C_B_SCL] 附加节点 (同 net)", "B-03")
+        "[I2C_B_SCL] ★★2026-11-04 订正: I2C_B **不是触控线**, 而是**屏的控制总线** (模组内 MCU @0x45; 树莓派驱动实测 probe 0xC0/0xC2/0xAC · enable 0xAD=0x01 · 背光 0xAB/0xAA) ⇒ ★**必须接**, 否则屏点不亮且无法调光", "B-03")
     add("P4", "I2C_B_SDA", "R_PU_I2CB_SDA", "NET_I2C_B_SDA", "NET_I2C_B_SDA",
         "上拉 4.7k, 放主板侧", "NET", "必装", "[推算]", "TBD-04",
-        "[I2C_B_SDA] 附加节点 (同 net)", "B-04")
+        "[I2C_B_SDA] ★★2026-11-04 订正: 屏的控制总线 (模组内 MCU @0x45) ⇒ **必须接** (它不是触控线)", "B-04")
     add("P4", "VDD_3V3_IO", "R_PU_I2CB_SCL", "RAIL_VDD_3V3_IO", "R_PU_I2CB_SCL", "4.7k ±1%",
         "R", "必装", "[推算]", "", "[VDD_3V3_IO] DSI DDC 上拉 (放主板侧)", "B-03")
     add("P4", "VDD_3V3_IO", "R_PU_I2CB_SDA", "RAIL_VDD_3V3_IO", "R_PU_I2CB_SDA", "4.7k ±1%",
@@ -974,9 +974,6 @@ def build_p4(by_id, spec):
         add("P4", "NC_CONN_LIGHT", f"CONN_LIGHT pin{_pn}", "NC_CONN_LIGHT", "CONN_LIGHT", _what, "NET",
             "必装", "[官方]", "",
             f"[CONN_LIGHT] ★板侧 39p 脚{_pn} = {_what} —— ★**demo 不需要触控 ⇒ 我们不接** (脚位仍要占位)", "")
-    add("P4", "DSI_RESET_N", "CONN_LIGHT pin4", soc_pin("GPIO_DSI_RESET"), "CONN_LIGHT", "RESET", "NET",
-        "必装", "[官方]", "",
-        "[DSI_RESET_N] ★屏模组 Reset (pin5) ⇒ 接 SoC GPIO (★球位号 TBD-01) ⇒ ★**主板必须能拉它**", "")
     # ★★2026-11-03 19:29 老板拍板: demo 不需要触控 ⇒ 屏侧触控线我们一律不接 (已删除)
     # ★★2026-11-03 19:1x ★★**再订正 (老板一句"这跟 Radxa 有什么关系"挖出来的)**: 矛盾**不是外部问题, 是我们抄表时混了两个型号**
     #   ⇒ 我们项目里那张 "FPC_PIN_TABLES.md 的 display 表" 标题写的是 "8HD/10FHD" ⇒ **把两款屏的脚位混成了一张**
@@ -988,18 +985,6 @@ def build_p4(by_id, spec):
     #   ⇒ ★背光驱动仍未实现 (ISS-173) ⇒ 12.8V@200mA 那个数是 **10FHD 的**, **8HD 的背光规格未查** ⇒ 要补
     # ★★2026-11-03 19:29 老板拍板: demo 不需要触控 ⇒ 屏侧触控线我们一律不接 (已删除)
     # ★★2026-11-03 19:29 老板拍板: demo 不需要触控 ⇒ 屏侧触控线我们一律不接 (已删除)
-    add("P4", "NET_LED_N", "CONN_LIGHT pin34", "NET_LED_N", "CONN_LIGHT", "LED-1 (背光阴极 1/2)", "NET",
-        "必装", "[官方]", "",
-        "[NET_LED_N] ★8HD 官方 Pinout: **pin35 = LED-** ⇒ 与 pin36 同串并联 (面板每串 2 颗 LED) ⇒ 同网正常", "")
-    add("P4", "NET_LED_N", "CONN_LIGHT pin35", "NET_LED_N", "CONN_LIGHT", "LED- (背光阴极 2/2)", "NET",
-        "必装", "[官方]", "",
-        "[NET_LED_N] ★8HD 官方 Pinout: **pin36 = LED-** (与 pin35 同串) —— ★★此前标的 GND 是**抄表时混入 10FHD** 造成的", "")
-    add("P4", "NET_LED_P", "CONN_LIGHT pin38", "NET_LED_P", "CONN_LIGHT", "LED+1 (背光阳极 1/2)", "NET",
-        "必装", "[官方]", "",
-        "[NET_LED_P] ★8HD 官方 Pinout: **pin39 = LED+** ⇒ 与 pin40 同串并联 ⇒ 同网正常", "")
-    add("P4", "NET_LED_P", "CONN_LIGHT pin39", "NET_LED_P", "CONN_LIGHT", "LED+ (背光阳极 2/2)", "NET",
-        "必装", "[官方]", "",
-        "[NET_LED_P] ★8HD 官方 Pinout: **pin40 = LED+** (与 pin39 同串) —— ★★此前标的 GND 是**抄表时混入 10FHD** 造成的", "")
 
 
 
