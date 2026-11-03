@@ -4403,7 +4403,7 @@ issues:
   verify_by: hw-lead
   verify_result: null
   verify_date: null
-  note: '★4 个公开在售候选已列: A **HIROSE FH12-40S-0.5SH(55)** (与项目 J_CHG 同系列, 原厂尺寸表齐全) / B **Molex 502250** (原厂矩阵页确认的 BackFlip 0.5mm, 但电路数列 39/41/51 待核) / C **Amphenol 62684-401100ALF** ($0.75, 现货 9910) / D **JAE FA5B040HP1** ($3.25)。★候选 B/C/D 的原厂封装图未取得 ⇒ 走采购硬判据。 ★2026-11-03 18:4x 已派专项 (任务书 state/TASK_display_39p_pinout.md) ⇒ 目标: 从 Radxa 官方 **display 8HD 适配板原理图 PDF** 取主板侧 39 针针位表 + 连接器型号 + 40→39 合并关系 + 触控/背光在不在主板侧。★顺带记: 之前列的 4 个 40p/0.5mm 候选 (FH12-40S / Molex 502250 / Amphenol 62684 / JAE FA5B) **全部作废**。★同时: STACKUP.md / demo_mainboard_params.json 的板尺寸已从 60×45 草案同步为实际 **160×100mm** (骨架生成器时代遗留的不一致)。'
+  note: '★4 个公开在售候选已列: A **HIROSE FH12-40S-0.5SH(55)** (与项目 J_CHG 同系列, 原厂尺寸表齐全) / B **Molex 502250** (原厂矩阵页确认的 BackFlip 0.5mm, 但电路数列 39/41/51 待核) / C **Amphenol 62684-401100ALF** ($0.75, 现货 9910) / D **JAE FA5B040HP1** ($3.25)。★候选 B/C/D 的原厂封装图未取得 ⇒ 走采购硬判据。 ★2026-11-03 18:4x 已派专项 (任务书 state/TASK_display_39p_pinout.md) ⇒ 目标: 从 Radxa 官方 **display 8HD 适配板原理图 PDF** 取主板侧 39 针针位表 + 连接器型号 + 40→39 合并关系 + 触控/背光在不在主板侧。★顺带记: 之前列的 4 个 40p/0.5mm 候选 (FH12-40S / Molex 502250 / Amphenol 62684 / JAE FA5B) **全部作废**。★同时: STACKUP.md / demo_mainboard_params.json 的板尺寸已从 60×45 草案同步为实际 **160×100mm** (骨架生成器时代遗留的不一致)。 ★★2026-11-03 19:1x **老板一句"这跟 Radxa 有什么关系"直接挖出根因**: 矛盾**不是外部资料问题, 是我们项目里那张 display 40 针表**把 8HD 与 10FHD 混成了一张** (标题就写着 "8HD/10FHD") ⇒ ★**权威 = 8HD 官方 Pinout 原文, 我们项目里本来就有** (HW/STEP1_PARTS_SPEC.md §3.1, 标注 `[实测] 官方文档"Pinout"表原文`) ⇒ ⇒ **屏侧针位表现在就能闭环, 不必等专项** ⇒ 已按原文订正网表 (pin36=LED_N · pin39=LED_P) 并重跑全部门禁 (全绿); ⇒ ★**专项的剩余价值收窄为**: ① 主板侧 39p 针位表 (那才是我们要画的座) ② **8HD 自己的背光电压/电流** (我们手上的 12.8V@200mA 是 10FHD 的!) ③ 15p 版的取舍 ④ 40→39 到底省的是哪个 NC'
   dispatched_at: 2026-11-03 18:4x
   task_brief: state/TASK_display_39p_pinout.md (★取 Radxa Display 8HD 主板侧 39p/0.3mm 针位表; 只出 2 个文件, 不许改网表)
 - id: ISS-171
@@ -4461,5 +4461,24 @@ issues:
   verify_by: hw-lead
   verify_result: null
   verify_date: null
-  note: '★**顺带修掉了 F15 的短路**: display 座的 pin24(TP_RESET)/pin26(TP_INT)/pin35(LED_N)/pin40(LED_P) 原来**全并在 NET_DSI_AUX 一个网上** ⇒ ★**LED+ 与 LED− 短接** (背光驱动被短) 且 TP_INT 是触控的**输出**脚也不该并网 ⇒ 已拆成一脚一网并标 DNP (demo 阶段屏不点灯) ⇒ 重跑全部门禁仍全绿 (逐焊盘等价 495/495 · DRC 0)。★**待裁**: ① 背光驱动方案 (BOOST+电阻限流 / 恒流 LED 驱动 IC / 直接用屏模组自带背光接口——需确认 FPC 的 LED± 到底给不给外部驱动); ② USB-C 电流预算 (换 3A advertise 方案 vs 降背光亮度 vs demo 阶段先不点灯); ③ 与 ISS-170 (屏侧 40p vs 原厂排线 39p) 一起定 —— **显示器接口是目前最弱的一环**。'
+  note: '★**顺带修掉了 F15 的短路**: display 座的 pin24(TP_RESET)/pin26(TP_INT)/pin35(LED_N)/pin40(LED_P) 原来**全并在 NET_DSI_AUX 一个网上** ⇒ ★**LED+ 与 LED− 短接** (背光驱动被短) 且 TP_INT 是触控的**输出**脚也不该并网 ⇒ 已拆成一脚一网并标 DNP (demo 阶段屏不点灯) ⇒ 重跑全部门禁仍全绿 (逐焊盘等价 495/495 · DRC 0)。★**待裁**: ① 背光驱动方案 (BOOST+电阻限流 / 恒流 LED 驱动 IC / 直接用屏模组自带背光接口——需确认 FPC 的 LED± 到底给不给外部驱动); ② USB-C 电流预算 (换 3A advertise 方案 vs 降背光亮度 vs demo 阶段先不点灯); ③ 与 ISS-170 (屏侧 40p vs 原厂排线 39p) 一起定 —— **显示器接口是目前最弱的一环**。 ★★2026-11-03 19:1x **数字来源订正**: 12.8V typ / 14V max / 200mA typ 这个背光规格是 **Radxa Display 10FHD** 的官方文档数据, 而**我们的 demo 屏是 8HD** ⇒ ★★**8HD 的背光电压/电流我们未查** ⇒ ⇒ ⇒ **ISS-173 的具体数值待补** (已让专项取 8HD 官方规格) ⇒ 但**"5V 输入要加 12V BOOST"这个方向不变** (白 LED 背光都是 12V 级, 8HD 的 IO 域 1.8V 不是背光电压)'
+  dispatched_at: '2026-11-03'
+- id: ISS-174
+  title: ★★[demo 触控收不到中断] display 触控的 TP_INT (pin26) 没接到 SoM 任何脚 ⇒ 触控中断收不到
+  severity: medium
+  source_blocker: null
+  source_agent: main
+  desc: '★2026-11-03 19:1x 按 8HD 官方 Pinout 原文重画 display 触控/背光网时查实: **pin26 = TP_INT 是触控的中断输出** (低有效) ⇒ 它**必须接到 SoM 的某个 GPIO 输入** ⇒ 但当前网表里 NET_TP_INT **只连到屏模组一个节点**, **没接任何 SoM 脚** ⇒ ⇒ 触控能工作但**中断收不到** (只能轮询)。⇒ 处置: 从 SoM 的 GPIO 池里再分一个脚给它 (SoM 侧还有空闲 3.3V GPIO)。'
+  owner: main
+  reporter: main
+  raised: '2026-11-03'
+  due: '2026-11-06'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: HW/PCB/som_pin_assign.json (GPIO 池) · state/gen_netlist.py (build_a2_som / 显示页)
+  verify_by: hw-lead
+  verify_result: null
+  verify_date: null
+  note: '★**顺带发现**: NET_TP_RESET (pin24) 也只连到屏模组一侧 (没有 SoM 驱动) ⇒ 触控复位没人拉 ⇒ ★**要么接一个 GPIO, 要么靠屏模组内部上拉** (待核 Radxa 官方: 触控复位是否屏内上拉) ⇒ 一并记。'
   dispatched_at: '2026-11-03'

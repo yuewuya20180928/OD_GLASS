@@ -924,7 +924,9 @@ def build_p4(by_id, spec):
 
     # ---- ★★2026-11-02 20:5x A1 段: display FPC 座 (40p/0.5mm) 未被主链引用的针全部补齐 ----
     #   依据: Radxa Display 8HD/10FHD 40 针表 (HW/PCB/FPC_PIN_TABLES.md)
-    _disp_gnd = [7, 10, 13, 16, 19, 22, 23, 29, 30, 33, 34, 36, 39]
+    # ★★2026-11-03 19:1x 订正: 原来的表把 **8HD 与 10FHD 混成一张** ⇒ pin36/pin39 被标成 GND
+    #   ⇒ ★按 **8HD 官方 Pinout 原文**: pin36 = LED− · pin39 = LED+ (不是 GND) ⇒ 从 GND 列表里去掉
+    _disp_gnd = [7, 10, 13, 16, 19, 22, 23, 29, 30, 33, 34]
     for _pn in _disp_gnd:
         add("P4", "GND", f"CONN_LIGHT pin{_pn}", "GND", "CONN_LIGHT", "GND", "NET", "必装", "[官方]", "",
             "[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND", "")
@@ -946,19 +948,33 @@ def build_p4(by_id, spec):
     add("P4", "LIGHT_3V3", "CONN_LIGHT pin25", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (TP_VCC)", "NET",
         "必装", "[官方]", "",
         "[CONN_LIGHT] ★Radxa Display 40 针表: 触控供电 TP_VCC (pin25) ⇒ 3.3V", "")
-    # ★★2026-11-03 修 F15 (hw-lead 在 ISS-159 里撞出的 P0): ★**这 4 个脚原本全并在 NET_DSI_AUX 一个网上**
-    #   ⇒ **LED+ 与 LED− 短接** (背光驱动直接被短) ⇒ 而且 TP_INT 是触控的**输出**脚, 也不能与 TP_RESET 并网
-    #   ⇒ 现在**一脚一网**, 各自不接 (demo 阶段屏不点灯, 触控由模组内部处理)
-    #   ⇒ ★背光驱动本身是另一件事: 该屏背光 LED 是 **12.8V typ / 14V max @200mA** ⇒ 5V 输入必须加 12V BOOST
-    #   ⇒ 已开 ISS-173 (未加 ⇒ demo 屏没有背光 ⇒ 看不见)
-    for _pn, _net, _what in ((24, "NET_TP_RESET", "TP_RESET (触控复位)"),
-                             (26, "NET_TP_INT", "TP_INT (触控中断输出)"),
-                             (35, "NET_LED_N", "LED_N (背光负极)"),
-                             (40, "NET_LED_P", "LED_P (背光正极)")):
-        add("P4", _net, f"CONN_LIGHT pin{_pn}", _net, "CONN_LIGHT", _what, "NET",
-            "DNP", "[官方]", "",
-            f"[CONN_LIGHT] ★Radxa Display 40 针表 pin{_pn} = {_what} —— ★★**F15 修: 原来这 4 脚并成 NET_DSI_AUX "
-            f"⇒ LED+ 与 LED− 短接**; 现在一脚一网且不接 (背光驱动见 ISS-173: 该屏背光需 12.8V ⇒ 5V 输入要加 12V BOOST)", "")
+    # ★★2026-11-03 19:1x ★★**再订正 (老板一句"这跟 Radxa 有什么关系"挖出来的)**: 矛盾**不是外部问题, 是我们抄表时混了两个型号**
+    #   ⇒ 我们项目里那张 "FPC_PIN_TABLES.md 的 display 表" 标题写的是 "8HD/10FHD" ⇒ **把两款屏的脚位混成了一张**
+    #   ⇒ ★**权威 = 8HD 官方 Pinout 原文** (已在 HW/STEP1_PARTS_SPEC.md §3.1, 标注 `[实测] 官方文档"Pinout"表原文`):
+    #      **pin35 = LED− · pin36 = LED− · pin39 = LED+ · pin40 = LED+** (每串两颗 LED 同串并联 ⇒ 同网是**正常**的)
+    #   ⇒ ★★**所以我 12:5x 那次 "F15 拆成一脚一网 + DNP" 是按错表做的**: 真要防的只有
+    #      **LED_N 与 LED_P 不能互短** (两串之间短接 = 背光直接烧) ⇒ 而 35+36 / 39+40 各自同网才是对的
+    #   ⇒ ⇒ 现在按官方原文重画: **LED_N = pin35+pin36 / LED_P = pin39+pin40**
+    #   ⇒ ★背光驱动仍未实现 (ISS-173) ⇒ 12.8V@200mA 那个数是 **10FHD 的**, **8HD 的背光规格未查** ⇒ 要补
+    add("P4", "NET_TP_RESET", "CONN_LIGHT pin24", "NET_TP_RESET", "CONN_LIGHT", "TP_RESET (触控复位)", "NET",
+        "必装", "[官方]", "",
+        "[NET_TP_RESET] ★8HD 官方 Pinout: pin24 = TP_RESET (触控复位)", "")
+    add("P4", "NET_TP_INT", "CONN_LIGHT pin26", "NET_TP_INT", "CONN_LIGHT", "TP_INT (触控中断输出)", "NET",
+        "必装", "[官方]", "",
+        "[NET_TP_INT] ★8HD 官方 Pinout: pin26 = TP_INT (触控的中断输出) ⇒ ★**它必须接到 SoM 某个 GPIO** "
+        "⇒ ★**当前网表里它没接任何 SoM 脚 ⇒ 触控中断收不到** (新开 ISS-174)", "")
+    add("P4", "NET_LED_N", "CONN_LIGHT pin35", "NET_LED_N", "CONN_LIGHT", "LED- (背光负极, 1)", "NET",
+        "必装", "[官方]", "",
+        "[NET_LED_N] ★8HD 官方 Pinout: **pin35 = LED-** ⇒ 与 pin36 同串并联 (面板每串 2 颗 LED) ⇒ 同网正常", "")
+    add("P4", "NET_LED_N", "CONN_LIGHT pin36", "NET_LED_N", "CONN_LIGHT", "LED- (背光负极, 2)", "NET",
+        "必装", "[官方]", "",
+        "[NET_LED_N] ★8HD 官方 Pinout: **pin36 = LED-** (与 pin35 同串) —— ★★此前标的 GND 是**抄表时混入 10FHD** 造成的", "")
+    add("P4", "NET_LED_P", "CONN_LIGHT pin39", "NET_LED_P", "CONN_LIGHT", "LED+ (背光正极, 1)", "NET",
+        "必装", "[官方]", "",
+        "[NET_LED_P] ★8HD 官方 Pinout: **pin39 = LED+** ⇒ 与 pin40 同串并联 ⇒ 同网正常", "")
+    add("P4", "NET_LED_P", "CONN_LIGHT pin40", "NET_LED_P", "CONN_LIGHT", "LED+ (背光正极, 2)", "NET",
+        "必装", "[官方]", "",
+        "[NET_LED_P] ★8HD 官方 Pinout: **pin40 = LED+** (与 pin39 同串) —— ★★此前标的 GND 是**抄表时混入 10FHD** 造成的", "")
 
 
 
