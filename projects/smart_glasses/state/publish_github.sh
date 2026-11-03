@@ -107,6 +107,7 @@ rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
       --exclude 'BOOTSTRAP.md' --exclude '.openclaw' --exclude 'workspace-state.json' \
       --exclude '*.tmp' --exclude '.DS_Store' \
       --exclude '.*_bak' --exclude '*_backup' --exclude '.*_backup' --exclude '.bak_*' \
+      --exclude 'state/_os_snapshots/hirose_*' --exclude 'state/_os_snapshots/hirose_pages' \
       "$PROJ/" projects/smart_glasses/
 
 # ---- 3. docs / config 映射件 ----

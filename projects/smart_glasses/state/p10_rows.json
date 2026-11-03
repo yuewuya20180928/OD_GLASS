@@ -931,7 +931,7 @@
   },
   {
     "page": "P10",
-    "net": "CHG_STAT_L",
+    "net": "CHG_STAT",
     "node1": "Q_CHG_LED",
     "node2": "U_CHG pin4",
     "ref": "Q_CHG_LED",
@@ -940,37 +940,7 @@
     "dnp": "必装",
     "evidence": "[推算]",
     "tbd": "",
-    "note": "[CHG_STAT_L] ★Q_CHG_LED 栅极 = 充电板**本地**的 STAT (pin4, 开漏: 低=充电中/高=完成或禁用/1Hz 闪=故障) —— 与跨铰链的 CHG_STAT 是**同一个开漏源**, 两路负载互不影响 (栅极电流≈0)",
-    "conn_id": "C-01",
-    "board": "CHG_BOARD"
-  },
-  {
-    "page": "P10",
-    "net": "CHG_STAT_L",
-    "node1": "R_PU_STAT_L",
-    "node2": "U_CHG pin4",
-    "ref": "R_PU_STAT_L",
-    "value": "10k ±1% (到 REGN 5V)",
-    "type": "R",
-    "dnp": "必装",
-    "evidence": "[推算]",
-    "tbd": "",
-    "note": "[CHG_STAT_L] ★充电板**本地**上拉 (挂 REGN 5V): 主板断电时跨铰链的 STAT 线会悬空, 这颗保证 Q_CHG_LED 栅极有确定电平 (STAT=高 → 灯灭)",
-    "conn_id": "C-01",
-    "board": "CHG_BOARD"
-  },
-  {
-    "page": "P10",
-    "net": "REGN",
-    "node1": "R_PU_STAT_L",
-    "node2": "U_CHG pin22",
-    "ref": "R_PU_STAT_L",
-    "value": "10k ±1% (到 REGN 5V)",
-    "type": "R",
-    "dnp": "必装",
-    "evidence": "[推算]",
-    "tbd": "",
-    "note": "[CHG_STAT_L] 本地上拉的 REGN 端 (BQ25896 内部 5V)",
+    "note": "[CHG_STAT] ★2026-11-03 09:5x 订正: BQ25896 的 STAT (pin4) 是**单个开漏输出**, 不能同时挂两个网 ⇒ 充电板本地 LED 栅极与跨铰链 STAT **合并成一个网**; 同时删掉充电板本地的 5V 上拉 (它会把 5V 送到 SoC 的 3.3V 开漏输入 ⇒ 过压), 上拉留在主板侧 R_PU_CHG_STAT (10k 到 3.3V)",
     "conn_id": "C-01",
     "board": "CHG_BOARD"
   }

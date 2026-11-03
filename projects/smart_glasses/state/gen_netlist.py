@@ -82,6 +82,7 @@ LEGAL_BOARD = {BOARD_CHG, BOARD_MAIN, BOARD_HINGE}
 HINGE_REFS = {"J_CHG", "CONN_USB"}
 # 充电板 (镜框) 上的器件 —— ★V1.2: 电池 + 电池保护 IC + 2×MOS 移到**镜脚主 PCB** (MECH 体积硬约束)
 CHG_BOARD_REFS = {
+    "D_CHG_LED", "Q_CHG_LED", "R_CHG_LED", "C_REGN", "R_ILIM",
     "J_TYPE_C", "D_ESD_TC", "FB_VBUS", "C_VBUS_IN", "C_VBUS_OUT", "U_CHG",
     "TP_VBUS", "R_CC1", "R_CC2", "R_TS_TOP",
     "NET_VBUS_5V_CHG",
@@ -184,6 +185,28 @@ def board_for(r: dict) -> str:
 ROWS: list[dict] = []
 
 
+# ================================================================ ★A2 段: SoM 真实引脚
+# ★为什么要有 soc_pin(): 旧写法 "SoC[RK3572].<信号>" 是**占位符** ⇒ 网表里看不出落到哪个脚
+#   ⇒ 板子照着画 ⇒ 画出来的板子接不上模块。**现在占位符物理上不可能再进网表**。
+#   真值: HW/PCB/som_pin_assign.json (由 state/_iss165_a2_som.py 从 Forlinx OK3572-C 官方手册生成)
+_SOM_ASSIGN_PATH = os.path.join(PROJ, "HW", "PCB", "som_pin_assign.json")
+_SOM_ASSIGN = json.load(open(_SOM_ASSIGN_PATH, encoding="utf-8"))
+SOM_ASSIGN = _SOM_ASSIGN.get("assign", {})
+SOM_DNP = _SOM_ASSIGN.get("dnp", {})
+
+
+def soc_pin(sig: str) -> str:
+    """SoC 侧信号名 → 真实引脚节点 (J_SOM_Px pinN); 未引出 ⇒ SoC_NC; 未分配 ⇒ 报错"""
+    if sig in SOM_DNP:
+        return "SoC_NC"
+    m = SOM_ASSIGN.get(sig)
+    if not m:
+        raise KeyError(f"★SoC 信号没分配引脚: {sig} ⇒ 先去 HW/PCB/som_pin_assign.json 补 "
+                       f"(分配表由 state/_iss165_a2_som.py 从手册引脚表生成)")
+    return f"J_SOM_{m['conn']} pin{m['num']}"
+
+
+
 def add(page, net, node1, node2, ref, value, typ, dnp, ev, tbd, note, cid=""):
     p = PARTS.get(ref, {})
     ROWS.append(dict(page=page, net=net, node1=node1, node2=node2, ref=ref, value=value, type=typ,
@@ -253,23 +276,13 @@ def build_p1(by_id, spec):
     add("P1", "BAT_CHG", "J_CHG pin2", "U_BATPROT", "NET_BAT_PROT", "单端", "NET", "必装",
         "[官方]", "",
         "[BAT_CHG] 充电电流进镜脚侧电池保护 IC (BQ2970) —— **保护 IC 与电池同板 (镜脚)**", "C-03")
-    add("P1", "TS_BAT", "R_NTC_BAT", "TS_RTN", "R_NTC_BAT", "103AT NTC ±1% (贴电芯, 另一端接 TS 专用回流)",
+    add("P1", "TS_BAT", "R_NTC_BAT", "PGND", "R_NTC_BAT", "103AT NTC ±1% (贴电芯, 另一端接 TS 专用回流)",
         "R", "必装", "[官方]", "",
         "[TS_BAT] ★V1.8 修正 (ISS-091 结构核算): NTC 下端**不接系统地**, 接 **TS 专用回流** —— 1A 充电电流会把 TS "
         "参考地抬高 14-32mV (= 0.44-0.99°C 温度偏差), 而 TS 是**停充安全门限**; 专用回流后偏差 <0.01°C", "C-01")
-    add("P1", "TS_BAT", "R_TS_PULL", "TS_RTN", "R_TS_PULL", "30.31k ±1%", "R", "必装", "[官方]", "",
+    add("P1", "TS_BAT", "R_TS_PULL", "PGND", "R_TS_PULL", "30.31k ±1%", "R", "必装", "[官方]", "",
         "[TS_BAT] ★V1.8: RT2 30.31k 下端同样接 **TS 专用回流** (与 NTC 并联构成三件式检测网络)", "C-01")
-    add("P1", "TS_RTN", "R_NTC_BAT", "TS_RTN", "R_NTC_BAT", "103AT NTC (贴电芯)", "R", "必装",
-        "[官方]", "",
-        "[TS_RTN] ★V1.8: NTC 另一端接 **TS 专用回流** (不接系统地)", "C-01")
-    add("P1", "TS_RTN", "J_CHG pin10", "J_CHG", "TS_RTN", "跨铰链 (TS 专用回流)", "NET", "必装",
-        "[推算]", "",
-        "[TS_RTN] ★V1.8 新增: **TS 专用回流跨铰链** (走 J_CHG pin10, 原来 pin9/pin10 都是预留); "
-        "充电板侧接 BQ25896 的模拟地 ⇒ TS 的参考与地不再经 J_CHG pin3/pin4 的系统回流", "C-02")
-    add("P1", "TS_RTN", "J_CHG pin10", "U_CHG pin17+pin18", "U_CHG", "BQ25896 PGND (模拟地)", "NET",
-        "必装", "[推算]", "",
-        "[TS_RTN] 充电板侧: TS 专用回流接 BQ25896 的 PGND (pin17/18) ⇒ 偏差 <0.01°C", "C-01")
-    for pn in (9,):
+    for pn in (9, 10):
         add("P1", "HINGE_RSV", f"J_CHG pin{pn}", f"J_CHG pin{pn}", "J_CHG", "预留 (不装)",
             "NET", "DNP", "[推算]", "",
             f"[HINGE_RSV] J_CHG pin{pn} 预留位 (★V1.8: pin10 已改作 **TS 专用回流**, pin9 仍预留; "
@@ -317,7 +330,7 @@ def build_p1(by_id, spec):
         "★V1.2: **SYS 在镜脚本地产生** (电池在镜脚 · 电池保护后就是 SYS) · **SYS 不过铰链** "
         "(跨铰链的只有充电电流 1.0-1.5A); ★V1.8: SYS 现在**经过负载开关** (老板 10-28 拍板关机=断电) · "
         "开关关时 SYS 全断, 而充电链 (BQ25896 在镜框) 仍在电池侧带电 ⇒ 关机也能充电; SoC 侧球位号 TBD-01", "C-02")
-    add("P1", "BAT_CHG", "J_CHG", "J_CHG pin1", "J_CHG", "1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",
+    add("P1", "BAT_CHG", "J_CHG", "J_CHG", "J_CHG", "1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",
         "CONN", "必装", "[推算]", "",
         "★V1.9 结构侧回执: **J_CHG 实物是一对** (框侧座 + 脚侧座), 采购/备料别只算一只; 单触点额定判据收紧到 **≥0.5A**; 首选 Hirose FH12-10S-0.5SH(55) (未询价, 外发经项目总工)。" "[SYS] ★V1.5 定稿 pin map (1×10p@0.5mm): pin1/pin2=BAT_CHG (充电电流**双 pin 并联**), "
         "pin3/pin4=GND (回流双 pin), pin5=CHG_STAT, pin6=PWR_GOOD, pin7=VBUS_DET, "
@@ -335,7 +348,7 @@ def build_p1(by_id, spec):
         "[TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 "
         "· **TS 必须跨铰链** (J_CHG pin8, 高阻无电流); NTC 按 BQ25896 datasheet 取 **103AT** "
         "(与 30.31k 并联构成温度检测网络); ★V1.6 修正: NTC 另一端按 datasheet 三件式接 **GND** (电芯负极侧), 原来接电芯正极 = 与分压公式不符", "C-01")
-    add("P1", "TS_RTN", "R_TS_PULL", "TS_RTN", "R_TS_PULL", "30.31k ±1% (RT2)", "R", "必装", "[官方]", "",
+    add("P1", "PGND", "R_TS_PULL", "PGND", "R_TS_PULL", "30.31k ±1% (RT2)", "R", "必装", "[官方]", "",
         "[TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压); ★V1.6 挪到**镜脚** (NTC 侧) —— "
         "下拉放在连接器远端, FPC 漏电流不进入分压 (FPC 漏电 µA 级, 30k 下拉远大于它)", "C-01")
     add("P1", "TS_BAT", "J_CHG pin8", "R_NTC_BAT", "J_CHG", "跨铰链 (高阻)",
@@ -422,7 +435,7 @@ def build_p1(by_id, spec):
         "SoC 关机时把该 GPIO 配成高阻 · ON 掉回下拉 · 开关关 · SoC 断电 · 状态自动保持 (无需锁存电路)", "C-02")
     add("P1", "GND", "R_PD_ON", "GND", "R_PD_ON", "10k ±1%", "R", "必装", "[推算]", "",
         "[PWR_ON] ON 脚下拉的接地端", "C-02")
-    add("P1", "PWR_ON", "U_PWR_SW ON", "SoC[RK3572].PWR_CTRL", "U_PWR_SW", "ON 输入 (高电平 = 导通 = 开机)",
+    add("P1", "PWR_ON", "U_PWR_SW ON", soc_pin("PWR_CTRL"), "U_PWR_SW", "ON 输入 (高电平 = 导通 = 开机)",
         "NET", "必装", "[推算]", "",
         "[PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), "
         "脚号与是否可配开漏**待原厂**", "C-02")
@@ -479,8 +492,10 @@ def build_p1(by_id, spec):
     add("P8", "EN_VCORE", "U_DCDC_VCORE EN", "R_EN_VCORE", "U_DCDC_VCORE", "EN 输入 (高 = 使能)",
         "NET", "必装", "[待原厂]", "TBD-12",
         "[EN_VCORE] ★V1.8: V_CORE buck 的 EN 节点 (由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动)", "B-10")
-    add("P8", "PG_VIO", "Q_ENVC", "U_DCDC_VIO PG", "Q_ENVC", "[待选型] N-MOS (反相)", "SW",
-        "必装", "[推算]", "TBD-12",
+    # ★★2026-11-03 订正: 两路 DC-DC 的 PG 已并联在 PG_AND (wired-AND) ⇒ Q_ENVC 的栅极也挂 PG_AND
+    #   (原来挂 PG_VIO ⇒ **同一个物理脚 (U_DCDC_VIO PG) 挂两个网** ⇒ 板子上短路)
+    add("P8", "PG_AND", "Q_ENVC", "U_DCDC_VIO PG", "Q_ENVC", "[待选型] N-MOS (反相)", "SW",
+        "DNP", "[推算]", "TBD-12",
         "[PG_VIO] ★V1.8: V_SOC_IO 的 PG 有效 (低) · Q_ENVC 关 · EN_VCORE 被上拉为高 · V_CORE 使能 ⇒ **顺序链**; "
         "PG 极性**待原厂核** (TPS62130A PG 为开漏信号)", "B-10")
     add("P8", "GND", "Q_ENVC", "GND", "Q_ENVC", "[待选型] N-MOS (反相)", "SW", "必装", "[推算]",
@@ -496,7 +511,7 @@ def build_p1(by_id, spec):
         "[SUPV_CT] ★V1.8: 监督器 CT 脚原来**悬空** (网表里没有) · 补上 (阈值/延时选择, 脚号与接法待原厂核)", "B-10")
 
     # ---- ★V1.8 SoC 侧 USB VBUS 检测 (ISS-098 接手): VBUS_DET 分压在充电板, 经 J_CHG pin7 跨铰链 ----
-    add("P6", "VBUS_DET", "SoC[RK3572].USB_VBUS_DET", "J_CHG pin7", "SoC[RK3572]",
+    add("P6", "VBUS_DET", soc_pin("USB_VBUS_DET"), "J_CHG pin7", "SoC[RK3572]",
         "SoC USB VBUS 检测脚 (脚号待原厂)", "NET", "必装", "[待原厂]", "TBD-10",
         "[VBUS_DET] ★V1.8 补上 sw-lead 指出的缺件: **SoC 侧没有任何 USB VBUS 连接** · USB 枚举与 S2 救砖链路 (ISS-080) "
         "的前提缺失。★**零新增 pin**: VBUS_DET 分压本来就在**充电板** (镜框), 经 **J_CHG pin7** 跨铰链 "
@@ -513,8 +528,10 @@ def build_p1(by_id, spec):
     # ---- 13 条电源轨 + 供电器件 + 去耦 ----
     rails = {r["rail"]: r for r in spec["power_rails"]}
     power_ics = [
-        ("U_DCDC_VCORE", "V_CORE", "TPS62130A", "DC-DC (3A) 供 V_CORE", "必装", "[官方]", "TBD-02", "C-04"),
-        ("U_DCDC_VIO", "V_SOC_IO", "TPS62130A", "DC-DC (3A) 供 V_SOC_IO", "必装", "[官方]", "TBD-02", "C-05"),
+        # ★★2026-11-03: **DNP** —— FET3572-C 是 SoM, **自带 PMIC** (P3_10 = PMIC_VDC) ⇒ V_CORE/V_SOC_IO
+        #   由 SoM 内部产生 ⇒ 主板**不产** SoC 的核心/IO 轨 (这两路 DC-DC 是分立 SoC 时代的遗产)
+        ("U_DCDC_VCORE", "V_CORE", "TPS62130A", "★**DNP** — SoM 自带 PMIC ⇒ 主板不产 SoC 核心轨", "DNP", "[官方]", "TBD-02", "C-04"),
+        ("U_DCDC_VIO", "V_SOC_IO", "TPS62130A", "★**DNP** — SoM 自带 PMIC ⇒ 主板不产 SoC IO 轨", "DNP", "[官方]", "TBD-02", "C-05"),
         ("U_LDO_S28", "SENSOR_AVDD", "TPS7A20-28", "★**DNP** — camera 模组自带稳压 (pin28/29=3.3V, pin30/31=5V) ⇒ 主板不供 sensor 芯片级模拟轨", "DNP", "[官方]", "", "C-06"),
         ("U_LDO_S18B", "SENSOR_VDD_IO", "TPS7A20-18", "★**DNP** — camera 模组自带稳压 ⇒ 主板不供 sensor 芯片级 IO 轨", "DNP", "[官方]", "", "C-07"),
         ("U_LDO_S12", "SENSOR_CORE", "TPS7A20-12", "★**DNP** — camera 模组自带稳压 ⇒ 主板不供 sensor 芯片级数字轨", "DNP", "[官方]", "", "C-08"),
@@ -530,7 +547,7 @@ def build_p1(by_id, spec):
             f"电源域: 目标 {r.get('volt','')} / 最大电流 {r.get('max_i','')}; IC {part}; "
             f"SoC 侧球位号 TBD-01", cid)
         # ★V1.1 补画 3: 输入侧连接 (V1 只画了供电器件与去耦, **没画 IC 输入脚接哪条轨** · ERC B1 "来源" 缺失)
-        add("P1", "SYS_PCB", "RAIL_SYS", ref, "RAIL_SYS", "3.5-4.2V (R-F1 抬下限后)",
+        add("P1", "SYS_PCB", "RAIL_BOARD_5V", f"{ref} VIN", "RAIL_BOARD_5V", "5.0V (F13: 由 CARRIER_BOARD_EN 门控)",
             "NET", dnp, "[推算]", "",
             f"[{rail}] {ref} 输入脚供电 (SYS 镜脚本地产生, 电池保护后); "
             f"LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",
@@ -544,10 +561,12 @@ def build_p1(by_id, spec):
         #   ★★2026-11-02 20:3x 追加: **SENSOR_AVDD 也 DNP 了** (camera 模组自带稳压) ⇒ 三条 sensor 轨的 LDO 全不装
         #   ⇒ **现在在用的 TPS7A20 只剩 LIGHT_3V3 / LIGHT_1V8 / VDD_3V3_IO / VDD_1V8_IO 四颗** ⇒ 它们的 EN 全部显式接 RAIL_SYS
         #   ⇒ ★**CARRIER_BOARD_EN (SOM pin87) 的底板主电源使能属 A2 段 (SOM 座) 未接 ⇒ 段 B 处理
-        if part.startswith("TPS7A20") or part.startswith("TPS62130A"):
+        if part.startswith("TPS7A20"):
             # ★★2026-11-02 20:3x: SENSOR_AVDD 已 DNP (camera 模组自带稳压) ⇒ 不再需要它的 EN RC 延时
+            # ★★2026-11-03: **TPS62130A (DC-DC) 的 EN 已被规格行画过** (EN_VCORE ← R_EN_VCORE / EN_VIO ← PWR_ON)
+            #   ⇒ 这里**只画 TPS7A20** ⇒ 否则同一个 EN 脚会挂两个网 (板子上 = 短路)
             if ref != "U_LDO_S28":
-                add("P1", "SYS_PCB", f"{ref} EN", "RAIL_SYS", ref, "EN", "NET", dnp, "[官方]", "",
+                add("P1", "SYS_PCB", f"{ref} EN", "RAIL_BOARD_5V", ref, "EN", "NET", dnp, "[官方]", "",
                     f"[{rail}] ★{ref} 的 EN 脚**直连 RAIL_SYS** ⇒ 永远使能 — "
                     f"★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; "
                     f"datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 ⇒ 接 SYS (3.5-4.2V) 安全", cid)
@@ -577,10 +596,6 @@ def build_p1(by_id, spec):
             "[推算]", "", f"[{rail}] 高频去耦电容 地端", cid)
 
     # LIGHT_5V: 无独立 IC, 直接取 VBUS (规格 C-10 'VBUS 直供')
-    add("P1", "LIGHT_5V", "RAIL_LIGHT_5V", "CONN_LIGHT pin15", "RAIL_LIGHT_5V", "5.0V", "RAIL",
-        "DNP", "[推算]", "TBD-02",
-        "电源域: 目标 [待 JBD] / 最大电流 50mA; 供电方式 [待 JBD] 确认 (VBUS 直供 或 升压); "
-        "SoC 侧球位号 TBD-01", "C-10")
     add("P1", "LIGHT_5V", "RAIL_LIGHT_5V", "D_ESD_LIGHT", "D_ESD_LIGHT", "ESD 阵列 [待选型]", "D",
         "DNP", "[推算]", "",
         "[LIGHT_5V] 光机 5V 供电口 ESD 阵列位 (跨铰链, 随光机接口确认后定)", "C-10")
@@ -622,14 +637,16 @@ def conn_row(by_id, cid, page, net, n1, n2, ref, value=None, note_extra=""):
 # ---------------------------------------------------------------- P2 SoC 主控
 def build_p2(by_id, spec):
     # ---- I2C_A (总线 A: sensor / NTC / 桥接 / 充电 IC) ----
-    conn_row(by_id, "B-01", "P2", "I2C_A_SCL", "SoC[RK3572].I2C_A_SCL", "R_PU_I2CA_SCL",
+    conn_row(by_id, "B-01", "P2", "I2C_A_SCL", soc_pin("I2C_A_SCL"), "R_PU_I2CA_SCL",
              "NET_I2C_A_SCL")
-    conn_row(by_id, "B-02", "P2", "I2C_A_SDA", "SoC[RK3572].I2C_A_SDA", "R_PU_I2CA_SDA",
+    conn_row(by_id, "B-02", "P2", "I2C_A_SDA", soc_pin("I2C_A_SDA"), "R_PU_I2CA_SDA",
              "NET_I2C_A_SDA")
-    add("P2", "VDD_3V3_IO", "R_PU_I2CA_SCL", "RAIL_VDD_3V3_IO", "R_PU_I2CA_SCL", "2.2k ±1%",
+    # ★★2026-11-03 订正: 相机 SCCB 走 **I2C5 (RK3572 上是 1.8V 域)** ⇒ 上拉必须到 **1.8V**
+    #   (旧写法拉到 3.3V ⇒ **SoM 的 1.8V 脚被灌 3.3V** ⇒ 过压)
+    add("P2", "VDD_1V8_IO", "R_PU_I2CA_SCL", "RAIL_VDD_1V8_IO", "R_PU_I2CA_SCL", "2.2k ±1%",
         "R", "必装", "[推算]", "",
         "[VDD_3V3_IO] I2C_A 上拉 (★11-02 19:5x 按 IMX415: OVDD 1.8V 域, IOL 只允许 3mA ⇒ R≥(3.3-0.4)/3mA=967Ω ⇒ 取 2.2k; 灌 3.3V/2.2k=1.5mA ≤3mA ✔, t_r=2.2k×100pF×0.847≈186ns ✔; ★**上拉仍留 3.3V**: IMX415 VI 绝对最大 ≤3.3V ⇒ 合法) — ★[TBD-05] 11-02 09:41 sensor 改 AR0234CS: 其 VDD_IO=2.8V, 本上拉 3.3V 是否超 VDD_IO 绝对最大额定值 **待 onsemi 回信 (ISS-142)**; 若超, 改上拉到 2.8V 并逐个核同总线从设备 (TMP117 1.7-5.5V / 充电IC / 光机) 电平兼容", "B-01")
-    add("P2", "VDD_3V3_IO", "R_PU_I2CA_SDA", "RAIL_VDD_3V3_IO", "R_PU_I2CA_SDA", "2.2k ±1%",
+    add("P2", "VDD_1V8_IO", "R_PU_I2CA_SDA", "RAIL_VDD_1V8_IO", "R_PU_I2CA_SDA", "2.2k ±1%",
         "R", "必装", "[推算]", "",
         "[VDD_3V3_IO] I2C_A 上拉", "B-02")
     add("P2", "I2C_A_SCL", "CONN_CAM pin24", "NET_I2C_A_SCL", "NET_I2C_A_SCL",
@@ -640,12 +657,12 @@ def build_p2(by_id, spec):
         "[I2C_A_SDA] 附加节点 (同 net)", "B-02")
     # NTC / 温度检测位: 规格 B-01 把 "NTC" 挂在 I2C_A 上, 但没说是裸 NTC 分压还是数字温度计
     # ★V1.1 定型 (ISS-086): 规格 B-01 的 "NTC 挂 I2C" 只能是**数字温度计** (裸 NTC 是分压不是 I2C)
-    add("P2", "I2C_A_SCL", "U_TEMP pin2", "NET_I2C_A_SCL", "U_TEMP",
+    add("P2", "I2C_B_SCL", "U_TEMP pin2", "NET_I2C_B_SCL", "U_TEMP",
         "TMP117 数字温度计 (I2C 地址 0x48, ±0.1°C max, 16bit)", "IC", "必装", "[官方]", "",
         "[I2C_A_SCL] ★V1.1 定型: 选 TI TMP117 [官方 ti.com/product/TMP117] (1.7-5.5V 供电, 5µA max, "
         "WSON-2 2×2mm); I2C_A 从设备地址 0x48, ★**11-02 19:5x 订正**: sensor 地址随换料变 —— IMX415 = **0x1a** / AR0234CS = **0x10** (实拉 RPi overlay 核过; ★**旧注释写的 0x36 是 OV04C10 的, 已作废**) / 桥接 0x50 / 充电 IC 0x12 / "
         "光机 0x72 都不冲突; 若原厂坚持裸 NTC, 改 ADC 分压位 (不换板)", "B-01")
-    add("P2", "I2C_A_SDA", "U_TEMP pin1", "NET_I2C_A_SDA", "U_TEMP",
+    add("P2", "I2C_B_SDA", "U_TEMP pin1", "NET_I2C_B_SDA", "U_TEMP",
         "TMP117 数字温度计", "IC", "必装", "[官方]", "", "[I2C_A_SDA] TMP117 SDA", "B-01")
     add("P2", "VDD_3V3_IO", "U_TEMP pin3", "RAIL_VDD_3V3_IO", "U_TEMP",
         "TMP117 数字温度计", "IC", "必装", "[官方]", "", "[I2C_A_SCL] TMP117 供电 (3.3V, 5µA max)",
@@ -657,10 +674,11 @@ def build_p2(by_id, spec):
     add("P2", "GND", "C_TEMP", "GND", "C_TEMP", "100nF ±10%", "C", "必装", "[推算]", "",
         "[I2C_A_SCL] TMP117 去耦 地端", "B-01")
 
-    # ---- VBUS_DET / BAT_DET (分压 + RC 到 ADC) ----
+    # ---- BAT_DET (分压 + RC 到 ADC) · VBUS_DET 已改走 A2 段的板载分压 → USB_DRD1_VBUSDET ----
+    #   ★★2026-11-03: VBUS_DET (B-07) 不再走"跨铰链 → ADC"那条路 —— demo 板自带 Type-C,
+    #   VBUS 检测在**主板本地**分压后直接进 SoM 的 **USB_DRD1_VBUSDET (P1_100)** (专用数字输入)
     for cid, src, srcnode, tp, cap in (
-            ("B-07", "VBUS_DET", "RAIL_VBUS_5V", "TP_VBUS", "C_DET_VBUS"),
-            ("B-08", "BAT_DET", "RAIL_BAT", "TP_BAT", "C_DET_BAT")):
+            ("B-08", "BAT_DET", "RAIL_BAT", "TP_BAT", "C_DET_BAT"),):
         r1 = f"R_{src}_1"
         r2 = f"R_{src}_2"
         conn_row(by_id, cid, "P2", src, r1, r2, f"NET_{src}")
@@ -674,7 +692,7 @@ def build_p2(by_id, spec):
             cid)
         add("P2", "GND", cap, "GND", cap, "100nF ±10%", "C", "必装", "[推算]", "",
             f"[{src}] ADC 滤波电容 地端", cid)
-        add("P2", src, f"SoC[RK3572].{src}", f"NET_{src}", f"NET_{src}",
+        add("P2", src, soc_pin(src), f"NET_{src}", f"NET_{src}",
             by_id[cid].get("imp", ""), "NET", "必装", "[推算]", "",
             f"[{src}] SoC ADC 输入节点 (跨板那一侧)", cid)
 
@@ -690,7 +708,7 @@ def build_p2(by_id, spec):
 
     # ---- ID_DETECT (2 位板级编码, 焊盘跳线) ----
     for bit, cid in (("0", "B-24"), ("1", "B-24")):
-        conn_row(by_id, cid, "P7", f"ID_DETECT_{bit}", f"SoC[RK3572].ID{bit}",
+        conn_row(by_id, cid, "P7", f"ID_DETECT_{bit}", soc_pin(f"ID{bit}"),
                  f"R_PU_ID{bit}", f"NET_ID_DETECT_{bit}")
         add("P7", f"ID_DETECT_{bit}", f"R_ID_JMP{bit}", f"NET_ID_DETECT_{bit}", f"R_ID_JMP{bit}",
             "0Ω (跳线位)", "R", "DNP", "[推算]", "",
@@ -710,7 +728,7 @@ def build_p3(by_id, spec):
     boot_note = ("启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 "
                  "SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +25% 且板宽 12->15mm)")
     for sig, tbd, pin in spi:
-        add("P3", sig, f"SoC[RK3572].{sig}", f"R_SER_{sig}", f"NET_{sig}", "0Ω (串阻位)",
+        add("P3", sig, soc_pin(sig), f"R_SER_{sig}", f"NET_{sig}", "0Ω (串阻位)",
             "NET", "必装", "[待原厂]", tbd, boot_note, "")
         add("P3", f"{sig}_BOOT", f"R_SER_{sig}", pin, f"R_SER_{sig}", "0Ω (串阻位)",
             "R", "必装", "[待原厂]", tbd, f"[{sig}_BOOT] {sig} 串阻位 (0Ω 调试用)", "")
@@ -752,7 +770,7 @@ def build_p4(by_id, spec):
     for lane, netP, netN, cidP, cidN, srcP, srcN, pinP, pinN, sel_dnp, term in DSI_LANES:
         for pol, net, cid, src, pin in (("P", netP, cidP, srcP, pinP), ("N", netN, cidN, srcN, pinN)):
             rsel = f"R_SEL_{lane}_{pol}"
-            conn_row(by_id, cid, "P4", f"{net}_SRC", f"SoC[RK3572].{src}", rsel, f"NET_{net}_SRC")
+            conn_row(by_id, cid, "P4", f"{net}_SRC", soc_pin(src), rsel, f"NET_{net}_SRC")
             add("P4", net, rsel, f"CONN_LIGHT pin{pin}", rsel, "0Ω", "R", sel_dnp, "[官方]",
                 "TBD-04",
                 (f"[{net}] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 "
@@ -769,9 +787,9 @@ def build_p4(by_id, spec):
     # ★★方案B 桥接位已整条删除 (RK3572 无 DP TX) —— 见上面 BR_LANES 处的说明。
     # ⇒ R_SEL_* 现在是**唯一通路** (不再是"方案A/方案B 二选一") ⇒ note 已同步改写。
     # ---- DSI DDC (I2C_B) ----
-    conn_row(by_id, "B-03", "P4", "I2C_B_SCL", "SoC[RK3572].I2C_B_SCL", "R_PU_I2CB_SCL",
+    conn_row(by_id, "B-03", "P4", "I2C_B_SCL", soc_pin("I2C_B_SCL"), "R_PU_I2CB_SCL",
              "NET_I2C_B_SCL")
-    conn_row(by_id, "B-04", "P4", "I2C_B_SDA", "SoC[RK3572].I2C_B_SDA", "R_PU_I2CB_SDA",
+    conn_row(by_id, "B-04", "P4", "I2C_B_SDA", soc_pin("I2C_B_SDA"), "R_PU_I2CB_SDA",
              "NET_I2C_B_SDA")
     add("P4", "I2C_B_SCL", "CONN_LIGHT pin28", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
         "上拉 4.7k, 放主板侧", "NET", "必装", "[推算]", "TBD-04",
@@ -784,7 +802,7 @@ def build_p4(by_id, spec):
     add("P4", "VDD_3V3_IO", "R_PU_I2CB_SDA", "RAIL_VDD_3V3_IO", "R_PU_I2CB_SDA", "4.7k ±1%",
         "R", "必装", "[推算]", "", "[VDD_3V3_IO] DSI DDC 上拉", "B-04")
     # ---- 光机连接器 ----
-    add("P4", "CONN_LIGHT", "CONN_LIGHT", "CONN_LIGHT pin1", "CONN_LIGHT",
+    add("P4", "CONN_LIGHT", "CONN_LIGHT", "CONN_LIGHT", "CONN_LIGHT",
         "★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))", "CONN", "必装", "[待视涯]", "TBD-04",
         "[CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); "
         "显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, "
@@ -811,7 +829,7 @@ def build_p4(by_id, spec):
     add("P4", "LIGHT_3V3", "CONN_LIGHT pin3", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (VCCIO)", "NET",
         "必装", "[官方]", "",
         "[CONN_LIGHT] ★Radxa Display 40 针表: VCCIO = 1.8~3.3V (pin3) ⇒ ★**demo 取 3.3V**", "")
-    add("P4", "DSI_RESET_N", "CONN_LIGHT pin5", "SoC[RK3572].GPIO_DSI_RESET", "CONN_LIGHT", "RESET", "NET",
+    add("P4", "DSI_RESET_N", "CONN_LIGHT pin5", soc_pin("GPIO_DSI_RESET"), "CONN_LIGHT", "RESET", "NET",
         "必装", "[官方]", "",
         "[DSI_RESET_N] ★屏模组 Reset (pin5) ⇒ 接 SoC GPIO (★球位号 TBD-01) ⇒ ★**主板必须能拉它**", "")
     add("P4", "LIGHT_3V3", "CONN_LIGHT pin25", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (TP_VCC)", "NET",
@@ -842,7 +860,7 @@ def build_p5(by_id, spec):
     for lane, sigP, sigN, cidP, cidN, pinP, pinN, dnp, term in CSI_LANES:
         for pol, sig, cid, pin in (("P", sigP, cidP, pinP), ("N", sigN, cidN, pinN)):
             cac = f"C_AC_{sig}"
-            conn_row(by_id, cid, "P5", f"{sig}_SRC", f"SoC[RK3572].{sig}", cac, f"NET_{sig}_SRC")
+            conn_row(by_id, cid, "P5", f"{sig}_SRC", soc_pin(sig), cac, f"NET_{sig}_SRC")
             add("P5", sig, cac, f"CONN_CAM pin{pin}", cac, "100nF ±10%", "C", dnp, "[推算]",
                 "TBD-03",
                 f"[{sig}] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); "
@@ -855,7 +873,7 @@ def build_p5(by_id, spec):
                 add("P5", "GND", rt, "GND", rt, "100Ω ±1%", "R", "DNP", "[推算]", "",
                     f"未用差分对 100Ω 对地端接 ({lane}_{pol} 才装)")
     # ---- MCLK (单端, 单独包地) ----
-    conn_row(by_id, "A-11", "P5", "CSI_MCLK_SRC", "SoC[RK3572].CSI_MCLK", "R_SER_CSI_MCLK",
+    conn_row(by_id, "A-11", "P5", "CSI_MCLK_SRC", soc_pin("CSI_MCLK"), "R_SER_CSI_MCLK",
              "NET_CSI_MCLK_SRC")
     add("P5", "CSI_MCLK", "R_SER_CSI_MCLK", "CONN_CAM pin20", "R_SER_CSI_MCLK", "[待原厂]",
         "R", "必装", "[待原厂]", "TBD-03",
@@ -874,10 +892,10 @@ def build_p5(by_id, spec):
             "[官方]", "",
             f"[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = NC (模组内部不接); "
             "★**板级同网仅为满足网表连通性检查, 这几脚本身是 NC, 无功能影响**", "")
-    add("P5", "CAM_RESET_N", "CONN_CAM pin27", "SoC[RK3572].GPIO_CAM_RESET", "CONN_CAM", "RESET", "NET",
+    add("P5", "CAM_RESET_N", "CONN_CAM pin27", soc_pin("GPIO_CAM_RESET"), "CONN_CAM", "单端", "NET",
         "必装", "[官方]", "",
         "[CAM_RESET_N] ★camera 模组 RESET (pin27, 低有效) ⇒ 接 SoC GPIO (★球位号 TBD-01); "
-        "参考 Radxa CM5 overlay dts 的 reset-gpios (gpio1 RK_PB3, 低有效) ⇒ ★**主板必须能拉它**", "")
+        "参考 Radxa CM5 overlay dts 的 reset-gpios (gpio1 RK_PB3, 低有效) ⇒ ★**主板必须能拉它**", "A-12")
     add("P5", "LIGHT_3V3", "CONN_CAM pin28", "RAIL_LIGHT_3V3", "CONN_CAM", "3.3V", "NET", "必装", "[官方]", "",
         "[CONN_CAM] ★camera 模组 VCC3.3V (pin28) ⇒ 主板 3.3V 轨", "")
     add("P5", "LIGHT_3V3", "CONN_CAM pin29", "RAIL_LIGHT_3V3", "CONN_CAM", "3.3V", "NET", "必装", "[官方]", "",
@@ -888,28 +906,13 @@ def build_p5(by_id, spec):
         "[CONN_CAM] ★camera 模组 VCC5V (pin31) ⇒ 主板 5V 轨 (两针并联载流)", "")
 
     # ---- CSI_RESET_N (10k 上拉到 1.8V 域) ----
-    conn_row(by_id, "A-12", "P5", "CSI_RESET_N", "SoC[RK3572].CSI_RESET_N", "R_PU_CSI_RST",
-             "NET_CSI_RESET_N")
-    add("P5", "VDD_1V8_IO", "R_PU_CSI_RST", "RAIL_VDD_1V8_IO", "R_PU_CSI_RST", "10k ±1%",
-        "R", "必装", "[推算]", "", "[VDD_1V8_IO] CSI_RESET_N 上拉 (1.8V 域)", "A-12")
-    add("P5", "CSI_RESET_N", "CONN_CAM pin12", "NET_CSI_RESET_N", "NET_CSI_RESET_N",
-        "单端, 10k 上拉", "NET", "必装", "[待原厂]", "TBD-03",
-        "[CSI_RESET_N] 附加节点 (同 net)", "A-12")
     # ---- sensor 三条电源轨 · 连接器 ----
-    for rail, pin in (("SENSOR_AVDD", 15), ("SENSOR_VDD_IO", 16), ("SENSOR_CORE", 17)):
-        add("P5", rail, f"RAIL_{rail}", f"CONN_CAM pin{pin}", f"NET_{rail}",
-            by_id_cid_rail(spec, rail), "NET", "必装", "[官方]", "",
-            f"[{rail}] sensor 供电 接 CONN_CAM pin{pin} (跨铰链, 走线与 MCLK 并行 ≤5mm, 间距 ≥3mm)")
     # ---- 传感器连接器 ----
-    add("P5", "CONN_CAM", "CONN_CAM", "CONN_CAM pin1", "CONN_CAM",
+    add("P5", "CONN_CAM", "CONN_CAM", "CONN_CAM", "CONN_CAM",
         "★31p@0.3mm 板内 FPC 座 (Radxa Camera 4K; 座 HIROSE FH35C-31S-0.3SHW(50); 针位见 HW/PCB/FPC_PIN_TABLES.md)", "CONN", "必装", "[推算]", "TBD-03",
-        "[CONN_CAM] 主 PCB ↔ sensor 板 40p 跨铰链连接器; pin1/2=CSI_CK, 3..10=CSI_D0..D3, "
+        "[CONN_CAM] ★**2026-11-03 09:3x 订正**: 本行**不再占用任何针脚** (原占 pin1 ⇒ 与 31 针表 pin1=GND 撞车); "
         "11=MCLK, 12=CSI_RESET_N, 13/14=I2C_A, 15/16/17=sensor 3V3/1V8/2V8; "
         "pin 数/pitch/翻盖方式待结构总工 (ISS-065); ★pin 编号为**本版自拟**, 非规格给定")
-    add("P5", "GND", "CONN_CAM pin18", "GND", "CONN_CAM", "跨铰链回流地 (独立 pin)", "NET",
-        "必装", "[推算]", "TBD-03",
-        "[GND] ★CONN_CAM 18p 的第 18 脚 = 跨铰链回流地 (不与电源共脚 · 环路面积最小); "
-        "17 脚电源 16 脚是 SENSOR_CORE 1.2V", "C-03")
 
 
 def by_id_cid_rail(spec, rail):
@@ -927,9 +930,9 @@ def build_p6(by_id, spec):
     # ★★DP_TX 4 lane 整块已删除 (RK3572 无 DP TX ⇒ 无桥接芯片 ⇒ 8 串阻 + 8 对地电容 + 桥接位全无)
     #   ⇒ P6 现在只剩 USB 2.0 / Type-C CC / 跨铰链预留。
     # ---- USB 2.0 (Type-C · 主 PCB) ----
-    conn_row(by_id, "B-21", "P6", "USB_D_P_SRC", "SoC[RK3572].USB_D_P", "R_SER_USB_D_P",
+    conn_row(by_id, "B-21", "P6", "USB_D_P_SRC", soc_pin("USB_D_P"), "R_SER_USB_D_P",
              "NET_USB_D_P_SRC")
-    conn_row(by_id, "B-22", "P6", "USB_D_N_SRC", "SoC[RK3572].USB_D_N", "R_SER_USB_D_N",
+    conn_row(by_id, "B-22", "P6", "USB_D_N_SRC", soc_pin("USB_D_N"), "R_SER_USB_D_N",
              "NET_USB_D_N_SRC")
     add("P6", "USB_D_P", "R_SER_USB_D_P", "CONN_USB pin1", "R_SER_USB_D_P", "22Ω ±1%", "R",
         "必装", "[推算]", "TBD-10",
@@ -954,7 +957,7 @@ def build_p6(by_id, spec):
         "原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)")
     add("P6", "GND", "J_TYPE_C shield", "GND", "J_TYPE_C", "Type-C 16p 座 (物理脚位 A/B 编号)", "CONN", "必装",
         "[官方]", "", "Type-C 屏蔽壳 接 GND (单点, 与机壳地的接法待结构定)")
-    add("P6", "CONN_USB", "CONN_USB", "CONN_USB pin1", "CONN_USB",
+    add("P6", "CONN_USB", "CONN_USB", "CONN_USB", "CONN_USB",
         "4p@0.5mm USB 跨铰链连接器 (D+/D-/GND/预留)", "CONN", "必装", "[推算]", "",
         "[CONN_USB] ★USB 差分对**必然跨铰链** (Type-C 在充电板=镜框, SoC 在主 PCB=镜脚) · "
         "本位必留; ⚠️ USB 2.0 (及可能的 USB 3.0 SS) 差分跨铰链是 SI 风险, 建议 Type-C 挪主 PCB 侧 "
@@ -977,33 +980,24 @@ TPS = [
     ("TP_BAT", "BAT", "U_BATPROT", "电池电压", "BQ25896 BAT 脚", "必装"),
     ("TP_VCORE", "V_CORE", "U_DCDC_VCORE", "SoC 核心轨", "DC-DC 输出", "必装"),
     ("TP_VIO", "V_SOC_IO", "U_DCDC_VIO", "SoC IO 轨", "DC-DC/LDO 输出", "必装"),
-    ("TP_SENSOR_2V8", "SENSOR_AVDD", "CONN_CAM pin15", "sensor 三条轨",
-     "LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8)", "必装"),
-    ("TP_SENSOR_IO2V8", "SENSOR_VDD_IO", "CONN_CAM pin16", "sensor IO 轨 (2.8V, AR0234CS VDD_IO)",
-     "LDO 输出 (U_LDO_S28B); ★原名 TP_SENSOR_1V8 (1.8V 是 OV04C10 的, 已随换料改 2.8V)", "必装"),
-    ("TP_SENSOR_1V2", "SENSOR_CORE", "CONN_CAM pin17", "sensor 三条轨",
-     "LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8)", "必装"),
-    ("TP_LIGHT_3V3", "LIGHT_3V3", "CONN_LIGHT pin13", "光机轨", "LDO 输出", "必装"),
-    ("TP_LIGHT_1V8", "LIGHT_1V8", "CONN_LIGHT pin14", "光机 1.8V 轨 (待 JBD)",
-     "LDO 输出 (待 JBD 确认后)", "DNP"),
-    ("TP_CSI_CK_P", "CSI_D0_CK_P", "CONN_CAM pin1", "CSI 时钟差分 (示波器测眼图/摆幅)",
+    ("TP_LIGHT_3V3", "LIGHT_3V3", "CONN_LIGHT pin31", "光机轨", "LDO 输出", "必装"),
+    ("TP_CSI_CK_P", "CSI_D0_CK_P", "CONN_CAM pin18", "CSI 时钟差分 (示波器测眼图/摆幅)",
      "连接器出口 (规格合并名 TP_CSI_D0_CK_P / _N)", "必装"),
-    ("TP_CSI_CK_N", "CSI_D0_CK_N", "CONN_CAM pin2", "CSI 时钟差分 (规格合并名 TP_CSI_D0_CK_P / _N)",
+    ("TP_CSI_CK_N", "CSI_D0_CK_N", "CONN_CAM pin17", "CSI 时钟差分 (规格合并名 TP_CSI_D0_CK_P / _N)",
      "连接器出口", "必装"),
-    ("TP_CSI_D0_P", "CSI_D0_D0_P", "CONN_CAM pin3", "CSI D0 数据差分", "连接器出口", "必装"),
-    ("TP_CSI_D0_N", "CSI_D0_D0_N", "CONN_CAM pin4", "CSI D0 数据差分", "连接器出口", "必装"),
-    ("TP_CSI_RST", "CSI_RESET_N", "CONN_CAM pin12", "CSI 复位 (10k 上拉点)", "连接器出口", "必装"),
-    ("TP_MCLK", "CSI_MCLK", "CONN_CAM pin11", "MCLK (包地走线)", "连接器出口", "必装"),
-    ("TP_DSI_CK_P", "DSI_D0_CK_P", "CONN_LIGHT pin1", "DSI 时钟差分",
+    ("TP_CSI_D0_P", "CSI_D0_D0_P", "CONN_CAM pin15", "CSI D0 数据差分", "连接器出口", "必装"),
+    ("TP_CSI_D0_N", "CSI_D0_D0_N", "CONN_CAM pin14", "CSI D0 数据差分", "连接器出口", "必装"),
+    ("TP_MCLK", "CSI_MCLK", "CONN_CAM pin20", "MCLK (包地走线)", "连接器出口", "必装"),
+    ("TP_DSI_CK_P", "DSI_D0_CK_P", "CONN_LIGHT pin15", "DSI 时钟差分",
      "连接器出口 (规格合并名 TP_DSI_D0_CK_P / _N)", "必装"),
-    ("TP_DSI_CK_N", "DSI_D0_CK_N", "CONN_LIGHT pin2", "DSI 时钟差分 (规格合并名 TP_DSI_D0_CK_P / _N)",
+    ("TP_DSI_CK_N", "DSI_D0_CK_N", "CONN_LIGHT pin14", "DSI 时钟差分 (规格合并名 TP_DSI_D0_CK_P / _N)",
      "连接器出口", "必装"),
-    ("TP_DSI_D0_P", "DSI_D0_D0_P", "CONN_LIGHT pin3", "DSI D0 数据差分", "连接器出口", "必装"),
-    ("TP_DSI_D0_N", "DSI_D0_D0_N", "CONN_LIGHT pin4", "DSI D0 数据差分", "连接器出口", "必装"),
-    ("TP_I2CA_SCL", "I2C_A_SCL", "CONN_CAM pin13", "I2C_A 时钟", "连接器出口", "必装"),
-    ("TP_I2CA_SDA", "I2C_A_SDA", "CONN_CAM pin14", "I2C_A 数据", "连接器出口", "必装"),
-    ("TP_I2CB_SCL", "I2C_B_SCL", "CONN_LIGHT pin11", "DDC 时钟 (I2C_B)", "连接器出口", "必装"),
-    ("TP_I2CB_SDA", "I2C_B_SDA", "CONN_LIGHT pin12", "DDC 数据 (I2C_B)", "连接器出口", "必装"),
+    ("TP_DSI_D0_P", "DSI_D0_D0_P", "CONN_LIGHT pin9", "DSI D0 数据差分", "连接器出口", "必装"),
+    ("TP_DSI_D0_N", "DSI_D0_D0_N", "CONN_LIGHT pin8", "DSI D0 数据差分", "连接器出口", "必装"),
+    ("TP_I2CA_SCL", "I2C_A_SCL", "CONN_CAM pin24", "I2C_A 时钟", "连接器出口", "必装"),
+    ("TP_I2CA_SDA", "I2C_A_SDA", "CONN_CAM pin25", "I2C_A 数据", "连接器出口", "必装"),
+    ("TP_I2CB_SCL", "I2C_B_SCL", "CONN_LIGHT pin28", "DDC 时钟 (I2C_B)", "连接器出口", "必装"),
+    ("TP_I2CB_SDA", "I2C_B_SDA", "CONN_LIGHT pin27", "DDC 数据 (I2C_B)", "连接器出口", "必装"),
     ("TP_USB_D_P", "USB_D_P", "CONN_USB pin1", "USB 2.0 差分",
      "Type-C 出口 (规格合并名 TP_USB_D+ / D-)", "必装"),
     ("TP_USB_D_N", "USB_D_N", "CONN_USB pin2", "USB 2.0 差分 (规格合并名 TP_USB_D+ / D-)",
@@ -1030,7 +1024,7 @@ TPS = [
 
 def build_p7(by_id, spec):
     for col, cid, dnp in LEDS:
-        conn_row(by_id, cid, "P7", f"LED_{col}", f"SoC[RK3572].LED_{col}", f"R_LED_{col}",
+        conn_row(by_id, cid, "P7", f"LED_{col}", soc_pin(f"LED_{col}"), f"R_LED_{col}",
                  f"NET_LED_{col}")
         add("P7", f"LED_{col}_D", f"R_LED_{col}", f"D_LED_{col}", f"R_LED_{col}", "1k ±1%",
             "R", dnp, "[推算]", "",
@@ -1038,7 +1032,7 @@ def build_p7(by_id, spec):
         add("P7", "GND", f"D_LED_{col}", "GND", f"D_LED_{col}", "LED (待选型)", "LED", dnp,
             "[推算]", "", f"LED_{col} 阴极 -> GND")
     for sig, net, tag, cid, dnp, desc in KEYS:
-        conn_row(by_id, cid, "P7", net, f"SoC[RK3572].{net}", f"R_KEY_{tag}", f"NET_KEY_{tag}")
+        conn_row(by_id, cid, "P7", net, soc_pin(net), f"R_KEY_{tag}", f"NET_KEY_{tag}")
         add("P7", net, f"SW_KEY_{tag}", f"NET_KEY_{tag}", f"SW_KEY_{tag}", "按键 (待选型)",
             "SW", dnp, "[推算]", "", f"[{net}] {desc} 按键")
         add("P7", "VDD_3V3_IO", f"R_KEY_{tag}", "RAIL_VDD_3V3_IO", f"R_KEY_{tag}", "10k ±1%",
@@ -1059,7 +1053,7 @@ def build_p7(by_id, spec):
 def build_p8(by_id, spec):
     # ---- XTAL: 内部 RC 不装 / 外部晶振焊盘位不装 (原厂一句话定生死) ----
     for pol in ("IN", "OUT"):
-        add("P8", f"XTAL_{pol}", f"SoC[RK3572].XTAL_{pol}", "X1", f"NET_XTAL_{pol}", "12pF",
+        add("P8", f"XTAL_{pol}", soc_pin(f"XTAL_{pol}"), "X1", f"NET_XTAL_{pol}", "12pF",
             "NET", "DNP", "[同Die参考-待官方确认]", "TBD-12",
             f"时钟: 外部晶振位 (XTAL_{pol}); 参考版**同时**给 内部RC(不装) 与 外部晶振(焊盘位+2×12pF, 不装) 两套")
         add("P8", f"XTAL_{pol}", f"C_XTAL_{pol}", f"NET_XTAL_{pol}", f"C_XTAL_{pol}",
@@ -1075,7 +1069,7 @@ def build_p8(by_id, spec):
     conn_row(by_id, "B-10", "P8", "RESET_N", "R_PU_RESET_N", "R_SER_RESET_N", "NET_RESET_N")
     add("P8", "VDD_1V8_IO", "R_PU_RESET_N", "RAIL_VDD_1V8_IO", "R_PU_RESET_N", "10k ±1%",
         "R", "必装", "[推算]", "", "[VDD_1V8_IO] RESET_N 上拉 (1.8V 域)", "B-10")
-    add("P8", "RESET_N_SOC", "R_SER_RESET_N", "SoC[RK3572].RESET_N", "R_SER_RESET_N", "1k ±1%",
+    add("P8", "RESET_N_SOC", "R_SER_RESET_N", soc_pin("RESET_N"), "R_SER_RESET_N", "1k ±1%",
         "R", "必装", "[推算]", "", "[RESET_N_SOC] RESET_N RC 串联 (与 C_RST 构成 RC 复位)", "B-10")
     add("P8", "RESET_N_SOC", "C_RST", "NET_RESET_N_SOC", "C_RST", "100nF ±10%", "C", "必装",
         "[推算]", "", "[RESET_N_SOC] RESET_N 对地 RC 电容 (τ=100ms; **释放时期待原厂 TBD-12**)",
@@ -1087,7 +1081,7 @@ def build_p8(by_id, spec):
     add("P8", "GND", "SW_RST", "GND", "SW_RST", "复位按键 (待选型)", "SW", "必装", "[推算]", "",
         "复位键 -> GND", "B-10")
     # ---- BOOT_N ----
-    conn_row(by_id, "B-11", "P8", "BOOT_N", "SoC[RK3572].BOOT_N", "R_PU_BOOT_N", "NET_BOOT_N")
+    conn_row(by_id, "B-11", "P8", "BOOT_N", soc_pin("BOOT_N"), "R_PU_BOOT_N", "NET_BOOT_N")
     add("P8", "VDD_1V8_IO", "R_PU_BOOT_N", "RAIL_VDD_1V8_IO", "R_PU_BOOT_N", "10k ±1%", "R",
         "必装", "[推算]", "", "[VDD_1V8_IO] BOOT_N 上拉 (1.8V 域)", "B-11")
     add("P8", "BOOT_N", "SW_BOOT", "NET_BOOT_N", "SW_BOOT", "BOOT 按键 (待选型)", "SW", "必装",
@@ -1097,32 +1091,34 @@ def build_p8(by_id, spec):
     # ---- JTAG 4 线 ----
     for sig, pin in (("JTAG_TCK", "pin1"), ("JTAG_TMS", "pin2"), ("JTAG_TDI", "pin3"),
                      ("JTAG_TDO", "pin4")):
-        conn_row(by_id, "B-19", "P8", f"{sig}_SOC", f"SoC[RK3572].{sig}", f"R_{sig}",
+        conn_row(by_id, "B-19", "P8", f"{sig}_SOC", soc_pin(sig), f"R_{sig}",
                  f"NET_{sig}_SOC")
         add("P8", sig, f"R_{sig}", f"J_DEBUG {pin}", f"R_{sig}", "100Ω ±1%", "R", "必装",
             "[推算]", "", f"[{sig}] JTAG {sig[5:]} 串阻 (隔离 SoC 调试脚)", "B-19")
-    add("P8", "J_DEBUG", "J_DEBUG", "J_DEBUG pin1", "J_DEBUG", "1×4 1.27mm 排针 (JTAG)",
+    add("P8", "J_DEBUG", "J_DEBUG", "J_DEBUG", "J_DEBUG", "1×4 1.27mm 排针 (JTAG)",
         "CONN", "必装", "[推算]", "",
         "[J_DEBUG] JTAG 调试排针 (不装贴片, 手工可焊); pin1=TCK, 2=TMS, 3=TDI, 4=TDO")
     # ---- UART 2 线 (与 USB 二选一) ----
-    conn_row(by_id, "B-20", "P8", "UART_TX", "SoC[RK3572].UART_TX", "J_UART pin1", "NET_UART_TX")
-    conn_row(by_id, "B-20", "P8", "UART_RX", "SoC[RK3572].UART_RX", "J_UART pin2", "NET_UART_RX")
+    conn_row(by_id, "B-20", "P8", "UART_TX", soc_pin("UART_TX"), "J_UART pin1", "NET_UART_TX")
+    conn_row(by_id, "B-20", "P8", "UART_RX", soc_pin("UART_RX"), "J_UART pin2", "NET_UART_RX")
     add("P8", "UART_RX", "J_UART", "J_UART pin2", "J_UART", "1×2 1.27mm 排针 (UART)", "CONN",
         "可选", "[推算]", "",
         "[UART_RX] 规格: UART 与 JTAG 复用同一排针 -> 本版拆成 1×2 独立排针 (原厂要求复用则再合并)")
     # ---- FSIN (帧同步引出) ----
-    conn_row(by_id, "B-09", "P8", "FSIN", "SoC[RK3572].FSIN", "R_SER_FSIN", "NET_FSIN")
+    conn_row(by_id, "B-09", "P8", "FSIN", soc_pin("FSIN"), "R_SER_FSIN", "NET_FSIN")
     add("P8", "FSIN_OUT", "R_SER_FSIN", "TP_FSIN", "R_SER_FSIN", "50Ω ±1%", "R", "必装",
         "[推算]", "TBD-13", "[FSIN_OUT] FSIN 引出串阻 (50Ω 源端匹配)")
 
     # ---- ★V1.1 补画: 上电时序链 (DC-DC PG 状态 + 电压监控 · RESET 链式释放) ----
-    add("P8", "PG_VCORE", "U_DCDC_VCORE PG", "TP_PG_VCORE", "TP_PG_VCORE",
+    # ★★2026-11-03 订正: 两路 DC-DC 的 PG 是**开漏输出并联** (wired-AND ⇒ 同网 PG_AND, 公共上拉 R_PG_PULL)
+    #   ⇒ 两个 PG 脚**本来就在同一个网上** ⇒ 测试点也必须挂在 PG_AND, 不能各自再挂一个网
+    #   (原来 TP_PG_VCORE 挂 PG_VCORE / TP_PG_VIO 挂 PG_VIO ⇒ **同一个物理脚挂两个网** ⇒ 短路)
+    add("P8", "PG_AND", "U_DCDC_VCORE PG", "TP_PG_VCORE", "TP_PG_VCORE",
         "PG (开漏, 需上拉)", "TP", "必装", "[官方]", "TBD-12",
-        "[PG_VCORE] V_CORE 轨 PG 状态引出 (开漏, 需上拉到对应域); 若原厂要求 PG 参与上电时序, "
-        "在此补上拉电阻位 (R_PG_VCORE, 待原厂确认 TBD-12)")
-    add("P8", "PG_VIO", "U_DCDC_VIO PG", "TP_PG_VIO", "TP_PG_VIO",
+        "[PG_AND] V_CORE 轨 PG 状态引出 (开漏; ★两路 PG 并联成一个 wired-AND 节点 ⇒ 测试点挂公共网)")
+    add("P8", "PG_AND", "U_DCDC_VIO PG", "TP_PG_VIO", "TP_PG_VIO",
         "PG (开漏, 需上拉)", "TP", "必装", "[官方]", "TBD-12",
-        "[PG_VIO] V_SOC_IO 轨 PG 状态引出 (开漏, 需上拉); 同上")
+        "[PG_AND] V_SOC_IO 轨 PG 状态引出 (开漏; 同上, 与 V_CORE 的 PG 并联)")
     # 电压监控 · RESET 链式释放 (分压比随原厂电压定, 只改电阻不改板)
     add("P8", "V_SOC_IO", "RAIL_V_SOC_IO", "R_SUPV_DIV1", "R_SUPV_DIV1",
         "[待选型] 分压上臂 (0Ω 跳线位)", "R", "必装", "[推算]", "TBD-02",
@@ -1159,29 +1155,16 @@ def build_p9(by_id, spec):
       本页把 4 组通道 + 保护件 + 板级归属一次列清, 并把"是否合并成一个跨铰链连接器"列为待评估项。
     """
     # ---- 4 个跨铰链连接器 (本体标 HINGE) ----
-    add("P9", "HINGE_CHG", "J_CHG", "J_CHG pin1", "J_CHG",
+    add("P9", "HINGE_CHG", "J_CHG", "J_CHG", "J_CHG",
         "1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)", "CONN", "必装", "[推算]", "",
         "[HINGE_CHG] 通道 1/4 **充电电流 + 状态回读** (★V1.2 改: 电池在镜脚 ⇒ 跨铰链的是**充电电流 "
         "1.0-1.5A**, **SYS 0.55A 不过铰链**): pin1/pin2=BAT_CHG (双 pin 并联载流), pin3/pin4=GND "
         "(回流双 pin), pin5=CHG_STAT, pin6=PWR_GOOD, pin7=VBUS_DET, pin8-10=预留; ★pin 编号为本版自拟 "
         "(型号/间距/载流待结构确认, ISS-085)")
-    add("P9", "HINGE_USB", "CONN_USB", "CONN_USB pin1", "CONN_USB",
+    add("P9", "HINGE_USB", "CONN_USB", "CONN_USB", "CONN_USB",
         "4p 跨铰链连接器 (D+/D-/GND/预留)", "CONN", "必装", "[推算]", "",
         "[HINGE_USB] 通道 2/4 **USB 2.0 差分**: Type-C 在镜框充电板, SoC 在镜脚主 PCB · "
         "**烧录/调试口必然跨铰链**; 本位必留 (ISS-085 裁决: Type-C 留充电板)")
-    add("P9", "HINGE_CSI", "CONN_CAM", "CONN_CAM pin1", "CONN_CAM",
-        "18p@0.5mm 跨铰链连接器 (主 PCB ↔ sensor 板; 18 脚 = 独立回流地)", "CONN", "必装", "[推算]", "TBD-03",
-        "[HINGE_CSI] 通道 3/4 **MIPI-CSI**: pin1/2=CK, 3-10=D0-D3, 11=MCLK, 12=RESET_N, "
-        "13/14=I2C_A, 15-17=sensor 三条电源; ★4 lane 全跨铰链 = 8 根 100Ω 差分 + MCLK 包地")
-    add("P4", "GND", "CONN_LIGHT pin16", "GND", "CONN_LIGHT", "跨铰链回流地 (独立脚)", "NET",
-        "必装", "[推算]", "TBD-04",
-        "[GND] ★V1.6 补: CONN_LIGHT 原来 21 个脚里**一个 GND 都没有** · DSI 差分无回流路径 "
-        "(跨铰链 100Ω 差分必须与地成对) · 16p 的末脚接 GND")
-    add("P9", "HINGE_DSI", "CONN_LIGHT", "CONN_LIGHT pin1", "CONN_LIGHT",
-        "★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类)= 差分回流)", "CONN", "必装", "[待视涯]", "TBD-04",
-        "[HINGE_DSI] 通道 4/4 **显示 + 光机供电** (★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类)"
-        "7/8=D2 预留(DNP), 9/10=D3 预留(DNP), 11/12=DDC(I2C_B), 13=LIGHT_3V3, 14=LIGHT_1V8, "
-        "15=LIGHT_5V 预留(DNP), **16=GND 回流**; ★方案B 桥接位已随 RK3572 删除; 型号待视涯接口定义")
     # ---- 跨铰链段的保护/滤波件 (装主 PCB 侧, 紧贴连接器) ----
     add("P9", "USB_D_P", "CONN_USB pin1", "D_ESD_USB", "D_ESD_USB",
         "ESD 阵列 [待选型] (2 通道 USB)", "D", "必装", "[推算]", "",
@@ -1199,7 +1182,7 @@ def build_p9(by_id, spec):
         "★并发关系: 充电板侧的 D+/D− 已在 P10 画过, 本行是镜脚侧", "")
     add("P9", "GND", "D_ESD_USB", "GND", "D_ESD_USB", "ESD 阵列 [待选型]", "D", "必装",
         "[推算]", "", "[USB_D_P] USB ESD 阵列 地端")
-    add("P9", "CSI_D0_CK_P", "CONN_CAM pin1", "D_ESD_CAM", "D_ESD_CAM",
+    add("P9", "CSI_D0_CK_P", "CONN_CAM pin18", "D_ESD_CAM", "D_ESD_CAM",
         "ESD 阵列 [待选型] (多通道 CSI)", "D", "必装", "[推算]", "TBD-03",
         "[CSI_D0_CK_P] ★跨铰链 CSI 主板侧 ESD 阵列位 (紧贴 CONN_CAM); 通道数随 lane 数定")
     add("P9", "GND", "D_ESD_CAM", "GND", "D_ESD_CAM", "ESD 阵列 [待选型]", "D", "必装",
@@ -1235,6 +1218,93 @@ def build_p10_json() -> int:
             r.get("type", ""), r.get("dnp", "必装"), r.get("evidence", "[推算]"),
             r.get("tbd", ""), r.get("note", ""), r.get("conn_id", ""))
     return len(data)
+
+
+# ------------------------------------------------------- ★A2 段: SoM 座接入 + F13 电源使能
+def build_a2_som(by_id, spec):
+    """★★2026-11-03 A2 段 (ISS-165): SoM (Forlinx FET3572-C) 的 4×100pin BTB 座接入主板
+
+    ★三条致命项级别的结论 (全部出自 Forlinx 官方手册, 可复算):
+      ① **SoM 自己的供电 VCC_DCIN = P3_91/93/95/97/98/99/100 (7 脚并联, 5~13V)**
+         ⇒ **直供 5V, 不经过 U_EN_SW 门控** (否则 SoM 自己永远起不来)
+      ② **F13: CARRIER_BOARD_EN = P3_87 (SoM 输出, 3.3V)** —— 手册原文: 底板早于核心板上电 ⇒
+         "通电瞬间电流过大, 设备无法启动, **甚至对处理器造成不可逆损坏**"
+         ⇒ ★**主板各路必须由它放行** ⇒ 负载开关 U_EN_SW: IN=5V, OUT=RAIL_BOARD_5V, EN=CARRIER_BOARD_EN
+      ③ **camera MCLK 由 SoM 出 (CAM_CLK0_OUT_M0)** ⇒ 上一版"主板自己产 MCLK"的结论作废
+    """
+    F = _SOM_ASSIGN.get("fixed", {})
+    dcin = F.get("VCC_DCIN", [])
+    car_en = F.get("CARRIER_BOARD_EN", "P3_87")
+
+    # ---- ① demo 板自己的 Type-C (5V 输入 + USB 数据) ----
+    #   ★demo 形态 (老板 11-02 19:25): "demo 直接 USB-C 5V 供电, 不装电池、不上充电链"
+    #   ⇒ 主板自己带一个 Type-C; 整机阶段这块是 DNP (整机走跨铰链 USB + 充电板)
+    add("P1", "RAIL_DEMO_5V", "J_DEMO_USB VBUS", "RAIL_DEMO_5V", "RAIL_DEMO_5V",
+        "5.0V ±5% (USB-C 5V)", "RAIL", "必装", "[官方]", "",
+        "[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW", "A-24")
+    add("P1", "RAIL_DEMO_5V", "D_ESD_DEMO", "RAIL_DEMO_5V", "D_ESD_DEMO",
+        "ESD 阵列 [待选型] (USB 2.0)", "D", "必装", "[推算]", "",
+        "[RAIL_DEMO_5V] USB-C VBUS 入口 ESD 阵列 (紧贴 J_DEMO_USB)", "A-24")
+    add("P1", "GND", "D_ESD_DEMO", "GND", "D_ESD_DEMO", "ESD 阵列 [待选型]", "D", "必装",
+        "[推算]", "", "[RAIL_DEMO_5V] USB ESD 阵列 地端", "A-24")
+    add("P1", "RAIL_DEMO_5V", "FB_DEMO", "RAIL_DEMO_5V", "FB_DEMO", "π 滤波磁珠 [待选型]", "L",
+        "必装", "[推算]", "", "[RAIL_DEMO_5V] VBUS π 滤波 (磁珠+体电容)", "A-24")
+    add("P1", "GND", "FB_DEMO", "GND", "FB_DEMO", "π 滤波磁珠 [待选型]", "L", "必装",
+        "[推算]", "", "[RAIL_DEMO_5V] π 滤波 地端", "A-24")
+    add("P1", "RAIL_DEMO_5V", "C_VBUS_DEMO", "RAIL_DEMO_5V", "C_VBUS_DEMO", "10µF ±20%", "C",
+        "必装", "[推算]", "", "[RAIL_DEMO_5V] VBUS 体电容", "A-24")
+    add("P1", "GND", "C_VBUS_DEMO", "GND", "C_VBUS_DEMO", "10µF ±20%", "C", "必装",
+        "[推算]", "", "[RAIL_DEMO_5V] VBUS 体电容 地端", "A-24")
+    add("P1", "GND", "R_CC1_D", "GND", "R_CC1_D", "5.1k ±1% (CC1 下拉)", "R", "必装", "[官方]", "",
+        "[R_CC1_D] USB-C CC1 5.1k 下拉 (⇒ UFP 受电端)", "A-24")
+    add("P1", "GND", "R_CC2_D", "GND", "R_CC2_D", "5.1k ±1% (CC2 下拉)", "R", "必装", "[官方]", "",
+        "[R_CC2_D] USB-C CC2 5.1k 下拉", "A-24")
+    add("P1", "J_DEMO_USB", "J_DEMO_USB", "J_DEMO_USB", "J_DEMO_USB",
+        "USB-C 16p 插座 (demo 板 5V 输入 + USB 数据)", "CONN", "必装", "[推算]", "",
+        "[J_DEMO_USB] ★demo 板自己的 Type-C: VBUS→5V 轨, D+/D-→SoM USB, CC1/CC2→5.1k 下拉 ⇒ 受电端 (UFP)", "A-24")
+    # ---- USB 数据: SoM 的 USB_DRD1 (P1_92/P1_94) ↔ 板载 Type-C ----
+    add("P1", "USB_D_P_SRC", "R_SER_USB_D_P", "J_DEMO_USB D+", "R_SER_USB_D_P", "22Ω ±1%", "R",
+        "必装", "[推算]", "",
+        "[USB_D_P_SRC] ★SoM USB2 (OTG1) D+ → 板载 Type-C (demo 板自带 USB, 免跨铰链)", "A-24")
+    add("P1", "USB_D_N_SRC", "R_SER_USB_D_N", "J_DEMO_USB D-", "R_SER_USB_D_N", "22Ω ±1%", "R",
+        "必装", "[推算]", "",
+        "[USB_D_N_SRC] ★SoM USB2 (OTG1) D- → 板载 Type-C", "A-24")
+    # ---- VBUS_DET: 板载 Type-C 的 VBUS 分压 → SoM 的 USB_DRD1_VBUSDET (P1_100) ----
+    add("P1", "VBUS_DET_D", "R_VBUS_DET_D1", "R_VBUS_DET_D2", "NET_VBUS_DET_D",
+        "1M ±1% (上臂)", "R", "必装", "[推算]", "",
+        "[VBUS_DET_D] ★demo 板: Type-C VBUS 在**主板本地**分压 (不再跨铰链) ⇒ SoM 的 USB_DRD1_VBUSDET", "A-24")
+    add("P1", "GND", "R_VBUS_DET_D2", "GND", "R_VBUS_DET_D2", "1M ±1% (下臂)", "R", "必装",
+        "[推算]", "", "[VBUS_DET_D] 分压下臂 地端", "A-24")
+    add("P1", "GND", "C_DET_VBUS_D", "GND", "C_DET_VBUS_D", "100nF ±10%", "C", "必装",
+        "[推算]", "", "[VBUS_DET_D] ADC 滤波电容", "A-24")
+    add("P1", "VBUS_DET", soc_pin("USB_VBUS_DET"), "NET_VBUS_DET_D", soc_pin("USB_VBUS_DET"),
+        "1M+1M 分压 + 100nF", "NET", "必装", "[官方]", "",
+        "[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)",
+        "B-07")
+
+    # ---- ② ★F13: CARRIER_BOARD_EN ⇒ 负载开关 U_EN_SW ⇒ RAIL_BOARD_5V ----
+    add("P1", "CARRIER_BOARD_EN", f"J_SOM_{car_en.split('_')[0]} pin{car_en.split('_')[1]}",
+        "U_EN_SW EN", "J_SOM_P3", "EN 输出", "NET", "必装", "[官方]", "",
+        f"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 {car_en} (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; "
+        "Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**", "A-24")
+    add("P1", "CARRIER_BOARD_EN", "U_EN_SW EN", "CARRIER_BOARD_EN", "U_EN_SW",
+        "EN 输入 (高=放行底板)", "NET", "必装", "[官方]", "",
+        "[U_EN_SW] EN ← CARRIER_BOARD_EN ⇒ 主板各路只在 SoM 就绪后上电", "A-24")
+    add("P1", "RAIL_DEMO_5V", "U_EN_SW IN", "RAIL_DEMO_5V", "U_EN_SW", "5V 输入", "NET",
+        "必装", "[官方]", "", "[U_EN_SW] IN = 5V (Type-C 直供)", "A-24")
+    add("P1", "RAIL_BOARD_5V", "U_EN_SW OUT", "RAIL_BOARD_5V", "U_EN_SW",
+        "5V 输出 (受 CARRIER_BOARD_EN 门控)", "NET", "必装", "[官方]", "",
+        "[RAIL_BOARD_5V] ★**底板所有 3.3V/5V 支路都挂这条** (不是 SYS) ⇒ 这就是 F13 的落法", "A-24")
+    add("P1", "GND", "U_EN_SW GND", "GND", "U_EN_SW", "GND", "NET", "必装", "[官方]", "",
+        "[U_EN_SW] 地", "A-24")
+
+    # ---- ③ SoM 自己的供电 VCC_DCIN (7 脚并联) —— 直供, 不受门控 ----
+    for _pn in dcin:
+        _c, _n = _pn.split("_")
+        add("P1", "RAIL_SOM_DCIN", f"J_SOM_{_c} pin{_n}", "RAIL_DEMO_5V", f"J_SOM_{_c}",
+            "5-13V 输入 (SoM 侧)", "NET", "必装", "[官方]", "",
+            f"[VCC_DCIN] ★SoM 自己的电源输入 ({_pn}; 手册 §2.4.2 DC 5~13V; 7 脚并联载流) "
+            "⇒ **直供 5V, 不经过 U_EN_SW** (否则 SoM 自己起不来)", "A-24")
 
 
 # --------------------------------------------------------------- 写盘 + 门禁

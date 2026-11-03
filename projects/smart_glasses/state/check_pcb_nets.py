@@ -1,12 +1,45 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-check_pcb_nets.py —— 板子 ↔ 网表 等价性门禁 (★"自己画图"的核心验收)
+check_pcb_nets.py —— 板子 ↔ 网表 **焊盘级** 等价性门禁 (★"自己画图"的核心验收)
 
-为什么要有: ★**图纸的正确性不能靠人眼** ⇒ ★**把板子上的每个焊盘的网络读回来,
-和网表逐点比对** —— 少一个、多一个、接错, 机器立刻报出来。
+★★ 为什么必须升级成焊盘级 (2026-11-03):
+  旧门禁只比 **(ref, net) 集合** ⇒ ★**脚位对调它照样报绿** (假绿):
+    · 旧生成器按 CSV 行序给焊盘编号 ⇒ 焊盘号 ≠ 网表真实针号
+    · 旧生成器按 (ref, net) 去重 ⇒ 连接器上多个同网脚 (例: CONN_CAM 的 8 个 GND 脚)
+      被合并成**一个**焊盘 ⇒ 31 脚只剩 21 个焊盘
+  ⇒ 实测过: 板上 `CONN_LIGHT pad2` 的网是 GND, 而网表要求 pad2 = DSI_D0_CK_N;
+    `U_TEMP pad1/pad2` 的 SCL/SDA 也是反的 —— 而旧门禁全绿。
+  ⇒ ⇒ 本门禁把比对粒度降到 **(器件, 焊盘号) → 网络**, 脚位对调立刻被抓住。
+
+判据:
+  C1 ★**焊盘级等价**: 板上的 (ref, 焊盘号) → 网络 集合
+     必须与**网表推出的** (ref, 焊盘号) → 网络 集合**完全相等**
+     (缺失 / 多余 / 同一个焊盘号挂到不同网络 —— 三种都算失败)
+  C2 ★**连接器 / 带编号脚的器件**: 板上焊盘数 == 网表里它的脚数, 且**针号集合相等**
+  C3 ★**每个器件**: 板上焊盘数 == 网表推出的脚数
+  C4 (★只报告, 不判失败) 焊盘号为**占位(行序)**的器件清单 —— 封装还没定脚的 IC 之类
+  C5 (★只报告, 不判失败) 网表自身的缺陷提示 (同名脚挂两个网等)
+
+★网表 → 焊盘编号规则 (与 state/gen_pcb_netlist_board.py 同源, 但这里独立实现一遍,
+  避免"生成器和门禁共用一份代码 ⇒ 一起错" ):
+  · 编号脚: 节点串 "<器件> pin<N>" / "<器件> pin<N>+pin<M>"
+      ⇒ 焊盘号 = **网表真实针号** (归属以**节点串里的器件名**为准, 不以行的 ref 为准)
+  · 命名脚 / 裸端: 节点串 "<器件> EN" / "<器件> A4" / "<器件>"
+      ⇒ 焊盘号 = **按出现顺序的占位号 1..M** (记入 C4 清单)
+  · 退化行 (node1 与 node2 是同一个裸器件) ⇒ 该行不占任何引脚 (网别名/清单行)
+  · 行的 ref 若本行两个节点串都没提到 ⇒ ref 自己占一个裸端
+  · 裸端按 (器件, 网络) 去重; 该网络若已被同器件的**编号脚**占用 ⇒ 裸端是粗略别名, 不占焊盘
+
+退出码: 全过 0; 否则 1
+
+★自检: `check_pcb_nets.py --selftest` ⇒ 故意把板上两个焊盘对调, 确认门禁**会失败**
 """
-import csv, os, sys
+import csv
+import os
+import re
+import sys
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
 sys.path.insert(0, "/home/yuewuya/kicad/squashfs-root/usr/lib/python3/dist-packages")
@@ -16,38 +49,301 @@ import pcbnew  # noqa: E402
 NET = os.path.join(PROJ, "HW", "netlist_v1.csv")
 PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
 PSEUDO = ("RAIL_", "NET_")
+PIN_RE = re.compile(r"pin\d+(\+pin\d+)*")
+
+
+# --------------------------------------------------------------- 网表 → 焊盘 (独立实现)
+
+def split_node(node):
+    """节点串 → (器件名, 脚名 or None)"""
+    node = (node or "").strip()
+    if not node:
+        return None, None
+    m = re.match(r"^([A-Za-z_0-9]+)\s+(.*)$", node)
+    if not m:
+        return node, None
+    return m.group(1), m.group(2).strip()
+
+
+def split_names(tail):
+    """命名脚里的 '+' 只有后面还跟着字符时才是分隔符 (B+ 是一个脚名)"""
+    return [p.strip() for p in re.split(r"\+(?=\w)", tail) if p.strip()]
+
+
+def netlist_pads(rows):
+    """网表 → (per_ref, numbered, placeholder, notes)
+      per_ref    : {器件: [(焊盘号, 网络)]}
+      numbered   : {器件: {针号: 网络}}   —— 焊盘号 = 网表真实针号
+      placeholder: {器件: 焊盘数}          —— 焊盘号 = 行序占位
+      notes      : 网表缺陷提示
+    """
+    refs = set()
+    for r in rows:
+        ref = (r.get("ref") or "").strip()
+        if ref:
+            refs.add(ref)
+    real = {x for x in refs if not x.startswith(PSEUDO)}
+    # ★器件宇宙 = ref 列真实器件 ∪ 节点串里带编号脚的器件 (J_SOM_P1..P4)
+    for r in rows:
+        for k in ("node1", "node2"):
+            comp, tail = split_node(r.get(k))
+            if not comp or comp in real or comp.startswith(PSEUDO):
+                continue
+            if tail and PIN_RE.fullmatch(tail):
+                real.add(comp)
+
+    terms = {}          # dev -> {term_key: (net, kind)}
+    notes = []
+    for r in rows:
+        net = (r.get("net") or "").strip()
+        ref = (r.get("ref") or "").strip()
+        if not net:
+            continue
+        parsed = [split_node(r.get(k)) for k in ("node1", "node2")]
+        if (parsed[0][0] == parsed[1][0]
+                and parsed[0][1] is None and parsed[1][1] is None):
+            continue                                  # 退化行 ⇒ 不占引脚
+        seen = set()
+        for comp, tail in parsed:
+            if comp is None or comp not in real:
+                continue
+            d = terms.setdefault(comp, {})
+            if tail and PIN_RE.fullmatch(tail):
+                for tok in tail.split("+"):
+                    n = int(tok.strip()[3:])
+                    key = ("P", n)
+                    if key in d and d[key][0] != net:
+                        notes.append(f"{comp} pin{n} 同时挂 {d[key][0]} 与 {net}")
+                    d.setdefault(key, (net, "P"))
+                    seen.add(comp)
+            elif tail:
+                for nm in split_names(tail):
+                    same = [k for k in d if k[0] == "N" and k[1] == nm]
+                    if same and ("N", nm, net) not in d:
+                        notes.append(f"{comp} 脚 {nm} 同时挂 {d[same[0]][0]} 与 {net}")
+                    d.setdefault(("N", nm, net), (net, "N"))
+                    seen.add(comp)
+            else:
+                d.setdefault(("B", net), (net, "B"))
+                seen.add(comp)
+        if ref and ref in real and ref not in seen:
+            terms.setdefault(ref, {}).setdefault(("B", net), (net, "B"))
+
+    # 裸端若被同器件的编号脚覆盖 ⇒ 粗略别名, 不占焊盘
+    for comp, d in terms.items():
+        pinnets = {v[0] for k, v in d.items() if k[0] == "P"}
+        for k in [k for k in d if k[0] == "B" and k[1] in pinnets]:
+            del d[k]
+
+    per_ref, numbered, placeholder = {}, {}, {}
+    for comp, d in terms.items():
+        if not d:
+            continue
+        if any(k[0] == "P" for k in d):
+            pins = sorted(((k[1], v[0]) for k, v in d.items() if k[0] == "P"),
+                          key=lambda x: x[0])
+            nxt = (pins[-1][0] + 1) if pins else 1
+            for k, v in d.items():
+                if k[0] != "P":
+                    pins.append((nxt, v[0]))
+                    nxt += 1
+            per_ref[comp] = pins
+            numbered[comp] = {n: net for n, net in pins}
+        else:
+            pins = []
+            for i, (_k, v) in enumerate(d.items(), start=1):
+                pins.append((i, v[0]))
+            per_ref[comp] = pins
+            placeholder[comp] = len(pins)
+    return per_ref, numbered, placeholder, notes
+
+
+# --------------------------------------------------------------- 板子
+
+def board_pads(path):
+    """板 → {(ref, 焊盘号): 网络} + {ref: [焊盘号...]}"""
+    b = pcbnew.LoadBoard(path)
+    if b is None:
+        return None, None
+    pairs, per_ref = {}, {}
+    for fp in list(b.GetFootprints()):
+        ref = fp.GetReference()
+        for pad in list(fp.Pads()):
+            num = str(pad.GetNumber())
+            pairs[(ref, num)] = pad.GetNetname()
+            per_ref.setdefault(ref, []).append(num)
+    return pairs, per_ref
+
+
+def compare(want, have):
+    """(ref,pad)→net 两个字典的差集 (同号不同网也算不一致)"""
+    missing, extra, wrong = [], [], []
+    for k, net in want.items():
+        if k not in have:
+            missing.append((k, net))
+        elif have[k] != net:
+            wrong.append((k, net, have[k]))
+    for k, net in have.items():
+        if k not in want:
+            extra.append((k, net))
+    return missing, extra, wrong
+
+
+def run_checks(path, verbose=True):
+    rows = list(csv.DictReader(open(NET, encoding="utf-8")))
+    per_ref, numbered, placeholder, notes = netlist_pads(rows)
+    have, board_refs = board_pads(path)
+    if have is None:
+        return 1, ["❌ 板文件读不回来: %s" % path], {}
+
+    want = {}
+    for ref, pins in per_ref.items():
+        if ref.startswith(PSEUDO):
+            continue
+        for n, net in pins:
+            want[(ref, str(n))] = net
+
+    missing, extra, wrong = compare(want, have)
+    fails = []
+
+    # ★★NC 焊盘 (无网络) 的处理: ★**SOM 的 4 组 100 脚 BTB 座本来就有 100 个物理焊盘**,
+    #   而我们只用了其中 45 个 ⇒ 未用的脚必须是"无网焊盘" (NC) ⇒ **不能**当成"多余"
+    #   ⇒ 反过来: 其它器件出现 NC 焊盘 = 可疑 (网表里那个脚没画) ⇒ 判失败
+    NC_ALLOWED = {"J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4"}
+    nc_pads = {k for k, v in have.items() if not v}
+    extra = [e for e in extra if e[0] not in nc_pads]   # e = (key, net) ⇒ 取 e[0] 比
+    bad_nc = sorted(k for k in nc_pads if k[0] not in NC_ALLOWED)
+
+    # ---- C1 焊盘级等价 ----
+    ok1 = not (missing or extra or wrong) and not bad_nc
+    c1 = [f"  {'✅' if ok1 else '❌'} C1 焊盘级等价 (ref,焊盘号)→网络 "
+          f"— 网表 {len(want)} / 板上(带网) {len(have) - len(nc_pads)}",
+          f"       缺失 {len(missing)} · 多余 {len(extra)} · 同号异网 {len(wrong)} · "
+          f"★NC 焊盘 {len(nc_pads)} 个 (允许的: SOM 的 4 组 100 脚座未用脚) · 非法 NC {len(bad_nc)}"]
+    for k, n in missing[:8]:
+        c1.append(f"       ★缺: {k[0]} pad{k[1]} 应为 {n}")
+    for k, n in extra[:8]:
+        c1.append(f"       ★多: {k[0]} pad{k[1]} = {n}")
+    for k, n, g in wrong[:8]:
+        c1.append(f"       ★错: {k[0]} pad{k[1]} 应为 {n}, 实际 {g}")
+    for k in bad_nc[:8]:
+        c1.append(f"       ★NC 焊盘落在不该有 NC 的器件上: {k[0]} pad{k[1]}")
+    if not ok1:
+        fails.append(f"C1 焊盘级不等价 (缺{len(missing)}/多{len(extra)}/错{len(wrong)}/非法NC{len(bad_nc)})")
+
+    # ---- C2 连接器 / 带编号脚的器件: 针数 + 针号集合 ----
+    #   ★**部分用到的 100 脚座** (SOM 的 4 组 BTB): 板上是 100 个物理焊盘, 网表只用其中一部分
+    #   ⇒ 判据改成: 板 100 脚 + **网表用到的脚必须都在板上** (而不是"针数相等")
+    PARTIAL = {"J_SOM_P1": 100, "J_SOM_P2": 100, "J_SOM_P3": 100, "J_SOM_P4": 100}
+    c2 = []
+    bad2 = []
+    for ref in sorted(numbered):
+        want_nums = {str(n) for n in numbered[ref]}
+        got_nums = set(board_refs.get(ref, []))
+        if ref in PARTIAL:
+            ok = (len(board_refs.get(ref, [])) == PARTIAL[ref] and want_nums <= got_nums)
+            diff = sorted(want_nums - got_nums, key=lambda s: (len(s), s))
+            c2.append(f"  {'✅' if ok else '❌'} C2 {ref}: 板 {len(board_refs.get(ref, []))} 脚 "
+                      f"(座共 {PARTIAL[ref]}) / 网表用到 {len(want_nums)} 脚"
+                      + ("" if ok else f" · 板上缺 {diff[:8]}"))
+            if not ok:
+                bad2.append(ref)
+            continue
+        ok = (len(got_nums) == len(want_nums) and got_nums == want_nums
+              and len(board_refs.get(ref, [])) == len(want_nums))
+        diff = sorted(got_nums ^ want_nums, key=lambda s: (len(s), s))
+        c2.append(f"  {'✅' if ok else '❌'} C2 {ref}: 板 {len(got_nums)} 脚 / 网表 {len(want_nums)} 脚"
+                  + ("" if ok else f" · 针号差 {diff[:8]}"))
+        if not ok:
+            bad2.append(ref)
+    if bad2:
+        fails.append(f"C2 针号/针数不符 {len(bad2)} 个: {bad2}")
+
+    # ---- C3 每个器件的焊盘数 ----
+    c3 = []
+    bad3 = []
+    for ref in sorted(per_ref):
+        if ref.startswith(PSEUDO):
+            continue
+        w = len(per_ref[ref])
+        g = len(board_refs.get(ref, []))
+        if ref in PARTIAL:
+            if g != PARTIAL[ref]:
+                bad3.append((ref, PARTIAL[ref], g))
+            continue
+        if w != g:
+            bad3.append((ref, w, g))
+    ok3 = not bad3
+    c3.append(f"  {'✅' if ok3 else '❌'} C3 每个器件焊盘数 == 网表推出的脚数 "
+              f"— 器件 {len(per_ref)} 个 · 不符 {len(bad3)} 个")
+    for ref, w, g in bad3[:10]:
+        c3.append(f"       ★ {ref}: 板 {g} 脚 / 网表 {w} 脚")
+    if bad3:
+        fails.append(f"C3 焊盘数不符 {len(bad3)} 个")
+
+    # ---- C4 (只报告) 占位焊盘号的器件 ----
+    c4 = [f"  ℹ️ C4 焊盘号为**占位(行序)**的器件 {len(placeholder)} 个 "
+          f"(封装未落定脚号 ⇒ 板上的脚号是行序, 不是规格针号):"]
+    for ref in sorted(placeholder):
+        c4.append(f"       · {ref} ({placeholder[ref]} 脚)")
+
+    # ---- C5 (只报告) 网表缺陷 ----
+    c5 = [f"  ℹ️ C5 网表提示 {len(notes)} 条 (同名脚挂两个网 ⇒ 封装定脚号后才能收敛):"]
+    for n in notes:
+        c5.append(f"       ★ {n}")
+
+    body = c1 + c2 + c3 + c4 + c5
+    return (0 if not fails else 1), body, {"want": want, "have": have, "fails": fails}
+
 
 def main():
-    want = set()
-    with open(NET, encoding="utf-8") as f:
-        for r in csv.DictReader(f):
-            ref = (r.get("ref") or "").strip(); net = (r.get("net") or "").strip()
-            if ref and net and not ref.startswith(PSEUDO):
-                want.add((ref, net))
-            # ★SOM 座: 网络挂在节点名 (J_SOM pinN) 上, 不在 ref 列 ⇒ 这里把 (J_SOM, net) 也计入期望集
-            for nd in ((r.get("node1") or ""), (r.get("node2") or "")):
-                # ★座名带连接器号 (J_SOM_P1..P4) ⇒ 期望集用**同一个座名**, 否则会误报"多余"
-                if nd.startswith("J_SOM") and net:
-                    want.add((nd.split()[0], net))
+    selftest = "--selftest" in sys.argv
+    print("=" * 72)
+    print("  PCB ↔ 网表 **焊盘级** 等价性门禁 (★脚位对调也必须被抓出来)")
+    print("=" * 72)
+    if selftest:
+        return do_selftest()
+    rc, body, _ctx = run_checks(PCB)
+    print("\n".join(body))
+    print("-" * 72)
+    if rc:
+        print("❌ 不通过 —— 板子与网表**不等价** ⇒ 板子不能下单")
+    else:
+        print("✅ 全过 —— 板子与网表**逐焊盘**等价 (脚号/脚数/网络全对)")
+    return rc
+
+
+def do_selftest():
+    """★故意把板上两个焊盘对调 ⇒ 门禁必须失败 (证明它不是假绿)"""
+    tmp = "/tmp/_pcb_swap_test.kicad_pcb"
     b = pcbnew.LoadBoard(PCB)
-    if b is None:
-        print("❌ 板文件读不回来"); return 1
-    have = set()
+    target = None
     for fp in list(b.GetFootprints()):
-        for pad in list(fp.Pads()):
-            nm = pad.GetNetname()
-            if nm:
-                have.add((fp.GetReference(), nm))
-    missing, extra = want - have, have - want
-    print("=" * 68)
-    print("  PCB ↔ 网表 等价性门禁 (板子由网表生成 ⇒ 必须逐点相等)")
-    print("=" * 68)
-    print(f"  网表 (ref,net): {len(want)}   板上: {len(have)}")
-    print(f"  {'✅' if not missing else '❌'} 缺失 {len(missing)} {sorted(missing)[:5]}")
-    print(f"  {'✅' if not extra else '❌'} 多余 {len(extra)} {sorted(extra)[:5]}")
-    ok = not missing and not extra
-    print(f"\n{'✅ 全过 —— 板子与网表逐点等价' if ok else '❌ 不等价 ⇒ 板子不能下单'}")
-    return 0 if ok else 1
+        pads = sorted(list(fp.Pads()), key=lambda p: int(p.GetNumber()))
+        if len(pads) >= 2 and fp.GetReference() == "CONN_CAM":
+            target = (fp, pads)
+            break
+    if target is None:
+        print("❌ 自检失败: 找不到可对调的器件")
+        return 1
+    fp, pads = target
+    a, c = pads[1], pads[2]          # ★对调 pin2 / pin3 的**网络**
+    na, nc = a.GetNet(), c.GetNet()
+    a.SetNet(nc)
+    c.SetNet(na)
+    pcbnew.SaveBoard(tmp, b)
+    print("★自检: 已把 %s 的 pin2/pin3 网络对调 ⇒ 写到 %s" % (fp.GetReference(), tmp))
+    rc, body, _ctx = run_checks(tmp)
+    hit = any("C1" in x and "❌" in x for x in body)
+    print("\n".join(body[:12]))
+    print("-" * 72)
+    if rc != 0 and hit:
+        print("✅ 自检通过 —— 门禁**抓到了**脚位对调 (rc=%d) ⇒ 本门禁不是假绿" % rc)
+        os.remove(tmp)
+        return 0
+    print("❌ 自检失败 —— 脚位对调居然没被抓到 (rc=%d) ⇒ 门禁失效" % rc)
+    return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())
