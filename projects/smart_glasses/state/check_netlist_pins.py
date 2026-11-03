@@ -34,7 +34,7 @@ ASSIGN = os.path.join(PROJ, 'HW', 'PCB', 'som_pin_assign.json')
 # ★真值: 连接器的针数 (来自 HW/PCB/FPC_PIN_TABLES.md / 规格书)
 SPEC_PINS = {
     'CONN_CAM': 31,     # Radxa Camera 4K (IMX415) 31p/0.3mm
-    'CONN_LIGHT': 40,   # Radxa Display 8HD/10FHD 40p/0.5mm
+    'CONN_LIGHT': 39,   # ★板侧 39p/0.3mm (FH35C-39S-0.3SHW(50)); 屏侧原生 40p/0.5mm
     'CONN_USB': 4,      # 跨铰链 USB (整机阶段)
     'J_CHG': 10,        # 跨铰链充电 (整机阶段)
     'J_DEBUG': 4,       # JTAG 排针

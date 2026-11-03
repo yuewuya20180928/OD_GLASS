@@ -20,54 +20,53 @@
 | 27 | RESET | 28 | VCC3.3V |
 | 29 | VCC3.3V | 30 | VCC5V |
 
-## display: **Radxa Display 8HD** —— 屏侧 40p / 0.5mm
-> ★★2026-11-03 19:1x 订正: 原表标题写 "8HD/10FHD" ⇒ **把两款屏的脚位混成了一张** ⇒ 本表已按
-> **8HD 官方 Pinout 原文** (HW/STEP1_PARTS_SPEC.md §3.1, 标注 `[实测] 官方文档"Pinout"表原文`) 逐针校过:
-> **pin36 = LED_N (不是 GND) · pin39 = LED_P (不是 GND)** —— 面板每串 2 颗 LED ⇒ 同串并联同网是正常的;
-> 10FHD 的数据另算不得混用 (★尤其背光 12.8V@200mA 那个数是 **10FHD 的**, **8HD 未查**)。
+## display: **Radxa Display 8HD** —— ★**板侧 39p / 0.3mm** (屏侧原生 40p / 0.5mm)
 
-| 针 | 定义 | 针 | 定义 |
+> ★★**2026-11-03 19:3x 换口径**: 板上画的是**板侧 39p/0.3mm 座** (HIROSE **FH35C-39S-0.3SHW(50)**, 背夹 + 上下双面触点, ★**与相机侧 FH35C-31S-0.3SHW(50) 同系列**);
+> 原厂转接线 AC013 一头插屏 (40p/0.5mm) 一头插我们的座 ⇒ **我们不用自制排线**;
+> ★**换算式: 屏侧脚号 = 板侧脚号 + 1** (屏侧 pin1=NC 被原厂线省掉, 其余 39 脚 1:1 直通, 无交叉);
+> ★老板 19:29 拍板 **demo 不需要触控** ⇒ 板侧 23~27 (TP-RESET/VCC/INT/SDA/SCL) 我们**不接**;
+> ★背光 = **1 串 2 颗并联** (阴极 34/35 同网, 阳极 38/39 同网) ⇒ 板侧要自带 BOOST+恒流+PWM (ISS-173);
+> 屏侧 40p 原文表见 `HW/STEP1_PARTS_SPEC.md` §3.1; 39p 表的三个原厂出处见 `HW/PCB/DISPLAY_39P_PINOUT.md`。
+
+| 板侧脚 | 信号 | 屏侧脚 | 说明 |
 |---|---|---|---|
-| 1 | NC | 2 | VDD_3V3 |
-| 3 | VCCIO | 4 | NC |
-| 5 | RESET | 6 | NC |
-| 7 | GND | 8 | MIPI_0N |
-| 9 | MIPI_0P | 10 | GND |
-| 11 | MIPI_1N | 12 | MIPI_1P |
-| 13 | GND | 14 | MIPI_CKN |
-| 15 | MIPI_CKP | 16 | GND |
-| 17 | MIPI_2N | 18 | MIPI_2P |
-| 19 | GND | 20 | MIPI_3N |
-| 21 | MIPI_3P | 22 | GND |
-| 23 | GND | 24 | TP_RESET |
-| 25 | TP_VCC | 26 | TP_INT |
-| 27 | TP_SDA | 28 | TP_SCL |
-| 29 | GND | 30 | GND |
-| 31 | VDD_3V3 | 32 | VDD_3V3 |
-| 33 | GND | 34 | GND |
-| ★**35** | ★**LED_N** | ★**36** | ★**LED_N** |
-| 37 | NC | 38 | NC |
-| ★**39** | ★**LED_P** | ★**40** | ★**LED_P** |
-
-> ★★**2026-11-03 19:0x 更正与推算 (ISS-170)**
->
-> **① 这张 40 针表是"屏侧"接口, 不是我们主板要画的座** —— Radxa Display 8HD 的官方 FPC 规格原文:
-> "**39-pin 0.3mm pitch (Motherboard side) to 40-pin 0.5mm pitch (Display side)**"
-> (另一版 15-pin 1.0mm 主板侧) ⇒ **我们主板要对插的是转接线的板端 = 39p/0.3mm** ⇒ ★**本表的针号不能直接用在主板侧**
-> ⇒ ⇒ 主板侧针位表正在取: `HW/PCB/DISPLAY_39P_PINOUT.md` (专项进行中, 任务书 `state/TASK_display_39p_pinout.md`)
->
-> **② "40→39" 的算术结论 (按位数的)**: **屏侧 5 个 NC 脚去掉 1 个 ⇒ 恰好 39 个位置**;
-> 两种 LED± 标注下都成立 ⇒ **39 不是靠并脚省出来的, 是转接线省掉了一个 NC 位**
-> ⇒ ★**被省的是哪一个 NC (1/4/6/37/38 中的哪个) 必须定死** —— 少一位 ⇒ 后面所有信号编号整体错一位
->
-> **③ ★本地两份文档对 35/36/39/40 四个脚互相矛盾 (待官方裁定)**:
-> | 脚 | `HW/STEP1_PARTS_SPEC.md` | **本表** |
-> |---|---|---|
-> | 35 | LED− | LED_N |
-> | 36 | LED− | GND |
-> | 39 | LED+ | GND |
-> | 40 | LED+ | LED_P |
-> ⇒ ★★**这不是小事**: LED± 各一根还是各两根 ⇒ **背光是 1 串还是 2 串** ⇒ 直接决定 ISS-173 的 12V BOOST 驱动拓扑
-> ⇒ ★★**2026-11-03 19:1x 已裁定**: 权威是 **8HD 官方 Pinout 原文** (我们项目里本来就有, 在 STEP1_PARTS_SPEC §3.1)
-> ⇒ 矛盾根因 = **我们抄表时把 10FHD 混进了 8HD 的表** (不是外部资料的问题) ⇒ 本表已按 8HD 原文订正
-> ⇒ ★**仍待专项查的只剩**: 主板侧 39p 的针位表 + **8HD 自己的背光电压/电流** (我们手上的 12.8V@200mA 是 10FHD 的)
+| 1 | VDD3V3 | 2 | Panel main logic 3.3V supply (Q6A net VCC_3V3_LCD). Panel-si |
+| 2 | IOVCC1V8-3V3 | 3 | Panel IO supply, 1.8V or 3.3V selectable (Q6A: VCC_1V8 via R |
+| 3 | SENSOR-INT | 4 | Panel-side pin 4 = 'NC' with description 'INT 1' (gravity se |
+| 4 | RESET | 5 | Panel global reset (panel-side pin 5 Reset). Q6A: DISP0_RESE |
+| 5 | NC | 6 | Panel-side pin 6 = 'NC' with description 'INT 2' (gravity se |
+| 6 | GND1 | 7 | Ground. Panel-side pin 7 (GND) |
+| 7 | MIPI-0N | 8 | MIPI DSI lane 0 differential negative (Q6A net DSI0_B0_LN0_M |
+| 8 | MIPI-0P | 9 | MIPI DSI lane 0 differential positive (DSI0_A0_LN0_P). Panel |
+| 9 | GND2 | 10 | Ground. Panel-side pin 10 (GND) |
+| 10 | MIPI-1N | 11 | MIPI DSI lane 1 differential negative (DSI0_A1_LN1_M). Panel |
+| 11 | MIPI-1P | 12 | MIPI DSI lane 1 differential positive (DSI0_C0_LN1_P). Panel |
+| 12 | GND3 | 13 | Ground. Panel-side pin 13 (GND) |
+| 13 | MIPI-CKN | 14 | MIPI DSI differential clock negative (DSI0_C1_CLK_M). Panel- |
+| 14 | MIPI-CKP | 15 | MIPI DSI differential clock positive (DSI0_B1_CLK_P). Panel- |
+| 15 | GND4 | 16 | Ground. Panel-side pin 16 (GND) |
+| 16 | MIPI-2N | 17 | MIPI DSI lane 2 differential negative (DSI0_B2_LN2_M). Panel |
+| 17 | MIPI-2P | 18 | MIPI DSI lane 2 differential positive (DSI0_A2_LN2_P). Panel |
+| 18 | GND5 | 19 | Ground. Panel-side pin 19 (GND) |
+| 19 | MIPI-3N | 20 | MIPI DSI lane 3 differential negative (DSI0_NC_LN3_M). Panel |
+| 20 | MIPI-3P | 21 | MIPI DSI lane 3 differential positive (DSI0_C2_LN3_P). Panel |
+| 21 | GND6 | 22 | Ground. Panel-side pin 22 (GND) |
+| 22 | GND7 | 23 | Ground. Panel-side pin 23 (GND) |
+| 23 | TP-RESET | 24 | Touch panel reset (Q6A net TP_RST). Panel-side pin 24 (TP_RE |
+| 24 | TP-VCC | 25 | Touch panel 3.3V supply (Q6A net VCC_3V3) - the touch contro |
+| 25 | TP-INT | 26 | Touch interrupt (Q6A net TP_INT). Panel-side pin 26 (TP_INT) |
+| 26 | TP-SDA | 27 | Touch I2C data (Q6A net TP_SDA, level-shifted by U8 UM3204H) |
+| 27 | TP-SCL | 28 | Touch I2C clock (Q6A net TP_SCL). Panel-side pin 28 (TP_SCL) |
+| 28 | GND8 | 29 | Ground. Panel-side pin 29 (GND) |
+| 29 | GND9 | 30 | Ground. Panel-side pin 30 (GND) |
+| 30 | VCC3V31 | 31 | Panel 3.3V supply, 2nd pin (Q6A net VCC_3V3_LCD). Panel-side |
+| 31 | VCC3V32 | 32 | Panel 3.3V supply, 3rd pin. Panel-side pin 32 (VDD 3.3V) |
+| 32 | GND11 | 33 | Ground (official numbering skips GND10). Panel-side pin 33 ( |
+| 33 | GND12 | 34 | Ground. Panel-side pin 34 (GND) |
+| 34 | LED-1 | 35 | BACKLIGHT CATHODE, 1st of 2. Panel-side pin 35 (LED-). Tie w |
+| 35 | LED- | 36 | BACKLIGHT CATHODE, 2nd of 2. Panel-side pin 36 (LED-). Never |
+| 36 | NC | 37 | No connect (stays unconnected on the 39p side too). Panel-si |
+| 37 | NC | 38 | No connect (stays unconnected on the 39p side too). Panel-si |
+| 38 | LED+1 | 39 | BACKLIGHT ANODE, 1st of 2. Panel-side pin 39 (LED+). Tie wit |
+| 39 | LED+ | 40 | BACKLIGHT ANODE, 2nd of 2. Panel-side pin 40 (LED+) |

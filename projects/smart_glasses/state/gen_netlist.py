@@ -902,10 +902,10 @@ def build_p4(by_id, spec):
              "NET_I2C_B_SCL")
     conn_row(by_id, "B-04", "P4", "I2C_B_SDA", soc_pin("I2C_B_SDA"), "R_PU_I2CB_SDA",
              "NET_I2C_B_SDA")
-    add("P4", "I2C_B_SCL", "CONN_LIGHT pin28", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
+    add("P4", "I2C_B_SCL", "R_PU_I2CB_SCL", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
         "上拉 4.7k, 放主板侧", "NET", "必装", "[推算]", "TBD-04",
         "[I2C_B_SCL] 附加节点 (同 net)", "B-03")
-    add("P4", "I2C_B_SDA", "CONN_LIGHT pin27", "NET_I2C_B_SDA", "NET_I2C_B_SDA",
+    add("P4", "I2C_B_SDA", "R_PU_I2CB_SDA", "NET_I2C_B_SDA", "NET_I2C_B_SDA",
         "上拉 4.7k, 放主板侧", "NET", "必装", "[推算]", "TBD-04",
         "[I2C_B_SDA] 附加节点 (同 net)", "B-04")
     add("P4", "VDD_3V3_IO", "R_PU_I2CB_SCL", "RAIL_VDD_3V3_IO", "R_PU_I2CB_SCL", "4.7k ±1%",
@@ -914,9 +914,11 @@ def build_p4(by_id, spec):
         "R", "必装", "[推算]", "", "[VDD_3V3_IO] DSI DDC 上拉", "B-04")
     # ---- 光机连接器 ----
     add("P4", "CONN_LIGHT", "CONN_LIGHT", "CONN_LIGHT", "CONN_LIGHT",
-        "★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))", "CONN", "必装", "[待视涯]", "TBD-04",
+        "★39p@0.3mm (HIROSE FH35C-39S-0.3SHW(50), 背夹+上下双面触点, ★与相机侧 FH35C-31S 同系列)",
+        "CONN", "必装", "[官方]", "",
         "[CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); "
-        "显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, "
+        "★★2026-11-03 19:3x 改为**板侧 39p/0.3mm** (Radxa 原厂转接线 AC013 的板端; ★屏侧原生是 40p/0.5mm); "
+        "★**换算式: 屏侧脚号 = 板侧脚号 + 1** (屏侧 pin1=NC 被原厂线省掉, 其余 1:1 直通); "
         "7/8=DSI_D2 预留(DNP), 9/10=DSI_D3 预留(DNP), 11/12=DDC(I2C_B), 13=LIGHT_3V3, "
         "14=LIGHT_1V8, 15=LIGHT_5V 预留(DNP), 16=GND 回流; "
         "★★**2026-11-02: 由 22p 改 16p** —— 删掉的是桥接方案B 的 6 个差分脚 (RK3572 无 DP TX ⇒ 无桥接芯片); "
@@ -926,28 +928,27 @@ def build_p4(by_id, spec):
     #   依据: Radxa Display 8HD/10FHD 40 针表 (HW/PCB/FPC_PIN_TABLES.md)
     # ★★2026-11-03 19:1x 订正: 原来的表把 **8HD 与 10FHD 混成一张** ⇒ pin36/pin39 被标成 GND
     #   ⇒ ★按 **8HD 官方 Pinout 原文**: pin36 = LED− · pin39 = LED+ (不是 GND) ⇒ 从 GND 列表里去掉
-    _disp_gnd = [7, 10, 13, 16, 19, 22, 23, 29, 30, 33, 34]
+    # ★★2026-11-03 19:3x: 改**板侧 39p** 编号 (屏侧脚号 − 1); 屏侧 pin1=NC 被原厂线省掉
+    _disp_gnd = [6, 9, 12, 15, 18, 21, 22, 28, 29, 32, 33]
     for _pn in _disp_gnd:
         add("P4", "GND", f"CONN_LIGHT pin{_pn}", "GND", "CONN_LIGHT", "GND", "NET", "必装", "[官方]", "",
             "[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND", "")
-    _disp_nc = [1, 4, 6, 37, 38]
+    _disp_nc = [3, 5, 36, 37]   # ★屏侧 1(NC) 被原厂线省掉 ⇒ 板上无此脚
     for _pn in _disp_nc:
         add("P4", "NC_CONN_LIGHT", f"CONN_LIGHT pin{_pn}", "NC_CONN_LIGHT", "CONN_LIGHT", "NC", "NET",
             "必装", "[官方]", "",
             f"[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = NC; ★**板级同网仅为满足网表连通性检查, 无功能影响**", "")
-    for _pn in [2, 31, 32]:
+    for _pn in [1, 30, 31]:
         add("P4", "LIGHT_3V3", f"CONN_LIGHT pin{_pn}", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V", "NET",
             "必装", "[官方]", "",
             "[CONN_LIGHT] ★Radxa Display 40 针表: 面板 VDD = 3.3V (pin2/31/32)", "")
-    add("P4", "LIGHT_3V3", "CONN_LIGHT pin3", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (VCCIO)", "NET",
+    add("P4", "LIGHT_3V3", "CONN_LIGHT pin2", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (VCCIO)", "NET",
         "必装", "[官方]", "",
         "[CONN_LIGHT] ★Radxa Display 40 针表: VCCIO = 1.8~3.3V (pin3) ⇒ ★**demo 取 3.3V**", "")
-    add("P4", "DSI_RESET_N", "CONN_LIGHT pin5", soc_pin("GPIO_DSI_RESET"), "CONN_LIGHT", "RESET", "NET",
+    add("P4", "DSI_RESET_N", "CONN_LIGHT pin4", soc_pin("GPIO_DSI_RESET"), "CONN_LIGHT", "RESET", "NET",
         "必装", "[官方]", "",
         "[DSI_RESET_N] ★屏模组 Reset (pin5) ⇒ 接 SoC GPIO (★球位号 TBD-01) ⇒ ★**主板必须能拉它**", "")
-    add("P4", "LIGHT_3V3", "CONN_LIGHT pin25", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (TP_VCC)", "NET",
-        "必装", "[官方]", "",
-        "[CONN_LIGHT] ★Radxa Display 40 针表: 触控供电 TP_VCC (pin25) ⇒ 3.3V", "")
+    # ★★2026-11-03 19:29 老板拍板: demo 不需要触控 ⇒ 屏侧触控线我们一律不接 (已删除)
     # ★★2026-11-03 19:1x ★★**再订正 (老板一句"这跟 Radxa 有什么关系"挖出来的)**: 矛盾**不是外部问题, 是我们抄表时混了两个型号**
     #   ⇒ 我们项目里那张 "FPC_PIN_TABLES.md 的 display 表" 标题写的是 "8HD/10FHD" ⇒ **把两款屏的脚位混成了一张**
     #   ⇒ ★**权威 = 8HD 官方 Pinout 原文** (已在 HW/STEP1_PARTS_SPEC.md §3.1, 标注 `[实测] 官方文档"Pinout"表原文`):
@@ -956,23 +957,18 @@ def build_p4(by_id, spec):
     #      **LED_N 与 LED_P 不能互短** (两串之间短接 = 背光直接烧) ⇒ 而 35+36 / 39+40 各自同网才是对的
     #   ⇒ ⇒ 现在按官方原文重画: **LED_N = pin35+pin36 / LED_P = pin39+pin40**
     #   ⇒ ★背光驱动仍未实现 (ISS-173) ⇒ 12.8V@200mA 那个数是 **10FHD 的**, **8HD 的背光规格未查** ⇒ 要补
-    add("P4", "NET_TP_RESET", "CONN_LIGHT pin24", "NET_TP_RESET", "CONN_LIGHT", "TP_RESET (触控复位)", "NET",
-        "必装", "[官方]", "",
-        "[NET_TP_RESET] ★8HD 官方 Pinout: pin24 = TP_RESET (触控复位)", "")
-    add("P4", "NET_TP_INT", "CONN_LIGHT pin26", "NET_TP_INT", "CONN_LIGHT", "TP_INT (触控中断输出)", "NET",
-        "必装", "[官方]", "",
-        "[NET_TP_INT] ★8HD 官方 Pinout: pin26 = TP_INT (触控的中断输出) ⇒ ★**它必须接到 SoM 某个 GPIO** "
-        "⇒ ★**当前网表里它没接任何 SoM 脚 ⇒ 触控中断收不到** (新开 ISS-174)", "")
-    add("P4", "NET_LED_N", "CONN_LIGHT pin35", "NET_LED_N", "CONN_LIGHT", "LED- (背光负极, 1)", "NET",
+    # ★★2026-11-03 19:29 老板拍板: demo 不需要触控 ⇒ 屏侧触控线我们一律不接 (已删除)
+    # ★★2026-11-03 19:29 老板拍板: demo 不需要触控 ⇒ 屏侧触控线我们一律不接 (已删除)
+    add("P4", "NET_LED_N", "CONN_LIGHT pin34", "NET_LED_N", "CONN_LIGHT", "LED-1 (背光阴极 1/2)", "NET",
         "必装", "[官方]", "",
         "[NET_LED_N] ★8HD 官方 Pinout: **pin35 = LED-** ⇒ 与 pin36 同串并联 (面板每串 2 颗 LED) ⇒ 同网正常", "")
-    add("P4", "NET_LED_N", "CONN_LIGHT pin36", "NET_LED_N", "CONN_LIGHT", "LED- (背光负极, 2)", "NET",
+    add("P4", "NET_LED_N", "CONN_LIGHT pin35", "NET_LED_N", "CONN_LIGHT", "LED- (背光阴极 2/2)", "NET",
         "必装", "[官方]", "",
         "[NET_LED_N] ★8HD 官方 Pinout: **pin36 = LED-** (与 pin35 同串) —— ★★此前标的 GND 是**抄表时混入 10FHD** 造成的", "")
-    add("P4", "NET_LED_P", "CONN_LIGHT pin39", "NET_LED_P", "CONN_LIGHT", "LED+ (背光正极, 1)", "NET",
+    add("P4", "NET_LED_P", "CONN_LIGHT pin38", "NET_LED_P", "CONN_LIGHT", "LED+1 (背光阳极 1/2)", "NET",
         "必装", "[官方]", "",
         "[NET_LED_P] ★8HD 官方 Pinout: **pin39 = LED+** ⇒ 与 pin40 同串并联 ⇒ 同网正常", "")
-    add("P4", "NET_LED_P", "CONN_LIGHT pin40", "NET_LED_P", "CONN_LIGHT", "LED+ (背光正极, 2)", "NET",
+    add("P4", "NET_LED_P", "CONN_LIGHT pin39", "NET_LED_P", "CONN_LIGHT", "LED+ (背光阳极 2/2)", "NET",
         "必装", "[官方]", "",
         "[NET_LED_P] ★8HD 官方 Pinout: **pin40 = LED+** (与 pin39 同串) —— ★★此前标的 GND 是**抄表时混入 10FHD** 造成的", "")
 
