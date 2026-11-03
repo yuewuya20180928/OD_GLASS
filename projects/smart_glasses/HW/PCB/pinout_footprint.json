@@ -1,0 +1,624 @@
+{
+  "_meta": {
+    "title": "ARS45 demo 主板 · 器件封装与脚号落定规格表 (机器版)",
+    "author": "subagent ic-footprint-pinout-spec",
+    "date": "2026-11-03",
+    "scope": "只出规格表; 网表改动由项目总工执行",
+    "human_readable": "HW/PCB/PINOUT_FOOTPRINT_SPEC.md",
+    "evidence_rule": "每个封装/脚号必须带原厂 datasheet URL + 页码/图号; 查不到写 未查到; 不猜",
+    "important_corrections": [
+      "TPS7A20 X2SON(DQN) 是 4 脚 + 散热焊盘, 不是 5 脚带 NC: 1=OUT 2=GND 3=EN 4=IN 5=Thermal Pad",
+      "BQ2970 没有单一 GATE 脚: COUT(pin2,充电管) / DOUT(pin3,放电管) 两脚必须分开驱动, 两管不可共栅",
+      "TPS3808 采样脚叫 SENSE(pin5), 不是 IN; 另有 MR(pin3) 与 GND(pin2) 两脚网表未画",
+      "TPS62130A 的 PG 在 EN 为低时输出低 (A 版与 TPS62130 固定版极性相反)",
+      "J_TYPE_C 的 D+/D- 各有两个物理脚 (A6/B6, A7/B7); GND 有四个物理脚 (A1/B12/A12/B1)"
+    ],
+    "dnp_parts": ["U_LDO_L18", "U_LDO_S12", "U_LDO_S18B", "U_LDO_S28", "U_SUPV", "U_DCDC_VCORE", "U_DCDC_VIO"],
+    "not_found": [
+      "BT_432243: 电池两极引出形式与焊盘尺寸未查到 (丰江原厂规格书未检索到)",
+      "CONN_LIGHT: 型号未定, 已给 4 个原厂在售候选 (见 connectors.CONN_LIGHT.candidates)",
+      "Q1/Q2: BQ2970 判据要求 Rds(on)=7.5mOhm@Vgs=3.5V, CSD16406Q3 官方表仅有 4.5V/10V 条件"
+    ]
+  },
+
+  "parts": {
+    "U_LDO_L33": {
+      "part": "TPS7A2033DQNR",
+      "value": "TPS7A20-33",
+      "package": "X2SON (DQN) 1.0 x 1.0 mm, 0.4 mm max height, no-lead",
+      "land_pattern": "DQN0004A",
+      "pitch_mm": 0.65,
+      "pins": {
+        "1": "OUT",
+        "2": "GND",
+        "3": "EN",
+        "4": "IN",
+        "5": "THERMAL_PAD"
+      },
+      "notes": "3.3V/150mA; EN 内部 500k 下拉(悬空=关断), 必须画 EN 线; 散热焊盘接 GND; 布局照 Fig 7-8",
+      "dnp": false,
+      "source": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf SBVS338H PDF p.4 Fig 4-3 + Table 4-1; p.32 Fig 7-8; p.34+ Package Outline DQN0004A"
+    },
+    "U_LDO_IO33": {
+      "part": "TPS7A2033DQNR",
+      "value": "TPS7A20-33",
+      "package": "X2SON (DQN) 1.0 x 1.0 mm",
+      "land_pattern": "DQN0004A",
+      "pitch_mm": 0.65,
+      "pins": {
+        "1": "OUT",
+        "2": "GND",
+        "3": "EN",
+        "4": "IN",
+        "5": "THERMAL_PAD"
+      },
+      "notes": "3.3V/200mA; EN 内部 500k 下拉, 必须画 EN 线",
+      "dnp": false,
+      "source": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf SBVS338H PDF p.4 Fig 4-3 + Table 4-1"
+    },
+    "U_LDO_IO18": {
+      "part": "TPS7A2018DQNR",
+      "value": "TPS7A20-18",
+      "package": "X2SON (DQN) 1.0 x 1.0 mm",
+      "land_pattern": "DQN0004A",
+      "pitch_mm": 0.65,
+      "pins": {
+        "1": "OUT",
+        "2": "GND",
+        "3": "EN",
+        "4": "IN",
+        "5": "THERMAL_PAD"
+      },
+      "notes": "1.8V/100mA; EN 内部 500k 下拉, 必须画 EN 线",
+      "dnp": false,
+      "source": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf SBVS338H PDF p.4 Fig 4-3 + Table 4-1; Orderable Addendum TPS7A2018DQNR"
+    },
+    "U_LDO_L18": {
+      "part": "TPS7A2018DQNR",
+      "value": "TPS7A20-18",
+      "package": "X2SON (DQN) 1.0 x 1.0 mm",
+      "land_pattern": "DQN0004A",
+      "pitch_mm": 0.65,
+      "pins": {
+        "1": "OUT",
+        "2": "GND",
+        "3": "EN",
+        "4": "IN",
+        "5": "THERMAL_PAD"
+      },
+      "notes": "1.8V/50mA; DNP (camera 模组自带稳压)",
+      "dnp": true,
+      "source": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf SBVS338H PDF p.4 Fig 4-3 + Table 4-1"
+    },
+    "U_LDO_S12": {
+      "part": "TPS7A2012DQNR",
+      "value": "TPS7A20-12",
+      "package": "X2SON (DQN) 1.0 x 1.0 mm",
+      "land_pattern": "DQN0004A",
+      "pitch_mm": 0.65,
+      "pins": {
+        "1": "OUT",
+        "2": "GND",
+        "3": "EN",
+        "4": "IN",
+        "5": "THERMAL_PAD"
+      },
+      "notes": "1.2V/250mA; DNP; VOUT<1.85V 时压差规格不同 (DQN 适用)",
+      "dnp": true,
+      "source": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf SBVS338H PDF p.4 Fig 4-3 + Table 4-1; Orderable Addendum TPS7A2012DQNR"
+    },
+    "U_LDO_S18B": {
+      "part": "TPS7A2018DQNR",
+      "value": "TPS7A20-18",
+      "package": "X2SON (DQN) 1.0 x 1.0 mm",
+      "land_pattern": "DQN0004A",
+      "pitch_mm": 0.65,
+      "pins": {
+        "1": "OUT",
+        "2": "GND",
+        "3": "EN",
+        "4": "IN",
+        "5": "THERMAL_PAD"
+      },
+      "notes": "1.8V/3mA; DNP",
+      "dnp": true,
+      "source": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf SBVS338H PDF p.4 Fig 4-3 + Table 4-1"
+    },
+    "U_LDO_S28": {
+      "part": "TPS7A2028DQNR",
+      "value": "TPS7A20-28",
+      "package": "X2SON (DQN) 1.0 x 1.0 mm",
+      "land_pattern": "DQN0004A",
+      "pitch_mm": 0.65,
+      "pins": {
+        "1": "OUT",
+        "2": "GND",
+        "3": "EN",
+        "4": "IN",
+        "5": "THERMAL_PAD"
+      },
+      "notes": "2.8V/156mA; DNP",
+      "dnp": true,
+      "source": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf SBVS338H PDF p.4 Fig 4-3 + Table 4-1; Orderable Addendum TPS7A2028DQNR"
+    },
+
+    "U_SUPV": {
+      "part": "TPS3808G01DBVR (SOT-23) 或 TPS3808G01DRVR (WSON)",
+      "value": "TPS3808G01 (可调阈值 0.405V 典型)",
+      "package": "DBV = SOT-23-6 (2.9 x 2.8 mm) | DRV = WSON-6 (2.00 x 2.00 mm) 带散热焊盘",
+      "land_pattern": "DBV0006A (SOT-23) | DRV0006A / DRV0006D (WSON)",
+      "pins": {
+        "1": "RESET",
+        "2": "GND",
+        "3": "MR",
+        "4": "CT",
+        "5": "SENSE",
+        "6": "VDD"
+      },
+      "pins_wson_DRV": {
+        "1": "VDD",
+        "2": "SENSE",
+        "3": "CT",
+        "4": "MR",
+        "5": "GND",
+        "6": "RESET"
+      },
+      "notes": "RESET 开漏需 10k-1MΩ 外接上拉; MR 内部 90kΩ 上拉到 VDD; 网表里的 'IN' 应改名 SENSE; 网表缺 GND 与 MR; CT 接 40k-200kΩ 到 VDD=固定延时 或接 >=100pF 到地=可编程延时; 最新网表已标 DNP (SoM 内部 PMIC 已做上电复位)",
+      "dnp": true,
+      "source": "https://www.ti.com/lit/ds/symlink/tps3808.pdf SBVS050N PDF p.4 Fig 5-1/5-2 + Table 5-1; p.5 §6.4; p.6 §6.5"
+    },
+
+    "U_PWR_SW": {
+      "part": "TPS22991RAA",
+      "value": "负载开关 3A/25mΩ (推荐; 反向阻断待裁决)",
+      "package": "UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",
+      "land_pattern": "RAA (UQFN-4) — 需向 TI 取 CAD/land pattern",
+      "pitch_mm": 0.4,
+      "pins": {
+        "1": "VIN",
+        "2": "ON",
+        "3": "VOUT",
+        "4": "GND"
+      },
+      "netlist_map": {
+        "VIN": "1",
+        "ON": "2",
+        "VOUT": "3",
+        "GND": "4"
+      },
+      "notes": "Active High ON; 内部 500kΩ Smart Pulldown (悬空=关); VIH 0.8V / VIL 0.35V / 迟滞 0.07V; RON 25mΩ typ @5V&3.3V (35mΩ max @-40~85°C); IQ 6µA typ @3.3V (12µA max); QOD 150Ω; 版本 B/BN tR=141µs, C/CN tR=662µs; ★判据冲突: 本型号无反向阻断 (RCB), 若必须 RCB 则候选 TPS22916 (YFP-4, IRCB -500mA typ, IIN,RCB -300nA max, 但 RON 60mΩ@5V/70mΩ@3.6V) 或 TPS22917 (DBV-6, RON 80/90mΩ, IIN,RCB -1µA max)",
+      "alternatives": {
+        "TPS22916": {
+          "package": "WCSP-4 YFP 0.78 x 0.78 mm",
+          "pins": {
+            "A1": "VOUT",
+            "A2": "VIN",
+            "B1": "GND",
+            "B2": "ON"
+          },
+          "source": "https://www.ti.com/lit/ds/symlink/tps22916.pdf SLVSDO5F PDF p.3 Fig 5-1/5-2 + Table 5-1"
+        },
+        "TPS22917": {
+          "package": "SOT-23-6 DBV",
+          "pins": {
+            "1": "VIN",
+            "2": "GND",
+            "3": "ON",
+            "4": "CT",
+            "5": "QOD",
+            "6": "VOUT"
+          },
+          "source": "https://www.ti.com/lit/ds/symlink/tps22917.pdf SLVSDW8B PDF p.4 Fig 6-1 + Table 6-1"
+        },
+        "TPS22914B": {
+          "package": "DSBGA-4 YFP 0.74 x 0.74 mm",
+          "pins": {
+            "B2": "ON",
+            "B1": "GND",
+            "A1": "VOUT",
+            "A2": "VIN"
+          },
+          "source": "https://www.ti.com/lit/ds/symlink/tps22914.pdf SLVSCO0F PDF p.3 Fig 5-1 + Table 5-1"
+        },
+        "TPS22918": {
+          "package": "SOT-23-6 DBV (land pattern DBV0006A)",
+          "pins": {
+            "1": "VIN",
+            "2": "GND",
+            "3": "ON",
+            "4": "CT",
+            "5": "QOD",
+            "6": "VOUT"
+          },
+          "source": "https://www.ti.com/lit/ds/symlink/tps22918.pdf PDF p.3 Fig 5-1 + Table 5-1"
+        }
+      },
+      "dnp": false,
+      "source": "https://www.ti.com/lit/ds/symlink/tps22991.pdf SLVSFK0B PDF p.4 Fig 5-1 + Table 5-1; p.6 §6.5"
+    },
+
+    "U_EN_SW": {
+      "part": "TPS22991RAA",
+      "value": "负载开关 (F13 底板主电源门控; 型号待裁决)",
+      "package": "UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",
+      "land_pattern": "RAA (UQFN-4) — 需向 TI 取 CAD/land pattern",
+      "pitch_mm": 0.4,
+      "pins": {
+        "1": "VIN",
+        "2": "ON",
+        "3": "VOUT",
+        "4": "GND"
+      },
+      "netlist_map": {
+        "IN": "1",
+        "EN": "2",
+        "OUT": "3",
+        "GND": "4"
+      },
+      "notes": "功能: CARRIER_BOARD_EN (SOM P3_87) -> ON; IN <- RAIL_DEMO_5V (USB-C 5V); OUT -> RAIL_BOARD_5V (9 条 LDO/DC-DC VIN + 6 条 EN). ON 内部 500kΩ 下拉 ⇒ SOM 未上电/高阻时自动关, 满足 Forlinx 上电时序要求. VIN 1.0-5.5V. ★待裁决: 若 RAIL_BOARD_5V 满额 > 3A (9 颗 LDO + 2 颗 DC-DC 全装) 需改 TPS22990 (10A/3.9mΩ, DML 10-pin WSON)",
+      "dnp": false,
+      "source": "https://www.ti.com/lit/ds/symlink/tps22991.pdf SLVSFK0B PDF p.4 Fig 5-1 + Table 5-1; p.6 §6.5"
+    },
+
+    "U_BATPROT": {
+      "part": "BQ2970DSE (或 BQ2971/72/73 同封装)",
+      "value": "BQ2970",
+      "package": "WSON-6 DSE, 1.50 x 1.50 x 0.75 mm",
+      "land_pattern": "DSE0006A",
+      "pitch_mm": null,
+      "pins": {
+        "1": "NC",
+        "2": "COUT",
+        "3": "DOUT",
+        "4": "VSS",
+        "5": "BAT",
+        "6": "V_MINUS"
+      },
+      "netlist_map": {
+        "B+": "5",
+        "B-": "4",
+        "COUT": "2",
+        "DOUT": "3"
+      },
+      "notes": "★原厂没有单一 GATE 脚: COUT(pin2)=充电 FET 栅驱动, DOUT(pin3)=放电 FET 栅驱动; 网表现 'BAT_GATE' 一根网接 Q1+Q2 共栅 与原厂不符, 必须改成 Q1(放电管)<-DOUT, Q2(充电管)<-COUT, 两管不可共栅. 网表缺 V-(pin6): 必须补 V- ↔ 2.2kΩ ↔ 系统 PACK-. 网表缺 NC(pin1). BAT 脚需 330Ω 串联 + 0.1µF 到地 (原厂 Fig 9-1). 每管栅-源之间 5MΩ. 阈值: OVP 4.275V/UVP 2.800V/OCC -100mV/OCD 100mV/SCD 500mV; IQ 4µA typ",
+      "dnp": false,
+      "source": "https://www.ti.com/lit/ds/symlink/bq2970.pdf SLUSBU9I PDF p.3 Fig 5-1 + Table 5-1; p.4 §5.1; p.19 Fig 9-1; p.20 §9.2.2"
+    },
+
+    "Q1": {
+      "part": "CSD16406Q3 (★BQ2970 datasheet p.20 原厂点名 'Use the CSD16406Q3 FET for the application')",
+      "value": "N-MOS 保护高边开关",
+      "package": "SON-8 Q3, 3.3 x 3.3 mm, 带散热焊盘",
+      "land_pattern": "Q3 (SON-8) — 原厂 §7.2 Recommended PCB Pattern / §7.3 Stencil Opening (CSD16406Q3 SLPS202B p.9)",
+      "pitch_mm": 0.65,
+      "pins": {
+        "1": "GATE",
+        "2": "GATE",
+        "3": "SOURCE",
+        "4": "SOURCE",
+        "5": "DRAIN",
+        "6": "DRAIN",
+        "7": "DRAIN",
+        "8": "DRAIN"
+      },
+      "netlist_map": {
+        "GATE": "1,2"
+      },
+      "notes": "★CSD16406Q3 datasheet 无文字 pin table (仅 p.4 图 M0161-01/02 顶视/底视 GATE/Source/DRAIN); 画 KiCad 封装建议以 TI 官方 CAD 或 KiCad 官方库 Package_SON:SON-3.3x3.3mm_8P 为准并实测复核. 参数: Vds 25V, Vgs(th) 1.4/1.8/2.2 V, Rds(on) 5.9mΩ typ @Vgs=4.5V (7.4mΩ max), Qg 5.8nC, Ciss 840pF. ★风险: BQ2970 的 COUT/DOUT 高电平仅 3.4-3.7V(BAT), 原厂判据要求 Rds(on)=7.5mΩ@Vgs=3.5V, 与本器件官方表 (4.5V/10V 条件) 不同 => 需按原厂判据选 FET",
+      "dnp": false,
+      "source": "https://www.ti.com/lit/ds/symlink/csd16406q3.pdf SLPS202B PDF p.3 §5.1; p.4 Fig M0161-01/02; p.8 §7.1; p.9 §7.2/§7.3 | FET 点名出处: https://www.ti.com/lit/ds/symlink/bq2970.pdf SLUSBU9I PDF p.20 §9.2.2"
+    },
+
+    "Q2": {
+      "part": "CSD16406Q3 (同 Q1)",
+      "value": "N-MOS 保护开关 (与 Q1 串联; 充电管)",
+      "package": "SON-8 Q3, 3.3 x 3.3 mm",
+      "land_pattern": "Q3 (SON-8)",
+      "pitch_mm": 0.65,
+      "pins": {
+        "1": "GATE",
+        "2": "GATE",
+        "3": "SOURCE",
+        "4": "SOURCE",
+        "5": "DRAIN",
+        "6": "DRAIN",
+        "7": "DRAIN",
+        "8": "DRAIN"
+      },
+      "netlist_map": {
+        "GATE": "1,2"
+      },
+      "notes": "★Q2 栅极必须接 BQ2970 COUT(pin2), 与 Q1 的 DOUT(pin3) 分开; 不可与 Q1 共栅",
+      "dnp": false,
+      "source": "https://www.ti.com/lit/ds/symlink/csd16406q3.pdf SLPS202B PDF p.3 §5.1, p.8 §7.1 | 拓扑出处: https://www.ti.com/lit/ds/symlink/bq2970.pdf SLUSBU9I PDF p.19 Fig 9-1, p.20 §9.2.2"
+    },
+
+    "BT_432243": {
+      "part": "丰江 432243 (1S Li-po 3.7V >=420mAh)",
+      "value": "432243 3.7V >=420mAh",
+      "package": "软包锂聚合物电芯, 4.3 x 22.0 x 43.5 mm",
+      "land_pattern": "未查到",
+      "pitch_mm": null,
+      "pins": {
+        "1": "B_PLUS",
+        "2": "B_MINUS"
+      },
+      "notes": "★引出形式 (焊片/引线/JST-PH2.0) 与焊盘尺寸未查到: 丰江 432243 原厂规格书未检索到, 第三方零售页型号/尺寸不符 (552535/602040/502030) 按铁律不采信. 走采购硬判据: 索取原厂规格书 (尺寸图+极性+引出形式) 后再定 footprint; 在此之前网表标 [待采购], 不要先画焊盘. 尺寸与电压来自库内官方值 (HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md L227 / HW/EMC_PRECHECK.md L84)",
+      "dnp": false,
+      "source": "未查到原厂 datasheet URL — 库内官方值见 HW/POWER_TOPOLOGY_RF1_3V3V_UVP.md L227 (4.3x22.0x43.5mm, 标 [官方] 库内网表 BT_432243) 与 HW/POWER_BUDGET_V3.md L260-261 (>=420mAh, 4.3mm)"
+    },
+
+    "J_TYPE_C": {
+      "part": "GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",
+      "value": "Type-C 16p 母座",
+      "package": "SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔",
+      "land_pattern": "原厂图纸 'Recommended PCB Layout' (Sheet 1/2, Rev B3) — 16x 0.20mm 焊盘宽, 0.50mm pitch, 板边距离 8.94mm",
+      "pitch_mm": 0.5,
+      "pins": {
+        "A1": "GND",
+        "A4": "VBUS",
+        "A5": "CC1",
+        "A6": "DPLUS",
+        "A7": "DMINUS",
+        "A8": "SBU1",
+        "A9": "VBUS",
+        "A12": "GND",
+        "B1": "GND",
+        "B4": "VBUS",
+        "B5": "CC2",
+        "B6": "DPLUS",
+        "B7": "DMINUS",
+        "B8": "SBU2",
+        "B9": "VBUS",
+        "B12": "GND",
+        "SHELL": "SHIELD_GND"
+      },
+      "pad_order_left_to_right": ["A1", "B12", "A4", "B9", "B8", "A5", "B7", "A6", "A7", "B6", "A8", "B5", "B4", "A9", "B1", "A12"],
+      "netlist_map": {
+        "VBUS_5V": ["A4", "A9", "B4", "B9"],
+        "USB_CC1": ["A5"],
+        "USB_CC2": ["B5"],
+        "USB_D_P": ["A6", "B6"],
+        "USB_D_N": ["A7", "B7"],
+        "GND": ["A1", "A12", "B1", "B12", "SHELL"],
+        "NC": ["A8", "B8"]
+      },
+      "notes": "USB-IF 物理脚位 (16p = USB 2.0 Type-C 母座: A1,A4,A5,A6,A7,A8,A9,A12 + B1,B4,B5,B6,B7,B8,B9,B12). ★网表修正: D+/D- 各有两个物理脚 (A6/B6, A7/B7) 建议并联; GND 有四个物理脚 (A1/A12/B1/B12) 全部接 GND; 屏蔽壳 SHELL 必须接 PCB 地平面 (USB-IF 规范). 载流: VBUS 合计 5.00A, GND 合计 6.25A, A5/B5(CC) 1.25A, 其余每脚 0.25A. 耐压 48V DC, 接触电阻 40mΩ max, 耐久 20000 次, -40~+85°C",
+      "dnp": false,
+      "source": "https://media.digikey.com/pdf/Data%20Sheets/GCT%20PDFs/USB4105.pdf (GCT 原厂图纸 Rev B3 24/02/23, Sheet 1/2 Recommended PCB Layout + Pin/Signal 表) | USB-IF 物理脚定义: https://www.usb.org/sites/default/files/USB%20Type-C%20Spec%20R2.0%20-%20August%202019.pdf Table 3-5 p.41 | 16 脚定义: https://www.usb.org/sites/default/files/USB%20Type-C_Compliance%20Document_Rev_2_1b_June_2021.pdf"
+    },
+
+    "U_DCDC_VCORE": {
+      "part": "TPS62130ARGTR",
+      "value": "TPS62130A (★DNP — SoM 自带 PMIC)",
+      "package": "VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘",
+      "land_pattern": "RGT0016C",
+      "pitch_mm": 0.5,
+      "pins": {
+        "1": "SW",
+        "2": "SW",
+        "3": "SW",
+        "4": "PG",
+        "5": "FB",
+        "6": "AGND",
+        "7": "FSW",
+        "8": "DEF",
+        "9": "SS_TR",
+        "10": "AVIN",
+        "11": "PVIN",
+        "12": "PVIN",
+        "13": "EN",
+        "14": "VOS",
+        "15": "PGND",
+        "16": "PGND"
+      },
+      "netlist_map": {
+        "EN": "13",
+        "PG": "4",
+        "VIN": ["10", "11", "12"],
+        "SW": ["1", "2", "3"]
+      },
+      "notes": "★PG 极性已由原厂答: TPS62130A 在 EN 为低时 PG 输出低 (低有效); 固定版 TPS62130 为高阻 — 网表注释里 'PG 极性待原厂核' 这条可结案. PG 开漏需上拉. AGND(pin6)/PGND(pin15,16)/散热焊盘 必须同接. FSW 低≈2.5MHz 高≈1.25MHz. DEF 低=标称 高=标称+5%. 输入 3-17V, 输出 3A. ★DNP: 主板不产 SoC 核心轨",
+      "dnp": true,
+      "source": "https://www.ti.com/lit/ds/symlink/tps62130a.pdf SLVSAG7F PDF p.3 Fig 6-1 + Table 6-1 + Device Comparison Table (PG 极性); p.18+ Package Outline RGT0016C"
+    },
+
+    "U_DCDC_VIO": {
+      "part": "TPS62130ARGTR",
+      "value": "TPS62130A (★DNP — SoM 自带 PMIC)",
+      "package": "VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘",
+      "land_pattern": "RGT0016C",
+      "pitch_mm": 0.5,
+      "pins": {
+        "1": "SW",
+        "2": "SW",
+        "3": "SW",
+        "4": "PG",
+        "5": "FB",
+        "6": "AGND",
+        "7": "FSW",
+        "8": "DEF",
+        "9": "SS_TR",
+        "10": "AVIN",
+        "11": "PVIN",
+        "12": "PVIN",
+        "13": "EN",
+        "14": "VOS",
+        "15": "PGND",
+        "16": "PGND"
+      },
+      "netlist_map": {
+        "EN": "13",
+        "PG": "4",
+        "VIN": ["10", "11", "12"],
+        "SW": ["1", "2", "3"]
+      },
+      "notes": "★DNP: 主板不产 SoC IO 轨. 其余同 U_DCDC_VCORE. ★PG 极性: TPS62130A = EN 低时 PG 低 (低有效)",
+      "dnp": true,
+      "source": "https://www.ti.com/lit/ds/symlink/tps62130a.pdf SLVSAG7F PDF p.3 Fig 6-1 + Table 6-1 + Device Comparison Table"
+    }
+  },
+
+  "connectors": {
+    "CONN_CAM": {
+      "part": "HIROSE FH35C-31S-0.3SHW(50)",
+      "code_number": "CL580-2923-7-50",
+      "value": "31p / 0.3mm 背夹式双面触点 FPC 座",
+      "package": "0.3mm pitch, 0.9mm height, back flip type, dual-sided (Top & Bottom) FPC receptacle; 31p 尺寸 A=10.9 / B=8.4 / C=9.0 / D=9.63 / E=10.33 / F=9.6 mm; FPC 厚 0.2mm; 30V/0.2A per contact; -55~+105°C",
+      "land_pattern": "HIROSE 原厂 2D 图 Sheet 1 'RECOMMENDED PCB MOUNTING PATTERN' + 系列规格书 p.3 'Recommended Land Dimensions' + p.4 'Recommended Land and Metal Mask Dimensions'",
+      "pitch_mm": 0.3,
+      "pin_count": 31,
+      "numbering": "双排交错: 下排 (Bottom contact) = 奇数 1,3,5..31 (16 个, (n+1)/2); 上排 (Top contact) = 偶数 2,4,6..30 (15 个, (n-1)/2); 同排 pitch 0.3mm, 两排错开半 pitch",
+      "pin1_location": "★原厂 PCB Mounting Pattern (底视, 'Connector image: underside') 中 'Contact No.1' 指向下排最右侧焊盘, 'Contact No.2' 指向上排最右侧焊盘; 编号沿排自右向左递增",
+      "land_dimensions": {
+        "pad_width_mm": "0.3 +/- 0.02",
+        "upper_row_pad_length_mm": "0.65 +/- 0.03",
+        "lower_row_pad_length_mm": "0.8 +/- 0.03",
+        "row_inner_gap_mm": "2.15 +/- 0.03",
+        "upper_row_span_formula": "((n-1)/2) x 0.3 +/- 0.02",
+        "lower_row_span_formula": "((n+1)/2) x 0.3 +/- 0.02",
+        "end_anchor_tabs_mm": "0.4+/-0.03 / 0.5+/-0.03 / 0.2+/-0.03",
+        "stencil_thickness_mm": 0.1,
+        "stencil_upper_opening_mm": "0.55 +/- 0.02",
+        "stencil_lower_opening_mm": "0.65 +/- 0.02",
+        "stencil_opening_width_mm": "0.23 +/- 0.02"
+      },
+      "pins": {
+        "1": "CAM_CONTACT_1_BOTTOM",
+        "2": "CAM_CONTACT_2_TOP",
+        "3": "CAM_CONTACT_3_BOTTOM",
+        "4": "CAM_CONTACT_4_TOP",
+        "5": "CAM_CONTACT_5_BOTTOM",
+        "6": "CAM_CONTACT_6_TOP",
+        "7": "CAM_CONTACT_7_BOTTOM",
+        "8": "CAM_CONTACT_8_TOP",
+        "9": "CAM_CONTACT_9_BOTTOM",
+        "10": "CAM_CONTACT_10_TOP",
+        "11": "CAM_CONTACT_11_BOTTOM",
+        "12": "CAM_CONTACT_12_TOP",
+        "13": "CAM_CONTACT_13_BOTTOM",
+        "14": "CAM_CONTACT_14_TOP",
+        "15": "CAM_CONTACT_15_BOTTOM",
+        "16": "CAM_CONTACT_16_TOP",
+        "17": "CAM_CONTACT_17_BOTTOM",
+        "18": "CAM_CONTACT_18_TOP",
+        "19": "CAM_CONTACT_19_BOTTOM",
+        "20": "CAM_CONTACT_20_TOP",
+        "21": "CAM_CONTACT_21_BOTTOM",
+        "22": "CAM_CONTACT_22_TOP",
+        "23": "CAM_CONTACT_23_BOTTOM",
+        "24": "CAM_CONTACT_24_TOP",
+        "25": "CAM_CONTACT_25_BOTTOM",
+        "26": "CAM_CONTACT_26_TOP",
+        "27": "CAM_CONTACT_27_BOTTOM",
+        "28": "CAM_CONTACT_28_TOP",
+        "29": "CAM_CONTACT_29_BOTTOM",
+        "30": "CAM_CONTACT_30_TOP",
+        "31": "CAM_CONTACT_31_BOTTOM"
+      },
+      "notes": "★原厂只给 'Contact No.N' 不给信号名, 故引脚名用 CAM_CONTACT_N_TOP/BOTTOM 占位, 实际信号名 (CSI D0/D1/D2/D3, CLK, MCLK, 电源, GND) 由项目总工按网表分配. 触点方向 Top & Bottom (上下双面), 横向插拔, 背夹锁扣. 保持力 0.2N x 触点数 min (初始). 寿命 10 次插拔 (原厂规格书 MECHANICAL OPERATION)",
+      "source": "https://www.hirose.com/en/product/p/CL0580-2923-7-50/documents?path=%2Fapi%2Fv1%2Fproducts%2FCL0580-2923-7-50%2Fdocuments%2Fdrawing_2d%2Fcontent%3Flang%3DEN (图号 EDC3-338903-01, Sheet 1 RECOMMENDED PCB MOUNTING PATTERN + RECOMMENDED STENCIL PATTERN, Sheet 2 RECOMMENDED FPC, Sheet 4 DIMENSION TABLE) | 系列规格书: https://www.hirose.com/en/product/series/FH35C/documents?path=%2Fapi%2Fv1%2Fseries%2FFH35C%2Fdocuments%2Fproduct_series_catalog%2Fcontent%3Flang%3DEN (p.3 Recommended Land Dimensions, p.4 Land and Metal Mask, p.5 FPC) | 规格书: https://www.hirose.com/en/product/p/CL0580-2923-7-50/documents?path=%2Fapi%2Fv1%2Fproducts%2FCL0580-2923-7-50%2Fdocuments%2Fspec_sheet%2Fcontent%3Flang%3DEN | 产品页: https://www.hirose.com/en/product/p/CL0580-2923-7-50"
+    },
+
+    "CONN_LIGHT": {
+      "status": "型号未定 — 已给 4 个公开在售候选 (见 candidates)",
+      "part": "待定",
+      "value": "40p / 0.5mm 贴板翻盖式 FPC 座",
+      "package": "待定",
+      "land_pattern": "待定 (候选 A 的原厂 2D 图 + 尺寸表可直接下载)",
+      "pitch_mm": 0.5,
+      "pin_count": 40,
+      "pins": {
+        "1": "DISPLAY_CONTACT_1",
+        "2": "DISPLAY_CONTACT_2",
+        "3": "DISPLAY_CONTACT_3",
+        "4": "DISPLAY_CONTACT_4",
+        "5": "DISPLAY_CONTACT_5",
+        "6": "DISPLAY_CONTACT_6",
+        "7": "DISPLAY_CONTACT_7",
+        "8": "DISPLAY_CONTACT_8",
+        "9": "DISPLAY_CONTACT_9",
+        "10": "DISPLAY_CONTACT_10",
+        "11": "DISPLAY_CONTACT_11",
+        "12": "DISPLAY_CONTACT_12",
+        "13": "DISPLAY_CONTACT_13",
+        "14": "DISPLAY_CONTACT_14",
+        "15": "DISPLAY_CONTACT_15",
+        "16": "DISPLAY_CONTACT_16",
+        "17": "DISPLAY_CONTACT_17",
+        "18": "DISPLAY_CONTACT_18",
+        "19": "DISPLAY_CONTACT_19",
+        "20": "DISPLAY_CONTACT_20",
+        "21": "DISPLAY_CONTACT_21",
+        "22": "DISPLAY_CONTACT_22",
+        "23": "DISPLAY_CONTACT_23",
+        "24": "DISPLAY_CONTACT_24",
+        "25": "DISPLAY_CONTACT_25",
+        "26": "DISPLAY_CONTACT_26",
+        "27": "DISPLAY_CONTACT_27",
+        "28": "DISPLAY_CONTACT_28",
+        "29": "DISPLAY_CONTACT_29",
+        "30": "DISPLAY_CONTACT_30",
+        "31": "DISPLAY_CONTACT_31",
+        "32": "DISPLAY_CONTACT_32",
+        "33": "DISPLAY_CONTACT_33",
+        "34": "DISPLAY_CONTACT_34",
+        "35": "DISPLAY_CONTACT_35",
+        "36": "DISPLAY_CONTACT_36",
+        "37": "DISPLAY_CONTACT_37",
+        "38": "DISPLAY_CONTACT_38",
+        "39": "DISPLAY_CONTACT_39",
+        "40": "DISPLAY_CONTACT_40"
+      },
+      "notes": "★引脚名用 DISPLAY_CONTACT_N 占位 — 实际信号名照抄 HW/STEP1_PARTS_SPEC.md §3.1 的 Radxa Display 8 HD 40 针表 (1=NC 2=VDD 3=VCCIO 4=NC 5=Reset 6=NC 7=GND 8=MIPI_0N 9=MIPI_0P 10=GND 11=MIPI_1N 12=MIPI_1P 13=GND 14=MIPI_CKN 15=MIPI_CKP 16=GND 17=MIPI_2N 18=MIPI_2P 19=GND 20=MIPI_3N 21=MIPI_3P 22=GND 23=GND 24=TP_RESET 25=TP_VCC 26=TP_INT 27=TP_SDA 28=TP_SCL 29=GND 30=GND 31=VDD 32=VDD 33=GND 34=GND 35=LED- 36=LED- 37=NC 38=NC 39=LED+ 40=LED+). ★★前置矛盾 (选型前必须先解决): 屏侧 FPC 是 40p/0.5mm, 而原厂排线主板侧是 39p/0.3mm 或 15p/1.0mm => 主板画 40p/0.5mm 座与原厂排线对不上. 走原厂排线则主板应画 39p/0.3mm (HIROSE FH23-39S-0.3SHW(40) 原厂在售); 不用原厂排线才需 40p/0.5mm",
+      "candidates": [
+        {
+          "rank": 1,
+          "vendor": "HIROSE",
+          "part": "FH12-40S-0.5SH(55)",
+          "code_number": "586-0527-7",
+          "spec": "40 positions / 0.5mm pitch / 座体高 2.0mm / Bottom Contact / Front Flip / ZIF; 原厂尺寸表 40p: A=19.5, B=23.1, C=24.1, D=20.57 mm; 单排 40 脚, 焊盘跨距 (40-1)x0.5 = 19.5mm",
+          "price_clue": "授权分销商 (DigiKey/Mouser/LCSC) 在售; 单价未取得可引用快照 (未查到)",
+          "land_pattern": "原厂 FH12 系列规格书尺寸表 (P.4 含 FH12-40S-0.5SH 586-0527-7) + 原厂 2D 图",
+          "why": "与项目已在用的 HIROSE FH12 系列 (J_CHG = FH12-10S-0.5SH(55)) 同厂同工艺 => 供应链/备料统一; 0.5mm/40p 与屏侧一致; 原厂尺寸表齐全可直接画 footprint",
+          "weakness": "★Front Flip 非背夹 (任务书 '背夹式' 沿用了 CONN_CAM 的 FH35C 说法)",
+          "source": "https://www.hirose.com/en/product/series/FH12 (系列页: '0.5mm Pitch, Height 2.0mm Bottom Contact, Front Flip') + 原厂系列规格书 PDF https://www.hirose.com/en/product/series/FH12/documents?path=%2Fapi%2Fv1%2Fseries%2FFH12%2Fdocuments%2Fproduct_series_catalog%2Fcontent%3Flang%3DEN"
+        },
+        {
+          "rank": 2,
+          "vendor": "Molex",
+          "part": "502250 系列 (40p 具体后缀待核, 形如 502250-4000, 不猜)",
+          "spec": "0.50mm pitch SMT ZIF FPC connector / Right Angle BackFlip / Dual contact / Gold / 0.2A 50V / FPC 0.20mm; 原厂矩阵页列 502250 电路数 39, 41, 51",
+          "price_clue": "Molex 自有分销渠道 + DigiKey/Mouser 在售; 具体单价未取得可引用快照 (未查到)",
+          "land_pattern": "Molex 原厂 Product Brief (需索取)",
+          "why": "★唯一经原厂矩阵页确认的 'BackFlip + 0.5mm' 在售路线; 若结构必须背夹 (FPC 从板下出线), 这是对路型号; Dual contact 与 CONN_CAM (FH35C 上下双面) 同风格",
+          "weakness": "★原厂矩阵页未直接列 40 档 (列 39/41/51) => 需确认是否有 40 或必须 39/41",
+          "source": "https://www.molex.com/en-us/products/connectors/ffc-fpc-connectors (原厂页: 'Back Flip: Located on the anti-slip side, reducing its height...') + Molex 原厂 'Tablet PC Connector Systems' PDF 的 SELECTION MATRIX (0.50mm Pitch SMT ZIF FPC Connectors 表)"
+        },
+        {
+          "rank": 3,
+          "vendor": "Amphenol FCI",
+          "part": "62684-401100ALF (LCSC C2904111)",
+          "spec": "40 positions / 0.5mm pitch / Bottom Contact / Surface Mount Right Angle / Slide Lock / Gold / Phosphor Bronze / -55~+85°C",
+          "price_clue": "LCSC 授权分销商: 9,910 在库; 1+ $0.7534; 10+ $0.6303; 500+ $0.4531; 1000+ $0.435; 批量 $0.75; 全卷 2,000 只",
+          "land_pattern": "Amphenol 原厂 62684 系列 Product Specification (需索取)",
+          "why": "现货最足、价格最低的一档; 0.5mm/40p 规格完全对得上; Slide Lock 免工具",
+          "weakness": "Slide Lock 非背夹; 40p 单排焊盘跨距 19.5mm",
+          "source": "LCSC 产品页 (授权分销商参数与价格): https://www.lcsc.com/product-detail/C2904111.html + Amphenol 原厂 62684 系列规格书"
+        },
+        {
+          "rank": 4,
+          "vendor": "JAE Electronics",
+          "part": "FA5B040HP1 (LCSC C3168222)",
+          "spec": "40 positions / 0.5mm pitch / Bottom Contact / Hinged Lid / -40~+85°C / Copper alloy, Gold",
+          "price_clue": "LCSC 授权分销商: 1+ $3.2513; 10+ $2.7987; 500+ $2.1333; 1000+ $2.0763; 全卷 3,000 只",
+          "land_pattern": "JAE 原厂 FA5B 系列规格书 (需索取)",
+          "why": "原厂大厂, FA5B 是标准 0.5mm 铰链式, 可靠性口碑好, 现货足",
+          "weakness": "价格是 Amphenol 档的两倍以上",
+          "source": "LCSC 产品页 (授权分销商参数与价格): https://www.lcsc.com/product-detail/C3168222.html + JAE 原厂 FA5B 系列规格书"
+        }
+      ],
+      "source": "未落定 — 见 candidates 各条"
+    }
+  }
+}
