@@ -1,15 +1,15 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-02 20:30)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-03 08:57)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
 
 ## 一、当前状态
 
-- 阶段门: 【总体】 阶段门 G2 ⏸️ | 健康度 red | 距通过 G2 还差 6 项 | 未闭环高危 9 条 | 逾期 21 条
+- 阶段门: 【总体】 阶段门 G2 ⏸️ | 健康度 red | 距通过 G2 还差 6 项 | 未闭环高危 12 条 | 逾期 22 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=0
-- 问题单: 共 155 条 · closed=59 · deferred=3 · fixed=17 · fixing=1 · open=34 · verified=41
-- GitHub 上次推送: 2026-11-02T19:14:12+08:00
+- 问题单: 共 162 条 · closed=59 · deferred=10 · fixed=21 · fixing=1 · open=30 · verified=41
+- GitHub 上次推送: 2026-11-03T01:11:17+08:00
 
 ## 二、执行中 (谁在干什么)
 
@@ -47,15 +47,15 @@
 - ISS-137 · ★★[可执行, 一行代码的活] 把「显示合成段」从 T_FIXED 里单独打点 —— 它是 RK3572 + 1920×1080 下 60ms 成败的关键未
 - ISS-139 · ★★[内部, 与选谁无关] ISP tuning 立项: 两个候选 sensor 都没有现成 IQ 文件 ⇒ 这笔账必须自己排
 - ISS-155 · ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 target 转的 .rknn 能
-- ISS-156 · ★★[demo 供应链] 公开现货清单的采购口径: camera 模组 FPC 无 0.5mm/24p 现货 + 1920×1080 视涯 SiOLED 无
+- ISS-156 · ★★[demo 供应链] 自研主板的三件前置选型: camera 模组 / 屏模组 / RK3572 核心板 (★主板的 FPC 座由模组倒逼)
+- ISS-160 · ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) 
+- ISS-165 · ★★★[硬件 A2 段 · 最后一块] SOM 座 (4×100pin/0.4mm BTB) + SoC 节点改挂 + ★CARRIER_BOARD_EN 
 
 ### 3.3 三个总工可自行推进 (队列 cron 每 30 分钟自动派)
 
-- ISS-066 · mech-lead · 测量清单补 H14 (temple_cage 上的 ⌀2.4 PCB 定位间隙孔独立量测行) + measurements.yaml 索引同
-- ISS-076 · mech-lead · 新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1.6.2
-- ISS-103 · mech-lead · ★镜框开导光孔/导光柱 (充电灯装充电板靠 Type-C 座, 老板拍板关机时充电灯要亮)
 - ISS-153 · hw-lead · ★★订正: AR0234CS 的 I2C 地址是 0x10 (不是 0x36) + IMX415 是 0x1a ⇒ 网表注释已改, 但要连带
 - ISS-154 · hw-lead · ★★[整机阶段] AR0234CS 的 VDDIO_PHY 1.8V 轨缺失 + CONN_CAM 18p 占满 ⇒ 不供电就出不了图 (A
+- ISS-159 · hw-lead · ★★[demo] 画板前致命项清零 F4~F12 (★照 EN 那个 P0 的教训: 漏到投板后 = 2~4 周返工)
 
 ## 四、恢复步骤 (token 恢复后照此走)
 
