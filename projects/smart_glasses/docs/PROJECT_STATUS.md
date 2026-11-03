@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-03 09:38** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-03 09:40** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -62,7 +62,7 @@
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 166 条 | 状态: closed=59 deferred=10 verified=41 fixed=23 open=29 fixing=4
+登记问题 166 条 | 状态: closed=59 deferred=10 verified=41 fixed=25 open=29 fixing=2
   ├─ 内部可自行推进: 137 条 | 外部依赖 (等老板/原厂/JBD): 29 条
   ├─ 逾期未闭环: 0 条
   └─ 未闭环 blocker 级: 15 条
@@ -106,11 +106,11 @@
        ★显示 TX 公开渠道穷举 (AR9481 模组厂/模组规格书/公开板卡 + 酷芯模组供应商) —— 不等原厂也能判 DSI TX 
   🔴 ISS-155  open      owner=main       due=2026-11-03  
        ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
-  🔴 ISS-165  fixing    owner=main       due=2026-11-03  
+  🔴 ISS-165  fixed     owner=main       due=2026-11-03  
        ★★★[硬件 A2 段 · 最后一块] SOM 座 (4×100pin/0.4mm BTB) + SoC 节点改挂 + ★CARRI
   🔴 ISS-166  fixed     owner=main       due=2026-11-03  
        ★★★[P0 · 短路级] 网表连接器脚位: 一个脚挂多个网 (CONN_CAM 12 处 / CONN_LIGHT 9 处) ⇒ 
-  🔴 ISS-167  fixing    owner=main       due=2026-11-03  
+  🔴 ISS-167  fixed     owner=main       due=2026-11-03  
        ★★★[P0 · 假绿] 板生成器按 CSV 行序给焊盘编号 ⇒ 连接器脚位全错; 等价性门禁比集合 ⇒ 报绿
   🔴 ISS-168  fixed     owner=main       due=2026-11-03  
        ★★★[P0] RK3572 与 RK3576 引脚功能不同 ⇒ 上一版 SoM 引脚分配表作废 (226/398 脚球号不同)

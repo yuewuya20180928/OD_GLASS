@@ -86,7 +86,7 @@ def add_som_connectors(board, netmap, params_path, pin_net):
         fp = pcbnew.FOOTPRINT(board)
         fp.SetReference(f'J_SOM_{conn}')
         fp.SetValue(f'Hirose DF40C-100DS-0.4V(51) 100pin 0.4mm (SOM {conn}) '
-                    f'★几何待原厂图纸核对')
+                    f'★pin1 所在排待实测确认')
         for fld in (fp.Reference(), fp.Value()):
             try:
                 fld.SetLayer(pcbnew.F_Fab)
@@ -98,16 +98,20 @@ def add_som_connectors(board, netmap, params_path, pin_net):
         bw = P['body_w'] / 2.0
         _fab_rect(fp, -bl, -bw, bl, bw)
         # 焊盘: 双排 · 奇数脚排 A (y = -rp/2), 偶数脚排 B (y = +rp/2)
-        #   排内第 k 个脚 (k=0..49) 的 x = (k - 24.5) * pitch  (50 脚跨距 19.6mm)
+        #   ★**脚号沿 −x 递增** (手册底面尺寸图的 △ 标记在每个座的 **+x 端** ⇒ pin1/pin2 在 +x 端)
+        #   排内第 k 个脚 (k=0..49) 的 x = ((half-1)/2 - k) * pitch  (50 脚跨距 19.6mm)
+        #   ★★**pin1 到底在哪一排 (y 大 / y 小) 公开资料定不了** ⇒ 本实现假设**奇数脚在 y 小的排**
+        #      ⇒ 错一排 = 该座 100 根网络全对调 ⇒ ★**下料前必须实物实测确认** (见
+        #      HW/PCB/SOM_CONNECTOR_GEOMETRY_PROBE.md §5: 买 1 片 SoM 用万用表打 GND 定偶数排)
         half = contacts // rows          # 50
         for n in range(1, contacts + 1):
-            if n % 2 == 1:               # 奇数脚 → 排 A
+            if n % 2 == 1:               # 奇数脚 → 排 A (y 小)
                 k = (n - 1) // 2
                 row_y = -rp / 2.0
-            else:                         # 偶数脚 → 排 B
+            else:                         # 偶数脚 → 排 B (y 大)
                 k = (n - 2) // 2
                 row_y = +rp / 2.0
-            x = (k - (half - 1) / 2.0) * pitch
+            x = ((half - 1) / 2.0 - k) * pitch
             net = pin_net.get(conn, {}).get(n)
             _mkpad(fp, n, net, x, row_y, pw, pl, netmap)
         fp.SetPosition(V(px, py))
