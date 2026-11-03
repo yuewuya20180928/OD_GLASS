@@ -361,7 +361,9 @@ def main():
         netmap[nm] = ni
 
     # 网表器件: 行式装箱 (按实际宽高排, 留 2mm 间距 ⇒ 不重叠 ⇒ DRC 有意义)
-    PK_AREA = (72.0, 5.0, BOARD_W - 3.0, BOARD_H - 3.0)   # x0,y0,x1,y1
+    # ★器件排布区: x 从 78 起 (SOM 承载区 8..76 ⇒ 留 2mm) · 右边到板边 3mm
+    #   ★11-03: 4 个 BTB 座按手册底面图的 2×2 位置放 ⇒ 座实际占 x 13.7..70.3 ⇒ 器件区可以更宽
+    PK_AREA = (78.0, 5.0, BOARD_W - 3.0, BOARD_H - 3.0)   # x0,y0,x1,y1
     items = []
     for ref in sorted(per_ref.keys()):
         if ref.startswith(PSEUDO):
