@@ -30,7 +30,7 @@
 | U_DCDC_VCORE / VIO (TPS62130A) | `RGT0016C` | `Package_DFN_QFN:VQFN-16-1EP_3x3mm_P0.5mm_EP1.68x1.68mm` | ✅ **散热焊盘 1.68mm 与原厂完全对上**; ★核对编号方向 |
 | J_TYPE_C (GCT USB4105) | 原厂 Recommended PCB Layout | `Connector_USB.pretty:USB_C_Receptacle_*` (Amphenol / CNCTech / G-Switch) 可作几何参考 | ★**GCT USB4105 无现成封装 ⇒ 需自绘** |
 | CONN_CAM (FH35C-31S) | HIROSE Recommended Land Dimensions | — | ★需自绘 (库内无 HIROSE FH 系列) |
-| CONN_LIGHT | 待定 | 待定 | 随候选而定 |
+| CONN_LIGHT (FH12-22S) | ★**官方封装已拿到** (RPi 官方 CM5IO .kicad_mod, 几何已抄录) | `Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal` | ★**2026-11-04 定案** ⇒ 不用自绘 |
 
 | 器件 | 状态 | 封装 | 脚号来源 |
 |---|---|---|---|
@@ -44,7 +44,7 @@
 | J_TYPE_C (USB-C 16p) | ✅ **已查实** ★**推荐 GCT USB4105** | SMT 贴片 USB-C 母座 | GCT USB4105 图纸 Rev B3 (DigiKey 镜像原厂 PDF) |
 | U_DCDC_VCORE / VIO (TPS62130A) | ✅ **已查实 · 标 DNP** | VQFN-16 RGT (3×3mm) | TPS62130A SLVSAG7F p.3 Fig 6-1 + Table 6-1 |
 | CONN_CAM (FH35C-31S-0.3SHW(50)) | ✅ **已查实** | 0.3mm 背夹式双面触点 FPC 座, 31p | HIROSE 原厂 2D 图 + 系列规格书 |
-| CONN_LIGHT (40p/0.5mm) | ⚠️ **候选已给 ≥3 个, 型号未定** (见 §10) | 0.5mm 背夹式 FPC 座 40p | 各厂原厂资料 |
+| CONN_LIGHT (FH12-22S-0.5SH(55)) | ✅ **已查实 · 已定案** (见 §11) | **22p / 0.5mm** 右角(水平) / 底接触 FPC 座 | ★**Raspberry Pi 官方 CM4IO/CM5IO KiCad 器件属性 + 官方封装 .kicad_mod**; 针序照 **Pi5 官方原理图 J4** |
 
 ★**本次最重要的 3 条纠正** (与任务书里的假设不同, 已按原厂 datasheet 落定):
 1. **TPS7A20 的 X2SON 是 "4 脚 + 散热焊盘" 不是 "5 脚"** —— 脚号是 **1=OUT, 2=GND, 3=EN, 4=IN, 5=散热焊盘(接 GND)**; 任务书模板里的 `{"1":"IN","2":"GND","3":"EN","4":"OUT","5":"NC"}` **是错的** (那是 SOT-23 版的 pin 4=N/C, 不是 X2SON)。
@@ -603,75 +603,27 @@
 
 ---
 
-## 11. CONN_LIGHT —— 40p / 0.5mm FPC 座 (★型号未定 ⇒ 给 ≥3 个公开在售候选)
+## 11. CONN_LIGHT —— ★**已定案 2026-11-04: HIROSE FH12-22S-0.5SH(55) (22p / 0.5mm, Pi5 同规)**
 
-### 11.1 定位与硬约束
+> ★**本节整段重写**: 原 §11 是"40p/0.5mm 座 · 型号未定 · 给 4 个候选" (那是 **Radxa Display 8HD** 时代的结论) ⇒
+> demo 屏已换 **Waveshare 2.8inch DSI LCD (SKU 22028)**, 原厂线 = **22p(0.5mm) ↔ 15p(1.0mm)** ⇒ **板侧座定为 22p/0.5mm**。
 
 | 项 | 值 | 来源 |
 |---|---|---|
-| 屏模组 | **Radxa Display 8 HD** (800×1280, 4-lane MIPI DSI) | `HW/STEP1_PARTS_SPEC.md` §3 |
-| 屏侧 FPC | **40 pin / 0.5mm pitch** (全 40 针表已在 `HW/STEP1_PARTS_SPEC.md` §3.1) | 同上 |
-| 主板侧 FPC | 39p/0.3mm **或** 15p/1.0mm (原厂排线另一头) | 同上 |
-| ⇒ ★**关键矛盾** | **屏侧是 40p/0.5mm, 主板侧是 39p/0.3mm** ⇒ **主板画 40p/0.5mm 座 = 与原厂排线对不上** (排线两头规格不同) ⇒ **要么主板画 39p/0.3mm 座吃原厂排线, 要么不用原厂排线、自己做 40p↔40p 排线**。**这是选型前必须先定的一件事** | `HW/STEP1_PARTS_SPEC.md` §3.1 "★主板该画哪个?" |
-| 现网表写法 | `CONN_LIGHT` = "FH12-40S-0.5SH 一类", 型号待定 | `HW/STEP1_PARTS_SPEC.md` L202 |
+| 型号 | **HIROSE FH12-22S-0.5SH(55)** | RPi 官方 CM4IO/CM5IO KiCad 器件属性 (Field5/Field6) |
+| 规格 | 22 位置 / **0.5mm pitch** / 右角(水平) / 表面贴装 / **Bottom Contact** / 1 个固定柱 | 官方封装名与描述 |
+| 官方 land pattern | **有** —— `Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal.kicad_mod` (RPi 官方 CM5IO.pretty) ⇒ **几何已抄进 `HW/PCB/display_fpc_params.json`** | 同上 |
+| 焊盘 | 22 个, **0.3 × 1.3mm** 矩形, pitch 0.5, 焊盘行 y = -1.85, **pad1 在 +x 端 (x=+5.25)** | 官方 .kicad_mod 逐值抄录 |
+| 本体 / Courtyard | F.Fab x -7.05..+7.05, y -1.2..+3.4 · Courtyard ±8.55 × -3.0..+4.9 | 同上 |
+| ★★**针序** | ★**照 Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 12=SDA0 13=GND 14=3V3 15=3V3 | Pi5 官方原理图 RP-008350 (J4) |
+| ★16..22 | 在 Pi5 上是 **NC** ⇒ 被动线的 22p 端也必然 NC ⇒ **本板自用**: lane2=16/17 · lane3=18/19 · 20/21/22 预留地 ⇒ **4-lane 能力保留, 不必上第二颗座** | Pi5 原理图红叉 + 线缆直通推论 |
+| ★★**不可混抄** | ★**CM5IO 的 22p 针序 ≠ Pi5 DISPLAY 座** (CM5IO: 2/3=D0 · 5/6=D1 · 8/9=CLK · 20/21=I2C) ⇒ 照 CM5IO 抄 ⇒ 屏必不亮 | CM5IO 官方 PCB 焊盘网表 |
+| 屏侧 | **15p / 1.0mm** (Waveshare 屏原生) ⇒ 靠官方 "DSI Cable-12cm" 22p↔15p 线连接 | Waveshare 官方 wiki |
+| 配套线 | Waveshare 『DSI Cable-12cm』 (或 RPi 官方 22-way↔15-way FFC) | 同上 |
 
-### 11.2 ★候选 A (推荐) —— HIROSE FH12-40S-0.5SH(55)
-
-| 项 | 值 |
-|---|---|
-| 厂商 / 型号 | **HIROSE FH12-40S-0.5SH(55)** (原厂 Code Number **586-0527-7**) |
-| 规格 | 40 位置 / **0.5mm pitch** / 座体高 **2.0mm** / Bottom Contact / Front Flip / ZIF |
-| 尺寸 (原厂 FH12 系列尺寸表) | **A = 19.5mm, B = 23.1mm, C = 24.1mm, D = 20.57mm** |
-| 触点方向 | Bottom (下触点) |
-| 兼容 FPC | 0.18 – 0.30mm 厚 (项目已在 `HW/J_CHG_SELECTION.md` 用 FH12 系列作 J_CHG 依据) |
-| 脚号 | **1 – 40, 单排**, 自一端起; 40p 单排 pitch 0.5mm ⇒ 焊盘跨距 (40−1)×0.5 = **19.5mm** (= 原厂尺寸 A 值 ✔ 自洽) |
-| 价格线索 | HIROSE 原厂 586-0527-7, 授权分销商 (DigiKey/Mouser/LCSC) 在售; 单价属分销商报价, **本表不写具体数字 (未取得可引用的授权页快照)** ⇒ 见 §11.6 |
-| ★适合理由 | ★**与项目已在用的 HIROSE FH12 系列同厂同工艺** (J_CHG = FH12-10S-0.5SH(55)) ⇒ 供应链/装配/备料统一; 0.5mm pitch 与屏侧 40p/0.5mm **一致**; 2.0mm 高度 |
-| ★不足 | ★**Front Flip 不是 Back Flip** —— 任务书写 "背夹式" 是沿用了 CONN_CAM (FH35C 是真背夹) 的说法; FH12 是正面翻盖。若结构上必须背夹 (FPC 从板下方出线), FH12 不满足 |
-| 证据 | <https://www.hirose.com/en/product/series/FH12> (系列页: "0.5mm Pitch, Height 2.0mm Bottom Contact, Front Flip") + 原厂系列规格书 PDF (尺寸表 P.4 含 `FH12-40S-0.5SH(**) 586-0527-7 40 19.5 23.1 24.1 20.57`) |
-
-### 11.3 ★候选 B —— Molex 502250 系列 (真 BackFlip)
-
-| 项 | 值 |
-|---|---|
-| 厂商 / 型号 | **Molex 502250 系列** (0.50mm pitch, **Right Angle BackFlip**, Dual contact, Gold) |
-| 原厂矩阵证据 | Molex 原厂 "Tablet PC Connector Systems" 产品手册的 SELECTION MATRIX: "0.50mm Pitch SMT ZIF FPC Connectors / Series **502250** / Circuit Sizes 39, 41, 51 / Right Angle **BackFlip** / Dual contact / Gold / 0.2A 50V / FPC 0.20mm" |
-| ★型号拼法 | Molex 502250 系列 40p 订货号形如 **`502250-4000`** (Molex 惯例: 502250 + 电路数 + 后缀) — **具体后缀 (是否 -4000 还是 -40xx) 需按原厂 Product Brief 核对, 本表不猜** |
-| 价格线索 | 原厂矩阵页 + 授权分销商 (Molex 自有分销渠道 / DigiKey / Mouser) 在售; 具体单价未取得可引用快照 |
-| ★适合理由 | ★**唯一确认的 "BackFlip + 0.5mm" 原厂在售路线** —— 若结构确实要背夹 (FPC 从板下出线, 减少铰链区厚度), Molex BackFlip 是对路的; 且 "Dual contact" 与 FH35C 同样是上下双面触点 ⇒ **与 CONN_CAM 同风格** |
-| ★不足 | 电路数 39/41/51 (矩阵页) ⇒ **40p 需确认是否有 40 档或必须 39/41**; 且原厂矩阵页未直接列 40 |
-| 证据 | <https://www.molex.com/en-us/products/connectors/ffc-fpc-connectors> (原厂页: "Back Flip: Located on the anti-slip side, reducing its height…") + Molex 原厂 "Tablet PC Connector Systems" PDF SELECTION MATRIX (0.50mm Pitch SMT ZIF FPC Connectors 表) |
-
-### 11.4 ★候选 C —— Amphenol FCI 62684-401100ALF (40p / 0.5mm, Slide Lock)
-
-| 项 | 值 |
-|---|---|
-| 厂商 / 型号 | **Amphenol FCI 62684-401100ALF** (LCSC 编号 **C2904111**) |
-| 规格 (授权分销商参数) | 40 位置 / **0.5mm pitch** / Bottom Contact / Surface Mount Right Angle / **Slide Lock** / Gold / Phosphor Bronze / −55 ~ +85°C |
-| 价格线索 | LCSC (授权分销商) 挂牌: **9,910 只在库; 1+ $0.7534; 10+ $0.6303; 500+ $0.4531; 1000+ $0.435; 批量价 $0.75; 全卷 2,000 只** |
-| ★适合理由 | **现货最足、价格最低**的一档 ($0.75 量级 vs HIROSE 两位数美元); 0.5mm/40p 规格完全对得上; Slide Lock 免工具 |
-| ★不足 | Slide Lock ≠ 背夹 (是滑盖); 40p 单排 ⇒ 焊盘跨距 19.5mm |
-| 证据 | LCSC 产品页 (授权分销商参数与价格) + Amphenol 原厂 62684 系列 Product Specification (封装图需向原厂索取) |
-
-### 11.5 ★候选 D —— JAE FA5B040HP1 (40p / 0.5mm, Hinged Lid)
-
-| 项 | 值 |
-|---|---|
-| 厂商 / 型号 | **JAE Electronics FA5B040HP1** (LCSC 编号 **C3168222**) |
-| 规格 (授权分销商参数) | 40 位置 / **0.5mm pitch** / Bottom Contact / **Hinged Lid** / −40 ~ +85°C / Copper alloy, Gold |
-| 价格线索 | LCSC: 1+ $3.2513; 10+ $2.7987; 500+ $2.1333; 1000+ $2.0763; 全卷 3,000 只 |
-| ★适合理由 | JAE 是原厂大厂, FA5B 系列是标准 0.5mm 背夹/铰链式, 做工与可靠性口碑好; 现货足 |
-| ★不足 | 价格是 C 档的两倍以上 |
-| 证据 | LCSC 产品页 (授权分销商参数与价格) + JAE 原厂 FA5B 系列规格书 |
-
-### 11.6 ★为什么这样选 (给项目总工的裁决建议)
-
-1. ★**先定 "要不要背夹"** —— 这是分水岭:
-   - **要背夹** (FPC 从板下走线, 铰链区厚度吃紧) ⇒ **候选 B (Molex 502250 BackFlip)** 是唯一原厂在售的对路型号, 但要核 40p 档位
-   - **不要背夹** (正面翻盖可接受) ⇒ **候选 A (HIROSE FH12-40S-0.5SH(55))** 综合最优: 与项目已有的 HIROSE FH12 供应链一致 (J_CHG 同系列)、0.5mm/40p 原厂在售、原厂尺寸表齐全可直接画 footprint
-2. ★**成本优先** ⇒ 候选 C (Amphenol 62684, $0.75) 或候选 D (JAE FA5B, $3.25)
-3. ★**但在此之前必须先解决 §11.1 的 40p↔39p 矛盾** —— 若最终走原厂排线 (主板侧 39p/0.3mm), **以上 4 个 40p/0.5mm 候选全部作废**, 需改查 39p/0.3mm 背夹座 (HIROSE FH23-39S-0.3SHW(40) 是原厂在售型号, 已在库内 `HW/PCB/FPC_PIN_TABLES.md` 语境中出现)
-4. ★**封装图**: 候选 A 的原厂 2D 图 + 尺寸表可直接下载 (见 §11.2 URL); 候选 B/C/D 的 **封装图需要分别向原厂索取 Product Brief / Product Specification** (本表未取得可引用的原厂封装图 PDF ⇒ 不猜焊盘尺寸)
+★**逐针表**: `HW/PCB/PI5_DSI_22P_PINOUT.md` (含三条独立证据) · 机器可读 `HW/PCB/pi5_dsi_22p.json`
+★**板级复核**: `state/verify_display_fpc.py` (针号→网络 / 焊盘几何 / 与其它器件外框不打架) ⇒ 22/22 全过
+★**未决 (须实物核对)**: 买线后万用表核 22p 端针序 (1 脚方向 / 3V3 位置) + 确认线缆 22p 端触点朝向 (底接触?)
 
 ---
 
@@ -680,7 +632,7 @@
 | # | 器件 | 缺什么 | 建议动作 |
 |---|---|---|---|
 | 1 | **BT_432243** | ★**电池两极引出形式 + 焊盘尺寸全部未查到** (丰江 432243 原厂规格书未检索到; 第三方零售页型号/尺寸不符, 按铁律不采信) | 走采购硬判据: 向供应商索取 432243 原厂规格书 (尺寸图 + 极性 + 引出形式); **在此之前网表标 [待采购], 不要先画焊盘** |
-| 2 | **CONN_LIGHT** | ★**型号未定** (已给 ≥4 个原厂在售候选 + 规格 + 价格线索, 见 §11) | 先裁 "要不要背夹" + 先解决 40p↔39p 矛盾 (§11.1) |
+| 2 | ~~**CONN_LIGHT**~~ | ★**2026-11-04 已定案** (HIROSE FH12-22S-0.5SH(55), 22p/0.5mm, 官方封装已抄录, 见 §11) ⇒ ★**仅剩实物核对**: 线缆 22p 端针序 + 触点朝向 | 买线后万用表核针序 (与 SoM DF40C pin1 行问题同级) |
 | 3 | **Q1 / Q2** | ★**Vgs 3.4V 下的实际 Rds(on) 未查到** (原厂判据写 7.5mΩ @3.5V, 但 CSD16406Q3 官方表只有 4.5V/10V 条件) | 按 BQ2970 §9.2.2 判据 (Vdss=25V, 7.5mΩ@3.5V, Imax>50A) 选 FET; 或选 Vgs(th) 更低的型号 |
 | 4 | **U_PWR_SW / U_EN_SW** | ★**反向阻断 (判据 5) 与 IQ ≤5µA (判据 4) 与 RON ≤40mΩ (判据 3) 三者在原厂在售型号里互斥** —— TPS22991 只满足 RON; TPS22916/17 满足 IQ+RCB 但 RON 60–90mΩ | ★**请项目总工裁决放宽哪一条**; 本文只给原厂数据, 不替裁 |
 | 5 | **U_SUPV** | ★**该器件在最新网表里已标 DNP** (SoM 内部 PMIC 已做上电复位) ⇒ 封装/脚号虽已查实, 但**首版不贴** | 保留 footprint 占位 + DNP 标记 |
