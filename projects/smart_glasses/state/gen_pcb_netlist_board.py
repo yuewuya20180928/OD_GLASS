@@ -56,7 +56,9 @@ GRID_PITCH_X, GRID_PITCH_Y = 4.2, 4.2
 GRID_COLS = 16
 SOM_AREA = (8.0, 6.0, 68.0, 50.0)   # SOM 承载区 x,y,w,h
 MM = 1e6
-PSEUDO = ("RAIL_", "NET_")   # ★网别名伪器件 —— 不是元件, 不画封装
+PSEUDO = ("RAIL_", "NET_")
+# ★USB-IF 物理脚名 (A1/A4/A5/A6/A7/A8/A9/A12 · B 同 · shield) 就是**真实焊盘号**
+USBIF_RE = re.compile(r"^(?:[AB](?:1|4|5|6|7|8|9|12)|shield)$")   # ★网别名伪器件 —— 不是元件, 不画封装
 
 
 def V(x, y):
@@ -69,6 +71,14 @@ def V(x, y):
 #   ⇒ ⇒ 网表仍是"产品级真源"(充电链那套留档), 但**板子只画 demo 主板**
 BOARD_FILTER = "MAIN_PCB"
 
+
+
+def _is_pad_name(tail):
+    """★真实焊盘号判定: "pin<N>" (网表针号) 或 **USB-IF 物理脚名** (A1/A4/A5/B12/shield …)
+    ★USB-C 座 (如 GCT USB4105) 的 KiCad 封装正是用这组名字当 pad number ⇒ 必须当真实焊盘号"""
+    if not tail:
+        return False
+    return bool(re.fullmatch(r"pin\d+(\+pin\d+)*", tail)) or bool(USBIF_RE.match(tail))
 
 def load_rows():
     with open(NETLIST, encoding="utf-8") as f:
@@ -121,7 +131,7 @@ def derive_pads(rows):
             comp, tail = split_node(r.get(k))
             if not comp or comp in real or comp.startswith(PSEUDO):
                 continue
-            if tail and re.fullmatch(r"pin\d+(\+pin\d+)*", tail):
+            if tail and _is_pad_name(tail):
                 real.add(comp)
 
     # dev -> OrderedDict[term_key] = (net, kind)
@@ -142,12 +152,13 @@ def derive_pads(rows):
             if comp is None or comp not in real:
                 continue
             d = terms.setdefault(comp, {})
-            if tail and re.fullmatch(r"pin\d+(\+pin\d+)*", tail):
+            if tail and _is_pad_name(tail):
                 for tok in tail.split("+"):          # 编号脚 ⇒ 真实针号
-                    n = int(tok.strip()[3:])
-                    key = ("P", n)
+                    tok = tok.strip()
+                    # ★"pin<N>" ⇒ 数字脚号; ★USB-IF 物理脚名 (A1/B12/shield) ⇒ **字符串脚号**
+                    key = ("P", int(tok[3:])) if tok.startswith("pin") else ("P", tok)
                     if key in d and d[key][0] != net:
-                        notes.append(f"{comp} pin{n} 同时挂 {d[key][0]} 与 {net}")
+                        notes.append(f"{comp} {key[1]} 同时挂 {d[key][0]} 与 {net}")
                     d.setdefault(key, (net, "P"))
                     seen_here.add(comp)
             elif tail:
@@ -180,11 +191,13 @@ def derive_pads(rows):
             continue
         if any(k[0] == "P" for k in d):
             pins = sorted(((k[1], v[0], "P") for k, v in d.items() if k[0] == "P"),
-                          key=lambda x: x[0])
+                          key=lambda x: (0, x[0]) if isinstance(x[0], int) else (1, x[0]))
             # ★防御: 若还有没被编号脚覆盖的命名脚/裸端 ⇒ 从 max(针号)+1 往后排
             rest = [v for k, v in d.items() if k[0] != "P"]
             if rest:
-                nxt = max(p[0] for p in pins) + 1
+                # ★脚号可能是数字 (pin<N>) 或字符串 (USB-IF 的 A1/B12) ⇒ 排序与续号分开处理
+                _nums = [x[0] for x in pins if isinstance(x[0], int)]
+                nxt = (max(_nums) + 1) if _nums else 1
                 for (net, kind) in rest:
                     pins.append((nxt, net, kind))
                     nxt += 1
@@ -308,7 +321,7 @@ def make_footprint(board, ref, value, kind, pins, netmap, x, y, label=True):
     r4.SetWidth(int(0.1 * MM))
     fp.Add(r4)
     # 焊盘 —— ★按焊盘号排序 ⇒ 焊盘在封装上的顺序 = 脚号顺序
-    ordered = sorted(pins, key=lambda t: t[0])
+    ordered = sorted(pins, key=lambda t: (0, t[0], 0) if isinstance(t[0], int) else (1, str(t[0]), 0))
     n = len(ordered)
     if nrows == 1:
         for i, (pnum, net, _kind) in enumerate(ordered):

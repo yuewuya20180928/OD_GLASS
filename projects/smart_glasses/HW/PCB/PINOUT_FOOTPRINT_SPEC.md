@@ -14,6 +14,24 @@
 - 查不到的写 **"未查到"**, **不许猜**
 - ★**封装命名**统一给: 原厂封装代号 + 尺寸 + pitch + 厂商 land pattern 文件名 (若有)
 
+### 0.1 ★KiCad 官方库 footprint 对照表 (已在本机 KiCad footprint 库里核对过存在性)
+
+> 本机库路径: `/home/yuewuya/kicad/AppDir/share/kicad/footprints/`
+> ★**焊盘编号顺序一定要复核** —— 库内通用封装的编号方向与 TI 原厂脚号不一定一致 (尤其 TPS7A20 的 1=OUT/4=IN 与 TPS62130A 的 13=EN/4=PG 这类交叉编号)
+
+| 器件 | 原厂 land pattern | KiCad 官方库 footprint | 状态 |
+|---|---|---|---|
+| U_LDO_* (7 颗 TPS7A20) | `DQN0004A` | `Package_DFN_QFN:UDFN-4-1EP_1x1mm_P0.65mm_EP0.48x0.48mm` | ✅ **尺寸/pitch 全对** (1×1mm, 0.65mm pitch, pad1-4 + pad5 中心散热焊盘) ⇒ ★核对编号顺序 + pin5 接 GND |
+| U_SUPV (SOT-23 变体) | `DBV0006A` | `Package_TO_SOT_SMD:SOT-23-6` | ✅ 存在; ★核对编号方向 |
+| U_SUPV (WSON 变体) | `DRV0006D` | — | ★需自绘 (2.0×2.0mm, 0.65mm pitch) |
+| U_PWR_SW / U_EN_SW (TPS22991) | `RAA0004A` | — | ★需自绘 (0.85×0.75mm UQFN-4, 库内无) |
+| U_BATPROT (BQ2970) | `DSE0006A` | — | ★需自绘 (1.5×1.5mm DFN-6, 库内无) |
+| Q1 / Q2 (CSD16406Q3) | `Q3` | — | ★需自绘 (3.3×3.3mm SON-8, 库内无) |
+| U_DCDC_VCORE / VIO (TPS62130A) | `RGT0016C` | `Package_DFN_QFN:VQFN-16-1EP_3x3mm_P0.5mm_EP1.68x1.68mm` | ✅ **散热焊盘 1.68mm 与原厂完全对上**; ★核对编号方向 |
+| J_TYPE_C (GCT USB4105) | 原厂 Recommended PCB Layout | `Connector_USB.pretty:USB_C_Receptacle_*` (Amphenol / CNCTech / G-Switch) 可作几何参考 | ★**GCT USB4105 无现成封装 ⇒ 需自绘** |
+| CONN_CAM (FH35C-31S) | HIROSE Recommended Land Dimensions | — | ★需自绘 (库内无 HIROSE FH 系列) |
+| CONN_LIGHT | 待定 | 待定 | 随候选而定 |
+
 | 器件 | 状态 | 封装 | 脚号来源 |
 |---|---|---|---|
 | U_LDO_L33 / IO33 / IO18 / L18 / S12 / S18B / S28 (7 颗 TPS7A20) | ✅ **已查实** | X2SON DQN (4 pin + 散热焊盘) | TPS7A20 SBVS338H p.4 Fig 4-3 + Table 4-1 |
@@ -43,7 +61,8 @@
 |---|---|
 | 原厂器件 | **Texas Instruments TPS7A20** (300mA 超低噪声低 IQ LDO) |
 | 原厂封装代号 | **DQN** = X2SON, **1mm × 1mm**, 高 0.4mm max, **无引脚 (no lead)** |
-| 厂商 land pattern / 封装图代号 | **`DQN0004A`** (原厂 datasheet 机械尺寸节 "PACKAGE OUTLINE DQN0004A — X2SON - 0.4 mm max height PLASTIC SMALL OUTLINE - NO LEAD") |
+| 厂商 land pattern / 封装图代号 | **`DQN0004A`** (原厂 datasheet 机械尺寸节 "PACKAGE OUTLINE DQN0004A — X2SON - 0.4 mm max height PLASTIC SMALL OUTLINE - NO LEAD"; 焊盘 0.48+0.12/−0.1mm 方形, 2X 0.65mm pitch, PIN 1 INDEX AREA) |
+| KiCad 官方库 footprint | `Package_DFN_QFN:UDFN-4-1EP_1x1mm_P0.65mm_EP0.48x0.48mm` (尺寸/pitch 全对; ★核对编号顺序, pad5 = 散热焊盘接 GND) |
 | 可选封装 (同系列同脚号表) | `DBV` = SOT-23-5 2.9×2.8mm / `YCJ`+`YCK` = DSBGA-4 0.61mm 见 §1.4 |
 | 脚数 | **4 个信号脚 + 1 个散热焊盘 (Thermal Pad) = 5 个焊盘** |
 | Pitch | 0.65mm (2×2 焊盘, 见 §1.5) |
@@ -115,8 +134,8 @@
 |---|---|
 | 原厂器件 | **TI TPS3808** (Low-IQ 可编程延时电压监督器) |
 | 型号变体 | **TPS3808G01** = **可调阈值版** (VIT = 0.405V 典型, 用 R1/R2 分压设定); 固定档: G09/G12/G125/G15/G18/G19/G25/G30/G33/G50 |
-| 封装 (推荐) | **DBV = SOT-23-6** (2.9×2.8mm 级), 厂商 land pattern 代号 **`DBV0006A`** |
-| 封装 (备选, 更小) | **DRV = WSON-6 (2.00×2.00mm) 带散热焊盘**, 代号 **`DRV0006A`** / `DRV0006D` |
+| 封装 (推荐) | **DBV = SOT-23-6** (2.9×2.8mm 级), 厂商 land pattern 代号 **`DBV0006A`**; KiCad: `Package_TO_SOT_SMD:SOT-23-6` (★核对编号方向) |
+| 封装 (备选, 更小) | **DRV = WSON-6 (2.00×2.00mm) 带散热焊盘**, 代号 **`DRV0006A`** / `DRV0006D` (★库内无 ⇒ 需自绘) |
 | 脚数 | 6 (SOT-23) / 6 + 散热焊盘 (WSON) |
 
 ### 2.2 脚号 ↔ 引脚名 (★两套装法, 别混)
@@ -171,7 +190,7 @@
 
 | 候选 | 封装 | Iout max | RON @5V / @3.6V | IQ | 反向阻断 | 状态 |
 |---|---|---|---|---|---|---|
-| **TPS22991** ★推荐 | **UQFN-4 RAA 0.85×0.75mm** | **3A** | **25mΩ / 25mΩ** | 6µA typ @3.3V (12µA max −40~85°C) | ✗ (但有 QOD 150Ω) | ✅ 4 脚最简, RON 达标, 封装最小 |
+| **TPS22991** ★推荐 | **UQFN-4 RAA 0.85×0.75mm** (原厂 land pattern `RAA0004A`) | **3A** | **25mΩ / 25mΩ** | 6µA typ @3.3V (12µA max −40~85°C) | ✗ (但有 QOD 150Ω) | ✅ 4 脚最简, RON 达标, 封装最小 |
 | TPS22916 | WCSP-4 YFP 0.78×0.78mm | 2A | 60mΩ / 70mΩ | **0.5µA typ** | ✅ **Always-ON true RCB** (反向漏 −300nA max) | 判据 3 (RON ≤40mΩ) **不达标** |
 | TPS22917 | SOT-23-6 DBV | 2A | 80mΩ / 90mΩ | 0.5µA typ | ✅ Always-ON true RCB (−1µA max) | RON 不达标, 6 脚 |
 | TPS22914B/C | DSBGA-4 YFP 0.74×0.74mm | 2A | 37mΩ / — | 7.7µA typ | ✗ | RON 最好但 IQ 超 5µA 判据, 且 WCSP 难焊 |
@@ -276,7 +295,7 @@
 | 项 | 值 |
 |---|---|
 | 原厂器件 | **TI BQ2970 / BQ2971 / BQ2972 / BQ2973** (1S 锂电保护, 过充/过放/过流/短路) |
-| 封装 | **DSE = WSON-6 (1.50 × 1.50 × 0.75mm)**, 厂商 land pattern 代号 **`DSE0006A`** |
+| 封装 | **DSE = WSON-6 (1.50 × 1.50 × 0.75mm)**, 厂商 land pattern 代号 **`DSE0006A`** (原厂 PACKAGE OUTLINE p.32: 4X 0.5mm pitch, 焊盘 0.3mm 长, 中心散热焊盘); ★**KiCad 官方库无此尺寸 ⇒ 需自绘** |
 | 脚数 | 6 (含 1 个 NC) |
 | 规格阈值 | BQ2970: OVP 4.275V / UVP 2.800V / OCC −100mV / OCD 100mV / SCD 500mV; 检测延时 OVP 1.25s · UVP 144ms · OCD 8ms · OCC 8ms · SCD 250µs |
 | 静态电流 | NORMAL 4µA typ / 5.5µA max; Shutdown 0.1µA |
@@ -311,7 +330,7 @@
 | 原厂指定 FET | ★**"Use the CSD16406Q3 FET for the application."** | **BQ2970 SLUSBU9I PDF p.20** §9.2.2 |
 | 原厂选型判据 | Vdss = 25V; 每管 Rds(on) = **7.5mΩ @ Tj=25°C, Vgs=3.5V**; Imax > 50A (短路 350µs 工况) | 同上 p.20 |
 | CSD16406Q3 参数 | Vds = 25V; Vgs(th) = 1.4/1.8/2.2 V (min/typ/max); Rds(on) = 5.9mΩ typ @Vgs=4.5V (7.4mΩ max), 4.2mΩ @Vgs=10V; Qg = 5.8nC; Qgd = 1.5nC; Ciss = 840pF | CSD16406Q3 SLPS202B PDF p.3 §5.1 |
-| 封装 | **Q3 = SON 3.3 × 3.3mm** (8 pin + 散热焊盘), 尺寸表 §7.1, PCB pattern §7.2, 钢网 §7.3 | SLPS202B p.8–9 |
+| 封装 | **Q3 = SON 3.3 × 3.3mm** (8 pin + 散热焊盘), 尺寸表 §7.1, PCB pattern §7.2, 钢网 §7.3 (散热焊盘 1.75×2.45mm); ★**KiCad 官方库无此尺寸 ⇒ 需自绘** | SLPS202B p.8–9 |
 
 ★**CSD16406Q3 脚号 (Q3 封装, 底视)**:
 | 脚号 | 引脚名 |
@@ -399,6 +418,7 @@
 | 触点 | **16 脚** (USB 2.0 Type-C 母座 = A1/A4/A5/A6/A7/A8/A9/A12 + B1/B4/B5/B6/B7/B8/B9/B12) |
 | 封装 | **SMT 贴片 (PCB Top Mount), 带 2 个 Ø0.50mm 定位孔 + 2 个 Ø0.65mm 壳体固定孔**; 外形 8.64 × 6.40mm (焊盘区), 主体高 3.50mm |
 | 焊盘 | **16 × 0.20mm 宽**, 间距 0.50mm (pitch), 焊盘长度 0.45mm (4×) / 0.25mm (2×) / 0.75mm (2×) 等 (见原厂图纸 "Recommended PCB Layout") |
+| KiCad footprint | ★**GCT USB4105 无现成 KiCad 封装 ⇒ 需自绘**; `Connector_USB.pretty:USB_C_Receptacle_*` (Amphenol / CNCTech / G-Switch) 可作几何参考 |
 | 载流 | VBUS 脚合计 **5.00A**; GND 脚合计 **6.25A**; **A5/B5 (CC) 1.25A**; 其余每脚 **0.25A** |
 | 耐压 | 48V DC; 绝缘 100MΩ min; 接触电阻 40mΩ max (初始) |
 | 耐久 | 20,000 次插拔 |
@@ -465,7 +485,7 @@
 |---|---|
 | 原厂器件 | **TI TPS62130A** (3A 17V 降压转换器, **可调输出版本**) |
 | ★关键区别 | **TPS62130A 的 PG 极性 = EN 为低时 PG 输出低** (固定版 TPS62130 = 高阻) —— 网表注释里"PG 极性待原厂核"这条, **原厂已答: A 版 PG 是低有效** |
-| 封装 | **RGT = VQFN-16 (3.00 × 3.00mm) 带散热焊盘**, 厂商 land pattern 代号 **`RGT0016C`** |
+| 封装 | **RGT = VQFN-16 (3.00 × 3.00mm) 带散热焊盘**, 厂商 land pattern 代号 **`RGT0016C`** (原厂 PACKAGE OUTLINE p.40: 中心散热焊盘 **1.68mm** 方形, 12X 0.5mm pitch); KiCad: `Package_DFN_QFN:VQFN-16-1EP_3x3mm_P0.5mm_EP1.68x1.68mm` (★核对编号方向) |
 | 脚数 | 16 + 散热焊盘 |
 | DNP 原因 | ★**SoM 自带 PMIC ⇒ 主板不产 SoC 核心/IO 轨** ⇒ 首版不贴 (网表 DNP 标记保留) |
 

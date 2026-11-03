@@ -49,12 +49,22 @@ import pcbnew  # noqa: E402
 NET = os.path.join(PROJ, "HW", "netlist_v1.csv")
 PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
 PSEUDO = ("RAIL_", "NET_")
+# ★USB-IF 物理脚名 (A1/A4/A5/A6/A7/A8/A9/A12 · B 同 · shield) 就是**真实焊盘号**
+USBIF_RE = re.compile(r"^(?:[AB](?:1|4|5|6|7|8|9|12)|shield)$")
 # ★demo 主板只装 MAIN_PCB 的件 (与 state/gen_pcb_netlist_board.py 同口径, 独立实现)
 BOARD_FILTER = "MAIN_PCB"
 PIN_RE = re.compile(r"pin\d+(\+pin\d+)*")
 
 
 # --------------------------------------------------------------- 网表 → 焊盘 (独立实现)
+
+
+def _is_pad_name(tail):
+    """★真实焊盘号判定: "pin<N>" (网表针号) 或 **USB-IF 物理脚名** (A1/A4/A5/B12/shield …)
+    ★USB-C 座 (如 GCT USB4105) 的 KiCad 封装正是用这组名字当 pad number ⇒ 必须当真实焊盘号"""
+    if not tail:
+        return False
+    return bool(re.fullmatch(r"pin\d+(\+pin\d+)*", tail)) or bool(USBIF_RE.match(tail))
 
 def split_node(node):
     """节点串 → (器件名, 脚名 or None)"""
@@ -110,12 +120,13 @@ def netlist_pads(rows):
             if comp is None or comp not in real:
                 continue
             d = terms.setdefault(comp, {})
-            if tail and PIN_RE.fullmatch(tail):
+            if tail and _is_pad_name(tail):
                 for tok in tail.split("+"):
-                    n = int(tok.strip()[3:])
-                    key = ("P", n)
+                    tok = tok.strip()
+                    # ★"pin<N>" ⇒ 数字脚号; ★USB-IF 物理脚名 (A1/B12/shield) ⇒ **字符串脚号**
+                    key = ("P", int(tok[3:])) if tok.startswith("pin") else ("P", tok)
                     if key in d and d[key][0] != net:
-                        notes.append(f"{comp} pin{n} 同时挂 {d[key][0]} 与 {net}")
+                        notes.append(f"{comp} {key[1]} 同时挂 {d[key][0]} 与 {net}")
                     d.setdefault(key, (net, "P"))
                     seen.add(comp)
             elif tail:
@@ -143,8 +154,10 @@ def netlist_pads(rows):
             continue
         if any(k[0] == "P" for k in d):
             pins = sorted(((k[1], v[0]) for k, v in d.items() if k[0] == "P"),
-                          key=lambda x: x[0])
-            nxt = (pins[-1][0] + 1) if pins else 1
+                          key=lambda t: (0, t[0], 0) if isinstance(t[0], int) else (1, str(t[0]), 0))
+            # ★脚号可能是数字 (pin<N>) 或字符串 (USB-IF A1/B12) ⇒ 续号只用数字脚号
+            _nums = [x[0] for x in pins if isinstance(x[0], int)]
+            nxt = (max(_nums) + 1) if _nums else 1
             for k, v in d.items():
                 if k[0] != "P":
                     pins.append((nxt, v[0]))

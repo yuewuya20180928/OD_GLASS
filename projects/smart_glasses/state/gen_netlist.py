@@ -55,6 +55,30 @@ COLS = ["page", "net", "node1", "node2", "ref", "value", "type", "dnp", "evidenc
 #     footprint —— PCB land pattern (封装尺寸 + pitch + 官方封装图编号)
 #     opn       —— 厂商订购型号 (TI 的 "BQ25896RTWR" 这种), 询价/下单直接用
 PARTS: dict[str, dict] = {
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "J_TYPE_C": {"footprint": "SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔", "opn": "GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "Q2": {"footprint": "SON-8 Q3, 3.3 x 3.3 mm", "opn": "CSD16406Q3 (同 Q1)"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "U_DCDC_VCORE": {"footprint": "VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘", "opn": "TPS62130ARGTR"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "U_DCDC_VIO": {"footprint": "VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘", "opn": "TPS62130ARGTR"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "U_EN_SW": {"footprint": "UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch", "opn": "TPS22991RAA"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "U_LDO_IO18": {"footprint": "X2SON (DQN) 1.0 x 1.0 mm", "opn": "TPS7A2018DQNR"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "U_LDO_IO33": {"footprint": "X2SON (DQN) 1.0 x 1.0 mm", "opn": "TPS7A2033DQNR"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "U_LDO_L18": {"footprint": "X2SON (DQN) 1.0 x 1.0 mm", "opn": "TPS7A2018DQNR"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "U_LDO_L33": {"footprint": "X2SON (DQN) 1.0 x 1.0 mm, 0.4 mm max height, no-lead", "opn": "TPS7A2033DQNR"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "U_LDO_S12": {"footprint": "X2SON (DQN) 1.0 x 1.0 mm", "opn": "TPS7A2012DQNR"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "U_LDO_S18B": {"footprint": "X2SON (DQN) 1.0 x 1.0 mm", "opn": "TPS7A2018DQNR"},
+    # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
+    "U_PWR_SW": {"footprint": "UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch", "opn": "TPS22991RAA"},
     # ---- ISS-112: BQ25896 封装从 "VQFN-16 3×3mm (RGT)" 改为官方真实封装 ----
     # 旧写法 (VQFN-16 3×3 = 9mm²) **该封装根本不存在**, 占板面积少算 7mm²。
     # 官方三方一致: 产品页 "WQFN (RTW) / 24 / 16 mm² (4 mm × 4 mm)" +
@@ -181,6 +205,48 @@ def board_for(r: dict) -> str:
         return BOARD_CHG
     return BOARD_MAIN
 
+
+
+# ================================================================ ★引脚映射 (真实脚号)
+# ★真值源: HW/PCB/pinout_footprint.json (按**原厂 datasheet** 整理, 每条带出处)
+#   ⇒ 网表里**不再出现** "U_EN_SW ON" 这种"脚名"写法 ⇒ 一律 "U_EN_SW pin2" ⇒ 板子焊盘号=真实脚号
+_PINMAP_PATH = os.path.join(PROJ, "HW", "PCB", "pinout_footprint.json")
+try:
+    # ★规格 JSON 的 pins 形如 {"1": "VIN", "2": "ON", ...} ⇒ **键=脚号, 值=脚名**
+    #   ⇒ 改写时要用的是 **脚名 → 脚号** ⇒ ⇒ 这里把**数字键**的部分反转
+    _raw = json.load(open(_PINMAP_PATH, encoding="utf-8")).get("parts") or {}
+    _PINMAP = {}
+    for _k, _v in _raw.items():
+        _pins = _v.get("pins") or {}
+        _num = {}
+        for _nn, _vv in _pins.items():
+            if str(_nn).isdigit():
+                _num[str(_vv)] = str(_nn)      # ★脚名 → 脚号
+        _PINMAP[_k] = _num if _num else {}    # ★非数字键 (USB-IF 的 A1/B12 之类) 本来就是脚名, 不改写
+except Exception:
+    _PINMAP = {}
+
+
+def _apply_pin_maps(rows):
+    """把 "<器件> <脚名>" 的节点串改写成 "<器件> pin<真实脚号>" (查不到就原样保留, 由门禁报出来)"""
+    changed = unknown = 0
+    for r in rows:
+        for k in ("node1", "node2"):
+            v = (r.get(k) or "").strip()
+            mm = re.fullmatch(r"([A-Za-z_0-9]+)\s+(.+)", v)
+            if not mm:
+                continue
+            comp, name = mm.group(1), mm.group(2).strip()
+            pm = _PINMAP.get(comp)
+            if not pm:
+                continue
+            if name in pm:
+                r[k] = f"{comp} pin{pm[name]}"
+                changed += 1
+            elif not re.fullmatch(r"pin\d+(\+pin\d+)*", name):
+                unknown += 1
+    print(f"  [脚号改写] {changed} 处 · 仍无脚号的命名脚 {unknown} 处")
+    return rows
 
 ROWS: list[dict] = []
 
@@ -338,10 +404,23 @@ def build_p1(by_id, spec):
     add("P1", "BAT_PROT_CELL2", "Q2", "U_BATPROT", "Q2", "[待选型] N-MOS", "SW",
         "必装", "[推算]", "",
         "[BAT_PROT_CELL2] 第 2 只保护 MOS · 电池保护 IC (BQ2970) 的 B+ 脚; 参数同 Q1", "C-03")
-    add("P1", "BAT_GATE", "U_BATPROT GATE", "Q1 GATE", "U_BATPROT", "BQ2970", "IC",
-        "必装", "[官方]", "",
-        "[BAT_GATE] ★F2 修正: **两管栅极由 BQ2970 同驱** (原来完全没有栅极连接 · MOS 永远不导通/不受控); "
-        "栅极网络按 BQ2970 数据手册确认是否需要上拉", "C-03")
+    # ★★2026-11-03 按**原厂 datasheet** 拆: BQ2970 **没有单一 GATE 脚** —— 原厂是
+    #   **COUT(pin2, 充电管) / DOUT(pin3, 放电管) 两个独立栅驱动** ⇒ ★**两管不可共栅**
+    #   (共栅 ⇒ 充电时放电管也导通 ⇒ 电池永远放不出电流 ⇒ 保护逻辑失效)
+    add("P1", "BAT_COUT", "U_BATPROT pin2", "Q2", "U_BATPROT", "COUT (充电管栅驱动)", "NET",
+        "DNP", "[官方]", "",
+        "[BAT_COUT] ★BQ2970 的 COUT (pin2) ⇒ **只**驱动充电管 Q2 的栅极 (原厂要求两管不可共栅)", "")
+    add("P1", "BAT_DOUT", "U_BATPROT pin3", "Q1", "U_BATPROT", "DOUT (放电管栅驱动)", "NET",
+        "DNP", "[官方]", "",
+        "[BAT_DOUT] ★BQ2970 的 DOUT (pin3) ⇒ **只**驱动放电管 Q1 的栅极", "")
+    add("P1", "BAT_COUT", "Q2", "GND", "Q2", "[待选型] N-MOS (充电高边开关)", "SW", "DNP", "[推算]", "",
+        "[BAT_COUT] Q2 (充电管) 源极接地", "")
+    add("P1", "GND", "Q2", "GND", "Q2", "[待选型] N-MOS (充电高边开关)", "SW", "DNP", "[推算]", "",
+        "[BAT_COUT] Q2 地脚", "")
+    add("P1", "BAT_DOUT", "Q1", "GND", "Q1", "[待选型] N-MOS (放电高边开关)", "SW", "DNP", "[推算]", "",
+        "[BAT_DOUT] Q1 (放电管) 源极接地", "")
+    add("P1", "GND", "Q1", "GND", "Q1", "[待选型] N-MOS (放电高边开关)", "SW", "DNP", "[推算]", "",
+        "[BAT_DOUT] Q1 地脚", "")
     add("P1", "BAT_GATE", "Q1 GATE", "Q2 GATE", "Q1", "[待选型] N-MOS", "SW",
         "必装", "[推算]", "",
         "[BAT_GATE] 两管共栅 (back-to-back 接法, 按 BQ2970 数据手册确认体二极管方向)", "C-03")
@@ -586,14 +665,22 @@ def build_p1(by_id, spec):
         #   ⇒ **现在在用的 TPS7A20 只剩 LIGHT_3V3 / LIGHT_1V8 / VDD_3V3_IO / VDD_1V8_IO 四颗** ⇒ 它们的 EN 全部显式接 RAIL_SYS
         #   ⇒ ★**CARRIER_BOARD_EN (SOM pin87) 的底板主电源使能属 A2 段 (SOM 座) 未接 ⇒ 段 B 处理
         if part.startswith("TPS7A20"):
-            # ★★2026-11-02 20:3x: SENSOR_AVDD 已 DNP (camera 模组自带稳压) ⇒ 不再需要它的 EN RC 延时
-            # ★★2026-11-03: **TPS62130A (DC-DC) 的 EN 已被规格行画过** (EN_VCORE ← R_EN_VCORE / EN_VIO ← PWR_ON)
-            #   ⇒ 这里**只画 TPS7A20** ⇒ 否则同一个 EN 脚会挂两个网 (板子上 = 短路)
+            # ★★2026-11-03 按**原厂 datasheet** 重画 (TPS7A20 = X2SON / DQN0004A, **4 脚 + 散热焊盘**):
+            #   ★真脚号: **1=OUT · 2=GND · 3=EN · 4=IN · 5=散热焊盘(接 GND)**
+            #   ⇒ ★**之前只画了 IN/EN/OUT ⇒ GND 脚与散热焊盘整个是悬空的** ⇒ 现在补齐
+            #   ⇒ EN 仍直连 RAIL_BOARD_5V (永远使能) —— 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能
             if ref != "U_LDO_S28":
-                add("P1", "SYS_PCB", f"{ref} EN", "RAIL_BOARD_5V", ref, "EN", "NET", dnp, "[官方]", "",
-                    f"[{rail}] ★{ref} 的 EN 脚**直连 RAIL_SYS** ⇒ 永远使能 — "
-                    f"★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; "
-                    f"datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 ⇒ 接 SYS (3.5-4.2V) 安全", cid)
+                add("P1", "SYS_PCB", f"{ref} pin3", "RAIL_BOARD_5V", ref, "EN (pin3)", "NET", dnp,
+                    "[官方]", "",
+                    f"[{rail}] ★{ref} 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — "
+                    "★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; "
+                    "datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能", cid)
+            # GND 脚 (pin2) + 散热焊盘 (pin5) ⇒ 原厂要求散热焊盘接 GND (散热 + 电气)
+            add("P1", "GND", f"{ref} pin2", "GND", ref, "GND (pin2)", "NET", dnp, "[官方]", "",
+                f"[{rail}] ★{ref} 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**", cid)
+            add("P1", "GND", f"{ref} pin5", "GND", ref, "散热焊盘 (pin5, EP)", "NET", dnp, "[官方]", "",
+                f"[{rail}] ★{ref} 的散热焊盘 (pin5, exposed pad) **必须接 GND** (原厂 X2SON 要求: "
+                "既是散热通路也是 GND 回路)", cid)
 
         # ★V1.1 补画 4: 电压不确定性的吸收方式写进图纸 (ISS-082 前提修正)
         extra = ""
@@ -1156,10 +1243,10 @@ def build_p8(by_id, spec):
     add("P8", "VDD_1V8_IO", "U_SUPV VDD", "RAIL_VDD_1V8_IO", "U_SUPV",
         "[待选型] 电压监控 + 复位 (TPS3808G01 类)", "IC", "必装", "[推算]", "TBD-12",
         "[VDD_1V8_IO] 上电监督器 (挂常供电轨); 监控窗口电压待原厂电源域表定 (TBD-02)")
-    add("P8", "SUPV_SENSE", "U_SUPV IN", "U_SUPV", "U_SUPV",
+    add("P8", "SUPV_SENSE", "U_SUPV SENSE", "U_SUPV", "U_SUPV",
         "[待选型] 电压监控 + 复位 (TPS3808G01 类)",
         "IC", "必装", "[推算]", "TBD-02", "[SUPV_SENSE] 监督器采样脚 (经分压)")
-    add("P8", "RESET_N", "U_SUPV RESET (开漏)", "NET_RESET_N", "U_SUPV", "开漏释放",
+    add("P8", "RESET_N", "U_SUPV RESET", "NET_RESET_N", "U_SUPV", "开漏释放",
         "IC", "必装", "[推算]", "TBD-12",
         "[RESET_N] ★V1.1: RESET_N 增加一路监督器开漏释放 (与已有 10k 上拉 + RC + 复位键共存: "
         "任一路拉低都生效)")
@@ -1263,7 +1350,7 @@ def build_a2_som(by_id, spec):
     # ---- ① demo 板自己的 Type-C (5V 输入 + USB 数据) ----
     #   ★demo 形态 (老板 11-02 19:25): "demo 直接 USB-C 5V 供电, 不装电池、不上充电链"
     #   ⇒ 主板自己带一个 Type-C; 整机阶段这块是 DNP (整机走跨铰链 USB + 充电板)
-    add("P1", "RAIL_DEMO_5V", "J_USB_C VBUS", "RAIL_DEMO_5V", "RAIL_DEMO_5V",
+    add("P1", "RAIL_DEMO_5V", "J_USB_C A4+A9+B4+B9", "RAIL_DEMO_5V", "J_USB_C",
         "5.0V ±5% (USB-C 5V)", "RAIL", "必装", "[官方]", "",
         "[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW", "A-24")
     add("P1", "RAIL_DEMO_5V", "D_ESD_DEMO", "RAIL_DEMO_5V", "D_ESD_DEMO",
@@ -1281,16 +1368,24 @@ def build_a2_som(by_id, spec):
         "[推算]", "", "[RAIL_DEMO_5V] VBUS 体电容 地端", "A-24")
     add("P1", "GND", "R_CC1_D", "GND", "R_CC1_D", "5.1k ±1% (CC1 下拉)", "R", "必装", "[官方]", "",
         "[R_CC1_D] USB-C CC1 5.1k 下拉 (⇒ UFP 受电端)", "A-24")
+    # ★★2026-11-03: USB-C 的 CC/地脚用**真实 USB-IF 物理脚** (CC1=A5 · CC2=B5 · GND=A1/A12/B1/B12 + shell)
+    add("P1", "GND", "J_USB_C A1+A12+B1+B12", "GND", "J_USB_C", "GND (4 脚 + shell)", "NET",
+        "必装", "[官方]", "",
+        "[J_USB_C] USB-C 的 4 个 GND 脚 + 外壳 ⇒ 主板地", "A-24")
+    add("P1", "USB_CC1", "J_USB_C A5", "R_CC1_D", "J_USB_C", "CC1 (5.1k 下拉 ⇒ 受电端 UFP)", "NET",
+        "必装", "[官方]", "", "[J_USB_C] CC1 → 5.1k 下拉 ⇒ 本板做受电端", "A-24")
+    add("P1", "USB_CC2", "J_USB_C B5", "R_CC2_D", "J_USB_C", "CC2 (5.1k 下拉)", "NET",
+        "必装", "[官方]", "", "[J_USB_C] CC2 → 5.1k 下拉", "A-24")
     add("P1", "GND", "R_CC2_D", "GND", "R_CC2_D", "5.1k ±1% (CC2 下拉)", "R", "必装", "[官方]", "",
         "[R_CC2_D] USB-C CC2 5.1k 下拉", "A-24")
     add("P1", "J_USB_C", "J_USB_C", "J_USB_C", "J_USB_C",
         "USB-C 16p 插座 (demo 板 5V 输入 + USB 数据)", "CONN", "必装", "[推算]", "",
         "[J_USB_C] ★**demo 主板的 Type-C 电源入口** (老板 11-03 09:54: 没有整机, 没有镜脚, demo/主板用 Type-C 供电): VBUS→5V 轨, D+/D-→SoM USB, CC1/CC2→5.1k 下拉 ⇒ 受电端 (UFP)", "A-24")
     # ---- USB 数据: SoM 的 USB_DRD1 (P1_92/P1_94) ↔ 板载 Type-C ----
-    add("P1", "USB_D_P_SRC", "R_SER_USB_D_P", "J_USB_C D+", "R_SER_USB_D_P", "22Ω ±1%", "R",
+    add("P1", "USB_D_P_SRC", "R_SER_USB_D_P", "J_USB_C A6+B6", "R_SER_USB_D_P", "22Ω ±1%", "R",
         "必装", "[推算]", "",
         "[USB_D_P_SRC] ★SoM USB2 (OTG1) D+ → 板载 Type-C (demo 板自带 USB, 免跨铰链)", "A-24")
-    add("P1", "USB_D_N_SRC", "R_SER_USB_D_N", "J_USB_C D-", "R_SER_USB_D_N", "22Ω ±1%", "R",
+    add("P1", "USB_D_N_SRC", "R_SER_USB_D_N", "J_USB_C A7+B7", "R_SER_USB_D_N", "22Ω ±1%", "R",
         "必装", "[推算]", "",
         "[USB_D_N_SRC] ★SoM USB2 (OTG1) D- → 板载 Type-C", "A-24")
     # ---- VBUS_DET: 板载 Type-C 的 VBUS 分压 → SoM 的 USB_DRD1_VBUSDET (P1_100) ----
@@ -1310,15 +1405,15 @@ def build_a2_som(by_id, spec):
 
     # ---- ② ★F13: CARRIER_BOARD_EN ⇒ 负载开关 U_EN_SW ⇒ RAIL_BOARD_5V ----
     add("P1", "CARRIER_BOARD_EN", f"J_SOM_{car_en.split('_')[0]} pin{car_en.split('_')[1]}",
-        "U_EN_SW EN", "J_SOM_P3", "EN 输出", "NET", "必装", "[官方]", "",
+        "U_EN_SW ON", "J_SOM_P3", "EN 输出", "NET", "必装", "[官方]", "",
         f"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 {car_en} (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; "
         "Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**", "A-24")
-    add("P1", "CARRIER_BOARD_EN", "U_EN_SW EN", "CARRIER_BOARD_EN", "U_EN_SW",
+    add("P1", "CARRIER_BOARD_EN", "U_EN_SW ON", "CARRIER_BOARD_EN", "U_EN_SW",
         "EN 输入 (高=放行底板)", "NET", "必装", "[官方]", "",
         "[U_EN_SW] EN ← CARRIER_BOARD_EN ⇒ 主板各路只在 SoM 就绪后上电", "A-24")
-    add("P1", "RAIL_DEMO_5V", "U_EN_SW IN", "RAIL_DEMO_5V", "U_EN_SW", "5V 输入", "NET",
+    add("P1", "RAIL_DEMO_5V", "U_EN_SW VIN", "RAIL_DEMO_5V", "U_EN_SW", "5V 输入", "NET",
         "必装", "[官方]", "", "[U_EN_SW] IN = 5V (Type-C 直供)", "A-24")
-    add("P1", "RAIL_BOARD_5V", "U_EN_SW OUT", "RAIL_BOARD_5V", "U_EN_SW",
+    add("P1", "RAIL_BOARD_5V", "U_EN_SW VOUT", "RAIL_BOARD_5V", "U_EN_SW",
         "5V 输出 (受 CARRIER_BOARD_EN 门控)", "NET", "必装", "[官方]", "",
         "[RAIL_BOARD_5V] ★**底板所有 3.3V/5V 支路都挂这条** (不是 SYS) ⇒ 这就是 F13 的落法", "A-24")
     add("P1", "GND", "U_EN_SW GND", "GND", "U_EN_SW", "GND", "NET", "必装", "[官方]", "",
@@ -1356,6 +1451,9 @@ def main() -> int:
     # ★★A2 段: SoM 的 4 组 100pin BTB 座 + F13 电源使能 + SoM 自己的 VCC_DCIN + demo 板 Type-C
     build_a2_som(by_id, spec)
     n_p10 = build_p10_json()
+
+    # ★2026-11-03: 命名脚 → 真实脚号 (查 HW/PCB/pinout_footprint.json)
+    _apply_pin_maps(ROWS)
 
     # ---- 板级归属 (2026-10-27 V1.1 新增): 充电板 / 主 PCB / 跨铰链 ----
     for r in ROWS:
