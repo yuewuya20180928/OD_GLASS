@@ -49,6 +49,8 @@ import pcbnew  # noqa: E402
 NET = os.path.join(PROJ, "HW", "netlist_v1.csv")
 PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
 PSEUDO = ("RAIL_", "NET_")
+# ★demo 主板只装 MAIN_PCB 的件 (与 state/gen_pcb_netlist_board.py 同口径, 独立实现)
+BOARD_FILTER = "MAIN_PCB"
 PIN_RE = re.compile(r"pin\d+(\+pin\d+)*")
 
 
@@ -191,6 +193,10 @@ def compare(want, have):
 
 def run_checks(path, verbose=True):
     rows = list(csv.DictReader(open(NET, encoding="utf-8")))
+    # ★★2026-11-03 09:54 老板口径: "没有整机, 没有镜脚, demo/主板用 type-c 供电"
+    #   ⇒ **这块板子就是 demo 主板** ⇒ board=CHG_BOARD (充电链那套) 与 board=HINGE (跨铰链两个座)
+    #   的件不在板上 ⇒ 网表→焊盘推导时按同一口径过滤 (★与生成器同口径, 但**独立实现**, 不共用代码)
+    rows = [r for r in rows if (r.get("board") or "MAIN_PCB").strip() == BOARD_FILTER]
     per_ref, numbered, placeholder, notes = netlist_pads(rows)
     have, board_refs = board_pads(path)
     if have is None:

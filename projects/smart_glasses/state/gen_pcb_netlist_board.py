@@ -63,9 +63,20 @@ def V(x, y):
     return pcbnew.VECTOR2I(int(round(x * MM)), int(round(y * MM)))
 
 
+# ★★2026-11-03 09:54 老板口径: "没有整机, 没有镜脚, demo/主板用 type-c 供电"
+#   ⇒ **这块板子就是 demo 主板** ⇒ 网表里 board=CHG_BOARD (充电链那套) 与 board=HINGE (跨铰链两个座)
+#   的件**不在这块板上** ⇒ ⇒ 板生成器按 board 列过滤 (只取 MAIN_PCB)
+#   ⇒ ⇒ 网表仍是"产品级真源"(充电链那套留档), 但**板子只画 demo 主板**
+BOARD_FILTER = "MAIN_PCB"
+
+
 def load_rows():
     with open(NETLIST, encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+        rows = list(csv.DictReader(f))
+    keep = [r for r in rows if (r.get("board") or "MAIN_PCB").strip() == BOARD_FILTER]
+    print(f"  [板级过滤] {BOARD_FILTER}: {len(keep)}/{len(rows)} 行进板 "
+          f"(CHG_BOARD / HINGE 的件不在 demo 主板上)")
+    return keep
 
 
 # ---------------------------------------------------------------- 网表 → 焊盘

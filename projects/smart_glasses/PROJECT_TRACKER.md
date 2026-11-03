@@ -2628,3 +2628,38 @@ AR0234CS (MIPI-CSI) → RK3572 (ISP3 → YUV/NV12) → OD 80 类 (yolov5n INT8 /
 
 ★**顺带修掉**: 一处 `ref` 写成了**节点串** (`"J_SOM_P1 pin100"`) ⇒ 生成器把它当成一个叫这名字的器件
 ⇒ 板上多出**幽灵封装** ⇒ ⇒ ★**网表里 ref 列只能是器件名, 节点串只放 node1/node2**。
+
+#### (1.73) ★★★★ 2026-11-03 09:54: ★★**老板四条口径落地 + "模块内置能力"推广**
+
+> **落账**: `HW/PCB/SOM_BUILTIN_CAPABILITY.md` (能力清单) · `AGENTS.md` (新增铁律) · `HW/PCB/som_btb_params.json` ·
+> `state/gen_netlist.py` (`J_USB_C` + `DEMO_DNP` 覆盖) · `state/gen_pcb_netlist_board.py` + `state/check_pcb_nets.py` (板级过滤)
+
+★**老板 2026-11-03 09:54 的四条, 逐条落地**:
+
+**① "pin1 在哪一排 —— 芯片的手册上肯定是有的, 你先去网上找找芯片的手册"**
+⇒ 已派**两路独立查证**: (a) **Hirose DF40C-100DS/100DP 原厂资料** (产品页 ECAD / 工程图 / 3D / 分销商镜像)
+(b) **Forlinx OK3572-C 手册 §2.6.1 的 4 张引脚原理图** (★官方手册直接画了每个座的脚号排布:
+左列 = 1,3,5…99 / 右列 = 2,4,6…100 ⇒ ★"哪一排"就靠它 + 底面尺寸图的方位对齐定死)
+⇒ 两路结论交叉一致才落 `som_btb_params.json`; ★**错一排 = 该座 100 根网络全部对调** ⇒ 属"下单前必查"。
+
+**② "没有整机, 没有镜脚, demo/主板用 type-c 供电"** ⇒ ★**这块板子就是 demo 主板**
+⇒ ① 网表里 `J_DEMO_USB` 改名 **`J_USB_C`** = 主板的 Type-C 电源入口 (受电端 UFP: VBUS→5V 轨 → SoM 的
+VCC_DCIN + `U_EN_SW`; D+/D-→SoM USB; CC1/CC2→5.1k 下拉) ② **板生成器按 `board=MAIN_PCB` 过滤**
+⇒ 充电链那套 (CHG_BOARD) 与跨铰链两座 (HINGE) **不上这块板** ⇒ 板子从 213 器件降到 **181 器件**
+③ 电池 + 保护 IC + MOS + NTC + 分压 一律 **DNP** (demo 不装电池) ④ **J_BOOT1 (SPI-NOR 焊盘位) 也 DNP**
+(SoM 板载 eMMC) ⇒ ★**"镜脚主板/镜框充电板"这套表述从 demo 语境里去掉** (整机是后面的事)。
+
+**③ "找下 IC 的手册和资料, 手册中应该有"** ⇒ 已派 hw 调研 **15 个命名脚器件** (4 颗 TPS7A20 / U_SUPV /
+U_PWR_SW / U_EN_SW / U_BATPROT / Q1 / BT_432243 / J_TYPE_C / 2 颗 TPS62130A) + 两个 FPC 座
+(★`CONN_CAM` = FH35C-31S-0.3SHW(50) 型号已定要封装图; ★`CONN_LIGHT` 40p/0.5mm **型号还没定** ⇒ 要 ≥3 个公开在售候选)
+⇒ ★**只出规格表** (`HW/PCB/PINOUT_FOOTPRINT_SPEC.md` + `pinout_footprint.json`), **不许改网表** ——
+我改网表 ⇒ ★**因为历史上让子 agent 直接改网表, 三次 0 产出**。
+
+**④ "SoM 自带 PMIC 这条要推广, 经评估后如果对整体质量和进度有帮助就推行"** ⇒ **评估结论: 有帮助, 已推行**
+⇒ ★**已砍掉的"重复造"清单** (共 11 类): SoM 自带 PMIC ⇒ 2 颗 DC-DC + 5 个时序链件 DNP ·
+SoM 自带晶振 ⇒ X1 + 2 只 12pF DNP · SoM 板载 eMMC ⇒ J_BOOT1 DNP · 相机模组自带稳压 ⇒ 3 颗 sensor LDO DNP ·
+Forlinx 载板复位电路无监督器 ⇒ **U_SUPV + C_SUPV DNP** · demo 不装电池 ⇒ 电池侧 10 个件 DNP
+⇒ ★**推行方式**: ① 落 **`HW/PCB/SOM_BUILTIN_CAPABILITY.md`** (每条带手册出处) ② ★**写进 AGENTS 铁律**
+(加任何供电/时钟/存储/复位/信号生成件之前先查清单; **砍之前必须有原厂出处**) ③ 网表里"已砍"的项再出现 = **回归缺陷**
+⇒ ★**直接收益**: 板面积 / BOM / 热 / 电源树 / 进度 —— ★**顺带发现 §1 的欠账**:
+`skin_temp_duty_b=41.4°C` 那条 (RK3572 原厂 670mW 比原假设 500mW 高 34%) **可能破 43°C 皮肤红线** ⇒ 须实测重算。

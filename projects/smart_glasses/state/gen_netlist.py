@@ -207,8 +207,32 @@ def soc_pin(sig: str) -> str:
 
 
 
+# ★★2026-11-03 09:54 老板口径: "没有整机, 没有镜脚, demo/主板用 type-c 供电"
+#   ⇒ **demo 主板不装电池、不上充电链** ⇒ 电池侧那套 (电池 + 保护 IC + MOS + 分压) 一律 DNP
+#   ⇒ 充电 IC (U_CHG 那套) 与跨铰链两个座本来就在 board=CHG_BOARD / HINGE ⇒ 板生成器按板级过滤就不上板
+DEMO_DNP = {
+    "U_BATPROT": "demo 主板用 Type-C 供电 ⇒ 不装电池 ⇒ 电池保护 IC 不装",
+    "Q1": "同上 (电池保护的高边 MOS)",
+    "BT_432243": "同上 (不装电池)",
+    "R_BAT_DET_1": "同上 (电池电压分压上臂)",
+    "R_BAT_DET_2": "同上 (电池电压分压下臂)",
+    "C_DET_BAT": "同上 (电池 ADC 滤波)",
+    "TP_BAT": "同上 (电池测点)",
+    "R_NTC_BAT": "同上 (NTC)",
+    "R_TS_PULL": "同上 (NTC 分压下臂)",
+    "R_TS_TOP": "同上 (TS 分压上臂)",
+    "J_BOOT1": "★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展)",
+    "X1": "★晶振在 SoM 板上 ⇒ 主板不接",
+    "U_SUPV": "★SoM 内部 PMIC 已做上电复位 (Forlinx 官方载板复位电路 = 按键+100nF+ESD, 无监督器) ⇒ 主板不装监督器",
+    "C_SUPV": "同上 (监督器去耦电容)",
+}
+
+
 def add(page, net, node1, node2, ref, value, typ, dnp, ev, tbd, note, cid=""):
     p = PARTS.get(ref, {})
+    if ref in DEMO_DNP:
+        dnp = "DNP"
+        note = f"[{ref}] ★DNP: {DEMO_DNP[ref]} | " + note
     ROWS.append(dict(page=page, net=net, node1=node1, node2=node2, ref=ref, value=value, type=typ,
                      dnp=dnp, evidence=ev, tbd=tbd, note=note, conn_id=cid,
                      footprint=p.get("footprint", ""), opn=p.get("opn", "")))
@@ -1239,12 +1263,12 @@ def build_a2_som(by_id, spec):
     # ---- ① demo 板自己的 Type-C (5V 输入 + USB 数据) ----
     #   ★demo 形态 (老板 11-02 19:25): "demo 直接 USB-C 5V 供电, 不装电池、不上充电链"
     #   ⇒ 主板自己带一个 Type-C; 整机阶段这块是 DNP (整机走跨铰链 USB + 充电板)
-    add("P1", "RAIL_DEMO_5V", "J_DEMO_USB VBUS", "RAIL_DEMO_5V", "RAIL_DEMO_5V",
+    add("P1", "RAIL_DEMO_5V", "J_USB_C VBUS", "RAIL_DEMO_5V", "RAIL_DEMO_5V",
         "5.0V ±5% (USB-C 5V)", "RAIL", "必装", "[官方]", "",
         "[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW", "A-24")
     add("P1", "RAIL_DEMO_5V", "D_ESD_DEMO", "RAIL_DEMO_5V", "D_ESD_DEMO",
         "ESD 阵列 [待选型] (USB 2.0)", "D", "必装", "[推算]", "",
-        "[RAIL_DEMO_5V] USB-C VBUS 入口 ESD 阵列 (紧贴 J_DEMO_USB)", "A-24")
+        "[RAIL_DEMO_5V] USB-C VBUS 入口 ESD 阵列 (紧贴 J_USB_C)", "A-24")
     add("P1", "GND", "D_ESD_DEMO", "GND", "D_ESD_DEMO", "ESD 阵列 [待选型]", "D", "必装",
         "[推算]", "", "[RAIL_DEMO_5V] USB ESD 阵列 地端", "A-24")
     add("P1", "RAIL_DEMO_5V", "FB_DEMO", "RAIL_DEMO_5V", "FB_DEMO", "π 滤波磁珠 [待选型]", "L",
@@ -1259,14 +1283,14 @@ def build_a2_som(by_id, spec):
         "[R_CC1_D] USB-C CC1 5.1k 下拉 (⇒ UFP 受电端)", "A-24")
     add("P1", "GND", "R_CC2_D", "GND", "R_CC2_D", "5.1k ±1% (CC2 下拉)", "R", "必装", "[官方]", "",
         "[R_CC2_D] USB-C CC2 5.1k 下拉", "A-24")
-    add("P1", "J_DEMO_USB", "J_DEMO_USB", "J_DEMO_USB", "J_DEMO_USB",
+    add("P1", "J_USB_C", "J_USB_C", "J_USB_C", "J_USB_C",
         "USB-C 16p 插座 (demo 板 5V 输入 + USB 数据)", "CONN", "必装", "[推算]", "",
-        "[J_DEMO_USB] ★demo 板自己的 Type-C: VBUS→5V 轨, D+/D-→SoM USB, CC1/CC2→5.1k 下拉 ⇒ 受电端 (UFP)", "A-24")
+        "[J_USB_C] ★**demo 主板的 Type-C 电源入口** (老板 11-03 09:54: 没有整机, 没有镜脚, demo/主板用 Type-C 供电): VBUS→5V 轨, D+/D-→SoM USB, CC1/CC2→5.1k 下拉 ⇒ 受电端 (UFP)", "A-24")
     # ---- USB 数据: SoM 的 USB_DRD1 (P1_92/P1_94) ↔ 板载 Type-C ----
-    add("P1", "USB_D_P_SRC", "R_SER_USB_D_P", "J_DEMO_USB D+", "R_SER_USB_D_P", "22Ω ±1%", "R",
+    add("P1", "USB_D_P_SRC", "R_SER_USB_D_P", "J_USB_C D+", "R_SER_USB_D_P", "22Ω ±1%", "R",
         "必装", "[推算]", "",
         "[USB_D_P_SRC] ★SoM USB2 (OTG1) D+ → 板载 Type-C (demo 板自带 USB, 免跨铰链)", "A-24")
-    add("P1", "USB_D_N_SRC", "R_SER_USB_D_N", "J_DEMO_USB D-", "R_SER_USB_D_N", "22Ω ±1%", "R",
+    add("P1", "USB_D_N_SRC", "R_SER_USB_D_N", "J_USB_C D-", "R_SER_USB_D_N", "22Ω ±1%", "R",
         "必装", "[推算]", "",
         "[USB_D_N_SRC] ★SoM USB2 (OTG1) D- → 板载 Type-C", "A-24")
     # ---- VBUS_DET: 板载 Type-C 的 VBUS 分压 → SoM 的 USB_DRD1_VBUSDET (P1_100) ----
