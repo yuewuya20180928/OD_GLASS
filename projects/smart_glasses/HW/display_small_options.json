@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "task": "ARS45 demo 主板换 <=3.0 寸 MIPI DSI 显示模组 (老板 2026-11-03 19:4x 拍板)",
+    "previous_selection": "Radxa Display 8 HD (8.0 寸 / 800x1280 / 4-lane DSI / 40p-0.5mm 屏侧 / 39p-0.3mm 板侧 FH35C-39S-0.3SHW(50) / 背光 12.8V 级)",
+    "hard_constraints": [
+      "屏 <= 3.0 寸",
+      "MIPI DSI (2-lane 或 4-lane 均可, 须标明)",
+      "驱动可用: (a) Rockchip 内核白名单内的 IC 或 simple-panel-dsi 兼容, 或 (b) init sequence 公开可得 (厂商 dts / 公开内核分支 / 开源驱动)",
+      "FPC 针位表与连接器型号公开 (针数/间距/型号)",
+      "不需要触控 (屏若自带触控, 其触控线我们一律不接)",
+      "背光电压尽量 <= 5V; OLED 无背光须明确写出"
+    ],
+    "som_dsi": {
+      "som": "Forlinx FET3572-C (RK3572 核心板)",
+      "soc_dsi_controller": "RK3572 原生 4-lane MIPI DSI 1.2",
+      "note": "SoM 侧 DSI 是 4-lane 且 BTB 座针位固定 => 换 2-lane demo 屏不需改 SoM 侧 pin 分配; 变的只有主板->屏座这一段, 建议该段维持 4-lane 布线, demo 屏走 2-lane (dts dsi,lanes=2)"
+    },
+    "evidence_policy": "只认原厂/官方资料 (厂家官网/官方 GitHub/内核源码/上市公司招股书); 第三方转述不作证据; 查不到写'未查到' + 试过的 URL (见 MD §7)",
+    "companion_doc": "HW/DISPLAY_SMALL_SCREEN_OPTIONS.md",
+    "generated_at": "2026-11-03"
+  },
+  "candidates": [
+    {
+      "name": "Waveshare 2.8inch DSI LCD (Part No. 2.8inch DSI LCD, SKU 22028)",
+      "vendor": "Waveshare",
+      "size_inch": 2.8,
+      "resolution": "480x640 (IPS, 光学贴合, 160° 视角, 硬玻璃 6H)",
+      "interface": "MIPI DSI 2-lane (DSI1_DN0/DP0 + DSI1_DN1/DP1 + DSI1_CN/CP 一对时钟)",
+      "fpc_connector": "未查到 (厂家只公开针位表与线材规格, 未公开板上那颗 FPC 座料号); 主板建议按 RPi 标准 15 位/1.0mm 翻盖式 FPC 座选型 (型号待定)",
+      "fpc_positions": 15,
+      "fpc_pitch_mm": 1.0,
+      "driver_ic": "未查到型号 [推断 ST7701 系列] (依据: Rockchip 内核 panel-sitronix-st7701.c 内含同分辨率同 lane 数的 2.8 寸档位 densitron,dmt028vghmcmi-1a)",
+      "kernel_support": "simple-panel-dsi 路线可行 + 内核白名单有同档先例: 树莓派官方 firmware boot/overlays/vc4-kms-dsi-waveshare-panel.dtbo 内含 compatible=waveshare,2.8inch-panel (init/timing 公开可得); Waveshare 官方 GitHub Waveshare-DSI-LCD 提供 Pi4/Pi5 的 WS_xinchDSI_Screen.ko+dtbo (init 在 .ko 内); Rockchip develop-6.1 panel-sitronix-st7701.c 的 dmt028vghmcmi-1a 档位 = 480x640/2-lane/RGB888 + 完整 GIP 序列在 .c 里 (clock 22325kHz, htotal 544, vtotal 698 ~58.8Hz, NHSYNC+NVSYNC)",
+      "backlight": "无独立背光引脚 (15 针表里没有背光脚) => 背光由模组内部从 3V3 取电, 主板只需供 3.3V, 不需要 12V BOOST/限流/PWM; 背光电压/电流官方未公布",
+      "backlight_current_ma": null,
+      "public_pinout_url": "https://www.waveshare.com/wiki/2.8inch_DSI_LCD",
+      "price_hint_usd": 43.39,
+      "notes": "★首选. 唯一'<=3.0寸 + MIPI DSI + 官方公开逐针 FPC 表 + 在售 + 官方 driver 生态'四项全中的模组. 逐针表 (屏侧15针): 1 GND / 2 DSI1_DN1 / 3 DSI1_DP1 / 4 GND / 5 DSI1_CN / 6 DSI1_CP / 7 GND / 8 DSI1_DN0 / 9 DSI1_DP0 / 10 GND / 11 SCL0 / 12 SDA0 / 13 GND / 14 3V3 / 15 3V3. Package Content 原文 'FPC 15PIN 1.0 pitch 50mm (opposite sides) x1' + 'FPC 15PIN 1.0 pitch 160mm (opposite sides) x1'. 触控: 5 点电容 I2C (SCL0/SDA0) => 我们一律不接 (屏侧 I2C 与 DDC 同对线, DDC 留给屏); 屏侧无 RESET 脚 [推断模组自带复位 RC], 主板不接复位. 官方 DSI 线材 DSI-Cable-12cm-A/B = 15pin->22pin (给 Pi5 的 22pin DSI1). 价格 $43.39 (1~9 档, 2026-11-03 抓官方商品页). 交期未查到. 缺点: 无复位脚/背光电流未知/480x640 仅 0.3MP/2.8 寸玻璃仍占结构空间. 官方 3D 图 https://files.waveshare.com/upload/b/b3/2.8inch_DSI_LCD.zip (STEP 内 PRODUCT 名仅 2_8INCH-480X640-LCD 等, 无连接器料号)"
+    },
+    {
+      "name": "Densitron DMT028VGHMCMI-1A (敦泰 2.8 寸 480x640 ST7701 面板)",
+      "vendor": "Densitron (敦泰) / 裸面板非模组",
+      "size_inch": 2.8,
+      "resolution": "480x640 (内核记录物理尺寸 56x78mm)",
+      "interface": "MIPI DSI 2-lane, MIPI_DSI_FMT_RGB888",
+      "fpc_connector": "未查到 (裸面板, 公开渠道无机械/电气资料)",
+      "fpc_positions": null,
+      "fpc_pitch_mm": null,
+      "driver_ic": "Sitronix ST7701",
+      "kernel_support": "★内核白名单已有: rockchip-linux/kernel develop-6.1 drivers/gpu/drm/panel/panel-sitronix-st7701.c 内含 compatible='densitron,dmt028vghmcmi-1a' (2.8\"/480x640/2-lane/RGB888, panel_sleep_delay=5ms, 完整 GIP 序列 dmt028vghmcmi_1a_gip_sequence 写在 .c 里) => BSP 零移植, 不必问厂家要 init code",
+      "backlight": "未查到 (裸面板规格未公开)",
+      "backlight_current_ma": null,
+      "public_pinout_url": "https://github.com/rockchip-linux/kernel/blob/develop-6.1/drivers/gpu/drm/panel/panel-sitronix-st7701.c",
+      "price_hint_usd": null,
+      "notes": "★驱动可用性这一维的最优解: BSP 零移植. 缺口: FPC 针位表/连接器型号/背光电参数/采购渠道全部未查到, 需向敦泰或其模组厂索取. ★与候选1极可能是同一块面板规格 (480x640 / ST7701 / 2-lane): 若实测 Waveshare 2.8\" 驱动 IC 确为 ST7701 且 init 兼容, 可直接改用本档位, 驱动彻底落进 Rockchip 内核 (强烈建议落板前用一次 dev 板实测确认). 时序: clock 22325kHz, hdisplay 480, hsync 4, htotal 544, vdisplay 640, vsync 40, vtotal 698 (~58.8Hz), flags NHSYNC+NVSYNC"
+    },
+    {
+      "name": "Samsung S6E63J0X03 (1.61 寸圆形 AMOLED 面板)",
+      "vendor": "Samsung Display (裸面板) / 公开在售模组未查到",
+      "size_inch": 1.61,
+      "resolution": "320x320 (内核记录物理尺寸 29x29mm)",
+      "interface": "MIPI DSI 1-lane",
+      "fpc_connector": "未查到 (裸面板, 公开渠道无机械/电气资料)",
+      "fpc_positions": null,
+      "fpc_pitch_mm": null,
+      "driver_ic": "未查到型号 (内核按 samsung,s6e63j0x03 驱动)",
+      "kernel_support": "★内核白名单已有: rockchip-linux/kernel develop-6.1 drivers/gpu/drm/panel/panel-samsung-s6e63j0x03.c (compatible='samsung,s6e63j0x03', 320x320, clock 4649kHz, htotal 323, vtotal 473, 完整 init 序列 + gamma 表写在 .c 里) => BSP 零移植",
+      "backlight": "无背光 (OLED 自发光) => 整条背光链 (BOOST/限流/PWM) 直接消失",
+      "backlight_current_ma": null,
+      "public_pinout_url": "https://github.com/rockchip-linux/kernel/blob/develop-6.1/drivers/gpu/drm/panel/panel-samsung-s6e63j0x03.c",
+      "price_hint_usd": null,
+      "notes": "★形态与功耗最接近整机产品目标 (小尺寸圆屏 + OLED 无背光 + 内核已有驱动 + 1-lane). ★缺口: 公开在售模组与 FPC 针位表/连接器/采购渠道全部未查到, 需向原厂或模组厂索取. ★重要扫描结论: Rockchip 内核 79 个 panel 文件里, 真·MIPI-DSI 且 <=3.0 寸的面板全树只有 2 个 (本项 1.61\" + densitron,dmt028vghmcmi-1a 2.8\", 次小是 elida,kd35t133 3.63\"), 且这两个都只到面板/驱动层、都没有公开在售带针位表的模组 => '<=3寸 + 内核白名单 + 公开针位表'三条同时满足的全网只有 Waveshare 2.8\" 一款模组"
+    },
+    {
+      "name": "视涯 0.49\" OLEDoS (型号 SY049WDM01 / SY049WDM01 Mono-G) —— 产品目标, 非 demo 采购件",
+      "vendor": "视涯科技 SeeYA Technology (688781.SH)",
+      "size_inch": 0.49,
+      "resolution": "1920x1080, 像素 5.6μm, 4496 PPI, AA 10.783x6.065mm",
+      "interface": "MIPI D-PHY 1 PORT, VESA DSC 3:1 (官方 datasheet 原文); lane 数 (2 或 4) 未查到",
+      "fpc_connector": "未查到 (官方 datasheet 只有机械尺寸: FPC 侧边出 Pin, 底部 pin 区 19.03mm, pin 区公差 0.4±0.1mm, 模组厚 1.48±0.1mm, 玻璃 9.09x15.68mm)",
+      "fpc_positions": null,
+      "fpc_pitch_mm": null,
+      "driver_ic": "未查到 (面板级驱动 IC 未公开)",
+      "kernel_support": "需自驱/需厂家 init code (面板 init 序列未公开); ★但 Rockchip 内核已有视涯面板先例: panel-visionox-rm69299.c (compatible 'visionox,rm69299-1080p-display', 1080x2248/4-lane/RGB888/VIDEO+LPM, init 只需 5 条 DCS 写, 供电 vdda+vdd3p3 负载 32mA/13.2mA) => '视涯 SiOLED 走 Rockchip DSI'这条路内核里已有先例可循",
+      "backlight": "无背光 (OLED 自发光)",
+      "backlight_current_ma": null,
+      "public_pinout_url": "https://www.seeya-tech.com/html/products/3971.html",
+      "price_hint_usd": null,
+      "notes": "★ISS-132 (单色还是全彩) 已有答案: 官网 0.49\" 页同时列三个规格 —— 0.49\" OLEDoS 高亮版 3000nits/Full RGB、0.49\" OLEDoS 1800nits/Full RGB、0.49\" OLEDoS Mono-G 20000nits/Green; 对比度均 50,000:1, 接口均 MIPI => 全彩与单色绿并存, 属产品线选型而非二选一, D1'视涯无全彩版本'作废. ★官方 datasheet (2021年01月版) 关键值: 功耗 468mW @ 90Hz/100% duty, 刷新率 60-90Hz, 色域 DCI-P3 >90%, 12英寸硅晶圆 80nm, 侧出脚. ★468mW 比 8HD 背光单项 (2.56W) 还低 5.5 倍 => 换小屏同时解决尺寸/功耗/DSC 三件事. ★D3 风险缩到只剩 SoC 侧 (RK3572 DSI 能否解 DSC). 无公开针位表/无零售采购渠道 => 需走 B2B 问询 sales@seeya-tech.com. 联系方式见 PDF"
+    }
+  ],
+  "product_target": {
+    "panel": "视涯 0.49in 1920x1080 SiOLED",
+    "status": "★官方产品线在售 (官网产品中心 OLEDoS 显示器 0.49\"), 且官方 datasheet PDF 已下载并解析 (2021年01月版). 三个规格并存: 高亮版 3000nits Full RGB / 标准版 1800nits Full RGB / Mono-G 20000nits Green => 全彩与单色绿同时存在 (ISS-132 的'单色还是全彩'二选一不成立, 改为'选哪个规格'需老板拍板; D1'无全彩版本'作废). ★无公开 FPC 针位表 / 无零售采购渠道 / 无单价与交期 => 需走 B2B 问询 (sales@seeya-tech.com; 上海浦东 + 合肥). 面板级 init 序列未公开",
+    "public_interface": "MIPI D-PHY 1 PORT, VESA DSC 3:1 (datasheet 原文); 刷新率 60-90Hz; 功耗 468mW @ 90Hz / 100% duty; 亮度 1800nits (全彩) / 3000nits (高亮) / 20000nits (Mono-G); 对比度 50,000:1; 色域 DCI-P3 >90%; 像素 5.6μm / 4496 PPI; AA 10.783x6.065mm; 模组厚 1.48±0.1mm; FPC 侧边出 Pin (侧出脚), 底部 pin 区 19.03mm; 12英寸硅晶圆 80nm 工艺; lane 数 (2/4) 与供电脚定义未公开",
+    "source": "https://www.seeya-tech.com/html/products/3971.html (官网 0.49\" 产品页, 含三个规格与 PDF 下载直链) + https://www.seeya-tech.com/uploads/2021/01/010917/SeeYA%20Technology%20-%20049%20OLEDoS.pdf (官方 datasheet, 图片版 PDF, 逐页渲染读取) + .../SeeYA Technology - 049 Mono-G OLEDoS.pdf (单色绿版) + https://static.sse.com.cn/stock/disclosure/announcement/c/202506/002094_20250626_8Q5Z.pdf (招股说明书, 竞品对比表交叉核对)"
+  }
+}

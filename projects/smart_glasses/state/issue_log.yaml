@@ -4396,14 +4396,14 @@ issues:
   reporter: main
   raised: '2026-11-03'
   due: '2026-11-05'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   fix_ref: HW/PCB/PINOUT_FOOTPRINT_SPEC.md §(CONN_LIGHT 候选) · HW/PCB/FPC_PIN_TABLES.md
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
-  note: '★4 个公开在售候选已列: A **HIROSE FH12-40S-0.5SH(55)** (与项目 J_CHG 同系列, 原厂尺寸表齐全) / B **Molex 502250** (原厂矩阵页确认的 BackFlip 0.5mm, 但电路数列 39/41/51 待核) / C **Amphenol 62684-401100ALF** ($0.75, 现货 9910) / D **JAE FA5B040HP1** ($3.25)。★候选 B/C/D 的原厂封装图未取得 ⇒ 走采购硬判据。 ★2026-11-03 18:4x 已派专项 (任务书 state/TASK_display_39p_pinout.md) ⇒ 目标: 从 Radxa 官方 **display 8HD 适配板原理图 PDF** 取主板侧 39 针针位表 + 连接器型号 + 40→39 合并关系 + 触控/背光在不在主板侧。★顺带记: 之前列的 4 个 40p/0.5mm 候选 (FH12-40S / Molex 502250 / Amphenol 62684 / JAE FA5B) **全部作废**。★同时: STACKUP.md / demo_mainboard_params.json 的板尺寸已从 60×45 草案同步为实际 **160×100mm** (骨架生成器时代遗留的不一致)。 ★★2026-11-03 19:1x **老板一句"这跟 Radxa 有什么关系"直接挖出根因**: 矛盾**不是外部资料问题, 是我们项目里那张 display 40 针表**把 8HD 与 10FHD 混成了一张** (标题就写着 "8HD/10FHD") ⇒ ★**权威 = 8HD 官方 Pinout 原文, 我们项目里本来就有** (HW/STEP1_PARTS_SPEC.md §3.1, 标注 `[实测] 官方文档"Pinout"表原文`) ⇒ ⇒ **屏侧针位表现在就能闭环, 不必等专项** ⇒ 已按原文订正网表 (pin36=LED_N · pin39=LED_P) 并重跑全部门禁 (全绿); ⇒ ★**专项的剩余价值收窄为**: ① 主板侧 39p 针位表 (那才是我们要画的座) ② **8HD 自己的背光电压/电流** (我们手上的 12.8V@200mA 是 10FHD 的!) ③ 15p 版的取舍 ④ 40→39 到底省的是哪个 NC'
+  verify_result: pass
+  verify_date: '2026-11-03'
+  note: '★4 个公开在售候选已列: A **HIROSE FH12-40S-0.5SH(55)** (与项目 J_CHG 同系列, 原厂尺寸表齐全) / B **Molex 502250** (原厂矩阵页确认的 BackFlip 0.5mm, 但电路数列 39/41/51 待核) / C **Amphenol 62684-401100ALF** ($0.75, 现货 9910) / D **JAE FA5B040HP1** ($3.25)。★候选 B/C/D 的原厂封装图未取得 ⇒ 走采购硬判据。 ★2026-11-03 18:4x 已派专项 (任务书 state/TASK_display_39p_pinout.md) ⇒ 目标: 从 Radxa 官方 **display 8HD 适配板原理图 PDF** 取主板侧 39 针针位表 + 连接器型号 + 40→39 合并关系 + 触控/背光在不在主板侧。★顺带记: 之前列的 4 个 40p/0.5mm 候选 (FH12-40S / Molex 502250 / Amphenol 62684 / JAE FA5B) **全部作废**。★同时: STACKUP.md / demo_mainboard_params.json 的板尺寸已从 60×45 草案同步为实际 **160×100mm** (骨架生成器时代遗留的不一致)。 ★★2026-11-03 19:1x **老板一句"这跟 Radxa 有什么关系"直接挖出根因**: 矛盾**不是外部资料问题, 是我们项目里那张 display 40 针表**把 8HD 与 10FHD 混成了一张** (标题就写着 "8HD/10FHD") ⇒ ★**权威 = 8HD 官方 Pinout 原文, 我们项目里本来就有** (HW/STEP1_PARTS_SPEC.md §3.1, 标注 `[实测] 官方文档"Pinout"表原文`) ⇒ ⇒ **屏侧针位表现在就能闭环, 不必等专项** ⇒ 已按原文订正网表 (pin36=LED_N · pin39=LED_P) 并重跑全部门禁 (全绿); ⇒ ★**专项的剩余价值收窄为**: ① 主板侧 39p 针位表 (那才是我们要画的座) ② **8HD 自己的背光电压/电流** (我们手上的 12.8V@200mA 是 10FHD 的!) ③ 15p 版的取舍 ④ 40→39 到底省的是哪个 NC ★★2026-11-03 19:4x **本单闭环**: ① 39p 板侧针位表已由三个 Radxa 原厂来源互证闭环 (ROCK 5C 官方接口页 / ROCK 4D 官方 SBC 侧表 / Dragon Q6A 原厂原理图 V1.21 p.29 sheet31 J10 LCD_39P), 连"官方 GND 编号跳过 GND10"这种怪癖都一致; ② **40→39 = 省掉屏侧第 1 脚 (NC)**, 其余 39 脚 1:1 直通 ⇒ 换算式 **屏侧脚号 = 板侧脚号 + 1** (无交叉); ③ 板侧座 = **HIROSE FH35C-39S-0.3SHW(50)** (背夹 + 上下双面触点) ⇒ ★**与相机侧 FH35C-31S-0.3SHW(50) 同系列** ⇒ footprint 可复用; ④ 15p 版被排除 (背光PWM/背光5V/TP-RST/TP-INT/GSENSOR-INT 全被甩到外接 7 针排针 ⇒ 15 位塞不下 4-lane DSI+触控+背光); ⑤ 背光 = **1 串 2 颗并联** (板侧阴极 34/35 同网、阳极 38/39 同网) ⇒ 与 8HD 官方 Pinout 一致; ⑥ 8HD 自己的背光 LED 电压/电流 **Radxa 未公开** (12.8V@200mA 是同族 10FHD 的) ⇒ 只能当量级参考。★**网表已按板侧 39p 改完** (脚号 = 屏侧 − 1; 触控 5 脚按老板 19:29 "不需要触控" 改 NC; 背光改 34/35 与 38/39) 并重跑全部门禁 (逐焊盘等价 492/492 · DRC 0)。★**但屏型号本身已被老板 19:4x 拍板换成 ≤3 寸 ⇒ 这张 39p 表随新屏选型一并复核 (ISS-175)。'
   dispatched_at: 2026-11-03 18:4x
   task_brief: state/TASK_display_39p_pinout.md (★取 Radxa Display 8HD 主板侧 39p/0.3mm 针位表; 只出 2 个文件, 不许改网表)
 - id: ISS-171
@@ -4481,4 +4481,23 @@ issues:
   verify_result: null
   verify_date: null
   note: '★**顺带发现**: NET_TP_RESET (pin24) 也只连到屏模组一侧 (没有 SoM 驱动) ⇒ 触控复位没人拉 ⇒ ★**要么接一个 GPIO, 要么靠屏模组内部上拉** (待核 Radxa 官方: 触控复位是否屏内上拉) ⇒ 一并记。'
+  dispatched_at: '2026-11-03'
+- id: ISS-175
+  title: ★★★[选型变更 · 老板拍板] demo 屏换 ≤3 寸 (原 Radxa Display 8HD = 8.0" 太��) ⇒ 背光 12V BOOST / 39p 座 / init code 三件事可能一起重解
+  severity: blocker
+  source_blocker: null
+  source_agent: main
+  desc: '★2026-11-03 19:4x 老板拍板「屏幕太大了，换小屏幕的，屏幕不要超过3寸大小」⇒ 原选型 Radxa Display 8HD (8.0" / 800×1280 竖屏 / 40p↔39p / 背光 12.8V@200mA / 驱动在 Radxa 私有内核) 作废重选。⇒ ★**换小屏可能一次解掉三件事**: ① 背光若能 3.3V/5V 直接供 ⇒ 省掉 12V BOOST + 恒流 + PWM (≈2.6W, 且 USB-C 900mA 预算立刻宽裕) ② 座从 39p/0.3mm 换回更常见的 24p/0.5mm 等 ⇒ 与相机侧工艺更统一 ③ 若驱动 IC 在 Rockchip 内核白名单 (ST7701/ST7789/ILI9881C 或 simple-panel-dsi 兼容) ⇒ init code 不用再向 Radxa 索取。⇒ ★同时回头看: 整机目标是 视涯 0.49" 1920×1080 SiOLED ⇒ 0.49" 本身 < 3" ⇒ ★**小屏选型应朝"最接近产品目标"的方向**, 而不是随便找一块便宜的。'
+  owner: main
+  reporter: main
+  raised: '2026-11-03'
+  due: '2026-11-05'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: state/TASK_display_small_screen.md (任务书) · HW/DISPLAY_SMALL_SCREEN_OPTIONS.md (专项产出)
+  verify_by: hw-lead
+  verify_result: null
+  verify_date: null
+  note: '★**下游连带**: 屏侧 FPC 座型号/针数/脚位表、DSI lane 数 (2/4)、背光驱动电路、init code 来源、TPS3808 之外的上电时序、屏的机械尺寸 (结构侧) 全部要跟着改 ⇒ ⇒ ★**换屏必须在布线前定** (老板已定布线放最后 ⇒ 正好)。'
   dispatched_at: '2026-11-03'

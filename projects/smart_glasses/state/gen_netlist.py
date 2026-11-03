@@ -248,6 +248,25 @@ def _apply_pin_maps(rows):
     print(f"  [脚号改写] {changed} 处 · 仍无脚号的命名脚 {unknown} 处")
     return rows
 
+
+# ★★2026-11-03 20:1x: 电源 IC 的引脚一律用**真实脚号** (查 HW/PCB/pinout_footprint.json)
+#   ⇒ 起因: 槽位门禁 check_schematic_slots 的 B 项发现 14 个器件"引脚不全"
+#   ⇒ 根因: LDO 的 OUT/IN 用的是**裸节点/脚名** ("U_LDO_IO33" / "U_LDO_IO33 VIN") ⇒ 板子上焊盘号是行序占位
+_PM_PATH = os.path.join(PROJ, "HW", "PCB", "pinout_footprint.json")
+try:
+    _PM_RAW = json.load(open(_PM_PATH, encoding="utf-8")).get("parts") or {}
+    # ref -> {脚名: 脚号}
+    _PIN_NUM = {k: {str(vv): str(nn) for nn, vv in (v.get("pins") or {}).items()}
+                for k, v in _PM_RAW.items()}
+except Exception:
+    _PIN_NUM = {}
+
+
+def pin_of(ref, name, default=None):
+    """ref 的 'name' 引脚的真实脚号 (查不到 ⇒ 返回 default)"""
+    m = _PIN_NUM.get(ref) or {}
+    return m.get(name, default)
+
 ROWS: list[dict] = []
 
 
@@ -645,12 +664,16 @@ def build_p1(by_id, spec):
     ]
     for ref, rail, part, desc, dnp, ev, tbd, cid in power_ics:
         r = rails.get(rail, {})
-        add("P1", rail, f"RAIL_{rail}", ref, f"RAIL_{rail}", r.get("volt", ""), "RAIL", dnp,
+        _out_pin = pin_of(ref, "OUT") or pin_of(ref, "VOUT")
+        add("P1", rail, f"RAIL_{rail}", f"{ref} pin{_out_pin}" if _out_pin else ref,
+            f"RAIL_{rail}", r.get("volt", ""), "RAIL", dnp,
             ev, tbd,
             f"电源域: 目标 {r.get('volt','')} / 最大电流 {r.get('max_i','')}; IC {part}; "
             f"SoC 侧球位号 TBD-01", cid)
         # ★V1.1 补画 3: 输入侧连接 (V1 只画了供电器件与去耦, **没画 IC 输入脚接哪条轨** · ERC B1 "来源" 缺失)
-        add("P1", "SYS_PCB", "RAIL_BOARD_5V", f"{ref} VIN", "RAIL_BOARD_5V", "5.0V (F13: 由 CARRIER_BOARD_EN 门控)",
+        _in_pin = pin_of(ref, "IN") or pin_of(ref, "VIN")
+        add("P1", "SYS_PCB", "RAIL_BOARD_5V", f"{ref} pin{_in_pin}" if _in_pin else f"{ref} VIN",
+            "RAIL_BOARD_5V", "5.0V (F13: 由 CARRIER_BOARD_EN 门控)",
             "NET", dnp, "[推算]", "",
             f"[{rail}] {ref} 输入脚供电 (SYS 镜脚本地产生, 电池保护后); "
             f"LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方]",
@@ -861,15 +884,15 @@ DSI_LANES = [
     # lane, net_P, net_N, cid_P, cid_N, src_P, src_N, pin_P, pin_N, sel_dnp, 有对地端接
     # ★★2026-11-02 19:5x 按 Radxa Display 8HD/10FHD 40 针表 (0.5mm): P=正脚 / N=负脚
     ("CK", "DSI_D0_CK_P", "DSI_D0_CK_N", "A-13", "A-14",
-     "DSI_TX_CK_P", "DSI_TX_CK_N", 15, 14, "必装", False),      # MIPI_CKP15 / MIPI_CKN14
+     "DSI_TX_CK_P", "DSI_TX_CK_N", 14, 13, "必装", False),      # ★板侧 39p: MIPI_CKP14 / MIPI_CKN13 (屏侧 15/14)
     ("D0", "DSI_D0_D0_P", "DSI_D0_D0_N", "A-15", "A-16",
-     "DSI_TX_D0_P", "DSI_TX_D0_N", 9, 8, "必装", False),         # MIPI_0P9 / MIPI_0N8
+     "DSI_TX_D0_P", "DSI_TX_D0_N", 8, 7, "必装", False),         # ★板侧 39p: MIPI_0P8 / MIPI_0N7 (屏侧 9/8)
     ("D1", "DSI_D0_D1_P", "DSI_D0_D1_N", "A-17", "A-18",
-     "DSI_TX_D1_P", "DSI_TX_D1_N", 12, 11, "必装", False),       # MIPI_1P12 / MIPI_1N11
+     "DSI_TX_D1_P", "DSI_TX_D1_N", 11, 10, "必装", False),       # ★板侧 39p: MIPI_1P11 / MIPI_1N10 (屏侧 12/11)
     ("D2", "DSI_D0_D2_P", "DSI_D0_D2_N", "A-19", "A-20",
-     "DSI_TX_D2_P", "DSI_TX_D2_N", 18, 17, "必装", False),       # MIPI_2P18 / MIPI_2N17
+     "DSI_TX_D2_P", "DSI_TX_D2_N", 17, 16, "必装", False),       # ★板侧 39p: MIPI_2P17 / MIPI_2N16 (屏侧 18/17)
     ("D3", "DSI_D0_D3_P", "DSI_D0_D3_N", "A-21", "A-22",
-     "DSI_TX_D3_P", "DSI_TX_D3_N", 21, 20, "必装", False),       # MIPI_3P21 / MIPI_3N20
+     "DSI_TX_D3_P", "DSI_TX_D3_N", 20, 19, "必装", False),       # ★板侧 39p: MIPI_3P20 / MIPI_3N19 (屏侧 21/20)
 ]
 # ★★2026-11-02 01:0x 老板换主控 RK3572 ⇒ **RK3572 无 DP TX** ⇒ 方案B (DP→DSI 桥接) **不可能成立**
 #   ⇒ BR_LANES 常量与全部方案B 器件行 (U_BRIDGE + 12 颗 0Ω 桥接位 + 8 颗 DP 串阻 + 8 颗对地电容)
@@ -945,6 +968,12 @@ def build_p4(by_id, spec):
     add("P4", "LIGHT_3V3", "CONN_LIGHT pin2", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (VCCIO)", "NET",
         "必装", "[官方]", "",
         "[CONN_LIGHT] ★Radxa Display 40 针表: VCCIO = 1.8~3.3V (pin3) ⇒ ★**demo 取 3.3V**", "")
+    # ★★2026-11-03 19:29 老板拍板: **demo 不需要触控** ⇒ 板侧 23~27 (TP-RESET/TP-VCC/TP-INT/TP-SDA/TP-SCL) 一律不接
+    for _pn, _what in ((23, "TP-RESET (触控复位)"), (24, "TP-VCC (触控供电)"),
+                       (25, "TP-INT (触控中断)"), (26, "TP-SDA (触控I2C)"), (27, "TP-SCL (触控I2C)")):
+        add("P4", "NC_CONN_LIGHT", f"CONN_LIGHT pin{_pn}", "NC_CONN_LIGHT", "CONN_LIGHT", _what, "NET",
+            "必装", "[官方]", "",
+            f"[CONN_LIGHT] ★板侧 39p 脚{_pn} = {_what} —— ★**demo 不需要触控 ⇒ 我们不接** (脚位仍要占位)", "")
     add("P4", "DSI_RESET_N", "CONN_LIGHT pin4", soc_pin("GPIO_DSI_RESET"), "CONN_LIGHT", "RESET", "NET",
         "必装", "[官方]", "",
         "[DSI_RESET_N] ★屏模组 Reset (pin5) ⇒ 接 SoC GPIO (★球位号 TBD-01) ⇒ ★**主板必须能拉它**", "")
@@ -1110,7 +1139,7 @@ TPS = [
     ("TP_BAT", "BAT", "U_BATPROT", "电池电压", "BQ25896 BAT 脚", "必装"),
     ("TP_VCORE", "V_CORE", "U_DCDC_VCORE", "SoC 核心轨", "DC-DC 输出", "必装"),
     ("TP_VIO", "V_SOC_IO", "U_DCDC_VIO", "SoC IO 轨", "DC-DC/LDO 输出", "必装"),
-    ("TP_LIGHT_3V3", "LIGHT_3V3", "CONN_LIGHT pin31", "光机轨", "LDO 输出", "必装"),
+    ("TP_LIGHT_3V3", "LIGHT_3V3", "CONN_LIGHT pin30", "光机轨", "LDO 输出", "必装"),
     ("TP_CSI_CK_P", "CSI_D0_CK_P", "CONN_CAM pin18", "CSI 时钟差分 (示波器测眼图/摆幅)",
      "连接器出口 (规格合并名 TP_CSI_D0_CK_P / _N)", "必装"),
     ("TP_CSI_CK_N", "CSI_D0_CK_N", "CONN_CAM pin17", "CSI 时钟差分 (规格合并名 TP_CSI_D0_CK_P / _N)",
@@ -1118,16 +1147,16 @@ TPS = [
     ("TP_CSI_D0_P", "CSI_D0_D0_P", "CONN_CAM pin15", "CSI D0 数据差分", "连接器出口", "必装"),
     ("TP_CSI_D0_N", "CSI_D0_D0_N", "CONN_CAM pin14", "CSI D0 数据差分", "连接器出口", "必装"),
     ("TP_MCLK", "CSI_MCLK", "CONN_CAM pin20", "MCLK (包地走线)", "连接器出口", "必装"),
-    ("TP_DSI_CK_P", "DSI_D0_CK_P", "CONN_LIGHT pin15", "DSI 时钟差分",
+    ("TP_DSI_CK_P", "DSI_D0_CK_P", "CONN_LIGHT pin14", "DSI 时钟差分",
      "连接器出口 (规格合并名 TP_DSI_D0_CK_P / _N)", "必装"),
-    ("TP_DSI_CK_N", "DSI_D0_CK_N", "CONN_LIGHT pin14", "DSI 时钟差分 (规格合并名 TP_DSI_D0_CK_P / _N)",
+    ("TP_DSI_CK_N", "DSI_D0_CK_N", "CONN_LIGHT pin13", "DSI 时钟差分 (规格合并名 TP_DSI_D0_CK_P / _N)",
      "连接器出口", "必装"),
-    ("TP_DSI_D0_P", "DSI_D0_D0_P", "CONN_LIGHT pin9", "DSI D0 数据差分", "连接器出口", "必装"),
-    ("TP_DSI_D0_N", "DSI_D0_D0_N", "CONN_LIGHT pin8", "DSI D0 数据差分", "连接器出口", "必装"),
+    ("TP_DSI_D0_P", "DSI_D0_D0_P", "CONN_LIGHT pin8", "DSI D0 数据差分", "连接器出口", "必装"),
+    ("TP_DSI_D0_N", "DSI_D0_D0_N", "CONN_LIGHT pin7", "DSI D0 数据差分", "连接器出口", "必装"),
     ("TP_I2CA_SCL", "I2C_A_SCL", "CONN_CAM pin24", "I2C_A 时钟", "连接器出口", "必装"),
     ("TP_I2CA_SDA", "I2C_A_SDA", "CONN_CAM pin25", "I2C_A 数据", "连接器出口", "必装"),
-    ("TP_I2CB_SCL", "I2C_B_SCL", "CONN_LIGHT pin28", "DDC 时钟 (I2C_B)", "连接器出口", "必装"),
-    ("TP_I2CB_SDA", "I2C_B_SDA", "CONN_LIGHT pin27", "DDC 数据 (I2C_B)", "连接器出口", "必装"),
+    # ★★2026-11-03 19:29 老板拍板 demo 不需要触控 ⇒ 屏侧触控 I2C 测试点已删 (原行在此)
+    # ★★2026-11-03 19:29 老板拍板 demo 不需要触控 ⇒ 屏侧触控 I2C 测试点已删 (原行在此)
     ("TP_USB_D_P", "USB_D_P", "CONN_USB pin1", "USB 2.0 差分",
      "Type-C 出口 (规格合并名 TP_USB_D+ / D-)", "必装"),
     ("TP_USB_D_N", "USB_D_N", "CONN_USB pin2", "USB 2.0 差分 (规格合并名 TP_USB_D+ / D-)",
@@ -1369,6 +1398,14 @@ def build_a2_som(by_id, spec):
     # ---- ① demo 板自己的 Type-C (5V 输入 + USB 数据) ----
     #   ★demo 形态 (老板 11-02 19:25): "demo 直接 USB-C 5V 供电, 不装电池、不上充电链"
     #   ⇒ 主板自己带一个 Type-C; 整机阶段这块是 DNP (整机走跨铰链 USB + 充电板)
+    # ---- ★demo 板 USB-C 入口的 ESD 阵列 (Forlinx 载板指引: ESD 阵列紧贴接口) ----
+    add("P1", "NET_USB_D_P_ESD", "D_ESD_USB_D", "NET_USB_D_P_ESD", "D_ESD_USB_D",
+        "ESD 阵列 [待选型] (USB 2.0 双通道)", "D", "必装", "[推算]", "",
+        "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
+    add("P1", "NET_USB_D_P_ESD", "R_SER_USB_D_P", "NET_USB_D_P_ESD", "R_SER_USB_D_P", "22Ω ±1%", "R",
+        "必装", "[推算]", "", "[D_ESD_USB_D] ESD 后再进 22Ω 串阻 ⇒ SoM 侧", "A-24")
+    add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D", "ESD 阵列 [待选型]", "D", "必装",
+        "[推算]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
     add("P1", "RAIL_DEMO_5V", "J_USB_C A4+A9+B4+B9", "RAIL_DEMO_5V", "J_USB_C",
         "5.0V ±5% (USB-C 5V)", "RAIL", "必装", "[官方]", "",
         "[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW", "A-24")
