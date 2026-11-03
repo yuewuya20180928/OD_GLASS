@@ -946,12 +946,19 @@ def build_p4(by_id, spec):
     add("P4", "LIGHT_3V3", "CONN_LIGHT pin25", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (TP_VCC)", "NET",
         "必装", "[官方]", "",
         "[CONN_LIGHT] ★Radxa Display 40 针表: 触控供电 TP_VCC (pin25) ⇒ 3.3V", "")
-    _disp_aux = [24, 26, 35, 40]
-    for _pn in _disp_aux:
-        add("P4", "NET_DSI_AUX", f"CONN_LIGHT pin{_pn}", "NET_DSI_AUX", "CONN_LIGHT", "AUX", "NET",
-            "必装", "[官方]", "",
-            f"[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = 触控/背光类 (TP_RESET/TP_INT/LED±); "
-            "★**demo 阶段不驱动 (触控与背光由模组内部处理)**, 板级同网仅为满足网表连通性检查, 无功能影响", "")
+    # ★★2026-11-03 修 F15 (hw-lead 在 ISS-159 里撞出的 P0): ★**这 4 个脚原本全并在 NET_DSI_AUX 一个网上**
+    #   ⇒ **LED+ 与 LED− 短接** (背光驱动直接被短) ⇒ 而且 TP_INT 是触控的**输出**脚, 也不能与 TP_RESET 并网
+    #   ⇒ 现在**一脚一网**, 各自不接 (demo 阶段屏不点灯, 触控由模组内部处理)
+    #   ⇒ ★背光驱动本身是另一件事: 该屏背光 LED 是 **12.8V typ / 14V max @200mA** ⇒ 5V 输入必须加 12V BOOST
+    #   ⇒ 已开 ISS-173 (未加 ⇒ demo 屏没有背光 ⇒ 看不见)
+    for _pn, _net, _what in ((24, "NET_TP_RESET", "TP_RESET (触控复位)"),
+                             (26, "NET_TP_INT", "TP_INT (触控中断输出)"),
+                             (35, "NET_LED_N", "LED_N (背光负极)"),
+                             (40, "NET_LED_P", "LED_P (背光正极)")):
+        add("P4", _net, f"CONN_LIGHT pin{_pn}", _net, "CONN_LIGHT", _what, "NET",
+            "DNP", "[官方]", "",
+            f"[CONN_LIGHT] ★Radxa Display 40 针表 pin{_pn} = {_what} —— ★★**F15 修: 原来这 4 脚并成 NET_DSI_AUX "
+            f"⇒ LED+ 与 LED− 短接**; 现在一脚一网且不接 (背光驱动见 ISS-173: 该屏背光需 12.8V ⇒ 5V 输入要加 12V BOOST)", "")
 
 
 
