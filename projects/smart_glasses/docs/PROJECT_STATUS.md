@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-03 20:13** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-03 20:15** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -62,10 +62,10 @@
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 172 条 | 状态: closed=60 deferred=10 verified=41 fixed=26 open=33 fixing=2
+登记问题 172 条 | 状态: closed=60 deferred=10 verified=41 fixed=27 open=32 fixing=2
   ├─ 内部可自行推进: 143 条 | 外部依赖 (等老板/原厂/JBD): 29 条
   ├─ 逾期未闭环: 0 条
-  └─ 未闭环 blocker 级: 17 条
+  └─ 未闭环 blocker 级: 16 条
 
 【问题清单】(按 severity + 逾期排)
   🔴 ISS-002  closed    owner=boss       due=2026-10-26   [外部]
@@ -136,8 +136,6 @@
        ★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400
   🔴 ISS-170  closed    owner=main       due=2026-11-05  
        ★★★[demo 板可制造性] 显示器 FPC 座: 屏侧 40p/0.5mm 与原厂排线主板侧 39p/0.3mm 矛盾 ⇒ 画 
-  🔴 ISS-173  open      owner=main       due=2026-11-05  
-       ★★★[demo 能不能看见屏幕] 显示器背光需 12.8V@200mA ⇒ 5V 输入必须加 12V BOOST (且会撑爆 US
   🔴 ISS-175  open      owner=main       due=2026-11-05  
        ★★★[选型变更 · 老板拍板] demo 屏换 ≤3 寸 (原 Radxa Display 8HD = 8.0" 太��) ⇒ 背
   🔴 ISS-160  open      owner=main       due=2026-11-06  
@@ -288,7 +286,7 @@
        ★★[demo] 画板前致命项清零 F4~F12 (★照 EN 那个 P0 的教训: 漏到投板后 = 2~4 周返工)
   🟠 ISS-169  open      owner=main       due=2026-11-05  
        ★★[demo 板可制造性] demo 主板的边界已定 (Type-C 供电 · 不装电池 · 板上只有这一块) + SoM 座的 
-  🟠 ISS-132  open      owner=main       due=2026-11-06  
+  🟠 ISS-132  fixed     owner=main       due=2026-11-06  
        ★★★[决定性] 视涯 0.49" 1920×1080 是单色还是全彩? —— 这题决定产品定义 (检测框能不能上色)
   🟠 ISS-133  open      owner=main       due=2026-11-06  
        ★★★显示架构变更: '屏' ≠ '光机' ⇒ 必须新增一级耦合光学 ⇒ 镜框光学腔体/分光器/整机空间全部重算
@@ -382,6 +380,8 @@
        ★R-GEO 六问的其余五问要按 RK3576 口径重写问询 (问 01/02/04/05/06 仍是 0 答复)
   🟡 ISS-131  open      owner=main       due=2026-11-05  
        ★★ISS-124/125 问询口径改 RK3572 (ISP 16M→12M, CSI 3×→2×) + 球位号问询对象改瑞芯微/
+  🟡 ISS-173  open      owner=main       due=2026-11-05  
+       ★★★[demo 能不能看见屏幕] 显示器背光需 12.8V@200mA ⇒ 5V 输入必须加 12V BOOST (且会撑爆 US
   🟡 ISS-134  open      owner=main       due=2026-11-06  
        ★★JBD 角色收窄为波导 + ISS-016 作废 + ISS-048 光生物安全口径整个变了 (LED 点光源 → OLED 面
   🟡 ISS-136  open      owner=main       due=2026-11-06  
@@ -614,7 +614,6 @@
 | ISS-145 | sw-lead | 2026-11-05 | ★★★★[demo 关键路径 #2] demo 板 OD 管线打通规格: yolov5n INT8 → RKNN → 画框 → 视涯 049 显示 |
 | ISS-149 | main | 2026-11-05 | ★★★[硬件优先] demo 硬件形态落地: 一块主板 + **IMX415 sensor 模组** + 屏幕驱动板模组 + FPC 软排 ⇒ 网表级方案 |
 | ISS-162 | main | 2026-11-05 | ★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400 脚 BTB + 电源输入改 5-13V |
-| ISS-173 | main | 2026-11-05 | ★★★[demo 能不能看见屏幕] 显示器背光需 12.8V@200mA ⇒ 5V 输入必须加 12V BOOST (且会撑爆 USB-C 900mA 预算) |
 | ISS-175 | main | 2026-11-05 | ★★★[选型变更 · 老板拍板] demo 屏换 ≤3 寸 (原 Radxa Display 8HD = 8.0" 太��) ⇒ 背光 12V BOOST / 39p 座 / init code 三件事可能一起重解 |
 | ISS-160 | main | 2026-11-06 | ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) ⇒ 剩下: 原理图/密集布线/打样 |
 | ISS-062 | hw-lead | 2026-10-29 | R-GEO-2 四问转原厂/镜头厂 (边缘畸变区是检测价值最高处 / 4-lane MIPI / ISP 吞吐余量 98.1% / scaler 能否填黑边) |

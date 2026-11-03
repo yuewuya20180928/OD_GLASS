@@ -3685,14 +3685,14 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-06'
-  status: open
+  status: fixed
   external: false
   need_keys: []
   fix_ref: null
   verify_by: boss
-  verify_result: null
-  verify_date: null
-  note: '2026-11-02 01:3x 随显示件换型产生。★verify_by=boss: 本条等的是**外部答复 + 老板对''能不能接受单色''的拍板**, 外部件由项目总工盯。★**这是新翻案条件 D1**: 若无全彩且老板不接受单色 ⇒ 显示件选型要重开。 ★source_blocker=PM-B8 (STATE 阻塞登记)'
+  verify_result: pass
+  verify_date: '2026-11-03'
+  note: '2026-11-02 01:3x 随显示件换型产生。★verify_by=boss: 本条等的是**外部答复 + 老板对''能不能接受单色''的拍板**, 外部件由项目总工盯。★**这是新翻案条件 D1**: 若无全彩且老板不接受单色 ⇒ 显示件选型要重开。 ★source_blocker=PM-B8 (STATE 阻塞登记) ★★2026-11-03 20:1x **有答案了** (小屏选型专项从视涯官网 0.49" 页 + 官方 datasheet PDF): 官网 0.49" 页列**三版**: 3000nits Full RGB / 1800nits Full RGB / **20000nits Mono-G 单色绿** ⇒ ⇒ **全彩与单色绿并存, 是产品线选型不是二选一** ⇒ ★**D1「无全彩版」作废**。★官方 datasheet 已解析: 型号 **SY049WDM01** · **MIPI D-PHY 1 PORT + VESA DSC 3:1** · 60~90Hz · **468mW@90Hz** (比 8HD 背光单项 2.56W 还低 5.5 倍) · 5.6μm/4496PPI · 侧出脚 1.48mm 厚 ⇒ ⇒ **D3 风险缩到只剩「RK3572 能否解 DSC」这一条**。⇒ 待你拍板: demo 用哪一版 (全彩/单色绿)。'
   dispatched_at: null
 - id: ISS-133
   title: '★★★显示架构变更: ''屏'' ≠ ''光机'' ⇒ 必须新增一级耦合光学 ⇒ 镜框光学腔体/分光器/整机空间全部重算'
@@ -4446,7 +4446,7 @@ issues:
   dispatched_at: '2026-11-03'
 - id: ISS-173
   title: ★★★[demo 能不能看见屏幕] 显示器背光需 12.8V@200mA ⇒ 5V 输入必须加 12V BOOST (且会撑爆 USB-C 900mA 预算)
-  severity: blocker
+  severity: medium
   source_blocker: null
   source_agent: main
   desc: '★2026-11-03 复核 hw-lead 的 ISS-159 F 项时查实: Radxa Display 8HD/10FHD 的**背光 LED 是 12.8V typ / 14V max @ 200mA typ** ⇒ ★**主板用 USB-C 5V 供电 ⇒ 必须加一路 12V BOOST + 背光恒流驱动**, 否则**屏没有背光 ⇒ demo 看不见画面**。★**而且会撑爆预算**: 背光 12.8V×0.2A ≈ **2.6W**; 5V 输入按 USB-C 5.1k 下拉的默认 **900mA** 只有 4.5W ⇒ 背光 2.6W + SoM 0.67W + 其它 ⇒ **余量很紧** ⇒ 要么换能 advertise 3A 的 Type-C 方案/CC 电阻, 要么降背光亮度。'
@@ -4461,7 +4461,7 @@ issues:
   verify_by: hw-lead
   verify_result: null
   verify_date: null
-  note: '★**顺带修掉了 F15 的短路**: display 座的 pin24(TP_RESET)/pin26(TP_INT)/pin35(LED_N)/pin40(LED_P) 原来**全并在 NET_DSI_AUX 一个网上** ⇒ ★**LED+ 与 LED− 短接** (背光驱动被短) 且 TP_INT 是触控的**输出**脚也不该并网 ⇒ 已拆成一脚一网并标 DNP (demo 阶段屏不点灯) ⇒ 重跑全部门禁仍全绿 (逐焊盘等价 495/495 · DRC 0)。★**待裁**: ① 背光驱动方案 (BOOST+电阻限流 / 恒流 LED 驱动 IC / 直接用屏模组自带背光接口——需确认 FPC 的 LED± 到底给不给外部驱动); ② USB-C 电流预算 (换 3A advertise 方案 vs 降背光亮度 vs demo 阶段先不点灯); ③ 与 ISS-170 (屏侧 40p vs 原厂排线 39p) 一起定 —— **显示器接口是目前最弱的一环**。 ★★2026-11-03 19:1x **数字来源订正**: 12.8V typ / 14V max / 200mA typ 这个背光规格是 **Radxa Display 10FHD** 的官方文档数据, 而**我们的 demo 屏是 8HD** ⇒ ★★**8HD 的背光电压/电流我们未查** ⇒ ⇒ ⇒ **ISS-173 的具体数值待补** (已让专项取 8HD 官方规格) ⇒ 但**"5V 输入要加 12V BOOST"这个方向不变** (白 LED 背光都是 12V 级, 8HD 的 IO 域 1.8V 不是背光电压)'
+  note: '★**顺带修掉了 F15 的短路**: display 座的 pin24(TP_RESET)/pin26(TP_INT)/pin35(LED_N)/pin40(LED_P) 原来**全并在 NET_DSI_AUX 一个网上** ⇒ ★**LED+ 与 LED− 短接** (背光驱动被短) 且 TP_INT 是触控的**输出**脚也不该并网 ⇒ 已拆成一脚一网并标 DNP (demo 阶段屏不点灯) ⇒ 重跑全部门禁仍全绿 (逐焊盘等价 495/495 · DRC 0)。★**待裁**: ① 背光驱动方案 (BOOST+电阻限流 / 恒流 LED 驱动 IC / 直接用屏模组自带背光接口——需确认 FPC 的 LED± 到底给不给外部驱动); ② USB-C 电流预算 (换 3A advertise 方案 vs 降背光亮度 vs demo 阶段先不点灯); ③ 与 ISS-170 (屏侧 40p vs 原厂排线 39p) 一起定 —— **显示器接口是目前最弱的一环**。 ★★2026-11-03 19:1x **数字来源订正**: 12.8V typ / 14V max / 200mA typ 这个背光规格是 **Radxa Display 10FHD** 的官方文档数据, 而**我们的 demo 屏是 8HD** ⇒ ★★**8HD 的背光电压/电流我们未查** ⇒ ⇒ ⇒ **ISS-173 的具体数值待补** (已让专项取 8HD 官方规格) ⇒ 但**"5V 输入要加 12V BOOST"这个方向不变** (白 LED 背光都是 12V 级, 8HD 的 IO 域 1.8V 不是背光电压) ★★2026-11-03 20:1x **可能可以省掉**: 换 ≤3 寸屏后, 首选候选 **Waveshare 2.8" DSI LCD (SKU 22028)** **无独立背光引脚** (模组内从 3V3 供) ⇒ ⇒ **12V BOOST + 恒流 + PWM 整链可砍** ⇒ ⇒ 功率预算从 4.6W 降到 ≈2.0W ⇒ ⇒ **USB-C 900mA 预算立刻宽裕** ⇒ ⇒ ★本单从 blocker 降为"若最终选带背光脚的屏才需要" (ISS-175 收口时一并定)。'
   dispatched_at: '2026-11-03'
 - id: ISS-174
   title: ★★[demo 触控收不到中断] display 触控的 TP_INT (pin26) 没接到 SoM 任何脚 ⇒ 触控中断收不到
@@ -4499,5 +4499,5 @@ issues:
   verify_by: hw-lead
   verify_result: null
   verify_date: null
-  note: '★**下游连带**: 屏侧 FPC 座型号/针数/脚位表、DSI lane 数 (2/4)、背光驱动电路、init code 来源、TPS3808 之外的上电时序、屏的机械尺寸 (结构侧) 全部要跟着改 ⇒ ⇒ ★**换屏必须在布线前定** (老板已定布线放最后 ⇒ 正好)。'
+  note: '★**下游连带**: 屏侧 FPC 座型号/针数/脚位表、DSI lane 数 (2/4)、背光驱动电路、init code 来源、TPS3808 之外的上电时序、屏的机械尺寸 (结构侧) 全部要跟着改 ⇒ ⇒ ★**换屏必须在布线前定** (老板已定布线放最后 ⇒ 正好)。 ★★2026-11-03 20:1x 专项结论 (HW/DISPLAY_SMALL_SCREEN_OPTIONS.md + display_small_options.json, 13 条出处索引): **4 个候选** (全 ≤3" + 真 MIPI DSI): ① **Waveshare 2.8inch DSI LCD (SKU 22028)** — 2.8"/480×640 IPS/光学贴合/**2-lane**/**15 位 1.0mm FPC** (官方 Package Content 原文)/**官方 wiki 逐针表 15 针全公开**/**无独立背光引脚** ⇒ 12V BOOST 链可砍/$43.39; ② **Densitron DMT028VGHMCMI-1A** — 2.8"/480×640/2-lane — ★内核 `panel-sitronix-st7701.c` 已收录, GIP/init 在 .c 里 ⇒ BSP 零移植, 但针位表/采购渠道未查到; ③ **Samsung S6E63J0X03** — 1.61"/320×320/1-lane/★OLED 无背光 — 内核已收录, 公开模组未查到; ④ 视涯 0.49" SY049WDM01 (产品目标)。★**建议选 ①**: 全网唯一「≤3 寸 + DSI + 官方公开逐针表 + 在售 + 官方 driver 生态」四项全中; init 公开可得 (树莓派官方 firmware 有 `waveshare,2.8inch-panel`; Rockchip 内核有同档 480×640/2-lane ST7701 先例) ⇒ 不用等厂家。★**SoM 侧 4-lane 一个字都不用改** (变的只有"主板→屏座"那段) ⇒ 建议那段**维持 4-lane 布线、屏座按 24 位/0.5mm 预留**, demo 用 15→24 转接线 ⇒ **别按 demo 屏把座定死** (整机屏针位表至今未查到)。'
   dispatched_at: '2026-11-03'

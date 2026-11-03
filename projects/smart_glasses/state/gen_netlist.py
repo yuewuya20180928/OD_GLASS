@@ -421,7 +421,7 @@ def build_p1(by_id, spec):
         "[BAT_PROT_CELL] ★F2 修正: Q1 与 Q2 **串联** (原来两管同网 = 并联, 保护无效); "
         "V_DS / 栅压 / R_DS(on) / 封装待 BQ2970 数据手册确认", "C-03")
     add("P1", "BAT_PROT_CELL2", "Q2", "U_BATPROT", "Q2", "[待选型] N-MOS", "SW",
-        "必装", "[推算]", "",
+        "DNP", "[推算]", "",
         "[BAT_PROT_CELL2] 第 2 只保护 MOS · 电池保护 IC (BQ2970) 的 B+ 脚; 参数同 Q1", "C-03")
     # ★★2026-11-03 按**原厂 datasheet** 拆: BQ2970 **没有单一 GATE 脚** —— 原厂是
     #   **COUT(pin2, 充电管) / DOUT(pin3, 放电管) 两个独立栅驱动** ⇒ ★**两管不可共栅**
