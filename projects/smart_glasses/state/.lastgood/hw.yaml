@@ -3,23 +3,17 @@ role: 硬件总工
 updated_at: '2026-11-03'
 updated_by: main
 status:
-  phase: P2(原理图/BOM)+★ISS-158 三件外购件规格已定(P1/P2 针位表闭环, P3 待引脚定义表)
-  progress_pct: 82
+  phase: P3(画板前致命项清零
+  progress_pct: 88
   health: yellow
-  summary: '2026-11-02 23:1x ★交付 HW/STEP1_PARTS_SPEC.md (ISS-158: P1/P2/P3 三件外购件规格汇总,
-    主板照它画) + PART_ALTERNATIVES_REGISTRY.md §10 与 C6/C7 补列。★★三件已选定: P1=Radxa Camera
-    4K(IMX415) 31p/0.3mm 逐针表31/31拿到(座 FH35C-31S-0.3SHW(50))+载板侧31p针序交叉验证+1080p60=1944x1097/12bit/0x3020=0x01/VTS
-    0x0C5D->0x062E(36条寄存器序列全录)+FOV D88.2/H75/V59+SCCB 0x1a; P2=Radxa Display 8HD/10FHD
-    屏侧40p/0.5mm 逐针表40/40拿到+背光12V须加BOOST; P3=Forlinx FET3572-C 68x50mm 4x100pin 0.4mm
-    BTB DC5-13V CSI2x4lane DSI1x4lane。 ★★因此''0.5mm/24p 自研目标规格''正式作废 => 主板两个FPC座规格定死(camera
-    31p/0.3mm + display 40p/0.5mm), 照抄两张表, 不用转接排线。★★判据口径修正: ''驱动IC须在内核白名单''只管专用panel
-    driver => 走 simple-panel-dsi 的屏(10FHD)不依赖任何专用驱动 => P2首选该路线, 8HD(radxa,display-8hd,
-    驱动在Radxa私有内核)降级备选; init code仍公开可抄(rk3576-evb.dtsi 263条, 1080x1920/4-lane)。★★P3
-    唯一硬缺口=逐针引脚定义表+机械尺寸图=未查(Forlinx下载中心需注册登录, 属公开下载非L4; PDF明写与FET3576-C引脚兼容); ★老板的''推荐焊接''对FET3572-C不成立(连接器式,
-    主板要承担400焊盘) => 在拿到引脚表前不得开跑线。★电源树改两处: 屏背光12V BOOST + camera模组级只要3.3V+5V(sensor三条LDO疑在模组内部[推断待核],
-    主板省3颗但BOM留DNP退路)。★本单: 未联系厂家/L4未触发; 未查一律写未查(AC耦合是否内置/连接器寿命/驱动IC型号/DDC地址/屏侧连接器型号/SoM电流与上电序/机械尺寸图);
-    没改 PROJECT_TRACKER/issue_log/DEMO_BOARD_HW_DECISION/STEP1_LANDING_LIST/gen_netlist/netlist_v1;
-    F4~F12清零属ISS-159。'
+  summary: '★2026-11-03 09:4x ISS-159 交付: HW/STEP1_LANDING_LIST.md §3 F表扩到F14(另加F15建议),
+    逐项状态+依据(文件:行号或URL), 冲突C1~C8, 未查清单。★已清零: F1/F2/F3(口径改)/F5/F6/F8/F13(拓扑)/F14; 待清:
+    F4(display座二选一)/F7/F9/F10(display口无ESD位)/F13残留(选型+规格同步+门禁缺判据)/F15(★新P0: display背光4脚并网短路+无12V
+    BOOST); 不适用: F12; 未查: F11(HIROSE页无durability字段, 兜底=按不弯折设计)。★本次撞出两个P0级: F15(背光短路)
+    与 F13残留(门控会再被静默拆掉)。★依据全部公开: Forlinx OK3572-C 手册(github pages 公开, 快照 state/_os_snapshots/fx3572_manual.html)
+    + Radxa 公开接口页 + Rockchip BSP develop-6.12 rk3576-evb.dtsi + rkaiq 公开 IQ 仓; 未联系厂家/L4未触发。★写入范围:
+    只改 HW/STEP1_LANDING_LIST.md §3 + state/fragments/hw.yaml(原子写); HW/PCB/ 与 SCHEMATIC_V1_SPEC.json
+    / netlist_v1.csv / issue_log / PROJECT_TRACKER 一字没改。'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -370,6 +364,27 @@ artifacts:
     => 引脚定义表从nice-to-have变成画板硬前提, 在此之前不得开跑线。 ★全单: 未联系厂家/L4未触发; 未猜价格库存针数引脚; 未查一律写未查;
     没改 PROJECT_TRACKER/issue_log/DEMO_BOARD_HW_DECISION/STEP1_LANDING_LIST/gen_netlist/netlist_v1;
     F4~F12清零属ISS-159不归本单。'
+- path: HW/STEP1_LANDING_LIST.md
+  kind: landing-list
+  version: v2.0
+  updated_at: '2026-10-25'
+  summary: '★★ISS-159 闭卷交付 (2026-11-03 09:4x): §3 画板前致命项 F 表扩到 F14 (另加 F15 建议), 状态列改为
+    已清零/待清/不适用/未查, 依据全部落到 §3.1 (文件:行号 或 URL), 冲突落 §3.2 (C1~C8), 未查清单落 §3.3。★状态总表:
+    F1 已清零(9路使能全有网) / F2 已清零(结论被F14推翻) / F3 已清零但口径要改(2.2k不变, 上拉轨 3.3V→1.8V, 因模组标I2C5=RK3572的1.8V域)
+    / F4 待清(camera 31p/0.3mm+FH35C-31S-0.3SHW(50) 已清零; display 两个互斥选项 39p/0.3mm 走原厂排线
+    vs 40p/0.5mm 直插, 同文档自相矛盾, 屏侧座型号未查) / F5 已清零(引脚399行+尺寸+连接器式焊接; 残留 ISS-169 BTB机械未核)
+    / F6 已清零(6层+100Ω差分/50Ω单端/skew<3mil/时钟数据等长<6mil, 公开依据=Forlinx OK3572-C手册 §3.5.16+§3.5.17.1;
+    ★纠正任务书: ≥6层无公开依据, 公开载板是4层) / F7 待清(MCLK由SoM出 CAM_CLK0_OUT_M0 1.8V, 串阻位已留值未锁, 10个100nF
+    AC耦合位已留, 位留=只改BOM不改板) / F8 已清零(rk3576-evb.dtsi simple-panel-dsi 模板已落: 261条init+2条exit;
+    前提=demo屏必须走10FHD白名单路线) / F9 待清(1080p档缺mesh, 1~2人日+暗室, 卡出图不卡板) / F10 待清(判据已定: 紧贴接口+寄生电容
+    SATA≤0.4pF/USB≤3pF/HDMI≤0.2pF/其他≤1pF, 依据 §3.5各接口章+§2.4.5; ★网表缺 display FPC 口 ESD
+    位) / F11 未查(HIROSE页无cycles/durability字段, 模组厂未公开FPC弯折规格; 兜底=按不弯折设计+V9插拔20次) / F12
+    不适用(老板明确暂缓) / F13 已清零(拓扑): Forlinx §4 Power-on Sequence 原文三连(inrush/boot fail/irreversible
+    damage) + §3.5.1, 网表 pin87→U_EN_SW EN→RAIL_BOARD_5V + RAIL_SOM_DCIN 直供7脚(09:43:38版)
+    / F14 已清零(模组级供电: pin28/29=3.3V, pin30/31=5V ⇒ 三轨+3颗TPS7A20+6个去耦位全DNP) / ★F15 待清·阻塞投板(本单新撞出:
+    display 背光/触控4脚并成 NET_DSI_AUX, LED+与LED−短接, 另 pin36/pin39 还接地 ⇒ 背光两端短路; 且主板无12V
+    BOOST背光轨)。★本单只改本文件§3 + state/fragments/hw.yaml, HW/PCB/ 与 SCHEMATIC_V1_SPEC.json
+    / netlist_v1.csv 一个字没改。'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX
@@ -995,6 +1010,25 @@ needs_from:
   item: 'P0: 7路TPS7A20的EN脚网表未定义 (悬空=LDO关断, datasheet 实测 500k内部下拉) => 画板前必须全表7颗显式接EN
     (S28/S18B 用IN+RC延时做IMX415上电序, S12 与其余4颗直连IN或10k上拉), 不许NC; 同时纠正项目内 TPS7A20无EN 的错误说法'
   since: '2026-11-02'
+- key: iss159_f04_display_seat_choice
+  to: main
+  item: '★F4 拍板: display FPC 座走 A(39p/0.3mm, 用厂商原厂排线, 但主板侧39针针位表我们没有=未查) 还是 B(40p/0.5mm
+    直插, 现网表按B画, 但屏侧座型号未查)? ★同一份文档自相矛盾: HW/STEP1_PARTS_SPEC.md:200 说画39p/0.3mm 而里程碑:397
+    说40p/0.5mm ⇒ 选A则整张40针表作废+换座, 必须在投板前定'
+  since: '2026-11-03'
+- key: iss159_f15_backlight_short
+  to: main
+  item: '★F15 建议立项(P0): display 背光/触控4脚被并成 NET_DSI_AUX(pin24 TP_RESET / pin26 TP_INT
+    / pin35 LED− / pin40 LED+), 另 pin36/pin39 还接地 ⇒ 背光两端短路, 投板后插屏=烧屏/烧板; 且主板无12V BOOST背光轨(公开规格:
+    背光 typ12.8V/max14V @200mA ⇒ 必须BOOST+限流)。★本单只读不改网表, 请裁决'
+  since: '2026-11-03'
+- key: iss159_f13_u_en_sw_spec
+  to: main
+  item: '★F13 残留三项: ①U_EN_SW 没有IC声明行(只有4条NET行) ⇒ 型号/封装/Ron/电流未选 ②网表:96,104,112,120,128,136
+    的note还写EN直连RAIL_SYS永远使能, 与实际网RAIL_BOARD_5V(受门控)相反 ③state/check_netlist.py 没有每条RAIL_*必须有≥1个输出驱动的判据
+    ⇒ 下次改网表会静默把门控拆掉(建议加判据)。★另: SCHEMATIC_V1_SPEC.json 还没同步F13, 且 meta.en_policy 仍写
+    除SENSOR_AVDD外直连RAIL_SYS/SENSOR_AVDD走RC延时 与F14/F13都不符'
+  since: '2026-11-03'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -2193,6 +2227,55 @@ interface_claims:
     (**8 个自动对上, 50 个命名体系不同需逐条对**) ⇒ 配套 `HW/PCB/SOM_RELEVANT_PINS.md` (251 条相关引脚) +
     `SOM_MAPPING_TODO.md` (58 条待对) + `SOM_PIN_MAPPING.md` (映射结果)。'
   ref: HW/PCB/ + state/iss165_map_som_pins.py
+- key: iss159_f_table_status
+  value: F1~F15 全表已入册(ISS-159)
+  note: 依据区在 HW/STEP1_LANDING_LIST.md §3.1(逐条文件:行号或URL); 冲突 C1~C8 在 §3.2; 未查清单在 §3.3。★已清零=F1,F2,F3(口径改),F5,F6,F8,F13(拓扑),F14;
+    ★待清=F4,F7,F9,F10,F13(选型/同步),F15; ★不适用=F12; ★未查=F11
+  ref: HW/STEP1_LANDING_LIST.md §3
+- key: iss159_f13_carrier_board_en
+  value: 底板主电源必须由 SoM 输出的 CARRIER_BOARD_EN (P3_87) 放行; SoM 自己的 VCC_DCIN (P3_91/93/95/97/98/99/100)
+    直供, 不受门控
+  note: '★公开依据: Forlinx OK3572-C 手册 §4 Hardware Design Guide/Power-on Sequence: 用
+    CARRIER_BOARD_EN 作为底板上电时序使能, 否则 Excessive inrush current / Device failure to boot
+    / In the worst-case scenario, irreversible damage to the processor; §3.5.1: SoM
+    启动后经该脚 3.3V(1k上拉) 放行 U3 出 VCC_5V; §3.5.1 Note: strictly adhere to the power-up
+    sequencing。★网表已落(09:43:38版): J_SOM_P3 pin87→U_EN_SW EN→RAIL_BOARD_5V, SoM 侧 RAIL_SOM_DCIN
+    直连 RAIL_DEMO_5V。★残留: U_EN_SW 无IC声明行(型号/Ron/电流未选) + SCHEMATIC_V1_SPEC.json 未同步
+    + 网表门禁缺每条RAIL_*必须有输出驱动的判据'
+  ref: HW/STEP1_LANDING_LIST.md §3.1-F13; HW/PCB/FET3572C_PIN_TABLE.csv:287; state/_os_snapshots/fx3572_manual.html
+    §4/§3.5.1
+- key: iss159_f14_camera_module_power
+  value: 主板不供 sensor 芯片级三条轨; camera 模组只要 pin28/29=3.3V 与 pin30/31=5V
+  note: '★模组级 vs 芯片级: Radxa Camera 4K 31针表 pin28/29=VCC3.3V, pin30/31=VCC5V ⇒ 模组内部自己稳压
+    ⇒ 主板 SENSOR_CORE/SENSOR_VDD_IO/SENSOR_AVDD 三轨 + 三颗 TPS7A20 + 六个去耦位全部 DNP。★教训:
+    芯片级电源参数≠模组级接口, 选型必须先看模组接口表再看芯片 datasheet'
+  ref: HW/PCB/FPC_PIN_TABLES.md:20-21; HW/netlist_v1.csv:87-109; HW/SCHEMATIC_V1_SPEC.json
+    power_rails
+- key: iss159_f15_display_backlight_short
+  value: '★新P0: display 背光/触控 4 脚并网 ⇒ LED+ 与 LED− 短接, 且 pin36/pin39 还接地 ⇒ 背光两端短路;
+    主板另缺 12V BOOST 背光轨'
+  note: '★网表 NET_DSI_AUX = CONN_LIGHT pin24/pin26/pin35/pin40, 而公开针位表: pin24=TP_RESET(输出),
+    pin26=TP_INT(输入), pin35=LED−(阴极), pin40=LED+(阳极) ⇒ 四个不同功能的脚并成同一个网; 另 pin36(LED−)/pin39(LED+)
+    被接地。★屏侧背光是 12V 级(typ12.8V/max14V, 200mA) ⇒ 主板必须做 12V BOOST+限流, 而 SCHEMATIC_V1_SPEC.json
+    13条轨与网表里都没有 BOOST 轨。★现有门禁抓不到: check_netlist 判据11 只查多驱动, check_netlist_pins C1
+    只查一脚一网 ⇒ 一堆脚挂一个网照样报绿。★投板后插屏=烧屏/烧板 ⇒ 建议立项'
+  ref: HW/netlist_v1.csv:230-231,243-246; HW/STEP1_PARTS_SPEC.md:204-238
+- key: iss159_f10_esd_rules
+  value: 'ESD 硬规则: 器件紧贴接口 + 寄生电容上限 (高速差分对≤0.4pF, USB2.0≤3pF, HDMI2.1≤0.2pF, 其他≤1pF);
+    SoM 导出信号全为静电敏感, 载板必须做防护'
+  note: '★公开依据 Forlinx OK3572-C 手册 §3.5 各接口章 + §2.4.5 ESD Features(HBM±2000V/CDM±250V,
+    all the signals exported from SoM are electrostatic sensitive)。★本单禁写 HW/PCB/ ⇒
+    规则正文留在 §3.1-F10, ★待落 LAYOUT_RULES.md, 依赖 ISS-165/ISS-167 收工后由项目总工统一应用。★网表缺口: display
+    FPC 座 CONN_LIGHT 的 4-lane DSI 10 根差分线无 ESD 位(只有 D_ESD_TC/D_ESD_DEMO/D_ESD_USB/D_ESD_CAM,
+    D_ESD_LIGHT 是光机5V口且DNP); 五颗 ESD 全是待选型 ⇒ 寄生电容无从核'
+  ref: HW/STEP1_LANDING_LIST.md §3.1-F10; state/_os_snapshots/fx3572_manual.html §3.5/§2.4.5
+- key: iss159_f05_btb_geometry
+  value: P1=(51.0,3.5) P2=(51.0,46.5) P3=(17.0,3.5) P4=(17.0,46.5) mm(SoM顶视/左下原点);
+    四座 pin1 全在各自 +x 端 (P1/P2 x=60.8, P3/P4 x=26.8), 脚号从该端往 -x 递增
+  note: '★公开依据=Forlinx OK3572-C 手册底面尺寸图 + §2.6.1 引脚原理图互证, 已落 HW/PCB/SOM_CONNECTOR_GEOMETRY_PROBE.md(2026-11-03
+    09:39)。★★残留: pin1 在哪一排(y大/y小) 公开资料无定论 ⇒ 两排做反则该座100个网络全部对调 ⇒ 下单前必须机械实测(ISS-169
+    仍 open)。★本单只引用, 未改该文件'
+  ref: HW/PCB/SOM_CONNECTOR_GEOMETRY_PROBE.md
 open_questions:
 - id: HW-Q1
   to: main

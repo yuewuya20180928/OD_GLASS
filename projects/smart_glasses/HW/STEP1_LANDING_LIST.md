@@ -94,11 +94,12 @@
   - ★**同一份文档自相矛盾**：`:200` 说"主板该画 39p/0.3mm"，而里程碑 M2（`:397`）说"display FPC 座 = 40p/0.5mm" ⇒ ★**现网表按 B 画 ⇒ 若最后选 A，整张 40 针表作废、座要换** ⇒ **投板前必须定**。
 
 **F5（SOM 引脚/尺寸/焊接）— 已清零（★残留见 §3.2-C7）**
-- ★**引脚定义**：`HW/PCB/FET3572C_PIN_TABLE.csv`（399 行，由 **OK3572-C** 手册 §2.6.2/§2.7 重建）+ `HW/PCB/SOM_PIN_ASSIGNMENT.md`（46 个信号）+ `HW/PCB/som_pin_assign.json`（机器可读）+ `HW/PCB/som_pin_verify.md`。
+- ★**引脚定义**：`HW/PCB/FET3572C_PIN_TABLE.csv`（399 行，由 **OK3572-C** 手册 §2.6.2/§2.7 重建）+ `HW/PCB/SOM_PIN_ASSIGNMENT.md`（46 个信号）+ `HW/PCB/som_pin_assign.json`（机器可读）+ `HW/PCB/SOM_PIN_VERIFY.md`（互证记录）。
 - ★**抽样核过**：`FET3572C_PIN_TABLE.csv:29`（P1_28 `SARADC_VIN0_BOOT` 1.8V）· `:132,134`（I2C5 1.8V 域）· `:145`（P2_45 `CAM_CLK0_OUT_M0` 1.8V）· `:200`（P2_100 `RESET_L`）· `:287`（P3_87 `CARRIER_BOARD_EN`）· `:288`（P3_88 `PWRON_L`）· `:291-300`（P3_91/93/95/97/98/99/100 = `VCC_DCIN`）。
 - ★**尺寸**：68×50mm + 4×100pin / 0.4mm BTB（`HW/PCB/som_btb_params.json`：pitch 0.4 / 焊盘 0.2×1.4 / 行距 2.38 / 座 22.x）。
+- ★**座的几何已核到“到端”**（★2026-11-03 09:39 新增 `HW/PCB/SOM_CONNECTOR_GEOMETRY_PROBE.md`）：P1=(51.0,3.5) / P2=(51.0,46.5) / P3=(17.0,3.5) / P4=(17.0,46.5) mm（SoM 顶视、左下角为原点）；★**四座的 pin1 全在各自连接器的 "+x 端"**（P1/P2 在 x=60.8 朝板边，P3/P4 在 x=26.8 朝板中心），脚号从该端往 −x 递增（1/2→99/100，相隔 19.6mm）⇒ ★**但 “pin1 在哪一排（y 大 / y 小）” 公开资料无定论** ⇒ 载板两排做反 ⇒ ★**该座 100 个网络全部对调** ⇒ ★**必须下单前实测确认**。
 - ★**焊接方式**：★**连接器式，不是焊死式** ⇒ “老板说的『推荐焊接』对 FET3572-C 不成立” ⇒ ★**主板承担 400 个焊盘**（`HW/PCB/SOM_PIN_ASSIGNMENT.md:3` + `state/issue_log.yaml` ISS-158 note）。
-- ★**状态变化**：**ISS-165（A2 段）/ ISS-167（焊盘编号假绿）/ ISS-168（RK3572≠RK3576 电气功能）均已 fixed（verify pass，2026-11-03）** ⇒ ★**F5 本身已清零**；★**残留**：**ISS-169 仍 open**（4 个 BTB 座机械位置/pin1 方向**未与原厂 DXF 核对** + 14 个 IC 封装/脚号未落定）⇒ **不是“投板后致命”，是“下单前必须核”**。
+- ★**状态变化**：**ISS-165（A2 段）/ ISS-167（焊盘编号假绿）/ ISS-168（RK3572≠RK3576 电气功能）均已 fixed（verify pass，2026-11-03）** ⇒ ★**F5 本身已清零**；★**残留**：**ISS-169 仍 open** —— ①**BTB 座 pin1 “哪一排” 无定论**（见上）②主板 14 个 IC 的**真实封装/脚号未落定**（BOM 多为"待选型"）⇒ **不是“投板后致命”，是“下单前必须核”**。
 
 **F6（层数与阻抗）— 已清零**
 - ★**层数 = 6 层**（项目总工定案，本单**不自己拍**）：`HW/PCB/STACKUP.md:8,9`（L1 信号 / L2 GND 完整 / L3 信号+局部电源 / L4 电源平面 / L5 信号 / L6 GND 完整）+ `HW/PCB_DRAWING_PLAN.md:42,44-51`。
@@ -116,7 +117,7 @@
 - ★**还差两项**：①模组是否内置 AC 耦合（TBD-03）②MCLK 电平/速率 ⇒ 串阻值写不死；★**另：1.8V MCLK 是否被模组接受 = 未查**（模组规格未公开该脚的最大输入电压）。
 
 **F8（面板 init code / timing）— 已清零（★有一个前提条件）**
-- ★**公开开源来源**：Rockchip BSP kernel `develop-6.12` 的 `rk3576-evb.dtsi` 里 `dsi_panel: panel@0`（`compatible = "simple-panel-dsi"`、4-lane、`MIPI_DSI_FMT_RGB888`、`VIDEO|VIDEO_BURST|LPM|NO_EOT_PACKET`）⇒ 已落 `HW/PCB/panel_simple_dsi_template.dtsi`（`:17` compatible、`:25-29` flags/format/lanes、`:32-293` panel-init-sequence **261 条**、`:296-298` panel-exit-sequence **2 条**、`:300-317` display-timings 132MHz/1080×1920）。
+- ★**公开开源来源**：Rockchip BSP kernel `develop-6.12` 的 `rk3576-evb.dtsi` 里 `dsi_panel: panel@0`（`compatible = "simple-panel-dsi"`、4-lane、`MIPI_DSI_FMT_RGB888`、`VIDEO|VIDEO_BURST|LPM|NO_EOT_PACKET`）⇒ 已落 `HW/PCB/panel_simple_dsi_template.dtsi`（`:17` compatible、`:28-31` flags/format/lanes、`:32-294` panel-init-sequence **261 条**、`:296-299` panel-exit-sequence **2 条**、`:301-317` display-timings 132MHz/1080×1920）。
 - ★**前提条件**：这条路只对**内核白名单驱动 IC + simple-panel-dsi** 的屏成立 ⇒ ★**demo 屏必须选 10FHD 路线**；若选 Radxa Display 8 HD（`compatible = "radxa,display-8hd"`，驱动在 Radxa 私有内核）⇒ ★**8HD 的 init code 未公开 ⇒ 本项退回待清**（`HW/STEP1_PARTS_SPEC.md:196-202,238-240`）。
 - ★**口径小订正**：任务书/issue_log 说"263 条 panel-init-sequence" ⇒ 实测 = **261 条 init + 2 条 exit = 263 条总量**（`HW/STEP1_PARTS_SPEC.md:239` 写"263 条寄存器写 + panel-exit-sequence 2 条"）⇒ **文件本身没问题，是口径把 init+exit 合算了**。
 
@@ -131,7 +132,7 @@
   - §3.5.17.2 HDMI_TX 章（行 **6639-6640**）：HDMI2.1 ≤**0.2pF**；其他信号建议 ≤**1pF**。
   - §2.4.5 ESD Features（行 **526-538**）：SoM 导出信号 **ESD HBM ±2000V / CDM ±250V**，且"all the signals exported from SoM are electrostatic sensitive signals, **the interfaces should be well protected from static electricity in the carrier board design**" ⇒ ★**我们的 camera/display FPC 口同样要**。
 - ★**现状核对**：`HW/PCB/LAYOUT_RULES.md:7` 只写了"ESD 器件紧贴座"（USB 行），★**没有寄生电容上限，也没有 MIPI FPC 口的 ESD 行** ⇒ ★**本单不写 `HW/PCB/`（禁写区）⇒ 规则正文留在本表** ★**待落 `LAYOUT_RULES.md`，依赖 ISS-165/ISS-167 收工后由项目总工统一应用**。
-- ★**网表缺口**：ESD 位只有 4 个 —— `D_ESD_TC`（Type-C VBUS 入口，`:4`）· `D_ESD_USB`（USB DP/DM，`:408,409`）· `D_ESD_CAM`（紧贴 CONN_CAM，`:413`）· `D_ESD_LIGHT`（光机 5V 口，`:142`，**DNP**）⇒ ★**display FPC 座（CONN_LIGHT）的 4-lane DSI 10 根差分线完全没有 ESD 位** ⇒ 违反 Forlinx"mandatory on all signals" ⇒ **投板后要改板加器件 ⇒ 阻塞投板**；★**且四颗 ESD 器件全部"ESD 阵列 [待选型]" ⇒ 寄生电容无法核**。
+- ★**网表缺口**：ESD 位只有 5 个 —— `D_ESD_TC`（Type-C VBUS 入口，`:4`）· `D_ESD_DEMO`（demo 板 USB-C VBUS 入口，`:420`）· `D_ESD_USB`（USB DP/DM，`:408,409`）· `D_ESD_CAM`（紧贴 CONN_CAM，`:413`）· `D_ESD_LIGHT`（光机 5V 口，`:142`，**DNP**）⇒ ★**display FPC 座（CONN_LIGHT）的 4-lane DSI 10 根差分线完全没有 ESD 位** ⇒ 违反 Forlinx"mandatory on all signals" ⇒ **投板后要改板加器件 ⇒ 阻塞投板**；★**且五颗 ESD 器件全部"ESD 阵列 [待选型]" ⇒ 寄生电容无法核**。
 
 **F11（FPC 弯折寿命/插拔次数/补强）— 未查**
 - ★**为什么查不到**：`HW/STEP1_PARTS_SPEC.md:179-187`（§2.7 标题即"**未查**"）—— ①**HIROSE FH35C 原厂页本轮抓到的字段里没有 cycles/durability 字段**（只有尺寸/间距/额定电压/电流）⇒ `:183`；②**模组厂商未公开 FPC 的弯折规格** ⇒ `:184`；③要当正式可靠性指标需要 **FH35C 原厂规格书 durability 章节 + 模组 FPC 规格书**，★**这两份在公开下载区可能存在，本单未取到 ⇒ 标未查**（`:186,187`）；★**补强片（stiffener）厚度规则同样未取到 ⇒ 未查**。
@@ -163,20 +164,21 @@
 - ★**逐脚比对公开针位表 ⇒ 这 4 个脚不是一类信号**：`HW/STEP1_PARTS_SPEC.md:208-227`（屏侧 40 针全表）—— pin24 = **TP_RESET**（主机→触控 复位，**输出**）· pin26 = **TP_INT**（触控→主机 中断，**输入**）· **pin35 = LED−（LED 阴极）** · **pin40 = LED+（LED 阳极）**。
 - ★**后果**：①**LED+ 与 LED− 短接** ⇒ 屏背光 LED 直接短路；②另两个脚也被接地（`HW/netlist_v1.csv:230` pin36 → GND、`:231` pin39 → GND）—— ★**而 pin36 = LED−、pin39 = LED+** ⇒ **背光两端都接地**；③pin24/pin26 输出输入互短。
 - ★**网表 note 的理由与公开规格矛盾**：note 写"demo 阶段不驱动（触控与背光由模组内部处理），无功能影响"，但 `HW/STEP1_PARTS_SPEC.md:234-238` 明确写"★**背光 LED 是 12V 级**（10FHD 官方实测：typ 12.8V / max 14V，电流 typ 200mA）⇒ ★**主板必须给屏背光单独做一路 12V 升压 (BOOST) + 限流**，★**不能用 3.3V 直接点背光** ⇒ ★**这条会改主板电源树**"。
-- ★**主板电源树里确实没有背光电源**：`HW/SCHEMATIC_V1_SPEC.json` 的 13 条 `power_rails` 里**没有 12V/BOOST 轨**；`HW/netlist_v1.csv` 全文 grep `BOOST|backlight` **零命中**（唯一一条 boost 是充电板 OTG，见 `:456`）。
+- ★**主板电源树里确实没有背光电源**：`HW/SCHEMATIC_V1_SPEC.json` 的 13 条 `power_rails` 里**没有 12V/BOOST 轨**；`HW/netlist_v1.csv`（09:43:38 版）全文 grep `BOOST|背光` **零命中**（唯一一条 boost 是充电板 OTG，见 `:484`）。
+- ★**现有门禁都抓不到这一类**：`state/check_netlist.py` 判据 11 只查“同网多驱动”，★**没有“一个网只能接同类脚”**；`state/check_netlist_pins.py` 判据 C1 只查“**一个针脚只能属于一个网**”⇒ ★**四个不同功能的脚并成**一个**网，它照样报绿**（ISS-166 修的是“一个脚挂多个网”，本条是反过来的“一堆脚挂一个网”）。
 - ⇒ ★**投板后插屏 = 背光短路（烧屏/烧板）+ 屏不亮 ⇒ 2~4 周返工级** ⇒ ★**建议立项为 F15，并由项目总工裁决 F4 的 display 座选项（A/B）**。
 
 ### 3.2 ★ 本单撞出的冲突 / 依赖清单（★交项目总工裁决 ⇒ 本单**只读不改**）
 
 | # | 冲突 / 依赖 | 涉及文件（本单**未改**） | 建议 |
 |---|---|---|---|
-| **C1** | ★**F13 只落了一半**：`RAIL_BOARD_5V` 无驱动源、`U_EN_SW` 不在网表、`CARRIER_BOARD_EN` 没当网名 | `HW/netlist_v1.csv`（ISS-165 在飞） | ★**立独立 P0**；网表补 `U_EN_SW` + `CARRIER_BOARD_EN`→EN 连接；★**门禁加"每条 RAIL_* 必须有输出驱动"** |
+| **C1** | ★**F13 残留三项**（拓扑已落全，见 §3.1-F13）：①`U_EN_SW` **没有 IC 声明行** ⇒ 型号/封装/Ron/电流未选 ②网表 `:96,104,112,120,128,136` 的 note 还写“EN 脚**直连 RAIL_SYS** ⇒ 永远使能”，**与实际网 `RAIL_BOARD_5V`（受门控）相反** ③**网表门禁没有“每条 RAIL_* 必须有 ≥1 个输出驱动”的判据** | `HW/netlist_v1.csv:435-439`（ISS-165 A2 段已 fixed） | ★**补 `U_EN_SW` 的 IC 声明行 + 选型**；★**改 6 条 EN 的 note 口径**；★**给 `state/check_netlist.py` 加一条驱动源判据**（否则下次改网表又会静默拆掉门控） |
 | **C2** | ★**F15：display 背光/触控 4 脚并网（LED+ 与 LED− 短接）+ 主板无 12V BOOST 背光轨** | `HW/netlist_v1.csv:230,231,243-246` | ★**立独立 P0**；补 12V BOOST + 限流；4 脚拆开（背光/触控各走各的，或明确 DNP 且**不能同网**） |
 | **C3** | ★**F4：display 座两个互斥选项**（39p/0.3mm 走原厂排线 vs 40p/0.5mm 直插）；★同文档 `:200` 与 `:397` 自相矛盾；屏侧座型号 **未查** | `HW/STEP1_PARTS_SPEC.md` · `HW/PCB/FPC_PIN_TABLES.md`（屏侧 40 针表） | ★**项目总工拍板 A/B**；选 A ⇒ 需补 39 针主板侧针位表 + 整张 40 针表作废 |
 | **C4** | ★**F3 口径**：网表 note 写"4.7k/3.3V"、`:154,155` 写"2.2k/3.3V"，实际是 **2.2k 拉到 1.8V**（I2C5 域） | `HW/netlist_v1.csv:150,151,154,155` | 改注释；★**F3 的"已清零"表述也要改成"上拉轨 1.8V"** |
-| **C5** | ★**F13 没同步进规格文件**：`HW/SCHEMATIC_V1_SPEC.json` 里 grep 不到 `U_EN_SW` / `CARRIER_BOARD_EN` / `RAIL_BOARD_5V`（网表已改） | `HW/SCHEMATIC_V1_SPEC.json`（禁写区） | 规格补 F13；★**并改 `meta.en_policy`**（仍写"除 SENSOR_AVDD 外直连 RAIL_SYS / SENSOR_AVDD 走 RC 延时" ⇒ 与 F14/F13 都不符） |
+| **C5** | ★**F13 没同步进规格文件**：`HW/SCHEMATIC_V1_SPEC.json`（mtime 09:24:21）里 grep 不到 `U_EN_SW` / `CARRIER_BOARD_EN` / `RAIL_BOARD_5V`（网表 09:43:38 已落） | `HW/SCHEMATIC_V1_SPEC.json`（禁写区） | 规格补 F13；★**并改 `meta.en_policy`**（仍写"除 SENSOR_AVDD 外直连 RAIL_SYS / SENSOR_AVDD 走 RC 延时" ⇒ 与 F14/F13 都不符） |
 | **C6** | ★**F10：display FPC 口没有 ESD 位**（Forlinx: mandatory on all signals）；4 颗 ESD 器件全是"[待选型]" ⇒ 寄生电容无法核 | `HW/netlist_v1.csv` · ★`HW/PCB/LAYOUT_RULES.md`（禁写区） | 补 `D_ESD_LIGHT`（紧贴 CONN_LIGHT，选 ≤0.4pF 的件）；★**ESD 硬规则（紧贴接口 + 寄生电容上限）待落 `LAYOUT_RULES.md`，依赖 ISS-165/ISS-167 收工后由项目总工统一应用** |
-| **C7** | ★**F5 依赖在飞**：ISS-165（A2 段）· ISS-167（焊盘编号假绿）· ISS-169（BTB 座机械位置未核 ⇒ 板子不能下单） | `HW/PCB/FET3572C_PIN_TABLE.csv` · `SOM_PIN_ASSIGNMENT.md` · `som_pin_assign.json` · `som_btb_params.json` · `HW/PCB/STACKUP.md` · `HW/PCB/LAYOUT_RULES.md` | ★**本单只引用不修改**；跟 A2 段收工后再复核 F5 |
+| **C7** | ★**F5 已清零，但 **ISS-169 仍 open**：①4 个 100pin BTB 座的 **pin1 “哪一排（y 大/y 小）” 公开资料无定论**（`HW/PCB/SOM_CONNECTOR_GEOMETRY_PROBE.md`：中心坐标与 pin1 所在“端”已核出，★**排向做反 ⇒ 该座 100 个网络全部对调** ⇒ 下单前必须机械实测）②主板 14 个 IC 的**真实封装/脚号未落定**（BOM 多为"待选型"）⇒ ★**板子目前只能算“连通性骨架”，不能下单** | `HW/PCB/FET3572C_PIN_TABLE.csv` · `SOM_PIN_ASSIGNMENT.md` · `som_pin_assign.json` · `som_btb_params.json` · `HW/PCB/SOM_CONNECTOR_GEOMETRY_PROBE.md` · `HW/PCB/STACKUP.md` · `HW/PCB/LAYOUT_RULES.md`（★**本单只引用、一个字没改**） | ★**下单前核 BTB 排向 + 落 IC 封装**（ISS-169 收口） |
 | **C8** | ★**F6 口径**："≥6 层"在公开渠道无依据（唯一公开 RK3572 载板是 **4 层**）⇒ 6 层是本板设计决定 | `HW/PCB/STACKUP.md` · `HW/PCB_DRAWING_PLAN.md` | 口径照 §3.1 F6 改写（**不改文件**，交项目总工） |
 
 ### 3.3 ★ 未查清单（★为什么查不到 ⇒ 不猜）
@@ -187,7 +189,7 @@
 | **F4** display 屏侧连接器型号 | 官方文档只给针位表，**未给座型号**（`HW/STEP1_PARTS_SPEC.md:202`） | 先按 40p/0.5mm 贴板翻盖式（FH12-40S-0.5SH 一类）预留，等 C3 拍板 |
 | **F4** display **主板侧 39 针**针位表 | 官方只公开屏侧 40 针；主板侧 39p/0.3mm 那张表**未取到** | 选 A 前必须补 |
 | **F7** 模组是否内置 AC 耦合（TBD-03）/ MCLK 串阻值 / MCLK 1.8V 是否被模组接受 | 模组侧公开资料未给（网表注"原厂是否内置 AC 耦合未回"） | 耦合位与串阻位**都留在板上** ⇒ 只改 BOM 不改板 |
-| **F10** ESD 器件型号与寄生电容 | 四颗 ESD 全是"**[待选型]**"，无型号 ⇒ 寄生电容无从核 | 选型时按 Forlinx 上限（高速差分 ≤0.4pF / USB ≤3pF / 其他 ≤1pF）挑 |
+| **F10** ESD 器件型号与寄生电容 | 五颗 ESD 全是"**[待选型]**"，无型号 ⇒ 寄生电容无从核 | 选型时按 Forlinx 上限（高速差分 ≤0.4pF / USB ≤3pF / 其他 ≤1pF）挑 |
 | **F15** display 背光 12V BOOST 的具体器件/电感 | 本单**只做致命项清零**，不做背光电源设计 | 立单后由电源树那一轮做 |
 
 ⇒ ★**纪律（沿用 + 收紧）**：★**F1~F10/F13~F15 全部有明确"公开渠道"查法 ⇒ 不用问厂家** ⇒ ★**F11 查不到就写未查，不猜** ⇒ ★**F12 是老板明确说的不考虑 ⇒ 不适用** ⇒ ★**本单只改本文件 §3 + `state/fragments/hw.yaml`，其它文件一个字没动**。

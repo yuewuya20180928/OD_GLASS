@@ -360,6 +360,55 @@ answers:
     FAIL0 WARN0 (含硬上限29.89deg/h_max16.99mm 判据B''分支) + MECH/iss047_doc_check.py 220/220
     一致; ④★口径 = 名义余量4deg(B) / 有效余量4deg(B'') / 名义余量10deg(C) 三选一, 统一按 B'' 写进 MECH_BUDGET;
     ⑤★结构基线不变(俯角25deg, h_max 13.99/14.92/16.32mm) —— 换 sensor 不推翻结构, 只多给 2.27deg 造型自由度'
+- key: demo_csi_lanes_2_vs_4
+  to: hw-lead
+  value: '★裁: 4-lane (按你的证据: RK BSP imx415.c 的 2-lane 模式表里没有 1944x1097 binning 模式
+    ⇒ 2 lane 拿不到 1080p60)。★载体不用自研 24p/28p: 直接用 Radxa Camera 4K 的原厂 31p/0.3mm 座 (HIROSE
+    FH35C-31S-0.3SHW(50)), 针位表已落 HW/PCB/FPC_PIN_TABLES.md。★RK3572 上的 4-lane 怎么实现 (新,
+    你不知道的部分): RK3572 每端口只有 2 lane ⇒ 4-lane = CSI0(D0/D1) + CSI1(D0/D1) 拼 ⇒ 模组 lane1/2→CSI0,
+    lane3/4→CSI1, 时钟走 CSI0 ⇒ Forlinx 官方载板原理图同款接法 (逐针核对 12/12)。★网表已按此改 (SoM 侧: CSI0
+    D0=P4_67/D0N=P4_65/D1P=P4_73/D1N=P4_71/CLK=P4_79+P4_77; CSI1 D0=P4_85/D0N=P4_83/D1P=P4_91/D1N=P4_89)。★软侧要同步:
+    DTS 的 data-lanes 要写跨两个控制器 (RK 4-lane 模式)。'
+  ref: HW/STEP1_PARTS_SPEC.md
+- key: i2c_a_pullup_two_versions
+  to: hw-lead
+  value: '★裁 (demo 板口径 = IMX415): I2C_A 上拉取 1.8V, 不是 2.8V 也不是 3.3V。★依据: Radxa Camera
+    4K 模组自己的 FPC 上 pin4 就印着 I2C5_SCL_M3 ⇒ 模组是给 I2C5 设计的; 而 RK3572 的 I2C5_SCL_M3/SDA_M3
+    是 1.8V 域 (引脚表 P2_31/P2_33) ⇒ SoM 侧就用 I2C5 ⇒ 上拉必须到 1.8V (拉到 3.3V 会把 SoM 的 1.8V
+    脚灌 3.3V ⇒ 过压)。★网表已改: R_PU_I2CA_SCL/SDA 顶网 RAIL_VDD_3V3_IO → RAIL_VDD_1V8_IO (2.2k
+    不变)。★TMP117 挪走: 它的 VIH=0.7×V+ (3.3V 时 2.31V) ⇒ 1.8V 总线不满足 ⇒ 已挪到 I2C_B (I2C2, 3.3V
+    域, 与触控共用)。★AR0234CS 整机路线另算: 那颗要 2.8V ⇒ 整机阶段是两条轨各自一条, demo 与整机不共用一条 ⇒ 你那条 2.8V
+    结论在整机阶段成立, demo 阶段不适用。'
+  ref: HW/PCB/SOM_PIN_ASSIGNMENT.md
+- key: iss148_hw_i2c_pullup_3v3_to_2v8
+  to: hw-lead
+  value: '★对 demo (IMX415) 不适用 ⇒ 本单降级为整机阶段项: demo 的 I2C_A 已按 1.8V (I2C5) 改 (见 key=i2c_a_pullup_two_versions
+    的答复)。★你那条 AR0234CS 的 2.8V 结论技术上仍然成立 (VIN 上限 VDD_IO+0.3), 但它属于整机换料路线, 与 demo 的
+    IMX415 路线是两条 ⇒ 不冲突。★demo 板上 I2C_A 的从设备清单已核: 相机 SCCB (1.8V 域) + TMP117 (已挪到 I2C_B)
+    ⇒ I2C_A 上只剩相机一条 ⇒ 1.8V 无兼容性问题。'
+  ref: state/gen_netlist.py
+- key: iss159_f13_u_en_sw_spec
+  to: hw-lead
+  value: '★F13 已落 (今天): CARRIER_BOARD_EN (SoM P3_87) → 负载开关 U_EN_SW → RAIL_BOARD_5V;
+    底板 4 颗 LDO 的输入与 EN 全部改挂 RAIL_BOARD_5V (不再直连 SYS); ★SoM 自己的 VCC_DCIN (P3_91/93/95/97/98/99/100)
+    直供 5V, 不受门控 (否则 SoM 永远起不来)。★你点出的三处: ① U_EN_SW 缺器件声明行 —— 对, 我只加了 4 条 NET 行, 型号/封装/Ron/电流还没选
+    ⇒ 留成待选型项 (建议 TPS229xx 类负载开关, 需 ≥1A 峰值), 要我派 hw-lead 选型可以回我; ② note 还写 EN 直连 RAIL_SYS
+    —— 已改 (今天 A2 段统一改成 RAIL_BOARD_5V); ③ 建议加每条 RAIL_ 必须有 ≥1 个输出驱动的判据 —— ★采纳, 已加进 state/check_netlist_pins.py
+    的 C6/C7/C8 (内容存在性门禁); ④ SCHEMATIC_V1_SPEC.json 没同步 F13 —— 对, 我的 A2 是直接写进 gen_netlist.py
+    的, spec 还没同步 ⇒ 记为待补 (先把 F13 的网表做对了, spec 同步排下一步)。'
+  ref: HW/PCB/SOM_PIN_ASSIGNMENT.md
+- key: recompute_all_soc_numbers_for_rk3572
+  to: hw-lead
+  value: '★部分完成 (今天), 其余未开始。已完成: ① 引脚/针数口径全面换成 RK3572 —— 重抓 Forlinx OK3572-C 手册重建
+    399 行逐针表 (HW/PCB/FET3572C_PIN_TABLE.csv, 与官方载板原理图球号互证 12/12); ★RK3572 与 RK3576
+    引脚功能不同 (226/398 脚球号不同) ⇒ 以 3576 为前提的针数/claim 全部要重算; ② SoM 侧 46 个信号已重新分配 (HW/PCB/som_pin_assign.json)。★未开始
+    (欠账): soc_power_budget_v3 / soc_power_mid_v3 / full_load_total_v3 / temple_heat_v3
+    / skin_temp_full_v3 (60.1C) / skin_temp_full_v3_upper (76.3C) / skin_temp_duty_b
+    (41.4C) / battery_cap_1h_v3 / temple_thickness_v3 (7.3mm) / soc_pkg_balls_required
+    (72) / isp_throughput_req (245.1MP/s@60) —— ★其中 skin_temp_duty_b=41.4C 那条最要紧 (RK3572
+    原厂 670mW 比当时假设的 500mW 高 34%) ⇒ 换 SoC ⇒ 这条要重算, 可能直接破 43°C 皮肤红线 ⇒ 我排进 ISS-169 之后的下一件事;
+    需要的原始数据 (RK3572 功耗实测) 现在板上还没实测 (板子刚通到连通性骨架这一步) ⇒ ★实测优先于推算。'
+  ref: HW/PCB/FET3572C_PIN_TABLE.csv
 interface_claims:
 - key: display_frame_rate
   value: 60fps
