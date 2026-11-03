@@ -79,6 +79,11 @@ PARTS: dict[str, dict] = {
     "U_LDO_S18B": {"footprint": "X2SON (DQN) 1.0 x 1.0 mm", "opn": "TPS7A2018DQNR"},
     # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
     "U_PWR_SW": {"footprint": "UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch", "opn": "TPS22991RAA"},
+    # ★2026-11-04 显示 FPC 座 (Pi5 22p) 封装/OPN 落定 —— 官方封装抄 Raspberry Pi 官方 CM4IO/CM5IO KiCad
+    #   (Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal.kicad_mod); 焊盘 0.3x1.3mm / pitch 0.5 / pad1 在 +x 端
+    "CONN_LIGHT": {"footprint": "Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, "
+                               "焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",
+                   "opn": "FH12-22S-0.5SH(55)"},
     # ---- ISS-112: BQ25896 封装从 "VQFN-16 3×3mm (RGT)" 改为官方真实封装 ----
     # 旧写法 (VQFN-16 3×3 = 9mm²) **该封装根本不存在**, 占板面积少算 7mm²。
     # 官方三方一致: 产品页 "WQFN (RTW) / 24 / 16 mm² (4 mm × 4 mm)" +
@@ -882,17 +887,20 @@ def build_p3(by_id, spec):
 #   那是**逻辑位**; 物理上一颗 0Ω 串在差分对上会把 P/N 短接 · 必须拆成 _P / _N 两颗。
 DSI_LANES = [
     # lane, net_P, net_N, cid_P, cid_N, src_P, src_N, pin_P, pin_N, sel_dnp, 有对地端接
-    # ★★2026-11-02 19:5x 按 Radxa Display 8HD/10FHD 40 针表 (0.5mm): P=正脚 / N=负脚
+    # ★★2026-11-04: 板侧座 = **Pi5 22p/0.5mm DISPLAY 座** (针序照 Pi5 官方原理图 J4, 逐针)
+    #   CK = pin5/6 · D0 = pin8/9 · D1 = pin2/3 · D2 = pin16/17 · D3 = pin18/19
+    #   ★16..19 在 Pi5 上是 NC ⇒ 本板自用 (承载 lane2/lane3 ⇒ 主板→屏段 4-lane)
+    #   依据: HW/PCB/PI5_DSI_22P_PINOUT.md
     ("CK", "DSI_D0_CK_P", "DSI_D0_CK_N", "A-13", "A-14",
-     "DSI_TX_CK_P", "DSI_TX_CK_N", 14, 13, "必装", False),      # ★板侧 39p: MIPI_CKP14 / MIPI_CKN13 (屏侧 15/14)
+     "DSI_TX_CK_P", "DSI_TX_CK_N", 6, 5, "必装", False),        # Pi5 DISPLAY: pin6=DSI1_CP / pin5=DSI1_CN
     ("D0", "DSI_D0_D0_P", "DSI_D0_D0_N", "A-15", "A-16",
-     "DSI_TX_D0_P", "DSI_TX_D0_N", 8, 7, "必装", False),         # ★板侧 39p: MIPI_0P8 / MIPI_0N7 (屏侧 9/8)
+     "DSI_TX_D0_P", "DSI_TX_D0_N", 9, 8, "必装", False),        # Pi5 DISPLAY: pin9=DSI1_DP0 / pin8=DSI1_DN0
     ("D1", "DSI_D0_D1_P", "DSI_D0_D1_N", "A-17", "A-18",
-     "DSI_TX_D1_P", "DSI_TX_D1_N", 11, 10, "必装", False),       # ★板侧 39p: MIPI_1P11 / MIPI_1N10 (屏侧 12/11)
+     "DSI_TX_D1_P", "DSI_TX_D1_N", 3, 2, "必装", False),        # Pi5 DISPLAY: pin3=DSI1_DP1 / pin2=DSI1_DN1
     ("D2", "DSI_D0_D2_P", "DSI_D0_D2_N", "A-19", "A-20",
-     "DSI_TX_D2_P", "DSI_TX_D2_N", 17, 16, "必装", False),       # ★板侧 39p: MIPI_2P17 / MIPI_2N16 (屏侧 18/17)
+     "DSI_TX_D2_P", "DSI_TX_D2_N", 17, 16, "必装", False),      # ★自用脚 (Pi5 侧 NC): lane2
     ("D3", "DSI_D0_D3_P", "DSI_D0_D3_N", "A-21", "A-22",
-     "DSI_TX_D3_P", "DSI_TX_D3_N", 20, 19, "必装", False),       # ★板侧 39p: MIPI_3P20 / MIPI_3N19 (屏侧 21/20)
+     "DSI_TX_D3_P", "DSI_TX_D3_N", 19, 18, "必装", False),      # ★自用脚 (Pi5 侧 NC): lane3
 ]
 # ★★2026-11-02 01:0x 老板换主控 RK3572 ⇒ **RK3572 无 DP TX** ⇒ 方案B (DP→DSI 桥接) **不可能成立**
 #   ⇒ BR_LANES 常量与全部方案B 器件行 (U_BRIDGE + 12 颗 0Ω 桥接位 + 8 颗 DP 串阻 + 8 颗对地电容)
@@ -935,57 +943,39 @@ def build_p4(by_id, spec):
         "R", "必装", "[推算]", "", "[VDD_3V3_IO] DSI DDC 上拉 (放主板侧)", "B-03")
     add("P4", "VDD_3V3_IO", "R_PU_I2CB_SDA", "RAIL_VDD_3V3_IO", "R_PU_I2CB_SDA", "4.7k ±1%",
         "R", "必装", "[推算]", "", "[VDD_3V3_IO] DSI DDC 上拉", "B-04")
-    # ---- 光机连接器 ----
+    # ---- 显示 FPC 座 (板内, 屏幕模组 ↔ 主板) ----
+    # ★★2026-11-04 定稿: **Pi5 22p/0.5mm (HIROSE FH12-22S-0.5SH(55))**
+    #   依据链: ① Raspberry Pi 官方 Pi 5 原理图 J4 (DISPLAY 座) 逐脚网名
+    #           ② Waveshare 官方 wiki 『2.8inch DSI LCD』屏侧 15p 表 (逐脚与 ① 一致)
+    #           ③ Raspberry Pi 官方 CM4IO/CM5IO KiCad 里的 FH12-22S 封装 (机械/land pattern)
+    #   ★★**针序必须照 Pi5 DISPLAY 座抄** —— CM5IO 那套 22p (2/3=D0, 5/6=D1, 8/9=CLK, 20/21=I2C) 与之**不同**
     add("P4", "CONN_LIGHT", "CONN_LIGHT", "CONN_LIGHT", "CONN_LIGHT",
-        "★39p@0.3mm (HIROSE FH35C-39S-0.3SHW(50), 背夹+上下双面触点, ★与相机侧 FH35C-31S 同系列)",
+        "★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",
         "CONN", "必装", "[官方]", "",
-        "[CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); "
-        "★★2026-11-03 19:3x 改为**板侧 39p/0.3mm** (Radxa 原厂转接线 AC013 的板端; ★屏侧原生是 40p/0.5mm); "
-        "★**换算式: 屏侧脚号 = 板侧脚号 + 1** (屏侧 pin1=NC 被原厂线省掉, 其余 1:1 直通); "
-        "7/8=DSI_D2 预留(DNP), 9/10=DSI_D3 预留(DNP), 11/12=DDC(I2C_B), 13=LIGHT_3V3, "
-        "14=LIGHT_1V8, 15=LIGHT_5V 预留(DNP), 16=GND 回流; "
-        "★★**2026-11-02: 由 22p 改 16p** —— 删掉的是桥接方案B 的 6 个差分脚 (RK3572 无 DP TX ⇒ 无桥接芯片); "
-        "型号/间距/pin 数待视涯接口定义; ★pin 编号为**本版自拟**, 非视涯给定")
+        "[CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: "
+        "1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND "
+        "11=SCL0 12=SDA0 13=GND 14=3V3 15=3V3; ★16..22 在 Pi5 上是 NC ⇒ 本板自用 (lane2/lane3 + 预留地). "
+        "★配套线: Waveshare 『DSI Cable-12cm』22p↔15p; ★详见 HW/PCB/PI5_DSI_22P_PINOUT.md")
 
-    # ---- ★★2026-11-02 20:5x A1 段: display FPC 座 (40p/0.5mm) 未被主链引用的针全部补齐 ----
-    #   依据: Radxa Display 8HD/10FHD 40 针表 (HW/PCB/FPC_PIN_TABLES.md)
-    # ★★2026-11-03 19:1x 订正: 原来的表把 **8HD 与 10FHD 混成一张** ⇒ pin36/pin39 被标成 GND
-    #   ⇒ ★按 **8HD 官方 Pinout 原文**: pin36 = LED− · pin39 = LED+ (不是 GND) ⇒ 从 GND 列表里去掉
-    # ★★2026-11-03 19:3x: 改**板侧 39p** 编号 (屏侧脚号 − 1); 屏侧 pin1=NC 被原厂线省掉
-    _disp_gnd = [6, 9, 12, 15, 18, 21, 22, 28, 29, 32, 33]
-    for _pn in _disp_gnd:
+    # --- 22p 座逐脚 (Pi5 DISPLAY 座口径) ---
+    _light_gnd = [1, 4, 7, 10, 13, 20, 21, 22]
+    for _pn in _light_gnd:
         add("P4", "GND", f"CONN_LIGHT pin{_pn}", "GND", "CONN_LIGHT", "GND", "NET", "必装", "[官方]", "",
-            "[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND", "")
-    _disp_nc = [3, 5, 36, 37]   # ★屏侧 1(NC) 被原厂线省掉 ⇒ 板上无此脚
-    for _pn in _disp_nc:
-        add("P4", "NC_CONN_LIGHT", f"CONN_LIGHT pin{_pn}", "NC_CONN_LIGHT", "CONN_LIGHT", "NC", "NET",
-            "必装", "[官方]", "",
-            f"[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = NC; ★**板级同网仅为满足网表连通性检查, 无功能影响**", "")
-    for _pn in [1, 30, 31]:
+            f"[CONN_LIGHT] Pi5 DISPLAY 座 pin{_pn} = GND"
+            + (" (★16..22 在 Pi5 上是 NC ⇒ 本板自用, 这里当预留地)" if _pn >= 20 else ""), "")
+    for _pn in (14, 15):
         add("P4", "LIGHT_3V3", f"CONN_LIGHT pin{_pn}", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V", "NET",
             "必装", "[官方]", "",
-            "[CONN_LIGHT] ★Radxa Display 40 针表: 面板 VDD = 3.3V (pin2/31/32)", "")
-    add("P4", "LIGHT_3V3", "CONN_LIGHT pin2", "RAIL_LIGHT_3V3", "CONN_LIGHT", "3.3V (VCCIO)", "NET",
-        "必装", "[官方]", "",
-        "[CONN_LIGHT] ★Radxa Display 40 针表: VCCIO = 1.8~3.3V (pin3) ⇒ ★**demo 取 3.3V**", "")
-    # ★★2026-11-03 19:29 老板拍板: **demo 不需要触控** ⇒ 板侧 23~27 (TP-RESET/TP-VCC/TP-INT/TP-SDA/TP-SCL) 一律不接
-    for _pn, _what in ((23, "TP-RESET (触控复位)"), (24, "TP-VCC (触控供电)"),
-                       (25, "TP-INT (触控中断)"), (26, "TP-SDA (触控I2C)"), (27, "TP-SCL (触控I2C)")):
-        add("P4", "NC_CONN_LIGHT", f"CONN_LIGHT pin{_pn}", "NC_CONN_LIGHT", "CONN_LIGHT", _what, "NET",
-            "必装", "[官方]", "",
-            f"[CONN_LIGHT] ★板侧 39p 脚{_pn} = {_what} —— ★**demo 不需要触控 ⇒ 我们不接** (脚位仍要占位)", "")
-    # ★★2026-11-03 19:29 老板拍板: demo 不需要触控 ⇒ 屏侧触控线我们一律不接 (已删除)
-    # ★★2026-11-03 19:1x ★★**再订正 (老板一句"这跟 Radxa 有什么关系"挖出来的)**: 矛盾**不是外部问题, 是我们抄表时混了两个型号**
-    #   ⇒ 我们项目里那张 "FPC_PIN_TABLES.md 的 display 表" 标题写的是 "8HD/10FHD" ⇒ **把两款屏的脚位混成了一张**
-    #   ⇒ ★**权威 = 8HD 官方 Pinout 原文** (已在 HW/STEP1_PARTS_SPEC.md §3.1, 标注 `[实测] 官方文档"Pinout"表原文`):
-    #      **pin35 = LED− · pin36 = LED− · pin39 = LED+ · pin40 = LED+** (每串两颗 LED 同串并联 ⇒ 同网是**正常**的)
-    #   ⇒ ★★**所以我 12:5x 那次 "F15 拆成一脚一网 + DNP" 是按错表做的**: 真要防的只有
-    #      **LED_N 与 LED_P 不能互短** (两串之间短接 = 背光直接烧) ⇒ 而 35+36 / 39+40 各自同网才是对的
-    #   ⇒ ⇒ 现在按官方原文重画: **LED_N = pin35+pin36 / LED_P = pin39+pin40**
-    #   ⇒ ★背光驱动仍未实现 (ISS-173) ⇒ 12.8V@200mA 那个数是 **10FHD 的**, **8HD 的背光规格未查** ⇒ 要补
-    # ★★2026-11-03 19:29 老板拍板: demo 不需要触控 ⇒ 屏侧触控线我们一律不接 (已删除)
-    # ★★2026-11-03 19:29 老板拍板: demo 不需要触控 ⇒ 屏侧触控线我们一律不接 (已删除)
-
+            f"[CONN_LIGHT] Pi5 DISPLAY 座 pin{_pn} = 3V3 (★屏侧 15p 的 14/15 都是 3V3)", "")
+    # ★★屏控制 I2C (不是触控!) —— Pi5 DISPLAY 座 pin11 = SCL0 / pin12 = SDA0
+    #   ★I2C_B 上拉已在 VDD_3V3_IO (3.3V) ⇒ 与屏内 MCU 的 3.3V I2C 同域 ⇒ 不需要电平转换
+    add("P4", "I2C_B_SCL", "CONN_LIGHT pin11", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
+        "I2C_B_SCL", "NET", "必装", "[官方]", "",
+        "[I2C_B_SCL] ★Pi5 DISPLAY 座 pin11 = SCL0 ⇒ **屏控制 I2C** (屏内 MCU @0x45; 树莓派驱动实测 probe 0xC0/0xC2/0xAC · enable 0xAD=0x01 · 背光 0xAB/0xAA) ⇒ **必须接**, 否则屏不亮也无法调光; "
+        "★上拉在 VDD_3V3_IO (3.3V) ⇒ 与屏 3.3V 同域, 无需电平转换", "B-03")
+    add("P4", "I2C_B_SDA", "CONN_LIGHT pin12", "NET_I2C_B_SDA", "NET_I2C_B_SDA",
+        "I2C_B_SDA", "NET", "必装", "[官方]", "",
+        "[I2C_B_SDA] ★Pi5 DISPLAY 座 pin12 = SDA0 ⇒ 屏控制 I2C (与 TMP117@0x48 同总线, 地址不冲突)", "B-04")
 
 
 # ------------------------------------------------------- P5 MIPI-CSI 传感器
@@ -1124,7 +1114,7 @@ TPS = [
     ("TP_BAT", "BAT", "U_BATPROT", "电池电压", "BQ25896 BAT 脚", "必装"),
     ("TP_VCORE", "V_CORE", "U_DCDC_VCORE", "SoC 核心轨", "DC-DC 输出", "必装"),
     ("TP_VIO", "V_SOC_IO", "U_DCDC_VIO", "SoC IO 轨", "DC-DC/LDO 输出", "必装"),
-    ("TP_LIGHT_3V3", "LIGHT_3V3", "CONN_LIGHT pin30", "光机轨", "LDO 输出", "必装"),
+    ("TP_LIGHT_3V3", "LIGHT_3V3", "CONN_LIGHT pin14", "屏轨 3.3V (Pi5 DISPLAY 座 pin14=3V3)", "LDO 输出", "必装"),
     ("TP_CSI_CK_P", "CSI_D0_CK_P", "CONN_CAM pin18", "CSI 时钟差分 (示波器测眼图/摆幅)",
      "连接器出口 (规格合并名 TP_CSI_D0_CK_P / _N)", "必装"),
     ("TP_CSI_CK_N", "CSI_D0_CK_N", "CONN_CAM pin17", "CSI 时钟差分 (规格合并名 TP_CSI_D0_CK_P / _N)",
@@ -1132,12 +1122,21 @@ TPS = [
     ("TP_CSI_D0_P", "CSI_D0_D0_P", "CONN_CAM pin15", "CSI D0 数据差分", "连接器出口", "必装"),
     ("TP_CSI_D0_N", "CSI_D0_D0_N", "CONN_CAM pin14", "CSI D0 数据差分", "连接器出口", "必装"),
     ("TP_MCLK", "CSI_MCLK", "CONN_CAM pin20", "MCLK (包地走线)", "连接器出口", "必装"),
-    ("TP_DSI_CK_P", "DSI_D0_CK_P", "CONN_LIGHT pin14", "DSI 时钟差分",
+    ("TP_DSI_CK_P", "DSI_D0_CK_P", "CONN_LIGHT pin6", "DSI 时钟差分 (Pi5 DISPLAY pin6=DSI1_CP)",
      "连接器出口 (规格合并名 TP_DSI_D0_CK_P / _N)", "必装"),
-    ("TP_DSI_CK_N", "DSI_D0_CK_N", "CONN_LIGHT pin13", "DSI 时钟差分 (规格合并名 TP_DSI_D0_CK_P / _N)",
+    ("TP_DSI_CK_N", "DSI_D0_CK_N", "CONN_LIGHT pin5", "DSI 时钟差分 (Pi5 DISPLAY pin5=DSI1_CN; 规格合并名 TP_DSI_D0_CK_P / _N)",
      "连接器出口", "必装"),
-    ("TP_DSI_D0_P", "DSI_D0_D0_P", "CONN_LIGHT pin8", "DSI D0 数据差分", "连接器出口", "必装"),
-    ("TP_DSI_D0_N", "DSI_D0_D0_N", "CONN_LIGHT pin7", "DSI D0 数据差分", "连接器出口", "必装"),
+    ("TP_DSI_D0_P", "DSI_D0_D0_P", "CONN_LIGHT pin9", "DSI D0 数据差分 (Pi5 DISPLAY pin9=DSI1_DP0)", "连接器出口", "必装"),
+    ("TP_DSI_D0_N", "DSI_D0_D0_N", "CONN_LIGHT pin8", "DSI D0 数据差分 (Pi5 DISPLAY pin8=DSI1_DN0)", "连接器出口", "必装"),
+    # ★2026-11-04: DSI lane1/2/3 的差分测点 (22p 座口径: D1=pin2/3 · D2=pin16/17 · D3=pin18/19)
+    ("TP_DSI_D1_P", "DSI_D0_D1_P", "CONN_LIGHT pin3", "DSI D1 数据差分 (Pi5 DISPLAY pin3=DSI1_DP1)", "连接器出口", "必装"),
+    ("TP_DSI_D1_N", "DSI_D0_D1_N", "CONN_LIGHT pin2", "DSI D1 数据差分 (Pi5 DISPLAY pin2=DSI1_DN1)", "连接器出口", "必装"),
+    ("TP_DSI_D2_P", "DSI_D0_D2_P", "CONN_LIGHT pin17", "DSI D2 数据差分 (自用脚)", "连接器出口", "必装"),
+    ("TP_DSI_D2_N", "DSI_D0_D2_N", "CONN_LIGHT pin16", "DSI D2 数据差分 (自用脚)", "连接器出口", "必装"),
+    ("TP_DSI_D3_P", "DSI_D0_D3_P", "CONN_LIGHT pin19", "DSI D3 数据差分 (自用脚)", "连接器出口", "必装"),
+    ("TP_DSI_D3_N", "DSI_D0_D3_N", "CONN_LIGHT pin18", "DSI D3 数据差分 (自用脚)", "连接器出口", "必装"),
+    ("TP_I2CB_SCL", "I2C_B_SCL", "CONN_LIGHT pin11", "屏控制 I2C 时钟 (Pi5 DISPLAY pin11=SCL0)", "连接器出口", "必装"),
+    ("TP_I2CB_SDA", "I2C_B_SDA", "CONN_LIGHT pin12", "屏控制 I2C 数据 (Pi5 DISPLAY pin12=SDA0)", "连接器出口", "必装"),
     ("TP_I2CA_SCL", "I2C_A_SCL", "CONN_CAM pin24", "I2C_A 时钟", "连接器出口", "必装"),
     ("TP_I2CA_SDA", "I2C_A_SDA", "CONN_CAM pin25", "I2C_A 数据", "连接器出口", "必装"),
     # ★★2026-11-03 19:29 老板拍板 demo 不需要触控 ⇒ 屏侧触控 I2C 测试点已删 (原行在此)

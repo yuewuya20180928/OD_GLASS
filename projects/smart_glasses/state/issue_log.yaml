@@ -4510,15 +4510,15 @@ issues:
   owner: main
   reporter: main
   raised: '2026-11-04'
-  due: '2026-11-05'
-  status: open
+  due: '2026-11-06'
+  status: fixed
   external: false
   need_keys: []
-  fix_ref: state/TASK_pi5_22p_pinout.md (任务书) · HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md · HW/DISPLAY_SMALL_SCREEN_OPTIONS.md
+  fix_ref: HW/PCB/PI5_DSI_22P_PINOUT.md (针位表+型号+land pattern) · HW/PCB/pi5_dsi_22p.json (机器可读) · HW/PCB/display_fpc_params.json (官方封装几何) · state/display_fpc_footprint.py (封装生成) · state/verify_display_fpc.py (复核脚本) · HW/PCB/FPC_PIN_TABLES.md (display 段已换)
   verify_by: hw-lead
   verify_result: null
   verify_date: null
-  note: '★**两处要老板拍板**: ① 主板→屏段**只做 2-lane**(省脚省走线, 将来换高分辨率屏要改这段) vs **上 24 位双座方案**(留 4-lane 能力, 成本+面积+结构) ② 整机屏路线: RK3572 无 DSC ⇒ 视崖 0.49"(DSC 3:1) 不可用 ⇒ 换 SoC 到 RK3588 / 问视涯非 DSC 版 / 换屏 ★★2026-11-04 01:42 **老板拍板 (两条)**: ① **主板→屏段走 4-lane, 不走 2-lane** ⇒ ⇒ **SoM 侧 DSI_TX_CK/D0/D1/D2/D3 十个 pin 全部实接** (D2/D3 已从 DNP 恢复必装) ⇒ 主板为将来的 4-lane 屏留好; ⇒ ★**推论: Waveshare 2.8" 本体只有 2 对差分 ⇒ 它的 15→22 线只能把屏的 2 对接到主板 lane0/lane1, 另 2 对在屏侧 NC** ⇒ **只要 Pi5 的 22p 座里带 4 对差分脚位, "主板 4-lane + 用现成 15→22 线" 就能同时成立, 不必自制转接线** ⇒ ★**这正是 Pi5 专项要查的第 5 问** (22 位里有没有屏侧 15 位没有的脚) ⇒ 等它回来即可定稿; ② ★**屏幕暂时先不用 SY049 (视崖)** ⇒ 整机屏路线**现在不确认** ⇒ ISS-176 收窄为"demo 屏接口"这一件事。'
+  note: '★**两处要老板拍板**: ① 主板→屏段**只做 2-lane**(省脚省走线, 将来换高分辨率屏要改这段) vs **上 24 位双座方案**(留 4-lane 能力, 成本+面积+结构) ② 整机屏路线: RK3572 无 DSC ⇒ 视崖 0.49"(DSC 3:1) 不可用 ⇒ 换 SoC 到 RK3588 / 问视涯非 DSC 版 / 换屏 ★★2026-11-04 01:42 **老板拍板 (两条)**: ① **主板→屏段走 4-lane, 不走 2-lane** ⇒ ⇒ **SoM 侧 DSI_TX_CK/D0/D1/D2/D3 十个 pin 全部实接** (D2/D3 已从 DNP 恢复必装) ⇒ 主板为将来的 4-lane 屏留好; ⇒ ★**推论: Waveshare 2.8" 本体只有 2 对差分 ⇒ 它的 15→22 线只能把屏的 2 对接到主板 lane0/lane1, 另 2 对在屏侧 NC** ⇒ **只要 Pi5 的 22p 座里带 4 对差分脚位, "主板 4-lane + 用现成 15→22 线" 就能同时成立, 不必自制转接线** ⇒ ★**这正是 Pi5 专项要查的第 5 问** (22 位里有没有屏侧 15 位没有的脚) ⇒ 等它回来即可定稿; ② ★**屏幕暂时先不用 SY049 (视崖)** ⇒ 整机屏路线**现在不确认** ⇒ ISS-176 收窄为"demo 屏接口"这一件事。 ★★**2026-11-04 03:0x 专项回来, 第 5 问有答案了 ⇒ ISS-176 的取舍问题自动消解**: **Pi5 的 22p 座里 pin16..22 在官方原理图上是 NC** (Pi5 J4 的 pin16..30 标红叉) ⇒ ⇒ **那根 Waveshare 22p↔15p 的被动线, 22p 端的 16..22 必然也是 NC** (屏侧只有 15 脚, 且 15 脚的信号已由 Pi5 J4 的 1..15 全部提供 ⇒ 线缆只能 1..15 一一对应) ⇒ ⇒ **"主板 4-lane + 用现成 15→22 线" 同时成立, 不必上 24 位双座方案** (省一颗座 + 面积 + 结构) ⇒ **我们把 16..19 用作 lane2/lane3 差分, 20..22 预留地** ⇒ 4-lane 能力保留, 成本按 22p 单座算。 ★★**同时查到一个大坑并已避开**: **CM5IO 的 22p 针序 ≠ Pi5 DISPLAY 座的针序** (CM5IO: 2/3=D0 · 5/6=D1 · 8/9=CLK · 11/12=D2 · 20/21=I2C; Pi5 DISPLAY: 2/3=D1 · 5/6=CLK · 8/9=D0 · 11/12=I2C) ⇒ 照 CM5IO 抄 ⇒ DSI 差分全错、I2C 接错 ⇒ 屏必不亮 ⇒ ★**我们的座按 Pi5 DISPLAY 口径画**。 ★★**屏控制 I2C 已接上** (pin11=SCL0 → I2C_B_SCL, pin12=SDA0 → I2C_B_SDA; 上拉在 VDD_3V3_IO 3.3V ⇒ 与屏内 MCU 同域, 无需电平转换)。 ★★**已落**: 网表 display 段 39p→22p 逐针重映射 (含 TP 行) · 门禁 SPEC_PINS 34→22 且删掉过渡期缺号豁免 · 板上换成**官方 FH12-22S-0.5SH(55) 封装** (RPi 官方 CM5IO KiCad 封装, 非通用假封装) · 新增复核脚本 state/verify_display_fpc.py ⇒ **五个门禁全绿**: netlist ✅ / netlist_pins ✅ (22/22, 0 多网) / schematic_slots ✅ / pcb_nets 逐焊盘 485/485 ✅ / pcb_drc 0 违规 ✅ · Gerber 30 个。 ★**剩余风险 (须实物核对)**: ① 买线后万用表核 22p 端针序 (1 脚方向/3V3 位置) ② 确认线缆 22p 端触点朝向 (底接触?) ③ SoM DF40C 的 pin1 行问题依旧要万用表核 (同级风险)。'
   dispatched_at: '2026-11-04'
 - id: ISS-177
   title: ★★[整机屏 · 暂缓] 问视崖 SY049 有无**非 DSC 模式**版本 (RK3572 无 DSC 编码器 ⇒ 现版跑不了)

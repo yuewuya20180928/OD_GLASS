@@ -44,6 +44,7 @@ import pcbnew  # noqa: E402
 import sys as _sys
 _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from som_btb_footprint import add_som_connectors  # noqa: E402
+from display_fpc_footprint import add_display_fpc  # noqa: E402
 SOM_PARAMS = os.path.join(PROJ, "HW", "PCB", "som_btb_params.json")
 
 NETLIST = os.path.join(PROJ, "HW", "netlist_v1.csv")
@@ -343,20 +344,25 @@ def make_footprint(board, ref, value, kind, pins, netmap, x, y, label=True):
 
 
 
-def _pin_net_from_netlist():
-    """从 HW/netlist_v1.csv 解析每个 J_SOM_Px 的 {脚号: 网络} (网表是唯一真源)"""
+def _pin_net_from_netlist(ref=None):
+    """从 HW/netlist_v1.csv 解析器件的 {脚号: 网络} (网表是唯一真源)
+       ref=None ⇒ 解析 J_SOM_P1..P4; ref="CONN_LIGHT" ⇒ 解析显示 FPC 座"""
     import csv as _csv
     import re as _re
     _out = {}
+    pat = r"CONN_LIGHT pin(\d+)" if ref == "CONN_LIGHT" else r"J_SOM_(P\d) pin(\d+)"
     with open(NETLIST, encoding="utf-8") as _f:
         for _r in _csv.DictReader(_f):
             _net = (_r.get("net") or "").strip()
             if not _net:
                 continue
             for _k in ("node1", "node2"):
-                _m = _re.fullmatch(r"J_SOM_(P\d) pin(\d+)", (_r.get(_k) or "").strip())
+                _m = _re.fullmatch(pat, (_r.get(_k) or "").strip())
                 if _m:
-                    _out.setdefault(_m.group(1), {})[int(_m.group(2))] = _net
+                    if ref == "CONN_LIGHT":
+                        _out[int(_m.group(1))] = _net
+                    else:
+                        _out.setdefault(_m.group(1), {})[int(_m.group(2))] = _net
     return _out
 
 
@@ -395,6 +401,9 @@ def main():
         if ref.startswith("J_SOM_"):
             continue   # ★**SoM 的 4 组 100pin BTB 座由 som_btb_footprint 模块专门画**
                        #   (0.4mm pitch / 0.2mm 焊盘 / 双排奇偶脚) ⇒ 这里跳过, 否则会多画一套重复焊盘
+        if ref == "CONN_LIGHT":
+            continue   # ★**显示 FPC 座 (22p/0.5mm, HiROSE FH12-22S) 由 display_fpc_footprint 模块按官方封装画**
+                       #   (通用 CONN 封装是"假封装": 焊盘尺寸/位置都不对) ⇒ 这里跳过
         pins = per_ref[ref]
         kind = kind_of(ref)
         w, h, _per, _pitch, _nr = size_of(kind, len(pins))
@@ -440,6 +449,13 @@ def main():
     #   脚号编排: **奇数脚 = 一排 / 偶数脚 = 另一排** ⇒ 我们的焊盘 n 正好对插 SoM 的 n 脚
     _som_pins = _pin_net_from_netlist()
     add_som_connectors(board, netmap, SOM_PARAMS, _som_pins)
+
+    # ★★2026-11-04: 显示 FPC 座 (Pi5 22p/0.5mm DISPLAY 座口径) —— **官方封装** (RPi CM5IO 的 FH12-22S)
+    #   针序见 HW/PCB/PI5_DSI_22P_PINOUT.md; 焊盘号 = 网表真实针号 (1..22)
+    _light_pins = _pin_net_from_netlist(ref="CONN_LIGHT")
+    add_display_fpc(board, netmap, os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                "..", "HW", "PCB", "display_fpc_params.json"),
+                    _light_pins)
 
     board.BuildListOfNets()
     pcbnew.SaveBoard(PCB, board)

@@ -34,7 +34,7 @@ ASSIGN = os.path.join(PROJ, 'HW', 'PCB', 'som_pin_assign.json')
 # ★真值: 连接器的针数 (来自 HW/PCB/FPC_PIN_TABLES.md / 规格书)
 SPEC_PINS = {
     'CONN_CAM': 31,     # Radxa Camera 4K (IMX415) 31p/0.3mm
-        'CONN_LIGHT': 34,   # ★过渡态 (2026-11-04 屏换 Waveshare 2.8inch: 座正从 39p 重画成 22p; Pi5 22p 针位表回来后一次性定稿, 见 ISS-176)
+        'CONN_LIGHT': 22,   # ★2026-11-04 定稿: Pi5 22p/0.5mm DISPLAY 座 (针序见 HW/PCB/PI5_DSI_22P_PINOUT.md)
     'CONN_USB': 4,      # 跨铰链 USB (整机阶段)
     'J_CHG': 10,        # 跨铰链充电 (整机阶段)
     'J_DEBUG': 4,       # JTAG 排针
@@ -107,8 +107,6 @@ def main():
         got = conns.get(ref, set())
         ok_n = len(got) == want
         gaps = [i for i in range(1, want + 1) if i not in got] if got else list(range(1, want + 1))
-        if ref == "CONN_LIGHT":
-            gaps = []   # ★过渡态: 座正从 39p 重画成 22p (ISS-176) ⇒ 缺号是预期的
 
         ok_g = not gaps
         lines.append(f"  {'✅' if ok_n and ok_g else '❌'} C2/C3 {ref}: 针数 {len(got)}/{want}"

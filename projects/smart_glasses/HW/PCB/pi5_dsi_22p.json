@@ -1,0 +1,64 @@
+{
+  "_meta": {
+    "title": "Pi5 DSI 22p (CAM/DISP mini FPC) 针位表 —— 主板侧板内 FPC 座",
+    "written": "2026-11-04",
+    "owner": "main (总工)",
+    "scope": "demo 主板 CONN_LIGHT 座 (板内, 屏幕模组 ↔ 主板)",
+    "pinout_authority": "Raspberry Pi Ltd 官方 Pi 5 原理图 RP-008350-DS (J4 = DISPLAY 座)",
+    "screen_side_authority": "Waveshare 官方 wiki 2.8inch DSI LCD 『Interface Definition』15p 表",
+    "connector_part": "Hirose FH12-22S-0.5SH(55) (22p / 0.5mm / 右角 / 1 固定柱 / 底接触)",
+    "footprint_authority": "Raspberry Pi 官方 CM4IO/CM5IO KiCad 设计文件里的 Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal.kicad_mod",
+    "status": "demo 锁定 (待实物核对线缆方向)"
+  },
+  "connector": {
+    "type": "FFC/FPC 座, 单排, 0.5mm pitch",
+    "circuits": 22,
+    "pitch_mm": 0.5,
+    "mating_cable": "Waveshare 『DSI Cable-12cm』22p(0.5mm) ↔ 15p(1.0mm)",
+    "pad_size_mm": [0.3, 1.3],
+    "pad_pitch_mm": 0.5,
+    "pad_row_y_mm": -1.85,
+    "pad1_x_mm": 5.25,
+    "pad22_x_mm": -5.25,
+    "body_fab_mm": [-7.05, -1.2, 7.05, 3.4],
+    "courtyard_mm": [-8.55, -3.0, 8.55, 4.9]
+  },
+  "cable_mapping_rule": "★22p 端与 Pi5 J4 脚号 1:1 直通 (屏侧 15p 脚号 = 22p 脚号 1..15); 22p 的 16..22 在 Pi5 上是 NC ⇒ 线缆里也是 NC ⇒ 板子可自用",
+  "pins": [
+    {"pin": 1,  "pi5_j4_net": "GND",       "screen_15p": "GND",       "board_net": "GND",                 "func": "回流地",           "install": "必装"},
+    {"pin": 2,  "pi5_j4_net": "DSI1_DN1",  "screen_15p": "DSI1_DN1",  "board_net": "DSI_D0_D1_N",       "func": "DSI lane1 差分−",   "install": "必装"},
+    {"pin": 3,  "pi5_j4_net": "DSI1_DP1",  "screen_15p": "DSI1_DP1",  "board_net": "DSI_D0_D1_P",       "func": "DSI lane1 差分+",   "install": "必装"},
+    {"pin": 4,  "pi5_j4_net": "GND",       "screen_15p": "GND",       "board_net": "GND",                 "func": "回流地",           "install": "必装"},
+    {"pin": 5,  "pi5_j4_net": "DSI1_CN",   "screen_15p": "DSI1_CN",   "board_net": "DSI_D0_CK_N",       "func": "DSI 时钟差分−",     "install": "必装"},
+    {"pin": 6,  "pi5_j4_net": "DSI1_CP",   "screen_15p": "DSI1_CP",   "board_net": "DSI_D0_CK_P",       "func": "DSI 时钟差分+",     "install": "必装"},
+    {"pin": 7,  "pi5_j4_net": "GND",       "screen_15p": "GND",       "board_net": "GND",                 "func": "回流地",           "install": "必装"},
+    {"pin": 8,  "pi5_j4_net": "DSI1_DN0",  "screen_15p": "DSI1_DN0",  "board_net": "DSI_D0_D0_N",       "func": "DSI lane0 差分−",   "install": "必装"},
+    {"pin": 9,  "pi5_j4_net": "DSI1_DP0",  "screen_15p": "DSI1_DP0",  "board_net": "DSI_D0_D0_P",       "func": "DSI lane0 差分+",   "install": "必装"},
+    {"pin": 10, "pi5_j4_net": "GND",       "screen_15p": "GND",       "board_net": "GND",                 "func": "回流地",           "install": "必装"},
+    {"pin": 11, "pi5_j4_net": "SCL0",      "screen_15p": "SCL0",      "board_net": "I2C_B_SCL",         "func": "屏控制 I2C 时钟",   "install": "必装"},
+    {"pin": 12, "pi5_j4_net": "SDA0",      "screen_15p": "SDA0",      "board_net": "I2C_B_SDA",         "func": "屏控制 I2C 数据",   "install": "必装"},
+    {"pin": 13, "pi5_j4_net": "GND",       "screen_15p": "GND",       "board_net": "GND",                 "func": "回流地",           "install": "必装"},
+    {"pin": 14, "pi5_j4_net": "3V3",       "screen_15p": "3V3",       "board_net": "LIGHT_3V3",          "func": "面板 3.3V 供电",    "install": "必装"},
+    {"pin": 15, "pi5_j4_net": "3V3",       "screen_15p": "3V3",       "board_net": "LIGHT_3V3",          "func": "面板 3.3V 供电",    "install": "必装"},
+    {"pin": 16, "pi5_j4_net": "NC",        "screen_15p": null,        "board_net": "DSI_D0_D2_N",        "func": "★自用: DSI lane2 差分− (整机 4-lane 预留)", "install": "必装"},
+    {"pin": 17, "pi5_j4_net": "NC",        "screen_15p": null,        "board_net": "DSI_D0_D2_P",        "func": "★自用: DSI lane2 差分+", "install": "必装"},
+    {"pin": 18, "pi5_j4_net": "NC",        "screen_15p": null,        "board_net": "DSI_D0_D3_N",        "func": "★自用: DSI lane3 差分−", "install": "必装"},
+    {"pin": 19, "pi5_j4_net": "NC",        "screen_15p": null,        "board_net": "DSI_D0_D3_P",        "func": "★自用: DSI lane3 差分+", "install": "必装"},
+    {"pin": 20, "pi5_j4_net": "NC",        "screen_15p": null,        "board_net": "GND",                "func": "★自用: 预留地/回流", "install": "必装"},
+    {"pin": 21, "pi5_j4_net": "NC",        "screen_15p": null,        "board_net": "GND",                "func": "★自用: 预留地/回流", "install": "必装"},
+    {"pin": 22, "pi5_j4_net": "NC",        "screen_15p": null,        "board_net": "GND",                "func": "★自用: 预留地/回流", "install": "必装"}
+  ],
+  "provenance": [
+    {"id": "P1", "source": "Raspberry Pi Ltd, RP-008350-DS-raspberry-pi-5-mechanical.pdf (Pi 5 官方原理图, 1 页 A1)", "used_for": "J4 (DISPLAY) 各脚网名 + pin14=GND/pin15=3V3 + pin16..30 = NC (红叉)", "level": "官方"},
+    {"id": "P2", "source": "Raspberry Pi Ltd, CM4IO/CM5IO 官方 KiCad 设计文件 (rp_1/CM5IO.kicad_pcb + CM5IO.pretty)", "used_for": "22p 座的型号 = Hirose FH12-22S-0.5SH(55) + 官方封装几何 (焊盘 0.3×1.3 / 0.5mm pitch / pad1 在 +x 端)", "level": "官方"},
+    {"id": "P3", "source": "Waveshare 官方 wiki 『2.8inch DSI LCD』 Interface Definition 表 (屏侧 15p)", "used_for": "屏侧 15p 的脚名与脚号 (1..15)", "level": "厂商(显示件原厂)"},
+    {"id": "P4", "source": "Waveshare 官方 wiki: 『Connect the DSI interface of the display to the 22PIN DSI1 interface of the Raspberry Pi board using the \"DSI Cable-12cm\" cable』", "used_for": "Pi5 侧是 22p 座, 屏侧是 15p ⇒ 线缆 22p↔15p", "level": "厂商(显示件原厂)"},
+    {"id": "P5", "source": "Adafruit (RPi 5 FPC Camera Cable 页): 『These connectors use the same 22-way, 0.5mm-pitch \"mini\" FPC format as the Compute Module Development Kit』", "used_for": "Pi5 的 22p 与 CM DK 的 FH12 属同一 mini-FPC 格式 ⇒ 可用官方封装", "level": "第三方(与 P2/P4 一致)"},
+    {"id": "P6", "source": "CM5IO 官方 PCB 焊盘网表 (DPHY0_D0_N ... SCL0/SDA0/+3.3v @ pin2..22)", "used_for": "★对照: CM5IO 的 22p 针序与 Pi5 DISPLAY 座**不同** ⇒ 不可混用", "level": "官方"}
+  ],
+  "open_items": [
+    "★买线/买屏后用万用表核对 22p 端针序 (尤其 pin1 方向与 3V3/GND 位置) —— 与 SoM DF40C 的 pin1 行问题同级, 错了整条 DSI 反接",
+    "★确认 Waveshare 线缆 22p 端是『底接触』(FFC 触点朝下) —— FH12-22S-0.5SH 是底接触; 若线缆是顶接触则要翻线或换座型",
+    "整机阶段换真面板 (视崖 0.49\" SiOLED) 时, 本 22p 座的 16..19 自用脚位作废, 改按面板原厂接口定义"
+  ]
+}
