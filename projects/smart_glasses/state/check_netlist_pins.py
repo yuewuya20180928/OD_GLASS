@@ -189,6 +189,29 @@ def main():
     else:
         lines.append("  ⏭ C5 跳过 (引脚表或分配表不存在)")
 
+    # ---- C6/C7 ★**内容存在性**门禁 (★不能只查"自洽", 还要查"该有的东西在不在") ----
+    #   ★背景: 2026-11-03 实测 —— `build_a2_som()` 定义了但**忘了在 main() 里调用** ⇒
+    #   网表里**根本没有** SoM 的 VCC_DCIN / CARRIER_BOARD_EN / demo Type-C 三组行
+    #   ⇒ ★**所有"自洽型"门禁全绿** (针脚唯一/针数/板子等价) ⇒ **这才是真·假绿的第四种形态**
+    #   ⇒ ⇒ 这条门禁按**内容**查: SoM 的供电脚在不在、使能脚在不在、每个座用没用
+    som_dcin = sorted(p for (r, p) in pin_nets if r == 'J_SOM_P3' and p in (91, 93, 95, 97, 98, 99, 100))
+    car_en_rows = [r for r in rows if 'J_SOM_P3 pin87' in ((r.get('node1') or '') + ' ' + (r.get('node2') or ''))]
+    used_soms = sorted({r for (r, p) in pin_nets if r.startswith('J_SOM_')})
+    ok6 = len(som_dcin) == 7
+    lines.append(f"  {'✅' if ok6 else '❌'} C6 SoM 的 VCC_DCIN 7 脚都接上了 — {len(som_dcin)}/7 "
+                 f"{'(' + ','.join(map(str, som_dcin)) + ')' if som_dcin else ''}")
+    if not ok6:
+        fails.append(f'C6 SoM 的 VCC_DCIN 只接了 {len(som_dcin)}/7 脚')
+    ok7 = bool(car_en_rows)
+    lines.append(f"  {'✅' if ok7 else '❌'} C7 F13 底板使能 CARRIER_BOARD_EN (J_SOM_P3 pin87) 已接 — "
+                 f"{len(car_en_rows)} 行")
+    if not ok7:
+        fails.append('C7 CARRIER_BOARD_EN 没接 (F13: 底板早于核心板上电 ⇒ 可能损坏处理器)')
+    ok8 = len(used_soms) == 4
+    lines.append(f"  {'✅' if ok8 else '❌'} C8 4 组 SOM 座都用上了 — {used_soms}")
+    if not ok8:
+        fails.append(f'C8 只有 {len(used_soms)}/4 组 SOM 座在用')
+
     print("=" * 72)
     print("  网表针脚级门禁 · check_netlist_pins (★一个针脚只能属于一个网)")
     print("=" * 72)

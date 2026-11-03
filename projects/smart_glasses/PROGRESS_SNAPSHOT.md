@@ -1,19 +1,20 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-03 08:57)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-03 09:41)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
 
 ## 一、当前状态
 
-- 阶段门: 【总体】 阶段门 G2 ⏸️ | 健康度 red | 距通过 G2 还差 6 项 | 未闭环高危 12 条 | 逾期 22 条
+- 阶段门: 【总体】 阶段门 G2 ⏸️ | 健康度 red | 距通过 G2 还差 6 项 | 未闭环高危 15 条 | 逾期 22 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=0
-- 问题单: 共 162 条 · closed=59 · deferred=10 · fixed=21 · fixing=1 · open=30 · verified=41
-- GitHub 上次推送: 2026-11-03T01:11:17+08:00
+- 问题单: 共 166 条 · closed=59 · deferred=10 · fixed=25 · fixing=2 · open=29 · verified=41
+- GitHub 上次推送: 2026-11-03T09:41:02+08:00
 
 ## 二、执行中 (谁在干什么)
 
 - **ISS-122** · main · ★★BGA 逃线层数: ★两套模型结论相反 (9 层 vs 3 层) ⇒ 破没破 4-6 层锁是 [0数据] 不是结论 —— 必须问 PCB · 派出于 ?
+- **ISS-159** · hw-lead · ★★[demo] 画板前致命项清零 F4~F12 (★照 EN 那个 P0 的教训: 漏到投板后 = 2~4 周返工) · 派出于 2026-11-03
 
 ## 三、待办
 
@@ -49,13 +50,12 @@
 - ISS-155 · ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 target 转的 .rknn 能
 - ISS-156 · ★★[demo 供应链] 自研主板的三件前置选型: camera 模组 / 屏模组 / RK3572 核心板 (★主板的 FPC 座由模组倒逼)
 - ISS-160 · ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) 
-- ISS-165 · ★★★[硬件 A2 段 · 最后一块] SOM 座 (4×100pin/0.4mm BTB) + SoC 节点改挂 + ★CARRIER_BOARD_EN 
+- ISS-169 · ★★[demo 板可制造性] demo 主板的供电/USB 入口缺失 + SoM 4×100pin BTB 座待画 (机械位置未核实)
 
 ### 3.3 三个总工可自行推进 (队列 cron 每 30 分钟自动派)
 
 - ISS-153 · hw-lead · ★★订正: AR0234CS 的 I2C 地址是 0x10 (不是 0x36) + IMX415 是 0x1a ⇒ 网表注释已改, 但要连带
 - ISS-154 · hw-lead · ★★[整机阶段] AR0234CS 的 VDDIO_PHY 1.8V 轨缺失 + CONN_CAM 18p 占满 ⇒ 不供电就出不了图 (A
-- ISS-159 · hw-lead · ★★[demo] 画板前致命项清零 F4~F12 (★照 EN 那个 P0 的教训: 漏到投板后 = 2~4 周返工)
 
 ## 四、恢复步骤 (token 恢复后照此走)
 

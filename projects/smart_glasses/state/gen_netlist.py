@@ -1277,7 +1277,9 @@ def build_a2_som(by_id, spec):
         "[推算]", "", "[VBUS_DET_D] 分压下臂 地端", "A-24")
     add("P1", "GND", "C_DET_VBUS_D", "GND", "C_DET_VBUS_D", "100nF ±10%", "C", "必装",
         "[推算]", "", "[VBUS_DET_D] ADC 滤波电容", "A-24")
-    add("P1", "VBUS_DET", soc_pin("USB_VBUS_DET"), "NET_VBUS_DET_D", soc_pin("USB_VBUS_DET"),
+    # ★★2026-11-03 修: **ref 必须是器件名 "J_SOM_P1", 不能写节点串** ("J_SOM_P1 pin100" 会被
+    #   生成器当成一个叫 "J_SOM_P1 pin100" 的器件 ⇒ 板上多出幽灵封装 + 一个假脚)
+    add("P1", "VBUS_DET", soc_pin("USB_VBUS_DET"), "NET_VBUS_DET_D", "J_SOM_P1",
         "1M+1M 分压 + 100nF", "NET", "必装", "[官方]", "",
         "[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)",
         "B-07")
@@ -1327,6 +1329,8 @@ def main() -> int:
     build_p7(by_id, spec)
     build_p8(by_id, spec)
     build_p9(by_id, spec)
+    # ★★A2 段: SoM 的 4 组 100pin BTB 座 + F13 电源使能 + SoM 自己的 VCC_DCIN + demo 板 Type-C
+    build_a2_som(by_id, spec)
     n_p10 = build_p10_json()
 
     # ---- 板级归属 (2026-10-27 V1.1 新增): 充电板 / 主 PCB / 跨铰链 ----
