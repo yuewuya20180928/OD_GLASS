@@ -1,15 +1,15 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-03 09:44)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-03 11:15)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
 
 ## 一、当前状态
 
-- 阶段门: 【总体】 阶段门 G2 ⏸️ | 健康度 red | 距通过 G2 还差 6 项 | 未闭环高危 15 条 | 逾期 22 条
+- 阶段门: 【总体】 阶段门 G2 ⏸️ | 健康度 red | 距通过 G2 还差 6 项 | 未闭环高危 16 条 | 逾期 22 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=0
-- 问题单: 共 166 条 · closed=59 · deferred=10 · fixed=25 · fixing=2 · open=29 · verified=41
-- GitHub 上次推送: 2026-11-03T09:44:07+08:00
+- 问题单: 共 169 条 · closed=59 · deferred=10 · fixed=26 · fixing=2 · open=31 · verified=41
+- GitHub 上次推送: 2026-11-03T11:14:00+08:00
 
 ## 二、执行中 (谁在干什么)
 
@@ -50,7 +50,9 @@
 - ISS-155 · ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 target 转的 .rknn 能
 - ISS-156 · ★★[demo 供应链] 自研主板的三件前置选型: camera 模组 / 屏模组 / RK3572 核心板 (★主板的 FPC 座由模组倒逼)
 - ISS-160 · ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) 
-- ISS-169 · ★★[demo 板可制造性] demo 主板的供电/USB 入口缺失 + SoM 4×100pin BTB 座待画 (机械位置未核实)
+- ISS-169 · ★★[demo 板可制造性] demo 主板的边界已定 (Type-C 供电 · 不装电池 · 板上只有这一块) + SoM 座的 pin1 排向待查证 +
+- ISS-170 · ★★★[demo 板可制造性] 显示器 FPC 座: 屏侧 40p/0.5mm 与原厂排线主板侧 39p/0.3mm 矛盾 ⇒ 画 40p 座对不上原厂排线
+- ISS-172 · ★★[选型待裁] 负载开关 U_PWR_SW / U_EN_SW: 原厂在售型号的判据互斥 (RON vs IQ vs 反向阻断)
 
 ### 3.3 三个总工可自行推进 (队列 cron 每 30 分钟自动派)
 
