@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-03 18:45** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-03 19:06** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -62,7 +62,7 @@
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 170 条 | 状态: closed=59 deferred=10 verified=41 fixed=26 open=32 fixing=2
+登记问题 170 条 | 状态: closed=59 deferred=10 verified=41 fixed=26 open=31 fixing=3
   ├─ 内部可自行推进: 141 条 | 外部依赖 (等老板/原厂/JBD): 29 条
   ├─ 逾期未闭环: 0 条
   └─ 未闭环 blocker 级: 17 条
@@ -134,7 +134,7 @@
        ★★★[硬件优先] demo 硬件形态落地: 一块主板 + **IMX415 sensor 模组** + 屏幕驱动板模组 + FPC
   🔴 ISS-162  fixed     owner=main       due=2026-11-05  
        ★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400
-  🔴 ISS-170  open      owner=main       due=2026-11-05  
+  🔴 ISS-170  fixing    owner=main       due=2026-11-05  
        ★★★[demo 板可制造性] 显示器 FPC 座: 屏侧 40p/0.5mm 与原厂排线主板侧 39p/0.3mm 矛盾 ⇒ 画 
   🔴 ISS-173  open      owner=main       due=2026-11-05  
        ★★★[demo 能不能看见屏幕] 显示器背光需 12.8V@200mA ⇒ 5V 输入必须加 12V BOOST (且会撑爆 US
