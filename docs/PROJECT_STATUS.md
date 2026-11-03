@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-03 23:43** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-04 00:13** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -64,7 +64,7 @@
 ==========================================================================
 登记问题 172 条 | 状态: closed=60 deferred=10 verified=41 fixed=27 open=32 fixing=2
   ├─ 内部可自行推进: 143 条 | 外部依赖 (等老板/原厂/JBD): 29 条
-  ├─ 逾期未闭环: 0 条
+  ├─ 逾期未闭环: 6 条
   └─ 未闭环 blocker 级: 16 条
 
 【问题清单】(按 severity + 逾期排)
@@ -104,16 +104,6 @@
        ★开始画硬件原理图 V1 (8 页图页 + 完整 netlist + KiCad 可导入 .net) —— 球位号统一用 TBD 占
   🔴 ISS-083  closed    owner=main       due=2026-10-29  
        ★显示 TX 公开渠道穷举 (AR9481 模组厂/模组规格书/公开板卡 + 酷芯模组供应商) —— 不等原厂也能判 DSI TX 
-  🔴 ISS-155  open      owner=main       due=2026-11-03  
-       ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
-  🔴 ISS-165  fixed     owner=main       due=2026-11-03  
-       ★★★[硬件 A2 段 · 最后一块] SOM 座 (4×100pin/0.4mm BTB) + SoC 节点改挂 + ★CARRI
-  🔴 ISS-166  fixed     owner=main       due=2026-11-03  
-       ★★★[P0 · 短路级] 网表连接器脚位: 一个脚挂多个网 (CONN_CAM 12 处 / CONN_LIGHT 9 处) ⇒ 
-  🔴 ISS-167  fixed     owner=main       due=2026-11-03  
-       ★★★[P0 · 假绿] 板生成器按 CSV 行序给焊盘编号 ⇒ 连接器脚位全错; 等价性门禁比集合 ⇒ 报绿
-  🔴 ISS-168  fixed     owner=main       due=2026-11-03  
-       ★★★[P0] RK3572 与 RK3576 引脚功能不同 ⇒ 上一版 SoM 引脚分配表作废 (226/398 脚球号不同)
   🔴 ISS-147  fixed     owner=main       due=2026-11-04  
        ★★★[demo P0] 恢复 RKNN 构建环境 + 证明 rk3572 是 rknn-toolkit2 2.3.2 的合法 ta
   🔴 ISS-148  fixed     owner=main       due=2026-11-04  
@@ -140,6 +130,21 @@
        ★★★[选型变更 · 老板拍板] demo 屏换 ≤3 寸 (原 Radxa Display 8HD = 8.0" 太��) ⇒ 背
   🔴 ISS-160  open      owner=main       due=2026-11-06  
        ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC
+  🔴 ISS-155  open      owner=main       due=2026-11-03   ⏰逾期
+       ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+       ❌ ★逾期★ due=2026-11-03 已过, 仍 open
+  🔴 ISS-165  fixed     owner=main       due=2026-11-03   ⏰逾期
+       ★★★[硬件 A2 段 · 最后一块] SOM 座 (4×100pin/0.4mm BTB) + SoC 节点改挂 + ★CARRI
+       ❌ ★逾期★ due=2026-11-03 已过, 仍 fixed
+  🔴 ISS-166  fixed     owner=main       due=2026-11-03   ⏰逾期
+       ★★★[P0 · 短路级] 网表连接器脚位: 一个脚挂多个网 (CONN_CAM 12 处 / CONN_LIGHT 9 处) ⇒ 
+       ❌ ★逾期★ due=2026-11-03 已过, 仍 fixed
+  🔴 ISS-167  fixed     owner=main       due=2026-11-03   ⏰逾期
+       ★★★[P0 · 假绿] 板生成器按 CSV 行序给焊盘编号 ⇒ 连接器脚位全错; 等价性门禁比集合 ⇒ 报绿
+       ❌ ★逾期★ due=2026-11-03 已过, 仍 fixed
+  🔴 ISS-168  fixed     owner=main       due=2026-11-03   ⏰逾期
+       ★★★[P0] RK3572 与 RK3576 引脚功能不同 ⇒ 上一版 SoM 引脚分配表作废 (226/398 脚球号不同)
+       ❌ ★逾期★ due=2026-11-03 已过, 仍 fixed
   🟠 ISS-039  closed    owner=boss       due=2026-10-27   [外部]
        【缺清单】认证与合规要求未梳理 (含光生物安全) —— 需老板定销售区域
   🟠 ISS-046  closed    owner=boss       due=2026-10-27   [外部]
@@ -218,8 +223,6 @@
        ★选型情报检索: TOP10 国内厂商名单 + 每家 TOP1~5 候选 + 逐项证据 (只交证据, 不打分)
   🟠 ISS-146  verified  owner=boss       due=2026-11-03   [外部]
        ★★[等老板一句] demo 板形态: 模组+转接板 (我的建议) 还是 自制整板? —— 决定 PCB 与周期
-  🟠 ISS-164  fixed     owner=main       due=2026-11-03  
-       ★★[等老板一句] demo 精度验收线: yolov5n F1 0.2927 差 0.0073 不达 0.30 门槛, 换 yol
   🟠 ISS-142  deferred  owner=boss       due=2026-11-04   [外部]
        ★[外发待放行] onsemi AR0234CS 问询草稿已写好 (pinout/电源域/CRA/lane 速率/功耗/驱动) ⇒ 
   🟠 ISS-151  fixed     owner=main       due=2026-11-04  
@@ -308,6 +311,9 @@
        ★★结构侧新口径: 边框遮挡角必须进 FOV 余量账 (凹进 1.0mm = 1.91° 遮挡, 吃掉"正前方那一侧") ⇒ 镜框上
   🟠 ISS-120  verified  owner=sw-lead    due=2026-11-30  
        ★S2 救砖链路板端实测 (量产一票否决项) —— 方案+自检已闭环 (ISS-080), 待 EVT 有板后真跑 (EVT-8/B
+  🟠 ISS-164  fixed     owner=main       due=2026-11-03   ⏰逾期
+       ★★[等老板一句] demo 精度验收线: yolov5n F1 0.2927 差 0.0073 不达 0.30 门槛, 换 yol
+       ❌ ★逾期★ due=2026-11-03 已过, 仍 fixed
   🟡 ISS-020  closed    owner=main       due=2026-10-28  
        PRD 补完: REQ/REQUIREMENTS.md 还是草稿 (子模块需求待填/验收标准待填)
   🟡 ISS-031  closed    owner=main       due=2026-10-28  
@@ -413,7 +419,7 @@
   🟡 ISS-113  verified  owner=sw-lead    due=2026-11-05  
        ★RKNN_BENCH 的 B6 复现缺陷: `acc` 步单独跑会崩 (依赖 calib 步的 dataset.txt)
 
-✅ 问题闭环门全过 (字段/状态机/验证分离/逾期/双向覆盖)
+❌ 违规 6 条
 ```
 ## 4. 阶段门 (G0-G4)
 ```
@@ -470,10 +476,11 @@
   执行就绪度体检 · Readiness  (机械判定, 不凭印象)
 ==============================================================================
 
-【全局机制】✅ 就绪 (10/10)
+【全局机制】❌ 未就绪 (1 项不过)
    ✅ 共享状态源可用 (merge rc=0)
    ✅ gate ↔ merge 自动对账一致
-   ✅ 问题闭环门 0 违规
+   ❌ 问题闭环门 0 违规
+        issue_check rc=1 (字段/状态机/验证分离/逾期/双向覆盖)
    ✅ 阶段门可判 (G0-G4)
    ✅ 每日巡检可跑 (漂移检测)
    ✅ 推进器可算下一步
@@ -545,7 +552,7 @@
    ✅ 打印包 + 测量清单
 
 ── 项目级终判 ───────────────────────────────────────────────────────
-  📄 纸面阶段 (G0 纸面冻结 / G1 原理图 / G2 结构样机准备): ✅ 组织与机制已就绪
+  📄 纸面阶段 (G0 纸面冻结 / G1 原理图 / G2 结构样机准备): ❌ 机制有未过项
      → 判据: 4 个角色机制全绿 + 质量门/问题门/阶段门/推进器可用 + 框架裁剪基线在位
      → 当前卡点: 老板 8 条决策 + 原厂/JBD 外部; 内部可自行推进 94 条
   🔧 样机阶段 (G3 上电联调 + 硬指标实测): ❌ 不就绪
