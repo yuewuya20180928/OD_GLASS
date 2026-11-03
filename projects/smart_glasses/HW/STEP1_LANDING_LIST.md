@@ -57,7 +57,7 @@
 | **F2** | ★**sensor 三条轨电压/电流** | 公开 datasheet | ✅ **已清零**（★结论已被 **F14** 推翻 ⇒ 三轨全 DNP） |
 | **F3** | ★**I2C 上拉电压与阻值** | sensor 的 VI abs max + IOL | ⚠️ **已清零（口径要改）**：阻值 **2.2k 不变**；★**上拉轨 3.3V → 1.8V** |
 | **F4** | ★**主板 FPC 座针数/间距** | ★**照 P1/P2 模组的针位表** | 🔄 **待清**：camera ✔ / ★**display ✖ 两个互斥选项** |
-| **F5** | ★**RK3572 SOM 的引脚定义/尺寸/焊接方式** | 模组厂公开规格 + 原理图 | 🔄 **待清**（★依赖 ISS-165/167/168/169 在飞） |
+| **F5** | ★**RK3572 SOM 的引脚定义/尺寸/焊接方式** | 模组厂公开规格 + 原理图 | ✅ **已清零**（引脚/尺寸/焊接方式 三件齐；★残留见 §3.2-C7） |
 | **F6** | ★**层数与阻抗** | ★**Forlinx OK3572-C 手册 §3.5.16 / §3.5.17.1** | ✅ **已清零**（6 层 + 100Ω/50Ω + skew 判据） |
 | **F7** | ★**MCLK 走线/端接/AC 耦合位置** | 公开 sensor 模组参考设计 + Rockchip camera module 通则 | 🔄 **待清**（★位已留，**值未锁**） |
 | **F8** | ★**面板 init code / timing 适配** | ★**抄 `rk3576-evb.dtsi` 现成 panel-init-sequence** | ✅ **已清零**（模板已落：**261 条 init + 2 条 exit**） |
@@ -65,13 +65,13 @@
 | **F10** | ★**ESD/TVS/过压** | ★**Forlinx 手册 §3.5 各接口章 + §2.4.5** | 🔄 **待清**（判据已定；★**display 口无 ESD 位**） |
 | **F11** | ★**FPC 弯折寿命/插拔次数/补强** | 连接器厂公开规格 | ❓ **未查**（★公开渠道无 durability 字段） |
 | **F12** | ★**散热** | ★**demo 不考虑功耗 ⇒ 先不管**（整机阶段再说） | ⏸ **不适用**（老板明确暂缓） |
-| **F13** | ★**底板主电源使能（CARRIER_BOARD_EN pin87）** | ★**Forlinx OK3572-C 手册 §4 Power-on Sequence** | 🔴 **待清 · 阻塞投板**（★网表只落了一半） |
+| **F13** | ★**底板主电源使能（CARRIER_BOARD_EN pin87）** | ★**Forlinx OK3572-C 手册 §4 Power-on Sequence** | ✅ **已清零（拓扑）** · 🔄 待清（选型/规格同步） |
 | **F14** | ★**camera 模组级供电（主板要不要供那三条轨）** | ★**先看模组接口表，再看芯片 datasheet** | ✅ **已清零**（三轨 + 3 颗 TPS7A20 + 6 个去耦位全 DNP） |
 | ★**F15** | ★**〔本单新撞出〕display 背光/触控 4 脚并网 + 主板无 12V BOOST** | 模组原厂针位表 vs 主板网表逐脚比对 | 🔴 **待清 · 阻塞投板**（★**建议立项**） |
 
 ### 3.1 依据区（★逐条可核：文件:行号 或 URL）
 
-★**行号口径**：`HW/netlist_v1.csv` 与 `HW/PCB/*` 正被 **ISS-165 / ISS-167** 在飞改动 ⇒ 下列网表行号 = **2026-11-03 09:35 版快照**（`HW/netlist_v1.csv` mtime 09:35:35；`HW/PCB/STACKUP.md` / `LAYOUT_RULES.md` mtime 09:36:52）⇒ ★**引用前按位号/网名复核**。
+★**行号口径**：下列网表行号 = **`HW/netlist_v1.csv` 2026-11-03 09:43:38 版**（★**ISS-165 A2 段在 09:43:38 落了 F13 的门控拓扑** ⇒ 本表已按最新版复核）；`HW/PCB/STACKUP.md` / `LAYOUT_RULES.md` mtime 09:36:52（★**这两份 + `FET3572C_PIN_TABLE.csv` / `SOM_PIN_ASSIGNMENT.md` 本单只读、一个字没改**）⇒ ★**引用前按位号/网名复核**。
 ★**公开手册快照**：Forlinx **OK3572-C User Hardware Manual V1.0** = <https://forlinxembedded.github.io/rockchip/ok3572-c/OK3572-C_User_Hardware_Manual.html>（本地快照 `state/_os_snapshots/fx3572_manual.html`；下方 §3.1 的"剥标签行"= 该 HTML 去标签后的行号）。
 
 **F1（EN）— 已清零**
@@ -93,10 +93,12 @@
   - 选项 B：**40p/0.5mm 直插**（现网表走的就是这条，声明行 `HW/netlist_v1.csv:218`）⇒ ★**屏侧座型号仍是"一类"未定**（`HW/STEP1_PARTS_SPEC.md:202` 标**未查**）。
   - ★**同一份文档自相矛盾**：`:200` 说"主板该画 39p/0.3mm"，而里程碑 M2（`:397`）说"display FPC 座 = 40p/0.5mm" ⇒ ★**现网表按 B 画 ⇒ 若最后选 A，整张 40 针表作废、座要换** ⇒ **投板前必须定**。
 
-**F5（SOM 引脚/尺寸/焊接）— 待清（依赖在飞改动）**
-- ★**数据已落地**（本单**只引用，一个字没改**）：`HW/PCB/FET3572C_PIN_TABLE.csv`（399 行，由 OK3572-C 手册 §2.6.2/§2.7 重建）+ `HW/PCB/SOM_PIN_ASSIGNMENT.md`（46 个信号）+ `HW/PCB/som_pin_assign.json` + `HW/PCB/som_btb_params.json`。
+**F5（SOM 引脚/尺寸/焊接）— 已清零（★残留见 §3.2-C7）**
+- ★**引脚定义**：`HW/PCB/FET3572C_PIN_TABLE.csv`（399 行，由 **OK3572-C** 手册 §2.6.2/§2.7 重建）+ `HW/PCB/SOM_PIN_ASSIGNMENT.md`（46 个信号）+ `HW/PCB/som_pin_assign.json`（机器可读）+ `HW/PCB/som_pin_verify.md`。
 - ★**抽样核过**：`FET3572C_PIN_TABLE.csv:29`（P1_28 `SARADC_VIN0_BOOT` 1.8V）· `:132,134`（I2C5 1.8V 域）· `:145`（P2_45 `CAM_CLK0_OUT_M0` 1.8V）· `:200`（P2_100 `RESET_L`）· `:287`（P3_87 `CARRIER_BOARD_EN`）· `:288`（P3_88 `PWRON_L`）· `:291-300`（P3_91/93/95/97/98/99/100 = `VCC_DCIN`）。
-- ★**依赖在飞**：**ISS-165**（A2 段 · fixing）正在改这些文件 + 生成器 · **ISS-167**（焊盘编号假绿 · fixing）· **ISS-168**（RK3572≠RK3576 电气功能，已 fixed ⇒ 现表已换口径）· **ISS-169**（★4×100pin BTB 座机械位置/pin1 方向**未与原厂 DXF 核对** ⇒ 板子**不能下单**）⇒ ★**本项不单独下结论，跟在飞改动走**。
+- ★**尺寸**：68×50mm + 4×100pin / 0.4mm BTB（`HW/PCB/som_btb_params.json`：pitch 0.4 / 焊盘 0.2×1.4 / 行距 2.38 / 座 22.x）。
+- ★**焊接方式**：★**连接器式，不是焊死式** ⇒ “老板说的『推荐焊接』对 FET3572-C 不成立” ⇒ ★**主板承担 400 个焊盘**（`HW/PCB/SOM_PIN_ASSIGNMENT.md:3` + `state/issue_log.yaml` ISS-158 note）。
+- ★**状态变化**：**ISS-165（A2 段）/ ISS-167（焊盘编号假绿）/ ISS-168（RK3572≠RK3576 电气功能）均已 fixed（verify pass，2026-11-03）** ⇒ ★**F5 本身已清零**；★**残留**：**ISS-169 仍 open**（4 个 BTB 座机械位置/pin1 方向**未与原厂 DXF 核对** + 14 个 IC 封装/脚号未落定）⇒ **不是“投板后致命”，是“下单前必须核”**。
 
 **F6（层数与阻抗）— 已清零**
 - ★**层数 = 6 层**（项目总工定案，本单**不自己拍**）：`HW/PCB/STACKUP.md:8,9`（L1 信号 / L2 GND 完整 / L3 信号+局部电源 / L4 电源平面 / L5 信号 / L6 GND 完整）+ `HW/PCB_DRAWING_PLAN.md:42,44-51`。
@@ -138,19 +140,18 @@
 **F12（散热）— 不适用**
 - ★**依据**：老板明确"demo 不考虑功耗"⇒ 本文件 §2 尺寸/层数行 + 任务书 ISS-159 desc（"F12 散热 ⇒ ★demo 不考虑功耗 ⇒ 老板明确暂缓"）；`HW/DEMO_BOARD_HW_DECISION.md:50`（demo 阶段 SOM 散热面朝下贴导热垫/铜箔，用外壳导热即可，不做结构）⇒ ★**本轮不查散热；但机械上仍要留 SOM 散热面朝下的位置**。
 
-**F13（CARRIER_BOARD_EN 底板使能）— 待清 · 阻塞投板（★建议升为独立 P0）**
+**F13（CARRIER_BOARD_EN 底板使能）— ✅ 已清零（拓扑）· 🔄 待清（选型/规格同步/门禁）**
 - ★**公开依据（Forlinx OK3572-C 手册）**：
   - §4 Hardware Design Guide → "Power-on Sequence"（剥标签行 **5090-5093**）："When designing the carrier board, it is strongly recommended to reference the development board design by using the **CARRIER_BOARD_EN signal output from the core board as the enable for the carrier board's power-on sequence**. Strictly control the power-on timing; failure to do so may result in: · **Excessive inrush current during power-on.** · **Device failure to boot.** · **In the worst-case scenario, irreversible damage to the processor.**"
   - §3.5.1 Carrier Board Power（行 **4621**）："After the SoM starts up normally … it outputs a high level via the **CARRIER_BOARD_EN** pin to enable U3, thereby outputting VCC_5V to power certain peripherals …（3.3V, 1kΩ pull-up）"；★**同章 Note（行 4625）**："When designing independently, please **strictly adhere to the power-up sequencing**"。
   - §2.4.2 Power Parameter：SoM 供电 **5-13V**（⇒ demo 走 USB-C 5V 在范围内 ✔）。
   - 逐针：`HW/PCB/FET3572C_PIN_TABLE.csv:287`（P3_87 `CARRIER_BOARD_EN`，3.3V，1K pull-up，**不接 GPIO**）· `:291-300`（P3_91/93/95/97/98/99/100 = `VCC_DCIN`）。
 - ★**落法（已定的部分）**：`HW/PCB/SOM_PIN_ASSIGNMENT.md:61`（固定脚表：`P3_87`）· `:84`（**F13 落法**：SoM 的 CARRIER_BOARD_EN → 主板负载开关 **U_EN_SW** 的 EN ⇒ 主板各路挂 **RAIL_BOARD_5V**；★**SoM 自己的 VCC_DCIN 直供 5V，不受门控**）+ `HW/PCB/som_pin_assign.json:398`（`"CARRIER_BOARD_EN": "P3_87"`）。
-- ★**网表只落了一半（实测 `HW/netlist_v1.csv`，09:35 版）**：
-  - ✅ 9 条 LDO/DC-DC 的 **VIN** 已改挂 `RAIL_BOARD_5V`（`:75,82,89,96,104,112,120,128,136`），6 条 **EN** 也挂 `RAIL_BOARD_5V`（`:96,104,112,120,128,136`），note 里写着"F13: 由 CARRIER_BOARD_EN 门控"。
-  - ❌ **网表里没有 `U_EN_SW` 这个器件**（`grep -c U_EN_SW` = **0**）；❌ **`CARRIER_BOARD_EN` 没有作为网名出现过**（`grep -c "^P[0-9]*,CARRIER_BOARD_EN"` = **0**，9 次出现全在 note 正文里）；❌ **`RAIL_BOARD_5V` 没有任何驱动源** —— 全网 15 条命中**全是别的器件的 VIN/EN 输入脚** ⇒ ★**这条轨是悬空的**。
-  - ⇒ ★**照现网表投板 = 底板与核心板同时上电 + 各路无源 ⇒ 与 F1 同级（板子起不来 / 伤处理器）**。
-  - ★**现有门禁抓不到**：`state/check_netlist.py` 判据 8 只查"轨名在图上"、判据 11 只查"同网多驱动" ⇒ ★**"电源轨没有驱动源"这条判据不存在**（`state/check_netlist_pins.py` 2026-11-03 新增的 5 条判据也不含它）。
-  - ⇒ ★**建议**：①立独立 P0 单；②给网表门禁补一条"每条 RAIL_* 必须有 ≥1 个输出驱动"。
+- ★**网表侧（实测 `HW/netlist_v1.csv`，★**09:43:38 版 · ISS-165 A2 段刚落的**）**：
+  - ✅ **门控链路已落全**：`CARRIER_BOARD_EN` = `J_SOM_P3 pin87 → U_EN_SW EN`（`:435,:436`，★**pin87 就是手册那颗**）→ `U_EN_SW IN` ← `RAIL_DEMO_5V`（`:437`，demo 板 USB-C 5V，`J_DEMO_USB` 声明在 `:428`，入口 ESD `D_ESD_DEMO` `:420,:421`，π 滤波 `FB_DEMO` `:422`、`C_VBUS_DEMO` `:424`）→ `U_EN_SW OUT` → **`RAIL_BOARD_5V`**（`:438`）→ 9 条 LDO/DC-DC 的 **VIN**（`:74,81,88,95,103,111,119,127,135`）+ 6 条 **EN**（`:96,104,112,120,128,136`）。
+  - ✅ **SoM 自己的电不受门控**：`RAIL_SOM_DCIN` ← `RAIL_DEMO_5V` → `J_SOM_P3 pin91/93/95/97/98/99/100`（`:440-446`，★**7 脚并联载流，手册 §2.4.2 DC 5~13V ⇒ 5V 在范围内**）⇒ ★**这正是 Forlinx 要求的时序：核心板先上，底板等 `CARRIER_BOARD_EN` 放行**。
+  - ⇒ ★**拓扑（使能关系）已清零**；★**残留三项**：①**`U_EN_SW` 没有 IC 声明行**（只有 4 条 NET 行 `:435-439`，**型号/封装/Ron/电流都没定** ⇒ 器件未选型）②**`HW/SCHEMATIC_V1_SPEC.json` 还没同步**（grep 不到 `U_EN_SW` / `CARRIER_BOARD_EN` / `RAIL_BOARD_5V`）③**网表门禁没有“每条 RAIL_* 必须有 ≥1 个输出驱动”的判据**（`state/check_netlist.py` 判据 8 只查“轨名在图上”、判据 11 只查“同网多驱动”；`state/check_netlist_pins.py` 的 5 条也不含它）⇒ ★**建议补一条，否则下一次改网表又会静默把门控拆掉**。
+  - ★**口径提醒**：网表 `:96,104,112,120,128,136` 的 note 仍写“EN 脚**直连 RAIL_SYS** ⇒ 永远使能”，而实际网是 `RAIL_BOARD_5V`（**受门控**）⇒ **注释与实际相反**，照注释理解会误判（见 §3.2-C1）。
 
 **F14（camera 模组级供电）— 已清零**
 - ★**依据**：Radxa Camera 4K 31 针表 **pin28/29 = VCC3.3V、pin30/31 = VCC5V** ⇒ `HW/PCB/FPC_PIN_TABLES.md:20,21` + `HW/STEP1_PARTS_SPEC.md:146`（"B 层: 模组级 (Radxa Camera 4K 整模组的供电)"）⇒ ★**模组内部自己稳压 ⇒ 主板不需要 sensor 芯片级三条轨**。
