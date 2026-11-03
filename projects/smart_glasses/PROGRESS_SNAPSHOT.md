@@ -1,4 +1,4 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-04 01:38)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-04 01:46)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
@@ -8,8 +8,8 @@
 - 阶段门: 【总体】 阶段门 G2 ⏸️ | 健康度 red | 距通过 G2 还差 6 项 | 未闭环高危 16 条 | 逾期 23 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=0
-- 问题单: 共 173 条 · closed=61 · deferred=10 · fixed=28 · fixing=2 · open=31 · verified=41
-- GitHub 上次推送: 2026-11-04T01:14:01+08:00
+- 问题单: 共 174 条 · closed=61 · deferred=10 · fixed=28 · fixing=2 · open=32 · verified=41
+- GitHub 上次推送: 2026-11-04T01:44:20+08:00
 
 ## 二、执行中 (谁在干什么)
 
@@ -53,6 +53,7 @@
 - ISS-172 · ★★[选型待裁] 负载开关 U_PWR_SW / U_EN_SW: 原厂在售型号的判据互斥 (RON vs IQ vs 反向阻断)
 - ISS-174 · ★★[demo 触控收不到中断] display 触控的 TP_INT (pin26) 没接到 SoM 任何脚 ⇒ 触控中断收不到
 - ISS-176 · ★★[显示接口重画] 显示器座换 Pi5 同规 22 位/0.5mm (吃 Waveshare 15→22 线) + 屏的控制 I2C 必须接
+- ISS-177 · ★★[整机屏 · 暂缓] 问视崖 SY049 有无**非 DSC 模式**版本 (RK3572 无 DSC 编码器 ⇒ 现版跑不了)
 
 ### 3.3 三个总工可自行推进 (队列 cron 每 30 分钟自动派)
 

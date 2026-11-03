@@ -890,9 +890,9 @@ DSI_LANES = [
     ("D1", "DSI_D0_D1_P", "DSI_D0_D1_N", "A-17", "A-18",
      "DSI_TX_D1_P", "DSI_TX_D1_N", 11, 10, "必装", False),       # ★板侧 39p: MIPI_1P11 / MIPI_1N10 (屏侧 12/11)
     ("D2", "DSI_D0_D2_P", "DSI_D0_D2_N", "A-19", "A-20",
-     "DSI_TX_D2_P", "DSI_TX_D2_N", 17, 16, "DNP", False),       # ★板侧 39p: MIPI_2P17 / MIPI_2N16 (屏侧 18/17)
+     "DSI_TX_D2_P", "DSI_TX_D2_N", 17, 16, "必装", False),       # ★板侧 39p: MIPI_2P17 / MIPI_2N16 (屏侧 18/17)
     ("D3", "DSI_D0_D3_P", "DSI_D0_D3_N", "A-21", "A-22",
-     "DSI_TX_D3_P", "DSI_TX_D3_N", 20, 19, "DNP", False),       # ★板侧 39p: MIPI_3P20 / MIPI_3N19 (屏侧 21/20)
+     "DSI_TX_D3_P", "DSI_TX_D3_N", 20, 19, "必装", False),       # ★板侧 39p: MIPI_3P20 / MIPI_3N19 (屏侧 21/20)
 ]
 # ★★2026-11-02 01:0x 老板换主控 RK3572 ⇒ **RK3572 无 DP TX** ⇒ 方案B (DP→DSI 桥接) **不可能成立**
 #   ⇒ BR_LANES 常量与全部方案B 器件行 (U_BRIDGE + 12 颗 0Ω 桥接位 + 8 颗 DP 串阻 + 8 颗对地电容)
@@ -909,7 +909,7 @@ def build_p4(by_id, spec):
                 "TBD-04",
                 (f"[{net}] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 "
                  f"P/N 两颗, 单颗 0Ω 会把差分对短接") if sel_dnp == "必装" else
-                (f"[{net}] 4-lane 预留位 (2-lane 不够时再装) — ★规格位 R_SEL_* 必须拆 P/N 两颗, "
+                (f"[{net}] ★★4-lane 常开 (老板 11-04 01:42 拍板: 主板→屏段走 4-lane) — ★规格位 R_SEL_* 必须拆 P/N 两颗, "
                  f"单颗 0Ω 会把差分对短接"))
             if term:
                 rt = f"R_TERM_{net}"
