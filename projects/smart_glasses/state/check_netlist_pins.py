@@ -40,7 +40,7 @@ SPEC_PINS = {
     'J_DEBUG': 4,       # JTAG 排针
     'J_UART': 2,        # UART 排针
     'J_BOOT1': 6,       # 启动存储焊盘位
-    'U_TEMP': 4,        # TMP117
+    'U_TEMP': 6,        # ★2026-11-04: TMP117 官方 WSON-6 (1=SCL 2=GND 3=ALERT 4=ADD0 5=V+ 6=SDA)
     'U_CHG': 24,        # BQ25896 WQFN-24
 }
 

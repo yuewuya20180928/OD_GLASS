@@ -12,7 +12,8 @@
       "TPS3808 采样脚叫 SENSE(pin5), 不是 IN; 另有 MR(pin3) 与 GND(pin2) 两脚网表未画",
       "TPS62130A 的 PG 在 EN 为低时输出低 (A 版与 TPS62130 固定版极性相反)",
       "J_TYPE_C 的 D+/D- 各有两个物理脚 (A6/B6, A7/B7); GND 有四个物理脚 (A1/B12/A12/B1)",
-      "CONN_LIGHT 已从 40p 占位改为 **22p HIROSE FH12-22S-0.5SH(55)** (Pi5 DISPLAY 座口径, 2026-11-04)"
+      "CONN_LIGHT 已从 40p 占位改为 **22p HIROSE FH12-22S-0.5SH(55)** (Pi5 DISPLAY 座口径, 2026-11-04)",
+      "TMP117 是 **WSON-6 (DRV0006B)**: 1=SCL 2=GND 3=ALERT 4=ADD0 5=V+ 6=SDA (原来写的 4 脚脚号全错); 散热焊盘按原厂建议**不焊**"
     ],
     "dnp_parts": [
       "U_LDO_L18",
@@ -527,6 +528,26 @@
       "notes": "★DNP: 主板不产 SoC IO 轨. 其余同 U_DCDC_VCORE. ★PG 极性: TPS62130A = EN 低时 PG 低 (低有效)",
       "dnp": true,
       "source": "https://www.ti.com/lit/ds/symlink/tps62130a.pdf SLVSAG7F PDF p.3 Fig 6-1 + Table 6-1 + Device Comparison Table"
+    },
+    "U_TEMP": {
+      "part": "TMP117",
+      "value": "TMP117 (温度计, ±0.1°C, I2C 地址 0x48)",
+      "package": "WSON (6) = DRV0006B, 2.00 x 2.00 mm, 0.8mm max height",
+      "land_pattern": "TI 原厂 EXAMPLE BOARD LAYOUT (图纸 4223922/A 09/2017): 6 pads 0.45x0.30mm, 脚距 0.65mm, 两列中心距 1.95mm, 本体 2.0x2.0mm",
+      "kicad_footprint_candidate": "★库内无 WSON-6 2x2 ⇒ **本项目自绘** (state/tmp117_footprint.py, 几何抄自 TI 原图)",
+      "pitch_mm": 0.65,
+      "pins": {
+        "1": "SCL",
+        "2": "GND",
+        "3": "ALERT",
+        "4": "ADD0",
+        "5": "V+",
+        "6": "SDA"
+      },
+      "ep": "★**散热焊盘 (EP) 不画**: 原厂明确 'The package thermal pad is not connected to the device ground and should be left unsoldered for best measurement accuracy' (datasheet §10) ⇒ 皮肤侧测温尤其要这样",
+      "notes": "★2026-11-04 04:0x **原来写成 4 脚 (1=SDA 2=SCL 3=VDD 4=GND) ⇒ 与原厂脚号完全对不上, 已改官方 6 脚**; ADD0 (pin4) 接 GND ⇒ 地址 0x48; ALERT (pin3) 开漏输出, demo 悬空",
+      "dnp": false,
+      "source": "https://www.ti.com/lit/ds/symlink/tmp117.pdf (SNOSD82D, 2022-09 修订) §5 Pin Configuration and Functions + 图纸 4223922/A"
     }
   },
   "connectors": {

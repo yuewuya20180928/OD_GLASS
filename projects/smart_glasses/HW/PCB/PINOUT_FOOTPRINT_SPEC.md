@@ -627,6 +627,19 @@
 
 ---
 
+## 11.5 U_TEMP —— TI TMP117 数字温度计 (★**2026-11-04 04:0x 补, 并订正脚号**)
+
+| 项 | 值 | 出处 |
+|---|---|---|
+| 型号 / 封装 | **TMP117**, **WSON (6) = DRV0006B**, 2.00 × 2.00 mm, 0.8mm max height | TI SNOSD82D §1 器件表 ("WSON (6) — 2.00 mm × 2.00 mm") |
+| ★★**脚位 (官方 6 脚)** | **1 = SCL · 2 = GND · 3 = ALERT · 4 = ADD0 · 5 = V+ · 6 = SDA** | TI SNOSD82D §5 **Table 5-1 "Pin Functions"** + Figure 5-1 (DRV 顶视: 1=左上 SCL, 2=左中 GND, 3=左下 ALERT, 4=右下 ADD0, 5=右中 V+, 6=右上 SDA) |
+| ★**之前的错** | ★**2026-11-04 之前我们把它写成 4 脚 (1=SDA 2=SCL 3=VDD 4=GND) ⇒ 与原厂脚号完全对不上** ⇒ 照通用 IC 封装焊上去必然不工作 | (本次自查) |
+| 脚距 / 焊盘 | **0.65mm** 脚距 ("4X (0.65)") · 每脚 **0.45 × 0.30mm** ("6X (0.45)" / "6X (0.3)") · **两列焊盘中心距 1.95mm** ("(1.95)") | TI 原厂 **EXAMPLE BOARD LAYOUT**, 图纸号 **4223922/A 09/2017** |
+| ★**散热焊盘 (EP)** | ★**不画、不焊** —— 原厂明确: "The package thermal pad is **not connected to the device ground** and **should be left unsoldered for best measurement accuracy**"; 若要焊, 必须接地或悬空 | TI SNOSD82D §10 Application Information / §10.1 Layout Guidelines |
+| 地址 | **ADD0 (pin4) 接 GND ⇒ I2C 地址 0x48** (原厂: ADD0 可接 GND / V+ / SDA / SCL) | TI Table 5-1 |
+| ALERT (pin3) | 开漏输出 (过温/数据就绪告警), **需上拉** ⇒ demo 悬空 (原厂允许); 若要告警上报需另占一个 SoM GPIO | TI Table 5-1 |
+| 板上实现 | `state/tmp117_footprint.py` 自绘官方 land pattern (库内无 WSON-6 2×2) · 焊盘 0.45×0.30 / 脚距 0.65 / 列距 1.95 / 无 EP | 本项目 |
+
 ## 12. ★仍未查到 / 需采购硬判据的清单
 
 | # | 器件 | 缺什么 | 建议动作 |

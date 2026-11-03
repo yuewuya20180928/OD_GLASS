@@ -4539,3 +4539,22 @@ issues:
   verify_date: null
   note: '★**外发纪律**: 一律经老板点头 (草稿放 state/outbox/, 不自动发)。★**顺带**: 整机若最终走视崖 ⇒ 主控可能要换 RK3588 (有 DSC) ⇒ 这条会牵动主控选型 ⇒ 整机阶段要一起算。'
   dispatched_at: '2026-11-04'
+- id: ISS-178
+  title: ★★[自查抓到] TMP117 被当成 4 脚器件画的 ⇒ **脚号与原厂完全对不上** (已改成官方 WSON-6)
+  severity: high
+  source_blocker: null
+  source_agent: main
+  desc: '★2026-11-04 04:0x 自查 (给 TMP117 补封装时): TI TMP117 datasheet (SNOSD82D) §5 Table 5-1 明确它是 **6 脚 WSON-6 (DRV0006B)**: **1=SCL 2=GND 3=ALERT 4=ADD0 5=V+ 6=SDA** ⇒ 而我们的网表写的是 **4 脚抽象 (1=SDA 2=SCL 3=VDD 4=GND)** ⇒ ★**脚号全错** ⇒ 照任何封装焊上去都不工作 (SCL 会接到 V+)。★同一条里还查出两件事: ① **ADD0 (pin4) 是地址选择脚, 必须接死** ⇒ 本设计接 GND ⇒ 地址 0x48 (与既有口径一致); ② 原厂明确 **散热焊盘不接器件地、且建议不焊** (为了测温精度) ⇒ **封装不画 EP** ⇒ 对我们这种贴皮肤测温反而是对的。★板子这边也有隐患: U_TEMP 原来用的是**通用 IC 假封装** (1.27mm pitch 两排) ⇒ 与 WSON-6 (2×2mm / 0.65mm 脚距) 完全不是一回事。'
+  owner: main
+  reporter: main
+  raised: '2026-11-04'
+  due: '2026-11-07'
+  status: fixed
+  external: false
+  need_keys: []
+  fix_ref: state/tmp117_footprint.py (自绘官方 land pattern) · state/_patch_tmp117_6pin_20261104.py · HW/PCB/pinout_footprint.json (parts.U_TEMP) · HW/PCB/PINOUT_FOOTPRINT_SPEC.md §11.5 · state/check_netlist_pins.py (SPEC_PINS U_TEMP 4→6)
+  verify_by: hw-lead
+  verify_result: null
+  verify_date: null
+  note: '★**已改**: 网表 U_TEMP 改成官方 6 脚 (1=SCL→I2C_B_SCL · 2=GND · 3=ALERT→NC 悬空 · 4=ADD0→GND ⇒ 地址 0x48 · 5=V+→VDD_3V3_IO · 6=SDA→I2C_B_SDA); 板上换成自绘的官方封装 (焊盘 0.45×0.30 / 脚距 0.65 / 列距 1.95 / 无 EP) ⇒ **五个门禁全绿** (逐焊盘 487/487, DRC 0, Gerber 30)。★**未决**: ① ALERT (过温告警) demo 悬空 —— 要不要占一个 SoM GPIO 做告警上报, **待老板定** (皮肤侧过温是有安全含义的); ② U_TEMP 的位置现在在器件网格里 (预布线期占位), 正式布局时它**必须靠近被测面**且远离 SoM/电源 (原厂 §10.1: 测固体表面温度要用薄 PCB + 尽量小热阻)。'
+  dispatched_at: '2026-11-04'

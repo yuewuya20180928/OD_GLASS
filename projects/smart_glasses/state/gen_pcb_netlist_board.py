@@ -45,6 +45,7 @@ import sys as _sys
 _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from som_btb_footprint import add_som_connectors  # noqa: E402
 from display_fpc_footprint import add_display_fpc  # noqa: E402
+from tmp117_footprint import add_tmp117  # noqa: E402
 SOM_PARAMS = os.path.join(PROJ, "HW", "PCB", "som_btb_params.json")
 
 NETLIST = os.path.join(PROJ, "HW", "netlist_v1.csv")
@@ -420,8 +421,12 @@ def main():
         if py + h > PK_AREA[3]:
             print(f"⚠️ 装不下: {ref} (y={py:.1f}) ⇒ 需要更大板或更紧的间距")
             break
-        make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
-                       px + w / 2.0, py + h / 2.0)
+        if ref == "U_TEMP":
+            # ★TMP117 = WSON-6 (DRV0006B) 官方封装 —— 通用 IC 封装是"假封装" (1.27mm pitch) ⇒ 单独画
+            add_tmp117(board, netmap, pins, px + w / 2.0, py + h / 2.0)
+        else:
+            make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
+                           px + w / 2.0, py + h / 2.0)
         placed += 1
         px += w + 3.0
         row_h = max(row_h, h)

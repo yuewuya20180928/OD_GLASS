@@ -2890,3 +2890,28 @@ check_pcb_nets **485/485** ✅ · check_pcb_drc **0 违规** ✅ · Gerber 30 �
 1. **买线后万用表核 22p 端针序** (1 脚方向 / 3V3 与 GND 位置) —— 错了整条 DSI 反接
 2. **确认线缆 22p 端触点朝向** (FH12 是底接触; 若线缆是顶接触 ⇒ 翻线或换座型)
 3. 整机阶段换 视崖 0.49" SiOLED 时, 16..19 的自用脚位作废, 改按面板原厂接口定义
+
+#### (1.81) ★★★★ 2026-11-04 04:2x: ★★★**自查抓到 TMP117 被当成 4 脚器件画 —— 脚号与原厂完全对不上**
+
+> **落账**: ISS-178 **fixed** (verify_by=hw-lead, due 11-07) · `state/tmp117_footprint.py` ·
+> `HW/PCB/pinout_footprint.json` (parts.U_TEMP) · `HW/PCB/PINOUT_FOOTPRINT_SPEC.md` §11.5
+
+★★ **给 TMP117 补封装时顺手查了原厂 datasheet, 抓出一个会直接让板子不工作的错**:
+· ★**TI TMP117 是 6 脚 WSON-6 (DRV0006B)**: 官方 Table 5-1 ⇒ **1=SCL · 2=GND · 3=ALERT · 4=ADD0 · 5=V+ · 6=SDA**
+· ★**我们的网表写的是 4 脚抽象 (1=SDA 2=SCL 3=VDD 4=GND) ⇒ 脚号全错** ⇒ 照任何封装焊上去, SCL 会接到 V+ ⇒ **器件根本不工作**
+· ★**而且板上的封装也是假的**: U_TEMP 原来走**通用 IC 封装** (1.27mm pitch 两排) ⇒ 与 WSON-6 (2×2mm / 0.65mm 脚距 / 每脚 0.45×0.30) 完全不是一回事
+
+★★ **同一条里查出的两处"按原厂该怎么接"**:
+· **ADD0 (pin4) 是地址选择脚, 必须接死** ⇒ 本设计接 **GND ⇒ I2C 地址 0x48** (与既有软件口径一致)
+· ★**散热焊盘 (EP) 按原厂建议不画不焊** —— 原厂原文: "The package thermal pad is **not connected to the device ground** and
+  **should be left unsoldered for best measurement accuracy**" ⇒ ★**贴皮肤测温反而必须这样** (焊了 EP 反而会自身导热、测不准)
+
+★ **落地**: 网表 U_TEMP 改官方 6 脚 (ALERT 开漏输出 demo 悬空, 要不要占 SoM GPIO 做**过温告警**待老板定 —— 皮肤侧过温有安全含义) ·
+板上换成**自绘官方 land pattern** (库内确实没有 WSON-6 2×2mm; 几何抄 TI 原图 EXAMPLE BOARD LAYOUT: 焊盘 0.45×0.30 / 脚距 0.65 /
+列距 1.95 / 本体 2.0×2.0, 图纸号 4223922/A 09/2017) · 门禁 `SPEC_PINS['U_TEMP']` 4→**6**
+
+★ **门禁**: check_netlist ✅ · check_netlist_pins ✅ · check_schematic_slots ✅ (B 项从 17 个器件增到 **18 个**) ·
+check_pcb_nets **487/487** ✅ · check_pcb_drc **0 违规** ✅ · Gerber 30 ✅
+★ **板子数字**: 188 器件 / **835 焊盘** (TMP117 4 脚→6 脚, +2; 座 39p→22p, -17)
+★ **布局提醒 (布线前)**: U_TEMP 现在在器件网格里 (预布线期占位) ⇒ 正式布局时它**必须靠近被测面**、远离 SoM/电源/背光
+  (原厂 §10.1: 测固体表面温度要用**薄 PCB + 最小热阻**; 我们这是**贴皮肤**测温 ⇒ 布局直接决定读数)
