@@ -183,7 +183,8 @@ def main():
         st = alerted.get(key) or {}
         return st.get("fingerprint") == fp and (now - (st.get("at", 0) or 0)) < window * 3600
 
-    repeatA = _rep("A", fpA)
+    # ★没有 A 类故障时, A 类算"无待提醒" (否则 repeat 永远 False ⇒ 每半小时都吵一次)
+    repeatA = (not clsA) or _rep("A", fpA)
     # B 类分两把尺: 有推送的用 6h; 推送已关的用 24h (零影响, 别吵老板)
     repeatB = (_rep("B", fpB) and _rep("B_imp", b_fp_impact)) if b_impact else _rep("B_noimp", b_fp_noimpact, RE_ALERT_HOURS_B)
     repeat = repeatA and repeatB

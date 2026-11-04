@@ -37,6 +37,15 @@ def run(script: str, *args: str) -> tuple[int, str, str]:
     return p.returncode, p.stdout, p.stderr
 
 
+def run_sh(script: str, *args: str) -> tuple[int, str, str]:
+    """★pcbnew 脚本必须走 state/pcbnew_py.sh (AppImage 自带 python3.11) ——
+    系统 python3.14 没有 pcbnew ⇒ 直接跑会 ModuleNotFoundError ⇒ ★**门禁会静默失效**"""
+    p = subprocess.run(["bash", os.path.join(HERE, "pcbnew_py.sh"),
+                        os.path.join(HERE, script), *args],
+                       capture_output=True, text=True, cwd=PROJ)
+    return p.returncode, p.stdout, p.stderr
+
+
 def jrun(script: str) -> tuple[int, dict | None]:
     rc, out, err = run(script, "--json")
     try:
@@ -67,11 +76,16 @@ def main() -> int:
     rc_s, stage = jrun("stage_gate.py")
     rc_r, ready = jrun("readiness.py")
     # ★2026-11-02 22:5x: PCB 图纸门禁进门禁链 (自己画的图自己验; EN 那个 P0 的教训)
-    rc_p, out_p, err_p = run("check_pcb_drc.py")
-    pcb_ok = (rc_p == 0)
+    rc_pcb_rc, out_p, err_p = run("check_pcb_drc.py")
+    pcb_ok = (rc_pcb_rc == 0)
     # ★PCB ↔ 网表 等价性 (板子由网表生成 ⇒ 必须逐点相等)
-    rc_pn, out_pn, err_pn = run("check_pcb_nets.py")
+    # ★2026-11-04 19:4x 修: 原来用系统 python 跑 (pcbnew 不存在 ⇒ rc 必失败),
+    #   而且算出来的 pcb_ok / pcb_net_ok **是死变量, 从没进过 problems** ⇒ 门禁形同虚设
+    rc_pn, out_pn, err_pn = run_sh("check_pcb_nets.py")
     pcb_net_ok = (rc_pn == 0)
+    # ★生产链准入/准出 (网表→原理图→PCB→BOM→投产包, 环节之间)
+    rc_cg, out_cg, err_cg = run("chain_gate.py")
+    chain_ok = (rc_cg == 0)
 
     if gate is None:
         problems.append("gate_check.py 输出无法解析")
@@ -81,6 +95,12 @@ def main() -> int:
         problems.append("stage_gate.py 输出无法解析")
     if rc_i == 1:
         problems.append(f"问题闭环门有违规 {len((issue or {}).get('errors') or [])} 条")
+    if not pcb_ok:
+        problems.append(f"★PCB 图纸门禁没过 (check_pcb_drc rc={rc_pcb_rc})")
+    if not pcb_net_ok:
+        problems.append(f"★PCB↔网表逐焊盘等价没过 (check_pcb_nets rc={rc_pn}) —— 板子与网表不一致, 不许投板")
+    if not chain_ok:
+        problems.append("★生产链准入/准出没过 (chain_gate) —— 有环节的产物比源旧或缺件, 下游产物不许用")
     if gate and gate.get("summary", {}).get("reconciliation", {}).get("ok") is False:
         problems.append("gate 与 merge 口径不一致 (先重跑 merge.py)")
 
@@ -142,6 +162,7 @@ def main() -> int:
         dig.append(f"实测        {_rd.get('measurements',{}).get('have')}/{_rd.get('measurements',{}).get('needed')} 项")
         dig.append(f"问题单      {_is.get('total')} 条 (逾期 {_is.get('overdue')} | 违规 {len(_is.get('errors') or [])})")
         dig.append(f"就绪度      纸面 {'✅' if _rd.get('paper_ready') else '❌'} | 样机 {'✅' if _rd.get('sample_ready') else '❌'}")
+        dig.append(f"生产链      准入/准出 {'✅ 全过' if chain_ok else '❌ 有环节没过'} | PCB图纸 {'✅' if pcb_ok else '❌'} | PCB↔网表 {'✅' if pcb_net_ok else '❌'}")
         dig.append(f"漂移        {'无 ✅' if not [d for d in drift if d.startswith('★')] else '有 ⚠️'}")
         dig.append("```")
         if problems:
