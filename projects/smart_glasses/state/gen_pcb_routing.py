@@ -50,7 +50,9 @@ W_PWR = 0.50           # mm 电源线宽
 #   cls0 = 0.20mm (BTB 出脚) · cls1 = 0.25mm (常规信号) · cls2 = 0.50mm (电源宽铜)
 W_CLS = (0.20, 0.25, 0.50)
 VIA_DIA = 0.60         # mm 过孔盘
-VIA_DRILL = 0.25       # mm 过孔钻 ★2026-11-04 22:35: 0.30 → 0.25 (上一轮 "hole_to_hole 0.200 < 0.250"; 0.25mm 钻是常规制板能力)
+VIA_DRILL = 0.30       # mm 过孔钻 ★★2026-11-04 22:45 **必须 ≥ 板子设计规则的最小钻孔 (0.300mm)**
+#   ⇒ 上一轮改成 0.25mm 是错的: 板 setup 的 min hole = 0.3mm ⇒ ★**199 条 drill_out_of_range**
+#   ⇒ 回退 0.30mm, 孔到孔 0.25mm 的问题改用"过孔中心间距"来解 (见 _via_too_close)
 
 # 铜层顺序 (物理 L1..L6) —— 索引即 CU_LAYERS 下标
 CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
@@ -1020,11 +1022,16 @@ class GridRouter:
             self.via_cells.setdefault(self._idx(self._ci(vx), self._cj(vy)), []).append((vx, vy))
             self._add_via_halo(net, vx, vy, l1, l2)
 
-    def _via_too_close(self, net, vx, vy, mind=0.56):
-        """同网两颗过孔离得太近 (孔到孔 < 0.25mm ⇒ DRC 红)"""
+    def _via_too_close(self, net, vx, vy, mind=0.58):
+        """同网两颗过孔离得太近 (孔到孔 < 0.25mm ⇒ DRC 红)
+
+        ★★2026-11-04 22:45 修 (真正的根因): 原来只扫 **3×3 邻格** (±0.25mm) ⇒ ★**够不着 0.56mm 内的其它过孔**
+        ⇒ 两颗过孔中心距 0.5mm (孔到孔 0.2mm) 竟然没被拦住 ⇒ DRC 出 hole_to_hole。
+        ⇒ 现在扫 ±3 格 (±0.75mm) 才覆盖 mind=0.58。
+        """
         i, j = self._ci(vx), self._cj(vy)
-        for dj in (-1, 0, 1):
-            for di in (-1, 0, 1):
+        for dj in (-3, -2, -1, 0, 1, 2, 3):
+            for di in (-3, -2, -1, 0, 1, 2, 3):
                 for (ux, uy) in self.via_cells.get(self._idx(i + di, j + dj), ()):
                     if math.hypot(vx - ux, vy - uy) < mind:
                         return True
