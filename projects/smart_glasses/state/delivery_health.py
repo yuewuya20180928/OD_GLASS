@@ -108,6 +108,7 @@ def collect():
         out.append({
             "id": jid,
             "name": name_by_id.get(jid, jid),
+            "mode": d.get("mode") or "",
             "channel": d.get("channel") or _run_channel(jid) or "?",
             "to": d.get("to") or "?",
             "errors": ce,
@@ -179,8 +180,11 @@ def main():
         return 0
 
     lines = []
+    chans = sorted({b["channel"] for b in clsA})
+    # ★2026-11-04 10:45 修: 老板 09:5x 已把微信推送全关 (delivery.mode=none) ⇒ A 类为空时 chans 未定义 ⇒ UnboundLocalError
+    #   ⇒ chans 一律先算; 且**处置建议按"这一路现在还推不推"分两种说法** (不再让老板去扫码刷新一个他已关掉的通道)
+    watch_still_pushing = any(b["channel"] == WATCH_CHANNEL and b.get("mode") != "none" for b in clsA)
     if clsA:
-        chans = sorted({b["channel"] for b in clsA})
         lines.append("⚠️ 投递健康自检: %d 个 cron job 连挂 ≥%d 次 (★通道发不出去类)" % (len(clsA), THRESHOLD))
         lines.append("  受影响通道: %s" % ", ".join(chans))
         for b in clsA:
@@ -197,9 +201,13 @@ def main():
             lines.append("      错误: %s" % b["lastError"][:160])
             lines.append("      ★判据: 按铁律 **看产出 (文件 mtime / 报告内容)**, 不看 run 状态 ⇒ 这一类只是 announce 没发出去")
     if WATCH_CHANNEL in chans:
-        lines.append("  ★处置: %s 这一路发不出去 ⇒ 老板手机上看不到状态 ⇒ "
-                     "①请老板在微信里给机器人发一条消息刷新会话, 或 `openclaw channels login --channel openclaw-weixin` 重新扫码; "
-                     "②同时看 GitHub / 本地 STATUS_DIGEST.md 兜底" % WATCH_CHANNEL)
+        if watch_still_pushing:
+            lines.append("  ★处置: %s 这一路发不出去 ⇒ 老板手机上看不到状态 ⇒ "
+                         "①请老板在微信里给机器人发一条消息刷新会话, 或 `openclaw channels login --channel openclaw-weixin` 重新扫码; "
+                         "②同时看 GitHub / 本地 STATUS_DIGEST.md 兜底" % WATCH_CHANNEL)
+        else:
+            lines.append("  ★说明: %s 上的失败任务**推送已被关闭** (delivery.mode=none, 老板 2026-11-04 09:5x 指示) ⇒ "
+                         "不影响状态送达 (状态仍落 GitHub / 本地 STATUS_DIGEST.md); 若以后要恢复这一路推送, 才需要处理会话刷新" % WATCH_CHANNEL)
     if repeatA:
         lines.append("  (A 类故障已于 %s 告警过, %dh 内不重复提醒)" % (
             time.strftime("%m-%d %H:%M", time.localtime((alerted.get("A") or {}).get("at", 0))), RE_ALERT_HOURS))
