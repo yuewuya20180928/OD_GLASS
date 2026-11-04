@@ -165,11 +165,25 @@ def netlist_pads(rows):
             per_ref[comp] = pins
             numbered[comp] = {n: net for n, net in pins}
         else:
+            # ★★2026-11-05 03:05 修 (实测 parity "缺失 14 / 多余 12" 的根因):
+            #   J_USB_C 的脚名是 **USB-IF 物理脚名** (A1/A4/A6/B12… 裸名, 不是 pinN)
+            #   ⇒ 旧逻辑把**所有裸名**当"占位脚号"(按行序 1..N) ⇒ 而板上用的是真脚名 ⇒ 两套对不上
+            #   ⇒ 现在: USB-IF 裸名 ⇒ **当真实焊盘号** (与板生成器的 USBIF_RE 同口径)
             pins = []
             for i, (_k, v) in enumerate(d.items(), start=1):
-                pins.append((i, v[0]))
+                # ★★USB-IF 脚名可能是**合并写法** ("A6+B6" / "A4+A9+B4+B9") ⇒ 每个物理脚各算一个焊盘
+                if isinstance(_k, str) and "+" in _k:
+                    parts = [q.strip() for q in _k.split("+") if q.strip()]
+                    if parts and all(USBIF_RE.match(q) for q in parts):
+                        for q in parts:
+                            pins.append((q, v[0]))
+                        continue
+                if isinstance(_k, str) and USBIF_RE.match(_k):
+                    pins.append((_k, v[0]))     # ★真实 USB-IF 脚名
+                else:
+                    pins.append((i, v[0]))
             per_ref[comp] = pins
-            placeholder[comp] = len(pins)
+            placeholder[comp] = len([1 for k, _v in pins if isinstance(k, int)])
     return per_ref, numbered, placeholder, notes
 
 

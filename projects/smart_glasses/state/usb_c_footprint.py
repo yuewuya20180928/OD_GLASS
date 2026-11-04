@@ -39,7 +39,10 @@ MM = 1000000
 # ★原厂图纸 Sheet 1 的焊盘顺序 (元件面看, 左→右)
 PAD_ORDER = ["A1", "B12", "A4", "B9", "B8", "A5", "B7", "A6", "A7", "B6",
              "A8", "B5", "B4", "A9", "B1", "A12"]
-WIDE_PADS = {"A4", "A9", "B4", "B9"}       # VBUS 脚 = 0.60mm 宽
+# ★★2026-11-05 02:35 订正: 图纸上的 "4x 0.60" **不是焊盘宽度** —— 我先前误把它当成 4 个 VBUS 脚加宽
+#   ⇒ 实测 DRC: 0.60 宽的 A4 紧挨 0.30 宽的 B12 ⇒ 净距 0.05mm (要求 0.20) ⇒ 4 条违规
+#   ⇒ ★**16 个焊盘一律 0.30mm 宽** ⇒ 相邻中心距 0.50 ⇒ 净距 = 0.50-0.15-0.15 = **0.20mm (正好达标)**
+WIDE_PADS = set()                          # ★不设加宽脚 (见上面说明)
 PITCH = 0.50                               # mm
 PAD_LEN = 1.15                             # mm (深度方向)
 W_NARROW = 0.30
@@ -75,16 +78,20 @@ def add_usb_c(board, netmap, pin_nets, x, y, rot=0):
     board.Add(fp)
 
     n = len(PAD_ORDER)
-    x0 = -(n - 1) * PITCH / 2.0          # A1 在 -3.75, A12 在 +3.75
+    x0 = -(n - 1) * PITCH / 2.0          # A1 在 -3.75, A12 在 +3.75 (相对封装原点)
+    # ★★2026-11-05 03:05 修 (实测 114 条 DRC + 板↔网表 parity 崩): ★**焊盘位置必须加封装原点偏移**
+    #   上一版写的 pad.SetPosition(V(px, 0)) 是**绝对坐标** ⇒ 16 个焊盘全落在 (0,0) 附近
+    #   ⇒ 一半在**板外** (x<0) ⇒ 板边净距违规 + 短接 + 网表 parity 全崩
+    #   ⇒ 现在: 位置 = (x + px, y + 0); 壳体孔 = (x + hx, y - FRONT_OFFSET/2); Fab/Courtyard 同样加偏移
     for i, pad in enumerate(PAD_ORDER):
-        px = x0 + i * PITCH
+        px = x + x0 + i * PITCH
         w = W_WIDE if pad in WIDE_PADS else W_NARROW
         p = pcbnew.PAD(fp)
         p.SetNumber(pad)
         p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
         p.SetShape(pcbnew.PAD_SHAPE_RECT)
         p.SetSize(V(w, PAD_LEN))
-        p.SetPosition(V(px, 0))
+        p.SetPosition(V(px, y))     # ★y 也要加偏移 (之前漏了 ⇒ 焊盘落在 y=0 = 板边上)
         p.SetLayerSet(p.SMDMask())
         net = _pad_net(pin_nets, pad)
         if net and net in netmap:
@@ -98,7 +105,7 @@ def add_usb_c(board, netmap, pin_nets, x, y, rot=0):
         h.SetAttribute(pcbnew.PAD_ATTRIB_NPTH)
         h.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
         h.SetSize(V(SHELL_HOLE_D, SHELL_HOLE_D))
-        h.SetPosition(V(hx, -FRONT_OFFSET / 2.0))
+        h.SetPosition(V(x + hx, y - FRONT_OFFSET / 2.0))
         h.SetLayerSet(pad_all_copper := pcbnew.LSET())
         fp.Add(h)
 
@@ -114,7 +121,7 @@ def add_usb_c(board, netmap, pin_nets, x, y, rot=0):
         return s
 
     fab_x = SOLDER_W / 2.0
-    _rect(-fab_x, -FRONT_OFFSET, fab_x, SOLDER_D - FRONT_OFFSET, pcbnew.F_Fab)
-    _rect(-fab_x - 0.5, -FRONT_OFFSET - 0.5, fab_x + 0.5, SOLDER_D - FRONT_OFFSET + 0.5,
+    _rect(x - fab_x, y - FRONT_OFFSET, x + fab_x, y + SOLDER_D - FRONT_OFFSET, pcbnew.F_Fab)
+    _rect(x - fab_x - 0.5, y - FRONT_OFFSET - 0.5, x + fab_x + 0.5, y + SOLDER_D - FRONT_OFFSET + 0.5,
           pcbnew.F_CrtYd)
     return fp

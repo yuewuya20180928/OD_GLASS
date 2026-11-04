@@ -50,10 +50,17 @@ from tmp117_footprint import add_tmp117  # noqa: E402
 SOM_PARAMS = os.path.join(PROJ, "HW", "PCB", "som_btb_params.json")
 
 NETLIST = os.path.join(PROJ, "HW", "netlist_v1.csv")
-PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
+# ★2026-11-05: 输出路径可用环境变量改 (便于**并行做实验**而不动正式板)
+PCB = os.environ.get("PCB_OUT") or os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
 REPORT = os.path.join(PROJ, "HW", "PCB", "PCB_NETLIST_FILL.txt")
 
-BOARD_W, BOARD_H = 160.0, 100.0   # ★11-03: SOM 4 排 100 脚座占 x 8..85 ⇒ 器件网格移到 x>=92
+# ★★2026-11-05 03:45 加环境变量开关: **板子尺寸可临时放大** (缓解 BTB 密集区布线拥塞)
+#   动机: 186 器件 / 400 个 0.4mm pitch BTB 焊盘 ⇒ 160×100 的板子布线拥塞 ⇒ unconnected 卡在 ~90
+#   ⇒ 用 `PCB_BOARD_W=180 PCB_BOARD_H=120` 跑一轮试试 ⇒ 若 unconnected 明显下降 ⇒ 就把板子定大一点
+#   (★**板尺寸是草案, 最终要按结构/整机定** ⇒ demo 板先以"能装下 + 能布通"为准)
+# ★**改尺寸必须同步** `HW/PCB/demo_mainboard_params.json` 的 board 段 (否则叠层/阻抗文档会说错板子)
+BOARD_W = float(os.environ.get("PCB_BOARD_W", 160.0))
+BOARD_H = float(os.environ.get("PCB_BOARD_H", 100.0))   # ★11-03: SOM 4 排 100 脚座占 x 8..85 ⇒ 器件网格移到 x>=92
 GRID_X0, GRID_Y0 = 92.0, 8.0   # ★避开 SOM 座区 (x 8..85)
 GRID_PITCH_X, GRID_PITCH_Y = 4.2, 4.2
 GRID_COLS = 16
@@ -452,7 +459,9 @@ def main():
             # ★只在节点串里出现的器件 (J_SOM_P1..P4) —— ref 列没有它 ⇒ 值给个占位
             value_of[ref] = "SoM BTB %s (100pin, 部分已分配)" % ref.split("_")[-1]
     board = pcbnew.BOARD()
-    board.SetCopperLayerCount(6)
+    # ★2026-11-05: 铜层数可配 (环境变量 PCB_LAYERS) ⇒ ★**6 层布不通时试 8 层**
+    #   (Forlinx 官方载板是 10 层 ⇒ 6 层对 400 个 0.4mm pitch BTB 焊盘本来就偏紧)
+    board.SetCopperLayerCount(int(os.environ.get("PCB_LAYERS", 6)))
     add_outline(board)
 
     # 网络 (只建真实被焊盘用到的网)

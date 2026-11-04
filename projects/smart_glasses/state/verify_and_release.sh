@@ -31,6 +31,13 @@ for x in u:
 print("  未连接网 top12:", nets.most_common(12))
 PY
 
+echo "=========== 2b. 差分对全审计 (22 对: 缺铜/单边零铜/Δ/真实净距) ==========="
+if [ -f /home/yuewuya/.openclaw/workspace/tools/diff_pair_audit.py ]; then
+  python3 /home/yuewuya/.openclaw/workspace/tools/diff_pair_audit.py 2>&1 | head -40
+else
+  echo "  (审计工具未找到)"
+fi
+
 echo "=========== 3. 门禁 (全绿才算过) ==========="
 python3 state/check_pcb_drc.py --strict; echo "  check_pcb_drc(--strict) rc=$?"
 bash state/pcbnew_py.sh state/check_pcb_nets.py >/dev/null 2>&1; echo "  check_pcb_nets rc=$?"

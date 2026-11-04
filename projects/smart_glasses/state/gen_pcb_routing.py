@@ -72,10 +72,19 @@ PAIR_RING = 2
 CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
              pcbnew.In3_Cu, pcbnew.In4_Cu, pcbnew.B_Cu]
 # ★允许走信号的层: L1 / L3 / L5 (索引 0 / 2 / 4)
-ROUTE_LAYERS = [0, 2, 4]
+# ★★2026-11-05 04:10 层数可配 (环境变量 PCB_LAYERS): ★**6 层布不通 ⇒ 试 8 层**
+#   动机 (实测): 186 器件 / 400 个 0.4mm pitch BTB 焊盘 ⇒ 3 个信号层的 escape 面积不够
+#   ⇒ 路由器每轮把 unconnected 卡在 ~90 (剩下的都在 SoM BTB 密集区)
+#   ⇒ ★Forlinx 官方载板是 **10 层** ⇒ 6 层本来就是低估 ⇒ ★**加层 = 加 escape 面积**
+#   ★6 层: 信号 L1/L3/L5 · 平面 L2(GND)/L6(B.Cu=In5? 见 STACKUP: L2/L6 为 GND 平面)
+#   ★8 层: 信号 L1/L3/L5/L7(In6.Cu) · GND 平面仍在 L2/L6 ⇒ ★多一整层 escape 面积
+NLAYERS = int(os.environ.get("PCB_LAYERS", 6))
+ROUTE_LAYERS = [0, 2, 4] + ([6] if NLAYERS >= 8 else [])
 # ★**信号层之间的邻接表** (★稀疏层号 ⇒ 不能用 li±1!)
-#   L1↔L3 (过孔跨 In1.Cu 平面) · L3↔L5 (过孔跨 In3.Cu 平面)
-RLAY_NBRS = {0: (2,), 2: (0, 4), 4: (2,)}
+#   L1↔L3 (过孔跨 In1.Cu 平面) · L3↔L5 (过孔跨 In3.Cu 平面) · L5↔L7 (过孔跨 In5.Cu 平面)
+RLAY_NBRS = {0: (2,), 2: (0, 4), 4: (2, 6) if NLAYERS >= 8 else (2,)}
+if NLAYERS >= 8:
+    RLAY_NBRS[6] = (4,)
 
 
 def _via_span(la, lb):
@@ -87,6 +96,8 @@ def _via_span(la, lb):
 # ★**本轮调低**: 上一轮 80 个过孔 ⇒ 整板 99% 走线都挤在 F.Cu ⇒ 局部通道堵死
 #   ⇒ 跨层几乎不要钱 (8 格 ≈ 2mm 线) ⇒ 3 个信号层一起用 ⇒ 可走面积 ≈ 3 倍
 LAYER_COST = {0: 0.0, 2: 0.25, 4: 0.50}
+if NLAYERS >= 8:
+    LAYER_COST[6] = 0.75
 VIA_COST = 8.0
 
 # 层间跳 (相邻信号层): 换层时经过的铜层 (含中间平面层, 孔要穿过去 ⇒ 必须留间距)
@@ -94,6 +105,8 @@ VIA_SPAN = {0: (0, 1, 2), 1: (2, 3, 4)}
 
 LNAME = {0: "L1/F.Cu", 1: "L2/In1.Cu", 2: "L3/In2.Cu",
          3: "L4/In3.Cu", 4: "L5/In4.Cu", 5: "L6/B.Cu"}
+if NLAYERS >= 8:
+    LNAME.update({6: "L7/In6.Cu", 7: "L8/B.Cu"})
 
 
 # ------------------------------------------------------------------ 工具
@@ -223,10 +236,10 @@ class GridRouter:
         self.W = int((self.bb[2] - self.bb[0]) / grid) + 3
         self.H = int((self.bb[3] - self.bb[1]) / grid) + 3
         # 障碍图: cu[li][idx]=net (精确铜) ; halo[cls][li][idx]=set(net) (净距禁区, 3 个宽度级别)
-        self.cu = [dict() for _ in range(6)]
+        self.cu = [dict() for _ in range(NLAYERS)]
         # ★halo[cls][li][idx] = 该单元被哪些网的铜"占了净距"
         #   cls0=0.20mm / cls1=0.25mm / cls2=0.50mm 三套规则各存一份
-        self.halo = [[dict() for _ in range(6)] for _ in range(3)]
+        self.halo = [[dict() for _ in range(NLAYERS)] for _ in range(3)]
         self.net_pads = {}          # net -> [(ref, padnum, cx, cy, layers)]
         self.pad_rects = []         # (net, x0,y0,x1,y1) —— 过孔不许打进焊盘
         self.pad_rects_l = []       # ★(net, x0,y0,x1,y1, layers) —— ★**焊盘只在它实际存在的层上有铜**
@@ -288,7 +301,7 @@ class GridRouter:
                     pth = (pad.GetAttribute() == pcbnew.PAD_ATTRIB_PTH)
                 except Exception:
                     pth = False
-                layers = list(range(6)) if pth else [0]   # ★本板 SMD 全在 F.Cu
+                layers = list(range(NLAYERS)) if pth else [0]   # ★本板 SMD 全在 F.Cu
                 if nm != NONET:
                     self.net_pads.setdefault(nm, []).append(
                         (fp.GetReference(), str(pad.GetNumber()), cx, cy, layers))
@@ -410,7 +423,7 @@ class GridRouter:
         for li in (0, 2, 4):
             for idx in edge:
                 # ★焊盘格不置 EDGE (焊盘本身已过 DRC ⇒ 不许被误杀; 别的网本来也被 cu 挡住)
-                if any((l2, idx) in self.pad_cell for l2 in range(6)):
+                if any((l2, idx) in self.pad_cell for l2 in range(NLAYERS)):
                     continue
                 self.cu[li][idx] = "\x00EDGE"
 
@@ -462,12 +475,32 @@ class GridRouter:
             if not (self.pair_partner and others == {self.pair_partner}
                     and idx not in self.pair_block):
                 return False
+        # ★★2026-11-05 02:35 修 (实测 12 条 copper_edge_clearance): **板外的格子一律不许走**
+        #   ★**根因**: 下面的"自己网的焊盘所在格"豁免了板边检查 ⇒ 靠边的焊盘 (如安装孔 GND 焊盘)
+        #   ⇒ 出脚直道可以从那个格起步 ⇒ ★**直接走到板外** (实测: GND 段 (3.700,-0.050)→(3.700,0.200) 在板外!)
+        #   ⇒ edge_d < 0 = 格心在板外 ⇒ 直接禁掉 (对任何网都禁, 含自己的焊盘)
+        if self.edge_d[idx] < 0:
+            return False
         # ★fix A: 板边净距 —— 铜外缘到真板边 ≥ 0.5mm ⇒ 格心距 ≥ 0.5 + w/2
         if self.edge_d[idx] < EDGE_CLEAR + W_CLS[cls] / 2.0 - 1e-6:
             pc = self.pad_cell.get((li, idx))
             if not (pc and pc[0] == net):
                 return False
         return True
+
+    def _path_len(self, path):
+        """路径总长 (mm) —— ★GND 缝合的长度闸用它
+           ★path 元素是 (li, idx) ⇒ 坐标要按 _emit_path 同样的方式换算 (格心坐标)"""
+        if not path:
+            return 0.0
+        pts = []
+        for (li, idx) in path:
+            i, j = idx % self.W, idx // self.W
+            pts.append((self._cx(i), self._cy(j)))
+        total = 0.0
+        for k in range(1, len(pts)):
+            total += math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1])
+        return total
 
     def _via_ok(self, la, lb, idx, net, cls=1):
         """此处能不能打孔 (跨层所有铜层都要有净距)
@@ -492,7 +525,7 @@ class GridRouter:
         i, j = idx % self.W, idx // self.W
         if self._via_too_close(net, self._cx(i), self._cy(j)):
             return False
-        for l2 in range(6):
+        for l2 in range(NLAYERS):
             c = self.cu[l2].get(idx)
             if c is not None and c != net:
                 return False
@@ -997,10 +1030,22 @@ class GridRouter:
                     # ★★**路径可以走内层绕过去**, 但**终点必须在 F.Cu**
                     #   ★因为 GND 下拉孔要落在终点 (过孔是通孔 ⇒ F.Cu..B.Cu ⇒ 接到 L2/L6 平面)
                     #   ★上一版 max_via=False ⇒ 只能走 F.Cu ⇒ 密集器件区根本挤不过去
+                    # ★★2026-11-05 04:40 **限制 GND 下拉的走线长度** (≤6mm):
+                    #   实测 v12: GND 缝合生成了**一根 160.45mm 的 F.Cu 长线** ⇒
+                    #   ★**它把整条走廊堵死并短接了 14 个信号脚** (DSI_D0_D0_N_SRC×7 / DSI_D0_D1_P_SRC×3 / CARRIER_BOARD_EN×4)
+                    #   + 87 条 clearance 全撞它 ⇒ ⇒ **GND 接地宁可"留几个未连接", 也不许拉长线横穿板子**
+                    #   ⇒ 真正的解法是**第三遍的"焊盘内过孔"** (不需要走线空间)
                     path = self._astar(start_cells, {(0, idx)},
                                        net, max_via=True)
                     if path is None:
                         why["astar"] += 1
+                        continue
+                    # ★★2026-11-05 04:45 **硬闸: GND 下拉的走线只许 ≤6mm**
+                    #   ★实测 v12: 一根 **160.45mm** 的 GND 缝合线把整条 F.Cu 走廊堵死,
+                    #   并短接了 14 个信号脚 + 87 条 clearance ⇒ ★**长缝合线一律不许落**
+                    #   ⇒ 宁可让这个焊盘留"未连接" (由第三遍的焊盘内过孔接管), 也不许横穿板子
+                    if self._path_len(path) > 6.0:
+                        why["toolong"] = why.get("toolong", 0) + 1
                         continue
                     # ★★★2026-11-04 **过孔必须真落下来** (否则铜从一层跳到另一层却没孔)
                     if not self._emit_path(net, path, W_SIG, 1,
@@ -1083,6 +1128,10 @@ class GridRouter:
                 if path is None:
                     why["chain"] = why.get("chain", 0) + 1
                     continue
+                # ★★2026-11-05 04:45 同样硬闸: chain 缝合也只许 ≤6mm (同上: 不许拉长线横穿板子)
+                if self._path_len(path) > 6.0:
+                    why["chain"] = why.get("chain", 0) + 1
+                    continue
                 if not self._emit_path(net_g, path, W_SIG, 1, stub_start=stub_start):
                     why["chain"] = why.get("chain", 0) + 1
                     continue
@@ -1131,6 +1180,8 @@ class GridRouter:
                 why["inpad_busy"] = why.get("inpad_busy", 0) + 1
                 continue
             # ★落过孔 (F.Cu..B.Cu ⇒ 穿过 L2/L6 的 GND 平面 ⇒ 直接接地)
+            # ★**不加"焊盘→过孔"的短引线**: 过孔就在焊盘中心 ⇒ 那条引线是**零长段** ⇒ DRC 报 dangling
+            #   (实测 v12: "删零长段 434") ⇒ ★焊盘与过孔同点 ⇒ **铜直接连通, 不需要引线**
             v = pcbnew.PCB_VIA(self.b)
             v.SetPosition(pcbnew.VECTOR2I(int(cx * MM), int(cy * MM)))
             v.SetViaType(pcbnew.VIATYPE_THROUGH)
@@ -1141,6 +1192,7 @@ class GridRouter:
             self.b.Add(v)
             self.vias.append((net_g, cx, cy, 0, 5))
             self._add_via_halo(net_g, cx, cy, 0, 5)
+            # ★**过孔直接落在焊盘里 ⇒ 焊盘自己就接到平面了** (不需要任何走线)
             ok += 1
             fail -= 1
         return (ok, fail)
@@ -1216,7 +1268,7 @@ class GridRouter:
         # ★板边: 通孔盘 0.6mm ⇒ 盘外缘距真板边 ≥ 0.5mm ⇒ 孔心距 ≥ 0.8mm
         if self.edge_d[idx] < EDGE_CLEAR + VIA_DIA / 2.0 - 1e-6:
             return False
-        for li in range(6):
+        for li in range(NLAYERS):
             c = self.cu[li].get(idx)
             if c is not None and c != net:
                 return False
@@ -1261,7 +1313,7 @@ class GridRouter:
         # 过孔点 —— ★过孔是**通孔** (F.Cu..B.Cu) ⇒ 6 层都算接上
         via_pts = set()
         for (net, x, y, l1, l2) in self.vias:
-            for li in range(6):
+            for li in range(NLAYERS):
                 via_pts.add((li, round(x, 4), round(y, 4)))
 
         def _on_pad(net, li, x, y):
@@ -1341,7 +1393,7 @@ class GridRouter:
         for v in self.vias:
             net, x, y = v[0], v[1], v[2]
             anchored = False
-            for li in range(6):
+            for li in range(NLAYERS):
                 if (li, round(x, 4), round(y, 4)) in touch:
                     anchored = True
                     break
@@ -1699,7 +1751,7 @@ class GridRouter:
             rr = CLEAR + VIA_DIA / 2.0 + W_CLS[cls] / 2.0 + HALO_MARGIN
             ri = int(math.ceil(rr / self.g))
             # ★**通孔 ⇒ 6 层都有铜** ⇒ 净距禁区必须记满 6 层 (否则内层撞铜 ⇒ DRC 短接)
-            for li in range(6):
+            for li in range(NLAYERS):
                 for dj in range(-ri, ri + 1):
                     for di in range(-ri, ri + 1):
                         if di * di + dj * dj > (rr / self.g) ** 2 + 1e-9:
@@ -1963,8 +2015,24 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
         router.pair_block = set()
     res["n_ok"] = r2["ok"]
     res["ring"] = r2.get("ring")
+    # ★★2026-11-05 02:50 **兵底: 耦合布不通 ⇒ N 侧按普通网布 (不耦合)**
+    #   ★**为什么加这个**: 实测 (tools/diff_pair_audit.py, 22 对全审计):
+    #     15 对是"**N 侧压根没布出来**" (缺铜) ⇒ ★**这不是"长度差"问题, 是"没连"问题**
+    #     ⇒ 而耦合走廊 (ring 2~8) 在 100~240mm 长路径上极易被单点堵死
+    #   ★**取舍**: 耦合走不通时, 让 N 侧**按普通网走** (可能绕远、Δ 会大)
+    #     ⇒ ★**"连上了但不等长" 远好过 "根本没连"** (没连 = DRC unconnected + 板子不工作)
+    #   ★**代价会被如实记下**: res["coupled"]=False ⇒ 报告里点名这些对"未耦合/Δ 大"
+    if not r2.get("ok"):
+        r3 = router.route_net(net_n, width=width, allow_via=allow_via, trunk=trunk_n)
+        res["n_ok"] = r3.get("ok", False)
+        res["coupled"] = False
+        res["fallback_len"] = round(r3.get("len", 0.0), 3)
+        r2 = r3
+    else:
+        res["coupled"] = True
+    res["ring"] = r2.get("ring")
     res["lp"] = round(r1["len"], 3)
-    res["ln"] = round(r2["len"], 3)
+    res["ln"] = round(r2.get("len", 0.0), 3)
     res["delta"] = round(abs(r1["len"] - r2["len"]), 3)
     # ★长度配平: 短的那根加蛇形
     if res["delta"] > 0.13:

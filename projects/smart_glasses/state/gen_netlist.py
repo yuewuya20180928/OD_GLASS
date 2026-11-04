@@ -1407,9 +1407,14 @@ def build_a2_som(by_id, spec):
         "必装", "[官方]", "", "[J_USB_C] CC2 → 5.1k 下拉", "A-24")
     add("P1", "GND", "R_CC2_D", "GND", "R_CC2_D", "5.1k ±1% (CC2 下拉)", "R", "必装", "[官方]", "",
         "[R_CC2_D] USB-C CC2 5.1k 下拉", "A-24")
-    add("P1", "J_USB_C", "J_USB_C", "J_USB_C", "J_USB_C",
-        "USB-C 16p 插座 (demo 板 5V 输入 + USB 数据)", "CONN", "必装", "[推算]", "",
-        "[J_USB_C] ★**demo 主板的 Type-C 电源入口** (老板 11-03 09:54: 没有整机, 没有镜脚, demo/主板用 Type-C 供电): VBUS→5V 轨, D+/D-→SoM USB, CC1/CC2→5.1k 下拉 ⇒ 受电端 (UFP)", "A-24")
+    # ★★2026-11-05 02:45 删 (实测 板↔网表 parity 14 缺失 / 12 多余 的根因):
+    #   这一行是"**器件自环**"写法 (net 名 = 器件名, 两侧都是它) ⇒ 导出器会把它当成
+    #   **一个叫 J_USB_C 的网**, 并给 J_USB_C **分配 1..14 的占位脚号** ⇒
+    #   ⇒ 而真正的 USB-IF 物理脚名 (A1/A4/A6/B12…) 走的是"合并脚名"路径 ⇒ 两套脚号对不上
+    #   ⇒ ★**J_USB_C 的每一个物理脚都已经被真实网覆盖** (VBUS/GND/CC1/CC2/D±) ⇒ 这一行多余 ⇒ 删
+    # add("P1", "J_USB_C", "J_USB_C", "J_USB_C", "J_USB_C",
+    #     "USB-C 16p 插座 (demo 板 5V 输入 + USB 数据)", "CONN", "必装", "[推算]", "",
+    #     "[J_USB_C] ★**demo 主板的 Type-C 电源入口** (老板 11-03 09:54: 没有整机, 没有镜脚, demo/主板用 Type-C 供电)", "A-24")
     # ---- USB 数据: SoM 的 USB_DRD1 (P1_92/P1_94) ↔ 板载 Type-C ----
     # ★★2026-11-04 19:5x 改 (串阻真串在中间): 原来这两行与 SoM 侧**同网** ⇒ ★**22Ω 被短接掉**
     #   ⇒ 改: Type-C 侧独立成网 NET_USB_D_P_TYPEC / NET_USB_D_N_TYPEC ⇒ 串阻跨两个网
