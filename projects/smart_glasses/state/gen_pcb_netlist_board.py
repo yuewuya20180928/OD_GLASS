@@ -73,6 +73,19 @@ def V(x, y):
 #   ⇒ ⇒ 网表仍是"产品级真源"(充电链那套留档), 但**板子只画 demo 主板**
 BOARD_FILTER = "MAIN_PCB"
 
+# ★★人工干预的摆放 (2026-11-04 ISS-181 布线轮)
+#   ★**为什么必须有**: 自动装箱把件排成网格 ⇒ USB 差分对的两个串阻被排成 4.8mm 一字排开
+#     ⇒ D+/D- 根本没法成对布 (同层同间距) ⇒ ★必须先把这两个件摆成"上下堆叠"的一对。
+#   ★J_USB_C 旋转 90°: 焊盘排原本是沿 X 一行 ⇒ D+/D- 只能往板内(X)方向走 ⇒ 必然交叉
+#     ⇒ 旋转 90° 后焊盘排变成沿 Y 的一列 ⇒ D+ 从 pad2 出、D- 从 pad3 出, 中心距 0.5mm
+#     ⇒ ★两者可以同间距成对走出 (LAYOUT_RULES: USB 差分 90Ω)
+#   ★R_SER_USB_D_N 上移一格 (y 25.5 → 23.5): 与 R_SER_USB_D_P 同 x 上下堆叠
+#     ⇒ 两个串阻的"座侧"脚 (pad2) 同 x、相差 2.0mm ⇒ 差分线在串阻处只需小扇出
+PLACE_OVERRIDE = {
+    "J_USB_C": {"x": 130.55, "y": 46.20, "rot": 90},
+    "R_SER_USB_D_N": {"x": 107.70, "y": 23.50, "rot": 0},
+}
+
 
 
 def _is_pad_name(tail):
@@ -279,7 +292,7 @@ def _mkpad(fp, num, net, px, py, pitch, netmap):
     return pad
 
 
-def make_footprint(board, ref, value, kind, pins, netmap, x, y, label=True):
+def make_footprint(board, ref, value, kind, pins, netmap, x, y, label=True, rot=0):
     """pins = [(焊盘号, 网络, 类型)] —— ★焊盘号直接用网表给的号 (编号脚=真实针号)"""
     w, h, per_side, pitch, nrows = size_of(kind, len(pins))
     fp = pcbnew.FOOTPRINT(board)
@@ -340,6 +353,9 @@ def make_footprint(board, ref, value, kind, pins, netmap, x, y, label=True):
             py = (-h / 2 + 0.5) if side == 0 else (h / 2 - 0.5)
             _mkpad(fp, pnum, net, px, py, pitch, netmap)
     fp.SetPosition(V(x, y))
+    if rot:
+        # ★人工旋转 (差分对逃线用) —— 旋转后焊盘跟着转, 脚号不变 ⇒ 网表绑定不变
+        fp.SetOrientationDegrees(rot)
     board.Add(fp)
     return fp
 
@@ -425,8 +441,14 @@ def main():
             # ★TMP117 = WSON-6 (DRV0006B) 官方封装 —— 通用 IC 封装是"假封装" (1.27mm pitch) ⇒ 单独画
             add_tmp117(board, netmap, pins, px + w / 2.0, py + h / 2.0)
         else:
-            make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
-                           px + w / 2.0, py + h / 2.0)
+            ov = PLACE_OVERRIDE.get(ref)
+            if ov:
+                # ★人工干预位 (差分对成对布) —— 位置/旋转按表, 脚号不变
+                make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
+                               ov["x"], ov["y"], rot=ov.get("rot", 0))
+            else:
+                make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
+                               px + w / 2.0, py + h / 2.0)
         placed += 1
         px += w + 3.0
         row_h = max(row_h, h)
@@ -463,6 +485,19 @@ def main():
                     _light_pins)
 
     board.BuildListOfNets()
+
+    # ★★★ 布线 (ISS-181) —— ★**布线必须落进生成器** (手改 .kicad_pcb 会被下次重生成冲掉)
+    #   路由器: state/gen_pcb_routing.py (网格 A* + 差分对成对布 + 电源宽铜 + GND 平面)
+    route_stats = {}
+    try:
+        import gen_pcb_routing as RT
+        print("\n─── 布线 (gen_pcb_routing) ───")
+        route_stats = RT.route_board(board)
+    except Exception as e:
+        import traceback
+        print("⚠️ 布线失败 (板子仍会生成, 但未布线): %s" % e)
+        traceback.print_exc()
+
     pcbnew.SaveBoard(PCB, board)
 
     # 自检: 重新载入, 比对 **(ref, 焊盘号) → 网络** (焊盘级, 不是 (ref,net) 集合!)
