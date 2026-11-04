@@ -13,7 +13,7 @@
 | 原理图 (KiCad 可打开) | ✅ **2026-11-04 19:4x 才修好** —— 生成器少写一个右括号 ⇒ KiCad 报 "Failed to load schematic" ⇒ **从 10-27 起一直是坏的**；已修 + 加门禁 `state/check_sch_loadable.py` |
 | PCB 图 (KiCad 工程文件) | ✅ `HW/PCB/demo_mainboard.kicad_pcb` · 186 器件 / 832 焊盘 / 6 层 / 160×100mm |
 | BOM | ✅ `HW/BOM_v1.csv` ★**2026-11-04 19:2x 修了一个真 bug** (ref 级 DNP 判定 ⇒ Q_ENVC / RAIL_BOARD_5V 被误判"不装" ⇒ 备料会漏买) |
-| Gerber / 钻孔 / 坐标 / 装配 / 3D / 网表 | ✅ 全部已出 (49 个文件) ⇒ `state/gen_production_pack.sh` 一键重出 |
+| Gerber / 钻孔 / 坐标 / 装配 / 3D / 网表 | ✅ 全部已出 (49 个文件) ⇒ `state/gen_production_pack.sh` 一键重出 | ★**注意**: `production/` 里当前这批 Gerber 对应的是 **v10 那一版** (布线 19161 段 / DRC 0 / unconnected 101) ⇒ **v16 落盘后必须重出** (自验脚本会自动跑这一步) |
 | ★**PCB 布线** | 🔶 **在跑**: v15 实测 **走线 20448 段 / 479 过孔 / 板边净距不足 0 处** ⇒ **DRC 17 · unconnected 92** (起点 353 / DRC 0 ⇒ 已压下来一大截, 但**还没归零 ⇒ 还不能下单**) ⇒ ISS-181 |
 | ★**网表 5 处缺陷** | ✅ 已修 (幽灵分裂网 / 22Ω 串阻短接 / 跨铰链 USB 整块删 / VBUS 分压失效 / NC 脚假未连接) ⇒ 全部改在 `state/gen_netlist.py` |
 | ★**USB-C 电源口** | ✅ **自绘 GCT USB4105-16p 封装** (原厂图纸 Rev B3: 16 焊盘单排 @0.50mm, 左→右 A1 B12 A4 B9 B8 A5 B7 A6 A7 B6 A8 B5 B4 A9 B1 A12; 焊盘 1.15×0.30; 2×Ø0.65 壳体孔 ±5.78; 板边距 8.94) ⇒ **摆在板边, 插头面与板边齐平** (原来用通用 8 脚假封装 + 摆板中央 ⇒ **插不了线**) |

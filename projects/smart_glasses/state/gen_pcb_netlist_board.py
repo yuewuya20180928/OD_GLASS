@@ -581,7 +581,13 @@ def main():
         traceback.print_exc()
         traceback.print_exc()
 
-    pcbnew.SaveBoard(PCB, board)
+    # ★★2026-11-05 05:00 **先存到临时文件, 成功后再替换正式板** (★防"崩在半路把好板冲掉")
+    #   实测教训: 8 层实验崩在布线中 ⇒ 生成器已把**骨架 (0 走线)**写进了官方板文件
+    #   ⇒ 正式板被覆盖成"空板" ⇒ 后面所有自验都在测一块坏板
+    #   ⇒ 现在: 先写 <PCB>.tmp ⇒ 全部成功 ⇒ os.replace 原子替换 ⇒ ★**崩了也不会动正式板**
+    import shutil as _shutil
+    _tmp_pcb = PCB + ".tmp"
+    pcbnew.SaveBoard(_tmp_pcb, board)
 
     # ★重新填 L2/L6 平面 (★必须**存盘后重读**再填: 平面填的时候要看连通性缓存,
     #   同一会话里加的走线/过孔还没进缓存 ⇒ 填充器以为平面"没连上任何东西"
@@ -595,9 +601,12 @@ def main():
             ps = z.GetFilledPolysList(z.GetLayer())
             print("  [zone ] %s 填充 %.1f mm2" % (b3.GetLayerName(z.GetLayer()),
                                                   ps.Area() / 1e12))
-        pcbnew.SaveBoard(PCB, b3)
+        pcbnew.SaveBoard(_tmp_pcb, b3)
     except Exception as e:
         print("⚠️ 平面重填失败: %s" % e)
+    # ★全部成功 ⇒ 原子替换正式板 (★崩在上面的路径 ⇒ 正式板保持原样, 不会被空板覆盖)
+    os.replace(_tmp_pcb, PCB)
+    print("  ✓ 已原子替换正式板: %s" % PCB)
 
     # ★★ISS-181: 交付 HW/PCB/.layout_done.json (★阶段门 state/stage_gate.py 靠它判 G1)
     _write_layout_done(board)

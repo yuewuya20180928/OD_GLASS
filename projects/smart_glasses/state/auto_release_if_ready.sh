@@ -5,8 +5,15 @@
 #       若还没落盘 ⇒ 只打印一行"还在跑"
 set -u
 cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses || exit 1
-LOG=/tmp/gen_v15.log
+# ★★2026-11-05 03:25 修: **原来写死 /tmp/gen_v15.log** ⇒ v15 早就有 EXIT= ⇒ 脚本每轮都拿
+#   **旧日志**去对**当前板文件**做自验 ⇒ 一直测的是被 8 层实验覆盖的坏板 (343/13) ⇒ 白费 CPU + 误导老板
+#   ⇒ 现在: **指针文件** state/.current_gen_log 指向"当前这一轮"的日志 (启动时写)
+LOG="$(cat state/.current_gen_log 2>/dev/null || true)"
+if [ -z "$LOG" ] || [ ! -f "$LOG" ]; then
+  LOG="$(ls -t /tmp/gen_*.log 2>/dev/null | head -1)"
+fi
 STAMP=state/.auto_release_done
+echo "★盯的日志: ${LOG:-<无>}"
 echo "=== 机器读数 (board_progress.py) ==="
 python3 state/board_progress.py 2>/dev/null
 if ! grep -q "EXIT=" "$LOG" 2>/dev/null; then

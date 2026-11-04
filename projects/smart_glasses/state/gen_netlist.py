@@ -55,6 +55,13 @@ COLS = ["page", "net", "node1", "node2", "ref", "value", "type", "dnp", "evidenc
 #     footprint —— PCB land pattern (封装尺寸 + pitch + 官方封装图编号)
 #     opn       —— 厂商订购型号 (TI 的 "BQ25896RTWR" 这种), 询价/下单直接用
 PARTS: dict[str, dict] = {
+    # ★★2026-11-05 03:50 补两个 BOM 备料缺口 (footprint/opn 留"待定" ⇒ 备料/询价没有唯一口径)
+    #   ① J_USB_C = **自绘 GCT USB4105-16P** (原厂图纸 Rev B3 Sheet 1, 见 HW/PCB/pinout_footprint.json / state/usb_c_footprint.py)
+    "J_USB_C": {"footprint": "GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)",
+                 "opn": "GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)"},
+    #   ② U_TEMP = TMP117 官方 WSON-6 (自绘, 见 HW/PCB/pinout_footprint.json / state/tmp117_footprint.py)
+    "U_TEMP": {"footprint": "TMP117 WSON-6 2x2mm 自绘 (TI DRV0006B: 6 焊盘 @0.65mm pitch, 焊盘 0.45x0.30mm, 无散热焊盘 EP —— 原厂建议 EP 不焊以保测温精度)",
+                 "opn": "TI TMP117 (DRV0006B, I2C 温度计 ±0.1°C, 地址 0x48)"},
     # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
     "J_TYPE_C": {"footprint": "SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔", "opn": "GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)"},
     # ★2026-11-03 封装/OPN 落定 (原厂 datasheet, 见 HW/PCB/PINOUT_FOOTPRINT_SPEC.md)
@@ -1379,8 +1386,13 @@ def build_a2_som(by_id, spec):
         "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
     add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D", "ESD 阵列 [待选型]", "D", "必装",
         "[推算]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
+    # ★★2026-11-05 03:45 修 (BOM 备料错): 这一行的 ref 是 J_USB_C, 但 value/type 写的是**网**的
+    #   ("5.0V ±5% (USB-C 5V)" / RAIL) ⇒ BOM 生成器按"每个 ref 取第一行" ⇒ ★**BOM 里 USB-C 座的值变成
+    #   "5.0V ±5% (USB-C 5V) / RAIL"** ⇒ 备料的人会以为那是条 5V 轨, 而不是座
+    #   ⇒ ★**改法**: 这一行(ref=J_USB_C)的 value/type 写成**器件自己的** ⇒ 网的语义由 net 列承担
+    #   (net=RAIL_DEMO_5V 不变 ⇒ 电气不变; BOM 里 USB-C 座就显示成座)
     add("P1", "RAIL_DEMO_5V", "J_USB_C A4+A9+B4+B9", "RAIL_DEMO_5V", "J_USB_C",
-        "5.0V ±5% (USB-C 5V)", "RAIL", "必装", "[官方]", "",
+        "Type-C 16p 座 (demo 板 5V 输入 + USB 数据)", "CONN", "必装", "[官方]", "",
         "[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW", "A-24")
     add("P1", "RAIL_DEMO_5V", "D_ESD_DEMO", "RAIL_DEMO_5V", "D_ESD_DEMO",
         "ESD 阵列 [待选型] (USB 2.0)", "D", "必装", "[推算]", "",
