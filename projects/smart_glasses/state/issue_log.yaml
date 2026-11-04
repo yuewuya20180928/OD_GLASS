@@ -7115,3 +7115,39 @@ issues:
     120fps=8.33ms / 同步动作源 / 架位图 / 逐帧数法 / **≥10 次取中位数报 ±1 帧** / 4 类误差源 / 记录模板 / 建议判据 ≤60ms + p95≤80ms /
     测不了的 3 条)。★**代码实现不在本单范围** (等 RK3572 板/模组到手才有真画面可烧字) ⇒ 另派一条实现单, 在板子到位时开。'
   dispatched_at: 2026-11-04 10:05
+- id: ISS-181
+  title: '★★★[最高优先级 · 老板 11-04 19:10 指示] 自研 demo 主板: 从骨架布到**可下单** (unconnected 353 → 0, DRC 0, Gerber
+    重出)'
+  severity: blocker
+  source_blocker: null
+  source_agent: main
+  desc: '★2026-11-04 19:10 老板指示: **自研开发主板是目前最高优先级的任务**; **不买 RK3572 主板** (已买, 不许再提); **开发类的事叫子总工全部开发掉**。★**现状
+    (自查)**: demo 主板 `HW/PCB/demo_mainboard.kicad_pcb` **是骨架**: 器件位置已生成、网表↔板**逐焊盘等价 487/487**、DRC 0 违规、Gerber
+    30 个可出, **但 `check_pcb_drc` 的 unconnected items = 353 ⇒ 一根线都没布** ⇒ ★**现在这份 Gerber 是不能下单的**。★**已有资产
+    (别重做)**: 6 层叠层 (`HW/PCB/STACKUP.md`: L1 信号 / L2 GND 完整平面 / L3 信号+局部电源 / L4 电源平面 / L5 信号 / L6 GND 完整平面,
+    1.6mm, ENIG) · 阻抗规则 (`HW/PCB/LAYOUT_RULES.md`: MIPI CSI/DSI 差分 100Ω / USB 差分 90Ω / 单端 50Ω; ★**L2/L6
+    不得在差分对下方被分割**, 分割只能走 L3/L5) · ★**板子是脚本生成的** (`state/gen_pcb_netlist_board.py`) ⇒ **布线必须落进生成器**, 否则下次重跑生成器布线就没了。★**分两阶段交卷**
+    (别一次塞满): 阶段 1 = 关键网络 (MIPI CSI/DSI 差分对 / USB 差分 / 电源大电流 / 地平面分割 / 复位与上电时序关键线) + 报告差分对长度差实测; 阶段 2 =
+    其余低速信号批量布完 ⇒ unconnected 归零 ⇒ `--strict` 过 ⇒ 4 道门禁 + Gerber 重出并校验。'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-11-04'
+  due: '2026-11-08'
+  status: fixing
+  external: false
+  need_keys: []
+  fix_ref: HW/PCB/demo_mainboard.kicad_pcb (布线后) · state/gen_pcb_netlist_board.py (加布线生成段) · HW/PCB/.layout_done.json
+    (unconnected/DRC 留证)
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '★**来源**: 老板 2026-11-04 19:10 指示「自研开发主板是目前最高优先级的任务」 (source_blocker 留 null, 因为它不是 STATE 里登记的 blocker
+    id)。★**写入范围**: `HW/PCB/**` (含 `demo_mainboard.kicad_pcb` / `HW/PCB/.layout_done.json`) + ★**`state/gen_pcb_netlist_board.py`
+    (加布线生成段 —— 本单核心)** + `state/fragments/hw.yaml` (原子写)。★**不许动**: `HW/netlist_v1.csv` / `state/gen_netlist.py`
+    / 网表类门禁脚本 / `state/issue_log.yaml` / `PROJECT_TRACKER.md` / `SW/**` / `MECH/**` / 别的 agent 分片。★**网表有问题不许自己改**
+    ⇒ 写进回执"请求"段 (已知 5 条阻塞 B-1~B-5 见 `HW/STEP1_LANDING_LIST.md` 与 ISS-153 回执)。★**工具**: `bash state/kicad.sh`
+    (KiCad 10.0.8) / `bash state/pcbnew_py.sh <script>` (pcbnew 只在 AppImage 的 python3.11 里, ★**系统 python3.14
+    跑会 ModuleNotFoundError**)。★**别整篇读大文件**: 只读 `HW/PCB/LAYOUT_RULES.md` + `HW/PCB/STACKUP.md` + `HW/PCB/demo_mainboard.kicad_pcb`
+    + `state/check_pcb_drc.py` 的判据段。 ★**2026-11-04 19:2x 已派 hw-lead** (子会话 agent:hw-lead:subagent:6ff4be7b,
+    taskName=iss181_board_routing, ★**分两阶段, 本次只交阶段 1 = 关键网络布线**) ⇒ 派完立刻落 fixing。'
+  dispatched_at: 2026-11-04 19:2x

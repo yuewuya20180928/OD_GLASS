@@ -46,6 +46,12 @@ PIN_DX, PIN_LEN = -12.7, 2.54     # 引脚连接点在符号原点左侧 12.7mm,
 PIN_PITCH = 2.54
 
 
+def _sval(v: str) -> str:
+    """★属性值转义: 引号要转义, 换行要压平 (否则 KiCad 解析失败)"""
+    return (str(v or "").replace("\\", "\\\\").replace('"', '\\"')
+            .replace("\n", " ").replace("\r", " "))
+
+
 def uid():
     return str(uuid.uuid4())
 
@@ -141,9 +147,14 @@ def build_sch(per_ref, nets, rows_by_ref):
         L.append(f'    (property "Reference" "{ref}" (at {ox:.3f} {oy-14.0:.3f} 0) (effects (font (size 1.27 1.27))))')
         val = rows_by_ref.get(ref, {}).get("value", ref)
         L.append(f'    (property "Value" "{val}" (at {ox:.3f} {oy-16.5:.3f} 0) (effects (font (size 1.27 1.27))))')
-        L.append(f'    (property "Footprint" "TBD" (at {ox:.3f} {oy-19.0:.3f} 0) (effects (font (size 1.27 1.27)) (hide yes))')
-        L.append(f'    (property "Datasheet" "TBD" (at {ox:.3f} {oy-21.5:.3f} 0) (effects (font (size 1.27 1.27)) (hide yes))')
-        L.append(f'    (property "MPN" "{val}" (at {ox:.3f} {oy-24.0:.3f} 0) (effects (font (size 1.27 1.27)) (hide yes))')
+        # ★★2026-11-04 19:4x 修 (原理图 KiCad 打不开的根因): 这三行**少了一个右括号** ⇒
+        #   每个器件的 hidden property 多开一层括号 ⇒ 全文 296×3=888 层不闭合 ⇒
+        #   ★**KiCad 直接报 "Failed to load schematic"** ⇒ 原理图 PDF/SVG/网表全导不出来
+        #   ⇒ **从生成原理图起 (2026-10-27) 一直是坏的**, 而我们自己的自检 (C1~C6) 只查语义、不查括号平衡 ⇒ 盲区。
+        #   现在: ① 补上右括号 ② 值里的引号要转义 ③ 加了 state/check_sch_loadable.py 门禁 (KiCad 真能打开才算过)
+        L.append(f'    (property "Footprint" "TBD" (at {ox:.3f} {oy-19.0:.3f} 0) (effects (font (size 1.27 1.27)) (hide yes)))')
+        L.append(f'    (property "Datasheet" "TBD" (at {ox:.3f} {oy-21.5:.3f} 0) (effects (font (size 1.27 1.27)) (hide yes)))')
+        L.append(f'    (property "MPN" "{_sval(val)}" (at {ox:.3f} {oy-24.0:.3f} 0) (effects (font (size 1.27 1.27)) (hide yes)))')
         for i in range(n):
             L.append(f'    (pin "{i+1}" (uuid "{uid()}"))')
         # ★instances 块 (KiCad 要求: 顶层符号要带 path→uuid + reference)

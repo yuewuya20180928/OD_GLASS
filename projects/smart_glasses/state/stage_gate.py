@@ -48,6 +48,10 @@ GATES = [
         "issues": ["ISS-001", "ISS-003", "ISS-005", "ISS-006", "ISS-007", "ISS-008", "ISS-011", "ISS-015"],
         "decisions": [],
         "measurements": [],
+        # ★2026-11-04 19:1x 老板: 自研开发主板 = 当前最高优先级 ⇒ **G1 必须真过"可下单"**
+        #   之前 G1 只看问题单, 结果**板子一根线都没布 (unconnected 353) 也显示"通过"** ⇒ 假绿
+        #   ⇒ 判据: 布线完成留证文件 `HW/PCB/.layout_done.json` 里 unconnected == 0 且 DRC 违规 == 0
+        "routing_required": True,
     },
     {
         "id": "G2", "name": "结构样机装配 (打印件 + 电池 + 光机位姿)",
@@ -91,6 +95,17 @@ DEFERRED_MEASUREMENTS = {
     "M-CHRG": "整机/量产阶段做充电场景皮肤温度 (推算 75.1°C 属烫伤风险) —— 触发: 同上",
     "M-OPTIC": "光机逐帧延迟绝对值 —— 老板 10-25 决定不采购高速相机/示波器, 改由 M-DIZZY (主观) 替代",
 }
+
+
+def _load_layout_stamp():
+    """读 `HW/PCB/.layout_done.json` (布线完成留证: unconnected / DRC 违规 / 时间戳)
+    ★缺失或读不出来 ⇒ 视为"未布线" (宁可红, 不可假绿)"""
+    p = os.path.join(PROJ, "HW", "PCB", ".layout_done.json")
+    try:
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
 
 
 def load_yaml(path: str):
@@ -179,6 +194,14 @@ def main() -> int:
             if not _decision_done(k):
                 n = pm_needs.get(k) or {}
                 miss_dec.append(f"{k} (waiting_on={n.get('waiting_on', 'agent')}, due={n.get('due', '-')})")
+        # ★routing 判据 (G1): 板子必须**真的布完线**才算定稿
+        if g.get("routing_required"):
+            lay = _load_layout_stamp()
+            if not lay:
+                miss_meas.append("PCB **未布线** (unconnected=353 → 需 0) ⇒ 这份 Gerber 不能下单 (ISS-181)")
+            elif lay.get("unconnected", 1) != 0 or lay.get("drc_violations", 1) != 0:
+                miss_meas.append("PCB 布线未达标: unconnected=%s (需 0) · DRC 违规=%s (需 0) (ISS-181)"
+                                 % (lay.get("unconnected"), lay.get("drc_violations")))
         defer_meas = []
         for mid in g.get("measurements", []):
             m = needed.get(mid) or {}

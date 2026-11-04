@@ -101,14 +101,32 @@ def main() -> int:
         else:
             # 同一 ref 多行 (netlist 里一个电阻会出现在多段网) → 合并, 不重复计数
             bom[ref]["qty"] = 1
-            # ★B-6 修正 (2026-10-27 18:4x, hw-lead ISS-088 复审): DNP 判定必须是 **ref 级** →
-            #   一个连接器既有 DNP 预留脚、又有必装脚时, 整颗被判 "DNP-不装" → 备料会漏买!
-            #   正确口径: **所有行都是 DNP 才算不装**; 有任一必装行 → 必装 (预留脚不贴而已)。
-            if r.get("dnp") == "DNP" and bom[ref]["dnp"] != "必装":
-                bom[ref]["dnp"] = "DNP"
-                bom[ref]["procurement"] = "DNP-不装"
             if bom[ref]["value"] != r.get("value", "") and not bom[ref]["value"]:
                 bom[ref]["value"] = r.get("value", "")
+
+    # ★★2026-11-04 19:3x 修 (BOM 与网表 DNP 数不一致: netlist 56 vs BOM 58):
+    #   根因: 旧逻辑只防"必装→DNP", 不防"DNP→必装" ⇒ **首行是 DNP、后面有必装行的器件**
+    #   (Q_ENVC / RAIL_BOARD_5V) 被误判成整颗不装 ⇒ **备料会漏买**。
+    #   ★正确口径 (ref 级): **所有行都是 DNP 才算不装**; 有任一必装行 → 必装 (预留脚不贴而已)。
+    by_ref_rows = OrderedDict()
+    for r in rows:
+        ref = (r.get("ref") or "").strip()
+        if ref:
+            by_ref_rows.setdefault(ref, []).append(r)
+    for ref, rs in by_ref_rows.items():
+        vals = {(x.get("dnp") or "").strip() for x in rs}
+        if "必装" in vals:
+            final = "必装"
+        elif vals == {"DNP"}:
+            final = "DNP"
+        else:
+            final = rs[0].get("dnp", "")
+        if bom[ref]["dnp"] != final:
+            bom[ref]["dnp"] = final
+            st, mm = procurement_status(ref, bom[ref].get("value", ""), bom[ref].get("type", ""),
+                                       final, bom[ref].get("evidence", ""))
+            bom[ref]["procurement"] = st
+            bom[ref]["memo"] = (mm + " | " if mm else "") + bom[ref].get("memo", "")
 
     COLS = ["ref", "qty", "value", "type", "dnp", "board", "page", "evidence", "tbd",
             "footprint", "opn", "tolerance", "alt_part", "procurement", "memo"]
