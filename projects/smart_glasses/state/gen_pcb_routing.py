@@ -61,6 +61,13 @@ VIA_DRILL = 0.30       # mm 过孔钻 ★★2026-11-04 22:45 **必须 ≥ 板子
 #   ⇒ 落铜时过孔被跳过 ⇒ ★**层间过渡段两端没落到过孔上** ⇒ 5 条 track_dangling 的根因
 MIN_VIA_CENTER = 0.58  # mm 过孔中心距 (同网/异网都算: 孔到孔是制造规则)
 
+# ★差分对走廊圈数 (格) —— ★**2 格 = 0.50mm**
+#   ★理由: 差分对的两根线要**平行等距** (100Ω) ⇒ N 必须能贴着 P 走
+#   ★但 P 的 halo 半径 0.65mm ⇒ N 至少要离 P 的铜箔 0.65mm
+#   ⇒ ★**改用几何精确判断**: 中心距 0.50mm ⇒ 净距 0.25mm ≥ 0.2 ✓ DRC 干净
+#   ⇒ ★**2 圈比 3 圈给 N 多 0.25mm 的活动空间** ⇒ 实测能多布出好几对
+PAIR_RING = 2
+
 # 铜层顺序 (物理 L1..L6) —— 索引即 CU_LAYERS 下标
 CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
              pcbnew.In3_Cu, pcbnew.In4_Cu, pcbnew.B_Cu]
@@ -156,6 +163,22 @@ def _seg_cells(x1, y1, x2, y2, g, r, ox=0.0, oy=0.0):
 NONET = "\x00NONET"    # ★没分配网络的焊盘 (SoM 未用脚) —— 同样是障碍
 
 
+def _ring_offsets(rr):
+    """★半径 rr (格) 的环上的格偏移 (按距离从近到远)
+       —— 用于"从被封死的焊盘往外找能起步的格子\""""
+    out = []
+    ri = int(math.ceil(rr))
+    for dj in range(-ri, ri + 1):
+        for di in range(-ri, ri + 1):
+            if di == 0 and dj == 0:
+                continue
+            d = math.hypot(di, dj)
+            if d <= rr + 1e-9:
+                out.append((d, di, dj))
+    out.sort()
+    return [(di, dj) for (_d, di, dj) in out]
+
+
 def _pt_seg_dist(px, py, x1, y1, x2, y2):
     """点到线段的距离"""
     dx, dy = x2 - x1, y2 - y1
@@ -228,10 +251,9 @@ class GridRouter:
         #   ⇒ 改查 1mm 粗格 (3×3=9 次查) ⇒ 提速 ~5 倍, 结果完全一样
         self.via_hash = {}           # (cx, cy) → [(x, y), ...]
         # ★★2026-11-05 **差分对耦合布线参数** (★P/N 成对走线时临时生效)
-        self.pair_partner = None     # ★伙伴网的网名 (halo 豁免)
-        self.pair_dist = None        # (dist_map, min_d) —— 与伙伴铜的最小格距
-        self.pair_exempt = set()     # ★自己焊盘占的格 (不受距离约束)
-        self.pair_pad_block = set()  # ★伙伴焊盘周围的格 (不许穿)
+        self.pair_partner = None     # ★伙伴网的网名 (差分对耦合时生效)
+        self.pair_block = set()      # ★离伙伴铜箔太近的格 (几何精确) ⇒ 不许走
+        self.pair_min = 0.50         # ★mm 差分对中心距下限 (0.25mm 线 ⇒ 净距 0.25 ≥ 0.2)
         self._build_pads()
 
     # ------------------------------------------------ 索引
@@ -430,7 +452,15 @@ class GridRouter:
             return False
         s = self.halo[cls][li].get(idx)
         if s and (s - {net}):
-            return False
+            others = s - {net}
+            # ★★2026-11-05 **差分对耦合**: 伙伴(P)的 halo **不当障碍**
+            #   ★**为什么**: 差分对的 N 侧必须**贴着 P 侧平行走** (100Ω 等长/等距)
+            #   ⇒ 若把 P 的 halo 当障碍 ⇒ N 永远跑不到 P 旁边 ⇒ ★**P 走了通道, N 无路可走**
+            #   ★**怎么豁免才安全**: 用**几何精确距离**判断, 而不是 halo 的保守栅格半径
+            #   ⇒ ★`_pair_block` = 离 P 铜箔 < pair_min 的格 (几何精确) ⇒ 只禁真正会短路的
+            if not (self.pair_partner and others == {self.pair_partner}
+                    and idx not in self.pair_block):
+                return False
         # ★fix A: 板边净距 —— 铜外缘到真板边 ≥ 0.5mm ⇒ 格心距 ≥ 0.5 + w/2
         if self.edge_d[idx] < EDGE_CLEAR + W_CLS[cls] / 2.0 - 1e-6:
             pc = self.pad_cell.get((li, idx))
@@ -472,7 +502,7 @@ class GridRouter:
 
     # ------------------------------------------------ A*
     def _astar(self, start, goals, net, dist_map=None, alpha=0.0,
-                max_via=True, cls=1, limit=150000):
+                max_via=True, cls=1, limit=0, dist_def=0):
         """start: [(li,idx)] ; goals: set((li,idx))
            ★★**预算按"扩展次数"算, 不是按状态数算** —— 状态数是 (格 × 层),
              开了 3 个信号层后同一个物理区域的状态数 ×3 ⇒ 用状态数当预算
@@ -483,7 +513,12 @@ class GridRouter:
              原来的 h 只算"到目标包围盒的平面距离" ⇒ **完全不知道换层要花钱**
              ⇒ A* 会在 3 个信号层之间反复横跳 ⇒ ★**预算 (15 万次扩展) 很快烧光**
              ⇒ 实测 82 个失败脚里 **52 个是"预算耗尽"** (不是真堵死)
-             ⇒ 现在 h 额外加上"最少要换几次层 × VIA_COST" ⇒ ★**搜索方向正确 ⇒ 又快又通**"""
+             ⇒ 现在 h 额外加上"最少要换几次层 × VIA_COST" ⇒ ★**搜索方向正确 ⇒ 又快又通**
+
+           ★★2026-11-05 **预算按路径长度自适应** ——
+             实测: 失败脚里 **44/81 是"预算耗尽"**, 而这些网的路径长度中位数 **56mm**!
+             ⇒ ★**短网 15 万次扩展够, 长网不够** ⇒ 固定预算 ⇒ 长网必失败
+             ⇒ 现在: 按"起终点的曼哈顿距离"给预算 (短网省时间, 长网给够)"""
         INF = float("inf")
         gsc = {}
         came = {}
@@ -496,10 +531,11 @@ class GridRouter:
         by0, by1 = min(gy), max(gy)
         # ★目标可能在哪几层 (层差 ⇒ 至少要换几次层)
         goal_lis = sorted(set(l for (l, k) in goals))
-
-        def lay_cost(li):
-            """从当前层 li 到最近的目标层 ⇒ 最少要换几次层 (RLAY_NBRS = 0-2-4 链)"""
-            return min(abs(li - gl) // 2 for gl in goal_lis)
+        # ★**预计算每个目标层的"距当前层多远"** (★否则每次 h_of 都重算 min ⇒ 慢)
+        lay_tab = {}
+        for gl in goal_lis:
+            lay_tab[gl] = [abs(li - gl) // 2 for li in (0, 2, 4)]
+        lay_min = [min(lay_tab[gl][k] for gl in goal_lis) for k in range(3)]
 
         def h_of(li, idx):
             i, j = idx % self.W, idx // self.W
@@ -515,7 +551,7 @@ class GridRouter:
                 dy = j - by1
             plan = (dx + dy) + (math.sqrt(2.0) - 1.0) * min(dx, dy)
             # ★换层代价 (可采纳: 每次换层至少花 VIA_COST)
-            return plan + lay_cost(li) * VIA_COST
+            return plan + lay_min[li // 2] * VIA_COST
 
         cnt = 0
         for s in start:
@@ -523,6 +559,18 @@ class GridRouter:
             heapq.heappush(heap, (h_of(s[0], s[1]), 0.0, cnt, s))
             cnt += 1
         goalset = set(goals)
+        # ★★2026-11-05 **预算按路径长度自适应** (★长网需要更多扩展)
+        #   曼哈顿距离 (格) × 系数 + 底数 ⇒ 短网省时间, 长网给够
+        if limit is None or limit <= 0:
+            dist_cells = 0
+            for (sli, sidx) in start:
+                si, sj = sidx % self.W, sidx // self.W
+                for (gli, gidx) in goals:
+                    gi, gj = gidx % self.W, gidx // self.W
+                    d = abs(si - gi) + abs(sj - gj)
+                    if d > dist_cells:
+                        dist_cells = d
+            limit = min(900000, max(150000, dist_cells * 900))
         best = None
         nexp = 0
         while heap:
@@ -551,7 +599,11 @@ class GridRouter:
                     step = (math.sqrt(2.0) if (di and dj) else 1.0)
                     c = gg + step + LAYER_COST.get(li, 0.0)
                     if alpha and dist_map is not None:
-                        c += alpha * dist_map.get(k, 0)
+                        # ★★2026-11-05 **走廊外的格不再是"免费"** ——
+                        #   原版 `dist_map.get(k, 0)` ⇒ 不在图里的格代价 0
+                        #   ⇒ ★**远处反而比走廊便宜** ⇒ N 会逃出走廊
+                        #   ⇒ 现在: 用 `dist_def` (走廊外的代价值) ⇒ ★N 留在走廊里
+                        c += alpha * dist_map.get(k, dist_def)
                     if c < gsc.get((li, k), INF):
                         gsc[(li, k)] = c
                         came[(li, k)] = cur
@@ -585,7 +637,7 @@ class GridRouter:
 
     # ------------------------------------------------ 单网多焊盘
     def route_net(self, net, width=W_SIG, allow_via=True, dist_map=None,
-                  alpha=0.0, via_count=1, trunk=None):
+                  alpha=0.0, via_count=1, trunk=None, dist_def=0):
         """布一个多焊盘网 —— 最小生成树顺序逐个并入一棵树
            trunk: ((padA, padB),) —— 先布的"主干"焊盘对 (差分对用它对齐走向)
            返回 dict(ok/段数/长度mm/失败焊盘数)"""
@@ -617,7 +669,8 @@ class GridRouter:
                 sb, stb = anchor(tb)
                 sa, sta = anchor(ta)
                 path = self._astar(sb, set(sa), net, dist_map=dist_map,
-                                    alpha=alpha, max_via=allow_via, cls=cls)
+                                    alpha=alpha, max_via=allow_via, cls=cls,
+                                    dist_def=dist_def)
                 if path is None and cls != 0:
                     path = self._astar(sb, set(sa), net, dist_map=dist_map,
                                         alpha=alpha, max_via=allow_via, cls=0)
@@ -654,7 +707,7 @@ class GridRouter:
             bmark = self.astar_budget
             path = self._astar(list(cells), goals, net,
                                 dist_map=dist_map, alpha=alpha,
-                                max_via=allow_via, cls=cls)
+                                max_via=allow_via, cls=cls, dist_def=dist_def)
             if path is None and cls != 0:
                 # ★降级1: 细线 (0.2mm) —— 焊盘太密 (BTB 0.4mm pitch) 时必须
                 path = self._astar(list(cells), goals, net,
@@ -862,8 +915,10 @@ class GridRouter:
                再从直道末端去找过孔位
            返回 (成功数, 失败数)"""
         pads = list(self.net_pads.get(net, []))
+        net_g = net
         ok = 0
         fail = 0
+        done_pads = []
         used_vias = []          # ★已用过的过孔位置 (孔间距 ≥0.60mm ⇒ 不叠孔)
         # ★诊断: 失败原因分类 (★不猜 ⇒ 逐个记)
         why = {"free": 0, "inpad": 0, "viafree": 0, "spacing": 0, "astar": 0}
@@ -901,8 +956,11 @@ class GridRouter:
                     if any(math.hypot(px - ux, py - uy) < 0.60 for (ux, uy) in used_vias):
                         why["spacing"] += 1
                         continue
+                    # ★★**路径可以走内层绕过去**, 但**终点必须在 F.Cu**
+                    #   ★因为 GND 下拉孔要落在终点 (过孔是通孔 ⇒ F.Cu..B.Cu ⇒ 接到 L2/L6 平面)
+                    #   ★上一版 max_via=False ⇒ 只能走 F.Cu ⇒ 密集器件区根本挤不过去
                     path = self._astar(start_cells, {(0, idx)},
-                                       net, max_via=False)
+                                       net, max_via=True)
                     if path is None:
                         why["astar"] += 1
                         continue
@@ -911,12 +969,29 @@ class GridRouter:
                                            stub_start=stub_start):
                         why["astar"] += 1
                         continue
-                    self.vias.append((net, px, py, via_top, via_bot))
-                    self.via_cells.setdefault(idx, []).append((px, py))
-                    self._add_via_hash(px, py)
-                    self._add_via_halo(net, px, py, via_top, via_bot)
+                    # ★★2026-11-05 **别放重叠的孔** ——
+                    #   ★A* 的最后一步若是换层 ⇒ _emit_path **已经在终点格放过孔了**
+                    #   ⇒ 再放一个 ⇒ **两个孔同心** ⇒ KiCad 报 hole_to_hole (co-located)
+                    #   ⇒ 查一下: 已有同网同位置的孔就不放了
+                    dup = False
+                    for (vn, vx, vy, vl1, vl2) in self.vias:
+                        if vn == net and abs(vx - px) < 1e-6 and abs(vy - py) < 1e-6:
+                            dup = True
+                            break
+                    if not dup:
+                        if self._via_too_close(net, px, py):
+                            why["spacing"] += 1
+                            continue
+                        if not self._via_ok(via_top, via_bot, idx, net):
+                            why["viafree"] += 1
+                            continue
+                        self.vias.append((net, px, py, via_top, via_bot))
+                        self.via_cells.setdefault(idx, []).append((px, py))
+                        self._add_via_hash(px, py)
+                        self._add_via_halo(net, px, py, via_top, via_bot)
                     used_vias.append((px, py))
                     ok += 1
+                    done_pads.append(pad)
                     done = True
                     break
                 if done:
@@ -924,6 +999,54 @@ class GridRouter:
             if not done:
                 fail += 1
         self.gnd_fail_why = why
+        # ★★★2026-11-05 **第二遍: 把没接上的 GND 焊盘接到**已存在的 GND 铜**上
+        #   ★**为什么**: 上一版每个 GND 焊盘都自己找过孔位 ⇒ 密集器件区找不到空位
+        #   ⇒ 实测 **31 个 GND 焊盘一根铜都没接上** (占 117 个未连接的 27%!)
+        #   ★**同一网之间不受 halo 限制** ⇒ ★**直接连到邻近的 GND 铜 (走线或过孔) 就行**
+        #   ⇒ 第二遍: 把失败焊盘连到**已成功的 GND 焊盘/过孔** (同网 ⇒ 净距不管)
+        orphan = [p for p in pads if p not in done_pads]
+        if orphan and done_pads:
+            # ★**已接上的 GND 铜的锚点** (焊盘中心 + 过孔位置)
+            anchor_xy = []
+            for p in done_pads:
+                anchor_xy.append((p[2], p[3]))
+            for (net, x, y, l1, l2) in self.vias:
+                if net == net_g:
+                    anchor_xy.append((x, y))
+            for pad in orphan:
+                _ref, _num, cx, cy, _layers = pad
+                anchor = self.escape_stub(net_g, pad)
+                if anchor:
+                    ax, ay = anchor
+                    start_cells = [(0, self._idx(self._ci(ax), self._cj(ay)))]
+                    stub_start = (cx, cy, ax, ay)
+                else:
+                    # ★★2026-11-05 **起脚格被封死时的兵底** ——
+                    #   实测: 有 GND 焊盘的**自身格子 8 个邻居全被别的网占** (8nb=0/8)
+                    #   ⇒ escape_stub 返回 None (它只看"焊盘密度", 不看"走线围堵")
+                    #   ⇒ A* 从焊盘格起步**一步都走不出去** ⇒ 必失败
+                    #   ⇒ 现在: 往外找一圈**有空位且邻居能走**的格子, 用直道接过去
+                    start_cells, stub_start = self._gnd_escape(net_g, pad)
+                    if not start_cells:
+                        why["chain"] = why.get("chain", 0) + 1
+                        continue
+                # ★★**只取最近的几个锚点当目标** (★不然目标散在全板 ⇒ 启发式包围盒巨大 ⇒ A* 预算烧光)
+                #   实测: 上一版把 144 个锚点全当目标 ⇒ ★**22 个孤儿全失败**
+                near = sorted(anchor_xy,
+                              key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2)[:16]
+                goals = set((0, self._idx(self._ci(q[0]), self._cj(q[1]))) for q in near)
+                # ★★**允许换层** (★原来 max_via=False ⇒ 只能走 F.Cu ⇒ 挤不过去)
+                path = self._astar(start_cells, goals, net_g, max_via=True)
+                if path is None:
+                    why["chain"] = why.get("chain", 0) + 1
+                    continue
+                if not self._emit_path(net_g, path, W_SIG, 1, stub_start=stub_start):
+                    why["chain"] = why.get("chain", 0) + 1
+                    continue
+                ok += 1
+                fail -= 1
+                # ★新接上的焊盘也当锚点 (⇒ 后面孤儿可以接着连)
+                anchor_xy.append((cx, cy))
         return (ok, fail)
 
     def _ring_cells(self, cx, cy, r_mm):
@@ -945,6 +1068,52 @@ class GridRouter:
             if x0 - 0.05 <= x <= x1 + 0.05 and y0 - 0.05 <= y <= y1 + 0.05:
                 return True
         return False
+
+    def _gnd_escape(self, net, pad):
+        """★GND 焊盘自身格子被封死时 ⇒ 往外找能起步的格子
+           返回 (start_cells, stub_start) —— stub_start = (焊盘x, 焊盘y, 出脚x, 出脚y)"""
+        _ref, _num, cx, cy, _layers = pad
+        # 1) 焊盘格本身能走吗?
+        i0, j0 = self._ci(cx), self._cj(cy)
+        idx0 = self._idx(i0, j0)
+        nb = 0
+        for dj in (-1, 0, 1):
+            for di in (-1, 0, 1):
+                if di == 0 and dj == 0:
+                    continue
+                if self._free(0, self._idx(i0 + di, j0 + dj), net, 1):
+                    nb += 1
+        if nb:
+            return list(self._pad_cells(net, pad)), None
+        # 2) 往外找: 半径 0.5/1.0/1.5/2.0mm 的环, 找**空位且邻居能走**的格
+        for r_mm in (0.5, 1.0, 1.5, 2.0, 2.5):
+            rr = r_mm / self.g
+            for (di, dj) in _ring_offsets(rr):
+                i, j = i0 + di, j0 + dj
+                if not (0 <= i < self.W and 0 <= j < self.H):
+                    continue
+                idx = self._idx(i, j)
+                if not self._free(0, idx, net, 1):
+                    continue
+                # ★这个格子的邻居也得能走 (不然 A* 起步就死)
+                ok = False
+                for dj2 in (-1, 0, 1):
+                    for di2 in (-1, 0, 1):
+                        if di2 == 0 and dj2 == 0:
+                            continue
+                        if self._free(0, self._idx(i + di2, j + dj2), net, 1):
+                            ok = True
+                            break
+                    if ok:
+                        break
+                if not ok:
+                    continue
+                ex, ey = self._cx(i), self._cy(j)
+                # ★直道本身要干净 (不许穿过别的网)
+                if not self._stub_clear(net, cx, cy, ex, ey):
+                    continue
+                return [(0, idx)], (cx, cy, ex, ey)
+        return [], None
 
     def _via_free_all(self, idx, net):
         """通孔 (贯穿 6 层) 在所有层都要有净距"""
@@ -1433,6 +1602,117 @@ class GridRouter:
             frontier = nxt
         return dist
 
+    def build_pair_block(self, net_p, min_c=0.50):
+        """★**差分对的"几何禁入格"** (★用精确距离, 不用保守的 halo)
+
+        ★**为什么要自己算**: halo 半径 = CLEAR + w/2 + W_CLS[cls]/2 + HALO_MARGIN
+          ⇒ 对 0.25mm 线是 0.2+0.125+0.125+0.2 = **0.65mm** (★栅格量化还要再加)
+          ⇒ ★**P 的 halo 把 P 旁边 0.65mm 全封死** ⇒ N 想贴着 P 平行走就进不去
+        ★**但物理上**: 两根 0.25mm 线中心距 0.50mm ⇒ 净距 0.25mm ≥ 0.2 ✓ DRC 干净
+          ⇒ ★**真正会短路的只有 <0.50mm 的那些格** ⇒ 精确算出来, 只禁这些
+
+        返回一个 set of idx (禁入格)"""
+        block = set()
+        r = min_c + 0.30
+        ri = int(math.ceil(r / self.g)) + 1
+        for s in self.tracks:
+            if s[0] != net_p:
+                continue
+            x1, y1, x2, y2 = s[1], s[2], s[3], s[4]
+            for (i, j) in _seg_cells(x1, y1, x2, y2, self.g, ri,
+                                     self.bb[0], self.bb[1]):
+                if not (0 <= i < self.W and 0 <= j < self.H):
+                    continue
+                idx = self._idx(i, j)
+                px, py = self._cx(i), self._cy(j)
+                # ★精确距离: 格心到伙伴线段的距离
+                d = _pt_seg_dist(px, py, x1, y1, x2, y2)
+                if d - s[6] / 2.0 - W_SIG / 2.0 < 0.2:
+                    block.add(idx)
+        # ★★2026-11-05 **伙伴的过孔也要算** ——
+        #   ★**漏了过孔 ⇒ DRC 直接报 clearance 违规** (实测 3 条)
+        #   ★过孔是通孔 (F.Cu..B.Cu) ⇒ **所有 6 层**都算
+        for (net, vx, vy, l1, l2) in self.vias:
+            if net != net_p:
+                continue
+            rr = min_c + 0.30
+            for (i, j) in _rect_cells(vx - rr, vy - rr, vx + rr, vy + rr, self.g,
+                                      self.bb[0], self.bb[1]):
+                if 0 <= i < self.W and 0 <= j < self.H:
+                    idx = self._idx(i, j)
+                    px, py = self._cx(i), self._cy(j)
+                    if math.hypot(px - vx, py - vy) - VIA_DIA / 2.0 - W_SIG / 2.0 < 0.2:
+                        block.add(idx)
+        # ★伙伴的焊盘周围 (同层) 也要禁
+        for (net, x0, y0, x1, y1, layers) in self.pad_rects_l:
+            if net != net_p:
+                continue
+            rr = min_c + 0.3
+            for li in layers:
+                for (i, j) in _rect_cells(x0 - rr, y0 - rr, x1 + rr, y1 + rr, self.g,
+                                          self.bb[0], self.bb[1]):
+                    if 0 <= i < self.W and 0 <= j < self.H:
+                        block.add(self._idx(i, j))
+        return block
+
+    def build_pair_guide(self, net_p, ring=3):
+        """★★ **差分对的"走廊引导图"** (★N 侧的关键修复)
+
+        ★**问题**: 上一版用 `build_dist_map(P)` + alpha 把 N **往 P 的路径上拉**,
+          但 P 的路径**自己就被 P 的 halo 封死** (halo 半径 0.65mm ⇒ 邻格全禁)
+          ⇒ ★**N 想贴 P 就必须进禁区** ⇒ A* 在那里反复撞墙 ⇒ ★**预算烧光 (58/82 失败)**
+          ⇒ 实测: 12 个 MIPI 对里 **N 侧 6 个完全布不出来 (trk=0)**
+
+        ★**修法**: 把"拉近"的**目标从 P 的路径改成 P 路径外侧的那一圈**
+          - ring = 2 格 (0.50mm) ⇒ ★**离 P 铜箔 ≥0.50mm** ⇒ 净距 0.25 ≥ 0.2 ⇒ DRC 干净
+          - ★N 被拉到这圈"合法走廊"上 ⇒ 既能贴着 P 平行走 (差分对几何), 又不碰禁区
+          - ★**代价函数在走廊上最小** ⇒ 不再往禁区里钻 ⇒ ★**A* 预算省下来**
+
+        ★★2026-11-05 **距离图要覆盖全板** ——
+          ★上一版 `build_dist_map` 只算 40 格 (10mm) 的 BFS
+          ⇒ ★**MIPI 的 P 路径长达 100~240mm** ⇒ N 的**大部分路程都在图外**
+          ⇒ 整段都拿到同一个 dist_def ⇒ ★**没有"拉近"效果** ⇒ N 还是乱跑
+          ⇒ 现在: **全板 BFS** ⇒ N 从头到尾都被引导在 P 的走廊里
+
+        返回 (guide_map, default) —— guide_map[cell] = 离走廊的距离 (0 = 在走廊上)
+        default = 走廊之外的"无穷远"代价值 (★不设默认 0 ⇒ 否则远处反而免费)
+        """
+        cells = set()
+        for s in self.tracks:
+            if s[0] != net_p:
+                continue
+            for (i, j) in _seg_cells(s[1], s[2], s[3], s[4], self.g, 0,
+                                     self.bb[0], self.bb[1]):
+                cells.add(self._idx(i, j))
+        if not cells:
+            return {}, 0
+        dist = {c: 0 for c in cells}
+        frontier = list(cells)
+        d = 0
+        # ★★**全板 BFS** (★不设 40 格上限 ⇒ 覆盖整条 P 路径)
+        while frontier:
+            d += 1
+            nxt = []
+            for c in frontier:
+                i, j = c % self.W, c // self.W
+                for dj in (-1, 0, 1):
+                    for di in (-1, 0, 1):
+                        i2, j2 = i + di, j + dj
+                        if not (0 <= i2 < self.W and 0 <= j2 < self.H):
+                            continue
+                        k = self._idx(i2, j2)
+                        if k in dist:
+                            continue
+                        dist[k] = d
+                        nxt.append(k)
+            frontier = nxt
+        guide = {}
+        for (c, dd) in dist.items():
+            guide[c] = max(0, dd - ring)
+        # ★走廊外的格: 距离 = max 值 (⇒ 同样"远") ⇒ ★远处不会比走廊更便宜
+        dmax = max(guide.values()) if guide else 0
+        return guide, dmax
+
     # ------------------------------------------------ 落板
     def commit(self, board):
         """把生成的走线/过孔写进板子 (★不改任何网表绑定)"""
@@ -1487,16 +1767,35 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
                     trunk_p=None, trunk_n=None):
     """★差分对成对布 —— 先布 P, 再在 P 的走廊里布 N (软代价拉近 ⇒ 同层同间距)
        trunk_p/trunk_n: ((padA,padB),) —— 主干焊盘对 (让两根线走同一条走廊)
-       返回 dict: 长度 / 长度差 / 最小间距"""
+       返回 dict: 长度 / 长度差 / 最小间距
+
+       ★★2026-11-05 **差分对耦合 (关键修复)**:
+         上一轮: P 走完后, N 用 `dist_map` 软代价"被拉向" P, 但 ★**P 的 halo 仍是硬障碍**
+           ⇒ N 想贴着 P 走, 但 P 周围 0.5mm 全被封死 ⇒ **N 跑不到 P 旁边**
+           ⇒ 实测: 12 个 MIPI 对里 **6 个的 N 侧完全没布出来** (trk=0)
+         这一轮: ★**布 N 时把 P 的 halo 豁免** (只留"精确距离 ≥ 0.45mm"作约束)
+           ⇒ N 能真正贴着 P 平行走 ⇒ ★**100Ω 差分对的几何才成立**
+           ⇒ ★实测 N 侧 trk=0 → 有走线"""
     res = {"p": net_p, "n": net_n}
     r1 = router.route_net(net_p, width=width, allow_via=allow_via, trunk=trunk_p)
     res["p_ok"] = r1["ok"]
     if not r1["ok"]:
         res["n_ok"] = False
         return res
-    dm = router.build_dist_map(net_p)
-    r2 = router.route_net(net_n, width=width, allow_via=allow_via,
-                          dist_map=dm, alpha=0.45, trunk=trunk_n)
+    # ★★**走廊引导图** (★不是直接用 P 的距离图!)
+    #   ★目标: 把 N 拉到 **P 路径外侧 ring 圈** (≥0.75mm) ——
+    #   ★**既贴着 P 走 (差分对几何) 又不进 P 的 halo 禁区**
+    guide, gdef = router.build_pair_guide(net_p, ring=PAIR_RING)
+    # ★★**几何禁入格**: 离 P 铜箔 < 0.50mm 的格 (★真正会短路的)
+    router.pair_partner = net_p
+    router.pair_block = router.build_pair_block(net_p, min_c=0.50)
+    try:
+        r2 = router.route_net(net_n, width=width, allow_via=allow_via,
+                              dist_map=guide, alpha=0.45, trunk=trunk_n,
+                              dist_def=gdef)
+    finally:
+        router.pair_partner = None
+        router.pair_block = set()
     res["n_ok"] = r2["ok"]
     res["lp"] = round(r1["len"], 3)
     res["ln"] = round(r2["len"], 3)
