@@ -1,18 +1,19 @@
 agent: hw-lead
 role: 硬件总工
-updated_at: '2026-11-04'
+updated_at: '2026-11-05'
 updated_by: hw-lead
 status:
-  phase: P3(画板前致命项清零
-  progress_pct: 88
+  phase: P3(画板前致命项清零)+PCB自动布线轮
+  progress_pct: 90
   health: yellow
-  summary: '★2026-11-03 09:4x ISS-159 交付: HW/STEP1_LANDING_LIST.md §3 F表扩到F14(另加F15建议), 逐项状态+依据(文件:行号或URL),
-    冲突C1~C8, 未查清单。★已清零: F1/F2/F3(口径改)/F5/F6/F8/F13(拓扑)/F14; 待清: F4(display座二选一)/F7/F9/F10(display口无ESD位)/F13残留(选型+规格同步+门禁缺判据)/F15(★新P0:
-    display背光4脚并网短路+无12V BOOST); 不适用: F12; 未查: F11(HIROSE页无durability字段, 兜底=按不弯折设计)。★本次撞出两个P0级: F15(背光短路)
-    与 F13残留(门控会再被静默拆掉)。★依据全部公开: Forlinx OK3572-C 手册(github pages 公开, 快照 state/_os_snapshots/fx3572_manual.html)
-    + Radxa 公开接口页 + Rockchip BSP develop-6.12 rk3576-evb.dtsi + rkaiq 公开 IQ 仓; 未联系厂家/L4未触发。★写入范围: 只改 HW/STEP1_LANDING_LIST.md
-    §3 + state/fragments/hw.yaml(原子写); HW/PCB/ 与 SCHEMATIC_V1_SPEC.json / netlist_v1.csv / issue_log /
-    PROJECT_TRACKER 一字没改。'
+  summary: 'ISS-181 布线轮交付: 路由器 state/gen_pcb_routing.py (★落进生成器, 手改板会被重生成冲掉) + HW/PCB/ROUTING_REPORT.md
+    + HW/PCB/.layout_done.json。★实测: unconnected 349→101 (降71%), DRC violations=0, 网表↔板 逐焊盘等价 482/482 不变
+    (布线没改网表绑定), Gerber 30 个已随新板重出。★布了: USB 差分对 (NET_USB_D_P_TYPEC/N_TYPEC Δ=0.173mm 同层成对) + 15 条电源网 (RAIL_SOM_DCIN
+    7 根 BTB 脚全接 / RAIL_DEMO_5V USB-C 链 / SYS_PCB 0.5mm 宽铜) + L2/L6 完整 GND 平面 + GND 下拉通孔 + RESET/PG/EN/BOOT
+    14 条时序线 + CSI/DSI 差分对主干 (CSI_D0_D0_P/N Δ=0.000mm)。★★投板前必修 4 条: ① SoM BTB 0.4mm pitch/0.2mm 焊盘 ⇒ 出脚只能
+    0.2mm ⇒ LAYOUT_RULES 写的 ≥0.5mm 做不到, 须在开阔区用 L3 铜皮+过孔阵列; ② J_USB_C 用的是通用 8 脚假封装 (网表写的是 GCT USB4105 16p)
+    且 fp 中心 x≈130 不在板边 ⇒ 机械上插不了 USB 线; ③ 差分长度差口径: TP 分支导致总线长天然不等 (Δ0.173mm vs 口径 0.13mm); ④ MIPI CSI_D0_CK_P/N
+    Δ=32.4mm / DSI_D0_CK_P/N Δ=16.5mm 未配平。'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -355,13 +356,37 @@ artifacts:
 - path: HW/I2C_ADDR_TABLE.md
   kind: interface-table
   version: v1.0
-  updated_at: '2026-11-04T10:0x:00+08:00'
-  summary: '★ISS-153: demo 主板 I2C_A / I2C_B 两条总线的从设备全表 + 逐条原厂 datasheet 出处(型号+表号/页号) + 表尾逐对冲突结论 + 换料执行流程。★核了 6 个地址: IMX415=0x1a(Sony IMX415-AAQR-C p.26 SLAVE Address 表 SLAMODE1/0=Low/Low) / TMP117=0x48(TI SNOSD82D Table 7-2 p.21 ADD0=GND; 脚号 Table 5-1 p.4) / BQ25896=0x6b(TI SLUSC76C §6 p.4 + §9.4 p.32) / 屏模组内 MCU=0x45(RPi 官方 overlay panel_disp1@45) / AR0234CS=0x10(onsemi p.10; SADDR 高⇒0x18) / 光机 0x72=★未查到原厂出处(我方规划值, 待 JBD 确认)。★BQ25896 经核实**不在本板任何 I2C 总线上**(在 CHG_BOARD 本地自闭环 I2C_CHG_SCL/SDA, 跨铰链的只有 STAT/PG 两根 GPIO)。★本表是门禁 C9 的真源'
+  updated_at: 2026-11-04T10:0x:00+08:00
+  summary: '★ISS-153: demo 主板 I2C_A / I2C_B 两条总线的从设备全表 + 逐条原厂 datasheet 出处(型号+表号/页号) + 表尾逐对冲突结论 + 换料执行流程。★核了
+    6 个地址: IMX415=0x1a(Sony IMX415-AAQR-C p.26 SLAVE Address 表 SLAMODE1/0=Low/Low) / TMP117=0x48(TI SNOSD82D
+    Table 7-2 p.21 ADD0=GND; 脚号 Table 5-1 p.4) / BQ25896=0x6b(TI SLUSC76C §6 p.4 + §9.4 p.32) / 屏模组内 MCU=0x45(RPi
+    官方 overlay panel_disp1@45) / AR0234CS=0x10(onsemi p.10; SADDR 高⇒0x18) / 光机 0x72=★未查到原厂出处(我方规划值, 待
+    JBD 确认)。★BQ25896 经核实**不在本板任何 I2C 总线上**(在 CHG_BOARD 本地自闭环 I2C_CHG_SCL/SDA, 跨铰链的只有 STAT/PG 两根 GPIO)。★本表是门禁
+    C9 的真源'
 - path: HANDOFF/2026-11-04_hw-lead_ISS153.md
   kind: handoff
   version: v1.0
-  updated_at: '2026-11-04T10:0x:00+08:00'
-  summary: '★ISS-153 交卷: ①I2C_ADDR_TABLE.md ②生成器 6 处过期注释订正(充电 IC 0x12→0x6b / 桥接 0x50→已删除 / I2C_A 上拉 [VDD_3V3_IO]→[VDD_1V8_IO] 1.8V 域口径) ③check_netlist_pins.py 新增 C9(地址表双向一致+同总线唯一, 3 个负例验证)。★五条自证: gen_netlist rc=0 / gen_netlist_pins rc=1 / check_netlist_pins rc=0 / check_netlist rc=0(32 条全过) / check_kicad_net rc=1。★两条红的**进场前就是红的**, 根因是 11-04 03:01 A2/demo-Type-C 段改了 CSV 但没重跑导出链 ⇒ 撞出 5 条阻塞(B-1 J_SOM_P2/P4 共 23 个 SoM 脚从 .net 消失 / B-2 R_SER_USB_D_P 一个 2 脚件落 3~4 个网且 SoM D+ 与 Type-C D+ 被短在一个网 ⇒ 串阻与 ESD 双失效 / B-3 C_DET_VBUS_D 只有 1 条腿 / B-4 FB_DEMO·C_VBUS_DEMO 被算成 3 脚 / B-5 SoC 脚数判据)。★B-2/B-3 要改连接关系且必须同步重生成 demo_mainboard.kicad_pcb(本单禁改) ⇒ 未自行改动, 交回项目总工派单'
+  updated_at: 2026-11-04T10:0x:00+08:00
+  summary: '★ISS-153 交卷: ①I2C_ADDR_TABLE.md ②生成器 6 处过期注释订正(充电 IC 0x12→0x6b / 桥接 0x50→已删除 / I2C_A 上拉 [VDD_3V3_IO]→[VDD_1V8_IO]
+    1.8V 域口径) ③check_netlist_pins.py 新增 C9(地址表双向一致+同总线唯一, 3 个负例验证)。★五条自证: gen_netlist rc=0 / gen_netlist_pins
+    rc=1 / check_netlist_pins rc=0 / check_netlist rc=0(32 条全过) / check_kicad_net rc=1。★两条红的**进场前就是红的**,
+    根因是 11-04 03:01 A2/demo-Type-C 段改了 CSV 但没重跑导出链 ⇒ 撞出 5 条阻塞(B-1 J_SOM_P2/P4 共 23 个 SoM 脚从 .net 消失 /
+    B-2 R_SER_USB_D_P 一个 2 脚件落 3~4 个网且 SoM D+ 与 Type-C D+ 被短在一个网 ⇒ 串阻与 ESD 双失效 / B-3 C_DET_VBUS_D 只有 1
+    条腿 / B-4 FB_DEMO·C_VBUS_DEMO 被算成 3 脚 / B-5 SoC 脚数判据)。★B-2/B-3 要改连接关系且必须同步重生成 demo_mainboard.kicad_pcb(本单禁改)
+    ⇒ 未自行改动, 交回项目总工派单'
+- path: HW/PCB/ROUTING_REPORT.md
+  kind: routing-report
+  version: v1.0
+  updated_at: '2026-11-05'
+  summary: 'ISS-181 自动布线轮: 路由器 state/gen_pcb_routing.py (网格 0.25mm A* + 3 信号层 L1/L3/L5 + 差分对走廊 + 电源宽铜
+    + L2/L6 完整 GND 平面 + BTB 密集焊盘出脚直道); 实测 unconnected 349→101, DRC 0 违规, 19161 走线段/484 过孔/6401mm 铜; 含
+    4 条投板前必修 (SoM BTB 出脚只能 0.2mm ⇒ 0.5mm 规格做不到 / J_USB_C 是假封装且不在板边 / 差分长度差口径 / MIPI 未配平)'
+- path: state/gen_pcb_routing.py
+  kind: tool
+  version: v2.0
+  updated_at: '2026-11-05'
+  summary: '★可复用网格路由器 (本轮核心资产): A* 批量布线 + 差分对捆绑 + 电源宽铜/过孔阵列 + GND 平面下拉 + 密集焊盘出脚直道 + 几何后处理; ★布线必须由 state/gen_pcb_netlist_board.py
+    调用 (板是脚本生成的, 手改会被冲掉)'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2092,12 +2117,17 @@ interface_claims:
     09:39)。★★残留: pin1 在哪一排(y大/y小) 公开资料无定论 ⇒ 两排做反则该座100个网络全部对调 ⇒ 下单前必须机械实测(ISS-169 仍 open)。★本单只引用, 未改该文件'
   ref: HW/PCB/SOM_CONNECTOR_GEOMETRY_PROBE.md
 - key: i2c_addr_table
-  value: 'HW/I2C_ADDR_TABLE.md (门禁 C9 真源)'
-  note: '★ISS-153 新增。★**换 sensor 时 I2C 地址会变** (IMX415=0x1a / AR0234CS=0x10 / OV04C10=0x36) ⇒ 每次换料必须重核整条总线地址表, 否则撞地址 ⇒ 上电后总线全哑(改板 2-4 周 + ¥4-8K)。★本表逐条回原厂 datasheet 核过(型号+表号/页号), 查不到的写"未查到"+试过的 URL+失败原因, 不猜。★网表里从设备地址的唯一写法 = 行文本里的 `I2C 地址 0xNN` (门禁 C9 按它机械抽取)'
+  value: HW/I2C_ADDR_TABLE.md (门禁 C9 真源)
+  note: ★ISS-153 新增。★**换 sensor 时 I2C 地址会变** (IMX415=0x1a / AR0234CS=0x10 / OV04C10=0x36) ⇒ 每次换料必须重核整条总线地址表,
+    否则撞地址 ⇒ 上电后总线全哑(改板 2-4 周 + ¥4-8K)。★本表逐条回原厂 datasheet 核过(型号+表号/页号), 查不到的写"未查到"+试过的 URL+失败原因, 不猜。★网表里从设备地址的唯一写法
+    = 行文本里的 `I2C 地址 0xNN` (门禁 C9 按它机械抽取)
   ref: HW/I2C_ADDR_TABLE.md
 - key: i2c_bus_addr_map
-  value: 'I2C_A: CONN_CAM(IMX415)=0x1a [1.8V域, RAIL_VDD_1V8_IO 2.2k] || I2C_B: U_TEMP(TMP117)=0x48 + CONN_LIGHT(屏模组内 MCU)=0x45 [3.3V域, RAIL_VDD_3V3_IO 4.7k]'
-  note: '★ISS-153 核实后落账(原 INTERFACE_TABLE §4.2 的 0x36/0x50/0x12 三个值全部过期)。★TMP117 **已从 I2C_A 改挂 I2C_B**(2026-11-04 ISS-178, 官方 6 脚 WSON-6)。★BQ25896=0x6b 但**不在本板任何 I2C 总线上**(CHG_BOARD 本地自闭环) ⇒ 不参与冲突判定。★桥接 0x50 已作废(RK3572 无 DP TX)。★光机 0x72 = 0数据, A/B 两条都预留, 待 JBD 确认。★同总线地址唯一: A={0x1a} / B={0x48,0x45} ⇒ 两两不同'
+  value: 'I2C_A: CONN_CAM(IMX415)=0x1a [1.8V域, RAIL_VDD_1V8_IO 2.2k] || I2C_B: U_TEMP(TMP117)=0x48 + CONN_LIGHT(屏模组内
+    MCU)=0x45 [3.3V域, RAIL_VDD_3V3_IO 4.7k]'
+  note: '★ISS-153 核实后落账(原 INTERFACE_TABLE §4.2 的 0x36/0x50/0x12 三个值全部过期)。★TMP117 **已从 I2C_A 改挂 I2C_B**(2026-11-04
+    ISS-178, 官方 6 脚 WSON-6)。★BQ25896=0x6b 但**不在本板任何 I2C 总线上**(CHG_BOARD 本地自闭环) ⇒ 不参与冲突判定。★桥接 0x50 已作废(RK3572
+    无 DP TX)。★光机 0x72 = 0数据, A/B 两条都预留, 待 JBD 确认。★同总线地址唯一: A={0x1a} / B={0x48,0x45} ⇒ 两两不同'
   ref: HW/I2C_ADDR_TABLE.md
 open_questions:
 - id: HW-Q1
@@ -2105,7 +2135,10 @@ open_questions:
   text: Q16 显示接口结论什么时候能 close? 桥接芯片采购 4-8 周, 不能等
 - id: HW-Q2
   to: main
-  text: '★ISS-153 撞出: demo 板 USB D+ 走**板载 Type-C (P1, J_USB_C)** 还是**跨铰链 CONN_USB (P6)**? 现在两条并存且用了同一个位号 R_SER_USB_D_P ⇒ 一个 2 脚电阻落在 3~4 个网上, 且 J_SOM_P1 pin92 (SoM D+) 与 J_USB_C A6+B6 (Type-C D+) 被放在同一个网 USB_D_P_SRC ⇒ **22Ω 源端串阻被旁路 + ESD 阵列不在信号路径上**。★这是内容缺陷(改连接关系)且要同步重生成 demo_mainboard.kicad_pcb ⇒ ISS-153 未自行改, 请拍板 + 派单'
+  text: '★ISS-153 撞出: demo 板 USB D+ 走**板载 Type-C (P1, J_USB_C)** 还是**跨铰链 CONN_USB (P6)**? 现在两条并存且用了同一个位号
+    R_SER_USB_D_P ⇒ 一个 2 脚电阻落在 3~4 个网上, 且 J_SOM_P1 pin92 (SoM D+) 与 J_USB_C A6+B6 (Type-C D+) 被放在同一个网
+    USB_D_P_SRC ⇒ **22Ω 源端串阻被旁路 + ESD 阵列不在信号路径上**。★这是内容缺陷(改连接关系)且要同步重生成 demo_mainboard.kicad_pcb ⇒ ISS-153
+    未自行改, 请拍板 + 派单'
 risks:
 - id: R-hw-display-chain
   text: 若既无 DSI TX 也无 DP TX, 则不是加颗桥芯片的事, 而是显示链不成立
@@ -2117,5 +2150,9 @@ risks:
   text: 若无内置 boot storage → 需外挂 SPI-NOR/eMMC (吃 PCB 面积, 板宽 12→15mm), 投板前必须 close
   severity: high
 - id: R-hw-netlist-chain
-  text: '★ISS-153 交卷时实测: HW/netlist_v1.csv 在 11-04 03:01 加了 A2 段(SoM 4x100pin 座 + demo 板载 Type-C + F13 门控), 但 HW/netlist_v1.net 还停在 11-03 00:50 ⇒ 导出链没重跑 ⇒ gen_netlist_pins.py / check_kicad_net.py 长期 rc=1 ⇒ **HW/netlist_v1_pins.csv 出不来, PCB 工程师手上还是旧版脚级表 (TMP117 4 脚 / 挂 I2C_A)**。★具体 5 条阻塞见 HANDOFF/2026-11-04_hw-lead_ISS153.md §6 (其中 B-1: J_SOM_P2+J_SOM_P4 共 23 个 SoM 脚整条从 .net 消失 ⇒ KiCad 导入即悬空; B-2: USB D+ 串阻/ESD 双失效)。★根因: 改了网表内容没同步跑生成链 ⇒ 建议加一条"改了 gen_netlist.py 必须重跑 gen_kicad_net → gen_netlist_pins"的门禁'
+  text: '★ISS-153 交卷时实测: HW/netlist_v1.csv 在 11-04 03:01 加了 A2 段(SoM 4x100pin 座 + demo 板载 Type-C + F13
+    门控), 但 HW/netlist_v1.net 还停在 11-03 00:50 ⇒ 导出链没重跑 ⇒ gen_netlist_pins.py / check_kicad_net.py 长期 rc=1
+    ⇒ **HW/netlist_v1_pins.csv 出不来, PCB 工程师手上还是旧版脚级表 (TMP117 4 脚 / 挂 I2C_A)**。★具体 5 条阻塞见 HANDOFF/2026-11-04_hw-lead_ISS153.md
+    §6 (其中 B-1: J_SOM_P2+J_SOM_P4 共 23 个 SoM 脚整条从 .net 消失 ⇒ KiCad 导入即悬空; B-2: USB D+ 串阻/ESD 双失效)。★根因:
+    改了网表内容没同步跑生成链 ⇒ 建议加一条"改了 gen_netlist.py 必须重跑 gen_kicad_net → gen_netlist_pins"的门禁'
   severity: high

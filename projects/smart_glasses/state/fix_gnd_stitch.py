@@ -24,8 +24,8 @@ import sys
 import pcbnew
 
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
-BACKUP = "/tmp/board_before_fix.kicad_pcb"
+PCB = os.environ.get("PCB_FILE") or os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
+BACKUP = os.environ.get("PCB_BACKUP") or "/tmp/board_before_fix.kicad_pcb"
 
 GND = "GND"
 VIA_DIA = pcbnew.FromMM(0.60)
@@ -183,7 +183,8 @@ def main():
     segs, vias, _ = collect(board)
     print(f"  载入: 走线 {len(segs)} 段 · 过孔 {len(vias)} 个")
 
-    removed, zero, trimmed = clean_dangling(board)
+    stitch_only = "--stitch-only" in sys.argv
+    removed, zero, trimmed = (0, 0, 0) if stitch_only else clean_dangling(board)
     print(f"★清理: 共删 {removed} 段 (零长 {zero} · 单端悬空 {trimmed})")
     # ★安全闸只算"**单端悬空**"那部分: 零长段**不承载任何连接** ⇒ 删它永远安全
     #   (实测: 板里有 498 段零长段, 占 2.2% ⇒ 若把零长段也算进去, 安全闸会误拦)

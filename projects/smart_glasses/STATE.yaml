@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-05T01:13:51+08:00'
+  generated_at: '2026-11-05T01:43:39+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 168790
-      sha1: 90e8d302ee0c
-      mtime_ns: 1793757770430200949
+      size: 169974
+      sha1: d7d8b7d2ef6d
+      mtime_ns: 1793813242512763811
     mech-lead:
       file: mech.yaml
       size: 137924
@@ -748,19 +748,20 @@ domains:
   hw-lead:
     agent: hw-lead
     role: 硬件总工
-    updated_at: '2026-11-04'
+    updated_at: '2026-11-05'
     updated_by: hw-lead
     status:
-      phase: P3(画板前致命项清零
-      progress_pct: 88
+      phase: P3(画板前致命项清零)+PCB自动布线轮
+      progress_pct: 90
       health: yellow
-      summary: '★2026-11-03 09:4x ISS-159 交付: HW/STEP1_LANDING_LIST.md §3 F表扩到F14(另加F15建议), 逐项状态+依据(文件:行号或URL),
-        冲突C1~C8, 未查清单。★已清零: F1/F2/F3(口径改)/F5/F6/F8/F13(拓扑)/F14; 待清: F4(display座二选一)/F7/F9/F10(display口无ESD位)/F13残留(选型+规格同步+门禁缺判据)/F15(★新P0:
-        display背光4脚并网短路+无12V BOOST); 不适用: F12; 未查: F11(HIROSE页无durability字段, 兜底=按不弯折设计)。★本次撞出两个P0级: F15(背光短路)
-        与 F13残留(门控会再被静默拆掉)。★依据全部公开: Forlinx OK3572-C 手册(github pages 公开, 快照 state/_os_snapshots/fx3572_manual.html)
-        + Radxa 公开接口页 + Rockchip BSP develop-6.12 rk3576-evb.dtsi + rkaiq 公开 IQ 仓; 未联系厂家/L4未触发。★写入范围:
-        只改 HW/STEP1_LANDING_LIST.md §3 + state/fragments/hw.yaml(原子写); HW/PCB/ 与 SCHEMATIC_V1_SPEC.json
-        / netlist_v1.csv / issue_log / PROJECT_TRACKER 一字没改。'
+      summary: 'ISS-181 布线轮交付: 路由器 state/gen_pcb_routing.py (★落进生成器, 手改板会被重生成冲掉) + HW/PCB/ROUTING_REPORT.md
+        + HW/PCB/.layout_done.json。★实测: unconnected 349→101 (降71%), DRC violations=0, 网表↔板 逐焊盘等价 482/482
+        不变 (布线没改网表绑定), Gerber 30 个已随新板重出。★布了: USB 差分对 (NET_USB_D_P_TYPEC/N_TYPEC Δ=0.173mm 同层成对) + 15
+        条电源网 (RAIL_SOM_DCIN 7 根 BTB 脚全接 / RAIL_DEMO_5V USB-C 链 / SYS_PCB 0.5mm 宽铜) + L2/L6 完整 GND 平面 +
+        GND 下拉通孔 + RESET/PG/EN/BOOT 14 条时序线 + CSI/DSI 差分对主干 (CSI_D0_D0_P/N Δ=0.000mm)。★★投板前必修 4 条: ① SoM
+        BTB 0.4mm pitch/0.2mm 焊盘 ⇒ 出脚只能 0.2mm ⇒ LAYOUT_RULES 写的 ≥0.5mm 做不到, 须在开阔区用 L3 铜皮+过孔阵列; ② J_USB_C
+        用的是通用 8 脚假封装 (网表写的是 GCT USB4105 16p) 且 fp 中心 x≈130 不在板边 ⇒ 机械上插不了 USB 线; ③ 差分长度差口径: TP 分支导致总线长天然不等
+        (Δ0.173mm vs 口径 0.13mm); ④ MIPI CSI_D0_CK_P/N Δ=32.4mm / DSI_D0_CK_P/N Δ=16.5mm 未配平。'
     artifacts:
     - path: HW/HARDWARE_BREAKDOWN.md
       kind: breakdown
@@ -1125,6 +1126,19 @@ domains:
         条阻塞(B-1 J_SOM_P2/P4 共 23 个 SoM 脚从 .net 消失 / B-2 R_SER_USB_D_P 一个 2 脚件落 3~4 个网且 SoM D+ 与 Type-C
         D+ 被短在一个网 ⇒ 串阻与 ESD 双失效 / B-3 C_DET_VBUS_D 只有 1 条腿 / B-4 FB_DEMO·C_VBUS_DEMO 被算成 3 脚 / B-5 SoC
         脚数判据)。★B-2/B-3 要改连接关系且必须同步重生成 demo_mainboard.kicad_pcb(本单禁改) ⇒ 未自行改动, 交回项目总工派单'
+    - path: HW/PCB/ROUTING_REPORT.md
+      kind: routing-report
+      version: v1.0
+      updated_at: '2026-11-05'
+      summary: 'ISS-181 自动布线轮: 路由器 state/gen_pcb_routing.py (网格 0.25mm A* + 3 信号层 L1/L3/L5 + 差分对走廊 + 电源宽铜
+        + L2/L6 完整 GND 平面 + BTB 密集焊盘出脚直道); 实测 unconnected 349→101, DRC 0 违规, 19161 走线段/484 过孔/6401mm 铜;
+        含 4 条投板前必修 (SoM BTB 出脚只能 0.2mm ⇒ 0.5mm 规格做不到 / J_USB_C 是假封装且不在板边 / 差分长度差口径 / MIPI 未配平)'
+    - path: state/gen_pcb_routing.py
+      kind: tool
+      version: v2.0
+      updated_at: '2026-11-05'
+      summary: '★可复用网格路由器 (本轮核心资产): A* 批量布线 + 差分对捆绑 + 电源宽铜/过孔阵列 + GND 平面下拉 + 密集焊盘出脚直道 + 几何后处理; ★布线必须由
+        state/gen_pcb_netlist_board.py 调用 (板是脚本生成的, 手改会被冲掉)'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -11840,7 +11854,7 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 145
+  artifacts: 147
   blockers: 43
   high_blockers: 33
   open_needs: 66
