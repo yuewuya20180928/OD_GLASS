@@ -1,22 +1,21 @@
 <!-- PROGRESS-BLOCK-START -->
-★盯的日志: /tmp/gen_v19.log (★已修: 触发器改为探测 /proc 里真正在跑的轮次, 且只在 EXIT=0 时触发自验)
-=== 机器读数 (board_progress.py) ===
-=== 进展播报 11-05 04:12:14 ===
+★盯的日志: /tmp/gen_v20.log
+=== 进展播报 11-05 04:40:04 ===
 [板] 11-05 03:49:01 · 0.5MB · 0 段走线 · 0 过孔
 [布线] 上次实测 unconnected=343 · DRC违规=13 · 留证 2026-11-05T04:11:33
 [在跑] 3 个进程 ⇒ bash; timeout
-[当前在做] 2. ★[在跑] v19 = 6层/160×100 官方板 + A*预算×3 (PID 96564, 与 v15 同配置) ⇒ ★**本轮前已修原子替换路径 bug** (平面重填误读旧板 PCB ⇒ 官方板被覆盖成 0 走线 ⇒ 改读 _tmp_pcb) ⇒ 落盘即自动备份 /tmp/board_last_good.kicad_pcb ⇒ 预计 04:22 落盘 ⇒ 落盘后自动跑 verify_and_release.sh 出放行清单
+[当前在做] v20 = 6层/160×100 + A*预算×3 (PID 99388) 在跑 26:06, %CPU 99.9, RSS 434MB ⇒ ★已超 v15 基线 18.2 分钟仍未落盘 (stdout 缓冲 ⇒ /tmp/gen_v20.log 仍 0 字节, mtime 04:14) ⇒ 判定"在跑/已落盘"只能靠 /proc 探针
 [待办]
-  - 1. 最高优先级: 自研 demo 主板 → 可下单 (ISS-181 / ISS-182) —— ★当前关 G1, 缺口 1 项 = PCB 未布线 (官方板 03:49:01 起是 0 走线骨架, 等待 v19 落盘)
-  - 2. ★[在跑] v19 同配置历史基线 = v15 实测: unconnected 92 / DRC 17 / 走线 20448 段 / 过孔 479 / 用时 1091s (18.2 分钟) ⇒ ★注: 旧记忆"每轮要 2 小时"已作废, 实测 18 分钟/轮
-  - 3. ★[已废] 面积/层数方向: v16 实测 180×120(6层, 预算×3) = unconnected 97 / DRC 25 ⇒ **板更大反而更差** ⇒ 瓶颈不是面积也不是层数, 是路由器预算/算法 ⇒ v18(8层) 与 v16(180×120) 已杀, 不再单跑
-  - 4. ★[已修] 原子替换路径 bug (gen_pcb_netlist_board.py: 平面重填 LoadBoard(PCB) → LoadBoard(_tmp_pcb)) + 每次成功自动备份 /tmp/board_last_good.kicad_pcb ⇒ 防止"崩在布线中把好板冲掉"再现 (11-05 03:49 已因此丢过 v15 那轮 92/17)
-  - 5. ★[已修] GND 缝合 6mm 长度硬闸 + 焊盘内过孔不再加零长引线
-  - 6. ★[已修] parity: USB-IF 裸脚名当真实焊盘号 + 合并写法 "A6+B6" 拆成独立焊盘
-  - 7. ★[已修] USB-C 焊盘 x/y 加封装原点偏移 (state/check_footprint_geom.py 30 秒自验)
-  - 8. ★[已落代码待验证] 差分对 N 侧兵底: 耦合不通 ⇒ 按普通网布 (连上 > 等长; 15 对缺铜才是大头)
-  - 9. 待办: SoM BTB 密集区剩下的未连接 (KEY_VOL_M/PWR_GOOD/I2C_A_SCL/JTAG_TCK/DSI/LED/ID_DETECT) —— ★v15 实测 85 个脚布不动 (A*预算耗尽 51 / 真堵死 34) ⇒ 下一轮先加预算再做别的
-还在跑: 08:01 (日志无 EXIT=0 行)
+  - 1. 最高优先级: 自研 demo 主板 → 可下单 (ISS-181/182) —— 关 G1, 缺口 = PCB 未布线 (官方板仍 03:49:01 的 0 走线骨架)
+  - 2. v20 同配置基线 = v15 实测: unconnected 92 / DRC 17 / 走线 20448 段 / 过孔 479 / 1091s (18.2 分钟) ⇒ 旧记忆"2 小时/轮"已作废
+  - 3. ★[已修] 放行触发器: 探 /proc 真正在跑那轮 + 判据改为「已原子替换正式板」+ 官方板 >0 段走线
+  - 4. ★[已修] parity 根因: _is_pad_name 认 USB-IF 合并写法 ("A6+B6"/"A4+A9+B4+B9") ⇒ J_USB_C 14 焊盘全落 PAD_ORDER
+  - 5. ★[已修] 原子替换路径 bug + 成功备份 /tmp/board_last_good.kicad_pcb (11-05 03:49 曾丢过 v15 的 92/17)
+  - 6. ★[已修] GND 缝合 6mm 硬闸 + 焊盘内过孔不加零长引线; ★[已修] USB-C 焊盘 x/y 封装原点偏移
+  - 7. ★[已落代码待验证] 差分对 N 侧兵底: 耦合不通 ⇒ 按普通网布 (连上 > 等长)
+  - 8. ★衔接脚本已修: chain_next_round.sh 三道闸过后先跑 verify_and_release.sh ⇒ v20 真数不会被 v21 抢跑覆盖
+  - 9. 待办: SoM BTB 密集区剩余未连接 (KEY_VOL_M/PWR_GOOD/I2C_A_SCL/JTAG_TCK/DSI/LED/ID_DETECT) ⇒ 下一轮先加预算 mult 3→6
+还在跑: 26:06 (日志无落盘标记) ｜ 衔接 PID 102260 (14:25), 下一轮 ×6 timeout 5400s ｜ /tmp/gen_v21.log、/tmp/chain_verify.log、/tmp/board_last_good.kicad_pcb 三个都还不存在 ⇒ v20 确未落盘 ｜ .layout_done.json 的 343/13 仍是 04:11 空骨架板假数, 待真值覆写 ｜ 未放行 (.auto_release_done 不存在)
 <!-- PROGRESS-BLOCK-END -->
 
 ## ★ARS45 主板布线 —— 差分对实测审计结论 (2026-11-05 02:05, 只读板文件交叉验证)

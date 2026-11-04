@@ -55,7 +55,17 @@ PCB_FILE="HW/PCB/demo_mainboard.kicad_pcb"
 LANDED=0
 if grep -q "已原子替换正式板" "$LOG" 2>/dev/null; then LANDED=1; fi
 if grep -q "EXIT=0" "$LOG" 2>/dev/null; then LANDED=1; fi
-BOARD_SEG="$(grep -c '(segment' "$PCB_FILE" 2>/dev/null || echo 0)"
+BOARD_SEG="$(grep -c '(segment' "$PCB_FILE" 2>/dev/null | head -1)"; BOARD_SEG="${BOARD_SEG:-0}"
+# ★★2026-11-05 04:32 **板侧判据 (不依赖"当前在跑那一轮"的日志)**
+#   问题: 一落盘就起下一轮 ⇒ detect_live_log() 只能看到**下一轮**的日志 ⇒ ★**上一轮那块板永远不会被量一遍**
+#   ⇒ 修法: 官方板 mtime 比留证文件新 + 板有走线 + ★这块板还没被量过 (marker) ⇒ 也触发自验
+BM="$(stat -c %Y "$PCB_FILE" 2>/dev/null | head -1)"; BM="${BM:-0}"
+EM="$(stat -c %Y "HW/PCB/.layout_done.json" 2>/dev/null | head -1)"; EM="${EM:-0}"
+M0="$(cat state/.verified_board_mtime 2>/dev/null | head -1)"; M0="${M0:-0}"
+if [ "$BM" -gt "$EM" ] && [ "$BM" -gt "$M0" ] && [ "${BOARD_SEG:-0}" -ge 1 ]; then
+  LANDED=1
+  echo "  (板侧判据: 官方板 mtime=$BM > 留证=$EM ⇒ 有一轮落盘但没量过 ⇒ 触发自验)"
+fi
 if [ "$LANDED" -ne 1 ]; then
   RC_SEEN="$(grep -oE 'EXIT=[0-9]+' "$LOG" 2>/dev/null | tail -1 || true)"
   echo "还在跑: $(ps -o etime= -C python3.11 2>/dev/null | tail -1 | tr -d ' ') (日志无落盘标记${RC_SEEN:+ · 上次退出码 $RC_SEEN ⇒ 未落盘, 不触发自验})"
@@ -72,6 +82,8 @@ fi
 echo "★落盘了 ⇒ 开始自验+放行"
 bash state/verify_and_release.sh > /tmp/auto_release.log 2>&1
 rc=$?
+# ★记住"这块板已经量过" ⇒ 防止下一轮 cron 又拿同一块板重跑一遍自验 (白烧 CPU)
+echo "${BM}" > state/.verified_board_mtime
 grep -E "DRC violations|unconnected items|C3 DRC|C4 unconnected|check_pcb_nets rc|check_pcb_drc|chain_gate rc|stage_gate rc|缺失|多余" /tmp/auto_release.log | head -24
 echo "--- 差分对审计 (前 12 行) ---"
 grep -E "缺:|净距=|Δ" /tmp/auto_release.log | head -14
