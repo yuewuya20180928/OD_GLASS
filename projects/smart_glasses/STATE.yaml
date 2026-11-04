@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-04T10:13:38+08:00'
+  generated_at: '2026-11-04T10:43:38+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -19,9 +19,9 @@ meta:
       mtime_ns: 1793584488572960226
     main:
       file: pm.yaml
-      size: 36800
-      sha1: 006c1c9eb68f
-      mtime_ns: 1793758231533139647
+      size: 37367
+      sha1: 28abf0ffb322
+      mtime_ns: 1793759495314151157
     sw-lead:
       file: sw.yaml
       size: 96832
@@ -86,6 +86,16 @@ domains:
       version: '1.0'
       updated_at: '2026-10-25'
       summary: V1到V1.2变更记录(12项变更+3个自发现缺陷+证据分级+自证命令)
+    - path: SW/DISPLAY_FRAME_COUNTER.md
+      kind: spec
+      version: v1.0
+      updated_at: '2026-11-04'
+      summary: '显示帧计数器规格 (手机测端到端的前置): 烧在送进 DSI 之前那一帧 / 复用画框 Y 平面 / 帧号取进合成之前的计数 (否则差一帧) / 5 条自证判据'
+    - path: SW/PHONE_E2E_LATENCY_METHOD.md
+      kind: spec
+      version: v1.0
+      updated_at: '2026-11-04'
+      summary: '手机慢动作测端到端作业指引 (口径B): 240fps=4.17ms / 同步动作源 / 逐帧数法 / ≥10 次取中位数报 ±1 帧 / 建议判据 ≤60ms p95≤80ms'
     blockers:
     - id: PM-B1
       desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -11835,7 +11845,7 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 143
+  artifacts: 145
   blockers: 43
   high_blockers: 33
   open_needs: 67

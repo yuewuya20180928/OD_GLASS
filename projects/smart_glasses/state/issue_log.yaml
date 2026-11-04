@@ -7097,16 +7097,21 @@ issues:
   reporter: main
   raised: '2026-11-04'
   due: '2026-11-06'
-  status: fixing
+  status: fixed
   external: false
   need_keys: []
-  fix_ref: SW/PHONE_E2E_LATENCY_METHOD.md (待写) · SW/DISPLAY_FRAME_COUNTER.md (待写)
+  fix_ref: SW/DISPLAY_FRAME_COUNTER.md (帧计数器规格) · SW/PHONE_E2E_LATENCY_METHOD.md (手机慢动作作业指引)
   verify_by: main
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-04'
   note: '★**写入范围**: 只许写 `SW/PHONE_E2E_LATENCY_METHOD.md` + `SW/DISPLAY_FRAME_COUNTER.md` + `state/fragments/sw.yaml`
     (原子写)。★**不许动**: issue_log.yaml / PROJECT_TRACKER.md / HW/** / 网表 / 板文件 / 现有 SW 脚本。★**别整篇读大文件**: 端到端埋点的真出处是
     `SW/ARS45_INT8_CHAIN.md` §4 (B8 埋点表) + `SW/RKNN_BENCH.md` §4.1 (S4~S10 分段账) ⇒ ★**只读这两处**, 别去读全仓库。
     ★**2026-11-04 10:05 已派 sw-lead** (子会话 agent:sw-lead:subagent:6c174283, taskName=iss179_phone_e2e_counter)
-    ⇒ 派完立刻落 fixing。'
+    ⇒ 派完立刻落 fixing。 ★★**2026-11-04 10:2x 交卷核查: sw-lead 那轮 0 产出** (子会话 25m35s / 234.8k tokens, 回执只有一句"I
+    have the context I need. Now writing the two deliverables." ⇒ **两个文件都不存在**, sw.yaml 分片 mtime 未变 ⇒
+    按铁律"别信回执, 看文件 mtime"抓到 ⇒ ★**项目总工自己出齐了这两份文档** (事实我已齐, 不值得再派一轮)。★**交付内容**: ① 帧计数器规格 (烧在**送进 DSI 之前**那一帧
+    / 复用画框 Y 平面 / **帧号取"进合成之前"的计数否则差一帧** / 7 位帧号 + 相对开机 ms / 默认关 / 5 条自证判据) ② 手机作业指引 (口径B 归属 / 240fps=4.17ms
+    120fps=8.33ms / 同步动作源 / 架位图 / 逐帧数法 / **≥10 次取中位数报 ±1 帧** / 4 类误差源 / 记录模板 / 建议判据 ≤60ms + p95≤80ms /
+    测不了的 3 条)。★**代码实现不在本单范围** (等 RK3572 板/模组到手才有真画面可烧字) ⇒ 另派一条实现单, 在板子到位时开。'
   dispatched_at: 2026-11-04 10:05
