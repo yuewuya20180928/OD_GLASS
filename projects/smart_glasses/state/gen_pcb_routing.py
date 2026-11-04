@@ -34,9 +34,12 @@ GRID = 0.25            # mm 网格步长
 CLEAR = 0.20           # mm 铜间距 (KiCad 默认)
 HALO_MARGIN = 0.07     # mm ★栅格量化余量 (单元中心采样 ⇒ 实际净距会少 ~半格)
 ESC_LEN = 1.20         # mm ★密集焊盘出脚直道长度 (沿焊盘中心线直线走出)
-# ★出脚直道默认**关闭**: 直道是离网格的, 落铜之后必须再对"已布走线"做一次几何净距检查
-#   (A* 只避让了障碍图, 避让不了"后来才出现的直道") ⇒ 本轮先关, 下一轮补检查后再开。
-USE_ESCAPE = False
+# ★出脚直道长度候选 (长→短) —— ★板边放不下就缩短 (fix B: 出脚直道离网格 ⇒ 板边要单独查)
+ESC_LENS = (1.20, 0.90, 0.60, 0.40)
+EDGE_CLEAR = 0.50      # mm ★板边净距 (KiCad board setup: copper edge clearance = 0.5mm)
+# ★出脚直道: 直道是**离网格**的 (落在焊盘真实中心线上) ⇒ 落铜后必须再对"已布走线/过孔"
+#   做一次几何净距检查 (_stub_vs_routed) —— A* 的障碍图避让不了"后来才出现的直道"。
+USE_ESCAPE = True
 W_SIG = 0.25           # mm 信号线宽
 W_MIN = 0.20           # mm 最细线宽 (KiCad 最小线宽) —— ★SoM BTB (0.4mm pitch) 出脚只能这么细
 W_PWR = 0.50           # mm 电源线宽
@@ -129,6 +132,33 @@ def _seg_cells(x1, y1, x2, y2, g, r, ox=0.0, oy=0.0):
 NONET = "\x00NONET"    # ★没分配网络的焊盘 (SoM 未用脚) —— 同样是障碍
 
 
+def _pt_seg_dist(px, py, x1, y1, x2, y2):
+    """点到线段的距离"""
+    dx, dy = x2 - x1, y2 - y1
+    L2 = dx * dx + dy * dy
+    if L2 < 1e-12:
+        return math.hypot(px - x1, py - y1)
+    t = ((px - x1) * dx + (py - y1) * dy) / L2
+    t = max(0.0, min(1.0, t))
+    return math.hypot(px - (x1 + t * dx), py - (y1 + t * dy))
+
+
+def _seg_seg_dist(ax, ay, bx, by, cx, cy, dx2, dy2):
+    """两线段的最短距离 (交叉 ⇒ 0)"""
+    def cross(ox, oy, px2, py2, qx, qy):
+        return (px2 - ox) * (qy - oy) - (py2 - oy) * (qx - ox)
+    d1 = cross(ax, ay, bx, by, cx, cy)
+    d2 = cross(ax, ay, bx, by, dx2, dy2)
+    d3 = cross(cx, cy, dx2, dy2, ax, ay)
+    d4 = cross(cx, cy, dx2, dy2, bx, by)
+    if ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0)):
+        return 0.0
+    return min(_pt_seg_dist(ax, ay, cx, cy, dx2, dy2),
+               _pt_seg_dist(bx, by, cx, cy, dx2, dy2),
+               _pt_seg_dist(cx, cy, ax, ay, bx, by),
+               _pt_seg_dist(dx2, dy2, ax, ay, bx, by))
+
+
 class RoutingError(Exception):
     pass
 
@@ -154,6 +184,16 @@ class GridRouter:
         self.pad_rects = []         # (net, x0,y0,x1,y1) —— 过孔不许打进焊盘
         self.pad_cell = {}          # (li,idx) -> (net, true_cx, true_cy)
         self.routed = set()
+        # ★诊断计数器: 布不动的网到底是"预算用完"还是"真被堵死"
+        self.astar_budget = 0
+        self.astar_blocked = 0
+        self.fail_reasons = {}
+        self.fail_budget = {}
+        # ★真板边几何 (Edge.Cuts) —— ★**不能用 GetBoardEdgesBoundingBox()**:
+        #   它把边线自身的宽度也算进去 (本板 0.1mm ⇒ 每边多 0.05mm)
+        #   ⇒ 净距算出来偏大 ⇒ DRC 报"实际 0.325 / 要求 0.500" ★这就是本轮 2 条红的根因
+        self.edge_segs = self._load_edge_segs()
+        self.edge_d = []            # ★逐格"格心到真板边的距离" (mm) —— _free() 按线宽级别判
         self.tracks = []            # (net, x1,y1,x2,y2,li,width)
         self.vias = []              # (net, x, y, l1, l2)
         self._build_pads()
@@ -203,21 +243,115 @@ class GridRouter:
         self._halo_pads()
         self._edge_margin()
 
-    def _edge_margin(self, margin_mm=0.50):
-        """★板边禁布区 (KiCad 默认 edge clearance 0.5mm)"""
-        x0, y0, x1, y1 = self.bb
-        i0 = int(math.ceil((x0 + margin_mm) / self.g))
-        i1 = int(math.floor((x1 - margin_mm) / self.g))
-        j0 = int(math.ceil((y0 + margin_mm) / self.g))
-        j1 = int(math.floor((y1 - margin_mm) / self.g))
+    # ------------------------------------------------ 板边 (Edge.Cuts)
+    def _load_edge_segs(self):
+        """★真板边几何 —— Edge.Cuts 的线段 (弧按 16 段采样)
+
+        ★为什么不用 GetBoardEdgesBoundingBox():
+          它返回的是**边线外沿**的包围盒 (含边线自身宽度 0.1mm) ⇒ 每边多 0.05mm
+          ⇒ 路由器以为板边在 y=-0.05, 实际铜铜边界在 y=0
+          ⇒ 差 0.05mm + 少算的 w/2 ⇒ 正好是 DRC 报的 0.325 vs 0.500
+        """
+        segs = []
+        try:
+            drawings = list(self.b.GetDrawings())
+        except Exception:
+            drawings = []
+        for d in drawings:
+            try:
+                if d.GetLayerName() != "Edge.Cuts":
+                    continue
+                shp = d.GetShape()
+            except Exception:
+                continue
+            try:
+                if shp == pcbnew.SHAPE_T_SEGMENT:
+                    segs.append((d.GetStart().x / MM, d.GetStart().y / MM,
+                                 d.GetEnd().x / MM, d.GetEnd().y / MM))
+                elif shp == pcbnew.SHAPE_T_ARC:
+                    segs.extend(self._arc_segs(d))
+            except Exception:
+                continue
+        if not segs:
+            # 兜底: 用 bbox 内缩 (边线宽的一半 ≈ 0.05mm)
+            x0, y0, x1, y1 = self.bb
+            e = 0.05
+            segs = [(x0 + e, y0 + e, x1 - e, y0 + e),
+                     (x0 + e, y1 - e, x0 + e, y0 + e),
+                     (x1 - e, y0 + e, x1 - e, y1 - e),
+                     (x1 - e, y1 - e, x0 + e, y1 - e)]
+        return segs
+
+    def _arc_segs(self, d, n=16):
+        """Edge.Cuts 的圆弧 → 折线采样 (本板无弧, 留作通用兜底)"""
+        try:
+            c = d.GetCenter()
+            r = d.GetRadius() / MM
+            s = d.GetStart()
+            e = d.GetEnd()
+            a0 = math.atan2(s.y - c.y, s.x - c.x)
+            a1 = math.atan2(e.y - c.y, e.x - c.x)
+            ccw = (a1 - a0) % (2 * math.pi)
+            sweep = d.GetArcAngle().AsDegrees()
+            if abs(ccw - math.radians(sweep)) <= abs((2 * math.pi - ccw) - math.radians(sweep)):
+                step = ccw / n
+            else:
+                step = -(2 * math.pi - ccw) / n
+            out = []
+            px, py = c.x / MM + r * math.cos(a0), c.y / MM + r * math.sin(a0)
+            for k in range(1, n + 1):
+                a = a0 + step * k
+                qx, qy = c.x / MM + r * math.cos(a), c.y / MM + r * math.sin(a)
+                out.append((px, py, qx, qy))
+                px, py = qx, qy
+            return out
+        except Exception:
+            return []
+
+    def _build_edge_dist(self):
+        """★逐格算"格心到真板边的距离" (mm) —— 只算板边附近的格 (远处恒 1e9)"""
+        BIG = 1e9
+        d = [BIG] * (self.W * self.H)
+        r = int(math.ceil((EDGE_CLEAR + W_PWR / 2.0 + 1.0) / self.g)) + 1
+        for (ax, ay, bx, by) in self.edge_segs:
+            i0 = int(math.floor((min(ax, bx) - self.bb[0]) / self.g)) - 1
+            i1 = int(math.ceil((max(ax, bx) - self.bb[0]) / self.g)) + 1
+            j0 = int(math.floor((min(ay, by) - self.bb[1]) / self.g)) - 1
+            j1 = int(math.ceil((max(ay, by) - self.bb[1]) / self.g)) + 1
+            for j in range(max(0, j0 - r), min(self.H - 1, j1 + r) + 1):
+                cy = self._cy(j)
+                for i in range(max(0, i0 - r), min(self.W - 1, i1 + r) + 1):
+                    dd = _pt_seg_dist(self._cx(i), cy, ax, ay, bx, by)
+                    k = self._idx(i, j)
+                    if dd < d[k]:
+                        d[k] = dd
+        return d
+
+    def _edge_seg_ok(self, x1, y1, x2, y2, w):
+        """★这段走线的**铜外缘**到真板边 ≥ EDGE_CLEAR ?
+           ★给"离网格"的线段用 (出脚直道 / 焊盘真中心引出段) —— 格子判据管不到"""
+        need = EDGE_CLEAR + w / 2.0
+        for (ax, ay, bx, by) in self.edge_segs:
+            if _seg_seg_dist(x1, y1, x2, y2, ax, ay, bx, by) < need:
+                return False
+        return True
+
+    def _edge_margin(self, margin_mm=EDGE_CLEAR):
+        """★板边禁布区 —— ★**按真板边 (Edge.Cuts) 算**, 不是 bbox
+           ★**逐格存"格心到板边的真实距离"** ⇒ _free() 按**线宽级别**精确判 (fix A)
+             (0.20mm 线 ⇒ 需 0.60mm · 0.25mm ⇒ 0.625mm · 0.50mm 电源 ⇒ 0.75mm)
+           ★粗禁布只保留"格心进到 0.5mm 内"这一档, 精确档交给 _free() ⇒ 不误杀焊盘格"""
+        self.edge_d = self._build_edge_dist()
         edge = []
         for j in range(self.H):
             for i in range(self.W):
-                if i0 <= i <= i1 and j0 <= j <= j1:
-                    continue
-                edge.append(self._idx(i, j))
+                if self.edge_d[self._idx(i, j)] < margin_mm:
+                    edge.append(self._idx(i, j))
         for li in (0, 2, 4):
             for idx in edge:
+                # ★焊盘格不置 EDGE (焊盘本身已过 DRC ⇒ 不许被误杀; 别的网本来也被 cu 挡住)
+                if any((l2, idx) in self.pad_cell for l2 in range(6)):
+                    continue
                 self.cu[li][idx] = "\x00EDGE"
 
     def _cls(self, w):
@@ -257,10 +391,18 @@ class GridRouter:
         s = self.halo[cls][li].get(idx)
         if s and (s - {net}):
             return False
+        # ★fix A: 板边净距 —— 铜外缘到真板边 ≥ 0.5mm ⇒ 格心距 ≥ 0.5 + w/2
+        if self.edge_d[idx] < EDGE_CLEAR + W_CLS[cls] / 2.0 - 1e-6:
+            pc = self.pad_cell.get((li, idx))
+            if not (pc and pc[0] == net):
+                return False
         return True
 
     def _via_ok(self, li, idx, net, cls=1):
         """此处能不能打孔 (跨层所有铜层都要有净距)"""
+        # ★板边: 过孔盘 0.6mm ⇒ 盘外缘距板边 ≥ 0.5mm ⇒ 孔心距 ≥ 0.8mm
+        if self.edge_d[idx] < EDGE_CLEAR + VIA_DIA / 2.0 - 1e-6:
+            return False
         for l2 in VIA_SPAN[li]:
             c = self.cu[l2].get(idx)
             if c is not None and c != net:
@@ -350,6 +492,7 @@ class GridRouter:
                         heapq.heappush(heap, (c + h_of(nli, idx), c, cnt, st))
                         cnt += 1
             if len(gsc) > limit:
+                self.astar_budget += 1
                 break        # ★搜索预算用完 ⇒ 判失败 (否则整板卡死)
         if best is None:
             return None
@@ -423,6 +566,7 @@ class GridRouter:
             goal_pad = min(connected_pads, key=lambda q: (q[2] - pad[2]) ** 2 + (q[3] - pad[3]) ** 2)
             goal_cells, stub_g = anchor(goal_pad)
             goals = set(goal_cells)
+            bmark = self.astar_budget
             path = self._astar(list(cells), goals, net,
                                 dist_map=dist_map, alpha=alpha,
                                 max_via=allow_via, cls=cls)
@@ -441,6 +585,9 @@ class GridRouter:
             if path is None:
                 nfail += 1
                 ok = False
+                self.fail_reasons[net] = self.fail_reasons.get(net, 0) + 1
+                if self.astar_budget > bmark:
+                    self.fail_budget[net] = self.fail_budget.get(net, 0) + 1
                 continue
             self._emit_path(net, path, width, via_count,
                             stub_start=stub_s, stub_end=stub_g)
@@ -489,6 +636,24 @@ class GridRouter:
                 best = d
         return best
 
+    def _stub_vs_routed(self, net, x1, y1, x2, y2, w=W_MIN):
+        """★出脚直道 vs **已布走线/过孔** 的净距 (A* 的障碍图只管新走线, 管不了后出现的直道)"""
+        for (n2, ax, ay, bx, by, li, tw) in self.tracks:
+            if n2 == net:
+                continue
+            if li != 0:
+                continue
+            need = w / 2.0 + tw / 2.0 + CLEAR + 0.02
+            if _seg_seg_dist(x1, y1, x2, y2, ax, ay, bx, by) < need:
+                return False
+        for (n2, vx, vy, l1, l2) in self.vias:
+            if n2 == net or l1 > 0:
+                continue
+            need = w / 2.0 + VIA_DIA / 2.0 + CLEAR + 0.02
+            if _pt_seg_dist(vx, vy, x1, y1, x2, y2) < need:
+                return False
+        return True
+
     def _stub_clear(self, net, x1, y1, x2, y2, need=0.299):
         """这段直线出脚干不干净 (中心线离别的网的焊盘边缘 ≥need)
            ★need = 0.2 净距 + 0.1 (直道半宽) = 0.3 —— ★0.4mm pitch BTB 出脚
@@ -509,10 +674,9 @@ class GridRouter:
                 dy = max(b0 - py, 0.0, py - b1)
                 if math.hypot(dx, dy) < need:
                     return False
-        # 板边
-        m = 0.55
-        if not (self.bb[0] + m <= min(x1, x2) and max(x1, x2) <= self.bb[2] - m
-                and self.bb[1] + m <= min(y1, y2) and max(y1, y2) <= self.bb[3] - m):
+        # ★板边: 出脚直道**离网格** ⇒ 格子判据管不到 ⇒ 这里单独查 (fix B)
+        #   ★用真板边 (Edge.Cuts) + 直道半宽 ⇒ 铜外缘 ≥ 0.5mm
+        if not self._edge_seg_ok(x1, y1, x2, y2, W_MIN):
             return False
         return True
 
@@ -536,23 +700,28 @@ class GridRouter:
         """★密集焊盘 (SoM BTB 0.4mm pitch / 0.2mm 焊盘) 的出脚:
            沿焊盘中心线先直线走 ESC_LEN, 之后才允许横向偏
            ⇒ 净距才够 (0.25mm 网格做不到 0.4mm pitch 出脚)
+           ★fix B: 出脚直道**离网格** ⇒ 板边必须单独查 (铜外缘 ≥ 0.5mm);
+             1.2mm 不行就**缩短** (ESC_LENS 长→短) 或换方向
            返回 (终点x, 终点y) 或 None"""
         _ref, _num, cx, cy, _l = pad
         if not USE_ESCAPE:
             return None
         if self._nearest_other_pad(net, cx, cy) >= 0.45:
             return None          # ★不紧 ⇒ 正常出脚
-        best = None
-        for (dx, dy) in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-            ex, ey = cx + dx * ESC_LEN, cy + dy * ESC_LEN
-            if not self._stub_clear(net, cx, cy, ex, ey):
-                continue
-            sc = self._free_score(net, ex, ey)
-            if best is None or sc > best[0]:
-                best = (sc, ex, ey)
-        if best is None:
-            return None
-        return (best[1], best[2])
+        for ln in ESC_LENS:
+            best = None
+            for (dx, dy) in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+                ex, ey = cx + dx * ln, cy + dy * ln
+                if not self._stub_clear(net, cx, cy, ex, ey):
+                    continue
+                if not self._stub_vs_routed(net, cx, cy, ex, ey):
+                    continue
+                sc = self._free_score(net, ex, ey)
+                if best is None or sc > best[0]:
+                    best = (sc, ex, ey)
+            if best is not None:
+                return (best[1], best[2])
+        return None
 
     def _pad_cells(self, net, pad):
         """焊盘的**中心单元** (只取中心, 起点线从焊盘真实中心画出去)"""
@@ -638,6 +807,9 @@ class GridRouter:
 
     def _via_free_all(self, idx, net):
         """通孔 (贯穿 6 层) 在所有层都要有净距"""
+        # ★板边: 通孔盘 0.6mm ⇒ 盘外缘距真板边 ≥ 0.5mm ⇒ 孔心距 ≥ 0.8mm
+        if self.edge_d[idx] < EDGE_CLEAR + VIA_DIA / 2.0 - 1e-6:
+            return False
         for li in range(6):
             c = self.cu[li].get(idx)
             if c is not None and c != net:
@@ -734,13 +906,16 @@ class GridRouter:
         else:
             p0 = self.pad_cell.get(path[0])
             if p0 and p0[0] == net:
-                pts[0][1], pts[0][2] = p0[1], p0[2]
+                # ★焊盘真中心**离网格** ⇒ 可能比格心更靠板边 ⇒ 换中心前先验净距
+                if len(pts) > 1 and self._edge_seg_ok(p0[1], p0[2], pts[1][1], pts[1][2], width):
+                    pts[0][1], pts[0][2] = p0[1], p0[2]
         if stub_end:
             pts[-1][1], pts[-1][2] = stub_end[2], stub_end[3]
         else:
             pn = self.pad_cell.get(path[-1])
             if pn and pn[0] == net:
-                pts[-1][1], pts[-1][2] = pn[1], pn[2]
+                if len(pts) > 1 and self._edge_seg_ok(pn[1], pn[2], pts[-2][1], pts[-2][2], width):
+                    pts[-1][1], pts[-1][2] = pn[1], pn[2]
         seg = []
         for k in range(len(pts) - 1):
             la, xa, ya = pts[k]
@@ -849,6 +1024,20 @@ class GridRouter:
     # ------------------------------------------------ 落板
     def commit(self, board):
         """把生成的走线/过孔写进板子 (★不改任何网表绑定)"""
+        # ★自检: 板边净距 —— 落板前最后一道闸 (fail fast: 宁可这轮不投板也别留 DRC 红)
+        bad = 0
+        for (net, x1, y1, x2, y2, li, w) in self.tracks:
+            if not self._edge_seg_ok(x1, y1, x2, y2, w):
+                bad += 1
+                if bad <= 6:
+                    print("  ⚠️ [EDGE] 板边净距不足: %s (%.3f,%.3f)->(%.3f,%.3f) w=%.2f"
+                          % (net, x1, y1, x2, y2, w))
+        for (net, x, y, l1, l2) in self.vias:
+            if not self._edge_seg_ok(x, y, x, y, VIA_DIA):
+                bad += 1
+                if bad <= 6:
+                    print("  ⚠️ [EDGE] 过孔离板边太近: %s (%.3f,%.3f)" % (net, x, y))
+        self.edge_viol = bad
         n = 0
         for (net, x1, y1, x2, y2, li, w) in self.tracks:
             code = netcode(board, net)
@@ -1067,19 +1256,30 @@ def route_board(board, verbose=True):
     if verbose:
         print("  [GND] L2/L6 完整平面已建 (★不分割 ⇒ 差分对下方参考平面完整)")
 
-    # ---------- 1) 差分对 (成对布) —— USB 先, 再 MIPI
-    for (p, n, tp, tn) in DIFF_PAIRS:
-        if p not in r.net_pads or n not in r.net_pads:
-            continue
-        res = route_diff_pair(r, p, n, trunk_p=tp, trunk_n=tn)
-        stats["pairs"].append(res)
-        if verbose:
-            print("  [PAIR] %-22s / %-22s  ok=%s/%s  L=%.2f/%.2f  Δ=%.3fmm  间距=%s"
-                  % (p, n, res.get("p_ok"), res.get("n_ok"),
-                     res.get("lp", 0), res.get("ln", 0), res.get("delta", 0),
-                     res.get("min_gap")))
+    # ---------- 1) 差分对 (成对布) —— ★**顺序按 brief 的优先级**:
+    #   ① USB 对 (短, 在板边) 先布 (它们在 F.Cu 上占地方少)
+    #   ② **电源大电流** (板级长干道, 要整片空板!)
+    #   ③ MIPI CSI/DSI 对 (最难, 最后布 —— 让它们吃剩下的空间)
+    #   ★上一轮把 MIPI 放在电源前面 ⇒ MIPI 先把 F.Cu 占了 ⇒ 电源长干道全断
+    USB_PAIRS = [p for p in DIFF_PAIRS
+                 if "USB" in p[0] or "USB" in p[1]]
+    MIPI_PAIRS = [p for p in DIFF_PAIRS if p not in USB_PAIRS]
 
-    # ---------- 2) 电源 (宽铜 + 过孔阵列)
+    def _run_pairs(pairs):
+        for (p, n, tp, tn) in pairs:
+            if p not in r.net_pads or n not in r.net_pads:
+                continue
+            res = route_diff_pair(r, p, n, trunk_p=tp, trunk_n=tn)
+            stats["pairs"].append(res)
+            if verbose:
+                print("  [PAIR] %-22s / %-22s  ok=%s/%s  L=%.2f/%.2f  Δ=%.3fmm  间距=%s"
+                      % (p, n, res.get("p_ok"), res.get("n_ok"),
+                         res.get("lp", 0), res.get("ln", 0), res.get("delta", 0),
+                         res.get("min_gap")))
+
+    _run_pairs(USB_PAIRS)
+
+    # ---------- 2) 电源 (宽铜 + 过孔阵列) —— ★**必须在 MIPI 之前**
     for (net, w, vc) in POWER_NETS:
         if net not in r.net_pads:
             continue
@@ -1091,7 +1291,11 @@ def route_board(board, verbose=True):
             print("  [PWR ] %-16s w=%.2fmm  ok=%s  失败脚=%d  L=%.1fmm"
                   % (net, w, res["ok"], res["fail"], res["len"]))
 
-    # ---------- 3) 时序/复位/EN 关键线
+    # ---------- 3) MIPI 差分对 (最难 ⇒ 最后)
+    _run_pairs(MIPI_PAIRS)
+
+    # ---------- 4) 电源 (宽铜 + 过孔阵列)
+    # ---------- 5) 时序/复位/EN 关键线
     for net in TIMING_NETS:
         if net not in r.net_pads:
             continue
@@ -1114,6 +1318,15 @@ def route_board(board, verbose=True):
             stats["failed"].append(net)
     if verbose:
         print("  [REST] 其余 %d 个网已布" % len(rest))
+    if verbose and r.fail_reasons:
+        nf = sum(r.fail_reasons.values())
+        nb = sum(r.fail_budget.values())
+        print("  [FAIL] 布不动的脚 %d 个 (其中 **A* 预算耗尽** %d 个 / 真被堵死 %d 个)"
+              % (nf, nb, nf - nb))
+        top = sorted(r.fail_reasons.items(), key=lambda kv: -kv[1])[:10]
+        for (nn, cnt) in top:
+            print("         %-24s %d 脚 (预算耗尽 %d)"
+                  % (nn, cnt, r.fail_budget.get(nn, 0)))
 
     # ---------- 5) GND 下拉过孔 (焊盘 → 短走线 → 通孔 → L2/L6 平面)
     ok, fail = r.route_gnd_drops("GND")
@@ -1125,9 +1338,7 @@ def route_board(board, verbose=True):
     n_new = r.commit(board)
     stats["tracks"] = len(r.tracks)
     stats["vias"] = len(r.vias)
-    if verbose:
-        print("  [SUM ] 走线 %d 段 / 过孔 %d 个 / 用时 %.0fs"
-              % (len(r.tracks), len(r.vias), stats["seconds"]))
+    stats["edge_viol"] = getattr(r, "edge_viol", 0)
     stats["new_items"] = n_new
     for z in board.Zones():
         try:
@@ -1135,7 +1346,11 @@ def route_board(board, verbose=True):
         except Exception:
             pass
     _fill_zones(board)
+    # ★seconds 必须在用之前算 (上一版这里先读后算 ⇒ KeyError ⇒ 整个 route_board 抛出)
     stats["seconds"] = round(time.time() - t0, 1)
+    if verbose:
+        print("  [SUM ] 走线 %d 段 / 过孔 %d 个 / 板边净距不足 %d 处 / 用时 %.0fs"
+              % (len(r.tracks), len(r.vias), stats["edge_viol"], stats["seconds"]))
     return stats
 
 
