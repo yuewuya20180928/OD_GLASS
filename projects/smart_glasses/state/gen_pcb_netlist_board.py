@@ -383,7 +383,8 @@ def _write_layout_done(board):
     import subprocess
     here = os.path.dirname(os.path.abspath(__file__))
     proj = os.path.dirname(here)
-    pcb = os.path.join(proj, "HW", "PCB", "demo_mainboard.kicad_pcb")
+    # ★2026-11-05 03:10 **落盘路径也必须可改** (之前只改了顶部的 PCB 常量 ⇒ ★**并行实验把官方板覆盖成 0 走线骨架**)
+    pcb = os.environ.get("PCB_OUT") or os.path.join(proj, "HW", "PCB", "demo_mainboard.kicad_pcb")
     unconnected = -1
     try:
         b2 = pcbnew.LoadBoard(pcb)
@@ -576,6 +577,8 @@ def main():
     except Exception as e:
         import traceback
         print("⚠️ 布线失败 (板子仍会生成, 但未布线): %s" % e)
+        # ★★2026-11-05 04:55 **把 traceback 打出来** (之前只打一行 ⇒ 查 "list index out of range" 查不到)
+        traceback.print_exc()
         traceback.print_exc()
 
     pcbnew.SaveBoard(PCB, board)

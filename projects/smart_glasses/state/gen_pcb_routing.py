@@ -567,9 +567,12 @@ class GridRouter:
         goal_lis = sorted(set(l for (l, k) in goals))
         # ★**预计算每个目标层的"距当前层多远"** (★否则每次 h_of 都重算 min ⇒ 慢)
         lay_tab = {}
+        # ★2026-11-05 04:58: 层集合从固定的 (0,2,4) 改成 **ROUTE_LAYERS** (8 层时含 6)
+        #   ⇒ lay_tab 与 lay_min 的长度都随层数变 ⇒ ★**原来固定 range(3) ⇒ 8 层时 lay_min[3] 越界**
+        #   (实测 8 层实验直接崩: "list index out of range")
         for gl in goal_lis:
-            lay_tab[gl] = [abs(li - gl) // 2 for li in (0, 2, 4)]
-        lay_min = [min(lay_tab[gl][k] for gl in goal_lis) for k in range(3)]
+            lay_tab[gl] = [abs(li - gl) // 2 for li in ROUTE_LAYERS]
+        lay_min = [min(lay_tab[gl][k] for gl in goal_lis) for k in range(len(ROUTE_LAYERS))]
 
         def h_of(li, idx):
             i, j = idx % self.W, idx // self.W
@@ -604,7 +607,12 @@ class GridRouter:
                     d = abs(si - gi) + abs(sj - gj)
                     if d > dist_cells:
                         dist_cells = d
-            limit = min(900000, max(150000, dist_cells * 900))
+            # ★★2026-11-05 05:30 **A* 预算可调** (环境变量 PCB_ABUDGET_MULT, 默认 1)
+        #   ★依据 (实测 v12 的失败分类): 80 个布不动的脚里, **39 个是"A* 预算耗尽"**, 只有 41 个是真被堵死
+        #   ⇒ ★**预算才是主要瓶颈之一** (不是几何) ⇒ 放大预算能把这 39 个变成"布出来了"
+        #   ⇒ 代价: A* 扩展更多 ⇒ 更慢 ⇒ 用环境变量按需调, 不做死
+        _mult = float(os.environ.get("PCB_ABUDGET_MULT", "1"))
+        limit = int(min(900000 * _mult, max(150000 * _mult, dist_cells * 900 * _mult)))
         best = None
         nexp = 0
         while heap:

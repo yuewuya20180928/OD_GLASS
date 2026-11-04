@@ -39,14 +39,26 @@ else
 fi
 
 echo "=========== 3. 门禁 (全绿才算过) ==========="
+# ★★2026-11-05 03:18 **修退出码**: 之前脚本最后总是 exit 0 ⇒ ★**自验失败也会被当成"已放行"**
+#   ⇒ 现在把每个 rc 收集起来, **任一失败 ⇒ 退出码非 0** ⇒ 上层 (auto_release) 才能正确盖章/不盖章
+FAIL=0
+run_gate() {  # run_gate <名字> <命令...>
+  local name="$1"; shift
+  "$@" >/dev/null 2>&1
+  local rc=$?
+  echo "  $name rc=$rc"
+  [ "$rc" -ne 0 ] && FAIL=1
+  return 0
+}
 python3 state/check_pcb_drc.py --strict; echo "  check_pcb_drc(--strict) rc=$?"
-bash state/pcbnew_py.sh state/check_pcb_nets.py >/dev/null 2>&1; echo "  check_pcb_nets rc=$?"
-python3 state/check_sch_loadable.py >/dev/null 2>&1; echo "  check_sch_loadable rc=$?"
-python3 state/check_netlist.py >/dev/null 2>&1; echo "  check_netlist rc=$?"
-python3 state/check_netlist_pins.py >/dev/null 2>&1; echo "  check_netlist_pins rc=$?"
-python3 state/check_kicad_net.py >/dev/null 2>&1; echo "  check_kicad_net rc=$?"
-python3 state/check_schematic_slots.py >/dev/null 2>&1; echo "  check_schematic_slots rc=$?"
-python3 state/issue_check.py >/dev/null 2>&1; echo "  issue_check rc=$?"
+[ $? -ne 0 ] && FAIL=1
+run_gate check_pcb_nets bash state/pcbnew_py.sh state/check_pcb_nets.py
+run_gate check_sch_loadable python3 state/check_sch_loadable.py
+run_gate check_netlist python3 state/check_netlist.py
+run_gate check_netlist_pins python3 state/check_netlist_pins.py
+run_gate check_kicad_net python3 state/check_kicad_net.py
+run_gate check_schematic_slots python3 state/check_schematic_slots.py
+run_gate issue_check python3 state/issue_check.py
 
 echo "=========== 4. 重出投产资料包 (板变了 ⇒ 旧 Gerber 作废) ==========="
 bash state/gen_production_pack.sh 2>&1 | tail -n 6
@@ -68,6 +80,16 @@ PY
 
 echo "=========== 6. 生产链准入/准出 ==========="
 python3 state/chain_gate.py --full; echo "  chain_gate rc=$?"
+[ $? -ne 0 ] && FAIL=1
 
 echo "=========== 7. 阶段门 ==========="
 python3 state/stage_gate.py 2>&1 | grep -E "^【|当前在|已跳过|缺实测|未布线"; echo "  stage_gate rc=$?"
+[ $? -ne 0 ] && FAIL=1
+
+echo "=========== 8. 总判定 ==========="
+if [ "$FAIL" -eq 0 ]; then
+  echo "✅ 全部通过 (DRC 0 + unconnected 0 + 门禁全绿 + 生产链准出 + 阶段门过)"
+else
+  echo "❌ 有门禁没过 ⇒ **不放行** (自验失败不许盖章)"
+fi
+exit "$FAIL"
