@@ -33,7 +33,9 @@ MM = 1e6
 # ------------------------------------------------------------------ 常量
 GRID = 0.25            # mm 网格步长
 CLEAR = 0.20           # mm 铜间距 (KiCad 默认)
-HALO_MARGIN = 0.07     # mm ★栅格量化余量 (单元中心采样 ⇒ 实际净距会少 ~半格)
+HALO_MARGIN = 0.20     # mm ★栅格量化余量 (半格 0.125 + 富余)
+                        # ★★2026-11-04 22:35 项目总工改: 0.07 → 0.20 —— 上一轮 DRC 实测净距 0.175 < 要求 0.200
+                        #   ⇒ ★**半格量化损失没被补回来** ⇒ 余量必须 ≥ 半格 (0.125) + 富余 ⇒ 0.20
 ESC_LEN = 1.20         # mm ★密集焊盘出脚直道长度 (沿焊盘中心线直线走出)
 # ★出脚直道长度候选 (长→短) —— ★板边放不下就缩短 (fix B: 出脚直道离网格 ⇒ 板边要单独查)
 ESC_LENS = (1.20, 0.90, 0.60, 0.40)
@@ -48,7 +50,7 @@ W_PWR = 0.50           # mm 电源线宽
 #   cls0 = 0.20mm (BTB 出脚) · cls1 = 0.25mm (常规信号) · cls2 = 0.50mm (电源宽铜)
 W_CLS = (0.20, 0.25, 0.50)
 VIA_DIA = 0.60         # mm 过孔盘
-VIA_DRILL = 0.30       # mm 过孔钻
+VIA_DRILL = 0.25       # mm 过孔钻 ★2026-11-04 22:35: 0.30 → 0.25 (上一轮 "hole_to_hole 0.200 < 0.250"; 0.25mm 钻是常规制板能力)
 
 # 铜层顺序 (物理 L1..L6) —— 索引即 CU_LAYERS 下标
 CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
@@ -211,6 +213,7 @@ class GridRouter:
         self.edge_d = []            # ★逐格"格心到真板边的距离" (mm) —— _free() 按线宽级别判
         self.tracks = []            # (net, x1,y1,x2,y2,li,width)
         self.vias = []              # (net, x, y, l1, l2)
+        self.via_cells = {}         # ★格 → 该格附近的过孔坐标 (同网孔间距检查用)
         self._build_pads()
 
     # ------------------------------------------------ 索引
@@ -418,10 +421,13 @@ class GridRouter:
         return True
 
     def _via_ok(self, la, lb, idx, net, cls=1):
-        """此处能不能打孔 (从 la 穿到 lb ⇒ 跨过的所有铜层都要有净距)
+        """此处能不能打孔 (跨层所有铜层都要有净距)
            ★**用 halo[2] (0.5mm 宽铜的净距级别) 判** —— 过孔盘 0.6mm 比 0.25mm 线粗
              ⇒ 用 cls1 的净距会漏判 ⇒ 过孔挨着别的网的线 ⇒ DRC 报 clearance
-           ★过孔盘 0.3mm 半宽 + 净距 0.2 ⇒ 孔心到别的铜 ≥ 0.5mm"""
+           ★★**过孔一律按"通孔"判 (贯穿 6 层)** —— 因为 commit() 里 SetViaType(THROUGH)
+             会把层对强制成 (F.Cu,B.Cu) ⇒ 过孔环在 6 层都有铜
+             ⇒ 只查 la..lb 两层 ⇒ **过孔会撞上内层别的网的铜 ⇒ DRC 短接**
+             ⇒ ★所以这里必须查**全部 6 层** (且 _add_via_halo 也要记 6 层)"""
         # ★板边: 过孔盘 0.6mm ⇒ 盘外缘距板边 ≥ 0.5mm ⇒ 孔心距 ≥ 0.8mm
         if self.edge_d[idx] < EDGE_CLEAR + VIA_DIA / 2.0 - 1e-6:
             return False
@@ -429,7 +435,7 @@ class GridRouter:
         #   = 投板后必须手工补焊 ⇒ 返工项。★孔要躲开焊盘, 就得先在 F.Cu 上走一段
         if (0, idx) in self.pad_cell:
             return False
-        for l2 in _via_span(la, lb):
+        for l2 in range(6):
             c = self.cu[l2].get(idx)
             if c is not None and c != net:
                 return False
@@ -691,7 +697,12 @@ class GridRouter:
                 continue
             if li != 0:
                 continue
-            need = w / 2.0 + tw / 2.0 + CLEAR
+            # ★need 不加额外余量: 0.4mm pitch 的 SoM BTB (0.2mm 焊盘) ⇒ 相邻两根
+            #   0.2mm 直道的中心线间距就是 0.4mm ⇒ 净距恰好 0.2mm (KiCad 下限)
+            #   ⇒ 加 0.02 余量会把**每一对相邻脚**都判死 ⇒ BTB 全布不出来
+            # ★但**对面是 0.25mm 及以上的线时必须留余量** (直道半宽 0.125 > 0.1
+            #   ⇒ 0.4mm 间距只剩 0.175mm 净距 ⇒ DRC 红)
+            need = w / 2.0 + tw / 2.0 + CLEAR + (0.0 if tw <= 0.21 else 0.025)
             if _seg_seg_dist(x1, y1, x2, y2, ax, ay, bx, by) < need:
                 return False
         for (n2, vx, vy, l1, l2) in self.vias:
@@ -822,6 +833,7 @@ class GridRouter:
                         continue
                     self._emit_path(net, path, W_SIG, 1)
                     self.vias.append((net, px, py, via_top, via_bot))
+                    self.via_cells.setdefault(idx, []).append((px, py))
                     self._add_via_halo(net, px, py, via_top, via_bot)
                     used_vias.append((px, py))
                     ok += 1
@@ -992,13 +1004,31 @@ class GridRouter:
         l1, l2 = (la, lb) if la < lb else (lb, la)
         vs = [(x, y)]
         if count > 1:
-            vs = [(x + (k - (count - 1) / 2.0) * 0.6, y)
+            # ★过孔阵列间距 ≥ VIA_DIA + CLEAR = 0.8mm —— ★上一版用 0.6mm
+            #   ⇒ 相邻两个 0.6mm 盘的边缘正好相接 ⇒ DRC: 短接 + 孔重合 + 孔间距不足
+            vs = [(x + (k - (count - 1) / 2.0) * 0.85, y)
                   for k in range(count)]
         for (vx, vy) in vs:
+            # ★**同一个网的两颗孔间距 ≥ 0.56mm** (孔径 0.3 ⇒ 孔到孔 ≥ 0.25mm)
+            #   ★同网的过孔**不互斥** (halo 里同网不算冲突) ⇒ 上限没管住
+            #   ⇒ 上一版 DRC: holes co-located 64 条 + hole to hole 5 条
+            if self._via_too_close(net, vx, vy):
+                continue
             if not self._via_ok(l1, l2, self._idx(self._ci(vx), self._cj(vy)), net):
                 continue
             self.vias.append((net, vx, vy, l1, l2))
+            self.via_cells.setdefault(self._idx(self._ci(vx), self._cj(vy)), []).append((vx, vy))
             self._add_via_halo(net, vx, vy, l1, l2)
+
+    def _via_too_close(self, net, vx, vy, mind=0.56):
+        """同网两颗过孔离得太近 (孔到孔 < 0.25mm ⇒ DRC 红)"""
+        i, j = self._ci(vx), self._cj(vy)
+        for dj in (-1, 0, 1):
+            for di in (-1, 0, 1):
+                for (ux, uy) in self.via_cells.get(self._idx(i + di, j + dj), ()):
+                    if math.hypot(vx - ux, vy - uy) < mind:
+                        return True
+        return False
 
     def _add_track_halo(self, net, x1, y1, x2, y2, li, w=W_SIG):
         """走线净距禁区: 半径 = 净距 + 本线半宽 + 对方半宽 (按级别分别登记)"""
@@ -1015,7 +1045,8 @@ class GridRouter:
         for cls in range(3):
             rr = CLEAR + VIA_DIA / 2.0 + W_CLS[cls] / 2.0 + HALO_MARGIN
             ri = int(math.ceil(rr / self.g))
-            for li in range(l1, l2 + 1):
+            # ★**通孔 ⇒ 6 层都有铜** ⇒ 净距禁区必须记满 6 层 (否则内层撞铜 ⇒ DRC 短接)
+            for li in range(6):
                 for dj in range(-ri, ri + 1):
                     for di in range(-ri, ri + 1):
                         if di * di + dj * dj > (rr / self.g) ** 2 + 1e-9:
@@ -1266,9 +1297,12 @@ DIFF_PAIRS = [
 #   · USB-C 座 = 0.5mm pitch / 0.28mm 焊盘 ⇒ 出脚只能 0.25mm
 #   ⇒ **"≥0.5mm 铜宽" 只能在出脚后的开阔区用铜皮/并联铜条实现** (本轮未做 ⇒ 下一轮)
 POWER_NETS = [
-    ("RAIL_SOM_DCIN", 0.20, 3),      # SOM 输入 (≥2A) —— 出脚限 0.2mm
-    ("RAIL_DEMO_5V", 0.25, 3),       # USB-C 5V 输入链 —— 出脚限 0.25mm
-    ("SYS_PCB", W_PWR, 2),          # 主板主供电 (电池开关后) ⇒ 0.5mm
+    ("RAIL_SOM_DCIN", 0.20, 1),      # SOM 输入 (≥2A) —— 出脚限 0.2mm
+    ("RAIL_DEMO_5V", 0.25, 1),       # USB-C 5V 输入链 —— 出脚限 0.25mm
+    ("SYS_PCB", W_PWR, 1),           # 主板主供电 (电池开关后) ⇒ 0.5mm
+    # ★**过孔阵列 (via_count>1) 暂时关闭**: 阵列里的外围孔没有走线穿过
+    #   ⇒ KiCad 报 via_dangling (7 条) ⇒ ★"坏掉的过孔阵列比没有阵列更糟"
+    #   ⇒ 大电流过孔阵列要在下一轮**连同铜皮**一起做 (见 ROUTING_REPORT §4)
     ("VDD_3V3_IO", W_SIG, 1),
     ("VDD_1V8_IO", W_SIG, 1),
     ("LIGHT_3V3", W_SIG, 1),
