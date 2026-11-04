@@ -1729,3 +1729,15 @@ ExecStart=... /home/radxa/v31_v4l2_od_rtsp /dev/video0 640 480 2 86400 /etc/npu/
   4. ★**原厂若有"不要焊/不要接"的建议 (如 TMP117 散热焊盘: 不接器件地、建议不焊以保精度)**, 那就**照做**, 并把理由写进文档 —— **贴皮肤测温尤其要照做**。
   5. ★**land pattern 从原厂图纸取**: 优先抄 KiCad 库 (KiCad 库有 ⇒ 直接用); 没有 ⇒ ★**从原厂图纸的矢量路径反解几何** (本次: 用 pdftocairo -svg 提路径 + 文本 bbox 对齐标注, 比例由两个标注互证得出 59.48 pt/mm) ⇒ 比人眼读工程图可靠。
 - ★**落账**: ISS-178 fixed · `state/tmp117_footprint.py` (自绘官方封装) · `HW/PCB/pinout_footprint.json` parts.U_TEMP · `HW/PCB/PINOUT_FOOTPRINT_SPEC.md` §11.5 · tracker §(1.81)
+
+### 【【铁律】状态推送不能只有一路 —— 微信通道会静默挂 23 小时 (2026-11-04 08:3x 实测)】
+- **现象**: `ARS45 状态速报 (每小时推微信)` 从 11-03 09:09 最后一次成功起, **连挂 24 次** (含我手动 run 一次复现), 错误固定为
+  `OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed` ⇒ ⇒ **老板手机上看不到任何状态, 我这边却"一切正常"** ⇒ 23 小时后才被老板一句"分析结果如何"发现。
+- **排查要点 (可复用)**:
+  1. ★**先手动 run 一次同一个 job 复现** —— 若手动也错 ⇒ 是**通道侧出消息失败**, 不是 cron 配置/任务书问题 (否则白查 cron)。
+  2. ★**分清"收"和"发"**: `~/.openclaw/openclaw-weixin/accounts/*.sync.json` 今早还在更新 ⇒ **长轮询(收)还活着** ⇒ 只有 sendMessage 挂 ⇒ 怀疑 bot 会话 / `context_token` 过期 (Tencent iLink bot API)。
+  3. ★**失败的消息不丢**: 全堆在 `~/.openclaw/delivery-queue/*.json` (含渲染计划) ⇒ 通道修好后有得补发。
+  4. 修法: 老板在微信里给机器人发一条消息刷新 context, 或 `openclaw channels login --channel openclaw-weixin` 重新扫码。
+- ★**结构性教训**: 主动推送 = **唯一一路状态源** ⇒ 挂了没人知道 ⇒ **状态必须多路投递** (微信 + GitHub + 本地 `STATUS_DIGEST.md`/`TODO.md`), 且要有**投递健康自检** (同一 job 连挂 N 次 ⇒ 主动报老板, 而不是等老板来问)。
+- ★**另外一条**: `cron` 的 run 收场错误 ≠ 活没干 (11-03 的 `ARS45 继续执行后继计划` 以 `EmbeddedAttemptSessionTakeoverError` 收场, 但**产出完整** + 派了 ISS-159) ⇒ ★**判"活干没干"看文件 mtime / 报告内容, 不看 run 状态** (同"0 产出"铁律, 反向也成立)。
+- ★**落账**: `memory/2026-11-04.md` §三/§四
