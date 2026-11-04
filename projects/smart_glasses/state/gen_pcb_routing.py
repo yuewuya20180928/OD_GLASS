@@ -223,6 +223,15 @@ class GridRouter:
         self.tracks = []            # (net, x1,y1,x2,y2,li,width)
         self.vias = []              # (net, x, y, l1, l2)
         self.via_cells = {}         # ★格 → 该格附近的过孔坐标 (同网孔间距检查用)
+        # ★★2026-11-05 **过孔邻近的粗粒度空间哈希** (1mm 格)
+        #   ★_via_too_close 在 A* 里被调用**几十万次** ⇒ 逐格 (7×7=49) 查太慢
+        #   ⇒ 改查 1mm 粗格 (3×3=9 次查) ⇒ 提速 ~5 倍, 结果完全一样
+        self.via_hash = {}           # (cx, cy) → [(x, y), ...]
+        # ★★2026-11-05 **差分对耦合布线参数** (★P/N 成对走线时临时生效)
+        self.pair_partner = None     # ★伙伴网的网名 (halo 豁免)
+        self.pair_dist = None        # (dist_map, min_d) —— 与伙伴铜的最小格距
+        self.pair_exempt = set()     # ★自己焊盘占的格 (不受距离约束)
+        self.pair_pad_block = set()  # ★伙伴焊盘周围的格 (不许穿)
         self._build_pads()
 
     # ------------------------------------------------ 索引
@@ -468,7 +477,13 @@ class GridRouter:
            ★★**预算按"扩展次数"算, 不是按状态数算** —— 状态数是 (格 × 层),
              开了 3 个信号层后同一个物理区域的状态数 ×3 ⇒ 用状态数当预算
              ⇒ 搜索半径被悄悄砍到 1/3 ⇒ 该通的线也布不出来
-             ★扩展次数 = 物理覆盖面积 ⇒ 与层数无关 ⇒ 换层后行为稳定"""
+             ★扩展次数 = 物理覆盖面积 ⇒ 与层数无关 ⇒ 换层后行为稳定
+
+           ★★2026-11-04 **启发式加上"层差代价"** ——
+             原来的 h 只算"到目标包围盒的平面距离" ⇒ **完全不知道换层要花钱**
+             ⇒ A* 会在 3 个信号层之间反复横跳 ⇒ ★**预算 (15 万次扩展) 很快烧光**
+             ⇒ 实测 82 个失败脚里 **52 个是"预算耗尽"** (不是真堵死)
+             ⇒ 现在 h 额外加上"最少要换几次层 × VIA_COST" ⇒ ★**搜索方向正确 ⇒ 又快又通**"""
         INF = float("inf")
         gsc = {}
         came = {}
@@ -479,6 +494,12 @@ class GridRouter:
             return None
         bx0, bx1 = min(gx), max(gx)
         by0, by1 = min(gy), max(gy)
+        # ★目标可能在哪几层 (层差 ⇒ 至少要换几次层)
+        goal_lis = sorted(set(l for (l, k) in goals))
+
+        def lay_cost(li):
+            """从当前层 li 到最近的目标层 ⇒ 最少要换几次层 (RLAY_NBRS = 0-2-4 链)"""
+            return min(abs(li - gl) // 2 for gl in goal_lis)
 
         def h_of(li, idx):
             i, j = idx % self.W, idx // self.W
@@ -492,7 +513,9 @@ class GridRouter:
                 dy = by0 - j
             elif j > by1:
                 dy = j - by1
-            return (dx + dy) + (math.sqrt(2.0) - 1.0) * min(dx, dy)
+            plan = (dx + dy) + (math.sqrt(2.0) - 1.0) * min(dx, dy)
+            # ★换层代价 (可采纳: 每次换层至少花 VIA_COST)
+            return plan + lay_cost(li) * VIA_COST
 
         cnt = 0
         for s in start:
@@ -573,6 +596,7 @@ class GridRouter:
         order = self._mst_order(pads)
         connected_pads = []
         stubs = {}
+        nfail_trunk = 0
 
         def anchor(pad):
             """★这个焊盘的 A* 锚点 (出脚直道终点) + 出脚直道"""
@@ -600,8 +624,11 @@ class GridRouter:
                     if path is not None:
                         width = W_MIN
                 if path:
-                    self._emit_path(net, path, width, via_count,
-                                    stub_start=stb, stub_end=sta)
+                    # ★★2026-11-04 23:58 **换层点过孔落不下 ⇒ 整条路径放弃** (不留断铜)
+                    if not self._emit_path(net, path, width, via_count,
+                                           stub_start=stb, stub_end=sta):
+                        nfail_trunk = nfail_trunk + 1
+                        continue
                     trunk_cells = set(path)
                     connected_pads += [ta, tb]
         gx = sum(p[2] for p in pads) / len(pads)
@@ -656,14 +683,23 @@ class GridRouter:
                     "stub": bool(stub_s),
                 })
                 continue
-            self._emit_path(net, path, width, via_count,
-                            stub_start=stub_s, stub_end=stub_g)
+            # ★★2026-11-04 23:58 **换层点过孔落不下 ⇒ 整条路径放弃** (不留断铜)
+            if not self._emit_path(net, path, width, via_count,
+                                   stub_start=stub_s, stub_end=stub_g):
+                nfail += 1
+                ok = False
+                self.fail_reasons[net] = self.fail_reasons.get(net, 0) + 1
+                self.fail_detail.append({
+                    "net": net, "pad": "%s.%s" % (pad[0], pad[1]),
+                    "reason": "via_conflict",
+                })
+                continue
             tree |= set(path)
             connected_pads.append(pad)
         length = self.net_length(net)
         self.routed.add(net)
         return {"ok": ok, "segs": len(self.tracks), "len": round(length, 3),
-                "fail": nfail, "net": net}
+                "fail": nfail + nfail_trunk, "net": net}
 
     def _mst_order(self, pads):
         """Prim 最小生成树 ⇒ 好的布线顺序"""
@@ -815,18 +851,35 @@ class GridRouter:
         return None
 
     # ------------------------------------------------ GND 平面下拉过孔
-    def route_gnd_drops(self, net="GND", max_r_mm=3.0, via_top=0, via_bot=5):
+    def route_gnd_drops(self, net="GND", max_r_mm=4.0, via_top=0, via_bot=5):
         """★GND 焊盘 → 短走线 → 通孔 → L2/L6 完整 GND 平面
            (SMD 焊盘在 F.Cu ⇒ 必须靠过孔下到平面; ★通孔一层平面都连得上)
+
+           ★★2026-11-04 **用"出脚直道"出脚** (与 route_net 同一个机制) ——
+             上一版直接从**焊盘中心格**起走 ⇒ 密集器件区 (0402/0603 侧边全是别的网焊盘)
+             ⇒ 起点周围全被封死 ⇒ ★**31 个 GND 焊盘一根铜都没接上**
+             ⇒ 现在: 先沿焊盘中心线**直着出脚** (直线出脚才有机会挤出焊盘阵),
+               再从直道末端去找过孔位
            返回 (成功数, 失败数)"""
         pads = list(self.net_pads.get(net, []))
         ok = 0
         fail = 0
-        used_vias = []          # ★已用过的过孔位置 (孔间距 ≥0.55mm ⇒ 不叠孔)
+        used_vias = []          # ★已用过的过孔位置 (孔间距 ≥0.60mm ⇒ 不叠孔)
+        # ★诊断: 失败原因分类 (★不猜 ⇒ 逐个记)
+        why = {"free": 0, "inpad": 0, "viafree": 0, "spacing": 0, "astar": 0}
         for pad in pads:
             _ref, _num, cx, cy, _layers = pad
             done = False
-            for r_mm in (0.8, 1.2, 1.6, 2.0, 2.5, 3.0):
+            # ★出脚直道 (与 route_net 的 anchor() 同一套逻辑)
+            anchor = self.escape_stub(net, pad)
+            if anchor:
+                ax, ay = anchor
+                start_cells = [(0, self._idx(self._ci(ax), self._cj(ay)))]
+                stub_start = (cx, cy, ax, ay)
+            else:
+                start_cells = list(self._pad_cells(net, pad))
+                stub_start = None
+            for r_mm in (0.8, 1.2, 1.6, 2.0, 2.5, 3.0, 3.5, 4.0):
                 if r_mm > max_r_mm:
                     break
                 for cand in self._ring_cells(cx, cy, r_mm):
@@ -836,21 +889,31 @@ class GridRouter:
                     idx = self._idx(i, j)
                     px, py = self._cx(i), self._cy(j)
                     if not self._free(0, idx, net):
+                        why["free"] += 1
                         continue
                     if self._in_pad(px, py):
+                        why["inpad"] += 1
                         continue
                     if not self._via_free_all(idx, net):
+                        why["viafree"] += 1
                         continue
                     # ★孔间距: 0.3 钻 + 0.25 最小孔间距 ⇒ 孔心距 ≥0.55mm
                     if any(math.hypot(px - ux, py - uy) < 0.60 for (ux, uy) in used_vias):
+                        why["spacing"] += 1
                         continue
-                    path = self._astar(list(self._pad_cells(net, pad)), {(0, idx)},
+                    path = self._astar(start_cells, {(0, idx)},
                                        net, max_via=False)
                     if path is None:
+                        why["astar"] += 1
                         continue
-                    self._emit_path(net, path, W_SIG, 1)
+                    # ★★★2026-11-04 **过孔必须真落下来** (否则铜从一层跳到另一层却没孔)
+                    if not self._emit_path(net, path, W_SIG, 1,
+                                           stub_start=stub_start):
+                        why["astar"] += 1
+                        continue
                     self.vias.append((net, px, py, via_top, via_bot))
                     self.via_cells.setdefault(idx, []).append((px, py))
+                    self._add_via_hash(px, py)
                     self._add_via_halo(net, px, py, via_top, via_bot)
                     used_vias.append((px, py))
                     ok += 1
@@ -860,6 +923,7 @@ class GridRouter:
                     break
             if not done:
                 fail += 1
+        self.gnd_fail_why = why
         return (ok, fail)
 
     def _ring_cells(self, cx, cy, r_mm):
@@ -896,6 +960,137 @@ class GridRouter:
                 return False
         return True
 
+    # ------------------------------------------------ 后处理: 删退化图元
+    def cleanup_geometry(self, verbose=True):
+        """★★ **布线后处理** (★落盘前最后一道闸) —— ★**目的: DRC 归零**
+
+        ★**为什么必须有这一步 (不是"擦屁股", 是"兜底")**:
+          路由器在"出脚直道 → 栅格路径"的衔接处会留下两类退化图元:
+            ① **零长段** (start == end) —— ★KiCad 直接报 `track_dangling`
+               (实测: 一条 0.0000mm 的 track = 两个端点重合 ⇒ KiCad 认为它没接上)
+            ② **接不上的短段** —— ★层间过渡段的两端没有落到过孔上
+               (过孔被 `_via_too_close` 跳过 ⇒ 铜从一层"跳"到另一层但中间没孔)
+        ★**只改布出来的几何** —— ★**绝不改板子的设计规则** (min hole / clearance 都不许动)
+
+        算法:
+          1) 删零长段 (start == end)
+          2) 统计每个"点" (焊盘 / 过孔 / 段端点) 被几个图元碰到
+             某个端点**只被本段碰到**且**不在任何焊盘/过孔上** ⇒ 悬空 ⇒ 删整段
+             ★**同层的 T 型接头算"接上"** (端点落在另一段的中段上 ⇒ 铜是连通的)
+          3) 迭代到收敛 (删掉一段 ⇒ 相邻段的端点可能跟着悬空)
+        返回 (删掉的段数, 删掉的过孔数)"""
+        EPS = 1e-4
+
+        # ---------- 1) 删零长段 ----------
+        n0 = len(self.tracks)
+        self.tracks = [s for s in self.tracks
+                       if not (abs(s[1] - s[3]) < EPS and abs(s[2] - s[4]) < EPS)]
+        n_zero = n0 - len(self.tracks)
+
+        # ---------- 索引 ----------
+        # 焊盘 (同网) 的矩形覆盖 —— ★焊盘**面积**内的端点都算接上 (不只中心)
+        pad_by_layer = defaultdict(list)
+        for (net, x0, y0, x1, y1, layers) in self.pad_rects_l:
+            for li in layers:
+                pad_by_layer[li].append((net, x0, y0, x1, y1))
+        # 过孔点 —— ★过孔是**通孔** (F.Cu..B.Cu) ⇒ 6 层都算接上
+        via_pts = set()
+        for (net, x, y, l1, l2) in self.vias:
+            for li in range(6):
+                via_pts.add((li, round(x, 4), round(y, 4)))
+
+        def _on_pad(net, li, x, y):
+            for (n2, x0, y0, x1, y1) in pad_by_layer.get(li, ()):
+                if n2 == net and x0 - EPS <= x <= x1 + EPS and y0 - EPS <= y <= y1 + EPS:
+                    return True
+            return False
+
+        # 段的空间哈希 (1mm 格) —— 用来判 T 型接头 (端点落在别段中段上)
+        CELL = 1.0
+        seg_hash = defaultdict(list)
+        for i, s in enumerate(self.tracks):
+            x1, y1, x2, y2 = s[1], s[2], s[3], s[4]
+            for ci in range(int(math.floor(min(x1, x2) / CELL)),
+                            int(math.floor(max(x1, x2) / CELL)) + 1):
+                for cj in range(int(math.floor(min(y1, y2) / CELL)),
+                                int(math.floor(max(y1, y2) / CELL)) + 1):
+                    seg_hash[(ci, cj)].append(i)
+
+        def _t_junction(net, li, x, y, self_idx):
+            """端点 (x,y) 是否落在**同网同层**另一段的中段上 (⇒ 铜是连通的)"""
+            key = (int(math.floor(x / CELL)), int(math.floor(y / CELL)))
+            for j in seg_hash.get(key, ()):
+                if j == self_idx:
+                    continue
+                s = self.tracks[j]
+                if s[0] != net or s[5] != li:
+                    continue
+                if _pt_seg_dist(x, y, s[1], s[2], s[3], s[4]) <= s[6] / 2.0 + EPS:
+                    return True
+            return False
+
+        # ---------- 2) 删悬空端段 (迭代到收敛) ----------
+        n_dang = 0
+        for _round in range(40):
+            # 每个点的"段端点计数" (同层)
+            ep_cnt = defaultdict(int)
+            for s in self.tracks:
+                ep_cnt[(s[5], round(s[1], 4), round(s[2], 4))] += 1
+                ep_cnt[(s[5], round(s[3], 4), round(s[4], 4))] += 1
+            drop = set()
+            for i, s in enumerate(self.tracks):
+                net, li = s[0], s[5]
+                for (px, py) in ((s[1], s[2]), (s[3], s[4])):
+                    if (li, round(px, 4), round(py, 4)) in via_pts:
+                        continue                      # 落在过孔上 ⇒ 接上
+                    if _on_pad(net, li, px, py):
+                        continue                      # 落在焊盘上 ⇒ 接上
+                    if ep_cnt[(li, round(px, 4), round(py, 4))] > 1:
+                        continue                      # 别的段端点也在 ⇒ 接上
+                    if _t_junction(net, li, px, py, i):
+                        continue                      # T 型接头 ⇒ 接上
+                    drop.add(i)                       # ★悬空
+                    break
+            if not drop:
+                break
+            # 删掉悬空段后重建哈希
+            keep = [s for i, s in enumerate(self.tracks) if i not in drop]
+            n_dang += len(self.tracks) - len(keep)
+            self.tracks = keep
+            seg_hash = defaultdict(list)
+            for i, s in enumerate(self.tracks):
+                x1, y1, x2, y2 = s[1], s[2], s[3], s[4]
+                for ci in range(int(math.floor(min(x1, x2) / CELL)),
+                                int(math.floor(max(x1, x2) / CELL)) + 1):
+                    for cj in range(int(math.floor(min(y1, y2) / CELL)),
+                                    int(math.floor(max(y1, y2) / CELL)) + 1):
+                        seg_hash[(ci, cj)].append(i)
+
+        # ---------- 3) 删没有走线接上的孤立过孔 (KiCad 报 via_dangling) ----------
+        touch = set()
+        for s in self.tracks:
+            touch.add((s[5], round(s[1], 4), round(s[2], 4)))
+            touch.add((s[5], round(s[3], 4), round(s[4], 4)))
+        n_via_drop = 0
+        keep_v = []
+        for v in self.vias:
+            net, x, y = v[0], v[1], v[2]
+            anchored = False
+            for li in range(6):
+                if (li, round(x, 4), round(y, 4)) in touch:
+                    anchored = True
+                    break
+            if not anchored and not _on_pad(net, 0, x, y):
+                n_via_drop += 1
+                continue
+            keep_v.append(v)
+        self.vias = keep_v
+
+        if verbose and (n_zero or n_dang or n_via_drop):
+            print("  [CLEAN] 后处理: 删零长段 %d / 删悬空段 %d / 删孤立过孔 %d"
+                  % (n_zero, n_dang, n_via_drop))
+        return n_zero, n_dang, n_via_drop
+
     # ------------------------------------------------ 长度配平 (蛇形)
     def add_meander(self, net, extra_mm):
         """给 net 加一段三角凸起, 走线长度增加 extra_mm (mm)
@@ -924,10 +1119,75 @@ class GridRouter:
             nx, ny = -uy * sign, ux * sign
             mid = ((s[1] + s[3]) / 2.0, (s[2] + s[4]) / 2.0)
             apex = (mid[0] + nx * a, mid[1] + ny * a)
-            if self._free_line(apex, net, s[5]):
-                self._insert_meander(net, s, mid, apex, ux, uy, base)
-                return extra_mm
+            # ★★★2026-11-05 **整条蛇形都要查净距** ——
+            #   上一版只查了顶点 (apex) 一个点 ⇒ ★**两条斜边可以横穿别的网的铜**
+            #   ⇒ 实测 DRC: "tracks_crossing" + 2 条 "shorting_items"
+            #   (LIGHT_1V8 的 In2.Cu 走线 被 CSI_D0_D0_P 的蛇形斜边横穿)
+            #   ⇒ 现在: 拼出 4 段完整几何, **逐段** 对**所有别的网的铜**查净距
+            d = base / 2.0
+            p_in = (mid[0] - ux * d, mid[1] - uy * d)
+            p_out = (mid[0] + ux * d, mid[1] + uy * d)
+            cand = [
+                (s[1], s[2], p_in[0], p_in[1]),
+                (p_in[0], p_in[1], apex[0], apex[1]),
+                (apex[0], apex[1], p_out[0], p_out[1]),
+                (p_out[0], p_out[1], s[3], s[4]),
+            ]
+            if not self._geom_clear(net, cand, s[5], s[6]):
+                continue
+            self._insert_meander(net, s, mid, apex, ux, uy, base)
+            return extra_mm
         return 0.0
+
+    def _geom_clear(self, net, segs, li, w=W_SIG):
+        """★这几段几何 vs **别的网的所有铜** (同层走线 + 所有过孔 + 同层焊盘) 净距够不够?
+           ★**蛇形配平必须走这一步** —— 蛇形是**离网格**的斜线 ⇒ 栅格 halo 管不到"""
+        for (x1, y1, x2, y2) in segs:
+            # --- 同层走线 ---
+            for (n2, tx1, ty1, tx2, ty2, tli, tw) in self.tracks:
+                if n2 == net or tli != li:
+                    continue
+                need = w / 2.0 + tw / 2.0 + CLEAR
+                if _seg_seg_dist(x1, y1, x2, y2, tx1, ty1, tx2, ty2) < need:
+                    return False
+            # --- 过孔 (★实际是通孔 F.Cu..B.Cu ⇒ 所有信号层都算) ---
+            for (n2, vx, vy, l1, l2) in self.vias:
+                if n2 == net:
+                    continue
+                need = w / 2.0 + VIA_DIA / 2.0 + CLEAR
+                if _pt_seg_dist(vx, vy, x1, y1, x2, y2) < need:
+                    return False
+            # --- 焊盘 (别的网的焊盘 ⇒ 穿过去就是短路) ★只查**本层真有铜**的焊盘
+            for (n2, x0, y0, xp1, yp1, layers) in self.pad_rects_l:
+                if n2 == net or li not in layers:
+                    continue
+                need = w / 2.0 + CLEAR
+                if self._seg_hits_rect(x1, y1, x2, y2, x0 - need, y0 - need,
+                                       xp1 + need, yp1 + need):
+                    return False
+        return True
+
+    @staticmethod
+    def _seg_hits_rect(x1, y1, x2, y2, rx0, ry0, rx1, ry1):
+        """线段是否与矩形 (含边界) 相交 / 进入
+           ★做法: 沿线取样 + 检查矩形四个角到线段的距离 (两个都做 ⇒ 不漏)"""
+        # 1) 矩形四���到线段的距离
+        for (px, py) in ((rx0, ry0), (rx1, ry0), (rx1, ry1), (rx0, ry1)):
+            if _pt_seg_dist(px, py, x1, y1, x2, y2) <= 1e-9:
+                return True
+        # 2) 线段端点在矩形内
+        for (px, py) in ((x1, y1), (x2, y2)):
+            if rx0 <= px <= rx1 and ry0 <= py <= ry1:
+                return True
+        # 3) 线段与矩形边相交 (粗判: 采样足够密)
+        n = max(2, int(math.hypot(x2 - x1, y2 - y1) / 0.05) + 1)
+        for k in range(n + 1):
+            t = k / float(n)
+            px = x1 + (x2 - x1) * t
+            py = y1 + (y2 - y1) * t
+            if rx0 <= px <= rx1 and ry0 <= py <= ry1:
+                return True
+        return False
 
     def _free_line(self, pt, net, li):
         """凸起顶点附近有没有别的网的铜"""
@@ -965,19 +1225,21 @@ class GridRouter:
     def _emit_path(self, net, path, width, via_count=1,
                    stub_start=None, stub_end=None):
         """★stub_start/stub_end = (焊盘中心x, 中心y, 直道终点x, 终点y)
-           —— 密集焊盘出脚: 先沿中心线直线走, 再进网格"""
-        if stub_start:
-            sx, sy, ex, ey = stub_start
-            self.tracks.append((net, sx, sy, ex, ey, 0, W_MIN))
-            self._add_track_halo(net, sx, sy, ex, ey, 0, W_MIN)
-        if stub_end:
-            gx, gy, ex, ey = stub_end
-            self.tracks.append((net, ex, ey, gx, gy, 0, W_MIN))
-            self._add_track_halo(net, ex, ey, gx, gy, 0, W_MIN)
+           —— 密集焊盘出脚: 先沿中心线直线走, 再进网格
+
+        ★★2026-11-04 23:58 **换层点必须先确认过孔能落下来** ——
+          原来的写法: 边走边打孔, 打孔失败 (被 _via_too_close 跳过) 就**继续往下走**
+          ⇒ ★**铜从一层"跳"到另一层但中间没孔** ⇒ 两端悬空 ⇒ DRC track_dangling
+          ⇒ 现在: 先把本路径所有换层点**一次性预校验** (含路径内部互相间距),
+            任何一个落不下 ⇒ ★**整条路径放弃** (不落铜) ⇒ 宁可这个脚不通, 也不留断铜
+        返回 True = 已落铜; False = 放弃 (调用方计入失败)"""
+        # ---------- 0) 构造路径点 ----------
         pts = []
         for (li, idx) in path:
             i, j = idx % self.W, idx // self.W
             pts.append([li, self._cx(i), self._cy(j)])
+        if not pts:
+            return True
         if stub_start:
             pts[0][1], pts[0][2] = stub_start[2], stub_start[3]
         else:
@@ -993,6 +1255,38 @@ class GridRouter:
             if pn and pn[0] == net:
                 if len(pts) > 1 and self._edge_seg_ok(pn[1], pn[2], pts[-2][1], pts[-2][2], width):
                     pts[-1][1], pts[-1][2] = pn[1], pn[2]
+
+        # ---------- 1) 收集换层点 ----------
+        # ★**层间过渡的两端坐标相同** (A* 的换层是同格换层) ⇒ 落铜时会产生**零长段**
+        #   ⇒ 零长段是**退化图元** ⇒ 交给 cleanup_geometry 统一清掉
+        trans = []
+        for k in range(len(pts) - 1):
+            la, xa, ya = pts[k]
+            lb, xb, yb = pts[k + 1]
+            if la != lb:
+                trans.append((xa, ya, la, lb))
+
+        # ---------- 2) 预校验所有换层点 (含路径内部互相间距) ----------
+        for (x, y, la, lb) in trans:
+            l1, l2 = (la, lb) if la < lb else (lb, la)
+            if not self._via_ok(l1, l2, self._idx(self._ci(x), self._cj(y)), net):
+                return False
+            # ★**同一条路径里的两个换层点也不能太近** (否则第二个孔放不下)
+            for (x2, y2, _a, _b) in trans:
+                if x2 == x and y2 == y:
+                    continue
+                if math.hypot(x - x2, y - y2) < MIN_VIA_CENTER:
+                    return False
+
+        # ---------- 3) 落铜 ----------
+        if stub_start:
+            sx, sy, ex, ey = stub_start
+            self.tracks.append((net, sx, sy, ex, ey, 0, W_MIN))
+            self._add_track_halo(net, sx, sy, ex, ey, 0, W_MIN)
+        if stub_end:
+            gx, gy, ex, ey = stub_end
+            self.tracks.append((net, ex, ey, gx, gy, 0, W_MIN))
+            self._add_track_halo(net, ex, ey, gx, gy, 0, W_MIN)
         seg = []
         for k in range(len(pts) - 1):
             la, xa, ya = pts[k]
@@ -1021,6 +1315,7 @@ class GridRouter:
         for s in merged:
             self.tracks.append(s)
             self._add_track_halo(s[0], s[1], s[2], s[3], s[4], s[5], s[6])
+        return True
 
     def _emit_via(self, net, x, y, la, lb, count=1):
         l1, l2 = (la, lb) if la < lb else (lb, la)
@@ -1031,15 +1326,18 @@ class GridRouter:
             vs = [(x + (k - (count - 1) / 2.0) * 0.85, y)
                   for k in range(count)]
         for (vx, vy) in vs:
-            # ★**同一个网的两颗孔间距 ≥ 0.56mm** (孔径 0.3 ⇒ 孔到孔 ≥ 0.25mm)
+            # ★**同一个网的两颗孔间距 ≥ 0.58mm** (孔径 0.3 ⇒ 孔到孔 ≥ 0.25mm)
             #   ★同网的过孔**不互斥** (halo 里同网不算冲突) ⇒ 上限没管住
             #   ⇒ 上一版 DRC: holes co-located 64 条 + hole to hole 5 条
+            # ★★2026-11-04 23:50 **这条现在也在 A\* 里查了 (见 _via_ok)** ——
+            #   ⇒ A\* 不会规划"落不下过孔的换层点" ⇒ ★**层间过渡段不会断**
             if self._via_too_close(net, vx, vy):
                 continue
             if not self._via_ok(l1, l2, self._idx(self._ci(vx), self._cj(vy)), net):
                 continue
             self.vias.append((net, vx, vy, l1, l2))
             self.via_cells.setdefault(self._idx(self._ci(vx), self._cj(vy)), []).append((vx, vy))
+            self._add_via_hash(vx, vy)
             self._add_via_halo(net, vx, vy, l1, l2)
 
     def _via_too_close(self, net, vx, vy, mind=0.58):
@@ -1048,14 +1346,22 @@ class GridRouter:
         ★★2026-11-04 22:45 修 (真正的根因): 原来只扫 **3×3 邻格** (±0.25mm) ⇒ ★**够不着 0.56mm 内的其它过孔**
         ⇒ 两颗过孔中心距 0.5mm (孔到孔 0.2mm) 竟然没被拦住 ⇒ DRC 出 hole_to_hole。
         ⇒ 现在扫 ±3 格 (±0.75mm) 才覆盖 mind=0.58。
+
+        ★★2026-11-05 **改用 1mm 粗粒度哈希** (★性能: 这个函数在 A* 里被调用几十万次)
+           ⇒ 3×3=9 次查表 (而不是 49 次) ⇒ 结果一样, 速度 ~5×
         """
-        i, j = self._ci(vx), self._cj(vy)
-        for dj in (-3, -2, -1, 0, 1, 2, 3):
-            for di in (-3, -2, -1, 0, 1, 2, 3):
-                for (ux, uy) in self.via_cells.get(self._idx(i + di, j + dj), ()):
+        cx = int(math.floor(vx))
+        cy = int(math.floor(vy))
+        for dj in (-1, 0, 1):
+            for di in (-1, 0, 1):
+                for (ux, uy) in self.via_hash.get((cx + di, cy + dj), ()):
                     if math.hypot(vx - ux, vy - uy) < mind:
                         return True
         return False
+
+    def _add_via_hash(self, vx, vy):
+        self.via_hash.setdefault((int(math.floor(vx)), int(math.floor(vy))),
+                                 []).append((vx, vy))
 
     def _add_track_halo(self, net, x1, y1, x2, y2, li, w=W_SIG):
         """走线净距禁区: 半径 = 净距 + 本线半宽 + 对方半宽 (按级别分别登记)"""
@@ -1468,9 +1774,17 @@ def route_board(board, verbose=True):
     ok, fail = r.route_gnd_drops("GND")
     stats["gnd"] = {"drops": ok, "fail": fail}
     if verbose:
-        print("  [GND ] 下拉过孔 %d 成功 / %d 失败" % (ok, fail))
+        print("  [GND ] 下拉过孔 %d 成功 / %d 失败  (失败原因 %s)"
+              % (ok, fail, getattr(r, "gnd_fail_why", {})))
 
     # ---------- 6) 落板 + 填平面
+    # ★★2026-11-04 23:55 **先做几何后处理, 再落板** ——
+    #   路由器的"出脚直道 → 栅格路径"衔接处会留下退化图元 (零长段 / 悬空短段)
+    #   ⇒ ★**落盘前清掉** ⇒ DRC 归零 (只改几何, 不改板子的设计规则)
+    n_zero, n_dang, n_via_drop = r.cleanup_geometry(verbose=verbose)
+    stats["clean_zero"] = n_zero
+    stats["clean_dangling"] = n_dang
+    stats["clean_via"] = n_via_drop
     n_new = r.commit(board)
     stats["tracks"] = len(r.tracks)
     stats["vias"] = len(r.vias)
