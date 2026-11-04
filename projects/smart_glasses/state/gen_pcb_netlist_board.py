@@ -514,56 +514,221 @@ def main():
         w, h, _per, _pitch, _nr = size_of(kind, len(pins))
         items.append((ref, pins, kind, w, h))
     items.sort(key=lambda it: (round(it[4], 1), it[3]))
-    px, py = PK_AREA[0], PK_AREA[1]
-    row_h = 0.0
-    placed = 0
-    DROPPED = []   # ★2026-11-05 05:10: **被丢掉的器件必须全部报出来** (之前静默丢 ⇒ parity 里才看得出)
-    for (ref, pins, kind, w, h) in items:
-        if px + w > PK_AREA[2]:
-            px = PK_AREA[0]
-            py += row_h + 3.0
-            row_h = 0.0
-        if py + h > PK_AREA[3]:
-            print(f"⚠️ 装不下: {ref} (y={py:.1f}) ⇒ 需要更大板或更紧的间距")
-            DROPPED.append(ref)
-            break
-        # ★禁放区 (USB-C 座区) —— 撞上就换一行
-        # ★★2026-11-05 05:10 **修: 原来撞禁放区直接 `continue` ⇒ 那个器件被"静默丢掉"** (换行后没有重试)
-        #   ⇒ ★实测后果: C_BULK_SENSOR_AVDD 的封装压根没画到板上 ⇒ parity 报"缺失 2" ⇒ ★G1 卡在 parity
-        #   ⇒ 改成: 换行后**重新试放这个器件** (死循环保护 60 次)
-        _retry = 0
-        while any(not (px + w <= rx0 or px >= rx1 or py + h <= ry0 or py >= ry1)
-                  for (rx0, ry0, rx1, ry1) in RESERVED):
-            px = PK_AREA[0]
-            py += row_h + 3.0
-            row_h = 0.0
-            _retry += 1
-            if py + h > PK_AREA[3]:
-                print(f"⚠️ 装不下(禁放区反复挡): {ref} (y={py:.1f})")
-                DROPPED.append(ref)
-                break
-            if _retry > 60:
-                print(f"⚠️ 禁放区重试 60 次仍挡: {ref} ⇒ 放弃放置")
-                DROPPED.append(ref)
-                break
-        if ref in DROPPED:
+    # ★★2026-11-05 06:55 **排版第二版: 按 SoM 针脚行排序** (★把长线变短线)
+    #   实测 (v21 的 101 个未连接项): ★**失败网全是 80~140mm 的长线**
+    #     例: DSI_D0_D2_N_SRC = J_SOM_P3.75(20.0, 8.0) ↔ R_SEL_D2_N(155.7, 21.6) = **136.4mm**
+    #   ⇒ 根因: 器件区在 x 78..157, 而小件按"高矮宽窄"随便排 ⇒ ★**SoM 相连的小件全被甩到板子右边**
+    #     (串阻 R_SER_*/R_SEL_*/R_PU_*, AC 电容 C_AC_*, 测试点 TP_* ⇒ 全是 SoM 信号的伙伴件)
+    #   ⇒ 修法: ① 算出每个器件的 **SoM 锚点** (它连的那个 BTB 焊盘的板面坐标)
+    #            ② ★**SoM 相连的器件先排** (按锚点 y 排 ⇒ 上排 BTB 的伙伴件排在板子上部)
+    #            ③ 其余器件后排 (维持原"高矮宽窄"顺序 ⇒ **装箱行为不变 ⇒ 不会掉件**)
+    #   ⇒ 效果预估: SoM 相连件的 x 距离从 ~130mm 降到 ~60mm ⇒ 总线长 136mm → ~70mm
+    def _som_pad_positions():
+        """J_SOM_* 每个焊盘的板面坐标 (规则见 state/som_btb_footprint.py, 与实物一致)"""
+        import json as _json
+        try:
+            P = _json.load(open(os.path.join(PROJ, "HW", "PCB", "som_btb_params.json"),
+                                encoding="utf-8"))
+        except Exception:
+            return {}
+        ox, oy = P["som_origin"]
+        pitch = P["pitch"]; rp = P["row_pitch"]
+        contacts = P["contacts"]; rows = P["rows"]
+        half = contacts // rows
+        pos = {}
+        for conn, (cx, cy) in P["conn_centers"].items():
+            px, py = ox + cx, oy + cy
+            for n in range(1, contacts + 1):
+                if n % 2 == 1:
+                    k = (n - 1) // 2; row_y = -rp / 2.0
+                else:
+                    k = (n - 2) // 2; row_y = +rp / 2.0
+                pos[("J_SOM_%s" % conn, str(n))] = (px + ((half - 1) / 2.0 - k) * pitch,
+                                                   py + row_y)
+        return pos
+
+    _SOMPOS = _som_pad_positions()
+    _net2som = {}
+    for _ref, _pads in per_ref.items():
+        if not _ref.startswith("J_SOM_"):
             continue
-        if ref == "U_TEMP":
-            # ★TMP117 = WSON-6 (DRV0006B) 官方封装 —— 通用 IC 封装是"假封装" (1.27mm pitch) ⇒ 单独画
-            add_tmp117(board, netmap, pins, px + w / 2.0, py + h / 2.0)
-        else:
-            ov = PLACE_OVERRIDE.get(ref)
-            if ov:
-                # ★人工干预位 (差分对成对布) —— 位置/旋转按表, 脚号不变
-                make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
-                               ov["x"], ov["y"], rot=ov.get("rot", 0))
+        for _p in _pads:
+            _pad_no, _net = _p[0], _p[1]
+            _xy = _SOMPOS.get((_ref, str(_pad_no)))
+            if _xy and _net:
+                _net2som.setdefault(_net, []).append(_xy)
+
+    def _anchor_of(item):
+        """器件 → 它的 SoM 锚点 (y, x); 没有则 None"""
+        _best = None
+        for _p in item[1]:
+            for _xy in _net2som.get(_p[1], ()):
+                if _best is None or _xy[1] < _best[0]:
+                    _best = (_xy[1], _xy[0])
+        return _best
+
+    # ★★2026-11-05 07:00 **排版第二版 (分带装箱)**: SoM 相连的器件按**针脚所在排**分上下两带
+    #   实测 (v21 的 101 个未连接项): ★**失败网全是 80~140mm 的长线**
+    #     例: DSI_D0_D2_N_SRC = J_SOM_P3.75(20.0,8.0) ↔ R_SEL_D2_N(155.7,21.6) = **136.4mm**
+    #   ⇒ 根因: 器件区在 x 78..157, 小件按"高矮宽窄"随便排 ⇒ ★**SoM 相连的小件全被甩到板子右边**
+    #   ⇒ 修法: ① 算每个器件的 **SoM 锚点** (它连的那个 BTB 焊盘的板面坐标)
+    #            ② 锚点在上排 BTB (y<30) 的 ⇒ 排在**上带** (y 5 起)
+    #               锚点在下排 BTB (y>=30) 的 ⇒ 排在**下带** (y 52 起) ⇒ 与针脚行对齐
+    #            ③ 其余器件排在上带与下带之间的剩余空间
+    #   ⇒ 实测 (离线对比 v21 vs 新排版): 失败网平均最长距离 68.2mm → 62.1mm;
+    #     PWR_ON -64mm · UART_RX/TX -57mm · DSI_D0_D2_N_SRC -56mm ★但底排件会变差 ⇒ 所以要分带
+    def _som_pad_positions():
+        """J_SOM_* 每个焊盘的板面坐标 (规则见 state/som_btb_footprint.py, 与实物一致)"""
+        import json as _json
+        try:
+            P = _json.load(open(os.path.join(PROJ, "HW", "PCB", "som_btb_params.json"),
+                                encoding="utf-8"))
+        except Exception:
+            return {}
+        ox, oy = P["som_origin"]
+        pitch = P["pitch"]; rp = P["row_pitch"]
+        contacts = P["contacts"]; rows = P["rows"]
+        half = contacts // rows
+        pos = {}
+        for conn, (cx, cy) in P["conn_centers"].items():
+            px, py = ox + cx, oy + cy
+            for n in range(1, contacts + 1):
+                if n % 2 == 1:
+                    k = (n - 1) // 2; row_y = -rp / 2.0
+                else:
+                    k = (n - 2) // 2; row_y = +rp / 2.0
+                pos[("J_SOM_%s" % conn, str(n))] = (px + ((half - 1) / 2.0 - k) * pitch,
+                                                   py + row_y)
+        return pos
+
+    _SOMPOS = _som_pad_positions()
+    _net2som = {}
+    for _ref, _pads in per_ref.items():
+        if not _ref.startswith("J_SOM_"):
+            continue
+        for _p in _pads:
+            _pad_no, _net = _p[0], _p[1]
+            _xy = _SOMPOS.get((_ref, str(_pad_no)))
+            if _xy and _net:
+                _net2som.setdefault(_net, []).append(_xy)
+
+    def _anchor_of(item):
+        """器件 → 它的 SoM 锚点 (y, x); 没有则 None"""
+        _best = None
+        for _p in item[1]:
+            for _xy in _net2som.get(_p[1], ()):
+                if _best is None or _xy[1] < _best[0]:
+                    _best = (_xy[1], _xy[0])
+        return _best
+
+    DROPPED = []   # ★2026-11-05 05:10: **被丢掉的器件必须全部报出来** (之前静默丢 ⇒ parity 里才看得出)
+    placed = 0
+
+    def _place_flow(flow_items, sx, sy, ex=None, ey=None):
+        """把一批器件行式装箱到 (sx, sy) 起 ⇒ 返回 (px, py, row_h, 放置数)
+           ★ex/ey = 该批器件的区域上限 (默认用 PK_AREA)"""
+        ex = PK_AREA[2] if ex is None else ex
+        ey = PK_AREA[3] if ey is None else ey
+        px, py, row_h = sx, sy, 0.0
+        cnt = 0
+        for (ref, pins, kind, w, h) in flow_items:
+            if px + w > ex:
+                px = sx
+                py += row_h + 3.0
+                row_h = 0.0
+            if py + h > ey:
+                print(f"⚠️ 装不下: {ref} (y={py:.1f}) ⇒ 需要更大板或更紧的间距")
+                DROPPED.append(ref)
+                break
+            # ★禁放区 (USB-C 座区) —— 撞上就换一行
+            # ★★2026-11-05 05:10 **修: 原来撞禁放区直接 `continue` ⇒ 那个器件被"静默丢掉"** (换行后没有重试)
+            #   ⇒ ★实测后果: C_BULK_SENSOR_AVDD 的封装压根没画到板上 ⇒ parity 报"缺失 2" ⇒ ★G1 卡在 parity
+            #   ⇒ 改成: 换行后**重新试放这个器件** (死循环保护 60 次)
+            _retry = 0
+            while any(not (px + w <= rx0 or px >= rx1 or py + h <= ry0 or py >= ry1)
+                      for (rx0, ry0, rx1, ry1) in RESERVED):
+                px = sx
+                py += row_h + 3.0
+                row_h = 0.0
+                _retry += 1
+                if py + h > ey:
+                    print(f"⚠️ 装不下(禁放区反复挡): {ref} (y={py:.1f})")
+                    DROPPED.append(ref)
+                    break
+                if _retry > 60:
+                    print(f"⚠️ 禁放区重试 60 次仍挡: {ref} ⇒ 放弃放置")
+                    DROPPED.append(ref)
+                    break
+            if ref in DROPPED:
+                continue
+            if ref == "U_TEMP":
+                # ★TMP117 = WSON-6 (DRV0006B) 官方封装 —— 通用 IC 封装是"假封装" (1.27mm pitch) ⇒ 单独画
+                add_tmp117(board, netmap, pins, px + w / 2.0, py + h / 2.0)
             else:
-                make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
-                               px + w / 2.0, py + h / 2.0)
-        placed += 1
-        px += w + 3.0
-        row_h = max(row_h, h)
-    py += row_h + 3.0
+                ov = PLACE_OVERRIDE.get(ref)
+                if ov:
+                    # ★人工干预位 (差分对成对布) —— 位置/旋转按表, 脚号不变
+                    make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
+                                   ov["x"], ov["y"], rot=ov.get("rot", 0))
+                else:
+                    make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
+                                   px + w / 2.0, py + h / 2.0)
+            cnt += 1
+            px += w + 3.0
+            row_h = max(row_h, h)
+        return px, py, row_h, cnt
+
+    # ★分组: 上排 BTB 伙伴件 / 下排 BTB 伙伴件 / 其余
+    _grp_top, _grp_bot, _grp_rest = [], [], []
+    for it in items:
+        _a = _anchor_of(it)
+        if _a is None:
+            _grp_rest.append(it)
+        elif _a[0] < 30.0:
+            _grp_top.append(it)
+        else:
+            _grp_bot.append(it)
+    for _g, _asc in ((_grp_top, False), (_grp_bot, True)):
+        # ★排序方向: **按 SoM 针脚的 x 排序**, 方向朝着该带的 x 区间
+        #   (上带在 x 78..157 ⇒ 针脚 x 大的先占 ⇒ 离 SoM 最近的先排; 下带在 x 5..76 ⇒ 反过来)
+        _g.sort(key=lambda it, _asc=_asc: (_anchor_of(it)[0],
+                                            (_anchor_of(it)[1] if _asc else -_anchor_of(it)[1]),
+                                            round(it[4], 1), it[3]))
+    _grp_rest.sort(key=lambda it: (round(it[4], 1), it[3]))
+    print("  [排版] 上带 %d (SoM 上排针脚伙伴件) · 下带 %d (下排) · 其余 %d"
+          % (len(_grp_top), len(_grp_bot), len(_grp_rest)))
+    # ★★2026-11-05 07:10 **三区分带装箱** (★真正的省线长改法)
+    #   ★**关键发现**: 板子**左下角 x 5..76 / y 58..97 现在完全空着** (40×70 = 2800mm²)
+    #     ⇒ 而 SoM **下排** BTB 的针脚就在 y≈52 ⇒ ★把它们的伙伴件放到左下角 ⇒ 线长 60~140mm → **6~40mm**
+    #   · 下带 (SoM 下排伙伴件) → 左下角 (5, 58, 76, 97)
+    #   · 上带 (SoM 上排伙伴件) → SoM 右侧窄条 (78, 5, 88, 56) (贴着 BTB 的 +x 端)
+    #   · 其余 → 剩下的右侧区域 (88, 5, 157, 97)
+    def _area(env_name, dflt):
+        """区域 (x0,y0,x1,y1) —— 可用环境变量覆盖 (★便于扇形搜索最佳划分)"""
+        v = os.environ.get(env_name)
+        if not v:
+            return dflt
+        try:
+            a = [float(x) for x in v.split(",")]
+            if len(a) != 4:
+                return dflt
+            return tuple(a)
+        except Exception:
+            return dflt
+
+    _A_BOT = _area("PCB_AREA_BOT", (5.0, 58.0, 76.0, 97.0))
+    _A_TOP = _area("PCB_AREA_TOP", (78.0, 5.0, BOARD_W - 3.0, 22.0))
+    _A_RES = _area("PCB_AREA_RES", (78.0, 24.0, BOARD_W - 3.0, BOARD_H - 3.0))
+    pxB, pyB, rhB, nB = _place_flow(_grp_bot, _A_BOT[0], _A_BOT[1], _A_BOT[2], _A_BOT[3])
+    placed += nB
+    pxA, pyA, rhA, nA = _place_flow(_grp_top, _A_TOP[0], _A_TOP[1], _A_TOP[2], _A_TOP[3])
+    placed += nA
+    pxC, pyC, rhC, nC = _place_flow(_grp_rest, _A_RES[0], _A_RES[1], _A_RES[2], _A_RES[3])
+    placed += nC
+    px, py, row_h = pxC, pyC, rhC
+    if DROPPED:
+        print("  ❌ 装不下被丢 %d 个: %s" % (len(DROPPED), ", ".join(DROPPED)))
+        print("     ⇒ ★**parity 会挂** ⇒ 这一轮不能作为正式板")
     # SOM 承载区 (FET3572-C 68×50) + 它的 4×100pin/0.4mm BTB 座 (占位: 按 400 脚模型)
     sx, sy, sw, sh = SOM_AREA
     # ★★2026-11-03 01:0x: SOM 座 = **4 个独立 100 脚 BTB (P1..P4)** —— ★**布局待修** (当前与器件网格冲突 ⇒ DRC 非零)
@@ -608,13 +773,25 @@ def main():
     try:
         import gen_pcb_routing as RT
         print("\n─── 布线 (gen_pcb_routing) ───")
-        route_stats = RT.route_board(board)
+        if os.environ.get("PCB_SKIP_ROUTE") == "1":
+            # ★★2026-11-05 06:20 **调试开关: 跳过布线** ⇒ 只出"排版 + 平面"的板 (≈10 秒)
+            #   ⇒ ★**排版/封装改动可以秒级验证**, 不用等 40~60 分钟布线
+            print("  (PCB_SKIP_ROUTE=1 ⇒ 跳过布线)")
+            route_stats = {"skipped": True}
+        else:
+            route_stats = RT.route_board(board)
     except Exception as e:
         import traceback
         print("⚠️ 布线失败 (板子仍会生成, 但未布线): %s" % e)
         # ★★2026-11-05 04:55 **把 traceback 打出来** (之前只打一行 ⇒ 查 "list index out of range" 查不到)
         traceback.print_exc()
         traceback.print_exc()
+        # ★★2026-11-05 06:15 ★★**布线崩了 ⇒ 绝不能把"骨架板"当正式板落盘**
+        #   实测: 8 层那轮布完只剩 78 个脚 (比 6 层的 101 好!) ⇒ 结果被 except 吞掉 ⇒
+        #   骨架板 (0 走线) 反而落进了正式板 ⇒ ★**一轮好成绩白白作废**
+        #   ⇒ 现在: 布线异常 ⇒ ★**直接退出, 不落盘** (保留上一块好板) + 退出码非 0
+        print("❌ 布线异常 ⇒ ★**不落盘** (保留上一块好板) ⇒ 退出码 2")
+        sys.exit(2)
 
     # ★★2026-11-05 05:00 **先存到临时文件, 成功后再替换正式板** (★防"崩在半路把好板冲掉")
     #   实测教训: 8 层实验崩在布线中 ⇒ 生成器已把**骨架 (0 走线)**写进了官方板文件
@@ -650,6 +827,30 @@ def main():
     # ★全部成功 ⇒ 原子替换正式板 (★崩在上面的路径 ⇒ 正式板保持原样, 不会被空板覆盖)
     os.replace(_tmp_pcb, PCB)
     print("  ✓ 已原子替换正式板: %s" % PCB)
+    # ★★2026-11-05 06:30 **写"落盘时刻印"** —— ★**触发器据此判断"盘上的板是不是刚落的那块"**
+    #   事故事实: 05:57 板被**中途落盘**覆盖成骨架 (mtime=05:50) ⇒ 板侧判据照样触发自验
+    #   ⇒ 留证被写成 tracks=0 ⇒ ★**量的是一块坏板** ⇒ 自己污染了自己的证据
+    #   ⇒ 现在: 落盘时记 {at: epoch, tracks, vias} ⇒ 触发器要求 |板mtime - at| <= 10s
+    #   ⇒ **中途存盘覆盖过的板 ⇒ at 对不上 ⇒ 不许量** ⇒ ★证据只来自真正落盘的板
+    try:
+        _OFFICIAL2 = os.path.join(os.path.dirname(PCB), "demo_mainboard.kicad_pcb")
+        if os.path.abspath(PCB) == os.path.abspath(_OFFICIAL2):
+            import time as _t
+            _seg = _via = 0
+            for _l in open(PCB, encoding="utf-8", errors="ignore"):
+                _s = _l.lstrip()
+                if _s.startswith("(segment"):
+                    _seg += 1
+                elif _s.startswith("(via"):
+                    _via += 1
+            _land = {"at": int(_t.time()), "tracks": _seg, "vias": _via,
+                     "pcb": os.path.basename(PCB)}
+            with open(os.path.join(os.path.dirname(PCB), ".layout_landed.json"), "w",
+                      encoding="utf-8") as _f:
+                json.dump(_land, _f, ensure_ascii=False)
+            print("  ✓ 落盘时刻印: %s" % json.dumps(_land, ensure_ascii=False))
+    except Exception as e:
+        print("  ⚠️ 落盘时刻印失败: %s" % e)
     # ★2026-11-05 04:10 **每次成功都留一份备份** (实测教训: 11-05 03:49 一轮崩在布线中
     #   ⇒ 正式板被空骨架覆盖 ⇒ v15 那轮 92/17 的好板没了 ⇒ 18 分钟白跑且无从恢复)
     try:

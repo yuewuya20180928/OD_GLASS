@@ -68,9 +68,18 @@ MIN_VIA_CENTER = 0.58  # mm 过孔中心距 (同网/异网都算: 孔到孔是�
 #   ⇒ ★**2 圈比 3 圈给 N 多 0.25mm 的活动空间** ⇒ 实测能多布出好几对
 PAIR_RING = 2
 
-# 铜层顺序 (物理 L1..L6) —— 索引即 CU_LAYERS 下标
-CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
-             pcbnew.In3_Cu, pcbnew.In4_Cu, pcbnew.B_Cu]
+# ★★2026-11-05 06:15 **修: 层数可配 ⇒ CU_LAYERS 必须跟着层数走**
+#   原来写死 6 项 ⇒ 8 层时 li=6 (In6.Cu) ⇒ `CU_LAYERS[li]` 越界 IndexError
+#   ⇒ ★**8 层那轮的布线结果被整个吞掉** (实测那轮只剩 78 个脚布不动, 比 6 层的 101 好, 但成绩作废)
+#   ⇒ 8 层物理叠层: L1 F.Cu 信号 / L2 In1.Cu GND / L3 In2.Cu 信号 / L4 In3.Cu (空)
+#                    L5 In4.Cu 信号 / L6 In5.Cu (空) / L7 In6.Cu 信号 / L8 B.Cu GND
+NLAYERS = int(os.environ.get("PCB_LAYERS", 6))
+if NLAYERS >= 8:
+    CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.In3_Cu,
+                 pcbnew.In4_Cu, pcbnew.In5_Cu, pcbnew.In6_Cu, pcbnew.B_Cu]
+else:
+    CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
+                 pcbnew.In3_Cu, pcbnew.In4_Cu, pcbnew.B_Cu]
 # ★允许走信号的层: L1 / L3 / L5 (索引 0 / 2 / 4)
 # ★★2026-11-05 04:10 层数可配 (环境变量 PCB_LAYERS): ★**6 层布不通 ⇒ 试 8 层**
 #   动机 (实测): 186 器件 / 400 个 0.4mm pitch BTB 焊盘 ⇒ 3 个信号层的 escape 面积不够
@@ -78,6 +87,7 @@ CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
 #   ⇒ ★Forlinx 官方载板是 **10 层** ⇒ 6 层本来就是低估 ⇒ ★**加层 = 加 escape 面积**
 #   ★6 层: 信号 L1/L3/L5 · 平面 L2(GND)/L6(B.Cu=In5? 见 STACKUP: L2/L6 为 GND 平面)
 #   ★8 层: 信号 L1/L3/L5/L7(In6.Cu) · GND 平面仍在 L2/L6 ⇒ ★多一整层 escape 面积
+NLAYERS = int(os.environ.get("PCB_LAYERS", 6))
 NLAYERS = int(os.environ.get("PCB_LAYERS", 6))
 ROUTE_LAYERS = [0, 2, 4] + ([6] if NLAYERS >= 8 else [])
 # ★**信号层之间的邻接表** (★稀疏层号 ⇒ 不能用 li±1!)
@@ -298,15 +308,27 @@ class GridRouter:
                 if not nm:
                     nm = NONET
                 try:
-                    pth = (pad.GetAttribute() == pcbnew.PAD_ATTRIB_PTH)
+                    attr = pad.GetAttribute()
                 except Exception:
-                    pth = False
+                    attr = pcbnew.PAD_ATTRIB_SMD
+                # ★★2026-11-05 06:25 **修: NPTH (无网络安装孔) 必须是**所有层**的障碍**
+                #   原来只认 PAD_ATTRIB_PTH ⇒ NPTH 只算 F.Cu 一层 ⇒ ★**In2.Cu 的走线直接从孔里穿过去**
+                #   ⇒ 实测: v21 的 25 条 DRC 违规 **全部**是 hole_clearance
+                #   (JTAG_TMS / JTAG_TDI 压到 USB-C 的 NPTH 安装孔, 板边 x≈134.2, y≈2.6)
+                #   ⇒ 孔是**贯穿所有层**的 ⇒ 每一层都得当障碍
+                pth = attr in (pcbnew.PAD_ATTRIB_PTH, pcbnew.PAD_ATTRIB_NPTH)
+                is_npth = (attr == pcbnew.PAD_ATTRIB_NPTH)
                 layers = list(range(NLAYERS)) if pth else [0]   # ★本板 SMD 全在 F.Cu
                 if nm != NONET:
                     self.net_pads.setdefault(nm, []).append(
                         (fp.GetReference(), str(pad.GetNumber()), cx, cy, layers))
                 self.pad_rects.append((nm, x0, y0, x1, y1))
                 self.pad_rects_l.append((nm, x0, y0, x1, y1, tuple(layers)))
+                # ★NPTH 孔还要额外让开 **孔净距** (板规则 0.25mm) ⇒ 不然走线贴孔边照样违规
+                if is_npth:
+                    HOLE_CLR = 0.25
+                    x0, y0, x1, y1 = (x0 - HOLE_CLR, y0 - HOLE_CLR,
+                                      x1 + HOLE_CLR, y1 + HOLE_CLR)
                 for li in layers:
                     for (i, j) in _rect_cells(x0, y0, x1, y1, self.g, self.bb[0], self.bb[1]):
                         idx = self._idx(i, j)
@@ -2082,7 +2104,10 @@ def _min_gap(router, net_a, net_b):
 
 
 # ------------------------------------------------------------------ GND 平面
-def add_gnd_planes(board, layers=(1, 5), net="GND", fill=True):
+def add_gnd_planes(board, layers=None, net="GND", fill=True):
+    # ★★2026-11-05 06:15 **层数可配 ⇒ 平面层跟着走** (6 层: In1.Cu + B.Cu · 8 层: In1.Cu + B.Cu)
+    if layers is None:
+        layers = (1, 7) if NLAYERS >= 8 else (1, 5)
     """★L2 / L6 完整 GND 平面 (STACKUP.md: L2 GND / L6 GND)
        ★**完整平面 = 不分割** ⇒ 满足 LAYOUT_RULES "L2/L6 不得在差分对下方被分割"
        ★平面层不放信号 (路由器只用 L1/L3/L5)"""
@@ -2205,7 +2230,11 @@ def _save_board_progress(board, tag=""):
     try:
         here = os.path.dirname(os.path.abspath(__file__))
         proj = os.path.dirname(here)
-        pcb = os.path.join(proj, "HW", "PCB", "demo_mainboard.kicad_pcb")
+        # ★★2026-11-05 05:58 **修: 必须跟 PCB_OUT 同一口径** (与 gen_pcb_netlist_board.py:54 一致)
+        #   ⇒ 原来硬编码官方板路径 ⇒ ★**并行实验 (PCB_OUT=…) 的中途落盘把官方板覆盖成骨架**
+        #   ⇒ 实测: 05:50:23 官方板被 8 层实验写成 468951B / 0 段走线的骨架
+        #   ⇒ ★**实验输出必须隔离** (AGENTS.md 铁律: 模块内部已实现的项母板不重复做 ⇒ 同理: 实验不许碰官方板)
+        pcb = os.environ.get("PCB_OUT") or os.path.join(proj, "HW", "PCB", "demo_mainboard.kicad_pcb")
         pcbnew.SaveBoard(pcb, board)
         b3 = pcbnew.LoadBoard(pcb)
         b3.BuildConnectivity()
@@ -2226,7 +2255,7 @@ def route_board(board, verbose=True):
     r = GridRouter(board)
 
     # ---------- 0) GND 完整平面 (L2 + L6) —— 先建, 后面所有布线绕开
-    add_gnd_planes(board, layers=(1, 5), fill=False)
+    add_gnd_planes(board, layers=None, fill=False)
     if verbose:
         print("  [GND] L2/L6 完整平面已建 (★不分割 ⇒ 差分对下方参考平面完整)")
 

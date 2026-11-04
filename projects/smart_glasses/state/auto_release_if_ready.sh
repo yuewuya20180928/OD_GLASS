@@ -62,7 +62,30 @@ BOARD_SEG="$(grep -c '(segment' "$PCB_FILE" 2>/dev/null | head -1)"; BOARD_SEG="
 BM="$(stat -c %Y "$PCB_FILE" 2>/dev/null | head -1)"; BM="${BM:-0}"
 EM="$(stat -c %Y "HW/PCB/.layout_done.json" 2>/dev/null | head -1)"; EM="${EM:-0}"
 M0="$(cat state/.verified_board_mtime 2>/dev/null | head -1)"; M0="${M0:-0}"
-if [ "$BM" -gt "$EM" ] && [ "$BM" -gt "$M0" ] && [ "${BOARD_SEG:-0}" -ge 1 ]; then
+# ★★2026-11-05 06:30 **"落盘时刻闸"** (同事提的待办②) —— ★**防止量到被中途存盘覆盖的坏板**
+#   事故事实: 05:57 官方板被**中途落盘**覆盖成骨架 (mtime=05:50) ⇒ 板侧判据照样触发自验
+#   ⇒ 留证 .layout_done.json 被写成 tracks=0 ⇒ ★**自己污染了自己的证据** (06:08 才自愈)
+#   ⇒ 判据: 落盘时刻印 .layout_landed.json 的 {at, tracks} 必须与盘上的板对得上
+#     ① |板 mtime - at| <= 10s   (盘上的板就是刚落的那块, 不是后来被改的)
+#     ② 板当前走线段数 == 印里的 tracks (段数对不上 ⇒ 板被改过)
+LAND_JSON="HW/PCB/.layout_landed.json"
+LAND_OK=0
+if [ -f "$LAND_JSON" ]; then
+  L_AT="$(python3 -c 'import json,sys;print(int(json.load(open(sys.argv[1])).get("at",0)))' "$LAND_JSON" 2>/dev/null || echo 0)"
+  L_TR="$(python3 -c 'import json,sys;print(int(json.load(open(sys.argv[1])).get("tracks",0)))' "$LAND_JSON" 2>/dev/null || echo 0)"
+  if [ "${L_AT:-0}" -gt 0 ] && [ "$BM" -gt 0 ]; then
+    D=$(( BM > L_AT ? BM - L_AT : L_AT - BM ))
+    if [ "$D" -le 10 ] && [ "${BOARD_SEG:-0}" -eq "${L_TR:-0}" ]; then
+      LAND_OK=1
+    else
+      echo "  ⚠️ 落盘时刻闸: 板 mtime=$BM vs 落盘 at=$L_AT (差 ${D}s) · 板段数=${BOARD_SEG} vs 落盘段数=${L_TR} ⇒ ★**板被中途存盘改过 ⇒ 不许量**"
+    fi
+  fi
+else
+  echo "  (注: 无 .layout_landed.json ⇒ 落盘时刻闸不可用 (该印 06:30 才加))"
+fi
+if [ "$LANDED" -eq 1 ] && [ ! -f "$LAND_JSON" ]; then LAND_OK=1; fi   # ★老板无印 ⇒ 放行一次
+if [ "$BM" -gt "$EM" ] && [ "$BM" -gt "$M0" ] && [ "${BOARD_SEG:-0}" -ge 1 ] && [ "$LAND_OK" -eq 1 ]; then
   LANDED=1
   echo "  (板侧判据: 官方板 mtime=$BM > 留证=$EM ⇒ 有一轮落盘但没量过 ⇒ 触发自验)"
 fi
