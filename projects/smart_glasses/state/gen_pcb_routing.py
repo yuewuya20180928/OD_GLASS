@@ -254,6 +254,7 @@ class GridRouter:
         self.pair_partner = None     # ★伙伴网的网名 (差分对耦合时生效)
         self.pair_block = set()      # ★离伙伴铜箔太近的格 (几何精确) ⇒ 不许走
         self.pair_min = 0.50         # ★mm 差分对中心距下限 (0.25mm 线 ⇒ 净距 0.25 ≥ 0.2)
+        self.pair_fallback = 0       # ★耦合失败后退化为"无耦合"的次数 (★要写进报告)
         self._build_pads()
 
     # ------------------------------------------------ 索引
@@ -637,9 +638,12 @@ class GridRouter:
 
     # ------------------------------------------------ 单网多焊盘
     def route_net(self, net, width=W_SIG, allow_via=True, dist_map=None,
-                  alpha=0.0, via_count=1, trunk=None, dist_def=0):
+                  alpha=0.0, via_count=1, trunk=None, dist_def=0,
+                  profiles=None):
         """布一个多焊盘网 —— 最小生成树顺序逐个并入一棵树
            trunk: ((padA, padB),) —— 先布的"主干"焊盘对 (差分对用它对齐走向)
+           profiles: ★[(guide_map, dist_def, ring), ...] —— ★**逐脚渐次放宽的走廊档位**
+             (差分对用: 紧的走廊不通就换松的 ⇒ ★**在同一棵树里重试 ⇒ 不重复布线**)
            返回 dict(ok/段数/长度mm/失败焊盘数)"""
         pads = self.net_pads.get(net)
         if not pads or len(pads) < 2:
@@ -649,6 +653,7 @@ class GridRouter:
         connected_pads = []
         stubs = {}
         nfail_trunk = 0
+        ring_used = None
 
         def anchor(pad):
             """★这个焊盘的 A* 锚点 (出脚直道终点) + 出脚直道"""
@@ -705,9 +710,42 @@ class GridRouter:
             goal_cells, stub_g = anchor(goal_pad)
             goals = set(goal_cells)
             bmark = self.astar_budget
-            path = self._astar(list(cells), goals, net,
-                                dist_map=dist_map, alpha=alpha,
-                                max_via=allow_via, cls=cls, dist_def=dist_def)
+            path = None
+            used_ring = None
+            if profiles:
+                # ★★★2026-11-05 **逐档放宽走廊 (★在同一棵树里重试 ⇒ 不重复布线)**
+                #   ★profiles = [(guide_map, dist_def, ring), ...] ⇒ ring 2 → 4 → 6 → 8
+                #   ★**为什么**: 差分对要求 N 贴着 P 走 ⇒ 走廊窄 ⇒ 长距离 (100~240mm) 极易被单点堵死
+                #   ⇒ ★**不通就放宽一档** ⇒ ★既保住"贴着 P"的大方向, 又给 N 留出活路
+                #   ★**放宽过档的要计数** ⇒ 报告里点名哪些对不是最紧的 (不假装是 100Ω)
+                for (pguide, pdef, pring) in profiles:
+                    path = self._astar(list(cells), goals, net,
+                                       dist_map=pguide, alpha=alpha,
+                                       max_via=allow_via, cls=cls, dist_def=pdef)
+                    if path is not None:
+                        used_ring = pring
+                        break
+                if used_ring is not None and used_ring != profiles[0][2]:
+                    self.pair_fallback += 1
+                ring_used = used_ring
+            else:
+                path = self._astar(list(cells), goals, net,
+                                    dist_map=dist_map, alpha=alpha,
+                                    max_via=allow_via, cls=cls, dist_def=dist_def)
+                ring_used = None
+            # ★★2026-11-05 **耦合失败 ⇒ 同一个脚再试一次 (不带走廊约束)** ——
+            #   ★**为什么**: 差分对要求 N 贴着 P 走 ⇒ 走廊窄 ⇒ 长距离 (100~240mm) 走不通
+            #   ⇒ 实测 12 个 MIPI 对里 **N 侧 10 个完全布不出来** ⇒ 每个 = 2 个焊盘未连接
+            #   ★**取舍**: N 走不到 P 旁边 ⇒ 几何不是理想差分对, 但**至少是通的**
+            #   ⇒ ★**没通的板子比几何不完美的板子更没用**
+            #   ★**在同一个 tree 里重试** ⇒ ★不会重复布已有的连接 (不会出重线)
+            #   ★**几何不完美的对, 会在 ROUTING_REPORT 里点名** (不假装是 100Ω)
+            if path is None and alpha > 0.0:
+                path = self._astar(list(cells), goals, net,
+                                   max_via=allow_via, cls=cls)
+                if path is not None:
+                    self.pair_fallback += 1
+                    ring_used = None
             if path is None and cls != 0:
                 # ★降级1: 细线 (0.2mm) —— 焊盘太密 (BTB 0.4mm pitch) 时必须
                 path = self._astar(list(cells), goals, net,
@@ -752,7 +790,7 @@ class GridRouter:
         length = self.net_length(net)
         self.routed.add(net)
         return {"ok": ok, "segs": len(self.tracks), "len": round(length, 3),
-                "fail": nfail + nfail_trunk, "net": net}
+                "fail": nfail + nfail_trunk, "net": net, "ring": ring_used}
 
     def _mst_order(self, pads):
         """Prim 最小生成树 ⇒ 好的布线顺序"""
@@ -1034,7 +1072,12 @@ class GridRouter:
                 #   实测: 上一版把 144 个锚点全当目标 ⇒ ★**22 个孤儿全失败**
                 near = sorted(anchor_xy,
                               key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2)[:16]
-                goals = set((0, self._idx(self._ci(q[0]), self._cj(q[1]))) for q in near)
+                # ★★**目标可以在内层** (★过孔是通孔 ⇒ F.Cu..B.Cu ⇒ 接到 L2/L6 平面)
+                goals = set()
+                for q in near:
+                    gi = self._idx(self._ci(q[0]), self._cj(q[1]))
+                    for li in (0, 2, 4):
+                        goals.add((li, gi))
                 # ★★**允许换层** (★原来 max_via=False ⇒ 只能走 F.Cu ⇒ 挤不过去)
                 path = self._astar(start_cells, goals, net_g, max_via=True)
                 if path is None:
@@ -1782,21 +1825,36 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
     if not r1["ok"]:
         res["n_ok"] = False
         return res
-    # ★★**走廊引导图** (★不是直接用 P 的距离图!)
-    #   ★目标: 把 N 拉到 **P 路径外侧 ring 圈** (≥0.75mm) ——
-    #   ★**既贴着 P 走 (差分对几何) 又不进 P 的 halo 禁区**
-    guide, gdef = router.build_pair_guide(net_p, ring=PAIR_RING)
-    # ★★**几何禁入格**: 离 P 铜箔 < 0.50mm 的格 (★真正会短路的)
+    # ★★**走廊引导图 (★渐进放宽 ring)** ——
+    #   ★目标: 把 N 拉到 **P 路径外侧 ring 圈** ⇒ 既贴着 P 走 (差分对几何) 又不进 P 的 halo 禁区
+    #   ★**渐进放宽**: ring 2 (0.50mm, 最接近 100Ω) → 4 → 6 → 8
+    #   ★**为什么**: 走廊窄 + MIPI 路径长达 100~240mm ⇒ 单点堵死就整条不通
+    #   ⇒ ★**不通就放宽一档** ⇒ ★既保住"贴着 P"的大方向, 又给 N 留出活路
+    #   ⇒ ★**实际用了几档会记录** ⇒ 报告里点名哪些对不是最紧的 (不假装是 100Ω)
+    r2 = None
+    used_ring = None
+    # ★★**渐进放宽 ring** (★在 route_net **内部**逐脚重试 ⇒ ★不会重复布已通的脚)
+    #   ★ring 2 (0.50mm, 最接近 100Ω) → 4 → 6 → 8
+    #   ★**为什么**: 走廊窄 + MIPI 路径长达 100~240mm ⇒ 单点堵死就整条不通
+    #   ⇒ ★**不通就放宽一档** ⇒ ★既保住"贴着 P"的大方向, 又给 N 留出活路
+    #   ⇒ ★**实际用了几档会记录** ⇒ 报告里点名哪些对不是最紧的 (不假装是 100Ω)
     router.pair_partner = net_p
     router.pair_block = router.build_pair_block(net_p, min_c=0.50)
     try:
+        # ★每个 ring 一份引导图 (★route_net 内部逐脚挑 ⇒ 不重复布线)
+        profiles = []
+        for ring in (2, 4, 6, 8):
+            guide, gdef = router.build_pair_guide(net_p, ring=ring)
+            profiles.append((guide, gdef, ring))
+        # ★★alpha 必须非 0 ⇒ ★**"耦合失败 ⇒ 不带走廊再试一次"的兵底才会触发**
+        #   (上一版传 alpha=0 ⇒ 兵底永不触发 ⇒ N 侧大量不通 ⇒ unconnected 反而涨了 13)
         r2 = router.route_net(net_n, width=width, allow_via=allow_via,
-                              dist_map=guide, alpha=0.45, trunk=trunk_n,
-                              dist_def=gdef)
+                              trunk=trunk_n, profiles=profiles, alpha=0.45)
     finally:
         router.pair_partner = None
         router.pair_block = set()
     res["n_ok"] = r2["ok"]
+    res["ring"] = r2.get("ring")
     res["lp"] = round(r1["len"], 3)
     res["ln"] = round(r2["len"], 3)
     res["delta"] = round(abs(r1["len"] - r2["len"]), 3)
@@ -2003,11 +2061,15 @@ def route_board(board, verbose=True):
                 continue
             res = route_diff_pair(r, p, n, trunk_p=tp, trunk_n=tn)
             stats["pairs"].append(res)
+            stats["pair_fallback"] = stats.get("pair_fallback", 0) + res.get("n_fallback", 0)
             if verbose:
-                print("  [PAIR] %-22s / %-22s  ok=%s/%s  L=%.2f/%.2f  Δ=%.3fmm  间距=%s"
+                print("  [PAIR] %-22s / %-22s  ok=%s/%s  L=%.2f/%.2f  Δ=%.3fmm  间距=%s%s"
                       % (p, n, res.get("p_ok"), res.get("n_ok"),
                          res.get("lp", 0), res.get("ln", 0), res.get("delta", 0),
-                         res.get("min_gap")))
+                         res.get("min_gap"),
+                         ("" if res.get("n_ok") else "  ★N 未通")
+                         + ("  ★走廊ring=%s" % res.get("ring") if res.get("ring") else "")
+                         + ("  ★退化:无耦合" if res.get("n_fallback") else "")))
 
     _run_pairs(USB_PAIRS)
 
