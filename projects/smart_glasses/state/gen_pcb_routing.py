@@ -33,6 +33,10 @@ MM = 1e6
 GRID = 0.25            # mm 网格步长
 CLEAR = 0.20           # mm 铜间距 (KiCad 默认)
 HALO_MARGIN = 0.07     # mm ★栅格量化余量 (单元中心采样 ⇒ 实际净距会少 ~半格)
+ESC_LEN = 1.20         # mm ★密集焊盘出脚直道长度 (沿焊盘中心线直线走出)
+# ★出脚直道默认**关闭**: 直道是离网格的, 落铜之后必须再对"已布走线"做一次几何净距检查
+#   (A* 只避让了障碍图, 避让不了"后来才出现的直道") ⇒ 本轮先关, 下一轮补检查后再开。
+USE_ESCAPE = False
 W_SIG = 0.25           # mm 信号线宽
 W_MIN = 0.20           # mm 最细线宽 (KiCad 最小线宽) —— ★SoM BTB (0.4mm pitch) 出脚只能这么细
 W_PWR = 0.50           # mm 电源线宽
@@ -48,8 +52,8 @@ CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
 # ★允许走信号的层: L1 / L3 / L5 (索引 0 / 2 / 4)
 ROUTE_LAYERS = [0, 2, 4]
 # ★每格的层偏好代价 (0 = 首选); 换层代价 (格)
-LAYER_COST = {0: 0.0, 2: 0.35, 4: 1.00}
-VIA_COST = 14.0
+LAYER_COST = {0: 0.0, 2: 0.60, 4: 1.80}
+VIA_COST = 30.0
 
 # 层间跳 (相邻信号层): 换层时经过的铜层 (含中间平面层, 孔要穿过去 ⇒ 必须留间距)
 VIA_SPAN = {0: (0, 1, 2), 1: (2, 3, 4)}
@@ -367,30 +371,43 @@ class GridRouter:
         cls = self._cls(width)
         order = self._mst_order(pads)
         connected_pads = []
+        stubs = {}
+
+        def anchor(pad):
+            """★这个焊盘的 A* 锚点 (出脚直道终点) + 出脚直道"""
+            key = (pad[0], pad[1])
+            if key not in stubs:
+                stubs[key] = self.escape_stub(net, pad)
+            st = stubs[key]
+            if st:
+                i, j = self._ci(st[0]), self._cj(st[1])
+                return [(0, self._idx(i, j))], (pad[2], pad[3], st[0], st[1])
+            return list(self._pad_cells(net, pad)), None
         if trunk:
             for (pa, pb) in trunk:
                 ta = self._find_pad(net, pa)
                 tb = self._find_pad(net, pb)
                 if ta is None or tb is None:
                     continue
-                cells = self._pad_cells(net, tb)
-                path = self._astar(list(cells), set(self._pad_cells(net, ta)),
-                                    net, dist_map=dist_map, alpha=alpha,
-                                    max_via=allow_via, cls=cls)
+                sb, stb = anchor(tb)
+                sa, sta = anchor(ta)
+                path = self._astar(sb, set(sa), net, dist_map=dist_map,
+                                    alpha=alpha, max_via=allow_via, cls=cls)
                 if path is None and cls != 0:
-                    path = self._astar(list(cells), set(self._pad_cells(net, ta)),
-                                        net, dist_map=dist_map, alpha=alpha,
-                                        max_via=allow_via, cls=0)
+                    path = self._astar(sb, set(sa), net, dist_map=dist_map,
+                                        alpha=alpha, max_via=allow_via, cls=0)
                     if path is not None:
                         width = W_MIN
                 if path:
-                    self._emit_path(net, path, width, via_count)
+                    self._emit_path(net, path, width, via_count,
+                                    stub_start=stb, stub_end=sta)
                     trunk_cells = set(path)
                     connected_pads += [ta, tb]
         gx = sum(p[2] for p in pads) / len(pads)
         gy = sum(p[3] for p in pads) / len(pads)
         root = min(order, key=lambda p: (p[2] - gx) ** 2 + (p[3] - gy) ** 2)
-        tree = set(self._pad_cells(net, root))
+        root_cells, root_stub = anchor(root)
+        tree = set(root_cells)
         tree |= locals().get("trunk_cells", set())
         if root not in connected_pads:
             connected_pads.append(root)
@@ -399,12 +416,13 @@ class GridRouter:
         for pad in order:
             if pad is root:
                 continue
-            cells = self._pad_cells(net, pad)
-            if cells & tree:
+            cells, stub_s = anchor(pad)
+            if set(cells) & tree:
                 continue
             # ★目标 = **最近的已连焊盘** (不是整棵树) ⇒ 启发式紧 ⇒ A* 不会爆
             goal_pad = min(connected_pads, key=lambda q: (q[2] - pad[2]) ** 2 + (q[3] - pad[3]) ** 2)
-            goals = set(self._pad_cells(net, goal_pad))
+            goal_cells, stub_g = anchor(goal_pad)
+            goals = set(goal_cells)
             path = self._astar(list(cells), goals, net,
                                 dist_map=dist_map, alpha=alpha,
                                 max_via=allow_via, cls=cls)
@@ -424,7 +442,8 @@ class GridRouter:
                 nfail += 1
                 ok = False
                 continue
-            self._emit_path(net, path, width, via_count)
+            self._emit_path(net, path, width, via_count,
+                            stub_start=stub_s, stub_end=stub_g)
             tree |= set(path)
             connected_pads.append(pad)
         length = self.net_length(net)
@@ -455,6 +474,85 @@ class GridRouter:
                 if dd < d[i]:
                     d[i] = dd
         return order
+
+    # ------------------------------------------------ 密集焊盘出脚直道
+    def _nearest_other_pad(self, net, cx, cy):
+        """焊盘中心到**别的网**的焊盘边缘的最小距离 (mm)"""
+        best = 1e9
+        for (n2, x0, y0, x1, y1) in self.pad_rects:
+            if n2 == net:
+                continue
+            dx = max(x0 - cx, 0.0, cx - x1)
+            dy = max(y0 - cy, 0.0, cy - y1)
+            d = math.hypot(dx, dy)
+            if d < best:
+                best = d
+        return best
+
+    def _stub_clear(self, net, x1, y1, x2, y2, need=0.299):
+        """这段直线出脚干不干净 (中心线离别的网的焊盘边缘 ≥need)
+           ★need = 0.2 净距 + 0.1 (直道半宽) = 0.3 —— ★0.4mm pitch BTB 出脚
+             本来就正好卡在 0.2mm 净距上 (物理事实, 不是模型保守)"""
+        n = max(2, int(math.hypot(x2 - x1, y2 - y1) / 0.1))
+        bx0, bx1 = min(x1, x2) - 1.0, max(x1, x2) + 1.0
+        by0, by1 = min(y1, y2) - 1.0, max(y1, y2) + 1.0
+        cand = [p for p in self.pad_rects
+                if p[1] <= bx1 and p[3] >= bx0 and p[2] <= by1 and p[4] >= by0]
+        for k in range(n + 1):
+            t = k / float(n)
+            px = x1 + (x2 - x1) * t
+            py = y1 + (y2 - y1) * t
+            for (n2, a0, b0, a1, b1) in cand:
+                if n2 == net:
+                    continue
+                dx = max(a0 - px, 0.0, px - a1)
+                dy = max(b0 - py, 0.0, py - b1)
+                if math.hypot(dx, dy) < need:
+                    return False
+        # 板边
+        m = 0.55
+        if not (self.bb[0] + m <= min(x1, x2) and max(x1, x2) <= self.bb[2] - m
+                and self.bb[1] + m <= min(y1, y2) and max(y1, y2) <= self.bb[3] - m):
+            return False
+        return True
+
+    def _free_score(self, net, cx, cy, r_mm=1.5):
+        """出脚终点的空旷度 (周围能走的单元数)"""
+        r = r_mm / self.g
+        i0, j0 = self._ci(cx), self._cj(cy)
+        cnt = 0
+        for dj in range(-int(r), int(r) + 1):
+            for di in range(-int(r), int(r) + 1):
+                if di * di + dj * dj > r * r:
+                    continue
+                i2, j2 = i0 + di, j0 + dj
+                if not (0 <= i2 < self.W and 0 <= j2 < self.H):
+                    continue
+                if self._free(0, self._idx(i2, j2), net, 0):
+                    cnt += 1
+        return cnt
+
+    def escape_stub(self, net, pad):
+        """★密集焊盘 (SoM BTB 0.4mm pitch / 0.2mm 焊盘) 的出脚:
+           沿焊盘中心线先直线走 ESC_LEN, 之后才允许横向偏
+           ⇒ 净距才够 (0.25mm 网格做不到 0.4mm pitch 出脚)
+           返回 (终点x, 终点y) 或 None"""
+        _ref, _num, cx, cy, _l = pad
+        if not USE_ESCAPE:
+            return None
+        if self._nearest_other_pad(net, cx, cy) >= 0.45:
+            return None          # ★不紧 ⇒ 正常出脚
+        best = None
+        for (dx, dy) in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+            ex, ey = cx + dx * ESC_LEN, cy + dy * ESC_LEN
+            if not self._stub_clear(net, cx, cy, ex, ey):
+                continue
+            sc = self._free_score(net, ex, ey)
+            if best is None or sc > best[0]:
+                best = (sc, ex, ey)
+        if best is None:
+            return None
+        return (best[1], best[2])
 
     def _pad_cells(self, net, pad):
         """焊盘的**中心单元** (只取中心, 起点线从焊盘真实中心画出去)"""
@@ -615,17 +713,34 @@ class GridRouter:
         return True
 
     # ------------------------------------------------ 路径 → 铜
-    def _emit_path(self, net, path, width, via_count=1):
+    def _emit_path(self, net, path, width, via_count=1,
+                   stub_start=None, stub_end=None):
+        """★stub_start/stub_end = (焊盘中心x, 中心y, 直道终点x, 终点y)
+           —— 密集焊盘出脚: 先沿中心线直线走, 再进网格"""
+        if stub_start:
+            sx, sy, ex, ey = stub_start
+            self.tracks.append((net, sx, sy, ex, ey, 0, W_MIN))
+            self._add_track_halo(net, sx, sy, ex, ey, 0, W_MIN)
+        if stub_end:
+            gx, gy, ex, ey = stub_end
+            self.tracks.append((net, ex, ey, gx, gy, 0, W_MIN))
+            self._add_track_halo(net, ex, ey, gx, gy, 0, W_MIN)
         pts = []
         for (li, idx) in path:
             i, j = idx % self.W, idx // self.W
             pts.append([li, self._cx(i), self._cy(j)])
-        p0 = self.pad_cell.get(path[0])
-        if p0 and p0[0] == net:
-            pts[0][1], pts[0][2] = p0[1], p0[2]
-        pn = self.pad_cell.get(path[-1])
-        if pn and pn[0] == net:
-            pts[-1][1], pts[-1][2] = pn[1], pn[2]
+        if stub_start:
+            pts[0][1], pts[0][2] = stub_start[2], stub_start[3]
+        else:
+            p0 = self.pad_cell.get(path[0])
+            if p0 and p0[0] == net:
+                pts[0][1], pts[0][2] = p0[1], p0[2]
+        if stub_end:
+            pts[-1][1], pts[-1][2] = stub_end[2], stub_end[3]
+        else:
+            pn = self.pad_cell.get(path[-1])
+            if pn and pn[0] == net:
+                pts[-1][1], pts[-1][2] = pn[1], pn[2]
         seg = []
         for k in range(len(pts) - 1):
             la, xa, ya = pts[k]

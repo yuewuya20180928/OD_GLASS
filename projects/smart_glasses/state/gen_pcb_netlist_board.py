@@ -537,6 +537,22 @@ def main():
 
     pcbnew.SaveBoard(PCB, board)
 
+    # ★重新填 L2/L6 平面 (★必须**存盘后重读**再填: 平面填的时候要看连通性缓存,
+    #   同一会话里加的走线/过孔还没进缓存 ⇒ 填充器以为平面"没连上任何东西"
+    #   ⇒ 孤岛删除模式把整个平面删空 ⇒ 焊盘的过孔全成 dangling)
+    try:
+        b3 = pcbnew.LoadBoard(PCB)
+        b3.BuildConnectivity()
+        filler = pcbnew.ZONE_FILLER(b3)
+        filler.Fill(b3.Zones())
+        for z in b3.Zones():
+            ps = z.GetFilledPolysList(z.GetLayer())
+            print("  [zone ] %s 填充 %.1f mm2" % (b3.GetLayerName(z.GetLayer()),
+                                                  ps.Area() / 1e12))
+        pcbnew.SaveBoard(PCB, b3)
+    except Exception as e:
+        print("⚠️ 平面重填失败: %s" % e)
+
     # ★★ISS-181: 交付 HW/PCB/.layout_done.json (★阶段门 state/stage_gate.py 靠它判 G1)
     _write_layout_done(board)
 

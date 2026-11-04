@@ -1,6 +1,6 @@
 # 下一步行动清单 (TODO)
 
-> 生成 **2026-11-04 20:43** | 自动生成 (源: `state/issue_log.yaml` + `state/fragments/pm.yaml`)
+> 生成 **2026-11-04 21:13** | 自动生成 (源: `state/issue_log.yaml` + `state/fragments/pm.yaml`)
 > 分桶依据 = **能不能真的动** (内部 / 等你 / 等外部), 不是按严重度排
 > 总量: 登记 **178** 条 | 未闭环 **103** | 已关闭 **75**
 
