@@ -25,6 +25,7 @@ gen_pcb_routing.py —— ★通用网格路由器 (A* / Lee) + 差分对捆绑 
 import heapq
 import math
 import os
+from collections import defaultdict
 
 import pcbnew
 
@@ -53,6 +54,12 @@ VIA_DIA = 0.60         # mm 过孔盘
 VIA_DRILL = 0.30       # mm 过孔钻 ★★2026-11-04 22:45 **必须 ≥ 板子设计规则的最小钻孔 (0.300mm)**
 #   ⇒ 上一轮改成 0.25mm 是错的: 板 setup 的 min hole = 0.3mm ⇒ ★**199 条 drill_out_of_range**
 #   ⇒ 回退 0.30mm, 孔到孔 0.25mm 的问题改用"过孔中心间距"来解 (见 _via_too_close)
+# ★★2026-11-04 23:50 **过孔中心间距下限** (孔到孔净距 0.25mm ⇒ 0.15+0.25+0.15 = 0.55mm)
+#   ⇒ 取 0.58mm (0.03 余量)
+#   ★★**这条必须同时管到 A\* (换层点) 和落铜 (过孔实际摆放)** ——
+#   上一版只有落铜时查 (_via_too_close) ⇒ ★**A\* 会规划"根本放不下过孔的换层点"**
+#   ⇒ 落铜时过孔被跳过 ⇒ ★**层间过渡段两端没落到过孔上** ⇒ 5 条 track_dangling 的根因
+MIN_VIA_CENTER = 0.58  # mm 过孔中心距 (同网/异网都算: 孔到孔是制造规则)
 
 # 铜层顺序 (物理 L1..L6) —— 索引即 CU_LAYERS 下标
 CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
@@ -436,6 +443,14 @@ class GridRouter:
         # ★**不许把过孔打在焊盘底下** (via-in-pad) —— 0402/0603 上的过孔 = 吸锡风险
         #   = 投板后必须手工补焊 ⇒ 返工项。★孔要躲开焊盘, 就得先在 F.Cu 上走一段
         if (0, idx) in self.pad_cell:
+            return False
+        # ★★2026-11-04 23:50 **孔到孔间距 (制造规则) 必须在 A\* 规划时就查**
+        #   板 setup: m_HoleToHoleMin = 0.25mm ⇒ 0.3 钻的孔心距 ≥ 0.55mm (取 0.58)
+        #   ★★**上一版只有"落铜时"查 (_via_too_close) ⇒ A\* 会规划"根本放不下过孔的换层点"**
+        #   ⇒ 落铜时过孔被跳过 ⇒ ★**层间过渡段的两端没落到过孔上** ⇒ 5 条 track_dangling 的根因
+        #   ⇒ ★**这里加上 ⇒ A\* 直接绕开非法换层点** (既治 DRC 又提连通率)
+        i, j = idx % self.W, idx // self.W
+        if self._via_too_close(net, self._cx(i), self._cy(j)):
             return False
         for l2 in range(6):
             c = self.cu[l2].get(idx)
@@ -991,7 +1006,12 @@ class GridRouter:
         for s in seg:
             if merged:
                 p = merged[-1]
-                ax, ay = p[2] - p[1], p[3] - p[1]
+                # ★★2026-11-04 23:55 **修共线判据的坐标错位**:
+                #   段元组是 (net, x1, y1, x2, y2, li, w) ⇒ p[1]=x1 p[2]=y1 p[3]=x2 p[4]=y2
+                #   原来写的是 (p[2]-p[1], p[3]-p[1]) = (y1-x1, x2-x1) ⇒ **x 和 y 混了**
+                #   ⇒ 共线判据几乎永远不成立 ⇒ ★**每 0.25mm 一段的小碎线全留着**
+                #   (实测 22179 段, 板文件 4.9MB) ⇒ 合并后段数大降, 悬空端的机会也大降
+                ax, ay = p[3] - p[1], p[4] - p[2]
                 bx, by = s[3] - s[1], s[4] - s[1]
                 if (p[5] == s[5]) and (abs(ax * by - ay * bx) < 1e-9) \
                         and (ax * bx + ay * by > 0):
