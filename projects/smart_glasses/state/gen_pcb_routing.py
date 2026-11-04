@@ -34,7 +34,10 @@ MM = 1e6
 # ------------------------------------------------------------------ 常量
 GRID = 0.25            # mm 网格步长
 CLEAR = 0.20           # mm 铜间距 (KiCad 默认)
-HALO_MARGIN = 0.20     # mm ★栅格量化余量 (半格 0.125 + 富余)
+# ★★2026-11-05 07:45 **做成可调** (实验臂用)
+#   ★理论下限: 栅格 0.25mm ⇒ 半格 0.125 ⇒ 0.125 就够 (当前 0.20 偏保守 ⇒ 多阻 ~18% 面积)
+#   ★**改小会放松净距保护 ⇒ 必须盯 DRC** ⇒ 只在实验臂里试, 验过 DRC 才准进正式轮
+HALO_MARGIN = float(os.environ.get("PCB_HALO_MARGIN", "0.20"))
                         # ★★2026-11-04 22:35 项目总工改: 0.07 → 0.20 —— 上一轮 DRC 实测净距 0.175 < 要求 0.200
                         #   ⇒ ★**半格量化损失没被补回来** ⇒ 余量必须 ≥ 半格 (0.125) + 富余 ⇒ 0.20
 ESC_LEN = 1.20         # mm ★密集焊盘出脚直道长度 (沿焊盘中心线直线走出)
@@ -52,6 +55,11 @@ W_PWR = 0.50           # mm 电源线宽
 W_CLS = (0.20, 0.25, 0.50)
 VIA_DIA = 0.60         # mm 过孔盘
 VIA_DRILL = 0.30       # mm 过孔钻 ★★2026-11-04 22:45 **必须 ≥ 板子设计规则的最小钻孔 (0.300mm)**
+# ★★2026-11-05 07:40 **小焊盘用的缩小过孔** (0402/0603 电容电阻的 GND 焊盘只有 0.6mm 宽)
+#   ⇒ 焊盘内过孔用 Ø0.60 放不下 (判据 min(w,h)<0.70 把它们全杀了 ⇒ 11 个 GND 焊盘一根铜都没有)
+#   ⇒ 改用 Ø0.50/钻0.30 (环宽 0.10mm) ⇒ 0.6mm 宽的焊盘**放得下** (边距 0.05mm/边)
+VIA_DIA_S = 0.50
+VIA_DRILL_S = 0.30
 #   ⇒ 上一轮改成 0.25mm 是错的: 板 setup 的 min hole = 0.3mm ⇒ ★**199 条 drill_out_of_range**
 #   ⇒ 回退 0.30mm, 孔到孔 0.25mm 的问题改用"过孔中心间距"来解 (见 _via_too_close)
 # ★★2026-11-04 23:50 **过孔中心间距下限** (孔到孔净距 0.25mm ⇒ 0.15+0.25+0.15 = 0.55mm)
@@ -74,12 +82,13 @@ PAIR_RING = 2
 #   ⇒ 8 层物理叠层: L1 F.Cu 信号 / L2 In1.Cu GND / L3 In2.Cu 信号 / L4 In3.Cu (空)
 #                    L5 In4.Cu 信号 / L6 In5.Cu (空) / L7 In6.Cu 信号 / L8 B.Cu GND
 NLAYERS = int(os.environ.get("PCB_LAYERS", 6))
-if NLAYERS >= 8:
-    CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.In3_Cu,
-                 pcbnew.In4_Cu, pcbnew.In5_Cu, pcbnew.In6_Cu, pcbnew.B_Cu]
-else:
-    CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
-                 pcbnew.In3_Cu, pcbnew.In4_Cu, pcbnew.B_Cu]
+# ★★2026-11-05 07:42 **层数通吃** (6/8/10 层) ⇒ 别再手写列表
+#   ★10 层: F.Cu + In1..In8 + B.Cu ⇒ 信号层 F.Cu/In2/In4/In6/In8, 平面 In1/In3/In5/In7/B.Cu
+_CU = [pcbnew.F_Cu]
+for _i in range(1, max(NLAYERS - 1, 2)):
+    _CU.append(getattr(pcbnew, "In%d_Cu" % _i))
+_CU.append(pcbnew.B_Cu)
+CU_LAYERS = _CU[:NLAYERS] if NLAYERS <= len(_CU) else _CU
 # ★允许走信号的层: L1 / L3 / L5 (索引 0 / 2 / 4)
 # ★★2026-11-05 04:10 层数可配 (环境变量 PCB_LAYERS): ★**6 层布不通 ⇒ 试 8 层**
 #   动机 (实测): 186 器件 / 400 个 0.4mm pitch BTB 焊盘 ⇒ 3 个信号层的 escape 面积不够
@@ -89,12 +98,23 @@ else:
 #   ★8 层: 信号 L1/L3/L5/L7(In6.Cu) · GND 平面仍在 L2/L6 ⇒ ★多一整层 escape 面积
 NLAYERS = int(os.environ.get("PCB_LAYERS", 6))
 NLAYERS = int(os.environ.get("PCB_LAYERS", 6))
-ROUTE_LAYERS = [0, 2, 4] + ([6] if NLAYERS >= 8 else [])
+# ★★2026-11-05 07:40 **层数通吃** (★官方载板本身就是 10 层 ⇒ 一直只测到 8 层是低估)
+#   ★信号层 = 偶数层 (0=F.Cu, 2, 4, ...) 但**不含最后一层** (B.Cu 留给 GND 平面)
+#   ★6 层 ⇒ [0,2,4] · 8 层 ⇒ [0,2,4,6] · 10 层 ⇒ [0,2,4,6,8]
+ROUTE_LAYERS = [li for li in range(0, NLAYERS, 2) if li != NLAYERS - 1]
 # ★**信号层之间的邻接表** (★稀疏层号 ⇒ 不能用 li±1!)
 #   L1↔L3 (过孔跨 In1.Cu 平面) · L3↔L5 (过孔跨 In3.Cu 平面) · L5↔L7 (过孔跨 In5.Cu 平面)
 RLAY_NBRS = {0: (2,), 2: (0, 4), 4: (2, 6) if NLAYERS >= 8 else (2,)}
 if NLAYERS >= 8:
     RLAY_NBRS[6] = (4,)
+# ★★2026-11-05 07:42 **邻接表跟着层数走** (10 层 ⇒ 8 号信号层也要接 6 号)
+for _li in ROUTE_LAYERS:
+    _nb = []
+    for _d in (-2, 2):
+        _j = _li + _d
+        if 0 <= _j < NLAYERS and _j in ROUTE_LAYERS:
+            _nb.append(_j)
+    RLAY_NBRS[_li] = tuple(_nb)
 
 
 def _via_span(la, lb):
@@ -117,6 +137,13 @@ LNAME = {0: "L1/F.Cu", 1: "L2/In1.Cu", 2: "L3/In2.Cu",
          3: "L4/In3.Cu", 4: "L5/In4.Cu", 5: "L6/B.Cu"}
 if NLAYERS >= 8:
     LNAME.update({6: "L7/In6.Cu", 7: "L8/B.Cu"})
+# ★★2026-11-05 07:42 **10 层支持** ⇒ 层名表跟层数走 (L9/In8.Cu / L10/B.Cu)
+if NLAYERS > 8:
+    for _i in range(8, NLAYERS):
+        if _i == NLAYERS - 1:
+            LNAME[_i] = "L%d/B.Cu" % (_i + 1)
+        else:
+            LNAME[_i] = "L%d/In%d.Cu" % (_i + 1, _i)
 
 
 # ------------------------------------------------------------------ 工具
@@ -457,7 +484,23 @@ class GridRouter:
             return 1
         return 2
 
-    def _mark(self, cls, li, idx, net):
+    def _mark(self, cls, li, idx, net, skip_pad_cells=False):
+        """★**登记净距禁区**
+        ★★2026-11-05 07:50 **skip_pad_cells: halo 不许盖住别的网的焊盘格**
+          ⇒ 实测 (只读审计): 78 个失败脚里 14 个真被"同层异网铜"封死, 其中 ★**7 个是
+            CONN_CAM/CONN_LIGHT 的信号脚, 最近的异网铜是 0.5mm 处的 GND** ⇒ 落在 halo 半径
+            0.525mm 内 ⇒ ★**信号脚自己的起步格被封 ⇒ A* 一步都走不出去**
+          ⇒ ★**焊盘自己的 halo (焊盘矩形外扩 rr) 已经守住了它的邻域** ⇒ 别的网再盖一层纯属多余
+          ⇒ ★而且物理上就该这样: 焊盘是真实铜, 它的净距由它自己的 halo 管
+          ⇒ ★**焊盘格在 cu 里已被它自己的网占住** ⇒ 别的网本来就走不进去 ⇒ 不会引入短路
+        """
+        if skip_pad_cells:
+            pc = self.pad_cell.get((li, idx))
+            if pc is not None and pc[0] != net:
+                return
+        # ★★2026-11-05 07:52 **越界层护栏** (★层号越界会让整轮布线炸掉 ⇒ 宁可跳过)
+        if li < 0 or li >= len(self.halo[cls]):
+            return
         s = self.halo[cls][li].get(idx)
         if s is None:
             s = set()
@@ -1188,9 +1231,15 @@ class GridRouter:
             if not rect:
                 continue
             x0, y0, x1, y1 = rect
-            if min(x1 - x0, y1 - y0) < 0.70:
+            _short = min(x1 - x0, y1 - y0)
+            if _short < 0.55:
                 why["inpad_small"] = why.get("inpad_small", 0) + 1
                 continue
+            # ★★2026-11-05 07:40 **小焊盘用缩小过孔** (0.55~0.70 宽的焊盘 ⇒ Ø0.60 放不下)
+            if _short >= 0.70:
+                _dia, _drill = VIA_DIA, VIA_DRILL
+            else:
+                _dia, _drill = VIA_DIA_S, VIA_DRILL_S
             # ★孔间距: 已有过孔
             if any(math.hypot(cx - vx, cy - vy) < 0.60 for (vn, vx, vy, _l1, _l2) in self.vias):
                 why["inpad_spacing"] = why.get("inpad_spacing", 0) + 1
@@ -1215,8 +1264,8 @@ class GridRouter:
             v = pcbnew.PCB_VIA(self.b)
             v.SetPosition(pcbnew.VECTOR2I(int(cx * MM), int(cy * MM)))
             v.SetViaType(pcbnew.VIATYPE_THROUGH)
-            v.SetWidth(pcbnew.FromMM(VIA_DIA))
-            v.SetDrill(pcbnew.FromMM(VIA_DRILL))
+            v.SetWidth(pcbnew.FromMM(_dia))
+            v.SetDrill(pcbnew.FromMM(_drill))
             v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
             v.SetNetCode(netcode(self.b, net_g))
             self.b.Add(v)
@@ -1225,6 +1274,65 @@ class GridRouter:
             # ★**过孔直接落在焊盘里 ⇒ 焊盘自己就接到平面了** (不需要任何走线)
             ok += 1
             fail -= 1
+
+        # ---------- 4) ★★2026-11-05 07:40 **窄焊盘 (连接器排针类) 沿长轴引出去落过孔**
+        #   ★**问题形态**: 0.275×0.9 / 0.3×1.3 的连接器 GND 焊盘 ⇒ **短边太窄放不下任何过孔**
+        #     ⇒ 前三遍全灭 (escape_stub 返回 None / A* 出不去 / inpad_small)
+        #   ★**解法**: 沿焊盘的**长轴** (垂直于排针方向) 往外扫 0.8~2.5mm ⇒
+        #     找到一块**有空间放过孔**的地方 ⇒ 焊盘 → 一小段同层走线 → 过孔 → GND 平面
+        #   ★**走线沿长轴 ⇒ 天然避开同排的邻脚** ⇒ 再过一遍 `_geom_clear` 确认净距
+        orphan4 = [p for p in pads if p not in done_pads]
+        for pad in orphan4:
+            _ref, _num, cx, cy, _layers = pad
+            rect = None
+            for (n2, x0, y0, x1, y1, _ls) in self.pad_rects_l:
+                if n2 == net_g and x0 - 0.01 <= cx <= x1 + 0.01 and y0 - 0.01 <= cy <= y1 + 0.01:
+                    rect = (x0, y0, x1, y1)
+                    break
+            if not rect:
+                continue
+            x0, y0, x1, y1 = rect
+            _short = min(x1 - x0, y1 - y0)
+            if _short >= 0.55:
+                continue          # ★第三遍能处理
+            _long_y = (y1 - y0) > (x1 - x0)     # ★长轴是 y 还是 x
+            placed = False
+            for _d in (0.9, 1.3, 1.7, 2.1, 2.5):
+                for _s in (1, -1):
+                    vx = cx if _long_y else cx + _s * _d
+                    vy = cy + _s * _d if _long_y else cy
+                    # ① 走线净距 (别的网铜)
+                    if not self._geom_clear(net_g, [(cx, cy, vx, vy)], 0, W_SIG):
+                        continue
+                    # ② 孔间距
+                    if any(math.hypot(vx - ox, vy - oy) < 0.60 for (vn, ox, oy, _a, _b) in self.vias):
+                        continue
+                    # ③ 过孔位真能放 (别的网铜/焊盘不挨着)
+                    idx = self._idx(self._ci(vx), self._cj(vy))
+                    if not self._via_free_all(idx, net_g):
+                        continue
+                    # ★落: 焊盘 → 短走线 → 过孔
+                    self.tracks.append((net_g, cx, cy, vx, vy, 0, W_SIG))
+                    v = pcbnew.PCB_VIA(self.b)
+                    v.SetPosition(pcbnew.VECTOR2I(int(vx * MM), int(vy * MM)))
+                    v.SetViaType(pcbnew.VIATYPE_THROUGH)
+                    v.SetWidth(pcbnew.FromMM(VIA_DIA))
+                    v.SetDrill(pcbnew.FromMM(VIA_DRILL))
+                    v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                    v.SetNetCode(netcode(self.b, net_g))
+                    self.b.Add(v)
+                    self.vias.append((net_g, vx, vy, 0, 5))
+                    self.via_cells.setdefault(idx, []).append((vx, vy))
+                    self._add_via_hash(vx, vy)
+                    self._add_via_halo(net_g, vx, vy, 0, 5)
+                    ok += 1
+                    fail -= 1
+                    placed = True
+                    break
+                if placed:
+                    break
+            if not placed:
+                why["narrow"] = why.get("narrow", 0) + 1
         return (ok, fail)
 
     def _ring_cells(self, cx, cy, r_mm):
@@ -1551,6 +1659,79 @@ class GridRouter:
             added += remain
         return added
 
+    def add_meander_v3(self, net, extra_mm, max_bumps=24, apex_max=3.0, min_len=0.3):
+        """★v3 (2026-11-05 07:25, 07:42 改) —— ★**固定凸起高度, 反算每凸起能补多少**
+        ★**v2 的死穴 (实测)**: v2 是"用**剩余差值**反算凸起高度" ⇒
+          a = sqrt(((base+remain)/2)^2 - (base/2)^2)
+          ⇒ 差值一大 (Δ32.4mm) ⇒ a = 16.7mm ⇒ ★**超过 a≤3.0 的上限 ⇒ 一个凸起都加不上 ⇒ return 0**
+          ⇒ ★**差越大越加不上** (完全反了)
+        ★**v3**: 固定凸起高度 a=apex_max(=3.0mm) ⇒ 每凸起最多能补
+          extra_max(base) = 2*sqrt((base/2)^2 + a^2) - base
+          (base=0.96 ⇒ **+5.12mm** · base=2.6 ⇒ +3.94mm · base=8 ⇒ +9.89mm)
+          ⇒ ★**一个 32.4mm 的差 = 7 个小凸起** ⇒ 每个都单独过净距检查
+        ★**min_len**: 候选直段的最短长度 (v2 是 1.2mm ⇒ ★**很多对的最长单段只有 0.35~1.25mm ⇒ 直接被卡死**
+          ⇒ 放宽到 **0.3mm** (同事 07:42 复核: ★**凸起补长能力几乎与直段长短无关, 只看 a**
+            ⇒ base=0.283/0.369/0.305 时一个 a=3.0 凸起分别补 +5.72/+5.64/+5.70mm
+            ⇒ ⇒ **min_len 放宽到 ≤0.35 ⇒ 那 3 对立刻可配平**)
+          ⇒ ★**净距检查 `_geom_clear` 仍在** ⇒ 拉不出违规铜
+        ★**自适应凸起高度**: 优先 a=3.0; 不行就退 a=2.0 / a=1.2 (补得少但**空间小、更容易找到位置**)
+        返回: 实际增加的长度 (mm)
+        """
+        added = 0.0
+        APEXES = (apex_max, 2.0, 1.2)
+        for _ in range(max_bumps):
+            remain = extra_mm - added
+            if remain <= 0.01:
+                break
+            best = None
+            for seg in self.net_tracks(net):
+                L = math.hypot(seg[3] - seg[1], seg[4] - seg[2])
+                if L < min_len:
+                    continue
+                ux, uy = (seg[3] - seg[1]) / L, (seg[4] - seg[2]) / L
+                base = min(L * 0.8, 8.0)
+                mid = ((seg[1] + seg[3]) / 2.0, (seg[2] + seg[4]) / 2.0)
+                for a_try in APEXES:
+                    if a_try > apex_max + 1e-6:
+                        continue
+                    # ★固定 a ⇒ 这一个凸起最多能补多少
+                    cap = 2.0 * math.sqrt((base / 2.0) ** 2 + a_try ** 2) - base
+                    if cap <= 0.01:
+                        continue
+                    take = min(remain, cap)
+                    # ★**按 take 反算实际凸起高度** (≤ a_try) ⇒ 不会超上限
+                    val = ((base + take) / 2.0) ** 2 - (base / 2.0) ** 2
+                    if val <= 0:
+                        continue
+                    a = math.sqrt(val)
+                    if a > a_try + 1e-6:
+                        continue
+                    for sign in (1, -1):
+                        nx, ny = -uy * sign, ux * sign
+                        apex = (mid[0] + nx * a, mid[1] + ny * a)
+                        d = base / 2.0
+                        p_in = (mid[0] - ux * d, mid[1] - uy * d)
+                        p_out = (mid[0] + ux * d, mid[1] + uy * d)
+                        cand = [
+                            (seg[1], seg[2], p_in[0], p_in[1]),
+                            (p_in[0], p_in[1], apex[0], apex[1]),
+                            (apex[0], apex[1], p_out[0], p_out[1]),
+                            (p_out[0], p_out[1], seg[3], seg[4]),
+                        ]
+                        if not self._geom_clear(net, cand, seg[5], seg[6]):
+                            continue
+                        if best is None or take > best[0]:
+                            best = (take, seg, mid, apex, ux, uy, base)
+                        break
+                    if best is not None and best[1] is seg:
+                        break
+            if best is None:
+                break
+            _take, seg, mid, apex, ux, uy, base = best
+            self._insert_meander(net, seg, mid, apex, ux, uy, base)
+            added += _take
+        return added
+
     def _geom_clear(self, net, segs, li, w=W_SIG):
         """★这几段几何 vs **别的网的所有铜** (同层走线 + 所有过孔 + 同层焊盘) 净距够不够?
            ★**蛇形配平必须走这一步** —— 蛇形是**离网格**的斜线 ⇒ 栅格 halo 管不到"""
@@ -1634,6 +1815,113 @@ class GridRouter:
         return True
 
     # ------------------------------------------------ 路径 → 铜
+    # ------------------------------------------------ rip-up & reroute (收尾杀招)
+    def rebuild_halo(self):
+        """★**重建净距禁区** (★rip-up 后必须重建 ⇒ 否则被拆的线的 halo 还在 ⇒ 白拆)
+        ★**为什么能精确重建**: 实测结构 —— ★**self.cu 只记焊盘与板边**,
+          ★**走线/过孔只进 halo** ⇒ ⇒ 所以 halo = f(焊盘, 全部走线, 全部过孔) ⇒ 可重算
+        """
+        self.halo = [[dict() for _ in range(NLAYERS)] for _ in range(3)]
+        self._halo_pads()
+        for s in self.tracks:
+            self._add_track_halo(s[0], s[1], s[2], s[3], s[4], s[5], s[6])
+        for (net, x, y, l1, l2) in self.vias:
+            self._add_via_halo(net, x, y, l1, l2)
+
+    def _net_start_cells(self, net):
+        """该网各焊盘的**起步格** (有出脚直道则取直道终点, 否则取焊盘中心格)"""
+        cells = []
+        for pad in self.net_pads.get(net, []):
+            try:
+                st = self.escape_stub(net, pad)
+            except Exception:
+                st = None
+            if st:
+                ax, ay = st
+                cells.append((0, self._idx(self._ci(ax), self._cj(ay))))
+            else:
+                try:
+                    cells.extend(self._pad_cells(net, pad))
+                except Exception:
+                    pass
+        return cells
+
+    def _blockers_for(self, net, cells, maxn=6):
+        """★找出**挡住这些起步格**的别的网的走线 (按几何距离从近到远)"""
+        out = []
+        for s in self.tracks:
+            if s[0] == net:
+                continue
+            for (li, idx) in cells:
+                if s[5] != li:
+                    continue
+                i, j = idx % self.W, idx // self.W
+                cx, cy = self._cx(i), self._cj(j)
+                d = _pt_seg_dist(cx, cy, s[1], s[2], s[3], s[4])
+                if d < CLEAR + s[6] / 2.0 + HALO_MARGIN + self.g:
+                    out.append((d, s))
+                    break
+        out.sort(key=lambda t: t[0])
+        return out[:maxn]
+
+    def ripup_and_reroute(self, nets, rip_per_net=6, verbose=True):
+        """★★**收尾杀招: 拆掉挡路的线, 重布失败的网** (标准 rip-up & reroute)
+        ★**为什么必须**: 实测 78 个失败脚里 ★**64 个 (82%) 不是被局部封锁, 是"中途被堵死"**
+          ⇒ ⇒ 局部封锁的靠 halo/排版修; ★中途堵的**只能拆线重走**
+        ★**做法**: 对每个失败网 ⇒ ① 找出**堵住它起步格**的别的网的走线 ⇒
+          ② 拆掉最近的几条 (连同附近的同网过孔) ⇒ ③ ★**重建 halo** (★否则白拆) ⇒
+          ④ 重布该网 ⇒ ⑤ 成功则把被拆的网重新布一遍; 失败则**原样放回**
+        ★**时机很关键**: 必须在**阶段性 commit 之前**跑 ⇒ ⇒ 被拆的线**根本不会落到板上**
+          ⇒ 板上不会留下废铜 ⇒ ★也不需要从板上删图元
+        返回: 重布成功的网数
+        """
+        ok = 0
+        for net in nets:
+            if net in self.routed:
+                continue
+            cells = self._net_start_cells(net)
+            if not cells:
+                continue
+            bl = self._blockers_for(net, cells, rip_per_net)
+            if not bl:
+                continue
+            ripped = [b[1] for b in bl]
+            rip_nets = set(s[0] for s in ripped)
+            keep = [s for s in self.tracks if s not in set(ripped)]
+            # ★被拆线附近的同网过孔也要拆 (否则它的 halo 照样堵)
+            keep_v = []
+            ripped_v = []
+            for v in self.vias:
+                drop = False
+                if v[0] in rip_nets:
+                    for s in ripped:
+                        if _pt_seg_dist(v[1], v[2], s[1], s[2], s[3], s[4]) < 1.5:
+                            drop = True
+                            break
+                (ripped_v if drop else keep_v).append(v)
+            self.tracks = keep
+            self.vias = keep_v
+            self.rebuild_halo()
+            # ★重布这个网 (★routed 集合里也要先摘掉它)
+            self.routed.discard(net)
+            res = self.route_net(net, width=W_SIG)
+            if res.get("ok"):
+                ok += 1
+                # ★把被拆的网重新布一遍 (它们现在有地方了)
+                for rn in sorted(rip_nets):
+                    self.route_net(rn, width=W_SIG)
+                if verbose:
+                    print("  [RIPUP] %-22s 拆了 %d 条线 ⇒ 重布成功" % (net, len(ripped)))
+            else:
+                # ★失败 ⇒ 原样放回 (★板子上本来也没它们 ⇒ 只需还原障碍模型)
+                self.tracks = keep + ripped
+                self.vias = keep_v + ripped_v
+                self.rebuild_halo()
+                self.routed.discard(net)
+                if verbose:
+                    print("  [RIPUP] %-22s 拆了 %d 条线 ⇒ 仍不通 ⇒ 已还原" % (net, len(ripped)))
+        return ok
+
     def _emit_path(self, net, path, width, via_count=1,
                    stub_start=None, stub_end=None):
         """★stub_start/stub_end = (焊盘中心x, 中心y, 直道终点x, 终点y)
@@ -1776,16 +2064,18 @@ class GridRouter:
                                  []).append((vx, vy))
 
     def _add_track_halo(self, net, x1, y1, x2, y2, li, w=W_SIG):
-        """走线净距禁区: 半径 = 净距 + 本线半宽 + 对方半宽 (按级别分别登记)"""
+        """走线净距禁区: 半径 = 净距 + 本线半宽 + 对方半宽 (按级别分别登记)
+           ★★2026-11-05 07:50 **不盖别的网的焊盘格** (见 _mark 的 skip_pad_cells 说明)"""
         for cls in range(3):
             rr = CLEAR + w / 2.0 + W_CLS[cls] / 2.0 + HALO_MARGIN
             for (i, j) in _seg_cells(x1, y1, x2, y2, self.g, rr / self.g,
                                      self.bb[0], self.bb[1]):
                 if not (0 <= i < self.W and 0 <= j < self.H):
                     continue
-                self._mark(cls, li, self._idx(i, j), net)
+                self._mark(cls, li, self._idx(i, j), net, skip_pad_cells=True)
 
-    def _add_via_halo(self, net, x, y, l1, l2):
+    def _add_via_halo(self, net, x, y, l1, l2, skip_pad_cells=True):
+        """通孔净距禁区 (★默认**不盖别的网的焊盘格** ⇒ 见 _mark 的说明)"""
         i, j = self._ci(x), self._cj(y)
         for cls in range(3):
             rr = CLEAR + VIA_DIA / 2.0 + W_CLS[cls] / 2.0 + HALO_MARGIN
@@ -1799,7 +2089,8 @@ class GridRouter:
                         i2, j2 = i + di, j + dj
                         if not (0 <= i2 < self.W and 0 <= j2 < self.H):
                             continue
-                        self._mark(cls, li, self._idx(i2, j2), net)
+                        self._mark(cls, li, self._idx(i2, j2), net,
+                                   skip_pad_cells=skip_pad_cells)
 
     def net_length(self, net):
         tot = 0.0
@@ -2122,10 +2413,14 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
     res["delta"] = round(abs(r1["len"] - r2["len"]), 3)
     # ★长度配平: 短的那根加蛇形
     if res["delta"] > 0.13:
-        if r1["len"] < r2["len"]:
-            got = router.add_meander_v2(net_p, res["delta"])   # ★2026-11-05 03:2x 改用多凸起版
-        else:
-            got = router.add_meander_v2(net_n, res["delta"])
+        # ★★2026-11-05 07:25 **改用 v3** (固定凸起高度 + 反算每凸起能补多少)
+        #   ⇒ v2 的死穴: 用**剩余差值**反算凸起高度 ⇒ 差越大 a 越大 ⇒ **超过 a≤3 上限 ⇒ 一个凸起都加不上**
+        #   ⇒ v3: 固定 a=3.0 ⇒ 每凸起 +5.12mm (base=0.96) ⇒ Δ32.4 ⇒ 7 个凸起
+        #   ⇒ 先试 v3, 不够再回退 v2 (v2 在**小差值**时更精确)
+        _short = net_p if r1["len"] < r2["len"] else net_n
+        got = router.add_meander_v3(_short, res["delta"])
+        if got < res["delta"] - 0.05:
+            got += router.add_meander_v2(_short, res["delta"] - got)
         res["meander"] = round(got, 3)
         res["lp"] = round(router.net_length(net_p), 3)
         res["ln"] = round(router.net_length(net_n), 3)
@@ -2168,7 +2463,8 @@ def add_gnd_planes(board, layers=None, net="GND", fill=True):
     #   ★8 层: (1, 3, 5, 7) = In1.Cu + In3.Cu + In5.Cu + B.Cu
     #     (ROUTE_LAYERS = [0,2,4,6] = F.Cu/In2.Cu/In4.Cu/In6.Cu ⇒ 平面正好夹在信号层之间)
     if layers is None:
-        layers = (1, 3, 5, 7) if NLAYERS >= 8 else (1, 3, 5)
+        # ★★2026-11-05 07:40 **跟着层数走** ⇒ 10 层 ⇒ (1,3,5,7,9) = In1/In3/In5/In7 + B.Cu
+        layers = tuple(li for li in range(1, NLAYERS, 2))
     """★L2 / L6 完整 GND 平面 (STACKUP.md: L2 GND / L6 GND)
        ★**完整平面 = 不分割** ⇒ 满足 LAYOUT_RULES "L2/L6 不得在差分对下方被分割"
        ★平面层不放信号 (路由器只用 L1/L3/L5)"""
@@ -2361,6 +2657,20 @@ def route_board(board, verbose=True):
 
     # ---------- 3) MIPI 差分对 (最难 ⇒ 最后)
     _run_pairs(MIPI_PAIRS)
+    # ★★★2026-11-05 07:50 **rip-up & reroute (收尾杀招)** ——
+    #   ★**时机**: 必须在**阶段性 commit 之前** ⇒ ⇒ 被拆的线**根本不会落到板上** ⇒ 板上无废铜
+    #   ★**目标**: 实测 78 个失败脚里 **64 个 (82%) 是"中途被堵死"** ⇒ 只能拆线重走
+    _failed = sorted(set([n for n, v in stats["nets"].items() if not v.get("ok")]
+                          + [e["net"] for e in r.fail_detail]))
+    # ★★2026-11-05 07:55 **rip-up 可关** (PCB_RIPUP=0) ⇒ 便于单变量对比
+    if _failed and os.environ.get("PCB_RIPUP", "1") != "0":
+        _nrip = r.ripup_and_reroute(_failed, rip_per_net=6, verbose=verbose)
+        stats["ripup_ok"] = _nrip
+        if verbose:
+            print("  [RIPUP] 收尾: 尝试 %d 个失败网 ⇒ 重布成功 %d 个" % (len(_failed), _nrip))
+        # ★重布成功的网要重新统计 (失败列表会变)
+        stats["failed"] = [n for n in set(stats["failed"])
+                           if not (stats["nets"].get(n) or {}).get("ok")]
     # ★★2026-11-05 07:05 **中途存盘前先把已布的走线 commit 到板子上**
     #   ⇒ 原来直接存 ⇒ board 上还没有走线图元 ⇒ ★**存出来必然是 0 走线骨架** ⇒ "超时不丢活"没保住任何进度
     try:
@@ -2383,10 +2693,25 @@ def route_board(board, verbose=True):
             print("  [TIME] %-16s ok=%s  失败脚=%d  L=%.1fmm"
                   % (net, res["ok"], res["fail"], res["len"]))
 
-    # ---------- 4) 其余网络 (按焊盘数从多到少 ⇒ 大网先布)
+    # ---------- 4) 其余网络 (★★2026-11-05 07:35 **改按"跨距"降序** ⇒ 长干道先走)
+    #   ★**旧口径 (按焊盘数从多到少) 的问题**: 这批网**最后才布** ⇒ 前面 USB对/电源/MIPI
+    #     已经把 F.Cu 占掉 ⇒ ★**长干道网 (实测 60~100mm) 只能捡剩的通道 ⇒ 82% 的失败脚在这批**
+    #   ★**新口径**: 按网的"跨距" (各焊盘的曼哈顿跨度) 降序 ⇒ ★**长网先占空白板面, 短网填空隙**
     rest = [n for n in r.net_pads
             if len(r.net_pads[n]) >= 2 and n not in r.routed and n != "GND"]
-    rest.sort(key=lambda n: -len(r.net_pads[n]))
+
+    def _span(n):
+        """该网的跨距估计 (各焊盘两两曼哈顿距离的最大值) ⇒ 越长越先布"""
+        ps = r.net_pads[n]
+        best = 0.0
+        for i in range(len(ps)):
+            for j in range(i + 1, len(ps)):
+                d = abs(ps[i][2] - ps[j][2]) + abs(ps[i][3] - ps[j][3])
+                if d > best:
+                    best = d
+        return best
+
+    rest.sort(key=lambda n: (-_span(n), -len(r.net_pads[n])))
     for net in rest:
         res = r.route_net(net, width=W_SIG)
         stats["nets"][net] = res
