@@ -40,6 +40,11 @@ ALERT_STATE = os.path.join(HERE, ".delivery_health_alerted.json")
 
 THRESHOLD = 3               # 连挂几次算故障
 RE_ALERT_HOURS = 6          # 同一故障多久之后再提醒一次
+# ★B 类 (运行收场报错) 的提醒间隔: 24h
+#   理由 (2026-11-04 16:2x 决定): B 类是**运行时收场 flake** —— 活照干、产出照交,
+#   且该 job 的推送已关 (mode=none) ⇒ **对老板零影响** ⇒ 每 6 小时报一次纯属噪音 ⇒ 放宽到 24h。
+#   ★若某个 B 类 job 的推送是开着的 (mode=announce) ⇒ 仍走 6h, 因为那才会真的挡住通知。
+RE_ALERT_HOURS_B = 24
 WATCH_CHANNEL = "openclaw-weixin"   # ★老板手机上看状态的那一路 (最脆)
 
 # ★★2026-11-04 09:5x 实测加的分类 (两类故障必须分开, 否则噪音掩盖真问题)
@@ -108,7 +113,7 @@ def collect():
         out.append({
             "id": jid,
             "name": name_by_id.get(jid, jid),
-            "mode": d.get("mode") or "",
+            "mode": d.get("mode") or "announce",
             "channel": d.get("channel") or _run_channel(jid) or "?",
             "to": d.get("to") or "?",
             "errors": ce,
@@ -167,13 +172,20 @@ def main():
     clsB = [b for b in bad if classify(b["lastError"]) == "B"]
     fpA, fpB = fp_of(bad, "A"), fp_of(bad, "B")
 
-    def _rep(key, fp):
-        """该类别是否已告警过且还在 RE_ALERT_HOURS 内"""
+    # ★B 类里"推送已关 (mode=none)"的那些 = 对老板零影响 ⇒ 用 24h 窗口
+    b_impact = [b for b in clsB if b.get("mode") != "none"]
+    b_fp_impact = "|".join("%s::%s::%s" % (b["channel"], b["name"], b["lastError"][:120]) for b in b_impact)
+    b_fp_noimpact = "|".join("%s::%s::%s" % (b["channel"], b["name"], b["lastError"][:120])
+                             for b in clsB if b.get("mode") == "none")
+
+    def _rep(key, fp, window=RE_ALERT_HOURS):
+        """该类别是否已告警过且还在提醒窗口内"""
         st = alerted.get(key) or {}
-        return st.get("fingerprint") == fp and (now - (st.get("at", 0) or 0)) < RE_ALERT_HOURS * 3600
+        return st.get("fingerprint") == fp and (now - (st.get("at", 0) or 0)) < window * 3600
 
     repeatA = _rep("A", fpA)
-    repeatB = _rep("B", fpB)
+    # B 类分两把尺: 有推送的用 6h; 推送已关的用 24h (零影响, 别吵老板)
+    repeatB = (_rep("B", fpB) and _rep("B_imp", b_fp_impact)) if b_impact else _rep("B_noimp", b_fp_noimpact, RE_ALERT_HOURS_B)
     repeat = repeatA and repeatB
 
     if repeat and quiet:
@@ -199,7 +211,11 @@ def main():
             lines.append("  · [%s] %s 连挂 %d 次 | 最后跑 %s"
                          % (b["channel"], b["name"], b["errors"], t))
             lines.append("      错误: %s" % b["lastError"][:160])
-            lines.append("      ★判据: 按铁律 **看产出 (文件 mtime / 报告内容)**, 不看 run 状态 ⇒ 这一类只是 announce 没发出去")
+            if b.get("mode") == "none":
+                lines.append("      ★判据: 按铁律 **看产出 (文件 mtime / 报告内容)**, 不看 run 状态 ⇒ 这一类只是 **run 状态显示 error**;"
+                             "★**该 job 的推送已关 (mode=none) ⇒ announce 本来就不发 ⇒ 对老板无影响**")
+            else:
+                lines.append("      ★判据: 按铁律 **看产出 (文件 mtime / 报告内容)**, 不看 run 状态 ⇒ 这一类只是 announce 没发出去")
     if WATCH_CHANNEL in chans:
         if watch_still_pushing:
             lines.append("  ★处置: %s 这一路发不出去 ⇒ 老板手机上看不到状态 ⇒ "
@@ -221,6 +237,12 @@ def main():
     if not repeatB:
         new_alert["B"] = {"fingerprint": fpB, "at": now,
                           "jobs": [{"name": b["name"], "errors": b["errors"]} for b in clsB]}
+        if b_impact:
+            new_alert["B_imp"] = {"fingerprint": b_fp_impact, "at": now,
+                                  "jobs": [{"name": b["name"], "errors": b["errors"]} for b in b_impact]}
+        else:
+            new_alert["B_noimp"] = {"fingerprint": b_fp_noimpact, "at": now,
+                                    "jobs": [{"name": b["name"], "errors": b["errors"]} for b in clsB]}
     new_alert["fingerprint"] = fingerprint(bad)
     new_alert["at"] = now
     new_alert["jobs"] = [{"name": b["name"], "errors": b["errors"]} for b in bad]
