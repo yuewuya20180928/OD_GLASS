@@ -1090,6 +1090,59 @@ class GridRouter:
                 fail -= 1
                 # ★新接上的焊盘也当锚点 (⇒ 后面孤儿可以接着连)
                 anchor_xy.append((cx, cy))
+        # ★★★2026-11-05 03:0x **第三遍 (新): 还没接上的 GND 焊盘 ⇒ 直接在焊盘下方落过孔 (焊盘内过孔)**
+        #   ★**为什么必须这样**: 前两遍都要**在焊盘外面找空间** ⇒ 密集器件区 (0402/0603 旁边
+        #   全是别的网焊盘) ⇒ ★**被围死的焊盘永远找不到过孔位** ⇒ 实测 36 个 GND 焊盘一根铜都没接上
+        #   ⇒ ★**焊盘内过孔 (via-in-pad) 是唯一解**: 过孔落在焊盘自己的铜里 ⇒
+        #     ① 不需要任何走线空间 ② 净距天然满足 (同网) ③ 直接落到 L2/L6 的 GND 平面
+        #   ★**焊盘尺寸判据**: 焊盘短边 ≥ 0.70mm 才放得下 Ø0.6 过孔 (+0.05 边距)
+        #   ★**孔间距**: 与已有过孔孔心距 ≥0.60mm (0.3 钻 + 0.25 孔间距)
+        orphan3 = [p for p in pads if p not in done_pads]
+        for pad in orphan3:
+            _ref, _num, cx, cy, _layers = pad
+            # 找这个焊盘的矩形 (同网)
+            rect = None
+            for (n2, x0, y0, x1, y1, _ls) in self.pad_rects_l:
+                if n2 == net_g and x0 - 0.01 <= cx <= x1 + 0.01 and y0 - 0.01 <= cy <= y1 + 0.01:
+                    rect = (x0, y0, x1, y1)
+                    break
+            if not rect:
+                continue
+            x0, y0, x1, y1 = rect
+            if min(x1 - x0, y1 - y0) < 0.70:
+                why["inpad_small"] = why.get("inpad_small", 0) + 1
+                continue
+            # ★孔间距: 已有过孔
+            if any(math.hypot(cx - vx, cy - vy) < 0.60 for (vn, vx, vy, _l1, _l2) in self.vias):
+                why["inpad_spacing"] = why.get("inpad_spacing", 0) + 1
+                continue
+            # ★**过孔所在位置的铜净距**: 同网焊盘不算, 但别的网不能挨着
+            idx = self._idx(self._ci(cx), self._cj(cy))
+            bad = False
+            for (n2, ax, ay, bx, by) in self.pad_rects:
+                if n2 == net_g:
+                    continue
+                if x0 - 0.05 <= cx <= x1 + 0.05 and y0 - 0.05 <= cy <= y1 + 0.05:
+                    bad = True
+                    break
+            if not bad and not self._via_free_all(idx, net_g):
+                bad = True
+            if bad:
+                why["inpad_busy"] = why.get("inpad_busy", 0) + 1
+                continue
+            # ★落过孔 (F.Cu..B.Cu ⇒ 穿过 L2/L6 的 GND 平面 ⇒ 直接接地)
+            v = pcbnew.PCB_VIA(self.b)
+            v.SetPosition(pcbnew.VECTOR2I(int(cx * MM), int(cy * MM)))
+            v.SetViaType(pcbnew.VIATYPE_THROUGH)
+            v.SetWidth(pcbnew.FromMM(VIA_DIA))
+            v.SetDrill(pcbnew.FromMM(VIA_DRILL))
+            v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+            v.SetNetCode(netcode(self.b, net_g))
+            self.b.Add(v)
+            self.vias.append((net_g, cx, cy, 0, 5))
+            self._add_via_halo(net_g, cx, cy, 0, 5)
+            ok += 1
+            fail -= 1
         return (ok, fail)
 
     def _ring_cells(self, cx, cy, r_mm):
@@ -1350,6 +1403,61 @@ class GridRouter:
             self._insert_meander(net, s, mid, apex, ux, uy, base)
             return extra_mm
         return 0.0
+
+    def add_meander_v2(self, net, extra_mm, max_bumps=16):
+        """★给 net 增加 extra_mm 长度 —— **多凸起版** (2026-11-05 03:2x)
+
+        ★**上一版 (v1) 为什么对 MIPI 时钟对没用** (实测: CSI_D0_CK Δ=32.4mm / DSI_D0_CK Δ=16.5mm 配平失败):
+          ① 只在**一个"最长且 ≥2.5mm"的直段**上加**一个**三角凸起
+             ⇒ 时钟对的直段往往很短 (0.25mm 网格 + 蛇形 ⇒ 被拆成很多小段) ⇒ 常常一个都找不到
+          ② 加了之后净距不够 ⇒ 直接返回 0 ⇒ 差值原封不动
+        ★**v2**: **多凸起 + 逐个候选段试**
+          ⇒ 一个 32mm 的差可以拆成 8 个 ~4mm 的小凸起 (每个凸起都按需要的高度算, 高度 ≤3mm 以免被挡)
+          ⇒ 每个凸起都单独过 `_geom_clear` (别的网铜净距) ⇒ 不合格就换段/换方向
+        返回: 实际增加的长度 (mm)
+        """
+        added = 0.0
+        for _ in range(max_bumps):
+            remain = extra_mm - added
+            if remain <= 0.01:
+                break
+            best = None
+            for seg in self.net_tracks(net):
+                L = math.hypot(seg[3] - seg[1], seg[4] - seg[2])
+                if L < 1.2:
+                    continue
+                ux, uy = (seg[3] - seg[1]) / L, (seg[4] - seg[2]) / L
+                base = min(L * 0.8, 8.0)
+                val = ((base + remain) / 2.0) ** 2 - (base / 2.0) ** 2
+                if val <= 0:
+                    continue
+                a = math.sqrt(val)
+                if a > 3.0:          # ★凸起太高 ⇒ 几乎一定被别的网挡住 ⇒ 换段
+                    continue
+                mid = ((seg[1] + seg[3]) / 2.0, (seg[2] + seg[4]) / 2.0)
+                for sign in (1, -1):
+                    nx, ny = -uy * sign, ux * sign
+                    apex = (mid[0] + nx * a, mid[1] + ny * a)
+                    d = base / 2.0
+                    p_in = (mid[0] - ux * d, mid[1] - uy * d)
+                    p_out = (mid[0] + ux * d, mid[1] + uy * d)
+                    cand = [
+                        (seg[1], seg[2], p_in[0], p_in[1]),
+                        (p_in[0], p_in[1], apex[0], apex[1]),
+                        (apex[0], apex[1], p_out[0], p_out[1]),
+                        (p_out[0], p_out[1], seg[3], seg[4]),
+                    ]
+                    if not self._geom_clear(net, cand, seg[5], seg[6]):
+                        continue
+                    if best is None or L > best[0]:
+                        best = (L, seg, mid, apex, ux, uy, base)
+                    break
+            if best is None:
+                break
+            _L, seg, mid, apex, ux, uy, base = best
+            self._insert_meander(net, seg, mid, apex, ux, uy, base)
+            added += remain
+        return added
 
     def _geom_clear(self, net, segs, li, w=W_SIG):
         """★这几段几何 vs **别的网的所有铜** (同层走线 + 所有过孔 + 同层焊盘) 净距够不够?
@@ -1861,9 +1969,9 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
     # ★长度配平: 短的那根加蛇形
     if res["delta"] > 0.13:
         if r1["len"] < r2["len"]:
-            got = router.add_meander(net_p, res["delta"])
+            got = router.add_meander_v2(net_p, res["delta"])   # ★2026-11-05 03:2x 改用多凸起版
         else:
-            got = router.add_meander(net_n, res["delta"])
+            got = router.add_meander_v2(net_n, res["delta"])
         res["meander"] = round(got, 3)
         res["lp"] = round(router.net_length(net_p), 3)
         res["ln"] = round(router.net_length(net_n), 3)

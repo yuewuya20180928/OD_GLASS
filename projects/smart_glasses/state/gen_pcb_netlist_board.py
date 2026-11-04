@@ -45,6 +45,7 @@ import sys as _sys
 _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from som_btb_footprint import add_som_connectors  # noqa: E402
 from display_fpc_footprint import add_display_fpc  # noqa: E402
+from usb_c_footprint import add_usb_c  # noqa: E402
 from tmp117_footprint import add_tmp117  # noqa: E402
 SOM_PARAMS = os.path.join(PROJ, "HW", "PCB", "som_btb_params.json")
 
@@ -81,6 +82,12 @@ BOARD_FILTER = "MAIN_PCB"
 #     ⇒ ★两者可以同间距成对走出 (LAYOUT_RULES: USB 差分 90Ω)
 #   ★R_SER_USB_D_N 上移一格 (y 25.5 → 23.5): 与 R_SER_USB_D_P 同 x 上下堆叠
 #     ⇒ 两个串阻的"座侧"脚 (pad2) 同 x、相差 2.0mm ⇒ 差分线在串阻处只需小扇出
+# ★★2026-11-05: USB-C 电源口位置 (自绘封装) —— ★**必须靠板边**(插头面与板边齐平, 板 160×100 ⇒ 上边 y=0)
+USB_C_X = 140.0
+USB_C_Y = 5.25
+# ★禁放区 (自动装箱要避开): USB-C 座占 x 133.9..146.1, y 0..6.4
+RESERVED = [(133.0, 0.0, 147.5, 7.2)]
+
 PLACE_OVERRIDE = {
     "J_USB_C": {"x": 130.55, "y": 46.20, "rot": 90},
     "R_SER_USB_D_N": {"x": 107.70, "y": 23.50, "rot": 0},
@@ -405,6 +412,8 @@ def _pin_net_from_netlist(ref=None):
     import re as _re
     _out = {}
     pat = r"CONN_LIGHT pin(\d+)" if ref == "CONN_LIGHT" else r"J_SOM_(P\d) pin(\d+)"
+    # ★2026-11-05: J_USB_C 的脚名是 **USB-IF 物理脚名且可能合并** ("A6+B6" / "A4+A9+B4+B9")
+    usbif = r"J_USB_C ([AB](?:1|4|5|6|7|8|9|12)(?:\+[AB](?:1|4|5|6|7|8|9|12))*)"
     with open(NETLIST, encoding="utf-8") as _f:
         for _r in _csv.DictReader(_f):
             _net = (_r.get("net") or "").strip()
@@ -417,6 +426,16 @@ def _pin_net_from_netlist(ref=None):
                         _out[int(_m.group(1))] = _net
                     else:
                         _out.setdefault(_m.group(1), {})[int(_m.group(2))] = _net
+        if ref == "J_USB_C":
+            with open(NETLIST, encoding="utf-8") as _f:
+                for _r in _csv.DictReader(_f):
+                    _net = (_r.get("net") or "").strip()
+                    if not _net:
+                        continue
+                    for _k in ("node1", "node2"):
+                        _m2 = _re.fullmatch(usbif, (_r.get(_k) or "").strip())
+                        if _m2:
+                            _out.setdefault(_m2.group(1), _net)
     return _out
 
 
@@ -458,6 +477,9 @@ def main():
         if ref == "CONN_LIGHT":
             continue   # ★**显示 FPC 座 (22p/0.5mm, HiROSE FH12-22S) 由 display_fpc_footprint 模块按官方封装画**
                        #   (通用 CONN 封装是"假封装": 焊盘尺寸/位置都不对) ⇒ 这里跳过
+        if ref == "J_USB_C":
+            continue   # ★★2026-11-05: USB-C 电源口用 **自绘 GCT USB4105-16p** 封装 (usb_c_footprint 模块)
+                       #   —— 通用 CONN 假封装(8脚)插不了线, 且必须摆在**板边**(插头面与板边齐平) ⇒ 这里跳过
         pins = per_ref[ref]
         kind = kind_of(ref)
         w, h, _per, _pitch, _nr = size_of(kind, len(pins))
@@ -474,6 +496,13 @@ def main():
         if py + h > PK_AREA[3]:
             print(f"⚠️ 装不下: {ref} (y={py:.1f}) ⇒ 需要更大板或更紧的间距")
             break
+        # ★禁放区 (USB-C 座区) —— 撞上就换一行
+        if any(not (px + w <= rx0 or px >= rx1 or py + h <= ry0 or py >= ry1)
+               for (rx0, ry0, rx1, ry1) in RESERVED):
+            px = PK_AREA[0]
+            py += row_h + 3.0
+            row_h = 0.0
+            continue
         if ref == "U_TEMP":
             # ★TMP117 = WSON-6 (DRV0006B) 官方封装 —— 通用 IC 封装是"假封装" (1.27mm pitch) ⇒ 单独画
             add_tmp117(board, netmap, pins, px + w / 2.0, py + h / 2.0)
@@ -496,6 +525,11 @@ def main():
     #   ★**已就绪的部分**: 引脚映射 (`HW/PCB/som_pin_full_map.json` 399 行) + 分配表 (`HW/PCB/SOM_PIN_ASSIGNMENT.md`) + 网表脚本 (`state/_iss165_assign_final.py`)
     #   ⇒ **明早**: 重跑 A2 网表脚本 ⇒ 板生成器里把 4 排座放到与器件网格不重叠的位置 ⇒ 重跑 DRC/parity
     #   ★★**当前刻意不画 4 排座** ⇒ 板子保持 A1 状态 (DRC=0 / parity 全过), 避免带着未修的布局进 Gerber
+    # ★★2026-11-05: J_USB_C = **自绘 GCT USB4105-16p** (usb_c_footprint) —— ★**摆在板边, 插头面与板边齐平**
+    #   (原位 130.55/46.20 在板中央 ⇒ 插不了线 ⇒ 投板级致命) ⇒ 焊盘行中心 y = FRONT_OFFSET(5.25) ⇒ 插头面正好在 y=0
+    _usb_pins = _pin_net_from_netlist(ref="J_USB_C")
+    add_usb_c(board, netmap, _usb_pins, USB_C_X, USB_C_Y)
+
     som = pcbnew.FOOTPRINT(board)
     som.SetReference("J_SOM")
     som.SetValue("Forlinx FET3572-C SoM 68x50 (4x100pin BTB) - FOOTPRINT PENDING")

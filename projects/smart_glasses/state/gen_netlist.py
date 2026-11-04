@@ -1037,10 +1037,14 @@ def build_p5(by_id, spec):
             "[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND", "")
     _cam_nc = [8, 9, 22, 23, 26]
     for _pn in _cam_nc:
-        add("P5", "NC_CONN_CAM", f"CONN_CAM pin{_pn}", "NC_CONN_CAM", "CONN_CAM", "NC", "NET", "必装",
+        # ★★2026-11-05 03:00 修 (实测 8 个 unconnected 的根因): 这几脚**每个自己一根网**
+        #   ⇒ 板上就是 5 个独立焊盘 (无铜) ⇒ KiCad **不会**把它们算成"未连接"
+        #   ★**原来 5~8 个 NC 脚共用一根 NC_CONN_CAM 网** ⇒ KiCad 认为"这 5 个焊盘该互相连通" ⇒
+        #   ⇒ 实测 DRC 报 8 条 unconnected (假未连接) ⇒ ★**同一个"网"里的 NC 脚不是"不接", 是"该接却没接"**
+        add("P5", f"NC_CONN_CAM_{_pn}", f"CONN_CAM pin{_pn}", f"NC_CONN_CAM_{_pn}", "CONN_CAM", "NC", "NET", "必装",
             "[官方]", "",
             f"[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = NC (模组内部不接); "
-            "★**板级同网仅为满足网表连通性检查, 这几脚本身是 NC, 无功能影响**", "")
+            "★**每个 NC 脚独立成网** (共用一根网会被 DRC 判成'未连接' ⇒ 假告警)", "")
     add("P5", "CAM_RESET_N", "CONN_CAM pin27", soc_pin("GPIO_CAM_RESET"), "CONN_CAM", "单端", "NET",
         "必装", "[官方]", "",
         "[CAM_RESET_N] ★camera 模组 RESET (pin27, 低有效) ⇒ 接 SoC GPIO (★球位号 TBD-01); "

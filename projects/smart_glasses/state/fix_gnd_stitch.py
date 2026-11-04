@@ -18,6 +18,7 @@ fix_gnd_stitch.py —— ★① 清理悬空走线 ② GND 缝合 (2026-11-04 23
   bash state/pcbnew_py.sh state/fix_gnd_stitch.py                  # 清理 + GND 缝合
 """
 import os
+import math
 import shutil
 import sys
 
@@ -195,8 +196,8 @@ def main():
     print(f"★安全闸: 单端悬空删除 {risky} 段 ({risky/len(segs)*100:.2f}%, 上限 {MAX_DEL_RATIO*100:.0f}%) ⇒ 放行")
 
     if not clean_only:
-        n = stitch_gnd(board, gnd_net)
-        print(f"★GND 缝合: 新增 {n} 个过孔 + 短引线")
+        n = stitch_gnd_v2(board, gnd_net)
+        print(f"★GND 缝合 (v2): 新增 {n} 个过孔 + 短引线")
 
     filler = pcbnew.ZONE_FILLER(board)
     filler.Fill(board.Zones())
@@ -207,6 +208,113 @@ def main():
     except Exception as e:   # ★pcbnew 的 SWIG 对象在 SaveBoard 后不可再迭代 ⇒ 只报文件实际计数
         print(f"✓ 已保存 (统计跳过: {e})")
     return 0
+
+
+# ============================================================
+# ★★2026-11-05 02:4x: 缝合 v2 (实测修)
+#   旧版 (v1) 加了 **0 个过孔** ⇒ 原因: 跳过条件把 **所有网** 的走线端点/过孔都算进去了
+#   ⇒ 一个 GND 焊盘只要挨着**别的网**的某个端点 (0.12mm 容差) 就被跳过 ⇒ 全部跳过
+#   ⇒ ★而且实测 DRC: GND 焊盘上挂着 1.2mm 的短引线却**没有过孔下到平面** ⇒ 正是缺"缝合过孔"
+#   ⇒ v2 规则:
+#     ① 只有**同网 (GND) 的过孔**挨着焊盘才算"已缝合" (别的网一律不管)
+#     ② 放缝合过孔时, 净距只跟**别的网**的铜算 (走线/过孔/焊盘), 与路由器同一口径 (CLEAR=0.20mm)
+#     ③ 缝合完必须重填铜皮 (ZONE_FILLER) ⇒ 过孔才会真的连到 L2/L6 的 GND 平面
+# ============================================================
+MM = 1000000
+CLEAR_MM = 0.20
+VIA_D = 0.60
+TRK_W = 0.30
+
+
+def stitch_gnd_v2(board, gnd_code):
+    """给没缝合到 GND 平面的 GND 焊盘补过孔 + 短引线 ⇒ 返回新增数"""
+    segs = [t for t in board.GetTracks() if t.Type() == pcbnew.PCB_TRACE_T]
+    vias = [t for t in board.GetTracks() if t.Type() == pcbnew.PCB_VIA_T]
+    gnd_via_pts = [(v.GetPosition().x, v.GetPosition().y) for v in vias
+                   if v.GetNetCode() == gnd_code]
+    # ★别的网的铜 (用于净距检查)
+    other_segs = [(t.GetStart().x, t.GetStart().y, t.GetEnd().x, t.GetEnd().y, t.GetLayer())
+                  for t in segs if t.GetNetCode() != gnd_code]
+    other_vias = [(v.GetPosition().x, v.GetPosition().y) for v in vias
+                  if v.GetNetCode() != gnd_code]
+    other_pads = []
+    for fp in board.GetFootprints():
+        for pad in fp.Pads():
+            if pad.GetNetCode() != gnd_code:
+                pos = pad.GetPosition(); sz = pad.GetSize()
+                other_pads.append((pos.x - sz.x / 2, pos.y - sz.y / 2,
+                                    pos.x + sz.x / 2, pos.y + sz.y / 2, pad.GetLayer()))
+    bbox = board.GetBoardEdgesBoundingBox()
+    added = 0
+    for fp in board.GetFootprints():
+        for pad in fp.Pads():
+            if pad.GetNetCode() != gnd_code:
+                continue
+            pos = pad.GetPosition()
+            # ① 已缝合? (只看同网过孔)
+            if any(abs(px - pos.x) <= TOL_PAD and abs(py - pos.y) <= TOL_PAD
+                   for (px, py) in gnd_via_pts):
+                continue
+            size = pad.GetSize()
+            layer = pad.GetLayer()
+            placed = False
+            for (cx, cy) in ((pos.x + int(size.x / 2 + STUB), pos.y),
+                              (pos.x - int(size.x / 2 + STUB), pos.y),
+                              (pos.x, pos.y + int(size.y / 2 + STUB)),
+                              (pos.x, pos.y - int(size.y / 2 + STUB))):
+                if not bbox.Contains(pcbnew.VECTOR2I(cx, cy)):
+                    continue
+                need_via = CLEAR_MM * MM
+                # ② 净距: 别的网走线 (同层) / 过孔 / 焊盘
+                bad = False
+                for (x1, y1, x2, y2, li) in other_segs:
+                    if li != layer:
+                        continue
+                    if _seg_dist(cx, cy, x1, y1, x2, y2) < need_via:
+                        bad = True; break
+                if not bad:
+                    for (vx, vy) in other_vias:
+                        if abs(vx - cx) <= need_via and abs(vy - cy) <= need_via:
+                            bad = True; break
+                if not bad:
+                    for (x0, y0, x1, y1, li) in other_pads:
+                        if li != layer:
+                            continue
+                        if x0 - need_via <= cx <= x1 + need_via and y0 - need_via <= cy <= y1 + need_via:
+                            bad = True; break
+                if bad:
+                    continue
+                v = pcbnew.PCB_VIA(board)
+                v.SetPosition(pcbnew.VECTOR2I(cx, cy))
+                v.SetViaType(pcbnew.VIATYPE_THROUGH)
+                v.SetWidth(VIA_DIA)
+                v.SetDrill(VIA_DRILL)
+                v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                v.SetNetCode(gnd_code)
+                board.Add(v)
+                t = pcbnew.PCB_TRACK(board)
+                t.SetStart(pcbnew.VECTOR2I(pos.x, pos.y))
+                t.SetEnd(pcbnew.VECTOR2I(cx, cy))
+                t.SetWidth(pcbnew.FromMM(TRK_W))
+                t.SetLayer(layer)
+                t.SetNetCode(gnd_code)
+                board.Add(t)
+                gnd_via_pts.append((cx, cy))
+                added += 1
+                placed = True
+                break
+    return added
+
+
+def _seg_dist(px, py, x1, y1, x2, y2):
+    """点到线段的距离 (mm)"""
+    dx, dy = x2 - x1, y2 - y1
+    L2 = dx * dx + dy * dy
+    if L2 <= 0:
+        return math.hypot(px - x1, py - y1)
+    t = max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / L2))
+    return math.hypot(px - (x1 + t * dx), py - (y1 + t * dy))
+
 
 
 if __name__ == "__main__":

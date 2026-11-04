@@ -32,9 +32,9 @@ def board_facts():
         with open(PCB, encoding="utf-8") as f:
             for line in f:
                 s = line.lstrip()
-                if s.startswith("(segment "):
+                if s.startswith("(segment"):
                     seg += 1
-                elif s.startswith("(via "):
+                elif s.startswith("(via"):
                     via += 1
     except Exception:
         pass
@@ -58,12 +58,16 @@ def running():
 
 
 def task_head():
+    """返回 (当前在做, 待办清单)"""
     try:
         txt = open(TASK, encoding="utf-8").read()
-        lines = [l.strip("# ").strip() for l in txt.splitlines() if l.strip()]
-        return lines[:4]
+        lines = [l.strip() for l in txt.splitlines()
+                 if l.strip() and not l.strip().startswith("#")]
     except Exception:
-        return ["(无 state/CURRENT_TASK.md)"]
+        return ["(无 state/CURRENT_TASK.md)"], []
+    cur = lines[0] if lines else "(空)"
+    todos = [l for l in lines[1:] if not l.startswith("★")]
+    return cur, todos
 
 
 def main():
@@ -75,8 +79,10 @@ def main():
     print(f"[布线] 上次实测 unconnected={st.get('unconnected','?')} · DRC违规={st.get('drc_violations','?')} · 留证 {st.get('at','?')}")
     rs = running()
     print(f"[在跑] {len(rs)} 个进程" + ("" if not rs else " ⇒ " + "; ".join(x.split()[1] if len(x.split())>1 else x for x in rs[:2])))
-    print("[当前任务]")
-    for l in task_head():
+    cur, todos = task_head()
+    print(f"[当前在做] {cur}")
+    print("[待办]")
+    for l in todos[:9]:
         print("  - " + l)
 
 
