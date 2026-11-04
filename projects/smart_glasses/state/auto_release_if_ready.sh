@@ -84,10 +84,18 @@ if [ -f "$LAND_JSON" ]; then
 else
   echo "  (注: 无 .layout_landed.json ⇒ 落盘时刻闸不可用 (该印 06:30 才加))"
 fi
-if [ "$LANDED" -eq 1 ] && [ ! -f "$LAND_JSON" ]; then LAND_OK=1; fi   # ★老板无印 ⇒ 放行一次
+if [ "$LANDED" -eq 1 ] && [ ! -f "$LAND_JSON" ] && [ "${BM:-0}" -le "${M0:-0}" ]; then LAND_OK=1; fi   # ★老板无印 ⇒ 只放行"已经量过的那块板"一次 (★新板不许走无印通道)
 if [ "$BM" -gt "$EM" ] && [ "$BM" -gt "$M0" ] && [ "${BOARD_SEG:-0}" -ge 1 ] && [ "$LAND_OK" -eq 1 ]; then
   LANDED=1
   echo "  (板侧判据: 官方板 mtime=$BM > 留证=$EM ⇒ 有一轮落盘但没量过 ⇒ 触发自验)"
+fi
+# ★★2026-11-05 07:0x **补洞: 日志触发的自验也必须过"落盘时刻闸"** (★只对"新板"要求)
+#   事故事实: 上一轮日志里永远留着 "已原子替换正式板" ⇒ 没有在跑的轮次时, 指针 fallback 会拿到**旧日志**
+#   ⇒ LANDED=1 ⇒ ★**对一块被中途落盘覆盖过的板自验** ⇒ .layout_done.json 被写成垃圾 ⇒ 自己污染自己的证据
+#   ⇒ 现在: 板比"上次量过的板"新 (BM > M0) 时, 落盘时刻闸对不上 ⇒ **一律不许量**
+if [ "$LANDED" -eq 1 ] && [ "${BM:-0}" -gt "${M0:-0}" ] && [ "$LAND_OK" -eq 0 ]; then
+  echo "  ⚠ 日志说落盘了, 但板 mtime=$BM 比上次量过的板 ($M0) 新 且**落盘时刻闸对不上** ⇒ ★**不许量** (等真正落盘的一轮)"
+  LANDED=0
 fi
 if [ "$LANDED" -ne 1 ]; then
   RC_SEEN="$(grep -oE 'EXIT=[0-9]+' "$LOG" 2>/dev/null | tail -1 || true)"

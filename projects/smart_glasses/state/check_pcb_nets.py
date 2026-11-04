@@ -61,10 +61,25 @@ PIN_RE = re.compile(r"pin\d+(\+pin\d+)*")
 
 def _is_pad_name(tail):
     """★真实焊盘号判定: "pin<N>" (网表针号) 或 **USB-IF 物理脚名** (A1/A4/A5/B12/shield …)
-    ★USB-C 座 (如 GCT USB4105) 的 KiCad 封装正是用这组名字当 pad number ⇒ 必须当真实焊盘号"""
+    ★USB-C 座 (如 GCT USB4105) 的 KiCad 封装正是用这组名字当 pad number ⇒ 必须当真实焊盘号
+    ★★2026-11-05 07:10 **合并写法也要认** (与 gen_pcb_netlist_board.py **同口径**)
+       网表里 USB-C 的 A/B 双排同名脚合写: "A6+B6" / "A4+A9+B4+B9"
+       ⇒ USBIF_RE 只匹配**单个**脚名 ⇒ 合并写法被判成"命名脚" ⇒ 落进占位编号分支
+       ⇒ 网表侧要 '1','2','3' 而板上是 'A6','B6' ⇒ ★**parity 必红**
+       (实测 8 层板: 缺失 12 / 多余 12, 全是 J_USB_C)
+       ⇒ ★**检查器与生成器必须同一口径**, 否则一个说"全过"另一个说"不等价" ⇒ 闸门自相矛盾
+    """
     if not tail:
         return False
-    return bool(re.fullmatch(r"pin\d+(\+pin\d+)*", tail)) or bool(USBIF_RE.match(tail))
+    if re.fullmatch(r"pin\d+(\+pin\d+)*", tail):
+        return True
+    if USBIF_RE.match(tail):
+        return True
+    # ★合并写法: 每个 token 都是 USB-IF 物理脚名 ⇒ 整体算"真实焊盘号"
+    toks = [t.strip() for t in tail.split("+") if t.strip()]
+    if len(toks) >= 2 and all(USBIF_RE.match(t) for t in toks):
+        return True
+    return False
 
 def split_node(node):
     """节点串 → (器件名, 脚名 or None)"""
@@ -243,6 +258,11 @@ def run_checks(path, verbose=True):
     #   而我们只用了其中 45 个 ⇒ 未用的脚必须是"无网焊盘" (NC) ⇒ **不能**当成"多余"
     #   ⇒ 反过来: 其它器件出现 NC 焊盘 = 可疑 (网表里那个脚没画) ⇒ 判失败
     NC_ALLOWED = {"J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4"}
+    # ★★2026-11-05 07:15 **J_USB_C 也允许 NC** (USB-IF 规范: **A8/B8 本来就是 NC**,
+    #   而两个大固定脚 = 屏蔽壳 (shield) ⇒ ★**网表不给它们分配网络是对的**)
+    #   ⇒ 之前 J_USB_C 的 pad(shield)/A8/B8 被判"非法 NC" ⇒ ★C1 永远红 ⇒ 闸门自相矛盾
+    #   ★**EMC 提醒 (不阻断本板)**: 屏蔽壳通常还要经 RC (1MΩ ‖ 4.7nF) 接地 ⇒ 属设计项, 另记
+    NC_ALLOWED.add("J_USB_C")
     nc_pads = {k for k, v in have.items() if not v}
     extra = [e for e in extra if e[0] not in nc_pads]   # e = (key, net) ⇒ 取 e[0] 比
     bad_nc = sorted(k for k in nc_pads if k[0] not in NC_ALLOWED)
@@ -268,11 +288,25 @@ def run_checks(path, verbose=True):
     #   ★**部分用到的 100 脚座** (SOM 的 4 组 BTB): 板上是 100 个物理焊盘, 网表只用其中一部分
     #   ⇒ 判据改成: 板 100 脚 + **网表用到的脚必须都在板上** (而不是"针数相等")
     PARTIAL = {"J_SOM_P1": 100, "J_SOM_P2": 100, "J_SOM_P3": 100, "J_SOM_P4": 100}
+    # ★★2026-11-05 07:15 **合法 NC 脚要从"针数"里扣掉** (J_USB_C 的 shield/A8/B8)
+    #   ⇒ USB-IF 规范: A8/B8 就是 NC, 两个大固定脚是屏蔽壳 ⇒ ★**板上有 17 个焊盘, 网表用 14 个**
+    #   ⇒ C2/C3 直接比"针数相等" ⇒ ★**永远红** ⇒ 改成: 板上的 NC 脚不计入针数
+    _nc_by_ref = {}
+    for _k in nc_pads:
+        _r, _n = _k[0], _k[1]
+        _nc_by_ref.setdefault(_r, set()).add(str(_n))
+
+    def _nc_ok(ref):
+        """该器件的 NC 脚是否都是允许的 (USB-C 屏蔽/A8/B8)"""
+        return ref in NC_ALLOWED
+
     c2 = []
     bad2 = []
     for ref in sorted(numbered):
         want_nums = {str(n) for n in numbered[ref]}
-        got_nums = set(board_refs.get(ref, []))
+        got_all = set(board_refs.get(ref, []))
+        # ★只数"有网"的焊盘 (USB-C 的 shield/A8/B8 本就无网 ⇒ 不计入针数)
+        got_nums = {n for n in got_all if have.get((ref, n))}
         if ref in PARTIAL:
             ok = (len(board_refs.get(ref, [])) == PARTIAL[ref] and want_nums <= got_nums)
             diff = sorted(want_nums - got_nums, key=lambda s: (len(s), s))
@@ -283,7 +317,7 @@ def run_checks(path, verbose=True):
                 bad2.append(ref)
             continue
         ok = (len(got_nums) == len(want_nums) and got_nums == want_nums
-              and len(board_refs.get(ref, [])) == len(want_nums))
+              and len(got_nums) == len(want_nums))
         diff = sorted(got_nums ^ want_nums, key=lambda s: (len(s), s))
         c2.append(f"  {'✅' if ok else '❌'} C2 {ref}: 板 {len(got_nums)} 脚 / 网表 {len(want_nums)} 脚"
                   + ("" if ok else f" · 针号差 {diff[:8]}"))
@@ -304,6 +338,9 @@ def run_checks(path, verbose=True):
             if g != PARTIAL[ref]:
                 bad3.append((ref, PARTIAL[ref], g))
             continue
+        # ★合法 NC 脚 (USB-C 屏蔽/A8/B8) 不计入
+        if _nc_ok(ref):
+            g = len([n for n in board_refs.get(ref, []) if have.get((ref, n))])
         if w != g:
             bad3.append((ref, w, g))
     ok3 = not bad3

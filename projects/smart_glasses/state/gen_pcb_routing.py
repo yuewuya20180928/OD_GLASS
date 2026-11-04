@@ -1330,8 +1330,14 @@ class GridRouter:
 
         # ---------- 1) 删零长段 ----------
         n0 = len(self.tracks)
-        self.tracks = [s for s in self.tracks
-                       if not (abs(s[1] - s[3]) < EPS and abs(s[2] - s[4]) < EPS)]
+        # ★★2026-11-05 07:15 **已提交到板上的零长段也要真删** (否则板上留 ~565 条退化段 ⇒ DRC 红)
+        _keep0 = []
+        for s in self.tracks:
+            if abs(s[1] - s[3]) < EPS and abs(s[2] - s[4]) < EPS:
+                self._drop_committed(s)
+            else:
+                _keep0.append(s)
+        self.tracks = _keep0
         n_zero = n0 - len(self.tracks)
 
         # ---------- 索引 ----------
@@ -1403,6 +1409,9 @@ class GridRouter:
             # 删掉悬空段后重建哈希
             keep = [s for i, s in enumerate(self.tracks) if i not in drop]
             n_dang += len(self.tracks) - len(keep)
+            # ★★已提交的悬空段也要从板上删掉 (★阶段性 commit 已经画上去了)
+            for i in sorted(drop):
+                self._drop_committed(self.tracks[i])
             self.tracks = keep
             seg_hash = defaultdict(list)
             for i, s in enumerate(self.tracks):
@@ -1429,6 +1438,7 @@ class GridRouter:
                     break
             if not anchored and not _on_pad(net, 0, x, y):
                 n_via_drop += 1
+                self._drop_committed(v)     # ★已提交的孤立过孔也要从板上删掉
                 continue
             keep_v.append(v)
         self.vias = keep_v
@@ -1948,7 +1958,14 @@ class GridRouter:
 
     # ------------------------------------------------ 落板
     def commit(self, board):
-        """把生成的走线/过孔写进板子 (★不改任何网表绑定)"""
+        """把生成的走线/过孔写进板子 (★不改任何网表绑定)
+        ★★2026-11-05 07:05 **支持"部分落盘"** —— ★★中途存盘**必须带上已布的走线**!
+           原来中途存盘 (`_save_board_progress`) 在 `commit()` **之前** ⇒ board 上还没有任何走线图元
+           ⇒ ★**写出的必然是 0 走线骨架** ⇒ ★**"超时不丢活"这个功能压根没保住任何进度**
+             (实测: 06:53:53 官方板被刷成 468951B / 0 段 / 0 过孔)
+           ⇒ 现在: commit() 记住已写入的条数 ⇒ 中途存盘前先 commit 一遍 ⇒
+             ★**中途存盘的板 = 已经布了一部分的真板** ⇒ 超时也能捡回进度
+        """
         # ★自检: 板边净距 —— 落板前最后一道闸 (fail fast: 宁可这轮不投板也别留 DRC 红)
         bad = 0
         for (net, x1, y1, x2, y2, li, w) in self.tracks:
@@ -1964,7 +1981,18 @@ class GridRouter:
                     print("  ⚠️ [EDGE] 过孔离板边太近: %s (%.3f,%.3f)" % (net, x, y))
         self.edge_viol = bad
         n = 0
-        for (net, x1, y1, x2, y2, li, w) in self.tracks:
+        # ★★2026-11-05 07:15 **部分落盘的记账改用"对象身份"** (同事指出的回归)
+        #   ⇒ 原来用**下标** (_done_tracks 计数) ⇒ ★**cleanup_geometry 会重排/过滤 self.tracks**
+        #   ⇒ 下标错位 ⇒ ★**最终 commit 会漏写走线** (数据丢失!)
+        #   ⇒ 现在: 用 id(段元组) 记账, 并在 dict 里**保留元组本体** ⇒ id 不会被复用
+        _committed = getattr(self, "_committed", None)
+        if _committed is None:
+            _committed = self._committed = {}
+        for _t in self.tracks:
+            # ★★必须用 self.tracks 里的**元组对象本身**记身份 (新建元组 ⇒ id 每次都变 ⇒ 记账失效)
+            (net, x1, y1, x2, y2, li, w) = _t
+            if id(_t) in _committed:
+                continue
             code = netcode(board, net)
             if code <= 0:
                 continue
@@ -1975,8 +2003,12 @@ class GridRouter:
             t.SetLayer(CU_LAYERS[li])
             t.SetNetCode(code)
             board.Add(t)
+            _committed[id(_t)] = (_t, t)
             n += 1
-        for (net, x, y, l1, l2) in self.vias:
+        for _v in self.vias:
+            (net, x, y, l1, l2) = _v
+            if id(_v) in _committed:
+                continue
             code = netcode(board, net)
             if code <= 0:
                 continue
@@ -1991,8 +2023,32 @@ class GridRouter:
             v.SetLayerPair(CU_LAYERS[l1], CU_LAYERS[l2])
             v.SetNetCode(code)
             board.Add(v)
+            _committed[id(_v)] = (_v, v)
             n += 1
+        self._done_tracks = len(self.tracks)
+        self._done_vias = len(self.vias)
         return n
+
+    def _drop_committed(self, item):
+        """★把**已提交到板上的**图元删掉 (★cleanup 要能真的删退化段, 不只是改内存列表)
+           ★**为什么必须**: 阶段性 commit 已经把零长段/悬空段画进板了 ⇒
+             cleanup 只改 self.tracks 的话 ⇒ ★**板上那些退化段删不掉** ⇒ DRC 永远红
+           ★没有 board.Remove/Delete ⇒ 已画进 board 的退化图元**删不掉** ⇒ v25 会带 ~565 条零长段"""
+        _c = getattr(self, "_committed", None)
+        if not _c:
+            return False
+        rec = _c.pop(id(item), None)
+        if not rec:
+            return False
+        obj = rec[1]
+        try:
+            self.b.Remove(obj)          # KiCad 8/9: BOARD.Remove
+        except Exception:
+            try:
+                self.b.Delete(obj)       # 老版 API
+            except Exception:
+                return False
+        return True
 
 
 # ------------------------------------------------------------------ 差分对
@@ -2305,6 +2361,13 @@ def route_board(board, verbose=True):
 
     # ---------- 3) MIPI 差分对 (最难 ⇒ 最后)
     _run_pairs(MIPI_PAIRS)
+    # ★★2026-11-05 07:05 **中途存盘前先把已布的走线 commit 到板子上**
+    #   ⇒ 原来直接存 ⇒ board 上还没有走线图元 ⇒ ★**存出来必然是 0 走线骨架** ⇒ "超时不丢活"没保住任何进度
+    try:
+        _n = r.commit(board)
+        print("  [SAVE] 阶段性 commit: %d 个图元 (MIPI 后)" % _n)
+    except Exception as e:
+        print("  ⚠️ 阶段性 commit 失败: %s" % e)
     _save_board_progress(board, "MIPI 后")
 
     # ---------- 4) 电源 (宽铜 + 过孔阵列)
@@ -2331,6 +2394,12 @@ def route_board(board, verbose=True):
             stats["failed"].append(net)
     if verbose:
         print("  [REST] 其余 %d 个网已布" % len(rest))
+    # ★★2026-11-05 07:05 **中途存盘前先 commit** (同上: 不 commit ⇒ 存出来是空骨架)
+    try:
+        _n2 = r.commit(board)
+        print("  [SAVE] 阶段性 commit: %d 个图元 (其余网后)" % _n2)
+    except Exception as e:
+        print("  ⚠️ 阶段性 commit 失败: %s" % e)
     _save_board_progress(board, "其余网后")
     if verbose and r.fail_reasons:
         nf = sum(r.fail_reasons.values())
@@ -2369,6 +2438,21 @@ def route_board(board, verbose=True):
     stats["vias"] = len(r.vias)
     stats["edge_viol"] = getattr(r, "edge_viol", 0)
     stats["new_items"] = n_new
+    # ★★2026-11-05 07:20 **落板自检: 板上真实图元数 vs 内存里的数必须一致**
+    #   ⇒ 这是"阶段性 commit + cleanup"回归的**直接判据** (同事给的)
+    #   ⇒ 旧流程板: 零长段=0 且 板上段数 == [SUM]段数 ⇒ ★**对不上就说明回归了**
+    try:
+        _bt = sum(1 for t in board.GetTracks() if t.Type() == pcbnew.PCB_TRACE_T)
+        _bv = sum(1 for t in board.GetTracks() if t.Type() == pcbnew.PCB_VIA_T)
+        stats["board_tracks"] = _bt
+        stats["board_vias"] = _bv
+        if _bt != len(r.tracks) or _bv != len(r.vias):
+            print("  ❌ ★**落板自检不一致**: 板上 %d 段/%d 孔 vs 内存 %d 段/%d 孔 (差 %+d 段) ⇒ 记账/删除有 bug"
+                  % (_bt, _bv, len(r.tracks), len(r.vias), _bt - len(r.tracks)))
+        else:
+            print("  ✅ 落板自检: 板上 %d 段 / %d 孔 (与内存一致)" % (_bt, _bv))
+    except Exception as e:
+        print("  ⚠️ 落板自检失败: %s" % e)
     for z in board.Zones():
         try:
             z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)

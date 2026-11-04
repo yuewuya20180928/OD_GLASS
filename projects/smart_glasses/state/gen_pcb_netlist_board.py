@@ -903,8 +903,12 @@ def main():
                     _seg += 1
                 elif _s.startswith("(via"):
                     _via += 1
-            _land = {"at": int(_t.time()), "tracks": _seg, "vias": _via,
-                     "pcb": os.path.basename(PCB)}
+            # ★★2026-11-05 07:0x **at 用"板自己的 mtime", 不用 time.time()** ——
+            #   理由: 平面重填 (Fill) 可能花几十秒 ⇒ 板 mtime 与"写印的时刻"能差出 10s+
+            #   ⇒ 闸门 |板mtime - at| <= 10s 会误判"板被中途改过" ⇒ ★**好板永远不许量/不许推**
+            #   ⇒ 现在 at = stat(PCB).st_mtime ⇒ 差恒等于 0 ⇒ 闸门只对"真被改过的板"报警
+            _land = {"at": int(os.stat(PCB).st_mtime), "tracks": _seg, "vias": _via,
+                     "pcb": os.path.basename(PCB), "landed_at": int(_t.time())}
             with open(os.path.join(os.path.dirname(PCB), ".layout_landed.json"), "w",
                       encoding="utf-8") as _f:
                 json.dump(_land, _f, ensure_ascii=False)

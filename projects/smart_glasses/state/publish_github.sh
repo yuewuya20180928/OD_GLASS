@@ -373,6 +373,49 @@ if [ $? -ne 0 ]; then
 fi
 echo "[4] 真值反查 0 命中 ✅"
 
+# ★★2026-11-05 07:0x **发布前闸 v2: 板级隔离 + 判据补全**
+#   v1 的两个洞 (2026-11-05 07:0x 现场核对):
+#   ① 判据②依赖 `.layout_landed.json` —— ★**该印 06:30 才加, 还没有一次成功落盘写过** ⇒ 闸门实际只跑了判据①
+#      ⇒ 一块被中途存盘覆盖成"几千段"的半成品照样能推上去
+#   ② 闸门拦住时**整个发布都不推** ⇒ 板坏 ⇒ 连状态文档都推不上去 ⇒ ★**老板在 GitHub 上看到的永远是过期状态**
+#   ⇒ v2:
+#      · 判据②改成 **"板比上次量过的板新 ⇒ 这块板还没被量过 ⇒ 不许推"** (`.verified_board_mtime` 一直在维护, 现成的)
+#      · 闸门**只拦板、不拦文档** ⇒ 板从 HEAD 回退 (仓库里的板永远停在"最后一块验过的板"), 文档照常推
+#      · 落盘时刻印仍作**第二道**交叉校验 (mtime 对不上 / 段数对不上 ⇒ 板被中途改过)
+PCB_REL="projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb"
+SKIP_PUSH=0
+BOARD_BAD=0
+BOARD_WHY=""
+if [ -f "$PCB_REL" ]; then
+  SEG_C="$(grep -c '(segment' "$PCB_REL" 2>/dev/null | head -1)"; SEG_C="${SEG_C:-0}"
+  if [ "$SEG_C" -lt 1 ]; then
+    BOARD_BAD=1; BOARD_WHY="官方板只有 $SEG_C 段走线 ⇒ 骨架/空板"
+  fi
+  B_M="$(stat -c %Y "$PCB_REL" 2>/dev/null | head -1)"; B_M="${B_M:-0}"
+  VER_REL="projects/smart_glasses/state/.verified_board_mtime"
+  V_M="$(cat "$VER_REL" 2>/dev/null | head -1)"; V_M="${V_M:-0}"
+  if [ "$BOARD_BAD" = "0" ] && [ "${B_M:-0}" -gt "${V_M:-0}" ]; then
+    # ★板比"上次量过的板"新 ⇒ 这是一块**还没被量过的新板** ⇒ 必须有落盘时刻印证明它是"完整落盘"的那块
+    LAND_REL="projects/smart_glasses/HW/PCB/.layout_landed.json"
+    L_AT="$(python3 -c "import json;print(int(json.load(open('$LAND_REL')).get('at',0)))" 2>/dev/null || echo 0)"
+    L_TR="$(python3 -c "import json;print(int(json.load(open('$LAND_REL')).get('tracks',0)))" 2>/dev/null || echo 0)"
+    if [ "${L_AT:-0}" -gt 0 ]; then
+      D=$(( B_M > L_AT ? B_M - L_AT : L_AT - B_M ))
+      if [ "$D" -gt 10 ] || [ "${SEG_C:-0}" -ne "${L_TR:-0}" ]; then
+        BOARD_BAD=1; BOARD_WHY="板 mtime=$B_M vs 落盘 at=$L_AT (差 ${D}s) · 板段数=$SEG_C vs 落盘段数=$L_TR ⇒ 板被中途存盘改过"
+      fi
+    else
+      BOARD_BAD=1; BOARD_WHY="板比上次量过的板新 (mtime=$B_M > $V_M) 但没有落盘时刻印 ⇒ 没法证明它是完整落盘的那块"
+    fi
+  fi
+  if [ "$BOARD_BAD" = "1" ]; then
+    SKIP_PUSH=1
+    echo "[4.5] ⚠️ 发布闸拦板: $BOARD_WHY ⇒ ★**这块板不进 GitHub** (文档照推)"
+  else
+    echo "[4.5] 发布闸: 板通过 (seg=$SEG_C · mtime=$B_M ≤ 量过的板 $V_M)"
+  fi
+fi
+
 # ---- 5. commit + push ----
 # ★被跟踪过的运行时垃圾要显式 untrack (rsync 排除 = 保护不被删, 所以它会留在仓库里)
 for junk in projects/smart_glasses/BOOTSTRAP.md projects/smart_glasses/.openclaw/workspace-state.json; do
@@ -380,6 +423,17 @@ for junk in projects/smart_glasses/BOOTSTRAP.md projects/smart_glasses/.openclaw
   rm -f "$junk" 2>/dev/null
 done
 git add -A
+if [ "$BOARD_BAD" = "1" ]; then
+  # ★板级隔离: 把发布树里的板回退到 HEAD (仓库里最后一版) ⇒ **文档照推, 板永远停在"最后一块验过的板"**
+  if git checkout HEAD -- "$PCB_REL" 2>/dev/null; then
+    echo "[5] ★板级隔离: 板回退到 HEAD (不推这块半成品) · 文档照常推"
+  else
+    git rm -q --cached --ignore-unmatch "$PCB_REL" 2>/dev/null || true
+    rm -f "$PCB_REL" 2>/dev/null
+    echo "[5] ★板级隔离: HEAD 里没有板 ⇒ 本轮不带板 · 文档照常推"
+  fi
+  git add -A
+fi
 if git diff --cached --quiet; then
   echo "[5] 无变化 (跳过 push)"
 else
