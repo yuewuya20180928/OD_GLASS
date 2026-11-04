@@ -24,6 +24,7 @@ gen_pcb_routing.py —— ★通用网格路由器 (A* / Lee) + 差分对捆绑 
 
 import heapq
 import math
+import os
 
 import pcbnew
 
@@ -54,9 +55,21 @@ CU_LAYERS = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu,
              pcbnew.In3_Cu, pcbnew.In4_Cu, pcbnew.B_Cu]
 # ★允许走信号的层: L1 / L3 / L5 (索引 0 / 2 / 4)
 ROUTE_LAYERS = [0, 2, 4]
+# ★**信号层之间的邻接表** (★稀疏层号 ⇒ 不能用 li±1!)
+#   L1↔L3 (过孔跨 In1.Cu 平面) · L3↔L5 (过孔跨 In3.Cu 平面)
+RLAY_NBRS = {0: (2,), 2: (0, 4), 4: (2,)}
+
+
+def _via_span(la, lb):
+    """过孔穿过的铜层 (含中间平面层) —— ★只允许相邻信号层 ⇒ 只跨一层平面"""
+    lo, hi = (la, lb) if la < lb else (lb, la)
+    return tuple(range(lo, hi + 1))
+
 # ★每格的层偏好代价 (0 = 首选); 换层代价 (格)
-LAYER_COST = {0: 0.0, 2: 0.60, 4: 1.80}
-VIA_COST = 30.0
+# ★**本轮调低**: 上一轮 80 个过孔 ⇒ 整板 99% 走线都挤在 F.Cu ⇒ 局部通道堵死
+#   ⇒ 跨层几乎不要钱 (8 格 ≈ 2mm 线) ⇒ 3 个信号层一起用 ⇒ 可走面积 ≈ 3 倍
+LAYER_COST = {0: 0.0, 2: 0.25, 4: 0.50}
+VIA_COST = 8.0
 
 # 层间跳 (相邻信号层): 换层时经过的铜层 (含中间平面层, 孔要穿过去 ⇒ 必须留间距)
 VIA_SPAN = {0: (0, 1, 2), 1: (2, 3, 4)}
@@ -182,6 +195,7 @@ class GridRouter:
         self.halo = [[dict() for _ in range(6)] for _ in range(3)]
         self.net_pads = {}          # net -> [(ref, padnum, cx, cy, layers)]
         self.pad_rects = []         # (net, x0,y0,x1,y1) —— 过孔不许打进焊盘
+        self.pad_rects_l = []       # ★(net, x0,y0,x1,y1, layers) —— ★**焊盘只在它实际存在的层上有铜**
         self.pad_cell = {}          # (li,idx) -> (net, true_cx, true_cy)
         self.routed = set()
         # ★诊断计数器: 布不动的网到底是"预算用完"还是"真被堵死"
@@ -189,6 +203,7 @@ class GridRouter:
         self.astar_blocked = 0
         self.fail_reasons = {}
         self.fail_budget = {}
+        self.fail_detail = []
         # ★真板边几何 (Edge.Cuts) —— ★**不能用 GetBoardEdgesBoundingBox()**:
         #   它把边线自身的宽度也算进去 (本板 0.1mm ⇒ 每边多 0.05mm)
         #   ⇒ 净距算出来偏大 ⇒ DRC 报"实际 0.325 / 要求 0.500" ★这就是本轮 2 条红的根因
@@ -234,6 +249,7 @@ class GridRouter:
                     self.net_pads.setdefault(nm, []).append(
                         (fp.GetReference(), str(pad.GetNumber()), cx, cy, layers))
                 self.pad_rects.append((nm, x0, y0, x1, y1))
+                self.pad_rects_l.append((nm, x0, y0, x1, y1, tuple(layers)))
                 for li in layers:
                     for (i, j) in _rect_cells(x0, y0, x1, y1, self.g, self.bb[0], self.bb[1]):
                         idx = self._idx(i, j)
@@ -371,9 +387,12 @@ class GridRouter:
 
     def _halo_pads(self):
         """焊盘净距禁区: 细线 = 焊盘矩形外扩 (0.2+0.125)=0.325mm ; 粗线/过孔 = 0.5mm
-           ★**按真实矩形外扩** (不是按单元中心画圆) —— 否则边界误差会吃净距"""
-        for (net, x0, y0, x1, y1) in self.pad_rects:
-            for li in range(6):
+           ★**按真实矩形外扩** (不是按单元中心画圆) —— 否则边界误差会吃净距
+           ★★**焊盘只在它实际存在的层上占净距** —— SMD 焊盘只在 F.Cu
+             ⇒ 上一版把它记到全部 6 层 ⇒ ★L3/L5 整层被焊盘禁区封死
+             ⇒ 板子 99% 只能走 F.Cu ⇒ 局部通道堵死 (本轮 179 脚布不通的根因)"""
+        for (net, x0, y0, x1, y1, layers) in self.pad_rects_l:
+            for li in layers:
                 for cls in range(3):
                     rr = CLEAR + W_CLS[cls] / 2.0 + HALO_MARGIN
                     cells = _rect_cells(x0 - rr, y0 - rr, x1 + rr, y1 + rr, self.g,
@@ -398,24 +417,35 @@ class GridRouter:
                 return False
         return True
 
-    def _via_ok(self, li, idx, net, cls=1):
-        """此处能不能打孔 (跨层所有铜层都要有净距)"""
+    def _via_ok(self, la, lb, idx, net, cls=1):
+        """此处能不能打孔 (从 la 穿到 lb ⇒ 跨过的所有铜层都要有净距)
+           ★**用 halo[2] (0.5mm 宽铜的净距级别) 判** —— 过孔盘 0.6mm 比 0.25mm 线粗
+             ⇒ 用 cls1 的净距会漏判 ⇒ 过孔挨着别的网的线 ⇒ DRC 报 clearance
+           ★过孔盘 0.3mm 半宽 + 净距 0.2 ⇒ 孔心到别的铜 ≥ 0.5mm"""
         # ★板边: 过孔盘 0.6mm ⇒ 盘外缘距板边 ≥ 0.5mm ⇒ 孔心距 ≥ 0.8mm
         if self.edge_d[idx] < EDGE_CLEAR + VIA_DIA / 2.0 - 1e-6:
             return False
-        for l2 in VIA_SPAN[li]:
+        # ★**不许把过孔打在焊盘底下** (via-in-pad) —— 0402/0603 上的过孔 = 吸锡风险
+        #   = 投板后必须手工补焊 ⇒ 返工项。★孔要躲开焊盘, 就得先在 F.Cu 上走一段
+        if (0, idx) in self.pad_cell:
+            return False
+        for l2 in _via_span(la, lb):
             c = self.cu[l2].get(idx)
             if c is not None and c != net:
                 return False
-            s = self.halo[cls][l2].get(idx)
+            s = self.halo[2][l2].get(idx)
             if s and (s - {net}):
                 return False
         return True
 
     # ------------------------------------------------ A*
     def _astar(self, start, goals, net, dist_map=None, alpha=0.0,
-                max_via=True, cls=1, limit=420000):
-        """start: [(li,idx)] ; goals: set((li,idx))"""
+                max_via=True, cls=1, limit=150000):
+        """start: [(li,idx)] ; goals: set((li,idx))
+           ★★**预算按"扩展次数"算, 不是按状态数算** —— 状态数是 (格 × 层),
+             开了 3 个信号层后同一个物理区域的状态数 ×3 ⇒ 用状态数当预算
+             ⇒ 搜索半径被悄悄砍到 1/3 ⇒ 该通的线也布不出来
+             ★扩展次数 = 物理覆盖面积 ⇒ 与层数无关 ⇒ 换层后行为稳定"""
         INF = float("inf")
         gsc = {}
         came = {}
@@ -448,10 +478,15 @@ class GridRouter:
             cnt += 1
         goalset = set(goals)
         best = None
+        nexp = 0
         while heap:
             f, gg, _, cur = heapq.heappop(heap)
             if gg > gsc.get(cur, INF) + 1e-12:
                 continue
+            nexp += 1
+            if nexp > limit:
+                self.astar_budget += 1
+                break        # ★搜索预算用完 ⇒ 判失败 (否则整板卡死)
             if cur in goalset:
                 best = cur
                 break
@@ -477,10 +512,11 @@ class GridRouter:
                         heapq.heappush(heap, (c + h_of(li, k), c, cnt, (li, k)))
                         cnt += 1
             if max_via:
-                for nli in (li - 1, li + 1):
-                    if nli not in ROUTE_LAYERS or nli not in VIA_SPAN.get(li, ()):
-                        continue
-                    if not self._via_ok(li, idx, net, cls):
+                # ★**换层只能到相邻信号层** (L1↔L3 / L3↔L5) —— ★**不能用 li±1**
+                #   (ROUTE_LAYERS 是稀疏列表 [0,2,4] ⇒ li±1 永远是 1/3/5 ⇒ 根本换不了层
+                #    ⇒ 上一轮整板 80 个过孔全部来自 GND 下拉 ⇒ 布线全挤在 F.Cu)
+                for nli in RLAY_NBRS.get(li, ()):
+                    if not self._via_ok(li, nli, idx, net, cls):
                         continue
                     st = (nli, idx)
                     c = gg + VIA_COST + LAYER_COST.get(nli, 0.0)
@@ -491,9 +527,8 @@ class GridRouter:
                         came[st] = cur
                         heapq.heappush(heap, (c + h_of(nli, idx), c, cnt, st))
                         cnt += 1
-            if len(gsc) > limit:
-                self.astar_budget += 1
-                break        # ★搜索预算用完 ⇒ 判失败 (否则整板卡死)
+            if len(gsc) > 4000000:
+                break        # ★内存保险丝 (状态数上限, 与覆盖无关)
         if best is None:
             return None
         path = [best]
@@ -588,6 +623,15 @@ class GridRouter:
                 self.fail_reasons[net] = self.fail_reasons.get(net, 0) + 1
                 if self.astar_budget > bmark:
                     self.fail_budget[net] = self.fail_budget.get(net, 0) + 1
+                # ★诊断: 记下"从哪到哪布不通" ⇒ 才知道是局部堵死还是目标不可达
+                self.fail_detail.append({
+                    "net": net, "pad": "%s.%s" % (pad[0], pad[1]),
+                    "start": [round(cells[0][1] % self.W * self.g + self.bb[0], 2),
+                              round(cells[0][1] // self.W * self.g + self.bb[1], 2)],
+                    "goal": [round(goal_cells[0][1] % self.W * self.g + self.bb[0], 2),
+                             round(goal_cells[0][1] // self.W * self.g + self.bb[1], 2)],
+                    "stub": bool(stub_s),
+                })
                 continue
             self._emit_path(net, path, width, via_count,
                             stub_start=stub_s, stub_end=stub_g)
@@ -637,19 +681,23 @@ class GridRouter:
         return best
 
     def _stub_vs_routed(self, net, x1, y1, x2, y2, w=W_MIN):
-        """★出脚直道 vs **已布走线/过孔** 的净距 (A* 的障碍图只管新走线, 管不了后出现的直道)"""
+        """★出脚直道 vs **已布走线/过孔** 的净距 (A* 的障碍图只管新走线, 管不了后出现的直道)
+           ★**need 不加额外余量**: 0.4mm pitch 的 SoM BTB (0.2mm 焊盘) ⇒ 相邻两根
+             0.2mm 直道的中心线间距就是 0.4mm ⇒ 净距恰好 0.2mm (KiCad 下限)
+             ⇒ 加 0.02 余量会把**每一对相邻脚**都判死 ⇒ BTB 全布不出来
+           ★先布的那根直道宽 0.2 ⇒ need = 0.1+0.1+0.2 = 0.4 ⇒ 恰好放行"""
         for (n2, ax, ay, bx, by, li, tw) in self.tracks:
             if n2 == net:
                 continue
             if li != 0:
                 continue
-            need = w / 2.0 + tw / 2.0 + CLEAR + 0.02
+            need = w / 2.0 + tw / 2.0 + CLEAR
             if _seg_seg_dist(x1, y1, x2, y2, ax, ay, bx, by) < need:
                 return False
         for (n2, vx, vy, l1, l2) in self.vias:
             if n2 == net or l1 > 0:
                 continue
-            need = w / 2.0 + VIA_DIA / 2.0 + CLEAR + 0.02
+            need = w / 2.0 + VIA_DIA / 2.0 + CLEAR
             if _pt_seg_dist(vx, vy, x1, y1, x2, y2) < need:
                 return False
         return True
@@ -947,7 +995,7 @@ class GridRouter:
             vs = [(x + (k - (count - 1) / 2.0) * 0.6, y)
                   for k in range(count)]
         for (vx, vy) in vs:
-            if not self._via_ok(l1, self._idx(self._ci(vx), self._cj(vy)), net):
+            if not self._via_ok(l1, l2, self._idx(self._ci(vx), self._cj(vy)), net):
                 continue
             self.vias.append((net, vx, vy, l1, l2))
             self._add_via_halo(net, vx, vy, l1, l2)
@@ -1243,6 +1291,24 @@ TIMING_NETS = [
 ]
 
 
+def _save_board_progress(board, tag=""):
+    """★中途落盘 (★超时不丢活) —— ★**必须"存盘→重读→填平面→再存"**:
+       同会话里填平面会把整片 GND 当孤岛删空 (已知坑) ⇒ 重读后再填才靠谱"""
+    try:
+        here = os.path.dirname(os.path.abspath(__file__))
+        proj = os.path.dirname(here)
+        pcb = os.path.join(proj, "HW", "PCB", "demo_mainboard.kicad_pcb")
+        pcbnew.SaveBoard(pcb, board)
+        b3 = pcbnew.LoadBoard(pcb)
+        b3.BuildConnectivity()
+        filler = pcbnew.ZONE_FILLER(b3)
+        filler.Fill(b3.Zones())
+        pcbnew.SaveBoard(pcb, b3)
+        print("  [SAVE] 阶段性落盘 %s" % (tag or ""))
+    except Exception as e:
+        print("  ⚠️ 阶段性落盘失败: %s" % e)
+
+
 def route_board(board, verbose=True):
     """★★ 整板布线 —— 一次跑完, 返回统计
        (调用方: state/gen_pcb_netlist_board.py —— ★布线必须落进生成器)"""
@@ -1293,6 +1359,7 @@ def route_board(board, verbose=True):
 
     # ---------- 3) MIPI 差分对 (最难 ⇒ 最后)
     _run_pairs(MIPI_PAIRS)
+    _save_board_progress(board, "MIPI 后")
 
     # ---------- 4) 电源 (宽铜 + 过孔阵列)
     # ---------- 5) 时序/复位/EN 关键线
@@ -1318,6 +1385,7 @@ def route_board(board, verbose=True):
             stats["failed"].append(net)
     if verbose:
         print("  [REST] 其余 %d 个网已布" % len(rest))
+    _save_board_progress(board, "其余网后")
     if verbose and r.fail_reasons:
         nf = sum(r.fail_reasons.values())
         nb = sum(r.fail_budget.values())
@@ -1327,6 +1395,13 @@ def route_board(board, verbose=True):
         for (nn, cnt) in top:
             print("         %-24s %d 脚 (预算耗尽 %d)"
                   % (nn, cnt, r.fail_budget.get(nn, 0)))
+        try:
+            import json as _json
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   "_fail_detail.json"), "w") as f:
+                _json.dump(r.fail_detail, f, ensure_ascii=False, indent=1)
+        except Exception:
+            pass
 
     # ---------- 5) GND 下拉过孔 (焊盘 → 短走线 → 通孔 → L2/L6 平面)
     ok, fail = r.route_gnd_drops("GND")
