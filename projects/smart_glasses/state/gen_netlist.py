@@ -108,7 +108,7 @@ LEGAL_BOARD = {BOARD_CHG, BOARD_MAIN, BOARD_HINGE}
 # ★★2026-11-02 19:4x demo 板形态 (老板 19:25/19:35): camera/display 改成**板内 FPC 座** ⇒ 不再跨铰链
 #   ⇒ HINGE 只剩**充电链**两个连接器 (J_CHG 充电 + CONN_USB) —— 那属整机阶段的镜框充电板
 #   ⇒ demo 板阶段: 充电链不装 (直接 USB 供电), camera/display 两个模组用 FPC 连主板
-HINGE_REFS = {"J_CHG", "CONN_USB"}
+HINGE_REFS = {"J_CHG"}   # ★2026-11-04 19:5x: CONN_USB 跨铰链 USB 座已删 (跨铰链取消)
 # 充电板 (镜框) 上的器件 —— ★V1.2: 电池 + 电池保护 IC + 2×MOS 移到**镜脚主 PCB** (MECH 体积硬约束)
 CHG_BOARD_REFS = {
     "D_CHG_LED", "Q_CHG_LED", "R_CHG_LED", "C_REGN", "R_ILIM",
@@ -638,11 +638,12 @@ def build_p1(by_id, spec):
         "[SUPV_CT] ★V1.8: 监督器 CT 脚原来**悬空** (网表里没有) · 补上 (阈值/延时选择, 脚号与接法待原厂核)", "B-10")
 
     # ---- ★V1.8 SoC 侧 USB VBUS 检测 (ISS-098 接手): VBUS_DET 分压在充电板, 经 J_CHG pin7 跨铰链 ----
-    add("P6", "VBUS_DET", soc_pin("USB_VBUS_DET"), "J_CHG pin7", "SoC[RK3572]",
-        "SoC USB VBUS 检测脚 (脚号待原厂)", "NET", "必装", "[待原厂]", "TBD-10",
-        "[VBUS_DET] ★V1.8 补上 sw-lead 指出的缺件: **SoC 侧没有任何 USB VBUS 连接** · USB 枚举与 S2 救砖链路 (ISS-080) "
-        "的前提缺失。★**零新增 pin**: VBUS_DET 分压本来就在**充电板** (镜框), 经 **J_CHG pin7** 跨铰链 "
-        "送到 SoC 的 VBUS 检测脚 ⇒ USB 枚举前提补齐; 脚号待原厂 (TBD-10)", "B-07")
+    # ★★2026-11-04 19:5x 删: 跨铰链的 VBUS_DET (SoC ← J_CHG pin7) —— 与 demo 板本地分压重复
+    #   (同一条 VBUS_DET 到 SoM 有两条路 ⇒ 冲突); demo 板的分压在 P1。
+    #   (原行整条删除 —— 跨铰链 VBUS_DET 与 demo 板本地分压重复)
+    # add("P6", "VBUS_DET", soc_pin("USB_VBUS_DET"), "J_CHG pin7", "SoC[RK3572]",
+    #     "SoC USB VBUS 检测脚 (脚号待原厂)", "NET", "必装", "[待原厂]", "TBD-10",
+    #     "[VBUS_DET] ★V1.8 补上 sw-lead 指出的缺件: **SoC 侧没有任何 USB VBUS 连接**", "B-07")
 
     # ---- ★V1.2 改: 原 V1.1 加的 "SYS 过铰链 π 滤波" **删掉** (SYS 已不过铰链) ----
     #   跨铰链的是**充电电流** · 充电路径上**不能加 π 滤波** (会破坏 BQ25896 环路稳定性)
@@ -741,8 +742,8 @@ def build_p1(by_id, spec):
     add("P1", "GND", "D_ESD_LIGHT", "GND", "D_ESD_LIGHT", "ESD 阵列 [待选型]", "D",
         "DNP", "[推算]", "", "[LIGHT_5V] 光机侧 ESD 地端", "C-10")
     # ★V1.4: ESD 阵列的**地脚**补齐 (原来只有 I/O 脚, 阵列没接地 · 保护不生效)
+    # ★2026-11-04 19:5x: D_ESD_USB (跨铰链 USB ESD) 已随跨铰链 USB 一起删除 ⇒ 不再补地脚
     for dref, note in (("D_ESD_TC", "Type-C 入口 ESD 阵列 地脚"),
-                       ("D_ESD_USB", "跨铰链 USB ESD 阵列 地脚"),
                        ("D_ESD_CAM", "跨铰链 CSI ESD 阵列 地脚")):
         add("P9", "GND", dref, "GND", dref, "ESD 阵列 [待选型]", "D", "必装", "[推算]", "",
             f"[GND] ★V1.4 补: {note} (原来只有 I/O 脚, 阵列没接地 · ESD 不工作)")
@@ -1082,13 +1083,10 @@ def build_p6(by_id, spec):
              "NET_USB_D_P_SRC")
     conn_row(by_id, "B-22", "P6", "USB_D_N_SRC", soc_pin("USB_D_N"), "R_SER_USB_D_N",
              "NET_USB_D_N_SRC")
-    add("P6", "USB_D_P", "R_SER_USB_D_P", "CONN_USB pin1", "R_SER_USB_D_P", "22Ω ±1%", "R",
-        "必装", "[推算]", "TBD-10",
-        "[USB_D_P] USB 2.0 源端串阻 (D+, 22Ω 放在**主板侧 SoC 端**); ★V1.1 修: V1 把 D+ 直接接 "
-        "J_TYPE_C pin4 = **把跨铰链短接了** · 改为接跨铰链连接器 CONN_USB pin1, 充电板侧再接 Type-C")
-    add("P6", "USB_D_N", "R_SER_USB_D_N", "CONN_USB pin2", "R_SER_USB_D_N", "22Ω ±1%", "R",
-        "必装", "[推算]", "TBD-10",
-        "[USB_D_N] USB 2.0 源端串阻 (D-, 主板侧); ★V1.1 修: 同上, 改接 CONN_USB pin2")
+    # ★★2026-11-04 19:5x 删 (跨铰链 USB 在 demo 板不做 — 老板 11-02 19:25「跨铰链取消」):
+    #   原先 R_SER_USB_D_P 同时出现在 {USB_D_P_SRC, USB_D_P, NET_USB_D_P_ESD} 三个网
+    #   ⇒ ★**22Ω 串阻被短接掉** (Type-C D+ 与 SoM D+ 同网) + ESD 双失效 + 门禁脚数报红。
+    #   ⇒ demo 板只保留**板载 Type-C 一条 USB 数据路径** (跨铰链 USB 属整机阶段)。
     # ---- Type-C CC (Rd 下拉; 接 PD 控制器时由控制器接管) ----
     conn_row(by_id, "B-23", "P6", "USB_CC1", "J_TYPE_C A5", "R_CC1", "NET_USB_CC1")
     add("P6", "USB_CC2", "J_TYPE_C B5", "R_CC2", "R_CC2", "5.1k ±1%", "R", "必装", "[推算]",
@@ -1105,11 +1103,7 @@ def build_p6(by_id, spec):
         "原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)")
     add("P6", "GND", "J_TYPE_C shield", "GND", "J_TYPE_C", "Type-C 16p 座 (物理脚位 A/B 编号)", "CONN", "必装",
         "[官方]", "", "Type-C 屏蔽壳 接 GND (单点, 与机壳地的接法待结构定)")
-    add("P6", "CONN_USB", "CONN_USB", "CONN_USB", "CONN_USB",
-        "4p@0.5mm USB 跨铰链连接器 (D+/D-/GND/预留)", "CONN", "必装", "[推算]", "",
-        "[CONN_USB] ★USB 差分对**必然跨铰链** (Type-C 在充电板=镜框, SoC 在主 PCB=镜脚) · "
-        "本位必留; ⚠️ USB 2.0 (及可能的 USB 3.0 SS) 差分跨铰链是 SI 风险, 建议 Type-C 挪主 PCB 侧 "
-        "或调试改走 J_DEBUG/J_UART · 已列 P6 叙述 + 待项目总工/结构总工拍板")
+    # ★★2026-11-04 19:5x 删: 跨铰链 USB 连接器 (老板 11-02 19:25「跨铰链取消」⇒ demo 板不装)
 
 
 # ------------------------------------------------------- P7 板级接口与测试点
@@ -1155,10 +1149,12 @@ TPS = [
     ("TP_I2CA_SDA", "I2C_A_SDA", "CONN_CAM pin25", "I2C_A 数据", "连接器出口", "必装"),
     # ★★2026-11-03 19:29 老板拍板 demo 不需要触控 ⇒ 屏侧触控 I2C 测试点已删 (原行在此)
     # ★★2026-11-03 19:29 老板拍板 demo 不需要触控 ⇒ 屏侧触控 I2C 测试点已删 (原行在此)
-    ("TP_USB_D_P", "USB_D_P", "CONN_USB pin1", "USB 2.0 差分",
-     "Type-C 出口 (规格合并名 TP_USB_D+ / D-)", "必装"),
-    ("TP_USB_D_N", "USB_D_N", "CONN_USB pin2", "USB 2.0 差分 (规格合并名 TP_USB_D+ / D-)",
-     "Type-C 出口", "必装"),
+    # ★2026-11-04 19:5x 改: 测试点挂在 **Type-C 侧网** (J_USB_C A6/B6 只能落一个网 ⇒
+    #   之前挂在 SoM 侧网 ⇒ 同一物理脚落两个网 ⇒ "同名脚多网" 提示)
+    ("TP_USB_D_P", "NET_USB_D_P_TYPEC", "J_USB_C A6+B6", "USB 2.0 差分",
+     "★板载 Type-C 出口 (串阻的 Type-C 侧; 规格合并名 TP_USB_D+ / D-)", "必装"),
+    ("TP_USB_D_N", "NET_USB_D_N_TYPEC", "J_USB_C A7+B7", "USB 2.0 差分 (规格合并名 TP_USB_D+ / D-)",
+     "★板载 Type-C 出口 (串阻的 Type-C 侧)", "必装"),
     ("TP_FSIN", "FSIN_OUT", "R_SER_FSIN", "帧同步 (FSIN/VSYNC) 引出",
      "SoC 侧 -> 回答原厂问询 Q4b.3", "必装"),
     ("TP_CHG_STAT", "CHG_STAT", "R_PU_CHG_STAT", "充电状态",
@@ -1318,39 +1314,14 @@ def build_p9(by_id, spec):
         "1.0-1.5A**, **SYS 0.55A 不过铰链**): pin1/pin2=BAT_CHG (双 pin 并联载流), pin3/pin4=GND "
         "(回流双 pin), pin5=CHG_STAT, pin6=PWR_GOOD, pin7=VBUS_DET, pin8-10=预留; ★pin 编号为本版自拟 "
         "(型号/间距/载流待结构确认, ISS-085)")
-    add("P9", "HINGE_USB", "CONN_USB", "CONN_USB", "CONN_USB",
-        "4p 跨铰链连接器 (D+/D-/GND/预留)", "CONN", "必装", "[推算]", "",
-        "[HINGE_USB] 通道 2/4 **USB 2.0 差分**: Type-C 在镜框充电板, SoC 在镜脚主 PCB · "
-        "**烧录/调试口必然跨铰链**; 本位必留 (ISS-085 裁决: Type-C 留充电板)")
-    # ---- 跨铰链段的保护/滤波件 (装主 PCB 侧, 紧贴连接器) ----
-    add("P9", "USB_D_P", "CONN_USB pin1", "D_ESD_USB", "D_ESD_USB",
-        "ESD 阵列 [待选型] (2 通道 USB)", "D", "必装", "[推算]", "",
-        "[USB_D_P] ★跨铰链 USB 主板侧 ESD 阵列 (紧贴 CONN_USB); ★**不装共模扼流圈** "
-        "(USB 2.0 眼图对共模转差分极敏感, 扼流圈会恶化眼图) · 靠 FPC 阻抗控制 + 两端 ESD")
-    add("P9", "USB_D_N", "CONN_USB pin2", "D_ESD_USB", "D_ESD_USB",
-        "ESD 阵列 [待选型] (2 通道 USB)", "D", "必装", "[推算]", "",
-        "[USB_D_N] USB 主板侧 ESD 阵列 (同一位, 2 通道)")
-    add("P9", "USB_D_N", "CONN_USB pin3", "GND", "NET_USB_GND_H", "单端", "NET", "必装",
-        "[推算]", "",
-        "[USB_D_N] 跨铰链 USB 回流地 (独立 pin, 不与电源共 pin · 环路面积最小)", "")
-    add("P9", "GND", "CONN_USB pin4", "GND", "CONN_USB", "回流地 (第二脚, 与 pin3 并联)", "NET",
-        "必装", "[推算]", "",
-        "[CONN_USB pin4] ★V1.8 补: 跨铰链 USB 的回流脚与信号脚**成对** (ISS-085 自定规则) · pin4 由预留改 **GND** (双回流, 零成本); "
-        "★并发关系: 充电板侧的 D+/D− 已在 P10 画过, 本行是镜脚侧", "")
-    add("P9", "GND", "D_ESD_USB", "GND", "D_ESD_USB", "ESD 阵列 [待选型]", "D", "必装",
-        "[推算]", "", "[USB_D_P] USB ESD 阵列 地端")
+    # ★★2026-11-04 19:5x 删: 跨铰链 USB 座 + 它的 ESD 阵列 + 双回流地 (demo 板不做跨铰链, 老板 11-02 19:25)
     add("P9", "CSI_D0_CK_P", "CONN_CAM pin18", "D_ESD_CAM", "D_ESD_CAM",
         "ESD 阵列 [待选型] (多通道 CSI)", "D", "必装", "[推算]", "TBD-03",
         "[CSI_D0_CK_P] ★跨铰链 CSI 主板侧 ESD 阵列位 (紧贴 CONN_CAM); 通道数随 lane 数定")
     add("P9", "GND", "D_ESD_CAM", "GND", "D_ESD_CAM", "ESD 阵列 [待选型]", "D", "必装",
         "[推算]", "TBD-03", "[CSI_D0_CK_P] CSI ESD 地端")
     # ---- 充电板侧: USB 差分从跨铰链连接器接到 Type-C (V1 漏画这一段) ----
-    add("P9", "USB_D_P_CHG", "CONN_USB pin1", "J_TYPE_C A6+B6", "NET_USB_D_P_CHG",
-        "板内走线 (充电板侧)", "NET", "必装", "[推算]", "",
-        "[USB_D_P_CHG] ★V1.1 补画: 充电板侧 USB 差分从跨铰链连接器到 Type-C D+ (板内走线)")
-    add("P9", "USB_D_N_CHG", "CONN_USB pin2", "J_TYPE_C A7+B7", "NET_USB_D_N_CHG",
-        "板内走线 (充电板侧)", "NET", "必装", "[推算]", "",
-        "[USB_D_N_CHG] 充电板侧 USB 差分从跨铰链连接器到 Type-C D- (板内走线)")
+    # ★★2026-11-04 19:5x 删: 充电板侧的跨铰链 USB 走线 (依赖已删的 CONN_USB; 整机阶段再画)
     # ---- 跨铰链回流/地要求 (画成位号行, 便于结构总工提要求) ----
     add("P9", "GND", "CHG_GND_STAR", "GND", "CHG_GND_STAR", "单点汇流位", "CONN", "必装",
         "[推算]", "",
@@ -1397,11 +1368,11 @@ def build_a2_som(by_id, spec):
     #   ★demo 形态 (老板 11-02 19:25): "demo 直接 USB-C 5V 供电, 不装电池、不上充电链"
     #   ⇒ 主板自己带一个 Type-C; 整机阶段这块是 DNP (整机走跨铰链 USB + 充电板)
     # ---- ★demo 板 USB-C 入口的 ESD 阵列 (Forlinx 载板指引: ESD 阵列紧贴接口) ----
-    add("P1", "NET_USB_D_P_ESD", "D_ESD_USB_D", "NET_USB_D_P_ESD", "D_ESD_USB_D",
+    # ★2026-11-04 19:5x 改: ESD 阵列直接跨在 **SoM 侧 D+ 节点 (USB_D_P_SRC)** 与地之间
+    #   (原来挂在独立的 NET_USB_D_P_ESD 网上 ⇒ 那根网是**幽灵分裂网**, 且串阻被拉进第三个网)
+    add("P1", "USB_D_P_SRC", "D_ESD_USB_D", "USB_D_P_SRC", "D_ESD_USB_D",
         "ESD 阵列 [待选型] (USB 2.0 双通道)", "D", "必装", "[推算]", "",
-        "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
-    add("P1", "NET_USB_D_P_ESD", "R_SER_USB_D_P", "NET_USB_D_P_ESD", "R_SER_USB_D_P", "22Ω ±1%", "R",
-        "必装", "[推算]", "", "[D_ESD_USB_D] ESD 后再进 22Ω 串阻 ⇒ SoM 侧", "A-24")
+        "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
     add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D", "ESD 阵列 [待选型]", "D", "必装",
         "[推算]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
     add("P1", "RAIL_DEMO_5V", "J_USB_C A4+A9+B4+B9", "RAIL_DEMO_5V", "J_USB_C",
@@ -1436,23 +1407,40 @@ def build_a2_som(by_id, spec):
         "USB-C 16p 插座 (demo 板 5V 输入 + USB 数据)", "CONN", "必装", "[推算]", "",
         "[J_USB_C] ★**demo 主板的 Type-C 电源入口** (老板 11-03 09:54: 没有整机, 没有镜脚, demo/主板用 Type-C 供电): VBUS→5V 轨, D+/D-→SoM USB, CC1/CC2→5.1k 下拉 ⇒ 受电端 (UFP)", "A-24")
     # ---- USB 数据: SoM 的 USB_DRD1 (P1_92/P1_94) ↔ 板载 Type-C ----
-    add("P1", "USB_D_P_SRC", "R_SER_USB_D_P", "J_USB_C A6+B6", "R_SER_USB_D_P", "22Ω ±1%", "R",
+    # ★★2026-11-04 19:5x 改 (串阻真串在中间): 原来这两行与 SoM 侧**同网** ⇒ ★**22Ω 被短接掉**
+    #   ⇒ 改: Type-C 侧独立成网 NET_USB_D_P_TYPEC / NET_USB_D_N_TYPEC ⇒ 串阻跨两个网
+    add("P1", "NET_USB_D_P_TYPEC", "R_SER_USB_D_P", "J_USB_C A6+B6", "R_SER_USB_D_P", "22Ω ±1%", "R",
         "必装", "[推算]", "",
-        "[USB_D_P_SRC] ★SoM USB2 (OTG1) D+ → 板载 Type-C (demo 板自带 USB, 免跨铰链)", "A-24")
-    add("P1", "USB_D_N_SRC", "R_SER_USB_D_N", "J_USB_C A7+B7", "R_SER_USB_D_N", "22Ω ±1%", "R",
+        "[NET_USB_D_P_TYPEC] ★SoM USB2 (OTG1) D+ → 板载 Type-C: 串阻的 Type-C 侧 (★串阻必须真串在中间, 不能与 SoM 侧同网)", "A-24")
+    add("P1", "NET_USB_D_N_TYPEC", "R_SER_USB_D_N", "J_USB_C A7+B7", "R_SER_USB_D_N", "22Ω ±1%", "R",
         "必装", "[推算]", "",
-        "[USB_D_N_SRC] ★SoM USB2 (OTG1) D- → 板载 Type-C", "A-24")
+        "[NET_USB_D_N_TYPEC] ★SoM USB2 (OTG1) D- → 板载 Type-C: 串阻的 Type-C 侧", "A-24")
+    # ★★2026-11-04 19:5x 补: J_CHG 的 pin7 (原跨铰链 VBUS_DET) 现在 demo 板不用了,
+    #   但**座本身仍是 10p** ⇒ 必须把它声明成"预留/NC"行, 否则门禁会报"声明 10p / 实际 9p 断链"
+    add("P9", "NC", "J_CHG pin7", "NC", "J_CHG", "预留 (NC)", "NET", "DNP", "[推算]", "",
+        "[NC] ★2026-11-04: J_CHG pin7 原走跨铰链 VBUS_DET ⇒ demo 板改本地分压 ⇒ 本脚预留不接")
+
     # ---- VBUS_DET: 板载 Type-C 的 VBUS 分压 → SoM 的 USB_DRD1_VBUSDET (P1_100) ----
-    add("P1", "VBUS_DET_D", "R_VBUS_DET_D1", "R_VBUS_DET_D2", "NET_VBUS_DET_D",
+    # ★★2026-11-04 19:5x 修 (分压原本是坏的): 原来只有一行 (net=VBUS_DET_D, n1=R_VBUS_DET_D1, n2=R_VBUS_DET_D2)
+    #   ⇒ ★**上臂与下臂被并联在同一个网** ⇒ 分压比恒为 1 ⇒ ★**VBUS 检测读 0V**;
+    #   且 C_DET_VBUS_D 只挂 GND (1 条腿) ⇒ 滤波电容也缺一腿。
+    #   ⇒ 正确: 上臂 R_VBUS_DET_D1 从 RAIL_DEMO_5V 到中点 VBUS_DET_D, 下臂 R_VBUS_DET_D2 从中点到 GND,
+    #     电容 C_DET_VBUS_D 跨中点与地, SoM 的 USB_DRD1_VBUSDET (P1_100) 接中点。
+    add("P1", "RAIL_DEMO_5V", "R_VBUS_DET_D1", "RAIL_DEMO_5V", "R_VBUS_DET_D1",
         "1M ±1% (上臂)", "R", "必装", "[推算]", "",
-        "[VBUS_DET_D] ★demo 板: Type-C VBUS 在**主板本地**分压 (不再跨铰链) ⇒ SoM 的 USB_DRD1_VBUSDET", "A-24")
+        "[VBUS_DET_D] ★demo 板: Type-C VBUS 在**主板本地**分压 (不再跨铰链) ⇒ 上臂 5V 侧", "A-24")
+    add("P1", "VBUS_DET_D", "R_VBUS_DET_D1", "R_VBUS_DET_D2", "NET_VBUS_DET_D",
+        "1M ±1% (上臂/下臂中点)", "R", "必装", "[推算]", "",
+        "[VBUS_DET_D] ★分压中点 (上臂下臂相连 + 滤波电容 + SoM 检测脚)", "A-24")
     add("P1", "GND", "R_VBUS_DET_D2", "GND", "R_VBUS_DET_D2", "1M ±1% (下臂)", "R", "必装",
         "[推算]", "", "[VBUS_DET_D] 分压下臂 地端", "A-24")
     add("P1", "GND", "C_DET_VBUS_D", "GND", "C_DET_VBUS_D", "100nF ±10%", "C", "必装",
-        "[推算]", "", "[VBUS_DET_D] ADC 滤波电容", "A-24")
+        "[推算]", "", "[VBUS_DET_D] ADC 滤波电容 地端", "A-24")
+    add("P1", "VBUS_DET_D", "C_DET_VBUS_D", "VBUS_DET_D", "C_DET_VBUS_D", "100nF ±10%", "C", "必装",
+        "[推算]", "", "[VBUS_DET_D] ADC 滤波电容 中点侧 (★原来缺这一腿 ⇒ 器件只有 1 个脚)", "A-24")
     # ★★2026-11-03 修: **ref 必须是器件名 "J_SOM_P1", 不能写节点串** ("J_SOM_P1 pin100" 会被
     #   生成器当成一个叫 "J_SOM_P1 pin100" 的器件 ⇒ 板上多出幽灵封装 + 一个假脚)
-    add("P1", "VBUS_DET", soc_pin("USB_VBUS_DET"), "NET_VBUS_DET_D", "J_SOM_P1",
+    add("P1", "VBUS_DET", soc_pin("USB_VBUS_DET"), "VBUS_DET_D", "J_SOM_P1",
         "1M+1M 分压 + 100nF", "NET", "必装", "[官方]", "",
         "[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)",
         "B-07")

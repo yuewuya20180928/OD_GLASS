@@ -7149,5 +7149,37 @@ issues:
     (KiCad 10.0.8) / `bash state/pcbnew_py.sh <script>` (pcbnew 只在 AppImage 的 python3.11 里, ★**系统 python3.14
     跑会 ModuleNotFoundError**)。★**别整篇读大文件**: 只读 `HW/PCB/LAYOUT_RULES.md` + `HW/PCB/STACKUP.md` + `HW/PCB/demo_mainboard.kicad_pcb`
     + `state/check_pcb_drc.py` 的判据段。 ★**2026-11-04 19:2x 已派 hw-lead** (子会话 agent:hw-lead:subagent:6ff4be7b,
-    taskName=iss181_board_routing, ★**分两阶段, 本次只交阶段 1 = 关键网络布线**) ⇒ 派完立刻落 fixing。'
-  dispatched_at: 2026-11-04 19:2x
+    taskName=iss181_board_routing, ★**分两阶段, 本次只交阶段 1 = 关键网络布线**) ⇒ 派完立刻落 fixing。 ★★**2026-11-04 19:45-20:00
+    项目总工亲自把前置全部修完** (前两轮派 hw-lead 都是 0 产出): ① **导出器幽灵分裂网 bug** (`state/gen_kicad_net.py`: canon() 剥掉 RAIL_/NET_
+    前缀 ⇒ 别名节点与行网同一根线时被当成两个网 ⇒ R/C/L 件变 3 脚 ⇒ **5V 轨被拆成两根**) ② **R_SER_USB_D_P 被短接** (Type-C D+ 与 SoM D+
+    同网 ⇒ 22Ω 短路 + ESD 双失效) ⇒ 改: Type-C 侧独立成网 NET_USB_D_P_TYPEC / NET_USB_D_N_TYPEC ⇒ 串阻真串在中间 ③ **跨铰链 USB
+    整块删除** (老板 11-02 19:25「跨铰链取消」⇒ demo 板只留板载 Type-C 一条 USB 数据路径; CONN_USB 座 + D_ESD_USB 随之删) ④ **VBUS
+    分压是坏的** (上臂下臂并联在同一网 ⇒ 分压比恒 1 ⇒ 检测读 0V; C_DET_VBUS_D 只有 1 条腿) ⇒ 改为: 上臂 5V→中点 / 下臂 中点→地 / 电容跨中点与地 /
+    SoM 检测脚接中点 ⑤ **J_CHG pin7** 改成预留 NC (座仍 10p) ⇒ ★**check_kicad_net / check_netlist / check_netlist_pins
+    全绿, 216 个器件脚数全对**; ★**两处门禁判据随形态更新** (P9 行数 10→8; "USB 差分必经跨铰链" ⇒ 反转为"USB 走板载 Type-C 且串阻真串在中间") ⇒ **判据跟着形态走,
+    不是放松判据**。'
+  dispatched_at: '2026-11-04 20:00 (第二轮: 带 pcbnew API 用法 + 通用路由器要求)'
+- id: ISS-182
+  title: ★★★[投板级 · 已修] 网表 4 处致命缺陷 + 导出器"幽灵分裂网" bug + VBUS 分压失效
+  severity: blocker
+  source_blocker: null
+  source_agent: main
+  desc: '★2026-11-04 19:45-20:00 项目总工亲自修 (前两轮派 hw-lead 均 0 产出 ⇒ 不再等)。**五处**: ① 导出器幽灵分裂网 (canon 剥前缀 ⇒ 别名与行网同根时被当两个网
+    ⇒ R/C/L 变 3 脚 + **5V 轨被拆成两根**) ② R_SER_USB_D_P 短接 (22Ω 失效 + ESD 双失效) ③ 跨铰链 USB 整块删除 (11-02 19:25「跨铰链取消」)
+    ④ VBUS 分压失效 (上下臂并联 ⇒ 读 0V) + C_DET_VBUS_D 缺腿 ⑤ J_CHG pin7 改预留 NC'
+  owner: main
+  reporter: main
+  raised: '2026-11-04'
+  due: '2026-11-04'
+  status: fixed
+  external: false
+  need_keys: []
+  fix_ref: state/gen_kicad_net.py (幽灵分裂网) · state/gen_netlist.py (USB 拓扑 + VBUS 分压) · state/check_netlist.py
+    + state/check_netlist_pins.py (判据随形态更新) · state/chain_gate.py (投产包新鲜度)
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-11-04'
+  note: '★**验证**: check_kicad_net rc=0 (216 器件脚数全对) · check_netlist rc=0 · check_netlist_pins rc=0 · check_sch_loadable
+    rc=0 · check_pcb_nets rc=0 (487/487) · check_pcb_drc rc=0 · chain_gate --full 全过。★**新增防复发判据**: check_netlist
+    现在的 "USB 走板载 Type-C 且 22Ω 串阻真串在中间" ⇒ 串阻被短接会立刻报红; chain_gate 现在的 "投产包比 PCB/原理图新" ⇒ 旧板生成的 Gerber 不可能流到投板。'
+  dispatched_at: null

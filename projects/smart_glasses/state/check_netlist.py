@@ -210,26 +210,36 @@ def main() -> int:
         f"错标 {bad_bat}" if bad_bat else "BT/U_BATPROT/Q1/Q2 全在 MAIN_PCB")
 
     # 17) P9 跨铰链界面页存在且行数足够
+    # ★2026-11-04 19:5x: 阈值 10 → 8 —— 跨铰链 USB 座 (CONN_USB) 及其 ESD/差分已删
+    #   (老板 11-02 19:25「跨铰链取消」⇒ demo 板只有板载 Type-C 一条 USB 数据路径),
+    #   ⇒ P9 现在只剩**充电链** (J_CHG 10p + TS + 预留 pin) ⇒ 8 行是正常的 (★判据跟着形态走)
     p9 = [r for r in rows if cell(r, "page") == "P9"]
-    chk("P9 跨铰链界面页存在 (≥10 行)", len(p9) >= 10, f"{len(p9)} 行")
+    chk("P9 跨铰链界面页存在 (≥8 行: 充电链 J_CHG + TS + 预留)", len(p9) >= 8, f"{len(p9)} 行")
 
     # 18) 电池 NTC → BQ25896 TS 脚 (硬件停充, 安全项) 必须在图
     has_ntc = (any(cell(r, "ref") == "R_NTC_BAT" for r in rows)
                and any(cell(r, "net") == "TS_BAT" for r in rows))
     chk("电池 NTC → BQ25896 TS 脚 (硬件停充) 在图", has_ntc, "R_NTC_BAT + TS_BAT 已在图" if has_ntc else "缺 R_NTC_BAT / TS_BAT")
 
-    # 19) 回归判据: USB 差分**必经跨铰链连接器** (V1 把铰链短接了: 网里没有 CONN_USB 的脚)
-    #     ★V1.4 口径更新: V1.4 起跨铰链连接器的同一物理脚在两侧是同一节点 → 网名合并,
-    #     所以"USB_D_P 网里同时有 CONN_USB 脚与 Type-C 脚"是**正确**的 (线确实穿铰链)。
+    # 19) ★★2026-11-04 19:5x **判据反转** (跟形态走): 老板 11-02 19:25「**跨铰链取消**」⇒
+    #     demo 板的 USB **不跨铰链** ⇒ 原判据"USB 差分必经 CONN_USB" 已不成立。
+    #     ⇒ 新判据: **USB 数据必须走板载 Type-C (J_USB_C)**, 且 **22Ω 串阻必须真串在中间**
+    #     (★原来的拓扑里 Type-C D+ 与 SoM D+ 同网 ⇒ 串阻被短接掉 ⇒ 这条判据就是防它再犯)。
     miss_usb = []
-    for netn in ("USB_D_P", "USB_D_N"):
+    for netn, expect_pin in (("NET_USB_D_P_TYPEC", "J_USB_C A6+B6"),
+                              ("NET_USB_D_N_TYPEC", "J_USB_C A7+B7")):
         nodelist = []
         for r in rows:
             if cell(r, "net") == netn:
                 nodelist += [cell(r, "node1"), cell(r, "node2")]
-        if not any(x.startswith("CONN_USB pin") for x in nodelist):
+        if not any(expect_pin in x for x in nodelist):
             miss_usb.append(netn)
-    chk("USB 差分必经跨铰链连接器 (网里有 CONN_USB 脚)", not miss_usb,
+    # ★串阻必须在**两个不同的网**上 (Type-C 侧 ≠ SoM 侧) ⇒ 不许同网短接
+    for ser, src_net in (("R_SER_USB_D_P", "USB_D_P_SRC"), ("R_SER_USB_D_N", "USB_D_N_SRC")):
+        nets_of = {cell(r, "net") for r in rows if ser in (cell(r, "node1"), cell(r, "node2"))}
+        if src_net not in nets_of or len(nets_of) != 2:
+            miss_usb.append(f"{ser}(跨 {sorted(nets_of)}, 需恰 2 个网且含 {src_net})")
+    chk("★USB 走板载 Type-C 且 22Ω 串阻真串在中间 (不被短接)", not miss_usb,
         f"缺铰链连接器 {miss_usb}" if miss_usb else "USB_D_P/USB_D_N 都经 CONN_USB")
 
     # 19b) P10 充电板页必须有行 (数据来自 state/p10_rows.json; 未到就红 —— 诚实反映"还没画完")

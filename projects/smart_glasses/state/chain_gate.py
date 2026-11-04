@@ -204,9 +204,16 @@ def main():
         p = os.path.join(PROD, rel)
         if not (os.path.exists(p) and os.path.getsize(p) > 0):
             missing.append(label)
-    e5 = (not missing) and e1 and e2 and e3 and e4
+    # ★2026-11-04 19:55 补: 投产包必须**比板/原理图新** ⇒ 否则投板用的还是旧板生成的 Gerber
+    stale = []
+    pack_t = mt(os.path.join(PROD, "gerbers", "demo_mainboard-F_Cu.gtl"))
+    for label, src in (("PCB", PCB), ("原理图", SCH)):
+        if pack_t and mt(src) > pack_t + 1:
+            stale.append(label)
+    e5 = (not missing) and (not stale) and e1 and e2 and e3 and e4
     e5m = (f"{len(PROD_REQUIRED) - len(missing)}/{len(PROD_REQUIRED)} 必备产物齐全"
-           + ("" if not missing else " · 缺: " + ", ".join(missing[:4])))
+           + ("" if not missing else " · 缺: " + ", ".join(missing[:4]))
+           + ("" if not stale else f" · ★**投产包比 {', '.join(stale)} 旧 ⇒ 投板用的是旧板的 Gerber**"))
     if not os.path.isdir(PROD):
         e5, e5m = False, "production/ 目录不存在 ⇒ 跑 state/gen_production_pack.sh"
     x5 = True

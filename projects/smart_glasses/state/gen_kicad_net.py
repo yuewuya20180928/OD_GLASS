@@ -183,6 +183,13 @@ def main() -> int:
         d1, d2 = dev_of(n1), dev_of(n2)
         a1, a2 = is_alias(n1), is_alias(n2)
         alias_net = canon(n2 if a2 else (n1 if a1 else ""))
+        # ★★2026-11-04 19:5x 修 (幽灵分裂网 ⇒ 两脚件变三脚): canon() 会把 RAIL_X / NET_X 的前缀剥掉 ⇒
+        #   当"别名节点"其实**就是行网本身**时 (例: net=RAIL_DEMO_5V, node2=RAIL_DEMO_5V),
+        #   alias_net 变成 "DEMO_5V" ≠ 行网 "RAIL_DEMO_5V" ⇒ ★**同一个器件被塞进两个网**
+        #   ⇒ R/C/L 件脚数变 3 (FB_DEMO / C_VBUS_DEMO) ⇒ 门禁报红, 且 **5V 轨被拆成两根**。
+        #   ★修法: canon(行网) == alias_net ⇒ 它们本来就是同一根线 ⇒ alias_net 用行网本身。
+        if alias_net and canon(net) == alias_net:
+            alias_net = net
         if inv:
             for ref, pin in d1 + d2:
                 if pin is not None and (ref, pin) not in pin_net:

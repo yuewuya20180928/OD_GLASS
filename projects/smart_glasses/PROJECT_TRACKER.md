@@ -3107,3 +3107,21 @@ check_pcb_nets **487/487** ✅ · check_pcb_drc **0 违规** ✅ · Gerber 30 �
 ★★ **同期修掉两个"形同虚设"的门禁 (daily_check 里)**:
 · ① `check_pcb_nets.py` 原来用**系统 python** 跑 ⇒ pcbnew 不在 ⇒ rc 必失败; ★**而且算出来的 `pcb_ok` / `pcb_net_ok` 是死变量, 从没进过 problems** ⇒ **PCB↔网表这道门禁等于没设** ⇒ 已改走 `state/pcbnew_py.sh` 并真正接进 problems
 · ② 层次混乱: daily_check 只跑了 merge/gate/issue/stage 四道 ⇒ **生产链环节之间没有校验** ⇒ 已加 chain_gate 一行 (摘要里也会显示)
+
+#### (1.90) ★★★★ 2026-11-04 19:45-20:00: ★★★**网表 5 处投板级缺陷 —— 我自己修完了 (前两轮派 hw-lead 都是 0 产出)**
+
+> **落账**: ISS-182 (fixed, verify_by=main) · ISS-181 (布线, 第二轮已派) · `state/gen_kicad_net.py` · `state/gen_netlist.py` ·
+> `state/check_netlist.py` + `state/check_netlist_pins.py` (判据随形态更新) · `state/chain_gate.py` (投产包新鲜度)
+
+★★ **为什么我自己上**: 这活派给 hw-lead **连着两轮 0 产出** (第一轮 20m28s/494.3k tokens, 第二轮 25m35s/234.8k tokens ⇒ 回执都只停在"我先看看上下文" ⇒ **两个文件都没动**) ⇒ ★**事实我已全查清, 再派就是浪费** ⇒ 总工直接修。
+
+★★★ **修的五处 (全是"做出来就不工作"级别)**:
+① **导出器"幽灵分裂网"** (`state/gen_kicad_net.py`): `canon()` 会把 `RAIL_X`/`NET_X` 的前缀剥掉 ⇒ 当"别名节点"其实**就是行网本身**时 (net=RAIL_DEMO_5V, node2=RAIL_DEMO_5V), 别名变成 `DEMO_5V` ≠ 行网 ⇒ ★**同一器件被塞进两个网** ⇒ R/C/L 件脚数变 3 (FB_DEMO / C_VBUS_DEMO) ⇒ ★**而且 5V 轨被拆成两根** ⇒ 已修 (canon(行网)==alias_net ⇒ 同一根线)
+② **R_SER_USB_D_P 被短接**: Type-C D+ 与 SoM D+ 同在 `USB_D_P_SRC` ⇒ ★**22Ω 串阻被短接掉** + ESD 双失效 ⇒ 改: Type-C 侧独立成 `NET_USB_D_P_TYPEC` / `NET_USB_D_N_TYPEC` ⇒ 串阻真串在中间
+③ **跨铰链 USB 整块删除** (老板 11-02 19:25「**跨铰链取消**」⇒ demo 板只有板载 Type-C 一条 USB 数据路径) ⇒ CONN_USB 座 + D_ESD_USB + 跨铰链差分/ESD/走线/TP 全删 ⇒ J_CHG pin7 改**预留 NC** (座仍 10p)
+④ **VBUS 分压是坏的**: 原来只有一行 (net=VBUS_DET_D, n1=D1, n2=D2) ⇒ ★**上下臂并联在同一网 ⇒ 分压比恒 1 ⇒ SoM 检测读 0V**; 且 `C_DET_VBUS_D` 只挂 GND (**1 条腿**) ⇒ 已改为: 上臂 5V→中点 / 下臂 中点→地 / 电容跨中点与地 / SoM 检测脚接中点
+⑤ **门禁判据随形态更新** (★**不是放松判据**): `check_netlist.py` P9 行数 10→8 (跨铰链 USB 删了) + **"USB 差分必经跨铰链连接器" ⇒ 反转为 "USB 走板载 Type-C 且 22Ω 串阻真串在中间"** (⇒ 串阻被短接会立刻报红); `check_netlist_pins.py` 删掉 CONN_USB 的 4p 期望
+
+★ **验证 (全绿)**: check_kicad_net **rc=0** (216 个器件脚数全对) · check_netlist rc=0 · check_netlist_pins rc=0 · check_sch_loadable rc=0 · check_pcb_nets rc=0 (487/487) · check_pcb_drc rc=0 · **chain_gate --full 全过**
+
+★ **★顺带把 chain_gate 自己的一个洞补上**: ⑤ 投产包原来只查"文件齐不齐" ⇒ ★**没查"投产包比 PCB/原理图新"** ⇒ 我改完网表后, 投产包还是旧板生成的 ⇒ **chain_gate 立刻把它抓红了** (自己抓到自己) ⇒ 已加准入判据 ⇒ 现在投板用的 Gerber 不可能来自旧板。

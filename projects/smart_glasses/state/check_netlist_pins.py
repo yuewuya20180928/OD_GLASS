@@ -35,7 +35,9 @@ ASSIGN = os.path.join(PROJ, 'HW', 'PCB', 'som_pin_assign.json')
 SPEC_PINS = {
     'CONN_CAM': 31,     # Radxa Camera 4K (IMX415) 31p/0.3mm
         'CONN_LIGHT': 22,   # ★2026-11-04 定稿: Pi5 22p/0.5mm DISPLAY 座 (针序见 HW/PCB/PI5_DSI_22P_PINOUT.md)
-    'CONN_USB': 4,      # 跨铰链 USB (整机阶段)
+    # ★2026-11-04 19:5x: 'CONN_USB' 已从网表删除 —— 老板 11-02 19:25「**跨铰链取消**」⇒
+    #   demo 板只有板载 Type-C 一条 USB 数据路径 (J_USB_C → 串阻 → SoM), 跨铰链 USB 座属整机阶段
+    #   ⇒ 这里同步删掉期望 (★判据跟着形态走, 不是为了让门禁变绿而放松判据)
     'J_CHG': 10,        # 跨铰链充电 (整机阶段)
     'J_DEBUG': 4,       # JTAG 排针
     'J_UART': 2,        # UART 排针
