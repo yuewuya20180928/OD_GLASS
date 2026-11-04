@@ -4110,15 +4110,16 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-06'
-  status: open
+  status: fixing
   external: false
   need_keys: []
-  fix_ref: state/gen_netlist.py (I2C_A 注释) · HW/AR0234CS_RK3572_PORT_SPEC.md §1
+  fix_ref: state/dispatch_briefs/ISS-153_i2c_addr_table.md (任务书全文) · HW/I2C_ADDR_TABLE.md (待交) · state/gen_netlist.py (I2C 注释) · state/check_netlist_pins.py (C9 判据)
   verify_by: main
   verify_result: null
   verify_date: null
   note: '2026-11-02 19:5x。★**低危但会咬人**: 地址冲突的表征是"I2C 读不到"而不是"编译不过" ⇒ **每次换 sensor 必须重核地址表**。'
-  dispatched_at: null
+  dispatched_at: '2026-11-04'
+  task_brief: "【ARS45 · demo 主板 · I2C 地址表全量核对 + 网表注释订正 + 门禁化 (ISS-153)】\n\n## 背景 (为什么现在做)\ndemo 主板网表已经按 **IMX415 camera 模组** 重画过一轮, 但 I2C 这条线上留着 **3 处已知过期/自相矛盾**的东西:\n\n1. ★**地址注释过期**: `state/gen_netlist.py` 里 U_TEMP 那条注释 (★`gen_netlist.py:806` 附近) 仍写\n   \"IMX415 = 0x1a / AR0234CS = 0x10 / **桥接 0x50** / **充电 IC 0x12** / 光机 0x72 都不冲突\"\n   ⇒ ★**\"充电 IC 0x12\" 是错的** (BQ25896 实为 **0x6B**, `HW/INTERFACE_TABLE.md:138` V1.5 已订正);\n   ⇒ ★**\"桥接 0x50\" 已作废** (随 RK3572 无 DP TX, 桥接整条删除)。\n2. ★**I2C_A 上拉轨, 注释和实际 net 打架**: 实际 net 是 **2.2k → `RAIL_VDD_1V8_IO`** (camera 模组 FPC 上标 **I2C5 = 1.8V 域**),\n   但网表 note 仍写 \"**[VDD_3V3_IO]** I2C_A 上拉 … ★**上拉仍留 3.3V**\" ⇒ ★**注释与实际 net 相反**\n   ⇒ 这正是 ISS-159 的 F3 依据区列的 **C4 冲突**, 一直没收口。\n3. ★**`HW/netlist_v1_pins.csv` 停在 11-03 00:50 的旧版** (TMP117 还是 4 脚 / 还挂在 I2C_A),\n   而生成器 11-04 04:0x 已把 U_TEMP 改成 **官方 6 脚 WSON-6 + 挂 I2C_B** (ISS-178) ⇒ **脚级 csv 落后于生成器**。\n\n⇒ 本单的根子: **\"换 sensor 时 I2C 地址会变 ⇒ 每次换料必须重核整条总线的地址表\"** —— 这次把它 **做成门禁**, 下次换料不会静默改地址。\n\n## 你要交的 (3 件)\n### ① `HW/I2C_ADDR_TABLE.md` —— I2C_A / I2C_B 两条总线的从设备全表\n每行必须有: 总线 | 位号 | 器件 | 7-bit 地址 | **地址来源 (原厂 datasheet 型号 + 表号/页号)** | 上拉轨 | 电压域 | 与同总线其它设备是否冲突\n\n待核清单 (★**逐个用原厂 datasheet 核, 不许照抄本单, 不许猜**):\n| 器件 | 本单给的线索 (★都只是线索, 以你核到的 datasheet 为准) |\n|---|---|\n| camera (IMX415 模组) | 0x1a — `HW/IMX415_DEMO_SENSOR_FACTS.md:21,159` (两处独立来源) |\n| 温度计 TMP117 (`U_TEMP`) | 0x48 — TI TMP117 datasheet (ADD0/ADDR1 默认); ★**注意它现在挂 I2C_B** |\n| 充电 IC BQ25896 (`U_CHG`) | ★**0x6B** (TI BQ25896 datasheet) —— ★**不是 0x12**; ★**它在 CHG_BOARD (镜框充电板), 不是本板** ⇒ 请核清它**到底有没有挂在任一条 I2C 总线上** (STAT/PG 是 GPIO, 不是 I2C) |\n| 光机 / 屏侧 MCU | 光机 0x72 (A/B 两条都预留, `HW/INTERFACE_TABLE.md:146-149`); 屏内 MCU 0x45 (`HW/PCB/PI5_DSI_22P_PINOUT.md:83`) |\n| 桥接 (U_BRIDGE) | ★**已作废** —— 只在备注里写明\"随 RK3572 无 DP TX 整条删除\" + 依据 |\n| AR0234CS (整机阶段) | 0x10 —— ★demo 不用, 只在备注里写 |\n\n★**表尾必须给冲突检查结论**: 同一条总线上所有地址两两不同 (逐对列出比对结果)。\n\n### ② 订正生成器里的过期注释 (★只改注释文字, 不改任何连接关系 / 脚号 / 网名 / 器件值)\n- `state/gen_netlist.py`: \"充电 IC 0x12\" → 改成 **0x6B** (或按 ① 的核实结果改成\"不在本板总线上\"); \"桥接 0x50\" → 改成\"已删除\"\n- ★**I2C_A 上拉那条 note**: 把 \"[VDD_3V3_IO] … 上拉仍留 3.3V\" 改成与实际 net 一致的 **1.8V 域** 口径 (实际是 `RAIL_VDD_1V8_IO`), 并写清依据 (camera 模组 FPC 标 I2C5 = 1.8V 域)\n- ★**同一份注释在网表里出现不止一处** ⇒ **全部找出来一起改**\n- 改完 **重跑生成器** ⇒ `HW/netlist_v1.csv` 跟着重生成\n- ★**顺便把 `HW/netlist_v1_pins.csv` 重新生成** (`python3 state/gen_netlist_pins.py`) —— 它现在停在 11-03 00:50 的旧版 (TMP117 4 脚 / 挂 I2C_A), 与生成器不一致\n\n### ③ 门禁: `state/check_netlist_pins.py` 加一条判据 (编号 C9)\n**\"I2C_A / I2C_B 上每个从设备的地址, 与 `HW/I2C_ADDR_TABLE.md` 一致; 且同总线地址唯一\"**\n⇒ 以后谁改了地址却没改表 ⇒ 门禁报错 (和 C6/C7/C8 一样的\"内容存在性门禁\"风格, 自己看该文件已有判据怎么写)。\n\n## 硬要求\n- ★**每个地址都要有原厂 datasheet 出处** (型号 + 表号/页号) ⇒ 没有出处的写 \"**未查到**\" + **试过的 URL + 失败原因** ⇒ ★**绝对不许猜**\n- ★**网表是生成物** ⇒ 改生成器 → 重跑 ⇒ csv 跟着变 ⇒ ★**不许手改 csv**\n- ★**只允许改这些**: `HW/I2C_ADDR_TABLE.md` (新建) · `state/gen_netlist.py` (**只改注释文字**) · `state/check_netlist_pins.py` (**只加 C9 判据**) · `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` (**生成物**) · `HANDOFF/2026-11-04_hw-lead_ISS153.md` (交卷说明) · `state/fragments/hw.yaml` (你自己的分片)\n- ★**不许改**: `PROJECT_TRACKER.md` (★**§0 锁死表尤其不许动**) · `STATE.yaml` · `state/issue_log.yaml` (★**状态由项目总工改**) · 别的 agent 的分片 (`pm.yaml` / `sw.yaml` / `mech.yaml`) · `HW/PCB/LAYOUT_RULES.md` · `HW/PCB/STACKUP.md` · `HW/SCHEMATIC_V1_SPEC.json` · `HW/PCB/demo_mainboard.kicad_pcb`\n- 不发邮件 / 不联系厂家 / 不下单 / 不询价 / 不写任何别的 agent 的分片\n\n## 自证 (交卷时把命令 + 输出一起贴进 HANDOFF)\n```\ncd projects/smart_glasses\npython3 state/gen_netlist.py            # 重生成网表 (rc=0)\npython3 state/gen_netlist_pins.py       # 重生成脚级 csv (rc=0)\npython3 state/check_netlist_pins.py     # ★新判据 C9 必须过 (rc=0)\npython3 state/check_netlist.py          # ★全量门禁必须仍全绿 (rc=0, 不许把你的改动打成别的判据红)\npython3 state/check_kicad_net.py        # ★网表↔板一致 (rc=0)\n```\n★**若你的改动把任何既有门禁打红 ⇒ 交卷无效** —— 自己修到绿。\n\n## 验收标准\n- [ ] `HW/I2C_ADDR_TABLE.md` 两条总线全表齐全, 每行有 datasheet 出处 + 冲突结论\n- [ ] 生成器注释里不再出现 `0x12` / `桥接 0x50` / \"上拉仍留 3.3V\" (或已改成正确口径)\n- [ ] `HW/netlist_v1_pins.csv` 与生成器同步 (TMP117 = 6 脚 / 挂 I2C_B)\n- [ ] `check_netlist_pins.py` 里有 C9 判据且 rc=0\n- [ ] `HANDOFF/2026-11-04_hw-lead_ISS153.md` 写清: 核了几个地址 / 订正了哪几处 / 哪些没查到 / 五条自证命令的 rc\n\n## 汇报 (8~12 行)\n核了几个地址 / 订正了哪几处 / 哪个没查到 (附试过的 URL) / C9 判据编号 / 五条自证命令的 rc"
 - id: ISS-154
   title: ★★[整机阶段] AR0234CS 的 VDDIO_PHY 1.8V 轨缺失 + CONN_CAM 18p 占满 ⇒ 不供电就出不了图 (A/B/C 三方案待选)
   severity: high
@@ -4129,14 +4130,17 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-12'
-  status: open
+  status: deferred
   external: false
   need_keys: []
   fix_ref: HW/AR0234CS_OPEN_SOURCE_FACTS.md (U4 + Note 10) · HW/DEMO_BOARD_HW_DECISION.md §4
   verify_by: main
   verify_result: null
   verify_date: null
-  note: '2026-11-02 20:1x。★**整机阶段项, demo 不卡**。★**Step2 画主板时的动作**: CONN_CAM 直接按 24p 画 (别 18p 满), 第四条轨 (1.8V PHY) 预留在同一 FPC 上。'
+  note: '2026-11-02 20:1x。★**整机阶段项, demo 不卡**。★**Step2 画主板时的动作**: CONN_CAM 直接按 24p 画 (别 18p 满), 第四条轨 (1.8V PHY) 预留在同一 FPC 上。
+
+
+    ★★2026-11-04 09:3x **项目总工裁: 延后到整机阶段 (deferred)** —— 两条理由:① **本单 desc 自己就写了『deferred 到整机阶段, 但 Step2 自研主板时就要按 24p 留余量』** ⇒ demo 阶段不卡它;② ★**本单的前提已经变了** (11-04 复核网表): **CONN_CAM 现在是 31p/0.3mm (Radxa Camera 4K 31 针表, FH35C-31S-0.3SHW(50))** ⇒ ★**不是『18p 占满』** ⇒ 『加不出第 4 条轨』这个理由对 demo 不成立; 且 camera 走 **模组级供电** (ISS-159 的 F14: 模组内部自己稳压 ⇒ 主板三条 sensor 轨全 DNP) ⇒ ★**AR0234CS 的 VDDIO_PHY 1.8V 轨在 demo 板上压根不需要** (demo 用 IMX415 模组, 不上裸 sensor)。⇒ ★**触发重开条件 (写清楚, 不许丢)**: ① 整机阶段改上 **裸 AR0234CS** (不是模组) ⇒ 本单立刻 open; ② 老板拍板 demo 相机路线回到 AR0234CS ⇒ 本单立刻 open; ③ ★**『按 24p 留余量』这条已由 31p 座自然满足** (31p ≥ 24p) ⇒ 无需另做。★**没关, 只是挪到整机阶段** —— 整机阶段开工前, 本单必须回来。'
   dispatched_at: null
 - id: ISS-155
   title: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 target 转的 .rknn 能否在 RK3572 上跑通 (板端验证) —— 且板子当前不可达
@@ -4224,14 +4228,17 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-05'
-  status: fixing
+  status: closed
   external: false
   need_keys: []
   fix_ref: HW/STEP1_LANDING_LIST.md §3 (F1~F12) · HW/SCHEMATIC_V1_SPEC.json · state/gen_netlist.py
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: '2026-11-02 22:4x。★**EN 那个 P0 就是靠候选清单撞出来的** (若没有 ISS-151 那轮实测, 我们会带着 9 路全灭的板子去打样) ⇒ ★**这条单的价值就是"再撞出几个 P0"**。 ★**F13 已入册 (23:2x)**。 ★**F8 已完成 (23:5x)**。 ★**F14 已入册 (18:5x)**。 ★★2026-11-03 12:5x **项目总工复核 (按今天改过的网表重核 F 项)** (hw-lead 的验收基于 11-03 09:4x 的网表, 我 09:4x-11:0x 改了引脚/电源/脚号口径 ⇒ 需要复核哪些结论还成立): ★**F15 已由我复核并修掉**: display 座 pin24/26/35/40 原本全并在 NET_DSI_AUX ⇒ **LED+ 与 LED− 短接** ⇒ 已拆成一脚一网并标 DNP (并新开 ISS-173: 背光需 12.8V@200mA ⇒ 5V 输入要加 12V BOOST, 且会撑爆 USB-C 900mA 预算); ★**F13 残留三条**: ①选型 = 负载开关 (我已裁 TPS22991RAA, 待老板点头 → ISS-172) ②规格同步 = `HW/SCHEMATIC_V1_SPEC.json` **还没同步 F13/A2 段** (A2 目前只写进了生成器) → 欠账, 我排下一步; ③门禁缺判据 = 已补 **内容存在性门禁** (check_netlist_pins C6/C7/C8: SoM 供电 7 脚 / F13 使能 / 4 组座在用) ⇒ "下次改网表会静默把门控拆掉" 这条**已堵**; ★**F1/F2/F3/F5/F6/F8/F13(拓扑)/F14 的"已清零"结论不受我今天的改动影响** (我改的是引脚/电源/脚号口径, 未触碰这些项) ⇒ 维持; ★**待清四项与我今天的新发现合并看**: F4(display 座二选一) + F9 + F10(display 口无 ESD 位) + F15 ⇒ **显示器接口这一整簇最弱** ⇒ 与 ISS-170 (40p vs 39p) + ISS-173 (背光 12V) 一起是"投板前必须解决"的三件。2026-11-02 22:4x。★**EN 那个 P0 就是靠候选清单撞出来的** (若没有 ISS-151 那轮实测, 我们会带着 9 路全灭的板子去打样) ⇒ ★**这条单的价值就是"再撞出几个 P0"**。 ★**F13 已入册 (23:2x)**。 ★**F8 已完成 (23:5x)**。 ★**F14 已入册 (18:5x)**。 ★★2026-11-03 12:5x **项目总工复核 (按今天改过的网表重核 F 项)** (hw-lead 的验收基于 11-03 09:4x 的网表, 我 09:4x-11:0x 改了引脚/电源/脚号口径 ⇒ 需要复核哪些结论还成立): ★**F15 已由我复核并修掉**: display 座 pin24/26/35/40 原本全并在 NET_DSI_AUX ⇒ **LED+ 与 LED− 短接** ⇒ 已拆成一脚一网并标 DNP (并新开 ISS-173: 背光需 12.8V@200mA ⇒ 5V 输入要加 12V BOOST, 且会撑爆 USB-C 900mA 预算); ★**F13 残留三条**: ①选型 = 负载开关 (我已裁 TPS22991RAA, 待老板点头 → ISS-172) ②规格同步 = `HW/SCHEMATIC_V1_SPEC.json` **还没同步 F13/A2 段** (A2 目前只写进了生成器) → 欠账, 我排下一步; ③门禁缺判据 = 已补 **内容存在性门禁** (check_netlist_pins C6/C7/C8: SoM 供电 7 脚 / F13 使能 / 4 组座在用) ⇒ "下次改网表会静默把门控拆掉" 这条**已堵**; ★**F1/F2/F3/F5/F6/F8/F13(拓扑)/F14 的"已清零"结论不受我今天的改动影响** (我改的是引脚/电源/脚号口径, 未触碰这些项) ⇒ 维持; ★**待清四项与我今天的新发现合并看**: F4(display 座二选一) + F9 + F10(display 口无 ESD 位) + F15 ⇒ **显示器接口这一整簇最弱** ⇒ 与 ISS-170 (40p vs 39p) + ISS-173 (背光 12V) 一起是"投板前必须解决"的三件。 ★★2026-11-03 19:2x **F13 残留②"规格同步"部分推进**: `HW/SCHEMATIC_V1_SPEC.json` 的 meta 已同步 (en_policy 改成 F13 口径: EN 直连 **RAIL_BOARD_5V** 而非 RAIL_SYS; note 补 display 40p/39p 与 SoM 真实引脚口径; sources 补三份新真值源; 加 `_pending` 欠账清单) ⇒ ★**但 connections/display_select 数据段还没补 A2 段的新连接** (SoM 供电 7 脚 / F13 使能 / demo Type-C / VBUS 检测) ⇒ ⇒ ★**目前网表的真源是生成器里的 build_a2_som(), 不是这份 JSON** ⇒ 两边不同批更新会有漂移风险 ⇒ 专项 (ISS-170) 回来后一并补。'
+  verify_result: pass
+  verify_date: '2026-11-04'
+  note: '2026-11-02 22:4x。★**EN 那个 P0 就是靠候选清单撞出来的** (若没有 ISS-151 那轮实测, 我们会带着 9 路全灭的板子去打样) ⇒ ★**这条单的价值就是"再撞出几个 P0"**。 ★**F13 已入册 (23:2x)**。 ★**F8 已完成 (23:5x)**。 ★**F14 已入册 (18:5x)**。 ★★2026-11-03 12:5x **项目总工复核 (按今天改过的网表重核 F 项)** (hw-lead 的验收基于 11-03 09:4x 的网表, 我 09:4x-11:0x 改了引脚/电源/脚号口径 ⇒ 需要复核哪些结论还成立): ★**F15 已由我复核并修掉**: display 座 pin24/26/35/40 原本全并在 NET_DSI_AUX ⇒ **LED+ 与 LED− 短接** ⇒ 已拆成一脚一网并标 DNP (并新开 ISS-173: 背光需 12.8V@200mA ⇒ 5V 输入要加 12V BOOST, 且会撑爆 USB-C 900mA 预算); ★**F13 残留三条**: ①选型 = 负载开关 (我已裁 TPS22991RAA, 待老板点头 → ISS-172) ②规格同步 = `HW/SCHEMATIC_V1_SPEC.json` **还没同步 F13/A2 段** (A2 目前只写进了生成器) → 欠账, 我排下一步; ③门禁缺判据 = 已补 **内容存在性门禁** (check_netlist_pins C6/C7/C8: SoM 供电 7 脚 / F13 使能 / 4 组座在用) ⇒ "下次改网表会静默把门控拆掉" 这条**已堵**; ★**F1/F2/F3/F5/F6/F8/F13(拓扑)/F14 的"已清零"结论不受我今天的改动影响** (我改的是引脚/电源/脚号口径, 未触碰这些项) ⇒ 维持; ★**待清四项与我今天的新发现合并看**: F4(display 座二选一) + F9 + F10(display 口无 ESD 位) + F15 ⇒ **显示器接口这一整簇最弱** ⇒ 与 ISS-170 (40p vs 39p) + ISS-173 (背光 12V) 一起是"投板前必须解决"的三件。2026-11-02 22:4x。★**EN 那个 P0 就是靠候选清单撞出来的** (若没有 ISS-151 那轮实测, 我们会带着 9 路全灭的板子去打样) ⇒ ★**这条单的价值就是"再撞出几个 P0"**。 ★**F13 已入册 (23:2x)**。 ★**F8 已完成 (23:5x)**。 ★**F14 已入册 (18:5x)**。 ★★2026-11-03 12:5x **项目总工复核 (按今天改过的网表重核 F 项)** (hw-lead 的验收基于 11-03 09:4x 的网表, 我 09:4x-11:0x 改了引脚/电源/脚号口径 ⇒ 需要复核哪些结论还成立): ★**F15 已由我复核并修掉**: display 座 pin24/26/35/40 原本全并在 NET_DSI_AUX ⇒ **LED+ 与 LED− 短接** ⇒ 已拆成一脚一网并标 DNP (并新开 ISS-173: 背光需 12.8V@200mA ⇒ 5V 输入要加 12V BOOST, 且会撑爆 USB-C 900mA 预算); ★**F13 残留三条**: ①选型 = 负载开关 (我已裁 TPS22991RAA, 待老板点头 → ISS-172) ②规格同步 = `HW/SCHEMATIC_V1_SPEC.json` **还没同步 F13/A2 段** (A2 目前只写进了生成器) → 欠账, 我排下一步; ③门禁缺判据 = 已补 **内容存在性门禁** (check_netlist_pins C6/C7/C8: SoM 供电 7 脚 / F13 使能 / 4 组座在用) ⇒ "下次改网表会静默把门控拆掉" 这条**已堵**; ★**F1/F2/F3/F5/F6/F8/F13(拓扑)/F14 的"已清零"结论不受我今天的改动影响** (我改的是引脚/电源/脚号口径, 未触碰这些项) ⇒ 维持; ★**待清四项与我今天的新发现合并看**: F4(display 座二选一) + F9 + F10(display 口无 ESD 位) + F15 ⇒ **显示器接口这一整簇最弱** ⇒ 与 ISS-170 (40p vs 39p) + ISS-173 (背光 12V) 一起是"投板前必须解决"的三件。 ★★2026-11-03 19:2x **F13 残留②"规格同步"部分推进**: `HW/SCHEMATIC_V1_SPEC.json` 的 meta 已同步 (en_policy 改成 F13 口径: EN 直连 **RAIL_BOARD_5V** 而非 RAIL_SYS; note 补 display 40p/39p 与 SoM 真实引脚口径; sources 补三份新真值源; 加 `_pending` 欠账清单) ⇒ ★**但 connections/display_select 数据段还没补 A2 段的新连接** (SoM 供电 7 脚 / F13 使能 / demo Type-C / VBUS 检测) ⇒ ⇒ ★**目前网表的真源是生成器里的 build_a2_som(), 不是这份 JSON** ⇒ 两边不同批更新会有漂移风险 ⇒ 专项 (ISS-170) 回来后一并补。
+
+
+    ★★2026-11-04 09:3x **项目总工亲核放行 (verify_by=main)**: ★**交付物客观齐备, 不是空口** —— 亲核 `HW/STEP1_LANDING_LIST.md`: §3 **F 表 F1~F15 逐项都有状态列** (已清零/待清/不适用/未查) + §3.1 **依据区逐条给到 文件:行号 或 原厂手册 URL** (F6 阻抗 100Ω±10% / skew<3mil 出到 Forlinx 手册剥标签行 4987-5019) + §3.2 **冲突清单 C1~C8 交项目总工裁决** + §3.3 **未查清单 (F11 查不到就写未查 + 兜底)** ⇒ ★**任务书要求的『逐项给出已清零/待清/不适用 + 依据, 没公开依据就写未查, 不许猜』全部满足** ⇒ 放行。★**残留不在本单**: F13 残留①选型=TPS22991RAA(待老板点头→ISS-172) ②规格同步(11-03 19:2x 已补 meta, connections 待补→ISS-170 一并) ③门禁判据(已补 C6/C7/C8) · F4 display 二选一(ISS-170/173) · F9 ISP tuning(ISS-139) · F15 背光(ISS-173 已随 2.8" 无背光脚屏砍掉) ⇒ 全部另立单, 不挂在本单上。★**本单卡了 hw-lead 24 小时** (11-03 交卷后 status 一直停在 fixing ⇒ advance.py 的『同一 agent 同时只允许一个在飞任务』铁律把 ISS-153/ISS-154 全挡住) ⇒ 本轮一并放行。'
   dispatched_at: '2026-11-03'
 - id: ISS-160
   title: '★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) ⇒ 剩下: 原理图/密集布线/打样'
