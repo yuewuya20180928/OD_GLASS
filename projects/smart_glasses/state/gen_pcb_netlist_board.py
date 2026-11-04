@@ -517,6 +517,7 @@ def main():
     px, py = PK_AREA[0], PK_AREA[1]
     row_h = 0.0
     placed = 0
+    DROPPED = []   # ★2026-11-05 05:10: **被丢掉的器件必须全部报出来** (之前静默丢 ⇒ parity 里才看得出)
     for (ref, pins, kind, w, h) in items:
         if px + w > PK_AREA[2]:
             px = PK_AREA[0]
@@ -524,13 +525,28 @@ def main():
             row_h = 0.0
         if py + h > PK_AREA[3]:
             print(f"⚠️ 装不下: {ref} (y={py:.1f}) ⇒ 需要更大板或更紧的间距")
+            DROPPED.append(ref)
             break
         # ★禁放区 (USB-C 座区) —— 撞上就换一行
-        if any(not (px + w <= rx0 or px >= rx1 or py + h <= ry0 or py >= ry1)
-               for (rx0, ry0, rx1, ry1) in RESERVED):
+        # ★★2026-11-05 05:10 **修: 原来撞禁放区直接 `continue` ⇒ 那个器件被"静默丢掉"** (换行后没有重试)
+        #   ⇒ ★实测后果: C_BULK_SENSOR_AVDD 的封装压根没画到板上 ⇒ parity 报"缺失 2" ⇒ ★G1 卡在 parity
+        #   ⇒ 改成: 换行后**重新试放这个器件** (死循环保护 60 次)
+        _retry = 0
+        while any(not (px + w <= rx0 or px >= rx1 or py + h <= ry0 or py >= ry1)
+                  for (rx0, ry0, rx1, ry1) in RESERVED):
             px = PK_AREA[0]
             py += row_h + 3.0
             row_h = 0.0
+            _retry += 1
+            if py + h > PK_AREA[3]:
+                print(f"⚠️ 装不下(禁放区反复挡): {ref} (y={py:.1f})")
+                DROPPED.append(ref)
+                break
+            if _retry > 60:
+                print(f"⚠️ 禁放区重试 60 次仍挡: {ref} ⇒ 放弃放置")
+                DROPPED.append(ref)
+                break
+        if ref in DROPPED:
             continue
         if ref == "U_TEMP":
             # ★TMP117 = WSON-6 (DRV0006B) 官方封装 —— 通用 IC 封装是"假封装" (1.27mm pitch) ⇒ 单独画
@@ -605,7 +621,12 @@ def main():
     #   ⇒ 正式板被覆盖成"空板" ⇒ 后面所有自验都在测一块坏板
     #   ⇒ 现在: 先写 <PCB>.tmp ⇒ 全部成功 ⇒ os.replace 原子替换 ⇒ ★**崩了也不会动正式板**
     import shutil as _shutil
-    _tmp_pcb = PCB + ".tmp"
+    # ★★2026-11-05 05:10 **修: tmp 文件名必须以 .kicad_pcb 结尾** (LoadBoard **按扩展名判格式**)
+    #   ⇒ 原来用 PCB + ".tmp" ⇒ 写入 OK (SaveBoard 不看扩展名) 但 ★**LoadBoard 返回 None**
+    #   ⇒ v20 日志: "⚠️ 平面重填失败: 'NoneType' object has no attribute 'BuildConnectivity'"
+    #   ⇒ ★**平面铜皮整块没填** (v20 板只有 2 处 filled_polygon) ⇒ 没有 GND 回流面 ⇒ DRC/布通率都受影响
+    _tmp_pcb = (PCB[:-len(".kicad_pcb")] + ".tmp.kicad_pcb") if PCB.endswith(".kicad_pcb") \
+        else (PCB + ".tmp.kicad_pcb")
     pcbnew.SaveBoard(_tmp_pcb, board)
 
     # ★重新填 L2/L6 平面 (★必须**存盘后重读**再填: 平面填的时候要看连通性缓存,
@@ -632,7 +653,13 @@ def main():
     # ★2026-11-05 04:10 **每次成功都留一份备份** (实测教训: 11-05 03:49 一轮崩在布线中
     #   ⇒ 正式板被空骨架覆盖 ⇒ v15 那轮 92/17 的好板没了 ⇒ 18 分钟白跑且无从恢复)
     try:
-        _bak = "/tmp/board_last_good.kicad_pcb"
+        # ★2026-11-05 05:20 **官方板才用固定备份名** —— 否则并行实验 (PCB_OUT=…) 会把
+        #   /tmp/board_last_good.kicad_pcb 覆盖成实验板 ⇒ ★**官方板的回滚点就没了**
+        _OFFICIAL = os.path.join(os.path.dirname(PCB), "demo_mainboard.kicad_pcb")
+        if os.path.abspath(PCB) == os.path.abspath(_OFFICIAL):
+            _bak = "/tmp/board_last_good.kicad_pcb"
+        else:
+            _bak = "/tmp/board_last_good_%s" % os.path.basename(PCB)
         _shutil.copy2(PCB, _bak)
         print("  ✓ 已备份: %s" % _bak)
     except Exception as e:

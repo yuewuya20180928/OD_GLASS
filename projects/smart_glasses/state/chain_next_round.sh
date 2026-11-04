@@ -21,7 +21,7 @@ NEXT_LOG="${2:-/tmp/gen_v21.log}"
 MULT="${3:-6}"
 PIDFILE=state/.chain_round.pid
 BOARD=HW/PCB/demo_mainboard.kicad_pcb
-TIMEOUT=$(( 900 * MULT )); [ "$TIMEOUT" -lt 4000 ] && TIMEOUT=4000
+TIMEOUT=$(( 1200 * MULT )); [ "$TIMEOUT" -lt 4000 ] && TIMEOUT=4000
 
 if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE" 2>/dev/null)" 2>/dev/null; then
   echo "已有链条在跑 (PID $(cat "$PIDFILE")) ⇒ 退出"
