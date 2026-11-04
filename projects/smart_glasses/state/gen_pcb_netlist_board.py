@@ -361,6 +361,43 @@ def make_footprint(board, ref, value, kind, pins, netmap, x, y, label=True, rot=
 
 
 
+def _write_layout_done(board):
+    """★写 HW/PCB/.layout_done.json = {unconnected, drc_violations, at}
+       (阶段门 stage_gate.py 靠它判 G1 过不过 ⇒ 数字必须是**实测**, 不是估计)"""
+    import datetime
+    import json
+    import subprocess
+    here = os.path.dirname(os.path.abspath(__file__))
+    proj = os.path.dirname(here)
+    pcb = os.path.join(proj, "HW", "PCB", "demo_mainboard.kicad_pcb")
+    unconnected = -1
+    try:
+        b2 = pcbnew.LoadBoard(pcb)
+        b2.BuildConnectivity()
+        unconnected = int(b2.GetConnectivity().GetUnconnectedCount(False))
+    except Exception as e:
+        print("  ⚠️ 未连接数取不到: %s" % e)
+    viol = -1
+    try:
+        out = "/tmp/_layout_done_drc.json"
+        rc = subprocess.run(["bash", os.path.join(here, "kicad.sh"), "pcb", "drc",
+                             "--output", out, "--severity-error", "--severity-warning",
+                             "--format", "json", pcb],
+                            capture_output=True, text=True, timeout=900)
+        if os.path.exists(out):
+            d = json.load(open(out))
+            viol = len(d.get("violations") or [])
+    except Exception as e:
+        print("  ⚠️ DRC 取不到: %s" % e)
+    data = {"unconnected": unconnected, "drc_violations": viol,
+            "at": datetime.datetime.now().isoformat(timespec="seconds")}
+    path = os.path.join(proj, "HW", "PCB", ".layout_done.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print("  [layout_done] %s" % json.dumps(data, ensure_ascii=False))
+    return data
+
+
 def _pin_net_from_netlist(ref=None):
     """从 HW/netlist_v1.csv 解析器件的 {脚号: 网络} (网表是唯一真源)
        ref=None ⇒ 解析 J_SOM_P1..P4; ref="CONN_LIGHT" ⇒ 解析显示 FPC 座"""
@@ -499,6 +536,9 @@ def main():
         traceback.print_exc()
 
     pcbnew.SaveBoard(PCB, board)
+
+    # ★★ISS-181: 交付 HW/PCB/.layout_done.json (★阶段门 state/stage_gate.py 靠它判 G1)
+    _write_layout_done(board)
 
     # 自检: 重新载入, 比对 **(ref, 焊盘号) → 网络** (焊盘级, 不是 (ref,net) 集合!)
     b2 = pcbnew.LoadBoard(PCB)
