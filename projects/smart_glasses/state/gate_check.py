@@ -53,17 +53,66 @@ HARD_METRICS = {
 
 
 def handoff_files() -> dict:
-    """每个 agent 最新一份交接单。"""
+    """每个 agent 的**全部**交接单 (按文件名倒序 = 时间倒序; 文件名带日期前缀)。
+
+    ★2026-11-04 10:0x 实测修正: 原来只取"最新一份" ⇒ **一份临时的 per-issue 交接单
+    (结构是 §1..§10, 不是 B1-B6) 会把周更新那份合规交接单顶掉** ⇒ 齐备率 18/18 假跌成 15/18 ⇒
+    漂移检测误报。⇒ 现在取**全部**, 评分时按下面 `pick_handoff` 的规则挑。
+    """
     out = {}
     if not os.path.isdir(HANDOFF):
         return out
-    for fn in sorted(os.listdir(HANDOFF)):
+    for fn in sorted(os.listdir(HANDOFF), reverse=True):
         if not fn.endswith(".md") or fn == "README.md":
             continue
         for a in AGENTS:
             if f"_{a}_" in fn:
-                out[a] = os.path.join(HANDOFF, fn)
+                out.setdefault(a, []).append(os.path.join(HANDOFF, fn))
     return out
+
+
+FALLBACK_WINDOW_DAYS = 7      # ★回退到更早那份交接单的最长时效
+
+
+def pick_handoff(paths):
+    """→ (用来评分的那份, 最新那份, 缺口列表, 是否用了回退)
+
+    ★规则 (2026-11-04 定): 
+      ① 优先用**最新一份**交接单;
+      ② 若最新一份**不是** B1-B6 结构 (例如 per-issue 单用 §1..§10), 且**7 天内**还有一份
+         B1-B6 齐全的交接单 ⇒ **回退到那份评分** (并在输出里写明"最新一份缺 X, 按 Y 计分"),
+         ★但**不回退到 7 天以外** (那会掩盖真倒退);
+      ③ 缺口清单始终**按最新一份**报 (⇒ per-issue 单确实缺哪几块, 看得见)。
+    """
+    if not paths:
+        return None, None, [], False
+    latest = paths[0]
+    def blocks_of(p):
+        try:
+            with open(p, encoding="utf-8", errors="ignore") as f:
+                t = f.read()
+        except Exception:
+            return None
+        return check_blocks(t) if t else {}
+    lb = blocks_of(latest) or {}
+    miss = [c for c, b in lb.items() if not b.get("ok")]
+    if not miss:
+        return latest, latest, [], False
+    # 找 7 天内 B1-B6 齐全的一份
+    try:
+        newest_mtime = os.path.getmtime(latest)
+    except Exception:
+        newest_mtime = None
+    for p in paths[1:]:
+        try:
+            if newest_mtime and (newest_mtime - os.path.getmtime(p)) > FALLBACK_WINDOW_DAYS * 86400:
+                break
+        except Exception:
+            continue
+        pb = blocks_of(p) or {}
+        if pb and all(b.get("ok") for b in pb.values()):
+            return p, latest, miss, True
+    return latest, latest, miss, False
 
 
 def check_blocks(text: str) -> dict:
@@ -124,7 +173,7 @@ def main() -> int:
 
     for aid in AGENTS:
         d = load_frag(aid)
-        hp = handoffs.get(aid)
+        hp, hp_latest, hp_miss, hp_fallback = pick_handoff(handoffs.get(aid) or [])
         text = ""
         if hp and os.path.exists(hp):
             with open(hp, encoding="utf-8", errors="ignore") as f:
@@ -181,6 +230,9 @@ def main() -> int:
 
         entry = {
             "handoff": os.path.basename(hp) if hp else None,
+            "handoff_latest": os.path.basename(hp_latest) if hp_latest else None,
+            "handoff_latest_miss": hp_miss,
+            "handoff_fallback": hp_fallback,
             "blocks": blocks,
             "blocks_ok": sum(1 for b in blocks.values() if b["ok"]),
             "blocks_total": len(REQUIRED_BLOCKS),
@@ -270,7 +322,8 @@ def main() -> int:
         e = report["agents"][a]
         for code, desc, _ in REQUIRED_BLOCKS:
             if not e["blocks"].get(code, {}).get("ok"):
-                report["gaps"].append(f"{a}: 交接单缺 [{code}] {desc}")
+                report["gaps"].append(f"{a}: 交接单缺 [{code}] {desc}"
+                                      + (f" (最新一份 {e.get('handoff_latest')} 也缺, 已回退用 {e.get('handoff')} 计分)" if e.get("handoff_fallback") else ""))
         if not e["evidence"]["ok"]:
             report["gaps"].append(f"{a}: 关键结论未做证据分级 (实测/官方/推算/0数据)")
         if e["interface_claims"] < 3:
@@ -293,7 +346,10 @@ def main() -> int:
     for a in subs:
         e = report["agents"][a]
         miss = [c for c, b in e["blocks"].items() if not b["ok"]]
-        print(f"   {a:<10} {e['blocks_ok']}/{e['blocks_total']}  缺: {miss or '无'}   交接单: {e['handoff']}")
+        extra = ""
+        if e.get("handoff_fallback"):
+            extra = f"   ★按 {e['handoff']} 计分 (最新一份 {e['handoff_latest']} 缺 {e.get('handoff_latest_miss')})"
+        print(f"   {a:<10} {e['blocks_ok']}/{e['blocks_total']}  缺: {miss or '无'}   交接单: {e['handoff']}{extra}")
     print(f"\n【Q2 证据分级率】 {s['evidence_ok_agents']}/{s['evidence_total_agents']} 个总工的交付做了证据分级")
     for a in subs:
         print(f"   {a:<10} 标签: {report['agents'][a]['evidence']['tags'] or '无'}")

@@ -52,6 +52,12 @@ GATES = [
     {
         "id": "G2", "name": "结构样机装配 (打印件 + 电池 + 光机位姿)",
         "why": "镜框/镜脚装不装得下, 只有打出来才知道; 0 件实测 = 这一关不能过",
+        # ★2026-11-04 10:09 老板指示「打印环境暂时不需要」+ 11-02 19:25「硬件优先, 结构不考虑」
+        # ⇒ 结构整关挪到整机阶段 ⇒ **当期阶段门直接走 G3 (板级上电联调)**
+        "deferred": True,
+        "deferred_note": ("老板 11-02 19:25「硬件优先, **结构不考虑**」(结构单冻结不投人; demo 形态 = 一块主板 + sensor 模组 + 屏幕模组 + 板内 FPC, "
+                          "跨铰链取消, 不装电池) + 11-04 10:09「打印环境暂时不需要」⇒ ★**整关挪到整机阶段**; "
+                          "触发重开: ① 波导/光机/镜框路线定下来 ② 老板重新要结构样机"),
         "issues": ["ISS-004", "ISS-013", "ISS-016", "ISS-017"],
         "decisions": [],
         "measurements": ["M-PRINT", "M-FIT", "M-WEIGHT"],
@@ -61,7 +67,9 @@ GATES = [
         "why": "两个硬指标 (端到端 60ms / 皮肤 43°C) 至今 0 实测; 这一关不过, 项目没有交付物",
         "issues": ["ISS-009", "ISS-010"],
         "decisions": [],
-        "measurements": ["M-NPU", "M-E2E", "M-SKIN", "M-POWER", "M-BATT", "M-CHRG", "M-OPTIC"],
+        # ★2026-11-04 09:57 老板: 当前 demo 板不考虑温度 (热电偶不需要) ⇒ M-SKIN/M-CHRG 移出当期验收范围;
+        # ★10-25 19:23 老板: 光机延迟改主观 ⇒ M-OPTIC 由 M-DIZZY 替代 ⇒ **当期只留 5 项**
+        "measurements": ["M-NPU", "M-E2E", "M-POWER", "M-BATT", "M-DIZZY"],
     },
     {
         "id": "G4", "name": "体验验收 (DoD 全过)",
@@ -73,6 +81,16 @@ GATES = [
         "dod": True,
     },
 ]
+
+
+# ★**延后到整机/量产阶段的实测项** (不是删, 是挪阶段 —— 挪了就必须写清触发重开条件)
+# ★2026-11-04 09:57 老板: 「当前 demo 板不考虑温度, 热电偶不需要」 ⇒ 皮肤热学不进当期验收
+# ★2026-10-25 19:23 老板: 光机延迟不外部测设备, 改主观验收 ⇒ M-OPTIC 由 M-DIZZY 顶替
+DEFERRED_MEASUREMENTS = {
+    "M-SKIN": "整机/量产阶段做贴皮肤稳态温度 (43°C 是 ISO 13732-1 烧伤红线) —— 触发: 整机样机贴皮肤测试",
+    "M-CHRG": "整机/量产阶段做充电场景皮肤温度 (推算 75.1°C 属烫伤风险) —— 触发: 同上",
+    "M-OPTIC": "光机逐帧延迟绝对值 —— 老板 10-25 决定不采购高速相机/示波器, 改由 M-DIZZY (主观) 替代",
+}
 
 
 def load_yaml(path: str):
@@ -161,9 +179,14 @@ def main() -> int:
             if not _decision_done(k):
                 n = pm_needs.get(k) or {}
                 miss_dec.append(f"{k} (waiting_on={n.get('waiting_on', 'agent')}, due={n.get('due', '-')})")
+        defer_meas = []
         for mid in g.get("measurements", []):
+            m = needed.get(mid) or {}
+            # ★2026-11-04: measurements.yaml 里标了 deferred 的项 **不进当期门禁** (挪到整机阶段)
+            if m.get("deferred"):
+                defer_meas.append(f"{mid} {m.get('name','')} → 延后: {m.get('deferred_to') or m.get('note','')[:60]}")
+                continue
             if not meas_done(mid):
-                m = needed.get(mid) or {}
                 have_m = have.get(mid)
                 if have_m and str(have_m.get("kind")) != "实测":
                     miss_meas.append(f"{mid} 只有[{have_m.get('kind')}]值, 必须实测")
@@ -171,9 +194,11 @@ def main() -> int:
                     miss_meas.append(f"{mid} {m.get('name', '')} ({m.get('unit', '')})")
         total = len(miss_issue) + len(miss_dec) + len(miss_meas)
         results.append({"gate": g, "miss_issue": miss_issue, "miss_dec": miss_dec,
-                        "miss_meas": miss_meas, "missing": total, "passed": total == 0})
+                        "miss_meas": miss_meas, "defer_meas": defer_meas,
+                        "missing": total, "passed": total == 0})
 
-    cur = next((r for r in results if not r["passed"]), None)
+    # ★deferred 的关不参与"当前关"判定 (当期路线直接跨过去) —— 但缺口照样列出来
+    cur = next((r for r in results if not r["passed"] and not r["gate"].get("deferred")), None)
     passed = [r["gate"]["id"] for r in results if r["passed"]]
     nxt = None
     if cur:
@@ -185,8 +210,11 @@ def main() -> int:
             "current_gate": cur["gate"]["id"] if cur else "G4-done",
             "passed_gates": passed,
             "results": [{"gate": r["gate"]["id"], "name": r["gate"]["name"], "passed": r["passed"],
+                         "deferred": bool(r["gate"].get("deferred")),
+                         "deferred_note": r["gate"].get("deferred_note"),
                          "missing": r["missing"], "miss_issue": r["miss_issue"],
-                         "miss_dec": r["miss_dec"], "miss_meas": r["miss_meas"]} for r in results],
+                         "miss_dec": r["miss_dec"], "miss_meas": r["miss_meas"],
+                         "defer_meas": r.get("defer_meas") or []} for r in results],
         }, ensure_ascii=False, indent=2))
         return 0 if cur is None else 1
 
@@ -195,9 +223,16 @@ def main() -> int:
     print("=" * 74)
     for r in results:
         g = r["gate"]
-        mark = "✅ 通过" if r["passed"] else ("⏸️  当前关" if r is cur else "⏳ 未到")
+        if r["gate"].get("deferred"):
+            mark = "⏸️  已延后 (当期不做)"
+        elif r["passed"]:
+            mark = "✅ 通过"
+        else:
+            mark = "⏸️  当前关" if r is cur else "⏳ 未到"
         print(f"\n【{g['id']}】{g['name']}  —  {mark}   缺 {r['missing']} 项")
         print(f"      为什么要这一关: {g['why']}")
+        if r["gate"].get("deferred"):
+            print(f"      ★延后理由: {r['gate'].get('deferred_note')}")
         if r["miss_issue"]:
             print(f"      ▸ 问题单未闭环 ({len(r['miss_issue'])}):")
             for x in r["miss_issue"][:8]:
@@ -212,10 +247,20 @@ def main() -> int:
             print(f"      ▸ 缺实测数据 ({len(r['miss_meas'])}):")
             for x in r["miss_meas"]:
                 print(f"          - {x}")
+        if r.get("defer_meas"):
+            print(f"      ▸ 本关内已延后的实测项 ({len(r['defer_meas'])}):")
+            for x in r["defer_meas"]:
+                print(f"          - {x}")
+    if DEFERRED_MEASUREMENTS:
+        print("\n⏸  延后到整机/量产阶段的实测项 (**没删, 只是不在当期验收范围**):")
+        for k, v in DEFERRED_MEASUREMENTS.items():
+            print(f"    - {k}: {v}")
     print()
+    skipped = [r["gate"]["id"] for r in results if r["gate"].get("deferred")]
     if cur:
         print(f"▶ 当前在 **{cur['gate']['id']} {cur['gate']['name']}**, 还差 **{cur['missing']}** 项才能进下一关"
-              + (f" ({nxt['id']} {nxt['name']})" if nxt else ""))
+              + (f" ({nxt['id']} {nxt['name']})" if nxt else "")
+              + (f"\n   ★**已跳过延后关**: {', '.join(skipped)} (当期不做, 缺口 {sum(r['missing'] for r in results if r['gate'].get('deferred'))} 项留着, 到整机阶段回来)" if skipped else ""))
     else:
         print("▶ 全部阶段门已通过 → 进入最终交付")
     return 0 if cur is None else 1

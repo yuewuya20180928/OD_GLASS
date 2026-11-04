@@ -784,26 +784,27 @@ def build_p2(by_id, spec):
     #   (旧写法拉到 3.3V ⇒ **SoM 的 1.8V 脚被灌 3.3V** ⇒ 过压)
     add("P2", "VDD_1V8_IO", "R_PU_I2CA_SCL", "RAIL_VDD_1V8_IO", "R_PU_I2CA_SCL", "2.2k ±1%",
         "R", "必装", "[推算]", "",
-        "[VDD_3V3_IO] I2C_A 上拉 (★11-02 19:5x 按 IMX415: OVDD 1.8V 域, IOL 只允许 3mA ⇒ R≥(3.3-0.4)/3mA=967Ω ⇒ 取 2.2k; 灌 3.3V/2.2k=1.5mA ≤3mA ✔, t_r=2.2k×100pF×0.847≈186ns ✔; ★**上拉仍留 3.3V**: IMX415 VI 绝对最大 ≤3.3V ⇒ 合法) — ★[TBD-05] 11-02 09:41 sensor 改 AR0234CS: 其 VDD_IO=2.8V, 本上拉 3.3V 是否超 VDD_IO 绝对最大额定值 **待 onsemi 回信 (ISS-142)**; 若超, 改上拉到 2.8V 并逐个核同总线从设备 (TMP117 1.7-5.5V / 充电IC / 光机) 电平兼容", "B-01")
+        "[VDD_1V8_IO] I2C_A 上拉 (★★11-04 ISS-153 订正: **实际 net = RAIL_VDD_1V8_IO (1.8V 域)**; ★**旧注释写的『[VDD_3V3_IO] / 3.3V 上拉』与网表相反, 已作废**; 依据 ①: RK3572 的 I2C5 = J_SOM_P2 pin31/pin33 属**1.8V 域** (HW/PCB/FET3572C_PIN_TABLE.csv P2_31/P2_33 电压域列 = 1.8V) ⇒ 3.3V 上拉会把 SoM 的 1.8V 脚灌 3.3V = 过压; 依据 ②: camera 模组的 I2C 挂 OVDD **1.8V 域** (IMX415: VI ≤ OVDD+0.3V); 阻值 2.2k 仍成立 (1.8V 域复算: VOL(max)=0.4V, IOL(max)=3mA ⇒ R≥(1.8-0.4)/3mA=467Ω ⇒ 取 2.2k; 灌流 (1.8-0.4)/2.2k=0.64mA ≤3mA ✔; t_r=2.2k×100pF×0.847≈186ns ✔) — ★[TBD-05] 整机阶段若换 AR0234CS (VDD_IO=2.8V ⇒ VIH=0.7×2.8=1.96V > 1.8V 上拉 ⇒ **上拉轨必须一起改**, 并逐个核同总线从设备电平兼容 (TMP117 1.7-5.5V ✔ / 光机), **待 onsemi 回信 (ISS-142)**)", "B-01")
     add("P2", "VDD_1V8_IO", "R_PU_I2CA_SDA", "RAIL_VDD_1V8_IO", "R_PU_I2CA_SDA", "2.2k ±1%",
         "R", "必装", "[推算]", "",
-        "[VDD_3V3_IO] I2C_A 上拉", "B-02")
+        "[VDD_1V8_IO] I2C_A 上拉 (★同 SCL: 实际 net = RAIL_VDD_1V8_IO, **1.8V 域** —— RK3572 I2C5 1.8V 域 + camera 模组 OVDD 1.8V 域)", "B-02")
     add("P2", "I2C_A_SCL", "CONN_CAM pin24", "NET_I2C_A_SCL", "NET_I2C_A_SCL",
-        "上拉 2.2k 到 3.3V (★IMX415 IOL≤3mA 重算)", "NET", "必装", "[推算]", "",
-        "[I2C_A_SCL] 附加节点 (同 net)", "B-01")
+        "上拉 2.2k 到 1.8V (RAIL_VDD_1V8_IO, ★camera FPC 标 I2C5 = 1.8V 域)", "NET", "必装", "[推算]", "",
+        "[I2C_A_SCL] 附加节点 (同 net) · ★**camera 模组 (IMX415) I2C 地址 0x1a** (Sony IMX415-AAQR-C datasheet p.26 SLAVE Address 表: SLAMODE1/0 = Low/Low ⇒ 0x1A; 全表见 HW/I2C_ADDR_TABLE.md)", "B-01")
     add("P2", "I2C_A_SDA", "CONN_CAM pin25", "NET_I2C_A_SDA", "NET_I2C_A_SDA",
-        "上拉 2.2k 到 3.3V (★IMX415 IOL≤3mA 重算)", "NET", "必装", "[推算]", "",
-        "[I2C_A_SDA] 附加节点 (同 net)", "B-02")
+        "上拉 2.2k 到 1.8V (RAIL_VDD_1V8_IO, ★camera FPC 标 I2C5 = 1.8V 域)", "NET", "必装", "[推算]", "",
+        "[I2C_A_SDA] 附加节点 (同 net) · ★**camera 模组 (IMX415) I2C 地址 0x1a** (Sony IMX415-AAQR-C datasheet p.26 SLAVE Address 表: SLAMODE1/0 = Low/Low ⇒ 0x1A; 全表见 HW/I2C_ADDR_TABLE.md)", "B-02")
     # NTC / 温度检测位: 规格 B-01 把 "NTC" 挂在 I2C_A 上, 但没说是裸 NTC 分压还是数字温度计
     # ★V1.1 定型 (ISS-086): 规格 B-01 的 "NTC 挂 I2C" 只能是**数字温度计** (裸 NTC 是分压不是 I2C)
     # ★★2026-11-04 04:0x: U_TEMP 改成**官方 6 脚 WSON-6 (DRV0006B)** —— TI TMP117 datasheet §5 Table 5-1:
     #   1=SCL  2=GND  3=ALERT  4=ADD0  5=V+  6=SDA   (★原来的 4 脚写法与原厂脚号完全对不上)
     add("P2", "I2C_B_SCL", "U_TEMP pin1", "NET_I2C_B_SCL", "U_TEMP",
         "TMP117 数字温度计 (I2C 地址 0x48, ±0.1°C max, 16bit)", "IC", "必装", "[官方]", "",
-        "[I2C_B_SCL] ★TMP117 **pin1 = SCL** (TI SNOSD82D Table 5-1: 1=SCL 2=GND 3=ALERT 4=ADD0 5=V+ 6=SDA); "
+        "[I2C_B_SCL] ★TMP117 **pin1 = SCL** (TI SNOSD82D **Table 5-1 'Pin Functions' (p.4)**: 1=SCL 2=GND 3=ALERT 4=ADD0 5=V+ 6=SDA); "
         "★V1.1 定型: TI TMP117 [官方 ti.com/product/TMP117] (1.7-5.5V 供电, 5µA max, WSON-6 2×2mm); "
-        "地址 0x48, ★**11-02 19:5x 订正**: sensor 地址随换料变 —— IMX415 = 0x1a / AR0234CS = 0x10 / "
-        "桥接 0x50 / 充电 IC 0x12 / 光机 0x72 都不冲突", "B-01")
+        "★**I2C 地址 0x48** (TI SNOSD82D **§7.5.3.1.2 + Table 7-2 'Address Pin and Slave Addresses' (p.21)**: 地址字节 1001000x = 0x48 ⇔ **ADD0 接 GND**; 本板 ADD0(pin4) 接地 ⇒ 地址锁死 0x48), "
+        "★**11-04 ISS-153 订正**: sensor 地址随换料变 —— IMX415 = **0x1a** (Sony IMX415-AAQR-C datasheet p.26 'SLAVE Address' 表: SLAMODE1/0=Low/Low ⇒ 0x1A) / AR0234CS = **0x10** (onsemi AR0234CS datasheet p.10: 默认写 0x20/读 0x21 ⇒ 7-bit 0x10; SADDR 拉高 ⇒ 0x18) / "
+        "桥接 —— **已删除** (随 RK3572 无 DP TX 整条删除, 不在本板) / 充电 IC = **0x6b** (TI BQ25896 datasheet §9.4 'I2C Slave Address: 6BH'; ★但它在 CHG_BOARD 本地自闭环 I2C_CHG_SCL/SDA, **不在本板任何 I2C 总线上** —— 跨铰链的只有 STAT/PG 两根 GPIO) / 光机 0x72 (0数据, 待 JBD 确认; A/B 两条都预留) —— ★**地址全表见 HW/I2C_ADDR_TABLE.md**", "B-01")
     add("P2", "I2C_B_SDA", "U_TEMP pin6", "NET_I2C_B_SDA", "U_TEMP",
         "TMP117 数字温度计", "IC", "必装", "[官方]", "", "[I2C_B_SDA] TMP117 **pin6 = SDA**", "B-01")
     add("P2", "VDD_3V3_IO", "U_TEMP pin5", "RAIL_VDD_3V3_IO", "U_TEMP",
@@ -983,10 +984,12 @@ def build_p4(by_id, spec):
     add("P4", "I2C_B_SCL", "CONN_LIGHT pin11", "NET_I2C_B_SCL", "NET_I2C_B_SCL",
         "I2C_B_SCL", "NET", "必装", "[官方]", "",
         "[I2C_B_SCL] ★Pi5 DISPLAY 座 pin11 = SCL0 ⇒ **屏控制 I2C** (屏内 MCU @0x45; 树莓派驱动实测 probe 0xC0/0xC2/0xAC · enable 0xAD=0x01 · 背光 0xAB/0xAA) ⇒ **必须接**, 否则屏不亮也无法调光; "
+        "★**屏模组内 MCU I2C 地址 0x45** (Raspberry Pi 官方 firmware overlay `vc4-kms-dsi-waveshare-panel.dtbo` 内 `panel_disp1@45`; ★地址全表见 HW/I2C_ADDR_TABLE.md); "
         "★上拉在 VDD_3V3_IO (3.3V) ⇒ 与屏 3.3V 同域, 无需电平转换", "B-03")
     add("P4", "I2C_B_SDA", "CONN_LIGHT pin12", "NET_I2C_B_SDA", "NET_I2C_B_SDA",
         "I2C_B_SDA", "NET", "必装", "[官方]", "",
-        "[I2C_B_SDA] ★Pi5 DISPLAY 座 pin12 = SDA0 ⇒ 屏控制 I2C (与 TMP117@0x48 同总线, 地址不冲突)", "B-04")
+        "[I2C_B_SDA] ★Pi5 DISPLAY 座 pin12 = SDA0 ⇒ 屏控制 I2C (与 TMP117@0x48 同总线, 地址不冲突); "
+        "★**屏模组内 MCU I2C 地址 0x45** (同 SCL 行出处)", "B-04")
 
 
 # ------------------------------------------------------- P5 MIPI-CSI 传感器

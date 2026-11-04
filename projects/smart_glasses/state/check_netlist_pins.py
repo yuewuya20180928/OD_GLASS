@@ -75,6 +75,132 @@ def pin_nodes(node, ref):
     return out
 
 
+# ★★C9 用 (ISS-153): I2C 地址表 —— HW/I2C_ADDR_TABLE.md 是地址真源, 网表是另一头
+I2C_TABLE = os.path.join(PROJ, 'HW', 'I2C_ADDR_TABLE.md')
+# ★网表里从设备地址的**唯一写法** —— 改地址时必须同时改表 (门禁按它机械抽取, 不猜)
+ADDR_RE = re.compile(r'I2C\s*地址\s*0[xX]([0-9a-fA-F]{2})')
+# ★挂在 I2C net 上但**不是从设备**的件: 上拉电阻 / 测试点 / SoM 座 / 网名伪件 / 地
+NOT_SLAVE_PREFIX = ('R_PU_', 'TP_', 'J_SOM_', 'NET_', 'RAIL_', 'SoC')
+NOT_SLAVE_EXACT = {'GND'}
+
+
+def node_device(node):
+    """节点串 → 器件名 ('CONN_CAM pin24' → 'CONN_CAM'; 'R_PU_I2CA_SCL' → 同名)"""
+    node = (node or '').strip()
+    if not node:
+        return ''
+    if ' ' in node:
+        return node.split(' ', 1)[0].strip()
+    return node
+
+
+def parse_i2c_table():
+    """解析 HW/I2C_ADDR_TABLE.md → [{bus, ref, dev, addr, status, src, pull, vdom}]"""
+    out = []
+    if not os.path.exists(I2C_TABLE):
+        return out
+    for ln in open(I2C_TABLE, encoding='utf-8'):
+        ln = ln.strip()
+        if not ln.startswith('|'):
+            continue
+        cells = [c.strip() for c in ln.strip('|').split('|')]
+        if len(cells) < 9:
+            continue
+        if not cells[0] or set(cells[0]) <= {'-', ':', ' '} or cells[0] in ('总线', 'Bus'):
+            continue
+        m = re.search(r'0[xX]([0-9a-fA-F]{2})', cells[3])
+        out.append({'bus': cells[0].replace('`', '').strip(), 'ref': cells[1].replace('`', '').strip(),
+                    'dev': cells[2].replace('`', '').strip(),
+                    'addr': ('0x' + m.group(1).lower()) if m else None,
+                    'status': cells[4].replace('`', '').strip(), 'src': cells[5],
+                    'pull': cells[6].replace('`', '').strip(), 'vdom': cells[7].replace('`', '').strip()})
+    return out
+
+
+def check_i2c_addr_table(rows):
+    """C9: 网表里的 I2C 从设备地址 vs HW/I2C_ADDR_TABLE.md (双向 + 同总线唯一)"""
+    lines, fails = [], []
+    tbl = parse_i2c_table()
+    if not tbl:
+        lines.append("  ❌ C9 I2C 地址表 — HW/I2C_ADDR_TABLE.md 不存在或解析不到表行")
+        fails.append('C9 缺 HW/I2C_ADDR_TABLE.md (或表里没有可解析的行)')
+        return {'lines': lines, 'fails': fails}
+
+    # ---- 网表侧: 每条总线上的从设备 + 它们声明的地址 ----
+    bus_slaves = {'I2C_A': {}, 'I2C_B': {}}
+    for r in rows:
+        net = (r.get('net') or '').strip()
+        bus = 'I2C_A' if 'I2C_A' in net else ('I2C_B' if 'I2C_B' in net else None)
+        if bus is None:
+            continue
+        txt = ' '.join([(r.get('value') or ''), (r.get('note') or '')])
+        addrs = set('0x' + a.lower() for a in ADDR_RE.findall(txt))
+        devs = set()
+        for k in ('ref', 'node1', 'node2'):
+            d = node_device((r.get(k) or '').strip())
+            if not d or d in NOT_SLAVE_EXACT or d.startswith(NOT_SLAVE_PREFIX):
+                continue
+            devs.add(d)
+        for d in devs:
+            bus_slaves[bus].setdefault(d, set()).update(addrs)
+
+    # ---- 表侧: 每条总线"本板在挂"的行 ----
+    live = {'I2C_A': {}, 'I2C_B': {}}
+    for t in tbl:
+        if '本板在挂' in t['status'] and t['bus'] in live:
+            live[t['bus']][t['ref']] = t
+
+    ok = True
+    for bus in ('I2C_A', 'I2C_B'):
+        detail = []
+        net_set = set(bus_slaves[bus].keys())
+        tbl_set = set(live[bus].keys())
+        missing = sorted(net_set - tbl_set)          # 网表有 ⇒ 表里没有
+        phantom = sorted(tbl_set - net_set)          # 表里有 ⇒ 网表没有
+        addrs = []
+        for ref in sorted(net_set & tbl_set):
+            net_addrs = bus_slaves[bus][ref]
+            t = live[bus][ref]
+            if len(net_addrs) != 1:
+                ok = False
+                detail.append(f"       ★ {bus} {ref}: 网表里的地址声明有 {len(net_addrs)} 个 {sorted(net_addrs)} "
+                               f"(应恰好 1 个, 写法 = `I2C 地址 0xNN`)")
+            elif t['addr'] is None:
+                ok = False
+                detail.append(f"       ★ {bus} {ref}: 表里没解析出地址")
+            elif next(iter(net_addrs)) != t['addr']:
+                ok = False
+                detail.append(f"       ★ {bus} {ref}: 网表地址 {sorted(net_addrs)[0]} ≠ 表里地址 {t['addr']} ⇒ **改地址忘了改表**")
+            else:
+                addrs.append((ref, sorted(net_addrs)[0]))
+        for ref in missing:
+            ok = False
+            detail.append(f"       ★ {bus} {ref}: 网表里挂了这个从设备, 但 HW/I2C_ADDR_TABLE.md 里没有它 ⇒ **加了器件忘了加表**")
+        for ref in phantom:
+            ok = False
+            detail.append(f"       ★ {bus} {ref}: 表里标了『本板在挂』, 但网表上没这个从设备 ⇒ **表与网表不同步**")
+        # 同总线地址唯一 (本板在挂的 + 表里预留的)
+        all_addr = [(ref, a) for ref, a in addrs]
+        for t in tbl:
+            if t['addr'] and t['status'] != '本板在挂' and (bus in t['bus'] or t['bus'] in bus):
+                all_addr.append((t['ref'] or t['dev'], t['addr']))
+        seen = {}
+        for ref, a in all_addr:
+            if a in seen and seen[a] != ref:
+                ok = False
+                detail.append(f"       ★ {bus}: 地址 {a} 被两个设备占用 ({seen[a]} / {ref}) ⇒ **撞地址**")
+            seen.setdefault(a, ref)
+        lines.append(f"  {'✅' if ok else '❌'} C9 {bus} 从设备地址与 HW/I2C_ADDR_TABLE.md 一致且唯一 — "
+                     f"{len(net_set & tbl_set)} 个在挂: "
+                     + (", ".join(f"{r}={a}" for r, a in sorted(addrs)) or "无"))
+        lines.extend(detail)
+    if ok:
+        lines.append("       (C9 判据: 表 ↔ 网表 双向一致 · 同总线地址唯一)")
+    else:
+        fails.append('C9 I2C 地址与 HW/I2C_ADDR_TABLE.md 不一致 (或同总线撞地址)')
+    return {'lines': lines, 'fails': fails}
+
+
 def main():
     rows = list(csv.DictReader(open(NET, encoding='utf-8')))
     fails = []
@@ -212,6 +338,19 @@ def main():
     lines.append(f"  {'✅' if ok8 else '❌'} C8 4 组 SOM 座都用上了 — {used_soms}")
     if not ok8:
         fails.append(f'C8 只有 {len(used_soms)}/4 组 SOM 座在用')
+
+    # ---- C9 ★★I2C 地址表一致性 (ISS-153 · 2026-11-04) ----
+    #   ★背景: **换 sensor 时 I2C 地址会变** (IMX415=0x1a / AR0234CS=0x10 / OV04C10=0x36)
+    #   ⇒ 旧网表注释里那串地址是"某一次换料时的快照", 过期没人管 ⇒ 两个从设备撞地址 ⇒
+    #   上电后总线全哑 ⇒ 要么改板 (2-4 周 + ¥4-8K), 要么等原厂回信。
+    #   ⇒ 本判据把 **网表里声明的地址** 与 **HW/I2C_ADDR_TABLE.md (原厂 datasheet 出处表)** 绑死:
+    #     ① 表存在且能解析        ② 网表从设备集合 == 表里"本板在挂"的行集合 (双向)
+    #     ③ 每个从设备的网表地址 == 表里地址  ④ 同一条总线内地址两两唯一
+    #   ★地址声明的**唯一写法** = 行文本里的 `I2C 地址 0xNN` (门禁按它机械抽取, 不猜)。
+    c9 = check_i2c_addr_table(rows)
+    for ln in c9["lines"]:
+        lines.append(ln)
+    fails.extend(c9["fails"])
 
     print("=" * 72)
     print("  网表针脚级门禁 · check_netlist_pins (★一个针脚只能属于一个网)")

@@ -149,7 +149,10 @@ def main() -> int:
     issues = log.get("issues") or []
     meas = yaml.safe_load(read(os.path.join(HERE, "measurements.yaml"))) or {}
     have = [m for m in (meas.get("measurements") or []) if str(m.get("kind")) == "实测"]
-    needed = meas.get("needed") or []
+    needed_all = meas.get("needed") or []
+    # ★2026-11-04: 标了 deferred 的项不计入当期"实测 N/M" (但仍保留在清单里, 不删)
+    needed = [m for m in needed_all if not m.get("deferred")]
+    n_deferred = len(needed_all) - len(needed)
     n_ext = sum(1 for i in issues if i.get("owner") in ("boss", "vendor", "jbd")
                 and i.get("status") not in ("closed", "deferred", "wontfix"))
     n_int = sum(1 for i in issues if i.get("owner") in ("main", "hw-lead", "sw-lead", "mech-lead")
@@ -177,7 +180,8 @@ def main() -> int:
     if args.json:
         print(json.dumps({"criteria": C, "by_scope": {k: verdict(v) for k, v in by_scope.items()},
                           "paper_ready": paper_ready, "sample_ready": sample_ready,
-                          "measurements": {"have": len(have), "needed": len(needed)},
+                          "measurements": {"have": len(have), "needed": len(needed),
+                                     "deferred": n_deferred, "needed_all": len(needed_all)},
                           "open_internal": n_int, "open_external": n_ext}, ensure_ascii=False, indent=2))
         return 0 if paper_ready else 1
 
@@ -203,7 +207,7 @@ def main() -> int:
     print(f"     → 当前卡点: 老板 {n_ext} 条决策 + 原厂/JBD 外部; 内部可自行推进 {n_int} 条")
     print(f"  🔧 样机阶段 (G3 上电联调 + 硬指标实测): "
           f"{'✅ 就绪' if sample_ready else '❌ 不就绪'}")
-    print(f"     → 实测 {len(have)}/{len(needed)} 项 | 无板 / 无打印环境 / 无示波器高速相机 / 无独立验证方")
+    print(f"     → 实测 {len(have)}/{len(needed)} 项 (另有 {n_deferred} 项已延后到整机阶段) | 无板 / 无打印环境 / 无独立验证方")
     print(f"     → 阶段门判: {run([sys.executable, os.path.join(HERE, 'stage_gate.py')])[1].strip().splitlines()[-1]}")
     print()
     print("  结论: **四个角色已具备执行条件** (职责/边界/交付标准/协作机制/质量门/推进器 全部到位)。")

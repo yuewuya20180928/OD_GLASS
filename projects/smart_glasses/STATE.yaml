@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-04T09:43:49+08:00'
+  generated_at: '2026-11-04T10:13:38+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 164232
-      sha1: ad004f94ab6c
-      mtime_ns: 1793670427155622916
+      size: 168790
+      sha1: 90e8d302ee0c
+      mtime_ns: 1793757770430200949
     mech-lead:
       file: mech.yaml
       size: 137924
@@ -19,9 +19,9 @@ meta:
       mtime_ns: 1793584488572960226
     main:
       file: pm.yaml
-      size: 31134
-      sha1: 5065c971ff71
-      mtime_ns: 1793670575045540884
+      size: 36800
+      sha1: 006c1c9eb68f
+      mtime_ns: 1793758231533139647
     sw-lead:
       file: sw.yaml
       size: 96832
@@ -359,9 +359,30 @@ domains:
       foreign_answers: []
     - key: test_equipment_budget
       to: boss
-      item: '测试设备/工装需求 (无设备则 G3 那一关不可判通过): 高速相机 ≥240fps + 示波器 ≥100MHz ≥2ch + 光电探头 + 热电偶采集仪 + 假皮肤工装; 另需打印与量测条件
-        (打印机 192.168.1.68 与本机 192.168.2.4/24 跨网段不可达, 且无切片器/卡尺/千分尺) —— M-PRINT / M-E2E / M-OPTIC / M-SKIN
-        全部卡在这里'
+      item: '★**2026-11-04 09:5x 需求原文已作废并重算** (原文本写的是「高速相机 ≥240fps + 示波器 ≥100MHz ≥2ch + 光电探头 + 热电偶采集仪
+        + 假皮肤工装」, ★**那是 10-25 之前的旧账** ⇒ 老板 10-25 19:23 已拍板 (needs_from/q18_highspeed_cam): 光机延迟不外部测设备,
+        改**目测/感官验收** (新实测项 M-DIZZY) ⇒ **高速相机 + 示波器 + 光电探头 全部不再采购**)。★**当前真正只剩这 4 件**: ① **打印 + 量测条件**
+        (G2 就能开工): 打印机 192.168.1.68 与本机 192.168.2.4/24 跨网段打通 (¥0) + Bambu Studio 免费切片器 (¥0) + **四样量具**
+        (见下) ⇒ 解锁 M-PRINT / M-FIT / M-WEIGHT (打印包 Rev B 已就绪: 6 个 STL + 92 条测量清单) ② **一块 RK3572 板/模组 (FET3572-C
+        已在售) + 功耗测量** (电源表/电流探头) ⇒ 解锁 M-NPU / M-E2E(口径C) / M-POWER / M-BATT / M-CHRG ★(**M-NPU 与口径C 是软件打点,
+        只要板子+电源表, 不要示波器**) ~~③ **皮肤侧温度** (贴片热电偶 + 假皮肤工装) ⇒ ~~⇒ ★**2026-11-04 09:57 老板指示「当前 demo 板不考虑温度,
+        热电偶不需要」⇒ 本项已从采购清单里删掉**~~ ④ **光机主观验收** (M-DIZZY): 戴上看有没有眩晕 ⇒ **0 设备成本, 1 台样机** ⇒ 替掉原高速相机 ★⇒ **建议拆两笔**:
+        先只批「打印量测线」(量具 + 打印环境) 就能解锁 G2 的 3 项实测, 让项目从纸面动起来; G3 的板子/功耗/温度手段在 demo 板打样前再定 ★**2026-11-04 09:57
+        再修正**: 老板指示「当前 demo 板不考虑温度, 热电偶不需要」⇒ **③ 皮肤侧温度 (热电偶 + 假皮肤工装) 不采购**, M-SKIN / M-CHRG 移出当期验收 (标
+        deferred, 留到整机/量产阶段) ⇒ **当期采购清单只剩 ①量具 ②板子+电源表 ④主观验收(0元)**。 ★**2026-11-04 10:03 老板再定两件**: **(a)
+        高速相机不采购, 改用手机测** ⇒ ★**只测端到端延时**, 方法 = 手机慢动作 (120/240fps) 拍屏 + 屏幕烧**帧计数器**, 数帧 = 端到端 ⇒ **设备成本 ¥0**
+        (用你自己那台手机) ⇒ 但**有一个前置**: 必须在显示画面上烧一个可数的帧号/时间码 (否则手机拍到的是"画面变了", 数不出帧) ⇒ 已派 sw-lead 做 (ISS-179)。
+        **(b) 示波器不采购, 改逻辑分析仪, 尽量便宜** ⇒ 判据: **8 通道 + ≥24MHz + 带 PC 端解码 (PulseView/sigrok)**, 国产 24MHz 克隆款先试手
+        (百元级), 要稳再上百元级正规牌 ⇒ ★**它能顶掉示波器的三处用法**: DSI 命令级时序 / I2C 上电顺序 / 电源纹波抓取; ★**它顶不掉的是信号完整性 (眼图/上升沿质量)**
+        —— 那属于 PCB SI 范畴, 后置。 ★**2026-11-04 10:07 量具清单补全 (老板问"这是什么用途"时我发现自己上次只写了两样, 漏了两样)**: 按 `MECH/print/MEASURE_CHECKLIST.md`
+        §2.1 工具要求, 真正要买 **4 样**: **① 数显卡尺** (0.01mm, 孔径/外形/台阶高/两点高差算角度) + **② 千分尺** (0.001mm, 薄壁/台阶高 ——
+        ★**卡尺测爪有厚度, 量 0.4mm 薄壁会顶开 ⇒ 读数偏大**) + **③ 塞尺** (0.02~0.10mm 一档, 量 0.10~0.50mm 细间隙 —— ★**卡尺量爪进不去这种缝**)
+        + **④ 电子秤** (0.01g, **M-WEIGHT 整机重量, 目标 30-40g, 推算 50.1-74g 已超**) ⇒ ★**总账 ¥200-450 (比我上次说的"千元级"低)**;
+        ★**弹簧秤 (螺钉柱拉脱力) / 百分表+高度尺 (波导槽平行度) 不买** —— 清单 §2.1 已写明替代方案: **手机拍 + CAD 拟合** (角度用手机角度尺 App)。 ★★**2026-11-04
+        10:09 老板指示「打印环境暂时不需要」⇒ ① 打印量具线 (打印机跨网段打通 + 切片器 + 卡尺/千分尺/塞尺/电子秤) 整体推后** ⇒ 与老板 **11-02 19:25「硬件优先,
+        结构不考虑」**一致 (结构单冻结; demo 形态不装电池、跨铰链取消) ⇒ ★**当期采购清单只剩两样**: ② **RK3572 板/模组 (Step1 可直接用公开 SBC 如 Forlinx
+        OK3572-C 当载体, 零 PCB 先跑链路) + 电源表/电流探头** ③ **逻辑分析仪 (8ch/≥24MHz/带解码, 百元级)** ④ 手机 (已有, ¥0) ⇒ ★**当期路线
+        = 板级**: 上电联调 + 软件打点 + 手机测端到端。'
       since: '2026-10-25'
       state: waiting_external
       target_missing: false
@@ -539,14 +560,17 @@ domains:
 
         ★**JBD 旧草稿同时要瘦身改写** (走鹃Ⅱ 两问作废/转问视崖, 波导部分保留但改判据) ⇒ **两封一起发还是分开发, 等你定**。'
       since: '2026-11-02'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
-      decision: ''
-      decided_at: ''
-      answers: []
+      decision: ★**作废, 不发** —— 老板 2026-11-04 09:5x 明确「视崖屏幕已经不用了」⇒ 这封 6 大项问询不再外发 (草稿留在 state/outbox/ 不删)
+      decided_at: '2026-11-04'
+      answers:
+      - by: boss
+        value: ★**作废, 不发** —— 老板 2026-11-04 09:5x 明确「视崖屏幕已经不用了」⇒ 这封 6 大项问询不再外发 (草稿留在 state/outbox/ 不删)
+        ref: 老板决策 2026-11-04 (项目总工代录)
       foreign_answers: []
     - key: display_color_acceptance
       to: boss
@@ -555,14 +579,55 @@ domains:
 
         ★**建议**: 不论答复如何, 单色版可作为**降本 backup** 与全彩版并存评估 (但一份样机只装一种 ⇒ 第一台先定一个)。'
       since: '2026-11-02'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
-      decision: ''
-      decided_at: ''
-      answers: []
+      decision: ★**作废** —— 视崖已不用 ⇒ 「0.49" 是不是只有单色」这个问题随屏一起作废; ★**真正的替代问题**是「整机屏选型时, 能不能接受单色」, 等屏定了再问
+      decided_at: '2026-11-04'
+      answers:
+      - by: boss
+        value: ★**作废** —— 视崖已不用 ⇒ 「0.49" 是不是只有单色」这个问题随屏一起作废; ★**真正的替代问题**是「整机屏选型时, 能不能接受单色」, 等屏定了再问
+        ref: 老板决策 2026-11-04 (项目总工代录)
+      foreign_answers: []
+    - key: demo_thermal_scope
+      to: boss
+      item: 当前 demo 板阶段要不要做皮肤侧温度实测 (需贴片热电偶 + 假皮肤工装)
+      since: '2026-11-04'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-05'
+      overdue: false
+      decision: ★**当前 demo 板不考虑温度, 热电偶不需要** —— 老板 2026-11-04 09:57 指示。⇒ M-SKIN / M-CHRG 标 deferred (挪到整机/量产阶段,
+        **不是删** —— 43°C 是 ISO 13732-1 皮肤烧伤红线, 整机必须回来), 热电偶/假皮肤工装**一律不采购**。
+      decided_at: '2026-11-04'
+      answers:
+      - by: boss
+        value: ★**当前 demo 板不考虑温度, 热电偶不需要** —— 老板 2026-11-04 09:57 指示。⇒ M-SKIN / M-CHRG 标 deferred (挪到整机/量产阶段,
+          **不是删** —— 43°C 是 ISO 13732-1 皮肤烧伤红线, 整机必须回来), 热电偶/假皮肤工装**一律不采购**。
+        ref: 老板决策 2026-11-04 (项目总工代录)
+      foreign_answers: []
+    - key: e2e_measurement_method
+      to: boss
+      item: 端到端 60ms 用什么手段测 (高速相机 / 手机 / 纯软件打点) + 示波器要不要买
+      since: '2026-11-04'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-06'
+      overdue: false
+      decision: '★老板 2026-11-04 10:03 决定: ①**高速相机不需要, 用手机就可以, 只测试端到端的延时** ⇒ 设备成本 ¥0 (方法: 手机慢动作 120/240fps
+        拍屏 + 屏幕烧帧计数器 + 数帧; **前置 = 帧计数器, 已派 sw-lead ISS-179**); ②**示波器不采购, 优先逻辑分析仪, 尽量便宜** ⇒ 判据: 8ch +
+        ≥24MHz + 带 PC 解码, 国产克隆款先试手。'
+      decided_at: '2026-11-04'
+      answers:
+      - by: boss
+        value: '★老板 2026-11-04 10:03 决定: ①**高速相机不需要, 用手机就可以, 只测试端到端的延时** ⇒ 设备成本 ¥0 (方法: 手机慢动作 120/240fps
+          拍屏 + 屏幕烧帧计数器 + 数帧; **前置 = 帧计数器, 已派 sw-lead ISS-179**); ②**示波器不采购, 优先逻辑分析仪, 尽量便宜** ⇒ 判据: 8ch
+          + ≥24MHz + 带 PC 解码, 国产克隆款先试手。'
+        ref: 老板决策 2026-11-04 (项目总工代录)
       foreign_answers: []
     answers:
     - key: reva_stl_regen
@@ -666,8 +731,8 @@ domains:
   hw-lead:
     agent: hw-lead
     role: 硬件总工
-    updated_at: '2026-11-03'
-    updated_by: main
+    updated_at: '2026-11-04'
+    updated_by: hw-lead
     status:
       phase: P3(画板前致命项清零
       progress_pct: 88
@@ -1022,6 +1087,27 @@ domains:
         / F14 已清零(模组级供电: pin28/29=3.3V, pin30/31=5V ⇒ 三轨+3颗TPS7A20+6个去耦位全DNP) / ★F15 待清·阻塞投板(本单新撞出: display
         背光/触控4脚并成 NET_DSI_AUX, LED+与LED−短接, 另 pin36/pin39 还接地 ⇒ 背光两端短路; 且主板无12V BOOST背光轨)。★本单只改本文件§3 +
         state/fragments/hw.yaml, HW/PCB/ 与 SCHEMATIC_V1_SPEC.json / netlist_v1.csv 一个字没改。'
+    - path: HW/I2C_ADDR_TABLE.md
+      kind: interface-table
+      version: v1.0
+      updated_at: 2026-11-04T10:0x:00+08:00
+      summary: '★ISS-153: demo 主板 I2C_A / I2C_B 两条总线的从设备全表 + 逐条原厂 datasheet 出处(型号+表号/页号) + 表尾逐对冲突结论 +
+        换料执行流程。★核了 6 个地址: IMX415=0x1a(Sony IMX415-AAQR-C p.26 SLAVE Address 表 SLAMODE1/0=Low/Low) / TMP117=0x48(TI
+        SNOSD82D Table 7-2 p.21 ADD0=GND; 脚号 Table 5-1 p.4) / BQ25896=0x6b(TI SLUSC76C §6 p.4 + §9.4 p.32)
+        / 屏模组内 MCU=0x45(RPi 官方 overlay panel_disp1@45) / AR0234CS=0x10(onsemi p.10; SADDR 高⇒0x18) / 光机
+        0x72=★未查到原厂出处(我方规划值, 待 JBD 确认)。★BQ25896 经核实**不在本板任何 I2C 总线上**(在 CHG_BOARD 本地自闭环 I2C_CHG_SCL/SDA,
+        跨铰链的只有 STAT/PG 两根 GPIO)。★本表是门禁 C9 的真源'
+    - path: HANDOFF/2026-11-04_hw-lead_ISS153.md
+      kind: handoff
+      version: v1.0
+      updated_at: 2026-11-04T10:0x:00+08:00
+      summary: '★ISS-153 交卷: ①I2C_ADDR_TABLE.md ②生成器 6 处过期注释订正(充电 IC 0x12→0x6b / 桥接 0x50→已删除 / I2C_A 上拉
+        [VDD_3V3_IO]→[VDD_1V8_IO] 1.8V 域口径) ③check_netlist_pins.py 新增 C9(地址表双向一致+同总线唯一, 3 个负例验证)。★五条自证:
+        gen_netlist rc=0 / gen_netlist_pins rc=1 / check_netlist_pins rc=0 / check_netlist rc=0(32 条全过)
+        / check_kicad_net rc=1。★两条红的**进场前就是红的**, 根因是 11-04 03:01 A2/demo-Type-C 段改了 CSV 但没重跑导出链 ⇒ 撞出 5
+        条阻塞(B-1 J_SOM_P2/P4 共 23 个 SoM 脚从 .net 消失 / B-2 R_SER_USB_D_P 一个 2 脚件落 3~4 个网且 SoM D+ 与 Type-C
+        D+ 被短在一个网 ⇒ 串阻与 ESD 双失效 / B-3 C_DET_VBUS_D 只有 1 条腿 / B-4 FB_DEMO·C_VBUS_DEMO 被算成 3 脚 / B-5 SoC
+        脚数判据)。★B-2/B-3 要改连接关系且必须同步重生成 demo_mainboard.kicad_pcb(本单禁改) ⇒ 未自行改动, 交回项目总工派单'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2498,6 +2584,12 @@ domains:
     - id: HW-Q1
       to: main
       text: Q16 显示接口结论什么时候能 close? 桥接芯片采购 4-8 周, 不能等
+    - id: HW-Q2
+      to: main
+      text: '★ISS-153 撞出: demo 板 USB D+ 走**板载 Type-C (P1, J_USB_C)** 还是**跨铰链 CONN_USB (P6)**? 现在两条并存且用了同一个位号
+        R_SER_USB_D_P ⇒ 一个 2 脚电阻落在 3~4 个网上, 且 J_SOM_P1 pin92 (SoM D+) 与 J_USB_C A6+B6 (Type-C D+) 被放在同一个网
+        USB_D_P_SRC ⇒ **22Ω 源端串阻被旁路 + ESD 阵列不在信号路径上**。★这是内容缺陷(改连接关系)且要同步重生成 demo_mainboard.kicad_pcb ⇒
+        ISS-153 未自行改, 请拍板 + 派单'
     risks:
     - id: R-hw-display-chain
       text: 若既无 DSI TX 也无 DP TX, 则不是加颗桥芯片的事, 而是显示链不成立
@@ -2507,6 +2599,13 @@ domains:
       severity: high
     - id: R-hw-boot-storage
       text: 若无内置 boot storage → 需外挂 SPI-NOR/eMMC (吃 PCB 面积, 板宽 12→15mm), 投板前必须 close
+      severity: high
+    - id: R-hw-netlist-chain
+      text: '★ISS-153 交卷时实测: HW/netlist_v1.csv 在 11-04 03:01 加了 A2 段(SoM 4x100pin 座 + demo 板载 Type-C +
+        F13 门控), 但 HW/netlist_v1.net 还停在 11-03 00:50 ⇒ 导出链没重跑 ⇒ gen_netlist_pins.py / check_kicad_net.py
+        长期 rc=1 ⇒ **HW/netlist_v1_pins.csv 出不来, PCB 工程师手上还是旧版脚级表 (TMP117 4 脚 / 挂 I2C_A)**。★具体 5 条阻塞见 HANDOFF/2026-11-04_hw-lead_ISS153.md
+        §6 (其中 B-1: J_SOM_P2+J_SOM_P4 共 23 个 SoM 脚整条从 .net 消失 ⇒ KiCad 导入即悬空; B-2: USB D+ 串阻/ESD 双失效)。★根因:
+        改了网表内容没同步跑生成链 ⇒ 建议加一条"改了 gen_netlist.py 必须重跑 gen_kicad_net → gen_netlist_pins"的门禁'
       severity: high
   sw-lead:
     agent: sw-lead
@@ -7633,6 +7732,31 @@ interface_claims:
     noncanonical_by:
     - hw-lead
     conflict: false
+  i2c_addr_table:
+    values:
+      hw-lead: HW/I2C_ADDR_TABLE.md (门禁 C9 真源)
+    notes:
+      hw-lead: ★ISS-153 新增。★**换 sensor 时 I2C 地址会变** (IMX415=0x1a / AR0234CS=0x10 / OV04C10=0x36) ⇒ 每次换料必须重核整条总线地址表,
+        否则撞地址 ⇒ 上电后总线全哑(改板 2-4 周 + ¥4-8K)。★本表逐条回原厂 datasheet 核过(型号+表号/页号), 查不到的写"未查到"+试过的 URL+失败原因, 不猜。★网表里从设备地址的唯一写法
+        = 行文本里的 `I2C 地址 0xNN` (门禁 C9 按它机械抽取)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  i2c_bus_addr_map:
+    values:
+      hw-lead: 'I2C_A: CONN_CAM(IMX415)=0x1a [1.8V域, RAIL_VDD_1V8_IO 2.2k] || I2C_B: U_TEMP(TMP117)=0x48
+        + CONN_LIGHT(屏模组内 MCU)=0x45 [3.3V域, RAIL_VDD_3V3_IO 4.7k]'
+    notes:
+      hw-lead: '★ISS-153 核实后落账(原 INTERFACE_TABLE §4.2 的 0x36/0x50/0x12 三个值全部过期)。★TMP117 **已从 I2C_A 改挂
+        I2C_B**(2026-11-04 ISS-178, 官方 6 脚 WSON-6)。★BQ25896=0x6b 但**不在本板任何 I2C 总线上**(CHG_BOARD 本地自闭环)
+        ⇒ 不参与冲突判定。★桥接 0x50 已作废(RK3572 无 DP TX)。★光机 0x72 = 0数据, A/B 两条都预留, 待 JBD 确认。★同总线地址唯一: A={0x1a}
+        / B={0x48,0x45} ⇒ 两两不同'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
   temple_thickness:
     values:
       mech-lead: 7.30mm
@@ -10472,31 +10596,6 @@ needs_matrix:
     since: '2026-11-02'
     _by: main
     state: pending
-  - key: visionox_inquiry_release
-    to: boss
-    item: '**视涯问询草稿已就位** `state/outbox/visionox_display_inquiry.md` (6 大项: Q1 单色/全彩 / Q2 DSI+I2C 时序 /
-      Q3 模组外形+光学方案 / Q4 光生物安全 / Q5 商务供货 / Q6 RK 平台适配) ⇒ ★**这封信是当前显示侧的关键路径**: 显示件 + 耦合光学定不下来, 镜框就不能开工 (ISS-133
-      卡 G2)。
-
-      ★**JBD 旧草稿同时要瘦身改写** (走鹃Ⅱ 两问作废/转问视崖, 波导部分保留但改判据) ⇒ **两封一起发还是分开发, 等你定**。'
-    decision: ''
-    decided_at: ''
-    decided_by: ''
-    since: '2026-11-02'
-    _by: main
-    state: pending
-  - key: display_color_acceptance
-    to: boss
-    item: '**如果视涯 0.49" 1920×1080 只有单色**, 你能接受吗? 影响: ①检测框不能上色 ⇒ 改用位置/纹理区分检测类别 ②成本大幅低 ③同亮度功耗更低 (对 ISS-130
-      正面)。
-
-      ★**建议**: 不论答复如何, 单色版可作为**降本 backup** 与全彩版并存评估 (但一份样机只装一种 ⇒ 第一台先定一个)。'
-    decision: ''
-    decided_at: ''
-    decided_by: ''
-    since: '2026-11-02'
-    _by: main
-    state: pending
   - key: iss081_pm_decisions
     to: main
     item: '板宽12mm还是15mm + 双显示hedge买不买, 两条PM裁决: 1) 板宽我建议15mm(逃线带误差容忍0.20-0.30mm->1.25mm, 且SoC横向热扩散通道2->3.5mm对散热是增益;
@@ -11128,8 +11227,8 @@ needs_matrix:
     since: '2026-11-02'
     _by: mech-lead
     state: pending
-  answered_count: 147
-  total: 216
+  answered_count: 151
+  total: 218
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -11528,6 +11627,11 @@ lint:
   value: P1=(51.0,3.5) P2=(51.0,46.5) P3=(17.0,3.5) P4=(17.0,46.5) mm(SoM顶视/左下原点); 四座 pin1 全在各自 +x 端 (P1/P2
     x=60.8, P3/P4 x=26.8), 脚号从该端往 -x 递增
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: i2c_bus_addr_map
+  value: 'I2C_A: CONN_CAM(IMX415)=0x1a [1.8V域, RAIL_VDD_1V8_IO 2.2k] || I2C_B: U_TEMP(TMP117)=0x48 + CONN_LIGHT(屏模组内
+    MCU)=0x45 [3.3V域, RAIL_VDD_3V3_IO 4.7k]'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: mech-lead
   key: mech_reltest_cases
   value: 12类(8必选+盐雾/温循/插拔FPC/振动)
@@ -11675,6 +11779,14 @@ risks:
   text: 若无内置 boot storage → 需外挂 SPI-NOR/eMMC (吃 PCB 面积, 板宽 12→15mm), 投板前必须 close
   severity: high
   owner: hw-lead
+- id: R-hw-netlist-chain
+  text: '★ISS-153 交卷时实测: HW/netlist_v1.csv 在 11-04 03:01 加了 A2 段(SoM 4x100pin 座 + demo 板载 Type-C + F13
+    门控), 但 HW/netlist_v1.net 还停在 11-03 00:50 ⇒ 导出链没重跑 ⇒ gen_netlist_pins.py / check_kicad_net.py 长期 rc=1
+    ⇒ **HW/netlist_v1_pins.csv 出不来, PCB 工程师手上还是旧版脚级表 (TMP117 4 脚 / 挂 I2C_A)**。★具体 5 条阻塞见 HANDOFF/2026-11-04_hw-lead_ISS153.md
+    §6 (其中 B-1: J_SOM_P2+J_SOM_P4 共 23 个 SoM 脚整条从 .net 消失 ⇒ KiCad 导入即悬空; B-2: USB D+ 串阻/ESD 双失效)。★根因:
+    改了网表内容没同步跑生成链 ⇒ 建议加一条"改了 gen_netlist.py 必须重跑 gen_kicad_net → gen_netlist_pins"的门禁'
+  severity: high
+  owner: hw-lead
 - id: R-sw-step
   text: 'NPU 延迟台阶效应: 纯 NPU 跨过 16.67ms 边界 → age 从 2 跳 3 → 端到端直接多一整个帧周期 (67→83.7ms)。差 2ms 可能等于差 17ms'
   severity: high
@@ -11723,15 +11835,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 141
+  artifacts: 143
   blockers: 43
   high_blockers: 33
-  open_needs: 69
+  open_needs: 67
   waiting_external_needs: 79
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 1
-  lint: 48
+  lint: 49
   agents_reporting: 4
   incomplete_fragments: 0

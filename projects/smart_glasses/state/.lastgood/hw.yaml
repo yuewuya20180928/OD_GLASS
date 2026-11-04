@@ -1,7 +1,7 @@
 agent: hw-lead
 role: 硬件总工
-updated_at: '2026-11-03'
-updated_by: main
+updated_at: '2026-11-04'
+updated_by: hw-lead
 status:
   phase: P3(画板前致命项清零
   progress_pct: 88
@@ -385,6 +385,29 @@ artifacts:
     display 背光/触控4脚并成 NET_DSI_AUX, LED+与LED−短接, 另 pin36/pin39 还接地 ⇒ 背光两端短路; 且主板无12V
     BOOST背光轨)。★本单只改本文件§3 + state/fragments/hw.yaml, HW/PCB/ 与 SCHEMATIC_V1_SPEC.json
     / netlist_v1.csv 一个字没改。'
+- path: HW/I2C_ADDR_TABLE.md
+  kind: interface-table
+  version: v1.0
+  updated_at: 2026-11-04T10:0x:00+08:00
+  summary: '★ISS-153: demo 主板 I2C_A / I2C_B 两条总线的从设备全表 + 逐条原厂 datasheet 出处(型号+表号/页号)
+    + 表尾逐对冲突结论 + 换料执行流程。★核了 6 个地址: IMX415=0x1a(Sony IMX415-AAQR-C p.26 SLAVE Address
+    表 SLAMODE1/0=Low/Low) / TMP117=0x48(TI SNOSD82D Table 7-2 p.21 ADD0=GND; 脚号 Table
+    5-1 p.4) / BQ25896=0x6b(TI SLUSC76C §6 p.4 + §9.4 p.32) / 屏模组内 MCU=0x45(RPi 官方
+    overlay panel_disp1@45) / AR0234CS=0x10(onsemi p.10; SADDR 高⇒0x18) / 光机 0x72=★未查到原厂出处(我方规划值,
+    待 JBD 确认)。★BQ25896 经核实**不在本板任何 I2C 总线上**(在 CHG_BOARD 本地自闭环 I2C_CHG_SCL/SDA, 跨铰链的只有
+    STAT/PG 两根 GPIO)。★本表是门禁 C9 的真源'
+- path: HANDOFF/2026-11-04_hw-lead_ISS153.md
+  kind: handoff
+  version: v1.0
+  updated_at: 2026-11-04T10:0x:00+08:00
+  summary: '★ISS-153 交卷: ①I2C_ADDR_TABLE.md ②生成器 6 处过期注释订正(充电 IC 0x12→0x6b / 桥接 0x50→已删除
+    / I2C_A 上拉 [VDD_3V3_IO]→[VDD_1V8_IO] 1.8V 域口径) ③check_netlist_pins.py 新增 C9(地址表双向一致+同总线唯一,
+    3 个负例验证)。★五条自证: gen_netlist rc=0 / gen_netlist_pins rc=1 / check_netlist_pins
+    rc=0 / check_netlist rc=0(32 条全过) / check_kicad_net rc=1。★两条红的**进场前就是红的**, 根因是
+    11-04 03:01 A2/demo-Type-C 段改了 CSV 但没重跑导出链 ⇒ 撞出 5 条阻塞(B-1 J_SOM_P2/P4 共 23 个 SoM
+    脚从 .net 消失 / B-2 R_SER_USB_D_P 一个 2 脚件落 3~4 个网且 SoM D+ 与 Type-C D+ 被短在一个网 ⇒ 串阻与
+    ESD 双失效 / B-3 C_DET_VBUS_D 只有 1 条腿 / B-4 FB_DEMO·C_VBUS_DEMO 被算成 3 脚 / B-5 SoC
+    脚数判据)。★B-2/B-3 要改连接关系且必须同步重生成 demo_mainboard.kicad_pcb(本单禁改) ⇒ 未自行改动, 交回项目总工派单'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX
@@ -2276,10 +2299,30 @@ interface_claims:
     09:39)。★★残留: pin1 在哪一排(y大/y小) 公开资料无定论 ⇒ 两排做反则该座100个网络全部对调 ⇒ 下单前必须机械实测(ISS-169
     仍 open)。★本单只引用, 未改该文件'
   ref: HW/PCB/SOM_CONNECTOR_GEOMETRY_PROBE.md
+- key: i2c_addr_table
+  value: HW/I2C_ADDR_TABLE.md (门禁 C9 真源)
+  note: ★ISS-153 新增。★**换 sensor 时 I2C 地址会变** (IMX415=0x1a / AR0234CS=0x10 / OV04C10=0x36)
+    ⇒ 每次换料必须重核整条总线地址表, 否则撞地址 ⇒ 上电后总线全哑(改板 2-4 周 + ¥4-8K)。★本表逐条回原厂 datasheet 核过(型号+表号/页号),
+    查不到的写"未查到"+试过的 URL+失败原因, 不猜。★网表里从设备地址的唯一写法 = 行文本里的 `I2C 地址 0xNN` (门禁 C9 按它机械抽取)
+  ref: HW/I2C_ADDR_TABLE.md
+- key: i2c_bus_addr_map
+  value: 'I2C_A: CONN_CAM(IMX415)=0x1a [1.8V域, RAIL_VDD_1V8_IO 2.2k] || I2C_B: U_TEMP(TMP117)=0x48
+    + CONN_LIGHT(屏模组内 MCU)=0x45 [3.3V域, RAIL_VDD_3V3_IO 4.7k]'
+  note: '★ISS-153 核实后落账(原 INTERFACE_TABLE §4.2 的 0x36/0x50/0x12 三个值全部过期)。★TMP117 **已从
+    I2C_A 改挂 I2C_B**(2026-11-04 ISS-178, 官方 6 脚 WSON-6)。★BQ25896=0x6b 但**不在本板任何 I2C
+    总线上**(CHG_BOARD 本地自闭环) ⇒ 不参与冲突判定。★桥接 0x50 已作废(RK3572 无 DP TX)。★光机 0x72 = 0数据,
+    A/B 两条都预留, 待 JBD 确认。★同总线地址唯一: A={0x1a} / B={0x48,0x45} ⇒ 两两不同'
+  ref: HW/I2C_ADDR_TABLE.md
 open_questions:
 - id: HW-Q1
   to: main
   text: Q16 显示接口结论什么时候能 close? 桥接芯片采购 4-8 周, 不能等
+- id: HW-Q2
+  to: main
+  text: '★ISS-153 撞出: demo 板 USB D+ 走**板载 Type-C (P1, J_USB_C)** 还是**跨铰链 CONN_USB
+    (P6)**? 现在两条并存且用了同一个位号 R_SER_USB_D_P ⇒ 一个 2 脚电阻落在 3~4 个网上, 且 J_SOM_P1 pin92 (SoM
+    D+) 与 J_USB_C A6+B6 (Type-C D+) 被放在同一个网 USB_D_P_SRC ⇒ **22Ω 源端串阻被旁路 + ESD 阵列不在信号路径上**。★这是内容缺陷(改连接关系)且要同步重生成
+    demo_mainboard.kicad_pcb ⇒ ISS-153 未自行改, 请拍板 + 派单'
 risks:
 - id: R-hw-display-chain
   text: 若既无 DSI TX 也无 DP TX, 则不是加颗桥芯片的事, 而是显示链不成立
@@ -2289,4 +2332,12 @@ risks:
   severity: high
 - id: R-hw-boot-storage
   text: 若无内置 boot storage → 需外挂 SPI-NOR/eMMC (吃 PCB 面积, 板宽 12→15mm), 投板前必须 close
+  severity: high
+- id: R-hw-netlist-chain
+  text: '★ISS-153 交卷时实测: HW/netlist_v1.csv 在 11-04 03:01 加了 A2 段(SoM 4x100pin 座 +
+    demo 板载 Type-C + F13 门控), 但 HW/netlist_v1.net 还停在 11-03 00:50 ⇒ 导出链没重跑 ⇒ gen_netlist_pins.py
+    / check_kicad_net.py 长期 rc=1 ⇒ **HW/netlist_v1_pins.csv 出不来, PCB 工程师手上还是旧版脚级表
+    (TMP117 4 脚 / 挂 I2C_A)**。★具体 5 条阻塞见 HANDOFF/2026-11-04_hw-lead_ISS153.md §6 (其中
+    B-1: J_SOM_P2+J_SOM_P4 共 23 个 SoM 脚整条从 .net 消失 ⇒ KiCad 导入即悬空; B-2: USB D+ 串阻/ESD
+    双失效)。★根因: 改了网表内容没同步跑生成链 ⇒ 建议加一条"改了 gen_netlist.py 必须重跑 gen_kicad_net → gen_netlist_pins"的门禁'
   severity: high
