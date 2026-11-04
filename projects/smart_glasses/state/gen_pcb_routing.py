@@ -420,7 +420,7 @@ class GridRouter:
             for i in range(self.W):
                 if self.edge_d[self._idx(i, j)] < margin_mm:
                     edge.append(self._idx(i, j))
-        for li in (0, 2, 4):
+        for li in ROUTE_LAYERS:
             for idx in edge:
                 # ★焊盘格不置 EDGE (焊盘本身已过 DRC ⇒ 不许被误杀; 别的网本来也被 cu 挡住)
                 if any((l2, idx) in self.pad_cell for l2 in range(NLAYERS)):
@@ -1129,7 +1129,7 @@ class GridRouter:
                 goals = set()
                 for q in near:
                     gi = self._idx(self._ci(q[0]), self._cj(q[1]))
-                    for li in (0, 2, 4):
+                    for li in ROUTE_LAYERS:
                         goals.add((li, gi))
                 # ★★**允许换层** (★原来 max_via=False ⇒ 只能走 F.Cu ⇒ 挤不过去)
                 path = self._astar(start_cells, goals, net_g, max_via=True)
