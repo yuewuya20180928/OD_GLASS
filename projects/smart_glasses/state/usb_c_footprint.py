@@ -76,6 +76,19 @@ def add_usb_c(board, netmap, pin_nets, x, y, rot=0):
     if rot:
         fp.SetOrientationDegrees(rot)
     board.Add(fp)
+    # ★★2026-11-05 06:45 **位号移到 F.Fab** (⇒ 修 silk_over_copper)
+    #   实测: v21 的 11 条 silk_over_copper 全是 ★**J_USB_C 的丝印位号压自己的焊盘**
+    #   ⇒ USB-C 在板边 (焊盘行占满宽度) ⇒ KiCad 自动把位号放在封装原点 ⇒ 正好压在焊盘上
+    #   ⇒ 走线改不了这个 ⇒ ★**把位号放到 F.Fab 层** (装配图仍然看得到, 丝印层不再违规)
+    try:
+        _rf = fp.Reference()
+        _rf.SetLayer(pcbnew.F_Fab)
+        _rf.SetVisible(True)
+        _rf.SetTextSize(pcbnew.VECTOR2I(pcbnew.FromMM(0.8), pcbnew.FromMM(0.8)))
+        _rf.SetTextPos(V(x, y - FRONT_OFFSET / 2.0 - 1.2))
+        _rf.SetPosition(V(x, y - FRONT_OFFSET / 2.0 - 1.2))
+    except Exception:
+        pass
 
     n = len(PAD_ORDER)
     x0 = -(n - 1) * PITCH / 2.0          # A1 在 -3.75, A12 在 +3.75 (相对封装原点)

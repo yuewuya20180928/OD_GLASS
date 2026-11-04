@@ -47,28 +47,42 @@ print("焊盘总数 %d · 有网 %d 个网" % (len(allpads), len(bynet)))
 
 
 def ratsnest_unconnected():
-    """用 connectivity 找未连的 (net, pad) 组合"""
-    board.BuildConnectivity()
-    conn = board.GetConnectivity()
+    """★**未连的网** —— ★2026-11-05 06:50 改从 **DRC json** 读 (同事指出的坑)
+       ★原来的 `conn.GetRatsnestForNet(net, 0)` **传了 2 个参**, pcbnew 只收 1 个 (netcode:int)
+       ⇒ TypeError 被 `except: n=None` 吞掉 ⇒ ★"未连的网"永远输出 0 (实际 101 项 / 60 网)
+       ⇒ 最省事且口径一致的做法: 读 DRC 跑出来的 unconnected_items (与 verify 同一份证据)
+    """
+    import json as _json
+    import re as _re
+    drc = "/tmp/_layout_done_drc.json"
+    try:
+        d = _json.load(open(drc, encoding="utf-8"))
+    except Exception:
+        return []
     out = []
-    for net in bynet:
-        pads = bynet[net]
-        # 找该网的 ratsnest 未连数
-        try:
-            n = conn.GetRatsnestForNet(net, 0)  # 0 = 未连的项数
-        except Exception:
-            n = None
-        if n:
-            out.append((net, n, pads))
+    seen = set()
+    for u in (d.get("unconnected_items") or []):
+        nets = set()
+        for it in (u.get("items") or []):
+            m = _re.search(r"\[([^\]]+)\]", it.get("description", ""))
+            if m:
+                nets.add(m.group(1))
+        for n in nets:
+            if n in seen:
+                continue
+            seen.add(n)
+            out.append((n, None, bynet.get(n, [])))
     return out
 
 
 un = ratsnest_unconnected()
-print("\n=== 未连的网 (%d 个) ===" % len(un))
+print("\n=== 未连的网 (%d 个, 口径 = DRC json) ===" % len(un))
 rows = []
 for (net, n, pads) in un:
+    if not pads:
+        print("  %-26s ★**板上没这个网的焊盘?**" % net)
+        continue
     btb = sum(1 for p in pads if p[5])
-    # 每个焊盘周围 1.5mm 内的别的焊盘数 (拥挤度)
     cong = []
     for (ref, num, x, y, lay, _) in pads:
         c = 0
@@ -79,9 +93,9 @@ for (net, n, pads) in un:
                 c += 1
         cong.append(c)
     rows.append((n, net, len(pads), btb, min(cong) if cong else 0, max(cong) if cong else 0, pads))
-rows.sort(reverse=True)
+rows.sort(key=lambda r: -r[2])
 for (n, net, npads, btb, cmin, cmax, pads) in rows[:26]:
-    print("  %-22s 未连 %-3s 焊盘 %-3d (BTB %d)  周围1.5mm焊盘 %d~%d" % (net, n, npads, btb, cmin, cmax))
+    print("  %-26s 焊盘 %-3d (BTB %d)  周围1.5mm焊盘 %d~%d" % (net, npads, btb, cmin, cmax))
     for (ref, num, x, y, lay, isbtb) in pads[:3]:
         print("        %-10s.%-4s (%7.3f,%7.3f) %-8s%s" % (ref, num, x, y, lay, "  ★BTB" if isbtb else ""))
 

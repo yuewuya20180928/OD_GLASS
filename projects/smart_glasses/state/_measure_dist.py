@@ -41,6 +41,7 @@ for fp in b.GetFootprints():
 
 tot = 0.0
 cnt = 0
+_vals = []
 for n in sorted(nets):
     ps = bynet.get(n, [])
     if len(ps) < 2:
@@ -50,5 +51,11 @@ for n in sorted(nets):
         for j in range(i + 1, len(ps)):
             best = max(best, math.hypot(ps[i][0] - ps[j][0], ps[i][1] - ps[j][1]))
     tot += best
+    _vals.append(best)
     cnt += 1
-print("平均最长距离 %.1fmm 覆盖 %d/%d 网" % (tot / max(cnt, 1), cnt, len(nets)))
+vals = sorted(_vals)
+mx = vals[-1] if vals else 0.0
+over60 = len([v for v in vals if v > 60.0])
+over100 = len([v for v in vals if v > 100.0])
+print("平均最长距离 %.1fmm 最大 %.1fmm >60mm:%d >100mm:%d 覆盖 %d/%d 网"
+      % (tot / max(cnt, 1), mx, over60, over100, cnt, len(nets)))

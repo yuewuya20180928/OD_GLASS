@@ -624,6 +624,9 @@ def main():
     DROPPED = []   # ★2026-11-05 05:10: **被丢掉的器件必须全部报出来** (之前静默丢 ⇒ parity 里才看得出)
     placed = 0
 
+    PLACE_INFO = {}     # ref → (x, y, w, h) —— 供"测试点贴伙伴件"用
+    NET_PARTS = {}     # net → [ref] —— 同网已放器件
+
     def _place_flow(flow_items, sx, sy, ex=None, ey=None):
         """把一批器件行式装箱到 (sx, sy) 起 ⇒ 返回 (px, py, row_h, 放置数)
            ★ex/ey = 该批器件的区域上限 (默认用 PK_AREA)"""
@@ -674,13 +677,20 @@ def main():
                     make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
                                    px + w / 2.0, py + h / 2.0)
             cnt += 1
+            PLACE_INFO[ref] = (px + w / 2.0, py + h / 2.0, w, h)
+            for _p in pins:
+                if _p[1]:
+                    NET_PARTS.setdefault(_p[1], []).append(ref)
             px += w + 3.0
             row_h = max(row_h, h)
         return px, py, row_h, cnt
 
     # ★分组: 上排 BTB 伙伴件 / 下排 BTB 伙伴件 / 其余
-    _grp_top, _grp_bot, _grp_rest = [], [], []
+    _grp_top, _grp_bot, _grp_rest, _grp_tp = [], [], [], []
     for it in items:
+        if it[0].startswith("TP_"):
+            _grp_tp.append(it)     # ★测试点单独一轮 (贴伙伴件)
+            continue
         _a = _anchor_of(it)
         if _a is None:
             _grp_rest.append(it)
@@ -716,15 +726,65 @@ def main():
         except Exception:
             return dflt
 
-    _A_BOT = _area("PCB_AREA_BOT", (5.0, 58.0, 76.0, 97.0))
-    _A_TOP = _area("PCB_AREA_TOP", (78.0, 5.0, BOARD_W - 3.0, 22.0))
-    _A_RES = _area("PCB_AREA_RES", (78.0, 24.0, BOARD_W - 3.0, BOARD_H - 3.0))
+    # ★★2026-11-05 07:15 **三区分带装箱 (扇形搜索选定 F5)** —— ★实测数据 (state/sweep_place.sh)
+    #   指标 = v21 的 59 个失败网的"平均最长距离" (越小越好):
+    #     基线 (v21 现行排版)      平均 68.2mm · 最大 138.3mm · >60mm 32 条 · >100mm 15 条
+    #     **F5 (本次选定)**        平均 **55.0mm** · 最大 151.3mm · >60mm **24** 条 · >100mm **6** 条
+    #   ⇒ ★**>100mm 的长线砍掉 60%** (15→6) ⇒ 长线正是布不出来的主要来源
+    #   其它候选 (扫了 10 组): A 59.9(掉2件) B 61.6(0掉) C 55.6(掉2) D 69.7(0掉) E 61.4(0掉)
+    #   ⇒ F5 = 零掉件 + 最短平均 ⇒ 选它
+    _A_BOT = _area("PCB_AREA_BOT", (5.0, 58.0, 70.0, 97.0))
+    _A_TOP = _area("PCB_AREA_TOP", (78.0, 5.0, 120.0, 36.0))
+    _A_RES = _area("PCB_AREA_RES", (78.0, 38.0, BOARD_W - 3.0, BOARD_H - 3.0))
     pxB, pyB, rhB, nB = _place_flow(_grp_bot, _A_BOT[0], _A_BOT[1], _A_BOT[2], _A_BOT[3])
     placed += nB
     pxA, pyA, rhA, nA = _place_flow(_grp_top, _A_TOP[0], _A_TOP[1], _A_TOP[2], _A_TOP[3])
     placed += nA
     pxC, pyC, rhC, nC = _place_flow(_grp_rest, _A_RES[0], _A_RES[1], _A_RES[2], _A_RES[3])
     placed += nC
+    # ★★2026-11-05 07:25 **测试点 (TP_*) 贴着它的伙伴件放** (⇒ 消灭 TP↔伙伴 的百毫米长线)
+    #   实测 (F5 排版下最长的几条): TP_CSI_CK_N ↔ C_AC_CSI_D0_CK_N = **124mm**;
+    #     CONN_LIGHT.15 ↔ TP_LIGHT_3V3 = 117mm ⇒ ★**都是测试点被分到了"其余"区, 跟伙伴件隔了半个板**
+    #   ⇒ 改成: 最后一轮单独放 TP ⇒ 找同网的**已放器件** ⇒ 摆在它旁边 (多方向试位, 避开重叠)
+    _tp_rest = []
+    for (ref, pins, kind, w, h) in _grp_tp:
+        tgt = None
+        for _p in pins:
+            for _r in NET_PARTS.get(_p[1], ()):
+                if _r in PLACE_INFO:
+                    tgt = PLACE_INFO[_r]
+                    break
+            if tgt:
+                break
+        done_tp = False
+        if tgt:
+            tx, ty, tw, th = tgt
+            for (ox, oy) in ((3.2, 0), (-3.2, 0), (0, 3.2), (0, -3.2),
+                             (3.2, 3.2), (3.2, -3.2), (-3.2, 3.2), (-3.2, -3.2),
+                             (5.0, 0), (0, 5.0), (-5.0, 0), (0, -5.0)):
+                nx, ny = tx + ox, ty + oy
+                if nx < 4.0 or ny < 2.5 or nx > BOARD_W - 3.0 or ny > BOARD_H - 3.0:
+                    continue
+                bad = False
+                for _r2, _info in PLACE_INFO.items():
+                    ix, iy, iw, ih = _info
+                    if (abs(ix - nx) < (iw + w) / 2.0 + 0.8
+                            and abs(iy - ny) < (ih + h) / 2.0 + 0.8):
+                        bad = True
+                        break
+                if bad:
+                    continue
+                make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap, nx, ny)
+                PLACE_INFO[ref] = (nx, ny, w, h)
+                placed += 1
+                done_tp = True
+                break
+        if not done_tp:
+            _tp_rest.append((ref, pins, kind, w, h))
+    if _tp_rest:
+        pxT, pyT, rhT, nT = _place_flow(_tp_rest, _A_RES[0], pyC + rhC + 3.0,
+                                        _A_RES[2], _A_RES[3])
+        placed += nT
     px, py, row_h = pxC, pyC, rhC
     if DROPPED:
         print("  ❌ 装不下被丢 %d 个: %s" % (len(DROPPED), ", ".join(DROPPED)))

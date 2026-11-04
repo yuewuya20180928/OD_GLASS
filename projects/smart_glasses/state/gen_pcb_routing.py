@@ -2105,9 +2105,14 @@ def _min_gap(router, net_a, net_b):
 
 # ------------------------------------------------------------------ GND 平面
 def add_gnd_planes(board, layers=None, net="GND", fill=True):
-    # ★★2026-11-05 06:15 **层数可配 ⇒ 平面层跟着走** (6 层: In1.Cu + B.Cu · 8 层: In1.Cu + B.Cu)
+    # ★★2026-11-05 06:40 **层数可配 ⇒ 平面层跟着走**
+    #   ★★6 层: **(1, 3, 5)** = In1.Cu + In3.Cu + B.Cu
+    #     ⇒ ★**之前只有 (1,5) 两个 GND 平面** ⇒ In2.Cu/In4.Cu 两个信号层**底下没有回流面**
+    #       ⇒ ① 信号回流路径断 ⇒ ② GND 下拉过孔可落的平面少 ⇒ ★**GND 未连接项变多**
+    #   ★8 层: (1, 3, 5, 7) = In1.Cu + In3.Cu + In5.Cu + B.Cu
+    #     (ROUTE_LAYERS = [0,2,4,6] = F.Cu/In2.Cu/In4.Cu/In6.Cu ⇒ 平面正好夹在信号层之间)
     if layers is None:
-        layers = (1, 7) if NLAYERS >= 8 else (1, 5)
+        layers = (1, 3, 5, 7) if NLAYERS >= 8 else (1, 3, 5)
     """★L2 / L6 完整 GND 平面 (STACKUP.md: L2 GND / L6 GND)
        ★**完整平面 = 不分割** ⇒ 满足 LAYOUT_RULES "L2/L6 不得在差分对下方被分割"
        ★平面层不放信号 (路由器只用 L1/L3/L5)"""
