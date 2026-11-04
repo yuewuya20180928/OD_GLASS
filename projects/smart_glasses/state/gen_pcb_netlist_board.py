@@ -104,10 +104,22 @@ PLACE_OVERRIDE = {
 
 def _is_pad_name(tail):
     """★真实焊盘号判定: "pin<N>" (网表针号) 或 **USB-IF 物理脚名** (A1/A4/A5/B12/shield …)
-    ★USB-C 座 (如 GCT USB4105) 的 KiCad 封装正是用这组名字当 pad number ⇒ 必须当真实焊盘号"""
+    ★USB-C 座 (如 GCT USB4105) 的 KiCad 封装正是用这组名字当 pad number ⇒ 必须当真实焊盘号
+    ★★2026-11-05 04:20 **合并写法也要认**: 网表里写的是 "A6+B6" / "A4+A9+B4+B9"
+       (USB-C 的 A/B 双排同名脚合写) ⇒ USBIF_RE 只匹配**单个**脚名 ⇒ 合并写法被判成"命名脚"
+       ⇒ 落进占位编号分支 ⇒ 网表侧要 '1','10','11' 而板上是 'A6','A12' ⇒ ★**parity 必红**
+       (实测 v15: 缺失 14 / 多余 12, 全是 J_USB_C) ⇒ 修法: 每个 '+' 分段都得是 USB-IF 物理脚名"""
     if not tail:
         return False
-    return bool(re.fullmatch(r"pin\d+(\+pin\d+)*", tail)) or bool(USBIF_RE.match(tail))
+    if re.fullmatch(r"pin\d+(\+pin\d+)*", tail):
+        return True
+    if USBIF_RE.match(tail):
+        return True
+    # ★合并写法: 每个 token 都是 USB-IF 物理脚名 ⇒ 整体算"真实焊盘号"
+    toks = [t.strip() for t in tail.split("+") if t.strip()]
+    if len(toks) >= 2 and all(USBIF_RE.match(t) for t in toks):
+        return True
+    return False
 
 def load_rows():
     with open(NETLIST, encoding="utf-8") as f:
@@ -385,6 +397,13 @@ def _write_layout_done(board):
     proj = os.path.dirname(here)
     # ★2026-11-05 03:10 **落盘路径也必须可改** (之前只改了顶部的 PCB 常量 ⇒ ★**并行实验把官方板覆盖成 0 走线骨架**)
     pcb = os.environ.get("PCB_OUT") or os.path.join(proj, "HW", "PCB", "demo_mainboard.kicad_pcb")
+    # ★★2026-11-05 05:20 **只有官方板才许写 .layout_done.json**
+    #   ★**并行实验的板不许污染阶段门**: 实验板(180×120)的 unconnected/DRC 被写进了官方留证
+    #   ⇒ 阶段门 `stage_gate.py` 读的是 .layout_done.json ⇒ ⇒ **会把实验板当成官方板**
+    OFFICIAL = os.path.join(proj, "HW", "PCB", "demo_mainboard.kicad_pcb")
+    if os.path.abspath(pcb) != os.path.abspath(OFFICIAL):
+        print("  ⚠️ 非官方板 (%s) ⇒ **不写 .layout_done.json** (阶段门只认官方板)" % os.path.basename(pcb))
+        return
     unconnected = -1
     try:
         b2 = pcbnew.LoadBoard(pcb)
@@ -593,7 +612,10 @@ def main():
     #   同一会话里加的走线/过孔还没进缓存 ⇒ 填充器以为平面"没连上任何东西"
     #   ⇒ 孤岛删除模式把整个平面删空 ⇒ 焊盘的过孔全成 dangling)
     try:
-        b3 = pcbnew.LoadBoard(PCB)
+        # ★★2026-11-05 04:10 **必须读 _tmp_pcb, 不能读 PCB** (读 PCB = 读回**上一轮的旧板**)
+        #   实测: v17 (03:52 起跑) 若按老写法读 PCB ⇒ 读到的是 03:49 被空骨架覆盖的旧板 (0 走线)
+        #   ⇒ 平面重填后把**骨架**存回 _tmp_pcb ⇒ os.replace 后官方板又变成 0 走线 ⇒ ★18 分钟白跑
+        b3 = pcbnew.LoadBoard(_tmp_pcb)
         b3.BuildConnectivity()
         filler = pcbnew.ZONE_FILLER(b3)
         filler.Fill(b3.Zones())
@@ -607,6 +629,14 @@ def main():
     # ★全部成功 ⇒ 原子替换正式板 (★崩在上面的路径 ⇒ 正式板保持原样, 不会被空板覆盖)
     os.replace(_tmp_pcb, PCB)
     print("  ✓ 已原子替换正式板: %s" % PCB)
+    # ★2026-11-05 04:10 **每次成功都留一份备份** (实测教训: 11-05 03:49 一轮崩在布线中
+    #   ⇒ 正式板被空骨架覆盖 ⇒ v15 那轮 92/17 的好板没了 ⇒ 18 分钟白跑且无从恢复)
+    try:
+        _bak = "/tmp/board_last_good.kicad_pcb"
+        _shutil.copy2(PCB, _bak)
+        print("  ✓ 已备份: %s" % _bak)
+    except Exception as e:
+        print("  ⚠️ 备份失败: %s" % e)
 
     # ★★ISS-181: 交付 HW/PCB/.layout_done.json (★阶段门 state/stage_gate.py 靠它判 G1)
     _write_layout_done(board)
