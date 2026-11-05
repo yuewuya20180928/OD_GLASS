@@ -69,6 +69,8 @@ def main():
     outp = None
     passes = 2
     rip = 8
+    batch = 5
+    statef = None
     i = 2
     while i < len(args):
         if args[i] == "--out":
@@ -80,13 +82,30 @@ def main():
         elif args[i] == "--rip":
             rip = int(args[i + 1])
             i += 2
+        elif args[i] == "--batch":
+            batch = int(args[i + 1])
+            i += 2
+        elif args[i] == "--state":
+            statef = args[i + 1]
+            i += 2
         else:
             i += 1
     if not outp:
         print("★必须给 --out")
         return 2
 
-    board = pcbnew.LoadBoard(boardp)
+    done = set()
+    src_board = boardp
+    if statef and os.path.exists(statef):
+        try:
+            st = json.load(open(statef, encoding="utf-8"))
+            done = set(st.get("done", []))
+            if st.get("out") and os.path.exists(st["out"]):
+                src_board = st["out"]
+                print("═══ 续跑: 已处理 %d 个网, 从 %s 继续 ═══" % (len(done), src_board))
+        except Exception as e:
+            print("  ⚠️ state 读不了: %s" % e)
+    board = pcbnew.LoadBoard(src_board)
     for z in board.Zones():
         z.UnFill()
     r = RT.GridRouter(board)
@@ -125,14 +144,71 @@ def main():
     # ★**短距优先**: ★**越近的越容易救回来** ⇒ ★**先修便宜的**
     order = sorted(nets.keys(), key=lambda n: nets[n])
     ok_total = 0
-    for p in range(passes):
+    todo = [n for n in order if n not in done]
+    print("═══ 待处理 %d 个网 (每 %d 个落一次盘) ═══" % (len(todo), batch))
+
+    def save_state():
+        if not statef:
+            return
+        try:
+            json.dump({"done": sorted(done), "out": outp}, open(statef, "w", encoding="utf-8"))
+        except Exception:
+            pass
+
+    # ★★分批: ★**每批跑完就落盘 + 记 state** ⇒ ★**被杀也不丢进度 (★原版只在最后写盘 ⇒ 一被杀全丢)**
+    _todo = list(todo)
+    while _todo:
+        chunk = _todo[:batch]
+        _todo = _todo[batch:]
         r.routed_ok = set()
         r.routed = set()
-        ok = r.ripup_and_reroute(order, rip_per_net=rip, verbose=True)
+        ok = r.ripup_and_reroute(chunk, rip_per_net=rip, verbose=True)
         ok_total += ok
-        print("── 第 %d 轮: 重布成功 %d 个网 (累计 %d)" % (p + 1, ok, ok_total))
-        if ok == 0:
-            break
+        for n in chunk:
+            done.add(n)
+        print("── 本批 %d 个网: 重布成功 %d (累计 %d) ⇒ 落盘" % (len(chunk), ok, ok_total))
+        # ★差异写回 (每批都写一次) ★
+        alive = set(id(s) for s in r.tracks) | set(id(v) for v in r.vias)
+        for oid, (obj, rec) in list(ingested.items()):
+            if oid not in alive:
+                board.Remove(obj)
+                del ingested[oid]
+        for s in r.tracks:
+            if id(s) in ingested:
+                continue
+            (net, x1, y1, x2, y2, li, w) = s
+            code = board.FindNet(net).GetNetCode()
+            if code <= 0:
+                continue
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(pcbnew.VECTOR2I(pcbnew.FromMM(x1), pcbnew.FromMM(y1)))
+            t.SetEnd(pcbnew.VECTOR2I(pcbnew.FromMM(x2), pcbnew.FromMM(y2)))
+            t.SetWidth(pcbnew.FromMM(w))
+            t.SetLayer(RT.CU_LAYERS[li])
+            t.SetNetCode(code)
+            board.Add(t)
+            ingested[id(s)] = (t, s)
+        for v in r.vias:
+            if id(v) in ingested:
+                continue
+            (net, x, y, l1, l2) = v
+            code = board.FindNet(net).GetNetCode()
+            if code <= 0:
+                continue
+            vi = pcbnew.PCB_VIA(board)
+            vi.SetPosition(pcbnew.VECTOR2I(pcbnew.FromMM(x), pcbnew.FromMM(y)))
+            vi.SetWidth(pcbnew.FromMM(RT.VIA_DIA))
+            vi.SetDrill(pcbnew.FromMM(RT.VIA_DRILL))
+            vi.SetViaType(pcbnew.VIATYPE_THROUGH)
+            vi.SetLayerPair(RT.CU_LAYERS[l1], RT.CU_LAYERS[l2])
+            vi.SetNetCode(code)
+            board.Add(vi)
+            ingested[id(v)] = (vi, v)
+        filler = pcbnew.ZONE_FILLER(board)
+        filler.Fill(board.Zones())
+        board.Save(outp)
+        save_state()
+        print("── 已落盘: %s (%d B) · 已处理 %d 个网" % (outp, os.path.getsize(outp), len(done)))
 
     # ── 差异写回: 被拆的删掉, 新增的加上去 ──
     alive = set(id(s) for s in r.tracks) | set(id(v) for v in r.vias)
