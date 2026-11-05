@@ -64,34 +64,26 @@ PY
 )"
 say "  官方板: DRC=$ODRC unconnected=$OUNC"
 
-# ★★2026-11-05 14:38 **晋级判据改成 Pareto 改进** (★血的教训)
-#   旧版: `[ "$UNC" -ge "$OUNC" ] || [ "$DRC" -gt "$ODRC" ]`
-#     ⇒ ★**unconnected "相等"(64==64) 就被判"不比官方板好"** ⇒ ⇒ **DRC 从 1 降到 0 的改善被完全忽略**
-#     ⇒ ⇒ v31_Q (DRC=0 / unconn=64) 明明比官方板 (DRC=1 / unconn=64) 干净, 却被拒晋级
-#     ⇒ ⇒ ★**日志自己都打了 "DRC 0 vs 1" 却仍判不晋级** ⇒ 这是判据 bug, 不是臂的问题
-#   新版 (Pareto): ★**两项都不得变差, 且至少一项严格变好** ⇒ 才晋级
-#     worse  = (UNC > OUNC) or (DRC > ODRC)          ⇒ 任一变差 ⇒ 不晋级
-#     better = (UNC < OUNC) or (DRC < ODRC)          ⇒ 至少一项严格变好
-#     全平 (UNC==OUNC and DRC==ODRC) ⇒ 没有改善 ⇒ 不晋级
-#   ★**防呆**: 取证失败时 DRC/UNC = 999 ⇒ 999 > 任何值 ⇒ 自动落到"不晋级" ⇒ 绝不误晋级
-_better=$(python3 - "$UNC" "$OUNC" "$DRC" "$ODRC" <<'PY'
-import sys
-try:
-    unc, ounc, drc, odrc = (int(x) for x in sys.argv[1:5])
-except Exception:
-    print("no"); raise SystemExit
-# ★**基线未知 (999 = 取证失败) ⇒ 绝不晋级** (★不能拿"官方板没量出来"当"臂更好")
-if unc >= 999 or ounc >= 999 or drc >= 999 or odrc >= 999:
-    print("no"); raise SystemExit
-worse  = (unc > ounc) or (drc > odrc)
-better = (unc < ounc) or (drc < odrc)
-print("yes" if (not worse and better) else "no")
-PY
-)
-if [ "$_better" != "yes" ]; then
-  say "★不比官方板好 (unconnected $UNC vs $OUNC · DRC $DRC vs $ODRC · Pareto 不满足) ⇒ **不晋级**"
+# ★★2026-11-06 01:5x **★判据换成独立闸 (state/compare_arm_official.py)** ——
+#   ★★**实测事故 (差点让更差的板上位)**: 原判据只有 (unconnected, DRC) 两项
+#     ⇒ v44_R (UNC 55 < 57, DRC 0 == 0) 被判"更好" ⇒ ★**晋级成了官方板**
+#     ⇒ ★但实测: v44 把 **9 个网打成零铜** (含 4 条差分 _SRC 腿), 只救回 7 个
+#       ⇒ ★★**差分对净 -1 / 普通信号网净 -2** ⇒ ★**官方板实际变差了**
+#     ⇒ ★★**"只看 ratsnest 数量"会被"把有铜的腿砍成零铜"骗**
+#     ⇒ ★★**Δ 数字也会骗**: v44 的 "DSI_D0_D0 Δ 76.197→1.612" 是
+#        ★**砍掉配平铜、让一侧归零换来的** (审计器不算零铜对 ⇒ 数字变好, 板子更烂)
+#   ★**新判据**: DRC 必须 0, 且
+#     {unconnected, 零铜网(≥2焊盘), 差分单边零铜对, 差分Δ超差对} **任何一项都不得变差**,
+#     且**至少一项严格变好** ⇒ 才晋级
+#   ★**官方板的 DRC 取证改成现测** (★不再读可能过期的 .layout_done.json)
+say "  ── 加固判据 (独立闸) ──"
+bash state/kicad.sh pcb drc --output "/tmp/_ap_off_${PREFIX}_${ARM}.json" --severity-error --severity-warning --format json HW/PCB/demo_mainboard.kicad_pcb >/dev/null 2>&1
+if python3 state/compare_arm_official.py "$PCB" HW/PCB/demo_mainboard.kicad_pcb \
+      --drc-json "/tmp/_ap_${PREFIX}_${ARM}.json" "/tmp/_ap_off_${PREFIX}_${ARM}.json" ; then
+  say "  ⇒ ★**加固判据通过** ⇒ 走终点线 (晋级 → 加铜皮 → 重出投产包 → 全门禁自验)"
+  PREFIX="$PREFIX" bash state/finish_line.sh "$ARM" >> "$OUT" 2>&1
+  say "  终点线跑完 (rc=$?) ⇒ 见 $OUT"
+else
+  say "★**加固判据不通过 ⇒ 不晋级** (★DRC/零铜网/差分单边零铜/Δ超差 任一变差 ⇒ 一律不晋级)"
   exit 0
 fi
-say "  ⇒ 比官方板好 (Pareto: 两项不劣且至少一项更优) ⇒ 走终点线 (晋级 → 加铜皮 → 重出投产包 → 全门禁自验)"
-PREFIX="$PREFIX" bash state/finish_line.sh "$ARM" >> "$OUT" 2>&1
-say "  终点线跑完 (rc=$?) ⇒ 见 $OUT"

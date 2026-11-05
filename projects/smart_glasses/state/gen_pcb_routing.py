@@ -104,6 +104,15 @@ CONN_GND_ESC = {}
 #     ⇒ ★**"换另一个已连焊盘"这条退路不存在** ⇒ 一条腿被堵 ⇒ 整条腿永久无铜
 #   ★**实测**: 官方板 57 条里 19 条是 "Pad↔Track", Δ 中位 **27.849mm** ⇒ 整条腿缺失
 #   ★**修法**: 最近的走不通 ⇒ ★**按距离依次试其它已连焊盘** (纯多试目标, 不改几何规则)
+# ★★2026-11-06 01:2x **v49: 让 rip-up & reroute 真正能跑** (env 门控, 默认关)
+#   ★**根因**: `route_net` 结尾无条件 `routed.add(net)` ⇒ ★**失败网也进 routed**
+#     ⇒ `ripup_and_reroute` 第一行 `if net in self.routed: continue` ⇒ ★**19 个失败网一次都没试**
+#     ⇒ ★实测日志无任何 per-net 行 ⇒ 证明是"早期 continue"而非"试了都失败"
+#   ★**修法**: ★**只在成功时才记进 `routed_ok`** ⇒ rip-up 的守卫改判 `routed_ok`
+#   ★**顺带**: 失败网不再被后续"跳过已布网"的逻辑误判 ⇒ ★**它还有被再试的机会**
+RIPUP_ALIVE = os.environ.get("PCB_RIPUP_ALIVE", "0") == "1"
+if RIPUP_ALIVE:
+    print("  [路由] ★rip-up 复活: ON (失败网会真的被拆线重布)")
 MULTI_GOAL = os.environ.get("PCB_MULTI_GOAL", "0") == "1"
 # ★每个焊盘最多换几个目标 (防止 A* 预算被烧光)
 MULTI_GOAL_MAX = int(os.environ.get("PCB_MULTI_GOAL_MAX", "4"))
@@ -421,6 +430,8 @@ class GridRouter:
         self.pad_rects_l = []       # ★(net, x0,y0,x1,y1, layers) —— ★**焊盘只在它实际存在的层上有铜**
         self.pad_cell = {}          # (li,idx) -> (net, true_cx, true_cy)
         self.routed = set()
+        # ★★2026-11-06 01:2x **v49: 单独记"成功布过"的网** (★`routed` 含失败网, 不能当"已布"用)
+        self.routed_ok = set()
         # ★诊断计数器: 布不动的网到底是"预算用完"还是"真被堵死"
         self.astar_budget = 0
         self.astar_blocked = 0
@@ -1128,6 +1139,11 @@ class GridRouter:
             connected_pads.append(pad)
         length = self.net_length(net)
         self.routed.add(net)
+        # ★★2026-11-06 01:2x **v49: 只有成功才算"布好"** (★失败网不能进 routed_ok)
+        #   ★**为什么**: `routed` 里混着失败网 ⇒ 任何"跳过已布网"的判断都会误跳
+        #   ★**注意**: `self.routed` 语义不变 (★默认关时逐位一致)
+        if ok and RIPUP_ALIVE:
+            self.routed_ok.add(net)
         return {"ok": ok, "segs": len(self.tracks), "len": round(length, 3),
                 "fail": nfail + nfail_trunk, "net": net, "ring": ring_used}
 
@@ -2584,18 +2600,22 @@ class GridRouter:
 
     def ripup_and_reroute(self, nets, rip_per_net=6, verbose=True):
         """★★**收尾杀招: 拆掉挡路的线, 重布失败的网** (标准 rip-up & reroute)
-        ★**为什么必须**: 实测 78 个失败脚里 ★**64 个 (82%) 不是被局部封锁, 是"中途被堵死"**
-          ⇒ ⇒ 局部封锁的靠 halo/排版修; ★中途堵的**只能拆线重走**
-        ★**做法**: 对每个失败网 ⇒ ① 找出**堵住它起步格**的别的网的走线 ⇒
-          ② 拆掉最近的几条 (连同附近的同网过孔) ⇒ ③ ★**重建 halo** (★否则白拆) ⇒
-          ④ 重布该网 ⇒ ⑤ 成功则把被拆的网重新布一遍; 失败则**原样放回**
+        ★**v49 (2026-11-06 01:4x) 三处修正**:
+          ① ★**守卫改判 `routed_ok`** ⇒ ★**失败网不再在第一行就被跳过**
+             (★**旧行为实测: 19 个失败网一次都没试**, 日志只有汇总行 ⇒ "重布成功 0 个"是假象)
+          ② ★**重布前清掉"要重布的网自己已有的铜"** ⇒ ★**`route_net()` 不会自动清**
+             ⇒ 不清 ⇒ ★**重复铜** ⇒ DRC 爆 + 段数虚高
+          ③ ★**失败时把本网自己的铜原样还原** ⇒ ★**不许把已布好的腿丢掉**
         ★**时机很关键**: 必须在**阶段性 commit 之前**跑 ⇒ ⇒ 被拆的线**根本不会落到板上**
-          ⇒ 板上不会留下废铜 ⇒ ★也不需要从板上删图元
         返回: 重布成功的网数
         """
         ok = 0
         for net in nets:
-            if net in self.routed:
+            # ★★2026-11-06 01:2x **v49: 守卫改判 `routed_ok`** (★"成功过"才跳过)
+            #   ★**旧行为**: `if net in self.routed: continue` ⇒ ★**失败的网也在 routed 里**
+            #     ⇒ ★**每个失败网都在第一行被跳过 ⇒ 收尾杀招一次都没执行过**
+            _skip = (net in self.routed_ok) if RIPUP_ALIVE else (net in self.routed)
+            if _skip:
                 continue
             cells = self._net_start_cells(net)
             if not cells:
@@ -2605,37 +2625,61 @@ class GridRouter:
                 continue
             ripped = [b[1] for b in bl]
             rip_nets = set(s[0] for s in ripped)
-            keep = [s for s in self.tracks if s not in set(ripped)]
-            # ★被拆线附近的同网过孔也要拆 (否则它的 halo 照样堵)
-            keep_v = []
-            ripped_v = []
-            for v in self.vias:
-                drop = False
-                if v[0] in rip_nets:
-                    for s in ripped:
-                        if _pt_seg_dist(v[1], v[2], s[1], s[2], s[3], s[4]) < 1.5:
-                            drop = True
-                            break
-                (ripped_v if drop else keep_v).append(v)
+            # ★★2026-11-06 01:4x **v49 ②③: 记下"受影响网自己已有、且没被拆"的铜**
+            #   ★**为什么**: `route_net()` 体内 0 处碰 self.tracks/self.vias ⇒ ★**它从零再画**
+            #   ⇒ ⇒ 不清 ⇒ ★**重复铜**; 而失败时又必须 ★**原样还原** (不许丢已布好的腿)
+            rip_set = set(ripped)
+            affected = set([net]) | rip_nets
+            own_t = {}
+            own_v = {}
+            for _n in affected:
+                own_t[_n] = [s for s in self.tracks if s[0] == _n and s not in rip_set]
+                own_v[_n] = [v for v in self.vias if v[0] == _n]
+            # ★拆: 挡路的线 + ★**受影响网自己所有的线** (★重布时重新画)
+            keep = [s for s in self.tracks if s not in rip_set and s[0] not in affected]
+            keep_v = [v for v in self.vias if v[0] not in affected]
+            # ★被拆线附近的同网过孔也要拆 (否则它的 halo 照样堵) ⇒ ★v49: 受影响网的孔一起清
             self.tracks = keep
             self.vias = keep_v
             self.rebuild_halo()
             # ★重布这个网 (★routed 集合里也要先摘掉它)
             self.routed.discard(net)
+            if RIPUP_ALIVE:
+                self.routed_ok.discard(net)
             res = self.route_net(net, width=W_SIG)
             if res.get("ok"):
                 ok += 1
                 # ★把被拆的网重新布一遍 (它们现在有地方了)
                 for rn in sorted(rip_nets):
-                    self.route_net(rn, width=W_SIG)
+                    if rn == net:
+                        continue
+                    # ★v49 ②: 重布 rn 前先清掉它自己的铜 (★route_net 不会自动清)
+                    self.tracks = [s for s in self.tracks if s[0] != rn]
+                    self.vias = [v for v in self.vias if v[0] != rn]
+                    self.rebuild_halo()
+                    self.routed.discard(rn)
+                    if RIPUP_ALIVE:
+                        self.routed_ok.discard(rn)
+                    r2 = self.route_net(rn, width=W_SIG)
+                    if not r2.get("ok"):
+                        # ★v49 ③: 重布失败 ⇒ 还原 rn 自己的旧铜 (★不许丢已布好的腿)
+                        self.tracks = self.tracks + own_t.get(rn, []) \
+                            + [s for s in ripped if s[0] == rn]
+                        self.vias = self.vias + own_v.get(rn, [])
+                        self.rebuild_halo()
                 if verbose:
                     print("  [RIPUP] %-22s 拆了 %d 条线 ⇒ 重布成功" % (net, len(ripped)))
             else:
                 # ★失败 ⇒ 原样放回 (★板子上本来也没它们 ⇒ 只需还原障碍模型)
-                self.tracks = keep + ripped
-                self.vias = keep_v + ripped_v
+                # ★v49 ③: ★**连本网自己已有的铜也要还原** (★否则会丢掉已布好的腿)
+                for _n in affected:
+                    self.tracks = self.tracks + own_t.get(_n, []) \
+                        + [s for s in ripped if s[0] == _n]
+                    self.vias = self.vias + own_v.get(_n, [])
                 self.rebuild_halo()
                 self.routed.discard(net)
+                if RIPUP_ALIVE:
+                    self.routed_ok.discard(net)
                 if verbose:
                     print("  [RIPUP] %-22s 拆了 %d 条线 ⇒ 仍不通 ⇒ 已还原" % (net, len(ripped)))
         return ok
@@ -3612,6 +3656,28 @@ def route_board(board, verbose=True):
             stats["failed"].append(net)
     if verbose:
         print("  [REST] 其余 %d 个网已布" % len(rest))
+    # ★★2026-11-06 01:4x **v49: 第二轮 rip-up (★在"其余网"之后)**
+    #   ★**为什么必须有**: 第一轮 rip-up 排在 "其余网" **之前** ⇒ ⇒ **普通信号网
+    #     (FSIN_OUT / SPI_* / JTAG_TDI / UART_RX / USB_CC2 / PWR_GOOD / ID_DETECT_0 ...)
+    #     还没被尝试过** ⇒ ⇒ **不在失败清单里** ⇒ ⇒ **第一轮根本轮不到它们**
+    #   ★**实测**: 官方板 26 个"整张板零铜"的网 **全部是普通信号网** ⇒ ⇒ **第一轮救不到**
+    #   ★**上限**: `PCB_RIPUP_MAX` ⇒ 防止第二轮无限拖时间
+    if RIPUP_ALIVE and os.environ.get("PCB_RIPUP", "1") != "0":
+        _failed2 = sorted(set([n for n, v in stats["nets"].items() if not v.get("ok")]
+                               + [e["net"] for e in r.fail_detail]))
+        _cap = max(1, int(os.environ.get("PCB_RIPUP_MAX", "40")))
+        if len(_failed2) > _cap:
+            if verbose:
+                print("  [RIPUP] 第二轮候选 %d 个 ⇒ ★**按上限只取前 %d 个**" % (len(_failed2), _cap))
+            _failed2 = _failed2[:_cap]
+        if _failed2:
+            _nrip2 = r.ripup_and_reroute(_failed2, rip_per_net=6, verbose=verbose)
+            stats["ripup_ok"] = stats.get("ripup_ok", 0) + _nrip2
+            if verbose:
+                print("  [RIPUP] 第二轮 (其余网之后): 尝试 %d 个失败网 ⇒ 重布成功 %d 个"
+                      % (len(_failed2), _nrip2))
+            stats["failed"] = [n for n in set(stats["failed"])
+                               if not (stats["nets"].get(n) or {}).get("ok")]
     # ★★2026-11-05 07:05 **中途存盘前先 commit** (同上: 不 commit ⇒ 存出来是空骨架)
     try:
         _n2 = r.commit(board)
