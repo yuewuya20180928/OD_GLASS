@@ -46,3 +46,6 @@
 
 10. ★★★★★[06:0x ★★★绕行版否定结果 + 三条最终结论] ① **成品板"只加铜"路线到顶**: 直连+线宽扫描+L/U 绕行(±2mm) ⇒ **只救回 1 条** (`RAIL_DEMO_5V` · unc 57→56 · DRC 0 · 闸 ACCEPT) ⇒ ★**再往下必须拆现有铜** ⇒ ★**必须带承重检查** (`state/rip_guard.py` 已交付并在真板验证: 官方板 RESET_N 孤岛 1→2 ⇒ 判"承重 ⇒ BLOCK"; RAIL_DEMO_5V 孤岛数 2 与 KiCad DRC 那一条未连接项独立吻合) ② ★**拆完的重画必须"保分支"** ⇒ 下一个该写的工具 = 保分支的 rip-and-replace ③ ★**45 条长距 DSI/CSI 腿不是补丁能力问题** ⇒ 只能靠从零重布(v52/v53 在跑)或改封装/布局
 
+
+11. ★★★★★[06:2x~06:3x ★★★★★**突破: stub 模型是真凶** ⇒ unc 57→**48**] ★**新工具 `state/patch_astar_nostub.py`**: A* 直接从"焊盘自己那一格 + 周围 8 格"起步 · **完全不生成 stub** ⇒ 出脚方向由 A* 自己决定 · 网格 0.125mm (BTB 焊盘只有 0.2mm 宽) ⇒ 实测**补上 7 条**(含 48mm 的 SENSOR_VDD_IO) ⇒ DRC=0 · unc=50 · 闸 ACCEPT; ★**再叠 `fix_straight_links.py` 的 3 条 ⇒ unc=48 · 零铜 26→24 · DRC 0 · 退铜 0 · 差分死腿 0 · 逐网孤岛变多 0 · parity 过 ⇒ ACCEPT** ⇒ 归档 `state/.lastgood/board_combo_unc48_20261106_0629.kicad_pcb` (md5 3267a6df) ⇒ ★**官方板仍未动**(v52/v53 在跑, 以官方板为基线)
+
