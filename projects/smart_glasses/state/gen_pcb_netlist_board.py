@@ -37,6 +37,7 @@ import csv
 import os
 import re
 import sys
+import json  # ★★2026-11-05 08:17 **修: 落盘时刻印用了 json 却没 import ⇒ 印没写成 ⇒ 收工闸判据失效**
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)

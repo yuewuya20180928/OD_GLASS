@@ -1253,7 +1253,8 @@ class GridRouter:
                 if x0 - 0.05 <= cx <= x1 + 0.05 and y0 - 0.05 <= cy <= y1 + 0.05:
                     bad = True
                     break
-            if not bad and not self._via_free_all(idx, net_g):
+            # ★★2026-11-05 08:22 **改用几何精确判据** (★halo[2] 的 0.95mm 半径太严 ⇒ 密集区放不下)
+            if not bad and not self._via_exact_ok(cx, cy, _dia, net_g, _drill):
                 bad = True
             if bad:
                 why["inpad_busy"] = why.get("inpad_busy", 0) + 1
@@ -1307,9 +1308,9 @@ class GridRouter:
                     # ② 孔间距
                     if any(math.hypot(vx - ox, vy - oy) < 0.60 for (vn, ox, oy, _a, _b) in self.vias):
                         continue
-                    # ③ 过孔位真能放 (别的网铜/焊盘不挨着)
+                    # ③ 过孔位真能放 (★改用**几何精确**判据 ★不用 halo[2] 的 0.95mm)
                     idx = self._idx(self._ci(vx), self._cj(vy))
-                    if not self._via_free_all(idx, net_g):
+                    if not self._via_exact_ok(vx, vy, VIA_DIA, net_g, VIA_DRILL):
                         continue
                     # ★落: 焊盘 → 短走线 → 过孔
                     self.tracks.append((net_g, cx, cy, vx, vy, 0, W_SIG))
@@ -1400,6 +1401,48 @@ class GridRouter:
                     continue
                 return [(0, idx)], (cx, cy, ex, ey)
         return [], None
+
+    def _via_exact_ok(self, cx, cy, dia, net, drill=VIA_DRILL):
+        """★**几何精确的过孔可落性判据** (★2026-11-05 08:22)
+        ★**为什么不能用 `_via_free_all`**: 它用 **halo[2]** 判 ⇒ 半径 = CLEAR+VIA_DIA/2+W_CLS[2]/2+MARGIN
+          = 0.20+0.30+0.25+0.20 = **0.95mm** ⇒ ★**密集区任何过孔都放不下**
+          ⇒ ⇒ 实测: GND 焊盘内过孔 **inpad_busy=10 / narrow=10** ⇒ 20 个 GND 焊盘一根铜都没有
+          ⇒ ⇒ ★**而且同样的过严判据也在压制长线的换层 ⇒ 那 52 个"真被堵死"有一部分是这么来的**
+        ★**精确判据** (按真实铜算, 不按栅格保守半径):
+          ① 孔盘外缘到**别的网焊盘** ≥ 0.20mm
+          ② 孔盘外缘到**别的网走线** ≥ 0.20mm
+          ③ 孔心到已有过孔 ≥ 0.60mm (孔间距)
+          ④ 孔心到别的网焊盘的**孔** ≥ 0.25mm (孔净距)
+        """
+        _r = dia / 2.0
+        # ① 别的网焊盘 (同网不算)
+        for (n2, x0, y0, x1, y1, _ls) in self.pad_rects_l:
+            if n2 == net:
+                continue
+            dx = max(x0 - cx, 0.0, cx - x1)
+            dy = max(y0 - cy, 0.0, cy - y1)
+            if math.hypot(dx, dy) < _r + CLEAR:
+                return False
+        # ② 别的网走线 (同网不算)
+        for s in self.tracks:
+            if s[0] == net:
+                continue
+            d = _pt_seg_dist(cx, cy, s[1], s[2], s[3], s[4])
+            if d < _r + CLEAR + s[6] / 2.0:
+                return False
+        # ③ 孔间距 (同孔心/近孔心)
+        for (vn, vx, vy, _l1, _l2) in self.vias:
+            if vn == net:
+                continue
+            if math.hypot(cx - vx, cy - vy) < 0.60:
+                return False
+        # ④ 孔净距 (别的网的孔)
+        for (vn, vx, vy, _l1, _l2) in self.vias:
+            if vn == net:
+                continue
+            if math.hypot(cx - vx, cy - vy) < drill / 2.0 + 0.25:
+                return False
+        return True
 
     def _via_free_all(self, idx, net):
         """通孔 (贯穿 6 层) 在所有层都要有净距"""
@@ -1863,6 +1906,78 @@ class GridRouter:
                     break
         out.sort(key=lambda t: t[0])
         return out[:maxn]
+
+    def stitch_same_net(self, nets=None, width=0.30, verbose=False):
+        """★★**同网缝合** (2026-11-05 08:45) —— ★★把"同一张网的多个焊盘"直接用短铜连起来
+        ★★**为什么必须有 (实测 v25: 82 条未连里 31 条集中在 CONN_CAM/CONN_LIGHT, 19 条是 GND)**:
+          ★**同一张网的多个焊盘本来就应该直接短铜相连** (PCB 标准做法: net stitching / 同网缝合)
+          ⇒ ★**同网铜之间不需要净距** ⇒ ⇒ **一根直线就能连 ⇒ 绕开所有中间障碍**
+          ⇒ ⇒ ★★而我的路由器是"逐点独立布线到目标" ⇒ **同网两焊盘之间从没有"直连"的机会**
+          ⇒ ⇒ ★★ 于是 5 个 GND 焊盘各自要去接 GND 平面, 中间还被别的网挡 ⇒ ⇒ 19 条未连
+          ⇒ ⇒ ★★ 一次同网直连 ⇒ **一批未连直接消失**
+        ★**安全**: 唯一的风险是这根短铜**碰到别的网的铜** ⇒ ⇒ 逐段用 `_geom_clear` 查 ⇒ 不清就不连
+        ★**已通网的焊盘也参与** (连了不会坏事, 反而降阻抗)
+        返回: 新增的短铜条数
+        """
+        n_stitched = 0
+        targets = nets if nets is not None else list(self.net_pads.keys())
+        # ★★2026-11-05 08:52 **差分对的网不许缝合** ⇒ 缝合会在差分线中间加一段短铜
+        #   ⇒ ★**破坏差分对的几何/耦合** (P 侧多一个分支 ⇒ 等长与间距全乱)
+        try:
+            _dp = set()
+            for (_p, _n, _tp, _tn) in DIFF_PAIRS:
+                _dp.add(_p)
+                _dp.add(_n)
+        except Exception:
+            _dp = set()
+        targets = [t for t in targets if t not in _dp]
+        for net in targets:
+            pads = self.net_pads.get(net) or []
+            if len(pads) < 2:
+                continue
+            # ★按几何顺序排 (连接器的一排脚 ⇒ 排完相邻脚相邻 ⇒ 短铜最短)
+            ps = sorted(pads, key=lambda p: (round(p[2], 3), round(p[3], 3)))
+            for i in range(len(ps) - 1):
+                a = ps[i]
+                b = ps[i + 1]
+                lay = 0
+                # ★同网已有铜盖住这段 ⇒ 跳过 (不重复画)
+                mx, my = (a[2] + b[2]) / 2.0, (a[3] + b[3]) / 2.0
+                dup = False
+                for s in self.tracks:
+                    if s[0] != net:
+                        continue
+                    if _pt_seg_dist(mx, my, s[1], s[2], s[3], s[4]) < 0.05:
+                        dup = True
+                        break
+                if dup:
+                    continue
+                segs = [(a[2], a[3], b[2], b[3])]
+                if not self._geom_clear(net, segs, lay, width):
+                    # ★★2026-11-05 08:50 **直线被挡 ⇒ 试 L 形绕行 (两个方向)**
+                    _cands = []
+                    _mx, _my = (a[2] + b[2]) / 2.0, (a[3] + b[3]) / 2.0
+                    for _c in ((_mx, a[3]), (a[2], _my), (_mx, b[3]), (b[2], _my)):
+                        _cands.append([(a[2], a[3], _c[0], _c[1]),
+                                       (_c[0], _c[1], b[2], b[3])])
+                    _picked = None
+                    for _s2 in _cands:
+                        if self._geom_clear(net, _s2, lay, width):
+                            _picked = _s2
+                            break
+                    if _picked is None:
+                        continue
+                    for (_x1, _y1, _x2, _y2) in _picked:
+                        self.tracks.append((net, _x1, _y1, _x2, _y2, lay, width))
+                        self._add_track_halo(net, _x1, _y1, _x2, _y2, lay, width)
+                    n_stitched += len(_picked)
+                    continue
+                self.tracks.append((net, a[2], a[3], b[2], b[3], lay, width))
+                self._add_track_halo(net, a[2], a[3], b[2], b[3], lay, width)
+                n_stitched += 1
+        if verbose and n_stitched:
+            print("  [STITCH] 同网缝合: 新增 %d 条短铜" % n_stitched)
+        return n_stitched
 
     def ripup_and_reroute(self, nets, rip_per_net=6, verbose=True):
         """★★**收尾杀招: 拆掉挡路的线, 重布失败的网** (标准 rip-up & reroute)
@@ -2663,6 +2778,18 @@ def route_board(board, verbose=True):
 
     # ---------- 3) MIPI 差分对 (最难 ⇒ 最后)
     _run_pairs(MIPI_PAIRS)
+    # ---------- 4) ★★2026-11-05 08:45 **同网缝合 (net stitching)** ——
+    #   ★**为什么放这儿**: 实测 v25 的 82 条未连里 ★**19 条是 GND + 31 条集中在两个连接器**
+    #     ⇒ 全是"**同网多点**" ⇒ ★★ 同网焊盘之间本来就该短铜直连 (PCB 标准做法) ⇒ ★**一根直线就能接上**
+    #   ★**必须在 rip-up 之前** ⇒ ⇒ rip-up 也能用上这些短铜
+    try:
+        _nst = r.stitch_same_net(verbose=verbose)
+        stats["stitched"] = _nst
+        if verbose:
+            print("  [STITCH] 同网缝合: 新增 %d 条短铜 (多脚连接器/GND 优先受益)" % _nst)
+    except Exception as e:
+        print("  ⚠️ 同网缝合失败: %s" % e)
+
     # ★★★2026-11-05 07:50 **rip-up & reroute (收尾杀招)** ——
     #   ★**时机**: 必须在**阶段性 commit 之前** ⇒ ⇒ 被拆的线**根本不会落到板上** ⇒ 板上无废铜
     #   ★**目标**: 实测 78 个失败脚里 **64 个 (82%) 是"中途被堵死"** ⇒ 只能拆线重走

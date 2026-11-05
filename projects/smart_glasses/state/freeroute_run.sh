@@ -13,7 +13,8 @@ SES=/tmp/fr_board.ses
 OUT=/tmp/fr_routed.kicad_pcb
 JRE=$(ls -d ~/tools/jdk-*/bin/java 2>/dev/null | head -1)
 [ -z "$JRE" ] && JRE=$(ls -d ~/tools/jdk-*/jre/bin/java 2>/dev/null | head -1)
-JAR=~/tools/freerouting.jar
+JAR=~/tools/fr_1.9.0.jar
+[ -f "$JAR" ] || JAR=~/tools/freerouting.jar
 
 echo "=== 0) 准备 ==="
 echo "  板: $PCB"
