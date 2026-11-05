@@ -53,7 +53,8 @@ SOM_PARAMS = os.path.join(PROJ, "HW", "PCB", "som_btb_params.json")
 NETLIST = os.path.join(PROJ, "HW", "netlist_v1.csv")
 # ★2026-11-05: 输出路径可用环境变量改 (便于**并行做实验**而不动正式板)
 PCB = os.environ.get("PCB_OUT") or os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
-REPORT = os.path.join(PROJ, "HW", "PCB", "PCB_NETLIST_FILL.txt")
+# ★2026-11-05 19:15 **探针不许改项目文件** ⇒ REPORT 可用 env 改到 /tmp
+REPORT = os.environ.get("PCB_REPORT") or os.path.join(PROJ, "HW", "PCB", "PCB_NETLIST_FILL.txt")
 
 # ★★2026-11-05 03:45 加环境变量开关: **板子尺寸可临时放大** (缓解 BTB 密集区布线拥塞)
 #   动机: 186 器件 / 400 个 0.4mm pitch BTB 焊盘 ⇒ 160×100 的板子布线拥塞 ⇒ unconnected 卡在 ~90
@@ -95,6 +96,54 @@ USB_C_X = 140.0
 USB_C_Y = 5.25
 # ★禁放区 (自动装箱要避开): USB-C 座占 x 133.9..146.1, y 0..6.4
 RESERVED = [(133.0, 0.0, 147.5, 7.2)]
+
+# ★★2026-11-05 19:12 **v34 机制: "把这几个件搬到这块区域"** (★env 门控, **默认关**)
+#   ★**为什么要有**: `CONN_LIGHT` 的 DSI 差分脚被 `C_AC_CSI_*` 电容行压在正上方
+#     (净空 0.45mm) ⇒ 差分脚无处可逃 ⇒ **必须走摆放臂** (★挪过孔已实测无效)
+#   ★**用法**: `PCB_MOVE_AREA="C_AC_CSI_D0_CK_P,C_AC_CSI_D0_CK_N:12,72,77,74"`
+#     ⇒ 这几个件行式装箱进 (12,72)-(77,74) ⇒ ★**且该区域对其它组变成禁放区**
+#   ★**默认空 ⇒ 与 v31/v32/v33 逐位一致**
+MOVE_PARTS = set()
+MOVE_AREA = None
+_mv = (os.environ.get("PCB_MOVE_AREA", "") or "").strip()
+if ":" in _mv:
+    _mrefs, _mbox = _mv.split(":", 1)
+    try:
+        _ma = [float(x) for x in _mbox.split(",")]
+        if len(_ma) == 4:
+            MOVE_AREA = tuple(_ma)
+            MOVE_PARTS = set(r.strip() for r in _mrefs.split(",") if r.strip())
+    except Exception:
+        MOVE_AREA = None
+        MOVE_PARTS = set()
+if MOVE_PARTS:
+    print("  [排版] ★搬迁 %d 个件到 %s" % (len(MOVE_PARTS), MOVE_AREA))
+
+# ★★2026-11-05 19:15 **纯禁放框 (keep-out) —— v34 的真正手段** (★env 门控, 默认关)
+#   ★★**探针实测教训 (19:12)**: "搬迁几个件" ★**根本不管用** ——
+#     排版是**行式装箱流** ⇒ 搬走挡路的件 ⇒ ★**后面的件立刻补位** ⇒ 走廊照样被占
+#     (实测: 搬走 CK_P/CK_N/D1_P ⇒ D0_P/D0_N/D1_N 立刻补进同一走廊 ⇒ 一点没腾出来)
+#   ⇒ ★**唯一有效的手段 = 把走廊圈成禁放框** ⇒ 撞框的件**同排右移**绕开
+#   ★**用法**: `PCB_KEEPOUT="24.0,56.1,35.6,59.6"` (多组用 `;` 分隔)
+#   ★**判定用"焊盘"而不是"器件外框"**: 圈的是**焊盘占的通道**, 不是元件形状
+def _parse_ko(v):
+    out = []
+    for grp in (v or "").split(";"):
+        grp = grp.strip()
+        if not grp:
+            continue
+        try:
+            a = [float(x) for x in grp.split(",")]
+        except Exception:
+            continue
+        if len(a) == 4:
+            out.append(tuple(a))
+    return out
+
+
+KEEPOUT_BOXES = _parse_ko(os.environ.get("PCB_KEEPOUT", ""))
+if KEEPOUT_BOXES:
+    print("  [排版] ★禁放框 %d 个: %s" % (len(KEEPOUT_BOXES), KEEPOUT_BOXES))
 
 PLACE_OVERRIDE = {
     "J_USB_C": {"x": 130.55, "y": 46.20, "rot": 90},
@@ -643,12 +692,15 @@ def main():
     PLACE_INFO = {}     # ref → (x, y, w, h) —— 供"测试点贴伙伴件"用
     NET_PARTS = {}     # net → [ref] —— 同网已放器件
 
-    def _place_flow(flow_items, sx, sy, ex=None, ey=None, reserved=None):
+    def _place_flow(flow_items, sx, sy, ex=None, ey=None, reserved=None, ko=None):
         """把一批器件行式装箱到 (sx, sy) 起 ⇒ 返回 (px, py, row_h, 放置数)
-           ★ex/ey = 该批器件的区域上限 (默认用 PK_AREA)"""
+           ★ex/ey = 该批器件的区域上限 (默认用 PK_AREA)
+           ★ko = ★**禁放框列表** (v34): 撞上就**同排右移** (不是换行) ⇒ 粒度细, 不打乱整排
+               ★与 `reserved` 不同: reserved 撞了要**换行** (大块区, 如 USB-C 座区)"""
         ex = PK_AREA[2] if ex is None else ex
         ey = PK_AREA[3] if ey is None else ey
         _RES = list(RESERVED) + list(reserved or [])
+        _KO = list(ko or [])
         px, py, row_h = sx, sy, 0.0
         cnt = 0
         for (ref, pins, kind, w, h) in flow_items:
@@ -665,8 +717,35 @@ def main():
             #   ⇒ ★实测后果: C_BULK_SENSOR_AVDD 的封装压根没画到板上 ⇒ parity 报"缺失 2" ⇒ ★G1 卡在 parity
             #   ⇒ 改成: 换行后**重新试放这个器件** (死循环保护 60 次)
             _retry = 0
-            while any(not (px + w <= rx0 or px >= rx1 or py + h <= ry0 or py >= ry1)
-                      for (rx0, ry0, rx1, ry1) in _RES):
+            _skip = 0
+            while True:
+                # ★★v34: ★**禁放框 ⇒ 同排右移** (细粒度)
+                _hit_ko = False
+                for (rx0, ry0, rx1, ry1) in _KO:
+                    if not (px + w <= rx0 or px >= rx1 or py + h <= ry0 or py >= ry1):
+                        _hit_ko = True
+                        break
+                if _hit_ko:
+                    px += w + 3.0
+                    _skip += 1
+                    if px + w > ex:            # ★右移出界 ⇒ 换行
+                        px = sx
+                        py += row_h + 3.0
+                        row_h = 0.0
+                        _retry += 1
+                        if py + h > ey:
+                            print("⚠️ 装不下(禁放框反复挡): %s (y=%.1f)" % (ref, py))
+                            DROPPED.append(ref)
+                            break
+                    if _skip > 60:
+                        print("⚠️ 禁放框右移 60 次仍挡: %s ⇒ 放弃放置" % ref)
+                        DROPPED.append(ref)
+                        break
+                    continue
+                # ★普通禁放区 ⇒ 换行 (原逻辑, 一字不改)
+                if not any(not (px + w <= rx0 or px >= rx1 or py + h <= ry0 or py >= ry1)
+                           for (rx0, ry0, rx1, ry1) in _RES):
+                    break
                 px = sx
                 py += row_h + 3.0
                 row_h = 0.0
@@ -707,6 +786,7 @@ def main():
 
     # ★分组: 上排 BTB 伙伴件 / 下排 BTB 伙伴件 / 其余
     _grp_top, _grp_bot, _grp_rest, _grp_tp = [], [], [], []
+    _grp_move = []      # ★★v34: 被指定搬迁的件
     # ★★2026-11-05 08:15 **差分对的"远端连接器"不许被当伙伴件搬走**
     #   ⇒ 实测: F5 排版把 **CONN_CAM 从 (78.9..93.9, 51.4) 搬到 (93.3..108.3, 17.6)**
     #     ⇒ ★**MIPI 的 CSI 差分对远端整个位移** ⇒ 走廊全变 ⇒ ★**22 对里只剩 5 对耦合成功**
@@ -717,6 +797,9 @@ def main():
     for it in items:
         if it[0].startswith("TP_"):
             _grp_tp.append(it)     # ★测试点单独一轮 (贴伙伴件)
+            continue
+        if it[0] in MOVE_PARTS:
+            _grp_move.append(it)   # ★★v34: 搬迁组 (行式装箱进指定区域)
             continue
         if it[0] in _PAIR_ENDPOINT_CONN:
             _grp_rest.append(it)   # ★★差分对远端连接器 ⇒ 不参与"伙伴件搬移"
@@ -787,11 +870,22 @@ def main():
                          CONN_CAM_PIN["y"] + _h / 2.0 + PLACE_OVERRIDE_GUARD))
     if _RES_OVR:
         print("  [排版] 钉位器件禁放区 %d 个 (★避免焊盘搭上⇒短路)" % len(_RES_OVR))
-    pxB, pyB, rhB, nB = _place_flow(_grp_bot, _A_BOT[0], _A_BOT[1], _A_BOT[2], _A_BOT[3], reserved=_RES_OVR)
+    # ★★v34: 搬迁组先占位 (★并把该区域变成其它组的禁放框 ⇒ 不会撞)
+    _KO_BOX = []
+    if MOVE_AREA and _grp_move:
+        _KO_BOX = [(MOVE_AREA[0] - 0.8, MOVE_AREA[1] - 0.8,
+                    MOVE_AREA[2] + 0.8, MOVE_AREA[3] + 0.8)]
+        pxM, pyM, rhM, nM = _place_flow(_grp_move, MOVE_AREA[0], MOVE_AREA[1],
+                                        MOVE_AREA[2], MOVE_AREA[3], reserved=_RES_OVR)
+        placed += nM
+        print("  [排版] ★搬迁组 %d 个 → (%s)" % (nM, MOVE_AREA))
+    # ★★v34: **纯禁放框** ⇒ 对所有组 + TP 都生效 (★这才是能腾出走廊的手段)
+    _KO_BOX.extend(KEEPOUT_BOXES)
+    pxB, pyB, rhB, nB = _place_flow(_grp_bot, _A_BOT[0], _A_BOT[1], _A_BOT[2], _A_BOT[3], reserved=_RES_OVR, ko=_KO_BOX)
     placed += nB
-    pxA, pyA, rhA, nA = _place_flow(_grp_top, _A_TOP[0], _A_TOP[1], _A_TOP[2], _A_TOP[3], reserved=_RES_OVR)
+    pxA, pyA, rhA, nA = _place_flow(_grp_top, _A_TOP[0], _A_TOP[1], _A_TOP[2], _A_TOP[3], reserved=_RES_OVR, ko=_KO_BOX)
     placed += nA
-    pxC, pyC, rhC, nC = _place_flow(_grp_rest, _A_RES[0], _A_RES[1], _A_RES[2], _A_RES[3], reserved=_RES_OVR)
+    pxC, pyC, rhC, nC = _place_flow(_grp_rest, _A_RES[0], _A_RES[1], _A_RES[2], _A_RES[3], reserved=_RES_OVR, ko=_KO_BOX)
     placed += nC
     # ★★2026-11-05 07:25 **测试点 (TP_*) 贴着它的伙伴件放** (⇒ 消灭 TP↔伙伴 的百毫米长线)
     #   实测 (F5 排版下最长的几条): TP_CSI_CK_N ↔ C_AC_CSI_D0_CK_N = **124mm**;
@@ -824,6 +918,11 @@ def main():
                         bad = True
                         break
                 if bad:
+                    continue
+                # ★★v34: ★**TP 也不许贴进禁放框** (否则又会压回连接器差分脚上)
+                if any(not (nx + w / 2.0 <= kx0 or nx - w / 2.0 >= kx1
+                             or ny + h / 2.0 <= ky0 or ny - h / 2.0 >= ky1)
+                       for (kx0, ky0, kx1, ky1) in _KO_BOX):
                     continue
                 make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap, nx, ny)
                 PLACE_INFO[ref] = (nx, ny, w, h)

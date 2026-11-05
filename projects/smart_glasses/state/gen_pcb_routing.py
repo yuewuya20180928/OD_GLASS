@@ -40,6 +40,42 @@ CLEAR = 0.20           # mm 铜间距 (KiCad 默认)
 HALO_MARGIN = float(os.environ.get("PCB_HALO_MARGIN", "0.20"))
                         # ★★2026-11-04 22:35 项目总工改: 0.07 → 0.20 —— 上一轮 DRC 实测净距 0.175 < 要求 0.200
                         #   ⇒ ★**半格量化损失没被补回来** ⇒ 余量必须 ≥ 半格 (0.125) + 富余 ⇒ 0.20
+# ★★2026-11-05 18:55 **过孔 halo 单独用精确几何** (★v32 单变量) —— ★**实测根因**
+#   ★**现象**: `CONN_CAM` 的 GND 下拉孔落在**每个 GND 焊盘正下方 1.2mm**
+#     (x=80.4/81.9/83.4/84.9/**86.4**/**87.9**, y=52.60) ⇒ 与 0.5mm pitch 的 CSI 脚**交错成栅栏**
+#     ⇒ ★**10 条 CSI "第二跳" (AC电容→CONN_CAM) 全堵在这** (含只差 6.4mm 的 CSI_D0_CK_P)
+#   ★**旧半径** = CLEAR 0.20 + VIA_DIA/2 0.30 + W_CLS/2 0.125 + HALO_MARGIN 0.20 = **0.825mm**
+#     ⇒ 栅栏之间唯一通道 (格 x=87.125, 距孔心 0.775) 被 halo 判死 ⇒ ★**通道焊死**
+#   ★**真实 DRC 需要的半径** = VIA_DIA/2 0.30 + 走线半宽 0.125 + CLEAR 0.20 = **0.625mm**
+#     ⇒ 0.775 > 0.625 ⇒ ★**通道本来就合法** ⇒ ★**halo 多算了 HALO_MARGIN (0.20)**
+#   ★**为什么安全**: 栅格 0.25mm, 标记用的是"格心到孔心 ≤ rr"的圆内测试 (不是 ceil)
+#     ⇒ rr=0.625 时标记格 ≤0.559mm ⇒ 通道格 87.125 (0.775mm) 放行
+#     ⇒ 实算净距 = 0.775 - 0.30(孔盘半径) - 0.125(线半宽) = **0.35mm ≥ 0.20 ✔**
+#   ★**默认仍是 0.20** ⇒ 与 v31_Q **逐位可复现** ⇒ 只在实验臂用 `PCB_VIA_HALO_MARGIN=0.0` 打开
+#   ★**与已有逻辑一致**: `_via_exact_ok` / `_via_site_ok` 早就改成"精确几何"了 ⇒ ★**这里只是补齐**
+VIA_HALO_MARGIN = float(os.environ.get("PCB_VIA_HALO_MARGIN", str(HALO_MARGIN)))
+# ★★2026-11-05 19:15 **连接器差分脚"逃逸走廊"禁放 GND 下拉孔** (★v33_S 单变量, 默认关)
+#   ★**实测根因 (承 v32 的发现)**: `CONN_CAM` 的 GND 下拉孔落在**每个 GND 焊盘正下方 1.2mm**
+#     (x=80.4/81.9/83.4/84.9/86.4/87.9, y=52.60) ⇒ ★**把连接器下方 4.3mm 的空带
+#     (y 51.85→56.15, x 78..95) 切成一条条 0.75mm 的缝** ⇒ 差分脚逃不出去
+#   ★**规则**: 对指定连接器 (如 CONN_CAM), 它的 GND 焊盘的**下拉孔心到焊盘行的垂直距离**
+#     必须 ≥ MIN ⇒ 孔只能往连接器**上方**远躲 ⇒ ★**逃逸走廊整条让开**
+#   ★**为什么对 CONN_LIGHT 不适用**: 它上下两侧都被**器件** (电容行 / TP / 串阻) 堵死
+#     ⇒ 挪孔解决不了 ⇒ ★**DSI 侧要另走摆放臂**
+#   ★**用法**: `PCB_CONN_GND_ESCAPE="CONN_CAM:4.0"` (多组用 `;` 分隔, 形如 `REF:MIN`)
+#   ★**默认空 ⇒ 与 v31/v32 逐位一致**
+CONN_GND_ESC = {}
+for _grp in (os.environ.get("PCB_CONN_GND_ESCAPE", "") or "").split(";"):
+    _grp = _grp.strip()
+    if not _grp or ":" not in _grp:
+        continue
+    try:
+        _r, _m = _grp.split(":", 1)
+        CONN_GND_ESC[_r.strip()] = float(_m)
+    except Exception:
+        continue
+if CONN_GND_ESC:
+    print("  [路由] ★连接器逃逸走廊禁放 GND 下拉孔: %s" % CONN_GND_ESC)
 ESC_LEN = 1.20         # mm ★密集焊盘出脚直道长度 (沿焊盘中心线直线走出)
 # ★出脚直道长度候选 (长→短) —— ★板边放不下就缩短 (fix B: 出脚直道离网格 ⇒ 板边要单独查)
 ESC_LENS = (1.20, 0.90, 0.60, 0.40)
@@ -1184,6 +1220,13 @@ class GridRouter:
                         continue
                     idx = self._idx(i, j)
                     px, py = self._cx(i), self._cy(j)
+                    # ★★2026-11-05 19:15 **连接器差分脚逃逸走廊: 不许放 GND 下拉孔**
+                    #   ★**根因**: `CONN_CAM` 的 GND 下拉孔落在每个 GND 焊盘正下方 1.2mm
+                    #     ⇒ 与 0.5mm pitch 的 CSI 脚交错成栅栏 ⇒ 4.3mm 空带被切成 0.75mm 的缝
+                    #   ⇒ 孔必须往连接器**上方**躲 (≥ MIN) ⇒ 逃逸走廊整条让开
+                    if not self._gnd_drop_esc_ok(_ref, cy, py):
+                        why["conn_esc"] = why.get("conn_esc", 0) + 1
+                        continue
                     # ★★2026-11-05 10:10 **改用精确几何判据** (★原来用 halo[2] 0.95mm 保守半径
                     #   ⇒ 密集区一个孔都放不下 ⇒ GND 焊盘 25 个没铜 ⇒ unconnected 里 GND 占 50)
                     if not self._via_site_ok(idx, net, px, py, dia=_dia):
@@ -1593,6 +1636,21 @@ class GridRouter:
             if math.hypot(cx - vx, cy - vy) < drill / 2.0 + 0.25:
                 return False
         return True
+
+    def _gnd_drop_esc_ok(self, ref, pad_y, via_y):
+        """★★GND 下拉孔不许落在"连接器差分脚逃逸走廊"里 (★v33_S, env 门控默认关)
+           ★**规则**: 对 `PCB_CONN_GND_ESCAPE` 里指定的连接器 (如 CONN_CAM),
+             它的焊盘的 GND 下拉孔心到**焊盘行的垂直距离**必须 ≥ MIN
+           ★**为什么**: 孔落在焊盘正下方 1.2mm ⇒ 与 0.5mm pitch 的差分脚交错成栅栏
+             ⇒ 把连接器下方的空带切成 0.75mm 的缝 ⇒ 差分脚逃不出去
+           ★**默认 (CONN_GND_ESC 为空) ⇒ 永远返回 True ⇒ 行为完全不变**
+        """
+        if not CONN_GND_ESC or not ref:
+            return True
+        _min = CONN_GND_ESC.get(ref)
+        if _min is None:
+            return True
+        return abs(via_y - pad_y) >= _min
 
     def _via_site_ok(self, idx, net, cx, cy, dia=VIA_DIA):
         """★**过孔落点的"精确几何"判据** (2026-11-05 10:10)
@@ -2429,10 +2487,12 @@ class GridRouter:
                 self._mark(cls, li, self._idx(i, j), net, skip_pad_cells=_skip)
 
     def _add_via_halo(self, net, x, y, l1, l2, skip_pad_cells=True):
-        """通孔净距禁区 (★默认**不盖别的网的焊盘格** ⇒ 见 _mark 的说明)"""
+        """通孔净距禁区 (★默认**不盖别的网的焊盘格** ⇒ 见 _mark 的说明)
+        ★★2026-11-05 18:55 **半径用 VIA_HALO_MARGIN (默认 = HALO_MARGIN ⇒ 行为不变)**
+           ⇒ 实验臂 `PCB_VIA_HALO_MARGIN=0.0` 打开精确几何 ⇒ ★**见常量区根因注释**"""
         i, j = self._ci(x), self._cj(y)
         for cls in range(3):
-            rr = CLEAR + VIA_DIA / 2.0 + W_CLS[cls] / 2.0 + HALO_MARGIN
+            rr = CLEAR + VIA_DIA / 2.0 + W_CLS[cls] / 2.0 + VIA_HALO_MARGIN
             ri = int(math.ceil(rr / self.g))
             # ★**通孔 ⇒ 6 层都有铜** ⇒ 净距禁区必须记满 6 层 (否则内层撞铜 ⇒ DRC 短接)
             for li in range(NLAYERS):
