@@ -14,7 +14,8 @@ echo "════════ ① 臂对比 ════════"
 PREFIX="$PREFIX" bash state/cmp_arms.sh
 
 echo "════════ ② 晋级 臂 $ARM 到官方板 ════════"
-bash state/promote_arm.sh "$ARM" 2>&1 | tail -35; _rc=${PIPESTATUS[0]}
+# ★★2026-11-05 11:32 **必须把 PREFIX 传下去** (★不然 promote_arm.sh 会用默认 v26 ⇒ 拿错板!)
+PREFIX="$PREFIX" bash state/promote_arm.sh "$ARM" 2>&1 | tail -35; _rc=${PIPESTATUS[0]}
 if [ "$_rc" -ne 0 ]; then
   echo "  ❌ 晋级失败 (rc=$_rc) ⇒ ★**中止终点线** (不许拿半成品继续)"
   exit 1

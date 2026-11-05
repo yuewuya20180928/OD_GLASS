@@ -101,6 +101,7 @@ NLAYERS = int(os.environ.get("PCB_LAYERS", 6))
 # ★★★2026-11-05 09:45 **差分对出脚区豁免开关** (默认关 ⇒ 不影响在跑的 v26 四臂)
 #   ★根因: SoM BTB 0.4mm pitch ⇒ P/N 焊盘中心距 0.400mm ⇒ 伙伴禁入格 (0.8mm) 把 N 焊盘自己封死
 PAIR_ESCAPE_EXEMPT = os.environ.get("PCB_PAIR_ESCAPE_EXEMPT", "0") == "1"
+BUDGET_ESCALATE = os.environ.get("PCB_BUDGET_ESCALATE", "0") == "1"
 # ★★2026-11-05 10:25 **GND 下拉先布** (env 开关, 默认关)
 #   ★**为什么**: GND 下拉原来排在**所有信号/电源之后** ⇒ 焊盘周围的好位置已被占光
 #     ⇒ 实测 (臂 A): 25 个 GND 焊盘一根铜都没有 ⇒ unconnected 里 **GND 占 50**
@@ -109,6 +110,10 @@ PAIR_ESCAPE_EXEMPT = os.environ.get("PCB_PAIR_ESCAPE_EXEMPT", "0") == "1"
 GND_FIRST = os.environ.get("PCB_GND_FIRST", "0") == "1"
 # ★A* 预算倍率 (模块级, 供"预算耗尽后的大预算重试"用)
 _mult_global = float(os.environ.get("PCB_ABUDGET_MULT", "1"))
+# ★★2026-11-05 11:26 **"预算升级重试"的开关 (★默认关)**
+#   ★**为什么关**: 实测 v28 三臂里, 失败的对 (★几何堵死的: SoM 下沿被 0.4mm pitch 排针封住)
+#     每个要多花 **~10 分钟** 跑 4 倍预算 ⇒ ★**几何堵死不是预算问题, 加预算只是白烧 CPU**
+#   ⇒ ★要试的话开 PCB_BUDGET_ESCALATE=1 (只对"预算耗尽"的失败网, 每网只重试一次)
 # ★★2026-11-05 07:40 **层数通吃** (★官方载板本身就是 10 层 ⇒ 一直只测到 8 层是低估)
 #   ★信号层 = 偶数层 (0=F.Cu, 2, 4, ...) 但**不含最后一层** (B.Cu 留给 GND 平面)
 #   ★6 层 ⇒ [0,2,4] · 8 层 ⇒ [0,2,4,6] · 10 层 ⇒ [0,2,4,6,8]
@@ -916,6 +921,7 @@ class GridRouter:
             #   ⇒ v27 里剩下失败的都是**长对** (DSI/CSI 主对, 60~160mm) ⇒ ★**正是预算型失败**
             #   ⇒ ★**最后再试一次, 预算 ×6** (只对"预算耗尽"的失败) ⇒ 代价可控 (只有这几个网吃 CPU)
             if (path is None and self.astar_budget > bmark
+                    and BUDGET_ESCALATE
                     and net not in getattr(self, "_budget_retried", set())):
                 # ★**每个网只重试一次** (★否则 3 脚网会重试 2 次 ⇒ CPU 爆)
                 self._budget_retried = getattr(self, "_budget_retried", set())
