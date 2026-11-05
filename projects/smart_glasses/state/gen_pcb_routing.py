@@ -976,13 +976,17 @@ class GridRouter:
             # ★但**对面是 0.25mm 及以上的线时必须留余量** (直道半宽 0.125 > 0.1
             #   ⇒ 0.4mm 间距只剩 0.175mm 净距 ⇒ DRC 红)
             need = w / 2.0 + tw / 2.0 + CLEAR + (0.0 if tw <= 0.21 else 0.025)
-            if _seg_seg_dist(x1, y1, x2, y2, ax, ay, bx, by) < need:
+            # ★★★2026-11-05 09:55 **浮点容差 (★这是 SoM BTB 全布不出来的真凶)**
+            #   实测: 0.4mm pitch ⇒ 相邻两根 0.2mm 直道中心距 = 0.4mm ⇒ 净距恰好 0.2mm (KiCad 下限)
+            #   ⇒ 浮点算出来是 **0.3999999999999986** ⇒ `0.39999... < 0.4` ⇒ **被判违规** ⇒ 每一对相邻脚都被判死
+            #   ⇒ ⇒ ★**加 1nm 容差** (真实规则仍是 0.2mm, 不会放宽到 DRC 红)
+            if _seg_seg_dist(x1, y1, x2, y2, ax, ay, bx, by) < need - 1e-9:
                 return False
         for (n2, vx, vy, l1, l2) in self.vias:
             if n2 == net or l1 > 0:
                 continue
             need = w / 2.0 + VIA_DIA / 2.0 + CLEAR
-            if _pt_seg_dist(vx, vy, x1, y1, x2, y2) < need:
+            if _pt_seg_dist(vx, vy, x1, y1, x2, y2) < need - 1e-9:
                 return False
         return True
 
@@ -1004,7 +1008,7 @@ class GridRouter:
                     continue
                 dx = max(a0 - px, 0.0, px - a1)
                 dy = max(b0 - py, 0.0, py - b1)
-                if math.hypot(dx, dy) < need:
+                if math.hypot(dx, dy) < need - 1e-9:
                     return False
         # ★板边: 出脚直道**离网格** ⇒ 格子判据管不到 ⇒ 这里单独查 (fix B)
         #   ★用真板边 (Edge.Cuts) + 直道半宽 ⇒ 铜外缘 ≥ 0.5mm
@@ -1293,6 +1297,11 @@ class GridRouter:
             # ★落过孔 (F.Cu..B.Cu ⇒ 穿过 L2/L6 的 GND 平面 ⇒ 直接接地)
             # ★**不加"焊盘→过孔"的短引线**: 过孔就在焊盘中心 ⇒ 那条引线是**零长段** ⇒ DRC 报 dangling
             #   (实测 v12: "删零长段 434") ⇒ ★焊盘与过孔同点 ⇒ **铜直接连通, 不需要引线**
+            if self._via_exists(net_g, cx, cy):
+                # ★重复过孔 ⇒ DRC `holes_co_located` ⇒ 跳过 (★已有一个同点同网过孔)
+                ok += 1
+                fail -= 1
+                continue
             v = pcbnew.PCB_VIA(self.b)
             v.SetPosition(pcbnew.VECTOR2I(int(cx * MM), int(cy * MM)))
             v.SetViaType(pcbnew.VIATYPE_THROUGH)
@@ -2203,6 +2212,15 @@ class GridRouter:
                 for (ux, uy) in self.via_hash.get((cx + di, cy + dj), ()):
                     if math.hypot(vx - ux, vy - uy) < mind:
                         return True
+        return False
+
+    def _via_exists(self, net, cx, cy):
+        """★2026-11-05 09:58 **同网同点过孔是否已存在**
+           ★**为什么**: GND 下拉有两遍 (常规 + 窄焊盘长轴引出) ⇒ 同一落点会落两个过孔
+           ⇒ DRC 直接报 `holes_co_located` (★实测臂 A/B 各 2 条) ⇒ ★**落盘前查重**"""
+        for (_n, vx, vy, _l1, _l2) in self.vias:
+            if _n == net and abs(vx - cx) < 1e-6 and abs(vy - cy) < 1e-6:
+                return True
         return False
 
     def _add_via_hash(self, vx, vy):

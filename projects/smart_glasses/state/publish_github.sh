@@ -146,9 +146,27 @@ done
 WS_MEM="$WS/MEMORY.md"
 if [ -f "$WS_MEM" ]; then
   cp -f "$WS_MEM" "$PROJ/config/agents/main/MEMORY.md"
+  # ★★2026-11-05 09:52 补: **运行时副本也要同步** —— 本脚本的注释自己写着
+  #   「运行时读的是 $WS/config/agents/main/MEMORY.md」, 但原来只同步了**项目树**那份
+  #   ⇒ ⇒ check_memory_sync.py 一直报这个副本 ❌ (实测 11-05 09:47: 运行时副本还停在 06:10 的
+  #   /tmp/gen_v21.log 那一版, 真值源已是 09:23 的 v25 版) ⇒ ⇒ 运行时读到的还是旧记忆
+  if [ -d "$WS/config/agents/main" ]; then
+    cp -f "$WS_MEM" "$WS/config/agents/main/MEMORY.md"
+  fi
   if [ -d "$WS/config/agents/main/memory" ]; then
     mkdir -p "$PROJ/config/agents/main/memory"
     rsync -a "$WS/config/agents/main/memory/" "$PROJ/config/agents/main/memory/"
+  fi
+  # ★★2026-11-05 09:55 补: **日记真值源是 $WS/memory/** (AGENTS.md 规定写 `memory/YYYY-MM-DD.md`),
+  #   但发布树原来只同步了 $WS/config/agents/main/memory/ (实测停在 2026-11-02)
+  #   ⇒ ⇒ 公开仓里的日记落后 3 天 (今天的 11-05 没进去)
+  #   ⇒ ★**必须过脱敏过滤** (实测: 直接 rsync 会被本脚本后面的真值反查拦下 ——
+  #   `config/agents/main/memory/2026-06-06.md` 命中 VALUE_SHAPE:wechat-openid ⇒ 闸门正确拒推)
+  #   ⇒ ⇒ 用 scrub_daily_memory.py: 只发**近 14 天** + **命中敏感值的一律跳过**
+  #      (它的规则与下面的真值反查同一套口径 ⇒ 这边过的, 闸门那边不会再拦)
+  if [ -d "$WS/memory" ]; then
+    python3 "$SCRIPT_DIR/scrub_daily_memory.py" "$WS/memory" "$PROJ/config/agents/main/memory" \
+      --days 14 --apply 2>&1 | sed 's/^/  /' || true
   fi
   echo "[3a] MEMORY + daily memory 已从工作区真值源同步"
   # ★同步完立刻自检 (三份 md5 必须一致) ⇒ 分叉就在这里被抓住, 不用等到下次心跳才发现

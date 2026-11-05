@@ -33,6 +33,38 @@ def run(cmd, **kw):
     return subprocess.run(cmd, capture_output=True, text=True, timeout=kw.pop("timeout", 300), **kw)
 
 
+
+def _dup_vias(path):
+    """★**同点重复过孔** (★net + 坐标完全一样 ⇒ KiCad DRC 报 holes_co_located)
+    返回 [(net, x, y, 次数), ...]"""
+    import re as _re
+    import collections as _c
+    try:
+        txt = open(path, encoding="utf-8", errors="ignore").read()
+    except Exception:
+        return []
+    cnt = _c.Counter()
+    # 逐个 (via ... ) 块扫 (★不用正则跨块 ⇒ 免得嵌套括号搞乱)
+    pos = 0
+    end_marker = "\n" + "\t)"
+    while True:
+        i = txt.find("(via", pos)
+        if i < 0:
+            break
+        j = txt.find(end_marker, i)
+        if j < 0:
+            break
+        blk = txt[i:j]
+        pos = j + 1
+        ma = _re.search(r'\(at ([-\d.]+) ([-\d.]+)\)', blk)
+        mn = _re.search(r'\(net (?:"([^"]+)"|(\d+))\)', blk)
+        if not ma or not mn:
+            continue
+        net = mn.group(1) if mn.group(1) else ("#" + mn.group(2))
+        cnt[(net, round(float(ma.group(1)), 3), round(float(ma.group(2)), 3))] += 1
+    return [(k[0], k[1], k[2], v) for k, v in cnt.items() if v > 1]
+
+
 def main():
     fails = []
     lines = []
@@ -82,6 +114,19 @@ def main():
     if n_viol > 0 and os.path.exists(out_json):
         for x in (d.get("violations") or [])[:6]:
             lines.append(f"       - [{x.get('type')}] {str(x.get('description'))[:110]}")
+
+    # ★★C7 ★**同点重复过孔** (2026-11-05 09:57 新增)
+    #   ★**为什么要单独查**: KiCad DRC 只报 `holes_co_located` ("Drilled holes co-located")
+    #     ⇒ ★**不说是哪两个、哪条网** ⇒ 排查还得再写脚本
+    #   ★**实测**: v26 臂 A/B 的 DRC 2 条全是它 (GND 下拉两遍落在同一坐标)
+    #     ⇒ 根因已修 (路由器加 `_via_exists` 查重) ⇒ ★**再加一道显式闸门防复发**
+    dup = _dup_vias(PCB)
+    ok7 = (len(dup) == 0)
+    lines.append(f"  {'✅' if ok7 else '❌'} C7 同点重复过孔 = {len(dup)} (要求 0)")
+    if not ok7:
+        fails.append(f"C7 {len(dup)} 处重复过孔")
+        for (net, x, y, n) in dup[:6]:
+            lines.append(f"       - {net} @ ({x:.3f}, {y:.3f}) × {n}")
 
     # C5 生成器自检
     rc = run([sys.executable, os.path.join(HERE, "gen_kicad_project.py")])

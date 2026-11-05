@@ -44,6 +44,22 @@ echo "=== v27 (F7 排版轮) ==="
 #   SoM BTB 0.4mm pitch ⇒ P/N 出脚直道中心距 0.400mm ⇒ ★**N 侧起点被"伙伴禁入格 + 邻居 halo"封死**
 #   ⇒ 22 对里 17~18 对 N 侧 0 段铜 ("N 未通") ⇒ 实测修法: ① N 自己焊盘格豁免 halo
 #   ② N 侧出脚改走**反方向** (不与 P 并行) ③ N 侧出脚区豁免伙伴禁入格
+#   ④ ★★**浮点容差 1nm** (★真凶: 0.400 算成 0.3999999999999986 ⇒ 每一对相邻脚都被判死)
+#   ⇒ 探针实测: ★**6 个 _SRC 对的 N 侧从 0 段铜 → 全部有铜且 Δ=0.000 / ring=2 (完全耦合)**
 launch E "$L" "PCB_PIN_CONN_CAM=1 PCB_SKIP_PAD_CELLS=1 PCB_PAIR_ESCAPE_EXEMPT=1"
 launch F 10  "PCB_PIN_CONN_CAM=1 PCB_SKIP_PAD_CELLS=1 PCB_PAIR_ESCAPE_EXEMPT=1"
-echo "=== v27 两臂已起 (官方板不动) ==="
+# ★G = F7 + 面积变量 (180×120) ⇒ ★臂 D 在差分耦合上领先 ⇒ 面积这条线要留
+#   ★**G 用自己的板尺寸** (不跟 E/F 的参数走) ⇒ 面积是单变量
+(
+  cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+  env PCB_LAYERS=8 PCB_ABUDGET_MULT=6 PCB_HALO_MARGIN=0.20 \
+      PCB_BOARD_W=180 PCB_BOARD_H=120 \
+      PCB_AREA_BOT=5,58,70,117 PCB_AREA_TOP=78,5,120,36 PCB_AREA_RES=78,38,177,117 \
+      PCB_PIN_CONN_CAM=1 PCB_SKIP_PAD_CELLS=1 PCB_PAIR_ESCAPE_EXEMPT=1 \
+      PCB_OUT=/tmp/v27_G.kicad_pcb \
+      timeout 14400 bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py \
+      > /tmp/v27_G.log 2>&1
+  echo "EXIT=$?" >> /tmp/v27_G.log
+) &
+echo "  [v27 臂 G] PID=$! L=8 板=180x120 (面积单变量)"
+echo "=== v27 三臂已起 (官方板不动) ==="
