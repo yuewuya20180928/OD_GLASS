@@ -33,6 +33,13 @@ MM = 1e6
 
 # ------------------------------------------------------------------ 常量
 GRID = 0.25            # mm 网格步长
+# ★★2026-11-05 23:2x **v41: 通孔净距禁区按真实孔心算 (env 门控, 默认关)**
+#   ★**根因**: 旧算法用"含孔心那一格"的**格心**当圆心 ⇒ 孔偏格心 δ 时禁区整体偏 δ
+#     ⇒ 实测 v36_S 的 DRC: 孔 (85.35,9.60) 偏格心 (0.10,0.10) ⇒ 走线端点离真实孔心
+#       **0.5657mm (< 0.625 违规)** 却被按格心判 = 0.7071mm ⇒ **放行**
+#   ★**默认 0** ⇒ 与 v31/v36/v37/v39/v40 逐位一致
+VIA_HALO_EXACT = os.environ.get("PCB_VIA_HALO_EXACT", "0") == "1"
+
 CLEAR = 0.20           # mm 铜间距 (KiCad 默认)
 # ★★2026-11-05 07:45 **做成可调** (实验臂用)
 #   ★理论下限: 栅格 0.25mm ⇒ 半格 0.125 ⇒ 0.125 就够 (当前 0.20 偏保守 ⇒ 多阻 ~18% 面积)
@@ -2697,22 +2704,50 @@ class GridRouter:
     def _add_via_halo(self, net, x, y, l1, l2, skip_pad_cells=True):
         """通孔净距禁区 (★默认**不盖别的网的焊盘格** ⇒ 见 _mark 的说明)
         ★★2026-11-05 18:55 **半径用 VIA_HALO_MARGIN (默认 = HALO_MARGIN ⇒ 行为不变)**
-           ⇒ 实验臂 `PCB_VIA_HALO_MARGIN=0.0` 打开精确几何 ⇒ ★**见常量区根因注释**"""
+           ⇒ 实验臂 `PCB_VIA_HALO_MARGIN=0.0` 打开精确几何 ⇒ ★**见常量区根因注释**
+        ★★2026-11-05 23:2x **v41: `PCB_VIA_HALO_EXACT=1` ⇒ 圆心改用真实孔心**
+           ★**根因**: 旧实现用"含孔心那一格"的**格心**当圆心 ⇒ 孔偏格心 δ 时禁区整体偏 δ
+             ⇒ 实测 v36_S DRC: 孔 (85.35,9.60) 偏格心 (0.10,0.10)
+               ⇒ 走线端点离真实孔心 **0.5657 (<0.625 违规)** 却按格心判 0.7071 ⇒ **放行**
+           ★**修法**: 按**真实孔心到该格方形区的最小距离**判 (⇒ 穿格的对角段也必然 ≥ rr)
+           ★**默认 0** ⇒ 行为与旧版逐位一致"""
         i, j = self._ci(x), self._cj(y)
         for cls in range(3):
             rr = CLEAR + VIA_DIA / 2.0 + W_CLS[cls] / 2.0 + VIA_HALO_MARGIN
             ri = int(math.ceil(rr / self.g))
             # ★**通孔 ⇒ 6 层都有铜** ⇒ 净距禁区必须记满 6 层 (否则内层撞铜 ⇒ DRC 短接)
             for li in range(NLAYERS):
-                for dj in range(-ri, ri + 1):
-                    for di in range(-ri, ri + 1):
-                        if di * di + dj * dj > (rr / self.g) ** 2 + 1e-9:
-                            continue
-                        i2, j2 = i + di, j + dj
-                        if not (0 <= i2 < self.W and 0 <= j2 < self.H):
-                            continue
-                        self._mark(cls, li, self._idx(i2, j2), net,
-                                   skip_pad_cells=skip_pad_cells)
+                if VIA_HALO_EXACT:
+                    # ★★**精确分支 (可证安全)**: 圆心 = **真实孔心** ⇒ 判据 = 格心距 < rr + g*sqrt(2)/2
+                    #   ★**为什么是这个式子**: 穿格(正交或对角)的走线段上, **任意一点**到该段两个端点中
+                    #     较近者的距离 ≤ g*sqrt(2)/2 = **0.1768mm** (对角段最坏)
+                    #   ⇒ 若两端点格心都离孔心 ≥ rr + 0.1768 ⇒ 段上每点都离孔心 ≥ rr ⇒ **不擦孔**
+                    #   ★**为什么必须用真实孔心**: 旧判据的圆心是"含孔心那格"的**格心**
+                    #     ⇒ 孔偏格心 δ 时禁区整体偏 δ (实测 v36_S: 偏 (0.10,0.10)=0.141mm)
+                    #     ⇒ 走线端点离真实孔心 0.5657 (<0.625 违规) 却按格心判 0.7071 ⇒ **放行** ⇒ DRC 漏网
+                    _pad = self.g * math.sqrt(2.0) / 2.0
+                    _ri2 = ri + 2
+                    for dj in range(-_ri2, _ri2 + 1):
+                        for di in range(-_ri2, _ri2 + 1):
+                            i2, j2 = i + di, j + dj
+                            if not (0 <= i2 < self.W and 0 <= j2 < self.H):
+                                continue
+                            _cx2 = self.bb[0] + i2 * self.g
+                            _cy2 = self.bb[1] + j2 * self.g
+                            if math.hypot(_cx2 - x, _cy2 - y) >= rr + _pad + 1e-9:
+                                continue
+                            self._mark(cls, li, self._idx(i2, j2), net,
+                                       skip_pad_cells=skip_pad_cells)
+                else:
+                    for dj in range(-ri, ri + 1):
+                        for di in range(-ri, ri + 1):
+                            if di * di + dj * dj > (rr / self.g) ** 2 + 1e-9:
+                                continue
+                            i2, j2 = i + di, j + dj
+                            if not (0 <= i2 < self.W and 0 <= j2 < self.H):
+                                continue
+                            self._mark(cls, li, self._idx(i2, j2), net,
+                                       skip_pad_cells=skip_pad_cells)
 
     def net_length(self, net):
         tot = 0.0

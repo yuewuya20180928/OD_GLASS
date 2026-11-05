@@ -119,6 +119,33 @@ if ":" in _mv:
 if MOVE_PARTS:
     print("  [排版] ★搬迁 %d 个件到 %s" % (len(MOVE_PARTS), MOVE_AREA))
 
+# ★★2026-11-05 22:2x **v38 机制: "逐件精确钉位" (★env 门控, **默认关**)
+#   ★**为什么要有 (机器读出的根因)**: DSI 的 `R_SEL_*` 串阻阵 (lane 中途的 2 脚器件) 被行式装箱
+#     甩到 **x=78.90…118.90** (右上角) ⇒ 而它两端点全在**左边**
+#     (SoM J_SOM_P3 DSI 脚 x=18.40…23.60 / CONN_LIGHT DSI 脚 x=26.25…34.75)
+#     ⇒ 单 lane **168mm 斜穿全板** ⇒ 官方板实测最后一跳缺 78mm
+#   ★**用法**: PCB_PART_POS="R_SEL_D0_P:83.70,5.50;R_SEL_D0_N:78.90,5.50" (REF:x,y[,rot])
+#     · x,y = **封装原点** (R/C 类 = pad1 位置) ⇒ 与 make_footprint 的 SetPosition 同语义
+#     · rot = 可选 (0/180) ⇒ 做 "P/N 镜像对" (翻转 pad1/pad2 左右关系)
+#   ★**默认空 ⇒ 与 v31/v32/v33/v36/v37 逐位一致**
+PART_POS = {}
+_pp = (os.environ.get("PCB_PART_POS", "") or "").strip()
+for _tok in _pp.split(";"):
+    _tok = _tok.strip()
+    if not _tok or ":" not in _tok:
+        continue
+    _ref, _vals = _tok.split(":", 1)
+    _parts = [v for v in _vals.split(",") if v.strip() != ""]
+    try:
+        if len(_parts) >= 2:
+            _x = float(_parts[0]); _y = float(_parts[1])
+            _rot = int(float(_parts[2])) if len(_parts) >= 3 else 0
+            PART_POS[_ref.strip()] = (_x, _y, _rot)
+    except Exception:
+        continue
+if PART_POS:
+    print("  [排版] ★精确钉位 %d 个件: %s" % (len(PART_POS), sorted(PART_POS)))
+
 # ★★2026-11-05 19:15 **纯禁放框 (keep-out) —— v34 的真正手段** (★env 门控, 默认关)
 #   ★★**探针实测教训 (19:12)**: "搬迁几个件" ★**根本不管用** ——
 #     排版是**行式装箱流** ⇒ 搬走挡路的件 ⇒ ★**后面的件立刻补位** ⇒ 走廊照样被占
@@ -787,6 +814,7 @@ def main():
     # ★分组: 上排 BTB 伙伴件 / 下排 BTB 伙伴件 / 其余
     _grp_top, _grp_bot, _grp_rest, _grp_tp = [], [], [], []
     _grp_move = []      # ★★v34: 被指定搬迁的件
+    _grp_pin = []       # ★★v38: 被指定精确钉位的件 (不进行式装箱)
     # ★★2026-11-05 08:15 **差分对的"远端连接器"不许被当伙伴件搬走**
     #   ⇒ 实测: F5 排版把 **CONN_CAM 从 (78.9..93.9, 51.4) 搬到 (93.3..108.3, 17.6)**
     #     ⇒ ★**MIPI 的 CSI 差分对远端整个位移** ⇒ 走廊全变 ⇒ ★**22 对里只剩 5 对耦合成功**
@@ -797,6 +825,9 @@ def main():
     for it in items:
         if it[0].startswith("TP_"):
             _grp_tp.append(it)     # ★测试点单独一轮 (贴伙伴件)
+            continue
+        if it[0] in PART_POS:
+            _grp_pin.append(it)    # ★★v38: 精确钉位 (自己落板, 不占行式装箱位)
             continue
         if it[0] in MOVE_PARTS:
             _grp_move.append(it)   # ★★v34: 搬迁组 (行式装箱进指定区域)
@@ -870,6 +901,34 @@ def main():
                          CONN_CAM_PIN["y"] + _h / 2.0 + PLACE_OVERRIDE_GUARD))
     if _RES_OVR:
         print("  [排版] 钉位器件禁放区 %d 个 (★避免焊盘搭上⇒短路)" % len(_RES_OVR))
+    # ★★v38: 精确钉位件 ⇒ 直接落板 (★坐标/旋转按 env) + 真实占位框进禁放区
+    for (ref, pins, kind, w, h) in _grp_pin:
+        _px, _py, _rot = PART_POS[ref]
+        _fp = make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
+                             _px, _py, rot=_rot)
+        try:
+            _bb = _fp.GetBoundingBox()
+            _RES_OVR.append((_bb.GetLeft() / 1e6 - PLACE_OVERRIDE_GUARD,
+                             _bb.GetTop() / 1e6 - PLACE_OVERRIDE_GUARD,
+                             _bb.GetRight() / 1e6 + PLACE_OVERRIDE_GUARD,
+                             _bb.GetBottom() / 1e6 + PLACE_OVERRIDE_GUARD))
+        except Exception:
+            _RES_OVR.append((_px - w / 2.0 - PLACE_OVERRIDE_GUARD,
+                             _py - h / 2.0 - PLACE_OVERRIDE_GUARD,
+                             _px + w / 2.0 + PLACE_OVERRIDE_GUARD,
+                             _py + h / 2.0 + PLACE_OVERRIDE_GUARD))
+        PLACE_INFO[ref] = (_px, _py, w, h)
+        placed += 1
+        for _p in pins:
+            if _p[1]:
+                NET_PARTS.setdefault(_p[1], []).append(ref)
+    if _grp_pin:
+        print("  [排版] ★精确钉位组 %d 个已落板" % len(_grp_pin))
+    # ★★v38: ★**未匹配的 PART_POS 键要报警** (★否则"钉位没生效"会静默通过 ⇒ 白跑一轮)
+    _unmatched = sorted(set(PART_POS) - set(PLACE_INFO))
+    if _unmatched:
+        print("  ⚠️ PCB_PART_POS 里 %d 个 ref 在板上不存在 (★钉位未生效): %s"
+              % (len(_unmatched), _unmatched))
     # ★★v34: 搬迁组先占位 (★并把该区域变成其它组的禁放框 ⇒ 不会撞)
     _KO_BOX = []
     if MOVE_AREA and _grp_move:
