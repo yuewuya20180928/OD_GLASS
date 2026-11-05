@@ -109,5 +109,42 @@ _chk(len(_r3.vias) == 1, "★ cleanup 兜底: 中心距 0.50mm 的同网两孔 �
 _chk(abs(_r3.vias[0][1] - 24.45) < 1e-6 and abs(_r3.vias[0][2] - 60.2) < 1e-6,
      "★ cleanup 兜底: 保留的是先落的那个 (24.45,60.2)")
 
+# ── ★★2026-11-05 21:40 **窄焊盘边缘落孔的回归防护** (★v35_R 实测 DRC 2 的真根因) ──
+#   ★**实测**: U_TEMP.2 (焊盘短边 <0.55mm) 的环格 (62.700,64.450) 落了 Ø0.5 孔
+#     ⇒ 孔心离焊盘中心仅 0.201mm ⇒ 孔探出焊盘铜 ⇒ 离邻居 I2C_B_SCL 短桩 0.50mm
+#     ⇒ 净距 0.125mm ⇒ DRC clearance 违规 ×2 (同一颗孔, KiCad 按线段各报一次)
+#   ★**修法**: ① in-pad 分支加"焊盘短边 ≥ 孔径+0.10"门槛 ② 三遍成功都登记 done_pads
+#     ⇒ ★**同一个焊盘绝不落两个孔** (冗余孔还可能压住别人的逃逸短桩)
+_chk("_pad_rect_at" in _src, "★ 路由器必须有 _pad_rect_at (查这个点属于哪个同网焊盘)")
+_i2 = _src.find("if self._in_pad(px, py):")
+_seg2 = _src[_i2:_i2 + 6000] if _i2 >= 0 else ""
+_chk("_pad_rect_at(px, py, net_g)" in _seg2,
+     "★ in-pad 分支必须先查 _pad_rect_at (知道孔落在哪个焊盘 ⇒ 才能判尺寸)")
+_chk("_pshort < _dia + 0.10" in _seg2,
+     "★ in-pad 分支必须有'焊盘短边 ≥ 孔径+0.10'门槛 (窄焊盘不许边缘落孔)")
+_chk("done_pads.append(pad)" in _seg2,
+     "★ in-pad 分支成功后必须登记 done_pads (第二/三遍不许再给这个焊盘落孔)")
+# ★★第二遍(chain) 与 第三遍(in-pad) 也必须登记 ⇒ 三个分支共 3 处
+_chk(_src.count("done_pads.append(pad)") >= 3,
+     "★ done_pads.append(pad) 至少 3 处 (第一遍in-pad / 第二遍chain / 第三遍in-pad)"
+     " —— 实测 %d 处" % _src.count("done_pads.append(pad)"))
+# ★★第三遍的尺寸门槛必须 ≥ 孔径+0.10 (原来是 0.55 ⇒ 孔探出铜面)
+_i3 = _src.find('why["inpad_small"]')
+_seg3 = _src[max(0, _i3 - 400):_i3 + 60] if _i3 >= 0 else ""
+_chk("VIA_DIA_S + 0.10" in _seg3,
+     "★ 第三遍尺寸门槛必须是 VIA_DIA_S+0.10 (0.60) 而不是 0.55 (孔探出铜面)")
+
+# ── ★★2026-11-05 21:40 **_pad_rect_at 的功能自测** ──
+_r4 = G.GridRouter(pcbnew.CreateEmptyBoard())
+_r4.pad_rects_l.append(("GND", 62.70, 64.20, 63.10, 64.80, (0,)))
+_r4.pad_rects_l.append(("I2C_B_SCL", 62.70, 63.55, 63.10, 64.15, (0,)))
+_pr4 = _r4._pad_rect_at(62.90, 64.50, "GND")
+_chk(_pr4 is not None and abs(_pr4[0] - 62.70) < 1e-6 and abs(_pr4[3] - 64.80) < 1e-6,
+     "★ _pad_rect_at 在同网焊盘里 ⇒ 返回该焊盘矩形 (GND @62.90,64.50)")
+_chk(_r4._pad_rect_at(62.90, 63.85, "GND") is None,
+     "★ _pad_rect_at 落在别网焊盘里 ⇒ 返回 None (不认别网的焊盘)")
+_chk(_r4._pad_rect_at(70.00, 70.00, "GND") is None,
+     "★ _pad_rect_at 落在空处 ⇒ 返回 None")
+
 print("★测试结果:", "PASS" if ok else "FAIL")
 sys.exit(0 if ok else 1)

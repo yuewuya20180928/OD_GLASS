@@ -1252,6 +1252,22 @@ class GridRouter:
                         why["free"] += 1
                         continue
                     if self._in_pad(px, py):
+                        # ★★★★2026-11-05 21:35 **窄焊盘不许在边缘落孔** (★v35_R 实测 DRC 2 的真根因)
+                        #   ★**实测**: U_TEMP.2 (焊盘短边 <0.55mm) 的环格 (62.700,64.450) 落了 Ø0.5 孔
+                        #     ⇒ 孔心离焊盘中心只有 0.201mm ⇒ ★**孔探出焊盘铜**
+                        #     ⇒ 离邻居 U_TEMP.1 (I2C_B_SCL) 的逃逸短桩只剩 0.50mm
+                        #     ⇒ 净距 0.125mm < 0.20 ⇒ ★**DRC clearance 违规 ×2** (同一颗孔, KiCad 按线段各报一次)
+                        #   ★**为什么第三遍不会犯这个错**: 第三遍有 `_short<0.55` 的门槛 ⇒ ★**第一遍漏了这个门槛**
+                        #   ★**修法**: 焊盘短边必须 ≥ 孔径 + 0.10 ⇒ 孔整个待在焊盘铜里
+                        #     ⇒ 窄焊盘直接跳过 in-pad 分支 ⇒ 交给第四遍"沿长轴引出" (线 + 外置孔)
+                        _pr = self._pad_rect_at(px, py, net_g)
+                        if _pr is None:
+                            why["inpad_nopad"] = why.get("inpad_nopad", 0) + 1
+                            continue
+                        _pshort = min(_pr[2] - _pr[0], _pr[3] - _pr[1])
+                        if _pshort < _dia + 0.10:
+                            why["inpad_narrow"] = why.get("inpad_narrow", 0) + 1
+                            continue
                         # ★★★★2026-11-05 20:35 **补几何净距判据** (★v34_R 实测 DRC 唯一违规的根因)
                         #   ★**实测**: GND 孔 @ (62.70,64.45) 压住 `I2C_B_SCL` 走线 @ (62.70,63.95)
                         #     ⇒ 净距实测 0.125mm < 0.20mm ⇒ ★**DRC clearance 违规 (唯一那1条)**
@@ -1291,6 +1307,9 @@ class GridRouter:
                         used_vias.append((px, py))
                         ok += 1
                         # ★**不要在这里 fail -= 1** (★fail 是"每个失败的焊盘 +1" ⇒ 这里减会出负数)
+                        # ★★2026-11-05 21:35 **登记 done_pads** (★否则第二/三遍把它当孤儿 ⇒ ★**同一焊盘落两个孔**)
+                        #   ★实测: U_TEMP.2 既有 in-pad 孔, 又有第四遍的"长轴引出"线+孔 ⇒ 冗余铜 ⇒ DRC 违规
+                        done_pads.append(pad)
                         done = True
                         break
                     # ★孔间距: 0.3 钻 + 0.25 最小孔间距 ⇒ 孔心距 ≥0.55mm
@@ -1408,6 +1427,9 @@ class GridRouter:
                     continue
                 ok += 1
                 fail -= 1
+                # ★★2026-11-05 21:35 **登记 done_pads** (★★否则第三遍(in-pad)会把它当孤儿 ⇒ 再落一个孔)
+                #   ★**同一个焊盘落两个孔 = 冗余铜** ⇒ 冗余孔还可能压住别人的逃逸短桩 ⇒ DRC 违规
+                done_pads.append(pad)
                 # ★新接上的焊盘也当锚点 (⇒ 后面孤儿可以接着连)
                 anchor_xy.append((cx, cy))
         # ★★★2026-11-05 03:0x **第三遍 (新): 还没接上的 GND 焊盘 ⇒ 直接在焊盘下方落过孔 (焊盘内过孔)**
@@ -1430,7 +1452,9 @@ class GridRouter:
                 continue
             x0, y0, x1, y1 = rect
             _short = min(x1 - x0, y1 - y0)
-            if _short < 0.55:
+            # ★★2026-11-05 21:35 **孔必须整个待在焊盘铜里** (★孔径 + 0.10 边距)
+            #   ★原判据 `_short<0.55` ⇒ 0.55~0.70 的焊盘用 Ø0.5 孔 ⇒ 只剩 0.025mm 铜边 ⇒ 孔探出铜面
+            if _short < (VIA_DIA_S + 0.10):
                 why["inpad_small"] = why.get("inpad_small", 0) + 1
                 continue
             # ★★2026-11-05 07:40 **小焊盘用缩小过孔** (0.55~0.70 宽的焊盘 ⇒ Ø0.60 放不下)
@@ -1493,6 +1517,8 @@ class GridRouter:
             # ★**过孔直接落在焊盘里 ⇒ 焊盘自己就接到平面了** (不需要任何走线)
             ok += 1
             fail -= 1
+            # ★★2026-11-05 21:35 **登记 done_pads** (★第四遍按孤儿表工作 ⇒ 别再给它落一个孔)
+            done_pads.append(pad)
 
         # ---------- 4) ★★2026-11-05 07:40 **窄焊盘 (连接器排针类) 沿长轴引出去落过孔**
         #   ★**问题形态**: 0.275×0.9 / 0.3×1.3 的连接器 GND 焊盘 ⇒ **短边太窄放不下任何过孔**
@@ -1574,6 +1600,18 @@ class GridRouter:
                     out.append((d, i0 + di, j0 + dj))
         out.sort()
         return [(i, j) for (_d, i, j) in out]
+
+    def _pad_rect_at(self, x, y, net=None):
+        """★2026-11-05 21:35 **查这个点落在哪个(同网)焊盘的矩形里** ⇒ 返回 (x0,y0,x1,y1) 或 None
+           ★**为什么需要**: 第一遍"焊盘内直接落孔"要在**焊盘铜里面**落孔
+           ⇒ 但 `_in_pad` 只说"在某个焊盘里" (可能是别的网的焊盘) ⇒ ★**给不出尺寸**
+           ⇒ 尺寸判据 (孔径+0.10) 必须知道**这个孔到底属于哪个焊盘**"""
+        for (n2, x0, y0, x1, y1, _ls) in self.pad_rects_l:
+            if net is not None and n2 != net:
+                continue
+            if x0 - 0.01 <= x <= x1 + 0.01 and y0 - 0.01 <= y <= y1 + 0.01:
+                return (x0, y0, x1, y1)
+        return None
 
     def _in_pad(self, x, y):
         """这个点是不是落在某个焊盘里 (过孔不许打在焊盘上 = via-in-pad)"""
