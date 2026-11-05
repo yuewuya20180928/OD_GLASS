@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-05 23:43** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-06 00:19** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -63,7 +63,7 @@
 ==========================================================================
 登记问题 179 条 | 状态: closed=62 deferred=13 verified=41 fixed=33 open=27 fixing=3
   ├─ 内部可自行推进: 150 条 | 外部依赖 (等老板/原厂/JBD): 29 条
-  ├─ 逾期未闭环: 6 条
+  ├─ 逾期未闭环: 46 条
   └─ 未闭环 blocker 级: 19 条
 
 【问题清单】(按 severity + 逾期排)
@@ -105,30 +105,10 @@
        ★显示 TX 公开渠道穷举 (AR9481 模组厂/模组规格书/公开板卡 + 酷芯模组供应商) —— 不等原厂也能判 DSI TX 
   🔴 ISS-013  deferred  owner=jbd        due=2026-11-05   [外部]
        波导未选型 → 缺 2D 外形图/容差角/彩虹纹 → 镜框不能开工
-  🔴 ISS-119  fixed     owner=main       due=2026-11-05  
-       ★★换芯定案 + 迁移方案 (A7/A8): 选哪颗 + 网表/原理图/BOM 重做清单 + 为 RK3588 预留的可执行后手
-  🔴 ISS-139  open      owner=main       due=2026-11-05  
-       ★★[内部, 与选谁无关] ISP tuning 立项: 两个候选 sensor 都没有现成 IQ 文件 ⇒ 这笔账必须自己排
   🔴 ISS-144  deferred  owner=main       due=2026-11-05  
        ★★★★[demo 关键路径 #1] AR0234CS → RK3572 rkisp3 驱动移植 (★先出规格, 不出代码)
-  🔴 ISS-145  fixed     owner=sw-lead    due=2026-11-05  
-       ★★★★[demo 关键路径 #2] demo 板 OD 管线打通规格: yolov5n INT8 → RKNN → 画框 → 视涯
-  🔴 ISS-149  fixed     owner=main       due=2026-11-05  
-       ★★★[硬件优先] demo 硬件形态落地: 一块主板 + **IMX415 sensor 模组** + 屏幕驱动板模组 + FPC
-  🔴 ISS-162  fixed     owner=main       due=2026-11-05  
-       ★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400
-  🔴 ISS-165  fixed     owner=main       due=2026-11-05  
-       ★★★[硬件 A2 段 · 最后一块] SOM 座 (4×100pin/0.4mm BTB) + SoC 节点改挂 + ★CARRI
-  🔴 ISS-166  fixed     owner=main       due=2026-11-05  
-       ★★★[P0 · 短路级] 网表连接器脚位: 一个脚挂多个网 (CONN_CAM 12 处 / CONN_LIGHT 9 处) ⇒ 
-  🔴 ISS-167  fixed     owner=main       due=2026-11-05  
-       ★★★[P0 · 假绿] 板生成器按 CSV 行序给焊盘编号 ⇒ 连接器脚位全错; 等价性门禁比集合 ⇒ 报绿
-  🔴 ISS-168  fixed     owner=main       due=2026-11-05  
-       ★★★[P0] RK3572 与 RK3576 引脚功能不同 ⇒ 上一版 SoM 引脚分配表作废 (226/398 脚球号不同)
   🔴 ISS-170  closed    owner=main       due=2026-11-05  
        ★★★[demo 板可制造性] 显示器 FPC 座: 屏侧 40p/0.5mm 与原厂排线主板侧 39p/0.3mm 矛盾 ⇒ 画 
-  🔴 ISS-175  fixed     owner=main       due=2026-11-05  
-       ★★★[选型变更 · 老板拍板] demo 屏换 ≤3 寸 (原 Radxa Display 8HD = 8.0" 太��) ⇒ 背
   🔴 ISS-155  open      owner=main       due=2026-11-06  
        ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
   🔴 ISS-160  open      owner=main       due=2026-11-06  
@@ -149,6 +129,36 @@
   🔴 ISS-182  fixed     owner=main       due=2026-11-04   ⏰逾期
        ★★★[投板级 · 已修] 网表 4 处致命缺陷 + 导出器"幽灵分裂网" bug + VBUS 分压失效
        ❌ ★逾期★ due=2026-11-04 已过, 仍 fixed
+  🔴 ISS-119  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★换芯定案 + 迁移方案 (A7/A8): 选哪颗 + 网表/原理图/BOM 重做清单 + 为 RK3588 预留的可执行后手
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🔴 ISS-139  open      owner=main       due=2026-11-05   ⏰逾期
+       ★★[内部, 与选谁无关] ISP tuning 立项: 两个候选 sensor 都没有现成 IQ 文件 ⇒ 这笔账必须自己排
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🔴 ISS-145  fixed     owner=sw-lead    due=2026-11-05   ⏰逾期
+       ★★★★[demo 关键路径 #2] demo 板 OD 管线打通规格: yolov5n INT8 → RKNN → 画框 → 视涯
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🔴 ISS-149  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★★[硬件优先] demo 硬件形态落地: 一块主板 + **IMX415 sensor 模组** + 屏幕驱动板模组 + FPC
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🔴 ISS-162  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🔴 ISS-165  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★★[硬件 A2 段 · 最后一块] SOM 座 (4×100pin/0.4mm BTB) + SoC 节点改挂 + ★CARRI
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🔴 ISS-166  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★★[P0 · 短路级] 网表连接器脚位: 一个脚挂多个网 (CONN_CAM 12 处 / CONN_LIGHT 9 处) ⇒ 
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🔴 ISS-167  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★★[P0 · 假绿] 板生成器按 CSV 行序给焊盘编号 ⇒ 连接器脚位全错; 等价性门禁比集合 ⇒ 报绿
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🔴 ISS-168  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★★[P0] RK3572 与 RK3576 引脚功能不同 ⇒ 上一版 SoM 引脚分配表作废 (226/398 脚球号不同)
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🔴 ISS-175  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★★[选型变更 · 老板拍板] demo 屏换 ≤3 寸 (原 Radxa Display 8HD = 8.0" 太��) ⇒ 背
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
   🟠 ISS-039  closed    owner=boss       due=2026-10-27   [外部]
        【缺清单】认证与合规要求未梳理 (含光生物安全) —— 需老板定销售区域
   🟠 ISS-046  closed    owner=boss       due=2026-10-27   [外部]
@@ -229,68 +239,20 @@
        ★★[等老板一句] demo 板形态: 模组+转接板 (我的建议) 还是 自制整板? —— 决定 PCB 与周期
   🟠 ISS-142  deferred  owner=boss       due=2026-11-04   [外部]
        ★[外发待放行] onsemi AR0234CS 问询草稿已写好 (pinout/电源域/CRA/lane 速率/功耗/驱动) ⇒ 
-  🟠 ISS-038  open      owner=boss       due=2026-11-05   [外部]
-       【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否加第 4 个总工
   🟠 ISS-040  deferred  owner=boss       due=2026-11-05   [外部]
        打印与量测条件不具备 (打印机跨网段不可达 + 无切片器/量具) → M-PRINT 卡死
-  🟠 ISS-041  open      owner=boss       due=2026-11-05   [外部]
-       ★★[当前 demo 板] 测试条件缺失 ⇒ G3 那一关不可判通过 (★2026-11-04 09:57 起: 不含热电偶/假皮肤
   🟠 ISS-049  verified  owner=hw-lead    due=2026-11-05  
        PCB 定位方式变更 + 骨架长度上限 (来自 ISS-042 解 A) —— 需 hw-lead 改孔位
-  🟠 ISS-060  open      owner=boss       due=2026-11-05   [外部]
-       产品件三条几何待老板裁决 (压垫吸收量零余量 / 非对称方向 / 压垫槽区板厚小于 FDM 最小壁) —— 打印包转绿不等于解 A 
-  🟠 ISS-063  open      owner=boss       due=2026-11-05   [外部]
-       显示端 120 度到 30 度的映射方式 (看得广但糊 vs 看得清但窄) —— 120 度这个卖点对用户可见吗
   🟠 ISS-080  verified  owner=sw-lead    due=2026-11-05  
        S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项
-  🟠 ISS-082  fixed     owner=main       due=2026-11-05  
-       ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + P
-  🟠 ISS-094  fixed     owner=main       due=2026-11-05  
-       ★投板前网表要做 pin-centric 重整 (现在 CSV 是『连接清单』模型, KiCad 网表要的是『每引脚一行』)
-  🟠 ISS-096  fixed     owner=main       due=2026-11-05  
-       ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位
-  🟠 ISS-097  fixed     owner=main       due=2026-11-05  
-       ★"关机"语义: 硬件断电通路 (负载开关) + 真关机拓扑 + 功耗预算 V3
-  🟠 ISS-098  fixed     owner=main       due=2026-11-05  
-       ★SoC 侧没有 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失, S2 救砖链路成立性未验; 且 CO
-  🟠 ISS-102  open      owner=main       due=2026-11-05  
-       ★[待原厂] 追加问 4 条: AON 域静态电流 / USB VBUS detect 脚 / TPS62130A PG 极性 / 
-  🟠 ISS-106  open      owner=boss       due=2026-11-05   [外部]
-       ★新增渠道: 经酷芯微代理转达 (老板 10-28 找到代理) —— 代理信 + 3 份可转发附件已就绪
   🟠 ISS-112  verified  owner=hw-lead    due=2026-11-05  
        ★BQ25896 封装 footprint 落库 (WQFN RTW 24pin 4×4mm) + 充电板面积重算 (+7mm²)
   🟠 ISS-114  verified  owner=main       due=2026-11-05  
        ★★换芯片选型总单: 国内 TOP10 厂商 × TOP1~5 芯片 × 9 项打分 (老板 10-29 09:59 改令) —— 
-  🟠 ISS-116  fixed     owner=main       due=2026-11-05  
-       ★★工作方式改造: 老板任务先落 GitHub 总表 + token 守护 (老板 10-29 09:59 亲自要求)
-  🟠 ISS-118  fixed     owner=hw-lead    due=2026-11-05  
-       ★板宽 15mm → 30mm 的硬件连带重算 (板框/网表/面积/逃线/跨铰链排布) —— 老板 10-29 19:16 放宽
-  🟠 ISS-122  fixing    owner=main       due=2026-11-05  
-       ★★BGA 逃线层数: ★两套模型结论相反 (9 层 vs 3 层) ⇒ 破没破 4-6 层锁是 [0数据] 不是结论 —— 必须问
-  🟠 ISS-124  open      owner=main       due=2026-11-05  
-       ★★[待瑞芯微/RK3576 模组厂] ISP MP/s 吞吐上限 + ISP 动态功耗 vs 吞吐曲线 (2 问, 一票否决级的剩
-  🟠 ISS-126  open      owner=main       due=2026-11-05  
-       ★★板厚档位未定 ⇒ 检修口净空只有 4.90 那一档过 (1.22mm 档净空 4.48 破 4.50 硬要求)
-  🟠 ISS-127  open      owner=main       due=2026-11-05  
-       ★★★脱模斜度致镜脚 H 链最坏 −0.577mm ⇒ 几何上做不出来 (不是余量紧张, 是不可行) —— 量产架构必须改
-  🟠 ISS-128  open      owner=main       due=2026-11-05  
-       ★★主控换 RK3572 ⇒ 板面积账 + 逃线层数全部重算 (封装 FCCSP550L 14.3×15.5mm / 550 球, 
-  🟠 ISS-129  open      owner=main       due=2026-11-05  
-       ★★★RK3572 (4 TOPS) 板端纯 NPU 实测 ⇒ 端到端 60ms 硬指标生死判定 (★T2 翻案条件推算已命中)
-  🟠 ISS-130  open      owner=main       due=2026-11-05  
-       ★★★RK3572 功耗 670mW (原厂口径) vs 贴皮肤 43°C 红线 —— 从「待定」变「可判」
   🟠 ISS-138  verified  owner=boss       due=2026-11-05   [外部]
        ★★★[要老板一句拍板] sensor 模式选路: OV04C10 @1080p60 ⇒ 镜头/FOV/角分辨率/快门 四个代价要选
-  🟠 ISS-150  fixed     owner=main       due=2026-11-05  
-       ★★★[硬件优先 #3] demo sensor 换 IMX415 ⇒ 网表三条电源轨要重核 + 1080p60 输出模式定案
-  🟠 ISS-157  fixed     owner=main       due=2026-11-05  
-       ★★[软件] rknn_bench.py 的 cut 模型缓存不失效 ⇒ 换模型重测会静默跑出上一个模型的数字 (实测两次结果逐字节
   🟠 ISS-159  closed    owner=hw-lead    due=2026-11-05  
        ★★[demo] 画板前致命项清零 F4~F12 (★照 EN 那个 P0 的教训: 漏到投板后 = 2~4 周返工)
-  🟠 ISS-164  fixed     owner=main       due=2026-11-05  
-       ★★[等老板一句] demo 精度验收线: yolov5n F1 0.2927 差 0.0073 不达 0.30 门槛, 换 yol
-  🟠 ISS-169  open      owner=main       due=2026-11-05  
-       ★★[demo 板可制造性] demo 主板的边界已定 (Type-C 供电 · 不装电池 · 板上只有这一块) + SoM 座的 
   🟠 ISS-132  fixed     owner=main       due=2026-11-06  
        ★★★[决定性] 视涯 0.49" 1920×1080 是单色还是全彩? —— 这题决定产品定义 (检测框能不能上色)
   🟠 ISS-133  open      owner=main       due=2026-11-06  
@@ -325,6 +287,78 @@
   🟠 ISS-156  open      owner=main       due=2026-11-04   ⏰逾期
        ★★[demo 供应链] 自研主板的三件前置选型: camera 模组 / 屏模组 / RK3572 核心板 (★主板的 FPC 座
        ❌ ★逾期★ due=2026-11-04 已过, 仍 open
+  🟠 ISS-038  open      owner=boss       due=2026-11-05   ⏰逾期 [外部]
+       【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否加第 4 个总工
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-041  open      owner=boss       due=2026-11-05   ⏰逾期 [外部]
+       ★★[当前 demo 板] 测试条件缺失 ⇒ G3 那一关不可判通过 (★2026-11-04 09:57 起: 不含热电偶/假皮肤
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-060  open      owner=boss       due=2026-11-05   ⏰逾期 [外部]
+       产品件三条几何待老板裁决 (压垫吸收量零余量 / 非对称方向 / 压垫槽区板厚小于 FDM 最小壁) —— 打印包转绿不等于解 A 
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-063  open      owner=boss       due=2026-11-05   ⏰逾期 [外部]
+       显示端 120 度到 30 度的映射方式 (看得广但糊 vs 看得清但窄) —— 120 度这个卖点对用户可见吗
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-082  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + P
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟠 ISS-094  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★投板前网表要做 pin-centric 重整 (现在 CSV 是『连接清单』模型, KiCad 网表要的是『每引脚一行』)
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟠 ISS-096  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟠 ISS-097  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★"关机"语义: 硬件断电通路 (负载开关) + 真关机拓扑 + 功耗预算 V3
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟠 ISS-098  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★SoC 侧没有 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失, S2 救砖链路成立性未验; 且 CO
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟠 ISS-102  open      owner=main       due=2026-11-05   ⏰逾期
+       ★[待原厂] 追加问 4 条: AON 域静态电流 / USB VBUS detect 脚 / TPS62130A PG 极性 / 
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-106  open      owner=boss       due=2026-11-05   ⏰逾期 [外部]
+       ★新增渠道: 经酷芯微代理转达 (老板 10-28 找到代理) —— 代理信 + 3 份可转发附件已就绪
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-116  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★工作方式改造: 老板任务先落 GitHub 总表 + token 守护 (老板 10-29 09:59 亲自要求)
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟠 ISS-118  fixed     owner=hw-lead    due=2026-11-05   ⏰逾期
+       ★板宽 15mm → 30mm 的硬件连带重算 (板框/网表/面积/逃线/跨铰链排布) —— 老板 10-29 19:16 放宽
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟠 ISS-122  fixing    owner=main       due=2026-11-05   ⏰逾期
+       ★★BGA 逃线层数: ★两套模型结论相反 (9 层 vs 3 层) ⇒ 破没破 4-6 层锁是 [0数据] 不是结论 —— 必须问
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixing
+  🟠 ISS-124  open      owner=main       due=2026-11-05   ⏰逾期
+       ★★[待瑞芯微/RK3576 模组厂] ISP MP/s 吞吐上限 + ISP 动态功耗 vs 吞吐曲线 (2 问, 一票否决级的剩
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-126  open      owner=main       due=2026-11-05   ⏰逾期
+       ★★板厚档位未定 ⇒ 检修口净空只有 4.90 那一档过 (1.22mm 档净空 4.48 破 4.50 硬要求)
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-127  open      owner=main       due=2026-11-05   ⏰逾期
+       ★★★脱模斜度致镜脚 H 链最坏 −0.577mm ⇒ 几何上做不出来 (不是余量紧张, 是不可行) —— 量产架构必须改
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-128  open      owner=main       due=2026-11-05   ⏰逾期
+       ★★主控换 RK3572 ⇒ 板面积账 + 逃线层数全部重算 (封装 FCCSP550L 14.3×15.5mm / 550 球, 
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-129  open      owner=main       due=2026-11-05   ⏰逾期
+       ★★★RK3572 (4 TOPS) 板端纯 NPU 实测 ⇒ 端到端 60ms 硬指标生死判定 (★T2 翻案条件推算已命中)
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-130  open      owner=main       due=2026-11-05   ⏰逾期
+       ★★★RK3572 功耗 670mW (原厂口径) vs 贴皮肤 43°C 红线 —— 从「待定」变「可判」
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟠 ISS-150  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★★[硬件优先 #3] demo sensor 换 IMX415 ⇒ 网表三条电源轨要重核 + 1080p60 输出模式定案
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟠 ISS-157  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★[软件] rknn_bench.py 的 cut 模型缓存不失效 ⇒ 换模型重测会静默跑出上一个模型的数字 (实测两次结果逐字节
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟠 ISS-164  fixed     owner=main       due=2026-11-05   ⏰逾期
+       ★★[等老板一句] demo 精度验收线: yolov5n F1 0.2927 差 0.0073 不达 0.30 门槛, 换 yol
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟠 ISS-169  open      owner=main       due=2026-11-05   ⏰逾期
+       ★★[demo 板可制造性] demo 主板的边界已定 (Type-C 供电 · 不装电池 · 板上只有这一块) + SoM 座的 
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
   🟡 ISS-020  closed    owner=main       due=2026-10-28  
        PRD 补完: REQ/REQUIREMENTS.md 还是草稿 (子模块需求待填/验收标准待填)
   🟡 ISS-031  closed    owner=main       due=2026-10-28  
@@ -365,8 +399,6 @@
        P2S 打印件实测尺寸 0 件 (AGENTS.md 要求未满足) + 彩虹纹指标缺失
   🟡 ISS-024  verified  owner=mech-lead  due=2026-11-05  
        材料选型与表面耐受缺失 (汗液/化妆品/酒精/UV 全未考虑)
-  🟡 ISS-025  fixed     owner=mech-lead  due=2026-11-05  
-       结构 DFM 评审缺失 (P2S 打印件 → 量产开模件的可制造性差异)
   🟡 ISS-043  verified  owner=hw-lead    due=2026-11-05  
        充电状态读取接口未确认 → 充电时禁 OD 门禁可能无法实现
   🟡 ISS-047  verified  owner=mech-lead  due=2026-11-05  
@@ -377,26 +409,16 @@
        结构侧 5 条书面建议的落地评估 (镜腿内发热量口径 / 鼻梁也适用 43°C / 上下分壳后镜腿 35.1-35.3°C / 新容
   🟡 ISS-079  verified  owner=hw-lead    due=2026-11-05  
        情报检索: 采用 ARS45 的 AI 翻译眼镜拆解 + 港交所招股书直链 (封装/走线/供应链/交付)
-  🟡 ISS-086  fixed     owner=main       due=2026-11-05  
-       netlist 收尾: NTC 改数字温度计 (I2C_A 第 4 个从设备) + USB 跨铰链保护件 (ESD/共模扼流/端接)
   🟡 ISS-092  verified  owner=mech-lead  due=2026-11-05  
        ★镜脚末端检修口 (J_DEBUG/J_UART 够不着 → 排针装上也用不了) 的开孔/盖板方案落到 MECH 尺寸链
-  🟡 ISS-095  open      owner=main       due=2026-11-05  
-       ★[待 TI 确认] BQ25896 的 VSYS 脚是否必须接 —— 决定'电池挪镜框'回退分支要不要多两根电源 pin
   🟡 ISS-103  deferred  owner=mech-lead  due=2026-11-05  
        ★镜框开导光孔/导光柱 (充电灯装充电板靠 Type-C 座, 老板拍板关机时充电灯要亮)
   🟡 ISS-105  verified  owner=hw-lead    due=2026-11-05  
        ★更正 hw-lead 分片过期值 (pcb_outline 仍 50×12 / chg_input_limit 仍 1.07-1.
-  🟡 ISS-109  open      owner=main       due=2026-11-05  
-       ★R-GEO 六问全 0 答复: ISP 吞吐余量 1.9% vs 50.7% 完全相反 (一票否决级) + 采集链/散热结论都不能
   🟡 ISS-111  verified  owner=hw-lead    due=2026-11-05  
        ★[ISS-068 拆出] EVT 可靠性实测项清单 (跌落/振动/弯折/热) —— 文件缺失, 补交
   🟡 ISS-123  verified  owner=sw-lead    due=2026-11-05  
        ★S2 救砖链路全套装按 ARS45 写死 (magic AR45 / 版本串 ARS45-SW / parameter.txt 扇
-  🟡 ISS-125  open      owner=main       due=2026-11-05  
-       ★R-GEO 六问的其余五问要按 RK3576 口径重写问询 (问 01/02/04/05/06 仍是 0 答复)
-  🟡 ISS-131  open      owner=main       due=2026-11-05  
-       ★★ISS-124/125 问询口径改 RK3572 (ISP 16M→12M, CSI 3×→2×) + 球位号问询对象改瑞芯微/
   🟡 ISS-173  closed    owner=main       due=2026-11-05  
        ★★★[demo 能不能看见屏幕] 显示器背光需 12.8V@200mA ⇒ 5V 输入必须加 12V BOOST (且会撑爆 US
   🟡 ISS-134  open      owner=main       due=2026-11-06  
@@ -411,6 +433,24 @@
        ★★[硬件] IMX415 上电顺序 (DVDD→OVDD→AVDD) 与 AVDD typ 2.9V: 现网表三轨同起 + LDO
   🟡 ISS-177  deferred  owner=main       due=2026-11-12  
        ★★[整机屏 · 已暂缓] 问视崖 SY049 有无非 DSC 模式版本 —— ★**视崖已不用 ⇒ 本单降级 deferred**
+  🟡 ISS-025  fixed     owner=mech-lead  due=2026-11-05   ⏰逾期
+       结构 DFM 评审缺失 (P2S 打印件 → 量产开模件的可制造性差异)
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟡 ISS-086  fixed     owner=main       due=2026-11-05   ⏰逾期
+       netlist 收尾: NTC 改数字温度计 (I2C_A 第 4 个从设备) + USB 跨铰链保护件 (ESD/共模扼流/端接)
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
+  🟡 ISS-095  open      owner=main       due=2026-11-05   ⏰逾期
+       ★[待 TI 确认] BQ25896 的 VSYS 脚是否必须接 —— 决定'电池挪镜框'回退分支要不要多两根电源 pin
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟡 ISS-109  open      owner=main       due=2026-11-05   ⏰逾期
+       ★R-GEO 六问全 0 答复: ISP 吞吐余量 1.9% vs 50.7% 完全相反 (一票否决级) + 采集链/散热结论都不能
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟡 ISS-125  open      owner=main       due=2026-11-05   ⏰逾期
+       ★R-GEO 六问的其余五问要按 RK3576 口径重写问询 (问 01/02/04/05/06 仍是 0 答复)
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
+  🟡 ISS-131  open      owner=main       due=2026-11-05   ⏰逾期
+       ★★ISS-124/125 问询口径改 RK3572 (ISP 16M→12M, CSI 3×→2×) + 球位号问询对象改瑞芯微/
+       ❌ ★逾期★ due=2026-11-05 已过, 仍 open
   🟡 ISS-059  closed    owner=mech-lead  due=2026-10-28  
        打印包 P 表口径漂移 + verify_pack 文案过时 + 测量清单要区分两类孔 (mech-lead 交卷自查发现的 3 个
   🟡 ISS-069  closed    owner=sw-lead    due=2026-10-28  
@@ -432,7 +472,7 @@
   🟡 ISS-113  verified  owner=sw-lead    due=2026-11-05  
        ★RKNN_BENCH 的 B6 复现缺陷: `acc` 步单独跑会崩 (依赖 calib 步的 dataset.txt)
 
-❌ 违规 6 条
+❌ 违规 46 条
 ```
 ## 4. 阶段门 (G0-G4)
 ```

@@ -925,7 +925,8 @@ def main():
     if _grp_pin:
         print("  [排版] ★精确钉位组 %d 个已落板" % len(_grp_pin))
     # ★★v38: ★**未匹配的 PART_POS 键要报警** (★否则"钉位没生效"会静默通过 ⇒ 白跑一轮)
-    _unmatched = sorted(set(PART_POS) - set(PLACE_INFO))
+    _tp_refs = set(r for (r, _p, _k, _w, _h) in _grp_tp)
+    _unmatched = sorted((set(PART_POS) - set(PLACE_INFO)) - _tp_refs)
     if _unmatched:
         print("  ⚠️ PCB_PART_POS 里 %d 个 ref 在板上不存在 (★钉位未生效): %s"
               % (len(_unmatched), _unmatched))
@@ -961,7 +962,28 @@ def main():
             if tgt:
                 break
         done_tp = False
-        if tgt:
+        # ★★v43: TP 也支持 PCB_PART_POS 钉位 (★默认关 => PART_POS 为空时行为不变)
+        #   ★**为什么需要**: TP_CSI_* 走 "贴伙伴件" 逻辑 ⇒ 伙伴件被钉到别处时 TP 会自动跟过去
+        #   ⇒ ★**TP 的 x 序直接决定 POST 段会不会交叉** ⇒ 必须能单独钉
+        if ref in PART_POS:
+            _px, _py, _rot = PART_POS[ref]
+            _fp = make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
+                                 _px, _py, rot=_rot)
+            try:
+                _bb = _fp.GetBoundingBox()
+                _RES_OVR.append((_bb.GetLeft() / 1e6 - PLACE_OVERRIDE_GUARD,
+                                 _bb.GetTop() / 1e6 - PLACE_OVERRIDE_GUARD,
+                                 _bb.GetRight() / 1e6 + PLACE_OVERRIDE_GUARD,
+                                 _bb.GetBottom() / 1e6 + PLACE_OVERRIDE_GUARD))
+            except Exception:
+                _RES_OVR.append((_px - w / 2.0 - PLACE_OVERRIDE_GUARD,
+                                 _py - h / 2.0 - PLACE_OVERRIDE_GUARD,
+                                 _px + w / 2.0 + PLACE_OVERRIDE_GUARD,
+                                 _py + h / 2.0 + PLACE_OVERRIDE_GUARD))
+            PLACE_INFO[ref] = (_px, _py, w, h)
+            placed += 1
+            done_tp = True
+        if tgt and not done_tp:
             tx, ty, tw, th = tgt
             for (ox, oy) in ((3.2, 0), (-3.2, 0), (0, 3.2), (0, -3.2),
                              (3.2, 3.2), (3.2, -3.2), (-3.2, 3.2), (-3.2, -3.2),
@@ -994,6 +1016,10 @@ def main():
         pxT, pyT, rhT, nT = _place_flow(_tp_rest, _A_RES[0], pyC + rhC + 3.0,
                                         _A_RES[2], _A_RES[3])
         placed += nT
+    _unmatched2 = sorted(set(PART_POS) - set(PLACE_INFO))
+    if _unmatched2:
+        print("  ⚠️ PCB_PART_POS 里 %d 个 ref 最终没落板 (★钉位未生效): %s"
+              % (len(_unmatched2), _unmatched2))
     px, py, row_h = pxC, pyC, rhC
     if DROPPED:
         print("  ❌ 装不下被丢 %d 个: %s" % (len(DROPPED), ", ".join(DROPPED)))
