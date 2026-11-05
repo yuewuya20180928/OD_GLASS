@@ -403,19 +403,27 @@ echo "[4] 真值反查 0 命中 ✅"
 #     · ★**板 + 派生产物 (Gerber/钻孔/坐标/贴片) 一起管** ⇒ 拦下时一起撤 (历史里保留)
 #     · ★**rsync 不再直接抄板/Gerber** ⇒ 闸门通过时才显式 cp ⇒ 不会"抄回来又删掉"反复折腾
 PCB_REL="projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb"
+PCB_SRC="$PROJ/HW/PCB/demo_mainboard.kicad_pcb"
 SKIP_PUSH=0
 BOARD_BAD=0
 BOARD_WHY=""
-if [ -f "$PCB_REL" ]; then
+# ★★2026-11-05 09:50 修 (实测事故二): 包裹条件原来测的是**发布树**的 $PCB_REL,
+#   而 rsync 早就把板从发布树排除了 ⇒ ⇒ 这块 if **从来就不成立** ⇒⇒
+#   ⇒⇒ 闸门整块从来没跑过 (输出里连 "[4.5]" 行都没有!) ⇒⇒ 拦下时的"板级隔离"也从来没执行
+#   ⇒⇒ 结果: 坏板 (DRC 2 / unconnected 82) 的 32 个 Gerber 一直躺在公开仓里
+#      (GitHub contents API 实测 projects/smart_glasses/HW/PCB/gerbers = 32 项)
+#   ⇒⇒ 现在: ① 条件测**源树**的板 ② 撤下逻辑交给 board_publish_gate.sh --withdraw (可单测, 11/11 过)
+if [ -f "$PCB_SRC" ]; then
   # ★★闸门必须跑在**源树**上 (★不是发布树!) —— 因为: ① 板在源树 (rsync 已排除板 ⇒ 发布树里本来就没有)
   #   ② `.verified_board_ok_mtime` / `.layout_done.json` 这些自验证据也在源树
   #   ⇒ ⇒ 用发布树跑闸 ⇒ 永远"没有板" ⇒ ⇒ 板永远发布不出去 (★09:22 自己发现并修掉的逻辑 bug)
-  GATE_OUT="$(bash "$PROJ/state/board_publish_gate.sh" "$PROJ" 2>&1)"; GATE_RC=$?
+  GATE_OUT="$(bash "$PROJ/state/board_publish_gate.sh" "$PROJ" --withdraw "$PUB" 2>&1)"; GATE_RC=$?
   if [ "$GATE_RC" -ne 0 ]; then
     BOARD_BAD=1
-    BOARD_WHY="$(echo "$GATE_OUT" | tail -1 | sed 's/^BAD|//')"
+    BOARD_WHY="$(echo "$GATE_OUT" | grep -m1 '^BAD|' | sed 's/^BAD|//')"
     SKIP_PUSH=1
     echo "[4.5] ⚠️ 发布闸拦板: $BOARD_WHY ⇒ ★**这块板不进 GitHub** (文档照推)"
+    echo "$GATE_OUT" | grep -m1 '^WITHDRAW|' | sed 's/^/[4.5] /'
   else
     echo "[4.5] 发布闸: 板通过 (${GATE_OUT#OK|})"
     # ★★闸门通过 ⇒ 这时候才把板 + 派生产物拷进发布树 (rsync 阶段已排除)

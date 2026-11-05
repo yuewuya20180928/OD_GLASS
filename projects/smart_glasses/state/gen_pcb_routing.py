@@ -306,6 +306,7 @@ class GridRouter:
         # ★★2026-11-05 **差分对耦合布线参数** (★P/N 成对走线时临时生效)
         self.pair_partner = None     # ★伙伴网的网名 (差分对耦合时生效)
         self.pair_block = set()      # ★离伙伴铜箔太近的格 (几何精确) ⇒ 不许走
+        self.pair_block_narrow = set()  # ★窄线 (0.2mm) 版禁入格 (★宽度感知)
         # ★★2026-11-05 09:50 **差分对 N 侧的出脚方向**: ★P 用过的方向不许再用
         #   ★**为什么**: SoM BTB 0.4mm pitch ⇒ P/N 出脚直道并行 ⇒ 中心距仅 0.400mm
         #   ⇒ 0.2mm 窄线并行时净距 = 0.400-0.1-0.1 = 0.20mm (勉强合法)
@@ -557,8 +558,10 @@ class GridRouter:
             #   ⇒ 若把 P 的 halo 当障碍 ⇒ N 永远跑不到 P 旁边 ⇒ ★**P 走了通道, N 无路可走**
             #   ★**怎么豁免才安全**: 用**几何精确距离**判断, 而不是 halo 的保守栅格半径
             #   ⇒ ★`_pair_block` = 离 P 铜箔 < pair_min 的格 (几何精确) ⇒ 只禁真正会短路的
+            # ★★2026-11-05 10:00 **宽度感知**: 窄线 (cls=0) 用窄标准禁入集, 宽线用宽标准
+            _pb = self.pair_block_narrow if cls == 0 else self.pair_block
             if not (self.pair_partner and others == {self.pair_partner}
-                    and idx not in self.pair_block):
+                    and idx not in _pb):
                 return False
         # ★★2026-11-05 02:35 修 (实测 12 条 copper_edge_clearance): **板外的格子一律不许走**
         #   ★**根因**: 下面的"自己网的焊盘所在格"豁免了板边检查 ⇒ 靠边的焊盘 (如安装孔 GND 焊盘)
@@ -1037,12 +1040,15 @@ class GridRouter:
             return None
         if self._nearest_other_pad(net, cx, cy) >= 0.45:
             return None          # ★不紧 ⇒ 正常出脚
+        # ★★2026-11-05 10:00 **优先走"与伙伴不同"的方向, 但不是禁止**
+        #   ★**实测**: SoM 0.4mm pitch 的焊盘 ⇒ ★**往往只有一个方向能出脚**
+        #     ⇒ ★**硬禁会直接让 N 侧没有直道 ⇒ 更糟** ⇒ ⇒ 改成"先试别的, 都不行再回头"
+        _dirs = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        _prefer = [d for d in _dirs if d not in self.esc_avoid] + \
+                  [d for d in _dirs if d in self.esc_avoid]
         for ln in ESC_LENS:
             best = None
-            for (dx, dy) in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-                # ★★2026-11-05 09:50 **不许与伙伴同向出脚** (★差分对 N 侧 ⇒ 走反方向)
-                if (dx, dy) in self.esc_avoid:
-                    continue
+            for (dx, dy) in _prefer:
                 ex, ey = cx + dx * ln, cy + dy * ln
                 if not self._stub_clear(net, cx, cy, ex, ey):
                     continue
@@ -2301,8 +2307,17 @@ class GridRouter:
           ⇒ ⇒ ★**禁入规则必须在出脚区让位**, 出脚之后走廊约束照旧
           ⇒ ★**默认关** (PCB_PAIR_ESCAPE_EXEMPT=0) ⇒ **不影响在跑的 v26 四臂**
 
-        返回一个 set of idx (禁入格)"""
+        ★★★**宽度感知 (2026-11-05 10:00)**: ★**两套禁入格**
+          · `block_wide`   : d - w_P/2 - **W_SIG/2** < 0.2  ⇒ 0.25mm 的 N 线不许进
+          · `block_narrow` : d - w_P/2 - **W_MIN/2** < 0.2  ⇒ 0.20mm 的 N 线可以进
+          ★**为什么**: SoM BTB 0.4mm pitch ⇒ P 的出脚直道(0.2mm 窄线)中心距 N 的焊盘只有 0.400mm
+            ⇒ ★**0.2mm 窄线并行时净距 = 0.400-0.1-0.1 = 0.200mm (刚好合法)**
+            ⇒ ★**宽线 (0.25) 则净距 0.175 ⇒ 违规** ⇒ ⇒ **禁入格必须按"这条线有多宽"分别算**
+            ⇒ ⇒ ★**窄线能贴上去 (真·差分对几何), 宽线不许贴 (免得 DRC 违规)**
+
+        返回 (block_wide, block_narrow) 两个 set of idx"""
         block = set()
+        block_n = set()
         # ★★出脚区豁免格 (★N 侧自己焊盘周围 exempt_r mm)
         exempt = set()
         if exempt_net:
@@ -2328,8 +2343,12 @@ class GridRouter:
                 px, py = self._cx(i), self._cy(j)
                 # ★精确距离: 格心到伙伴线段的距离
                 d = _pt_seg_dist(px, py, x1, y1, x2, y2)
-                if d - s[6] / 2.0 - W_SIG / 2.0 < 0.2 and idx not in exempt:
+                if idx in exempt:
+                    continue
+                if d - s[6] / 2.0 - W_SIG / 2.0 < 0.2:
                     block.add(idx)
+                if d - s[6] / 2.0 - W_MIN / 2.0 < 0.2:
+                    block_n.add(idx)
         # ★★2026-11-05 **伙伴的过孔也要算** ——
         #   ★**漏了过孔 ⇒ DRC 直接报 clearance 违规** (实测 3 条)
         #   ★过孔是通孔 (F.Cu..B.Cu) ⇒ **所有 6 层**都算
@@ -2342,8 +2361,13 @@ class GridRouter:
                 if 0 <= i < self.W and 0 <= j < self.H:
                     idx = self._idx(i, j)
                     px, py = self._cx(i), self._cy(j)
-                    if math.hypot(px - vx, py - vy) - VIA_DIA / 2.0 - W_SIG / 2.0 < 0.2 and idx not in exempt:
+                    if idx in exempt:
+                        continue
+                    _d = math.hypot(px - vx, py - vy)
+                    if _d - VIA_DIA / 2.0 - W_SIG / 2.0 < 0.2:
                         block.add(idx)
+                    if _d - VIA_DIA / 2.0 - W_MIN / 2.0 < 0.2:
+                        block_n.add(idx)
         # ★伙伴的焊盘周围 (同层) 也要禁
         for (net, x0, y0, x1, y1, layers) in self.pad_rects_l:
             if net != net_p:
@@ -2354,9 +2378,11 @@ class GridRouter:
                                           self.bb[0], self.bb[1]):
                     if 0 <= i < self.W and 0 <= j < self.H:
                         _bi = self._idx(i, j)
-                        if _bi not in exempt:
-                            block.add(_bi)
-        return block
+                        if _bi in exempt:
+                            continue
+                        block.add(_bi)
+                        block_n.add(_bi)
+        return block, block_n
 
     def build_pair_guide(self, net_p, ring=3):
         """★★ **差分对的"走廊引导图"** (★N 侧的关键修复)
@@ -2547,7 +2573,8 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
     router.pair_partner = net_p
     # ★★出脚区豁免 (env 开关, 默认关 ⇒ 不影响在跑的四臂)
     _exempt_n = net_n if PAIR_ESCAPE_EXEMPT else None
-    router.pair_block = router.build_pair_block(net_p, min_c=0.50, exempt_net=_exempt_n)
+    router.pair_block, router.pair_block_narrow = router.build_pair_block(
+        net_p, min_c=0.50, exempt_net=_exempt_n)
     # ★★2026-11-05 09:50 **N 侧不许与 P 同向出脚** (★0.4mm pitch 并行出脚必违规)
     router.esc_avoid = set(router.esc_used_dirs.get(net_p, set())) if PAIR_ESCAPE_EXEMPT else set()
     try:
@@ -2563,6 +2590,7 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
     finally:
         router.pair_partner = None
         router.pair_block = set()
+        router.pair_block_narrow = set()
         router.esc_avoid = set()
     res["n_ok"] = r2["ok"]
     res["ring"] = r2.get("ring")
