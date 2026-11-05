@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# auto_promote_when_done.sh —— ★**臂一落盘就自动量 + 自动晋级** (2026-11-05 11:00)
+# 目的: 不用等我盯着 ⇒ 臂落盘 ⇒ 自动跑 DRC ⇒ 比官方板 ⇒ 更好就自动走终点线
+# 用法: bash state/auto_promote_when_done.sh <前缀> <臂名> [等多久秒]
+# 例:   bash state/auto_promote_when_done.sh v28 H 7200
+set -u
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses || exit 1
+PREFIX="${1:?用法: auto_promote_when_done.sh <前缀> <臂名> [超时秒]}"
+ARM="${2:?用法: auto_promote_when_done.sh <前缀> <臂名> [超时秒]}"
+WAIT="${3:-7200}"
+LOG="/tmp/${PREFIX}_${ARM}.log"
+PCB="/tmp/${PREFIX}_${ARM}.kicad_pcb"
+OUT=/tmp/auto_promote.log
+
+say() { echo "[$(date '+%H:%M:%S')] $*" >> "$OUT"; }
+say "=== 守候 ${PREFIX}_${ARM} (超时 ${WAIT}s) ==="
+t0=$(date +%s)
+while [ $(( $(date +%s) - t0 )) -lt "$WAIT" ]; do
+  if grep -q 'EXIT=' "$LOG" 2>/dev/null; then break; fi
+  sleep 20
+done
+if ! grep -q 'EXIT=' "$LOG" 2>/dev/null; then
+  say "✗ 等超时 ⇒ 没等到 ${PREFIX}_${ARM} 落盘"
+  exit 1
+fi
+say "✔ ${PREFIX}_${ARM} 落盘 ($(grep -oE 'EXIT=[0-9]+' "$LOG" | tail -1)) ⇒ 开始量"
+[ -f "$PCB" ] || { say "✗ 没有臂板文件 $PCB"; exit 1; }
+
+# ★量这个臂
+bash state/kicad.sh pcb drc --output "/tmp/_ap_${PREFIX}_${ARM}.json" --severity-error --severity-warning --format json "$PCB" >/dev/null 2>&1
+read -r DRC UNC <<< "$(python3 - "/tmp/_ap_${PREFIX}_${ARM}.json" <<'PY'
+import json,sys
+try:
+    d=json.load(open(sys.argv[1]))
+    print(len(d.get("violations") or []), len(d.get("unconnected_items") or []))
+except Exception:
+    print("999 999")
+PY
+)"
+say "  臂: DRC=$DRC unconnected=$UNC"
+# ★官方板现状
+read -r ODRC OUNC <<< "$(python3 - <<'PY'
+import json
+try:
+    d=json.load(open('HW/PCB/.layout_done.json'))
+    print(d.get('drc_violations', 999), d.get('unconnected', 999))
+except Exception:
+    print('999 999')
+PY
+)"
+say "  官方板: DRC=$ODRC unconnected=$OUNC"
+if [ "$UNC" -ge "$OUNC" ] || [ "$DRC" -gt "$ODRC" ]; then
+  say "★不比官方板好 (unconnected $UNC vs $OUNC · DRC $DRC vs $ODRC) ⇒ **不晋级**"
+  exit 0
+fi
+say "  ⇒ 比官方板好 ⇒ 走终点线 (晋级 → 加铜皮 → 重出投产包 → 全门禁自验)"
+PREFIX="$PREFIX" bash state/finish_line.sh "$ARM" >> "$OUT" 2>&1
+say "  终点线跑完 (rc=$?) ⇒ 见 $OUT"

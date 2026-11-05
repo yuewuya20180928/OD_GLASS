@@ -2,12 +2,13 @@
 
 ★盯的日志: /tmp/gen_v25.log
 === 机器读数 (board_progress.py) ===
-=== 进展播报 11-05 10:42:30 ===
+=== 进展播报 11-05 11:10:07 ===
 [板] 11-05 09:52:49 · 5.0MB · 19070 段走线 · 407 过孔
-[布线] 上次实测 unconnected=83 · DRC违规=2 · 留证 2026-11-05T10:35:19
-[在跑] 8 个进程 ⇒ timeout; timeout
+[布线] 上次实测 unconnected=83 · DRC违规=2 · 留证 2026-11-05T10:54:04
+[在跑] 7 个进程 ⇒ timeout; timeout
 [当前在做] 2. ★[在跑] **v27 三臂 (09:52 起)** (E=8层160×100 / F=10层160×100 / G=8层180×120, **各自 PCB_OUT 隔离 ⇒ 官方板不动**) ⇒ ★**共同新增: F7 排版 (PCB_PIN_CONN_CAM=1) + 差分对 N 侧出脚修复 (PCB_PAIR_ESCAPE_EXEMPT=1) + 浮点容差 1nm + 过孔查重** ⇒ ★**早期读数: 三臂差分对"N 未通"= 0 (v26 是 18/22) ⇒ USB_D_N_SRC / CSI_D0_CK_N_SRC 都 ok=True/True Δ=0.000** ⇒ ETA ~11:00
 [待办]
+  - 2h. ★★[11:00 挖出设计级 P0 bug] **SoM 的 7 个 DCIN 脚原来落在孤岛网 `RAIL_SOM_DCIN` 上** (网表 net 字段与 node2 字段自相矛盾) ⇒ **板上没有到 SoM 的供电路径** ⇒ 已修网表 (7 行并进 RAIL_DEMO_5V) + 原理图/BOM 重出 ⇒ ★**旧臂作废, v28 H/I/J 于 10:58 用修好的网表重起** (H=8层 · I=8层+GND先布 · J=10层+GND先布)
   - 2a. ★[10:25 判死一条线] **180×120 加大面积 = 劣势** (v26 D: 布不动 75 脚/用时 87 分钟, 全场最差; v27 G: N未通 12/22) ⇒ **面积方向关闭** ⇒ 后面只测 层数/排版/出脚/GND 顺序/预算
   - 2b. ★★[09:55 真凶] **浮点容差**: `_stub_vs_routed` 判 0.4mm pitch 相邻出脚直道净距时 `need=0.4`, 实测算出 **0.3999999999999986** ⇒ 每一对相邻脚被判死 ⇒ **SoM BTB 全出不来 ⇒ 22 对里 17~18 对 N 侧 0 段铜** (unconnected 82/83 的头号来源) ⇒ 三处比较加 **1nm 容差** ⇒ 探针实测 6/6 个 _SRC 对 N 侧全部有铜 Δ=0.000 ring=2
   - 2c. ★[09:52 官方板已换] v25 → **臂 A** (19070 段/407 孔) ⇒ ★**焊盘短路 (R_SER_USB_D_N.2↔Q_PG.1) 消失** ⇒ 剩 DRC 2 = **同点重复过孔** (落板自检已抓到: 板上 407 vs 内存 405) ⇒ 已加 `_via_exists` 查重 (v27 起生效)
@@ -16,53 +17,24 @@
   - 2f. ★[09:54 已修] `state/verify_and_release.sh` 三处 `echo "rc=$?"` 把 `$?` 吃掉 ⇒ DRC/chain_gate/stage_gate 挂了也不 FAIL ⇒ ★**自验永远退 0** (这正是上次"带短路板被推上 GitHub"的温床) ⇒ 已改成先存 `_rc=$?` 再打印
   - 2g. ★[09:55 注意] `issue_check rc=1` (逾期未闭环 6 条, 多数归 boss/其他 lead) ⇒ ★**即使板子全绿, 这一条也会挡住放行章** ⇒ 需老板定口径
   - 1. 最高优先级: 自研 demo 主板 → 可下单 (ISS-181/182) —— ★G1 缺口 = PCB 未布线。★**官方板 = 臂 A (09:52:49, 19070 段/407 孔, unconnected 83, DRC 2, parity rc=0)** ⇒ ★**焊盘短路已消失** (v25 那块已作废) ⇒ 但 DRC 2 (重复过孔, 已修) + unconnected 83 ⇒ ★**仍不许投板, 未盖章** ⇒ ★**下一步 = 等 v27 三臂落盘 (ETA ~11:00) → 选赢家 → finish_line → 若 unconnected=0 & DRC=0 才盖章**
-  - 3. ★★v25/v26 的教训 (根因都已修, 已在 v27 验证中): ① **过孔判据过严** (halo[2] 半径 0.95mm) ⇒ 已加 `_via_exact_ok` ② **F5 排版把差分对远端连接器搬走** ⇒ F7 已把 CONN_CAM 钉回 (86.8,52.8) ③ **halo 放松 (skip_pad_cells) 可能让 P 侧走进 N 焊盘邻域** ⇒ 开关 `PCB_SKIP_PAD_CELLS` ④ ★★★**浮点容差** (0.4 算成 0.3999999999999986 ⇒ 每一对相邻脚被判死) ⇒ 已加 1nm 容差 ⑤ ★**N 侧出脚被"伙伴禁入格+邻居 halo"封死** ⇒ 已加 own_pad 豁免 + 出脚区豁免 + 宽度感知禁入格
 ★落盘了 ⇒ 开始自验+放行
-=========== 1. 板文件与布线留证 ===========
--rw-rw-r-- 1 yuewuya yuewuya     154 11-05 10:35:19 HW/PCB/.layout_done.json
--rw-rw-r-- 1 yuewuya yuewuya 4983764 11-05 09:52:49 HW/PCB/demo_mainboard.kicad_pcb
--- 走线/过孔计数 --
-segment: 19070
-via    : 407
-=========== 2. DRC (含 unconnected) ===========
+  ✗ 自验 rc=1 ⇒ ★**不写** .verified_board_ok_mtime (⇒ 发布闸会拦这块板)
 DRC violations = 2   unconnected items = 83
-  - holes_co_located Drilled holes co-located
-  - holes_co_located Drilled holes co-located
-  未连接网 top12: [('GND', 50), ('I2C_A_SCL', 6), ('RAIL_DEMO_5V', 6), ('RESET_N', 4), ('I2C_B_SCL', 4), ('BAT_DET', 4), ('DSI_D0_D0_N', 4), ('KEY_PWR', 4), ('VDD_3V3_IO', 2), ('CSI_D0_D0_N_SRC', 2), ('CSI_D0_D0_N', 2), ('DSI_D0_CK_N', 2)]
+  PCB 图纸门禁 · check_pcb_drc (★自己画的图, 自己验)
+  ❌ C3 DRC violations = 2 (要求 0)
+  ❌ C4 unconnected items = 83 (--strict: 布线完成后必须为 0)
+❌ 不通过 3 项: C3 DRC 2 项违规; C4 83 项未连接; C7 2 处重复过孔
+  check_pcb_drc(--strict) rc=1
+  check_pcb_nets rc=1
+    准出: check_pcb_nets rc=1 | ❌ 不通过 —— 板子与网表**不等价** ⇒ 板子不能下单 · check_pcb_drc rc=1 | 布线已完成 (unconnected=83 · DRC=2)
+  chain_gate rc=1
+  stage_gate rc=1
+--- 差分对审计 (前 12 行) ---
 =========== 2b. 差分对全审计 (22 对: 缺铜/单边零铜/Δ/真实净距) ===========
-segment 总数 = 19070 (文件 (segment 计数 = 19070)  一致=True)
-有铜的网数 = 94
-
 P                    N                         L_P      L_N        Δ maxseg  判定
-NET_USB_D_P_TYPEC    NET_USB_D_N_TYPEC      73.140   73.140    0.000  3.003  OK
-USB_D_P_SRC          USB_D_N_SRC                 -        -        -      -  ★单边零铜: USB_D_N_SRC
-CSI_D0_CK_P_SRC      CSI_D0_CK_N_SRC        15.181   15.181    0.000  1.200  OK
-CSI_D0_CK_P          CSI_D0_CK_N            92.087   92.087    0.000  3.232  OK
-CSI_D0_D0_P_SRC      CSI_D0_D0_N_SRC             -        -        -      -  ★单边零铜: CSI_D0_D0_N_SRC
-CSI_D0_D0_P          CSI_D0_D0_N            68.033   68.033    0.001  3.166  OK
-CSI_D0_D1_P_SRC      CSI_D0_D1_N_SRC        23.174   23.174    0.000  1.200  OK
-CSI_D0_D1_P          CSI_D0_D1_N                 -        -        -      -  ★单边零铜: CSI_D0_D1_P
-CSI_D0_D2_P_SRC      CSI_D0_D2_N_SRC             -        -        -      -  ★单边零铜: CSI_D0_D2_N_SRC
-CSI_D0_D2_P          CSI_D0_D2_N                 -        -        -      -  ★单边零铜: CSI_D0_D2_N
-CSI_D0_D3_P_SRC      CSI_D0_D3_N_SRC             -        -        -      -  ★单边零铜: CSI_D0_D3_N_SRC
-CSI_D0_D3_P          CSI_D0_D3_N                 -        -        -      -  ★单边零铜: CSI_D0_D3_P,CSI_D0_D3_N
-DSI_D0_CK_P_SRC      DSI_D0_CK_N_SRC             -        -        -      -  ★单边零铜: DSI_D0_CK_N_SRC
-DSI_D0_CK_P          DSI_D0_CK_N           176.607  176.607    0.000  3.003  OK
-DSI_D0_D0_P_SRC      DSI_D0_D0_N_SRC             -        -        -      -  ★单边零铜: DSI_D0_D0_N_SRC
-DSI_D0_D0_P          DSI_D0_D0_N                 -        -        -      -  ★单边零铜: DSI_D0_D0_N
-DSI_D0_D1_P_SRC      DSI_D0_D1_N_SRC             -        -        -      -  ★单边零铜: DSI_D0_D1_N_SRC
-DSI_D0_D1_P          DSI_D0_D1_N            80.524   86.034    5.510  0.354  ★超差: 短边(DSI_D0_D1_P)最长单段 0.354mm < 2.5mm ⇒ add_meander 找不到可加蛇形的直段
-DSI_D0_D2_P_SRC      DSI_D0_D2_N_SRC             -        -        -      -  ★单边零铜: DSI_D0_D2_N_SRC
-DSI_D0_D2_P          DSI_D0_D2_N           172.646  172.646    0.000  0.826  OK
-DSI_D0_D3_P_SRC      DSI_D0_D3_N_SRC       104.897  104.897    0.000  3.003  OK
-DSI_D0_D3_P          DSI_D0_D3_N             5.761    1.957    3.804  0.391  ★超差: 短边(DSI_D0_D3_N)最长单段 0.391mm < 2.5mm ⇒ add_meander 找不到可加蛇形的直段
-
 ★ 双边都有铜但 Δ>0.13mm: 2 对
    DSI_D0_D1_P / DSI_D0_D1_N  Δ=5.510mm
-      ★超差: 短边(DSI_D0_D1_P)最长单段 0.354mm < 2.5mm ⇒ add_meander 找不到可加蛇形的直段
    DSI_D0_D3_P / DSI_D0_D3_N  Δ=3.804mm
-      ★超差: 短边(DSI_D0_D3_N)最长单段 0.391mm < 2.5mm ⇒ add_meander 找不到可加蛇形的直段
-★ 单边零铜 (差分对只布了一半): 12 对
    USB_D_P_SRC / USB_D_N_SRC  缺: USB_D_N_SRC
    CSI_D0_D0_P_SRC / CSI_D0_D0_N_SRC  缺: CSI_D0_D0_N_SRC
    CSI_D0_D1_P / CSI_D0_D1_N  缺: CSI_D0_D1_P
@@ -70,79 +42,16 @@ DSI_D0_D3_P          DSI_D0_D3_N             5.761    1.957    3.804  0.391  ★
    CSI_D0_D2_P / CSI_D0_D2_N  缺: CSI_D0_D2_N
    CSI_D0_D3_P_SRC / CSI_D0_D3_N_SRC  缺: CSI_D0_D3_N_SRC
    CSI_D0_D3_P / CSI_D0_D3_N  缺: CSI_D0_D3_P,CSI_D0_D3_N
-=========== 3. 门禁 (全绿才算过) ===========
-======================================================================
-  PCB 图纸门禁 · check_pcb_drc (★自己画的图, 自己验)
-======================================================================
-  ✅ C1 KiCad 工具链可用 — 10.0.8
-  ✅ C2 图纸可被 KiCad 解析 (drill 导出 rc=0)
-  ❌ C3 DRC violations = 2 (要求 0)
-  ❌ C4 unconnected items = 83 (--strict: 布线完成后必须为 0)
-       - [holes_co_located] Drilled holes co-located
-       - [holes_co_located] Drilled holes co-located
-  ❌ C7 同点重复过孔 = 2 (要求 0)
-       - GND @ (106.900, 55.500) × 2
-       - GND @ (29.250, 61.450) × 2
-  ✅ C5 生成器自检 (gen_kicad_project.py rc=0)
-  ✅ C6 生产文件齐 — Gerber 32 个
-----------------------------------------------------------------------
-❌ 不通过 3 项: C3 DRC 2 项违规; C4 83 项未连接; C7 2 处重复过孔
-  check_pcb_drc(--strict) rc=1
-  check_pcb_nets rc=0
-  check_sch_loadable rc=0
-  check_netlist rc=0
-  check_netlist_pins rc=0
-  check_kicad_net rc=0
-  check_schematic_slots rc=0
-  issue_check rc=1
-=========== 4. 重出投产资料包 (板变了 ⇒ 旧 Gerber 作废) ===========
-  gerbers/demo_mainboard-User_Drawings.gbr
-  gerbers/demo_mainboard-User_Eco1.gbr
-  gerbers/demo_mainboard-User_Eco2.gbr
-  pos/demo_mainboard-pos.csv
-── 文件数: 51 | 总大小: 19M ──
-rc_all=0
-=========== 5. 用实测值写回 .layout_done.json ===========
-{"unconnected": 83, "drc_violations": 2, "tracks": 19070, "vias": 407, "at": "2026-11-05T10:44:45", "verified_by": "main (verify_and_release.sh)"}
-=========== 6. 生产链准入/准出 ===========
-==============================================================================
-生产链准入/准出门禁 · chain_gate (全检: 真跑 KiCad + 网表门禁)
-==============================================================================
+❌ 未通过 (verify rc=1) ⇒ ★**不盖章** ⇒ 下一轮会重跑自验 (可重复)
 
-环节                          准入    准出    
-------------------------------------------------------------------------------
-① 网表 (HW/netlist_v1.csv)    ✅     ✅     
-    准入: 产物 11-05 08:49 vs 生成器 11-05 03:34
-    准出: check_netlist rc=0
-② 原理图 (.kicad_sch)          ✅     ✅     
-    准入: 原理图 11-05 08:50 ≥ 网表 11-05 08:49
-    准出: check_sch_loadable rc=0
-③ PCB (.kicad_pcb)          ✅     ❌     
-    准入: PCB 11-05 09:52 ≥ 网表 11-05 08:49
-    准出: check_pcb_nets rc=0 · check_pcb_drc rc=1 | 布线已完成 (unconnected=83 · DRC=2)
-④ BOM (HW/BOM_v1.csv)       ✅     ✅     
-    准入: BOM 11-05 08:50 ≥ 网表 11-05 08:49
-    准出: 位号 291 个全对 · DNP 56 个一致
-⑤ 投产资料包 (HW/PCB/production/)✅     ✅     
-    准入: 18/18 必备产物齐全
-    准出: 投产包 51 个文件 · 11-05 10:43
-------------------------------------------------------------------------------
-❌ 生产链有 1 个环节没过 ⇒ ★**下游产物不许用** (先修上游, 再重生成下游)
-   修法: ① 网表/原理图/PCB/BOM 任一比它的源旧 ⇒ 重跑对应生成器 (`python3 state/gen_netlist.py` / `gen_kicad_sch.py` / `gen_bom.py` / `bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py`) ② 投产包缺件 ⇒ `bash state/gen_production_pack.sh`
-  chain_gate rc=1
-=========== 7. 阶段门 ===========
-【G0】纸面冻结 (需求/口径/方案定型)  —  ✅ 通过   缺 0 项
-【G1】原理图 / PCB 定稿  —  ⏸️  当前关   缺 1 项
-      ▸ 缺实测数据 (1):
-【G2】结构样机装配 (打印件 + 电池 + 光机位姿)  —  ⏸️  已延后 (当期不做)   缺 3 项
-【G3】上电联调 + 硬指标实测  —  ⏳ 未到   缺 4 项
-      ▸ 缺实测数据 (4):
-【G4】体验验收 (DoD 全过)  —  ⏳ 未到   缺 75 项
-▶ 当前在 **G1 原理图 / PCB 定稿**, 还差 **1** 项才能进下一关 (G2 结构样机装配 (打印件 + 电池 + 光机位姿))
-   ★**已跳过延后关**: G2 (当期不做, 缺口 3 项留着, 到整机阶段回来)
-  stage_gate rc=1
-=========== 8. 总判定 ===========
-❌ 有门禁没过 ⇒ **不放行** (自验失败不许盖章)
+--- 本轮直播读数 (播报员实测 · 非脚本输出, 供下轮对比) ---
+v28 H (8层160×100)  : 11 对已试 · 双边通 8 · N未通 3   (log mtime 11:12:03)
+v28 I (8层+GND先布) :  6 对     · 双边通 4 · N未通 2   (log mtime 11:07:31)
+v28 J (10层+GND先布):  6 对     · 双边通 4 · N未通 2   (log mtime 11:09:07)
+v28 K (8层·11:12新起): 刚进布线阶段 (GND 下拉过孔 180 成功) · 0 对
+★四臂各有独立 PCB_OUT (/tmp/v28_H|I|J|K.kicad_pcb) ⇒ 官方板不会被实验臂冲掉
+★官方板 = 旧臂 A (09:52:49 · 19070 段 · 407 孔) ⇒ **与 10:57 修好的网表已不等价** (check_pcb_nets rc=1) ⇒ 必须换板
+★发布闸 = BAD (无 .verified_board_ok_mtime) ⇒ 板/Gerber 未进 GitHub ✔ (发布树只有 _frame_reference.kicad_pcb)
 
 <!-- PROGRESS-BLOCK-END -->
 

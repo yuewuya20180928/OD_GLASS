@@ -915,7 +915,11 @@ class GridRouter:
             #   ★**为什么**: v26 实测 "布不动 66 脚" 里 **22 个是 A* 预算耗尽** (不是真被堵死)
             #   ⇒ v27 里剩下失败的都是**长对** (DSI/CSI 主对, 60~160mm) ⇒ ★**正是预算型失败**
             #   ⇒ ★**最后再试一次, 预算 ×6** (只对"预算耗尽"的失败) ⇒ 代价可控 (只有这几个网吃 CPU)
-            if path is None and self.astar_budget > bmark:
+            if (path is None and self.astar_budget > bmark
+                    and net not in getattr(self, "_budget_retried", set())):
+                # ★**每个网只重试一次** (★否则 3 脚网会重试 2 次 ⇒ CPU 爆)
+                self._budget_retried = getattr(self, "_budget_retried", set())
+                self._budget_retried.add(net)
                 path = self._astar(list(cells), goals, net,
                                     dist_map=dist_map, alpha=alpha,
                                     max_via=allow_via, cls=cls,

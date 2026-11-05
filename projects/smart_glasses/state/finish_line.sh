@@ -23,6 +23,22 @@ fi
 echo "════════ ②b 大电流网加铜皮 (★RAIL_DEMO_5V 实测 151mm×0.25mm ⇒ 扛不住 SoM 输入) ════════"
 if [ -f state/add_power_pour.py ]; then
   bash state/pcbnew_py.sh state/add_power_pour.py "$PCB" RAIL_DEMO_5V 2>&1 | tail -4
+  # ★★加铜皮会改板文件 (mtime 变) ⇒ ★**落盘印要跟着更新** ⇒ 不然"落盘时刻闸"会说"板被中途改过 ⇒ 不许量"
+  python3 - "$PCB" <<'PY'
+import json, os, sys, time
+p = sys.argv[1]
+seg = via = 0
+for l in open(p, encoding="utf-8", errors="ignore"):
+    s = l.lstrip()
+    if s.startswith("(segment"): seg += 1
+    elif s.startswith("(via"): via += 1
+land = {"at": int(os.stat(p).st_mtime), "tracks": seg, "vias": via,
+        "pcb": os.path.basename(p), "landed_at": int(time.time()),
+        "note": "after power pour"}
+json.dump(land, open(os.path.join(os.path.dirname(p), ".layout_landed.json"), "w",
+                     encoding="utf-8"), ensure_ascii=False)
+print("  落盘印(加铜皮后):", json.dumps(land, ensure_ascii=False))
+PY
 fi
 
 echo "════════ ③ 重出投产资料包 (★Gerber/钻孔/贴片/BOM 都要跟着新板) ════════"

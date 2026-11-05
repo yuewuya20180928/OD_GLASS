@@ -7183,3 +7183,31 @@ issues:
     rc=0 · check_pcb_nets rc=0 (487/487) · check_pcb_drc rc=0 · chain_gate --full 全过。★**新增防复发判据**: check_netlist
     现在的 "USB 走板载 Type-C 且 22Ω 串阻真串在中间" ⇒ 串阻被短接会立刻报红; chain_gate 现在的 "投产包比 PCB/原理图新" ⇒ 旧板生成的 Gerber 不可能流到投板。'
   dispatched_at: null
+- id: ISS-183
+  title: '★★★[投板级 P0 · 已修待验] SoM 的 7 个 DCIN 脚落在孤岛网 `RAIL_SOM_DCIN` ⇒ 板上**没有到 SoM 的供电路径** (网表 net 字段与 node2 字段自相矛盾)'
+  severity: blocker
+  source_blocker: null
+  source_agent: main
+  desc: '★**怎么发现的**: 跑 `state/analyze_blocked.py` (按网/器件归类未连接项) ⇒ `RAIL_SOM_DCIN` **7 个 BTB 焊盘全部未连接**。★**实测含义**:
+    ★★**这块板即使布线全部完成, SoM 也上不了电** —— USB-C 的 5V (`RAIL_DEMO_5V`) 和 SoM 的 7 个 DCIN 脚**不在同一个网上**,
+    SoM 的电源输入在板上是座孤岛。★**根因**: `state/gen_netlist.py:1488` 那 7 行网表 **net 字段写 `RAIL_SOM_DCIN`, 而 node2 字段写
+    `RAIL_DEMO_5V`** ⇒ 两个字段自相矛盾 ⇒ 生成器按 net 字段建网 ⇒ 就多出一个孤岛网。★**设计意图 (备注里写得很清楚)**: "直供 5V,
+    不经过 U_EN_SW" ⇒ ★**这 7 个脚本来就属于 `RAIL_DEMO_5V`**。'
+  owner: main
+  reporter: main
+  raised: '2026-11-05'
+  due: '2026-11-06'
+  status: fixed
+  external: false
+  need_keys: []
+  fix_ref: 'state/gen_netlist.py:1488 (net 字段改成 RAIL_DEMO_5V) · HW/netlist_v1.csv (重出) · HW/PCB/demo_mainboard.kicad_sch (重出)
+    · HW/BOM_v1.csv (重出)'
+  verify_by: hw-lead
+  verify_result: null
+  verify_date: null
+  note: '★**修法**: net 字段改成 `RAIL_DEMO_5V` ⇒ ★**网表/原理图/BOM/PCB 全链自动跟着对** (链式重出: gen_netlist → gen_kicad_sch
+    → gen_bom)。★**前后 diff**: **514 行 → 514 行**, ★**只有这 7 行的网名变了, 其它电气内容一行没动**。★**代价**: 5V 网从 9 个焊盘变 16 个
+    ⇒ 多出一条 **USB-C (137,5) → SoM 角 (16,8) 的 ~120mm 5V 干道** ⇒ 新的布线难点, 但这是设计本来的样子。★**已作废**: 修网表前起的三条臂
+    (v27/v28/v29) 全部停掉重跑。★**待验**: 需要独立复核 (不能自验) —— 看 5V 干道是否真的通到 SoM 的 7 个脚。★**教训**: ★**布线分析工具比肉眼
+    看板可靠** ⇒ "布不动"要按网归类看, 才能发现"设计上就错"的项 ⇒ ★**别把设计 bug 当成布线 bug 一直调路由器**。'
+  dispatched_at: null

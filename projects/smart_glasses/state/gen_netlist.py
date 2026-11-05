@@ -1483,12 +1483,19 @@ def build_a2_som(by_id, spec):
         "[U_EN_SW] 地", "A-24")
 
     # ---- ③ SoM 自己的供电 VCC_DCIN (7 脚并联) —— 直供, 不受门控 ----
+    # ★★★2026-11-05 11:10 **修 BUG: 这 7 个脚原来落在**独立网** `RAIL_SOM_DCIN` 上**
+    #   ★**实测后果 (布线分析发现的, 不是猜的)**: 官方板 DRC 里 `RAIL_SOM_DCIN` 7 个 BTB 脚**全部未连接**
+    #     ⇒ ★**SoM 的电源输入在板上是孤岛** ⇒ ★**即使布线全部完成, SoM 也上不了电!**
+    #   ★**根因**: 这行的 net 字段写的是 `RAIL_SOM_DCIN`, 而 node2 写的是 `RAIL_DEMO_5V`
+    #     ⇒ ★**两个字段自相矛盾** ⇒ 生成器按 net 字段建网 ⇒ 就多出一个孤岛网
+    #   ★**正确**: 备注写的是"直供 5V, 不经过 U_EN_SW" ⇒ ⇒ **这 7 个脚就是 RAIL_DEMO_5V 的一部分**
+    #   ⇒ ⇒ ★**net 字段改成 RAIL_DEMO_5V** (与 node2 和设计意图一致) ⇒ 网表/原理图/PCB 全链自动跟着对
     for _pn in dcin:
         _c, _n = _pn.split("_")
-        add("P1", "RAIL_SOM_DCIN", f"J_SOM_{_c} pin{_n}", "RAIL_DEMO_5V", f"J_SOM_{_c}",
+        add("P1", "RAIL_DEMO_5V", f"J_SOM_{_c} pin{_n}", "RAIL_DEMO_5V", f"J_SOM_{_c}",
             "5-13V 输入 (SoM 侧)", "NET", "必装", "[官方]", "",
             f"[VCC_DCIN] ★SoM 自己的电源输入 ({_pn}; 手册 §2.4.2 DC 5~13V; 7 脚并联载流) "
-            "⇒ **直供 5V, 不经过 U_EN_SW** (否则 SoM 自己起不来)", "A-24")
+            "⇒ **直供 5V (与 USB-C 5V 同网), 不经过 U_EN_SW** (否则 SoM 自己起不来)", "A-24")
 
 
 # --------------------------------------------------------------- 写盘 + 门禁
