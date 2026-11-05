@@ -107,6 +107,15 @@ PLACE_OVERRIDE = {
 #   ⇒ ★**根治**: ① 钉位器件的占位框进禁放区 ⇒ ② 落板后加**焊盘间距自检**闸门 (见 _check_pad_clearance)
 PLACE_OVERRIDE_GUARD = 1.2   # mm 钉位器件占位框外扩 (给相邻器件留净距)
 
+# ★★2026-11-05 09:25 **F7: 差分对远端连接器 CONN_CAM 钉回参照板坐标**
+#   ★**证据 (机器读出)**: v23/v21 参照板 CONN_CAM 在 (86.8, 52.8) (贴近 SoM 下排 P2 (59,52.5))
+#     ⇒ 走廊短; 而 v25/F5 把它放到 (101.2, 19.0) ⇒ ★**CSI 差分对长绕路的头号嫌疑**
+#   ★**CONN_LIGHT 不用动**: v21/v23/v25 **都是 (30, 62)** ⇒ 那是长期位置, 不是 F5 引入
+#   ★★**默认关闭** (PCB_PIN_CONN_CAM=0) ⇒ ★**在跑的 v26 四臂行为完全不变** (源码语义与它们启动时一致)
+#     ⇒ 只在 F7 轮显式开 ⇒ 不破坏"臂产物 ↔ 源码"可追溯性
+PIN_CONN_CAM = os.environ.get("PCB_PIN_CONN_CAM", "0") == "1"
+CONN_CAM_PIN = {"x": 86.8, "y": 52.8, "rot": 0}
+
 
 
 def _is_pad_name(tail):
@@ -677,6 +686,9 @@ def main():
                 add_tmp117(board, netmap, pins, px + w / 2.0, py + h / 2.0)
             else:
                 ov = PLACE_OVERRIDE.get(ref)
+                # ★★F7: 差分对远端连接器钉位 (env 开关, 默认关)
+                if ref == "CONN_CAM" and PIN_CONN_CAM:
+                    ov = CONN_CAM_PIN
                 if ov:
                     # ★人工干预位 (差分对成对布) —— 位置/旋转按表, 脚号不变
                     make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
@@ -765,6 +777,14 @@ def main():
                          _ov["y"] - _h / 2.0 - PLACE_OVERRIDE_GUARD,
                          _ov["x"] + _w / 2.0 + PLACE_OVERRIDE_GUARD,
                          _ov["y"] + _h / 2.0 + PLACE_OVERRIDE_GUARD))
+    # ★★F7: CONN_CAM 钉位 ⇒ 它的占位框也要进禁放区 (★否则别的器件会坐上去 ⇒ 焊盘搭接 ⇒ 短路)
+    #   ★实测 (09:25 冒烟): 只钉位不占位 ⇒ FB_DEMO.1 与 CONN_CAM 焊盘间距 0.000mm ⇒ 落板自检 rc=1
+    if PIN_CONN_CAM:
+        _w, _h = _SIZE.get("CONN_CAM", (15.0, 4.1))
+        _RES_OVR.append((CONN_CAM_PIN["x"] - _w / 2.0 - PLACE_OVERRIDE_GUARD,
+                         CONN_CAM_PIN["y"] - _h / 2.0 - PLACE_OVERRIDE_GUARD,
+                         CONN_CAM_PIN["x"] + _w / 2.0 + PLACE_OVERRIDE_GUARD,
+                         CONN_CAM_PIN["y"] + _h / 2.0 + PLACE_OVERRIDE_GUARD))
     if _RES_OVR:
         print("  [排版] 钉位器件禁放区 %d 个 (★避免焊盘搭上⇒短路)" % len(_RES_OVR))
     pxB, pyB, rhB, nB = _place_flow(_grp_bot, _A_BOT[0], _A_BOT[1], _A_BOT[2], _A_BOT[3], reserved=_RES_OVR)

@@ -12,7 +12,11 @@ echo "════════ ① 臂对比 ════════"
 bash state/cmp_arms.sh
 
 echo "════════ ② 晋级 臂 $ARM 到官方板 ════════"
-bash state/promote_arm.sh "$ARM" 2>&1 | tail -35
+bash state/promote_arm.sh "$ARM" 2>&1 | tail -35; _rc=${PIPESTATUS[0]}
+if [ "$_rc" -ne 0 ]; then
+  echo "  ❌ 晋级失败 (rc=$_rc) ⇒ ★**中止终点线** (不许拿半成品继续)"
+  exit 1
+fi
 
 echo "════════ ③ 重出投产资料包 (★Gerber/钻孔/贴片/BOM 都要跟着新板) ════════"
 timeout 3600 bash state/gen_production_pack.sh > /tmp/prod_pack.log 2>&1

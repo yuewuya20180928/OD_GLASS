@@ -50,8 +50,8 @@ run_gate() {  # run_gate <名字> <命令...>
   [ "$rc" -ne 0 ] && FAIL=1
   return 0
 }
-python3 state/check_pcb_drc.py --strict; echo "  check_pcb_drc(--strict) rc=$?"
-[ $? -ne 0 ] && FAIL=1
+python3 state/check_pcb_drc.py --strict; _rc=$?; echo "  check_pcb_drc(--strict) rc=$_rc"
+[ "$_rc" -ne 0 ] && FAIL=1
 run_gate check_pcb_nets bash state/pcbnew_py.sh state/check_pcb_nets.py
 run_gate check_sch_loadable python3 state/check_sch_loadable.py
 run_gate check_netlist python3 state/check_netlist.py
@@ -79,12 +79,12 @@ print(json.dumps(out, ensure_ascii=False))
 PY
 
 echo "=========== 6. 生产链准入/准出 ==========="
-python3 state/chain_gate.py --full; echo "  chain_gate rc=$?"
-[ $? -ne 0 ] && FAIL=1
+python3 state/chain_gate.py --full; _rc=$?; echo "  chain_gate rc=$_rc"
+[ "$_rc" -ne 0 ] && FAIL=1
 
 echo "=========== 7. 阶段门 ==========="
-python3 state/stage_gate.py 2>&1 | grep -E "^【|当前在|已跳过|缺实测|未布线"; echo "  stage_gate rc=$?"
-[ $? -ne 0 ] && FAIL=1
+python3 state/stage_gate.py 2>&1 | grep -E "^【|当前在|已跳过|缺实测|未布线"; _rc=${PIPESTATUS[0]}; echo "  stage_gate rc=$_rc"
+[ "$_rc" -ne 0 ] && FAIL=1
 
 echo "=========== 8. 总判定 ==========="
 if [ "$FAIL" -eq 0 ]; then

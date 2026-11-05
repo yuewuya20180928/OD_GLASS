@@ -2,10 +2,10 @@
 
 ★盯的日志: /tmp/gen_v25.log
 === 机器读数 (board_progress.py) ===
-=== 进展播报 11-05 09:05:12 ===
+=== 进展播报 11-05 09:10:38 ===
 [板] 11-05 08:14:50 · 4.8MB · 17664 段走线 · 413 过孔
-[布线] 上次实测 unconnected=82 · DRC违规=2 · 留证 2026-11-05T08:52:04
-[在跑] 8 个进程 ⇒ timeout; timeout
+[布线] 上次实测 unconnected=82 · DRC违规=2 · 留证 2026-11-05T09:06:54
+[在跑] 12 个进程 ⇒ timeout; timeout
 [当前在做] 2. ★[在跑] **v26 四臂并行** (PID 134080/134081/134082/134083, 08:48:29 起, 各自 PCB_OUT 隔离 ⇒ **官方板不动**) ⇒ ★**09:02 中期读数: A/B 各 9 对 · C 6 · D 4 ⇒ ETA ~10:15~10:45** ⇒ ★**臂 A**=8层·skip_pad_cells=1(基线) · ★**臂 B**=8层·skip_pad_cells=0(单变量) · ★**臂 C**=**10层**(单变量) · ★**臂 D**=8层+**180×120 板**(单变量: 面积) ⇒ 共同基线 = v25 全部修复 + 排版避让 + **焊盘短路闸门** + 差分对端点连接器钉回 + rip-up&reroute + 长网先走 + 过孔精确判据 + **同网缝合** ⇒ ★**差分耦合率中期: v25 23% · A 33% · C 33% · D 75%** ⇒ ★**D(面积) 在差分对上明显占优; 但 180×120 是"打样台架板"不是产品内板** ⇒ ★**终点线脚本已就位 `state/finish_line.sh <A|B|C|D>`**
 [待办]
   - 1. 最高优先级: 自研 demo 主板 → 可下单 (ISS-181/182) —— ★G1 缺口 = PCB 未布线。★⚠️ **官方板 (v25) 带短路 (R_SER_USB_D_N.2 ↔ Q_PG.1 焊盘搭接) ⇒ 绝对不许投板, 只作过程产物** ⇒ 已在生成器加短路闸门+排版避让修掉, 新排版实测无搭接。★**v25 已落盘 (08:14:50)**: 17664 段 / 413 过孔 / **unconnected 82** / **DRC 2** / parity rc=0 / ★**落板自检通过 (板上17664==内存17664 ⇒ cleanup 回归没发生)**
@@ -18,6 +18,7 @@
   - 9. ★[已修 07:40] **层数通吃 6/8/10**: ROUTE_LAYERS/CU_LAYERS/平面层/RELAY_NBRS/LNAME 全按层数生成 (10 层 ⇒ 5 信号层) ⇒ ★**若最终定 10 层必须补真叠层+阻抗规格** (投板交付项)
   - 10. ★[已修 07:20] cleanup 真删 (`_drop_committed` + `board.Remove`) + 身份记账 (`id(元组)`) + 落板自检 ⇒ ★**v25 实测无回归**
 ★落盘了 ⇒ 开始自验+放行
+  ✗ 自验 rc=1 ⇒ ★**不写** .verified_board_ok_mtime (⇒ 发布闸会拦这块板)
 DRC violations = 2   unconnected items = 82
   PCB 图纸门禁 · check_pcb_drc (★自己画的图, 自己验)
   ❌ C3 DRC violations = 2 (要求 0)
@@ -38,7 +39,7 @@ P                    N                         L_P      L_N        Δ maxseg  �
    USB_D_P_SRC / USB_D_N_SRC  缺: USB_D_N_SRC
    CSI_D0_D0_P_SRC / CSI_D0_D0_N_SRC  缺: CSI_D0_D0_N_SRC
    CSI_D0_D1_P / CSI_D0_D1_N  缺: CSI_D0_D1_N
-   CSI_D0_D2_P_SRC / CSI_D0_D2_N_SRC  缺: CSI_D0_D2_N
+   CSI_D0_D2_P_SRC / CSI_D0_D2_N_SRC  缺: CSI_D0_D2_N_SRC
    CSI_D0_D2_P / CSI_D0_D2_N  缺: CSI_D0_D2_N
 ❌ 未通过 (verify rc=1) ⇒ ★**不盖章** ⇒ 下一轮会重跑自验 (可重复)
 

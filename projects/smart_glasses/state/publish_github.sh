@@ -111,7 +111,17 @@ rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
       --exclude 'demo_mainboard.kicad_pcb' \
       --exclude 'production/gerbers' --exclude 'production/drill' \
       --exclude 'production/pos' --exclude 'production/assembly' \
+      --exclude '/HW/PCB/gerbers' \
+      --exclude '/HW/PCB/production/gerbers' --exclude '/HW/PCB/production/drill' \
+      --exclude '/HW/PCB/production/pos' --exclude '/HW/PCB/production/assembly' \
       "$PROJ/" projects/smart_glasses/
+# ★★2026-11-05 09:40 补漏 (实测): **Gerber 有两份** —— `HW/PCB/gerbers/` (顶层副本) 与
+#   `HW/PCB/production/gerbers/` (投产集), 32 个文件名集合相同 + md5 逐个相同 (实测 F_Cu.gtl
+#   8f0329fb… 两边一致) ⇒⇒ 只排除/只撤 `production/` 那份, **顶层副本照样被 rsync 抄进发布树
+#   ⇒⇒ 坏板 (DRC 2 / unconnected 82) 的 32 个 Gerber 在 09:21 那次推送 (0638101) 里进了公开仓**
+#   (GitHub contents API 实测: projects/smart_glasses/HW/PCB/gerbers = 32 项)
+#   ⇒⇒ 违反 AGENTS.md 铁律③「板 + 派生产物一起管 ⇒ 拦下时一起撤 ⇒ 仓库里没有板 = 诚实状态」
+#   ⇒ 修法: 顶层副本也要 exclude + 也要撤 (两条路径一个都不能漏)。
 # ★★2026-11-05 09:20 **板 + 派生产物改成"闸门通过才显式拷进来"**
 #   ⇒ rsync 不再直接抄板/Gerber ⇒ ⇒ 闸门拦下时**不会又把它们抄回树里** (避免反复抄-删)
 #   ⇒ 闸门通过时在 [4.5] 之后显式 cp (见下方 "发布闸: 板通过" 分支)
@@ -416,6 +426,11 @@ if [ -f "$PCB_REL" ]; then
       mkdir -p "projects/smart_glasses/HW/PCB/production/$_d"
       cp -r "$PROJ/HW/PCB/production/$_d/." "projects/smart_glasses/HW/PCB/production/$_d/" 2>/dev/null || true
     done
+    # ★顶层副本同样要带进来 (闸门通过时) —— 否则仓库会永久丢掉这一份 (历史里还在)
+    if [ -d "$PROJ/HW/PCB/gerbers" ]; then
+      mkdir -p projects/smart_glasses/HW/PCB/gerbers
+      cp -r "$PROJ/HW/PCB/gerbers/." projects/smart_glasses/HW/PCB/gerbers/ 2>/dev/null || true
+    fi
   fi
 fi
 
@@ -438,6 +453,9 @@ if [ "$BOARD_BAD" = "1" ]; then
     git rm -r -q --cached --ignore-unmatch "projects/smart_glasses/HW/PCB/production/$_d" 2>/dev/null || true
     rm -rf "projects/smart_glasses/HW/PCB/production/$_d" 2>/dev/null || true
   done
+  # ★★2026-11-05 09:40 补漏: **顶层 `HW/PCB/gerbers/` 副本也要撤** (见 rsync 段注释)
+  git rm -r -q --cached --ignore-unmatch "projects/smart_glasses/HW/PCB/gerbers" 2>/dev/null || true
+  rm -rf "projects/smart_glasses/HW/PCB/gerbers" 2>/dev/null || true
   echo "[5] ★板级隔离: 板 + Gerber/钻孔/坐标/贴片 全部从发布树撤下 (历史里保留) · 文档照常推"
   git add -A
 fi
