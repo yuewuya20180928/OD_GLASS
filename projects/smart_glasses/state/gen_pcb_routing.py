@@ -80,13 +80,54 @@ VIA_HALO_MARGIN = float(os.environ.get("PCB_VIA_HALO_MARGIN", str(HALO_MARGIN)))
 #   ★**用法**: `PCB_CONN_GND_ESCAPE="CONN_CAM:4.0"` (多组用 `;` 分隔, 形如 `REF:MIN`)
 #   ★**默认空 ⇒ 与 v31/v32 逐位一致**
 CONN_GND_ESC = {}
+# ★★2026-11-06 01:2x **v46: 逃逸规则加"方向"** (env 门控, 默认 ANY => 逐位一致)
+#   ★**为什么**: 旧规则是对称的 `abs(via_y - pad_y) >= MIN` ⇒ ★**无法表达"只能往某一边躲"**
+#     ⇒ 对 CONN_LIGHT 而言: 它的差分脚是**往上逃** (TP 行 y=55.20 / AC 电容行 y=58.60 都在上方,
+#       SoM P4 (y=50.61..54.39) 挡住垂直通路) ⇒ **上方的 GND 孔才是拦路的, 下方的无害**
+#     ⇒ ★**实测**: v45 用对称规则 (CONN_LIGHT:2.0) ⇒ 上排孔被赶到**更上面** (y<=58.15)
+#       ⇒ 走廊更堵 ⇒ ★**CSI_D0_CK 从 ok=True 变成 ok=False** (打地鼠)
+#   ★**新语法**: `PCB_CONN_GND_ESCAPE="REF:MIN:DOWN"` (DOWN = 孔必须往 y 增大方向躲)
+#     · UP   = 孔必须往 y 减小方向躲
+#     · ANY  = 旧的对称规则 (默认 ⇒ 逐位一致)
+# ★★2026-11-06 01:5x **v47: 同排相邻 GND 焊盘"合并下拉"** (env 门控, 默认关 ⇒ 逐位一致)
+#   ★**根因 (机器读)**: CONN_LIGHT 有 8 个 GND 焊盘, 其中 `.21/.20` 相距仅 **0.50mm**
+#     ⇒ 而过孔中心距下限 0.58mm ⇒ ★**同排相邻两个焊盘放不下各自的孔**
+#     ⇒ 每个焊盘被迫往外扩 ⇒ 扩成 0.75mm 间距的一排 ⇒ ★**"栅栏"成形**
+#     ⇒ 实测 15 个孔 = 9 个"走一段线再落孔"(本体) + 3+1+2 个同网缝合链
+#   ★**为什么改落位规则治不了 (实测)**: v45 (对称 MIN) 与 v46 (DOWN 方向) ★**都**把
+#     `CSI_D0_CK_P` 从 ok=True 打成 ok=False ⇒ ★**打地鼠** ⇒ 落位自由度只有 1 格
+#   ★**正解 (本开关)**: ★**先把同排相邻的 GND 焊盘短接成一条链, 只在这条链的一端落一个孔**
+#     ⇒ 8 个孔变 1~2 个 ⇒ ★**栅栏从根上消失** ⇒ 逃逸走廊整条让开
+#     ⇒ ★**不是"挪孔", 是"少落孔"** ⇒ ★**不会打地鼠**
+# ★★2026-11-06 01:1x **v48: route_net 的"多目标重试"** (env 门控, 默认关 ⇒ 逐位一致)
+#   ★**根因**: `route_net` 只把"最近的已连焊盘"当唯一目标 ⇒ 所有降级重试目标都一样
+#     ⇒ ★**"换另一个已连焊盘"这条退路不存在** ⇒ 一条腿被堵 ⇒ 整条腿永久无铜
+#   ★**实测**: 官方板 57 条里 19 条是 "Pad↔Track", Δ 中位 **27.849mm** ⇒ 整条腿缺失
+#   ★**修法**: 最近的走不通 ⇒ ★**按距离依次试其它已连焊盘** (纯多试目标, 不改几何规则)
+MULTI_GOAL = os.environ.get("PCB_MULTI_GOAL", "0") == "1"
+# ★每个焊盘最多换几个目标 (防止 A* 预算被烧光)
+MULTI_GOAL_MAX = int(os.environ.get("PCB_MULTI_GOAL_MAX", "4"))
+if MULTI_GOAL:
+    print("  [路由] ★多目标重试: ON (每脚最多换 %d 个目标)" % MULTI_GOAL_MAX)
+GND_SHARE_ROW = os.environ.get("PCB_GND_SHARE_ROW", "0") == "1"
+# ★合并的"同行"判据: 焊盘中心的 y 差 ≤ 该值 (mm) ⇒ 算同一排
+GND_SHARE_ROW_DY = float(os.environ.get("PCB_GND_SHARE_DY", "0.35"))
+# ★同一排内, x 间距 ≤ 该值的相邻焊盘算"一组" (⇒ 共用一个下拉孔)
+GND_SHARE_ROW_GAP = float(os.environ.get("PCB_GND_SHARE_GAP", "1.60"))
+if GND_SHARE_ROW:
+    print("  [路由] ★GND 同排相邻焊盘合并下拉: ON (dy<=%.2fmm, xgap<=%.2fmm)"
+          % (GND_SHARE_ROW_DY, GND_SHARE_ROW_GAP))
+CONN_GND_ESC_DIR = {}
 for _grp in (os.environ.get("PCB_CONN_GND_ESCAPE", "") or "").split(";"):
     _grp = _grp.strip()
     if not _grp or ":" not in _grp:
         continue
     try:
-        _r, _m = _grp.split(":", 1)
-        CONN_GND_ESC[_r.strip()] = float(_m)
+        _parts = _grp.split(":")
+        _r = _parts[0].strip()
+        CONN_GND_ESC[_r] = float(_parts[1])
+        _d = (_parts[2].strip().upper() if len(_parts) > 2 else "ANY")
+        CONN_GND_ESC_DIR[_r] = _d if _d in ("UP", "DOWN", "ANY") else "ANY"
     except Exception:
         continue
 if CONN_GND_ESC:
@@ -1015,6 +1056,47 @@ class GridRouter:
                 if path is not None:
                     self.astar_budget = bmark      # ★别让它算成"预算耗尽"
                     self.fail_budget_rescued = getattr(self, "fail_budget_rescued", 0) + 1
+            # ★★2026-11-06 01:1x **v48: 换另一个已连焊盘再试** (env 门控)
+            #   ★**为什么**: 上面的目标只有"最近的已连焊盘" ⇒ 它被堵 ⇒ 这条腿永久无铜
+            #   ★**实测**: 官方板 19 条 "Pad↔Track" 未连接, Δ 中位 27.849mm ⇒ 整条腿缺失
+            #   ★**做法**: ★**按距离依次试其它已连焊盘** ⇒ 纯多试目标, 不改几何规则
+            #   ★**成本**: 每个焊盘最多换 MULTI_GOAL_MAX 个目标 ⇒ A* 预算可控
+            if path is None and MULTI_GOAL and len(connected_pads) > 1:
+                # ★用值比较排除 (★不用 `is` ⇒ tuple 值相等但对象不同会排除不掉)
+                _alts = sorted((q for q in connected_pads if q != goal_pad),
+                               key=lambda q: (q[2] - pad[2]) ** 2 + (q[3] - pad[3]) ** 2)
+                _tried = 0
+                for _alt in _alts:
+                    if _tried >= MULTI_GOAL_MAX:
+                        break
+                    _gc, _sg = anchor(_alt)
+                    _g2 = set(_gc)
+                    _bm2 = self.astar_budget
+                    _p2 = self._astar(list(cells), _g2, net,
+                                       dist_map=dist_map, alpha=alpha,
+                                       max_via=allow_via, cls=cls, dist_def=dist_def)
+                    if _p2 is None and alpha > 0.0:
+                        _p2 = self._astar(list(cells), _g2, net,
+                                           max_via=allow_via, cls=cls)
+                    if _p2 is None and cls != 0:
+                        _p2 = self._astar(list(cells), _g2, net,
+                                           dist_map=dist_map, alpha=alpha,
+                                           max_via=allow_via, cls=0, dist_def=dist_def)
+                    if _p2 is None:
+                        if self.astar_budget > _bm2:
+                            self.astar_budget = _bm2
+                        continue
+                    _tried += 1
+                    if not self._emit_path(net, _p2, width, via_count,
+                                           stub_start=stub_s, stub_end=_sg):
+                        # ★换层孔落不下 ⇒ 这条目标也不成 ⇒ 继续换下一个
+                        continue
+                    path = _p2
+                    goal_pad = _alt
+                    goal_cells = _gc
+                    stub_g = _sg
+                    self.multigoal_hits = getattr(self, "multigoal_hits", 0) + 1
+                    break
             if path is None:
                 nfail += 1
                 ok = False
@@ -1226,6 +1308,42 @@ class GridRouter:
         ok = 0
         fail = 0
         done_pads = []
+        # ★★2026-11-06 01:5x **v47: 同排相邻 GND 焊盘合并下拉** (env 门控, 默认关)
+        #   ★**为什么**: 同排相邻焊盘 (如 CONN_LIGHT 的 `.21/.20`, 相距 0.50mm) 各自落孔时
+        #   ★**孔心距下限 0.58mm 放不下** ⇒ 只能往外扩 ⇒ 扩成栅栏 ⇒ 堵死逃逸走廊
+        #   ★**做法**: 把"同一排、相邻、间距 ≤ 阈值"的一组焊盘**只保留一个落孔点**
+        #     ⇒ 其余焊盘由**第二遍的缝合链**接到这个落孔点 (同网 ⇒ 净距不管)
+        #     ⇒ ★**孔数从 8 降到 1~2 ⇒ 栅栏从根上消失**
+        if GND_SHARE_ROW:
+            # ★**先按 y 聚成"排"** (同一排 = y 差 ≤ dy) ⇒ 再在排内按 x 分段
+            _ys = sorted(set(round(_p[3], 3) for _p in pads))
+            _rows = []
+            for _y in _ys:
+                if _rows and (_y - _rows[-1][0]) <= GND_SHARE_ROW_DY:
+                    _rows[-1][1].append(_y)
+                else:
+                    _rows.append([_y, [_y]])
+            _keep = []
+            for _row in _rows:
+                _grp = [p for p in pads if p[3] in _row[1]]
+                _grp.sort(key=lambda q: q[2])
+                _cur = []
+                for _p in _grp:
+                    if _cur and (_p[2] - _cur[-1][2]) > GND_SHARE_ROW_GAP:
+                        _keep.append(_cur[0]); _cur = [_p]
+                    else:
+                        _cur.append(_p)
+                if _cur:
+                    _keep.append(_cur[0])
+            _dropped = [p for p in pads if p not in _keep]
+            if _dropped:
+                # ★被合并掉的焊盘**不进第一遍** (它们由第二遍缝合链接到保留的那个孔)
+                pads = list(_keep)
+                self._gnd_shared = _dropped
+                print("  [路由] ★GND 同排合并: %d 个焊盘 ⇒ 保留 %d 个落孔点 (省 %d 孔)"
+                      % (len(pads) + len(_dropped), len(pads), len(_dropped)))
+            else:
+                self._gnd_shared = []
         used_vias = []          # ★已用过的过孔位置 (孔间距 ≥0.60mm ⇒ 不叠孔)
         # ★诊断: 失败原因分类 (★不猜 ⇒ 逐个记)
         why = {"free": 0, "inpad": 0, "viafree": 0, "spacing": 0, "astar": 0}
@@ -1415,6 +1533,15 @@ class GridRouter:
         #   ★**同一网之间不受 halo 限制** ⇒ ★**直接连到邻近的 GND 铜 (走线或过孔) 就行**
         #   ⇒ 第二遍: 把失败焊盘连到**已成功的 GND 焊盘/过孔** (同网 ⇒ 净距不管)
         orphan = [p for p in pads if p not in done_pads]
+        # ★★v47: ★**被合并掉的同排焊盘也算孤儿** ⇒ 第二遍把它们缝合到保留的落孔点上
+        _shared = list(getattr(self, "_gnd_shared", []) or [])
+        if _shared:
+            orphan = orphan + [p for p in _shared if p not in done_pads]
+            # ★★2026-11-06 02:0x **账要平**: 被合并掉的焊盘从没被算作"失败"
+            #   ⇒ 但第二遍缝合成功时会 `fail -= 1` ⇒ ★**fail 变负数** (实测 -15)
+            #   ⇒ 修法: ★**先把它们算作失败** ⇒ 缝合成功再减回来 ⇒ 账平
+            #   ⇒ ★**默认关时 _shared 为空 ⇒ 逐位一致**
+            fail += len([p for p in _shared if p not in done_pads])
         if orphan and done_pads:
             # ★**已接上的 GND 铜的锚点** (焊盘中心 + 过孔位置)
             anchor_xy = []
@@ -1851,6 +1978,12 @@ class GridRouter:
         _min = CONN_GND_ESC.get(ref)
         if _min is None:
             return True
+        _dir = CONN_GND_ESC_DIR.get(ref, "ANY")
+        if _dir == "DOWN":
+            # ★孔必须往 y 增大方向躲 (KiCad 坐标 y 向下增大)
+            return (via_y - pad_y) >= _min
+        if _dir == "UP":
+            return (pad_y - via_y) >= _min
         return abs(via_y - pad_y) >= _min
 
     def _via_site_ok(self, idx, net, cx, cy, dia=VIA_DIA):

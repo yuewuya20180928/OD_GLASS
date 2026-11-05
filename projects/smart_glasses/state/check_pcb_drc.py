@@ -25,6 +25,14 @@ import sys
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HERE = os.path.join(PROJ, "state")
 PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
+# ★★2026-11-06 01:1x **支持传入待测板路径** (★positional)
+#   ★**为什么**: 之前这个脚本**硬编码官方板** ⇒ ★**传候选板路径也会去量官方板**
+#     ⇒ ★**误把官方板的结果当成候选板的证据** (★v35 那次真踩过: 官方 DRC 0 被当成 v35 的)
+#   ★**用法**: `python3 state/check_pcb_drc.py /tmp/vXX_R.kicad_pcb [--strict]`
+#     ⇒ 打印 `(查板: <路径>)` ⇒ ★**一眼能看出量的是哪块板**
+_pos = [a for a in sys.argv[1:] if not a.startswith("--")]
+if _pos:
+    PCB = os.path.abspath(_pos[0])
 GERBER_DIR = os.path.join(PROJ, "HW", "PCB", "gerbers")
 KC = os.path.join(HERE, "kicad.sh")
 
@@ -68,6 +76,7 @@ def _dup_vias(path):
 def main():
     fails = []
     lines = []
+    lines.append(f"  (查板: {PCB})")
 
     # C1 工具链
     rc = run([KC, "--version"])
