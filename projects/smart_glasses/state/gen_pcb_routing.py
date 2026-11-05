@@ -844,23 +844,29 @@ class GridRouter:
         goalset = set(goals)
         # ★★2026-11-05 **预算按路径长度自适应** (★长网需要更多扩展)
         #   曼哈顿距离 (格) × 系数 + 底数 ⇒ 短网省时间, 长网给够
-        if limit is None or limit <= 0:
-            dist_cells = 0
-            for (sli, sidx) in start:
-                si, sj = sidx % self.W, sidx // self.W
-                for (gli, gidx) in goals:
-                    gi, gj = gidx % self.W, gidx // self.W
-                    d = abs(si - gi) + abs(sj - gj)
-                    if d > dist_cells:
-                        dist_cells = d
-            # ★★2026-11-05 05:30 **A* 预算可调** (环境变量 PCB_ABUDGET_MULT, 默认 1)
+        # ★★2026-11-06 05:0x **真 bug 修复**: 原来 `dist_cells` 只在 `limit<=0` 分支里算,
+        #   而下面的 `limit = int(min(...dist_cells*900...))` **无条件执行** ⇒
+        #   ⇒ **显式传 limit (>0) 必崩 (UnboundLocalError: dist_cells)**
+        #   ⇒ ⇒ 而且 **limit 参数其实是死参数** (传进去必被覆盖)
+        #   ⇒ 现在: dist_cells 无条件算; limit>0 时**尊重调用方的预算**
+        dist_cells = 0
+        for (sli, sidx) in start:
+            si, sj = sidx % self.W, sidx // self.W
+            for (gli, gidx) in goals:
+                gi, gj = gidx % self.W, gidx // self.W
+                d = abs(si - gi) + abs(sj - gj)
+                if d > dist_cells:
+                    dist_cells = d
+        # ★★2026-11-05 05:30 **A* 预算可调** (环境变量 PCB_ABUDGET_MULT, 默认 1)
         #   ★依据 (实测 v12 的失败分类): 80 个布不动的脚里, **39 个是"A* 预算耗尽"**, 只有 41 个是真被堵死
         #   ⇒ ★**预算才是主要瓶颈之一** (不是几何) ⇒ 放大预算能把这 39 个变成"布出来了"
         #   ⇒ 代价: A* 扩展更多 ⇒ 更慢 ⇒ 用环境变量按需调, 不做死
         _mult = float(os.environ.get("PCB_ABUDGET_MULT", "1"))
         # ★★2026-11-05 10:50 **limit_mult**: ★"预算耗尽后的大预算重试"用 (按本网正常预算 ×N)
-        limit = int(min(900000 * _mult, max(150000 * _mult, dist_cells * 900 * _mult))
+        _auto = int(min(900000 * _mult, max(150000 * _mult, dist_cells * 900 * _mult))
                     * max(1.0, limit_mult))
+        # ★★2026-11-06 05:0x: limit>0 时**尊重调用方预算** (旧行为: 必崩 ⇒ 无兼容问题)
+        limit = _auto if (limit is None or limit <= 0) else int(limit)
         best = None
         nexp = 0
         # ★★★2026-11-05 10:25 **路径长度上限** (★按"格数"算, 不用 g 值 —— g 里含层代价/走廊代价)
@@ -2818,14 +2824,26 @@ class GridRouter:
                     return False
 
         # ---------- 3) 落铜 ----------
+        # ★★2026-11-06 05:2x **零长段过滤**: ★**stub 吸附到格心时会造成零长段**
+        #   ⇒ 零长段 ⇒ DRC `tracks_crossing` (0.0000mm 的线) + `track_dangling`
+        #   ⇒ ★**零长段永远无意义 ⇒ 直接不落**
+        # ★★★2026-11-06 05:4x **stub 必须跟路径同层** (★实测 18 条 track_dangling 的真凶)
+        #   ★**原来 stub 段硬编码在层 0 (F.Cu)** ⇒ ★**路径在 In2/In4/In6 时 ⇒ stub 与路径脱层**
+        #   ⇒ ⇒ 断头 ⇒ track_dangling + shorting
+        #   ⇒ ★**现在: stub 用路径首/末点所在的层**
+        #   ⇒ ★对路由器自己的流程无影响 (escape_stub 永远落在 F.Cu ⇒ pts[0][0]==0)
         if stub_start:
             sx, sy, ex, ey = stub_start
-            self.tracks.append((net, sx, sy, ex, ey, 0, W_MIN))
-            self._add_track_halo(net, sx, sy, ex, ey, 0, W_MIN)
+            if abs(ex - sx) > 1e-6 or abs(ey - sy) > 1e-6:
+                _ls = pts[0][0] if pts else 0
+                self.tracks.append((net, sx, sy, ex, ey, _ls, W_MIN))
+                self._add_track_halo(net, sx, sy, ex, ey, _ls, W_MIN)
         if stub_end:
             gx, gy, ex, ey = stub_end
-            self.tracks.append((net, ex, ey, gx, gy, 0, W_MIN))
-            self._add_track_halo(net, ex, ey, gx, gy, 0, W_MIN)
+            if abs(gx - ex) > 1e-6 or abs(gy - ey) > 1e-6:
+                _le = pts[-1][0] if pts else 0
+                self.tracks.append((net, ex, ey, gx, gy, _le, W_MIN))
+                self._add_track_halo(net, ex, ey, gx, gy, _le, W_MIN)
         seg = []
         for k in range(len(pts) - 1):
             la, xa, ya = pts[k]
@@ -2852,6 +2870,9 @@ class GridRouter:
                     continue
             merged.append(s)
         for s in merged:
+            # ★★2026-11-06 05:2x 零长段过滤 (★stub 吸附后可能出现重合点)
+            if abs(s[3] - s[1]) < 1e-6 and abs(s[4] - s[2]) < 1e-6:
+                continue
             self.tracks.append(s)
             self._add_track_halo(s[0], s[1], s[2], s[3], s[4], s[5], s[6])
         return True
