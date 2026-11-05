@@ -1230,6 +1230,27 @@ class GridRouter:
             else:
                 start_cells = list(self._pad_cells(net, pad))
                 stub_start = None
+            # ★★★2026-11-05 22:4x **v36_S: 窄焊盘的下拉孔 ⇒ 孔心取"焊盘内余量最大的点"**
+            #   ★**v35_R 的 DRC 2 (两处违规都指同一颗孔 @ (62.700,64.450)) 的真根因**:
+            #     `U_TEMP.2` 焊盘 **0.45x0.30** ⇒ 短边 0.30 ⇒ Ø0.5 孔**必然**探出铜面 (★**不是错**)
+            #     ⇒ ★**错在孔心偏心 0.195mm、且偏向邻居的逃逸侧**
+            #       ⇒ 离 `U_TEMP.1`(I2C_B_SCL) 逃逸短桩只剩 0.500 ⇒ 净距 0.125 ✘
+            #     ⇒ 焊盘中心 (62.895,64.500) ⇒ 离桩 0.5835 ⇒ 净距 **0.2085 ✔**
+            #     ⇒ ★**吸附到 0.25 栅格 (62.95,64.45) ⇒ 净距 0.184 ✘ ⇒ 必须用精确坐标**
+            #   ★★**v36 的教训 (别再犯)**: "短边 < 孔径+0.10 ⇒ 禁落孔" **过狠**
+            #     ⇒ 实测 GND 下拉 **176 → 94** (丢 82 个地) ⇒ 电源支路随之断
+            #     ⇒ ★**窄焊盘照落, 只是孔心要正**
+            _pr0 = self._pad_rect_at(cx, cy, net_g)
+            if _pr0 is not None and min(_pr0[2] - _pr0[0], _pr0[3] - _pr0[1]) < _dia + 0.10:
+                for (_px, _py) in self._narrow_pad_candidates(cx, cy, net_g, _dia, used_vias):
+                    if self._place_in_pad_via(net_g, _px, _py, _dia, _drill, used_vias):
+                        used_vias.append((_px, _py))
+                        ok += 1
+                        done_pads.append(pad)
+                        done = True
+                        break
+                if done:
+                    continue
             for r_mm in (0.8, 1.2, 1.6, 2.0, 2.5, 3.0, 3.5, 4.0):
                 if r_mm > max_r_mm:
                     break
@@ -1258,8 +1279,9 @@ class GridRouter:
                         #     ⇒ 离邻居 U_TEMP.1 (I2C_B_SCL) 的逃逸短桩只剩 0.50mm
                         #     ⇒ 净距 0.125mm < 0.20 ⇒ ★**DRC clearance 违规 ×2** (同一颗孔, KiCad 按线段各报一次)
                         #   ★**为什么第三遍不会犯这个错**: 第三遍有 `_short<0.55` 的门槛 ⇒ ★**第一遍漏了这个门槛**
-                        #   ★**修法**: 焊盘短边必须 ≥ 孔径 + 0.10 ⇒ 孔整个待在焊盘铜里
-                        #     ⇒ 窄焊盘直接跳过 in-pad 分支 ⇒ 交给第四遍"沿长轴引出" (线 + 外置孔)
+                        #   ★**v36_S 改法**: ★**不是禁落孔, 是"孔心必须正"**
+                        #     ⇒ 窄焊盘走上面的 `_narrow_pad_candidates` (焊盘内余量最大的点)
+                        #     ⇒ ★**这里只拦"环格偏心落孔"** (★v36 教训: 一刀禁掉 ⇒ 丢 82 个地)
                         _pr = self._pad_rect_at(px, py, net_g)
                         if _pr is None:
                             why["inpad_nopad"] = why.get("inpad_nopad", 0) + 1
@@ -1600,6 +1622,96 @@ class GridRouter:
                     out.append((d, i0 + di, j0 + dj))
         out.sort()
         return [(i, j) for (_d, i, j) in out]
+
+    def _via_room_score(self, cx, cy, dia, net):
+        """★2026-11-05 22:4x **过孔落点的"余量分"** (★越大越宽松; 同网铜不算)
+           ★**为什么需要**: 窄焊盘里挑孔心时, 光看"合不合法"不够 ⇒ ★**要挑净距最大的**
+           ★**只算别网的铜** (焊盘 + 走线) ⇒ ★**未来的走线算不了**
+             ⇒ ★**所以还要尽量远离别的网焊盘** (★邻居的逃逸短桩通常从它的焊盘出发)
+             ⇒ ★**这正是 U_TEMP.2 的解法**: 孔心往远离 `U_TEMP.1` 的方向挪 ⇒ 净距 0.125 → 0.30
+        """
+        _r = dia / 2.0
+        _m = 1e9
+        for (n2, x0, y0, x1, y1, _ls) in self.pad_rects_l:
+            if n2 == net:
+                continue
+            dx = max(x0 - cx, 0.0, cx - x1)
+            dy = max(y0 - cy, 0.0, cy - y1)
+            _m = min(_m, math.hypot(dx, dy) - _r)
+        for s in self.tracks:
+            if s[0] == net:
+                continue
+            d = _pt_seg_dist(cx, cy, s[1], s[2], s[3], s[4])
+            _m = min(_m, d - _r - s[6] / 2.0)
+        return _m
+
+    def _narrow_pad_candidates(self, cx, cy, net, dia, used_vias):
+        """★2026-11-05 22:4x **窄焊盘的下拉孔落点候选** (★孔心在焊盘铜内 + 余量最大)
+           ★**实测依据**: `U_TEMP.2` 焊盘 0.45x0.30 ⇒ Ø0.5 孔必然探出铜面 (★**不是错**)
+             ⇒ ★**错在孔心偏心 0.195mm** ⇒ 压住邻居 `U_TEMP.1`(I2C_B_SCL) 的逃逸短桩
+               ⇒ 净距 0.125 ✘ (v35_R 的 DRC 2)
+             ⇒ 焊盘中心 ⇒ 净距 0.2085 ✔ ; 往远离邻居的方向挪 0.10 ⇒ 净距 **0.30** ✔
+           ★**注意**: ★**不许吸附到 0.25 栅格** (★实测吸附后净距 0.184 ✘)
+           ★**候选集**: 中心 + ±0.05/±0.10 (y) + ±0.05 (x) + 四角 ⇒ 过滤"必须在焊盘铜内"
+           ★**返回**: 至多 1 个落点 (余量分最大的那个)
+        """
+        _best = None
+        _bs = -1e9
+        for (_ox, _oy) in ((0.0, 0.0), (0.0, 0.05), (0.0, -0.05), (0.0, 0.10), (0.0, -0.10),
+                           (0.05, 0.0), (-0.05, 0.0), (0.05, 0.05), (-0.05, 0.05),
+                           (0.05, -0.05), (-0.05, -0.05)):
+            _px, _py = cx + _ox, cy + _oy
+            if self._pad_rect_at(_px, _py, net) is None:
+                continue
+            if self._via_exists(net, _px, _py):
+                continue
+            _bad = False
+            for (ux, uy) in used_vias:
+                if math.hypot(_px - ux, _py - uy) < 0.60:
+                    _bad = True
+                    break
+            if _bad:
+                continue
+            _sc = self._via_room_score(_px, _py, dia, net) - 0.05 * math.hypot(_ox, _oy)
+            if _sc > _bs:
+                _bs = _sc
+                _best = (_px, _py)
+        if _best is None:
+            return []
+        return [_best]
+
+    def _place_in_pad_via(self, net_g, px, py, dia, drill, used_vias):
+        """★2026-11-05 22:4x **在焊盘铜里落一个下拉孔** (★第一遍窄焊盘用)
+           ★**判据**: ① 孔心在**同网焊盘**矩形内 ② `_via_exact_ok` (别网铜/孔距/净距)
+                      ③ 与本轮已用孔心距 ≥ 0.60
+           ★**返回**: True = 已落 (★调用方负责登记 done_pads / used_vias)
+           ★**注意**: ★**与第一遍原来的落孔步骤逐行一致** (不额外加 via_hash ⇒ 行为不漂移)
+        """
+        if self._pad_rect_at(px, py, net_g) is None:
+            return False
+        if self._via_exists(net_g, px, py):
+            return False
+        for (ux, uy) in used_vias:
+            if math.hypot(px - ux, py - uy) < 0.60:
+                return False
+        if not self._via_exact_ok(px, py, dia, net_g, drill):
+            return False
+        _v = pcbnew.PCB_VIA(self.b)
+        _v.SetPosition(pcbnew.VECTOR2I(int(px * MM), int(py * MM)))
+        _v.SetViaType(pcbnew.VIATYPE_THROUGH)
+        _v.SetWidth(pcbnew.FromMM(dia))
+        _v.SetDrill(pcbnew.FromMM(drill))
+        _v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+        _v.SetNetCode(netcode(self.b, net_g))
+        self.b.Add(_v)
+        _tup = (net_g, px, py, 0, 5)
+        self.vias.append(_tup)
+        _cm = getattr(self, "_committed", None)
+        if _cm is None:
+            _cm = self._committed = {}
+        _cm[id(_tup)] = (_tup, _v)
+        self._add_via_halo(net_g, px, py, 0, 5)
+        return True
 
     def _pad_rect_at(self, x, y, net=None):
         """★2026-11-05 21:35 **查这个点落在哪个(同网)焊盘的矩形里** ⇒ 返回 (x0,y0,x1,y1) 或 None

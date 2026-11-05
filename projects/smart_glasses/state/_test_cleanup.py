@@ -146,5 +146,48 @@ _chk(_r4._pad_rect_at(62.90, 63.85, "GND") is None,
 _chk(_r4._pad_rect_at(70.00, 70.00, "GND") is None,
      "★ _pad_rect_at 落在空处 ⇒ 返回 None")
 
+# ── ★★2026-11-05 22:5x **v36_S 窄焊盘孔心回归防护** ──
+# ★**实测依据**: `U_TEMP.2` 焊盘 0.45x0.30 (短边 0.30 ⇒ Ø0.5 孔必然探出铜面 ★**不是错**)
+#   ⇒ v35 的 DRC 2 真因 = 孔心偏心 0.195mm ⇒ 压住邻居 I2C_B_SCL 的逃逸短桩 ⇒ 净距 0.125
+#   ⇒ 焊盘中心 ⇒ 净距 0.2085 ✔ ; ★**吸附 0.25 栅格 (62.95,64.45) ⇒ 0.184 ✘** ⇒ 必须精确坐标
+_chk("_narrow_pad_candidates" in _src,
+     "★ 路由器必须有 _narrow_pad_candidates (窄焊盘挑余量最大的孔心)")
+_chk("_place_in_pad_via" in _src,
+     "★ 路由器必须有 _place_in_pad_via (窄焊盘落孔的公共路径)")
+_chk("def _via_room_score" in _src,
+     "★ 路由器必须有 _via_room_score (落点余量分 ⇒ 挑最宽松的位置)")
+_i4 = _src.find("def _place_in_pad_via")
+_seg4 = _src[_i4:_i4 + 2500] if _i4 >= 0 else ""
+_chk("_via_exact_ok(px, py, dia, net_g, drill)" in _seg4,
+     "★ _place_in_pad_via 必须调 _via_exact_ok (别网铜/孔距/净距)")
+_i5 = _src.find("def _narrow_pad_candidates")
+_seg5 = _src[_i5:_i5 + 2500] if _i5 >= 0 else ""
+_chk("cx + _ox" in _seg5 and "cy + _oy" in _seg5,
+     "★ 窄焊盘孔心必须用**精确坐标** (cx+偏移) ⇒ 不许吸附 0.25 栅格 (实测 0.184 ✘)")
+_chk("_pad_rect_at(_px, _py, net) is None" in _seg5,
+     "★ 窄焊盘候选孔心必须在焊盘铜内 (不许跑到焊盘外)")
+_chk("_via_room_score" in _seg5,
+     "★ 窄焊盘候选必须按余量分排序 (挑最宽松的位置)")
+
+# ── ★★功能自测: 窄焊盘候选点必须比"环格偏心点"更远离别网焊盘 ──
+_r5 = G.GridRouter(pcbnew.CreateEmptyBoard())
+# U_TEMP.2 真实几何: GND 焊盘 0.45x0.30 @ (62.895,64.500); 邻居 I2C_B_SCL 在正上方 0.65
+_r5.pad_rects_l.append(("GND", 62.670, 64.350, 63.120, 64.650, (0,)))
+_r5.pad_rects_l.append(("I2C_B_SCL", 62.670, 63.700, 63.120, 64.000, (0,)))
+_c5 = _r5._narrow_pad_candidates(62.895, 64.500, "GND", 0.50, [])
+_chk(len(_c5) == 1,
+     "★ 窄焊盘必须给出 1 个候选落点 (实测 %d 个)" % len(_c5))
+if _c5:
+    _px, _py = _c5[0]
+    _chk(_r5._pad_rect_at(_px, _py, "GND") is not None,
+         "★ 候选孔心必须在 GND 焊盘铜内 (%.3f,%.3f)" % (_px, _py))
+    _s_new = _r5._via_room_score(_px, _py, 0.50, "GND")
+    _s_old = _r5._via_room_score(62.700, 64.450, 0.50, "GND")
+    _chk(_s_new > _s_old,
+         "★ 候选孔心余量必须优于 v35 的偏心环格 (新 %.4f > 旧 %.4f)" % (_s_new, _s_old))
+    _chk(abs(_px - 62.895) < 0.11 and abs(_py - 64.500) < 0.11,
+         "★ 候选孔心必须贴着焊盘中心 (不许跑到盘外) (%.3f,%.3f)" % (_px, _py))
+
+
 print("★测试结果:", "PASS" if ok else "FAIL")
 sys.exit(0 if ok else 1)
