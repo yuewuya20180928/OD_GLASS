@@ -39,6 +39,14 @@ GRID = 0.25            # mm 网格步长
 #       **0.5657mm (< 0.625 违规)** 却被按格心判 = 0.7071mm ⇒ **放行**
 #   ★**默认 0** ⇒ 与 v31/v36/v37/v39/v40 逐位一致
 VIA_HALO_EXACT = os.environ.get("PCB_VIA_HALO_EXACT", "0") == "1"
+# ★★2026-11-06 00:3x **v44: `PCB_VIA_HALO_CENTER=1`** ---
+#   ★**圆心改用真实孔心, 但半径不变 (不加对角余量)**
+#   ★**为什么**: 旧版圆心 = "含孔那格的格心" ⇒ 禁区整体偏 delta (<=0.177mm)
+#     ⇒ 走线端点离真实孔心 0.5657 (<0.625 违规) 却按格心判 0.7071 ⇒ 放行 ⇒ DRC 漏网
+#   ★**为什么不直接用 PCB_VIA_HALO_EXACT (加 g*sqrt(2)/2)**: 实测多封 11 格/孔
+#     ⇒ 未通 57 -> 63 (净亏) ⇒ ★**改圆心不扩半径 => 封格数几乎不变**
+#   ★**默认关** ⇒ 行为与旧版逐位一致
+VIA_HALO_CENTER = os.environ.get("PCB_VIA_HALO_CENTER", "0") == "1"
 
 CLEAR = 0.20           # mm 铜间距 (KiCad 默认)
 # ★★2026-11-05 07:45 **做成可调** (实验臂用)
@@ -2717,7 +2725,25 @@ class GridRouter:
             ri = int(math.ceil(rr / self.g))
             # ★**通孔 ⇒ 6 层都有铜** ⇒ 净距禁区必须记满 6 层 (否则内层撞铜 ⇒ DRC 短接)
             for li in range(NLAYERS):
-                if VIA_HALO_EXACT:
+                if VIA_HALO_CENTER:
+                    # ★★**真实孔心 + 原半径 (不加对角余量)** => ★**封格数几乎不变**
+                    #   ★**为什么**: 旧版圆心 = "含孔那格的格心" => 禁区整体偏 delta
+                    #     => 走线端点离真实孔心 0.5657 (<0.625 违规) 却按格心判 0.7071 => 放行 => DRC 漏网
+                    #   ★**为什么不用 VIA_HALO_EXACT**: 加 g*sqrt(2)/2 后实测多封 11 格/孔
+                    #     => 未通 57 -> 63 (净亏) => ★**只改圆心, 不扩半径**
+                    _ri2 = ri + 1
+                    for dj in range(-_ri2, _ri2 + 1):
+                        for di in range(-_ri2, _ri2 + 1):
+                            i2, j2 = i + di, j + dj
+                            if not (0 <= i2 < self.W and 0 <= j2 < self.H):
+                                continue
+                            _cx2 = self.bb[0] + i2 * self.g
+                            _cy2 = self.bb[1] + j2 * self.g
+                            if math.hypot(_cx2 - x, _cy2 - y) >= rr + 1e-6:
+                                continue
+                            self._mark(cls, li, self._idx(i2, j2), net,
+                                       skip_pad_cells=skip_pad_cells)
+                elif VIA_HALO_EXACT:
                     # ★★**精确分支 (可证安全)**: 圆心 = **真实孔心** ⇒ 判据 = 格心距 < rr + g*sqrt(2)/2
                     #   ★**为什么是这个式子**: 穿格(正交或对角)的走线段上, **任意一点**到该段两个端点中
                     #     较近者的距离 ≤ g*sqrt(2)/2 = **0.1768mm** (对角段最坏)
