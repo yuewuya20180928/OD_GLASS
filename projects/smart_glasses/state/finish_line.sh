@@ -20,6 +20,11 @@ if [ "$_rc" -ne 0 ]; then
   exit 1
 fi
 
+echo "════════ ②b 大电流网加铜皮 (★RAIL_DEMO_5V 实测 151mm×0.25mm ⇒ 扛不住 SoM 输入) ════════"
+if [ -f state/add_power_pour.py ]; then
+  bash state/pcbnew_py.sh state/add_power_pour.py "$PCB" RAIL_DEMO_5V 2>&1 | tail -4
+fi
+
 echo "════════ ③ 重出投产资料包 (★Gerber/钻孔/贴片/BOM 都要跟着新板) ════════"
 timeout 3600 bash state/gen_production_pack.sh > /tmp/prod_pack.log 2>&1
 echo "  gen_production_pack rc=$?"

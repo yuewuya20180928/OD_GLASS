@@ -3,7 +3,7 @@
 > 出品: 项目总工 (moli / main) · 状态源: `state/advance.py --json` (C 段) + `state/issue_log.yaml` + `state/fragments/pm.yaml`
 > ★ **只整理 + 给建议默认值, 不代决** —— 拍板前不动任何采购 / 外发 / 改图 / 改锁死表。
 > ★ 与 11-04 页比: **C 段仍是 1 项 (`test_equipment_budget`)**, ★**逾期第 10 天** (due 2026-10-26) —— 连续第 10 页同一项, **但需求原文已被老板 11-04 19:10 指示重写过一次** ⇒ 真正还剩的问句只剩一句 (§1.2)。
-> ★ **本轮我自己动了什么**: ①**派活 0 条** (A 段真空 —— 三个总工名下无 `open` 单, 详见 §3) ②**修发布闸的一处漏网** (坏板 Gerber 已在公开仓里, §5) ③写这一页 ④跑核验 5 连 ⑤GitHub 同步。
+> ★ **本轮我自己动了什么**: ①**派活 0 条** (A 段真空 —— 三个总工名下无 `open` 单, 详见 §3) ②★**修了发布闸的三个漏网 + 撤净了公开仓里的坏板产物** (§4) ③写这一页 ④跑核验 5 连 ⑤GitHub 同步 (5 次推送, 每次都验 blob SHA)。
 >   **没有动任何需要你拍板的东西, 没有发任何邮件, 没有下采购单, 没有改锁死表, 没有写任何总工的分片。**
 
 ---
@@ -74,13 +74,31 @@
 
 ---
 
-## 4. ⚠️ 本轮修的一处真问题 (不是拍板项, 但你会想看到)
+## 4. ⚠️ 本轮修的两处真问题 (不是拍板项, 但你会想看到)
 
-★ **坏板 (DRC 2 / unconnected 82) 的 32 个 Gerber 已经在公开仓里** —— GitHub contents API 实测 `projects/smart_glasses/HW/PCB/gerbers` = **32 项** (09:21 那次推送 commit `0638101` 带上去的)。
-根因: **Gerber 有两份** —— `HW/PCB/gerbers/` (顶层副本) 与 `HW/PCB/production/gerbers/` (投产集), **32 个文件名集合相同、md5 逐个相同** ⇒⇒ v3 发布闸只排除/只撤了 `production/` 那份, ★**顶层副本被 rsync 原样抄进了发布树** ⇒⇒ 违反 AGENTS.md 铁律③「板 + 派生产物一起管 ⇒ 拦下时一起撤 ⇒ 仓库里没有板 = 诚实状态」。
-★ **已修** (`state/publish_github.sh`: rsync 排除 + 闸门拦截时的撤下清单, 两条路径都补上) ⇒ 本轮同步后 **远端 gerbers 目录应为 0 项** (历史里保留, 板本体本来就没进过仓)。
+★ **坏板 (DRC 2 / unconnected 82) 的投产文件一直在公开仓里** —— 这轮**全部撤干净了**。
+GitHub contents API 实测 (`projects/smart_glasses/HW/PCB/gerbers` = **32 项**) ⇒ 根因是**三层**叠在一起, 每层单独看都像"合理":
+1. ★**Gerber 有两份** —— 顶层 `HW/PCB/gerbers/` 与 `HW/PCB/production/gerbers/`, **32 个文件名集合相同 + md5 逐个相同** ⇒ v3 发布闸只排除/只撤了 `production/` 那份 ⇒ 顶层副本被 rsync 原样抄进发布树
+2. ★**闸门整块从来没跑过** —— 发布脚本里包裹闸门的那句 `if [ -f "$PCB_REL" ]` 测的是**发布树**里的板路径, 而 rsync 早就把板从发布树排除了 ⇒ **这个 if 从来就不成立** ⇒ 拦下时的"板级隔离"也从来没执行过
+3. ★**路径锚定错了** —— 发布树 `.gitignore` 里的 `state/.lastgood/` 因为带斜杠 ⇒ **只匹配根目录下的** ⇒ `projects/smart_glasses/state/.lastgood/` **没被忽略** ⇒ 8 个文件 (含 **2 块真板**: 21980 段 / 17664 段) 全进了仓; 另有 `HW/PCB/demo_mainboard.stackup.kicad_pcb` (17664 段 = 坏板 v25 的副本) + `production/3d/demo_mainboard.step` (从板生成的 3D 模型)
+⇒⇒ 三层加起来 = AGENTS.md 铁律③「**板 + 派生产物一起管 ⇒ 拦下时一起撤 ⇒ 仓库里没有板 = 诚实状态**」**完全没生效**
 
----
+★ **本轮怎么修的 (全部有单测)**:
+
+| 改哪 | 内容 |
+|---|---|
+| `state/board_publish_gate.sh` | 撤下逻辑收进独立脚本 + 新增 `--withdraw <发布树>` 模式; ★**规则改成通用化** —— 发布树里**任何** `*.kicad_pcb` / `*.step` / `*.stp` / Gerber / 钻孔 / 坐标 / 贴片 / `state/.lastgood/` 一律撤 (只保留 `_frame_reference.kicad_pcb`, 那是 **0 段走线的框参考**, 不是可投产的板) |
+| `state/board_publish_gate.sh --selftest` | ★**新增单测 12 项**: 好板放行 / 无 ok_mtime 拦下 / unconnected≠0 / DRC≠0 / 空板 / **撤下真撤** / **好板时不误撤** / 框参考不被误撤 ⇒ **12/12 通过** ⇒ 覆盖了 AGENTS.md 铁律六要求的"该 BAD 的场景" |
+| `state/publish_github.sh` | 包裹条件改测**源树**的板; rsync 排除补 `/HW/PCB/gerbers` `/HW/PCB/production/{gerbers,drill,pos,assembly,3d}` `/state/.lastgood` (全部**锚定**); `.gitignore` 补锚定路径 |
+| `state/scrub_daily_memory.py` (新) | 日记同步的**脱敏过滤**: 只发**近 14 天** + 命中敏感值的一律跳过 + **自愈** (清掉已落地的脏文件) ⇒ 规则与发布闸门**同一套口径** ⇒ 这边过的, 闸门那边不会再拦 |
+| `state/publish_github.sh` + `check_memory_sync.py` | ★**MEMORY / 日记三副本对齐** —— 原来只同步**项目树**那份 ⇒ 运行时读的 `$WS/config/agents/main/MEMORY.md` 一直停在 **06:10 的 v21 版** (真值源已是 09:23 的 v25 版) ⇒ 现在三份一起刷 ⇒ 门禁 **✅ 全过** |
+
+★ **撤完的实测结果** (用 git 口径核对远端树, 不走 API):
+- 远端 `*.kicad_pcb` / Gerber / 钻孔 / 坐标 / `.step` / `.lastgood/` ⇒ **全部为 0**; 只剩 `_frame_reference.kicad_pcb` (0 段框参考)
+- 远端 HEAD ⇒ **远端 main = 本地 HEAD** ✅; **13 个文件 blob SHA 三方一致 (local = origin/main 树 = GitHub API)** ⇒ 0 不一致
+- 真值反查: **3 条凭据真值 + 1 敏感串 + 6 口令上下文正则 + 8 值形态规则 × 整棵发布树 ⇒ 命中 0** ✅
+⇒ ★**"仓库里没有板"现在是真的** (历史里保留, 随时可回溯)
+
 
 ## 5. 📌 仍然等你一句话的三条 (均不含外发, 不急)
 

@@ -630,7 +630,7 @@ class GridRouter:
 
     # ------------------------------------------------ A*
     def _astar(self, start, goals, net, dist_map=None, alpha=0.0,
-                max_via=True, cls=1, limit=0, dist_def=0):
+                max_via=True, cls=1, limit=0, dist_def=0, max_len_cells=0):
         """start: [(li,idx)] ; goals: set((li,idx))
            ★★**预算按"扩展次数"算, 不是按状态数算** —— 状态数是 (格 × 层),
              开了 3 个信号层后同一个物理区域的状态数 ×3 ⇒ 用状态数当预算
@@ -709,6 +709,13 @@ class GridRouter:
         limit = int(min(900000 * _mult, max(150000 * _mult, dist_cells * 900 * _mult)))
         best = None
         nexp = 0
+        # ★★★2026-11-05 10:25 **路径长度上限** (★按"格数"算, 不用 g 值 —— g 里含层代价/走廊代价)
+        #   ★**为什么**: GND 下拉本来"搜完再判长度 ≤6mm" ⇒ ★**空板上一次搜索能铺满全板**
+        #     ⇒ 实测 GND_FIRST 臂在 GND 阶段跑了 7 分钟还没出来 (★比整板布线还慢)
+        #   ⇒ ★**搜索时就截断** ⇒ 超过长度直接剪枝 ⇒ 搜得快, 而且长度规则是硬闸不是事后判
+        _plen = {}
+        for _s in start:
+            _plen[_s] = 0
         while heap:
             f, gg, _, cur = heapq.heappop(heap)
             if gg > gsc.get(cur, INF) + 1e-12:
@@ -740,8 +747,11 @@ class GridRouter:
                         #   ⇒ ★**远处反而比走廊便宜** ⇒ N 会逃出走廊
                         #   ⇒ 现在: 用 `dist_def` (走廊外的代价值) ⇒ ★N 留在走廊里
                         c += alpha * dist_map.get(k, dist_def)
+                    if max_len_cells and (_plen.get(cur, 0) + step) > max_len_cells:
+                        continue
                     if c < gsc.get((li, k), INF):
                         gsc[(li, k)] = c
+                        _plen[(li, k)] = _plen.get(cur, 0) + step
                         came[(li, k)] = cur
                         heapq.heappush(heap, (c + h_of(li, k), c, cnt, (li, k)))
                         cnt += 1
@@ -756,8 +766,11 @@ class GridRouter:
                     c = gg + VIA_COST + LAYER_COST.get(nli, 0.0)
                     if alpha and dist_map is not None:
                         c += alpha * dist_map.get(idx, 0)
+                    if max_len_cells and (_plen.get(cur, 0) + 2.0) > max_len_cells:
+                        continue
                     if c < gsc.get(st, INF):
                         gsc[st] = c
+                        _plen[st] = _plen.get(cur, 0) + 2.0
                         came[st] = cur
                         heapq.heappush(heap, (c + h_of(nli, idx), c, cnt, st))
                         cnt += 1
@@ -1171,7 +1184,8 @@ class GridRouter:
                     #   + 87 条 clearance 全撞它 ⇒ ⇒ **GND 接地宁可"留几个未连接", 也不许拉长线横穿板子**
                     #   ⇒ 真正的解法是**第三遍的"焊盘内过孔"** (不需要走线空间)
                     path = self._astar(start_cells, {(0, idx)},
-                                       net, max_via=True)
+                                       net, max_via=True,
+                                       max_len_cells=24)   # ★6mm / 0.25mm 网格
                     if path is None:
                         why["astar"] += 1
                         continue
