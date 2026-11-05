@@ -1414,6 +1414,7 @@ class GridRouter:
             if _cm is None:
                 _cm = self._committed = {}
             _cm[id(_tup)] = (_tup, v)
+            self._add_via_hash(cx, cy)     # ★★2026-11-05 13:55 **焊盘内过孔也要进 via_hash**
             self._add_via_halo(net_g, cx, cy, 0, 5)
             # ★**过孔直接落在焊盘里 ⇒ 焊盘自己就接到平面了** (不需要任何走线)
             ok += 1
@@ -1579,16 +1580,16 @@ class GridRouter:
             d = _pt_seg_dist(cx, cy, s[1], s[2], s[3], s[4])
             if d < _r + CLEAR + s[6] / 2.0:
                 return False
-        # ③ 孔间距 (同孔心/近孔心)
+        # ③ 孔间距 (孔心到已有过孔) —— ★★2026-11-05 13:55 **删掉"同网不算"**
+        #   ★**为什么必须删**: 孔到孔是**制造规则** (钻孔/电镀工艺) ⇒ ★**跟网一点关系都没有**
+        #     ⇒ ★**原来写 `if vn == net: continue` ⇒ 同网的两个孔可以贴到 0.50mm ⇒ DRC 必报 `hole_to_hole`**
+        #     ⇒ ★**实测 v30_P 唯一那条 DRC 就是这么来的**: 两个 **GND** 孔 @24.45/24.95, y=60.2 (中心距 0.50mm, 净距 0.2000mm)
+        #   ⇒ ⇒ **同网异网一律按 0.60mm 中心距卡**
         for (vn, vx, vy, _l1, _l2) in self.vias:
-            if vn == net:
-                continue
             if math.hypot(cx - vx, cy - vy) < 0.60:
                 return False
-        # ④ 孔净距 (别的网的孔)
+        # ④ 孔净距 (别的网的孔) —— ★**同理: 孔到孔净距也不分网**
         for (vn, vx, vy, _l1, _l2) in self.vias:
-            if vn == net:
-                continue
             if math.hypot(cx - vx, cy - vy) < drill / 2.0 + 0.25:
                 return False
         return True
@@ -1731,6 +1732,32 @@ class GridRouter:
             self.vias = keep_v
             n_via_drop += _vd
 
+            # ---------- 3b) ★★2026-11-05 13:55 **删"孔中心距不够"的过孔** (治 `hole_to_hole`)
+            #   ★**为什么必须放在这里**: 实测 v30_P 仍有 1 条 `hole_to_hole`
+            #     (GND 孔 @24.45 / 24.95, y=60.2 ⇒ **中心距只有 0.50mm**, 净距 0.2000mm)
+            #   ⇒ ★**根因 = 各落孔路径各查各的数据源, 互相看不见**:
+            #     A* 查 `via_hash` · 窄焊盘查 `self.vias` · 焊盘内查 `_via_center_ok`
+            #     ⇒ ★**漏网的那对就是跨路径落下来的**
+            #   ⇒ ★**兜底放 cleanup (唯一权威 = `self.vias`)**: 任何两条中心距 < MIN_VIA_CENTER 的孔 ⇒ 删后落的那个
+            #     ⇒ ★**代价**: 被删孔对应的焊盘会变未连接 (+1 unconnected) ⇒ ★**宁可 unconnected 多一条, 也不要 DRC 违规**
+            _vd_sp = 0
+            keep_v2 = []
+            for _v in self.vias:
+                _vx, _vy = _v[1], _v[2]
+                _bad_sp = False
+                for (_n2, _x2, _y2, _a, _b) in keep_v2:
+                    if math.hypot(_vx - _x2, _vy - _y2) < MIN_VIA_CENTER:
+                        _bad_sp = True
+                        break
+                if _bad_sp:
+                    _vd_sp += 1
+                    self._drop_committed(_v)
+                    continue
+                keep_v2.append(_v)
+            if _vd_sp:
+                self.vias = keep_v2
+                n_via_drop += _vd_sp
+
             # ---------- 2) 删悬空端段 (同层 · ★**同网才算接上**) ----------
             # 每个点的"段端点计数" (★**按网** ⇒ 别网的段端点不算接上)
             ep_cnt = defaultdict(int)
@@ -1759,7 +1786,7 @@ class GridRouter:
                 if _bad:
                     drop.add(i)
             if not drop:
-                if _vd == 0:
+                if _vd + _vd_sp == 0:
                     break                          # ★不动点 ⇒ 收工
                 continue                           # ★还有孔被删 ⇒ 下一轮再查悬空
             # 删掉悬空段后重建哈希
@@ -3141,9 +3168,19 @@ def route_board(board, verbose=True):
                   % (nn, cnt, r.fail_budget.get(nn, 0)))
         try:
             import json as _json
-            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                   "_fail_detail.json"), "w") as f:
-                _json.dump(r.fail_detail, f, ensure_ascii=False, indent=1)
+            _sd = os.path.dirname(os.path.abspath(__file__))
+            # ★★2026-11-05 14:12 **按臂分文件** (★原来只有全局一个 ⇒ 并行臂互相覆盖 ⇒ 看完就没了)
+            #   ⇒ ★**臂名从 PCB_OUT 取** ⇒ 落盘名 = `_fail_detail_<臂名>.json`
+            _po = os.environ.get("PCB_OUT", "") or ""
+            _arm = ""
+            if _po:
+                _arm = "_" + os.path.splitext(os.path.basename(_po))[0].replace(".", "_")
+            for _fn in ("_fail_detail%s.json" % _arm, "_fail_detail.json"):
+                try:
+                    with open(os.path.join(_sd, _fn), "w") as f:
+                        _json.dump(r.fail_detail, f, ensure_ascii=False, indent=1)
+                except Exception:
+                    pass
         except Exception:
             pass
 

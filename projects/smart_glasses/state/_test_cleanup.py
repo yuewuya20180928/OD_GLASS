@@ -72,5 +72,31 @@ _chk(r._via_center_ok(50.3, 50.0) is False, "孔中心距 0.30mm ⇒ 判不合�
 _chk(r._via_center_ok(52.0, 50.0) is True,  "离所有孔都远 ⇒ 判合格")
 _chk(r._via_center_ok(51.19, 50.0) is True, "孔中心距 0.59mm ⇒ 判合格 (>= MIN_VIA_CENTER 0.58)")
 
+# ── ★★2026-11-05 13:58 **同网孔间距** (★真根因: _via_exact_ok 的 ③ 写了"同网不算") ──
+#   ★**实测 v30_P 唯一那条 DRC**: 两个 **GND** 孔 @24.45/24.95 (中心距 0.50mm, 净距 0.2000mm)
+#   ⇒ ★**孔到孔是制造规则, 不分网** ⇒ 同网的两个孔也必须卡 0.60mm 中心距
+_r2 = G.GridRouter(pcbnew.CreateEmptyBoard())
+_r2.vias.append(("GND", 24.45, 60.2, 0, 5))
+_chk(_r2._via_exact_ok(24.95, 60.2, 0.5, "GND", 0.3) is False,
+     "★ 同网两孔中心距 0.50mm ⇒ _via_exact_ok 判不合格 (同网不能豁免!)")
+_r2.vias.append(("GND", 26.0, 60.2, 0, 5))
+_chk(_r2._via_exact_ok(26.9, 60.2, 0.5, "GND", 0.3) is True,
+     "离所有孔都远 (0.9mm / 2.45mm) ⇒ 判合格")
+
+# ── ★★cleanup 兜底: 中心距不够的孔, 后落的那个必须被删 ──
+_r3 = G.GridRouter(pcbnew.CreateEmptyBoard())
+# ★**两个焊盘 + 各一根短铜引到各自的孔** (★真实场景: v30_P 那两个孔都是这样来的)
+#   ⇒ ★**不是孤立孔** (孤立孔会被"删孤立过孔"那一步先删掉, 测不到间距逻辑)
+_r3.pad_rects_l.append(("GND", 24.00, 59.90, 24.60, 60.50, (0,)))
+_r3.pad_rects_l.append(("GND", 25.20, 59.90, 25.80, 60.50, (0,)))
+_r3.vias.append(("GND", 24.45, 60.2, 0, 5))
+_r3.tracks.append(("GND", 24.45, 60.2, 24.30, 60.2, 0, 0.25))   # 孔 A → 焊盘 A
+_r3.vias.append(("GND", 24.95, 60.2, 0, 5))                      # 与孔 A 中心距 0.50mm ⇒ 太近
+_r3.tracks.append(("GND", 24.95, 60.2, 25.50, 60.2, 0, 0.25))   # 孔 B → 焊盘 B
+_nz3, _nd3, _nv3 = _r3.cleanup_geometry(verbose=False)
+_chk(len(_r3.vias) == 1, "★ cleanup 兜底: 中心距 0.50mm 的同网两孔 ⇒ 删掉后落的那个 (剩 %d 个)" % len(_r3.vias))
+_chk(abs(_r3.vias[0][1] - 24.45) < 1e-6 and abs(_r3.vias[0][2] - 60.2) < 1e-6,
+     "★ cleanup 兜底: 保留的是先落的那个 (24.45,60.2)")
+
 print("★测试结果:", "PASS" if ok else "FAIL")
 sys.exit(0 if ok else 1)
