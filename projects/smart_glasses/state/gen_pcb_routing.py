@@ -236,6 +236,13 @@ PAIR_ESCAPE_EXEMPT = os.environ.get("PCB_PAIR_ESCAPE_EXEMPT", "0") == "1"
 #   ★**新默认 0.0** ⇒ ★**只豁免"N 焊盘自己那一格"** ⇒ N 能起步, 但**不许横穿伙伴的铜**
 #   ⇒ 设大可以回到旧行为 (用于对比), 默认 0 = 安全
 PAIR_EXEMPT_R = float(os.environ.get("PCB_PAIR_EXEMPT_R", "0.0"))
+# ★★2026-11-06 03:0x **v52: 出脚走廊感知的 rip-up** (默认关 ⇒ 老行为可复现)
+#   ★**为什么**: 实测 61 条 A* 失败里 **42 条起脚在密集焊盘阵**
+#     (J_SOM_P* 16 / CONN_LIGHT 13 / C_AC_CSI_D* 7 / CONN_CAM 6)
+#   ★⇒ `escape_stub` 的出脚直道被**别的网已布的铜**封死 ⇒ 网连起步格都没有
+#   ★⇒ ★**旧 rip-up 只拆"起步格附近的铜"** ⇒ 拆不到封死出脚走廊的那条
+#     ⇒ 实测 19 个候选网 **一根线都没拆** (per-net 输出 0 行)
+RIPUP_ESC = os.environ.get("PCB_RIPUP_ESC", "0") == "1"
 BUDGET_ESCALATE = os.environ.get("PCB_BUDGET_ESCALATE", "0") == "1"
 # ★★2026-11-05 10:25 **GND 下拉先布** (env 开关, 默认关)
 #   ★**为什么**: GND 下拉原来排在**所有信号/电源之后** ⇒ 焊盘周围的好位置已被占光
@@ -2511,6 +2518,50 @@ class GridRouter:
                     pass
         return cells
 
+    def _escape_blockers(self, net, maxn=6):
+        """★v52: 找出**挡住本网焊盘出脚直道**的别的网走线 (按离焊盘的距离排序)
+
+        ★★**为什么要有这个方法 (2026-11-06 03:0x 实测)**:
+          · 官方板 26 个"整张板零铜"的网 ⇒ 失败明细里 **61 条是 A* 找不到路**
+          · 其中 **42 条起脚在密集焊盘阵** (J_SOM_P* 16 / CONN_LIGHT 13 / C_AC_CSI_D* 7 / CONN_CAM 6)
+          · ⇒ 这些网的 `escape_stub` **出脚直道被别的网已布的铜封死** ⇒ ★**连起步格都没有**
+        ★★**为什么旧 rip-up 救不了**:
+          `_blockers_for` 只查**起步格附近**别的网的走线 ⇒ ★**看不到出脚走廊上的封堵**
+          ⇒ 实测: rip-up 19 个候选网 **一根线都没拆** (per-net 输出 0 行)
+        ★**做法**: 照 `escape_stub` 的候选 (4 方向 × ESC_LENS 长度) 逐条算
+          哪条别的网的走线会让 `_stub_vs_routed` 判失败 ⇒ 那就是封堵者
+        """
+        out = []
+        for pad in self.net_pads.get(net, []):
+            try:
+                cx, cy = pad[2], pad[3]
+            except Exception:
+                continue
+            for (dx, dy) in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+                for ln in ESC_LENS:
+                    ex, ey = cx + dx * ln, cy + dy * ln
+                    for s in self.tracks:
+                        if s[0] == net:
+                            continue
+                        if s[5] != 0:
+                            continue
+                        tw = s[6]
+                        need = W_MIN / 2.0 + tw / 2.0 + CLEAR + (0.0 if tw <= 0.21 else 0.025)
+                        if _seg_seg_dist(cx, cy, ex, ey, s[1], s[2], s[3], s[4]) < need - 1e-9:
+                            dd = _pt_seg_dist(cx, cy, s[1], s[2], s[3], s[4])
+                            out.append((dd, s))
+                            break
+        out.sort(key=lambda t: t[0])
+        seen = set()
+        res = []
+        for (dd, s) in out:
+            k = id(s)
+            if k in seen:
+                continue
+            seen.add(k)
+            res.append((dd, s))
+        return res[:maxn]
+
     def _blockers_for(self, net, cells, maxn=6):
         """★找出**挡住这些起步格**的别的网的走线 (按几何距离从近到远)"""
         out = []
@@ -2635,6 +2686,9 @@ class GridRouter:
             if not cells:
                 continue
             bl = self._blockers_for(net, cells, rip_per_net)
+            if not bl and RIPUP_ESC:
+                # ★v52: 起步格附近没障碍 ⇒ 查**出脚走廊** (★实测 42/61 条死在这)
+                bl = self._escape_blockers(net, rip_per_net)
             if not bl:
                 continue
             ripped = [b[1] for b in bl]
