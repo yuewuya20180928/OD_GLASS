@@ -27,7 +27,13 @@ sys.path.insert(0, HERE)
 
 import pcbnew  # noqa: E402
 
-MARGIN_MM = 2.0
+# ★★2026-11-06 02:3x 实测: v46_R 板加铜皮后 DRC=1 (starved_thermal: J_SOM_P3 Pad99 只有 1 条辐条)
+#   ⇒ ★**参数改成可调, 便于用实测定死值** (默认 = 修复后的值)
+MARGIN_MM = float(os.environ.get("POUR_MARGIN_MM", "4.0"))
+THERM_GAP = float(os.environ.get("POUR_THERM_GAP", "0.20"))
+THERM_SPOKE = float(os.environ.get("POUR_THERM_SPOKE", "0.50"))
+# ★**POUR_CONN=solid ⇒ 铜皮与焊盘实连 (★不产生 starved_thermal, 但可焊性变差)**
+POUR_CONN = os.environ.get("POUR_CONN", "thermal")
 LAYER = pcbnew.F_Cu
 
 
@@ -85,16 +91,18 @@ def main():
             z.SetIsFilled(False)
             z.SetLocalClearance(pcbnew.FromMM(0.20))
             z.SetMinThickness(pcbnew.FromMM(0.20))
-            z.SetPadConnection(pcbnew.ZONE_CONNECTION_THERMAL)
-            z.SetThermalReliefGap(pcbnew.FromMM(0.30))
-            z.SetThermalReliefSpokeWidth(pcbnew.FromMM(0.40))
+            _conn = (pcbnew.ZONE_CONNECTION_FULL if POUR_CONN == "solid"
+                     else pcbnew.ZONE_CONNECTION_THERMAL)
+            z.SetPadConnection(_conn)
+            z.SetThermalReliefGap(pcbnew.FromMM(THERM_GAP))
+            z.SetThermalReliefSpokeWidth(pcbnew.FromMM(THERM_SPOKE))
             outline = z.Outline()
             outline.NewOutline()
             for (px, py) in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
                 outline.Append(pcbnew.VECTOR2I(pcbnew.FromMM(px), pcbnew.FromMM(py)))
             board.Add(z)
-            print("  ✅ %s: 加铜皮 (%.1f,%.1f)-(%.1f,%.1f) mm · 净距 0.20 · 热焊盘" %
-                  (net, x0, y0, x1, y1))
+            print("  ✅ %s: 加铜皮 (%.1f,%.1f)-(%.1f,%.1f) mm · 净距 0.20 · %s" %
+                  (net, x0, y0, x1, y1, POUR_CONN))
             added += 1
     if not added:
         print("  (没有新增铜皮)")

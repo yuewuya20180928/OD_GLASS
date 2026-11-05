@@ -68,6 +68,28 @@ print("  落盘印(加铜皮后):", json.dumps(land, ensure_ascii=False))
 PY
 fi
 
+echo "════════ ②c 终点线自检 (★fresh DRC ⇒ 不合格就回滚官方板) ════════"
+# ★★2026-11-06 02:2x 实测事故: v46_R 晋级时 DRC=0, ★**加铜皮 (add_power_pour) 之后 DRC 变 1**
+#   (starved_thermal: RAIL_DEMO_5V 铜皮给 J_SOM_P3 Pad99 只有 1 条辐条, 规则要 2 条)
+#   ⇒ ★**官方板就停在"带 DRC 的坏状态"了** ⇒ ★**这里必须现测 + 失败自动回滚**
+#   ⇒ ★**教训: "晋级时 DRC=0" 不等于 "终点线跑完 DRC=0"** (终点线还会改板: 叠层/铜皮)
+bash state/kicad.sh pcb drc --output /tmp/_finish_drc.json --severity-error --severity-warning --format json "$PCB" >/dev/null 2>&1
+_drc=$(python3 -c "import json;print(len(json.load(open('/tmp/_finish_drc.json')).get('violations') or []))" 2>/dev/null || echo 999)
+echo "  加铜皮/叠层后 DRC违规 = $_drc"
+if [ "$_drc" != "0" ]; then
+  BK=$(ls -t state/.lastgood/board_prev_promote_*.kicad_pcb 2>/dev/null | head -1)
+  if [ -n "$BK" ]; then
+    echo "  ★**DRC≠0 ⇒ 自动回滚官方板** (备份: $BK)"
+    cp -p "$BK" "$PCB"
+    python3 state/_restore_land_stamp.py "$PCB" "rollback after finish_line DRC!=0"
+    echo "  ❌ 终点线自检失败 ⇒ **官方板已回滚** ⇒ 中止 (★不许拿 DRC≠0 的板当官方板)"
+    exit 1
+  fi
+  echo "  ❌ DRC≠0 且找不到备份 ⇒ 中止 (★官方板已是坏状态, 需人工处理)"
+  exit 1
+fi
+echo "  ✅ 终点线后 DRC=0 ⇒ 继续"
+
 echo "════════ ③ 重出投产资料包 (★Gerber/钻孔/贴片/BOM 都要跟着新板) ════════"
 timeout 3600 bash state/gen_production_pack.sh > /tmp/prod_pack.log 2>&1
 echo "  gen_production_pack rc=$?"

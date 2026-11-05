@@ -111,6 +111,9 @@ CONN_GND_ESC = {}
 #   ★**修法**: ★**只在成功时才记进 `routed_ok`** ⇒ rip-up 的守卫改判 `routed_ok`
 #   ★**顺带**: 失败网不再被后续"跳过已布网"的逻辑误判 ⇒ ★**它还有被再试的机会**
 RIPUP_ALIVE = os.environ.get("PCB_RIPUP_ALIVE", "0") == "1"
+# ★★2026-11-06 02:4x (v50 概念): 板边验收严格模式
+#   —— 缝合路径/_emit_path/commit 三处补板边净距闸 (默认关, 老行为可复现)
+EDGE_STRICT = os.environ.get("PCB_EDGE_STRICT", "0") == "1"
 if RIPUP_ALIVE:
     print("  [路由] ★rip-up 复活: ON (失败网会真的被拆线重布)")
 MULTI_GOAL = os.environ.get("PCB_MULTI_GOAL", "0") == "1"
@@ -2572,6 +2575,11 @@ class GridRouter:
                 if dup:
                     continue
                 segs = [(a[2], a[3], b[2], b[3])]
+                # ★★2026-11-06 02:4x 实测 (v47 板边违规): 同网缝合**没查板边**
+                #   ⇒ 同网直连把铜画到板框外 (实测 DSI_D0_D1_N 跑到 y=-0.046mm)
+                #   ⇒ ★**默认关** (PCB_EDGE_STRICT=1 才开) ⇒ 老行为可复现
+                if EDGE_STRICT and not self._edge_seg_ok(a[2], a[3], b[2], b[3], width):
+                    continue
                 if not self._geom_clear(net, segs, lay, width):
                     # ★★2026-11-05 08:50 **直线被挡 ⇒ 试 L 形绕行 (两个方向)**
                     _cands = []
@@ -2581,9 +2589,15 @@ class GridRouter:
                                        (_c[0], _c[1], b[2], b[3])])
                     _picked = None
                     for _s2 in _cands:
-                        if self._geom_clear(net, _s2, lay, width):
-                            _picked = _s2
-                            break
+                        if not self._geom_clear(net, _s2, lay, width):
+                            continue
+                        # ★★2026-11-06 02:4x: L 形两个分支也要查板边
+                        if EDGE_STRICT and not all(
+                                self._edge_seg_ok(_q[0], _q[1], _q[2], _q[3], width)
+                                for _q in _s2):
+                            continue
+                        _picked = _s2
+                        break
                     if _picked is None:
                         continue
                     for (_x1, _y1, _x2, _y2) in _picked:
@@ -2717,6 +2731,15 @@ class GridRouter:
             if pn and pn[0] == net:
                 if len(pts) > 1 and self._edge_seg_ok(pn[1], pn[2], pts[-2][1], pts[-2][2], width):
                     pts[-1][1], pts[-1][2] = pn[1], pn[2]
+
+        # ★★2026-11-06 02:4x 实测 (v47 板边违规): 原来**只查首尾两段**
+        #   ⇒ 中间段可以跑出板框 ⇒ ★**逐段查, 任一段违规 ⇒ 整条路径放弃**
+        #   (★宁可这个脚不通, 也不留断铜 —— 与本文件既有原则一致)
+        if EDGE_STRICT:
+            for _k in range(len(pts) - 1):
+                if not self._edge_seg_ok(pts[_k][1], pts[_k][2],
+                                         pts[_k + 1][1], pts[_k + 1][2], width):
+                    return False
 
         # ---------- 1) 收集换层点 ----------
         # ★**层间过渡的两端坐标相同** (A* 的换层是同格换层) ⇒ 落铜时会产生**零长段**
@@ -3178,6 +3201,10 @@ class GridRouter:
                 if bad <= 6:
                     print("  ⚠️ [EDGE] 过孔离板边太近: %s (%.3f,%.3f)" % (net, x, y))
         self.edge_viol = bad
+        # ★★2026-11-06 02:5x 实测: ★**落板前把违规铜剔掉是负收益** (实测 DRC 12→8)
+        #   ⇒ 原因: 剔掉链中间那段 ⇒ 留下悬空端 ⇒ ★**又生出新的 DRC 违规**
+        #   ⇒ ★**所以真修法只有预防** (缝合路径/_emit_path 落线前就拦 ⇒ 见上面两处)
+        #   ⇒ ★**这里保持只数 + 打印** (★晋级闸会拒 DRC≠0 的板 ⇒ 不会误上位)
         n = 0
         # ★★2026-11-05 07:15 **部分落盘的记账改用"对象身份"** (同事指出的回归)
         #   ⇒ 原来用**下标** (_done_tracks 计数) ⇒ ★**cleanup_geometry 会重排/过滤 self.tracks**
