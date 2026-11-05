@@ -1,12 +1,12 @@
 <!-- PROGRESS-BLOCK-START -->
 
-★**进展播报 2026-11-05 20:34:34** (机器读数 · 脚本自动生成)
+★**进展播报 2026-11-05 20:50:43** (机器读数 · 脚本自动生成)
 
 ```
-=== 进展播报 11-05 20:34:26 ===
+=== 进展播报 11-05 20:50:43 ===
 [板] 11-05 14:37:05 · 4.4MB · 15565 段走线 · 402 过孔
 [布线] 上次实测 unconnected=64 · DRC违规=0 · 留证 2026-11-05T20:17:26
-[在跑] 2 个进程 ⇒ timeout; /home/yuewuya/kicad/squashfs-root/usr/bin/python3.11
+[在跑] 0 个进程
 [当前在做] 2. ★[在跑] **v35 单臂 (20:18:24 起)**: R = 8层160×100 + GND_FIRST=1 + `PCB_VIA_HALO_MARGIN=0.0` + `PCB_CONN_GND_ESCAPE=CONN_CAM:4.0` (异网过孔铜到铜 0.80mm 默认开) ⇒ ★**v34 那唯一1条 clearance 的根因修复**: `route_gnd_drops` 的**焊盘内落孔分支 (gen_pcb_routing.py:1252) 从不调 `_via_exact_ok`** ⇒ 别的网走线擦到孔边 0.5mm 也不管 ⇒ ★**已补判据 + 加了防回归断言 ⇒ 单测 13/13 PASS** ⇒ 预期 **DRC 0 + unconnected 62** ⇒ 守候器 `auto_promote_when_done.sh v35 R 9000` ⇒ ★★**v36 = DSI keepout 摆放臂 (24.0,56.1,35.6,59.6, 探针已备好); v37 = 差分配对 crossover (换层穿越) —— 那才是解锁 20 对的关键刀**
 [待办]
   - 3. ★★[18:40 实测] **官方板已换成 v31_Q** (14:37 晋级): ★**15565 段 / 402 孔 / unconnected 64 / DRC 0 / parity rc=0** ⇒ ★**迄今最干净的一块板 (DRC 首次归零)** ⇒ ★**但 unconnected 64 ⇒ G1 仍开 ⇒ `state/.verified_board_ok_mtime` 不存在 ⇒ 发布闸 BAD ⇒ 不许投板**
