@@ -312,16 +312,26 @@ def main():
         i = a.index("--drc-json")
         jc = a[i + 1] if len(a) > i + 1 else None
         jo = a[i + 2] if len(a) > i + 2 else None
+    # ★★2026-11-06 04:0x: 基线不一定非得是官方板 ⇒ 允许给基线起个名字
+    #   (★背景: 官方 v37_R 产于"窄焊盘照落"修复之前 ⇒ 当前代码构造上复现不了它
+    #    ⇒ 同代码同 env 的**对照臂**才适合当 A/B 基线 ⇒ 不然播报里会把对照臂写成"官方板")
+    base_lbl = "官方板"
+    if "--baseline-label" in a:
+        i = a.index("--baseline-label")
+        if len(a) > i + 1:
+            base_lbl = a[i + 1]
     cm, om = compare_paths(cand_pcb, off_pcb, jc, jo)
     verdict, why = decide(cm, om)
-    print("═══ 臂板 vs 官方板 (名单制判据) ═══")
-    print("  %-22s %12s %12s" % ("指标", "候选", "官方"))
+    print("═══ 臂板 vs %s (名单制判据) ═══" % base_lbl)
+    print("  候选板: %s" % cand_pcb)
+    print("  基线板: %s" % off_pcb)
+    print("  %-22s %12s %12s" % ("指标", "候选", base_lbl))
     for k, lbl in [("drc", "DRC违规"), ("unc", "unconnected"),
                    ("zero_copper", "零铜网(≥2焊盘)"), ("diff_half", "差分单边零铜"),
                    ("diff_over", "差分Δ超差"), ("seg", "走线段"), ("via", "过孔"),
                    ("parity", "parity通过")]:
         print("  %-22s %12s %12s" % (lbl, cm.get(k), om.get(k)))
-    print("  ── ★退铜名单 (官方有铜⇒候选零铜): %d" % len(cm.get("dead", [])))
+    print("  ── ★退铜名单 (%s有铜⇒候选零铜): %d" % (base_lbl, len(cm.get("dead", []))))
     for n in cm.get("dead", [])[:20]:
         print("       ★ %s" % n)
     print("  ── ★差分对死腿: %d" % len(cm.get("pair_reg", [])))
