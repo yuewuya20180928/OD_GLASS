@@ -107,6 +107,8 @@ PAIR_ESCAPE_EXEMPT = os.environ.get("PCB_PAIR_ESCAPE_EXEMPT", "0") == "1"
 #   ⇒ ★**先落 GND 孔** ⇒ 94 个 GND 焊盘先占住自己的位置 (焊盘内过孔最省空间)
 #     ⇒ 信号线绕开它们 ⇒ ★**顺序换一下, 也许能救回一半**
 GND_FIRST = os.environ.get("PCB_GND_FIRST", "0") == "1"
+# ★A* 预算倍率 (模块级, 供"预算耗尽后的大预算重试"用)
+_mult_global = float(os.environ.get("PCB_ABUDGET_MULT", "1"))
 # ★★2026-11-05 07:40 **层数通吃** (★官方载板本身就是 10 层 ⇒ 一直只测到 8 层是低估)
 #   ★信号层 = 偶数层 (0=F.Cu, 2, 4, ...) 但**不含最后一层** (B.Cu 留给 GND 平面)
 #   ★6 层 ⇒ [0,2,4] · 8 层 ⇒ [0,2,4,6] · 10 层 ⇒ [0,2,4,6,8]
@@ -630,7 +632,8 @@ class GridRouter:
 
     # ------------------------------------------------ A*
     def _astar(self, start, goals, net, dist_map=None, alpha=0.0,
-                max_via=True, cls=1, limit=0, dist_def=0, max_len_cells=0):
+                max_via=True, cls=1, limit=0, dist_def=0, max_len_cells=0,
+                limit_mult=1.0):
         """start: [(li,idx)] ; goals: set((li,idx))
            ★★**预算按"扩展次数"算, 不是按状态数算** —— 状态数是 (格 × 层),
              开了 3 个信号层后同一个物理区域的状态数 ×3 ⇒ 用状态数当预算
@@ -706,7 +709,9 @@ class GridRouter:
         #   ⇒ ★**预算才是主要瓶颈之一** (不是几何) ⇒ 放大预算能把这 39 个变成"布出来了"
         #   ⇒ 代价: A* 扩展更多 ⇒ 更慢 ⇒ 用环境变量按需调, 不做死
         _mult = float(os.environ.get("PCB_ABUDGET_MULT", "1"))
-        limit = int(min(900000 * _mult, max(150000 * _mult, dist_cells * 900 * _mult)))
+        # ★★2026-11-05 10:50 **limit_mult**: ★"预算耗尽后的大预算重试"用 (按本网正常预算 ×N)
+        limit = int(min(900000 * _mult, max(150000 * _mult, dist_cells * 900 * _mult))
+                    * max(1.0, limit_mult))
         best = None
         nexp = 0
         # ★★★2026-11-05 10:25 **路径长度上限** (★按"格数"算, 不用 g 值 —— g 里含层代价/走廊代价)
@@ -906,6 +911,18 @@ class GridRouter:
                 path = self._astar(list(cells), goals, net,
                                     dist_map=dist_map, alpha=alpha,
                                     max_via=False, cls=cls)
+            # ★★★2026-11-05 10:50 **预算耗尽 ⇒ 最后再给一次"大预算"机会**
+            #   ★**为什么**: v26 实测 "布不动 66 脚" 里 **22 个是 A* 预算耗尽** (不是真被堵死)
+            #   ⇒ v27 里剩下失败的都是**长对** (DSI/CSI 主对, 60~160mm) ⇒ ★**正是预算型失败**
+            #   ⇒ ★**最后再试一次, 预算 ×6** (只对"预算耗尽"的失败) ⇒ 代价可控 (只有这几个网吃 CPU)
+            if path is None and self.astar_budget > bmark:
+                path = self._astar(list(cells), goals, net,
+                                    dist_map=dist_map, alpha=alpha,
+                                    max_via=allow_via, cls=cls,
+                                    limit_mult=4.0)   # ★本网正常预算 ×4
+                if path is not None:
+                    self.astar_budget = bmark      # ★别让它算成"预算耗尽"
+                    self.fail_budget_rescued = getattr(self, "fail_budget_rescued", 0) + 1
             if path is None:
                 nfail += 1
                 ok = False
@@ -3063,6 +3080,10 @@ def route_board(board, verbose=True):
     #   路由器的"出脚直道 → 栅格路径"衔接处会留下退化图元 (零长段 / 悬空短段)
     #   ⇒ ★**落盘前清掉** ⇒ DRC 归零 (只改几何, 不改板子的设计规则)
     n_zero, n_dang, n_via_drop = r.cleanup_geometry(verbose=verbose)
+    # ★★2026-11-05 11:00 **把"预算升级救回来的网数"打进统计** (★看这刀有没有用)
+    stats["budget_rescued"] = getattr(r, "fail_budget_rescued", 0)
+    if verbose:
+        print("  [BUDGET] 预算升级重试救回 %d 个脚" % stats["budget_rescued"])
     stats["clean_zero"] = n_zero
     stats["clean_dangling"] = n_dang
     stats["clean_via"] = n_via_drop
