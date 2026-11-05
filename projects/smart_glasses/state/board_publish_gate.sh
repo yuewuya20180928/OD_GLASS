@@ -59,6 +59,17 @@ withdraw_from_publish_tree() {
       git rm -q --cached --ignore-unmatch "$_b" >/dev/null 2>&1 || true
       rm -f "$_b" >/dev/null 2>&1 || true
     done
+    # ★★2026-11-05 10:40 **补漏 (实测)**: 上面那圈只处理**已跟踪**的文件 ⇒
+    #   一旦某块板被撤过一次 (变成未跟踪), 下一轮 rsync 会把它**当普通文件抄回工作区**
+    #   ⇒⇒ 而 `git add -A` 又把它**重新加进仓** ⇒⇒ 实测 demo_mainboard.stackup.kicad_pcb
+    #   ⇒⇒ 就是这样"复活"的 ⇒⇒ 修法: 下面这圈**按磁盘上的实际文件**再扫一遍 (不依赖是否跟踪)
+    while IFS= read -r _b; do
+      case "$_b" in
+        */_frame_reference.kicad_pcb) continue ;;
+      esac
+      git rm -q --cached --ignore-unmatch "$_b" >/dev/null 2>&1 || true
+      rm -f "$_b" >/dev/null 2>&1 || true
+    done < <(find . -name '*.kicad_pcb' -type f -not -path './.git/*' -not -name '_frame_reference.kicad_pcb' 2>/dev/null | sed 's|^\./||')
     # ★★3D 模型 (.step) 也是**派生产物** (从板生成的) ⇒ 一样跟着板走
     for _s in $(git ls-files '*.step' '*.stp' '*.brd' '*.dsn'); do
       git rm -q --cached --ignore-unmatch "$_s" >/dev/null 2>&1 || true
@@ -170,6 +181,17 @@ _selftest() {
   LEFT2="$(cd "$PUBT2" && git ls-files | grep -cE 'gerbers' || true)"
   if [ "$LEFT2" = "1" ]; then echo "  ✅ 好板时 Gerber 保持不动 (剩 $LEFT2)"; pass=$((pass+1));
   else echo "  ❌ 好板时 Gerber 被误撤 (剩 $LEFT2)"; fail=$((fail+1)); fi
+
+  echo "[selftest] ⑧ ★未跟踪的板文件也必须被清掉★ (rsync 会把板当普通文件抄回工作区 ⇒ git add -A 又把它加进仓)"
+  PUBT3="$ROOT/pub3"
+  mkdir -p "$PUBT3/projects/smart_glasses/HW/PCB"
+  echo "board" > "$PUBT3/projects/smart_glasses/HW/PCB/demo_mainboard.stackup.kicad_pcb"
+  ( cd "$PUBT3" && git init -q -b main && git -c user.email=t@t -c user.name=t commit -qm init --allow-empty ) >/dev/null 2>&1
+  OUT="$(bash "$0" "$ROOT/g2" --withdraw "$PUBT3" 2>&1)"; RC=$?
+  chk "撤下模式 rc" 1 $RC
+  if [ ! -f "$PUBT3/projects/smart_glasses/HW/PCB/demo_mainboard.stackup.kicad_pcb" ]; then
+    echo "  ✅ 未跟踪的板文件也被清掉了"; pass=$((pass+1));
+  else echo "  ❌ 未跟踪的板文件还在工作区 (下一轮 git add -A 会把它加进仓)"; fail=$((fail+1)); fi
 
   echo "[selftest] 结果: $pass 通过 / $fail 失败"
   rm -rf "$ROOT"

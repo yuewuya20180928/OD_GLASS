@@ -116,6 +116,9 @@ rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
       --exclude '/HW/PCB/production/pos' --exclude '/HW/PCB/production/assembly' \
       --exclude '/HW/PCB/production/3d' \
       --exclude '/state/.lastgood' \
+      --include '/HW/PCB/_frame_reference.kicad_pcb' \
+      --exclude '/HW/PCB/*.kicad_pcb' \
+      --exclude '*.kicad_pcb' \
       "$PROJ/" projects/smart_glasses/
 # ★★2026-11-05 09:40 补漏 (实测): **Gerber 有两份** —— `HW/PCB/gerbers/` (顶层副本) 与
 #   `HW/PCB/production/gerbers/` (投产集), 32 个文件名集合相同 + md5 逐个相同 (实测 F_Cu.gtl
@@ -209,6 +212,8 @@ __pycache__/
 state/.lastgood/
 /projects/smart_glasses/state/.lastgood/
 /projects/smart_glasses/HW/PCB/production/3d/
+*.kicad_pcb
+!**/_frame_reference.kicad_pcb
 BOOTSTRAP.md
 .openclaw/
 workspace-state.json
