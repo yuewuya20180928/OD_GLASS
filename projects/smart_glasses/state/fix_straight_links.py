@@ -47,6 +47,19 @@ EPS = 1e-6           # ★1nm 容差 (★对齐 KiCad 的 nm 整数比较: 实�
 VIA_DIA = 0.60        # 过孔外径
 VIA_DRILL = 0.30
 
+# ★★**铜层表** (★8 层叠层: F / In1..In6 / B)
+_CU = [pcbnew.F_Cu]
+for _i in range(1, 7):
+    _CU.append(getattr(pcbnew, "In%d_Cu" % _i))
+_CU.append(pcbnew.B_Cu)
+
+
+def _layer_idx(layer):
+    try:
+        return _CU.index(layer)
+    except ValueError:
+        return -1
+
 
 def seg_seg_dist(p1, p2, q1, q2):
     """★两线段之间的最短距离 (2D, 端点也算)"""
@@ -126,6 +139,7 @@ def main():
     detour_ext = 3.0
     detour_step = 0.25
     detour_max_dist = 15.0
+    PATH_LAYER = 0        # ★★候选走线所在层 (0 = F.Cu)
     i = 2
     while i < len(a):
         if a[i] == "--out":
@@ -154,7 +168,11 @@ def main():
     d = json.load(open(drcp, encoding="utf-8"))
 
     # ── 收齐异网铜 (用于净距验算) —— ★一律用"矩形"表示 ★
-    copper = []       # (net, 矩形四角, 参考名)
+    #   ★★★**每块铜必须带"层集合"** (★★★不同层的铜**互不冲突**)
+    #     ★★**这是个大坑**: 之前按二维算 ⇒ 把"内层铜正压在 F.Cu 焊盘下面"也当冲突
+    #        ⇒ ★**白拦了一大片** (实测施工单里一堆 "别网铜 0.000mm [X[In2.Cu]]" 就是这种)
+    ALL_LAYERS = set(range(len(_CU)))
+    copper = []       # (net, 矩形四角, 参考名, 层集合)
     for t in board.GetTracks():
         if t.Type() == pcbnew.PCB_VIA_T:
             p = t.GetPosition()
@@ -163,13 +181,15 @@ def main():
             copper.append((t.GetNetname(),
                            [(cx - h, cy - h), (cx + h, cy - h),
                             (cx + h, cy + h), (cx - h, cy + h)], "孔",
-                           (cx - h, cy - h, cx + h, cy + h)))
+                           ALL_LAYERS))
         else:
             s, e = t.GetStart(), t.GetEnd()
             r = rect_from_seg((s.x / MM, s.y / MM), (e.x / MM, e.y / MM),
                                t.GetWidth() / MM)
             if r:
-                copper.append((t.GetNetname(), r, "走线", rect_bbox(r)))
+                li = _layer_idx(t.GetLayer())
+                copper.append((t.GetNetname(), r, "走线",
+                               set([li]) if li >= 0 else ALL_LAYERS))
     pads = []
     for f in board.GetFootprints():
         for p in f.Pads():
@@ -184,11 +204,21 @@ def main():
             if 45 <= rot <= 135:
                 hx, hy = hy, hx
             cx, cy = pos.x / MM, pos.y / MM
+            lays = set()
+            try:
+                for l in p.GetLayerSet().Seq():
+                    li = _layer_idx(l)
+                    if li >= 0:
+                        lays.add(li)
+            except Exception:
+                lays = set([0])
+            if not lays:
+                lays = set([0])
             pads.append((p.GetNetname(),
                          [(cx - hx, cy - hy), (cx + hx, cy - hy),
                           (cx + hx, cy + hy), (cx - hx, cy + hy)],
                          "%s.%s" % (f.GetReference(), p.GetNumber()),
-                         (cx - hx, cy - hy, cx + hx, cy + hy)))
+                         lays))
 
     byu = {}
     for t in board.GetTracks():
@@ -218,6 +248,47 @@ def main():
         s, e = obj.GetStart(), obj.GetEnd()
         return ("seg", ((s.x / MM, s.y / MM), (e.x / MM, e.y / MM)), "走线端")
 
+    # ★★★**空间哈希 (1mm 粗格)**: ★**净距验算只看路径附近的铜** ⇒ 绕行搜索才跑得动
+    #   (★不加这个: 每次验算扫全板 17k 铜 ⇒ 绕行候选几万条 ⇒ 跑一小时也不出结果)
+    HASH_CELL = 1.0
+    index = {}
+
+    def _idx_add(net, rect, kind, lays):
+        cx0 = int(math.floor(min(p[0] for p in rect) / HASH_CELL))
+        cy0 = int(math.floor(min(p[1] for p in rect) / HASH_CELL))
+        cx1 = int(math.floor(max(p[0] for p in rect) / HASH_CELL))
+        cy1 = int(math.floor(max(p[1] for p in rect) / HASH_CELL))
+        for cx in range(cx0, cx1 + 1):
+            for cy in range(cy0, cy1 + 1):
+                index.setdefault((cx, cy), []).append((net, rect, kind, lays))
+
+    for (n, rect, kind, lays) in copper:
+        _idx_add(n, rect, kind, lays)
+    for (n, rect, ref, lays) in pads:
+        _idx_add(n, rect, "焊盘[%s %s]" % (ref, n), lays)
+
+    def _path_items(a1, a2, w):
+        """★取路径附近的铜 (★只取附近的 ⇒ O(局部))"""
+        L = math.hypot(a2[0] - a1[0], a2[1] - a1[1])
+        seen = set()
+        out = []
+        steps = max(2, int(L / 0.25) + 2)
+        for k in range(steps + 1):
+            t = k / steps
+            px = a1[0] + (a2[0] - a1[0]) * t
+            py = a1[1] + (a2[1] - a1[1]) * t
+            cx = int(math.floor(px / HASH_CELL))
+            cy = int(math.floor(py / HASH_CELL))
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    for it in index.get((cx + dx, cy + dy), ()):
+                        key = id(it[1])
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        out.append(it)
+        return out
+
     def clearance_ok(net, a1, a2, w=None):
         """★候选线段 a1→a2 对所有异网铜的净距 (≥0.2) ⇒ 过了才落铜
 
@@ -239,25 +310,15 @@ def main():
             return (-1e9, "零长")
         cb = rect_bbox(cand)
         worst = (1e9, "")
-        for (n, rect, kind, bb) in copper:
+        for (n, rect, kind, lays) in _path_items(e1, e2, ww):
             if n == net:
                 continue
-            # ★**包围盒预筛** (★不然 17k 条走线 × 57 项 = 太慢)
-            if bb[0] > cb[2] + 0.5 or bb[2] < cb[0] - 0.5 or \
-               bb[1] > cb[3] + 0.5 or bb[3] < cb[1] - 0.5:
+            # ★★**分层判定**: 不同层的铜**不冲突** (★内层铜压在 F.Cu 焊盘下面完全合法)
+            if PATH_LAYER not in lays:
                 continue
             d = rect_rect_dist(cand, rect)
             if d < worst[0]:
                 worst = (d, "%s[%s]" % (kind, n))
-        for (n, rect, ref, bb) in pads:
-            if n == net:
-                continue
-            if bb[0] > cb[2] + 0.5 or bb[2] < cb[0] - 0.5 or \
-               bb[1] > cb[3] + 0.5 or bb[3] < cb[1] - 0.5:
-                continue
-            d = rect_rect_dist(cand, rect)
-            if d < worst[0]:
-                worst = (d, "焊盘[%s %s]" % (ref, n))
         return worst
 
     items = d.get("unconnected_items") or []
@@ -305,6 +366,9 @@ def main():
             q0 = p0[0] if k0 == "seg" else p0
             q1 = p1[0] if k1 == "seg" else p1
             cand = [(q0, q1)]
+        # ★**两头间距** (★绕行只在近距项上试 ⇒ 长距项是"长距离布线能力"问题)
+        dist = math.hypot(cand[0][1][0] - cand[0][0][0],
+                          cand[0][1][1] - cand[0][0][1])
         best = None
         for (a1, a2) in cand:
             if a1 == a2:
@@ -316,13 +380,13 @@ def main():
                     best = ((a1, a2), wres, who, w)
                     break
         # ★**直连不行 ⇒ 试 L 形 / U 形绕行** (★只对近距项 ⇒ 长距项是"长距离布线能力"问题, 不是绕行问题)
+        is_detour = False
         if best is None and detour and dist <= detour_max_dist:
             xs, ys = detour_corners(cand[0][0], cand[0][1])
             paths = []
             for (a1, a2) in cand:
                 for cx in xs:
                     paths.append([(a1, (cx, a1[1])), ((cx, a1[1]), a2)])
-                    paths.append([(a1, (a1[1] and cx, a1[1]))])
                 for cy in ys:
                     paths.append([(a1, (a1[0], cy)), ((a1[0], cy), a2)])
                 # ★U 形 (上下绕)
@@ -356,6 +420,7 @@ def main():
                     best = (segs, worstw, who, wuse)
                     break
             if best is not None:
+                is_detour = True
                 segs = best[0]
                 a1, a2 = segs[0][0], segs[-1][1]
             else:
@@ -376,20 +441,23 @@ def main():
                             % (worst[1] if worst else -1, CLEAR,
                                worst[2] if worst else ""), net))
             continue
-        (a1, a2), w, who, use_w = best
+        if is_detour:
+            segs = best[0]
+            w, who, use_w = best[1], best[2], best[3]
+            a1, a2 = segs[0][0], segs[-1][1]
+        else:
+            (a1, a2), w, who, use_w = best
+            segs = [(a1, a2)]
         code = board.GetNetcodeFromNetname(net)
         if code <= 0:
             skipped.append(("网名找不到", net))
             continue
-        segs = best[0]
-        if not isinstance(segs[0], tuple) or not isinstance(segs[0][0], tuple):
-            segs = [segs]
         for (s1, s2) in segs:
             t = pcbnew.PCB_TRACK(board)
             t.SetStart(pcbnew.VECTOR2I(pcbnew.FromMM(s1[0]), pcbnew.FromMM(s1[1])))
             t.SetEnd(pcbnew.VECTOR2I(pcbnew.FromMM(s2[0]), pcbnew.FromMM(s2[1])))
             t.SetWidth(pcbnew.FromMM(use_w))
-            t.SetLayer(pcbnew.F_Cu)
+            t.SetLayer(_CU[PATH_LAYER])
             t.SetNetCode(code)
             board.Add(t)
         added.append((net, math.hypot(a2[0] - a1[0], a2[1] - a1[1]),
