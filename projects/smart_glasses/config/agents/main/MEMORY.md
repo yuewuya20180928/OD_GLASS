@@ -1,34 +1,59 @@
 <!-- PROGRESS-BLOCK-START -->
 ★盯的日志: /tmp/gen_v25.log
 === 机器读数 (board_progress.py) ===
-=== 进展播报 11-05 08:10:02 ===
-[板] 11-05 07:56:36 · 3.2MB · 11735 段走线 · 189 过孔
-[布线] 上次实测 unconnected=87 · DRC违规=11 · 留证 2026-11-05T07:06:14
-[在跑] 4 个进程 ⇒ /bin/bash; bash
-[当前在做] 2. ★[在跑] **v25 = 8层 + 预算×6 + 全部修复** (PID 121357, 07:14:45 起, 写官方板, timeout 14400s, 日志 /tmp/gen_v25.log 实时) ⇒ ★**这是第一块带齐所有修复的板**: 新排版F5+TP贴伙伴 · NPTH全层障碍 · USB-C丝印→F.Fab · In3.Cu平面 · 中途落盘先commit · cleanup真删 · 身份记账 · 落板自检 · meander v3
+=== 进展播报 11-05 08:40:06 ===
+[板] 11-05 08:14:50 · 4.8MB · 17664 段走线 · 413 过孔
+[布线] 上次实测 unconnected=82 · DRC违规=2 · 留证 2026-11-05T08:36:30
+[在跑] 11 个进程 ⇒ timeout; /home/yuewuya/kicad/squashfs-root/usr/bin/python3.11
+[当前在做] 2. ★[在跑] **v26 四臂并行** (PID 129410/129411/129412 = A/B/C 08:28:57 起 · 127782 = D 08:20:43 起, 各自 PCB_OUT 隔离 ⇒ **官方板不动**) ⇒ ETA ~09:50 ⇒ ★**臂 A**=8层·skip_pad_cells=1(基线) · ★**臂 B**=8层·skip_pad_cells=0(单变量) · ★**臂 C**=**10层**(单变量, 官方载板本身就是 10 层) · ★**臂 D**=8层+**180×120 板**(单变量: 面积) ⇒ 共同基线 = v25 全部修复 + 差分对端点连接器钉回 + rip-up&reroute + 长网先走 + 过孔精确判据
 [待办]
-  - 1. 最高优先级: 自研 demo 主板 → 可下单 (ISS-181/182) —— ★G1 缺口 = PCB 未布线 (官方板 = 8层板: 21980 段/530 过孔/unconnected 87/DRC 11; parity 已全过 check_pcb_nets rc=0)
-  - 3. ★★[待 v25 落盘后] 落板验收三看: ① `[CLEAN]` 零长/悬空/孤立过孔数 ② **新增的"落板自检: 板上 N 段 == 内存 M 段"** ③ `[SUM]` 段数 vs 板上实测段数 (差 ≈577 ⇒ 回归)
-  - 4. ★★[已修 07:20] "中途落盘先 commit"的回归 (我自己引入, 同事抓到): cleanup 只改内存列表删不掉已画进板的 ~565 零长段 ⇒ **已加 `_drop_committed()` 真删**; `_done_tracks` 按下标记账会被 cleanup 重排打乱 ⇒ **改按 id(元组) 身份记账**
-  - 5. ★★[已修 07:25] 差分配平 `add_meander_v3`: v2 用"剩余差值反算凸起高度" ⇒ **差越大 a 越大 ⇒ 超 a≤3 上限 ⇒ 一个凸起都加不上** ⇒ v3 **固定 a=3.0 反算每凸起 +5.12mm** ⇒ Δ32.4 = 7 个凸起; 候选直段门槛 1.2→0.8mm
-  - 6. ★[已修 07:15] parity 闸门: ★**检查器与生成器口径不一致** —— ① USB-IF 合并写法只改了生成器 ② J_USB_C 的 A8/B8 按 USB-IF 规范本就是 NC ⇒ ★**check_pcb_nets rc=0** (C1/C2/C3 全 ✅)
-  - 7. ★[已修 06:40] NPTH 孔 = 所有层障碍 + 0.25mm 孔净距 (⇒ 14 条 hole_clearance 全消) · USB-C 位号→F.Fab (⇒ 11 条 silk_over_copper)
-  - 8. ★[已修 06:40] 6层/8层都补回 **In3.Cu GND 平面** (原先只有 B.Cu+In1.Cu ⇒ In2/In4 底下没回流面)
-  - 9. ★[已修 07:00] 排版第二版: ★**>100mm 长线 15→5 条** (平均 68.2→51.9mm) ⇒ 三区分带装箱 (左下角/右上/其余) + 测试点贴伙伴件
-  - 10. ★[已修 06:55] 发布前闸 (只拦板不拦文档) + 落盘时刻闸 (量/推都必须过) + 三道闸串成证据链
-  ⚠️ 落盘时刻闸: 板 mtime=1793836596 vs 落盘 at=1793833323 (差 3273s) · 板段数=11735 vs 落盘段数=21980 ⇒ ★**板被中途存盘改过 ⇒ 不许量**
-还在跑: 42:35 (日志无落盘标记)
+  - 1. 最高优先级: 自研 demo 主板 → 可下单 (ISS-181/182) —— ★G1 缺口 = PCB 未布线。★**v25 已落盘 (08:14:50)**: 17664 段 / 413 过孔 / **unconnected 82** / **DRC 2** / parity rc=0 / ★**落板自检通过 (板上17664==内存17664 ⇒ cleanup 回归没发生)**
+  - 3. ★★v25 的教训 (三条根因都已修, 待 v26 验证): ① **过孔判据过严** (halo[2] 半径 0.95mm ⇒ 密集区放不下任何过孔 ⇒ 长线不能换层 ⇒ 52 个"真被堵死"里的一部分) ⇒ 已加 `_via_exact_ok` ② **F5 排版把差分对远端连接器搬走** (CONN_CAM → (93.3,17.6) ⇒ 22 对 8→5) ⇒ 已钉回 ③ **halo 放松 (skip_pad_cells) 可能让 P 侧走进 N 焊盘邻域** ⇒ 已做开关 `PCB_SKIP_PAD_CELLS=0` ⇒ **臂 B 专门测**
+  - 4. ★★落板验收三看: ① `[CLEAN]` 零长/悬空/孤立过孔数 ② **落板自检"板上 N 段 == 内存 M 段"** ③ `[SUM]` 段数 vs 板上实测 (v25 三看全过 ✔)
+  - 5. ★★[已修 08:17] `落盘时刻印失败: name 'json' is not defined` (我改代码丢了 import) ⇒ ★**收工闸"段数 vs 落盘印"判据会失效** ⇒ 已修 + 手工补印 (at=1793837690 tracks=17664 vias=413)
+  - 6. ★[已修 08:20] **GND 下拉 20 个失败没救回** ⇒ 根因 = `_via_free_all` 用 halo[2] (0.95mm) ⇒ 已改 `_via_exact_ok` ⇒ 冒烟: `inpad_busy`/`narrow` 消失 ✔ ⇒ ★**顺带松开长线换层**
+  - 7. ★[已修 08:10] **差分对端点连接器钉回** (`_PAIR_ENDPOINT_CONN = CONN_CAM/CONN_LIGHT` 不参与伙伴件搬移) ⇒ 实测 CONN_CAM 回到 x=78.90..93.90 (与旧板 x 区间一致) · parity 全过 · 零掉件
+  - 8. ★[已修 08:00] meander v3 (min_len 0.3 + 自适应凸起高度 3.0/2.0/1.2) + 配平后重算 Δ 写回
+  - 9. ★[已修 07:40] **层数通吃 6/8/10**: ROUTE_LAYERS/CU_LAYERS/平面层/RELAY_NBRS/LNAME 全按层数生成 (10 层 ⇒ 5 信号层) ⇒ ★**若最终定 10 层必须补真叠层+阻抗规格** (投板交付项)
+  - 10. ★[已修 07:20] cleanup 真删 (`_drop_committed` + `board.Remove`) + 身份记账 (`id(元组)`) + 落板自检 ⇒ ★**v25 实测无回归**
+★落盘了 ⇒ 开始自验+放行
+DRC violations = 2   unconnected items = 82
+  PCB 图纸门禁 · check_pcb_drc (★自己画的图, 自己验)
+  ❌ C3 DRC violations = 2 (要求 0)
+  ❌ C4 unconnected items = 82 (--strict: 布线完成后必须为 0)
+❌ 不通过 2 项: C3 DRC 2 项违规; C4 82 项未连接
+  check_pcb_drc(--strict) rc=1
+  check_pcb_nets rc=0
+    准出: check_pcb_nets rc=0 · check_pcb_drc rc=1 | 布线已完成 (unconnected=82 · DRC=2)
+  chain_gate rc=1
+  stage_gate rc=0
+--- 差分对审计 (前 12 行) ---
+=========== 2b. 差分对全审计 (22 对: 缺铜/单边零铜/Δ/真实净距) ===========
+P                    N                         L_P      L_N        Δ maxseg  判定
+★ 双边都有铜但 Δ>0.13mm: 3 对
+   DSI_D0_CK_P / DSI_D0_CK_N  Δ=1.570mm
+   DSI_D0_D1_P / DSI_D0_D1_N  Δ=1.571mm
+   DSI_D0_D3_P / DSI_D0_D3_N  Δ=3.804mm
+   USB_D_P_SRC / USB_D_N_SRC  缺: USB_D_N_SRC
+   CSI_D0_D0_P_SRC / CSI_D0_D0_N_SRC  缺: CSI_D0_D0_N_SRC
+   CSI_D0_D1_P / CSI_D0_D1_N  缺: CSI_D0_D1_N
+   CSI_D0_D2_P_SRC / CSI_D0_D2_N_SRC  缺: CSI_D0_D2_N_SRC
+   CSI_D0_D2_P / CSI_D0_D2_N  缺: CSI_D0_D2_N
+❌ 未通过 (verify rc=1) ⇒ ★**不盖章** ⇒ 下一轮会重跑自验 (可重复)
 
----- 08:10 播报员复验 (只读, 未改工程文件) ----
-★**板文件与 08:01 轮完全一致 (无变化)**: mtime 仍 07:56:36 · 3.2MB · 11735 段 · 189 过孔 ⇒ v25 自上轮起**没有再落盘**。
-★**日志 `/tmp/gen_v25.log` 58 行未变** (mtime 08:01:39), 计数: `[PAIR]`=22 · `[TIME]`=14 · `[PWR ]`=15 · `[SAVE]`=2 · `[CLEAN]`=0 · `[SUM]`=0 · `EXIT=`=0 ⇒ ⇒ **未最终落盘 ⇒ 自动自验 `verify_and_release.sh` 未触发 ⇒ `state/.auto_release_done` 不存在 ⇒ 未放行, G1 仍红**。
-★**v25 现役 PID 122167** (ps 实测 etimes 2581s ≈ 43 分, 100% CPU; 父 122165/122166; watcher 121527) ⇒ 脚本打的 **PID 121357 仍是 `state/CURRENT_TASK.md` 陈旧文本** ⇒ ★**播报口径缺陷连续第 3 轮** (进程号以 ps 为准)。
-★**本轮新变化 (不在板子上, 在工具链)**:
-  - 08:05 新建 `state/v26_arms.sh` ⇒ ★**v26 三臂已就位但尚未启动** (A: 8层/skip_pad_cells=1 基线 · B: 8层/skip_pad_cells=0 关 halo 规则 · C: **10层**/skip_pad_cells=1) ⇒ ★**严格隔离 `PCB_OUT=/tmp/v26_<臂>.kicad_pcb` ⇒ 不动官方板** (符合 AGENTS.md "实验轮不许拿官方板当输出槽" 铁律) ⇒ 启动时日志应为 `/tmp/v26_A|B|C.log`
-  - 08:10 新建 `state/freeroute_run.sh` (Specctra DSN/SES → freerouting 工业级自动布线, 作为自研路由器到顶的备选路径) ⇒ ★**首次冒烟实测失败**: `ExportSpecctraDSN -> True` (DSN 51914 字节, 导出成功) ⇒ 但 `java -jar freerouting.jar` 报 **`UnsupportedClassVersionError: class file version 69.0`** (jar 需 JRE 25, 本机只有 `~/tools/jdk-17.0.21+9-jre` ⇒ class ≤61.0) ⇒ **无 SES 产出 ⇒ 兜底路卡在 JDK 版本**, 需装 JDK 25+ 再试
-  - `/tmp/fr_place.kicad_pcb` (08:08:50, 461KB) = 只排版未走线的板, 供 freerouting 试验
-⇒ ★**结论: 板层面无变化 (v25 仍中途态, 未落盘/未放行); 工具链层面有变化 (v26 三臂脚本就位 + freerouting 兜底路已搭但 JDK 版本卡住)**
+---- 08:40 播报员复验 (只读, 未改工程文件) ----
+★**板面数字与上轮 (08:34) 完全一致 ⇒ 无变化**: 17664 段 / 413 过孔 / unconnected=82 / DRC=2 (官方板 `demo_mainboard.kicad_pcb` mtime 仍 **08:14:50** ⇒ v26 实验臂仍未往官方板落盘 ✔ 符合 AGENTS.md 实验轮铁律)
+★**仍未放行**: `state/.auto_release_done` 不存在 ⇒ verify rc=1 ⇒ **不盖章** ⇒ chain_gate rc=1 (C3 DRC=2 / C4 unconnected=82 不过) · stage_gate rc=0
+★**本轮真变化 = 四臂都在往前推** (日志行数 A 27 / B 27 / C 24 / D 29, 全部无 [SUM]/[FAIL] ⇒ 还没到落盘阶段):
+  - A/B ⇒ 推进到 `CSI_D0_D1_P_SRC ok=True/True L=26.39/26.39 Δ=0.000mm 间距=0.25`; ★A 与 B 至今**逐行完全一致** ⇒ `PCB_SKIP_PAD_CELLS=0` 这个开关**还没产生任何差异**
+  - D ⇒ 推进到 `CSI_D0_D2_P_SRC ok=True/False L=13.99/0.00` ⇒ ★**D 依旧跑在最前** (面积是目前唯一已观测到生效的变量)
+  - ★**C (10层) 日志自 08:38:39 起 4 分钟无新行** (但 PID 129412 仍 99.9% CPU) ⇒ 疑似卡在一条长路尝试 (`VDD_3V3_IO ok=False 失败脚=1 L=260.9mm`)
+  - 电源脚失败面: C ⇒ `VDD_3V3_IO` 1 脚; D ⇒ `V_SOC_IO` 1 脚 + `SENSOR_CORE` 1 脚; ★A/B 的电源段目前全 ok
+  - ★**四臂 `USB_D_P_SRC/N_SRC` 仍全部 N 未通** ⇒ 它死在串阻那端 ⇒ **得等 rip-up 阶段接手**
+★**freeroute 备选路**: 2.1.0 jar 下载**明显推进** (90KB@08:36 → **11,018,240 字节 @08:42:35**, curl PID 129329 仍在跑) ⇒ 下完才有机会做纯 CLI 兜底
+★**待办 (最靠前 3 条)**: ① v26 四臂跑完选赢家落盘 (ETA ~09:50) ⇒ 目标 unconnected 82→0 (**GND 38 是第一大头**) ② 22 对差分: 12 对单边零铜 + 3 对 Δ 超差 (1.570/1.571/3.804mm) ③ chain_gate 上游产物比源旧 (网表 02:18 / 原理图 02:18) ⇒ 要重出再验
 <!-- PROGRESS-BLOCK-END -->
+
 ## ★ARS45 主板布线 —— 差分对实测审计结论 (2026-11-05 02:05, 只读板文件交叉验证)
 
 ★**工具**: `tools/diff_pair_audit.py` (只读, python 逐行状态机 + awk 双解析器交叉验证, 19161 段一致)

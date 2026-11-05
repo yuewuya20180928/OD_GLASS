@@ -11,17 +11,31 @@ PASSES="${2:-30}"
 DSN=/tmp/fr_board.dsn
 SES=/tmp/fr_board.ses
 OUT=/tmp/fr_routed.kicad_pcb
-JRE=$(ls -d ~/tools/jdk-*/bin/java 2>/dev/null | head -1)
-[ -z "$JRE" ] && JRE=$(ls -d ~/tools/jdk-*/jre/bin/java 2>/dev/null | head -1)
-JAR=~/tools/fr_1.9.0.jar
-[ -f "$JAR" ] || JAR=~/tools/freerouting.jar
+# ★★2026-11-05 09:05: ★**2.1.0 需要 class v65 = Java 21** (JRE17 只到 v61; 2.5.0 要 v69=Java25)
+#   ⇒ ★**优先用 jdk-21** ⇒ 没有才退回 jdk-17 + 1.9.0 (但 1.9.0 是 GUI 版 ⇒ HeadlessException)
+JRE=""
+for c in ~/tools/jdk-21*/bin/java ~/tools/jdk-21*/jre/bin/java ~/tools/jdk-17*/bin/java ~/tools/jdk-17*/jre/bin/java; do
+  [ -x "$c" ] && { JRE="$c"; break; }
+done
+JAR=""
+for c in ~/tools/fr_2.1.0.jar ~/tools/freerouting.jar ~/tools/fr_1.9.0.jar; do
+  [ -f "$c" ] && { JAR="$c"; break; }
+done
 
 echo "=== 0) 准备 ==="
 echo "  板: $PCB"
 echo "  java: ${JRE:-缺失}"
-echo "  jar : $(ls -la $JAR 2>/dev/null | awk '{print $5"字节"}')"
+echo "  jar : ${JAR:-缺失} $(ls -la $JAR 2>/dev/null | awk '{print $5}')字节"
 [ -x "$JRE" ] || { echo "❌ 没有 JRE"; exit 1; }
 [ -f "$JAR" ] || { echo "❌ 没有 freerouting.jar"; exit 1; }
+"$JRE" -version 2>&1 | head -1 | sed 's/^/  /'
+
+echo "=== 0.5) 若没给板 ⇒ 先生成"只有排版没走线"的当前版板 (PCB_SKIP_ROUTE=1) ==="
+if [ ! -f "$PCB" ]; then
+  echo "  生成 $PCB ..."
+  PCB_SKIP_ROUTE=1 PCB_OUT="$PCB" bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py 2>&1 | tail -3
+fi
+[ -f "$PCB" ] || { echo "❌ 没有可导出的板"; exit 1; }
 
 echo "=== 1) 导出 Specctra DSN ==="
 cat > /tmp/_export_dsn.py <<'PY'

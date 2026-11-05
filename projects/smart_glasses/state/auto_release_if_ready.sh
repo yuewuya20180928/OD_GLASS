@@ -115,6 +115,20 @@ bash state/verify_and_release.sh > /tmp/auto_release.log 2>&1
 rc=$?
 # ★记住"这块板已经量过" ⇒ 防止下一轮 cron 又拿同一块板重跑一遍自验 (白烧 CPU)
 echo "${BM}" > state/.verified_board_mtime
+# ★★★2026-11-05 09:20 **关键修正: "量过" ≠ "验过且通过"**
+#   实测事故: v25 (焊盘短路 + DRC 2 + unconnected 82) 的自验 rc=1 ⇒ 但上面那句**无条件**写了
+#   `.verified_board_mtime` ⇒ 而发布闸把"板 mtime ≤ 已量过的板"当**通过** ⇒⇒
+#   ⇒⇒ **带短路的板 + 它出的 30 个 Gerber 被推进了 GitHub** (commit f31814b) ⇒⇒ 门禁形同虚设
+#   ⇒⇒ **修法: 两个标记分工**
+#     · `.verified_board_mtime`     = **量过** (不管过没过) ⇒ 只用于"别重复烧 CPU"
+#     · `.verified_board_ok_mtime`  = **验过且通过 (rc=0)** ⇒ ★**只有这个能授权发布**
+if [ "$rc" -eq 0 ]; then
+  echo "${BM}" > state/.verified_board_ok_mtime
+  echo "  ✓ 板通过自验 ⇒ 写 .verified_board_ok_mtime=$BM (★此标记才授权发布)"
+else
+  rm -f state/.verified_board_ok_mtime
+  echo "  ✗ 自验 rc=$rc ⇒ ★**不写** .verified_board_ok_mtime (⇒ 发布闸会拦这块板)"
+fi
 grep -E "DRC violations|unconnected items|C3 DRC|C4 unconnected|check_pcb_nets rc|check_pcb_drc|chain_gate rc|stage_gate rc|缺失|多余" /tmp/auto_release.log | head -24
 echo "--- 差分对审计 (前 12 行) ---"
 grep -E "缺:|净距=|Δ" /tmp/auto_release.log | head -14

@@ -101,6 +101,12 @@ PLACE_OVERRIDE = {
     "R_SER_USB_D_N": {"x": 107.70, "y": 23.50, "rot": 0},
 }
 
+# ★★2026-11-05 08:52 **人工钉位的器件 ⇒ 自动排版必须避开** (★否则两个器件的焊盘会搭上 ⇒ 短路!)
+#   ★**实测后果**: R_SER_USB_D_N 钉在 (107.70, 23.50) ⇒ 而自动排版把 Q_PG 放到 (109.5, 24.5)
+#     ⇒ 两者焊盘中心距仅 0.922mm ⇒ ★**DRC 短路 + 阻焊桥** (v25 的 2 条 DRC 就是它)
+#   ⇒ ★**根治**: ① 钉位器件的占位框进禁放区 ⇒ ② 落板后加**焊盘间距自检**闸门 (见 _check_pad_clearance)
+PLACE_OVERRIDE_GUARD = 1.2   # mm 钉位器件占位框外扩 (给相邻器件留净距)
+
 
 
 def _is_pad_name(tail):
@@ -628,11 +634,12 @@ def main():
     PLACE_INFO = {}     # ref → (x, y, w, h) —— 供"测试点贴伙伴件"用
     NET_PARTS = {}     # net → [ref] —— 同网已放器件
 
-    def _place_flow(flow_items, sx, sy, ex=None, ey=None):
+    def _place_flow(flow_items, sx, sy, ex=None, ey=None, reserved=None):
         """把一批器件行式装箱到 (sx, sy) 起 ⇒ 返回 (px, py, row_h, 放置数)
            ★ex/ey = 该批器件的区域上限 (默认用 PK_AREA)"""
         ex = PK_AREA[2] if ex is None else ex
         ey = PK_AREA[3] if ey is None else ey
+        _RES = list(RESERVED) + list(reserved or [])
         px, py, row_h = sx, sy, 0.0
         cnt = 0
         for (ref, pins, kind, w, h) in flow_items:
@@ -650,7 +657,7 @@ def main():
             #   ⇒ 改成: 换行后**重新试放这个器件** (死循环保护 60 次)
             _retry = 0
             while any(not (px + w <= rx0 or px >= rx1 or py + h <= ry0 or py >= ry1)
-                      for (rx0, ry0, rx1, ry1) in RESERVED):
+                      for (rx0, ry0, rx1, ry1) in _RES):
                 px = sx
                 py += row_h + 3.0
                 row_h = 0.0
@@ -747,11 +754,24 @@ def main():
     _A_BOT = _area("PCB_AREA_BOT", (5.0, 58.0, 70.0, 97.0))
     _A_TOP = _area("PCB_AREA_TOP", (78.0, 5.0, 120.0, 36.0))
     _A_RES = _area("PCB_AREA_RES", (78.0, 38.0, BOARD_W - 3.0, BOARD_H - 3.0))
-    pxB, pyB, rhB, nB = _place_flow(_grp_bot, _A_BOT[0], _A_BOT[1], _A_BOT[2], _A_BOT[3])
+    # ★★2026-11-05 08:52 **人工钉位的器件 ⇒ 自动排版必须避开** (★否则焊盘搭上 ⇒ 短路!)
+    #   实测: R_SER_USB_D_N 钉在 (107.70, 23.50) ⇒ 而自动排版把 Q_PG 放到 (109.5, 24.5)
+    #        ⇒ 焊盘中心距仅 0.922mm ⇒ ★**DRC 短路 + 阻焊桥** (v25 的 2 条 DRC 就是它)
+    _SIZE = {it[0]: (it[3], it[4]) for it in items}
+    _RES_OVR = []
+    for _ref, _ov in PLACE_OVERRIDE.items():
+        _w, _h = _SIZE.get(_ref, (2.0, 1.5))
+        _RES_OVR.append((_ov["x"] - _w / 2.0 - PLACE_OVERRIDE_GUARD,
+                         _ov["y"] - _h / 2.0 - PLACE_OVERRIDE_GUARD,
+                         _ov["x"] + _w / 2.0 + PLACE_OVERRIDE_GUARD,
+                         _ov["y"] + _h / 2.0 + PLACE_OVERRIDE_GUARD))
+    if _RES_OVR:
+        print("  [排版] 钉位器件禁放区 %d 个 (★避免焊盘搭上⇒短路)" % len(_RES_OVR))
+    pxB, pyB, rhB, nB = _place_flow(_grp_bot, _A_BOT[0], _A_BOT[1], _A_BOT[2], _A_BOT[3], reserved=_RES_OVR)
     placed += nB
-    pxA, pyA, rhA, nA = _place_flow(_grp_top, _A_TOP[0], _A_TOP[1], _A_TOP[2], _A_TOP[3])
+    pxA, pyA, rhA, nA = _place_flow(_grp_top, _A_TOP[0], _A_TOP[1], _A_TOP[2], _A_TOP[3], reserved=_RES_OVR)
     placed += nA
-    pxC, pyC, rhC, nC = _place_flow(_grp_rest, _A_RES[0], _A_RES[1], _A_RES[2], _A_RES[3])
+    pxC, pyC, rhC, nC = _place_flow(_grp_rest, _A_RES[0], _A_RES[1], _A_RES[2], _A_RES[3], reserved=_RES_OVR)
     placed += nC
     # ★★2026-11-05 07:25 **测试点 (TP_*) 贴着它的伙伴件放** (⇒ 消灭 TP↔伙伴 的百毫米长线)
     #   实测 (F5 排版下最长的几条): TP_CSI_CK_N ↔ C_AC_CSI_D0_CK_N = **124mm**;
@@ -960,6 +980,47 @@ def main():
     want = {(ref, str(p[0]), p[1]) for ref, pins in per_ref.items()
             if not ref.startswith(PSEUDO) for p in pins}
     missing, extra = want - pairs, pairs - want
+    # ★★2026-11-05 08:55 **焊盘间距自检 (短路闸门)** ——
+    #   ★**为什么必须有**: 实测 v25 的 2 条 DRC = ★**R_SER_USB_D_N.2 与 Q_PG.1 两个焊盘搭上 ⇒ 短路**
+    #     (人工钉位 + 自动排版没有互相避让) ⇒ ★**这种板绝对不许落盘**
+    #   ⇒ ★**任何不同网的两个焊盘间距 < 0.20mm (DRC 规则) ⇒ 判不合格**
+    _CL = 0.20
+    _pads = []
+    for fp in list(b2.GetFootprints()):
+        for pad in list(fp.Pads()):
+            _bb = pad.GetBoundingBox()
+            _pads.append((fp.GetReference(), str(pad.GetNumber()), pad.GetNetname(),
+                          _bb.GetLeft() / 1e6, _bb.GetTop() / 1e6,
+                          _bb.GetRight() / 1e6, _bb.GetBottom() / 1e6))
+    _short = []
+    for _i in range(len(_pads)):
+        _r1, _n1, _net1, _x0, _y0, _x1, _y1 = _pads[_i]
+        if not _net1:
+            continue
+        for _j in range(_i + 1, len(_pads)):
+            _r2, _n2, _net2, _a0, _b0, _a1, _b1 = _pads[_j]
+            if not _net2 or _net2 == _net1:
+                continue
+            if _a0 > _x1 + _CL:
+                continue
+            if _x0 > _a1 + _CL:
+                continue
+            if _b0 > _y1 + _CL:
+                continue
+            if _y0 > _b1 + _CL:
+                continue
+            _dx = max(_x0 - _a1, _a0 - _x1, 0.0)
+            _dy = max(_y0 - _b1, _b0 - _y1, 0.0)
+            _d = (_dx * _dx + _dy * _dy) ** 0.5
+            if _d < _CL - 0.005:   # ★5µm 容差 (连接器自己的脚间距**正好** 0.2mm ⇒ 合法)
+                _short.append((_r1 + "." + _n1 + "[" + _net1 + "]",
+                               _r2 + "." + _n2 + "[" + _net2 + "]", round(_d, 3)))
+    if _short:
+        print("  ❌ ★★焊盘间距自检: %d 对异网焊盘间距 < %.2fmm ⇒ **短路风险** ⇒ 板子不合格" % (len(_short), _CL))
+        for _s in _short[:8]:
+            print("      %s ↔ %s  间距 %.3fmm" % (_s[0], _s[1], _s[2]))
+    else:
+        print("  ✅ 焊盘间距自检: 无异网焊盘搭接 (≥ %.2fmm)" % _CL)
     n_num = sum(1 for ref, pins in per_ref.items()
                 if any(k == "P" for (_n, _t, k) in pins))
     n_ph = len(placeholder)
@@ -971,8 +1032,9 @@ def main():
            f"  SOM 占位: 68×50mm + 4×100pin/0.4mm BTB (400 焊盘)"]
     if notes:
         rep.append(f"  ★网表提示 {len(notes)} 条: {notes[:3]}")
-    ok = not missing and not extra
-    rep.append(f"\n判定: {'全过 (板子与网表 100% 一致)' if ok else '有不一致'}")
+    ok = not missing and not extra and not _short
+    rep.append(f"\n判定: {'全过 (板子与网表 100% 一致)' if ok else '有不一致'}"
+               + ("" if not _short else " ★★焊盘搭接 %d 对 ⇒ 不合格" % len(_short)))
     open(REPORT, "w", encoding="utf-8").write("\n".join(rep) + "\n")
     print("\n".join(rep))
     return 0 if ok else 1

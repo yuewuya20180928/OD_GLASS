@@ -108,7 +108,13 @@ rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
       --exclude '*.tmp' --exclude '.DS_Store' \
       --exclude '.*_bak' --exclude '*_backup' --exclude '.*_backup' --exclude '.bak_*' \
       --exclude 'state/_os_snapshots/hirose_*' --exclude 'state/_os_snapshots/hirose_pages' \
+      --exclude 'demo_mainboard.kicad_pcb' \
+      --exclude 'production/gerbers' --exclude 'production/drill' \
+      --exclude 'production/pos' --exclude 'production/assembly' \
       "$PROJ/" projects/smart_glasses/
+# ★★2026-11-05 09:20 **板 + 派生产物改成"闸门通过才显式拷进来"**
+#   ⇒ rsync 不再直接抄板/Gerber ⇒ ⇒ 闸门拦下时**不会又把它们抄回树里** (避免反复抄-删)
+#   ⇒ 闸门通过时在 [4.5] 之后显式 cp (见下方 "发布闸: 板通过" 分支)
 
 # ---- 3. docs / config 映射件 ----
 mkdir -p docs config/agents/main
@@ -373,46 +379,43 @@ if [ $? -ne 0 ]; then
 fi
 echo "[4] 真值反查 0 命中 ✅"
 
-# ★★2026-11-05 07:0x **发布前闸 v2: 板级隔离 + 判据补全**
-#   v1 的两个洞 (2026-11-05 07:0x 现场核对):
-#   ① 判据②依赖 `.layout_landed.json` —— ★**该印 06:30 才加, 还没有一次成功落盘写过** ⇒ 闸门实际只跑了判据①
-#      ⇒ 一块被中途存盘覆盖成"几千段"的半成品照样能推上去
-#   ② 闸门拦住时**整个发布都不推** ⇒ 板坏 ⇒ 连状态文档都推不上去 ⇒ ★**老板在 GitHub 上看到的永远是过期状态**
-#   ⇒ v2:
-#      · 判据②改成 **"板比上次量过的板新 ⇒ 这块板还没被量过 ⇒ 不许推"** (`.verified_board_mtime` 一直在维护, 现成的)
-#      · 闸门**只拦板、不拦文档** ⇒ 板从 HEAD 回退 (仓库里的板永远停在"最后一块验过的板"), 文档照常推
-#      · 落盘时刻印仍作**第二道**交叉校验 (mtime 对不上 / 段数对不上 ⇒ 板被中途改过)
+# ★★2026-11-05 09:20 **发布前闸 v3: 逻辑抽到独立脚本 + 判据③"验过且通过"**
+#   v1/v2 的洞 (两次实测踩到):
+#     ① v1 依赖 `.layout_landed.json` (当时还没一次成功落盘写过) ⇒ 闸门实际只跑了"段数≥1"
+#     ② v2 拦住时整个发布都不推 ⇒ 板坏 ⇒ 连状态文档都推不上 ⇒ 老板在 GitHub 上永远看到过期状态
+#     ③ ★★v2 最大的洞 (2026-11-05 09:20 实测事故): "板 mtime ≤ 已量过的板" 被当**通过**
+#        ⇒ 而 auto_release 脚本**无条件**写 `.verified_board_mtime` ⇒⇒
+#        ⇒⇒ **v25 (焊盘短路 / DRC 2 / unconnected 82) + 它出的 30 个 Gerber 被推上 GitHub (f31814b)**
+#   v3 改法:
+#     · ★**闸门逻辑抽到 state/board_publish_gate.sh (可单测, 已测 4 个分支)**
+#     · ★**判据③**: `.verified_board_ok_mtime` 必须存在且 == 板 mtime (只有自验 rc=0 才写)
+#       且 `.layout_done.json` 的 unconnected / drc_violations 必须都是 0
+#     · ★**板 + 派生产物 (Gerber/钻孔/坐标/贴片) 一起管** ⇒ 拦下时一起撤 (历史里保留)
+#     · ★**rsync 不再直接抄板/Gerber** ⇒ 闸门通过时才显式 cp ⇒ 不会"抄回来又删掉"反复折腾
 PCB_REL="projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb"
 SKIP_PUSH=0
 BOARD_BAD=0
 BOARD_WHY=""
 if [ -f "$PCB_REL" ]; then
-  SEG_C="$(grep -c '(segment' "$PCB_REL" 2>/dev/null | head -1)"; SEG_C="${SEG_C:-0}"
-  if [ "$SEG_C" -lt 1 ]; then
-    BOARD_BAD=1; BOARD_WHY="官方板只有 $SEG_C 段走线 ⇒ 骨架/空板"
-  fi
-  B_M="$(stat -c %Y "$PCB_REL" 2>/dev/null | head -1)"; B_M="${B_M:-0}"
-  VER_REL="projects/smart_glasses/state/.verified_board_mtime"
-  V_M="$(cat "$VER_REL" 2>/dev/null | head -1)"; V_M="${V_M:-0}"
-  if [ "$BOARD_BAD" = "0" ] && [ "${B_M:-0}" -gt "${V_M:-0}" ]; then
-    # ★板比"上次量过的板"新 ⇒ 这是一块**还没被量过的新板** ⇒ 必须有落盘时刻印证明它是"完整落盘"的那块
-    LAND_REL="projects/smart_glasses/HW/PCB/.layout_landed.json"
-    L_AT="$(python3 -c "import json;print(int(json.load(open('$LAND_REL')).get('at',0)))" 2>/dev/null || echo 0)"
-    L_TR="$(python3 -c "import json;print(int(json.load(open('$LAND_REL')).get('tracks',0)))" 2>/dev/null || echo 0)"
-    if [ "${L_AT:-0}" -gt 0 ]; then
-      D=$(( B_M > L_AT ? B_M - L_AT : L_AT - B_M ))
-      if [ "$D" -gt 10 ] || [ "${SEG_C:-0}" -ne "${L_TR:-0}" ]; then
-        BOARD_BAD=1; BOARD_WHY="板 mtime=$B_M vs 落盘 at=$L_AT (差 ${D}s) · 板段数=$SEG_C vs 落盘段数=$L_TR ⇒ 板被中途存盘改过"
-      fi
-    else
-      BOARD_BAD=1; BOARD_WHY="板比上次量过的板新 (mtime=$B_M > $V_M) 但没有落盘时刻印 ⇒ 没法证明它是完整落盘的那块"
-    fi
-  fi
-  if [ "$BOARD_BAD" = "1" ]; then
+  # ★★闸门必须跑在**源树**上 (★不是发布树!) —— 因为: ① 板在源树 (rsync 已排除板 ⇒ 发布树里本来就没有)
+  #   ② `.verified_board_ok_mtime` / `.layout_done.json` 这些自验证据也在源树
+  #   ⇒ ⇒ 用发布树跑闸 ⇒ 永远"没有板" ⇒ ⇒ 板永远发布不出去 (★09:22 自己发现并修掉的逻辑 bug)
+  GATE_OUT="$(bash "$PROJ/state/board_publish_gate.sh" "$PROJ" 2>&1)"; GATE_RC=$?
+  if [ "$GATE_RC" -ne 0 ]; then
+    BOARD_BAD=1
+    BOARD_WHY="$(echo "$GATE_OUT" | tail -1 | sed 's/^BAD|//')"
     SKIP_PUSH=1
     echo "[4.5] ⚠️ 发布闸拦板: $BOARD_WHY ⇒ ★**这块板不进 GitHub** (文档照推)"
   else
-    echo "[4.5] 发布闸: 板通过 (seg=$SEG_C · mtime=$B_M ≤ 量过的板 $V_M)"
+    echo "[4.5] 发布闸: 板通过 (${GATE_OUT#OK|})"
+    # ★★闸门通过 ⇒ 这时候才把板 + 派生产物拷进发布树 (rsync 阶段已排除)
+    mkdir -p "$(dirname "$PCB_REL")"
+    cp "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" "$PCB_REL" 2>/dev/null || true
+    for _d in gerbers drill pos assembly; do
+      [ -d "$PROJ/HW/PCB/production/$_d" ] || continue
+      mkdir -p "projects/smart_glasses/HW/PCB/production/$_d"
+      cp -r "$PROJ/HW/PCB/production/$_d/." "projects/smart_glasses/HW/PCB/production/$_d/" 2>/dev/null || true
+    done
   fi
 fi
 
@@ -424,14 +427,18 @@ for junk in projects/smart_glasses/BOOTSTRAP.md projects/smart_glasses/.openclaw
 done
 git add -A
 if [ "$BOARD_BAD" = "1" ]; then
-  # ★板级隔离: 把发布树里的板回退到 HEAD (仓库里最后一版) ⇒ **文档照推, 板永远停在"最后一块验过的板"**
-  if git checkout HEAD -- "$PCB_REL" 2>/dev/null; then
-    echo "[5] ★板级隔离: 板回退到 HEAD (不推这块半成品) · 文档照常推"
-  else
-    git rm -q --cached --ignore-unmatch "$PCB_REL" 2>/dev/null || true
-    rm -f "$PCB_REL" 2>/dev/null
-    echo "[5] ★板级隔离: HEAD 里没有板 ⇒ 本轮不带板 · 文档照常推"
-  fi
+  # ★★★2026-11-05 09:20 **板级隔离 v3: 板 + 它的派生产物 (Gerber/钻孔/坐标/贴片) 一起撤**
+  #   ★★为什么要升级: v2 用 `git checkout HEAD -- 板` ⇒ 但 **HEAD 里已经就是那块带短路的板** (f31814b 已推)
+  #      ⇒ 撤不回来 ⇒ ⇒ 且 **Gerber 是从这块板出的** ⇒ 只撤板等于留了一堆不可投产的投产文件
+  #   ⇒⇒ 现在: 板 + production/{gerbers,drill,pos,assembly} 全部从发布树里删掉 (历史里留着)
+  #      ⇒ 文档照推 ⇒ ⇒ **仓库里"没有板" = 诚实状态** (从来没一块板过了门禁)
+  git rm -q --cached --ignore-unmatch "$PCB_REL" 2>/dev/null || true
+  rm -f "$PCB_REL" 2>/dev/null
+  for _d in gerbers drill pos assembly; do
+    git rm -r -q --cached --ignore-unmatch "projects/smart_glasses/HW/PCB/production/$_d" 2>/dev/null || true
+    rm -rf "projects/smart_glasses/HW/PCB/production/$_d" 2>/dev/null || true
+  done
+  echo "[5] ★板级隔离: 板 + Gerber/钻孔/坐标/贴片 全部从发布树撤下 (历史里保留) · 文档照常推"
   git add -A
 fi
 if git diff --cached --quiet; then
