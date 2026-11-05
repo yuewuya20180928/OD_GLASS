@@ -1168,7 +1168,7 @@ class GridRouter:
                         self._add_via_halo(net_g, px, py, 0, 5)
                         used_vias.append((px, py))
                         ok += 1
-                        fail -= 1
+                        # ★**不要在这里 fail -= 1** (★fail 是"每个失败的焊盘 +1" ⇒ 这里减会出负数)
                         done = True
                         break
                     # ★孔间距: 0.3 钻 + 0.25 最小孔间距 ⇒ 孔心距 ≥0.55mm

@@ -2,45 +2,46 @@
 
 ★盯的日志: /tmp/gen_v25.log
 === 机器读数 (board_progress.py) ===
-=== 进展播报 11-05 09:20:06 ===
-[板] 11-05 08:14:50 · 4.8MB · 17664 段走线 · 413 过孔
-[布线] 上次实测 unconnected=82 · DRC违规=2 · 留证 2026-11-05T09:12:15
+=== 进展播报 11-05 10:33:08 ===
+[板] 11-05 09:52:49 · 5.0MB · 19070 段走线 · 407 过孔
+[布线] 上次实测 unconnected=83 · DRC违规=2 · 留证 2026-11-05T09:56:14
 [在跑] 8 个进程 ⇒ timeout; timeout
-[当前在做] 2. ★[在跑] **v26 四臂并行** (PID 134080/134081/134082/134083, 08:48:29 起, 各自 PCB_OUT 隔离 ⇒ **官方板不动**) ⇒ ★**09:02 中期读数: A/B 各 9 对 · C 6 · D 4 ⇒ ETA ~10:15~10:45** ⇒ ★**臂 A**=8层·skip_pad_cells=1(基线) · ★**臂 B**=8层·skip_pad_cells=0(单变量) · ★**臂 C**=**10层**(单变量) · ★**臂 D**=8层+**180×120 板**(单变量: 面积) ⇒ 共同基线 = v25 全部修复 + 排版避让 + **焊盘短路闸门** + 差分对端点连接器钉回 + rip-up&reroute + 长网先走 + 过孔精确判据 + **同网缝合** ⇒ ★**差分耦合率中期: v25 23% · A 33% · C 33% · D 75%** ⇒ ★**D(面积) 在差分对上明显占优; 但 180×120 是"打样台架板"不是产品内板** ⇒ ★**终点线脚本已就位 `state/finish_line.sh <A|B|C|D>`**
+[当前在做] 2. ★[在跑] **v27 三臂 (09:52 起)** (E=8层160×100 / F=10层160×100 / G=8层180×120, **各自 PCB_OUT 隔离 ⇒ 官方板不动**) ⇒ ★**共同新增: F7 排版 (PCB_PIN_CONN_CAM=1) + 差分对 N 侧出脚修复 (PCB_PAIR_ESCAPE_EXEMPT=1) + 浮点容差 1nm + 过孔查重** ⇒ ★**早期读数: 三臂差分对"N 未通"= 0 (v26 是 18/22) ⇒ USB_D_N_SRC / CSI_D0_CK_N_SRC 都 ok=True/True Δ=0.000** ⇒ ETA ~11:00
 [待办]
-  - 1. 最高优先级: 自研 demo 主板 → 可下单 (ISS-181/182) —— ★G1 缺口 = PCB 未布线。★⚠️ **官方板 (v25) 带短路 (R_SER_USB_D_N.2 ↔ Q_PG.1 焊盘搭接) ⇒ 绝对不许投板, 只作过程产物** ⇒ 已在生成器加短路闸门+排版避让修掉, 新排版实测无搭接。★**v25 已落盘 (08:14:50)**: 17664 段 / 413 过孔 / **unconnected 82** / **DRC 2** / parity rc=0 / ★**落板自检通过 (板上17664==内存17664 ⇒ cleanup 回归没发生)**
-  - 3. ★★v25 的教训 (三条根因都已修, 待 v26 验证): ① **过孔判据过严** (halo[2] 半径 0.95mm ⇒ 密集区放不下任何过孔 ⇒ 长线不能换层 ⇒ 52 个"真被堵死"里的一部分) ⇒ 已加 `_via_exact_ok` ② **F5 排版把差分对远端连接器搬走** (CONN_CAM → (93.3,17.6) ⇒ 22 对 8→5) ⇒ 已钉回 ③ **halo 放松 (skip_pad_cells) 可能让 P 侧走进 N 焊盘邻域** ⇒ 已做开关 `PCB_SKIP_PAD_CELLS=0` ⇒ **臂 B 专门测**
-  - 4. ★★落板验收三看: ① `[CLEAN]` 零长/悬空/孤立过孔数 ② **落板自检"板上 N 段 == 内存 M 段"** ③ `[SUM]` 段数 vs 板上实测 (v25 三看全过 ✔)
-  - 5. ★★[已修 08:17] `落盘时刻印失败: name 'json' is not defined` (我改代码丢了 import) ⇒ ★**收工闸"段数 vs 落盘印"判据会失效** ⇒ 已修 + 手工补印 (at=1793837690 tracks=17664 vias=413)
-  - 6. ★[已修 08:20] **GND 下拉 20 个失败没救回** ⇒ 根因 = `_via_free_all` 用 halo[2] (0.95mm) ⇒ 已改 `_via_exact_ok` ⇒ 冒烟: `inpad_busy`/`narrow` 消失 ✔ ⇒ ★**顺带松开长线换层**
-  - 7. ★[已修 08:10] **差分对端点连接器钉回** (`_PAIR_ENDPOINT_CONN = CONN_CAM/CONN_LIGHT` 不参与伙伴件搬移) ⇒ 实测 CONN_CAM 回到 x=78.90..93.90 (与旧板 x 区间一致) · parity 全过 · 零掉件
-  - 8. ★[已修 08:00] meander v3 (min_len 0.3 + 自适应凸起高度 3.0/2.0/1.2) + 配平后重算 Δ 写回
-  - 9. ★[已修 07:40] **层数通吃 6/8/10**: ROUTE_LAYERS/CU_LAYERS/平面层/RELAY_NBRS/LNAME 全按层数生成 (10 层 ⇒ 5 信号层) ⇒ ★**若最终定 10 层必须补真叠层+阻抗规格** (投板交付项)
-  - 10. ★[已修 07:20] cleanup 真删 (`_drop_committed` + `board.Remove`) + 身份记账 (`id(元组)`) + 落板自检 ⇒ ★**v25 实测无回归**
+  - 2a. ★[10:25 判死一条线] **180×120 加大面积 = 劣势** (v26 D: 布不动 75 脚/用时 87 分钟, 全场最差; v27 G: N未通 12/22) ⇒ **面积方向关闭** ⇒ 后面只测 层数/排版/出脚/GND 顺序/预算
+  - 2b. ★★[09:55 真凶] **浮点容差**: `_stub_vs_routed` 判 0.4mm pitch 相邻出脚直道净距时 `need=0.4`, 实测算出 **0.3999999999999986** ⇒ 每一对相邻脚被判死 ⇒ **SoM BTB 全出不来 ⇒ 22 对里 17~18 对 N 侧 0 段铜** (unconnected 82/83 的头号来源) ⇒ 三处比较加 **1nm 容差** ⇒ 探针实测 6/6 个 _SRC 对 N 侧全部有铜 Δ=0.000 ring=2
+  - 2c. ★[09:52 官方板已换] v25 → **臂 A** (19070 段/407 孔) ⇒ ★**焊盘短路 (R_SER_USB_D_N.2↔Q_PG.1) 消失** ⇒ 剩 DRC 2 = **同点重复过孔** (落板自检已抓到: 板上 407 vs 内存 405) ⇒ 已加 `_via_exists` 查重 (v27 起生效)
+  - 2d. ★[09:56 chain_gate] ①网表✅ ②原理图✅ ③PCB 准入✅/准出❌(DRC2/unconn83) ④BOM✅ ⑤**投产资料包✅✅ (51 文件/19MB, 09:55 重出)** ⇒ ★**只剩 ③ 板子本身**
+  - 2e. ★[09:26 已交付] 叠层/阻抗: `state/add_stackup.py` (8层/总厚1.600mm/外铜0.035/内铜0.018/prepreg PR2116+core FR4/ENIG) ⇒ ★**KiCad 10.0.8 回读通过 (走线/过孔数不变)** + 规格书 `HW/PCB/STACKUP_IMPEDANCE.md` ⇒ ★**踩坑: 往 .kicad_pcb 塞裸文本标记行 ⇒ KiCad 静默解析失败返回 None**
+  - 2f. ★[09:54 已修] `state/verify_and_release.sh` 三处 `echo "rc=$?"` 把 `$?` 吃掉 ⇒ DRC/chain_gate/stage_gate 挂了也不 FAIL ⇒ ★**自验永远退 0** (这正是上次"带短路板被推上 GitHub"的温床) ⇒ 已改成先存 `_rc=$?` 再打印
+  - 2g. ★[09:55 注意] `issue_check rc=1` (逾期未闭环 6 条, 多数归 boss/其他 lead) ⇒ ★**即使板子全绿, 这一条也会挡住放行章** ⇒ 需老板定口径
+  - 1. 最高优先级: 自研 demo 主板 → 可下单 (ISS-181/182) —— ★G1 缺口 = PCB 未布线。★**官方板 = 臂 A (09:52:49, 19070 段/407 孔, unconnected 83, DRC 2, parity rc=0)** ⇒ ★**焊盘短路已消失** (v25 那块已作废) ⇒ 但 DRC 2 (重复过孔, 已修) + unconnected 83 ⇒ ★**仍不许投板, 未盖章** ⇒ ★**下一步 = 等 v27 三臂落盘 (ETA ~11:00) → 选赢家 → finish_line → 若 unconnected=0 & DRC=0 才盖章**
+  - 3. ★★v25/v26 的教训 (根因都已修, 已在 v27 验证中): ① **过孔判据过严** (halo[2] 半径 0.95mm) ⇒ 已加 `_via_exact_ok` ② **F5 排版把差分对远端连接器搬走** ⇒ F7 已把 CONN_CAM 钉回 (86.8,52.8) ③ **halo 放松 (skip_pad_cells) 可能让 P 侧走进 N 焊盘邻域** ⇒ 开关 `PCB_SKIP_PAD_CELLS` ④ ★★★**浮点容差** (0.4 算成 0.3999999999999986 ⇒ 每一对相邻脚被判死) ⇒ 已加 1nm 容差 ⑤ ★**N 侧出脚被"伙伴禁入格+邻居 halo"封死** ⇒ 已加 own_pad 豁免 + 出脚区豁免 + 宽度感知禁入格
 ★落盘了 ⇒ 开始自验+放行
   ✗ 自验 rc=1 ⇒ ★**不写** .verified_board_ok_mtime (⇒ 发布闸会拦这块板)
-DRC violations = 2   unconnected items = 82
+DRC violations = 2   unconnected items = 83
   PCB 图纸门禁 · check_pcb_drc (★自己画的图, 自己验)
   ❌ C3 DRC violations = 2 (要求 0)
-  ❌ C4 unconnected items = 82 (--strict: 布线完成后必须为 0)
-❌ 不通过 2 项: C3 DRC 2 项违规; C4 82 项未连接
+  ❌ C4 unconnected items = 83 (--strict: 布线完成后必须为 0)
+❌ 不通过 3 项: C3 DRC 2 项违规; C4 83 项未连接; C7 2 处重复过孔
   check_pcb_drc(--strict) rc=1
   check_pcb_nets rc=0
-    准出: check_pcb_nets rc=0 · check_pcb_drc rc=1 | 布线已完成 (unconnected=82 · DRC=2)
+    准出: check_pcb_nets rc=0 · check_pcb_drc rc=1 | 布线已完成 (unconnected=83 · DRC=2)
   chain_gate rc=1
-  stage_gate rc=0
+  stage_gate rc=1
 --- 差分对审计 (前 12 行) ---
 =========== 2b. 差分对全审计 (22 对: 缺铜/单边零铜/Δ/真实净距) ===========
 P                    N                         L_P      L_N        Δ maxseg  判定
-★ 双边都有铜但 Δ>0.13mm: 3 对
-   DSI_D0_CK_P / DSI_D0_CK_N  Δ=1.570mm
-   DSI_D0_D1_P / DSI_D0_D1_N  Δ=1.571mm
+★ 双边都有铜但 Δ>0.13mm: 2 对
+   DSI_D0_D1_P / DSI_D0_D1_N  Δ=5.510mm
    DSI_D0_D3_P / DSI_D0_D3_N  Δ=3.804mm
    USB_D_P_SRC / USB_D_N_SRC  缺: USB_D_N_SRC
    CSI_D0_D0_P_SRC / CSI_D0_D0_N_SRC  缺: CSI_D0_D0_N_SRC
-   CSI_D0_D1_P / CSI_D0_D1_N  缺: CSI_D0_D1_N
+   CSI_D0_D1_P / CSI_D0_D1_N  缺: CSI_D0_D1_P
    CSI_D0_D2_P_SRC / CSI_D0_D2_N_SRC  缺: CSI_D0_D2_N_SRC
    CSI_D0_D2_P / CSI_D0_D2_N  缺: CSI_D0_D2_N
+   CSI_D0_D3_P_SRC / CSI_D0_D3_N_SRC  缺: CSI_D0_D3_N_SRC
+   CSI_D0_D3_P / CSI_D0_D3_N  缺: CSI_D0_D3_P,CSI_D0_D3_N
 ❌ 未通过 (verify rc=1) ⇒ ★**不盖章** ⇒ 下一轮会重跑自验 (可重复)
 
 <!-- PROGRESS-BLOCK-END -->
