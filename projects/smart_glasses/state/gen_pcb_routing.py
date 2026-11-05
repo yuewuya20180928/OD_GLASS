@@ -1393,6 +1393,12 @@ class GridRouter:
                 ok += 1
                 fail -= 1
                 continue
+            # ★★2026-11-05 13:15 **孔中心距判据** (★治 DRC `hole_to_hole`)
+            #   ★`_via_exists` 只查**同点** ⇒ ★**中心只差 0.25mm 的两个孔也能各落一个**
+            #   ⇒ ★v29_N 实测 3 处 `hole_to_hole` (净距 0.0000/0.2000/0.0536mm) ⇒ 就是这么来的
+            if not self._via_center_ok(cx, cy):
+                why["via_too_close"] = why.get("via_too_close", 0) + 1
+                continue
             v = pcbnew.PCB_VIA(self.b)
             v.SetPosition(pcbnew.VECTOR2I(int(cx * MM), int(cy * MM)))
             v.SetViaType(pcbnew.VIATYPE_THROUGH)
@@ -1656,10 +1662,13 @@ class GridRouter:
             for li in layers:
                 pad_by_layer[li].append((net, x0, y0, x1, y1))
         # 过孔点 —— ★过孔是**通孔** (F.Cu..B.Cu) ⇒ 6 层都算接上
-        via_pts = set()
+        # ★★2026-11-05 13:15 **按网记过孔点** (★原来只是个 set ⇒ **别网的过孔也算"接上"**)
+        #   ⇒ ★**别网过孔上的那段铜在 KiCad 眼里是"悬空"** ⇒ DRC `track_dangling`
+        #   ⇒ ★v29_N 实测 3 条 `track_dangling` 就是这么漏下来的
+        via_pts = defaultdict(set)
         for (net, x, y, l1, l2) in self.vias:
             for li in range(NLAYERS):
-                via_pts.add((li, round(x, 4), round(y, 4)))
+                via_pts[(li, round(x, 4), round(y, 4))].add(net)
 
         def _on_pad(net, li, x, y):
             for (n2, x0, y0, x1, y1) in pad_by_layer.get(li, ()):
@@ -1691,30 +1700,68 @@ class GridRouter:
                     return True
             return False
 
-        # ---------- 2) 删悬空端段 (迭代到收敛) ----------
+        # ---------- 2) 删悬空端段 + 3) 删孤立过孔 (★★迭代到不动点) ----------
+        # ★★2026-11-05 13:15 **改成"删孔 → 再删悬空段 → 再删孔"循环到不动点**
+        #   ★**为什么**: 原来顺序是"先删悬空段, 再删孤立过孔"
+        #     ⇒ ★**孔被删了, 挂在它上面的那段短铜就变成悬空了, 但没人再去查一遍**
+        #     ⇒ ★v29_N 实测: 3 条 `track_dangling` (GND, 0.25mm 短铜, 端点悬空) 就是这么漏下来的
+        #   ⇒ ★**每轮: 先删没有走线接上的孤立过孔, 再删悬空段, 直到两轮都不再变**
         n_dang = 0
-        for _round in range(40):
-            # 每个点的"段端点计数" (同层)
+        n_via_drop = 0
+        for _round in range(12):
+            # ---------- 3) 删没有走线接上的孤立过孔 (KiCad 报 via_dangling) ----------
+            touch = set()
+            for s in self.tracks:
+                touch.add((s[0], s[5], round(s[1], 4), round(s[2], 4)))
+                touch.add((s[0], s[5], round(s[3], 4), round(s[4], 4)))
+            _vd = 0
+            keep_v = []
+            for v in self.vias:
+                net, x, y = v[0], v[1], v[2]
+                anchored = False
+                for li in range(NLAYERS):
+                    if (net, li, round(x, 4), round(y, 4)) in touch:
+                        anchored = True
+                        break
+                if not anchored and not _on_pad(net, 0, x, y):
+                    _vd += 1
+                    self._drop_committed(v)     # ★已提交的孤立过孔也要从板上删掉
+                    continue
+                keep_v.append(v)
+            self.vias = keep_v
+            n_via_drop += _vd
+
+            # ---------- 2) 删悬空端段 (同层 · ★**同网才算接上**) ----------
+            # 每个点的"段端点计数" (★**按网** ⇒ 别网的段端点不算接上)
             ep_cnt = defaultdict(int)
             for s in self.tracks:
-                ep_cnt[(s[5], round(s[1], 4), round(s[2], 4))] += 1
-                ep_cnt[(s[5], round(s[3], 4), round(s[4], 4))] += 1
+                ep_cnt[(s[0], s[5], round(s[1], 4), round(s[2], 4))] += 1
+                ep_cnt[(s[0], s[5], round(s[3], 4), round(s[4], 4))] += 1
             drop = set()
             for i, s in enumerate(self.tracks):
                 net, li = s[0], s[5]
+                _bad = False
                 for (px, py) in ((s[1], s[2]), (s[3], s[4])):
-                    if (li, round(px, 4), round(py, 4)) in via_pts:
-                        continue                      # 落在过孔上 ⇒ 接上
+                    _vp = via_pts.get((li, round(px, 4), round(py, 4)))
+                    if _vp and net in _vp:
+                        continue                      # 落在**同网**过孔上 ⇒ 接上
+                    if _vp:
+                        _bad = True                   # ★落在**别网**过孔上 ⇒ 那是短路 ⇒ 删
+                        break
                     if _on_pad(net, li, px, py):
                         continue                      # 落在焊盘上 ⇒ 接上
-                    if ep_cnt[(li, round(px, 4), round(py, 4))] > 1:
-                        continue                      # 别的段端点也在 ⇒ 接上
+                    if ep_cnt.get((net, li, round(px, 4), round(py, 4)), 0) > 1:
+                        continue                      # 别的**同网**段端点也在 ⇒ 接上
                     if _t_junction(net, li, px, py, i):
                         continue                      # T 型接头 ⇒ 接上
-                    drop.add(i)                       # ★悬空
+                    _bad = True                       # ★悬空
                     break
+                if _bad:
+                    drop.add(i)
             if not drop:
-                break
+                if _vd == 0:
+                    break                          # ★不动点 ⇒ 收工
+                continue                           # ★还有孔被删 ⇒ 下一轮再查悬空
             # 删掉悬空段后重建哈希
             keep = [s for i, s in enumerate(self.tracks) if i not in drop]
             n_dang += len(self.tracks) - len(keep)
@@ -1730,27 +1777,6 @@ class GridRouter:
                     for cj in range(int(math.floor(min(y1, y2) / CELL)),
                                     int(math.floor(max(y1, y2) / CELL)) + 1):
                         seg_hash[(ci, cj)].append(i)
-
-        # ---------- 3) 删没有走线接上的孤立过孔 (KiCad 报 via_dangling) ----------
-        touch = set()
-        for s in self.tracks:
-            touch.add((s[5], round(s[1], 4), round(s[2], 4)))
-            touch.add((s[5], round(s[3], 4), round(s[4], 4)))
-        n_via_drop = 0
-        keep_v = []
-        for v in self.vias:
-            net, x, y = v[0], v[1], v[2]
-            anchored = False
-            for li in range(NLAYERS):
-                if (li, round(x, 4), round(y, 4)) in touch:
-                    anchored = True
-                    break
-            if not anchored and not _on_pad(net, 0, x, y):
-                n_via_drop += 1
-                self._drop_committed(v)     # ★已提交的孤立过孔也要从板上删掉
-                continue
-            keep_v.append(v)
-        self.vias = keep_v
 
         if verbose and (n_zero or n_dang or n_via_drop):
             print("  [CLEAN] 后处理: 删零长段 %d / 删悬空段 %d / 删孤立过孔 %d"
@@ -2331,6 +2357,19 @@ class GridRouter:
                     if math.hypot(vx - ux, vy - uy) < mind:
                         return True
         return False
+
+    def _via_center_ok(self, cx, cy, min_c=MIN_VIA_CENTER):
+        """★★2026-11-05 13:15 **过孔中心距判据** (★治 DRC `hole_to_hole`)
+           ★**为什么要有**: `_via_exists` 只查**同点** ⇒ ★**两个孔中心只差 0.25mm 也能各落一个**
+             ⇒ 板规则: 孔到孔 ≥ 0.25mm ⇒ 中心距 ≥ 0.15(钻孔半径)+0.15+0.25 = **0.55mm**
+             ⇒ ★**v29_N 实测 3 处 `hole_to_hole`** (净距 0.0000 / 0.2000 / 0.0536mm) ⇒ 都是这么来的
+           ★**同网异网都算** (孔到孔是制造规则, 不看网)
+           ★**注意**: 焊盘里的过孔 (in-pad) 中心就是焊盘中心 ⇒ ★**间距不够就只能不落**
+             ⇒ 那就少一条 GND 下拉 ⇒ ★**宁可 unconnected 多一条, 也不要有 DRC 违规**"""
+        for (_n, vx, vy, _l1, _l2) in self.vias:
+            if math.hypot(vx - cx, vy - cy) < min_c:
+                return False
+        return True
 
     def _via_exists(self, net, cx, cy):
         """★2026-11-05 09:58 **同网同点过孔是否已存在**

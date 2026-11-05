@@ -373,7 +373,16 @@ def main():
     print("=" * 72)
     if selftest:
         return do_selftest()
-    rc, body, _ctx = run_checks(PCB)
+    # ★★2026-11-05 13:35 **必须支持"查指定的板"** (★原来**只查官方板**, 把参数丢了)
+    #   ⇒ ★**实测踩坑**: v29_O 臂 DRC=1/unconn=64 (比官方板好) ⇒ 晋级前预检却红了
+    #     ⇒ 原因: `promote_arm.sh` 传的是臂板路径, 但**本脚本 ignores argv** ⇒ 量的是**官方板**
+    #       (官方板 09:52 落的, 用的是修 P0 之前的旧网表 ⇒ J_SOM_P3 七脚还是 RAIL_SOM_DCIN)
+    #   ⇒ ★**后果: 好臂永远晋级不了 (官方板旧 → parity 红 → 拒晋级 → 官方板永远是旧的) ⇒ 死锁**
+    _args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    pcb = os.path.abspath(_args[0]) if _args else PCB
+    if _args:
+        print("  (查板: %s)" % pcb)
+    rc, body, _ctx = run_checks(pcb)
     print("\n".join(body))
     print("-" * 72)
     if rc:

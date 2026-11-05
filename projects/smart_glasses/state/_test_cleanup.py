@@ -1,0 +1,76 @@
+"""★2026-11-05 13:20 **cleanup_geometry 新逻辑的单元测试** (★语法通过 ≠ 逻辑对)
+   验三件事:
+     ① 挂在"孤立过孔"上的短铜 ⇒ 过孔被删后, 那段铜也要被删 (★不动点迭代)
+     ② 端点落在**别网**过孔上的铜段 ⇒ 必须删 (★原来不算"接上" ⇒ 漏成悬空)
+     ③ 正常连着的铜段 / 挂在同网过孔上的铜段 ⇒ 必须保留 (★别误删)
+"""
+import sys, os
+sys.path.insert(0, "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state")
+os.environ.setdefault("PCB_BOARD_W", "160")
+os.environ.setdefault("PCB_BOARD_H", "100")
+import pcbnew
+import gen_pcb_routing as G
+
+b = pcbnew.CreateEmptyBoard()
+r = G.GridRouter(b)
+
+# ── 场景 ───────────────────────────────────────────────
+# 焊盘: GND 焊盘一块 (10,10)-(11,11) 在 F.Cu
+r.pad_rects_l.append(("GND", 10.0, 10.0, 11.0, 11.0, (0,)))
+# ★首尾相接那两段的两端都落在焊盘上 ⇒ 才是"真连着"
+r.pad_rects_l.append(("GND", 19.5, 19.5, 20.5, 20.5, (0,)))
+r.pad_rects_l.append(("GND", 21.5, 19.5, 22.5, 20.5, (0,)))
+
+# ③-好: 焊盘 → 过孔 (同网) 的正常铜 (保留)
+r.tracks.append(("GND", 10.5, 10.5, 10.5, 12.0, 0, 0.25))
+r.vias.append(("GND", 10.5, 12.0, 0, 5))
+
+# ③-好: 两段首尾相接 (同网同层) ⇒ 两端都接上 (保留)
+r.tracks.append(("GND", 20.0, 20.0, 21.0, 20.0, 0, 0.25))
+r.tracks.append(("GND", 21.0, 20.0, 22.0, 20.0, 0, 0.25))
+
+# ①-坏: 焊盘 → (不存在/会被删的) 过孔 的短铜 ⇒ 过孔删了, 铜必须跟着删
+r.tracks.append(("GND", 30.0, 30.0, 30.0, 30.5, 0, 0.25))
+r.vias.append(("GND", 30.0, 30.5, 0, 5))     # 孤立过孔 (没有任何段端在它上面? 其实有 ⇒ 见下)
+
+# ②-坏: 端点落在**别网**过孔上 ⇒ 必须删
+r.vias.append(("SIG", 40.0, 40.0, 0, 5))
+r.tracks.append(("GND", 40.0, 40.0, 41.0, 40.0, 0, 0.25))
+
+before = len(r.tracks)
+nz, nd, nv = r.cleanup_geometry(verbose=True)
+print("清理前 段=%d 孔=%d" % (before, len(r.vias) + nv - nv))
+print("清理后 段=%d 孔=%d   (删零长 %d / 删悬空 %d / 删孤立孔 %d)"
+      % (len(r.tracks), len(r.vias), nz, nd, nv))
+for t in r.tracks:
+    print("   留下:", t)
+for v in r.vias:
+    print("   留下孔:", v)
+
+ok = True
+def _chk(cond, msg):
+    global ok
+    print(("  ✔ " if cond else "  ✘ ") + msg)
+    if not cond:
+        ok = False
+
+def _has(t):
+    return any(a[0] == t[0] and abs(a[1]-t[1])<1e-6 and abs(a[2]-t[2])<1e-6
+               and abs(a[3]-t[3])<1e-6 and abs(a[4]-t[4])<1e-6 for a in r.tracks)
+
+_chk(_has(("GND", 10.5, 10.5, 10.5, 12.0, 0, 0.25)), "③ 同网焊盘→过孔的铜: 保留")
+_chk(_has(("GND", 20.0, 20.0, 21.0, 20.0, 0, 0.25)), "③ 两端都落在焊盘上的链段1: 保留")
+_chk(_has(("GND", 21.0, 20.0, 22.0, 20.0, 0, 0.25)), "③ 首尾相接的第二段: 保留")
+_chk(not _has(("GND", 30.0, 30.0, 30.0, 30.5, 0, 0.25)), "① 孤立孔上的短铜: 已删")
+_chk(not _has(("GND", 40.0, 40.0, 41.0, 40.0, 0, 0.25)), "② 端点落在别网过孔上的铜: 已删")
+# ── _via_center_ok (治 hole_to_hole) ────────────────────
+r.vias.append(("GND", 50.0, 50.0, 0, 5))
+r.vias.append(("SIG", 50.25, 50.0, 0, 5))     # 中心距 0.25mm ⇒ 太近
+r.vias.append(("SIG", 50.6, 50.0, 0, 5))      # 中心距 0.60mm ⇒ 合法 (>= 0.58)
+_chk(r._via_center_ok(50.25, 50.0) is False, "孔中心距 0.25mm ⇒ 判不合格 (治 hole_to_hole)")
+_chk(r._via_center_ok(50.3, 50.0) is False, "孔中心距 0.30mm ⇒ 判不合格")
+_chk(r._via_center_ok(52.0, 50.0) is True,  "离所有孔都远 ⇒ 判合格")
+_chk(r._via_center_ok(51.19, 50.0) is True, "孔中心距 0.59mm ⇒ 判合格 (>= MIN_VIA_CENTER 0.58)")
+
+print("★测试结果:", "PASS" if ok else "FAIL")
+sys.exit(0 if ok else 1)
