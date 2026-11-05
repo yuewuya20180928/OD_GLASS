@@ -71,6 +71,7 @@ def main():
     rip = 8
     batch = 5
     statef = None
+    only = None
     i = 2
     while i < len(args):
         if args[i] == "--out":
@@ -87,6 +88,9 @@ def main():
             i += 2
         elif args[i] == "--state":
             statef = args[i + 1]
+            i += 2
+        elif args[i] == "--only":
+            only = [x.strip() for x in args[i + 1].split(",") if x.strip()]
             i += 2
         else:
             i += 1
@@ -144,7 +148,11 @@ def main():
     # ★**短距优先**: ★**越近的越容易救回来** ⇒ ★**先修便宜的**
     order = sorted(nets.keys(), key=lambda n: nets[n])
     ok_total = 0
-    todo = [n for n in order if n not in done]
+    _order = order
+    if only:
+        _order = [n for n in order if n in only]
+        print("═══ ★只处理指定网 (%d 个): %s ═══" % (len(_order), " ".join(_order)))
+    todo = [n for n in _order if n not in done]
     print("═══ 待处理 %d 个网 (每 %d 个落一次盘) ═══" % (len(todo), batch))
 
     def save_state():
@@ -177,7 +185,7 @@ def main():
             if id(s) in ingested:
                 continue
             (net, x1, y1, x2, y2, li, w) = s
-            code = board.FindNet(net).GetNetCode()
+            code = RT.netcode(board, net)
             if code <= 0:
                 continue
             t = pcbnew.PCB_TRACK(board)
@@ -192,7 +200,7 @@ def main():
             if id(v) in ingested:
                 continue
             (net, x, y, l1, l2) = v
-            code = board.FindNet(net).GetNetCode()
+            code = RT.netcode(board, net)
             if code <= 0:
                 continue
             vi = pcbnew.PCB_VIA(board)
@@ -222,7 +230,7 @@ def main():
         if id(s) in ingested:
             continue
         (net, x1, y1, x2, y2, li, w) = s
-        code = board.FindNet(net).GetNetCode()
+        code = RT.netcode(board, net)
         if code <= 0:
             continue
         t = pcbnew.PCB_TRACK(board)
@@ -237,7 +245,7 @@ def main():
         if id(v) in ingested:
             continue
         (net, x, y, l1, l2) = v
-        code = board.FindNet(net).GetNetCode()
+        code = RT.netcode(board, net)
         if code <= 0:
             continue
         vi = pcbnew.PCB_VIA(board)
