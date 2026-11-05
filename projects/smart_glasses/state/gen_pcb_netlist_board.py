@@ -687,9 +687,19 @@ def main():
 
     # ★分组: 上排 BTB 伙伴件 / 下排 BTB 伙伴件 / 其余
     _grp_top, _grp_bot, _grp_rest, _grp_tp = [], [], [], []
+    # ★★2026-11-05 08:15 **差分对的"远端连接器"不许被当伙伴件搬走**
+    #   ⇒ 实测: F5 排版把 **CONN_CAM 从 (78.9..93.9, 51.4) 搬到 (93.3..108.3, 17.6)**
+    #     ⇒ ★**MIPI 的 CSI 差分对远端整个位移** ⇒ 走廊全变 ⇒ ★**22 对里只剩 5 对耦合成功**
+    #     (旧排版 8 对成功) ⇒ ⇒ ★**这是排版引入的差分对回归**
+    #   ⇒ 但 F5 的收益也是真的 (平均线长 68.2→55.0mm · >100mm 长线 15→6 条)
+    #   ⇒ ⇒ ★**两者都要**: 保留 F5 的分带装箱, ★但把差分对端点连接器钉回"其余"区 (≈原位)
+    _PAIR_ENDPOINT_CONN = ("CONN_CAM", "CONN_LIGHT")
     for it in items:
         if it[0].startswith("TP_"):
             _grp_tp.append(it)     # ★测试点单独一轮 (贴伙伴件)
+            continue
+        if it[0] in _PAIR_ENDPOINT_CONN:
+            _grp_rest.append(it)   # ★★差分对远端连接器 ⇒ 不参与"伙伴件搬移"
             continue
         _a = _anchor_of(it)
         if _a is None:

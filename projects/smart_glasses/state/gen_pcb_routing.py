@@ -2065,14 +2065,20 @@ class GridRouter:
 
     def _add_track_halo(self, net, x1, y1, x2, y2, li, w=W_SIG):
         """走线净距禁区: 半径 = 净距 + 本线半宽 + 对方半宽 (按级别分别登记)
-           ★★2026-11-05 07:50 **不盖别的网的焊盘格** (见 _mark 的 skip_pad_cells 说明)"""
+           ★★2026-11-05 07:50 **默认不盖别的网的焊盘格** (见 _mark 的 skip_pad_cells 说明)
+           ★★2026-11-05 08:00 **做成可开关** (PCB_SKIP_PAD_CELLS=0) ⇒ 便于 A/B:
+             ★**风险**: 焊盘格不再被 halo 挡 ⇒ ★**相邻格 (0.25mm) 会被别的网的走线占用**
+               ⇒ 铜到铜可能只剩 0.025mm ⇒ ★**DRC 违规/短路风险**
+               ⇒ ⇒ ★**必须盯 DRC** ⇒ 试验用开关, 验过才准进正式轮
+        """
+        _skip = os.environ.get("PCB_SKIP_PAD_CELLS", "1") != "0"
         for cls in range(3):
             rr = CLEAR + w / 2.0 + W_CLS[cls] / 2.0 + HALO_MARGIN
             for (i, j) in _seg_cells(x1, y1, x2, y2, self.g, rr / self.g,
                                      self.bb[0], self.bb[1]):
                 if not (0 <= i < self.W and 0 <= j < self.H):
                     continue
-                self._mark(cls, li, self._idx(i, j), net, skip_pad_cells=True)
+                self._mark(cls, li, self._idx(i, j), net, skip_pad_cells=_skip)
 
     def _add_via_halo(self, net, x, y, l1, l2, skip_pad_cells=True):
         """通孔净距禁区 (★默认**不盖别的网的焊盘格** ⇒ 见 _mark 的说明)"""
