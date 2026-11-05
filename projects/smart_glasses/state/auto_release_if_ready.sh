@@ -111,6 +111,25 @@ if [ -f "$STAMP" ]; then
   exit 0
 fi
 echo "★落盘了 ⇒ 开始自验+放行"
+# ★★★2026-11-05 10:05 **互斥锁: 同一时刻只允许一个自验在跑**
+#   ★**为什么**: 10 分钟播报 cron 每轮都调本脚本 ⇒ 一旦板落盘, 自验要 10~15 分钟 (DRC+门禁+投产包)
+#     ⇒ ★**下一轮 cron 触发的自验会重叠** ⇒ CPU 被抢 + 多个自验同时写 .layout_done.json (证据被冲)
+#     ⇒ 实测症状: cron 播报在 10:00 送来 **09:05 / 09:10 的旧快照** ⇒ 就是排队堆积
+#   ⇒ ★**锁**: state/.auto_release.lock (目录) ⇒ 拿不到锁就直接退出 (不排队, 不重复烧 CPU)
+LOCK=state/.auto_release.lock
+if ! mkdir "$LOCK" 2>/dev/null; then
+  # ★锁可能是上次被杀留下的 ⇒ 检查里面的 PID 是否还活着
+  LPID=$(cat "$LOCK/pid" 2>/dev/null | head -1 | tr -d ' ')
+  if [ -n "${LPID:-}" ] && kill -0 "$LPID" 2>/dev/null; then
+    echo "⏳ 已有自验在跑 (PID $LPID) ⇒ ★**本轮跳过自验** (不排队, 不重复烧 CPU)"
+    exit 0
+  fi
+  rm -rf "$LOCK" 2>/dev/null || true
+  mkdir -p "$LOCK" 2>/dev/null || true
+fi
+echo $$ > "$LOCK/pid"
+# ★退出时释放锁 (无论成败)
+trap 'rm -rf "$LOCK" 2>/dev/null || true' EXIT
 bash state/verify_and_release.sh > /tmp/auto_release.log 2>&1
 rc=$?
 # ★记住"这块板已经量过" ⇒ 防止下一轮 cron 又拿同一块板重跑一遍自验 (白烧 CPU)

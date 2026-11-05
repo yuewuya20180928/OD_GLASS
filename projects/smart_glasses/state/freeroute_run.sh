@@ -50,7 +50,9 @@ ls -la "$DSN" | awk '{print "  DSN 大小:", $5, "字节"}'
 
 echo "=== 2) 跑 freerouting (headless, $PASSES 轮) ==="
 cp "$PCB" "$OUT"
-timeout 7200 "$JRE" -Xmx4g -jar "$JAR" -de "$DSN" -do "$SES" -mp "$PASSES" 2>&1 | tail -25
+# ★★2026-11-05 10:01: freerouting 2.x 启动会试图取屏幕分辨率 ⇒ **无头环境必须显式关 GUI**
+#   ⇒ 不加 `-Dgui.enabled=false` 时会 WARN + 可能起 GUI ⇒ ★**实测 2.1.0 加了就能纯 CLI 跑**
+timeout 7200 "$JRE" -Xmx4g -Dgui.enabled=false -jar "$JAR" -de "$DSN" -do "$SES" -mp "$PASSES" 2>&1 | tail -25
 echo "  freerouting 退出码: $?"
 [ -s "$SES" ] || { echo "❌ 没生成 SES"; exit 1; }
 ls -la "$SES" | awk '{print "  SES 大小:", $5, "字节"}'

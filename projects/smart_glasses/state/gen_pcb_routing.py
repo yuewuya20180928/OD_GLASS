@@ -1122,15 +1122,32 @@ class GridRouter:
                         continue
                     idx = self._idx(i, j)
                     px, py = self._cx(i), self._cy(j)
-                    if not self._free(0, idx, net):
+                    # ★★2026-11-05 10:10 **改用精确几何判据** (★原来用 halo[2] 0.95mm 保守半径
+                    #   ⇒ 密集区一个孔都放不下 ⇒ GND 焊盘 25 个没铜 ⇒ unconnected 里 GND 占 50)
+                    if not self._via_site_ok(idx, net, px, py, dia=_dia):
                         why["free"] += 1
                         continue
                     if self._in_pad(px, py):
-                        why["inpad"] += 1
-                        continue
-                    if not self._via_free_all(idx, net):
-                        why["viafree"] += 1
-                        continue
+                        # ★★**焊盘内直接落孔** (★不用再绕一根线过去 ⇒ 也不占走线空间)
+                        #   ★0.6x0.9 的 0603 电容焊盘可以用 0.5mm 孔 ⇒ 直接落, 焊盘直接接平面
+                        if self._via_exists(net_g, px, py):
+                            why["inpad"] += 1
+                            continue
+                        _v = pcbnew.PCB_VIA(self.b)
+                        _v.SetPosition(pcbnew.VECTOR2I(int(px * MM), int(py * MM)))
+                        _v.SetViaType(pcbnew.VIATYPE_THROUGH)
+                        _v.SetWidth(pcbnew.FromMM(_dia))
+                        _v.SetDrill(pcbnew.FromMM(_drill))
+                        _v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                        _v.SetNetCode(netcode(self.b, net_g))
+                        self.b.Add(_v)
+                        self.vias.append((net_g, px, py, 0, 5))
+                        self._add_via_halo(net_g, px, py, 0, 5)
+                        used_vias.append((px, py))
+                        ok += 1
+                        fail -= 1
+                        done = True
+                        break
                     # ★孔间距: 0.3 钻 + 0.25 最小孔间距 ⇒ 孔心距 ≥0.55mm
                     if any(math.hypot(px - ux, py - uy) < 0.60 for (ux, uy) in used_vias):
                         why["spacing"] += 1
@@ -1483,6 +1500,21 @@ class GridRouter:
             if math.hypot(cx - vx, cy - vy) < drill / 2.0 + 0.25:
                 return False
         return True
+
+    def _via_site_ok(self, idx, net, cx, cy, dia=VIA_DIA):
+        """★**过孔落点的"精确几何"判据** (2026-11-05 10:10)
+        ★**为什么不能用 `_free` + `_via_free_all`**: 它们都按 **halo[2]** 判
+          ⇒ 半径 = CLEAR + VIA_DIA/2 + W_CLS[2]/2 + MARGIN = 0.20+0.30+0.25+0.20 = **0.95mm**
+          ⇒ ★**密集器件区一个过孔都放不下** ⇒ 实测: GND 焊盘 25 个一根铜都没有 (unconnected 里 GND 占 50)
+        ⇒ ★**这里改用真实铜算**: 板边 + 每层占用 + `_via_exact_ok` (0.20mm 净距 / 0.60mm 孔间距)
+        ⇒ ★**规则没放松** (还是 0.2mm 净距), 只是**不再用保守半径代替真实几何**"""
+        if self.edge_d[idx] < EDGE_CLEAR + dia / 2.0 - 1e-6:
+            return False
+        for li in range(NLAYERS):
+            c = self.cu[li].get(idx)
+            if c is not None and c != net:
+                return False
+        return self._via_exact_ok(cx, cy, dia, net)
 
     def _via_free_all(self, idx, net):
         """通孔 (贯穿 6 层) 在所有层都要有净距"""

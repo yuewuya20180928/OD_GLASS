@@ -167,6 +167,11 @@ if [ -f "$WS_MEM" ]; then
   if [ -d "$WS/memory" ]; then
     python3 "$SCRIPT_DIR/scrub_daily_memory.py" "$WS/memory" "$PROJ/config/agents/main/memory" \
       --days 14 --apply 2>&1 | sed 's/^/  /' || true
+    # ★★同一套镜像也刷**运行时的日记目录** ($WS/config/agents/main/memory/)
+    #   —— check_memory_sync.py 拿它跟项目树那份逐字节比 (实测报 ❌: 2026-11-02.md 两边内容不同,
+    #      因为这份镜像停在 11-02 的迁移副本, 而真值源已经是新版本) ⇒⇒ 刷齐后门禁才全绿
+    python3 "$SCRIPT_DIR/scrub_daily_memory.py" "$WS/memory" "$WS/config/agents/main/memory" \
+      --days 14 --apply 2>&1 | sed 's/^/  /' || true
   fi
   echo "[3a] MEMORY + daily memory 已从工作区真值源同步"
   # ★同步完立刻自检 (三份 md5 必须一致) ⇒ 分叉就在这里被抓住, 不用等到下次心跳才发现
