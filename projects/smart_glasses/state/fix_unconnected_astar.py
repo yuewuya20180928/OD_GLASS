@@ -135,6 +135,7 @@ def main():
     max_dist = 12.0
     width = RT.W_SIG
     budget = 300000
+    grid = RT.GRID
     unfill = True
     refill = True
     i = 2
@@ -150,6 +151,9 @@ def main():
             i += 2
         elif args[i] == "--budget":
             budget = int(args[i + 1])
+            i += 2
+        elif args[i] == "--grid":
+            grid = float(args[i + 1])
             i += 2
         elif args[i] == "--no-unfill":
             unfill = False
@@ -174,7 +178,7 @@ def main():
         for z in board.Zones():
             z.UnFill()
         print("═══ 已清 %d 个铜皮填充 (★补完再重填) ═══" % len(list(board.Zones())))
-    r = RT.GridRouter(board)
+    r = RT.GridRouter(board, grid=grid)
     # ★★★2026-11-06 05:0x **关键**: GridRouter **只把焊盘/板边塞进障碍图, 自己布的线只进 halo 图**
     #   ⇒ ★**成品板上已有铜必须自己灌进去** ⇒ ★**用路由器同一套 API**:
     #   · self.tracks / self.vias  ⇒ 供 _geom_clear 精确净距 + commit 记账

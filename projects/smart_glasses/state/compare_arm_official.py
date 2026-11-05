@@ -128,8 +128,32 @@ def board_metrics(path):
             "net_seg": net_seg, "net_len": net_len}
 
 
+def net_unc_map_from(items):
+    """★**逐网**未连接条目数 (★"孤岛数"的代理: 条目数 = 该网孤岛数 - 1)
+
+    ★★★**为什么必须逐网 (2026-11-06 05:2x 实测事故)**:
+      现有闸只查 ①总 unc ②零铜名单 ③差分死腿名单
+      ⇒ ★**"补好 A 网 + 拆碎 B 网" 总数持平 ⇒ 靠总数查不出来**
+      ⇒ 实测 `_reroute2`: `RESET_N` 0→5 项 (★本来通的网被拆成 5 块) + `USB_D_N_SRC` 0→1
+      ⇒ ★**逐网一比就抓得到** ⇒ ★**这才是"名单制"的完整形态: 连"碎掉"也要比名单**
+    """
+    out = {}
+    for it in items or []:
+        names = []
+        for x in (it.get("items") or []):
+            m = re.search(r"\[([^\]]+)\]", x.get("description") or "")
+            if m:
+                names.append(m.group(1))
+        if not names:
+            continue
+        s = sorted(set(names))
+        k = s[0] if len(s) == 1 else "|".join(s)
+        out[k] = out.get(k, 0) + 1
+    return out
+
+
 def drc_metrics(pcb, json_path=None):
-    """★跑 KiCad DRC 取违规数 + 未连接数 (★取证失败 ⇒ 999 ⇒ 必被拒)"""
+    """★跑 KiCad DRC 取违规数 + 未连接数 + ★逐网未连接条目数 (★取证失败 ⇒ 999 ⇒ 必被拒)"""
     if not (json_path and os.path.exists(json_path)):
         json_path = "/tmp/_cmp_gate_%d.json" % os.getpid()
         subprocess.run(["bash", KICAD_SH, "pcb", "drc", "--output", json_path,
@@ -138,9 +162,11 @@ def drc_metrics(pcb, json_path=None):
                        cwd=PROJ)
     try:
         d = json.load(open(json_path))
-        return (len(d.get("violations") or []), len(d.get("unconnected_items") or []))
+        unc_items = d.get("unconnected_items") or []
+        return (len(d.get("violations") or []), len(unc_items),
+                net_unc_map_from(unc_items))
     except Exception:
-        return (999, 999)
+        return (999, 999, {})
 
 
 def parity_ok(pcb):
@@ -204,6 +230,15 @@ def decide(cand, off):
     if preg:
         reasons.append("★**差分对死腿 %d 对 (官方双边有铜⇒候选单边零铜): %s**"
                        % (len(preg), ", ".join(preg[:8])))
+    # ★★★2026-11-06 05:2x 新增: ★**逐网孤岛名单** (★"碎掉"也要比名单)
+    #   ★**实测事故**: 成品板补丁产物 `_reroute2` 把 `RESET_N` 从"通"拆成 **5 个孤岛**
+    #     (0→5 项) + `USB_D_N_SRC` 0→1 (★差分腿) ⇒ 总 unc 57→67
+    #   ★★**但同样的手法**: "补好 1 条 + 拆碎 1 条" ⇒ **总 unc 持平** ⇒ 旧闸(只比总数/零铜)**查不出**
+    #   ⇒ ★**⇒ 必须在逐网层面比名单** ⇒ ★**任何网碎得比官方更碎 ⇒ 一票否决 (不许拿别的网换)**
+    ireg = cand.get("island_reg", [])
+    if ireg:
+        reasons.append("★**逐网孤岛变多 %d 个网 (官方项数⇒候选更多 ⇒ 网被拆碎): %s**"
+                       % (len(ireg), ", ".join(ireg[:12])))
     for k in COUNT_HARD:
         c = cand.get(k, 999)
         o = off.get(k, 0)
@@ -220,12 +255,15 @@ def decide(cand, off):
 def compare_paths(cand_pcb, off_pcb, jc=None, jo=None):
     cm = board_metrics(cand_pcb)
     om = board_metrics(off_pcb)
-    cm["drc"], cm["unc"] = drc_metrics(cand_pcb, jc)
-    om["drc"], om["unc"] = drc_metrics(off_pcb, jo)
+    cm["drc"], cm["unc"], cm["net_unc"] = drc_metrics(cand_pcb, jc)
+    om["drc"], om["unc"], om["net_unc"] = drc_metrics(off_pcb, jo)
     dead, gain, preg = regression_lists(cm, om)
     cm["dead"] = dead
     cm["gain"] = gain
     cm["pair_reg"] = preg
+    # ★**逐网孤岛名单**: 候选某网的未连接条目数 > 官方 ⇒ 该网被拆得更碎
+    cm["island_reg"] = sorted(n for n in set(cm["net_unc"]) | set(om["net_unc"])
+                              if cm["net_unc"].get(n, 0) > om["net_unc"].get(n, 0))
     cm["parity"] = parity_ok(cand_pcb)
     om["parity"] = parity_ok(off_pcb)
     return cm, om
@@ -295,6 +333,34 @@ def self_test():
             assert v == "REJECT", "★★**真板 %s 必须被拒**" % nm
             print("✔ 真板端到端: %s 被拒 (退铜 %d 网 · 差分死腿 %d 对)"
                   % (nm, len(cm["dead"]), len(cm["pair_reg"])))
+    # ★★★2026-11-06 05:2x 新增回归用例 3: ★**"补好一条 + 拆碎一条" (总数持平) 必须拒**
+    #   ★★**旧闸查不出来**: unc 持平(57=57) + 零铜网数变好(26→25) ⇒ 旧闸会 **ACCEPT**
+    #   ⇒ ★**但候选把 `RESET_N` 从"通"拆成 5 个孤岛** ⇒ ★**板子实际更烂**
+    TRADE = dict(V37, unc=57, zero_copper=25, dead=[], pair_reg=[],
+                 island_reg=["RESET_N"])
+    v, why = decide(TRADE, V37)
+    assert v == "REJECT", "★★**总数持平的'拆碎换救回'必须被拒**"
+    assert any("孤岛" in w for w in why), "★理由必须点名'孤岛': %s" % why
+    print("✔ '补好一条+拆碎一条'(总数持平) ⇒ 拒 (★逐网孤岛名单抓到)")
+
+    # ★★★回归用例 4: ★**实测坏板 fixture** (`_reroute2` 成品板重布产物)
+    fx = os.path.join(HERE, "fixtures", "net_unc_reroute2.json")
+    if os.path.exists(fx):
+        d = json.load(open(fx, encoding="utf-8"))
+        onu, cnu = d["official"], d["candidate"]
+        ireg = sorted(n for n in set(onu) | set(cnu)
+                      if cnu.get(n, 0) > onu.get(n, 0))
+        assert "RESET_N" in ireg and "USB_D_N_SRC" in ireg, \
+            "★fixture 里的实测名单丢了: %s" % ireg
+        cand = dict(V37, unc=57, zero_copper=26, dead=[], pair_reg=[],
+                    island_reg=ireg)
+        v, why = decide(cand, V37)
+        assert v == "REJECT", "★★**实测坏板 _reroute2 必须被拒**"
+        print("✔ 实测坏板 _reroute2 (★RESET_N 被拆成 5 块 + 差分腿 USB_D_N_SRC 断) "
+              "⇒ 名单制闸拒: %s" % ", ".join(ireg))
+    else:
+        print("⚠️ fixture 缺失: %s" % fx)
+
     print("ALL TESTS PASS")
 
 
@@ -337,6 +403,10 @@ def main():
     print("  ── ★差分对死腿: %d" % len(cm.get("pair_reg", [])))
     for n in cm.get("pair_reg", [])[:12]:
         print("       ★ %s" % n)
+    print("  ── ★逐网孤岛变多: %d" % len(cm.get("island_reg", [])))
+    for n in cm.get("island_reg", [])[:20]:
+        print("       ★ %s  (官方 %s 项 ⇒ 候选 %s 项)"
+              % (n, om.get("net_unc", {}).get(n, 0), cm.get("net_unc", {}).get(n, 0)))
     print("  ── (参考) 救回零铜的网: %d" % len(cm.get("gain", [])))
     print("  ── 判定: %s" % verdict)
     for w in why:

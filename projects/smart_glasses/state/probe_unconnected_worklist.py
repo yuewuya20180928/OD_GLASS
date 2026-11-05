@@ -36,6 +36,7 @@ def pt_seg_dist(px, py, x1, y1, x2, y2):
 def load(path):
     b = pcbnew.LoadBoard(path)
     pads, segs, vias = [], [], []
+    byu = {}
     for f in b.GetFootprints():
         for p in f.Pads():
             q = p.GetPosition()
@@ -43,6 +44,10 @@ def load(path):
             pads.append(dict(ref=f.GetReference(), num=str(p.GetNumber()),
                              net=p.GetNetname(), x=q.x / MM, y=q.y / MM,
                              w=sz.x / MM, h=sz.y / MM))
+            try:
+                byu[p.m_Uuid.AsString()] = ("p", (q.x / MM, q.y / MM))
+            except Exception:
+                pass
     for t in b.GetTracks():
         s, e = t.GetStart(), t.GetEnd()
         if t.Type() == pcbnew.PCB_VIA_T:
@@ -52,7 +57,12 @@ def load(path):
             segs.append(dict(net=t.GetNetname(), layer=t.GetLayerName(),
                               x1=s.x / MM, y1=s.y / MM, x2=e.x / MM, y2=e.y / MM,
                               w=t.GetWidth() / MM))
-    return pads, segs, vias
+            try:
+                byu[t.m_Uuid.AsString()] = ("t", ((s.x / MM, s.y / MM),
+                                                   (e.x / MM, e.y / MM)))
+            except Exception:
+                pass
+    return pads, segs, vias, byu
 
 
 def nets_from_drc(path):
@@ -79,7 +89,7 @@ def main():
         i = a.index("--out")
         if len(a) > i + 1:
             outf = a[i + 1]
-    pads, segs, vias = load(board)
+    pads, segs, vias, byu = load(board)
     nets, items = nets_from_drc(drc)
     print("═══ 板: %s ═══" % board)
     print("═══ DRC 未连接条目: %d 条 ⇒ 涉及 %d 个网 ═══" % (len(items), len(nets)))
@@ -151,19 +161,32 @@ def main():
     print("═══ 第 2 部分: 57 项按【两头距离】分类 (★施工单) ═══")
     rows = []
     cats = collections.Counter()
+    # ★★★2026-11-06 07:5x **距离必须用板上真实端点算** (★踩过的坑):
+    #   ★DRC JSON 里**有些条目的第二端没有 pos** ⇒ 用 (0,0) 兜底 ⇒ **算出假距离**
+    #   ⇒ ★**必须用 uuid 回板上找回焊盘/走线的真实坐标** (走线取离对方更近的那头)
+    def _pts(it):
+        o = byu.get(it.get("uuid"))
+        if o is None:
+            pos = it.get("pos") or {}
+            return [(pos.get("x", 0.0), pos.get("y", 0.0))] if pos else []
+        k, o2 = o
+        if k == "p":
+            return [o2]
+        return [o2[0], o2[1]]
+
     for it in items:
         its = it.get("items", [])
         if len(its) != 2:
             cats["★条目不是两两相连(需单独看)"] += 1
             continue
-        a, b = its[0], its[1]
-        pa, pb = a.get("pos"), b.get("pos")
-        if not pa or not pb:
+        _it0, _it1 = its[0], its[1]
+        _A, _B = _pts(_it0), _pts(_it1)
+        if not _A or not _B:
             cats["★无坐标"] += 1
             continue
-        dist = math.hypot(pa["x"] - pb["x"], pa["y"] - pb["y"])
-        ma = re.search(r"\[([^\]]+)\]", a.get("description", ""))
-        mb = re.search(r"\[([^\]]+)\]", b.get("description", ""))
+        dist = min(math.hypot(x[0] - y[0], x[1] - y[1]) for x in _A for y in _B)
+        ma = re.search(r"\[([^\]]+)\]", _it0.get("description", ""))
+        mb = re.search(r"\[([^\]]+)\]", _it1.get("description", ""))
         na = ma.group(1) if ma else "?"
         nb = mb.group(1) if mb else "?"
         if dist < 2.0:
@@ -173,7 +196,7 @@ def main():
         else:
             tag = "远距(>10mm, 真缺腿)"
         cats[tag] += 1
-        rows.append((dist, na, nb, a.get("description", ""), b.get("description", ""), tag))
+        rows.append((dist, na, nb, _it0.get("description", ""), _it1.get("description", ""), tag))
     rows.sort()
     for k, v in cats.most_common():
         print("    · %-26s %d 条" % (k, v))
