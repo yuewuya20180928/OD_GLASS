@@ -114,6 +114,8 @@ rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
       --exclude '/HW/PCB/gerbers' \
       --exclude '/HW/PCB/production/gerbers' --exclude '/HW/PCB/production/drill' \
       --exclude '/HW/PCB/production/pos' --exclude '/HW/PCB/production/assembly' \
+      --exclude '/HW/PCB/production/3d' \
+      --exclude '/state/.lastgood' \
       "$PROJ/" projects/smart_glasses/
 # ★★2026-11-05 09:40 补漏 (实测): **Gerber 有两份** —— `HW/PCB/gerbers/` (顶层副本) 与
 #   `HW/PCB/production/gerbers/` (投产集), 32 个文件名集合相同 + md5 逐个相同 (实测 F_Cu.gtl
@@ -205,6 +207,8 @@ __pycache__/
 .DS_Store
 *.tmp
 state/.lastgood/
+/projects/smart_glasses/state/.lastgood/
+/projects/smart_glasses/HW/PCB/production/3d/
 BOOTSTRAP.md
 .openclaw/
 workspace-state.json
@@ -452,7 +456,7 @@ if [ -f "$PCB_SRC" ]; then
     # ★★闸门通过 ⇒ 这时候才把板 + 派生产物拷进发布树 (rsync 阶段已排除)
     mkdir -p "$(dirname "$PCB_REL")"
     cp "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" "$PCB_REL" 2>/dev/null || true
-    for _d in gerbers drill pos assembly; do
+    for _d in gerbers drill pos assembly 3d; do
       [ -d "$PROJ/HW/PCB/production/$_d" ] || continue
       mkdir -p "projects/smart_glasses/HW/PCB/production/$_d"
       cp -r "$PROJ/HW/PCB/production/$_d/." "projects/smart_glasses/HW/PCB/production/$_d/" 2>/dev/null || true

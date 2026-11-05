@@ -5,11 +5,13 @@
 set -u
 cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses || exit 1
 ARM="${1:?用法: finish_line.sh <A|B|C|D>}"
+# ★2026-11-05 10:35 支持前缀 (v26 / v27 / v28)
+PREFIX="${PREFIX:-v26}"
 PCB=HW/PCB/demo_mainboard.kicad_pcb
-LOG="/tmp/v26_${ARM}.log"
+LOG="/tmp/${PREFIX}_${ARM}.log"
 
 echo "════════ ① 臂对比 ════════"
-bash state/cmp_arms.sh
+PREFIX="$PREFIX" bash state/cmp_arms.sh
 
 echo "════════ ② 晋级 臂 $ARM 到官方板 ════════"
 bash state/promote_arm.sh "$ARM" 2>&1 | tail -35; _rc=${PIPESTATUS[0]}

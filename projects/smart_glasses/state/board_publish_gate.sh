@@ -45,9 +45,33 @@ withdraw_from_publish_tree() {
       git rm -r -q --cached --ignore-unmatch "$_p" >/dev/null 2>&1 || true
       rm -rf "$_p" >/dev/null 2>&1 || true
     done
+    # ★★2026-11-05 10:22 **通用规则**: 发布树里**任何** *.kicad_pcb 都撤 (除 _frame_reference)
+    #   理由 (实测): 远端树里还躺着 **3 块真板** —— 逐个列路径堵不住, 得用通用规则:
+    #     ① HW/PCB/demo_mainboard.stackup.kicad_pcb  (17664 段 = 坏板 v25 的副本)
+    #     ② state/.lastgood/board_8L_v23_GOOD_21980seg_20261105_0702.kicad_pcb (21980 段)
+    #     ③ state/.lastgood/board_prev_promote_20261105_095249.kicad_pcb (17664 段)
+    #   ⇒ 违反「仓库里没有板 = 诚实状态」(AGENTS.md 铁律③)
+    #   ★保留 _frame_reference.kicad_pcb: 0 段走线 = 框参考, 不是可投产的板
+    for _b in $(git ls-files '*.kicad_pcb'); do
+      case "$_b" in
+        */_frame_reference.kicad_pcb) continue ;;
+      esac
+      git rm -q --cached --ignore-unmatch "$_b" >/dev/null 2>&1 || true
+      rm -f "$_b" >/dev/null 2>&1 || true
+    done
+    # ★★3D 模型 (.step) 也是**派生产物** (从板生成的) ⇒ 一样跟着板走
+    for _s in $(git ls-files '*.step' '*.stp' '*.brd' '*.dsn'); do
+      git rm -q --cached --ignore-unmatch "$_s" >/dev/null 2>&1 || true
+      rm -f "$_s" >/dev/null 2>&1 || true
+    done
+    # ★★state/.lastgood/ 整个目录 (发布树 .gitignore 本来就列了它 ——
+    #   ★但那条 pattern `state/.lastgood/` 因为带斜杠 ⇒ **只匹配根目录下的** ⇒
+    #   ⇒ `projects/smart_glasses/state/.lastgood/` **没被忽略** ⇒ 8 个文件全进了仓)
+    git rm -r -q --cached --ignore-unmatch "projects/smart_glasses/state/.lastgood" >/dev/null 2>&1 || true
+    rm -rf "projects/smart_glasses/state/.lastgood" >/dev/null 2>&1 || true
     git add -A >/dev/null 2>&1 || true
   )
-  echo "WITHDRAW|板 + Gerber(顶层&production) + 钻孔/坐标/贴片 已从发布树撤下 (历史里保留)"
+  echo "WITHDRAW|板 + 任何 *.kicad_pcb + Gerber(顶层&production) + 钻孔/坐标/贴片 + 3D模型 + state/.lastgood 已从发布树撤下 (历史里保留)"
 }
 
 bad() {
@@ -110,8 +134,14 @@ _selftest() {
   mkdir -p "$PUBT/projects/smart_glasses/HW/PCB/gerbers" \
            "$PUBT/projects/smart_glasses/HW/PCB/production/gerbers" \
            "$PUBT/projects/smart_glasses/HW/PCB/production/drill" \
-           "$PUBT/projects/smart_glasses/HW/PCB/production/pos"
+           "$PUBT/projects/smart_glasses/HW/PCB/production/pos" \
+           "$PUBT/projects/smart_glasses/HW/PCB/production/3d" \
+           "$PUBT/projects/smart_glasses/state/.lastgood"
   echo "board" > "$PUBT/projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb"
+  echo "board" > "$PUBT/projects/smart_glasses/HW/PCB/demo_mainboard.stackup.kicad_pcb"
+  echo "board" > "$PUBT/projects/smart_glasses/state/.lastgood/board_prev.kicad_pcb"
+  echo "step" > "$PUBT/projects/smart_glasses/HW/PCB/production/3d/demo_mainboard.step"
+  echo "frame" > "$PUBT/projects/smart_glasses/HW/PCB/_frame_reference.kicad_pcb"
   for _f in "$PUBT/projects/smart_glasses/HW/PCB/gerbers/a.gbr" \
             "$PUBT/projects/smart_glasses/HW/PCB/production/gerbers/a.gbr" \
             "$PUBT/projects/smart_glasses/HW/PCB/production/drill/a.drl" \
@@ -122,9 +152,12 @@ _selftest() {
   chk "撤下模式 rc" 1 $RC
   if echo "$OUT" | grep -q "WITHDRAW|"; then echo "  ✅ 输出了 WITHDRAW|"; pass=$((pass+1));
   else echo "  ❌ 没输出 WITHDRAW|"; fail=$((fail+1)); fi
-  LEFT="$(cd "$PUBT" && git ls-files | grep -cE 'gerbers|drill|\.pos$|demo_mainboard\.kicad_pcb' || true)"
-  if [ "$LEFT" = "0" ]; then echo "  ✅ 发布树里板+Gerber+钻孔+坐标 全部撤下 (tracked 剩 $LEFT)"; pass=$((pass+1));
+  LEFT="$(cd "$PUBT" && git ls-files | grep -cE 'gerbers|drill|\.pos$|\.step$|demo_mainboard.*\.kicad_pcb|\.lastgood' || true)"
+  if [ "$LEFT" = "0" ]; then echo "  ✅ 发布树里板+任意kicad_pcb+Gerber+钻孔+坐标+3D+.lastgood 全部撤下 (tracked 剩 $LEFT)"; pass=$((pass+1));
   else echo "  ❌ 还剩 $LEFT 个 tracked 板/派生产物"; fail=$((fail+1)); fi
+  LEFT_F="$(cd "$PUBT" && git ls-files | grep -cE '_frame_reference\.kicad_pcb' || true)"
+  if [ "$LEFT_F" = "1" ]; then echo "  ✅ _frame_reference.kicad_pcb (0 段框参考) 保留 (剩 $LEFT_F)"; pass=$((pass+1));
+  else echo "  ❌ _frame_reference 被误撤 (剩 $LEFT_F)"; fail=$((fail+1)); fi
 
   echo "[selftest] ⑦ 好板 ⇒ 撤下模式**不该**撤 (误撤 = 把能投产的板也删了)"
   PUBT2="$ROOT/pub2"

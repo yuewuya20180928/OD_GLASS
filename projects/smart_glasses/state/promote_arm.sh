@@ -6,9 +6,11 @@
 set -u
 cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses || exit 1
 ARM="${1:?用法: promote_arm.sh <A|B|C|D>}"
-SRC="/tmp/v26_${ARM}.kicad_pcb"
+# ★2026-11-05 10:35 支持前缀 (v26 / v27 / v28)
+PREFIX="${PREFIX:-v26}"
+SRC="/tmp/${PREFIX}_${ARM}.kicad_pcb"
 PCB=HW/PCB/demo_mainboard.kicad_pcb
-LOG="/tmp/v26_${ARM}.log"
+LOG="/tmp/${PREFIX}_${ARM}.log"
 
 echo "══════ 晋级 臂 $ARM ══════"
 [ -f "$SRC" ] || { echo "❌ 没有 $SRC"; exit 1; }

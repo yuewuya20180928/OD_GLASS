@@ -101,6 +101,12 @@ NLAYERS = int(os.environ.get("PCB_LAYERS", 6))
 # ★★★2026-11-05 09:45 **差分对出脚区豁免开关** (默认关 ⇒ 不影响在跑的 v26 四臂)
 #   ★根因: SoM BTB 0.4mm pitch ⇒ P/N 焊盘中心距 0.400mm ⇒ 伙伴禁入格 (0.8mm) 把 N 焊盘自己封死
 PAIR_ESCAPE_EXEMPT = os.environ.get("PCB_PAIR_ESCAPE_EXEMPT", "0") == "1"
+# ★★2026-11-05 10:25 **GND 下拉先布** (env 开关, 默认关)
+#   ★**为什么**: GND 下拉原来排在**所有信号/电源之后** ⇒ 焊盘周围的好位置已被占光
+#     ⇒ 实测 (臂 A): 25 个 GND 焊盘一根铜都没有 ⇒ unconnected 里 **GND 占 50**
+#   ⇒ ★**先落 GND 孔** ⇒ 94 个 GND 焊盘先占住自己的位置 (焊盘内过孔最省空间)
+#     ⇒ 信号线绕开它们 ⇒ ★**顺序换一下, 也许能救回一半**
+GND_FIRST = os.environ.get("PCB_GND_FIRST", "0") == "1"
 # ★★2026-11-05 07:40 **层数通吃** (★官方载板本身就是 10 层 ⇒ 一直只测到 8 层是低估)
 #   ★信号层 = 偶数层 (0=F.Cu, 2, 4, ...) 但**不含最后一层** (B.Cu 留给 GND 平面)
 #   ★6 层 ⇒ [0,2,4] · 8 层 ⇒ [0,2,4,6] · 10 层 ⇒ [0,2,4,6,8]
@@ -1104,6 +1110,10 @@ class GridRouter:
         for pad in pads:
             _ref, _num, cx, cy, _layers = pad
             done = False
+            # ★★2026-11-05 10:40 **GND 下拉用小过孔** (0.5/0.3)
+            #   ★**为什么**: 大过孔 (0.6) 在密集器件区放不下 ⇒ 25 个 GND 焊盘无铜
+            #   ⇒ ★**小孔更容易找到落点** (净距规则不变, 仍是 0.2mm / 孔间距 0.6mm)
+            _dia, _drill = VIA_DIA_S, VIA_DRILL_S
             # ★出脚直道 (与 route_net 的 anchor() 同一套逻辑)
             anchor = self.escape_stub(net, pad)
             if anchor:
@@ -2867,6 +2877,17 @@ def route_board(board, verbose=True):
     add_gnd_planes(board, layers=None, fill=False)
     if verbose:
         print("  [GND] L2/L6 完整平面已建 (★不分割 ⇒ 差分对下方参考平面完整)")
+    # ★★2026-11-05 10:25 **GND 先布** (env 开关 PCB_GND_FIRST=1)
+    #   ★**为什么**: GND 焊盘的落孔位置最"娇气" ⇒ 排在信号之后就没位置了
+    #   ⇒ ★**先占位** (焊盘内过孔最省空间) ⇒ 信号线再绕
+    if GND_FIRST:
+        _gok, _gfail = r.route_gnd_drops("GND")
+        stats["gnd_first"] = {"drops": _gok, "fail": _gfail}
+        if verbose:
+            print("  [GND ] ★**先布** 下拉过孔 %d 成功 / %d 失败 (失败原因 %s)"
+                  % (_gok, _gfail, getattr(r, "gnd_fail_why", {})))
+        # ★**先布过的焊盘不再重复** (route_gnd_drops 内部按 done_pads 记, 但这里要防止二次落孔)
+        r.gnd_done_first = True
 
     # ---------- 1) 差分对 (成对布) —— ★**顺序按 brief 的优先级**:
     #   ① USB 对 (短, 在板边) 先布 (它们在 F.Cu 上占地方少)
@@ -3008,11 +3029,20 @@ def route_board(board, verbose=True):
             pass
 
     # ---------- 5) GND 下拉过孔 (焊盘 → 短走线 → 通孔 → L2/L6 平面)
-    ok, fail = r.route_gnd_drops("GND")
+    # ★★2026-11-05 10:25 **可选: GND 先布** (★默认关 ⇒ 不影响在跑的 v27)
+    #   ★**理由**: GND 下拉排在信号/电源之后 ⇒ 焊盘周围的好位置被占光
+    #     ⇒ 实测 25 个 GND 焊盘无铜 ⇒ unconnected 里 GND 占 50
+    if GND_FIRST:
+        # ★★已经先布过 (见上) ⇒ ★**不许再跑一遍** (⇒ 同点两个过孔 ⇒ DRC holes_co_located)
+        ok, fail = stats.get("gnd_first", {}).get("drops", 0), stats.get("gnd_first", {}).get("fail", 0)
+        if verbose:
+            print("  [GND ] 已先布 ⇒ 跳过第二次下拉 (%d 成功 / %d 失败)" % (ok, fail))
+    else:
+        ok, fail = r.route_gnd_drops("GND")
+        if verbose:
+            print("  [GND ] 下拉过孔 %d 成功 / %d 失败  (失败原因 %s)"
+                  % (ok, fail, getattr(r, "gnd_fail_why", {})))
     stats["gnd"] = {"drops": ok, "fail": fail}
-    if verbose:
-        print("  [GND ] 下拉过孔 %d 成功 / %d 失败  (失败原因 %s)"
-              % (ok, fail, getattr(r, "gnd_fail_why", {})))
 
     # ---------- 6) 落板 + 填平面
     # ★★2026-11-04 23:55 **先做几何后处理, 再落板** ——

@@ -5,9 +5,11 @@
 set -u
 cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses || exit 1
 ARMS="${ARMS:-A B C D}"
+# ★2026-11-05 10:30 支持前缀 (v26 / v27 / v28 各用不同文件名)
+PREFIX="${PREFIX:-v26}"
 printf "%-4s %-6s %-10s %-10s %-12s %-8s %-8s %-8s\n" 臂 层数 布不动的脚 N未通对 落板段数 缝合条 RIPUP救 用时
 for name in $ARMS; do
-  L="/tmp/v26_${name}.log"
+  L="/tmp/${PREFIX}_${name}.log"
   [ -f "$L" ] || { printf "%-4s (还没跑)\n" "$name"; continue; }
   layers=$(grep -m1 "铜层数" "$L" 2>/dev/null | grep -oE "[0-9]+" | head -1); [ -z "$layers" ] && layers="?"
   fail=$(grep -oE "布不动的脚 [0-9]+" "$L" 2>/dev/null | tail -1 | grep -oE "[0-9]+"); [ -z "$fail" ] && fail="?"
@@ -21,7 +23,7 @@ done
 echo
 echo "=== 逐臂关键行 ==="
 for name in $ARMS; do
-  L="/tmp/v26_${name}.log"
+  L="/tmp/${PREFIX}_${name}.log"
   [ -f "$L" ] || continue
   echo "--- 臂 $name ---"
   grep -E "\[FAIL\]|\[SUM \]|\[CLEAN\]|\[STITCH\]|\[RIPUP\]|落板自检|已原子替换|EXIT=" "$L" | tail -6
