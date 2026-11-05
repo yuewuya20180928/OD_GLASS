@@ -87,18 +87,24 @@ check("old 不松于 new (只可能更严)", old_s <= new_s,
 check("多禁的格数有限 (<=16)", len(new_s - old_s) <= 16,
       "多禁=%d" % len(new_s - old_s))
 
-print("═══ 用例 3: 对角段也不擦孔 (穿**未禁**格的对角段) ═══")
-worst_old = 1e9; worst_new = 1e9
-for (ci_, cj_) in cellset(blocked_old, 1, VIA[0], VIA[1], 0.0, span=6):
-    for (di, dj) in ((1, 1), (1, -1), (-1, 1), (-1, -1), (1, 0), (0, 1)):
-        a = (cx(ci_), cy(cj_)); b = (cx(ci_ + di), cy(cj_ + dj))
-        if not blocked_old(1, VIA[0], VIA[1], ci_ + di, cj_ + dj, 0.0):
-            worst_old = min(worst_old, seg_min_dist_to_via(a, b, VIA))
-for (ci_, cj_) in cellset(blocked_exact, 1, VIA[0], VIA[1], 0.0, span=6):
-    for (di, dj) in ((1, 1), (1, -1), (-1, 1), (-1, -1), (1, 0), (0, 1)):
-        a = (cx(ci_), cy(cj_)); b = (cx(ci_ + di), cy(cj_ + dj))
-        if not blocked_exact(1, VIA[0], VIA[1], ci_ + di, cj_ + dj, 0.0):
-            worst_new = min(worst_new, seg_min_dist_to_via(a, b, VIA))
+print("═══ 用例 3: 对角段也不擦孔 (两端点都未禁的段) ═══")
+def worst_unblocked(fn):
+    worst = 1e9
+    i, j = ci(VIA[0]), cj(VIA[1])
+    for dj in range(-6, 7):
+        for di in range(-6, 7):
+            a_i, a_j = i + di, j + dj
+            if fn(1, VIA[0], VIA[1], a_i, a_j, 0.0):
+                continue          # ★起点被禁 ⇒ 这段根本不会被走
+            for (ddi, ddj) in ((1, 1), (1, -1), (-1, 1), (-1, -1), (1, 0), (0, 1), (1, 0), (-1, 0), (0, -1)):
+                b_i, b_j = a_i + ddi, a_j + ddj
+                if fn(1, VIA[0], VIA[1], b_i, b_j, 0.0):
+                    continue      # ★终点被禁 ⇒ 这段也不会被走
+                d = seg_min_dist_to_via((cx(a_i), cy(a_j)), (cx(b_i), cy(b_j)), VIA)
+                worst = min(worst, d)
+    return worst
+worst_old = worst_unblocked(blocked_old)
+worst_new = worst_unblocked(blocked_exact)
 check("旧判据下确有对角段擦孔 (< rr)", worst_old < rr1 - 1e-9,
       "worst=%.4f rr=%.4f" % (worst_old, rr1))
 check("新判据下无对角段擦孔 (>= rr)", worst_new >= rr1 - 1e-9,
