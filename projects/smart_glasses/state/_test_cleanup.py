@@ -70,7 +70,18 @@ r.vias.append(("SIG", 50.6, 50.0, 0, 5))      # 中心距 0.60mm ⇒ 合法 (>= 
 _chk(r._via_center_ok(50.25, 50.0) is False, "孔中心距 0.25mm ⇒ 判不合格 (治 hole_to_hole)")
 _chk(r._via_center_ok(50.3, 50.0) is False, "孔中心距 0.30mm ⇒ 判不合格")
 _chk(r._via_center_ok(52.0, 50.0) is True,  "离所有孔都远 ⇒ 判合格")
-_chk(r._via_center_ok(51.19, 50.0) is True, "孔中心距 0.59mm ⇒ 判合格 (>= MIN_VIA_CENTER 0.58)")
+# ★★2026-11-05 20:38 **异网孔距已提到 0.80mm (铜到铜)** ⇒ ★0.59mm 对异网**不再合格**
+_chk(r._via_center_ok(51.19, 50.0) is False, "孔中心距 0.59mm (异网) ⇒ 判不合格 (异网要 0.80mm)")
+_chk(r._via_center_ok(51.41, 50.0) is True,  "孔中心距 0.81mm (异网) ⇒ 判合格 (>= 0.80mm)")
+
+# ★★★2026-11-05 20:38 **防回归**: "焊盘内直接落孔"那条路径必须走 `_via_exact_ok`
+#   ★**实测 v34_R 唯一那条 DRC clearance 的根因**: GND 孔 @ (62.70,64.45) 压住 I2C_B_SCL 走线
+#   ⇒ ★**这条分支原来从不查几何净距** ⇒ ⇒ 别的网走线从孔边擦过去也不管
+_src = open(G.__file__, encoding="utf-8").read()
+_i = _src.find("if self._in_pad(px, py):")
+_seg = _src[_i:_i + 2600] if _i >= 0 else ""
+_chk(_i >= 0 and "_via_exact_ok" in _seg,
+     "★ in-pad 落孔分支必须调 _via_exact_ok (防 v34_R 那条 clearance 回归)")
 
 # ── ★★2026-11-05 13:58 **同网孔间距** (★真根因: _via_exact_ok 的 ③ 写了"同网不算") ──
 #   ★**实测 v30_P 唯一那条 DRC**: 两个 **GND** 孔 @24.45/24.95 (中心距 0.50mm, 净距 0.2000mm)

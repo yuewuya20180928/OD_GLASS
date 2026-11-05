@@ -1252,6 +1252,16 @@ class GridRouter:
                         why["free"] += 1
                         continue
                     if self._in_pad(px, py):
+                        # ★★★★2026-11-05 20:35 **补几何净距判据** (★v34_R 实测 DRC 唯一违规的根因)
+                        #   ★**实测**: GND 孔 @ (62.70,64.45) 压住 `I2C_B_SCL` 走线 @ (62.70,63.95)
+                        #     ⇒ 净距实测 0.125mm < 0.20mm ⇒ ★**DRC clearance 违规 (唯一那1条)**
+                        #   ★**根因**: ★**这条"焊盘内直接落孔"的路径从来没调用过 `_via_exact_ok`**
+                        #     ⇒ 别的网的走线 / 焊盘 / 过孔 一律不看 ⇒ ⇒ 孔可以落在别人的铜旁边
+                        #   ⇒ ★**修法**: 落孔前走同一套**真实几何**判据 (① 别网焊盘 ② 别网走线 ③ 孔距 ④ 孔净距)
+                        #     ⇒ ★**只改"布出来的几何", 不动板规则** (clearance 仍是 0.20)
+                        if not self._via_exact_ok(px, py, _dia, net_g, _drill):
+                            why["exact"] = why.get("exact", 0) + 1
+                            continue
                         # ★★**焊盘内直接落孔** (★不用再绕一根线过去 ⇒ 也不占走线空间)
                         #   ★0.6x0.9 的 0603 电容焊盘可以用 0.5mm 孔 ⇒ 直接落, 焊盘直接接平面
                         if self._via_exists(net_g, px, py):
