@@ -1191,7 +1191,18 @@ class GridRouter:
                         _v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
                         _v.SetNetCode(netcode(self.b, net_g))
                         self.b.Add(_v)
-                        self.vias.append((net_g, px, py, 0, 5))
+                        _tup = (net_g, px, py, 0, 5)
+                        self.vias.append(_tup)
+                        #★★2026-11-05 12:25 **修同点重复过孔 (DRC holes_co_located)**
+                        #   根因: 这里**直接 board.Add(过孔)**, 同时又把元组塞进 self.vias
+                        #        ⇒ 之后 commit() 遍历 self.vias 时**又画一遍同一个孔**
+                        #        ⇒ ★**同一位置两个孔** ⇒ DRC 报 holes_co_located
+                        #        (实测 v28_H: 板上 453 孔 vs 内存 385 孔 ⇒ 差 68 = 重复)
+                        #   修法: ★**直接登记进 _committed** ⇒ commit() 会跳过它 (id 已登记)
+                        _cm = getattr(self, "_committed", None)
+                        if _cm is None:
+                            _cm = self._committed = {}
+                        _cm[id(_tup)] = (_tup, _v)
                         self._add_via_halo(net_g, px, py, 0, 5)
                         used_vias.append((px, py))
                         ok += 1
@@ -1378,7 +1389,13 @@ class GridRouter:
             v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
             v.SetNetCode(netcode(self.b, net_g))
             self.b.Add(v)
-            self.vias.append((net_g, cx, cy, 0, 5))
+            _tup = (net_g, cx, cy, 0, 5)
+            self.vias.append(_tup)
+            # ★★同上: ★**登记 _committed** ⇒ commit() 不会把同一个孔再画一遍
+            _cm = getattr(self, "_committed", None)
+            if _cm is None:
+                _cm = self._committed = {}
+            _cm[id(_tup)] = (_tup, v)
             self._add_via_halo(net_g, cx, cy, 0, 5)
             # ★**过孔直接落在焊盘里 ⇒ 焊盘自己就接到平面了** (不需要任何走线)
             ok += 1
@@ -1430,7 +1447,13 @@ class GridRouter:
                     v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
                     v.SetNetCode(netcode(self.b, net_g))
                     self.b.Add(v)
-                    self.vias.append((net_g, vx, vy, 0, 5))
+                    _tup = (net_g, vx, vy, 0, 5)
+                    self.vias.append(_tup)
+                    # ★★同上: ★**登记 _committed** ⇒ commit() 不会把同一个孔再画一遍
+                    _cm = getattr(self, "_committed", None)
+                    if _cm is None:
+                        _cm = self._committed = {}
+                    _cm[id(_tup)] = (_tup, v)
                     self.via_cells.setdefault(idx, []).append((vx, vy))
                     self._add_via_hash(vx, vy)
                     self._add_via_halo(net_g, vx, vy, 0, 5)

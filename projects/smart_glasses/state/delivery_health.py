@@ -125,6 +125,65 @@ def collect():
     return out
 
 
+def _recent_runs(job_id, n=3):
+    """★取最后 n 条 run 记录 (★新增: 用于查"run 状态 ok 但 delivered:false")"""
+    p = os.path.join(CRON_DIR, "runs", "%s.jsonl" % job_id)
+    out = []
+    try:
+        with open(p, encoding="utf-8") as f:
+            lines = [ln for ln in f if ln.strip()]
+        for ln in lines[-n:]:
+            try:
+                out.append(json.loads(ln))
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return out
+
+
+def collect_silent_fail(n=3):
+    """★★D 类 (2026-11-05 12:00 新增): **run 状态 = ok, 但 delivered:false**
+    ⇒ ★**agent 活干完了, 但推送没到老板手上** ⇒ 而 run 状态看起来是"成功" ⇒ 老判据看不见
+    ⇒ ★**实测**: `ARS45 状态速报 (每小时推微信)` 的 run 记录连着好几轮都是
+       `status: ok` + `delivery.delivered: false` ⇒ 老板手机上根本没收到, 而我一直报"一切正常"
+    ⇒ 判据: 目标通道 = 微信 且**最近 n 轮全部 delivered:false 且有 summary**(⇒ agent 确实产出了内容)
+    """
+    jb = _load(JOBS)
+    jl = jb.get("jobs") if isinstance(jb, dict) else jb
+    if isinstance(jl, dict):
+        jl = list(jl.values())
+    out = []
+    for j in (jl or []):
+        jid = j.get("id")
+        d = j.get("delivery") or {}
+        ch = d.get("channel") or ""
+        runs = _recent_runs(jid, n)
+        if not runs:
+            continue
+        # ★通道来源: ①job 的 delivery.channel ②run 记录里 resolved/intended 的通道
+        #   (★老板的"状态速报" job 用的是 mode=none + to/accountId ⇒ jobs.json 里没有 channel 字段)
+        for r in runs:
+            dl = r.get("delivery") or {}
+            ch = ch or (dl.get("resolved") or {}).get("channel") or (dl.get("intended") or {}).get("channel") or ""
+        if ch != WATCH_CHANNEL:
+            continue
+        if len(runs) < 2:
+            continue
+        flags = [(r.get("delivery") or {}).get("delivered") for r in runs]
+        if all(f is False for f in flags) and any(r.get("summary") for r in runs):
+            out.append({
+                "id": jid,
+                "name": j.get("name") or jid,
+                "channel": ch,
+                "to": d.get("to") or "?",
+                "runs": len(runs),
+                "lastRunAtMs": runs[-1].get("ts") or 0,
+                "lastError": "run status=ok 但 delivered=false (推送没到老板手上)",
+            })
+    return out
+
+
 def fingerprint(bad):
     """★指纹**不含**连续失败次数 (每次跑都会 +1 ⇒ 含它就永远去重不掉)
     ★**按故障类别分开算指纹** (A 类通道故障 / B 类收场报错) ⇒ 否则多一个 B 类 job
@@ -161,7 +220,8 @@ def _write_alerted(obj):
 def main():
     quiet = "--quiet" in sys.argv
     bad = [b for b in collect() if b["errors"] >= THRESHOLD]
-    if not bad:
+    silent = collect_silent_fail()   # ★★D 类: run=ok 但 delivered=false (★2026-11-05 12:00 新增)
+    if not bad and not silent:
         if not quiet:
             print("✅ 投递健康: 所有 cron job 无连续失败 (阈值 %d)" % THRESHOLD)
         return 0
@@ -171,6 +231,8 @@ def main():
     clsA = [b for b in bad if classify(b["lastError"]) == "A"]
     clsB = [b for b in bad if classify(b["lastError"]) == "B"]
     fpA, fpB = fp_of(bad, "A"), fp_of(bad, "B")
+    # ★★D 类的指纹 (★单独一个 key ⇒ 不影响 A/B 的去重)
+    fpD = "|".join("%s::%s::%s" % (s["channel"], s["name"], s["lastError"][:80]) for s in silent)
 
     # ★B 类里"推送已关 (mode=none)"的那些 = 对老板零影响 ⇒ 用 24h 窗口
     b_impact = [b for b in clsB if b.get("mode") != "none"]
@@ -187,7 +249,8 @@ def main():
     repeatA = (not clsA) or _rep("A", fpA)
     # B 类分两把尺: 有推送的用 6h; 推送已关的用 24h (零影响, 别吵老板)
     repeatB = (_rep("B", fpB) and _rep("B_imp", b_fp_impact)) if b_impact else _rep("B_noimp", b_fp_noimpact, RE_ALERT_HOURS_B)
-    repeat = repeatA and repeatB
+    repeatD = (not silent) or _rep("D", fpD)
+    repeat = repeatA and repeatB and repeatD
 
     if repeat and quiet:
         return 0
@@ -215,8 +278,13 @@ def main():
             if b.get("mode") == "none":
                 lines.append("      ★判据: 按铁律 **看产出 (文件 mtime / 报告内容)**, 不看 run 状态 ⇒ 这一类只是 **run 状态显示 error**;"
                              "★**该 job 的推送已关 (mode=none) ⇒ announce 本来就不发 ⇒ 对老板无影响**")
-            else:
-                lines.append("      ★判据: 按铁律 **看产出 (文件 mtime / 报告内容)**, 不看 run 状态 ⇒ 这一类只是 announce 没发出去")
+    if silent:
+        lines.append("⚠️ ★★D 类: %d 个 job **run 状态 ok 但 delivered:false** (★agent 干了活, 但推送没到老板手上)" % len(silent))
+        for s in silent:
+            t = time.strftime("%m-%d %H:%M", time.localtime(s["lastRunAtMs"] / 1000)) if s["lastRunAtMs"] else "?"
+            lines.append("  · [%s] %s | 最近 %d 轮全部未送达 | 最后跑 %s" % (s["channel"], s["name"], s["runs"], t))
+            lines.append("      ★**这条以前被判成\"正常\"** (run 状态是 ok) ⇒ 老板手机上看不到, 我却报\"一切正常\"")
+            lines.append("      ★处置: ★**要老板动手** (给 bot 发一条消息刷新会话 / 重扫授权) ⇒ 我不自己乱修通道")
     if WATCH_CHANNEL in chans:
         if watch_still_pushing:
             lines.append("  ★处置: %s 这一路发不出去 ⇒ 老板手机上看不到状态 ⇒ "
@@ -231,6 +299,9 @@ def main():
     if repeatB:
         lines.append("  (B 类故障已于 %s 告警过, %dh 内不重复提醒)" % (
             time.strftime("%m-%d %H:%M", time.localtime((alerted.get("B") or {}).get("at", 0))), RE_ALERT_HOURS))
+    if repeatD and (alerted.get("D") or {}).get("at"):
+        lines.append("  (D 类故障已于 %s 告警过, %dh 内不重复提醒)" % (
+            time.strftime("%m-%d %H:%M", time.localtime((alerted.get("D") or {}).get("at", 0))), RE_ALERT_HOURS))
     new_alert = dict(alerted)
     if not repeatA:
         new_alert["A"] = {"fingerprint": fpA, "at": now,
@@ -244,6 +315,10 @@ def main():
         else:
             new_alert["B_noimp"] = {"fingerprint": b_fp_noimpact, "at": now,
                                     "jobs": [{"name": b["name"], "errors": b["errors"]} for b in clsB]}
+    if not repeatD:
+        new_alert["D"] = {"fingerprint": fpD, "at": now,
+                          "jobs": [{"name": s["name"], "runs": s["runs"]} for s in silent]}
+    new_alert["fingerprint"] = fingerprint(bad)
     new_alert["fingerprint"] = fingerprint(bad)
     new_alert["at"] = now
     new_alert["jobs"] = [{"name": b["name"], "errors": b["errors"]} for b in bad]

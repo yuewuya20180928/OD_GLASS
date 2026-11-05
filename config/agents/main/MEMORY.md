@@ -1,12 +1,14 @@
 <!-- PROGRESS-BLOCK-START -->
 
-★**进展播报 2026-11-05 11:47:39** (机器读数 · 脚本自动生成)
+★**进展播报 2026-11-05 12:19:59** (机器读数 · 脚本自动生成)
 
 ```
-=== 进展播报 11-05 11:47:39 ===
+★盯的日志: /tmp/gen_v25.log
+=== 机器读数 (board_progress.py) ===
+=== 进展播报 11-05 12:18:27 ===
 [板] 11-05 09:52:49 · 5.0MB · 19070 段走线 · 407 过孔
-[布线] 上次实测 unconnected=83 · DRC违规=2 · 留证 2026-11-05T11:42:42
-[在跑] 15 个进程 ⇒ timeout; timeout
+[布线] 上次实测 unconnected=83 · DRC违规=2 · 留证 2026-11-05T12:13:10
+[在跑] 8 个进程 ⇒ timeout; /home/yuewuya/kicad/squashfs-root/usr/bin/python3.11
 [当前在做] 2. ★[在跑] **v28 五臂 (10:58 起, ★用修好网表)** H=8层160×100 · I=8层+GND先布 · J=10层+GND先布 · L=8层+F8走廊(下带区 y58→62) · M=L+**预算升级重试关闭** ⇒ ★**共同带**: F7排版 + 差分对N侧出脚修复 + 精确落孔判据 + 浮点容差1nm + 过孔查重 (+GND先布的臂: GND 下拉 180 成功 vs 69) ⇒ ★**中期**: H 20 对 N未通=10 · I 18 对(12) · J 10 对(5) · L/M 起步 ⇒ ★**自动晋级守候器 ×5**: 臂落盘 → 自动跑 DRC → 比官方板好就自动走终点线(晋级→加5V铜皮→重出投产包→全门禁自验) ⇒ ★**PREFIX 已显式传参** (刚修了一个会拿错板的险情)
 [待办]
   - 2h. ★★[11:00 挖出设计级 P0 bug] **SoM 的 7 个 DCIN 脚原来落在孤岛网 `RAIL_SOM_DCIN` 上** (网表 net 字段与 node2 字段自相矛盾) ⇒ **板上没有到 SoM 的供电路径** ⇒ 已修网表 (7 行并进 RAIL_DEMO_5V) + 原理图/BOM 重出 ⇒ ★**旧臂作废, v28 H/I/J 于 10:58 用修好的网表重起** (H=8层 · I=8层+GND先布 · J=10层+GND先布)
@@ -18,6 +20,32 @@
   - 2e. ★[09:26 已交付] 叠层/阻抗: `state/add_stackup.py` (8层/总厚1.600mm/外铜0.035/内铜0.018/prepreg PR2116+core FR4/ENIG) ⇒ ★**KiCad 10.0.8 回读通过 (走线/过孔数不变)** + 规格书 `HW/PCB/STACKUP_IMPEDANCE.md` ⇒ ★**踩坑: 往 .kicad_pcb 塞裸文本标记行 ⇒ KiCad 静默解析失败返回 None**
   - 2f. ★[09:54 已修] `state/verify_and_release.sh` 三处 `echo "rc=$?"` 把 `$?` 吃掉 ⇒ DRC/chain_gate/stage_gate 挂了也不 FAIL ⇒ ★**自验永远退 0** (这正是上次"带短路板被推上 GitHub"的温床) ⇒ 已改成先存 `_rc=$?` 再打印
   - 2g. ★[09:55 注意] `issue_check rc=1` (逾期未闭环 6 条, 多数归 boss/其他 lead) ⇒ ★**即使板子全绿, 这一条也会挡住放行章** ⇒ 需老板定口径
+★落盘了 ⇒ 开始自验+放行
+  ✗ 自验 rc=1 ⇒ ★**不写** .verified_board_ok_mtime (⇒ 发布闸会拦这块板)
+DRC violations = 2   unconnected items = 83
+  PCB 图纸门禁 · check_pcb_drc (★自己画的图, 自己验)
+  ❌ C3 DRC violations = 2 (要求 0)
+  ❌ C4 unconnected items = 83 (--strict: 布线完成后必须为 0)
+❌ 不通过 3 项: C3 DRC 2 项违规; C4 83 项未连接; C7 2 处重复过孔
+  check_pcb_drc(--strict) rc=1
+  check_pcb_nets rc=1
+    准出: check_pcb_nets rc=1 | ❌ 不通过 —— 板子与网表**不等价** ⇒ 板子不能下单 · check_pcb_drc rc=1 | 布线已完成 (unconnected=83 · DRC=2)
+  chain_gate rc=1
+  stage_gate rc=1
+--- 差分对审计 (前 12 行) ---
+=========== 2b. 差分对全审计 (22 对: 缺铜/单边零铜/Δ/真实净距) ===========
+P                    N                         L_P      L_N        Δ maxseg  判定
+★ 双边都有铜但 Δ>0.13mm: 2 对
+   DSI_D0_D1_P / DSI_D0_D1_N  Δ=5.510mm
+   DSI_D0_D3_P / DSI_D0_D3_N  Δ=3.804mm
+   USB_D_P_SRC / USB_D_N_SRC  缺: USB_D_N_SRC
+   CSI_D0_D0_P_SRC / CSI_D0_D0_N_SRC  缺: CSI_D0_D0_N_SRC
+   CSI_D0_D1_P / CSI_D0_D1_N  缺: CSI_D0_D1_P
+   CSI_D0_D2_P_SRC / CSI_D0_D2_N_SRC  缺: CSI_D0_D2_N_SRC
+   CSI_D0_D2_P / CSI_D0_D2_N  缺: CSI_D0_D2_N
+   CSI_D0_D3_P_SRC / CSI_D0_D3_N_SRC  缺: CSI_D0_D3_N_SRC
+   CSI_D0_D3_P / CSI_D0_D3_N  缺: CSI_D0_D3_P,CSI_D0_D3_N
+❌ 未通过 (verify rc=1) ⇒ ★**不盖章** ⇒ 下一轮会重跑自验 (可重复)
 ```
 
 <!-- PROGRESS-BLOCK-END -->
