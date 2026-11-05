@@ -26,6 +26,20 @@ fi
 say "✔ ${PREFIX}_${ARM} 落盘 ($(grep -oE 'EXIT=[0-9]+' "$LOG" | tail -1)) ⇒ 开始量"
 [ -f "$PCB" ] || { say "✗ 没有臂板文件 $PCB"; exit 1; }
 
+# ★★2026-11-05 12:45 **必须 EXIT=0 才量** (★血的教训)
+#   v28 M 臂: 布局阶段撞板 (焊盘间距 0.000mm) ⇒ **EXIT=1, 板根本没落盘**
+#   ⇒ 但 /tmp/v28_M.kicad_pcb 里留着**中途存的残片** (4.27MB / 15778 段)
+#   ⇒ 旧版守候器只看"日志里出现 EXIT=" 就去量 ⇒ ★**量了一块残片** ⇒ 报出 "DRC=143 unconn=63"
+#   ⇒ ★**那组数字是假的** (还被我口头引用过一次 ⇒ 已在 12:45 订正)
+#   ⇒ ★**残片已改名 .partial** ⇒ 以后不会有人再量它
+_exit=$(grep -oE 'EXIT=[0-9]+' "$LOG" | tail -1 | cut -d= -f2)
+if [ "${_exit:-1}" != "0" ]; then
+  say "✗ 臂没成功落盘 (EXIT=${_exit:-无}) ⇒ **不量、不晋级** (★中途残片不是板)"
+  exit 1
+fi
+# ★再核一次: 落盘印 (段数/过孔) 必须和板上实测一致 ⇒ 防止"存了一半"的板混进来
+say "  (EXIT=0 ✔ ⇒ 开始量真板)"
+
 # ★量这个臂
 bash state/kicad.sh pcb drc --output "/tmp/_ap_${PREFIX}_${ARM}.json" --severity-error --severity-warning --format json "$PCB" >/dev/null 2>&1
 read -r DRC UNC <<< "$(python3 - "/tmp/_ap_${PREFIX}_${ARM}.json" <<'PY'

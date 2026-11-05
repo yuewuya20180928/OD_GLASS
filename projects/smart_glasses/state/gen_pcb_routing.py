@@ -101,6 +101,18 @@ NLAYERS = int(os.environ.get("PCB_LAYERS", 6))
 # ★★★2026-11-05 09:45 **差分对出脚区豁免开关** (默认关 ⇒ 不影响在跑的 v26 四臂)
 #   ★根因: SoM BTB 0.4mm pitch ⇒ P/N 焊盘中心距 0.400mm ⇒ 伙伴禁入格 (0.8mm) 把 N 焊盘自己封死
 PAIR_ESCAPE_EXEMPT = os.environ.get("PCB_PAIR_ESCAPE_EXEMPT", "0") == "1"
+# ★★2026-11-05 12:40 **伙伴豁免半径** (★新)
+#   ★**为什么要有这个参数**: 伙伴禁入格会把"N 侧自己的焊盘格"也封死
+#     ⇒ N 侧 A* 起点被封 ⇒ 0 段铜 ⇒ 报"N 未通"
+#   ★**旧值 1.20mm 的代价** (实测 v28_H: 21 处差分自短路):
+#     豁免圈 (N 焊盘周围 1.2mm) **盖住了伙伴的走线通道**
+#     ⇒ ★**N 侧的出脚直道/斜线可以从伙伴的通道上横穿过去 ⇒ 直接短路**
+#     (实测: DSI_D0_CK_P 的通道在 y=6.70 横穿 x=94.95~99.20,
+#      而 N 侧 R_SEL_CK_N.1 (98.10,5.60) 的出脚从 y=5.60 往下走到 y=7.20
+#      ⇒ **必然横穿 y=6.70** ⇒ P/N 铜直接叠上 ⇒ KiCad 报 shorting_items)
+#   ★**新默认 0.0** ⇒ ★**只豁免"N 焊盘自己那一格"** ⇒ N 能起步, 但**不许横穿伙伴的铜**
+#   ⇒ 设大可以回到旧行为 (用于对比), 默认 0 = 安全
+PAIR_EXEMPT_R = float(os.environ.get("PCB_PAIR_EXEMPT_R", "0.0"))
 BUDGET_ESCALATE = os.environ.get("PCB_BUDGET_ESCALATE", "0") == "1"
 # ★★2026-11-05 10:25 **GND 下拉先布** (env 开关, 默认关)
 #   ★**为什么**: GND 下拉原来排在**所有信号/电源之后** ⇒ 焊盘周围的好位置已被占光
@@ -2443,13 +2455,17 @@ class GridRouter:
         block = set()
         block_n = set()
         # ★★出脚区豁免格 (★N 侧自己焊盘周围 exempt_r mm)
+        #   ★★2026-11-05 12:40 **默认 exempt_r = 0.0** ⇒ ★**只豁免"N 焊盘自己那几格"**
+        #   ⇒ ★**N 侧能起步 (不被伙伴的通道封死), 但不许横穿伙伴的铜** ⇒ 差分自短路归零
+        #   ⇒ (旧行为 exempt_r=1.20 ⇒ 盖住伙伴通道 ⇒ 21 处 P/N 自短路, 实测 v28_H)
         exempt = set()
         if exempt_net:
+            _r = PAIR_EXEMPT_R
             for (_net, x0, y0, x1, y1, _layers) in self.pad_rects_l:
                 if _net != exempt_net:
                     continue
-                for (i, j) in _rect_cells(x0 - exempt_r, y0 - exempt_r,
-                                          x1 + exempt_r, y1 + exempt_r, self.g,
+                for (i, j) in _rect_cells(x0 - _r, y0 - _r,
+                                          x1 + _r, y1 + _r, self.g,
                                           self.bb[0], self.bb[1]):
                     if 0 <= i < self.W and 0 <= j < self.H:
                         exempt.add(self._idx(i, j))
