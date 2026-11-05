@@ -104,6 +104,25 @@ VIA_DRILL_S = 0.30
 #   上一版只有落铜时查 (_via_too_close) ⇒ ★**A\* 会规划"根本放不下过孔的换层点"**
 #   ⇒ 落铜时过孔被跳过 ⇒ ★**层间过渡段两端没落到过孔上** ⇒ 5 条 track_dangling 的根因
 MIN_VIA_CENTER = 0.58  # mm 过孔中心距 (同网/异网都算: 孔到孔是制造规则)
+# ★★★2026-11-05 19:40 **异网过孔的"铜到铜"中心距下限 (v34 根因级修复)** ★★★
+#   ★**为什么必须有这一条 (v32/v33 两臂全红在这里)**:
+#     v32/v33 把 `PCB_VIA_HALO_MARGIN` 开到 0.0 (过孔 halo 用精确几何)
+#     ⇒ halo[2] 半径从 0.95mm 缩到 **0.75mm**
+#     ⇒ ★**0.75 < 0.80** ⇒ 两颗**异网**过孔中心距 0.7906mm 被放行
+#     ⇒ 铜间隙 = 0.7906 - 0.60 = **0.1906mm < 0.20** ⇒ DRC `clearance` 报红
+#     ⇒ 实测: v32_R **56 条** + v33_S **40 条** = 两臂 96 条违规全是这个
+#   ★**根因不是"halo 放松错了", 是"少了一条规则"**:
+#     - 孔到孔 (制造规则): drill/2 + 0.25 + drill/2 = **0.55mm** ⇒ MIN_VIA_CENTER 0.58 ✓
+#     - 铜到铜 (电气规则): dia/2 + 0.20 + dia/2 = **0.80mm** ⇒ ★**从来没人查过这条**
+#     ⇒ ★**之前 DRC=0 是"halo 顺手挡住了"** (0.95 > 0.80), 不是"规则查对了"
+#     ⇒ ★**一旦放松 halo (为了开逃逸走廊), 老账立刻全爆**
+#   ★**修法**: 异网过孔中心距下限提到 **0.80mm** (同网仍是 0.58 ⇒ 同网两孔可以贴近, 因为是同一片铜)
+#   ★**这是"只改布出来的几何", 不改板子的设计规则** (板 setup 的 min hole / clearance 一个字没动)
+MIN_VIA_CENTER_XNET = float(os.environ.get("PCB_VIA_XNET_GAP", "0.80"))
+                        # mm ★**异网**过孔中心距 (铜到铜: dia/2 + CLEAR + dia/2 = 0.80)
+                        # ★★2026-11-05 19:45 **env 门控**: 0.80 = 板规则的真实要求 (KiCad clearance 0.20)
+                        #   ⇒ **默认开着 (它是修 DRC 老账, 不是加严)**
+                        #   ⇒ ★**旧臂 (v31 等) 靠脚本里显式写 `PCB_VIA_XNET_GAP=0.58` 还原旧行为** ⇒ 逐位可复现
 
 # ★差分对走廊圈数 (格) —— ★**2 格 = 0.50mm**
 #   ★理由: 差分对的两根线要**平行等距** (100Ω) ⇒ N 必须能贴着 P 走
@@ -363,7 +382,7 @@ class GridRouter:
         # ★★2026-11-05 **过孔邻近的粗粒度空间哈希** (1mm 格)
         #   ★_via_too_close 在 A* 里被调用**几十万次** ⇒ 逐格 (7×7=49) 查太慢
         #   ⇒ 改查 1mm 粗格 (3×3=9 次查) ⇒ 提速 ~5 倍, 结果完全一样
-        self.via_hash = {}           # (cx, cy) → [(x, y), ...]
+        self.via_hash = {}           # (cx, cy) → [(x, y, net), ...] ★**带网名** (异网要 0.80mm)
         # ★★2026-11-05 **差分对耦合布线参数** (★P/N 成对走线时临时生效)
         self.pair_partner = None     # ★伙伴网的网名 (差分对耦合时生效)
         self.pair_block = set()      # ★离伙伴铜箔太近的格 (几何精确) ⇒ 不许走
@@ -1312,7 +1331,7 @@ class GridRouter:
                             continue
                         self.vias.append((net, px, py, via_top, via_bot))
                         self.via_cells.setdefault(idx, []).append((px, py))
-                        self._add_via_hash(px, py)
+                        self._add_via_hash(px, py, net)
                         self._add_via_halo(net, px, py, via_top, via_bot)
                     used_vias.append((px, py))
                     ok += 1
@@ -1410,7 +1429,9 @@ class GridRouter:
             else:
                 _dia, _drill = VIA_DIA_S, VIA_DRILL_S
             # ★孔间距: 已有过孔
-            if any(math.hypot(cx - vx, cy - vy) < 0.60 for (vn, vx, vy, _l1, _l2) in self.vias):
+            # ★★2026-11-05 19:40 **v34: 异网 ⇒ 0.80mm (铜到铜)** (★GND 是异网 ⇒ 用异网档)
+            if any(math.hypot(cx - vx, cy - vy) < (MIN_VIA_CENTER if vn == net_g else MIN_VIA_CENTER_XNET)
+                   for (vn, vx, vy, _l1, _l2) in self.vias):
                 why["inpad_spacing"] = why.get("inpad_spacing", 0) + 1
                 continue
             # ★**过孔所在位置的铜净距**: 同网焊盘不算, 但别的网不能挨着
@@ -1457,7 +1478,7 @@ class GridRouter:
             if _cm is None:
                 _cm = self._committed = {}
             _cm[id(_tup)] = (_tup, v)
-            self._add_via_hash(cx, cy)     # ★★2026-11-05 13:55 **焊盘内过孔也要进 via_hash**
+            self._add_via_hash(cx, cy, net_g)     # ★★2026-11-05 13:55 **焊盘内过孔也要进 via_hash**
             self._add_via_halo(net_g, cx, cy, 0, 5)
             # ★**过孔直接落在焊盘里 ⇒ 焊盘自己就接到平面了** (不需要任何走线)
             ok += 1
@@ -1493,7 +1514,9 @@ class GridRouter:
                     if not self._geom_clear(net_g, [(cx, cy, vx, vy)], 0, W_SIG):
                         continue
                     # ② 孔间距
-                    if any(math.hypot(vx - ox, vy - oy) < 0.60 for (vn, ox, oy, _a, _b) in self.vias):
+                    # ★★2026-11-05 19:40 **v34: 异网 ⇒ 0.80mm (铜到铜)**
+                    if any(math.hypot(vx - ox, vy - oy) < (MIN_VIA_CENTER if vn == net_g else MIN_VIA_CENTER_XNET)
+                           for (vn, ox, oy, _a, _b) in self.vias):
                         continue
                     # ③ 过孔位真能放 (★改用**几何精确**判据 ★不用 halo[2] 的 0.95mm)
                     idx = self._idx(self._ci(vx), self._cj(vy))
@@ -1517,7 +1540,7 @@ class GridRouter:
                         _cm = self._committed = {}
                     _cm[id(_tup)] = (_tup, v)
                     self.via_cells.setdefault(idx, []).append((vx, vy))
-                    self._add_via_hash(vx, vy)
+                    self._add_via_hash(vx, vy, net_g)
                     self._add_via_halo(net_g, vx, vy, 0, 5)
                     ok += 1
                     fail -= 1
@@ -1628,8 +1651,11 @@ class GridRouter:
         #     ⇒ ★**原来写 `if vn == net: continue` ⇒ 同网的两个孔可以贴到 0.50mm ⇒ DRC 必报 `hole_to_hole`**
         #     ⇒ ★**实测 v30_P 唯一那条 DRC 就是这么来的**: 两个 **GND** 孔 @24.45/24.95, y=60.2 (中心距 0.50mm, 净距 0.2000mm)
         #   ⇒ ⇒ **同网异网一律按 0.60mm 中心距卡**
+        # ★★2026-11-05 19:40 **v34: 异网还要过"铜到铜" 0.80mm** (★见常量区根因注释)
+        #   ⇒ ★**同网 0.58 (孔到孔) / 异网 0.80 (铜到铜)** ⇒ ★**只改布出来的几何**
         for (vn, vx, vy, _l1, _l2) in self.vias:
-            if math.hypot(cx - vx, cy - vy) < 0.60:
+            _need = MIN_VIA_CENTER if vn == net else MIN_VIA_CENTER_XNET
+            if math.hypot(cx - vx, cy - vy) < _need:
                 return False
         # ④ 孔净距 (别的网的孔) —— ★**同理: 孔到孔净距也不分网**
         for (vn, vx, vy, _l1, _l2) in self.vias:
@@ -2421,15 +2447,25 @@ class GridRouter:
                 continue
             self.vias.append((net, vx, vy, l1, l2))
             self.via_cells.setdefault(self._idx(self._ci(vx), self._cj(vy)), []).append((vx, vy))
-            self._add_via_hash(vx, vy)
+            self._add_via_hash(vx, vy, net)
             self._add_via_halo(net, vx, vy, l1, l2)
 
-    def _via_too_close(self, net, vx, vy, mind=0.58):
-        """同网两颗过孔离得太近 (孔到孔 < 0.25mm ⇒ DRC 红)
+    def _via_too_close(self, net, vx, vy, mind=None):
+        """★★**异网/同网分开判** (★v34 根因级修复, 2026-11-05 19:40)
+
+        ★**之前只查了一条规则** ⇒ 漏掉"铜到铜":
+          - 孔到孔 (制造): drill/2 + 0.25 + drill/2 = 0.55mm ⇒ 中心距 0.58
+          - 铜到铜 (电气): dia/2 + **0.20** + dia/2 = **0.80mm** ⇒ ★**从来没人查**
+          ⇒ 之前 DRC=0 是"halo 顺手挡住了" (0.95 > 0.80), **不是规则查对了**
+          ⇒ ★**放松 halo (v32/v33) ⇒ 老账全爆: v32_R 56 条 + v33_S 40 条 clearance**
+
+        ★**现在两条规则都查**:
+          - **同网** ⇒ 0.58mm (孔到孔; 同网两孔铜相连, 铜净距不适用)
+          - **异网** ⇒ **0.80mm** (铜到铜: 0.30 + 0.20 + 0.30)
+        ★**只改布出来的几何** ⇒ ★**板 setup 的 min hole / clearance 一个字没动**
 
         ★★2026-11-04 22:45 修 (真正的根因): 原来只扫 **3×3 邻格** (±0.25mm) ⇒ ★**够不着 0.56mm 内的其它过孔**
         ⇒ 两颗过孔中心距 0.5mm (孔到孔 0.2mm) 竟然没被拦住 ⇒ DRC 出 hole_to_hole。
-        ⇒ 现在扫 ±3 格 (±0.75mm) 才覆盖 mind=0.58。
 
         ★★2026-11-05 **改用 1mm 粗粒度哈希** (★性能: 这个函数在 A* 里被调用几十万次)
            ⇒ 3×3=9 次查表 (而不是 49 次) ⇒ 结果一样, 速度 ~5×
@@ -2438,21 +2474,32 @@ class GridRouter:
         cy = int(math.floor(vy))
         for dj in (-1, 0, 1):
             for di in (-1, 0, 1):
-                for (ux, uy) in self.via_hash.get((cx + di, cy + dj), ()):
-                    if math.hypot(vx - ux, vy - uy) < mind:
+                for (ux, uy, unet) in self.via_hash.get((cx + di, cy + dj), ()):
+                    # ★★**异网 ⇒ 铜到铜 0.80mm; 同网 ⇒ 孔到孔 0.58mm**
+                    _need = MIN_VIA_CENTER if unet == net else MIN_VIA_CENTER_XNET
+                    if mind is not None:
+                        _need = max(_need, mind)
+                    if math.hypot(vx - ux, vy - uy) < _need:
                         return True
         return False
 
-    def _via_center_ok(self, cx, cy, min_c=MIN_VIA_CENTER):
+    def _via_center_ok(self, cx, cy, net=None, min_c=None):
         """★★2026-11-05 13:15 **过孔中心距判据** (★治 DRC `hole_to_hole`)
            ★**为什么要有**: `_via_exists` 只查**同点** ⇒ ★**两个孔中心只差 0.25mm 也能各落一个**
              ⇒ 板规则: 孔到孔 ≥ 0.25mm ⇒ 中心距 ≥ 0.15(钻孔半径)+0.15+0.25 = **0.55mm**
              ⇒ ★**v29_N 实测 3 处 `hole_to_hole`** (净距 0.0000 / 0.2000 / 0.0536mm) ⇒ 都是这么来的
            ★**同网异网都算** (孔到孔是制造规则, 不看网)
            ★**注意**: 焊盘里的过孔 (in-pad) 中心就是焊盘中心 ⇒ ★**间距不够就只能不落**
-             ⇒ 那就少一条 GND 下拉 ⇒ ★**宁可 unconnected 多一条, 也不要有 DRC 违规**"""
+             ⇒ 那就少一条 GND 下拉 ⇒ ★**宁可 unconnected 多一条, 也不要有 DRC 违规**
+
+        ★★2026-11-05 19:40 **v34: 异网 ⇒ 0.80mm (铜到铜)**
+           ★**`net` 给了就按网分档**: 同网 0.58 / 异网 0.80
+           ⇒ ★**没给 net (老调用) ⇒ 保守用异网档 0.80** (宁可少落孔, 不要 DRC 红)"""
+        _same = MIN_VIA_CENTER if min_c is None else min_c
+        _diff = MIN_VIA_CENTER_XNET if min_c is None else max(min_c, MIN_VIA_CENTER_XNET)
         for (_n, vx, vy, _l1, _l2) in self.vias:
-            if math.hypot(vx - cx, vy - cy) < min_c:
+            _need = _same if (net is not None and _n == net) else _diff
+            if math.hypot(vx - cx, vy - cy) < _need:
                 return False
         return True
 
@@ -2465,9 +2512,10 @@ class GridRouter:
                 return True
         return False
 
-    def _add_via_hash(self, vx, vy):
+    def _add_via_hash(self, vx, vy, net=None):
+        # ★★2026-11-05 19:40 **带网名** (★v34: `_via_too_close` 要分同网/异网)
         self.via_hash.setdefault((int(math.floor(vx)), int(math.floor(vy))),
-                                 []).append((vx, vy))
+                                 []).append((vx, vy, net))
 
     def _add_track_halo(self, net, x1, y1, x2, y2, li, w=W_SIG):
         """走线净距禁区: 半径 = 净距 + 本线半宽 + 对方半宽 (按级别分别登记)
