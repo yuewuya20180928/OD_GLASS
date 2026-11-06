@@ -18,6 +18,7 @@ import argparse
 import datetime
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -25,6 +26,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
 WS = os.path.dirname(os.path.dirname(PROJ))          # ~/.openclaw/workspace
 MEMORY = os.path.join(WS, "MEMORY.md")
+# ★**三份 MEMORY.md (★真值源 + 两份副本; ★改真值源必须一起改 ⇒ 否则同步检查分叉)**
+COPIES = [
+    os.path.join(WS, "config", "agents", "main", "MEMORY.md"),
+    os.path.join(PROJ, "config", "agents", "main", "MEMORY.md"),
+]
 START = "<!-- PROGRESS-BLOCK-START -->"
 END = "<!-- PROGRESS-BLOCK-END -->"
 
@@ -35,13 +41,39 @@ def read_facts(path: str | None) -> str:
             return open(path, encoding="utf-8", errors="ignore").read()
         except OSError as e:
             return f"<读不到 {path}: {e}>"
+    # ★★**2026-11-07 01:4x 兄弟实测报出的第四点**: ★**默认路径只跑 `board_progress.py` ⇒ 缺 `[守卫]` 行**
+    #   ⇒ ★**老板在实时块里看不到守卫状态 (★今晚刚立了"守卫者也要被守卫")**
+    #   ⇒ ★**修在产生点: ★**默认事实源改成 `state/bcast_facts.sh` (★它才是播报用的那一份事实: board_progress + `[守卫]` + 板指纹行)**
+    #   ⇒ ★**安全: ★**`bcast_facts.sh` 不回调本脚本 (★已实测确认) ⇒ 无递归风险**
     try:
         r = subprocess.run(
-            [sys.executable, os.path.join(HERE, "board_progress.py")],
-            cwd=PROJ, capture_output=True, text=True, timeout=300)
-        return (r.stdout or "") + (("\n<stderr>\n" + r.stderr) if r.stderr else "")
+            ["bash", os.path.join(HERE, "bcast_facts.sh")],
+            cwd=PROJ, capture_output=True, text=True, timeout=600)
+        if r.returncode != 0:
+            return f"<board_progress.py 失败: bcast_facts.sh rc={r.returncode}\n{r.stderr}"
+        return r.stdout or ""
     except Exception as e:                                    # noqa: BLE001
         return f"<board_progress.py 失败: {e}>"
+
+
+# ★★**事实闸门 (★2026-11-07 01:4x 兄弟实测报出的洞: ★**坏输入会被静默写进真值源并报"成功")**
+#   现象: `--facts` 指不存在的文件 ⇒ read_facts 返回 "<读不到 ...>" ⇒ 块被冲成一句报错文本,
+#         但 replace_block 仍判 "✔ 已更新" 且 main() rc=0; ★**空文件更隐蔽 (块被冲成空的, 连报错字样都没有)**
+#   根因: ★**"块能写进去" ≠ "事实是真的"** ⇒ 事实本身没有来源标记, 收方无从怀疑它
+#   修法 (★改在产生点, 不靠调用方自觉): ★**facts 不合格 ⇒ 拒绝写 + rc=1**
+BAD_PREFIXES = ("<读不到 ", "<board_progress.py 失败", "<stderr>", "<Traceback")
+
+
+def facts_ok(facts: str) -> tuple[bool, str]:
+    """返回 (可否写入, 理由)。★**任何一条不满足 ⇒ 拒绝写入**"""
+    if not facts or not facts.strip():
+        return False, "facts 为空 ⇒ 拒绝写入 (★空事实会把实时块冲成空块)"
+    for pre in BAD_PREFIXES:
+        if facts.lstrip().startswith(pre):
+            return False, f"facts 以错误前缀开头 ({pre!r}) ⇒ 拒绝写入 (★坏输入不能被当成事实写进真值源)"
+    if len(facts.strip()) < 40:
+        return False, "facts 过短 (<40 字符) ⇒ 拒绝写入 (★典型是空/半截文件)"
+    return True, "ok"
 
 
 def build_block(facts: str, extra: str = "") -> str:
@@ -75,6 +107,15 @@ def main() -> int:
     args = ap.parse_args()
 
     facts = read_facts(args.facts)
+
+    # ★★**闸门 (★先判事实合不合格, 再谈写不写) ★★**
+    ok, why = facts_ok(facts)
+    if not ok:
+        print(f"✗ 拒绝写入: {why}", file=sys.stderr)
+        print(f"✗ 事实来源: {args.facts or '(默认: board_progress.py)'}", file=sys.stderr)
+        print("★**⇒ 实时块保持原样, 未改动**", file=sys.stderr)
+        return 1
+
     block = build_block(facts, args.extra)
 
     if args.dry_run:
@@ -85,6 +126,16 @@ def main() -> int:
         print(f"✗ 找不到 {MEMORY}", file=sys.stderr)
         return 1
     md = open(MEMORY, encoding="utf-8").read()
+    # ★★**缩水闸 (★"突然缩水"是坏输入的典型特征)**: ★**新块比旧块短于一半 ⇒ 拒绝写 + rc=1**
+    try:
+        _i = md.index(START); _j = md.index(END)
+        _old_len = len(md[_i:_j])
+        if _old_len > 0 and len(block) * 2 < _old_len:
+            print(f"✗ 拒绝写入: 新块 {len(block)} 字节 < 旧块 {_old_len} 字节的一半 ⇒ 突然缩水 (★典型坏输入)", file=sys.stderr)
+            print("★**⇒ 实时块保持原样, 未改动**", file=sys.stderr)
+            return 1
+    except ValueError:
+        pass
     new_md, msg = replace_block(md, block)
     if new_md is md and msg.startswith("✗"):
         print(msg, file=sys.stderr)
@@ -93,6 +144,16 @@ def main() -> int:
     with open(tmp, "w", encoding="utf-8") as f:
         f.write(new_md)
     os.replace(tmp, MEMORY)
+    # ★★**2026-11-07 01:3x 修在产生点 (★兄弟 01:29 实测报出的隐患)**
+    #   现象: 本脚本★**只写真值源 MEMORY.md**, 两份副本没跟着写 ⇒ ★**每次刷新实时块都立刻分叉**
+    #         ⇒ `state/check_memory_sync.py` 马上报 ❌ ⇒ ★**只能靠别人手工 `cp -f` 补 ⇒ 那是"擦产物"不是修源头**
+    #   修法: 写完真值源★**立刻把两份副本同步写过去 (同一份内容, 逐字节同)** ⇒ ★**写完即自洽 ⇒ 不再分叉**
+    #   注意: ★**只同步文件, 不跑发布脚本, 不推 GitHub** (★与 `state/publish_github.sh:153/159` 同一做法)
+    for copy_path in COPIES:
+        if os.path.exists(copy_path):
+            shutil.copyfile(MEMORY, copy_path)
+        else:
+            print(f"⚠ 副本不存在, 跳过: {copy_path}", file=sys.stderr)
     print(msg)
     return 0
 
