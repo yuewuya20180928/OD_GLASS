@@ -18,11 +18,13 @@ python3 state/board_progress.py > "$OUT" 2>&1
 #   ★**现状**: daily_check → daily_check --self-test ⇒ **自证** ⇒ ★**若有人把 --self-test 本身改坏, 没人拦**
 #   ⇒ ★**这里给它一个外部消费者 (★播报侧 ⇒ 不动放行侧的 chain_gate, ★按之前定的留给老板/总工)**
 #   ⇒ ★**每次播报都验一次 ⇒ 老板看得见这一行**
-if python3 -B state/daily_check.py --self-test >/tmp/_dc_selftest.txt 2>&1; then
+# ★★用唯一临时名 (★兄弟 23:4x 指出: 固定名在并发播报下会竞态)
+_selftest_tmp="/tmp/_dc_selftest_$$.txt"
+if python3 -B state/daily_check.py --self-test >"$_selftest_tmp" 2>&1; then
   echo "[守卫] 判据退化守卫 daily_check --self-test ✅" >> "$OUT"
 else
   echo "[守卫] ★★判据退化守卫 daily_check --self-test ❌ (★有人改坏了判据或它自己的自测)" >> "$OUT"
-  tail -3 /tmp/_dc_selftest.txt >> "$OUT" 2>&1
+  tail -3 "$_selftest_tmp" >> "$OUT" 2>&1
 fi
 
 # 板指纹 = [板] 行 "· " 之后的全部 (mtime · 大小 · 段数 · 孔数)
@@ -30,6 +32,21 @@ cur_fp=$(grep -m1 '^\[板\]' "$OUT" 2>/dev/null | sed 's/^\[板\][^·]*· *//')
 prev_fp=""
 if [ -f "$MEM" ]; then
   prev_fp=$(grep '^\[板\]' "$MEM" 2>/dev/null | tail -1 | sed 's/^\[板\][^·]*· *//')
+fi
+# ★★2026-11-07 00:2x (★兄弟撞出只跨零点触发的真 bug, ★根因在这里):
+#   ★**跨零点后当天日记还不存在 ⇒ prev_fp 为空 ⇒ 每轮都走"板指纹有变"⇒ 每轮跑 46.8s 完整自验
+#   ⇒ .layout_done.json 的 at 每轮推进 ⇒ [布线] 行逐字都在变 ⇒ ★**每轮都给老板发一条假播报**
+#   ⇒ ★**根治: 兜底去翻"最近一个含 [板] 行的日记"** (★跨零点 / 新一天 / 当天没写过 ⇒ 都能正确回退)
+if [ -z "$prev_fp" ]; then
+  for _d in 1 2 3 4 5 6 7; do
+    _md=$(date -d "-${_d} day" +%Y-%m-%d)
+    _f="/home/yuewuya/.openclaw/workspace/memory/${_md}.md"
+    if [ -f "$_f" ]; then
+      prev_fp=$(grep '^\[板\]' "$_f" 2>/dev/null | tail -1 | sed 's/^\[板\][^·]*· *//')
+      [ -n "$prev_fp" ] && break
+    fi
+  done
+  [ -n "$prev_fp" ] && echo "★当天日记无 [板] 行 ⇒ 已回退到最近一份含 [板] 行的日记作基线" >> "$OUT"
 fi
 
 if [ -n "$cur_fp" ] && [ "$cur_fp" = "$prev_fp" ]; then
@@ -39,5 +56,6 @@ else
   bash state/auto_release_if_ready.sh >> "$OUT" 2>&1
   echo "── 自验结束 (rc=$?) ──" >> "$OUT"
 fi
+rm -f "$_selftest_tmp"
 
 cat "$OUT"

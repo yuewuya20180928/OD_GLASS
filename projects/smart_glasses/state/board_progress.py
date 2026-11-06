@@ -59,7 +59,9 @@ def running():
     ★**注: 这一行 ★**从不参与**"板面变了没"的判定 (★`bcast_facts.sh` 只取 `[板]` 行的指纹) ⇒ 只是显示层的诚实性**
     """
     try:
-        r = subprocess.run(["pgrep", "-af", "gen_pcb_netlist_board|gen_pcb_routing|fix_gnd_stitch|publish_github"],
+        # ★★2026-11-06 23:4x (★兄弟指出): ★**publish_github.sh 是"每 20 分钟的自动同步", 不是布线进程**
+        #   ⇒ ★**它会把自己算进 `[在跑]`** ⇒ ★**噪声 ⇒ ★**从模式串去掉, 只留真正的布线脚本**
+        r = subprocess.run(["pgrep", "-af", "gen_pcb_netlist_board|gen_pcb_routing|fix_gnd_stitch"],
                            capture_output=True, text=True, timeout=10)
         # ★**自己的 pid 祖先链** (★调用方的 shell 也在链上 ⇒ 一并排除)
         skip = set()
