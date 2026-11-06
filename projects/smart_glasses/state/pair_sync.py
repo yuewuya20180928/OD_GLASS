@@ -96,8 +96,8 @@ def _load(boardp, grid=0.125):
     return board, r
 
 
-def _pad_center_cells(r, net):
-    """★**该网每个焊盘的中心格 + 3×3 邻域**"""
+def _pad_center_cells(r, net, width=0.25):
+    """★**该网每个焊盘的中心格 + 出脚直道终点 + 3×3 邻域**"""
     out = []
     for pad in r.net_pads.get(net, []):
         cx, cy = pad[2], pad[3]
@@ -115,7 +115,9 @@ def _pad_center_cells(r, net):
                 i2, j2 = i + di, j + dj
                 if 0 <= i2 < r.W and 0 <= j2 < r.H:
                     nb.add((li, r._idx(i2, j2)))
-        out.append({"pad": pad, "cell": (li, cidx), "nb": nb})
+        # ★★**出脚直道** (★0.5mm pitch 连接器上唯一出路)
+        esc = _escape_stub_cells(r, net, (li, cidx), None, width)
+        out.append({"pad": pad, "cell": (li, cidx), "nb": nb, "esc": esc})
     return out
 
 
@@ -176,18 +178,126 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
         return out
 
     def starts_for(side, items, conn):
-        """★**起点 = 焊盘**中心格** (★不是 3×3 邻域!)**
+        """★**起点 = 焊盘**中心格 + 出脚直道终点** (★直道终点优先)**
         ★★**为什么**: ★**邻域会把"别的焊盘的中心格"也包含进来** ⇒ ★**A\* 第一步就命中那个焊盘**
           ⇒ ★**⇒ 路径 1 格** ⇒ ★**⇒ 起点与目标都必须用精确中心格**
         """
         st = []
         for (k, pd) in items:
             if k in conn:
-                st.append(pd["cell"])
+                # ★**有出脚直道 ⇒ 用直道终点 (★那才是真正能起步的地方)**
+                if pd.get("esc"):
+                    st.extend(sorted(pd["esc"]))
+                else:
+                    st.append(pd["cell"])
         if not st:
             for (k, pd) in items:
-                st.append(pd["cell"])
+                if pd.get("esc"):
+                    st.extend(sorted(pd["esc"]))
+                else:
+                    st.append(pd["cell"])
         return st
+
+    # ★★★★**★主干汇合式 (★2026-11-06 15:3x 的关键设计修正)** ★★★★
+    #   ★**为什么**: ★**实测: 从 `CONN_CAM.18` 的出脚直道 → TP = 498 格通**
+    #                       ★**而从 TP 的出脚直道 → CONN_CAM.18 = None**
+    #   ⇒ ★**⇒ 长距主干必须"从有出路的那端 (连接器) 长回来"**
+    #   ⇒ ★**⇒ 不能"从已连的焊盘逐段往外长" (★那恰好从没出路的那头开始)**
+    #   ⇒ ★★**⇒ 新算法: ① 取最远的两个焊盘当主干端点 ② 从"有出脚直道"的一端起搜
+    #                    ③ P/N 各搜一条、互为预留 ④ 汇合后再挂剩下的近端焊盘**
+    _farthest = None
+    _fd = -1.0
+    for (ka, pa) in all_p:
+        for (kb, pb) in all_p:
+            if ka >= kb:
+                continue
+            _d = math.hypot(pa["pad"][2] - pb["pad"][2], pa["pad"][3] - pb["pad"][3])
+            if _d > _fd:
+                _fd = _d
+                _farthest = (ka, kb)
+    if _farthest is None:
+        return False, "焊盘不足"
+    _ka, _kb = _farthest
+    print("     · 主干端点: P.pad%d ↔ P.pad%d (%.1fmm)" % (_ka, _kb, _fd))
+    # ★**对应的 N 侧端点 (★按索引对应 ★P/N 焊盘在网表里成对)**
+    _nkeys = [k for (k, _pd) in all_n]
+    if _ka not in _nkeys or _kb not in _nkeys:
+        print("     · ★N 侧没有对应的索引 ⇒ 无法成对主干")
+        return False, "N 侧索引不匹配"
+    # ★**从"有出脚直道"的一端起搜** (★实测: 只有连接器那端有出路 ⇒ ★**起点必须是它**)
+    _pa = dict(all_p)[_ka]
+    _pb = dict(all_p)[_kb]
+    _na = dict(all_n)[_ka]
+    _nb = dict(all_n)[_kb]
+    # ★★**哪一端有出脚直道?** (★优先选"离连接器近"的那端 ⇒ ★**用出脚直道是否存在来判**)
+    _has_a = bool(_pa.get("esc"))
+    _has_b = bool(_pb.get("esc"))
+    if _has_b and not _has_a:
+        _ka, _kb = _kb, _ka        # ★**交换: 让有出脚直道的那端当起点**
+        _pa, _pb = _pb, _pa
+        _na, _nb = _nb, _na
+    _start_p = sorted(_pa["esc"]) if _pa.get("esc") else [_pa["cell"]]
+    _goal_p = {_pb["cell"]}
+    _start_n = sorted(_na["esc"]) if _na.get("esc") else [_na["cell"]]
+    _goal_n = {_nb["cell"]}
+    print("     · P 主干: 起 %s → 终 %s (起点有出脚直道: %s)"
+          % (_ka, _kb, bool(_pa.get("esc"))))
+    print("     · N 主干: 起 %s → 终 %s (起点有出脚直道: %s)"
+          % (_ka, _kb, bool(_na.get("esc"))))
+
+    # ★**P 侧先搜 (★它的路径会成为 N 侧的预留带)**
+    _center = set(pd["cell"] for (side, items) in (("P", all_p), ("N", all_n))
+                  for (_k, pd) in items)
+    # ★★★**★两个方向都试 (★实测: "从 CONN_CAM 那头出发"才通, ★"从 TP 那头出发"不通)**
+    #   ★**⇒ 哪个方向有出路, 只有 A\* 知道 ⇒ ★**⇒ 两个方向都搜, 取通的**
+    _pmap = dict(all_p)
+    _nmap = dict(all_n)
+    _ppath = None
+    for (_sk, _gk2) in ((_ka, _kb), (_kb, _ka)):
+        _st = sorted(_pmap[_sk]["esc"]) if _pmap[_sk].get("esc") else [_pmap[_sk]["cell"]]
+        _gl = {_pmap[_gk2]["cell"]}
+        _r = _astar_reserved(r, "P", _st, [(_gk2, _gl)], budget, set(),
+                             net_p, width, exclude={_sk}, _center_set=_center)
+        if _r is not None:
+            _ppath = _r
+            _p_from, _p_to = _sk, _gk2
+            break
+    if _ppath is None:
+        print("     · ★P 主干两个方向都搜不到")
+        return False, "P 主干不通"
+    (p_path, _gk) = _ppath
+    print("     · ★P 主干: 从 pad%d → pad%d, %d 格" % (_p_from, _p_to, len(p_path)))
+    # ★**N 侧搜 (★把 P 的路径当预留带 ⇒ 两者并行)**
+    _res_n = set()
+    _mark_reserve(r, p_path, None, _res_n)
+    _npath = None
+    for (_sk, _gk2) in ((_p_from, _p_to), (_p_to, _p_from)):
+        _st = sorted(_nmap[_sk]["esc"]) if _nmap[_sk].get("esc") else [_nmap[_sk]["cell"]]
+        _gl = {_nmap[_gk2]["cell"]}
+        _r = _astar_reserved(r, "N", _st, [(_gk2, _gl)], budget, _res_n,
+                             net_n, width, exclude={_sk}, _center_set=_center)
+        if _r is not None:
+            _npath = _r
+            _n_from, _n_to = _sk, _gk2
+            break
+    if _npath is None:
+        print("     · ★N 主干搜不到 (★P 的走廊把 N 挡了)")
+        return False, "N 主干不通"
+    (n_path, _gn) = _npath
+    print("     · ★N 主干: 从 pad%d → pad%d, %d 格 (★与 P 并行)" % (_n_from, _n_to, len(n_path)))
+
+    # ★**落铜主干**
+    if not r._emit_path(net_p, p_path, width) or not r._emit_path(net_n, n_path, width):
+        del r.tracks[np0:]
+        del r.vias[nv0:]
+        r.rebuild_halo()
+        return False, "主干落铜被拒"
+    for (li, idx) in p_path:
+        r.cu[li][idx] = net_p
+    for (li, idx) in n_path:
+        r.cu[li][idx] = net_n
+    print("     · ★★主干落铜成功 (P %d 段 / N %d 段)"
+          % (len(r.tracks) - np0, len(r.vias) - nv0))
 
     # ★**两侧所有焊盘的中心格** (★命中判定的依据)
     _center = set()
@@ -276,7 +386,7 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
             #   ★**为什么**: ★**起点格可能同时落在多个焊盘的邻域里** ⇒ ★**排除谁都排除不干净**
             _items = all_p if side == "P" else all_n
             for (sk, spd) in _items:
-                _st = [spd["cell"]]
+                _st = sorted(spd["esc"]) if spd.get("esc") else [spd["cell"]]
                 if not _st:
                     continue
                 _res_cells = set(reserve["P" if side == "N" else "N"])
@@ -294,6 +404,30 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
                     _p2, _g2 = _r2
                     if _best is None or len(_p2) < len(_best[0]):
                         _best = (_p2, _g2)
+                # ★★★★**★反向也要试 (★实测: 长距只能"从连接器那头出发")** ★★★★
+                #   ★**实测**: 从 `CONN_CAM.18` 的出脚直道 → TP: ★**498 格通**
+                #             从 `TP` 的出脚直道 → `CONN_CAM.18`: ★**None**
+                #   ⇒ ★**⇒ 目标焊盘自己也有出脚直道 ⇒ ★**从目标出发反向搜, 才找得到**
+                #   ⇒ ★★**⇒ A\* 必须"双向"** (★**谁有出路谁当起点**)
+                if _stg := [x for (x, _v) in goals if x != sk]:
+                    _gk0 = _stg[0]
+                    _gnb = None
+                    for (x, v) in goals:
+                        if x == _gk0:
+                            _gnb = v
+                            break
+                    if _gnb:
+                        _r3 = _astar_reserved(r, side, sorted(_gnb), [(sk, _st)],
+                                              budget, _res_cells,
+                                              net_p if side == "P" else net_n,
+                                              width, exclude={_gk0},
+                                              _center_set=_center)
+                        if _r3 is not None:
+                            _p3, _g3 = _r3
+                            # ★**反向路径要反过来才是"起点→终点"**
+                            _p3r = list(reversed(_p3))
+                            if _best is None or len(_p3r) < len(_best[0]):
+                                _best = (_p3r, sk)
                 if sk in conn_p if side == "P" else sk in conn_n:
                     pass
             if _best is None:
@@ -342,6 +476,63 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
             return True, "★**两侧都连上了所有焊盘** (%d 段)" % (_round + 1)
     return False, ("部分完成: P %d/%d · N %d/%d"
                    % (len(conn_p), len(all_p), len(conn_n), len(all_n)))
+
+
+def _escape_stub_cells(r, net, pad_cell, net_pads, width=0.25):
+    """★**出脚直道的终点格集合** (★**这是 0.5mm pitch 连接器上唯一出路**)
+
+    ★★★★2026-11-06 15:2x **★为什么必须有 (★实测, 不是猜)**:
+      · ★**CONN_CAM.18 (焊盘 0.28 × 0.90mm, 长轴 x) 的 8 邻域**:
+        · +x 方向 16/16 格被封 (首个: GND)
+        · -x 方向 16/16 格被封 (首个: ★**伙伴 CSI_D0_CK_N**)
+        · ★**+y / -y 方向只有 6/16 格被封** ⇒ ★**走 2 格 (0.25mm) 就出到焊盘长边之外**
+      ⇒ ★**⇒ A\* 的 8 邻域第一步就被封死 ⇒ ★**⇒ 必须先拉一段"出脚直道"再进网格**
+      ⇒ ★**这正是路由器 `escape_stub` 的机制, ★**但 pair_sync 之前没有这一步**
+
+    ★**做法**: ★**沿 4 个正交方向各试一段 (0.3/0.6/0.9mm)**, ★**用真实几何验净距**,
+      ★**通过的 ⇒ 终点格就是"起步格"**
+    """
+    out = []
+    (li, idx) = pad_cell
+    i, j = idx % r.W, idx // r.W
+    cx, cy = r._cx(i), r._cy(j)
+    # ★**该焊盘的矩形 (★用于净距判断)**
+    rect = None
+    for (nm, x0, y0, x1, y1, _lay) in r.pad_rects_l:
+        if nm != net:
+            continue
+        if abs((x0 + x1) / 2 - cx) < 0.5 and abs((y0 + y1) / 2 - cy) < 0.5:
+            rect = (x0, y0, x1, y1)
+            break
+    if rect is None:
+        return out
+    hw = width / 2.0
+    for (dx, dy) in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+        for ln_mm in (0.3, 0.6, 0.9, 1.2):
+            ex, ey = cx + dx * ln_mm, cy + dy * ln_mm
+            # ★**直道段 vs 别的网焊盘矩形** (★净距 ≥ 0.2)
+            ok = True
+            for (nm2, x0, y0, x1, y1, _l2) in r.pad_rects_l:
+                if nm2 == net:
+                    continue
+                # ★**点到矩形的最短距离**
+                ddx = max(x0 - ex, 0.0, ex - x1)
+                ddy = max(y0 - ey, 0.0, ey - y1)
+                d = math.hypot(ddx, ddy)
+                if d < hw + 0.20 - 1e-9:
+                    ok = False
+                    break
+            if not ok:
+                continue
+            # ★**终点格**
+            i2, j2 = r._ci(ex), r._cj(ey)
+            if not (0 <= i2 < r.W and 0 <= j2 < r.H):
+                continue
+            k = r._idx(i2, j2)
+            if not r._free(li, k, net, r._cls(width)):
+                continue
+            out.append((li, k))
+    return out
 
 
 def _nb_center(r, nb):
