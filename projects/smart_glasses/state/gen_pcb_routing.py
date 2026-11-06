@@ -1202,6 +1202,18 @@ class GridRouter:
         n = len(pads)
         if n <= 2:
             return list(pads)
+        # ★★★★2026-11-06 12:2x **"远端优先"顺序 (env 门控, 默认不变)** ★★★★
+        #   ★**为什么要有 (★实测的机制, 不是猜)**:
+        #     ★**实测 `CSI_D0_CK_N`**: 它有 3 个焊盘 (C_AC 45.90,58.60 / TP 44.50,55.20 /
+        #       CONN_CAM.17 86.90,51.40) ⇒ ★**MST 顺序先布了前两个 (近的)** ⇒ ★**铜局限在
+        #       x 41.95..47.70** ⇒ ★**第三个 (远 39.47mm) 完全走不出去**
+        #     ★**对照 `CSI_D0_CK_P`**: ★**同一个目标, P 侧布到了 x=86.2** ⇒ ★**⇒ 差别只在"顺序"**
+        #   ⇒ ★★**⇒ 先布远的 ⇒ 先占住走廊; 后布近的 ⇒ 在已有走廊旁边短接** ⇒ ★**这才是对的顺序**
+        #   ★**用法**: `PCB_PAD_ORDER_FAR_FIRST=1`
+        if os.environ.get("PCB_PAD_ORDER_FAR_FIRST", "0") == "1":
+            # ★**远端优先: 按"到第一个焊盘的距离"降序** ⇒ ★**最远的先布**
+            _p0 = (pads[0][2], pads[0][3])
+            return sorted(pads, key=lambda pd: -((pd[2] - _p0[2]) ** 2 + (pd[3] - _p0[3]) ** 2))
         d = [1e18] * n
         d[0] = 0.0
         order = []
@@ -3410,6 +3422,36 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
     r1 = router.route_net(net_p, width=width, allow_via=allow_via, trunk=trunk_p)
     res["p_ok"] = r1["ok"]
     if not r1["ok"]:
+        # ★★★★2026-11-06 12:1x **P 侧兵底 (env 门控, 默认不变)** ★★★★
+        #   ★**为什么要有 (★实测的不对称, 不是猜)**:
+        #     · ★**N 侧有兵底** (耦合布不通 ⇒ 按普通网布) ⇒ "连上了但不等长" 远好过 "根本没连"
+        #     · ★**但 P 侧没有兵底** ⇒ ★**P 侧一失败 ⇒ 整对直接放弃 ⇒ N 侧连试都不试**
+        #     ⇒ ★★**⇒ 弱势的 N 侧有退路, 强势的 P 侧没有 ⇒ ★**完全不对称**
+        #   ★**实测症状**: v60/v62 的 `CSI_D0_CK_P/N` = True/**False** ⇒ ★**N 侧差 39.46mm 连不到第三个点**
+        #     ⇒ ★**而 N 侧若按"普通网"布 (不带耦合走廊), 空间大得多 ⇒ ★**有机会连上**
+        #   ★**用法**: `PCB_PAIR_P_FALLBACK=1` ⇒ ★**P 侧失败也走"普通网"**
+        #   ★★**为什么必须 env 门控**: ★**改了差分对的布法 ⇒ 所有臂的行为都变 ⇒ 既有臂可复现性破**
+        if os.environ.get("PCB_PAIR_P_FALLBACK", "0") == "1":
+            # ★**P 侧走"普通网" (不配对) ⇒ 后面 N 侧就没有走廊引导图了**
+            router.pair_partner = None
+            router.pair_block = set()
+            router.pair_block_narrow = set()
+            router.esc_avoid = set()
+            r1 = router.route_net(net_p, width=width, allow_via=allow_via, trunk=trunk_p)
+            res["p_ok"] = r1["ok"]
+            res["p_fallback"] = True
+            if not r1["ok"]:
+                res["n_ok"] = False
+                return res
+            # ★**P 已按普通网布完 ⇒ N 侧直接按普通网布 (不再走耦合走廊)**
+            r2 = router.route_net(net_n, width=width, allow_via=allow_via, trunk=trunk_n)
+            res["n_ok"] = r2.get("ok", False)
+            res["coupled"] = False
+            res["ring"] = r2.get("ring")
+            res["lp"] = round(r1["len"], 3)
+            res["ln"] = round(r2.get("len", 0.0), 3)
+            res["delta"] = round(abs(r1["len"] - r2.get("len", 0.0)), 3)
+            return res
         res["n_ok"] = False
         return res
     # ★★**走廊引导图 (★渐进放宽 ring)** ——
@@ -3431,7 +3473,15 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
     router.pair_block, router.pair_block_narrow = router.build_pair_block(
         net_p, min_c=0.50, exempt_net=_exempt_n)
     # ★★2026-11-05 09:50 **N 侧不许与 P 同向出脚** (★0.4mm pitch 并行出脚必违规)
-    router.esc_avoid = set(router.esc_used_dirs.get(net_p, set())) if PAIR_ESCAPE_EXEMPT else set()
+    # ★★★★2026-11-06 12:0x **这个约束做成可单独关 (env 门控, 默认不变)**
+    #   ★**为什么**: ★**这是"N 侧永远布不出"的三重枷锁之一** ⇒ v60 实测:
+    #     `CSI_D0_CK_N` 连了 2 个焊盘 (C_AC + TP) 但第 3 个 (CONN_CAM) 差 39.46mm
+    #   ★**而"同向出脚必违规"这个前提**: 0.4mm pitch + 0.2mm 焊盘 ⇒ 同向出脚的两根直道
+    #     中心距 0.4mm ⇒ 净距 0.4-0.1-0.1 = **0.2mm (恰好临界)** ⇒ ★**不是"必违规", 是"卡在临界"**
+    #   ⇒ ★**在 W_MIN=0.15 下 (净距 0.225mm ⇒ 有 0.025mm 余量) ⇒ 同向出脚是合法的** ⇒ ★**⇒ 这个约束该放开**
+    #   ★**用法**: `PCB_PAIR_ESC_AVOID=0` ⇒ ★**N 侧可以与 P 同向出脚** (★默认 1 = 旧行为)
+    _esc_avoid_on = PAIR_ESCAPE_EXEMPT and (os.environ.get("PCB_PAIR_ESC_AVOID", "1") == "1")
+    router.esc_avoid = set(router.esc_used_dirs.get(net_p, set())) if _esc_avoid_on else set()
     try:
         # ★每个 ring 一份引导图 (★route_net 内部逐脚挑 ⇒ 不重复布线)
         profiles = []
