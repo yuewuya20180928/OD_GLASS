@@ -116,7 +116,12 @@ def main():
     st = b.get("stamp") or {}
     print(f"=== 进展播报 {now} ===")
     print(f"[板] {b.get('mtime','?')} · {b.get('size_mb',0):.1f}MB · {b.get('tracks',0)} 段走线 · {b.get('vias',0)} 过孔")
-    print(f"[布线] 上次实测 unconnected={st.get('unconnected','?')} · DRC违规={st.get('drc_violations','?')} · 留证 {st.get('at','?')}")
+    # ★★2026-11-07 00:2x (★兄弟建议, ★采纳): ★**把"数字"与"留证时间戳"拆成两行**
+    #   ★**原因**: ★**重跑一次自验 (verify_and_release.sh) 就会刷新 `.layout_done.json` 的 `at`**
+    #     ⇒ ★**若时间戳混在 `[布线]` 行里 ⇒ ★**收方逐字比对会判成"板面变了" ⇒ 假播报**
+    #   ⇒ ★**⇒ `[布线]` 只留实质数字 (★可比) · 时间戳单独一行 (★debug 用)**
+    print(f"[布线] 上次实测 unconnected={st.get('unconnected','?')} · DRC违规={st.get('drc_violations','?')}")
+    print(f"[留证] 自验时刻 {st.get('at','?')} · verified_by {st.get('verified_by','?')}")
     rs = running()
     print(f"[在跑] {len(rs)} 个进程" + ("" if not rs else " ⇒ " + "; ".join(x.split()[1] if len(x.split())>1 else x for x in rs[:2])))
     cur, todos = task_head()
