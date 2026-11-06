@@ -120,16 +120,27 @@ def _pad_center_cells(r, net):
 
 
 def _mark_reserve(r, path, net, reserve_cells, half_mm=0.35):
-    """★**把 path 旁边的"预留带"标出来** (★N 专用 ⇒ P 不许进)"""
-    # ★**粗做法**: ★**path 的每个格, 把它 3×3 内、同层的格标为预留** (★约 0.125~0.375mm)
+    """★**把 path 旁边的"预留带"标出来** (★N 专用 ⇒ P 不许进)
+
+    ★★★★2026-11-06 14:3x **★关键修正: ★**预留带必须**排除路径本身**!**
+      ★**踩到的坑**: ★**原实现把 path 的格自己也标进预留带**
+        ⇒ ★**P 走完后, ★**那些格对 N 也是"预留"⇒ ★**N 根本走不了**
+        ⇒ ★**实测症状: 第 2 段 P 走通 475 格, N 却"搜不到路"**
+      ⇒ ★**⇒ 预留带只取"离路径 1~gi 格"的邻域, ★**不含路径格**
+    """
     gi = max(1, int(round(half_mm / r.g)))
+    on_path = set(path)
     for (li, idx) in path:
         i, j = idx % r.W, idx // r.W
         for di in range(-gi, gi + 1):
             for dj in range(-gi, gi + 1):
                 i2, j2 = i + di, j + dj
-                if 0 <= i2 < r.W and 0 <= j2 < r.H:
-                    reserve_cells.add((li, r._idx(i2, j2)))
+                if not (0 <= i2 < r.W and 0 <= j2 < r.H):
+                    continue
+                k = r._idx(i2, j2)
+                if (li, k) in on_path:
+                    continue        # ★★**路径本身不算预留**
+                reserve_cells.add((li, k))
 
 
 def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
@@ -191,6 +202,48 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
             break
         sp = starts_for("P", all_p, conn_p)
         sn = starts_for("N", all_n, conn_n)
+        # ★★★2026-11-06 14:3x **★配对推进 (★核心修正)**
+        #   ★**原实现**: P 走自己的下一个焊盘, N 走自己的下一个焊盘 ⇒ ★**两边会走岔**
+        #     ⇒ ★**实测症状: 第 2 段 P 走了 475 格, N 只走 29 格 ⇒ 岔开 ⇒ N 撞上 P 的长路**
+        #   ★**现在**: ★**两侧走"对应的同一段"** ⇒ ★**P 的第 k 段与 N 的第 k 段配对**
+        #     ⇒ ★**⇒ 走同一条走廊 ⇒ 这才是差分对该有的样子**
+        _gp = list(gp)
+        _gn = list(gn)
+        if len(_gp) > 1 and len(_gn) > 1:
+            # ★★★★2026-11-06 14:4x **★配对必须按"拓扑对应", 不能按坐标最近** ★★★★
+            #   ★**踩到的坑**: ★**按坐标最近配对 ⇒ 配到了 P.pad2 与 N.pad2** (两个远端焊盘, 相距 0.5mm)
+            #     ⇒ ★**于是第 0 段的目标就是远端焊盘, 而起点也在那附近 ⇒ ★**1 格命中**
+            #   ★**正确**: ★**按焊盘索引配对** (★P.pad0↔N.pad0 · P.pad1↔N.pad1 ...)
+            #     ⇒ ★**因为 P/N 的焊盘在网表里就是成对的 (TP_CSI_CK_P ↔ TP_CSI_CK_N 等)**
+            _pmap = dict(_gp)
+            _nmap = dict(_gn)
+            # ★★**配对优先取"双方都有"的最小索引** (★P/N 的焊盘在网表里就是成对的)
+            _pairs = []
+            for _pk in sorted(_pmap.keys()):
+                if _pk in _nmap:
+                    _pairs.append((_pk, _pmap[_pk], _nmap[_pk]))
+            if _pairs:
+                _pk, _pnb, _nnb = _pairs[0]
+                gp = [(_pk, _pnb)]
+                gn = [(_pk, _nnb)]
+            else:
+                # ★★**没有共同索引 ⇒ ★**取"坐标最近"的一对** (★如 P.pad3 / N.pad2)
+                #   ★★**实测**: `CSI_D0_CK_P` pad3=D_ESD_CAM.2 (86.0,50.6) vs pad2=CONN_CAM.18 (87.4,57.6)
+                #   ★★**⇒ N 侧没有 D_ESD ⇒ ★**这一段只能 P 单独走 (★N 走到它自己的 pad2)
+                _pairs2 = []
+                for (pk, pnb) in _gp:
+                    _pc = _nb_center(r, pnb)
+                    for (nk, nnb) in _gn:
+                        _nc = _nb_center(r, nnb)
+                        if _pc is None or _nc is None:
+                            continue
+                        _d = math.hypot(_pc[0] - _nc[0], _pc[1] - _nc[1])
+                        _pairs2.append((_d, pk, pnb, nk, nnb))
+                if _pairs2:
+                    _pairs2.sort(key=lambda t: t[0])
+                    _d, pk, pnb, nk, nnb = _pairs2[0]
+                    gp = [(pk, pnb)]
+                    gn = [(nk, nnb)]
         # ★**先布"下一个目标最近"的那一侧** (★近的先占, 远的跟着走同一条走廊)
         _dp = _min_goal_dist(r, gp, sp)
         _dn = _min_goal_dist(r, gn, sn)
@@ -262,6 +315,18 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
                    % (len(conn_p), len(all_p), len(conn_n), len(all_n)))
 
 
+def _nb_center(r, nb):
+    """★**取邻域集合的代表坐标 (★平均)**"""
+    if not nb:
+        return None
+    xs = []
+    ys = []
+    for (li, idx) in nb:
+        xs.append(r._cx(idx % r.W))
+        ys.append(r._cy(idx // r.W))
+    return (sum(xs) / len(xs), sum(ys) / len(ys))
+
+
 def _min_goal_dist(r, goals, starts):
     best = 1e18
     for (k, nb) in goals:
@@ -278,13 +343,18 @@ def _min_goal_dist(r, goals, starts):
 def _astar_reserved(r, side, starts, goals, budget, reserved_cells, net, width,
                      exclude=None, _center_set=None):
     """★**带"预留带"的 A\*** (★**预留带里的格不许走**) ⇒ ★**给对方留出并行空间**
-    ★**exclude**: ★**要排除的目标 key 集合** (★★**起点焊盘必须排除**)
-      ⇒ ★**踩过的坑**: ★**起点格就在起点焊盘的邻域里** ⇒ ★**A\* 第一步就命中自己**
-        ⇒ ★**路径只有 1 格** ⇒ ★**⇒ 必须排除**"""
+
+    ★★**必须与 `router._astar` 同构** (★★这是本模块踩过的最贵的坑):
+      · ★**8 邻域** (★4 邻域在 0.125mm 网格上会被 halo 挡死)
+      · ★**同层移动: `_free(li, k, ...)` —— ★★层参数用"当前层"**
+      · ★**换层: 同格换层 + `_via_ok(li, l2, idx, ...)`**
+      · ★**实测**: 同构之后, ★**同一个 pad 对从"扩展 20 万次未命中"变成"28 格命中"**
+
+    ★**exclude**: ★**要排除的目标 key** (★**起点焊盘必须排除**)
+    ★**_center_set**: ★**所有焊盘中心格** (★命中判定的依据)
+    """
     _ex = exclude or set()
     _center_set = _center_set or set()
-    if _ex:
-        assert all(k not in _ex for k, _nb in goals) or True
     import heapq
     INF = float("inf")
     cls = r._cls(width)
@@ -317,9 +387,9 @@ def _astar_reserved(r, side, starts, goals, budget, reserved_cells, net, width,
             dy = j - by1
         return (dx + dy) + RT.VIA_COST * (li // 2)
 
-    for s in starts:
-        gsc[s] = 0.0
-        heapq.heappush(heap, (h_of(s[0], s[1]), 0.0, cnt, s))
+    for st in starts:
+        gsc[st] = 0.0
+        heapq.heappush(heap, (h_of(st[0], st[1]), 0.0, cnt, st))
         cnt += 1
     exp = 0
     while heap and exp < budget:
@@ -328,54 +398,75 @@ def _astar_reserved(r, side, starts, goals, budget, reserved_cells, net, width,
             continue
         exp += 1
         li, idx = cur
+        # ★**命中判定: 走到目标焊盘的**中心格**才算**
         for (k, nb) in goals:
             if k in _ex:
                 continue
-            if cur in nb:
-                # ★★★★2026-11-06 13:5x **命中判定: 必须是"目标焊盘的中心格"** ★★★★
-                #   ★**踩过的坑 (实测)**: ★**起点格同时落在多个焊盘的 3×3 邻域里**
-                #     ⇒ ★**走到任何焊盘的邻域都会被判"命中"** ⇒ ★**路径只有 1 格**
-                #   ⇒ ★**⇒ 改成: ★**只有走到目标焊盘的**中心格**才算命中**
-                _hit = False
-                for (_tl, _ti) in nb:
-                    if (_tl, _ti) in _center_set:
-                        _hit = True
-                        break
-                if not _hit:
+            if cur not in nb:
+                continue
+            if cur not in _center_set:
+                continue
+            p = [cur]
+            while p[-1] in came:
+                p.append(came[p[-1]])
+            p.reverse()
+            return p, k
+        # ★**同层移动 (8 邻域)**
+        i, j = idx % r.W, idx // r.W
+        for dj in (-1, 0, 1):
+            for di in (-1, 0, 1):
+                if di == 0 and dj == 0:
                     continue
-                if len(came) < 3:
-                    print("     [DBG] 命中 k=%s 于格 %s · 起点 %s · exclude=%s · goals=%s"
-                          % (k, cur, starts[0] if starts else None, sorted(_ex),
-                             [gk for (gk, _gn) in goals]))
-                p = [cur]
-                while p[-1] in came:
-                    p.append(came[p[-1]])
-                p.reverse()
-                return p, k
-        for (dli, didx) in _neighbors(r, li, idx):
-            if (dli, didx) in reserved_cells:
+                i2, j2 = i + di, j + dj
+                if not (0 <= i2 < r.W and 0 <= j2 < r.H):
+                    continue
+                k = r._idx(i2, j2)
+                if (li, k) in reserved_cells:
+                    continue
+                if not r._free(li, k, net, cls):
+                    continue
+                nk = (li, k)
+                ng = gc + 1.0
+                if ng < gsc.get(nk, INF) - 1e-9:
+                    gsc[nk] = ng
+                    came[nk] = cur
+                    heapq.heappush(heap, (ng + h_of(li, k), ng, cnt, nk))
+                    cnt += 1
+        # ★**换层 (同格换层)**
+        for l2 in RT.ROUTE_LAYERS:
+            if l2 == li:
                 continue
-            if not r._free(dli, didx, net, cls):
+            if (l2, idx) in reserved_cells:
                 continue
-            if didx != idx and not r._via_ok(li, dli, didx, net, cls):
+            if not r._via_ok(li, l2, idx, net, cls):
                 continue
-            nk = (dli, didx)
-            ng = gc + 1.0
+            nk = (l2, idx)
+            ng = gc + 1.0 + RT.VIA_COST
             if ng < gsc.get(nk, INF) - 1e-9:
                 gsc[nk] = ng
                 came[nk] = cur
-                heapq.heappush(heap, (ng + h_of(dli, didx), ng, cnt, nk))
+                heapq.heappush(heap, (ng + h_of(l2, idx), ng, cnt, nk))
                 cnt += 1
     return None
 
 
 def _neighbors(r, li, idx):
+    """★**8 邻域 + 同格换层** (★**必须与 router._astar 同构!**)
+
+    ★★★★2026-11-06 14:2x **踩到的坑: ★**我原来只写了 4 邻域 (上下左右)
+      ⇒ ★**在 0.125mm 网格上, 4 邻域的路径要多绕很多格** ⇒ ★**被 halo 挡住**
+      ⇒ ★**实测: 同一个 pad 对, `router._astar` (8 邻域) 通 28 格, ★**我的 4 邻域返回 None**
+      ⇒ ★**⇒ 邻居集必须与 router 一致**
+    """
     i, j = idx % r.W, idx // r.W
     out = []
-    for (di, dj) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-        i2, j2 = i + di, j + dj
-        if 0 <= i2 < r.W and 0 <= j2 < r.H:
-            out.append((li, r._idx(i2, j2)))
+    for di in (-1, 0, 1):
+        for dj in (-1, 0, 1):
+            if di == 0 and dj == 0:
+                continue
+            i2, j2 = i + di, j + dj
+            if 0 <= i2 < r.W and 0 <= j2 < r.H:
+                out.append((li, r._idx(i2, j2)))
     for l2 in RT.ROUTE_LAYERS:
         if l2 != li:
             out.append((l2, idx))
