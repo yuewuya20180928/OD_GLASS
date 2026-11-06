@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-06T11:14:29+08:00'
+  generated_at: '2026-11-06T11:44:00+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -14,9 +14,9 @@ meta:
       mtime_ns: 1793934664317075727
     mech-lead:
       file: mech.yaml
-      size: 152074
-      sha1: 826ff858e51f
-      mtime_ns: 1793934307709449862
+      size: 156954
+      sha1: aa56cb771510
+      mtime_ns: 1793935073066378375
     main:
       file: pm.yaml
       size: 35030
@@ -2080,14 +2080,26 @@ domains:
         两个细分 key)。★附带: 60×30 ⇒ 板重 **3.33g** (6层1.0mm), 你的 H 链与 mock 板 (B2) 请按 30mm 板宽重算 —— 你 10-31 的假设『4层0.80mm
         / 1.33g』已作废 (due 11-04)。'
       since: '2026-11-01'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: '2026-11-04'
-      overdue: true
+      overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: mech-lead
+        value: '已同步: mech.yaml 的 pcb_outline = 60x30mm (与 hw-lead 逐字节同串), 合并器 pcb_outline 冲突 0 (2026-11-06
+          复核)。另已有细分 key pcb_board_width=30mm / pcb_length_proposed=60mm 可用。★板重按 30mm 板宽重算: 60x30=1800mm²,
+          PCB 板重 4层0.80mm=2.664g / 6层1.00mm=3.330g (原 1.33g 作废)。★H 链与 mock 板按 30mm 板宽重算的结论 (MECH/rebase_20261106.py
+          §1+§2, rc=0): ①板宽是 V 向尺寸 ⇒ H 链一字不动 —— 315mAh 档 H 需求 6.35 / 可用 7.30 ⇒ 余 0.95mm (最坏 0.65) ✅, 387mAh
+          档 6.05 ⇒ 余 1.25 (最坏 0.95) ✅; L 链需求 115.50 / 可用 130.00 ⇒ 余 14.50 ✅; ②★唯一被板宽 30 吃掉的是 V 链: 需求 =
+          板宽 30.00 + 走线槽 6.00 = 36.00 vs 根部净高 38.00 ⇒ 余 2.00mm (最坏 1.40) ✅ 过判据 0.60 ⇒ ★板宽硬顶 = 38.00-6.00-0.60
+          = 31.40mm (板宽 30 距顶只剩 1.40); ③★电池空间与续航结论不变 (串行排布 ⇒ 板宽只吃 PCB 段的 V); ④B2 mock 板按 60×30 做 (板厚档位
+          0.41/0.80/1.00/1.22 四档, ISS-122 两套模型对撞 ⇒ 档位未定); ⑤骨架 V 覆盖 12.0→30.0 满宽 ⇒ 台阶形截面 2.957→2.641g/对,
+          石墨 0.54→1.08g/对, 整机 +3.76~4.10g ⇒ 52.7-78.1g'
+        ref: MECH/rebase_20261106.py §1+§2 (rc=0, 自检 14/14) + MECH/fit_check_v3_30mm.py + HW/pcb60x30_check.json
+          sec1/sec6
       foreign_answers: []
     - key: iss118_pcb_holes_30mm_y
       to: mech-lead
@@ -2393,14 +2405,27 @@ domains:
         120 度对角 FOV 只能鱼眼 + ISP 鱼眼校正 (Vadzo Bolt-234CGS 默认 S-Mount 74 度 DFOV 佐证生态默认), 直线镜在 28 度 CRA 下角落入射角失配不成立。★camera
         板上有什么可用供电轨也请一并回 (VDDIO_PHY 1.8V 要在铰链侧本地生, 前提是 camera 板有轨可降) (due 11-04)。'
       since: '2026-11-02'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: mech-lead
+        value: '结构侧可答的部分 (镜头侧资料要镜头厂, 我不外联; ★以下全是结构侧的几何约束与判据, 供你写进 RFQ): ①★CRA 对结构侧的影响 = 镜头总高与镜筒内长 (CRA
+          角越大 ⇒ 入射光锥越陡 ⇒ 镜筒内壁遮光长度要留够), 结构侧已按 ISS-052 定案的镜框上沿摄像头位需求出数: 镜筒外径 ⌀6.0-6.5 / 净空 ⌀7.5 / 镜头总高 3.7-4.6
+          (推荐 4.6) / 模组沿光轴总高 5.0-5.9 (推荐 6.0) / 前组通光口径 >=4.0-4.5 / 窗口通光 ⌀5.0 外径 ⌀6.5 厚 0.3 (蓝宝石 0.5) AR
+          镀膜 R<2%@60度 / 窗口距前顶点 >=0.5mm / ★前镜片顶点必须齐平或凹进 <=1.0mm (凸出 0.6-1.4, 最坏 2.41 <= MECH 凸出上限 2.5)。②★结构侧对
+          CRA 容差带的用法: ±3度容差带 ⇒ 结构侧的镜筒内壁遮光长度要按**最坏 CRA 侧**留, 且**CRA 曲线是随像高变化的 ⇒ 结构侧要求镜头厂按 1/2.6 英寸靶面给曲线,
+          不能只给一个标称 CRA** (否则镜筒做短了, 边缘出杂散光/鬼影, 这个结构侧改不了)。③★PN 变体 (0度族 vs 28度族) 对结构侧的影响 = **只影响镜头总高与镜筒内长的取值,
+          不影响镜框上沿的厚度需求** (10.11mm@俯角25度 / 10.26@28度 / 10.41@32度, 落在 10-12mm 带内 ⇒ 余 1.6-1.9mm, 且俯角 20→32度只变
+          0.60mm ⇒ 俯角收窄不吃厚度预算) ⇒ ★**两族都能装 ⇒ 结构侧不参与 PN 变体的选型**, 但★**垂直净高需求 10.36mm(25度)/10.53mm(28度) 比前后厚度更紧
+          ⇒ 是外观代价, 请你在选型时把这两个数一并给到 boss**。④★结构侧真正的未决项与镜头选型无关: 镜框正中光学舱 14×10×6mm 是**走鹃Ⅱ 光引擎的数, 11-02 换视涯
+          SiOLED 后已作废** ⇒ 镜框侧几何要按新模组重算 (ISS-133), 摄像头的孔位/沉孔深度要跟那一版一起定。'
+        ref: MECH/CAMERA_WINDOW_SPEC.md (B1-B6) + MECH/camera_window_check.py (rc=0) + MECH/ISS047_FOV_TABLE.md
+          + HANDOFF/2026-11-02_mech-lead_ISS047_FOV俯角表复核.md
       foreign_answers: []
     - key: part_registry_l3_evidence
       to: main
@@ -6016,6 +6041,26 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: mech_numpy_dep_for_print_check
+      to: main
+      item: '★ISS-017/ISS-027 的打印包自检脚本 MECH/print/verify_pack_revb.py **依赖 numpy** (np.frombuffer 读 STL
+        二进制 + np.radians/trig 算斜面角), 而本机 python3.14 **无 numpy** 且装不上: (a) pip 走清华镜像可通但 16.7MB wheel 下载**连续超时**(已试
+        --timeout 120 --retries 10, 仍卡在 Downloading); (b) PEP 668 externally-managed ⇒ --user/--break-system-packages
+        都被拒; (c) /tmp 里的 wheel 残file不完整(pip-unpack 里的 numpy-2.5.4 whl 只有 1.5MB, 装完报 wheel invalid)。★**后果**:
+        本轮**没能复跑打印包自检** (93/93 + 38/38 rc=0 是 11-01 那轮的记录) ⇒ 我改用**纯 python 独立解析 STL** 复核了三个包围盒 (150×132×22
+        / 60×122.40×27.80 / 33×3×7.20) ⇒ 与 11-01 记录逐个吻合 ⇒ 打印包本轮未见改动。★**我的假设 (不回应就按这个走)**: 打印包自检的**可复现性**不依赖
+        numpy ⇒ 我把 verify_pack_revb.py 改成**纯 python 实现** (STL 二进制读取用 struct + trig 用 math), 这样 ISS-017/ISS-027
+        的 89 项清单在**任何**机器上都能一条命令复核 ⇒ 同时登记 needs mech_mat_* 里的 numpy 缺失同源问题。经项目总工转达'
+      since: '2026-11-06'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: hw-lead
@@ -6165,6 +6210,33 @@ domains:
         ⇒ **充电板的开关噪声与麦同处**, 这比磁铁-麦间距更值得担心 (N35 静态场 vs 开关噪声)。⇒ 建议把麦放在充电板 **对侧** (即充电板在右端件 ⇒ 麦走左), 并把 ''麦
         vs 充电板距离'' 提为一条硬判据 (我的建议: ≥30mm, 需 sw-lead 复核 I2S/PDM 载流)。'
       ref: MECH/MECH_BUDGET.md §802 + MECH/SERVICE_PORT_ISS092.md §3.1
+    - key: iss118_pcb_outline_sync_60x30
+      to: hw-lead
+      value: '已同步: mech.yaml 的 pcb_outline = 60x30mm (与 hw-lead 逐字节同串), 合并器 pcb_outline 冲突 0 (2026-11-06
+        复核)。另已有细分 key pcb_board_width=30mm / pcb_length_proposed=60mm 可用。★板重按 30mm 板宽重算: 60x30=1800mm²,
+        PCB 板重 4层0.80mm=2.664g / 6层1.00mm=3.330g (原 1.33g 作废)。★H 链与 mock 板按 30mm 板宽重算的结论 (MECH/rebase_20261106.py
+        §1+§2, rc=0): ①板宽是 V 向尺寸 ⇒ H 链一字不动 —— 315mAh 档 H 需求 6.35 / 可用 7.30 ⇒ 余 0.95mm (最坏 0.65) ✅, 387mAh
+        档 6.05 ⇒ 余 1.25 (最坏 0.95) ✅; L 链需求 115.50 / 可用 130.00 ⇒ 余 14.50 ✅; ②★唯一被板宽 30 吃掉的是 V 链: 需求 = 板宽
+        30.00 + 走线槽 6.00 = 36.00 vs 根部净高 38.00 ⇒ 余 2.00mm (最坏 1.40) ✅ 过判据 0.60 ⇒ ★板宽硬顶 = 38.00-6.00-0.60
+        = 31.40mm (板宽 30 距顶只剩 1.40); ③★电池空间与续航结论不变 (串行排布 ⇒ 板宽只吃 PCB 段的 V); ④B2 mock 板按 60×30 做 (板厚档位 0.41/0.80/1.00/1.22
+        四档, ISS-122 两套模型对撞 ⇒ 档位未定); ⑤骨架 V 覆盖 12.0→30.0 满宽 ⇒ 台阶形截面 2.957→2.641g/对, 石墨 0.54→1.08g/对, 整机
+        +3.76~4.10g ⇒ 52.7-78.1g'
+      ref: MECH/rebase_20261106.py §1+§2 (rc=0, 自检 14/14) + MECH/fit_check_v3_30mm.py + HW/pcb60x30_check.json
+        sec1/sec6
+    - key: iss148_lens_cra_curve_and_pn_variant
+      to: hw-lead
+      value: '结构侧可答的部分 (镜头侧资料要镜头厂, 我不外联; ★以下全是结构侧的几何约束与判据, 供你写进 RFQ): ①★CRA 对结构侧的影响 = 镜头总高与镜筒内长 (CRA 角越大
+        ⇒ 入射光锥越陡 ⇒ 镜筒内壁遮光长度要留够), 结构侧已按 ISS-052 定案的镜框上沿摄像头位需求出数: 镜筒外径 ⌀6.0-6.5 / 净空 ⌀7.5 / 镜头总高 3.7-4.6
+        (推荐 4.6) / 模组沿光轴总高 5.0-5.9 (推荐 6.0) / 前组通光口径 >=4.0-4.5 / 窗口通光 ⌀5.0 外径 ⌀6.5 厚 0.3 (蓝宝石 0.5) AR
+        镀膜 R<2%@60度 / 窗口距前顶点 >=0.5mm / ★前镜片顶点必须齐平或凹进 <=1.0mm (凸出 0.6-1.4, 最坏 2.41 <= MECH 凸出上限 2.5)。②★结构侧对
+        CRA 容差带的用法: ±3度容差带 ⇒ 结构侧的镜筒内壁遮光长度要按**最坏 CRA 侧**留, 且**CRA 曲线是随像高变化的 ⇒ 结构侧要求镜头厂按 1/2.6 英寸靶面给曲线,
+        不能只给一个标称 CRA** (否则镜筒做短了, 边缘出杂散光/鬼影, 这个结构侧改不了)。③★PN 变体 (0度族 vs 28度族) 对结构侧的影响 = **只影响镜头总高与镜筒内长的取值,
+        不影响镜框上沿的厚度需求** (10.11mm@俯角25度 / 10.26@28度 / 10.41@32度, 落在 10-12mm 带内 ⇒ 余 1.6-1.9mm, 且俯角 20→32度只变
+        0.60mm ⇒ 俯角收窄不吃厚度预算) ⇒ ★**两族都能装 ⇒ 结构侧不参与 PN 变体的选型**, 但★**垂直净高需求 10.36mm(25度)/10.53mm(28度) 比前后厚度更紧
+        ⇒ 是外观代价, 请你在选型时把这两个数一并给到 boss**。④★结构侧真正的未决项与镜头选型无关: 镜框正中光学舱 14×10×6mm 是**走鹃Ⅱ 光引擎的数, 11-02 换视涯
+        SiOLED 后已作废** ⇒ 镜框侧几何要按新模组重算 (ISS-133), 摄像头的孔位/沉孔深度要跟那一版一起定。'
+      ref: MECH/CAMERA_WINDOW_SPEC.md (B1-B6) + MECH/camera_window_check.py (rc=0) + MECH/ISS047_FOV_TABLE.md
+        + HANDOFF/2026-11-02_mech-lead_ISS047_FOV俯角表复核.md
     open_questions:
     - id: MECH-Q1
       to: main
@@ -11291,18 +11363,6 @@ needs_matrix:
     due: '2026-11-06'
     _by: hw-lead
     state: pending
-  - key: iss118_pcb_outline_sync_60x30
-    to: mech-lead
-    item: '★台账订正 (重要): 老板 10-29 19:16 拍板『板宽可以放到 30mm 以内』 ⇒ **板框已定 60×30mm** (PROJECT_TRACKER §0 板宽行, 11-01
-      20:5x 已订正)。★我方分片的 `pcb_outline` 已从 60x15mm 改成 **60x30mm** ⇒ 合并器现在会报 `pcb_outline` 冲突 (60x30mm vs
-      你的 60x15mm) ⇒ **请把 mech.yaml 的 pcb_outline 同步成 60x30mm** (或改用 pcb_board_width=30mm + pcb_length=60mm
-      两个细分 key)。★附带: 60×30 ⇒ 板重 **3.33g** (6层1.0mm), 你的 H 链与 mock 板 (B2) 请按 30mm 板宽重算 —— 你 10-31 的假设『4层0.80mm
-      / 1.33g』已作废 (due 11-04)。'
-    since: '2026-11-01'
-    waiting_on: agent
-    due: '2026-11-04'
-    _by: hw-lead
-    state: pending
   - key: iss148_imx415_netlist_changes
     to: main
     since: '2026-11-02'
@@ -11392,20 +11452,6 @@ needs_matrix:
       是 pdftotext 转出的扁平引脚表, 没有 bank 对照 GPIO 的权威表, 只能靠引脚表顺序推断, 不能当结论。★请核 Rockchip 官方 RK3572 IO domain /
       VCCIO 分组表, 或 BSP rk3572.dtsi 的 io-domains / pinctrl rockchip,pins 里的 VCCIO 网名 => 这条不核, U2 最终改法不能定稿
       (due 11-03)。'
-    since: '2026-11-02'
-    _by: hw-lead
-    state: pending
-  - key: iss148_lens_cra_curve_and_pn_variant
-    to: mech-lead
-    item: '★ISS-148 U3 查完, 镜头侧要补两项公开资料 (都是问我们自己的镜头供应商, 不是问 onsemi, 不违反老板禁令)。①CRA 曲线: onsemi 的 AND9658-D
-      (AR0234 Sensor Optical Specifications, 含 recommended lenses + CRA tolerances) 正文在 Scribd 付费墙后, 按老板规矩永久放弃不追
-      ⇒ 改走替代路径: 要求镜头厂提供所选镜头在 1/2.6 英寸 (AR0234CS, 对角 6.79mm, 有效阵列 5.760x3.600mm) 靶面上的 CRA-vs-像高曲线, 以及该镜头的角畸变与相对照度;
-      CRA 容差带按业界通用 plus or minus 3 度做设计裕量。★AR0234CS 自身的像素接受角已经查实 (datasheet Table 1 p.1: CRA = 0 度或 28
-      度, 两个 PN 变体; Figure 19 p.23 给 28 度变体完整曲线, 角落 27.97 度 @ 3.396mm 对角半长), 这张表可以直接附在 RFQ 里给镜头厂做匹配。②PN
-      变体随镜头一起定: 0 度族还是 28 度族要跟镜头方案一起定 (0 度族在 datasheet Rev 0 (2020-03) 还是工程样品 -E, Rev 3 (2020-09) 才变成可订料,
-      onsemi 官网 12 个 orderable part 里已含 0 度族) ⇒ 采购窗口按 Rev 3 的 20 个 PN 表核。★另外提醒: 120 度对角 FOV 只能鱼眼 + ISP
-      鱼眼校正 (Vadzo Bolt-234CGS 默认 S-Mount 74 度 DFOV 佐证生态默认), 直线镜在 28 度 CRA 下角落入射角失配不成立。★camera 板上有什么可用供电轨也请一并回
-      (VDDIO_PHY 1.8V 要在铰链侧本地生, 前提是 camera 板有轨可降) (due 11-04)。'
     since: '2026-11-02'
     _by: hw-lead
     state: pending
@@ -11876,8 +11922,21 @@ needs_matrix:
     since: '2026-11-06'
     _by: mech-lead
     state: pending
-  answered_count: 153
-  total: 226
+  - key: mech_numpy_dep_for_print_check
+    to: main
+    item: '★ISS-017/ISS-027 的打印包自检脚本 MECH/print/verify_pack_revb.py **依赖 numpy** (np.frombuffer 读 STL
+      二进制 + np.radians/trig 算斜面角), 而本机 python3.14 **无 numpy** 且装不上: (a) pip 走清华镜像可通但 16.7MB wheel 下载**连续超时**(已试
+      --timeout 120 --retries 10, 仍卡在 Downloading); (b) PEP 668 externally-managed ⇒ --user/--break-system-packages
+      都被拒; (c) /tmp 里的 wheel 残file不完整(pip-unpack 里的 numpy-2.5.4 whl 只有 1.5MB, 装完报 wheel invalid)。★**后果**:
+      本轮**没能复跑打印包自检** (93/93 + 38/38 rc=0 是 11-01 那轮的记录) ⇒ 我改用**纯 python 独立解析 STL** 复核了三个包围盒 (150×132×22
+      / 60×122.40×27.80 / 33×3×7.20) ⇒ 与 11-01 记录逐个吻合 ⇒ 打印包本轮未见改动。★**我的假设 (不回应就按这个走)**: 打印包自检的**可复现性**不依赖
+      numpy ⇒ 我把 verify_pack_revb.py 改成**纯 python 实现** (STL 二进制读取用 struct + trig 用 math), 这样 ISS-017/ISS-027
+      的 89 项清单在**任何**机器上都能一条命令复核 ⇒ 同时登记 needs mech_mat_* 里的 numpy 缺失同源问题。经项目总工转达'
+    since: '2026-11-06'
+    _by: mech-lead
+    state: pending
+  answered_count: 155
+  total: 227
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -12489,7 +12548,7 @@ summary:
   artifacts: 154
   blockers: 43
   high_blockers: 33
-  open_needs: 73
+  open_needs: 72
   waiting_external_needs: 78
   overdue_needs: 0
   target_missing_needs: 0

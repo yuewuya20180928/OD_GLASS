@@ -377,7 +377,9 @@ issues:
 
     ★2026-11-06 mech-lead 交卷并自推状态 (owner=mech-lead, verify_by=main; ★verify_result/verify_date **留空待 main 写**)。【★本单是「纸面 96% / 实物 0 件」落差最直接的那一条, 本轮给的是**实测口径**不是新计划】10-01 交的产出 (Rev B 打印包 + 89 项测量清单 + ENVIRONMENT 探测 + 4 条 needs) 11-01 已 verified。★**① P2S 打印件实测尺寸: 0 件, 仍是 0 件** —— 交付口径**一个字没改**: Rev B 包 3 个 STL 可下片 (自检 93/93 + 38/38 rc=0) + MEASURE_CHECKLIST 89 项待测 + ENV_PROBE_20261101.md (打印机 192.168.1.68 与本机 192.168.2.4/24 跨网段不可达: ping 无响应 + TCP 990/8883/6000/4000 全 closed; 无切片器; 无卡尺/千分尺/塞尺; 无 USB 串口) ⇒ measurements.yaml 的 M-PRINT **kind 保持 [推算]** ⇒ **AGENTS.md 要求的「含实测尺寸」这项仍未满足** ⇒ ★**不假装满足**。★**② 彩虹纹指标: 仍 [0数据]** (JBD/波导厂未选型 ⇒ 无 2D 外形图/无耦入区/无容差角/无彩虹纹指标) ⇒ 已登记 need iss017_waveguide_rainbow_metric→jbd (due 11-08, 经项目总工走 JBD)。★**本轮补的**: ① **89 项测量清单里与板宽 30 相关的判据已重算并落进 Rev B 包** (V 余量梳按 30mm 板: 余 2.00 / 最坏 1.40; PIN-SET-2 按新 Y 定位; 板厚三档 0.41/0.80/1.00) ⇒ **清单本身是可执行的, 缺的只是执行方** ② ★**把「还差几件事」量化成 6 条** (见本周交接单 B1): (a) 打印件 0 件 ← ISS-040 (b) 板厚档位未定 (t=1.22 破检修口净空 4.50, 差 0.02) (c) PIN-SET-2 的 Y 坐标待 hw-lead 确认 (d) 净高 37.0→38.00 与板宽 30 的 V 链两处口径要同步 (e) 量产外形件几何 0 数据点 (f) 波导/镜头/光机外形全 [0数据] ⇒ 镜框侧干涉判不了。【★为什么关不掉 / 新 due 2026-11-13】★**本单的两项都是外部依赖**: ① 打印+量测执行方 (ISS-040, boss) ② 彩虹纹指标 (JBD, 经项目总工) ⇒ **结构侧自己关不掉** ⇒ 新 due 2026-11-13。【诚实边界】★**[实测] 实物 = 0 条**; 89 项里 **0 项有实测值**。
 
-    ★2026-11-06 mech-lead 补记 (状态维持 verified, **不改 verify_result** —— 那是 verify_by 侧的权)。★**为什么本条现在关不掉 (机制层, 不是内容层)**: issue_check.py 的 **C3** 要求 `closed` 必须满足 **verify_result == ''pass'' (字面精确相等)**; 而本条的 verify_result 是 main 在 10-27~11-01 写的**散文体** (内容明确是「验收通过」, 但不是字面 ''pass'') ⇒ **强行关 ⇒ issue_check 立刻报违规** ⇒ **只能由 main 侧把 verify_result 规整成字面 ''pass'' 后再关** ⇒ ★**这是台账的格式债, 不是本单没做完**。★本轮另开 **ISS-185** 承接本条延续出来的同类问题 (没有对手方的过期 claim 值, 合并器静默放过)。★**新 due 2026-11-13**: 等 (a) main 规整 verify_result 并关单 或 (b) 本单内容按新基线重做后重交。'
+    ★2026-11-06 mech-lead 补记 (状态维持 verified, **不改 verify_result** —— 那是 verify_by 侧的权)。★**为什么本条现在关不掉 (机制层, 不是内容层)**: issue_check.py 的 **C3** 要求 `closed` 必须满足 **verify_result == ''pass'' (字面精确相等)**; 而本条的 verify_result 是 main 在 10-27~11-01 写的**散文体** (内容明确是「验收通过」, 但不是字面 ''pass'') ⇒ **强行关 ⇒ issue_check 立刻报违规** ⇒ **只能由 main 侧把 verify_result 规整成字面 ''pass'' 后再关** ⇒ ★**这是台账的格式债, 不是本单没做完**。★本轮另开 **ISS-185** 承接本条延续出来的同类问题 (没有对手方的过期 claim 值, 合并器静默放过)。★**新 due 2026-11-13**: 等 (a) main 规整 verify_result 并关单 或 (b) 本单内容按新基线重做后重交。
+
+    ★2026-11-06 补记 (numpy 依赖 ⇒ 打印包自检本轮未能复跑, 诚实标注): ★**MECH/print/verify_pack_revb.py 依赖 numpy** (np.frombuffer 读 STL 二进制 + np.radians/trig 算斜面角), 而本机 python3.14 **无 numpy** 且装不上 (pip 清华镜像可通但 16.7MB wheel 下载连续超时; PEP 668 禁 --user/--break-system-packages; /tmp 里的 wheel 残file不完整) ⇒ **本轮没有复跑这个脚本** ⇒ ★**「93/93 + 38/38 rc=0」是 11-01 那轮的记录, 本轮不重复声称复跑过**。⇒ 改用**纯 python 独立解析 STL** 复核 (不依赖 numpy): fit_coupon_revb.stl **25312 面 / 1236.0KB / 150.00×132.00×22.00mm** · temple_cage_revb.stl **2112 面 / 103.2KB / 60.00×122.40×27.80mm** · frame_typec_coupon_revb.stl **128 面 / 6.3KB / 33.00×3.00×7.20mm** ⇒ ★**三个包围盒与 11-01 自检记录逐个吻合** ⇒ 打印包几何本轮未见改动 (本轮确实一个字没改 MECH/print/)。★已登记 need mech_numpy_dep_for_print_check→main (due 11-13): 建议把 verify_pack_revb.py 改成纯 python 实现 ⇒ 89 项清单在任何机器上都能一条命令复核。'
   need_keys:
   - iss017_local_print_measure_unblock
   - iss017_waveguide_rainbow_metric
@@ -682,7 +684,9 @@ issues:
 
     【★它自己算出来的两条硬账 (值得老板知道)】① 骨架 0.8mm 的热学代价必须并进 U-3 一起算 —— 铝的导热面积/截面都小 ⇒ Tj 会升, 而 §2.3.1 的 46.5°C (0.23W 口径) **本来就已超 43°C 红线** ⇒ ★**只看重量选骨架会翻车**; ② **整机超重 48.9-74.0g vs 目标 30-40g —— 两个骨架候选都救不了** ⇒ 只能靠减重措施, 不靠骨架选型。
 
-    ★2026-11-06 mech-lead 交卷并自推状态 (owner=mech-lead, verify_by=main; ★verify_result/verify_date **留空待 main 写**)。【★本单的核心矛盾原样交上来: 纸面 96% / 实物 0 件】本单产出 (MECH/PROTOTYPE_PLAN.md 42.5KB + prototype_plan_check.py rc=0) 10-29 已交, 10-29 verified。★**B1 批次一行都没打** —— 原计划已经写清了「几批打样/每批验证什么/不通过怎么回滚」(四批解耦 B1 工艺标定 → B2 镜脚装配验证 → B3 镜框与光学 → B4 整机装配; 验证矩阵 A 打印件可测 10 项 / B 必须等电路板 7 项 / C 必须等整机+固件+仪器 6 项; 回滚五层 L1 打印参数 0.5-1天 → L2 打印件几何 1-2天 → L3 结构方案 1-2周 → L4 PCB 2-4周+打样费(打印件全报废) → L5 固件 1-3天), ★**但 B1 的唯一硬前置 ISS-040 (打印+量测执行方) 至今未闭** ⇒ 计划存在, 实物 0 件。★**本轮把这条落差的数字说清楚 (不灌水)**: 打印包 **Rev B 已就绪 3 个 STL** (fit_coupon_revb 25312面 / temple_cage_revb 2112面 / frame_typec_coupon_revb 128面) + 自检 **93/93 尺寸判据 + 38/38 STL↔规格互验 rc=0** ⇒ ★**可下片, 但 0 件已打 / 0 项实测** ⇒ measurements.yaml 的 M-PRINT **kind 仍是 [推算]** (没冒充实测) ⇒ 阶段门 G2 仍卡住 (**这是对的**)。★**本轮新增的结构账 (基线 30mm)**: B1 coupon 的 **34 项实测** 与 B2 的 **15 项 H 段** 在板宽 30 下的判据已重算 ⇒ V 链余量 2.00mm(最坏1.40) / H 链 315 档 0.95(最坏0.65) / L 链 14.50 ⇒ **B1/B2 的通过判据不因板宽 30 而失效** (B1 打的是 coupon 不是整板) ⇒ ★**ISS-040 一旦有着落, B1 立刻可跑, 不需要等板框冻结** (B2 才需要).【★为什么关不掉 / 新 due 2026-11-13】★**关不掉的原因不是本单没写, 是外部依赖**: ISS-040 (打印+量测执行方) 未闭 ⇒ 0 件打印 ⇒ 计划无法进入执行 ⇒ **这不是结构侧能自己解决的** ⇒ 新 due 2026-11-13, 与 ISS-040 同步。【★计划本身的硬前置已更新】PCB 板框/厚度/层数/孔位必须在 B1 开工前冻结 (板宽硬顶 31.40mm + PIN-SET-2 的 Y 坐标要按 30mm 板重定 ⇒ 两件都在动) ⇒ ★**建议把 B1 拆成两段**: B1a (纯 coupon, 34 项工艺标定, **不依赖板框**) 与 B1b (板相关项) ⇒ ★**这样 ISS-040 一有着落, 34 项工艺数据立刻能开始采**, 不等 PCB 冻结 (这条建议已登记 need proto_b1_split_coupon → main)。【诚实边界】★**[实测] 实物条数 = 0** (0 件打印 / 0 台样机 / 0 个实测温度); ENV_PROBE_20261101.md 实测记录本机物理上不可打印/量测。★2026-11-06 正式关单 (verified → closed)。★**C3 四条全过**: fix_ref 有 (MECH/PROTOTYPE_PLAN.md 42.5KB + prototype_plan_check.py rc=0 + HANDOFF/2026-10-29_mech-lead_原型制作计划_ISS027.md 19.9KB + skeleton_section_check.py rc=0) · verify_result == ''pass'' (字面) · verify_by=main ≠ owner=mech-lead (验证分离成立) · verify_date=2026-10-29。★**本单关的是「计划」这一件事** (分批打样/每批验证什么/不通过怎么回滚 四批 + 三分类矩阵 + 五层回滚, B1~B6 六块齐, 自检 rc=0)。★**但实物 0 件这件事没有随本单消失** —— B1 的唯一硬前置 ISS-040 (打印+量测执行方) 至今未闭 ⇒ **计划已在、实物 0 件** 的落差由本轮新登记的 need proto_b1_split_coupon→main 继续追 (★建议 B1 拆 B1a 纯 coupon / B1b 板相关, 这样 ISS-040 一有着落 34 项工艺数据立刻能开始采)。'
+    ★2026-11-06 mech-lead 交卷并自推状态 (owner=mech-lead, verify_by=main; ★verify_result/verify_date **留空待 main 写**)。【★本单的核心矛盾原样交上来: 纸面 96% / 实物 0 件】本单产出 (MECH/PROTOTYPE_PLAN.md 42.5KB + prototype_plan_check.py rc=0) 10-29 已交, 10-29 verified。★**B1 批次一行都没打** —— 原计划已经写清了「几批打样/每批验证什么/不通过怎么回滚」(四批解耦 B1 工艺标定 → B2 镜脚装配验证 → B3 镜框与光学 → B4 整机装配; 验证矩阵 A 打印件可测 10 项 / B 必须等电路板 7 项 / C 必须等整机+固件+仪器 6 项; 回滚五层 L1 打印参数 0.5-1天 → L2 打印件几何 1-2天 → L3 结构方案 1-2周 → L4 PCB 2-4周+打样费(打印件全报废) → L5 固件 1-3天), ★**但 B1 的唯一硬前置 ISS-040 (打印+量测执行方) 至今未闭** ⇒ 计划存在, 实物 0 件。★**本轮把这条落差的数字说清楚 (不灌水)**: 打印包 **Rev B 已就绪 3 个 STL** (fit_coupon_revb 25312面 / temple_cage_revb 2112面 / frame_typec_coupon_revb 128面) + 自检 **93/93 尺寸判据 + 38/38 STL↔规格互验 rc=0** ⇒ ★**可下片, 但 0 件已打 / 0 项实测** ⇒ measurements.yaml 的 M-PRINT **kind 仍是 [推算]** (没冒充实测) ⇒ 阶段门 G2 仍卡住 (**这是对的**)。★**本轮新增的结构账 (基线 30mm)**: B1 coupon 的 **34 项实测** 与 B2 的 **15 项 H 段** 在板宽 30 下的判据已重算 ⇒ V 链余量 2.00mm(最坏1.40) / H 链 315 档 0.95(最坏0.65) / L 链 14.50 ⇒ **B1/B2 的通过判据不因板宽 30 而失效** (B1 打的是 coupon 不是整板) ⇒ ★**ISS-040 一旦有着落, B1 立刻可跑, 不需要等板框冻结** (B2 才需要).【★为什么关不掉 / 新 due 2026-11-13】★**关不掉的原因不是本单没写, 是外部依赖**: ISS-040 (打印+量测执行方) 未闭 ⇒ 0 件打印 ⇒ 计划无法进入执行 ⇒ **这不是结构侧能自己解决的** ⇒ 新 due 2026-11-13, 与 ISS-040 同步。【★计划本身的硬前置已更新】PCB 板框/厚度/层数/孔位必须在 B1 开工前冻结 (板宽硬顶 31.40mm + PIN-SET-2 的 Y 坐标要按 30mm 板重定 ⇒ 两件都在动) ⇒ ★**建议把 B1 拆成两段**: B1a (纯 coupon, 34 项工艺标定, **不依赖板框**) 与 B1b (板相关项) ⇒ ★**这样 ISS-040 一有着落, 34 项工艺数据立刻能开始采**, 不等 PCB 冻结 (这条建议已登记 need proto_b1_split_coupon → main)。【诚实边界】★**[实测] 实物条数 = 0** (0 件打印 / 0 台样机 / 0 个实测温度); ENV_PROBE_20261101.md 实测记录本机物理上不可打印/量测。★2026-11-06 正式关单 (verified → closed)。★**C3 四条全过**: fix_ref 有 (MECH/PROTOTYPE_PLAN.md 42.5KB + prototype_plan_check.py rc=0 + HANDOFF/2026-10-29_mech-lead_原型制作计划_ISS027.md 19.9KB + skeleton_section_check.py rc=0) · verify_result == ''pass'' (字面) · verify_by=main ≠ owner=mech-lead (验证分离成立) · verify_date=2026-10-29。★**本单关的是「计划」这一件事** (分批打样/每批验证什么/不通过怎么回滚 四批 + 三分类矩阵 + 五层回滚, B1~B6 六块齐, 自检 rc=0)。★**但实物 0 件这件事没有随本单消失** —— B1 的唯一硬前置 ISS-040 (打印+量测执行方) 至今未闭 ⇒ **计划已在、实物 0 件** 的落差由本轮新登记的 need proto_b1_split_coupon→main 继续追 (★建议 B1 拆 B1a 纯 coupon / B1b 板相关, 这样 ISS-040 一有着落 34 项工艺数据立刻能开始采)。
+
+    ★2026-11-06 补记 (numpy 依赖 ⇒ 打印包自检本轮未能复跑, 诚实标注): ★**MECH/print/verify_pack_revb.py 依赖 numpy** (np.frombuffer 读 STL 二进制 + np.radians/trig 算斜面角), 而本机 python3.14 **无 numpy** 且装不上 (pip 清华镜像可通但 16.7MB wheel 下载连续超时; PEP 668 禁 --user/--break-system-packages; /tmp 里的 wheel 残file不完整) ⇒ **本轮没有复跑这个脚本** ⇒ ★**「93/93 + 38/38 rc=0」是 11-01 那轮的记录, 本轮不重复声称复跑过**。⇒ 改用**纯 python 独立解析 STL** 复核 (不依赖 numpy): fit_coupon_revb.stl **25312 面 / 1236.0KB / 150.00×132.00×22.00mm** · temple_cage_revb.stl **2112 面 / 103.2KB / 60.00×122.40×27.80mm** · frame_typec_coupon_revb.stl **128 面 / 6.3KB / 33.00×3.00×7.20mm** ⇒ ★**三个包围盒与 11-01 自检记录逐个吻合** ⇒ 打印包几何本轮未见改动 (本轮确实一个字没改 MECH/print/)。★已登记 need mech_numpy_dep_for_print_check→main (due 11-13): 建议把 verify_pack_revb.py 改成纯 python 实现 ⇒ 89 项清单在任何机器上都能一条命令复核。'
   dispatched_at: '2026-10-29'
 - id: ISS-028
   title: 缺 EVT 报告模板 + 软硬件联调计划 (G3 无载体)
@@ -1712,7 +1716,7 @@ issues:
   owner: mech-lead
   reporter: mech-lead
   raised: '2026-10-26'
-  due: '2026-11-05'
+  due: '2026-11-16'
   status: deferred
   external: false
   need_keys: []
@@ -1723,7 +1727,9 @@ issues:
   verify_date: null
   note: '10-26 18:5x 项目总工批准 mech-lead 的提问。★排期: 与 ISS-064 (MECH_BUDGET 数字同步) 同一 agent 串行, ISS-064 先跑
 
-    ★2026-10-29 00:2x due 顺延 10-28 → 11-05 (跨零点自然翻成逾期; ★这类真逾期该报给老板/外部, 但不该卡住 GitHub 同步 —— 已改 daily_check 退出码分级, 异常=3 不再中止发布)。 ★2026-11-02 23:5x 老板 19:25「结构问题直接不考虑」⇒ 暂缓到整机阶段'
+    ★2026-10-29 00:2x due 顺延 10-28 → 11-05 (跨零点自然翻成逾期; ★这类真逾期该报给老板/外部, 但不该卡住 GitHub 同步 —— 已改 daily_check 退出码分级, 异常=3 不再中止发布)。 ★2026-11-02 23:5x 老板 19:25「结构问题直接不考虑」⇒ 暂缓到整机阶段
+
+    ★2026-11-06 顺延 due 并写清「为什么暂缓」: 老板 **11-02 19:25 指示③「结构问题直接不考虑」** ⇒ 本条随 MECH 全线**暂缓到整机阶段** (PROJECT_TRACKER §0 变量 42/43: ISS-143 due → 11-16 整机阶段)。⇒ **due 从 2026-11-05 顺延到 2026-11-16** (与整机阶段锚点 ISS-143 同日)。★**为什么暂缓 (不是我不做, 是指令)**: 本条涉及打印件/几何改动, 而 demo 阶段 (一块主板 + 模组 + FPC, **不做铰链、不做结构**) 打印件不产生价值 ⇒ 暂缓是对的。★**整机阶段启动时的依赖**: 本条做完还要等 ① 打印+量测执行方 (ISS-040) ② 板宽/板框冻结 (板宽硬顶 31.40mm) ⇒ 届时按整机阶段的基线重做, **不沿用 10 月的板宽 12/15 口径**。'
   dispatched_at: '2026-10-26'
 - id: ISS-067
   title: R-F1 3.3V 轨拓扑裁决落地 (UVP 抬 3.5V + 3.3V 改供 + 评估不牺牲容量的替代方案)
@@ -1934,7 +1940,7 @@ issues:
   owner: mech-lead
   reporter: mech-lead
   raised: '2026-10-26'
-  due: '2026-11-05'
+  due: '2026-11-16'
   status: deferred
   external: false
   need_keys: []
@@ -1945,7 +1951,9 @@ issues:
   verify_date: null
   note: '10-26 19:2x 项目总工批准 mech-lead 的 3 条提问, 合并成一单。★重点: (b) 是判据文件与文档口径必须一致, 不许为了过关把检查删掉 || 10-27 00:0x 项目总工复核: 幽灵在飞槽位 —— 虽标 fixing 但 state/dispatch_log.yaml 无 ISS-076 派活记录, 也没有任何 mech-lead 会话接手 (MECH/verify_budget.py mtime 仍 10-25 11:29, MECH_BUDGET.md 3.1 仍写 50.1-74.0g 单一口径) ⇒ 从 fixing 退回 open 重新排队。★本单 brief 已由项目总工 10-26 19:2x 批准, 可直接派
 
-    ★2026-10-29 00:2x due 顺延 10-28 → 11-05 (跨零点自然翻成逾期; ★这类真逾期该报给老板/外部, 但不该卡住 GitHub 同步 —— 已改 daily_check 退出码分级, 异常=3 不再中止发布)。 ★同上: 容量口径尾巴属结构 ⇒ 暂缓'
+    ★2026-10-29 00:2x due 顺延 10-28 → 11-05 (跨零点自然翻成逾期; ★这类真逾期该报给老板/外部, 但不该卡住 GitHub 同步 —— 已改 daily_check 退出码分级, 异常=3 不再中止发布)。 ★同上: 容量口径尾巴属结构 ⇒ 暂缓
+
+    ★2026-11-06 顺延 due 并写清「为什么暂缓」: 老板 **11-02 19:25 指示③「结构问题直接不考虑」** ⇒ 本条随 MECH 全线**暂缓到整机阶段** (PROJECT_TRACKER §0 变量 42/43: ISS-143 due → 11-16 整机阶段)。⇒ **due 从 2026-11-05 顺延到 2026-11-16** (与整机阶段锚点 ISS-143 同日)。★**为什么暂缓 (不是我不做, 是指令)**: 本条涉及打印件/几何改动, 而 demo 阶段 (一块主板 + 模组 + FPC, **不做铰链、不做结构**) 打印件不产生价值 ⇒ 暂缓是对的。★**整机阶段启动时的依赖**: 本条做完还要等 ① 打印+量测执行方 (ISS-040) ② 板宽/板框冻结 (板宽硬顶 31.40mm) ⇒ 届时按整机阶段的基线重做, **不沿用 10 月的板宽 12/15 口径**。'
   dispatched_at: '2026-10-26'
 - id: ISS-077
   title: '功耗预算 V3: 按官网 250mW 口径重算 (媒体 300mW → 官网 250mW, 差 20%) + V_CORE 上界按 1.0V'
@@ -2684,7 +2692,7 @@ issues:
   owner: mech-lead
   reporter: main
   raised: '2026-10-27'
-  due: '2026-11-05'
+  due: '2026-11-16'
   status: deferred
   external: false
   need_keys: []
@@ -2696,7 +2704,9 @@ issues:
   note: '2026-10-28 00:5x 项目总工登记 (老板拍板连带)
 
 
-    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。** ★同上: 镜框导光孔/导光柱属结构 ⇒ 暂缓'
+    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。** ★同上: 镜框导光孔/导光柱属结构 ⇒ 暂缓
+
+    ★2026-11-06 顺延 due 并写清「为什么暂缓」: 老板 **11-02 19:25 指示③「结构问题直接不考虑」** ⇒ 本条随 MECH 全线**暂缓到整机阶段** (PROJECT_TRACKER §0 变量 42/43: ISS-143 due → 11-16 整机阶段)。⇒ **due 从 2026-11-05 顺延到 2026-11-16** (与整机阶段锚点 ISS-143 同日)。★**为什么暂缓 (不是我不做, 是指令)**: 本条涉及打印件/几何改动, 而 demo 阶段 (一块主板 + 模组 + FPC, **不做铰链、不做结构**) 打印件不产生价值 ⇒ 暂缓是对的。★**整机阶段启动时的依赖**: 本条做完还要等 ① 打印+量测执行方 (ISS-040) ② 板宽/板框冻结 (板宽硬顶 31.40mm) ⇒ 届时按整机阶段的基线重做, **不沿用 10 月的板宽 12/15 口径**。'
   dispatched_at: null
 - id: ISS-104
   title: '★术语统一: 关机(真断电) / 待机(深度休眠 0.15W, ~9.3h) —— SW 侧 API 与省电策略语义要跟上'
@@ -4757,5 +4767,7 @@ issues:
   verify_by: main
   verify_result: null
   verify_date: null
-  note: '★2026-11-06 mech-lead 交卷并自推状态 (owner=mech-lead, verify_by=main, ★verify_result/verify_date **留空待 main 写** —— 我不自己验自己)。【本单做了什么】① 写 MECH/rebase_20261106.py: 一个**扫自己分片**的脚本 —— ★**只扫 value 字段不扫 note** (note 里出现历史数字是正常的记录, 不是过期取值; 第一版扫 value+note 误伤了 20 多条, 收窄到只扫 value 后才准) ⇒ 查出 9 条带过期口径 token; 再按「现行基线」逐 key 复核 ⇒ **8 条的值本身已过期**。② 处置分三类: **改值 8 条** (mech_conn_cam_pins 16p@0.5→31p@0.3 / mech_conn_light_pins 20p@0.5→22p@0.5 / mech_j_chg_pins 8p@0.5→10p@0.5 / mech_hinge_links_count 4→0(demo) / temple_h_stack 7.00mm(340档)→6.35mm(315档) / temple_h_margin 0.30→0.95mm(315档) / mech_rilim_recommended_ohm 470→390 / skeleton_extent 散文→与 hw-lead 逐字节同串) + **只加标注 9 条** (历史值不改 —— 改了就丢历史, 但必须标清「不代表现行基线」) + **新增 4 条** (V链余量 / 面积余量 / demo 铰链链路数 / 旧值条数)。★**3 条是「分片内自相矛盾」** (最该改的): mech_j_chg_pins=''8p'' 与本域 j_chg_pin_map=''1x10p'' 打架; mech_rilim_recommended_ohm=''470'' 与本域 r_ilim_set=''390ohm'' 打架; temple_h_stack=''7.00mm(340档)'' 的 340 档已被 ISS-072 作废。★**skeleton_extent 这一条踩了个坑并修掉了**: 直接把值改成与 hw-lead 同串仍**判冲突** —— 因为 merge 的 canon_of() 会 lower() 整串 (''止于PCB段后缘@Z=60.00mm'' → ''止于pcb段后缘@z=60.00mm''), 而 hw-lead 那条带**显式 canon 字段** = ''止于PCB段后缘'' ⇒ 只能像 ISS-107 那样**显式给 canon** 才逐字节相等 ⇒ 该项从【待规范化】清单里消除 (merge 输出该节现为空)。【本单**没有**做的事 (边界)】未改 hw/sw/pm 分片一行; 未改 HW/ SW/ PROJECT_TRACKER.md 任何文件; 未碰别人的 issue; 未联系任何供应商/原厂/JBD; 未下单/未发邮件。【★两条**已知残留** (需 main 或 hw-lead 回话, 已登记 needs)】① **网表与 11-02 决策的已知不一致**: DEMO_BOARD_HW_DECISION §5-N1 已落 (CONN_CAM/CONN_LIGHT → board=MAIN_PCB) 但 **N5 未落** (J_CHG 仍是 board=HINGE, CHG_BOARD 仍 92 行 76 必装) ⇒ 铰链区那整套结构结论在 demo 阶段到底适不适用, 取决于这条 ⇒ 已登记 need mech_rebase_netlist_hinge_mismatch→main (due 11-13)。② **PIN-SET-2 的 Y 坐标**: 板宽 15→30 后旧 Y 值全作废, 三方不一致 (本域 note 旧 Y / HW/pcb60x30_check.json 新 Y / 我 11-01 已按新 Y 重生成 Rev B 打印包) ⇒ 已登记 need mech_rebase_pcb_width_y_holes→hw-lead (due 11-13)。【诚实边界】★本单**实物 [实测] = 0 条** (0 件打印 / 0 台样机 / 0 个实测温度) ⇒ 全部结论是 [推算] 或 [机器实测-脚本]; 阶段门 G2 仍不通过 (设计意图)。'
+  note: '★2026-11-06 mech-lead 交卷并自推状态 (owner=mech-lead, verify_by=main, ★verify_result/verify_date **留空待 main 写** —— 我不自己验自己)。【本单做了什么】① 写 MECH/rebase_20261106.py: 一个**扫自己分片**的脚本 —— ★**只扫 value 字段不扫 note** (note 里出现历史数字是正常的记录, 不是过期取值; 第一版扫 value+note 误伤了 20 多条, 收窄到只扫 value 后才准) ⇒ 查出 9 条带过期口径 token; 再按「现行基线」逐 key 复核 ⇒ **8 条的值本身已过期**。② 处置分三类: **改值 8 条** (mech_conn_cam_pins 16p@0.5→31p@0.3 / mech_conn_light_pins 20p@0.5→22p@0.5 / mech_j_chg_pins 8p@0.5→10p@0.5 / mech_hinge_links_count 4→0(demo) / temple_h_stack 7.00mm(340档)→6.35mm(315档) / temple_h_margin 0.30→0.95mm(315档) / mech_rilim_recommended_ohm 470→390 / skeleton_extent 散文→与 hw-lead 逐字节同串) + **只加标注 9 条** (历史值不改 —— 改了就丢历史, 但必须标清「不代表现行基线」) + **新增 4 条** (V链余量 / 面积余量 / demo 铰链链路数 / 旧值条数)。★**3 条是「分片内自相矛盾」** (最该改的): mech_j_chg_pins=''8p'' 与本域 j_chg_pin_map=''1x10p'' 打架; mech_rilim_recommended_ohm=''470'' 与本域 r_ilim_set=''390ohm'' 打架; temple_h_stack=''7.00mm(340档)'' 的 340 档已被 ISS-072 作废。★**skeleton_extent 这一条踩了个坑并修掉了**: 直接把值改成与 hw-lead 同串仍**判冲突** —— 因为 merge 的 canon_of() 会 lower() 整串 (''止于PCB段后缘@Z=60.00mm'' → ''止于pcb段后缘@z=60.00mm''), 而 hw-lead 那条带**显式 canon 字段** = ''止于PCB段后缘'' ⇒ 只能像 ISS-107 那样**显式给 canon** 才逐字节相等 ⇒ 该项从【待规范化】清单里消除 (merge 输出该节现为空)。【本单**没有**做的事 (边界)】未改 hw/sw/pm 分片一行; 未改 HW/ SW/ PROJECT_TRACKER.md 任何文件; 未碰别人的 issue; 未联系任何供应商/原厂/JBD; 未下单/未发邮件。【★两条**已知残留** (需 main 或 hw-lead 回话, 已登记 needs)】① **网表与 11-02 决策的已知不一致**: DEMO_BOARD_HW_DECISION §5-N1 已落 (CONN_CAM/CONN_LIGHT → board=MAIN_PCB) 但 **N5 未落** (J_CHG 仍是 board=HINGE, CHG_BOARD 仍 92 行 76 必装) ⇒ 铰链区那整套结构结论在 demo 阶段到底适不适用, 取决于这条 ⇒ 已登记 need mech_rebase_netlist_hinge_mismatch→main (due 11-13)。② **PIN-SET-2 的 Y 坐标**: 板宽 15→30 后旧 Y 值全作废, 三方不一致 (本域 note 旧 Y / HW/pcb60x30_check.json 新 Y / 我 11-01 已按新 Y 重生成 Rev B 打印包) ⇒ 已登记 need mech_rebase_pcb_width_y_holes→hw-lead (due 11-13)。【诚实边界】★本单**实物 [实测] = 0 条** (0 件打印 / 0 台样机 / 0 个实测温度) ⇒ 全部结论是 [推算] 或 [机器实测-脚本]; 阶段门 G2 仍不通过 (设计意图)。
+
+    ★2026-11-06 补记 (numpy 依赖 ⇒ 打印包自检本轮未能复跑, 诚实标注): ★**MECH/print/verify_pack_revb.py 依赖 numpy** (np.frombuffer 读 STL 二进制 + np.radians/trig 算斜面角), 而本机 python3.14 **无 numpy** 且装不上 (pip 清华镜像可通但 16.7MB wheel 下载连续超时; PEP 668 禁 --user/--break-system-packages; /tmp 里的 wheel 残file不完整) ⇒ **本轮没有复跑这个脚本** ⇒ ★**「93/93 + 38/38 rc=0」是 11-01 那轮的记录, 本轮不重复声称复跑过**。⇒ 改用**纯 python 独立解析 STL** 复核 (不依赖 numpy): fit_coupon_revb.stl **25312 面 / 1236.0KB / 150.00×132.00×22.00mm** · temple_cage_revb.stl **2112 面 / 103.2KB / 60.00×122.40×27.80mm** · frame_typec_coupon_revb.stl **128 面 / 6.3KB / 33.00×3.00×7.20mm** ⇒ ★**三个包围盒与 11-01 自检记录逐个吻合** ⇒ 打印包几何本轮未见改动 (本轮确实一个字没改 MECH/print/)。★已登记 need mech_numpy_dep_for_print_check→main (due 11-13): 建议把 verify_pack_revb.py 改成纯 python 实现 ⇒ 89 项清单在任何机器上都能一条命令复核。'
   dispatched_at: '2026-11-06'
