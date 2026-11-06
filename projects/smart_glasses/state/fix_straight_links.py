@@ -164,7 +164,11 @@ def main():
         print("★必须给 --out")
         return 2
 
-    board = pcbnew.LoadBoard(boardp)
+        board = pcbnew.LoadBoard(boardp)
+    # ★★**防御: LoadBoard 可能返回 None** (★板文件被杀时截断/损坏 ⇒ 实测崩在下一行)
+    if board is None:
+        print("★**板读不出来 (%s) ⇒ 拒绝继续** (★多半是文件被中断写坏)" % boardp)
+        return 2
     d = json.load(open(drcp, encoding="utf-8"))
 
     # ── 收齐异网铜 (用于净距验算) —— ★一律用"矩形"表示 ★
@@ -470,10 +474,10 @@ def main():
     for (why, n) in skipped[:25]:
         print("    · 未成: %s  [%s]" % (why, n))
 
-    for z in board.Zones():
+    for z in (board.Zones() or []):
         z.UnFill()
     filler = pcbnew.ZONE_FILLER(board)
-    filler.Fill(board.Zones())
+    filler.Fill(board.Zones() or [])
     board.Save(outp)
     print("── 已写出: %s (%d B)" % (outp, os.path.getsize(outp)))
     return 0

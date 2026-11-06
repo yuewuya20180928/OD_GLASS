@@ -100,8 +100,12 @@ def main():
         print("★必须给 --out")
         return 2
 
-    board = pcbnew.LoadBoard(boardp)
-    for z in board.Zones():
+        board = pcbnew.LoadBoard(boardp)
+    # ★★**防御: LoadBoard 可能返回 None** (★板文件被杀时截断/损坏 ⇒ 实测崩在下一行)
+    if board is None:
+        print("★**板读不出来 (%s) ⇒ 拒绝继续** (★多半是文件被中断写坏)" % boardp)
+        return 2
+    for z in (board.Zones() or []):
         z.UnFill()
 
     # ── 收集所有异网铜 (走线/焊盘) ──
@@ -270,7 +274,7 @@ def main():
     if still_bad:
         print("   ★挪不开 ⇒ 必须由上层重跑该路径 (本脚本不删铜 ⇒ 不产生悬空端)")
     filler = pcbnew.ZONE_FILLER(board)
-    filler.Fill(board.Zones())
+    filler.Fill(board.Zones() or [])
     board.Save(outp)
     print("── 已写出: %s (%d B)" % (outp, os.path.getsize(outp)))
     return 0

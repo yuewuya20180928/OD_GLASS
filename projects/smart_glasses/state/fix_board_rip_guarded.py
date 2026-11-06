@@ -106,7 +106,11 @@ def main():
     print("═══ 差分对清单: %d 对 ⇒ 保护 %d 个差分腿网" % (len(PAIRS), len(diff_nets)))
 
     board = pcbnew.LoadBoard(boardp)
-    for z in board.Zones():
+    # ★★**防御: LoadBoard 可能返回 None** (★板文件被杀时截断/损坏 ⇒ 实测崩在下一行)
+    if board is None:
+        print("★**板读不出来 (%s) ⇒ 拒绝继续** (★多半是文件被中断写坏)" % boardp)
+        return 2
+    for z in (board.Zones() or []):
         z.UnFill()
     r = RT.GridRouter(board, grid=0.125)
     ingested = {}
@@ -137,6 +141,9 @@ def main():
         ingested[id(rec)] = (t, rec)
     r.rebuild_halo()
     print("═══ 已灌入 %d 段 / %d 孔 (halo 已重建) ═══" % (len(r.tracks), len(r.vias)))
+    # ★★**原板图元的 id 集合** (★**必须单独存**: `apply_diff` 会把新铜也登记进 `ingested`
+    #   ⇒ ★**用 `ingested` 判"是不是新铜"会把新铜全跳过 ⇒ ★**复核因此漏检 (实测 DRC 263 却报"干净")**)
+    ORIG_IDS = set(ingested.keys())
 
     # ★该网的焊盘 (给孤岛数算)
     pads_by_net = {}
@@ -206,7 +213,7 @@ def main():
                 del ingested[oid]
         added = []
         for s in r.tracks:
-            if id(s) in ingested:
+            if id(s) in ORIG_IDS:
                 continue
             (net, x1, y1, x2, y2, li, w) = s
             code = RT.netcode(board, net)
@@ -222,7 +229,7 @@ def main():
             ingested[id(s)] = (t, s)
             added.append((t, s))
         for v in r.vias:
-            if id(v) in ingested:
+            if id(v) in ORIG_IDS:
                 continue
             (net, x, y, l1, l2) = v
             code = RT.netcode(board, net)
@@ -305,14 +312,14 @@ def main():
             bad = []
             if BC2 is not None:
                 for s in r.tracks:
-                    if id(s) in ingested:
+                    if id(s) in ORIG_IDS:
                         continue
                     (n2, x1, y1, x2, y2, li, w) = s
                     okc, worst, who = GC.check_track(BC2, n2, (x1, y1), (x2, y2), w, li)
                     if not okc:
                         bad.append("走线[%s] 净距 %.3fmm %s" % (n2, worst, who))
                 for v in r.vias:
-                    if id(v) in ingested:
+                    if id(v) in ORIG_IDS:
                         continue
                     (n2, x, y, l1, l2) = v
                     okc, worst, who = GC.check_via(BC2, n2, (x, y))
@@ -364,14 +371,14 @@ def main():
     try:
         BCF = GC.BoardCopper(board)
         for s in r.tracks:
-            if id(s) in ingested:
+            if id(s) in ORIG_IDS:
                 continue
             (n2, x1, y1, x2, y2, li, w) = s
             okc, worst, who = GC.check_track(BCF, n2, (x1, y1), (x2, y2), w, li)
             if not okc:
                 total_bad.append("走线[%s] 净距 %.3fmm %s" % (n2, worst, who))
         for v in r.vias:
-            if id(v) in ingested:
+            if id(v) in ORIG_IDS:
                 continue
             (n2, x, y, l1, l2) = v
             okc, worst, who = GC.check_via(BCF, n2, (x, y))
@@ -393,7 +400,7 @@ def main():
     else:
         print("── ★★总复核通过: 新铜 0 处不合格 ⇒ 可以落盘")
     filler = pcbnew.ZONE_FILLER(board)
-    filler.Fill(board.Zones())
+    filler.Fill(board.Zones() or [])
     board.Save(outp)
     print("── 已写出: %s (%d B)" % (outp, os.path.getsize(outp)))
     return 0
