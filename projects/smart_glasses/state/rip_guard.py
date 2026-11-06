@@ -178,6 +178,58 @@ def island_count(board, net, remove=()):
     return len(roots)
 
 
+def island_count_model(net, tracks, vias, pads):
+    """★**路由器模型版**孤岛数 (★给"保分支 rip-and-replace"用)
+       ★**tracks/vias 用的是路由器内存里的记录格式**:
+         tracks = (net, x1, y1, x2, y2, layer, width)
+         vias   = (net, x, y, l1, l2)
+         pads   = [(node_id, x, y)]
+       ⇒ ★**只统计该网的铜** ⇒ 返回"含焊盘的连通分量数" (★孤岛数)"""
+    d2 = DSU()
+    by_pt = {}
+    alive = []
+    for rec in tracks:
+        if rec[0] != net:
+            continue
+        node = ("t", id(rec))
+        x1, y1, x2, y2 = rec[1], rec[2], rec[3], rec[4]
+        alive.append((node, x1, y1, x2, y2))
+        d2.find(node)
+        by_pt.setdefault((round(x1, 4), round(y1, 4)), []).append(node)
+        by_pt.setdefault((round(x2, 4), round(y2, 4)), []).append(node)
+    for pt, lst in by_pt.items():
+        for n in lst[1:]:
+            d2.union(lst[0], n)
+    pad_nodes = []
+    for (nid, px, py) in pads:
+        d2.find(nid)
+        pad_nodes.append((nid, px, py))
+    via_nodes = []
+    for rec in vias:
+        if rec[0] != net:
+            continue
+        node = ("v", id(rec))
+        d2.find(node)
+        via_nodes.append((node, rec[1], rec[2]))
+    for (node, px, py) in pad_nodes + via_nodes:
+        for (tn, x1, y1, x2, y2) in alive:
+            if _on_seg(px, py, x1, y1, x2, y2):
+                d2.union(node, tn)
+    for (vn, vx, vy) in via_nodes:
+        for (pn, px, py) in pad_nodes:
+            if abs(vx - px) < EPS and abs(vy - py) < EPS:
+                d2.union(vn, pn)
+    for i in range(len(pad_nodes)):
+        for j in range(i + 1, len(pad_nodes)):
+            if abs(pad_nodes[i][1] - pad_nodes[j][1]) < EPS and \
+               abs(pad_nodes[i][2] - pad_nodes[j][2]) < EPS:
+                d2.union(pad_nodes[i][0], pad_nodes[j][0])
+    roots = set()
+    for (node, px, py) in pad_nodes:
+        roots.add(d2.find(node))
+    return len(roots)
+
+
 def is_load_bearing(board, net, remove):
     """★拆掉 remove 这组走线后, net 的孤岛数会不会变多 ⇒ 变多 = 承重 = 不许拆"""
     before = island_count(board, net)

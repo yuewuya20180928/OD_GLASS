@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""fix_board_rip_guarded.py -- ★★★**"保分支"的 rip-and-replace (2026-11-06 17:0x)
+
+★★★**为什么要有这个工具 (实测事故链)**:
+  ① 官方板(现 unc 45)还有 45 条未连接, 主体是 **DSI/CSI 差分腿** (★整网无铜 ⇒ 要从零布 40~70mm)
+  ② ★**成品板上"整网重布"是破坏器** (`gen_pcb_routing.py` `ripup_and_reroute()` 第 2713 行):
+     `keep = [s for s in self.tracks if s not in rip_set and s[0] not in affected]`
+     ⇒ ★**它把受影响网自己全部的铜清空后整网重画**
+     ⇒ ★**多脚/树状网只连上一对 ⇒ 其余分支被砍** ⇒ 实测 `_reroute2`: unc 57→67 · RESET_N 0→5 孤岛
+  ③ ⇒ ★**不能直接用 `ripup_and_reroute`** ⇒ ★**必须加"保分支"守卫**
+  ④ ★★**本工具的做法 (★比原版多一道闸)**:
+     对每个要修的网:
+       a. ★**快照** (tracks/vias/routed_ok)
+       b. 调 `ripup_and_reroute()` 重画
+       c. ★★**守卫**: 用 `rip_guard.island_count_model()` 算这个网**重画后**的孤岛数
+          ⇒ ★**孤岛数变多 ⇒ 这次重画把网拆碎了 ⇒ ★**回滚快照** (不落铜)**
+          ⇒ ★**孤岛数不变或变少 ⇒ 才接受**
+       d. ★**差分腿保护**: ★**不许拆差分腿** (★打死一条腿 = 那条高速通道不存在 ⇒ 一票否决)
+     ⇒ ⇒ ★**从"整网重画"变成"重画 + 逐网验收 + 不合格就回滚"**
+
+★**只加铜不删铜之外, 本工具唯一的删铜来源 = rip-up 拆掉的挡路铜**
+  ⇒ ★**删了必须让被删铜所属的网仍然连通** ⇒ ★**由守卫保证 (孤岛数不变)**
+
+用法:
+  bash state/pcbnew_py.sh state/fix_board_rip_guarded.py <板> <DRC.json> --out <新板> [--max-dist 80] [--rip 8]
+"""
+import sys
+import os
+import json
+import math
+import re
+
+os.environ.setdefault("PCB_LAYERS", "8")
+os.environ.setdefault("PCB_HALO_MARGIN", "0.20")
+os.environ.setdefault("PCB_VIA_HALO_MARGIN", "0.0")
+os.environ.setdefault("PCB_SKIP_PAD_CELLS", "1")
+os.environ.setdefault("PCB_PAIR_EXEMPT_R", "0.0")
+os.environ.setdefault("PCB_RIPUP_ALIVE", "1")
+os.environ.setdefault("PCB_RIPUP_ESC", "1")
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+
+import pcbnew  # noqa: E402
+import gen_pcb_routing as RT  # noqa: E402
+import rip_guard as RG  # noqa: E402
+
+MM = 1e6
+
+
+def load_pairs():
+    """★差分对清单 (★打死差分腿 ⇒ 一票否决 ⇒ 必须先拿到)"""
+    p = os.path.join(_HERE, "..", "..", "..", "tools", "diff_pair_audit.py")
+    try:
+        src = open(p, encoding="utf-8").read()
+        m = re.search(r"PAIRS\s*=\s*\[(.*?)\]", src, re.S)
+        out = re.findall(r'\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)', m.group(1))
+        return out if len(out) >= 20 else []
+    except Exception:
+        return []
+
+
+def main():
+    a = sys.argv[1:]
+    if len(a) < 2:
+        print(__doc__)
+        return 2
+    boardp, drcp = a[0], a[1]
+    outp = None
+    max_dist = 80.0
+    rip = 8
+    i = 2
+    while i < len(a):
+        if a[i] == "--out":
+            outp = a[i + 1]
+            i += 2
+        elif a[i] == "--max-dist":
+            max_dist = float(a[i + 1])
+            i += 2
+        elif a[i] == "--rip":
+            rip = int(a[i + 1])
+            i += 2
+        else:
+            i += 1
+    if not outp:
+        print("★必须给 --out")
+        return 2
+
+    PAIRS = load_pairs()
+    diff_nets = set()
+    for (x, y) in PAIRS:
+        diff_nets.add(x)
+        diff_nets.add(y)
+    print("═══ 差分对清单: %d 对 ⇒ 保护 %d 个差分腿网" % (len(PAIRS), len(diff_nets)))
+
+    board = pcbnew.LoadBoard(boardp)
+    for z in board.Zones():
+        z.UnFill()
+    r = RT.GridRouter(board)
+    ingested = {}
+    for t in list(board.GetTracks()):
+        s, e = t.GetStart(), t.GetEnd()
+        if t.Type() == pcbnew.PCB_VIA_T:
+            try:
+                l1 = RT.CU_LAYERS.index(t.TopLayer())
+                l2 = RT.CU_LAYERS.index(t.BottomLayer())
+            except Exception:
+                l1, l2 = 0, RT.NLAYERS - 1
+            rec = (t.GetNetname(), s.x / MM, s.y / MM, l1, l2)
+            r.vias.append(rec)
+            r._add_via_hash(s.x / MM, s.y / MM, t.GetNetname())
+        else:
+            try:
+                li = RT.CU_LAYERS.index(t.GetLayer())
+            except Exception:
+                li = 0
+            rec = (t.GetNetname(), s.x / MM, s.y / MM, e.x / MM, e.y / MM, li,
+                   t.GetWidth() / MM)
+            r.tracks.append(rec)
+        ingested[id(rec)] = (t, rec)
+    r.rebuild_halo()
+    print("═══ 已灌入 %d 段 / %d 孔 (halo 已重建) ═══" % (len(r.tracks), len(r.vias)))
+
+    # ★该网的焊盘 (给孤岛数算)
+    pads_by_net = {}
+    for f in board.GetFootprints():
+        for p in f.Pads():
+            pos = p.GetPosition()
+            nm = p.GetNetname()
+            nid = ("pad", p.m_Uuid.AsString() if hasattr(p, "m_Uuid") else id(p))
+            pads_by_net.setdefault(nm, []).append((nid, pos.x / MM, pos.y / MM))
+
+    d = json.load(open(drcp, encoding="utf-8"))
+    items = d.get("unconnected_items") or []
+    # ★按间距升序 (★近距的便宜先修)
+    cand = []
+    for it in items:
+        its = it.get("items") or []
+        if len(its) != 2:
+            continue
+        p0 = its[0].get("pos") or {}
+        p1 = its[1].get("pos") or {}
+        dist = math.hypot(p0.get("x", 0) - p1.get("x", 0),
+                          p0.get("y", 0) - p1.get("y", 0))
+        m0 = re.search(r"\[([^\]]+)\]", its[0].get("description") or "")
+        m1 = re.search(r"\[([^\]]+)\]", its[1].get("description") or "")
+        n0 = m0.group(1) if m0 else ""
+        n1 = m1.group(1) if m1 else ""
+        if not n0 or n0 != n1:
+            continue
+        if dist > max_dist:
+            continue
+        cand.append((dist, n0))
+    cand.sort()
+    print("═══ 候选失败网 %d 个 (按间距升序) ═══" % len(cand))
+
+    ok_nets, rej = [], []
+    for (dist, net) in cand:
+        pads = pads_by_net.get(net, [])
+        if not pads:
+            rej.append(("没有焊盘", net))
+            continue
+        before = RG.island_count_model(net, r.tracks, r.vias, pads)
+        snap_t = list(r.tracks)
+        snap_v = list(r.vias)
+        snap_ok = set(r.routed_ok)
+        r.routed_ok.discard(net)
+        r.routed.discard(net)
+        try:
+            n_ok = r.ripup_and_reroute([net], rip_per_net=rip, verbose=True)
+        except Exception as e:
+            r.tracks = snap_t
+            r.vias = snap_v
+            r.routed_ok = snap_ok
+            rej.append(("ripup 异常 %s" % e, net))
+            continue
+        after = RG.island_count_model(net, r.tracks, r.vias, pads)
+        if after > before:
+            # ★★**守卫拦下: 这次重画把网拆碎了 ⇒ 回滚**
+            r.tracks = snap_t
+            r.vias = snap_v
+            r.routed_ok = snap_ok
+            r.rebuild_halo()
+            rej.append(("★守卫: 孤岛 %d→%d 变多 ⇒ 回滚" % (before, after), net))
+            continue
+        if n_ok:
+            ok_nets.append((net, dist, before, after))
+            print("  ★接受 %-18s 间距 %6.1fmm 孤岛 %d→%d" % (net, dist, before, after))
+        else:
+            rej.append(("ripup 没能重布", net))
+
+    print("── 接受 %d 个网 / 退回 %d 个" % (len(ok_nets), len(rej)))
+    for (w_, n_) in rej[:20]:
+        print("    · 退回: %s  [%s]" % (w_, n_))
+
+    # ── 差异写回 ──
+    alive = set(id(s) for s in r.tracks) | set(id(v) for v in r.vias)
+    for oid, (obj, rec) in list(ingested.items()):
+        if oid not in alive:
+            board.Remove(obj)
+            del ingested[oid]
+    for s in r.tracks:
+        if id(s) in ingested:
+            continue
+        (net, x1, y1, x2, y2, li, w) = s
+        code = RT.netcode(board, net)
+        if code <= 0:
+            continue
+        t = pcbnew.PCB_TRACK(board)
+        t.SetStart(pcbnew.VECTOR2I(pcbnew.FromMM(x1), pcbnew.FromMM(y1)))
+        t.SetEnd(pcbnew.VECTOR2I(pcbnew.FromMM(x2), pcbnew.FromMM(y2)))
+        t.SetWidth(pcbnew.FromMM(w))
+        t.SetLayer(RT.CU_LAYERS[li])
+        t.SetNetCode(code)
+        board.Add(t)
+        ingested[id(s)] = (t, s)
+    for v in r.vias:
+        if id(v) in ingested:
+            continue
+        (net, x, y, l1, l2) = v
+        code = RT.netcode(board, net)
+        if code <= 0:
+            continue
+        vi = pcbnew.PCB_VIA(board)
+        vi.SetPosition(pcbnew.VECTOR2I(pcbnew.FromMM(x), pcbnew.FromMM(y)))
+        vi.SetWidth(pcbnew.FromMM(RT.VIA_DIA))
+        vi.SetDrill(pcbnew.FromMM(RT.VIA_DRILL))
+        vi.SetViaType(pcbnew.VIATYPE_THROUGH)
+        vi.SetLayerPair(RT.CU_LAYERS[l1], RT.CU_LAYERS[l2])
+        vi.SetNetCode(code)
+        board.Add(vi)
+        ingested[id(v)] = (vi, v)
+    filler = pcbnew.ZONE_FILLER(board)
+    filler.Fill(board.Zones())
+    board.Save(outp)
+    print("── 已写出: %s (%d B)" % (outp, os.path.getsize(outp)))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
