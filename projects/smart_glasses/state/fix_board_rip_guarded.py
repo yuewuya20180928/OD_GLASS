@@ -38,6 +38,10 @@ os.environ.setdefault("PCB_SKIP_PAD_CELLS", "1")
 os.environ.setdefault("PCB_PAIR_EXEMPT_R", "0.0")
 os.environ.setdefault("PCB_RIPUP_ALIVE", "1")
 os.environ.setdefault("PCB_RIPUP_ESC", "1")
+# ★★★**必须开**: `gen_pcb_routing.py` 的 `_via_ok` 只查 `halo[2]` ⇒ **看不见 0.25mm 走线**
+#   ⇒ ★**过孔 vs 常规走线净距检查失效** ⇒ ★**实测 unc 45→40 的板 DRC=718 (199短路/395净距/124交叉)**
+#   ⇒ ★**这个 env 开关就是那个修复** (★默认关 ⇒ 不开就会踩)
+os.environ.setdefault("PCB_VIA_CHECK_ALL_CLS", "1")
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
@@ -157,6 +161,78 @@ def main():
     print("═══ 候选失败网 %d 个 (按间距升序) ═══" % len(cand))
 
     ok_nets, rej = [], []
+    # ★★**板级校验用**: 每个网的"修之前"孤岛数 (★在真板上算 ⇒ 与 KiCad 口径一致)
+    pre_island = {}
+
+    def board_islands(nets):
+        out = {}
+        for n in nets:
+            if n in pre_island:
+                continue
+            try:
+                out[n] = RG.island_count(board, n)
+            except Exception:
+                out[n] = 999
+        return out
+
+    def apply_diff():
+        """★把模型差异落到板子上 (★返回 (新增对象, 被删对象) 供回滚)"""
+        alive = set(id(s) for s in r.tracks) | set(id(v) for v in r.vias)
+        removed = []
+        for oid, (obj, rec) in list(ingested.items()):
+            if oid not in alive:
+                board.Remove(obj)
+                removed.append((obj, rec))
+                del ingested[oid]
+        added = []
+        for s in r.tracks:
+            if id(s) in ingested:
+                continue
+            (net, x1, y1, x2, y2, li, w) = s
+            code = RT.netcode(board, net)
+            if code <= 0:
+                continue
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(pcbnew.VECTOR2I(pcbnew.FromMM(x1), pcbnew.FromMM(y1)))
+            t.SetEnd(pcbnew.VECTOR2I(pcbnew.FromMM(x2), pcbnew.FromMM(y2)))
+            t.SetWidth(pcbnew.FromMM(w))
+            t.SetLayer(RT.CU_LAYERS[li])
+            t.SetNetCode(code)
+            board.Add(t)
+            ingested[id(s)] = (t, s)
+            added.append((t, s))
+        for v in r.vias:
+            if id(v) in ingested:
+                continue
+            (net, x, y, l1, l2) = v
+            code = RT.netcode(board, net)
+            if code <= 0:
+                continue
+            vi = pcbnew.PCB_VIA(board)
+            vi.SetPosition(pcbnew.VECTOR2I(pcbnew.FromMM(x), pcbnew.FromMM(y)))
+            vi.SetWidth(pcbnew.FromMM(RT.VIA_DIA))
+            vi.SetDrill(pcbnew.FromMM(RT.VIA_DRILL))
+            vi.SetViaType(pcbnew.VIATYPE_THROUGH)
+            vi.SetLayerPair(RT.CU_LAYERS[l1], RT.CU_LAYERS[l2])
+            vi.SetNetCode(code)
+            board.Add(vi)
+            ingested[id(v)] = (vi, v)
+            added.append((vi, v))
+        return added, removed
+
+    def undo_diff(added, removed):
+        """★回滚刚才的落铜 (★把被删的图元放回去, 把新增的撤掉)"""
+        for (obj, rec) in added:
+            try:
+                board.Remove(obj)
+            except Exception:
+                pass
+        for (obj, rec) in removed:
+            try:
+                board.Add(obj)
+            except Exception:
+                pass
+
     for (dist, net) in cand:
         pads = pads_by_net.get(net, [])
         if not pads:
@@ -185,53 +261,44 @@ def main():
             r.rebuild_halo()
             rej.append(("★守卫: 孤岛 %d→%d 变多 ⇒ 回滚" % (before, after), net))
             continue
-        if n_ok:
-            ok_nets.append((net, dist, before, after))
-            print("  ★接受 %-18s 间距 %6.1fmm 孤岛 %d→%d" % (net, dist, before, after))
-        else:
+        if not n_ok:
             rej.append(("ripup 没能重布", net))
+            continue
+        # ★★★**板级校验 (★关键: 模型说通 ≠ 板子真通)**
+        #   ★**被拆铜的那些网**也要查 ⇒ ★**不然"修好 1 条、拆坏 7 条"就是这样发生的**
+        touched = set([net])
+        for (tn, x1, y1, x2, y2, li, w) in snap_t:
+            if not any(id(s) == id(tn) for s in r.tracks):
+                touched.add(tn[0])
+        pre = board_islands(touched)
+        added, removed = apply_diff()
+        post = {}
+        bad = []
+        for n in touched:
+            try:
+                post[n] = RG.island_count(board, n)
+            except Exception:
+                post[n] = 999
+            if post[n] > pre.get(n, 0):
+                bad.append("%s(%d→%d)" % (n, pre.get(n, 0), post[n]))
+        if bad:
+            undo_diff(added, removed)
+            r.tracks = snap_t
+            r.vias = snap_v
+            r.routed_ok = snap_ok
+            r.rebuild_halo()
+            rej.append(("★板级校验不过(网被拆碎): %s ⇒ 回滚" % ", ".join(bad[:4]), net))
+            continue
+        ok_nets.append((net, dist, before, after))
+        print("  ★接受 %-18s 间距 %6.1fmm 模型孤岛 %d→%d · 板级孤岛 %s"
+              % (net, dist, before, after,
+                 ",".join("%s=%d" % (n, post.get(n, 0)) for n in sorted(touched)[:4])))
 
     print("── 接受 %d 个网 / 退回 %d 个" % (len(ok_nets), len(rej)))
     for (w_, n_) in rej[:20]:
         print("    · 退回: %s  [%s]" % (w_, n_))
 
-    # ── 差异写回 ──
-    alive = set(id(s) for s in r.tracks) | set(id(v) for v in r.vias)
-    for oid, (obj, rec) in list(ingested.items()):
-        if oid not in alive:
-            board.Remove(obj)
-            del ingested[oid]
-    for s in r.tracks:
-        if id(s) in ingested:
-            continue
-        (net, x1, y1, x2, y2, li, w) = s
-        code = RT.netcode(board, net)
-        if code <= 0:
-            continue
-        t = pcbnew.PCB_TRACK(board)
-        t.SetStart(pcbnew.VECTOR2I(pcbnew.FromMM(x1), pcbnew.FromMM(y1)))
-        t.SetEnd(pcbnew.VECTOR2I(pcbnew.FromMM(x2), pcbnew.FromMM(y2)))
-        t.SetWidth(pcbnew.FromMM(w))
-        t.SetLayer(RT.CU_LAYERS[li])
-        t.SetNetCode(code)
-        board.Add(t)
-        ingested[id(s)] = (t, s)
-    for v in r.vias:
-        if id(v) in ingested:
-            continue
-        (net, x, y, l1, l2) = v
-        code = RT.netcode(board, net)
-        if code <= 0:
-            continue
-        vi = pcbnew.PCB_VIA(board)
-        vi.SetPosition(pcbnew.VECTOR2I(pcbnew.FromMM(x), pcbnew.FromMM(y)))
-        vi.SetWidth(pcbnew.FromMM(RT.VIA_DIA))
-        vi.SetDrill(pcbnew.FromMM(RT.VIA_DRILL))
-        vi.SetViaType(pcbnew.VIATYPE_THROUGH)
-        vi.SetLayerPair(RT.CU_LAYERS[l1], RT.CU_LAYERS[l2])
-        vi.SetNetCode(code)
-        board.Add(vi)
-        ingested[id(v)] = (vi, v)
+    # ── 差异写回 (★已经逐网落过盘了 ⇒ 这里只重填铜皮 + 存盘) ──
     filler = pcbnew.ZONE_FILLER(board)
     filler.Fill(board.Zones())
     board.Save(outp)
