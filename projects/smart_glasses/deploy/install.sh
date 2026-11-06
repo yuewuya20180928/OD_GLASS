@@ -195,13 +195,40 @@ done
 if [ -d "$CFGSRC/guards" ]; then
   mkdir -p "$HOME_DIR/guards"; cp -rf "$CFGSRC/guards/." "$HOME_DIR/guards/"
   chmod +x "$HOME_DIR/guards"/*/openclaw 2>/dev/null
+  chmod +x "$HOME_DIR/guards/cli/openclaw" 2>/dev/null
   ok "guards 已装 —— ★跨 agent 通信禁令依赖它"
 else
   warn "guards 缺失 ⇒ ★跨 agent 通信禁令会失效"
 fi
+
+# ★第 3 层守卫: CLI 入口换成包装器
+#   (PATH shim 能被绝对路径绕开 ⇒ 消息真投递 ⇒ 守卫必须下沉到 CLI 入口本身)
+#   ★★坑: cp 到一个"指向真二进制的软链"上会跟随软链把真二进制覆盖掉
+#      ⇒ 必须用 --remove-destination (先删软链再拷文件)
+CLI_BIN="$(command -v openclaw 2>/dev/null || true)"
+if [ -n "$CLI_BIN" ] && [ -f "$CFGSRC/guards/cli/openclaw" ]; then
+  mkdir -p "$HOME_DIR/guards"
+  [ -e "$HOME_DIR/guards/openclaw.bin.symlink.bak" ] || cp -P "$CLI_BIN" "$HOME_DIR/guards/openclaw.bin.symlink.bak" 2>/dev/null
+  cp --remove-destination -f "$CFGSRC/guards/cli/openclaw" "$CLI_BIN"
+  chmod 755 "$CLI_BIN"
+  ok "CLI 入口守卫包装器 → $CLI_BIN (原软链备份在 guards/openclaw.bin.symlink.bak)"
+  "$CLI_BIN" --version >/dev/null 2>&1 && ok "CLI 入口自检: --version rc=0" || warn "CLI 入口自检失败 ⇒ 别派活, 先查包装器"
+else
+  warn "CLI 入口守卫包装器未装 (config/guards/cli/openclaw 缺失 或 openclaw 不在 PATH)"
+fi
 mkdir -p "$HOME_DIR/workspace/skills" "$HOME_DIR/skills"
 [ -d "$CFGSRC/skills" ] && cp -rf "$CFGSRC/skills/." "$HOME_DIR/workspace/skills/" && ok "项目级 skills → workspace/skills"
 [ -d "$CFGSRC/skills-global" ] && cp -rf "$CFGSRC/skills-global/." "$HOME_DIR/skills/" && ok "全局 skills → ~/.openclaw/skills"
+# ★三个子总工也要有自己的"项目专属 skill 目录" (agent_config_check.py C 组硬判据:
+#   workspace-{hw,sw,mech}/skills/ 必须非空 ⇒ 否则审计报"专属 skill 目录非空"❌)
+for a in hw-lead sw-lead mech-lead; do
+  wd="$HOME_DIR/workspace-${a%%-*}"
+  mkdir -p "$wd/skills"
+  if [ -d "$CFGSRC/skills" ]; then
+    cp -rf "$CFGSRC/skills/." "$wd/skills/"
+    ok "$a: 项目专属 skills → $wd/skills ($(ls -1 "$wd/skills" | wc -l) 个)"
+  fi
+done
 
 # =============================================================================
 step "⑤ 装带外凭据 (★只合并 agents 段, 绝不整file覆盖)"

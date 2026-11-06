@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-06 10:14** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-06 10:29** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -566,7 +566,7 @@
    ✅ 决策包 (Q1/Q4/Q17)
    ✅ 外发草稿已就绪 (只备不发)
 
-【硬件总工 (hw-lead)】❌ 未就绪 (5 项不过)
+【硬件总工 (hw-lead)】❌ 未就绪 (4 项不过)
    ❌ AGENTS.md 存在且有职责清单
         /home/yuewuya/.openclaw/workspace-hw/AGENTS.md
    ❌ 写入边界明确 (不许改什么)
@@ -575,14 +575,13 @@
         缺块即退回, 交接单模板 v2
    ❌ 禁横向直聊已写明
         硬规则写进 AGENTS.md
-   ❌ 项目专属 skill 已装
-        /home/yuewuya/.openclaw/workspace-hw/skills/
+   ✅ 项目专属 skill 已装
    ✅ 分片非空且有 status/artifacts
    ✅ 外部等待已标 waiting_on+due
    ✅ 硬件模块拆解 + 电源树
    ✅ EMC 预评估 (画板前)
 
-【软件总工 (sw-lead)】❌ 未就绪 (5 项不过)
+【软件总工 (sw-lead)】❌ 未就绪 (4 项不过)
    ❌ AGENTS.md 存在且有职责清单
         /home/yuewuya/.openclaw/workspace-sw/AGENTS.md
    ❌ 写入边界明确 (不许改什么)
@@ -591,14 +590,13 @@
         缺块即退回, 交接单模板 v2
    ❌ 禁横向直聊已写明
         硬规则写进 AGENTS.md
-   ❌ 项目专属 skill 已装
-        /home/yuewuya/.openclaw/workspace-sw/skills/
+   ✅ 项目专属 skill 已装
    ✅ 分片非空且有 status/artifacts
    ✅ 外部等待已标 waiting_on+due
    ✅ 软件需求拆解 + 延迟预算
    ✅ EVT 模板 + 联调计划
 
-【结构总工 (mech-lead)】❌ 未就绪 (5 项不过)
+【结构总工 (mech-lead)】❌ 未就绪 (4 项不过)
    ❌ AGENTS.md 存在且有职责清单
         /home/yuewuya/.openclaw/workspace-mech/AGENTS.md
    ❌ 写入边界明确 (不许改什么)
@@ -607,8 +605,7 @@
         缺块即退回, 交接单模板 v2
    ❌ 禁横向直聊已写明
         硬规则写进 AGENTS.md
-   ❌ 项目专属 skill 已装
-        /home/yuewuya/.openclaw/workspace-mech/skills/
+   ✅ 项目专属 skill 已装
    ✅ 分片非空且有 status/artifacts
    ✅ 外部等待已标 waiting_on+due
    ✅ 空间预算 + 散热模型
@@ -636,30 +633,18 @@
 
 【B Agent 定义】✅ 20/20 通过
 
-【C Workspace】❌ 9/12 通过
-   ❌ hw-lead 专属 skill 目录非空
-        0 个
-   ❌ sw-lead 专属 skill 目录非空
-        0 个
-   ❌ mech-lead 专属 skill 目录非空
-        0 个
+【C Workspace】✅ 12/12 通过
 
 【D Skill 加载】✅ 12/12 通过
 
 【E 通信拓扑】✅ 13/13 通过
 
-【F 三层守卫】❌ 7/8 通过
-   ❌ CLI 入口是守卫包装器 (第 3 层)
-        /home/yuewuya/.npm-global/bin/openclaw
-        → 修法: 被还原成裸二进制 → 绝对路径可绕过守卫, 消息真投递
+【F 三层守卫】✅ 8/8 通过
 
 【G 运行时能力】✅ 14/14 通过
 
-❌ 结论: **有 4 项配置不满足开工条件** —— 先修上面标 ❌ 的, 否则开工会卡
-   · C Workspace / hw-lead 专属 skill 目录非空
-   · C Workspace / sw-lead 专属 skill 目录非空
-   · C Workspace / mech-lead 专属 skill 目录非空
-   · F 三层守卫 / CLI 入口是守卫包装器 (第 3 层) → 被还原成裸二进制 → 绝对路径可绕过守卫, 消息真投递
+✅ 结论: **81/81 项配置全部满足开工条件**
+   4 个 agent 可正常 spawn / 读 skill / 写分片 / 跑门禁; 三层守卫在位; 巡检与推进 cron 在位。
 ==============================================================================
 ```
 ## 7. 决策与需求账

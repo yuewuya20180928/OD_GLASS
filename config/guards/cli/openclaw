@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# ============================================================
+# 星型拓扑守卫 · CLI 入口 (第 3 层)
+# ------------------------------------------------------------
+# 装到: ~/.npm-global/bin/openclaw (原来是软链 → ../lib/node_modules/openclaw/openclaw.mjs)
+# ★备份: ~/.openclaw/guards/openclaw.bin.symlink.bak
+#
+# 为什么要有第 3 层 (2026-10-25 压测结论):
+#   第 1 层 tools.deny=["sessions_send"]  → 工具层拦, 硬
+#   第 2 层 PATH shim ~/.openclaw/guards/<agentId>/openclaw → 拦裸命令, 软
+#   ★第 2 层能被绝对路径完全绕过 (实测 3 次, 消息真投递) ⇒ 守卫必须下沉到 CLI 入口
+#
+# 规则 (与 state/README.md「星型拓扑守卫」一节一致):
+#   · 只拦 `openclaw agent --agent <X>` 这一类横向投递
+#   · 其他子命令 (config/status/skills/gateway/cron/...) 一律放行给真二进制
+#   · 调用方身份由第 2 层 shim 注入: OPENCLAW_CALLER_AGENT=<agentId>
+#   · 同 agent 自调用 (--agent == 调用方) ⇒ 放行
+#   · ★未标识调用方 (没有 OPENCLAW_CALLER_AGENT) 的跨 agent 呼叫 ⇒ 一律 exit 126
+#   · 项目总工 (main) 手动跨 agent: OPENCLAW_STAR_OVERRIDE=1 (审计留痕)
+#   · 留痕: ~/.openclaw/guards/star-topology.log
+#
+# ★网关服务不受影响: systemd unit 走 `/usr/bin/node .../dist/index.js gateway`,
+#   不经过这个 bin。
+# ============================================================
+set -uo pipefail
+
+# --- 真二进制在哪 -------------------------------------------------------
+REAL="${OPENCLAW_REAL_BIN:-$HOME/.npm-global/lib/node_modules/openclaw/openclaw.mjs}"
+if [ ! -f "$REAL" ]; then
+  _b="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+  REAL="$(cd "$_b/../lib/node_modules/openclaw" 2>/dev/null && pwd)/openclaw.mjs"
+fi
+if [ ! -f "$REAL" ]; then
+  echo "[星型拓扑守卫] 找不到真二进制 ($REAL) —— 拒绝执行, 防止静默放行。" >&2
+  exit 127
+fi
+NODE_BIN="$(command -v node 2>/dev/null || echo /usr/bin/node)"
+
+# --- 非 agent 子命令 ⇒ 直接放行 ------------------------------------------
+if [ "${1:-}" != "agent" ]; then
+  exec "$NODE_BIN" "$REAL" "$@"
+fi
+
+# --- 解析 --agent <target> -----------------------------------------------
+target=""
+expect_target=0
+for a in "$@"; do
+  if [ "$expect_target" = "1" ]; then target="$a"; expect_target=0; continue; fi
+  case "$a" in
+    --agent) expect_target=1 ;;
+    --agent=*) target="${a#--agent=}" ;;
+  esac
+done
+
+# 没指定 agent ⇒ 不是横向投递, 放行
+if [ -z "$target" ]; then
+  exec "$NODE_BIN" "$REAL" "$@"
+fi
+
+caller="${OPENCLAW_CALLER_AGENT:-unknown}"
+LOG="$HOME/.openclaw/guards/star-topology.log"
+logline() {
+  mkdir -p "$(dirname "$LOG")" 2>/dev/null
+  printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$LOG" 2>/dev/null
+}
+
+# --- 项目总工手动放行 (留痕) ---------------------------------------------
+if [ "${OPENCLAW_STAR_OVERRIDE:-0}" = "1" ]; then
+  logline "ALLOW-OVERRIDE target=$target caller=$caller argv=$*"
+  exec "$NODE_BIN" "$REAL" "$@"
+fi
+
+# --- 同 agent 自调用 ⇒ 放行 ----------------------------------------------
+if [ "$caller" = "$target" ]; then
+  logline "ALLOW-SELF target=$target caller=$caller argv=$*"
+  exec "$NODE_BIN" "$REAL" "$@"
+fi
+
+# --- 其余一律拦 (含未标识调用方) -----------------------------------------
+logline "BLOCK target=$target caller=$caller argv=$*"
+echo "[星型拓扑守卫] 已拦截: openclaw agent --agent $target" >&2
+echo "[星型拓扑守卫] 调用方 '$caller' 不允许直接联系 $target (三个总工之间不做直接沟通, 老板 10-25 硬规则)。" >&2
+echo "[星型拓扑守卫] 请写交接单到 projects/smart_glasses/HANDOFF/ 交项目总工 (main) 转达。" >&2
+echo "[星型拓扑守卫] (项目总工手动放行: OPENCLAW_STAR_OVERRIDE=1 openclaw agent --agent $target)" >&2
+exit 126

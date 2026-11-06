@@ -2051,3 +2051,26 @@ ExecStart=... /home/radxa/v31_v4l2_od_rtsp /dev/video0 640 480 2 86400 /etc/npu/
 - **坑③**: 网表里"net 名 = 器件名"的自环行 ⇒ 导出器会当成一个网并分配 1..N 占位脚号 ⇒ 与真实物理脚名两套 ⇒ parity 崩 ⇒ ★**器件自环行只在"脚号就是数字"的器件上安全; USB-IF 物理脚名的器件不能这么写**
 - ★**配套**: 差分对/占位号这类"网表侧推导"与"板侧"必须**同一口径** (USB-IF 脚名在两侧都当真实焊盘号) ⇒ ★**parity 红了先查两侧口径, 不是查布线**
 - **落账**: `memory/2026-11-04.md` §十八 · tracker §(1.92)
+
+### 【【铁律】装/换守卫包装器前: `cp` 会跟随软链把真二进制覆盖掉 ⇒ 必须 `--remove-destination`】(2026-11-06 10:2x 周交付窗口开工前踩坑)
+- ★**背景**: 周交付窗口第一件事 = `state/agent_config_check.py` ⇒ **rc=1, 4 项红**:
+  ① ② ③ `workspace-{hw,sw,mech}/skills/` **不存在** (0 个) ⇒ install.sh 原来只铺 main 的 skills
+  ④ `~/.npm-global/bin/openclaw` **被还原成裸二进制软链** ⇒ 第 3 层守卫失效 ⇒ 绝对路径能绕 ⇒ 消息真投递
+- ★★**坑 (我自己踩的)**: `cp -f config/guards/cli/openclaw ~/.npm-global/bin/openclaw`
+  ⇒ ★**bin/openclaw 是软链 ⇒ cp 跟随软链 ⇒ 把真二进制 `lib/node_modules/openclaw/openclaw.mjs` 覆盖成了我的 bash 包装器**
+  ⇒ 真身 13943 字节变成 3885 字节 ⇒ ★**openclaw CLI 直接废掉**
+- ★**修法 (已进 `deploy/install.sh`)**: ★**`cp --remove-destination`** (先删软链再拷文件, 不跟随)
+  ⇒ ★**凡是往 npm bin 目录装包装器, 一律用这个**
+- ★**无网救回真身的办法**: npm cacache 里有**精确版本**的 tarball
+  1. `grep -rh "openclaw-<ver>.tgz" ~/.npm/_cacache/index-v5/` 拿 integrity (sha512-base64)
+  2. base64→hex ⇒ 路径 `~/.npm/_cacache/content-v2/sha512/<hex[0:2]>/<hex[2:4]>/<hex[4:]>`
+  3. `tar -xzf <tarball> package/openclaw.mjs` ⇒ 取回真身 ⇒ `--version` 自检
+  ⇒ ★本次 2026.5.19 救回成功
+- ★★**两条配套铁律 (防止再漂)**:
+  ① ★**守卫包装器模板必须进仓库** (`config/guards/cli/openclaw`) ⇒ ★**任何 `npm i -g openclaw` / 重装 / 换主机都会把 bin 变回软链** ⇒ install.sh 必须每次重装包装器
+  ② ★**install.sh 必须给三个子总工铺 `workspace-{hw,sw,mech}/skills/`** ⇒ 不然审计 C 组永远红
+- ★**包装器行为 (5 路径复测全对)**: 只拦 `openclaw agent --agent <X>`; 其他子命令放行
+  ⇒ ★**`openclaw skills list --agent X` 不受影响** (审计器 D 组靠它)
+  · 裸命令→126 · 绝对路径→126 · `OPENCLAW_STAR_OVERRIDE=1`→0(留痕) · 自调用→0 · 非 agent 子命令→0
+- ★**网关不受影响**: systemd unit 走 `/usr/bin/node .../dist/index.js gateway`, 不经过这个 bin
+- ★**落账**: `projects/smart_glasses/memory/2026-11-06.md` §10:2x
