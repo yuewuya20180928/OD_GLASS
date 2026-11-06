@@ -61,6 +61,10 @@ MM = 1e6
 CLEAR = 0.20
 
 
+def V(x, y):
+    return pcbnew.VECTOR2I(int(round(x * MM)), int(round(y * MM)))
+
+
 def _load(boardp, grid=0.125):
     board = pcbnew.LoadBoard(boardp)
     for z in board.Zones():
@@ -198,6 +202,7 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
                     st.append(pd["cell"])
         return st
 
+    np0, nv0 = len(r.tracks), len(r.vias)
     # ★★★★**★主干汇合式 (★2026-11-06 15:3x 的关键设计修正)** ★★★★
     #   ★**为什么**: ★**实测: 从 `CONN_CAM.18` 的出脚直道 → TP = 498 格通**
     #                       ★**而从 TP 的出脚直道 → CONN_CAM.18 = None**
@@ -287,7 +292,41 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
     print("     · ★N 主干: 从 pad%d → pad%d, %d 格 (★与 P 并行)" % (_n_from, _n_to, len(n_path)))
 
     # ★**落铜主干**
-    if not r._emit_path(net_p, p_path, width) or not r._emit_path(net_n, n_path, width):
+    # ★★★★**★关键: ★★出脚直道的那一段也要落! (★不然铜停在直道终点, 离焊盘中心还差 1.2mm)** ★★★★
+    #   ★**实测**: 主干落铜后 ★**铜到焊盘还差 1.276mm (P) / 1.226mm (N)** ⇒ ★**没连上**
+    #   ⇒ ★**⇒ 必须把"焊盘中心 → 出脚直道终点"这一小段也画出来**
+    def _stub_segs(net, padinfo, path):
+        """★**从焊盘中心到路径首端的直道段** (★补上出脚的那一小截)"""
+        out = []
+        _cell = padinfo["cell"]
+        if not path:
+            return out
+        _first = path[0]
+        if _first == _cell:
+            return out
+        _i, _j = _first[1] % r.W, _first[1] // r.W
+        _fx, _fy = r._cx(_i), r._cy(_j)
+        _px, _py = padinfo["pad"][2], padinfo["pad"][3]
+        seg = pcbnew.PCB_TRACK(r.b)
+        seg.SetStart(V(_px, _py))
+        seg.SetEnd(V(_fx, _fy))
+        seg.SetWidth(pcbnew.FromMM(width))
+        seg.SetLayer(_cell[0])
+        out.append(seg)
+        return out
+
+    _ok = True
+    _stub_extra = []
+    for (net, path, padinfo) in ((net_p, p_path, _pmap[_p_from]),
+                                 (net_n, n_path, _nmap[_n_from])):
+        if not r._emit_path(net, path, width):
+            _ok = False
+            break
+        # ★★**补出脚直道段** (★焊盘中心 → 路径首端)
+        for seg in _stub_segs(net, padinfo, path):
+            r.b.Add(seg)
+            _stub_extra.append(seg)
+    if not _ok:
         del r.tracks[np0:]
         del r.vias[nv0:]
         r.rebuild_halo()
@@ -298,13 +337,42 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
         r.cu[li][idx] = net_n
     print("     · ★★主干落铜成功 (P %d 段 / N %d 段)"
           % (len(r.tracks) - np0, len(r.vias) - nv0))
+    # ★★★**★清理"只连一层的悬空过孔"** (★实测落铜后有 1 条 via_dangling 违规)
+    #   ★**为什么**: ★**`_emit_path` 的换层点过孔, 偶尔只接上了一层** ⇒ ★**DRC 报 via_dangling**
+    #   ★**处理**: ★**删掉"只连一层"的过孔** (★它本来就是废铜 ⇒ 删掉更干净)
+    _drop = []
+    for _t in list(r.b.GetTracks()):
+        if _t.Type() != pcbnew.PCB_VIA_T:
+            continue
+        if _t.GetNetname() not in (net_p, net_n):
+            continue
+        _vx, _vy = _t.GetStart().x / MM, _t.GetStart().y / MM
+        _lay = set()
+        for _s in r.tracks:
+            if _s[0] != _t.GetNetname():
+                continue
+            if _s[5] not in RT.ROUTE_LAYERS:
+                continue
+            # ★**端点重合算接上**
+            if (abs(_s[1] - _vx) < 0.02 and abs(_s[2] - _vy) < 0.02) or \
+               (abs(_s[3] - _vx) < 0.02 and abs(_s[4] - _vy) < 0.02):
+                _lay.add(_s[5])
+        if len(_lay) < 2:
+            _drop.append(_t)
+    for _t in _drop:
+        try:
+            r.b.Remove(_t)
+        except Exception:
+            pass
+    if _drop:
+        print("     · ★删掉 %d 个只连一层的悬空过孔" % len(_drop))
+
 
     # ★**两侧所有焊盘的中心格** (★命中判定的依据)
     _center = set()
     for (side, items) in (("P", all_p), ("N", all_n)):
         for (_k, _pd) in items:
             _center.add(_pd["cell"])
-    np0, nv0 = len(r.tracks), len(r.vias)
     # ★**本轮的"待落铜路径"** (★P 先算, N 算时把 P 的路径当预留 ⇒ ★★双方互让)
     _pending = {}
     for _round in range(12):
