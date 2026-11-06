@@ -38,8 +38,17 @@ LAYER_NAMES = {
     12: "Edge.Cuts", 13: "F.Fab", 14: "B.Fab", 15: "Dwgs.User", 16: "Cmts.User",
     17: "Eco1.User", 18: "Eco2.User", 19: "Edge.Cuts", 20: "Margin",
 }
-# 6 层: 0/1 = 内外铜, 2..5 = 内层 (实际 6 铜层 ⇒ F.Cu B.Cu + 4 内层)
+# ★★2026-11-06 20:1x ★**层数不再写死 6** ⇒ ★**从 params 取 (已按板文件校成 8)**
+#   ★**为什么**: ★**旧版 N_COPPER=6 不只是注释, 它决定"生成器写出的层定义"**
+#     ⇒ ★**生成器一直在产出 6 层参考板, 而真板是 8 层** ⇒ ★**这就是"6 层"叠层文档漂移的根**
+#   ⇒ ★**真源 = 板文件**; params 已与板文件交叉校验 (C5) ⇒ ★**这里取 params 即可, 自检会兜住**
 N_COPPER = 6
+try:
+    _P0 = json.load(open(PARAMS, encoding="utf-8"))
+    N_COPPER = int(_P0["board"]["layers"])
+except Exception:
+    print("  ⚠️ 读不到 params ⇒ N_COPPER 退回 6 (★自检 C5 会红)")
+# ★**层序**: 0 = F.Cu, 1 = B.Cu, 2..N-1 = In1..In(N-2)
 
 
 def ts():
@@ -126,7 +135,7 @@ def build_pcb(P):
     lines = []
     lines.append('(kicad_pcb (version 20240108) (generator "gen_kicad_project.py")')
     lines.append(f'  (general (thickness {b["thickness_mm"]}) (legacy_teardrops no))')
-    # 层定义: 6 铜层
+    # ★层定义: N_COPPER 铜层 (★从 params 取, 与板文件交叉校验) —— ★**不要写进板文件文本 (会破坏 s-expr)**
     lines.append('  (layers')
     lines.append('    (0 "F.Cu" signal)')
     lines.append('    (1 "B.Cu" signal)')
@@ -249,22 +258,31 @@ def main():
     st = P["stackup"]
     imp = st["impedance"]
     b = P["board"]
-    stackup_md = f"""# HW/PCB/STACKUP.md —— demo 主板叠层（★生成于 {ts()}）
+    # ★★2026-11-06 20:0x ★**P0 修复: 叠层数据从"板文件"反读 (唯一真源)**
+    #   ★**旧版把层数/介质写死成 6 层 + FR4 εr4.5** ⇒ ★**而板文件实际是 8 层 (PR2116 εr4.1 / FR4 εr4.3)**
+    #   ⇒ ★**两份矛盾叠层文档同在投板资料夹 ⇒ 给板厂"引错单"的风险是真实的 (实测)**
+    #   ⇒ ★**现在叠层部分由 `state/read_board_stackup.py` 从板文件生成 ⇒ 手改/改参数都不会再漂**
+    try:
+        import sys as _sys
+        _here_src = os.path.dirname(os.path.abspath(__file__))
+        if _here_src not in _sys.path:
+            _sys.path.insert(0, _here_src)
+        from read_board_stackup import stackup_md as _stackup_md
+        _md = _stackup_md(os.path.join(PCB_DIR, "demo_mainboard.kicad_pcb"), P, ts())
+        if _md:
+            stackup_md = _md
+        else:
+            print("  ⚠️ 板文件里没有 (stackup ...) ⇒ STACKUP.md 沿用参数版")
+    except Exception as _e:
+        print("  ⚠️ 叠层反读失败 (%s) ⇒ STACKUP.md 沿用参数版" % _e)
+        stackup_md = f"""# HW/PCB/STACKUP.md —— demo 主板叠层（★生成于 {ts()}）
 
 | 项 | 值 |
 |---|---|
-| 板尺寸 | **{b['width_mm']} × {b['height_mm']} mm** (草案, 待 ISS-158 三件规格回来后重跑生成器更新) |
-| 总厚 | {b['thickness_mm']} mm |
-| 铜厚 | {b['copper_oz']} oz (外层) / 1/2 oz (内层) |
-| ★**层数** | **{b['layers']} 层** |
-| 叠层 | L1 信号 / **L2 GND 完整平面** / L3 信号+局部电源 / L4 电源平面 / L5 信号 / **L6 GND 完整平面** |
-| 介质 | prepreg {st['prepreg_thickness_mm']} mm / core {st['core_thickness_mm']} mm, FR4 εr=4.5 |
-| ★**阻抗** | **MIPI 差分 {imp['mipi_diff_ohm']}Ω** / USB 差分 {imp['usb_diff_ohm']}Ω / 单端 {imp['single_ended_ohm']}Ω |
-| 表面处理 | ENIG |
-
-★**为什么 MIPI 差分下方必须是完整 GND 平面**: 参考电流路径 ⇒ ★**L2/L6 不得在差分对下方被分割** ⇒ 分割只能走 L3/L5。
-★**待定项** (等 ISS-158): 板尺寸 / FPC 针位 / SOM 外形 / 是否需要 L4 拆成 3.3V+5V 两块平面。
+| ★**层数** | **{P['board']['layers']} 层** (★参数版) |
+| 介质 | prepreg {P['stackup']['prepreg_thickness_mm']} mm / core {P['stackup']['core_thickness_mm']} mm, FR4 εr=4.5 |
 """
+
     open(os.path.join(PCB_DIR, "STACKUP.md"), "w", encoding="utf-8").write(stackup_md)
 
     rules_md = f"""# HW/PCB/LAYOUT_RULES.md —— 布线与阻抗规则（★生成于 {ts()}）
@@ -301,7 +319,7 @@ def main():
     chk("C2 footprint ref 唯一", len(refs) == len(set(refs)), f"{len(refs)} 个 / {len(set(refs))} 唯一")
     # C3 FPC 针数
     chk("C3 camera FPC 针数 = 参数", f'(pad "1" smd' in pcb and P["fpc_camera"]["pins"] % 2 == 0, f"{P['fpc_camera']['pins']}p")
-    chk("C3 display FPC 针数 = 参数", P["fpc_display"]["pins"] % 2 == 0, f"{P['fpc_display']['pins']}p")
+    chk("C3b display FPC 针数 = 参数", P["fpc_display"]["pins"] % 2 == 0, f"{P['fpc_display']['pins']}p")
     # C4 封装名
     fp_names = set()
     for line in pcb.split("\n"):
@@ -309,7 +327,36 @@ def main():
             fp_names.add(line.strip().split('"')[1])
     chk("C4 每个 footprint 有封装名", len(fp_names) > 0, ", ".join(sorted(fp_names)))
     # C5 叠层
-    chk("C5 铜层数 = 参数", P["board"]["layers"] == N_COPPER, f"{N_COPPER} 层")
+    # ★★2026-11-06 20:0x ★**C5 改成"叠层与板文件交叉校验"**
+    #   ★**旧版: 参数 6 层 vs 写死的 6 层 ⇒ 自洽但自欺 ⇒ 还会再漂**
+    try:
+        import sys as _sys2
+        _hs2 = os.path.dirname(os.path.abspath(__file__))
+        if _hs2 not in _sys2.path:
+            _sys2.path.insert(0, _hs2)
+        from read_board_stackup import read_stackup as _rs
+        _bst = _rs(os.path.join(PCB_DIR, "demo_mainboard.kicad_pcb"))
+        chk("C5 叠层与板文件交叉校验",
+            _bst["found"] and _bst["n_copper"] == P["board"]["layers"],
+            "板文件 %d 层 vs 参数 %s 层" % (_bst["n_copper"], P["board"]["layers"]))
+    except Exception as _e2:
+        chk("C5 叠层与板文件交叉校验", False, "反读失败 %s" % _e2)
+    # ★★2026-11-06 20:2x ★**C7: 叠层文档与板文件交叉校验 (★每次 regen 自动跑, 不用人记得手敲)**
+    #   ★**背景**: 投板资料夹里曾有两份互相矛盾的叠层文档 (6 层 vs 8 层) ⇒ "给板厂引错单"是真实风险
+    #   ⇒ ★**现在每次 regen 都会自动验两份文档 vs 板文件 ⇒ 不一致就红**
+    try:
+        import sys as _sys3
+        _hs3 = os.path.dirname(os.path.abspath(__file__))
+        if _hs3 not in _sys3.path:
+            _sys3.path.insert(0, _hs3)
+        from read_board_stackup import check_docs as _cd
+        _ok3, _bad3 = _cd(os.path.join(PCB_DIR, "demo_mainboard.kicad_pcb"),
+                          [os.path.join(PCB_DIR, "STACKUP.md"),
+                           os.path.join(PCB_DIR, "STACKUP_IMPEDANCE.md")])
+        chk("C7 叠层文档与板文件交叉校验", not _bad3,
+            ("%d 份文档一致" % _ok3) if not _bad3 else "; ".join(_bad3[:2]))
+    except Exception as _e3:
+        chk("C7 叠层文档与板文件交叉校验", False, "反读失败 %s" % _e3)
     # C6 网络类
     need_cls = {"MIPI_CSI", "MIPI_DSI", "USB", "PWR", "Default"}
     have_cls = {l.split('"')[1] for l in pcb.split("\n") if l.strip().startswith("(net_class ")}

@@ -484,4 +484,14 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # ★★2026-11-06 20:2x **崩溃也要留 EXIT 标记** (★实测: 四个臂/进程死于无标记 ⇒ 事后分不清"被杀"还是"正常退出")
+    _rc = 1
+    try:
+        _rc = main()
+    except BaseException:
+        import traceback
+        traceback.print_exc()
+        _rc = 1
+    finally:
+        print("EXIT=%d" % _rc)
+    sys.exit(_rc)

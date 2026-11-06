@@ -9,7 +9,7 @@
    ★**已交付的 env 门控 (★全部默认关 ⇒ 既有臂逐位可复现)**: `PCB_W_MIN` · `PCB_VIA_CHECK_ALL_CLS` · `PCB_PAIR_ESC_AVOID` · `PCB_PAIR_P_FALLBACK` · `PCB_PAD_ORDER_FAR_FIRST`
 4. ★★★★★[10:5x ★★★★**★需要老板决策 (本轮唯一卡在外部条件的事)**] ★**板厂能否做 0.15mm (6mil) 线宽?**
    · ★**收益**: 不动网表 / 不动封装 / 不动布局 ⇒ **已实测救回 2 对官方板布不出的差分对**; ★**0.15mm = 6mil = 行业标准最小线宽, 一般板厂都能做**
-   · ★**代价**: ① `HW/PCB/FAB_ORDER_NOTES.md` 的"最小线宽/间距 0.20mm" 要改成 0.15mm ② ★**阻抗要按新线宽重算** (`HW/PCB/STACKUP_IMPEDANCE.md` 的 Zdiff)
+   · ★**代价 (★2026-11-06 20:1x 订正)**: ① `HW/PCB/FAB_ORDER_NOTES.md` 的"最小线宽/间距 0.20mm" 要改成 0.15mm ② ★**阻抗有据可算 (★板文件 stackup 已锁 = 唯一真源: 8 铜层 / PR2116 εr4.1 / FR4 εr4.3) ⇒ ★**不需要向板厂要 εr/芯板厚度** ⇒ ★**且不要全局降线宽: 高速差分对仍按 0.25/0.20 走 ⇒ Zdiff 不变** ⇒ **给板厂的信只留一句"能否做 0.15mm(6mil)"**
    · ★**已核实**: KiCad 用默认 min width 0.2mm ⇒ **必须改板规则**, 否则 108 条 track_width 违规
    · ★**若板厂不行** ⇒ 剩下的路: ★**换 dog-bone 封装 (要重画板, 风险大)**
 5. ★★★★★[10:5x ★★**45 条未连接的精确构成 (机器统计)**] 端点配对 = CONN↔其他 12 · CAP↔CONN 6 · RES↔SOM_BTB 6 · 其他↔SOM_BTB 5 · JST↔RES 4 · CAP↔SOM_BTB 3 · 其他 5; ★**器件参与条数 = CONN 21 · SOM_BTB 17** · RES 12 · CAP 10 · JST 5 · DIODE 2 · TP 2; ★**其中 23 条是差分腿 (DSI/CSI), 距离 3.7~98.5mm**; ★**几何真值**: SoM BTB 0.4mm pitch · 焊盘 0.2mm ⇒ 间隙 0.2mm; ★**CONN_LIGHT/CONN_CAM 0.5mm pitch · 焊盘 0.3mm ⇒ 间隙 0.2mm** ⇒ ★**⇒ 三条路: ① 线宽降到 0.15 (要板厂确认) ② 换 dog-bone 封装 ③ 改布局 (挪 R_SEL ⇒ 但实测与 ① 互相打架, 需一起做)**
