@@ -3448,7 +3448,9 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
     #   ★**做法**: ★**给没有 trunk 的对, 自动挑"两端距离最远"的那对焊盘当主干**
     #     ⇒ ★**长距先布 ⇒ 先占住走廊; 其余短脚再从主干挂树**
     #   ★**用法**: `PCB_PAIR_AUTO_TRUNK=1`
-    if os.environ.get("PCB_PAIR_AUTO_TRUNK", "0") == "1":
+    # ★★2026-11-06 12:5x **只给 N 侧用自动主干 (v67 实测: 两侧都用会让 CSI_D0_D0 从 ✓/✓ 变 ✗/✗)**
+    _auto_mode = os.environ.get("PCB_PAIR_AUTO_TRUNK", "0")
+    if _auto_mode in ("1", "N"):
         def _auto_trunk(net, trunk):
             if trunk:
                 return trunk
@@ -3467,9 +3469,10 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
             if _best is None:
                 return None
             return ((_best[0][1], _best[1][1]),)   # ★(_find_pad 用 padnum 找)
-        trunk_p = _auto_trunk(net_p, trunk_p)
+        if _auto_mode == "1":
+            trunk_p = _auto_trunk(net_p, trunk_p)
         trunk_n = _auto_trunk(net_n, trunk_n)
-        res["auto_trunk"] = True
+        res["auto_trunk"] = _auto_mode
     r1 = router.route_net(net_p, width=width, allow_via=allow_via, trunk=trunk_p)
     res["p_ok"] = r1["ok"]
     if not r1["ok"]:
