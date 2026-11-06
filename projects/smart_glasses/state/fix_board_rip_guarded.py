@@ -247,11 +247,14 @@ def main():
                 board.Remove(obj)
             except Exception:
                 pass
+            ingested.pop(id(rec), None)
         for (obj, rec) in removed:
             try:
                 board.Add(obj)
             except Exception:
                 pass
+            # ★★**必须把 ingested 条目放回去** ⇒ ★**否则还原的旧铜会被当成"新铜"⇒ 复核时冤拒**
+            ingested[id(rec)] = (obj, rec)
 
     for (dist, net) in cand:
         pads = pads_by_net.get(net, [])
@@ -285,6 +288,10 @@ def main():
             rej.append(("ripup 没能重布", net))
             continue
         # ★★**先记"修之前"的板级孤岛数 (★必须在落铜之前记!)**
+        touched = set([net])
+        for (tn, x1, y1, x2, y2, li, w) in snap_t:
+            if not any(id(s) == id(tn) for s in r.tracks):
+                touched.add(tn[0])
         pre = board_islands(touched)
         # ★★★**新铜真几何复核 (★这一刀是"能不能用"的关键)**
         #   ★★**必须用"落板之后"的板子重建索引** (★★**不然会把"即将被删的旧铜"当成障碍 ⇒ 冤拒**)
@@ -323,10 +330,6 @@ def main():
             # ★**通过 ⇒ 铜已经落在板上了 ⇒ 后续的板级校验继续用这块板**
         # ★★★**板级校验 (★关键: 模型说通 ≠ 板子真通)**
         #   ★**被拆铜的那些网**也要查 ⇒ ★**不然"修好 1 条、拆坏 7 条"就是这样发生的**
-        touched = set([net])
-        for (tn, x1, y1, x2, y2, li, w) in snap_t:
-            if not any(id(s) == id(tn) for s in r.tracks):
-                touched.add(tn[0])
         post = {}
         bad = []
         for n in touched:
@@ -354,6 +357,41 @@ def main():
         print("    · 退回: %s  [%s]" % (w_, n_))
 
     # ── 差异写回 (★已经逐网落过盘了 ⇒ 这里只重填铜皮 + 存盘) ──
+    # ★★★**最终板总复核 (★关键: 逐网复核看不见跨网相互作用)** ★★★
+    #   ★**A 的 rip-up 改了 B, B 的 rip-up 又改了 A ⇒ 逐网复核时每一网单独看都干净, 合起来就脏**
+    #   ⇒ ★**这里对最终板的新铜做一次总复核** ⇒ 不合格 ⇒ ★**整轮回滚 (保持原板)**
+    total_bad = []
+    try:
+        BCF = GC.BoardCopper(board)
+        for s in r.tracks:
+            if id(s) in ingested:
+                continue
+            (n2, x1, y1, x2, y2, li, w) = s
+            okc, worst, who = GC.check_track(BCF, n2, (x1, y1), (x2, y2), w, li)
+            if not okc:
+                total_bad.append("走线[%s] 净距 %.3fmm %s" % (n2, worst, who))
+        for v in r.vias:
+            if id(v) in ingested:
+                continue
+            (n2, x, y, l1, l2) = v
+            okc, worst, who = GC.check_via(BCF, n2, (x, y))
+            if not okc:
+                total_bad.append("过孔[%s] 净距 %.3fmm %s" % (n2, worst, who))
+    except Exception as e:
+        print("  ⚠️ 总复核失败: %s" % e)
+    if total_bad:
+        print("── ★★总复核: 新铜 %d 处不合格 ⇒ ★**整轮回滚 (输出板 = 输入板)**" % len(total_bad))
+        for w_ in total_bad[:10]:
+            print("     · %s" % w_)
+        # ★★**最稳的回滚: 直接把输入板原样拷出去** (★不依赖任何内存回滚逻辑 ⇒ 不会有残留)
+        import shutil
+        shutil.copyfile(boardp, outp)
+        print("── 已回滚: %s = 输入板 (%d B)" % (outp, os.path.getsize(outp)))
+        print("── ★本轮逐网通过的是: %s ⇒ ★**下一轮可以只跑这些网**"
+              % ", ".join(n for (n, _d, _b, _a) in ok_nets))
+        return 0
+    else:
+        print("── ★★总复核通过: 新铜 0 处不合格 ⇒ 可以落盘")
     filler = pcbnew.ZONE_FILLER(board)
     filler.Fill(board.Zones())
     board.Save(outp)
