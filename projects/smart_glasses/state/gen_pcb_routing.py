@@ -150,7 +150,14 @@ ESC_LENS = (1.20, 0.90, 0.60, 0.40)
 EDGE_CLEAR = 0.50      # mm ★板边净距 (KiCad board setup: copper edge clearance = 0.5mm)
 # ★出脚直道: 直道是**离网格**的 (落在焊盘真实中心线上) ⇒ 落铜后必须再对"已布走线/过孔"
 #   做一次几何净距检查 (_stub_vs_routed) —— A* 的障碍图避让不了"后来才出现的直道"。
-USE_ESCAPE = True
+USE_ESCAPE = os.environ.get("PCB_USE_ESCAPE", "1") != "0"
+# ★★★★2026-11-06 18:4x **"成品板上不能画 escape stub"** (★env 门控, ★默认不变 ⇒ 既有臂逐位可复现)
+#   ★★**根因 (实测)**: escape stub 是"从焊盘中心沿中心线直插出去"的一段铜,
+#     ★**它不走 halo / 净距检查** (★`_stub_clear` 只查 stub 自己, 不查它会撞到谁)
+#     ⇒ ★**成品板上 ⇒ stub 直接压穿别网的铜**
+#     ⇒ ★**实测: 成品板 rip-and-replace ⇒ fresh DRC 678~772 (199 短路 + 389 净距 + 124 交叉)**
+#     ⇒ ★**"整网重布在成品板上出脚 stub 撞成一堆" 就是这个**
+#   ⇒ ★**开这个开关 ⇒ stub 不画 ⇒ 起步格 = 焊盘自己那一格 ⇒ 铜直接压在焊盘上 (★与 no-stub A* 同思路)**
 W_SIG = 0.25           # mm 信号线宽
 W_MIN = 0.20           # mm 最细线宽 (KiCad 最小线宽) —— ★SoM BTB (0.4mm pitch) 出脚只能这么细
 # ★★★★2026-11-06 10:1x **W_MIN 可调 (env 门控, 默认不变 ⇒ 既有臂逐位可复现)**

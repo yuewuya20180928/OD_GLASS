@@ -44,6 +44,9 @@ os.environ.setdefault("PCB_RIPUP_ESC", "1")
 #   ⇒ ★**过孔 vs 常规走线净距检查失效** ⇒ ★**实测 unc 45→40 的板 DRC=718 (199短路/395净距/124交叉)**
 #   ⇒ ★**这个 env 开关就是那个修复** (★默认关 ⇒ 不开就会踩)
 os.environ.setdefault("PCB_VIA_CHECK_ALL_CLS", "1")
+# ★★★**成品板上必须关掉 escape stub** (★stub 不走净距检查 ⇒ 直接压穿别网的铜
+#   ⇒ 实测 DRC 678~772) ⇒ ★**关掉后起步格 = 焊盘自己那一格 ⇒ 铜直接压在焊盘上**
+os.environ.setdefault("PCB_USE_ESCAPE", "0")
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
@@ -52,6 +55,7 @@ if _HERE not in sys.path:
 import pcbnew  # noqa: E402
 import gen_pcb_routing as RT  # noqa: E402
 import rip_guard as RG  # noqa: E402
+import geom_clear as GC  # noqa: E402
 
 MM = 1e6
 
@@ -168,7 +172,16 @@ def main():
     print("═══ 候选失败网 %d 个 (按间距升序) ═══" % len(cand))
 
     ok_nets, rej = [], []
-    # ★★**板级校验用**: 每个网的"修之前"孤岛数 (★在真板上算 ⇒ 与 KiCad 口径一致)
+    # ★★**真几何净距尺 (★关键: 路由器的 halo 模型偏乐观 ⇒ 必须用真实几何复核)** ★★
+    #   ★**兄弟的 `patch_astar_gated.py` 查的是过孔 ⇒ 这把尺子查的是"走线" ⇒ 两半合起来才完整**
+    try:
+        BC = GC.BoardCopper(board)
+        print("═══ 真几何净距尺已建 (★铜 %d 图元索引) ═══"
+              % sum(len(v) for v in BC.index.values()))
+    except Exception as e:
+        BC = None
+        print("  ⚠️ 建索引失败: %s" % e)
+    # ★**板级校验用**: 每个网的"修之前"孤岛数 (★在真板上算 ⇒ 与 KiCad 口径一致)
     pre_island = {}
 
     def board_islands(nets):
@@ -271,14 +284,49 @@ def main():
         if not n_ok:
             rej.append(("ripup 没能重布", net))
             continue
+        # ★★**先记"修之前"的板级孤岛数 (★必须在落铜之前记!)**
+        pre = board_islands(touched)
+        # ★★★**新铜真几何复核 (★这一刀是"能不能用"的关键)**
+        #   ★★**必须用"落板之后"的板子重建索引** (★★**不然会把"即将被删的旧铜"当成障碍 ⇒ 冤拒**)
+        #   ★路由器自认为合格的铜, 真板 DRC 会报 0.0152mm (halo 半宽用错 + skip_pad_cells)
+        if BC is not None:
+            added2, removed2 = apply_diff()
+            try:
+                BC2 = GC.BoardCopper(board)      # ★★**落板后重建 (★含新铜, 不含被拆铜)**
+            except Exception:
+                BC2 = None
+            bad = []
+            if BC2 is not None:
+                for s in r.tracks:
+                    if id(s) in ingested:
+                        continue
+                    (n2, x1, y1, x2, y2, li, w) = s
+                    okc, worst, who = GC.check_track(BC2, n2, (x1, y1), (x2, y2), w, li)
+                    if not okc:
+                        bad.append("走线[%s] 净距 %.3fmm %s" % (n2, worst, who))
+                for v in r.vias:
+                    if id(v) in ingested:
+                        continue
+                    (n2, x, y, l1, l2) = v
+                    okc, worst, who = GC.check_via(BC2, n2, (x, y))
+                    if not okc:
+                        bad.append("过孔[%s] 净距 %.3fmm %s" % (n2, worst, who))
+            if bad:
+                undo_diff(added2, removed2)
+                r.tracks = snap_t
+                r.vias = snap_v
+                r.routed_ok = snap_ok
+                r.rebuild_halo()
+                rej.append(("★新铜真几何复核不过 (%d 处, 例 %s) ⇒ 回滚"
+                            % (len(bad), bad[0][:60]), net))
+                continue
+            # ★**通过 ⇒ 铜已经落在板上了 ⇒ 后续的板级校验继续用这块板**
         # ★★★**板级校验 (★关键: 模型说通 ≠ 板子真通)**
         #   ★**被拆铜的那些网**也要查 ⇒ ★**不然"修好 1 条、拆坏 7 条"就是这样发生的**
         touched = set([net])
         for (tn, x1, y1, x2, y2, li, w) in snap_t:
             if not any(id(s) == id(tn) for s in r.tracks):
                 touched.add(tn[0])
-        pre = board_islands(touched)
-        added, removed = apply_diff()
         post = {}
         bad = []
         for n in touched:
