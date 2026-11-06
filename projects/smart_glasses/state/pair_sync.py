@@ -320,6 +320,26 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
     for (net, path, padinfo) in ((net_p, p_path, _pmap[_p_from]),
                                  (net_n, n_path, _nmap[_n_from])):
         if not r._emit_path(net, path, width):
+            print("     · ★★%s 落铜被拒 (★路径 %d 格) ⇒ ★**A\* 找到了但几何校验不过**"
+                  % (net, len(path)))
+            # ★**诊断: ★**换层点有几个? 间距够不够? 过孔位放得下吗?**
+            _trans = []
+            for _k in range(len(path) - 1):
+                if path[_k][0] != path[_k + 1][0]:
+                    _trans.append((path[_k][1], path[_k][0], path[_k + 1][0]))
+            print("       · 换层点 %d 个" % len(_trans))
+            _bad_via = 0
+            _too_close = 0
+            for (_idx2, _la, _lb) in _trans:
+                if not r._via_ok(min(_la,_lb), max(_la,_lb), _idx2, net, r._cls(width)):
+                    _bad_via += 1
+            for _a1 in range(len(_trans)):
+                for _a2 in range(_a1+1, len(_trans)):
+                    _d = math.hypot(_trans[_a1][0] % r.W - _trans[_a2][0] % r.W,
+                                    _trans[_a1][0] // r.W - _trans[_a2][0] // r.W) * r.g
+                    if _d < RT.MIN_VIA_CENTER:
+                        _too_close += 1
+            print("       · 过孔位放不下: %d 个 · 换层点间距不够: %d 对" % (_bad_via, _too_close))
             _ok = False
             break
         # ★★**补出脚直道段** (★焊盘中心 → 路径首端)
@@ -680,6 +700,8 @@ def _astar_reserved(r, side, starts, goals, budget, reserved_cells, net, width,
         heapq.heappush(heap, (h_of(st[0], st[1]), 0.0, cnt, st))
         cnt += 1
     exp = 0
+    # ★**路径上已规划的换层点** (★用来保证换层点之间够远)
+    _via_pts = []
     while heap and exp < budget:
         _f, gc, _c, cur = heapq.heappop(heap)
         if gc > gsc.get(cur, INF) + 1e-9:
@@ -728,11 +750,25 @@ def _astar_reserved(r, side, starts, goals, budget, reserved_cells, net, width,
                 continue
             if not r._via_ok(li, l2, idx, net, cls):
                 continue
+            # ★★★★**★关键修正: ★★换层点之间也要够远 (★`_emit_path` 会查, ★**A\* 里不查 ⇒ 落铜被拒**) ★★★★
+            #   ★**实测**: 475 格的 N 主干有 2 个换层点, ★**其中 1 个过孔位放不下**
+            #     ⇒ ★**原因**: ★**它离另一个换层点太近** (★`_emit_path` 的 `MIN_VIA_CENTER` = 0.58mm)
+            #   ⇒ ★**⇒ A\* 必须自己避开: ★**换层点彼此 ≥ MIN_VIA_CENTER**
+            _too_close = False
+            for _pk in _via_pts:
+                _dx = (_pk % r.W) - (idx % r.W)
+                _dy = (_pk // r.W) - (idx // r.W)
+                if math.hypot(_dx, _dy) * r.g < RT.MIN_VIA_CENTER:
+                    _too_close = True
+                    break
+            if _too_close:
+                continue
             nk = (l2, idx)
             ng = gc + 1.0 + RT.VIA_COST
             if ng < gsc.get(nk, INF) - 1e-9:
                 gsc[nk] = ng
                 came[nk] = cur
+                _via_pts.append(idx)
                 heapq.heappush(heap, (ng + h_of(l2, idx), ng, cnt, nk))
                 cnt += 1
     return None
@@ -790,7 +826,11 @@ def main():
         print("★必须给 --pairs P1:N1 [P2:N2 ...]")
         return 2
 
-    board, r = _load(boardp)
+    grid = 0.125
+    if "--grid" in a:
+        _i = a.index("--grid")
+        grid = float(a[_i + 1])
+    board, r = _load(boardp, grid=grid)
     print("═══ 成对同步规划 (共享占用表) ═══")
     print("═══ 网格 %.4fmm · %dx%d · %d 层 · 已灌入 %d 图元 ═══"
           % (r.g, r.W, r.H, RT.NLAYERS, len(r.tracks)))
