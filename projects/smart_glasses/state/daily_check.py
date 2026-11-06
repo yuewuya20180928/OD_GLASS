@@ -107,9 +107,14 @@ def main() -> int:
     #   ⇒ ★**decision_truth** = 老板决策口径的唯一真源 + 三处消费者的护栏
     #   ⇒ ★**compare_arm_official** = 晋级闸 (逐网孤岛名单) 的护栏
     rc_dt, out_dt, err_dt = run_sys("decision_truth.py", "--self-test")
-    dt_ok = (rc_dt == 0)
+    # ★★★2026-11-06 23:4x (★兄弟 23:1x 用我自己的 #135 查出来的真缺口):
+    #   ★**① 只判 rc 不判 stdout 非空** ⇒ ★**若自测被改成"什么都不打印 + exit 0" ⇒ daily_check 静默 PASS**
+    #     ⇒ ★**⇒ 判据: rc == 0 ★且★ stdout 非空** (★这正是 #135 的"它真的吐出了要检查的东西")
+    dt_out_n = len((out_dt or "").strip().splitlines())
+    dt_ok = (rc_dt == 0 and dt_out_n > 0)
     rc_ao, out_ao, err_ao = run_sys("compare_arm_official.py", "--self-test")
-    ao_ok = (rc_ao == 0)
+    ao_out_n = len((out_ao or "").strip().splitlines())
+    ao_ok = (rc_ao == 0 and ao_out_n > 0)
 
     # 2) gate
     rc_g, gate = jrun("gate_check.py")
@@ -130,11 +135,14 @@ def main() -> int:
     rc_cg, out_cg, err_cg = run("chain_gate.py")
     chain_ok = (rc_cg == 0)
 
+    # ★★2026-11-06 23:4x: ★**两个自测通过时也要打印可见行** (★原先"静默通过" ⇒ 掉线了报告看不出来)
+    print(f"{'✅' if dt_ok else '❌'} decision_truth --self-test rc={rc_dt} (输出 {dt_out_n} 行)")
+    print(f"{'✅' if ao_ok else '❌'} compare_arm_official --self-test rc={rc_ao} (输出 {ao_out_n} 行)")
     if not dt_ok:
-        problems.append(f"★decision_truth --self-test 没过 (rc={rc_dt}): "
+        problems.append(f"★decision_truth --self-test 没过 (rc={rc_dt}, 输出 {dt_out_n} 行): "
                         f"{(err_dt or out_dt).strip().splitlines()[-1][:160] if (err_dt or out_dt).strip() else ''}")
     if not ao_ok:
-        problems.append(f"★compare_arm_official --self-test 没过 (rc={rc_ao}): "
+        problems.append(f"★compare_arm_official --self-test 没过 (rc={rc_ao}, 输出 {ao_out_n} 行): "
                         f"{(err_ao or out_ao).strip().splitlines()[-1][:160] if (err_ao or out_ao).strip() else ''}")
     if gate is None:
         problems.append("gate_check.py 输出无法解析")

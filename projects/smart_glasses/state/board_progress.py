@@ -48,11 +48,49 @@ def board_facts():
 
 
 def running():
+    """★**当前在跑的布线/发布相关进程**
+
+    ★★2026-11-06 23:2x (★兄弟实测抓到): ★**这一行以前会把自己数进去**
+      · pgrep 的模式串里有 `publish_github` ⇒ ★**任何 cmdline 含这四个词的进程都会被数成"在跑"**
+      · ★**而承载调用脚本的那个 bash, 命令行里恰好含这个模式串 (★我们为了查它写了模式串) ⇒ 自己命中自己**
+      · ⇒ ★**这一行的数值取决于"谁在跑脚本", 不完全反映板面**
+    ★**修法: 排除"自己这条命令链" (★自身 pid + 祖先链) + 排除含本脚本名的进程**
+      ⇒ ★**不依赖调用方 ⇒ 数值稳定**
+    ★**注: 这一行 ★**从不参与**"板面变了没"的判定 (★`bcast_facts.sh` 只取 `[板]` 行的指纹) ⇒ 只是显示层的诚实性**
+    """
     try:
         r = subprocess.run(["pgrep", "-af", "gen_pcb_netlist_board|gen_pcb_routing|fix_gnd_stitch|publish_github"],
                            capture_output=True, text=True, timeout=10)
-        lines = [l for l in (r.stdout or "").splitlines() if "pgrep" not in l]
-        return lines
+        # ★**自己的 pid 祖先链** (★调用方的 shell 也在链上 ⇒ 一并排除)
+        skip = set()
+        try:
+            pid = os.getpid()
+            for _ in range(12):
+                if pid <= 0:
+                    break
+                skip.add(pid)
+                with open("/proc/%d/stat" % pid, encoding="utf-8") as f:
+                    pid = int(f.read().split(") ", 1)[1].split()[1])
+        except Exception:
+            pass
+        out = []
+        for l in (r.stdout or "").splitlines():
+            if "pgrep" in l:
+                continue
+            parts = l.split(" ", 1)
+            if not parts:
+                continue
+            try:
+                p_ = int(parts[0])
+            except ValueError:
+                p_ = -1
+            if p_ in skip:
+                continue
+            # ★**本脚本自身 / 承载它的 shell (★命令里会带 board_progress.py) 一律排除**
+            if "board_progress.py" in l or "bcast_facts.sh" in l:
+                continue
+            out.append(l)
+        return out
     except Exception:
         return []
 
