@@ -31,9 +31,29 @@ SNAP = os.path.join(HERE, "gate_snapshots")
 PY = sys.executable
 
 
+def _clean_env() -> dict:
+    """★**干净的子进程环境** (★2026-11-06 22:2x, ★兄弟实测挖到的根因)
+
+    ★★**根因不是"解释器路径", 是"继承污染的环境变量"**:
+      `state/pcbnew_py.sh` 导出了 `PYTHONPATH=/home/yuewuya/kicad/squashfs-root/usr/lib/python3/dist-packages:...`
+      ⇒ ★**这个 PYTHONPATH 会被子进程继承**
+      ⇒ ★**即使用对了 `/usr/bin/python3`, 它启动时仍去 KiCad 的 dist-packages 找 `encodings`**
+      ⇒ ★**⇒ `Fatal Python error: Failed to import encodings module` ⇒ `<no Python frame>`**
+    ⇒ ★**所以: 只修"用哪个解释器"不够, ★**必须把这两个变量从子进程环境里剥掉****
+    """
+    env = dict(os.environ)
+    env.pop("PYTHONPATH", None)
+    env.pop("PYTHONHOME", None)
+    return env
+
+
 def run(script: str, *args: str) -> tuple[int, str, str]:
-    p = subprocess.run([PY, os.path.join(HERE, script), *args],
-                       capture_output=True, text=True, cwd=PROJ)
+    # ★**显式系统 python3 + 剥掉 PYTHONPATH/PYTHONHOME** (★见 _clean_env 的根因说明)
+    #   ★**"只用 which 修解释器"是不够的 ⇒ 继承污染的环境变量才是真凶**
+    import shutil as _sh
+    _py = _sh.which("python3") or "/usr/bin/python3"
+    p = subprocess.run([_py, os.path.join(HERE, script), *args],
+                       capture_output=True, text=True, cwd=PROJ, env=_clean_env())
     return p.returncode, p.stdout, p.stderr
 
 
@@ -56,7 +76,7 @@ def run_sys(script: str, *args: str) -> tuple[int, str, str]:
     import shutil as _sh
     _py = _sh.which("python3") or "/usr/bin/python3"
     p = subprocess.run([_py, "-B", os.path.join(HERE, script), *args],
-                       capture_output=True, text=True, cwd=PROJ)
+                       capture_output=True, text=True, cwd=PROJ, env=_clean_env())
     return p.returncode, p.stdout, p.stderr
 
 
