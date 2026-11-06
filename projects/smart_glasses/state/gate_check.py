@@ -280,7 +280,19 @@ def main() -> int:
         # 老板决策 (need 带 decision 字段, 由项目总工代录) 同样算闭合
         if n.get("decision"):
             return True
+        # ★★2026-11-06 20:6x 【与 merge.py 对齐, 修对账 ok=false】: ★**老板拍过板的 key 是全局事实**
+        #   ⇒ ★**同 key 在别的分片没回写 decision 时, 这边也必须判 answered**
+        #   ⇒ ★**唯一真源 = `state/decision_truth.py`** (★三处平行实现只改一处 ⇒ 这次漏改就红了)
+        if k and k in _dec_keys:
+            return True
         return bool(to) and to in (_answers_by_key.get(k) or [])
+    # ★**老板决策全局 key 集合 (唯一真源: state/decision_truth.py)**
+    try:
+        from decision_truth import decision_keys as _dk
+    except Exception as _e:  # noqa: BLE001
+        # ★**响亮失败, 不静默降级** (★防口径漂移 ⇒ 宁可直接挂)
+        sys.exit("★decision_truth 导入失败 ⇒ 拒绝跑 (防口径漂移): %s" % _e)
+    _dec_keys = _dk(all_frags)
     glob_ext = sum(1 for aid, d in all_frags.items() for n in (d.get("needs_from") or [])
                    if (n.get("waiting_on") or "agent") != "agent" and not _answered(n))
     glob_pending = sum(1 for aid, d in all_frags.items() for n in (d.get("needs_from") or [])

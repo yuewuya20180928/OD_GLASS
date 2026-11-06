@@ -129,15 +129,26 @@ def main() -> int:
     #      ★**(waiting_on=='boss' 或 to=='boss') 且 尚无 decision** (★已拍板的不该再占清单)
     ans_keys = set()
     decisions = []
+    # ★**老板决策全局 key 集合 (唯一真源: state/decision_truth.py)**
+    try:
+        from decision_truth import decision_keys as _dk
+    except Exception as _e:  # noqa: BLE001
+        # ★**响亮失败, 不静默降级** (★防口径漂移 ⇒ 宁可直接挂)
+        sys.exit("★decision_truth 导入失败 ⇒ 拒绝跑 (防口径漂移): %s" % _e)
+
     _seen_keys = set()
     _frag_dir = os.path.join(HERE, "fragments")
+    # ★★2026-11-06 20:7x 【先扫全部分片再走主循环】(★老板拍过的 key 可能记在任意分片里)
+    _frags_all = []
     for _fn in sorted(os.listdir(_frag_dir)):
         if not _fn.endswith(".yaml"):
             continue
         try:
-            _fr = load_yaml(os.path.join(_frag_dir, _fn)) or {}
+            _frags_all.append((_fn, load_yaml(os.path.join(_frag_dir, _fn)) or {}))
         except Exception:  # noqa: BLE001
             continue
+    _dec_keys = _dk({"f%d" % i: fr for i, (_fn, fr) in enumerate(_frags_all)})
+    for _fn, _fr in _frags_all:
         for a in (_fr.get("answers") or []):
             if a.get("key"):
                 ans_keys.add(a["key"])
@@ -146,6 +157,10 @@ def main() -> int:
             if not k or k in _seen_keys:
                 continue
             if n.get("decision"):
+                continue
+            # ★★2026-11-06 20:6x 【与 merge.py 对齐】: ★**老板拍过的 key 是全局事实**
+            #   ⇒ ★**别处分片记着 decision 时, 这边也不该再问老板** (★实测: 41 → 36)
+            if k in _dec_keys:
                 continue
             if not (n.get("waiting_on") == "boss" or n.get("to") == "boss"):
                 continue
@@ -158,6 +173,7 @@ def main() -> int:
                               "urgency": "已逾期" if (dd is not None and dd < 0)
                                          else (f"剩{dd}天" if dd is not None and dd <= 2 else ""),
                               "_from": _fn})
+
 
     # ---------- C. 纯等待 (不动作, 只监控) ----------
     waiting = []

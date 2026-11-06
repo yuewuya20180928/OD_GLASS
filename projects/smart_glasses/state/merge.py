@@ -28,6 +28,13 @@ import time
 from datetime import datetime, timezone, timedelta
 
 import yaml
+try:
+    from decision_truth import decision_keys as _decision_keys
+except Exception as _e:  # noqa: BLE001
+    # ★★2026-11-06 20:8x **响亮失败, 不静默降级** (★兄弟指出: 内联兜底副本 = 又三份平行实现
+    #   ⇒ import 一失败就悄悄用旧口径 ⇒ 正是这次事故的同款机制 (平行实现 + 静默降级))
+    #   ⇒ ★**宁可直接挂, 也不要悄悄用旧口径** (★门禁口径漂移比停机危险得多)
+    sys.exit("★decision_truth 导入失败 ⇒ 拒绝跑 (防口径漂移): %s" % _e)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
@@ -262,20 +269,10 @@ def build_state(frags: dict) -> dict:
                 continue
             answers_by_key.setdefault(k, []).append({**a, "_by": aid})
 
-    # ★★2026-11-06 20:5x 【老板决策是全局事实】: ★老板拍过的板, 对**所有分片**里同 key 的 need 都算已答
-    #   ★★**问题 (实测)**: 闭合规则只看"本 need 自己带没带 decision 字段"
-    #     ⇒ ★**同 key 在别的分片里没回写 decision ⇒ 长期挂 waiting_external ⇒ 假挂着 ⇒ 污染门禁数字**
-    #   ★★**例**: `q16_aspect_ratio` 老板 10-25 已拍板 (pm 分片有 decision + decided_at)
-    #     ⇒ ★**但 hw/mech 分片里的同 key need 没回写 ⇒ 合并后仍判 waiting_external**
-    #   ⇒ ★**这里只补"同 key 全局查"这一处, 不改别��判据** (★回归见 --regress)
-    decision_by_key = {}
-    for _aid, _fr in frags.items():
-        for _n in _fr.get("needs_from") or []:
-            _k = _n.get("key")
-            if _k and _n.get("decision") and _k not in decision_by_key:
-                decision_by_key[_k] = {"value": _n.get("decision"),
-                                      "decided_at": _n.get("decided_at"),
-                                      "_by": _n.get("to") or "boss"}
+    # ★★2026-11-06 20:5x 【老板决策是全局事实】: ★**老板拍过的板, 对所有分片里同 key 的 need 都算已答**
+    #   ★★**唯一真源 = `state/decision_truth.py`** (★同一套语义在本仓有 3 份平行实现 ⇒ 抽出来只改一处)
+    #   ★★**问题 (实测)**: 闭合规则只看"本 need 自己带没带 decision" ⇒ ★**同 key 在别处分片没回写 ⇒ 长期挂 waiting_external (假挂着)**
+    _dec_keys = _decision_keys(frags)
 
     domains = {}
     all_needs = []
@@ -303,10 +300,10 @@ def build_state(frags: dict) -> dict:
                         "ref": f"老板决策 {n.get('decided_at') or ''} (项目总工代录)"}]
             # ★★2026-11-06 20:5x 【跨分片同 key 的老板决策】: ★**本分片没写 decision, 但别处分片写了 ⇒ 同样算已答**
             #   ⇒ ★**这是"状态没回写"造成的假挂项的正解 (1 处判据, 不必补 N 条回写)**
-            if not ans and decision_by_key.get(k):
-                _d = decision_by_key[k]
-                ans = [{"value": _d["value"], "_by": ask_to or "boss",
-                        "ref": f"老板决策 {_d.get('decided_at') or ''} (项目总工代录, 跨分片同 key)"}]
+            if not ans and k in _dec_keys:
+                ans = [{"value": "(老板决策, 跨分片同 key)",
+                        "_by": ask_to or "boss",
+                        "ref": "老板决策 (项目总工代录, 跨分片同 key)"}]
             # 目标 agent 缺席 (分片没读到) → 标出来, 别让需求"凭空蒸发"
             # 只对"确实是 agent 的目标"判缺席 —— to: boss/vendor/jbd 是外部对象, 不算
             target_missing = bool(ask_to) and ask_to in AGENT_ORDER and ask_to not in frags

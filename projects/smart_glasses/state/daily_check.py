@@ -46,6 +46,14 @@ def run_sh(script: str, *args: str) -> tuple[int, str, str]:
     return p.returncode, p.stdout, p.stderr
 
 
+def run_sys(script: str, *args: str) -> tuple[int, str, str]:
+    """★**用系统 python3 跑** (★`pcbnew_py.sh` 的 KiCad python3.11 **没装 yaml**
+       ⇒ ★*decision_truth* / *compare_arm_official* 的自测必须走这个 ⇒ 走错必 ModuleNotFoundError)"""
+    p = subprocess.run([sys.executable, "-B", os.path.join(HERE, script), *args],
+                       capture_output=True, text=True, cwd=PROJ)
+    return p.returncode, p.stdout, p.stderr
+
+
 def jrun(script: str) -> tuple[int, dict | None]:
     rc, out, err = run(script, "--json")
     try:
@@ -68,6 +76,15 @@ def main() -> int:
     elif rc_m == 2:
         problems.append("merge.py 返回 2 → 快照不完整 (有分片读失败, 已回退 .lastgood)")
 
+    # ★★2026-11-06 21:1x 【自测接进巡检】(★兄弟指出: 两个 --self-test 都没人调用
+    #   ⇒ "只在人记得手跑时才生效" ⇒ ★**跟 MEMORY 铁律"闸脚本自己要有人拦"同一个病**)
+    #   ⇒ ★**decision_truth** = 老板决策口径的唯一真源 + 三处消费者的护栏
+    #   ⇒ ★**compare_arm_official** = 晋级闸 (逐网孤岛名单) 的护栏
+    rc_dt, out_dt, err_dt = run_sys("decision_truth.py", "--self-test")
+    dt_ok = (rc_dt == 0)
+    rc_ao, out_ao, err_ao = run_sys("compare_arm_official.py", "--self-test")
+    ao_ok = (rc_ao == 0)
+
     # 2) gate
     rc_g, gate = jrun("gate_check.py")
     # 3) issue
@@ -87,6 +104,12 @@ def main() -> int:
     rc_cg, out_cg, err_cg = run("chain_gate.py")
     chain_ok = (rc_cg == 0)
 
+    if not dt_ok:
+        problems.append(f"★decision_truth --self-test 没过 (rc={rc_dt}): "
+                        f"{(err_dt or out_dt).strip().splitlines()[-1][:160] if (err_dt or out_dt).strip() else ''}")
+    if not ao_ok:
+        problems.append(f"★compare_arm_official --self-test 没过 (rc={rc_ao}): "
+                        f"{(err_ao or out_ao).strip().splitlines()[-1][:160] if (err_ao or out_ao).strip() else ''}")
     if gate is None:
         problems.append("gate_check.py 输出无法解析")
     if issue is None:
