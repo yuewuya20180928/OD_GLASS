@@ -109,6 +109,36 @@ def main() -> int:
     netlike = {n for n in known if n.startswith("RAIL_") or n.startswith("NET_") or n == "GND"}
     devices = known - netlike
 
+    # ★★2026-11-06 修 (实测发现的真缺陷, ISS-153 交卷时被打回的那条):
+    #   ★**有些器件只在 node 串里出现, 从来不出现在 ref 列** (实测: J_SOM_P2 / J_SOM_P4)
+    #     —— 因为 SoM 的 4 组 100pin BTB 座是"一排连接器", 每一行只写它的那一个脚,
+    #        ref 列写的是**这一行经过的另一个器件** (R_SER_xxx / C_AC_xxx), 座本身没被列为 ref。
+    #   ★旧逻辑: devices 只从 ref 列取 ⇒ J_SOM_P2 / J_SOM_P4 **不在 devices 里**
+    #     ⇒ parse_node() 里 `if head in devices` 判否 ⇒ **这 23 个脚被静默丢弃**
+    #     ⇒ 实测 .net 里 J_SOM_P2 = 0 节点 / J_SOM_P4 = 0 节点 (应为 9 / 14)
+    #     ⇒ 连带: gen_netlist_pins.py 的 "SoC 引脚合计只有 29 个 (应 >=50)" 判红 ⇒
+    #        **HW/netlist_v1_pins.csv 从 11-03 起就再没更新过** (脚级表停更 = 投板级隐患)
+    #   ⇒ 修法: 器件集合 = ref 列的器件 ∪ **node 串里带引脚提示的头** (即 "REF pinN" 的 REF 部分)
+    #     ★排除网别名 (net_labels) 与伪 ref (NET_/RAIL_/GND) —— 这两类不是器件
+    node_only_devices: set[str] = set()
+    for r in rows:
+        for _k in ("node1", "node2"):
+            _n = (r.get(_k) or "").strip()
+            if " " not in _n:
+                continue
+            _head = _n.split(" ", 1)[0].strip()
+            if not _head or _head in devices:
+                continue
+            if _head in net_labels:            # ★网名不是器件
+                continue
+            if _head.startswith(("NET_", "RAIL_")) or _head in ("GND", "VSS", "VDD", "SYS_PCB"):
+                continue                        # ★伪 ref 不是器件
+            node_only_devices.add(_head)
+    devices = devices | node_only_devices
+    if node_only_devices:
+        print(f"ℹ️  只在 node 串里出现的器件 (ref 列没有): {sorted(node_only_devices)} "
+              f"⇒ 已纳入器件表 (旧逻辑会静默丢弃它们的引脚)")
+
     comps: "OrderedDict[str, dict]" = OrderedDict()
 
     def comp(ref: str, value: str, typ: str, page: str):
@@ -130,6 +160,17 @@ def main() -> int:
         # 声明式 value (含 Np / N×Mp) 更权威 → 覆盖
         if re.search(r"\d+\s*[×x]?\s*\d*\s*p\b", val) and not re.search(r"\d+\s*[×x]?\s*\d*\s*p\b", cur["value"]):
             cur["value"] = val
+
+    # ★★2026-11-06: **只在 node 串里出现的器件也必须进器件表** (J_SOM_P2 / J_SOM_P4)
+    #   ★否则 .net 里会有它们的 node 却**没有对应的 (comp ...)** ⇒ KiCad 导入时这 23 个脚无处安放
+    #     ⇒ 原理图与 .net 对不上 (板↔网表等价性判据也会挂)。
+    #   ⇒ value/footprint 用 SoM BTB 的真实身份 (与 state/som_btb_footprint.py 一致: Hirose DF40C-100DS)
+    for _ref in sorted(node_only_devices):
+        if _ref in comps:
+            continue
+        _conn = _ref.split("_")[-1]
+        comps[_ref] = {"value": f"Hirose DF40C-100DS-0.4V(51) 100pin 0.4mm (SOM {_conn})",
+                       "footprint": FOOTPRINT.get("CONN", "TBD:CONN_PLACEHOLDER")}
 
     def parse_node(node: str):
         """节点 → [(ref, pin_hint or None)]"""

@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-06 09:13** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-06 10:14** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -61,10 +61,10 @@
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 179 条 | 状态: closed=62 deferred=13 verified=41 fixed=33 open=27 fixing=3
-  ├─ 内部可自行推进: 150 条 | 外部依赖 (等老板/原厂/JBD): 29 条
+登记问题 180 条 | 状态: closed=63 deferred=13 verified=41 fixed=34 open=27 fixing=2
+  ├─ 内部可自行推进: 151 条 | 外部依赖 (等老板/原厂/JBD): 29 条
   ├─ 逾期未闭环: 46 条
-  └─ 未闭环 blocker 级: 19 条
+  └─ 未闭环 blocker 级: 20 条
 
 【问题清单】(按 severity + 逾期排)
   🔴 ISS-002  closed    owner=boss       due=2026-10-26   [外部]
@@ -115,6 +115,8 @@
        ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC
   🔴 ISS-183  fixed     owner=main       due=2026-11-06  
        ★★★[投板级 P0 · 已修待验] SoM 的 7 个 DCIN 脚落在孤岛网 `RAIL_SOM_DCIN` ⇒ 板上**没有到
+  🔴 ISS-184  fixed     owner=main       due=2026-11-07  
+       ★★★[网表级 P0 · 已修待验] `.net` 导出器把「只在 node 串里出现、ref 列里没有」的器件(J_SOM_P2 
   🔴 ISS-181  fixing    owner=hw-lead    due=2026-11-08  
        ★★★[最高优先级 · 老板 11-04 19:10 指示] 自研 demo 主板: 从骨架布到**可下单** (unconnect
   🔴 ISS-147  fixed     owner=main       due=2026-11-04   ⏰逾期
@@ -425,7 +427,7 @@
        ★★JBD 角色收窄为波导 + ISS-016 作废 + ISS-048 光生物安全口径整个变了 (LED 点光源 → OLED 面
   🟡 ISS-136  open      owner=main       due=2026-11-06  
        ★★J_CHG 跨铰链 pin map 与 CHARGE_BOARD_SPEC.md §5 漂移 (spec 是旧的, 网表是对的)
-  🟡 ISS-153  fixing    owner=hw-lead    due=2026-11-06  
+  🟡 ISS-153  closed    owner=hw-lead    due=2026-11-06  
        ★★订正: AR0234CS 的 I2C 地址是 0x10 (不是 0x36) + IMX415 是 0x1a ⇒ 网表注释已改, 
   🟡 ISS-174  open      owner=main       due=2026-11-06  
        ★★[demo 触控收不到中断] display 触控的 TP_INT (pin26) 没接到 SoM 任何脚 ⇒ 触控中断收不到
@@ -686,6 +688,7 @@
 | ISS-155 | main | 2026-11-06 | ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 target 转的 .rknn 能否在 RK3572 上跑通 (板端验证) —— 且板子当前不可达 |
 | ISS-160 | main | 2026-11-06 | ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) ⇒ 剩下: 原理图/密集布线/打样 |
 | ISS-183 | main | 2026-11-06 | ★★★[投板级 P0 · 已修待验] SoM 的 7 个 DCIN 脚落在孤岛网 `RAIL_SOM_DCIN` ⇒ 板上**没有到 SoM 的供电路径** (网表 net 字段与 node2 字段自相矛盾) |
+| ISS-184 | main | 2026-11-07 | ★★★[网表级 P0 · 已修待验] `.net` 导出器把「只在 node 串里出现、ref 列里没有」的器件(J_SOM_P2 / J_SOM_P4) 的 23 个脚**静默丢弃** ⇒ 脚级表停更 3 天 + 原 5 条门禁全绿漏过 |
 | ISS-181 | hw-lead | 2026-11-08 | ★★★[最高优先级 · 老板 11-04 19:10 指示] 自研 demo 主板: 从骨架布到**可下单** (unconnected 353 → 0, DRC 0, Gerber 重出) |
 | ISS-062 | hw-lead | 2026-10-29 | R-GEO-2 四问转原厂/镜头厂 (边缘畸变区是检测价值最高处 / 4-lane MIPI / ISP 吞吐余量 98.1% / scaler 能否填黑边) |
 | ISS-067 | hw-lead | 2026-10-29 | R-F1 3.3V 轨拓扑裁决落地 (UVP 抬 3.5V + 3.3V 改供 + 评估不牺牲容量的替代方案) |

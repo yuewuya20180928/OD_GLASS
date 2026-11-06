@@ -115,6 +115,40 @@ def main() -> int:
         R.append({"name": "单点网清单 (投板前要 pin-centric 重整, 见 ISS-094)", "ok": True,
                   "detail": f"{len(thin)} 个"})
 
+    # ★★6) ★★2026-11-06 新增 (实测事故回补): **CSV 里带引脚提示的节点, .net 里一个都不能缺**
+    #   ★**为什么加这条**: 2026-11-06 实测发现 `.net` 导出器 (gen_kicad_net.py) 把
+    #   **J_SOM_P2 / J_SOM_P4 这两个只在 node 串里出现、ref 列里没有的座** 的 23 个脚
+    #   **静默丢弃**了 (.net 里 J_SOM_P2=0 节点 / J_SOM_P4=0 节点) ⇒
+    #   ★而本文件原有的 5 条判据**全部通过 (rc=0)** ⇒ ★**"门禁形同虚设"**
+    #   ⇒ 后果: gen_netlist_pins.py 的"SoC 引脚 >= 50" 判红 ⇒ 脚级表从 11-03 起停更。
+    #   ⇒ 这条判据 = **按"CSV 说该有多少脚, .net 就得有多少脚"逐个点名**, 与 ref 列无关 ⇒
+    #   ★**只要导出器再丢任何一个脚, 这条立刻报红** (而不是像这次一样静默三天)。
+    #   ★口径: 只查**单脚提示** (不含 '+'); 多脚展开 (如 "J_USB_C A6+B6") 是"一脚并联多物理脚",
+    #   导出后拆成多个 pin ⇒ 口径不同, 不在本判据内。
+    csv_rows = list(csv.DictReader(open(args.csv, encoding="utf-8")))
+    csv_labels = {(r.get("net") or "").strip() for r in csv_rows}
+    have_pins = {(ref, pin) for ref, pin in
+                 ((r, p) for net_, nodes in nodes_by_net.items() for r, p in nodes)}
+    want_pins: set[tuple[str, str]] = set()
+    for r in csv_rows:
+        for k in ("node1", "node2"):
+            n = (r.get(k) or "").strip()
+            if " " not in n:
+                continue
+            head, rest = n.split(" ", 1)
+            head, rest = head.strip(), rest.strip()
+            if not head or "+" in rest:
+                continue
+            if head in csv_labels:                      # 网名不是器件
+                continue
+            if head.startswith(("NET_", "RAIL_")) or head in ("GND", "VSS", "VDD", "SYS_PCB"):
+                continue
+            want_pins.add((head, rest))
+    lost = sorted(want_pins - have_pins)
+    chk("CSV 里带引脚提示的脚, .net 里一个不缺 (导出器不许静默丢脚)", not lost,
+        f"★丢了 {len(lost)} 个脚 ⇒ 导出器把只在 node 串里出现的器件整组丢掉了 (实测: J_SOM_P2/J_SOM_P4)"
+        if lost else f"{len(want_pins)} 个带引脚提示的脚全在 .net 里")
+
     bad = [x for x in R if not x["ok"]]
     print("=" * 72)
     print("  KiCad 导出件门禁 · 项目总工机械验收")

@@ -1,6 +1,6 @@
 pin_id,net,ref,pin,page,value,type,dnp,board,conn_id,footprint,opn,evidence,tbd,note
-BT_432243.B,BAT_CELL_P,BT_432243,B,P1,432243 3.7V ≥420mAh,CONN,必装,MAIN_PCB,C-03,,,[推算],,"[BAT_CELL_P] 电芯正极 · 第 1 只保护 MOS (Q1) 漏极; 尺寸 4.3×2.4mm 级, 焊接方式待结构确认"
-BT_432243.B-,BAT_CELL_N,BT_432243,B-,P1,432243 3.7V ≥420mAh,CONN,必装,MAIN_PCB,C-03,,,[推算],,[BAT_CELL_N] ★F2 修正: **电芯负极 · BQ2970 的 B- 脚** (原来电芯只有一个端子 · 电池回路不闭合)
+BT_432243.B,BAT_CELL_P,BT_432243,B,P1,432243 3.7V ≥420mAh,CONN,DNP,MAIN_PCB,C-03,,,[推算],,"[BT_432243] ★DNP: 同上 (不装电池) | [BAT_CELL_P] 电芯正极 · 第 1 只保护 MOS (Q1) 漏极; 尺寸 4.3×2.4mm 级, 焊接方式待结构确认"
+BT_432243.B-,BAT_CELL_N,BT_432243,B-,P1,432243 3.7V ≥420mAh,CONN,DNP,MAIN_PCB,C-03,,,[推算],,[BT_432243] ★DNP: 同上 (不装电池) | [BAT_CELL_N] ★F2 修正: **电芯负极 · BQ2970 的 B- 脚** (原来电芯只有一个端子 · 电池回路不闭合)
 CHG_GND_STAR.1,GND,CHG_GND_STAR,1,P1,单点汇流位,CONN,必装,MAIN_PCB,C-11,,,[推算],,"[GND] 充电板↔主 PCB 的地单点汇流位 (结构总工定位置, ISS-065)"
 CONN_CAM.pin1,GND,CONN_CAM,pin1,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
 CONN_CAM.pin10,GND,CONN_CAM,pin10,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
@@ -16,12 +16,12 @@ CONN_CAM.pin19,GND,CONN_CAM,pin19,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_
 CONN_CAM.pin2,CSI_D0_D3_N,CONN_CAM,pin2,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
 CONN_CAM.pin20,CSI_MCLK,CONN_CAM,pin20,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
 CONN_CAM.pin21,GND,CONN_CAM,pin21,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
-CONN_CAM.pin22,NC_CONN_CAM,CONN_CAM,pin22,P5,NC,NET,必装,MAIN_PCB,,,,[官方],,"[CONN_CAM] ★Radxa Camera 4K 31 针表: pin8 = NC (模组内部不接); ★**板级同网仅为满足网表连通性检查, 这几脚本身是 NC, 无功能影响**"
-CONN_CAM.pin23,NC_CONN_CAM,CONN_CAM,pin23,P5,NC,NET,必装,MAIN_PCB,,,,[官方],,"[CONN_CAM] ★Radxa Camera 4K 31 针表: pin8 = NC (模组内部不接); ★**板级同网仅为满足网表连通性检查, 这几脚本身是 NC, 无功能影响**"
+CONN_CAM.pin22,NC_CONN_CAM_22,CONN_CAM,pin22,P5,NC,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin22 = NC (模组内部不接); ★**每个 NC 脚独立成网** (共用一根网会被 DRC 判成'未连接' ⇒ 假告警)
+CONN_CAM.pin23,NC_CONN_CAM_23,CONN_CAM,pin23,P5,NC,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin23 = NC (模组内部不接); ★**每个 NC 脚独立成网** (共用一根网会被 DRC 判成'未连接' ⇒ 假告警)
 CONN_CAM.pin24,I2C_A_SCL,CONN_CAM,pin24,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
 CONN_CAM.pin25,I2C_A_SDA,CONN_CAM,pin25,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
-CONN_CAM.pin26,NC_CONN_CAM,CONN_CAM,pin26,P5,NC,NET,必装,MAIN_PCB,,,,[官方],,"[CONN_CAM] ★Radxa Camera 4K 31 针表: pin8 = NC (模组内部不接); ★**板级同网仅为满足网表连通性检查, 这几脚本身是 NC, 无功能影响**"
-CONN_CAM.pin27,CAM_RESET_N,CONN_CAM,pin27,P5,RESET,NET,必装,MAIN_PCB,,,,[官方],,"[CAM_RESET_N] ★camera 模组 RESET (pin27, 低有效) ⇒ 接 SoC GPIO (★球位号 TBD-01); 参考 Radxa CM5 overlay dts 的 reset-gpios (gpio1 RK_PB3, 低有效) ⇒ ★**主板必须能拉它**"
+CONN_CAM.pin26,NC_CONN_CAM_26,CONN_CAM,pin26,P5,NC,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin26 = NC (模组内部不接); ★**每个 NC 脚独立成网** (共用一根网会被 DRC 判成'未连接' ⇒ 假告警)
+CONN_CAM.pin27,CAM_RESET_N,CONN_CAM,pin27,P5,单端,NET,必装,MAIN_PCB,A-12,,,[官方],,"[CAM_RESET_N] ★camera 模组 RESET (pin27, 低有效) ⇒ 接 SoC GPIO (★球位号 TBD-01); 参考 Radxa CM5 overlay dts 的 reset-gpios (gpio1 RK_PB3, 低有效) ⇒ ★**主板必须能拉它**"
 CONN_CAM.pin28,LIGHT_3V3,CONN_CAM,pin28,P5,3.3V,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★camera 模组 VCC3.3V (pin28) ⇒ 主板 3.3V 轨
 CONN_CAM.pin29,LIGHT_3V3,CONN_CAM,pin29,P5,3.3V,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★camera 模组 VCC3.3V (pin28) ⇒ 主板 3.3V 轨
 CONN_CAM.pin3,CSI_D0_D3_P,CONN_CAM,pin3,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
@@ -31,52 +31,30 @@ CONN_CAM.pin4,GND,CONN_CAM,pin4,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CA
 CONN_CAM.pin5,CSI_D0_D2_N,CONN_CAM,pin5,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
 CONN_CAM.pin6,CSI_D0_D2_P,CONN_CAM,pin6,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
 CONN_CAM.pin7,GND,CONN_CAM,pin7,P5,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin{_pn} = GND
-CONN_CAM.pin8,NC_CONN_CAM,CONN_CAM,pin8,P5,NC,NET,必装,MAIN_PCB,,,,[官方],,"[CONN_CAM] ★Radxa Camera 4K 31 针表: pin8 = NC (模组内部不接); ★**板级同网仅为满足网表连通性检查, 这几脚本身是 NC, 无功能影响**"
-CONN_CAM.pin9,NC_CONN_CAM,CONN_CAM,pin9,P5,NC,NET,必装,MAIN_PCB,,,,[官方],,"[CONN_CAM] ★Radxa Camera 4K 31 针表: pin8 = NC (模组内部不接); ★**板级同网仅为满足网表连通性检查, 这几脚本身是 NC, 无功能影响**"
-CONN_LIGHT.pin1,NC_CONN_LIGHT,CONN_LIGHT,pin1,P4,NC,NET,必装,MAIN_PCB,,,,[官方],,"[CONN_LIGHT] ★Radxa Display 40 针表: pin1 = NC; ★**板级同网仅为满足网表连通性检查, 无功能影响**"
-CONN_LIGHT.pin10,GND,CONN_LIGHT,pin10,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin11,DSI_D0_D1_N,CONN_LIGHT,pin11,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin12,DSI_D0_D1_P,CONN_LIGHT,pin12,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin13,GND,CONN_LIGHT,pin13,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin14,DSI_D0_CK_N,CONN_LIGHT,pin14,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin15,LIGHT_5V,CONN_LIGHT,pin15,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin16,GND,CONN_LIGHT,pin16,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin17,DSI_D0_D2_N,CONN_LIGHT,pin17,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin18,DSI_D0_D2_P,CONN_LIGHT,pin18,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin19,GND,CONN_LIGHT,pin19,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin2,LIGHT_3V3,CONN_LIGHT,pin2,P4,3.3V,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: 面板 VDD = 3.3V (pin2/31/32)
-CONN_LIGHT.pin20,DSI_D0_D3_N,CONN_LIGHT,pin20,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin21,DSI_D0_D3_P,CONN_LIGHT,pin21,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin22,GND,CONN_LIGHT,pin22,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin23,GND,CONN_LIGHT,pin23,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin24,DSI_AUX,CONN_LIGHT,pin24,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin25,LIGHT_3V3,CONN_LIGHT,pin25,P4,3.3V,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: 面板 VDD = 3.3V (pin2/31/32)
-CONN_LIGHT.pin26,DSI_AUX,CONN_LIGHT,pin26,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin27,I2C_B_SDA,CONN_LIGHT,pin27,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin28,I2C_B_SCL,CONN_LIGHT,pin28,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin29,GND,CONN_LIGHT,pin29,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin3,LIGHT_3V3,CONN_LIGHT,pin3,P4,3.3V,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: 面板 VDD = 3.3V (pin2/31/32)
-CONN_LIGHT.pin30,GND,CONN_LIGHT,pin30,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin31,LIGHT_3V3,CONN_LIGHT,pin31,P4,3.3V,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: 面板 VDD = 3.3V (pin2/31/32)
-CONN_LIGHT.pin32,LIGHT_3V3,CONN_LIGHT,pin32,P4,3.3V,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: 面板 VDD = 3.3V (pin2/31/32)
-CONN_LIGHT.pin33,GND,CONN_LIGHT,pin33,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin34,GND,CONN_LIGHT,pin34,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin35,DSI_AUX,CONN_LIGHT,pin35,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin36,GND,CONN_LIGHT,pin36,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin37,NC_CONN_LIGHT,CONN_LIGHT,pin37,P4,NC,NET,必装,MAIN_PCB,,,,[官方],,"[CONN_LIGHT] ★Radxa Display 40 针表: pin1 = NC; ★**板级同网仅为满足网表连通性检查, 无功能影响**"
-CONN_LIGHT.pin38,NC_CONN_LIGHT,CONN_LIGHT,pin38,P4,NC,NET,必装,MAIN_PCB,,,,[官方],,"[CONN_LIGHT] ★Radxa Display 40 针表: pin1 = NC; ★**板级同网仅为满足网表连通性检查, 无功能影响**"
-CONN_LIGHT.pin39,GND,CONN_LIGHT,pin39,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin4,NC_CONN_LIGHT,CONN_LIGHT,pin4,P4,NC,NET,必装,MAIN_PCB,,,,[官方],,"[CONN_LIGHT] ★Radxa Display 40 针表: pin1 = NC; ★**板级同网仅为满足网表连通性检查, 无功能影响**"
-CONN_LIGHT.pin40,DSI_AUX,CONN_LIGHT,pin40,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin5,DSI_RESET_N,CONN_LIGHT,pin5,P4,RESET,NET,必装,MAIN_PCB,,,,[官方],,[DSI_RESET_N] ★屏模组 Reset (pin5) ⇒ 接 SoC GPIO (★球位号 TBD-01) ⇒ ★**主板必须能拉它**
-CONN_LIGHT.pin6,NC_CONN_LIGHT,CONN_LIGHT,pin6,P4,NC,NET,必装,MAIN_PCB,,,,[官方],,"[CONN_LIGHT] ★Radxa Display 40 针表: pin1 = NC; ★**板级同网仅为满足网表连通性检查, 无功能影响**"
-CONN_LIGHT.pin7,GND,CONN_LIGHT,pin7,P4,GND,NET,必装,MAIN_PCB,,,,[官方],,[CONN_LIGHT] ★Radxa Display 40 针表: pin{_pn} = GND
-CONN_LIGHT.pin8,DSI_D0_D0_N,CONN_LIGHT,pin8,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_LIGHT.pin9,DSI_D0_D0_P,CONN_LIGHT,pin9,P4,"★40p@0.5mm (Radxa Display 8HD/10FHD, 座 FH12-40S-0.5SH 一类))",CONN,必装,MAIN_PCB,,,,[待视涯],TBD-04,"[INVENTORY] [CONN_LIGHT] ★demo 2026-11-02 19:4x: 改**板内 FPC 座** (屏幕模组 ↔ 主板, 不跨铰链; 针位目标 0.5mm/20p 见 HW/DEMO_BOARD_HW_DECISION.md §4); 显示/光机↔主板连接器; pin1/2=DSI_CK, 3/4=DSI_D0, 5/6=DSI_D1, 7/8=DSI_D2 预留(DN"
-CONN_USB.pin1,USB_D_P,CONN_USB,pin1,P6,4p@0.5mm USB 跨铰链连接器 (D+/D-/GND/预留),CONN,必装,HINGE,,,,[推算],,"[INVENTORY] [CONN_USB] ★USB 差分对**必然跨铰链** (Type-C 在充电板=镜框, SoC 在主 PCB=镜脚) · 本位必留; ⚠️ USB 2.0 (及可能的 USB 3.0 SS) 差分跨铰链是 SI 风险, 建议 Type-C 挪主 PCB 侧 或调试改走 J_DEBUG/J_UART · 已列 P6 叙述 + 待项目总工/结构总工拍板"
-CONN_USB.pin2,USB_D_N,CONN_USB,pin2,P6,4p@0.5mm USB 跨铰链连接器 (D+/D-/GND/预留),CONN,必装,HINGE,,,,[推算],,"[INVENTORY] [CONN_USB] ★USB 差分对**必然跨铰链** (Type-C 在充电板=镜框, SoC 在主 PCB=镜脚) · 本位必留; ⚠️ USB 2.0 (及可能的 USB 3.0 SS) 差分跨铰链是 SI 风险, 建议 Type-C 挪主 PCB 侧 或调试改走 J_DEBUG/J_UART · 已列 P6 叙述 + 待项目总工/结构总工拍板"
-CONN_USB.pin3,GND,CONN_USB,pin3,P9,"回流地 (第二脚, 与 pin3 并联)",NET,必装,HINGE,,,,[推算],,"[CONN_USB pin4] ★V1.8 补: 跨铰链 USB 的回流脚与信号脚**成对** (ISS-085 自定规则) · pin4 由预留改 **GND** (双回流, 零成本); ★并发关系: 充电板侧的 D+/D− 已在 P10 画过, 本行是镜脚侧"
-CONN_USB.pin4,GND,CONN_USB,pin4,P9,"回流地 (第二脚, 与 pin3 并联)",NET,必装,HINGE,,,,[推算],,"[CONN_USB pin4] ★V1.8 补: 跨铰链 USB 的回流脚与信号脚**成对** (ISS-085 自定规则) · pin4 由预留改 **GND** (双回流, 零成本); ★并发关系: 充电板侧的 D+/D− 已在 P10 画过, 本行是镜脚侧"
+CONN_CAM.pin8,NC_CONN_CAM_8,CONN_CAM,pin8,P5,NC,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin8 = NC (模组内部不接); ★**每个 NC 脚独立成网** (共用一根网会被 DRC 判成'未连接' ⇒ 假告警)
+CONN_CAM.pin9,NC_CONN_CAM_9,CONN_CAM,pin9,P5,NC,NET,必装,MAIN_PCB,,,,[官方],,[CONN_CAM] ★Radxa Camera 4K 31 针表: pin9 = NC (模组内部不接); ★**每个 NC 脚独立成网** (共用一根网会被 DRC 判成'未连接' ⇒ 假告警)
+CONN_LIGHT.pin1,GND,CONN_LIGHT,pin1,P4,GND,NET,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,[CONN_LIGHT] Pi5 DISPLAY 座 pin1 = GND
+CONN_LIGHT.pin10,GND,CONN_LIGHT,pin10,P4,GND,NET,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,[CONN_LIGHT] Pi5 DISPLAY 座 pin1 = GND
+CONN_LIGHT.pin11,I2C_B_SCL,CONN_LIGHT,pin11,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin12,I2C_B_SDA,CONN_LIGHT,pin12,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin13,GND,CONN_LIGHT,pin13,P4,GND,NET,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,[CONN_LIGHT] Pi5 DISPLAY 座 pin1 = GND
+CONN_LIGHT.pin14,LIGHT_3V3,CONN_LIGHT,pin14,P4,3.3V,NET,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,[CONN_LIGHT] Pi5 DISPLAY 座 pin14 = 3V3 (★屏侧 15p 的 14/15 都是 3V3)
+CONN_LIGHT.pin15,LIGHT_3V3,CONN_LIGHT,pin15,P4,3.3V,NET,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,[CONN_LIGHT] Pi5 DISPLAY 座 pin14 = 3V3 (★屏侧 15p 的 14/15 都是 3V3)
+CONN_LIGHT.pin16,DSI_D0_D2_N,CONN_LIGHT,pin16,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin17,DSI_D0_D2_P,CONN_LIGHT,pin17,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin18,DSI_D0_D3_N,CONN_LIGHT,pin18,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin19,DSI_D0_D3_P,CONN_LIGHT,pin19,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin2,DSI_D0_D1_N,CONN_LIGHT,pin2,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin20,GND,CONN_LIGHT,pin20,P4,GND,NET,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,[CONN_LIGHT] Pi5 DISPLAY 座 pin1 = GND
+CONN_LIGHT.pin21,GND,CONN_LIGHT,pin21,P4,GND,NET,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,[CONN_LIGHT] Pi5 DISPLAY 座 pin1 = GND
+CONN_LIGHT.pin22,GND,CONN_LIGHT,pin22,P4,GND,NET,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,[CONN_LIGHT] Pi5 DISPLAY 座 pin1 = GND
+CONN_LIGHT.pin3,DSI_D0_D1_P,CONN_LIGHT,pin3,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin4,GND,CONN_LIGHT,pin4,P4,GND,NET,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,[CONN_LIGHT] Pi5 DISPLAY 座 pin1 = GND
+CONN_LIGHT.pin5,DSI_D0_CK_N,CONN_LIGHT,pin5,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin6,DSI_D0_CK_P,CONN_LIGHT,pin6,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin7,GND,CONN_LIGHT,pin7,P4,GND,NET,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,[CONN_LIGHT] Pi5 DISPLAY 座 pin1 = GND
+CONN_LIGHT.pin8,DSI_D0_D0_N,CONN_LIGHT,pin8,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
+CONN_LIGHT.pin9,DSI_D0_D0_P,CONN_LIGHT,pin9,P4,"★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)",CONN,必装,MAIN_PCB,,"Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch / 右角(水平) / 底接触 / 1 固定柱, 焊盘 0.3x1.3mm (RPi 官方 CM5IO 封装: Hirose_FH12-22S-0.5SH_1x22-1MP_P0.50mm_Horizontal)",FH12-22S-0.5SH(55),[官方],,"[INVENTORY] [CONN_LIGHT] ★2026-11-04 定稿: 板内 FPC 座 22p/0.5mm, 针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 4=GND 5=DSI1_CN 6=DSI1_CP 7=GND 8=DSI1_DN0 9=DSI1_DP0 10=GND 11=SCL0 "
 C_AC_CSI_D0_CK_N.1,CSI_D0_CK_N_SRC,C_AC_CSI_D0_CK_N,1,P5,100nF ±10%,C,必装,MAIN_PCB,,,,[推算],TBD-03,"[CSI_D0_CK_N] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装"
 C_AC_CSI_D0_CK_N.2,CSI_D0_CK_N,C_AC_CSI_D0_CK_N,2,P5,100nF ±10%,C,必装,MAIN_PCB,,,,[推算],TBD-03,"[CSI_D0_CK_N] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装"
 C_AC_CSI_D0_CK_P.1,CSI_D0_CK_P_SRC,C_AC_CSI_D0_CK_P,1,P5,100nF ±10%,C,必装,MAIN_PCB,,,,[推算],TBD-03,"[CSI_D0_CK_P] AC 耦合电容位 (MIPI 标准 100nF) — 原厂是否内置 AC 耦合未回 (TBD-03); 内置则本位改 DNP, 未内置必须装"
@@ -115,14 +93,14 @@ C_BULK_VDD_1V8_IO.1,VDD_1V8_IO,C_BULK_VDD_1V8_IO,1,P1,10µF,C,必装,MAIN_PCB,,,
 C_BULK_VDD_1V8_IO.2,GND,C_BULK_VDD_1V8_IO,2,P1,10µF,C,必装,MAIN_PCB,,,,[推算],,[VDD_1V8_IO] 体电容 地端
 C_BULK_VDD_3V3_IO.1,VDD_3V3_IO,C_BULK_VDD_3V3_IO,1,P1,10µF,C,必装,MAIN_PCB,,,,[推算],,"[VDD_3V3_IO] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)"
 C_BULK_VDD_3V3_IO.2,GND,C_BULK_VDD_3V3_IO,2,P1,10µF,C,必装,MAIN_PCB,,,,[推算],,[VDD_3V3_IO] 体电容 地端
-C_BULK_V_CORE.1,V_CORE,C_BULK_V_CORE,1,P1,10µF,C,必装,MAIN_PCB,C-04,,,[推算],,"[V_CORE] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)"
-C_BULK_V_CORE.2,GND,C_BULK_V_CORE,2,P1,10µF,C,必装,MAIN_PCB,C-04,,,[推算],,[V_CORE] 体电容 地端
-C_BULK_V_SOC_IO.1,V_SOC_IO,C_BULK_V_SOC_IO,1,P1,10µF,C,必装,MAIN_PCB,C-05,,,[推算],,"[V_SOC_IO] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)"
-C_BULK_V_SOC_IO.2,GND,C_BULK_V_SOC_IO,2,P1,10µF,C,必装,MAIN_PCB,C-05,,,[推算],,[V_SOC_IO] 体电容 地端
-C_DET_BAT.1,BAT_DET,C_DET_BAT,1,P2,100nF ±10%,C,必装,MAIN_PCB,B-08,,,[推算],,"[BAT_DET] ADC 滤波电容 (★V1.2: 电池在镜脚, 本地检测, 不跨铰链)"
-C_DET_BAT.2,GND,C_DET_BAT,2,P2,100nF ±10%,C,必装,MAIN_PCB,B-08,,,[推算],,[BAT_DET] ADC 滤波电容 地端
-C_DET_VBUS.1,VBUS_DET,C_DET_VBUS,1,P2,100nF ±10%,C,必装,MAIN_PCB,B-07,,,[推算],,"[VBUS_DET] ADC 滤波电容 (跨铰链侧 (充电板测 VBUS, 高阻分压))"
-C_DET_VBUS.2,GND,C_DET_VBUS,2,P2,100nF ±10%,C,必装,MAIN_PCB,B-07,,,[推算],,[VBUS_DET] ADC 滤波电容 地端
+C_BULK_V_CORE.1,V_CORE,C_BULK_V_CORE,1,P1,10µF,C,DNP,MAIN_PCB,C-04,,,[推算],,"[V_CORE] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)"
+C_BULK_V_CORE.2,GND,C_BULK_V_CORE,2,P1,10µF,C,DNP,MAIN_PCB,C-04,,,[推算],,[V_CORE] 体电容 地端
+C_BULK_V_SOC_IO.1,V_SOC_IO,C_BULK_V_SOC_IO,1,P1,10µF,C,DNP,MAIN_PCB,C-05,,,[推算],,"[V_SOC_IO] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)"
+C_BULK_V_SOC_IO.2,GND,C_BULK_V_SOC_IO,2,P1,10µF,C,DNP,MAIN_PCB,C-05,,,[推算],,[V_SOC_IO] 体电容 地端
+C_DET_BAT.1,BAT_DET,C_DET_BAT,1,P2,100nF ±10%,C,DNP,MAIN_PCB,B-08,,,[推算],,"[C_DET_BAT] ★DNP: 同上 (电池 ADC 滤波) | [BAT_DET] ADC 滤波电容 (★V1.2: 电池在镜脚, 本地检测, 不跨铰链)"
+C_DET_BAT.2,GND,C_DET_BAT,2,P2,100nF ±10%,C,DNP,MAIN_PCB,B-08,,,[推算],,[C_DET_BAT] ★DNP: 同上 (电池 ADC 滤波) | [BAT_DET] ADC 滤波电容 地端
+C_DET_VBUS_D.1,GND,C_DET_VBUS_D,1,P1,100nF ±10%,C,必装,MAIN_PCB,A-24,,,[推算],,[VBUS_DET_D] ADC 滤波电容 地端
+C_DET_VBUS_D.2,VBUS_DET_D,C_DET_VBUS_D,2,P1,100nF ±10%,C,必装,MAIN_PCB,A-24,,,[推算],,[VBUS_DET_D] ADC 滤波电容 中点侧 (★原来缺这一腿 ⇒ 器件只有 1 个脚)
 C_HF_LIGHT_1V8.1,LIGHT_1V8,C_HF_LIGHT_1V8,1,P1,100nF,C,DNP,MAIN_PCB,C-10,,,[推算],,[LIGHT_1V8] 高频去耦电容位 (紧贴 IC 引脚)
 C_HF_LIGHT_1V8.2,GND,C_HF_LIGHT_1V8,2,P1,100nF,C,DNP,MAIN_PCB,C-10,,,[推算],,[LIGHT_1V8] 高频去耦电容 地端
 C_HF_LIGHT_3V3.1,LIGHT_3V3,C_HF_LIGHT_3V3,1,P1,100nF,C,必装,MAIN_PCB,C-09,,,[推算],,[LIGHT_3V3] 高频去耦电容位 (紧贴 IC 引脚)
@@ -137,10 +115,10 @@ C_HF_VDD_1V8_IO.1,VDD_1V8_IO,C_HF_VDD_1V8_IO,1,P1,100nF,C,必装,MAIN_PCB,,,,[�
 C_HF_VDD_1V8_IO.2,GND,C_HF_VDD_1V8_IO,2,P1,100nF,C,必装,MAIN_PCB,,,,[推算],,[VDD_1V8_IO] 高频去耦电容 地端
 C_HF_VDD_3V3_IO.1,VDD_3V3_IO,C_HF_VDD_3V3_IO,1,P1,100nF,C,必装,MAIN_PCB,,,,[推算],,[VDD_3V3_IO] 高频去耦电容位 (紧贴 IC 引脚)
 C_HF_VDD_3V3_IO.2,GND,C_HF_VDD_3V3_IO,2,P1,100nF,C,必装,MAIN_PCB,,,,[推算],,[VDD_3V3_IO] 高频去耦电容 地端
-C_HF_V_CORE.1,V_CORE,C_HF_V_CORE,1,P1,100nF,C,必装,MAIN_PCB,C-04,,,[推算],,[V_CORE] 高频去耦电容位 (紧贴 IC 引脚)
-C_HF_V_CORE.2,GND,C_HF_V_CORE,2,P1,100nF,C,必装,MAIN_PCB,C-04,,,[推算],,[V_CORE] 高频去耦电容 地端
-C_HF_V_SOC_IO.1,V_SOC_IO,C_HF_V_SOC_IO,1,P1,100nF,C,必装,MAIN_PCB,C-05,,,[推算],,[V_SOC_IO] 高频去耦电容位 (紧贴 IC 引脚)
-C_HF_V_SOC_IO.2,GND,C_HF_V_SOC_IO,2,P1,100nF,C,必装,MAIN_PCB,C-05,,,[推算],,[V_SOC_IO] 高频去耦电容 地端
+C_HF_V_CORE.1,V_CORE,C_HF_V_CORE,1,P1,100nF,C,DNP,MAIN_PCB,C-04,,,[推算],,[V_CORE] 高频去耦电容位 (紧贴 IC 引脚)
+C_HF_V_CORE.2,GND,C_HF_V_CORE,2,P1,100nF,C,DNP,MAIN_PCB,C-04,,,[推算],,[V_CORE] 高频去耦电容 地端
+C_HF_V_SOC_IO.1,V_SOC_IO,C_HF_V_SOC_IO,1,P1,100nF,C,DNP,MAIN_PCB,C-05,,,[推算],,[V_SOC_IO] 高频去耦电容位 (紧贴 IC 引脚)
+C_HF_V_SOC_IO.2,GND,C_HF_V_SOC_IO,2,P1,100nF,C,DNP,MAIN_PCB,C-05,,,[推算],,[V_SOC_IO] 高频去耦电容 地端
 C_KEY_CAM.1,KEY_CAM,C_KEY_CAM,1,P7,100nF ±10%,C,DNP,MAIN_PCB,,,,[推算],,"[KEY_CAM] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线)"
 C_KEY_CAM.2,GND,C_KEY_CAM,2,P7,100nF ±10%,C,DNP,MAIN_PCB,,,,[推算],,"[KEY_CAM] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线)"
 C_KEY_PWR.1,KEY_PWR,C_KEY_PWR,1,P7,100nF ±10%,C,必装,MAIN_PCB,,,,[推算],,"[KEY_PWR] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线)"
@@ -152,11 +130,11 @@ C_KEY_VP.2,GND,C_KEY_VP,2,P7,100nF ±10%,C,必装,MAIN_PCB,,,,[推算],,"[KEY_VO
 C_PMID.1,PMID,C_PMID,1,P10,10µF X7R 25V,C,必装,CHG_BOARD,C-01,,,[官方],,"★datasheet: 'put 1µF on VBUS to PGND, and the rest capacitance on PMID to PGND' ⇒ PMID 电容不可省; 纹波复算 IRIPPLE = VBUS·D·(1-D)/(fs·L) = 0.29A @5V/3.7V/1.5MHz/2.2µH (datasheet 指引 20-40%)"
 C_PMID.2,PGND,C_PMID,2,P10,10µF X7R 25V,C,必装,CHG_BOARD,C-01,,,[官方],,PMID 电容 地端 (PGND)
 C_REGN.1,REGN,C_REGN,1,P1,[待选型] 1µF,C,必装,CHG_BOARD,C-01,,,[官方],,[REGN] BQ25896 REGN 去耦电容 (datasheet 要求)
-C_REGN.2,GND,C_REGN,2,P1,[待选型] 1µF,C,必装,MAIN_PCB,C-01,,,[官方],,[REGN] REGN 去耦电容 地端
+C_REGN.2,GND,C_REGN,2,P1,[待选型] 1µF,C,必装,CHG_BOARD,C-01,,,[官方],,[REGN] REGN 去耦电容 地端
 C_RST.1,RESET_N_SOC,C_RST,1,P8,100nF ±10%,C,必装,MAIN_PCB,B-10,,,[推算],,[RESET_N_SOC] RESET_N 对地 RC 电容 (τ=100ms; **释放时期待原厂 TBD-12**)
 C_RST.2,GND,C_RST,2,P8,100nF ±10%,C,必装,MAIN_PCB,B-10,,,[推算],,RESET RC 电容 地端
-C_SUPV.1,VDD_1V8_IO,C_SUPV,1,P8,100nF ±10%,C,必装,MAIN_PCB,B-10,,,[推算],,[VDD_1V8_IO] 监督器 就近去耦
-C_SUPV.2,GND,C_SUPV,2,P8,100nF ±10%,C,必装,MAIN_PCB,B-10,,,[推算],,[VDD_1V8_IO] 监督器 去耦 地端
+C_SUPV.1,VDD_1V8_IO,C_SUPV,1,P8,100nF ±10%,C,DNP,MAIN_PCB,B-10,,,[推算],,[C_SUPV] ★DNP: 同上 (监督器去耦电容) | [VDD_1V8_IO] 监督器 就近去耦
+C_SUPV.2,GND,C_SUPV,2,P8,100nF ±10%,C,DNP,MAIN_PCB,B-10,,,[推算],,[C_SUPV] ★DNP: 同上 (监督器去耦电容) | [VDD_1V8_IO] 监督器 去耦 地端
 C_SW_IN.1,BAT_SW,C_SW_IN,1,P1,10µF ±20%,C,必装,MAIN_PCB,C-02,,,[推算],,[BAT_SW] 开关输入端去耦 (紧贴 VIN; 另一端接地)
 C_SW_IN.2,GND,C_SW_IN,2,P1,10µF ±20%,C,必装,MAIN_PCB,C-02,,,[推算],,[BAT_SW] 开关输入端去耦 的地端
 C_SW_OUT.1,SYS,C_SW_OUT,1,P1,10µF ±20%,C,必装,MAIN_PCB,C-02,,,[推算],,"[SYS] 开关引脚端去耦 (紧贴 VOUT, 承 SoC 上电冲击; 另一端接地)"
@@ -165,6 +143,8 @@ C_SYS.1,SYS_CHG,C_SYS,1,P10,20µF 6.3V,C,DNP,CHG_BOARD,C-03,,,[官方],,"★C_SY
 C_SYS.2,PGND,C_SYS,2,P10,20µF 6.3V,C,DNP,CHG_BOARD,C-03,,,[官方],,SYS 电容 地端 (PGND); DNP 时不占板面
 C_TEMP.1,VDD_3V3_IO,C_TEMP,1,P2,100nF ±10%,C,必装,MAIN_PCB,B-01,,,[推算],,[I2C_A_SCL] TMP117 就近去耦
 C_TEMP.2,GND,C_TEMP,2,P2,100nF ±10%,C,必装,MAIN_PCB,B-01,,,[推算],,[I2C_A_SCL] TMP117 去耦 地端
+C_VBUS_DEMO.1,RAIL_DEMO_5V,C_VBUS_DEMO,1,P1,10µF ±20%,C,必装,MAIN_PCB,A-24,,,[推算],,[RAIL_DEMO_5V] VBUS 体电容
+C_VBUS_DEMO.2,GND,C_VBUS_DEMO,2,P1,10µF ±20%,C,必装,MAIN_PCB,A-24,,,[推算],,[RAIL_DEMO_5V] VBUS 体电容 地端
 C_VBUS_GND.1,GND,C_VBUS_GND,1,P1,[待选型] 100µF,C,DNP,MAIN_PCB,C-01,,,[推算],,"π 滤波后级**对地**电容 (★V1.6 修正: 原来 C_VBUS_OUT 一颗当两个用 —— 既是 FB·U_CHG 的串联电容, 又是对地电容 · 一颗 2 脚件落进 3 个网 = 导出后一脚悬空); BQ25896 建议 ≥100µF"
 C_VBUS_GND.2,VBUS_5V_CHG,C_VBUS_GND,2,P1,[待选型] 100µF,C,DNP,MAIN_PCB,C-01,,,[推算],,π 滤波后级对地电容的信号端 (与 C_VBUS_OUT 同一节点)
 C_VBUS_IC.1,VBUS_5V_CHG,C_VBUS_IC,1,P10,1µF X7R 25V,C,必装,CHG_BOARD,C-01,,,[官方],,★BQ25896 pin1 VBUS: 'Place a 1-µF ceramic capacitor from VBUS to PGND and place it as close as possible to IC'; 本板 VBUS 电压域名沿用主网表 VBUS_5V_CHG (π 滤波后级到 IC 脚)
@@ -177,19 +157,20 @@ C_XTAL_IN.1,XTAL_IN,C_XTAL_IN,1,P8,12pF ±10%,C,DNP,MAIN_PCB,,,,[同Die参考-�
 C_XTAL_IN.2,GND,C_XTAL_IN,2,P8,12pF ±10%,C,DNP,MAIN_PCB,,,,[同Die参考-待官方确认],TBD-12,晶振负载电容 地端
 C_XTAL_OUT.1,XTAL_OUT,C_XTAL_OUT,1,P8,12pF ±10%,C,DNP,MAIN_PCB,,,,[同Die参考-待官方确认],TBD-12,[XTAL_OUT] 晶振负载电容 (XTAL_OUT 侧)
 C_XTAL_OUT.2,GND,C_XTAL_OUT,2,P8,12pF ±10%,C,DNP,MAIN_PCB,,,,[同Die参考-待官方确认],TBD-12,晶振负载电容 地端
-D_CHG_LED.1,LED_CHG_A,D_CHG_LED,1,P10,"LED (待选型, 充电板侧)",LED,必装,MAIN_PCB,C-01,,,[推算],,"[LED_CHG_A] ★充电灯阳极; 装在**充电板 (镜框) 靠近 Type-C 座**的位置 → 用户插线时可见 (结构需开导光孔, 见 ISS-103)"
-D_CHG_LED.2,CHG_LED_K,D_CHG_LED,2,P10,"LED (待选型, 充电板侧)",LED,必装,MAIN_PCB,C-01,,,[推算],,[CHG_LED_K] 充电灯阴极 (与 Q_CHG_LED 漏极同网)
+D_CHG_LED.1,LED_CHG_A,D_CHG_LED,1,P10,"LED (待选型, 充电板侧)",LED,必装,CHG_BOARD,C-01,,,[推算],,"[LED_CHG_A] ★充电灯阳极; 装在**充电板 (镜框) 靠近 Type-C 座**的位置 → 用户插线时可见 (结构需开导光孔, 见 ISS-103)"
+D_CHG_LED.2,CHG_LED_K,D_CHG_LED,2,P10,"LED (待选型, 充电板侧)",LED,必装,CHG_BOARD,C-01,,,[推算],,[CHG_LED_K] 充电灯阴极 (与 Q_CHG_LED 漏极同网)
 D_ESD_CAM.1,GND,D_ESD_CAM,1,P9,ESD 阵列 [待选型],D,必装,MAIN_PCB,,,,[推算],,"[GND] ★V1.4 补: 跨铰链 CSI ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 · ESD 不工作)"
 D_ESD_CAM.2,CSI_D0_CK_P,D_ESD_CAM,2,P9,ESD 阵列 [待选型] (多通道 CSI),D,必装,MAIN_PCB,,,,[推算],TBD-03,[CSI_D0_CK_P] ★跨铰链 CSI 主板侧 ESD 阵列位 (紧贴 CONN_CAM); 通道数随 lane 数定
+D_ESD_DEMO.1,RAIL_DEMO_5V,D_ESD_DEMO,1,P1,ESD 阵列 [待选型] (USB 2.0),D,必装,MAIN_PCB,A-24,,,[推算],,[RAIL_DEMO_5V] USB-C VBUS 入口 ESD 阵列 (紧贴 J_USB_C)
+D_ESD_DEMO.2,GND,D_ESD_DEMO,2,P1,ESD 阵列 [待选型],D,必装,MAIN_PCB,A-24,,,[推算],,[RAIL_DEMO_5V] USB ESD 阵列 地端
 D_ESD_LIGHT.1,LIGHT_5V,D_ESD_LIGHT,1,P1,ESD 阵列 [待选型],D,DNP,MAIN_PCB,C-10,,,[推算],,"[LIGHT_5V] 光机 5V 供电口 ESD 阵列位 (跨铰链, 随光机接口确认后定)"
 D_ESD_LIGHT.2,GND,D_ESD_LIGHT,2,P1,ESD 阵列 [待选型],D,DNP,MAIN_PCB,C-10,,,[推算],,[LIGHT_5V] 光机侧 ESD 地端
 D_ESD_TC.1,VBUS_5V,D_ESD_TC,1,P1,ESD 阵列 [待选型],D,必装,CHG_BOARD,C-01,,,[推算],,Type-C VBUS 入口 ESD 阵列 (规格 C-01 'Type-C 座 + ESD 阵列'); 通道数/钳位电压随 Type-C 座定
 D_ESD_TC.2,USB_VBUS_RAW,D_ESD_TC,2,P1,ESD 阵列 [待选型],D,必装,CHG_BOARD,C-01,,,[推算],,Type-C VBUS 入口 ESD 阵列 (规格 C-01 'Type-C 座 + ESD 阵列'); 通道数/钳位电压随 Type-C 座定
 D_ESD_TC.3,VBUS_5V_ESD,D_ESD_TC,3,P1,ESD 阵列 [待选型],D,必装,CHG_BOARD,C-01,,,[推算],,Type-C VBUS 入口 ESD 阵列 (规格 C-01 'Type-C 座 + ESD 阵列'); 通道数/钳位电压随 Type-C 座定
 D_ESD_TC.4,GND,D_ESD_TC,4,P9,ESD 阵列 [待选型],D,必装,CHG_BOARD,,,,[推算],,"[GND] ★V1.4 补: Type-C 入口 ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 · ESD 不工作)"
-D_ESD_USB.1,GND,D_ESD_USB,1,P9,ESD 阵列 [待选型],D,必装,MAIN_PCB,,,,[推算],,"[GND] ★V1.4 补: 跨铰链 USB ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 · ESD 不工作)"
-D_ESD_USB.2,USB_D_P,D_ESD_USB,2,P9,ESD 阵列 [待选型] (2 通道 USB),D,必装,MAIN_PCB,,,,[推算],,"[USB_D_P] ★跨铰链 USB 主板侧 ESD 阵列 (紧贴 CONN_USB); ★**不装共模扼流圈** (USB 2.0 眼图对共模转差分极敏感, 扼流圈会恶化眼图) · 靠 FPC 阻抗控制 + 两端 ESD"
-D_ESD_USB.3,USB_D_N,D_ESD_USB,3,P9,ESD 阵列 [待选型] (2 通道 USB),D,必装,MAIN_PCB,,,,[推算],,"[USB_D_N] USB 主板侧 ESD 阵列 (同一位, 2 通道)"
+D_ESD_USB_D.1,USB_D_P_SRC,D_ESD_USB_D,1,P1,ESD 阵列 [待选型] (USB 2.0 双通道),D,必装,MAIN_PCB,A-24,,,[推算],,"[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**"
+D_ESD_USB_D.2,GND,D_ESD_USB_D,2,P1,ESD 阵列 [待选型],D,必装,MAIN_PCB,A-24,,,[推算],,[D_ESD_USB_D] ESD 地端
 D_LED_B.1,LED_B_D,D_LED_B,1,P7,LED (待选型),LED,DNP,MAIN_PCB,,,,[推算],,LED_B 阴极 -> GND
 D_LED_B.2,GND,D_LED_B,2,P7,LED (待选型),LED,DNP,MAIN_PCB,,,,[推算],,LED_B 阴极 -> GND
 D_LED_G.1,LED_G_D,D_LED_G,1,P7,LED (待选型),LED,必装,MAIN_PCB,,,,[推算],,LED_G 阴极 -> GND
@@ -198,75 +179,147 @@ D_LED_R.1,LED_R_D,D_LED_R,1,P7,LED (待选型),LED,必装,MAIN_PCB,,,,[推算],,
 D_LED_R.2,GND,D_LED_R,2,P7,LED (待选型),LED,必装,MAIN_PCB,,,,[推算],,LED_R 阴极 -> GND
 D_TVS_VBUS.1,VBUS_5V,D_TVS_VBUS,1,P10,5V 级单向 TVS [待选型],D,必装,CHG_BOARD,C-01,,,[推算],,"⚠️ 待裁决: 规格 §4.3 提到但 §7 连接清单未列的件 (插线尖峰 TVS: VRWM ≥5.0V, 钳位电压 < BQ25896 绝对最大 22V); 位置紧靠 Type-C 座; PM 确认是否纳入 BOM, 不纳入则删本 2 行; 型号待选型 (询价经项目总工) ★裁决 (PM): **必装** (Type-C 入口 TVS 是标配); VRWM 5-6V 档, **脉冲电流额定 ≥"
 D_TVS_VBUS.2,GND,D_TVS_VBUS,2,P10,5V 级单向 TVS [待选型],D,必装,CHG_BOARD,C-01,,,[推算],,"TVS 地端 (与座侧 GND 同网) ★裁决 (PM): **必装** (Type-C 入口 TVS 是标配); VRWM 5-6V 档, **脉冲电流额定 ≥3A** (PD 5V/2A 场景); 选型待定 [待选型]"
+FB_DEMO.1,RAIL_DEMO_5V,FB_DEMO,1,P1,π 滤波磁珠 [待选型],L,必装,MAIN_PCB,A-24,,,[推算],,[RAIL_DEMO_5V] VBUS π 滤波 (磁珠+体电容)
+FB_DEMO.2,GND,FB_DEMO,2,P1,π 滤波磁珠 [待选型],L,必装,MAIN_PCB,A-24,,,[推算],,[RAIL_DEMO_5V] π 滤波 地端
 FB_VBUS.1,VBUS_5V_ESD,FB_VBUS,1,P1,π 滤波磁珠 [待选型],L,必装,CHG_BOARD,C-01,,,[推算],,[VBUS_5V_ESD] VBUS 入口 π 滤波磁珠位 (阻抗/电流随充电 IC 环路稳定性定)
 FB_VBUS.2,VBUS_5V_F1,FB_VBUS,2,P1,π 滤波磁珠 [待选型],L,必装,CHG_BOARD,C-01,,,[推算],,[VBUS_5V_F1] π 滤波磁珠 后级侧 (与 FB_VBUS 同一颗)
-J_BOOT1.pin1,SPI_SCLK_BOOT,J_BOOT1,pin1,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,必装,MAIN_PCB,,,,[待原厂],TBD-06,[VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): rootfs ≤30MB · **flash ≥128MB** (64MB SPI-NOR 装不下) · 回原厂答复后选 ≥128
-J_BOOT1.pin2,SPI_CSn_BOOT,J_BOOT1,pin2,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,必装,MAIN_PCB,,,,[待原厂],TBD-06,[VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): rootfs ≤30MB · **flash ≥128MB** (64MB SPI-NOR 装不下) · 回原厂答复后选 ≥128
-J_BOOT1.pin3,SPI_MOSI_BOOT,J_BOOT1,pin3,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,必装,MAIN_PCB,,,,[待原厂],TBD-06,[VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): rootfs ≤30MB · **flash ≥128MB** (64MB SPI-NOR 装不下) · 回原厂答复后选 ≥128
-J_BOOT1.pin4,SPI_MISO_BOOT,J_BOOT1,pin4,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,必装,MAIN_PCB,,,,[待原厂],TBD-06,[VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): rootfs ≤30MB · **flash ≥128MB** (64MB SPI-NOR 装不下) · 回原厂答复后选 ≥128
-J_BOOT1.pin5,VDD_3V3_IO,J_BOOT1,pin5,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,必装,MAIN_PCB,,,,[待原厂],TBD-06,[VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): rootfs ≤30MB · **flash ≥128MB** (64MB SPI-NOR 装不下) · 回原厂答复后选 ≥128
-J_BOOT1.pin6,GND,J_BOOT1,pin6,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,必装,MAIN_PCB,,,,[待原厂],TBD-06,焊盘位 GND 预留 (外挂 SPI-NOR 用)
+J_BOOT1.pin1,SPI_SCLK_BOOT,J_BOOT1,pin1,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,MAIN_PCB,,,,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | [VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): 
+J_BOOT1.pin2,SPI_CSn_BOOT,J_BOOT1,pin2,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,MAIN_PCB,,,,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | [VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): 
+J_BOOT1.pin3,SPI_MOSI_BOOT,J_BOOT1,pin3,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,MAIN_PCB,,,,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | [VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): 
+J_BOOT1.pin4,SPI_MISO_BOOT,J_BOOT1,pin4,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,MAIN_PCB,,,,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | [VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): 
+J_BOOT1.pin5,VDD_3V3_IO,J_BOOT1,pin5,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,MAIN_PCB,,,,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | [VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): 
+J_BOOT1.pin6,GND,J_BOOT1,pin6,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,MAIN_PCB,,,,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | 焊盘位 GND 预留 (外挂 SPI-NOR 用)
 J_CHG.pin1,BAT_CHG,J_CHG,pin1,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
-J_CHG.pin10,TS_RTN,J_CHG,pin10,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
+J_CHG.pin10,NC,J_CHG,pin10,P9,预留 (NC),NET,DNP,HINGE,,,,[推算],,[NC] ★2026-11-04: J_CHG pin7 原走跨铰链 VBUS_DET ⇒ demo 板改本地分压 ⇒ 本脚预留不接
 J_CHG.pin2,BAT_CHG,J_CHG,pin2,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
 J_CHG.pin3,GND,J_CHG,pin3,P1,回流 (双 pin),NET,必装,HINGE,C-02,,,[推算],,[GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 · 环路面积最小)
 J_CHG.pin4,GND,J_CHG,pin4,P1,回流 (双 pin),NET,必装,HINGE,C-02,,,[推算],,[GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 · 环路面积最小)
 J_CHG.pin5,CHG_STAT,J_CHG,pin5,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
 J_CHG.pin6,PWR_GOOD,J_CHG,pin6,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
-J_CHG.pin7,VBUS_DET,J_CHG,pin7,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
+J_CHG.pin7,NC,J_CHG,pin7,P9,预留 (NC),NET,DNP,HINGE,,,,[推算],,[NC] ★2026-11-04: J_CHG pin7 原走跨铰链 VBUS_DET ⇒ demo 板改本地分压 ⇒ 本脚预留不接
 J_CHG.pin8,TS_BAT,J_CHG,pin8,P1,跨铰链 (高阻),NET,必装,HINGE,C-01,,,[推算],,[TS_BAT] ★V1.5 补画: **TS 跨铰链这一段** (V1.2 把电池/NTC 搬镜脚时漏了) · 走 J_CHG pin8
-J_CHG.pin9,NC,J_CHG,pin9,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
+J_CHG.pin9,NC,J_CHG,pin9,P9,预留 (NC),NET,DNP,HINGE,,,,[推算],,[NC] ★2026-11-04: J_CHG pin7 原走跨铰链 VBUS_DET ⇒ demo 板改本地分压 ⇒ 本脚预留不接
 J_DEBUG.pin1,JTAG_TCK,J_DEBUG,pin1,P8,1×4 1.27mm 排针 (JTAG),CONN,必装,MAIN_PCB,,,,[推算],,"[INVENTORY] [J_DEBUG] JTAG 调试排针 (不装贴片, 手工可焊); pin1=TCK, 2=TMS, 3=TDI, 4=TDO"
 J_DEBUG.pin2,JTAG_TMS,J_DEBUG,pin2,P8,1×4 1.27mm 排针 (JTAG),CONN,必装,MAIN_PCB,,,,[推算],,"[INVENTORY] [J_DEBUG] JTAG 调试排针 (不装贴片, 手工可焊); pin1=TCK, 2=TMS, 3=TDI, 4=TDO"
 J_DEBUG.pin3,JTAG_TDI,J_DEBUG,pin3,P8,1×4 1.27mm 排针 (JTAG),CONN,必装,MAIN_PCB,,,,[推算],,"[INVENTORY] [J_DEBUG] JTAG 调试排针 (不装贴片, 手工可焊); pin1=TCK, 2=TMS, 3=TDI, 4=TDO"
 J_DEBUG.pin4,JTAG_TDO,J_DEBUG,pin4,P8,1×4 1.27mm 排针 (JTAG),CONN,必装,MAIN_PCB,,,,[推算],,"[INVENTORY] [J_DEBUG] JTAG 调试排针 (不装贴片, 手工可焊); pin1=TCK, 2=TMS, 3=TDI, 4=TDO"
-J_TYPE_C.A1,GND,J_TYPE_C,A1,P6,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,CHG_BOARD,,,,[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)"
-J_TYPE_C.A12,GND,J_TYPE_C,A12,P6,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,CHG_BOARD,,,,[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)"
-J_TYPE_C.A4,VBUS_5V,J_TYPE_C,A4,P1,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,C-01,,,[官方],,"Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, pin3=CC2, pin4=D+, pin5=D-, pin6=GND), **非 USB-IF 物理脚位**; 屏蔽壳 · GND"
-J_TYPE_C.A5,USB_CC1,J_TYPE_C,A5,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-23,,,[官方],,"★CC1 触点: Type-C Rd 5.1kΩ ±20% 到 GND (R_CC1 已在主网表 P6 第 285/287 行画出, 本行只登记触点归属); 本板只做 Rd, 不上 PD 控制器 (PM 裁决: PD 不上)"
-J_TYPE_C.A6,USB_D_P,J_TYPE_C,A6,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-21,,,[官方],,"★D+ 双份并联 (A6+B6 同一节点): USB-IF Table 3-5 Note 2 要求并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 416 行, 本行只画 Type-C 侧焊盘; 若 SoC 无 USB PHY (TBD-10) 则这两个脚只做物理占位, 充电链不受影响"
-J_TYPE_C.A7,USB_D_N,J_TYPE_C,A7,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-22,,,[官方],,"★D− 双份并联 (A7+B7 同一节点): 并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 417 行, 本行只画 Type-C 侧焊盘; 不装共模扼流圈"
-J_TYPE_C.A8,NC,J_TYPE_C,A8,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,DNP,CHG_BOARD,B-23,,,[官方],,"★SBU1 不接: USB-IF Table 3-5 Note 3 'Contacts A8 and B8 (SBU1 and SBU2) shall be not connected unless required for a specified purpose'; 本机不做 Alt Mode ⇒ 焊盘留空, 不接电"
-J_TYPE_C.A9,VBUS_5V,J_TYPE_C,A9,P1,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,C-01,,,[官方],,"Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, pin3=CC2, pin4=D+, pin5=D-, pin6=GND), **非 USB-IF 物理脚位**; 屏蔽壳 · GND"
-J_TYPE_C.B1,GND,J_TYPE_C,B1,P6,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,CHG_BOARD,,,,[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)"
-J_TYPE_C.B12,GND,J_TYPE_C,B12,P6,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,CHG_BOARD,,,,[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)"
-J_TYPE_C.B4,VBUS_5V,J_TYPE_C,B4,P1,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,C-01,,,[官方],,"Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, pin3=CC2, pin4=D+, pin5=D-, pin6=GND), **非 USB-IF 物理脚位**; 屏蔽壳 · GND"
-J_TYPE_C.B5,USB_CC2,J_TYPE_C,B5,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-23,,,[官方],,"★CC2 触点: Rd 5.1kΩ ±20% 到 GND (R_CC2 已在主网表 P6 第 286/288 行画出, 本行只登记触点归属)"
-J_TYPE_C.B6,USB_D_P,J_TYPE_C,B6,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-21,,,[官方],,"★D+ 双份并联 (A6+B6 同一节点): USB-IF Table 3-5 Note 2 要求并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 416 行, 本行只画 Type-C 侧焊盘; 若 SoC 无 USB PHY (TBD-10) 则这两个脚只做物理占位, 充电链不受影响"
-J_TYPE_C.B7,USB_D_N,J_TYPE_C,B7,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-22,,,[官方],,"★D− 双份并联 (A7+B7 同一节点): 并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 417 行, 本行只画 Type-C 侧焊盘; 不装共模扼流圈"
-J_TYPE_C.B8,NC,J_TYPE_C,B8,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,DNP,CHG_BOARD,B-23,,,[官方],,"★SBU1 不接: USB-IF Table 3-5 Note 3 'Contacts A8 and B8 (SBU1 and SBU2) shall be not connected unless required for a specified purpose'; 本机不做 Alt Mode ⇒ 焊盘留空, 不接电"
-J_TYPE_C.B9,VBUS_5V,J_TYPE_C,B9,P1,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,C-01,,,[官方],,"Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, pin3=CC2, pin4=D+, pin5=D-, pin6=GND), **非 USB-IF 物理脚位**; 屏蔽壳 · GND"
-J_TYPE_C.shield,GND,J_TYPE_C,shield,P6,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,CHG_BOARD,,,,[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)"
+J_SOM_P1.pin100,VBUS_DET_D,J_SOM_P1,pin100,P1,1M+1M 分压 + 100nF,NET,必装,MAIN_PCB,B-07,,,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)"
+J_SOM_P1.pin28,BOOT_N,J_SOM_P1,pin28,P1,1M+1M 分压 + 100nF,NET,必装,MAIN_PCB,B-07,,,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)"
+J_SOM_P1.pin32,ID_DETECT_0,J_SOM_P1,pin32,P1,1M+1M 分压 + 100nF,NET,必装,MAIN_PCB,B-07,,,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)"
+J_SOM_P1.pin36,ID_DETECT_1,J_SOM_P1,pin36,P1,1M+1M 分压 + 100nF,NET,必装,MAIN_PCB,B-07,,,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)"
+J_SOM_P1.pin38,BAT_DET,J_SOM_P1,pin38,P1,1M+1M 分压 + 100nF,NET,必装,MAIN_PCB,B-07,,,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)"
+J_SOM_P1.pin54,CAM_RESET_N,J_SOM_P1,pin54,P1,1M+1M 分压 + 100nF,NET,必装,MAIN_PCB,B-07,,,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)"
+J_SOM_P1.pin64,KEY_PWR,J_SOM_P1,pin64,P1,1M+1M 分压 + 100nF,NET,必装,MAIN_PCB,B-07,,,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)"
+J_SOM_P1.pin80,LED_R,J_SOM_P1,pin80,P1,1M+1M 分压 + 100nF,NET,必装,MAIN_PCB,B-07,,,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)"
+J_SOM_P1.pin92,USB_D_P_SRC,J_SOM_P1,pin92,P1,1M+1M 分压 + 100nF,NET,必装,MAIN_PCB,B-07,,,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)"
+J_SOM_P1.pin94,USB_D_N_SRC,J_SOM_P1,pin94,P1,1M+1M 分压 + 100nF,NET,必装,MAIN_PCB,B-07,,,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)"
+J_SOM_P2.pin1,I2C_B_SDA,J_SOM_P2,pin1,,,,,,,,,,,
+J_SOM_P2.pin100,RESET_N_SOC,J_SOM_P2,pin100,,,,,,,,,,,
+J_SOM_P2.pin11,I2C_B_SCL,J_SOM_P2,pin11,,,,,,,,,,,
+J_SOM_P2.pin13,KEY_VOL_P,J_SOM_P2,pin13,,,,,,,,,,,
+J_SOM_P2.pin31,I2C_A_SCL,J_SOM_P2,pin31,,,,,,,,,,,
+J_SOM_P2.pin33,I2C_A_SDA,J_SOM_P2,pin33,,,,,,,,,,,
+J_SOM_P2.pin45,CSI_MCLK_SRC,J_SOM_P2,pin45,,,,,,,,,,,
+J_SOM_P2.pin7,UART_TX,J_SOM_P2,pin7,,,,,,,,,,,
+J_SOM_P2.pin9,UART_RX,J_SOM_P2,pin9,,,,,,,,,,,
+J_SOM_P3.pin100,RAIL_DEMO_5V,J_SOM_P3,pin100,P1,5-13V 输入 (SoM 侧),NET,必装,MAIN_PCB,A-24,,,[官方],,"[VCC_DCIN] ★SoM 自己的电源输入 (P3_91; 手册 §2.4.2 DC 5~13V; 7 脚并联载流) ⇒ **直供 5V (与 USB-C 5V 同网), 不经过 U_EN_SW** (否则 SoM 自己起不来)"
+J_SOM_P3.pin57,DSI_D0_D0_N_SRC,J_SOM_P3,pin57,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin59,DSI_D0_D0_P_SRC,J_SOM_P3,pin59,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin63,DSI_D0_D1_N_SRC,J_SOM_P3,pin63,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin65,DSI_D0_D1_P_SRC,J_SOM_P3,pin65,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin69,DSI_D0_CK_N_SRC,J_SOM_P3,pin69,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin71,DSI_D0_CK_P_SRC,J_SOM_P3,pin71,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin75,DSI_D0_D2_N_SRC,J_SOM_P3,pin75,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin77,DSI_D0_D2_P_SRC,J_SOM_P3,pin77,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin81,DSI_D0_D3_N_SRC,J_SOM_P3,pin81,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin83,DSI_D0_D3_P_SRC,J_SOM_P3,pin83,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin87,CARRIER_BOARD_EN,J_SOM_P3,pin87,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin88,PWR_ON,J_SOM_P3,pin88,P1,EN 输出,NET,必装,MAIN_PCB,A-24,,,[官方],,"[CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于核心板上电 ⇒ 通电瞬间电流过大 / 无法启动 / **可能对处理器造成不可逆损坏**"
+J_SOM_P3.pin91,RAIL_DEMO_5V,J_SOM_P3,pin91,P1,5-13V 输入 (SoM 侧),NET,必装,MAIN_PCB,A-24,,,[官方],,"[VCC_DCIN] ★SoM 自己的电源输入 (P3_91; 手册 §2.4.2 DC 5~13V; 7 脚并联载流) ⇒ **直供 5V (与 USB-C 5V 同网), 不经过 U_EN_SW** (否则 SoM 自己起不来)"
+J_SOM_P3.pin93,RAIL_DEMO_5V,J_SOM_P3,pin93,P1,5-13V 输入 (SoM 侧),NET,必装,MAIN_PCB,A-24,,,[官方],,"[VCC_DCIN] ★SoM 自己的电源输入 (P3_91; 手册 §2.4.2 DC 5~13V; 7 脚并联载流) ⇒ **直供 5V (与 USB-C 5V 同网), 不经过 U_EN_SW** (否则 SoM 自己起不来)"
+J_SOM_P3.pin95,RAIL_DEMO_5V,J_SOM_P3,pin95,P1,5-13V 输入 (SoM 侧),NET,必装,MAIN_PCB,A-24,,,[官方],,"[VCC_DCIN] ★SoM 自己的电源输入 (P3_91; 手册 §2.4.2 DC 5~13V; 7 脚并联载流) ⇒ **直供 5V (与 USB-C 5V 同网), 不经过 U_EN_SW** (否则 SoM 自己起不来)"
+J_SOM_P3.pin97,RAIL_DEMO_5V,J_SOM_P3,pin97,P1,5-13V 输入 (SoM 侧),NET,必装,MAIN_PCB,A-24,,,[官方],,"[VCC_DCIN] ★SoM 自己的电源输入 (P3_91; 手册 §2.4.2 DC 5~13V; 7 脚并联载流) ⇒ **直供 5V (与 USB-C 5V 同网), 不经过 U_EN_SW** (否则 SoM 自己起不来)"
+J_SOM_P3.pin98,RAIL_DEMO_5V,J_SOM_P3,pin98,P1,5-13V 输入 (SoM 侧),NET,必装,MAIN_PCB,A-24,,,[官方],,"[VCC_DCIN] ★SoM 自己的电源输入 (P3_91; 手册 §2.4.2 DC 5~13V; 7 脚并联载流) ⇒ **直供 5V (与 USB-C 5V 同网), 不经过 U_EN_SW** (否则 SoM 自己起不来)"
+J_SOM_P3.pin99,RAIL_DEMO_5V,J_SOM_P3,pin99,P1,5-13V 输入 (SoM 侧),NET,必装,MAIN_PCB,A-24,,,[官方],,"[VCC_DCIN] ★SoM 自己的电源输入 (P3_91; 手册 §2.4.2 DC 5~13V; 7 脚并联载流) ⇒ **直供 5V (与 USB-C 5V 同网), 不经过 U_EN_SW** (否则 SoM 自己起不来)"
+J_SOM_P4.pin1,KEY_VOL_M,J_SOM_P4,pin1,,,,,,,,,,,
+J_SOM_P4.pin19,LED_G,J_SOM_P4,pin19,,,,,,,,,,,
+J_SOM_P4.pin21,LED_B,J_SOM_P4,pin21,,,,,,,,,,,
+J_SOM_P4.pin3,KEY_CAM,J_SOM_P4,pin3,,,,,,,,,,,
+J_SOM_P4.pin65,CSI_D0_D0_N_SRC,J_SOM_P4,pin65,,,,,,,,,,,
+J_SOM_P4.pin67,CSI_D0_D0_P_SRC,J_SOM_P4,pin67,,,,,,,,,,,
+J_SOM_P4.pin71,CSI_D0_D1_N_SRC,J_SOM_P4,pin71,,,,,,,,,,,
+J_SOM_P4.pin73,CSI_D0_D1_P_SRC,J_SOM_P4,pin73,,,,,,,,,,,
+J_SOM_P4.pin77,CSI_D0_CK_N_SRC,J_SOM_P4,pin77,,,,,,,,,,,
+J_SOM_P4.pin79,CSI_D0_CK_P_SRC,J_SOM_P4,pin79,,,,,,,,,,,
+J_SOM_P4.pin83,CSI_D0_D2_N_SRC,J_SOM_P4,pin83,,,,,,,,,,,
+J_SOM_P4.pin85,CSI_D0_D2_P_SRC,J_SOM_P4,pin85,,,,,,,,,,,
+J_SOM_P4.pin89,CSI_D0_D3_N_SRC,J_SOM_P4,pin89,,,,,,,,,,,
+J_SOM_P4.pin91,CSI_D0_D3_P_SRC,J_SOM_P4,pin91,,,,,,,,,,,
+J_TYPE_C.A1,GND,J_TYPE_C,A1,P6,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,CHG_BOARD,,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)"
+J_TYPE_C.A12,GND,J_TYPE_C,A12,P6,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,CHG_BOARD,,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)"
+J_TYPE_C.A4,VBUS_5V,J_TYPE_C,A4,P1,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,C-01,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, pin3=CC2, pin4=D+, pin5=D-, pin6=GND), **非 USB-IF 物理脚位**; 屏蔽壳 · GND"
+J_TYPE_C.A5,USB_CC1,J_TYPE_C,A5,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-23,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"★CC1 触点: Type-C Rd 5.1kΩ ±20% 到 GND (R_CC1 已在主网表 P6 第 285/287 行画出, 本行只登记触点归属); 本板只做 Rd, 不上 PD 控制器 (PM 裁决: PD 不上)"
+J_TYPE_C.A6,USB_D_P,J_TYPE_C,A6,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-21,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"★D+ 双份并联 (A6+B6 同一节点): USB-IF Table 3-5 Note 2 要求并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 416 行, 本行只画 Type-C 侧焊盘; 若 SoC 无 USB PHY (TBD-10) 则这两个脚只做物理占位, 充电链不受影响"
+J_TYPE_C.A7,USB_D_N,J_TYPE_C,A7,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-22,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"★D− 双份并联 (A7+B7 同一节点): 并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 417 行, 本行只画 Type-C 侧焊盘; 不装共模扼流圈"
+J_TYPE_C.A8,NC,J_TYPE_C,A8,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,DNP,CHG_BOARD,B-23,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"★SBU1 不接: USB-IF Table 3-5 Note 3 'Contacts A8 and B8 (SBU1 and SBU2) shall be not connected unless required for a specified purpose'; 本机不做 Alt Mode ⇒ 焊盘留空, 不接电"
+J_TYPE_C.A9,VBUS_5V,J_TYPE_C,A9,P1,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,C-01,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, pin3=CC2, pin4=D+, pin5=D-, pin6=GND), **非 USB-IF 物理脚位**; 屏蔽壳 · GND"
+J_TYPE_C.B1,GND,J_TYPE_C,B1,P6,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,CHG_BOARD,,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)"
+J_TYPE_C.B12,GND,J_TYPE_C,B12,P6,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,CHG_BOARD,,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)"
+J_TYPE_C.B4,VBUS_5V,J_TYPE_C,B4,P1,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,C-01,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, pin3=CC2, pin4=D+, pin5=D-, pin6=GND), **非 USB-IF 物理脚位**; 屏蔽壳 · GND"
+J_TYPE_C.B5,USB_CC2,J_TYPE_C,B5,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-23,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"★CC2 触点: Rd 5.1kΩ ±20% 到 GND (R_CC2 已在主网表 P6 第 286/288 行画出, 本行只登记触点归属)"
+J_TYPE_C.B6,USB_D_P,J_TYPE_C,B6,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-21,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"★D+ 双份并联 (A6+B6 同一节点): USB-IF Table 3-5 Note 2 要求并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 416 行, 本行只画 Type-C 侧焊盘; 若 SoC 无 USB PHY (TBD-10) 则这两个脚只做物理占位, 充电链不受影响"
+J_TYPE_C.B7,USB_D_N,J_TYPE_C,B7,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,B-22,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"★D− 双份并联 (A7+B7 同一节点): 并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 417 行, 本行只画 Type-C 侧焊盘; 不装共模扼流圈"
+J_TYPE_C.B8,NC,J_TYPE_C,B8,P10,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,DNP,CHG_BOARD,B-23,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"★SBU1 不接: USB-IF Table 3-5 Note 3 'Contacts A8 and B8 (SBU1 and SBU2) shall be not connected unless required for a specified purpose'; 本机不做 Alt Mode ⇒ 焊盘留空, 不接电"
+J_TYPE_C.B9,VBUS_5V,J_TYPE_C,B9,P1,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,CHG_BOARD,C-01,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, pin3=CC2, pin4=D+, pin5=D-, pin6=GND), **非 USB-IF 物理脚位**; 屏蔽壳 · GND"
+J_TYPE_C.shield,GND,J_TYPE_C,shield,P6,Type-C 16p 座 (物理脚位 A/B 编号),CONN,必装,CHG_BOARD,,"SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高 3.50 mm, 2x Ø0.50mm 定位孔 + 2x Ø0.65mm 壳体固定孔","GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount)",[官方],,"Type-C GND 脚 (★V1.5 修正: USB-IF 16p 的 GND 是 **A1/A12/B1/B12 四个脚**, 原来只接 A1+A12 · B1/B12 悬空 = 回流路径减半)"
 J_UART.pin1,UART_TX,J_UART,pin1,P8,1×2 1.27mm 排针 (UART),CONN,可选,MAIN_PCB,,,,[推算],,[UART_RX] 规格: UART 与 JTAG 复用同一排针 -> 本版拆成 1×2 独立排针 (原厂要求复用则再合并)
 J_UART.pin2,UART_RX,J_UART,pin2,P8,1×2 1.27mm 排针 (UART),CONN,可选,MAIN_PCB,,,,[推算],,[UART_RX] 规格: UART 与 JTAG 复用同一排针 -> 本版拆成 1×2 独立排针 (原厂要求复用则再合并)
+J_USB_C.A1,GND,J_USB_C,A1,P1,GND (4 脚 + shell),NET,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[J_USB_C] USB-C 的 4 个 GND 脚 + 外壳 ⇒ 主板地
+J_USB_C.A12,GND,J_USB_C,A12,P1,GND (4 脚 + shell),NET,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[J_USB_C] USB-C 的 4 个 GND 脚 + 外壳 ⇒ 主板地
+J_USB_C.A4,RAIL_DEMO_5V,J_USB_C,A4,P1,Type-C 16p 座 (demo 板 5V 输入 + USB 数据),CONN,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW
+J_USB_C.A5,USB_CC1,J_USB_C,A5,P1,CC1 (5.1k 下拉 ⇒ 受电端 UFP),NET,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[J_USB_C] CC1 → 5.1k 下拉 ⇒ 本板做受电端
+J_USB_C.A6,NET_USB_D_P_TYPEC,J_USB_C,A6,P1,Type-C 16p 座 (demo 板 5V 输入 + USB 数据),CONN,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW
+J_USB_C.A7,NET_USB_D_N_TYPEC,J_USB_C,A7,P1,Type-C 16p 座 (demo 板 5V 输入 + USB 数据),CONN,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW
+J_USB_C.A9,RAIL_DEMO_5V,J_USB_C,A9,P1,Type-C 16p 座 (demo 板 5V 输入 + USB 数据),CONN,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW
+J_USB_C.B1,GND,J_USB_C,B1,P1,GND (4 脚 + shell),NET,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[J_USB_C] USB-C 的 4 个 GND 脚 + 外壳 ⇒ 主板地
+J_USB_C.B12,GND,J_USB_C,B12,P1,GND (4 脚 + shell),NET,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[J_USB_C] USB-C 的 4 个 GND 脚 + 外壳 ⇒ 主板地
+J_USB_C.B4,RAIL_DEMO_5V,J_USB_C,B4,P1,Type-C 16p 座 (demo 板 5V 输入 + USB 数据),CONN,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW
+J_USB_C.B5,USB_CC2,J_USB_C,B5,P1,CC2 (5.1k 下拉),NET,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[J_USB_C] CC2 → 5.1k 下拉
+J_USB_C.B6,NET_USB_D_P_TYPEC,J_USB_C,B6,P1,Type-C 16p 座 (demo 板 5V 输入 + USB 数据),CONN,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW
+J_USB_C.B7,NET_USB_D_N_TYPEC,J_USB_C,B7,P1,Type-C 16p 座 (demo 板 5V 输入 + USB 数据),CONN,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW
+J_USB_C.B9,RAIL_DEMO_5V,J_USB_C,B9,P1,Type-C 16p 座 (demo 板 5V 输入 + USB 数据),CONN,必装,MAIN_PCB,A-24,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3 Sheet 1: 16 焊盘单排 @0.50mm pitch, 焊盘 1.15x0.30mm, 2x Ø0.65mm 壳体固定孔 @±5.78mm, 板边距 8.94mm; 自绘见 state/usb_c_footprint.py)","GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm)",[官方],,[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW
 L_CHG.1,PMID,L_CHG,1,P10,2.2µH Isat≥1.5A DCR≤50mΩ,L,必装,CHG_BOARD,C-01,,,[官方],,开关电感 一端接 PMID; IRIPPLE=0.29A (见上) ⇒ Isat 选 ≥1.5A; 型号待选型 (询价经项目总工)
 L_CHG.2,SW,L_CHG,2,P10,2.2µH Isat≥1.5A DCR≤50mΩ,L,必装,CHG_BOARD,C-01,,,[官方],,"开关电感 另一端接 SW 开关节点; 铜箔面积最小化, 远离 TS 分压与 ADC"
-Q1.GATE,BAT_GATE,Q1,GATE,P1,[待选型] N-MOS,SW,必装,MAIN_PCB,C-03,,,[推算],,"[BAT_GATE] 两管共栅 (back-to-back 接法, 按 BQ2970 数据手册确认体二极管方向)"
-Q2.GATE,BAT_GATE,Q2,GATE,P1,[待选型] N-MOS,SW,必装,MAIN_PCB,C-03,,,[推算],,[BAT_PROT_CELL2] 第 2 只保护 MOS · 电池保护 IC (BQ2970) 的 B+ 脚; 参数同 Q1
+Q1.pin2,BAT_GATE,Q1,pin2,P1,[待选型] N-MOS,SW,DNP,MAIN_PCB,C-03,,,[推算],,"[Q1] ★DNP: 同上 (电池保护的高边 MOS) | [BAT_GATE] 两管共栅 (back-to-back 接法, 按 BQ2970 数据手册确认体二极管方向)"
+Q2.pin2,BAT_GATE,Q2,pin2,P1,[待选型] N-MOS,SW,DNP,MAIN_PCB,C-03,"SON-8 Q3, 3.3 x 3.3 mm",CSD16406Q3 (同 Q1),[推算],,[BAT_PROT_CELL2] 第 2 只保护 MOS · 电池保护 IC (BQ2970) 的 B+ 脚; 参数同 Q1
 Q_AND.1,RESET_N,Q_AND,1,P8,[待选型] N-MOS (硬件 AND),SW,必装,MAIN_PCB,B-10,,,[推算],TBD-12,"[RESET_N] ★V1.8 复位链 ②: **Q_AND 把『两路 PG 都好』变成硬件许可** —— 漏极 = RESET_N; 任一路 PG 坏 · PG_AND 高 · Q_AND 导通 · 拉住复位; 两路都好 · PG_AND 低 · Q_AND 关 · 允许释放 (与 U_SUPV 的开漏信号并联, 两路都放行才算复位释放) ⇒ **不依赖 TBD-12 也能定住上电时序**"
 Q_AND.2,GND,Q_AND,2,P8,[待选型] N-MOS (硬件 AND),SW,必装,MAIN_PCB,B-10,,,[推算],TBD-12,[RESET_N] Q_AND 源极接地
 Q_AND.3,PG_AND,Q_AND,3,P8,[待选型] N-MOS (硬件 AND),SW,必装,MAIN_PCB,B-10,,,[推算],TBD-12,[PG_AND] Q_AND 栅极 = PG_AND (两路 PG 都好时为低 · Q_AND 关)
-Q_CHG_LED.1,CHG_LED_K,Q_CHG_LED,1,P10,[待选型] N-MOS,SW,必装,MAIN_PCB,C-01,,,[推算],,"[CHG_LED_K] ★充电灯的本地开关管: 漏极 = LED 阴极, 源极 = GND, 栅极 = 本地 STAT; 充电中 (STAT 低) → 导通 → 灯亮; 完成/禁用 (STAT 高) → 灯灭; **故障 1Hz 闪 → 灯跟着闪 (免费得到故障指示)**; 电流回路全在充电板本地, 不经跨铰链"
-Q_CHG_LED.2,GND,Q_CHG_LED,2,P10,[待选型] N-MOS,SW,必装,MAIN_PCB,C-01,,,[推算],,[CHG_LED_K] Q_CHG_LED 源极接地
-Q_CHG_LED.3,CHG_STAT_L,Q_CHG_LED,3,P10,[待选型] N-MOS,SW,必装,CHG_BOARD,C-01,,,[推算],,"[CHG_STAT_L] ★Q_CHG_LED 栅极 = 充电板**本地**的 STAT (pin4, 开漏: 低=充电中/高=完成或禁用/1Hz 闪=故障) —— 与跨铰链的 CHG_STAT 是**同一个开漏源**, 两路负载互不影响 (栅极电流≈0)"
-Q_ENVC.1,PG_VIO,Q_ENVC,1,P8,[待选型] N-MOS (反相),SW,必装,MAIN_PCB,B-10,,,[推算],TBD-12,[PG_VIO] ★V1.8: V_SOC_IO 的 PG 有效 (低) · Q_ENVC 关 · EN_VCORE 被上拉为高 · V_CORE 使能 ⇒ **顺序链**; PG 极性**待原厂核** (TPS62130A PG 为开漏信号)
+Q_CHG_LED.1,CHG_LED_K,Q_CHG_LED,1,P10,[待选型] N-MOS,SW,必装,CHG_BOARD,C-01,,,[推算],,"[CHG_LED_K] ★充电灯的本地开关管: 漏极 = LED 阴极, 源极 = GND, 栅极 = 本地 STAT; 充电中 (STAT 低) → 导通 → 灯亮; 完成/禁用 (STAT 高) → 灯灭; **故障 1Hz 闪 → 灯跟着闪 (免费得到故障指示)**; 电流回路全在充电板本地, 不经跨铰链"
+Q_CHG_LED.2,GND,Q_CHG_LED,2,P10,[待选型] N-MOS,SW,必装,CHG_BOARD,C-01,,,[推算],,[CHG_LED_K] Q_CHG_LED 源极接地
+Q_CHG_LED.3,CHG_STAT,Q_CHG_LED,3,P10,[待选型] N-MOS,SW,必装,CHG_BOARD,C-01,,,[推算],,"[CHG_STAT] ★2026-11-03 09:5x 订正: BQ25896 的 STAT (pin4) 是**单个开漏输出**, 不能同时挂两个网 ⇒ 充电板本地 LED 栅极与跨铰链 STAT **合并成一个网**; 同时删掉充电板本地的 5V 上拉 (它会把 5V 送到 SoC 的 3.3V 开漏输入 ⇒ 过压), 上拉留在主板侧 R_PU_CHG_STAT (10k 到 3.3V)"
+Q_ENVC.1,PG_AND,Q_ENVC,1,P8,[待选型] N-MOS (反相),SW,DNP,MAIN_PCB,B-10,,,[推算],TBD-12,[PG_VIO] ★V1.8: V_SOC_IO 的 PG 有效 (低) · Q_ENVC 关 · EN_VCORE 被上拉为高 · V_CORE 使能 ⇒ **顺序链**; PG 极性**待原厂核** (TPS62130A PG 为开漏信号)
 Q_ENVC.2,GND,Q_ENVC,2,P8,[待选型] N-MOS (反相),SW,必装,MAIN_PCB,B-10,,,[推算],TBD-12,[PG_VIO] Q_ENVC 源极接地
 Q_ENVC.3,EN_VCORE,Q_ENVC,3,P8,[待选型] N-MOS (反相),SW,必装,MAIN_PCB,B-10,,,[推算],TBD-12,[EN_VCORE] Q_ENVC 漏极 = EN_VCORE (把 EN 拉低 = 不使能)
 Q_PG.1,PWR_ON,Q_PG,1,P1,"[待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确)",SW,必装,MAIN_PCB,C-02,,,[推算],,[PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— 原 N-MOS 低边接法是**错的**: 栅极接 PG(LOW=电源良好) · 源极接 GND · 漏极接 ON ⇒ PG 低时 MOS 关 ⇒ ON 只剩 10k 下拉 = 低 = **开关关** ⇒ ①插电反而开不了机 ②SoC 拉高 PWR_CTR
 Q_PG.2,BAT_SW,Q_PG,2,P1,"[待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确)",SW,必装,MAIN_PCB,C-02,,,[推算],,"[PWR_ON] ★V1.9: Q_PG **漏极**接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS 下 (U_LDO_IO33 输入 = RAIL_SYS), 关机断电后即灭 ⇒ 漏极无电位 ⇒ 插电开不了机。BAT_SW 在关机态仍带电 ✔"
 Q_PG.3,PWR_GOOD,Q_PG,3,P1,"[待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确)",SW,必装,MAIN_PCB,C-06,,,[推算],,"[PWR_GOOD] Q_PG **栅极** = 充电板 PG (经 J_CHG pin6 跨铰链, 框侧开漏信号; 主板侧 R_PU_PG 10k 上拉 3.3V)。★V1.9: PG 低(电源良好) → 栅极≈0 → P-MOS 导通 → ON 拉高 = 开机"
-R_BAT_DET_1.1,BAT_DET,R_BAT_DET_1,1,P2,1M ±1%,R,必装,MAIN_PCB,B-08,,,[推算],,[BAT_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 BAT 已归一到源节点]
-R_BAT_DET_1.2,BAT,R_BAT_DET_1,2,P2,1M ±1%,R,必装,MAIN_PCB,B-08,,,[推算],,[BAT_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 BAT 已归一到源节点]
-R_BAT_DET_2.1,BAT_DET,R_BAT_DET_2,1,P2,1M ±1%,R,必装,MAIN_PCB,B-08,,,[推算],,[BAT_DET] 分压下臂 地端
-R_BAT_DET_2.2,GND,R_BAT_DET_2,2,P2,1M ±1%,R,必装,MAIN_PCB,B-08,,,[推算],,[BAT_DET] 分压下臂 地端
+R_BAT_DET_1.1,BAT_DET,R_BAT_DET_1,1,P2,1M ±1%,R,DNP,MAIN_PCB,B-08,,,[推算],,[R_BAT_DET_1] ★DNP: 同上 (电池电压分压上臂) | [BAT_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 BAT 已归一到源节点]
+R_BAT_DET_1.2,BAT,R_BAT_DET_1,2,P2,1M ±1%,R,DNP,MAIN_PCB,B-08,,,[推算],,[R_BAT_DET_1] ★DNP: 同上 (电池电压分压上臂) | [BAT_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 BAT 已归一到源节点]
+R_BAT_DET_2.1,BAT_DET,R_BAT_DET_2,1,P2,1M ±1%,R,DNP,MAIN_PCB,B-08,,,[推算],,[R_BAT_DET_2] ★DNP: 同上 (电池电压分压下臂) | [BAT_DET] 分压下臂 地端
+R_BAT_DET_2.2,GND,R_BAT_DET_2,2,P2,1M ±1%,R,DNP,MAIN_PCB,B-08,,,[推算],,[R_BAT_DET_2] ★DNP: 同上 (电池电压分压下臂) | [BAT_DET] 分压下臂 地端
 R_CC1.1,USB_CC1,R_CC1,1,P6,5.1k ±1%,R,必装,CHG_BOARD,,,,[推算],,Type-C Rd 下拉端
 R_CC1.2,GND,R_CC1,2,P6,5.1k ±1%,R,必装,CHG_BOARD,,,,[推算],,Type-C Rd 下拉端
+R_CC1_D.1,GND,R_CC1_D,1,P1,5.1k ±1% (CC1 下拉),R,必装,MAIN_PCB,A-24,,,[官方],,[R_CC1_D] USB-C CC1 5.1k 下拉 (⇒ UFP 受电端)
+R_CC1_D.2,USB_CC1,R_CC1_D,2,P1,5.1k ±1% (CC1 下拉),R,必装,MAIN_PCB,A-24,,,[官方],,[R_CC1_D] USB-C CC1 5.1k 下拉 (⇒ UFP 受电端)
 R_CC2.1,USB_CC2,R_CC2,1,P6,5.1k ±1%,R,必装,CHG_BOARD,,,,[推算],,[USB_CC2] Type-C Rd (非 PD 时下拉; 接 PD 控制器时由控制器接管)
 R_CC2.2,GND,R_CC2,2,P6,5.1k ±1%,R,必装,CHG_BOARD,,,,[推算],,Type-C Rd 下拉端
+R_CC2_D.1,USB_CC2,R_CC2_D,1,P1,5.1k ±1% (CC2 下拉),R,必装,MAIN_PCB,A-24,,,[官方],,[R_CC2_D] USB-C CC2 5.1k 下拉
+R_CC2_D.2,GND,R_CC2_D,2,P1,5.1k ±1% (CC2 下拉),R,必装,MAIN_PCB,A-24,,,[官方],,[R_CC2_D] USB-C CC2 5.1k 下拉
 R_CE.1,CE_SET,R_CE,1,P10,10k ±1%,R,必装,CHG_BOARD,C-01,,,[官方],,CE 拉低 = 允许充电 (CHG_CONFIG 复位默认 1): 'CE pin must be pulled High or Low' ⇒ 不得悬空; 拉低的好处 = SoC 死机也能充电
 R_CE.2,PGND,R_CE,2,P10,10k ±1%,R,必装,CHG_BOARD,C-01,,,[官方],,CE 下拉 地端 (PGND)
 R_CHG_LED.1,VBUS_5V_CHG,R_CHG_LED,1,P10,1k ±1% (按 LED Vf 定),R,必装,CHG_BOARD,C-01,,,[推算],,"★V1.9 充电灯 (老板 10-28 拍板『关机时充电灯要亮』): 电阻把 **VBUS 供电** 接到 LED 阳极 —— 关机插电时 VBUS 有电而 SoC 已断电 ⇒ 灯照样亮, 且**不耗电池**"
-R_CHG_LED.2,LED_CHG_A,R_CHG_LED,2,P10,1k ±1% (按 LED Vf 定),R,必装,MAIN_PCB,C-01,,,[推算],,[LED_CHG_A] 限流电阻的 LED 侧 (与 LED 阳极同网)
+R_CHG_LED.2,LED_CHG_A,R_CHG_LED,2,P10,1k ±1% (按 LED Vf 定),R,必装,CHG_BOARD,C-01,,,[推算],,[LED_CHG_A] 限流电阻的 LED 侧 (与 LED 阳极同网)
 R_EN_VCORE.1,EN_VCORE,R_EN_VCORE,1,P8,10k ±1%,R,必装,MAIN_PCB,B-10,,,[推算],TBD-12,[EN_VCORE] ★V1.8 复位链 ③: V_CORE 的 DC-DC **EN 脚上拉** (默认关) —— 由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动 ⇒ 上电顺序 = V_SOC_IO 先起 · V_CORE 后起 (DVFS 轨最后)
 R_EN_VCORE.2,VDD_1V8_IO,R_EN_VCORE,2,P8,10k ±1%,R,必装,MAIN_PCB,B-10,,,[推算],TBD-12,[EN_VCORE] EN 上拉的另一端 (常供电轨)
 R_ID_JMP0.1,ID_DETECT_0,R_ID_JMP0,1,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[推算],,[ID_DETECT_0] 板级 ID 位 0 跳线位 (焊盘跳线编码 2 位)
@@ -274,7 +327,7 @@ R_ID_JMP0.2,GND,R_ID_JMP0,2,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[推算],,I
 R_ID_JMP1.1,ID_DETECT_1,R_ID_JMP1,1,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[推算],,[ID_DETECT_1] 板级 ID 位 1 跳线位 (焊盘跳线编码 2 位)
 R_ID_JMP1.2,GND,R_ID_JMP1,2,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[推算],,ID 跳线位 1 -> GND (装上 = 该位 0)
 R_ILIM.1,IINLIM,R_ILIM,1,P1,390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A · 单 pin 0.411A),R,必装,CHG_BOARD,C-01,,,[官方],,"[IINLIM] ★★V1.7 按 ISS-091 结构核算定 **470Ω**: BQ25896 的 IINLIM 复位默认 **2048mA** [官方] (不装 = 铰链吃 ~1.68A); 结构总工核算 (MECH/HINGE_POWER_CALC.md, 可跑): **300Ω · ICHG 1.07A · 充电时皮肤侧 47.1°C 超 ISO 13732-1 的 43°C 红线** "
-R_ILIM.2,GND,R_ILIM,2,P1,390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A · 单 pin 0.411A),R,必装,MAIN_PCB,,,,[官方],,[IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限)
+R_ILIM.2,GND,R_ILIM,2,P1,390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A · 单 pin 0.411A),R,必装,CHG_BOARD,,,,[官方],,[IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限)
 R_JTAG_TCK.1,JTAG_TCK_SOC,R_JTAG_TCK,1,P8,100Ω ±1%,R,必装,MAIN_PCB,B-19,,,[推算],,[JTAG_TCK] JTAG TCK 串阻 (隔离 SoC 调试脚)
 R_JTAG_TCK.2,JTAG_TCK,R_JTAG_TCK,2,P8,100Ω ±1%,R,必装,MAIN_PCB,B-19,,,[推算],,[JTAG_TCK] JTAG TCK 串阻 (隔离 SoC 调试脚)
 R_JTAG_TDI.1,JTAG_TDI_SOC,R_JTAG_TDI,1,P8,100Ω ±1%,R,必装,MAIN_PCB,B-19,,,[推算],,[JTAG_TDI] JTAG TDI 串阻 (隔离 SoC 调试脚)
@@ -297,8 +350,8 @@ R_LED_G.1,LED_G,R_LED_G,1,P7,1k ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_G_D] LE
 R_LED_G.2,LED_G_D,R_LED_G,2,P7,1k ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_G_D] LED_G 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)
 R_LED_R.1,LED_R,R_LED_R,1,P7,1k ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_R_D] LED_R 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)
 R_LED_R.2,LED_R_D,R_LED_R,2,P7,1k ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_R_D] LED_R 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)
-R_NTC_BAT.1,TS_BAT,R_NTC_BAT,1,P1,"103AT NTC ±1% (贴电芯, 另一端接 TS 专用回流)",R,必装,MAIN_PCB,C-01,,,[官方],,"[TS_BAT] ★V1.8 修正 (ISS-091 结构核算): NTC 下端**不接系统地**, 接 **TS 专用回流** —— 1A 充电电流会把 TS 参考地抬高 14-32mV (= 0.44-0.99°C 温度偏差), 而 TS 是**停充安全门限**; 专用回流后偏差 <0.01°C"
-R_NTC_BAT.2,TS_RTN,R_NTC_BAT,2,P1,103AT NTC (贴电芯),R,必装,MAIN_PCB,C-01,,,[官方],,[TS_RTN] ★V1.8: NTC 另一端接 **TS 专用回流** (不接系统地)
+R_NTC_BAT.1,TS_BAT,R_NTC_BAT,1,P1,"103AT NTC ±1% (贴电芯, 另一端接 TS 专用回流)",R,DNP,MAIN_PCB,C-01,,,[官方],,"[R_NTC_BAT] ★DNP: 同上 (NTC) | [TS_BAT] ★V1.8 修正 (ISS-091 结构核算): NTC 下端**不接系统地**, 接 **TS 专用回流** —— 1A 充电电流会把 TS 参考地抬高 14-32mV (= 0.44-0.99°C 温度偏差), 而 TS 是**停充安全门限**; 专用回流后偏差 <0.01°C"
+R_NTC_BAT.2,PGND,R_NTC_BAT,2,P1,"103AT NTC ±1% (贴电芯, 另一端接 TS 专用回流)",R,DNP,MAIN_PCB,C-01,,,[官方],,"[R_NTC_BAT] ★DNP: 同上 (NTC) | [TS_BAT] ★V1.8 修正 (ISS-091 结构核算): NTC 下端**不接系统地**, 接 **TS 专用回流** —— 1A 充电电流会把 TS 参考地抬高 14-32mV (= 0.44-0.99°C 温度偏差), 而 TS 是**停充安全门限**; 专用回流后偏差 <0.01°C"
 R_OTG.1,OTG_SET,R_OTG,1,P10,10k ±1%,R,必装,CHG_BOARD,C-01,,,[官方],,OTG 拉低 = 关 boost 模式 (本机不做 OTG): 'The boost mode is activated when OTG_CONFIG = 1'
 R_OTG.2,PGND,R_OTG,2,P10,10k ±1%,R,必装,CHG_BOARD,C-01,,,[官方],,OTG 下拉 地端 (PGND)
 R_PD_ON.1,PWR_ON,R_PD_ON,1,P1,10k ±1%,R,必装,MAIN_PCB,C-02,,,[推算],,[PWR_ON] ★V1.8: ON 脚 **10k 下拉 = 默认关** (关机态就是默认态); SoC GPIO 拉高即保持开机; SoC 关机时把该 GPIO 配成高阻 · ON 掉回下拉 · 开关关 · SoC 断电 · 状态自动保持 (无需锁存电路)
@@ -311,12 +364,10 @@ R_PU_BOOT_N.1,BOOT_N,R_PU_BOOT_N,1,P8,10k ±1%,R,必装,MAIN_PCB,B-11,,,[推算]
 R_PU_BOOT_N.2,VDD_1V8_IO,R_PU_BOOT_N,2,P8,10k ±1%,R,必装,MAIN_PCB,B-11,,,[推算],,[VDD_1V8_IO] BOOT_N 上拉 (1.8V 域)
 R_PU_CHG_STAT.1,CHG_STAT,R_PU_CHG_STAT,1,P2,10k ±1%,R,必装,CHG_BOARD,B-05,,,[推算],,[VDD_3V3_IO] CHG_STAT 开漏上拉 (BQ25896 状态脚)
 R_PU_CHG_STAT.2,VDD_3V3_IO,R_PU_CHG_STAT,2,P2,10k ±1%,R,必装,CHG_BOARD,B-05,,,[推算],,[VDD_3V3_IO] CHG_STAT 开漏上拉 (BQ25896 状态脚)
-R_PU_CSI_RST.1,CSI_RESET_N,R_PU_CSI_RST,1,P5,10k ±1%,R,必装,MAIN_PCB,A-12,,,[推算],,[VDD_1V8_IO] CSI_RESET_N 上拉 (1.8V 域)
-R_PU_CSI_RST.2,VDD_1V8_IO,R_PU_CSI_RST,2,P5,10k ±1%,R,必装,MAIN_PCB,A-12,,,[推算],,[VDD_1V8_IO] CSI_RESET_N 上拉 (1.8V 域)
-R_PU_I2CA_SCL.1,I2C_A_SCL,R_PU_I2CA_SCL,1,P2,2.2k ±1%,R,必装,MAIN_PCB,B-01,,,[推算],,"[VDD_3V3_IO] I2C_A 上拉 (★11-02 19:5x 按 IMX415: OVDD 1.8V 域, IOL 只允许 3mA ⇒ R≥(3.3-0.4)/3mA=967Ω ⇒ 取 2.2k; 灌 3.3V/2.2k=1.5mA ≤3mA ✔, t_r=2.2k×100pF×0.847≈186ns ✔; ★**上拉仍留 3.3V**: IMX415 VI 绝对最大 ≤3.3V ⇒ 合"
-R_PU_I2CA_SCL.2,VDD_3V3_IO,R_PU_I2CA_SCL,2,P2,2.2k ±1%,R,必装,MAIN_PCB,B-01,,,[推算],,"[VDD_3V3_IO] I2C_A 上拉 (★11-02 19:5x 按 IMX415: OVDD 1.8V 域, IOL 只允许 3mA ⇒ R≥(3.3-0.4)/3mA=967Ω ⇒ 取 2.2k; 灌 3.3V/2.2k=1.5mA ≤3mA ✔, t_r=2.2k×100pF×0.847≈186ns ✔; ★**上拉仍留 3.3V**: IMX415 VI 绝对最大 ≤3.3V ⇒ 合"
-R_PU_I2CA_SDA.1,I2C_A_SDA,R_PU_I2CA_SDA,1,P2,2.2k ±1%,R,必装,MAIN_PCB,B-02,,,[推算],,[VDD_3V3_IO] I2C_A 上拉
-R_PU_I2CA_SDA.2,VDD_3V3_IO,R_PU_I2CA_SDA,2,P2,2.2k ±1%,R,必装,MAIN_PCB,B-02,,,[推算],,[VDD_3V3_IO] I2C_A 上拉
+R_PU_I2CA_SCL.1,I2C_A_SCL,R_PU_I2CA_SCL,1,P2,2.2k ±1%,R,必装,MAIN_PCB,B-01,,,[推算],,"[VDD_1V8_IO] I2C_A 上拉 (★★11-04 ISS-153 订正: **实际 net = RAIL_VDD_1V8_IO (1.8V 域)**; ★**旧注释写的『[VDD_3V3_IO] / 3.3V 上拉』与网表相反, 已作废**; 依据 ①: RK3572 的 I2C5 = J_SOM_P2 pin31/pin33 属**1.8V 域** (HW/PCB/FET3572C_"
+R_PU_I2CA_SCL.2,VDD_1V8_IO,R_PU_I2CA_SCL,2,P2,2.2k ±1%,R,必装,MAIN_PCB,B-01,,,[推算],,"[VDD_1V8_IO] I2C_A 上拉 (★★11-04 ISS-153 订正: **实际 net = RAIL_VDD_1V8_IO (1.8V 域)**; ★**旧注释写的『[VDD_3V3_IO] / 3.3V 上拉』与网表相反, 已作废**; 依据 ①: RK3572 的 I2C5 = J_SOM_P2 pin31/pin33 属**1.8V 域** (HW/PCB/FET3572C_"
+R_PU_I2CA_SDA.1,I2C_A_SDA,R_PU_I2CA_SDA,1,P2,2.2k ±1%,R,必装,MAIN_PCB,B-02,,,[推算],,"[VDD_1V8_IO] I2C_A 上拉 (★同 SCL: 实际 net = RAIL_VDD_1V8_IO, **1.8V 域** —— RK3572 I2C5 1.8V 域 + camera 模组 OVDD 1.8V 域)"
+R_PU_I2CA_SDA.2,VDD_1V8_IO,R_PU_I2CA_SDA,2,P2,2.2k ±1%,R,必装,MAIN_PCB,B-02,,,[推算],,"[VDD_1V8_IO] I2C_A 上拉 (★同 SCL: 实际 net = RAIL_VDD_1V8_IO, **1.8V 域** —— RK3572 I2C5 1.8V 域 + camera 模组 OVDD 1.8V 域)"
 R_PU_I2CB_SCL.1,I2C_B_SCL,R_PU_I2CB_SCL,1,P4,4.7k ±1%,R,必装,MAIN_PCB,B-03,,,[推算],,[VDD_3V3_IO] DSI DDC 上拉 (放主板侧)
 R_PU_I2CB_SCL.2,VDD_3V3_IO,R_PU_I2CB_SCL,2,P4,4.7k ±1%,R,必装,MAIN_PCB,B-03,,,[推算],,[VDD_3V3_IO] DSI DDC 上拉 (放主板侧)
 R_PU_I2CB_SDA.1,I2C_B_SDA,R_PU_I2CB_SDA,1,P4,4.7k ±1%,R,必装,MAIN_PCB,B-04,,,[推算],,[VDD_3V3_IO] DSI DDC 上拉
@@ -335,8 +386,6 @@ R_PU_SCL.1,I2C_CHG_SCL,R_PU_SCL,1,P10,10k ±1%,R,必装,CHG_BOARD,B-08,,,[官方
 R_PU_SCL.2,REGN,R_PU_SCL,2,P10,10k ±1%,R,必装,CHG_BOARD,B-08,,,[官方],,"SCL 上拉位的另一端 (REGN 5V; 充电板无 3.3V 逻辑轨) ★裁决 (PM): **必装** —— 充电 IC 的 I2C 本板自闭环 (不跨铰链, 见 J_CHG pin9/10 预留); 上拉挂 REGN 5V (充电板唯一的逻辑轨); 将来若要在线配置再引到镜脚"
 R_PU_SDA.1,I2C_CHG_SDA,R_PU_SDA,1,P10,10k ±1%,R,必装,CHG_BOARD,B-08,,,[官方],,"★同 SCL (I2C 不跨铰链, PM 裁决); ⚠️ 待裁决: 上拉装不装, 建议装 10k 上拉到 REGN (datasheet 原文要求) ★裁决 (PM): **必装** —— 充电 IC 的 I2C 本板自闭环 (不跨铰链, 见 J_CHG pin9/10 预留); 上拉挂 REGN 5V (充电板唯一的逻辑轨); 将来若要在线配置再引到镜脚"
 R_PU_SDA.2,REGN,R_PU_SDA,2,P10,10k ±1%,R,必装,CHG_BOARD,B-08,,,[官方],,"SDA 上拉位的另一端 (REGN 5V) ★裁决 (PM): **必装** —— 充电 IC 的 I2C 本板自闭环 (不跨铰链, 见 J_CHG pin9/10 预留); 上拉挂 REGN 5V (充电板唯一的逻辑轨); 将来若要在线配置再引到镜脚"
-R_PU_STAT_L.1,CHG_STAT_L,R_PU_STAT_L,1,P10,10k ±1% (到 REGN 5V),R,必装,CHG_BOARD,C-01,,,[推算],,"[CHG_STAT_L] ★充电板**本地**上拉 (挂 REGN 5V): 主板断电时跨铰链的 STAT 线会悬空, 这颗保证 Q_CHG_LED 栅极有确定电平 (STAT=高 → 灯灭)"
-R_PU_STAT_L.2,REGN,R_PU_STAT_L,2,P10,10k ±1% (到 REGN 5V),R,必装,CHG_BOARD,C-01,,,[推算],,[CHG_STAT_L] 本地上拉的 REGN 端 (BQ25896 内部 5V)
 R_SEL_CK_N.1,DSI_D0_CK_N_SRC,R_SEL_CK_N,1,P4,0Ω,R,必装,MAIN_PCB,,,,[官方],TBD-04,"[DSI_D0_CK_N] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接"
 R_SEL_CK_N.2,DSI_D0_CK_N,R_SEL_CK_N,2,P4,0Ω,R,必装,MAIN_PCB,,,,[官方],TBD-04,"[DSI_D0_CK_N] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接"
 R_SEL_CK_P.1,DSI_D0_CK_P_SRC,R_SEL_CK_P,1,P4,0Ω,R,必装,MAIN_PCB,,,,[官方],TBD-04,"[DSI_D0_CK_P] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接"
@@ -371,24 +420,24 @@ R_SER_SPI_MOSI.1,SPI_MOSI,R_SER_SPI_MOSI,1,P3,0Ω (串阻位),R,必装,MAIN_PCB,
 R_SER_SPI_MOSI.2,SPI_MOSI_BOOT,R_SER_SPI_MOSI,2,P3,0Ω (串阻位),R,必装,MAIN_PCB,,,,[待原厂],TBD-11,[SPI_MOSI_BOOT] SPI_MOSI 串阻位 (0Ω 调试用)
 R_SER_SPI_SCLK.1,SPI_SCLK,R_SER_SPI_SCLK,1,P3,0Ω (串阻位),R,必装,MAIN_PCB,,,,[待原厂],TBD-06,[SPI_SCLK_BOOT] SPI_SCLK 串阻位 (0Ω 调试用)
 R_SER_SPI_SCLK.2,SPI_SCLK_BOOT,R_SER_SPI_SCLK,2,P3,0Ω (串阻位),R,必装,MAIN_PCB,,,,[待原厂],TBD-06,[SPI_SCLK_BOOT] SPI_SCLK 串阻位 (0Ω 调试用)
-R_SER_USB_D_N.1,USB_D_N_SRC,R_SER_USB_D_N,1,P6,22Ω ±1%,R,必装,MAIN_PCB,,,,[推算],TBD-10,"[USB_D_N] USB 2.0 源端串阻 (D-, 主板侧); ★V1.1 修: 同上, 改接 CONN_USB pin2"
-R_SER_USB_D_N.2,USB_D_N,R_SER_USB_D_N,2,P6,22Ω ±1%,R,必装,MAIN_PCB,,,,[推算],TBD-10,"[USB_D_N] USB 2.0 源端串阻 (D-, 主板侧); ★V1.1 修: 同上, 改接 CONN_USB pin2"
-R_SER_USB_D_P.1,USB_D_P_SRC,R_SER_USB_D_P,1,P6,22Ω ±1%,R,必装,MAIN_PCB,,,,[推算],TBD-10,"[USB_D_P] USB 2.0 源端串阻 (D+, 22Ω 放在**主板侧 SoC 端**); ★V1.1 修: V1 把 D+ 直接接 J_TYPE_C pin4 = **把跨铰链短接了** · 改为接跨铰链连接器 CONN_USB pin1, 充电板侧再接 Type-C"
-R_SER_USB_D_P.2,USB_D_P,R_SER_USB_D_P,2,P6,22Ω ±1%,R,必装,MAIN_PCB,,,,[推算],TBD-10,"[USB_D_P] USB 2.0 源端串阻 (D+, 22Ω 放在**主板侧 SoC 端**); ★V1.1 修: V1 把 D+ 直接接 J_TYPE_C pin4 = **把跨铰链短接了** · 改为接跨铰链连接器 CONN_USB pin1, 充电板侧再接 Type-C"
+R_SER_USB_D_N.1,USB_D_N_SRC,R_SER_USB_D_N,1,P1,22Ω ±1%,R,必装,MAIN_PCB,A-24,,,[推算],,[NET_USB_D_N_TYPEC] ★SoM USB2 (OTG1) D- → 板载 Type-C: 串阻的 Type-C 侧
+R_SER_USB_D_N.2,NET_USB_D_N_TYPEC,R_SER_USB_D_N,2,P1,22Ω ±1%,R,必装,MAIN_PCB,A-24,,,[推算],,[NET_USB_D_N_TYPEC] ★SoM USB2 (OTG1) D- → 板载 Type-C: 串阻的 Type-C 侧
+R_SER_USB_D_P.1,USB_D_P_SRC,R_SER_USB_D_P,1,P1,22Ω ±1%,R,必装,MAIN_PCB,A-24,,,[推算],,"[NET_USB_D_P_TYPEC] ★SoM USB2 (OTG1) D+ → 板载 Type-C: 串阻的 Type-C 侧 (★串阻必须真串在中间, 不能与 SoM 侧同网)"
+R_SER_USB_D_P.2,NET_USB_D_P_TYPEC,R_SER_USB_D_P,2,P1,22Ω ±1%,R,必装,MAIN_PCB,A-24,,,[推算],,"[NET_USB_D_P_TYPEC] ★SoM USB2 (OTG1) D+ → 板载 Type-C: 串阻的 Type-C 侧 (★串阻必须真串在中间, 不能与 SoM 侧同网)"
 R_STAR_PGND.1,PGND,R_STAR_PGND,1,P10,0Ω / 铜皮短接 (PGND 单点星接),R,必装,CHG_BOARD,C-11,,,[官方],,"★PGND 与 GND 的单点汇流位 (datasheet: 'A single point connection is recommended between power PGND and the analog GND near the IC PGND pin'); ⚠️ 待裁决: 规格 §7 把它标成 DNP — 但 DNP 会让 PGND 整个悬空 (硬伤), 我的建议: 必装, 且 PCB"
 R_STAR_PGND.2,GND,R_STAR_PGND,2,P10,0Ω / 铜皮短接 (PGND 单点星接),R,必装,CHG_BOARD,C-11,,,[官方],,"星接位的 GND 端 (充电板地 = Type-C GND 四脚 + J_CHG pin3/pin4 回流) ★裁决 (PM): **必装** (DNP 会让 PGND 整个悬空 = 硬伤); 但 **1A 回流不要走 0402 0Ω** (0.1V/0.1W) → 实际用**铜皮短接**做单点星接, 0Ω 只作选装位"
 R_SUPV_DIV1.1,V_SOC_IO,R_SUPV_DIV1,1,P8,[待选型] 分压上臂 (0Ω 跳线位),R,必装,MAIN_PCB,,,,[推算],TBD-02,"[SUPV_SENSE] ★V1.1: 电压监控分压 (把 V_SOC_IO 的实际电压映射到监控芯片窗口) · **原厂电压定了只改两颗电阻, 不改板** (ISS-082 的正确解法: 换料 + 换阻值, 不用可编程器件)"
 R_SUPV_DIV1.2,SUPV_SENSE,R_SUPV_DIV1,2,P8,[待选型] 分压上臂 (0Ω 跳线位),R,必装,MAIN_PCB,,,,[推算],TBD-02,"[SUPV_SENSE] ★V1.1: 电压监控分压 (把 V_SOC_IO 的实际电压映射到监控芯片窗口) · **原厂电压定了只改两颗电阻, 不改板** (ISS-082 的正确解法: 换料 + 换阻值, 不用可编程器件)"
 R_SUPV_DIV2.1,SUPV_SENSE,R_SUPV_DIV2,1,P8,[待选型] 分压下臂 (0Ω 跳线位),R,必装,MAIN_PCB,,,,[推算],TBD-02,[SUPV_SENSE] 分压下臂 (到地)
 R_SUPV_DIV2.2,GND,R_SUPV_DIV2,2,P8,[待选型] 分压下臂 (0Ω 跳线位),R,必装,MAIN_PCB,,,,[推算],TBD-02,[SUPV_SENSE] 分压下臂 地端
-R_TS_PULL.1,TS_BAT,R_TS_PULL,1,P1,30.31k ±1%,R,必装,MAIN_PCB,C-01,,,[官方],,[TS_BAT] ★V1.8: RT2 30.31k 下端同样接 **TS 专用回流** (与 NTC 并联构成三件式检测网络)
-R_TS_PULL.2,TS_RTN,R_TS_PULL,2,P1,30.31k ±1% (RT2),R,必装,MAIN_PCB,C-01,,,[官方],,"[TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压); ★V1.6 挪到**镜脚** (NTC 侧) —— 下拉放在连接器远端, FPC 漏电流不进入分压 (FPC 漏电 µA 级, 30k 下拉远大于它)"
-R_TS_TOP.1,REGN,R_TS_TOP,1,P10,5.24k ±1% (RT1: REGN 到 TS),R,必装,CHG_BOARD,,,,[官方],,"★TS 分压上臂 RT1 = 5.24k (datasheet Equation 2 原文), 取自 REGN (BQ25896 内部 LDO 5.0V, 4.8-5.5V, 限流 50mA); REGN 网本身 + C_REGN 4.7µF 去耦已在主网表 P1 第 35/36/37 行画出, 本行只登记 pin22 与 RT1 的连接 (不重复画 REGN 网)"
-R_TS_TOP.2,TS_BAT,R_TS_TOP,2,P1,5.24k ±1% (RT1: REGN 到 TS),R,必装,CHG_BOARD,C-01,,,[官方],,"[TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, 原来只画了 NTC + 10k 下拉 = 分压比完全不对 (datasheet: 0°C·73.25%, 60°C·34.375%)"
-R_VBUS_DET_1.1,VBUS_DET,R_VBUS_DET_1,1,P2,1M ±1%,R,必装,CHG_BOARD,B-07,,,[推算],,[VBUS_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 VBUS_5V 已归一到源节点]
-R_VBUS_DET_1.2,VBUS_5V,R_VBUS_DET_1,2,P2,1M ±1%,R,必装,CHG_BOARD,B-07,,,[推算],,[VBUS_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 VBUS_5V 已归一到源节点]
-R_VBUS_DET_2.1,VBUS_DET,R_VBUS_DET_2,1,P2,1M ±1%,R,必装,CHG_BOARD,B-07,,,[推算],,[VBUS_DET] 分压下臂 地端
-R_VBUS_DET_2.2,GND,R_VBUS_DET_2,2,P2,1M ±1%,R,必装,CHG_BOARD,B-07,,,[推算],,[VBUS_DET] 分压下臂 地端
+R_TS_PULL.1,TS_BAT,R_TS_PULL,1,P1,30.31k ±1%,R,DNP,MAIN_PCB,C-01,,,[官方],,[R_TS_PULL] ★DNP: 同上 (NTC 分压下臂) | [TS_BAT] ★V1.8: RT2 30.31k 下端同样接 **TS 专用回流** (与 NTC 并联构成三件式检测网络)
+R_TS_PULL.2,PGND,R_TS_PULL,2,P1,30.31k ±1% (RT2),R,DNP,MAIN_PCB,C-01,,,[官方],,"[R_TS_PULL] ★DNP: 同上 (NTC 分压下臂) | [TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检测分压); ★V1.6 挪到**镜脚** (NTC 侧) —— 下拉放在连接器远端, FPC 漏电流不进入分压 (FPC 漏电 µA 级, 30k 下拉远大于它)"
+R_TS_TOP.1,REGN,R_TS_TOP,1,P10,5.24k ±1% (RT1: REGN 到 TS),R,DNP,CHG_BOARD,,,,[官方],,"[R_TS_TOP] ★DNP: 同上 (TS 分压上臂) | ★TS 分压上臂 RT1 = 5.24k (datasheet Equation 2 原文), 取自 REGN (BQ25896 内部 LDO 5.0V, 4.8-5.5V, 限流 50mA); REGN 网本身 + C_REGN 4.7µF 去耦已在主网表 P1 第 35/36/37 行画出, 本行只登记 pin22 与 RT1 的"
+R_TS_TOP.2,TS_BAT,R_TS_TOP,2,P1,5.24k ±1% (RT1: REGN 到 TS),R,DNP,CHG_BOARD,C-01,,,[官方],,"[R_TS_TOP] ★DNP: 同上 (TS 分压上臂) | [TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度检测是 RT1/RT2/NTC 三件式, 原来只画了 NTC + 10k 下拉 = 分压比完全不对 (datasheet: 0°C·73.25%, 60°C·34.375%)"
+R_VBUS_DET_D1.1,RAIL_DEMO_5V,R_VBUS_DET_D1,1,P1,1M ±1% (上臂),R,必装,MAIN_PCB,A-24,,,[推算],,[VBUS_DET_D] ★demo 板: Type-C VBUS 在**主板本地**分压 (不再跨铰链) ⇒ 上臂 5V 侧
+R_VBUS_DET_D1.2,VBUS_DET_D,R_VBUS_DET_D1,2,P1,1M ±1% (上臂),R,必装,MAIN_PCB,A-24,,,[推算],,[VBUS_DET_D] ★demo 板: Type-C VBUS 在**主板本地**分压 (不再跨铰链) ⇒ 上臂 5V 侧
+R_VBUS_DET_D2.1,VBUS_DET_D,R_VBUS_DET_D2,1,P1,1M ±1% (下臂),R,必装,MAIN_PCB,A-24,,,[推算],,[VBUS_DET_D] 分压下臂 地端
+R_VBUS_DET_D2.2,GND,R_VBUS_DET_D2,2,P1,1M ±1% (下臂),R,必装,MAIN_PCB,A-24,,,[推算],,[VBUS_DET_D] 分压下臂 地端
 SW_BOOT.1,BOOT_N,SW_BOOT,1,P8,BOOT 按键 (待选型),SW,必装,MAIN_PCB,B-11,,,[推算],,[BOOT_N] BOOT 键 -> GND (进下载模式)
 SW_BOOT.2,GND,SW_BOOT,2,P8,BOOT 按键 (待选型),SW,必装,MAIN_PCB,B-11,,,[推算],,BOOT 键 -> GND
 SW_KEY_CAM.1,KEY_CAM,SW_KEY_CAM,1,P7,按键 (待选型),SW,DNP,MAIN_PCB,,,,[推算],,"[KEY_CAM] CAM 键 (焊盘必留, 不装) 按键"
@@ -401,66 +450,7 @@ SW_KEY_VP.1,KEY_VOL_P,SW_KEY_VP,1,P7,按键 (待选型),SW,必装,MAIN_PCB,,,,[�
 SW_KEY_VP.2,GND,SW_KEY_VP,2,P7,按键 (待选型),SW,必装,MAIN_PCB,,,,[推算],,音量+ 键 另一端 -> GND
 SW_RST.1,RESET_N,SW_RST,1,P8,复位按键 (待选型),SW,必装,MAIN_PCB,B-10,,,[推算],,[RESET_N] 复位键 -> GND (软上电 / 进下载模式)
 SW_RST.2,GND,SW_RST,2,P8,复位按键 (待选型),SW,必装,MAIN_PCB,B-10,,,[推算],,复位键 -> GND
-SoC[RK3572].1,VBUS_DET,SoC[RK3572],1,P6,SoC USB VBUS 检测脚 (脚号待原厂),NET,必装,MAIN_PCB,B-07,,,[待原厂],TBD-10,"[VBUS_DET] ★V1.8 补上 sw-lead 指出的缺件: **SoC 侧没有任何 USB VBUS 连接** · USB 枚举与 S2 救砖链路 (ISS-080) 的前提缺失。★**零新增 pin**: VBUS_DET 分压本来就在**充电板** (镜框), 经 **J_CHG pin7** 跨铰链 送到 SoC 的 VBUS 检测脚 ⇒ USB 枚举前提补齐; 脚号待原厂 (TB"
-SoC_RK3572.BAT_DET,BAT_DET,SoC_RK3572,BAT_DET,,,,,,,,,,,
-SoC_RK3572.BOOT_N,BOOT_N,SoC_RK3572,BOOT_N,,,,,,,,,,,
-SoC_RK3572.CSI_D0_CK_N,CSI_D0_CK_N_SRC,SoC_RK3572,CSI_D0_CK_N,,,,,,,,,,,
-SoC_RK3572.CSI_D0_CK_P,CSI_D0_CK_P_SRC,SoC_RK3572,CSI_D0_CK_P,,,,,,,,,,,
-SoC_RK3572.CSI_D0_D0_N,CSI_D0_D0_N_SRC,SoC_RK3572,CSI_D0_D0_N,,,,,,,,,,,
-SoC_RK3572.CSI_D0_D0_P,CSI_D0_D0_P_SRC,SoC_RK3572,CSI_D0_D0_P,,,,,,,,,,,
-SoC_RK3572.CSI_D0_D1_N,CSI_D0_D1_N_SRC,SoC_RK3572,CSI_D0_D1_N,,,,,,,,,,,
-SoC_RK3572.CSI_D0_D1_P,CSI_D0_D1_P_SRC,SoC_RK3572,CSI_D0_D1_P,,,,,,,,,,,
-SoC_RK3572.CSI_D0_D2_N,CSI_D0_D2_N_SRC,SoC_RK3572,CSI_D0_D2_N,,,,,,,,,,,
-SoC_RK3572.CSI_D0_D2_P,CSI_D0_D2_P_SRC,SoC_RK3572,CSI_D0_D2_P,,,,,,,,,,,
-SoC_RK3572.CSI_D0_D3_N,CSI_D0_D3_N_SRC,SoC_RK3572,CSI_D0_D3_N,,,,,,,,,,,
-SoC_RK3572.CSI_D0_D3_P,CSI_D0_D3_P_SRC,SoC_RK3572,CSI_D0_D3_P,,,,,,,,,,,
-SoC_RK3572.CSI_MCLK,CSI_MCLK_SRC,SoC_RK3572,CSI_MCLK,,,,,,,,,,,
-SoC_RK3572.CSI_RESET_N,CSI_RESET_N,SoC_RK3572,CSI_RESET_N,,,,,,,,,,,
-SoC_RK3572.DSI_TX_CK_N,DSI_D0_CK_N_SRC,SoC_RK3572,DSI_TX_CK_N,,,,,,,,,,,
-SoC_RK3572.DSI_TX_CK_P,DSI_D0_CK_P_SRC,SoC_RK3572,DSI_TX_CK_P,,,,,,,,,,,
-SoC_RK3572.DSI_TX_D0_N,DSI_D0_D0_N_SRC,SoC_RK3572,DSI_TX_D0_N,,,,,,,,,,,
-SoC_RK3572.DSI_TX_D0_P,DSI_D0_D0_P_SRC,SoC_RK3572,DSI_TX_D0_P,,,,,,,,,,,
-SoC_RK3572.DSI_TX_D1_N,DSI_D0_D1_N_SRC,SoC_RK3572,DSI_TX_D1_N,,,,,,,,,,,
-SoC_RK3572.DSI_TX_D1_P,DSI_D0_D1_P_SRC,SoC_RK3572,DSI_TX_D1_P,,,,,,,,,,,
-SoC_RK3572.DSI_TX_D2_N,DSI_D0_D2_N_SRC,SoC_RK3572,DSI_TX_D2_N,,,,,,,,,,,
-SoC_RK3572.DSI_TX_D2_P,DSI_D0_D2_P_SRC,SoC_RK3572,DSI_TX_D2_P,,,,,,,,,,,
-SoC_RK3572.DSI_TX_D3_N,DSI_D0_D3_N_SRC,SoC_RK3572,DSI_TX_D3_N,,,,,,,,,,,
-SoC_RK3572.DSI_TX_D3_P,DSI_D0_D3_P_SRC,SoC_RK3572,DSI_TX_D3_P,,,,,,,,,,,
-SoC_RK3572.FSIN,FSIN,SoC_RK3572,FSIN,,,,,,,,,,,
-SoC_RK3572.GPIO_CAM_RESET,CAM_RESET_N,SoC_RK3572,GPIO_CAM_RESET,,,,,,,,,,,
-SoC_RK3572.GPIO_DSI_RESET,DSI_RESET_N,SoC_RK3572,GPIO_DSI_RESET,,,,,,,,,,,
-SoC_RK3572.I2C_A_SCL,I2C_A_SCL,SoC_RK3572,I2C_A_SCL,,,,,,,,,,,
-SoC_RK3572.I2C_A_SDA,I2C_A_SDA,SoC_RK3572,I2C_A_SDA,,,,,,,,,,,
-SoC_RK3572.I2C_B_SCL,I2C_B_SCL,SoC_RK3572,I2C_B_SCL,,,,,,,,,,,
-SoC_RK3572.I2C_B_SDA,I2C_B_SDA,SoC_RK3572,I2C_B_SDA,,,,,,,,,,,
-SoC_RK3572.ID0,ID_DETECT_0,SoC_RK3572,ID0,,,,,,,,,,,
-SoC_RK3572.ID1,ID_DETECT_1,SoC_RK3572,ID1,,,,,,,,,,,
-SoC_RK3572.JTAG_TCK,JTAG_TCK_SOC,SoC_RK3572,JTAG_TCK,,,,,,,,,,,
-SoC_RK3572.JTAG_TDI,JTAG_TDI_SOC,SoC_RK3572,JTAG_TDI,,,,,,,,,,,
-SoC_RK3572.JTAG_TDO,JTAG_TDO_SOC,SoC_RK3572,JTAG_TDO,,,,,,,,,,,
-SoC_RK3572.JTAG_TMS,JTAG_TMS_SOC,SoC_RK3572,JTAG_TMS,,,,,,,,,,,
-SoC_RK3572.KEY_CAM,KEY_CAM,SoC_RK3572,KEY_CAM,,,,,,,,,,,
-SoC_RK3572.KEY_PWR,KEY_PWR,SoC_RK3572,KEY_PWR,,,,,,,,,,,
-SoC_RK3572.KEY_VOL_M,KEY_VOL_M,SoC_RK3572,KEY_VOL_M,,,,,,,,,,,
-SoC_RK3572.KEY_VOL_P,KEY_VOL_P,SoC_RK3572,KEY_VOL_P,,,,,,,,,,,
-SoC_RK3572.LED_B,LED_B,SoC_RK3572,LED_B,,,,,,,,,,,
-SoC_RK3572.LED_G,LED_G,SoC_RK3572,LED_G,,,,,,,,,,,
-SoC_RK3572.LED_R,LED_R,SoC_RK3572,LED_R,,,,,,,,,,,
-SoC_RK3572.PWR_CTRL,PWR_ON,SoC_RK3572,PWR_CTRL,,,,,,,,,,,
-SoC_RK3572.RESET_N,RESET_N_SOC,SoC_RK3572,RESET_N,,,,,,,,,,,
-SoC_RK3572.SPI_CSn,SPI_CSn,SoC_RK3572,SPI_CSn,,,,,,,,,,,
-SoC_RK3572.SPI_MISO,SPI_MISO,SoC_RK3572,SPI_MISO,,,,,,,,,,,
-SoC_RK3572.SPI_MOSI,SPI_MOSI,SoC_RK3572,SPI_MOSI,,,,,,,,,,,
-SoC_RK3572.SPI_SCLK,SPI_SCLK,SoC_RK3572,SPI_SCLK,,,,,,,,,,,
-SoC_RK3572.UART_RX,UART_RX,SoC_RK3572,UART_RX,,,,,,,,,,,
-SoC_RK3572.UART_TX,UART_TX,SoC_RK3572,UART_TX,,,,,,,,,,,
-SoC_RK3572.USB_D_N,USB_D_N_SRC,SoC_RK3572,USB_D_N,,,,,,,,,,,
-SoC_RK3572.USB_D_P,USB_D_P_SRC,SoC_RK3572,USB_D_P,,,,,,,,,,,
-SoC_RK3572.USB_VBUS_DET,VBUS_DET,SoC_RK3572,USB_VBUS_DET,,,,,,,,,,,
-SoC_RK3572.VBUS_DET,VBUS_DET,SoC_RK3572,VBUS_DET,,,,,,,,,,,
-SoC_RK3572.XTAL_IN,XTAL_IN,SoC_RK3572,XTAL_IN,,,,,,,,,,,
-SoC_RK3572.XTAL_OUT,XTAL_OUT,SoC_RK3572,XTAL_OUT,,,,,,,,,,,
-TP_BAT.1,BAT,TP_BAT,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 电池电压; 位置: BQ25896 BAT 脚
+TP_BAT.1,BAT,TP_BAT,1,P7,测试点,TP,DNP,MAIN_PCB,,,,[推算],,[TP_BAT] ★DNP: 同上 (电池测点) | 测什么: 电池电压; 位置: BQ25896 BAT 脚
 TP_BAT_CHG.1,BAT_CHG,TP_BAT_CHG,1,P1,跨铰链段压降测点,TP,必装,MAIN_PCB,C-02,,,[推算],,[BAT_CHG] ★跨铰链充电电流段压降测点 (1.5A 下压降 = 接触电阻×1.5A); 铰链段发热与压降按结构实际长度核算 (结构总工)
 TP_BOOT.1,BOOT_N,TP_BOOT,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: BOOT 网; 位置: 主 PCB
 TP_CHG_STAT.1,CHG_STAT,TP_CHG_STAT,1,P7,测试点,TP,必装,CHG_BOARD,,,,[推算],,测什么: 充电状态; 位置: BQ25896 STAT 脚 -> 回答 Q4b.4
@@ -468,16 +458,21 @@ TP_CSI_CK_N.1,CSI_D0_CK_N,TP_CSI_CK_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推�
 TP_CSI_CK_P.1,CSI_D0_CK_P,TP_CSI_CK_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: CSI 时钟差分 (示波器测眼图/摆幅); 位置: 连接器出口 (规格合并名 TP_CSI_D0_CK_P / _N)
 TP_CSI_D0_N.1,CSI_D0_D0_N,TP_CSI_D0_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: CSI D0 数据差分; 位置: 连接器出口
 TP_CSI_D0_P.1,CSI_D0_D0_P,TP_CSI_D0_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: CSI D0 数据差分; 位置: 连接器出口
-TP_CSI_RST.1,CSI_RESET_N,TP_CSI_RST,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: CSI 复位 (10k 上拉点); 位置: 连接器出口
-TP_DSI_CK_N.1,DSI_D0_CK_N,TP_DSI_CK_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI 时钟差分 (规格合并名 TP_DSI_D0_CK_P / _N); 位置: 连接器出口
-TP_DSI_CK_P.1,DSI_D0_CK_P,TP_DSI_CK_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI 时钟差分; 位置: 连接器出口 (规格合并名 TP_DSI_D0_CK_P / _N)
-TP_DSI_D0_N.1,DSI_D0_D0_N,TP_DSI_D0_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI D0 数据差分; 位置: 连接器出口
-TP_DSI_D0_P.1,DSI_D0_D0_P,TP_DSI_D0_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI D0 数据差分; 位置: 连接器出口
+TP_DSI_CK_N.1,DSI_D0_CK_N,TP_DSI_CK_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI 时钟差分 (Pi5 DISPLAY pin5=DSI1_CN; 规格合并名 TP_DSI_D0_CK_P / _N); 位置: 连接器出口
+TP_DSI_CK_P.1,DSI_D0_CK_P,TP_DSI_CK_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI 时钟差分 (Pi5 DISPLAY pin6=DSI1_CP); 位置: 连接器出口 (规格合并名 TP_DSI_D0_CK_P / _N)
+TP_DSI_D0_N.1,DSI_D0_D0_N,TP_DSI_D0_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI D0 数据差分 (Pi5 DISPLAY pin8=DSI1_DN0); 位置: 连接器出口
+TP_DSI_D0_P.1,DSI_D0_D0_P,TP_DSI_D0_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI D0 数据差分 (Pi5 DISPLAY pin9=DSI1_DP0); 位置: 连接器出口
+TP_DSI_D1_N.1,DSI_D0_D1_N,TP_DSI_D1_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI D1 数据差分 (Pi5 DISPLAY pin2=DSI1_DN1); 位置: 连接器出口
+TP_DSI_D1_P.1,DSI_D0_D1_P,TP_DSI_D1_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI D1 数据差分 (Pi5 DISPLAY pin3=DSI1_DP1); 位置: 连接器出口
+TP_DSI_D2_N.1,DSI_D0_D2_N,TP_DSI_D2_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI D2 数据差分 (自用脚); 位置: 连接器出口
+TP_DSI_D2_P.1,DSI_D0_D2_P,TP_DSI_D2_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI D2 数据差分 (自用脚); 位置: 连接器出口
+TP_DSI_D3_N.1,DSI_D0_D3_N,TP_DSI_D3_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI D3 数据差分 (自用脚); 位置: 连接器出口
+TP_DSI_D3_P.1,DSI_D0_D3_P,TP_DSI_D3_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DSI D3 数据差分 (自用脚); 位置: 连接器出口
 TP_FSIN.1,FSIN_OUT,TP_FSIN,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 帧同步 (FSIN/VSYNC) 引出; 位置: SoC 侧 -> 回答原厂问询 Q4b.3
 TP_I2CA_SCL.1,I2C_A_SCL,TP_I2CA_SCL,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: I2C_A 时钟; 位置: 连接器出口
 TP_I2CA_SDA.1,I2C_A_SDA,TP_I2CA_SDA,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: I2C_A 数据; 位置: 连接器出口
-TP_I2CB_SCL.1,I2C_B_SCL,TP_I2CB_SCL,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DDC 时钟 (I2C_B); 位置: 连接器出口
-TP_I2CB_SDA.1,I2C_B_SDA,TP_I2CB_SDA,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: DDC 数据 (I2C_B); 位置: 连接器出口
+TP_I2CB_SCL.1,I2C_B_SCL,TP_I2CB_SCL,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 屏控制 I2C 时钟 (Pi5 DISPLAY pin11=SCL0); 位置: 连接器出口
+TP_I2CB_SDA.1,I2C_B_SDA,TP_I2CB_SDA,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 屏控制 I2C 数据 (Pi5 DISPLAY pin12=SDA0); 位置: 连接器出口
 TP_ID.1,ID_DETECT_0,TP_ID,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 板级版本识别 (I2C EEPROM 或 GPIO 编码); 位置: 主 PCB
 TP_JTAG.1,JTAG_TCK,TP_JTAG,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: JTAG 时钟; 位置: 调试排针
 TP_KEY_PWR.1,KEY_PWR,TP_KEY_PWR,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 电源键; 位置: 主 PCB
@@ -486,28 +481,23 @@ TP_KEY_VP.1,KEY_VOL_P,TP_KEY_VP,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,�
 TP_LED_B.1,LED_B,TP_LED_B,1,P7,测试点,TP,DNP,MAIN_PCB,,,,[推算],,测什么: LED 蓝 (无无线 -> DNP); 位置: 主 PCB
 TP_LED_G.1,LED_G,TP_LED_G,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: LED 绿; 位置: 主 PCB
 TP_LED_R.1,LED_R,TP_LED_R,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: LED 红; 位置: 主 PCB
-TP_LIGHT_1V8.1,LIGHT_1V8,TP_LIGHT_1V8,1,P7,测试点,TP,DNP,MAIN_PCB,,,,[推算],,测什么: 光机 1.8V 轨 (待 JBD); 位置: LDO 输出 (待 JBD 确认后)
-TP_LIGHT_3V3.1,LIGHT_3V3,TP_LIGHT_3V3,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 光机轨; 位置: LDO 输出
+TP_LIGHT_3V3.1,LIGHT_3V3,TP_LIGHT_3V3,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 屏轨 3.3V (Pi5 DISPLAY 座 pin14=3V3); 位置: LDO 输出
 TP_MCLK.1,CSI_MCLK,TP_MCLK,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: MCLK (包地走线); 位置: 连接器出口
 TP_PG.1,PWR_GOOD,TP_PG,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 电源好 (BQ25896 PG 脚); 位置: 充电板 -> 主 PCB 跨板点
-TP_PG_VCORE.1,PG_VCORE,TP_PG_VCORE,1,P8,"PG (开漏, 需上拉)",TP,必装,MAIN_PCB,,,,[官方],TBD-12,"[PG_VCORE] V_CORE 轨 PG 状态引出 (开漏, 需上拉到对应域); 若原厂要求 PG 参与上电时序, 在此补上拉电阻位 (R_PG_VCORE, 待原厂确认 TBD-12)"
-TP_PG_VIO.1,PG_VIO,TP_PG_VIO,1,P8,"PG (开漏, 需上拉)",TP,必装,MAIN_PCB,,,,[官方],TBD-12,"[PG_VIO] V_SOC_IO 轨 PG 状态引出 (开漏, 需上拉); 同上"
+TP_PG_VCORE.1,PG_AND,TP_PG_VCORE,1,P8,"PG (开漏, 需上拉)",TP,必装,MAIN_PCB,,,,[官方],TBD-12,[PG_AND] V_CORE 轨 PG 状态引出 (开漏; ★两路 PG 并联成一个 wired-AND 节点 ⇒ 测试点挂公共网)
+TP_PG_VIO.1,PG_AND,TP_PG_VIO,1,P8,"PG (开漏, 需上拉)",TP,必装,MAIN_PCB,,,,[官方],TBD-12,"[PG_AND] V_SOC_IO 轨 PG 状态引出 (开漏; 同上, 与 V_CORE 的 PG 并联)"
 TP_RESET.1,RESET_N,TP_RESET,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 复位网; 位置: 主 PCB
-TP_SENSOR_1V2.1,SENSOR_CORE,TP_SENSOR_1V2,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: sensor 三条轨; 位置: LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8)
-TP_SENSOR_2V8.1,SENSOR_AVDD,TP_SENSOR_2V8,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: sensor 三条轨; 位置: LDO 输出 (规格合并名 TP_SENSOR_3V3/1V8/2V8)
-TP_SENSOR_IO2V8.1,SENSOR_VDD_IO,TP_SENSOR_IO2V8,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,"测什么: sensor IO 轨 (2.8V, AR0234CS VDD_IO); 位置: LDO 输出 (U_LDO_S28B); ★原名 TP_SENSOR_1V8 (1.8V 是 OV04C10 的, 已随换料改 2.8V)"
 TP_SYS.1,SYS,TP_SYS,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: 系统 3.7V 主轨; 位置: 电池保护后 (镜脚本地)
 TP_TS.1,TS_BAT,TP_TS,1,P10,测试点,TP,必装,CHG_BOARD,,,,[推算],,"TS 电压测点 (调 TS 分压 / 验证 NTC 跨铰链通断): 0°C 应读 ~3.663V (73.25% REGN), 60°C 应读 ~1.719V (34.375% REGN)"
 TP_UART.1,UART_TX,TP_UART,1,P7,测试点,TP,可选,MAIN_PCB,,,,[推算],,测什么: UART TX (与 USB 二选一); 位置: 调试排针
-TP_USB_D_N.1,USB_D_N,TP_USB_D_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: USB 2.0 差分 (规格合并名 TP_USB_D+ / D-); 位置: Type-C 出口
-TP_USB_D_P.1,USB_D_P,TP_USB_D_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: USB 2.0 差分; 位置: Type-C 出口 (规格合并名 TP_USB_D+ / D-)
+TP_USB_D_N.1,NET_USB_D_N_TYPEC,TP_USB_D_N,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: USB 2.0 差分 (规格合并名 TP_USB_D+ / D-); 位置: ★板载 Type-C 出口 (串阻的 Type-C 侧)
+TP_USB_D_P.1,NET_USB_D_P_TYPEC,TP_USB_D_P,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: USB 2.0 差分; 位置: ★板载 Type-C 出口 (串阻的 Type-C 侧; 规格合并名 TP_USB_D+ / D-)
 TP_VBUS.1,VBUS_5V,TP_VBUS,1,P7,测试点,TP,必装,CHG_BOARD,,,,[推算],,测什么: Type-C 入口 5V; 位置: Type-C 出口侧 ≤3mm
 TP_VCORE.1,V_CORE,TP_VCORE,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: SoC 核心轨; 位置: DC-DC 输出
 TP_VIO.1,V_SOC_IO,TP_VIO,1,P7,测试点,TP,必装,MAIN_PCB,,,,[推算],,测什么: SoC IO 轨; 位置: DC-DC/LDO 输出
-TS_RTN.1,TS_BAT,TS_RTN,1,P1,跨铰链 (TS 专用回流),NET,必装,MAIN_PCB,C-02,,,[推算],,"[INVENTORY] [TS_RTN] ★V1.8 新增: **TS 专用回流跨铰链** (走 J_CHG pin10, 原来 pin9/pin10 都是预留); 充电板侧接 BQ25896 的模拟地 ⇒ TS 的参考与地不再经 J_CHG pin3/pin4 的系统回流"
-TS_RTN.2,TS_RTN,TS_RTN,2,P1,跨铰链 (TS 专用回流),NET,必装,MAIN_PCB,C-02,,,[推算],,"[INVENTORY] [TS_RTN] ★V1.8 新增: **TS 专用回流跨铰链** (走 J_CHG pin10, 原来 pin9/pin10 都是预留); 充电板侧接 BQ25896 的模拟地 ⇒ TS 的参考与地不再经 J_CHG pin3/pin4 的系统回流"
-U_BATPROT.B-,BAT_CELL_N,U_BATPROT,B-,P1,BQ2970,IC,必装,MAIN_PCB,C-03,,,[官方],,"[BAT] 1 节锂电保护 IC (配 2×MOS), **与电池同板 (镜脚)**; 具体型号/封装待选型 (BQ2970 系列为规格原文所指)"
-U_BATPROT.GATE,BAT_GATE,U_BATPROT,GATE,P1,BQ2970,IC,必装,MAIN_PCB,C-03,,,[官方],,[BAT_GATE] ★F2 修正: **两管栅极由 BQ2970 同驱** (原来完全没有栅极连接 · MOS 永远不导通/不受控); 栅极网络按 BQ2970 数据手册确认是否需要上拉
+U_BATPROT.B-,BAT_CELL_N,U_BATPROT,B-,P1,BQ2970,IC,DNP,MAIN_PCB,C-03,,,[官方],,"[U_BATPROT] ★DNP: demo 主板用 Type-C 供电 ⇒ 不装电池 ⇒ 电池保护 IC 不装 | [BAT] 1 节锂电保护 IC (配 2×MOS), **与电池同板 (镜脚)**; 具体型号/封装待选型 (BQ2970 系列为规格原文所指)"
+U_BATPROT.pin2,BAT_COUT,U_BATPROT,pin2,P1,COUT (充电管栅驱动),NET,DNP,MAIN_PCB,,,,[官方],,[U_BATPROT] ★DNP: demo 主板用 Type-C 供电 ⇒ 不装电池 ⇒ 电池保护 IC 不装 | [BAT_COUT] ★BQ2970 的 COUT (pin2) ⇒ **只**驱动充电管 Q2 的栅极 (原厂要求两管不可共栅)
+U_BATPROT.pin3,BAT_DOUT,U_BATPROT,pin3,P1,DOUT (放电管栅驱动),NET,DNP,MAIN_PCB,,,,[官方],,[U_BATPROT] ★DNP: demo 主板用 Type-C 供电 ⇒ 不装电池 ⇒ 电池保护 IC 不装 | [BAT_DOUT] ★BQ2970 的 DOUT (pin3) ⇒ **只**驱动放电管 Q1 的栅极
 U_CHG.pin1,VBUS_5V_CHG,U_CHG,pin1,P1,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,"[VBUS_5V_CHG] 1A 单节锂电充电 IC (TI); 输入接 VBUS_5V_F1, BAT 脚接 BAT 轨, STAT/PG 脚回主 PCB (见 P2)"
 U_CHG.pin10,IINLIM,U_CHG,pin10,P10,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,"★pin10 ILIM: R_ILIM = 390Ω ±1% 必装 (已在主网表 P1 第 44/45 行画出, 本行不重复画电阻, 只登记引脚归属); IINMAX = KILIM/RILIM (KILIM 320/355/390 AΩ) = 0.82-1.00A 硬件上限 (max 档 IINMAX=1.00A); ILIM 脚稳在 0.8V ⇒ 电阻功耗 0.8²/390 = 1.64mW;"
 U_CHG.pin11,TS_BAT,U_CHG,pin11,P1,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,"[VBUS_5V_CHG] 1A 单节锂电充电 IC (TI); 输入接 VBUS_5V_F1, BAT 脚接 BAT 轨, STAT/PG 脚回主 PCB (见 P2)"
@@ -516,8 +506,8 @@ U_CHG.pin13,BAT_CHG,U_CHG,pin13,P1,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4
 U_CHG.pin14,BAT_CHG,U_CHG,pin14,P1,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,"[VBUS_5V_CHG] 1A 单节锂电充电 IC (TI); 输入接 VBUS_5V_F1, BAT 脚接 BAT 轨, STAT/PG 脚回主 PCB (见 P2)"
 U_CHG.pin15,SYS_CHG,U_CHG,pin15,P10,BQ25896,IC,DNP,CHG_BOARD,C-03,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,"★pin15/16 SYS: 本板不供电 (SYS 在镜脚由 BQ2970 + 2×MOS 产生); ⚠️ 待裁决: 网名用 SYS_CHG 而不是 SYS — 现行网表的 SYS 是镜脚系统轨 (RAIL_SYS 3.0-4.2V), 若沿用 SYS 这个网名, 会把充电板悬空的 SYS 脚并到镜脚系统轨上 (电气冲突) ⇒ 建议保留独立网名 SYS_CHG; ⚠️ [待原厂] SYS 悬空是否"
 U_CHG.pin16,SYS_CHG,U_CHG,pin16,P10,BQ25896,IC,DNP,CHG_BOARD,C-03,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,"★pin15/16 SYS: 本板不供电 (SYS 在镜脚由 BQ2970 + 2×MOS 产生); ⚠️ 待裁决: 网名用 SYS_CHG 而不是 SYS — 现行网表的 SYS 是镜脚系统轨 (RAIL_SYS 3.0-4.2V), 若沿用 SYS 这个网名, 会把充电板悬空的 SYS 脚并到镜脚系统轨上 (电气冲突) ⇒ 建议保留独立网名 SYS_CHG; ⚠️ [待原厂] SYS 悬空是否"
-U_CHG.pin17,TS_RTN,U_CHG,pin17,P1,BQ25896 PGND (模拟地),NET,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[推算],,[TS_RTN] 充电板侧: TS 专用回流接 BQ25896 的 PGND (pin17/18) ⇒ 偏差 <0.01°C
-U_CHG.pin18,TS_RTN,U_CHG,pin18,P1,BQ25896 PGND (模拟地),NET,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[推算],,[TS_RTN] 充电板侧: TS 专用回流接 BQ25896 的 PGND (pin17/18) ⇒ 偏差 <0.01°C
+U_CHG.pin17,PGND,U_CHG,pin17,P10,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,★pin17/18 PGND 功率地 (开关节点回流); 'connect directly to the PGND'; PowerPAD 同接 PGND + ≥6 过孔 (散热焊盘是 3×3mm 器件在 25×10mm 小板上的唯一散热路径)
+U_CHG.pin18,PGND,U_CHG,pin18,P10,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,★pin17/18 PGND 功率地 (开关节点回流); 'connect directly to the PGND'; PowerPAD 同接 PGND + ≥6 过孔 (散热焊盘是 3×3mm 器件在 25×10mm 小板上的唯一散热路径)
 U_CHG.pin19,SW,U_CHG,pin19,P10,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,pin19/20 SW 开关节点 (两脚同网); datasheet: 'Connect the 0.047µF bootstrap capacitor from SW to BTST'
 U_CHG.pin2,PSEL,U_CHG,pin2,P1,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,"[VBUS_5V_CHG] 1A 单节锂电充电 IC (TI); 输入接 VBUS_5V_F1, BAT 脚接 BAT 轨, STAT/PG 脚回主 PCB (见 P2)"
 U_CHG.pin20,SW,U_CHG,pin20,P10,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,pin19/20 SW 开关节点 (两脚同网); datasheet: 'Connect the 0.047µF bootstrap capacitor from SW to BTST'
@@ -532,31 +522,64 @@ U_CHG.pin6,I2C_CHG_SDA,U_CHG,pin6,P1,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4
 U_CHG.pin7,INT_CHG,U_CHG,pin7,P1,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,"[VBUS_5V_CHG] 1A 单节锂电充电 IC (TI); 输入接 VBUS_5V_F1, BAT 脚接 BAT 轨, STAT/PG 脚回主 PCB (见 P2)"
 U_CHG.pin8,OTG_SET,U_CHG,pin8,P1,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,"[VBUS_5V_CHG] 1A 单节锂电充电 IC (TI); 输入接 VBUS_5V_F1, BAT 脚接 BAT 轨, STAT/PG 脚回主 PCB (见 P2)"
 U_CHG.pin9,CE_SET,U_CHG,pin9,P1,BQ25896,IC,必装,CHG_BOARD,C-01,"WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",BQ25896RTWR,[官方],,"[VBUS_5V_CHG] 1A 单节锂电充电 IC (TI); 输入接 VBUS_5V_F1, BAT 脚接 BAT 轨, STAT/PG 脚回主 PCB (见 P2)"
-U_DCDC_VCORE.EN,EN_VCORE,U_DCDC_VCORE,EN,P8,EN 输入 (高 = 使能),NET,必装,MAIN_PCB,B-10,,,[待原厂],TBD-12,[EN_VCORE] ★V1.8: V_CORE buck 的 EN 节点 (由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动)
-U_DCDC_VCORE.PG,PG_AND,U_DCDC_VCORE,PG,P8,EN 输入 (高 = 使能),NET,必装,MAIN_PCB,B-10,,,[待原厂],TBD-12,[EN_VCORE] ★V1.8: V_CORE buck 的 EN 节点 (由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动)
-U_DCDC_VIO.EN,PWR_ON,U_DCDC_VIO,EN,P8,EN 输入 (高 = 使能),NET,必装,MAIN_PCB,B-10,,,[待原厂],TBD-12,[EN_VIO] ★V1.8: V_SOC_IO buck 的 EN **直接由 PWR_ON 开机节点驱动** (它是上电第一路; PG 极性/EN 极性待原厂核)
-U_DCDC_VIO.PG,PG_AND,U_DCDC_VIO,PG,P8,EN 输入 (高 = 使能),NET,必装,MAIN_PCB,B-10,,,[待原厂],TBD-12,[EN_VIO] ★V1.8: V_SOC_IO buck 的 EN **直接由 PWR_ON 开机节点驱动** (它是上电第一路; PG 极性/EN 极性待原厂核)
-U_LDO_IO18.EN,SYS,U_LDO_IO18,EN,P1,EN,NET,必装,MAIN_PCB,,,,[官方],,"[VDD_1V8_IO] ★U_LDO_IO18 的 EN 脚**直连 RAIL_SYS** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 ⇒ 接 SYS (3.5-4.2V) 安全"
-U_LDO_IO33.EN,SYS,U_LDO_IO33,EN,P1,EN,NET,必装,MAIN_PCB,,,,[官方],,"[VDD_3V3_IO] ★U_LDO_IO33 的 EN 脚**直连 RAIL_SYS** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 ⇒ 接 SYS (3.5-4.2V) 安全"
-U_LDO_L18.EN,SYS,U_LDO_L18,EN,P1,EN,NET,DNP,MAIN_PCB,C-10,,,[官方],,"[LIGHT_1V8] ★U_LDO_L18 的 EN 脚**直连 RAIL_SYS** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 ⇒ 接 SYS (3.5-4.2V) 安全"
-U_LDO_L33.EN,SYS,U_LDO_L33,EN,P1,EN,NET,必装,MAIN_PCB,C-09,,,[官方],,"[LIGHT_3V3] ★U_LDO_L33 的 EN 脚**直连 RAIL_SYS** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 ⇒ 接 SYS (3.5-4.2V) 安全"
-U_LDO_S12.EN,SYS,U_LDO_S12,EN,P1,EN,NET,DNP,MAIN_PCB,C-08,,,[官方],,"[SENSOR_CORE] ★U_LDO_S12 的 EN 脚**直连 RAIL_SYS** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 ⇒ 接 SYS (3.5-4.2V) 安全"
-U_LDO_S18B.EN,SYS,U_LDO_S18B,EN,P1,EN,NET,DNP,MAIN_PCB,C-07,,,[官方],,"[SENSOR_VDD_IO] ★U_LDO_S18B 的 EN 脚**直连 RAIL_SYS** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能 ⇒ 接 SYS (3.5-4.2V) 安全"
-U_LDO_S28.1,SENSOR_AVDD,U_LDO_S28,1,P1,TPS7A20-28,IC,DNP,MAIN_PCB,C-06,,,[官方],,"[SENSOR_AVDD] ★**DNP** — camera 模组自带稳压 (pin28/29=3.3V, pin30/31=5V) ⇒ 主板不供 sensor 芯片级模拟轨; 电压 2.8V / 最大电流 156mA; 选型依据 规格 power_rails[SENSOR_AVDD]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/pro"
-U_LDO_S28.2,SYS_PCB,U_LDO_S28,2,P1,TPS7A20-28,IC,DNP,MAIN_PCB,C-06,,,[官方],,"[SENSOR_AVDD] ★**DNP** — camera 模组自带稳压 (pin28/29=3.3V, pin30/31=5V) ⇒ 主板不供 sensor 芯片级模拟轨; 电压 2.8V / 最大电流 156mA; 选型依据 规格 power_rails[SENSOR_AVDD]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/pro"
-U_LDO_S28.3,SYS,U_LDO_S28,3,P1,TPS7A20-28,IC,DNP,MAIN_PCB,C-06,,,[官方],,"[SENSOR_AVDD] ★**DNP** — camera 模组自带稳压 (pin28/29=3.3V, pin30/31=5V) ⇒ 主板不供 sensor 芯片级模拟轨; 电压 2.8V / 最大电流 156mA; 选型依据 规格 power_rails[SENSOR_AVDD]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/pro"
-U_PWR_SW.GND,GND,U_PWR_SW,GND,P1,地脚,NET,必装,MAIN_PCB,,,,[推算],,[SYS] 负载开关 地脚
-U_PWR_SW.ON,PWR_ON,U_PWR_SW,ON,P1,ON 输入 (高电平 = 导通 = 开机),NET,必装,MAIN_PCB,C-02,,,[推算],,"[PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), 脚号与是否可配开漏**待原厂**"
-U_PWR_SW.VIN,BAT_SW,U_PWR_SW,VIN,P1,VIN (输入),NET,必装,MAIN_PCB,C-02,,,[推算],,[BAT_SW] 电池保护 (BQ2970 + 2×MOS) 引脚 · **负载开关输入**; ★V1.8: 开关装镜脚 (与电池/保护板同板); 关机时充电链仍在电池侧带电 ⇒ 关机也能充电
-U_PWR_SW.VOUT,SYS,U_PWR_SW,VOUT,P1,"[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)",IC,必装,MAIN_PCB,C-02,,,[推算],,"[SYS] ★V1.8 硬件断电通路的主器件: VOUT · 镜脚系统轨 SYS (SoC + 2×DC-DC + 7×LDO + sensor + 光机 全在其下游); **反向阻断必查** (关机插 USB 时防 5V 经 SoC IO 反灌电池); 选型判据 8 条见 HW/POWER_SHUTDOWN_V3.md §2 (型号待选型, 询价经项目总工)"
-U_SUPV.CT,VDD_1V8_IO,U_SUPV,CT,P8,[待选型] 电压监控 + 复位 (TPS3808G01 类),IC,必装,MAIN_PCB,,,,[推算],TBD-12,[VDD_1V8_IO] 上电监督器 (挂常供电轨); 监控窗口电压待原厂电源域表定 (TBD-02)
-U_SUPV.IN,SUPV_SENSE,U_SUPV,IN,P8,[待选型] 电压监控 + 复位 (TPS3808G01 类),IC,必装,MAIN_PCB,,,,[推算],TBD-02,[SUPV_SENSE] 监督器采样脚 (经分压)
-U_SUPV.RESET (开漏),RESET_N,U_SUPV,RESET (开漏),P8,开漏释放,IC,必装,MAIN_PCB,,,,[推算],TBD-12,[RESET_N] ★V1.1: RESET_N 增加一路监督器开漏释放 (与已有 10k 上拉 + RC + 复位键共存: 任一路拉低都生效)
-U_SUPV.VDD,VDD_1V8_IO,U_SUPV,VDD,P8,[待选型] 电压监控 + 复位 (TPS3808G01 类),IC,必装,MAIN_PCB,,,,[推算],TBD-12,[VDD_1V8_IO] 上电监督器 (挂常供电轨); 监控窗口电压待原厂电源域表定 (TBD-02)
-U_TEMP.pin1,I2C_A_SDA,U_TEMP,pin1,P2,TMP117 数字温度计,IC,必装,MAIN_PCB,B-01,,,[官方],,[I2C_A_SDA] TMP117 SDA
-U_TEMP.pin2,I2C_A_SCL,U_TEMP,pin2,P2,"TMP117 数字温度计 (I2C 地址 0x48, ±0.1°C max, 16bit)",IC,必装,MAIN_PCB,B-01,,,[官方],,"[I2C_A_SCL] ★V1.1 定型: 选 TI TMP117 [官方 ti.com/product/TMP117] (1.7-5.5V 供电, 5µA max, WSON-2 2×2mm); I2C_A 从设备地址 0x48, ★**11-02 19:5x 订正**: sensor 地址随换料变 —— IMX415 = **0x1a** / AR0234CS = **0x10** (实拉 R"
-U_TEMP.pin3,VDD_3V3_IO,U_TEMP,pin3,P2,TMP117 数字温度计,IC,必装,MAIN_PCB,B-01,,,[官方],,"[I2C_A_SCL] TMP117 供电 (3.3V, 5µA max)"
-U_TEMP.pin4,GND,U_TEMP,pin4,P2,TMP117 数字温度计,IC,必装,MAIN_PCB,B-01,,,[官方],,[I2C_A_SCL] TMP117 地脚
-X1.1,XTAL_IN,X1,1,P8,晶振焊盘位 (不装),CONN,DNP,MAIN_PCB,,,,[同Die参考-待官方确认],TBD-12,[XTAL] 外部晶振**焊盘位** (不装): 频率/负载/封装待原厂确认 (TBD-12); AR9481 同 Die 也不能确定 · 先留位
-X1.2,XTAL_OUT,X1,2,P8,晶振焊盘位 (不装),CONN,DNP,MAIN_PCB,,,,[同Die参考-待官方确认],TBD-12,[XTAL] 外部晶振**焊盘位** (不装): 频率/负载/封装待原厂确认 (TBD-12); AR9481 同 Die 也不能确定 · 先留位
-X1.3,XTAL,X1,3,P8,晶振焊盘位 (不装),CONN,DNP,MAIN_PCB,,,,[同Die参考-待官方确认],TBD-12,[XTAL] 外部晶振**焊盘位** (不装): 频率/负载/封装待原厂确认 (TBD-12); AR9481 同 Die 也不能确定 · 先留位
+U_DCDC_VCORE.VIN,BOARD_5V,U_DCDC_VCORE,VIN,P8,EN 输入 (高 = 使能),NET,必装,MAIN_PCB,B-10,"VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘",TPS62130ARGTR,[待原厂],TBD-12,[EN_VCORE] ★V1.8: V_CORE buck 的 EN 节点 (由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动)
+U_DCDC_VCORE.pin13,EN_VCORE,U_DCDC_VCORE,pin13,P8,EN 输入 (高 = 使能),NET,必装,MAIN_PCB,B-10,"VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘",TPS62130ARGTR,[待原厂],TBD-12,[EN_VCORE] ★V1.8: V_CORE buck 的 EN 节点 (由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动)
+U_DCDC_VCORE.pin4,PG_AND,U_DCDC_VCORE,pin4,P8,EN 输入 (高 = 使能),NET,必装,MAIN_PCB,B-10,"VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘",TPS62130ARGTR,[待原厂],TBD-12,[EN_VCORE] ★V1.8: V_CORE buck 的 EN 节点 (由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动)
+U_DCDC_VIO.VIN,BOARD_5V,U_DCDC_VIO,VIN,P8,EN 输入 (高 = 使能),NET,必装,MAIN_PCB,B-10,"VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘",TPS62130ARGTR,[待原厂],TBD-12,[EN_VIO] ★V1.8: V_SOC_IO buck 的 EN **直接由 PWR_ON 开机节点驱动** (它是上电第一路; PG 极性/EN 极性待原厂核)
+U_DCDC_VIO.pin13,PWR_ON,U_DCDC_VIO,pin13,P8,EN 输入 (高 = 使能),NET,必装,MAIN_PCB,B-10,"VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘",TPS62130ARGTR,[待原厂],TBD-12,[EN_VIO] ★V1.8: V_SOC_IO buck 的 EN **直接由 PWR_ON 开机节点驱动** (它是上电第一路; PG 极性/EN 极性待原厂核)
+U_DCDC_VIO.pin4,PG_AND,U_DCDC_VIO,pin4,P8,EN 输入 (高 = 使能),NET,必装,MAIN_PCB,B-10,"VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘",TPS62130ARGTR,[待原厂],TBD-12,[EN_VIO] ★V1.8: V_SOC_IO buck 的 EN **直接由 PWR_ON 开机节点驱动** (它是上电第一路; PG 极性/EN 极性待原厂核)
+U_EN_SW.pin1,RAIL_DEMO_5V,U_EN_SW,pin1,P1,5V 输入,NET,必装,MAIN_PCB,A-24,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,[官方],,[U_EN_SW] IN = 5V (Type-C 直供)
+U_EN_SW.pin2,CARRIER_BOARD_EN,U_EN_SW,pin2,P1,EN 输入 (高=放行底板),NET,必装,MAIN_PCB,A-24,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,[官方],,[U_EN_SW] EN ← CARRIER_BOARD_EN ⇒ 主板各路只在 SoM 就绪后上电
+U_EN_SW.pin3,RAIL_BOARD_5V,U_EN_SW,pin3,P1,5V 输出 (受 CARRIER_BOARD_EN 门控),NET,必装,MAIN_PCB,A-24,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,[官方],,[RAIL_BOARD_5V] ★**底板所有 3.3V/5V 支路都挂这条** (不是 SYS) ⇒ 这就是 F13 的落法
+U_EN_SW.pin4,GND,U_EN_SW,pin4,P1,GND,NET,必装,MAIN_PCB,A-24,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,[官方],,[U_EN_SW] 地
+U_LDO_IO18.pin1,VDD_1V8_IO,U_LDO_IO18,pin1,P1,TPS7A20-18,IC,必装,MAIN_PCB,,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[推算],,"[VDD_1V8_IO] LDO 供 VDD_1V8_IO (1.8V/100mA); 电压 1.8V / 最大电流 100mA; 选型依据 规格 power_rails[VDD_1V8_IO]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料"
+U_LDO_IO18.pin2,GND,U_LDO_IO18,pin2,P1,GND (pin2),NET,必装,MAIN_PCB,,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,[VDD_1V8_IO] ★U_LDO_IO18 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_IO18.pin3,BOARD_5V,U_LDO_IO18,pin3,P1,EN (pin3),NET,必装,MAIN_PCB,,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,"[VDD_1V8_IO] ★U_LDO_IO18 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_IO18.pin4,BOARD_5V,U_LDO_IO18,pin4,P1,EN (pin3),NET,必装,MAIN_PCB,,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,"[VDD_1V8_IO] ★U_LDO_IO18 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_IO18.pin5,GND,U_LDO_IO18,pin5,P1,GND (pin2),NET,必装,MAIN_PCB,,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,[VDD_1V8_IO] ★U_LDO_IO18 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_IO33.pin1,VDD_3V3_IO,U_LDO_IO33,pin1,P1,TPS7A20-33,IC,必装,MAIN_PCB,,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2033DQNR,[推算],,"[VDD_3V3_IO] LDO 供 VDD_3V3_IO (3.3V/200mA); 电压 3.3V / 最大电流 200mA; 选型依据 规格 power_rails[VDD_3V3_IO]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料"
+U_LDO_IO33.pin2,GND,U_LDO_IO33,pin2,P1,GND (pin2),NET,必装,MAIN_PCB,,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2033DQNR,[官方],,[VDD_3V3_IO] ★U_LDO_IO33 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_IO33.pin3,BOARD_5V,U_LDO_IO33,pin3,P1,EN (pin3),NET,必装,MAIN_PCB,,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2033DQNR,[官方],,"[VDD_3V3_IO] ★U_LDO_IO33 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_IO33.pin4,BOARD_5V,U_LDO_IO33,pin4,P1,EN (pin3),NET,必装,MAIN_PCB,,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2033DQNR,[官方],,"[VDD_3V3_IO] ★U_LDO_IO33 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_IO33.pin5,GND,U_LDO_IO33,pin5,P1,GND (pin2),NET,必装,MAIN_PCB,,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2033DQNR,[官方],,[VDD_3V3_IO] ★U_LDO_IO33 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_L18.pin1,LIGHT_1V8,U_LDO_L18,pin1,P1,TPS7A20-18,IC,DNP,MAIN_PCB,C-10,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[推算],TBD-02,"[LIGHT_1V8] LDO 供 LIGHT_1V8 (1.8V/50mA); 电压 1.8V / 最大电流 50mA; 选型依据 规格 power_rails[LIGHT_1V8]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料不换板**"
+U_LDO_L18.pin2,GND,U_LDO_L18,pin2,P1,GND (pin2),NET,DNP,MAIN_PCB,C-10,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,[LIGHT_1V8] ★U_LDO_L18 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_L18.pin3,BOARD_5V,U_LDO_L18,pin3,P1,EN (pin3),NET,DNP,MAIN_PCB,C-10,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,"[LIGHT_1V8] ★U_LDO_L18 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_L18.pin4,BOARD_5V,U_LDO_L18,pin4,P1,EN (pin3),NET,DNP,MAIN_PCB,C-10,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,"[LIGHT_1V8] ★U_LDO_L18 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_L18.pin5,GND,U_LDO_L18,pin5,P1,GND (pin2),NET,DNP,MAIN_PCB,C-10,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,[LIGHT_1V8] ★U_LDO_L18 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_L33.pin1,LIGHT_3V3,U_LDO_L33,pin1,P1,TPS7A20-33,IC,必装,MAIN_PCB,C-09,"X2SON (DQN) 1.0 x 1.0 mm, 0.4 mm max height, no-lead",TPS7A2033DQNR,[推算],TBD-02,"[LIGHT_3V3] LDO 供 LIGHT_3V3 (3.3V/150mA); 电压 3.3V / 最大电流 150mA; 选型依据 规格 power_rails[LIGHT_3V3]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V] · 原厂/JBD 回信后**换料不换板"
+U_LDO_L33.pin2,GND,U_LDO_L33,pin2,P1,GND (pin2),NET,必装,MAIN_PCB,C-09,"X2SON (DQN) 1.0 x 1.0 mm, 0.4 mm max height, no-lead",TPS7A2033DQNR,[官方],,[LIGHT_3V3] ★U_LDO_L33 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_L33.pin3,BOARD_5V,U_LDO_L33,pin3,P1,EN (pin3),NET,必装,MAIN_PCB,C-09,"X2SON (DQN) 1.0 x 1.0 mm, 0.4 mm max height, no-lead",TPS7A2033DQNR,[官方],,"[LIGHT_3V3] ★U_LDO_L33 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_L33.pin4,BOARD_5V,U_LDO_L33,pin4,P1,EN (pin3),NET,必装,MAIN_PCB,C-09,"X2SON (DQN) 1.0 x 1.0 mm, 0.4 mm max height, no-lead",TPS7A2033DQNR,[官方],,"[LIGHT_3V3] ★U_LDO_L33 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_L33.pin5,GND,U_LDO_L33,pin5,P1,GND (pin2),NET,必装,MAIN_PCB,C-09,"X2SON (DQN) 1.0 x 1.0 mm, 0.4 mm max height, no-lead",TPS7A2033DQNR,[官方],,[LIGHT_3V3] ★U_LDO_L33 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_S12.pin1,SENSOR_CORE,U_LDO_S12,pin1,P1,TPS7A20-12,IC,DNP,MAIN_PCB,C-08,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2012DQNR,[官方],,"[SENSOR_CORE] ★**DNP** — camera 模组自带稳压 ⇒ 主板不供 sensor 芯片级数字轨; 电压 1.2V / 最大电流 250mA; 选型依据 规格 power_rails[SENSOR_CORE]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-5.5V"
+U_LDO_S12.pin2,GND,U_LDO_S12,pin2,P1,GND (pin2),NET,DNP,MAIN_PCB,C-08,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2012DQNR,[官方],,[SENSOR_CORE] ★U_LDO_S12 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_S12.pin3,BOARD_5V,U_LDO_S12,pin3,P1,EN (pin3),NET,DNP,MAIN_PCB,C-08,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2012DQNR,[官方],,"[SENSOR_CORE] ★U_LDO_S12 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_S12.pin4,BOARD_5V,U_LDO_S12,pin4,P1,EN (pin3),NET,DNP,MAIN_PCB,C-08,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2012DQNR,[官方],,"[SENSOR_CORE] ★U_LDO_S12 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_S12.pin5,GND,U_LDO_S12,pin5,P1,GND (pin2),NET,DNP,MAIN_PCB,C-08,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2012DQNR,[官方],,[SENSOR_CORE] ★U_LDO_S12 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_S18B.pin1,SENSOR_VDD_IO,U_LDO_S18B,pin1,P1,TPS7A20-18,IC,DNP,MAIN_PCB,C-07,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,"[SENSOR_VDD_IO] ★**DNP** — camera 模组自带稳压 ⇒ 主板不供 sensor 芯片级 IO 轨; 电压 1.8V / 最大电流 3mA; 选型依据 规格 power_rails[SENSOR_VDD_IO]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/product/TPS7A20, 30 档覆盖 0.8-"
+U_LDO_S18B.pin2,GND,U_LDO_S18B,pin2,P1,GND (pin2),NET,DNP,MAIN_PCB,C-07,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,[SENSOR_VDD_IO] ★U_LDO_S18B 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_S18B.pin3,BOARD_5V,U_LDO_S18B,pin3,P1,EN (pin3),NET,DNP,MAIN_PCB,C-07,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,"[SENSOR_VDD_IO] ★U_LDO_S18B 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_S18B.pin4,BOARD_5V,U_LDO_S18B,pin4,P1,EN (pin3),NET,DNP,MAIN_PCB,C-07,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,"[SENSOR_VDD_IO] ★U_LDO_S18B 的 EN 脚 (pin3) **直连 RAIL_BOARD_5V** ⇒ 永远使能 — ★★**P0: EN 内部 500kΩ 下拉, 悬空 = 关断 ⇒ 不画 EN = 投板后整板不上电**; datasheet 门限 VEN(LOW)≤0.3V 关断 / VEN(HIGH)≥0.9V 使能"
+U_LDO_S18B.pin5,GND,U_LDO_S18B,pin5,P1,GND (pin2),NET,DNP,MAIN_PCB,C-07,X2SON (DQN) 1.0 x 1.0 mm,TPS7A2018DQNR,[官方],,[SENSOR_VDD_IO] ★U_LDO_S18B 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_S28.pin1,SENSOR_AVDD,U_LDO_S28,pin1,P1,TPS7A20-28,IC,DNP,MAIN_PCB,C-06,,,[官方],,"[SENSOR_AVDD] ★**DNP** — camera 模组自带稳压 (pin28/29=3.3V, pin30/31=5V) ⇒ 主板不供 sensor 芯片级模拟轨; 电压 2.8V / 最大电流 156mA; 选型依据 规格 power_rails[SENSOR_AVDD]; ★电压不确定性吸收: TPS7A20 **全部固定档共用 X2SON 封装** [官方 ti.com/pro"
+U_LDO_S28.pin2,GND,U_LDO_S28,pin2,P1,GND (pin2),NET,DNP,MAIN_PCB,C-06,,,[官方],,[SENSOR_AVDD] ★U_LDO_S28 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_S28.pin4,BOARD_5V,U_LDO_S28,pin4,P1,GND (pin2),NET,DNP,MAIN_PCB,C-06,,,[官方],,[SENSOR_AVDD] ★U_LDO_S28 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_LDO_S28.pin5,GND,U_LDO_S28,pin5,P1,GND (pin2),NET,DNP,MAIN_PCB,C-06,,,[官方],,[SENSOR_AVDD] ★U_LDO_S28 的 GND 脚 (pin2) —— ★**之前网表里根本没画 GND ⇒ 悬空**
+U_PWR_SW.pin1,BAT_SW,U_PWR_SW,pin1,P1,VIN (输入),NET,必装,MAIN_PCB,C-02,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,[推算],,[BAT_SW] 电池保护 (BQ2970 + 2×MOS) 引脚 · **负载开关输入**; ★V1.8: 开关装镜脚 (与电池/保护板同板); 关机时充电链仍在电池侧带电 ⇒ 关机也能充电
+U_PWR_SW.pin2,PWR_ON,U_PWR_SW,pin2,P1,ON 输入 (高电平 = 导通 = 开机),NET,必装,MAIN_PCB,C-02,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,[推算],,"[PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), 脚号与是否可配开漏**待原厂**"
+U_PWR_SW.pin3,SYS,U_PWR_SW,pin3,P1,"[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)",IC,必装,MAIN_PCB,C-02,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,[推算],,"[SYS] ★V1.8 硬件断电通路的主器件: VOUT · 镜脚系统轨 SYS (SoC + 2×DC-DC + 7×LDO + sensor + 光机 全在其下游); **反向阻断必查** (关机插 USB 时防 5V 经 SoC IO 反灌电池); 选型判据 8 条见 HW/POWER_SHUTDOWN_V3.md §2 (型号待选型, 询价经项目总工)"
+U_PWR_SW.pin4,GND,U_PWR_SW,pin4,P1,地脚,NET,必装,MAIN_PCB,,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,[推算],,[SYS] 负载开关 地脚
+U_SUPV.pin1,RESET_N,U_SUPV,pin1,P8,开漏释放,IC,DNP,MAIN_PCB,,,,[推算],TBD-12,"[U_SUPV] ★DNP: ★SoM 内部 PMIC 已做上电复位 (Forlinx 官方载板复位电路 = 按键+100nF+ESD, 无监督器) ⇒ 主板不装监督器 | [RESET_N] ★V1.1: RESET_N 增加一路监督器开漏释放 (与已有 10k 上拉 + RC + 复位键共存: 任一路拉低都生效)"
+U_SUPV.pin4,VDD_1V8_IO,U_SUPV,pin4,P8,[待选型] 电压监控 + 复位 (TPS3808G01 类),IC,DNP,MAIN_PCB,,,,[推算],TBD-12,"[U_SUPV] ★DNP: ★SoM 内部 PMIC 已做上电复位 (Forlinx 官方载板复位电路 = 按键+100nF+ESD, 无监督器) ⇒ 主板不装监督器 | [VDD_1V8_IO] 上电监督器 (挂常供电轨); 监控窗口电压待原厂电源域表定 (TBD-02)"
+U_SUPV.pin5,SUPV_SENSE,U_SUPV,pin5,P8,[待选型] 电压监控 + 复位 (TPS3808G01 类),IC,DNP,MAIN_PCB,,,,[推算],TBD-02,"[U_SUPV] ★DNP: ★SoM 内部 PMIC 已做上电复位 (Forlinx 官方载板复位电路 = 按键+100nF+ESD, 无监督器) ⇒ 主板不装监督器 | [SUPV_SENSE] 监督器采样脚 (经分压)"
+U_SUPV.pin6,VDD_1V8_IO,U_SUPV,pin6,P8,[待选型] 电压监控 + 复位 (TPS3808G01 类),IC,DNP,MAIN_PCB,,,,[推算],TBD-12,"[U_SUPV] ★DNP: ★SoM 内部 PMIC 已做上电复位 (Forlinx 官方载板复位电路 = 按键+100nF+ESD, 无监督器) ⇒ 主板不装监督器 | [VDD_1V8_IO] 上电监督器 (挂常供电轨); 监控窗口电压待原厂电源域表定 (TBD-02)"
+U_TEMP.pin1,I2C_B_SCL,U_TEMP,pin1,P2,"TMP117 数字温度计 (I2C 地址 0x48, ±0.1°C max, 16bit)",IC,必装,MAIN_PCB,B-01,"TMP117 WSON-6 2x2mm 自绘 (TI DRV0006B: 6 焊盘 @0.65mm pitch, 焊盘 0.45x0.30mm, 无散热焊盘 EP —— 原厂建议 EP 不焊以保测温精度)","TI TMP117 (DRV0006B, I2C 温度计 ±0.1°C, 地址 0x48)",[官方],,"[I2C_B_SCL] ★TMP117 **pin1 = SCL** (TI SNOSD82D **Table 5-1 'Pin Functions' (p.4)**: 1=SCL 2=GND 3=ALERT 4=ADD0 5=V+ 6=SDA); ★V1.1 定型: TI TMP117 [官方 ti.com/product/TMP117] (1.7-5.5V 供电, 5µA max, WSON-"
+U_TEMP.pin2,GND,U_TEMP,pin2,P2,TMP117 数字温度计,IC,必装,MAIN_PCB,B-01,"TMP117 WSON-6 2x2mm 自绘 (TI DRV0006B: 6 焊盘 @0.65mm pitch, 焊盘 0.45x0.30mm, 无散热焊盘 EP —— 原厂建议 EP 不焊以保测温精度)","TI TMP117 (DRV0006B, I2C 温度计 ±0.1°C, 地址 0x48)",[官方],,[GND] TMP117 **pin2 = GND**
+U_TEMP.pin3,NC_U_TEMP_ALERT,U_TEMP,pin3,P2,"TMP117 ALERT (开漏输出, 未接)",IC,必装,MAIN_PCB,B-01,"TMP117 WSON-6 2x2mm 自绘 (TI DRV0006B: 6 焊盘 @0.65mm pitch, 焊盘 0.45x0.30mm, 无散热焊盘 EP —— 原厂建议 EP 不焊以保测温精度)","TI TMP117 (DRV0006B, I2C 温度计 ±0.1°C, 地址 0x48)",[官方],,"[NC_U_TEMP_ALERT] TMP117 **pin3 = ALERT** (开漏输出, 需上拉) ⇒ ★demo 悬空 (原厂: 可接 GND 或悬空); ★若要过温告警上报 ⇒ 需另占一个 SoM GPIO + 4.7k 上拉"
+U_TEMP.pin4,GND,U_TEMP,pin4,P2,TMP117 数字温度计,IC,必装,MAIN_PCB,B-01,"TMP117 WSON-6 2x2mm 自绘 (TI DRV0006B: 6 焊盘 @0.65mm pitch, 焊盘 0.45x0.30mm, 无散热焊盘 EP —— 原厂建议 EP 不焊以保测温精度)","TI TMP117 (DRV0006B, I2C 温度计 ±0.1°C, 地址 0x48)",[官方],,[GND] TMP117 **pin2 = GND**
+U_TEMP.pin5,VDD_3V3_IO,U_TEMP,pin5,P2,TMP117 数字温度计,IC,必装,MAIN_PCB,B-01,"TMP117 WSON-6 2x2mm 自绘 (TI DRV0006B: 6 焊盘 @0.65mm pitch, 焊盘 0.45x0.30mm, 无散热焊盘 EP —— 原厂建议 EP 不焊以保测温精度)","TI TMP117 (DRV0006B, I2C 温度计 ±0.1°C, 地址 0x48)",[官方],,[VDD_3V3_IO] TMP117 **pin5 = V+** (1.7-5.5V)
+U_TEMP.pin6,I2C_B_SDA,U_TEMP,pin6,P2,TMP117 数字温度计,IC,必装,MAIN_PCB,B-01,"TMP117 WSON-6 2x2mm 自绘 (TI DRV0006B: 6 焊盘 @0.65mm pitch, 焊盘 0.45x0.30mm, 无散热焊盘 EP —— 原厂建议 EP 不焊以保测温精度)","TI TMP117 (DRV0006B, I2C 温度计 ±0.1°C, 地址 0x48)",[官方],,[I2C_B_SDA] TMP117 **pin6 = SDA**
+X1.1,XTAL_IN,X1,1,P8,晶振焊盘位 (不装),CONN,DNP,MAIN_PCB,,,,[同Die参考-待官方确认],TBD-12,[X1] ★DNP: ★晶振在 SoM 板上 ⇒ 主板不接 | [XTAL] 外部晶振**焊盘位** (不装): 频率/负载/封装待原厂确认 (TBD-12); AR9481 同 Die 也不能确定 · 先留位
+X1.2,XTAL_OUT,X1,2,P8,晶振焊盘位 (不装),CONN,DNP,MAIN_PCB,,,,[同Die参考-待官方确认],TBD-12,[X1] ★DNP: ★晶振在 SoM 板上 ⇒ 主板不接 | [XTAL] 外部晶振**焊盘位** (不装): 频率/负载/封装待原厂确认 (TBD-12); AR9481 同 Die 也不能确定 · 先留位
+X1.3,XTAL,X1,3,P8,晶振焊盘位 (不装),CONN,DNP,MAIN_PCB,,,,[同Die参考-待官方确认],TBD-12,[X1] ★DNP: ★晶振在 SoM 板上 ⇒ 主板不接 | [XTAL] 外部晶振**焊盘位** (不装): 频率/负载/封装待原厂确认 (TBD-12); AR9481 同 Die 也不能确定 · 先留位

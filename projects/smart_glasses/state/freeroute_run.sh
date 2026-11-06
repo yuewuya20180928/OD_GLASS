@@ -55,8 +55,13 @@ cp "$PCB" "$OUT"
 # ★★2026-11-05 10:35 **堆从 4g 降到 2g** (★实测被 OOM 杀掉一次)
 #   机器只有 14GB, 同时跑 4~5 个布线进程 (每个 ~2GB) ⇒ ★JVM 4g 会把内存吃光
 #   ⇒ ★**跑 freerouting 时别同时开太多布线臂** (★或者给它 2g 就够)
-timeout 7200 "$JRE" -Xmx2g -Dgui.enabled=false -jar "$JAR" -de "$DSN" -do "$SES" -mp "$PASSES" 2>&1 | tail -25
-echo "  freerouting 退出码: $?"
+# ★★2026-11-06 09:2x 改: **输出落盘** (★原来 `| tail -25` ⇒ 缓冲 ⇒ 进程结束才可见 ⇒ 长跑期间看不到进度)
+#   ⇒ ★**freerouting 每轮都打 INFO (pass #N ... score ... unrouted)** ⇒ ★**落盘后随时可 tail 看进度**
+FR_LOG=/tmp/fr_progress.log
+timeout 14400 "$JRE" -Xmx2g -Dgui.enabled=false -jar "$JAR" -de "$DSN" -do "$SES" -mp "$PASSES" > "$FR_LOG" 2>&1
+FR_RC=$?
+echo "  freerouting 退出码: $FR_RC  (完整日志: $FR_LOG)"
+grep -o "pass #[0-9]* .*unrouted)" "$FR_LOG" | tail -5
 [ -s "$SES" ] || { echo "❌ 没生成 SES"; exit 1; }
 ls -la "$SES" | awk '{print "  SES 大小:", $5, "字节"}'
 

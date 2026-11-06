@@ -102,6 +102,36 @@ def cell(r: dict, k: str) -> str:
     return (r.get(k) or "").strip()
 
 
+def _csv_node_device_refs(rows: list[dict]) -> set[str]:
+    """CSV 里**只在 node 串中出现**的器件 ref (即 "REF pinN" 的 REF 部分)。
+
+    ★为什么要有这个 (2026-11-06):
+      SoM 的 4 组 100pin BTB 座里, **J_SOM_P2 / J_SOM_P4 从不出现在 ref 列** ——
+      CSV 的模型是"一行 = 一根连接", 每一行只写这一行经过的那个脚,
+      ref 列写的是**这一行的另一个器件** (R_SER_xxx / C_AC_xxx), 座本身没被列为 ref。
+      ⇒ 只看 ref 列 ⇒ 这两个座**在任何按 ref 列做的交叉校验里都会被当成"无出处"**。
+
+    ★排除网别名与伪 ref (NET_/RAIL_/GND) —— 那两类不是器件。
+    """
+    out: set[str] = set()
+    known = {(r.get("ref") or "").strip() for r in rows if (r.get("ref") or "").strip()}
+    labels = {(r.get("net") or "").strip() for r in rows if (r.get("net") or "").strip()}
+    for r in rows:
+        for k in ("node1", "node2"):
+            n = (r.get(k) or "").strip()
+            if " " not in n:
+                continue
+            head = n.split(" ", 1)[0].strip()
+            if not head or head in known:
+                continue
+            if head in labels:
+                continue
+            if head.startswith(("NET_", "RAIL_")) or head in ("GND", "VSS", "VDD", "SYS_PCB"):
+                continue
+            out.add(head)
+    return out
+
+
 def main() -> int:
     auths = load_pinout_authorities()
     if auths:
@@ -131,6 +161,10 @@ def main() -> int:
     #   CSV 里同一物理网可以有多个网名 (跨页别名), 按网名配对会误报)
     net_refs = {n["ref"] for n in nodes}
     csv_refs = {cell(r, "ref") for r in rows if cell(r, "ref")}
+    # ★★2026-11-06 修 (与 gen_kicad_net.py 的那处同源): **器件在 CSV 里的"出处"有两处** ——
+    #   ① ref 列  ② node 串里的 "REF pinN" 的 REF 部分 (J_SOM_P2/P4 只在后者出现)
+    #   ⇒ 只查 ref 列会把 J_SOM_P2/P4 误判成 ".net 里的器件在 CSV 里没有出处"
+    csv_refs |= _csv_node_device_refs(rows)
     ghost = sorted(r for r in (csv_refs - net_refs) if not PSEUDO_REFS.match(r))
     if ghost:
         errors.append(f"CSV 里的器件在 .net 里缺席 (幽灵器件): {ghost[:8]}")
