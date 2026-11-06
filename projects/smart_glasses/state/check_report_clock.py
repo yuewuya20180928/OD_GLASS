@@ -75,6 +75,57 @@ def check_value_placeholders(text: str, label: str) -> list[str]:
     return bad
 
 
+# ★★**★第四层: 覆盖面【反向自检】(★2026-11-07 02:15 兄弟实验 E 实测带出)***
+#   ★**缺口**: ★**"覆盖面显式枚举" 只保证【登记过的目录被扫】, 不保证【有锚行的目录都被登记】**
+#     ⇒ ★**兄弟实验 E: ★**在 `WS/reports_probe/` 造一个含合法锚行的文件 ⇒ 校验器 rc=0 且该目录根本没进扫描集合
+#     ⇒ ★**⇒ 新落盘目录【不受守】, 而且校验器【不会告诉你】****
+#   ★**⇒ 修法 (★机器反查, 零人工登记)**: ★**一次范围内扫描 ⇒ 找出所有含锚行的文件 ⇒ 收集其所在目录
+#     ⇒ 与已登记范围比对 ⇒ 有"含锚行但未登记"的目录 ⇒ rc=1 并指名****
+SKIP_DIR_NAMES = {"node_modules", "venv", ".venv", ".git", "dist", "build", "__pycache__", ".cache", ".npm-global"}
+SCAN_ROOTS = [WS, PROJ]
+MAX_SCAN_FILES = 4000
+
+
+def reverse_coverage_check() -> list[str]:
+    """★**反向自检: 凡是范围内含锚行的文件, 其所在目录必须落在已登记范围里 (★否则 = 有东西需要守却没登记)****"""
+    registered_dirs = {os.path.abspath(d) for d in CORPUS_DIRS}
+    registered_files = {os.path.abspath(f) for f in CORPUS_FILES}
+    found: dict[str, int] = {}          # ★**目录 → 锚行数**
+    scanned = 0
+    for root in SCAN_ROOTS:
+        for dirpath, dirnames, filenames in os.walk(root):
+            dirnames[:] = [d for d in dirnames if d not in SKIP_DIR_NAMES]
+            for fn in filenames:
+                if not fn.endswith(".md"):
+                    continue
+                p = os.path.join(dirpath, fn)
+                scanned += 1
+                if scanned > MAX_SCAN_FILES:
+                    break
+                try:
+                    with open(p, encoding="utf-8", errors="ignore") as f:
+                        txt = f.read()
+                except OSError:
+                    continue
+                n = count_anchors(txt)
+                if n:
+                    d = os.path.abspath(dirpath)
+                    found[d] = found.get(d, 0) + n
+            if scanned > MAX_SCAN_FILES:
+                break
+    bad: list[str] = []
+    for d, n in sorted(found.items()):
+        if d in registered_dirs:
+            continue
+        if any(os.path.abspath(os.path.join(d, "")) == os.path.dirname(f) for f in registered_files):
+            continue
+        # ★**登记文件所在目录也算已登记 (★如 WS/ 根下的 MEMORY.md)***
+        if any(os.path.dirname(f) == d for f in registered_files):
+            continue
+        bad.append(f"★**目录 {os.path.relpath(d, WS)} 含 {n} 条锚行但【不在已登记覆盖面内】⇒ ★**该目录不受守 ⇒ 请登记进 CORPUS_DIRS/CORPUS_FILES****")
+    return bad
+
+
 def check_sides(files: list[str]) -> list[str]:
     """★★★**★分侧覆盖率判定 (★每一方都必须在【被扫到的文件里】且【至少 1 条锚行】)****
     ★**为什么要分侧 (★兄弟 02:1x 实测)**: ★**实验 B: ★**只喂主线侧的锚 (★模拟"播报员停止落盘") ⇒ 旧版输出"全部合规" rc=0
@@ -158,6 +209,9 @@ def check_text(text: str, label: str) -> list[str]:
 CORPUS_DIRS = [
     os.path.join(PROJ, "memory"),      # ★**项目侧日记 (★我这边落报告的地方)**
     os.path.join(WS, "memory"),        # ★**工作区根侧日记 (★播报员那边落报告的地方) ★**★必须也在覆盖范围内****
+    # ★★★**★2026-11-07 02:1x 反向自检当场牵出来的两个未登记目录 (★"同一件事多份副本"那族)***
+    os.path.join(WS, "config", "agents", "main", "memory"),        # ★**agent 级记忆副本 (★有 4 条锚)**
+    os.path.join(PROJ, "config", "agents", "main", "memory"),       # ★**项目内 agent 级记忆副本 (★有 8 条锚)**
 ]
 
 # ★★★**★分侧定义 (★2026-11-07 02:1x 兄弟实测出的缺口: ★**覆盖率自检原本是【全局】的 ⇒ 某一侧停止落盘时, 总数仍 > 0 ⇒ 工具发现不了"某一方掉线")****
@@ -247,6 +301,7 @@ def main() -> int:
         except OSError as e:
             print(f"⚠ 读不到 {p}: {e}", file=sys.stderr)
     bad += check_sides(files)
+    bad += reverse_coverage_check()
     print("★**覆盖面清单 (★显式枚举, 便于复核'我到底守了谁')**:")
     for p in files:
         print(f"   · {os.path.relpath(p, WS)}")

@@ -126,3 +126,18 @@ SoM BTB (Hirose DF40C-100DS-0.4V(51)): 0.4mm pitch · 焊盘 0.2mm 宽 × 0.7mm 
 | `state/v57..v66_arms.sh` | 各实验臂 (env 门控组合) |
 
 ★**env 门控一览 (★全部默认关 ⇒ 既有臂逐位可复现)**: `PCB_W_MIN` · `PCB_VIA_CHECK_ALL_CLS` · `PCB_PAIR_ESC_AVOID` · `PCB_PAIR_P_FALLBACK` · `PCB_PAD_ORDER_FAR_FIRST`
+
+---
+
+## ★★2026-11-07 02:3x: ★★钉位清单按【当前板】重排 (★清单过期, ★不是当时的判断错) ★★
+★★**★判据 (★本次唯一准绳, ★干净可复现)**:
+  · ★**数据源**: ★**`/tmp/_drc45.json` (★mtime 2026-11-06 07:10:50, ★与官方板 mtime 07:07:17 吻合 ⇒ 对应官方板) 的 45 条 `unconnected_items`**
+  · ★**逐 net 铜段数**: ★**从 `HW/PCB/demo_mainboard.kicad_pcb` 逐段统计每个 net 的 `(segment` 数 ⇒ ★**铜段 = 0 ⇒ 整网无铜 ⇒ 才是真痛点****
+  · ★**零铜 SRC 腿 = 9 条 (★兄弟与我独立复算逐条一致)**: ★**`DSI_D0_D3_N_SRC` 98.53mm · `DSI_D0_D2_N_SRC` 87.73mm · `DSI_D0_D1_P_SRC` 71.34mm · `DSI_D0_D1_N_SRC` 66.14mm · `DSI_D0_D0_P_SRC` 60.55mm · `DSI_D0_D0_N_SRC` 55.35mm · `CSI_D0_D0_N_SRC` 42.20mm · `CSI_D0_D1_N_SRC` 33.97mm · `CSI_D0_D3_N_SRC` 10.03mm****
+  · ★**零铜未连接条目共 25 条 (★含非 SRC 的 CSI 主腿与非差分网) ⇒ ★**"真痛点"的口径是【零铜】, 不是【长度】****
+★★**★v58 钉位清单逐个核 (★板文件实况 ⇒ R_SEL → SRC net)**: ★**`R_SEL_D0_N`⇒`DSI_D0_D0_N_SRC`(铜0 ★**该挪**) · `R_SEL_D1_N`⇒`DSI_D0_D1_N_SRC`(铜0 ★**该挪**) · `R_SEL_D2_N`⇒`DSI_D0_D2_N_SRC`(铜0 ★**该挪**) · `R_SEL_D3_N`⇒`DSI_D0_D3_N_SRC`(铜0 ★**该挪**) · ★**`R_SEL_D2_P`⇒`DSI_D0_D2_P_SRC`(铜 **372** ⇒ 已通 ⇒ ★**白挪**) · ★**`R_SEL_D3_P`⇒`DSI_D0_D3_P_SRC`(铜 **250** ⇒ 已通 ⇒ ★**白挪**)****
+  ⇒ ★**★漏掉的两个真痛点**: ★**`R_SEL_D1_P`⇒`DSI_D0_D1_P_SRC` 71.34mm(铜0) · `R_SEL_D0_P`⇒`DSI_D0_D0_P_SRC` 60.55mm(铜0)** ⇒ ★**★数值旁证: ★**71.34mm 恰是我曾记成 "D3_P 71.3mm" 的那根 ⇒ ★**当时记的其实是 D1_P****
+★★**★⇒ 新清单 (★6 个: 4 个 N 侧 + 2 个 P 侧)**: ★**`R_SEL_D0_N` · `R_SEL_D1_N` · `R_SEL_D2_N` · `R_SEL_D3_N` · `R_SEL_D1_P` · `R_SEL_D0_P`****
+  · ★**坐标 (★沿用 v58 的排布, ★x 列不变, ★只换件)**: ★**`R_SEL_D0_N:35.60,5.60` · `R_SEL_D1_N:38.00,5.60` · `R_SEL_D2_N:40.40,5.60` · `R_SEL_D3_N:45.20,5.60` · `R_SEL_D1_P:42.80,5.60` · `R_SEL_D0_P:47.60,5.60`**, ★**配套 TP 同 x 列 @ y=8.80 (★`TP_DSI_D0_N` `TP_DSI_D1_N` `TP_DSI_D2_N` `TP_DSI_D3_N` `TP_DSI_D1_P` `TP_DSI_D0_P`)****
+  · ★**⇒ 新臂: ★**`state/v69_arms.sh` (★相对 v58 **只改 PP**, ★其余 env 逐位相同 ⇒ A/B 干净; ★`bash -n` 已过)****
+★★★**★★CSI 侧为何不动 (★两条腿要分开打)**: ★**9 条零铜 SRC 腿里有 3 条是 `CSI_*` (★42.20 / 33.97 / 10.03mm) ⇒ ★**而板文件里 10 个 R_SEL 全是 `DSI_D0_*` 系列 ⇒ ★**⇒ CSI 的 SRC 腿【没有 R_SEL 可挪】⇒ ⇒ CSI 的痛点只能靠【成对走廊规划 / 0.15mm 臂】⇒ ★**⇒ 与"v57 单变量 0.15mm 救回 CSI_D0_D0 / CSI_D0_D2 两对"方向一致 ⇒ ★**⇒ DSI 侧可用"挪串阻"打开, CSI 侧只能靠线宽/走廊 ⇒ 两路不混****
