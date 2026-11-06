@@ -20,7 +20,8 @@
   ok = answered_by_decision(need, dec)            # 该 need 是否已被老板决策闭合
 
 自测 (★★回归护栏: 断言这次实测出来的数字, 下次改回去有人拦):
-  bash state/pcbnew_py.sh state/decision_truth.py --self-test
+  ★★**必须用系统 python3** (★`pcbnew_py.sh` 的 KiCad python3.11 **没装 yaml** ⇒ 照那个跑必 ModuleNotFoundError):
+    python3 -B state/decision_truth.py --self-test
 """
 import os
 import sys
@@ -158,8 +159,14 @@ def self_test():
         r = subprocess.run([sys.executable, "-B", os.path.join(_HERE, "advance.py"), "--json"],
                            capture_output=True, text=True, timeout=900)
         import json as _json
+        # ★★2026-11-06 21:4x (★兄弟 21:2x 实测的尾巴): ★**advance.py 崩掉 ⇒ stdout 空
+        #   ⇒ json.loads("{}") ⇒ decisions=[] ⇒ "无泄漏" ⇒ ★**护栏把"advance 崩了"当"advance 干净"判过 (假 PASS)**
+        #   ⇒ ★**这正是我 21:00 在别处拔掉的"静默降级"雷的同款形态, 只是换了个位置**
+        assert r.returncode in (0, 1), (
+            "★★**advance.py 没正常跑 (rc=%s) ⇒ 断言④ 无从检查 ⇒ 判 PASS 是假的**" % r.returncode)
         _d = _json.loads(r.stdout or "{}")
         _dec = _d.get("decisions") or []
+        assert _dec, ("★★**advance.py --json 没吐 decisions (清单 0 条) ⇒ 无泄漏可查 ⇒ 判 PASS 是假的**")
         # ★★**key 归一化后再比** (★兄弟 21:1x 实测的盲点: 断言原来 grep stdout 里的 key 字符串
         #   ⇒ ★**若 advance.py 把 key 打成别的形式 (★他模拟把 `_` 换成 `.`) ⇒ 漏抓**
         #   ⇒ ★★**连结构化输出也一样会漏** ⇒ ★**⇒ 归一化 (`.`/`-` ⇒ `_`) 后再比**)

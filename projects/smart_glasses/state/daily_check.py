@@ -49,7 +49,13 @@ def run_sh(script: str, *args: str) -> tuple[int, str, str]:
 def run_sys(script: str, *args: str) -> tuple[int, str, str]:
     """★**用系统 python3 跑** (★`pcbnew_py.sh` 的 KiCad python3.11 **没装 yaml**
        ⇒ ★*decision_truth* / *compare_arm_official* 的自测必须走这个 ⇒ 走错必 ModuleNotFoundError)"""
-    p = subprocess.run([sys.executable, "-B", os.path.join(HERE, script), *args],
+    # ★★2026-11-06 21:4x (★兄弟 21:2x 的低危尾巴): ★**别用 sys.executable** (★它继承启动者的 python
+    #   ⇒ ★**若有人用 pcbnew_py.sh 跑 daily_check ⇒ KiCad python 没 yaml ⇒ 两个自测全 ModuleNotFoundError
+    #   ⇒ ★**且"需求闭环"整行变 None/None ⇒ 满屏假警**)
+    #   ⇒ ★**这里显式找系统 python3** ⇒ 无论谁跑都对
+    import shutil as _sh
+    _py = _sh.which("python3") or "/usr/bin/python3"
+    p = subprocess.run([_py, "-B", os.path.join(HERE, script), *args],
                        capture_output=True, text=True, cwd=PROJ)
     return p.returncode, p.stdout, p.stderr
 
