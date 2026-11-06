@@ -71,7 +71,7 @@ def find_item(board, uuid):
 
 def pad_cells(r, pad):
     """★这个焊盘可用的起步格集合 = ★**自己那一格 + 周围 8 格** (★同层)
-       ★★**不含任何"出脚直道"** ⇒ ★★**出脚方向交给 A\* 决定**"""
+       ★★**不含任何"出脚直道"** ⇒ ★★**出脚方向交给 A★ 决定**"""
     pos = pad.GetPosition()
     cx, cy = pos.x / MM, pos.y / MM
     li = 0
@@ -221,7 +221,7 @@ def main():
         if not c0 or not c1:
             failed.append(("端点算不出格子", net))
             continue
-        # ★★★**A\* 直接从"焊盘自己的格"起步, 不生成 stub** ⇒ ★**出脚方向由 A\* 决定**
+        # ★★★**A★ 直接从"焊盘自己的格"起步, 不生成 stub** ⇒ ★**出脚方向由 A★ 决定**
         path = r._astar(list(c0), set(c1), net, cls=cls, limit=budget)
         if path is None:
             failed.append(("A* 找不到路", net))

@@ -3,7 +3,7 @@
 """patch_rip_guarded.py -- ★★★**"拆非承重挡路 + 只补那一段" (2026-11-06 19:3x)**
 
 ★★★**这是三件套的合体 (★每件都是今天实测做出来的)**:
-  ① ★**no-stub A\*** (`state/patch_astar_nostub.py`): ★**从焊盘自己那一格起步, 不画 escape stub**
+  ① ★**no-stub A★** (`state/patch_astar_nostub.py`): ★**从焊盘自己那一格起步, 不画 escape stub**
      ⇒ ★**escape stub 不走净距检查 ⇒ 成品板上直接压穿别网的铜**
   ② ★**只拆"非承重"的挡路** (`state/rip_guard.py`): ★**拆完那个网仍然连通才允许拆**
      ⇒ ★**拆承重铜 ⇒ 那个网碎掉 ⇒ 官方板实测 RESET_N 0→5 孤岛 / 差分腿被拖下水**

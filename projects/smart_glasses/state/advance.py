@@ -122,16 +122,42 @@ def main() -> int:
         slot["to"], slot["note"] = to, note
         approvals.append(slot)
     # 老板拍板项
-    pm = load_yaml(os.path.join(HERE, "fragments", "pm.yaml")) or {}
-    ans_keys = {a.get("key") for a in (pm.get("answers") or [])}
+    # ★★2026-11-06 20:5x 【不再只读 pm 分片】: ★**老板清单原来只吃 pm.yaml**
+    #   ⇒ ★★**hw/mech 分片里的待拍板项根本进不了老板的清单** (★实测: pm 的 23 条 needs_from 里
+    #      to==boss 有 17 条, 但 waiting_on=='boss' 只有 1 条 ⇒ 其余被静默过滤掉)
+    #   ⇒ ★★**改两处**: ①**读所有分片** (★hw/mech 的 boss-need 也要进) ②**筛选放宽**:
+    #      ★**(waiting_on=='boss' 或 to=='boss') 且 尚无 decision** (★已拍板的不该再占清单)
+    ans_keys = set()
     decisions = []
-    for n in (pm.get("needs_from") or []):
-        if n.get("waiting_on") == "boss" and n.get("key") not in ans_keys:
+    _seen_keys = set()
+    _frag_dir = os.path.join(HERE, "fragments")
+    for _fn in sorted(os.listdir(_frag_dir)):
+        if not _fn.endswith(".yaml"):
+            continue
+        try:
+            _fr = load_yaml(os.path.join(_frag_dir, _fn)) or {}
+        except Exception:  # noqa: BLE001
+            continue
+        for a in (_fr.get("answers") or []):
+            if a.get("key"):
+                ans_keys.add(a["key"])
+        for n in (_fr.get("needs_from") or []):
+            k = n.get("key")
+            if not k or k in _seen_keys:
+                continue
+            if n.get("decision"):
+                continue
+            if not (n.get("waiting_on") == "boss" or n.get("to") == "boss"):
+                continue
+            if k in ans_keys:
+                continue
+            _seen_keys.add(k)
             dd = days_to(n.get("due"))
-            decisions.append({"key": n.get("key"), "item": str(n.get("item"))[:90],
+            decisions.append({"key": k, "item": str(n.get("item"))[:90],
                               "due": n.get("due"), "days_left": dd,
                               "urgency": "已逾期" if (dd is not None and dd < 0)
-                                         else (f"剩{dd}天" if dd is not None and dd <= 2 else "")})
+                                         else (f"剩{dd}天" if dd is not None and dd <= 2 else ""),
+                              "_from": _fn})
 
     # ---------- C. 纯等待 (不动作, 只监控) ----------
     waiting = []

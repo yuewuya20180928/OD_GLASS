@@ -70,7 +70,7 @@ run(["--add-answer",
      'key=iss148_rk3572_gpio0_vccio_domain_check to=hw-lead '
      'value="RK3572 datasheet p.39 Table 3-1/3-2 实测(渲染图非扁平文本): VCCIO1_VCC 属 1.8V/3.3V 组(PMUIO1+VCCIO1~6, '
      'abs-max 3.63V, 推荐 2.7/3.3/3.6V); 1.8V-only 组只有 PMUIO0_VCC1V8+VCCIO0_VCC1V8(max 1.98V); VCCIO7_VCC 单列 '
-     '1.2/1.8V(max 1.98V) => 原「VCCIO1 属 1.8V only, GPIO0 只允许 1.98V, 整条 I2C_A 电平域要重设计「是 pdftotext 多行单元格错位造成的"
+     '1.2/1.8V(max 1.98V) => 原「VCCIO1 属 1.8V only, GPIO0 只允许 1.98V, 整条 I2C_A 电平域要重设计「是 pdftotext 多行单元格错位造成的'
      '排版假象, 结论作废; 但 datasheet 无 GPIO bank->VCCIO 对照表, GPIO0_B0/B1 具体挂哪个 VCCIO 组仍[0数据], 需 SoM(FET3572-C) '
      'IO 域文档或 BSP dtsi 佐证 => 本条从「数据全无「降级为「只剩 bank->VCCIO 映射这一个问题「" '
      'ref="HW/RK3572_OFFICIAL_DATASHEET_FACTS.md §5 + HW/RK3572_PIN_TABLE/figs/p39_gpio_crop2.png"'],

@@ -3,8 +3,8 @@
 """pair_sync.py -- ★★★**"成对同步规划"路由器 (P/N 共享占用表) (2026-11-06 13:5x)**
 
 ★★★**为什么是这个 (★决定性实测, 不是推测)**:
-  ★★**逐对单侧 A\\* 实测 (官方板, 脚本见 memory/2026-11-06.md)**:
-  | 焊盘对 | 距离 | 单侧 A\\* |
+  ★★**逐对单侧 A\★ 实测 (官方板, 脚本见 memory/2026-11-06.md)**:
+  | 焊盘对 | 距离 | 单侧 A\★ |
   |---|---|---|
   | `CSI_D0_CK_N` 2↔1 (近) | 3.7mm | ✓ 26 格 |
   | `CSI_D0_CK_N` 2↔17 (远) | 41.6mm | ★**None** |
@@ -17,7 +17,7 @@
 
 ★★★**★本模块怎么解 (★核心机制)**:
   · ★**P 和 N 交替成段搜索** ⇒ ★**每段都是"从已连焊盘走到下一个未连焊盘"** ⇒ ★**路径连续性由构造保证**
-  · ★**共享占用表**: ★**P 走过的格立刻写进 `router.cu`** ⇒ ★**N 的 A\\* 自动避开**
+  · ★**共享占用表**: ★**P 走过的格立刻写进 `router.cu`** ⇒ ★**N 的 A\★ 自动避开**
     ⇒ ★★**⇒ N 不可能再被 P 挤死 (★P 只能绕开已占的, 不能占 N 已经走的)**
   · ★**预留平行带**: ★**P 的路径旁边 0.35mm 的格标成"N 专用"** ⇒ ★**P 不许进** ⇒ ★**N 有地方走**
   · ★**"谁的段先走"由启发式决定** (★谁的下一个焊盘近, 谁先走)
@@ -183,7 +183,7 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
 
     def starts_for(side, items, conn):
         """★**起点 = 焊盘**中心格 + 出脚直道终点** (★直道终点优先)**
-        ★★**为什么**: ★**邻域会把"别的焊盘的中心格"也包含进来** ⇒ ★**A\* 第一步就命中那个焊盘**
+        ★★**为什么**: ★**邻域会把"别的焊盘的中心格"也包含进来** ⇒ ★**A★ 第一步就命中那个焊盘**
           ⇒ ★**⇒ 路径 1 格** ⇒ ★**⇒ 起点与目标都必须用精确中心格**
         """
         st = []
@@ -254,7 +254,7 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
     _center = set(pd["cell"] for (side, items) in (("P", all_p), ("N", all_n))
                   for (_k, pd) in items)
     # ★★★**★两个方向都试 (★实测: "从 CONN_CAM 那头出发"才通, ★"从 TP 那头出发"不通)**
-    #   ★**⇒ 哪个方向有出路, 只有 A\* 知道 ⇒ ★**⇒ 两个方向都搜, 取通的**
+    #   ★**⇒ 哪个方向有出路, 只有 A★ 知道 ⇒ ★**⇒ 两个方向都搜, 取通的**
     _pmap = dict(all_p)
     _nmap = dict(all_n)
     _ppath = None
@@ -320,7 +320,7 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
     for (net, path, padinfo) in ((net_p, p_path, _pmap[_p_from]),
                                  (net_n, n_path, _nmap[_n_from])):
         if not r._emit_path(net, path, width):
-            print("     · ★★%s 落铜被拒 (★路径 %d 格) ⇒ ★**A\* 找到了但几何校验不过**"
+            print("     · ★★%s 落铜被拒 (★路径 %d 格) ⇒ ★**A★ 找到了但几何校验不过**"
                   % (net, len(path)))
             # ★**诊断: ★**换层点有几个? 间距够不够? 过孔位放得下吗?**
             _trans = []
@@ -496,7 +496,7 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
                 #   ★**实测**: 从 `CONN_CAM.18` 的出脚直道 → TP: ★**498 格通**
                 #             从 `TP` 的出脚直道 → `CONN_CAM.18`: ★**None**
                 #   ⇒ ★**⇒ 目标焊盘自己也有出脚直道 ⇒ ★**从目标出发反向搜, 才找得到**
-                #   ⇒ ★★**⇒ A\* 必须"双向"** (★**谁有出路谁当起点**)
+                #   ⇒ ★★**⇒ A★ 必须"双向"** (★**谁有出路谁当起点**)
                 if _stg := [x for (x, _v) in goals if x != sk]:
                     _gk0 = _stg[0]
                     _gnb = None
@@ -574,7 +574,7 @@ def _escape_stub_cells(r, net, pad_cell, net_pads, width=0.25):
         · +x 方向 16/16 格被封 (首个: GND)
         · -x 方向 16/16 格被封 (首个: ★**伙伴 CSI_D0_CK_N**)
         · ★**+y / -y 方向只有 6/16 格被封** ⇒ ★**走 2 格 (0.25mm) 就出到焊盘长边之外**
-      ⇒ ★**⇒ A\* 的 8 邻域第一步就被封死 ⇒ ★**⇒ 必须先拉一段"出脚直道"再进网格**
+      ⇒ ★**⇒ A★ 的 8 邻域第一步就被封死 ⇒ ★**⇒ 必须先拉一段"出脚直道"再进网格**
       ⇒ ★**这正是路由器 `escape_stub` 的机制, ★**但 pair_sync 之前没有这一步**
 
     ★**做法**: ★**沿 4 个正交方向各试一段 (0.3/0.6/0.9mm)**, ★**用真实几何验净距**,
@@ -650,7 +650,7 @@ def _min_goal_dist(r, goals, starts):
 
 def _astar_reserved(r, side, starts, goals, budget, reserved_cells, net, width,
                      exclude=None, _center_set=None):
-    """★**带"预留带"的 A\*** (★**预留带里的格不许走**) ⇒ ★**给对方留出并行空间**
+    """★**带"预留带"的 A★** (★**预留带里的格不许走**) ⇒ ★**给对方留出并行空间**
 
     ★★**必须与 `router._astar` 同构** (★★这是本模块踩过的最贵的坑):
       · ★**8 邻域** (★4 邻域在 0.125mm 网格上会被 halo 挡死)
@@ -750,10 +750,10 @@ def _astar_reserved(r, side, starts, goals, budget, reserved_cells, net, width,
                 continue
             if not r._via_ok(li, l2, idx, net, cls):
                 continue
-            # ★★★★**★关键修正: ★★换层点之间也要够远 (★`_emit_path` 会查, ★**A\* 里不查 ⇒ 落铜被拒**) ★★★★
+            # ★★★★**★关键修正: ★★换层点之间也要够远 (★`_emit_path` 会查, ★**A★ 里不查 ⇒ 落铜被拒**) ★★★★
             #   ★**实测**: 475 格的 N 主干有 2 个换层点, ★**其中 1 个过孔位放不下**
             #     ⇒ ★**原因**: ★**它离另一个换层点太近** (★`_emit_path` 的 `MIN_VIA_CENTER` = 0.58mm)
-            #   ⇒ ★**⇒ A\* 必须自己避开: ★**换层点彼此 ≥ MIN_VIA_CENTER**
+            #   ⇒ ★**⇒ A★ 必须自己避开: ★**换层点彼此 ≥ MIN_VIA_CENTER**
             _too_close = False
             for _pk in _via_pts:
                 _dx = (_pk % r.W) - (idx % r.W)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+r"""
 _patch_netlist_tp_concat.py —— 修第二批补丁留下的**节点串拼接**事故 (2026-11-03 10:0x)
 
 ★★ 事故复盘 (★写下来是因为它暴露了门禁的一个洞):
