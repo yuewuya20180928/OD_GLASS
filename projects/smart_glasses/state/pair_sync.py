@@ -195,6 +195,8 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
         for (_k, _pd) in items:
             _center.add(_pd["cell"])
     np0, nv0 = len(r.tracks), len(r.vias)
+    # ★**本轮的"待落铜路径"** (★P 先算, N 算时把 P 的路径当预留 ⇒ ★★双方互让)
+    _pending = {}
     for _round in range(12):
         gp = goals_for("P", all_p, conn_p)
         gn = goals_for("N", all_n, conn_n)
@@ -209,7 +211,7 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
         #     ⇒ ★**⇒ 走同一条走廊 ⇒ 这才是差分对该有的样子**
         _gp = list(gp)
         _gn = list(gn)
-        if len(_gp) > 1 and len(_gn) > 1:
+        if _gp and _gn:
             # ★★★★2026-11-06 14:4x **★配对必须按"拓扑对应", 不能按坐标最近** ★★★★
             #   ★**踩到的坑**: ★**按坐标最近配对 ⇒ 配到了 P.pad2 与 N.pad2** (两个远端焊盘, 相距 0.5mm)
             #     ⇒ ★**于是第 0 段的目标就是远端焊盘, 而起点也在那附近 ⇒ ★**1 格命中**
@@ -226,7 +228,13 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
                 _pk, _pnb, _nnb = _pairs[0]
                 gp = [(_pk, _pnb)]
                 gn = [(_pk, _nnb)]
+                print("     · 配对: P.pad%d ↔ N.pad%d" % (_pk, _pk))
             else:
+                print("     · 配对失败 (无共同索引): P 目标 %s / N 目标 %s"
+                      % (sorted(_pmap.keys()), sorted(_nmap.keys())))
+                print("     · 完整: P %s / N %s"
+                      % ([(k, sorted(v)[0]) for k, v in _pmap.items()],
+                         [(k, sorted(v)[0]) for k, v in _nmap.items()]))
                 # ★★**没有共同索引 ⇒ ★**取"坐标最近"的一对** (★如 P.pad3 / N.pad2)
                 #   ★★**实测**: `CSI_D0_CK_P` pad3=D_ESD_CAM.2 (86.0,50.6) vs pad2=CONN_CAM.18 (87.4,57.6)
                 #   ★★**⇒ N 侧没有 D_ESD ⇒ ★**这一段只能 P 单独走 (★N 走到它自己的 pad2)
@@ -255,6 +263,15 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
             if not goals:
                 continue
             _best = None
+            # ★★★★**★关键: ★★两侧的路必须"同时"算, 且互为预留** ★★★★
+            #   ★**为什么**: ★**pair-partner 豁免是"单边的"** ⇒ ★**谁先布谁占便宜**
+            #     ⇒ ★**⇒ 必须: ★★两侧都算出路径后, 再一起落铜, 且各自的预留带给对方**
+            #   ★**实现**: ★★**先把 P 的路径算出来 (占位), 再算 N 时把 P 的路径当预留带**
+            _peer_path = None
+            if side == "N":
+                _peer_path = _pending.get("P")
+            elif side == "P":
+                _peer_path = _pending.get("N")
             # ★★★★**逐起点搜 (★每个焊盘各当一次起点)** ⇒ ★**排除自己那个焊盘**
             #   ★**为什么**: ★**起点格可能同时落在多个焊盘的邻域里** ⇒ ★**排除谁都排除不干净**
             _items = all_p if side == "P" else all_n
@@ -262,8 +279,14 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
                 _st = [spd["cell"]]
                 if not _st:
                     continue
+                _res_cells = set(reserve["P" if side == "N" else "N"])
+                if _peer_path:
+                    # ★★**对方即将走的路 ⇒ 预留出来 (★双方互让)**
+                    _tmp = set()
+                    _mark_reserve(r, _peer_path, None, _tmp)
+                    _res_cells |= _tmp
                 _r2 = _astar_reserved(r, side, _st, goals, budget,
-                                      reserve["P" if side == "N" else "N"],
+                                      _res_cells,
                                       net_p if side == "P" else net_n,
                                       width, exclude={sk},
                                       _center_set=_center)
@@ -275,8 +298,13 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
                     pass
             if _best is None:
                 # ★**兜底: 从所有已连焊盘出发 (不限起点)**
+                _res_cells = set(reserve["P" if side == "N" else "N"])
+                if _peer_path:
+                    _tmp = set()
+                    _mark_reserve(r, _peer_path, None, _tmp)
+                    _res_cells |= _tmp
                 _r2 = _astar_reserved(r, side, starts, goals, budget,
-                                      reserve["P" if side == "N" else "N"],
+                                      _res_cells,
                                       net_p if side == "P" else net_n,
                                       width, _center_set=_center)
                 if _r2 is None:
@@ -285,6 +313,7 @@ def route_pair_sync(r, net_p, net_n, width=0.25, budget=250000, reserve=True):
                 _best = _r2
             (path, goal_k) = _best
             placed[side] = (path, goal_k)
+            _pending[side] = path
         if len(placed) < 1:
             return False, "第 %d 段两侧都走不通" % _round
         # ★**落铜 + 占用**
