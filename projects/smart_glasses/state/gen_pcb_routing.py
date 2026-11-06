@@ -1213,7 +1213,27 @@ class GridRouter:
         if os.environ.get("PCB_PAD_ORDER_FAR_FIRST", "0") == "1":
             # ★**远端优先: 按"到第一个焊盘的距离"降序** ⇒ ★**最远的先布**
             _p0 = (pads[0][2], pads[0][3])
-            return sorted(pads, key=lambda pd: -((pd[2] - _p0[2]) ** 2 + (pd[3] - _p0[3]) ** 2))
+            # ★★2026-11-06 12:2x **修 IndexError** (★实测 v65 崩在这 ⇒ EXIT=2)
+            #   ★**原因**: `net_pads` 的元素是 (ref, num, cx, cy, layers) 五元组
+            #   ⇒ ★**但有的分支塞进去的是别的形状** ⇒ pd[2] 越界
+            #   ⇒ ★**改成"按能取到的坐标算, 取不到就当 0 距离"** ⇒ ★**不崩, 顺序略变**
+            def _far_key(pd):
+                try:
+                    cx, cy = float(pd[2]), float(pd[3])
+                except Exception:
+                    try:
+                        cx, cy = float(pd[1]), float(pd[2])
+                    except Exception:
+                        return 0.0
+                return -((cx - _p0[0]) ** 2 + (cy - _p0[1]) ** 2)
+            # ★★2026-11-06 12:3x **诊断: pads 的形状到底长啥** (★v65 崩在这 ⇒ EXIT=2)
+            try:
+                _dbg = [(len(pd), type(pd).__name__) for pd in pads[:4]]
+                if any(l < 4 for (l, _t) in _dbg):
+                    print("  [MST-DBG] net 的 pads 形状异常: %r" % (_dbg,))
+            except Exception:
+                pass
+            return sorted(pads, key=_far_key)
         d = [1e18] * n
         d[0] = 0.0
         order = []
@@ -3419,6 +3439,37 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
            ⇒ N 能真正贴着 P 平行走 ⇒ ★**100Ω 差分对的几何才成立**
            ⇒ ★实测 N 侧 trk=0 → 有走线"""
     res = {"p": net_p, "n": net_n}
+    # ★★★★2026-11-06 12:5x **"长距主干优先" (env 门控, 默认不变)** ★★★★
+    #   ★**为什么要有 (★实测机制, 不是猜)**:
+    #     ★**实测 `CSI_D0_CK_N`**: 3 个焊盘 (C_AC 45.90,58.60 / TP 44.50,55.20 /
+    #       CONN_CAM.17 86.90,51.40) ⇒ ★**MST 顺序先布了近的 2 个** ⇒ ★**铜局限 x41.95..47.70**
+    #       ⇒ ★**第 3 个 (远 39.47mm) 完全走不出去** ⇒ ★**而 P 侧同目标布到了 x=86.2**
+    #     ⇒ ★★**⇒ 差别只在"谁先占走廊"**
+    #   ★**做法**: ★**给没有 trunk 的对, 自动挑"两端距离最远"的那对焊盘当主干**
+    #     ⇒ ★**长距先布 ⇒ 先占住走廊; 其余短脚再从主干挂树**
+    #   ★**用法**: `PCB_PAIR_AUTO_TRUNK=1`
+    if os.environ.get("PCB_PAIR_AUTO_TRUNK", "0") == "1":
+        def _auto_trunk(net, trunk):
+            if trunk:
+                return trunk
+            _pads = router.net_pads.get(net) or []
+            if len(_pads) < 2:
+                return None
+            _best = None
+            _bd = -1.0
+            for _i in range(len(_pads)):
+                for _j in range(_i + 1, len(_pads)):
+                    _d = ((_pads[_i][2] - _pads[_j][2]) ** 2
+                          + (_pads[_i][3] - _pads[_j][3]) ** 2)
+                    if _d > _bd:
+                        _bd = _d
+                        _best = (_pads[_i], _pads[_j])
+            if _best is None:
+                return None
+            return ((_best[0][1], _best[1][1]),)   # ★(_find_pad 用 padnum 找)
+        trunk_p = _auto_trunk(net_p, trunk_p)
+        trunk_n = _auto_trunk(net_n, trunk_n)
+        res["auto_trunk"] = True
     r1 = router.route_net(net_p, width=width, allow_via=allow_via, trunk=trunk_p)
     res["p_ok"] = r1["ok"]
     if not r1["ok"]:
