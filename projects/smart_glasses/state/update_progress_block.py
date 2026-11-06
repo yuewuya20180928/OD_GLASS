@@ -68,9 +68,19 @@ def facts_ok(facts: str) -> tuple[bool, str]:
     """返回 (可否写入, 理由)。★**任何一条不满足 ⇒ 拒绝写入**"""
     if not facts or not facts.strip():
         return False, "facts 为空 ⇒ 拒绝写入 (★空事实会把实时块冲成空块)"
+    # ★★**前缀检查 (第一版只有这个 ⇒ 尾部坏输入放行)***
     for pre in BAD_PREFIXES:
         if facts.lstrip().startswith(pre):
             return False, f"facts 以错误前缀开头 ({pre!r}) ⇒ 拒绝写入 (★坏输入不能被当成事实写进真值源)"
+    # ★★★**全文子串检查 (★方案 A · 兄弟 01:5x 复现的洞: ★**stderr 与 stdout 同流 ⇒ Traceback 落在【尾部】⇒ 前缀干净 ⇒ 闸门放行**)****
+    # ★★★**★"<stderr>" 必须在名单里 (★兄弟 01:55 实测出的最后半步)**: ★**上游把标记写在【尾部】, 下游按【前缀】查 ⇒ 两端各对一半 ⇒ 合起来漏**
+    #   ⇒ ★**场景 B: ★**stderr 只是 warning (★不含任何异常类型名) ⇒ 前缀闸看不见 ⇒ `facts_ok()` 返回 True ⇒ ★**"事实带警告"的内容以 rc=0 被写进真值源****
+    for bad in ("<stderr>", "Traceback (most recent call last)", "RuntimeError", "SyntaxError", "ModuleNotFoundError", "FileNotFoundError", "KeyError", "AssertionError"):
+        if bad in facts:
+            return False, f"facts 全文含异常标记 {bad!r} ⇒ 拒绝写入 (★★崩掉的事实不许进真值源; ★**注意: ★**缩水闸挡不住本洞 ⇒ 别拿'两道闸都过了'当已堵**)"
+    # ★★★**★未展开的 shell 占位符 (★"来源标记是编的"那一族: ★**贴了 [本轮实跑] 标签, 实际是 `$(...)` 字面量)****
+    if "$(" in facts:
+        return False, "facts 含未展开的 $(...) 占位符 ⇒ 拒绝写入 (★贴了'实跑'标签但值是命令串 ⇒ 比不贴更糟)"
     if len(facts.strip()) < 40:
         return False, "facts 过短 (<40 字符) ⇒ 拒绝写入 (★典型是空/半截文件)"
     return True, "ok"

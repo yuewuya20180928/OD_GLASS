@@ -12,7 +12,37 @@ cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses || exit 1
 OUT=/tmp/_bcast_facts.txt
 MEM=/home/yuewuya/.openclaw/workspace/memory/$(date +%Y-%m-%d).md
 
-python3 state/board_progress.py > "$OUT" 2>&1
+# ★★**2026-11-07 01:5x 兄弟实测复现的洞 (★修在产生点, 方案 B)**: ★**stderr 与 stdout 同流 ⇒
+#   board_progress 中途抛异常 ⇒ Traceback 落在【尾部】⇒ 前缀天然干净 ⇒ ★**下游的前缀闸必然放行**
+#   ⇒ 崩掉的事实被当成成功写进真值源 (★他沙箱实测: 旧块 1668 → 新块 1036, rc=0, 块里含 RuntimeError)
+#   ⇒ 修法: ★**stderr 单独走一路; ★**非空 ⇒ 把 `<stderr>` 前缀 + 内容写进 $OUT (★让下游前缀闸立刻拦住)
+#     + ★**本脚本退出码置 1 (★独立问题: 之前 board_progress 崩了, bcast_facts.sh 照样往下跑守卫/指纹/自验 ⇒ 守门人失职)****
+# ★★**2026-11-07 02:2x 兄弟实测指出两点, 一并改**:
+#   ★**① 固定名会竞态 (★同一脚本第 43 行的 _selftest_tmp 就用了 $$) ⇒ ★**23:4x 那条铁律明写"固定名在并发播报下会竞态" ⇒ ★**我新加的两个文件破了它自己刚立的规矩****
+_ERR=/tmp/_bcast_facts_stderr_$$.txt
+_RAW=/tmp/_bcast_facts_raw_$$.txt
+python3 state/board_progress.py > "$_RAW" 2>"$_ERR"
+_bc_failed=0
+if [ -s "$_ERR" ]; then
+  _bc_failed=1
+  # ★★**2026-11-07 01:55 兄弟实测指出: ★**标记写【尾部】而注释说【顶部】⇒ 注释与行为不符 ⇒ 下游前缀闸看不见 ⇒ ★**⇒ 改成前置 (★让注释与行为一致)****
+  {
+    echo "<stderr>"
+    cat "$_ERR"
+    echo "--- board_progress.py stdout (★以下内容不可信, 整份作废) ---"
+    cat "$_RAW"
+  } > "$OUT"
+  echo "★**board_progress.py 有 stderr ⇒ 事实不可信 ⇒ 已在 $OUT 【顶部】标 <stderr> ⇒ 下游闸门会拒绝写入**" >&2
+  # ★★★**★2026-11-07 02:2x 兄弟实测指出: ★**我原先把 `exit 1` 放在脚本末尾 (★第 83 行) ⇒ 中间的【守卫】与
+  #   【46.8s 完整自验 auto_release_if_ready.sh】照样跑 ⇒ ★**⇒ "崩了仍跑自验" 这件事并没有被治 (★只是最后退出了 1)
+  #   ⇒ ★**⇒ 后果: ★**自验若刷新了 `.layout_done.json` 的 `at` ⇒ ★**又触发"留证变化 ⇒ 假播报"那一族 (★00:2x 刚治过一次的病, 从另一条路回来)
+  #   ⇒ ★**⇒ 修法: ★**检测到 stderr 就【立刻退出】, 一行守卫/自验都不跑****
+  rm -f "$_ERR" "$_RAW"
+  echo "✗ bcast_facts.sh: board_progress.py 有 stderr ⇒ 事实不可信 ⇒ 立刻退出 (★不跑守卫, 不跑自验) ⇒ 退出码 1" >&2
+  exit 1
+else
+  cp -f "$_RAW" "$OUT"
+fi
 
 # ★★2026-11-06 23:3x 【判据退化守卫的"下一节"】(★兄弟 23:3x 收尾建议)
 #   ★**现状**: daily_check → daily_check --self-test ⇒ **自证** ⇒ ★**若有人把 --self-test 本身改坏, 没人拦**
@@ -56,6 +86,10 @@ else
   bash state/auto_release_if_ready.sh >> "$OUT" 2>&1
   echo "── 自验结束 (rc=$?) ──" >> "$OUT"
 fi
-rm -f "$_selftest_tmp"
+rm -f "$_selftest_tmp" "$_ERR" "$_RAW"
+if [ "$_bc_failed" = "1" ]; then
+  echo "✗ bcast_facts.sh: board_progress.py 有 stderr ⇒ 事实不可信 ⇒ 退出码 1 (★崩掉的事实不许进块)" >&2
+  exit 1
+fi
 
 cat "$OUT"
