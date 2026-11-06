@@ -32,7 +32,9 @@ import math
 import re
 
 os.environ.setdefault("PCB_LAYERS", "8")
-os.environ.setdefault("PCB_HALO_MARGIN", "0.20")
+os.environ.setdefault("PCB_HALO_MARGIN", "0.0625")   # ★**对齐官方板** (官方板是 0.125 网格 + margin 0.0625)
+# ★★★**网格必须 0.125mm** (★官方板就是 0.125 造的): ★**粗网格 (0.25) 下净距判据有 ±0.125mm 松**
+#   ⇒ ★**实测: 0.25 网格的 rip-up 产出 DRC=678 (新铜压到 GND 缝合短段 0.134mm)** ⇒ ★**必须细网格**
 os.environ.setdefault("PCB_VIA_HALO_MARGIN", "0.0")
 os.environ.setdefault("PCB_SKIP_PAD_CELLS", "1")
 os.environ.setdefault("PCB_PAIR_EXEMPT_R", "0.0")
@@ -102,7 +104,7 @@ def main():
     board = pcbnew.LoadBoard(boardp)
     for z in board.Zones():
         z.UnFill()
-    r = RT.GridRouter(board)
+    r = RT.GridRouter(board, grid=0.125)
     ingested = {}
     for t in list(board.GetTracks()):
         s, e = t.GetStart(), t.GetEnd()
@@ -114,15 +116,20 @@ def main():
                 l1, l2 = 0, RT.NLAYERS - 1
             rec = (t.GetNetname(), s.x / MM, s.y / MM, l1, l2)
             r.vias.append(rec)
+            r._add_via_halo(t.GetNetname(), s.x / MM, s.y / MM, l1, l2)
             r._add_via_hash(s.x / MM, s.y / MM, t.GetNetname())
         else:
             try:
                 li = RT.CU_LAYERS.index(t.GetLayer())
             except Exception:
                 li = 0
-            rec = (t.GetNetname(), s.x / MM, s.y / MM, e.x / MM, e.y / MM, li,
-                   t.GetWidth() / MM)
+            w = t.GetWidth() / MM
+            rec = (t.GetNetname(), s.x / MM, s.y / MM, e.x / MM, e.y / MM, li, w)
             r.tracks.append(rec)
+            # ★★**必须登记 halo** (★否则 A* 看不见板上已有的铜 ⇒ 新线直接穿过别网的铜
+            # ★实测: 不登记 ⇒ fresh DRC = 707 条违规 (119 交叉 + 389 净距 + 199 短路) ⇒ 板子全废)
+            r._add_track_halo(t.GetNetname(), s.x / MM, s.y / MM,
+                              e.x / MM, e.y / MM, li, w)
         ingested[id(rec)] = (t, rec)
     r.rebuild_halo()
     print("═══ 已灌入 %d 段 / %d 孔 (halo 已重建) ═══" % (len(r.tracks), len(r.vias)))
