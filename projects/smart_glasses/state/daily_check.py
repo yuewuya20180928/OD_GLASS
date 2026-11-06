@@ -88,12 +88,65 @@ def jrun(script: str) -> tuple[int, dict | None]:
         return rc, None
 
 
+def _selftest_ok(rc: int, out: str) -> bool:
+    """★**自测判据 (★抽成纯函数 ⇒ 可被断言 ⇒ 判据退化时会被抓住)**
+
+    ★★**为什么必须带"输出行数 > 0"** (★2026-11-07 00:2x, ★兄弟用回退实验实测):
+      ★**若只看 rc**: ★**自测脚本被改成"什么都不打印 + exit 0" ⇒ rc=0 ⇒ 判据说 PASS**
+      ⇒ ★★**⇒ 整条决策口径护栏静默失效, 而老板看到的还是 "✅ 全过"**
+      ⇒ ★**⇒ 这条判据的"反向验证用例"就固化在 `--self-test` 里 (★见 selftest())**
+    """
+    return (rc == 0) and len((out or "").strip().splitlines()) > 0
+
+
+def selftest() -> int:
+    """★**daily_check 自己的自测 (★★它是巡检链的一节 ⇒ 必须有下一节来验它)**"""
+    fails = []
+    # ① ★**核心反向用例: 空壳自测 (rc=0 · 输出 0 行) 必须判不合格**
+    if _selftest_ok(0, ""):
+        fails.append("★★**空壳自测 (rc=0 · 输出 0 行) 被判 PASS ⇒ 判据退化了!**")
+    # ② 正常自测 (rc=0 · 有输出) 必须判合格
+    if not _selftest_ok(0, "✔ 一行输出\n"):
+        fails.append("★**正常自测被判不合格 ⇒ 判据过严**")
+    # ③ ★**对照: 旧判据 (只看 rc) 在空壳场景下会假 PASS ⇒ 这就是本用例要防的东西**
+    old_verdict = (0 == 0)
+    if not old_verdict:
+        fails.append("★**对照失效: 旧判据居然没放行空壳 ⇒ 对照口径不对**")
+    # ④ rc 非 0 一律不合格 (无论有没有输出)
+    if _selftest_ok(1, "有输出\n"):
+        fails.append("★**rc≠0 却被判合格 ⇒ 判据有洞**")
+    for f in fails:
+        print("   ★ %s" % f)
+    if fails:
+        print("★daily_check --self-test 未过 (%d 项)" % len(fails))
+        return 1
+    print("✔ daily_check --self-test 全过 (★含'空壳自测必须被判不合格'这条反向用例)")
+    print("★★**判断标准只有一条 (★兄弟给的)**: ★**把判据改回去, 有没有东西会红? 不会 ⇒ 这条判据裸奔**")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-snapshot", action="store_true")
+    ap.add_argument("--self-test", action="store_true")
     args = ap.parse_args()
+    if args.self_test:
+        return selftest()
 
     problems: list[str] = []
+
+    # ★★★2026-11-07 00:3x 【自测接进"它自己的调用链"】(★兄弟 00:2x 建议:
+    #   ★**"再把 daily_check 的 --self-test 接进 chain_gate 或它自己的调用链"**)
+    #   ★**为什么必须接自己的链**: ★**daily_check 是巡检链的一节 ⇒ 必须有下一节来验它**
+    #   ⇒ ★**否则"判据退化 ⇒ 静默 PASS"这条路没人拦**
+    #   ⇒ ★**注意别重蹈"自测接进巡检、但巡检自己没自测"的循环** ⇒ ★**现在这一环也接上了**
+    _rc_self, _out_self, _err_self = run_sys("daily_check.py", "--self-test")
+    if _rc_self != 0:
+        problems.append("★daily_check --self-test 未过 (★判据退化? ★详见 stdout): "
+                        + ((_out_self or _err_self).strip().splitlines()[-1][:160]
+                           if (_out_self or _err_self).strip() else ""))
+    print(f"{'✅' if _rc_self == 0 else '❌'} daily_check --self-test rc={_rc_self} "
+          f"(★判据退化守卫)")
 
     # 1) merge
     rc_m, out_m, err_m = run("merge.py")
@@ -111,10 +164,10 @@ def main() -> int:
     #   ★**① 只判 rc 不判 stdout 非空** ⇒ ★**若自测被改成"什么都不打印 + exit 0" ⇒ daily_check 静默 PASS**
     #     ⇒ ★**⇒ 判据: rc == 0 ★且★ stdout 非空** (★这正是 #135 的"它真的吐出了要检查的东西")
     dt_out_n = len((out_dt or "").strip().splitlines())
-    dt_ok = (rc_dt == 0 and dt_out_n > 0)
+    dt_ok = _selftest_ok(rc_dt, out_dt)
     rc_ao, out_ao, err_ao = run_sys("compare_arm_official.py", "--self-test")
     ao_out_n = len((out_ao or "").strip().splitlines())
-    ao_ok = (rc_ao == 0 and ao_out_n > 0)
+    ao_ok = _selftest_ok(rc_ao, out_ao)
 
     # 2) gate
     rc_g, gate = jrun("gate_check.py")

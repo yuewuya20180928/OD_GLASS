@@ -14,6 +14,17 @@ MEM=/home/yuewuya/.openclaw/workspace/memory/$(date +%Y-%m-%d).md
 
 python3 state/board_progress.py > "$OUT" 2>&1
 
+# ★★2026-11-06 23:3x 【判据退化守卫的"下一节"】(★兄弟 23:3x 收尾建议)
+#   ★**现状**: daily_check → daily_check --self-test ⇒ **自证** ⇒ ★**若有人把 --self-test 本身改坏, 没人拦**
+#   ⇒ ★**这里给它一个外部消费者 (★播报侧 ⇒ 不动放行侧的 chain_gate, ★按之前定的留给老板/总工)**
+#   ⇒ ★**每次播报都验一次 ⇒ 老板看得见这一行**
+if python3 -B state/daily_check.py --self-test >/tmp/_dc_selftest.txt 2>&1; then
+  echo "[守卫] 判据退化守卫 daily_check --self-test ✅" >> "$OUT"
+else
+  echo "[守卫] ★★判据退化守卫 daily_check --self-test ❌ (★有人改坏了判据或它自己的自测)" >> "$OUT"
+  tail -3 /tmp/_dc_selftest.txt >> "$OUT" 2>&1
+fi
+
 # 板指纹 = [板] 行 "· " 之后的全部 (mtime · 大小 · 段数 · 孔数)
 cur_fp=$(grep -m1 '^\[板\]' "$OUT" 2>/dev/null | sed 's/^\[板\][^·]*· *//')
 prev_fp=""
