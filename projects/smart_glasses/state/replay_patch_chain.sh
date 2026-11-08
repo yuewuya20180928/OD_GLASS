@@ -6,19 +6,27 @@
 #   ★⇒ ★**任何臂的候选板若只跑【最后一步补丁】, 就跟官方终板【不是同工艺】⇒ 四把尺子会刷出一堆假失败**
 #   ★**今晚实测**: ★**对照臂 v76 (★根本没做任何改动) 也被闸门 REJECT (★2 对死腿 + 11 个碎裂网)** ⇒ ★**⇒ 那批失败全是基线不可比**
 #
-# ★**官方链 (★从 /tmp/_nostub125.log / _straight*.log / _combo*.log / _combo2,3.log / _nostub_loose.log 的头一行倒推)**:
-#   ① nostub125 : patch_astar_nostub @ grid 0.125  (★输入 = 当时的官方板 = 路由产物 17426 图元 ⇒ 补上 7 条 ⇒ 17619 段)
-#   ② straight1/2/3/6/7 : fix_straight_links (★★日志是空的 ⇒ ★**具体参数待校准** ⇒ 见下面的 ★自校准★)
-#   ③ combo     : patch_astar_nostub @ grid 0.125  (★输入 = _straight7 ⇒ 补上 6 条 ⇒ 17585 段)
-#   ④ combo2    : patch_astar_nostub @ grid 0.125  (★输入 = _combo ⇒ 补上 0 条 ⇒ 18008 图元)
-#   ⑤ combo3    : patch_astar_nostub @ grid 0.125 --max-dist ? (★输入 = _combo ⇒ 补上 0 条)
-#   ⑥ nostub_loose : patch_astar_nostub @ grid 0.125 margin 0.0625 (★输入 = 18008 图元 ⇒ **补上 3 条 ⇒ 18092 段 = 现在的官方板**)
+# ★★★**2026-11-09 04:5x 实测订正 (★md5 血缘 + 逐段复现 ⇒ 本注释是【实测结论】不是推测)** ★★★
+#
+# ★**官方链真实血缘 (★用 md5 + 各步日志首行的"输入路径/图元数"双向锁死)**:
+#   ┌ 官方 _straight7 (md5 8b33af51 · 17022 段 / 17430 图元)
+#   │   → combo     : patch_astar_nostub grid 0.125 ★**margin 0.20**  (★补上 6 条 ⇒ 17585 段 / 18008 图元, md5 3267a6df)
+#   │   → loose     : patch_astar_nostub grid 0.125 ★**margin 0.0625** (★补上 3 条 ⇒ ★★18092 段 = 现在的官方板, md5 611b869e)
+#   └─ ★**这两步已实测逐字节复现官方终板** (★几何+层+网集合 17980 条全同 / DRC 0 / unc 45 / 字节数 4940213 一致)
+#
+# ★★★**★★上一版(02:5x)写错了两处 ⇒ 链走岔 ⇒ 17731 段 ≠ 18092 (★实测)** ★★★:
+#   ① ★**顺序错**: ★**把 `_nostub125`(17619 段) 当链的第①步** ⇒ ★★**那是【死支】** ★★
+#     ★**证据**: ★**md5 对照** ⇒ `_nostub125` = `board_nostub125_unc50`(17430→18042 图元) 与官方终板**无祖先关系**;
+#     ★**且它自己的日志首行写的是 "输入 = HW/PCB/demo_mainboard.kicad_pcb"** ⇒ ★**它是【拿终板当输入跑的实验】不是链的一环**
+#   ② ★**参数错**: ★**combo 步的 margin 是 0.20, 不是 0.125** ⇒ ★**用 0.125 会多补 CSI_D0_D0_P/VDD_3V3_IO/PWR_GOOD(15.127)**
+#     ★**证据**: ★**官方 `_combo.log` 的 6 条补上清单与 margin=0.20 跑出来的【逐条一致】** (★0.125 多出 3 条 ⇒ 不一致)
 #
 # ★★★**自校准 (★本脚本的正确性判据 —— 不靠"我觉得对不对")****:
 #   ★**用法**: `bash state/replay_patch_chain.sh <路由产物板> <标签> [--validate]`
-#   ★**--validate 模式**: ★**拿【已知的官方路由产物】(`/tmp/board_last_good_v44_R.kicad_pcb`) 重放整条链**
-#     ⇒ ★**如果结果与官方终板逐段数一致 (⇒ 18092 段 / unc 45 / DRC 0) ⇒ 参数对了**
+#   ★**--validate 模式**: ★**拿【已知的官方链中段板】(`/tmp/_straight7.kicad_pcb`) 重放 combo+loose 两步**
+#     ⇒ ★**结果必须与官方终板逐段数一致 (⇒ 18092 段 / unc 45 / DRC 0) ⇒ 参数对了**
 #     ⇒ ★**★没复现出来之前, 这个脚本产出的板不许拿去跟官方比** (★否则又是拿苹果比橘子)
+#   ★★★**2026-11-09 04:5x 新增: `--self-test` 闸 (★链跑完自动比对官方终板 ⇒ 不一致就 rc≠0 ⇒ 不许拿去比)** ★★★
 #
 # ★**每步都要【该板自己的 fresh DRC】当输入** (★补丁器靠 DRC.json 里的 unconnected_items 找活)
 set -u
@@ -79,29 +87,43 @@ step_straight() {  # $1=输入板 $2=输出板
 }
 
 if [ "$VALIDATE" = "--validate" ]; then
-  say "★自校准模式: 用官方【路由产物】重放整条链 ⇒ 结果必须复现官方终板 (18092 段 / unc 45 / DRC 0)"
-  # ★★注意: 输入必须是【路由产物】(13407 段), **不是官方终板**(18092 段) ⇒ 否则就是拿终板重放 ⇒ 必然对不上
-  IN="${ROUTE:-/tmp/board_last_good_v44_R.kicad_pcb}"
+  say "★自校准模式: 用官方【链中段板】重放 ⇒ 结果必须复现官方终板 (18092 段 / unc 45 / DRC 0)"
+  # ★★2026-11-09 04:5x 订正: 输入必须是【_straight7】(★官方链 combo 步的真实输入, md5 8b33af51, 17022 段)
+  #   ★**旧注释说"输入 = 路由产物(13407 段)" ⇒ ★**那是错的** ⇒ ★**用 13407 段板当输入, 后面几段根本对不上**
+  IN="${ROUTE:-/tmp/_straight7.kicad_pcb}"
   say "   输入 = $IN ($(grep -ac '(segment' "$IN" 2>/dev/null) 段)"
+  # ★**★关键: 输入已是【straight 步之后】⇒ ★**不许再跑 straight** (★否则会重跑一遍 straight ⇒ 走岔)
+  # ★**判据: 输入段数 ≥ 17000 ⇒ 已是链中段板 ⇒ 跳过 straight 步**
+  SEGI=$(grep -ac '(segment' "$IN" 2>/dev/null || echo 0)
+  if [ "$SEGI" -ge 17000 ]; then
+    SKIP_STRAIGHT=1
+    say "   ★输入段数 $SEGI ≥ 17000 ⇒ 已是【straight 之后】⇒ ★**跳过 straight 步** (★不然会重跑)"
+  else
+    SKIP_STRAIGHT=0
+    say "   ★输入段数 $SEGI < 17000 ⇒ 是【路由产物】⇒ ★**会跑 straight 步**"
+  fi
 else
   IN="$ROUTE"
+  SKIP_STRAIGHT=0
 fi
 
-# ① nostub125
-step_nostub "$IN" "$WORK/s1_nostub125.kicad_pcb" 0.125 0.125
-# ② straight ×5 (★参数照官方那次: ★width 默认 0.25/0.20 扫描 + detour)
-CUR="$WORK/s1_nostub125.kicad_pcb"
-for i in 1 2 3 6 7; do
-  step_straight "$CUR" "$WORK/s2_straight${i}.kicad_pcb"
-  CUR="$WORK/s2_straight${i}.kicad_pcb"
-done
-# ③ combo
-step_nostub "$CUR" "$WORK/s3_combo.kicad_pcb" 0.125 0.125
-# ④⑤ combo2 / combo3 (★官方那次: 输入都是 _combo ⇒ 各自独立从 combo 出发)
-step_nostub "$WORK/s3_combo.kicad_pcb" "$WORK/s4_combo2.kicad_pcb" 0.125 0.125
-step_nostub "$WORK/s3_combo.kicad_pcb" "$WORK/s4_combo3.kicad_pcb" 0.125 0.125 --max-dist 15
-# ⑥ nostub_loose (★margin 0.0625 = 网格半格 ⇒ 这才是"loose"的关键)
-step_nostub "$WORK/s4_combo3.kicad_pcb" "$WORK/final_chain.kicad_pcb" 0.125 0.0625
+# ★★★**★2026-11-09 04:5x 改: 链的【真实顺序】 = straight 步 → combo(margin 0.20) → loose(margin 0.0625)** ★★★
+# ★**旧版把 _nostub125(死支) 放① + combo 用 0.125 ⇒ 两处都错 ⇒ 走岔 ⇒ 17731 段**
+# ★**证据见文件头注释 (md5 血缘 + 逐段复现)**
+#
+# ★**① straight 步 (★官方那次: _straight1/2/3/6/7 各自【独立】跑, 不是层层串联 —— ★因为 _straight3 与 _straight7 只差 3 段)** ★
+# ★**★实测 (★11-09 04:5x): _straight3 集合 16907 条 vs _straight7 集合 16910 条 ⇒ 只差 3 条 (LIGHT_3V3×1 + ID_DETECT_0×2)**
+# ★**⇒ 说明 straight 步是【同一输入上跑多次不同参数】, 每次都从【原始输入】出发, 取最好的那次**
+if [ "$SKIP_STRAIGHT" = "1" ]; then
+  say "── straight: ★跳过 (★输入已是 straight 之后的链中段板)"
+  cp "$IN" "$WORK/s1_straight.kicad_pcb"
+else
+  step_straight "$IN" "$WORK/s1_straight.kicad_pcb"
+fi
+# ★**② combo (★margin 0.20 = PCB_HALO_MARGIN 默认值 ⇒ ★官方那次没设 env ⇒ 就是默认)** ★
+step_nostub "$WORK/s1_straight.kicad_pcb" "$WORK/s2_combo.kicad_pcb" 0.125 0.20
+# ★**③ loose (★margin 0.0625 = 网格半格 ⇒ 这才是"loose"的关键)** ★
+step_nostub "$WORK/s2_combo.kicad_pcb" "$WORK/final_chain.kicad_pcb" 0.125 0.0625
 
 if [ -f "$WORK/final_chain.kicad_pcb" ]; then
   say "★链跑完 ⇒ 终板 $WORK/final_chain.kicad_pcb"
@@ -112,3 +134,31 @@ else
   exit 7
 fi
 bash state/pcbnew_py.sh state/check_pcb_drc.py "$WORK/final_chain.kicad_pcb" 2>&1 | grep -E "C3 |C4 " | tee -a "$LOG"
+
+# ★★★**2026-11-09 04:5x 新增: 自校准闸 (★复现不了官方终板 ⇒ rc≠0 ⇒ 这块板不许拿去跟官方比)** ★★★
+# ★**判据**: ★**段数必须 == 18092** (★官方终板) ⇒ ★**且几何集合必须与官方终板全同**
+# ★**为什么加这道闸**: ★**今晚 17731 段那次, 链"跑完了"、日志漂亮、但走岔 ⇒ 差点拿去跟官方比**
+SEGF=$(grep -ac '(segment' "$WORK/final_chain.kicad_pcb")
+if [ "$SEGF" != "18092" ]; then
+  say "❌ 自校准闸: 段数 = $SEGF ≠ 18092 (★官方终板) ⇒ ★**参数/顺序没对上 ⇒ 这块板不许拿去跟官方比**"
+  say "   ⇒ 排查: ① combo 步 margin 是不是 0.20 (★不是 0.125) ② 输入是不是【链中段板】(★不是路由产物)"
+  exit 11
+fi
+# ★**几何集合比对 (★忽略 UUID 随机 ⇒ 只比 起点/终点/线宽/层/网)**
+if [ -f "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" ]; then
+  python3 - "$WORK/final_chain.kicad_pcb" "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" <<'PY' | tee -a "$LOG"
+import re, sys
+segb = re.compile(r'\(segment\s*\n\s*\(start ([-\d.]+) ([-\d.]+)\)\s*\n\s*\(end ([-\d.]+) ([-\d.]+)\)\s*\n\s*\(width ([\d.]+)\)\s*\n\s*\(layer "([^"]+)"\)\s*\n\s*\(net "([^"]+)"\)')
+def segs(p):
+    t = open(p, encoding='utf-8', errors='ignore').read()
+    return set(m.groups() for m in segb.finditer(t))
+a, b = segs(sys.argv[1]), segs(sys.argv[2])
+if a == b:
+    print(f"  ✅ 自校准闸: 几何集合与官方终板全同 ({len(a)} 条) ⇒ 复现成功")
+else:
+    print(f"  ❌ 自校准闸: 几何集合与官方终板不同 (仅本板 {len(b-a)} 条 / 仅官方 {len(a-b)} 条)")
+    sys.exit(1)
+PY
+  [ "${PIPESTATUS[0]}" != "0" ] && exit 12
+fi
+say "★自校准闸通过 ⇒ 这块板与官方终板同工艺 ⇒ ★可以拿去跟官方比"
