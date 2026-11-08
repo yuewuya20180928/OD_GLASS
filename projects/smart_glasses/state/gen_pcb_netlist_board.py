@@ -53,6 +53,21 @@ SOM_PARAMS = os.path.join(PROJ, "HW", "PCB", "som_btb_params.json")
 NETLIST = os.path.join(PROJ, "HW", "netlist_v1.csv")
 # ★2026-11-05: 输出路径可用环境变量改 (便于**并行做实验**而不动正式板)
 PCB = os.environ.get("PCB_OUT") or os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
+# ★★★★2026-11-08 21:1x **PCB_OUT 必须以 .kicad_pcb 结尾 ⇒ 否则【立刻】退出 (不跑 6 小时白跑)** ★★★★
+#   ★**实测事故 (v69 臂, 2026-11-07 03:07, 此前 42 小时未上报)**:
+#     ★**臂脚本把 PCB_OUT 设成了 /tmp/v69_R.log** ⇒ ★**SaveBoard 不看扩展名 (写盘成功)**
+#     ⇒ ★**但 LoadBoard 按扩展名判格式 ⇒ 落盘后读不回来 (返回 None)**
+#     ⇒ ★**⇒ 布线全程跑完 (15040 段 / 376 孔, 板文件内容其实完好) ⇒ 最后一步自检 rc=1**
+#     ⇒ ★**⇒ 一轮 6 小时的臂, 被"文件名后缀"这一个字符判死刑 ⇒ 产物看起来"不可用"**
+#   ★**为什么必须拦在【产生点】**: ★**板文件其实是对的 (只是名字后缀错) ⇒ 事后补救成本远高于事前拦一道**
+#     ⇒ ★**"修在产生点, 不许在产物上擦" (本项目铁律)**
+#   ★**做法**: 读 env 的那一刻就查后缀 ⇒ 不合规矩 ⇒ 打印明确报错 + 退出码 3 ⇒ **秒退, 不烧 6 小时**
+if not PCB.endswith(".kicad_pcb"):
+    print("❌ PCB_OUT 必须以 .kicad_pcb 结尾 (实测: %s)" % PCB)
+    print("   ★理由: SaveBoard 不看扩展名, 但 LoadBoard **按扩展名判格式** ⇒ 后缀不对 ⇒ 落盘后读不回来")
+    print("   ★正解: 板文件 OUT=/tmp/vXX_R.kicad_pcb · 日志 LOG=/tmp/vXX_R.log ⇒ **两个路径分开**")
+    print("   ★参考事故: v69 臂 (2026-11-07 03:07) ⇒ 跑了 6 小时, rc=1")
+    sys.exit(3)
 # ★2026-11-05 19:15 **探针不许改项目文件** ⇒ REPORT 可用 env 改到 /tmp
 REPORT = os.environ.get("PCB_REPORT") or os.path.join(PROJ, "HW", "PCB", "PCB_NETLIST_FILL.txt")
 
