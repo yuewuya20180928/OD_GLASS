@@ -44,8 +44,18 @@ for k in list(A.keys()):
     a_has = (ap > 0.0, an > 0.0)
     b_has = (bp > 0.0, bn > 0.0)
     if a_has == b_has:
-        verdict = "持平 (%s)" % ("都有铜" if all(a_has) else ("单边零铜" if any(a_has) else "两条都零铜"))
-        same += 1
+        # ★★2026-11-09 01:4x **加上【铜量缩水】判定 (★只判"有铜/无铜"是不够的)** ★★
+        #   ★**实测教训 (v74 同阶段对照)**: 两边都有铜 ⇒ 旧判据说"持平" ⇒ ★**但 DSI_D0_D3_P/N 的铜从
+        #     142.155/142.155 缩到 5.761/1.957mm** ⇒ ★**⇒ 铜几乎没了, 只是还留着一小截**
+        #     ⇒ ★**⇒ "有铜"这种粗判据会漏掉真正的损伤 ⇒ ★**闸门 (unc + 逐网孤岛) 才抓得住**
+        _dl = abs((ap + an) - (bp + bn))
+        _base = max(bp + bn, 1.0)
+        if _dl > 5.0 and _dl / _base > 0.30:
+            verdict = "★★铜量缩水 (%.1f→%.1fmm, -%.0f%%)" % (bp + bn, ap + an, 100.0 * _dl / _base)
+            worse += 1
+        else:
+            verdict = "持平 (%s)" % ("都有铜" if all(a_has) else ("单边零铜" if any(a_has) else "两条都零铜"))
+            same += 1
     elif all(a_has) and not all(b_has):
         verdict = "★★变好 (基线 %s ⇒ 候选两条都有铜)" % ("单边零铜" if any(b_has) else "两条都零铜")
         better += 1
