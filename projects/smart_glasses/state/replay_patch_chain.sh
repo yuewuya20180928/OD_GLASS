@@ -43,19 +43,36 @@ fresh_drc() {   # $1=板 → $2=json
 }
 
 step_nostub() {  # $1=输入板 $2=输出板 $3=网格 $4=margin $5=额外参数
-  local in="$1" out="$2" grid="$3" margin="$4" extra="${5:-}"
+  # ★★2026-11-09 03:3x **修: extra 收【第 5 个起的全部参数】** ★★
+  #   ★**原 bug**: `extra="${5:-}"` 只取第 5 个 ⇒ ★**"--max-dist 15" 的 "15" 被丢 ⇒ 脚本拿到 "--max-dist" 没有值 ⇒ IndexError**
+  local in="$1" out="$2" grid="$3" margin="$4" extra="${*:5}"
   local drc="$WORK/$(basename "$out").drc.json"
   say "── nostub: $(basename "$in") → $(basename "$out") (grid=$grid margin=$margin $extra)"
+  # ★★2026-11-09 03:1x **护栏: 输入板不存在 ⇒ 立刻停 (★不许"级联失败"一路假跑完)**
+  #   ★**实测教训**: 03:1x 那轮 replay 里, combo3 步 IndexError 崩了 ⇒ 后面几步拿着【不存在的输入】继续跑
+  #   ⇒ 最后一步报 'NoneType has no attribute Zones' ⇒ ★**日志看着像"跑完了", 实际早就断了**
+  if [ ! -f "$in" ]; then
+    say "❌ 输入板不存在 ($in) ⇒ 链断在这里 ⇒ 收工 (★不许继续假跑)"
+    exit 9
+  fi
   fresh_drc "$in" "$drc"
   env PCB_HALO_MARGIN="$margin" bash state/pcbnew_py.sh state/patch_astar_nostub.py \
       "$in" "$drc" --out "$out" --grid "$grid" $extra >> "$LOG" 2>&1
-  say "   ⇒ $(grep -ac '(segment' "$out" 2>/dev/null) 段 · $(grep -aE '── 补上' "$LOG" | tail -1)"
+  if [ ! -f "$out" ]; then
+    say "❌ 本步没出板 ⇒ 链断在这里 ⇒ 收工 (★看 $LOG 尾部的 Traceback)"
+    exit 8
+  fi
+  say "   ⇒ $(grep -ac '(segment' "$out" 2>/dev/null) 段"
 }
 
 step_straight() {  # $1=输入板 $2=输出板
   local in="$1" out="$2"
   local drc="$WORK/$(basename "$out").drc.json"
   say "── straight: $(basename "$in") → $(basename "$out")"
+  if [ ! -f "$in" ]; then
+    say "❌ 输入板不存在 ($in) ⇒ 链断在这里 ⇒ 收工"
+    exit 9
+  fi
   fresh_drc "$in" "$drc"
   bash state/pcbnew_py.sh state/fix_straight_links.py "$in" "$drc" --out "$out" >> "$LOG" 2>&1
   say "   ⇒ $(grep -ac '(segment' "$out" 2>/dev/null) 段"
@@ -86,6 +103,12 @@ step_nostub "$WORK/s3_combo.kicad_pcb" "$WORK/s4_combo3.kicad_pcb" 0.125 0.125 -
 # ⑥ nostub_loose (★margin 0.0625 = 网格半格 ⇒ 这才是"loose"的关键)
 step_nostub "$WORK/s4_combo3.kicad_pcb" "$WORK/final_chain.kicad_pcb" 0.125 0.0625
 
-say "★链跑完 ⇒ 终板 $WORK/final_chain.kicad_pcb"
-say "   段数 = $(grep -ac '(segment' "$WORK/final_chain.kicad_pcb" 2>/dev/null) (★官方终板 = 18092)"
+if [ -f "$WORK/final_chain.kicad_pcb" ]; then
+  say "★链跑完 ⇒ 终板 $WORK/final_chain.kicad_pcb"
+  say "   段数 = $(grep -ac '(segment' "$WORK/final_chain.kicad_pcb") (★官方终板 = 18092 ⇒ 不等于就不算数)"
+else
+  # ★★2026-11-09 03:3x **修: 不许无条件说"链跑完"** ★★ (★上一轮就是在这儿骗了人: 实际终板根本没生成)
+  say "❌ 链没跑完 (终板没生成) ⇒ ★**本轮结果不算数** (★看 $LOG 尾部的 Traceback)"
+  exit 7
+fi
 bash state/pcbnew_py.sh state/check_pcb_drc.py "$WORK/final_chain.kicad_pcb" 2>&1 | grep -E "C3 |C4 " | tee -a "$LOG"
