@@ -271,6 +271,11 @@ PAIR_EXEMPT_R = float(os.environ.get("PCB_PAIR_EXEMPT_R", "0.0"))
 #     ⇒ ★**"换边重试" 用同一套耦合/走廊/兵底机制, 只换主/跟角色 ⇒ 不新增算法, 改动面最小**
 #   ★**用法**: `PCB_PAIR_SWAP_RETRY=1`
 PAIR_SWAP_RETRY = os.environ.get("PCB_PAIR_SWAP_RETRY", "0") == "1"
+# ★★★★2026-11-09 00:4x **"最后一趟再换边"开关 (★默认关 ⇒ 既有臂逐位不变)**
+#   ★**背景 (★v74 实测)**: ★**中途换边改铜 ⇒ 影响了后面才布的差分对 (DSI_D0_CK 因此丢了对)**
+#   ★**⇒ 这一趟的做法: 全部对布完之后, 再把失败的对摘掉重试 ⇒ 换边只影响同批次后面的少数对**
+#   ★**★与 `PCB_PAIR_SWAP_RETRY` 互斥** (★同时开 ⇒ 归因不清)
+PAIR_SWAP_LAST = os.environ.get("PCB_PAIR_SWAP_LAST", "0") == "1"
 # ★★2026-11-06 03:0x **v52: 出脚走廊感知的 rip-up** (默认关 ⇒ 老行为可复现)
 #   ★**为什么**: 实测 61 条 A* 失败里 **42 条起脚在密集焊盘阵**
 #     (J_SOM_P* 16 / CONN_LIGHT 13 / C_AC_CSI_D* 7 / CONN_CAM 6)
@@ -3907,6 +3912,50 @@ def route_board(board, verbose=True):
 
     # ---------- 3) MIPI 差分对 (最难 ⇒ 最后)
     _run_pairs(MIPI_PAIRS)
+    # ★★★★2026-11-09 00:4x **"最后一趟再换边" (★env 门控 `PCB_PAIR_SWAP_LAST=1`, 默认关 ⇒ 逐位不变)** ★★★★
+    #   ★**为什么要有这一趟 (★v74 实测出来的, 不是拍脑袋)**:
+    #     ★**v74 (中途换边)**: 换边救回 CSI_D0_D0 两对 ⇒ ★**但同一次运行里 DSI_D0_CK_P/N
+    #       从"两条都有铜"变成"两条都零铜"** ⇒ ★**⇒ 换边会改铜 ⇒ 会影响【后面才布的差分对】**
+    #   ★**做法**: ★**全部对都布完之后, 把【跟腿没布出来】的那些对逐个【两条腿的铜一起摘掉】,
+    #     再以【跟腿为主腿】重跑整对** ⇒ ★**换边只影响同批次里它后面的少数对**
+    #     ⇒ ★**而且此时别的对的铜都在 ⇒ 新铜必须挤进剩下的空间 ⇒ 比中途换边更苛刻 (★实测才知道行不行)**
+    #   ★**与 `PCB_PAIR_SWAP_RETRY` 的关系**: ★**两个开关【互斥】(★同时开 = 在途换边 + 末尾换边 ⇒ 归因不清)**
+    if PAIR_SWAP_LAST and not PAIR_SWAP_RETRY:
+        _last_n = 0
+        for (p, n, tp, tn) in MIPI_PAIRS:
+            if p not in r.net_pads or n not in r.net_pads:
+                continue
+            # ★**只看"跟腿完全没铜"的对** (★有铜但 Δ 超差的另说, 那是配平问题)
+            if r.net_length(n) > 0.001:
+                continue
+            _sv_t = list(r.tracks)
+            _sv_v = list(r.vias)
+            r.tracks = [t for t in r.tracks if t[0] not in (p, n)]
+            r.vias = [v for v in r.vias if v[0] not in (p, n)]
+            try:
+                r.rebuild_halo()
+                _res = route_diff_pair(r, n, p, trunk_p=tn, trunk_n=tp)
+                if _res.get("p_ok") and _res.get("n_ok"):
+                    _last_n += 1
+                    print("  [PAIR-LAST] %-22s / %-22s 换边成功 L=%.2f/%.2f 间距=%s"
+                          % (p, n, _res.get("ln", 0.0), _res.get("lp", 0.0), _res.get("min_gap")))
+                    stats["pairs"].append(_res)
+                else:
+                    # ★**没赢 ⇒ 原样恢复**
+                    r.tracks = _sv_t
+                    r.vias = _sv_v
+                    r.rebuild_halo()
+                    print("  [PAIR-LAST] %-22s / %-22s 换边没赢 (★恢复原状)" % (p, n))
+            except Exception as _e:
+                r.tracks = _sv_t
+                r.vias = _sv_v
+                try:
+                    r.rebuild_halo()
+                except Exception:
+                    pass
+                print("  [PAIR-LAST] %-22s / %-22s 异常 (★已恢复): %s" % (p, n, _e))
+        print("  [PAIR-LAST] 末尾换边成功 %d 对" % _last_n)
+        stats["pair_last_swapped"] = _last_n
     # ---------- 4) ★★2026-11-05 08:45 **同网缝合 (net stitching)** ——
     #   ★**为什么放这儿**: 实测 v25 的 82 条未连里 ★**19 条是 GND + 31 条集中在两个连接器**
     #     ⇒ 全是"**同网多点**" ⇒ ★★ 同网焊盘之间本来就该短铜直连 (PCB 标准做法) ⇒ ★**一根直线就能接上**
