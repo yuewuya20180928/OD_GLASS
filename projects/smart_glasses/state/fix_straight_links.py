@@ -164,7 +164,14 @@ def main():
         print("★必须给 --out")
         return 2
 
-        board = pcbnew.LoadBoard(boardp)
+    # ★★★★2026-11-09 02:5x **修一个【缩进错位】造成的 UnboundLocalError** ★★★★
+    #   ★**症状**: ★**只要给了 --out 就崩**: `UnboundLocalError: cannot access local variable 'board'`
+    #     ⇒ ★**崩在下一行 `if board is None:`** (★board 从来没被赋值)
+    #   ★**根因**: ★**`board = pcbnew.LoadBoard(boardp)` 被缩进到了上面 `if not outp:` 的【return 之后】**
+    #     ⇒ ★**给了 --out (outp 非空) ⇒ 那行永远不执行 ⇒ board 未定义**
+    #   ★**影响**: ★**这个工具从那次改动起就是废的 ⇒ 官方补丁链里的 straight×5 步在今天【复现不出来】**
+    #     ⇒ ★**⇒ 补丁链自校准卡在第 ② 步 (★Traceback 抓到) ⇒ 修这一行才能复现官方终板**
+    board = pcbnew.LoadBoard(boardp)
     # ★★**防御: LoadBoard 可能返回 None** (★板文件被杀时截断/损坏 ⇒ 实测崩在下一行)
     if board is None:
         print("★**板读不出来 (%s) ⇒ 拒绝继续** (★多半是文件被中断写坏)" % boardp)
