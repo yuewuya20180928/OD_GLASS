@@ -2113,20 +2113,22 @@ issues:
   reporter: main
   raised: '2026-10-27'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   task_brief: '改 HW/POWER_IC_SELECTION.md 的电源域章节: (a) 6 路 IO LDO 统一改成可编程 TPS7A20 (反馈电阻逐轨给出目标电压下的阻值, 1.2/1.8/2.8/3.3 各算一组) 并说明 电压域表晚到时只改电阻 (b) DC-DC 选型留余量论证 (按 0.65-1.0V + 1.03A) (c) 上电时序方案: 同时上电 + PGOOD 链式释放 RESET, 不依赖原厂时序。**同时把 netlist 与 8 页图页的对应改掉** (改生成器, 不手改生成物)。不许编电压/电流'
   fix_ref: HW/SCHEMATIC_V1.md
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-08'
   note: '10-27 00:20 项目总工登记 (失联预案第 2 条) ★这是把 TBD-02 从 blocker 降级的关键改造
 
     ★前提修正 (2026-10-27): 原单写的『**可编程** TPS7A20 一颗覆盖 1.2-5.5V』**不成立** —— [官方 ti.com/product/TPS7A20] TPS7A20 只有**固定输出** (30 档 0.8-5.5V) 且 Iout 上限 **300mA** → 覆盖不了 7 条不同电压的轨, 也不该替换 V_CORE/V_SOC_IO (那两条走 3A buck)。改为三步『**换料不换板**』: ① 7 路 LDO 全系列同封装 X2SON → 电压回信后换档位料 ② 2 路 DC-DC 用 TPS62130A 的**引脚可选**输出 (标称 ±5%) → 落在档内换料, 落在档外换同封装可调型号 (改 2 颗反馈电阻) ③ 新增 U_SUPV 电压监督器, 监督窗口用**分压位**实现 → 任何电压轨都能映射到监控窗口。已画进 P1/P8; BOM 里 7 路 LDO 全是固定档。★效果比原方案更好: 不需要可编程器件, 也不需要改板
 
 
-    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**'
+    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 (不走标题, 逐条查产物): ①**前提修正成立** —— `HW/SCHEMATIC_V1.md:31` 明写『原方案写"用**可编程** TPS7A20 一颗覆盖 1.2-5.5V" —— **前提是错的** [官方 ti.com/product/TPS7A20]: TPS7A20 只有**固定输出** (30 档 0.8-5.5V) 且上限 **300mA**』⇒ task_brief 的『可编程 + 逐轨反馈电阻』按事实不能做, 改为**换料不换板**三步 (同封装换档位料 / DC-DC 引脚可选输出 / 监督器分压位)。②**换料不改板已在网表落实**: `HW/netlist_v1.csv` 7 路 LDO **全部 TPS7A20 家族 + 全部 X2SON (DQN) 1.0x1.0mm** (U_LDO_IO18/IO33/L18/L33/S12/S18B/S28 ⇒ OPN 分别 TPS7A2018DQNR/033DQNR/012DQNR/028DQNR) ⇒ 电压域表晚到只换料号, 不动板。③**DC-DC 余量**: `HW/POWER_IC_SELECTION.md:22` 0.9W÷0.8V×1.5=1.69A → TPS62130A 3A (余量 1.77×), 且 `:21` V_CORE 上界按 1.0V 覆盖 0.65-1.0V 区间 (`SCHEMATIC_V1.md:21`)。④**上电时序/PGOOD 链**: `SCHEMATIC_V1.md:554-566` + 网表 62-77 行 —— 两路 DC-DC PG 开漏并联 PG_AND → Q_AND 硬件 AND → RESET_N; EN_VCORE 上拉 + Q_ENVC 反相顺序链; 监督器分压 R_SUPV_DIV1/2 在位。⑤每条都带 [官方]/[推算] 依据 (逐行 evidence 列)。★**偏差 (已记录, 不影响闭环)**: task_brief 原写的『可编程 TPS7A20 + 逐轨反馈电阻』是**原单的前提错误**, 修复人按 [官方] datasheet 改正并写进产物 —— 这是**纠错**不是漏做。★未决: 各轨标称电压仍 [待原厂] (TBD-02), 已由『换料不改板』吸收, 不阻塞 demo 板。'
   dispatched_at: '2026-10-27'
   id: ISS-082
 - title: ★显示 TX 公开渠道穷举 (AR9481 模组厂/模组规格书/公开板卡 + 酷芯模组供应商) —— 不等原厂也能判 DSI TX 还是 DP TX
@@ -2214,14 +2216,14 @@ issues:
   reporter: main
   raised: '2026-10-27'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   task_brief: '改 state/gen_netlist.py (生成器是唯一真源, 改完重跑 gen_netlist.py + gen_schematic_pages.py + gen_kicad_net.py): (a) NTC 换成数字温度计 (I2C_A 上第 4 个从设备, 型号标 TMP117 类 + [待选型]) (b) USB D+/D− 跨铰链段加 ESD 阵列 + 共模扼流 + 对地端接 (位置与 ISS-085 的结构要求配套, 型号标 [待选型]) (c) U_BRIDGE 的定位写成 DP→DSI 桥接芯片 (与 P4 BR_* 一致), 并在 A-21 相关行加一句 规格把同一位置称作 redriver 属规格内部矛盾 待原厂澄清。硬规则: check_netlist 仍 12/12, 幂等 (两次重跑字节一致), 球位号仍全 TBD 占位, 不许碰 state/ 下其它文件与 MECH/ SW/ PROJECT_TRACKER.md'
   fix_ref: HW/netlist_v1.csv
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-08'
   note: '10-27 01:0x 项目总工裁决后登记
 
     ★2026-10-27 08:40-09:10 项目总工自己动手做完 (owner 改 main / verify_by=hw-lead): ① U_TEMP 定型 **TMP117** (I2C 0x48, ±0.1°C, [官方]) ② USB 跨铰链段加两端 ESD (D_ESD_USB / D_ESD_CAM), **不装共模扼流圈** (USB2 眼图对共模转差分极敏感, 原单这条要改) ③ U_BRIDGE 定位统一为 **DP1.4 TX → MIPI DSI TX 桥接** (方案B 专用, redriver 候选兼列)。★额外撞出并修 3 个 V1 真缺陷: USB 差分**跨铰链被短接** (直连 J_TYPE_C) / **电池 NTC 漏画** (BQ25896 TS 脚, 硬件停充安全项) / **9 颗供电器件输入侧漏画**; 另新增 P9 跨铰链页 + netlist `board` 板级归属列 + BOM。门禁 15→24 条全过
@@ -2229,7 +2231,9 @@ issues:
     ★V1.2 追加: 因 MECH-B7 电池位置裁决, USB/电池保护/TS 跨铰链关系重排 (J_CHG 1×6 → 1×10; BAT_DET 改本地检测; 删掉 V1.1 加的 SYS π 滤波 —— 充电路径不能加 π 滤波)
 
 
-    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**'
+    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核: ①**NTC→数字温度计 已实做**: 网表 173-178 行 U_TEMP = **TMP117** (I2C 0x48, ±0.1°C, WSON-6), 脚号 1=SCL/2=GND/3=ALERT/4=ADD0(GND⇒锁 0x48)/5=V+/6=SDA 全部对齐 TI SNOSD82D Table 5-1; 网表 39 行保留的 R_NTC_BAT+R_TS_PULL 是 **BQ25896 的 TS 脚电池 NTC** (note 明写『属安全项, 不依赖 SoC, 与 U_TEMP 是两回事』) ⇒ 原『裸分压分辨率不足』的缺陷已消除。★**偏差**: 任务书说接 I2C_A, 实际接 **I2C_B** —— 是 ISS-149/176 的『camera=I2C_A / display=I2C_B』总线分离决策 (TMP117 随屏控总线走), 有据可查, 不是漏做。②**USB 跨铰链保护**: ESD 阵列在位 (D_ESD_USB/D_ESD_CAM); ★**共模扼流圈按技术理由故意不装** (note: USB2 眼图对共模转差分极敏感) —— 是**有理由的裁决**不是漏做; 且跨铰链 USB 后被 ISS-182 整块删除 (老板 11-02『跨铰链取消』) ⇒ 本项前提已消失。③**U_BRIDGE**: 当时已统一为 DP1.4 TX→MIPI DSI TX 桥接; 后因 RK3572 官方 datasheet 确认**无 DP TX** ⇒ 整条桥接删除 (网表 173 行 note 明写『桥接 —— 已删除 (随 RK3572 无 DP TX 整条删除, 不在本板)』)。④spec A-21 redriver 矛盾随桥接删除一并作废。★**诚实边界**: 电池 NTC 仍在网表 (安全项, 合理); USB 跨铰链段已不存在, 原判据不再适用。'
   dispatched_at: '2026-10-27'
 - id: ISS-087
   title: 模型许可未清 (L1 许可[0数据] + L4 AGPL-3.0 商用受限) + ARS45 板端模型 0 个 → 量产评审放行门禁
@@ -2466,18 +2470,20 @@ issues:
   reporter: main
   raised: '2026-10-27'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   task_brief: ''
   fix_ref: HW/netlist_v1_pins.csv + state/gen_netlist_pins.py
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-08'
   note: '2026-10-27 09:3x 项目总工自登记 (V1.4 导出修完后剩下的模型级欠账); ★2026-10-27 18:5x hw-lead 复审 (ISS-088) 的剩余项转来: **B-4 多脚 IC 的裸名节点脚号仍是幻影** (如 U_BATPROT/U_CHG 的裸名节点) → 约定: 多脚器件的节点名必须带引脚提示 (如 ''U_CHG TS''), 导出器已写进注释; 剩余: B-3 CONN_LIGHT 的 P4 页叙述与新 pin map 同步
 
 
-    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。** ★★2026-11-02 03:0x **已做完** (项目总工自办 ⇒ verify_by 仍是 hw-lead): ① 新增 `state/gen_netlist_pins.py` ⇒ 产出 `HW/netlist_v1_pins.csv` (**550 行 = 每引脚一行, 覆盖 220 个器件**) —— 口径: **`.net` 才是带显式引脚号的那一份** ⇒ 从 .net 解析 (ref,pin)→net, 再回 CSV 取器件级元信息 (value/footprint/dnp/type/board/opn 是器件级属性) ⇒ **不改生成器就能得到真 pin 表** ② 自带 5 类交叉校验: 一个引脚只能属于一个网(且须落在 pinout 真源允许集合内) / .net 器件都要在 CSV 有出处 / CSV 器件都要在 .net 出现 / 2 脚无源件(R/C/L)恰好 2 脚 / 复用 `HW/check_bq25896_pinout.py` 的 PINMAP 当别名白名单 ③ **顺带抓到一个真缺陷并修了**: P1 页 TS_BAT 那行把 RT1 的 TS 端写成 "U_CHG pin22" (=REGN) 而不是 pin11 (=TS) ⇒ 表面是写法不一致, 实际是 **REGN 被短到电池 NTC 节点** ⇒ 充电链失效; ★这个错逃过了全部原有门禁 —— 因为 `.net` 生成器会按连通性重排引脚, .net 一直是对的, 错的只有 CSV ⇒ **这正是 pin-centric 表的价值** ④ 同步收紧 `HW/check_bq25896_pinout.py` 的 REGN 允许网集合 (去掉 TS_BAT) ⇒ 同类错以后会被抓住'
+    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。** ★★2026-11-02 03:0x **已做完** (项目总工自办 ⇒ verify_by 仍是 hw-lead): ① 新增 `state/gen_netlist_pins.py` ⇒ 产出 `HW/netlist_v1_pins.csv` (**550 行 = 每引脚一行, 覆盖 220 个器件**) —— 口径: **`.net` 才是带显式引脚号的那一份** ⇒ 从 .net 解析 (ref,pin)→net, 再回 CSV 取器件级元信息 (value/footprint/dnp/type/board/opn 是器件级属性) ⇒ **不改生成器就能得到真 pin 表** ② 自带 5 类交叉校验: 一个引脚只能属于一个网(且须落在 pinout 真源允许集合内) / .net 器件都要在 CSV 有出处 / CSV 器件都要在 .net 出现 / 2 脚无源件(R/C/L)恰好 2 脚 / 复用 `HW/check_bq25896_pinout.py` 的 PINMAP 当别名白名单 ③ **顺带抓到一个真缺陷并修了**: P1 页 TS_BAT 那行把 RT1 的 TS 端写成 "U_CHG pin22" (=REGN) 而不是 pin11 (=TS) ⇒ 表面是写法不一致, 实际是 **REGN 被短到电池 NTC 节点** ⇒ 充电链失效; ★这个错逃过了全部原有门禁 —— 因为 `.net` 生成器会按连通性重排引脚, .net 一直是对的, 错的只有 CSV ⇒ **这正是 pin-centric 表的价值** ④ 同步收紧 `HW/check_bq25896_pinout.py` 的 REGN 允许网集合 (去掉 TS_BAT) ⇒ 同类错以后会被抓住
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 (**实跑**): `state/gen_netlist_pins.py` 自检 4 条全过 —— 校验1 同一 (ref,pin) 不能在两个网 / 校验2 .net 每个器件在 CSV 有出处 / 校验3 两脚无源件恰好 2 脚 / 校验3b .net 里 SoC 占位器件引脚数 ≥50 (实测 584 行 = 每引脚一行, 覆盖 218 器件 / 153 网)。★**幂等实测**: 我把 `HW/netlist_v1_pins.csv` 备份后重跑生成器, `diff` 结果 **BYTE-IDENTICAL** ⇒ 满足『两次重跑字节一致』硬规则。★**旧模型欠账已清**: 原单点网 DSI_BR / DP_TX / VBUS_DET_RAW 在 pins 表里**均 0 命中**; 残余 21 个单点网是 NC 脚 (NC_CONN_CAM_8/9/22/23/26, NC_U_TEMP_ALERT) 与未用 SPI/JTAG/电池 DNP 脚, 不是缺陷。★**下游等价**: `check_kicad_net.py` rc=0 (216 器件脚数全对 / 218 器件全落网 / 153 个 net 全干净)。★**诚实边界**: 185 行的行级元信息回落到『该器件首行』的 pin 数 (生成器自报), 是 CSV 同物理网多网名导致, 已由生成器打印说明。'
   dispatched_at: null
 - id: ISS-095
   title: ★[待 TI 确认] BQ25896 的 VSYS 脚是否必须接 —— 决定'电池挪镜框'回退分支要不要多两根电源 pin
@@ -2511,15 +2517,15 @@ issues:
   owner: main
   reporter: sw-lead
   raised: '2026-10-27'
-  due: '2026-11-05'
-  status: fixed
+  due: '2026-11-13'
+  status: verified
   external: false
   need_keys: []
   task_brief: '【ISS-096 + ISS-098 合并】补齐 **SoC 侧的电源/检测脚** (sw-lead 交叉评审 ISS-090 抛出的 2 条 blocker): (a) **ISS-096 复位链**: 现在 RESET_N 的释放只由 U_SUPV 监督 V_SOC_IO 决定 —— 但 ① **V_CORE 没有监督** (核心轨未稳就可能释放复位) ② 两路 DC-DC 的 **PG 只引到测试点, 不参与复位链** ③ **9 颗供电器件的 EN/SS 脚 + 监督器 CT 脚在网表里不存在** → 要你: ① 给出上电时序的**完整器件级方案** (谁监视谁 / EN-EN 链 / PG 怎么参与 / CT 怎么用), 并**画进 P1/P8** (新增 EN/SS/CT 脚 + PG 参与复位的连接), 给每条的 [官方]/[推算] 依据; ② 明确 V_CORE 的监督怎么做 (换更高精度的基准 or 串联两级监督 or 用 DC-DC 的 PG 直接参与) (b) **ISS-098 USB**: ① **SoC 侧缺 USB VBUS 检测脚** (网表只有 D+/D−) → USB 枚举与 S2 救砖链路 (ISS-080) 的前提不成立 → 把 SoC 侧的 VBUS 检测脚 + 连接画进 P6 (跨铰链怎么送 VBUS? 现在 CONN_USB 只有 4p: D+/D−/GND/预留 → 预留脚能不能带 VBUS? 给结论) ② **CONN_USB 的回流脚不足** (声明 4p 但只画了 D+/D−/1 个 GND, 违反 ISS-085 自己定的『信号脚与回流脚成对』) → 补齐 (2 个 GND 脚? 4p 装不下就提改 5p/6p 并给铰链区高度影响)★交付: 改 `state/gen_netlist.py` (生成器是唯一真源, 改完重跑 gen_netlist.py + gen_schematic_pages.py + gen_kicad_net.py + gen_bom.py) + 出 `HW/SCHEMATIC_V1_7_NOTES.md` 说明这两块的拓扑与依据 + `HANDOFF/2026-10-27_hw-lead_补齐SoC侧电源检测脚.md` (B1-B6 六块)。硬规则: `python3 state/check_netlist.py` 必须 30/30、`python3 state/check_kicad_net.py` 必须 6/6、`python3 state/gen_bom.py` 自检全过; **不许手改生成物** (要改改生成器并重跑, 重跑后 md5 自洽); 球位号仍全 `SoC[TBD-01].<信号>` 占位, **不许编球号**; 不许碰 `MECH/` `SW/` `PROJECT_TRACKER.md` `DECISIONS.md` `state/issue_log.yaml` `state/fragments/`; 型号不许编 (查不到写 [待选型] + 可查证型号清单); 外发一律经项目总工。**≥3 条你自己发现的、我没要求的问题**。'
   fix_ref: HW/netlist_v1.csv (V1.8 复位链块)
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-08'
   note: '2026-10-27 19:5x 项目总工代登记 (sw-lead 交叉评审产出, 防止 STATE 阻塞在状态里腐烂)
 
 
@@ -2528,7 +2534,9 @@ issues:
     ★2026-10-28 00:5x **hw-lead 连续两轮 0 产出 → 项目总工自己接手做完**: ① 两路 DC-DC 的 PG 开漏并联 + Q_AND (N-MOS) 做硬件 AND ⇒ 两路 PG 都好才释放 RESET_N (**不依赖 TBD-12 就能定住上电时序**) ② DC-DC 的 EN/SS 脚补进网表 (V_SOC_IO 由 PWR_ON 直接使能; V_CORE 由 V_SOC_IO 的 PG 经 Q_ENVC 反相使能 ⇒ 顺序链) ③ 监督器 CT 脚原来**悬空** → 补上 ④ ★**V_CORE 不需要单独监督** (它是 SoC 内部 DVFS 轨, 电压本来就变; 该监督的是固定电压的 V_SOC_IO, U_SUPV 已在做) → 我原先那条担心不成立。★PG 极性待原厂核 (画法已做成极性无关)
 
 
-    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**'
+    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 —— **工程内容全部落地**, 但**交付物有两处没交**, 故留 `verified` 不关单: ✅①**完整器件级上电时序方案已画进 P1/P8**: `HW/SCHEMATIC_V1.md:554-566` + 网表 62-77 行 —— (a) 两路 DC-DC 的 PG 开漏**并联成 PG_AND** (网表 62 R_PG_PULL 10k 上拉 / 64 两路 pin4 并联 / 402-403 两个 TP 状态引出) ⇒ **PG 真正参与复位链**, 不再是白引测试点; (b) **Q_AND 硬件 AND**: 漏极=RESET_N, 任一路 PG 坏⇒PG_AND 高⇒Q_AND 导通拉住复位, 两路都好⇒PG_AND 低⇒放行 (网表 65-67); (c) **EN-EN 顺序链**: EN_VIO 由 PWR_ON 直驱 (网表 74) → PG_VIO 经 Q_ENVC 反相驱动 EN_VCORE (网表 70-71, EN_VCORE 10k 上拉默认关) ⇒ V_CORE 后于 V_IO 上电; (d) **9 颗供电器件 EN/SS 脚已补齐**: 网表 102/112/122/132/142/152 (6 路 LDO EN) + 70/74 (2 路 DC-DC EN) + 441 (U_EN_SW) = 9 颗, 且**全部标注『EN 内部 500kΩ 下拉 ⇒ 悬空=关断 ⇒ 投板后整板不上电』的 P0 依据**; (e) **监督器 CT 脚在网表**: 网表 75 行 U_SUPV pin4 = SUPV_CT。②**V_CORE 监督怎么做 —— 明确选了任务书给的第三个选项『用 DC-DC 的 PG 直接参与』** (PG_AND→Q_AND→RESET_N), 不是含糊过去。③每条带 [官方]/[推算] 依据 (TBD-12 PG 极性仍标 [待原厂核])。④门禁 `check_netlist.py` 32 条全过 / `check_kicad_net.py` 8 条全过 (含 ISS-184 新增的第 6 条)。★**未交的两处 (⇒ 本条只能 verified 不能 closed)**: (a) 任务书点名的 `HW/SCHEMATIC_V1_7_NOTES.md` 仍是**空骨架** —— §0 状态表写着『进行中』, §1/§2/§3 正文全是『（待填）』, 786 字节; (b) 任务书点名的 `HANDOFF/2026-10-27_hw-lead_补齐SoC侧电源检测脚.md` **文件不存在**。⇒ 拓扑与依据其实写在 `HW/SCHEMATIC_V1.md` §P8 (554-566) 与网表 note 里, **硬件内容不缺, 缺的是两份文档交付** ⇒ 新 due 2026-11-13 补这两份文件即可关单。★**另一处诚实边界**: U_SUPV 监督器后改 **DNP** (网表 407-409: SoM 自带 PMIC 已做上电复位 ⇒ 主板不装监督器) ⇒ CT 脚与分压脚随之 DNP, 但『换料不换板』的分压位仍在 (网表 404-406)。'
   dispatched_at: 2026-10-27 19:5x
 - id: ISS-097
   title: '★"关机"语义: 硬件断电通路 (负载开关) + 真关机拓扑 + 功耗预算 V3'
@@ -2567,15 +2575,15 @@ issues:
   owner: main
   reporter: sw-lead
   raised: '2026-10-27'
-  due: '2026-11-05'
-  status: fixed
+  due: '2026-11-13'
+  status: verified
   external: false
   need_keys: []
   task_brief: '【ISS-096 + ISS-098 合并】补齐 **SoC 侧的电源/检测脚** (sw-lead 交叉评审 ISS-090 抛出的 2 条 blocker): (a) **ISS-096 复位链**: 现在 RESET_N 的释放只由 U_SUPV 监督 V_SOC_IO 决定 —— 但 ① **V_CORE 没有监督** (核心轨未稳就可能释放复位) ② 两路 DC-DC 的 **PG 只引到测试点, 不参与复位链** ③ **9 颗供电器件的 EN/SS 脚 + 监督器 CT 脚在网表里不存在** → 要你: ① 给出上电时序的**完整器件级方案** (谁监视谁 / EN-EN 链 / PG 怎么参与 / CT 怎么用), 并**画进 P1/P8** (新增 EN/SS/CT 脚 + PG 参与复位的连接), 给每条的 [官方]/[推算] 依据; ② 明确 V_CORE 的监督怎么做 (换更高精度的基准 or 串联两级监督 or 用 DC-DC 的 PG 直接参与) (b) **ISS-098 USB**: ① **SoC 侧缺 USB VBUS 检测脚** (网表只有 D+/D−) → USB 枚举与 S2 救砖链路 (ISS-080) 的前提不成立 → 把 SoC 侧的 VBUS 检测脚 + 连接画进 P6 (跨铰链怎么送 VBUS? 现在 CONN_USB 只有 4p: D+/D−/GND/预留 → 预留脚能不能带 VBUS? 给结论) ② **CONN_USB 的回流脚不足** (声明 4p 但只画了 D+/D−/1 个 GND, 违反 ISS-085 自己定的『信号脚与回流脚成对』) → 补齐 (2 个 GND 脚? 4p 装不下就提改 5p/6p 并给铰链区高度影响)★交付: 改 `state/gen_netlist.py` (生成器是唯一真源, 改完重跑 gen_netlist.py + gen_schematic_pages.py + gen_kicad_net.py + gen_bom.py) + 出 `HW/SCHEMATIC_V1_7_NOTES.md` 说明这两块的拓扑与依据 + `HANDOFF/2026-10-27_hw-lead_补齐SoC侧电源检测脚.md` (B1-B6 六块)。硬规则: `python3 state/check_netlist.py` 必须 30/30、`python3 state/check_kicad_net.py` 必须 6/6、`python3 state/gen_bom.py` 自检全过; **不许手改生成物** (要改改生成器并重跑, 重跑后 md5 自洽); 球位号仍全 `SoC[TBD-01].<信号>` 占位, **不许编球号**; 不许碰 `MECH/` `SW/` `PROJECT_TRACKER.md` `DECISIONS.md` `state/issue_log.yaml` `state/fragments/`; 型号不许编 (查不到写 [待选型] + 可查证型号清单); 外发一律经项目总工。**≥3 条你自己发现的、我没要求的问题**。'
   fix_ref: HW/netlist_v1.csv (V1.8 USB 块)
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-08'
   note: '2026-10-27 19:5x 项目总工代登记
 
 
@@ -2584,7 +2592,9 @@ issues:
     ★2026-10-28 00:5x 项目总工接手做完: ① **SoC 侧 USB VBUS 检测脚补上** (★零新增 pin: VBUS_DET 分压本就在充电板 → 经 J_CHG pin7 跨铰链 → SoC 占位脚) ⇒ USB 枚举前提补齐 (S2 救砖 ISS-080) ② CONN_USB pin4 预留 → **GND** (双回流, 零成本)
 
 
-    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**'
+    ★2026-10-30 00:0x 跨零点顺延: 原 due 已过 (昨晚 10-29 的 due 集体翻牌) ⇒ due 顺延到 2026-11-05。★**若本条是等老板拍板, 顺延的是「催办时间」, 不是「已定时间」。**
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 —— **前提已补齐**, 与 ISS-096 同任务书, 同样因两份文档交付未交而留 `verified`: ✅①**SoC 侧 USB VBUS 检测脚已接**: 网表 439 行 `VBUS_DET | J_SOM_P1 pin100 | VBUS_DET_D` —— P1_100 就是 SoM 的 **USB_DRD1_VBUSDET** (note 标 [官方]) ⇒ USB 枚举与 S2 救砖链路 (ISS-080) 的前提成立。②**分压网络正确**: 网表 434 R_VBUS_DET_D1 (1M 上臂挂 RAIL_DEMO_5V) / 435 中点 / 436 R_VBUS_DET_D2 (1M 下臂挂 GND) / 437-438 C_DET_VBUS_D **两条腿都在** (中点侧 + 地端) ⇒ 读数不为 0V。③**跨铰链怎么送 VBUS —— 给了结论**: demo 板 Type-C VBUS **在主板本地分压, 不再跨铰链** (网表 434 note『demo 版: 检测在主板本地, 不跨铰链』) ⇒ 原任务书问的『CONN_USB 预留脚能不能带 VBUS』= 不用带, CONN_USB 已按老板 11-02『跨铰链取消』整块删除 (网表里 CONN_USB **0 行**), 板载 Type-C 改为 J_USB_C。④**CONN_USB 回流脚不足** ⇒ 随 CONN_USB 删除一并消失, 不再违反『信号脚与回流脚成对』。⑤USB 数据侧过孔/串阻拓扑顺带修好 (见 ISS-182)。★**未交的两处 (同 ISS-096)**: `HW/SCHEMATIC_V1_7_NOTES.md` §2 仍是『（待填）』, `HANDOFF/2026-10-27_hw-lead_补齐SoC侧电源检测脚.md` 不存在 ⇒ 新 due 2026-11-13。'
   dispatched_at: 2026-10-27 19:5x
 - id: ISS-099
   title: ★J_CHG 选型与 FPC 加工图要求 (触点额定 ≥0.35A / 分段铜厚 固定段2oz·弯折段1oz / 内层地 keep-out / pin10 改 NTC 专用回流)
@@ -3911,14 +3921,16 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-06'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: 'HW/SCHEMATIC_V1_SPEC.json (power_rails: SENSOR_VDD_IO 1.8V→2.8V / TPS7A20-28) · state/gen_netlist.py (U_LDO_S28B / I2C TBD-05 note / TP_SENSOR_IO2V8) · state/_iss140_netlist_rail_fix.py'
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
-  note: '2026-11-02 19:3x。★**子 agent 两次派活都 0 产出** (第一次 done 但文件 mtime 未变; 第二次 16 分钟后 failed) ⇒ ★**项目总工自己动手做完了**, 机械改动: ①规格 JSON 的 SENSOR_VDD_IO 1.8V→2.8V (AR0234CS VDD_IO=2.8V), IC 换 TPS7A20-28, U_LDO_S18→U_LDO_S28B; ②SENSOR_AVDD 保留 2.8V 但 evidence 标 [待原厂] (AR0234CS 有无独立模拟轨待 onsemi 回信, ISS-142); ③SENSOR_CORE 1.2V 不动 (AR0234CS VDD/VDD_PHY/VDD_DATA 都是 1.2V); ④I2C_A 上拉**保持 3.3V 不改电路**, 只在 note 加 [TBD-05] (VDD_IO abs max 未核 ⇒ 是否超额定待回信; 若超则改 2.8V 并逐个核同总线从设备); ⑤测试点 TP_SENSOR_1V8 → TP_SENSOR_IO2V8 (轨变 2.8V, 名字不能还叫 1V8, 且不与 TP_SENSOR_2V8 重号)。★**验证**: gen_netlist / gen_kicad_net / gen_netlist_pins / gen_bom 全 rc=0; check_netlist 31 条全过; check_kicad_net 5 条全过; BOM 自检全过。★**未做 (留给 ISS-146)**: BOM 里没有 AR0234CS 行 —— 因为 BOM 是网表生成物, 而 sensor 在 demo 方案里是**外接模组 (走 CONN_CAM)** ⇒ 要等「demo 板形态」(模组+转接板 vs 自制整板) 定了一起处理, 不手改生成物。'
+  verify_result: pass
+  verify_date: '2026-11-08'
+  note: '2026-11-02 19:3x。★**子 agent 两次派活都 0 产出** (第一次 done 但文件 mtime 未变; 第二次 16 分钟后 failed) ⇒ ★**项目总工自己动手做完了**, 机械改动: ①规格 JSON 的 SENSOR_VDD_IO 1.8V→2.8V (AR0234CS VDD_IO=2.8V), IC 换 TPS7A20-28, U_LDO_S18→U_LDO_S28B; ②SENSOR_AVDD 保留 2.8V 但 evidence 标 [待原厂] (AR0234CS 有无独立模拟轨待 onsemi 回信, ISS-142); ③SENSOR_CORE 1.2V 不动 (AR0234CS VDD/VDD_PHY/VDD_DATA 都是 1.2V); ④I2C_A 上拉**保持 3.3V 不改电路**, 只在 note 加 [TBD-05] (VDD_IO abs max 未核 ⇒ 是否超额定待回信; 若超则改 2.8V 并逐个核同总线从设备); ⑤测试点 TP_SENSOR_1V8 → TP_SENSOR_IO2V8 (轨变 2.8V, 名字不能还叫 1V8, 且不与 TP_SENSOR_2V8 重号)。★**验证**: gen_netlist / gen_kicad_net / gen_netlist_pins / gen_bom 全 rc=0; check_netlist 31 条全过; check_kicad_net 5 条全过; BOM 自检全过。★**未做 (留给 ISS-146)**: BOM 里没有 AR0234CS 行 —— 因为 BOM 是网表生成物, 而 sensor 在 demo 方案里是**外接模组 (走 CONN_CAM)** ⇒ 要等「demo 板形态」(模组+转接板 vs 自制整板) 定了一起处理, 不手改生成物。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 (**关键: 这条已被后续决策合法取代, 不算漏做**): ①AR0234CS 的 VDD_IO=2.8V 改造在 11-02 当天确实落地过 (issue note 记载: 规格 JSON SENSOR_VDD_IO 1.8→2.8V / U_LDO_S18→U_LDO_S28B / TP_SENSOR_IO2V8 / I2C TBD-05 note)。②**随后老板 11-02 19:25 把 demo sensor 定成外购 IMX415 模组** (ISS-149) ⇒ 模组自带稳压 (Radxa Camera 4K pin28/29=3.3V, pin30/31=5V) ⇒ **主板不再供 sensor 芯片级三条轨** ⇒ ISS-150 按 IMX415 重核后: 网表 91-119 行 **SENSOR_AVDD/SENSOR_VDD_IO/SENSOR_CORE 三轨全部 DNP**, `HW/SCHEMATIC_V1_SPEC.json` power_rails 三轨 status=『❌ 不画 (DNP)』。③**当前网表与 ISS-150 一致**: 网表 100/105 行 SENSOR_VDD_IO = 1.8V / TPS7A20-18 / 3mA (IMX415 的 IO 域), 网表 110/115 行 SENSOR_CORE = 1.2V / TPS7A20-12 / 250mA, 网表 91/95 行 SENSOR_AVDD = 2.8V / TPS7A20-28 / 156mA。④**I2C_A 上拉已改**: 网表 169/170 行 R_PU_I2CA_SCL/SDA = **2.2k ±1%**, 且按 ISS-153 订正挂 **RAIL_VDD_1V8_IO (1.8V 域)** —— 依据写在行内 note (RK3572 I2C5 = J_SOM_P2 pin31/pin33 属 1.8V 域, 3.3V 上拉会过压 SoM 脚; camera 模组 I2C 挂 OVDD 1.8V 域) ⇒ **这条正是 ISS-148 §3 要求的『I2C_A 上拉不能超 VIN abs-max』被真正兑现** (且按 1.8V 域重算: R≥(1.8-0.4)/3mA=467Ω ⇒ 2.2k, 灌流 0.64mA ≤3mA, t_r=2.2k×100pF×0.847≈186ns)。⑤`state/_iss140_netlist_rail_fix.py` 存在。★**诚实边界**: AR0234CS **整机路径**的 VDDIO_PHY 1.8V 轨缺失仍待 onsemi 回信 (ISS-142), 那是另一条 issue, 不在本单范围。'
   dispatched_at: '2026-11-02'
   task_brief: 'ISS-140 闭环: sensor 换 onsemi AR0234CS 后的网表电源域改造。★**我把结论都列给你了, 不要通读大文件来补, 不确定就标 [待确认] 问我**。
 
@@ -4057,14 +4069,15 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-04'
-  status: fixed
+  status: verified
   external: false
   need_keys: []
   fix_ref: 'SW/RKNN_BUILD_ENV_RECOVERY.md (911 行: 本机现状实测/核心一问/模型选择/恢复路径/复现命令/18 条待核) · state/fragments/sw.yaml (原子写) · 环境: ~/miniconda3/envs/rknn (python 3.10.22 / rknn-toolkit2 2.3.2 / onnx 1.16.1 / torch 2.4.0+cpu)'
   verify_by: sw-lead
   verify_result: pass
-  verify_date: '2026-11-02'
-  note: '2026-11-02 19:2x。★**这是 demo 板软件侧的第 0 步, 优先于一切写代码**。★**建议打法**: 先跑 ①找资产 (板子/备份) —— 成本最低, 命中就省掉导出+装工具链的两天; 找不到再走 ②③。★**板子 SSH 提醒**: 密码认证 (sshpass -p <BOARD_SSH_PASSWORD>), ★**IP 会变, 先 getent hosts radxa-cubie-a7s.local 确认, 不要用写死的**。★**别把 yolov5n 当既定**: 本地无 ONNX 且未实测 ⇒ 规格里写的是 M1/M2 二选一。 ★**2026-11-02 19:2x 实测**: 板子 **当前不可达** —— `ssh 192.168.2.5` 返回 *No route to host* (宿主虽有 192.168.2.3 与 192.168.71.4 两块网卡, 但到板子不通), mDNS 也不解析; ★**且本机没装 sshpass** (TOOLS.md 里写的 `sshpass -p <BOARD_SSH_PASSWORD>` 调用方式在这台机上不可用, 要么装 sshpass 要么用其它方式) ⇒ ★**走板子捞资产这条路现在断着** ⇒ 本单要么等板子恢复/换网, 要么直接走『重新导出 ONNX + 装 toolkit2 2.3.2』这条 (成本高 1~2 天)。 ★**关联**: 本单就是 sw-lead 在 STATE 里登记的阻塞 **SW-B15** (rk3572 在 toolkit2 2.3.2 是否受支持 + 本机无工具链/源模型/校准集) ⇒ source_blocker 已挂上, C5 双向覆盖闭合。 ★★**2026-11-02 20:2x 交卷并收口 —— demo 软件侧第 0 步基本打通**。★★**头号结论 (本单核心交付)**: **`rk3572` 不是 rknn-toolkit2 的合法 `target_platform`** —— ★**2.3.2 与最新版 2.5.0 都直接 `ValueError: Invalid target_platform 「rk3572」!`** ⇒ ★**ISS-145 的 M1 路线 ("直接复用 A7S 的 .rknn") 不成立, 必须重转**; ★**但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform=「rk3576」` 转换 + 板端用 RK3572 BSP 自带 runtime 加载** ⇒ **[推算·本文推导, 待板端验证]** ⇒ **★这是 demo 当前的头号卡点 (ISS-155)**。★★**构建环境已在本机恢复并真跑通**: conda env `rknn` (python 3.10.22 / rknn-toolkit2 2.3.2 / onnx 1.16.1 / torch 2.4.0+cpu; ★**路径与 `SW/tools/rknn_bench.py` 硬编码的 RKNN_PY 完全一致**) · ★**转换链四步全 rc=0 真落盘** (config → load_onnx → build(INT8) → export_rknn) · ★**源 ONNX 已重建** (yolov5 v6.0 权重重导出 yolov5s / yolov5n @640, ★**算子直方图与台账里丢失的那份 245 节点 / 12 算子完全一致**) · ★**yolov5n INT8 = 5.13 MiB** (装得进 15 MiB 槽位; yolov5s = 10.47 MiB) · ★**COCO val2017 (5000 张) + instances_val2017.json 已恢复** ⇒ `acc` 步依赖齐 · ★**100 张校准集已重建** (同口径: COCO val2017 → letterbox 640×640 黑边) · ★**模型建议 = demo 第一版用 yolov5n** (理由是量化校准更稳 + 产物更小 + 60ms 余量更大, **不是**因为它更快 (板端没测)) · ★**推荐路线 = A2 (重新导出), A1 (找回原资产) 并行兜底** ⇒ **成本从 3~5 人天降到 ~1 人天**。★**唯一未闭合**: 板子 (Radxa A7S 192.168.2.5) 仍**不可达** (`No route to host` + ARP FAILED) ⇒ **P0-2 板端 librknnrt 版本号本单无法闭合**。 ★★**2026-11-02 20:3x 交卷并收口**: ★**工具链已恢复** (conda env `~/miniconda3/envs/rknn`; ★**路径与 `rknn_bench.py` 硬编码的 `RKNN_PY` 一致 ⇒ 仓库脚本零改动可跑**), ★**仓库脚本全链原样跑通** (probe/calib/convert/acc 四步 rc=0, 真落盘) ⇒ ★**A2 路线 (重新导出) 成本从 3~5 人天降到 ~1 人天**。★**校准集与 COCO val2017 已恢复** ⇒ 精度可比。★**核心结论 (P0)**: ★★**`rk3572` 不是任何已发布版 toolkit2 的合法 target_platform** —— 实测 2.3.2 与最新 **2.5.0** 都抛 `ValueError: Invalid target_platform ''rk3572''!`, 而 `target_platform=''rk3576''` **rc=0**; `rknn/api/rknn.py` 的目标列表里 rk3572 出现 **0 次** (含 .so 二进制 grep 也 0 命中), 官方 README 的 Support Platform 列表也没有 RK3572 ⇒ ★★**不存在"升级到某版本就有 rk3572"这个选项** ⇒ ★**ISS-145 的 M1「直接复用 A7S 的 .rknn, 零转换成本」前提不成立, 必须重转** ⇒ 替代路线 (rk3576 target 转换) 在 ISS-155。★**模型选择已定 (demo 第一版 = yolov5n)**: 实测同图集 **yolov5s F1 0.3017 vs yolov5n F1 0.2927 (只差 0.0090)** ⇒ 选 n (60ms 余量最大 + 误检少 263 个 + 产物小一半), 代价召回低 0.0291。★**它同时订正了 ISS-145 规格的两处错** (已由项目总工代改): ①核法 `RKNN.RKNN_TARGET_PLATFORM` 属性在 2.3.2 **不存在**, 且目标列表在编译后的 .so 里 ⇒ 正确核法是直接 `config()` 试 ②"yolov5n 少 ~4 点 mAP50" **不成立** (实测只差 0.0090 F1)。'
+  verify_date: '2026-11-08'
+  note: '2026-11-02 19:2x。★**这是 demo 板软件侧的第 0 步, 优先于一切写代码**。★**建议打法**: 先跑 ①找资产 (板子/备份) —— 成本最低, 命中就省掉导出+装工具链的两天; 找不到再走 ②③。★**板子 SSH 提醒**: 密码认证 (sshpass -p <BOARD_SSH_PASSWORD>), ★**IP 会变, 先 getent hosts radxa-cubie-a7s.local 确认, 不要用写死的**。★**别把 yolov5n 当既定**: 本地无 ONNX 且未实测 ⇒ 规格里写的是 M1/M2 二选一。 ★**2026-11-02 19:2x 实测**: 板子 **当前不可达** —— `ssh 192.168.2.5` 返回 *No route to host* (宿主虽有 192.168.2.3 与 192.168.71.4 两块网卡, 但到板子不通), mDNS 也不解析; ★**且本机没装 sshpass** (TOOLS.md 里写的 `sshpass -p <BOARD_SSH_PASSWORD>` 调用方式在这台机上不可用, 要么装 sshpass 要么用其它方式) ⇒ ★**走板子捞资产这条路现在断着** ⇒ 本单要么等板子恢复/换网, 要么直接走『重新导出 ONNX + 装 toolkit2 2.3.2』这条 (成本高 1~2 天)。 ★**关联**: 本单就是 sw-lead 在 STATE 里登记的阻塞 **SW-B15** (rk3572 在 toolkit2 2.3.2 是否受支持 + 本机无工具链/源模型/校准集) ⇒ source_blocker 已挂上, C5 双向覆盖闭合。 ★★**2026-11-02 20:2x 交卷并收口 —— demo 软件侧第 0 步基本打通**。★★**头号结论 (本单核心交付)**: **`rk3572` 不是 rknn-toolkit2 的合法 `target_platform`** —— ★**2.3.2 与最新版 2.5.0 都直接 `ValueError: Invalid target_platform 「rk3572」!`** ⇒ ★**ISS-145 的 M1 路线 ("直接复用 A7S 的 .rknn") 不成立, 必须重转**; ★**但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform=「rk3576」` 转换 + 板端用 RK3572 BSP 自带 runtime 加载** ⇒ **[推算·本文推导, 待板端验证]** ⇒ **★这是 demo 当前的头号卡点 (ISS-155)**。★★**构建环境已在本机恢复并真跑通**: conda env `rknn` (python 3.10.22 / rknn-toolkit2 2.3.2 / onnx 1.16.1 / torch 2.4.0+cpu; ★**路径与 `SW/tools/rknn_bench.py` 硬编码的 RKNN_PY 完全一致**) · ★**转换链四步全 rc=0 真落盘** (config → load_onnx → build(INT8) → export_rknn) · ★**源 ONNX 已重建** (yolov5 v6.0 权重重导出 yolov5s / yolov5n @640, ★**算子直方图与台账里丢失的那份 245 节点 / 12 算子完全一致**) · ★**yolov5n INT8 = 5.13 MiB** (装得进 15 MiB 槽位; yolov5s = 10.47 MiB) · ★**COCO val2017 (5000 张) + instances_val2017.json 已恢复** ⇒ `acc` 步依赖齐 · ★**100 张校准集已重建** (同口径: COCO val2017 → letterbox 640×640 黑边) · ★**模型建议 = demo 第一版用 yolov5n** (理由是量化校准更稳 + 产物更小 + 60ms 余量更大, **不是**因为它更快 (板端没测)) · ★**推荐路线 = A2 (重新导出), A1 (找回原资产) 并行兜底** ⇒ **成本从 3~5 人天降到 ~1 人天**。★**唯一未闭合**: 板子 (Radxa A7S 192.168.2.5) 仍**不可达** (`No route to host` + ARP FAILED) ⇒ **P0-2 板端 librknnrt 版本号本单无法闭合**。 ★★**2026-11-02 20:3x 交卷并收口**: ★**工具链已恢复** (conda env `~/miniconda3/envs/rknn`; ★**路径与 `rknn_bench.py` 硬编码的 `RKNN_PY` 一致 ⇒ 仓库脚本零改动可跑**), ★**仓库脚本全链原样跑通** (probe/calib/convert/acc 四步 rc=0, 真落盘) ⇒ ★**A2 路线 (重新导出) 成本从 3~5 人天降到 ~1 人天**。★**校准集与 COCO val2017 已恢复** ⇒ 精度可比。★**核心结论 (P0)**: ★★**`rk3572` 不是任何已发布版 toolkit2 的合法 target_platform** —— 实测 2.3.2 与最新 **2.5.0** 都抛 `ValueError: Invalid target_platform ''rk3572''!`, 而 `target_platform=''rk3576''` **rc=0**; `rknn/api/rknn.py` 的目标列表里 rk3572 出现 **0 次** (含 .so 二进制 grep 也 0 命中), 官方 README 的 Support Platform 列表也没有 RK3572 ⇒ ★★**不存在"升级到某版本就有 rk3572"这个选项** ⇒ ★**ISS-145 的 M1「直接复用 A7S 的 .rknn, 零转换成本」前提不成立, 必须重转** ⇒ 替代路线 (rk3576 target 转换) 在 ISS-155。★**模型选择已定 (demo 第一版 = yolov5n)**: 实测同图集 **yolov5s F1 0.3017 vs yolov5n F1 0.2927 (只差 0.0090)** ⇒ 选 n (60ms 余量最大 + 误检少 263 个 + 产物小一半), 代价召回低 0.0291。★**它同时订正了 ISS-145 规格的两处错** (已由项目总工代改): ①核法 `RKNN.RKNN_TARGET_PLATFORM` 属性在 2.3.2 **不存在**, 且目标列表在编译后的 .so 里 ⇒ 正确核法是直接 `config()` 试 ②"yolov5n 少 ~4 点 mAP50" **不成立** (实测只差 0.0090 F1)。★★**2026-11-08 23:3x sw-lead 独立验证 (verify_by) ⇒ PASS** ★**不是看标题, 是把本单的硬核命令重跑了一遍**: ①`~/miniconda3/envs/rknn/bin/python` 实跑 `config(target_platform=...)` ⇒ **rk3572 → ValueError: Invalid target_platform rk3572!** (与 `SW/RKNN_BUILD_ENV_RECOVERY.md` §2.2 L190 的实测输出逐字一致) · **rk3576 → rc=0** ⇒ ★**P0-1 结论被独立复现 (不是转述别人写的)** ②env 指纹实测 = python 3.10.22 / rknn-toolkit2 2.3.2 / onnx 1.16.1 / numpy 1.26.4 / protobuf 4.25.4 / torch 2.4.0+cpu / setuptools 80.10.2 ⇒ **与 fix_ref 写的指纹逐项一致** ③产物核对 = 该文档 **911 行** (mtime 11-02 23:49) + §6 待核清单 **N1~N18 18 条齐全** (L770) + `state/fragments/sw.yaml` 的 `rknn_target_platform` claim 已落账且与 §2 结论一致 ④F1 0.3017 / 0.2927 被 `SW/DEMO_OD_PIPELINE_SPEC.md` §1.4 (L84~L135) 的**四轮逐位实测表**独立交叉印证 (A/C/D 三轮逐位相同 + B 轮不同 ⇒ 缓存自动失效确实生效)。★**对 desc 的唯一偏差 (判为不构成不通过)**: desc ④写「校准集 = OD 场景实拍 300 张覆盖 80 类」, 交付的是 **COCO val2017 100 张** ⇒ 文档 §4.2/§4.3 (L468) 已**明确事实性纠正** (COCO 任意 100/300 张不可能覆盖 80 类; 校准只要求 ≥100 张) 并把眼镜场景实拍推迟到整机阶段 RT-1 ⇒ 属**有据的纠偏, 不是偷工**。★**⇒ verify_result=pass, status: fixed→verified (不进 closed)**: ★**残项 = desc ⑤ 后半段「板端 acc 复现链跑通」** —— 板子物理不在线 (文档 §1.5 实测 SSH
+    No route to host + ARP FAILED), 且 ★**老板 11-04 订正「不拿现成开发板当载体, demo 唯一载体 = 自研主板」** (见 `DECISION_PENDING_2026-11-04.md` §1 第 ② 行) ⇒ 该残项**已改挂 ISS-155 (板端验证, 仍 open) / ISS-169 (板可制造性, 仍 open)**, 不是本单能自闭环的欠账 ⇒ 故停在 verified。'
   dispatched_at: '2026-11-02'
 - id: ISS-148
   title: ★★[硬件] AR0234CS 硬件数据 (U2 VDD_IO abs max / U4 有无独立模拟轨) + ★demo sensor 改 IMX415 的四问
@@ -4076,14 +4089,16 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-04'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: 'HW/AR0234CS_OPEN_SOURCE_FACTS.md (513 行: 四个未知量全查实 + datasheet 镜像路径 + 三条投板后必改 + 诚实边界) · HW/IMX415_DEMO_SENSOR_FACTS.md (demo sensor 侧) · ISS-154 (整机阶段新增项)'
   verify_by: hw-lead
   verify_result: pass
-  verify_date: '2026-11-02'
-  note: '2026-11-02 19:3x。★**硬件优先的第一条** (老板 19:25 指示①)。★**检索范围写死**: ①上游/主线内核源码 ②GitHub 开源驱动源码 (RPi/Jetson/RK3588 三份) ③**公开 datasheet PDF** (onsemi 官网 PDF / Mouser / DigiKey 公开镜像 —— ★**这是公开资料, 不是问询函, 允许用**) ④openipc / 公开 sensor 库 ⑤机器视觉相机厂/模组厂**公开**规格页 (Arducam / Vadzo / e-CAM 等) ⑥开源硬件社区/论坛/Issue 里的实测贴 ⑦★**不要去查任何"需要厂家回复才能拿到"的东西** (不要找代理、不要发邮件、不要在社区发帖问厂家)。★**交卷**: 每个未知量写 ①结论 (查到/查不到) ②**证据 URL + 引用的具体行/表** ③查不到时的处置 (按上面判据) ④**若判据命中换料 ⇒ 给出候选排序与推荐**。★**不许写"应该可以"** —— 查不到就写查不到。 ★★**2026-11-02 19:29 范围收缩**: ①**U1 裸片功耗 —— 不查** (demo 不考虑功耗) ②**U3 CRA/光学 —— 不查** (demo 不追镜头/不暴露光方式) ⇒ 只保留 **U2 (VDD_IO abs max ⇒ I2C_A 上拉 3.3V 还是 2.8V)** 与 **U4 (有无独立模拟轨 ⇒ 网表 SENSOR_AVDD 轨与 LDO 留不留)**; ★**并追加 demo 真正要用的 IMX415 四问** (电源域 / 1080p60 怎么出 / 现成 IQ 适用哪个分辨率 / 模组采购硬判据) ⇒ 交两个文件: `HW/AR0234CS_OPEN_SOURCE_FACTS.md` (只留 U2/U4) + ★**`HW/IMX415_DEMO_SENSOR_FACTS.md`**。 ★★**2026-11-02 19:5x 交卷, 已按 IMX415 facts 落网表 (ISS-150)**: **① 电源域 (公开 datasheet)**: DVDD1 1.00~1.20V typ 1.10 / OVDD 1.70~1.90V typ 1.80 (IOVDD 3mA) / AVDD1 2.80~3.00V typ 2.90 (IAVDD max 156mA) ⇒ ★★**网表三条轨实测结论**: `SENSOR_VDD_IO` **2.8V → 1.8V** (★**不改会直接烧 sensor**: VI 绝对最大 ≤3.3V 而 OVDD max 1.90V) · `SENSOR_CORE` **1.2V 保持** (在 DVDD1 范围内) 只把电流规格 50→250mA · `SENSOR_AVDD` **2.8V 保持** (落 Min 边界) 电流规格 30→156mA ⇒ ★**轨数/LDO 型号/封装全不变 ⇒ 仍是「换料不换板」**; **② 1080p60 怎么出**: ★★**走 sensor 侧 2/2 行 binning (不是 crop ⇒ 不违反 10-25 禁 ROI)** ⇒ ★**Rockchip BSP `imx415.c` 已经带这个模式** (1944×1097, 寄存器 0x3020=0x01), ★**60fps 只需改 VMAX 一个数 (0x0C5D→0x062E) ⇒ "改一行"不是"移植驱动"** ⇒ **零移植确认**; **③ 现成 IQ**: `imx415_CMK-OT2022-PX1_IR0147-50IRC-8M-F20.json` 里 resolution 与 mesh 文件名**都锁死 3840×2160** ⇒ 1080p 档缺 mesh ⇒ ★**demo 唯一要做的 tuning = 补一套 1920×1080 mesh + AE 曝光表换算, 1~2 人日 (暗室/灰卡)** —— 不是人周级。 ★★**2026-11-02 20:1x 交卷并收口: 四个未知量全部用开源途径查实, 0 次对外通信** ⇒ ★**onsemi 官网 PDF 被 Akamai 403 ⇒ 走 LCSC + Sunnywale 两个授权分销镜像** (Rev 3 / Rev 0, 同一 Publication Order Number)。★**U1 功耗**: Table 1 p.1 ''<395 mW @120 FPS'' + Table 16 p.18 分轨 Typ **372.6** / Max **646.4 mW** ⇒ ★**datasheet 无 60fps 电流行** ⇒ 60fps 取 120fps 行为上界并标 [推算] ~300mW, 精确值留 [待核] 等 EVT。★**U2 abs-max**: Table 14 p.17 **VIN ≤ VDD_IO+0.3 = 3.1V** ⇒ ★**3.3V I2C 上拉违反绝对最大额定值** ⇒ 整机阶段必须改 2.8V (零 BOM 增量)。★**U3 CRA**: Table 1 p.1 **0° / 28° 两个 PN 变体** + Figure 19 p.23 28° 完整曲线 (角落 27.97°) ⇒ ★**CRA 查到了** (⇒ 120° 鱼眼需 ISP 鱼眼校正)。★**U4**: 5 组供电含 **VDDIO_PHY 1.8V only** (Note 10) ⇒ ★**网表缺这条轨 + CONN_CAM 18p 已占满 ⇒ 不供电就出不了图** (⇒ ISS-154)。★**口径修正**: 0.92W 是 e-CAM 模组级含板载 ISP, 我们 ISP 在 RK3572 ⇒ POWER_BUDGET_V3 里『拒绝 AR0234CS』的否决理由**口径不成立** (⇒ 已登记 PM 复算)。★**结论: 换料触发条件不成立 ⇒ AR0234CS 保留, 整机方案 sensor 不换**。★AND9658-D 在付费墙后 ⇒ 判『查不到』, 按老板规矩永久放弃该文档, 改问自家镜头厂要 CRA 曲线 (不违反禁令)。'
+  verify_date: '2026-11-08'
+  note: '2026-11-02 19:3x。★**硬件优先的第一条** (老板 19:25 指示①)。★**检索范围写死**: ①上游/主线内核源码 ②GitHub 开源驱动源码 (RPi/Jetson/RK3588 三份) ③**公开 datasheet PDF** (onsemi 官网 PDF / Mouser / DigiKey 公开镜像 —— ★**这是公开资料, 不是问询函, 允许用**) ④openipc / 公开 sensor 库 ⑤机器视觉相机厂/模组厂**公开**规格页 (Arducam / Vadzo / e-CAM 等) ⑥开源硬件社区/论坛/Issue 里的实测贴 ⑦★**不要去查任何"需要厂家回复才能拿到"的东西** (不要找代理、不要发邮件、不要在社区发帖问厂家)。★**交卷**: 每个未知量写 ①结论 (查到/查不到) ②**证据 URL + 引用的具体行/表** ③查不到时的处置 (按上面判据) ④**若判据命中换料 ⇒ 给出候选排序与推荐**。★**不许写"应该可以"** —— 查不到就写查不到。 ★★**2026-11-02 19:29 范围收缩**: ①**U1 裸片功耗 —— 不查** (demo 不考虑功耗) ②**U3 CRA/光学 —— 不查** (demo 不追镜头/不暴露光方式) ⇒ 只保留 **U2 (VDD_IO abs max ⇒ I2C_A 上拉 3.3V 还是 2.8V)** 与 **U4 (有无独立模拟轨 ⇒ 网表 SENSOR_AVDD 轨与 LDO 留不留)**; ★**并追加 demo 真正要用的 IMX415 四问** (电源域 / 1080p60 怎么出 / 现成 IQ 适用哪个分辨率 / 模组采购硬判据) ⇒ 交两个文件: `HW/AR0234CS_OPEN_SOURCE_FACTS.md` (只留 U2/U4) + ★**`HW/IMX415_DEMO_SENSOR_FACTS.md`**。 ★★**2026-11-02 19:5x 交卷, 已按 IMX415 facts 落网表 (ISS-150)**: **① 电源域 (公开 datasheet)**: DVDD1 1.00~1.20V typ 1.10 / OVDD 1.70~1.90V typ 1.80 (IOVDD 3mA) / AVDD1 2.80~3.00V typ 2.90 (IAVDD max 156mA) ⇒ ★★**网表三条轨实测结论**: `SENSOR_VDD_IO` **2.8V → 1.8V** (★**不改会直接烧 sensor**: VI 绝对最大 ≤3.3V 而 OVDD max 1.90V) · `SENSOR_CORE` **1.2V 保持** (在 DVDD1 范围内) 只把电流规格 50→250mA · `SENSOR_AVDD` **2.8V 保持** (落 Min 边界) 电流规格 30→156mA ⇒ ★**轨数/LDO 型号/封装全不变 ⇒ 仍是「换料不换板」**; **② 1080p60 怎么出**: ★★**走 sensor 侧 2/2 行 binning (不是 crop ⇒ 不违反 10-25 禁 ROI)** ⇒ ★**Rockchip BSP `imx415.c` 已经带这个模式** (1944×1097, 寄存器 0x3020=0x01), ★**60fps 只需改 VMAX 一个数 (0x0C5D→0x062E) ⇒ "改一行"不是"移植驱动"** ⇒ **零移植确认**; **③ 现成 IQ**: `imx415_CMK-OT2022-PX1_IR0147-50IRC-8M-F20.json` 里 resolution 与 mesh 文件名**都锁死 3840×2160** ⇒ 1080p 档缺 mesh ⇒ ★**demo 唯一要做的 tuning = 补一套 1920×1080 mesh + AE 曝光表换算, 1~2 人日 (暗室/灰卡)** —— 不是人周级。 ★★**2026-11-02 20:1x 交卷并收口: 四个未知量全部用开源途径查实, 0 次对外通信** ⇒ ★**onsemi 官网 PDF 被 Akamai 403 ⇒ 走 LCSC + Sunnywale 两个授权分销镜像** (Rev 3 / Rev 0, 同一 Publication Order Number)。★**U1 功耗**: Table 1 p.1 ''<395 mW @120 FPS'' + Table 16 p.18 分轨 Typ **372.6** / Max **646.4 mW** ⇒ ★**datasheet 无 60fps 电流行** ⇒ 60fps 取 120fps 行为上界并标 [推算] ~300mW, 精确值留 [待核] 等 EVT。★**U2 abs-max**: Table 14 p.17 **VIN ≤ VDD_IO+0.3 = 3.1V** ⇒ ★**3.3V I2C 上拉违反绝对最大额定值** ⇒ 整机阶段必须改 2.8V (零 BOM 增量)。★**U3 CRA**: Table 1 p.1 **0° / 28° 两个 PN 变体** + Figure 19 p.23 28° 完整曲线 (角落 27.97°) ⇒ ★**CRA 查到了** (⇒ 120° 鱼眼需 ISP 鱼眼校正)。★**U4**: 5 组供电含 **VDDIO_PHY 1.8V only** (Note 10) ⇒ ★**网表缺这条轨 + CONN_CAM 18p 已占满 ⇒ 不供电就出不了图** (⇒ ISS-154)。★**口径修正**: 0.92W 是 e-CAM 模组级含板载 ISP, 我们 ISP 在 RK3572 ⇒ POWER_BUDGET_V3 里『拒绝 AR0234CS』的否决理由**口径不成立** (⇒ 已登记 PM 复算)。★**结论: 换料触发条件不成立 ⇒ AR0234CS 保留, 整机方案 sensor 不换**。★AND9658-D 在付费墙后 ⇒ 判『查不到』, 按老板规矩永久放弃该文档, 改问自家镜头厂要 CRA 曲线 (不违反禁令)。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 (不因 main 已写 pass 而跟写): ①`HW/AR0234CS_OPEN_SOURCE_FACTS.md` **513 行**落地, §0 判定表逐条给了四个未知量的**结论 + 关键数字 + 换料? + 处置**: **U1 查到** (datasheet Table 1 <395mW @120FPS Full Res Typ; Table 16 分轨电流合计 Typ 372.6mW / Max 646.4mW, 并诚实标注『60fps 无单独电流行, 取 120fps 行做上界』+ 单调性论证 §2.2) · **U2 查到** (Table 14 VSUPPLY -0.3…4.5V ⇒ VDD_IO 轨 abs-max 4.5V, 但 VIN max = VDD_IO+0.3V ⇒ 3.3V 上拉超 0.2V) · **U3 部分查到** (CRA 0°/28° 两 PN 族 + Figure 19 完整 CRA 表; AND9658-D 正文在 Scribd 付费墙后 ⇒ 判**查不到**) · **U4 查到且比预期多** (Table 5: VAA/VAA_PIX/VAA_PHY 2.8V + **VDDIO_PHY 1.8V only** + VDD/VDD_PHY/VDD_DATA 1.2V ⇒ 网表缺一条轨)。②**换料判据齐**: §0 判定表『换料?』列 + §6『友商候选排序 —— 本轮不触发 (U1 查到了)』+ §7 [待核] 清单 + AND9658-D 明确『按老板规矩不发问询函, 判定永久放弃该文档』。③**纪律零违规**: §1.1『全部公开渠道, **0 次对外通信**』, §1.2 直接访问的公开 URL, §1.3 失败路径留痕 (Scribd 付费墙/超时) —— **全文无发邮件/找代理/发帖问厂家**, 所有证据来自公开可下载镜像与公开页。④**诚实边界到位**: §7 待核清单 + 每条『[实测]/[官方]/[推算]/[推断]』标注。⑤**额外产出**: 顺带查出 4 个投板后必改 (I2C 地址 0x36→0x10 / 3.3V 上拉超 abs-max / 缺 VDDIO_PHY 1.8V 轨 + 连接器无空脚 / value 字段残留 1.8V)。⑥`HW/IMX415_DEMO_SENSOR_FACTS.md` 277 行落地 (demo sensor 侧电源域/模式/IQ 适用性)。★**诚实边界**: U3 的 AND9658-D 推荐镜头清单 + CRA 容差带**永久查不到** (公开渠道到顶), 已给替代路径 (鱼眼 + ISP 校正, 老板 10-25 预设处置, 现由数据确认)。'
   dispatched_at: '2026-11-02'
 - id: ISS-149
   title: '★★★[硬件优先] demo 硬件形态落地: 一块主板 + **IMX415 sensor 模组** + 屏幕驱动板模组 + FPC 软排 ⇒ 网表级方案'
@@ -4095,14 +4110,16 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: 'HW/DEMO_BOARD_HW_DECISION.md (定案 + 三个问题的答案 + 两块 FPC 针位总表 + 采购硬判据) · state/gen_netlist.py (HINGE 只剩 J_CHG/CONN_USB; CONN_CAM/CONN_LIGHT → MAIN_PCB) · state/check_netlist.py (14 条判据同步: camera/display 在主板 + 充电链仍铰链)'
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
-  note: '2026-11-02 19:3x。★**硬件优先的第二条**。★**与 ISS-148 的关系**: ISS-148 决定 sensor 留不留 (U1 功耗查不到就换料) ⇒ ★**本单先按 AR0234CS 做, 但 sensor 模组的采购硬判据要写成可替换的** (靶面/功耗/供电/接口都列清, 换料时只改这几项)。★**本单自己动手的部分** (能机械做完的做完): 网表里的跨铰链属性去掉 + FPC 连接器位 + 充电板并板方案 + USB 供电方案。★**TBD-01 若查不到 ⇒ 按老板规则处理 (换主控), 但换主控代价极大 ⇒ 先穷尽公开渠道。 ★**19:29 变更**: sensor 模组改 IMX415 ⇒ 供电轨与 1080p60 模式要重核 (等 ISS-148 的 IMX415 facts)。 ★★**2026-11-02 19:4x 项目总工已定案并落网表** (老板 19:35「最高优先级是敲定硬件方案」) ⇒ 三个问题都有答案: ①sensor 模组 ↔ 主板 = **板内 FPC 座 0.5mm/24p + 2-lane CSI** (原网表即 2-lane 必装 + D2/D3 预留 ⇒ 无需改); ②**主控用 RK3572 核心板 (SOM) 焊/插主板** ⇒ 主板不碰 SoC 球位图 ⇒ ★**TBD-01 对 demo 板不再阻塞**; ③屏幕模组 (视涯 0.49" + 驱动板) ↔ 主板 = **板内 FPC 座 0.5mm/20p + 4-lane DSI** (373Mbps ⇒ 不需 DSC), **init code/时序 = 采购硬判据** ⇒ 不用发问询函。★**网表已同步并全绿**: gen_netlist / gen_kicad_net / gen_netlist_pins / gen_bom rc=0; check_netlist 31 条全过 (14 条换成新口径); check_kicad_net 5 条全过; gate_check rc=0。★**留给 Step2 的尾巴**: FPC 具体料号/针数最终确认 (现网表仍用 40p/16p 旧针位, 多余脚标 NC/预留) + 三条 sensor 轨按 IMX415 重核 (ISS-150) + SOM 引脚定义来源 (公开渠道)。'
+  verify_result: pass
+  verify_date: '2026-11-08'
+  note: '2026-11-02 19:3x。★**硬件优先的第二条**。★**与 ISS-148 的关系**: ISS-148 决定 sensor 留不留 (U1 功耗查不到就换料) ⇒ ★**本单先按 AR0234CS 做, 但 sensor 模组的采购硬判据要写成可替换的** (靶面/功耗/供电/接口都列清, 换料时只改这几项)。★**本单自己动手的部分** (能机械做完的做完): 网表里的跨铰链属性去掉 + FPC 连接器位 + 充电板并板方案 + USB 供电方案。★**TBD-01 若查不到 ⇒ 按老板规则处理 (换主控), 但换主控代价极大 ⇒ 先穷尽公开渠道。 ★**19:29 变更**: sensor 模组改 IMX415 ⇒ 供电轨与 1080p60 模式要重核 (等 ISS-148 的 IMX415 facts)。 ★★**2026-11-02 19:4x 项目总工已定案并落网表** (老板 19:35「最高优先级是敲定硬件方案」) ⇒ 三个问题都有答案: ①sensor 模组 ↔ 主板 = **板内 FPC 座 0.5mm/24p + 2-lane CSI** (原网表即 2-lane 必装 + D2/D3 预留 ⇒ 无需改); ②**主控用 RK3572 核心板 (SOM) 焊/插主板** ⇒ 主板不碰 SoC 球位图 ⇒ ★**TBD-01 对 demo 板不再阻塞**; ③屏幕模组 (视涯 0.49" + 驱动板) ↔ 主板 = **板内 FPC 座 0.5mm/20p + 4-lane DSI** (373Mbps ⇒ 不需 DSC), **init code/时序 = 采购硬判据** ⇒ 不用发问询函。★**网表已同步并全绿**: gen_netlist / gen_kicad_net / gen_netlist_pins / gen_bom rc=0; check_netlist 31 条全过 (14 条换成新口径); check_kicad_net 5 条全过; gate_check rc=0。★**留给 Step2 的尾巴**: FPC 具体料号/针数最终确认 (现网表仍用 40p/16p 旧针位, 多余脚标 NC/预留) + 三条 sensor 轨按 IMX415 重核 (ISS-150) + SOM 引脚定义来源 (公开渠道)。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核: ①`HW/DEMO_BOARD_HW_DECISION.md` (14.5KB) 三个问题**逐个有答案**: §1 问题一 sensor 与主板怎么连 (器件=IMX415 / 形态=camera 模组不带 LDO / 连接器=照 P1 模组倒逼 / FPC ≤60mm 不跨铰链 / AC 耦合放模组侧 / I2C camera=I2C_A display=I2C_B / 模式 1920×1080@60) · §2 问题二 主控怎么放 (SOM 焊在主板上, TBD-01 对 demo 板不再阻塞 / 4×100pin BTB / 散热面朝下 / 差分 100Ω) · §3 问题三 屏怎么接 (模组级 / init code 走采购硬判据不外发) · §4 两块 FPC 针位总表 · §5 **网表要改什么 N1-N7** · §6 采购口径更正 (C3: 0.5mm/24p 公开现货不存在 ⇒ 以现货为准) · §7 三件事并行。②**网表侧实证 (不只看文档)**: `HW/netlist_v1.csv` 里 **CONN_CAM / CONN_LIGHT 的 board 列 = MAIN_PCB**, **J_CHG = HINGE**, **CONN_USB = 0 行** (跨铰链 USB 整块删除) ⇒ 跨铰链属性确实去掉、两个 FPC 座确实上主板; `J_USB_C` board=MAIN_PCB ⇒ demo 改 USB 直供。③§0 写明『9 路电源 IC 的 EN 已在网表补齐』(实测 6 路 LDO + 2 路 DC-DC + U_EN_SW = 9 颗 EN 全在网表, 见 ISS-096)。④§2 里『Step1 直接用 SBC 当载体』那行**已被 §0 22:30 拍板推翻并由文档自己标注** ⇒ 自洽。★**诚实边界**: §4 的两块 FPC 针位表是『自研目标规格 (Step2)』, demo 阶段以公开现货为准 (§6 C3 已声明) ⇒ 现行针位表以 `HW/PCB/FPC_PIN_TABLES.md` 为准 (camera 31p/0.3mm, display 22p/0.5mm)。★**下游**: 老板 11-04 在 ISS-176 拍板 Waveshare 2.8" ⇒ 与本文件 §3/§6 结论不矛盾。'
   dispatched_at: null
 - id: ISS-150
   title: '★★★[硬件优先 #3] demo sensor 换 IMX415 ⇒ 网表三条电源轨要重核 + 1080p60 输出模式定案'
@@ -4114,14 +4131,16 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: 'HW/SCHEMATIC_V1_SPEC.json (power_rails: SENSOR_VDD_IO 1.8V/TPS7A20-18/3mA, SENSOR_CORE 250mA, SENSOR_AVDD 156mA) · state/gen_netlist.py (U_LDO_S28B→U_LDO_S18B + 三条轨电流规格 + I2C_A 上拉 4.7k→2.2k) · state/_iss150_imx415_rails.py · HW/IMX415_DEMO_SENSOR_FACTS.md §1'
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
-  note: '2026-11-02 19:3x。★**硬件优先** (老板 19:25 指示①)。★**依赖 ISS-148 的 IMX415 facts** (电源域 + 模式表 + IQ 适用性)。★**与 ISS-149 的分工**: ISS-149 = 形态与连接器方案 (主板/FPC/模组/去跨铰链), ★本单 = sensor 侧电源轨与输出模式的**网表级改动**。★**别改判据**: check_netlist 31 条 / check_kicad_net 5 条不许放松。 ★**19:4x 补充**: 电源轨重核的依据 = `HW/DEMO_BOARD_HW_DECISION.md` §1 (IMX415 三轨: 数字/IO/模拟, 具体电压以公开 datasheet 为准 ⇒ 等 ISS-148 的 facts) + ★**2-lane 不用改** (原网表已 2-lane 必装) ⇒ ★**本单剩两件事**: ①三条轨按 IMX415 重核 (改 `HW/SCHEMATIC_V1_SPEC.json` 的 power_rails = 真源) ②1080p60 输出模式定案 (sensor 侧窗口化 vs ISP 侧裁) + I2C 上拉电压按各自 IO 轨。 ★★**2026-11-02 19:5x 项目总工已改完并全绿** (gen_netlist/gen_kicad_net/gen_netlist_pins/gen_bom rc=0; check_netlist 31 条全过; check_kicad_net 5 条全过): ①`SENSOR_VDD_IO` 2.8V → **1.8V** (U_LDO_S28B → U_LDO_S18B, TPS7A20-18) —— ★**这是会烧 sensor 的级别** (19:3x 我按 AR0234CS 改的 2.8V, 现按 IMX415 datasheet 改回 ⇒ 净变化 0); ②`SENSOR_CORE` 1.2V 保持, 电流 50→250mA; ③`SENSOR_AVDD` 2.8V 保持, 电流 30→156mA; ④★**I2C_A 上拉 4.7k → 2.2k** (IMX415 的 IOL 只允许 3mA ⇒ R ≥ (3.3-0.4)/3mA = 967Ω; 取 2.2k ⇒ 灌 1.5mA ✔, t_r≈186ns ✔) —— ★**上拉电压仍留 3.3V** (IMX415 VI 绝对最大 ≤3.3V ⇒ 合法) ⇒ ★**TBD-05 对 IMX415 这一侧不成立**。'
+  verify_result: pass
+  verify_date: '2026-11-08'
+  note: '2026-11-02 19:3x。★**硬件优先** (老板 19:25 指示①)。★**依赖 ISS-148 的 IMX415 facts** (电源域 + 模式表 + IQ 适用性)。★**与 ISS-149 的分工**: ISS-149 = 形态与连接器方案 (主板/FPC/模组/去跨铰链), ★本单 = sensor 侧电源轨与输出模式的**网表级改动**。★**别改判据**: check_netlist 31 条 / check_kicad_net 5 条不许放松。 ★**19:4x 补充**: 电源轨重核的依据 = `HW/DEMO_BOARD_HW_DECISION.md` §1 (IMX415 三轨: 数字/IO/模拟, 具体电压以公开 datasheet 为准 ⇒ 等 ISS-148 的 facts) + ★**2-lane 不用改** (原网表已 2-lane 必装) ⇒ ★**本单剩两件事**: ①三条轨按 IMX415 重核 (改 `HW/SCHEMATIC_V1_SPEC.json` 的 power_rails = 真源) ②1080p60 输出模式定案 (sensor 侧窗口化 vs ISP 侧裁) + I2C 上拉电压按各自 IO 轨。 ★★**2026-11-02 19:5x 项目总工已改完并全绿** (gen_netlist/gen_kicad_net/gen_netlist_pins/gen_bom rc=0; check_netlist 31 条全过; check_kicad_net 5 条全过): ①`SENSOR_VDD_IO` 2.8V → **1.8V** (U_LDO_S28B → U_LDO_S18B, TPS7A20-18) —— ★**这是会烧 sensor 的级别** (19:3x 我按 AR0234CS 改的 2.8V, 现按 IMX415 datasheet 改回 ⇒ 净变化 0); ②`SENSOR_CORE` 1.2V 保持, 电流 50→250mA; ③`SENSOR_AVDD` 2.8V 保持, 电流 30→156mA; ④★**I2C_A 上拉 4.7k → 2.2k** (IMX415 的 IOL 只允许 3mA ⇒ R ≥ (3.3-0.4)/3mA = 967Ω; 取 2.2k ⇒ 灌 1.5mA ✔, t_r≈186ns ✔) —— ★**上拉电压仍留 3.3V** (IMX415 VI 绝对最大 ≤3.3V ⇒ 合法) ⇒ ★**TBD-05 对 IMX415 这一侧不成立**。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核: ①**三条电源轨已按 IMX415 重核并落进规格真源**: `HW/SCHEMATIC_V1_SPEC.json` power_rails —— SENSOR_AVDD 2.8V/156mA/TPS7A20-28 · SENSOR_VDD_IO **1.8V**/3mA/TPS7A20-18 · SENSOR_CORE 1.2V/250mA/TPS7A20-12; 网表对应 91/95 (U_LDO_S28) · 100/105 (U_LDO_S18B) · 110/115 (U_LDO_S12) —— ★**三轨都带 DNP 理由**(camera 模组自带稳压 ⇒ 主板不供芯片级轨) 与『TPS7A20 全部固定档共用 X2SON ⇒ 换料不改板』的吸收说明。②**I2C_A 上拉 4.7k→2.2k 已实做**: 网表 169/170 行 R_PU_I2CA_SCL/SDA = 2.2k ±1% (挂 RAIL_VDD_1V8_IO), 阻值推导写在行内 (1.8V 域: R≥(1.8-0.4)/3mA=467Ω ⇒ 取 2.2k; 灌流 0.64mA ≤3mA; t_r=2.2k×100pF×0.847≈186ns)。③`state/_iss150_imx415_rails.py` 落地。④**2-lane 不用改**: 原网表 CSI 已含 D0/D1/D2/D3 四对, 模组侧 4-lane 已在位 (网表 CONN_CAM pin2/3/5/6/11/12/14/15/17/18) ⇒ 相机侧 4-lane 保留。⑤**门禁不放松**: `check_netlist.py` 32 条 rc=0 / `check_kicad_net.py` 8 条 rc=0 / `check_netlist_pins.py` 9 条 rc=0。★**诚实边界**: 三轨标称值随 ISS-148 的 IMX415 facts 落定; 因 camera 改模组级供电, 三轨均 DNP (焊盘与选型信息仍留在网表, 换回芯片级方案即恢复) ⇒ **不是删了, 是标了 DNP 并留了料号**。'
   dispatched_at: null
 - id: ISS-151
   title: '★★[硬件优先] 替代料候选清单: 每类物料 ≥3 个公开在售替代品 + 来源/规格/数据来源评分 ⇒ 让「都试过了」可核查'
@@ -4133,14 +4152,14 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-04'
-  status: fixed
+  status: verified
   external: false
   need_keys: []
   fix_ref: HW/PART_ALTERNATIVES_REGISTRY.md (9 章 / 7 类 / 每类 ≥3 个公开在售候选 + 实测 HTTP 状态 + 已试-未试栏)
   verify_by: sw-lead
   verify_result: pass
-  verify_date: '2026-11-02'
-  note: '2026-11-02 19:5x。★**硬件优先**。★**这份清单是四级阶梯的凭证**, 也是 ISS-142 (厂商咨询) 的放行前提。★**顺带收益**: 清单里 ★**公开现货的 MIPI-DSI 屏模组驱动 IC 是公开的 (ST7701 / EK79007+EK73217)** ⇒ ★**面板 init code 很可能不用问厂家** —— Rockchip 内核自带这些 panel 的驱动与时序 ⇒ ★**这条能直接解掉 ISS-145 的"面板 init code 是真瓶颈"**。 ★★**2026-11-02 20:2x 交卷并收口**。★**核心结论**: ①★**屏幕 init code 大概率不必问厂家** —— Rockchip BSP develop-6.1 `drivers/gpu/drm/panel/` 79 个文件里**确实有** ST7701 / ST7703 / ILI9881C / NV3052C 的现成驱动 + 完整 init sequence 范例 (实测抓到原文); ★**但我 19:4x 说的 EK79007+EK73217 / NV3049 内核里【没有】** ⇒ 那两颗不能当白送算 (已订正三处文档); ②★**主控载体首选 = Forlinx OK3572-C + FET3572-C SoM** (公开产品简介 PDF, 与硬件方案 Step1 一致), 备选 ArmSoM CM5 (★**CM4 兼容 ⇒ RPi 15p CSI 座可直插**) / DFRobot RK3576 核心板 (★**套件自带 IMX415 相机模组**) / Banana Pi BPI-CM5 Pro / Luckfox Core3576; ③★**"已试/未试"栏的真实含义 (回答老板"所有元件都试了"的状态)**: 绝大多数候选的「已查」= 公开页面/规格书/内核源码实测, 「已试」= 上手跑通/实物验证 ⇒ ★**全库无采购记录 (grep 已购/已下单/已到手 全库无命中) ⇒ L3 门槛还没到, 现在正是 L1/L2 阶段**; ④★**TPS7A20 实测【有 EN 脚】** ⇒ 推翻项目内「无 EN」的判断 ⇒ **ISS-152 有解 (不用换 LDO 家族)**; ⑤各档电压的**封装可得性**已实测 (决定换档会不会改焊盘 ⇒ 换 sensor 改轨时零改板)。 ★★**20:3x 项目总工采纳 C5 并已修网表 (P0)**: ★**TPS7A20 / TPS62130A 都有 EN 脚 (TPS7A20 内部 500kΩ 下拉 ⇒ 悬空=关断)**, 而原网表 **9 路电源 IC 全没有 EN 网络** ⇒ 投板后 9 路全灭 = 整板不上电 = 2~4 周返工; ★**BOM footprint/opn 全是"待定" ⇒ 现在改成本≈0** ⇒ ★**已修**: ①除 SENSOR_AVDD 外, 每颗 IC 的 EN **直连 RAIL_SYS** (3.5-4.2V ≫ VEN(HIGH) 0.9V ⇒ 永远使能, 零新增器件) ②**SENSOR_AVDD 的 EN 走 RC 延时** (R 100k SYS→EN + C 1µF EN→GND, t=(100k‖500k)×1µF≈83ms) ⇒ **AVDD 最后上电 ⇒ 满足 IMX415 的 DVDD→OVDD→AVDD 顺序 ⇒ 顺手解掉 ISS-152 (不用换 LDO 家族)**。★**另两条采购口径更正 (已写进硬件方案文件)**: **C3** 公开现货 camera 模组 FPC 是 31p/0.3mm 或 RPi 15p/1.0mm 或 22p/0.5mm ⇒ ★**几乎没有 0.5mm/24p 现货** ⇒ 我们那套 24p 针位是**自研目标规格 (Step2)**, demo 用现货; **C4** 公开现货 MIPI-DSI 一体屏最高只到 1200×1920 (Radxa 10 FHD) ⇒ ★**"1920×1080 视涯 SiOLED"没有公开对标品** ⇒ demo 用 8HD/10FHD 验链路, 视涯单列风险项。★**init sequence 现成范例**: `rk3576-evb.dtsi` 里有 **1080×1920 / 4-lane / RGB888 的完整 panel-init-sequence** (与视涯屏分辨率最贴) ⇒ ★**面板这条路起点是"抄内核现成 dts", 不是"问厂家"**。★**L3 状态自评**: 全库 `grep -rnE "已购|已下单|已到手"` **零命中** ⇒ ★**"所有元件都试过了"这个条件目前不成立 ⇒ L4 (咨询厂家) 现在不该触发**。'
+  verify_date: '2026-11-08'
+  note: '2026-11-02 19:5x。★**硬件优先**。★**这份清单是四级阶梯的凭证**, 也是 ISS-142 (厂商咨询) 的放行前提。★**顺带收益**: 清单里 ★**公开现货的 MIPI-DSI 屏模组驱动 IC 是公开的 (ST7701 / EK79007+EK73217)** ⇒ ★**面板 init code 很可能不用问厂家** —— Rockchip 内核自带这些 panel 的驱动与时序 ⇒ ★**这条能直接解掉 ISS-145 的"面板 init code 是真瓶颈"**。 ★★**2026-11-02 20:2x 交卷并收口**。★**核心结论**: ①★**屏幕 init code 大概率不必问厂家** —— Rockchip BSP develop-6.1 `drivers/gpu/drm/panel/` 79 个文件里**确实有** ST7701 / ST7703 / ILI9881C / NV3052C 的现成驱动 + 完整 init sequence 范例 (实测抓到原文); ★**但我 19:4x 说的 EK79007+EK73217 / NV3049 内核里【没有】** ⇒ 那两颗不能当白送算 (已订正三处文档); ②★**主控载体首选 = Forlinx OK3572-C + FET3572-C SoM** (公开产品简介 PDF, 与硬件方案 Step1 一致), 备选 ArmSoM CM5 (★**CM4 兼容 ⇒ RPi 15p CSI 座可直插**) / DFRobot RK3576 核心板 (★**套件自带 IMX415 相机模组**) / Banana Pi BPI-CM5 Pro / Luckfox Core3576; ③★**"已试/未试"栏的真实含义 (回答老板"所有元件都试了"的状态)**: 绝大多数候选的「已查」= 公开页面/规格书/内核源码实测, 「已试」= 上手跑通/实物验证 ⇒ ★**全库无采购记录 (grep 已购/已下单/已到手 全库无命中) ⇒ L3 门槛还没到, 现在正是 L1/L2 阶段**; ④★**TPS7A20 实测【有 EN 脚】** ⇒ 推翻项目内「无 EN」的判断 ⇒ **ISS-152 有解 (不用换 LDO 家族)**; ⑤各档电压的**封装可得性**已实测 (决定换档会不会改焊盘 ⇒ 换 sensor 改轨时零改板)。 ★★**20:3x 项目总工采纳 C5 并已修网表 (P0)**: ★**TPS7A20 / TPS62130A 都有 EN 脚 (TPS7A20 内部 500kΩ 下拉 ⇒ 悬空=关断)**, 而原网表 **9 路电源 IC 全没有 EN 网络** ⇒ 投板后 9 路全灭 = 整板不上电 = 2~4 周返工; ★**BOM footprint/opn 全是"待定" ⇒ 现在改成本≈0** ⇒ ★**已修**: ①除 SENSOR_AVDD 外, 每颗 IC 的 EN **直连 RAIL_SYS** (3.5-4.2V ≫ VEN(HIGH) 0.9V ⇒ 永远使能, 零新增器件) ②**SENSOR_AVDD 的 EN 走 RC 延时** (R 100k SYS→EN + C 1µF EN→GND, t=(100k‖500k)×1µF≈83ms) ⇒ **AVDD 最后上电 ⇒ 满足 IMX415 的 DVDD→OVDD→AVDD 顺序 ⇒ 顺手解掉 ISS-152 (不用换 LDO 家族)**。★**另两条采购口径更正 (已写进硬件方案文件)**: **C3** 公开现货 camera 模组 FPC 是 31p/0.3mm 或 RPi 15p/1.0mm 或 22p/0.5mm ⇒ ★**几乎没有 0.5mm/24p 现货** ⇒ 我们那套 24p 针位是**自研目标规格 (Step2)**, demo 用现货; **C4** 公开现货 MIPI-DSI 一体屏最高只到 1200×1920 (Radxa 10 FHD) ⇒ ★**"1920×1080 视涯 SiOLED"没有公开对标品** ⇒ demo 用 8HD/10FHD 验链路, 视涯单列风险项。★**init sequence 现成范例**: `rk3576-evb.dtsi` 里有 **1080×1920 / 4-lane / RGB888 的完整 panel-init-sequence** (与视涯屏分辨率最贴) ⇒ ★**面板这条路起点是"抄内核现成 dts", 不是"问厂家"**。★**L3 状态自评**: 全库 `grep -rnE "已购|已下单|已到手"` **零命中** ⇒ ★**"所有元件都试过了"这个条件目前不成立 ⇒ L4 (咨询厂家) 现在不该触发**。★★**2026-11-08 23:3x sw-lead 独立验证 (verify_by) ⇒ PASS**: ①**结构核对**: `HW/PART_ALTERNATIVES_REGISTRY.md` **266 行** (mtime 11-02 22:56) · desc 点名的 **7 类全部到位** = §1 主控载体 (L18) / §2 camera 模组 (L37) / §3 屏幕模组 (L56) / §4 sensor 裸件 (L109) / §5 FPC 连接器与排线 (L124) / §6 电源 (L138) / §7 调试与接口 (L198); ★**每类候选数 = 5 / 6 / 5 / 4 / 5 / 5 / 4, 全部 ≥3** ✔ ②**字段核对**: 每行都带 desc 要求的 8 列 (类别 / 候选名 / 公开在售渠道(链接) / 关键规格 / ①能否满足 demo 硬指标 / ②数据来源 D1~D5 / 已试-未试 / 备注) ✔ ③**纪律逐条核对**: ①链接逐条标注实测 HTTP 状态 ✔ ②未查的写「未查」不猜价格库存 (FH35C 额定电流与弯折寿命 = 未查 · AR0521 电源轨 = 未查 · Forlinx 逐针表 = 未查) ✔ ③**全文无「联系厂家」动作** ✔ ④**已试/未试栏真的动了** + §8 (L209) 给了判定口径与汇总表 + L3 自评 (全库零采购记录 ⇒ L3 门槛未到 ⇒ L4 不该触发) ✔ ⑤§9 (L230) 给了 C1~C7 可执行结论。★**§3 是本单最硬的一块**: 79 个 panel 文件逐个列目录 ⇒ ST7701/ST7703/ILI9881C/NV3052C 确有现成驱动, ★**同时诚实写出反例 EK79007/EK73217/NV3049 内核里没有** ⇒ 推翻老板原假设但没粉饰。★**我本机 11-08 抽验链接可达性**: forlinx OK3572-C 页 **200** ✔ · docs.radxa.com camera-4k **200** ✔ · wiki.dfrobot.com/dfr1218 **200** ✔ · waveshare 4.3inch DSI wiki **200** ✔ · ti.com TPS7A20 **200** ✔ · hirose 产品页 **403** (文档标 200 —— 当日 Cloudflare 拦 curl, 同一文档另一条 hirose 链接本就标 403 ⇒ 判为**UA/时段敏感, 非编造**, 不影响结论)。★**唯一偏差**: fix_ref 写「9 章」, 现文件 **10 章** (§10 为 ISS-158 后补的针位表补充, L247) ⇒ 是**超集不是缺项**。★**⇒ verify_result=pass, status: fixed→verified**。★**为何停在 verified 不进 closed (残项已定位到行)**: ★**ISS-151 §9 C2 自己列的落成动作有两条在散文里没落地** —— `HW/IMX415_DEMO_SENSOR_FACTS.md` **L18** (§0 ①) 仍写 `dvdd 1.1V ... 电压全要改` · **L44** (§1.2 对照表) 仍写 SENSOR_CORE 应改为 **1.1 V** · **L54** (§1.3) 仍写「现网表三条 LDO 全部同时接 RAIL_SYS、**无使能脚**」 ⇒ ★**而真源已经是相反的口径**: 网表 `HW/netlist_v1.csv` **L110** = SENSOR_CORE **1.2 V** / 250 mA · **L102** = U_LDO_S18B **pin3 = EN 直连 RAIL_BOARD_5V**; BOM `HW/BOM_v1.csv` **L51/L55/L59/L63/L67/L71** 六颗 LDO 都有 `EN (pin3)` 行 · U_LDO_S12 = **TPS7A2012 (1.2V)** ⇒ ★**C2/C5 的工程动作已落地 (网表+BOM), 只是 hw-lead 的 facts 文档散文没跟上** ⇒ 残项在 hw-lead lane, 不是本单交付物缺陷, 但仍是一笔可查的欠账 ⇒ 故不进 closed。'
   dispatched_at: '2026-11-02'
 - id: ISS-152
   title: '★★[硬件] IMX415 上电顺序 (DVDD→OVDD→AVDD) 与 AVDD typ 2.9V: 现网表三轨同起 + LDO 无 EN ⇒ 顺序不保证'
@@ -4260,14 +4279,16 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: 'SW/tools/rknn_bench.py (11 处: 模型指纹 sha256(权重路径+内容sha256+mtime+尺寸+保留输出名+cut工具) / 指纹缓存键 / HIT-MISS 打印 / 多指纹自检 / --onnx 换权重重测 / --force-recut) · SW/DEMO_OD_PIPELINE_SPEC.md (§1.4 四轮实测表 + target 写死 rk3576 + 判据冲突提请) · SW/RKNN_BENCH.md (§7.5) · state/fragments/sw.yaml'
   verify_by: hw-lead
   verify_result: pass
-  verify_date: '2026-11-02'
-  note: '2026-11-02 20:3x。★**优先级高于其它软件单**: 这是"绿灯假数据"型缺陷, 一旦踩中, 后面所有精度结论都不可信。★**改完必须重测 yolov5n / yolov5s 两个 F1** 并把数写回 ISS-145 §1 表格。 ★★**2026-11-02 18:4x 交卷并验收通过 (main 抽查: 指纹函数在位 / 两份不同指纹缓存并存 / 旧假缓存已清 / 两个 F1 已进规格)**。★**三条硬验收全过**: ①同权重两次结果**逐位相同** (含一次删缓存 MISS) ②换权重结果**必须不同** (yolov5n 494/765/1623/0.29265 ≠ yolov5s 565/1028/1588/0.30166) ③两个 F1 重测 = **0.3017 / 0.2927**, 与 ISS-147 首测**逐位一致** (首测本是''人记得删缓存''跑对的, 现在这个前提变成脚本自动行为)。★★**物证 (已写进 RKNN_BENCH §7.5.1)**: 旧缓存 `yolov5s_heads.onnx` 与 `yolov5n-sim_heads_*.onnx` **sha16 逐字节相同 (adac68f888bf61c2 / 7,520,239 B)** ⇒ **文件名叫 yolov5s 的里面装的是 yolov5n 的图** ⇒ 这就是''绿灯假数据''的实物 ⇒ 已删。★**待办已由项目总工当场收掉两条**: ①`.rknn` 产物名带源权重 stem (已改 rknn_bench.py) ②`RKNN_BUILD_ENV_RECOVERY.md` 里''换模型前必做 rm -f .../yolov5s_heads.onnx'' 已过期 (缓存现在自动失效) 已更正。★**剩两条**: ③**判据冲突 SW-Q5 升级给老板** (见 ISS-164) ④板端验证 (ISS-155) 卡在 Radxa A7S 不可达 ⇒ 需另取一块 RK357x 板 (与 demo 载板同一块解决)。'
+  verify_date: '2026-11-08'
+  note: '2026-11-02 20:3x。★**优先级高于其它软件单**: 这是"绿灯假数据"型缺陷, 一旦踩中, 后面所有精度结论都不可信。★**改完必须重测 yolov5n / yolov5s 两个 F1** 并把数写回 ISS-145 §1 表格。 ★★**2026-11-02 18:4x 交卷并验收通过 (main 抽查: 指纹函数在位 / 两份不同指纹缓存并存 / 旧假缓存已清 / 两个 F1 已进规格)**。★**三条硬验收全过**: ①同权重两次结果**逐位相同** (含一次删缓存 MISS) ②换权重结果**必须不同** (yolov5n 494/765/1623/0.29265 ≠ yolov5s 565/1028/1588/0.30166) ③两个 F1 重测 = **0.3017 / 0.2927**, 与 ISS-147 首测**逐位一致** (首测本是''人记得删缓存''跑对的, 现在这个前提变成脚本自动行为)。★★**物证 (已写进 RKNN_BENCH §7.5.1)**: 旧缓存 `yolov5s_heads.onnx` 与 `yolov5n-sim_heads_*.onnx` **sha16 逐字节相同 (adac68f888bf61c2 / 7,520,239 B)** ⇒ **文件名叫 yolov5s 的里面装的是 yolov5n 的图** ⇒ 这就是''绿灯假数据''的实物 ⇒ 已删。★**待办已由项目总工当场收掉两条**: ①`.rknn` 产物名带源权重 stem (已改 rknn_bench.py) ②`RKNN_BUILD_ENV_RECOVERY.md` 里''换模型前必做 rm -f .../yolov5s_heads.onnx'' 已过期 (缓存现在自动失效) 已更正。★**剩两条**: ③**判据冲突 SW-Q5 升级给老板** (见 ISS-164) ④板端验证 (ISS-155) 卡在 Radxa A7S 不可达 ⇒ 需另取一块 RK357x 板 (与 demo 载板同一块解决)。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 (**实跑, 非只读代码**): ①`SW/tools/rknn_bench.py:326 model_fingerprint()` 的指纹组成 = 路径 + **权重内容 sha256[:16]** + mtime + mtime_ns + 字节数 + 输入尺寸 + 保留输出名 + **cut 工具自身 sha256[:16]** ⇒ 满足『指纹必须是**内容** sha256 而不是只用路径/mtime』的硬判据 (源码 148-149 行也写明这条口径)。②**缓存键含指纹**: 源码 364-367 行 cut_cache_path() = `{stem}_heads_{fingerprint}.onnx` ⇒ 换权重自动换缓存文件名, 不用记得删。③**HIT/MISS 打印在位**: 源码 810-811 行返回 cache="HIT"/"MISS" + 706-708 行把 model_fingerprint 写进状态 (人能直接核对这次跑的是哪个权重)。④`--onnx` (换权重重测) 与 `--force-recut` 参数**实跑 `--help` 确认存在**。⑤**旧版无指纹缓存 `*_heads.onnx` 会被识别并告警** (源码 158 行 CUT_CACHE_GLOB_LEGACY + 412 行 warn)。⑥**缓存自检** scan_cut_cache() 报『多个不同指纹 ⇒ 提示清理』。★**我做的行为实测** (用 rknn conda env 加载模块, 未改动任何产物): 对 `check0_base_optimize.onnx` 与 `check1_fold_constant.onnx` 各算一次指纹 ⇒ **同文件两次指纹相同 (790bda07a239c728)**, **换权重指纹不同 (9d4787e7f518a40b)**, 缓存路径分别为 `..._heads_790bda07a239c728.onnx` 与 `..._heads_9d4787e7f518a40b.onnx` ⇒ **『绿灯假数据』的失效路径已被真正堵住**。★**诚实边界**: 本轮**未跑完整 RKNN 推理链** (环境无 rknn-toolkit2 时的转换/精度数字未复测), 验证只覆盖『缓存键与指纹』这一机制本身; 两个 F1 的数值由 main 11-02 交卷时实测, 不在本次复测范围。'
   dispatched_at: '2026-11-02'
 - id: ISS-158
   title: ★★★[demo 头号硬件阻塞] 三件前置选型 (camera 模组 / 屏模组 / RK3572 核心板) ⇒ 主板照它们画 (★选型顺序倒置)
@@ -4279,14 +4300,16 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-04'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: 'HW/STEP1_PARTS_SPEC.md (42.8KB: P1/P2/P3 三件规格 + 逐针针位表) · HW/PART_ALTERNATIVES_REGISTRY.md (§10 + C3-bis/C6/C7) · state/fragments/hw.yaml'
   verify_by: hw-lead
   verify_result: pass
-  verify_date: '2026-11-02'
-  note: '2026-11-02 22:4x。★**这一条是自研主板路径上的第一块砖** —— 板子画不出来不是因为不会画, 是因为**不知道 FPC 座要几针、SOM 有多大**。★**注意 ISS-156 的口径已改** (不再买 SBC)。★**同时把 ISS-151 清单里「载板候选」那一类改读成「SOM 候选」** —— 我们要的是能焊在自己主板上的核心板, 不是完整 SBC。 ★**2026-11-02 23:0x main 验收通过** (文件落地/mtime 已核; 关键数与 facts 文档一致): P1 = **Radxa Camera 4K (IMX415) 31p/0.3mm, 逐针表 31/31** (座 FH35C-31S-0.3SHW(50); 1080p60 = 1944×1097/12bit/0x3020=0x01/VTS 0x0C5D→0x062E; FOV D88.2/H75/V59; SCCB 0x1a); P2 = **Radxa Display 8HD/10FHD 40p/0.5mm, 逐针表 40/40**; P3 = **Forlinx FET3572-C 68×50mm, 4×100pin/0.4mm BTB, DC 5-13V**。★**三条结论**: ①「0.5mm/24p 自研规格」**正式作废** ⇒ 主板两座定死 = camera 31p/0.3mm + display 40p/0.5mm, 照抄针位表, 不用转接排线 ②★**「驱动 IC 须在内核白名单」只管专用 panel driver** —— 内核有 panel-simple.c 但**无 panel-radxa-*** ⇒ P2 改走 **simple-panel-dsi (10FHD)**, 8HD 降备选; init code 仍可抄 rk3576-evb.dtsi (263 条) ③★**FET3572-C 是连接器式 SOM**, "推荐焊接"不成立 ⇒ 主板承担 400 焊盘 ⇒ ★**引脚定义表从 nice-to-have 变成画板硬前提**。★**唯一硬缺口**: P3 逐针引脚定义表 + 机械尺寸图 (Forlinx 下载中心需注册登录 ⇒ **属公开下载, 非 L4**; ★**PDF 明写与 FET3576-C 引脚兼容 ⇒ 拿到后者即等于前者**) ⇒ 已立 **ISS-162**。'
+  verify_date: '2026-11-08'
+  note: '2026-11-02 22:4x。★**这一条是自研主板路径上的第一块砖** —— 板子画不出来不是因为不会画, 是因为**不知道 FPC 座要几针、SOM 有多大**。★**注意 ISS-156 的口径已改** (不再买 SBC)。★**同时把 ISS-151 清单里「载板候选」那一类改读成「SOM 候选」** —— 我们要的是能焊在自己主板上的核心板, 不是完整 SBC。 ★**2026-11-02 23:0x main 验收通过** (文件落地/mtime 已核; 关键数与 facts 文档一致): P1 = **Radxa Camera 4K (IMX415) 31p/0.3mm, 逐针表 31/31** (座 FH35C-31S-0.3SHW(50); 1080p60 = 1944×1097/12bit/0x3020=0x01/VTS 0x0C5D→0x062E; FOV D88.2/H75/V59; SCCB 0x1a); P2 = **Radxa Display 8HD/10FHD 40p/0.5mm, 逐针表 40/40**; P3 = **Forlinx FET3572-C 68×50mm, 4×100pin/0.4mm BTB, DC 5-13V**。★**三条结论**: ①「0.5mm/24p 自研规格」**正式作废** ⇒ 主板两座定死 = camera 31p/0.3mm + display 40p/0.5mm, 照抄针位表, 不用转接排线 ②★**「驱动 IC 须在内核白名单」只管专用 panel driver** —— 内核有 panel-simple.c 但**无 panel-radxa-*** ⇒ P2 改走 **simple-panel-dsi (10FHD)**, 8HD 降备选; init code 仍可抄 rk3576-evb.dtsi (263 条) ③★**FET3572-C 是连接器式 SOM**, "推荐焊接"不成立 ⇒ 主板承担 400 焊盘 ⇒ ★**引脚定义表从 nice-to-have 变成画板硬前提**。★**唯一硬缺口**: P3 逐针引脚定义表 + 机械尺寸图 (Forlinx 下载中心需注册登录 ⇒ **属公开下载, 非 L4**; ★**PDF 明写与 FET3576-C 引脚兼容 ⇒ 拿到后者即等于前者**) ⇒ 已立 **ISS-162**。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核: ①`HW/STEP1_PARTS_SPEC.md` (42.8KB) + `HW/PART_ALTERNATIVES_REGISTRY.md` (54.7KB) 落地, 结构覆盖 P1/P2/P3 三件。②**P1 camera 六项要求逐项有交付**: §2.1 FPC 针数/间距/针位表 (★**全 31 针原文**, 座 = HIROSE **FH35C-31S-0.3SHW(50)**, 31pin/0.3mm, 含连接器形态/机械尺寸 10.9×4.2×0.9mm) · §2.2 1080p60 寄存器/配置序列 (随货必须给的那份) · §2.3 AC 耦合是否内置 (**部分查实/部分未查**, 诚实标注) · §2.4 供电轨/电流 + 上电时序 (★**两层口径**, 芯片级 vs 模组级) · §2.5 SCCB 地址 (0x1a, [实测]) · §2.6 镜头 FOV 口径 · §2.7 FPC 弯折寿命 (**未查**, 走采购硬判据)。③**我实做针位抽查**: `HW/PCB/FPC_PIN_TABLES.md` 的 camera 31 针表与 `HW/netlist_v1.csv`/板上焊盘**逐针对得上** —— 1=GND/2=MDN4(CSI_D0_D3_N)/3=MDP4(D3_P)/…/17=MCN(CK_N)/18=MCP(CK_P)/20=MCLK/24=SCL(I2C_A_SCL)/25=SDA(I2C_A_SDA)/27=RESET(CAM_RESET_N)/28,29=VCC3.3V/30,31=VCC5V, **31/31 无重号无缺号、无脚位对调** ⇒ 主板照抄不会报废。④**有出处**: 全文 13 处 URL (Radxa 官方文档页 / HIROSE 原厂页 / Mouser 页 / Forlinx 产品简介 PDF / DigiKey 镜像), 逐条标 [实测]/[官方]。⑤**P3 的硬缺口诚实留痕且已被后续闭环**: §4.1 明写『FET3572-C 逐针引脚定义表 (400 针) —— **未查** (这是本单唯一的硬缺口)』, 同段还记了 Forlinx『Compatible with the pin design of the FET3576-C SoM』这句公开声明 ⇒ ★**ISS-168 正是拿这句话当反面**: 实测 3572 与 3576 两表 399 针里 **212 针 ball 不同 / 184 针 signal 不同 / 合计 228 针不同** ⇒ 『机械兼容 ≠ 电气功能兼容』被实锤, P3 缺口已由 ISS-165/168 闭掉。⑥**没把『待选型』当『已选定』**: P2 的『针位表/背光/价格』明写『未查到』。★**诚实边界**: P3 引脚表在本文件里仍是空的 (这是当时的诚实状态, 后续 issue 已补), 不算本单失败。'
   dispatched_at: '2026-11-02'
 - id: ISS-159
   title: '★★[demo] 画板前致命项清零 F4~F12 (★照 EN 那个 P0 的教训: 漏到投板后 = 2~4 周返工)'
@@ -4339,14 +4362,16 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: HW/NETLIST_REV2_SPEC.md · HW/PCB/FPC_PIN_TABLES.md (31p/40p 针位表) · state/gen_netlist.py (CSI 4-lane 31针 / DSI 40针 / I2C 24-25 / MCLK 20 / 供电 28-31 / 复位 27 / 三条 sensor 轨 DNP / EN 补齐) · HW/SCHEMATIC_V1_SPEC.json (power_rails + 连接描述 + 新增 A-21/A-22) · state/check_netlist.py (铰链堆叠判据停用)
   verify_by: hw-lead
   verify_result: pass
-  verify_date: '2026-11-02'
-  note: '2026-11-02 23:4x。★**这是"自己画图"的第一条真活**: 图纸由网表生成 ⇒ ⇒ **网表一改, 图必须重出并重验** ⇒ ★这正是参数化生成的价值 (人肉画图会漏改)。★**别把 P3 未拿到当成阻塞整单**: 段A 现在就能做。 ★★**2026-11-02 23:2x P3 硬缺口已解 (公开渠道, 零咨询厂家)**: ★**Forlinx 官方 GitHub Pages 手册** `https://forlinxembedded.github.io/rockchip/ok3576-c/OK3576-C_User_Hardware_Manual.html` ⇒ ★**§2.6 FET3576-C/FET3576-C2 SoM Pin Definitions 有逐针引脚定义 (Num/Ball/电平/信号名/SoM 侧网名)** ⇒ ★**已解析出 399 行落到 `HW/PCB/FET3576C_PIN_TABLE.csv`** ⇒ ★**段 B 现在可做** (★FET3572-C 与 FET3576-C 引脚兼容 ⇒ 用这张表)。★**同时挖出一条新的致命项 (F13)**: **pin87 = CARRIER_BOARD_EN (SOM 输出, 控制底板上电)** + **pin91~97 = VCC_DCIN (5-13V 输入)** ⇒ ★★**我们主板的电源必须由 CARRIER_BOARD_EN 使能, 不能直连** —— Forlinx 原文警告: 底板早于核心板上电 ⇒ "通电瞬间电流过大, 设备无法启动, 甚至对处理器造成不可逆转的损坏" ⇒ ★**这是与 EN 同类的致命项, 必须进段 B 的网表**。 ★★**2026-11-02 18:5x 第四次 0 产出后的改法**: ★**子 agent 连续三次在同一类活上 0 产出** (ISS-140 ×2 + ISS-162, 原因都是"任务里混了查资料/推拓扑") ⇒ ★**项目总工把全部结论写死成 `HW/NETLIST_REV2_SPEC.md`** (含 31 针与 40 针逐针表/依据/验收链/写入范围) ⇒ ★**新派活只做"照抄改网表", 明令不许再查资料**, 且**分段交卷 (先 A1 段: 连接器针位 + 三条 sensor 轨转 DNP + 5V/3.3V + 三个新 GPIO/EN net + CSI 4-lane), A2 段 (SOM 座 400 脚改挂) 另派**。 ★★**2026-11-02 20:5x A1 段由项目总工亲自做完** (★hw-lead 连续第三次 0 产出: ISS-162 28 分钟 / 506k tokens 零文件改动 ⇒ 按铁律不再派第三次)。★**做了什么**: ①**camera FPC → 31p/0.3mm** (Radxa Camera 4K 逐针表, 座 HIROSE FH35C-31S-0.3SHW(50)) + **CSI 改 4-lane 必装** (原 D2/D3 是 DNP 预留) + I2C pin24/25 + MCLK pin20 + RESET pin27 → 新网 CAM_RESET_N + 供电 pin28/29=3.3V、pin30/31=5V; ②**display FPC → 40p/0.5mm** (Radxa Display 8HD/10FHD 逐针表) + DSI 4-lane (CK 14/15 · D0 8/9 · D1 11/12 · D2 17/18 · D3 20/21) + DDC 28/27 + VDD 2/31/32 + VCCIO 3 + Reset 5 → 新网 DSI_RESET_N + 背光/触控组; ③★**三条 sensor 芯片级轨 (SENSOR_CORE / SENSOR_VDD_IO / SENSOR_AVDD) → DNP** (★**camera 模组自带稳压** ⇒ 这是对 19:5x 那次改动的推翻 ⇒ ISS-159 F14); ④★**F1 (EN) 补齐**: 现用的 4 颗 TPS7A20 的 EN 全部显式接 RAIL_SYS (悬空=关断 ⇒ 投板后整板不上电); ⑤★**铰链区堆叠判据停用** (37mm 预算属整机跨铰链阶段; demo 板 camera/display 都是板内 FPC 座 ⇒ 按老板 19:25「结构不考虑」标 N/A); ⑥针位表导出 `HW/PCB/FPC_PIN_TABLES.md`。★**验证**: 4 个生成器 rc=0 · check_netlist 31 条全过 · check_kicad_net 5 条全过 · **板子重出: 板子↔网表逐点等价 (346 绑定/缺失0/多余0) + DRC=0 + Gerber 30 + 钻孔** ⇒ ★**板子可下单 (A2 段 SOM 座接入后需再重跑一遍)**。'
+  verify_date: '2026-11-08'
+  note: '2026-11-02 23:4x。★**这是"自己画图"的第一条真活**: 图纸由网表生成 ⇒ ⇒ **网表一改, 图必须重出并重验** ⇒ ★这正是参数化生成的价值 (人肉画图会漏改)。★**别把 P3 未拿到当成阻塞整单**: 段A 现在就能做。 ★★**2026-11-02 23:2x P3 硬缺口已解 (公开渠道, 零咨询厂家)**: ★**Forlinx 官方 GitHub Pages 手册** `https://forlinxembedded.github.io/rockchip/ok3576-c/OK3576-C_User_Hardware_Manual.html` ⇒ ★**§2.6 FET3576-C/FET3576-C2 SoM Pin Definitions 有逐针引脚定义 (Num/Ball/电平/信号名/SoM 侧网名)** ⇒ ★**已解析出 399 行落到 `HW/PCB/FET3576C_PIN_TABLE.csv`** ⇒ ★**段 B 现在可做** (★FET3572-C 与 FET3576-C 引脚兼容 ⇒ 用这张表)。★**同时挖出一条新的致命项 (F13)**: **pin87 = CARRIER_BOARD_EN (SOM 输出, 控制底板上电)** + **pin91~97 = VCC_DCIN (5-13V 输入)** ⇒ ★★**我们主板的电源必须由 CARRIER_BOARD_EN 使能, 不能直连** —— Forlinx 原文警告: 底板早于核心板上电 ⇒ "通电瞬间电流过大, 设备无法启动, 甚至对处理器造成不可逆转的损坏" ⇒ ★**这是与 EN 同类的致命项, 必须进段 B 的网表**。 ★★**2026-11-02 18:5x 第四次 0 产出后的改法**: ★**子 agent 连续三次在同一类活上 0 产出** (ISS-140 ×2 + ISS-162, 原因都是"任务里混了查资料/推拓扑") ⇒ ★**项目总工把全部结论写死成 `HW/NETLIST_REV2_SPEC.md`** (含 31 针与 40 针逐针表/依据/验收链/写入范围) ⇒ ★**新派活只做"照抄改网表", 明令不许再查资料**, 且**分段交卷 (先 A1 段: 连接器针位 + 三条 sensor 轨转 DNP + 5V/3.3V + 三个新 GPIO/EN net + CSI 4-lane), A2 段 (SOM 座 400 脚改挂) 另派**。 ★★**2026-11-02 20:5x A1 段由项目总工亲自做完** (★hw-lead 连续第三次 0 产出: ISS-162 28 分钟 / 506k tokens 零文件改动 ⇒ 按铁律不再派第三次)。★**做了什么**: ①**camera FPC → 31p/0.3mm** (Radxa Camera 4K 逐针表, 座 HIROSE FH35C-31S-0.3SHW(50)) + **CSI 改 4-lane 必装** (原 D2/D3 是 DNP 预留) + I2C pin24/25 + MCLK pin20 + RESET pin27 → 新网 CAM_RESET_N + 供电 pin28/29=3.3V、pin30/31=5V; ②**display FPC → 40p/0.5mm** (Radxa Display 8HD/10FHD 逐针表) + DSI 4-lane (CK 14/15 · D0 8/9 · D1 11/12 · D2 17/18 · D3 20/21) + DDC 28/27 + VDD 2/31/32 + VCCIO 3 + Reset 5 → 新网 DSI_RESET_N + 背光/触控组; ③★**三条 sensor 芯片级轨 (SENSOR_CORE / SENSOR_VDD_IO / SENSOR_AVDD) → DNP** (★**camera 模组自带稳压** ⇒ 这是对 19:5x 那次改动的推翻 ⇒ ISS-159 F14); ④★**F1 (EN) 补齐**: 现用的 4 颗 TPS7A20 的 EN 全部显式接 RAIL_SYS (悬空=关断 ⇒ 投板后整板不上电); ⑤★**铰链区堆叠判据停用** (37mm 预算属整机跨铰链阶段; demo 板 camera/display 都是板内 FPC 座 ⇒ 按老板 19:25「结构不考虑」标 N/A); ⑥针位表导出 `HW/PCB/FPC_PIN_TABLES.md`。★**验证**: 4 个生成器 rc=0 · check_netlist 31 条全过 · check_kicad_net 5 条全过 · **板子重出: 板子↔网表逐点等价 (346 绑定/缺失0/多余0) + DRC=0 + Gerber 30 + 钻孔** ⇒ ★**板子可下单 (A2 段 SOM 座接入后需再重跑一遍)**。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核: ①`HW/NETLIST_REV2_SPEC.md` 落地, §0 三个前提结论 (camera 改模组级供电 / CSI 改 4-lane / **F13 底板电源必须由 CARRIER_BOARD_EN 使能**) + §1.1 CONN_CAM→31p/0.3mm + §1.2 CONN_LIGHT→40p/0.5mm + §1.3 电源树改版 + §2 A2 段 + §3 验收链 + §4 写入范围 + §5 交卷要求。②**CONN_CAM 31p/0.3mm 已实做**: 网表 290 行声明 = 『★31p@0.3mm 板内 FPC 座 (Radxa Camera 4K; 座 HIROSE FH35C-31S-0.3SHW(50)』, 逐针 31 行齐全, `check_netlist_pins.py` 判 **C2/C3 CONN_CAM 针数 31/31**。③**三条 sensor 轨 DNP + EN 补齐** 已落 (§1.3), 9 颗 EN 脚实测在网表。④**SOM 承载与 400 脚 BTB 座**: `HW/PCB/demo_mainboard.kicad_pcb` 上 **J_SOM_P1/P2/P3/P4 各 100 焊盘** (pcbnew 实测), 座型 HIROSE DF40C-100DS-0.4V(51)。⑤**电源输入 5-13V** 已改 (网表 445-451 SoM VCC_DCIN 脚 + 419 板载 Type-C)。⑥**门禁不放松**: `check_netlist.py` 32 条 rc=0 / `check_kicad_net.py` 8 条 rc=0 (含 ISS-184 新增第 6 条) / `check_netlist_pins.py` 9 条 rc=0 / `check_sch_loadable.py` rc=0。★**display 40p 已被 ISS-176 的 22p 取代 (合法后续变更, 不算本单失败)**: `HW/PCB/FPC_PIN_TABLES.md:63-64` 明写『★**已作废**: 2026-11-03 之前这里是「Radxa Display 8HD 板侧 39p/0.3mm」表 ⇒ 整表作废』; 现网表 237 行 CONN_LIGHT = 『★22p@0.5mm (HIROSE FH12-22S-0.5SH(55)…)』, 与 22p 逐针一致 (见 ISS-176)。★**诚实边界**: 本条只交 A1 段 (段 A2 = SOM 座/使能归 ISS-165, 不重复计)。'
   dispatched_at: '2026-11-02'
   task_brief: '★段 B 追加 (P3 已解): 用 `HW/PCB/FET3576C_PIN_TABLE.csv` (399 行) 建 4×100pin BTB 座 + SoC 节点改挂; ★**底板电源必须由 pin87 CARRIER_BOARD_EN 使能 (5-13V VCC_DCIN, pin91~97)** ⇒ 不得直连; ★Boot: SARADC_VIN0_BOOT / PWRON_L(pin88) / UART Debug 脚按手册 §3.5.2~3.5.5 设计; ★ESD 按 §3.5 的要求紧贴接口。'
 - id: ISS-164
@@ -4359,14 +4384,14 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-05'
-  status: fixed
+  status: verified
   external: false
   need_keys: []
   fix_ref: SW/DEMO_OD_PIPELINE_SPEC.md §1.4 / §6.2 / §6.6
   verify_by: sw-lead
   verify_result: pass
-  verify_date: '2026-11-03'
-  note: '2026-11-02 18:4x。★**建议默认 = ①** (demo 线降到 0.25, 保住 yolov5n 与 60ms 余量)。★**选完立刻收口**: 改规格 §6.2 判据② + 同步 `state/fragments/sw.yaml` 的 demo_model_choice claim + 关闭 SW-Q5。 ★★**2026-11-03 01:0x 项目总工裁决并收口 (SW-Q5)**: ★**根子不是软硬件, 是判据用错阶段** —— F1 两个数属软件侧 (ISS-147/157 已保证可信), ''换 yolov5s 超 60ms'' 属硬件侧 (ISS-129/155), ★**而「把量产放行线 G3 的 F1 ≥ 0.30 当成 demo 验收线」是我写规格时的错** ⇒ ⇒ **已拆分**: **demo 阶段判据 = F1 ≥ 0.25 + 80 类 ID 全域覆盖 + 在线/离线框 IoU > 0.95** (§6.6) · **量产/整机阶段 = F1 ≥ 0.30** (§6.2) ⇒ ★**demo 第一版保持 yolov5n (F1 0.2927 ✔, 端到端 52.91ms, 60ms 余量最大)** ⇒ ★**60ms 硬指标不必顺延**。★**唯一需要老板知悉的后果**: 若坚持 demo 也用 0.30 ⇒ 必须换 yolov5s ⇒ 端到端 62.67~64.18ms 超线 ⇒ 60ms 顺延到整机阶段 ⇒ 本单按 0.25 执行。 ★2026-11-04 01:2x ★等老板一句的选型裁决 (yolov5n F1 0.2927 vs 验收线 0.3000, 差 0.0073) ⇒ 已把"精度验收线"写进选型表, 等拍板 ⇒ **due 由 11-03 顺延到 11-05** (原 due 跨零点后被自动升级为逾期未闭环)'
+  verify_date: '2026-11-08'
+  note: '2026-11-02 18:4x。★**建议默认 = ①** (demo 线降到 0.25, 保住 yolov5n 与 60ms 余量)。★**选完立刻收口**: 改规格 §6.2 判据② + 同步 `state/fragments/sw.yaml` 的 demo_model_choice claim + 关闭 SW-Q5。 ★★**2026-11-03 01:0x 项目总工裁决并收口 (SW-Q5)**: ★**根子不是软硬件, 是判据用错阶段** —— F1 两个数属软件侧 (ISS-147/157 已保证可信), ''换 yolov5s 超 60ms'' 属硬件侧 (ISS-129/155), ★**而「把量产放行线 G3 的 F1 ≥ 0.30 当成 demo 验收线」是我写规格时的错** ⇒ ⇒ **已拆分**: **demo 阶段判据 = F1 ≥ 0.25 + 80 类 ID 全域覆盖 + 在线/离线框 IoU > 0.95** (§6.6) · **量产/整机阶段 = F1 ≥ 0.30** (§6.2) ⇒ ★**demo 第一版保持 yolov5n (F1 0.2927 ✔, 端到端 52.91ms, 60ms 余量最大)** ⇒ ★**60ms 硬指标不必顺延**。★**唯一需要老板知悉的后果**: 若坚持 demo 也用 0.30 ⇒ 必须换 yolov5s ⇒ 端到端 62.67~64.18ms 超线 ⇒ 60ms 顺延到整机阶段 ⇒ 本单按 0.25 执行。 ★2026-11-04 01:2x ★等老板一句的选型裁决 (yolov5n F1 0.2927 vs 验收线 0.3000, 差 0.0073) ⇒ 已把"精度验收线"写进选型表, 等拍板 ⇒ **due 由 11-03 顺延到 11-05** (原 due 跨零点后被自动升级为逾期未闭环)★★**2026-11-08 23:3x sw-lead 独立验证 (verify_by) ⇒ PASS**: ①**fix_ref 三处逐行核对** (`SW/DEMO_OD_PIPELINE_SPEC.md`, 675 行, mtime 11-03 01:06): ★**§1.4 L84~L135**, 其末尾 **L128** 「判据冲突已裁决 (2026-11-03 01:0x, ISS-164 收口)」写明**已拆分 demo 线 (F1 ≥ 0.25 + 80 类 ID 全域覆盖 + IoU > 0.95, §6.6) / 量产线 (F1 ≥ 0.30, §6.2)**; ★**§6.2 L488**, 判据② 行 **L495** 已把 F1 ≥ 0.30 **明确标注为【量产/整机阶段】放行线, 不再用于 demo 判定**, 并写明代价 (若坚持 0.30 ⇒ 换 yolov5s ⇒ 端到端 62.67~64.18ms 超 60ms ⇒ 60ms 顺延到整机阶段); ★**§6.6 L532**, 总表 ② 行 **L537** 一句话写死 demo 判据 = ID∈[0,79] 全域覆盖 + 离线 F1 ≥ 0.25 (yolov5n 实测 0.2927 ✔) + 在线框 = 离线框 IoU > 0.95 ⇒ ★**desc 的硬要求「demo 精度线与量产放行线必须明确分开写」= 已满足, 且三处口径互相一致**。②**数字可复算**: 0.3017 / 0.2927 来自 §1.4 的四轮逐位实测表 (TP/FP/FN = 565/1028/1588 与 494/765/1623), 与 ISS-147 的重建实测**逐位一致** ⇒ 0.25 这条线与实测值的关系真实, 不是拍出来的。③§6.5 判据⑤ 与 §6.2/§6.6 口径一致 (60ms 留整机阶段)。★**残项 (不阻塞本单, 但必须留痕)**: ★**共享状态里 SW-Q5 仍写着「待老板一句」没有关** —— `STATE.yaml` L4147 (open_questions 里 SW-Q5.to=main, 原文「请老板拍板哪条」) + `state/fragments/sw.yaml` 的 interface_claim `demo_precision_line` 仍是 `F1>=0.25_recommended` + 注里「待老板一句」 + `demo_model_choice` 的注仍留着「已登记 SW-Q5 待老板裁决」 ⇒ ★**裁决本身已由项目总工 11-03 01:0x 落进规格并执行 (本单按 0.25), 是账目同步没跟上 (owner=main), 不是本单产物有缺陷**。★**⇒ verify_result=pass, status: fixed→verified (不进 closed)**: 残项 = SW-Q5 关闭 + fragments 同步 + boss 知悉/拍板 ⇒ 闭环前不发 closed。'
   dispatched_at: null
 - id: ISS-165
   title: ★★★[硬件 A2 段 · 最后一块] SOM 座 (4×100pin/0.4mm BTB) + SoC 节点改挂 + ★CARRIER_BOARD_EN 底板主电源使能
@@ -4378,15 +4403,17 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: HW/PCB/FET3572C_PIN_TABLE.csv (399 行 · RK3572 口径) · HW/PCB/som_pin_assign.json · HW/PCB/SOM_PIN_ASSIGNMENT.md · HW/PCB/som_btb_params.json · state/som_btb_footprint.py (BTB 座封装模块) · state/_iss165_a2_som.py · state/_patch_a2_som_netlist.py · state/check_netlist_pins.py · HW/PCB/demo_mainboard.kicad_pcb (204 器件 / 905 焊盘 / 4×100pin BTB)
-  verify_by: main
+  verify_by: hw-lead
   verify_result: pass
-  verify_date: '2026-11-03'
+  verify_date: '2026-11-08'
   note: '2026-11-02 20:5x。★**项目总工自办** (hw-lead 在"网表大改"上三次 0 产出)。★**开工前置**: A1 的板子已 DRC=0 + 逐点等价 ⇒ A2 只需把 SOM 座接上 + 电源使能改对 ⇒ 再重跑一遍即可。 ★**00:15-00:20 A2 段准备已做三件**: ①**修正了 `HW/PCB/FET3576C_PIN_TABLE.csv` 的解析错误** (原按 3 列解析, 实际 HTML 表是 6 列: 针|ball|信号|针|ball|信号 ⇒ 已重解析 399 行, 列 = num/ball/signal) ②**自动映射脚本** `state/iss165_map_som_pins.py` ⇒ 网表的 58 个 `SoC[RK3572].*` 节点里 **8 个已自动对上 SOM 针号**, 另 50 个是命名体系不同 (我们 `CSI_D0_D3_P` ↔ 他们 `MIPI_DPHY_CSI_RX_D3P`; 我们 `DSI_TX_D3_P` ↔ 他们 `MIPI_DPHY_DSI_TX_D3P`) ⇒ **需要逐条对** ③**两份对表已出**: `HW/PCB/SOM_RELEVANT_PINS.md` (与我们设计相关的 **251 条** SOM 引脚, 按信号族筛好) + `HW/PCB/SOM_MAPPING_TODO.md` (★**我们要挂的 58 个节点逐条待对**) + `HW/PCB/SOM_PIN_MAPPING.md` (自动映射结果 + 未映射清单)。⇒ ★**下一步**: 按 `SOM_MAPPING_TODO.md` 逐条对针号 ⇒ 改网表 (`SoC[RK3572].X` → `SOM_<pin>`) ⇒ 重出板子 ⇒ 两个门禁重验 ⇒ 加 `CARRIER_BOARD_EN` 底板电源使能 ⇒ **板子即可下单**。 ★★**2026-11-03 00:5x A2 段进展 (项目总工自办)**: ①网表侧基本做完: **19 个信号映射到 SOM 实际引脚** (17 直接映射 + LED_0/1 分配空闲 GPIO2_B1_d pin80 / GPIO3_D4_d pin19; ★**XTAL_0/1 晶振在 SOM 板上 ⇒ 主板标 DNP 不装**; ★**FSIN 在 SOM 无对应脚 ⇒ DNP 待核**) ②**VCC_DCIN ×7 → RAIL_SOM_DCIN** (USB 5V 直供 SOM) ③★**F13 落地**: pin87 `CARRIER_BOARD_EN` → **U_EN_SW 负载开关 EN** ⇒ **RAIL_SYS → RAIL_BOARD_5V**, ★**主板 3.3V/5V 支路全部改挂 RAIL_BOARD_5V (不再直连 SYS)** ⇒ 底板晚于核心板上电 ④pin88 `PWRON_L` + 开机按键 ⑤分配表落 `HW/PCB/SOM_PIN_ASSIGNMENT.md` + `HW/PCB/som_pin_map.json` ⇒ ★**check_netlist 31 条 / check_kicad_net 5 条全过**。★★★**但板子还不能下单 —— 剩最后一处**: **板上 SOM 座 400 焊盘的网络绑定有 18 处对不上** (缺失 3: DSI_RESET_N / PWR_ON / VBUS_DET; 多余 15) ⇒ `check_pcb_nets` 判「不等价 ⇒ 板子不能下单」 ⇒ ★**根因方向已锁定**: ★**表里的 `num` 是连接器脚号 (1~400, 分 4 组各 100)**, 而板上是 4×100pin BTB ⇒ ★**组内脚号与表 num 的对应关系必须按 Forlinx 表的组序核对** (我现在的假设是 `组=(num-1)//100, 组内=(num-1)%100`, **未经验证**) ⇒ ★★**引脚对不上 = 板子白打** ⇒ ⇒ **明早第一件事: 逐脚核对前 20 个脚的组序与物理位置**, 再重跑 `gen_pcb_netlist_board.py` + `check_pcb_nets.py` + `check_pcb_drc.py` + 重出 Gerber/钻孔。 ★★**2026-11-03 00:5x~01:0x A2 段的真实状态 (项目总工自办)**: ★**资料部分全部做完**: ①**SOM 逐针表重建 399 行带连接器列** (`HW/PCB/FET3576C_PIN_TABLE.csv`) ⇒ ★**手册 §2.6.2 引脚表按连接器分 4 组表 (表0/1→P1, 表2/3→P2, 表4/5→P3, 表6/7→P4), 每组 NUM = 组内脚号 1..100** ⇒ ★**唯一键必须是 (conn, num)** (同一信号名会在多组出现) ②全量映射 212 信号 → (P组, 组内脚) (`HW/PCB/som_pin_full_map.json`) ③分配表 (`HW/PCB/SOM_PIN_ASSIGNMENT.md` + `som_pin_map.json`) ④脚本 `_iss165_som_pins_full.py` → `_iss165_assign_final.py` ★**三个真发现**: `CARRIER_BOARD_EN`=**P3_87** (曾误写 P1_87 ⇒ 差一整组 = 板子直接不工作) · `VCC_DCIN`=**P3_91/93/95/97/98/99/100** · `PWRON_L`=**P3_88** (★它已在 PWR_ON 网上 ⇒ 不可再单开 PWRON_L 网, 否则同一物理脚落两个网) ★**架构级结论**: ★**SOM 未引出 camera 的 MCLK / RESET** ⇒ 用 SOM 方案时 camera 模组的 MCLK 与 RESET **必须由主板自己产生** ⇒ 这是 A2 剩下的设计内容。 ★★★**未完成**: **板上 4 排 100 脚 BTB 座 (P1..P4) 的布局** —— 我两次盲改都撞 DRC (4 排各 40mm ⇒ 2×2 占 80mm, 与器件网格 x≥76 重叠) ⇒ ★**当前刻意不画这 4 排座**, 板子保持 A1 状态 (**DRC=0 · parity 全过 · Gerber 30 + 钻孔已出 · daily_check 无漂移**) ⇒ ★★**不带着未修的布局进 Gerber**。 ⇒ **明早做法**: ①重跑 `_iss165_assign_final.py` 接 SOM 座进网表 ②**用一次 DRC 明细定位**把 4 排座放到与器件网格不重叠的位置 (器件网格让开 80mm) ③重跑板生成 → parity → DRC → 重出 Gerber ④**定 camera 的 MCLK/RESET 主板自产方案**。 ★★2026-11-03 10:4x 续作结论: ① **真值换了** —— RK3572 与 RK3576 引脚功能不同 (226/398 脚球号不同) ⇒ 上一版分配表作废, 改用 **OK3572-C 手册**重建 399 行逐针表 (与 Forlinx 载板原理图球号互证 12/12); ② **SoC 节点已全部改挂真实引脚** (网表里 `SoC[RK3572].X` 占位符**物理上不可能再出现**, 未分配引脚会直接报错退出); ③ **F13 已落**: CARRIER_BOARD_EN (P3_87) → 负载开关 U_EN_SW → RAIL_BOARD_5V, 底板各路改挂 RAIL_BOARD_5V, SoM 自己的 VCC_DCIN (P3_91/93/95/97/98/99/100) 直供 5V 不受门控; ④ **camera MCLK 走 SoM 的 CAM_CLK0_OUT_M0** ⇒ 上一版"主板自己产 MCLK"作废; ⑤ **SPI/JTAG/FSIN 未引出** ⇒ 标 DNP; ⑥ **相机 SCCB 走 I2C5 (1.8V 域)** ⇒ I2C_A 上拉改 1.8V (旧写法 3.3V ⇒ SoM 1.8V 脚过压), TMP117 挪到 I2C_B (3.3V, VIH=0.7×V+). ★**遗留**: 4 个 BTB 座的机械位置/pin1 方向待核实 (ISS-169) ⇒ **板子还不能下单**。 ★★2026-11-03 09:4x **A2 段完成**: ① **4 组 100pin BTB 座已上板** (Hirose DF40C-100DS-0.4V(51), 0.4mm pitch / 0.2mm 焊盘 / 行距 2.38mm; 脚号=网表真实针号, 奇数脚一排偶数脚一排 ⇒ 对插 SoM 的 n 脚); 实际用到 45 脚 (P1=11/P2=9/P3=11/P4=14) ⇒ 板 400 个焊盘 (355 个 NC) ✓; ② **SoC 节点全部落到真实引脚** (`soc_pin()` 查分配表, 未分配直接报错 ⇒ 占位符物理上进不了网表); ③ **F13 落地**: CARRIER_BOARD_EN(P3_87) → U_EN_SW → RAIL_BOARD_5V, 底板各路改挂 RAIL_BOARD_5V, SoM 自己的 VCC_DCIN(P3_91/93/95/97/98/99/100) 直供 5V 不受门控; ④ **camera MCLK 走 SoM 的 CAM_CLK0_OUT_M0**; ⑤ **I2C_A 改 1.8V 域** (I2C5) + TMP117
-    挪 I2C_B; ⑥ **SPI/JTAG/FSIN 未引出 ⇒ DNP**; ⑦ demo 板自带 Type-C (J_DEMO_USB) 进网表 (SoM 要 5~13V). ★**遗留 (⇒ 板子还不能下单)**: (a) 4 个座的**机械位置与 pin1 方向**只从手册底面图读出, 未与原厂 DXF/实物核对 (ISS-169); (b) 14 个 IC 的真实封装/脚号未落定 (焊盘号仍是行序占位, 见 check_pcb_nets C4 的 191 个占位器件清单); (c) **板子目前是连通性骨架, 未布线** (unconnected 401, 骨架阶段允许). 机跑验收 2026-11-03 09:4x: check_netlist ✅ + check_netlist_pins ✅ (C1 冲突 0 · C5b 未分配 0) + check_pcb_nets ✅ (焊盘级 550/550 · C2 4 个 SOM 座各 100 焊盘 · C3 不符 0 · --selftest ✅ 脚位对调被抓) + check_pcb_drc ✅ (DRC violations = 0 · Gerber 30 + 钻孔) + merge/issue_check/daily_check ✅ 无漂移 ★★**2026-11-03 09:43 又抓到一次"假绿"**: `build_a2_som()` **定义了但忘了在 main() 里调用** ⇒ 网表里**根本没有** SoM 的 VCC_DCIN / CARRIER_BOARD_EN / demo Type-C 三组行 ⇒ ★**所有"自洽型"门禁全绿** (针脚唯一 / 针数 / 板子逐焊盘等价) ⇒ ★**这是假绿的第四种形态: 内容缺失, 而门禁只查自洽** ⇒ ⇒ 已补 **内容存在性门禁** `check_netlist_pins.py` C6/C7/C8: C6 SoM 的 VCC_DCIN 7 脚都接上 (7/7) · C7 F13 的 CARRIER_BOARD_EN 已接 · C8 4 组座都用上; 同时修掉一处 **ref 写成了节点串** ("J_SOM_P1 pin100" 被当成一个叫这名字的器件 ⇒ 板上多出幽灵封装)。★**现在**: 网表 576 条带网绑定 · 板 213 器件/905 焊盘 · 4 组座各 100 焊盘 (P1=11/P2=9/P3=19/P4=14 用到) · DRC 0 · Gerber 30 · 四道门禁全绿。 ★2026-11-04 01:2x ★今天 19:4x 修复: 4 组 100pin BTB 座上板 + SoC 节点落真实引脚 + F13 门控 ⇒ 等独立验证 ⇒ **due 由 11-03 顺延到 11-05** (原 due 跨零点后被自动升级为逾期未闭环)'
+    挪 I2C_B; ⑥ **SPI/JTAG/FSIN 未引出 ⇒ DNP**; ⑦ demo 板自带 Type-C (J_DEMO_USB) 进网表 (SoM 要 5~13V). ★**遗留 (⇒ 板子还不能下单)**: (a) 4 个座的**机械位置与 pin1 方向**只从手册底面图读出, 未与原厂 DXF/实物核对 (ISS-169); (b) 14 个 IC 的真实封装/脚号未落定 (焊盘号仍是行序占位, 见 check_pcb_nets C4 的 191 个占位器件清单); (c) **板子目前是连通性骨架, 未布线** (unconnected 401, 骨架阶段允许). 机跑验收 2026-11-03 09:4x: check_netlist ✅ + check_netlist_pins ✅ (C1 冲突 0 · C5b 未分配 0) + check_pcb_nets ✅ (焊盘级 550/550 · C2 4 个 SOM 座各 100 焊盘 · C3 不符 0 · --selftest ✅ 脚位对调被抓) + check_pcb_drc ✅ (DRC violations = 0 · Gerber 30 + 钻孔) + merge/issue_check/daily_check ✅ 无漂移 ★★**2026-11-03 09:43 又抓到一次"假绿"**: `build_a2_som()` **定义了但忘了在 main() 里调用** ⇒ 网表里**根本没有** SoM 的 VCC_DCIN / CARRIER_BOARD_EN / demo Type-C 三组行 ⇒ ★**所有"自洽型"门禁全绿** (针脚唯一 / 针数 / 板子逐焊盘等价) ⇒ ★**这是假绿的第四种形态: 内容缺失, 而门禁只查自洽** ⇒ ⇒ 已补 **内容存在性门禁** `check_netlist_pins.py` C6/C7/C8: C6 SoM 的 VCC_DCIN 7 脚都接上 (7/7) · C7 F13 的 CARRIER_BOARD_EN 已接 · C8 4 组座都用上; 同时修掉一处 **ref 写成了节点串** ("J_SOM_P1 pin100" 被当成一个叫这名字的器件 ⇒ 板上多出幽灵封装)。★**现在**: 网表 576 条带网绑定 · 板 213 器件/905 焊盘 · 4 组座各 100 焊盘 (P1=11/P2=9/P3=19/P4=14 用到) · DRC 0 · Gerber 30 · 四道门禁全绿。 ★2026-11-04 01:2x ★今天 19:4x 修复: 4 组 100pin BTB 座上板 + SoC 节点落真实引脚 + F13 门控 ⇒ 等独立验证 ⇒ **due 由 11-03 顺延到 11-05** (原 due 跨零点后被自动升级为逾期未闭环)
+
+    ★2026-11-08 hw-lead 独立验证 (接手 verify_by=main→hw-lead): ★**本条原 verify_by=main 且 owner=main ⇒ 违反 C3 (修复人自验); 本轮由 hw-lead 接手验证** (verify_by 已改为 hw-lead, 方才满足关单条件)。hw-lead 独立复核: ①**主板 SOM 座 = 4 组 100 脚 0.4mm BTB**: pcbnew 实测板上 **J_SOM_P1 / P2 / P3 / P4 各 100 焊盘** (共 400), 座型 HIROSE **DF40C-100DS-0.4V(51)** (.net 第 220/221 行的 comp 条目同款)。②**SoC 侧节点全部改挂到该座**: 网表里 SoM 信号全部走 `J_SOM_Pn pinN` 节点 (如网表 439 J_SOM_P1 pin100 / 440 J_SOM_P3 pin87 / 445-451 J_SOM_P3 pin91/93/95/97/98/99/100), `check_netlist_pins.py` **C5 SoC 侧信号在 RK3572 引脚表里存在 — 未知 0 个** + **C5b SoC 侧节点都已被引脚分配表选中 — 未分配 0 个**。③**★CARRIER_BOARD_EN 底板主电源使能 (F13 致命项) 已实做且有门禁兜底**: 网表 440 `CARRIER_BOARD_EN | J_SOM_P3 pin87 | U_EN_SW pin2` (SoM 侧输出 → 底板 EN 输入), 441-443 U_EN_SW 的 IN/EN/OUT 三脚齐全 (OUT=RAIL_BOARD_5V 供所有 3.3V/5V 支路), 445 起 SoM 自己的 VCC_DCIN 直供 RAIL_DEMO_5V **不经过 U_EN_SW**; `check_netlist_pins.py` **C7 F13 底板使能 CARRIER_BOARD_EN (J_SOM_P3 pin87) 已接 — 1 行** ⇒ 以后谁删这行门禁立刻报红。④**几何硬约束**: 0.4mm pitch ⇒ 焊盘宽 ≤0.18mm (0.4-0.18=0.22 > 0.2 clearance); 板 DRC = **0 violations** (kicad-cli 实跑), `check_pcb_nets.py` rc=0 逐焊盘等价 (脚号/脚数/网络全对), `check_footprint_geom.py` rc=0。⑤**逐针互证**: `HW/PCB/som_pin_assign.json` assign 45 项 / dnp 11 / fixed 3 / released 1, 与 `HW/PCB/SOM_PIN_ASSIGNMENT.md` 一致。★**诚实边界**: SoM 逐针表本身来自 ISS-168 (RK3572 口径), 本条只管『座 + 改挂 + 使能』; `HW/PCB/som_btb_params.json` 焊盘尺寸待实物复核。★**接手说明**: main 11-03 已写 verify_result=pass, 本轮我按 C3 要求**重新独立验证并以今日为 verify_date**。'
   dispatched_at: '2026-11-03'
 - id: ISS-166
   title: '★★★[P0 · 短路级] 网表连接器脚位: 一个脚挂多个网 (CONN_CAM 12 处 / CONN_LIGHT 9 处) ⇒ 投板即短路'
@@ -4398,14 +4425,16 @@ issues:
   reporter: main
   raised: '2026-11-03'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: state/_patch_netlist_fpc_pins.py + state/_patch_netlist_pins2.py + state/_patch_netlist_tp_concat.py · HW/PCB/FPC_PIN_TABLES.md (模组原厂针位表) · state/check_netlist_pins.py (新门禁)
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
-  note: '★已修: 删旧行 15 处 + 测试点改挂真实针脚 13 处 + 连接器声明行不再占脚 5 处 + 新增**针脚级门禁** `state/check_netlist_pins.py` (C1 一个针脚只能属于一个网 / C2 针数 / C3 针号连续 / C4 同件同板 / C5 SoC 节点落到真实引脚) ⇒ 现在 **C1 冲突 0 处**, CONN_CAM 31/31 · CONN_LIGHT 40/40。★**教训**: 改针位表时必须同时删旧行, 而且要有"一个脚一个网"的门禁兜底 —— 原来的门禁只看连接关系, 看不出脚位冲突。 ★2026-11-04 01:2x ★今天 12:5x 由项目总工修复并机验 (针脚级门禁全绿) ⇒ 按"fixed≠closed / 修复人不能自验"的规矩, 等独立验证人复核 ⇒ due 顺延 ⇒ **due 由 11-03 顺延到 11-05** (原 due 跨零点后被自动升级为逾期未闭环)'
+  verify_result: pass
+  verify_date: '2026-11-08'
+  note: '★已修: 删旧行 15 处 + 测试点改挂真实针脚 13 处 + 连接器声明行不再占脚 5 处 + 新增**针脚级门禁** `state/check_netlist_pins.py` (C1 一个针脚只能属于一个网 / C2 针数 / C3 针号连续 / C4 同件同板 / C5 SoC 节点落到真实引脚) ⇒ 现在 **C1 冲突 0 处**, CONN_CAM 31/31 · CONN_LIGHT 40/40。★**教训**: 改针位表时必须同时删旧行, 而且要有"一个脚一个网"的门禁兜底 —— 原来的门禁只看连接关系, 看不出脚位冲突。 ★2026-11-04 01:2x ★今天 12:5x 由项目总工修复并机验 (针脚级门禁全绿) ⇒ 按"fixed≠closed / 修复人不能自验"的规矩, 等独立验证人复核 ⇒ due 顺延 ⇒ **due 由 11-03 顺延到 11-05** (原 due 跨零点后被自动升级为逾期未闭环)
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核: ①**针脚级门禁已建 (防复发)**: `state/check_netlist_pins.py` 9 条判据 rc=0, 其中 **C1 一个针脚只能属于一个网 — 冲突 0 处** (原单说的『CONN_CAM 12 处 / CONN_LIGHT 9 处一个脚挂多网』已清零), C2/C3 针数与针号连续 —— **CONN_CAM 31/31 · CONN_LIGHT 22/22 · U_TEMP 6/6 · J_CHG 10/10 · U_CHG 24/24 · J_BOOT1 6/6 · J_DEBUG 4/4 · J_UART 2/2**, C2b SoM 座越界 0。②**板级实测** (pcbnew 逐焊盘读网): CONN_CAM **31 个焊盘, 每脚一个独立网** (pad1=GND/pad2=CSI_D0_D3_N/pad3=CSI_D0_D3_P/pad4=GND/pad8=NC/pad20=CSI_MCLK/pad24=I2C_A_SCL/pad25=I2C_A_SDA/pad27=CAM_RESET_N/pad28,29=LIGHT_3V3/pad30,31=LIGHT_5V) ⇒ **无重号、无对调、无悬空**; CONN_LIGHT 22 脚同样每脚独立。③**测试点改挂真实针脚 + 连接器声明行不再占脚** 均在网表生效 (声明行 ref=CONN_CAM 不占 pin 号)。④**删旧行 15 处的痕迹可查**: 旧 18p/22p 版信号名 (如 CSI_D0_CK_P 挂 pin1 与 pin18 两处) 已不存在。★**为什么这条是 P0 级的**: 一个脚挂两个网 = 投板即短路; 现由 C1 门禁永久兜底 ⇒ 复发路径已封。'
   dispatched_at: '2026-11-03'
 - id: ISS-167
   title: ★★★[P0 · 假绿] 板生成器按 CSV 行序给焊盘编号 ⇒ 连接器脚位全错; 等价性门禁比集合 ⇒ 报绿
@@ -4417,14 +4446,16 @@ issues:
   reporter: main
   raised: '2026-11-03'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: 'state/gen_pcb_netlist_board.py (derive_pads: 焊盘号=网表真实针号) · state/check_pcb_nets.py (焊盘级门禁 + --selftest + NC 焊盘规则) · state/som_btb_footprint.py · HW/PCB/demo_mainboard.kicad_pcb'
-  verify_by: main
+  verify_by: hw-lead
   verify_result: pass
-  verify_date: '2026-11-03'
-  note: '★修法: ① 生成器按**网表节点里的真实针号**建焊盘 (node1/node2 形如 "<COMP> pin<N>"), 命名脚 IC 仍按行序并出"占位清单"; ② 门禁改成比 **(ref, pad号) → net** 集合, 并加"脚位对调"必挂的检查; ③ 另: `state/gen_kicad_project.py` (骨架生成器) 与 gen_pcb_netlist_board.py **抢同一个板文件** ⇒ DRC 门禁的 C5 一跑就把网表板覆盖成 10 脚骨架 ⇒ **门禁顺序决定结果 = 又一个假绿来源** ⇒ 要把骨架生成器改写到别的文件名。 ★★2026-11-03 09:3x-09:4x 已修: ① 生成器改成按**网表节点里的真实针号**建焊盘 (归属以节点串里的器件名为准; 命名脚 IC 仍按行序并出占位清单) ⇒ 焊盘 393 → **905** (204 器件), 带网绑定 **550**, 缺失 0 多余 0 同号异网 0; ② 门禁升级成**焊盘级** (ref,pad)→net 比对 + 连接器针号集合 + 器件焊盘数 + **NC 焊盘白名单** (只允许 SOM 的 4 组 100 脚座未用脚) + `--selftest` 自检; ③ ★**反证**: 新门禁查旧板 ⇒ rc=1 (缺 168/多 21/同号异网 165) ⇒ 旧门禁确为假绿; 自检里对调 CONN_CAM pin2/pin3 ⇒ C1 报"同号异网 2" ⇒ 脚位对调抓得住; ④ 骨架生成器 gen_kicad_project.py 改为写 _frame_reference.kicad_pcb ⇒ **两个生成器不再抢同一个板文件** (原顺序决定结果 = 第三个假绿来源); ⑤ 器件排布区 x0 从 72 挪到 78 (避开 SOM 承载区 8..76)。 机跑验收 2026-11-03 09:4x: check_netlist ✅ + check_netlist_pins ✅ (C1 冲突 0 · C5b 未分配 0) + check_pcb_nets ✅ (焊盘级 550/550 · C2 4 个 SOM 座各 100 焊盘 · C3 不符 0 · --selftest ✅ 脚位对调被抓) + check_pcb_drc ✅ (DRC violations = 0 · Gerber 30 + 钻孔) + merge/issue_check/daily_check ✅ 无漂移 ★★**2026-11-03 09:43 补一条**: 假绿还有**第四种形态 —— 内容缺失** (函数定义了没被调用 ⇒ 该有的行根本不在网表里, 而一致性门禁照样全绿) ⇒ ⇒ **门禁必须分两类**: ① 自洽类 (脚位唯一/针数/逐焊盘等价) ② ★**内容存在类** (SoM 供电 7 脚在不在 / 使能脚在不在 / 该有的座用没用) ⇒ 已加 C6/C7/C8。 ★2026-11-04 01:2x ★今天 09:4x~20:0x 修复: 焊盘编号改按网表真实针号 + 门禁升级到焊盘级 (含 --selftest) ⇒ 等独立验证 ⇒ **due 由 11-03 顺延到 11-05** (原 due 跨零点后被自动升级为逾期未闭环)'
+  verify_date: '2026-11-08'
+  note: '★修法: ① 生成器按**网表节点里的真实针号**建焊盘 (node1/node2 形如 "<COMP> pin<N>"), 命名脚 IC 仍按行序并出"占位清单"; ② 门禁改成比 **(ref, pad号) → net** 集合, 并加"脚位对调"必挂的检查; ③ 另: `state/gen_kicad_project.py` (骨架生成器) 与 gen_pcb_netlist_board.py **抢同一个板文件** ⇒ DRC 门禁的 C5 一跑就把网表板覆盖成 10 脚骨架 ⇒ **门禁顺序决定结果 = 又一个假绿来源** ⇒ 要把骨架生成器改写到别的文件名。 ★★2026-11-03 09:3x-09:4x 已修: ① 生成器改成按**网表节点里的真实针号**建焊盘 (归属以节点串里的器件名为准; 命名脚 IC 仍按行序并出占位清单) ⇒ 焊盘 393 → **905** (204 器件), 带网绑定 **550**, 缺失 0 多余 0 同号异网 0; ② 门禁升级成**焊盘级** (ref,pad)→net 比对 + 连接器针号集合 + 器件焊盘数 + **NC 焊盘白名单** (只允许 SOM 的 4 组 100 脚座未用脚) + `--selftest` 自检; ③ ★**反证**: 新门禁查旧板 ⇒ rc=1 (缺 168/多 21/同号异网 165) ⇒ 旧门禁确为假绿; 自检里对调 CONN_CAM pin2/pin3 ⇒ C1 报"同号异网 2" ⇒ 脚位对调抓得住; ④ 骨架生成器 gen_kicad_project.py 改为写 _frame_reference.kicad_pcb ⇒ **两个生成器不再抢同一个板文件** (原顺序决定结果 = 第三个假绿来源); ⑤ 器件排布区 x0 从 72 挪到 78 (避开 SOM 承载区 8..76)。 机跑验收 2026-11-03 09:4x: check_netlist ✅ + check_netlist_pins ✅ (C1 冲突 0 · C5b 未分配 0) + check_pcb_nets ✅ (焊盘级 550/550 · C2 4 个 SOM 座各 100 焊盘 · C3 不符 0 · --selftest ✅ 脚位对调被抓) + check_pcb_drc ✅ (DRC violations = 0 · Gerber 30 + 钻孔) + merge/issue_check/daily_check ✅ 无漂移 ★★**2026-11-03 09:43 补一条**: 假绿还有**第四种形态 —— 内容缺失** (函数定义了没被调用 ⇒ 该有的行根本不在网表里, 而一致性门禁照样全绿) ⇒ ⇒ **门禁必须分两类**: ① 自洽类 (脚位唯一/针数/逐焊盘等价) ② ★**内容存在类** (SoM 供电 7 脚在不在 / 使能脚在不在 / 该有的座用没用) ⇒ 已加 C6/C7/C8。 ★2026-11-04 01:2x ★今天 09:4x~20:0x 修复: 焊盘编号改按网表真实针号 + 门禁升级到焊盘级 (含 --selftest) ⇒ 等独立验证 ⇒ **due 由 11-03 顺延到 11-05** (原 due 跨零点后被自动升级为逾期未闭环)
+
+    ★2026-11-08 hw-lead 独立验证 (接手 verify_by=main→hw-lead): hw-lead 独立复核 (原单叫『假绿』, 所以我直接量板): ①**根因已改在产生点**: `state/gen_pcb_netlist_board.py:260-361 derive_pads()` —— 器件宇宙 = ref 列 ∪ **节点串里带编号脚的器件** (J_SOM_P1..P4 只在节点串里); 编号脚 `pin<N>` ⇒ **key=("P", int(tok[3:]))` 即真实针号** (源码 304-305 行), 命名脚才走占位号并出占位清单 (源码 313/360 行) ⇒ **不再按 CSV 行序编号**。②**我实读板上焊盘号** (pcbnew): **CONN_CAM 31 个焊盘 (原单说的『31 脚只剩 21 个』已修)**; **U_TEMP pad1=NET_I2C_B_SCL / pad6=NET_I2C_B_SDA** (原单说的『SCL/SDA 相反』已修, 且与 TI Table 5-1 一致); **CONN_LIGHT pad2=DSI_D0_D1_N / pad5=DSI_D0_CK_N** (原单说的『pad2=GND 而网表要求 pad2=DSI_D0_CK_N』已修); J_SOM_P1..P4 各 100 焊盘且焊盘号 = 真实针号 (如 J_SOM_P3 pad87=CARRIER_BOARD_EN / pad91=RAIL_DEMO_5V / pad100=RAIL_DEMO_5V)。③**等价的门禁已从『比集合』升级为『比 (ref, 焊盘号) → net』**: `state/check_pcb_nets.py` rc=0 (逐焊盘脚号/脚数/网络全对, C5 网表提示 0 条), 带 `--selftest` 与 NC 焊盘规则。④**门禁顺序导致的假绿也已修**: 骨架生成器 `gen_kicad_project.py` 改写到别的文件名, 不再与 gen_pcb_netlist_board.py 抢同一个板文件。⑤`state/check_pcb_drc.py` 实跑 DRC violations = **0** (kicad-cli json), unconnected = 45 (布线未完, 属 ISS-181 域, 非本条)。★**诚实边界**: DRC 的 courtyard 重叠不在 DRC 判据里 ⇒ 我另外用 `state/verify_display_fpc.py` 量到 **CONN_LIGHT 外框与 7 个器件重叠** (见 ISS-176 的备注) ⇒ 这是**布局域**遗留, 已在本轮报告里单列给项目总工。'
   dispatched_at: '2026-11-03'
 - id: ISS-168
   title: ★★★[P0] RK3572 与 RK3576 引脚功能不同 ⇒ 上一版 SoM 引脚分配表作废 (226/398 脚球号不同)
@@ -4436,14 +4467,16 @@ issues:
   reporter: main
   raised: '2026-11-03'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: state/_iss165_som_pins_rebuild.py · HW/PCB/FET3572C_PIN_TABLE.csv (399 行) · HW/PCB/SOM_PIN_VERIFY.md · HW/PCB/som_pin_assign.json · HW/PCB/SOM_PIN_ASSIGNMENT.md · state/_os_snapshots/fx3572_manual.html (手册快照)
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
-  note: '★已修: 重新抓 Forlinx **OK3572-C** 官方手册 (github pages, 公开) ⇒ §2.6.2 八张引脚表 (4 连接器 × 奇/偶脚表) + §2.7 功能表 ⇒ 重建 399 行逐针表 (表序→连接器 + 功能表反查互证) ⇒ 与 OK3576-C 手册交叉验证 + ★**与 Forlinx 载板原理图 SoM 球号逐脚互证 12/12 对上** (B19/A19/1B14/1C14/A20/B20/A22/B22/A23/B23/1B16/1C16 全中) ⇒ 分配表按 RK3572 口径重做 (46 个信号)。★**教训**: "引脚兼容" 要分清**机械兼容**与**电气功能兼容** —— 后者必须查**自己那颗料**的手册。 ★2026-11-04 01:2x ★今天 10:3x 修复: 重抓 OK3572-C 手册重建 399 行逐针表 (载板原理图球号互证 12/12) ⇒ 等独立验证 ⇒ **due 由 11-03 顺延到 11-05** (原 due 跨零点后被自动升级为逾期未闭环)'
+  verify_result: pass
+  verify_date: '2026-11-08'
+  note: '★已修: 重新抓 Forlinx **OK3572-C** 官方手册 (github pages, 公开) ⇒ §2.6.2 八张引脚表 (4 连接器 × 奇/偶脚表) + §2.7 功能表 ⇒ 重建 399 行逐针表 (表序→连接器 + 功能表反查互证) ⇒ 与 OK3576-C 手册交叉验证 + ★**与 Forlinx 载板原理图 SoM 球号逐脚互证 12/12 对上** (B19/A19/1B14/1C14/A20/B20/A22/B22/A23/B23/1B16/1C16 全中) ⇒ 分配表按 RK3572 口径重做 (46 个信号)。★**教训**: "引脚兼容" 要分清**机械兼容**与**电气功能兼容** —— 后者必须查**自己那颗料**的手册。 ★2026-11-04 01:2x ★今天 10:3x 修复: 重抓 OK3572-C 手册重建 399 行逐针表 (载板原理图球号互证 12/12) ⇒ 等独立验证 ⇒ **due 由 11-03 顺延到 11-05** (原 due 跨零点后被自动升级为逾期未闭环)
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 (这是 P0: 引脚表错 = 板子报废): ①**表是 RK3572 口径, 不是 3576 口径**: `HW/PCB/FET3572C_PIN_TABLE.csv` **399 行** (8 列 conn/num/ball/signal/gpio/vol/desc/default_function), 189 针有真实 ball 号; 表内含 **RK3572 专有信号** —— P1_56=**GPIO2_B6_d**、P1_50=**GPIO2_B0_d**、P1_7=SDMMC0_CLK、P1_17=HDMI_TX_SBDN、P1_23=HDMI_TX_D3N ⇒ **原单点名的两条例子逐字命中**。②**与 3576 旧表实测对比**: 同 (conn,num) 键下 **ball 号不同 212 针 / signal 不同 184 针 / 任一不同 228 针** ⇒ 两表实质不同, 照旧表画板 = 接错功能。★**诚实边界**: 原单写的『226/398』与我实测的『212 ball / 228 任一』口径略有出入 (取决于是否含 desc 列), **实质结论不变**; 且原单举的 3576 侧例子 (P1_56=I2C8_SCL_M2) 与 3576 表实际值 (GND) 不符 —— 该例子在 3572 侧是对的, 3576 侧记错了。③**快照同源已证**: `state/_os_snapshots/fx3572_manual.html` 内含 **OK3572-C × 320 / FET3572 × 30 / RK3572 × 34**, 且 **OK3576-C / FET3576 / RK3576 各 0 命中** ⇒ 不是拿 3576 手册冒充 3572。④**互证链在文件里**: `HW/PCB/SOM_PIN_VERIFY.md` 列 8 张引脚表 (4 连接器 × 奇/偶) + 功能表反查命中数 + 双手册交叉验证 (400 键 / 168 差异, 并列出 P1_100 USB_DRD1_VBUSDET vs USB2_OTG1_VBUSDET 等逐条差异)。⑤**门禁已兜底**: `check_netlist_pins.py` **C5 SoC 侧信号在 RK3572 引脚表里存在 — 未知 0 个** + **C5b 未分配 0 个**。⑥`HW/PCB/som_pin_assign.json` assign 45 项 (原单说 46, 差 1 项, 量级一致)。★**教训确认**: 「引脚兼容」必须分机械兼容与电气功能兼容, 后者只认自己那颗料的手册。'
   dispatched_at: '2026-11-03'
 - id: ISS-169
   title: ★★[demo 板可制造性] demo 主板的边界已定 (Type-C 供电 · 不装电池 · 板上只有这一块) + SoM 座的 pin1 排向待查证 + 15 个器件的封装脚号待落定
@@ -4494,14 +4527,16 @@ issues:
   reporter: main
   raised: '2026-11-03'
   due: '2026-11-06'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: HW/PCB/PINOUT_FOOTPRINT_SPEC.md (697 行) + HW/PCB/pinout_footprint.json · state/_patch_pinmaps_20261103.py · state/_patch_ic_pinmaps2_20261103.py
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
-  note: '★已落: ① 12 个器件的 **footprint + OPN** 填进 PARTS (网表带出真实封装 ⇒ BOM 不再是"待定") ② **脚名→真实脚号** 的通用改写 (29 处; 真值源 = pinout_footprint.json) ③ TPS7A20 家族按真脚号重画 + 补 GND/散热焊盘 ④ USB-C 改用 **USB-IF 物理脚名** (A1/A4/A5/A6+B6/A7+B7/A9+B4+B9/B12/shield) ⇒ **板生成器与门禁都把 USB-IF 脚名当真实焊盘号** ⑤ U_EN_SW/U_PWR_SW 脚名改原厂 (VIN/ON/VOUT/GND)。★**仍未查到 5 条** (走采购硬判据, 不许猜): 电池 BT_432243 的两极引出形式与焊盘尺寸 (丰江原厂规格书未检索到) · Q1/Q2 的 Rds(on)@Vgs=3.5V (BQ2970 判据要 7.5mΩ@3.5V, CSD16406Q3 官方表只有 4.5/10V 条件) · 负载开关判据互斥 (见 ISS-172) · CONN_LIGHT 候选 B/C/D 的原厂封装图 · TPS62130A 的 PG 极性 (已由原厂确认: EN 低时 PG 为低 ⇒ "待原厂核"可结案)。'
+  verify_result: pass
+  verify_date: '2026-11-08'
+  note: '★已落: ① 12 个器件的 **footprint + OPN** 填进 PARTS (网表带出真实封装 ⇒ BOM 不再是"待定") ② **脚名→真实脚号** 的通用改写 (29 处; 真值源 = pinout_footprint.json) ③ TPS7A20 家族按真脚号重画 + 补 GND/散热焊盘 ④ USB-C 改用 **USB-IF 物理脚名** (A1/A4/A5/A6+B6/A7+B7/A9+B4+B9/B12/shield) ⇒ **板生成器与门禁都把 USB-IF 脚名当真实焊盘号** ⑤ U_EN_SW/U_PWR_SW 脚名改原厂 (VIN/ON/VOUT/GND)。★**仍未查到 5 条** (走采购硬判据, 不许猜): 电池 BT_432243 的两极引出形式与焊盘尺寸 (丰江原厂规格书未检索到) · Q1/Q2 的 Rds(on)@Vgs=3.5V (BQ2970 判据要 7.5mΩ@3.5V, CSD16406Q3 官方表只有 4.5/10V 条件) · 负载开关判据互斥 (见 ISS-172) · CONN_LIGHT 候选 B/C/D 的原厂封装图 · TPS62130A 的 PG 极性 (已由原厂确认: EN 低时 PG 为低 ⇒ "待原厂核"可结案)。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核: ①`HW/PCB/pinout_footprint.json` 落地, **parts 18 个器件**, 每条带 part / value / package / land_pattern / kicad_footprint_candidate / pitch_mm / **pins (脚号→原厂脚名)** / notes / dnp / source(URL) ⇒ 「脚名→真实脚号」的通用改写有真值源。②**原单点名的三条假设全部被订正**: (a) **TPS7A20 = 5 脚**: 6 个 LDO 实例的 pins 全为 **{1:OUT, 2:GND, 3:EN, 4:IN, 5:THERMAL_PAD}** (U_LDO_S12/S18B/S28/L33/IO18/IO33 逐个核对) ⇒ 原网表漏画的 **GND 脚(pin2) 与散热焊盘(pin5)** 现已补 —— 实测网表 93/94 (U_LDO_S28 pin2/pin5)、103/104 (U_LDO_S18B)、113/114 (U_LDO_S12) 全有『散热焊盘必须接 GND (原厂 X2SON 要求)』的 note; (b) **BQ2970 无单一 GATE 脚**: U_BATPROT = BQ2970DSE / WSON-6 DSE, land_pattern DSE0006A (TI 原厂 PACKAGE OUTLINE p.32) + 『★KiCad 官方库无 1.5×1.5mm DFN-6 ⇒ 需自绘』; (c) 第三条 (USB-C 改用 **USB-IF 物理脚名** A1/A4/A5/A6+B6/A7+B7/A9+B4+B9/B12/shield) 实测在网表 —— J_USB_C 的脚名就是 A1/A4/A5/A6/B6 这类 (网表 419/431/432), 且 `gen_pcb_netlist_board.py` 源码 304 行把非 `pin` 开头的脚名当**字符串焊盘号**处理 ⇒ 板生成器与门禁都认 USB-IF 脚名。③**TMP117 也已按官方 6 脚** (WSON-6 DRV0006B, 6 焊盘 0.45×0.30mm, 脚距 0.65mm, 列距 1.95mm, 无 EP) ⇒ 与 ISS-178 互证。④**仍未查到的 5 条如实留在 note**: 电池 BT_432243 两极引出形式与焊盘尺寸 (丰江原厂规格书未检索到) · Q1/Q2 的 Rds(on)@Vgs=3.5V (BQ2970 判据要 7.5mΩ@3.5V, CSD16406Q3 官方表只有 4.5/10V 条件) · 负载开关判据互斥 (ISS-172) · CONN_LIGHT 候选 B/C/D 的原厂封装图 · TPS62130A 的 PG 极性 (★**已由原厂确认: EN 低时 PG 为低 ⇒『待原厂核』可结案**)。⑤`state/_patch_pinmaps_20261103.py` + `state/_patch_ic_pinmaps2_20261103.py` 落地, BOM 位号/封装随网表带出。'
   dispatched_at: '2026-11-03'
 - id: ISS-172
   title: '★★[选型待裁] 负载开关 U_PWR_SW / U_EN_SW: 原厂在售型号的判据互斥 (RON vs IQ vs 反向阻断)'
@@ -4570,14 +4605,16 @@ issues:
   reporter: main
   raised: '2026-11-03'
   due: '2026-11-05'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: state/TASK_display_small_screen.md (任务书) · HW/DISPLAY_SMALL_SCREEN_OPTIONS.md (专项产出)
   verify_by: hw-lead
   verify_result: pass
-  verify_date: '2026-11-04'
-  note: '★**下游连带**: 屏侧 FPC 座型号/针数/脚位表、DSI lane 数 (2/4)、背光驱动电路、init code 来源、TPS3808 之外的上电时序、屏的机械尺寸 (结构侧) 全部要跟着改 ⇒ ⇒ ★**换屏必须在布线前定** (老板已定布线放最后 ⇒ 正好)。 ★★2026-11-03 20:1x 专项结论 (HW/DISPLAY_SMALL_SCREEN_OPTIONS.md + display_small_options.json, 13 条出处索引): **4 个候选** (全 ≤3" + 真 MIPI DSI): ① **Waveshare 2.8inch DSI LCD (SKU 22028)** — 2.8"/480×640 IPS/光学贴合/**2-lane**/**15 位 1.0mm FPC** (官方 Package Content 原文)/**官方 wiki 逐针表 15 针全公开**/**无独立背光引脚** ⇒ 12V BOOST 链可砍/$43.39; ② **Densitron DMT028VGHMCMI-1A** — 2.8"/480×640/2-lane — ★内核 `panel-sitronix-st7701.c` 已收录, GIP/init 在 .c 里 ⇒ BSP 零移植, 但针位表/采购渠道未查到; ③ **Samsung S6E63J0X03** — 1.61"/320×320/1-lane/★OLED 无背光 — 内核已收录, 公开模组未查到; ④ 视涯 0.49" SY049WDM01 (产品目标)。★**建议选 ①**: 全网唯一「≤3 寸 + DSI + 官方公开逐针表 + 在售 + 官方 driver 生态」四项全中; init 公开可得 (树莓派官方 firmware 有 `waveshare,2.8inch-panel`; Rockchip 内核有同档 480×640/2-lane ST7701 先例) ⇒ 不用等厂家。★**SoM 侧 4-lane 一个字都不用改** (变的只有"主板→屏座"那段) ⇒ 建议那段**维持 4-lane 布线、屏座按 24 位/0.5mm 预留**, demo 用 15→24 转接线 ⇒ **别按 demo 屏把座定死** (整机屏针位表至今未查到)。 ★★2026-11-04 01:18 **老板拍板: demo 屏换成 ①Waveshare 2.8inch DSI LCD (SKU 22028)** ⇒ 已落: ① DSI 改 **2-lane** (D2/D3 的 4-lane 预留位改 DNP) ② **背光链整条删除** (该屏 15 针表里无背光脚 ⇒ 无 12V BOOST/限流/PWM ⇒ 功率预算 4.6W→≈2.0W ⇒ USB-C 900mA 宽裕) ③ **DSI_RESET_N 删除** (该屏无 RESET 脚 ⇒ SoM 的 GPIO_DSI_RESET 释放) ④ ★**I2C_B 语义纠正**: 它**不是触控线**, 而是**屏的控制总线** (模组内 MCU @0x45: probe 0xC0/0xC2/0xAC, enable 0xAD=0x01, 背光 0xAB/0xAA) ⇒ ★**必须接**, 否则屏点不亮且无法调光 ⇒ ⇒ 我之前"触控一律不接"的结论**作废** ⑤ 背光电流 官方未公布 ⇒ 推断 70~125mA@3.3V ⇒ LIGHT_3V3 预算 150→200mA (TPS7A2033 额定 300mA/降额 240mA ⇒ 不换料) ⑥ init 序列 = **0 条**: 树莓派驱动 `panel-waveshare-dsi.c` 对 waveshare,2.8inch-panel **一条 DCS 都不发** (全部走模组内 MCU over I2C) ⇒ Rockchip 侧只要 simple-panel-dsi + panel-timing + dsi,lanes=<2> ⇒ ★**不用翻译寄存器序列** ⇒ 交付物 `HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md`'
+  verify_date: '2026-11-08'
+  note: '★**下游连带**: 屏侧 FPC 座型号/针数/脚位表、DSI lane 数 (2/4)、背光驱动电路、init code 来源、TPS3808 之外的上电时序、屏的机械尺寸 (结构侧) 全部要跟着改 ⇒ ⇒ ★**换屏必须在布线前定** (老板已定布线放最后 ⇒ 正好)。 ★★2026-11-03 20:1x 专项结论 (HW/DISPLAY_SMALL_SCREEN_OPTIONS.md + display_small_options.json, 13 条出处索引): **4 个候选** (全 ≤3" + 真 MIPI DSI): ① **Waveshare 2.8inch DSI LCD (SKU 22028)** — 2.8"/480×640 IPS/光学贴合/**2-lane**/**15 位 1.0mm FPC** (官方 Package Content 原文)/**官方 wiki 逐针表 15 针全公开**/**无独立背光引脚** ⇒ 12V BOOST 链可砍/$43.39; ② **Densitron DMT028VGHMCMI-1A** — 2.8"/480×640/2-lane — ★内核 `panel-sitronix-st7701.c` 已收录, GIP/init 在 .c 里 ⇒ BSP 零移植, 但针位表/采购渠道未查到; ③ **Samsung S6E63J0X03** — 1.61"/320×320/1-lane/★OLED 无背光 — 内核已收录, 公开模组未查到; ④ 视涯 0.49" SY049WDM01 (产品目标)。★**建议选 ①**: 全网唯一「≤3 寸 + DSI + 官方公开逐针表 + 在售 + 官方 driver 生态」四项全中; init 公开可得 (树莓派官方 firmware 有 `waveshare,2.8inch-panel`; Rockchip 内核有同档 480×640/2-lane ST7701 先例) ⇒ 不用等厂家。★**SoM 侧 4-lane 一个字都不用改** (变的只有"主板→屏座"那段) ⇒ 建议那段**维持 4-lane 布线、屏座按 24 位/0.5mm 预留**, demo 用 15→24 转接线 ⇒ **别按 demo 屏把座定死** (整机屏针位表至今未查到)。 ★★2026-11-04 01:18 **老板拍板: demo 屏换成 ①Waveshare 2.8inch DSI LCD (SKU 22028)** ⇒ 已落: ① DSI 改 **2-lane** (D2/D3 的 4-lane 预留位改 DNP) ② **背光链整条删除** (该屏 15 针表里无背光脚 ⇒ 无 12V BOOST/限流/PWM ⇒ 功率预算 4.6W→≈2.0W ⇒ USB-C 900mA 宽裕) ③ **DSI_RESET_N 删除** (该屏无 RESET 脚 ⇒ SoM 的 GPIO_DSI_RESET 释放) ④ ★**I2C_B 语义纠正**: 它**不是触控线**, 而是**屏的控制总线** (模组内 MCU @0x45: probe 0xC0/0xC2/0xAC, enable 0xAD=0x01, 背光 0xAB/0xAA) ⇒ ★**必须接**, 否则屏点不亮且无法调光 ⇒ ⇒ 我之前"触控一律不接"的结论**作废** ⑤ 背光电流 官方未公布 ⇒ 推断 70~125mA@3.3V ⇒ LIGHT_3V3 预算 150→200mA (TPS7A2033 额定 300mA/降额 240mA ⇒ 不换料) ⑥ init 序列 = **0 条**: 树莓派驱动 `panel-waveshare-dsi.c` 对 waveshare,2.8inch-panel **一条 DCS 都不发** (全部走模组内 MCU over I2C) ⇒ Rockchip 侧只要 simple-panel-dsi + panel-timing + dsi,lanes=<2> ⇒ ★**不用翻译寄存器序列** ⇒ 交付物 `HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md`
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核: ①`HW/DISPLAY_SMALL_SCREEN_OPTIONS.md` (27KB) + `state/TASK_display_small_screen.md` + 机器读版 `HW/display_small_options.json` 三件落地; §0 一句话结论 + §2 候选总表 (4 个候选 × 尺寸/分辨率/DSI lane/FPC 针数间距/驱动/背光/公开针位表/价格/判定) + §3.1-3.4 逐候选证据 + §7 未查到项 (含试过的 URL) + §8 出处索引 + §10 自证。②**硬约束『≤3 寸』逐个核对通过**: 候选1 Waveshare 2.8inch DSI LCD (2.8") · 候选2 Densitron DMT028VGHMCMI-1A (2.8") · 候选3 Samsung S6E63J0X03 (1.61") · 候选4 视涯 SY049WDM01 (0.49") ⇒ **无一超过 3.0"**; 原选件 Radxa Display 8HD (8.0") 已明确作废 (§0 触发行)。③**有推荐 + 有理由**: §0 明确『demo 屏选 Waveshare 2.8inch DSI LCD (2.8"/480×640/MIPI DSI 2-lane/15 位 1.0mm FPC/$43.39)』并给三条理由 (唯一『≤3寸+DSI+公开逐针表+在售』四项全中 / 15 针无独立背光脚 ⇒ **BOOST+限流+PWM 三件套可砍** / init sequence 公开可得: 树莓派官方 firmware `waveshare,2.8inch-panel` + Rockchip 内核 `panel-sitronix-st7701.c` 里同分辨率同 lane 的 2.8" 档位 `densitron,dmt028vghmcmi-1a` GIP 序列写在 .c 里 ⇒ BSP 零移植)。④**三个连带决定给了方案** (§4.1 2-lane vs 4-lane / §4.2 背光链 / §4.3 屏座), 并与后续 boss 拍板一致: §4.1 定『屏侧 2-lane, 主板→屏段保持 4-lane 布线』, ISS-176 的 netlist 实现 (J_SOM_P3 pad75/77=D2、pad81/83=D3 实接) 与此**不矛盾**。⑤**出处可查**: 官方商品页 SKU 22028 / 官方 GitHub `Waveshare-DSI-LCD` / 内核源码路径 / 树莓派官方仓库 dtbo, 均标 [实测]/[官方]。⑥**诚实边界**: 连接器料号『未查到』明写、AND9658 类付费墙文档判『查不到』。★**与后续一致**: 老板 11-04 在 ISS-176 拍板用 Waveshare 2.8" ⇒ 本文件首选与最终决定**同向**。'
   dispatched_at: '2026-11-03'
 - id: ISS-176
   title: ★★[显示接口重画] 显示器座换 Pi5 同规 22 位/0.5mm (吃 Waveshare 15→22 线) + 屏的控制 I2C 必须接
@@ -4589,14 +4626,16 @@ issues:
   reporter: main
   raised: '2026-11-04'
   due: '2026-11-06'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: HW/PCB/PI5_DSI_22P_PINOUT.md (针位表+型号+land pattern) · HW/PCB/pi5_dsi_22p.json (机器可读) · HW/PCB/display_fpc_params.json (官方封装几何) · state/display_fpc_footprint.py (封装生成) · state/verify_display_fpc.py (复核脚本) · HW/PCB/FPC_PIN_TABLES.md (display 段已换)
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
-  note: '★**两处要老板拍板**: ① 主板→屏段**只做 2-lane**(省脚省走线, 将来换高分辨率屏要改这段) vs **上 24 位双座方案**(留 4-lane 能力, 成本+面积+结构) ② 整机屏路线: RK3572 无 DSC ⇒ 视崖 0.49"(DSC 3:1) 不可用 ⇒ 换 SoC 到 RK3588 / 问视涯非 DSC 版 / 换屏 ★★2026-11-04 01:42 **老板拍板 (两条)**: ① **主板→屏段走 4-lane, 不走 2-lane** ⇒ ⇒ **SoM 侧 DSI_TX_CK/D0/D1/D2/D3 十个 pin 全部实接** (D2/D3 已从 DNP 恢复必装) ⇒ 主板为将来的 4-lane 屏留好; ⇒ ★**推论: Waveshare 2.8" 本体只有 2 对差分 ⇒ 它的 15→22 线只能把屏的 2 对接到主板 lane0/lane1, 另 2 对在屏侧 NC** ⇒ **只要 Pi5 的 22p 座里带 4 对差分脚位, "主板 4-lane + 用现成 15→22 线" 就能同时成立, 不必自制转接线** ⇒ ★**这正是 Pi5 专项要查的第 5 问** (22 位里有没有屏侧 15 位没有的脚) ⇒ 等它回来即可定稿; ② ★**屏幕暂时先不用 SY049 (视崖)** ⇒ 整机屏路线**现在不确认** ⇒ ISS-176 收窄为"demo 屏接口"这一件事。 ★★**2026-11-04 03:0x 专项回来, 第 5 问有答案了 ⇒ ISS-176 的取舍问题自动消解**: **Pi5 的 22p 座里 pin16..22 在官方原理图上是 NC** (Pi5 J4 的 pin16..30 标红叉) ⇒ ⇒ **那根 Waveshare 22p↔15p 的被动线, 22p 端的 16..22 必然也是 NC** (屏侧只有 15 脚, 且 15 脚的信号已由 Pi5 J4 的 1..15 全部提供 ⇒ 线缆只能 1..15 一一对应) ⇒ ⇒ **"主板 4-lane + 用现成 15→22 线" 同时成立, 不必上 24 位双座方案** (省一颗座 + 面积 + 结构) ⇒ **我们把 16..19 用作 lane2/lane3 差分, 20..22 预留地** ⇒ 4-lane 能力保留, 成本按 22p 单座算。 ★★**同时查到一个大坑并已避开**: **CM5IO 的 22p 针序 ≠ Pi5 DISPLAY 座的针序** (CM5IO: 2/3=D0 · 5/6=D1 · 8/9=CLK · 11/12=D2 · 20/21=I2C; Pi5 DISPLAY: 2/3=D1 · 5/6=CLK · 8/9=D0 · 11/12=I2C) ⇒ 照 CM5IO 抄 ⇒ DSI 差分全错、I2C 接错 ⇒ 屏必不亮 ⇒ ★**我们的座按 Pi5 DISPLAY 口径画**。 ★★**屏控制 I2C 已接上** (pin11=SCL0 → I2C_B_SCL, pin12=SDA0 → I2C_B_SDA; 上拉在 VDD_3V3_IO 3.3V ⇒ 与屏内 MCU 同域, 无需电平转换)。 ★★**已落**: 网表 display 段 39p→22p 逐针重映射 (含 TP 行) · 门禁 SPEC_PINS 34→22 且删掉过渡期缺号豁免 · 板上换成**官方 FH12-22S-0.5SH(55) 封装** (RPi 官方 CM5IO KiCad 封装, 非通用假封装) · 新增复核脚本 state/verify_display_fpc.py ⇒ **五个门禁全绿**: netlist ✅ / netlist_pins ✅ (22/22, 0 多网) / schematic_slots ✅ / pcb_nets 逐焊盘 485/485 ✅ / pcb_drc 0 违规 ✅ · Gerber 30 个。 ★**剩余风险 (须实物核对)**: ① 买线后万用表核 22p 端针序 (1 脚方向/3V3 位置) ② 确认线缆 22p 端触点朝向 (底接触?) ③ SoM DF40C 的 pin1 行问题依旧要万用表核 (同级风险)。'
+  verify_result: pass
+  verify_date: '2026-11-08'
+  note: '★**两处要老板拍板**: ① 主板→屏段**只做 2-lane**(省脚省走线, 将来换高分辨率屏要改这段) vs **上 24 位双座方案**(留 4-lane 能力, 成本+面积+结构) ② 整机屏路线: RK3572 无 DSC ⇒ 视崖 0.49"(DSC 3:1) 不可用 ⇒ 换 SoC 到 RK3588 / 问视涯非 DSC 版 / 换屏 ★★2026-11-04 01:42 **老板拍板 (两条)**: ① **主板→屏段走 4-lane, 不走 2-lane** ⇒ ⇒ **SoM 侧 DSI_TX_CK/D0/D1/D2/D3 十个 pin 全部实接** (D2/D3 已从 DNP 恢复必装) ⇒ 主板为将来的 4-lane 屏留好; ⇒ ★**推论: Waveshare 2.8" 本体只有 2 对差分 ⇒ 它的 15→22 线只能把屏的 2 对接到主板 lane0/lane1, 另 2 对在屏侧 NC** ⇒ **只要 Pi5 的 22p 座里带 4 对差分脚位, "主板 4-lane + 用现成 15→22 线" 就能同时成立, 不必自制转接线** ⇒ ★**这正是 Pi5 专项要查的第 5 问** (22 位里有没有屏侧 15 位没有的脚) ⇒ 等它回来即可定稿; ② ★**屏幕暂时先不用 SY049 (视崖)** ⇒ 整机屏路线**现在不确认** ⇒ ISS-176 收窄为"demo 屏接口"这一件事。 ★★**2026-11-04 03:0x 专项回来, 第 5 问有答案了 ⇒ ISS-176 的取舍问题自动消解**: **Pi5 的 22p 座里 pin16..22 在官方原理图上是 NC** (Pi5 J4 的 pin16..30 标红叉) ⇒ ⇒ **那根 Waveshare 22p↔15p 的被动线, 22p 端的 16..22 必然也是 NC** (屏侧只有 15 脚, 且 15 脚的信号已由 Pi5 J4 的 1..15 全部提供 ⇒ 线缆只能 1..15 一一对应) ⇒ ⇒ **"主板 4-lane + 用现成 15→22 线" 同时成立, 不必上 24 位双座方案** (省一颗座 + 面积 + 结构) ⇒ **我们把 16..19 用作 lane2/lane3 差分, 20..22 预留地** ⇒ 4-lane 能力保留, 成本按 22p 单座算。 ★★**同时查到一个大坑并已避开**: **CM5IO 的 22p 针序 ≠ Pi5 DISPLAY 座的针序** (CM5IO: 2/3=D0 · 5/6=D1 · 8/9=CLK · 11/12=D2 · 20/21=I2C; Pi5 DISPLAY: 2/3=D1 · 5/6=CLK · 8/9=D0 · 11/12=I2C) ⇒ 照 CM5IO 抄 ⇒ DSI 差分全错、I2C 接错 ⇒ 屏必不亮 ⇒ ★**我们的座按 Pi5 DISPLAY 口径画**。 ★★**屏控制 I2C 已接上** (pin11=SCL0 → I2C_B_SCL, pin12=SDA0 → I2C_B_SDA; 上拉在 VDD_3V3_IO 3.3V ⇒ 与屏内 MCU 同域, 无需电平转换)。 ★★**已落**: 网表 display 段 39p→22p 逐针重映射 (含 TP 行) · 门禁 SPEC_PINS 34→22 且删掉过渡期缺号豁免 · 板上换成**官方 FH12-22S-0.5SH(55) 封装** (RPi 官方 CM5IO KiCad 封装, 非通用假封装) · 新增复核脚本 state/verify_display_fpc.py ⇒ **五个门禁全绿**: netlist ✅ / netlist_pins ✅ (22/22, 0 多网) / schematic_slots ✅ / pcb_nets 逐焊盘 485/485 ✅ / pcb_drc 0 违规 ✅ · Gerber 30 个。 ★**剩余风险 (须实物核对)**: ① 买线后万用表核 22p 端针序 (1 脚方向/3V3 位置) ② 确认线缆 22p 端触点朝向 (底接触?) ③ SoM DF40C 的 pin1 行问题依旧要万用表核 (同级风险)。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 (**实跑脚本 + 逐针量板**): ①`state/verify_display_fpc.py` 用 KiCad 自带 python **实跑 rc=0**: 22 个焊盘逐针『期望 vs 实际』**全 ✔** (pin2/3=DSI_D0_D1_N/P, pin5/6=DSI_D0_CK_N/P, pin8/9=DSI_D0_D0_N/P, **pin11=I2C_B_SCL / pin12=I2C_B_SDA**, pin14/15=LIGHT_3V3, pin16/17=DSI_D0_D2_N/P, pin18/19=DSI_D0_D3_N/P, 其余 GND), 焊盘几何 22 个 / 0.3×1.3mm / pitch 全 0.5 (异常 0)。②**网表侧逐针同源**: 网表 237 行 CONN_LIGHT 声明 = 『★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)』+ note 写明针序照 **Raspberry Pi 5 官方 DISPLAY 座 (J4)**: 1=GND 2=DSI1_DN1 3=DSI1_DP1 …; pcbnew 实读板上 CONN_LIGHT **22 个焊盘**且 pad11/pad12 = I2C_B_SCL/I2C_B_SDA ⇒ **屏的控制 I2C 真的接了** (原单『触控一律不接』的结论已作废)。③**4-lane 已实做**: 主板→屏段 D2/D3 从 DNP 恢复必装 —— 板探针 J_SOM_P3 **pad75=DSI_D0_D2_N_SRC / pad77=DSI_D0_D2_P_SRC / pad81=DSI_D0_D3_N_SRC / pad83=DSI_D0_D3_P_SRC** 四个 SoM 侧 pin 全部实接, 屏侧落在座脚 16-19 ⇒ 与老板『主板→屏段走 4-lane』的拍板一致。④**针序陷阱已被文档点破**: `HW/PCB/FPC_PIN_TABLES.md:29-30` 明写『★针序必须照 Raspberry Pi 5 官方 DISPLAY 座 (J4) 抄 —— 与 **CM5IO 的 22p 针序不同** (CM5IO: 2/3=D0 · 5/6=D1 · 8/9=CLK · 20/21=I2C; Pi5 DISPLAY: 2/3=D1 · 5/6=CLK · 8/9=D0 · 11/12=I2C) ⇒ 抄错 ⇒ 屏必不亮』并已按 Pi5 口径实现。⑤`HW/PCB/pi5_dsi_22p.json` (pins 22 条 + connector + cable_mapping_rule + provenance 6 条 + open_items 3 条) 与 `HW/PCB/PI5_DSI_22P_PINOUT.md` + `HW/PCB/display_fpc_params.json` 落地; 座型 HIROSE **FH12-22S-0.5SH(55)**, 官方封装几何 (焊盘 0.3×1.3mm, pitch 0.5, pad1 在 +x 端, 本体 -1.2~+3.4, courtyard ±8.55×-3~+4.9) 取自 RPi 官方 CM5IO KiCad 设计文件。★**残留项 (已上报项目总工, 不阻塞本条)**: 脚本量到 **CONN_LIGHT 的 courtyard 与 7 个器件外框重叠** (C_AC_CSI_D0_CK_P / R_KEY_VM / TP_KEY_VM / C_KEY_VM / SW_KEY_CAM / SW_KEY_VM / C_AC_CSI_D0_D2_N) —— 脚本只 warn 不 fail, DRC 也不判 courtyard ⇒ 这是**布局域**遗留 (FH12-22S 是右角座, courtyard 含 actuator 本体), 归 ISS-181 布线/布局轮处理, 已在本轮报告里单列。'
   dispatched_at: '2026-11-04'
 - id: ISS-177
   title: ★★[整机屏 · 已暂缓] 问视崖 SY049 有无非 DSC 模式版本 —— ★**视崖已不用 ⇒ 本单降级 deferred**; 非 DSC 这条改成**选屏硬判据**(任何屏都必须支持)
@@ -4627,14 +4666,16 @@ issues:
   reporter: main
   raised: '2026-11-04'
   due: '2026-11-07'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: state/tmp117_footprint.py (自绘官方 land pattern) · state/_patch_tmp117_6pin_20261104.py · HW/PCB/pinout_footprint.json (parts.U_TEMP) · HW/PCB/PINOUT_FOOTPRINT_SPEC.md §11.5 · state/check_netlist_pins.py (SPEC_PINS U_TEMP 4→6)
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
-  note: '★**已改**: 网表 U_TEMP 改成官方 6 脚 (1=SCL→I2C_B_SCL · 2=GND · 3=ALERT→NC 悬空 · 4=ADD0→GND ⇒ 地址 0x48 · 5=V+→VDD_3V3_IO · 6=SDA→I2C_B_SDA); 板上换成自绘的官方封装 (焊盘 0.45×0.30 / 脚距 0.65 / 列距 1.95 / 无 EP) ⇒ **五个门禁全绿** (逐焊盘 487/487, DRC 0, Gerber 30)。★**未决**: ① ALERT (过温告警) demo 悬空 —— 要不要占一个 SoM GPIO 做告警上报, **待老板定** (皮肤侧过温是有安全含义的); ② U_TEMP 的位置现在在器件网格里 (预布线期占位), 正式布局时它**必须靠近被测面**且远离 SoM/电源 (原厂 §10.1: 测固体表面温度要用薄 PCB + 尽量小热阻)。'
+  verify_result: pass
+  verify_date: '2026-11-08'
+  note: '★**已改**: 网表 U_TEMP 改成官方 6 脚 (1=SCL→I2C_B_SCL · 2=GND · 3=ALERT→NC 悬空 · 4=ADD0→GND ⇒ 地址 0x48 · 5=V+→VDD_3V3_IO · 6=SDA→I2C_B_SDA); 板上换成自绘的官方封装 (焊盘 0.45×0.30 / 脚距 0.65 / 列距 1.95 / 无 EP) ⇒ **五个门禁全绿** (逐焊盘 487/487, DRC 0, Gerber 30)。★**未决**: ① ALERT (过温告警) demo 悬空 —— 要不要占一个 SoM GPIO 做告警上报, **待老板定** (皮肤侧过温是有安全含义的); ② U_TEMP 的位置现在在器件网格里 (预布线期占位), 正式布局时它**必须靠近被测面**且远离 SoM/电源 (原厂 §10.1: 测固体表面温度要用薄 PCB + 尽量小热阻)。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 (**直接量板上的 6 个焊盘**): ①pcbnew 实读 U_TEMP = **6 个焊盘**, 逐脚 = pad1 **I2C_B_SCL** / pad2 GND / pad3 NC_U_TEMP_ALERT / pad4 GND (ADD0 ⇒ 地址锁 0x48) / pad5 VDD_3V3_IO (V+) / pad6 **I2C_B_SDA** ⇒ **与 TI TMP117 datasheet SNOSD82D §5 Table 5-1 (1=SCL 2=GND 3=ALERT 4=ADD0 5=V+ 6=SDA) 完全一致**, 原单说的『原网表 4 脚抽象 1=SDA 2=SCL 3=VDD 4=GND ⇒ 脚号全错, 照封装焊上去 SCL 会接到 V+』**已被纠正**。②网表 173-178 行同款 (I2C_B_SCL/U_TEMP pin1 … I2C_B_SDA/U_TEMP pin6), 每行都带原厂页号引用。③**封装自绘有真值源**: `state/tmp117_footprint.py` + `HW/PCB/pinout_footprint.json` (U_TEMP: WSON-6 = DRV0006B, 2.00×2.00mm, 6 焊盘 0.45×0.30mm, 脚距 0.65mm, 两列中心距 1.95mm, **无散热焊盘 EP** —— 原厂建议 EP 不焊以保测温精度)。④**门禁同步更新**: `state/check_netlist_pins.py` 的 SPEC_PINS U_TEMP 由 4 改 6, 实测 **C2/C3 U_TEMP 针数 6/6**。⑤**板级门禁全绿**: `check_pcb_nets.py` rc=0 (487/487 逐焊盘等价) + `check_pcb_drc.py` DRC violations = 0 + Gerber 30 件齐。★**诚实边界**: ALERT (过温告警) demo 悬空 —— 皮肤侧过温有安全含义, **是否占一个 SoM GPIO 待老板拍板** (本条 note 已留痕, 属未决设计取舍, 不是脚号错误)。'
   dispatched_at: '2026-11-04'
 - id: ISS-179
   title: ★★[手机测端到端] 显示画面烧帧计数器/时间码 + 手机慢动作测端到端延时作业指引
@@ -4686,14 +4727,16 @@ issues:
   reporter: main
   raised: '2026-11-04'
   due: '2026-11-04'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: state/gen_kicad_net.py (幽灵分裂网) · state/gen_netlist.py (USB 拓扑 + VBUS 分压) · state/check_netlist.py + state/check_netlist_pins.py (判据随形态更新) · state/chain_gate.py (投产包新鲜度)
-  verify_by: main
+  verify_by: hw-lead
   verify_result: pass
-  verify_date: '2026-11-04'
-  note: '★**验证**: check_kicad_net rc=0 (216 器件脚数全对) · check_netlist rc=0 · check_netlist_pins rc=0 · check_sch_loadable rc=0 · check_pcb_nets rc=0 (487/487) · check_pcb_drc rc=0 · chain_gate --full 全过。★**新增防复发判据**: check_netlist 现在的 "USB 走板载 Type-C 且 22Ω 串阻真串在中间" ⇒ 串阻被短接会立刻报红; chain_gate 现在的 "投产包比 PCB/原理图新" ⇒ 旧板生成的 Gerber 不可能流到投板。'
+  verify_date: '2026-11-08'
+  note: '★**验证**: check_kicad_net rc=0 (216 器件脚数全对) · check_netlist rc=0 · check_netlist_pins rc=0 · check_sch_loadable rc=0 · check_pcb_nets rc=0 (487/487) · check_pcb_drc rc=0 · chain_gate --full 全过。★**新增防复发判据**: check_netlist 现在的 "USB 走板载 Type-C 且 22Ω 串阻真串在中间" ⇒ 串阻被短接会立刻报红; chain_gate 现在的 "投产包比 PCB/原理图新" ⇒ 旧板生成的 Gerber 不可能流到投板。
+
+    ★2026-11-08 hw-lead 独立验证 (接手 verify_by=main→hw-lead): ★**本条原 verify_by=main 且 owner=main ⇒ 违反 C3 (修复人自验); 本轮由 hw-lead 接手验证** (verify_by 已改为 hw-lead)。hw-lead 独立复核五处, 逐处查产物: ①**导出器『幽灵分裂网』修在产生点**: `state/gen_kicad_net.py:226-232` —— 修法是『若 canon(行网) == alias_net ⇒ 它们本来就是同一根线 ⇒ alias_net 用行网本身』, canon() 见 80-89 行 (RAIL_/NET_ 前缀剥除 + ALIAS_MAP)。**旁证**: 现网表里 RAIL_DEMO_5V (USB-C 输入) 与 RAIL_BOARD_5V (U_EN_SW 门控后的输出) 是**两个设计上的不同节点** (网表 419-423 vs 78-152), 而不是同一根 5V 被别名拆开 ⇒ 无幽灵分裂。②**R_SER_USB_D_P/N 短接已修**: 网表 291/292 行 R_SER_USB_D_P 的 **SoM 侧**在 NET_USB_D_P_SRC (J_SOM_P1 pin92), 网表 431/432 行 R_SER_USB_D_P 的 **Type-C 侧**在 NET_USB_D_P_TYPEC (J_USB_C A6+B6) ⇒ **串阻真串在中间, 没有短接行** (全网表无『R_SER_USB_D_P 与 J_USB_C 同网』的行)。③**跨铰链 USB 整块删除**: `HW/netlist_v1.csv` 里 **CONN_USB 0 行** (已 grep 确认), 板载 Type-C 改 J_USB_C (网表 419/431/432)。④**VBUS 分压失效已修**: 网表 434 R_VBUS_DET_D1 (1M 上臂挂 RAIL_DEMO_5V) / 436 R_VBUS_DET_D2 (1M 下臂挂 GND) —— **上下臂不再并联**; 437/438 **C_DET_VBUS_D 两条腿都在** (中点侧 + 地端) ⇒ 读数不为 0V; 中点 439 接到 J_SOM_P1 pin100 (USB_DRD1_VBUSDET)。⑤**J_CHG pin7 改预留 NC**: 网表 433 行 `NC | J_CHG pin7 | NC` (DNP)。⑥**防复发判据已进闸**: `check_netlist.py` 新增『USB 走板载 Type-C 且 22Ω 串阻真串在中间』; `state/chain_gate.py` 新增『投产包比 PCB/原理图新』⇒ 旧板 Gerber 不可能流到投板。⑦**全链准出**: `check_netlist` rc=0 (32 条) · `check_kicad_net` rc=0 (8 条) · `check_netlist_pins` rc=0 (9 条) · `check_sch_loadable` rc=0 · `check_pcb_nets` rc=0 (487/487) · `check_pcb_drc` DRC=0 · `chain_gate --full` 准出 ①-⑤ 全 ✅。★**接手说明**: main 11-04 已写 verify_result=pass, 本轮按 C3 要求重新独立验证并以今日为 verify_date。'
   dispatched_at: null
 - id: ISS-183
   title: ★★★[投板级 P0 · 已修待验] SoM 的 7 个 DCIN 脚落在孤岛网 `RAIL_SOM_DCIN` ⇒ 板上**没有到 SoM 的供电路径** (网表 net 字段与 node2 字段自相矛盾)
@@ -4705,14 +4748,16 @@ issues:
   reporter: main
   raised: '2026-11-05'
   due: '2026-11-06'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: state/gen_netlist.py:1488 (net 字段改成 RAIL_DEMO_5V) · HW/netlist_v1.csv (重出) · HW/PCB/demo_mainboard.kicad_sch (重出) · HW/BOM_v1.csv (重出)
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
-  note: '★**修法**: net 字段改成 `RAIL_DEMO_5V` ⇒ ★**网表/原理图/BOM/PCB 全链自动跟着对** (链式重出: gen_netlist → gen_kicad_sch → gen_bom)。★**前后 diff**: **514 行 → 514 行**, ★**只有这 7 行的网名变了, 其它电气内容一行没动**。★**代价**: 5V 网从 9 个焊盘变 16 个 ⇒ 多出一条 **USB-C (137,5) → SoM 角 (16,8) 的 ~120mm 5V 干道** ⇒ 新的布线难点, 但这是设计本来的样子。★**已作废**: 修网表前起的三条臂 (v27/v28/v29) 全部停掉重跑。★**待验**: 需要独立复核 (不能自验) —— 看 5V 干道是否真的通到 SoM 的 7 个脚。★**教训**: ★**布线分析工具比肉眼 看板可靠** ⇒ "布不动"要按网归类看, 才能发现"设计上就错"的项 ⇒ ★**别把设计 bug 当成布线 bug 一直调路由器**。'
+  verify_result: pass
+  verify_date: '2026-11-08'
+  note: '★**修法**: net 字段改成 `RAIL_DEMO_5V` ⇒ ★**网表/原理图/BOM/PCB 全链自动跟着对** (链式重出: gen_netlist → gen_kicad_sch → gen_bom)。★**前后 diff**: **514 行 → 514 行**, ★**只有这 7 行的网名变了, 其它电气内容一行没动**。★**代价**: 5V 网从 9 个焊盘变 16 个 ⇒ 多出一条 **USB-C (137,5) → SoM 角 (16,8) 的 ~120mm 5V 干道** ⇒ 新的布线难点, 但这是设计本来的样子。★**已作废**: 修网表前起的三条臂 (v27/v28/v29) 全部停掉重跑。★**待验**: 需要独立复核 (不能自验) —— 看 5V 干道是否真的通到 SoM 的 7 个脚。★**教训**: ★**布线分析工具比肉眼 看板可靠** ⇒ "布不动"要按网归类看, 才能发现"设计上就错"的项 ⇒ ★**别把设计 bug 当成布线 bug 一直调路由器**。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 (**这块是『板子即使布完线 SoM 也上不了电』的 P0, 所以我做到板级**): ①**孤岛已消除**: 全仓 grep `RAIL_SOM_DCIN` —— 现网表里 **0 处命中** (该网名已被彻底删除, 不只是改名)。②**7 个 DCIN 脚现在逐个挂在 RAIL_DEMO_5V** (网表 445-451): J_SOM_P3 **pin91 / pin93 / pin95 / pin97 / pin98 / pin99 / pin100** 七行 net 全 = RAIL_DEMO_5V, 与 `state/gen_netlist.py` 里那 7 行 (原 1488, 现行号已漂移) 的 net 字段一致。③**从 Type-C 到 SoM 的供电路径在网表上闭合**: 网表 419 行 J_USB_C **A4+A9+B4+B9** = RAIL_DEMO_5V —— **USB-C 的 5V 输入与 SoM 的 7 个 DCIN 脚同网** ⇒ 「板上有到 SoM 的供电路径」成立; 中间还串了 D_ESD_DEMO (420/421) + FB_DEMO π 滤波 (422/423)。④**门禁已加**: `check_netlist_pins.py` **C6 SoM 的 VCC_DCIN 7 脚都接上了 — 7/7 (91,93,95,97,98,99,100)** ⇒ 以后谁改坏这 7 脚立刻报红。⑤**★板级实测 (本条『待验』要求的『5V 干道是否真的通到 SoM 的 7 个脚』)**: kicad-cli DRC json 实跑 ⇒ violations **0**, unconnected **45** 条; 我把 45 条按网名分类 ⇒ **RAIL_DEMO_5V 相关 0 条** ⇒ **5V 干道在板子上已实布通到 SoM 的 7 个脚** (未通的 45 条全是 CSI/DSI/I2C/SPI/JTAG/LED/KEY 等信号网, 属 ISS-181 布线轮)。⑥**链式重出完整**: 网表 514 行 → 原理图 → BOM 全部重出, `chain_gate --full` 准出 ①-⑤ 全 ✅ (位号 291 个全对 / DNP 56 个一致)。★**诚实边界**: 板级仍有 45 条未连接 (信号网), 不在本条范围; 本条只判定『SoM 供电路径』。'
   dispatched_at: null
 - id: ISS-184
   title: ★★★[网表级 P0 · 已修待验] `.net` 导出器把「只在 node 串里出现、ref 列里没有」的器件(J_SOM_P2 / J_SOM_P4) 的 23 个脚**静默丢弃** ⇒ 脚级表停更 3 天 + 原 5 条门禁全绿漏过
@@ -4732,20 +4777,22 @@ issues:
   reporter: main
   raised: '2026-11-06'
   due: '2026-11-07'
-  status: fixed
+  status: closed
   external: false
   need_keys: []
   fix_ref: 'state/gen_kicad_net.py (器件集合 = ref 列 ∪ node 串里的 REF 头; 并为 node-only 器件补 (comp ...) 条目) · state/gen_netlist_pins.py (校验2 的「CSV 出处」也要认 node 串里的 REF) · state/check_kicad_net.py (★新增第 6 条判据: CSV 带引脚提示的脚 .net 一个不缺) · HW/netlist_v1.net (重出, 561→584 node) · HW/netlist_v1_pins.csv (重出, 550→584 行) · state/gen_start_here.py (引用的行数/器件数与判据条数同步)'
   verify_by: hw-lead
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-08'
   note: '★**修法 (修在产生点, 不在产物上擦)**: ①`gen_kicad_net.py` 的 `devices` 改为 **ref 列的器件 ∪ node 串里带引脚提示的 head** (排除网名与 NET_/RAIL_/GND 伪 ref) ⇒ 23 个脚回来; ②同时为这两个 node-only 器件补 `(comp ...)` 条目 (否则 .net 里有 node 却没有器件 ⇒ KiCad 导入时这 23 个脚无处安放); ③`gen_netlist_pins.py` 的校验2 同步认 node 串出处 (否则会把 J_SOM_P2/P4 误判成「.net 里的器件在 CSV 里没有出处」)。
 
     ★**防复发 (新增第 6 条门禁)**: `check_kicad_net.py` 现在**按 CSV 逐个点名**「带引脚提示的脚 .net 里一个都不能缺」⇒ ★**拿修复前的坏 .net 实测 rc=1 报红, 拿修复后的 rc=0 通过** ⇒ 这类静默丢脚以后当场报红, 不会再静默三天。
 
     ★**未动的**: `HW/netlist_v1.csv` (内容逐字节未变, 只碰过 mtime 已还原) · `HW/PCB/demo_mainboard.kicad_pcb` (**md5 611b869e… 与修复前完全一致 ⇒ 板未重出**) · `HW/BOM_v1.csv` · `HW/PCB/demo_mainboard.kicad_sch` (这三个都读 CSV, CSV 没变 ⇒ 不需要重出)。
 
-    ★**遗留 (未做, 待定)**: `gen_kicad_sch.py` 与 `gen_kicad_net.py` 用同一套「只认 ref 列」的器件口径 ⇒ ★**原理图侧 (.kicad_sch + 投产包 demo_mainboard-kicad.net) 仍缺 J_SOM_P2/P4** ⇒ ★**下一步要么同样修它, 要么明确写清「原理图侧不画 SoM 座」的口径** —— 本单只修了 .net 与脚级表这两条链, 没有动原理图链。'
+    ★**遗留 (未做, 待定)**: `gen_kicad_sch.py` 与 `gen_kicad_net.py` 用同一套「只认 ref 列」的器件口径 ⇒ ★**原理图侧 (.kicad_sch + 投产包 demo_mainboard-kicad.net) 仍缺 J_SOM_P2/P4** ⇒ ★**下一步要么同样修它, 要么明确写清「原理图侧不画 SoM 座」的口径** —— 本单只修了 .net 与脚级表这两条链, 没有动原理图链。
+
+    ★2026-11-08 hw-lead 独立验证: hw-lead 独立复核 (原单说的『原 5 条门禁全绿漏过』是假绿典型, 所以我查的是『漏判路径有没有堵』): ①**修在产生点**: `state/gen_kicad_net.py:110-141` —— `devices = known - netlike` 之后并上 `node_only_devices` (扫 node1/node2 串里带引脚提示的头, 并排除 net_labels 与 NET_/RAIL_/GND 伪 ref); 源码 168-175 另为 node-only 器件补 `(comp ...)` 条目 (否则 .net 里有 node 却没有器件 ⇒ KiCad 导入时那 23 个脚无处安放)。②**我实数 .net**: `HW/netlist_v1.net` 共 **584 个 (node ...)** + **218 个 (comp ...)**; **J_SOM_P2 = 9 个 node** (pin1/7/9/11/13/31/33/45/100) + **J_SOM_P4 = 14 个 node**, 且两个器件的 **(comp) 条目都在** (.net 第 220/221 行, 座型 HIROSE DF40C-100DS-0.4V(51) 100pin 0.4mm) ⇒ 原单说的『应为 9 / 14』**逐个对上**, 23 个脚一个没丢。③**脚级表也停更修好了**: `HW/netlist_v1_pins.csv` **584 行** (= 每引脚一行, 覆盖 218 器件) —— 我实跑 `state/gen_netlist_pins.py` 后 **diff BYTE-IDENTICAL** (幂等)。④**防复发的新判据在闸里**: `state/check_kicad_net.py:118-150` 第 6 条『CSV 里带引脚提示的脚, .net 里一个不缺 (导出器不许静默丢脚)』⇒ 实跑输出『177 个带引脚提示的脚全在 .net 里』rc=0。⑤**同步项**: `gen_netlist_pins.py` 校验2 也改成认 node 串出处 (否则会把 J_SOM_P2/P4 误判成『.net 里的器件在 CSV 里没有出处』); `state/gen_start_here.py` 引用的行数/器件数与判据条数同步。⑥**口径提醒**: 该 .net 文件头的 design date 仍写 2026-10-27, 但 node/comp 数已是 584/218 ⇒ **别拿文件头日期当内容新旧判据**, 以 chain_gate 的『产物 vs 生成器 mtime』为准。'
   dispatched_at: null
 - id: ISS-185
   title: '★ISS-107 同型问题 (第二面): 没有对手方的过期值 —— 本域 8 条 claim 的值停留在 10-28 基线, 合并器静默放过'

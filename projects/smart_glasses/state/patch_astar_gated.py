@@ -104,6 +104,7 @@ class ViaGate(object):
         """★这个换层点合法吗? ⇒ 返回 (ok, why, worst)"""
         layers = set(range(li_from, li_to + 1))
         worst = 1e9
+        worst_need = 0.0
         who = ""
         for (n2, x1, y1, x2, y2, li, tw) in self.tracks:
             if n2 == net or li not in layers:
@@ -112,13 +113,16 @@ class ViaGate(object):
             need = via_r + tw / 2.0 + CLEAR
             if d < need - 1e-9 and d < worst:
                 worst = d
+                worst_need = need
                 who = "走线 %s[lay%d]" % (n2, li)
         for (n2, cx, cy, lays) in self.pads:
             if n2 == net or not (lays & layers):
                 continue
             d = math.hypot(vx - cx, vy - cy)
-            if d < via_r + CLEAR - 1e-9 and d < worst:
+            _need_pad = via_r + CLEAR
+            if d < _need_pad - 1e-9 and d < worst:
                 worst = d
+                worst_need = _need_pad
                 who = "焊盘 %s" % n2
         for (n2, x, y, l1, l2) in self.vias:
             if n2 == net:
@@ -126,11 +130,15 @@ class ViaGate(object):
             if not (set(range(l1, l2 + 1)) & layers):
                 continue
             d = math.hypot(vx - x, vy - y)
-            if d < 2 * via_r + CLEAR - 1e-9 and d < worst:
+            _need_via = 2 * via_r + CLEAR
+            if d < _need_via - 1e-9 and d < worst:
                 worst = d
+                worst_need = _need_via
                 who = "过孔 %s" % n2
         if who:
-            return (False, "%s 仅 %.4fmm (需 ≥%.4f)" % (who, worst, 0), worst)
+            # ★★2026-11-08 23:4x **修日志说谎**: ★**原来这里硬编码 "(需 ≥0.0000)"** ⇒ 明明是 0.6250 的净距要求,
+            #   日志却写成"需 ≥0.0000" ⇒ ★**读日志的人会以为闸门在乱拒** ⇒ ★**现在打印真实要求值**
+            return (False, "%s 仅 %.4fmm (需 ≥%.4f)" % (who, worst, worst_need), worst)
         return (True, "", 1e9)
 
 

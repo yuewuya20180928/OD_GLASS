@@ -17,3 +17,9 @@
 ★**期望 (★写下来好回头核)**: ★**v72 若能 unc < 42 且 DRC 0 ⇒ 就是第一块优于官方板的候选板; v71 是它的对照 (证明"焊盘半宽"这一项值多少)****
 ★**验收 (★出板后跑, 一条命令)**: `bash state/verify_candidate.sh /tmp/vXX_R.kicad_pcb` ⇒ ★**四把尺子 (fresh DRC / 名单制闸 / 闸自测 / 差分对审计)**
 ★**官方板全程只读** (三个臂都不写官方板; 板文件 md5 611b869e 不变)
+
+★★**追加: v73 臂 (2026-11-08 23:2x) —— 【单变量 vs v70: 只把新铜宽度从 0.25 改成 0.15】****
+★**为什么**: ★**0.15mm 线宽的真正价值在"拥挤走廊能不能钻过去"** ⇒ 净距要求从 0.425mm 降到 0.375mm ⇒ **走廊宽 12% 的余量** ⇒ ★**而 BTB 0.4mm pitch 出脚在 0.20 线宽下余量恰为 0 ⇒ ★**0.15 是唯一能出脚的宽度**
+★**命令**: `env PCB_HALO_MARGIN=0.03125 bash state/pcbnew_py.sh state/patch_astar_gated.py HW/PCB/demo_mainboard.kicad_pcb /tmp/_drc45.json --out /tmp/v73_R.kicad_pcb --grid 0.0625 --width 0.15 --budget 900000 --gate-via 1`
+★**★注**: ★**候选板用 0.15mm 新铜 ⇒ 真板 DRC 必须把【板规则最小线宽】也改成 0.15mm** (★否则会像 v57 那样刷出 108 条 track_width 假违规 ⇒ ★**已实测: 改板规则后 115 → 7** ⇒ **这一步在验收时做, 不是漏做**)
+★**与 v70 的差别**: **只有 --width 0.25 ⇒ 0.15 这一处** (★grid / margin / budget / 闸 全同) ⇒ **单变量**
