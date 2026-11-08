@@ -155,21 +155,11 @@ if [ "$SKIP_STRAIGHT" = "1" ]; then
     exit 11
   fi
   # ★**几何集合比对 (★忽略 UUID 随机 ⇒ 只比 起点/终点/线宽/层/网)**
+  # ★★★★**★2026-11-09 06:3x: 改用【统一工具】`state/cmp_pcb_geom.py` (★★**别再各处各写一遍解析 ⇒ 改一处必漏**) ★★★★
+  # ★**这个工具的存在理由 (★实测)**: ★**md5 不能判复现** ⇒ ★**KiCad 每次存盘重生成 uuid** ⇒ ★★**本项目因此判错 3 次** ★★
   if [ -f "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" ]; then
-    python3 - "$WORK/final_chain.kicad_pcb" "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" <<'PY' | tee -a "$LOG"
-import re, sys
-segb = re.compile(r'\(segment\s*\n\s*\(start ([-\d.]+) ([-\d.]+)\)\s*\n\s*\(end ([-\d.]+) ([-\d.]+)\)\s*\n\s*\(width ([\d.]+)\)\s*\n\s*\(layer "([^"]+)"\)\s*\n\s*\(net "([^"]+)"\)')
-def segs(p):
-    t = open(p, encoding='utf-8', errors='ignore').read()
-    return set(m.groups() for m in segb.finditer(t))
-a, b = segs(sys.argv[1]), segs(sys.argv[2])
-if a == b:
-    print(f"  ✅ 自校准闸(档①): 几何集合与官方终板全同 ({len(a)} 条) ⇒ 复现成功")
-else:
-    print(f"  ❌ 自校准闸(档①): 几何集合与官方终板不同 (仅本板 {len(b-a)} 条 / 仅官方 {len(a-b)} 条)")
-    sys.exit(1)
-PY
-    [ "${PIPESTATUS[0]}" != "0" ] && exit 12
+    python3 "$PROJ/state/cmp_pcb_geom.py" "$WORK/final_chain.kicad_pcb" "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" --zones 2>&1 | tee -a "$LOG"
+    python3 "$PROJ/state/cmp_pcb_geom.py" "$WORK/final_chain.kicad_pcb" "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" --zones >/dev/null 2>&1 || exit 12
   fi
   # ★**unc 网名集合比对 (★比"unc 数量"强得多 ⇒ ★★**同工艺的板必须连【哪几个网没连上】都一样** ★★)**
   # ★**★实测 (★05:5x)**: ★**官方板 vs 本链复现板 ⇒ 网名集合 43/43 完全相同 (★仅官方 0 · 仅复现 0)**

@@ -67,10 +67,15 @@ def running():
         #   ⇒ ★**实测: v70 臂真在跑 (100% CPU), 播报却写 "[在跑] 0 个进程" ⇒ ★**探针在说谎**
         #   ⇒ ★**⇒ 老板/我自己都差点据此得出"没进展"的错误结论 ⇒ ★**显示层的诚实性也是硬指标**
         #   ⇒ ★**修法: 显式列出补段类脚本名 (★不用宽泛的 "state/" ⇒ 避免误伤, 见上面 publish_github 的教训)**
+        # ★★★★2026-11-09 06:2x **再补两处 (★兄弟 04:10 播报又抓到一次盲区 + 我实测)**: ★*
+        #   ⇒ ★**① `fix_straight_links`** (★官方链的 straight 步主力 ⇒ 漏了它 = 链在跑但播报说 0 个)
+        #   ⇒ ★**② `replay_patch_chain`** (★链的【调度进程】本身 ⇒ ★★**它才是"在跑"的代表 ⇒ 漏了它 ⇒ 链明明在跑但播报说 0 个** ★★
+        #   ⇒ ★★**实测证据 (★06:2x)**: ★**起一条真链 ⇒ 旧模式串只认到 1 个 (★patch_astar_nostub) ⇒ ★★**漏掉了调度进程 replay_patch_chain.sh** ★★
         _PAT = ("gen_pcb_netlist_board|gen_pcb_routing|fix_gnd_stitch|"
                 "patch_astar_gated|patch_astar_nostub|patch_pair_aware|"
                 "fix_unconnected_astar|fix_short_unconnected|rip_escape_guard|"
-                "fix_via_halo_levels")
+                "fix_via_halo_levels|fix_straight_links|replay_patch_chain|"
+                "promote_arm|promote_board_file")
         r = subprocess.run(["pgrep", "-af", _PAT],
                            capture_output=True, text=True, timeout=10)
         # ★**自己的 pid 祖先链** (★调用方的 shell 也在链上 ⇒ 一并排除)
