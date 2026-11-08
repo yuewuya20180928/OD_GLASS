@@ -707,11 +707,26 @@ class GridRouter:
            ★**按真实矩形外扩** (不是按单元中心画圆) —— 否则边界误差会吃净距
            ★★**焊盘只在它实际存在的层上占净距** —— SMD 焊盘只在 F.Cu
              ⇒ 上一版把它记到全部 6 层 ⇒ ★L3/L5 整层被焊盘禁区封死
-             ⇒ 板子 99% 只能走 F.Cu ⇒ 局部通道堵死 (本轮 179 脚布不通的根因)"""
+             ⇒ 板子 99% 只能走 F.Cu ⇒ 局部通道堵死 (本轮 179 脚布不通的根因)
+           ★★★★2026-11-08 23:0x **【焊盘自身半宽漏计】修正 (env 门控 `PCB_PAD_HALO_EXACT=1`, 默认关 ⇒ 逐位不变)**
+             ★**几何要求 (纯算术)**: 候选走线中心到**焊盘边缘**的距离必须 ≥ CLEAR + 候选线半宽
+               ⇒ ⇒ 焊盘矩形必须外扩 **(CLEAR + 候选线半宽 + 焊盘自身半宽)**
+               ⇒ ★**而旧公式只外扩 (CLEAR + 候选线半宽) ⇒ 漏了【焊盘自身半宽】**
+             ★**漏多少**: BTB 焊盘 0.2mm 宽 ⇒ 漏 0.10mm; 大焊盘 (0.5mm+) 漏更多
+               ⇒ ★**⇒ 在 margin 收紧 (0.03125 / 0) 的实验里, 走线可以贴到【比规范近 0.1mm】的位置**
+               ⇒ ★**⇒ 真板 DRC 会报 clearance 违规 (实际 0.176~0.191 vs 要求 0.2 ⇒ 正是实测到的 7 条那类)**
+             ★**修法**: 外扩量加上焊盘半宽 (取两方向里【小的那个】⇒ 长条焊盘方向上保守)
+               ⇒ ★**默认关**: ★**既有臂逐位可复现 (本项目铁律) ⇒ 只有显式开这个开关的臂才用新公式**
+        """
+        _exact = os.environ.get("PCB_PAD_HALO_EXACT", "0") == "1"
         for (net, x0, y0, x1, y1, layers) in self.pad_rects_l:
+            # ★焊盘自身半宽 (取两方向较小者 ⇒ 对长条焊盘保守)
+            _pad_half = min(abs(x1 - x0), abs(y1 - y0)) / 2.0
             for li in layers:
                 for cls in range(3):
                     rr = CLEAR + W_CLS[cls] / 2.0 + HALO_MARGIN
+                    if _exact:
+                        rr += _pad_half
                     cells = _rect_cells(x0 - rr, y0 - rr, x1 + rr, y1 + rr, self.g,
                                        self.bb[0], self.bb[1])
                     for (i, j) in cells:

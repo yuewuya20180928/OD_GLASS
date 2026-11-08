@@ -61,7 +61,17 @@ def running():
     try:
         # ★★2026-11-06 23:4x (★兄弟指出): ★**publish_github.sh 是"每 20 分钟的自动同步", 不是布线进程**
         #   ⇒ ★**它会把自己算进 `[在跑]`** ⇒ ★**噪声 ⇒ ★**从模式串去掉, 只留真正的布线脚本**
-        r = subprocess.run(["pgrep", "-af", "gen_pcb_netlist_board|gen_pcb_routing|fix_gnd_stitch"],
+        # ★★★★2026-11-08 22:3x **补齐模式串 (★实测盲区)**: ★**原模式串只认三个脚本**
+        #   ⇒ ★**"在跑" 那一行漏掉了所有【补段/修补类】进程** (★patch_astar_gated / patch_astar_nostub /
+        #     fix_unconnected_astar / rip_escape_guard / fix_via_halo_levels …)
+        #   ⇒ ★**实测: v70 臂真在跑 (100% CPU), 播报却写 "[在跑] 0 个进程" ⇒ ★**探针在说谎**
+        #   ⇒ ★**⇒ 老板/我自己都差点据此得出"没进展"的错误结论 ⇒ ★**显示层的诚实性也是硬指标**
+        #   ⇒ ★**修法: 显式列出补段类脚本名 (★不用宽泛的 "state/" ⇒ 避免误伤, 见上面 publish_github 的教训)**
+        _PAT = ("gen_pcb_netlist_board|gen_pcb_routing|fix_gnd_stitch|"
+                "patch_astar_gated|patch_astar_nostub|patch_pair_aware|"
+                "fix_unconnected_astar|fix_short_unconnected|rip_escape_guard|"
+                "fix_via_halo_levels")
+        r = subprocess.run(["pgrep", "-af", _PAT],
                            capture_output=True, text=True, timeout=10)
         # ★**自己的 pid 祖先链** (★调用方的 shell 也在链上 ⇒ 一并排除)
         skip = set()
