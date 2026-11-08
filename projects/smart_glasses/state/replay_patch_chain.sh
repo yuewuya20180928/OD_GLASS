@@ -171,6 +171,17 @@ else:
 PY
     [ "${PIPESTATUS[0]}" != "0" ] && exit 12
   fi
+  # ★**unc 网名集合比对 (★比"unc 数量"强得多 ⇒ ★★**同工艺的板必须连【哪几个网没连上】都一样** ★★)**
+  # ★**★实测 (★05:5x)**: ★**官方板 vs 本链复现板 ⇒ 网名集合 43/43 完全相同 (★仅官方 0 · 仅复现 0)**
+  # ★**★对照: 走岔的旧链板 (17731段) ⇒ 网名集合差 1 个 (★46条unc) ⇒ ★★**本闸抓得住** ★★
+  # ★★★★**★2026-11-09 06:0x 修 (★自测时抓到的真 bug)**: ★**`$WORK/final_chain.kicad_pcb.drc.json` 是【loose 步的输入 DRC】(★48 条), 不是终板的 (★45 条)** ★★
+  #   ⇒ ★**拿它比 unc ⇒ 判据失效 (★比的是上一级板的状态)** ⇒ ★★**必须 fresh DRC 终板自己** ★★
+  FRESHDRC="$WORK/_final_fresh.drc.json"
+  fresh_drc "$WORK/final_chain.kicad_pcb" "$FRESHDRC"
+  if [ -f "$FRESHDRC" ] && [ -f "/tmp/_drc45.json" ]; then
+    python3 "$PROJ/state/cmp_unc_sets.py" /tmp/_drc45.json "$FRESHDRC" 2>&1 | tail -8 | tee -a "$LOG"
+    python3 "$PROJ/state/cmp_unc_sets.py" /tmp/_drc45.json "$FRESHDRC" --strict >/dev/null 2>&1 || exit 13
+  fi
   say "★自校准闸(档①)通过 ⇒ 这块板与官方终板同工艺 ⇒ ★可以拿去跟官方比"
 else
   # ★**档②: 路由产物臂 ⇒ 只报数, 不许宣称"可比"**
