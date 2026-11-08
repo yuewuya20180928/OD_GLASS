@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-08 23:44** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-09 00:14** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -61,10 +61,10 @@
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 181 条 | 状态: closed=99 deferred=13 verified=31 fixed=9 open=27 fixing=2
+登记问题 181 条 | 状态: closed=97 deferred=13 verified=33 fixed=9 open=27 fixing=2
   ├─ 内部可自行推进: 152 条 | 外部依赖 (等老板/原厂/JBD): 29 条
-  ├─ 逾期未闭环: 34 条
-  └─ 未闭环 blocker 级: 8 条
+  ├─ 逾期未闭环: 35 条
+  └─ 未闭环 blocker 级: 9 条
 
 【问题清单】(按 severity + 逾期排)
   🔴 ISS-002  closed    owner=boss       due=2026-10-26   [外部]
@@ -117,8 +117,6 @@
        ★★★★[demo 关键路径 #1] AR0234CS → RK3572 rkisp3 驱动移植 (★先出规格, 不出代码)
   🔴 ISS-149  closed    owner=main       due=2026-11-05  
        ★★★[硬件优先] demo 硬件形态落地: 一块主板 + **IMX415 sensor 模组** + 屏幕驱动板模组 + FPC
-  🔴 ISS-162  closed    owner=main       due=2026-11-05  
-       ★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400
   🔴 ISS-165  closed    owner=main       due=2026-11-05  
        ★★★[硬件 A2 段 · 最后一块] SOM 座 (4×100pin/0.4mm BTB) + SoC 节点改挂 + ★CARRI
   🔴 ISS-166  closed    owner=main       due=2026-11-05  
@@ -135,8 +133,8 @@
        ★★★[投板级 P0 · 已修待验] SoM 的 7 个 DCIN 脚落在孤岛网 `RAIL_SOM_DCIN` ⇒ 板上**没有到
   🔴 ISS-184  closed    owner=main       due=2026-11-07  
        ★★★[网表级 P0 · 已修待验] `.net` 导出器把「只在 node 串里出现、ref 列里没有」的器件(J_SOM_P2 
-  🔴 ISS-181  fixing    owner=hw-lead    due=2026-11-08  
-       ★★★[最高优先级 · 老板 11-04 19:10 指示] 自研 demo 主板: 从骨架布到**可下单** (unconnect
+  🔴 ISS-162  verified  owner=main       due=2026-11-13  
+       ★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400
   🔴 ISS-119  fixed     owner=main       due=2026-11-05   ⏰逾期
        ★★换芯定案 + 迁移方案 (A7/A8): 选哪颗 + 网表/原理图/BOM 重做清单 + 为 RK3588 预留的可执行后手
        ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
@@ -152,6 +150,9 @@
   🔴 ISS-160  open      owner=main       due=2026-11-06   ⏰逾期
        ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC
        ❌ ★逾期★ due=2026-11-06 已过, 仍 open
+  🔴 ISS-181  fixing    owner=hw-lead    due=2026-11-08   ⏰逾期
+       ★★★[最高优先级 · 老板 11-04 19:10 指示] 自研 demo 主板: 从骨架布到**可下单** (unconnect
+       ❌ ★逾期★ due=2026-11-08 已过, 仍 fixing
   🟠 ISS-039  closed    owner=boss       due=2026-10-27   [外部]
        【缺清单】认证与合规要求未梳理 (含光生物安全) —— 需老板定销售区域
   🟠 ISS-046  closed    owner=boss       due=2026-10-27   [外部]
@@ -244,8 +245,6 @@
        ★★[等老板一句] demo 精度验收线: yolov5n F1 0.2927 差 0.0073 不达 0.30 门槛, 换 yol
   🟠 ISS-140  closed    owner=main       due=2026-11-06  
        ★★[老板已拍板 D 的直接后果] sensor 换 AR0234CS ⇒ 网表电源域改造 (VDD_IO 1.8→2.8V) + 
-  🟠 ISS-171  closed    owner=main       due=2026-11-06  
-       ★★[IC 规格落定] 三个"我的假设"被原厂 datasheet 推翻 (已改网表) + 5 条仍未查到
   🟠 ISS-176  closed    owner=main       due=2026-11-06  
        ★★[显示接口重画] 显示器座换 Pi5 同规 22 位/0.5mm (吃 Waveshare 15→22 线) + 屏的控制 I2
   🟠 ISS-141  deferred  owner=hw-lead    due=2026-11-07  
@@ -278,6 +277,8 @@
        ★板宽 12mm → 15mm 的结构侧连带 (镜脚腔体/骨架长度/PCB 定位孔位/面积缺口 300mm² 复核)
   🟠 ISS-107  closed    owner=mech-lead  due=2026-11-13  
        ★更正 mech-lead 分片 pcb_mounting 旧取值 (2xM1.2+1x⌀2.0H7 → PIN-SET-2: 2x
+  🟠 ISS-171  verified  owner=main       due=2026-11-13  
+       ★★[IC 规格落定] 三个"我的假设"被原厂 datasheet 推翻 (已改网表) + 5 条仍未查到
   🟠 ISS-185  fixed     owner=mech-lead  due=2026-11-13  
        ★ISS-107 同型问题 (第二面): 没有对手方的过期值 —— 本域 8 条 claim 的值停留在 10-28 基线, 合并器
   🟠 ISS-143  closed    owner=mech-lead  due=2026-11-16  
@@ -464,7 +465,7 @@
   🟡 ISS-076  deferred  owner=mech-lead  due=2026-11-16  
        新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1
 
-❌ 违规 34 条
+❌ 违规 35 条
 ```
 ## 4. 阶段门 (G0-G4)
 ```
@@ -604,7 +605,7 @@
 ── 项目级终判 ───────────────────────────────────────────────────────
   📄 纸面阶段 (G0 纸面冻结 / G1 原理图 / G2 结构样机准备): ❌ 机制有未过项
      → 判据: 4 个角色机制全绿 + 质量门/问题门/阶段门/推进器可用 + 框架裁剪基线在位
-     → 当前卡点: 老板 7 条决策 + 原厂/JBD 外部; 内部可自行推进 62 条
+     → 当前卡点: 老板 7 条决策 + 原厂/JBD 外部; 内部可自行推进 64 条
   🔧 样机阶段 (G3 上电联调 + 硬指标实测): ❌ 不就绪
      → 实测 0/4 项 (另有 7 项已延后到整机阶段) | 无板 / 无打印环境 / 无独立验证方
      → 阶段门判:    ★**已跳过延后关**: G2 (当期不做, 缺口 3 项留着, 到整机阶段回来)
@@ -653,6 +654,7 @@
 | ISS-155 | main | 2026-11-06 | ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 target 转的 .rknn 能否在 RK3572 上跑通 (板端验证) —— 且板子当前不可达 |
 | ISS-160 | main | 2026-11-06 | ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) ⇒ 剩下: 原理图/密集布线/打样 |
 | ISS-181 | hw-lead | 2026-11-08 | ★★★[最高优先级 · 老板 11-04 19:10 指示] 自研 demo 主板: 从骨架布到**可下单** (unconnected 353 → 0, DRC 0, Gerber 重出) |
+| ISS-162 | main | 2026-11-13 | ★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400 脚 BTB + 电源输入改 5-13V |
 | ISS-087 | sw-lead | 2026-10-29 | 模型许可未清 (L1 许可[0数据] + L4 AGPL-3.0 商用受限) + ARS45 板端模型 0 个 → 量产评审放行门禁 |
 | ISS-090 | sw-lead | 2026-10-29 | ★软件侧交叉评审 (时序/信号/电源时序) + TMP117 测点物理位置 + 跨铰链 USB 烧录可行性 |
 | ISS-101 | sw-lead | 2026-10-29 | ★模型许可: 唯一许可干净候选 (Apache-2.0) 的 NPU 可转换性 = 0 数据 → 量产可用模型清单为空 |
@@ -693,5 +695,6 @@
 | ISS-096 | main | 2026-11-13 | ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位, 9 颗供电器件的 EN/SS 与监督器 CT 脚在网表里根本没有 |
 | ISS-098 | main | 2026-11-13 | ★SoC 侧没有 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失, S2 救砖链路成立性未验; 且 CONN_USB 只有 1 个 GND pin (违反 ISS-085 自定规则) |
 | ISS-100 | mech-lead | 2026-11-13 | ★板宽 12mm → 15mm 的结构侧连带 (镜脚腔体/骨架长度/PCB 定位孔位/面积缺口 300mm² 复核) |
+| ISS-171 | main | 2026-11-13 | ★★[IC 规格落定] 三个"我的假设"被原厂 datasheet 推翻 (已改网表) + 5 条仍未查到 |
 | ISS-185 | mech-lead | 2026-11-13 | ★ISS-107 同型问题 (第二面): 没有对手方的过期值 —— 本域 8 条 claim 的值停留在 10-28 基线, 合并器静默放过 |
 | ISS-120 | sw-lead | 2026-11-30 | ★S2 救砖链路板端实测 (量产一票否决项) —— 方案+自检已闭环 (ISS-080), 待 EVT 有板后真跑 (EVT-8/BR-01) |

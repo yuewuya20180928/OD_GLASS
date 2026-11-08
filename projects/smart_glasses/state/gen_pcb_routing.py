@@ -263,6 +263,14 @@ PAIR_ESCAPE_EXEMPT = os.environ.get("PCB_PAIR_ESCAPE_EXEMPT", "0") == "1"
 #   ★**新默认 0.0** ⇒ ★**只豁免"N 焊盘自己那一格"** ⇒ N 能起步, 但**不许横穿伙伴的铜**
 #   ⇒ 设大可以回到旧行为 (用于对比), 默认 0 = 安全
 PAIR_EXEMPT_R = float(os.environ.get("PCB_PAIR_EXEMPT_R", "0.0"))
+# ★★★★2026-11-08 23:5x **"换边重试"开关 (★默认关 ⇒ 既有臂逐位不变)**
+#   ★**机制依据 (★实测, 不是猜)**: `state/PAIR_AWARE_ROUTING_PLAN.md` §3.2
+#     ⇒ ★**"P 通 N 不通" 是【顺序依赖】**: 先布的那条腿占住走廊 ⇒ 后布的那条腿出不来
+#     ⇒ ★**⇒ 修法: 当【跟腿】彻底没布出来时, 把主腿的铜摘掉, 换边重跑整对**
+#   ★**为什么不做成 joint A\* (★§4.1①)**: 联合状态空间 = (格P × 格N) ⇒ 4.1M² 格 ⇒ 不可行
+#     ⇒ ★**"换边重试" 用同一套耦合/走廊/兵底机制, 只换主/跟角色 ⇒ 不新增算法, 改动面最小**
+#   ★**用法**: `PCB_PAIR_SWAP_RETRY=1`
+PAIR_SWAP_RETRY = os.environ.get("PCB_PAIR_SWAP_RETRY", "0") == "1"
 # ★★2026-11-06 03:0x **v52: 出脚走廊感知的 rip-up** (默认关 ⇒ 老行为可复现)
 #   ★**为什么**: 实测 61 条 A* 失败里 **42 条起脚在密集焊盘阵**
 #     (J_SOM_P* 16 / CONN_LIGHT 13 / C_AC_CSI_D* 7 / CONN_CAM 6)
@@ -3448,7 +3456,7 @@ class GridRouter:
 
 # ------------------------------------------------------------------ 差分对
 def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
-                    trunk_p=None, trunk_n=None):
+                    trunk_p=None, trunk_n=None, _allow_swap=True):
     """★差分对成对布 —— 先布 P, 再在 P 的走廊里布 N (软代价拉近 ⇒ 同层同间距)
        trunk_p/trunk_n: ((padA,padB),) —— 主干焊盘对 (让两根线走同一条走廊)
        返回 dict: 长度 / 长度差 / 最小间距
@@ -3590,6 +3598,54 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
         r2 = r3
     else:
         res["coupled"] = True
+    # ★★★★2026-11-08 23:5x **"换边重试" (★env 门控 `PCB_PAIR_SWAP_RETRY=1`, 默认关 ⇒ 逐位不变)** ★★★★
+    #   ★**触发条件 (★很窄)**: ★**只当【跟腿(原 N)彻底没布出来】时才试** ⇒ ★**能通的那些对一行都不受影响**
+    #   ★**做法**: ★**把主腿(原 P)的铜摘掉 (r.tracks/r.vias + 重建 halo) ⇒ 以 N 为主腿重跑整对 (角色对调)**
+    #     ⇒ ★**复用同一套耦合/走廊/兵底机制 (自己递归, 只换参数顺序) ⇒ 不新增算法**
+    #   ★**采纳标准 (★必须是净胜)**: ★**只有换边后【两条腿都通】才采纳**
+    #     ⇒ ★**否则把原来的主腿铜原样放回去 ⇒ 结果与不做换边时逐位相同 (★不制造"更差"的板)**
+    if (not res.get("n_ok")) and PAIR_SWAP_RETRY and _allow_swap:
+        _sv_tracks = list(router.tracks)
+        _sv_vias = list(router.vias)
+        # ★摘掉主腿的铜 (⇒ 让原 N 不再被它挡)
+        router.tracks = [t for t in router.tracks if t[0] != net_p]
+        router.vias = [v for v in router.vias if v[0] != net_p]
+        try:
+            router.rebuild_halo()
+            _sw = None
+            try:
+                _sw = route_diff_pair(router, net_n, net_p, width=width,
+                                      allow_via=allow_via, trunk_p=trunk_n,
+                                      trunk_n=trunk_p, _allow_swap=False)
+            except Exception as _e:
+                print("  ★换边重试异常 (★放弃换边): %s" % _e)
+                _sw = None
+            # ★换边后: _sw["p_ok"] = 原 N (新主腿) · _sw["n_ok"] = 原 P (新跟腿)
+            if _sw and _sw.get("p_ok") and _sw.get("n_ok"):
+                res["p_ok"] = _sw["n_ok"]
+                res["n_ok"] = _sw["p_ok"]
+                res["lp"] = round(_sw.get("ln", 0.0), 3)
+                res["ln"] = round(_sw.get("lp", 0.0), 3)
+                res["delta"] = round(abs(res["lp"] - res["ln"]), 3)
+                res["swapped"] = True
+                res["ring"] = _sw.get("ring")
+                r1 = {"ok": res["p_ok"], "len": res["lp"]}
+                r2 = {"ok": res["n_ok"], "len": res["ln"], "ring": _sw.get("ring")}
+                print("  ★换边成功 (★原来不通的腿现在有铜了): %s / %s" % (net_p, net_n))
+            else:
+                # ★★**没赢 ⇒ 原样恢复** (★主腿的铜回到原位, halo 重建)
+                router.tracks = _sv_tracks
+                router.vias = _sv_vias
+                router.rebuild_halo()
+                print("  ★换边没赢 (★恢复原状, 结果不变)")
+        except Exception as _e2:
+            router.tracks = _sv_tracks
+            router.vias = _sv_vias
+            try:
+                router.rebuild_halo()
+            except Exception:
+                pass
+            print("  ★换边重试异常 (★已恢复原状): %s" % _e2)
     res["ring"] = r2.get("ring")
     res["lp"] = round(r1["len"], 3)
     res["ln"] = round(r2.get("len", 0.0), 3)
