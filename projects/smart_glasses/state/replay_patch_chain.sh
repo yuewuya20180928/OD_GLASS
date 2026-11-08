@@ -105,6 +105,8 @@ if [ "$VALIDATE" = "--validate" ]; then
 else
   IN="$ROUTE"
   SKIP_STRAIGHT=0
+  # ★★★**★2026-11-09 05:4x 修: SEGI 在非 --validate 分支没赋值 ⇒ `set -u` 直接崩 (★"闸脚本自己也会有 bug ⇒ 闸门形同虚设"的第三次实例)** ★★★
+  SEGI=$(grep -ac '(segment' "$IN" 2>/dev/null || echo 0)
 fi
 
 # ★★★**★2026-11-09 04:5x 改: 链的【真实顺序】 = straight 步 → combo(margin 0.20) → loose(margin 0.0625)** ★★★
@@ -136,17 +138,25 @@ fi
 bash state/pcbnew_py.sh state/check_pcb_drc.py "$WORK/final_chain.kicad_pcb" 2>&1 | grep -E "C3 |C4 " | tee -a "$LOG"
 
 # ★★★**2026-11-09 04:5x 新增: 自校准闸 (★复现不了官方终板 ⇒ rc≠0 ⇒ 这块板不许拿去跟官方比)** ★★★
-# ★**判据**: ★**段数必须 == 18092** (★官方终板) ⇒ ★**且几何集合必须与官方终板全同**
-# ★**为什么加这道闸**: ★**今晚 17731 段那次, 链"跑完了"、日志漂亮、但走岔 ⇒ 差点拿去跟官方比**
+# ★★★★**★05:2x 订正 (★v76 对照臂实测暴露的闸自身 bug)****
+# ★**原闸把"段数必须 == 18092"写死** ⇒ ★**对【输入 = 路由产物】的臂永远红** (★v76b 实测: 14023 段 ⇒ rc=11)
+# ★**⇒ 闸门形同虚设 (★正是【闸脚本自己有 bug ⇒ 闸门形同虚设】那条铁律)** ⇒ ★★**必须分两种输入分别判** ★★
+# ★**判据分两档 (★按【输入段数】分档, ★不按结果分档)**:
+#   ★**档① 输入 ≥17000 段 (★已是【官方链 stage-1 板】) ⇒ 必须【逐条复现官方终板】** ⇒ 不一致 ⇒ rc=11/12
+#   ★**档② 输入 <17000 段 (★是【路由产物】) ⇒ 只能判 DRC/unc, ★不许宣称"与官方同工艺"**
+#     ⇒ ★**因为官方链的 stage-1 (路由阶段) 产物是 17022 段, 而【当前路由器的产物只有 13407 段】**
+#     ⇒ ★**⇒ 路由产物臂与官方板【天然不可比】(★路由器代码已漂移) ⇒ ★这里只能出数, 不许说"可比"**
 SEGF=$(grep -ac '(segment' "$WORK/final_chain.kicad_pcb")
-if [ "$SEGF" != "18092" ]; then
-  say "❌ 自校准闸: 段数 = $SEGF ≠ 18092 (★官方终板) ⇒ ★**参数/顺序没对上 ⇒ 这块板不许拿去跟官方比**"
-  say "   ⇒ 排查: ① combo 步 margin 是不是 0.20 (★不是 0.125) ② 输入是不是【链中段板】(★不是路由产物)"
-  exit 11
-fi
-# ★**几何集合比对 (★忽略 UUID 随机 ⇒ 只比 起点/终点/线宽/层/网)**
-if [ -f "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" ]; then
-  python3 - "$WORK/final_chain.kicad_pcb" "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" <<'PY' | tee -a "$LOG"
+if [ "$SKIP_STRAIGHT" = "1" ]; then
+  # ★**档①: 必须逐条复现官方终板**
+  if [ "$SEGF" != "18092" ]; then
+    say "❌ 自校准闸(档①): 段数 = $SEGF ≠ 18092 (★官方终板) ⇒ ★**参数/顺序没对上 ⇒ 这块板不许拿去跟官方比**"
+    say "   ⇒ 排查: ① combo 步 margin 是不是 0.20 (★不是 0.125) ② 输入是不是【链中段板】(★不是路由产物)"
+    exit 11
+  fi
+  # ★**几何集合比对 (★忽略 UUID 随机 ⇒ 只比 起点/终点/线宽/层/网)**
+  if [ -f "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" ]; then
+    python3 - "$WORK/final_chain.kicad_pcb" "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" <<'PY' | tee -a "$LOG"
 import re, sys
 segb = re.compile(r'\(segment\s*\n\s*\(start ([-\d.]+) ([-\d.]+)\)\s*\n\s*\(end ([-\d.]+) ([-\d.]+)\)\s*\n\s*\(width ([\d.]+)\)\s*\n\s*\(layer "([^"]+)"\)\s*\n\s*\(net "([^"]+)"\)')
 def segs(p):
@@ -154,11 +164,17 @@ def segs(p):
     return set(m.groups() for m in segb.finditer(t))
 a, b = segs(sys.argv[1]), segs(sys.argv[2])
 if a == b:
-    print(f"  ✅ 自校准闸: 几何集合与官方终板全同 ({len(a)} 条) ⇒ 复现成功")
+    print(f"  ✅ 自校准闸(档①): 几何集合与官方终板全同 ({len(a)} 条) ⇒ 复现成功")
 else:
-    print(f"  ❌ 自校准闸: 几何集合与官方终板不同 (仅本板 {len(b-a)} 条 / 仅官方 {len(a-b)} 条)")
+    print(f"  ❌ 自校准闸(档①): 几何集合与官方终板不同 (仅本板 {len(b-a)} 条 / 仅官方 {len(a-b)} 条)")
     sys.exit(1)
 PY
-  [ "${PIPESTATUS[0]}" != "0" ] && exit 12
+    [ "${PIPESTATUS[0]}" != "0" ] && exit 12
+  fi
+  say "★自校准闸(档①)通过 ⇒ 这块板与官方终板同工艺 ⇒ ★可以拿去跟官方比"
+else
+  # ★**档②: 路由产物臂 ⇒ 只报数, 不许宣称"可比"**
+  say "⚠️ 自校准闸(档②): 输入是【路由产物】($SEGI 段) ⇒ ★**链已跑完但产物不能与官方板直接比**"
+  say "   ★原因: ★官方链的 stage-1 产物是 17022 段, 当前路由器只出 $SEGI 段 ⇒ ★路由器代码已漂移 ⇒ ★两臂不同工艺"
+  say "   ⇒ ★段数 $SEGF (★官方终板 18092) · ★unc/DRC 见上 ⇒ ★**只能用【四把尺子】对已晋级臂比, 不能拿这块直接对比官方**"
 fi
-say "★自校准闸通过 ⇒ 这块板与官方终板同工艺 ⇒ ★可以拿去跟官方比"
