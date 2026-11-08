@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-07 02:44** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-08 20:46** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -63,7 +63,7 @@
 ==========================================================================
 登记问题 181 条 | 状态: closed=78 deferred=13 verified=26 fixed=35 open=27 fixing=2
   ├─ 内部可自行推进: 152 条 | 外部依赖 (等老板/原厂/JBD): 29 条
-  ├─ 逾期未闭环: 58 条
+  ├─ 逾期未闭环: 60 条
   └─ 未闭环 blocker 级: 20 条
 
 【问题清单】(按 severity + 逾期排)
@@ -109,8 +109,6 @@
        ★★★★[demo 关键路径 #1] AR0234CS → RK3572 rkisp3 驱动移植 (★先出规格, 不出代码)
   🔴 ISS-170  closed    owner=main       due=2026-11-05  
        ★★★[demo 板可制造性] 显示器 FPC 座: 屏侧 40p/0.5mm 与原厂排线主板侧 39p/0.3mm 矛盾 ⇒ 画 
-  🔴 ISS-184  fixed     owner=main       due=2026-11-07  
-       ★★★[网表级 P0 · 已修待验] `.net` 导出器把「只在 node 串里出现、ref 列里没有」的器件(J_SOM_P2 
   🔴 ISS-181  fixing    owner=hw-lead    due=2026-11-08  
        ★★★[最高优先级 · 老板 11-04 19:10 指示] 自研 demo 主板: 从骨架布到**可下单** (unconnect
   🔴 ISS-147  fixed     owner=main       due=2026-11-04   ⏰逾期
@@ -164,6 +162,9 @@
   🔴 ISS-183  fixed     owner=main       due=2026-11-06   ⏰逾期
        ★★★[投板级 P0 · 已修待验] SoM 的 7 个 DCIN 脚落在孤岛网 `RAIL_SOM_DCIN` ⇒ 板上**没有到
        ❌ ★逾期★ due=2026-11-06 已过, 仍 fixed
+  🔴 ISS-184  fixed     owner=main       due=2026-11-07   ⏰逾期
+       ★★★[网表级 P0 · 已修待验] `.net` 导出器把「只在 node 串里出现、ref 列里没有」的器件(J_SOM_P2 
+       ❌ ★逾期★ due=2026-11-07 已过, 仍 fixed
   🟠 ISS-039  closed    owner=boss       due=2026-10-27   [外部]
        【缺清单】认证与合规要求未梳理 (含光生物安全) —— 需老板定销售区域
   🟠 ISS-046  closed    owner=boss       due=2026-10-27   [外部]
@@ -244,8 +245,6 @@
        ★★[demo] 画板前致命项清零 F4~F12 (★照 EN 那个 P0 的教训: 漏到投板后 = 2~4 周返工)
   🟠 ISS-141  deferred  owner=hw-lead    due=2026-11-07  
        ★★整机功耗账重算: OV04C10 155mW → AR0234CS (裸片功耗 [0数据]) ⇒ 皮肤温度 43°C 结论要重判
-  🟠 ISS-178  fixed     owner=main       due=2026-11-07  
-       ★★[自查抓到] TMP117 被当成 4 脚器件画的 ⇒ **脚号与原厂完全对不上** (已改成官方 WSON-6)
   🟠 ISS-062  verified  owner=hw-lead    due=2026-11-09  
        R-GEO-2 四问转原厂/镜头厂 (边缘畸变区是检测价值最高处 / 4-lane MIPI / ISP 吞吐余量 98.1% / 
   🟠 ISS-099  verified  owner=hw-lead    due=2026-11-09  
@@ -373,6 +372,9 @@
   🟠 ISS-179  fixed     owner=sw-lead    due=2026-11-06   ⏰逾期
        ★★[手机测端到端] 显示画面烧帧计数器/时间码 + 手机慢动作测端到端延时作业指引
        ❌ ★逾期★ due=2026-11-06 已过, 仍 fixed
+  🟠 ISS-178  fixed     owner=main       due=2026-11-07   ⏰逾期
+       ★★[自查抓到] TMP117 被当成 4 脚器件画的 ⇒ **脚号与原厂完全对不上** (已改成官方 WSON-6)
+       ❌ ★逾期★ due=2026-11-07 已过, 仍 fixed
   🟡 ISS-020  closed    owner=main       due=2026-10-28  
        PRD 补完: REQ/REQUIREMENTS.md 还是草稿 (子模块需求待填/验收标准待填)
   🟡 ISS-031  closed    owner=main       due=2026-10-28  
@@ -488,7 +490,7 @@
   🟡 ISS-076  deferred  owner=mech-lead  due=2026-11-16  
        新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1
 
-❌ 违规 58 条
+❌ 违规 60 条
 ```
 ## 4. 阶段门 (G0-G4)
 ```
