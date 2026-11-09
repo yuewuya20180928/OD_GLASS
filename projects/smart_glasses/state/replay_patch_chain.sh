@@ -173,6 +173,41 @@ if [ "$SKIP_STRAIGHT" = "1" ]; then
     python3 "$PROJ/state/cmp_unc_sets.py" /tmp/_drc45.json "$FRESHDRC" --strict >/dev/null 2>&1 || exit 13
   fi
   say "★自校准闸(档①)通过 ⇒ 这块板与官方终板同工艺 ⇒ ★可以拿去跟官方比"
+
+# ★★★★**★2026-11-09 14:0x: 写【链凭据】(★让"臂 vs 同链基线"的比较能验"两边同工艺")★★★★** ★★★
+#   ★**为什么**: ★**"官方板 vs 候选臂"这个比较本身是错的** (★官方 stage-1 = 17022 段, 当前路由器 = 13407 段 ⇒ 不同工艺)
+#     ⇒ ★★**基线也必须用当前路由器跑 + 同一条链** ⇒ ★★**要能证明"候选臂确实跑过同一条链" ⇒ ⇒ 就得有凭据** ★★
+#   ★**凭据内容**: ★**输入板 + 步数 + 每步参数 + 输出 md5/段数** ⇒ ★**任何人都能复核"这块板是怎么来的"** ★★
+CHAINJSON="$WORK/final_chain.kicad_pcb.chain.json"
+python3 - "$CHAINJSON" "$IN" "$WORK/final_chain.kicad_pcb" "$TAG" <<'PY'
+import hashlib, json, os, sys
+out, inp, dst, tag = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+def md5(p):
+    h = hashlib.md5()
+    with open(p, "rb") as f:
+        for c in iter(lambda: f.read(1 << 20), b""):
+            h.update(c)
+    return h.hexdigest()
+def segs(p):
+    n = 0
+    with open(p, encoding="utf-8", errors="ignore") as f:
+        for l in f:
+            if l.lstrip().startswith("(segment"):
+                n += 1
+    return n
+info = {
+    "tag": tag,
+    "input": os.path.abspath(inp),
+    "input_md5": md5(inp),
+    "output": os.path.abspath(dst),
+    "output_md5": md5(dst),
+    "output_segments": segs(dst),
+    "chain": ["straight(skip-if-mid)", "nostub margin=0.20 grid=0.125", "nostub margin=0.0625 grid=0.125"],
+    "note": "★**这块板是【官方补丁链的产物】⇒ ★★**不是独立候选臂**; ★★**要当候选臂比, 必须与【同链基线】比 (★state/compare_arm_baseline.sh) ★★",
+}
+json.dump(info, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+print("  ✅ 链凭据: %s" % out)
+PY
 else
   # ★**档②: 路由产物臂 ⇒ 只报数, 不许宣称"可比"**
   say "⚠️ 自校准闸(档②): 输入是【路由产物】($SEGI 段) ⇒ ★**链已跑完但产物不能与官方板直接比**"
