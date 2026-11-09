@@ -94,14 +94,22 @@ def main():
         fails.append("C2 图纸缺失")
         print("\n".join(lines))
         return 1
-    rc = run([KC, "pcb", "export", "drill", "--output", "/tmp/_pcbchk", "--format", "excellon", PCB])
+    # ★★2026-11-10 05:1x **★并行臂隔离 (★兄弟 session 指出的真隐患★)★★**
+    #   ★**旧版把 drill 目录写死 /tmp/_pcbchk** ⇒ 多臂并行时互相覆盖
+    #   ⇒ 改成按【板文件名】唯一 ⇒ 同一块板重复跑也互不干扰
+    _tag = os.path.basename(PCB).replace("/", "_").replace(" ", "_")
+    _drill_dir = "/tmp/_pcbchk_%s" % _tag
+    rc = run([KC, "pcb", "export", "drill", "--output", _drill_dir, "--format", "excellon", PCB])
     ok2 = rc.returncode == 0
     lines.append(f"  {'✅' if ok2 else '❌'} C2 图纸可被 KiCad 解析 (drill 导出 rc={rc.returncode})")
     if not ok2:
         fails.append("C2 图纸解析失败")
 
     # C3/C4 DRC
-    out_json = "/tmp/_pcb_drc.json"
+    # ★★2026-11-10 05:1x **★并行臂隔离★** ⇒ ★**DRC JSON 按板名唯一 (★旧版写死 /tmp/_pcb_drc.json ⇒ 并行臂会读到对方的 DRC★)★**
+    #   ★**同时保留一个【本板专属】的稳定副本** ⇒ 便于后续脚本引用
+    out_json = "/tmp/_pcb_drc_%s.json" % _tag
+    _stable = "/tmp/_pcb_drc_latest_%s.json" % _tag
     rc = run([KC, "pcb", "drc", "--output", out_json, "--severity-error", "--severity-warning",
               "--format", "json", PCB])
     n_viol = n_unc = -1
@@ -109,6 +117,14 @@ def main():
         d = json.load(open(out_json))
         n_viol = len(d.get("violations") or [])
         n_unc = len(d.get("unconnected_items") or [])
+        # ★★2026-11-10 05:1x **★留一份本板专属的稳定副本★** ⇒ 后续脚本按板名引用, 不会被别的臂覆盖
+        try:
+            with open(out_json, "rb") as _f:
+                _b = _f.read()
+            with open(_stable, "wb") as _f:
+                _f.write(_b)
+        except Exception as _e:
+            lines.append(f"  ⚠️ 稳定副本写入失败: {_e}")
     ok3 = (n_viol == 0)
     # ★C4 分阶段: 骨架阶段 (器件+网络就位, 未布线) 允许未连接; ★布线完成后 (--strict) 必须归零
     strict = "--strict" in sys.argv

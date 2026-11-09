@@ -153,7 +153,7 @@ if [ -f "$FINALDRC" ]; then
   say "   ★违规数   = $(python3 -c "import json,sys;d=json.load(open(sys.argv[1]));print(len(d.get('violations',[])))" "$FINALDRC" 2>/dev/null || echo '?')"
   # ★★**★同时把【终板 DRC】按老名字也写一份 (★兼容旧脚本/旧习惯★) ★★ ★★**⇒ 覆盖掉那份"上一步输入 DRC", 杜绝再踩坑 ★★
   cp "$FINALDRC" "$WORK/final_chain.kicad_pcb.drc.json"
-  say "   ★已覆盖同名旧文件 ⇒ `final_chain.kicad_pcb.drc.json` 现在【就是终板的 DRC】(★不再有"上一步输入"歧义★)"
+  say "   ★已覆盖同名旧文件 ⇒ final_chain.kicad_pcb.drc.json 现在【就是终板的 DRC】(★不再有【上一步输入】歧义★)"
 else
   say "❌ 终板 fresh DRC 没生成 ⇒ ★**读数不可信**"
   exit 6

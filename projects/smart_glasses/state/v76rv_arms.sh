@@ -69,20 +69,6 @@ if [ ! -f "$OUT" ]; then
 fi
 
 # ---- ② 板规则 min track width 0.20 ⇒ 0.15 (★老板批准的规格; ★不改几何, ★只让 0.15mm 走线合法) ----
-echo "── 板规则 min track width → 0.15 (★老板批准的规格) ──"
-bash state/pcbnew_py.sh - "$OUT" <<'PY'
-import pcbnew, sys
-p = sys.argv[1]
-b = pcbnew.LoadBoard(p)
-if b is None:
-    print("  ❌ 板读不出来"); raise SystemExit(1)
-ds = b.GetDesignSettings()
-print("  改前 m_TrackMinWidth =", ds.m_TrackMinWidth / 1e6, "mm")
-ds.m_TrackMinWidth = int(0.15 * 1e6)
-b.Save(p)
-print("  ✓ 改为 0.15 ⇒", p)
-PY
-
 echo "── 板规则 min track width → 0.15 (★老板批准的规格; ★否则 0.15mm 走线全是假违规) ──"
 bash state/pcbnew_py.sh - "$OUT" <<'PY'
 import pcbnew, sys
