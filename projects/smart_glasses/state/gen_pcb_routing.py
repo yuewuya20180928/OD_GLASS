@@ -3898,6 +3898,35 @@ def route_board(board, verbose=True):
 
     _run_pairs(USB_PAIRS)
 
+    # ---------- 1a) ★★★【MIPI 差分对提前】(★env 门控: PCB_PAIR_BEFORE_PWR, ★默认关 ⇒ 行为逐位不变)★★★ ★★★
+    #   ★★**为什么要有 (★2026-11-09 23:3x 实测机制)**: ★★★
+    #     ★**实测**: ★**我们那 24 条差分腿 (★CSI/DSI) 属于 MIPI 批, ★而 MIPI 批的路由顺序是【排在电源之后】**
+    #       ⇒ ★★**⇒ 它们【输给供电网】(★供电网先占 F.Cu)** ⇒ ★★**⇒ 这是差分腿的真正排队劣势** ★★
+    #     ★**上一轮实测**: ★**优先布(单网) 让 14 个非差分网一次就通, 但差分主干 `CSI_D0_CK_*` 被打死**
+    #       ⇒ ★★**⇒ 因为差分腿是【成对布】(`route_diff_pair` 同时走 P 和 N) ⇒ 不是单网布 ⇒ ⇒ [排前面]对它无效** ★★
+    #       ⇒ ★★**⇒ 只能改【差分对本身在队列里的位置】** ★★
+    #   ★★**⚠️ 源码原警告 (★v74 教训)**: ★★**"上一轮把 MIPI 放在电源前面 ⇒ MIPI 先把 F.Cu 占了 ⇒ 电源长干道全断"** ★★
+    #     ⇒ ★★**⇒ 所以本开关【零和】⇒ ⇒ 【必须配合 0.15mm (★减少线的条数⇒腾出余量)才有双赢可能】** ★★
+    #       (★实测: ★`PCB_W_MIN=0.15` + 优先布 那轮 = ★**省铜 416 段** ★★ ⇒ ★★**余量存在** ★★)
+    #   ★**用法**: `PCB_PAIR_BEFORE_PWR=1` (★建议同时开 `PCB_W_MIN=0.15`)
+    if os.environ.get("PCB_PAIR_BEFORE_PWR", "0") == "1":
+        _n_mipi_first = 0
+        for (_p, _n, _tp, _tn) in MIPI_PAIRS:
+            if _p not in r.net_pads or _n not in r.net_pads:
+                continue
+            res = route_diff_pair(r, _p, _n, trunk_p=_tp, trunk_n=_tn)
+            stats["pairs"].append(res)
+            stats["pair_fallback"] = stats.get("pair_fallback", 0) + res.get("n_fallback", 0)
+            _n_mipi_first += 1
+            if verbose:
+                print("  [PAIR*] %-21s / %-21s  ok=%s/%s  L=%.2f/%.2f  Δ=%.3fmm 间距=%s%s"
+                      % (_p, _n, res.get("p_ok"), res.get("n_ok"),
+                         res.get("lp", 0), res.get("ln", 0), res.get("delta", 0),
+                         res.get("min_gap"),
+                         ("" if res.get("n_ok") else "  ★N 未通")))
+        if verbose:
+            print("  [PAIR*] ★MIPI 差分对 %d 对已【提前到电源之前】布 (★⇒ 它们先挑走廊 ⇒ ★★**代价: 电源要让路** ★★)" % _n_mipi_first)
+
     # ---------- 1b) ★★★【优先网】(★env 门控: PCB_PRIORITY_NETS, ★默认空 ⇒ 行为逐位不变)★★★ ★★★
     #   ★★**为什么要有 (★2026-11-09 21:4x 实测机制)**: ★★★
     #     ★**实测**: ★**挪 12 个焊盘 (0.3mm) ⇒ 走线段 13407→15867 (+2460) ⇒ ★**但 45 条未连接里的
@@ -3939,7 +3968,12 @@ def route_board(board, verbose=True):
                   % (net, w, res["ok"], res["fail"], res["len"]))
 
     # ---------- 3) MIPI 差分对 (最难 ⇒ 最后)
-    _run_pairs(MIPI_PAIRS)
+    # ★★2026-11-09 23:4x: ★**若已在 [1a] 提前布过 MIPI (★PCB_PAIR_BEFORE_PWR=1)⇒ ★★**这里必须跳过, ★否则同一批对被布两次 (★⇒ 铜量翻倍 + 归因不清)** ★★
+    if os.environ.get("PCB_PAIR_BEFORE_PWR", "0") == "1":
+        if verbose:
+            print("  [PAIR*] ★MIPI 已在 [1a] 提前布过 ⇒ 本步跳过 (★避免重复布)")
+    else:
+        _run_pairs(MIPI_PAIRS)
     # ★★★★2026-11-09 00:4x **"最后一趟再换边" (★env 门控 `PCB_PAIR_SWAP_LAST=1`, 默认关 ⇒ 逐位不变)** ★★★★
     #   ★**为什么要有这一趟 (★v74 实测出来的, 不是拍脑袋)**:
     #     ★**v74 (中途换边)**: 换边救回 CSI_D0_D0 两对 ⇒ ★**但同一次运行里 DSI_D0_CK_P/N
