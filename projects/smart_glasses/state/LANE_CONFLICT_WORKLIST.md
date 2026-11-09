@@ -252,3 +252,17 @@
     · ★★**① 【MIPI 差分对提到电源之前】(★env 门控, ★源码警告过会挤断电源长干道 ⇒ ★★**但现在 0.15mm 已经腾出 416 段铜 ⇒ ⇒ 也许能双赢**) ★★ ★★★
     · ★★**② 【pair-aware: 成对规划一条走廊】(★那 5 条 A1 的正解)** ⇒ ★★**这是【差分腿】唯一的正解, 优先布对它无效** ★★ ★★★
     · ★★**③ 【JTAG_TDO/TMS / CSI_MCLK】等【非差分却被打碎】的 ⇒ 优先布已经给过它们机会 ⇒ ⇒ ★★**它们被[优先布占的路]挤了 ⇒ ⇒ 需要[走廊专属]** ★★ ★★★
+
+### ★★★★**★【★最精确的一张账: v76mip 治好 12 / 打破 13 ⇒ ★★[成族优先]是下一臂的精确动作★★】** ★★★★
+
+> ★★**治好 12 个**: ★`BAT_DET` · `CSI_D0_D0_N` · `CSI_D0_D2_P` · `CSI_MCLK_SRC` · `DSI_D0_D3_N_SRC` · `FSIN_OUT` · `I2C_A_SCL` · `JTAG_TDI` · `LED_G` · `SPI_MOSI_BOOT` · `SPI_SCLK_BOOT` · `VBUS_DET_D` ★★
+> ★★**打破 13 个**: ★`BOOT_N` · `CSI_D0_CK_N` · `CSI_D0_D3_P` · `CSI_MCLK` · `DSI_D0_D2_P` · `JTAG_TDO` · `JTAG_TMS` · `LED_B_D` · `PG_AND` · `PWR_ON` · `UART_TX` · `VDD_1V8_IO` · `VDD_3V3_IO` ★★
+> ⇒ ★★**净 −1 ⇒ 这就是 unc 停在 46 的原因** ★★
+> ★★★★**★⇒ 规律 (★已验证): 【优先布必须成族】**: ★★**被打断的 3 个族, 正是优先布名单里放了[族里的一个]** ★★
+> | 族 | 优先布放了 | 打断了 |
+> |---|---|---|
+> | ★JTAG | `JTAG_TDI` | ★`JTAG_TDO` · `JTAG_TMS` |
+> | ★UART | `UART_RX` | ★`UART_TX` |
+> | ★LED | `LED_G` · `LED_G_D` | ★`LED_B_D` |
+> ⇒ ★★**⇒ 下一臂的精确动作 (★已起臂 `state/v76fam_arms.sh`★): ★★**优先布名单加 `JTAG_TDO` · `JTAG_TMS` · `UART_TX` · `LED_B_D`** ★★ (★19 → 23 个) ★★
+> ⇒ ★★**⇒ 剩下 9 个打破的网, 优先布对它们无效**: ★★`CSI_D0_CK_N`/`CSI_D0_D3_P`/`CSI_MCLK`/`DSI_D0_D2_P` 是【差分腿】(★成对布 ⇒ 只能靠 pair-aware); `VDD_1V8_IO`/`VDD_3V3_IO`/`PG_AND`/`PWR_ON`/`BOOT_N` 是【供电/时序】(★MIPI 提前的代价 ⇒ 靠[名单与 MIPI 走廊错开]) ★★
