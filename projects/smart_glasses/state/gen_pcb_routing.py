@@ -612,6 +612,14 @@ class GridRouter:
                 continue
             net, box = grp.split(":", 1)
             net = net.strip()
+            # ★★★★**★2026-11-09 21:5x 【多网预留】(★`N1+N2` 语法 ⇒ 一个框可同时留给一组网)** ★★★★
+            #   ★**为什么**: ★**实测 (★v76rr 臂)** ⇒ 预留框 0.9mm 宽 ⇒ 必盖住 0.4mm pitch 的【伙伴焊盘】
+            #   ⇒ ★**单网预留把伙伴腿打死**: `CSI_D0_D3_P_SRC` 从基线 46 段变 0 段
+            #   ⇒ ★**⇒ 预留必须成对 (P+N 共享一个框)** ★★
+            #   ★**旧语法 (单网) 行为逐位不变** ★★
+            nets = tuple(n.strip() for n in net.split("+") if n.strip())
+            if not nets:
+                continue
             try:
                 li, x0, y0, x1, y1 = [float(v) for v in box.split(",")]
             except Exception:
@@ -619,14 +627,14 @@ class GridRouter:
             li = int(li)
             if li < 0 or li >= len(self.cu_reserved):
                 continue
-            self._rr_boxes.append((net, li, min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)))
+            self._rr_boxes.append((nets, li, min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)))
         self._apply_route_reserve()
 
     def _apply_route_reserve(self):
         """★**把预留框的格子写进 `cu_reserved`** (★可重复调用 ⇒ halo 重建后能重铺)"""
         if not getattr(self, "_rr_boxes", None):
             return
-        for (net, li, x0, y0, x1, y1) in self._rr_boxes:
+        for (nets, li, x0, y0, x1, y1) in self._rr_boxes:
             i0 = self._ci(x0)
             j0 = self._cj(y0)
             i1 = self._ci(x1)
@@ -634,8 +642,13 @@ class GridRouter:
             for i in range(min(i0, i1), max(i0, i1) + 1):
                 for j in range(min(j0, j1), max(j0, j1) + 1):
                     idx = self._idx(i, j)
-                    self.cu_reserved[li][idx] = net
-                    self.route_reserve[(net, li, idx)] = 1
+                    # ★★**★多网预留: 一格可以同时留给【一组网】(★P+N 成对)** ★★
+                    #   ★**旧行为 (单网) 逐位不变** ⇒ ★**frozenset({net}) 的成员判断 ≡ `!= net`** ★★
+                    _cur = self.cu_reserved[li].get(idx)
+                    _new = frozenset(nets) if _cur is None else (frozenset(_cur) | frozenset(nets))
+                    self.cu_reserved[li][idx] = _new
+                    for _n in nets:
+                        self.route_reserve[(_n, li, idx)] = 1
 
     def _load_edge_segs(self):
         """★真板边几何 —— Edge.Cuts 的线段 (弧按 16 段采样)
@@ -820,7 +833,8 @@ class GridRouter:
         #   ★**语义**: ★**该格被【专属网】预留 ⇒ ★别的网不许进, ★专属网自己可以进** ★★
         #   ★**为什么放这里 (★而不是各处散加)**: ★★**所有自由格判断都走 `_free()` 这一个入口** ⇒ ★★**改一处就全覆盖** ★★
         _rs = self.cu_reserved[li].get(idx)
-        if _rs is not None and _rs != net:
+        # ★★**★2026-11-09 21:5x 【多网预留】**: `_rs` 现在是【该格允许的网集合】(★单网时 ≡ 老语义) ★★
+        if _rs is not None and net not in _rs:
             return False
         # ★★★2026-11-05 09:55 **自己焊盘所在的格 ⇒ 不受 halo 阻挡**
         #   ★**为什么**: SoM BTB 0.4mm pitch ⇒ N 焊盘的格被 (P + 相邻 SoM 焊盘) 一起标了 halo
@@ -4011,6 +4025,30 @@ def route_board(board, verbose=True):
     #   ★**用法**: `PCB_PRIORITY_NETS="FSIN_OUT;LIGHT_5V;I2C_A_SCL"` (★分号分隔, ★默认空)
     #   ★**注意**: ★**只加"确实布不通的网"** ⇒ ★★**别把好网提前 ⇒ 那是抢别人的通道** ★★
     _prio = [x.strip() for x in (os.environ.get("PCB_PRIORITY_NETS", "") or "").split(";") if x.strip()]
+    # ★★★★**★2026-11-09 21:5x 【优先网按跨距排序】(★env 门控 PCB_PRIO_SPAN_SORT, ★默认关⇒逐位不变)** ★★★★
+    #   ★**为什么要有 (★v76rr 臂实测出来的机制, ★不是猜)**: ★★★
+    #     ★**实测**: `JTAG_TDO` 的 J_DEBUG.4 焊盘被 **`JTAG_TDI` 的铜挡住 0.213mm** (★需 ≥0.325mm 才走得动)
+    #     ⇒ ★**`JTAG_TDI` 在优先名单里排第 11 个 ⇒ 先布 ⇒ 把同族另外两个 (TDO/TMS) 的出脚格堵死**
+    #     ⇒ ★**实测**: `JTAG_TMS` 的 J_DEBUG.2 同样被 `JTAG_TDI` 挡 0.208mm ⇒ ★**两兄弟一起死** ★★
+    #     ⇒ ★★**⇒ 同族内部 [谁先布谁赢] ⇒ 而优先名单是【人写的顺序】⇒ 等于抽签** ★★ ★★★
+    #     ★★**⇒ 修法: 优先网内部按【跨距降序】排 (★与第 4 阶段"其余网络"同口径) ★★**
+    #       ⇒ ★**JTAG 族: TMS(23.8mm) → TDO(18.0mm) → TDI(14.3mm)** ⇒ ★**两边先走的先占 (★J_DEBUG 外侧脚先走) ★★
+    #       ⇒ ★**实测基线里 JTAG_TDO/TMS 就是通的 (= REST 阶段按跨距排的顺序) ⇒ 这不是新赌法, 是复现已知好顺序** ★★
+    #   ★**注意**: ★**这是"顺序"不是"加铜" ⇒ 不增加铜量 ⇒ 不加剧走廊零和** ★★
+    if os.environ.get("PCB_PRIO_SPAN_SORT", "0") == "1":
+        def _span_of(_n):
+            _ps = r.net_pads.get(_n) or []
+            _b = 0.0
+            for _i in range(len(_ps)):
+                for _j in range(_i + 1, len(_ps)):
+                    _d = abs(_ps[_i][2] - _ps[_j][2]) + abs(_ps[_i][3] - _ps[_j][3])
+                    if _d > _b:
+                        _b = _d
+            return _b
+        _prio.sort(key=lambda _n: (-_span_of(_n), -len(r.net_pads.get(_n) or [])))
+        if verbose:
+            print("  [PRIO] ★按跨距降序排 (★PCB_PRIO_SPAN_SORT=1): %s"
+                  % ", ".join(_prio))
     if _prio:
         _n_prio = 0
         for _net in _prio:
@@ -4020,6 +4058,16 @@ def route_board(board, verbose=True):
             stats["nets"][_net] = res
             if not res.get("ok"):
                 stats["failed"].append(_net)
+                # ★★★★**★2026-11-09 21:5x 【失败优先网可重试】(★env 门控 PCB_PRIO_RETRY, ★默认关⇒逐位不变)** ★★★★
+                #   ★**实测机制**: ★**`route_net()` 失败也 `self.routed.add(net)`** ⇒ 第4阶段"其余网络"
+                #     按 `n not in r.routed` 跳过 ⇒ ★**该网彻底没铜 (★0 段) ⇒ 再也没被试过** ★★
+                #   ★**实测受害者**: ★**`JTAG_TDO`/`JTAG_TMS`/`UART_RX`/`I2C_B_SCL`/`I2C_B_SDA`**
+                #     (★日志: `[RIPUP] 27 个失败网 ⇒ 重布成功 0 个` ⇒ 收尾 rip-up 也救不回来) ★★
+                #   ★**修法**: ★**优先阶段失败 ⇒ 把该网从 `routed` 里拿掉 ⇒ 让第4阶段再试一次** ★★
+                #   ★**为什么默认关**: ★**这会让失败网的排布时机改变 ⇒ 既有臂必须逐位不变** ★★
+                if os.environ.get("PCB_PRIO_RETRY", "0") == "1":
+                    r.routed.discard(_net)
+                    r.routed_ok.discard(_net)
             _n_prio += 1
             if verbose:
                 print("  [PRIO] %-16s ok=%s 失败脚=%d  L=%.1fmm"

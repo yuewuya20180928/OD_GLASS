@@ -45,26 +45,34 @@ else
 fi
 
 # ── ② fresh DRC 双方 ──
-for pair in "候选:$SRC" "基线:$BASE"; do
-  tag="${pair%%:*}"; p="${pair##*:}"
-  bash state/kicad.sh pcb drc --output "/tmp/_cab_${tag}.json" --severity-error --severity-warning --format json "$p" >/dev/null 2>&1
+# ★★★★**★2026-11-09 21:5x 【临时文件名按板名唯一】(★防并行臂互相覆盖)** ★★★★
+#   ★**为什么**: ★**原来固定写 `/tmp/_cab_候选.json` / `/tmp/_cab_基线.json`** ⇒ ★**两个臂同时比 ⇒ 后一个覆盖前一个的 DRC json
+#     ⇒ ⇒ 判据可能读【另一个臂的板】⇒ ⇒ 结论错** ⇒ ★**⇒ 改成按板文件名唯一** ★★
+#   ★**老名字保留一份兼容 (★别的脚本可能在读)** ★★
+_CAND_JSON="/tmp/_cab_$(basename "$SRC" | tr -c 'A-Za-z0-9._-' '_' | cut -c1-48).cand.json"
+_BASE_JSON="/tmp/_cab_$(basename "$BASE" | tr -c 'A-Za-z0-9._-' '_' | cut -c1-48).base.json"
+for pair in "候选:$SRC:$_CAND_JSON" "基线:$BASE:$_BASE_JSON"; do
+  tag="${pair%%:*}"; rest="${pair#*:}"; p="${rest%%:*}"; out="${rest#*:}"
+  bash state/kicad.sh pcb drc --output "$out" --severity-error --severity-warning --format json "$p" >/dev/null 2>&1
 done
-python3 - <<'PY'
-import json
-for tag in ("候选", "基线"):
-    d = json.load(open("/tmp/_cab_%s.json" % tag, encoding="utf-8"))
+CAND_JSON="$_CAND_JSON" BASE_JSON="$_BASE_JSON" python3 - <<'PY'
+import json, os
+for tag, path in (("候选", os.environ["CAND_JSON"]), ("基线", os.environ["BASE_JSON"])):
+    d = json.load(open(path, encoding="utf-8"))
     print("  %s: DRC违规=%d · unconnected=%d" % (tag, len(d.get("violations") or []), len(d.get("unconnected_items") or [])))
 PY
 
 # ── ③ 判据①: unc 网名集合必须变小 ──
 echo "── ① 未连接网名集合 (★强判据) ──"
-python3 state/cmp_unc_sets.py /tmp/_cab_基线.json /tmp/_cab_候选.json 2>&1 | sed -n '1,12p'
-UPC=$(python3 state/cmp_unc_sets.py /tmp/_cab_基线.json /tmp/_cab_候选.json --strict >/dev/null 2>&1 && echo 0 || echo 1)
+python3 state/cmp_unc_sets.py "$_BASE_JSON" "$_CAND_JSON" 2>&1 | sed -n '1,12p'
+UPC=$(python3 state/cmp_unc_sets.py "$_BASE_JSON" "$_CAND_JSON" --strict >/dev/null 2>&1 && echo 0 || echo 1)
 if [ "$UPC" != "0" ]; then
   echo "❌ ★**候选臂的未连接网名集合没有变小 (★判据① 不过) ⇒ 不是改进 ⇒ 不晋级**"
 else
   echo "  ✅ 判据①: 候选臂的未连接网名集合与基线不同 (★逐条对比见上)"
 fi
+echo "── ①b 名单差集 (★谁被救回 / 谁被打断) ──"
+python3 state/arm_net_set_diff.py "$_BASE_JSON" "$_CAND_JSON" 2>&1 | tail -40
 
 # ── ④ 判据②: 名单制闸 (只看变好) ──
 echo "── ② 名单制闸 (★臂 vs 基线) ──"

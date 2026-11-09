@@ -53,6 +53,49 @@ def main():
         print("★板读不出来: %s" % boardp)
         return 2
 
+    # ★★★**★2026-11-09 21:5x 【成对预留】: 把【0.4mm pitch 的伙伴焊盘】也找出来** ★★★
+    #   ★**为什么**: ★**实测 (★v76rr 臂)** ⇒ 预留框 0.9mm 宽 ⇒ 必盖住同排相邻 0.4mm 的【伙伴焊盘】
+    #   ⇒ ★**单网预留 ⇒ 伙伴腿的出脚格被"预留给别人"⇒ 伙伴腿直接 0 铜**
+    #   ⇒ ★**`CSI_D0_D3_P_SRC` 实测: 基线 46 段 ⇒ v76rr 臂 0 段** ★★
+    #   ⇒ ★**⇒ 预留必须成对: 一个框同时留给 N 腿和它的 P 伙伴** ★★
+    #   ★**几何**: 伙伴焊盘与 N 焊盘【同排】(★y 相同) 且【x 相差 0.4mm】 ⇒ 在板面找得到 ★★
+    pads = []
+    for p in b.GetPads():
+        pos = p.GetPosition()
+        try:
+            ref = p.GetParent().GetReference()
+        except Exception:
+            try:
+                ref = p.GetParentFootprint().GetReference()
+            except Exception:
+                ref = "?"
+        pads.append((p.GetNetname(), ref, p.GetNumber(), pos.x / MM, pos.y / MM))
+
+    def partner_of(net, x, y):
+        """找【同排相邻 0.4mm】的伙伴焊盘 ⇒ 返回它的网名 (★找不到返回 None)
+
+        ★**优先认【成对的伙伴】(★`_N`↔`_P` 互换) ⇒ 避免认错成邻座的另一条腿** ★
+        """
+        cands = []
+        for (pn, pref, pnum, px, py) in pads:
+            if pn == net or not pn:
+                continue
+            if abs(py - y) > 0.01:
+                continue
+            d = px - x
+            if 0.3 <= abs(d) <= 0.5:
+                cands.append((abs(d), pn, pref, pnum, d))
+        if not cands:
+            return None
+        # ★**① 先找【配对名】的 (★N↔P / _N_SRC↔_P_SRC) ★**
+        for _pfx, _sfx in (("_N", "_P"), ("_P", "_N")):
+            cand = [c for c in cands if c[1].replace(_pfx, _sfx, 1) == net]
+            if cand:
+                cand.sort()
+                return (cand[0][0], cand[0][1], cand[0][2], cand[0][3])
+        cands.sort()
+        return (cands[0][0], cands[0][1], cands[0][2], cands[0][3])
+
     # ★铜图元 (走线 / 过孔), 按层
     copper = []
     for t in b.GetTracks():
@@ -115,7 +158,13 @@ def main():
             y0, y1 = y, y + ESC_LEN + 0.2
         else:
             y0, y1 = y - ESC_LEN - 0.2, y
-        boxes.append("%s:0,%.3f,%.3f,%.3f,%.3f" % (net, x0, y0, x1, y1))
+        # ★★★**★成对预留**: 框里同时留 N 腿 + 它的 P 伙伴 (★否则伙伴腿被预留打死) ★★★
+        _pt = partner_of(net, x, y)
+        _allow = net if _pt is None else "%s+%s" % (net, _pt[1])
+        if _pt is not None:
+            lines.append("    ★成对预留: 伙伴 = %s (%s.%s · Δx=%.3fmm) ⇒ 同一框留给 %s"
+                         % (_pt[1], _pt[2], _pt[3], _pt[0], _allow))
+        boxes.append("%s:0,%.3f,%.3f,%.3f,%.3f" % (_allow, x0, y0, x1, y1))
         lines.append("")
 
     lines.append("★PCB_ROUTE_RESERVE 串 (★可直接贴进臂脚本):")
