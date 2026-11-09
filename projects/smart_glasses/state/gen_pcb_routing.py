@@ -472,6 +472,20 @@ class GridRouter:
         self.H = int((self.bb[3] - self.bb[1]) / grid) + 3
         # 障碍图: cu[li][idx]=net (精确铜) ; halo[cls][li][idx]=set(net) (净距禁区, 3 个宽度级别)
         self.cu = [dict() for _ in range(NLAYERS)]
+        # ★★★★**★2026-11-10 12:0x 【走线级走廊预留】(★env 门控 PCB_ROUTE_RESERVE, ★默认空 ⇒ 逐位不变)** ★★★★
+        #   ★**为什么要有 (★2026-11-10 实测机制)**:
+        #     ★**实测**: A1 桶那 5 条的 N 腿, 它的【反向】出脚道都被【别的网的铜】占着
+        #       (★`CSI_D0_D0_N_SRC`←`CSI_D0_CK_N`/`CSI_D0_CK_P`/`CSI_D0_D0_P`; ★`DSI_D0_D0_N_SRC`←`DSI_D0_CK_N_SRC`/`DSI_D0_CK_P_SRC`/`DSI_D0_D3_P_SRC`)
+        #       ⇒ ⇒ **N 无路可走** ⇒ ⇒ **"出脚级成对规划"已被证伪**
+        #     ⇒ ★**真正要的是: 把那 0.4mm 宽的出脚走廊【从一开始就不让别的网占】**
+        #   ★**为什么不用现有的 `PCB_KEEPOUT`**: ★**那是【排版期禁放框】(★挡器件) ⇒ ★★**挡不了走线** ★★ ★★★
+        #   ★**怎么实现**: ★★**第二张网格 `cu_reserved[li][idx] = 专属网`** ⇒ ★★**别的网进不来, 专属网自己可以进** ★★
+        #     ⇒ ★★**因为 `cu[li][idx]` 每格只能存【一个网】, ★存不下"专属"⇒ ⇒ **必须有第二张** ★★ ★★★
+        #   ★**用法**: `PCB_ROUTE_RESERVE="NET:li0,x0,y0,x1,y1;NET2:li0,x0,y0,x1,y1"`
+        #     (★格式: 网名:层号,x0,y0,x1,y1 (★mm, ★层号是信号层索引 0/2/4…), ★多组用 ; 分隔)
+        #   ★**注意**: ★**预留框只挡【别的网】⇒ ★专属网自己照常能进去 ⇒ ★★**不会把专属网自己的路也堵死** ★★
+        self.cu_reserved = [dict() for _ in range(NLAYERS)]
+        self.route_reserve = {}      # ★[(net, li, idx)] -> 1 (★只作可查的清单)
         # ★halo[cls][li][idx] = 该单元被哪些网的铜"占了净距"
         #   cls0=0.20mm / cls1=0.25mm / cls2=0.50mm 三套规则各存一份
         self.halo = [[dict() for _ in range(NLAYERS)] for _ in range(3)]
@@ -572,8 +586,57 @@ class GridRouter:
                             self.pad_cell[(li, idx)] = (nm, cx, cy)
         self._halo_pads()
         self._edge_margin()
+        # ★★★★**★2026-11-10 12:1x 【走线级走廊预留】落地 (★解析 PCB_ROUTE_RESERVE)** ★★★★
+        self._load_route_reserve()
 
     # ------------------------------------------------ 板边 (Edge.Cuts)
+    def _load_route_reserve(self):
+        """★**解析 PCB_ROUTE_RESERVE 并落地到 `cu_reserved`** (★2026-11-10 12:1x)
+
+        ★**格式**: `PCB_ROUTE_RESERVE="NET:li0,x0,y0,x1,y1;NET2:li0,x0,y0,x1,y1"`
+        · ★**li0** = 信号层索引 (★0=F.Cu / 2=In2.Cu / 4=In4.Cu / 6=In6.Cu / ★7=B.Cu)
+        · ★**x0,y0,x1,y1** = mm 坐标 (★外接矩形)
+
+        ★**语义**: ★**框内的格子被【专属网】预留 ⇒ ★别的网进不来, ★专属网自己可以进** ★★
+        ⇒ ★★**⇒ 这就是[给差分腿的 N 腿留出脚走廊]的机制** ★★
+
+        ★**默认空 ⇒ ★逐位不变** (★`self.cu_reserved` 全空 ⇒ `_free()` 里的检查永远为假) ★
+        """
+        self._rr_boxes = []
+        _raw = (os.environ.get("PCB_ROUTE_RESERVE", "") or "").strip()
+        if not _raw:
+            return
+        for grp in _raw.split(";"):
+            grp = grp.strip()
+            if not grp or ":" not in grp:
+                continue
+            net, box = grp.split(":", 1)
+            net = net.strip()
+            try:
+                li, x0, y0, x1, y1 = [float(v) for v in box.split(",")]
+            except Exception:
+                continue
+            li = int(li)
+            if li < 0 or li >= len(self.cu_reserved):
+                continue
+            self._rr_boxes.append((net, li, min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)))
+        self._apply_route_reserve()
+
+    def _apply_route_reserve(self):
+        """★**把预留框的格子写进 `cu_reserved`** (★可重复调用 ⇒ halo 重建后能重铺)"""
+        if not getattr(self, "_rr_boxes", None):
+            return
+        for (net, li, x0, y0, x1, y1) in self._rr_boxes:
+            i0 = self._ci(x0)
+            j0 = self._cj(y0)
+            i1 = self._ci(x1)
+            j1 = self._cj(y1)
+            for i in range(min(i0, i1), max(i0, i1) + 1):
+                for j in range(min(j0, j1), max(j0, j1) + 1):
+                    idx = self._idx(i, j)
+                    self.cu_reserved[li][idx] = net
+                    self.route_reserve[(net, li, idx)] = 1
+
     def _load_edge_segs(self):
         """★真板边几何 —— Edge.Cuts 的线段 (弧按 16 段采样)
 
@@ -751,6 +814,13 @@ class GridRouter:
     def _free(self, li, idx, net, cls=1):
         c = self.cu[li].get(idx)
         if c is not None and c != net:
+            return False
+        # ★★★★**★2026-11-10 12:0x 【走线级走廊预留】检查 (★PCB_ROUTE_RESERVE)** ★★★★
+        #   ★**这是【唯一能让 A1 桶那 5 条 N 腿出来】的机制** (★2026-11-10 实测: ★它们的反向出脚道都被别的网占着)
+        #   ★**语义**: ★**该格被【专属网】预留 ⇒ ★别的网不许进, ★专属网自己可以进** ★★
+        #   ★**为什么放这里 (★而不是各处散加)**: ★★**所有自由格判断都走 `_free()` 这一个入口** ⇒ ★★**改一处就全覆盖** ★★
+        _rs = self.cu_reserved[li].get(idx)
+        if _rs is not None and _rs != net:
             return False
         # ★★★2026-11-05 09:55 **自己焊盘所在的格 ⇒ 不受 halo 阻挡**
         #   ★**为什么**: SoM BTB 0.4mm pitch ⇒ N 焊盘的格被 (P + 相邻 SoM 焊盘) 一起标了 halo
@@ -2613,6 +2683,8 @@ class GridRouter:
             self._add_track_halo(s[0], s[1], s[2], s[3], s[4], s[5], s[6])
         for (net, x, y, l1, l2) in self.vias:
             self._add_via_halo(net, x, y, l1, l2)
+        # ★★**★2026-11-10 12:1x**: ★**halo 重建后要【重铺】预留框 (★不然 rip 后预留失效)** ★★★★
+        self._apply_route_reserve()
 
     def _net_start_cells(self, net):
         """该网各焊盘的**起步格** (有出脚直道则取直道终点, 否则取焊盘中心格)"""
