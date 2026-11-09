@@ -326,6 +326,18 @@ def main():
                     if not okc:
                         bad.append("过孔[%s] 净距 %.3fmm %s" % (n2, worst, who))
             if bad:
+                # ★★★**2026-11-09 10:2x 诊断出口 (★默认关 ⇒ 行为不变)★★★:
+                #   ★★**问题**: 脏铜在这里就被还原了 ⇒ ⇒ 【中间态没留】⇒ ★★**根因查不下去** ★★
+                #   ★★**修法**: `PCB_RIP_KEEP_DIRTY=1` ⇒ 在还原【之前】把脏板另存 (★outp 不受影响 ⇒ 闸门行为不变) ★★
+                if os.environ.get("PCB_RIP_KEEP_DIRTY", "0") == "1":
+                    dirtyp = outp + ".dirty_%s.kicad_pcb" % net
+                    try:
+                        board.Save(dirtyp)
+                        print("── ★诊断: 脏中间板已存 %s (★%d 处违规)" % (dirtyp, len(bad)))
+                        for b_ in bad[:6]:
+                            print("       · %s" % b_)
+                    except Exception as e:
+                        print("  ⚠️ 存脏板失败: %s" % e)
                 undo_diff(added2, removed2)
                 r.tracks = snap_t
                 r.vias = snap_v
@@ -390,6 +402,16 @@ def main():
         print("── ★★总复核: 新铜 %d 处不合格 ⇒ ★**整轮回滚 (输出板 = 输入板)**" % len(total_bad))
         for w_ in total_bad[:10]:
             print("     · %s" % w_)
+        # ★★★**2026-11-09 10:0x 诊断出口 (★默认关 ⇒ 行为不变)★★★:
+        #   ★★**问题**: 整轮回滚 ⇒ 【脏中间态没留】⇒ ⇒ 量不到"新铜到底压在了谁身上" ⇒ ★★**根因查不下去** ★★
+        #   ★★**修法**: `PCB_RIP_KEEP_DIRTY=1` ⇒ 回滚前把【脏板】另存一份 (★不动 outp ⇒ 闸门行为不变) ★★
+        if os.environ.get("PCB_RIP_KEEP_DIRTY", "0") == "1":
+            dirtyp = outp + ".dirty.kicad_pcb"
+            try:
+                board.Save(dirtyp)
+                print("── ★诊断: 脏中间板已存 %s (★outp 仍是输入板 ⇒ 闸门行为不变)" % dirtyp)
+            except Exception as e:
+                print("  ⚠️ 存脏板失败: %s" % e)
         # ★★**最稳的回滚: 直接把输入板原样拷出去** (★不依赖任何内存回滚逻辑 ⇒ 不会有残留)
         import shutil
         shutil.copyfile(boardp, outp)
