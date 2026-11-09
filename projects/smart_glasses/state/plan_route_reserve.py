@@ -187,10 +187,49 @@ def main():
             out.append((name, ref, p.GetNumber(), pos.x / MM, pos.y / MM))
         return out
 
+
+    # ★★★★**★2026-11-10 01:2x 【★--from-drc 模式: ★给【每个未连接端点所在焊盘】留一条道】★★★★** ★★★
+    #   ★**为什么**: ★**"给网留最好的道"是错的 ⇒ ★**真正卡住的是【某个具体焊盘】出不来**
+    #     ⇒ ★★**⇒ 直接读 DRC 的 unconnected_items, ★取其中【没连上那一侧】的焊盘 ⇒ ★给它留道** ★★
+    #   ★**⇒ 这比"按网名猜"精确得多: ★★**每一条未连接都有确定的焊盘** ★★
+    def unc_pads(drc_path):
+        """从 DRC json 里取【未连接的焊盘端】⇒ [(net, ref.pad, x, y), ...]"""
+        import json
+        import re as _re
+        d = json.load(open(drc_path, encoding="utf-8"))
+        out = []
+        for it in (d.get("unconnected_items") or []):
+            for sub in (it.get("items") or []):
+                desc = sub.get("description", "")
+                m = _re.match(r"Pad (\d+) \[([^\]]+)\] of (\S+) on", desc)
+                if not m:
+                    continue
+                pnum, net, ref = m.group(1), m.group(2), m.group(3)
+                # ★★**★要带【焊盘号】(★否则同封装的多个焊盘会被当成一个 ⇒ ★★**漏掉真正卡住的那个**)★★★ ★★
+                ref = "%s.%s" % (ref, pnum)
+                pos = sub.get("pos") or {}
+                out.append((net, ref, float(pos.get("x", 0)), float(pos.get("y", 0))))
+        return out
+
     boxes = []
+    _boxrec = []   # ★[x0,y0,x1,y1,允许网集合] ★★**★用于重叠合并** ★★
     lines = ["★给 A1 那 5 条 N 腿预留的出脚走廊 (★全几何算出)★", ""]
-    # ★★**【--nets: ★额外要留道的网 (★按网名自动找焊盘 + 自动判方向)】★★** ★★★
+    # ★★**【--from-drc: ★按 DRC 的未连接端点逐个留道 (★最精确)】★★** ★★★
     _extra = []
+    _from_drc = False
+    if "--from-drc" in sys.argv:
+        _dp = sys.argv[sys.argv.index("--from-drc") + 1]
+        _ups = unc_pads(_dp)
+        _seen_up = set()
+        for (_n, _r, _x, _y) in _ups:
+            if (_n, _r) in _seen_up:
+                continue
+            _seen_up.add((_n, _r))
+            _extra.append((_n, _r, _x, _y))
+        _from_drc = True
+        lines = ["★按 DRC 未连接端点逐个留道 (★%s)★" % _dp, ""]
+    # ★★**【--nets: ★额外要留道的网 (★按网名自动找焊盘 + 自动判方向)】★★** ★★★
+    _extra2 = []
     if "--nets" in sys.argv:
         _want = [t.strip() for t in sys.argv[sys.argv.index("--nets") + 1].split(",") if t.strip()]
         for _n in _want:
@@ -205,7 +244,7 @@ def main():
                 _full = "%s.%s" % (_pref, _pnum)
                 if _pin is not None and _full != _pin:
                     continue
-                _extra.append((_pn, _full, _px, _py))
+                _extra2.append((_pn, _full, _px, _py))
             if _pin is not None and not any("%s.%s" % (r, n) == _pin for (_pn, r, n, _x, _y) in nets_of(_n)):
                 lines.append("★ ⚠️ %s 上没有焊盘 %s ⇒ 跳过" % (_n, _pin))
         lines.append("★ 额外留道网 (★--nets): %s" % (", ".join(_want)))
@@ -219,10 +258,12 @@ def main():
     #   ★★**★【★不按净距正负取舍★】**: ★**负净距是【在已布好的板上】量的 (★P 的铜已经占着道)**
     #     ⇒ ★★**那正是我们要解决的拥堵 ⇒ ⇒ 负净距恰恰是【最该留道】的地方** ★★ ★★★
     _cand_by_net = {}
-    for (net, ref, x, y) in A1 + _extra:
+    for (net, ref, x, y) in (A1 + _extra + _extra2):
         for (dx, dy, tag) in escape_dirs(ref, x, y):
             w, who = worst_clearance(net, x, y, dx, dy)
-            _key = net
+            # ★★**★--from-drc 模式下【按焊盘分候选】(★每个未连接焊盘各要一条道)★★★ ★★
+            #   ★**否则同一网的多个焊盘会被合并成一条 ⇒ ★★**恰好漏掉那些真正卡住的焊盘** ★★
+            _key = (net, ref) if _from_drc else net
             _c = (w, tag, dx, dy, who, ref, x, y)
             if _key not in _cand_by_net or w > _cand_by_net[_key][0]:
                 _cand_by_net[_key] = _c
@@ -238,7 +279,7 @@ def main():
 
     for net in _net_order:
         # ★只对这个网【最好的那条】候选打日志 (★其余焊盘/方向只做诊断)
-        _c = _cand_by_net.get(net)
+        _c = _cand_by_net.get((net, ref) if _from_drc else net)
         if _c is None:
             continue
         best = (_c[0], _c[1], _c[2], _c[3], _c[4])
@@ -267,11 +308,31 @@ def main():
                          % (_pt[1], _pt[2], _pt[3], _pt[0], _allow))
         else:
             lines.append("    ★单网独占预留 (★无真差分伙伴)")
-        _box = "%s:0,%.3f,%.3f,%.3f,%.3f" % (_allow, x0, y0, x1, y1)
-        if _box not in boxes:
-            boxes.append(_box)
+        # ★★★★**★2026-11-10 01:3x 【★重叠框合并 (★否则框互相封死 ⇒ 自己打自己)】★★★★** ★★★
+        #   ★**实测**: ★**`--from-drc` 模式下多个未连接焊盘挨得很近 ⇒ 框互相重叠**
+        #     ⇒ ★**A 的框会盖掉 B 的框 ⇒ ⇒ B 的"专属道"根本用不了** ★★
+        #   ⇒ ★★**⇒ 重叠时: ★【合并成一个多网框】(★机制本来就支持一格存【允许网集合】) ★★
+        #     ⇒ ★**⇒ 两个网都有机会用它 (★比互相封死好) ★★
+        _hit = None
+        for _i, _b in enumerate(_boxrec):
+            if not (x1 <= _b[0] or x0 >= _b[2] or y1 <= _b[1] or y0 >= _b[3]):
+                _hit = _i
+                break
+        if _hit is None:
+            _boxrec.append([x0, y0, x1, y1, set(_allow.split("+"))])
+        else:
+            # ★★**★只合并【允许网集合】, ★★**不动几何** ★★
+            #   ★**理由**: ★**若把矩形也合并放大 ⇒ ★会【传递性吞并】(★实测: 30 个框塌成 1 个)**
+            #     ⇒ ★**⇒ 保留首个框的几何, ★把后来的网也加进它的允许集合** ★★
+            #   ⇒ ★**⇒ 这两个网【共享】这段走廊 (★比互相封死好, ★也不炸面积)** ★★
+            _b = _boxrec[_hit]
+            _b[4].update(_allow.split("+"))
+            lines.append("    ★★**⇒ 与已有框重叠 ⇒ 【共享该走廊】(★允许网集合 += %s) ★★" % _allow)
         lines.append("")
 
+    for _b in _boxrec:
+        _allow_s = "+".join(sorted(_b[4]))
+        boxes.append("%s:0,%.3f,%.3f,%.3f,%.3f" % (_allow_s, _b[0], _b[1], _b[2], _b[3]))
     lines.append("★PCB_ROUTE_RESERVE 串 (★可直接贴进臂脚本):")
     lines.append('  PCB_ROUTE_RESERVE="%s"' % ";".join(boxes))
     text = "\n".join(lines)

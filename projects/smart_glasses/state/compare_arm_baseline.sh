@@ -67,10 +67,31 @@ echo "── ① 未连接网名集合 (★强判据) ──"
 python3 state/cmp_unc_sets.py "$_BASE_JSON" "$_CAND_JSON" 2>&1 | sed -n '1,12p'
 UPC=$(python3 state/cmp_unc_sets.py "$_BASE_JSON" "$_CAND_JSON" --strict >/dev/null 2>&1 && echo 0 || echo 1)
 if [ "$UPC" != "0" ]; then
-  echo "❌ ★**候选臂的未连接网名集合没有变小 (★判据① 不过) ⇒ 不是改进 ⇒ 不晋级**"
+  echo "  ★注: ★**旧判据① 用的是 『cmp_unc_sets.py --strict』 ⇒ ★★它的语义是【网名集合必须【完全相同】】★★ (★那是【链复现一致性】的用法, ★见 『replay_patch_chain.sh』★) ⇒ ★★**⇒ 它对【任何有变化的臂】都判不过** ★★ ⇒ ★**下面这行才是按文档口径【不许变大/不变】的读数** ★★"
 else
-  echo "  ✅ 判据①: 候选臂的未连接网名集合与基线不同 (★逐条对比见上)"
+  echo "  ✅ 旧判据① (★`--strict` = 集合完全相同 ★): 通过"
 fi
+# ★★★★**★2026-11-10 00:5x 【判据① 按【文档口径】重算 (★只加显示, ★不改闸门 rc ★)】★★★★ ★★★
+#   ★**为什么**: ★**文档写的是"未连接的网名集合必须【变小】(★不许变大/不变★)"**
+#     ⇒ ★**而 `--strict` 的语义是"【不完全相同】就 rc=1"** ⇒ ★**集合【变小】也判不过** ⇒ ★**读数会误报"没有变小"** ★★
+#   ★**注意**: ★**本脚本的退出码 = ②名单制闸的 rc ⇒ ★★**改这行【不会】改变任何臂的判定** ★★
+BASE_JSON="$_BASE_JSON" CAND_JSON="$_CAND_JSON" python3 - <<'PY'
+import json, os, re
+def nets(p):
+    d = json.load(open(p, encoding="utf-8"))
+    s = set()
+    for it in (d.get("unconnected_items") or []):
+        s |= set(re.findall(r"\[([A-Za-z0-9_]+)\]", json.dumps(it, ensure_ascii=False)))
+    return s
+b = nets(os.environ["BASE_JSON"]); c = nets(os.environ["CAND_JSON"])
+print("  ★★判据① (★文档口径: 【不许变大/不变】★): 基线网名 %d 个 → 候选网名 %d 个" % (len(b), len(c)))
+if len(c) < len(b):
+    print("  ✅ ★★网名集合【变小】(★%d → %d★) ★★" % (len(b), len(c)))
+elif len(c) == len(b):
+    print("  ⚠️ ★★网名集合大小【持平】(★%d★) ★★" % len(c))
+else:
+    print("  ❌ ★★网名集合【变大】(★%d → %d★) ★★" % (len(b), len(c)))
+PY
 echo "── ①b 名单差集 (★谁被救回 / 谁被打断) ──"
 python3 state/arm_net_set_diff.py "$_BASE_JSON" "$_CAND_JSON" 2>&1 | tail -40
 
