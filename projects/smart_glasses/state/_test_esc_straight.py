@@ -90,7 +90,7 @@ def main():
     f = _mk()
     start = [(0, f._idx(3, 5))]
     goals = {(0, f._idx(9, 5))}
-    f._esc_start_dir[("NET_A", start[0])] = (1, 0)
+    f._esc_start_dir[("NET_A", start[0])] = (1, 0, 2)   # ★(di,dj,步数)★
     path = f._astar(start, goals, "NET_A", max_via=False)
     chk("③ 约束生效时 A* 必须返回路径", path is not None, "path=%r" % (path,))
     if path:
@@ -105,7 +105,7 @@ def main():
     f2 = _mk()
     start2 = [(0, f2._idx(3, 5))]
     goals2 = {(0, f2._idx(9, 8))}
-    f2._esc_start_dir[("NET_B", start2[0])] = (1, 0)
+    f2._esc_start_dir[("NET_B", start2[0])] = (1, 0, 2)
     p2 = f2._astar(start2, goals2, "NET_B", max_via=False)
     chk("④ 约束后仍能走到斜向目标 (★说明第 3 步起方向自由★)", p2 is not None)
     if p2 and len(p2) >= 3:
@@ -123,7 +123,7 @@ def main():
     f3 = _mk(W, 20, frozenset(blocked))
     start3 = [(0, f3._idx(3, 5))]
     goals3 = {(0, f3._idx(3, 9))}
-    f3._esc_start_dir[("NET_C", start3[0])] = (1, 0)
+    f3._esc_start_dir[("NET_C", start3[0])] = (1, 0, 2)
     p3 = f3._astar(start3, goals3, "NET_C", max_via=False)
     chk("⑤ 约束下无路 ⇒ 自动回退到无约束并返回路径 (★保证不比现状更差★)",
         p3 is not None, "path=%r" % (p3,))

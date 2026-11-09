@@ -54,7 +54,11 @@ step_nostub() {  # $1=输入板 $2=输出板 $3=网格 $4=margin $5=额外参数
   # ★★2026-11-09 03:3x **修: extra 收【第 5 个起的全部参数】** ★★
   #   ★**原 bug**: `extra="${5:-}"` 只取第 5 个 ⇒ ★**"--max-dist 15" 的 "15" 被丢 ⇒ 脚本拿到 "--max-dist" 没有值 ⇒ IndexError**
   local in="$1" out="$2" grid="$3" margin="$4" extra="${*:5}"
-  local drc="$WORK/$(basename "$out").drc.json"
+  # ★★★**★2026-11-10 04:4x 修 (★产生点★): DRC 文件按【输入板】命名 ★★★**
+  #   ★**原 bug**: ★按【输出板】命名 ⇒ ★`final_chain.kicad_pcb.drc.json` 里装的是【上一步 s2_combo 的 DRC】★
+  #   ★**⇒ 于是"同名 json 是不是终板的"变成猜 ⇒ ★★★已实测害我算错一次(v76ru: 打碎 9 ⇒ 实际 5)★★★**
+  #   ★**⇒ 正解: 名字必须说明【这份 DRC 是谁的】⇒ 按输入板命名 ★**
+  local drc="$WORK/$(basename "$in").drc.json"
   say "── nostub: $(basename "$in") → $(basename "$out") (grid=$grid margin=$margin $extra)"
   # ★★2026-11-09 03:1x **护栏: 输入板不存在 ⇒ 立刻停 (★不许"级联失败"一路假跑完)**
   #   ★**实测教训**: 03:1x 那轮 replay 里, combo3 步 IndexError 崩了 ⇒ 后面几步拿着【不存在的输入】继续跑
@@ -75,7 +79,8 @@ step_nostub() {  # $1=输入板 $2=输出板 $3=网格 $4=margin $5=额外参数
 
 step_straight() {  # $1=输入板 $2=输出板
   local in="$1" out="$2"
-  local drc="$WORK/$(basename "$out").drc.json"
+  # ★★2026-11-10 04:4x 修 (★产生点★): ★同上 ⇒ DRC 按【输入板】命名 ★★
+  local drc="$WORK/$(basename "$in").drc.json"
   say "── straight: $(basename "$in") → $(basename "$out")"
   if [ ! -f "$in" ]; then
     say "❌ 输入板不存在 ($in) ⇒ 链断在这里 ⇒ 收工"
@@ -136,6 +141,23 @@ else
   exit 7
 fi
 bash state/pcbnew_py.sh state/check_pcb_drc.py "$WORK/final_chain.kicad_pcb" 2>&1 | grep -E "C3 |C4 " | tee -a "$LOG"
+
+# ★★★**★2026-11-10 04:4x 新增 (★兄弟 session 提的待办★): 链尾写【终板自己的 fresh DRC】 ★★★
+#   ★**为什么**: ★**同名 json 曾经是"上一步的输入 DRC" ⇒ 读数极易读错 ⇒ ★★**必须有一份"名字就说明是终板"的 DRC** ★★
+#   ★**文件名**: ★`final_board.drc.json` (★不叫 `final_chain.kicad_pcb.drc.json` ⇒ 避免与旧习惯混淆★)
+FINALDRC="$WORK/final_board.drc.json"
+fresh_drc "$WORK/final_chain.kicad_pcb" "$FINALDRC"
+if [ -f "$FINALDRC" ]; then
+  say "★终板 fresh DRC = $FINALDRC"
+  say "   ★unc 条目 = $(python3 -c "import json,sys;d=json.load(open(sys.argv[1]));print(len([v for v in d.get('violations',[]) if 'unconnected' in str(v.get('type','')).lower()]))" "$FINALDRC" 2>/dev/null || echo '?')"
+  say "   ★违规数   = $(python3 -c "import json,sys;d=json.load(open(sys.argv[1]));print(len(d.get('violations',[])))" "$FINALDRC" 2>/dev/null || echo '?')"
+  # ★★**★同时把【终板 DRC】按老名字也写一份 (★兼容旧脚本/旧习惯★) ★★ ★★**⇒ 覆盖掉那份"上一步输入 DRC", 杜绝再踩坑 ★★
+  cp "$FINALDRC" "$WORK/final_chain.kicad_pcb.drc.json"
+  say "   ★已覆盖同名旧文件 ⇒ `final_chain.kicad_pcb.drc.json` 现在【就是终板的 DRC】(★不再有"上一步输入"歧义★)"
+else
+  say "❌ 终板 fresh DRC 没生成 ⇒ ★**读数不可信**"
+  exit 6
+fi
 
 # ★★★**2026-11-09 04:5x 新增: 自校准闸 (★复现不了官方终板 ⇒ rc≠0 ⇒ 这块板不许拿去跟官方比)** ★★★
 # ★★★★**★05:2x 订正 (★v76 对照臂实测暴露的闸自身 bug)****

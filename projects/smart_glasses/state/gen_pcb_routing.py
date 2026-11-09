@@ -232,6 +232,17 @@ ESC_STRAIGHT_STEPS = int(os.environ.get("PCB_ESC_STRAIGHT", "0"))
 #   ★**开关**: ★`PCB_MERGE_FIX=1` ⇒ ★①修对 `by` 的坐标错位 · ★②加三角不等式兜底 (★挡任何瞬移★)
 #   ★**默认关** ⇒ ★**既有臂逐位可复现 (★本项目铁律★)**
 MERGE_FIX = os.environ.get("PCB_MERGE_FIX", "0") == "1"
+# ★★★★★★2026-11-10 04:5x 【★【★"非紧凑焊盘排"的起步也要先直行 (★env 门控 `PCB_ESC_ROWNORM`)★】★】★★★★★★
+#   ★**为什么要有 (★2026-11-10 04:0x 实测坐标, ★不是猜★)**:
+#     ★**`ID_DETECT_0` ↔ `BOOT_N` 的 0.1813mm DRC (★所有臂都有, ★卡死所有臂★)**:
+#       · 两脚在 J_SOM_P1 (0.8mm pitch) 的同一排 (y=11.040)
+#       · 两根出脚直道**同向平行** (x=62.800 / 63.600, 间距 0.8mm) ⇒ 直道本身没问题
+#       · ★★**但出脚后【第一步就朝相反 y 方向转弯】⇒ 两条 45° 斜线交错 ⇒ 只差 0.4313mm (中心线)** ★★
+#       · ⇒ 净距 0.4313 - 0.125 - 0.125 = **0.1813mm < 0.2000mm** ⇒ ★★**差 0.0187mm** ★★
+#   ★**解法 (★与 `PCB_ESC_STRAIGHT` 同机理, ★只是【焊盘不算紧凑 ⇒ 没有出脚直道】★)**:
+#     ★**起步先沿【该排的法线】走** ⇒ 相邻脚的扇出【不会交错】 ⇒ ⇒ **不交错就不会差 0.0187mm** ★★
+#   ★**用法**: ★`PCB_ESC_ROWNORM=2` (★强制直行格数·默认 0 = 关 ⇒ 逐位不变★)
+ESC_ROWNORM_STEPS = int(os.environ.get("PCB_ESC_ROWNORM", "0"))
 # ★★★★2026-11-06 10:5x **过孔净距检查是否查全部宽度级别 (env 门控, 默认关)**
 #   ★**为什么要有**: ★**`_via_ok` 查 `halo[2]` ⇒ 看不见 `halo[1]` 里的 0.25mm 走线**
 #   ⇒ ★**"过孔 vs 常规走线"的净距检查失效** ⇒ ★**实测 DRC 报 7 条 clearance 违规**
@@ -1050,14 +1061,14 @@ class GridRouter:
         ★**兜底**: ★★**约束下 A* 无路 ⇒ 自动用无约束重试一遍** ⇒ ★★**保证不比现状更差** ★★
         """
         _fd = None
-        if ESC_STRAIGHT_STEPS > 0 and len(start) == 1:
+        if len(start) == 1:
             _fd = self._esc_start_dir.get((net, start[0]))
         if _fd is not None:
             _p = self._astar_core(start, goals, net, dist_map=dist_map,
                                   alpha=alpha, max_via=max_via, cls=cls,
                                   limit=limit, dist_def=dist_def,
                                   max_len_cells=max_len_cells, limit_mult=limit_mult,
-                                  first_dir=_fd, first_steps=ESC_STRAIGHT_STEPS)
+                                  first_dir=(_fd[0], _fd[1]), first_steps=_fd[2])
             if _p is not None:
                 return _p
             # ★约束下无路 ⇒ 回退 (★无约束 ⇒ 与旧行为逐位相同★)
@@ -1278,9 +1289,20 @@ class GridRouter:
                 _di = (1 if _dx > 1e-9 else (-1 if _dx < -1e-9 else 0))
                 _dj = (1 if _dy > 1e-9 else (-1 if _dy < -1e-9 else 0))
                 if _di or _dj:
-                    self._esc_start_dir[(net, _cell)] = (_di, _dj)
+                    self._esc_start_dir[(net, _cell)] = (_di, _dj, ESC_STRAIGHT_STEPS)
                 return [_cell], (pad[2], pad[3], st[0], st[1])
-            return list(self._pad_cells(net, pad)), None
+            _cells = list(self._pad_cells(net, pad))
+            # ★★★★★★2026-11-10 04:5x 【★非紧凑焊盘排: 起步先沿【排的法线】走 (★`PCB_ESC_ROWNORM`)★】
+            #   ★**目的**: ★**相邻脚的扇出不交错** ⇒ ⇒ **消掉 `ID_DETECT_0`↔`BOOT_N` 0.1813mm DRC** ★★
+            #   ★**判据**: ★`_row_normal` 认得出"一排"才加约束 (★认不出 ⇒ 不加 ⇒ 保守★)
+            if ESC_ROWNORM_STEPS > 0 and len(_cells) == 1:
+                try:
+                    _dn = self._row_normal(net, pad[2], pad[3])
+                except Exception:
+                    _dn = None
+                if _dn:
+                    self._esc_start_dir[(net, _cells[0])] = (_dn[0], _dn[1], ESC_ROWNORM_STEPS)
+            return _cells, None
         if trunk:
             for (pa, pb) in trunk:
                 ta = self._find_pad(net, pa)
@@ -1604,6 +1626,57 @@ class GridRouter:
         if not self._edge_seg_ok(x1, y1, x2, y2, W_MIN):
             return False
         return True
+
+    def _row_normal(self, net, cx, cy):
+        """★该焊盘所在【一排】的**法线方向** (★返回 (di,dj) 或 None★)
+
+        ★★**为什么要 (★2026-11-10 04:0x 实测坐标, ★不是猜★)★★:
+          ★**`ID_DETECT_0` ↔ `BOOT_N` 的 0.1813mm DRC (★所有臂都有★)**
+            · 两脚在 J_SOM_P1 (0.8mm pitch) 的同一排 (y=11.040)
+            · 两根出脚直道**同向平行** (x=62.800 / 63.600) ⇒ 直道本身合法
+            · ★★**但出脚后【第一步就朝相反 y 方向转弯】⇒ 两条 45° 斜线交错 ⇒ 中心线只差 0.4313mm**
+              ⇒ 净距 0.4313 - 0.125 - 0.125 = **0.1813mm < 0.2000mm** ⇒ ★**差 0.0187mm** ★★
+          ★**⇒ 起步先沿【排的法线】走 ⇒ 相邻脚的扇出【不交错】⇒ ⇒ 这条 DRC 的根因就没了** ★★
+        ★**判据 (★保守: ★认不出排就返回 None ⇒ 不加约束★)**:
+          · ★**至少两个【异网】焊盘** ⇒ 且它们【与本焊盘共线】(★垂直分量 ≤ 0.20mm★)
+          · ⇒ ⇒ 才认定"本焊盘在一排里" ⇒ ⇒ 法线 = 排方向的垂直方向
+        ★**选哪一侧**: ★**两侧各试一次空旷度 `_free_score` ⇒ 取空的那侧** ★
+          (★★**只要【相邻脚选的方向一致或相反】都不会交错 ⇒ ⇒ 【方向一致】最好 (★保持差分耦合★)★★) ★★
+        """
+        _c = []
+        for (n2, x0, y0, x1, y1) in self.pad_rects:
+            if n2 == net:
+                continue
+            mx = (x0 + x1) / 2.0
+            my = (y0 + y1) / 2.0
+            vx = mx - cx
+            vy = my - cy
+            L = math.hypot(vx, vy)
+            if L < 1e-6 or L > 2.0:
+                continue
+            _c.append((L, vx, vy))
+        if len(_c) < 2:
+            return None
+        _c.sort(key=lambda t: t[0])
+        # ★**共线判定**: ★垂直分量 (叉积) 必须 ≈ 0 ⇒ 否则不是"一排" ⇒ 不加约束
+        L, vx, vy = _c[0]
+        ux, uy = vx / L, vy / L
+        if abs(vx * (-uy) + vy * ux) > 0.20:
+            return None
+        L2, vx2, vy2 = _c[1]
+        if abs(vx2 * (-uy) + vy2 * ux) > 0.20:
+            return None
+        # ★**法线 = 排方向的垂直方向**
+        nx, ny = -uy, ux
+        _s1 = self._free_score(net, cx + nx * 0.8, cy + ny * 0.8)
+        _s2 = self._free_score(net, cx - nx * 0.8, cy - ny * 0.8)
+        if _s1 < _s2:
+            nx, ny = -nx, -ny
+        di = (1 if nx > 1e-9 else (-1 if nx < -1e-9 else 0))
+        dj = (1 if ny > 1e-9 else (-1 if ny < -1e-9 else 0))
+        if not di and not dj:
+            return None
+        return (di, dj)
 
     def _free_score(self, net, cx, cy, r_mm=1.5):
         """出脚终点的空旷度 (周围能走的单元数)"""

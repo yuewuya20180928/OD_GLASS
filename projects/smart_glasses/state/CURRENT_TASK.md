@@ -131,3 +131,41 @@
 
 11. ★★★★★[06:2x~06:3x ★★★★★**突破: stub 模型是真凶** ⇒ unc 57→**48**] ★**新工具 `state/patch_astar_nostub.py`**: A* 直接从"焊盘自己那一格 + 周围 8 格"起步 · **完全不生成 stub** ⇒ 出脚方向由 A* 自己决定 · 网格 0.125mm (BTB 焊盘只有 0.2mm 宽) ⇒ 实测**补上 7 条**(含 48mm 的 SENSOR_VDD_IO) ⇒ DRC=0 · unc=50 · 闸 ACCEPT; ★**再叠 `fix_straight_links.py` 的 3 条 ⇒ unc=48 · 零铜 26→24 · DRC 0 · 退铜 0 · 差分死腿 0 · 逐网孤岛变多 0 · parity 过 ⇒ ACCEPT** ⇒ 归档 `state/.lastgood/board_combo_unc48_20261106_0629.kicad_pcb` (md5 3267a6df) ⇒ ★**官方板仍未动**(v52/v53 在跑, 以官方板为基线)
 
+
+★★★★★[2026-11-10 04:0x~04:5x ★★★**两个根因 + 三个新机制 + 两批新臂**★★★] ★★★
+· ★**根因① (出脚几何)**: ★**出脚后立刻 45° 斜切 ⇒ 垂距 0.255mm < 需 0.425mm ⇒ 邻居的出脚道被判死 ⇒ 差分 N 腿 L=0.00**
+  ⇒ ★新机制 **`PCB_ESC_STRAIGHT=2`** (★env 门控·默认关⇒逐位不变·约束下无路自动回退★) ⇒ 自测 `_test_esc_straight.py` (14 断言)
+· ★**根因② (共线合并瞬移)**: ★**`_emit_path` 的合并判据 `by = s[4]-s[1]` ⇒ x/y 混用 ⇒ 本不该合并的段被合并 ⇒ 生成出板假铜**
+  ⇒ ★实测 v76s2 裸板 10 段跑到 y=-1.214mm ⇒ **12 条 `copper_edge_clearance` (actual 0.0000)** ⇒ 也是所有臂那 2 条板边违规的来源
+  ⇒ ★新机制 **`PCB_MERGE_FIX=1`** (★修对 `by` + **三角不等式兜底**★) ⇒ 自测 `_test_merge_fix.py` (10 断言)
+· ★**根因③ (同排扇出交错)**: ★**`ID_DETECT_0`↔`BOOT_N` 0.1813mm (差 0.0187mm) ⇒ 所有臂都有 ⇒ 卡死所有臂**
+  ⇒ ★新机制 **`PCB_ESC_ROWNORM=2`** (★起步先沿【焊盘排法线】走 ⇒ 扇出不交错★) ⇒ 自测 `_test_esc_rownorm.py` (10 断言)
+· ★**臂读数 (vs 同链基线)**: ★**v76s2 = 当前最佳 unc 26 / 零铜 8 / 差分单边 3** ★ 但 DRC 13 + 退铜 2 + 孤岛 7 ⇒ REJECT
+  · v76s0 unc35/DRC3/退铜1/孤岛+5 ⇒ REJECT · v76s1 unc34/DRC10/退铜2/孤岛+4 ⇒ REJECT
+· ★**新臂**: ★`v76s5`(=s5 env+ESC_STRAIGHT) · ★`v76s6`(=s2+GRID0.125) · ★`v76s7`(=s2+MERGE_FIX) · ★`v76s8`(=s7+ESC_ROWNORM)
+· ★**判据级坑**: ★`final_chain.kicad_pcb.drc.json` 的 source 是 `s2_combo` ⇒ **不是终板 DRC** ⇒ 必须自己 fresh DRC 终板
+
+---
+
+## ★★【2026-11-10 04:4x 台账 · 三个根因 + 臂阶梯】★★
+· ★**官方板零改动**: md5 `611b869e` · 18092 段/433 孔 · DRC 0 · unc 45 · ★`chain_gate rc=0` · ★`stage_gate rc=1` ⇒ **G1 仍开, 不许投板** ★
+· ★**三个根因 (★坐标级实测★)**:
+  ① ★**出脚几何**: ★`CSI_D0_D0_P_SRC` 出脚后立刻 45° 斜切 ⇒ 与邻居 N 出脚道垂距 0.255mm (需 0.425mm) ⇒ **N 腿 `L=0.00`** ⇒ 机制 `PCB_ESC_STRAIGHT=2` ★
+  ② ★**共线合并"瞬移"bug**: ★`_emit_path` 判据 `bx,by = s[3]-s[1], s[4]-s[1]` (★s 的 y 分量减了 s 的 x 起点★) ⇒ 11-04 修过 `p` 忘了 `s` ⇒ **v76s2 裸板 10 段跑到 y=-1.214mm (板边外)** ⇒ 机制 `PCB_MERGE_FIX=1` ★
+  ③ ★**同排扇出交错**: ★`ID_DETECT_0`↔`BOOT_N` 出脚后首步朝相反 y 转 ⇒ 斜线交错 ⇒ 净距 0.1813 (差 0.0187mm) ⇒ 机制 `PCB_ESC_ROWNORM=2` ★
+  ⇒ ★**三个机制全部 env 门控 + 默认关 ⇒ 既有臂逐位可复现; 自测 14/10/10 断言全 PASS** ★
+· ★**臂阶梯 (★每臂只多一个变量★)**: ★`v76b1`(=v76ru+MERGE_FIX · **新同链基线**) → ★`s7`(=s2+MERGE_FIX) → ★`s8`(=s7+ROWNORM) → ★`s9`(=s8+ESC_STRAIGHT) → ★`s10`(=s9+GRID0.125) ★
+  ⇒ ★**看门狗自动接力**: ★`state/watch_launch_s8.sh` · `state/watch_chain.sh` ★
+  ⇒ ★★★**★判据级新约束: `PCB_MERGE_FIX` 改路由器输出 ⇒ 老基线与 s7~s10 【不可比】⇒ 必须用 `v76b1` 的链产物当新基线 (★老基线不覆盖★)** ★★★
+· ★**已完成臂读数 (★全部 fresh DRC, ★vs 同链基线★)**: ★s0 unc35/DRC3 · s1 unc34/DRC10 · s2 **unc26**/零铜8/差分单边3/DRC13 ⇒ 全 REJECT ★
+  ⇒ ★★**⇒ 关键推论: s2 的 13 条 DRC = 12 条板边(★合并 bug★) + 1 条净距 ⇒ `margin 0.0625` 【不产生净距违规】⇒ ⇒ 修掉合并 bug 后 unc 46→26 是【白拿】的** ★★
+· ★**差分对横比 (★双腿全通对数★)**: ★base 4 ⇒ ★**s5(ESC_STRAIGHT) 7** ⇒ ★★**⇒ ESC_STRAIGHT 是唯一能解 CSI 类 N 腿的机制** ★★ (★s4 的 GRID0.125 解 DSI 类 ⇒ 互补★) ⇒ ★**`--split-pair` 单独看负收益 ⇒ 降级** ★
+· ★★★**★新杠杆: 【补丁链本身】(★2026-11-10 04:3x 实测★)** ★★★
+  ⇒ ★**v76s2 链的进度: s1_straight 35 unc → s2_combo 30 → final 26 ⇒ ★链自己接掉了 9 条★** ★
+  ⇒ ★★**⇒ 链的 loose 步 (grid 0.125 + margin 0.0625) 是【每个臂都吃】的公共收益 ⇒ 改链 = 收益放大到所有臂** ★★
+  ⇒ ★**在做**: ★loose 步 grid 0.125→0.0625 (★margin 不变 ⇒ 多接且 DRC 不涨就是白拿★) + budget 3M (★4× 网格 ⇒ 预算要跟着放大, ★不然 A* 覆盖不到原来那么远★) ★
+· ★★★**★产生点已修: `state/replay_patch_chain.sh`** ★★★
+  ⇒ ★**① DRC 文件按【输入板】命名 (★原来按输出板命名 ⇒ `final_chain.kicad_pcb.drc.json` 装的是上一步的 DRC★)** ★
+  ⇒ ★**② 链尾写【终板自己的 fresh DRC】= `final_board.drc.json`, ★并覆盖旧同名文件 ⇒ 老习惯也拿不到错数据** ★
+  ⇒ ★**③ 用 `mv` 原子覆盖 ⇒ 正在跑的链持旧 inode ⇒ 不受影响 (★bash 按 fd 增量读, 直接改会读出半截脚本★)** ★
+  ⇒ ★**读数一律走 `bash state/arm_fresh_readings.sh <终板>` (★兄弟 session 提供, ★已验证可用★)** ★
