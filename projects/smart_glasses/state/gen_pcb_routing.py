@@ -33,6 +33,16 @@ MM = 1e6
 
 # ------------------------------------------------------------------ 常量
 GRID = 0.25            # mm 网格步长
+# ★★★**★2026-11-10 03:3x 【★GRID 改成 env 旋钮 (★默认关 ⇒ 逐位不变★)】★★★ ★★★
+#   ★**为什么**: ★**实测 (★`state/probe_escape_feasibility.py`★) ⇒ v76ru 终板的 70 个未连接端点
+#     ★★**在 W=0.20 与 W=0.15 下【全部物理可行】⇒ ⇒ ⇒ "等板厂"不成立 ⇒ ⇒ ⇒ 【瓶颈 100% 在 A*】**
+#     ⇒ ★**⇒ 而 `GRID=0.25` ⇒ 0.4mm pitch 的 BTB 区只有 1~2 格 ⇒ ⇒ ⇒ 【密集区没有足够细的格子可走】**
+#       ⇒ ★★**⇒ 这是【最可能的真凶】⇒ ⇒ ⇒ 所以它必须能做成单变量臂 ⇒ ⇒ ⇒ 以前它是写死常量 ⇒ 做不了** ★★★★
+#   ★**用法**: ★**`PCB_GRID=0.125`** ⇒ ★**网格步长 0.125mm (★格子数 ×4 ⇒ 内存/时间 ×4 左右★)**
+#   ★**默认 = 0.25 ⇒ 逐位不变** ★★
+GRID = float(os.environ.get("PCB_GRID", "0.25"))
+if abs(GRID - 0.25) > 1e-9:
+    print("  [路由] ★★网格步长 (env 覆盖): %.3f mm (★默认 0.25★)" % GRID)
 # ★★2026-11-05 23:2x **v41: 通孔净距禁区按真实孔心算 (env 门控, 默认关)**
 #   ★**根因**: 旧算法用"含孔心那一格"的**格心**当圆心 ⇒ 孔偏格心 δ 时禁区整体偏 δ
 #     ⇒ 实测 v36_S 的 DRC: 孔 (85.35,9.60) 偏格心 (0.10,0.10) ⇒ 走线端点离真实孔心
@@ -144,9 +154,32 @@ for _grp in (os.environ.get("PCB_CONN_GND_ESCAPE", "") or "").split(";"):
         continue
 if CONN_GND_ESC:
     print("  [路由] ★连接器逃逸走廊禁放 GND 下拉孔: %s" % CONN_GND_ESC)
+# ★★★★★**★2026-11-10 03:0x 【★GND 下拉孔的逃逸走廊规则被绕过 ⇒ ★修它 (env 门控)★★★★★**
+#   ★**实测根因**: ★**GND 下拉孔落 `escape_stub()` 的末端 (anchor) ⇒ 而 escape_stub 不查
+#     `_gnd_drop_esc_ok` ⇒ ⇒ 走廊规则只在环格路径上生效 ⇒ ⇒ 实际路径绕过了它**
+#   ★**实测代价**: ★**v76ru 终板 7 个 CONN_CAM 的 GND 孔违反 [Δy ≥ 4.0mm] (★实际 0.9/1.2★)
+#     ⇒ 4 个直接卡死 A2 那 5 条的端点 (CSI_D0_CK_N / CSI_D0_D0_N / CSI_D0_D1_P / CSI_MCLK / I2C_A_SCL)**
+#   ★**默认关 ⇒ 逐位不变** (★既有臂必须可复现★)
+GND_ESC_FIX = os.environ.get("PCB_GND_ESC_FIX", "0") == "1"
+if GND_ESC_FIX:
+    print("  [路由] ★★GND 下拉孔逃逸走廊修正: ON (★anchor 违规 ⇒ 改走长出脚/落回环格★)")
 ESC_LEN = 1.20         # mm ★密集焊盘出脚直道长度 (沿焊盘中心线直线走出)
 # ★出脚直道长度候选 (长→短) —— ★板边放不下就缩短 (fix B: 出脚直道离网格 ⇒ 板边要单独查)
-ESC_LENS = (1.20, 0.90, 0.60, 0.40)
+ESC_LENS = (1.20, 0.90, 0.60, 0.40)     # ★★**默认 (★env 未设时就是这个 ⇒ 逐位不变★★) ★★
+# ★★★**★2026-11-10 03:2x 【★ESC_LENS 改成 env 旋钮 (★默认关 ⇒ 逐位不变★)】★★★ ★★★
+#   ★**为什么**: ★**出脚直道长度是【出脚区能不能出去】的第一控制变量 ★★
+#     ⇒ ★**但它以前是写死的常量 ⇒ ⇒ 做不了单变量臂 ⇒ ⇒ 今晚的机制全靠 env 门控, 这个漏了** ★★
+#   ★**用法**: ★**`PCB_ESC_LENS="2.00,1.20,0.90,0.60,0.40"`** ⇒ ★**更长/更短的出脚直道候选序列★**
+#   ★**默认 = 原值 (1.20, 0.90, 0.60, 0.40) ⇒ 逐位不变** ★★
+_esc_lens_env = os.environ.get("PCB_ESC_LENS", "") or ""
+if _esc_lens_env.strip():
+    try:
+        ESC_LENS = tuple(float(x) for x in _esc_lens_env.replace(";", ",").split(",")
+                         if x.strip())
+        print("  [路由] ★出脚直道长度候选 (env 覆盖): %s" % (ESC_LENS,))
+    except Exception:
+        print("  [路由] ★★PCB_ESC_LENS 解析失败 ⇒ 用默认值 (★不改行为★)")
+ESC_LENS = tuple(sorted(ESC_LENS, reverse=True))
 EDGE_CLEAR = 0.50      # mm ★板边净距 (KiCad board setup: copper edge clearance = 0.5mm)
 # ★出脚直道: 直道是**离网格**的 (落在焊盘真实中心线上) ⇒ 落铜后必须再对"已布走线/过孔"
 #   做一次几何净距检查 (_stub_vs_routed) —— A* 的障碍图避让不了"后来才出现的直道"。
@@ -1580,6 +1613,42 @@ class GridRouter:
             _dia, _drill = VIA_DIA_S, VIA_DRILL_S
             # ★出脚直道 (与 route_net 的 anchor() 同一套逻辑)
             anchor = self.escape_stub(net, pad)
+            # ★★★★★**★2026-11-10 03:0x 【★GND 下拉孔的【连接器逃逸走廊】规则被绕过了★】★★★★★
+            #   ★**实测根因 (★v76ru 终板量出来的)**: ★**GND 下拉孔【不落焊盘周围的环格】,
+            #     而是落 `escape_stub()` 出脚直道的末端 (anchor) ⇒ ⇒ 而 `escape_stub` 只查
+            #     `_stub_clear`/`_stub_vs_routed` ⇒ ⇒ 【【不查 `_gnd_drop_esc_ok`】⇒ ⇒
+            #     ⇒ "连接器差分脚逃逸走廊"规则【只在环格路径上生效】⇒ ⇒ 最常见的路径绕过了它** ★★
+            #   ★**实测代价**: ★**v76ru 终板上 7 个 CONN_CAM 的 GND 下拉孔违反 [Δy ≥ 4.0mm]
+            #     (★实际 0.9 / 1.2mm★) ⇒ ⇒ 其中 4 个直接卡死 A2 那 5 条的端点** ★★
+            #   ★**修法 (★env 门控 `PCB_GND_ESC_FIX=1`, ★默认关 ⇒ 逐位不变★)**:
+            #     ★**anchor 违反走廊 ⇒ 改走"长出脚": 沿垂直方向走到满足 |Δy| ≥ MIN 的位置**
+            #       (★水平方向永远满足不了 ⇒ 只试垂直方向★) ⇒ ★**再不行就落回环格路径 (★那里有检查★)****
+            if (anchor and GND_ESC_FIX
+                    and not self._gnd_drop_esc_ok(_ref, cy, anchor[1])):
+                _fixed = None
+                _need = (CONN_GND_ESC or {}).get(_ref)
+                if _need is not None:
+                    _dir_ok = (CONN_GND_ESC_DIR.get(_ref, "ANY"))
+                    for _sgn in ((1, -1) if _dir_ok != "UP" else (1,)):
+                        for _ln in (_need + 0.05, _need + 0.30, _need + 0.60):
+                            _ay = cy + _sgn * _ln
+                            if not self._gnd_drop_esc_ok(_ref, cy, _ay):
+                                continue
+                            if not self._stub_clear(net, cx, cy, cx, _ay):
+                                continue
+                            if not self._stub_vs_routed(net, cx, cy, cx, _ay):
+                                continue
+                            _fixed = (cx, _ay)
+                            break
+                        if _fixed:
+                            break
+                anchor = _fixed          # ★★**⇒ 拿不到合规落点 ⇒ 落回环格路径 (★那里会检查走廊★)★★
+                if anchor is None:
+                    start_cells = list(self._pad_cells(net, pad))
+                    stub_start = None
+                else:
+                    start_cells = [(0, self._idx(self._ci(anchor[0]), self._cj(anchor[1])))]
+                    stub_start = (cx, cy, anchor[0], anchor[1])
             if anchor:
                 ax, ay = anchor
                 start_cells = [(0, self._idx(self._ci(ax), self._cj(ay)))]

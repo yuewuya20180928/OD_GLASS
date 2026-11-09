@@ -95,6 +95,32 @@ PY
 echo "── ①b 名单差集 (★谁被救回 / 谁被打断) ──"
 python3 state/arm_net_set_diff.py "$_BASE_JSON" "$_CAND_JSON" 2>&1 | tail -40
 
+# ★★**★①c GND 专项 (★2026-11-10 03:1x 加: ★v76s1 的成败关键★)★★** ★★
+#   ★**为什么**: ★**`PCB_GND_ESC_FIX` 把 GND 下拉孔从"违规落点"改到"合规落点" ⇒ ★*
+#   ★**⇒ 可能让某些 GND 焊盘【失去下拉孔】⇒ ★**⇒ GND 类未连接变多 = 拿信号换地 = 不算赢** ★★
+echo "── ①c GND 专项 (★信号变好但地变差 ⇒ 不算赢★) ──"
+BASE_JSON="$_BASE_JSON" CAND_JSON="$_CAND_JSON" python3 - <<'PY'
+import json, os, re
+def items(p):
+    d = json.load(open(p, encoding="utf-8"))
+    out = []
+    for it in (d.get("unconnected_items") or []):
+        s = json.dumps(it, ensure_ascii=False)
+        ns = set(re.findall(r"\[([A-Za-z0-9_]+)\]", s))
+        out.append((ns, s))
+    return out
+def gnd_count(p):
+    return sum(1 for ns, s in items(p) if "GND" in ns)
+b, c = gnd_count(os.environ["BASE_JSON"]), gnd_count(os.environ["CAND_JSON"])
+print("  GND 相关未连接条目: 基线 %d → 候选 %d" % (b, c))
+if c < b:
+    print("  ✅ ★★GND 变好 (%d → %d) ★★" % (b, c))
+elif c == b:
+    print("  ➖ ★★GND 持平 (%d) ★★" % c)
+else:
+    print("  ❌ ★★GND 变差 (%d → %d) ⇒ ★★拿信号换地 ⇒ 本臂不算赢★★" % (b, c))
+PY
+
 # ── ④ 判据②: 名单制闸 (只看变好) ──
 echo "── ② 名单制闸 (★臂 vs 基线) ──"
 echo "  ★注: ★**该脚本内部把第二个参数叫\"官方板\" ⇒ ★★**这里的\"官方\"实际指本基线** ★★ (★读数时注意) ★"

@@ -77,6 +77,13 @@ def rect_center(r):
     return (sum(xs) / 4.0, sum(ys) / 4.0)
 
 
+def _bbox_gap(b1, b2):
+    """★两个包围盒之间的【粗略最小距离】(★轴对齐 ⇒ 精确, ★但比多边形距离便宜得多)"""
+    dx = max(0.0, b1[0] - b2[2], b2[0] - b1[2])
+    dy = max(0.0, b1[1] - b2[3], b2[1] - b1[3])
+    return math.hypot(dx, dy)
+
+
 def main():
     a = sys.argv[1:]
     if len(a) < 2:
@@ -128,6 +135,18 @@ def main():
                 byu[p.m_Uuid.AsString()] = ("p", p)
             except Exception:
                 pass
+
+    # ★★**★预计算包围盒 (★性能: ★每个铜图元只算一次, ★后面只查表★)** ★★
+    def _bb(r):
+        return (min(p[0] for p in r), min(p[1] for p in r),
+                max(p[0] for p in r), max(p[1] for p in r))
+    segs_bb = [(_bb(r2),) + (n2, r2, lay2)[0:0] + (n2, r2, lay2) for (n2, r2, lay2) in segs]
+    segs_bb = [(bb, n2, r2, lay2) for (n2, r2, lay2), bb in
+               zip(segs, [_bb(r2) for (n2, r2, lay2) in segs])]
+    vias_bb = [(bb, n2, r2) for (n2, r2), bb in
+               zip(vias, [_bb(r2) for (n2, r2) in vias])]
+    pads_bb = [(bb, n2, nm2, r2, lays2) for (n2, nm2, r2, lays2), bb in
+               zip(pads, [_bb(r2) for (n2, nm2, r2, lays2) in pads])]
 
     d = json.load(open(drcp, encoding="utf-8"))
     items = d.get("unconnected_items") or []
@@ -186,24 +205,34 @@ def main():
                         if not sr:
                             continue
                         mind, blocker = 1e9, ""
-                        for (n2, r2, lay2) in segs:
+                        # ★★**★包围盒预筛 (★性能: ★原版 2800 万次 rect_rect_dist ⇒ 跑不完★)★★**
+                        #   ★**先算【包围盒到包围盒】的粗距, ★粗距 > 当前最优值就跳过 ⇒ ⇒ 只对近处的做真几何** ★★
+                        sb = (min(p[0] for p in sr), min(p[1] for p in sr),
+                              max(p[0] for p in sr), max(p[1] for p in sr))
+                        for (bb2, n2, r2, lay2) in segs_bb:
                             if n2 == net:
                                 continue
                             if lay2 not in lays:
                                 continue
+                            if _bbox_gap(sb, bb2) >= mind:
+                                continue
                             dd = GC.rect_rect_dist(sr, r2)
                             if dd < mind:
                                 mind, blocker = dd, "%s[%s]" % (n2, lay2)
-                        for (n2, r2) in vias:
+                        for (bb2, n2, r2) in vias_bb:
                             if n2 == net:
+                                continue
+                            if _bbox_gap(sb, bb2) >= mind:
                                 continue
                             dd = GC.rect_rect_dist(sr, r2)
                             if dd < mind:
                                 mind, blocker = dd, "%s[通孔]" % n2
-                        for (n2, nm2, r2, lays2) in pads:
+                        for (bb2, n2, nm2, r2, lays2) in pads_bb:
                             if n2 == net:
                                 continue
                             if not (lays & lays2):
+                                continue
+                            if _bbox_gap(sb, bb2) >= mind:
                                 continue
                             dd = GC.rect_rect_dist(sr, r2)
                             if dd < mind:
