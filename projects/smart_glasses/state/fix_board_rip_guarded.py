@@ -291,6 +291,31 @@ def main():
             r.rebuild_halo()
             rej.append(("★守卫: 孤岛 %d→%d 变多 ⇒ 回滚" % (before, after), net))
             continue
+        # ★★★★**2026-11-09 10:4x 新守卫 (★实测挖出的真机制)★★★★:
+        #   ★★**现象 (★2026-11-09 10:2x 实测)**: ★**rip 拆掉 8 条【挡路线】(★属于 VDD_3V3_IO / LIGHT_3V3)
+        #     ⇒ 那些网成了 `ripup_and_reroute()` 的 "affected 网" ⇒ ★★**被【整网重画】** ⇒ ★★**VDD_3V3_IO 1035→2784 段,
+        #     LIGHT_3V3 360→920 段** ⇒ ⇒ ★★**2309 段【别的网的】新铜 ⇒ 互相压上 ⇒ 新铜净距 0.000mm (重叠)** ★★
+        #   ★★**⇒ 老守卫只查【孤岛数】⇒ VDD_3V3_IO 重画后仍连通 ⇒ 孤岛数不变 ⇒ ★★**守卫看不见, 脏铜漏到几何复核才炸** ★★
+        #   ★★**⇒ 补这个守卫: 拆挡路会触发挡路网整网重画 ⇒ ⇒【成品板上修复】这条路的前提不成立** ★★
+        #   ★★**判据**: ★**除目标网外, 任何网的【铜段数】变化 > 阈值 ⇒ 判定"整网重画" ⇒ 退回** ★★
+        _segcount = {}
+        for _s in r.tracks:
+            _segcount[_s[0]] = _segcount.get(_s[0], 0) + 1
+        _changed = []
+        for _n2, _c2 in _segcount.items():
+            if _n2 == net:
+                continue
+            _c1 = sum(1 for _s in snap_t if _s[0] == _n2)
+            if _c1 and abs(_c2 - _c1) > max(2, int(_c1 * 0.05)):
+                _changed.append("%s %d→%d" % (_n2, _c1, _c2))
+        if _changed:
+            r.tracks = snap_t
+            r.vias = snap_v
+            r.routed_ok = snap_ok
+            r.rebuild_halo()
+            rej.append(("★守卫: 拆挡路触发【整网重画】(%s) ⇒ 回滚"
+                        % ", ".join(_changed[:4]), net))
+            continue
         if not n_ok:
             rej.append(("ripup 没能重布", net))
             continue
