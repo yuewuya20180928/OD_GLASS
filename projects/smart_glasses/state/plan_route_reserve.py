@@ -272,14 +272,25 @@ def main():
     #   ★**为什么**: ★**`--nets` 的网常有好几个焊盘 (★`UART_TX` = J_UART.1 + TP_UART.1 + J_SOM_P2.7)
     #     ⇒ 旧循环按【焊盘】遍历 ⇒ 同一个网的日志重复 N 次 (★读数时容易误以为有多个候选) ★**
     #   ★**注意**: ★**框的生成逻辑逐位不变 (★框本来就是按【网的最优候选】算的) ⇒ 只改打印 ★★
-    _net_order = []
-    for (_n, _r, _x, _y) in A1 + _extra:
-        if _n not in _net_order:
-            _net_order.append(_n)
+    # ★★★**★2026-11-10 01:4x 【★修: ★★"输出循环用残留变量"的真 bug★★】★★★ ★★★
+    #   ★**实测症状**: ★**--from-drc 模式下恒只出 1 个框, ★且脚本【不报错】** ★★
+    #   ★**根因**: ★**第二个循环解构成 `_n,_r,_x,_y`, ★里面却用 `net`/`ref` ⇒ ★那是【上一个循环的残留值】** ★★
+    #   ⇒ ★★**⇒ 统一成: ★【按 key 取候选】(★key = net, ★或 --from-drc 下的 (net, ref))★★** ★★
+    if _from_drc:
+        _order = []
+        for (_n, _r, _x, _y) in (A1 + _extra + _extra2):
+            _k = (_n, _r)
+            if _k not in _order:
+                _order.append(_k)
+    else:
+        _order = []
+        for (_n, _r, _x, _y) in (A1 + _extra + _extra2):
+            if _n not in _order:
+                _order.append(_n)
 
-    for net in _net_order:
-        # ★只对这个网【最好的那条】候选打日志 (★其余焊盘/方向只做诊断)
-        _c = _cand_by_net.get((net, ref) if _from_drc else net)
+    for _okey in _order:
+        net, ref = (_okey if _from_drc else (_okey, ""))
+        _c = _cand_by_net.get(_okey if _from_drc else net)
         if _c is None:
             continue
         best = (_c[0], _c[1], _c[2], _c[3], _c[4])
