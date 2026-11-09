@@ -31,6 +31,16 @@ MM = 1000000.0
 ESC_LEN = 1.20          # ★与 gen_pcb_routing.ESC_LEN 对齐
 HALO_CLEAR = 0.20       # ★CLEAR
 BOX_W = 0.90            # ★预留框宽度 (0.25 线 + 2×0.20 净距 = 0.65 ⇒ 取 0.9 留余量)
+# ★★★★**★2026-11-10 03:3x 【★--split-pair: 差分对拆成【两条互不重叠的带】★★★】 ★★★★
+#   ★**为什么 (★实测, 见 memory/2026-11-10.md★)**: ★★**v76ru 的 9 对差分"单边零铜"** ★★
+#     ⇒ ★★**P 腿先布 ⇒ 它的铜横穿了未布的 N 腿焊盘位置 ⇒ ⇒ N 腿直出净距只剩 0.225mm**
+#       ⇒ ★★**而 N 腿需要 0.125(自身半宽) + 0.20(净距) = 0.325 ⇒ 【差 0.100mm ⇒ 死锁】★★**
+#     ⇒ ★★**框宽其实够 (0.9mm 能容两腿各贴一边) ⇒ 【问题不是框窄, 是两腿共用一个框】★★**
+#   ★**做法**: ★★mid = 两焊盘横向中点; N 带 / P 带 各 0.45mm 宽, 中间留 0.20mm 间隙** ★★
+#     ⇒ ★★**⇒ 两条腿的走线中心最近相距 0.45 ⇒ 净距 0.20 ⇒ 【保证不会互压】** ★★
+#   ★**纯工具级改动 ⇒ 路由器零改动 ⇒ 风险低 ⇒ 可单臂测** ★★
+PAIR_BAND = 0.45        # ★差分对每条腿的带宽 (0.25 线 + 0.10 余量)
+PAIR_GAP = 0.20         # ★两条带之间的间隙 (★= 板规则净距 ⇒ 保证两腿不互压)
 
 # ★A1 桶 5 条: (N 腿网, N 腿在 BTB 上的焊盘 ref, x, y)
 A1 = [
@@ -96,7 +106,9 @@ def main():
             cand = [c for c in cands if c[1].replace(_pfx, _sfx, 1) == net]
             if cand:
                 cand.sort()
-                return (cand[0][0], cand[0][1], cand[0][2], cand[0][3])
+                # ★★★**★2026-11-10 03:3x 【多返回【带符号的横向偏移 d】(★给 --split-pair 用★)】★★★ ★★★
+                #   ★**d > 0 ⇒ 伙伴在【右】; d < 0 ⇒ 伙伴在【左】⇒ ⇒ 决定两条带各往哪边分★**
+                return (cand[0][0], cand[0][1], cand[0][2], cand[0][3], cand[0][4])
         # ★★**★不做【任意相邻】兜底 (★那会把相邻排针误当伙伴)** ★★
         return None
 
@@ -241,6 +253,11 @@ def main():
     _extra = []
     _from_drc = False
     _no_merge = ("--no-merge" in sys.argv)   # ★★**★重叠框不合并 (★各走各的道)★★** ★★★
+    # ★★★★**★2026-11-10 03:3x 【★--split-pair: 差分对拆成两条互不重叠的带★】★★★★ ★★★
+    #   ★**动机 (★实测)**: ★★v76ru 的 9 对差分"单边零铜" ⇒ ★★P 腿横穿 N 腿焊盘 ⇒ N 卡在临界** ★★
+    #   ★**注意**: ★★`--no-merge` 【拆不了】差分对 (★差分对的框是"成对预留"直接生成的, 不是重叠合并★) ★★
+    _split_pair = ("--split-pair" in sys.argv)
+    _done_pairs = set()      # ★★**★已拆过的差分对 (★防重复★)** ★★
     # ★★**★跨层预留默认关 (★要显式 `--cross-layer` 才开) ★★ ★★★
     #   ★**理由**: ★**v76ru (★最好臂 unc 35★) = 纯 F.Cu ⇒ ★**默认必须能复现它** ⇒ ★★
     #   ★**⇒ 单变量臂的关键 = 【默认行为 == 已验证最好臂的行为】★★ ★★
@@ -354,6 +371,31 @@ def main():
         # ★★★**★成对预留**: 框里同时留 N 腿 + 它的【真差分】P 伙伴 (★否则伙伴腿被预留打死) ★★★
         _pt = partner_of(net, _bx, _by)
         _allow = net if _pt is None else "%s+%s" % (net, _pt[1])
+        # ★★★★**★2026-11-10 03:3x 【★--split-pair: 差分对 ⇒ 两条互不重叠的带】★★★★ ★★★
+        #   ★**条件**: ★★必须【横向 (±y) 出脚】(★因为两条腿的焊盘是【同 Y 不同 X】⇒ 只有横向出脚才能分开★) ★★
+        if _split_pair and _pt is not None and best[3] != 0.0:
+            _d = (_pt[4] if len(_pt) > 4 else 0.0)
+            if _d == 0.0:
+                _d = 0.4
+            _pk = tuple(sorted([net, _pt[1]]))
+            if _pk in _done_pairs:
+                continue          # ★★**★同一对只拆一次 (★否则 N 腿与 P 腿各拆一遍 ⇒ 框重复★)** ★★
+            _done_pairs.add(_pk)
+            _mid = _bx + _d / 2.0
+            _b_self = (_mid - PAIR_GAP / 2.0 - PAIR_BAND, _mid - PAIR_GAP / 2.0)
+            _b_part = (_mid + PAIR_GAP / 2.0, _mid + PAIR_GAP / 2.0 + PAIR_BAND)
+            if _d < 0:
+                _b_self, _b_part = _b_part, _b_self
+            # ★★**★两个带【不参与重叠合并】(★sticky) ⇒ ⇒ 别的网不得进来 ⇒ ⇒ 【差分对真正独占】★★** ★★
+            for _bx0, _bx1, _bnet in ((_b_self[0], _b_self[1], net),
+                                      (_b_part[0], _b_part[1], _pt[1])):
+                _boxrec.append([_bx0, y0, _bx1, y1, set([_bnet]), _blayer, True])
+            lines.append("    ★★**⇒ 【--split-pair】差分对拆成两条互不重叠的带: "
+                         "%s=[%.3f,%.3f] · %s=[%.3f,%.3f] (★带宽 %.2f + 间隙 %.2f★)"
+                         % (net, _b_self[0], _b_self[1], _pt[1], _b_part[0], _b_part[1],
+                            PAIR_BAND, PAIR_GAP))
+            lines.append("")
+            continue
         if _pt is not None:
             lines.append("    ★成对预留: 伙伴 = %s (%s.%s · Δx=%.3fmm) ⇒ 同一框留给 %s"
                          % (_pt[1], _pt[2], _pt[3], _pt[0], _allow))
@@ -366,6 +408,8 @@ def main():
         #     ⇒ ★**⇒ 两个网都有机会用它 (★比互相封死好) ★★
         _hit = None
         for _i, _b in enumerate(_boxrec):
+            if len(_b) > 6 and _b[6]:
+                continue        # ★★**★sticky 框 (★差分对的独占带★) ⇒ 【不参与合并】★★**
             if not (x1 <= _b[0] or x0 >= _b[2] or y1 <= _b[1] or y0 >= _b[3]):
                 _hit = _i
                 break
