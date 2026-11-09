@@ -87,14 +87,17 @@ def main():
                 cands.append((abs(d), pn, pref, pnum, d))
         if not cands:
             return None
-        # ★**① 先找【配对名】的 (★N↔P / _N_SRC↔_P_SRC) ★**
+        # ★★**★2026-11-10 00:1x 【修: ★伙伴【只认真差分配对】(★相邻排针不算伙伴)】★★** ★★★
+        #   ★**实测理由**: ★**0.5mm pitch 的排针上, `JTAG_TDO` 的"伙伴"被认成相邻的 `JTAG_TDI`**
+        #     ⇒ ★**成对预留把 TDO 的道也开放给 TDI ⇒ ⇒ 正是【互相挡死】的成因 ⇒ ⇒ 错** ★★
+        #   ⇒ ★**⇒ 只认 `_N`↔`_P` 名字对; ★认不到就【不成对】(★单网独占预留, ★反而更对)** ★★
         for _pfx, _sfx in (("_N", "_P"), ("_P", "_N")):
             cand = [c for c in cands if c[1].replace(_pfx, _sfx, 1) == net]
             if cand:
                 cand.sort()
                 return (cand[0][0], cand[0][1], cand[0][2], cand[0][3])
-        cands.sort()
-        return (cands[0][0], cands[0][1], cands[0][2], cands[0][3])
+        # ★★**★不做【任意相邻】兜底 (★那会把相邻排针误当伙伴)** ★★
+        return None
 
     # ★铜图元 (走线 / 过孔), 按层
     copper = []
@@ -137,34 +140,136 @@ def main():
                     worst, who = d, "%s[%s]" % (bn, lay)
         return worst, who
 
+
+    # ★★★★**★2026-11-10 00:0x 【泛化: ★任意网都能算走廊 + ★自动判断排针行方向】★★★★** ★★★
+    def fp_pads(ref):
+        """取某封装的所有焊盘坐标 (★用来判断【排针行方向】)"""
+        out = []
+        for p in b.GetPads():
+            try:
+                r = p.GetParent().GetReference()
+            except Exception:
+                try:
+                    r = p.GetParentFootprint().GetReference()
+                except Exception:
+                    r = "?"
+            if r == ref:
+                pos = p.GetPosition()
+                out.append((pos.x / MM, pos.y / MM))
+        return out
+
+    def escape_dirs(ref, x, y):
+        """★判断【这个焊盘的出脚方向】(★垂直于排针行)⇒ 返回 [(dx,dy,tag), ...]"""
+        pts = fp_pads(ref)
+        if len(pts) >= 2:
+            sx = max(q[0] for q in pts) - min(q[0] for q in pts)
+            sy = max(q[1] for q in pts) - min(q[1] for q in pts)
+            # ★**排针行是"跨度大"的那个方向 ⇒ 出脚方向 = 垂直于它** ★★
+            if sx >= sy:
+                return [(0.0, 1.0, "+y"), (0.0, -1.0, "-y")]
+            return [(1.0, 0.0, "+x"), (-1.0, 0.0, "-x")]
+        return [(0.0, 1.0, "+y"), (0.0, -1.0, "-y")]
+
+    def nets_of(name):
+        """★按【网名】找它所有焊盘 (★供 --nets 用)"""
+        out = []
+        for p in b.GetPads():
+            if p.GetNetname() != name:
+                continue
+            pos = p.GetPosition()
+            try:
+                ref = p.GetParent().GetReference()
+            except Exception:
+                try:
+                    ref = p.GetParentFootprint().GetReference()
+                except Exception:
+                    ref = "?"
+            out.append((name, ref, p.GetNumber(), pos.x / MM, pos.y / MM))
+        return out
+
     boxes = []
     lines = ["★给 A1 那 5 条 N 腿预留的出脚走廊 (★全几何算出)★", ""]
-    for (net, ref, x, y) in A1:
-        # ★垂直于排针行的两个方向 (★BTB 排针行是水平 ⇒ 垂直方向 = ±y)
-        cands = []
-        for (dx, dy, tag) in ((0.0, 1.0, "+y"), (0.0, -1.0, "-y")):
+    # ★★**【--nets: ★额外要留道的网 (★按网名自动找焊盘 + 自动判方向)】★★** ★★★
+    _extra = []
+    if "--nets" in sys.argv:
+        _want = [t.strip() for t in sys.argv[sys.argv.index("--nets") + 1].split(",") if t.strip()]
+        for _n in _want:
+            _pin = None
+            if "@" in _n:            # ★★**NET@REF.PAD** ⇒ ★只认这个焊盘 (★出脚点) ★★
+                _n, _pin = _n.split("@", 1)
+            _ps = nets_of(_n)
+            if not _ps:
+                lines.append("★ ⚠️ %s 在板上找不到焊盘 ⇒ 跳过" % _n)
+                continue
+            for (_pn, _pref, _pnum, _px, _py) in _ps:
+                _full = "%s.%s" % (_pref, _pnum)
+                if _pin is not None and _full != _pin:
+                    continue
+                _extra.append((_pn, _full, _px, _py))
+            if _pin is not None and not any("%s.%s" % (r, n) == _pin for (_pn, r, n, _x, _y) in nets_of(_n)):
+                lines.append("★ ⚠️ %s 上没有焊盘 %s ⇒ 跳过" % (_n, _pin))
+        lines.append("★ 额外留道网 (★--nets): %s" % (", ".join(_want)))
+        lines.append("")
+
+    # ★★★★**★2026-11-10 00:2x 【★每网只留【最好的一条】道 (★跨该网所有焊盘取最优)】★★★★** ★★★
+    #   ★**为什么**: ★**一个网常有好几个焊盘 (★如 `JTAG_TDO` = J_DEBUG.4 + R_JTAG_TDO.2)**
+    #     ⇒ ★**真正的出脚点只有一个 (★排针那个) ⇒ ★别的焊盘那边本就走不了 (★净距 −0.25)** ★★
+    #     ⇒ ★**⇒ 留多个框 = 把【别人能用的道】封死 ⇒ ⇒ 反而有害** ★★
+    #   ⇒ ★**⇒ 每个网: ★【跨所有焊盘 × 所有方向】取净距最大的一条 ⇒ ★只留那一个框** ★★
+    #   ★★**★【★不按净距正负取舍★】**: ★**负净距是【在已布好的板上】量的 (★P 的铜已经占着道)**
+    #     ⇒ ★★**那正是我们要解决的拥堵 ⇒ ⇒ 负净距恰恰是【最该留道】的地方** ★★ ★★★
+    _cand_by_net = {}
+    for (net, ref, x, y) in A1 + _extra:
+        for (dx, dy, tag) in escape_dirs(ref, x, y):
             w, who = worst_clearance(net, x, y, dx, dy)
-            cands.append((w, tag, dx, dy, who))
-        cands.sort(reverse=True)
-        best = cands[0]
-        lines.append("★ %s @ %s (%.3f, %.3f)" % (net, ref, x, y))
-        for (w, tag, dx, dy, who) in cands:
-            lines.append("    方向 %-3s 走廊最小净距 %+.3fmm  (最近: %s)" % (tag, w, who))
-        lines.append("    ⇒ 选 %s (净距 %+.3fmm) ⇒ 预留该走廊" % (best[1], best[0]))
+            _key = net
+            _c = (w, tag, dx, dy, who, ref, x, y)
+            if _key not in _cand_by_net or w > _cand_by_net[_key][0]:
+                _cand_by_net[_key] = _c
+
+    # ★★★**★2026-11-10 00:3x 【修: ★每个网只打印一次】★★★ ★★
+    #   ★**为什么**: ★**`--nets` 的网常有好几个焊盘 (★`UART_TX` = J_UART.1 + TP_UART.1 + J_SOM_P2.7)
+    #     ⇒ 旧循环按【焊盘】遍历 ⇒ 同一个网的日志重复 N 次 (★读数时容易误以为有多个候选) ★**
+    #   ★**注意**: ★**框的生成逻辑逐位不变 (★框本来就是按【网的最优候选】算的) ⇒ 只改打印 ★★
+    _net_order = []
+    for (_n, _r, _x, _y) in A1 + _extra:
+        if _n not in _net_order:
+            _net_order.append(_n)
+
+    for net in _net_order:
+        # ★只对这个网【最好的那条】候选打日志 (★其余焊盘/方向只做诊断)
+        _c = _cand_by_net.get(net)
+        if _c is None:
+            continue
+        best = (_c[0], _c[1], _c[2], _c[3], _c[4])
+        _bref, _bx, _by = _c[5], _c[6], _c[7]
+        lines.append("★ %s @ %s (%.3f, %.3f)" % (net, _bref, _bx, _by))
+        lines.append("    ⇒ ★★**留 %s 方向 (净距 %+.3fmm, 最近 %s) —— 该网所有焊盘里最好的一条** ★★"
+                     % (best[1], best[0], best[4]))
         # ★框: 沿方向的走廊 + 宽度
-        x0 = x - BOX_W / 2.0
-        x1 = x + BOX_W / 2.0
-        if best[2] == 0.0 and best[3] > 0:
-            y0, y1 = y, y + ESC_LEN + 0.2
-        else:
-            y0, y1 = y - ESC_LEN - 0.2, y
-        # ★★★**★成对预留**: 框里同时留 N 腿 + 它的 P 伙伴 (★否则伙伴腿被预留打死) ★★★
-        _pt = partner_of(net, x, y)
+        if best[2] == 0.0 and best[3] > 0:       # ★+y
+            x0, x1 = _bx - BOX_W / 2.0, _bx + BOX_W / 2.0
+            y0, y1 = _by, _by + ESC_LEN + 0.2
+        elif best[2] == 0.0:                      # ★-y
+            x0, x1 = _bx - BOX_W / 2.0, _bx + BOX_W / 2.0
+            y0, y1 = _by - ESC_LEN - 0.2, _by
+        elif best[2] > 0:                        # ★+x
+            x0, x1 = _bx, _bx + ESC_LEN + 0.2
+            y0, y1 = _by - BOX_W / 2.0, _by + BOX_W / 2.0
+        else:                                    # ★-x
+            x0, x1 = _bx - ESC_LEN - 0.2, _bx
+            y0, y1 = _by - BOX_W / 2.0, _by + BOX_W / 2.0
+        # ★★★**★成对预留**: 框里同时留 N 腿 + 它的【真差分】P 伙伴 (★否则伙伴腿被预留打死) ★★★
+        _pt = partner_of(net, _bx, _by)
         _allow = net if _pt is None else "%s+%s" % (net, _pt[1])
         if _pt is not None:
             lines.append("    ★成对预留: 伙伴 = %s (%s.%s · Δx=%.3fmm) ⇒ 同一框留给 %s"
                          % (_pt[1], _pt[2], _pt[3], _pt[0], _allow))
-        boxes.append("%s:0,%.3f,%.3f,%.3f,%.3f" % (_allow, x0, y0, x1, y1))
+        else:
+            lines.append("    ★单网独占预留 (★无真差分伙伴)")
+        _box = "%s:0,%.3f,%.3f,%.3f,%.3f" % (_allow, x0, y0, x1, y1)
+        if _box not in boxes:
+            boxes.append(_box)
         lines.append("")
 
     lines.append("★PCB_ROUTE_RESERVE 串 (★可直接贴进臂脚本):")

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# v76rs_arms.sh -- ★★★【单变量臂: 只加【优先网按跨距排序】(★无走廊预留)★★★
+# v76rs_arms.sh -- ★★★【0.15mm + 走廊预留(★成对 + JTAG/UART 专属道)臂】★★★
 #
 # ★★★★**★为什么是这条 (★2026-11-09 19:4x 老板批准 0.15mm 之后)★★★★** ★★★
 #   ★**老板批准**: ★**"按常规的硬件电路图的线宽来做, demo 板指标不用卡得太死"** ⇒ ★**0.15mm (6mil) 已定为设计线宽** ★★★
@@ -11,19 +11,6 @@
 #      ⇒ ★★**⇒ 而 N 侧本来就有 `esc_avoid = P 用过的方向` ⇒ ⇒ 两条机制自动配合 ⇒ ⇒ 不用改 `route_diff_pair`** ★★
 #   ★**④ 预留串不硬编码** ⇒ ★**启动时用 `state/plan_route_reserve.py` 按当前板实测算出** (★防坐标过期)
 #
-# ★★★★★**★本臂 = 【单变量臂】: v76fam env 逐位相同 + ★只加 `PCB_PRIO_SPAN_SORT=1` ★★ ★★★
-#   ★**为什么同时开这一条**: ★**v76rp (★成对预留 + 跨距排序) 是两处改动混在一起 ⇒ 万一赢了不知道是哪一处赢的**
-#   ⇒ ★**本臂把"走廊预留"拿掉 ⇒ 只测跨距排序 ⇒ 两个臂合起来就能归因** ★★
-#   ★**预期**: ★**救回 `JTAG_TDO`/`JTAG_TMS` (★实测被 `JTAG_TDI` 的铜挡 0.213/0.208mm★)**
-#     · ★**打回 `JTAG_TDI` (★基线里它本来就断 ⇒ 不算净损失)** ★★
-#     · ★**且不引入预留的代价 (★v76rr 实测: 预留把 `CSI_D0_D3_P_SRC` 从 46 段打成 0 段★)** ★★
-#   ★**① 成对预留 (★`PCB_ROUTE_RESERVE` 支持 `N+P` 语法)**: ★**v76rr 实测** ⇒ 预留框 0.9mm 宽
-#     ⇒ 必盖住 0.4mm pitch 的伙伴焊盘 ⇒ ★**单网预留把伙伴腿打死** (★`CSI_D0_D3_P_SRC` 46 段⇒0 段)
-#     ⇒ ★**⇒ 一个框同时留给 P+N** ★★
-#   ★**② 优先网按跨距排序 (★`PCB_PRIO_SPAN_SORT=1`)**: ★**v76rr 实测** ⇒ `JTAG_TDO` 被 `JTAG_TDI` 的铜挡 0.213mm
-#     ⇒ ★**同族内部谁先布谁赢** ⇒ 而优先名单是人写的顺序 ⇒ 等于抽签
-#     ⇒ ★**⇒ 优先网内部按跨距降序 (★与第 4 阶段同口径) ⇒ 复现基线里已验证的好顺序** ★★
-#
 # ★**读数与判据**: ★**出臂 → fresh DRC → 套已校准的官方补丁链 → vs `state/.lastgood/baseline_v76_chain.kicad_pcb`**
 set -u
 PROJ=/home/yuewuya/.openclaw/workspace/projects/smart_glasses
@@ -33,11 +20,12 @@ OUT=/tmp/v76rs_R.kicad_pcb
 LOG=/tmp/v76rs_R.log
 DRC=/tmp/v76rs_R.drc.json
 
-echo "=== v76rs 臂: v76fam + ★只加优先网按跨距排序 (★无走廊预留 ⇒ 单变量)★ ==="
+echo "=== v76rs 臂: v76fam + ★0.15mm 板规则 + ★走廊预留 (A1 那 5 条 N 腿) ★ ==="
 
 # ---- ① 算预留串 (★按官方板实测 ⇒ 坐标不硬编码) ----
 echo "── 算预留串 (plan_route_reserve.py) ──"
-RESERVE=$(bash state/pcbnew_py.sh state/plan_route_reserve.py HW/PCB/demo_mainboard.kicad_pcb 2>/dev/null \
+RESERVE=$(bash state/pcbnew_py.sh state/plan_route_reserve.py HW/PCB/demo_mainboard.kicad_pcb \
+           --nets JTAG_TDO,JTAG_TMS,UART_TX@J_UART.1 2>/dev/null \
            | grep -o 'PCB_ROUTE_RESERVE="[^"]*"' | head -1 | sed 's/PCB_ROUTE_RESERVE="//; s/"$//')
 if [ -z "$RESERVE" ]; then
   echo "❌ 预留串没算出来 ⇒ 收工 (★别用空串开臂)"
@@ -57,7 +45,7 @@ echo "  ✓ 预留串 = $RESERVE"
       PCB_PART_POS="R_SEL_D3_P:5.50,3.0;R_SEL_D3_N:7.95,3.0;R_SEL_D2_P:13.10,3.0;R_SEL_D2_N:15.55,3.0;R_SEL_CK_P:20.70,3.0;R_SEL_CK_N:23.15,3.0;R_SEL_D1_P:28.30,3.0;R_SEL_D1_N:30.75,3.0;R_SEL_D0_P:35.90,3.0;R_SEL_D0_N:38.35,3.0" \
       PCB_PAIR_BEFORE_PWR=1 PCB_PRIORITY_NETS="FSIN_OUT;LIGHT_5V;LIGHT_3V3;I2C_A_SCL;I2C_A_SDA;I2C_B_SCL;I2C_B_SDA;LED_G;LED_G_D;KEY_CAM;JTAG_TDI;SPI_SCLK_BOOT;SPI_MOSI_BOOT;SPI_MISO_BOOT;UART_RX;USB_CC2;BAT_DET;ID_DETECT_0;ID_DETECT_1;JTAG_TDO;JTAG_TMS;UART_TX;LED_B_D" PCB_W_MIN=0.15 \
       PCB_VIA_HALO_CENTER=1 \
-      PCB_ROUTE_RESERVE="" PCB_PRIO_SPAN_SORT=1 \
+      PCB_ROUTE_RESERVE="$RESERVE" \
       PCB_OUT="$OUT" \
       timeout 21600 bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py \
       > "$LOG" 2>&1
@@ -97,7 +85,7 @@ print("  DRC违规 = %d · unconnected = %d" % (len(d.get("violations") or []), 
 PY
 
 echo "── 套【已校准的官方补丁链】 ──"
-bash state/replay_patch_chain.sh "$OUT" v76rs
+bash state/replay_patch_chain.sh "$OUT" v76rr
 echo "  链 rc=$?"
 
 echo "── vs 同链基线 (★不是 vs 官方板) ──"

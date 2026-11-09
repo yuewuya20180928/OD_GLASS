@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-09 23:43** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-10 00:13** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -63,7 +63,7 @@
 ==========================================================================
 登记问题 181 条 | 状态: closed=97 deferred=13 verified=33 fixed=9 open=27 fixing=2
   ├─ 内部可自行推进: 152 条 | 外部依赖 (等老板/原厂/JBD): 29 条
-  ├─ 逾期未闭环: 35 条
+  ├─ 逾期未闭环: 36 条
   └─ 未闭环 blocker 级: 9 条
 
 【问题清单】(按 severity + 逾期排)
@@ -255,8 +255,6 @@
        R-GEO-2 四问转原厂/镜头厂 (边缘畸变区是检测价值最高处 / 4-lane MIPI / ISP 吞吐余量 98.1% / 
   🟠 ISS-099  verified  owner=hw-lead    due=2026-11-09  
        ★J_CHG 选型与 FPC 加工图要求 (触点额定 ≥0.35A / 分段铜厚 固定段2oz·弯折段1oz / 内层地 keep-
-  🟠 ISS-118  fixed     owner=hw-lead    due=2026-11-09  
-       ★板宽 15mm → 30mm 的硬件连带重算 (板框/网表/面积/逃线/跨铰链排布) —— 老板 10-29 19:16 放宽
   🟠 ISS-108  closed    owner=hw-lead    due=2026-11-12  
        ★备选 SoC 选型: 老板 10-29 00:49 改令 (跳过酷芯微选型) ⇒ 扩到 TOP5 厂家 × TOP3 = 15 候
   🟠 ISS-154  deferred  owner=hw-lead    due=2026-11-12  
@@ -351,6 +349,9 @@
   🟠 ISS-179  fixed     owner=sw-lead    due=2026-11-06   ⏰逾期
        ★★[手机测端到端] 显示画面烧帧计数器/时间码 + 手机慢动作测端到端延时作业指引
        ❌ ★逾期★ due=2026-11-06 已过, 仍 fixed
+  🟠 ISS-118  fixed     owner=hw-lead    due=2026-11-09   ⏰逾期
+       ★板宽 15mm → 30mm 的硬件连带重算 (板框/网表/面积/逃线/跨铰链排布) —— 老板 10-29 19:16 放宽
+       ❌ ★逾期★ due=2026-11-09 已过, 仍 fixed
   🟡 ISS-020  closed    owner=main       due=2026-10-28  
        PRD 补完: REQ/REQUIREMENTS.md 还是草稿 (子模块需求待填/验收标准待填)
   🟡 ISS-031  closed    owner=main       due=2026-10-28  
@@ -465,7 +466,7 @@
   🟡 ISS-076  deferred  owner=mech-lead  due=2026-11-16  
        新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1
 
-❌ 违规 35 条
+❌ 违规 36 条
 ```
 ## 4. 阶段门 (G0-G4)
 ```
