@@ -240,6 +240,11 @@ def main():
     # ★★**【--from-drc: ★按 DRC 的未连接端点逐个留道 (★最精确)】★★** ★★★
     _extra = []
     _from_drc = False
+    _no_merge = ("--no-merge" in sys.argv)   # ★★**★重叠框不合并 (★各走各的道)★★** ★★★
+    # ★★**★跨层预留默认关 (★要显式 `--cross-layer` 才开) ★★ ★★★
+    #   ★**理由**: ★**v76ru (★最好臂 unc 35★) = 纯 F.Cu ⇒ ★**默认必须能复现它** ⇒ ★★
+    #   ★**⇒ 单变量臂的关键 = 【默认行为 == 已验证最好臂的行为】★★ ★★
+    _cross_layer = ("--cross-layer" in sys.argv)
     if "--from-drc" in sys.argv:
         _dp = sys.argv[sys.argv.index("--from-drc") + 1]
         _ups = unc_pads(_dp)
@@ -283,8 +288,10 @@ def main():
     _cand_by_net = {}
     for (net, ref, x, y) in (A1 + _extra + _extra2):
         for (dx, dy, tag) in escape_dirs(ref, x, y):
-            if not edge_ok(x, y, dx, dy):
-                continue          # ★★**★板边方向直接排除 (★否则 DRC 板边违规)★★**
+            # ★★**★2026-11-10 02:3x 【★回退: ★板边检查是【负收益】⇒ ★撤掉】★★** ★★★
+            #   ★**实测 (★v76rv)**: ★★**板边检查把【某些端点的所有出脚方向】判死 ⇒ ★该网干脆没有预留道**
+            #     ⇒ ★**只能跟别人抢道** ⇒ ★★**unc 35 → 43 (★掉了 8 条)★★ ⇒ ★⇒ 撤掉 ★★
+            #   ⇒ ★**★ DRC 的板边违规【另找办法修】(★别用"减少预留"来换 DRC)★★**
             w, who = worst_clearance(net, x, y, dx, dy)
             # ★★**★2026-11-10 05:5x 【★记下挡路铜在【哪一层】⇒ ★预留框要跨层】★★★ ★★★
             #   ★**为什么**: ★**实测 (★v76ru) ⇒ 预留框只画在 F.Cu(layer 0) ⇒ ★挡路铜在 In2.Cu/In4.Cu 时预留不起作用**
@@ -366,24 +373,20 @@ def main():
         #   ★**实测**: ★**`BOOT_N` + `ID_DETECT_0` + `ID_DETECT_1` 的道重叠 ⇒ 被合并成一个共享框
         #     ⇒ ★**两个网抢同一条道 ⇒ ⇒ 必然互挡 ⇒ ⇒ 实测 DRC 净距 0.1813 (ID_DETECT_0↔BOOT_N)** ★★
         #   ⇒ ★★**⇒ 改成: 【把后来的框沿垂直于出脚方向平移 1.0mm】⇒ ★**两条道相邻而不重叠 ⇒ 不打架** ★★
+        if _hit is not None and _no_merge:
+            # ★★**★--no-merge 模式: ★重叠也各留各的框 (★不合并, ★不共享道)★★** ★★★
+            #   ★**为什么**: ★**实测 (★v76ru 用的就是这版★) ⇒ 57 个框 ⇒ ★那个版本 unc 35 (★最好★)**
+            #   ⇒ ★★**⇒ 而【共享集合合并】是之后才加的 ⇒ ★★**⇒ 必须拆开测: ★★【不合并】vs【合并】★★ ★★
+            _hit = None
         if _hit is not None:
+            # ★★**★2026-11-10 02:3x 【★回退: ★全局错开平移是【负收益 + 实现有 bug】⇒ ★改回"共享允许网集合"】★★** ★★★
+            #   ★**实测 (★v76rv)**: ★★**错开平移把 26 个网的道换掉了 (★如 `UART_RX` 从 (18.7,68.6) 漂到 (66.8,51.0)★)
+            #     ⇒ ★★**且 21 个网干脆没道 ⇒ ⇒ unc 35 → 43** ⇒ ★⇒ 撤掉错开, ★改回共享集合 ★★
+            #   ⇒ ★**★ 共享集合的副作用 (★`BOOT_N`+`ID_DETECT_0` 同道 ⇒ 互挡 ⇒ DRC 0.1813★)★**
+            #     ⇒ ★★**→ 留给下一步: 【精确定位那一对】再单独处理, ★★**别全局动** ★★
             _b = _boxrec[_hit]
-            _bx0, _by0, _bx1, _by1 = _b[0], _b[1], _b[2], _b[3]
-            _vert = (x1 - x0) < (y1 - y0)      # ★道是竖直的 ⇒ 平移 X; ★水平的 ⇒ 平移 Y
-            _shift = 1.0
-            for _try in range(8):
-                if _vert:
-                    _nx0, _nx1 = x0 + _shift, x1 + _shift
-                    _ny0, _ny1 = y0, y1
-                else:
-                    _nx0, _nx1 = x0, x1
-                    _ny0, _ny1 = y0 + _shift, y1 + _shift
-                if not (nx_overlap(_nx0, _ny0, _nx1, _ny1, _bx0, _by0, _bx1, _by1) for _o in _boxrec):
-                    x0, x1, y0, y1 = _nx0, _nx1, _ny0, _ny1
-                    _hit = None
-                    lines.append("    ★★**⇒ 与已有框重叠 ⇒ 【★错开平移 %.2fmm★】(★不共享道 ⇒ 免得两网互挡) ★★" % _shift)
-                    break
-                _shift += 1.0
+            _b[4].update(_allow.split("+"))
+            lines.append("    ★★**⇒ 与已有框重叠 ⇒ 【共享该走廊】(★允许网集合 += %s) ★★" % _allow)
         if _hit is None:
             _boxrec.append([x0, y0, x1, y1, set(_allow.split("+")), _blayer])
         else:
@@ -400,8 +403,12 @@ def main():
         _allow_s = "+".join(sorted(_b[4]))
         boxes.append("%s:0,%.3f,%.3f,%.3f,%.3f" % (_allow_s, _b[0], _b[1], _b[2], _b[3]))
         # ★★**★跨层预留 (★2026-11-10 05:5x)★★★ ★★★
+        #   ★★**★【默认关】★★ ⇒ ★★**v76ru (★目前最好的臂, ★unc 35★) 用的是【纯 F.Cu】⇒ ★★**
+        #   ★★**⇒ 默认必须能复现 v76ru ⇒ 跨层只能显式开 (`--cross-layer`) ⇒ ★★**
+        #   ★★**★否则"单变量臂"会一次性混入两个变量 ⇒ ★★** ⇒ ★**别再犯"两处修复混一臂"的错** ★★
+        #   ★★**★另: ★合并框里各网的【挡路层可能不同】⇒ ★跨层框用【首框的层】是近似 ⇒ ★⇒ 跨层必须配 `--no-merge` 才准 ★★ ★★
         _bl = _b[5] if len(_b) > 5 else None
-        if _bl is not None and _bl != 0:
+        if _cross_layer and _bl is not None and _bl != 0:
             boxes.append("%s:%d,%.3f,%.3f,%.3f,%.3f" % (_allow_s, _bl, _b[0], _b[1], _b[2], _b[3]))
     lines.append("★PCB_ROUTE_RESERVE 串 (★可直接贴进臂脚本):")
     lines.append('  PCB_ROUTE_RESERVE="%s"' % ";".join(boxes))
