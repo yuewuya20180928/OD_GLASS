@@ -19,6 +19,7 @@
 """
 import math
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -109,6 +110,28 @@ def main():
             s, e = t.GetStart(), t.GetEnd()
             copper.append((t.GetNetname(), b.GetLayerName(t.GetLayer()), "TRK",
                            s.x / MM, s.y / MM, e.x / MM, e.y / MM, t.GetWidth() / MM))
+
+    # ★★**★板边净距 (★板规则 edge clearance = 0.5mm)★★** ★★★
+        LAYER_IDX = {"F.Cu": 0, "In1.Cu": 1, "In2.Cu": 2, "In3.Cu": 3,
+                 "In4.Cu": 4, "In5.Cu": 5, "In6.Cu": 6, "B.Cu": 7}
+    BOARD_W = 160.0
+    BOARD_H = 100.0
+    EDGE_CLR = 0.50
+
+
+    def nx_overlap(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1):
+        """两矩形是否重叠"""
+        return not (ax1 <= bx0 or ax0 >= bx1 or ay1 <= by0 or ay0 >= by1)
+
+
+    def edge_ok(x, y, dx, dy):
+        """★预留道若把线带到离板边 < 0.5mm ⇒ 不可用 (★实测: `DSI_D0_D1_N` 离板边 0.3424 ⇒ DRC 违规)** ★★
+        ★**⇒ 判据: ★道的外端点 (x+dx*ESC_LEN, y+dy*ESC_LEN) 与板框四边都要 ≥ EDGE_CLR** ★★
+        """
+        ex = x + dx * ESC_LEN
+        ey = y + dy * ESC_LEN
+        return (min(ex, x) >= EDGE_CLR and max(ex, x) <= BOARD_W - EDGE_CLR and
+                min(ey, y) >= EDGE_CLR and max(ey, y) <= BOARD_H - EDGE_CLR)
 
     def worst_clearance(net, x, y, dx, dy):
         """沿 (dx,dy) 从 (x,y) 走 ESC_LEN, 与【别的网】铜的最小净距 (★同层算铜边距; 异层按 0.2 净距算)"""
@@ -260,11 +283,20 @@ def main():
     _cand_by_net = {}
     for (net, ref, x, y) in (A1 + _extra + _extra2):
         for (dx, dy, tag) in escape_dirs(ref, x, y):
+            if not edge_ok(x, y, dx, dy):
+                continue          # ★★**★板边方向直接排除 (★否则 DRC 板边违规)★★**
             w, who = worst_clearance(net, x, y, dx, dy)
+            # ★★**★2026-11-10 05:5x 【★记下挡路铜在【哪一层】⇒ ★预留框要跨层】★★★ ★★★
+            #   ★**为什么**: ★**实测 (★v76ru) ⇒ 预留框只画在 F.Cu(layer 0) ⇒ ★挡路铜在 In2.Cu/In4.Cu 时预留不起作用**
+            #     ⇒ ★**⇒ 框要同时画在【冲突发生的那些层】** ★★
+            _blk_layer = None
+            _mm = re.search(r"\[([A-Za-z0-9]+\.Cu)\]", who or "")
+            if _mm:
+                _blk_layer = LAYER_IDX.get(_mm.group(1))
             # ★★**★--from-drc 模式下【按焊盘分候选】(★每个未连接焊盘各要一条道)★★★ ★★
             #   ★**否则同一网的多个焊盘会被合并成一条 ⇒ ★★**恰好漏掉那些真正卡住的焊盘** ★★
             _key = (net, ref) if _from_drc else net
-            _c = (w, tag, dx, dy, who, ref, x, y)
+            _c = (w, tag, dx, dy, who, ref, x, y, _blk_layer)
             if _key not in _cand_by_net or w > _cand_by_net[_key][0]:
                 _cand_by_net[_key] = _c
 
@@ -295,6 +327,7 @@ def main():
             continue
         best = (_c[0], _c[1], _c[2], _c[3], _c[4])
         _bref, _bx, _by = _c[5], _c[6], _c[7]
+        _blayer = _c[8] if len(_c) > 8 else None
         lines.append("★ %s @ %s (%.3f, %.3f)" % (net, _bref, _bx, _by))
         lines.append("    ⇒ ★★**留 %s 方向 (净距 %+.3fmm, 最近 %s) —— 该网所有焊盘里最好的一条** ★★"
                      % (best[1], best[0], best[4]))
@@ -329,8 +362,30 @@ def main():
             if not (x1 <= _b[0] or x0 >= _b[2] or y1 <= _b[1] or y0 >= _b[3]):
                 _hit = _i
                 break
+        # ★★★**★2026-11-10 04:5x 【★重叠框: 不共享集合, 改为【错开平移】★★★】★★★ ★★★
+        #   ★**实测**: ★**`BOOT_N` + `ID_DETECT_0` + `ID_DETECT_1` 的道重叠 ⇒ 被合并成一个共享框
+        #     ⇒ ★**两个网抢同一条道 ⇒ ⇒ 必然互挡 ⇒ ⇒ 实测 DRC 净距 0.1813 (ID_DETECT_0↔BOOT_N)** ★★
+        #   ⇒ ★★**⇒ 改成: 【把后来的框沿垂直于出脚方向平移 1.0mm】⇒ ★**两条道相邻而不重叠 ⇒ 不打架** ★★
+        if _hit is not None:
+            _b = _boxrec[_hit]
+            _bx0, _by0, _bx1, _by1 = _b[0], _b[1], _b[2], _b[3]
+            _vert = (x1 - x0) < (y1 - y0)      # ★道是竖直的 ⇒ 平移 X; ★水平的 ⇒ 平移 Y
+            _shift = 1.0
+            for _try in range(8):
+                if _vert:
+                    _nx0, _nx1 = x0 + _shift, x1 + _shift
+                    _ny0, _ny1 = y0, y1
+                else:
+                    _nx0, _nx1 = x0, x1
+                    _ny0, _ny1 = y0 + _shift, y1 + _shift
+                if not (nx_overlap(_nx0, _ny0, _nx1, _ny1, _bx0, _by0, _bx1, _by1) for _o in _boxrec):
+                    x0, x1, y0, y1 = _nx0, _nx1, _ny0, _ny1
+                    _hit = None
+                    lines.append("    ★★**⇒ 与已有框重叠 ⇒ 【★错开平移 %.2fmm★】(★不共享道 ⇒ 免得两网互挡) ★★" % _shift)
+                    break
+                _shift += 1.0
         if _hit is None:
-            _boxrec.append([x0, y0, x1, y1, set(_allow.split("+"))])
+            _boxrec.append([x0, y0, x1, y1, set(_allow.split("+")), _blayer])
         else:
             # ★★**★只合并【允许网集合】, ★★**不动几何** ★★
             #   ★**理由**: ★**若把矩形也合并放大 ⇒ ★会【传递性吞并】(★实测: 30 个框塌成 1 个)**
@@ -344,6 +399,10 @@ def main():
     for _b in _boxrec:
         _allow_s = "+".join(sorted(_b[4]))
         boxes.append("%s:0,%.3f,%.3f,%.3f,%.3f" % (_allow_s, _b[0], _b[1], _b[2], _b[3]))
+        # ★★**★跨层预留 (★2026-11-10 05:5x)★★★ ★★★
+        _bl = _b[5] if len(_b) > 5 else None
+        if _bl is not None and _bl != 0:
+            boxes.append("%s:%d,%.3f,%.3f,%.3f,%.3f" % (_allow_s, _bl, _b[0], _b[1], _b[2], _b[3]))
     lines.append("★PCB_ROUTE_RESERVE 串 (★可直接贴进臂脚本):")
     lines.append('  PCB_ROUTE_RESERVE="%s"' % ";".join(boxes))
     text = "\n".join(lines)
