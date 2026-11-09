@@ -173,12 +173,15 @@ if [ "$SKIP_STRAIGHT" = "1" ]; then
     python3 "$PROJ/state/cmp_unc_sets.py" /tmp/_drc45.json "$FRESHDRC" --strict >/dev/null 2>&1 || exit 13
   fi
   say "★自校准闸(档①)通过 ⇒ 这块板与官方终板同工艺 ⇒ ★可以拿去跟官方比"
+else
+  # ★**档②: 路由产物臂 ⇒ 只报数, 不许宣称"可比"**
+  say "⚠️ 自校准闸(档②): 输入是【路由产物】($SEGI 段) ⇒ ★**链已跑完但产物不能与官方板直接比**"
+  say "   ★原因: ★官方链的 stage-1 产物是 17022 段, 当前路由器只出 $SEGI 段 ⇒ ★路由器代码已漂移 ⇒ ★两臂不同工艺"
+  say "   ⇒ ★段数 $SEGF (★官方终板 18092) · ★unc/DRC 见上 ⇒ ★**只能用【四把尺子】对已晋级臂比, 不能拿这块直接对比官方**"
+fi
 
-# ★★★★**★2026-11-09 14:0x: 写【链凭据】(★让"臂 vs 同链基线"的比较能验"两边同工艺")★★★★** ★★★
-#   ★**为什么**: ★**"官方板 vs 候选臂"这个比较本身是错的** (★官方 stage-1 = 17022 段, 当前路由器 = 13407 段 ⇒ 不同工艺)
-#     ⇒ ★★**基线也必须用当前路由器跑 + 同一条链** ⇒ ★★**要能证明"候选臂确实跑过同一条链" ⇒ ⇒ 就得有凭据** ★★
-#   ★**凭据内容**: ★**输入板 + 步数 + 每步参数 + 输出 md5/段数** ⇒ ★**任何人都能复核"这块板是怎么来的"** ★★
 CHAINJSON="$WORK/final_chain.kicad_pcb.chain.json"
+# ★★2026-11-09 16:3x 修: ★**凭据必须【无条件】写 (★之前挂在档①闸之后 ⇒ 档②臂(★输入<17000段)拿不到凭据 ⇒ 比较脚本拒比)** ★★
 python3 - "$CHAINJSON" "$IN" "$WORK/final_chain.kicad_pcb" "$TAG" <<'PY'
 import hashlib, json, os, sys
 out, inp, dst, tag = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
@@ -208,9 +211,3 @@ info = {
 json.dump(info, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 print("  ✅ 链凭据: %s" % out)
 PY
-else
-  # ★**档②: 路由产物臂 ⇒ 只报数, 不许宣称"可比"**
-  say "⚠️ 自校准闸(档②): 输入是【路由产物】($SEGI 段) ⇒ ★**链已跑完但产物不能与官方板直接比**"
-  say "   ★原因: ★官方链的 stage-1 产物是 17022 段, 当前路由器只出 $SEGI 段 ⇒ ★路由器代码已漂移 ⇒ ★两臂不同工艺"
-  say "   ⇒ ★段数 $SEGF (★官方终板 18092) · ★unc/DRC 见上 ⇒ ★**只能用【四把尺子】对已晋级臂比, 不能拿这块直接对比官方**"
-fi
