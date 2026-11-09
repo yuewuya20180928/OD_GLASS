@@ -3898,6 +3898,34 @@ def route_board(board, verbose=True):
 
     _run_pairs(USB_PAIRS)
 
+    # ---------- 1b) ★★★【优先网】(★env 门控: PCB_PRIORITY_NETS, ★默认空 ⇒ 行为逐位不变)★★★ ★★★
+    #   ★★**为什么要有 (★2026-11-09 21:4x 实测机制)**: ★★★
+    #     ★**实测**: ★**挪 12 个焊盘 (0.3mm) ⇒ 走线段 13407→15867 (+2460) ⇒ ★**但 45 条未连接里的
+    #       【非差分】那些网, 它们的铜长【各 +9~21mm】(★供电网合计 +266.2mm)⇒ ★★**多出来的空间被供电网拿走了**
+    #       ⇒ ★★**⇒ [让出空间] ≠ [空间被用在需要的地方]** ★★★ ★★★
+    #     ★★**⇒ 路由器本来就排着队: ①差分对 ②电源 ③MIPI ④其余网络(★最后) ⇒ ★★**最后那批只能捡剩的通道**
+    #       (★★**源码原注释: [82% 的失败脚在这批]** ⇒ ★★**路由器早就知道这个问题**) ★★★
+    #     ★★**⇒ 本开关: ★把指定的网提到【电源之前】布 ⇒ ★★**它们先挑走廊 ⇒ 效果可预测**
+    #       (★对比: [挪焊盘]是【混沌景观上抽奖】⇒ ★实测两轮都是净收益为负) ★★★
+    #   ★**用法**: `PCB_PRIORITY_NETS="FSIN_OUT;LIGHT_5V;I2C_A_SCL"` (★分号分隔, ★默认空)
+    #   ★**注意**: ★**只加"确实布不通的网"** ⇒ ★★**别把好网提前 ⇒ 那是抢别人的通道** ★★
+    _prio = [x.strip() for x in (os.environ.get("PCB_PRIORITY_NETS", "") or "").split(";") if x.strip()]
+    if _prio:
+        _n_prio = 0
+        for _net in _prio:
+            if _net not in r.net_pads or _net in r.routed:
+                continue
+            res = r.route_net(_net, width=W_SIG)
+            stats["nets"][_net] = res
+            if not res.get("ok"):
+                stats["failed"].append(_net)
+            _n_prio += 1
+            if verbose:
+                print("  [PRIO] %-16s ok=%s 失败脚=%d  L=%.1fmm"
+                      % (_net, res.get("ok"), res.get("fail"), res.get("len", 0.0)))
+        if verbose:
+            print("  [PRIO] ★优先网 %d 个已布 (★提到电源之前 ⇒ ★★**它们先挑走廊**) ★★" % _n_prio)
+
     # ---------- 2) 电源 (宽铜 + 过孔阵列) —— ★**必须在 MIPI 之前**
     for (net, w, vc) in POWER_NETS:
         if net not in r.net_pads:
