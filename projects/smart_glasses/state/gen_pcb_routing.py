@@ -210,6 +210,28 @@ W_PWR = 0.50           # mm 电源线宽
 #   cls0 = 0.20mm (BTB 出脚) · cls1 = 0.25mm (常规信号) · cls2 = 0.50mm (电源宽铜)
 # ★★2026-11-06 10:1x **cls0 跟着 W_MIN 走** (★否则 W_MIN=0.15 时净距级别还按 0.20 算 ⇒ 净距保护虚高)
 W_CLS = (W_MIN, 0.25, 0.50)
+# ★★★★★★2026-11-10 04:2x 【★"出脚后必须先直行" (★env 门控 `PCB_ESC_STRAIGHT`)★】★★★★★★
+#   ★★★**为什么要有 (★纯几何实测, ★不是猜★)★★★:
+#     · SoM BTB = 0.4mm pitch ⇒ 相邻两根 0.15mm 出脚直道中心距 0.4mm ⇒ 净距 0.4-0.15 = 0.25mm ✓ 合法
+#     · ★★**但**: ★**先布的那根出脚后【立刻 45° 转弯】** ⇒ ★它的斜线与【邻居出脚道末端】
+#       的垂距 = 0.4 × sin(39.6°) = **0.255mm** ⇒ 而 [邻居半宽 0.075 + 自己半宽 0.125
+#       + 净距 0.2 + 余量 0.025] = **0.425mm** ⇒ ★★**差 0.17mm ⇒ 邻居的出脚道被判死** ★★
+#       ⇒ ★★**实测症状 (2026-11-10 04:0x 在 v76ru 终板上量到)**:
+#         `CSI_D0_D0_P_SRC` 出脚直道 (21.600,50.960)->(21.600,52.160) 之后
+#         ★**立刻**接 (21.600,52.160)->(21.950,52.450) ⇒ ⇒ **把 `CSI_D0_D0_N_SRC`
+#         (x=22.000) 的唯一出脚方向掐死** ⇒ N 腿 **L=0.00 (连出脚都没成功)** ★★
+#     · ★★**⇒ 唯一的几何解: 出脚后先【沿出脚方向直行】再转弯** ★★
+#       ⇒ 直行 h 之后垂距 = 0.255 + 0.77×h ⇒ ★h=0.5mm (0.25 网格 2 格) ⇒ 0.64mm ⇒ ★解封★
+#       ⇒ ★**而且这同时解释 0.8mm pitch 的 `ID_DETECT_0`↔`BOOT_N` 0.1813mm DRC**
+#         (★两根直道并行·但各自【第一步就朝相反 y 方向转弯】⇒ 交错处只差 0.43mm★)
+#   ★**用法**: ★`PCB_ESC_STRAIGHT=2` (★强制直行格数·默认 0 = 关 ⇒ ★逐位不变★)
+#   ★**兜底**: ★约束下 A* 无路 ⇒ ★**自动回退到无约束重试** ⇒ ★保证不比现状更差★
+ESC_STRAIGHT_STEPS = int(os.environ.get("PCB_ESC_STRAIGHT", "0"))
+# ★★★★★★2026-11-10 04:4x 【★【★共线合并瞬移 bug 的修法 (★env 门控 `PCB_MERGE_FIX`)★】★】★★★★★★
+#   ★**为什么要有**: ★**见下面 `_emit_path` 里合并判据的注释 (★实测 v76s2 有 10 段出到 y=-1.21mm★)**
+#   ★**开关**: ★`PCB_MERGE_FIX=1` ⇒ ★①修对 `by` 的坐标错位 · ★②加三角不等式兜底 (★挡任何瞬移★)
+#   ★**默认关** ⇒ ★**既有臂逐位可复现 (★本项目铁律★)**
+MERGE_FIX = os.environ.get("PCB_MERGE_FIX", "0") == "1"
 # ★★★★2026-11-06 10:5x **过孔净距检查是否查全部宽度级别 (env 门控, 默认关)**
 #   ★**为什么要有**: ★**`_via_ok` 查 `halo[2]` ⇒ 看不见 `halo[1]` 里的 0.25mm 走线**
 #   ⇒ ★**"过孔 vs 常规走线"的净距检查失效** ⇒ ★**实测 DRC 报 7 条 clearance 违规**
@@ -492,6 +514,52 @@ class RoutingError(Exception):
 
 
 # ------------------------------------------------------------------ 路由器
+def _merge_collinear(seg, merge_fix=False):
+    """★★**共线段合并 (★2026-11-10 04:4x 从 `_emit_path` 抽成函数 ⇒ 可单测★)** ★★
+
+    ★**段元组**: ★`(net, x1, y1, x2, y2, li, w)` ⇒ ★p[1]=x1 p[2]=y1 p[3]=x2 p[4]=y2 ★
+
+    ★★★★**★【★那个只修了一半的老 bug (★2026-11-10 04:3x 实测, ★不是猜★)★】★★★★** ★★
+      ★**2026-11-04 23:55** 已经修过【`p` 那一半】: ★`ax, ay = p[3]-p[1], p[4]-p[2]` (★对的★)
+      ★★**但 `s` 那一半一直还是 `bx, by = s[3]-s[1], s[4]-s[1]`** ⇒ ★**s 的 y 分量减的是 s 的【x 起点】**
+        ⇒ ★**x/y 混用** ⇒ ★**判据等于乱判** ⇒ ★★**本不该合并的段被合并** ★★
+      ★★**后果 (★实测 v76s2 裸板)★★:
+        · ★**合并段 = (p 的起点 → s 的终点)** ⇒ 本该首尾相接的两段被换成一段【瞬移】线
+        · ⇒ ★**生成穿板/出板的假铜** (★实测 10 段跑到 y = -1.214mm ⇒ 板边线是 y=0★)
+        · ⇒ ★**12 条 `copper_edge_clearance` 违规** (★actual 0.0000mm ⇒ 铜直接压在板边线上★)
+        · ⇒ ★**还留下【重复段】** (★实测同一段 `(40.7000,3.2000)->(40.4500,3.2000)` 出现两次★)
+        · ⇒ ★**也是所有臂共享的那 2 条板边违规的来源** (★v76ru / v76rz / v76s0 / v76s1 全有★)
+      ★**修法 (★`merge_fix=True` ⇒ env `PCB_MERGE_FIX=1`)★★:
+        ★**① 修对 `by`**: ★`by = s[4] - s[2]` (★s 的 y 起点★)
+        ★**② 加数学不变量兜底 (★三角不等式★)**: ★**合并后长度 (p.start→s.end) 必须 ≤ 两段长度之和**
+          ⇒ ★**任何"瞬移"合并都会被这一条挡住** ⇒ ★**不依赖判据写对与否** ★★
+          ⇒ ★**这是【不变量】而不是【调参】⇒ ★★**天然覆盖所有同类 bug** ★★
+      ★**默认 `merge_fix=False`** ⇒ ★**逐位等价于旧行为 (★本项目铁律★)**
+    """
+    merged = []
+    for s in seg:
+        if merged:
+            p = merged[-1]
+            ax, ay = p[3] - p[1], p[4] - p[2]
+            bx, by = s[3] - s[1], s[4] - s[1]
+            if merge_fix:
+                by = s[4] - s[2]
+            _lp = math.hypot(ax, ay)
+            _ls2 = math.hypot(bx, by)
+            if (p[5] == s[5]) and (abs(ax * by - ay * bx) < 1e-9) \
+                    and (ax * bx + ay * by > 0):
+                if merge_fix:
+                    # ★★**三角不等式兜底 (★挡任何瞬移★)**
+                    _lmer = math.hypot(s[3] - p[1], s[4] - p[2])
+                    if _lmer > _lp + _ls2 + 1e-9:
+                        merged.append(s)
+                        continue
+                merged[-1] = (p[0], p[1], p[2], s[3], s[4], p[5], p[6])
+                continue
+        merged.append(s)
+    return merged
+
+
 class GridRouter:
     """★网格路由器 —— 一次可以布一批网 (批量跑, 不是一条一条手写)"""
 
@@ -558,6 +626,10 @@ class GridRouter:
         #   ⇒ ★**N 侧改走反方向** ⇒ 两根出脚直道背向 ⇒ ★既合法又不会被伙伴禁入格封死
         self.esc_used_dirs = {}     # ★网 → 用过的出脚方向集合 (dx,dy)
         self.esc_avoid = set()       # ★本轮不许用的方向 (★N 侧 = P 用过的)
+        # ★★★★★★2026-11-10 04:2x 【★起步方向表 (★供"出脚后先直行"约束用)★】
+        #   ★**键 = (网, (层,格号))** ⇒ ★**按网分桶** ⇒ ★不会两个网的出脚端点撞格时互相覆盖★
+        #   ★**值 = (di,dj)** ⇒ ★出脚直道的方向 (★轴向 ⇒ 必是 8 邻域里的一个★)
+        self._esc_start_dir = {}
         self.pair_min = 0.50         # ★mm 差分对中心距下限 (0.25mm 线 ⇒ 净距 0.25 ≥ 0.2)
         self.pair_fallback = 0       # ★耦合失败后退化为"无耦合"的次数 (★要写进报告)
         self._build_pads()
@@ -969,6 +1041,35 @@ class GridRouter:
     def _astar(self, start, goals, net, dist_map=None, alpha=0.0,
                 max_via=True, cls=1, limit=0, dist_def=0, max_len_cells=0,
                 limit_mult=1.0):
+        """★★wrapper (★2026-11-10 04:2x 新增)★★ —— ★**"出脚后先直行"约束 + 自动回退**
+
+        ★★★**为什么要有 (★纯几何, ★见常量区 ESC_STRAIGHT_STEPS 的推导)★★★:
+          ⇒ 先布的网出脚后立刻 45° 转弯 ⇒ **把邻居的出脚道掐死** (垂距 0.255 < 需 0.425)
+          ⇒ ★★**⇒ 邻居整条腿 L=0.00** ⇒ ★★**⇒ 必须让起步先直行** ★★
+        ★**约束怎么施加**: ★只约束【起点的前 N 步】⇒ ★**后面的路径完全自由** ⇒ 影响面最小
+        ★**兜底**: ★★**约束下 A* 无路 ⇒ 自动用无约束重试一遍** ⇒ ★★**保证不比现状更差** ★★
+        """
+        _fd = None
+        if ESC_STRAIGHT_STEPS > 0 and len(start) == 1:
+            _fd = self._esc_start_dir.get((net, start[0]))
+        if _fd is not None:
+            _p = self._astar_core(start, goals, net, dist_map=dist_map,
+                                  alpha=alpha, max_via=max_via, cls=cls,
+                                  limit=limit, dist_def=dist_def,
+                                  max_len_cells=max_len_cells, limit_mult=limit_mult,
+                                  first_dir=_fd, first_steps=ESC_STRAIGHT_STEPS)
+            if _p is not None:
+                return _p
+            # ★约束下无路 ⇒ 回退 (★无约束 ⇒ 与旧行为逐位相同★)
+        return self._astar_core(start, goals, net, dist_map=dist_map,
+                                alpha=alpha, max_via=max_via, cls=cls,
+                                limit=limit, dist_def=dist_def,
+                                max_len_cells=max_len_cells, limit_mult=limit_mult,
+                                first_dir=None, first_steps=0)
+
+    def _astar_core(self, start, goals, net, dist_map=None, alpha=0.0,
+                    max_via=True, cls=1, limit=0, dist_def=0, max_len_cells=0,
+                    limit_mult=1.0, first_dir=None, first_steps=0):
         """start: [(li,idx)] ; goals: set((li,idx))
            ★★**预算按"扩展次数"算, 不是按状态数算** —— 状态数是 (格 × 层),
              开了 3 个信号层后同一个物理区域的状态数 ×3 ⇒ 用状态数当预算
@@ -1062,6 +1163,10 @@ class GridRouter:
         _plen = {}
         for _s in start:
             _plen[_s] = 0
+        # ★★★★★★2026-11-10 04:2x 【★"起步先直行"约束的状态跟踪 (★步数)★】
+        _nsteps = {}
+        for _s in start:
+            _nsteps[_s] = 0
         while heap:
             f, gg, _, cur = heapq.heappop(heap)
             if gg > gsc.get(cur, INF) + 1e-12:
@@ -1075,9 +1180,15 @@ class GridRouter:
                 break
             li, idx = cur
             i, j = idx % self.W, idx // self.W
+            # ★★★★★★2026-11-10 04:2x 【★起步方向约束 (★只有前 first_steps 步受限★)★】
+            _ns = _nsteps.get(cur, 0)
+            _restrict = (first_dir is not None and _ns < first_steps)
             for dj in (-1, 0, 1):
                 for di in (-1, 0, 1):
                     if di == 0 and dj == 0:
+                        continue
+                    # ★**约束生效时: 只能沿出脚方向走 (★其余方向一律禁★)**
+                    if _restrict and (di, dj) != first_dir:
                         continue
                     i2, j2 = i + di, j + dj
                     if not (0 <= i2 < self.W and 0 <= j2 < self.H):
@@ -1098,6 +1209,7 @@ class GridRouter:
                     if c < gsc.get((li, k), INF):
                         gsc[(li, k)] = c
                         _plen[(li, k)] = _plen.get(cur, 0) + step
+                        _nsteps[(li, k)] = _ns + 1
                         came[(li, k)] = cur
                         heapq.heappush(heap, (c + h_of(li, k), c, cnt, (li, k)))
                         cnt += 1
@@ -1117,6 +1229,7 @@ class GridRouter:
                     if c < gsc.get(st, INF):
                         gsc[st] = c
                         _plen[st] = _plen.get(cur, 0) + 2.0
+                        _nsteps[st] = _ns + 1
                         came[st] = cur
                         heapq.heappush(heap, (c + h_of(nli, idx), c, cnt, st))
                         cnt += 1
@@ -1157,7 +1270,16 @@ class GridRouter:
             st = stubs[key]
             if st:
                 i, j = self._ci(st[0]), self._cj(st[1])
-                return [(0, self._idx(i, j))], (pad[2], pad[3], st[0], st[1])
+                _cell = (0, self._idx(i, j))
+                # ★★★★★★2026-11-10 04:2x 【★记录出脚方向 (★供"起步先直行"约束用)★】
+                #   ★**方向 = 出脚直道从焊盘指向直道末端的方向 (★轴向 ⇒ di/dj 必有一个为 0★)**
+                _dx = st[0] - pad[2]
+                _dy = st[1] - pad[3]
+                _di = (1 if _dx > 1e-9 else (-1 if _dx < -1e-9 else 0))
+                _dj = (1 if _dy > 1e-9 else (-1 if _dy < -1e-9 else 0))
+                if _di or _dj:
+                    self._esc_start_dir[(net, _cell)] = (_di, _dj)
+                return [_cell], (pad[2], pad[3], st[0], st[1])
             return list(self._pad_cells(net, pad)), None
         if trunk:
             for (pa, pb) in trunk:
@@ -3116,22 +3238,7 @@ class GridRouter:
                 seg.append((net, xa, ya, xb, yb, lb, width))
             else:
                 seg.append((net, xa, ya, xb, yb, la, width))
-        merged = []
-        for s in seg:
-            if merged:
-                p = merged[-1]
-                # ★★2026-11-04 23:55 **修共线判据的坐标错位**:
-                #   段元组是 (net, x1, y1, x2, y2, li, w) ⇒ p[1]=x1 p[2]=y1 p[3]=x2 p[4]=y2
-                #   原来写的是 (p[2]-p[1], p[3]-p[1]) = (y1-x1, x2-x1) ⇒ **x 和 y 混了**
-                #   ⇒ 共线判据几乎永远不成立 ⇒ ★**每 0.25mm 一段的小碎线全留着**
-                #   (实测 22179 段, 板文件 4.9MB) ⇒ 合并后段数大降, 悬空端的机会也大降
-                ax, ay = p[3] - p[1], p[4] - p[2]
-                bx, by = s[3] - s[1], s[4] - s[1]
-                if (p[5] == s[5]) and (abs(ax * by - ay * bx) < 1e-9) \
-                        and (ax * bx + ay * by > 0):
-                    merged[-1] = (p[0], p[1], p[2], s[3], s[4], p[5], p[6])
-                    continue
-            merged.append(s)
+        merged = _merge_collinear(seg, MERGE_FIX)
         for s in merged:
             # ★★2026-11-06 05:2x 零长段过滤 (★stub 吸附后可能出现重合点)
             if abs(s[3] - s[1]) < 1e-6 and abs(s[4] - s[2]) < 1e-6:

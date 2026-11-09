@@ -77,7 +77,11 @@ def main():
     for k, v in r2.cu_reserved[0].items():
         idx = k
         break
-    ok(idx is not None and r2.cu_reserved[0].get(idx) == "MYNET", "框内格归属 = MYNET")
+    # ★★2026-11-09 21:5x 【★多网预留】: ★`cu_reserved[li][idx]` 现在存的是【允许网集合】
+    #   ⇒ ★★**旧断言 (== "MYNET") 已过期** ⇒ ★★**⇒ 这里改成集合语义 (★否则回归测试测不到真东西★)**
+    _v = r2.cu_reserved[0].get(idx)
+    ok(idx is not None and isinstance(_v, (set, frozenset)) and "MYNET" in _v,
+       "框内格归属含 MYNET (★允许网集合语义★)")
     # ★_free 的核心语义: 别的网被挡, 专属网不被挡
     #   (★_free 里还有 halo/edge 等其它判断 ⇒ 这里只验【预留那一条】的语义)
     r2.cu = [dict() for _ in range(RT.NLAYERS)]
@@ -87,9 +91,9 @@ def main():
     r2.pair_block = [set() for _ in range(RT.NLAYERS)]
     # ★只验预留分支 ⇒ 用最小可跑的 _free: ★需要更多属性 ⇒ 改用等价的直接判定
     res_other = (r2.cu_reserved[0].get(idx) is not None
-                  and r2.cu_reserved[0].get(idx) != "OTHERNET")
+                  and "OTHERNET" not in r2.cu_reserved[0].get(idx))
     res_owner = (r2.cu_reserved[0].get(idx) is not None
-                 and r2.cu_reserved[0].get(idx) == "MYNET")
+                 and "MYNET" in r2.cu_reserved[0].get(idx))
     ok(res_other, "★别的网(OTHERNET)进不了预留格 ⇒ 会被 _free() 挡")
     ok(res_owner, "★专属网(MYNET)自己不被挡 ⇒ 它的路不会自己被堵死")
 
