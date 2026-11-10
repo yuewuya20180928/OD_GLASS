@@ -148,8 +148,16 @@ if [ -f "$FINAL0" ] && [ -f "$FINAL1" ]; then
   bash state/compare_arm_baseline.sh "$FINAL1" --baseline "$FINAL0"
   echo "  ★闸 rc=$?"
   echo "── 归档基线 (★给后面的臂用★) ──"
+  # ★★★★★★2026-11-10 15:0x 【★归档必须连【.kicad_pro】一起拷★】★★★★★★
+  #   ★**实测踩到的坑 (★不是猜★)**: ★**只拷 .kicad_pcb ⇒ 归档基线的旁边没有 .kicad_pro**
+  #     ⇒ ★**KiCad 读不到 min_track_width=0.15 ⇒ 回落到默认 0.20 ⇒ ⇒ fresh DRC 多出 132 条假 `track_width`**
+  #     ⇒ ★★**⇒ 归档基线的 DRC 读数变成 161 (★真值是 29★) ⇒ ⇒ 闸门拿一个【假基线】在比 ★★**
+  #     ⇒ ★★**⇒ 这就是"读数纪律"要防的东西: ★【同一块板 md5 相同, DRC 读数却差 132 条】★★**
+  #   ★**修法**: ★**连 .kicad_pro / .kicad_prl 一起拷** ⇒ ⇒ 归档基线与原始终板【读数逐位一致】★
   cp -f "$FINAL0" "$PROJ/state/.lastgood/baseline_v76mg0_chain.kicad_pcb" 2>/dev/null && \
-    echo "  ✓ 已归档 state/.lastgood/baseline_v76mg0_chain.kicad_pcb"
+    cp -f "${FINAL0%.kicad_pcb}.kicad_pro" "$PROJ/state/.lastgood/baseline_v76mg0_chain.kicad_pro" 2>/dev/null && \
+    cp -f "${FINAL0%.kicad_pcb}.kicad_prl" "$PROJ/state/.lastgood/baseline_v76mg0_chain.kicad_prl" 2>/dev/null && \
+    echo "  ✓ 已归档 state/.lastgood/baseline_v76mg0_chain.kicad_pcb (+ .kicad_pro/.kicad_prl)"
 else
   echo "  ⚠️ 链没出终板 ⇒ 没法比 (查 /tmp/chain_v76mg0 / /tmp/chain_v76mg1)"
 fi

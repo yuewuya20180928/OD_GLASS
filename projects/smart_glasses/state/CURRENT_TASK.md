@@ -220,3 +220,16 @@
   ② ★**`cron.retry.backoffMs` = [60s, 120s, 300s]** (★默认退避最长 60 分钟 ⇒ ★**配额一挂, 10 分钟播报被推后整整 1 小时 ⇒ 老板手机黑屏 2 小时 (11:33→13:17) 就是这么来的**★) ⇒ 已改 (★要重启生效★) ⇒ ★**以后配额抖动最多断 1~2 分钟, 不会断 1 小时** ★
   ③ ★**投递双路 + 失败自动补发 + 低频兜底** (★已在 `state/delivery_truth.py` / `state/bcast_delivery_check.py` / 速报 job 改 announce★)
 · ★★**★需要老板动手的一件 (★我这边无解★)**: ★**MiniMax 的 Token Plan 配额用完了 ⇒ 要么升级套餐, 要么给 anthropic relay 配一把 key (★配置里已有 `anthropic:relay` profile + claudeapi.com baseUrl, 但 agent 的 auth-profiles.json 里没有 key ⇒ 实测 `openclaw agent --model anthropic/claude-sonnet-4-6` 报 "No API key found for provider anthropic"★) ⇒ ★**有备胎 = 配额一挂 cron 链可以切模型续命** ★★
+
+### ★★【F. ★★口径陷阱: 【归档板必须连 .kicad_pro 一起存】, 否则 fresh DRC 凭空多 123 条假违规★★】(2026-11-10 14:5x 实测)
+· ★★**★现象 (★我自己踩的★)**: ★**给 `baseline_v76me0_chain` 补 DRC 时, fresh DRC 报 129 条违规 (其中 **123 条是 `track_width`**) ⇒ 而链自己 12:01 那次跑出来只有 6 条 ⇒ 同一块板 (md5 逐位相同) 差 123 条** ★★
+· ★★**★根因 (★KiCad 规则不在 .kicad_pcb 里, 在【工程文件 .kicad_pro】里★)**: ★**`board setup constraints min width` = 0.15mm 是靠 `.kicad_pro` 带进来的 ⇒ 归档目录里没有 .kicad_pro ⇒ KiCad 退回默认 0.20mm ⇒ 所有 0.15mm 走线全成假违规** ★★
+  ⇒ ★★**⇒ 陷阱的杀伤力: ★**基线看起来"烂 123 条" ⇒ 比较会得出"候选臂大幅改善"的【假结论】⇒ ★**判据失真**★★
+· ★**已修 (★两个基线都补齐★)**:
+  · ★`state/.lastgood/baseline_v76me0_chain.kicad_pro` (★从 `/tmp/chain_v76me0/final_chain.kicad_pro` 原样拷★) ⇒ ★**fresh DRC = 6 违规 (板边4+clearance1+dangling1) / unc 35 ⇒ 与链自己那次数一致** ✔
+  · ★`state/.lastgood/baseline_v76_chain.kicad_pro` ⇒ ★**fresh DRC = 0 违规 / unc 46 ⇒ 与它存着的 json (0/46) 一致** ✔
+  · ★`baseline_v76me0_chain.json` 元数据补齐 (md5 / 段数 / 孔数 / drc=6 / unc=35 / ★**坑的说明**★)
+· ★★★**★铁律 (★写进 MEMORY.md★)**: ★★★
+  ★**① 归档板 = 板 + .kicad_pro + .kicad_prl 三件套 (★只存 .kicad_pcb 的归档 = 坏归档★)**
+  ★**② 任何 fresh DRC 之前先确认【规则同源】⇒ 拿同一块板在两个目录跑一次 DRC, 数字必须一致 ⇒ 不一致就是规则没跟过来**
+  ★**③ 比较脚本自己 fresh DRC 双方 (compare_arm_baseline.sh / compare_arm_official.py 都是) ⇒ 所以双方规则必须一致, 否则"基线更差"是假的** ★★★
