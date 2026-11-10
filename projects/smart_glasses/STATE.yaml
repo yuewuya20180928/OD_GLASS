@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-10T18:44:46+08:00'
+  generated_at: '2026-11-10T19:15:30+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -19,9 +19,9 @@ meta:
       mtime_ns: 1793935073066378375
     main:
       file: pm.yaml
-      size: 35030
-      sha1: d05c013c1ce0
-      mtime_ns: 1793791151355720319
+      size: 36366
+      sha1: 2225da228d96
+      mtime_ns: 1794308494355780854
     sw-lead:
       file: sw.yaml
       size: 96832
@@ -666,6 +666,31 @@ domains:
           (含拿现成开发板/SBC 当载体)** ⇒ ★**demo 唯一载体 = 自研主板** ⇒ **以后不许再问、也不许再提类似建议**; **自研开发主板 = 当前最高优先级**; **开发类的事叫子总工全部开发掉,
           不要拿采购建议来问我**。 ★**落地**: ISS-181 开单并派 hw-lead (把 demo 主板从骨架布到可下单: unconnected 353 → 0, DRC 0,
           Gerber 重出); ★**阶段门同步修**: G1「原理图/PCB 定稿」加判据「PCB 已布线 (unconnected=0)」⇒ 门禁不再把没布线的板子显示成"已定稿"。'
+        ref: 老板决策 2026-11-04 (项目总工代录)
+      foreign_answers: []
+    - key: demo_od_p0_4_panel_init_code
+      to: boss
+      item: 视涯 0.49" 1920×1080 的 DSI init code / 时序 / DSC / 单色还是全彩 全未拿到 ⇒ 请放行外发 `state/outbox/visionox_display_inquiry.md`
+        (★与 sw-lead 登记的 `demo_od_p0_4_panel_init_code` 是同一个问询, 同一份草稿)
+      since: '2026-11-02'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: '★作废, 不发 —— 老板 2026-11-04 09:5x 明确「视崖屏幕已经不用了」(原话追问: 「视崖屏幕已经不用了, 为什么还要问有没有 DSC 模式」) ⇒ 这封
+        6 大项问询不再外发 (草稿留在 state/outbox/ 不删) ★★**并且 demo 屏根本不走视涯**: 老板 11-04 01:19 拍板 demo 屏换 Waveshare
+        2.8" (SKU 22028) ⇒ 该屏**不需要任何 DCS init 序列** (官方 RPi 内核 `panel-waveshare-dsi.c` 一条 DSI 指令都不发, 全走
+        I2C @0x45) ⇒ ★**demo「屏上有画面」不依赖任何厂商回信** ⇒ ★**本条不是 demo 关键路径** (之前把它列成「全局最长关键路径」是口径错误) ★★**整机屏路线若再考虑视崖
+        ⇒ 届时重新立项** (ISS-176 / ISS-177 已 deferred, 重开条件在案)'
+      decided_at: '2026-11-04'
+      answers:
+      - by: boss
+        value: '★作废, 不发 —— 老板 2026-11-04 09:5x 明确「视崖屏幕已经不用了」(原话追问: 「视崖屏幕已经不用了, 为什么还要问有没有 DSC 模式」) ⇒ 这封
+          6 大项问询不再外发 (草稿留在 state/outbox/ 不删) ★★**并且 demo 屏根本不走视涯**: 老板 11-04 01:19 拍板 demo 屏换 Waveshare
+          2.8" (SKU 22028) ⇒ 该屏**不需要任何 DCS init 序列** (官方 RPi 内核 `panel-waveshare-dsi.c` 一条 DSI 指令都不发,
+          全走 I2C @0x45) ⇒ ★**demo「屏上有画面」不依赖任何厂商回信** ⇒ ★**本条不是 demo 关键路径** (之前把它列成「全局最长关键路径」是口径错误) ★★**整机屏路线若再考虑视崖
+          ⇒ 届时重新立项** (ISS-176 / ISS-177 已 deferred, 重开条件在案)'
         ref: 老板决策 2026-11-04 (项目总工代录)
       foreign_answers: []
     answers:
@@ -4066,14 +4091,17 @@ domains:
         是草稿未发)。★''屏上有画面''不需要 camera (测试图卡即可验 DRM/KMS+DSI), 所以这条链路上最短的那根线是面板而不是 sensor ⇒ 请项目总工/老板放行外发问询函
         (Q2 的 init sequence + Q1 的单色全彩 是硬项)'
       since: '2026-11-02'
-      state: waiting_external
+      state: answered
       target_missing: false
       waiting_on: boss
       due: '2026-11-04'
-      overdue: true
+      overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: main
+        value: (老板决策, 跨分片同 key)
+        ref: 老板决策 (项目总工代录, 跨分片同 key)
       foreign_answers: []
     - key: demo_od_model_route_m1_vs_m2
       to: main
@@ -11956,8 +11984,8 @@ needs_matrix:
     since: '2026-11-06'
     _by: mech-lead
     state: pending
-  answered_count: 155
-  total: 227
+  answered_count: 156
+  total: 228
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -12570,7 +12598,7 @@ summary:
   blockers: 43
   high_blockers: 33
   open_needs: 72
-  waiting_external_needs: 71
+  waiting_external_needs: 70
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0

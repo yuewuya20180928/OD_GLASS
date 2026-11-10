@@ -114,9 +114,15 @@ def self_test():
         pend = (_new_state.get("summary") or {}).get("open_needs")
         print("★merge.build_state 真值: 等外部 %s → %s (内部未闭合 %s)" % (ext_old, ext_new, pend))
         assert ext_new < ext_old, "★★**新口径没有减少假挂项 ⇒ 跨分片老板决策没生效**"
-        assert (ext_old - ext_new) == 7, ("★★**降幅应为 7 (2026-11-06 实测 78→71), 实测 %s**"
+        # ★★2026-11-10 补录老板 11-04 决定后, 降幅从 7 变 8 (78→70):
+        #   ★**新增的第 8 条 = `demo_od_p0_4_panel_init_code` (sw.yaml 的 key)**
+        #   ★**同一问询在 sw.yaml 与 pm.yaml 用了两个不同 key ⇒ 老板 11-04「视崖已不用」的决定只记在
+        #     pm.yaml 的 `visionox_inquiry_release` 上 ⇒ sw.yaml 那条同 key 没回写 ⇒ 假挂进老板清单 6 天**
+        #   ⇒ 项目总工 2026-11-10 在 pm.yaml 补录同一决定 (别名 key) ⇒ 降幅 7→8
+        assert (ext_old - ext_new) == 8, ("★★**降幅应为 8 (2026-11-10 实测 78→70; 2026-11-06 是 78→71), 实测 %s**"
                                          % (ext_old - ext_new))
-        print("✔ 假挂项减少 7 条 (与 2026-11-06 实测 78→71 一致) ⇒ ★**回归护栏有效**")
+        print("✔ 假挂项减少 8 条 (2026-11-10 实测 78→70; 11-06 是 78→71, 多的一条是 11-10 补录的"
+              " `demo_od_p0_4_panel_init_code` 别名 key) ⇒ ★**回归护栏有效**")
     except AssertionError:
         raise
     except Exception as _e:
@@ -143,9 +149,9 @@ def self_test():
                 if not old_answered(n) and not answered_by_decision(n, dec):
                     ext_new += 1
         assert ext_new < ext_old, "★★**新口径没有减少假挂项**"
-        assert (ext_old - ext_new) == 7, ("★★**降幅应为 7 (2026-11-06 实测 78→71), 实测 %s**"
+        assert (ext_old - ext_new) == 8, ("★★**降幅应为 8 (2026-11-10 实测 78→70; 2026-11-06 是 78→71), 实测 %s**"
                                          % (ext_old - ext_new))
-        print("✔ 本地粗测: 等外部 %s → %s (★**降幅必须是 7**)" % (ext_old, ext_new))
+        print("✔ 本地粗测: 等外部 %s → %s (★**降幅必须是 8**)" % (ext_old, ext_new))
     # ④⑤ ★★★**消费者级护栏 (★兄弟 21:0x 回退实验指出: 护栏只守住 3 个消费者里的 1 个
     #   ⇒ ★**恰恰没覆盖"今天事故那一类"**: ★**只回退 advance.py ⇒ self-test 仍 PASS + gate 对账仍 ✅
     #   ⇒ ★**完全静默** ⇒ 5 条已拍板的 key 又冒出来问老板 (36→41) ⇒ ★**rc 也抓不到 (advance 正常就 rc=1)**)
