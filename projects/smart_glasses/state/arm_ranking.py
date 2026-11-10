@@ -35,13 +35,15 @@ REF_PRO = PROJ + "/HW/PCB/demo_mainboard.kicad_pro"
 DEFAULT_BASE = PROJ + "/state/.lastgood/baseline_v76_chain.kicad_pcb"
 
 
-def sh(cmd, timeout=900):
+def sh(cmd, timeout=900, want_rc=False):
+    """★2026-11-11 04:5x: ★加 want_rc ⇒ 同时返回【退出码】(★名单闸的判定就靠它★)"""
     try:
         p = subprocess.run(cmd, shell=True, capture_output=True, text=True,
                            cwd=PROJ, timeout=timeout)
-        return p.stdout + p.stderr
+        out = p.stdout + p.stderr
+        return (out, p.returncode) if want_rc else out
     except subprocess.TimeoutExpired:
-        return "!!TIMEOUT!!"
+        return ("!!TIMEOUT!!", None) if want_rc else "!!TIMEOUT!!"
 
 
 def has_pro(board):
@@ -77,8 +79,12 @@ def list_gate(cand, base):
     """★名单闸: 退铜 / 差分死腿 / 逐网孤岛变多 / 闸 rc★"""
     if not os.path.exists(base):
         return dict(rc=None, dead=None, pair=None, island=None, note="基线板不存在")
-    out = sh("python3 state/compare_arm_official.py %s %s" % (cand, base), timeout=1800)
-    res = dict(rc=None, dead=None, pair=None, island=None, note="")
+    # ★★2026-11-11 04:5x 修 bug: ★`compare_arm_official.py` 【不打印 "闸 rc="】(★它用【退出码】表达判定★)
+    #   ⇒ ★旧版用正则找 "闸 rc=" ⇒ 永远 None ⇒ 看起来像"没判定", 其实是工具 bug
+    #   ⇒ ⇒ 现在改成: ★闸 rc = 子进程退出码 (0=ACCEPT) + 解析 "判定: ACCEPT/REJECT"
+    out, code = sh("python3 state/compare_arm_official.py %s %s" % (cand, base),
+                   timeout=1800, want_rc=True)
+    res = dict(rc=code, dead=None, pair=None, island=None, note="")
     m = re.search(r"退铜名单.*?:\s*(\d+)", out)
     if m:
         res["dead"] = int(m.group(1))
@@ -88,10 +94,9 @@ def list_gate(cand, base):
     m = re.search(r"逐网孤岛变多:\s*(\d+)", out)
     if m:
         res["island"] = int(m.group(1))
-    m = re.search(r"闸 rc=(\d+)", out)
-    if m:
-        res["rc"] = int(m.group(1))
-    else:
+    m = re.search(r"判定:\s*(\S+)", out)
+    res["verdict"] = m.group(1) if m else "?"
+    if res["rc"] is None:
         res["note"] = (out.strip().splitlines() or ["无输出"])[-1][:60]
     return res
 

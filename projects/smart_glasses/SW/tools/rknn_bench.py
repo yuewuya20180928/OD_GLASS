@@ -254,11 +254,11 @@ S4 = 1.0         # ms  预处理 (letterbox + 布局转换 + 归一化)
 S6 = 2.0         # ms  反量化 (A733 上占 SDK 总耗时 25% ⇒ 保守 2ms; RKNN 见报告说明)
 S7 = 3.0         # ms  decode + NMS (CPU)
 S8 = 1.0         # ms  画框
-S9 = 3.0         # ms  显示 TX (DSI/DP→DSI 桥)
+S9 = 3.0         # ms  显示输出侧 (★11-11 按 ISS-137 澄清: = DSI TX/桥接 + 合成 + 缩放; ★**TX 物理下限 @1080p = 7.776ms**★; 与 SW/RKNN_BENCH.md §4.1 S9 标签同口径★)
 S10 = 5.0        # ms  光机逐帧延迟 ★ [0数据] (走鹃Ⅱ 未公开逐帧延迟; 目标值占位)
 
 EXPOSURE_BLOCK = E + R + S3          # = 24.67ms  曝光→ISP输出 (口径 A 的物理块, 不可协商)
-DISPLAY_TAIL = S8 + S9 + S10         # = 9ms    画框+TX+光机
+DISPLAY_TAIL = S8 + S9 + S10         # = 9ms    画框+显示输出侧+光机
 T_OD_FIXED = S4 + S6 + S7            # = 6ms    T_od 里与 NPU 无关的部分
 
 # ----------------------------------------------------------------------------
