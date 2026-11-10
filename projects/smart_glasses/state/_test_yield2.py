@@ -70,7 +70,7 @@ def main():
     # ---- ① 旧模型对照: 同排 ⇒ 旧 `_gap` 恒 ≤ 0.2 ⇒ 恒触发 ⇒ 【全局扰动】 ----
     R.YIELD_STRAIGHT = True
     R.YIELD_VICTIMS = frozenset()
-    _need = R.CLEAR + R.W_MIN / 2.0 + R.W_CLS[1] / 2.0 + R.HALO_MARGIN
+    _need = R.CLEAR + R.W_CLS[1] / 2.0 + R.W_CLS[1] / 2.0 + R.HALO_MARGIN
     old_gap = abs(11.04 - 11.04)
     ck(old_gap <= 0.2 and old_gap < _need,
        "★旧模型根因: 同排 `_gap`=%.4f 恒 < `_need`=%.4f ⇒ 恒触发 (★这就是全局扰动的来源★)" % (old_gap, _need))
@@ -151,6 +151,61 @@ def main():
     ck(d_old < _need and d_new >= _need,
        "★端到端: 同一张起步格, 抢路者修好前【死】(%.4f<%.4f) / 修好后【活】(%.4f≥%.4f)★"
        % (d_old, _need, d_new, _need))
+
+    # ---- ⑪ ★★**★阶梯下降模型 (★2026-11-11 02:5x 修的真 bug 的回归用例★)★★ ★★
+    #   ★**那一版模型假设"拐弯横道只有 0.25mm 长"⇒ ⇒ 算出的距离偏大 ⇒ ⇒ 误判"不挡" ⇒ ⇒ 闸返回 0 ⇒ ⇒ 臂白跑** ★★
+    #   ★**⇒ 本用例必须能抓住它: 真实的抢路者是【45° 阶梯下降】的, 横道不止 0.25mm** ★★
+    #   ★**真实形状 (★`v76mv0` 终板逐段量出来★)**: ★★
+    #     竖(62.800,11.040→12.240) · 斜(→62.950,12.450) · 横(→63.200,12.450) ★★
+    #     · 斜(→63.450,12.700) · 横(→63.700,12.700) ★★ ★★**⇒ 最后那条横道直抵受害者 x 列** ★★
+    #   ★**受害者真起步格 (★`_ci/_cj` 算出来★) = (63.70, 12.20) (★不是 (63.50,12.25) —— 那个不是格心★)** ★★
+    gx2, gy2 = 63.70, 12.20
+    need2 = R.CLEAR + R.W_CLS[1] / 2.0 + R.W_CLS[1] / 2.0 + R.HALO_MARGIN
+
+    def stair_model(k):
+        """★**新模型的等价实现 (★阶梯下降★)""""
+        _px2, _py2, _dj2, _g = 62.80, 11.04, 1, R.GRID
+        _ty = _py2 + _dj2 * (R.ESC_LEN + k * _g)
+        _sg = [(_px2, _py2, _px2, _py2 + _dj2 * R.ESC_LEN),
+               (_px2, _py2 + _dj2 * R.ESC_LEN, _px2, _ty)]
+        _cx2, _cy2 = _px2, _ty
+        for _ in range(40):
+            _nx = _cx2 + 0.25
+            if (_nx - gx2) > 0:
+                break
+            _ny = _cy2 + _dj2 * 0.25
+            _sg.append((_cx2, _cy2, _nx, _cy2))
+            _sg.append((_nx, _cy2, _nx, _ny))
+            _cx2, _cy2 = _nx, _ny
+        _sg.append((_cx2, _cy2, gx2, _cy2))
+        return min(R._pt_seg_dist(gx2, gy2, a, b, c, e) for (a, b, c, e) in _sg)
+
+    d_k0 = stair_model(0)
+    d_k1 = stair_model(1)
+    ck(d_k0 < need2 - 1e-9,
+       "★阶梯模型 k=0 (★现状★): 距离 %.4f < halo %.4f ⇒ 必须判【死】★ (★第一版模型在这里会误判成"活"★)" % (d_k0, need2))
+    ck(d_k1 >= need2 - 1e-9,
+       "★阶梯模型 k=1 (★多直行一步★): 距离 %.4f ≥ halo %.4f ⇒ 判【活】★" % (d_k1, need2))
+    # ★★**⇒ 反向: 那个"只画 0.25mm 横道"的旧模型必须【给不出】正确结论 (★否则回归用例抓不住 bug★)★★
+    def naive_model(k):
+        _px2, _py2 = 62.80, 11.04
+        _ty = _py2 + R.ESC_LEN + k * R.GRID
+        _sg = [(_px2, _py2, _px2, _py2 + R.ESC_LEN),
+               (_px2, _py2 + R.ESC_LEN, _px2, _ty),
+               (_px2, _ty, _px2 + 0.25, _ty)]
+        return min(R._pt_seg_dist(gx2, gy2, a, b, c, e) for (a, b, c, e) in _sg)
+    dn0 = naive_model(0)
+    ck(dn0 >= need2 - 1e-9 and d_k0 < need2 - 1e-9,
+       "★【回归锚点】: 旧的'0.25mm 横道'模型算 %.4f (判活) 而阶梯模型算 %.4f (判死) ⇒ ⇒ 两者结论相反 ⇒ 正是那个 bug" % (dn0, d_k0))
+    # ★★**⇒ 真函数必须给出 ≥1 步 (★否则闸不生效 ⇒ 臂白跑★)★★
+    R.YIELD_STRAIGHT = True
+    R.YIELD_VICTIMS = frozenset(["BOOT_N"])
+    _f2 = Fake({"ID_DETECT_0": [("J_SOM_P1", "32", 62.80, 11.04, (0,))],
+                "BOOT_N": [("J_SOM_P1", "28", 63.60, 11.04, (0,))]})
+    _st2 = _f2._yield_straight_steps("ID_DETECT_0", ("J_SOM_P1", "32", 62.80, 11.04, (0,)), 0, 1)
+    ck(_st2 >= 1,
+       "★真函数在【真坐标·阶梯模型】下必须给 ≥1 步 (★实测 %d★) ⇒ ⇒ 闸真的会生效" % _st2)
+    R.YIELD_VICTIMS = frozenset()
 
     print("\n═══ %s (★%d 项★) ═══" % ("ALL PASS" if not FAIL else "失败 %d 项" % len(FAIL), OKC[0] + len(FAIL)))
     for m in FAIL:

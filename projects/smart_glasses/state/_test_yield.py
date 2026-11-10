@@ -56,7 +56,7 @@ def main():
     py, qy = 11.04, 11.04
     my_turn_y = py + 1 * (R.ESC_LEN + steps * f.g)
     q_end_y = qy + 1 * R.ESC_LEN
-    need = R.CLEAR + R.W_MIN / 2.0 + R.W_CLS[1] / 2.0 + R.HALO_MARGIN
+    need = R.CLEAR + R.W_CLS[1] / 2.0 + R.W_CLS[1] / 2.0 + R.HALO_MARGIN
     ck(abs(my_turn_y - q_end_y) >= need - 1e-9,
        "★让开后的垂直间距 %.4f ≥ halo 半径 %.4f ★" % (abs(my_turn_y - q_end_y), need))
 
@@ -90,7 +90,7 @@ def main():
     f4 = Fake()
     steps4 = f4._yield_straight_steps("ID_DETECT_0", ("J_SOM_P1", "32", 62.80, 11.04, (0,)), 0, 1)
     turn_y = 11.04 + R.ESC_LEN + steps4 * R.GRID          # ★新拐弯高度★
-    halo_r = R.CLEAR + R.W_MIN / 2.0 + R.W_CLS[1] / 2.0 + R.HALO_MARGIN
+    halo_r = R.CLEAR + R.W_CLS[1] / 2.0 + R.W_CLS[1] / 2.0 + R.HALO_MARGIN
     # ★**新铜的三段: 竖 (62.80,11.04)→(62.80,12.24) · 竖 (62.80,12.24)→(62.80,turn_y) · 横 (62.80,turn_y)→(70.20,turn_y)★★
     segs = [(62.80, 11.04, 62.80, 12.24), (62.80, 12.24, 62.80, turn_y), (62.80, turn_y, 70.20, turn_y)]
     bx, by = 63.50, 12.25                                # ★BOOT_N 的起步格心★
