@@ -124,6 +124,22 @@ RIPUP_ALIVE = os.environ.get("PCB_RIPUP_ALIVE", "0") == "1"
 # ★★2026-11-06 02:4x (v50 概念): 板边验收严格模式
 #   —— 缝合路径/_emit_path/commit 三处补板边净距闸 (默认关, 老行为可复现)
 EDGE_STRICT = os.environ.get("PCB_EDGE_STRICT", "0") == "1"
+# ★★★★★★2026-11-10 09:2x 【★"蛇形配平不许出板"闸 (★env 门控 `PCB_MEANDER_EDGE`, ★默认关 ⇒ 逐位不变★)★★
+#   ★**为什么要有 (★2026-11-10 09:2x 实测, ★不是猜★)**:
+#     ★**实测 (★四条臂 v76s8/v76s9/v76s10/v76b1 的终板★)**: ★**100% 的 `copper_edge_clearance`
+#       违规都来自【蛇形配平 (meander) 的凸起段】** ⇒ ★★**⇒ 这是所有臂 DRC≠0 的头号杀手** ★★
+#       · v76s8: 25 条违规 ⇒ ★**23 条**在蛇形组内 (★另 2 条是同一凸起的外侧段★)
+#       · v76s9: 19 ⇒ 16 · v76s10: 20 ⇒ 16 · v76b1: 4 ⇒ 4  ⇒ ★★**四臂合计 68 条违规, 100% 归因蛇形**★★
+#     ★**根因 (★代码级★)**: ★**蛇形是【离网格的斜线】⇒ 栅格 halo/edge_d 全都管不到它**
+#       ⇒ `_geom_clear()` (★蛇形唯一的几何闸★) ★**只查【别的网的铜】, 压根没查【板边】★★
+#       ⇒ ★★**⇒ 凸起顶点可以放到板外 (★实测 y=-1.2mm★) 或贴着板边 (★0.075mm★) ⇒ DRC 报 `copper_edge_clearance`** ★★
+#     ★**为什么不能靠"落板后剔铜"**: ★**实测剔掉蛇形段 ⇒ DRC 29→69 (★反而更烂, ★因为剔中间段会留悬空端★)**
+#       ⇒ ★★**⇒ 必须在【落铜之前】拦住 (★`commit()` 的板边自检只数不拦, ★救不了★)** ★★
+#     ★**修法**: ★**蛇形候选 4 段逐段过 `_edge_seg_ok()` (★路由器自带的真板边判据★)**
+#       ⇒ ★★**⇒ 凸起出不了板 ⇒ DRC 干净 ⇒ 且【不删任何已有铜 ⇒ 不产生悬空端】** ★★
+#   ★**默认值**: ★**0 (关) ⇒ 逐位不变 (★老臂可复现★)** ★★
+#   ★**用法**: `PCB_MEANDER_EDGE=1` ★★**★【必须配 `PCB_EDGE_STRICT=1` 一起开? ★见 _test_meander_edge.py 断言④★】★★
+MEANDER_EDGE = os.environ.get("PCB_MEANDER_EDGE", "0") == "1"
 if RIPUP_ALIVE:
     print("  [路由] ★rip-up 复活: ON (失败网会真的被拆线重布)")
 MULTI_GOAL = os.environ.get("PCB_MULTI_GOAL", "0") == "1"
@@ -2734,6 +2750,11 @@ class GridRouter:
             ]
             if not self._geom_clear(net, cand, s[5], s[6]):
                 continue
+            # ★★2026-11-10 09:2x 【★板边闸 (★env 门控 `PCB_MEANDER_EDGE`★)】 —— 理由同 add_meander_v2
+            if MEANDER_EDGE and not all(
+                    self._edge_seg_ok(q[0], q[1], q[2], q[3], s[6])
+                    for q in cand):
+                continue
             self._insert_meander(net, s, mid, apex, ux, uy, base)
             return extra_mm
         return 0.0
@@ -2782,6 +2803,13 @@ class GridRouter:
                         (p_out[0], p_out[1], seg[3], seg[4]),
                     ]
                     if not self._geom_clear(net, cand, seg[5], seg[6]):
+                        continue
+                    # ★★2026-11-10 09:2x 【★板边闸 (★env 门控 `PCB_MEANDER_EDGE`★)】
+                    #   ★**蛇形是离网格的斜线 ⇒ `_geom_clear` 查不到板边 ⇒ 凸起能出板 (★实测 y=-1.2mm★)**
+                    #   ⇒ ★★**⇒ 候选 4 段必须逐段过真板边判据 (★`_edge_seg_ok`★)** ★★
+                    if MEANDER_EDGE and not all(
+                            self._edge_seg_ok(q[0], q[1], q[2], q[3], seg[6])
+                            for q in cand):
                         continue
                     if best is None or L > best[0]:
                         best = (L, seg, mid, apex, ux, uy, base)
@@ -2853,6 +2881,15 @@ class GridRouter:
                             (p_out[0], p_out[1], seg[3], seg[4]),
                         ]
                         if not self._geom_clear(net, cand, seg[5], seg[6]):
+                            continue
+                        # ★★2026-11-10 09:2x 【★板边闸 (★env 门控 `PCB_MEANDER_EDGE`★)】
+                        #   ★**蛇形是离网格的斜线 ⇒ `_geom_clear` 只查别的网的铜, 查不到板边**
+                        #   ⇒ ★★**⇒ 候选 4 段必须逐段过真板边判据 (★`_edge_seg_ok`★)** ★★
+                        #   ⇒ ★**实测 (★2026-11-10 09:2x★)**: ★**不开这个闸 ⇒ 四臂 68 条 `copper_edge_clearance`
+                        #     100% 来自蛇形凸起 (★实测顶点跑到 y=-1.2mm★) ⇒ ⇒ 每臂 DRC≠0 ⇒ ⇒ 全部 REJECT** ★★
+                        if MEANDER_EDGE and not all(
+                                self._edge_seg_ok(q[0], q[1], q[2], q[3], seg[6])
+                                for q in cand):
                             continue
                         if best is None or take > best[0]:
                             best = (take, seg, mid, apex, ux, uy, base)
