@@ -80,6 +80,14 @@ chk("③ 修法必须落在【`_emit_path` 落铜之前】(★落线前就拦 �
     _m_clr >= 0 and _m_emit_copper >= 0 and _m_clr < _m_emit_copper,
     "★找不到闸 (index=%d) 或它不在落铜之前 (append index=%d)★" % (_m_clr, _m_emit_copper))
 
+# ★★★**★新增: 闸必须【只查离网格的段】(★查多了会大量误杀★)★★★ ★★★
+#   ★**实测教训 (★2026-11-10 16:2x★)**: ★**第一版闸查【每一段】⇒ 实测 `v76mk` 臂裸板 unc 39 → 138 (★净亏 99!★)**
+#     ⇒ ★**根因: halo 已经管【在栅格上的段】(★它按格封★) ⇒ ★**重复查不但没用, 还会因 halo 的保守半径而误杀** ★★
+#   ⇒ ★**⇒ 闸必须限定【只查离网格的那一段】⇒ ★**只补 halo 的盲区** ★★
+chk("③b 闸必须【只查离网格的段】(★halo 已管在栅格上的 ⇒ 重复查会大量误杀★)",
+    "_on_grid" in _body and "if self._on_grid(_xa, _ya) and self._on_grid(_xb, _yb):" in _body,
+    "★闸里没有【只查离网格】的限定 ⇒ ★⇒ 会像 v76mk 第一版那样把 unc 从 39 打到 138★")
+
 chk("④ 修法只【拦】不【删】(★不许有删铜路径★)",
     ("_drop_committed" not in _body) and (".Remove(" not in _body)
     and ("self.tracks.remove" not in _body) and ("self.tracks.pop" not in _body),

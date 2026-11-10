@@ -284,6 +284,14 @@ ESC_CLR_FIX = os.environ.get("PCB_ESC_CLR_FIX", "0") == "1"
 #     ★**起步先沿【该排的法线】走** ⇒ 相邻脚的扇出【不会交错】 ⇒ ⇒ **不交错就不会差 0.0187mm** ★★
 #   ★**用法**: ★`PCB_ESC_ROWNORM=2` (★强制直行格数·默认 0 = 关 ⇒ 逐位不变★)
 ESC_ROWNORM_STEPS = int(os.environ.get("PCB_ESC_ROWNORM", "0"))
+# ★★★★★★2026-11-10 16:6x 【★"排法线"约束在【有出脚直道】时也要生效 (★env 门控 `PCB_ESC_ROWNORM2`, ★默认关⇒逐位不变★)】★★★★★★
+#   ★**要修的病 (★实测坐实★)**: ★**`ID_DETECT_0` / `BOOT_N` (★J_SOM_P1 同排 y=11.040★) 两脚都有出脚直道**
+#     ⇒ ★**旧代码 `if st: ... return` 提前返回 ⇒ `ESC_ROWNORM` 分支【永远走不到】⇒ ⇒ 【该机制对最该生效的焊盘完全不生效】**
+#     ⇒ ★★**⇒ 出脚后【第一步就朝相反 y 方向转弯】⇒ 两条 45° 斜线交错 ⇒ 中心距 0.4313 ⇒ 净距 0.1813 < 0.2000**
+#     ⇒ ★★**⇒ 这条 DRC 的根因【用 `ESC_ROWNORM` 消不掉】(★机制本身是照着这条 DRC 写的!★)** ★★
+#   ★**修法**: ★**有出脚直道时也登记【排法线】方向 (★且只在与直道方向不冲突时★)⇒ ⇒ 相邻脚扇出不交错** ★★
+#   ★**默认 0 (关) ⇒ 逐位不变 (★老臂可复现★)**
+ESC_ROWNORM2 = os.environ.get("PCB_ESC_ROWNORM2", "0") == "1"
 # ★★★★2026-11-06 10:5x **过孔净距检查是否查全部宽度级别 (env 门控, 默认关)**
 #   ★**为什么要有**: ★**`_via_ok` 查 `halo[2]` ⇒ 看不见 `halo[1]` 里的 0.25mm 走线**
 #   ⇒ ★**"过孔 vs 常规走线"的净距检查失效** ⇒ ★**实测 DRC 报 7 条 clearance 违规**
@@ -1320,6 +1328,32 @@ class GridRouter:
             if key not in stubs:
                 stubs[key] = self.escape_stub(net, pad)
             st = stubs[key]
+            # ★★★★★★2026-11-10 16:6x 【★"排法线"约束在【有出脚直道】时也要生效 (★env 门控 `PCB_ESC_ROWNORM2`★)】★★★★★★
+            #   ★★★**★为什么要有 (★实测坐实, ★不是猜★)★★★ ★★★
+            #     ★**实测**: ★**`ID_DETECT_0` 与 `BOOT_N` (★J_SOM_P1 同排 y=11.040★) 两脚都【有出脚直道】**
+            #       (★`_nearest_other_pad` = 0.3000 < 0.45 ⇒ `escape_stub` 返回直道★)
+            #       ⇒ ★★**⇒ 旧代码的 `if st: ... return` 提前返回 ⇒ ★【ROWNORM 分支永远走不到】★★**
+            #       ⇒ ★★**⇒ 于是那两条出脚直道【同向平行】(x=62.800 / 63.600) ⇒ 出脚后【第一步就朝相反 y 方向转弯】
+            #         ⇒ 两条 45° 斜线交错 ⇒ 中心线只差 0.4313mm ⇒ 净距 0.1813mm < 0.2000mm ★★
+            #       ⇒ ★★**⇒ ★【`ESC_ROWNORM` 这个机制【本来就是为消这条 DRC 写的】(★见 `_row_normal` 的注释★),
+            #         但对它【最该生效的那两个焊盘】★【完全不生效】★★ ⇒ ⇒ 这是一条 DRC 永远消不掉的根因** ★★
+            #   ★**修法 (★env 门控, ★默认关 ⇒ 逐位不变★)**: ★**有出脚直道时, ★也把【排法线】方向登记进去**
+            #     ⇒ ★**让出脚后的第一步【沿排的法线】走 ⇒ ⇒ 相邻脚扇出不交错 ⇒ ⇒ 那条 DRC 的根因就没了** ★★
+            #   ★**注意**: ★**只在【排法线方向与出脚直道方向不冲突】时才用 (★否则会与直道矛盾★)**
+            if ESC_ROWNORM2 and st and ESC_ROWNORM_STEPS > 0:
+                try:
+                    _dn2 = self._row_normal(net, pad[2], pad[3])
+                except Exception:
+                    _dn2 = None
+                if _dn2:
+                    _sx = st[0] - pad[2]
+                    _sy = st[1] - pad[3]
+                    _same = (abs(_sx) < 1e-9 and abs(_dn2[0]) < 1e-9) or \
+                            (abs(_sy) < 1e-9 and abs(_dn2[1]) < 1e-9)
+                    if _same:
+                        _i2, _j2 = self._ci(st[0]), self._cj(st[1])
+                        self._esc_start_dir[(net, (0, self._idx(_i2, _j2)))] = \
+                            (_dn2[0], _dn2[1], ESC_ROWNORM_STEPS)
             if st:
                 i, j = self._ci(st[0]), self._cj(st[1])
                 _cell = (0, self._idx(i, j))
@@ -2980,6 +3014,12 @@ class GridRouter:
                     return False
         return True
 
+    def _on_grid(self, x, y):
+        """★这个点【是不是在栅格心】上 (★离网格的铜 = halo 的盲区★)"""
+        _i = self._ci(x)
+        _j = self._cj(y)
+        return (abs(self._cx(_i) - x) < 1e-6 and abs(self._cy(_j) - y) < 1e-6)
+
     def _seg_clear_geom(self, net, x1, y1, x2, y2, w=W_SIG):
         """★**这段线 vs 【已落的铜 + 已落的孔】的【真实几何】净距** (★不看 halo★)
 
@@ -3420,6 +3460,15 @@ class GridRouter:
                 _la, _xa, _ya = pts[_k]
                 _lb2, _xb, _yb = pts[_k + 1]
                 if _la != _lb2:
+                    continue
+                # ★★★★★★2026-11-10 16:2x 【★只查【离网格】的那一段★】★★★★★★
+                #   ★**为什么必须限定"离网格" (★实测, ★不是猜★)**:
+                #     ★**halo 已经管【在栅格上的段】(★它就是按格封的★) ⇒ ⇒ 那部分【重复查】不但没用,
+                #       ★**还会因 halo 的保守半径 (0.95mm vs 真实 0.45~0.625mm) 而【大量误杀】**
+                #       ⇒ ★**实测: `v76mk` 臂 (★开本闸★) 裸板 unc 39 → 138 (★净亏 99 条!!★) ⇒ ★【闸太严, 必须收窄】★
+                #     ⇒ ★**⇒ 本闸只补 halo 的【盲区】= 【离网格的几何】⇒ ★**不碰 halo 已经管住的部分** ★★
+                #   ★**判据: ★**该段的端点【不在栅格心】上** ⇒ ★**它就是 halo 管不到的那一类** ★★
+                if self._on_grid(_xa, _ya) and self._on_grid(_xb, _yb):
                     continue
                 if not self._seg_clear_geom(net, _xa, _ya, _xb, _yb, width):
                     return False
