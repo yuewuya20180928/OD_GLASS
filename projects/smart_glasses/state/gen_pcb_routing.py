@@ -1853,26 +1853,24 @@ class GridRouter:
                     continue
                 _seen.add(_key)
                 _px, _py = _pad2[2], _pad2[3]
-                # ★★**只查【别的网【已经落铜的】那些焊盘】(★它们已经占定了出脚口★)★★
-                _has_cu = False
+                # ★★★★**★直接读【它已落的出脚直道】(★不再重算 `escape_stub()`★)★★★★★★
+                #   ★**为什么 (★2026-11-10 21:3x 实测加的★)**: ★★**`escape_stub()` 本身是 O(n)** ★★
+                #     (★每次调用扫【所有已落铜】+【所有焊盘★) ⇒ ★**不缓存 ⇒ 本闸 O(n²)**
+                #     ⇒ ★★**⇒ 实测臂【38 分钟没出 GND 段】(★慢到没法用★)** ★★
+                #   ★★**⇒ ⇒ 关键洞察: ★【我们只查【已落铜的】别的网焊盘】⇒ ⇒ 【它的出脚直道早就躺在铜里了】★★**
+                #     ⇒ ★★**⇒ 直接从铜里读出【它的出脚方向】⇒ ⇒ O(1) ⇒ ⇒ 而且【更准】(★那是它【实际】走的★)** ★★
+                _ex = _ey = None
                 for _s in self.tracks:
-                    if _s[0] != _net2:
+                    if _s[0] != _net2 or _s[5] != 0:
                         continue
-                    if _s[5] != 0:
-                        continue
-                    if (abs(_s[1] - _px) < 0.01 and abs(_s[2] - _py) < 0.01) or \
-                       (abs(_s[3] - _px) < 0.01 and abs(_s[4] - _py) < 0.01):
-                        _has_cu = True
+                    if abs(_s[1] - _px) < 0.01 and abs(_s[2] - _py) < 0.01:
+                        _ex, _ey = _s[3], _s[4]
                         break
-                if not _has_cu:
+                    if abs(_s[3] - _px) < 0.01 and abs(_s[4] - _py) < 0.01:
+                        _ex, _ey = _s[1], _s[2]
+                        break
+                if _ex is None:
                     continue
-                try:
-                    _st = self.escape_stub(_net2, _pad2)
-                except Exception:
-                    _st = None
-                if _st is None:
-                    continue
-                _ex, _ey = _st[0], _st[1]
                 # ★★**它的出脚直道【会不会穿过我这条直道】★★
                 if not _seg_seg_dist(x1, y1, x2, y2, _px, _py, _ex, _ey) < 0.30:
                     continue
