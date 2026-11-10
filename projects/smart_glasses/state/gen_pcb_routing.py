@@ -252,6 +252,17 @@ ESC_STRAIGHT_STEPS = int(os.environ.get("PCB_ESC_STRAIGHT", "0"))
 #   ★**开关**: ★`PCB_MERGE_FIX=1` ⇒ ★①修对 `by` 的坐标错位 · ★②加三角不等式兜底 (★挡任何瞬移★)
 #   ★**默认关** ⇒ ★**既有臂逐位可复现 (★本项目铁律★)**
 MERGE_FIX = os.environ.get("PCB_MERGE_FIX", "0") == "1"
+# ★★★★★★2026-11-10 14:2x 【★"孤儿铜"闸 (★env 门控 `PCB_GND_ORPHAN_FIX`, ★默认关 ⇒ 逐位不变★)】★★★★★★
+#   ★**要修的病 (★实测坐实★)**: ★**`route_gnd_drops()` 第一遍里 `_emit_path` 先落铜,
+#     随后的【孔的可行性闸】才判不合格 ⇒ `continue` 时铜已经落在 `self.tracks` 里了**
+#     ⇒ ★★**⇒ (a) 同一段铜重复落 (★实测 GND 出脚直道重复 5~8 次★) ★★**
+#     ⇒ ★★**⇒ (b) 被否决那次的铜留下【悬空端】⇒ DRC `track_dangling` (★实测 v76me1 1 条★)** ★★
+#     ⇒ ★**⇒ 臂板里大量重复段 (★v76me1 76 / s8 42 / s9 34 / s10 100 条多余★)
+#     ⇒ ★**⇒ 零铜网 / 差分死腿 / 孤岛统计被污染 ⇒ 候选臂的名次制闸读数不可信** ★★
+#   ★**修法**: ★**把【孔的可行性预检】提到 `_emit_path` 之前 ⇒ 不合格就跳过 ⇒ 一点铜都不落**
+#     ⇒ ★★**★遵循项目铁律: 【落线前就拦】是正收益, 【落板后剔铜】是负收益 (★实测剔铜 DRC 29→69★)** ★★
+#   ★**默认 0 (关) ⇒ 逐位不变 (★老臂可复现★)**
+GND_ORPHAN_FIX = os.environ.get("PCB_GND_ORPHAN_FIX", "0") == "1"
 # ★★★★★★2026-11-10 04:5x 【★【★"非紧凑焊盘排"的起步也要先直行 (★env 门控 `PCB_ESC_ROWNORM`)★】★】★★★★★★
 #   ★**为什么要有 (★2026-11-10 04:0x 实测坐标, ★不是猜★)**:
 #     ★**`ID_DETECT_0` ↔ `BOOT_N` 的 0.1813mm DRC (★所有臂都有, ★卡死所有臂★)**:
@@ -2000,6 +2011,30 @@ class GridRouter:
                     if self._path_len(path) > 6.0:
                         why["toolong"] = why.get("toolong", 0) + 1
                         continue
+                    # ★★★★★★2026-11-10 14:2x 【★"孤儿铜"闸 (★env 门控 `PCB_GND_ORPHAN_FIX`★)】★★★★★★
+                    #   ★★**★问题 (★实测坐实★)**: ★**`_emit_path` 先落铜, ★【后面的过孔闸才判不合格】**
+                    #     ⇒ ★**`continue` 时铜【已经落在 `self.tracks` 里了】** ⇒ ★★**⇒ 下一轮候选又落一遍**
+                    #     ⇒ ★★**⇒ (a) 同一段铜重复落 (★实测 GND 出脚直道重复 5~8 次★)
+                    #     ⇒ ★★**⇒ (b) 被否决那次的铜成了【悬空端】⇒ DRC `track_dangling`** ★★
+                    #     ⇒ ★**⇒ 臂板里大量【重复段】(★v76me1 76 / s8 42 / s9 34 / s10 100 条多余★)
+                    #     ⇒ ★**⇒ 零铜网/死腿/孤岛统计被污染 ⇒ ★【候选臂的名次制闸读数不可信】** ★★
+                    #   ★★**★修法 (★与铜边闸同一条铁律: 落线前就拦 ⇒ 事后剔铜是负收益★)**:
+                    #     ★**把【孔的可行性预检】提到 `_emit_path` 之前** ⇒ ★**不合格就直接跳过 ⇒ 一点铜都不落** ★★
+                    #   ★**默认关 ⇒ 逐位不变 (★老臂可复现★)**
+                    if GND_ORPHAN_FIX:
+                        _dup_pre = False
+                        for (vn, vx, vy, vl1, vl2) in self.vias:
+                            if vn == net and abs(vx - px) < 1e-6 and abs(vy - py) < 1e-6:
+                                _dup_pre = True
+                                break
+                        if not _dup_pre:
+                            # ★**预检: 孔放不下 ⇒ 【这一轮候选直接淘汰】(★一点铜都不落★)**
+                            if self._via_too_close(net, px, py):
+                                why["spacing"] = why.get("spacing", 0) + 1
+                                continue
+                            if not self._via_ok(via_top, via_bot, idx, net):
+                                why["viafree"] = why.get("viafree", 0) + 1
+                                continue
                     # ★★★2026-11-04 **过孔必须真落下来** (否则铜从一层跳到另一层却没孔)
                     if not self._emit_path(net, path, W_SIG, 1,
                                            stub_start=stub_start):

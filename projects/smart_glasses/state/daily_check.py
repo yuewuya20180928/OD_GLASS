@@ -103,6 +103,7 @@ GUARD_TESTS = (
     ("_test_edge_strict.py", "板边 fail-closed 守卫 (★自造违规铜 + 实测坏案例交叉验证★)"),
     ("_test_meander_edge.py", "蛇形出板闸守卫 (★PCB_MEANDER_EDGE★)"),
     ("_test_merge_fix.py", "共线合并瞬移守卫 (★PCB_MERGE_FIX★)"),
+    ("_test_gnd_orphan.py", "GND 孤儿铜守卫 (★PCB_GND_ORPHAN_FIX★)"),
 )
 
 
