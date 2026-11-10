@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-11 03:13** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-11 03:35** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -13,7 +13,7 @@
 
 【Q1 交付齐备率】 18/18 个必填验收块齐全
    hw-lead    6/6  缺: 无   交接单: 2026-11-06_hw-lead_周更新.md   ★按 2026-11-06_hw-lead_周更新.md 计分 (最新一份 2026-11-08_hw-lead_23条问题闭环验证.md 缺 ['B2', 'B4', 'B5', 'B6'])
-   sw-lead    6/6  缺: 无   交接单: 2026-11-11_sw-lead_ISS137_rev2_验证.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-11_sw-lead_ISS137_rev3_验证.md
    mech-lead  6/6  缺: 无   交接单: 2026-11-06_mech-lead_周更新.md
 
 【Q2 证据分级率】 3/3 个总工的交付做了证据分级
@@ -61,9 +61,9 @@
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 181 条 | 状态: closed=97 deferred=13 verified=33 fixed=10 open=26 fixing=2
+登记问题 181 条 | 状态: closed=97 deferred=13 verified=35 fixed=8 open=26 fixing=2
   ├─ 内部可自行推进: 152 条 | 外部依赖 (等老板/原厂/JBD): 29 条
-  ├─ 逾期未闭环: 36 条
+  ├─ 逾期未闭环: 34 条
   └─ 未闭环 blocker 级: 9 条
 
 【问题清单】(按 severity + 逾期排)
@@ -115,6 +115,8 @@
        波导未选型 → 缺 2D 外形图/容差角/彩虹纹 → 镜框不能开工
   🔴 ISS-144  deferred  owner=main       due=2026-11-05  
        ★★★★[demo 关键路径 #1] AR0234CS → RK3572 rkisp3 驱动移植 (★先出规格, 不出代码)
+  🔴 ISS-145  verified  owner=sw-lead    due=2026-11-05  
+       ★★★★[demo 关键路径 #2] demo 板 OD 管线打通规格: yolov5n INT8 → RKNN → 画框 → 视涯
   🔴 ISS-149  closed    owner=main       due=2026-11-05  
        ★★★[硬件优先] demo 硬件形态落地: 一块主板 + **IMX415 sensor 模组** + 屏幕驱动板模组 + FPC
   🔴 ISS-165  closed    owner=main       due=2026-11-05  
@@ -141,9 +143,6 @@
   🔴 ISS-139  open      owner=main       due=2026-11-05   ⏰逾期
        ★★[内部, 与选谁无关] ISP tuning 立项: 两个候选 sensor 都没有现成 IQ 文件 ⇒ 这笔账必须自己排
        ❌ ★逾期★ due=2026-11-05 已过, 仍 open
-  🔴 ISS-145  fixed     owner=sw-lead    due=2026-11-05   ⏰逾期
-       ★★★★[demo 关键路径 #2] demo 板 OD 管线打通规格: yolov5n INT8 → RKNN → 画框 → 视涯
-       ❌ ★逾期★ due=2026-11-05 已过, 仍 fixed
   🔴 ISS-155  open      owner=main       due=2026-11-06   ⏰逾期
        ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
        ❌ ★逾期★ due=2026-11-06 已过, 仍 open
@@ -247,6 +246,8 @@
        ★★[老板已拍板 D 的直接后果] sensor 换 AR0234CS ⇒ 网表电源域改造 (VDD_IO 1.8→2.8V) + 
   🟠 ISS-176  closed    owner=main       due=2026-11-06  
        ★★[显示接口重画] 显示器座换 Pi5 同规 22 位/0.5mm (吃 Waveshare 15→22 线) + 屏的控制 I2
+  🟠 ISS-179  verified  owner=sw-lead    due=2026-11-06  
+       ★★[手机测端到端] 显示画面烧帧计数器/时间码 + 手机慢动作测端到端延时作业指引
   🟠 ISS-141  deferred  owner=hw-lead    due=2026-11-07  
        ★★整机功耗账重算: OV04C10 155mW → AR0234CS (裸片功耗 [0数据]) ⇒ 皮肤温度 43°C 结论要重判
   🟠 ISS-178  closed    owner=main       due=2026-11-07  
@@ -346,9 +347,6 @@
   🟠 ISS-172  open      owner=main       due=2026-11-06   ⏰逾期
        ★★[选型待裁] 负载开关 U_PWR_SW / U_EN_SW: 原厂在售型号的判据互斥 (RON vs IQ vs 反向阻断)
        ❌ ★逾期★ due=2026-11-06 已过, 仍 open
-  🟠 ISS-179  fixed     owner=sw-lead    due=2026-11-06   ⏰逾期
-       ★★[手机测端到端] 显示画面烧帧计数器/时间码 + 手机慢动作测端到端延时作业指引
-       ❌ ★逾期★ due=2026-11-06 已过, 仍 fixed
   🟠 ISS-118  fixed     owner=hw-lead    due=2026-11-09   ⏰逾期
        ★板宽 15mm → 30mm 的硬件连带重算 (板框/网表/面积/逃线/跨铰链排布) —— 老板 10-29 19:16 放宽
        ❌ ★逾期★ due=2026-11-09 已过, 仍 fixed
@@ -466,7 +464,7 @@
   🟡 ISS-076  deferred  owner=mech-lead  due=2026-11-16  
        新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1
 
-❌ 违规 36 条
+❌ 违规 34 条
 ```
 ## 4. 阶段门 (G0-G4)
 ```
@@ -504,9 +502,9 @@
       ▸ 本关内已延后的实测项 (1):
           - M-BATT 续航实测 (按 Q4 拍板的口径) → 延后: 整机阶段 (demo 板没有电池)
 
-【G4】体验验收 (DoD 全过)  —  ⏳ 未到   缺 51 项
+【G4】体验验收 (DoD 全过)  —  ⏳ 未到   缺 49 项
       为什么要这一关: 所有问题单关闭 + 质量门全绿 + DoD 清单逐条签
-      ▸ 问题单未闭环 (51):
+      ▸ 问题单未闭环 (49):
           - ISS-004 [deferred] 波导未选型 (等 JBD) → 卡镜框打印开工
           - ISS-013 [deferred] 波导未选型 → 缺 2D 外形图/容差角/彩虹纹 → 镜框不能开工
           - ISS-016 [deferred] 走鹃Ⅱ 长宽高未知 → 光机位姿/干涉检查做不了
@@ -515,7 +513,7 @@
           - ISS-040 [deferred] 打印与量测条件不具备 (打印机跨网段不可达 + 无切片器/量具) → M-PRI
           - ISS-041 [open] ★★[当前 demo 板] 测试条件缺失 ⇒ G3 那一关不可判通过 (★202
           - ISS-048 [deferred] 光生物安全所需的光机参数缺失 (LED 波长/亮度/光通量/辐亮度) —— 已并
-          ... 另 43 条
+          ... 另 41 条
 
 ⏸  延后到整机/量产阶段的实测项 (**没删, 只是不在当期验收范围**):
     - M-SKIN: 整机/量产阶段做贴皮肤稳态温度 (43°C 是 ISO 13732-1 烧伤红线) —— 触发: 整机样机贴皮肤测试

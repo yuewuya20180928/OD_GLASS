@@ -1,6 +1,6 @@
 agent: sw-lead
 role: 软件总工
-updated_at: '2026-11-10'
+updated_at: '2026-11-11'
 updated_by: sw-lead
 status:
   phase: P2(方案设计)
@@ -886,23 +886,26 @@ needs_from:
   since: '2026-11-11'
 - key: iss137_rev2_f5_fixback
   to: main
-  item: "★ISS-137 **rev2 复验**: 技术内容全过, ★**5 处订正 5/5 命中我 rev1 点名的原文** (R1 唯一阻塞真闭合), ★**但我又抓到第 6 处同类残留 (F5)\
-    \ ⇒ 改这一行, 我立刻签, 不再有第三次**。详见 HANDOFF/2026-11-11_sw-lead_ISS137_rev2_验证.md **§8**。\n  ★**必改 (1 处)**:\
-    \ `state/issue_log.yaml:4702` (note【交付】② 段, 逻辑行 L6+L7) —— ★**现在写的是 '② 新增 compose_max_for(S5) ⇒ **可测判据**:\
-    \ 模式A ≤ 60ms ⇒ t_compose 测出 ≤ 多少才算过。' + 三个数 −2.69 / 10.09 / 16.65** ⇒ ★**但这三个数是 `display_out_max_for()`\
-    \ 的输出, 不是 `compose_max_for()` 的** (★**我实跑脚本**: `compose_max_for(13.305) = 2.319`, `display_out_max_for(13.305)\
-    \ = 10.095`` ⇒ ★**同一份 note 里 compose_max_for 有两个数 (L6 的 10.09 vs L22 的 2.32) ⇒ note 自相矛盾, 差的就是 TX\
-    \ 那 7.776ms ⇒ 这正是 R2 当初判'不成立'的那个口径分叉, 换了个位置复活**。\n  ★**精确 OLD/NEW (OLD 在 note 里恰好出现 1 次 ⇒ 可安全替换; ★**main\
-    \ 直接照抄进 `_fix_iss137_note_rev2_20261111.py` 的 REPLACEMENTS 即可★**)**:\n    OLD = '② 新增 compose_max_for(S5)\
-    \ ⇒ **可测判据**: 模式A ≤ 60ms ⇒ t_compose 测出 ≤ 多少才算过。\\n   RK3572+yolov5s@640: 上限 **−2.69ms** (负数 ⇒ 不用测,\
-    \ 必不过) · RK3572+yolov5n@640: 上限 **10.09ms** · RK3572+yolov5s@320: 上限 **16.65ms**。'\n    NEW = '② 新增\
-    \ **display_out_max_for(S5)** (输出侧总额上限) + **compose_max_for(S5)** (= 输出侧总额上限 − TX 物理下限) ⇒ **可测判据**:\
-    \ 模式A ≤ 60ms ⇒ 板端第7段+第8段合计测出 ≤ 多少才算过。\\n   【输出侧总额上限】RK3572+yolov5s@640: **−2.69ms** (负数 ⇒ 不用测, 必不过)\
-    \ · RK3572+yolov5n@640: **10.09ms** · RK3572+yolov5s@320: **16.65ms**; ★**【减 TX 后·合成上限 (仅第7段 t_compose)】:\
-    \ −10.46ms / **2.32ms** / 8.87ms** (★TX 物理下限 @1080p = 7.776ms★)。'\n  ★**★我已模拟过这次替换 (7 项自检全过)**: OLD\
-    \ 整句消失 ✓ 三个数一个不动 ✓ 合成上限 2.32ms 写入 ✓ 不再有裸 't_compose 测出 ≤ 多少' ✓ **note 其余内容一字未动** (`fixed.replace(NEW,\
-    \ OLD) == note` ⇒ True) ✓ ⇒ ★**零附带风险, 一个字符串的活**。\n  ★**★另外: 这条是 rev0 遗留, rev1/rev2 都没扫到 (我 rev1 也漏了\
-    \ ⇒ 我认, 不赖 main) ⇒ ★**改完跟我说一声, 我复跑一次 grep + --selftest 就签** ★。"
+  item: "★**【已消化 2026-11-11 03:3x (sw-lead rev3 复验) — F5 已真闭合, 本条已签掉: 旧断言整句 count=0 / 新断言整句 count=1 (逐字节,\
+    \ main 一字未改写我 rev2 §8.2 ⑥ 的串) / 四个数全在位且归属正确 / note 里 compose_max_for 7 处全带 TX 语义 (真歧义行=0) / 4 个交付物\
+    \ md5 与 rev2 逐字节相同 / 181 条逐字段比对只有 ISS-137.note 变了 ⇒ ★**ISS-137 判 pass, 建议 main 落账 verified (verify_result=pass,\
+    \ verify_by=sw-lead, verify_date=2026-11-11); 原文照留】**★\n★ISS-137 **rev2 复验**: 技术内容全过, ★**5 处订正 5/5\
+    \ 命中我 rev1 点名的原文** (R1 唯一阻塞真闭合), ★**但我又抓到第 6 处同类残留 (F5) ⇒ 改这一行, 我立刻签, 不再有第三次**。详见 HANDOFF/2026-11-11_sw-lead_ISS137_rev2_验证.md\
+    \ **§8**。\n  ★**必改 (1 处)**: `state/issue_log.yaml:4702` (note【交付】② 段, 逻辑行 L6+L7) —— ★**现在写的是 '② 新增\
+    \ compose_max_for(S5) ⇒ **可测判据**: 模式A ≤ 60ms ⇒ t_compose 测出 ≤ 多少才算过。' + 三个数 −2.69 / 10.09 / 16.65**\
+    \ ⇒ ★**但这三个数是 `display_out_max_for()` 的输出, 不是 `compose_max_for()` 的** (★**我实跑脚本**: `compose_max_for(13.305)\
+    \ = 2.319`, `display_out_max_for(13.305) = 10.095`` ⇒ ★**同一份 note 里 compose_max_for 有两个数 (L6 的 10.09\
+    \ vs L22 的 2.32) ⇒ note 自相矛盾, 差的就是 TX 那 7.776ms ⇒ 这正是 R2 当初判'不成立'的那个口径分叉, 换了个位置复活**。\n  ★**精确 OLD/NEW\
+    \ (OLD 在 note 里恰好出现 1 次 ⇒ 可安全替换; ★**main 直接照抄进 `_fix_iss137_note_rev2_20261111.py` 的 REPLACEMENTS\
+    \ 即可★**)**:\n    OLD = '② 新增 compose_max_for(S5) ⇒ **可测判据**: 模式A ≤ 60ms ⇒ t_compose 测出 ≤ 多少才算过。\\\
+    n   RK3572+yolov5s@640: 上限 **−2.69ms** (负数 ⇒ 不用测, 必不过) · RK3572+yolov5n@640: 上限 **10.09ms** · RK3572+yolov5s@320:\
+    \ 上限 **16.65ms**。'\n    NEW = '② 新增 **display_out_max_for(S5)** (输出侧总额上限) + **compose_max_for(S5)**\
+    \ (= 输出侧总额上限 − TX 物理下限) ⇒ **可测判据**: 模式A ≤ 60ms ⇒ 板端第7段+第8段合计测出 ≤ 多少才算过。\\n   【输出侧总额上限】RK3572+yolov5s@640:\
+    \ **−2.69ms** (负数 ⇒ 不用测, 必不过) · RK3572+yolov5n@640: **10.09ms** · RK3572+yolov5s@320: **16.65ms**;\
+    \ ★**【减 TX 后·合成上限 (仅第7段 t_compose)】: −10.46ms / **2.32ms** / 8.87ms** (★TX 物理下限 @1080p = 7.776ms★)。'\n\
+    \  ★**★我已模拟过这次替换 (7 项自检全过)**: OLD 整句消失 ✓ 三个数一个不动 ✓ 合成上限 2.32ms 写入 ✓ 不再有裸 't_compose 测出 ≤ 多少' ✓ **note\
+    \ 其余内容一字未动** (`fixed.replace(NEW, OLD) == note` ⇒ True) ✓ ⇒ ★**零附带风险, 一个字符串的活**。\n  ★**★另外: 这条是 rev0\
+    \ 遗留, rev1/rev2 都没扫到 (我 rev1 也漏了 ⇒ 我认, 不赖 main) ⇒ ★**改完跟我说一声, 我复跑一次 grep + --selftest 就签** ★。"
   since: '2026-11-11'
 answers:
 - key: debug_port_form
@@ -1404,26 +1407,28 @@ interface_claims:
     0.95 ⇒ 保住 yolov5n 与 60ms 余量; 精度门槛归整机阶段**。'
   ref: ISS-164 + SW/DEMO_OD_PIPELINE_SPEC.md §6.2
 - key: iss137_verify_result
-  value: fail
-  note: "★ISS-137 **rev2 复验** (2026-11-11 01:5x, sw-lead 独立复验) = **fail(轻量): 唯一阻塞 = note 一行的函数归属 (F5)**。\n\
-    \  ★**技术内容全过 (逐条重跑, 不是照抄 rev1)**: R2 (RKNN_BENCH.md 全文件 diff = 3 行, 只动标签, 数字零改动; §4.1 S1~S10 整段完好)\
-    \ · R3 (6 个数我独立复算逐位对上: 输出侧 −2.69/10.09/16.65 · 合成 −10.46/2.32/8.87; '必要条件不是充分条件'在位) · R4 ('显示段占 T_FIXED\
-    \ ≥15% 就破线' 那句已删干净, 脚本+规格双删, 全文 grep 0 命中) · R5 ('显示 TX 与光机 S10 仍是 [0数据]'在位) · R6 (版本头 v1.1 2026-11-10)\
-    \ · ★**④TX 独立复算**: 一帧比特/链路有效带宽 ⇒ 7.776ms@1080p / 1.800ms@800×600 (与脚本逐位一致), TX∝像素比精确成立, '合成上限 = 输出侧上限\
-    \ − TX' 算术成立, ★**TX 必须扣** (串行在关键路径 + 已发布模型本来就有它 + 缺它就把 yolov5n 58.41 翻成 66.18) · ★**⑥ 已发布数字逐字节未动**:\
-    \ §①~④⑥⑦ 与 11-02 原版 IDENTICAL, docstring 之外零差异 · ★**边界**: 4 个交付物 md5 与 rev1 复验时逐字节相同。\n  ★**5 处订正\
-    \ 5/5 逐条命中我 rev1 点名的原文** (我拿 rev1 §7.4 的原文去比对, 不采信脚本自证): ①槽位名 T_DISPLAY_OUT (:4701) · ②16.65ms (:4702)\
-    \ · ③两个点 (:4703) · ④口径纪律段整段重写 (:4704-4706) · ⑤7 条护栏 + 护栏③ 描述 (:4707) ⇒ ★**rev1 唯一阻塞项 (R1 半修) 已真闭合**。\n\
-    \  ★**★唯一阻塞 = F5 (rev2 新抓)**: `state/issue_log.yaml:4702` (note【交付】② 段, L6+L7) 仍写 '② 新增 compose_max_for(S5)\
-    \ ⇒ t_compose 测出 ≤ 多少才算过' 并列出 −2.69/10.09/16.65, ★**但这三个数是 `display_out_max_for()` 的输出; `compose_max_for()`\
-    \ 实际返回 −10.46/2.32/8.87** ⇒ ★**同一份 note 里 compose_max_for 有两个数 (L6 的 10.09 vs L22 的 2.32) ⇒ note 自相矛盾,\
-    \ 且差的就是 TX 那 7.776ms** ⇒ ★**这是 rev0 遗留** (rev0 的 compose_max_for 本来就返回这三个数; rev1 拆 TX 时没同步这行), ★**rev1/rev2\
-    \ 两轮都没扫到 (我 rev1 也漏了 ⇒ 我认, 不赖 main)** ⇒ 精确 OLD/NEW 替换串见 HANDOFF/2026-11-11_sw-lead_ISS137_rev2_验证.md\
-    \ §8.2 ⑥ + needs_from.iss137_rev2_f5_fixback。\n  ★**rev0 判决保留**: fail (退回 R1~R6) —— 见 HANDOFF/2026-11-10_sw-lead_ISS137_验证.md\
-    \ §0~§6 (一字未改) · ★**rev1 判决保留**: fail(轻量) —— 同文件 §7 (一字未改) ⇒ ★**三个判决可分开读**。\n  ★**另报 (非阻塞)**: 护栏 2\
-    \ 个洞 (M2 默认参数踢 TX / M3 无护栏钉 TX 绝对值, 与 rev1 一致, 非本轮新增) · ★**DSI payload 8× 口径差实为 6 处 (比 rev1 数的 2 处多\
-    \ 4 处, 含一份对供应商的询价函草稿)** · note 交付② 与老板页 §0.6 关键数字行的措辞 ⇒ 详见 §8.3 / §8.4。"
-  ref: HANDOFF/2026-11-11_sw-lead_ISS137_rev2_验证.md §8 (rev2 复验) + §0~§6/§7 (rev0/rev1 判决保留, 一字未改)
+  value: pass
+  note: '★ISS-137 **rev3 复验** (2026-11-11 03:3x, sw-lead 独立复验) = **pass (F5 已闭合)** ⇒ ★**建议 main 把 ISS-137
+    落账为 verified (verify_result=pass, verify_by=sw-lead, verify_date=2026-11-11)**。★**F5 闭合 (我独立查, 不采信
+    main 自证)**: ①我拿 rev2 §8.2 ⑥ 给 main 的**精确 OLD 串** (含换行+下一行三个数那一整句) 去 note 里数 ⇒ **count(OLD)=0** (旧断言整句消失,
+    不是 token 缺席) + **count(NEW)=1** (逐字节相同 ⇒ main 一字未改写我 rev2 的串) 落在 state/issue_log.yaml:4702 note 逻辑行
+    L5+L6; ②**四个数全在位且归属正确**: 10.09ms(输出侧)/2.32ms(合成)/−10.46ms/8.87ms (另 −2.69/16.65 一个没动) —— 我自己 import
+    脚本实跑复核: display_out_max_for/compose_max_for = −2.685/−10.461 · 10.095/2.319 · 16.650/8.874, tx_min_ms(1920,1080)=7.776,
+    三个 S5 的差值都恰好 7.776 ⇒ 与 note 逐位对上; ③**自相矛盾消除**: note 里 compose_max_for 出现 7 处 (逻辑行 L5/L10/L21/L41/L42/L43/L44),
+    我逐行查 ⇒ **每一处都带『= 输出侧总额上限 − TX 物理下限』语义或是 rev3 段 changelog 的历史陈述** (L41 明确写『这三个数是 display_out_max_for()
+    的输出, 不是 compose_max_for() 的』) ⇒ **真歧义行=0** ⇒ rev2 拍的『同一函数名挂两个数 (10.09 vs 2.32)』已消除。★**自证复跑 (我实跑)**:
+    HW/e2e_budget_rk3572.py --selftest ⇒ rc=0 (原4条+拆分护栏7条, 10行全绿) · SW/tools/demo_timing_check.py ⇒ rc=0
+    (20/20) · ★**4 个交付物 md5 与 rev2 复验时逐字节相同** (0e622d56…/71f0c913…/62026429…/661f43c7…) ⇒ 交付物一个字节没动 ·
+    ★**改动范围**: 我用 F5 前备份 (state/issue_log.yaml.bak_f5_20261111) 独立比 ⇒ 181 条逐字段比对**只有 ISS-137.note 变了**
+    (5530→7087 字符), 其余 180 条逐字段无变化; 再把 pre-F5 note 按 OLD→NEW 替换后逐字符 diff ⇒ **唯一 hunk = 末尾追加的 rev3 段**
+    ⇒ F5 那句之外 note 一字未动。★**铁律守住**: status 仍 fixed / verify_result 仍 null / verify_date 仍 null ⇒ main 没自签
+    (我实读 YAML 确认)。★**rev0 判决保留**: fail (退回 R1~R6) —— 见 HANDOFF/2026-11-10_sw-lead_ISS137_验证.md §0~§6 (一字未改)
+    · ★**rev1 判决保留**: fail(轻量) —— 同文件 §7 (一字未改) · ★**rev2 判决保留**: fail(轻量) —— HANDOFF/2026-11-11_sw-lead_ISS137_rev2_验证.md
+    §8 (一字未改) ⇒ ★**四个判决可分开读, 我这轮签的是 rev3 这一层**。★**另报 (非阻塞, 全部未做, 我如实报不粉饰)**: 护栏 2 个洞 (M2 默认参数踢 TX / M3
+    无护栏钉 TX 绝对值, 与 rev1/rev2 一致非新增) · DSI payload 8× 口径差 6 处 (含一份供应商询价函草稿, 已派 hw-lead) · 4 处下游旧口径残留全部未做
+    (PROJECT_TRACKER.md:2098 / SW/DEMO_OD_PIPELINE_SPEC.md:447 / SW/DEMO_OD_TIMING_SPEC.md:194 / SW/tools/rknn_bench.py:257·261)
+    ⇒ 详见 §9.3。'
+  ref: HANDOFF/2026-11-11_sw-lead_ISS137_rev3_验证.md §9 (rev3 复验) + §0~§6/§7/§8 (rev0/rev1/rev2 判决保留, 一字未改)
 open_questions:
 - id: SW-Q1
   to: main
