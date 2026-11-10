@@ -1836,30 +1836,57 @@ class GridRouter:
         """
         if not CORRIDOR_YIELD:
             return False
+        # ★★★★**★只用【它【实际】会走的那条出脚直道】(★2026-11-10 20:4x 修正★)★★★★★★
+        #   ★**为什么 (★实测★)**: ★★**第一版枚举了【4 方向 × 4 长度 = 16 个候选出脚口】★★**
+        #     ⇒ ★**几乎任何一根直道都会"沾到"某个候选出脚口】⇒ ⇒ ⇒ **误判率极高**
+        #     ⇒ ★★**⇒ 实测后果: ★`v76mq` 臂裸板 unc 40 → 79 (★净亏 39!★)· ★多 13 条 clearance** ★★
+        #   ★★**⇒ ⇒ 修法: ★★**问"它【实际】的出脚直道"是啥** ⇒ ★★**【用 `escape_stub()` 拿真实方向】★★** ★★
+        #     ⇒ ★★**⇒ ⇒ 只在【真会交叉】时才判挡 ⇒ ⇒ 误判率大降** ★★
+        #     ⇒ ★★**⇒ ⇒ 【只算【已经落铜的】别的网的出脚口】(★没布的网将来可以自己让路★)⇒ ⇒ 更准** ★★
+        _seen = set()
         for _net2, _pl in self.net_pads.items():
             if _net2 == net:
                 continue
             for _pad2 in _pl:
+                _key = (_net2, str(_pad2[1]))
+                if _key in _seen:
+                    continue
+                _seen.add(_key)
                 _px, _py = _pad2[2], _pad2[3]
-                # ★★另一网的出脚口 (★从焊盘沿四个方向各 ESC_LEN★)★★
-                for _ln in ESC_LENS:
-                    for (_dx, _dy) in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-                        _ex, _ey = _px + _dx * _ln, _py + _dy * _ln
-                        # ★★它的出脚直道【会不会穿过我这条直道】★★
-                        if not _seg_seg_dist(x1, y1, x2, y2,
-                                             _px, _py, _ex, _ey) < 0.30:
-                            continue
-                        # ★★我这条直道离它的【出脚口】近不近 ★★
-                        _d = _pt_seg_dist(_px, _py, x1, y1, x2, y2)
-                        # ★★**判据 (★实测校准★)**: ★**出脚直道长 1.2mm ⇒ 别人的出脚口
-                        #   若落在我这条直道【0.375mm】之内 ⇒ ⇒ 它的脚【被我的铜堵住】**
-                        #   ⇒ ★**实测: `ID_DETECT_1` 的直道离 `BOOT_N` 出脚口 0.91mm,
-                        #     而 `BOOT_N` 的出脚直道是 y=11.04→12.24 ⇒ 两者【重叠】** ★★
-                        if _d < 0.30 + W_MIN / 2.0:
-                            return True
-                        # ★★**另一条判据 (★更贴近实际★)**: ★**我的直道【会不会穿过它的出脚直道】**
-                        #   ⇒ ★**两条直道交叉 ⇒ ⇒ 必有一根被堵** ★★
-                        if _seg_seg_dist(x1, y1, x2, y2, _px, _py, _ex, _ey) < 0.30:
+                # ★★**只查【别的网【已经落铜的】那些焊盘】(★它们已经占定了出脚口★)★★
+                _has_cu = False
+                for _s in self.tracks:
+                    if _s[0] != _net2:
+                        continue
+                    if _s[5] != 0:
+                        continue
+                    if (abs(_s[1] - _px) < 0.01 and abs(_s[2] - _py) < 0.01) or \
+                       (abs(_s[3] - _px) < 0.01 and abs(_s[4] - _py) < 0.01):
+                        _has_cu = True
+                        break
+                if not _has_cu:
+                    continue
+                try:
+                    _st = self.escape_stub(_net2, _pad2)
+                except Exception:
+                    _st = None
+                if _st is None:
+                    continue
+                _ex, _ey = _st[0], _st[1]
+                # ★★**它的出脚直道【会不会穿过我这条直道】★★
+                if not _seg_seg_dist(x1, y1, x2, y2, _px, _py, _ex, _ey) < 0.30:
+                    continue
+                # ★★**我这条直道离它的【出脚口】近不近 ★★
+                _d = _pt_seg_dist(_px, _py, x1, y1, x2, y2)
+                # ★★**判据 (★实测校准★)**: ★**出脚直道长 1.2mm ⇒ 别人的出脚口
+                #   若落在我这条直道【0.375mm】之内 ⇒ ⇒ 它的脚【被我的铜堵住】**
+                #   ⇒ ★**实测: `ID_DETECT_1` 的直道离 `BOOT_N` 出脚口 0.91mm,
+                #     而 `BOOT_N` 的出脚直道是 y=11.04→12.24 ⇒ 两者【重叠】** ★★
+                if _d < 0.30 + W_MIN / 2.0:
+                    return True
+                # ★★**另一条判据 (★更贴近实际★)**: ★**我的直道【会不会穿过它的出脚直道】**
+                #   ⇒ ★**两条直道交叉 ⇒ ⇒ 必有一根被堵** ★★
+                if _seg_seg_dist(x1, y1, x2, y2, _px, _py, _ex, _ey) < 0.30:
                             return True
         return False
 

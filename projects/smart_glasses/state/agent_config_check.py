@@ -46,6 +46,34 @@ SHARED_LIB = os.path.join(OC, "workspace", "projects", "smart_glasses")
 R: list[dict] = []
 
 
+# ============================================================
+# ★★2026-11-10 20:4x 新增 (★模块级 ⇒ 自测与主流程用**同一个函数对象**, 不会漂)
+# ============================================================
+def count_cron_jobs(rc: int, out: str) -> tuple[int, str]:
+    """数 cron job 数。返回 (njobs, state); state ∈ {'ok', 'probe_failed'}。
+
+    ★★★**病根修复 (实测事故 2026-11-10 20:14)**: ★旧写法 `cron_rc != 0 ⇒ njobs = 0 ⇒ 判"缺"`
+      ⇒ ★**"探针失败"被当成"配置缺失"** ⇒ ★**假回退 ("G 运行时能力 13/14 · cron 没了") 推进了公开仓**
+      ⇒ ★**老板在 GitHub 上看到的是一条不存在的回退**。
+      ⇒ ★**本机实测 `openclaw cron list --json` 8 个 job 全在 + agent_config_check 全绿 81/81**。
+    ★★**修法 (三态, 不再二态)**: ①探针 rc≠0 或 JSON 解析失败 ⇒ 判 **'probe_failed' (未测到)**,
+      ★**绝不判 "0 个 = 缺"** ⇒ ②调用方据此在报告里写清"未测到, 不等于没有" ⇒ ③真 0 个 job
+      (探针好使) ⇒ 判 (0, 'ok') ⇒ ★**"没有" 与 "没测到" 分得开**。
+    ★与 MEMORY 铁律同源: 「恒为 0 / 恒为空的指标比没有指标更危险」 ★这里是**"恒为 0 的失败被当成事实"**。
+    """
+    if rc != 0:
+        return 0, "probe_failed"
+    try:
+        d = json.loads(out)
+    except Exception:  # noqa: BLE001
+        return 0, "probe_failed"
+    try:
+        jobs = d.get("jobs") if isinstance(d, dict) else d
+        return len(jobs or []), "ok"
+    except Exception:  # noqa: BLE001
+        return 0, "probe_failed"
+
+
 def chk(group: str, name: str, ok: bool, detail: str = "", fix: str = "") -> None:
     R.append({"group": group, "name": name, "ok": bool(ok), "detail": detail, "fix": fix})
 
@@ -185,15 +213,36 @@ def main() -> int:
     chk("F 三层守卫", "守卫审计日志存在", os.path.exists(log), log)
 
     # ---------- G 运行时能力 ----------
+    # ★★★2026-11-10 20:4x 修掉一个"瞬时抖动被当成硬回退"的口径洞 (★实测事故: ★20:14 那次
+    #   GitHub 自动同步把「G 运行时能力 13/14 通过 · cron 巡检/推进任务在位 (≥3) → 缺」推进了公开仓,
+    #   ★**老板在 GitHub 上看到的是"巡检 cron 没了"**, 但本机实测 `openclaw cron list --json`
+    #   ★**8 个 job 全在 + agent_config_check 全绿 81/81** ⇒ 那是一条**假回退**)。
+    #   ★★**病根**: 旧写法 `cron_rc != 0 ⇒ njobs = 0 ⇒ 判"缺"` ⇒ ★**"探针失败"被当成"配置缺失"**,
+    #   ★与 MEMORY 铁律「恒为 0 / 恒为空的指标比没有指标更危险」**同一个病** (只是方向相反:
+    #   这里是**恒为 0 的失败被当成事实**)。
+    # ★★**改法 (三态, 不再二态)**: ①探针 rc≠0 或 JSON 解析失败 ⇒ 判**"探针失败 (未测到)"**,
+    #   ★**不判"缺"** ⇒ ②重试一次 (瞬时抖动自愈) ⇒ ③仍失败 ⇒ ★**明确写"未测到", 并提示重跑**,
+    #   ★**不许把"没测到"印成"没有"**。
+    # ★★**判据抽成纯函数 count_cron_jobs(rc, out) → (njobs, state)**, ★state ∈ {ok, probe_failed}
+    #   ⇒ ★**可单测** (★自测用"实测的假回退"当回归夹具: 探针 rc≠0 时必须判 probe_failed,
+    #   ★**绝不能判 0 个**)。
     cron_rc, cron_out = sh(["openclaw", "cron", "list", "--json"])
-    njobs = 0
-    if cron_rc == 0:
-        try:
-            njobs = len(json.loads(cron_out).get("jobs") or json.loads(cron_out))
-        except Exception:  # noqa: BLE001
-            njobs = 0
-    chk("G 运行时能力", "cron 巡检/推进任务在位 (≥3)", njobs >= 3, f"{njobs} 个",
-        "缺 → 每日巡检与周交付窗口不会自动跑")
+    njobs, cron_state = count_cron_jobs(cron_rc, cron_out)
+    if cron_state == "probe_failed":
+        # ★**重试一次** (★瞬时抖动自愈: ★实测 20:14 那次探针失败, ★20:4x 重跑 3 次全是 8 个 job)
+        cron_rc, cron_out = sh(["openclaw", "cron", "list", "--json"])
+        njobs, cron_state = count_cron_jobs(cron_rc, cron_out)
+    if cron_state == "ok":
+        chk("G 运行时能力", "cron 巡检/推进任务在位 (≥3)", njobs >= 3, f"{njobs} 个",
+            "缺 → 每日巡检与周交付窗口不会自动跑")
+    else:
+        # ★**未测到 ≠ 没有** ⇒ 判失败但**写清是探针问题**, 且**把"已实测在位"的事实一并记上**
+        #   (★避免下游文档/播报把瞬时抖动说成"cron 没了" ⇒ ★那是会误导老板决策的假回退)
+        chk("G 运行时能力", "cron 巡检/推进任务在位 (≥3) —— ★探针失败, 未测到",
+            False,
+            "探针失败 (openclaw cron list --json 返回 rc≠0 或 JSON 解析失败) ⇒ ★**未测到, 不等于没有**",
+            "★重跑 `python3 state/agent_config_check.py` 即可 (★瞬时抖动自愈); "
+            "★**不要把这一条当成『巡检 cron 没了』来决策**")
     for sc in ("frag_write.py", "merge.py", "gate_check.py", "issue_check.py",
                "stage_gate.py", "daily_check.py", "advance.py", "status.py", "readiness.py"):
         chk("G 运行时能力", f"{sc} 存在", os.path.exists(os.path.join(SHARED_LIB, "state", sc)))
@@ -241,5 +290,49 @@ def main() -> int:
     return 1 if bad else 0
 
 
+# ============================================================
+# ★自测 (★2026-11-10 20:4x 加) —— 回归夹具 = ★**实测的 20:14 假回退**
+# ============================================================
+def self_test():
+    """★自测: count_cron_jobs 的三态判据。
+
+    ★**回归夹具用"实测的真事故"**: 2026-11-10 20:14 那次 GitHub 自动同步里,
+    ★**探针瞬时失败被当成"cron 巡检任务没了"** ⇒ ★**假回退被推进了公开仓**
+    ⇒ ★**老板在 GitHub 上看到"巡检 cron 没了"**。
+    ⇒ ★**必须保证: 探针失败 ⇒ 判 probe_failed (未测到), 绝不能判成 "0 个 = 缺"。**
+    """
+    # ★**判据在模块级 ⇒ 这里用的是与主流程完全同一个函数对象 (不会漂)**
+    f = count_cron_jobs
+
+    # ① 正常: 8 个 job (★实测本机真值) ⇒ ok + 8
+    n, st = f(0, json.dumps({"jobs": [{"id": str(i)} for i in range(8)]}))
+    assert (n, st) == (8, "ok"), "★正常路径坏了: %s %s" % (n, st)
+    print("✔ 正常: 8 个 job ⇒ (8, 'ok')")
+
+    # ② ★★**回归夹具 (实测的 20:14 假回退)**: 探针 rc≠0 ⇒ **必须 probe_failed, 绝不能是 (0,'ok')**
+    n, st = f(1, "")
+    assert st == "probe_failed", "★★**探针失败被判成 ok ⇒ 假回退会再犯 (这正是 20:14 那条假回退的病根)**"
+    print("✔ 回归夹具: 探针 rc≠0 ⇒ (0, 'probe_failed') ★**没被判成 '0 个 = 缺'**")
+
+    # ③ 探针 rc=0 但输出不是 JSON (★网关半死时常见) ⇒ 同样 probe_failed
+    n, st = f(0, "not json at all")
+    assert st == "probe_failed", "★非 JSON 输出被判成 ok ⇒ 假回退会再犯"
+    print("✔ 探针 rc=0 但输出非 JSON ⇒ (0, 'probe_failed')")
+
+    # ④ ★**真的 0 个 job** (探针好使, 确实没有) ⇒ 判 (0, 'ok') ⇒ **"没有"与"没测到"分得开**
+    n, st = f(0, json.dumps({"jobs": []}))
+    assert (n, st) == (0, "ok"), "★真 0 个 job 必须判 ok (没有), 不能和 probe_failed 混: %s %s" % (n, st)
+    print("✔ 真 0 个 job ⇒ (0, 'ok') ★**'没有' 与 '没测到' 分得开**")
+
+    # ⑤ 裸数组形式 (某些版本不带 'jobs' 键) ⇒ 也要能数
+    n, st = f(0, json.dumps([{"id": "a"}, {"id": "b"}]))
+    assert (n, st) == (2, "ok"), "★裸数组形式坏了: %s %s" % (n, st)
+    print("✔ 裸数组形式 ⇒ (2, 'ok')")
+    print("═══ ALL TESTS PASS ═══")
+    return 0
+
+
 if __name__ == "__main__":
+    if "--self-test" in sys.argv:
+        sys.exit(self_test())
     sys.exit(main())

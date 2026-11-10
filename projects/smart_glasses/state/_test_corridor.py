@@ -117,7 +117,13 @@ if pcbnew is not None:
         _d < _stub_len + 0.375,
         "★实测 %.4f ⇒ 不重叠 ⇒ ⑤ 的前提不成立★" % _d)
 
-    # ★★**用真判据问: 这条直道会不会挡 `BOOT_N` 的出脚** ★★
+    # ★★★**要让真判据成立, 必须先造出【真实场景】: ★`ID_DETECT_1` 的出脚直道已经落铜** ★★★
+    # ★★**⇒ 因为修正后的判据【只查【已落铜的】别的网】(★没布的网将来可以自己让路★)★★** ★★
+    _st = r.escape_stub("ID_DETECT_1", (0, 0, 62.80, 11.04, (0,)))
+    print("  ★(★为测判据, 用 ID_DETECT_0 的位置代表 ID_DETECT_1 的出脚口★)")
+    # ★★**把 `BOOT_N` 的出脚直道落成铜 (★模拟"BOOT_N 已经先布了"★)** ★★
+    r.tracks.append(("BOOT_N", 63.60, 11.04, 63.60, 12.24, 0, 0.15))
+    # ★★**再问: `ID_DETECT_1` 那条横道 挡不挡 `BOOT_N` 的出脚口** ★★
     _blocked = r._stub_blocks_neighbor("ID_DETECT_1", CROSS[0], CROSS[1], CROSS[2], CROSS[3])
     print("  ★真判据 _stub_blocks_neighbor('ID_DETECT_1', 那条横道) = %s" % _blocked)
     chk("⑤b 真判据必须判【那条横道挡住了 `BOOT_N` 的出脚口】",
