@@ -49,8 +49,21 @@ fi
 #   ★**为什么**: ★**原来固定写 `/tmp/_cab_候选.json` / `/tmp/_cab_基线.json`** ⇒ ★**两个臂同时比 ⇒ 后一个覆盖前一个的 DRC json
 #     ⇒ ⇒ 判据可能读【另一个臂的板】⇒ ⇒ 结论错** ⇒ ★**⇒ 改成按板文件名唯一** ★★
 #   ★**老名字保留一份兼容 (★别的脚本可能在读)** ★★
-_CAND_JSON="/tmp/_cab_$(basename "$SRC" | tr -c 'A-Za-z0-9._-' '_' | cut -c1-48).cand.json"
-_BASE_JSON="/tmp/_cab_$(basename "$BASE" | tr -c 'A-Za-z0-9._-' '_' | cut -c1-48).base.json"
+# ★★★★**★2026-11-10 23:5x 【★★修掉那个挂了很多轮的"basename 撞名"★★ (★本轮实测会咬人★)】★★★★ ★★★
+#   ★**为什么这次必须修**: ★**所有臂的链终板都叫 `final_chain.kicad_pcb` ⇒ ★
+#     ★★**⇒ `/tmp/chain_v76mv0/final_chain.kicad_pcb` 与 `/tmp/chain_v76mv1/final_chain.kicad_pcb` 的 basename 完全相同★★**
+#     ⇒ ⇒ **只按 basename 取名 ⇒ 两条臂的 DRC json 写进【同一个文件】⇒ ⇒ 判据读的是【另一块臂的板】** ⇒ ⇒ 结论错
+#   ★**修法**: ★**临时文件名用【整条路径】做唯一键 (★不是 basename★)⇒ ⇒ 路径不同 ⇒ 文件名必不同** ★★
+#     ⇒ ★**兼容**: ★**老名字 (★只有 basename★) 仍会生成, 但【不再被读】⇒ ⇒ 不破坏别的脚本** ★★
+#   ★★**⇒ ⇒ 教训: ★【"唯一名"必须用【完整路径】⇒ 只用 basename 就不唯一 (★同名文件在���目录是常态★)】★★** ★★★
+_SKEY() { printf '%s' "$1" | tr -c 'A-Za-z0-9._-' '_' | cut -c1-60; }
+_CAND_JSON="/tmp/_cab_$(_SKEY "$SRC").cand.json"
+_BASE_JSON="/tmp/_cab_$(_SKEY "$BASE").base.json"
+_CAND_JSON_OLD="/tmp/_cab_$(basename "$SRC" | tr -c 'A-Za-z0-9._-' '_' | cut -c1-48).cand.json"
+_BASE_JSON_OLD="/tmp/_cab_$(basename "$BASE" | tr -c 'A-Za-z0-9._-' '_' | cut -c1-48).base.json"
+echo "  ★临时文件 (★按【整条路径】唯一 ⇒ 同名不同目录不会撞★):"
+echo "    候选: $_CAND_JSON"
+echo "    基线: $_BASE_JSON"
 for pair in "候选:$SRC:$_CAND_JSON" "基线:$BASE:$_BASE_JSON"; do
   tag="${pair%%:*}"; rest="${pair#*:}"; p="${rest%%:*}"; out="${rest#*:}"
   bash state/kicad.sh pcb drc --output "$out" --severity-error --severity-warning --format json "$p" >/dev/null 2>&1

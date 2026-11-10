@@ -41,6 +41,9 @@ def read_facts(path: str | None) -> str:
             return open(path, encoding="utf-8", errors="ignore").read()
         except OSError as e:
             return f"<读不到 {path}: {e}>"
+    # ★★★★2026-11-10 23:5x **超时从 600s 提到 2400s (★实测★)**: ★**九个守卫的 `daily_check --self-test`
+    #   实测要 ~14 分钟 ⇒ ⇒ 600s 超时 ⇒ ⇒ 每次刷新进展块都【超时失败】⇒ ⇒ 实时块一直是旧的** ★★
+    #   ⇒ ★★**⇒ 顺带: `--facts` 收的是【文件路径】⇒ ★【别把脚本本身当事实源传进去】(★脚本源码里有 `<stderr>` 字面量⇒ 闸门会拒★)** ★★
     # ★★**2026-11-07 01:4x 兄弟实测报出的第四点**: ★**默认路径只跑 `board_progress.py` ⇒ 缺 `[守卫]` 行**
     #   ⇒ ★**老板在实时块里看不到守卫状态 (★今晚刚立了"守卫者也要被守卫")**
     #   ⇒ ★**修在产生点: ★**默认事实源改成 `state/bcast_facts.sh` (★它才是播报用的那一份事实: board_progress + `[守卫]` + 板指纹行)**
@@ -48,7 +51,7 @@ def read_facts(path: str | None) -> str:
     try:
         r = subprocess.run(
             ["bash", os.path.join(HERE, "bcast_facts.sh")],
-            cwd=PROJ, capture_output=True, text=True, timeout=600)
+            cwd=PROJ, capture_output=True, text=True, timeout=2400)
         if r.returncode != 0:
             return f"<board_progress.py 失败: bcast_facts.sh rc={r.returncode}\n{r.stderr}"
         return r.stdout or ""
