@@ -31,6 +31,17 @@
 用法:
   bash state/pcbnew_py.sh state/_test_edge_strict.py
   ⇒ 全部断言过 ⇒ 打印 "ALL PASS" ⇒ rc=0; 任一失败 ⇒ rc=1
+
+  ★★**【故意弄坏 ⇒ 守卫必须抓到】的回归实验 (★不动真路由器★)** ★★
+    # ① 造一个【判据被改弱】的路由器副本 (★_edge_seg_ok 变成永远放行★)
+    python3 - <<'PY'
+    src = open("state/gen_pcb_routing.py", encoding="utf-8").read()
+    src = src.replace("        need = EDGE_CLEAR + w / 2.0",
+                      "        return True   # ★故意改弱★\n        need = EDGE_CLEAR + w / 2.0")
+    open("/tmp/_mutant_router.py", "w", encoding="utf-8").write(src)
+    PY
+    # ② 拿副本跑本测试 ⇒ ★必须 rc≠0 (★实测: 失败 5 项 / rc=1★)
+    EDGE_STRICT_SRC=/tmp/_mutant_router.py bash state/pcbnew_py.sh state/_test_edge_strict.py
 """
 import ast
 import io
@@ -174,7 +185,7 @@ import pcbnew                                          # noqa: E402
 
 MM = 1000000.0
 SYNTH_BOARD = "/tmp/_edge_strict_synth_fixture.kicad_pcb"
-SYNTH_DRC = "/tmp/_edge_strict_synth_drc.json"
+SYNTH_DRC = "/tmp/_edge_strict_synth_drc_%d.json" % os.getpid()
 
 # ★**违规组 (★6 条: 明确出板/贴板边的铜★)**
 SYNTH_BAD = [
@@ -412,7 +423,7 @@ if os.path.exists(V47):
     chk("E1 夹具B: `_edge_seg_ok` 在实测坏板上抓到 ≥5 条板边违规铜 (实测 %d 条)"
         % len(_flagb), len(_flagb) >= 5, "★只抓到 %d 条" % len(_flagb))
 
-    _ptsB, _flagB, _missedB, _fpsB = cross_validate(V47, "/tmp/_edge_strict_drc.json",
+    _ptsB, _flagB, _missedB, _fpsB = cross_validate(V47, "/tmp/_edge_strict_drc_%d.json" % os.getpid(),
                                                      EDGE_SEGFN)
     chk("E2 夹具B: KiCad DRC 报 ≥5 条 copper_edge_clearance (实测 %d 条)" % len(_ptsB),
         len(_ptsB) >= 5, "★只报 %d 条" % len(_ptsB))

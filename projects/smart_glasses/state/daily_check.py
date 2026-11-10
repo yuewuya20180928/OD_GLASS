@@ -99,8 +99,45 @@ def _selftest_ok(rc: int, out: str) -> bool:
     return (rc == 0) and len((out or "").strip().splitlines()) > 0
 
 
-def selftest() -> int:
-    """★**daily_check 自己的自测 (★★它是巡检链的一节 ⇒ 必须有下一节来验它)**"""
+GUARD_TESTS = (
+    ("_test_edge_strict.py", "板边 fail-closed 守卫 (★自造违规铜 + 实测坏案例交叉验证★)"),
+    ("_test_meander_edge.py", "蛇形出板闸守卫 (★PCB_MEANDER_EDGE★)"),
+    ("_test_merge_fix.py", "共线合并瞬移守卫 (★PCB_MERGE_FIX★)"),
+)
+
+
+def _run_guard_tests() -> list[str]:
+    """★★**把三个守卫脚本接进自测段** (★2026-11-10 11:2x 新增★)
+
+    ★★**判据**: ★**rc == 0 ★且★ stdout 非空** (★复用 `_selftest_ok`★)
+      ⇒ ★★**守卫脚本被改成"什么都不打印 + exit 0" ⇒ 照样被判不合格** ★★
+    """
+    fails: list[str] = []
+    for script, desc in GUARD_TESTS:
+        path = os.path.join(HERE, script)
+        if not os.path.exists(path):
+            fails.append("★守卫脚本不存在: %s" % script)
+            print("❌ 守卫 %s (%s) —— ★文件不存在★" % (script, desc))
+            continue
+        rc, out, err = run_sh(script)
+        ok = _selftest_ok(rc, out)
+        n = len((out or "").strip().splitlines())
+        print("%s 守卫 %s (%s) rc=%s (输出 %d 行)"
+              % ("✅" if ok else "❌", script, desc, rc, n))
+        if not ok:
+            tail = [x for x in ((err or "") + "\n" + (out or "")).strip().splitlines() if x.strip()]
+            fails.append("★守卫 %s (%s) 未过 (rc=%s, 输出 %d 行): %s"
+                         % (script, desc, rc, n, " | ".join(tail[-3:])[:300]))
+    return fails
+
+
+def selftest(full: bool = True) -> int:
+    """★**daily_check 自己的自测 (★★它是巡检链的一节 ⇒ 必须有下一节来验它)**
+
+    ★★**`full=True` (★`--self-test`★)**: ★**轻量判据自测 + ★三个守卫脚本 (★重的★)** ★★
+    ★★**`full=False` (★`--self-test-fast`★)**: ★**只跑轻量判据自测** ★★
+       ⇒ ★★**给"正常巡检段"用 (★别把重自测塞进每次巡检★)** ★★
+    """
     fails = []
     # ① ★**核心反向用例: 空壳自测 (rc=0 · 输出 0 行) 必须判不合格**
     if _selftest_ok(0, ""):
@@ -115,12 +152,19 @@ def selftest() -> int:
     # ④ rc 非 0 一律不合格 (无论有没有输出)
     if _selftest_ok(1, "有输出\n"):
         fails.append("★**rc≠0 却被判合格 ⇒ 判据有洞**")
+    # ⑤ ★★**2026-11-10 11:2x 【★把三个守卫脚本接进自测 (★原来零个真实调用点 ⇒ "回归钉住"只是手工跑★)】★★ ★★
+    #   ★★**为什么必须接**: ★**"守卫写好了但没人调用" = "裸奔"** ⇒ ★**跟项目铁律"闸脚本自己要有人拦"同一个病** ★★
+    #   ★★**接了之后**: ★**任一守卫失败 ⇒ `daily_check.py --self-test` 必须 rc≠0** ★★
+    if full:
+        fails.extend(_run_guard_tests())
     for f in fails:
         print("   ★ %s" % f)
     if fails:
         print("★daily_check --self-test 未过 (%d 项)" % len(fails))
         return 1
     print("✔ daily_check --self-test 全过 (★含'空壳自测必须被判不合格'这条反向用例)")
+    if full:
+        print("✔ 三个守卫脚本全过 (★板边 fail-closed / 蛇形出板闸 / 共线合并瞬移★)")
     print("★★**判断标准只有一条 (★兄弟给的)**: ★**把判据改回去, 有没有东西会红? 不会 ⇒ 这条判据裸奔**")
     return 0
 
@@ -128,10 +172,15 @@ def selftest() -> int:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-snapshot", action="store_true")
-    ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--self-test", action="store_true",
+                    help="★全量自测 (★轻量判据 + ★三个守卫脚本★) ⇒ 任一失败 rc≠0★")
+    ap.add_argument("--self-test-fast", action="store_true",
+                    help="★只跑轻量判据自测 (★不跑三个守卫 ⇒ 正常巡检段不受重自测拖累★)")
     args = ap.parse_args()
     if args.self_test:
-        return selftest()
+        return selftest(full=True)
+    if args.self_test_fast:
+        return selftest(full=False)
 
     problems: list[str] = []
 
@@ -140,13 +189,13 @@ def main() -> int:
     #   ★**为什么必须接自己的链**: ★**daily_check 是巡检链的一节 ⇒ 必须有下一节来验它**
     #   ⇒ ★**否则"判据退化 ⇒ 静默 PASS"这条路没人拦**
     #   ⇒ ★**注意别重蹈"自测接进巡检、但巡检自己没自测"的循环** ⇒ ★**现在这一环也接上了**
-    _rc_self, _out_self, _err_self = run_sys("daily_check.py", "--self-test")
+    _rc_self, _out_self, _err_self = run_sys("daily_check.py", "--self-test-fast")
     if _rc_self != 0:
-        problems.append("★daily_check --self-test 未过 (★判据退化? ★详见 stdout): "
+        problems.append("★daily_check --self-test-fast 未过 (★判据退化? ★详见 stdout): "
                         + ((_out_self or _err_self).strip().splitlines()[-1][:160]
                            if (_out_self or _err_self).strip() else ""))
-    print(f"{'✅' if _rc_self == 0 else '❌'} daily_check --self-test rc={_rc_self} "
-          f"(★判据退化守卫)")
+    print(f"{'✅' if _rc_self == 0 else '❌'} daily_check --self-test-fast rc={_rc_self} "
+          f"(★判据退化守卫★ · ★★三个守卫脚本只在 `--self-test` 跑 ⇒ 巡检段不受重自测拖累★★)")
 
     # 1) merge
     rc_m, out_m, err_m = run("merge.py")

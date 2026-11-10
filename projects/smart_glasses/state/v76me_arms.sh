@@ -50,34 +50,35 @@ echo "  ✓ 预留串 ⇒ 落盘 $PROJ/state/.lastgood/v76me_reserve.txt"
 printf '%s\n' "$RESERVE" > "$PROJ/state/.lastgood/v76me_reserve.txt"
 
 # ---- ② 两条臂并行开跑 (★唯一差别 = PCB_MEANDER_EDGE★) ----
+# ★★2026-11-10 11:2x 修: ★**第一版用 `$(run_arm ...)` 取 PID ⇒ 命令替换会等后台作业关掉 stdout ⇒ 卡住 ⇒ 第二条臂根本没启动** ★★
+#   ⇒ ★**改成【调用方自己 `&` + `$!`】★ ⇒ 两条臂真并行
 run_arm () {
   local _out="$1" _log="$2" _extra="$3"
-  (
-    cd "$PROJ"
-    env PCB_LAYERS=8 PCB_ABUDGET_MULT=6 PCB_HALO_MARGIN=0.20 \
-        PCB_BOARD_W=160 PCB_BOARD_H=100 \
-        PCB_AREA_BOT=5,58,70,97 PCB_AREA_TOP=78,5,120,36 PCB_AREA_RES=78,38,157,97 \
-        PCB_PIN_CONN_CAM=1 PCB_SKIP_PAD_CELLS=1 PCB_PAIR_ESCAPE_EXEMPT=1 \
-        PCB_PAIR_EXEMPT_R=0.0 \
-        PCB_GND_FIRST=1 PCB_VIA_HALO_MARGIN=0.0 PCB_CONN_GND_ESCAPE=CONN_CAM:4.0 \
-        PCB_KEEPOUT=24.0,56.1,35.6,59.6 \
-        PCB_PART_POS="R_SEL_D3_P:5.50,3.0;R_SEL_D3_N:7.95,3.0;R_SEL_D2_P:13.10,3.0;R_SEL_D2_N:15.55,3.0;R_SEL_CK_P:20.70,3.0;R_SEL_CK_N:23.15,3.0;R_SEL_D1_P:28.30,3.0;R_SEL_D1_N:30.75,3.0;R_SEL_D0_P:35.90,3.0;R_SEL_D0_N:38.35,3.0" \
-        PCB_PAIR_BEFORE_PWR=1 PCB_PRIORITY_NETS="FSIN_OUT;LIGHT_5V;LIGHT_3V3;I2C_A_SCL;I2C_A_SDA;I2C_B_SCL;I2C_B_SDA;LED_G;LED_G_D;KEY_CAM;JTAG_TDI;SPI_SCLK_BOOT;SPI_MOSI_BOOT;SPI_MISO_BOOT;UART_RX;USB_CC2;BAT_DET;ID_DETECT_0;ID_DETECT_1;JTAG_TDO;JTAG_TMS;UART_TX;LED_B_D" PCB_W_MIN=0.15 \
-        PCB_VIA_HALO_CENTER=1 PCB_MERGE_FIX=1 \
-        PCB_ROUTE_RESERVE="$RESERVE" PCB_PRIO_SPAN_SORT=1 \
-        $_extra \
-        PCB_OUT="$_out" \
-        timeout 21600 bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py \
-        > "$_log" 2>&1
-    echo "EXIT=$?" >> "$_log"
-  ) &
-  echo $!
+  cd "$PROJ" || return 1
+  env PCB_LAYERS=8 PCB_ABUDGET_MULT=6 PCB_HALO_MARGIN=0.20 \
+      PCB_BOARD_W=160 PCB_BOARD_H=100 \
+      PCB_AREA_BOT=5,58,70,97 PCB_AREA_TOP=78,5,120,36 PCB_AREA_RES=78,38,157,97 \
+      PCB_PIN_CONN_CAM=1 PCB_SKIP_PAD_CELLS=1 PCB_PAIR_ESCAPE_EXEMPT=1 \
+      PCB_PAIR_EXEMPT_R=0.0 \
+      PCB_GND_FIRST=1 PCB_VIA_HALO_MARGIN=0.0 PCB_CONN_GND_ESCAPE=CONN_CAM:4.0 \
+      PCB_KEEPOUT=24.0,56.1,35.6,59.6 \
+      PCB_PART_POS="R_SEL_D3_P:5.50,3.0;R_SEL_D3_N:7.95,3.0;R_SEL_D2_P:13.10,3.0;R_SEL_D2_N:15.55,3.0;R_SEL_CK_P:20.70,3.0;R_SEL_CK_N:23.15,3.0;R_SEL_D1_P:28.30,3.0;R_SEL_D1_N:30.75,3.0;R_SEL_D0_P:35.90,3.0;R_SEL_D0_N:38.35,3.0" \
+      PCB_PAIR_BEFORE_PWR=1 PCB_PRIORITY_NETS="FSIN_OUT;LIGHT_5V;LIGHT_3V3;I2C_A_SCL;I2C_A_SDA;I2C_B_SCL;I2C_B_SDA;LED_G;LED_G_D;KEY_CAM;JTAG_TDI;SPI_SCLK_BOOT;SPI_MOSI_BOOT;SPI_MISO_BOOT;UART_RX;USB_CC2;BAT_DET;ID_DETECT_0;ID_DETECT_1;JTAG_TDO;JTAG_TMS;UART_TX;LED_B_D" PCB_W_MIN=0.15 \
+      PCB_VIA_HALO_CENTER=1 PCB_MERGE_FIX=1 \
+      PCB_ROUTE_RESERVE="$RESERVE" PCB_PRIO_SPAN_SORT=1 \
+      $_extra \
+      PCB_OUT="$_out" \
+      timeout 21600 bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py \
+      > "$_log" 2>&1
+  echo "EXIT=$?" >> "$_log"
 }
 
-_PID0=$(run_arm "$OUT0" "$LOG0" "")
-_PID1=$(run_arm "$OUT1" "$LOG1" "PCB_MEANDER_EDGE=1")
+run_arm "$OUT0" "$LOG0" "" &
+_PID0=$!
+run_arm "$OUT1" "$LOG1" "PCB_MEANDER_EDGE=1" &
+_PID1=$!
 echo "  [臂A 对照] PID=$_PID0   [臂B 候选] PID=$_PID1"
-echo "  ★两条臂并行 (★各自单线程 ⇒ 8 核机器扛得住) ★"
+echo "  ★两条臂并行 (★各自单线程 ⇒ 8 核机器扛得住★) ★"
 
 # ---- ③ 等两条臂都跑完 (★最长 6 小时★) ----
 while kill -0 "$_PID0" 2>/dev/null || kill -0 "$_PID1" 2>/dev/null; do sleep 60; done
