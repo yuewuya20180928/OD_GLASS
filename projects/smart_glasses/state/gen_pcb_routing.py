@@ -273,6 +273,36 @@ GND_ORPHAN_FIX = os.environ.get("PCB_GND_ORPHAN_FIX", "0") == "1"
 #   ★**修法**: ★**出脚直道若会【站在别人的出脚口上】⇒ ⇒ 换方向/换长度 ⇒ ⇒ 把走廊让给对方** ★★
 #   ★**默认 0 (关) ⇒ 逐位不变 (★老臂可复现★)**
 CORRIDOR_YIELD = os.environ.get("PCB_CORRIDOR_YIELD", "0") == "1"
+# ★★★★★★2026-11-10 23:5x 【★"预测性让路" (★env 门控 `PCB_YIELD_STRAIGHT`, ★默认关⇒逐位不变★)】★★★★★★
+#   ★**要修的病 (★2026-11-10 23:2x 逐位实测, ★不是猜★)**:
+#     · `v76ml` (★当前最好的臂: DRC 0 · unc 29·24 网·退铜 0·死腿 0·孤岛 1★)
+#       ⇒ ★**唯一被晋级闸卡住的 = `BOOT_N` 一个孤岛** ⇒ ★★**⇒ 剩下全部工作量就是这一个网** ★★
+#     · ★**`BOOT_N` 的 SoM 脚 (J_SOM_P1.28 @ 63.60,11.04) 在臂板上【一寸铜都没有】** ★★
+#       ⇒ ★**⇒ 而官方板把它接通了** (★(63.60,11.04)→(63.60,12.24) 直下后右拐★) ★★
+#     · ★★**⇒ 让路配方的真相 (★用 `state/analyze_yield_recipe.py` 三方复算★)**:
+#       ★★**官方板牺牲的是 `ID_DETECT_0` 的那个脚; ★臂板牺牲的是 `BOOT_N` ⇒ ★两边做了【相反的取舍】★★**
+#   ★★★**★根因 (★逐位数字★)**: ★★★
+#     · `BOOT_N` 的 A* 起步格 = (63.50, 12.25) (★格心★)
+#     · 挡它的是 `ID_DETECT_0` 的 45° 链 (63.45,12.70)→(63.70,12.70) w=0.25 ⇒ 中心距 **0.450mm**
+#     · halo[1] 的半径 = CLEAR 0.20 + 0.125 + 0.125 + HALO_MARGIN 0.0625 = **0.5125mm**
+#       ⇒ ★**0.450 < 0.5125 ⇒ 起步格被判死 ⇒ ⇒ 只差 0.0125mm!** ★★
+#     · ★**但真净距 (边到边) = 0.450 - 0.125 - 0.075 = 0.250mm ⇒ 完全合法** ★★
+#   ★★★**★⇒ ⇒ 【谁先转弯, 谁就掐死对方】: ★★★
+#     ★**`ID_DETECT_0` (PRIO 组·先布) 的出脚后【立刻右拐】(★62.80,12.24)→(62.95,12.45)→(63.20,12.45)→(63.45,12.70)★**
+#       ⇒ ★**它的拐弯链离 `BOOT_N` 的出脚口只有 0.4516mm ⇒ ⇒ 把 `BOOT_N` 的起步格封死** ★★
+#     ★**⇒ ⇒ 而 `BOOT_N` 是 TIME 组 (★最后一档★) ⇒ ⇒ 等它布的时候, 走廊已经被占死了** ★★
+#   ★★★★**★修法 (★"预测性让路"★)**: ★★★★
+#     ★★**⇒ 同一排 (|Δy| ≤ 0.2) 且相邻 pitch (0.3 ≤ |Δx| ≤ 1.05) 的【异网】焊盘 ⇒ ★【它们只能同向出脚】★★**
+#       (★实测: 左边右边都是焊盘排, 上边是 `USB_D_N_SRC` 的横墙 ⇒ 整排只能往下出★)
+#       ⇒ ★★**⇒ ⇒ 我 (先布的那个) 必须【先直行到让开邻居的【预测出脚道】为止】再拐弯** ★★
+#       ⇒ ★★**⇒ ⇒ 于是 `ID_DETECT_0` 不会再拐到 `BOOT_N` 的出脚口 ⇒ ⇒ `BOOT_N` 的起步格活着** ★★
+#   ★★★★**★⇒ 为什么这个修法【比降 HALO_MARGIN 安全】: ★★★
+#     ★★**⇒ `HALO_MARGIN=0` 已实测 ⇒ 11 条 clearance 违规 (★MEMORY 已有结论★) ⇒ ⇒ 不可行** ★★
+#     ★★**⇒ 而本修法【只动"先转弯的那个"】⇒ ⇒ 别的网一点不受影响 ⇒ ⇒ 风险面极小** ★★
+#     ★★**⇒ 且 `_astar` 已有兜底: ★【约束下无路 ⇒ 自动用无约束重试】⇒ ⇒ 保证不比现状更差** ★★
+#   ★**默认 0 (关) ⇒ 逐位不变 (★老臂可复现★)**
+YIELD_STRAIGHT = os.environ.get("PCB_YIELD_STRAIGHT", "0") == "1"
+YIELD_STRAIGHT_STEPS = int(os.environ.get("PCB_YIELD_STRAIGHT_STEPS", "3"))
 # ★★★★★★2026-11-10 20:0x 【★差分对的【层选择】(★env 门控 `PCB_PAIR_LAYERSEL`, ★默认关⇒逐位不变★)】★★★★★★
 #   ★**要修的病 (★实测坐实★)**: ★★**官方板的差分对 P/N 【在【不同层】上分段走】★★**
 #     · ★`CSI_D0_CK_P` = F.Cu 158 / In2.Cu 71 · ★`CSI_D0_CK_N` = F.Cu 78 / In2.Cu 120 ★★
@@ -1399,6 +1429,18 @@ class GridRouter:
                 _dj = (1 if _dy > 1e-9 else (-1 if _dy < -1e-9 else 0))
                 if _di or _dj:
                     self._esc_start_dir[(net, _cell)] = (_di, _dj, ESC_STRAIGHT_STEPS)
+                # ★★★★★★2026-11-10 23:5x 【★"预测性让路" (★env 门控 `PCB_YIELD_STRAIGHT`★)】★★★★★★
+                #   ★**为什么要 (★逐位实测★)**: ★★**同排相邻脚 (★`ID_DETECT_0` @62.80 / `BOOT_N` @63.60★)
+                #     先布的那个一拐弯就把后布的那个起步格封死 (★中心距 0.450 < halo 需 0.5125·只差 0.0125mm★)★★**
+                #   ★**⇒ ⇒ 我 (先布的) 必须先直行到让开邻居的【预测出脚道】为止** ⇒ ★**⇒ 后布的能起步** ★★
+                #   ★**⇒ `_astar` 已有兜底: 约束下无路 ⇒ 自动无约束重试 ⇒ ⇒ 保证不比现状更差** ★★
+                if YIELD_STRAIGHT:
+                    try:
+                        _ys = self._yield_straight_steps(net, pad, _di, _dj)
+                    except Exception:
+                        _ys = 0
+                    if _ys > 0:
+                        self._esc_start_dir[(net, _cell)] = (_di, _dj, _ys)
                 return [_cell], (pad[2], pad[3], st[0], st[1])
             _cells = list(self._pad_cells(net, pad))
             # ★★★★★★2026-11-10 04:5x 【★非紧凑焊盘排: 起步先沿【排的法线】走 (★`PCB_ESC_ROWNORM`)★】
@@ -1702,6 +1744,55 @@ class GridRouter:
             if _pt_seg_dist(vx, vy, x1, y1, x2, y2) < need - 1e-9:
                 return False
         return True
+
+    def _yield_straight_steps(self, net, pad, di, dj):
+        """★**"预测性让路": 同一排相邻脚的出脚道 ⇒ 我必须先直行到让开它为止**★★
+
+        ★**要修的病 (★2026-11-10 23:2x 逐位实测★)**: ★★**`BOOT_N` 的起步格 (63.50,12.25) 被
+        `ID_DETECT_0` 的拐弯链 (63.45,12.70)→(63.70,12.70) 的 halo 封死 (中心距 0.450 < 需 0.5125)★★**
+        ⇒ ★★**⇒ 只差 0.0125mm, 而真净距 0.250mm 完全合法** ★★
+        ⇒ ★**⇒ `ID_DETECT_0` 先布先拐 ⇒ 把后布的 `BOOT_N` 掐死** ★★
+
+        ★**机制**: ★**同排 (|Δy| ≤ 0.2) 且相邻 pitch (0.3 ≤ |Δx| ≤ 1.05) 的异网焊盘
+        ⇒ 它们【只能同向出脚】(★左右是焊盘排·上是横墙★) ⇒ ⇒ 它们的预测出脚道【平行且相邻】★★
+        ⇒ ★**⇒ 我 (先布的那个) 的拐弯不得进入邻居预测出脚道的 halo 半径** ⇒ ⇒ **先直行到安全深度再拐** ★★
+
+        ★**返回**: ★**需要先直行的步数 (0 = 不约束)** ★**
+        """
+        if not YIELD_STRAIGHT:
+            return 0
+        if dj == 0:
+            return 0            # ★★**只处理【垂直出脚】(★SoM 排的真实情形★)★★**
+        _px, _py = pad[2], pad[3]
+        # ★★**需要的让开距离 = halo 半径 (★按【候选走线宽度级别 cls=1】算, ★保守★)★★
+        _need = CLEAR + W_MIN / 2.0 + W_CLS[1] / 2.0 + HALO_MARGIN
+        _best = 0
+        for _n2, _pl in self.net_pads.items():
+            if _n2 == net:
+                continue
+            for _p2 in _pl:
+                _qx, _qy = _p2[2], _p2[3]
+                if abs(_qy - _py) > 0.2:
+                    continue                      # ★**不同排 ⇒ 不管★**
+                _dx = _qx - _px
+                if not (0.3 <= abs(_dx) <= 1.05):
+                    continue                      # ★**不是相邻 pitch ⇒ 不管★**
+                # ★★**邻居的【预测出脚末点】= 它也往 (di,dj) 走 ESC_LEN★★
+                _q_end_y = _qy + dj * ESC_LEN
+                # ★★**我的拐弯高度必须离【邻居的预测出脚末点】≥ _need (★垂直方向★)★★
+                _my_turn_y = _py + dj * ESC_LEN
+                _gap = abs(_my_turn_y - _q_end_y)
+                if _gap >= _need:
+                    continue                      # ★**本来就够远 ⇒ 不用约束★★
+                # ★**⇒ 需要再直行 (_need - _gap) ⇒ 换算成格步数★**
+                _steps = int(math.ceil((_need - _gap) / self.g))
+                if _steps > _best:
+                    _best = _steps
+        if _best <= 0:
+            return 0
+        if _best < YIELD_STRAIGHT_STEPS:
+            _best = YIELD_STRAIGHT_STEPS
+        return _best
 
     def _stub_clear(self, net, x1, y1, x2, y2, need=None):
         """这段直线出脚干不干净 (中心线离别的网的焊盘边缘 ≥need)
