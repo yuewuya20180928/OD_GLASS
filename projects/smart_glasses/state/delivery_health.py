@@ -33,6 +33,12 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+try:
+    import delivery_truth as _dt          # ★唯一真源: 投递口径 (★2026-11-10 11:3x 加★)
+except Exception:                        # ★导入失败 ⇒ 响亮失败 (★项目铁律: 宁可挂, 也不悄悄用旧口径★)
+    sys.exit("★delivery_truth 导入失败 ⇒ 拒绝跑 (防口径漂移)")
 CRON_DIR = os.path.expanduser("~/.openclaw/cron")
 JOBS_STATE = os.path.join(CRON_DIR, "jobs-state.json")
 JOBS = os.path.join(CRON_DIR, "jobs.json")
@@ -168,6 +174,12 @@ def collect_silent_fail(n=3):
             ch = ch or (dl.get("resolved") or {}).get("channel") or (dl.get("intended") or {}).get("channel") or ""
         if ch != WATCH_CHANNEL:
             continue
+        # ★★2026-11-10 11:3x 修: ★**推送本来就没开的 job (delivery.mode=none) 不算投递故障** ★★
+        #   (★实测: "ARS45 状态速报 (每小时推微信)" 一直是 mode=none ⇒ 每天 delivered=false ⇒
+        #    ★**被误判成"推送没到老板手上"⇒ 报了很久的假故障** ⇒ ★**该 job 当时压根没在推**★)
+        #   ⇒ 现在它的推送已改成 announce ⇒ 它会真投 ⇒ 判据继续有效
+        if (d.get("mode") or "announce") == "none":
+            continue
         if len(runs) < 2:
             continue
         flags = [(r.get("delivery") or {}).get("delivered") for r in runs]
@@ -217,13 +229,38 @@ def _write_alerted(obj):
     os.replace(tmp, ALERT_STATE)
 
 
+def _kou_jing_lines(truth):
+    """★★【口径行】★★ (★2026-11-10 11:3x 加★)
+    ★**"老板手机上看没看到" 只能看【口径①】(run 记录里的 delivery.delivered)★**
+    ★**【口径②】(失败队列) 只记失败 ⇒ 拿它当"成功数"必然错 (★11-10 10:52 那条播报就是这么错的★)** ★★
+    """
+    L = []
+    for j in (truth.get("jobs") or []):
+        c = j.get("counts") or {}
+        L.append("★投递口径①: %s | 最近 %d 轮 → ★送到 %d · 没送到 %d · ★这轮没跑成 %d · 本来就不投 %d"
+                 % (j.get("name"), len(j.get("runs") or []),
+                    c.get("delivered", 0), c.get("not_delivered", 0),
+                    c.get("run_error", 0), c.get("no_delivery", 0)))
+    L.append("★投递口径②: 微信 outbound 失败队列今日 %d 条 (★**只记失败** ⇒ 不许拿它说「0 成功」★)"
+             % (truth.get("queue_count_today") or 0))
+    return L
+
+
 def main():
     quiet = "--quiet" in sys.argv
     bad = [b for b in collect() if b["errors"] >= THRESHOLD]
     silent = collect_silent_fail()   # ★★D 类: run=ok 但 delivered=false (★2026-11-05 12:00 新增)
+    # ★★口径行 (★2026-11-10 11:3x 加★): ★**成功数只能从【口径①】取 (失败队列只记失败)** ★★
+    try:
+        truth = _dt.collect()
+    except Exception:
+        truth = None
     if not bad and not silent:
         if not quiet:
             print("✅ 投递健康: 所有 cron job 无连续失败 (阈值 %d)" % THRESHOLD)
+            if truth:
+                for ln in _kou_jing_lines(truth):
+                    print(ln)
         return 0
 
     alerted = _read_alerted()
@@ -256,6 +293,8 @@ def main():
         return 0
 
     lines = []
+    if truth:
+        lines.extend(_kou_jing_lines(truth))
     chans = sorted({b["channel"] for b in clsA})
     # ★2026-11-04 10:45 修: 老板 09:5x 已把微信推送全关 (delivery.mode=none) ⇒ A 类为空时 chans 未定义 ⇒ UnboundLocalError
     #   ⇒ chans 一律先算; 且**处置建议按"这一路现在还推不推"分两种说法** (不再让老板去扫码刷新一个他已关掉的通道)
@@ -284,12 +323,13 @@ def main():
             t = time.strftime("%m-%d %H:%M", time.localtime(s["lastRunAtMs"] / 1000)) if s["lastRunAtMs"] else "?"
             lines.append("  · [%s] %s | 最近 %d 轮全部未送达 | 最后跑 %s" % (s["channel"], s["name"], s["runs"], t))
             lines.append("      ★**这条以前被判成\"正常\"** (run 状态是 ok) ⇒ 老板手机上看不到, 我却报\"一切正常\"")
-            lines.append("      ★处置: ★**要老板动手** (给 bot 发一条消息刷新会话 / 重扫授权) ⇒ 我不自己乱修通道")
+            lines.append("      ★处置: ★**先看【口径①】** (★run 记录里的 delivery.delivered★) ⇒ 若只是时好时坏 ⇒ ★**下一轮会自动补发** (★bcast_delivery_check.py★) ⇒ ★**不用老板动手**; ★只有连续多轮全灭才需要老板重扫授权")
     if WATCH_CHANNEL in chans:
         if watch_still_pushing:
             lines.append("  ★处置: %s 这一路发不出去 ⇒ 老板手机上看不到状态 ⇒ "
-                         "①请老板在微信里给机器人发一条消息刷新会话, 或 `openclaw channels login --channel openclaw-weixin` 重新扫码; "
-                         "②同时看 GitHub / 本地 STATUS_DIGEST.md 兜底" % WATCH_CHANNEL)
+                         "①★**先自查【口径①】**(★run 记录里 delivered 到底是 true 还是 false★) ⇒ ★**别再拿\"失败队列\"当\"全部失败\"**; "
+                         "②确实连发多轮全灭时, 才请老板在微信里给机器人发一条消息刷新会话, 或 `openclaw channels login --channel openclaw-weixin` 重新扫码; "
+                         "③同时看 GitHub / 本地 STATUS_DIGEST.md 兜底" % WATCH_CHANNEL)
         else:
             lines.append("  ★说明: %s 上的失败任务**推送已被关闭** (delivery.mode=none, 老板 2026-11-04 09:5x 指示) ⇒ "
                          "不影响状态送达 (状态仍落 GitHub / 本地 STATUS_DIGEST.md); 若以后要恢复这一路推送, 才需要处理会话刷新" % WATCH_CHANNEL)
