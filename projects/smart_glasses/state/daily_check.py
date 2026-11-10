@@ -104,6 +104,7 @@ GUARD_TESTS = (
     ("_test_meander_edge.py", "蛇形出板闸守卫 (★PCB_MEANDER_EDGE★)"),
     ("_test_merge_fix.py", "共线合并瞬移守卫 (★PCB_MERGE_FIX★)"),
     ("_test_gnd_orphan.py", "GND 孤儿铜守卫 (★PCB_GND_ORPHAN_FIX★)"),
+    ("_test_esc_clr.py", "出脚离网格段净距守卫 (★PCB_ESC_CLR_FIX★)"),
 )
 
 
