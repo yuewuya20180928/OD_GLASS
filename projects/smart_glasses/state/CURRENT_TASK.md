@@ -197,3 +197,26 @@
 · ★**脚本**: ★**`state/v76me_arms.sh`** (★11:19 修好并发后重跑★) ⇒ env = v76b1 逐位相同 (0.15mm + MERGE_FIX + 成对预留 + PRIO_SPAN_SORT) ⇒ **只多 `PCB_MEANDER_EDGE=1`** ⇒ 两条臂并行 (★单臂实测 3383s≈56 分钟★) ⇒ 跑完自动: 板规则 0.15 → fresh DRC (★专数 `copper_edge_clearance`★) → 套已校准的官方补丁链 → `compare_arm_baseline.sh` (B vs A) → 归档 A 为新基线
 · ★**头号判据**: ★**`copper_edge_clearance` 条数 闸关 → 闸开 (★v76b1 实测 4~29 条 100% 来自蛇形凸起★)** + ★**不许拿信号换地 (unc 网名集合不许变大 · GND 未连接不许变多 · 差分死腿不许新增)** ★
 · ★**守卫侧 (★并行处理中★)**: ★**`_test_edge_strict.py` 现在 rc=1 (★夹具用 `.lastgood` 成品板 ⇒ 板边违规铜=0 ⇒ 断言在 DRC 前就抛 ⇒ "零漏报交叉验证"根本没跑★)** ⇒ 处置: ★**夹具自造违规铜 + 必须留"实测坏案例"当回归 + 接进 `daily_check --self-test` (★故意弄坏必须被抓到★)** ⇒ ★**不许改 `gen_pcb_routing.py` (臂在跑) · 不许动官方板** ★
+
+### ★★【D. v76me 成对臂【已跑完 12:10:50】· 闸命中 · 但名单制闸 REJECT】★★
+★**唯一变量 = `PCB_MEANDER_EDGE`** (★env = v76b1 逐位相同★) · 臂A(闸关)=基线 · 臂B(闸开)=候选 · ★**同代码同 env ⇒ 差异就是闸的功劳** ★
+· ★**裸板 fresh DRC (路由产物)**: ★**臂A: 违规 6 (copper_edge_clearance 4 + clearance 1 + track_dangling 1) · unc 51** ⇒ ★**臂B: 违规 2 (clearance 1 + track_dangling 1) · unc 51** ⇒ ★★**头号指标: 板边违规 4 → 0 ✅ · 总违规 6 → 2 · unc 51 → 51 (零信号代价)** ★★
+· ★**套已校准的官方补丁链后 (链终板各 3068 段)** vs 同代码同 env 基线 (`state/.lastgood/baseline_v76me0_chain.kicad_pcb` ★已归档★):
+  · DRC违规 **6 → 2** · unconnected 条目 35 → 35 · **网名集合 33 → 33 (救回 0 / 新断 0 ⇒ 持平)** ★
+  · 零铜网 15 → 15 · 差分单边零铜 9 → 9 · 差分Δ超差 1 → 1 · 走线 3068 → 3068 · 过孔 410 → 409
+  · ★**退铜名单 0 · 差分对死腿 0 · 逐网孤岛变多 0** ⇒ ★★**闸是【纯收益】: 只删违规铜, 一条信号都没伤** ★★
+  · ★**名单制闸 rc=1 ⇒ REJECT** ⇒ ★**唯一理由: DRC=2 ≠ 0** (★剩: clearance 0.1813mm (<0.20) + track_dangling 1 条★)
+· ★★★**★终判: ★`PCB_MEANDER_EDGE` 这个闸【有效且零代价】⇒ 它不是元凶, 是解药★ ⇒ ★但 DRC 必须=0 ⇒ ★**下一步 = 清掉最后那 2 条 (与本闸无关)**** ★★★
+  ⇒ ★**已知候选**: ★**那 0.1813mm 的 clearance 就是 `ID_DETECT_0`↔`BOOT_N` 出脚交错 ⇒ 已有机制 `PCB_ESC_ROWNORM=2` (★起步沿焊盘排法线走⇒扇出不交错★) ⇒ ★**下一臂 = v76me env + 只多 `PCB_ESC_ROWNORM=2` (单变量) ★** ★
+  ⇒ ★**`track_dangling` 1 条**: ★**必须先定位是哪个网/哪段悬空 ⇒ 不许猜** (★`state/compare_arm_official.py` 的 fail_detail 里有坐标★)
+
+### ★★【E. ★★cron 连挂的【真根因】= provider 侧 Token Plan 配额, 不是我们的问题★★】★★
+· ★★★**★实测 (★journal 逐条, 11:33~12:43★)**: ★**`embedded run agent end: ... error=⚠️ 已达到 Token Plan 用量上限：请升级 Token Plan` (★MiniMax / minimax / MiniMax-M3.1-Flash★) —— 11:33:10 首次, 12:43:18 最后, ★**该窗口内 122 次配额错误** ⇒ ★**每次 cron 轮次都这样死** ★★
+  ⇒ ★★★**⇒ 铁律: ★`EmbeddedAttemptSessionTakeoverError` 是【provider 侧配额/过载】的【二次症状】★★★★**
+    (★机制: 配额错误 ⇒ 运行时【重试】⇒ 重试期间 session 文件被改写 ⇒ 锁释放期间取的文件指纹对不上 ⇒ 整轮被判"被接管"★)
+  ⇒ ★★**⇒ 所以: ①不要为这个错误去调 session/锁/路由参数 (★调了也没用, 白费一轮臂的时间★) ②真正要解决的是【provider 配额】** ★★
+· ★★**★已做的三件缓解 (★能自动恢复的不用老板动手★)** ★★:
+  ① ★**`cron.maxConcurrentRuns` 1 → 3** (★默认只有 1 个 runner 槽位 ⇒ 播报(200~500秒)占着槽 ⇒ 其它 isolated job 排队等 ⇒ 等不到就被 60 秒看门狗判 "isolated agent setup timed out before runner start" ⇒ ★**每日巡检 7 连挂 / 后继计划 9 连挂 就是这么来的**★)** ⇒ 已生效 (★11:29 之后不再出现 setup timeout★)
+  ② ★**`cron.retry.backoffMs` = [60s, 120s, 300s]** (★默认退避最长 60 分钟 ⇒ ★**配额一挂, 10 分钟播报被推后整整 1 小时 ⇒ 老板手机黑屏 2 小时 (11:33→13:17) 就是这么来的**★) ⇒ 已改 (★要重启生效★) ⇒ ★**以后配额抖动最多断 1~2 分钟, 不会断 1 小时** ★
+  ③ ★**投递双路 + 失败自动补发 + 低频兜底** (★已在 `state/delivery_truth.py` / `state/bcast_delivery_check.py` / 速报 job 改 announce★)
+· ★★**★需要老板动手的一件 (★我这边无解★)**: ★**MiniMax 的 Token Plan 配额用完了 ⇒ 要么升级套餐, 要么给 anthropic relay 配一把 key (★配置里已有 `anthropic:relay` profile + claudeapi.com baseUrl, 但 agent 的 auth-profiles.json 里没有 key ⇒ 实测 `openclaw agent --model anthropic/claude-sonnet-4-6` 报 "No API key found for provider anthropic"★) ⇒ ★**有备胎 = 配额一挂 cron 链可以切模型续命** ★★

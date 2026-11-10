@@ -138,7 +138,11 @@ EDGE_STRICT = os.environ.get("PCB_EDGE_STRICT", "0") == "1"
 #     ★**修法**: ★**蛇形候选 4 段逐段过 `_edge_seg_ok()` (★路由器自带的真板边判据★)**
 #       ⇒ ★★**⇒ 凸起出不了板 ⇒ DRC 干净 ⇒ 且【不删任何已有铜 ⇒ 不产生悬空端】** ★★
 #   ★**默认值**: ★**0 (关) ⇒ 逐位不变 (★老臂可复现★)** ★★
-#   ★**用法**: `PCB_MEANDER_EDGE=1` ★★**★【必须配 `PCB_EDGE_STRICT=1` 一起开? ★见 _test_meander_edge.py 断言④★】★★
+#   ★**用法**: ★**`PCB_MEANDER_EDGE=1` (★单独开即可★)** ⇒ ★★**★【与 `PCB_EDGE_STRICT` 无关★
+#     (★`PCB_EDGE_STRICT` 管的是【缝合路径】+【`_emit_path`】两处 ★⇒ ★**管不到蛇形★** ⇒ ★**两闸各管各的,
+#     ★不必一起开★★)★】★★
+#     ⇒ ★**实测 (★2026-11-10 12:10 ★v76me 成对臂★)**: ★**闸关 ⇒ 铜边违规 4 条; ★闸开 ⇒ 0 条;
+#       总违规 6→2; ★unconnected 51→51 (★零信号代价★)** ★★ ⇒ ★**闸有效且不伤信号** ★★
 MEANDER_EDGE = os.environ.get("PCB_MEANDER_EDGE", "0") == "1"
 if RIPUP_ALIVE:
     print("  [路由] ★rip-up 复活: ON (失败网会真的被拆线重布)")
