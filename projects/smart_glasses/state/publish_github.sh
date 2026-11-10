@@ -187,6 +187,25 @@ if [ -d "$PROJ/config" ]; then
   rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
         "$PROJ/config/" config/
   echo "[3] config/ 映射件已同步 ($(find config -type f | wc -l) 文件)"
+  # ★★★2026-11-11 05:1x 补漏 (★实测踩到★): **发布树里有【两份】config/** ——
+  #   ① 根级 `config/` (★上面 rsync 刷的★) · ② 嵌套 `projects/smart_glasses/config/` (★step [2] 的 rsync 刷的★)
+  #   ⇒ ★**顺序洞**: step [2] 先把 `$PROJ/` 整个刷进发布树 (⇒ 嵌套那份此时还是**旧的**),
+  #     ★**然后** step [3a] 才把 `$WS/MEMORY.md` (真值源) 拷进 `$PROJ/config/agents/main/MEMORY.md` + 刷日记目录
+  #   ⇒ ⇒ **嵌套那份永远落后一轮** (★实测: 真值源 md5 f4b1a12b… / 根级 config/ = f4b1a12b… /
+  #     ★**嵌套 projects/smart_glasses/config/ = 43771ef9… (上一轮的旧版)**★)
+  #   ⇒ ⇒ ★**后果**: 公开仓里给「项目树那份 MEMORY」看的入口是**嵌套那份** ⇒ ★**我写的最新记忆没进仓**
+  #   ⇒ ⇒ ★**修法**: 在 [3a] 之后**再刷一次嵌套那份** (★此时 $PROJ/config/ 已是最新★)
+  if [ -d "$PUB/projects/smart_glasses/config" ]; then
+    rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
+          "$PROJ/config/" "$PUB/projects/smart_glasses/config/"
+    _nested_md5=$(md5sum "$PUB/projects/smart_glasses/config/agents/main/MEMORY.md" 2>/dev/null | cut -d' ' -f1)
+    _src_md5=$(md5sum "$WS_MEM" 2>/dev/null | cut -d' ' -f1)
+    if [ -n "$_nested_md5" ] && [ "$_nested_md5" = "$_src_md5" ]; then
+      echo "[3] ★嵌套 config/ 已补刷 (MEMORY md5 = 真值源 ${_src_md5:0:8} ✅)"
+    else
+      echo "[3] ⚠️ 嵌套 config/ 补刷后 MEMORY md5 仍与真值源不一致 (${_nested_md5:0:8} vs ${_src_md5:0:8}) ⇒ 诚实报出来"
+    fi
+  fi
 fi
 cp "$PROJ/TODO.md" docs/TODO.md
 cp "$PROJ/docs/PROJECT_STATUS.md" docs/PROJECT_STATUS.md

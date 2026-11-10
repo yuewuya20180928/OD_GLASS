@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-11 05:07** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-11 05:12** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -13,7 +13,7 @@
 
 【Q1 交付齐备率】 18/18 个必填验收块齐全
    hw-lead    6/6  缺: 无   交接单: 2026-11-06_hw-lead_周更新.md   ★按 2026-11-06_hw-lead_周更新.md 计分 (最新一份 2026-11-08_hw-lead_23条问题闭环验证.md 缺 ['B2', 'B4', 'B5', 'B6'])
-   sw-lead    6/6  缺: 无   交接单: 2026-11-11_sw-lead_ISS137_rev3_验证.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-11_sw-lead_ISS137_rev3_验证.md   ★按 2026-11-11_sw-lead_ISS137_rev3_验证.md 计分 (最新一份 2026-11-11_sw-lead_ISS187_验证.md 缺 ['B2', 'B3', 'B4', 'B6'])
    mech-lead  6/6  缺: 无   交接单: 2026-11-06_mech-lead_周更新.md
 
 【Q2 证据分级率】 3/3 个总工的交付做了证据分级
@@ -21,9 +21,9 @@
    sw-lead    标签: ['实测', '官方', '推算', '0数据']
    mech-lead  标签: ['实测', '推算', '0数据', '0 数据']
 
-【Q3 接口声明率】 全员 interface_claims 共 474 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+【Q3 接口声明率】 全员 interface_claims 共 475 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
    hw-lead    186 条
-   sw-lead    104 条
+   sw-lead    105 条
    mech-lead  184 条
 
 【Q4 需求闭环率】

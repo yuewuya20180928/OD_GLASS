@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-11T05:08:20+08:00'
+  generated_at: '2026-11-11T05:12:47+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1794308494355780854
     sw-lead:
       file: sw.yaml
-      size: 117012
-      sha1: 83d107b9c4b5
-      mtime_ns: 1794339314120768042
+      size: 120785
+      sha1: ec5b72361a6c
+      mtime_ns: 1794345108128062441
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -11438,6 +11438,38 @@ interface_claims:
         / M3 无护栏钉 TX 绝对值, 与 rev1/rev2 一致非新增) · DSI payload 8× 口径差 6 处 (含一份供应商询价函草稿, 已派 hw-lead) · 4 处下游旧口径残留全部未做
         (PROJECT_TRACKER.md:2098 / SW/DEMO_OD_PIPELINE_SPEC.md:447 / SW/DEMO_OD_TIMING_SPEC.md:194 / SW/tools/rknn_bench.py:257·261)
         ⇒ 详见 §9.3。'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss187_verify_result:
+    values:
+      sw-lead: pass
+    notes:
+      sw-lead: '★ISS-187 独立复验 (2026-11-11 04:5x~05:2x, sw-lead 验, owner=main ⇒ 别人验, 铁律满足) = ★**pass**★
+        (带 1 条非阻塞的引用瑕疵)。★**6 条验收逐条实跑**★: ① --selftest ⇒ rc=0, 编号护栏 ①~⑦ → ①~⑩ (7→10) 全过; ② ★**M2 变异体 (默认
+        t_display_ms 2.0→0.0, 只在 /tmp 下做) ⇒ ⑩ 红 rc=1**★ (51.9050 vs 59.6810); ③ ★**M3 变异体 (DSI_PER_LANE_Gbps
+        2.0→4.0) ⇒ ⑧⑨ 两条红 rc=1**★ (0.900/3.888 vs 1.800/7.776); ④ ★**已发布数字一个没动: vs 真基线 6ced111 (md5 0e622d56…,
+        与 main 报的加护栏前 md5 对上) ⇒ stdout diff 空, 10908 B = 10908 B**★ (★**注: main 任务书给的 git show HEAD: 基线选错了
+        —— 发布树 HEAD f94f900 已含本单改动 ⇒ 那个对拍恒等, 什么也证明不了 ⇒ 我自己按 md5 反查真基线重做**★); ⑤ demo_timing_check.py ⇒
+        rc=0 20/20; ⑥ ★**md5 4/4 与 main 报的一致 + 我补测第 5 个 PROJECT_TRACKER.md = 085a2ed1fe79b3e1d771ffae054bf1d0**★;
+        ⑦ ★**逐 hunk 查: 5 文件各 1 hunk 与描述逐字吻合, 无夹带; §0 锁死表 64 行 (行 28~92) 逐字节相同 (脚本切段比, True); 另 4 个 HW/PCB
+        文件差异 = 纯 UUID 重生成 + 时间戳, 几何未动, 与本单无关**★。★**护栏⑧⑨⑩ 用的字面值我独立复算: 1920*1080*24/(4*2.0e9*0.8)*1000 =
+        7.776 ms, 800*600*24/(...)*1000 = 1.800 ms ⇒ 与 SW/DEMO_OD_TIMING_SPEC.md:182 已发布的 800×600=1.800ms
+        ⇒ 1920×1080=7.776ms 逐位一致 ⇒ ⑧ 钉的值正确**★; ⑨ 的 4/2.0/0.8 与 SW/DEMO_OD_TIMING_SPEC.md:181 的 4-lane
+        D-PHY@2.0Gbps × 80% 一致 ⇒ 值正确; ★**且三条都不是同义反复**★ (⑧⑨ 钉字面值, ⑩ 测默认值==显式传参) ⇒ 符合我 rev1 §7.2 的元结论。★**非阻塞瑕疵
+        (已给精确 OLD/NEW, 建议 main 顺手改)**: ★**HW/e2e_budget_rk3572.py:248 护栏⑨ 注释把出处写成 PROJECT_TRACKER.md §(1.56),
+        而 §(1.56) 是 sensor 拍板 (onsemi AR0234CS), 搜 dsi|lane|gbps|带宽 零命中; 4-lane@2.0Gbps 真在 :2099 (§(1.53)),
+        ×80% 系数 PROJECT_TRACKER 全篇零命中, 真出处是 SW/DEMO_OD_TIMING_SPEC.md:181 ⇒ 值对/护栏对 (M3 实测红)/只注释指错门 ⇒ 不阻塞签字**★
+        (issue_log ISS-187 的 desc 里同一处指针也请一并订正, 那是 main 的分片)。★**另报 (不阻塞)**: M8 变异体 (T_PANEL 5.00→4.00)
+        selftest 全绿 ⇒ 但 ★**基线 6ced111 + M8 同样全绿 ⇒ 基线就有的性质, 非本单引入**★, 且 stdout 会变 ⇒ 已被验收项④抓到; 建议后续加护栏⑪
+        钉 T_PANEL==5.00 (出处 RKNN_BENCH §4.1 S10)。★**ISS-186 的 6 处 DSI payload 本单一处没碰**★ (HW/DISPLAY_MODULE_DECISION.md
+        / HW/STEP1_PARTS_SPEC.md / HW/DEMO_BOARD_HW_DECISION.md / SW/DEMO_OD_PIPELINE_SPEC.md:322·379
+        / HW/PCB/WAVESHARE_*.md:398 均未动)。★**交接提醒: PROJECT_TRACKER.md 里 lane 速率有 2.0 (:2099) 与 2.5 (:2133)
+        两个值 ⇒ ISS-186 处理 payload 8× 口径差时须一并看**★。★**4 处下游旧口径残留已清, 且我扫了 4 处之外无漏网**★ (≥15% 全仓只剩 :2098 且紧跟作废标记;
+        旧串 显示 TX 与光机仍是[0数据] / DSI/DP→DSI 桥 在 live 文件 count=0; live 的 显示 TX 命中全是 Q16 显示 TX 接口类型 (DSI TX/DP
+        TX 硬件问题), 与 S9 槽位口径是两回事, 不该改)。★**建议 main 落账: ISS-187 status fixed→verified / verify_result null→pass
+        / verify_date null→2026-11-11 (verify_by 已是 sw-lead 勿动)**★。'
     by:
     - sw-lead
     noncanonical_by: []
