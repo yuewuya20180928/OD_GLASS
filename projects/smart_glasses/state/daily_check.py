@@ -106,6 +106,7 @@ GUARD_TESTS = (
     ("_test_gnd_orphan.py", "GND 孤儿铜守卫 (★PCB_GND_ORPHAN_FIX★)"),
     ("_test_esc_clr.py", "出脚离网格段净距守卫 (★PCB_ESC_CLR_FIX★)"),
     ("_test_rownorm2.py", "排法线约束生效守卫 (★PCB_ESC_ROWNORM2★)"),
+    ("_test_corridor.py", "走廊让路守卫 (★PCB_CORRIDOR_YIELD★)"),
 )
 
 
