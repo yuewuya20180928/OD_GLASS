@@ -50,6 +50,46 @@ fresh_drc() {   # $1=板 → $2=json
        --format json "$1" >/dev/null 2>&1
 }
 
+# ★★★★★★2026-11-11 06:2x 【★【补丁链的"假阳性"自检闸】(★默认开, ★只报不改产物★)】★★★★★★
+#   ★★★**★为什么必须有 (★实测坐实★)**: ★★★
+#     ★**链日志说"补上 6 条" ⇒ 终板里只有 3 个网名真的少了 ⇒ ⇒ "补上" 是【假阳性】** ★★
+#     ★**⇒ "补上" = 【A* 找到了路径】≠ 【真的连上了】⇒ ⇒ 链日志在骗人** ★★
+#     ★★★**★口径差在哪★**: ★**A* 的终点只落在【格心】⇒ 离焊盘中心差 0.15~0.19mm ⇒ 铜没搭上焊盘**
+#       ⇒ ★**⇒ KiCad 仍判未连接 ⇒ ⇒ 铜落了, 但网没连** ★★
+#   ★★★**★本闸做什么★**: ★★**每步落铜后, 拿【输入板的未连接清单】与【输出板的未连接清单】逐项核**
+#     ⇒ ★★**打印"真救回 N 条 / 假阳性 M 条"⇒ ⇒ 以后不会再被"补上 N 条"骗** ★★
+#   ★★★**★纪律 (★为什么不改产物层★)**: ★★**只【报】, 不改任何铜 ⇒ ⇒ 官方链的逐位复现不受影响** ★★
+verify_patch() {  # $1=输入板 $2=输入drc.json $3=输出板
+  local in="$1" indrc="$2" out="$3"
+  local outdrc="$WORK/$(basename "$out").verify.json"
+  fresh_drc "$out" "$outdrc" || { say "   ⚠️ 自检闸: 输出板 fresh DRC 失败 ⇒ 跳过"; return 0; }
+  python3 - "$indrc" "$outdrc" <<'PY' 2>/dev/null | sed 's/^/   /'
+import json, sys
+def sigs(p):
+    j = json.load(open(p, encoding="utf-8"))
+    out = set()
+    for it in (j.get("unconnected_items") or []):
+        names = []
+        for a in (it.get("items") or []):
+            d = a.get("description") or ""
+            i, k = d.find("["), d.find("]")
+            names.append(d[i+1:k] if i >= 0 and k > i else "?")
+        out.add("|".join(names))
+    return out
+try:
+    a, b = sigs(sys.argv[1]), sigs(sys.argv[2])
+except Exception:
+    print("⚠️ 自检闸: 清单读取失败"); raise SystemExit(0)
+saved, broken = a - b, b - a
+print("★自检闸: 未连接 %d → %d 条 · ★真救回 %d 个签名 · 新断 %d 个签名"
+      % (len(a), len(b), len(saved), len(broken)))
+if saved:
+    print("  ★救回: %s" % ", ".join(sorted(saved)))
+if broken:
+    print("  ⚠️ 新断: %s" % ", ".join(sorted(broken)))
+PY
+}
+
 step_nostub() {  # $1=输入板 $2=输出板 $3=网格 $4=margin $5=额外参数
   # ★★2026-11-09 03:3x **修: extra 收【第 5 个起的全部参数】** ★★
   #   ★**原 bug**: `extra="${5:-}"` 只取第 5 个 ⇒ ★**"--max-dist 15" 的 "15" 被丢 ⇒ 脚本拿到 "--max-dist" 没有值 ⇒ IndexError**
@@ -75,6 +115,8 @@ step_nostub() {  # $1=输入板 $2=输出板 $3=网格 $4=margin $5=额外参数
     exit 8
   fi
   say "   ⇒ $(grep -ac '(segment' "$out" 2>/dev/null) 段"
+  # ★★★**2026-11-11 06:2x: ★【假阳性自检闸】⇒ "补上 N 条"【不等于】真的连上了** ★★★
+  verify_patch "$in" "$drc" "$out"
 }
 
 step_straight() {  # $1=输入板 $2=输出板
