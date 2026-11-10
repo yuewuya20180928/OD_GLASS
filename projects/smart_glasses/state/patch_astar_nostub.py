@@ -49,6 +49,24 @@ import gen_pcb_routing as RT  # noqa: E402
 
 MM = 1e6
 
+# ★★★★★★2026-11-11 05:5x 【★端点吸附开关 `PCB_PATCH_SNAP` (★默认关 ⇒ 官方链逐位不变★)】★★★★★★
+#   ★★★**★根因 (★实测坐实★, ★三个独立样本★)**: ★★★
+#     ★**A* 的终点只能落在【格心】⇒ 而【焊盘中心通常不在格心上】⇒ ⇒ 铜画到格心 ⇒ 离焊盘中心差 0.15~0.19mm**
+#     ★**⇒ 铜面没搭上焊盘 ⇒ KiCad 判未连接 ⇒ ⇒ 链日志的"补上 N 条"是【假阳性】!!** ★★
+#     ★**实测样本**: ★`KEY_VOL_M` 补丁端点 (34.950,51.075) 距焊盘 (34.800,50.960) = **0.1890mm** ★
+#     ★              · `I2C_A_SCL` 补丁端点 (51.575,65.450) 距焊盘 (51.700,65.600) = **0.1953mm** ★
+#     ★              · `LED_B`     补丁端点 (71.575,58.325) 距焊盘 (71.700,58.400) = **0.1458mm** ★
+#     ★★**⇒ 三条独立样本, 同一个模式: ★一端命中焊盘 (0.0000mm), 另一端差 0.15~0.19mm** ★★
+#   ★★★**★修法 (★产出点, ★不是擦产物★)**: ★★★
+#     ★**把路径首/末端点换成【端点的真实坐标】⇒ 铜直接压在焊盘上 ⇒ ⇒ 真连通** ★
+#     ★**路由器 `_emit_path` 本来就有 `stub_start/stub_end` 参数 (★作用正是"把首末端点换成焊盘真实中心"★)**
+#     ★**⇒ ★本脚本只是【从来没传过它】⇒ ⇒ 这是【缺的那一环】★★**
+#   ★★★**★为什么默认关 (★铁律★)**: ★★**官方链就是用本脚本产的 (★loose 0.0625 ⇒ 官方板 611b869e★)**
+#     ⇒ ★★**⇒ 一旦默认开 ⇒ 官方链不再逐位复现 ⇒ 校准链作废 ⇒ ⇒ ★必须 env 门控** ★★
+#   ★★★**★安全性 (★为什么这跳是安全的★)**: ★★**最后一跳是【同网铜】⇒ 不可能触发异网净距违规** ★★
+#     ★★**⇒ 且 `PCB_ESC_CLR_FIX` 的 `_seg_clear_geom` 会复查【离网格那一跳】⇒ 不合格 ⇒ 整条路径放弃 ⇒ ⇒ 不产生脏铜** ★★
+SNAP = os.environ.get("PCB_PATCH_SNAP", "0").strip() not in ("0", "", "false", "False")
+
 
 def find_item(board, uuid):
     if not uuid:
@@ -110,6 +128,22 @@ def track_cells(r, t, other_xy):
             if 0 <= i < r.W and 0 <= j < r.H:
                 out.append((li, r._idx(i, j)))
     return out
+
+
+def item_real_xy(kind, item, other_xy):
+    """★**端点的真实坐标 (★焊盘中心 / 走线离对方近的那个端点★)**
+
+    ★★★**★为什么必须有 (★实测★)**: ★**焊盘中心通常【不在网格格心上】⇒ A* 只能连到【最近格心】**
+      ⇒ ★**铜画到格心 ⇒ 离焊盘中心还差 0.15~0.19mm ⇒ 没搭上 ⇒ 假阳性** ★**
+    """
+    if kind == "pad":
+        p = item.GetPosition()
+        return (p.x / MM, p.y / MM)
+    s, e = item.GetStart(), item.GetEnd()
+    p1 = (s.x / MM, s.y / MM)
+    p2 = (e.x / MM, e.y / MM)
+    return p1 if math.hypot(p1[0] - other_xy[0], p1[1] - other_xy[1]) <= \
+        math.hypot(p2[0] - other_xy[0], p2[1] - other_xy[1]) else p2
 
 
 def main():
@@ -226,8 +260,18 @@ def main():
         if path is None:
             failed.append(("A* 找不到路", net))
             continue
-        # ★**落铜**: 不传 stub ⇒ 路径两端就是焊盘格 ⇒ 铜直接压在焊盘上
-        ok = r._emit_path(net, path, width)
+        # ★★**落铜**: 不传 stub ⇒ 路径两端就是焊盘格 ⇒ 铜直接压在焊盘上
+        # ★★★★★★2026-11-11 05:5x 【★端点吸附 (★env 门控 `PCB_PATCH_SNAP`★)】★★★★★★
+        #   ★★**默认关 ⇒ 逐位不变 (★官方链 = 本脚本产的 ⇒ 开了官方板 md5 就变 ⇒ 校准链作废★)** ★★
+        #   ★★**开了以后: 把首/末端点换成【端点真实坐标】⇒ ★铜真正压在焊盘上 ⇒ ⇒ 真连通** ★★
+        #   ★★**传 (x,y,x,y) ⇒ 零长 ⇒ `_emit_path` 不会多出 stub 段, 只把 pts[0]/pts[-1] 换掉** ★★
+        _ss = _se = None
+        if SNAP:
+            _x0, _y0 = item_real_xy(k0[0], k0[1], (p1.get("x", 0), p1.get("y", 0)))
+            _x1, _y1 = item_real_xy(k1[0], k1[1], (p0.get("x", 0), p0.get("y", 0)))
+            _ss = (_x0, _y0, _x0, _y0)
+            _se = (_x1, _y1, _x1, _y1)
+        ok = r._emit_path(net, path, width, stub_start=_ss, stub_end=_se)
         if not ok:
             failed.append(("_emit_path 放弃(净距/板边/过孔)", net))
             continue

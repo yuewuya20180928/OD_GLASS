@@ -100,6 +100,18 @@ for p in "$OUT0" "$OUT1"; do
   fi
 done
 
+# ★★★★★★2026-11-11 05:6x 【★臂溯源侧车 ⇒ 配方不许依赖"当前源码"★】★★★★★★
+#   ★**为什么必须有 (★实测踩到★)**: ★**源码又漂了 (0bd649b8 → 5a5ce4b4)** ⇒ ★链凭据里记的 sha 就不是【真正跑出这块板的源码】★
+#     ⇒ ★★**⇒ 照凭据复现 ⇒ 得到另一块板 (★实测 unc 22 vs 24★)⇒ 凭据形同虚设** ★★
+#   ★**正解**: ★臂跑完立刻写 `<板>.routersrc.json` (★源码 sha + 全部 PCB_ env★) ⇒ ⇒ 链凭据读它 ⇒ ★配方钉在产物旁边** ★★
+#   ★**注意**: ★**侧车写在【臂脚本】里 ⇒ 路由器源码不动 ⇒ 老臂读数继续有效** ★★
+for p in "$OUT0" "$OUT1"; do
+  arm=$(basename "$p" .kicad_pcb)
+  python3 state/arm_provenance.py "$p" --arm "$arm" \
+    --router-src "state/.router_src_${arm}.py" 2>/dev/null \
+    || python3 state/arm_provenance.py "$p" --arm "$arm"
+done
+
 # ---- ④ 板规则 min track width → 0.15 (★老板批准的规格; ★不改几何★) ----
 fix_rule () {
   bash state/pcbnew_py.sh - "$1" <<'PY'

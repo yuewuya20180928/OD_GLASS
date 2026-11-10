@@ -245,7 +245,7 @@ def selftest() -> int:
     print(f"  {'✅' if ok else '❌'} TX 已发布值钉死: TX_MIN_800 = {TX_MIN_800:.3f} (须 =1.800) · "
           f"TX_MIN_1080 = {TX_MIN_1080:.3f} (须 =7.776) ⇒ ★**物理下限不许被悄悄改小**★")
     bad += 0 if ok else 1
-    # ⑨ ★★链路参数钉死 (★**值型**护栏: 对齐 PROJECT_TRACKER.md §(1.56) 已发布的 "4-lane@2.0Gbps × 80% 有效"★)
+    # ⑨ ★★链路参数钉死 (★**值型**护栏: 对齐 SW/DEMO_OD_TIMING_SPEC.md §3.3.1 已发布的 "4-lane D-PHY@2.0Gbps × 80%" + PROJECT_TRACKER.md:2099 的 "4-lane@2.0Gbps"★)
     #    ★若有人把 lane 速率改成 4.0 ⇒ TX 下限会从 7.776 掉到 3.888 ⇒ 合成上限假性变宽 3.888ms ★
     ok = (DSI_LANES == 4 and DSI_PER_LANE_Gbps == 2.0 and DSI_EFF == 0.8)
     print(f"  {'✅' if ok else '❌'} 链路参数钉死: {DSI_LANES}-lane @ {DSI_PER_LANE_Gbps} Gbps × {DSI_EFF} 有效 "

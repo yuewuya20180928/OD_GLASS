@@ -208,15 +208,57 @@ fi
 
 CHAINJSON="$WORK/final_chain.kicad_pcb.chain.json"
 # ★★2026-11-09 16:3x 修: ★**凭据必须【无条件】写 (★之前挂在档①闸之后 ⇒ 档②臂(★输入<17000段)拿不到凭据 ⇒ 比较脚本拒比)** ★★
-python3 - "$CHAINJSON" "$IN" "$WORK/final_chain.kicad_pcb" "$TAG" <<'PY'
+python3 - "$CHAINJSON" "$IN" "$WORK/final_chain.kicad_pcb" "$TAG" "$PROJ" <<'PY'
 import hashlib, json, os, sys
 out, inp, dst, tag = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+HERE = os.path.join(os.path.abspath(sys.argv[5]), "state")
 def md5(p):
     h = hashlib.md5()
     with open(p, "rb") as f:
         for c in iter(lambda: f.read(1 << 20), b""):
             h.update(c)
     return h.hexdigest()
+def _router_src_sha(inp=""):
+    """★**路由器源码指纹 (★配方的一部分 ⇒ 源码漂了 ⇒ 老臂读数不可混比★)**
+
+    ★★★★★★2026-11-11 05:5x 【★优先读【臂溯源侧车】⇒ 源码漂了也不慌★】★★★★★★
+      ★**为什么**: 臂脚本只在日志里打印一次源码 sha ⇒ 源码一漂 ⇒ 凭据就在撒谎 ⇒ 照凭据复现会得到另一块板
+      ★★**⇒ 正解**: 臂跑完写 `<板>.routersrc.json` (★state/arm_provenance.py★) ⇒ ⇒ 凭据钉【真正跑出这块板的源码】★★
+    """
+    import hashlib
+    if inp:
+        side = inp + ".routersrc.json"
+        if os.path.exists(side):
+            try:
+                d = json.load(open(side, encoding="utf-8"))
+                sha = d.get("router_src_sha256")
+                if sha:
+                    return "%s:%s" % (d.get("router_src_file", "?"), sha[:16])
+            except Exception:
+                pass
+    cand = [os.path.join(HERE, "gen_pcb_routing.py"),
+            os.path.join(HERE, ".router_src_v76mw2.py")]
+    for p in cand:
+        if os.path.exists(p):
+            h = hashlib.sha256()
+            with open(p, "rb") as f:
+                for c in iter(lambda: f.read(1 << 20), b""):
+                    h.update(c)
+            return "%s:%s" % (os.path.basename(p), h.hexdigest()[:16])
+    return "unknown"
+def _router_sidecar(inp=""):
+    """★**读【臂溯源侧车】⇒ 把【路由器的 env + 源码】并进链凭据 ⇒ ★配方一个文件自洽**"""
+    if not inp:
+        return {}
+    side = inp + ".routersrc.json"
+    if not os.path.exists(side):
+        return {}
+    try:
+        return json.load(open(side, encoding="utf-8"))
+    except Exception:
+        return {}
+
+
 def segs(p):
     n = 0
     with open(p, encoding="utf-8", errors="ignore") as f:
@@ -231,7 +273,17 @@ info = {
     "output": os.path.abspath(dst),
     "output_md5": md5(dst),
     "output_segments": segs(dst),
-    "chain": ["straight(skip-if-mid)", "nostub margin=0.20 grid=0.125", "nostub margin=0.0625 grid=0.125"],
+    # ★★★★★★2026-11-11 05:4x 【★凭据不许写死 margin ⇒ 照凭据复现会得到另一块板★】★★★★★★
+    #   ★**实测踩到**: `PCB_CHAIN_LOOSE_MARGIN=0.03125` 跑出来的板, 凭据却写 `margin=0.0625`
+    #     ⇒ ★**照凭据复现 ⇒ 得到 unc 24 而不是 22 的另一块板 ⇒ 配方不可复现 ⇒ 凭据形同虚设** ★★
+    #   ★**正解**: 凭据必须记【实际跑的 margin】⇒ 并顺带记【路由器源码 sha】+【关键 env】⇒ ★配方才可复现** ★
+    "chain": ["straight(skip-if-mid)", "nostub margin=0.20 grid=0.125",
+              "nostub margin=%s grid=0.125" % os.environ.get("PCB_CHAIN_LOOSE_MARGIN", "0.0625")],
+    "loose_margin": os.environ.get("PCB_CHAIN_LOOSE_MARGIN", "0.0625"),
+    "router_src_sha256": _router_src_sha(inp),
+    "router_env": _router_sidecar(inp).get("key_env", {}),
+    "router_arm": _router_sidecar(inp).get("arm", ""),
+    "key_env": {k: v for k, v in os.environ.items() if k.startswith("PCB_")},
     "note": "★**这块板是【官方补丁链的产物】⇒ ★★**不是独立候选臂**; ★★**要当候选臂比, 必须与【同链基线】比 (★state/compare_arm_baseline.sh) ★★",
 }
 json.dump(info, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=2)

@@ -6339,25 +6339,27 @@ issues:
     \  · 护栏④ 断言的是「加/不加 TX 的差 == TX_MIN_1080」 (★自洽 ⇒ 用被检查的常量重算期望值 ⇒ 同义反复)\n  · 护栏⑦ 断言的是「两个 TX 的**比值** == 像素比」 (★比值 ⇒ 也是关系)\n  ⇒ ★**没有一条钉 TX 的【绝对值】** ⇒ ⇒ 改脚本的人可以把物理下限改小, 7 条护栏**全绿**。\n★**两个可复现的洞 (★sw-lead\
     \ 实测过, 我本轮也复现了★)**:\n  · **M2** = 把 `modeA_with_compose()` 的默认 `t_display_ms` 从 `TX_MIN_1080` 改成 `0.0`\n    ⇒ ★**旧 7 条护栏一条没红** ⇒ ★**rev0 那个乐观结论 (yolov5n@640 模式A = 58.41ms ✅) 原样复活**\n  · **M3** = 把 `DSI_PER_LANE_Gbps`\
     \ 2.0 → 4.0 ⇒ TX 7.776 → 3.888\n    ⇒ ★**旧 7 条护栏一条没红** ⇒ ★**老板的生死线数字从 2.32ms 变成 6.21ms** (假性放宽 3.888ms)\n★**修法 (★用 sw-lead 实测能变红的版本, 不用同义反复版★)**: 加 3 条**值型**护栏 ⑧⑨⑩:\n  · ⑧ **TX 已发布值钉死**: `TX_MIN_800\
-    \ == 1.800` 且 `TX_MIN_1080 == 7.776`\n    (★对齐 `SW/DEMO_OD_TIMING_SPEC.md` §3.3.1 已发布的值 ★)\n  · ⑨ **链路参数钉死**: `DSI_LANES == 4 and DSI_PER_LANE_Gbps == 2.0 and DSI_EFF == 0.8`\n    (★对齐 `PROJECT_TRACKER.md`\
-    \ §(1.56) 已发布的「4-lane@2.0Gbps × 80% 有效」★)\n  · ⑩ **默认路径必须带 TX**: `modeA_with_compose(13.305, 2.0) == modeA_with_compose(13.305, 2.0, TX_MIN_1080)`\n    (★这才是堵 M2 的那条 —— 护栏④ 用的是显式传参, 从来不碰默认值★)\n★**★铁律\
-    \ (★sw-lead rev1 实测踩出来的元结论★)**: ★**任何用「被检查的同一组常量」重算期望值的断言, 都是自洽断言,\n  守不住数值** ⇒ ⇒ ★**别写成「用同一组常量重算期望值」** ⇒ ★**所以 ⑧⑨ 钉的是【已发布的字面值】, 不是重算式**。\n★**验收 (★我本轮已自测过, 数字都在下面★)**:\n  ① `python3 HW/e2e_budget_rk3572.py\
-    \ --selftest` ⇒ rc=0, 护栏 **7 → 10** 条全过\n  ② ★**变异体 M2 (默认踢 TX)** ⇒ ★**必须红** (实测: ⑩ 红, rc=1)\n  ③ ★**变异体 M3 (lane 速率改 4.0)** ⇒ ★**必须红** (实测: ⑧⑨ 两条红, rc=1)\n  ④ ★**已发布数字一个没动**: `python3 HW/e2e_budget_rk3572.py`\
-    \ 的 stdout 与加护栏前**逐字节相同** (实测 diff 空)\n  ⑤ `python3 SW/tools/demo_timing_check.py` ⇒ rc=0 (20/20)"
+    \ == 1.800` 且 `TX_MIN_1080 == 7.776`\n    (★对齐 `SW/DEMO_OD_TIMING_SPEC.md` §3.3.1 已发布的值 ★)\n  · ⑨ **链路参数钉死**: `DSI_LANES == 4 and DSI_PER_LANE_Gbps == 2.0 and DSI_EFF == 0.8`\n    (★对齐 `SW/DEMO_OD_TIMING_SPEC.md`\
+    \ §3.3.1 已发布的「4-lane D-PHY@2.0Gbps × 80%」+ `PROJECT_TRACKER.md:2099` 的「4-lane@2.0Gbps」★)\n  · ⑩ **默认路径必须带 TX**: `modeA_with_compose(13.305, 2.0) == modeA_with_compose(13.305, 2.0, TX_MIN_1080)`\n  \
+    \  (★这才是堵 M2 的那条 —— 护栏④ 用的是显式传参, 从来不碰默认值★)\n★**★铁律 (★sw-lead rev1 实测踩出来的元结论★)**: ★**任何用「被检查的同一组常量」重算期望值的断言, 都是自洽断言,\n  守不住数值** ⇒ ⇒ ★**别写成「用同一组常量重算期望值」** ⇒ ★**所以 ⑧⑨ 钉的是【已发布的字面值】, 不是重算式**。\n★**验收 (★我本轮已自测过,\
+    \ 数字都在下面★)**:\n  ① `python3 HW/e2e_budget_rk3572.py --selftest` ⇒ rc=0, 护栏 **7 → 10** 条全过\n  ② ★**变异体 M2 (默认踢 TX)** ⇒ ★**必须红** (实测: ⑩ 红, rc=1)\n  ③ ★**变异体 M3 (lane 速率改 4.0)** ⇒ ★**必须红** (实测: ⑧⑨ 两条红,\
+    \ rc=1)\n  ④ ★**已发布数字一个没动**: `python3 HW/e2e_budget_rk3572.py` 的 stdout 与加护栏前**逐字节相同** (实测 diff 空)\n  ⑤ `python3 SW/tools/demo_timing_check.py` ⇒ rc=0 (20/20)"
   owner: main
   reporter: main
   raised: '2026-11-11'
   due: '2026-11-12'
-  status: fixed
+  status: verified
   external: false
   need_keys: []
   fix_ref: "★**4 个文件, 4 处残留 + 3 条护栏, 全部只改口径措辞 / 只加护栏, 一个已发布数字都没动** (★stdout 逐字节比对 diff 空★):\n  ① `HW/e2e_budget_rk3572.py` — ★selftest() 新增护栏 ⑧⑨⑩ 三条 ⇒ md5 0e622d56… → **d7d1b110e4ed73d244ff02719c1704d6**\n\
     \  ② `PROJECT_TRACKER.md:2098` — 加「已被 ISS-137 rev1 取代」标记 (★**原文一字不删**, ★历史不能被抹掉但不能被当现行结论用★)\n  ③ `SW/DEMO_OD_TIMING_SPEC.md:194` — 「显示 TX 与光机 S10 仍是 [0数据]」→ 写清「显示输出侧实测值仍 [0数据] + TX 只有物理下限 7.776ms ⇒\
     \ 合成段只剩 2.32ms」 ⇒ md5 71f0c913… → **88f441ecf6e62918e5182acdd2364ef8**\n  ④ `SW/tools/rknn_bench.py:257/261` — S9 标签「显示 TX」→「显示输出侧」 (★**与 `SW/RKNN_BENCH.md` §4.1 现口径对齐**★, ★**数字不动**★) ⇒ md5 → **38e256d2fa1c1fd220077b14bc73e91d**\n\
-    \  ⑤ `SW/DEMO_OD_PIPELINE_SPEC.md:447` — 悬空引用「§⑤ 已指出 显示合成段占 T_FIXED 多少是 [0数据]」→ 改指向 §⑤ 的**可测判据** (输出侧上限 10.09ms − TX 物理下限 7.776ms ⇒ 合成段只剩 2.32ms ⇒ 一行命令出结论) ⇒ md5 058c8bde… → **2fe3be4c55bda369a56a13ef6d00565d**"
+    \  ⑤ `SW/DEMO_OD_PIPELINE_SPEC.md:447` — 悬空引用「§⑤ 已指出 显示合成段占 T_FIXED 多少是 [0数据]」→ 改指向 §⑤ 的**可测判据** (输出侧上限 10.09ms − TX 物理下限 7.776ms ⇒ 合成段只剩 2.32ms ⇒ 一行命令出结论) ⇒ md5 058c8bde… → **2fe3be4c55bda369a56a13ef6d00565d**\n\
+    \  ⑤ ★**2026-11-11 05:4x 落账时同批订正 (sw-lead §7.1 非阻塞瑕疵)**: `HW/e2e_budget_rk3572.py:248` 护栏⑨ 的 `#` 注释出处指针 `§(1.56)` → `SW/DEMO_OD_TIMING_SPEC.md` §3.3.1 + `PROJECT_TRACKER.md:2099` ⇒ ★**只改注释, 值没动, 护栏行为不变,\
+    \ stdout 仍 10908 B 逐字节相同** ⇒ md5 `d7d1b110…` → **`7b820c14acfaee08a218cbf85557ef0b`** (★落账后新 md5, 供下次对拍★)"
   verify_by: sw-lead
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-11'
   note: "★2026-11-11 04:3x~04:5x 项目总工自办 (owner=main, verify_by=sw-lead ⇒ **别人验**, 铁律满足)。\n★**本单做了什么 (三条遗留 ① 全做)**:\n  ① ★**护栏 ⑧⑨⑩ 已加** (`HW/e2e_budget_rk3572.py` 的 `selftest()`) —— ★**用 sw-lead rev1 §7.2\
     \ 给的实测能变红版本**\n     (★**不是** sw-lead 自己作废的那版「同义反复」断言 ★) ⇒ 三条都是**值型**断言, 钉的是**已发布字面值**。\n  ② ★**tracker :2098 已加取代标记** (`PROJECT_TRACKER.md`) —— ★**原文保留不删** (历史不能被抹掉, 但不能被当现行结论用) ⇒\n     ★**F8 说的「:2098\
     \ 与 :2099 自相矛盾」一并解决** (`:2099` 的 2986 本来就对, 现在两行同口径了)。\n  ③ ★**4 处下游旧口径残留已清** (建议 5/6/7/8 ★**四处 = tracker :2098 + PIPELINE_SPEC :447 + TIMING_SPEC :194 + rknn_bench :257·261**★): `SW/DEMO_OD_TIMING_SPEC.md:194`\
@@ -6367,5 +6369,14 @@ issues:
     \     ⇒ 实测 `diff` 输出**空** ⇒ ★**§①~§④ + §⑥ + §⑦ 全没动** ⇒ ★**ISS-137 已签字的那份交付物, 数字层面仍然成立**。\n  ⑤ `python3 SW/tools/demo_timing_check.py` ⇒ rc=0 (20/20) · `ast.parse` 验 `rknn_bench.py` 语法 OK。\n★**为什么这一单跟\
     \ ISS-137 分开 (★不混进已签字的单★)**: ISS-137 已 **verified** (sw-lead rev3 签字 pass)\n⇒ ★**那单的验收范围 = sw-lead 签过的那份交付物** ⇒ ★**这三条遗留是签字时明确报「未做」的**\n⇒ ⇒ ★**另开单承接才是诚实做法** (★否则就成了「签字时混进去」⇒ 与「自己修的必须别人验」同一逻辑的自欺 ★)。\n\
     ★**★待 sw-lead 复验 (★铁律: 本单 verify_by=sw-lead, 我不自己签★)★**: ★**请 sw-lead 独立复跑 ①②③④⑤ 五条**,\n  ★**特别是 ②③ 两条变异体 (★那才是护栏有没有用的唯一证据★)** ⇒ ★**别只看 selftest 全绿就算过**。\n★**边界**: ★**没有改 §0 锁死表** · ★**没有改任何已发布数字**\
-    \ (stdout 逐字节相同, 已实测) · ★**没有动其他 agent 的分片** (`HW/**` + `SW/**` 里的 6 处 DSI payload 归 hw-lead ⇒ **另开 ISS-186**, 本单一处没碰) · ★**没有发任何邮件/外联** · ★**没有下采购单**。"
+    \ (stdout 逐字节相同, 已实测) · ★**没有动其他 agent 的分片** (`HW/**` + `SW/**` 里的 6 处 DSI payload 归 hw-lead ⇒ **另开 ISS-186**, 本单一处没碰) · ★**没有发任何邮件/外联** · ★**没有下采购单**。\n★2026-11-11 05:4x 项目总工落账 **verified** (verify_result=pass,\
+    \ verify_by=sw-lead, verify_date=2026-11-11)\n【签字来源】sw-lead **ISS-187 复验 = pass** (2026-11-11 05:10) ⇒ 报告 `HANDOFF/2026-11-11_sw-lead_ISS187_验证.md` §8.1「我签了」· 分片 `state/fragments/sw.yaml` 的 `iss187_verify_result`\
+    \ = 'pass' ⇒ ★**别人验**成立 (owner=main / verify_by=sw-lead)。\n【★我没有采信 sw-lead 的自证, 落账前自己重跑了一遍】:\n  ① `python3 HW/e2e_budget_rk3572.py --selftest` ⇒ **rc=0** (护栏 7 → **10 条全过**, 含 ⑧⑨⑩ 三条**值型**护栏) ⇒ ⑧ 钉\
+    \ TX_MIN_800=1.800 / TX_MIN_1080=7.776 · ⑨ 钉 4-lane@2.0Gbps×0.8 · ⑩ 钉默认值必须带 TX。\n  ② `python3 SW/tools/demo_timing_check.py` ⇒ **rc=0**。\n  ③ ★**5 个交付物 md5 与 sw-lead 实测值逐字节相同**: `d7d1b110…` (HW/e2e_budget_rk3572.py)\
+    \ / `88f441ec…` (SW/DEMO_OD_TIMING_SPEC.md) / `38e256d2…` (SW/tools/rknn_bench.py) / `2fe3be4c…` (SW/DEMO_OD_PIPELINE_SPEC.md) / `085a2ed1…` (PROJECT_TRACKER.md)。\n  ④ ★**stdout 与「加护栏前」真基线 6ced111 (md5\
+    \ 0e622d56…) 逐字节相同** ⇒ 10908 B, `diff` 空 ⇒ ★**已发布数字一个没动** (★别拿 `git show HEAD:` 对拍 —— 发布树 HEAD 已含本单改动, 对拍恒等什么也证明不了★)。\n  ⑤ ★**sw-lead §7.1 报的 1 条非阻塞瑕疵已同批订正**: 护栏⑨ 注释的出处指针 `§(1.56)` (sensor 拍板) → `SW/DEMO_OD_TIMING_SPEC.md`\
+    \ §3.3.1 + `PROJECT_TRACKER.md:2099` ⇒ ★**只改注释, 值没动, 护栏行为不受影响, stdout 仍 10908 B 逐字节相同** ⇒ `HW/e2e_budget_rk3572.py` md5 `d7d1b110…` → **`7b820c14acfaee08a218cbf85557ef0b`**。\n【本单对项目的作用 (不改, 只记)】★**护栏从「关系型」升级成「值型」**\
+    \ ⇒ 以前改脚本的人可以把 TX 物理下限改小而 7 条护栏全绿; 现在 ⑧⑨⑩ 钉的是**已发布字面值** ⇒ M2 (默认值踢 TX) / M3 (lane 速率偷偷加倍) **现在会真变红** ⇒ ★**老板那条生死线数字 (合成段只剩 2.32ms) 不会再被悄悄改宽**。\n【★遗留 (sw-lead 如实报的「未做」项, 不藏)】① DSI payload 8× 口径差 6 处\
+    \ (373/246 Mbps ⇒ 真值 2986/1475 Mbps) ⇒ ★**归 hw-lead 的分片, 已在 ISS-186 承接** (★本轮未派: ISS-181 在飞 ⇒ 一个 agent 同时只允许一个写会话★) ② ★**M8 变异体 (`T_PANEL` 5.00→4.00) selftest 仍全绿** ⇒ ★**基线就有的性质, 非本单引入** ⇒ 建议后续加护栏⑪。\n\
+    【边界】★**没有改 §0 锁死表** · ★**没有改任何已发布数字** (stdout 逐字节已验) · ★**没有动其他 agent 的分片** · ★**没有发任何邮件/外联** · ★**没有下采购单**。"
   dispatched_at: '2026-11-11'
