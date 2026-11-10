@@ -107,6 +107,7 @@ GUARD_TESTS = (
     ("_test_esc_clr.py", "出脚离网格段净距守卫 (★PCB_ESC_CLR_FIX★)"),
     ("_test_rownorm2.py", "排法线约束生效守卫 (★PCB_ESC_ROWNORM2★)"),
     ("_test_corridor.py", "走廊让路守卫 (★PCB_CORRIDOR_YIELD★)"),
+    ("_test_layersel.py", "差分层选择守卫 (★PCB_PAIR_LAYERSEL★)"),
 )
 
 

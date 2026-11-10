@@ -26,6 +26,7 @@ import heapq
 import math
 import os
 from collections import defaultdict
+import collections
 
 import pcbnew
 
@@ -272,6 +273,14 @@ GND_ORPHAN_FIX = os.environ.get("PCB_GND_ORPHAN_FIX", "0") == "1"
 #   ★**修法**: ★**出脚直道若会【站在别人的出脚口上】⇒ ⇒ 换方向/换长度 ⇒ ⇒ 把走廊让给对方** ★★
 #   ★**默认 0 (关) ⇒ 逐位不变 (★老臂可复现★)**
 CORRIDOR_YIELD = os.environ.get("PCB_CORRIDOR_YIELD", "0") == "1"
+# ★★★★★★2026-11-10 20:0x 【★差分对的【层选择】(★env 门控 `PCB_PAIR_LAYERSEL`, ★默认关⇒逐位不变★)】★★★★★★
+#   ★**要修的病 (★实测坐实★)**: ★★**官方板的差分对 P/N 【在【不同层】上分段走】★★**
+#     · ★`CSI_D0_CK_P` = F.Cu 158 / In2.Cu 71 · ★`CSI_D0_CK_N` = F.Cu 78 / In2.Cu 120 ★★
+#     ⇒ ★★**⇒ 两腿的层占比【相反】⇒ ⇒ 这是【层选择】, 不是【走廊位置】** ★★
+#     ⇒ ★★**⇒ 而路由器【没有这个机制】⇒ ⇒ P/N 用同一套层 ⇒ ⇒ 只能挤在同一层 ⇒ ⇒ 挤到 0.43mm 就违规** ★★
+#   ★**修法**: ★**布 N 侧时, ★若 P 侧在【某些层】上占了很多 ⇒ ⇒ 把 N 侧【优先限制到 P 侧用得少的层】** ★★
+#   ★**默认 0 (关) ⇒ 逐位不变 (★老臂可复现★)**
+PAIR_LAYERSEL = os.environ.get("PCB_PAIR_LAYERSEL", "0") == "1"
 # ★★★★★★2026-11-10 15:3x 【★"出脚离网格那一段"的净距闸 (★env 门控 `PCB_ESC_CLR_FIX`, ★默认关⇒逐位不变★)】★★★★★★
 #   ★**要修的病 (★实测坐实★)**: ★**halo 是【按格】封的, ★而 A* 只判【格】**
 #     ⇒ ★**出脚直道末端是【离网格】的 ⇒ 【直道末端 → 第一个格心】那一段 45° 斜线不在格边上**
@@ -1004,6 +1013,17 @@ class GridRouter:
 
     # ------------------------------------------------ 可走性
     def _free(self, li, idx, net, cls=1):
+        # ★★★★★★2026-11-10 20:0x 【★差分对的【层选择】(★env 门控 `PCB_PAIR_LAYERSEL`★)】★★★★★★
+        #   ★**语义**: ★**若本轮限定了可用层 (★`self._layer_limit`★) ⇒ ⇒ 别的层一律不许走** ★
+        #   ★**为什么要有 (★实测坐实★)**: ★★**官方板的差分对 P/N 【在【不同层】上分段走】★★**
+        #     · ★`CSI_D0_CK_P` = F.Cu 158 / In2.Cu 71★
+        #     · ★`CSI_D0_CK_N` = F.Cu 78 / In2.Cu 120★ ⇒ ★★**两腿的层占比【相反】★★**
+        #     ⇒ ★★**⇒ 而路由器【没有这个机制】(★grep 源码 = 0 命中★) ⇒ ⇒ P/N 用同一套层 ⇒ ⇒ 只能挤在同一层**
+        #       ⇒ ⇒ 挤到 0.43mm 就违规 (★实测 `CSI_D0_CK_P`↔`CSI_D0_CK_N` 0.4280mm★) ★★
+        #   ★**默认关 ⇒ 逐位不变 (★老臂可复现★)**
+        _lim = getattr(self, "_layer_limit", None)
+        if _lim is not None and li not in _lim:
+            return False
         c = self.cu[li].get(idx)
         if c is not None and c != net:
             return False
@@ -4187,9 +4207,37 @@ def route_diff_pair(router, net_p, net_n, width=W_SIG, allow_via=True,
             profiles.append((guide, gdef, ring))
         # ★★alpha 必须非 0 ⇒ ★**"耦合失败 ⇒ 不带走廊再试一次"的兵底才会触发**
         #   (上一版传 alpha=0 ⇒ 兵底永不触发 ⇒ N 侧大量不通 ⇒ unconnected 反而涨了 13)
+        # ★★★★★★2026-11-10 20:0x 【★差分对的【层选择】(★env 门控 `PCB_PAIR_LAYERSEL`★)】★★★★★★
+        #   ★**为什么要有 (★实测坐实★)**: ★★**官方板的差分对 P/N 【在【不同层】上分段走】★★**
+        #     · ★`CSI_D0_CK_P` = F.Cu 158 / In2.Cu 71 · ★`CSI_D0_CK_N` = F.Cu 78 / In2.Cu 120 ★★
+        #     ⇒ ★★**⇒ 两腿的层占比【相反】⇒ ⇒ 【层选择】是官方板避开擦边净距的关键** ★★
+        #     ⇒ ★★**⇒ 而路由器【没有这个机制】⇒ ⇒ 两腿挤在同一层 ⇒ ⇒ 挤到 0.4280mm 就违规** ★★
+        #   ★**做法**: ★**统计 P 侧各层的段数 ⇒ ⇒ 把 N 侧【优先限制到 P 用得少的层】** ★★
+        #     ⇒ ★**限制是【优先】不是【禁止】(★只留一层 ⇒ N 侧可能完全布不出来⇒ ⇒ 反而更差★) ★★
+        #     ⇒ ★★**⇒ ⇒ 【先试限制, 不行再放开】⇒ ⇒ 不会比现状更差** ★★
+        if PAIR_LAYERSEL:
+            # ★P 侧各层的段数
+            _pcount = collections.Counter()
+            for _s in router.tracks:
+                if _s[0] == net_p:
+                    _pcount[_s[5]] += 1
+            if _pcount:
+                # ★按 P 侧用得【少】的层排 (★同数时按层号★)
+                _order = sorted(ROUTE_LAYERS, key=lambda l: (_pcount.get(l, 0), l))
+                # ★★**至少留 2 层 (★只留 1 层 ⇒ N 侧可能完全布不出来⇒ ⇒ 反而更差★)** ★★
+                _lim = set(_order[:max(2, len(_order) - 1)])
+                router._layer_limit = _lim
+                res["n_layers"] = sorted(_lim)
         r2 = router.route_net(net_n, width=width, allow_via=allow_via,
                               trunk=trunk_n, profiles=profiles, alpha=0.45)
+        # ★★**限制下 N 侧没布出来 ⇒ ⇒ 放开限制再试一次 (★保证不比现状更差★)** ★★
+        if not r2.get("ok") and PAIR_LAYERSEL and getattr(router, "_layer_limit", None):
+            router._layer_limit = None
+            res["n_layers_retry"] = True
+            r2 = router.route_net(net_n, width=width, allow_via=allow_via,
+                                  trunk=trunk_n, profiles=profiles, alpha=0.45)
     finally:
+        router._layer_limit = None
         router.pair_partner = None
         router.pair_block = set()
         router.pair_block_narrow = set()
