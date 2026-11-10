@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-11T00:14:27+08:00'
+  generated_at: '2026-11-11T00:45:02+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1794308494355780854
     sw-lead:
       file: sw.yaml
-      size: 101257
-      sha1: b44872aba25b
-      mtime_ns: 1794327023452711496
+      size: 109276
+      sha1: 36b1e3ac3646
+      mtime_ns: 1794328477581643357
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -2922,7 +2922,9 @@ domains:
         (本单实测两次结果逐字节相同)。仍 yellow 的原因: 板子 Radxa A7S 192.168.2.5 不可达 (ssh No route to host + ARP FAILED)
         ⇒ P0-2 板端 librknnrt 版本号 + 板端实测 S5 两项无法闭合; §6 留 18 条待核, 未用推断冒充事实。 ★ISS-157 (2026-11-02 23:3x) 已修:
         rknn_bench.py 的 cut 模型缓存键**改为含模型指纹** ⇒ 换权重自动失效 (修前会静默跑出上一个模型的数字, 且不报错); 输出新增「本次权重 + 缓存 HIT/MISS」打印
-        + 多指纹自检; 实测验收: 同权重两次结果完全一致 / 换权重结果必须不同 (修前是坏的, 现已变绿); 两个模型 F1 已重测 (yolov5s 0.3017 / yolov5n 0.2927)。'
+        + 多指纹自检; 实测验收: 同权重两次结果完全一致 / 换权重结果必须不同 (修前是坏的, 现已变绿); 两个模型 F1 已重测 (yolov5s 0.3017 / yolov5n 0.2927)。
+        ★ISS-137 rev1 复验 (11-11 00:2x): 技术内容全过 (R2~R6 + ④TX 独立复算 + ⑥ 已发布数字逐字节未动), 但 R1 只修一半 (state/issue_log.yaml:4702
+        仍写 17.65ms) ⇒ 判 fail(轻量), 补那 1 处 note 同步即可签。详见 HANDOFF/2026-11-10_sw-lead_ISS137_验证.md §7。'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -3229,20 +3231,32 @@ domains:
         / SW/tools/* 任何脚本 / DEMO_OD_PIPELINE_SPEC.md / RKNN_BENCH.md。'
     - path: HANDOFF/2026-11-10_sw-lead_ISS137_验证.md
       kind: verification-report
-      version: v1.0
-      updated_at: '2026-11-10'
-      summary: '★ISS-137 独立验证 (owner=main / verify_by=sw-lead, 铁律: 修复人不能自验)。结论 = **fail (退回修 2 处后可签)**:
-        ①拆分恒等 pass (五段和 − T_FIXED = 0.0 精确相等; 且用 11-02 旧版副本与现版全量 stdout 对拍 ⇒ 剔除 §⑤ 后仅 4 行 docstring 差异
-        ⇒ §①②③④⑥⑦ 逐字节未动) ②判据↔算账互逆 pass (compose_max_for 回代 modeA_with_compose = 60.0 float 精确) ③零副作用 pass
-        (代入 T_COMPOSE ⇒ 52.905 vs 52.905, bit delta = 0.0 真逐位一致) ④★口径对齐 fail (板端段7『合成』被塞进模型里叫『显示 TX』的槽位
-        ⇒ T_FIXED_OTHER=31.00=T_FIXED−3.00 ⇒ **显示 TX 无项**; 按脚本 §⑥ 自己的链路参数反算 1920×1080@60fps 一帧 DSI 移出
-        ≈ 7.78ms ⇒ 判据偏乐观 ≈7.8ms, 示例 t_compose=8.5 时 yolov5n 58.41 ✅ 加 TX 即 66.19 ❌ **足以翻结论**; 且 RKNN_BENCH.md:273/:319/:321
-        三处仍叫 TX ⇒ S9 一名两义 = 新分叉) ⑤ fail (文档 §3.3.1:179 写 yolov5s@320 上限 **17.65**, 脚本实算 **16.65**, 差 1.00ms,
-        且该错值已扩散进 issue_log ISS-137 note; ★''12.96 > 10.09 ⇒ 必须实测'' 的算术本身成立)。★另报 3 个反向数字: 脚本 §① 打印 模式B
-        67.34 / 50.67 / 阈值 20.40 与 RKNN_BENCH 已发布 67.01 / 50.34 / 20.33 差 0.33/0.33/0.07 (★ISS-137 之前就有,
-        拆分没让它变差, 但''逐位复现已发布数字''按字面不成立) · 显示 TX 缺项 ≈7.78ms · §⑤ 读法里''显示段占 T_FIXED 的 15%'' 是盲扫旧口径残留 (新模型下
-        15%×34=5.1ms ⇒ 模式A 55.0 不破线)。★我没改任何交付物, 也没写 issue_log 的 verify_result/verify_date ⇒ 退回建议 R1~R6
-        在报告 §3。'
+      version: v1.1
+      updated_at: '2026-11-11'
+      summary: "★ISS-137 **rev1 复验** (owner=main / verify_by=sw-lead; 铁律: 修复人不能自验)。结论 = **fail(轻量): 技术内容全过,\
+        \ 但 R1 只修了一半** —— ★**补 1 处字符串同步 (issue_log note) 我立即签**。\n  ★**pass 5 条 + 2 项独立核验**: R2 (RKNN_BENCH.md\
+        \ 全文件 diff = **3 行, 只动标签, 数字零改动**; §4.1 的 S1~S10 整段完好) · R3 (§3.3.1 '必要条件不是充分条件' 在位 + 新列『减 TX\
+        \ 后·合成上限』在位 + 6 个数全对 + '第8段也要打点' + '上屏段边界改用 vblank/TE') · R4 ('显示段占 T_FIXED 的 15%' 旧口径**已删干净**\
+        \ (脚本 + 规格双删)) · R5 ('显示 TX 与光机 S10 仍是 [0数据]' 在位) · R6 (版本头 v1.0 → **v1.1 (2026-11-10, ISS-137)**)\
+        \ · ★**④ TX 该不该扣 = pass** (我**自己定参数独立复算**: TX 物理下限 = 一帧比特/链路有效带宽 ⇒ 1920×1080 = **7.776ms** / 800×600\
+        \ = **1.800ms**, 与脚本**逐位一致**; TX 比值 == 像素比 (4.32) 精确成立; '合成上限 = 输出侧上限 − TX' **算术严格成立** (回代模式A\
+        \ = 60.000000); ★**TX 必须扣** —— 模式A 下它串行在关键路径 (合成→commit→DSI移出→面板延迟→出光) + 已发布模型 §4.1 本来就有它 (9 =\
+        \ 画框+TX+光机), rev1 是**恢复**不是新增; 敏感性: 即使按 RK3572 官方上限 2.5Gbps/lane 算 TX 仍 ≥5.53ms ⇒ 吃掉的预算过半 ⇒ 结论不动摇)\
+        \ · ★**⑥ 已发布数字没动 = pass** (§①~§④ + §⑥ + §⑦ 与 11-02 原版**逐字节相同**; docstring 之外**零差异**)。\n  ★**fail\
+        \ 1 条**: **R1 只修一半** —— `SW/DEMO_OD_TIMING_SPEC.md:192` 已改 **16.65** ✔, 但 ★**`state/issue_log.yaml:4702`\
+        \ 仍写 'RK3572+yolov5s@320: 上限 17.65ms'** ✘ (任务书说的『note 同步改』**实际没做**; note 里另有 4 处 rev0 旧口径未订正:\
+        \ 槽位名 T_COMPOSE / '板端打一个点' / '★不制造新的口径分叉' / '6 条拆分护栏')。\n  ★**⑤ 护栏: 是真的, 但有 2 个洞** (我造了 4 个变异体做反向验证):\
+        \ M1(把 TX 从判据里去掉)/M4 ⇒ **护栏⑤ 真的红** ✔ (护栏不是假的); 但 ★**M2(只把 modeA_with_compose 的 TX 默认值改 0) ⇒ selftest\
+        \ 全绿, 而 --t-compose-ms 8.5 输出翻回 58.41ms ✅ —— 精确复现 rev0 的乐观结论**; ★**M3(改 lane 速率 ⇒ TX 7.776→3.888)\
+        \ ⇒ 7 条全绿, 而 yolov5n 判据从 2.32 变 6.21** ⇒ ★**现有 7 条全是关系型断言, 没有一条钉 TX 的绝对值** ⇒ 我给了 3 条**实测能变红**的护栏补丁\
+        \ (含一条元教训: 用『被检查的同一组常量』重算期望值 = 同义反复, 我第一版就这么写错了)。\n  ★**另报 3 项**: (1) ★**项目里两处 DSI payload 口径差\
+        \ 8×** (HW/DISPLAY_MODULE_DECISION.md:53 与 HW/STEP1_PARTS_SPEC.md:375 写 373/246 Mbps, 真值 2986/1475\
+        \ Mbps) ⇒ **TX 下限正压在这个口径上, 换回错值 ⇒ rev0 那个坑原样回来**; (2) PROJECT_TRACKER.md:2098 还留着 R4 那句 15% 旧口径\
+        \ (建议加'已被 rev1 取代'标记, 别删历史); (3) SW/DEMO_OD_PIPELINE_SPEC.md:447 引用 §⑤ 的旧输出 (悬空引用)。\n  ★**我没改任何交付物**\
+        \ (脚本/规格/RKNN_BENCH/issue_log/PROJECT_TRACKER/STATE 一个字节没动) ⇒ 判定为错的地方全在报告 §7.4『退回建议』里, 由 main\
+        \ 动手。 ★**报告结构**: §0~§6 = rev0 判决 (一字未改) · **§7 = rev1 复验** (含 §7.0a ★验收标准自评 (逐条 通过/不通过/未验)★ ·\
+        \ §7.0b 接口取值声明 · §7.0c 未决项与卡点 · §7.2 逐条证据 · §7.3 额外发现 · §7.4 退回建议 · §7.5 边界) ⇒ gate_check 交接单齐备率\
+        \ **6/6**。"
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -4164,6 +4178,59 @@ domains:
         ''板端实测 ⇒ 一行命令出结论'' 只闭合合成段 (板端 11 段表本来就没有 TX 段) ⇒ 明写 ''本判据只闭合合成段, 显示 TX 与光机 S10 仍 [0数据]''。R6【可选】SW/DEMO_OD_TIMING_SPEC.md:3
         版本头补 v1.1 (2026-11-10)。★另: ISS-137 的 ''★不制造新的口径分叉'' 自我评价不成立 (它恰恰造了一个 S9 名称分叉) ⇒ 建议在 note 里订正。'
       since: '2026-11-10'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss137_rev1_fixback
+      to: main
+      item: "★ISS-137 **rev1 复验**: 技术内容全过, ★**只差 1 处必改** (5 分钟) ⇒ ★**补完我立即签**。详细见 HANDOFF/2026-11-10_sw-lead_ISS137_验证.md\
+        \ **§7** (rev1 结论独立于 rev0 的 §0~§6)。\n  ★**必改 (1 处)**: `state/issue_log.yaml` ISS-137 note 的【交付】/【口径纪律】/【自证】三段\
+        \ (`:4701`~`:4706`) **就地订正 5 处**: ①槽位名 `T_COMPOSE 3.00 (S9 显示合成/缩放...)` → `T_DISPLAY_OUT 3.00\
+        \ (S9 显示输出侧 = TX/桥接+合成+缩放...)`; ②`RK3572+yolov5s@320: 上限 **17.65ms**` → **16.65ms** (★脚本实算 16.65,\
+        \ 我实跑复核过); ③`★**板端打一个点 ⇒ 一行命令出结论**` → **板端打两个点 (第7段合成 + 第8段上屏)**; ④`★**本单按 ... (t_compose ↔ S9)\
+        \ 对齐** ... ★**不制造新的口径分叉**` → **订正为 'rev0 这句自我评价已被 R2 判为不成立 (它恰恰造了一个 S9 名称分叉); rev1 已改为: t_compose\
+        \ 只是 S9 的一部分, 须另测 t_display 或用物理下限 7.776ms'**; ⑤`★**新增 6 条拆分护栏**` → **7 条**。★**注意: note 里现在已经同时写着\
+        \ '已修' 和 '本来就对' (第④处), 自相矛盾, 这条比数字更要紧。**\n  ★**建议 (不阻塞签字, 报告 §7.4 有全部 9 条)**: (a) `HW/e2e_budget_rk3572.py`\
+        \ 补 3 条护栏: ⑧ TX 已发布值钉死 (7.776/1.800) + ⑨ 链路参数钉死 (4 lane @2.0Gbps × 0.8) + ⑩ 默认路径带 TX ⇒ ★**我实测:\
+        \ 正确版 9 条全绿 / M2(默认参数踢 TX) 红 / M3(改 lane 速率) 红**; ★**别写成'用同一组常量重算期望值' —— 我第一版就是这么写的, 实测是同义反复,\
+        \ 拦不住任何东西**; (b) `PROJECT_TRACKER.md:2098` 加一句 '⇒ ★**已被 ISS-137 rev1 取代**: 现判据 = 输出侧合计 ≤ X ms\
+        \ (绝对值, 不是百分比)' (★**别删历史, 加标记即可**; ★**注意: 这不在 §0 锁死表里 (§0 从 :28 起), 我没碰 §0**); (c) `SW/DEMO_OD_PIPELINE_SPEC.md:447`\
+        \ 的 §⑤ 悬空引用改成指向判据表; (d) `SW/DEMO_OD_TIMING_SPEC.md:194` '显示 TX ... 仍是 [0数据]' → '显示输出侧的**实测值**仍\
+        \ [0数据] (TX 只有物理下限 7.776ms)'; (e) `SW/tools/rknn_bench.py:257/:261` 的 S9 标签 '显示 TX' → '显示输出侧'\
+        \ (数字不动)。\n  ★**已发布数字我复核过: 零改动** (RKNN_BENCH.md 全文件 diff = 3 行只动标签; 脚本 stdout §①~④⑥⑦ 与 11-02 原版逐字节相同)\
+        \ ⇒ ★**签字风险只剩 note 那一处文字**。"
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss137_dsi_payload_caliber
+      to: hw-lead
+      item: "★ISS-137 rev1 复验时发现: **项目里有两个『DSI 带宽』口径, 差 8 倍**, 而 ISS-137 的 TX 物理下限正压在这个口径上 ⇒ 建议顺手修 (★**不是\
+        \ ISS-137 造成的, 是 11-02 就有的**)。\n  ★**证据 (我实算)**: 1920×1080@60 RGB888 = 1920×1080×24×60 = **2985.98\
+        \ Mbps**; 800×1280@60 RGB888 = **1474.56 Mbps**。\n  ⇒ `HW/DISPLAY_MODULE_DECISION.md:53` 写 '1920×1080@60\
+        \ RGB888 ≈ **373 Mbps**' ⇒ **偏小 8.0×** (反推 bpp = 2.998, 既不是 RGB888 也不是整数口径); `HW/STEP1_PARTS_SPEC.md:375`\
+        \ 写 '800×1280@60 ≈ **246 Mbps**; 1920×1080@60 ≈ **373 Mbps**' ⇒ 分别偏小 **6.0× / 8.0×** (246 反推 bpp\
+        \ = 4.004 ⇒ **两处彼此也不是一个口径**)。\n  ⇒ ★**对照 (这两处是对的)**: `PROJECT_TRACKER.md:2099` 写 '1920×1080@60\
+        \ RGB888 = **2986 Mbps**, 4-lane@2.0Gbps 够' ✔; `HW/e2e_budget_rk3572.py` §⑥ 实打印 'RGB888 payload\
+        \ = **2986.0 Mbps**' ✔。\n  ★**为什么要紧**: TX 物理下限 = 一帧比特 / 链路有效带宽 ⇒ ★**一旦有人把 2986 换成 373, TX 下限会从\
+        \ 7.776ms 塌到 ~0.97ms ⇒ ISS-137 rev0 那个『显示 TX 从账上消失』的坑会原样回来, 而且更隐蔽** (我已经把 TX 显式扣进判据并加了护栏, 但**护栏钉不住\
+        \ payload 口径本身**, 因为 payload 根本不在脚本里)。\n  ★**建议**: 两处改成 **2986 / 1475 Mbps** (或直接引 PROJECT_TRACKER.md:2099\
+        \ 的口径), 并在 ISS-137 脚本 §⑥ 旁注明 '以 §⑥ 为准'。★**另**: `HW/DISPLAY_MODULE_DECISION.md:102` 那条未闭合的未知项 '0.49\"\
+        \ 1920×1080 是**单色还是全彩**?' ⇒ ★**它决定 TX 下限用的 bpp (24 vs 更低) ⇒ 直接决定 yolov5n 那 2.32ms 还剩多少** ⇒ 建议挂进面板问询单\
+        \ (ISS-134/135)。"
+      since: '2026-11-11'
       state: pending
       target_missing: false
       waiting_on: agent
@@ -11298,10 +11365,17 @@ interface_claims:
     values:
       sw-lead: fail
     notes:
-      sw-lead: '★ISS-137 (main 自办) 独立验证结论 = **fail**。pass: ①拆分恒等 (精确) ②判据↔算账互逆 (精确) ③拆分零副作用 (bit-identical)
-        · fail: ④口径对齐 (显示 TX 被挤出账外, 缺项 ≈7.78ms, 且 S9 一名两义) ⑤判据数 (17.65 vs 16.65)。★签字条件 = 报告 §3 的 R1 (改数
-        17.65→16.65, 含 issue_log note) + R2/R3 (口径: 推荐方案 A —— 槽位统一改称 T_DISPLAY_OUT=合成+TX 并同步 RKNN_BENCH
-        三处标签; 最低限度按方案 B 在 §3.3.1 明写''本判据是必要条件, 显示 TX 不在模型内 ≈7.78ms'') 落地, 我可复跑同组命令再签。'
+      sw-lead: "★ISS-137 **rev1 复验** (2026-11-11 00:2x, sw-lead 独立复验) = **fail(轻量)**: 技术内容全过, **R1 只修了一半**。\n\
+        \  ★**rev0 判决保留**: fail (退回 R1~R6) —— 详见 HANDOFF/2026-11-10_sw-lead_ISS137_验证.md §0~§6 (一字未改)。\n\
+        \  ★**rev1 pass**: R2 (RKNN_BENCH.md diff = 3 行, 只动标签, 数字零改动) · R3 (必要条件表述 + 新列 + 6 个数全对 + vblank/TE)\
+        \ · R4 (15% 旧口径已删) · R5 ([0数据] 在位) · R6 (v1.1) · ★**④ TX 独立复算**: 一帧比特/链路有效带宽 ⇒ 7.776ms@1080p /\
+        \ 1.800ms@800×600 (与脚本逐位一致), TX∝像素比精确成立, '合成上限 = 输出侧上限 − TX' 算术成立, ★**TX 必须扣** (模式A 关键路径 + 已发布模型本来就有它)\
+        \ · ★**⑥**: §①~④⑥⑦ 与 11-02 原版逐字节相同 (docstring 之外零差异)。\n  ★**rev1 fail (只差这一处)**: `state/issue_log.yaml`\
+        \ ISS-137 note 的【交付】段 (`:4702`) 仍写 'RK3572+yolov5s@320: 上限 **17.65ms**' (规格表 `SW/DEMO_OD_TIMING_SPEC.md:192`\
+        \ 已改 16.65 ✔) ⇒ ★**R1『两处都要改』未闭合**; 同段另有 4 处 rev0 旧口径 (槽位名 T_COMPOSE / '板端打一个点' / '★不制造新的口径分叉'\
+        \ / '6 条拆分护栏') 未订正。\n  ★**签字条件**: 补上那 1 处 (issue_log note 同步, 5 分钟) ⇒ 我复跑一次 grep + --selftest\
+        \ 即签。  ★**另报**: 护栏 2 个洞 (M2 默认参数踢 TX / M3 无护栏钉 TX 绝对值, 附实测) + DSI payload 两处口径差 8× + tracker/上游规格旧口径残留\
+        \ ⇒ 详见报告 §7.3/§7.4。"
     by:
     - sw-lead
     noncanonical_by: []
@@ -11770,6 +11844,44 @@ needs_matrix:
     since: '2026-11-10'
     _by: sw-lead
     state: pending
+  - key: iss137_rev1_fixback
+    to: main
+    item: "★ISS-137 **rev1 复验**: 技术内容全过, ★**只差 1 处必改** (5 分钟) ⇒ ★**补完我立即签**。详细见 HANDOFF/2026-11-10_sw-lead_ISS137_验证.md\
+      \ **§7** (rev1 结论独立于 rev0 的 §0~§6)。\n  ★**必改 (1 处)**: `state/issue_log.yaml` ISS-137 note 的【交付】/【口径纪律】/【自证】三段\
+      \ (`:4701`~`:4706`) **就地订正 5 处**: ①槽位名 `T_COMPOSE 3.00 (S9 显示合成/缩放...)` → `T_DISPLAY_OUT 3.00 (S9\
+      \ 显示输出侧 = TX/桥接+合成+缩放...)`; ②`RK3572+yolov5s@320: 上限 **17.65ms**` → **16.65ms** (★脚本实算 16.65, 我实跑复核过);\
+      \ ③`★**板端打一个点 ⇒ 一行命令出结论**` → **板端打两个点 (第7段合成 + 第8段上屏)**; ④`★**本单按 ... (t_compose ↔ S9) 对齐** ...\
+      \ ★**不制造新的口径分叉**` → **订正为 'rev0 这句自我评价已被 R2 判为不成立 (它恰恰造了一个 S9 名称分叉); rev1 已改为: t_compose 只是 S9 的一部分,\
+      \ 须另测 t_display 或用物理下限 7.776ms'**; ⑤`★**新增 6 条拆分护栏**` → **7 条**。★**注意: note 里现在已经同时写着 '已修' 和 '本来就对'\
+      \ (第④处), 自相矛盾, 这条比数字更要紧。**\n  ★**建议 (不阻塞签字, 报告 §7.4 有全部 9 条)**: (a) `HW/e2e_budget_rk3572.py` 补\
+      \ 3 条护栏: ⑧ TX 已发布值钉死 (7.776/1.800) + ⑨ 链路参数钉死 (4 lane @2.0Gbps × 0.8) + ⑩ 默认路径带 TX ⇒ ★**我实测: 正确版\
+      \ 9 条全绿 / M2(默认参数踢 TX) 红 / M3(改 lane 速率) 红**; ★**别写成'用同一组常量重算期望值' —— 我第一版就是这么写的, 实测是同义反复, 拦不住任何东西**;\
+      \ (b) `PROJECT_TRACKER.md:2098` 加一句 '⇒ ★**已被 ISS-137 rev1 取代**: 现判据 = 输出侧合计 ≤ X ms (绝对值, 不是百分比)'\
+      \ (★**别删历史, 加标记即可**; ★**注意: 这不在 §0 锁死表里 (§0 从 :28 起), 我没碰 §0**); (c) `SW/DEMO_OD_PIPELINE_SPEC.md:447`\
+      \ 的 §⑤ 悬空引用改成指向判据表; (d) `SW/DEMO_OD_TIMING_SPEC.md:194` '显示 TX ... 仍是 [0数据]' → '显示输出侧的**实测值**仍 [0数据]\
+      \ (TX 只有物理下限 7.776ms)'; (e) `SW/tools/rknn_bench.py:257/:261` 的 S9 标签 '显示 TX' → '显示输出侧' (数字不动)。\n\
+      \  ★**已发布数字我复核过: 零改动** (RKNN_BENCH.md 全文件 diff = 3 行只动标签; 脚本 stdout §①~④⑥⑦ 与 11-02 原版逐字节相同) ⇒ ★**签字风险只剩\
+      \ note 那一处文字**。"
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss137_dsi_payload_caliber
+    to: hw-lead
+    item: "★ISS-137 rev1 复验时发现: **项目里有两个『DSI 带宽』口径, 差 8 倍**, 而 ISS-137 的 TX 物理下限正压在这个口径上 ⇒ 建议顺手修 (★**不是\
+      \ ISS-137 造成的, 是 11-02 就有的**)。\n  ★**证据 (我实算)**: 1920×1080@60 RGB888 = 1920×1080×24×60 = **2985.98\
+      \ Mbps**; 800×1280@60 RGB888 = **1474.56 Mbps**。\n  ⇒ `HW/DISPLAY_MODULE_DECISION.md:53` 写 '1920×1080@60\
+      \ RGB888 ≈ **373 Mbps**' ⇒ **偏小 8.0×** (反推 bpp = 2.998, 既不是 RGB888 也不是整数口径); `HW/STEP1_PARTS_SPEC.md:375`\
+      \ 写 '800×1280@60 ≈ **246 Mbps**; 1920×1080@60 ≈ **373 Mbps**' ⇒ 分别偏小 **6.0× / 8.0×** (246 反推 bpp\
+      \ = 4.004 ⇒ **两处彼此也不是一个口径**)。\n  ⇒ ★**对照 (这两处是对的)**: `PROJECT_TRACKER.md:2099` 写 '1920×1080@60 RGB888\
+      \ = **2986 Mbps**, 4-lane@2.0Gbps 够' ✔; `HW/e2e_budget_rk3572.py` §⑥ 实打印 'RGB888 payload = **2986.0\
+      \ Mbps**' ✔。\n  ★**为什么要紧**: TX 物理下限 = 一帧比特 / 链路有效带宽 ⇒ ★**一旦有人把 2986 换成 373, TX 下限会从 7.776ms 塌到 ~0.97ms\
+      \ ⇒ ISS-137 rev0 那个『显示 TX 从账上消失』的坑会原样回来, 而且更隐蔽** (我已经把 TX 显式扣进判据并加了护栏, 但**护栏钉不住 payload 口径本身**,\
+      \ 因为 payload 根本不在脚本里)。\n  ★**建议**: 两处改成 **2986 / 1475 Mbps** (或直接引 PROJECT_TRACKER.md:2099 的口径),\
+      \ 并在 ISS-137 脚本 §⑥ 旁注明 '以 §⑥ 为准'。★**另**: `HW/DISPLAY_MODULE_DECISION.md:102` 那条未闭合的未知项 '0.49\" 1920×1080\
+      \ 是**单色还是全彩**?' ⇒ ★**它决定 TX 下限用的 bpp (24 vs 更低) ⇒ 直接决定 yolov5n 那 2.32ms 还剩多少** ⇒ 建议挂进面板问询单 (ISS-134/135)。"
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
   - key: soc_carrier_mainboard_site
     to: main
     item: ISS-084上游卡点_主板位定镜脚还是镜框(解D走不走变更流程)_载板化的全部结构结论都随它变_请裁_经项目总工转老板
@@ -12050,7 +12162,7 @@ needs_matrix:
     _by: mech-lead
     state: pending
   answered_count: 156
-  total: 229
+  total: 231
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -12662,7 +12774,7 @@ summary:
   artifacts: 155
   blockers: 43
   high_blockers: 33
-  open_needs: 73
+  open_needs: 75
   waiting_external_needs: 70
   overdue_needs: 0
   target_missing_needs: 0

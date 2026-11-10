@@ -99,6 +99,22 @@ PY
 echo "── 板规则 min track width → 0.15 (两条臂都做, ★保持一致★) ──"
 fix_rule "$OUT0"
 
+# ★★★★★★【★铁律: 要跑 DRC 的板, 同目录【必须】有 .kicad_pro ★★★★★★】★★★★★★
+#   ★**2026-11-11 00:2x 实测踩到 (★不是猜★)**: ★**臂A 的裸板旁没有 .kicad_pro ⇒
+#   KiCad 退回【默认 min_width 0.20mm】⇒ 0.15mm 走线全成【假 track_width 违规】(实测 87 条)★**
+#   ⇒ ★**⇒ 缺 .kicad_pro 的 DRC 读数一律作废** ⇒ ⇒ 【每条臂的裸板/终板, 同目录都必须放工程文件★】
+#   ★★**且它会伪装成"臂变差了"(★我一度据此误判"默认关⇒逐位不变"失效★)⇒ ★★必须先补齐再读数★**
+ensure_pro () {
+  local p="$1"
+  local pro="${p%.kicad_pcb}.kicad_pro"
+  if [ ! -f "$pro" ]; then
+    cp -f "$PROJ/HW/PCB/demo_mainboard.kicad_pro" "$pro" 2>/dev/null || \
+    cp -f "$PROJ/state/.lastgood/baseline_v76me0_chain.kicad_pro" "$pro" 2>/dev/null || true
+    echo "  ✓ 已补 .kicad_pro (★规则同源·否则 DRC 假违规★): $pro"
+  fi
+}
+ensure_pro "$OUT0"
+
 # ---- ⑤ fresh DRC (★两条臂都跑★) ----
 echo "── fresh DRC ──"
 bash state/kicad.sh pcb drc --output "$DRC0" --severity-error --severity-warning --format json "$OUT0" >/dev/null 2>&1

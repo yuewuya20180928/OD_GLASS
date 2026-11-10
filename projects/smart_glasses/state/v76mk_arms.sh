@@ -16,9 +16,9 @@ set -u
 PROJ=/home/yuewuya/.openclaw/workspace/projects/smart_glasses
 cd "$PROJ" || exit 1
 
-OUT0=/tmp/v76ml_R.kicad_pcb
-LOG0=/tmp/v76ml_R.log
-DRC0=/tmp/v76ml_R.drc.json
+OUT0=/tmp/v76mk_R.kicad_pcb
+LOG0=/tmp/v76mk_R.log
+DRC0=/tmp/v76mk_R.drc.json
 
 
 if [ -e "$OUT0" ] || [ -e "$LOG0" ]; then

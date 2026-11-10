@@ -149,8 +149,9 @@ FINALDRC="$WORK/final_board.drc.json"
 fresh_drc "$WORK/final_chain.kicad_pcb" "$FINALDRC"
 if [ -f "$FINALDRC" ]; then
   say "★终板 fresh DRC = $FINALDRC"
-  say "   ★unc 条目 = $(python3 -c "import json,sys;d=json.load(open(sys.argv[1]));print(len([v for v in d.get('violations',[]) if 'unconnected' in str(v.get('type','')).lower()]))" "$FINALDRC" 2>/dev/null || echo '?')"
+  say "   ★unc 条目 = $(python3 -c "import json,sys;d=json.load(open(sys.argv[1]));u=d.get('unconnected_items') or [];print(len(u))" "$FINALDRC" 2>/dev/null || echo '?')"
   say "   ★违规数   = $(python3 -c "import json,sys;d=json.load(open(sys.argv[1]));print(len(d.get('violations',[])))" "$FINALDRC" 2>/dev/null || echo '?')"
+  say "   ★unc 网名 = $(python3 -c "import json,sys,re;d=json.load(open(sys.argv[1]));u=d.get('unconnected_items') or [];s=set();[s.update(re.findall(r'\[([A-Za-z0-9_]+)\]',json.dumps(x,ensure_ascii=False))) for x in u];print(len(s))" "$FINALDRC" 2>/dev/null || echo '?')"
   # ★★**★同时把【终板 DRC】按老名字也写一份 (★兼容旧脚本/旧习惯★) ★★ ★★**⇒ 覆盖掉那份"上一步输入 DRC", 杜绝再踩坑 ★★
   cp "$FINALDRC" "$WORK/final_chain.kicad_pcb.drc.json"
   say "   ★已覆盖同名旧文件 ⇒ final_chain.kicad_pcb.drc.json 现在【就是终板的 DRC】(★不再有【上一步输入】歧义★)"

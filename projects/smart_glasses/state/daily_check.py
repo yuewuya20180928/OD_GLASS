@@ -272,15 +272,25 @@ def main() -> int:
     # 5) 漂移检测
     os.makedirs(SNAP, exist_ok=True)
     snaps = sorted(f for f in os.listdir(SNAP) if f.endswith(".json"))
+    # ★★2026-11-11 00:3x 实测修: ★**基线不能取【今天自己的快照】★★
+    #   ★**实测缺陷 (★反向验证: 人为把今天的 blocks_ok 改成 5 再跑 ⇒ 漂移检测仍报"无漂移"★)**:
+    #     原来 `snaps[-1]` ⇒ ★**同一天第二次跑时, snaps[-1] 就是今天自己刚写的那个文件**
+    #     ⇒ ⇒ 拿【自己】当基线 ⇒ ★**指标掉多少都测不出来** ⇒ ★**这道闸在一天里跑第二次以上就瞎了** ★★
+    #     ⇒ ★★**与 MEMORY 铁律「恒为 0 的指标比没有指标更危险」同一个病 (这里是"恒不报的漂移检测")**★★
+    #   ★**修法**: 基线取**今天之前**最新的一份 ⇒ ★**同一天跑几次都拿同一个真基线** ⇒ ★**漂移每次都能测出来**
+    #     (★今天第一次跑时本来就没有今天的文件 ⇒ 行为不变; 今天是第 N 次跑 ⇒ 基线仍是昨天/上一次的那份★)
+    import datetime as _dt
+    _today = _dt.date.today().isoformat()
+    _prior = [s for s in snaps if not s.startswith(_today)]
+    _baseline_name = _prior[-1] if _prior else None
     prev = None
-    if snaps:
+    if _baseline_name:
         try:
-            with open(os.path.join(SNAP, snaps[-1]), encoding="utf-8") as f:
+            with open(os.path.join(SNAP, _baseline_name), encoding="utf-8") as f:
                 prev = json.load(f)
         except Exception:  # noqa: BLE001
             prev = None
 
-    import datetime as _dt
     ts = _dt.datetime.now().strftime("%Y-%m-%d %H:%M")
     cur = {
         "readiness": {k: v for k, v in (ready or {}).items() if k != "criteria"},

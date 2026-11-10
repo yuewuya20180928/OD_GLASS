@@ -16,13 +16,15 @@
 
 ★证据分级: [公开实测·第三方] RK3576 三档 NPU 耗时 (model_zoo 性能表)
             [推算] RK3572 的 NPU 耗时 = RK3576 × (6TOPS/4TOPS) —— ★**不保证等比** (4 TOPS 标称 sparse INT8)
-            ★★[ISS-137 2026-11-10] 显示合成段已从 T_FIXED 里**单独拆出来打点** ⇒
-              [模型占位] 显示合成段 = 4.00ms (S8 画框 1.0 + S9 显示TX 3.0, 出处 RKNN_BENCH §4.1)
-              [0数据] ★**该段在 1920×1080 下的实测值 (t_compose)** ⇒ §⑤ 给的是【可测判据】不是【盲扫】
+            ★★[ISS-137 2026-11-10 23:5x] 显示输出侧已从 T_FIXED 里**拆成独立量** ⇒
+              [模型占位] 显示输出侧 = 3.00ms (= RKNN_BENCH §4.1 的 **S9**) ⇒ 板端对应【两段】:
+              第7段 合成 t_compose + 第8段 上屏 t_display (★**含 DSI 移出★**)
+              [物理下限] TX (一帧比特/链路带宽) @1920×1080 = 7.776ms (@800×600 = 1.800ms)
+              [0数据] ★**该侧在 1920×1080 下的实测值** ⇒ §⑤ 给的是【可测判据】不是【盲扫】
 
 用法:
     python3 HW/e2e_budget_rk3572.py            # 主表
-    python3 HW/e2e_budget_rk3572.py --selftest  # 自检 (复现 sw-lead 已发布数字)
+    python3 HW/e2e_budget_rk3572.py --selftest  # 自检 (复现 sw-lead 已发布数字 + 拆分护栏)
     python3 HW/e2e_budget_rk3572.py --t-compose-ms 8.5   # ★代入板端实测的 t_compose 重算 (ISS-137)
 """
 from __future__ import annotations
@@ -36,17 +38,41 @@ POST_MS = 5.6             # 后处理 (从 T_od=21~23 与 S5=15.38~17.39 反解,
 T_FIXED = 34.00           # 曝光→OD 输入就绪 + 显示输出段 (从 模式A 54.98~56.99 反解)
 
 # ★★ISS-137 (2026-11-10 23:5x) 把 T_FIXED 这个黑箱**拆成五段** ★★
-# ★**为什么要拆**: 原来 T_FIXED 是 34.00 一个数 ⇒ 显示合成段占多少永远是 [0数据]
+# ★**为什么要拆**: 原来 T_FIXED 是 34.00 一个数 ⇒ 显示输出侧占多少永远是 [0数据]
 #   ⇒ §⑤ 只能做 0~60% 的盲扫 ⇒ ★**老板看不到"到底测哪个数才能定案"**。
-# ★**拆完后**: 显示合成段有了 ①确定的占位值 ②**一个可测判据** ⇒ 板端打一个点就能定案。
+# ★**拆完后**: 显示输出侧有了 ①确定的占位值 ②**一个可测判据** ⇒ 板端打两个点就能定案。
 # ★**出处**: RKNN_BENCH.md §4.1 的 S1~S10 明细 (曝光块 E+R+S3=24.67 · S8 画框 1.0 · S9 3.0 · S10 光机 5.0)
-#   + DEMO_OD_TIMING_SPEC.md §3.3 (t_compose ↔ S9) + §3.2 阶段表 (第7段 = 合成/缩放)
+#   + DEMO_OD_TIMING_SPEC.md §3.2 阶段表 (第7段=合成 · 第8段=上屏) + §3.3 对照表
+# ★★**★口径纪律 (★2026-11-11 00:0x sw-lead 独立验证拍出的一处真错·已修★)★★**:
+#   ★**RKNN_BENCH §4.1 的 S9 原文标签是「显示 TX」, 不是「合成」** ⇒ ★★**第一版把 S9 那个槽位
+#   改名成"合成"⇒ ⇒ 【显示 TX 从预算里消失了】⇒ ⇒ 缺项 ≈ 7.78ms (1080p 一帧 DSI 移出) ⇒ ★★
+#   ★★**足以把 yolov5n@640 从 ✅ 翻成 ❌** ⇒ ⇒ 现改为: **显示输出侧 = 板端段7(合成) + 段8(上屏)**
+#   ★★**两段之和** ⇒ ★**板端要打【两个】点** ⇒ ★**判据也随之收紧**。
 T_PRE_EXPOSURE = 24.67    # ★曝光→OD 输入就绪 (E 8.3 + R 8.3 + S3 ISP含缩放 8.0) —— ★**不随显示分辨率变**
 T_DRAW = 1.00             # ★画框 (S8) —— 在 NV12 的 Y 平面画 ⇒ 画的是**采集帧**(640×640) ⇒ ★**不随显示分辨率变**
-T_COMPOSE = 3.00          # ★★显示合成/缩放 (S9) —— ★★**唯一随显示像素数变的段**★★
+T_DISPLAY_OUT = 3.00      # ★★显示输出侧 @800×600 基线 (= RKNN_BENCH §4.1 的 **S9**) ⇒ ★★**随显示分辨率变**★★
+                           #   ★**板端对应两段**: DEMO_OD_TIMING_SPEC §3.2 阶段表 第7段(合成 t_compose) + 第8段(上屏 t_display)
 T_PANEL = 5.00            # ★光机逐帧延迟 (S10) —— ★**不随像素数变** (面板自身时序)
 # ★T_FIXED 是从"模式A 54.98~56.99"反解出来的, 与 §4.1 明细 (24.67+1+3+5=33.67) 差 0.33 ⇒ 记为残差, 恒等成立
-T_RESIDUAL = T_FIXED - (T_PRE_EXPOSURE + T_DRAW + T_COMPOSE + T_PANEL)   # = 0.33 反解余量
+T_RESIDUAL = T_FIXED - (T_PRE_EXPOSURE + T_DRAW + T_DISPLAY_OUT + T_PANEL)   # = 0.33 反解余量
+
+# ── DSI 链路参数 (★与 §⑥ 带宽核对同一口径★) ⇒ 算【一帧移出时间】★
+DSI_LANES = 4
+DSI_PER_LANE_Gbps = 2.0
+DSI_EFF = 0.8             # 80% 效率 (§6 用的同一假设)
+
+
+def tx_min_ms(w: int, h: int) -> float:
+    """★**一帧 DSI 移出的物理下限 (ms)** = 一帧比特数 / 链路有效带宽。★与 fps 无关 (★每帧比特数才是量★)"""
+    return (w * h * 24) / (DSI_LANES * DSI_PER_LANE_Gbps * 1e9 * DSI_EFF) * 1000.0
+
+
+TX_MIN_800 = tx_min_ms(800, 600)        # 1.800 ms
+TX_MIN_1080 = tx_min_ms(1920, 1080)     # 7.776 ms
+# ★**合成+桥接余量 @800×600** = 显示输出侧基线 3.00 − TX 物理下限 1.80
+#   ★★**这是【推算】不是实测**: RKNN_BENCH §4.1 把 S9 整体标为「显示 TX」⇒ 3.00 里【合成占多少】未分
+#   ★★⇒ 这里扣掉 TX 物理下限后的余量(含 DP→DSI 桥接等开销) ⇒ **不能当成实测的合成值**
+SYNTH_RESERVE_BASE = T_DISPLAY_OUT - TX_MIN_800   # 1.20 ms (★推算★)
 
 # ── [公开实测·第三方] RK3576 (6 TOPS) model_zoo 整链路 FPS ─────────────────
 RK3576_S5 = {
@@ -70,28 +96,42 @@ def age(t_od: float) -> int:
     return math.ceil(t_od / FRAME_MS)
 
 
-# ── ISS-137: 显示合成段 (t_compose) 的独立模型 ──────────────────────────────
+# ── ISS-137: 显示输出侧 (板端段7 合成 + 段8 上屏) 的独立模型 ────────────────────
 # ★**为什么要把它抽成独立量**: 拆开之前 T_FIXED 是个 34.00 的黑箱
-#   ⇒ "显示合成段占 T_FIXED 多少" 永远是 [0数据] ⇒ §⑤ 只能盲扫 0~60%
+#   ⇒ "显示输出侧占 T_FIXED 多少" 永远是 [0数据] ⇒ §⑤ 只能盲扫 0~60%
 #   ⇒ ★**盲扫的毛病**: 它回答不了"板端到底要测出多少才算过" (⇒ 测完了还是不知道算不算过)
-# ★**拆开之后**: t_compose 是一个**有名有姓的数** ⇒ 能反过来算【判据】(测出 ≤ 多少就过)
+# ★**拆开之后**: 显示输出侧是一个**有名有姓的数** ⇒ 能反过来算【判据】(测出 ≤ 多少就过)
+# ★★**★口径纪律 (★sw-lead 独立验证拍出并已修★)★★**: 显示输出侧 = **板端段7(合成) + 段8(上屏/TX)** 两段之和
+#   ⇒ ★**不是只有"合成"** ⇒ ★**TX 有物理下限 (一帧比特/链路带宽) ⇒ 判据必须扣掉它**
 T_FIXED_OTHER = T_PRE_EXPOSURE + T_DRAW + T_PANEL + T_RESIDUAL   # 31.00 (与显示分辨率无关的部分)
 
 
+def display_out_upper_bound(px_ratio: float) -> float:
+    """★**显示输出侧的线性上界** (整段随像素数等比放大, 硬件缩放器跑满也不降本)。
+    ★**为什么 TX 也 ×4.32**: TX 时间 = 一帧比特数/链路带宽 ⇒ 比特数 ∝ 像素数 ⇒ ★**TX 恰好也是 ×4.32** (1.80→7.776)"""
+    return T_DISPLAY_OUT * px_ratio
+
+
 def compose_upper_bound(px_ratio: float) -> float:
-    """显示合成段随像素数线性放大的**上界** (硬件缩放器跑满也不降本)。"""
-    return T_COMPOSE * px_ratio
+    """★**合成+桥接余量的线性上界** (整段里扣掉 TX 之后的那部分)。"""
+    return SYNTH_RESERVE_BASE * px_ratio
 
 
-def modeA_with_compose(s5: float, t_compose_ms: float) -> float:
-    """给定 S5 与**实测/代入的 t_compose**, 算模式A 端到端。"""
-    t_od = s5 + POST_MS
-    return T_FIXED_OTHER + t_compose_ms + t_od
+def display_out_max_for(s5: float, budget_ms: float = 60.0) -> float:
+    """★**可测判据 (显示输出侧总额)**: 模式A ≤ budget_ms ⇒ 板端段7+段8 合计最多能是多少 (ms)。"""
+    return budget_ms - T_FIXED_OTHER - (s5 + POST_MS)
 
 
 def compose_max_for(s5: float, budget_ms: float = 60.0) -> float:
-    """★**可测判据**: 模式A 要 ≤ budget_ms, t_compose 最多能是多少 (ms)。"""
-    return budget_ms - T_FIXED_OTHER - (s5 + POST_MS)
+    """★**可测判据 (只算合成段)**: 显示输出侧预算 − TX 物理下限 ⇒ 合成段最多能是多少 (ms)。"""
+    return display_out_max_for(s5, budget_ms) - TX_MIN_1080
+
+
+def modeA_with_compose(s5: float, t_compose_ms: float,
+                       t_display_ms: float = TX_MIN_1080) -> float:
+    """给定 S5 与**实测/代入的合成段 + 上屏段**, 算模式A 端到端。"""
+    t_od = s5 + POST_MS
+    return T_FIXED_OTHER + t_compose_ms + t_display_ms + t_od
 
 
 def e2e(s5: float) -> dict:
@@ -157,27 +197,47 @@ def selftest() -> int:
     # ★★ISS-137 新增回归护栏 (★下面每一条都是"判据退化"会被抓住的反向用例★)
     print("【自检】ISS-137 拆分护栏")
     # ① 拆分必须恒等还原 T_FIXED (★拆错 ⇒ 全部已发布数字都偏了★)
-    tot = T_PRE_EXPOSURE + T_DRAW + T_COMPOSE + T_PANEL + T_RESIDUAL
+    tot = T_PRE_EXPOSURE + T_DRAW + T_DISPLAY_OUT + T_PANEL + T_RESIDUAL
     ok = abs(tot - T_FIXED) < 1e-9
-    print(f"  {'✅' if ok else '❌'} 拆分恒等: {T_PRE_EXPOSURE}+{T_DRAW}+{T_COMPOSE}+{T_PANEL}+{T_RESIDUAL} = {tot:.2f} == T_FIXED {T_FIXED:.2f}")
+    print(f"  {'✅' if ok else '❌'} 拆分恒等: {T_PRE_EXPOSURE}+{T_DRAW}+{T_DISPLAY_OUT}+{T_PANEL}+{T_RESIDUAL} = {tot:.2f} == T_FIXED {T_FIXED:.2f}")
     bad += 0 if ok else 1
-    # ② compose_max_for 与 modeA_with_compose 必须互为逆运算 (★判据与算账对不上 ⇒ 板端测出来也判不了★)
+    # ② display_out_max_for 与 modeA_with_compose 必须互为逆运算 (★判据与算账对不上 ⇒ 板端测出来也判不了★)
     for s5v in (10.0, 17.39, 26.085, 13.305):
-        mx = compose_max_for(s5v)
-        ok = abs(modeA_with_compose(s5v, mx) - 60.0) < 1e-9
-        print(f"  {'✅' if ok else '❌'} 判据↔算账互逆 @S5={s5v}: t_compose 上限 {mx:.3f} ⇒ 模式A {modeA_with_compose(s5v, mx):.6f}")
+        mx = display_out_max_for(s5v)
+        ok = abs(modeA_with_compose(s5v, mx, 0.0) - 60.0) < 1e-9
+        print(f"  {'✅' if ok else '❌'} 判据↔算账互逆 @S5={s5v}: 输出侧上限 {mx:.3f} ⇒ 模式A {modeA_with_compose(s5v, mx, 0.0):.6f}")
         bad += 0 if ok else 1
-    # ③ t_compose=0 时必须退化成旧模型 (T_FIXED 全量) ⇒ 证明"其他部分 = T_FIXED - T_COMPOSE" 没错
-    #    (★这【不是】旧模型: 旧模型把整段显示合成都算进 T_FIXED ⇒ 新模型是【扣掉合成段再加实测值】★)
+    # ③ 副作用为零: 合成段代入 800×600 的基线值 + 上屏段代入 800×600 的 TX 下限
+    #    ⇒ 必须与旧模型逐位一致 (证明拆分没有改动任何既有结论)
     s5v = 13.305
-    ok = abs(modeA_with_compose(s5v, T_COMPOSE) - e2e(s5v)["modeA"]) < 1e-9
-    print(f"  {'✅' if ok else '❌'} 代入 T_COMPOSE 本身 ⇒ 与旧模型逐位一致 "
-          f"({modeA_with_compose(s5v, T_COMPOSE):.4f} vs {e2e(s5v)['modeA']:.4f}) ⇒ ★拆分无副作用★")
+    ok = abs(modeA_with_compose(s5v, SYNTH_RESERVE_BASE, TX_MIN_800) - e2e(s5v)["modeA"]) < 1e-9
+    print(f"  {'✅' if ok else '❌'} 代入 800×600 基线 (合成 {SYNTH_RESERVE_BASE:.2f} + TX {TX_MIN_800:.2f}) ⇒ 与旧模型逐位一致 "
+          f"({modeA_with_compose(s5v, SYNTH_RESERVE_BASE, TX_MIN_800):.4f} vs {e2e(s5v)['modeA']:.4f}) ⇒ ★拆分无副作用★")
     bad += 0 if ok else 1
-    # ④ 线性上界必须严格大于 t_compose 上限 才需要"实测" (★若二者顺序反了 ⇒ 判据无意义★)
-    ub = compose_upper_bound(DISPLAY_NEW[1] / DISPLAY_OLD[1])
-    ok = ub > compose_max_for(s5v)
-    print(f"  {'✅' if ok else '❌'} 线性上界 {ub:.2f} > yolov5n 判据 {compose_max_for(s5v):.2f} ⇒ ★真需要实测才判得了★")
+    # ④ ★★TX 物理下限必须真的在模型里 (★sw-lead 验证拍出的真错: 第一版把 S9 槽位改名成"合成"
+    #    ⇒ 显示 TX 从预算里消失了 ⇒ 缺项 7.78ms 足以翻结论 ⇒ 这条护栏就是防它再犯★)
+    s5v = 13.305
+    without_tx = modeA_with_compose(s5v, 2.0, 0.0)
+    with_tx = modeA_with_compose(s5v, 2.0, TX_MIN_1080)
+    ok = abs((with_tx - without_tx) - TX_MIN_1080) < 1e-9 and TX_MIN_1080 > 0
+    print(f"  {'✅' if ok else '❌'} TX 在账里: 同一合成值下 加/不加 TX 差 {with_tx - without_tx:.3f} ms "
+          f"(= TX 物理下限 {TX_MIN_1080:.3f}) ⇒ ★**显示 TX 没被漏掉**★")
+    bad += 0 if ok else 1
+    # ⑤ compose_max_for = display_out_max_for − TX 物理下限 (★两个判据必须自洽★)
+    ok = abs(compose_max_for(s5v) - (display_out_max_for(s5v) - TX_MIN_1080)) < 1e-9
+    print(f"  {'✅' if ok else '❌'} 合成上限 {compose_max_for(s5v):.3f} = 输出侧上限 {display_out_max_for(s5v):.3f} − TX {TX_MIN_1080:.3f}")
+    bad += 0 if ok else 1
+    # ⑥ 线性上界必须严格大于 输出侧上限 才需要"实测" (★若二者顺序反了 ⇒ 判据无意义★)
+    #    ★**比对的是【整段输出侧】的上界** (★TX 也是 ×4.32 ⇒ 一并在内★)
+    ub = display_out_upper_bound(DISPLAY_NEW[1] / DISPLAY_OLD[1])
+    ok = ub > display_out_max_for(s5v)
+    print(f"  {'✅' if ok else '❌'} 输出侧线性上界 {ub:.2f} > yolov5n 输出侧上限 {display_out_max_for(s5v):.2f} ⇒ ★真需要实测才判得了★")
+    bad += 0 if ok else 1
+    # ⑦ ★**TX 也必须随像素数 ×4.32** (★TX = 比特数/带宽 ⇒ 比特 ∝ 像素★) ⇒
+    #    ★**若有人把 TX 当成"不随分辨率变", 线性上界就会被算小 ⇒ 判据会偏乐观★)
+    ratio_px = DISPLAY_NEW[1] / DISPLAY_OLD[1]
+    ok = abs(TX_MIN_1080 / TX_MIN_800 - ratio_px) < 1e-9
+    print(f"  {'✅' if ok else '❌'} TX 随像素数比 = {TX_MIN_1080/TX_MIN_800:.4f} (像素比 {ratio_px:.4f}) ⇒ ★TX 是按比特随分辨率涨的★")
     bad += 0 if ok else 1
 
     print(f"\n{'✅ 自检通过' if bad == 0 else f'❌ 自检失败 {bad} 项'}")
@@ -253,38 +313,46 @@ def main() -> int:
     print(f"\n  ★**T_FIXED = {T_FIXED:.2f} 的拆分 (★出处 RKNN_BENCH §4.1 的 S1~S10 明细★)**")
     print(f"    {'T_PRE_EXPOSURE (曝光→OD输入就绪)':<38} = {T_PRE_EXPOSURE:>6.2f} ms   ★**不随显示分辨率变**")
     print(f"    {'T_DRAW (画框 S8)':<38} = {T_DRAW:>6.2f} ms   ★**不随显示分辨率变** (画的是采集帧 640×640)")
-    print(f"    {'T_COMPOSE (显示合成/缩放 S9)':<38} = {T_COMPOSE:>6.2f} ms   ★★**随显示像素数变 ★★")
+    print(f"    {'T_DISPLAY_OUT (显示输出侧 S9)':<38} = {T_DISPLAY_OUT:>6.2f} ms   ★★**随显示分辨率变**★★")
     print(f"    {'T_PANEL (光机逐帧延迟 S10)':<38} = {T_PANEL:>6.2f} ms   ★**不随像素数变** (面板自身时序)")
     print(f"    {'T_RESIDUAL (反解余量)':<38} = {T_RESIDUAL:>6.2f} ms")
-    print(f"    {'合计 (= T_FIXED, 恒等)':<38} = {T_PRE_EXPOSURE+T_DRAW+T_COMPOSE+T_PANEL+T_RESIDUAL:>6.2f} ms")
-    print(f"\n  ★★**可测判据 (★这才是本节要的东西★)**: 模式A ≤ 60ms ⇒ **t_compose 最多能是多少**")
-    print(f"    {'方案':<26}{'S5(ms)':>9}{'t_compose 上限':>16}{'线性上界@4.32x':>17}{'判定':>10}")
-    print("    " + "-" * 80)
+    print(f"    {'合计 (= T_FIXED, 恒等)':<38} = {T_PRE_EXPOSURE+T_DRAW+T_DISPLAY_OUT+T_PANEL+T_RESIDUAL:>6.2f} ms")
+    print(f"\n  ★★**显示输出侧 = 板端【两段】之和 (DEMO_OD_TIMING_SPEC §3.2 阶段表)**")
+    print(f"    · 第7段 合成 `t_compose` (letterbox + 等比缩放 + 叠加)")
+    print(f"    · 第8段 上屏 `t_display` (plane commit + page flip ⇒ **含 DSI 移出**)")
+    print(f"    ★**TX 物理下限** = 一帧比特 / 链路有效带宽 (★4-lane D-PHY@2.0Gbps × 80%, 与 §⑥ 同口径★)")
+    print(f"      800×600 = {TX_MIN_800:>6.3f} ms  ⇒  1920×1080 = {TX_MIN_1080:>6.3f} ms  ★**涨了 {TX_MIN_1080-TX_MIN_800:.3f} ms**")
+    print(f"\n  ★★**可测判据 (★这才是本节要的东西★)**: 模式A ≤ 60ms ⇒ **显示输出侧总额最多能是多少**")
+    print(f"    {'方案':<26}{'S5(ms)':>9}{'输出侧上限':>13}{'减TX后·合成上限':>17}{'线性上界':>12}{'判定':>10}")
+    print("    " + "-" * 88)
     cand5 = [
         ("RK3572 + yolov5s@640", scale(17.39, RK3576_TOPS, RK3572_TOPS)),
         ("RK3572 + yolov5n@640", s5n),
         ("RK3572 + yolov5s@320", (scale(5.00, RK3576_TOPS, RK3572_TOPS) + scale(4.00, RK3576_TOPS, RK3572_TOPS)) / 2),
     ]
-    upper = compose_upper_bound(ratio)
+    upper = display_out_upper_bound(ratio)
+    cupper = compose_upper_bound(ratio)
     for name, s5v in cand5:
-        mx = compose_max_for(s5v)
-        print(f"    {name:<26}{s5v:>9.2f}{mx:>16.2f}{upper:>17.2f}{'✅ 过' if mx >= upper else '❌ 不过':>10}")
+        mx = display_out_max_for(s5v)
+        cmx = compose_max_for(s5v)
+        print(f"    {name:<26}{s5v:>9.2f}{mx:>13.2f}{cmx:>17.2f}{upper:>12.2f}{'✅ 过' if mx >= upper else '❌ 不过':>10}")
     print(f"\n  ★**读法 (★这是 ISS-137 的交付物★)**:")
-    print(f"    · 【线性上界】= {T_COMPOSE:.2f}ms × {ratio:.2f} = {upper:.2f}ms ⇒ ★**假设显示段完全随像素数等比放大**")
-    print(f"      (硬件缩放器跑满也不降本) ⇒ 这是**悲观上界**, 不是预测")
-    print(f"    · 【t_compose 上限】= ★**板端该测出 ≤ 多少才算过** ⇒ ★这才是打点的意义")
+    print(f"    · 【输出侧上限】= ★**板端段7+段8 合计最多能是多少** ⇒ ★**这才是打点的意义**")
+    print(f"    · 【减TX后·合成上限】= 输出侧上限 − TX 物理下限 ⇒ ★**若只关心合成段, 用这一列**")
+    print(f"    · 【线性上界】= 显示输出侧 {T_DISPLAY_OUT:.2f}ms × {ratio:.2f} = {upper:.2f}ms ⇒ ★**悲观上界** (缩放器跑满也不降本)")
+    print(f"      (★其中合成+桥接余量 {SYNTH_RESERVE_BASE:.2f}ms × {ratio:.2f} = {cupper:.2f}ms, TX 部分 {TX_MIN_1080:.3f}ms 是物理下限★)")
     print(f"    · ★**两者一比, 立刻知道[这个方案还剩多少空间]**: 若 上限 < 线性上界 ⇒ 该方案在[最坏情况]也不过线")
     if _tc_override is not None:
-        print(f"\n  ★★**代入实测 t_compose = {_tc_override:.2f} ms 的重算 (★板端打点后直接用这个★)**")
+        print(f"\n  ★★**代入实测 t_compose = {_tc_override:.2f} ms (★板端第7段打点·上屏段取物理下限 {TX_MIN_1080:.2f}ms★)**")
         for name, s5v in cand5:
             ma = modeA_with_compose(s5v, _tc_override)
             print(f"    {name:<26} 模式A = {ma:>7.2f} ms  {'✅ 过' if ma <= 60 else '❌ 不过'}")
+        print(f"    ★**注**: 上屏段若实测出比物理下限更大的值 ⇒ ★**模式A 还要再减** ⇒ ★**板端第8段也要打点**")
     else:
-        print(f"\n  ★**还没实测 ⇒ 上面的[上限]就是判据本身** ⇒ ★板端打一个点 (t_compose@1920×1080)")
+        print(f"\n  ★**还没实测 ⇒ 上面的[上限]就是判据本身** ⇒ ★板端打【两个】点 (第7段合成 + 第8段上屏)")
         print(f"    ⇒ 代入: `python3 HW/e2e_budget_rk3572.py --t-compose-ms <实测值>` ⇒ ★**一行命令出结论**")
-    print(f"  ★**两条决定是叠加的**: 主控 RK3572 (NPU ×1.5) 与 显示 1920×1080 (合成 ×{ratio:.2f}) **都往同一个方向推**")
-    print(f"  ★**结论不变**: 换 yolov5n 只救得回模式A, 且**余量极薄** (显示段只要占 T_FIXED 的 15% 以上, 模式A 就重新破线)")
-    print(f"  ★★**但现在这个结论【可判了】**: 不再是\"显示段占多少是 [0数据]\" ⇒ ★**变成\"t_compose 测出 ≤ {compose_max_for(s5n):.2f}ms\"**")
+    print(f"  ★**两条决定是叠加的**: 主控 RK3572 (NPU ×1.5) 与 显示 1920×1080 (输出侧 ×{ratio:.2f}) **都往同一个方向推**")
+    print(f"  ★★**但现在这个结论【可判了】**: 不再是\"显示段占多少是 [0数据]\" ⇒ ★**变成\"显示输出侧合计测出 ≤ {display_out_max_for(s5n):.2f}ms\"**")
 
     # ── 6. DSI 带宽 ────────────────────────────────────────────────────────
     print(f"\n{'=' * 100}\n⑥ DSI 带宽核对 (1920×1080 显示输出)\n{'=' * 100}")
