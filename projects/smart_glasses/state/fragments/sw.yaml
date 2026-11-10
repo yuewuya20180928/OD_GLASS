@@ -1,7 +1,7 @@
 agent: sw-lead
 role: 软件总工
-updated_at: '2026-11-02'
-updated_by: main
+updated_at: '2026-11-10'
+updated_by: sw-lead
 status:
   phase: P2(方案设计)
   progress_pct: 70
@@ -19,7 +19,7 @@ status:
     §6 留 18 条待核, 未用推断冒充事实。 ★ISS-157 (2026-11-02 23:3x) 已修: rknn_bench.py 的 cut 模型缓存键**改为含模型指纹** ⇒ 换权重自动失效
     (修前会静默跑出上一个模型的数字, 且不报错); 输出新增「本次权重 + 缓存 HIT/MISS」打印 + 多指纹自检; 实测验收: 同权重两次结果完全一致 / 换权重结果必须不同 (修前是坏的,
     现已变绿); 两个模型 F1 已重测 (yolov5s 0.3017 / yolov5n 0.2927)。'
-  updated_at: '2026-11-02'
+  updated_at: '2026-11-10'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -317,6 +317,21 @@ artifacts:
     (本单实测两次结果逐字节相同, 删缓存后才是真数)。★板子 Radxa A7S 192.168.2.5 仍不可达 (ssh No route to host + ARP FAILED + 网关通)
     ⇒ P0-2 板端 librknnrt 版本号无法闭合, 留 §6 N2。§6 共 18 条待核 (N4/N5 精度已闭合)。★未改 PROJECT_TRACKER.md / issue_log.yaml
     / HW/ 任何文件 / SW/tools/* 任何脚本 / DEMO_OD_PIPELINE_SPEC.md / RKNN_BENCH.md。'
+- path: HANDOFF/2026-11-10_sw-lead_ISS137_验证.md
+  kind: verification-report
+  version: v1.0
+  updated_at: '2026-11-10'
+  summary: '★ISS-137 独立验证 (owner=main / verify_by=sw-lead, 铁律: 修复人不能自验)。结论 = **fail (退回修 2 处后可签)**: ①拆分恒等
+    pass (五段和 − T_FIXED = 0.0 精确相等; 且用 11-02 旧版副本与现版全量 stdout 对拍 ⇒ 剔除 §⑤ 后仅 4 行 docstring 差异 ⇒ §①②③④⑥⑦
+    逐字节未动) ②判据↔算账互逆 pass (compose_max_for 回代 modeA_with_compose = 60.0 float 精确) ③零副作用 pass (代入 T_COMPOSE
+    ⇒ 52.905 vs 52.905, bit delta = 0.0 真逐位一致) ④★口径对齐 fail (板端段7『合成』被塞进模型里叫『显示 TX』的槽位 ⇒ T_FIXED_OTHER=31.00=T_FIXED−3.00
+    ⇒ **显示 TX 无项**; 按脚本 §⑥ 自己的链路参数反算 1920×1080@60fps 一帧 DSI 移出 ≈ 7.78ms ⇒ 判据偏乐观 ≈7.8ms, 示例 t_compose=8.5
+    时 yolov5n 58.41 ✅ 加 TX 即 66.19 ❌ **足以翻结论**; 且 RKNN_BENCH.md:273/:319/:321 三处仍叫 TX ⇒ S9 一名两义 = 新分叉)
+    ⑤ fail (文档 §3.3.1:179 写 yolov5s@320 上限 **17.65**, 脚本实算 **16.65**, 差 1.00ms, 且该错值已扩散进 issue_log ISS-137
+    note; ★''12.96 > 10.09 ⇒ 必须实测'' 的算术本身成立)。★另报 3 个反向数字: 脚本 §① 打印 模式B 67.34 / 50.67 / 阈值 20.40 与 RKNN_BENCH
+    已发布 67.01 / 50.34 / 20.33 差 0.33/0.33/0.07 (★ISS-137 之前就有, 拆分没让它变差, 但''逐位复现已发布数字''按字面不成立) · 显示 TX
+    缺项 ≈7.78ms · §⑤ 读法里''显示段占 T_FIXED 的 15%'' 是盲扫旧口径残留 (新模型下 15%×34=5.1ms ⇒ 模式A 55.0 不破线)。★我没改任何交付物, 也没写
+    issue_log 的 verify_result/verify_date ⇒ 退回建议 R1~R6 在报告 §3。'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -790,6 +805,19 @@ needs_from:
   since: '2026-11-02'
   due: '2026-11-04'
   waiting_on: boss
+- key: iss137_r1_r6_fixback
+  to: main
+  item: '★ISS-137 验证退回 6 条 (我只出报告, 不自己改交付物; 详细见 HANDOFF/2026-11-10_sw-lead_ISS137_验证.md §3)。R1【必改】SW/DEMO_OD_TIMING_SPEC.md:179
+    判据 17.65 → **16.65** (脚本 compose_max_for(6.75)=16.65), ★并同步 state/issue_log.yaml ISS-137 note 里的 ''17.65ms''。R2【必改·口径】S9
+    一名两义: 预算脚本把 S9 叫『显示合成』, RKNN_BENCH.md:273/:319/:321 三处仍叫『显示 TX』⇒ 建议采纳报告方案 A: 槽位统一改称 T_DISPLAY_OUT
+    (显示输出=合成+TX), 板端打段7 t_compose + 段8 t_tx (CSV 已有 ts_compose/ts_display 两列, 零新增打点), 判据写成 t_compose +
+    t_tx ≤ X, 并同步 RKNN_BENCH 三处标签 (唯一真源)。R3【必改】SW/DEMO_OD_TIMING_SPEC.md:173-189 把判据从**充分条件**改成**必要条件**
+    + 加列 ''TX 未计入 ⇒ 真实上限更严 ≈7.78ms'' (用脚本 §⑥ 自己的链路参数 4-lane@2.0Gbps/80% 反算: 2985.98Mbps/6400Mbps×16.67=7.78ms/帧),
+    并把段8 边界从 commit 返回改成 vblank/TE。R4【改】HW/e2e_budget_rk3572.py:286 §⑤ 读法里 ''显示段只要占 T_FIXED 的 15%'' 是盲扫旧口径残留
+    ⇒ 明写 ''★已作废, 现判据 = t_compose 测出 ≤ 10.09ms''。R5【改】同上两文件: ''板端实测 ⇒ 一行命令出结论'' 只闭合合成段 (板端 11 段表本来就没有 TX
+    段) ⇒ 明写 ''本判据只闭合合成段, 显示 TX 与光机 S10 仍 [0数据]''。R6【可选】SW/DEMO_OD_TIMING_SPEC.md:3 版本头补 v1.1 (2026-11-10)。★另:
+    ISS-137 的 ''★不制造新的口径分叉'' 自我评价不成立 (它恰恰造了一个 S9 名称分叉) ⇒ 建议在 note 里订正。'
+  since: '2026-11-10'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -1289,6 +1317,13 @@ interface_claims:
     换 yolov5s 过线但端到端退到 62.67~64.18ms 超 60ms ⇒ 两条路都不平。★**建议: demo 线降到 F1 ≥ 0.25 + 80 类 ID 全域覆盖 + IoU >
     0.95 ⇒ 保住 yolov5n 与 60ms 余量; 精度门槛归整机阶段**。'
   ref: ISS-164 + SW/DEMO_OD_PIPELINE_SPEC.md §6.2
+- key: iss137_verify_result
+  value: fail
+  note: '★ISS-137 (main 自办) 独立验证结论 = **fail**。pass: ①拆分恒等 (精确) ②判据↔算账互逆 (精确) ③拆分零副作用 (bit-identical) ·
+    fail: ④口径对齐 (显示 TX 被挤出账外, 缺项 ≈7.78ms, 且 S9 一名两义) ⑤判据数 (17.65 vs 16.65)。★签字条件 = 报告 §3 的 R1 (改数 17.65→16.65,
+    含 issue_log note) + R2/R3 (口径: 推荐方案 A —— 槽位统一改称 T_DISPLAY_OUT=合成+TX 并同步 RKNN_BENCH 三处标签; 最低限度按方案 B
+    在 §3.3.1 明写''本判据是必要条件, 显示 TX 不在模型内 ≈7.78ms'') 落地, 我可复跑同组命令再签。'
+  ref: HANDOFF/2026-11-10_sw-lead_ISS137_验证.md
 open_questions:
 - id: SW-Q1
   to: main
