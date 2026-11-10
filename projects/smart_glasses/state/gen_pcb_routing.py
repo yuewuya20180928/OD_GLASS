@@ -263,6 +263,16 @@ MERGE_FIX = os.environ.get("PCB_MERGE_FIX", "0") == "1"
 #     ⇒ ★★**★遵循项目铁律: 【落线前就拦】是正收益, 【落板后剔铜】是负收益 (★实测剔铜 DRC 29→69★)** ★★
 #   ★**默认 0 (关) ⇒ 逐位不变 (★老臂可复现★)**
 GND_ORPHAN_FIX = os.environ.get("PCB_GND_ORPHAN_FIX", "0") == "1"
+# ★★★★★★2026-11-10 15:3x 【★"出脚离网格那一段"的净距闸 (★env 门控 `PCB_ESC_CLR_FIX`, ★默认关⇒逐位不变★)】★★★★★★
+#   ★**要修的病 (★实测坐实★)**: ★**halo 是【按格】封的, ★而 A* 只判【格】**
+#     ⇒ ★**出脚直道末端是【离网格】的 ⇒ 【直道末端 → 第一个格心】那一段 45° 斜线不在格边上**
+#     ⇒ ★★**⇒ 这段离网格的斜线可以贴着【已落的孔】穿过去 ⇒ halo 看不见 ⇒ DRC 报 clearance** ★★
+#     ⇒ ★**实测 (★v76mg1 终板★)**: ★**`LIGHT_3V3` 斜线离 GND 下拉孔中心距 0.5831 ⇒ 净距 0.1581 (★需 0.2★)**
+#       ⇒ ★**该臂 6 条 clearance 里最严重的一条** ★★
+#     ⇒ ★★**⇒ 与【蛇形出板】同一个病根的另一个面: ★【离网格的几何 ⇒ 栅格闸管不到】★★** ★★
+#   ★**修法 (★与板边闸同一条铁律: 落线前就拦★)**: ★**`_emit_path` 落铜前用【真实几何】查那段离网格的线** ★★
+#   ★**默认 0 (关) ⇒ 逐位不变 (★老臂可复现★)**
+ESC_CLR_FIX = os.environ.get("PCB_ESC_CLR_FIX", "0") == "1"
 # ★★★★★★2026-11-10 04:5x 【★【★"非紧凑焊盘排"的起步也要先直行 (★env 门控 `PCB_ESC_ROWNORM`)★】★】★★★★★★
 #   ★**为什么要有 (★2026-11-10 04:0x 实测坐标, ★不是猜★)**:
 #     ★**`ID_DETECT_0` ↔ `BOOT_N` 的 0.1813mm DRC (★所有臂都有, ★卡死所有臂★)**:
@@ -2970,6 +2980,39 @@ class GridRouter:
                     return False
         return True
 
+    def _seg_clear_geom(self, net, x1, y1, x2, y2, w=W_SIG):
+        """★**这段线 vs 【已落的铜 + 已落的孔】的【真实几何】净距** (★不看 halo★)
+
+        ★★**★为什么要单独做一个 (★2026-11-10 15:3x 实测坐实★)★★** ★★
+          ★**halo 是按【格】封的, ★而 A* 只判【格】⇒ ⇒ 【离网格的几何】(★出脚直道末端 → 第一个格心
+            的那一段 45° 斜线★) ⇒ ★**栅格闸根本看不见它** ⇒ ⇒ 就能贴着孔穿过去** ★★
+          ⇒ ★**实测 (★v76mg1 终板★)**: ★**`LIGHT_3V3` 斜线离 GND 下拉孔只有 0.5831mm 中心距
+            ⇒ 净距 0.1581mm (★需 0.2000★) ⇒ ★**该臂最严重的一条 DRC** ★★
+
+        ★**判据 (★与板规则一致★)**:
+          · ★**别的网的走线**: ★**中心距 ≥ w/2 + 对方半宽 + CLEAR** ★
+          · ★**别的网的孔**: ★**中心距 ≥ w/2 + VIA_DIA/2 + CLEAR** ★
+          · ★**同网不算** (★同网铜挨着是正常的★)
+        ★**默认关 (★env `PCB_ESC_CLR_FIX`★) ⇒ 逐位不变**
+        """
+        for s in self.tracks:
+            if s[0] == net:
+                continue
+            if s[5] != 0:
+                continue
+            need = w / 2.0 + s[6] / 2.0 + CLEAR
+            if _seg_seg_dist(x1, y1, x2, y2, s[1], s[2], s[3], s[4]) < need - 1e-9:
+                return False
+        for v in self.vias:
+            if v[0] == net:
+                continue
+            if v[3] > 0:
+                continue
+            need = w / 2.0 + VIA_DIA / 2.0 + CLEAR
+            if _pt_seg_dist(v[1], v[2], x1, y1, x2, y2) < need - 1e-9:
+                return False
+        return True
+
     @staticmethod
     def _seg_hits_rect(x1, y1, x2, y2, rx0, ry0, rx1, ry1):
         """线段是否与矩形 (含边界) 相交 / 进入
@@ -3347,7 +3390,7 @@ class GridRouter:
 
         # ---------- 2) 预校验所有换层点 (含路径内部互相间距) ----------
         for (x, y, la, lb) in trans:
-            l1, l2 = (la, lb) if la < lb else (lb, la)
+            l1, l2 = (la if la < lb else lb), (la if la > lb else lb)
             if not self._via_ok(l1, l2, self._idx(self._ci(x), self._cj(y)), net):
                 return False
             # ★**同一条路径里的两个换层点也不能太近** (否则第二个孔放不下)
@@ -3355,6 +3398,30 @@ class GridRouter:
                 if x2 == x and y2 == y:
                     continue
                 if math.hypot(x - x2, y - y2) < MIN_VIA_CENTER:
+                    return False
+
+        # ★★★★★★2026-11-10 15:3x 【★"出脚离网格那一段"的净距闸 (★env 门控 `PCB_ESC_CLR_FIX`★)】★★★★★★
+        #   ★★★**★为什么要有 (★实测坐实, ★不是猜★)★★★ ★★★
+        #     ★**实测 (★v76mg1 终板·官方板对照★)**: ★**`LIGHT_3V3` 的一根 45° 斜线与一颗 GND 下拉孔
+        #       铜边净距 = 0.1581mm (★需 0.2000★) ⇒ ★**该臂 6 条 clearance 里最严重的一条** ★★
+        #     ★**几何 (★实测复算, ★与 KiCad 报的 0.1581 逐位一致★)**:
+        #       ★**GND 孔 @ (29.25, 61.35) Ø0.6 (★盘半径 0.30★)**
+        #       ★**LIGHT_3V3 斜线 (28.75,61.05)->(28.45,60.95) w=0.25 (★半宽 0.125★)**
+        #       ⇒ ★**中心距 0.5831 ⇒ 净距 = 0.5831 - 0.300 - 0.125 = 0.1581mm** ★★
+        #   ★★★**★根因 (★代码级★)**: ★**halo 是【按格】封的, ★而 A* 只判【格】**
+        #     ⇒ ★**出脚直道末端是【离网格】的 ⇒ 【直道末端 → 第一个格心】那一段【不在任何格边上】**
+        #     ⇒ ★**⇒ 这段离网格的 45° 斜线可以贴着孔穿过去 ⇒ halo 看不见 ⇒ DRC 报 clearance**
+        #     ⇒ ★★**⇒ 与【蛇形出板】是【同一个病根的另一个面】: ★【离网格的几何 ⇒ 栅格闸管不到】★★** ★★
+        #   ★**修法 (★与板边闸同一条铁律: 落线前就拦★)**: ★**在 `_emit_path` 落铜前, ★把【离网格的那一段】
+        #     用【真实几何】查一遍净距 (★对已落的铜 + 已落的孔★) ⇒ 不合格就整条路径放弃** ★★
+        #   ★**默认关 ⇒ 逐位不变 (★老臂可复现★)**
+        if ESC_CLR_FIX:
+            for _k in range(len(pts) - 1):
+                _la, _xa, _ya = pts[_k]
+                _lb2, _xb, _yb = pts[_k + 1]
+                if _la != _lb2:
+                    continue
+                if not self._seg_clear_geom(net, _xa, _ya, _xb, _yb, width):
                     return False
 
         # ---------- 3) 落铜 ----------
