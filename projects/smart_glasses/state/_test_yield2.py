@@ -163,7 +163,7 @@ def main():
     need2 = R.CLEAR + R.W_CLS[1] / 2.0 + R.W_CLS[1] / 2.0 + R.HALO_MARGIN
 
     def stair_model(k):
-        """★**新模型的等价实现 (★阶梯下降★)""""
+        # ★**新模型的等价实现 (★阶梯下降★)**
         _px2, _py2, _dj2, _g = 62.80, 11.04, 1, R.GRID
         _ty = _py2 + _dj2 * (R.ESC_LEN + k * _g)
         _sg = [(_px2, _py2, _px2, _py2 + _dj2 * R.ESC_LEN),
@@ -183,7 +183,7 @@ def main():
     d_k0 = stair_model(0)
     d_k1 = stair_model(1)
     ck(d_k0 < need2 - 1e-9,
-       "★阶梯模型 k=0 (★现状★): 距离 %.4f < halo %.4f ⇒ 必须判【死】★ (★第一版模型在这里会误判成"活"★)" % (d_k0, need2))
+       "★阶梯模型 k=0 (★现状★): 距离 %.4f < halo %.4f ⇒ 必须判【死】★ (★第一版模型在这里会误判成【活】★)" % (d_k0, need2))
     ck(d_k1 >= need2 - 1e-9,
        "★阶梯模型 k=1 (★多直行一步★): 距离 %.4f ≥ halo %.4f ⇒ 判【活】★" % (d_k1, need2))
     # ★★**⇒ 反向: 那个"只画 0.25mm 横道"的旧模型必须【给不出】正确结论 (★否则回归用例抓不住 bug★)★★

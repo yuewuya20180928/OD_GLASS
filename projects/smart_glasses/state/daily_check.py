@@ -209,7 +209,8 @@ def main() -> int:
     #     ★★**⇒ 分析工具坏掉时【不会自己报错】(★它只是给出错数字★) ⇒ ⇒ 必须有地方检查它还能用** ★★
     #   ★**为什么只查【--check-env】不查【全流程】**: ★★**全流程要跑 DRC (★分钟级★) ⇒ ⇒ 不能塞进每次巡检** ★★
     #   ★**⇒ 只做"能启动 + 能列出板 + 工程文件齐"这种【秒级】体检★★
-    _tools = ("arm_reading_guard.py", "arm_ranking.py", "probe_start_cell.py", "probe_escape_block.py")
+    _tools = ("arm_reading_guard.py", "arm_ranking.py", "probe_start_cell.py", "probe_escape_block.py",
+              "gate_live_check.py")
     for _t in _tools:
         _p = os.path.join(HERE, _t)
         if not os.path.exists(_p):

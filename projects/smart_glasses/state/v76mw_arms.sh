@@ -26,7 +26,7 @@
 #     ★**臂B `v76mw1` = 新代码 + 窄版闸开** ⇒ ★★**唯一变量 = `PCB_YIELD_STRAIGHT=1` + `PCB_YIELD_VICTIMS=BOOT_N`★★** ★★
 #   ★★**★基线**: ★**`state/.lastgood/baseline_v76mw0_chain.kicad_pcb` (★同链·同工艺★)** ★★
 #
-set -uset -u
+set -u
 PROJ=/home/yuewuya/.openclaw/workspace/projects/smart_glasses
 cd "$PROJ" || exit 1
 

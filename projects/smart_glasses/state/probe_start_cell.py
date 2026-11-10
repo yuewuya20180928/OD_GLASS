@@ -28,7 +28,9 @@ import pcbnew
 
 CLEAR = 0.20
 W_CLS = (0.15, 0.25, 0.50)   # ★与路由器一致 (★W_MIN 随 env 变·这里用臂上的 0.15★)
-HALO_MARGIN = 0.0625
+HALO_MARGIN = float(os.environ.get("PCB_HALO_MARGIN", "0.0625"))
+# ★★**2026-11-11 02:6x 【★HALO_MARGIN 改成读 env (★臂上是 0.0625·但默认值是 0.20★)】★★
+#   ★**⇒ 用错默认值 ⇒ 模型半径算错 ⇒ "封死/不封死"的判断会反过来** ⇒ ⇒ 必须跟臂一致★★
 
 
 def seg_pt_dist(px, py, x1, y1, x2, y2):
@@ -72,10 +74,17 @@ def main():
         bb = found.GetBoundingBox()
         cx = (pcbnew.ToMM(bb.GetX()) + pcbnew.ToMM(bb.GetRight())) / 2.0
         cy = (pcbnew.ToMM(bb.GetY()) + pcbnew.ToMM(bb.GetBottom())) / 2.0
-        # ★出脚直道向下 (★SoM 排的真实情形★) 走 ESC_LEN=1.20 ⇒ 再吸到最近格心 (★网格 0.25·原点 0★)
+        # ★出脚直道向下 (★SoM 排的真实情形★) 走 ESC_LEN=1.20 ⇒ 再吸到最近格心
+        # ★★★**★2026-11-11 02:8x 【★口径订正: 网格原点不是 0 (★真板 bb[0] = -0.05★)】★★★★ ★★
+        #   ★**⇒ 用 `round(x/0.25)*0.25` (★假设原点=0★) 会算成 (63.50,12.25) ⇒ ★**那是错的**★
+        #   ★**⇒ 真值 = (-0.05 + i*0.25) ⇒ (63.70, 12.20) ⇒ 与路由器 `_ci/_cj` 一致** ★★
+        _bb = b.GetBoardEdgesBoundingBox()
+        _ox = pcbnew.ToMM(_bb.GetLeft())
+        _oy = pcbnew.ToMM(_bb.GetTop())
+        _g = 0.25
         ex, ey = cx, cy + 1.20
-        gx = round(ex / 0.25) * 0.25
-        gy = round(ey / 0.25) * 0.25
+        gx = _ox + round((ex - _ox) / _g) * _g
+        gy = _oy + round((ey - _oy) / _g) * _g
         print("★焊盘 %s @ (%.3f,%.3f) ⇒ 推定起步格心 = (%.2f,%.2f)"
               % (padref, cx, cy, gx, gy))
     else:
