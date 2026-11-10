@@ -78,6 +78,59 @@ def main():
     b = pcbnew.LoadBoard(BOARD)
     r = R.GridRouter(b)
 
+    # ★★**★2026-11-11 04:2x 【★加"谁掐谁"全表 (★扩名单用·不用再手写脚本★)】★★★★ ★★
+    #   ★**输出每个受害网被【哪些抢路者】掐 + 【需要直行几步】⇒ ⇒ 扩名单时直接照着挑** ★★
+    need = R.CLEAR + R.W_CLS[1] / 2.0 + R.W_CLS[1] / 2.0 + R.HALO_MARGIN
+    who = {}
+    for _net, _pads in r.net_pads.items():
+        for _pad in _pads:
+            _ref, _num, _cx, _cy, _l = _pad
+            try:
+                _st = r.escape_stub(_net, (_ref, _num, _cx, _cy, (0,)))
+            except Exception:
+                _st = None
+            if not _st:
+                continue
+            _dy = _st[1] - _cy
+            _dj = 1 if _dy > 1e-9 else (-1 if _dy < -1e-9 else 0)
+            if _dj == 0:
+                continue
+            for _vnet, _vpads in r.net_pads.items():
+                if _vnet == _net:
+                    continue
+                for (_vref, _vnum, _vx, _vy, _vl) in _vpads:
+                    if abs(_vy - _cy) > 0.2:
+                        continue
+                    _dx = _vx - _cx
+                    if not (0.3 <= abs(_dx) <= 1.05):
+                        continue
+                    _gx = r._cx(r._ci(_vx))
+                    _gy = r._cy(r._cj(_vy + _dj * R.ESC_LEN))
+                    _k = 12
+                    for _kk in range(0, 13):
+                        _ty = _cy + _dj * (R.ESC_LEN + _kk * r.g)
+                        _sg = [(_cx, _cy, _cx, _cy + _dj * R.ESC_LEN),
+                               (_cx, _cy + _dj * R.ESC_LEN, _cx, _ty)]
+                        _c2, _c3, _sgn = _cx, _ty, (1 if _dx > 0 else -1)
+                        for _ in range(40):
+                            _nx = _c2 + _sgn * 0.25
+                            if _sgn * (_nx - _gx) > 0:
+                                break
+                            _ny = _c3 + _dj * 0.25
+                            _sg.append((_c2, _c3, _nx, _c3))
+                            _sg.append((_nx, _c3, _nx, _ny))
+                            _c2, _c3 = _nx, _ny
+                        _sg.append((_c2, _c3, _gx, _c3))
+                        _d = min(R._pt_seg_dist(_gx, _gy, _a, _b, _c, _e) for (_a, _b, _c, _e) in _sg)
+                        if _d >= need - 1e-9:
+                            _k = _kk
+                            break
+                    if _k > 0:
+                        who.setdefault(_vnet, []).append((_net, _k))
+    print("\n  ★★**【谁掐谁】全表 (★k = 需要直行几步·★k=12 = 上限⇒ 让路解不了⇒ 是差分配对问题★)** ★★")
+    for _v in sorted(who, key=lambda z: -len(who[z])):
+        print("    ★受害网 %-18s ← %s" % (_v, ", ".join("%s(k=%d)" % (a, c) for (a, c) in who[_v][:5])))
+
     fired = []
     total = 0
     for net, pads in r.net_pads.items():
