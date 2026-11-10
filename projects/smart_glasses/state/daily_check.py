@@ -109,6 +109,7 @@ GUARD_TESTS = (
     ("_test_corridor.py", "走廊让路守卫 (★PCB_CORRIDOR_YIELD★)"),
     ("_test_layersel.py", "差分层选择守卫 (★PCB_PAIR_LAYERSEL★)"),
     ("_test_yield.py", "预测性让路守卫 (★PCB_YIELD_STRAIGHT★)"),
+    ("_test_yield2.py", "窄版预测性让路守卫 (★PCB_YIELD_VICTIMS + 真实2D净距★)"),
 )
 
 
@@ -202,6 +203,30 @@ def main() -> int:
                            if (_out_self or _err_self).strip() else ""))
     print(f"{'✅' if _rc_self == 0 else '❌'} daily_check --self-test-fast rc={_rc_self} "
           f"(★判据退化守卫★ · ★★三个守卫脚本只在 `--self-test` 跑 ⇒ 巡检段不受重自测拖累★★)")
+
+    # ★★★★**★2026-11-11 01:5x 【★分析工具的【可用性自检】接进巡检 (★不是判据守卫·是"工具别悄悄坏掉"★)】★★★★ ★
+    #   ★**为什么必须有**: ★**"守卫写好了但没人调用" = "裸奔"** ⇒ ★**同一条铁律·换个对象** ★★
+    #     ★★**⇒ 分析工具坏掉时【不会自己报错】(★它只是给出错数字★) ⇒ ⇒ 必须有地方检查它还能用** ★★
+    #   ★**为什么只查【--check-env】不查【全流程】**: ★★**全流程要跑 DRC (★分钟级★) ⇒ ⇒ 不能塞进每次巡检** ★★
+    #   ★**⇒ 只做"能启动 + 能列出板 + 工程文件齐"这种【秒级】体检★★
+    _tools = ("arm_reading_guard.py", "arm_ranking.py", "probe_start_cell.py", "probe_escape_block.py")
+    for _t in _tools:
+        _p = os.path.join(HERE, _t)
+        if not os.path.exists(_p):
+            problems.append("★分析工具缺失: %s" % _t)
+            continue
+        try:
+            with open(_p, "r", encoding="utf-8") as _f:
+                compile(_f.read(), _p, "exec")
+        except Exception as _e:
+            problems.append("★分析工具语法错: %s (%s)" % (_t, str(_e)[:120]))
+    # ★★**工程文件同源体检 (★缺 .kicad_pro ⇒ DRC 读数作废★·实测假违规 87 条★)** ★★
+    _b = HERE + "/.lastgood/baseline_v76mv0_chain.kicad_pcb"
+    if os.path.exists(_b):
+        _pro = _b[:-len(".kicad_pcb")] + ".kicad_pro"
+        if not os.path.exists(_pro):
+            problems.append("★基线板旁缺 .kicad_pro ⇒ fresh DRC 读数作废 (★实测假 track_width 87 条★)")
+    print(f"{'✅' if not problems else '⚠️'} 分析工具体检 ({len(_tools)} 个·秒级·语法+工程文件同源)")
 
     # 1) merge
     rc_m, out_m, err_m = run("merge.py")
