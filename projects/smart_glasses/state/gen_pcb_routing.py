@@ -248,6 +248,22 @@ W_CLS = (W_MIN, 0.25, 0.50)
 #   ★**用法**: ★`PCB_ESC_STRAIGHT=2` (★强制直行格数·默认 0 = 关 ⇒ ★逐位不变★)
 #   ★**兜底**: ★约束下 A* 无路 ⇒ ★**自动回退到无约束重试** ⇒ ★保证不比现状更差★
 ESC_STRAIGHT_STEPS = int(os.environ.get("PCB_ESC_STRAIGHT", "0"))
+# ★★★★★★2026-11-11 04:4x 【★"窄版直行": 只让【指定网】的出脚先直行 (★env `PCB_ESC_STRAIGHT_NETS`, ★默认空⇒逐位不变★)】★★★★★★
+#   ★**为什么需要 (★2026-11-11 04:3x 实测★)**: ★★**全局 `PCB_ESC_STRAIGHT=2` 实测把 unc 从 25 抬到 35 (★伤太大★)** ★★
+#     ⇒ 但★**它治的病恰好就是【差分 N 腿出不来】**(★实测: P 腿的 45° 首步与 N 腿直道垂距只有 0.255mm ⇒ 需 0.425mm⇒ N 腿 `L=0.00`★)
+#     ⇒ ★★**⇒ 【全局】的代价来自【所有网都改出脚】; ★★**⇒ 【按网限定】就能只治那 10 条差分腿 ⇒ 代价收缩** ★★★
+#   ★**用法**: ★`PCB_ESC_STRAIGHT=2` + ★`PCB_ESC_STRAIGHT_NETS="CSI_D0_D0_N,DSI_D0_CK_N,..."` ★
+#   ★★**默认空 ⇒ 所有网都生效 = 老行为 ⇒ 逐位不变** ★★
+ESC_STRAIGHT_NETS = frozenset(
+    n.strip() for n in (os.environ.get("PCB_ESC_STRAIGHT_NETS", "") or "").replace(";", ",").split(",") if n.strip())
+
+
+def esc_straight_applies(net):
+    """★**窄版直行判定 (★纯函数 ⇒ 守卫可直接测, 不必造板★)**
+
+    ★★**默认空名单 ⇒ 所有网都生效 = 老行为 ⇒ 逐位不变** ★★
+    """
+    return (not ESC_STRAIGHT_NETS) or (net in ESC_STRAIGHT_NETS)
 # ★★★★★★2026-11-10 04:4x 【★【★共线合并瞬移 bug 的修法 (★env 门控 `PCB_MERGE_FIX`)★】★】★★★★★★
 #   ★**为什么要有**: ★**见下面 `_emit_path` 里合并判据的注释 (★实测 v76s2 有 10 段出到 y=-1.21mm★)**
 #   ★**开关**: ★`PCB_MERGE_FIX=1` ⇒ ★①修对 `by` 的坐标错位 · ★②加三角不等式兜底 (★挡任何瞬移★)
@@ -1448,7 +1464,9 @@ class GridRouter:
                 _di = (1 if _dx > 1e-9 else (-1 if _dx < -1e-9 else 0))
                 _dj = (1 if _dy > 1e-9 else (-1 if _dy < -1e-9 else 0))
                 if _di or _dj:
-                    self._esc_start_dir[(net, _cell)] = (_di, _dj, ESC_STRAIGHT_STEPS)
+                    # ★★2026-11-11 04:4x 【★窄版: 只对名单里的网生效 (★默认空 = 老行为 ⇒ 逐位不变★)★★
+                    if esc_straight_applies(net):
+                        self._esc_start_dir[(net, _cell)] = (_di, _dj, ESC_STRAIGHT_STEPS)
                 # ★★★★★★2026-11-10 23:5x 【★"预测性让路" (★env 门控 `PCB_YIELD_STRAIGHT`★)】★★★★★★
                 #   ★**为什么要 (★逐位实测★)**: ★★**同排相邻脚 (★`ID_DETECT_0` @62.80 / `BOOT_N` @63.60★)
                 #     先布的那个一拐弯就把后布的那个起步格封死 (★中心距 0.450 < halo 需 0.5125·只差 0.0125mm★)★★**

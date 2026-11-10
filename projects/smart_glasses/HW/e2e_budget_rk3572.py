@@ -239,6 +239,25 @@ def selftest() -> int:
     ok = abs(TX_MIN_1080 / TX_MIN_800 - ratio_px) < 1e-9
     print(f"  {'✅' if ok else '❌'} TX 随像素数比 = {TX_MIN_1080/TX_MIN_800:.4f} (像素比 {ratio_px:.4f}) ⇒ ★TX 是按比特随分辨率涨的★")
     bad += 0 if ok else 1
+    # ⑧ ★★TX 已发布值钉死 (★**值型**护栏: 不许用被检查的常量重算期望值 ⇒ 那是同义反复★)
+    #    ★对齐 SW/DEMO_OD_TIMING_SPEC.md §3.3.1 已发布的 "800×600 = 1.800ms ⇒ 1920×1080 = 7.776ms"
+    ok = abs(TX_MIN_1080 - 7.776) < 1e-9 and abs(TX_MIN_800 - 1.800) < 1e-9
+    print(f"  {'✅' if ok else '❌'} TX 已发布值钉死: TX_MIN_800 = {TX_MIN_800:.3f} (须 =1.800) · "
+          f"TX_MIN_1080 = {TX_MIN_1080:.3f} (须 =7.776) ⇒ ★**物理下限不许被悄悄改小**★")
+    bad += 0 if ok else 1
+    # ⑨ ★★链路参数钉死 (★**值型**护栏: 对齐 PROJECT_TRACKER.md §(1.56) 已发布的 "4-lane@2.0Gbps × 80% 有效"★)
+    #    ★若有人把 lane 速率改成 4.0 ⇒ TX 下限会从 7.776 掉到 3.888 ⇒ 合成上限假性变宽 3.888ms ★
+    ok = (DSI_LANES == 4 and DSI_PER_LANE_Gbps == 2.0 and DSI_EFF == 0.8)
+    print(f"  {'✅' if ok else '❌'} 链路参数钉死: {DSI_LANES}-lane @ {DSI_PER_LANE_Gbps} Gbps × {DSI_EFF} 有效 "
+          f"(须 = 4-lane@2.0Gbps×0.8) ⇒ ★**带宽不许被悄悄加倍**★")
+    bad += 0 if ok else 1
+    # ⑩ ★★默认路径必须带 TX (★**洞 1 的补丁**: 护栏④ 用的是显式传参 ⇒ 挡不住"默认值被改成 0"这个最贴近的变体★)
+    #    ★M2 变异体 (把 modeA_with_compose 的默认 t_display_ms 改成 0.0) ⇒ 这条会红 ⇒ 洞堵上★
+    ok = abs(modeA_with_compose(13.305, 2.0) - modeA_with_compose(13.305, 2.0, TX_MIN_1080)) < 1e-9
+    print(f"  {'✅' if ok else '❌'} 默认路径带 TX: modeA_with_compose(13.305, 2.0) = "
+          f"{modeA_with_compose(13.305, 2.0):.4f} 须 == 显式传 TX 的 {modeA_with_compose(13.305, 2.0, TX_MIN_1080):.4f} "
+          f"⇒ ★**默认值不许把 TX 踢掉**★")
+    bad += 0 if ok else 1
 
     print(f"\n{'✅ 自检通过' if bad == 0 else f'❌ 自检失败 {bad} 项'}")
     return 0 if bad == 0 else 1

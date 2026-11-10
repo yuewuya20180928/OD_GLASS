@@ -143,6 +143,25 @@ def main():
     chk("⑥ 直行 0.5mm 后垂距必须 > 需要 (⇒ 邻居出脚道活)", perp_h > need,
         "实际 = %.4f vs %.4f" % (perp_h, need))
 
+
+    # ---- ★★2026-11-11 04:5x 【★窄版直行 `PCB_ESC_STRAIGHT_NETS` 的判定 (★纯函数★)★★ ----
+    os.environ.pop("PCB_ESC_STRAIGHT_NETS", None)
+    import importlib as _il
+    G3 = _il.reload(G2)
+    chk("⑤ 窄版: 默认【名单为空】⇒ 所有网都生效 (★老行为 ⇒ 逐位不变★)",
+        G3.ESC_STRAIGHT_NETS == frozenset() and G3.esc_straight_applies("任意网") is True,
+        "名单 = %r" % (G3.ESC_STRAIGHT_NETS,))
+    os.environ["PCB_ESC_STRAIGHT_NETS"] = "CSI_D0_D0_N, DSI_D0_CK_N;DSI_D0_D1_N"
+    G4 = _il.reload(G3)
+    chk("⑥ 窄版: 名单解析正确 (★逗号/分号都能隔·空格要去掉·共 3 个★)",
+        G4.ESC_STRAIGHT_NETS == frozenset({"CSI_D0_D0_N", "DSI_D0_CK_N", "DSI_D0_D1_N"}),
+        "实际 = %r" % (sorted(G4.ESC_STRAIGHT_NETS),))
+    chk("⑦ 窄版: 名单内的网生效",
+        G4.esc_straight_applies("CSI_D0_D0_N") is True)
+    chk("⑧ 窄版: 名单外的网【不生效】(★这才是窄版的真意义★)",
+        G4.esc_straight_applies("CSI_D0_D0_P") is False)
+    os.environ.pop("PCB_ESC_STRAIGHT_NETS", None)
+
     print("─" * 46)
     if FAIL:
         print("FAILED %d/%d" % (len(FAIL), len(FAIL) + len(OK)))

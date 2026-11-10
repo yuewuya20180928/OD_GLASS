@@ -4687,14 +4687,14 @@ issues:
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-06'
-  status: fixed
+  status: verified
   external: false
   need_keys: []
   fix_ref: HW/e2e_budget_rk3572.py (T_FIXED 五段拆分 + tx_min_ms/TX_MIN_1080 + display_out_max_for/compose_max_for + display_out_upper_bound + --t-compose-ms) + SW/DEMO_OD_TIMING_SPEC.md §3.3/§3.3.1 (v1.1)
     + SW/RKNN_BENCH.md §4.1 S9 标签口径澄清
   verify_by: sw-lead
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-11'
   note: "2026-11-02 03:0x 随 RK3572 + 视涯两条决定产生。★**这是当前唯一能把 60ms 从推算变成实测的内部动作**, 且不依赖任何外部回复。★verify_by=sw-lead: 项目总工自办 ⇒ 别人验 (铁律)。\n★2026-11-10 23:5x 项目总工自办 (owner=main, verify_by=sw-lead 复核) ⇒ 本单闭环。\n【为什么必须做】这单是**当前唯一能把\
     \ 60ms 从[推算]变成[实测]的内部动作**, 且**不依赖任何外部回复** ⇒ 板子还没到、供应商还没回, 它就能做。due 11-06 逾期 4 天 ⇒ 本轮补。\n【病根】T_FIXED = 34.00 是个**黑箱** (曝光→OD输入就绪 + 显示输出段 混在一起) ⇒ \"显示合成段占 T_FIXED 多少\" 永远是 [0数据] ⇒ §⑤ 只能做 0~60% 的**盲扫**\
     \ ⇒ ★**盲扫的毛病: 它回答不了\"板端到底要测出多少才算过\" ⇒ 板端测完了还是不知道算不算过 ⇒ 等于没测**。\n【交付】① `HW/e2e_budget_rk3572.py`: T_FIXED 按 RKNN_BENCH §4.1 的 S1~S10 明细**拆成五段** ⇒ T_PRE_EXPOSURE 24.67 (曝光块 E+R+S3) + T_DRAW 1.00 (S8 画框,\
@@ -4730,7 +4730,17 @@ issues:
     \  ★**★本次订正 (1 处, 交付物一个字节都没动)**: ② 段换成『display_out_max_for(S5) (输出侧总额上限) + compose_max_for(S5) (= 输出侧总额上限 − TX 物理下限)』+ 三个输出侧数**一个不动** + **补上合成上限 −10.46 / 2.32 / 8.87ms** ⇒ ★**note 里两个函数的归属现在全对了**\n\
     \  ★**我自己的独立复核 (不照抄 sw-lead 的数)**: 直接 import 脚本实跑两个函数 ⇒ display_out_max_for / compose_max_for = yolov5s@640 (S5=26.085) **−2.685 / −10.461** · yolov5n@640 (S5=13.305) **10.095 / 2.319** · yolov5s@320\
     \ (S5=6.750) **16.650 / 8.874** ⇒ ★**证实 note 里那三个数确实全是 display_out_max_for 的 ⇒ F5 成立**\n  ★**自证 (rev3)**: `python3 HW/e2e_budget_rk3572.py --selftest` ⇒ rc=0 · `python3 SW/tools/demo_timing_check.py`\
-    \ ⇒ rc=0 (20/20) · ★**交付物 md5 与 rev1/rev2 复验时逐字节相同 (本单只改 note)** ★★\n  ★**待 sw-lead 复验签字** ⇒ ★**本单 owner=main / verify_by=sw-lead ⇒ 签字前状态仍是 fixed, 不许自己标 verified** ★★"
+    \ ⇒ rc=0 (20/20) · ★**交付物 md5 与 rev1/rev2 复验时逐字节相同 (本单只改 note)** ★★\n  ★**待 sw-lead 复验签字** ⇒ ★**本单 owner=main / verify_by=sw-lead ⇒ 签字前状态仍是 fixed, 不许自己标 verified** ★★\n★2026-11-11 04:3x 项目总工落账 **verified**\
+    \ (verify_result=pass, verify_by=sw-lead, verify_date=2026-11-11)\n【签字来源】sw-lead **rev3 复验 = pass** (2026-11-11 03:3x) ⇒ 报告 `HANDOFF/2026-11-11_sw-lead_ISS137_rev3_验证.md` §9.4「签字条件已全部满足」· 分片 `state/fragments/sw.yaml`\
+    \ 的 `iss137_verify_result` = 'pass' ⇒ ★**别人验**成立 (owner=main / verify_by=sw-lead)。\n【★我没有采信 sw-lead 的自证, 落账前自己重跑了一遍】:\n  ① `python3 HW/e2e_budget_rk3572.py --selftest` ⇒ **rc=0** (原 4 条已发布数字 + ★拆分护栏\
+    \ 7 条全过) ⇒ 含「TX 在账里: 同一合成值下 加/不加 TX 差 7.776 ms」★**这个 7.776 恰等于 TX 物理下限**。\n  ② `python3 SW/tools/demo_timing_check.py` ⇒ **rc=0 (20/20)**。\n  ③ ★**4 个交付物 md5 与 sw-lead rev3 基线逐字节相同** ⇒ 交付物自 rev2 复验以来一个字节没动:\
+    \ `0e622d56…` (HW/e2e_budget_rk3572.py) / `71f0c913…` (SW/DEMO_OD_TIMING_SPEC.md) / `62026429…` (SW/RKNN_BENCH.md) / `661f43c7…` (SW/tools/demo_timing_check.py)。\n  ④ ★**F5 独立复核**: note 里旧断言整句 count=**0**\
+    \ / 新断言整句 count=**1** ⇒ 旧句是**整句消失**不是 token 缺席 ⇒ note 里 compose_max_for 出现 10 处、display_out_max_for 7 处 ⇒ ★**真歧义行 = 0** ⇒ 归属全对。\n  ⑤ ★**实跑复核两个函数** (不照抄报告的数): display_out_max_for / compose_max_for =\
+    \ −2.685 / −10.461 (S5=26.085) · 10.095 / 2.319 (S5=13.305) · 16.650 / 8.874 (S5=6.750) · tx_min_ms(1920,1080) = 7.776 ⇒ 三个 S5 的差值都**恰好 7.776** ⇒ 与 note 逐位对上 ⇒ ★**F5 成立**。\n【本单对项目的作用 (不改, 只记)】60ms 从「推算」变成「可测」:\
+    \ 板端打第7段合成 + 第8段上屏两个点 ⇒ `python3 HW/e2e_budget_rk3572.py --t-compose-ms <实测值>` 一行出结论。★**但那 2.32ms 现在仍是 [0数据] 的假人** (板还没到) ⇒ ★**板端合成段超 2.32ms ⇒ yolov5n@640 方案A 直接判死**。\n【★遗留 (sw-lead rev3 §9.3 如实报的「未做」项,\
+    \ 不藏)】① 护栏 2 个洞 (M2 默认参数踢 TX / M3 无护栏钉 TX 绝对值) ⇒ 需加护栏⑧⑨⑩; ② DSI payload 8× 口径差 6 处 (373/246 Mbps ⇒ 真值 2986/1475 Mbps); ③ 4 处下游旧口径残留 (PROJECT_TRACKER.md:2098 / SW/DEMO_OD_PIPELINE_SPEC.md:447 / SW/DEMO_OD_TIMING_SPEC.md:194\
+    \ / SW/tools/rknn_bench.py:257·261)。⇒ ★**这三条已另开 ISS-186 承接** (owner=main / verify_by=sw-lead), ★**不在本单偷偷带过**。\n【边界】★**没有改 §0 锁死表** · ★**没有改任何交付物** (md5 已验) · ★**没有动其他 agent 的分片** · ★**没有发任何邮件/外联** ·\
+    \ ★**没有下采购单**。"
   dispatched_at: null
   fixed_at: '2026-11-10'
 - id: ISS-138

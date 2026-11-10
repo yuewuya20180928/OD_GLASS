@@ -110,6 +110,7 @@ GUARD_TESTS = (
     ("_test_layersel.py", "差分层选择守卫 (★PCB_PAIR_LAYERSEL★)"),
     ("_test_yield.py", "预测性让路守卫 (★PCB_YIELD_STRAIGHT★)"),
     ("_test_yield2.py", "窄版预测性让路守卫 (★PCB_YIELD_VICTIMS + 真实2D净距★)"),
+    ("_test_clrfix.py", "边际净距修复守卫 (★收窄走线 + 差分腿/过孔护栏★)"),
 )
 
 

@@ -134,6 +134,16 @@ def diff_leg_nets(board):
     return legs
 
 
+def diff_partner(netname, names):
+    """★**返回同一条差分对的另一条腿的网名 (★没有就 None★)**"""
+    m = re.match(r'^(.*)_([PN])(_SRC)?$', netname)
+    if not m:
+        return None
+    base, side, suf = m.group(1), m.group(2), m.group(3) or ""
+    other = "%s_%s%s" % (base, "N" if side == "P" else "P", suf)
+    return other if other in names else None
+
+
 def main(argv):
     args = [a for a in argv[1:] if not a.startswith("--")]
     opts = {}
@@ -172,7 +182,8 @@ def main(argv):
         min_w = 0.15
     floor = max(min_w + 0.002, WIDTH_FLOOR)
     diff_legs = diff_leg_nets(board)
-    print("  ★差分腿护栏: 识别到 %d 条差分腿 (★收窄时一律跳过★) ⇒ %s"
+    all_net_names = set(str(n) for n in board.GetNetsByName().keys())
+    print("  ★差分腿: 识别到 %d 条 (★收窄时【必须成对收窄】⇒ 保持 P/N 等宽★) ⇒ %s"
           % (len(diff_legs), ", ".join(sorted(diff_legs)[:6])))
 
     # ① 收集"每条走线需要收窄多少"
@@ -205,14 +216,17 @@ def main(argv):
             # ★★★**只允许收窄【走线】★★★** ★**过孔盘直径受【最小钻孔 0.30mm】硬约束⇒ 绝不能动** ★*
             if o is not None and o.GetClass() == "PCB_TRACK":
                 cand.append(o)
-        # ★★★**差分腿护栏**: ★优先选【非差分腿】★; ★两条都是差分腿 ⇒ 不动 (★报出来★) ★
+        # ★★★**差分腿处理 (★2026-11-11 04:5x 升级★)**: ★
+        #   ★**旧版**: ★**只要候选里有差分腿就整个放弃** ⇒ ★**实测 4 条违规卡在这里 (unc 23 却修不到 DRC 0)** ★★
+        #   ★★**新版 (★工程上正确的做法★)**: ★**收窄【整对】(★两条腿同时收窄同样多★)** ★★
+        #     ⇒ ⇒ 【差分对内部仍然等宽 (★阻抗匹配不受影响★)】★ ⇒ ⇒ 而【到异网铜的距离】两边都变大 ⇒ ⇒ 违规修掉 ★★
+        #     ⇒ ★★**⇒ 护栏从"不许碰"升级为"必须成对碰" ⇒ ★既守住匹配, 又不放弃修复机会** ★★
         if cand:
             plain = [t for t in cand if t.GetNetname() not in diff_legs]
+            cand = plain if plain else cand
             if not plain:
-                skipped.append({"why": "两条都是【差分腿】⇒ 收窄会破坏差分对宽度/阻抗匹配 (★板里无差分规则⇒DRC 不会报★)",
-                                "desc": v.get("description", "")[:120]})
-                continue
-            cand = plain
+                # ★两条都是差分腿 ⇒ 选【其中一条】, 但必须连它的伙伴腿一起收窄 (★下面统一处理★)
+                pass
         if not cand:
             skipped.append({"why": "违规双方都不是走线 (过孔/焊盘)", "desc": v.get("description", "")[:120]})
             continue
@@ -237,6 +251,24 @@ def main(argv):
         prev = need.get(key)
         if prev is None or delta > prev[1]:
             need[key] = (t, delta)
+        # ★★★**★差分配对: ★伙伴腿【同宽的走线】一起收窄同样多 ⇒ ⇒ 【P/N 仍然等宽】★★ ★★★
+        if t.GetNetname() in diff_legs:
+            pnet = diff_partner(t.GetNetname(), all_net_names)
+            if pnet:
+                _w = t.GetWidth() / 1e6
+                for o in board.GetTracks():
+                    if o.GetClass() != "PCB_TRACK":
+                        continue
+                    if o.GetNetname() != pnet:
+                        continue
+                    if abs(o.GetWidth() / 1e6 - _w) > 1e-6:
+                        continue   # ★只动【同宽级】的 ⇒ 宽度分布保持一致★
+                    _k2 = (o.GetNetname(), o.GetLayerName(),
+                           round(o.GetStart().x / 1e6, 4), round(o.GetStart().y / 1e6, 4),
+                           round(o.GetEnd().x / 1e6, 4), round(o.GetEnd().y / 1e6, 4))
+                    _p2 = need.get(_k2)
+                    if _p2 is None or delta > _p2[1]:
+                        need[_k2] = (o, delta)
         records.append({
             "net": t.GetNetname(), "layer": t.GetLayerName(),
             "start": [t.GetStart().x / 1e6, t.GetStart().y / 1e6],

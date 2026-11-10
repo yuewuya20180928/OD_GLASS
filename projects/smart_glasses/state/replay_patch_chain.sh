@@ -130,7 +130,10 @@ fi
 # ★**② combo (★margin 0.20 = PCB_HALO_MARGIN 默认值 ⇒ ★官方那次没设 env ⇒ 就是默认)** ★
 step_nostub "$WORK/s1_straight.kicad_pcb" "$WORK/s2_combo.kicad_pcb" 0.125 0.20
 # ★**③ loose (★margin 0.0625 = 网格半格 ⇒ 这才是"loose"的关键)** ★
-step_nostub "$WORK/s2_combo.kicad_pcb" "$WORK/final_chain.kicad_pcb" 0.125 0.0625
+# ★★2026-11-11 04:3x 【loose 步 margin 可参数化·默认 0.0625 ⇒ 逐位不变】★★
+#   ★依据: margin 0.03125 ⇒ unc 29→27 ⇒ 代价是 0.1937mm 边际违规 ⇒ 由 clrfix_iter 清理 ⇒ DRC 0
+_LOOSE_MARGIN="${PCB_CHAIN_LOOSE_MARGIN:-0.0625}"
+step_nostub "$WORK/s2_combo.kicad_pcb" "$WORK/final_chain.kicad_pcb" 0.125 "$_LOOSE_MARGIN"
 
 if [ -f "$WORK/final_chain.kicad_pcb" ]; then
   say "★链跑完 ⇒ 终板 $WORK/final_chain.kicad_pcb"
