@@ -31,18 +31,21 @@ BASE="${1:-state/.lastgood/baseline_v76_chain.kicad_pcb}"
 
 # ★**抽取: 按标签取数** —— ★标签在但没数字 ⇒ 0 (空名单是合法的好结果);
 #   ★标签不在 ⇒ "MISS" (⇒ 守卫会响亮报错, 不许静默变 ?)***
-extract() {  # extract <输出> <标签正则>
-  local out="$1" re="$2" line
+extract() {  # extract <输出> <标签正则> [1=取末字段(计数行) 2=取倒数第2字段(指标表候选值)]
+  local out="$1" re="$2" mode="${3:-1}" line n
   line=$(echo "$out" | grep -E "$re" | head -1)
   if [ -z "$line" ]; then echo "MISS"; return; fi
-  local n
-  n=$(echo "$line" | grep -oE "[0-9]+" | head -1)
+  if [ "$mode" = "2" ]; then
+    n=$(echo "$line" | awk '{print $(NF-1)}')
+  else
+    n=$(echo "$line" | awk '{print $NF}')
+  fi
   echo "${n:-0}"
 }
 
-printf '%-14s %7s %7s %6s %6s %6s %6s %6s %6s %6s\n' \
-  "臂" "段数" "DRC" "unc条" "unc网" "退铜" "死腿" "孤岛" "救回" "闸"
-printf '%.0s─' {1..84}; echo
+printf '%-14s %7s %7s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n' \
+  "臂" "段数" "DRC" "unc条" "unc网" "零铜网" "差半" "退铜" "死腿" "孤岛" "救回" "闸"
+printf '%.0s─' {1..96}; echo
 
 # ★**基线自己先算一遍**
 BASE_ROW=$(python3 - "$BASE" <<'PY'
@@ -56,7 +59,7 @@ segs = sum(1 for l in open(p, encoding="utf-8", errors="ignore") if l.lstrip().s
 print("BASE\t%d\t-\t-\t-\t-\t-\t-\t-\t-" % segs)
 PY
 )
-echo "$BASE_ROW" | awk -F'\t' '{printf "%-14s %7s %7s %6s %6s %6s %6s %6s %6s %6s\n", "★基线", $2,$3,$4,$5,$6,$7,$8,$9,$10}'
+echo "$BASE_ROW" | awk -F'\t' '{printf "%-14s %7s %7s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n", "★基线", $2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12}'
 
 for d in $(ls -d /tmp/chain_v76* 2>/dev/null | sort); do
   B="$d/final_chain.kicad_pcb"
@@ -67,26 +70,33 @@ for d in $(ls -d /tmp/chain_v76* 2>/dev/null | sort); do
   DRC=$(echo "$OUT" | grep -oE "DRC违规: [0-9]+" | head -1 | grep -oE "[0-9]+")
   UNC=$(echo "$OUT" | grep -oE "unc   : [0-9]+ 条 / [0-9]+ 个网名" | grep -oE "[0-9]+" | head -1)
   UNCN=$(echo "$OUT" | grep -oE "unc   : [0-9]+ 条 / [0-9]+ 个网名" | grep -oE "[0-9]+" | tail -1)
-  # ★★列口径 = compare_arm_baseline.sh 的**真实标签** (★不要臆造标签名) ★★
-  RC=$(extract "$OUT" "退铜名单")          # ★退铜名单 (官方有铜⇒候选零铜) —— 硬判据② 必须为空
-  DP=$(extract "$OUT" "差分对死腿")        # ★差分对死腿 (官方双边有铜⇒候选单边零铜) —— 硬判据③ 必须为空
-  ISL=$(extract "$OUT" "逐网孤岛变多")     # ★逐网孤岛变多 —— 硬判据④ 必须为空
-  RSQ=$(extract "$OUT" "救回零铜的网")     # ★(参考) 救回零铜的网 —— 正向信号
+  # ★★列口径 = compare_arm_baseline.sh / compare_arm_official.py 的**真实标签** (★不要臆造标签名) ★★
+  # ★★"零铜网" 与 "差半" 取自指标表 (compare_arm_official.py 打的
+  #     "零铜网(≥2焊盘)  <候选>  <基线>" / "差分单边零铜  <候选>  <基线>")
+  #     ⇒ ★**取倒数第 2 个字段 = 候选值** (★★且不能取"首个数字" —— 标签里的 "≥2" 是 2 不是读数★) ★★
+  ZC=$(extract "$OUT" "零铜网\(≥2焊盘\)" 2)   # ★零铜网数 (计数类, 只作参考)
+  DH=$(extract "$OUT" "差分单边零铜" 2)        # ★差分单边零铜对数 (计数类, 只作参考)
+  RC=$(extract "$OUT" "退铜名单" 1)          # ★退铜名单 (官方有铜⇒候选零铜) —— 硬判据② 必须为空
+  DP=$(extract "$OUT" "差分对死腿" 1)        # ★差分对死腿 (官方双边有铜⇒候选单边零铜) —— 硬判据③ 必须为空
+  ISL=$(extract "$OUT" "逐网孤岛变多" 1)     # ★逐网孤岛变多 —— 硬判据④ 必须为空
+  RSQ=$(extract "$OUT" "救回零铜的网" 1)     # ★(参考) 救回零铜的网 —— 正向信号
   GATE=$(echo "$OUT" | grep -oE "闸 rc=[0-9]+" | tail -1 | grep -oE "[0-9]+$")
-  # ★★守卫: 任一硬判据列抽不到 (MISS) ⇒ 该行打"抽取失败" + 整表 rc=1 (★不许静默 "?") ★★
-  if [ "$RC" = "MISS" ] || [ "$DP" = "MISS" ] || [ "$ISL" = "MISS" ] || [ -z "$GATE" ]; then
-    printf '%-14s %7s %7s %6s %6s %6s %6s %6s %6s %6s\n' \
-      "$TAG" "$SEG" "${DRC:-?}" "${UNC:-?}" "${UNCN:-?}" "抽取失败" "抽取失败" "抽取失败" "抽取失败" "?"
-    echo "  ❌ $TAG 抽取失败: 退铜=$RC 死腿=$DP 孤岛=$ISL 闸=${GATE:-MISS} (★标签抓不到 ⇒ 闸门会形同虚设★)" >&2
+  # ★★守卫: 任一列抽不到 (MISS) ⇒ 该行打"抽取失败" + 整表 rc=1 (★不许静默 "?") ★★
+  if [ "$RC" = "MISS" ] || [ "$DP" = "MISS" ] || [ "$ISL" = "MISS" ] || [ -z "$GATE" ] \
+     || [ "$ZC" = "MISS" ] || [ "$DH" = "MISS" ]; then
+    printf '%-14s %7s %7s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n' \
+      "$TAG" "$SEG" "${DRC:-?}" "${UNC:-?}" "${UNCN:-?}" "失败" "失败" "失败" "失败" "失败" "失败" "?"
+    echo "  ❌ $TAG 抽取失败: 零铜=$ZC 差半=$DH 退铜=$RC 死腿=$DP 孤岛=$ISL 闸=${GATE:-MISS} (★标签抓不到 ⇒ 闸门会形同虚设★)" >&2
     FAIL=1
     continue
   fi
-  printf '%-14s %7s %7s %6s %6s %6s %6s %6s %6s %6s\n' \
-    "$TAG" "$SEG" "${DRC:-?}" "${UNC:-?}" "${UNCN:-?}" "$RC" "$DP" "$ISL" "$RSQ" "$GATE"
+  printf '%-14s %7s %7s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n' \
+    "$TAG" "$SEG" "${DRC:-?}" "${UNC:-?}" "${UNCN:-?}" "$ZC" "$DH" "$RC" "$DP" "$ISL" "$RSQ" "$GATE"
 done
 echo
 echo "★口径: unc条 = unconnected_items 条目数 · unc网 = 网名签名数"
 echo "★★硬判据三列 (★必须为空才是好结果★): 退铜 = 退铜名单数 · 死腿 = 差分对死腿数 · 孤岛 = 逐网孤岛变多数"
+echo "★计数类两列 (★只作参考, ★不许当\"变好\"证据★): 零铜网 = 零铜网(≥2焊盘) 数 · 差半 = 差分单边零铜 对数"
 echo "★救回 = (参考) 救回零铜的网数 (正向信号) · 闸 = 名单制闸 rc (0=ACCEPT)"
 echo "★全部读数来自 fresh DRC (★不用 chain 目录里的同名 json★)"
 echo "★列口径 2026-11-10 16:4x 修正 (旧版 '差单' 恒为 ? / '零铜' 名不副实 ⇒ 见文件头注释)"
