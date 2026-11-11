@@ -1,4 +1,4 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-11 15:18)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-11 15:28)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
@@ -9,7 +9,7 @@
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=1
 - 问题单: 共 188 条 · closed=97 · deferred=14 · fixed=6 · fixing=3 · open=26 · verified=42
-- GitHub 上次推送: 2026-11-11T10:23:35+08:00
+- GitHub 上次推送: 2026-11-11T15:28:20+08:00
 
 ## 二、执行中 (谁在干什么)
 

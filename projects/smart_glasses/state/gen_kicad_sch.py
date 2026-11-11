@@ -61,7 +61,7 @@ import subprocess
 import sys
 import tempfile
 import uuid
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict, defaultdict, Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
@@ -782,6 +782,12 @@ def kicad_pins(relpath):
     return len(re.findall(r"\(pin\s+\w+\s+\w+\s*\(at", t))
 
 
+# ── ① 项目自有真值表 (★state/check_netlist_pins.py★) ──
+SPEC_PINS = {'CONN_CAM': 31, 'CONN_LIGHT': 22, 'J_CHG': 10, 'J_DEBUG': 4,
+              'J_UART': 2, 'J_BOOT1': 6, 'U_TEMP': 6, 'U_CHG': 24}
+PARTIAL_PINS = {'J_SOM_P1': 100, 'J_SOM_P2': 100, 'J_SOM_P3': 100, 'J_SOM_P4': 100}
+
+
 # ── ② BOM opn ⇒ 本机 KiCad 官方库符号 (★只在 BOM 里型号已定型时用★) ──
 OPN_KICAD = {
     'U_LDO_S12':  ('Regulator_Linear.kicad_symdir/TPS7A20xxxDQN.kicad_sym', 'BOM opn=TPS7A2012DQNR ⇒ KiCad 官方库 Regulator_Linear:TPS7A20xxxDQN'),
@@ -832,9 +838,15 @@ def real_pin_count(ref, tbl_n):
 
 
 
+def cmd_pin_reality_gap():
+    """★生成 `HW/PCB/PIN_REALITY_GAP.md` (★逐器件: 表里脚数 vs 真实器件脚数★)
+
+    ★★**口径**: ★表侧脚数 = `HW/netlist_v1_pins.csv` 行数 (★每行=一脚, **含 DNP 行**★)★★
+    ★★**真实器件脚数**: 只在**本机可查到的权威源**查到才填 ⇒ 查不到写 `[0数据]`, ★**绝不猜**★ ★★
+    """
     rows = list(csv.DictReader(open(PIN_TBL, newline="", encoding="utf-8-sig")))
-    tbl = collections.Counter(r['ref'].strip() for r in rows)
-    dnp_rows = collections.Counter()
+    tbl = Counter(r['ref'].strip() for r in rows)
+    dnp_rows = Counter()
     for r in rows:
         if (r.get('dnp') or '').strip().upper() == 'DNP':
             dnp_rows[r['ref'].strip()] += 1
@@ -849,8 +861,8 @@ def real_pin_count(ref, tbl_n):
             bom[ref] = r
 
     # SoM 球位表 (★真实 100 球位/座★)
-    fet = collections.Counter()
-    if os.path.exists(FET):
+    fet = Counter()
+    if os.path.exists(FET_TBL):
         for r in csv.DictReader(open(FET_TBL, newline="", encoding="utf-8-sig")):
             fet[r['conn'].strip()] += 1
 

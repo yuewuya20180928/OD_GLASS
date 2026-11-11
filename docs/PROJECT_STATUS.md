@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-11 15:26** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-11 15:29** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -13,7 +13,7 @@
 
 【Q1 交付齐备率】 18/18 个必填验收块齐全
    hw-lead    6/6  缺: 无   交接单: 2026-11-11_hw-lead_ISS186_DSI_payload_订正.md   ★按 2026-11-11_hw-lead_ISS186_DSI_payload_订正.md 计分 (最新一份 2026-11-11_hw-lead_ISS189_DSI_payload_收尾.md 缺 ['B3', 'B4'])
-   sw-lead    6/6  缺: 无   交接单: 2026-11-11_sw-lead_ISS190_时序复评_网表锚定.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-11_sw-lead_ISS191_复位P0方案.md
    mech-lead  6/6  缺: 无   交接单: 2026-11-06_mech-lead_周更新.md
 
 【Q2 证据分级率】 3/3 个总工的交付做了证据分级
@@ -46,7 +46,7 @@
 
 【Q5 硬指标覆盖】 2/3 个总工报出了 ≥3 类硬指标数字
    hw-lead    1/5 类: ['端到端延迟(ms)']
-   sw-lead    4/5 类: ['功耗(W)', '皮肤温度(°C)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)']
+   sw-lead    3/5 类: ['功耗(W)', '皮肤温度(°C)', '端到端延迟(ms)']
    mech-lead  4/5 类: ['功耗(W)', '皮肤温度(°C)', '镜腿/镜脚厚度(mm)', 'FCCSP 球间距(pitch)']
 
 【缺口清单】(可直接转成下一轮派活项) —— 3 条
