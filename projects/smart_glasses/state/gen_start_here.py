@@ -90,7 +90,10 @@ def main() -> int:
     open_i = [i for i in issues if i.get("status") not in ("closed", "deferred", "wontfix")]
     inflight = [i for i in issues if i.get("status") in ("fixing", "fixed")]
     by_own = collections.Counter(i.get("owner") for i in open_i)
-    boss = [i for i in open_i if i.get("owner") == "boss"]
+    # ★★**2026-11-11 08:0x 口径订正 (★与 `gen_todo.py` B 桶 / `gen_status_summary.py` 同一口径★)**:
+    #   ★**"等你拍板" = 老板还没拍的那几条 ⇒ 老板已拍板 + 别人已验 (`verified`) 的不算** ★
+    #   ★**实测**: ISS-138 / ISS-146 都是 11-02 老板已拍板 + main 已验 (`verified`) ⇒ 本表原来白列 2 条 ★
+    boss = [i for i in open_i if i.get("owner") == "boss" and i.get("status") not in ("verified",)]
     nm = state.get("needs_matrix") or {}
 
     # ★2026-10-28 修: 原来靠字符串匹配 `当前在「...」还差` 取阶段名 ——

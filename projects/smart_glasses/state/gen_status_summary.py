@@ -45,7 +45,14 @@ def main() -> int:
     open_i = [i for i in issues if i.get("status") not in ("closed", "deferred", "wontfix")]
     inflight = [i for i in issues if i.get("status") in ("fixing", "fixed")]
     by_own = collections.Counter(i.get("owner") for i in open_i)
-    boss = [i for i in open_i if i.get("owner") == "boss"]
+    # ★★**2026-11-11 08:0x 口径订正 (★与 `state/gen_todo.py` 的 B 桶同一口径★)**:
+    #   ★**"等你拍板"问的是"老板还需不需要拍这一条" ⇒ 老板已拍板 + 别人已验 (`verified`) 的单【不在内】**
+    #   ★**实测 (11-11 08:0x)**: ISS-138 (老板 11-02 09:41「使用D」) / ISS-146 (老板 11-02 19:25 直接给了形态)
+    #     都是 `verified` + `verify_result=pass` ⇒ 早就不该算"等你拍板" ⇒ ★**本页的 B 桶 7 → 5**
+    #   ★**全局"未闭环"总数不动** (★那按状态机走: open→fixing→fixed→verified→closed, verified 还没正式关单★)
+    boss_all = [i for i in open_i if i.get("owner") == "boss"]
+    boss = [i for i in boss_all if i.get("status") not in ("verified",)]
+    boss_done = [i for i in boss_all if i.get("status") in ("verified",)]
     sev = collections.Counter(i.get("severity") for i in open_i)
 
     # ---- 阶段门: 实时读 --json (不靠字符串匹配) ----
@@ -118,7 +125,9 @@ def main() -> int:
              f"{summ.get('health','?')} (外部阻塞未清) |\n")
 
     L.append("\n**未闭环按责任方**: " + " · ".join(
-        f"{EXT_ROLE.get(k,k)} {v}" for k, v in by_own.most_common()) + "\n")
+        f"{EXT_ROLE.get(k,k)} {v}" for k, v in by_own.most_common())
+        + (f" ★(老板 {len(boss)} 条**还在等你拍板**; 另 {len(boss_done)} 条你已拍板、main 已验, 只差形式关单★)"
+           if boss_done else "") + "\n")
     L.append("⇒ **内部能干的都在干; 瓶颈是外部 (原厂 + JBD) + 老板拍板项。**\n")
 
     L.append("\n## 2. 最近闭环了什么 (按结果, 不按流水账)\n")
