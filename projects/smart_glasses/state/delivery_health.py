@@ -265,7 +265,11 @@ def main():
 
     alerted = _read_alerted()
     now = time.time()
-    clsA = [b for b in bad if classify(b["lastError"]) == "A"]
+    # ★★2026-11-11 10:3x 【★微信通道已删除 ⇒ A 类(通道发不出去)告警作废★】★★
+    #   ★★**同 11-10 那条 D 类修法的同一条理由**: ★**推送本来就没开的 job (delivery.mode=none)
+    #     ⇒ 它历史上的投递失败与"通道坏了"无关 ⇒ 不该继续报** ⇒ ★**否则老板删了通道之后,
+    #     这条"连挂 27 次"的告警会永远挂着 ⇒ 变成永久假警报 ⇒ 比不报警更坏 (★狼来了★)★★
+    clsA = [b for b in bad if classify(b["lastError"]) == "A" and (b.get("mode") or "announce") != "none"]
     clsB = [b for b in bad if classify(b["lastError"]) == "B"]
     fpA, fpB = fp_of(bad, "A"), fp_of(bad, "B")
     # ★★D 类的指纹 (★单独一个 key ⇒ 不影响 A/B 的去重)

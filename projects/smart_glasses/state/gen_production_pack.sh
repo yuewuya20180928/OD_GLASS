@@ -8,6 +8,9 @@
 #   assembly/   IPC-2581 装配文件 (xml) + 装配图 PDF
 #   3d/         STEP 3D 模型
 #   doc/        PCB 图 PDF (顶/底/全层) + 外形 DXF + IPC-D-356 裸板测试网表 + 板统计 + **原理图 PDF/SVG/网表/BOM**
+#   doc/sch_src/ ★★原理图**源文件** (.kicad_sch × N + .kicad_pro × 1) ★★ ——
+#                ★★2026-11-11 (hw-lead, 老板批准) 由本脚本自动归档★★
+#                ⇒ 投产包里 sch_src 的**唯一权威 = 本脚本** ⇒ 人工塞的东西下次重出必被冲掉
 #
 # 用法: bash state/gen_production_pack.sh
 # ★前置: 板子/原理图必须已由生成器同步 (gen_netlist → gen_kicad_sch → gen_pcb_netlist_board → gen_bom)
@@ -20,7 +23,7 @@ SCH="HW/PCB/demo_mainboard.kicad_sch"
 OUT="HW/PCB/production"
 KC="bash state/kicad.sh"
 rm -rf "$OUT"
-mkdir -p "$OUT"/{gerbers,drill,pos,assembly,3d,doc/sch_svg}
+mkdir -p "$OUT"/{gerbers,drill,pos,assembly,3d,doc/sch_svg,doc/sch_src}
 rc_all=0
 step() { echo "── [$1] ──"; }
 
@@ -75,6 +78,39 @@ _schsvg "$OUT/doc/sch_svg"                    || { echo "  ❌ 原理图 SVG 没
 _schnet "$OUT/doc/demo_mainboard-kicad.net"   || { echo "  ❌ 原理图网表没出"; rc_all=1; }
 _schbom "$OUT/doc/demo_mainboard-kicad-bom.xml" || { echo "  ❌ KiCad BOM 没出"; rc_all=1; }
 echo "  (KiCad 'annotation errors' 提示: 伪位号 RAIL_*/NET_*/CHG_* 引起, 产物不受影响; 连通性由网表 parity 判据保证)"
+
+# ★★2026-11-11 (hw-lead, 老板批准) 把"拷 sch_src"写进**产生点** ★★
+#   ★为什么: doc/sch_src/ 是**原理图源文件**归档 (PDF/SVG 只是渲染件, 板厂"能看不能改")
+#     ⇒ 之前这一步是**人工补**的 ⇒ **人工补的那一次就是漏的那一次** (投板后改板 = 2-4 周 + ¥4-8K)
+#   ★现在: 本脚本 rm -rf "$OUT" 之后**重建** doc/sch_src/ ⇒
+#     ★人工往里塞的任何多余文件 (README.txt 等) 下次重出必被**冲掉** ⇒ 唯一权威 = 本脚本
+#   ★动态扫目录 (**不写死 12 个文件名**): 加了 p11/p12 子页自动跟上
+#   ★cp -p: 保留 mtime ⇒ 归档件时间戳 == 源文件时间戳 (可追溯"这版原理图是哪天出的")
+#   ★.kicad_pro **必带**: 封装库引用 / DRC+ERC 规则 / 图纸设置 只存在这一个文件里
+step "原理图源文件归档 (doc/sch_src/ —— ★投产包唯一权威 = 本脚本★)"
+SCH_SRC_DIR="$OUT/doc/sch_src"
+# ★★本块自带一次清空 (不依赖脚本开头第 25 行的 rm -rf "$OUT") ★★
+#   ⇒ "投产包里 sch_src 的唯一写入口 = 本脚本" 这条不变量**写在这一块里** (不靠远处的行号撑着)
+#   ⇒ 人工往 sch_src 塞的任何东西 (README.txt / 旧版子页 / 假 p11) 下次重出必被**清掉**
+rm -rf "$SCH_SRC_DIR"
+mkdir -p "$SCH_SRC_DIR"
+n_sch=0
+for f in HW/PCB/*.kicad_sch; do
+    [ -f "$f" ] || continue
+    cp -p "$f" "$SCH_SRC_DIR/" || rc_all=1
+    n_sch=$((n_sch + 1))
+done
+n_pro=0
+PRO_FILE="${SCH%.kicad_sch}.kicad_pro"
+if [ -f "$PRO_FILE" ]; then
+    cp -p "$PRO_FILE" "$SCH_SRC_DIR/" || rc_all=1
+    n_pro=1
+else
+    echo "  ❌ 缺 KiCad 工程文件 $PRO_FILE (封装库引用 / DRC+ERC 规则会全丢 ⇒ 工程文件残废)"
+    rc_all=1
+fi
+echo "  拷了 $((n_sch + n_pro)) 个原理图源文件 → doc/sch_src/ ($n_sch 个 .kicad_sch + $n_pro 个 .kicad_pro)"
+ls -1 "$SCH_SRC_DIR" | sed 's/^/    /'
 
 step "清单"
 find "$OUT" -type f | sort | sed "s|$OUT/||" | awk '{printf "  %s\n", $0}'

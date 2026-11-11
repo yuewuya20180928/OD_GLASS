@@ -258,6 +258,12 @@ def main() -> int:
     rc_mg, out_mg, err_mg = run_sys("margin_sweep_gate.py", "--self-test-fast")
     mg_out_n = len((out_mg or "").strip().splitlines())
     mg_ok = _selftest_ok(rc_mg, out_mg)
+    # ★★2026-11-11 10:2x 【★原理图 ERC 闸也要被守卫 + 进巡检 (★老板 10:07 把主线切到原理图后的第一道闸★)】★★
+    #   ★**check_sch_erc.py** = ★**原理图 ERC=0 的机器闸 (★此前从未跑过 ERC ⇒ 46 条 label_dangling 全盲★)**
+    #   ⇒ ★**守卫者也要被守卫** ⇒ 它的自测也挂到巡检上 (★只跑 --self-test·不带 e2e ⇒ 不拖慢巡检★)**
+    rc_erc, out_erc, err_erc = run_sys("check_sch_erc.py", "--self-test")
+    erc_out_n = len((out_erc or "").strip().splitlines())
+    erc_ok = _selftest_ok(rc_erc, out_erc)
 
     # 2) gate
     rc_g, gate = jrun("gate_check.py")
@@ -282,6 +288,10 @@ def main() -> int:
     print(f"{'✅' if dt_ok else '❌'} decision_truth --self-test rc={rc_dt} (输出 {dt_out_n} 行)")
     print(f"{'✅' if ao_ok else '❌'} compare_arm_official --self-test rc={rc_ao} (输出 {ao_out_n} 行)")
     print(f"{'✅' if mg_ok else '❌'} margin_sweep_gate --self-test-fast rc={rc_mg} (输出 {mg_out_n} 行)")
+    print(f"{'✅' if erc_ok else '❌'} check_sch_erc --self-test rc={rc_erc} (输出 {erc_out_n} 行)")
+    if not erc_ok:
+        problems.append(f"★check_sch_erc --self-test 没过 (rc={rc_erc}, 输出 {erc_out_n} 行): "
+                        f"{(err_erc or out_erc).strip().splitlines()[-1][:160] if (err_erc or out_erc).strip() else ''}")
     if not mg_ok:
         problems.append(f"★margin_sweep_gate --self-test-fast 没过 (rc={rc_mg}, 输出 {mg_out_n} 行): "
                         f"{(err_mg or out_mg).strip().splitlines()[-1][:160] if (err_mg or out_mg).strip() else ''}")
@@ -410,6 +420,27 @@ def main() -> int:
     print(f"  问题闭环门     {i.get('total')} 条 | 逾期 {i.get('overdue')}"
           f" | 内部 {i.get('internal')} / 外部 {i.get('external')} | 违规 {len(i.get('errors') or [])}")
     print(f"  阶段门         当前 **{s.get('current_gate')}** | 已过 {s.get('passed_gates')}")
+    # ★★2026-11-11 10:2x 【★原理图 ERC 实况进巡检 (★主线切原理图后的第一道闸★)】★★
+    #   ★**读 check_sch_erc.py 落的缓存 (★不每次重跑 ERC ⇒ 不拖慢巡检★); 缓存过期 ⇒ 标"数据过期"不许当现状★
+    _erc_line = "  原理图 ERC      (无缓存 ⇒ 跑一次 `python3 state/check_sch_erc.py` 生成)"
+    try:
+        _cp = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".erc_last.json")
+        _c = json.load(open(_cp, encoding="utf-8"))
+        _sch = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "HW", "PCB", "demo_mainboard.kicad_sch")
+        _stale = (os.path.exists(_sch) and _c.get("sch_mtime") and
+                  abs(os.path.getmtime(_sch) - float(_c["sch_mtime"])) > 1)
+        _n = int(_c.get("count", 0))
+        if _stale:
+            _erc_line = (f"  原理图 ERC      ⚠️ 数据过期 (原理图已改, 缓存测于 {_c.get('at')}) ⇒ 需重跑 check_sch_erc.py")
+        else:
+            _erc_line = (f"  原理图 ERC      {'✅ 0 条' if _n == 0 else f'❌ {_n} 条'} "
+                         f"(实测 {_c.get('at')} · {(_c.get('by_type') or {})})")
+            if _n > 0:
+                problems.append(f"★原理图 ERC = {_n} 条 ({(_c.get('by_type') or {})}) ⇒ ★**原理图不许进投产包** (★新闸: state/check_sch_erc.py★)")
+    except Exception as _e:
+        _erc_line = f"  原理图 ERC      (读缓存失败: {_e})"
+    print(_erc_line)
     r = cur.get("readiness") or {}
     print(f"  执行就绪度     纸面阶段 {'✅就绪' if r.get('paper_ready') else '❌未就绪'} | "
           f"样机阶段 {'✅就绪' if r.get('sample_ready') else '❌不就绪'} | "

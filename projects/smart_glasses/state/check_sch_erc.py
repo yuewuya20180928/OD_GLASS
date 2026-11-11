@@ -25,6 +25,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import io
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.normpath(os.path.join(HERE, ".."))
@@ -79,24 +80,26 @@ def run_erc(out_path: str) -> tuple[int, str]:
     """★跑 KiCad ERC ⇒ (rc, 报告全文)"""
     cmd = ["bash", KICAD_SH, "sch", "erc", "--output", out_path, "--severity-error", SCH]
     p = subprocess.run(cmd, cwd=PROJ, capture_output=True, text=True, timeout=900)
-    text = ""
+    body = ""
     if os.path.exists(out_path):
         try:
-            text = open(out_path, encoding="utf-8", errors="replace").read()
+            body = open(out_path, encoding="utf-8", errors="replace").read()
         except Exception:
-            text = ""
-    if not text:  # ★有些版本 stdout 就是报告 ⇒ 兜底读 stdout ★
-        text = (p.stdout or "") + (p.stderr or "")
+            body = ""
+    # ★★**实测 (★10:2x★): `Found N violations` 这行是打在【stdout】上的, 【不在报告文件里】**
+    #   ⇒ 只读文件会漏掉"自称条数" ⇒ 解析器少一个交叉校验 ⇒ 报告文件 + stdout 一起拼上 ★★
+    text = (p.stdout or "") + "\n" + (p.stderr or "") + "\n" + body
     return p.returncode, text
 
 
-def self_test() -> int:
+def self_test(e2e: bool = True) -> int:
     """★自测 (★铁律: 必须带反向用例 —— 判据改弱 ⇒ 自测必须红★)"""
     fails = []
 
     # ① 解析器: 有违规的报告 ⇒ 数量与分类要对
     dirty = """ERC report (2026-11-11T10:15:38, Encoding UTF8)
 Report includes: Errors
+Found 3 violations
 
 ***** Sheet /
 [label_dangling]: Label not connected
@@ -118,7 +121,7 @@ Report includes: Errors
         fails.append("① 没抓到 'Found N violations'")
 
     # ② 干净报告 ⇒ 0 条 (★不许把干净板判死★)
-    clean = "ERC report (2026-11-11T10:15:38, Encoding UTF8)\nReport includes: Errors\n\n***** Sheet /\n"
+    clean = "ERC report (2026-11-11T10:15:38, Encoding UTF8)\nReport includes: Errors\nFound 0 violations\n\n***** Sheet /\n"
     r2 = parse_report(clean)
     if r2["count"] != 0:
         fails.append("② 干净报告被判成 %d 条 (期望 0)" % r2["count"])
@@ -133,8 +136,10 @@ Report includes: Errors
     else:
         fails.append("③ 反向用例失效: 突变体与本体结论相同 ⇒ 断言没在区分")
 
-    # ④ 真实板跑一次 (★端到端: 必须报出真实现状★)
-    if os.path.exists(SCH):
+    # ④ 真实板跑一次 (★端到端: 必须报出真实现状★) ⇒ ★e2e=False 时跳过 (★巡检段用快的那个★)
+    if not e2e:
+        print("   [端到端] 跳过 (--self-test 不带 e2e)")
+    elif os.path.exists(SCH):
         with tempfile.TemporaryDirectory() as td:
             out = os.path.join(td, "erc.txt")
             rc, text = run_erc(out)
@@ -152,14 +157,16 @@ Report includes: Errors
             print("❌", f)
         print("SELFTEST FAILED")
         return 1
-    print("ALL TESTS PASS (4 条: 解析器 / 干净板 / 反向用例 / 端到端)")
+    print("ALL TESTS PASS (%d 条: 解析器 / 干净板 / 反向用例%s)" % (4 if e2e else 3, " / 端到端" if e2e else ""))
     return 0
 
 
 def main() -> int:
     args = sys.argv[1:]
     if "--self-test" in args:
-        return self_test()
+        return self_test(e2e=False)
+    if "--self-test-full" in args:
+        return self_test(e2e=True)
     if not os.path.exists(SCH):
         print("❌ 原理图不存在: %s" % SCH)
         return 2
@@ -167,6 +174,20 @@ def main() -> int:
         out = os.path.join(td, "erc.txt")
         rc, text = run_erc(out)
     rep = parse_report(text)
+    # ★★**落缓存 (★让巡检能零成本报出 ERC 现状, 不用每次重跑 ERC★)** ★★
+    try:
+        import datetime
+        cache = {
+            "count": rep["count"], "by_type": rep["by_type"],
+            "at": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+            "sch_mtime": os.path.getmtime(SCH) if os.path.exists(SCH) else None,
+        }
+        cpath = os.path.join(HERE, ".erc_last.json")
+        tmp = cpath + ".tmp"
+        io.open(tmp, "w", encoding="utf-8").write(json.dumps(cache, ensure_ascii=False))
+        os.replace(tmp, cpath)
+    except Exception:
+        pass
     if "--json" in args:
         print(json.dumps({
             "rc": rc, "count": rep["count"], "declared": rep["declared"],

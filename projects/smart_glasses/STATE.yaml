@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-11T10:22:44+08:00'
+  generated_at: '2026-11-11T15:27:22+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 195542
-      sha1: 1ca08bf041da
-      mtime_ns: 1794356026026313132
+      size: 194794
+      sha1: 743e50f54438
+      mtime_ns: 1794364690527636345
     mech-lead:
       file: mech.yaml
       size: 156954
@@ -19,14 +19,14 @@ meta:
       mtime_ns: 1793935073066378375
     main:
       file: pm.yaml
-      size: 37183
-      sha1: f9085c19352e
-      mtime_ns: 1794357637380267821
+      size: 38536
+      sha1: 38a5b8906b85
+      mtime_ns: 1794369092078559478
     sw-lead:
       file: sw.yaml
-      size: 127026
-      sha1: 925e2048d2d6
-      mtime_ns: 1794357832685088342
+      size: 139638
+      sha1: 3f6371dad499
+      mtime_ns: 1794375200397269091
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -710,6 +710,38 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: sch_completeness_target
+      to: boss
+      item: '★**demo 原理图的【完整度目标】三选一** (★老板 11-11 10:07 主线=原理图优先★): ① 最小集(★现状⇒只画用到的脚 ⇒ 接口对边【永不可评审】★) ②
+        【表内全量】(★把 netlist_v1_pins.csv 的 584 脚全画出来 + 补 J_SOM_P2/P4 + NC 标注 ⇒ ★**可评审对边**★ ⇒ **我的建议**) ③
+        真实器件全貌(★USB-C 24脚 / SoM 400球 ⇒ 那就不是 demo 板, 是产品级设计 ⇒ 需 datasheet/官方库★) ⇒ ★**②已作为主线第六件在跑(纯生成器活:
+        图变·表不变·板不动 ⇒ 板 md5 仍 611b869e) ⇒ ③需另立**★'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: ref_designator_rename
+      to: boss
+      item: '★**位号规范: 要不要把带下划线的位号改掉** (★实测: KiCad BOM 里 255/291 个位号带字面量问号 ⇒ KiCad 判未标注 ⇒ 板厂看到的位号与丝印对不上★)
+        ⇒ ★**改它会改: netlist表 → BOM → 原理图11页 → 板里 186 个封装位号 → 丝印/CPL/装配/IPC-2581/3D/D356 全套 ⇒ 【板 md5 必变】⇒
+        留证链/Gerber/投产包全要重出 (一个位号平均散在 19~112 个文件)★ ⇒ ★**建议: 先过完原理图评审, 再一次性改名+整链重出; RAIL_*/NET_* 保留(否则 BOM
+        多假料号)★**'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: reva_stl_regen
       to: mech-lead
@@ -1137,10 +1169,11 @@ domains:
         camera 模组 FPC 是 31p0.3mm 或 RPi 15p1.0mm/22p0.5mm, 与自画的 0.5mm24p 对不上'
     - path: HW/PART_ALTERNATIVES_REGISTRY.md
       kind: registry
-      version: v1.1
-      updated_at: '2026-10-25'
-      summary: 'v1.1 补 §6.1: TPS7A20 各电压档封装可得性实测 (2.9V/1.1V 档只有 DQN/YCK 无 SOT-23-5 => 改档=改焊盘) + DVDD 保持1.2V不动的建议
-        + BOM 封装列现在定还来得及'
+      version: v1.2
+      updated_at: '2026-11-11'
+      summary: '★ISS-189 订正: :24 主控载体行 DSI 4-lane 够 1920×1080 RGB888 (373Mbps) -> (2986Mbps) + 依据注 (payload
+        = 1920×1080×24×60 = 2985.98 Mbps, 与 e2e_budget_rk3572.py §⑥ 同口径, TX 物理下限 7.776ms; 结论「DSI 4-lane
+        够」逐字保留)'
     - path: HW/STEP1_PARTS_SPEC.md
       kind: spec
       version: '1.1'
@@ -1149,22 +1182,10 @@ domains:
         payload 口径)'
     - path: HW/STEP1_LANDING_LIST.md
       kind: landing-list
-      version: v2.0
-      updated_at: '2026-10-25'
-      summary: '★★ISS-159 闭卷交付 (2026-11-03 09:4x): §3 画板前致命项 F 表扩到 F14 (另加 F15 建议), 状态列改为 已清零/待清/不适用/未查,
-        依据全部落到 §3.1 (文件:行号 或 URL), 冲突落 §3.2 (C1~C8), 未查清单落 §3.3。★状态总表: F1 已清零(9路使能全有网) / F2 已清零(结论被F14推翻)
-        / F3 已清零但口径要改(2.2k不变, 上拉轨 3.3V→1.8V, 因模组标I2C5=RK3572的1.8V域) / F4 待清(camera 31p/0.3mm+FH35C-31S-0.3SHW(50)
-        已清零; display 两个互斥选项 39p/0.3mm 走原厂排线 vs 40p/0.5mm 直插, 同文档自相矛盾, 屏侧座型号未查) / F5 已清零(引脚399行+尺寸+连接器式焊接;
-        残留 ISS-169 BTB机械未核) / F6 已清零(6层+100Ω差分/50Ω单端/skew<3mil/时钟数据等长<6mil, 公开依据=Forlinx OK3572-C手册 §3.5.16+§3.5.17.1;
-        ★纠正任务书: ≥6层无公开依据, 公开载板是4层) / F7 待清(MCLK由SoM出 CAM_CLK0_OUT_M0 1.8V, 串阻位已留值未锁, 10个100nF AC耦合位已留,
-        位留=只改BOM不改板) / F8 已清零(rk3576-evb.dtsi simple-panel-dsi 模板已落: 261条init+2条exit; 前提=demo屏必须走10FHD白名单路线)
-        / F9 待清(1080p档缺mesh, 1~2人日+暗室, 卡出图不卡板) / F10 待清(判据已定: 紧贴接口+寄生电容 SATA≤0.4pF/USB≤3pF/HDMI≤0.2pF/其他≤1pF,
-        依据 §3.5各接口章+§2.4.5; ★网表缺 display FPC 口 ESD 位) / F11 未查(HIROSE页无cycles/durability字段, 模组厂未公开FPC弯折规格;
-        兜底=按不弯折设计+V9插拔20次) / F12 不适用(老板明确暂缓) / F13 已清零(拓扑): Forlinx §4 Power-on Sequence 原文三连(inrush/boot
-        fail/irreversible damage) + §3.5.1, 网表 pin87→U_EN_SW EN→RAIL_BOARD_5V + RAIL_SOM_DCIN 直供7脚(09:43:38版)
-        / F14 已清零(模组级供电: pin28/29=3.3V, pin30/31=5V ⇒ 三轨+3颗TPS7A20+6个去耦位全DNP) / ★F15 待清·阻塞投板(本单新撞出: display
-        背光/触控4脚并成 NET_DSI_AUX, LED+与LED−短接, 另 pin36/pin39 还接地 ⇒ 背光两端短路; 且主板无12V BOOST背光轨)。★本单只改本文件§3 +
-        state/fragments/hw.yaml, HW/PCB/ 与 SCHEMATIC_V1_SPEC.json / netlist_v1.csv 一个字没改。'
+      version: v2.1
+      updated_at: '2026-11-11'
+      summary: '★ISS-189 订正: :42 display 连接行 373Mbps -> 2986Mbps + 依据注 (payload = 1920×1080×24×60 = 2985.98
+        Mbps, 与 e2e_budget_rk3572.py §⑥ 同口径, TX 物理下限 7.776ms; 结论句「4-lane 绰绰有余 ⇒ 不需 DSC」逐字保留)'
     - path: HW/I2C_ADDR_TABLE.md
       kind: interface-table
       version: v1.0
@@ -1255,6 +1276,14 @@ domains:
       updated_at: '2026-11-11'
       summary: '★ISS-186 订正: :29 给面板厂的 Q2 问法一字未改, 只把 payload 数字 373→2986 Mbps; 依据注加在 §3 内部备注(不发)段; ★本函仍【未发】,
         外发须经老板放行'
+    - path: HANDOFF/2026-11-11_hw-lead_ISS189_DSI_payload_收尾.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-11-11'
+      summary: '★ISS-189 收尾交付: DSI payload 8× 口径差的最后 2 处 (HW/STEP1_LANDING_LIST.md:42 + HW/PART_ALTERNATIVES_REGISTRY.md:24)
+        订正 373Mbps -> 2986Mbps + 各补依据注 (payload = 1920×1080×24×60 = 2985.98 Mbps, 与 HW/e2e_budget_rk3572.py
+        §⑥ 同口径, TX 物理下限 7.776ms = 2986÷60÷6400); ★结论方向一字未改 (仍不需要 DSC); ★自证: grep 旧值零命中 (HW/SW/state/outbox/state/_demo_hw_scheme_landing.py
+        全部 rc=1) + selftest rc=0 (脚本 md5 未变) + merge 冲突 0 + 结构化断言 14 项全过'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2977,7 +3006,19 @@ domains:
         (7b820c14acfaee08a218cbf85557ef0b), 判据权威来源未动** ⇒ ★**另如实报出 4 处不在我分片的残留 (★只报, 不顺手改★): HW/STEP1_LANDING_LIST.md:42
         + HW/PART_ALTERNATIVES_REGISTRY.md:24 (无空格写法 ⇒ 归 hw-lead) / config/agents/main/memory/2026-11-02.md:26
         (归 main; ★08:4x 实测 main 已修好 MEMORY.md:1979) / state/_demo_hw_scheme_landing.py:11 的口径钉死注释里留着逐字串
-        ⇒ ★★会让验收 grep ① 不为 0, 建议 main 写成『原写的 373』★** ⇒ 详见 HANDOFF/2026-11-11_sw-lead_ISS188_DSI_payload_第6处.md。'
+        ⇒ ★★会让验收 grep ① 不为 0, 建议 main 写成『原写的 373』★** ⇒ 详见 HANDOFF/2026-11-11_sw-lead_ISS188_DSI_payload_第6处.md。
+        ★ISS-190 (2026-11-11, owner=sw-lead) 已交付: ★**SW_TIMING_REVIEW.md 重新锚定到现行网表 (513 数据行 / md5 c78f991283cc82d56c8e3dd31657c785
+        / 2026-11-05 10:57)** —— 上一版 (2026-10-27) 锚在 476 行版上, 从未复评 ⇒ 复评后 **4 条被推翻 / 3 条部分推翻**: ① ''复位释放时刻不由任何已画出的器件决定''
+        **推翻** (PG 已进链: R_PG_PULL 10k + Q_AND 硬件 AND) ★**但新 P0: 两路 PG 源器件 U_DCDC_VCORE/U_DCDC_VIO 都是 DNP
+        ⇒ PG_AND 恒高 ⇒ Q_AND 恒导通 ⇒ RESET_N 恒拉低**; ② ''供电器件控制脚在网表里根本不存在'' **部分推翻** (EN 10 行 / SS 0 / CT
+        1 属 DNP / MR 0 ⇒ SS·MR 仍成立); ③ ''没有硬件断电通路 ⇒ 关机只能软件深睡'' **推翻** (U_PWR_SW TPS22991RAA, ON 脚 R_PD_ON
+        10k 下拉 ⇒ 默认关) ⇒ 关机语义反转为 ''PWR_ON 高阻 → SYS 真断电''; ④ ''I2C_A 4.7k ⇒ 1195ns 超标'' **结论翻转** (现 2.2k/1.8V
+        ⇒ 186ns/559ns 通过; 超标的是 I2C_B 4.7k/3.3V ⇒ 1194.7ns); ⑤ 监督器 ''CT 悬空 = 20ms'' **推翻** (U_SUPV 整颗 DNP);
+        ⑥ TMP117 改挂 **I2C_B** ⇒ ''与 camera 同总线'' 不成立; ⑦ 跨铰链 USB 链 **不存在** (CONN_USB 0 行, J_CHG 不带 D+/D−)
+        ⇒ demo 板走板内 J_USB_C。 ★**timing_check.py 从 ''手抄常量'' 改成 ''实读网表''**: csv 实读 + 输出首段打印锚点 (md5+514/513
+        行) + 6 条反向用例 (改坏副本 ⇒ 判据变红) ⇒ **SELFTEST 48/48 rc=0** (既有 21 条一条没删) ⇒ 验收 #2 外部复现: 改坏 I2C_A 上拉一行
+        ⇒ t_r 398.2→847.3ns 且 7 条自测转红。 ★**只报不改网表**: 新发现 7 条网表侧待修项 (I2C_A 注记矛盾 / RESET_N 恒低 / 分压 0Ω 短路
+        / 电量链全 DNP / Q_ENVC dnp 矛盾 / U_EN_SW 无器件行 / J_USB_C D− 无 ESD) 全部经 frag_write 登记 needs_from 给 hw-lead。'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -3320,6 +3361,13 @@ domains:
         + 379: 373Mbps 是 RGB888 口径 → 2986Mbps 是 RGB888 口径 ⇒ ★**全 SW/ 零残留 (grep 两种写法 rc=1)** ⇒ ★**--selftest
         rc=0, 脚本 md5 未动** ⇒ 附 old→new 逐字串 + 机械证明 (实际改动行号 [322, 379], 行数 675 不变) + 自证命令实录 + 边界声明 + 4 处不在我分片的残留
         (只报, 不顺手改)'
+    - path: HANDOFF/2026-11-11_sw-lead_ISS190_时序复评_网表锚定.md
+      kind: handoff
+      version: v1.0
+      updated_at: '2026-11-11'
+      summary: '★ISS-190 交接单: B1~B6 六块齐全 (结论摘要 / 验收标准自评 15 条 / 证据分级 / 接口取值声明 / 未决项与卡点 / 自证复现命令) + 自证实录
+        (脚本 48/48 rc=0 + 反向演示 + merge rc=0 + gate_check Q1 18/18); 含 F1~F8 复评总表与 7 条网表侧待修项 (needs_from
+        → hw-lead); ★本单不含落账 (verify_by=main ⇒ issue_log.yaml 由 main 写)'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -4403,6 +4451,139 @@ domains:
         \ 的活, 我已另开 needs_from 交回 hw-lead** (F1/F2: `HW/STEP1_LANDING_LIST.md:42` + `HW/PART_ALTERNATIVES_REGISTRY.md:24`,\
         \ 无空格写法 `373Mbps` ⇒ 机械验收抓不到 ⇒ ★**活的口径还在**)。\n★**sw-lead 侧已闭合**: `SW/DEMO_OD_PIPELINE_SPEC.md`\
         \ 322 + 379 两处 ⇒ 全 SW/ 零残留 ⇒ ★**ISS-188 的『第 6 处』已真闭合 (含 main 08:4x 追加授权的第 7 处)**。"
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss190_netlist_i2ca_note_contradiction
+      to: hw-lead
+      item: '★ISS-190 (sw-lead 时序复评) 副产物 1 —— ★只报, 不改网表★: **HW/netlist_v1.csv L167/L168 与 L169/L170 自相矛盾**。L167
+        (NET_I2C_A_SCL) 仍写 ''上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF)'', L168 (NET_I2C_A_SDA) 写 ''上拉
+        4.7k 到 3.3V''; 而 L169/L170 的电阻行是 **2.2k ±1% → RAIL_VDD_1V8_IO (1.8V 域)** (ISS-153 11-04 订正), L171/L172
+        (camera 侧) 也已是 ''2.2k 到 1.8V''。 ⇒ 同一根总线有两套阻值/电平/上升时间。★实算 (脚本 F3 实读): 2.2k@1.8V ⇒ t_r@100pF = 186.4ns
+        (@300pF = 559.2ns, 标准模式通过); 注记里的 2380ns 差 **12.8 倍**; 且注记里的 ''灌 702µA'' 是 4.7k@3.3V 口径, 2.2k@1.8V
+        的真实灌流是 0.64mA。★请把 L167/L168 的 value+note 改成 ''上拉 2.2k 到 1.8V (RAIL_VDD_1V8_IO, 灌 0.64mA, t_r=186ns@100pF)''。★机械判据:
+        python3 SW/tools/timing_check.py 的 F3_i2c_rise.netlist_annotation_ns 应与 I2C_A 的实算 t_r 一致 (现 2380
+        vs 186)。★同源文件: SW/SW_TIMING_REVIEW.md §7-1。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss190_netlist_reset_n_held_low
+      to: hw-lead
+      item: '★ISS-190 (sw-lead 时序复评) 副产物 2 —— ★只报, 不改网表★: **按现网表装板, RESET_N 会被永久拉低**。证据链: L65/L66/L67
+        **Q_AND (N-MOS 硬件 AND, dnp=必装)**: 栅=PG_AND · 漏=RESET_N · 源=GND; L62/L63 **R_PG_PULL 10k ±1% (必装)**
+        把 PG_AND 上拉到 RAIL_VDD_1V8_IO; ★而 PG_AND 的两个来源 **U_DCDC_VCORE (L79, IC 行 dnp=DNP)** 与 **U_DCDC_VIO
+        (L86, IC 行 dnp=DNP)** 都是不装的 (note: SoM 自带 PMIC ⇒ 主板不产 SoC 核心轨/IO 轨)。⇒ 按现网表装板: PG_AND 恒高 ⇒ Q_AND
+        栅高导通 ⇒ **RESET_N 恒为低 ⇒ SoC 起不来**。★三选一 (都不新增 IC): ① Q_AND 改 DNP (复位回到纯 RC+按键, 与 SoM 内部复位并存) ② PG_AND
+        改指 SoM 真实存在的 PG 输出 (需原厂球位/极性, TBD-01/TBD-12) ③ 两路 PG 改由 SoM 提供并落到网表。★机械判据: python3 SW/tools/timing_check.py
+        的 F1_reset_rc.pg_source_devices 应显示两个 PG 源 populated=True。★同源文件: SW/SW_TIMING_REVIEW.md §7-2 (本单新发现的
+        P0, 上一版评审看不到, 因为上一版网表里没有 Q_AND)。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss190_netlist_supv_divider_0R_short
+      to: hw-lead
+      item: '★ISS-190 (sw-lead 时序复评) 副产物 3 —— ★只报, 不改网表★: **监督器已 DNP, 分压两颗却仍标必装**。L404 **R_SUPV_DIV1**
+        value=''[待选型] 分压上臂 (0Ω 跳线位)'' dnp=**必装**; L405/L406 **R_SUPV_DIV2** 同; 而 L407/L408/L409 **U_SUPV
+        三行全是 dnp=DNP** (note: SoM 内部 PMIC 已做上电复位 ⇒ 主板不装监督器)。⇒ **按 BOM 装 0Ω ⇒ RAIL_V_SOC_IO → R_SUPV_DIV1
+        → R_SUPV_DIV2 → GND = 电源短路** (进限流 → IO 域塌陷 → 整机不启动 + 器件发热); 而监督器已经不装了 ⇒ 这两颗**没有任何理由装**。★建议: R_SUPV_DIV1/DIV2
+        随 U_SUPV 一起改 dnp=DNP (零成本)。★机械判据: python3 SW/tools/timing_check.py 的 F2_supervisor.divider_dnp
+        应为 [''DNP'',''DNP''] 且 divider_zero_risk=False。★同源文件: SW/SW_TIMING_REVIEW.md §7-3 (上一版的装配级灾难结论原样成立)。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss190_netlist_bat_det_all_dnp
+      to: hw-lead
+      item: '★ISS-190 (sw-lead 时序复评) 副产物 4 —— ★只报, 不改网表★: **电量检测分压整条 DNP, 但网表仍把 ADC 脚给了 SoC**。L182 **R_BAT_DET_1**
+        (1M) dnp=**DNP**; L183 **R_BAT_DET_2** (1M) dnp=**DNP**; L184/L185 **C_DET_BAT** (100nF) dnp=**DNP**;
+        ★而 L181 (**NET_BAT_DET**, 必装) 与 L186 (**J_SOM_P1 pin38**, 必装) 仍在 ⇒ SoC 侧有一个**永远悬空**的 ADC 输入脚。⇒
+        SW 侧 SW_REQUIREMENTS M7-R6 ''软件侧确认电量读取正常'' **当前没有硬件支撑** (读数随机)。★建议二选一 (SW 侧等 hw-lead 裁决): ① 补装并把
+        R 改成 100k+100k 或 47k+47k (1M+1M 的源阻抗 500kΩ 对 ADC 不可用: τ=50ms, 12bit 建立 451ms, 1µA 漏电 ⇒ 0.50V 偏移
+        = 满量程 15.2%); ② 整条 DNP 并把需求改成 ''电量读数不可用''。★机械判据: python3 SW/tools/timing_check.py 的 F4_adc_det.chains
+        里 BAT_DET 的 populated 应为 True (若选①)。★同源文件: SW/SW_TIMING_REVIEW.md §7-4。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss190_netlist_q_envc_dnp_mismatch
+      to: hw-lead
+      item: '★ISS-190 (sw-lead 时序复评) 副产物 5 —— ★只报, 不改网表★: **Q_ENVC 三行的 dnp 自相矛盾**。L71 (Q_ENVC → PG_AND)
+        dnp=**DNP**, 而 L72 (Q_ENVC → GND) 与 L73 (Q_ENVC → EN_VCORE) dnp=**必装**。⇒ 同一个位号两行必装一行 DNP: 装配表按
+        ''必装'' 就会装上, 但栅极那一行不装 ⇒ 装配出来的板子与网表意图不一致; 若两颗都不装 ⇒ EN_VCORE 只剩 R_EN_VCORE 10k 上拉 ⇒ 恒高 ⇒ V_CORE
+        永远使能 ⇒ **V1.8 想要的顺序链 (VIO 先起 → PG 有效 → 再使能 VCORE) 被打掉**。★建议: 三行统一 (要么全必装 + 补 V1.8 顺序链, 要么全 DNP
+        并在 note 里写清 ''顺序链在 SoM 内部完成'')。★机械判据: python3 SW/tools/timing_check.py 的 F4_ctrl_pins.rows 里同一
+        ref 的 row_dnp 应一致。★同源文件: SW/SW_TIMING_REVIEW.md §7-5。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss190_netlist_u_en_sw_no_device_row
+      to: hw-lead
+      item: '★ISS-190 (sw-lead 时序复评) 副产物 6 —— ★只报, 不改网表★: **U_EN_SW 在网表里没有器件行 ⇒ BOM/装配单会漏掉这颗开关**。L441/L442/L443/L444
+        只有 4 行引脚行 (EN / 5V 输入 / 5V 输出 / GND), 全网表 **0 行** U_EN_SW 的 IC 行 (对比 U_PWR_SW 有 L50 的 IC 行: ''[待选型]
+        负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)'', opn=TPS22991RAA)。⇒ ① 底板 5V 门控 (CARRIER_BOARD_EN
+        → RAIL_BOARD_5V) 实际不会被实现; ② SW 侧本单把 F8 判成 ''有硬件断电通路'' 的结论, 落地要靠补 IC 行 ⇒ **关机语义 (PWR_ON 高阻 → U_PWR_SW
+        关 → SYS 断电) 在装配层面还差这一颗**。★建议: 补一行 IC 行 (value 写明 [待选型] 负载开关/电源开关, footprint+opn=TPS22991RAA, dnp=必装)。★机械判据:
+        grep -n ''U_EN_SW'' HW/netlist_v1.csv | grep -c '',IC,'' ⇒ 现为 0, 应为 ≥1。★同源文件: SW/SW_TIMING_REVIEW.md
+        §7-6。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss190_netlist_usb_dminus_no_esd
+      to: hw-lead
+      item: '★ISS-190 (sw-lead 时序复评) 副产物 7 —— ★只报, 不改网表★: **J_USB_C 的 D− 没有 ESD 保护**。L417/L418 **D_ESD_USB_D**
+        value=''ESD 阵列 [待选型] (USB 2.0 双通道)'', note 明写 ''紧贴 J_USB_C, **跨 D+ 与地**'' ⇒ 它只护 **D+ 与 GND**;
+        L420/L421 **D_ESD_DEMO** 护的是 **RAIL_DEMO_5V (VBUS) 与地**。⇒ **J_USB_C 的 D− 全网表没有任何 ESD 器件**。★为什么要紧:
+        现网表上 J_USB_C (板内 Type-C → 22Ω → J_SOM_P1 pin92/94) 是**唯一的刷写口** (跨铰链 USB 链已不存在: J_CHG 10pin 不带
+        D+/D−) ⇒ 一次 ESD 打到 D− 就没有第二张嘴 ⇒ 变砖 = 只能拆机 JTAG。★建议: 把 D_ESD_USB_D 换成跨 D+ 与 D− 的阵列 (或加一颗), 并在 note
+        里写明通道归属。★机械判据: 网表里应有一行 ESD 器件跨在 NET_USB_D_P_TYPEC 与 NET_USB_D_N_TYPEC 上。★同源文件: SW/SW_TIMING_REVIEW.md
+        §7-7 (上一版 H3 ''Type-C 侧 D+/D− 没有独立 ESD'' 仍然成立)。'
       since: '2026-11-11'
       state: pending
       target_missing: false
@@ -8651,8 +8832,11 @@ interface_claims:
       hw-lead: 2986 Mbps
       sw-lead: 2986 Mbps
     notes:
-      hw-lead: 1920x1080x24x60 = 2985.98 Mbps (RGB888 24bpp); 与 HW/e2e_budget_rk3572.py §⑥ 实打印 2986.0
-        Mbps 及 PROJECT_TRACKER.md:2099 同口径; TX 物理下限 7.776ms 即按此 payload 算出
+      hw-lead: '1920x1080x24x60 = 2985.98 Mbps (RGB888 24bpp); 与 HW/e2e_budget_rk3572.py §⑥ 实打印 2986.0
+        Mbps 及 PROJECT_TRACKER.md:2099 同口径; TX 物理下限 7.776ms 即按此 payload 算出; ★ISS-189 订正 (2026-11-11):
+        本单已把 HW/STEP1_LANDING_LIST.md:42 与 HW/PART_ALTERNATIVES_REGISTRY.md:24 两处旧口径订正成 2986 (★结论方向不变:
+        4-lane@2.5Gbps raw 占 29.9% / 脚本口径 4-lane@2.0Gbps×80% 占 46.7% ⇒ 仍不需要 DSC★); ★与 sw.yaml 的同名 claim
+        同名同值 ⇒ 交叉确认, 非重复登记★'
       sw-lead: 1920x1080x24x60 = 2985.98 Mbps (RGB888 24bpp); 与 HW/e2e_budget_rk3572.py §⑥ 实打印 2986.0
         Mbps 同口径; TX 物理下限 7.776ms = 2986/60/6400 即按此 payload 算出; ★本单已把 SW/DEMO_OD_PIPELINE_SPEC.md:322
         与 :379 两处旧口径订正成 2986 (★与 hw-lead 在 hw.yaml 的同名登记同名同值 ⇒ 交叉确认)
@@ -10669,10 +10853,10 @@ interface_claims:
     conflict: false
   thermal_sensor_iface:
     values:
-      sw-lead: TMP117-I2C_A-0x48-1Hz
+      sw-lead: TMP117-I2C_B-0x48-1Hz-3V3
     notes:
-      sw-lead: '★10-27 ISS-090: 旧值 ''I2C-NTC+1Hz'' 作废 —— NTC 已按 ISS-086 换成 TMP117 (I2C_A 地址 0x48, 16bit,
-        8 averages/1-Hz [官方]); 测点 = 镜脚 PCB 贴皮肤面'
+      sw-lead: '★ISS-190 复评 (2026-11-11) 总线改写: 上一版 I2C_A ⇒ 现网表实读为 **I2C_B** (U_TEMP pin1/pin6), 供电 = RAIL_VDD_3V3_IO
+        (3.3V, 实读); 测点定案不变 (镜脚PCB-贴皮肤面-SoC投影≤10mm)'
     by:
     - sw-lead
     noncanonical_by: []
@@ -10857,10 +11041,12 @@ interface_claims:
     conflict: false
   reset_release_policy:
     values:
-      sw-lead: PG_AND(V_CORE,V_IO)+SUPV_20ms+RC_1.1ms
+      sw-lead: Q_AND(PG_AND)+RC_1.1ms;PG源DNP待确认
     notes:
-      sw-lead: 复位释放须 V_CORE 与 V_SOC_IO 同时在 regulation; TPS3808G01 CT 悬空=20ms [官方]; RC 释放 τ=1.1ms [实测];
-        监督器当前只盯 V_SOC_IO ⇒ 需把两路 PG 并联进复位链 (开漏可线与)
+      sw-lead: '★ISS-190 复评 (2026-11-11) 改写: 复位释放现在由 **Q_AND 硬件 AND** (栅=PG_AND, 漏=RESET_N, 源=GND) + R_PG_PULL
+        10k 上拉决定 ⇒ 上一版 ''复位释放时刻不由任何已画出的器件决定'' **被推翻** (PG 已进复位链); RC 释放 τ = (10k+1k)×100nF = **1.1ms**,
+        到 0.7×1.8V = 1.324ms (网表 note 的 ''τ=100ms'' 错 90.9 倍); ★但两路 PG 源器件 U_DCDC_VCORE/U_DCDC_VIO 都是
+        DNP ⇒ PG_AND 恒高 ⇒ Q_AND 恒导通 ⇒ RESET_N 恒拉低 ⇒ 已登记 needs_from hw-lead (P0)'
     by:
     - sw-lead
     noncanonical_by: []
@@ -10877,12 +11063,15 @@ interface_claims:
     conflict: false
   supv_divider_rule:
     values:
-      sw-lead: R1/R2=6.407@3V0V,no-0R-on-both
+      sw-lead: R1/R2=6.407@3V0V,no-0R-on-both;U_SUPV-DNP时两臂必须DNP
     notes:
-      sw-lead: VIT=0.405×(1+R1/R2) [官方 TPS3808]; 两颗分压都是 0Ω 位, 同时装 ⇒ 下臂 0Ω ⇒ V_SOC_IO 对地短路; 必须改实值 + 写死装配规则
+      sw-lead: '★ISS-190 复评 (2026-11-11) 增补: 现网表 **U_SUPV 整颗 DNP** (SoM 内部 PMIC 已做上电复位) ⇒ 监督器支路实物不存在 ⇒
+        上一版 ''CT 悬空 = 20ms'' 不再适用 (CT 在网表里 1 行但属 DNP 器件, MR 仍 0 行); ★而 R_SUPV_DIV1/DIV2 仍标 ''0Ω 跳线位''
+        且 dnp=必装 ⇒ 装 0Ω 会把 RAIL_V_SOC_IO 短路到地 ⇒ 两臂必须随 U_SUPV 一起 DNP (已登记 needs_from hw-lead)'
     by:
     - sw-lead
-    noncanonical_by: []
+    noncanonical_by:
+    - sw-lead
     conflict: false
   boot_entry_hw:
     values:
@@ -10917,10 +11106,12 @@ interface_claims:
     conflict: false
   adc_det_sampling:
     values:
-      sw-lead: 长采样+丢弃N+中位数+迟滞
+      sw-lead: 长采样+丢弃N+中位数+迟滞;BAT_DET链DNP⇒电量判据待定
     notes:
-      sw-lead: VBUS_DET/BAT_DET 1M+1M+100nF ⇒ 源阻抗 500kΩ/τ=50ms/12bit 建立 451ms/漏电 1µA⇒0.50V 偏移(15.2%FS)
-        [推算]; M7-R6 '软件侧确认电量读取正常' 判据要重写, 电量百分比只能标低精度
+      sw-lead: '★ISS-190 复评 (2026-11-11) 增补后半句: 现网表装机的是 VBUS_DET_D 链 (1M+1M+100nF) ⇒ 源阻抗 500kΩ / τ=50ms
+        / 12bit 建立 451ms / 1µA 漏电 ⇒ 0.50V 偏移 (满量程 15.2%) ⇒ 该分压值对 ADC 不可用; ★而 BAT_DET 链 (R_BAT_DET_1/R_BAT_DET_2/C_DET_BAT)
+        **三颗全是 DNP** ⇒ 电量检测分压在现网表上不存在 ⇒ SW_REQUIREMENTS M7-R6 ''电量读取正常'' 当前无硬件支撑 ⇒ 已登记 needs_from hw-lead
+        裁决 (补装 or 整条 DNP)'
     by:
     - sw-lead
     noncanonical_by:
@@ -10928,9 +11119,12 @@ interface_claims:
     conflict: false
   i2ca_speed_max:
     values:
-      sw-lead: 100kHz
+      sw-lead: 100kHz (由 I2C_B 决定, 非 I2C_A)
     notes:
-      sw-lead: I2C_A 4.7k 上拉在主板侧, 负载跨铰链到 CONN_CAM; 300pF 时 t_r=1195ns > 标准模式 1µs 上限 [官方 I2C] ⇒ 速率写死 100kHz
+      sw-lead: '★ISS-190 复评 (2026-11-11) 理由改写 (数值不变): 现网表 I2C_A 上拉 = 2.2k → RAIL_VDD_1V8_IO (1.8V 域) ⇒
+        t_r@100pF = 186.4ns, @300pF = 559.2ns ⇒ **标准模式通过** (上一版 ''I2C_A 4.7k ⇒ 1195ns 超标'' 对现网表不成立); ★超标的是
+        **I2C_B** = 4.7k → RAIL_VDD_3V3_IO (3.3V 域, 走 CONN_LIGHT 22p FPC) ⇒ @300pF = 1194.7ns > 1000ns
+        ⇒ **所有 I2C 总线统一 ≤100kHz**; 快模式 400kHz 在 300pF 下 (I2C_A 559ns / I2C_B 1195ns) 也**不成立**'
     by:
     - sw-lead
     noncanonical_by: []
@@ -10960,8 +11154,9 @@ interface_claims:
     values:
       sw-lead: 读失败3周期→按T2降载+告警
     notes:
-      sw-lead: TMP117 与 camera 同在 I2C_A (跨铰链) ⇒ camera 拉死 SDA 会一起致盲温度保护; SW 必须做 I2C 总线恢复 (9 时钟+STOP) +
-        失效安全降载; 首读 = -256°C 必须丢弃 [官方 TMP117]
+      sw-lead: '★ISS-190 复评 (2026-11-11) 理由改写 (动作不变): 现网表 TMP117 (U_TEMP) 挂在 **I2C_B** (U_TEMP pin1 =
+        I2C_B_SCL), camera 在 I2C_A ⇒ 上一版 ''TMP117 与 camera 同总线, camera 拉死 SDA 一起致盲温度保护'' **对现网表不成立** ⇒
+        失效安全改按 ''通用 I2C 故障 + 传感器自身失效'' 处理 ⇒ 动作不变 (读失败 3 周期 ⇒ 按 T2 降载 + 告警)'
     by:
     - sw-lead
     noncanonical_by:
@@ -10969,10 +11164,12 @@ interface_claims:
     conflict: false
   usb_flash_role:
     values:
-      sw-lead: 跨铰链=救援/售后,量产=镜脚有线
+      sw-lead: 板内J_USB_C=刷写口;量产=镜脚有线pogo
     notes:
-      sw-lead: 跨铰链 USB 不是产线可控环境; 镜脚已有 J_DEBUG(1×4)+J_UART(1×2)+ISS-092 检修口 ⇒ 建议现在就把 USB pogo 4 点 (VBUS/GND/D+/D−)
-        画上 (可 DNP), 否则后加要改板重投; Type-C 留镜框做充电+售后自助
+      sw-lead: '★ISS-190 复评 (2026-11-11) 改写: 现网表上 **CONN_USB 已不存在** (0 行), J_CHG 跨铰链 10pin 里不含 D+/D− ⇒
+        **跨铰链 USB 救砖链在现网表上不成立**; demo 板改为板内 Type-C (J_USB_C → 22Ω → J_SOM_P1 pin92/94), 供电走 RAIL_DEMO_5V
+        → VCC_DCIN (J_SOM_P3 pin91-100) ⇒ 枚举前提由 SoM 自己的 VCC_DCIN 提供; ⇒ 量产镜脚板建议直接采用同一形态 (镜脚有线 pogo), 不要跨铰链
+        USB; ★残留风险: J_USB_C 的 D− 没有 ESD (D_ESD_USB_D 只跨 D+ 与地) ⇒ 已登记 needs_from hw-lead'
     by:
     - sw-lead
     noncanonical_by:
@@ -10980,20 +11177,25 @@ interface_claims:
     conflict: false
   usb_conn_gnd_pins:
     values:
-      sw-lead: ≥2 (CONN_USB pin4→GND)
+      sw-lead: ≥2 (规则保留, CONN_USB 已不在网表)
     notes:
-      sw-lead: CONN_USB 只有 1 个 GND pin, 违反 ISS-085 自定规则 (两端各留 ≥2 个 GND pin); pin4 现为预留 DNP ⇒ 改 GND 零成本;
-        同规则还波及 CONN_CAM(1 个) 与 CONN_LIGHT(1 个)
+      sw-lead: '★ISS-190 复评 (2026-11-11) 标注对象已消失: CONN_USB 在现行 513 行网表里 **0 行** ⇒ 上一版 ''CONN_USB 只有 1
+        个 GND pin'' 的复现命令在现网表上已无对象; ISS-085 的 ''跨铰链 ≥2 GND pin'' 规则仍然有效, 留给将来的跨铰链口 (跨铰链 USB 现在挂在 CONN_LIGHT/J_CHG
+        一类连接器上)'
     by:
     - sw-lead
-    noncanonical_by: []
+    noncanonical_by:
+    - sw-lead
     conflict: false
   power_off_semantics:
     values:
-      sw-lead: true-poweroff-loadswitch
+      sw-lead: PWR_ON高阻→U_PWR_SW关→SYS断电(充电链仍带电)
     notes:
-      sw-lead: ★10-27 老板拍板 关机=真断电 (负载开关 U_PWR_SW 切 SYS, SoC 断电); 旧值"无硬件断电-软件深睡-轨带电"已作废 (那是 10-27 之前的老网表);
-        关机态 SW 零行为承诺, 唤醒仅 VBUS/PG/按键 三条硬件路径
+      sw-lead: '★ISS-190 复评 (2026-11-11) 改写: 上一版 ''无硬件断电-软件深睡-轨带电'' **作废** —— 现网表有负载开关 U_PWR_SW (TPS22991RAA,
+        VIN=BAT_SW → VOUT=RAIL_SYS), ON pin2 = PWR_ON 且配 R_PD_ON 10k 下拉 ⇒ 默认关; 另有 U_EN_SW (IN=RAIL_DEMO_5V
+        → OUT=RAIL_BOARD_5V, EN=CARRIER_BOARD_EN); ⇒ 关机 = SoC 把 PWR_ON GPIO 配高阻 ⇒ ON 掉回 10k 下拉 ⇒ U_PWR_SW
+        关 ⇒ 镜脚系统轨 SYS 断电 (充电链仍在电池侧带电 ⇒ 关机也能充电); ★前置条件: U_EN_SW 在网表里没有器件行 (BOM 会漏) ⇒ 已登记 needs_from hw-lead
+        (iss190_netlist_u_en_sw_no_device_row)'
     by:
     - sw-lead
     noncanonical_by: []
@@ -11031,13 +11233,15 @@ interface_claims:
     conflict: false
   signal_naming:
     values:
-      sw-lead: chg_pg_src_ok/dcdc_pg_good/soc_reset_n
+      sw-lead: chg_pg_src_ok/dcdc_pg_good/soc_reset_n/pwr_on
     notes:
-      sw-lead: '★本设计三个都叫 ''PG'' 的信号语义相反: BQ25896 PG 低=输入源良好 / TPS62130A PG 高阻=在 regulation / U_SUPV RESET
-        低=复位中 ⇒ SW 按来源命名防写反'
+      sw-lead: '★ISS-190 复评 (2026-11-11) 增补 pwr_on: 本设计里叫 PG 的信号语义各不相同 —— BQ25896 PG (低=源良好, 跨铰链 J_CHG
+        pin6) / TPS62130A PG (高阻=好) / U_SUPV RESET (低=复位中) / PWR_GOOD (充电板 PG, 现在还经 Q_PG 驱动 PWR_ON 开机)
+        ⇒ SW 侧必须按来源命名, 另加 pwr_on (高=开机, 配 10k 下拉 ⇒ 默认关)'
     by:
     - sw-lead
-    noncanonical_by: []
+    noncanonical_by:
+    - sw-lead
     conflict: false
   model_license_state_scheme:
     values:
@@ -11657,6 +11861,24 @@ needs_matrix:
     since: '2026-11-11'
     _by: main
     state: pending
+  - key: sch_completeness_target
+    to: boss
+    item: '★**demo 原理图的【完整度目标】三选一** (★老板 11-11 10:07 主线=原理图优先★): ① 最小集(★现状⇒只画用到的脚 ⇒ 接口对边【永不可评审】★) ② 【表内全量】(★把
+      netlist_v1_pins.csv 的 584 脚全画出来 + 补 J_SOM_P2/P4 + NC 标注 ⇒ ★**可评审对边**★ ⇒ **我的建议**) ③ 真实器件全貌(★USB-C
+      24脚 / SoM 400球 ⇒ 那就不是 demo 板, 是产品级设计 ⇒ 需 datasheet/官方库★) ⇒ ★**②已作为主线第六件在跑(纯生成器活: 图变·表不变·板不动 ⇒ 板
+      md5 仍 611b869e) ⇒ ③需另立**★'
+    since: '2026-11-11'
+    _by: main
+    state: pending
+  - key: ref_designator_rename
+    to: boss
+    item: '★**位号规范: 要不要把带下划线的位号改掉** (★实测: KiCad BOM 里 255/291 个位号带字面量问号 ⇒ KiCad 判未标注 ⇒ 板厂看到的位号与丝印对不上★)
+      ⇒ ★**改它会改: netlist表 → BOM → 原理图11页 → 板里 186 个封装位号 → 丝印/CPL/装配/IPC-2581/3D/D356 全套 ⇒ 【板 md5 必变】⇒
+      留证链/Gerber/投产包全要重出 (一个位号平均散在 19~112 个文件)★ ⇒ ★**建议: 先过完原理图评审, 再一次性改名+整链重出; RAIL_*/NET_* 保留(否则 BOM
+      多假料号)★**'
+    since: '2026-11-11'
+    _by: main
+    state: pending
   - key: iss081_pm_decisions
     to: main
     item: '板宽12mm还是15mm + 双显示hedge买不买, 两条PM裁决: 1) 板宽我建议15mm(逃线带误差容忍0.20-0.30mm->1.25mm, 且SoC横向热扩散通道2->3.5mm对散热是增益;
@@ -12185,6 +12407,90 @@ needs_matrix:
     since: '2026-11-11'
     _by: sw-lead
     state: pending
+  - key: iss190_netlist_i2ca_note_contradiction
+    to: hw-lead
+    item: '★ISS-190 (sw-lead 时序复评) 副产物 1 —— ★只报, 不改网表★: **HW/netlist_v1.csv L167/L168 与 L169/L170 自相矛盾**。L167
+      (NET_I2C_A_SCL) 仍写 ''上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF)'', L168 (NET_I2C_A_SDA) 写 ''上拉 4.7k
+      到 3.3V''; 而 L169/L170 的电阻行是 **2.2k ±1% → RAIL_VDD_1V8_IO (1.8V 域)** (ISS-153 11-04 订正), L171/L172
+      (camera 侧) 也已是 ''2.2k 到 1.8V''。 ⇒ 同一根总线有两套阻值/电平/上升时间。★实算 (脚本 F3 实读): 2.2k@1.8V ⇒ t_r@100pF = 186.4ns
+      (@300pF = 559.2ns, 标准模式通过); 注记里的 2380ns 差 **12.8 倍**; 且注记里的 ''灌 702µA'' 是 4.7k@3.3V 口径, 2.2k@1.8V
+      的真实灌流是 0.64mA。★请把 L167/L168 的 value+note 改成 ''上拉 2.2k 到 1.8V (RAIL_VDD_1V8_IO, 灌 0.64mA, t_r=186ns@100pF)''。★机械判据:
+      python3 SW/tools/timing_check.py 的 F3_i2c_rise.netlist_annotation_ns 应与 I2C_A 的实算 t_r 一致 (现 2380
+      vs 186)。★同源文件: SW/SW_TIMING_REVIEW.md §7-1。'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss190_netlist_reset_n_held_low
+    to: hw-lead
+    item: '★ISS-190 (sw-lead 时序复评) 副产物 2 —— ★只报, 不改网表★: **按现网表装板, RESET_N 会被永久拉低**。证据链: L65/L66/L67 **Q_AND
+      (N-MOS 硬件 AND, dnp=必装)**: 栅=PG_AND · 漏=RESET_N · 源=GND; L62/L63 **R_PG_PULL 10k ±1% (必装)** 把 PG_AND
+      上拉到 RAIL_VDD_1V8_IO; ★而 PG_AND 的两个来源 **U_DCDC_VCORE (L79, IC 行 dnp=DNP)** 与 **U_DCDC_VIO (L86, IC
+      行 dnp=DNP)** 都是不装的 (note: SoM 自带 PMIC ⇒ 主板不产 SoC 核心轨/IO 轨)。⇒ 按现网表装板: PG_AND 恒高 ⇒ Q_AND 栅高导通 ⇒ **RESET_N
+      恒为低 ⇒ SoC 起不来**。★三选一 (都不新增 IC): ① Q_AND 改 DNP (复位回到纯 RC+按键, 与 SoM 内部复位并存) ② PG_AND 改指 SoM 真实存在的
+      PG 输出 (需原厂球位/极性, TBD-01/TBD-12) ③ 两路 PG 改由 SoM 提供并落到网表。★机械判据: python3 SW/tools/timing_check.py 的
+      F1_reset_rc.pg_source_devices 应显示两个 PG 源 populated=True。★同源文件: SW/SW_TIMING_REVIEW.md §7-2 (本单新发现的
+      P0, 上一版评审看不到, 因为上一版网表里没有 Q_AND)。'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss190_netlist_supv_divider_0R_short
+    to: hw-lead
+    item: '★ISS-190 (sw-lead 时序复评) 副产物 3 —— ★只报, 不改网表★: **监督器已 DNP, 分压两颗却仍标必装**。L404 **R_SUPV_DIV1** value=''[待选型]
+      分压上臂 (0Ω 跳线位)'' dnp=**必装**; L405/L406 **R_SUPV_DIV2** 同; 而 L407/L408/L409 **U_SUPV 三行全是 dnp=DNP**
+      (note: SoM 内部 PMIC 已做上电复位 ⇒ 主板不装监督器)。⇒ **按 BOM 装 0Ω ⇒ RAIL_V_SOC_IO → R_SUPV_DIV1 → R_SUPV_DIV2
+      → GND = 电源短路** (进限流 → IO 域塌陷 → 整机不启动 + 器件发热); 而监督器已经不装了 ⇒ 这两颗**没有任何理由装**。★建议: R_SUPV_DIV1/DIV2 随
+      U_SUPV 一起改 dnp=DNP (零成本)。★机械判据: python3 SW/tools/timing_check.py 的 F2_supervisor.divider_dnp 应为
+      [''DNP'',''DNP''] 且 divider_zero_risk=False。★同源文件: SW/SW_TIMING_REVIEW.md §7-3 (上一版的装配级灾难结论原样成立)。'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss190_netlist_bat_det_all_dnp
+    to: hw-lead
+    item: '★ISS-190 (sw-lead 时序复评) 副产物 4 —— ★只报, 不改网表★: **电量检测分压整条 DNP, 但网表仍把 ADC 脚给了 SoC**。L182 **R_BAT_DET_1**
+      (1M) dnp=**DNP**; L183 **R_BAT_DET_2** (1M) dnp=**DNP**; L184/L185 **C_DET_BAT** (100nF) dnp=**DNP**;
+      ★而 L181 (**NET_BAT_DET**, 必装) 与 L186 (**J_SOM_P1 pin38**, 必装) 仍在 ⇒ SoC 侧有一个**永远悬空**的 ADC 输入脚。⇒ SW
+      侧 SW_REQUIREMENTS M7-R6 ''软件侧确认电量读取正常'' **当前没有硬件支撑** (读数随机)。★建议二选一 (SW 侧等 hw-lead 裁决): ① 补装并把 R
+      改成 100k+100k 或 47k+47k (1M+1M 的源阻抗 500kΩ 对 ADC 不可用: τ=50ms, 12bit 建立 451ms, 1µA 漏电 ⇒ 0.50V 偏移 =
+      满量程 15.2%); ② 整条 DNP 并把需求改成 ''电量读数不可用''。★机械判据: python3 SW/tools/timing_check.py 的 F4_adc_det.chains
+      里 BAT_DET 的 populated 应为 True (若选①)。★同源文件: SW/SW_TIMING_REVIEW.md §7-4。'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss190_netlist_q_envc_dnp_mismatch
+    to: hw-lead
+    item: '★ISS-190 (sw-lead 时序复评) 副产物 5 —— ★只报, 不改网表★: **Q_ENVC 三行的 dnp 自相矛盾**。L71 (Q_ENVC → PG_AND)
+      dnp=**DNP**, 而 L72 (Q_ENVC → GND) 与 L73 (Q_ENVC → EN_VCORE) dnp=**必装**。⇒ 同一个位号两行必装一行 DNP: 装配表按 ''必装''
+      就会装上, 但栅极那一行不装 ⇒ 装配出来的板子与网表意图不一致; 若两颗都不装 ⇒ EN_VCORE 只剩 R_EN_VCORE 10k 上拉 ⇒ 恒高 ⇒ V_CORE 永远使能 ⇒ **V1.8
+      想要的顺序链 (VIO 先起 → PG 有效 → 再使能 VCORE) 被打掉**。★建议: 三行统一 (要么全必装 + 补 V1.8 顺序链, 要么全 DNP 并在 note 里写清 ''顺序链在
+      SoM 内部完成'')。★机械判据: python3 SW/tools/timing_check.py 的 F4_ctrl_pins.rows 里同一 ref 的 row_dnp 应一致。★同源文件:
+      SW/SW_TIMING_REVIEW.md §7-5。'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss190_netlist_u_en_sw_no_device_row
+    to: hw-lead
+    item: '★ISS-190 (sw-lead 时序复评) 副产物 6 —— ★只报, 不改网表★: **U_EN_SW 在网表里没有器件行 ⇒ BOM/装配单会漏掉这颗开关**。L441/L442/L443/L444
+      只有 4 行引脚行 (EN / 5V 输入 / 5V 输出 / GND), 全网表 **0 行** U_EN_SW 的 IC 行 (对比 U_PWR_SW 有 L50 的 IC 行: ''[待选型]
+      负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)'', opn=TPS22991RAA)。⇒ ① 底板 5V 门控 (CARRIER_BOARD_EN →
+      RAIL_BOARD_5V) 实际不会被实现; ② SW 侧本单把 F8 判成 ''有硬件断电通路'' 的结论, 落地要靠补 IC 行 ⇒ **关机语义 (PWR_ON 高阻 → U_PWR_SW
+      关 → SYS 断电) 在装配层面还差这一颗**。★建议: 补一行 IC 行 (value 写明 [待选型] 负载开关/电源开关, footprint+opn=TPS22991RAA, dnp=必装)。★机械判据:
+      grep -n ''U_EN_SW'' HW/netlist_v1.csv | grep -c '',IC,'' ⇒ 现为 0, 应为 ≥1。★同源文件: SW/SW_TIMING_REVIEW.md
+      §7-6。'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss190_netlist_usb_dminus_no_esd
+    to: hw-lead
+    item: '★ISS-190 (sw-lead 时序复评) 副产物 7 —— ★只报, 不改网表★: **J_USB_C 的 D− 没有 ESD 保护**。L417/L418 **D_ESD_USB_D**
+      value=''ESD 阵列 [待选型] (USB 2.0 双通道)'', note 明写 ''紧贴 J_USB_C, **跨 D+ 与地**'' ⇒ 它只护 **D+ 与 GND**; L420/L421
+      **D_ESD_DEMO** 护的是 **RAIL_DEMO_5V (VBUS) 与地**。⇒ **J_USB_C 的 D− 全网表没有任何 ESD 器件**。★为什么要紧: 现网表上 J_USB_C
+      (板内 Type-C → 22Ω → J_SOM_P1 pin92/94) 是**唯一的刷写口** (跨铰链 USB 链已不存在: J_CHG 10pin 不带 D+/D−) ⇒ 一次 ESD
+      打到 D− 就没有第二张嘴 ⇒ 变砖 = 只能拆机 JTAG。★建议: 把 D_ESD_USB_D 换成跨 D+ 与 D− 的阵列 (或加一颗), 并在 note 里写明通道归属。★机械判据:
+      网表里应有一行 ESD 器件跨在 NET_USB_D_P_TYPEC 与 NET_USB_D_N_TYPEC 上。★同源文件: SW/SW_TIMING_REVIEW.md §7-7 (上一版
+      H3 ''Type-C 侧 D+/D− 没有独立 ESD'' 仍然成立)。'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
   - key: soc_carrier_mainboard_site
     to: main
     item: ISS-084上游卡点_主板位定镜脚还是镜框(解D走不走变更流程)_载板化的全部结构结论都随它变_请裁_经项目总工转老板
@@ -12465,7 +12771,7 @@ needs_matrix:
     _by: mech-lead
     state: pending
   answered_count: 157
-  total: 235
+  total: 244
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -12956,12 +13262,16 @@ lint:
   value: A:boot-pin+reset / B:key-combo / C:usb-trigger
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
+  key: supv_divider_rule
+  value: R1/R2=6.407@3V0V,no-0R-on-both;U_SUPV-DNP时两臂必须DNP
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
   key: chg_stat_pullup
   value: 10k@3V3-镜脚本地-接收端
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
   key: adc_det_sampling
-  value: 长采样+丢弃N+中位数+迟滞
+  value: 长采样+丢弃N+中位数+迟滞;BAT_DET链DNP⇒电量判据待定
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
   key: tmp117_meas_point
@@ -12973,7 +13283,11 @@ lint:
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
   key: usb_flash_role
-  value: 跨铰链=救援/售后,量产=镜脚有线
+  value: 板内J_USB_C=刷写口;量产=镜脚有线pogo
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: usb_conn_gnd_pins
+  value: ≥2 (规则保留, CONN_USB 已不在网表)
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
   key: first_temp_read
@@ -12986,6 +13300,10 @@ lint:
 - agent: sw-lead
   key: chg_state_fail_safe
   value: 状态未知→当作在充电→禁OD
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: signal_naming
+  value: chg_pg_src_ok/dcdc_pg_good/soc_reset_n/pwr_on
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
   key: s2_param_fill_targets
@@ -13074,15 +13392,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 160
+  artifacts: 162
   blockers: 43
   high_blockers: 33
-  open_needs: 78
+  open_needs: 87
   waiting_external_needs: 70
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 51
+  lint: 54
   agents_reporting: 4
   incomplete_fragments: 0

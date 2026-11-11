@@ -6115,28 +6115,33 @@ issues:
   reporter: main
   raised: '2026-11-04'
   due: '2026-11-08'
-  status: fixing
+  status: deferred
   external: false
   need_keys: []
   fix_ref: HW/PCB/demo_mainboard.kicad_pcb (布线后) · state/gen_pcb_netlist_board.py (加布线生成段) · HW/PCB/.layout_done.json (unconnected/DRC 留证)
   verify_by: main
   verify_result: null
   verify_date: null
-  note: '★**来源**: 老板 2026-11-04 19:10 指示「自研开发主板是目前最高优先级的任务」 (source_blocker 留 null, 因为它不是 STATE 里登记的 blocker id)。★**写入范围**: `HW/PCB/**` (含 `demo_mainboard.kicad_pcb` / `HW/PCB/.layout_done.json`) + ★**`state/gen_pcb_netlist_board.py`
-    (加布线生成段 —— 本单核心)** + `state/fragments/hw.yaml` (原子写)。★**不许动**: `HW/netlist_v1.csv` / `state/gen_netlist.py` / 网表类门禁脚本 / `state/issue_log.yaml` / `PROJECT_TRACKER.md` / `SW/**` / `MECH/**` / 别的 agent
-    分片。★**网表有问题不许自己改** ⇒ 写进回执"请求"段 (已知 5 条阻塞 B-1~B-5 见 `HW/STEP1_LANDING_LIST.md` 与 ISS-153 回执)。★**工具**: `bash state/kicad.sh` (KiCad 10.0.8) / `bash state/pcbnew_py.sh <script>` (pcbnew 只在 AppImage 的 python3.11
-    里, ★**系统 python3.14 跑会 ModuleNotFoundError**)。★**别整篇读大文件**: 只读 `HW/PCB/LAYOUT_RULES.md` + `HW/PCB/STACKUP.md` + `HW/PCB/demo_mainboard.kicad_pcb` + `state/check_pcb_drc.py` 的判据段。 ★**2026-11-04 19:2x
-    已派 hw-lead** (子会话 agent:hw-lead:subagent:6ff4be7b, taskName=iss181_board_routing, ★**分两阶段, 本次只交阶段 1 = 关键网络布线**) ⇒ 派完立刻落 fixing。 ★★**2026-11-04 19:45-20:00 项目总工亲自把前置全部修完** (前两轮派 hw-lead 都是 0 产出): ① **导出器幽灵分裂网
-    bug** (`state/gen_kicad_net.py`: canon() 剥掉 RAIL_/NET_ 前缀 ⇒ 别名节点与行网同一根线时被当成两个网 ⇒ R/C/L 件变 3 脚 ⇒ **5V 轨被拆成两根**) ② **R_SER_USB_D_P 被短接** (Type-C D+ 与 SoM D+ 同网 ⇒ 22Ω 短路 + ESD 双失效) ⇒ 改: Type-C 侧独立成网 NET_USB_D_P_TYPEC
-    / NET_USB_D_N_TYPEC ⇒ 串阻真串在中间 ③ **跨铰链 USB 整块删除** (老板 11-02 19:25「跨铰链取消」⇒ demo 板只留板载 Type-C 一条 USB 数据路径; CONN_USB 座 + D_ESD_USB 随之删) ④ **VBUS 分压是坏的** (上臂下臂并联在同一网 ⇒ 分压比恒 1 ⇒ 检测读 0V; C_DET_VBUS_D 只有 1
-    条腿) ⇒ 改为: 上臂 5V→中点 / 下臂 中点→地 / 电容跨中点与地 / SoM 检测脚接中点 ⑤ **J_CHG pin7** 改成预留 NC (座仍 10p) ⇒ ★**check_kicad_net / check_netlist / check_netlist_pins 全绿, 216 个器件脚数全对**; ★**两处门禁判据随形态更新** (P9 行数 10→8; "USB
-    差分必经跨铰链" ⇒ 反转为"USB 走板载 Type-C 且串阻真串在中间") ⇒ **判据跟着形态走, 不是放松判据**。
-
-    ★2026-11-06 11:0x 本周进展 (仍在 fixing, 未关单): 官方板 (md5 611b869e, 18092 段/433 孔) 实测 **unconnected=45 / DRC=0 / 板↔网表逐焊盘等价 482/482 / 零铜网 24 / 差分单边零铜 11 / Gerber 30 + 投产包 51 文件** ⇒ ★**G1 仍开 (unc≠0), 不许投板**。★**本周三条实测推进**:
-    **(a)** 0.0625mm 网格阶梯 ⇒ **unc 45→42** 且退铜名单 0 / 差分死腿 0 / 逐网孤岛不变多 ⇒ ★**只差 DRC 12 条清零就能晋级**; **(b)** v57 臂 (BTB 出脚线宽 0.20→0.15mm) ⇒ **REJECT** (DRC 115 = 108 条 track_width **板规则**红 + 7 条真 clearance; unc
-    45→60; 退铜 8 网; 孤岛变多 17) ⇒ ★**单改线宽这条路判死**; **(c)** ★**根因定量**: SoM BTB 0.4mm pitch · 0.2mm 焊盘 ⇒ 间隙 0.200mm ⇒ 0.20mm 线 + 两侧 0.20 净距 = 需 0.600mm > 0.400mm pitch ⇒ **沿排方向物理穿不过去** ⇒ ★**自研 A* 与 freerouting
-    2.1.0 两个独立引擎撞同一堵墙 ⇒ 物理约束不是算法问题**。★**⇒ 三条出路已登记 needs**: ①改布局 (R_SEL 与配套 TP 必须一起钉位) ②改封装 (换 BTB ⇒ 换模组/转接板, 周期成本待核) ③改工艺 (0.15mm 线宽 + **同时改板规则 min_width + FAB 口径**, 只改路由器无效)。★**边界**: 官方板本窗口**未动** (md5
-    仍 611b869e); 未发邮件/未联系供应商/未下单。'
+  note: "★**来源**: 老板 2026-11-04 19:10 指示「自研开发主板是目前最高优先级的任务」 (source_blocker 留 null, 因为它不是 STATE 里登记的 blocker id)。★**写入范围**: `HW/PCB/**` (含 `demo_mainboard.kicad_pcb` / `HW/PCB/.layout_done.json`) + ★**`state/gen_pcb_netlist_board.py`\
+    \ (加布线生成段 —— 本单核心)** + `state/fragments/hw.yaml` (原子写)。★**不许动**: `HW/netlist_v1.csv` / `state/gen_netlist.py` / 网表类门禁脚本 / `state/issue_log.yaml` / `PROJECT_TRACKER.md` / `SW/**` / `MECH/**` / 别的 agent\
+    \ 分片。★**网表有问题不许自己改** ⇒ 写进回执\"请求\"段 (已知 5 条阻塞 B-1~B-5 见 `HW/STEP1_LANDING_LIST.md` 与 ISS-153 回执)。★**工具**: `bash state/kicad.sh` (KiCad 10.0.8) / `bash state/pcbnew_py.sh <script>` (pcbnew 只在 AppImage\
+    \ 的 python3.11 里, ★**系统 python3.14 跑会 ModuleNotFoundError**)。★**别整篇读大文件**: 只读 `HW/PCB/LAYOUT_RULES.md` + `HW/PCB/STACKUP.md` + `HW/PCB/demo_mainboard.kicad_pcb` + `state/check_pcb_drc.py` 的判据段。 ★**2026-11-04\
+    \ 19:2x 已派 hw-lead** (子会话 agent:hw-lead:subagent:6ff4be7b, taskName=iss181_board_routing, ★**分两阶段, 本次只交阶段 1 = 关键网络布线**) ⇒ 派完立刻落 fixing。 ★★**2026-11-04 19:45-20:00 项目总工亲自把前置全部修完** (前两轮派 hw-lead 都是 0\
+    \ 产出): ① **导出器幽灵分裂网 bug** (`state/gen_kicad_net.py`: canon() 剥掉 RAIL_/NET_ 前缀 ⇒ 别名节点与行网同一根线时被当成两个网 ⇒ R/C/L 件变 3 脚 ⇒ **5V 轨被拆成两根**) ② **R_SER_USB_D_P 被短接** (Type-C D+ 与 SoM D+ 同网 ⇒ 22Ω 短路 + ESD 双失效)\
+    \ ⇒ 改: Type-C 侧独立成网 NET_USB_D_P_TYPEC / NET_USB_D_N_TYPEC ⇒ 串阻真串在中间 ③ **跨铰链 USB 整块删除** (老板 11-02 19:25「跨铰链取消」⇒ demo 板只留板载 Type-C 一条 USB 数据路径; CONN_USB 座 + D_ESD_USB 随之删) ④ **VBUS 分压是坏的** (上臂下臂并联在同一网\
+    \ ⇒ 分压比恒 1 ⇒ 检测读 0V; C_DET_VBUS_D 只有 1 条腿) ⇒ 改为: 上臂 5V→中点 / 下臂 中点→地 / 电容跨中点与地 / SoM 检测脚接中点 ⑤ **J_CHG pin7** 改成预留 NC (座仍 10p) ⇒ ★**check_kicad_net / check_netlist / check_netlist_pins 全绿, 216 个器件脚数全对**;\
+    \ ★**两处门禁判据随形态更新** (P9 行数 10→8; \"USB 差分必经跨铰链\" ⇒ 反转为\"USB 走板载 Type-C 且串阻真串在中间\") ⇒ **判据跟着形态走, 不是放松判据**。\n★2026-11-06 11:0x 本周进展 (仍在 fixing, 未关单): 官方板 (md5 611b869e, 18092 段/433 孔) 实测 **unconnected=45\
+    \ / DRC=0 / 板↔网表逐焊盘等价 482/482 / 零铜网 24 / 差分单边零铜 11 / Gerber 30 + 投产包 51 文件** ⇒ ★**G1 仍开 (unc≠0), 不许投板**。★**本周三条实测推进**: **(a)** 0.0625mm 网格阶梯 ⇒ **unc 45→42** 且退铜名单 0 / 差分死腿 0 / 逐网孤岛不变多 ⇒ ★**只差 DRC 12\
+    \ 条清零就能晋级**; **(b)** v57 臂 (BTB 出脚线宽 0.20→0.15mm) ⇒ **REJECT** (DRC 115 = 108 条 track_width **板规则**红 + 7 条真 clearance; unc 45→60; 退铜 8 网; 孤岛变多 17) ⇒ ★**单改线宽这条路判死**; **(c)** ★**根因定量**: SoM BTB 0.4mm\
+    \ pitch · 0.2mm 焊盘 ⇒ 间隙 0.200mm ⇒ 0.20mm 线 + 两侧 0.20 净距 = 需 0.600mm > 0.400mm pitch ⇒ **沿排方向物理穿不过去** ⇒ ★**自研 A* 与 freerouting 2.1.0 两个独立引擎撞同一堵墙 ⇒ 物理约束不是算法问题**。★**⇒ 三条出路已登记 needs**: ①改布局 (R_SEL 与配套 TP\
+    \ 必须一起钉位) ②改封装 (换 BTB ⇒ 换模组/转接板, 周期成本待核) ③改工艺 (0.15mm 线宽 + **同时改板规则 min_width + FAB 口径**, 只改路由器无效)。★**边界**: 官方板本窗口**未动** (md5 仍 611b869e); 未发邮件/未联系供应商/未下单。\n\n★2026-11-11 14:5x 项目总工**改状态: fixing → deferred**\
+    \ (★老板 11-11 10:07 口径: PCB 布线/布局类一律【不派】, 排队等原理图定稿★)。\n★**为什么改 (★先说事实, 再说结论★)**:\n  ① ★**本单已经没有任何在跑的工作** —— 实测 `ps` 无 freeroute / 臂进程; 最近一次终判 = **v76mz REJECT @09:36**; ★**7 条同型臂 (v44/46/47/48 + na/nb/mz)\
+    \ 打死的是同一批差分腿** ⇒ 布局级线索 ⇒ 生成器族出局 ⇒ **现无臂在跑** ⇒ 「fixing (在飞)」是**假的**。\n  ② ★**官方板 md5 `611b869e13518c3c023fb178f91a0075` 自 2026-11-06 07:07:17 起一字未动**; `HW/PCB/.layout_done.json` 记 unconnected=45 / DRC\
+    \ 0 (at 2026-11-09T04:11:35)。\n  ③ ★**老板 11-11 10:07 明确: PCB 布线/布局类 ISS 一律不派 (排队等原理图定稿后)** ⇒ 本单的正确状态就是**排队**。\n★**为什么这件事在今天特别要紧 (★结构性解冻, 不是记账洁癖★)**: `advance.py` 的 in_flight 判据 = 「owner 名下已有 status==fixing\
+    \ 的 issue ⇒ 本轮跳过该 agent」⇒ ★**本单 (hw-lead, fixing) 把 hw-lead 名下唯一那条 open 单 (ISS-191) 永久挡住** ⇒ 决策页 §0.7 / §0.11.4 / §0.15.2 / §0.17.2 **连续 6 轮**记「A 段恒为空」, ★**根因就是这一个标记** ⇒ 现在起 **hw-lead 名额释放 ⇒ A 段恢复可派**\
+    \ ★。\n★**三条后果都先查过 (不是副作用失控)**: ① `advance.py` 直接跳过 deferred ⇒ ★**本单不会被自动派出去** (= 守住「PCB 类不派」) ② ★**G1 仍卡住**: G1 判据读 `.layout_done.json` 的 unconnected=45, **不读 issue 状态** ⇒ ★**「不许投板」的口径一点没松** ③ ★**G4「问题单未闭环」列表仍会列出本单**\
+    \ (实测 deferred 的 ISS-004/013/016 都在 G4 清单里) ⇒ ★**没藏账** ★。\n★**唯一会变的数字**: 逾期未闭环 **33 → 32** (C4 规则「deferred 不算逾期」) ⇒ ★**这是口径纠正, 不是活干完了** ★。\n★**恢复条件 (写死, 免得又被当成已办★)**: ① 老板拍板走**整链重出** (`state/RECHAIN_ONEPASS_PLAN.md`\
+    \ §5) ⇒ ★**本单随那次一起做** ② 或 ★**原理图定稿后** (老板 10:07 口径的前提) ⇒ ③ ★**在那之前: 布线/布局一律不派** ★。★**边界**: 本轮板 / 生成器 / 留证链 / 闸 / 网表表 / 原理图 **一律未动** ★"
   dispatched_at: '2026-11-04 20:00 (第二轮: 带 pcbnew API 用法 + 通用路由器要求)'
 - id: ISS-182
   title: ★★★[投板级 · 已修] 网表 4 处致命缺陷 + 导出器"幽灵分裂网" bug + VBUS 分压失效
@@ -6494,7 +6499,7 @@ issues:
   reporter: main
   raised: '2026-11-11'
   due: '2026-11-13'
-  status: fixing
+  status: verified
   external: false
   need_keys: []
   task_brief: '目标: 闭环 ISS-189 —— ★**把 DSI payload 8× 口径差的最后两处补齐** (`HW/STEP1_LANDING_LIST.md:42` 与 `HW/PART_ALTERNATIVES_REGISTRY.md:24` 仍写 373 Mbps, 实为 2986)。
@@ -6512,8 +6517,8 @@ issues:
     ★**★你只需动 2 行** ⇒ ★**但这两行是【Step1 落地清单】和【替代料清单】⇒ 照着它接线的人会拿到虚到 8 倍的带宽前提 ⇒ 值得改** ★★'
   fix_ref: HW/STEP1_LANDING_LIST.md:42 · HW/PART_ALTERNATIVES_REGISTRY.md:24 · HANDOFF/2026-11-11_hw-lead_ISS189_DSI_payload_收尾.md
   verify_by: main
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-11'
   note: '★2026-11-11 09:0x 项目总工 (main) 开单。★**本单是 ISS-186 / ISS-188 的尾巴** ⇒ ★**那两单都已于同日验收签字 (pass), 本单不阻塞它们**。
 
     ★**来源**: sw-lead 在 ISS-188 交卷时**如实报出 4 处残留** (★**一处没藏★) ⇒ ★**其中 F1/F2 在 hw-lead 的域 ⇒ 归你; F3/F4 在 main 侧 ⇒ main 已自己改掉**。
@@ -6522,5 +6527,237 @@ issues:
     (★**ps 实测 `gen_pcb_netlist_board.py` PID 279538 自 07:48 起在跑, 99% CPU★) ⇒ ★**它不占 hw-lead 的写会话名额** ⇒ advance.py 的 in_flight 代理判据在这里**代理错了事实**; ③ ★**文件交集 = 0** (★**F1/F2 是两个 .md ⇒ 实测板链路脚本里 grep 「STEP1_LANDING_LIST|PART_ALTERNATIVES_REGISTRY」零命中**
     ⇒ **不抢同一块板, 不抢同一个文件**★).
 
-    ★**★一条要记住的教训 (ISS-186/188 两轮都没数到 F1/F2)**: ★**「已清干净」这个结论本身必须靠 grep 复核, 不能靠清单** ⇒ ★**下一轮再有人收口 payload 口径, 先跑 grep 再下结论**.'
+    ★**★一条要记住的教训 (ISS-186/188 两轮都没数到 F1/F2)**: ★**「已清干净」这个结论本身必须靠 grep 复核, 不能靠清单** ⇒ ★**下一轮再有人收口 payload 口径, 先跑 grep 再下结论**. ★**2026-11-11 11:4x 项目总工 (main) 验收通过 (verify_result=pass)**: ★**本条是本项目第一条【死单救回
+    → 重派 → 交卷 → 验收】的完整闭环** (★**09:1x 第 1 次派出被 aborted ⇒ 两行一个字没改 = 死单** ⇒ ★**10:3x 第 2 次派出** ⇒ hw-lead 交卷 `HANDOFF/2026-11-11_hw-lead_ISS189_DSI_payload_收尾.md` ⇒ ★**owner 明确没碰 issue_log (按 sw-lead ISS-188
+    先例, 落账留给 main, verify_by=main)**★) —— ★**验收全部是 main 自己实测, 不是抄 owner 自评**: ① `grep -rn ''373Mbps|373 Mbps|246 Mbps'' HW/ SW/ state/outbox/` ⇒ **零命中**; ② `HW/STEP1_LANDING_LIST.md:42` + `HW/PART_ALTERNATIVES_REGISTRY.md:24`
+    两处都已是 **2986 Mbps** 且都带依据注 (payload = 1920×1080×24×60 = 2985.98 Mbps ⇒ 与 `HW/e2e_budget_rk3572.py` §⑥ 同口径; TX 物理下限 7.776ms = 2986 ÷ 60 ÷ 6400); ③ `python3 HW/e2e_budget_rk3572.py --selftest` ⇒ **rc=0**
+    + 脚本 md5 `7b820c14` 未变 (★**判据权威源没被偷改**★); ④ `HW/PCB/demo_mainboard.kicad_pcb` md5 仍 **`611b869e13518c3c023fb178f91a0075`** ⇒ ★**板子一字未动**★; ⑤ 交付报告在位 (25KB) 且 ★**结论方向未变** (4-lane 绰绰有余 / 不需 DSC 仍成立 ⇒ 只订正数字,
+    不改结论)★. ★**教训沉淀 (第 3 次机会, 这次没踩)**: ★**依据注里刻意不写旧值逐字串** (写「原写的 373」) ⇒ ★**不然验收 ① 永远不为 0** ⇒ ★**这是 hw-lead 在 ISS-186、main 在 ISS-188 各踩过一次的老坑**★. ★**未重跑 `state/_demo_hw_scheme_landing.py`** (★**重跑 = 把 373
+    Mbps 灌回 tracker**★).'
   dispatched_at: 2026-11-11 09:0x (项目总工手工解冻派活)
+  fixed_at: '2026-11-11'
+- id: ISS-190
+  title: ★SW 侧时序/电源评审与机械复核器口径漂移 ⇒ SW_TIMING_REVIEW 锚在 476 行旧网表 (现行 513 行) ⇒ F4/F8 结论已被现网表推翻 ⇒ timing_check.py 实读网表 (现为手抄常量 + 假绿自测)
+  severity: high
+  source_blocker: SW-TIM-B1
+  source_agent: main
+  desc: '★2026-11-11 13:0x 项目总工实测开单 (★不是推测★)。
+
+    ★**根因 (为什么本单现在才存在)**: `advance.py --json` 的 A 段恒空 ⇒ 26 条 open 的 owner 【全部】是 main/boss ⇒ 三个总工名下没有 open 单 ⇒ 自动派活无单可派 ⇒ 本单按项目既有做法 (`_open_iss186_20261111.py` / `_apply_iss188_verify_iss189_open_20261111.py`)
+    由 main 开单并指派。
+
+    ★**发现的真问题 (三处硬证据)**: ① 口径漂移 —— `SW/SW_TIMING_REVIEW.md` 声明被评审对象 = `HW/netlist_v1.csv` **476 行 / V1.6 / 2026-10-27**; ★**现行 = 513 行** (md5 `c78f991283cc82d56c8e3dd31657c785`, 2026-11-05 10:57) ⇒ 37 行变更从未复评。
+
+    ② ★**F4 已被现网表推翻 (部分)**: 该文 §6 自带命令 `grep -cE ",(EN|SS|CT|MR)[, ]" HW/netlist_v1.csv` 记录 = 0, ★**实跑 = 11** (EN 10 行 + CT 1 行; SS/MR 仍 = 0) ⇒ "供电器件的控制脚在网表里根本不存在" 对 EN 已不成立。
+
+    ③ ★**F8 的复现命令是假阴性 ⇒ 结论已错**: `grep -cE "LOAD|LOADSW|U_LS" HW/netlist_v1.csv` 记录 = 0, ★**实跑也 = 0** —— 但★**现网表里负载开关叫 `U_PWR_SW`** (TPS22991RAA, 9 行: VIN=`BAT_SW`→VOUT=`RAIL_SYS`; ON pin2 配 `R_PD_ON` 10k
+    下拉=默认关; `Q_PG` P-MOS 高边) ⇒ ★**该 pattern 永远看不见它**; 而 `HW/POWER_SHUTDOWN_V3.md` §3 已写明该真关机拓扑 ⇒ F8 结论"关机只能靠软件深睡, 轨全部带电" ★**对现网表是错的**。
+
+    ★**假绿 (★本单最要紧的一条★)**: `SW/tools/timing_check.py` ★**从不打开网表** (全文只有第 25 行注释提到 `netlist_v1.csv`), F8 段写死 `"load_switch_in_netlist": False` (L193-198) 而★**自测 L227 把 `is False` 当 PASS 条件** ⇒ ★**网表变了它照样绿**;
+    同类 `R_I2C_PULL` 写死 4700 (L38), ★**现网表 L169 的 `R_PU_I2CA_SCL` = 2.2k → `RAIL_VDD_1V8_IO` (1.8V 域, ISS-153 11-04 订正)** ⇒ F3 的 t_r 按 4.7k 算 398ns@100pF, 按 2.2k 算 186ns, 且 300pF 上限判据 1194ns(❌)→559ns(✅)
+    ⇒ ★**一条结论会翻转**。
+
+    ★**主线口径**: 老板 2026-11-11 10:07 ⇒ 当前主线 = 硬件原理图 demo 绘制; PCB 布线/布局类不派 ⇒ ★**本单是【网表 / ERC / 软件】类, 在优先派活范围内**。
+
+    ★**边界**: 只改 `SW/SW_TIMING_REVIEW.md` + `SW/tools/timing_check.py` + 自己的 HANDOFF + 自己的分片; ★**网表只读不许改** (网表自身矛盾 L167 vs L169 只报不改 ⇒ 登记 needs_from 给 hw-lead); ★**不许联系供应商/原厂**; ★**写分片必须走 `state/frag_write.py`**。'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-11-11'
+  due: '2026-11-13'
+  status: verified
+  external: false
+  need_keys: []
+  fix_ref: ''
+  verify_by: main
+  verify_result: pass
+  verify_date: '2026-11-11'
+  note: '★2026-11-11 13:0x 项目总工开单 (owner=sw-lead, verify_by=main ⇒ ★**自己修的必须别人验**, 铁律满足 —— 修复人 sw-lead, 验收人 main)。
+
+    ★**为什么这一单现在才派得出来**: 26 条 open 的 owner 全部是 main/boss ⇒ 三个总工名下没有 open ⇒ advance.py A 段恒空 ⇒ 自动派活无单可派 ⇒ 本单是 main 按项目既有做法 (_open_iss186_20261111.py 那一套) 开的**指派单**。
+
+    ★**为什么不派 PCB 类**: 老板 11-11 10:07 指令 —— PCB 布线/布局类一律【不派】(排队等原理图定稿); ISS-181 (hw-lead, 自研 demo 主板布线到可下单) ★**本轮按主线口径继续排队不派**。
+
+    ★**与 hw-lead 在飞任务的关系**: 主线第六件 (hw-lead 补图, 11:38 起) 动的是 `demo_mainboard*.kicad_sch` + 生成器 + `state/check_sch_pinfull.py`; ★**本单动的文件与之零交集** (`SW/**` + `HANDOFF/` + `state/fragments/sw.yaml`), ★**网表 `HW/netlist_v1.csv`
+    两个任务都不许改** (主线第六件任务书明写"不许改 netlist_v1.csv") ⇒ ★**无并发写冲突**。
+
+    ★**验收**: main 会独立重跑本单贴的复现命令 + 跑反向用例 + 查 `merge.py` rc=0 与 `gate_check.py` Q1=18/18 ⇒ ★**不采信自述**。
+
+
+    ★**2026-11-11 13:4x main 验收 = 打回订正 (★不是推翻: 工具/锚点/自测/反向演示/I2C/F8 全部实测通过★)** ⇒ ★**打回理由: P0 的事实陈述错了一格 —— main 逐行读现网表实测: `PG_AND` 网上 `R_PG_PULL` 必装 · `Q_AND` 栅极必装 · 两个 PG 源 (U_DCDC_VCORE/VIO pin4) 必装 ·
+    ★**真正 DNP 的是 `Q_ENVC`** ⇒ ⇒ 「PG 源器件 DNP」不成立 ⇒ ★**根因在工具口径: `dnp_of(ref)` 取【该位号第一条 IC/SW 行】的 dnp, 而本表 dnp 是【行级(每连接一行)】⇒ 拿错了行** ⇒ ★**结论方向仍成立 (PG_AND 10k 上拉 ⇒ Q_AND 栅极恒高 ⇒ RESET_N 恒低 ⇒ 首台板可能不启动) ⇒ 但归因链必须改**
+    ⇒ ★**这条 P0 是要归 hw-lead 改板的 ⇒ 表述错了会让他照错归因改 ⇒ 所以必须先订正再发出去 ★★ ★**四处必改已写进 task_brief (①工具口径 ②反向用例 ③文档4处 ④§7-2 选项重写+点名 U_SUPV pin1) ⇒ status 回 open 等再派 ★★
+
+
+    ★**2026-11-11 14:0x main 二次验收 = 通过 (verified / pass)**: ★**main 独立复核 (不是照抄 owner 自评)**: ① `pg_source_devices` 实读 = **U_DCDC_VCORE: 必装 / U_DCDC_VIO: 必装** (★`dnp_source` 明写【PG_AND 网上的连接行 (行级口径)】, 且保留
+    `device_ic_row_dnp=DNP` 供对照★) ✔ ② `pg_and_state.dnp_rows = [''Q_ENVC'']` ✔ · `reset_n_state.u_supv_pin1_row_dnp = DNP` ✔ (★main 从网表逐行复核一致★) ③ 自测 **SELFTEST 55/55 rc=0** (★48→55, 新增 REV-7~REV-10★) ✔
+    ④ `--reverse-demo` 实测真读网表 (★改坏副本 ⇒ PG_AND 行级改 DNP ⇒ 两路 PG 必装→DNP 变红★) ✔ ⑤ 文档: 【PG 源器件 DNP】只以【被订正的错误表述】形式残留 (★其余 24 处均为正确口径★) ✔ ⑥ ★**它还补了一条更强的器件级证据 (★方向对, 结论更强★)**: `U_DCDC_VCORE`(L79) / `U_DCDC_VIO`(L86)
+    的 **IC 行 dnp=DNP** ⇒ **两颗 DC-DC 实物不装 ⇒ 其 PG 脚根本不在板上 ⇒ PG_AND 只剩 10k 上拉** ✔ ⑦ 护栏: 网表 md5 仍 `c78f991283cc82d56c8e3dd31657c785` · 板 md5 仍 `611b869e13518c3c023fb178f91a0075` · ★**只改了 `SW/tools/timing_check.py`
+    + `SW/SW_TIMING_REVIEW.md` 两个文件** ✔ ⇒ ★**结论: P0 方向不变 (首台板可能因 RESET_N 恒低不启动), 归因链已按行级口径订正 ⇒ hw-lead 照新表述改板不会再白干** ⇒ ★**该 P0 已另开 ISS-191 (owner=hw-lead, verify_by=main) ⇒ ★★注意: 它会改网表 ⇒ 板 md5 会变 ⇒ ★与老板的位号改名决策【合并到一次整链重出】,
+    动手前先确认老板已拍板★★'
+  task_brief: "★**目标**: 把 SW 侧对 demo 主板上电/复位/时序的评审 (`SW/SW_TIMING_REVIEW.md`) 与其机械复核器 (`SW/tools/timing_check.py`) **重新锚定到现行网表**, 并把\"假绿\"改成\"真绿\" —— 让 timing_check.py 的每个网表相关数字都【从网表实读】算出来, 而不是手抄常量; 凡结论与现网表矛盾的,\
+    \ 按现网表订正并标 [实测]。\n\n★**为什么现在做 (★main 2026-11-11 13:0x 实测, 不是推测★)**\n1. ★**口径漂移**: `SW/SW_TIMING_REVIEW.md` 头部声明被评审对象 = `HW/netlist_v1.csv` (**476 行**, V1.6, 2026-10-27); ★**现行网表 = 513 行** (md5 `c78f991283cc82d56c8e3dd31657c785`,\
+    \ 2026-11-05 10:57) ⇒ 中间 37 行 是 V1.7/V1.8 变更, ★**本文从未复评**。\n2. ★**F4 已被现网表推翻 (部分)**: 该文 §6 自带复现命令 `grep -cE \",(EN|SS|CT|MR)[, ]\" HW/netlist_v1.csv` 记录 = **0**; ★**main 实跑 = 11** (EN 10 行: `EN_VCORE`→`U_DCDC_VCORE`\
+    \ pin13 · `EN_VIO`→`U_DCDC_VIO` pin13 · 7 颗 `U_LDO_*` pin3 · `U_EN_SW` pin2 · `CARRIER_BOARD_EN`; CT 1 行: `SUPV_CT`→`U_SUPV` pin4, ★但 `U_SUPV` 本身 DNP); ★**SS/MR 仍 = 0** ⇒ \"供电器件的控制脚在网表里根本不存在\" **对 EN\
+    \ 已不成立**, 对 SS/MR 仍成立。\n3. ★**F8 的复现命令本身是假阴性 ⇒ 结论已错**: `grep -cE \"LOAD|LOADSW|U_LS\" HW/netlist_v1.csv` 记录 = 0, ★**main 实跑也 = 0** —— 但★**现网表里负载开关叫 `U_PWR_SW`** (TPS22991RAA, 9 行: VIN=`BAT_SW` → VOUT=`RAIL_SYS`;\
+    \ ON pin2 配 `R_PD_ON` 10k 下拉 = 默认关; `Q_PG` P-MOS 高边) ⇒ **该 pattern 永远看不见它** (`U_PWR_SW` 不含 LOAD/LOADSW/U_LS 任一子串)。★而 `HW/POWER_SHUTDOWN_V3.md` §3 已写明该真关机拓扑 ⇒ F8 的结论\"网表里没有负载开关/电源开关/EN 断开路径 ⇒ 关机只能靠软件深睡,\
+    \ 轨全部带电\" ★**对现网表是错的**。\n4. ★**timing_check.py 是\"假绿\"**: 它★**从不打开网表** (全文只有第 25 行注释提到 `netlist_v1.csv`), F8 段直接写死 `\"load_switch_in_netlist\": False` / `\"rail_switching_devices\": 0` (L193-198), ★**自测第\
+    \ 227 行却把 `is False` 当 PASS 条件** ⇒ ★**网表变了它照样绿**。同类: `R_I2C_PULL` 写死 **4700** (L38, 注释\"网表 P2/P4: 4.7k 上拉到 3.3V\"), ★**但现网表 L169 的 `R_PU_I2CA_SCL` = 2.2k → `RAIL_VDD_1V8_IO` (1.8V 域, ISS-153 11-04 订正)**。⇒\
+    \ F3 的 t_r 按 4.7k 算是 **398ns@100pF**; 按 2.2k 算是 **186ns**; 且 300pF 标准模式上限判据 (现文档: 1194ns > 1000ns ⇒ ❌) 按 2.2k 算是 **559ns ⇒ ✅** ⇒ ★**一条结论会翻转**。\n   ⚠ 另: ★**现网表自身就有两行打架** —— L167 (`I2C_A_SCL` 的 NET 行)\
+    \ 仍写\"上拉 4.7k 到 3.3V … t_r=2.38µs@100pF\", L169 (R 行) 写 2.2k/1.8V ⇒ ★**这属 hw-lead 的网表分片, 你只报不改** (见边界)。\n\n★**交付物 (3 件, 缺一不可)**\n**A. `SW/SW_TIMING_REVIEW.md` —— 按现网表复评**\n   · 头部\"被评审对象\"改为 **513 行\
+    \ / md5 `c78f991283cc82d56c8e3dd31657c785` / 2026-11-05 10:57**, 并注明相对 476 行版本哪些结论变了 (推翻 / 部分推翻 / 仍成立)。\n   · ★**F1~F8 逐条**给: 结论 (仍成立 / 已推翻 / 部分成立) + 复现命令 + ★**实跑输出** + 证据等级。\n   · ★**新增一节**写\"本次复评发现的网表侧待修项\"\
+    \ (如 L167 与 L169 矛盾) ⇒ ★**登记 needs_from 给 hw-lead** (走 `state/frag_write.py`), ★**不要自己改网表**。\n   · ★**不许删改 §7 证据分级里任何 [实测]/[官方]/[推算]/[0数据] 标签**。\n**B. `SW/tools/timing_check.py` —— 从\"手抄常量\"改成\"实读网表\"\
+    **\n   · ★**用 csv 读 `HW/netlist_v1.csv`**, 凡网表可得的量一律**现读现算**: ① F1/F2 的 R/C 与 τ 注记 ② F3 ★**按网名分别**取上拉电阻值与域 (★**I2C_A = 2.2k / 1.8V**, I2C_B = 4.7k / 3.3V) ③ F4 EN/SS/CT/MR 脚是否在网表 ④ F5 上拉轨域 ⑤ F8 负载开关是否存在\
+    \ (★**按 ref 名 `U_PWR_SW` / `U_EN_SW` 认**, ★**不要再用 `LOAD|LOADSW|U_LS` 这个看不见东西的 pattern**)。\n   · 器件级常数 (TPS3808 VIT / CT 延时 等) 可留常量, 但每条**必须注明来源** (datasheet / [官方])。\n   · 输出里★**必须打印网表锚点** (md5 + 行数)\
+    \ ⇒ 下次漂移一眼可见。\n   · ★**既有 21 条自测一条不许删 / 不许弱化**; 另★**必须加反向用例**: 改坏输入 (如改掉网表里 I2C_A 上拉那一行) ⇒ 对应判据**必须变红** ⇒ 自测要能证明\"它真在读网表\", 不是在演常量。\n**C. 交接单 `HANDOFF/2026-11-11_sw-lead_ISS190_*.md`** —— ★**必须含 B1~B6\
+    \ 六块** (结论摘要 / 验收标准自评 / 证据分级 / 接口取值声明 / 未决项与卡点 / 自证复现命令) ⇒ ★**`state/gate_check.py` 的 Q1 是按\"每个 agent 最新一份交接单\"打分的, 缺 B 块 ⇒ Q1 掉出 18/18**。\n\n★**写入范围 (只许动这些)**\n· 可改: `SW/SW_TIMING_REVIEW.md` · `SW/tools/timing_check.py`\
+    \ · `HANDOFF/2026-11-11_sw-lead_ISS190_*.md` (新建) · `state/fragments/sw.yaml` (★**只经 `state/frag_write.py` 原子写**)。\n· ★**只读不许改**: `HW/netlist_v1.csv` 与 `HW/**` 任何文件 (网表矛盾**只报不改**) · `state/issue_log.yaml`\
+    \ (落账由 main 做) · 别人的分片 (`hw.yaml`/`mech.yaml`/`pm.yaml`) · `PROJECT_TRACKER.md` §0 锁死表。\n\n★**验收标准 (★可机械判★)**\n1. `python3 SW/tools/timing_check.py` ⇒ rc=0, 且输出里的★**网表锚点行** (md5 + 行数) 与 `md5sum HW/netlist_v1.csv`\
+    \ 一致。\n2. ★**反向用例 (★必做★)**: 把网表副本里 I2C_A 上拉那一行改掉后重跑 ⇒ 对应 t_r / 判据**必须变** (旧 398ns → 新值) ⇒ ★**证明它真在读网表**。\n3. 既有自测 **21 条全保留**且通过; 新增反向用例 ≥1 条且**会红**。\n4. `SW/SW_TIMING_REVIEW.md` 里 F1~F8 每条都有\"结论 +\
+    \ 复现命令 + 实跑输出 + 证据等级\"; 头部已锚定 513 行; §6 复现命令★**当场可跑** (main 会重跑你贴的命令)。\n5. `python3 state/merge.py` ⇒ rc=0; `python3 state/gate_check.py` ⇒ ★**Q1 = 18/18** ⇒ 两个输出都贴进回复。\n6. ★**不许**把 §7 证据分级里任何标签删掉或改成别的。\n\
+    \n★**自证命令 (交卷前跑, 输出贴回复)**\n```\npython3 SW/tools/timing_check.py\nmd5sum HW/netlist_v1.csv; wc -l < HW/netlist_v1.csv\ngrep -cE \",(EN|SS|CT|MR)[, ]\" HW/netlist_v1.csv\ngrep -c \"U_PWR_SW\" HW/netlist_v1.csv\n\
+    grep -n \"R_PU_I2CA_SCL\" HW/netlist_v1.csv\npython3 state/merge.py\npython3 state/gate_check.py\n```\n\n★**边界**\n· ★**不许联系供应商 / 原厂 / 外部** (外发一律经项目总工) —— ★**本单不需要任何外部信息**。\n· ★**不许**把\"改网表\"混进来 (那是\
+    \ hw-lead 的分片); 发现网表侧矛盾 ⇒ 只报 + 登记 needs_from。\n· ★**不许**动 §0 锁死表 / 别人的分片 / `state/issue_log.yaml`。\n· ★**写分片必须用 `state/frag_write.py`**, ★**禁止 `open(p,\"w\")`** (并发写分片会让合并器读到半截 YAML ⇒ 整份数据静默消失 ⇒ 项目压测实测过的坑)。\n\
+    · ★**交卷前必须** `python3 state/merge.py` (rc=0) && `python3 state/gate_check.py` (Q1=18/18) ⇒ 贴输出。\n\n\n★★**【2026-11-11 13:4x main 验收: 打回订正 (★不是推翻重做, 是【四处必须改】★)】★★\n★**main 已独立复核通过的部分 (不用改, 已被 main 实测确认★)**:\
+    \ ① 锚点 = 现行网表 513 数据行 / md5 `c78f991283cc82d56c8e3dd31657c785` (★main 实测一致★) ② `timing_check.py` 无参数自测 **SELFTEST 48/48 rc=0** (★含 6 条反向用例★) ③ `--reverse-demo` 实测【真读网表】(★改坏副本 ⇒ t_r/开关数/F8 判据逐条变红★) ④\
+    \ I2C_A = 2.2k@1.8V / I2C_B = 4.7k@3.3V (★main 从网表实测一致★) ⑤ F8 硬件断电通路存在 (★U_PWR_SW 4 行必装 / U_EN_SW 4 行必装, main 实测★) ⑥ 一行网表都没改 (★netlist md5 未变★) · 板 md5 仍 `611b869e13518c3c023fb178f91a0075` (★main 实测★)\n\
+    ★**但 P0 的【事实陈述】错了一格 ⇒ 必须订正后才好发给 hw-lead 改板 (★按现在的表述发出去, 他会照错归因改板!★)****\n★**main 实测 (★逐行读 `HW/netlist_v1.csv`★)**: `PG_AND` 网上 ⇒ `R_PG_PULL` 10k 上拉 **必装** · `Q_AND` 栅极 (node2=U_DCDC_VIO pin4) **必装**\
+    \ · `TP_PG_VCORE`/`TP_PG_VIO` **必装** · `NET_PG_AND` **必装** · ★**`Q_ENVC` 那一行 (接在 PG_AND 上) 才是 DNP** ⇒ ⇒ ★**PG 两个源 (U_DCDC_VCORE pin4 / U_DCDC_VIO pin4) 在现网表都是【必装】⇒ 「PG 源器件 DNP」不成立** ⇒ ⇒ **但结论方向仍然成立\
+    \ (甚至更强)**: PG_AND 有 10k 上拉 ⇒ Q_AND 栅极接在 PG_AND 上 ⇒ 栅极恒高 ⇒ Q_AND 导通 ⇒ RESET_N 恒被拉低 ⇒ 首台板可能不启动 ⇒ ⇒ ★**⇒ 结论不变, 归因链要改** ★★\n★★★★**★四条必改 (★照这四条改即可, 改完再交卷★)★★★★**★\n① ★**工具口径 bug (先修它)**: `SW/tools/timing_check.py`\
+    \ 的 `dnp_of(ref)` 取的是【该位号第一条 IC/SW 行】的 dnp ⇒ ★**但本表的 dnp 是【行级 = 每个连接一行】** ⇒ ⇒ **必须改成按【指定网】取那一行的 dnp** (如加 `dnp_of_row(ref, net)`) ⇒ ★**`pg_source_devices` 改用 PG_AND 这个网取** ⇒ ⇒ 实测应为: U_DCDC_VCORE **必装**\
+    \ / U_DCDC_VIO **必装** ★\n② ★**加一条反向用例**: ★**把 PG_AND 网上任意一行改成 DNP ⇒ 对应判据必须变红** ⇒ ★(这条专门用来锁死【别再拿错行的 dnp】★) ★\n③ ★**文档订正 (共 4 处: 头部摘要 / F1 行 / §2.5 / §7-2 的 P0 请求表)**: ★**所有「PG 源器件 DNP」改成 ★「PG 两个源是必装;\
+    \ 真正 DNP 的是 Q_ENVC (它接在 PG_AND 上) ⇒ PG_AND 有 10k 上拉 ⇒ Q_AND 栅极恒高 ⇒ RESET_N 恒低 ⇒ 首台板可能不启动」** ★★\n④ ★**§7-2 的 P0 三个选项要重写** (★现在的选项针对【源不存在】★): ★**改成 ① 把 Q_ENVC 从 PG_AND 上摘掉 / 或让 Q_ENVC 必装 (★真问题就在这★) ②\
+    \ 把 Q_AND 改 DNP (复位回到纯 RC + 按键, 与 SoM 内部复位并存) ③ 等 SoM 球位 TBD-01 落地后再把真实 PG 接进复位链** ⇒ ★**并请顺带点名: `U_SUPV pin1` 也是 DNP 且接在 RESET_N 上 (★它也参与【谁在拉复位】★)** ★\n★**纪律**: ★**只改 `SW/tools/timing_check.py` 与 `SW/SW_TIMING_REVIEW.md`**\
+    \ ⇒ ★**不许动网表 / 原理图 / PCB / 别人的分片** (★main 已确认你这次一行网表都没改, 继续保持★) ⇒ ★**交卷 ≤8 行: 四条各自怎么改的 + 自测 rc + `--reverse-demo` 输出 + 板 md5 ★★"
+  dispatched_at: 2026-11-11 13:5x (main 验收打回后手工重派)
+- id: ISS-191
+  title: '★P0 (来自 ISS-190 复评): 首台板可能因 RESET_N 恒低而无法启动 —— PG_AND 只剩 10k 上拉, 无人拉低 ⇒ Q_AND 栅极恒高 ⇒ 导通 ⇒ RESET_N 恒被拉到地'
+  severity: high
+  source_blocker: SW-TIM-B1
+  source_agent: main
+  desc: '★2026-11-11 14:0x 项目总工开单 (★依据 = ISS-190 复评的实测结论 + main 逐行复核★)。
+
+    ★**事实 (行级口径, 逐行可查)**: `PG_AND` 网上 6 行 ⇒ `R_PG_PULL` (L62, 10k 上拉到 VDD_1V8_IO, 必装) · `NET_PG_AND` (L64, 必装) · `Q_AND` (L67, 栅极接 PG_AND, 必装) · ★**`Q_ENVC` (L71, DNP)★** · `TP_PG_VCORE` (L402, 必装) · `TP_PG_VIO`
+    (L403, 必装) ⇒ ⇒ **没有任何实装器件能把 PG_AND 拉低** ⇒ `Q_AND` 栅极恒高 ⇒ `Q_AND` 导通 ⇒ `RESET_N` (源=GND) 恒被拉低 ⇒ **首台板可能不启动**。
+
+    ★**更强的器件级证据**: `U_DCDC_VCORE` (L79) / `U_DCDC_VIO` (L86) 的 IC 行 dnp=DNP ⇒ **两颗 DC-DC 实物不装** ⇒ 其 PG 脚根本不在板上 ⇒ `PG_AND` 更是只剩 10k 上拉 ⇒ `RESET_N` 的来源只剩 `Q_AND` 与 `SW_RST` (★`U_SUPV pin1` 也 DNP 且接在 RESET_N
+    上★)。
+
+    ★**三条改法 (来自 ISS-190 §7-2, 待 hw-lead 细化)**: ① 把 `Q_ENVC` 从 `PG_AND` 上摘掉 / 或让 `Q_ENVC` 必装 (★真问题在这★) ② 把 `Q_AND` 改 DNP (★复位回到纯 RC + 按键, 与 SoM 内部复位并存★) ③ 等 SoM 球位 TBD-01 落地后再把真实 PG 接进复位链。'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-11-11'
+  due: '2026-11-13'
+  status: fixing
+  external: false
+  need_keys: []
+  fix_ref: ''
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '★2026-11-11 14:0x 项目总工开单 (依据 ISS-190 二次验收通过的复评结论)。★**owner=hw-lead / verify_by=main ⇒ 满足铁律【自己修的必须别人验】**。
+
+    ★★★**★动手前必须先做一件事: 与老板的【位号改名】决策【合并到一次整链重出】★★★★** ⇒ ★**本单会改网表 ⇒ 板 md5 会变 ⇒ 而老板那边的 `ref_designator_rename` 也会改板 md5 ⇒ ⇒ ★**两件都改板 ⇒ 合并成一次整链重出, 别分两次改 (★每次改板都要重跑留证链/Gerber/投产包/盖印★) ⇒ ⇒ ★**所以: ① 先请老板拍 `ref_designator_rename`
+    ② 本单排在那次整链重出里一起做 ③ 在此之前【只做技术方案与影响面评估, 不改网表/不改板】★ ★★
+
+
+    ★2026-11-11 14:5x 项目总工**改派: owner hw-lead → sw-lead** (★verify_by 仍 = main ⇒ 自己修的必须别人验★)。
+
+    ★**为什么必须改 (★不然这一单永远出不来★)**: hw-lead 名下**主线 6b 仍在跑** (13:45 起, 实测 `state/gen_kicad_sch.py` 15:05 / `HW/PCB/demo_mainboard.kicad_sch` 15:06 仍在改) ⇒ ★**铁律「一个 agent 同时只允许一个写会话」⇒ 本单不能给 hw-lead** ⇒ 而 `advance.py`
+    的 in_flight 判据又把 hw-lead 整个跳过 ⇒ ★**两条路都堵死** ⇒ 本单必须换人 ⇒ ★**sw-lead 实测无在跑写会话** (最后一条 13:51 done) ★。
+
+    ★**能力匹配 (不是随便塞)**: ① 三条改法出自 ★**ISS-190 §7-2 (sw-lead 交卷, main 二次验收 verified/pass)** ★⇒ 本单是**它自己的后续** ② ★**验收命令 `python3 SW/tools/timing_check.py --only F1_reset_rc` 本就是 sw-lead 自建工具** (自测 55/55, 且实测能真读网表行级
+    dnp) ③ ★**零文件交集**: 本单只写 `HW/PCB/RESET_P0_FIX_PLAN.md` + `HANDOFF/` + `state/fragments/sw.yaml` ⇒ 与 6b (`state/gen_kicad_sch.py` + `HW/PCB/demo_mainboard*.kicad_sch`) / ISS-192 (`MECH/**`) **实测零交集**
+    ★。
+
+    ★**本单范围不变 (★严格照 task_brief★)**: ★**只出方案页, 不改网表 / 不改板 / 不改原理图 / 不重出投产包** ★⇒ ★**真正的落表改动等老板在 `state/RECHAIN_ONEPASS_PLAN.md` §5 回 ② 之后, 随整链重出一次做完** ★⇒ ★**`ref_designator_rename` 与本单合并成一次整链重出 = 本单第 ③ 点
+    (可行性评估) 的正文** ★。'
+  task_brief: '★**目标**: 让复位链在【首台板】上行为确定 —— 解决 `PG_AND` 无人拉低 ⇒ `Q_AND` 栅极恒高 ⇒ `RESET_N` 恒低 ⇒ 首台板可能不启动。
+
+    ★**先只做方案与影响面评估 (★不要改网表, 不要改板★)**: ① 从 ISS-190 的三条改法里选一条给出推荐 + 理由 (★优先选【不改 SoM 球位依赖】的那条★) ② 逐条列出该改法要动的文件 (网表行 / BOM / 原理图 / 板 / 投产资料) 与对 unc / DRC 的预期影响 ③ 评估与 `ref_designator_rename` 合并成一次整链重出的可行性 (★哪些改动可以同批做★)
+    ④ 出 `HW/PCB/RESET_P0_FIX_PLAN.md` (★方案 + 影响面 + 验收判据★)
+
+    ★**验收 (★等 main 派活时再定细节★)**: 方案里每个数字都能用 `python3 SW/tools/timing_check.py --only F1_reset_rc` 复算 + 板 md5 仍 `611b869e13518c3c023fb178f91a0075`
+
+    ★**纪律**: ★**本轮只出方案页, 不许改 `HW/netlist_v1*.csv` / 原理图 / 板 / 投产包** ⇒ 不许联系供应商/原厂 ⇒ 证据分级必标'
+  dispatched_at: '2026-11-11'
+- id: ISS-192
+  title: ★★结构侧(MECH)机械复核器全线仍钉在已作废的 12/15mm 板宽 ⇒ 现在的绿灯不是关于现行板子说的(pinset2_mech_check rc=0 但那是块不存在的板) + PIN-SET-2 孔位 Y 在 hw-lead 自己两个产物里差 7.50mm(打印包已按套A做出, 若 PCB 按套B钻则装不进骨架) ⇒ 迁到 60×30 + 仲裁成一份权威表
+  severity: high
+  source_blocker: MECH-B4
+  source_agent: main
+  desc: '★2026-11-11 13:4x~14:2x 项目总工实测开单 (★不是推测★)。
+
+    ★**根因 (为什么本单现在才存在)**: `advance.py --json` 的 A 段 (internal[]) **恒为空** ⇒ 26 条 `open` 的 owner【全部】是 `main`/`boss` ⇒ 三个总工名下没有 open 单 ⇒ 自动派活无单可派 ⇒ 本单按项目既有做法 (`_open_iss186_20261111.py` / `_open_iss190_20261111.py`)
+    由 main 开单并指派。
+
+    ★**发现的真问题 (四条硬证据, 全部 main 实跑)**:
+
+    ① **板宽已不是 15mm**: 老板 10-29 19:16 拍板 30mm, 板长 10-28 裁 60mm, §0 台账 11-01 20:5x 已订正 ⇒ 12/15/76mm 全是死值。
+
+    ② ★**六个 MECH 脚本仍带死常量** (行号见任务书): pinset2_mech_check.py:44/50/56/59-63 · skeleton_section_check.py:45/53/55 · cross_review_check.py:36/37/38 · fit_check.py:55 · hinge_usb_check.py:45 · iss065_check.py:76。
+
+    ③ ★★**假绿**: pinset2_mech_check.py 现在输出 "复算项 31 | FAIL 0 | WARN 3" rc=0 ⇒ **它是在一块已经不存在的板子上亮绿灯**; main 实测迁到 30mm+RK3576 ⇒ FAIL 变 1, 且变红的那条判据本身就是 15mm 语义 (老口径 3/3 孔压逃线带 → 30mm 下只剩 2/3) ⇒ **只改常量不够, 判据要一起重推**。
+
+    ④ ★**cross_review_check.py 是孤儿脚本** (全项目只被 gen_netlist.py 一句注释提到, 不被任何闸调用) ⇒ 它 rc=1 (16 项 10 FAIL) 没人看得见, 且 C-16 还在问老板 10-29 已答完的 12→15。
+
+    ★**核心仲裁**: PIN-SET-2 孔位 Y 两套互斥口径差 7.50mm —— 套A S1(8,10)/S2(52,20) (hw 分片声明 + hw_week_20261101_check.py + **打印包 RevB + MEASURE_CHECKLIST** + needs_from 明写的"±5.00 不变"规则) vs 套B S1(8,2.5)/S2(52,27.5) (HW/pcb60x30_check.py
+    + 它的 .json, 而那份 .json 是 ISS-118 的验收产物) ⇒ main 实测 30mm 板上套B 孔壁距边仅 1.80mm (套A 7.30mm) ⇒ **两者不可能同时对**。
+
+    ★**主线口径**: 老板 11-11 10:07 ⇒ 当前主线 = 硬件原理图 demo 绘制; PCB 布线/布局类不派 ⇒ ★**本单是【结构 / 网表接口 / 机械闸】类, 在优先派活范围内**, 且**全程不碰 PCB 布线/布局**。
+
+    ★**边界**: mech-lead 只出机械侧结论 + 权威表; **HW/ 一律不许改** ⇒ needs_from 报给 hw-lead / main。'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-11-11'
+  due: '2026-11-13'
+  status: fixing
+  external: false
+  need_keys: []
+  fix_ref: ''
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '★2026-11-11 13:4x 项目总工开单 (owner=mech-lead, verify_by=main ⇒ ★**自己修的必须别人验**, 铁律满足)。
+
+    ★**为什么这一单现在才派得出来**: 26 条 open 的 owner 全部是 main/boss ⇒ 三个总工名下没有 open ⇒ advance.py A 段恒空 ⇒ 自动派活无单可派 ⇒ 本单是 main 按项目既有做法开的**指派单**。
+
+    ★**为什么不派 PCB 类**: 老板 11-11 10:07 指令 —— PCB 布线/布局类一律【不派】(排队等原理图定稿); ISS-181 (hw-lead, 自研 demo 主板布线到可下单) ★**本轮按主线口径继续排队不派**。
+
+    ★**与在飞任务的并发安全 (实测)**:
+
+    · hw-lead 正在跑**主线 6b (照尺子改生成器)** ⇒ 只碰 `state/gen_kicad_sch.py` + `demo_mainboard*.kicad_sch` + `state/check_sch_pinfull.py` + `PIN_REALITY_GAP.md` ⇒ ★**与本单要动的 `MECH/**` 零文件交集** (实测 grep)。
+
+    · 本单**不写** `HW/netlist_v1.csv` / `demo_mainboard.kicad_pcb` / 任何 `state/gen_*.py` ⇒ 无写冲突。
+
+    ★**验收**: main 会独立重跑本单贴的复现命令 + 跑反向用例 + 查 `merge.py` rc=0 与 `gate_check.py` Q1=18/18 ⇒ ★**不采信自述**。'
+  task_brief: "★**目标**: 把**结构侧 (MECH) 整套机械复核器**从\"已作废的 12mm/15mm 板宽\"迁到**现行 60×30mm 板**,\n   并把 **PIN-SET-2 孔位 Y 的两套互斥口径 (差 7.50mm)** 仲裁成**一份权威表** (机械侧出结论 + 报给 hw-lead 改他的产物,\n   **你不许动 HW/ 任何文件**)。\n\n\
+    ★**背景 (main 2026-11-11 13:4x~14:2x 实测, 不是推测★)**:\n1. **板宽已不是 15mm**: 老板 10-29 19:16 拍板\"板宽可以放到 30mm 以内\"; 板长 60mm (10-28 项目总工裁);\n   §0 台账 11-01 20:5x 已订正 ⇒ **12mm / 15mm / 板长 76mm 都是死值**。\n2. ★**六个\
+    \ MECH 脚本仍带死常量 (行号照抄, 你自己复核)**:\n   · `MECH/pinset2_mech_check.py` :44 `PCB_W = 15.00` · :50 `SOC_Y0, SOC_Y1 = 3.50, 11.50`\n     (RK3588 时代 FCCSP 8×10 口径) · :56 `JCHG_Y0, JCHG_Y1 = 4.25, 10.75` (居中\
+    \ Y=7.50)\n     · :59-63 `HOLES` = 15mm 板孔位 P1(8,7.50) P2(52,7.50) S1(8,2.50) S2(52,12.50)\n   · `MECH/skeleton_section_check.py` :45 `PCB_W = 15.00` · :53 `SOC_Y_LEN = 8.00` ·\n     :55 `HOT_BAND =\
+    \ 3.50` (= (15-8)/2)\n   · `MECH/cross_review_check.py` :36 `\"board_w\": 12.0` · :37 `\"board_w_alt\": 15.0` · :38 `\"board_l\": 76.0`\n   · `MECH/fit_check.py` :55 `\"pcb_w\": 12.00` (v2 基线; 30mm\
+    \ 版是 `MECH/fit_check_v3_30mm.py`)\n   · `MECH/hinge_usb_check.py` :45 `\"board_w_mm\": (12.0, \"暂锁 12mm\")`\n   · `MECH/iss065_check.py` :76 `PCB_W = 15.00` 但注释标 **[官方]** ⇒ 15mm 决策本身已作废 ⇒ **来源标错**\n\
+    3. ★★**假绿 (本单最要紧的一条)**: `MECH/pinset2_mech_check.py` 现在跑出来是\n   **\"复算项 31 | FAIL 0 | WARN 3\" rc=0** ⇒ ★**它是在一块已经不存在的板子上亮绿灯**。\n   main 实测把它迁到 30mm + RK3576 (SoC 占位 Y 6.95..23.05 ⇒ 逃线带 Y[6.15,23.85])\
+    \ ⇒\n   **FAIL 变 1** —— 且★**变红的那条判据本身就是 15mm 语义**:\n   \"老口径 (2×M1.2 + 1×⌀2.0H7 @孔心到板边2.50) 在 15mm 板下不可用 → 必须改\"\n   (15mm 板: 3/3 孔压逃线带 ⇒ 判据成立; 30mm 板: 只剩 **2/3** ⇒ 判据语义变了)。\n   ⇒ ★**只改常量不够, 判据文案与判据本身要一起重推**\
+    \ (你重新定判据并说明依据)。\n   ⇒ 另 3 条 WARN 不变 (打印包契约: pcb_len 50 vs 板长 60 / ⌀2.4 让过孔 1 个 vs 应 2 个 /\n     M1.2 让过孔中心距 40.00 vs 应 44.00) ⇒ ★**打印包契约也是老口径, 是本单要出权威表的一部分**。\n4. ★**`MECH/cross_review_check.py` 是孤儿脚本**:\
+    \ 全项目**只**被 `state/gen_netlist.py` 的一句注释提到,\n   **不被任何闸调用** ⇒ 它现在 rc=1 (16 项 10 FAIL) 但**没人看得见**; 其中 C-16 标题是\n   \"板宽 12 → 15mm 的机械后果 (供老板拍板)\" ⇒ ★**它在问一个老板 10-29 已经答完的问题**。\n\n★★**核心仲裁 (本单最重要的一条):\
+    \ PIN-SET-2 孔位 Y 有两套互斥口径, 差 7.50mm, 且分属 hw-lead 自己的两个产物★★**\n· **套 A (中心线平移, ±5.00 不变)**: S1(8,10) S2(52,20) —— 出处:\n  `state/fragments/hw.yaml` 的 `pcb_mount_holes_xy` · `HW/hw_week_20261101_check.py`:55\
+    \ 的 `exp` ·\n  `MECH/print/gen_print_pack_revb.py` (`pinset2_s1_y = 10.00`) · `MECH/print/MEASURE_CHECKLIST.md`:298 ·\n  `MECH/_apply_iss017_answers.py` · 以及 `hw.yaml` 的 needs_from `iss118_pcb_holes_30mm_y`\
+    \ **明写**\n  \"Y 按中心线平移 (旧中心 7.50 → 新中心 15.00, **S 孔 ±5.00 不变**)\"\n· **套 B (保持绝对 Y)**: S1(8,2.50) S2(52,27.50) —— 出处:\n  `HW/pcb60x30_check.py`:113-117 的 `HOLES` 与 `HW/pcb60x30_check.json` 的 `sec4_holes`\
+    \ (RK3576 段)\n★**main 实测的物理后果 (30mm 板)**:\n| 套 | S1/S2 孔心距板边 | 孔壁距板边 | S1→S2 距离 |\n|---|---|---|---|\n| A (10.00/20.00) | 8.00 | **7.30** | 45.12 |\n| B (2.50/27.50) | 2.50 | **1.80** | 50.61 |\n⇒ ★**打印包\
+    \ (Rev B 笼 + 量测清单) 已按套 A 做出** (实测 `gen_print_pack_revb.py` 与 `MEASURE_CHECKLIST.md`:298 都是套 A);\n  若 PCB 按套 B 钻 ⇒ **螺钉与笼差 7.50mm ⇒ 板装不进骨架**; 反之若 PCB 按套 A 而\n  `pcb60x30_check.py`/`.json` 仍发套 B ⇒ ★**那份\
+    \ JSON 是 ISS-118 的验收产物** ⇒ 下游按它做就错。\n★**你只出机械侧结论 + 一份权威表**: 机械后果 (压装/笼孔/让过孔/打印包) 到底支持哪一套、依据是什么、\n   被否掉的方案为什么否、**改了谁会受影响** —— 然后**用 frag_write.py 登记 needs_from → hw-lead**,\n   把**要改的文件/行号/取值**写清楚。★**不许你改\
+    \ HW/ 任何文件** (网表/板/原理图/生成器/HW 分片一律不许碰)。\n\n★**顺带一条 (只报不改, 归 hw-lead / main)**:\nmain 实测: demo 板 (`HW/PCB/demo_mainboard.kicad_pcb`, 160×100mm) 里 **MountingHole footprint = 0 个**,\n全板只有 2 个 np_thru_hole\
+    \ (USB-C 座自己的壳体柱); `HW/PCB/demo_mainboard_params.json` 声明 4 个\n`[[3,3],[57,3],[3,42],[57,42]]` ⌀2.2, 但在 160×100 板上 X 只跨 54/160mm、Y 只跨 39/100mm\n⇒ ★**像 60×45 时代的遗留坐标** (params 自己的 `_pending` 注释就写了\"\
+    原 60×45 是骨架生成器时代的草案\");\n网表侧 0 行含固定孔/安装孔/keepout (cross_review C-11 实测 hits=0) ⇒ **原理图与网表都没有固定孔/keepout 行**\n⇒ 板出来无从锁紧。★**只登记 needs_from (含你复核的坐标/直径/数量建议 + 依据), 不许改网表/板/params**。\n\n★**交付物 (缺一不可)**\n\
+    A. `MECH/BOARD_GEOM_30MM.md` (新建) —— **结构侧权威表**: 板框 60×30 / SoC RK3576 实际占位 / 逃线带 /\n   PIN-SET-2 四孔 (含 **Y 口径仲裁结论 + 依据 + 被否方案 + 影响面**) / 打印包契约三条 WARN 的现行值\n   ⇒ 每条标明**哪个产物用哪套、谁是下游真源**。\nB. `MECH/pinset2_mech_check.py`\
+    \ 迁到 60×30 (常量 + **判据文案/判据本身一起改**) + 加 `--self-test`\n   (**含反向用例**: 把某个孔挪进 SoC 逃线带 ⇒ 必须变红) ⇒ rc=0 且迁后判据与 A 的权威表一致。\nC. `MECH/skeleton_section_check.py` 迁 30mm (`PCB_W` / `SOC_Y_LEN` / `HOT_BAND`) ⇒\
+    \ 重出骨架宽与横向热扩散结论。\nD. `MECH/cross_review_check.py`: C-16 改成 30mm 现状 (不再问已答完的 12→15) + `board_l` 76→60\n   ⇒ 并**明确它是闸还是不是闸**: 要么接进闸, 要么写清为何不接 ⇒ ★**不许留一个没人看的孤儿红**。\nE. `MECH/fit_check.py` / `MECH/hinge_usb_check.py`\
+    \ / `MECH/iss065_check.py` 三处 12/15mm 死常量:\n   **逐个定性** (该迁 / 该标作废 / 只是文档引用) 并落成文字 + 必要的 needs_from ⇒ ★**不许闷头改数字了事**。\nF. `HANDOFF/2026-11-11_mech-lead_ISS192_*.md` —— ★**B1~B6 六块齐全**\n   (结论摘要 / 验收标准自评逐条\
+    \ / 证据分级 / 接口取值声明 / 未决项与卡点 / 自证复现命令) ⇒ Q1 要 18/18。\nG. `state/frag_write.py` 登记: needs_from → **hw-lead** (套 B 产物要改哪几行/取值/影响面) +\n   needs_from → **main** (demo 板零安装孔/零 keepout 那条, 含你的坐标/直径/数量建议 + 依据)。\n\
+    \n★**边界 (不许越)**\n· 只写 `MECH/**` + `HANDOFF/**` + `state/fragments/mech.yaml` (★**必须走 `state/frag_write.py`**) + 你的交卷单。\n· ★**不许碰** `HW/**` (网表 / 板 / 原理图 / 生成器 / HW 分片) · `state/issue_log.yaml` ·\n \
+    \ `PROJECT_TRACKER.md` §0 · **别人的分片** · `state/gen_*.py`。\n· 板 md5 `611b869e13518c3c023fb178f91a0075` 与 `.kicad_pro` `3e504d2b` **一字不许动** (只读都不必去碰)。\n· ★**不许联系供应商/原厂** (外发一律经项目总工)。\n· ★**证据分级** [实测]/[官方]/[推算]/[0数据]\
+    \ 必标; ★**凡给出任何统计数必须同时给出口径**\n  (哪个板宽 / 哪套孔位 / 含不含 DNP / 哪个 SoC) —— ★**只给数不给口径 = 会被当事实传下去**。\n· 写分片**必须**用 `state/frag_write.py` (禁止 `open(p,\"w\")`)。\n\n★**验收自证 (交卷前跑, 把输出贴进回复)**\n```\npython3 MECH/pinset2_mech_check.py\
+    \            # rc=0, 且 FAIL/WARN 与 A 的权威表对得上\npython3 MECH/pinset2_mech_check.py --self-test # rc=0, 且【反向用例】把孔挪进逃线带必须变红\npython3 MECH/skeleton_section_check.py        # rc=0\npython3 state/merge.py\
+    \                        # rc 必须 0\npython3 state/gate_check.py                   # Q1 必须 18/18\nmd5sum HW/PCB/demo_mainboard.kicad_pcb        # 必须仍 = 611b869e13518c3c023fb178f91a0075\n```\n★**交卷 ≤\
+    \ 25 行** (结论先行; 逐条给复现命令与实测输出)。\n"
+  dispatched_at: '2026-11-11'

@@ -322,10 +322,10 @@ artifacts:
     RPi 15p1.0mm/22p0.5mm, 与自画的 0.5mm24p 对不上'
 - path: HW/PART_ALTERNATIVES_REGISTRY.md
   kind: registry
-  version: v1.1
-  updated_at: '2026-10-25'
-  summary: 'v1.1 补 §6.1: TPS7A20 各电压档封装可得性实测 (2.9V/1.1V 档只有 DQN/YCK 无 SOT-23-5 => 改档=改焊盘) + DVDD 保持1.2V不动的建议
-    + BOM 封装列现在定还来得及'
+  version: v1.2
+  updated_at: '2026-11-11'
+  summary: '★ISS-189 订正: :24 主控载体行 DSI 4-lane 够 1920×1080 RGB888 (373Mbps) -> (2986Mbps) + 依据注 (payload
+    = 1920×1080×24×60 = 2985.98 Mbps, 与 e2e_budget_rk3572.py §⑥ 同口径, TX 物理下限 7.776ms; 结论「DSI 4-lane 够」逐字保留)'
 - path: HW/STEP1_PARTS_SPEC.md
   kind: spec
   version: '1.1'
@@ -334,22 +334,10 @@ artifacts:
     口径)'
 - path: HW/STEP1_LANDING_LIST.md
   kind: landing-list
-  version: v2.0
-  updated_at: '2026-10-25'
-  summary: '★★ISS-159 闭卷交付 (2026-11-03 09:4x): §3 画板前致命项 F 表扩到 F14 (另加 F15 建议), 状态列改为 已清零/待清/不适用/未查, 依据全部落到
-    §3.1 (文件:行号 或 URL), 冲突落 §3.2 (C1~C8), 未查清单落 §3.3。★状态总表: F1 已清零(9路使能全有网) / F2 已清零(结论被F14推翻) / F3 已清零但口径要改(2.2k不变,
-    上拉轨 3.3V→1.8V, 因模组标I2C5=RK3572的1.8V域) / F4 待清(camera 31p/0.3mm+FH35C-31S-0.3SHW(50) 已清零; display 两个互斥选项
-    39p/0.3mm 走原厂排线 vs 40p/0.5mm 直插, 同文档自相矛盾, 屏侧座型号未查) / F5 已清零(引脚399行+尺寸+连接器式焊接; 残留 ISS-169 BTB机械未核)
-    / F6 已清零(6层+100Ω差分/50Ω单端/skew<3mil/时钟数据等长<6mil, 公开依据=Forlinx OK3572-C手册 §3.5.16+§3.5.17.1; ★纠正任务书:
-    ≥6层无公开依据, 公开载板是4层) / F7 待清(MCLK由SoM出 CAM_CLK0_OUT_M0 1.8V, 串阻位已留值未锁, 10个100nF AC耦合位已留, 位留=只改BOM不改板)
-    / F8 已清零(rk3576-evb.dtsi simple-panel-dsi 模板已落: 261条init+2条exit; 前提=demo屏必须走10FHD白名单路线) / F9 待清(1080p档缺mesh,
-    1~2人日+暗室, 卡出图不卡板) / F10 待清(判据已定: 紧贴接口+寄生电容 SATA≤0.4pF/USB≤3pF/HDMI≤0.2pF/其他≤1pF, 依据 §3.5各接口章+§2.4.5;
-    ★网表缺 display FPC 口 ESD 位) / F11 未查(HIROSE页无cycles/durability字段, 模组厂未公开FPC弯折规格; 兜底=按不弯折设计+V9插拔20次)
-    / F12 不适用(老板明确暂缓) / F13 已清零(拓扑): Forlinx §4 Power-on Sequence 原文三连(inrush/boot fail/irreversible damage)
-    + §3.5.1, 网表 pin87→U_EN_SW EN→RAIL_BOARD_5V + RAIL_SOM_DCIN 直供7脚(09:43:38版) / F14 已清零(模组级供电: pin28/29=3.3V,
-    pin30/31=5V ⇒ 三轨+3颗TPS7A20+6个去耦位全DNP) / ★F15 待清·阻塞投板(本单新撞出: display 背光/触控4脚并成 NET_DSI_AUX, LED+与LED−短接,
-    另 pin36/pin39 还接地 ⇒ 背光两端短路; 且主板无12V BOOST背光轨)。★本单只改本文件§3 + state/fragments/hw.yaml, HW/PCB/ 与 SCHEMATIC_V1_SPEC.json
-    / netlist_v1.csv 一个字没改。'
+  version: v2.1
+  updated_at: '2026-11-11'
+  summary: '★ISS-189 订正: :42 display 连接行 373Mbps -> 2986Mbps + 依据注 (payload = 1920×1080×24×60 = 2985.98
+    Mbps, 与 e2e_budget_rk3572.py §⑥ 同口径, TX 物理下限 7.776ms; 结论句「4-lane 绰绰有余 ⇒ 不需 DSC」逐字保留)'
 - path: HW/I2C_ADDR_TABLE.md
   kind: interface-table
   version: v1.0
@@ -437,6 +425,14 @@ artifacts:
   updated_at: '2026-11-11'
   summary: '★ISS-186 订正: :29 给面板厂的 Q2 问法一字未改, 只把 payload 数字 373→2986 Mbps; 依据注加在 §3 内部备注(不发)段; ★本函仍【未发】,
     外发须经老板放行'
+- path: HANDOFF/2026-11-11_hw-lead_ISS189_DSI_payload_收尾.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-11'
+  summary: '★ISS-189 收尾交付: DSI payload 8× 口径差的最后 2 处 (HW/STEP1_LANDING_LIST.md:42 + HW/PART_ALTERNATIVES_REGISTRY.md:24)
+    订正 373Mbps -> 2986Mbps + 各补依据注 (payload = 1920×1080×24×60 = 2985.98 Mbps, 与 HW/e2e_budget_rk3572.py
+    §⑥ 同口径, TX 物理下限 7.776ms = 2986÷60÷6400); ★结论方向一字未改 (仍不需要 DSC); ★自证: grep 旧值零命中 (HW/SW/state/outbox/state/_demo_hw_scheme_landing.py
+    全部 rc=1) + selftest rc=0 (脚本 md5 未变) + merge 冲突 0 + 结构化断言 14 项全过'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2378,9 +2374,12 @@ interface_claims:
   ref: HW/RK3572_OFFICIAL_DATASHEET_FACTS.md#6
 - key: dsi_payload_1080p60_rgb888
   value: 2986 Mbps
-  note: 1920x1080x24x60 = 2985.98 Mbps (RGB888 24bpp); 与 HW/e2e_budget_rk3572.py §⑥ 实打印 2986.0 Mbps 及
-    PROJECT_TRACKER.md:2099 同口径; TX 物理下限 7.776ms 即按此 payload 算出
-  ref: HW/e2e_budget_rk3572.py §⑥ + PROJECT_TRACKER.md:2099
+  note: '1920x1080x24x60 = 2985.98 Mbps (RGB888 24bpp); 与 HW/e2e_budget_rk3572.py §⑥ 实打印 2986.0 Mbps 及
+    PROJECT_TRACKER.md:2099 同口径; TX 物理下限 7.776ms 即按此 payload 算出; ★ISS-189 订正 (2026-11-11): 本单已把 HW/STEP1_LANDING_LIST.md:42
+    与 HW/PART_ALTERNATIVES_REGISTRY.md:24 两处旧口径订正成 2986 (★结论方向不变: 4-lane@2.5Gbps raw 占 29.9% / 脚本口径 4-lane@2.0Gbps×80%
+    占 46.7% ⇒ 仍不需要 DSC★); ★与 sw.yaml 的同名 claim 同名同值 ⇒ 交叉确认, 非重复登记★'
+  ref: HW/e2e_budget_rk3572.py §⑥ + PROJECT_TRACKER.md:2099 + HW/STEP1_LANDING_LIST.md:42 + HW/PART_ALTERNATIVES_REGISTRY.md:24
+    + HANDOFF/2026-11-11_hw-lead_ISS189_DSI_payload_收尾.md
 - key: dsi_payload_800x1280_60_rgb888
   value: 1475 Mbps
   note: 800x1280x24x60 = 1474.56 Mbps (RGB888 24bpp)

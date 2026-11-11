@@ -63,7 +63,28 @@ PROD_REQUIRED = [
     ("★原理图 SVG", "doc/sch_svg/demo_mainboard.svg"),
     ("★KiCad 原理图网表", "doc/demo_mainboard-kicad.net"),
     ("★KiCad BOM", "doc/demo_mainboard-kicad-bom.xml"),
+    # ★★2026-11-11 11:0x (hw-lead): 投产包必须带**原理图源文件**, 不能只有 PDF/SVG
+    #   ★为什么: PDF/SVG 是**渲染件** —— 板厂"能看不能改"; 真要改个脚位/阻值只能回我们这改 ⇒ 又一轮 2-4 周 + ¥4-8K
+    #   ★而且 10 个子页 (demo_mainboard_p1..p10.kicad_sch) 只活在 HW/PCB/ 里 ⇒ 投产包里没人知道它们是原理图的一部分
+    #   ★.kicad_pro **必带**: 封装库引用 / 设计规则(DRC+ERC) / 图纸设置 / 文本框参数 **全部只存在这一个文件里**
+    #     ⇒ 丢了 .kicad_pro 就算 .kicad_sch 全在, 工程文件也是残废的 (开出来是默认规则)
+    ("★原理图源文件 根页", "doc/sch_src/demo_mainboard.kicad_sch"),
+    ("★原理图源文件 子页 P1", "doc/sch_src/demo_mainboard_p1.kicad_sch"),
+    ("★原理图源文件 子页 P2", "doc/sch_src/demo_mainboard_p2.kicad_sch"),
+    ("★原理图源文件 子页 P3", "doc/sch_src/demo_mainboard_p3.kicad_sch"),
+    ("★原理图源文件 子页 P4", "doc/sch_src/demo_mainboard_p4.kicad_sch"),
+    ("★原理图源文件 子页 P5", "doc/sch_src/demo_mainboard_p5.kicad_sch"),
+    ("★原理图源文件 子页 P6", "doc/sch_src/demo_mainboard_p6.kicad_sch"),
+    ("★原理图源文件 子页 P7", "doc/sch_src/demo_mainboard_p7.kicad_sch"),
+    ("原理图源文件 子页 P8", "doc/sch_src/demo_mainboard_p8.kicad_sch"),
+    ("原理图源文件 子页 P9", "doc/sch_src/demo_mainboard_p9.kicad_sch"),
+    ("原理图源文件 子页 P10", "doc/sch_src/demo_mainboard_p10.kicad_sch"),
+    ("★KiCad 工程文件 (.kicad_pro)", "doc/sch_src/demo_mainboard.kicad_pro"),
 ]
+
+# ★★投产包里的原理图源文件目录 (2026-11-11 hw-lead)
+SCH_SRC_DIR = os.path.join(PROD, "doc", "sch_src")
+SCH_SRC_PRO = "demo_mainboard.kicad_pro"
 
 
 def mt(p):
@@ -84,6 +105,64 @@ def run(cmd, timeout=900):
 def ts(p):
     t = mt(p)
     return time.strftime("%m-%d %H:%M", time.localtime(t)) if t else "(缺)"
+
+
+def _md5(p):
+    import hashlib
+    try:
+        with open(p, "rb") as f:
+            return hashlib.md5(f.read()).hexdigest()
+    except Exception:
+        return ""
+
+
+def expected_sch_src_files():
+    """★期望投产包 doc/sch_src/ 里的文件集合 = HW/PCB/ 下**全部** .kicad_sch + 主工程 .kicad_pro
+    ★为什么动态算 (不写死 12 个): 新加了 p11 子页却没进投产包时, 门禁必须自己发现 (防"漏了新的")"""
+    import glob
+    sch_dir = os.path.join(PROJ, "HW", "PCB")
+    names = set(os.path.basename(p) for p in glob.glob(os.path.join(sch_dir, "*.kicad_sch")))
+    names.add(SCH_SRC_PRO)
+    return names
+
+
+def check_sch_src_pack():
+    """★投产包里的原理图源文件 (2026-11-11) —— 只读校验
+    ★判据: ① 目录在  ② 文件名集合与 HW/PCB/ **一一对应** (多一个少一个都红)
+            ③ 每个文件内容 (md5) 与源文件**完全一致** (防"加了旧的")"""
+    if not os.path.isdir(SCH_SRC_DIR):
+        return False, ("doc/sch_src/ 不存在 ⇒ 投产包只有 PDF/SVG 渲染件, **没有可改的原理图源文件** "
+                       "(板厂能看不能改) ⇒ 修法: cp -p HW/PCB/demo_mainboard*.kicad_sch "
+                       "HW/PCB/demo_mainboard.kicad_pro HW/PCB/production/doc/sch_src/")
+    have_all = set(os.listdir(SCH_SRC_DIR))
+    have = set(f for f in have_all if os.path.isfile(os.path.join(SCH_SRC_DIR, f)))
+    subdirs = sorted(have_all - have)
+    exp = expected_sch_src_files()
+    miss = sorted(exp - have)
+    extra = sorted(have - exp)
+    # 内容一致性 (防"加了旧的")
+    bad = []
+    for n in sorted(exp & have):
+        src = os.path.join(PROJ, "HW", "PCB", n)
+        dst = os.path.join(SCH_SRC_DIR, n)
+        if not os.path.exists(src):
+            continue
+        if _md5(src) != _md5(dst):
+            bad.append(n)
+    prob = []
+    if miss:
+        prob.append(f"缺 {len(miss)} 个 (例 {miss[:3]})")
+    if extra:
+        prob.append(f"多 {len(extra)} 个 (例 {extra[:3]})")
+    if bad:
+        prob.append(f"内容与源不一致 {len(bad)} 个 (例 {bad[:3]})")
+    if subdirs:
+        prob.append(f"目录里还有子目录 {subdirs[:2]}")
+    if prob:
+        return False, ("原理图源文件与 HW/PCB/ **没有一一对应**: " + "; ".join(prob)
+                       + " ⇒ 修法: 把 doc/sch_src/ 同步成 HW/PCB/ 下全部 .kicad_sch + " + SCH_SRC_PRO)
+    return True, (f"{len(exp)} 个源文件齐全 · 与 HW/PCB/ 一一对应 · 内容 md5 全一致 "
+                   f"({len([n for n in exp if n.endswith('.kicad_sch')])} 个 .kicad_sch + 1 个 .kicad_pro)")
 
 
 def check_bom_against_netlist():
@@ -210,10 +289,14 @@ def main():
     for label, src in (("PCB", PCB), ("原理图", SCH)):
         if pack_t and mt(src) > pack_t + 1:
             stale.append(label)
-    e5 = (not missing) and (not stale) and e1 and e2 and e3 and e4
+    # ★★2026-11-11 (hw-lead) 新增检查项: 投产包必须带**原理图源文件** (doc/sch_src/)
+    #   判据: 文件名集合与 HW/PCB/ 一一对应 + 内容 md5 全一致 (多一个少一个都红)
+    ss_ok, ss_msg = check_sch_src_pack()
+    e5 = (not missing) and (not stale) and e1 and e2 and e3 and e4 and ss_ok
     e5m = (f"{len(PROD_REQUIRED) - len(missing)}/{len(PROD_REQUIRED)} 必备产物齐全"
            + ("" if not missing else " · 缺: " + ", ".join(missing[:4]))
-           + ("" if not stale else f" · ★**投产包比 {', '.join(stale)} 旧 ⇒ 投板用的是旧板的 Gerber**"))
+           + ("" if not stale else f" · ★**投产包比 {', '.join(stale)} 旧 ⇒ 投板用的是旧板的 Gerber**")
+           + " · ★原理图源文件: " + ss_msg)
     if not os.path.isdir(PROD):
         e5, e5m = False, "production/ 目录不存在 ⇒ 跑 state/gen_production_pack.sh"
     x5 = True
@@ -237,7 +320,9 @@ def main():
         print("   修法: ① 网表/原理图/PCB/BOM 任一比它的源旧 ⇒ 重跑对应生成器 "
               "(`python3 state/gen_netlist.py` / `gen_kicad_sch.py` / `gen_bom.py` / "
               "`bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py`) "
-              "② 投产包缺件 ⇒ `bash state/gen_production_pack.sh`")
+              "② 投产包缺件 ⇒ `bash state/gen_production_pack.sh` "
+              "③ 投产包缺/多/旧**原理图源文件** ⇒ `cp -p HW/PCB/demo_mainboard*.kicad_sch "
+              "HW/PCB/demo_mainboard.kicad_pro HW/PCB/production/doc/sch_src/`")
         return 1
     print("✅ 生产链准入/准出全过 —— 下游产物都是新的、且与上游一致")
     return 0
