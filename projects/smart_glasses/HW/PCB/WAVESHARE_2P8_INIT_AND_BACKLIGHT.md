@@ -395,7 +395,7 @@ static const struct dw_mipi_dsi2_plat_data rk3588_mipi_dsi2_plat_data = {
 |---|---|
 | RK3572 + 视涯 0.49" (必须 DSC 3:1) | ✘ **不可行** (SoC 侧无 DSC 编码器) |
 | RK3588 + 视崖 0.49" | ✔ 理论可行 (`.dsc = true` + `nr_dscs = 2`), 但 SoM 要换 |
-| RK3572 + 视崖屏 **不用 DSC** | 需面板厂提供非压缩模式 (1920×1080@60 RGB888 ≈ 373 Mbps payload ⇒ 4-lane 完全够, 见 `HW/DISPLAY_SENSOR_CHAIN.md` §) ⇒ ★**要去 B2B 问面板厂能不能跑非 DSC 模式** |
+| RK3572 + 视崖屏 **不用 DSC** | 需面板厂提供非压缩模式 (1920×1080@60 RGB888 ≈ 2986 Mbps payload ⇒ 4-lane 完全够, 见 `HW/DISPLAY_SENSOR_CHAIN.md` §) ⇒ ★**要去 B2B 问面板厂能不能跑非 DSC 模式** · ★**依据 (ISS-186 订正)**: payload = 1920×1080×24×60 = 2985.98 Mbps ⇒ ①4-lane@2.5Gbps raw 10 Gbps ⇒ 占 **29.9%** ②脚本口径 4-lane@2.0Gbps × 80% = 6400 Mbps ⇒ 占 **46.7%** ⇒ ★**两种口径都远低于 100% ⇒「4-lane 完全够」的结论方向不变**; ★**TX 物理下限 7.776ms (`HW/e2e_budget_rk3572.py` `tx_min_ms()`) = 2986 Mbps ÷ 60fps ÷ 6400 Mbps ⇒ 就是按这个 payload 算的 ⇒ 文档与脚本口径一致** |
 
 ⇒ ★**采购硬判据新增一条**: "SY049WDM01 必须支持 **非 DSC** 的 1920×1080@60 RGB888 DSI 模式", 否则 RK3572 方案直接作废。
 

@@ -366,3 +366,7 @@ dispatches:
   at: '2026-11-04'
   brief: "【ARS45 · demo 主板 · I2C 地址表全量核对 + 网表注释订正 + 门禁化 (ISS-153)】\n\n## 背景 (为什么现在做)\ndemo 主板网表已经按 **IMX415 camera 模组** 重画过一轮, 但 I2C 这条线上留着 **3 处已知过期/自相矛盾**的东西:\n\n1. ★**地址注释过期**: `state/gen_netlist.py`\
     \ 里 U_TEMP 那条注释 (★`gen_netlist.py:806` 附近) 仍写\n   \"IMX415 = 0x1a / AR0234CS = 0x10 / **桥接 0x50** / **充电 IC 0x12** /"
+- issue: ISS-186
+  agent: hw-lead
+  at: '2026-11-11'
+  brief: '闭环 ISS-186: ★DSI payload 8× 口径差 6 处「373/246 Mbps」实为 2986/1475 Mbps ⇒ 依据虚到 8 倍 ⇒ 下次有人拿它反推 TX 下限, 7.776ms 会塌成 ~0.97ms ★(手工解冻: advance.py 的 in_flight 代理判据挡住了, 已实测 hw-lead 无在跑写会话 + 与主会话板子臂文件交集=0)'

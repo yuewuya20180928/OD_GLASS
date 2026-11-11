@@ -6312,7 +6312,7 @@ issues:
   reporter: main
   raised: '2026-11-11'
   due: '2026-11-13'
-  status: open
+  status: fixing
   external: false
   need_keys: []
   fix_ref: ''
@@ -6329,7 +6329,13 @@ issues:
 
     ⇒ ★**再派一条给 hw-lead 反而会和主会话抢同一块板** ⇒ ⇒ 等板子那条收口后再派。
 
-    ★**边界**: ★**没有改 hw-lead 的任何分片** (①③④⑥ 全是 hw-lead 的活, main 一个字没动) · ★**没有发任何邮件** (⑥ 是给供应商的询价函草稿 ⇒ 改了也不发) · ★**没有改 §0 锁死表**。'
+    ★**边界**: ★**没有改 hw-lead 的任何分片** (①③④⑥ 全是 hw-lead 的活, main 一个字没动) · ★**没有发任何邮件** (⑥ 是给供应商的询价函草稿 ⇒ 改了也不发) · ★**没有改 §0 锁死表**。★2026-11-11 07:5x 项目总工**手工解冻派活** (★本单不是 advance.py 自动吐出来的★)。★**为什么 advance.py
+    派不出它**: advance.py 的 in_flight 判据是「owner 名下已有 status==fixing 的 issue ⇒ 跳过」(★保守代理★) ⇒ ISS-181 (owner=hw-lead, fixing) 把本单挡住 ⇒ internal=[] ⇒ `--apply --only ISS-186` 遍历的是空的 internal ⇒ **一条都标不了** (实测)。★**本单可以解冻的三条实测依据**:
+    ① ★**hw-lead 当前没有任何运行中的写会话** (sessions_list 实测: verify-docs-A / verify-docs-B / 周更新 / 布线器 四条全 done|failed, 最后一条 11-08 23:3x) ⇒ ★**铁律要防的「同一 agent 两个并发写会话互相覆盖分片」没有发生**; ② ★**ISS-181 的板子活实际由【主会话】在跑** (v76mz
+    臂 campaign, 07:41 起) ⇒ ★**它不占 hw-lead 的写会话名额** ⇒ 代理判据在这里代理错了事实; ③ ★**文件交集=0** (臂链路 6 个脚本 grep「fragments|.yaml」零命中, 只写 /tmp + state/.lastgood/; 本单只改 5 个 .md) ⇒ ★**不抢同一块板**。★**不派的代价**: ISS-181 离 G1 要求的
+    unc=0 还远 (当前最佳臂 v76mg1 = unc 23 条/21 网) ⇒ ★**不可能在本单 due 11-13 前落账** ⇒ ★**照字面判据本单会被永久冻住**。★**hw-lead 侧的边界 (随任务书一起给)**: ★**不许碰板子相关任何文件** (demo_mainboard.kicad_pcb / state/gen_pcb_*.py / state/.lastgood/
+    / /tmp 链产物) ⇒ ★**ISS-181 归主会话, hw-lead 不插手**; ★**不许碰 sw-lead 的分片** (⑤ SW/DEMO_OD_PIPELINE_SPEC.md:322 归 sw-lead) ⇒ 本单只改 ①②③④⑥ 五处; ★**不许发任何邮件/不联系供应商** (⑥ 是给面板厂的询价函草稿 ⇒ 改了也不发, 外发一律经老板)。'
+  dispatched_at: 2026-11-11 07:5x (项目总工手工解冻派活)
 - id: ISS-187
   title: ★ISS-137 护栏两个洞 (M2 默认参数踢 TX / M3 无护栏钉 TX 绝对值) ⇒ 加护栏⑧⑨⑩ ⇒ ★已做完, 待 sw-lead 复验
   severity: high

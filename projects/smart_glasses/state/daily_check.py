@@ -111,6 +111,7 @@ GUARD_TESTS = (
     ("_test_yield.py", "预测性让路守卫 (★PCB_YIELD_STRAIGHT★)"),
     ("_test_yield2.py", "窄版预测性让路守卫 (★PCB_YIELD_VICTIMS + 真实2D净距★)"),
     ("_test_clrfix.py", "边际净距修复守卫 (★收窄走线 + 差分腿/过孔护栏★)"),
+    ("_lint_arm_env.py", "臂脚本 env 变量名守卫 (★★防【注释写进 env 块⇒变量根本没生效】★★)"),
 )
 
 

@@ -41,6 +41,7 @@ echo "=== v76my 单变量臂: env = v76mx1 逐位相同 · 唯一变量 = 窄版
 echo "  ✓ 预留串 (★复用 v76mx 的★) = ${RESERVE:0:110}..."
 echo "  ✓ 工具指纹 gen_pcb_routing.py sha256 = $(sha256sum state/gen_pcb_routing.py | cut -c1-16)"
 
+# ★★【★唯一变量 = PCB_ESC_STRAIGHT★】★★
 env PCB_LAYERS=8 PCB_ABUDGET_MULT=6 PCB_HALO_MARGIN=0.0625 \
     PCB_BOARD_W=160 PCB_BOARD_H=100 \
     PCB_AREA_BOT=5,58,70,97 PCB_AREA_TOP=78,5,120,36 PCB_AREA_RES=78,38,157,97 \
@@ -56,7 +57,7 @@ env PCB_LAYERS=8 PCB_ABUDGET_MULT=6 PCB_HALO_MARGIN=0.0625 \
     PCB_MEANDER_EDGE=1 \
     PCB_ESC_CLR_FIX=1 \
     PCB_YIELD_STRAIGHT=1 "PCB_YIELD_VICTIMS=BOOT_N,USB_CC1,CARRIER_BOARD_EN" \
-    ★★★【★唯一变量★】PCB_ESC_STRAIGHT=2 "PCB_ESC_STRAIGHT_NETS=$STRAIGHT_NETS" \
+    PCB_ESC_STRAIGHT=2 "PCB_ESC_STRAIGHT_NETS=$STRAIGHT_NETS" \
     PCB_OUT="$OUT" \
     timeout 21600 bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py \
     > "$LOG" 2>&1

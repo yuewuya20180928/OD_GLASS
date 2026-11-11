@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-11 07:21** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-11 08:04** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -61,7 +61,7 @@
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 183 条 | 状态: closed=97 deferred=13 verified=37 fixed=7 open=27 fixing=2
+登记问题 183 条 | 状态: closed=97 deferred=13 verified=37 fixed=7 open=26 fixing=3
   ├─ 内部可自行推进: 154 条 | 外部依赖 (等老板/原厂/JBD): 29 条
   ├─ 逾期未闭环: 33 条
   └─ 未闭环 blocker 级: 9 条
@@ -284,7 +284,7 @@
        ★★[IC 规格落定] 三个"我的假设"被原厂 datasheet 推翻 (已改网表) + 5 条仍未查到
   🟠 ISS-185  fixed     owner=mech-lead  due=2026-11-13  
        ★ISS-107 同型问题 (第二面): 没有对手方的过期值 —— 本域 8 条 claim 的值停留在 10-28 基线, 合并器
-  🟠 ISS-186  open      owner=hw-lead    due=2026-11-13  
+  🟠 ISS-186  fixing    owner=hw-lead    due=2026-11-13  
        ★DSI payload 8× 口径差: 6 处「373/246 Mbps」实为 2986/1475 Mbps ⇒ 依据虚到 8 倍
   🟠 ISS-143  closed    owner=mech-lead  due=2026-11-16  
        ★★结构侧新口径: 边框遮挡角必须进 FOV 余量账 (凹进 1.0mm = 1.91° 遮挡, 吃掉"正前方那一侧") ⇒ 镜框上

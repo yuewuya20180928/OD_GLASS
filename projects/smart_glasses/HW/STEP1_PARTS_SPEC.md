@@ -372,7 +372,7 @@
 | ★**MIPI CSI** | ★**2 × MIPI CSI-2, 每路 4 data lanes, D-PHY v1.2, 2.5 Gbps/lane**; ★**每路 4 lane 可拆成 2 × 2-lane 配��**; ★**最多支持 4 台 2-lane 相机** | `[实测]` PDF "SoM Function Parameters" |
 | ⇒ **对 P1 的意义** | ★**4-lane IMX415 走其中一路** ⇒ ★**正好匹配 §2 的 4-lane 需求** (驱动只在 4-lane 表里有 1080p 模式 ⇒ **必须占满一路 4 lane, 不能拆**) | ★**主板的 CSI 座和 SoM 侧必须整路 4 lane 对 4 lane** |
 | ★**MIPI DSI** | ★**1 × MIPI DSI 1.2, 最多 4 lane × 2.5 Gbps** | `[实测]` PDF |
-| ⇒ **对 P2 的意义** | ★**4-lane DSI 够** (800×1280@60 RGB888 ≈ 246 Mbps; 1920×1080@60 RGB888 ≈ 373 Mbps) | ★**与 §3 的 4-lane 屏相容** |
+| ⇒ **对 P2 的意义** | ★**4-lane DSI 够** (800×1280@60 RGB888 ≈ 1475 Mbps; 1920×1080@60 RGB888 ≈ 2986 Mbps) | ★**与 §3 的 4-lane 屏相容** · ★**依据 (ISS-186 订正)**: payload = 宽×高×24×60 (800×1280 = 1474.56 Mbps; 1920×1080 = 2985.98 Mbps) ⇒ 与 `HW/e2e_budget_rk3572.py` §⑥ 同口径 (TX 下限 7.776ms = 2986 Mbps ÷ 60fps ÷ 6400 Mbps 有效带宽, 即按这个 payload 算) |
 | **DVP** | 1 路 (8/10/12/16-bit, ≤150MHz) | `[实测]` PDF |
 | **HDMI/eDP** | 1 (HDMI 2.1 与 eDP 复用) | `[实测]` PDF |
 | **其他** | 2×GMAC (RGMII/RMII) · ≤4 CAN-FD · ≤12 UART · ≤9 I2C (+1 I3C master) · ≤5 SPI · ≤16 PWM · ≤8 ADC · 3×Combo SerDes (PCIe2.1/SATA3.1/USB3.0) · 2×USB2.0 OTG · ≤2 SDIO · 1×DSMC 并行总线 (8/16-bit, ≤4 片选) | `[实测]` PDF |

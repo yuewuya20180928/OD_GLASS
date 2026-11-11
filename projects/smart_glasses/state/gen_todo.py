@@ -56,7 +56,18 @@ def due_tag(due):
 
 
 A = [i for i in open_iss if i.get("owner") in ("hw-lead", "sw-lead", "mech-lead", "main")]
-B = [i for i in open_iss if i.get("owner") == "boss"]
+# ★★**2026-11-11 08:0x 实测订正 (★口径纪律: 【verified 不该再进"等你拍板"桶】★★)
+#   ★**病**: `open_iss` 只排 (closed/deferred/wontfix) ⇒ ★**`verified` 仍算"未闭环"**
+#     ⇒ ⇒ **老板 11-02 就已拍板并由 main 验完的 2 单 (ISS-138 sensor 选路 / ISS-146 demo 板形态)
+#          仍躺在 "B. 等你拍板" 表里** ⇒ ⇒ **B 桶显示 7 条, 实际只剩 5 条**
+#     ⇒ ⇒ **10 分钟播报把这条也读成了"等老板拍板桶 7 条"⇒ 老板白等 2 条** ★★
+#   ★**依据**: ★**`state/issue_check.py:145` 自己的逾期判据就已经把 `verified` 排除在外**
+#     (★`st not in ("closed","deferred","wontfix","verified")` ⇒ **verified 不算未闭环**★)
+#     ⇒ ⇒ **同一个系统里两套"闭环"口径 ⇒ gen_todo.py 这套是错的那套** ★★
+#   ★**修法 (只动视图层, 不动 issue_log 真值层★)**: B 桶排除 `verified`
+#     ⇒ **真值层不动** (★ISS-138/146 的 status 仍诚实记 `verified` = 老板已拍板 + main 已验★)
+B = [i for i in open_iss if i.get("owner") == "boss"
+     and i.get("status") not in ("verified",)]
 C = [i for i in open_iss if i.get("owner") in ("vendor", "jbd")]
 Cext = [i for i in open_iss if i.get("owner") in ("boss", "vendor", "jbd")]
 
