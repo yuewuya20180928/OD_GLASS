@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-11T08:12:23+08:00'
+  generated_at: '2026-11-11T08:16:59+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 193964
-      sha1: 2d3f00629c35
-      mtime_ns: 1793934664317075727
+      size: 195542
+      sha1: 1ca08bf041da
+      mtime_ns: 1794356026026313132
     mech-lead:
       file: mech.yaml
       size: 156954
@@ -19,9 +19,9 @@ meta:
       mtime_ns: 1793935073066378375
     main:
       file: pm.yaml
-      size: 36366
-      sha1: 2225da228d96
-      mtime_ns: 1794308494355780854
+      size: 37182
+      sha1: 2942ff25feec
+      mtime_ns: 1794356150188187290
     sw-lead:
       file: sw.yaml
       size: 120785
@@ -693,6 +693,23 @@ domains:
           ⇒ 届时重新立项** (ISS-176 / ISS-177 已 deferred, 重开条件在案)'
         ref: 老板决策 2026-11-04 (项目总工代录)
       foreign_answers: []
+    - key: board_p41_promote
+      to: boss
+      item: '★**官方板是否换成 `candidate_official_p41`** (md5 d0f3d75f) ⇒ ★官方板血脉【只加不删】增量: unc 45→41 条 / 43→39
+        网 · DRC 0 · 退铜 0 / 差分死腿 0 / 逐网孤岛变多 0 · `state/compare_arm_official.py` rc=0 ACCEPT · 救回 4 个签名
+        (JTAG_TDI/LIGHT_5V/PWR_GOOD/SPI_MOSI_BOOT) ⇒ ★**但 G1 仍过不了 (unc=41≠0) ⇒ 换板 ≠ 能下单** ⇒ 代价 = 32 处
+        md5 引用要改 + 留证链/Gerber/投产包全重跑 + 所有臂的 provenance 改指 ⇒ ★**我的建议: 先不换** (收益只是 4 个网, 而 G1 反正过不了 ⇒ 现在付固定代价不划算)
+        ⇒ ★归档 + 配方已留档 (`state/.lastgood/candidate_official_p41.cred.json`), 真正要投板时一次换清'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: reva_stl_regen
       to: mech-lead
@@ -795,7 +812,7 @@ domains:
   hw-lead:
     agent: hw-lead
     role: 硬件总工
-    updated_at: '2026-11-06'
+    updated_at: '2026-11-11'
     updated_by: hw-lead
     status:
       phase: P3(画板前致命项清零)+PCB布线收官
@@ -1072,10 +1089,9 @@ domains:
         是整个 demo 真瓶颈 + §6.2 优先级表 (P0 面板/onsemi 问询外发, P1 路径B+路径A并行, P2 板网/A7S网络恢复)。'
     - path: HW/DEMO_BOARD_HW_DECISION.md
       kind: spec
-      version: '1.0'
-      updated_at: '2026-11-02'
-      summary: 'demo 板硬件方案定案: 三问三答 (sensor/主板 FPC 24p 2-lane · 主控用 RK3572 SOM · 屏模组 FPC 20p 4-lane) +
-        针位总表 + 网表改动 + Step1 公开 SBC 先跑'
+      version: '1.1'
+      updated_at: '2026-11-11'
+      summary: '★ISS-186 订正: :65 带宽行 373→2986 Mbps + 依据注 (这是 demo「不需要 DSC」的决策依据 ⇒ 依据虚 8.0× 已堵; 结论句逐字保留)'
     - path: HW/IMX415_DEMO_SENSOR_FACTS.md
       kind: facts
       version: '1.0'
@@ -1126,30 +1142,11 @@ domains:
       summary: 'v1.1 补 §6.1: TPS7A20 各电压档封装可得性实测 (2.9V/1.1V 档只有 DQN/YCK 无 SOT-23-5 => 改档=改焊盘) + DVDD 保持1.2V不动的建议
         + BOM 封装列现在定还来得及'
     - path: HW/STEP1_PARTS_SPEC.md
-      kind: parts-spec
-      version: v1.0
-      updated_at: '2026-11-02T23:05:00+08:00'
-      summary: '★★ISS-158 交付(2026-11-02 23:05): P1/P2/P3 三件外购件规格汇总, 主板照它画。 P1 camera=Radxa Camera 4K(IMX415)
-        ★★逐针表31/31拿到(31p/0.3mm, 座=FH35C-31S-0.3SHW(50)): 1 GND/2 MDN4/3 MDP4/4 GND/5 MDN3/6 MDP3/7 GND/8-9
-        NC/10 GND/11 MDN2/12 MDP2/13 GND/14 MDN1/15 MDP1/16 GND/17 MCN/18 MCP/19 GND/20 MCLK/21 GND/22-23
-        NC/24 SCL/25 SDA/26 NC/27 RESET/28-29 VCC3.3V/30-31 VCC5V; 载板侧31p针序作第二来源交叉验证(针24/25 I2C, 27 RESET,
-        28-29 3V3, 30-31 5V 逐针一致); 1080p60=1944x1097/12bit/0x3020=0x01(2/2 binning)/VTS 0x0C5D->0x062E(BSP
-        imx415.c 实测, 只改VMAX一处)+36条寄存器序列全录; FOV D88.2/H75/V59, CRA15, M12xP0.5, EFL2.95, BFL4.64, 镜间距4.00;
-        SCCB 0x1a; AC耦合是否内置=未查=>主板4组差分对各留0402耦合位默认DNP; 模组级只要3.3V+5V(针28-31)=>sensor三条LDO疑在模组内部[推断待核]=>主板省3颗LDO但BOM必留DNP退路;
-        FPC弯折寿命/插拔次数=未查(不猜)。 P2 屏=Radxa Display 8HD/10FHD ★★逐针表40/40拿到(屏侧40p/0.5mm, 主板侧39P0.3mm或15P1.0mm):
-        1 NC/2 VDD3V3/3 VCCIO 1.8-3.3V/4 NC(INT1)/5 Reset/6 NC(INT2)/7 GND/8-9 MIPI_0N-P/10 GND/11-12
-        MIPI_1N-P/13 GND/14-15 MIPI_CKN-P/16 GND/17-18 MIPI_2N-P/19 GND/20 MIPI_3N/21 MIPI_3P/22-23 GND/24
-        TP_RESET/25 TP_VCC/26 TP_INT/27 TP_SDA/28 TP_SCL/29-30 GND/31-32 VDD3V3/33-34 GND/35-36 LED-/37-38
-        NC/39-40 LED+; 8HD=800x1280 16.7M全彩 有效区107.64x172.224mm GT911触控; 10FHD=1200x1920 有效区135.36x216.58mm
-        外形155x246.16x5.95mm; ★背光LED 12.8V typ/14V max @200mA typ => 主板须加一路12V BOOST; DDC地址/驱动IC型号/屏侧连接器型号=未查。
-        ★★判据口径修正: 内核79个panel文件实测清单里有panel-simple.c但无panel-radxa-*(8HD用的radxa,display-8hd驱动在Radxa私有内核)=>
-        P2首选simple-panel-dsi路线(10FHD, 不依赖任何专用驱动)=>8HD降级备选; init code公开可抄: rk3576-evb.dtsi 里263条(1080x1920/4-lane,
-        与我们目标屏最贴)。 P3 RK3572核心板=Forlinx FET3572-C: ★★外形68x50mm + 4x100Pin/0.4mm pitch/1.5mm配合高度 板对板连接器
-        + DC 5V-13V + CSI 2x4-lane(可拆2x2-lane, 最多4台2-lane相机) + DSI 1x4-lane(DSI1.2); ★逐针引脚定义表=未查(下载中心需注册登录,
-        属公开下载非L4); ★机械尺寸图/连接器footprint=未查; ★PDF明写与FET3576-C引脚兼容=>拿FET3576-C的表即等于拿到FET3572-C的; ★SoM级输入电流/上电顺序=未查;
-        ★老板说的''推荐焊接''对FET3572-C不成立(是连接器式不是焊死式)=>主板要承担400焊盘 => 引脚定义表从nice-to-have变成画板硬前提, 在此之前不得开跑线。 ★全单:
-        未联系厂家/L4未触发; 未猜价格库存针数引脚; 未查一律写未查; 没改 PROJECT_TRACKER/issue_log/DEMO_BOARD_HW_DECISION/STEP1_LANDING_LIST/gen_netlist/netlist_v1;
-        F4~F12清零属ISS-159不归本单。'
+      kind: spec
+      version: '1.1'
+      updated_at: '2026-11-11'
+      summary: '★ISS-186 订正: :375 对 P2 的意义行 246/373→1475/2986 Mbps + 依据注 (800×1280@60 与 1920×1080@60 两个
+        payload 口径)'
     - path: HW/STEP1_LANDING_LIST.md
       kind: landing-list
       version: v2.0
@@ -1232,6 +1229,32 @@ domains:
       summary: '2026-11-06 周更新交接单 (B1-B6 六块齐): ISS-181 布线轮实测 (unc 45 / DRC 0 / parity 482-482 / 零铜 24
         / 单边零铜 11 / Gerber 30) + 三臂实测判据 (0.0625 网格 unc 42 只差 DRC / v57 W_MIN=0.15 REJECT / v58-v60 在跑)
         + RK3572 官方 datasheet 事实卡 + 逾期 issue 收口。'
+    - path: HANDOFF/2026-11-11_hw-lead_ISS186_DSI_payload_订正.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-11-11'
+      summary: '★ISS-186 闭环交付: 6 处「373/246 Mbps」里我分片的 5 处 (①②③④⑥) 全部订正成真值 2986/1475 Mbps + 每处补依据注 (TX
+        物理下限 7.776ms = 2986 Mbps ÷ 60fps ÷ 6400 Mbps 有效带宽, 与 e2e_budget_rk3572.py §⑥ 同口径); ★结论方向一字未改 (不需要
+        DSC 仍成立: 4-lane@2.5Gbps raw 占 29.9% / 脚本口径 4-lane@2.0Gbps×80% 占 46.7%); ★⑤ SW/DEMO_OD_PIPELINE_SPEC.md:322
+        按 main 裁决不碰 (归 sw-lead); ★自证: selftest rc=0 + grep ''373 Mbps|246 Mbps'' HW/ state/outbox/ 零命中
+        (rc=1)'
+    - path: HW/DISPLAY_MODULE_DECISION.md
+      kind: decision
+      version: '1.1'
+      updated_at: '2026-11-11'
+      summary: '★ISS-186 订正: :53 DSI 带宽行 373→2986 Mbps (@90Hz 560→4480) + 依据注 (与 e2e_budget_rk3572.py
+        §⑥ 同口径)'
+    - path: HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md
+      kind: spec
+      version: '1.1'
+      updated_at: '2026-11-11'
+      summary: '★ISS-186 订正: :398 「不用 DSC」行 373→2986 Mbps + 依据注 (「4-lane 完全够」口径已对)'
+    - path: state/outbox/visionox_display_inquiry.md
+      kind: vendor-draft
+      version: '1.1'
+      updated_at: '2026-11-11'
+      summary: '★ISS-186 订正: :29 给面板厂的 Q2 问法一字未改, 只把 payload 数字 373→2986 Mbps; 依据注加在 §3 内部备注(不发)段; ★本函仍【未发】,
+        外发须经老板放行'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2874,6 +2897,23 @@ domains:
         PM/老板拍的一次**)。★**边界**: 层数/板厚档位属硬件侧, 我只交板厚数字 + 净空代入; **你的打印件与量测基准按 60×30×1.00mm (镜脚) / demo 板另算**。'
       ref: HW/PCB/STACKUP_IMPEDANCE.md + HW/PCB/demo_mainboard.kicad_pcb (setup/stackup 段) + HW/PCB_OUTLINE_60x15.md
         + HW/pcb60x30_check.json
+    - key: iss137_dsi_payload_caliber
+      to: sw-lead
+      value: '★**你这条 need 的 payload 口径那半, 我已订正完 (ISS-186)**: 6 处里我分片的 5 处 (①HW/DISPLAY_MODULE_DECISION.md:53
+        ②HW/STEP1_PARTS_SPEC.md:375 ③HW/DEMO_BOARD_HW_DECISION.md:65 ④HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md:398
+        ⑥state/outbox/visionox_display_inquiry.md:29) 全部从 373/246 Mbps 改成真值 **2986 / 1475 Mbps** (@90Hz
+        560→4480) ⇒ ★**每处都补了一句依据: TX 物理下限 7.776ms = 2986 Mbps ÷ 60fps ÷ 6400 Mbps 有效带宽 ⇒ 文档与脚本口径一致** ⇒
+        ★**你担心的『有人拿 373 反推 ⇒ 7.776ms 塌成 ~0.97ms』这条路, 现在文档里已经写死了正确的算式**。★**你的复算我独立核过**: 2985.98/373 = 8.005×,
+        1474.56/246 = 5.994× ⇒ 与你报的 8.0×/6.0× 吻合; 7.776×3/24 = 0.972 ⇒ 与你报的 ~0.97ms 吻合。★**结论方向不变 (我实算两种链路口径都给了)**:
+        4-lane@2.5Gbps raw 10 Gbps ⇒ 占 **29.9%**; 脚本口径 4-lane@2.0Gbps×80% = 6400 Mbps ⇒ 占 **46.7%** ⇒
+        两种都远低于 100% ⇒ **「不需要 DSC」仍成立**。★**自证**: `python3 HW/e2e_budget_rk3572.py --selftest` ⇒ rc=0 (护栏
+        10/10 绿, 脚本 2986 一个字节没动); `grep -rn ''373 Mbps|246 Mbps'' HW/ state/outbox/` ⇒ **零命中 rc=1** (比验收期望更干净)。★**★你那条
+        need 里并列的另外半 (面板 bpp 单色/全彩) 我没动** ⇒ 那半是 [0数据], 要等面板厂书面答复 (走 state/outbox/visionox_display_inquiry.md
+        草稿, ★**仍未发**), ⇒ 它仍决定 TX 下限用 24bpp 还是更低 ⇒ ⇒ **直接决定 yolov5n 那 2.32ms 还剩多少 ⇒ 这半仍开着, 我不代答**。★**边界**:
+        未改 SW/ 下任何文件 (⑤ SW/DEMO_OD_PIPELINE_SPEC.md:322 按 main 裁决归你, 我一个字没动 ⇒ 它仍写 373 Mbps); 未碰任何板子文件;
+        未碰 sw.yaml/mech.yaml/pm.yaml; 未发任何邮件/未联系供应商/未下单。'
+      ref: HANDOFF/2026-11-11_hw-lead_ISS186_DSI_payload_订正.md + HW/DISPLAY_MODULE_DECISION.md:53 + HW/STEP1_PARTS_SPEC.md:375
+        + HW/DEMO_BOARD_HW_DECISION.md:65 + HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md:398 + state/outbox/visionox_display_inquiry.md:29
     open_questions:
     - id: HW-Q1
       to: main
@@ -4250,14 +4290,31 @@ domains:
         \ (我实算 7.776×3/24 = 0.972ms) ⇒ rev0 那个'显示 TX 从账上消失'的坑会原样回来, 而且更隐蔽** ⇒ ★**这仍不阻塞 ISS-137 签字 (payload\
         \ 口径根本不在脚本里, 脚本 §⑥ 实打印 2986.0 Mbps 是对的)**。"
       since: '2026-11-11'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: hw-lead
+        value: '★**你这条 need 的 payload 口径那半, 我已订正完 (ISS-186)**: 6 处里我分片的 5 处 (①HW/DISPLAY_MODULE_DECISION.md:53
+          ②HW/STEP1_PARTS_SPEC.md:375 ③HW/DEMO_BOARD_HW_DECISION.md:65 ④HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md:398
+          ⑥state/outbox/visionox_display_inquiry.md:29) 全部从 373/246 Mbps 改成真值 **2986 / 1475 Mbps** (@90Hz
+          560→4480) ⇒ ★**每处都补了一句依据: TX 物理下限 7.776ms = 2986 Mbps ÷ 60fps ÷ 6400 Mbps 有效带宽 ⇒ 文档与脚本口径一致**
+          ⇒ ★**你担心的『有人拿 373 反推 ⇒ 7.776ms 塌成 ~0.97ms』这条路, 现在文档里已经写死了正确的算式**。★**你的复算我独立核过**: 2985.98/373
+          = 8.005×, 1474.56/246 = 5.994× ⇒ 与你报的 8.0×/6.0× 吻合; 7.776×3/24 = 0.972 ⇒ 与你报的 ~0.97ms 吻合。★**结论方向不变
+          (我实算两种链路口径都给了)**: 4-lane@2.5Gbps raw 10 Gbps ⇒ 占 **29.9%**; 脚本口径 4-lane@2.0Gbps×80% = 6400 Mbps
+          ⇒ 占 **46.7%** ⇒ 两种都远低于 100% ⇒ **「不需要 DSC」仍成立**。★**自证**: `python3 HW/e2e_budget_rk3572.py --selftest`
+          ⇒ rc=0 (护栏 10/10 绿, 脚本 2986 一个字节没动); `grep -rn ''373 Mbps|246 Mbps'' HW/ state/outbox/` ⇒ **零命中
+          rc=1** (比验收期望更干净)。★**★你那条 need 里并列的另外半 (面板 bpp 单色/全彩) 我没动** ⇒ 那半是 [0数据], 要等面板厂书面答复 (走 state/outbox/visionox_display_inquiry.md
+          草稿, ★**仍未发**), ⇒ 它仍决定 TX 下限用 24bpp 还是更低 ⇒ ⇒ **直接决定 yolov5n 那 2.32ms 还剩多少 ⇒ 这半仍开着, 我不代答**。★**边界**:
+          未改 SW/ 下任何文件 (⑤ SW/DEMO_OD_PIPELINE_SPEC.md:322 按 main 裁决归你, 我一个字没动 ⇒ 它仍写 373 Mbps); 未碰任何板子文件;
+          未碰 sw.yaml/mech.yaml/pm.yaml; 未发任何邮件/未联系供应商/未下单。'
+        ref: HANDOFF/2026-11-11_hw-lead_ISS186_DSI_payload_订正.md + HW/DISPLAY_MODULE_DECISION.md:53 +
+          HW/STEP1_PARTS_SPEC.md:375 + HW/DEMO_BOARD_HW_DECISION.md:65 + HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md:398
+          + state/outbox/visionox_display_inquiry.md:29
       foreign_answers: []
     - key: iss137_rev2_f5_fixback
       to: main
@@ -8526,6 +8583,34 @@ interface_claims:
     - hw-lead
     noncanonical_by: []
     conflict: false
+  dsi_payload_1080p60_rgb888:
+    values:
+      hw-lead: 2986 Mbps
+    notes:
+      hw-lead: 1920x1080x24x60 = 2985.98 Mbps (RGB888 24bpp); 与 HW/e2e_budget_rk3572.py §⑥ 实打印 2986.0
+        Mbps 及 PROJECT_TRACKER.md:2099 同口径; TX 物理下限 7.776ms 即按此 payload 算出
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  dsi_payload_800x1280_60_rgb888:
+    values:
+      hw-lead: 1475 Mbps
+    notes:
+      hw-lead: 800x1280x24x60 = 1474.56 Mbps (RGB888 24bpp)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  dsi_payload_1080p90_rgb888:
+    values:
+      hw-lead: 4480 Mbps
+    notes:
+      hw-lead: 1920x1080x24x90 = 4478.976 Mbps; 脚本 §⑥ 打印 4479.0 (显示取整差 1 Mbps, 口径同源)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
   temple_thickness:
     values:
       mech-lead: 7.30mm
@@ -11490,6 +11575,16 @@ needs_matrix:
     since: '2026-11-02'
     _by: main
     state: pending
+  - key: board_p41_promote
+    to: boss
+    item: '★**官方板是否换成 `candidate_official_p41`** (md5 d0f3d75f) ⇒ ★官方板血脉【只加不删】增量: unc 45→41 条 / 43→39
+      网 · DRC 0 · 退铜 0 / 差分死腿 0 / 逐网孤岛变多 0 · `state/compare_arm_official.py` rc=0 ACCEPT · 救回 4 个签名 (JTAG_TDI/LIGHT_5V/PWR_GOOD/SPI_MOSI_BOOT)
+      ⇒ ★**但 G1 仍过不了 (unc=41≠0) ⇒ 换板 ≠ 能下单** ⇒ 代价 = 32 处 md5 引用要改 + 留证链/Gerber/投产包全重跑 + 所有臂的 provenance
+      改指 ⇒ ★**我的建议: 先不换** (收益只是 4 个网, 而 G1 反正过不了 ⇒ 现在付固定代价不划算) ⇒ ★归档 + 配方已留档 (`state/.lastgood/candidate_official_p41.cred.json`),
+      真正要投板时一次换清'
+    since: '2026-11-11'
+    _by: main
+    state: pending
   - key: iss081_pm_decisions
     to: main
     item: '板宽12mm还是15mm + 双显示hedge买不买, 两条PM裁决: 1) 板宽我建议15mm(逃线带误差容忍0.20-0.30mm->1.25mm, 且SoC横向热扩散通道2->3.5mm对散热是增益;
@@ -11961,35 +12056,6 @@ needs_matrix:
     since: '2026-11-11'
     _by: sw-lead
     state: pending
-  - key: iss137_dsi_payload_caliber
-    to: hw-lead
-    item: "★ISS-137 rev1 复验时发现: **项目里有两个『DSI 带宽』口径, 差 8 倍**, 而 ISS-137 的 TX 物理下限正压在这个口径上 ⇒ 建议顺手修 (★**不是\
-      \ ISS-137 造成的, 是 11-02 就有的**)。\n  ★**证据 (我实算)**: 1920×1080@60 RGB888 = 1920×1080×24×60 = **2985.98\
-      \ Mbps**; 800×1280@60 RGB888 = **1474.56 Mbps**。\n  ⇒ `HW/DISPLAY_MODULE_DECISION.md:53` 写 '1920×1080@60\
-      \ RGB888 ≈ **373 Mbps**' ⇒ **偏小 8.0×** (反推 bpp = 2.998, 既不是 RGB888 也不是整数口径); `HW/STEP1_PARTS_SPEC.md:375`\
-      \ 写 '800×1280@60 ≈ **246 Mbps**; 1920×1080@60 ≈ **373 Mbps**' ⇒ 分别偏小 **6.0× / 8.0×** (246 反推 bpp\
-      \ = 4.004 ⇒ **两处彼此也不是一个口径**)。\n  ⇒ ★**对照 (这两处是对的)**: `PROJECT_TRACKER.md:2099` 写 '1920×1080@60 RGB888\
-      \ = **2986 Mbps**, 4-lane@2.0Gbps 够' ✔; `HW/e2e_budget_rk3572.py` §⑥ 实打印 'RGB888 payload = **2986.0\
-      \ Mbps**' ✔。\n  ★**为什么要紧**: TX 物理下限 = 一帧比特 / 链路有效带宽 ⇒ ★**一旦有人把 2986 换成 373, TX 下限会从 7.776ms 塌到 ~0.97ms\
-      \ ⇒ ISS-137 rev0 那个『显示 TX 从账上消失』的坑会原样回来, 而且更隐蔽** (我已经把 TX 显式扣进判据并加了护栏, 但**护栏钉不住 payload 口径本身**,\
-      \ 因为 payload 根本不在脚本里)。\n  ★**建议**: 两处改成 **2986 / 1475 Mbps** (或直接引 PROJECT_TRACKER.md:2099 的口径),\
-      \ 并在 ISS-137 脚本 §⑥ 旁注明 '以 §⑥ 为准'。★**另**: `HW/DISPLAY_MODULE_DECISION.md:102` 那条未闭合的未知项 '0.49\" 1920×1080\
-      \ 是**单色还是全彩**?' ⇒ ★**它决定 TX 下限用的 bpp (24 vs 更低) ⇒ 直接决定 yolov5n 那 2.32ms 还剩多少** ⇒ 建议挂进面板问询单 (ISS-134/135)。\n\
-      \  ★★**rev2 复验补充: 落点实为 6 处 (比 rev1 数的 2 处多 4 处)** ⇒ ★**派 hw-lead 时请把这 6 处一起带上, 否则改完还漏** ★:\n   \
-      \ ① `HW/DISPLAY_MODULE_DECISION.md:53` (373 Mbps / @90Hz ≈ 560) → **2986 / 4480**\n    ② `HW/STEP1_PARTS_SPEC.md:375`\
-      \ (246 / 373) → **1475 / 2986**\n    ③ ★**`HW/DEMO_BOARD_HW_DECISION.md:65`** (373 Mbps ⇒ 'demo\
-      \ 不需要 DSC') → **2986** ★**这处最要紧: 它是 demo 板'不用 DSC'的决策依据**\n    ④ ★**`HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md:398`**\
-      \ (373 Mbps ⇒ '4-lane 完全够') → **2986**\n    ⑤ ★**`SW/DEMO_OD_PIPELINE_SPEC.md:322`** (373 Mbps /\
-      \ @90Hz ≈ 560) → **2986 / 4480** ★**这处在 SW 分片 (我的), 但它是 ISS-145 (owner=sw-lead / verify_by=main)\
-      \ 的上游文件且已 fixed ⇒ 我不擅自动 ⇒ 走 main 裁决**\n    ⑥ ★**`state/outbox/visionox_display_inquiry.md:29`**\
-      \ (373 Mbps ⇒ 拿去问面板厂'不用 DSC 能否跑满 60fps') → **2986** ★**★这处是对供应商的询价函草稿 ⇒ 数字错了会误导对方一个工程判断**\n  ★**★但请老板别被吓到:\
-      \ 我实算复核过结论方向不变** —— 4-lane@2.5Gbps raw = 10 Gbps ⇒ @60Hz payload 2986 Mbps 只占 **29.9%** ⇒ ★**'不需要\
-      \ DSC' 仍然成立** ⇒ 这 6 处是'**数字错 + 依据虚**', 不是'结论错' ★ ⇒ ★**但依据虚到 8 倍, 下次有人拿它反推 TX 下限, 7.776ms 会塌成 ~0.97ms\
-      \ (我实算 7.776×3/24 = 0.972ms) ⇒ rev0 那个'显示 TX 从账上消失'的坑会原样回来, 而且更隐蔽** ⇒ ★**这仍不阻塞 ISS-137 签字 (payload\
-      \ 口径根本不在脚本里, 脚本 §⑥ 实打印 2986.0 Mbps 是对的)**。"
-    since: '2026-11-11'
-    _by: sw-lead
-    state: pending
   - key: iss137_rev2_f5_fixback
     to: main
     item: "★**【已消化 2026-11-11 03:3x (sw-lead rev3 复验) — F5 已真闭合, 本条已签掉: 旧断言整句 count=0 / 新断言整句 count=1\
@@ -12295,8 +12361,8 @@ needs_matrix:
     since: '2026-11-06'
     _by: mech-lead
     state: pending
-  answered_count: 156
-  total: 232
+  answered_count: 157
+  total: 233
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -12905,7 +12971,7 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 155
+  artifacts: 159
   blockers: 43
   high_blockers: 33
   open_needs: 76
