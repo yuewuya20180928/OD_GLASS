@@ -1,19 +1,20 @@
 <!-- PROGRESS-BLOCK-START -->
 
-★**进展播报 2026-11-11 08:49:18** (机器读数 · 脚本自动生成)
+★**进展播报 2026-11-11 09:05:54** (机器读数 · 脚本自动生成)
 
 ```
-=== 进展播报 11-11 08:37:54 ===
+=== 进展播报 11-11 09:03:10 ===
 [板] 11-06 07:07:17 · 4.9MB · 18092 段走线 · 433 过孔
 [布线] 上次实测 unconnected=45 · DRC违规=0
 [留证] 自验时刻 2026-11-09T04:11:35 · verified_by main (verify_and_release.sh)
-[在跑] 8 个进程 ⇒ timeout; /home/yuewuya/kicad/squashfs-root/usr/bin/python3.11
-[当前在做] ★[状态] ★官方板 md5 611b869e 未动 (18092 段 / 433 孔 · unc 45 条/43 网 · DRC 0 · stage_gate rc=1 ⇒ **G1 仍开, 不许投板**) ⇒ ★★**唯一可晋级候选 = `state/.lastgood/candidate_official_p41.kicad_pcb`** (md5 d0f3d75f · ★官方板血脉【只加不删】增量: 18092→18418 段 / 433→448 孔 · unc 41 条/39 网 · DRC 0 · 零铜网 24→22 · 差分单边零铜 11=11 · 退铜 0 / 差分死腿 0 / 逐网孤岛变多 0 · `state/compare_arm_official.py` rc=0 ACCEPT · 救回 4 个签名 JTAG_TDI/LIGHT_5V/PWR_GOOD/SPI_MOSI_BOOT ⇒ ★`CSI_D0_D0_P` 没被挤掉 (不动已有铜★)) ⇒ ★**`candidate_v76mx1L` 已作废** (★官方对照闸 rc=1 REJECT: 退铜 4 网 (CARRIER_BOARD_EN/DSI_D0_CK_N_SRC/SPI_CSn_BOOT/USB_CC1) + 差分死腿 1 对 (DSI_D0_CK_P_SRC/N_SRC) + 逐网孤岛变多 11 网 ⇒ 它 unc 少 (22 vs 43) 是拿差分腿死掉 + 退铜 + 拆碎换来的★) ⇒ ★生成器族 (mg/mw/mx/mv/mj + best_unc23) 段数只有 3300~3650 (官方板 18092 ⇒ 不同工艺, 不能直接比 unc) 且官方对照闸 REJECT ⇒ **不能替换官方板** ⇒ ★v76mz 单变量臂 (v76mg1 的 env + 只加 PCB_GRID=0.125, 在跑) 目标是解差分腿出脚 ⇒ ★ISS-186 (DSI payload 8× 口径差) 已于 07:5x 派给 hw-lead (在飞, due 11-13) ⇒ ★★★**★margin 杠杆【已终判结案】(08:4x): 官方链 lineage 下扫 0.0625 / 0.015625 / 0.0078125 / 0 四档 ⇒ 后三档【几何完全相同】(18344 段/446 孔 · cmp_pcb_geom rc=0) ⇒ ★**margin 降到 0.0625 以下零收益**; 且 0.015625+0.0078125+0 三档虽 unc 45→42 (新连上 JTAG_TDI/LIGHT_5V/PWR_GOOD/SPI_MOSI_BOOT), 但 ★**差分腿 `CSI_D0_D0_P` 从已连通退成未连通 + DRC 0→16 (clearance)** ⇒ ★**"unc 变少≠板子更好" 实测坐实 ⇒ 新闸 `state/margin_sweep_gate.py` 判 REJECT** ★★★ ⇒ ★**那 4 个网正是 p41 已干净救回的 4 个 ⇒ margin 臂无新增价值** ★★★
+[在跑] 6 个进程 ⇒ timeout; /home/yuewuya/kicad/squashfs-root/usr/bin/python3.11
+[当前在做] ★[状态] ★官方板 md5 611b869e 未动 (18092 段 / 433 孔 · unc 45 条/43 网 · DRC 0 · stage_gate rc=1 ⇒ **G1 仍开, 不许投板**) ⇒ ★★**唯一可晋级候选 = `state/.lastgood/candidate_official_p41.kicad_pcb`** (md5 d0f3d75f · ★官方板血脉【只加不删】增量: 18092→18418 段 / 433→448 孔 · unc 41 条/39 网 · DRC 0 · 零铜网 24→22 · 差分单边零铜 11=11 · 退铜 0 / 差分死腿 0 / 逐网孤岛变多 0 · `state/compare_arm_official.py` rc=0 ACCEPT · 救回 4 个签名 JTAG_TDI/LIGHT_5V/PWR_GOOD/SPI_MOSI_BOOT ⇒ ★`CSI_D0_D0_P` 没被挤掉 (不动已有铜★)) ⇒ ★**`candidate_v76mx1L` 已作废** (★官方对照闸 rc=1 REJECT: 退铜 4 网 (CARRIER_BOARD_EN/DSI_D0_CK_N_SRC/SPI_CSn_BOOT/USB_CC1) + 差分死腿 1 对 (DSI_D0_CK_P_SRC/N_SRC) + 逐网孤岛变多 11 网 ⇒ 它 unc 少 (22 vs 43) 是拿差分腿死掉 + 退铜 + 拆碎换来的★) ⇒ ★生成器族 (mg/mw/mx/mv/mj + best_unc23) 段数只有 3300~3650 (官方板 18092 ⇒ 不同工艺, 不能直接比 unc) 且官方对照闸 REJECT ⇒ **不能替换官方板** ⇒ ★v76mz 单变量臂 (v76mg1 的 env + 只加 PCB_GRID=0.125, 在跑) 目标是解差分腿出脚 ⇒ ★★**ISS-186 (DSI payload 8× 口径差) 已于 08:3x 由 main 验收签字 (verified/pass)** (★hw-lead 08:17 交卷; 验收是 main 自己实测: 旧值零残留 + 5 个 md5 对拍 + selftest rc=0 + 算账独立复核 7 项全对 ⇒ 结论方向未变「demo 不需要 DSC」仍成立★) ⇒ ★★**ISS-188 (第 6/7 处收尾) 已于 09:0x 由 main 验收签字 (verified/pass)** ⇒ ★★**ISS-189 (第 8/9 处收尾: `HW/STEP1_LANDING_LIST.md:42` + `HW/PART_ALTERNATIVES_REGISTRY.md:24`) 已于 09:1x 派给 hw-lead** (★在飞, due 11-13★) ⇒ ★★**教训: 「已清干净」必须靠全量 grep 复核, 不能靠清单** (★ISS-186/188 两轮清单都没数到 F1/F2★) ⇒ ★★**注释/依据注里别留「373 Mbps」逐字串** (★hw-lead 与 main 各踩过一次 ⇒ 写「原写的 373」★) ⇒ ★★★**★margin 杠杆【已终判结案】(08:4x): 官方链 lineage 下扫 0.0625 / 0.015625 / 0.0078125 / 0 四档 ⇒ 后三档【几何完全相同】(18344 段/446 孔 · cmp_pcb_geom rc=0) ⇒ ★**margin 降到 0.0625 以下零收益**; 且 0.015625+0.0078125+0 三档虽 unc 45→42 (新连上 JTAG_TDI/LIGHT_5V/PWR_GOOD/SPI_MOSI_BOOT), 但 ★**差分腿 `CSI_D0_D0_P` 从已连通退成未连通 + DRC 0→16 (clearance)** ⇒ ★**"unc 变少≠板子更好" 实测坐实 ⇒ 新闸 `state/margin_sweep_gate.py` 判 REJECT** ★★★ ⇒ ★**那 4 个网正是 p41 已干净救回的 4 个 ⇒ margin 臂无新增价值** ★★★
 [待办]
   - ① ★**老板拍板: `candidate_official_p41` 是否晋级** (★唯一过官方对照闸的候选; 代价 = 32 个文件引用旧 md5 要改 + 留证链/Gerber/投产包全要重跑 + G1 状态重判★)
   - ② ★**老板拍板桶实际只剩 5 条**: ISS-038 (工业设计角色) / ISS-041 (测试条件) / ISS-060 (三条几何) / ISS-063 (显示映射) / ISS-106 (酷芯微代理渠道) ⇒ ★ISS-138 (sensor 选路) + ISS-146 (demo 板形态) 老板 11-02 已拍板、main 已验 ⇒ **已移出桶** (★`state/gen_todo.py` B 桶 7→5; ★只动视图层, issue_log 真值不动★)
-  - ③ ★**ISS-186 DSI payload 8× 口径差** 在飞 (owner=hw-lead, 07:5x 派出, due 11-13, ★不许碰板子相关文件★)
-  - ④ ★**护栏⑨ 注释出处已订正** (05:37 · `HW/e2e_budget_rk3572.py` md5 7b820c14 · selftest rc=0 ⇒ 10 条护栏全过★) ⇒ **不再是待办**
+  - ③ ★**ISS-189 (DSI payload 第 8/9 处收尾)** 在飞 (owner=hw-lead, 09:1x 派出, due 11-13) ⇒ ★**F1 `HW/STEP1_LANDING_LIST.md:42` + F2 `HW/PART_ALTERNATIVES_REGISTRY.md:24`** ⇒ ★**不许重跑 `state/_demo_hw_scheme_landing.py`** (★**落账器 ⇒ 重跑 = 把 373 灌回 tracker ⇒ 一次重跑抹掉前面所有订正** ⇒ main 已改脚本本体并加口径钉死★)
+  - ④ ★**ISS-185 (mech-lead 基线重算) 已于 08:3x 由 main 验收签字 (verified/pass)** ⇒ ★**但实物 [实测] 仍 = 0** ⇒ ★**签的是「基线重算 + 过期值清理」, 不是「结构已验证」⇒ G2 仍不过★)
+  - ⑤ ★**护栏⑨ 注释出处已订正** (05:37 · `HW/e2e_budget_rk3572.py` md5 7b820c14 · selftest rc=0 ⇒ 10 条护栏全过★) ⇒ **不再是待办**
 [守卫] 判据退化守卫 daily_check --self-test ✅
 ★板指纹未变 ⇒ 跳过重自验 (板 mtime/段数/孔数 与上次播报一致)
 ```
@@ -3289,3 +3290,22 @@ ExecStart=... /home/radxa/v31_v4l2_od_rtsp /dev/video0 640 480 2 86400 /etc/npu/
   | `candidate_official_p41` | ★**rc=0 ACCEPT** | 退铜 0 / 死腿 0 / 孤岛 0 · unc 41·39 网 · DRC 0 |
 - ★★★**★⇒ 铁律: ★★"请老板拍板 X" ⇒ 必须先当场重跑 `compare_arm_official.py X 官方板`, 拿 rc 说话, 不许引用上一轮的文字结论** ★★★ ⇒ ★**成本 = 一次命令 (5 秒) · 收益 = 老板不会为一个已判死的板做决定** ★★
 - ★★★**★配套 (★修在产生点, 不许只在产物上擦★)**: ★**`state/CURRENT_TASK.md` 重写** (★它就是 `board_progress.py` 的 `task_head()` 读的"当前在做/待办"源★) ⇒ ★**只留当前口径 + 4 条待办** ⇒ ★**旧长台账挪到 `state/CURRENT_TASK_ARCHIVE_2026-11-10.md` (没删)** ⇒ ★**实测 `task_head()` 现在吐出的就是正确那 4 条** ⇒ ★**⇒ 下轮播报不会再请老板拍一块判死的板** ★★
+
+### 【★★★★★【★★★铁律: ★★"清干净旧值"这个结论, 必须靠【全量 grep】复核, 不能靠清单 —— 而且【依据注/注释里不许留旧值逐字串】, 否则机械验收永远不为 0★★★】】(2026-11-11 09:0x 实测)
+- ★★★**★来源: ISS-186 (hw-lead) / ISS-188 (sw-lead) 两轮连踩★★★**
+- ★★★**★实测 A: 清单会漏 ★**:
+  · ★**ISS-186 的清单列了 6 处** ⇒ ★**但 owner (sw-lead) 在 ISS-188 交卷时实测报出 F1 (`HW/STEP1_LANDING_LIST.md:42`) + F2 (`HW/PART_ALTERNATIVES_REGISTRY.md:24`) 两处清单里没有的活残留** ⇒ ★**ISS-188 的清单 (第 6/7 处) 同样没数到它们**
+  · ⇒ ★★★**铁律: ★★"旧值已清零"这个结论, 只能由【全量 grep 命中数 = 0】来证明, 不能由"我清单上的都改了"来证明** ⇒ ★**清单口径一错, 就会漏; 而漏的那两处正好是【Step1 落地清单】和【替代料清单】⇒ 照着它接线的人会拿到虚到 8 倍的带宽前提** ★★★
+  · ★**配套: ★**owner 交卷时【如实报出自己没做完的】(ISS-188 一处没藏, 报了 4 处) ⇒ ★**这才是好交卷** ⇒ ★**比"改了就以为清干净了"强得多 ⇒ 以后验收一律要求 owner 报残留清单** ★★
+- ★★★**★实测 B: 依据注里留旧值逐字串 ⇒ 机械验收永远不为 0 (★hw-lead 与 main 各踩一次★) ★**:
+  · ★**hw-lead 在 ISS-186 踩过**: ★**他自己写的内部备注里留了逐字串「373 Mbps」⇒ 把验收 ① `grep` 弄脏 ⇒ ★**他如实报了"第一遍 grep 不干净, 我据此重写"★★
+  · ★**main 在 ISS-188 又踩一次**: ★**自己在落账器 `state/_demo_hw_scheme_landing.py` 里写的口径钉死注释留了「373 Mbps」⇒ 让 ISS-188 的验收 ① 永远不为 0 ⇒ ★**明明改对了也判不过****
+  · ⇒ ★★★**铁律: ★★凡是"验收靠 grep 命中数 = 0"的活, 【依据注/注释/内部备注里不许出现被 grep 的那个旧串】⇒ 写「原写的 373」(不带 Mbps) 或用零宽分隔** ★★★ ⇒ ★**这条要写进任务书, 否则第三次还会踩**
+- ★★★**★配套: 【落账器】类的脚本, 它的字串会【灌回产物】★★★**:
+  · ★**`state/_demo_hw_scheme_landing.py` 是落账器 ⇒ 重跑它 = 把它写的字串灌回 `PROJECT_TRACKER.md`** ⇒ ★**重跑一次就能把 ISS-186 做的 5 处订正全部抹掉** ⇒ ★★**⇒ 修法: 改【脚本本体】, 不是重跑; 并且在脚本里加口径钉死 + 在下游任务书里写死"不许重跑它"** ★★
+- ★★★**★配套: ★★§0 锁死表里的旧值【故意保留】—— 改了它等于篡改老板拍过板的东西★★** ★★★:
+  · ★**实测: `PROJECT_TRACKER.md` §0 = 第 28~91 行 ⇒ 第 75 行那个 373Mbps 在锁死表内** ⇒ ★**main 改 tracker 时**显式跳过 §0 边界内的行** ⇒ ★**新数字在 §0 之外生效** ⇒ ★**落账后实测 §0 64 行逐字节未动**
+- ★★★**★三条"脚本自己把自己卡死"的坑 (今天全踩了) ⇒ 写自动化脚本时逐条对照★★** ★★★:
+  1. ★**替换文本里不能再出现你要 grep 的旧串** ⇒ ★**我在依据注里写「原写 373 Mbps」⇒ 新值自己带着旧串 ⇒ 守卫判成"没清干净" ⇒ 脚本自己卡死** ⇒ ★**正确: 依据注写「原写的 373」**
+  2. ★**yaml 往返自检必须用【写文件那个工具自己的参数】** ⇒ ★**`frag_write` 用 `width=100`, 我用 `width=200` 重 dump 再跟落盘文本比 ⇒ 判成"不一致" ⇒ ★**但那只是折行宽度不同, 数据完全一样 (232 行 diff 全是折行位置) ⇒ 假警报** ⇒ ★**正确: 比【解析后的数据结构】, 不比文本**
+  3. ★**改完文件要把【改过的行数组】拼回去写** ⇒ ★**我第一版写回的是"改动前重新读的内容" ⇒ 等于没改 ⇒ diff 为空却以为改了** ⇒ ★**正确: 写改后的内容, 并用 diff 实测确认**
