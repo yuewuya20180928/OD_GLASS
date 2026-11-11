@@ -56,9 +56,9 @@ def write_push_flag() -> int:
 DEFAULT_BUDGET = {
     "window_hours": 5,
     "threshold_tokens": 8_000_000,
-    "max_idle_minutes": 45,
+    "max_idle_minutes": 300,   # ★2026-11-11 10:07 老板: GitHub 间隔 20min → 5h ⇒ 45 → 300★
     "context_pct_limit": 75,
-    "_note": "threshold 是估算值 (MiniMax token plan 实际限额未公开); 真正兜底的是 max_idle_minutes",
+    "_note": "threshold 是估算值 (MiniMax token plan 实际限额未公开); ★兜底 max_idle_minutes = 5 小时 (★老板 11-11 10:07 定: GitHub 不再 20min 实时推, 改 5 小时且有进展才推★)",
 }
 
 
