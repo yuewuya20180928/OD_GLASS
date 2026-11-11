@@ -293,6 +293,13 @@ rc=0
 | ★**不许改 `HW/e2e_budget_rk3572.py` 里的 2986** | ★**脚本 md5 与内容一个字节没动** (selftest rc=0, §⑥ 仍打 2986.0) | ✅ |
 | ★**不许发任何邮件 / 不联系任何供应商 / 不下采购单** | ★**全单零外发** ⇒ ★**⑥ 改完仍然只是草稿** (文件头「未发」状态没动, §3 内部备注也写明仍【未发】) | ✅ |
 | ★**不许改其他 agent 的分片** (`sw.yaml`/`mech.yaml`/`pm.yaml`) | ★**一个字节都没动** ⇒ ★**只写了自己的 `state/fragments/hw.yaml`** (走 `state/frag_write.py` 原子写) | ✅ |
+
+★**★诚实报一条我【观测到】但【不是我造成】的并发事 (免得 main 反查时以为我越界了)★**:
+★**`state/fragments/pm.yaml` 在我本单窗口内 (11-11 08:15:50) 被改过** (size 36366 → 37182 字节, md5 `f23992b7…` → `0db38916…`) ⇒
+★**★不是我写的, 三条实测证据**: ①★**我唯一碰分片的工具是 `state/frag_write.py`**, 其 `frag_path(agent)` 只会写 `FILE_OF[agent]` ⇒ ★**它结构上不可能写 pm.yaml**;
+②★**`state/merge.py` 只写 `STATE.yaml`** (`atomic_write(STATE_PATH, body)` 单一调用点) ⇒ 刷新快照不碰任何分片;
+③★**pm.yaml 里的新条目是 `board_p41_promote` (to=boss, since=2026-11-11, 内容 = 官方板是否换成 `candidate_official_p41`)** ⇒ ★**那是 main 自己在推 ISS-181 的换板裁决, 与 ISS-186 毫无关系**, 且 pm.yaml 全文 ★**零命中** `ISS-186` / `2986` / `373 Mbps` (实测 grep 计数 = 0) ⇒ ★**没有我的任何内容混进去**。
+⇒ ★**结论: 我的分片写入面 = 只有 `state/fragments/hw.yaml`** (mtime 08:13:46) ⇒ ★**sw.yaml (05:11) / mech.yaml (11-06 11:17) 全程 mtime 未变**。
 | ★**只许改这 5 个文件 (内容) + 1 份 HANDOFF 报告** | ★**内容只改这 5 个** ⇒ ★**外加本 HANDOFF 报告** + ★**自己分片的 interface_claims/artifacts/status** | ✅ |
 | ★**结论方向一个字不许改** | ★**§5 结构化断言 5/5 PASS** (只改数字 + 尾部追加依据注) | ✅ |
 
