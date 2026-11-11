@@ -4434,20 +4434,48 @@ issues:
     ⇒ 镜框长向 2.10mm ⇒ **铰链接口/定位孔距不能留在压铸件本体**。
 
     ⇒ **量产架构必须延续『打印件负责造型 + 金属件承担定位/承力』⇒ 电池座/PCB 座改 CNC 嵌件**。'
-  owner: main
+  owner: mech-lead
   reporter: main
   raised: '2026-11-01'
   due: '2026-11-05'
-  status: open
+  status: verified
   external: false
   need_keys: []
-  fix_ref: null
-  verify_by: mech-lead
-  verify_result: null
-  verify_date: null
+  fix_ref: HANDOFF/2026-11-11_mech-lead_ISS127_H链量产几何解.md
+  verify_by: main
+  verify_result: '2026-11-11 20:0x 项目总工亲核通过 (verify_by=main ≠ owner=mech-lead)。★**先说结论口径**: 本单 ''verified'' = ★**几何上【做得到】+ 尺子【已立】**, ★**不等于**量产件已实测合格 (★本机打印/量测不可达 ⇒ 全部 [推算]★) —— 这是诚实边界, 不是本单缺陷。★**我独立重跑
+    (不采信自述)**: `python3 MECH/iss127_h_chain_check.py` rc=0 · `--self-test` rc=0 (★反向用例全被抓住: 退回现状拉出方向⇒红 / 判据与公差放宽到0⇒仍红 / 人为加0.50损失⇒红 / L向脱模⇒比现状更红⇒被否决 / 链② α=1.5°+石墨+t=1.22⇒红 / 电池座壁厚×3⇒重量账红 / 金属舱块⇒判死★) ·
+    `python3 MECH/fit_check_v3_30mm.py` rc=0 · `python3 MECH/skeleton_section_check.py` rc=0 · `python3 state/merge.py` rc=0 (冲突 0) ⇒ ★**全绿**。★**核心结论 (它自己写对的)**: 根因不是『余量紧张』是『**拉出方向选错**』—— 脱模斜度只吃**垂直于拉出方向**的截面,
+    现状 P=V (主腔深 38.00) ⇒ H 链被吃 Δ=2·38·tanα=1.327 ⇒ **−0.577** ⇒ ★**把拉出方向换成 H** ⇒ H 链脱模项 Δ=0 ⇒ 三档 α (皮纹0.5°/通用1.0°/光面1.5°) **全部**过 0.40 判据 (0.750, 计皮肤盖自身后 0.736/0.722/0.708) ⇒ ★**几何不可行 ⇒ 几何可行, 通了** ★。★**推荐
+    P1**: 镜腿壳 H 向分型 (皮肤盖+内胆) + 电池座=独立 0.5mm CNC 嵌件 (热隔离, 不与骨架共体) + 石墨裁到 SoC 带 ⇒ ★**重量账内 (金属+石墨净减) + 零件 4件/侧 + 模具2套/侧** ★。★**它顺带查出一条 DFM 评审从来没核过的新账**: 现状 P0 在 α=1.5°+含石墨+t=1.22 ⇒ **0.190 破线** ⇒ ★**链② 在光面下也破**
+    ⇒ 没藏账。★**未闭合 (它自己写明, 我认可)**: 量产公差带/斜度/收缩率**未按牌号锁定** (DFM §6 needs_from #1/#3) ⇒ ★**这一条仍需老板拍板 / 需原厂数据** ★。★**板/网表/原理图 md5 全未变** (611b869e… / c78f9912… / 3e504d2b…) ⇒ ★**签字通过** ★'
+  verify_date: 2026-11-11 20:0x
   note: '2026-11-01 23:5x 项目总工从 ISS-025 交卷转登记 (★P0 级: 几何不可行, 不是余量紧张)。★**与 ISS-122/ISS-126 的关系**: 那两条是『层数/板厚未定』的**待定**问题; 这一条是**已定的不可能** —— 就算层数定成 6 层, H 链这个 −0.577 也还在 ⇒ ★**它比层数更靠前**。★verify_by=mech-lead:
-    项目总工自办 ⇒ 别人验。'
-  dispatched_at: null
+    项目总工自办 ⇒ 别人验。
+
+    ★**2026-11-11 19:1x 队列自动派活 job 改派**: owner main → **mech-lead** (结构总工), verify_by mech-lead → **main** (★**干活的人不许自签 = 验证分离铁律**)。★**为什么派**: 老板 11-11 10:07 口径【结构类优先派】+【PCB 布线/布局类不派】⇒ 本单属结构类且不碰 PCB;★**它不是『待定』**:
+    方向已裁 (电池座/PCB 座改 CNC 嵌件), 缺的是『落成几何』; ★**也不依赖任何外部回复** ⇒ 可立即开工。★**与在飞 ISS-193 零文件交集** (那单只碰 BOM/封装/脚数来源)。★**due 不动** (本单 due 11-05 已逾期 ⇒ 没改 due 来把 issue_check 违规数洗掉)。'
+  dispatched_at: '2026-11-11'
+  task_brief: "★**目标**: 把 ISS-127 从「★几何上做不出来 (H 链最坏 −0.577mm)★」推到「★有解★」——\n   给出**量产架构方案** (方向已裁: 打印件负责造型 + 金属件承担定位/承力 ⇒ **电池座/PCB 座改 CNC 嵌件**),\n   使**电芯段 H 链余量 ≥ 0.40mm 判据**成立, 并把判据固化成**一条命令能复跑**的检查。\n\
+    \n★**为什么现在做 (★main 2026-11-11 19:0x 实测, 不是推测★)**\n① ISS-025 (结构 DFM 评审) 交卷里算出一条**已定的不可能** (不是余量紧张, 是不可行):\n   主腔深 **38.00mm** ⇒ 双面 1° 脱模 ⇒ 内腔横截面窄端少 **1.327mm**\n   ⇒ 镜脚·H 链 (电芯段, 名义余量 0.95) 量产最坏 **0.75\
+    \ − 1.327 = −0.577mm** ⇒ **做不出来**\n   ⇒ 皮纹面 (α=0.5°) 只救到 **0.087 < 判据 0.40** ⇒ ★**靠公差/斜度救不回来, 只能靠结构改**\n   (原文与算式: `MECH/DFM_REVIEW.md` §2.1.2 / §G3 · 复算脚本 `MECH/dfm_check.py` §B/§C)\n② ★**架构方向其实已经裁过了**\
+    \ (`MECH/DFM_REVIEW.md` §7 needs_from `mech_dfm_battery_seat` = main 裁,\n   原文 \"**按『改 CNC 嵌件』推进 (不回应就按此做)**\") ⇒ ⇒ ★**本单不是再讨论要不要改, 是【把\"改\"落成几何】**\n③ ★**但\"改\"要付的重量账刚刚变坏 (★这是你自己 2026-11-11 17:39 交卷\
+    \ (ISS-192) 的新结论★)**:\n   30mm 板宽下 **所有金属骨架候选全部超预算** (最好候选 C = **4.08g/对** vs 骨架预算 +1~3g ⇒ 超 1.08g),\n   且 **石墨 2.16g/对 > W11 上限 1~2g** (见 `MECH/BOARD_GEOM_30MM.md` §5 / `MECH/MECH_BUDGET.md` §2.4 B)\n\
+    \   ⇒ ⇒ ★**你再往镜腿里加 CNC 嵌件 = 在已经超预算的账上再加钱**\n   ⇒ ⇒ ★**本单必须给出\"重量账内\"的解, 不许给\"几何上能过但重量超\"的做法**\n④ ★**Rev B 打印包 = 检具 + 试样, 不含量产外形件 ⇒ 量产外壳的脱模面级统计目前【0 个数据点】**\n   (Rev B 几何里 **ZERO_DRAFT 面占 25~62%** 直壁;\
+    \ `fit_coupon` 另有 **2 个倒扣面 α=−40°/−30°**\n   ⇒ FDM 能打, 注塑/压铸出不来) ⇒ ⇒ ★**本单要顺手把\"量产件的脱模面统计口径\"立起来 (将来才有尺子)**\n\n★**本单要交的东西 (A~F)**\nA. **口径钉死 (先做这一步, 不许跳过)**: ★**项目里有两个都叫「H 链」的口径, 不许混用** ——\n   ① `MECH/DFM_REVIEW.md`\
+    \ §2.1.2 的**电芯段链**: 电芯腔 6.35 vs 镜腿厚 7.30 (名义 0.95 / 最坏 0.75) ⇒ **脱模后 −0.577**\n   ② `MECH/BOARD_GEOM_30MM.md` §5.4 的**PCB/骨架堆叠链**: 外壁 0.8 + 骨架 1.0 + PCB 1.0 + 空隙 0.3 + 隔热垫 0.5\n      + 皮肤壁 0.8 = 4.40\
+    \ vs 7.30 ⇒ 余 **2.60 ✅**\n   ⇒ ★**你报告第一行必须写清你用的是哪一条链、为什么**; 若两条都保留, 分别给余量与判据\n   ⇒ ★**不许拿 2.60 去说 −0.577 的事, 也不许拿 −0.577 去否 2.60**\nB. **最小改造集 (面级)**: 列出**必须改的面** (面名 / 当前 α / 当前腔深 / 截面贡献 / 目标 α / 目标截面\
+    \ / 改后余量),\n   使**电芯段链**余量从 −0.577 回到 **≥0.40** (需要补回 **≥0.977mm**)。\n   ★**两种脱模角情形都要给**: 皮肤侧**皮纹面 0.5°** 与 **光面 1.5°**\n   (老板还没拍 `mech_dfm_draft_texture`, due 11-10 已逾期 ⇒ ★**不许假设哪条已定**)\nC. **2~3\
+    \ 条量产架构方案** (方向 = 电池座/PCB 座改 CNC 嵌件), 每条给: 几何余量算式 / 重量 (g/对, 对着 4.08g/对\n   与 W11 的 2.16g/对 说**增量**) / 零件数与成本量级 / 装配顺序 / 风险\n   ⇒ ★**至少一条必须给出\"重量账内\"的解** (不许四条方案全是超预算的)\nD. **板厚四档都要跑**: ISS-122 的层数还没定\
+    \ ⇒ 板厚可能是 **0.41 / 0.80 / 1.00 / 1.22mm** (ISS-126)\n   ⇒ ★**不许假设板厚已定**; 你的方案要在四档下分别成立或不成立 (写清哪几档破)\nE. **量产件脱模面统计口径 (★现在 0 数据点★)**: 立\"该算什么 / 算什么 / 判据多少\"\n   (ZERO_DRAFT 面占比上限 / 倒扣面 α 下限 / 直壁面清单),\
+    \ 使将来拿到量产件或图纸时有尺子\n   (★**Rev B 的统计只能当现状基线, 不能当合格判据**)\nF. **一条命令能复跑的检查**: 新脚本放 `MECH/` 目录下 (★**文件名你自己定, 写进报告里★**) + `--self-test`\n   (★**反向用例: 改坏一个参数必须变红**) ⇒ rc=0;\n   ★**并把既有算式接进去** (`MECH/DFM_REVIEW.md`\
+    \ §2.1.2 / `MECH/dfm_check.py` §B/§C ⇒ 不许另起一套数)\n\n★**验收自证 (交卷前跑, 把输出贴进回复)**\n```\npython3 MECH/dfm_check.py                 # rc=0 (既有基线; ★不许改它的结论数字)\npython3 MECH/fit_check_v3_30mm.py         # rc=0\
+    \ (三链锁定值)\npython3 MECH/skeleton_section_check.py    # rc=0 (骨架重量账; 30mm 口径)\npython3 MECH/<你新脚本的文件名>            # rc=0 + --self-test rc=0 (★把尖括号换成实际文件名★)\npython3 state/merge.py                   \
+    \ # rc 必须 0 (冲突 0)\npython3 state/gate_check.py               # Q1 必须 18/18\nmd5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv   # 必须一字未动 (611b869e… / c78f9912…)\n```\n\n★**交卷 ≤ 25 行** (结论先行;\
+    \ 逐条给复现命令与实测输出; ★**明确写\"哪条方案是推荐项 + 为什么\"**)\n\n★**边界 (不许越)**\n· ★**只写**: `MECH/` 下你自己的新文件 + `MECH/DFM_REVIEW.md` (★**只许追加一节, 不许改既有章节的结论/数字★)\n  + `HANDOFF/` 下的交卷报告 + ★**必要时** `state/fragments/mech.yaml`\
+    \ (走 `state/frag_write.py`;\n  ★**只许新增条目, 不许删改别人的 key**)。\n· ★**不许碰**: `HW/**` · `SW/**` · `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` ·\n  `HW/PCB/demo_mainboard.kicad_pcb` · `HW/PCB/demo_mainboard*.kicad_sch`\
+    \ · `state/gen_*.py` ·\n  `PROJECT_TRACKER.md` §0 · **别人的分片** · `state/issue_log.yaml` (★**改 issue 状态是 main 的活★)。\n· ★**不许联系供应商/原厂/模具厂** (外发一律经项目总工; ★**牌号级收缩率/工艺窗口不许编 ⇒ 标 [0数据]**)。\n· ★**证据分级** [实测]/[官方]/[推算]/[0数据]\
+    \ 必标; ★**本机物理上无法打印/量测**\n  (`MECH/print/ENV_PROBE_20261101.md`) ⇒ ★**本单一切输出都是 [推算], 不许冒充实测**。\n· ★**读长文件用 grep/sed 分段, 不许整文件读进来** (`MECH/DFM_REVIEW.md` 很长 ⇒ 先 grep 定位再读片段)。\n"
 - id: ISS-128
   title: ★★主控换 RK3572 ⇒ 板面积账 + 逃线层数全部重算 (封装 FCCSP550L 14.3×15.5mm / 550 球, 比 RK3576 小)
   severity: high
@@ -4656,7 +4684,7 @@ issues:
 
     ★**本单要做**: ①`HW/CHARGE_BOARD_SPEC.md` §5 的 J_CHG pin map 表更新成网表实际 (并注明 V1.8 变更理由) ②`HW/check_bq25896_pinout.py` 的 `spec_proposal` 已由本轮更新 ⇒ **它以后能当门禁跑** ③★**把这个脚本接进 `state/gate_check.py` 的门禁链** —— 它一直是绿的假象
     (其实 FAIL 但没人跑)'
-  owner: main
+  owner: hw-lead
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-06'
@@ -4664,11 +4692,26 @@ issues:
   external: false
   need_keys: []
   fix_ref: null
-  verify_by: hw-lead
+  verify_by: main
   verify_result: null
   verify_date: null
-  note: '2026-11-02 03:0x。★**门禁链缺一个一直 FAIL 的脚本** —— 这是方法论问题, 不是单个脚本问题: 门禁脚本必须进 gate_check.py, 否则等于没有。★verify_by=hw-lead: 项目总工自办 ⇒ 别人验 (铁律)。'
+  note: '2026-11-02 03:0x。★**门禁链缺一个一直 FAIL 的脚本** —— 这是方法论问题, 不是单个脚本问题: 门禁脚本必须进 gate_check.py, 否则等于没有。★verify_by=hw-lead: 项目总工自办 ⇒ 别人验 (铁律)。
+
+    ★**2026-11-11 19:2x 队列自动派活 job 排单**: owner main → **hw-lead** (status 仍 open ⇒ ★**排队, 等 ISS-193 交卷后由 advance.py 自动派出; 本轮不 spawn ⇒ 没有并发写会话窗口★), verify_by hw-lead → **main** (干活的人不许自签)。★**为什么排**: hw-lead
+    名额被在飞 ISS-193 占着 (一个 agent 同时只允许一个写会话)。★**实测依据**: `python3 HW/check_bq25896_pinout.py` ⇒ rc=1 (失败项 ⑦; pin7 VBUS_DET vs NC; pin10 TS_RTN vs HINGE_RSV) ⇒ 一直是''绿的假象''。★**主线口径**: 老板 11-11 10:07 ⇒ PCB 布线/布局类不派;
+    ★**本单不改板/不改网表/不改原理图** ⇒ 不违反。★**与在飞 ISS-193 / 已排 ISS-194 均零文件交集**。★**due 不动** (due 11-06 已逾期, 没改 due 洗违规数)。'
   dispatched_at: null
+  task_brief: "★**目标**: 把 `HW/check_bq25896_pinout.py` 这个【一直是绿的假象】变成【真闸】——\n   ① `HW/CHARGE_BOARD_SPEC.md` §5.2 的 J_CHG 跨铰链 pin map 表 ⇒ 订正到与网表一致\n   ② 脚本里硬编的 `spec_proposal` ⇒ 与同一个真源一致\n   ③ ★**把该脚本接进 `state/gate_check.py`\
+    \ 的门禁链** (★它现在 rc=1 却没人跑 ⇒ 门禁链缺它★)\n\n★**为什么现在做 (★main 2026-11-11 19:2x 实测, 不是推测★)**\n★**实测**: `python3 HW/check_bq25896_pinout.py` ⇒ **rc=1**, 失败项 = ⑦\n   \"J_CHG 跨铰链 pin map: 规格 §5.2 提案 == 网表实际\"\
+    \ ⇒\n   ★**不一致: pin7: VBUS_DET vs NC; pin10: TS_RTN vs HINGE_RSV**\n⇒ ★**门禁脚本必须进 gate_check 链, 否则等于没有** (★这是方法论问题, 不是单个脚本问题★)\n\n★**你要先自己做的一步 (★不许照抄题单的判定★)**: ★**三方口径自己复算一遍** ——\n   ① `HW/CHARGE_BOARD_SPEC.md`\
+    \ §5.2 表里的提案\n   ② 脚本里硬编的 `spec_proposal` (自己 grep 出来)\n   ③ 网表实际 (`HW/netlist_v1.csv` 里 J_CHG 每一脚)\n⇒ ★**写清\"哪个是真源、依据是什么\"**; ★**默认按题单判定走 (网表为准, 文档与脚本快照是旧的)**,\n   ★**但若你实测发现网表那侧另有说法 ⇒ 只报给 main 裁决,\
+    \ 不许自己改网表**。\n\n★**做法**\n1. ①② 两处订正到与网表一致 (★**只改这两处, 别的章节一个字不动**)\n2. ③ 接进 `state/gate_check.py` ⇒ ★**接进去之后 `python3 state/gate_check.py` 必须仍然 rc=0 且 Q1 18/18**\n   ⇒ ★**若接进去会让闸变红 ⇒ 不许接, 只把这件事写进交卷报告报给\
+    \ main** (★**不许制造一个永久红的闸★**)\n3. 反向用例 (★**要能证明它真在读规格/网表★**): ★**在副本上把规格表改回旧口径 ⇒ 该脚本必须变红** (rc≠0) ⇒ 恢复后回 rc=0\n\n★**验收自证 (交卷前跑, 把输出贴进回复)**\n```\npython3 HW/check_bq25896_pinout.py     # ★**必须 rc=0**\
+    \ (现在 rc=1)\npython3 state/gate_check.py            # Q1 必须 18/18 (且 rc=0)\npython3 state/merge.py                 # rc 必须 0\nmd5sum HW/netlist_v1.csv HW/PCB/demo_mainboard.kicad_pcb   # 必须一字未变 (c78f9912…\
+    \ / 611b869e…)\n```\n\n★**交卷 ≤ 20 行** (结论先行 + 三方口径复算结果 + 逐条复现命令输出)\n\n★**边界 (不许越)**\n· ★**只写**: `HW/CHARGE_BOARD_SPEC.md` (★**只许改 §5.2 那张 pin map 表**) + `HW/check_bq25896_pinout.py`\n  + `state/gate_check.py`\
+    \ (★只许加这一项检查★) + `HANDOFF/` 下交卷报告 + ★**必要时** `state/fragments/hw.yaml`\n  (走 `state/frag_write.py`; ★只许新增条目, 不许删改别人的 key)。\n· ★**不许碰**: `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` · `HW/PCB/demo_mainboard.kicad_pcb`\
+    \ ·\n  `HW/PCB/demo_mainboard*.kicad_sch` · `state/gen_*.py` · `PROJECT_TRACKER.md` §0 · **别人的分片** ·\n  `state/issue_log.yaml` (★**改 issue 状态是 main 的活★)。\n· ★**不许联系供应商/原厂** (外发一律经项目总工)。· ★**证据分级** [实测]/[官方]/[推算]/[0数据]\
+    \ 必标。\n"
 - id: ISS-137
   title: ★★[可执行, 一行代码的活] 把「显示合成段」从 T_FIXED 里单独打点 —— 它是 RK3572 + 1920×1080 下 60ms 成败的关键未知数
   severity: high
@@ -4786,21 +4829,48 @@ issues:
     等) ⇒ ★★**不管 ISS-138 最后选 C 还是 D, ISP tuning 都是项目内必须自己做的一笔账**。⇒ 需求: ①**工作量与前置条件**: 需 RKISP Tuner + 暗室/灰卡 + 标定板; ★**IQ 文件是 sensor×镜头×模组三者绑定 ⇒ 必须等镜头/模组定版才能开始** (与 ISS-138 选路强耦合) ⇒ 估 **1~2 人周 + 硬件调试窗口**;
     ②**谁来调**: 项目内部无 ISP tuning 经验 ⇒ 需评估 ①自研学习曲线 ②**外包/模组厂随货提供 IQ** ③**第三方调像服务商** (公开可采购) ⇒ ★**建议先把 ②③ 询进 RFQ** (成本通常远低于自研); ③**RK3572 专属风险**: ★**RK3572 专属 BSP / ISP tuning 不公开** (公开的只有通用 BSP kernel 6.1
     与 rkaiq 本体) ⇒ tuning 必须在 RK3572 上做, 不能拿 RK3588 的 IQ 直接套; ④**验收判据**: 出图白平衡/色温/暗角/噪点达标 + 与 OD 模型的输入分布一致 (后处理阈值不许被 ISP 搞坏)。★**这条不占功耗但占人天与样机窗口 ⇒ 必须进计划, 不能默认它会自己发生。**'
-  owner: main
+  owner: sw-lead
   reporter: main
   raised: '2026-11-02'
   due: '2026-11-05'
-  status: open
+  status: verified
   external: false
   need_keys: []
-  fix_ref: HW/OPEN_SOURCE_AVAILABILITY.md §3.3
-  verify_by: hw-lead
-  verify_result: null
-  verify_date: null
+  fix_ref: HANDOFF/2026-11-11_sw-lead_ISS139_ISP_tuning立项.md
+  verify_by: main
+  verify_result: '2026-11-11 20:0x 项目总工亲核通过 (verify_by=main ≠ owner=sw-lead)。★**我独立重跑 (不采信自述)**: `python3 SW/tools/iq_coverage_check.py` rc=0 (★**16/16 通过, 0 项失败**) · `--self-test` rc=0 (★正向 16/16 + 反向
+    4/4 全被抓住: 注入 ar0234cs IQ⇒J1/J2 变红 / 删全部 imx415⇒J1 变红 / 删 isp3x 目录⇒J3/J3b 变红 / 删一个 attested 文件⇒J5 变红★) · `python3 state/merge.py` rc=0 (冲突 0) ⇒ ★**全绿**。★**核心结论**: rkaiq 公开 iqfiles 里 ★**ar0234 / ov04c10
+    都没有 IQ 文件** (★实测 J2:ov04c10=0 —— 文件 0, 目录 0★) ⇒ ★**这笔账躲不掉 ⇒ ISP tuning 必须自己排** ⇒ 本单把它变成【可排期/可询价/可验收】的立项, 并列出要问模组厂/服务商的清单。★**机检表是实读的** (★J3:isp-gen-dirs = [''isp20'',''isp21'',''isp32'',''isp32_lite'',''isp3x'']
+    · J5:attested-subset 本机既有记录 9 个带目录归属的文件, 快照缺失 0 个★) ⇒ ★**用的是本机快照 `HW/_os_snapshots/rkaiq_iqfiles.json`, 没联网重抓当新证据** ★。★**边界 (我核过)**: 只出方案 + 只起草问题清单 ⇒ ★**一封都没发 / 没联系任何模组厂或服务商** (★外发一律经项目总工★) ⇒ ★**签字通过**
+    ★'
+  verify_date: 2026-11-11 20:0x
   note: '2026-11-02 09:3x。★**与 ISS-138 解耦**: ISS-138 选谁只决定「从谁开始调」, 不决定「要不要调」 ⇒ 本单可与选路并行准备。★verify_by=hw-lead: 项目总工自办 ⇒ 别人验 (铁律)。★**未联系任何供应商/服务商** —— 外包询价属外发, 一律经项目总工。 ★★**2026-11-02 19:07 老板新指示后升级为 demo
     板关键路径**: demo 要跑通「sensor→RK→OD(80类)→画框→屏」, ★**ISP tuning 是这条链上的必经一环** (rkaiq 没现成 IQ ⇒ 必须自己做)。★**但它有硬前置**: 要先有 AR0234CS 在 RK3572 上的驱动能出 RAW (ISS-144), 且要等镜头/模组定版才能标定 ⇒ ★**排期上与 ISS-144 并行准备, 不等它**。★**同时建议
-    (见 ISS-145)**: demo 板先用一个有现成 BSP 驱动+现成 IQ 的 sensor (IMX415 / OV02B10) 把链路打通, AR0234CS 驱动与 tuning 后补 —— ★**因为链路的 90% 是软件与接口, 与 sensor 无关**。'
-  dispatched_at: null
+    (见 ISS-145)**: demo 板先用一个有现成 BSP 驱动+现成 IQ 的 sensor (IMX415 / OV02B10) 把链路打通, AR0234CS 驱动与 tuning 后补 —— ★**因为链路的 90% 是软件与接口, 与 sensor 无关**。
+
+    ★**2026-11-11 19:1x 队列自动派活 job 改派**: owner main → **sw-lead** (软件总工), verify_by hw-lead → **main** (★**干活的人不许自签 = 验证分离铁律**)。★**为什么派**: 老板 11-11 10:07 口径【软件类优先派】; ★**本单 severity=blocker 且是 demo 关键路径**
+    (sensor→RK→OD→画框→屏 上的必经一环); ★**与选路解耦 ⇒ 不依赖任何外部回复, 可立即开工**。★**与在飞 ISS-193 零文件交集** (那单只碰 BOM/封装/脚数来源)。★**due 不动** (本单 due 11-05 已逾期 ⇒ 没改 due 来把 issue_check 违规数洗掉)。'
+  dispatched_at: '2026-11-11'
+  task_brief: "★**目标**: 把 ISP tuning 这笔账从「一句『要自己做』」变成「**可排期、可询价、可验收**的立项」——\n   ★**不管最后选 C 还是 D, tuning 都必须做 ⇒ 本单是【与选路解耦的可并行准备】**, 不是选型单。\n\n★**为什么现在做 (★main 2026-11-11 19:0x 实测, 不是推测★)**\n① ★**实测**: rkaiq\
+    \ 公开 `iqfiles/isp3x` 与 `isp32` 目录里 ★**ov04c10 与 ar0234 都没有 IQ 文件**\n   (有的是 imx415 / imx327 / imx464 / os04a10 / ov02b10 / gc8034 / sc200ai 等) ⇒ ★**这笔账躲不掉**\n   ⇒ ★**本机已有实测快照 `HW/_os_snapshots/rkaiq_iqfiles.json`**\
+    \ (目录清单实测)\n   ⇒ ★**你先复核这份快照, 不许再联网重抓当新证据**\n   (原文出处: `HW/OPEN_SOURCE_AVAILABILITY.md` §3.3)\n② ★**它是 demo 关键路径**: demo 要跑通「sensor→RK→OD(80类)→画框→屏」⇒ ★**ISP tuning 是这条链上的必经一环**\n   (rkaiq 没现成 IQ ⇒ 必须自己做)\
+    \ ⇒ ★**这条不占功耗, 但占人天与样机窗口 ⇒ 必须进计划, 不能默认它会自己发生**\n③ ★**但它有硬前置**: 要先有 AR0234CS 在 RK3572 上驱动能出 RAW (ISS-144) + ★**镜头/模组定版才能标定**\n   (IQ 文件 = sensor × 镜头 × 模组 三者绑定) ⇒ ⇒ ★**排期上与 ISS-144 并行准备, 不等它**\n   ⇒\
+    \ 本单要交的就是这条并行线的**准备件**\n④ ★**成本量级**: 路径 A (AR0234CS) 估 **1~2 人周 + 硬件调试窗口**; 路径 B (有现成 IQ 的 sensor, 如 imx415 / ov02b10)\n   可先把链路打通 (★这段对比已有 `SW/DEMO_OD_PIPELINE_SPEC.md` §4.2 ⇒ ★**你补的是立项层, 不要重写那段口径**)\n\
+    ⑤ ★**RK3572 专属风险**: ★**RK3572 专属 BSP / ISP tuning 不公开** (公开的只有通用 BSP kernel 6.1 与 rkaiq 本体)\n   ⇒ ★**tuning 必须在 RK3572 上做, 不能拿 RK3588 的 IQ 直接套**\n\n★**本单要交的东西 (A~D)**\nA. **立项文档 (放 `SW/` 目录下, ★文件名自定,\
+    \ 写进报告★)**, 必含 6 节:\n   ① **工作量与前置条件**: 需 RKISP Tuner + 暗室/灰卡 + 标定板 + 样机调试窗口\n      ⇒ 逐项写\"有没有 / 要多久 / 卡在谁手上\"\n   ② **谁来调的三条路线对比**: ①自研 (学习曲线) ②**模组厂随货提供 IQ** ③**第三方调像服务商**\n      ⇒ 每条给前置条件 / 成本量级\
+    \ / 交期 / 风险 ⇒ ★**建议权重**: ②③ 通常远低于自研\n      ⇒ ★**但不许替老板拍板**, 只给可比较的账\n   ③ **RK3572 专属风险** (上面 ⑤) + ★**为什么 tuning 必须在目标板做**\n   ④ **验收判据**: 出图白平衡/色温/暗角/噪点达标 + ★**与 OD 模型的输入分布一致\n      (★ISP 搞坏后处理阈值 ⇒\
+    \ 端到端精度塌 ⇒ 这一条要写成\"怎么量\", 不许只写\"达标\")**\n   ⑤ **排期账**: 与 ISS-144 (驱动出 RAW) 并行、不等它; ★**标定窗口要占样机档期 ⇒ 必须进计划表**;\n      ★**\"路径 B 先打通链路\" 与 \"路径 A 后补 tuning\" 的先后**写清楚\n   ⑥ **与 OD 链路的耦合**: ISP 输出 (色彩/噪声/动态范围)\
+    \ 与 `SW/SW_TIMING_REVIEW.md` /\n      `SW/DEMO_OD_TIMING_SPEC.md` 里对输入分布的假设, 对齐口径\nB. **★\"要问模组厂 / 第三方服务商\"的问题清单 (5~8 条)** ⇒ ★**只写清单, 一条都不许发、不许联系任何外部**\n   ⇒ 落到你的交卷报告里, 由项目总工走外发流程 (★**外发一律经项目总工**: 起草可以,\
+    \ 发送不行)\nC. **★机器可查的\"现成 IQ 覆盖表\"**: 从本机快照 `HW/_os_snapshots/rkaiq_iqfiles.json` 实读\n   ⇒ 列出每个候选 sensor (imx415 / imx327 / imx464 / os04a10 / ov02b10 / gc8034 / sc200ai / ar0234 / ov04c10)\n   **有没有\
+    \ IQ 文件 + 具体文件名 + 适用版本**\n   ⇒ ★**这正好答掉 `SW/DEMO_OD_PIPELINE_SPEC.md` §7 的 P2-2 待办**\n   (rkaiq 公开 iqfiles 里 imx415 / ov02b10 的具体文件与适用版本)\n   ⇒ 新脚本放 `SW/tools/` 目录下 (★**文件名自定, 写进报告★**), rc=0 + `--self-test`\
+    \ (反向用例: 改坏判据必须变红)\n   ⇒ ★**若快照里查不到版本信息 ⇒ 标 [0数据], 不许猜**\n   (★**不许联网重抓当新证据**; 若你一定要联网核对, 只能读公开页面, 且必须把【本机快照】与【线上结果】两份对照贴出来,\n   不一致就点出来, 不许静默取其一)\nD. **交卷报告 (放 `HANDOFF/` 目录下, ★文件名自定★)**: 结论先行 + 逐条复现命令与实测输出\n\
+    \   + 分片登记 (走 `state/frag_write.py` 原子写 `state/fragments/sw.yaml`; ★**只许新增条目, 不许删改别人的 key**)\n\n★**验收自证 (交卷前跑, 把输出贴进回复)**\n```\npython3 SW/tools/<你新脚本的文件名>     # rc=0 + --self-test rc=0 (★把尖括号换成实际文件名★)\n\
+    python3 state/merge.py                 # rc 必须 0 (冲突 0)\npython3 state/gate_check.py            # Q1 必须 18/18\nmd5sum HW/netlist_v1.csv HW/PCB/demo_mainboard.kicad_pcb   # 必须一字未动 (c78f9912… / 611b869e…)\n\
+    ```\n\n★**交卷 ≤ 25 行** (结论先行; 逐条给复现命令与实测输出;\n★**明确写\"ISP tuning 这笔账最小要占谁的人天与哪个样机窗口\"**)\n\n★**边界 (不许越)**\n· ★**只写**: `SW/` 下你自己的新文件 + `SW/tools/` 下你的新脚本 + `HANDOFF/` 下你的交卷报告\n  + ★**必要时** `state/fragments/sw.yaml`\
+    \ (走 `state/frag_write.py`)。\n· ★**不许碰**: `HW/**` · `MECH/**` · ★**`SW/DEMO_OD_PIPELINE_SPEC.md`** (★**不许改** —— 那份的 DSI payload 口径\n  刚在 2026-11-11 09:0x~11:0x 统一过 (373 ⇒ 2986 Mbps / @90Hz 4480) ⇒ ★**你要改它的地方写成\
+    \ needs_from 报给 main,\n  不许自己动★) · `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` · `HW/PCB/demo_mainboard.kicad_pcb` ·\n  `HW/PCB/demo_mainboard*.kicad_sch` · `state/gen_*.py` · `PROJECT_TRACKER.md`\
+    \ §0 · **别人的分片** ·\n  `state/issue_log.yaml` (★**改 issue 状态是 main 的活★)。\n· ★**不许联系供应商/原厂/服务商** (★**外发一律经项目总工**: 起草可以, 发送不行)。\n· ★**证据分级** [实测]/[官方]/[推算]/[0数据] 必标; ★**板端实测现在做不了 (Radxa 板不可达)** ⇒ 板端相关一律\
+    \ [0数据]。\n· ★**读长文件用 grep/sed 分段, 不许整文件读进来**。\n"
 - id: ISS-140
   title: ★★[老板已拍板 D 的直接后果] sensor 换 AR0234CS ⇒ 网表电源域改造 (VDD_IO 1.8→2.8V) + I2C_A 上拉电平复核 + BOM
   severity: high
@@ -6647,13 +6717,14 @@ issues:
   reporter: main
   raised: '2026-11-11'
   due: '2026-11-13'
-  status: fixing
+  status: verified
   external: false
   need_keys: []
-  fix_ref: ''
+  fix_ref: 'HW/PCB/RESET_P0_FIX_PLAN.md (★方案页: B1 结论 / B2 落表清单 / B3 影响面 / B4 与位号改名合并可行性 / B5 验收判据 / B6 边界与未决项) · HANDOFF/2026-11-11_sw-lead_ISS191_复位P0方案.md · state/fragments/sw.yaml (iss191_boss_pick_fix_option
+    / iss191_boss_q_envc_unify / iss191_boss_r_pg_pull_dnp / iss191_orig_som_pg_reset_spec) · ★**落表本体 = 等老板拍「②」后随 `state/RECHAIN_ONEPASS_PLAN.md` §2 步1 一起做 (本单未落)**'
   verify_by: main
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-11'
   note: '★2026-11-11 14:0x 项目总工开单 (依据 ISS-190 二次验收通过的复评结论)。★**owner=hw-lead / verify_by=main ⇒ 满足铁律【自己修的必须别人验】**。
 
     ★★★**★动手前必须先做一件事: 与老板的【位号改名】决策【合并到一次整链重出】★★★★** ⇒ ★**本单会改网表 ⇒ 板 md5 会变 ⇒ 而老板那边的 `ref_designator_rename` 也会改板 md5 ⇒ ⇒ ★**两件都改板 ⇒ 合并成一次整链重出, 别分两次改 (★每次改板都要重跑留证链/Gerber/投产包/盖印★) ⇒ ⇒ ★**所以: ① 先请老板拍 `ref_designator_rename`
@@ -6670,7 +6741,17 @@ issues:
     ★。
 
     ★**本单范围不变 (★严格照 task_brief★)**: ★**只出方案页, 不改网表 / 不改板 / 不改原理图 / 不重出投产包** ★⇒ ★**真正的落表改动等老板在 `state/RECHAIN_ONEPASS_PLAN.md` §5 回 ② 之后, 随整链重出一次做完** ★⇒ ★**`ref_designator_rename` 与本单合并成一次整链重出 = 本单第 ③ 点
-    (可行性评估) 的正文** ★。'
+    (可行性评估) 的正文** ★。
+
+
+    ★2026-11-11 15:5x 项目总工**独立验收签字 (verify_by=main ⇒ 自己修的必须别人验; ★不采信自述★)**。★**本单范围 = 方案页交付并验收** (task_brief 明确「先只做方案与影响面评估, 不要改网表/不要改板」)⇒ ★**签字【不】覆盖 P0 实体修复** ⇒ ★**首台板现在仍然起不来** (RESET_N 仍恒低) ⇒ ★**未藏账**:
+    P0 本体继续挂在 ① `state/RECHAIN_ONEPASS_PLAN.md` §1 行 C (状态=等你拍「②」) ② ★**本轮新登记的 C 段拍板项 `iss191_reset_p0_fix_choice`** (建议默认值 = ② Q_AND 三行 DNP + Q_ENVC 三行同批 DNP + R_PG_PULL 先不动) 两处。★**main 实跑复现 (8 条闸全过)**:
+    ① `timing_check.py --only F1_reset_rc` rc=0 且★**逐项对上方案页 B5-1** (tau_release_ms 1.1 / tau_assert_us 100.0 / t_reach_0p7vdd_ms 1.324 / q_and_in_netlist True / pg_and dnp_rows [''Q_ENVC''] / reset_n dnp_rows
+    [''U_SUPV''] / 锚点 md5 c78f9912… 514·513 行) ② `timing_check.py` **SELFTEST 55/55 rc=0** ③ md5 对拍 **网表 c78f9912… + 板 611b869e… 一字未变** ④ merge rc=0 冲突 0 ⑤ gate_check Q1 18/18 ⑥ DRC 0 / unc 45 / Gerber
+    32 ⑦ ERC 0 rc=0 ⑧ pinfull **K=0** · 584/584。★★**反向用例 (main 自己造, ★未跑 sw-lead 的副本★)**: ★**把推荐方案 (Q_AND 三行 DNP) 打到 /tmp 副本** ⇒ F1 实读变成 **q_and_in_netlist=False** · q_and_gate_row_dnp=**DNP** · q_and_drain_row_dnp=**DNP**
+    · reset_n dnp_rows 含 **Q_AND** · ★**tau 三项一字未动 (1.1 / 100.0 / 1.324)** ⇒ ★**逐条命中方案页 A1**; ★**全量自检精确红 5 条 ⇒ 与方案页 B5-3 点名的 5 条逐条同名** ⇒ ★**方案页的预测能力被独立证实**; ★**真网表一字未动** (只写 /tmp) ⇒ ★**板/网表 md5 复核后仍不变**。★**文件范围复核
+    (mtime 实测)**: 本单只动过 3 处 (RESET_P0_FIX_PLAN.md 15:27 / HANDOFF…ISS191 15:31 / fragments/sw.yaml 15:31) ⇒ ★**网表 (11-05) / 网表脚表 (11-08) / 板 (11-06) / 原理图 (15:17, 主线 6b 的) / timing_check.py (13:48) / SW_TIMING_REVIEW.md
+    (13:51, ISS-190 的) 全部未动** ✔。★**下一步 = 老板拍 `iss191_reset_p0_fix_choice` ⇒ 落表随「一次整链重出」一起做 (RECHAIN §2 步1)** ⇒ ★**本单不落表, 也不许自己落**。'
   task_brief: '★**目标**: 让复位链在【首台板】上行为确定 —— 解决 `PG_AND` 无人拉低 ⇒ `Q_AND` 栅极恒高 ⇒ `RESET_N` 恒低 ⇒ 首台板可能不启动。
 
     ★**先只做方案与影响面评估 (★不要改网表, 不要改板★)**: ① 从 ISS-190 的三条改法里选一条给出推荐 + 理由 (★优先选【不改 SoM 球位依赖】的那条★) ② 逐条列出该改法要动的文件 (网表行 / BOM / 原理图 / 板 / 投产资料) 与对 unc / DRC 的预期影响 ③ 评估与 `ref_designator_rename` 合并成一次整链重出的可行性 (★哪些改动可以同批做★)
@@ -6680,6 +6761,7 @@ issues:
 
     ★**纪律**: ★**本轮只出方案页, 不许改 `HW/netlist_v1*.csv` / 原理图 / 板 / 投产包** ⇒ 不许联系供应商/原厂 ⇒ 证据分级必标'
   dispatched_at: '2026-11-11'
+  fixed_at: '2026-11-11'
 - id: ISS-192
   title: ★★结构侧(MECH)机械复核器全线仍钉在已作废的 12/15mm 板宽 ⇒ 现在的绿灯不是关于现行板子说的(pinset2_mech_check rc=0 但那是块不存在的板) + PIN-SET-2 孔位 Y 在 hw-lead 自己两个产物里差 7.50mm(打印包已按套A做出, 若 PCB 按套B钻则装不进骨架) ⇒ 迁到 60×30 + 仲裁成一份权威表
   severity: high
@@ -6710,13 +6792,16 @@ issues:
   reporter: main
   raised: '2026-11-11'
   due: '2026-11-13'
-  status: fixing
+  status: verified
   external: false
   need_keys: []
-  fix_ref: ''
+  fix_ref: 'MECH/BOARD_GEOM_30MM.md (★结构侧权威表: 板框 60×30 / SoC RK3576 占位 / 逃线带 / PIN-SET-2 四孔含 Y 口径仲裁= 套A / 打印包契约三条 WARN 现行值 / 6 脚本死常量定性 / 影响面 / demo 板复核 / 未决 7 条) · MECH/pinset2_mech_check.py (+ .json, 板宽无关化判据,
+    --self-test 6/6) · MECH/skeleton_section_check.py (30mm 迁) · MECH/cross_review_check.py (明写「不是闸」+ 退出码只反映 MECH-OWNED + 16 项逐项标归属) · MECH/hinge_usb_check.py (板宽 12→30 迁) · MECH/iss065_check.py (板宽 15→30
+    迁 + 来源标错订正) · MECH/fit_check.py (★标作废不迁: 整套基线 12/50/0.80 一起死, 只改 pcb_w 会造半迁移 Frankenstein 口径) · HANDOFF/2026-11-11_mech-lead_ISS192_机械复核器迁60x30与孔位Y仲裁.md · state/fragments/mech.yaml (3 条 needs_from)
+    · ★**hw-lead 产物侧未改 ⇒ ISS-194**'
   verify_by: main
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-11'
   note: '★2026-11-11 13:4x 项目总工开单 (owner=mech-lead, verify_by=main ⇒ ★**自己修的必须别人验**, 铁律满足)。
 
     ★**为什么这一单现在才派得出来**: 26 条 open 的 owner 全部是 main/boss ⇒ 三个总工名下没有 open ⇒ advance.py A 段恒空 ⇒ 自动派活无单可派 ⇒ 本单是 main 按项目既有做法开的**指派单**。
@@ -6729,7 +6814,27 @@ issues:
 
     · 本单**不写** `HW/netlist_v1.csv` / `demo_mainboard.kicad_pcb` / 任何 `state/gen_*.py` ⇒ 无写冲突。
 
-    ★**验收**: main 会独立重跑本单贴的复现命令 + 跑反向用例 + 查 `merge.py` rc=0 与 `gate_check.py` Q1=18/18 ⇒ ★**不采信自述**。'
+    ★**验收**: main 会独立重跑本单贴的复现命令 + 跑反向用例 + 查 `merge.py` rc=0 与 `gate_check.py` Q1=18/18 ⇒ ★**不采信自述**。
+
+
+    ★2026-11-11 16:4x 项目总工**状态复位 + 重派** (★**实测: 上一轮是被 provider 请求超时掐断的, 不是被 scope 驳回★)**。★**事实**: 会话 `agent:mech-lead:subagent:4e582941-...` 14:30 起跑 ⇒ ★**15:30 撞 1 小时上限被中断**(实测末条 = `openclaw:prompt-error:
+    request timed out`; runtimeMs=3600005 ≈ 整 60 分钟; sessions_list 报 abortedLastRun=true) ⇒ ★**它没交卷**: 实测 **没有** `HANDOFF/…mech-lead_ISS192_*.md`、**没有** `MECH/BOARD_GEOM_30MM.md` (交付物 A)、**没有**写 `state/fragments/mech.yaml`
+    (mtime 仍 Nov 6 11:17 ⇒ 交付物 G 也没做) ⇒ 只落了 `MECH/pinset2_mech_check.json` (15:02) ⇒ ★**交付物 B/C/D/E/F 全未做**。★**因此 `status=fixing` 是【假标记】⇒ 这是 ISS-181 同一个病第 2 次出现** ⇒ ★**mech-lead 的名额被一条死单永久占住** ⇒ ★**A 段会一直派不出活**
+    (实测本轮 `advance.py --json` 的 internal=[] 就有它一份)。★**为什么【重派】而不是像 ISS-181 那样改 deferred (★病同因不同药★)**: ISS-181 是 ★**PCB 布线/布局类** ⇒ 按老板 11-11 10:07【一律不派】⇒ deferred 正确; ★**但 ISS-192 是结构 (MECH) 类 + 孔位仲裁 ⇒ 不在【不派】名单里**
+    ⇒ ★**它是本该干完的活**, 且有★**真实现物理后果**: 打印包 (Rev B 笼 + 量测清单) 已按【套 A】做出, 而 `HW/pcb60x30_check.py/.json` 发的是【套 B】⇒ ★**两套互斥口径差 7.50mm** ⇒ ★**若 PCB 按套 B 钻 ⇒ 螺钉与笼差 7.50mm ⇒ 板装不进骨架** ⇒ ★**这是真缺陷不是记账问题**。★**处置**:
+    `fixing → open` (状态机允许, issue_check ALLOWED_NEXT["fixing"] 含 "open") ⇒ 让 `advance.py` 自己把它吐出来走标准流程 ⇒ 本轮重派。★**重派时给 mech-lead 的两条追加说明 (★不改任务范围★)**: ① ★**上一轮是被 60 分钟上限掐断的** ⇒ 本轮超时给足, 且★**按 A→B→C→D→E→F→G
+    逐件落盘, 每件交付完立刻写文件 (不要攒到最后一起写)** ⇒ ★**宁可交一半 (A/B/G) 也不要交零** ⇒ ★**这是上一轮交零的根因 (只落 1/7)** ② ★**范围与边界一字未改**: 仍只写 `MECH/**` + `HANDOFF/**` + `state/fragments/mech.yaml` ⇒ ★**仍不许碰 `HW/**` / 网表 / 板 / 原理图 / 生成器
+    / 别人的分片** ⇒ ★**板 md5 `611b869e…` 一字不许动**。
+
+
+    ★2026-11-11 18:4x 项目总工**独立验收签字 (verify_by=main ⇒ 自己修的必须别人验; ★不采信自述★)**。★**签字范围 = ① 结构侧机械复核器迁到 60×30 ② PIN-SET-2 孔位 Y 仲裁成一套 = 套A**; ★**不覆盖 hw-lead 产物侧 (套B 还没改) ⇒ 未藏账 ⇒ 已开 ISS-194**。★**main 实跑复现 (10 条全过)**:
+    ① `pinset2_mech_check.py` rc=0 「复算项 38 | FAIL 0 | WARN 2」 ② `--self-test` rc=0 「6/6 用例符合预期」 ③ `skeleton_section_check.py` rc=0 ④ `cross_review_check.py` rc=0 ⑤ `hinge_usb_check.py` rc=0 + `iss065_check.py`
+    rc=0 ⑥ md5 对拍 **板 611b869e… / .kicad_pro 3e504d2b… 一字未变** ⑦ merge rc=0 冲突 0 + gate_check Q1 18/18 ⑧ ★★**仲裁依据 main 自己重算 (不采信自述)**: ★**自己解析两个打印包二进制 STL + 顶面占据栅格化 (0.5mm)** ⇒ cage (板基线 Y=60) 与 coupon (基线
+    X=4/Y=84) **实测四孔 = P1(8,15) P2(52,15) ⌀2.4 + S1(8,10) S2(52,20) ⌀1.6** ⇒ ★★**「打印包 = 套A」独立证实**; ★**套B 的 (8,2.5)/(52,27.5) 实测实心无孔** ⇒ ★**套B 与打印包不符**; ★另: 生成器常量 pinset2_p_y=15.00 / s1_y=10.00 / s2_y=20.00
+    (`gen_print_pack_revb.py:93-95`) 与栅格实测逐值一致 ⑨ ★**几何自洽性独立判据**: 套B 相对新中心偏移 S1 −12.50 / S2 +12.50 (不对称 + 分离 25.00) ⇒ 而 15mm 老口径 (§3.1: P(8,7.50)/(52,7.50) S1(8,2.50) S2(52,12.50)) 是**关于中心 7.50 的 ±5.00 对角分布**
+    ⇒ 平移到 30mm 板 (中心 15.00) ⇒ **套A (分离仍 10.00, 仍对称)** ⇒ ★**套B = 「只改 Y」的漂移产物, 不是平移** ⑩ ★**边界复核 (mtime 实测)**: 本单只动 MECH/(8) + HANDOFF/(1) + state/fragments/mech.yaml ⇒ **HW/ 内无 mech-lead 写入** ⇒ issue_log
+    / §0 锁死表 / 别人分片 / gen_*.py 未动 ✔。★**未闭合 (未藏账)**: ① 套B 产物要 hw-lead 改 ⇒ **ISS-194** ② 骨架截面 30mm 全线超预算 (最好 4.08g/对 vs +1~3g) + 石墨 2.16g/对 > W11 ⇒ 预算裁 = main/老板 ③ demo 板零安装孔 + params 4 个遗留坐标 ⇒ **属 PCB 布局类
+    ⇒ 按老板 11-11 10:07 口径【不派】(排队等原理图定稿)** ④ fit_check.py v2 退役还是并存 = main 裁。★**下一步**: hw-lead 交 ISS-193 ⇒ main 验收签字 ⇒ 队列腾出 ⇒ ISS-194 (孔位表套B→套A) 派出。'
   task_brief: "★**目标**: 把**结构侧 (MECH) 整套机械复核器**从\"已作废的 12mm/15mm 板宽\"迁到**现行 60×30mm 板**,\n   并把 **PIN-SET-2 孔位 Y 的两套互斥口径 (差 7.50mm)** 仲裁成**一份权威表** (机械侧出结论 + 报给 hw-lead 改他的产物,\n   **你不许动 HW/ 任何文件**)。\n\n\
     ★**背景 (main 2026-11-11 13:4x~14:2x 实测, 不是推测★)**:\n1. **板宽已不是 15mm**: 老板 10-29 19:16 拍板\"板宽可以放到 30mm 以内\"; 板长 60mm (10-28 项目总工裁);\n   §0 台账 11-01 20:5x 已订正 ⇒ **12mm / 15mm / 板长 76mm 都是死值**。\n2. ★**六个\
     \ MECH 脚本仍带死常量 (行号照抄, 你自己复核)**:\n   · `MECH/pinset2_mech_check.py` :44 `PCB_W = 15.00` · :50 `SOC_Y0, SOC_Y1 = 3.50, 11.50`\n     (RK3588 时代 FCCSP 8×10 口径) · :56 `JCHG_Y0, JCHG_Y1 = 4.25, 10.75` (居中\
@@ -6761,3 +6866,151 @@ issues:
     \                        # rc 必须 0\npython3 state/gate_check.py                   # Q1 必须 18/18\nmd5sum HW/PCB/demo_mainboard.kicad_pcb        # 必须仍 = 611b869e13518c3c023fb178f91a0075\n```\n★**交卷 ≤\
     \ 25 行** (结论先行; 逐条给复现命令与实测输出)。\n"
   dispatched_at: '2026-11-11'
+  fixed_at: '2026-11-11'
+- id: ISS-193
+  title: ★【内部活·不是原厂的事】29 个器件真实脚数查不到 ⇒ 根因是 BOM 没定 opn/封装 ⇒ 定封装 ⇒ 脚数自动补齐 ⇒ 选项③ 的内部一半
+  severity: medium
+  source_blocker: SW-TIM-B1
+  source_agent: main
+  desc: '★2026-11-11 17:0x 项目总工开单 (★依据 = `HW/PCB/PIN_REALITY_GAP.md` §2/§5.2 的实测★)。
+
+    ★**事实**: 218 个器件里真实脚数【可查】189 个 / 【查不到】29 个 (★标 [0数据]★) ⇒ ★**查不到的原因不是"查得不够仔细", 是【没有源】: BOM 的 opn/footprint 还是"待定", 本机三个权威源 (KiCad 官方库 / `state/check_netlist_pins.py` 的 SPEC_PINS·PARTIAL_PINS / BOM opn·footprint)
+    都答不上这 29 个**。
+
+    ★**这 29 个的构成 (★main 自己按位号前缀拆的★)**: 6 个 ESD/TVS (`D_ESD_CAM`/`D_ESD_DEMO`/`D_ESD_LIGHT`/`D_ESD_TC`/`D_ESD_USB_D`/`D_TVS_VBUS`) · 2 个磁珠 (`FB_DEMO`/`FB_VBUS`) · 6 个开关 (`SW_*`) · 4 个 MOS (`Q_*`) · 5 个 IC
+    (`U_*`) · 1 个 USB-C (`J_USB_C`) · 4 个其它 (`BT_432243`/`CHG_GND_STAR`/`X1` 等) ⇒ ⇒ ★**这些绝大多数是【普通分立件】⇒ 脚数由封装决定 ⇒ ⇒ 该走的是【BOM 定 opn/封装】, 而不是【问原厂】⇒ ⇒ 这就是本单存在的理由**。'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-11-11'
+  due: '2026-11-13'
+  status: open
+  external: false
+  need_keys: []
+  fix_ref: ''
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '★2026-11-11 17:0x 项目总工开单。★**owner=hw-lead / verify_by=main (自己修的必须别人验)**。
+
+    ★**与老板拍板项的关系**: 那 29 个【不进给原厂的信】⇒ 信只留两问 (RK3572 球位表 + P2 座缺 num=40) ⇒ ⇒ **本单是选项③的【内部一半】, 与外部那一半并行** ⇒ ⇒ ★**老板批信与本单互不阻塞**。
+
+
+    ★**2026-11-11 17:3x main 订正 brief 的一处错命令 (★我自己写的★)**: ★**验收命令 `state/gen_pin_reality_gap.py` 不存在** ⇒ ★**真命令 = `python3 state/gen_kicad_sch.py --pin-gap` (★gap 生成器折在生成器里★)⇒ ★**已 sessions_send 递话给正在跑这条的
+    hw-lead 会话 (★省它一轮找文件★) ⇒ ⇒ ★**新闸 `state/check_brief_commands.py` (★派活前的命令存在性守卫, ★带反向用例★) 就是为这次立的 ⇒ ⇒ 以后派活前先跑它** ★★
+
+
+    ★2026-11-11 20:0x 项目总工**状态复位 (fixing → open) + brief 重写** (★**实测: 上一轮是被【输出 token 上限】掐断的, 不是被 scope 驳回★)**。★**事实**: 会话 `agent:hw-lead:subagent:32d6fc57-...` 17:09:23 起跑 ⇒ ★**19:10:18 结束** (runtimeMs
+    7252523 ≈ **120.9 分钟**) ⇒ ★**末条 `stopReason: "length"`** ⇒ ★**撞输出 token 上限** ⇒ ★**它没交卷**: ★**无** `HANDOFF/*ISS193*` · ★**无** BOM 回填 (`HW/BOM_v1.csv` md5 `3ad04e1a…` 仍 11-05 那份) · ★**无** `state/fragments/hw.yaml`
+    写入 (mtime 仍 10:38) ⇒ ★**`status=fixing` 成了【假标记】** ⇒ ★**这是 ISS-181 / ISS-192 同一个病 (第 3 次出现)** ⇒ ★**hw-lead 的名额被一条已经死掉的单永久占住 ⇒ A 段连续多轮为空**。★**★本轮我还查到了它【为什么炸】+【它本来也做不对】★★** (★沙盒实测★): ① **炸因**: brief 要求『逐个查
+    29 个器件的真实脚数』⇒ 它就去 KiCad 官方符号库一个个 grep / 整文件 cat ⇒ ★**上下文被符号库撑爆, 120.9 分钟一条脚数都没落盘** ⇒ ★**同一个错不许再犯第二次: 重派必须【自带答案】**; ② **★它的验收判据本身就错了★**: brief 说『给 BOM 定 opn/封装 ⇒ 脚数自动补齐』, ★**但 gap 文档的脚数【根本不是从 BOM 读的】**
+    ⇒ ★**实测: 把 BOM 里 J_USB_C 的 opn 填成 ''GCT USB4105-16P …'' 重跑生成器 ⇒ 产物里 J_USB_C 的真实脚数【仍然是 `[0数据]`】⇒ ★**填 BOM 的 opn 对 [0数据] 数量零效果** ⇒ ★**真正决定 [0数据] 的是【生成器里的三张查找表】`SPEC_PINS` / `OPN_KICAD` / `PREFIX_KICAD`**
+    ⇒ ★**实测: 加一条 `SW_` 前缀 ⇒ [0数据] 从 29 降到 23** ⇒ ★**⇒ 它就算查对了符号、改的也是 BOM, 验收判据永远降不下来 = 白干 120 分钟** ⇒ ★**⇒ 本单重派时 brief 三改 (判据改掉 / 候选答案我先算好塞进去 / 查不到的保留 [0数据] 并写进 §5.2 的『仍缺』清单 —— 那正是 E-02 要问原厂的内容★)**。★**★顺带实测到两个会导致【假数】的坑,
+    已写进新 brief★★**: (a) ★**KiCad 官方库里大量符号用 `extends` 继承父符号** (实测 AO3401A / BSS138 / 2N7002 / SMAJ5.0A / SM6T18A / USBLC6-2SC6 全是) ⇒ ★**它们自己文件里 0 个 `(pin` 行 ⇒ `kicad_pins()` 数出来 = 0 ⇒ ★**指向这种符号 = 脚数 0 =
+    假数**; (b) `CHG_GND_STAR` (单点汇流位) / `X1` (晶振焊盘位, 不装) / `BT_432243` (电池座) ★**这三个不是器件** (表里 3 行全是同一个网 GND) ⇒ ★**填任何数都是编** ⇒ ★**只能保留 [0数据] 并注明『非器件/焊盘位』**。'
+  task_brief: "★**目标 (★与上一轮【根本不同】—— 上一轮 120.9 分钟撞 token 上限, 一条没落★)**: ★**把\n   `HW/PCB/PIN_REALITY_GAP.md` 里 29 个 `[0数据]` 的【真实脚数】填掉能填的** ⇒ ★**本轮的判据是【改生成器的\n   三张查找表】, 不是改 BOM** ⇒ ★**本单【不许去翻 KiCad 符号库】**\
+    \ (★答案我已算好塞在下面★)。\n\n★**★① 机制 (★main 2026-11-11 20:0x 沙盒实测, 不是推测★ —— 这条最要紧, 搞错就白干★)**:\n   ★**gap 文档的\"真实脚数\"【不是从 BOM 读的】** ⇒ ★**你往 `HW/BOM_v1.csv` 的 `opn` 列填东西, 对\n   `[0数据]` 的数量【零效果】** (★实测: 填了 J_USB_C\
+    \ 的 opn 后重跑, 它仍是 `[0数据]`★)\n   ⇒ ★**真正决定脚数的是 `state/gen_kicad_sch.py` 里的三张查找表 (按顺序查)**:\n     ① `SPEC_PINS`     (精确 ref → 脚数)          —— 例: `J_CHG: 10` / `U_CHG: 24`\n     ② `PARTIAL_PINS`  (100 球位座这类\"\
+    部分用到\"的)\n     ③ `OPN_KICAD`     (精确 ref → (KiCad 符号文件, 来源说明))\n     ④ `PREFIX_KICAD`  (前缀 → (KiCad 符号文件, 来源说明))  ★**例: `('R_', 'Device.kicad_symdir/R.kicad_sym', …)`**\n   ⇒ ★**★所以本单的动作 = 往这几张表里加条目\
+    \ ★** ⇒ ★**验收也只看这几张表 + 重跑产物** ★\n\n★**★② 候选答案我已算好 (★你直接用, 不许再去 grep 符号库 — 上一轮就是死在翻符号库★)**:\n   ★**先用这张表 (★符号路径 = `state/gen_kicad_sch.py` 里 `KICAD_SYM` 下的相对路径 = \n   `/home/yuewuya/kicad/squashfs-root/usr/share/kicad/symbols/`\
+    \ 下的相对路径★)**:\n   | ref | 建议符号 (★★已实测 pins 数★) | 建议脚数 | 依据 |\n   |---|---|---|---|\n   | `Q1` | `Transistor_FET.kicad_symdir/Q_NMOS_GDS.kicad_sym` | 3 | KiCad 官方库 N-MOS 通用符号 (★G/D/S★) |\n   | `Q_AND`\
+    \ | `Transistor_FET.kicad_symdir/Q_NMOS_GDS.kicad_sym` | 3 | 同上 |\n   | `Q_ENVC` | `Transistor_FET.kicad_symdir/Q_NMOS_GDS.kicad_sym` | 3 | 同上 |\n   | `Q_CHG_LED` | `Transistor_FET.kicad_symdir/Q_NMOS_GDS.kicad_sym`\
+    \ | 3 | 同上 |\n   | `Q_PG` | `Transistor_FET.kicad_symdir/Q_PMOS_GDS.kicad_sym` | 3 | KiCad 官方库 P-MOS 通用符号 |\n   | `SW_BOOT` `SW_KEY_CAM` `SW_KEY_PWR` `SW_KEY_VM` `SW_KEY_VP` `SW_RST` | `Switch.kicad_symdir/SW_Push.kicad_sym`\
+    \ | 2 | KiCad 官方库按键符号 (★2 脚★) |\n   | `FB_DEMO` `FB_VBUS` | `Device.kicad_symdir/FerriteBead.kicad_sym` | 2 | KiCad 官方库磁珠符号 |\n   | `U_BATPROT` | `Battery_Management.kicad_symdir/BQ297xy.kicad_sym`\
+    \ | 6 | ★**BOM opn 已是 BQ2970** ⇒ 同系列符号 |\n   | `U_EN_SW` `U_PWR_SW` | `Power_Management.kicad_symdir/AP22913CN4.kicad_sym` | 4 | ★**BOM opn 已是 TPS22991RAA (UQFN-4)** ⇒ 同类 4 脚负载开关符号 |\n   | `U_SUPV`\
+    \ | `Power_Supervisor.kicad_symdir/TPS3808DBV.kicad_sym` | 6 | ★**网表 value 已写 TPS3808G01** ⇒ 同系列电压监控符号 |\n   | `U_LDO_S28` | `Regulator_Linear.kicad_symdir/TPS7A20xxxDQN.kicad_sym` | 5 | ★**与已填的 `U_LDO_L18`/`U_LDO_L33`\
+    \ 等同一张表, 直接照抄★** |\n   | `J_USB_C` | `Connector.kicad_symdir/USB_C_Receptacle_USB2.0_16P.kicad_sym` | 17 | ★**BOM opn 已是 GCT USB4105-16P (16P 座)** ⇒ KiCad 同款 16P 座符号 (16 信号 + 1 壳) |\n   | `D_TVS_VBUS`\
+    \ | `Diode.kicad_symdir/ZPYxx.kicad_sym` | 2 | 5V 单向 TVS = 2 脚 |\n   | `D_ESD_CAM` `D_ESD_DEMO` `D_ESD_LIGHT` `D_ESD_TC` `D_ESD_USB_D` | `Power_Protection.kicad_symdir/SP0503BAHT.kicad_sym` | 4 | ESD/TVS\
+    \ 阵列 (★4 脚★) |\n   ★**★三个不许填的 (★填了就是编★)★**:\n   | `CHG_GND_STAR` | ★**不许填** | — | ★**不是器件** (单点汇流位, 表里 3 行全是同一个网 GND) ⇒ 保留 `[0数据]` + 注\"非器件\" |\n   | `X1` | ★**不许填** | — | ★**不是器件** (晶振焊盘位, 不装) ⇒ 保留\
+    \ `[0数据]` + 注\"焊盘位/不装\" |\n   | `BT_432243` | ★**不许填** | — | ★**不是器件** (电池座, 本机无对应符号) ⇒ 保留 `[0数据]` + 注\"电池座, 待选型\" |\n   ★**⇒ 你必须【自己复核每个候选符号的脚数】, 但【不许用\"grep 整个符号库\"的方式】 ⇒ ★**只许用上面这张表里\n   给出的路径, 逐个\
+    \ `grep -c '(pin ' <那一个文件>` 数一次 (★★`extends` 的符号会数出 0 ⇒ 那是假数, 不许用★)** ★\n\n★**★③ 两个会把数字搞假的坑 (★上一轮没测出来, 本轮实测★)★★**:\n   ★**坑① `extends`**: KiCad 官方库里 ★**大量符号用 `extends` 继承父符号** (实测 `AO3401A` / `BSS138`\
+    \ /\n      `2N7002` / `SMAJ5.0A` / `SM6T18A` / `USBLC6-2SC6` 全是) ⇒ ★**它们自己文件里 0 个 `(pin` 行** ⇒\n      `kicad_pins()` 的正则 `\\(pin\\s+\\w+\\s+\\w+\\s*\\(at` 数出来 = **0** ⇒ ★**⇒ 指向这种符号 = 脚数 0 = 假数!**\n\
+    \      ⇒ ★**⇒ 只许用【实测 pins>0 且该文件里没有 `extends`】的符号** (★上表里给出的都满足, 你复核时确认这一条★)\n   ★**坑② `SPEC_PINS` 有两份拷贝**: `state/check_netlist_pins.py` 里一份, `state/gen_kicad_sch.py` 里一份\n      (★★实测当前两份内容一致★) ⇒ ★**你要改的是【生成器那份】(`state/gen_kicad_sch.py`),\
+    \ 因为 gap 文档只读它★**\n      ⇒ ★**改完顺带核一下两份是否还一致 (不一致就在交卷报告里点出来, 别自己动另一份)** ★\n\n★**★④ 验收 (★判据改了 —— 上一轮的判据是错的★)★**:\n```\npython3 state/gen_kicad_sch.py --pin-gap     # ★**重跑产物 (★真命令, 不是不存在的 state/gen_pin_reality_gap.py★)\n\
+    grep -c '\\[0数据\\]' HW/PCB/PIN_REALITY_GAP.md   # ★**目标: 29 → 尽量低 (★下表给的上限≈10★); 剩余的必须是【表里那三个非器件】**\npython3 state/merge.py                        # rc 必须 0 (冲突 0)\npython3 state/gate_check.py     \
+    \              # Q1 必须 18/18\nmd5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv\n# ★**板 611b869e… / 网表 c78f9912… / pins 4814617e… / BOM 3ad04e1a… 必须一字未变**\
+    \ ★\n```\n   ★**★不许改 BOM ★** (★改了对 [0数据] 零效果, 只会把 BOM 和真源脱节★) ⇒ ★**本单只许改\n   `state/gen_kicad_sch.py` 的那三张查找表 + 重跑出的 `HW/PCB/PIN_REALITY_GAP.md`** ★\n   ★**★落盘纪律 (★上一轮的另一个教训★)★**: ★**每填完一批 (★建议每 5 个★)就立刻重跑\
+    \ `--pin-gap` 看一次\n   `[0数据]` 数量 ⇒ ★**不许攒到最后一起写** ⇒ ★**宁可交一半, 也不要交零** (★上一轮交零的直接原因就是攒到最后★)** ★\n   ★**交卷 ≤ 25 行** (结论先行; 逐条给复现命令与实测输出; ★**列清你填了哪些 / 留了哪些 / 为什么留★**)。\n\n★**边界 (不许越)**\n· ★**只写**: `state/gen_kicad_sch.py`\
+    \ (★**只许动那三张查找表 + 必要的注释, 不许动生成逻辑 / 画图逻辑★**)\n  + ★**重跑生成的** `HW/PCB/PIN_REALITY_GAP.md` + `HANDOFF/` 下交卷报告\n  + ★**必要时** `state/fragments/hw.yaml` (走 `state/frag_write.py`; ★**只许新增条目, 不许删改别人的 key★**)。\n\
+    · ★**不许碰**: `HW/BOM_v1.csv` · `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` ·\n  `HW/PCB/demo_mainboard.kicad_pcb` · `HW/PCB/demo_mainboard*.kicad_sch` · 任何 `state/gen_*.py` (★**除\n  `state/gen_kicad_sch.py`\
+    \ 那三张表本身★**) · `PROJECT_TRACKER.md` §0 · **别人的分片** ·\n  `state/issue_log.yaml` (★**改 issue 状态是 main 的活★**)。\n· ★**不许联系供应商/原厂/服务商** (★外发一律经项目总工★) · ★**不许发任何邮件** ★\n· ★**证据分级** [实测]/[官方]/[推算]/[0数据] 必标;\
+    \ ★**任何统计数必须同时给口径** (哪块板 / 哪个口径 / 何时)。\n· ★**不许猜脚数**: ★**查不到就保留 `[0数据]` 并写进 §5.2 的\"仍缺\"清单 ⇒ 那正是 E-02 那封信要问原厂的内容** ★\n· ★**不要改板**: demo 板 (160×100) 实测 **MountingHole = 0** ⇒ ★**那是布局类, 按老板 11-11 10:07\
+    \ 口径【不派】**\n  ⇒ ★**本单不许碰它**。\n"
+- id: ISS-194
+  title: '★★PIN-SET-2 孔位表【套B ⇒ 套A】: hw-lead 自己 5 个产物里 4 个写套A, 只有 pcb60x30_check.py + 它的 .json 写套B (S1 y=2.5 / S2 y=27.5, 孔壁距边只剩 1.80mm) ⇒ 而那份 .json 是 ISS-118 的验收产物 ⇒ 若 PCB 按套B 钻, 螺钉与打印包笼孔差 7.50mm ⇒ 板装不进骨架'
+  severity: high
+  source_blocker: MECH-B4
+  source_agent: main
+  desc: "★2026-11-11 18:4x 项目总工开单 (★依据 = ISS-192 交卷 + main 独立验收签字 + main 自己实测★)。\n★**ISS-192 已于 18:4x 经 main 独立验收签字 (verified/pass)**: 结构侧把 PIN-SET-2 孔位 Y 的两套互斥口径\n  (差 7.50mm) 仲裁成一套 = **套A**, 并登记 needs_from\
+    \ → hw-lead (`iss192_pcb60x30_holes_set_b_to_set_a`)。\n★**main 自己实测的『套B 是孤例』 (不是抄任何人的自述)**: ① hw.yaml claim `pcb_mount_holes_xy` = 套A\n  ② `HW/hw_week_20261101_check.py`:51-56 = 套A 且是断言 ③ **打印包两个 STL\
+    \ 的顶面占据栅格化 (0.5mm)\n  实测四孔 = 套A, 套B 位置实心无孔** ④ 结构侧权威表 = 套A\n  ⇒ ★**唯一说套B 的 = `HW/pcb60x30_check.py`:113-117 + 它的 `.json` (sec4_holes 两段)**。\n★**几何自洽性 (不依赖打印包)**: 套B 相对新中心 (Y=15.00) 偏移 S1 −12.50 / S2\
+    \ +12.50 ⇒ 不对称 + 分离 25.00mm;\n  而 15mm 老口径是关于中心 7.50 的 ±5.00 对角分布 ⇒ 平移到 30mm 板 ⇒ 套A (分离仍 10.00, 仍对称)\n  ⇒ ★**套B = 「只改 Y」时的漂移产物, 不是平移**。\n★**后果**: 套B 的 S1/S2 孔壁距板边只剩 **1.80mm** (套A 7.30mm) + 叠加 ISS-049\
+    \ §5 的 ⌀3.0 让位孔\n  ⇒ 孔缘距板边只剩 **1.00mm ⇒ 破边**; 且 ★**打印包笼孔已是套A** ⇒ 按套B 钻 ⇒ 螺钉穿实心板 ⇒ 装不进骨架。\n★**主线口径**: 老板 11-11 10:07 ⇒ 当前主线 = 硬件原理图 demo 绘制; PCB 布线/布局类不派\n  ⇒ ★**本单只改校验器里的孔位表 + 它的机读产物, 不改板/网表/原理图, 不碰布线布局**\
+    \ ⇒ 在优先派活范围内。\n★**边界**: 只写 `HW/pcb60x30_check.py` + `.json` (+ 必要时 hw.yaml 的 note, 走 frag_write.py);\n  ★**不许碰网表/板/原理图/gen_*.py/§0 锁死表/别人的分片/issue_log**; ★**不许联系供应商**。"
+  owner: hw-lead
+  reporter: main
+  raised: '2026-11-11'
+  due: '2026-11-13'
+  status: verified
+  external: false
+  need_keys: []
+  fix_ref: HW/pcb60x30_check.py (套A 孔位表) + HW/pcb60x30_check.json (sec4_holes 两段)
+  verify_by: main
+  verify_result: '2026-11-11 20:2x 项目总工亲核通过 (verify_by=main ≠ owner=hw-lead)。★**目标达成**: PIN-SET-2 孔位表【套B ⇒ 套A】已改完: `HW/pcb60x30_check.py`:116-117 的 S1 **(8.00,10.00)** / S2 **(52.00,20.00)**(★P1/P2 ⌀2.00
+    一律未动★) + `HW/pcb60x30_check.json` 已重生成 ⇒ ★**实测两段 sec4_holes 都是 {P1:(8,15,7.0) P2:(52,15,7.0) S1:(8,10,7.3) S2:(52,20,7.3)}** ⇒ ★**S1/S2 的 y = 10.0/20.0 · edge_wall 1.80 → 7.30 · edge_to_center 全 8.00
+    · ov_escape_band / ov_pkg / ov_jchg_keepout 全 0.0** ⇒ 与 brief 的验收数逐项一致。★**我独立重跑 (不采信自述)**: `HW/pcb60x30_check.py` 54/58 · FAIL 4 · WARN 0 · ★**且这 4 个 FAIL 与孔位无关 —— 我做了对照实验**: 把孔位退回套B (S1 2.50 / S2 27.50)
+    重跑 ⇒ **同样 54/58 · FAIL 4 · 同 4 条** (RK3588 需 11 层 / RK3576 需 9 层 / RK3588 面积缺 497.3mm² / 板长加到上限仍装不下) ⇒ ⇒ **改前就是红, 改后还是同样红, 一条没多一条没少 ⇒ 改孔位没有引入任何新红** ⇒ ★**它【没有为了让闸变绿而降级判据】(★降级等于伪造验收★) ⇒ 这一点是对的** ★ · 孔位相关
+    **10 项全过** (RK3588/RK3576 各 P1/P2/S1/S2 孔心距边 8.00mm · S1/S2 孔壁 7.30mm · 孔间最小中心距 5.00mm / 孔壁间距 3.30mm) · `HW/hw_week_20261101_check.py` 45 项 PASS 41 FAIL 4 (★与套B 版同数 ⇒ 同上★) · `MECH/pinset2_mech_check.py`
+    rc=0 (★结构侧闸: 硬件侧孔位口径与结构侧定版一致 · 38 项 FAIL 0★) · `state/merge.py` rc=0 (冲突 0) · `state/gate_check.py` rc=0 (Q1 18/18) ⇒ ★**全绿** ★。★**它自己独立复核了仲裁依据 (不是抄我的自述)**: ★**它自己解析两个二进制 STL + 0.5mm 顶面栅格化 ⇒ 四孔心 = (8,10)/(8,15)/(52,15)/(52,20)
+    ⇒ 套B 的 (8,2.5)/(52,27.5) 实心无孔** ⇒ ★**与我 18:4x 的独立结论一致** ★。★**它顺手在同一文件里修了2 处同源套B 派生值 (我核过, 认可)**: `checks[47]` 原称「Y 力臂 10→25mm、抗扭几何更好、+5.48mm」⇒ 套A 下实为 **45.12 vs 45.12, 力臂变化 +0.00mm = 持平无增益** (★与 `MECH/BOARD_GEOM_30MM.md`
+    §4.2 一致★) ⇒ 不改 = 留一句假账; `checks[48]` note「骨架件不用重新开孔」⇒ 改为「**X 向不用重开、Y 向需平移 +7.50**」⇒ 原话是错的 ⇒ ★**这两处是同一个套B 漂移的派生值, 在同一文件里 ⇒ 属本单范围, 不算越界** ★。★**★它报上来的一条【真影响】的漂移 (我独立复算坐实了) ⇒ 已开 ISS-195 跟, 不许它顺手改★**: `HW/iss121_mic_magnet_check.py`:171
+    + `.json`:189 + `ISS121_MIC_MAGNET_POSITION.md`:161 三处引 15mm 孔位 ⇒ ★**我按它的公式独立复算**: 麦 M1 封装 2.90×1.60 中心 (5.00,12.00) ⇒ 到 S1 孔心净空: 套B (S1 y=2.50) ⇒ dy=9.50 ⇒ **≈8.14mm** · 套A (S1 y=10.00) ⇒ dy=2.00 ⇒
+    **≈1.26mm** ⇒ ★**它的「3.01→1.26mm」我实测坐实 (我独立算得 1.26mm, 与它一致) ⇒ 余量掉一大截但仍不重叠、结论方向不变** ⇒ 属「要重算的另一张单」(★那个文件是 ISS-121 的地界★) ⇒ ★**已开 ISS-195** ★。★**边界核查 (我实测 mtime + md5)**: 本轮只写了 `HW/pcb60x30_check.py` + `HW/pcb60x30_check.json`
+    (★`state/fragments/hw.yaml` 未动 ✔ —— claim 本就是套A、note 本就写「S ±5.00 不变」⇒ 无需回填★) ⇒ ★**板 611b869e… / 网表 c78f9912… / pins 4814617e… / BOM 3ad04e1a… / .kicad_pro 3e504d2b… 一字未动** ✔ ⇒ ★**`HW/PCB/STACKUP.md`
+    / `LAYOUT_RULES.md` / `GEN_SELF_CHECK.txt` / `_frame_reference.kicad_pcb` 的 mtime 变了 ⇒ 但 git diff 实测【除时间戳行外零内容差异】⇒ 是巡检连带重出的已知副作用, 不是它改的** ★ ⇒ ★**签字通过** ★'
+  verify_date: 2026-11-11 20:2x
+  note: "★2026-11-11 18:4x 项目总工开单 (owner=hw-lead, verify_by=main ⇒ ★**自己修的必须别人验**, 铁律满足)。\n★**来源**: ISS-192 (mech-lead) 交卷 ⇒ main 18:4x 独立验收签字 (verified/pass) ⇒ 结构侧登记的\n  needs_from `iss192_pcb60x30_holes_set_b_to_set_a`\
+    \ 的另一半 ⇒ ★**本单就是那『另一半』**。\n★**为什么不派 PCB 类**: 老板 11-11 10:07 指令 —— PCB 布线/布局类一律【不派】(排队等原理图定稿);\n  ★**本单只改校验器里的孔位表 + 机读产物, 不碰布线/布局** ⇒ 不违反主线口径。\n★**与在飞任务的并发安全 (实测)**: hw-lead 正在跑 **ISS-193** (29 个器件真实脚数)\
+    \ ⇒ ★**那个单只碰\n  BOM/封装/脚数来源, 不碰 `HW/pcb60x30_check.py`** ⇒ ★**零文件交集**; 且 ★**一个 agent 同时只允许一个\n  写会话** ⇒ ⇒ 本单 status=open, ★**等 ISS-193 交卷后由 advance.py 自动派出**, 不手动并发派。\n★**验收**: main 会独立重跑本单贴的复现命令 +\
+    \ 复核 json 两段的 S1/S2 y/edge_wall + 查 merge rc=0 与\n  gate_check Q1=18/18 ⇒ ★**不采信自述**。"
+  task_brief: "★**目标**: 把 **PIN-SET-2 孔位表从【套B】改成【套A】** —— 只改 `HW/pcb60x30_check.py` 的 `HOLES` 表\n   + 重生成 `HW/pcb60x30_check.json` 的 `sec4_holes` (RK3588 / RK3576 **两段**) + 复核你其余产物里有没有同源的漂移值。\n   ★**不改板、不改网表、不改原理图、不碰布线/布局**。\n\
+    \n★**为什么 (★main 2026-11-11 18:4x 逐条实测, 不是推测★)**: 现在**你自己的产物内部打架** ——\n| # | 产物 | 孔位口径 |\n|---|---|---|\n| ① | `state/fragments/hw.yaml` claim `pcb_mount_holes_xy` | ★**套A** (`P1(8,15)P2(52,15)S1(8,10)S2(52,20)`),\
+    \ note 明写\"Y 按中心线平移 (旧中心 7.50 → 新中心 15.00, **S 孔 ±5.00 不变**)\" |\n| ② | `HW/hw_week_20261101_check.py`:51-56 | ★**套A** (而且是**断言**: `new = {k: (x, y + (W/2.0 - 7.50))}` ⇒ exp 四孔) |\n| ③ | ★**打印包 Rev\
+    \ B (STL 实测)** | ★**套A** (见下) |\n| ④ | `MECH/BOARD_GEOM_30MM.md` §4 (结构侧权威表, main 已验收签字) | ★**套A** |\n| ⑤ | ★**`HW/pcb60x30_check.py`:113-117 + 它生成的 `HW/pcb60x30_check.json`** | ★★**套B** (S1 y=**2.5**\
+    \ / S2 y=**27.5**, `edge_wall` **1.80mm**) ⇒ ★**唯一说套B 的** |\n⇒ ★**★那份 .json 是 ISS-118 的验收产物** ⇒ 下游按它做就错 ⇒ ★**必须改**。\n\n★**③ 打印包 = 套A 是 main 自己测的 (★我没抄任何人的自述★)**: ★**main 纯 Python 解析了两个二进制 STL\n   (`MECH/print/temple_cage_revb.stl`\
+    \ / `MECH/print/fit_coupon_revb.stl`) + 顶面占据栅格化 (0.5mm) 实测**:\n   · cage 的 PCB 定位板 (板基线 Y=60) ⇒ **四个通孔 = P1(8.00,15.00) ⌀2.4 + P2(52.00,15.00) ⌀2.4 +\n     S1(8.00,10.00) ⌀1.6 + S2(52.00,20.00) ⌀1.6**\n\
+    \   · coupon 的 PCB 样板 (基线 X=4 / Y=84) ⇒ **同一组值**\n   · ★**套B 的 (8.00,2.50) / (52.00,27.50) 两个位置实测【实心无孔】** ⇒ ★**套B 与打印包不符**\n   ★(注: 打印包是**包络多边形**切孔, 所以圆心靠栅格/弦宽反算, 不是找圆柱面 —— 你自己复核时别找圆面)\n   ★另: 生成器常量\
+    \ `pinset2_p_y=15.00 / pinset2_s1_y=10.00 / pinset2_s2_y=20.00`\n   (`MECH/print/gen_print_pack_revb.py`:93-95) 与栅格实测**逐值一致**。\n\n★**几何自洽性 (★不依赖打印包也成立★)**: 套B 相对 30mm 新板中心 (Y=15.00) 的偏移 = S1 **−12.50**\
+    \ / S2 **+12.50**\n   ⇒ **不对称 + 两孔分离 25.00mm**; 而 15mm 老口径 (`HW/PCB_FIXING_PINSET2.md` §3.1: P1(8,7.50) P2(52,7.50)\n   S1(8,2.50) S2(52,12.50)) 是**关于中心 7.50 的 ±5.00 对角分布** ⇒ 平移到 30mm 板 (中心 15.00)\n\
+    \   ⇒ **套A (分离仍 10.00, 仍对称)** ⇒ ★**套B 是「只改 Y」时的漂移产物, 不是平移**。\n\n★**具体要改什么 (main 已定位到行, 你自己复核后再改)**\n1. `HW/pcb60x30_check.py`:113-117 `HOLES` 四行 ⇒ ★**只改两个 Y**:\n   `(\"S1\", \"压紧螺钉孔\", (8.00, 2.50),\
+    \ 1.40, ...)` ⇒ **(8.00, 10.00)**\n   `(\"S2\", \"压紧螺钉孔\", (52.00, 27.50), 1.40, ...)` ⇒ **(52.00, 20.00)**\n   ⇒ ★**P1(8.00,15.00) / P2(52.00,15.00) ⌀2.00 一律不动** (它们两套口径本来就一致)\n2. ★**重生成 `HW/pcb60x30_check.json`**\
+    \ ⇒ `sec4_holes` 的 **RK3588 段 + RK3576 段**都要是套A\n   ⇒ ★**验收看这三个数**: S1/S2 的 `y` = **10.0 / 20.0** · `edge_wall` 由 **1.80 → 7.30**\n   (`edge_to_center` 8.00) ⇒ ★**且 `ov_escape_band` / `ov_pkg` / `ov_jchg_keepout`\
+    \ 仍全为 0.0**\n   (结构侧已复算: 套A 四孔 × SoC 逃线带 2D 重叠 = **0.0000 mm²**)\n3. ★**扫一遍你自己其余产物里有没有同源的漂移值** (★别只改这一处就收工★):\n   `HW/PCB_FIXING_PINSET2.md` (§3.1 仍是 15mm 老板宽口径 —— ★**只报不改**, 改它要另开单) ·\n   `HW/STEP1_LANDING_LIST.md`\
+    \ · `HW/PART_ALTERNATIVES_REGISTRY.md` · `state/fragments/hw.yaml` 的 note ·\n   ★**凡\"孔位 Y\"相关的表格/清单/JSON, 一律核一遍值** ⇒ ★**有漂移就列清单报给 main** (不要顺手改无关文件)。\n\n★**验收自证 (交卷前跑, 把输出贴进回复)**\n```\npython3 HW/pcb60x30_check.py\
+    \                 # rc=0, 且 sec4_holes 两段 S1/S2 的 y = 10.0 / 20.0\npython3 -c \"import json;d=json.load(open('HW/pcb60x30_check.json'));print({s:{k:(v['x'],v['y'],v.get('edge_wall')) for k,v in d['sec4_holes'][s]['holes'].items()}\
+    \ for s in ('RK3588','RK3576')})\"\npython3 HW/hw_week_20261101_check.py         # rc=0 (它本来就断言套A ⇒ 改完两边必须一致)\npython3 MECH/pinset2_mech_check.py           # rc=0 (结构侧闸; 改完必须仍绿)\npython3 state/merge.py\
+    \                       # rc 必须 0 (冲突 0)\npython3 state/gate_check.py                  # Q1 必须 18/18\nmd5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv   # 必须一字未变 (611b869e… / 网表 md5 见项目基线)\n\
+    ```\n★**交卷 ≤ 20 行** (结论先行; 逐条给复现命令与实测输出; ★**列清你扫过哪些文件、哪些有漂移**)。\n\n★**边界 (不许越)**\n· ★**只写**: `HW/pcb60x30_check.py` + `HW/pcb60x30_check.json` + ★**必要时** `state/fragments/hw.yaml`\n  (走 `state/frag_write.py`;\
+    \ ★**只许订正 note/值, 不许动别的 key**)。\n· ★**不许碰**: `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` · `HW/PCB/demo_mainboard.kicad_pcb` ·\n  `HW/PCB/demo_mainboard*.kicad_sch` · 任何 `state/gen_*.py` · `PROJECT_TRACKER.md`\
+    \ §0 ·\n  **别人的分片** · `state/issue_log.yaml` (★**改 issue 状态是 main 的活**)。\n· ★**不许联系供应商/原厂** (外发一律经项目总工)。\n· ★**证据分级** [实测]/[官方]/[推算]/[0数据] 必标; ★**任何统计数必须同时给口径** (哪块板 / 哪套孔位 / 哪个 SoC)。\n· ★**不要自己改板**:\
+    \ demo 板 (160×100) 实测 **MountingHole = 0** + `params.json` 里有 4 个 60×45 时代的遗留孔坐标\n  ⇒ ★**那是布局类, 按老板 11-11 10:07 口径【不派】(排队等原理图定稿)** ⇒ ★**本单不许碰它**, 由 main 裁。\n"
+  dispatched_at: '2026-11-11'
+- id: ISS-195
+  title: ★【ISS-194 的连带账·真影响】麦 M1 到 S1 压紧螺钉孔的孔壁净空随套A 从 ≈8.14mm 掉到 ≈1.26mm ⇒ `HW/iss121_mic_magnet_check.*` 三处仍引 15mm 老口径 ⇒ 要按现行孔位重算
+  severity: medium
+  owner: hw-lead
+  verify_by: main
+  reporter: main
+  raised: '2026-11-11'
+  due: '2026-11-13'
+  status: open
+  task_brief: "★**目标**: 把 `HW/iss121_mic_magnet_check.py` / `.json` / `HW/ISS121_MIC_MAGNET_POSITION.md` 里★**引 15mm 老口径孔位**的三处, ★**按现行 60×30 板 + 套A 孔位重算** ⇒ 给出麦克风磁体/麦克风的孔壁净空与最小间距的 PASS/FAIL 与余量数字。\n\n★**为什么现在做\
+    \ (★main 2026-11-11 20:2x 独立复算, 不是推测★)**:\n· ISS-194 (孔位表 套B ⇒ 套A) 交卷后, 扫出三处仍引 15mm 老口径: `HW/iss121_mic_magnet_check.py`:171 · `HW/iss121_mic_magnet_check.json`:189 · `HW/ISS121_MIC_MAGNET_POSITION.md`:161\n\
+    · ★**main 独立复算**: 麦 M1 封装 **2.90 × 1.60mm**, 中心 **(5.00, 12.00)** ⇒ 到 S1 压紧螺钉孔的孔壁净空:\n  套B (S1 y=2.50) ⇒ dy=9.50 ⇒ **≈8.14mm** · 套A (S1 y=10.00) ⇒ dy=2.00 ⇒ **≈1.26mm**\n  ⇒ ★**余量掉了一大截, 但仍不重叠、结论方向不变**\
+    \ ⇒ ★**结论要按现行孔位重算, 不能沿用 15mm 老口径** ★\n· ★**为什么不在 ISS-194 里顺手改**: ★**那三个文件是 ISS-121 的地界** ⇒ ISS-194 的 brief 明确只写 `HW/pcb60x30_check.py` + `.json` ⇒ 越界 ⇒ ★**另开本单** ★\n\n★**做法**: ① ★**先读 `MECH/BOARD_GEOM_30MM.md`\
+    \ §4 (结构侧定版孔位, main 已验收签字)** + `HW/pcb60x30_check.py` 的 HOLES 表 (★套A: S1 (8.00,10.00) ⌀1.40 / S2 (52.00,20.00) ⌀1.40 / P1 (8.00,15.00) ⌀2.00 / P2 (52.00,15.00) ⌀2.00★) ⇒ ★**别用 15mm 老口径** ★② ★**按那个脚本自己的公式**\
+    \ 重算麦 M1 封装与孔的孔壁净空 + 与其它件的最小间距 ③ ★**改这三处** (★只改引用/数字, 不许改判据阈值★) ④ 重跑该脚本, 给出 PASS/FAIL 与余量数字\n\n★**验收自证 (交卷前跑, 把输出贴进回复)**\n```\npython3 HW/iss121_mic_magnet_check.py     # rc 与输出贴出来 (★新旧净空两个数都要给★)\n\
+    python3 state/merge.py                     # rc 必须 0 (冲突 0)\npython3 state/gate_check.py                # Q1 必须 18/18\nmd5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv   # 必须一字未变 (611b869e…)\n\
+    ```\n★**交卷 ≤ 15 行** (结论先行; ★**明确写 PASS 还是 FAIL + 余量多少 mm★; ★**若 FAIL ⇒ 只报给 main 裁决, 不许自行改孔位或改判据** ★)\n\n★**边界 (不许越)**\n· ★**只写**: `HW/iss121_mic_magnet_check.py` + `HW/iss121_mic_magnet_check.json`\
+    \ + `HW/ISS121_MIC_MAGNET_POSITION.md` + `HANDOFF/` 下交卷报告 + ★**必要时** `state/fragments/hw.yaml` (走 `state/frag_write.py`; ★**只许新增/订正本单相关条目★)\n· ★**不许碰**: `HW/pcb60x30_check.py` / `HW/pcb60x30_check.json`\
+    \ (★那是 ISS-194 的地界, 已定版★) · `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` · `HW/PCB/demo_mainboard.kicad_pcb` · `HW/PCB/demo_mainboard*.kicad_sch` · 任何 `state/gen_*.py` · `PROJECT_TRACKER.md` §0 ·\
+    \ **别人的分片** · `state/issue_log.yaml` (★**改 issue 状态是 main 的活**)\n· ★**不许联系供应商/原厂** (外发一律经项目总工) · ★**证据分级** [实测]/[官方]/[推算]/[0数据] 必标\n· ★**不许改判据阈值来让自己变绿** (★降级等于伪造验收★)"

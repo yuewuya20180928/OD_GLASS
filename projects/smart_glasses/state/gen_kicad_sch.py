@@ -55,6 +55,7 @@ gen_kicad_sch.py —— 从**针脚级真源**生成 KiCad 原理图 (★"自己
   python3 state/gen_kicad_sch.py --parity    # 导出网表 + 逐脚比对 (自己写)
 """
 import csv
+import hashlib
 import os
 import re
 import subprocess
@@ -838,6 +839,183 @@ def real_pin_count(ref, tbl_n):
 
 
 
+def _md5_of(path):
+    """★本机文件 md5 (★实读, 绝不硬编★)"""
+    try:
+        with open(path, "rb") as f:
+            return hashlib.md5(f.read()).hexdigest()
+    except Exception:  # noqa: BLE001
+        return "[0数据]"
+
+
+def _gap_missing(fet):
+    """★球位表逐座缺的 num (★实读★) ⇒ {conn: [num, ...]}"""
+    miss = {}
+    if not os.path.exists(FET_TBL):
+        return miss
+    seen = {}
+    for r in csv.DictReader(open(FET_TBL, newline="", encoding="utf-8-sig")):
+        c = r['conn'].strip()
+        seen.setdefault(c, set())
+        try:
+            seen[c].add(int(r['num']))
+        except Exception:  # noqa: BLE001
+            pass
+    for c, nums in seen.items():
+        want = max(fet.get(c, 0), max(nums) if nums else 0)
+        m = sorted(set(range(1, want + 1)) - nums)
+        if m:
+            miss[c] = m
+    return miss
+
+
+def _gap_e01_ref(fet, miss):
+    """★§0 第 3 条的交叉引用 (★只在真有缺口时才加★)"""
+    if not miss:
+        return ""
+    c = sorted(miss)[0]
+    return (" ⇒ ★**%s 那缺的 %d 个球位 (`num=%s`) 是本文件唯一没解的问题 ⇒ 见 §5★**"
+            % (c, len(miss[c]), ", ".join(str(x) for x in miss[c])))
+
+
+def _gap_ctx(recs, fet, tbl_pins, n_tot, n_known, n_unknown):
+    """★§5 需要的全部实读数据 (★一个数都不写死★)"""
+    miss = _gap_missing(fet)
+    conns = sorted(miss)
+    nums = []
+    for c in conns:
+        nums.extend(miss[c])
+    som_used = {}
+    for r in recs:
+        if r['ref'].startswith("J_SOM_"):
+            som_used[r['ref']] = r['tbl']
+    ball_used = sum(som_used.values())
+    som_total = sum(fet.values()) + sum(len(miss.get(c, [])) for c in miss)
+    md5s = (_md5_of(PIN_TBL),
+            _md5_of(os.path.join(PROJ, "HW", "netlist_v1.csv")),
+            _md5_of(FET_TBL))
+    n_more = sum(1 for r in recs if r['real'] is not None and r['delta'] > 0)
+    return {
+        "fet": fet, "fet_missing": miss,
+        # raw (用来查表) / disp (用来显示) 分开, 免得格式化时互相串
+        "conn_raw": conns[0] if conns else "",
+        "conn_disp": ", ".join("`%s`" % c for c in conns) or "—",
+        "conns_disp_plain": ", ".join(conns) or "—",
+        "nums_raw": ", ".join(str(x) for x in nums) or "—",
+        "n_unknown": n_unknown, "n_tot": n_tot, "n_known": n_known,
+        "tbl_pins": tbl_pins, "ball_used": ball_used, "som_total": som_total,
+        "ball_unused": som_total - ball_used, "som_used": som_used,
+        "md5s": md5s, "n_more": n_more,
+    }
+
+
+def _gap_sec5(L, ctx):
+    """★**§5 需裁决 / 外部依赖** (★2026-11-11 15:4x 新增 · ★19:4x main 搬进生成器★)
+
+    ★**为什么它必须在生成器里 (★铁律★)**: 这一节原先是【手写进产物】的 ⇒ ★**任何一次 `--pin-gap`
+    重跑都会把它冲掉** ⇒ ★**实测 2026-11-11 19:1x 就被冲掉过一次** ⇒ ⇒ ★**搬进生成器 ⇒ 重跑不再丢** ★★
+
+    ★**本节的内容全部实读**: 球位表逐座行数 / 缺失 num / `[0数据]` 器件数 / 三个文件的 md5
+    ⇒ ★**表变了本文跟着变 ⇒ 不会写死过期数** ★
+    """
+    A = L.append
+    fet = ctx["fet"]
+    miss = ctx["fet_missing"]
+    n_unknown = ctx["n_unknown"]
+    n_tot = ctx["n_tot"]
+    n_known = ctx["n_known"]
+    ball_used = ctx["ball_used"]
+    md5s = ctx["md5s"]
+    craw = ctx["conn_raw"]
+    cdisp = ctx["conn_disp"]
+    cplain = ctx["conns_disp_plain"]
+    nraw = ctx["nums_raw"]
+    n_more = ctx["n_more"]
+    som_used = ctx["som_used"]
+
+    A("---")
+    A("")
+    A("## 5. ★★需裁决 / 外部依赖 (★2026-11-11 15:4x 新增·★本轮卡住的唯一一条★★)")
+    A("")
+    A("> ★★**这一节的规矩 (★铁律·写在这里是为了防止下一个 agent 乱来★)**: ★★")
+    A("> ★**① 本轮【不猜】、不【改表】** ⇒ ★**没查清的事实原样留着, 不许用\"看起来像\"填空★** ★★")
+    A("> ★**② 【不许自己联系原厂 / 供应商】** ⇒ ★**任何外发 (邮件 / 询价 / 问 datasheet) 都必须【老板批准才发】★** ★★")
+    A("> ★**③ 本轮【没改任何表】**: ★**`HW/netlist_v1_pins.csv` md5 `%s` · `HW/netlist_v1.csv` md5 `%s` · "
+      "`HW/PCB/FET3572C_PIN_TABLE.csv` md5 `%s`** ★★" % md5s)
+    A("")
+
+    # ---- 5.1 E-01: 球位表缺球位 ----
+    A("### 5.1 ★★外部依赖 E-01: `FET3572C_PIN_TABLE.csv` 的 **%s 座缺 `num=%s`** ★★" % (cdisp, nraw))
+    A("")
+    A("| 座 | 表里行数 | 缺 `num` | 判定 |")
+    A("|---|---|---|---|")
+    for conn in sorted(fet):
+        m = miss.get(conn) or []
+        A("| `%s` | %d | %s | %s |"
+          % (conn, fet[conn],
+             ("**%s**" % ", ".join(str(x) for x in m)) if m else "—",
+             ("★**缺一整行 ⇒ 未解** ★" if m else "✔ 完整")))
+    A("")
+    A("| 项 | 内容 |")
+    A("|---|---|")
+    A("| ★**事实 (★实测·口径见 §0★)**★ | [实测] ★**`HW/PCB/FET3572C_PIN_TABLE.csv` 逐座行数: %s** ⇒ "
+      "★**四座都是 100 球位/座 (★这正是 §2 里\"真实器件 4×100 = 400 球位\"的依据★), 但 %s 的球位表本身少了一行** ★★"
+      % (" · ".join("`%s` = %d 行" % (c, fet[c]) for c in sorted(fet)), cdisp))
+    A("| | ★**对照**: ★**别的三座在 num=%s 上都有内容 ⇒ %s 这行【很可能】也有内容, 只是没被抄进来** ★★"
+      % (nraw, cdisp))
+    A("| ★**两种可能 (★本机判不了★)**★ | ★**A = 漏行** (★%s 的 num=%s 有信号, 抄表时漏了★) ⇒ "
+      "★**补上后才是完整 100 行★**; ★**B = 该球位确无信号** (★原厂留空/NC, 抄表时按\"没信号\"略过了★) ⇒ "
+      "★**那它就是唯一一列 99 行的座, 需要在表里显式写一行\"NC\"才不歧义★** ★★ ⇒ "
+      "★**★这两条只能由原厂球位表回答, 本机任何推算都不算数 (★我们连原厂表都没见过完整的★)★★** ★★"
+      % (cdisp, nraw))
+    A("| ★**为什么必须外部确认 (★不能内部消化★)**★ | ★**① 这张表是 §2 那 %d 个\"真实多脚\"器件里 4 个 "
+      "(J_SOM_P1~P4) 的【真实脚数=100】的唯一依据** ⇒ ★**%s 少一行 ⇒ 它的\"真实 100 脚\"这个数就少 1 个球位的佐证** ★★; "
+      "★**② 老板【选项③】(真实器件全貌 = 400 球位全画) 的输入就是这张表** ⇒ ★**表不完整 ⇒ 400 球的分配表就有一格填不出来** ★★; "
+      "★**③ 我们【不能自己联系原厂】⇒ 这一条天然就是外部依赖, 不是\"忘了做\"** ★★" % (n_more, cdisp))
+    A("| ★**影响面 (★已核过·不夸大★)**★ | [实测] ★**今天的图没有踩到这个缺口**: ★**J_SOM_%s 在表 "
+      "(`netlist_v1_pins.csv`) 里用的球位里没有 `pin%s`** ⇒ ★**⇒ 图=表 (K=0) 这个结论不受影响, "
+      "本条只卡【选项③】那 %d 个未画球位的分配表** ★★"
+      % (craw, nraw, ctx["ball_unused"]))
+    A("| ★**本轮怎么做的**★ | ★**【不猜】+【不改表】+【不联系原厂】** ⇒ ★**%s 仍是 %d 行 (md5 未变) ⇒ "
+      "★**§2 里那行仍写\"真实 100 脚\", 并在该行注了\"其中 1 行的佐证待原厂确认\"** ★★"
+      % (cdisp, fet[craw] if craw else 0))
+    A("| ★**需谁做什么**★ | ★**① 老板批准外发一封问原厂的信 (★问 3 件事: ① %s 的 num=%s 到底有没有信号 "
+      "② 完整球位表 (含 GND 球位该怎么分配) ③ §3 里那 %d 个 `[0数据]` 器件的真实脚数★) ⇒ "
+      "★**② 硬件总工在回信后重跑 `python3 state/gen_kicad_sch.py --pin-gap` 刷新本文 ⇒ "
+      "③ 有了完整球位表才能启动老板【选项③】** ★★" % (cdisp, nraw, n_unknown))
+    A("")
+
+    # ---- 5.2 E-02: [0数据] 器件 ----
+    A("### 5.2 ★★外部依赖 E-02: %d 个器件的真实脚数还是 `[0数据]` ★★" % n_unknown)
+    A("")
+    A("| 项 | 内容 |")
+    A("|---|---|")
+    A("| ★**事实 (★实测·口径见 §0★)**★ | [实测] ★**%d 个器件里, 真实脚数可查 = %d 个 · 查不到 = %d 个 "
+      "(`[0数据]`)** ⇒ ★**这 %d 个的 BOM `opn` / `footprint` 还是\"待定\" ⇒ 本机没有权威源可查** ★★"
+      % (n_tot, n_known, n_unknown, n_unknown))
+    A("| ★**为什么查不到**★ | ★**不是\"查得不够仔细\", 是\"没有源\"** ⇒ ★**§0 列的三个本机权威源 "
+      "(KiCad 官方库 / `state/check_netlist_pins.py` 的 SPEC_PINS·PARTIAL_PINS / BOM 的 opn·footprint) "
+      "都答不上这 %d 个** ⇒ ★**⇒ 只能靠型号定下来之后回查官方库, 或直接问原厂** ★★" % n_unknown)
+    A("| ★**本轮怎么做的**★ | ★**标 `[0数据]`, 不猜、不估、不用\"同类器件一般多少脚\"去填** ⇒ "
+      "★**§1 (表里多脚) 与 §2 (真实多脚) 的结论只基于那 %d 个有权威源的器件** ★★" % n_known)
+    A("| ★**需谁做什么**★ | ★**跟 E-01 同一封信里一起问 (★老板批准才外发★) ⇒ 回信后重跑 "
+      "`python3 state/gen_kicad_sch.py --pin-gap` 自动补齐** ★★")
+    A("")
+
+    # ---- 5.3 与老板【选项③】的关系 ----
+    A("### 5.3 ★★本节与老板【选项③】的关系 (★一句话给老板★)★★")
+    A("")
+    A("★**\"选项③ = 真实器件全貌\" 的输入, 就是本文 §2 + §5.1**: ★**SoM 真实器件 = 4 座 × 100 球位 = "
+      "400 球位 (★口径: 球位表里 P1/P3/P4 各 100 行 + %s 缺 1 行待确认★) ⇒ 表里只用了 %d 个 "
+      "(J_SOM_P1 %d / P2 %d / P3 %d / P4 %d) ⇒ 未画的 %d 个球位, 每一格都要靠【完整球位表】才能填** ★★"
+      % (cdisp, ball_used, som_used.get("J_SOM_P1", 0), som_used.get("J_SOM_P2", 0),
+         som_used.get("J_SOM_P3", 0), som_used.get("J_SOM_P4", 0), ctx["ball_unused"]))
+    A("")
+    A("★**⇒ 所以顺序是: ① 老板批准发信 ② 原厂回完整球位表 ③ 才能谈\"400 球全画\" ⇒ "
+      "★**在 ② 回来之前, 任何\"全貌\"都只是猜的★★** ★★")
+    A("")
+
+
 def cmd_pin_reality_gap():
     """★生成 `HW/PCB/PIN_REALITY_GAP.md` (★逐器件: 表里脚数 vs 真实器件脚数★)
 
@@ -904,8 +1082,14 @@ def cmd_pin_reality_gap():
     A = L.append
     A("# 原理图脚数 vs 真实器件脚数 —— 逐器件对账 (PIN_REALITY_GAP)")
     A("")
-    A("> ★**生成器**: `state/gen_pin_reality_gap.py` (★重跑即刷新★)  ")
-    A("> ★**生成时间**: 2026-11-11  · ★**对应原理图**: `HW/PCB/demo_mainboard*.kicad_sch` (★按表全量画, 584 脚★)")
+    A("> ★**生成器**: `python3 state/gen_kicad_sch.py --pin-gap` (★重跑即刷新★)  ")
+    A("> ★**生成时间**: %s  · ★**对应原理图**: `HW/PCB/demo_mainboard*.kicad_sch` (★按表全量画, %d 脚★)"
+      % (__import__("datetime").date.today().isoformat(), tbl_pins))
+    A("> ★**2026-11-11 15:4x 更新 (主线 6c)**: ★**本文加了一节 §5「需裁决 / 外部依赖」"
+      "(★本轮唯一卡住的一条: `FET3572C_PIN_TABLE.csv` 的 %s 座缺 `num=%s`·★需原厂回信★)★**  ")
+    A("> ★**2026-11-11 19:4x 订正 (main)**: ★**§5 原本是【手写进产物】的 ⇒ 任何一次 `--pin-gap` 重跑都会把它冲掉 "
+      "(★实测 19:1x 就被冲掉过一次★) ⇒ ★**已搬进生成器 ⇒ 重跑不再丢★**; ★**并修掉三处交叉引用 + "
+      "一个指向不存在脚本的假命令 (`state/gen_pin_reality_gap.py` → `python3 state/gen_kicad_sch.py --pin-gap`)★**  ")
     A("")
     A("## 0. 口径 (★凡给出统计数必带口径★)")
     A("")
@@ -923,8 +1107,8 @@ def cmd_pin_reality_gap():
     A("")
     A("1. ★**KiCad 10.0.8 官方符号库**★ `/home/yuewuya/kicad/squashfs-root/usr/share/kicad/symbols/`")
     A("2. ★**项目自有真值表**★ `state/check_netlist_pins.py` 的 `SPEC_PINS` / `PARTIAL_PINS`")
-    A("3. ★**RK3572 SOM 球位表**★ `HW/PCB/FET3572C_PIN_TABLE.csv` (★%s 球位/座★)"
-      % "/".join("%s=%d" % (k, v) for k, v in sorted(fet.items())))
+    A("3. ★**RK3572 SOM 球位表**★ `HW/PCB/FET3572C_PIN_TABLE.csv` (★%s 球位/座★%s)"
+      % ("/".join("%s=%d" % (k, v) for k, v in sorted(fet.items())), _gap_e01_ref(fet, _gap_missing(fet))))
     A("4. ★**BOM 型号**★ `HW/BOM_v1.csv` 的 `opn` / `footprint` 列 (★型号已定型 ⇒ 可回查官方库★)")
     A("")
     A("---")
@@ -947,10 +1131,16 @@ def cmd_pin_reality_gap():
     A("")
     A("| 器件 | 表里脚数 | 真实脚数 | 差 | DNP脚 | 型号/依据 | 说明 |")
     A("|---|---|---|---|---|---|---|")
+    _e01_miss = _gap_missing(fet)
     for r in recs:
         if r['real'] is not None and r['delta'] > 0:
-            A("| `%s` | %d | %d | +%d | %d | %s | %s |"
-              % (r['ref'], r['tbl'], r['real'], r['delta'], r['dnp'], r['src'], r['note']))
+            _extra = ""
+            for _c, _m in _e01_miss.items():
+                if r['ref'] == "J_SOM_%s" % _c:
+                    _extra = (" ★**⚠ 球位表本身只有 %d 行 (缺 num=%s) ⇒ \"真实 100 脚\"里有 1 行的佐证待原厂确认 "
+                              "⇒ 见 §5.1 E-01★**" % (fet[_c], ", ".join(str(x) for x in _m)))
+            A("| `%s` | %d | %d | +%d | %d | %s | %s%s |"
+              % (r['ref'], r['tbl'], r['real'], r['delta'], r['dnp'], r['src'], r['note'], _extra))
     A("")
     A("---")
     A("")
@@ -976,13 +1166,19 @@ def cmd_pin_reality_gap():
     A("- ★**『表里脚数』是【这个设计实际用到的脚】, 不是【器件出厂总脚数】**★")
     A("  ⇒ 第 2 节那些『真实多脚』是正常的 (★空脚/NC/散热焊盘本来就不接★), ★**不是漏画**★")
     A("- ★**第 1 节那些『表里多脚』才是真问题** ★ ⇒ 逐个核: 是表里脚号写错了, 还是选型/脚数口径不一致")
-    A("- ★**`[0数据]` = 本机查不到真实脚数** ★ ⇒ ★**型号回信后重跑 `state/gen_pin_reality_gap.py` 即可自动补齐** ★")
+    A("- ★**`[0数据]` = 本机查不到真实脚数** ★ ⇒ ★**型号回信后重跑 `python3 state/gen_kicad_sch.py --pin-gap` "
+      "即可自动补齐** ★ (★**旧版本这里写的是 `state/gen_pin_reality_gap.py` —— 那个脚本【不存在】, "
+      "照着跑必然失败 ⇒ ★**2026-11-11 19:4x 已订正★**) ★")
     A("- ★**没有改任何表** ★: `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` 一个字节都没动 "
       "(★md5 不变, 见交卷实测★)")
     A("")
     A("---")
     A("")
-    A("## 5. ★**本轮未做/待下一轮 (★不硬凑★)**")
+    # ---- §5 需裁决 / 外部依赖 (★数据驱动 ⇒ 表变了本文跟着变★) ----
+    _gap_sec5(L, _gap_ctx(recs, fet, tbl_pins, n_tot, n_known, n_unknown))
+    A("---")
+    A("")
+    A("## 6. ★**本轮未做/待下一轮 (★不硬凑★)**")
     A("")
     A("- ★**表里多脚的那几项** ★: 需要**原厂型号回信**才能定论 ⇒ ★**本轮不猜、不改表** ★")
     A("- ★**`[0数据]` 的 %d 个器件** ★: BOM 里 `opn` / `footprint` 还是『待定』 ⇒ 无权威源可查 ⇒ ★**本轮标 `[0数据]`** ★" % n_unknown)

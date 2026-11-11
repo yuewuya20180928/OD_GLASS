@@ -45,7 +45,20 @@ status:
     从 ''手抄常量'' 改成 ''实读网表''**: csv 实读 + 输出首段打印锚点 (md5+514/513 行) + 6 条反向用例 (改坏副本 ⇒ 判据变红) ⇒ **SELFTEST 48/48
     rc=0** (既有 21 条一条没删) ⇒ 验收 #2 外部复现: 改坏 I2C_A 上拉一行 ⇒ t_r 398.2→847.3ns 且 7 条自测转红。 ★**只报不改网表**: 新发现 7
     条网表侧待修项 (I2C_A 注记矛盾 / RESET_N 恒低 / 分压 0Ω 短路 / 电量链全 DNP / Q_ENVC dnp 矛盾 / U_EN_SW 无器件行 / J_USB_C D−
-    无 ESD) 全部经 frag_write 登记 needs_from 给 hw-lead。'
+    无 ESD) 全部经 frag_write 登记 needs_from 给 hw-lead。 ★ISS-191 (2026-11-11 15:2x, owner=sw-lead / verify_by=main,
+    due 2026-11-13) 已交卷: ★**只出方案页, 一行网表/原理图/板/投产包都没动**★ (本单动过的文件只有 3 处: HW/PCB/RESET_P0_FIX_PLAN.md /
+    HANDOFF/2026-11-11_sw-lead_ISS191_复位P0方案.md / 本分片) ⇒ **方案页正文 = HW/PCB/RESET_P0_FIX_PLAN.md (B1~B6
+    齐全)**, 交卷摘要 = HANDOFF/2026-11-11_sw-lead_ISS191_复位P0方案.md。 ★**结论 = 推荐 ISS-190 三条改法里的第 ② 条: 把 Q_AND
+    整颗改 DNP** (表A L65/L66/L67 + 表B Q_AND.1/.2/.3 三行同改) ⇒ RESET_N 上只剩按键一个拉低者 ⇒ 首台板能启动; **明确否掉 ① 的两个子项**
+    (Q_ENVC 必装 ⇒ 故障链一点没动, 且 EN_VCORE 会被拉低换成另一个 P0; 摘掉 ⇒ 网表根本没有 PG_VIO 这条网, 同一引脚不能挂两条网, 改动面大而收益 0); ③ 依赖
+    SoM 球位 TBD-01 ⇒ 首台板等不起, 出局。 ★**实测读数 (行级口径)**: PG_AND 6 行 (L62/L63/L64/L67/L71/L402/L403), 唯一 DNP 的是
+    L71 Q_ENVC; 两路 PG 的连接行 dnp 全是必装 ⇒ **PG 源器件 DNP 不成立**; 但 U_DCDC_VCORE (L79) / U_DCDC_VIO (L86) 的 **IC
+    行 DNP** ⇒ 两颗 DC-DC 实物不装 ⇒ PG 脚不在板上 ⇒ PG_AND 更没人拉低 ⇒ 栅极恒高 ⇒ Q_AND 导通 ⇒ RESET_N 恒低。 ★**4 条 /tmp 反向用例
+    (RC1~RC4) 实测**: RC1 只把 Q_ENVC 改必装 ⇒ 故障链不变 (否掉 ①); RC3 只改 L67 ⇒ 器件级仍显示装 ⇒ **证明三行必须同改**; RC4 三行全改 ⇒
+    q_and_in_netlist False / RESET_N 拉低者只剩 SW_RST。 ★**unc 45 / DRC 0 不变** (5 条论据: 板生成器 gen_pcb_netlist_board.py
+    的 dnp 命中数=0 + 板文件 attr 命中数=0 + Q_AND 封装 3 焊盘(pad1=RESET_N,pad2=GND,pad3=PG_AND)网络不变 + 拓扑不变 + 既有先例
+    BOM 记 DNP 却仍在 CPL 里的位号=41/56) ⇒ **改 dnp 不改板 ⇒ 可与 ref_designator_rename 同表不同列一次落表**。 ★**落表时必须同步改 SW/tools/timing_check.py
+    的 5 条断言** (RC4 上跑全量自检精确红 5 条, 已逐条列在方案页 B5-3) ⇒ **本单无权改, 留给落表的人**。'
   updated_at: '2026-11-11'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
@@ -387,6 +400,51 @@ artifacts:
   summary: '★ISS-190 交接单: B1~B6 六块齐全 (结论摘要 / 验收标准自评 15 条 / 证据分级 / 接口取值声明 / 未决项与卡点 / 自证复现命令) + 自证实录 (脚本
     48/48 rc=0 + 反向演示 + merge rc=0 + gate_check Q1 18/18); 含 F1~F8 复评总表与 7 条网表侧待修项 (needs_from → hw-lead);
     ★本单不含落账 (verify_by=main ⇒ issue_log.yaml 由 main 写)'
+- path: HW/PCB/RESET_P0_FIX_PLAN.md
+  kind: design-plan
+  version: v1.0
+  updated_at: '2026-11-11'
+  summary: '★ISS-191 方案页 (只出方案, 不落表/不改板/不改原理图/不重出投产包)★ ⇒ B1~B6 齐全。 B1 结论与推荐: 三选一 ⇒ **推荐 ② 把 Q_AND 整颗改
+    DNP** (表A L65/L66/L67 + 表B Q_AND.1/.2/.3 三行同改; 默认口径 = ② + 建议同批 Q_ENVC 三行统一 DNP; 明确不做 Q_ENVC 必装); 理由
+    = ① Q_AND 漏极是 RESET_N 上唯一的硬件常拉低者 (U_SUPV pin1 是 DNP 不参与); ② 不依赖 SoM 球位 TBD-01 与原厂; ③ 与网表 L409 note
+    写的 Forlinx 参考电路 (按键+100nF, 无监督器) 自洽。 ★**复位时序推演**: assert = 按键经 1k 拉低, 戴维南 R_th=909Ω/V_th=0.164V ⇒
+    从 1.8V 落到 0.7*VDD 需 ≈36µs; deassert = τ_release (10k+1k)*100nF = 1.1ms, 越过 0.7*VDD 需 1.324ms; 掉电 =
+    1.8V 轨塌 ⇒ RESET_N 随轨落 0 ⇒ 自动进复位; 对比现状 = 永远等不到 deassert ⇒ 首台板不启动。 B2 行级改动清单: 6 必改行 + 4 建议同批 (Q_ENVC)
+    + 2 可选 (R_PG_PULL, 省 180µA) + **17 个连带文件** (两张网表表 / BOM / 原理图 / 板 / Gerber 32 / drill / pos-CPL 186
+    / IPC-2581 / 装配图 2 / 3D step / D356 / kicad-bom.xml / doc 其余 / timing_check.py / 引用旧 md5 的 7 处)。 B3
+    unc 45 与 DRC 0 **都不变** (5 条论据 + 例外说明改名会改板 md5 但预期几何不变) + 原理图侧 K 仍 0 + 对照口径预测 (464 脚 / 51 器件 / 120
+    DNP 行) + 功耗 (复位链常流 180µA ⇒ 0.324mW@1.8V ⇒ 电池 97 天)。 B4 与 ref_designator_rename 合并: **同表不同列 ⇒ 技术零冲突**
+    (dnp 列 vs ref 列) ⇒ 一次落表一次重出; 12 步落点已标; 代价引用 RECHAIN_ONEPASS_PLAN (未改那个文件); 建议 U_EN_SW 补 IC 行因改行数要单独一批;
+    原理图补脚 (6b 在跑) 不能同批。 B5 验收判据: 现状 V1~V8 + 落表后 A1~A10 (每条给命令 + 期望输出) + **落表时必须同步改的 5 条 timing_check 断言**
+    (RC4 实测精确红 5 条) + 4 条 /tmp 反向用例的字段翻转。 B6 边界与 8 条未决 (标 [0数据] 并写明该问谁; 老板 3 条拍板 + 原厂 PG 球位/RESET 释放要求归项目总工外发)
+    + 口径声明表 (universe 291 / 整颗DNP 56 / 行级矛盾 ref 7 / 板 186 / BOM DNP 56 / CPL 交集 41) + 证据分级索引。 ★**4 条反向用例
+    RC1~RC4 实测证明 ① 的两个子项都切不断故障链, 且 Q_AND 必须三行同改** ★网表 md5 c78f991283cc82d56c8e3dd31657c785 与板 md5 611b869e13518c3c023fb178f91a0075
+    在本单写完后一字不变'
+- path: HANDOFF/2026-11-11_sw-lead_ISS191_复位P0方案.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-11'
+  summary: '★ISS-191 交接单: B1~B6 六块齐全 (结论摘要 / 验收标准自评 15 条 / 证据分级 / 接口取值声明 / 未决项与卡点 / 自证复现命令) + 自证实录 (timing_check
+    --only F1_reset_rc 全读数 / SELFTEST 55/55 rc=0 / md5 x2 / merge rc=0 冲突 0 / gate_check Q1 18/18 / DRC
+    0 unc 45 / ERC 0 / pinfull K=0 universe=218 / 4 条 /tmp 反向用例) + 本单只动 3 个文件 (方案页 / 本交接单 / sw.yaml 走
+    frag_write) + 证据分级 (实测 5 组 / 官方 0 / 推算 5 / 0数据 5) + 9 条卡点 + ★硬指标覆盖由 4/5 降到 3/5 (本单确实不涉镜腿/镜脚厚度; 阈值
+    >=3 仍过 ⇒ Q5 总表 2/3 不变)★'
+- path: SW/ISP_TUNING_INITIATION_PLAN.md
+  kind: plan
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-139 ISP tuning 立项书: 6 节 (工作量与前置条件/三条路线对比/RK3572专属风险/验收判据怎么量/排期账/与OD链路耦合) + 现成IQ覆盖表 + 证据分级'
+- path: SW/tools/iq_coverage_check.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: rkaiq 公开 IQ 覆盖表机检器 (只读本机快照 166 项; rc=0 + --self-test rc=0 含 4 个反向用例; 答掉 DEMO_OD_PIPELINE_SPEC
+    附录A P2-2)
+- path: HANDOFF/2026-11-11_sw-lead_ISS139_ISP_tuning立项.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-139 交卷报告: 结论先行 + 8 条问询清单 (只起草不外发) + 分片登记 + 自证命令'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -1038,6 +1096,64 @@ needs_from:
     ESD 器件跨在 NET_USB_D_P_TYPEC 与 NET_USB_D_N_TYPEC 上。★同源文件: SW/SW_TIMING_REVIEW.md §7-7 (上一版 H3 ''Type-C
     侧 D+/D− 没有独立 ESD'' 仍然成立)。'
   since: '2026-11-11'
+- key: iss191_boss_pick_fix_option
+  to: main
+  item: '★ISS-191 拍板 1 (等老板, 项目总工转达; 我不外发)★ ⇒ 复位 P0 走哪条: ② 把 Q_AND 整颗改 DNP (★sw-lead 推荐★) / ① Q_ENVC 摘掉或必装
+    (★已用 RC1 反向用例实测否掉: 切不断故障链, 且 Q_ENVC 必装会把 EN_VCORE 拉低换成另一个 P0★) / ③ 等 SoM 球位 TBD-01 (首台板等不起)。 ★机械判据:
+    落表后 python3 SW/tools/timing_check.py --only F1_reset_rc ⇒ q_and_in_netlist False / q_and_gate_row_dnp
+    DNP / reset_n.q_and_drain_row_dnp DNP / reset_n.dnp_rows 含 Q_AND / tau_release_ms 仍 1.1★。 ★同源文件: HW/PCB/RESET_P0_FIX_PLAN.md
+    (B1/B5)。 due 2026-11-12'
+  since: '2026-11-11'
+- key: iss191_boss_q_envc_unify
+  to: main
+  item: '★ISS-191 拍板 2 (等老板, 项目总工转达)★ ⇒ Q_ENVC 三行 (表A L71/L72/L73 + 表B Q_ENVC.1/.2/.3) 是否同批统一为 DNP。 ★理由:
+    现在 L71 是 DNP 而 L72/L73 是必装 ⇒ BOM 按 ref 级口径 (任一行必装 ⇒ 整颗记必装) 记 Q_ENVC 必装 (要买) ⇒ **网表口径与 BOM 口径打架**;
+    统一 DNP 后 BOM 记 DNP, 与 ''SoM 自带 PMIC, 顺序链在 SoM 内部完成'' 的既有结论自洽。 ★机械判据: grep -n ''^Q_ENVC'' HW/BOM_v1.csv
+    ⇒ dnp 列应为 DNP (现在 必装); DNP 位号数 (ref 级, universe 291) 56 ⇒ 57。 due 2026-11-12'
+  since: '2026-11-11'
+- key: iss191_boss_r_pg_pull_dnp
+  to: main
+  item: '★ISS-191 拍板 3 (等老板, 项目总工转达)★ ⇒ R_PG_PULL 两行 (表A L62/L63) 是否也改 DNP。 ★收益: PG_AND 上只剩两个测试点时, 10k
+    上拉挂 1.8V 常流 180µA ⇒ 1.8V 侧 0.324mW / 电池 3.7V 侧 0.666mW ⇒ 420mAh 电池 ÷ 180µA = 2333h ≈ 97 天。 ★代价: 将来若按
+    ③ 接真实 PG, 这个上拉要回来 ⇒ **建议 ③ 落地前不要动**。 ★机械判据: python3 SW/tools/timing_check.py --only F1_reset_rc ⇒
+    pullup_row_dnp 应为 DNP (现在 必装)。 due 2026-11-12'
+  since: '2026-11-11'
+- key: iss191_orig_som_pg_reset_spec
+  to: main
+  item: '★ISS-191 外部依赖 (★项目总工外发原厂, 我不外发★)★ ⇒ SoM 侧三件事: ① 是否提供 PG 输出 (球位 + 极性, TBD-01/TBD-12) ② RESET 释放要求
+    (SoC 要多久才认复位释放, 内部上电顺序) ③ 内部复位电路构成。 ★本单推荐 ② 不依赖这三项 ⇒ 不阻塞首台板; 但 ③ 落地需要。 ★现状仍是 [0数据]: 网表 L62/L64/L71
+    note 只写 ''PG 极性待原厂核 (TPS62130A PG 为开漏信号)''; Q_AND 型号/Vgs(th)/封装 也仍是 [0数据] (BOM value = 待选型, footprint/opn
+    = 待定) ⇒ **正因为没有官方数据, 才不能赌阈值, 必须做 ②**。 due 2026-11-14'
+  since: '2026-11-11'
+- key: iss191_u_en_sw_device_row_recheck
+  to: hw-lead
+  item: '★ISS-190 §7-6 的复查 (不重复立项, 只是确认它还开着)★ ⇒ U_EN_SW 在网表里**没有器件行** (L441/L442/L443/L444 只有 4 行 NET
+    引脚行, 全网表 0 行 U_EN_SW 的 IC 行) ⇒ 按器件口径 BOM/装配单会漏这颗开关。 ★它不在复位链上 ⇒ **与 ISS-191 本单零交集** (不影响 ② 的推荐)。 ★但它影响关机/负载开关那一支
+    ⇒ **建议与位号改名同批、但排在 dnp 改动之前单独做**, 因为它改行数 (513→514) ⇒ 会撞掉 ''网表锚点行数'' 这类断言。 ★机械判据: grep -n ''U_EN_SW''
+    HW/netlist_v1.csv | grep -c '',IC,'' ⇒ 现为 0, 应为 >=1。 原始登记见 sw.yaml 的 iss190_netlist_u_en_sw_no_device_row。
+    due 2026-11-12'
+  since: '2026-11-11'
+- key: iss139_f9_sample_window
+  to: main
+  item: 请把 HW/STEP1_LANDING_LIST.md F9 (ISP tuning 1080p档缺mesh, 现=待清) 的状态 + 样机/设备窗口 (灰卡暗室 半天~1天) + 责任人
+    写进落地清单与项目计划表; 本单不碰 HW/**, 且标定窗口占的是板回板后的调试档期 (卡出图不卡板) => 档期被占会让 demo 段 1~2 人日 滑成整机段 1~2 人周
+  since: '2026-11-11'
+- key: iss139_pipeline_spec_effort_alignment
+  to: main
+  item: '裁决口径差: SW/DEMO_OD_PIPELINE_SPEC.md 7.2 第9行写 路径B ISP tuning = 0~1 人天(微调), 而本机既有实测记录 (HW/IMX415_DEMO_SENSOR_FACTS.md
+    3.3) 给的是 1~2 人日(补 1920x1080 mesh + AE 曝光表换算, 含一次灰卡/暗室标定); 建议取 1~2 人日; 本单未改该文件 (DSI payload 口径 11-11
+    刚统一, 不许碰), 请 main 裁决后另派'
+  since: '2026-11-11'
+- key: iss139_tisp_timing_point
+  to: main
+  item: '建议 SW/DEMO_OD_TIMING_SPEC.md 增补一个 ISP 算法耗时打点 t_isp: 现有 11 段接力表把 t_capture 定义为 曝光结束->帧落用户态, 不含
+    ISP 处理 => 调降噪/tonemap 强度会改这段耗时而我们看不见; 不改现有 9 个打点名与 CSV 表头 (ISS-137/ISS-190 已统一); 本单未改该文件'
+  since: '2026-11-11'
+- key: iss139_od_input_dist_script
+  to: main
+  item: '立项书 4.2 B 组的 OD 输入分布统计脚本还没写 (要板端 ISP 帧: 采样>=200帧 -> 与板端逐字一致预处理 -> 与 calib_yolov5_100 同口径 mean/std/分位/饱和率
+    -> 自采有标注实拍集 F1); 板端不可达期间全部为 [0数据], 请在板可达后另派或授权本单下轮补'
+  since: '2026-11-11'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -1613,6 +1729,43 @@ interface_claims:
   note: 1920x1080x24x90 = 4478.976 Mbps; 脚本 §⑥ 打印 4479.0 (显示取整差 1 Mbps, 口径同源); ★与 hw-lead 在 hw.yaml 的同名登记同名同值
     ⇒ 交叉确认
   ref: HW/e2e_budget_rk3572.py §⑥
+- key: reset_release_policy
+  value: ★复位释放链口径 (待老板拍板随整链重出落表后生效; 现在生效的仍是现行网表口径 Q_AND(PG_AND)+RC_1.1ms)★ ⇒ RC 1.1ms (R_PU_RESET_N 10k
+    + R_SER_RESET_N 1k, C_RST 100nF) ⇒ 越过 0.7*VDD 1.324ms; 拉低者只有 SW_RST (Q_AND 改 DNP 后); 掉电方向随 1.8V 轨落
+    0 ⇒ 自动进复位
+  note: ''
+  ref: ''
+- key: iss191_fix_option
+  value: '★ISS-191 三条改法里 sw-lead 的推荐 (★未拍板★)★ ⇒ ② Q_AND 整颗改 DNP (表A L65/L66/L67 + 表B Q_AND.1/.2/.3); 否掉
+    ① (RC1 实测: 只把 Q_ENVC 改必装 ⇒ 故障链不变; 摘掉 ⇒ 网表无 PG_VIO 网, 同引脚不能挂两条网, 收益 0) 与 ③ (依赖 TBD-01)'
+  note: ''
+  ref: ''
+- key: iss191_reset_dnp_rows
+  value: '★ISS-191 落表行级清单★ ⇒ 必改: 表A L65/L66/L67 (Q_AND 三行) + 表B Q_AND.1/.2/.3 ⇒ DNP; 建议同批: 表A L71/L72/L73
+    + 表B Q_ENVC.1/.2/.3 ⇒ DNP (消 BOM/网表口径差, BOM 口径是 ref 级: 任一行必装则整颗记必装); 可选 (待老板点头): 表A L62/L63 (R_PG_PULL
+    ⇒ 省 180µA 常流)'
+  note: ''
+  ref: ''
+- key: iss191_unc_drc_expect
+  value: '★ISS-191 对 PCB 的预期影响★ ⇒ 只改 dnp ⇒ unc 45 不变 / DRC 0 不变 / 板 md5 不变 (口径: 板生成器 gen_pcb_netlist_board.py
+    的 dnp 命中数=0 + 板文件 attr 命中数=0 + Q_AND 封装 3 焊盘网络不变 + 拓扑不变 + 既有先例 BOM 记 DNP 仍留在 CPL 的位号=41/56); 例外: ref_designator_rename
+    会改板 md5 与丝印, 但几何预期不变 ⇒ unc/DRC 须以重跑后的 fresh 实测为准'
+  note: ''
+  ref: ''
+- key: iss139_iq_coverage_snapshot
+  value: 'ar0234=0,ov04c10=0; 有现成IQ: imx415=8(isp3x仅1)/imx327=1/imx464=1/os04a10=8/ov02b10=2(isp3x=1)/gc8034=3/sc200ai=4'
+  note: 2026-11-11 本机快照 166 项实测 (basename 扁平清单 => 目录上下文已丢 => 未被本机既有记录写明目录的一律 [0数据]); 顺带发现 AR0234CS 规格写的
+    6 个 ISP 代目录其实是 5 个
+  ref: HW/_os_snapshots/rkaiq_iqfiles.json + SW/tools/iq_coverage_check.py
+- key: iss139_tuning_effort_split
+  value: demo路径B=1~2人日(补1920x1080mesh+AE曝光表换算); 整机路径A=5~10人日(1~2人周)
+  note: '2026-11-11 sw-lead 立项核算: demo 段不是 0 —— 现成 IQ 的 sensor_calib.resolution 锁 3840x2160 且 mesh 文件名锁
+    3840_2160 => 1080p60 档缺 mesh; 整机段须等镜头/模组定版 (IQ=sensor x 镜头 x 模组 三者绑定)'
+  ref: HW/IMX415_DEMO_SENSOR_FACTS.md 3.1~3.3 + HW/OPEN_SOURCE_AVAILABILITY.md 3.3
+- key: iss139_tuning_device_window
+  value: demo=1次样机窗口(灰卡/暗室 半天~1天); 整机=1~2天暗室窗口
+  note: '2026-11-11 sw-lead: 本项目无暗室/灰卡/标定板与预算 => 窗口须占样机档期; 板回板后若档期被占, demo 段 1~2 人日会滑成整机段 1~2 人周'
+  ref: HW/STEP1_LANDING_LIST.md F9 + state/BOSS_DECISIONS_20261110.md:44
 open_questions:
 - id: SW-Q1
   to: main

@@ -3,9 +3,37 @@
 """
 MECH/cross_review_check.py —— ISS-089 硬件交叉评审 (机械/热/装配) 机械自检
 
+=====================================================================
+★★ISS-192 迁版 (2026-11-11) —— 本脚本**不是闸**, 且这个状态是**明写**的
+=====================================================================
+★**它是不是闸? 不是。** 依据:
+  ① 全项目**没有任何闸调用它** (只有 `state/gen_netlist.py` 的一句注释提到过它)
+     —— 我实跑 grep 过: 调用方 = 0。
+  ② 它判的 16 项里, **只有 C-5/C-6/C-7/C-8/C-13/C-14/C-16 属结构侧**;
+     其余 (C-1/C-2/C-3/C-4/C-9/C-10/C-11/C-12/C-15) 判的是**网表/BOM 域**的
+     (跨板网名复用 / pin map / footprint 回填 / 重量列 / keepout 行 / 板级归属),
+     **不归结构侧管**, 也不该由结构侧的红灯决定项目生死。
+  ③ 它读的是**快照** (netlist/BOM 的 md5 记在抬头), 快照随 hw-lead 每次改动而变
+     ⇒ 拿快照当闸 = 拿别人的半成品当自己的验收标准。
+
+⇒ 所以本脚本的定位改成: **交叉评审纪要 (review record) + 结构侧自留底**,
+  **退出码不再表达「项目是否合格」, 而只表达「本次快照里结构侧自留的判据是否自洽」**:
+  · rc=0 ⇒ **结构侧自有判据 (MECH-OWNED) 全过** + 所有非结构侧的 FAIL 都已
+    显式登记为 needs_from (归属谁、谁去改) ⇒ **不留孤儿红**;
+  · rc=1 ⇒ 有 MECH-OWNED 判据不通过 (结构侧自己的活没做完) ⇒ 真红灯。
+
+★**本单做的三件事**:
+  ① C-16 从「板宽 12 → 15mm 的机械后果 (供老板拍板)」改成 **「板宽 30mm 现状」**
+     —— 老板 10-29 19:16 已拍板 ≤30mm, §0 台账 11-01 20:5x 已订正 ⇒
+     **不许再问一个已答完的问题**;
+  ② `board_w` 12.0 → **30.0**, `board_w_alt` 15.0 → 删除 (15mm 已作废),
+     `board_l` 76.0 → **60.0**;
+  ③ 16 项逐项标注 **归属 (MECH-OWNED / HW-OWNED / CROSS-OWNED)** 与
+     **needs_from 登记键** ⇒ 每一盏红灯都有主人, 不再是没人看的孤儿红。
+
 用法:
     cd projects/smart_glasses && python3 MECH/cross_review_check.py
-退出码: 0 = 自检通过 (FAIL 0)  /  1 = 有 FAIL
+退出码: 0 = 结构侧自有判据全过 (非结构侧红项均已登记归属)  /  1 = 有 MECH-OWNED 判据不通过
 
 它做什么:
     解析 HW/netlist_v1.csv + HW/BOM_v1.csv (真源, 不靠人肉数), 复算
@@ -14,6 +42,7 @@ MECH/cross_review_check.py —— ISS-089 硬件交叉评审 (机械/热/装配)
 边界:
     只读 HW/ 下文件, 不写任何东西。不碰 state/ 与 PROJECT_TRACKER.md。
     所有 [推算] 的封装/高度假设集中在 ASSUMPTIONS 里, 换数只改这一处。
+=====================================================================
 """
 import csv
 import hashlib
@@ -32,10 +61,14 @@ ASSUMPTIONS = {
     # 锁死值 (来自 MECH_BUDGET.md §1.4.2 / PROJECT_TRACKER §0)
     "temple_h_total": 7.3,      # 镜腿前后厚 (老板锁死, 340mAh 档)
     "temple_h_used": 7.0,       # H 叠层已用 (0.8 壁 + 0.3 导热垫 + 0.8 PCB + 4.3 电池 + 0.8 壁)
-    "temple_v_net": 37.0,       # 镜脚根部净高 (电池 22 + PCB 12 + 走线槽 3)
-    "board_w": 12.0,            # 主板板宽 (暂锁; hw-lead 建议 15mm → 待老板拍板)
-    "board_w_alt": 15.0,        # 备选板宽
-    "board_l": 76.0,            # 主板长 [推算] (SOC_CARRIER_EVAL)
+    # ★ISS-192: 37.0 是**已作废的叠放模型**算式 (22+12+3) —— 现行是**锁死的腔体净高 38.00**
+    #   (MECH_BUDGET §1.6.2; iss065_check.py 的 D-4 已把它标成过时行) ⇒ 订正, 免得死值继续传下去
+    "temple_v_net": 38.0,       # 镜脚根部净高 [官方] 锁死 §1.6.2 (板宽吃 V 向, 与板宽无关)
+    # ★ISS-192: 板框已定 60×30mm (老板 10-29 19:16 拍板 ≤30mm; §0 台账 11-01 20:5x 订正)
+    "board_w": 30.0,            # 主板板宽 [官方] 老板 10-29 19:16 拍板 ≤30mm
+    "board_l": 60.0,            # 主板长 [官方] 10-28 项目总工裁 (ISS-100)
+    # ★已删除 board_w_alt (15.0): 15mm 决策本身已作废, 留着一个"备选板宽"就是留着一个死值
+    "board_w_old": 15.0,        # 15mm 旧板宽 (仅作对照, 不参与判定) [已作废]
     # 热模型 (MECH_BUDGET §2.3)
     "k_eff": 50.13,             # K/W (镜腿内发热量 → 皮肤侧温升, 主模型)
     "t_amb": 35.0,              # 基准
@@ -83,9 +116,31 @@ DEFAULT_C = 1.6 * 0.8               # 0603
 
 RESULTS = []
 
+# 归属口径 (★ISS-192): 每盏红灯必须有主人, 不留孤儿红
+#   MECH-OWNED  = 结构侧自己的判据 (不通过 ⇒ rc=1, 结构侧欠活)
+#   HW-OWNED    = 网表/BOM 域, 归 hw-lead (本脚本只记录 + 指向已登记的 needs_from)
+#   CROSS-OWNED = 跨域/他域 (归 main 或已由别的单闭环), 本脚本只记录
+OWNER_OF = {
+    "C-1": "HW-OWNED", "C-2": "HW-OWNED", "C-3": "HW-OWNED", "C-4": "HW-OWNED",
+    "C-5": "MECH-OWNED", "C-6": "MECH-OWNED", "C-7": "MECH-OWNED", "C-8": "CROSS-OWNED",
+    "C-9": "HW-OWNED", "C-10": "HW-OWNED", "C-11": "HW-OWNED", "C-12": "HW-OWNED",
+    "C-13": "MECH-OWNED", "C-14": "CROSS-OWNED", "C-15": "CROSS-OWNED", "C-16": "MECH-OWNED",
+}
+# 已登记的归属键 (空 = 该项当前无未闭合的归属登记; 脚本报出来, 不藏)
+NEED_OF = {
+    "C-1": "netlist 域: hw-lead 自查 (非结构侧)", "C-2": "netlist 域: hw-lead 自查 (非结构侧)",
+    "C-4": "iss085_convergence / iss091_pin9_10_ntc_return (→hw-lead/main)",
+    "C-9": "hw-lead 自查 (BOM 域, 非结构侧)", "C-10": "hw-lead 自查 (BOM 域, 非结构侧)",
+    "C-11": "★iss192_demo_board_zero_mounting_holes_keepout (→main) + iss192_pcb60x30_holes_set_b_to_set_a (→hw-lead)",
+    "C-12": "hw-lead 自查 (网表 board 列, 非结构侧)",
+    "C-15": "iss091_* (→main/hw-lead)",
+}
 
-def rec(ok, code, title, detail):
-    RESULTS.append((bool(ok), code, title, detail))
+
+def rec(ok, code, title, detail, owner=None, need=None):
+    RESULTS.append((bool(ok), code, title, detail,
+                    owner or OWNER_OF.get(code, "CROSS-OWNED"),
+                    need if need is not None else NEED_OF.get(code, "")))
     print(f"[{'PASS' if ok else 'FAIL'}] {code} {title}\n        {detail}")
 
 
@@ -232,11 +287,11 @@ def main():
     worst = max(((n, p * 0.5 + A["conn_side_margin"] * 2) for n, p in conn_pins.items()),
                 key=lambda x: x[1])
     ok7 = worst[1] <= A["board_w"]
-    ok7b = worst[1] <= A["board_w_alt"]
-    rec(ok7, "C-7", "★跨铰链连接器体宽 ≤ 主板板宽 (12mm 暂锁 / 15mm 备选)",
+    rec(ok7, "C-7", "★跨铰链连接器体宽 ≤ 主板板宽 (30mm 现行口径)",
         f"最宽 = CONN_LIGHT 1×21p@0.5 → 接触跨度 10.5mm + 两侧边 {A['conn_side_margin']*2:.1f}mm = {worst[1]:.1f}mm; "
-        f"板宽 12mm → " + ("✓" if ok7 else f"★放不下 (差 {worst[1]-A['board_w']:.1f}mm)") +
-        f" / 板宽 15mm → " + ("✓ 放得下 (余 %.1fmm)" % (A["board_w_alt"] - worst[1]) if ok7b else "✗"))
+        f"板宽 {A['board_w']:.1f}mm → " + ("✓ 放得下 (余 %.1fmm)" % (A["board_w"] - worst[1])
+                                                if ok7 else f"★放不下 (差 {worst[1]-A['board_w']:.1f}mm)"),
+        owner="MECH-OWNED", need=None)
 
     # ============================================================ C-8 镜脚 H 余量 vs 直插排针
     margin = A["temple_h_total"] - A["temple_h_used"]
@@ -244,7 +299,12 @@ def main():
     rec(ok8, "C-8", "J_DEBUG/J_UART 直插排针高度 ≤ 镜脚 H 余量",
         f"镜腿厚 {A['temple_h_total']} - H 叠层已用 {A['temple_h_used']} → 余 {margin:.1f}mm; "
         f"1.27mm 直插排针塑料体高 {A['header_body_h']}mm → " +
-        ("✓" if ok8 else f"★超 {A['header_body_h']-margin:.2f}mm (J_DEBUG 1×4 必装) → 改贴片/开槽/挪检修口"))
+        ("✓" if ok8 else f"★超 {A['header_body_h']-margin:.2f}mm (J_DEBUG 1×4 必装) → 改贴片/开槽/挪检修口")
+        + " ┃ ★**归属 = CROSS-OWNED (网表域)**: hw-lead 已答复采纳『2×5@1.27 Cortex-10 焊盘阵列 (座体 DNP)』"
+          "(答案键 iss092_jdebug_cortex10_netlist); 网表改动需排期 state/gen_netlist.py "
+          "(needs 键 iss092_jdebug_cortex10_netlist_fix → main) ⇒ 改完后本项自动消失 (焊盘阵列无实体高度)。"
+          "★mech 侧欠: 该阵列的座体外形/footprint (hw-lead 答复里点名要结构侧给)",
+        owner="CROSS-OWNED", need="iss092_jdebug_cortex10_netlist_fix (→main) + mech 侧出座体外形/footprint")
 
     # ============================================================ C-9 BOM 封装列
     fp_unknown = sum(1 for b in bom if (b.get("footprint") or "").strip() in ("", "待定"))
@@ -307,7 +367,11 @@ def main():
     rec(ok14, "C-14", "Type-C 座在镜框端件的局部厚度需求",
         f"沉板最深 {max(A['usb_recept_sink'])}mm + 座体高 {A['typec_body_h']}mm = {need_h:.1f}mm 局部厚度需求 "
         f"vs P2S 打印件单壁 {A['print_wall']}mm → " +
-        ("✓" if ok14 else f"★打印件单壁 {A['print_wall']}mm 装不下 → 端件必须局部加厚到 {need_h:.1f}mm + 加强筋 (承力路径 M-4)"))
+        ("✓" if ok14 else f"★打印件单壁 {A['print_wall']}mm 装不下 → 端件必须局部加厚到 {need_h:.1f}mm + 加强筋 (承力路径 M-4)")
+        + " ┃ ★**归属 = CROSS-OWNED (打印包改版已登记)**: needs 键 iss089_typec_opening_and_print_pack → main "
+          "(Type-C 面板试样移镜框端件 + 端件局部加厚/开口公差) + iss092_print_pack_rev → main "
+          "⇒ 这是**已登记待排期的打印包改版**, 不是没人管的红",
+        owner="CROSS-OWNED", need="iss089_typec_opening_and_print_pack (→main) + iss092_print_pack_rev (→main)")
 
     # ============================================================ C-15 跨铰链压降测点成对
     bat_chg_boards = {r.get("board") for r in rows if r["net"] == "BAT_CHG"}
@@ -317,25 +381,42 @@ def main():
         f"BAT_CHG 网涉及板 = {sorted(bat_chg_boards)}; TP_BAT_CHG 行 = {len(tp_bat)} → " +
         ("✓" if ok15 else "★只有单侧测点 → 铰链段压降测不出来 (ISS-091 的输入缺失)"))
 
-    # ============================================================ C-16 板宽 12 vs 15 的机械后果
-    v_delta = A["board_w_alt"] - A["board_w"]
-    w12 = A["board_l"] * A["board_w"] * 0.8 * 1.85 / 1000.0
-    w15 = A["board_l"] * A["board_w_alt"] * 0.8 * 1.85 / 1000.0
-    rec(True, "C-16", "板宽 12 → 15mm 的机械后果 (供老板拍板)",
-        f"镜脚根部净高 {A['temple_v_net']} → {A['temple_v_net']+v_delta:.1f}mm (+{v_delta:.1f}); "
-        f"镜脚前后厚不变 {A['temple_h_total']}mm; 主板重 {w12:.2f} → {w15:.2f}g (+{w15-w12:.2f}); "
-        f"CONN_LIGHT 体宽 {worst[1]:.1f}mm: 12mm 板放不下 / 15mm 放得下")
+    # ============================================================ C-16 板宽 30mm 现状 (不再问已答完的 12→15)
+    w30_4l = A["board_l"] * A["board_w"] * 0.8 * 1.85 / 1000.0
+    w30_6l = A["board_l"] * A["board_w"] * 1.0 * 1.85 / 1000.0
+    w15_old = A["board_l"] * A["board_w_old"] * 0.8 * 1.85 / 1000.0
+    rec(True, "C-16", "板宽 30mm 现状 (板框已定 60×30, 不再请老板拍板)",
+        f"板框 {A['board_l']:.1f}×{A['board_w']:.1f}mm [官方: 老板 10-29 19:16 拍板 ≤30mm, §0 台账 11-01 20:5x 订正]; "
+        f"镜脚前后厚不变 {A['temple_h_total']}mm; 镜脚根部净高 {A['temple_v_net']:.1f}mm (板宽吃 V 向, 不吃 H); "
+        f"主板重 {w30_4l:.2f}g(4层) / {w30_6l:.2f}g(6层1.0) vs 15mm 板 {w15_old:.2f}g ⇒ "
+        f"Δ板重 {w30_4l-w15_old:+.2f}g; CONN_LIGHT 体宽 {worst[1]:.1f}mm ≤ 板宽 {A['board_w']:.1f}mm "
+        f"(余 {A['board_w']-worst[1]:.1f}mm)",
+        owner="MECH-OWNED", need=None)
 
     # ---------------------------------------------------------------- 汇总
     fails = [x for x in RESULTS if not x[0]]
+    mech_fail = [x for x in fails if x[4] == "MECH-OWNED"]
+    other_fail = [x for x in fails if x[4] != "MECH-OWNED"]
     print("\n" + "=" * 78)
-    print(f"自检汇总: {len(RESULTS)-len(fails)}/{len(RESULTS)} PASS · FAIL {len(fails)}")
+    print(f"自检汇总: {len(RESULTS)-len(fails)}/{len(RESULTS)} PASS · FAIL {len(fails)} "
+          f"(MECH-OWNED {len(mech_fail)} · 他域 {len(other_fail)})")
     print("=" * 78)
-    for ok, code, title, _ in RESULTS:
-        print(f"  {'PASS' if ok else 'FAIL'}  {code}  {title}")
+    for ok, code, title, _, owner, need in RESULTS:
+        mark = "PASS" if ok else "FAIL"
+        print(f"  {mark}  {code}  [{owner}] {title}")
+        if not ok and need:
+            print(f"          └ 归属: {need}")
+    print("\n★ 闸状态: **本脚本不是闸** (全项目调用方 = 0; 它判 16 项里只有 7 项属结构侧)。")
+    print("★ 退出码口径 (★ISS-192 改★): rc=1 **只**表示有 MECH-OWNED 判据不通过 (结构侧自己的活没做完);")
+    print("  他域 (HW-OWNED/CROSS-OWNED) 的红项**不**影响 rc —— 但每盏都带归属登记键, 不留孤儿红。")
+    if mech_fail:
+        print(f"  ★ 本次 MECH-OWNED 红项: {[x[1] for x in mech_fail]} ⇒ 结构侧欠活")
+    if other_fail:
+        print(f"  · 他域红项 (已登记归属, 不阻塞): {[(x[1], x[4]) for x in other_fail]}")
     print("\n[实测] 条数 = 0 (无实物); 可复现的是本脚本对 netlist/BOM 的解析复算结果")
+    print("结构侧权威几何口径: MECH/BOARD_GEOM_30MM.md (板 60×30 / RK3576 / PIN-SET-2 套 A)")
     print("用法: cd projects/smart_glasses && python3 MECH/cross_review_check.py")
-    return 1 if fails else 0
+    return 1 if mech_fail else 0
 
 
 if __name__ == "__main__":

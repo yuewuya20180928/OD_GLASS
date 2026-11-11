@@ -99,6 +99,45 @@ def _selftest_ok(rc: int, out: str) -> bool:
     return (rc == 0) and len((out or "").strip().splitlines()) > 0
 
 
+def _sch_pinfull_reading() -> tuple[str, bool]:
+    """★**原理图"脚数完整性"尺子的读数 (★2026-11-11 15:4x 新增·主线 6c★)**
+
+    ★★**为什么它也进巡检**: ★**尺子 (`state/check_sch_pinfull.py`) = "图上脚数 == 表里脚数"** ★★
+      ⇒ ★**它红 = 图上漏脚 ⇒ 原理图不许进投产包** ⇒ ★**这种闸必须天天有人跑, 不能靠"我记得手跑"** ★★
+    ★★**为什么不落缓存 (★与 ERC 闸不同·这里刻意不同★)**:
+      尺子要导出 KiCad 网表才能数脚 (★实测约 0.6 秒★) ⇒ ★**秒级 ⇒ 不值得为它引入"缓存过期"这个新病** ★★
+      ⇒ ★**每次巡检现算 ⇒ 读数永远是"当前这张图"的 ⇒ 不存在"拿旧数当现状"的假绿** ★★
+
+    ★**返回**: (★给"一屏报告"打印的那一行★, ★尺子是不是红的★) ⇒ ★**红 ⇒ 调用方记进 problems★**
+    """
+    _sch = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_sch")
+    if not os.path.exists(_sch):
+        return ("  原理图脚数完整性 ⚠️ 原理图不在 (%s) ⇒ 尺子没跑成 (★盲区, 不许当【过】★)" % _sch, True)
+    _rc, _out, _err = run_sys("check_sch_pinfull.py", "--json")
+    try:
+        _j = _out[_out.index("{"):_out.rindex("}") + 1]
+        _d = json.loads(_j)
+    except Exception:  # noqa: BLE001
+        _tail = ((_err or _out) or "").strip().splitlines()
+        return ("  原理图脚数完整性 ⚠️ 尺子读数解析失败 (rc=%d): %s"
+                % (_rc, _tail[-1][:120] if _tail else "无输出"), True)
+    _st = _d.get("stats") or {}
+    _ss = _d.get("sch_stats") or {}
+    _sp = int(_st.get("sch_pins", 0))
+    _tp = int(_st.get("tbl_pins", 0))
+    _k = int(_st.get("mismatched", 0))
+    _uni = int(_st.get("universe", 0))
+    _nets = int(_ss.get("nets", 0))
+    _refs = int(_ss.get("refs_on_schematic", 0))
+    _ok = (_rc == 0 and _k == 0)
+    if _ok:
+        return ("  原理图脚数完整性 ✅ (图上 %d 脚 · 表里 %d 脚 · K=%d · %d 器件/%d 网) "
+                "(★尺子 state/check_sch_pinfull.py·含 DNP 口径·universe=%d★)"
+                % (_sp, _tp, _k, _refs, _nets, _uni), False)
+    return ("  原理图脚数完整性 ❌ (图上 %d 脚 · 表里 %d 脚 · K=%d) ⇒ ★**图上漏脚 ⇒ 原理图不许进投产包**"
+            % (_sp, _tp, _k), True)
+
+
 GUARD_TESTS = (
     ("_test_edge_strict.py", "板边 fail-closed 守卫 (★自造违规铜 + 实测坏案例交叉验证★)"),
     ("_test_meander_edge.py", "蛇形出板闸守卫 (★PCB_MEANDER_EDGE★)"),
@@ -264,6 +303,12 @@ def main() -> int:
     rc_erc, out_erc, err_erc = run_sys("check_sch_erc.py", "--self-test")
     erc_out_n = len((out_erc or "").strip().splitlines())
     erc_ok = _selftest_ok(rc_erc, out_erc)
+    # ★★2026-11-11 15:4x 【★原理图"脚数完整性"尺子也要被守卫 (★承"守卫者也要被守卫"那条★)】★★
+    #   ★**check_sch_pinfull.py** = ★**"图上脚数 == 表里脚数"的尺子 (★6a 立的 · 6b 照尺子把图补全 · 今天 rc=0·K=0★)**
+    #   ⇒ ★**守卫者也要被守卫** ⇒ 它的自测也挂到巡检上 (★只跑 --self-test·0.04s·不带 KiCad 导出 ⇒ 不拖慢巡检★)**
+    rc_pf, out_pf, err_pf = run_sys("check_sch_pinfull.py", "--self-test")
+    pf_out_n = len((out_pf or "").strip().splitlines())
+    pf_ok = _selftest_ok(rc_pf, out_pf)
 
     # 2) gate
     rc_g, gate = jrun("gate_check.py")
@@ -289,6 +334,10 @@ def main() -> int:
     print(f"{'✅' if ao_ok else '❌'} compare_arm_official --self-test rc={rc_ao} (输出 {ao_out_n} 行)")
     print(f"{'✅' if mg_ok else '❌'} margin_sweep_gate --self-test-fast rc={rc_mg} (输出 {mg_out_n} 行)")
     print(f"{'✅' if erc_ok else '❌'} check_sch_erc --self-test rc={rc_erc} (输出 {erc_out_n} 行)")
+    print(f"{'✅' if pf_ok else '❌'} check_sch_pinfull --self-test rc={rc_pf} (输出 {pf_out_n} 行)")
+    if not pf_ok:
+        problems.append(f"★check_sch_pinfull --self-test 没过 (rc={rc_pf}, 输出 {pf_out_n} 行): "
+                        f"{(err_pf or out_pf).strip().splitlines()[-1][:160] if (err_pf or out_pf).strip() else ''}")
     if not erc_ok:
         problems.append(f"★check_sch_erc --self-test 没过 (rc={rc_erc}, 输出 {erc_out_n} 行): "
                         f"{(err_erc or out_erc).strip().splitlines()[-1][:160] if (err_erc or out_erc).strip() else ''}")
@@ -441,6 +490,13 @@ def main() -> int:
     except Exception as _e:
         _erc_line = f"  原理图 ERC      (读缓存失败: {_e})"
     print(_erc_line)
+    # ★★2026-11-11 15:4x 【★原理图"脚数完整性"尺子进巡检 (★跟 ERC 闸那行同款★)】★★
+    #   ★**尺子 = "图上脚数 == 表里脚数" (★state/check_sch_pinfull.py★)** ⇒ ★**红 ⇒ 图上漏脚 ⇒ 原理图不许进投产包** ★★
+    #   ⇒ ★**尺子红 ⇒ 记进 problems/异常 (★跟上面 ERC 闸那行同款·不许只打印不记账★)★★
+    _pf_line, _pf_bad = _sch_pinfull_reading()
+    print(_pf_line)
+    if _pf_bad:
+        problems.append("★原理图脚数完整性不过 (★尺子 state/check_sch_pinfull.py★) ⇒ ★**原理图不许进投产包**")
     r = cur.get("readiness") or {}
     print(f"  执行就绪度     纸面阶段 {'✅就绪' if r.get('paper_ready') else '❌未就绪'} | "
           f"样机阶段 {'✅就绪' if r.get('sample_ready') else '❌不就绪'} | "

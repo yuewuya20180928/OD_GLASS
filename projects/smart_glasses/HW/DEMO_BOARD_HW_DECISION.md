@@ -74,7 +74,10 @@
 ## 4. ★ 两块 FPC 的针位总表 (**自研目标规格, Step2 用; demo 阶段以公开现货为准 —— 见 §6 的 C3 更正**)
 
 
-**camera FPC (0.5mm 24p, 主控 ↔ IMX415 模组)**
+**★【已作废 · 保留历史 · 2026-11-11 19:31 老板裁决: 以【实际接插件】的针数为准】★★
+> ★**这块 0.5mm/24p 与下面的 0.5mm/20p 都是【已作废的自研目标规格】(★HW/DEMO_BOARD_HW_DECISION.md 自己的决策表就写了「0.5mm/24p 自研目标规格作废」★) ⇒ ★**现行口径见 `HW/PCB/FPC_PIN_TABLES.md`: camera = Radxa Camera 4K(IMX415) ⇒ 31p/0.3mm · 座 HIROSE FH35C-31S-0.3SHW(50); display = Waveshare 2.8inch DSI LCD(SKU 22028) ⇒ 官方线 22p(0.5mm Pi5 侧)↔15p(1.0mm 屏侧) ⇒ 板上座 = RPi mini-FPC 22p · 座 HIROSE FH12-22S-0.5SH(55)** ⇒ ★**下面两张表只作历史留档, 不作采购/连线依据** ★★
+
+**camera FPC (0.5mm 24p, 主控 ↔ IMX415 模组) ★已作废·仅留档★**
 | 位 | 信号 | 说明 |
 |---|---|---|
 | 1-2 | CSI_D0P / CSI_D0N | 2-lane 数据差分 (100Ω) |
@@ -93,7 +96,7 @@
 | 18 | NC | 备用 |
 | 19-24 | GND | 回流/屏蔽 (≥6 根) |
 
-**display FPC (0.5mm 20p, 主控 ↔ 视涯屏模组)**
+**display FPC (0.5mm 20p, ★已作废·仅留档 (★视涯屏 11-04 已停用, 现行为 Waveshare 2.8inch SKU 22028 ⇒ 22p/0.5mm★)★ 主控 ↔ 视涯屏模组)**
 | 位 | 信号 | 说明 |
 |---|---|---|
 | 1-8 | DSI_D0P/N · D1P/N · D2P/N · D3P/N | 4-lane 差分 (100Ω) |

@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-11T15:30:20+08:00'
+  generated_at: '2026-11-11T20:17:35+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -14,19 +14,19 @@ meta:
       mtime_ns: 1794364690527636345
     mech-lead:
       file: mech.yaml
-      size: 156954
-      sha1: aa56cb771510
-      mtime_ns: 1793935073066378375
+      size: 174928
+      sha1: e44b36c9fa1a
+      mtime_ns: 1794396642110959983
     main:
       file: pm.yaml
-      size: 38536
-      sha1: 38a5b8906b85
-      mtime_ns: 1794369092078559478
+      size: 45048
+      sha1: 4868564e12b0
+      mtime_ns: 1794396848804421024
     sw-lead:
       file: sw.yaml
-      size: 139638
-      sha1: 3f6371dad499
-      mtime_ns: 1794375200397269091
+      size: 154397
+      sha1: e3aa93802597
+      mtime_ns: 1794395898921967468
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -282,8 +282,13 @@ domains:
       waiting_on: vendor
       due: '2026-10-29'
       overdue: false
-      decision: null
-      decided_at: null
+      decision: '★老板 2026-11-11 19:31 决定: ★**不再做任何邮件 / 供应商 / 原厂问询** (★原话: 「问了也不会有答复, 以后不再做任何邮件咨询, 获取不到结果的,
+        所以之前才会定相关信息都自己去网上查找的标准」★) ⇒ ⇒ ★**这一项不再外发** ⇒ 改为【自己网上查 (KiCad 官方库 / 原厂公开文档 / 公开 dts / 社区资料) + 标证据等级
+        [官网]/[媒体]/[0数据]】; ★**查不到就如实标 [0数据] 并记为已知缺口, 不再挂着等回信** ⇒ ⇒ ★**草稿留在 `state/outbox/` 只作资料, 一律不发**
+        ★★
+
+        ★**该项从待拍板清单退休 (问题已被老板的政策回答) ⇒ 缺口转为自己网上查 + 标 [0数据]★**'
+      decided_at: '2026-11-11'
       answers:
       - by: hw-lead
         value: '已并入原厂邮件问题清单第7问(内置boot storage? 容量?); 当前按无内置boot storage设计: 外挂 SPI-NOR 16-64MB, 吃镜脚空间,
@@ -315,8 +320,13 @@ domains:
       waiting_on: vendor
       due: '2026-10-29'
       overdue: false
-      decision: null
-      decided_at: null
+      decision: '★老板 2026-11-11 19:31 决定: ★**不再做任何邮件 / 供应商 / 原厂问询** (★原话: 「问了也不会有答复, 以后不再做任何邮件咨询, 获取不到结果的,
+        所以之前才会定相关信息都自己去网上查找的标准」★) ⇒ ⇒ ★**这一项不再外发** ⇒ 改为【自己网上查 (KiCad 官方库 / 原厂公开文档 / 公开 dts / 社区资料) + 标证据等级
+        [官网]/[媒体]/[0数据]】; ★**查不到就如实标 [0数据] 并记为已知缺口, 不再挂着等回信** ⇒ ⇒ ★**草稿留在 `state/outbox/` 只作资料, 一律不发**
+        ★★
+
+        ★**FCCSP 球间距 / 引脚图 / 电源域表 → 转为自己网上查 (FET3572-C/FET3576-C 公开资料) + 标证据等级 ⇒ 查不到就标 [0数据]★**'
+      decided_at: '2026-11-11'
       answers:
       - by: hw-lead
         value: '已并入原厂邮件问题清单第1问(FCCSP ball pitch + 完整引脚图/球位图); 判据已给: >=0.4mm 常规4-6层可行 / 0.35mm 极限需PCB厂书面确认
@@ -354,8 +364,13 @@ domains:
       waiting_on: agent
       due: '2026-10-29'
       overdue: false
-      decision: null
-      decided_at: null
+      decision: '★老板 2026-11-11 19:31 决定: ★**不再做任何邮件 / 供应商 / 原厂问询** (★原话: 「问了也不会有答复, 以后不再做任何邮件咨询, 获取不到结果的,
+        所以之前才会定相关信息都自己去网上查找的标准」★) ⇒ ⇒ ★**这一项不再外发** ⇒ 改为【自己网上查 (KiCad 官方库 / 原厂公开文档 / 公开 dts / 社区资料) + 标证据等级
+        [官网]/[媒体]/[0数据]】; ★**查不到就如实标 [0数据] 并记为已知缺口, 不再挂着等回信** ⇒ ⇒ ★**草稿留在 `state/outbox/` 只作资料, 一律不发**
+        ★★
+
+        ★**EMC 4 项硬件数据 → 转为自己网上查 + 标 [0数据] ★**'
+      decided_at: '2026-11-11'
       answers:
       - by: hw-lead
         value: 'EMC 需要的 4 项硬件数据: ① **充电状态读取 = 已有, 双通路** CHG_STAT (BQ25896 STAT 开漏 +10k 上拉 → J_CHG pin5
@@ -469,24 +484,16 @@ domains:
       waiting_on: agent
       due: null
       overdue: false
-      decision: '老板 10-25 19:33 决定: **3 份外发草稿先保留 (暂不发送)** —— 原厂问询 / JBD 问询 / 桥接芯片询价。
-
-        ★ 代价 (已知悉): ① ISS-001/003/005/006/007/008/009/011/015 共 9 条原厂问题继续等, G1 原理图开不了 ② ISS-004/013/016
-        三条 JBD 问题继续等, 镜框 3D 打印件不能开工 (采购 4-8 周) ③ 光生物安全所需的光机参数 (ISS-048) 也卡在 JBD 草稿上。
-
-        ★ 草稿已按 EMC 0 数据项补过问 (原厂新增时钟频率/MIPI-CSI 输入侧/帧同步/充电状态读取; JBD 新增纹波与 π 滤波; 桥接新增 EMI 指标) —— 保留期间不改动,
-        一旦说发就能直接发。'
-      decided_at: '2026-10-25'
+      decision: '★老板 2026-11-11 19:31 决定 (★覆盖 10-25 那条「3 份草稿先保留」★): ★**不再做任何邮件 / 供应商 / 原厂问询** ⇒ ★**`state/outbox/`
+        全部草稿一律不发, 只作资料留档** ⇒ ★**所有等回信的外部依赖, 一律改为【自己网上查】(KiCad 官方库 / 原厂公开文档 / 公开 dts / 社区资料) + 标证据等级 [官网]/[媒体]/[0数据]**
+        ⇒ ★**查不到就如实标 [0数据] 并记为已知缺口, 不再挂着等回信** ★★'
+      decided_at: '2026-11-11'
       answers:
       - by: boss
-        value: '老板 10-25 19:33 决定: **3 份外发草稿先保留 (暂不发送)** —— 原厂问询 / JBD 问询 / 桥接芯片询价。
-
-          ★ 代价 (已知悉): ① ISS-001/003/005/006/007/008/009/011/015 共 9 条原厂问题继续等, G1 原理图开不了 ② ISS-004/013/016
-          三条 JBD 问题继续等, 镜框 3D 打印件不能开工 (采购 4-8 周) ③ 光生物安全所需的光机参数 (ISS-048) 也卡在 JBD 草稿上。
-
-          ★ 草稿已按 EMC 0 数据项补过问 (原厂新增时钟频率/MIPI-CSI 输入侧/帧同步/充电状态读取; JBD 新增纹波与 π 滤波; 桥接新增 EMI 指标) —— 保留期间不改动,
-          一旦说发就能直接发。'
-        ref: 老板决策 2026-10-25 (项目总工代录)
+        value: '★老板 2026-11-11 19:31 决定 (★覆盖 10-25 那条「3 份草稿先保留」★): ★**不再做任何邮件 / 供应商 / 原厂问询** ⇒ ★**`state/outbox/`
+          全部草稿一律不发, 只作资料留档** ⇒ ★**所有等回信的外部依赖, 一律改为【自己网上查】(KiCad 官方库 / 原厂公开文档 / 公开 dts / 社区资料) + 标证据等级
+          [官网]/[媒体]/[0数据]** ⇒ ★**查不到就如实标 [0数据] 并记为已知缺口, 不再挂着等回信** ★★'
+        ref: 老板决策 2026-11-11 (项目总工代录)
       foreign_answers: []
     - key: rk3572_bench_board_and_instruments
       to: boss
@@ -678,20 +685,24 @@ domains:
       waiting_on: agent
       due: null
       overdue: false
-      decision: '★作废, 不发 —— 老板 2026-11-04 09:5x 明确「视崖屏幕已经不用了」(原话追问: 「视崖屏幕已经不用了, 为什么还要问有没有 DSC 模式」) ⇒ 这封
-        6 大项问询不再外发 (草稿留在 state/outbox/ 不删) ★★**并且 demo 屏根本不走视涯**: 老板 11-04 01:19 拍板 demo 屏换 Waveshare
-        2.8" (SKU 22028) ⇒ 该屏**不需要任何 DCS init 序列** (官方 RPi 内核 `panel-waveshare-dsi.c` 一条 DSI 指令都不发, 全走
-        I2C @0x45) ⇒ ★**demo「屏上有画面」不依赖任何厂商回信** ⇒ ★**本条不是 demo 关键路径** (之前把它列成「全局最长关键路径」是口径错误) ★★**整机屏路线若再考虑视崖
-        ⇒ 届时重新立项** (ISS-176 / ISS-177 已 deferred, 重开条件在案)'
-      decided_at: '2026-11-04'
+      decision: '★老板 2026-11-11 19:31 决定: ★**不再做任何邮件 / 供应商 / 原厂问询** (★原话: 「问了也不会有答复, 以后不再做任何邮件咨询, 获取不到结果的,
+        所以之前才会定相关信息都自己去网上查找的标准」★) ⇒ ⇒ ★**这一项不再外发** ⇒ 改为【自己网上查 (KiCad 官方库 / 原厂公开文档 / 公开 dts / 社区资料) + 标证据等级
+        [官网]/[媒体]/[0数据]】; ★**查不到就如实标 [0数据] 并记为已知缺口, 不再挂着等回信** ⇒ ⇒ ★**草稿留在 `state/outbox/` 只作资料, 一律不发**
+        ★★
+
+        ★**面板 init code → 走公开 dts (★项目已实测: `rk3576-evb.dtsi` 有 263 条 1080×1920/4-lane init sequence +
+        `radxa-cm5-io-radxa-display-10fhd.dts` 有完整 timing★) ⇒ 不用问厂家 ★**'
+      decided_at: '2026-11-11'
       answers:
       - by: boss
-        value: '★作废, 不发 —— 老板 2026-11-04 09:5x 明确「视崖屏幕已经不用了」(原话追问: 「视崖屏幕已经不用了, 为什么还要问有没有 DSC 模式」) ⇒ 这封
-          6 大项问询不再外发 (草稿留在 state/outbox/ 不删) ★★**并且 demo 屏根本不走视涯**: 老板 11-04 01:19 拍板 demo 屏换 Waveshare
-          2.8" (SKU 22028) ⇒ 该屏**不需要任何 DCS init 序列** (官方 RPi 内核 `panel-waveshare-dsi.c` 一条 DSI 指令都不发,
-          全走 I2C @0x45) ⇒ ★**demo「屏上有画面」不依赖任何厂商回信** ⇒ ★**本条不是 demo 关键路径** (之前把它列成「全局最长关键路径」是口径错误) ★★**整机屏路线若再考虑视崖
-          ⇒ 届时重新立项** (ISS-176 / ISS-177 已 deferred, 重开条件在案)'
-        ref: 老板决策 2026-11-04 (项目总工代录)
+        value: '★老板 2026-11-11 19:31 决定: ★**不再做任何邮件 / 供应商 / 原厂问询** (★原话: 「问了也不会有答复, 以后不再做任何邮件咨询, 获取不到结果的,
+          所以之前才会定相关信息都自己去网上查找的标准」★) ⇒ ⇒ ★**这一项不再外发** ⇒ 改为【自己网上查 (KiCad 官方库 / 原厂公开文档 / 公开 dts / 社区资料) +
+          标证据等级 [官网]/[媒体]/[0数据]】; ★**查不到就如实标 [0数据] 并记为已知缺口, 不再挂着等回信** ⇒ ⇒ ★**草稿留在 `state/outbox/` 只作资料,
+          一律不发** ★★
+
+          ★**面板 init code → 走公开 dts (★项目已实测: `rk3576-evb.dtsi` 有 263 条 1080×1920/4-lane init sequence
+          + `radxa-cm5-io-radxa-display-10fhd.dts` 有完整 timing★) ⇒ 不用问厂家 ★**'
+        ref: 老板决策 2026-11-11 (项目总工代录)
       foreign_answers: []
     - key: board_p41_promote
       to: boss
@@ -712,19 +723,37 @@ domains:
       foreign_answers: []
     - key: sch_completeness_target
       to: boss
-      item: '★**demo 原理图的【完整度目标】三选一** (★老板 11-11 10:07 主线=原理图优先★): ① 最小集(★现状⇒只画用到的脚 ⇒ 接口对边【永不可评审】★) ②
-        【表内全量】(★把 netlist_v1_pins.csv 的 584 脚全画出来 + 补 J_SOM_P2/P4 + NC 标注 ⇒ ★**可评审对边**★ ⇒ **我的建议**) ③
-        真实器件全貌(★USB-C 24脚 / SoM 400球 ⇒ 那就不是 demo 板, 是产品级设计 ⇒ 需 datasheet/官方库★) ⇒ ★**②已作为主线第六件在跑(纯生成器活:
-        图变·表不变·板不动 ⇒ 板 md5 仍 611b869e) ⇒ ③需另立**★'
+      item: '★**demo 原理图的【完整度目标】—— ★②已于 2026-11-11 15:0x 执行完毕 (图=表: 尺子 rc=0 · 图上 584 脚 = 表里 584 脚 · K=0
+        · 全部 153 个网都挂在真实器件上 ⇒ 接口对边可评审★) ⇒ 现在只剩一个问题: 【③ 真实器件全貌】要不要做** ★**③ 的差距已量化 (`HW/PCB/PIN_REALITY_GAP.md`,
+        口径=表侧 584 脚含 DNP)**: 218 器件中 **189 可查 / 29 [0数据]** · 脚数一致 **183** · **真实多脚 6 个** (★`J_SOM_P1..P4`:
+        表里只画用到的 10/9/19/14 个, 真实是 4×100 球位 BTB★ + ★`U_DCDC_VCORE`/`U_DCDC_VIO`: 表里 3 脚 vs TPS62130 真实
+        17 脚★) · **表里多脚 0** ⇒ ★★**【11-11 17:0x main 收窄 (★我查了那 29 个 [0数据] 的构成★)】★★**: ★**按位号前缀拆开 = 6 个
+        ESD/TVS + 2 个磁珠 + 6 个开关 + 4 个 MOS + 5 个 IC + 1 个 USB-C + 4 个其它 ⇒ ⇒ ★**【它们不是原厂该回答的】⇒ 是【内部 BOM 定
+        opn/封装】的活 ⇒ 定了封装脚数就有了 ⇒ ⇒ 【给原厂的信】里只该留【两件真外部依赖】: ① RK3572 完整球位表 (4 座 × 100 球位) ② `FET3572C_PIN_TABLE.csv`
+        的 P2 座缺 `num=40` 的确认 (P1/P3/P4 各 100 行, P2 只有 99 行) ⇒ ⇒ ★★**⇒ 那 29 个已单独排成内部活 (★ISS-193, owner=hw-lead,
+        不改网表不改板★) ⇒ 信的范围更聚焦 ⇒ 你批起来更省事 ★★** ⇒ ★**⇒ 你现在要回的只剩这一句: 批不批【一封问 Rockchip 的两问信】?** ⇒ ★**建议: 批**
+        (★**草稿已备好: `state/outbox/som_balltable_inquiry.md` · 未发送, 等你批准★**) ⇒ ★**回「批」我就发; 回「不批」则选项③ 的 SoM
+        部分只能停在 348 个球位没有真源** ★'
       since: '2026-11-11'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
-      decision: null
-      decided_at: null
-      answers: []
+      decision: '★老板 2026-11-11 19:31 决定 (★三句回复★): ① **全做** (⇒ §5 的三句我都收到了) ② **R7 FPC 针数以实际接插件的针数为主**
+        (⇒ camera 31p/0.3mm + display 22p/0.5mm ⇒ **板上 31p/22p 本来就对, 不用改板**; 三处过期规格 (24p/20p/40p/26p)
+        已订正 ⇒ **R7 不改板, 只改文档**) ③ **那封两问信不批** (⇒ ★**不再外发** ⇒ 选项③ 的外部依赖改为【自己网上查 RK3572 SOM 公开资料】+ 29 个器件脚数走内部
+        BOM 活 (ISS-193) ⇒ ⇒ ★**这一项已答完, 从待拍板清单退休** ⇒ ★**剩余: ②已执行完毕 · ③ 改为自查路径 (不需老板再拍) ⇒ 即：选项③ 现在是【干不干的排期问题】,
+        不是【拍板问题】★**'
+      decided_at: '2026-11-11'
+      answers:
+      - by: boss
+        value: '★老板 2026-11-11 19:31 决定 (★三句回复★): ① **全做** (⇒ §5 的三句我都收到了) ② **R7 FPC 针数以实际接插件的针数为主**
+          (⇒ camera 31p/0.3mm + display 22p/0.5mm ⇒ **板上 31p/22p 本来就对, 不用改板**; 三处过期规格 (24p/20p/40p/26p)
+          已订正 ⇒ **R7 不改板, 只改文档**) ③ **那封两问信不批** (⇒ ★**不再外发** ⇒ 选项③ 的外部依赖改为【自己网上查 RK3572 SOM 公开资料】+ 29
+          个器件脚数走内部 BOM 活 (ISS-193) ⇒ ⇒ ★**这一项已答完, 从待拍板清单退休** ⇒ ★**剩余: ②已执行完毕 · ③ 改为自查路径 (不需老板再拍) ⇒ 即：选项③
+          现在是【干不干的排期问题】, 不是【拍板问题】★**'
+        ref: 老板决策 2026-11-11 (项目总工代录)
       foreign_answers: []
     - key: ref_designator_rename
       to: boss
@@ -733,14 +762,46 @@ domains:
         留证链/Gerber/投产包全要重出 (一个位号平均散在 19~112 个文件)★ ⇒ ★**建议: 先过完原理图评审, 再一次性改名+整链重出; RAIL_*/NET_* 保留(否则 BOM
         多假料号)★**'
       since: '2026-11-11'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
-      decision: null
-      decided_at: null
-      answers: []
+      decision: ★老板 2026-11-11 19:31 决定「全做」⇒ ★**位号改名随「一次整链重出」一起做** (★清单 `state/RECHAIN_ONEPASS_PLAN.md`
+        v2, 14 步★) ⇒ ★**`RAIL_*`/`NET_*` 保留** (★单点汇流位, 改了 BOM 多假料号★) ⇒ ★**该项从待拍板清单退休 (已并入整链重出)** ★**
+      decided_at: '2026-11-11'
+      answers:
+      - by: boss
+        value: ★老板 2026-11-11 19:31 决定「全做」⇒ ★**位号改名随「一次整链重出」一起做** (★清单 `state/RECHAIN_ONEPASS_PLAN.md`
+          v2, 14 步★) ⇒ ★**`RAIL_*`/`NET_*` 保留** (★单点汇流位, 改了 BOM 多假料号★) ⇒ ★**该项从待拍板清单退休 (已并入整链重出)** ★**
+        ref: 老板决策 2026-11-11 (项目总工代录)
+      foreign_answers: []
+    - key: iss191_reset_p0_fix_choice
+      to: boss
+      item: '★**ISS-191 复位 P0 落表口径: 走哪条?** ⇒ ★**推荐 ② = 把 Q_AND 整颗改 DNP** (网表表A L65/L66/L67 + 表B Q_AND.1/.2/.3
+        三行同改) ⇒ RESET_N 上无条件常拉低 = 0 个 ⇒ 首台板能启动。 ★**已实测**: ① 行级 PG_AND 上唯一 DNP 是 Q_ENVC (L71) ⇒ 两路 DC-DC
+        的 IC 行 DNP ⇒ 无任何实装器件能拉低 PG_AND ⇒ Q_AND 栅极恒高 ⇒ 导通 ⇒ RESET_N 恒低 ② ★**main 独立复核** (2026-11-11 15:5x):
+        8 条闸全过 + ★**自己造反向用例** (把方案打到 /tmp) ⇒ F1 实读变 q_and_in_netlist=False / 栅极漏极均 DNP ⇒ **逐条命中方案页 A1**
+        ⇒ 全量自测**精确红 5 条** ⇒ **与方案页 B5-3 点名的 5 条逐条同名** ⇒ 方案页 HW/PCB/RESET_P0_FIX_PLAN.md 已验收签字 (ISS-191
+        verified/pass)。 ★**同批建议**: Q_ENVC 三行**统一 DNP** (消 BOM 口径差) · R_PG_PULL **先不动** (省 180µA 但 [0数据]
+        风险)。 ★**代价**: 复位回到纯 RC+按键 (释放 τ=1.1ms / 越过 0.7VDD 1.324ms, RC 参数一个都没动)。 ★**落表时机 = 随「一次整链重出」一起做**
+        (state/RECHAIN_ONEPASS_PLAN.md §5 答「②」) ⇒ 本项单独回「②」即可'
+      since: '2026-11-11'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: ★老板 2026-11-11 19:31 决定「全做」⇒ ★**按方案页推荐 ② = 把 `Q_AND` 整颗改 DNP** (★表A L65/L66/L67 + 表B `Q_AND.1/.2/.3`
+        三行必须同改★) ⇒ ★**同批建议 `Q_ENVC` 三行统一 DNP** (★消 BOM 口径差★) · `R_PG_PULL` 先不动 ⇒ ★**落表时机 = 随「一次整链重出」一起做**
+        ⇒ ★**该项从待拍板清单退休 (已并入整链重出)** ★**
+      decided_at: '2026-11-11'
+      answers:
+      - by: boss
+        value: ★老板 2026-11-11 19:31 决定「全做」⇒ ★**按方案页推荐 ② = 把 `Q_AND` 整颗改 DNP** (★表A L65/L66/L67 + 表B `Q_AND.1/.2/.3`
+          三行必须同改★) ⇒ ★**同批建议 `Q_ENVC` 三行统一 DNP** (★消 BOM 口径差★) · `R_PG_PULL` 先不动 ⇒ ★**落表时机 = 随「一次整链重出」一起做**
+          ⇒ ★**该项从待拍板清单退休 (已并入整链重出)** ★**
+        ref: 老板决策 2026-11-11 (项目总工代录)
       foreign_answers: []
     answers:
     - key: reva_stl_regen
@@ -3018,7 +3079,21 @@ domains:
         ⇒ demo 板走板内 J_USB_C。 ★**timing_check.py 从 ''手抄常量'' 改成 ''实读网表''**: csv 实读 + 输出首段打印锚点 (md5+514/513
         行) + 6 条反向用例 (改坏副本 ⇒ 判据变红) ⇒ **SELFTEST 48/48 rc=0** (既有 21 条一条没删) ⇒ 验收 #2 外部复现: 改坏 I2C_A 上拉一行
         ⇒ t_r 398.2→847.3ns 且 7 条自测转红。 ★**只报不改网表**: 新发现 7 条网表侧待修项 (I2C_A 注记矛盾 / RESET_N 恒低 / 分压 0Ω 短路
-        / 电量链全 DNP / Q_ENVC dnp 矛盾 / U_EN_SW 无器件行 / J_USB_C D− 无 ESD) 全部经 frag_write 登记 needs_from 给 hw-lead。'
+        / 电量链全 DNP / Q_ENVC dnp 矛盾 / U_EN_SW 无器件行 / J_USB_C D− 无 ESD) 全部经 frag_write 登记 needs_from 给 hw-lead。
+        ★ISS-191 (2026-11-11 15:2x, owner=sw-lead / verify_by=main, due 2026-11-13) 已交卷: ★**只出方案页, 一行网表/原理图/板/投产包都没动**★
+        (本单动过的文件只有 3 处: HW/PCB/RESET_P0_FIX_PLAN.md / HANDOFF/2026-11-11_sw-lead_ISS191_复位P0方案.md / 本分片)
+        ⇒ **方案页正文 = HW/PCB/RESET_P0_FIX_PLAN.md (B1~B6 齐全)**, 交卷摘要 = HANDOFF/2026-11-11_sw-lead_ISS191_复位P0方案.md。
+        ★**结论 = 推荐 ISS-190 三条改法里的第 ② 条: 把 Q_AND 整颗改 DNP** (表A L65/L66/L67 + 表B Q_AND.1/.2/.3 三行同改) ⇒ RESET_N
+        上只剩按键一个拉低者 ⇒ 首台板能启动; **明确否掉 ① 的两个子项** (Q_ENVC 必装 ⇒ 故障链一点没动, 且 EN_VCORE 会被拉低换成另一个 P0; 摘掉 ⇒ 网表根本没有
+        PG_VIO 这条网, 同一引脚不能挂两条网, 改动面大而收益 0); ③ 依赖 SoM 球位 TBD-01 ⇒ 首台板等不起, 出局。 ★**实测读数 (行级口径)**: PG_AND
+        6 行 (L62/L63/L64/L67/L71/L402/L403), 唯一 DNP 的是 L71 Q_ENVC; 两路 PG 的连接行 dnp 全是必装 ⇒ **PG 源器件 DNP
+        不成立**; 但 U_DCDC_VCORE (L79) / U_DCDC_VIO (L86) 的 **IC 行 DNP** ⇒ 两颗 DC-DC 实物不装 ⇒ PG 脚不在板上 ⇒ PG_AND
+        更没人拉低 ⇒ 栅极恒高 ⇒ Q_AND 导通 ⇒ RESET_N 恒低。 ★**4 条 /tmp 反向用例 (RC1~RC4) 实测**: RC1 只把 Q_ENVC 改必装 ⇒ 故障链不变
+        (否掉 ①); RC3 只改 L67 ⇒ 器件级仍显示装 ⇒ **证明三行必须同改**; RC4 三行全改 ⇒ q_and_in_netlist False / RESET_N 拉低者只剩
+        SW_RST。 ★**unc 45 / DRC 0 不变** (5 条论据: 板生成器 gen_pcb_netlist_board.py 的 dnp 命中数=0 + 板文件 attr 命中数=0
+        + Q_AND 封装 3 焊盘(pad1=RESET_N,pad2=GND,pad3=PG_AND)网络不变 + 拓扑不变 + 既有先例 BOM 记 DNP 却仍在 CPL 里的位号=41/56)
+        ⇒ **改 dnp 不改板 ⇒ 可与 ref_designator_rename 同表不同列一次落表**。 ★**落表时必须同步改 SW/tools/timing_check.py 的 5
+        条断言** (RC4 上跑全量自检精确红 5 条, 已逐条列在方案页 B5-3) ⇒ **本单无权改, 留给落表的人**。'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -3368,6 +3443,52 @@ domains:
       summary: '★ISS-190 交接单: B1~B6 六块齐全 (结论摘要 / 验收标准自评 15 条 / 证据分级 / 接口取值声明 / 未决项与卡点 / 自证复现命令) + 自证实录
         (脚本 48/48 rc=0 + 反向演示 + merge rc=0 + gate_check Q1 18/18); 含 F1~F8 复评总表与 7 条网表侧待修项 (needs_from
         → hw-lead); ★本单不含落账 (verify_by=main ⇒ issue_log.yaml 由 main 写)'
+    - path: HW/PCB/RESET_P0_FIX_PLAN.md
+      kind: design-plan
+      version: v1.0
+      updated_at: '2026-11-11'
+      summary: '★ISS-191 方案页 (只出方案, 不落表/不改板/不改原理图/不重出投产包)★ ⇒ B1~B6 齐全。 B1 结论与推荐: 三选一 ⇒ **推荐 ② 把 Q_AND
+        整颗改 DNP** (表A L65/L66/L67 + 表B Q_AND.1/.2/.3 三行同改; 默认口径 = ② + 建议同批 Q_ENVC 三行统一 DNP; 明确不做 Q_ENVC
+        必装); 理由 = ① Q_AND 漏极是 RESET_N 上唯一的硬件常拉低者 (U_SUPV pin1 是 DNP 不参与); ② 不依赖 SoM 球位 TBD-01 与原厂; ③ 与网表
+        L409 note 写的 Forlinx 参考电路 (按键+100nF, 无监督器) 自洽。 ★**复位时序推演**: assert = 按键经 1k 拉低, 戴维南 R_th=909Ω/V_th=0.164V
+        ⇒ 从 1.8V 落到 0.7*VDD 需 ≈36µs; deassert = τ_release (10k+1k)*100nF = 1.1ms, 越过 0.7*VDD 需 1.324ms;
+        掉电 = 1.8V 轨塌 ⇒ RESET_N 随轨落 0 ⇒ 自动进复位; 对比现状 = 永远等不到 deassert ⇒ 首台板不启动。 B2 行级改动清单: 6 必改行 + 4 建议同批
+        (Q_ENVC) + 2 可选 (R_PG_PULL, 省 180µA) + **17 个连带文件** (两张网表表 / BOM / 原理图 / 板 / Gerber 32 / drill
+        / pos-CPL 186 / IPC-2581 / 装配图 2 / 3D step / D356 / kicad-bom.xml / doc 其余 / timing_check.py /
+        引用旧 md5 的 7 处)。 B3 unc 45 与 DRC 0 **都不变** (5 条论据 + 例外说明改名会改板 md5 但预期几何不变) + 原理图侧 K 仍 0 + 对照口径预测
+        (464 脚 / 51 器件 / 120 DNP 行) + 功耗 (复位链常流 180µA ⇒ 0.324mW@1.8V ⇒ 电池 97 天)。 B4 与 ref_designator_rename
+        合并: **同表不同列 ⇒ 技术零冲突** (dnp 列 vs ref 列) ⇒ 一次落表一次重出; 12 步落点已标; 代价引用 RECHAIN_ONEPASS_PLAN (未改那个文件);
+        建议 U_EN_SW 补 IC 行因改行数要单独一批; 原理图补脚 (6b 在跑) 不能同批。 B5 验收判据: 现状 V1~V8 + 落表后 A1~A10 (每条给命令 + 期望输出)
+        + **落表时必须同步改的 5 条 timing_check 断言** (RC4 实测精确红 5 条) + 4 条 /tmp 反向用例的字段翻转。 B6 边界与 8 条未决 (标 [0数据]
+        并写明该问谁; 老板 3 条拍板 + 原厂 PG 球位/RESET 释放要求归项目总工外发) + 口径声明表 (universe 291 / 整颗DNP 56 / 行级矛盾 ref 7 /
+        板 186 / BOM DNP 56 / CPL 交集 41) + 证据分级索引。 ★**4 条反向用例 RC1~RC4 实测证明 ① 的两个子项都切不断故障链, 且 Q_AND 必须三行同改**
+        ★网表 md5 c78f991283cc82d56c8e3dd31657c785 与板 md5 611b869e13518c3c023fb178f91a0075 在本单写完后一字不变'
+    - path: HANDOFF/2026-11-11_sw-lead_ISS191_复位P0方案.md
+      kind: handoff
+      version: v1.0
+      updated_at: '2026-11-11'
+      summary: '★ISS-191 交接单: B1~B6 六块齐全 (结论摘要 / 验收标准自评 15 条 / 证据分级 / 接口取值声明 / 未决项与卡点 / 自证复现命令) + 自证实录
+        (timing_check --only F1_reset_rc 全读数 / SELFTEST 55/55 rc=0 / md5 x2 / merge rc=0 冲突 0 / gate_check
+        Q1 18/18 / DRC 0 unc 45 / ERC 0 / pinfull K=0 universe=218 / 4 条 /tmp 反向用例) + 本单只动 3 个文件 (方案页
+        / 本交接单 / sw.yaml 走 frag_write) + 证据分级 (实测 5 组 / 官方 0 / 推算 5 / 0数据 5) + 9 条卡点 + ★硬指标覆盖由 4/5 降到
+        3/5 (本单确实不涉镜腿/镜脚厚度; 阈值 >=3 仍过 ⇒ Q5 总表 2/3 不变)★'
+    - path: SW/ISP_TUNING_INITIATION_PLAN.md
+      kind: plan
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-139 ISP tuning 立项书: 6 节 (工作量与前置条件/三条路线对比/RK3572专属风险/验收判据怎么量/排期账/与OD链路耦合) + 现成IQ覆盖表
+        + 证据分级'
+    - path: SW/tools/iq_coverage_check.py
+      kind: tool
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: rkaiq 公开 IQ 覆盖表机检器 (只读本机快照 166 项; rc=0 + --self-test rc=0 含 4 个反向用例; 答掉 DEMO_OD_PIPELINE_SPEC
+        附录A P2-2)
+    - path: HANDOFF/2026-11-11_sw-lead_ISS139_ISP_tuning立项.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-139 交卷报告: 结论先行 + 8 条问询清单 (只起草不外发) + 分片登记 + 自证命令'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -4594,6 +4715,145 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss191_boss_pick_fix_option
+      to: main
+      item: '★ISS-191 拍板 1 (等老板, 项目总工转达; 我不外发)★ ⇒ 复位 P0 走哪条: ② 把 Q_AND 整颗改 DNP (★sw-lead 推荐★) / ① Q_ENVC
+        摘掉或必装 (★已用 RC1 反向用例实测否掉: 切不断故障链, 且 Q_ENVC 必装会把 EN_VCORE 拉低换成另一个 P0★) / ③ 等 SoM 球位 TBD-01 (首台板等不起)。
+        ★机械判据: 落表后 python3 SW/tools/timing_check.py --only F1_reset_rc ⇒ q_and_in_netlist False / q_and_gate_row_dnp
+        DNP / reset_n.q_and_drain_row_dnp DNP / reset_n.dnp_rows 含 Q_AND / tau_release_ms 仍 1.1★。 ★同源文件:
+        HW/PCB/RESET_P0_FIX_PLAN.md (B1/B5)。 due 2026-11-12'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss191_boss_q_envc_unify
+      to: main
+      item: '★ISS-191 拍板 2 (等老板, 项目总工转达)★ ⇒ Q_ENVC 三行 (表A L71/L72/L73 + 表B Q_ENVC.1/.2/.3) 是否同批统一为 DNP。
+        ★理由: 现在 L71 是 DNP 而 L72/L73 是必装 ⇒ BOM 按 ref 级口径 (任一行必装 ⇒ 整颗记必装) 记 Q_ENVC 必装 (要买) ⇒ **网表口径与 BOM
+        口径打架**; 统一 DNP 后 BOM 记 DNP, 与 ''SoM 自带 PMIC, 顺序链在 SoM 内部完成'' 的既有结论自洽。 ★机械判据: grep -n ''^Q_ENVC''
+        HW/BOM_v1.csv ⇒ dnp 列应为 DNP (现在 必装); DNP 位号数 (ref 级, universe 291) 56 ⇒ 57。 due 2026-11-12'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss191_boss_r_pg_pull_dnp
+      to: main
+      item: '★ISS-191 拍板 3 (等老板, 项目总工转达)★ ⇒ R_PG_PULL 两行 (表A L62/L63) 是否也改 DNP。 ★收益: PG_AND 上只剩两个测试点时,
+        10k 上拉挂 1.8V 常流 180µA ⇒ 1.8V 侧 0.324mW / 电池 3.7V 侧 0.666mW ⇒ 420mAh 电池 ÷ 180µA = 2333h ≈ 97 天。
+        ★代价: 将来若按 ③ 接真实 PG, 这个上拉要回来 ⇒ **建议 ③ 落地前不要动**。 ★机械判据: python3 SW/tools/timing_check.py --only
+        F1_reset_rc ⇒ pullup_row_dnp 应为 DNP (现在 必装)。 due 2026-11-12'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss191_orig_som_pg_reset_spec
+      to: main
+      item: '★ISS-191 外部依赖 (★项目总工外发原厂, 我不外发★)★ ⇒ SoM 侧三件事: ① 是否提供 PG 输出 (球位 + 极性, TBD-01/TBD-12) ② RESET
+        释放要求 (SoC 要多久才认复位释放, 内部上电顺序) ③ 内部复位电路构成。 ★本单推荐 ② 不依赖这三项 ⇒ 不阻塞首台板; 但 ③ 落地需要。 ★现状仍是 [0数据]: 网表 L62/L64/L71
+        note 只写 ''PG 极性待原厂核 (TPS62130A PG 为开漏信号)''; Q_AND 型号/Vgs(th)/封装 也仍是 [0数据] (BOM value = 待选型, footprint/opn
+        = 待定) ⇒ **正因为没有官方数据, 才不能赌阈值, 必须做 ②**。 due 2026-11-14'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss191_u_en_sw_device_row_recheck
+      to: hw-lead
+      item: '★ISS-190 §7-6 的复查 (不重复立项, 只是确认它还开着)★ ⇒ U_EN_SW 在网表里**没有器件行** (L441/L442/L443/L444 只有 4 行
+        NET 引脚行, 全网表 0 行 U_EN_SW 的 IC 行) ⇒ 按器件口径 BOM/装配单会漏这颗开关。 ★它不在复位链上 ⇒ **与 ISS-191 本单零交集** (不影响 ②
+        的推荐)。 ★但它影响关机/负载开关那一支 ⇒ **建议与位号改名同批、但排在 dnp 改动之前单独做**, 因为它改行数 (513→514) ⇒ 会撞掉 ''网表锚点行数'' 这类断言。
+        ★机械判据: grep -n ''U_EN_SW'' HW/netlist_v1.csv | grep -c '',IC,'' ⇒ 现为 0, 应为 >=1。 原始登记见 sw.yaml
+        的 iss190_netlist_u_en_sw_no_device_row。 due 2026-11-12'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss139_f9_sample_window
+      to: main
+      item: 请把 HW/STEP1_LANDING_LIST.md F9 (ISP tuning 1080p档缺mesh, 现=待清) 的状态 + 样机/设备窗口 (灰卡暗室 半天~1天) +
+        责任人 写进落地清单与项目计划表; 本单不碰 HW/**, 且标定窗口占的是板回板后的调试档期 (卡出图不卡板) => 档期被占会让 demo 段 1~2 人日 滑成整机段 1~2 人周
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss139_pipeline_spec_effort_alignment
+      to: main
+      item: '裁决口径差: SW/DEMO_OD_PIPELINE_SPEC.md 7.2 第9行写 路径B ISP tuning = 0~1 人天(微调), 而本机既有实测记录 (HW/IMX415_DEMO_SENSOR_FACTS.md
+        3.3) 给的是 1~2 人日(补 1920x1080 mesh + AE 曝光表换算, 含一次灰卡/暗室标定); 建议取 1~2 人日; 本单未改该文件 (DSI payload 口径
+        11-11 刚统一, 不许碰), 请 main 裁决后另派'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss139_tisp_timing_point
+      to: main
+      item: '建议 SW/DEMO_OD_TIMING_SPEC.md 增补一个 ISP 算法耗时打点 t_isp: 现有 11 段接力表把 t_capture 定义为 曝光结束->帧落用户态,
+        不含 ISP 处理 => 调降噪/tonemap 强度会改这段耗时而我们看不见; 不改现有 9 个打点名与 CSV 表头 (ISS-137/ISS-190 已统一); 本单未改该文件'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss139_od_input_dist_script
+      to: main
+      item: '立项书 4.2 B 组的 OD 输入分布统计脚本还没写 (要板端 ISP 帧: 采样>=200帧 -> 与板端逐字一致预处理 -> 与 calib_yolov5_100 同口径
+        mean/std/分位/饱和率 -> 自采有标注实拍集 F1); 板端不可达期间全部为 [0数据], 请在板可达后另派或授权本单下轮补'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: debug_port_form
       to: hw-lead
@@ -4646,7 +4906,7 @@ domains:
   mech-lead:
     agent: mech-lead
     role: 结构总工(带散热)
-    updated_at: '2026-11-02'
+    updated_at: '2026-11-11'
     updated_by: mech-lead
     status:
       phase: P3
@@ -4984,6 +5244,47 @@ domains:
         10-29~11-04 动了5次而本域取值最后重算基线还是10-28 ⇒ 8条claim的值已过期 ②ISS-107 完整形态: 没有对手方的过期值合并器检不出来 ③8条改值+9条加标注+4条新增
         ④关单5条(ISS-027/052/065/089/107, C3四条全过) ⑤7条维持verified并写清为什么关不掉(机制层: C3要求verify_result字面==pass,
         main写的是散文体)+新due 2026-11-13 ⑥硬数字: V余2.00/硬顶31.40/面积余122.3mm²/H余0.95/L余14.50/检修口四档/跨铰链1.5A ΔV166.2mV+12.50°C/装配干涉13项/DFM拦截27条'
+    - path: MECH/BOARD_GEOM_30MM.md
+      kind: doc
+      version: '1.0'
+      updated_at: '2026-11-11'
+      summary: 结构侧权威表 (板 60×30 / RK3576 / 逃线带 / PIN-SET-2 套 A / Y 口径仲裁结论+依据+被否方案+影响面 / 打印包契约现行值 / 六个脚本死常量逐个定性
+        / demo 板零安装孔复核)
+    - path: MECH/pinset2_mech_check.py
+      kind: script
+      version: '2.0'
+      updated_at: '2026-11-11'
+      summary: 'ISS-192 迁版: 结构侧独立复算 60×30 + RK3576 + PIN-SET-2 套 A; 判据板宽无关化改写 (≥1/3 压带 + 单销定位链 + 边距余量)
+        + 打印包逐坐标一致性 (口径分歧根因防线) + 硬件侧分歧只读探测; --self-test 6/6 反向用例; 复算项 38 / FAIL 0 / WARN 2 / rc=0'
+    - path: MECH/cross_review_check.py
+      kind: script
+      version: '2.0'
+      updated_at: '2026-11-11'
+      summary: 'ISS-192 迁版: 板宽 12→30 / board_l 76→60 / 删 board_w_alt / C-16 改 30mm 现状 (不再问已答完的 12→15)
+        / 明写『不是闸』+ 退出码只反映 MECH-OWNED + 16 项逐项标归属与 needs_from 键 (不留孤儿红); rc=0'
+    - path: HANDOFF/2026-11-11_mech-lead_ISS192_机械复核器迁60x30与孔位Y仲裁.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-11-11'
+      summary: ISS-192 交接单 (B1~B6 六块齐全; Q1 18/18)
+    - path: MECH/ISS127_H_CHAIN_SOLUTION.md
+      kind: design
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-127 闭环的工程正文 (A~F 六件): 两条 H 链口径钉死 + 无解证明 (电芯高 23.50 > h_max) + 面级最小改造集 F1~F6 + 三方案
+        (P1 推荐 H 向分型 / P2 局部盖 / P3 金属舱块判死) + 板厚四档 + 脱模面判据 E1~E6 + needs 5 条'
+    - path: MECH/iss127_h_chain_check.py
+      kind: script
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-127 闭环检查脚本 (rc=0): import 既有 fit_check_v3_30mm + skeleton_section_check + dfm_check
+        §B/§C 同一套算式; 算两条 H 链 × 三档 α × 四档板厚 × 四方案 + 重量账 + 脱模面统计; --self-test 含 7 组反向用例 (退回现状拉出方向/判据放宽到
+        0/人为加损失/L 向脱模/链② α=1.5°+石墨+t=1.22/电池座壁厚×3/金属舱块) 全部变红'
+    - path: HANDOFF/2026-11-11_mech-lead_ISS127_H链量产几何解.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-127 交接单: B1 七条结论摘要 / B2 验收标准 8 条自评 / B3 证据分级 / B4 接口取值 8 条 / B5 needs 5 条 / B6 复现命令'
     blockers:
     - id: MECH-B1
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -6569,6 +6870,193 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss192_pcb60x30_holes_set_b_to_set_a
+      to: hw-lead
+      item: '★★PIN-SET-2 孔位 Y 的两套互斥口径必须收敛成一套 —— 结构侧仲裁结论 = **套 A** (Y 按中心线平移, S 孔 ±5.00 不变)。★你的两个产物目前发的是**套
+        B** (S1 Y=2.50 / S2 Y=27.50), 与套 A **各差 7.50mm**。
+
+
+        ★要改的文件/行号/取值:
+
+        ① `HW/pcb60x30_check.py`:113-117 的 `HOLES` 表 —— S1 (8.00, 2.50) → **(8.00, 10.00)**; S2 (52.00,
+        27.50) → **(52.00, 20.00)**; P1 (8,15) / P2 (52,15) 两套一致, **不用改**;
+
+        ② 改完重跑 `python3 HW/pcb60x30_check.py` 重生成 `HW/pcb60x30_check.json` 的 `sec4_holes` —— RK3588 段
+        + RK3576 段 **两段都要重生成** (HOLES 表共用)。
+
+
+        ★依据 (结构侧机械后果, 全部可复现):
+
+        (a) **打印包已经是套 A** —— 本轮纯 Python 解析 `MECH/print/temple_cage_revb.stl` (笼的 B 段 PCB 定位板, 板基线 Y=60)
+        实测让过孔孔心 = ⌀2.4 @(8.00,75.00)/(52.00,75.00) ⇒ 板坐标 (8,15)/(52,15); ⌀1.6 @(8.00,70.00)/(52.00,80.00)
+        ⇒ 板坐标 **(8,10)/(52,20) = 套 A**; 同法解析 `MECH/print/fit_coupon_revb.stl` 的 L 段 PCB 样板 (基线 4/84) 实测
+        = ⌀2.4 @(12,99)/(56,99) ⇒ (8,15)/(52,15), ⌀1.6 @(12,94)/(56,104) ⇒ **(8,10)/(52,20) = 套 A** ⇒
+        **若 PCB 按套 B 钻, M1.2 螺钉与笼的 ⌀1.6 让过孔差 7.50mm ⇒ 螺钉穿实心板 ⇒ 板装不进骨架/笼**;
+
+        (b) 你自己的三个产物已经写套 A —— `state/fragments/hw.yaml` claim `pcb_mount_holes_xy` = P1(8,15)P2(52,15)S1(8,10)S2(52,20);
+        `HW/hw_week_20261101_check.py`:55 的 exp 同; 你给结构侧的 needs_from `iss118_pcb_holes_30mm_y` **明写**「Y
+        按中心线平移 (旧中心 7.50 → 新中心 15.00, **S 孔 ±5.00 不变**)」⇒ 套 B 是 `pcb60x30_check.py` 一张表里的**单点孤例**;
+
+        (c) 套 B 的 S 孔壁距板边只有 **1.80mm** (套 A 7.30mm), 再叠加 ISS-049 §5 强制的「隔热垫 2 处螺钉位开 ⌀3.0 让位孔」⇒ 孔缘距板边只剩
+        **1.00mm** ⇒ 破边;
+
+        (d) 套 B 把 X=8/52 处的骨架特征组从 5.00mm 拉到 12.50mm ⇒ 推翻你 ISS-049 §4「其余段宽度 ≥10.00mm (含两个 M1.2 凸台)」的骨架接口;
+
+        (e) 套 B 的 Y 规则 (孔心到板边 2.50) 本身就是 MECH_BUDGET §5.1 **已判死**的老口径边距规则。
+
+
+        ★套 B 唯一的优势是压紧力矩对角力臂 12.50mm (套 A 5.00mm) —— 那可以用「骨架端段加宽 + M1.2 加大预紧」单独取得, **不值得动已冻结的钻孔口径**。
+
+
+        ★影响面: `HW/pcb60x30_check.json` 的 `sec4_holes` 是 **ISS-118 的验收产物** ⇒ 下游 (钻孔 CAM / 骨架出图 / 打印包复核)
+        按它做就错 ⇒ **优先改这个**; 打印包 (`MECH/print/*`) 与量测清单 (`MECH/print/MEASURE_CHECKLIST.md` §J) **不用改** (已是套
+        A)。
+
+
+        ★结构侧权威表: `MECH/BOARD_GEOM_30MM.md` §4 (含完整依据/被否方案/影响面); 复算: `python3 MECH/pinset2_mech_check.py`
+        (读你的 `HW/pcb60x30_check.py` 只做**分歧探测**, 不改你文件 —— 改完这条 WARN 会自动消失)。★边界: 本单**没碰任何 HW/ 文件**。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-13'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss192_demo_board_zero_mounting_holes_keepout
+      to: main
+      item: "★demo 板 (`HW/PCB/demo_mainboard.kicad_pcb`, 160×100mm) **零安装孔 + 网表零 keepout** ⇒ 板出来无从锁紧。结构侧复核结果\
+        \ (只报不改, 板/网表/params 都归 hw-lead 与你):\n\n★[实测] 现状: ① 板文件里 **MountingHole footprint = 0 个**; 全板只有\
+        \ **2 个 `np_thru_hole`**, 两者都属 USB-C 座自身的壳体柱 (⌀0.762 钻, 局部坐标 ±5.78 / -2.625) ⇒ **没有任何一个孔是用来把板固定到结构上的**;\
+        \ ② `HW/PCB/demo_mainboard_params.json` 的 `misc.mounting_holes` 声明 4 个 `[[3,3],[57,3],[3,42],[57,42]]`\
+        \ ⌀2.2, 但在 160×100 板上 X 只跨 **54/160mm**、Y 只跨 **39/100mm** ⇒ 像 **60×45 时代的遗留坐标** (params 自己的 `_pending`\
+        \ 注释已写「原 60×45 是骨架生成器时代的草案」); 本轮解析 186 个 footprint 坐标复核这四点的最近器件距离: **(3,3)→22.9mm / (57,3)→6.8mm\
+        \ (`J_SOM_P1` BTB 座) / (3,42)→16.8mm / (57,42)→10.7mm (`J_SOM_P2`)** ⇒ 其中两点是**贴在器件区里**的, 不是板角安装孔;\
+        \ ③ `HW/netlist_v1.csv` **0 行**含固定孔/安装孔/keepout (cross_review C-11 实测 hits=0) ⇒ **原理图与网表都没有固定孔/keepout\
+        \ 行**。\n\n★[推算] 结构侧建议 (请裁, 结构侧不改你们的文件):\n1. **产品板 60×30 (真正要装进骨架的那块)**: 孔位就用 `MECH/BOARD_GEOM_30MM.md`\
+        \ §3 的 **PIN-SET-2 四孔 (套 A)**: **P1(8.00,15.00) / P2(52.00,15.00) ⌀2.0 H7 + S1(8.00,10.00) / S2(52.00,20.00)\
+        \ ⌀1.4** ⇒ 建议网表/原理图侧新增 **4 行机械特征行** (board 列 = `MAIN_PCB`, note 列写「结构固定孔, 不接电气网络」) —— 目的不是给它电气网络,\
+        \ 而是**让板图与网表两侧都有唯一真源**, 避免再出现「孔位只在脚本里」的情况。\n2. **keepout**: 产品板还需 **SoC 散热焊盘投影区** (依据: hw-lead\
+        \ `proto_pcb_thickness_tier` 答复「PCB 面上需要结构开孔 = 4 个固定孔 + SoC 散热焊盘投影区」)。建议 keepout 矩形 = 封装外廓 + 逃线带\
+        \ = **X[14.20,33.00] × Y[6.15,23.85]** (MECH 0.80/边口径) 再外扩 0.50 ⇒ **X[13.70,33.50] × Y[5.65,24.35]**,\
+        \ 区内不布高器件/不开槽。\n3. **demo 板 160×100 (台面试验板, 不是产品板)**: 两个选项, 二选一, 别同时做 ——\n   **(a) 删掉 `misc.mounting_holes`**\
+        \ (它指向一块不存在的 60×45 板, 且其中两点压在 BTB 座 6.8mm 内); demo 板用治具/压条固定, 不靠自身安装孔。★**结构侧推荐 (a)**: 改动最小、零新增风险;\n\
+        \   (b) 若确实要板上安装孔: 改 **4×M3 (⌀3.2 钻 / ⌀6.5 焊盘)** 置于板角 **孔心 (4,4) / (156,4) / (4,96) / (156,96)**\
+        \ —— 本轮实测最近器件原点距离 16.0–25.5mm (最紧的是 (156,4) 对 `J_USB_C` @140,5.25 = 16.0mm) ⇒ 余量充足。\n4. ★**不要**把\
+        \ PIN-SET-2 的四孔搬到 demo 板上: demo 板不装进骨架, 它的孔没有对位对象, 搬过去只会让 §1 的产品板口径再次分叉。\n\n★复现: `python3 MECH/cross_review_check.py`\
+        \ (C-11 实测 hits=0); `MECH/BOARD_GEOM_30MM.md` §8 (完整复核与建议)。★边界: 本单**没碰 HW/ 任何文件** (板/网表/params\
+        \ 一律没动)。"
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-13'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss192_mech_scripts_dead_constants_disposition
+      to: main
+      item: '★★本域 MECH 脚本的 12/15mm 死常量已全部定性处理 (ISS-192 §2/§E), 有两件事需要你/项目总工裁:
+
+
+        ★(1) `MECH/fit_check.py` (M-FIT v2) **已标作废, 但文件保留** —— 定性理由: 它的整套基线 (板宽 **12** / 板长 **50** / 4
+        层 **0.80**) 一起死 (板宽 12→30 是老板 10-29 19:16 拍板 + §0 台账 11-01 20:5x 订正; 板长 50→60 是 10-28 项目总工裁; 4
+        层 0.80→6 层 1.00 是 hw-lead `proto_pcb_thickness_tier`)。**只把 `pcb_w` 12→30 改掉 = 造出「板宽30 + 板长50 +
+        厚0.80」的半迁移 Frankenstein 口径**, 比留着 12 更危险 (它看起来像现行口径, 其实是拼的) ⇒ 本单的做法是: 文件头写定性 + **运行期 stdout 顶部直接打横幅**「基线已作废,
+        现行版跑 `MECH/fit_check_v3_30mm.py`」, **数字一个不动** (v2 的结论是 ISS-017/ISS-042 的历史闭环记录, 别人引用「fit_check.py
+        §3① 叠放模型已判死」时仍要能复现)。
+
+        ★**要你裁的是**: `MECH/fit_check.py` 与 `MECH/fit_check_v3_30mm.py` **长期并存还是退役 v2**? 本域的倾向是**并存 + v2
+        打作废横幅** (历史可复现 > 文件干净), 但如果项目侧要「一份脚本一个口径」, 请给一句话, 我就把它移进 `MECH/_archive/` 并同步所有引用它的地方 (现引用点: `MECH/iss065_check.py`
+        的 D-4/D-6 条目、`MECH/PCB_MOUNT_PIN_SET2.md`、`MECH/BOARD_WIDTH_15MM.md`)。
+
+        ★**引用纪律 (从本单起)**: 问「现行板装不装得下」⇒ 一律引 `MECH/fit_check_v3_30mm.py`; 引「历史闭环结论」⇒ 才引 v2 且必须带 "v2/12mm
+        口径" 标注。
+
+
+        ★(2) ★**30mm 板宽下金属骨架重量全线超支** —— 这是板宽翻倍带出来的新账, 需要预算裁: `MECH/skeleton_section_check.py` 迁到 30mm/RK3576
+        后, 4 个候选**全部**超 `MECH_BUDGET` §2.4 B 的「+1~3g/对」骨架预算 (最好候选 = 台阶形 t=0.8 **4.08g/对**, 超 1.08g; 15mm
+        板时代同一候选是 2.89g/对, 落进预算)。根因: SoC 段满宽 15.00→**30.00mm** 且满宽段长 10.00→**17.20mm** ⇒ 该段体积 ×3.08。另外**石墨片**也翻倍:
+        60×30×0.30 = 1.08g/片 = **2.16g/对** > W11「1~2g/对」上限 0.16g。
+
+        ★**结构侧建议的三个选项 (不拍板, 请裁)**: ① 满宽段只做到 SoC 投影 (X 15.00–32.20) 而不是整条; ② 横向扩散改由**石墨**承担 (石墨面内导热远好于铝),
+        金属骨架只做定位/局部; ③ 骨架材料分段 (铝骨架 + 局部铜)。
+
+        ★复现: `python3 MECH/skeleton_section_check.py` (rc=0, 判定段 §2/§3 的候选表 + 全部候选超预算条目)。
+
+
+        ★权威几何口径: `MECH/BOARD_GEOM_30MM.md` (板 60×30 / RK3576 17.20×16.10 / 逃线带 X[14.20,33.00]×Y[6.15,23.85]
+        / PIN-SET-2 套 A / 影响面)。★边界: 本单**没碰 HW/ 任何文件**。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-13'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_iss127_temple_split
+      to: main
+      item: '★ISS-127 闭环的架构裁 (本单已把几何算完, 只差这一刀): 镜腿壳体改 **H 向分型 = 皮肤盖 + 内胆** 是否接受? 依据: 脱模斜度只吃垂直于拉出方向的截面,
+        现状 P=V (主腔深 38.00) ⇒ H 链被吃 Δ=2·38·tanα=1.327 ⇒ 电芯段链量产最坏 -0.577 (α=1.0°) / +0.087 (0.5°) / -1.240
+        (1.5°); 而判据要求 Δ≤0.35 ⇒ 等效腔深 h_max=20.05/10.03/6.68mm, **电芯自身高 23.50 ⇒ V 向脱模在任何 α 下都无解** ⇒ 唯一杠杆是换拉出方向:
+        **P=H ⇒ H 链 Δ=0** (P=L 更差 1.414; V 向分型只在 0.5° 勉强)。P1 代价: 零件 24→26 件, 模具 2 套/侧 (内胆是 H 向浅腔件, 抽芯行程仅
+        5.70 ⇒ 比现状 38 深 V 腔更好脱模), 外观多一条分型线 (贴肤面可做到零斜度), 皮肤盖 0.8mm×130mm 需加强筋 +0.15~0.25g/对。收益: 链① 三档 α
+        全部过 0.40 (0.750; 计盖自身 0.736/0.722/0.708) + 链② 四档全过 + **重量净减 0.38 g/对**。备选 P2 = 局部 H 向分型 (只在电芯段开盖,
+        改动面最小) 但链② 在 光面1.5°+含石墨+t=1.22 ⇒ 0.190 破线。我的假设: 按 **P1** 推进; 若要改动面最小走 P2 并同时接受该破线。详见 MECH/ISS127_H_CHAIN_SOLUTION.md
+        §C + MECH/iss127_h_chain_check.py (rc=0)。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_iss127_graphite_cut
+      to: main
+      item: '★石墨裁剪 (预算裁): ISS-127 推荐方案 P1 的重量账**净减 0.38 g/对**的唯一来源 = 石墨从满板 (60×30×0.30 = 0.54cc × 2.00
+        × 2 = **2.16 g/对**, 超 W11 1~2g 的 0.16) 裁到 **SoC 段 + X 向逃线带 5.00/边 (27.20×30×0.30 = 0.2448cc ⇒
+        0.98 g/对**) —— 依据: 30mm 板宽下骨架候选 C 的 SoC 段**满宽 30.00**, 横向扩散通道 6.95mm/边 ⇒ 石墨的横向面内扩散功能已被满宽铝骨架覆盖,
+        石墨只铺 SoC 段即可。与本人 ISS-192 交卷 (2026-11-11 17:39) 的"要么缩石墨覆盖 (只铺 SoC 段+扩散带), 要么调 W11 预算"同源。影响: P1
+        金属+石墨合计 5.86 g/对 vs 基线 6.24 ⇒ 净减; 骨架本身 4.08 g/对 仍超 +1~3g 预算 1.08 (ISS-192 结论, 本单不动)。假设: 按裁剪推进。详见
+        MECH/ISS127_H_CHAIN_SOLUTION.md §C.1 重量表。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: mech_iss127_graphite_in_hchain
+      to: main
+      item: '★石墨在链② (PCB/骨架堆叠 H 链) 里的位置口径要钉死: 是**挤占**链② 里的 0.30 空气隙, 还是**叠加**在 4.40 之外? 现状两处文档不一致: BOARD_GEOM_30MM
+        §5.4 写 "4.40 vs 7.30 ⇒ 余 2.60" (= 4.70 含石墨口径, 但同句又写 4.40 ⇒ 2.60, 差 0.30); skeleton_section_check.py
+        §4 写 "骨架1.0+石墨0.30 ⇒ 4.70 ⇒ 余 2.60"。本单按**叠加 (保守)** 计算 ⇒ 链② 在 α=1.5° + 含石墨 + 板厚 1.22 ⇒ 量产最坏 **0.190
+        < 0.40 破线** (这 0.190 是本单查出的新问题: DFM 评审只核过链① 从没按 0.40 判据核过链②)。若改为挤占口径 ⇒ 同格 0.490 ✅ 不破。⇒ 请 main
+        会同 hw-lead 钉死 (挤占 or 叠加), 这决定 ISS-127 的链② 是否需要额外动作。注: 无论怎么钉, P1 (H 向分型) 下链② 的脱模项 = 0 ⇒ 四档全过 (2.99/2.60/2.40/2.18
+        含石墨口径)。'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: hw-lead
@@ -7269,12 +7757,19 @@ interface_claims:
   pcb_mount_holes_xy:
     values:
       hw-lead: P1(8,15)P2(52,15)S1(8,10)S2(52,20)
+      mech-lead: P1(8,15)P2(52,15)S1(8,10)S2(52,20)
     notes:
       hw-lead: '★2026-11-01 订正: 旧值 P1(8,7.5)P2(52,7.5)S1(8,2.5)S2(52,12.5) → 新值按 **60x30mm 板宽**把 Y 向平移
         (旧中心 7.50 → 新中心 15.00, S 孔 ±5.00 不变)。X 向与孔位窗口 X[4,12]+X[46,56] 不变。★与 SoC 逃线带 X[20.20,31.80] 的
         2D 重叠 = 0.000mm² (复算: python3 HW/hw_week_20261101_check.py §1)。'
+      mech-lead: '★结构侧仲裁后的 60x30 孔位定版 (套 A: Y 按中心线平移, S 孔 ±5.00 不变) —— 与 hw-lead 分片的同名 claim **逐字节同串**
+        ⇒ 合并器机器比较一致 (冲突 0), 任何一方改口径都会立刻被合并器抓出来。★被否决的另一套 (套 B: S1 Y=2.50 / S2 Y=27.50, 各差 7.50mm) 的完整依据/被否理由/影响面见
+        MECH/BOARD_GEOM_30MM.md §4; 套 B 只出现在 HW/pcb60x30_check.py + 其 json (ISS-118 验收产物) ⇒ 已登记 needs_from
+        iss192_pcb60x30_holes_set_b_to_set_a。★[实测] 打印包 Rev B 笼与样板的让过孔孔心 (纯 python STL 复算) = 本值 ⇒ 若 PCB
+        按套 B 钻则装不进骨架。'
     by:
     - hw-lead
+    - mech-lead
     noncanonical_by: []
     conflict: false
   chg_rilim:
@@ -7342,15 +7837,17 @@ interface_claims:
       hw-lead: '★PCB 固定方式定版 (ISS-049): 定位全部由骨架压装的 ⌀2.0 H7 销承担 (P1圆销全基准 + P2菱形销只定Y); 2xM1.2 降级为纯压紧 (⌀1.4
         过孔, 径向间隙0.10/边, 零定位功能); 打印件只留 ⌀2.4 间隙孔 => 打印公差不进定位链; ★mech-lead 的旧值 ''2xM1.2+1x⌀2.0H7'' 已过期 ——
         合并器会报冲突, 请 PM 转告 mech 更新'
-      mech-lead: '★PIN-SET-2 定版 (采纳 hw-lead ISS-049 定版, 结构侧独立复算 31 项 FAIL 0 / WARN 3): 2x⌀2.0H7 定位销孔 +
-        2x⌀1.4 压紧孔 —— 板坐标 (原点左下角, X=板长 0→60 铰链端在 X=0, Y=板宽 0→15): P1(8.00,7.50) 配骨架压装 ⌀2.0 h6 圆销=全基准(X+Y+θz)
-        / P2(52.00,7.50) 配 ⌀2.0 菱形销(对边1.94)=只定Y⇒消过定位 / S1(8.00,2.50) / S2(52.00,12.50) 为 ⌀1.4 过孔 (M1.2
-        螺钉径向间隙 0.10/边, 纯压紧零定位); 老口径 2xM1.2+1x⌀2.0H7 @孔心到板边2.50 在 15mm 板下按最有利假设仍 3/3 孔压 SoC 逃线带 (M1.2 压
-        Y 0.50mm; ⌀2.0 压 2.00x2.00mm) ⇒ 加宽不解, 已机械判死作废; PIN-SET-2 4/4 孔与逃线带 X[20.20,31.80]xY[2.70,12.30]
-        的 2D 重叠 = 0.000mm²; 定位重复性 ≤0.046mm (骨架铣削面≤5µm + H7销≤0.010), 打印件只让过不定位 | ★2026-11-06 复核: 原 ISS-107
-        更正**仍然成立** (value + canon 与 hw-lead 逐字节对齐 ⇒ 合并器 pcb_mounting 冲突 0); ★但 **板宽 15→30 后 Y 坐标全作废**
-        (P1/P2 Y=7.50 / S1 Y=2.50 / S2 Y=12.50 是 15mm 板口径) ⇒ 板宽 30 的 Y 坐标按 hw-lead ISS-118 重定 (P1/P2 Y=15.00
-        / S1 Y=2.50 / S2 Y=27.50), 结构侧已按新 Y 重生成 Rev B 打印包 (MECH/print/gen_print_pack_revb.py)。'
+      mech-lead: '★PIN-SET-2 定版 (结构侧 60x30 现行口径, ISS-192 仲裁): 2x⌀2.0H7 定位销孔 + 2x⌀1.4 压紧孔 —— 板坐标 (原点左下角,
+        X=板长 0→60 铰链端在 X=0, Y=板宽 0→30): P1(8.00,15.00) 配骨架压装 ⌀2.0 h6 圆销=全基准(X+Y+θz) / P2(52.00,15.00)
+        配 ⌀2.0 菱形销(对边1.94)=只定Y⇒消过定位 / S1(8.00,10.00) / S2(52.00,20.00) 为 ⌀1.4 过孔 (M1.2 螺钉径向间隙 0.10/边,
+        纯压紧零定位)。★**板宽 15→30 后旧 Y 值 (7.50/2.50/12.50) 全部作废**; 本域仲裁结论 = **套 A** (Y 按中心线平移, 旧中心 7.50→新中心
+        15.00, S 孔 ±5.00 不变), 依据见 MECH/BOARD_GEOM_30MM.md §4。★结构侧独立复算 (迁到 60x30/RK3576 后): 复算项 38 / FAIL
+        0 / WARN 2 (WARN1=老口径边距余量偏紧[留痕]; WARN2=硬件侧 HW/pcb60x30_check.py 的 HOLES 仍发套 B, 各差 7.50mm ⇒ 已登记
+        needs_from key=iss192_pcb60x30_holes_set_b_to_set_a 交 hw-lead 改)。★**老口径 2xM1.2+1x⌀2.0H7 @孔心到板边2.50
+        已判死作废** —— 60x30/RK3576 下按最有利假设仍 2/3 孔压 SoC 逃线带 (M2 压 X 1.40mm, D0 压 2.00x2.35mm) ⇒ 加宽不解, 必须沿板长移出
+        SoC 段并改双销; 另加两条板宽无关判据: 单销定位链不足 + 边距余量偏紧。★打印包契约真源 = Rev B 生成器实际常量 (pcb_len=60.00 / pcb_wid=30.00
+        / 每板 2x⌀2.4 + 2x⌀1.6); Rev A 老值 (50.00 / 1 个 / 孔距 40.00) 作废。★4 孔与 SoC 逃线带 2D 重叠 = 0.0000mm² (4/4),
+        定位重复性 ≤0.046mm (骨架铣削面≤5µm + H7销≤0.010), 打印件只让过不定位。★**权威表 = MECH/BOARD_GEOM_30MM.md** (板框/SoC 占位/逃线带/四孔/仲裁结论/影响面/打印包契约)。'
     by:
     - hw-lead
     - mech-lead
@@ -10596,6 +11093,21 @@ interface_claims:
     noncanonical_by:
     - mech-lead
     conflict: false
+  iss127_temple_pull_direction:
+    values:
+      mech-lead: H
+    notes:
+      mech-lead: '★ISS-127 闭环新增的结构侧对外口径 (2026-11-11): 镜腿壳体的**量产拉出方向 = H (电芯厚度方向)** ⇒ 分型面 ⊥ H ⇒ 壳体 = 皮肤盖
+        + 内胆 (H 向分型)。依据: 脱模斜度只吃垂直于拉出方向的截面; P=V (主腔 38.00) ⇒ H 链 Δ=2·38·tanα ⇒ 电芯段链 -0.577 无解 (电芯高 23.50
+        > h_max); P=H ⇒ H 链 Δ=0 ⇒ 三档 α 全部过 0.40。⇒ **镜腿外形件的建模/开模一律按 H 向分型出图**, 不许再按 V 向深腔建。配套口径: 量产链判据
+        0.40 (=2×注塑公差 0.20); 链① (电芯段) 6.35 vs 7.30 ⇒ 名义 0.95 / 量产最坏 0.75 / 改后 0.750 (三档 α); 链② (PCB/骨架堆叠)
+        3.40+t vs 7.30 ⇒ 改后四档 3.29/2.90/2.70/2.48; 量产件脱模面判据 E1 倒扣 0 + E3 关键链直壁 0 + E4 链级 Δ≤预算 + E5 腔级
+        5 项登记 + E6 ≥1 数据点 (E2 ZERO_DRAFT 占比只作参考线)。复算: python3 MECH/iss127_h_chain_check.py (rc=0) + --self-test
+        (rc=0)。[推算] 本机不可打印/量测, 无 [实测]。'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
   display_frame_rate:
     values:
       main: 60fps
@@ -11041,15 +11553,15 @@ interface_claims:
     conflict: false
   reset_release_policy:
     values:
-      sw-lead: Q_AND(PG_AND)+RC_1.1ms;PG源DNP待确认
+      sw-lead: ★复位释放链口径 (待老板拍板随整链重出落表后生效; 现在生效的仍是现行网表口径 Q_AND(PG_AND)+RC_1.1ms)★ ⇒ RC 1.1ms (R_PU_RESET_N
+        10k + R_SER_RESET_N 1k, C_RST 100nF) ⇒ 越过 0.7*VDD 1.324ms; 拉低者只有 SW_RST (Q_AND 改 DNP 后); 掉电方向随
+        1.8V 轨落 0 ⇒ 自动进复位
     notes:
-      sw-lead: '★ISS-190 复评 (2026-11-11) 改写: 复位释放现在由 **Q_AND 硬件 AND** (栅=PG_AND, 漏=RESET_N, 源=GND) + R_PG_PULL
-        10k 上拉决定 ⇒ 上一版 ''复位释放时刻不由任何已画出的器件决定'' **被推翻** (PG 已进复位链); RC 释放 τ = (10k+1k)×100nF = **1.1ms**,
-        到 0.7×1.8V = 1.324ms (网表 note 的 ''τ=100ms'' 错 90.9 倍); ★但两路 PG 源器件 U_DCDC_VCORE/U_DCDC_VIO 都是
-        DNP ⇒ PG_AND 恒高 ⇒ Q_AND 恒导通 ⇒ RESET_N 恒拉低 ⇒ 已登记 needs_from hw-lead (P0)'
+      sw-lead: ''
     by:
     - sw-lead
-    noncanonical_by: []
+    noncanonical_by:
+    - sw-lead
     conflict: false
   reset_tau_release:
     values:
@@ -11835,6 +12347,73 @@ interface_claims:
     - sw-lead
     noncanonical_by: []
     conflict: false
+  iss191_fix_option:
+    values:
+      sw-lead: '★ISS-191 三条改法里 sw-lead 的推荐 (★未拍板★)★ ⇒ ② Q_AND 整颗改 DNP (表A L65/L66/L67 + 表B Q_AND.1/.2/.3);
+        否掉 ① (RC1 实测: 只把 Q_ENVC 改必装 ⇒ 故障链不变; 摘掉 ⇒ 网表无 PG_VIO 网, 同引脚不能挂两条网, 收益 0) 与 ③ (依赖 TBD-01)'
+    notes:
+      sw-lead: ''
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss191_reset_dnp_rows:
+    values:
+      sw-lead: '★ISS-191 落表行级清单★ ⇒ 必改: 表A L65/L66/L67 (Q_AND 三行) + 表B Q_AND.1/.2/.3 ⇒ DNP; 建议同批: 表A L71/L72/L73
+        + 表B Q_ENVC.1/.2/.3 ⇒ DNP (消 BOM/网表口径差, BOM 口径是 ref 级: 任一行必装则整颗记必装); 可选 (待老板点头): 表A L62/L63 (R_PG_PULL
+        ⇒ 省 180µA 常流)'
+    notes:
+      sw-lead: ''
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss191_unc_drc_expect:
+    values:
+      sw-lead: '★ISS-191 对 PCB 的预期影响★ ⇒ 只改 dnp ⇒ unc 45 不变 / DRC 0 不变 / 板 md5 不变 (口径: 板生成器 gen_pcb_netlist_board.py
+        的 dnp 命中数=0 + 板文件 attr 命中数=0 + Q_AND 封装 3 焊盘网络不变 + 拓扑不变 + 既有先例 BOM 记 DNP 仍留在 CPL 的位号=41/56); 例外:
+        ref_designator_rename 会改板 md5 与丝印, 但几何预期不变 ⇒ unc/DRC 须以重跑后的 fresh 实测为准'
+    notes:
+      sw-lead: ''
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss139_iq_coverage_snapshot:
+    values:
+      sw-lead: 'ar0234=0,ov04c10=0; 有现成IQ: imx415=8(isp3x仅1)/imx327=1/imx464=1/os04a10=8/ov02b10=2(isp3x=1)/gc8034=3/sc200ai=4'
+    notes:
+      sw-lead: 2026-11-11 本机快照 166 项实测 (basename 扁平清单 => 目录上下文已丢 => 未被本机既有记录写明目录的一律 [0数据]); 顺带发现 AR0234CS
+        规格写的 6 个 ISP 代目录其实是 5 个
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss139_tuning_effort_split:
+    values:
+      sw-lead: demo路径B=1~2人日(补1920x1080mesh+AE曝光表换算); 整机路径A=5~10人日(1~2人周)
+    notes:
+      sw-lead: '2026-11-11 sw-lead 立项核算: demo 段不是 0 —— 现成 IQ 的 sensor_calib.resolution 锁 3840x2160 且 mesh
+        文件名锁 3840_2160 => 1080p60 档缺 mesh; 整机段须等镜头/模组定版 (IQ=sensor x 镜头 x 模组 三者绑定)'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss139_tuning_device_window:
+    values:
+      sw-lead: demo=1次样机窗口(灰卡/暗室 半天~1天); 整机=1~2天暗室窗口
+    notes:
+      sw-lead: '2026-11-11 sw-lead: 本项目无暗室/灰卡/标定板与预算 => 窗口须占样机档期; 板回板后若档期被占, demo 段 1~2 人日会滑成整机段 1~2 人周'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
 needs_matrix:
   pending:
   - key: soc_cost_criterion
@@ -11858,24 +12437,6 @@ needs_matrix:
       ⇒ ★**但 G1 仍过不了 (unc=41≠0) ⇒ 换板 ≠ 能下单** ⇒ 代价 = 32 处 md5 引用要改 + 留证链/Gerber/投产包全重跑 + 所有臂的 provenance
       改指 ⇒ ★**我的建议: 先不换** (收益只是 4 个网, 而 G1 反正过不了 ⇒ 现在付固定代价不划算) ⇒ ★归档 + 配方已留档 (`state/.lastgood/candidate_official_p41.cred.json`),
       真正要投板时一次换清'
-    since: '2026-11-11'
-    _by: main
-    state: pending
-  - key: sch_completeness_target
-    to: boss
-    item: '★**demo 原理图的【完整度目标】三选一** (★老板 11-11 10:07 主线=原理图优先★): ① 最小集(★现状⇒只画用到的脚 ⇒ 接口对边【永不可评审】★) ② 【表内全量】(★把
-      netlist_v1_pins.csv 的 584 脚全画出来 + 补 J_SOM_P2/P4 + NC 标注 ⇒ ★**可评审对边**★ ⇒ **我的建议**) ③ 真实器件全貌(★USB-C
-      24脚 / SoM 400球 ⇒ 那就不是 demo 板, 是产品级设计 ⇒ 需 datasheet/官方库★) ⇒ ★**②已作为主线第六件在跑(纯生成器活: 图变·表不变·板不动 ⇒ 板
-      md5 仍 611b869e) ⇒ ③需另立**★'
-    since: '2026-11-11'
-    _by: main
-    state: pending
-  - key: ref_designator_rename
-    to: boss
-    item: '★**位号规范: 要不要把带下划线的位号改掉** (★实测: KiCad BOM 里 255/291 个位号带字面量问号 ⇒ KiCad 判未标注 ⇒ 板厂看到的位号与丝印对不上★)
-      ⇒ ★**改它会改: netlist表 → BOM → 原理图11页 → 板里 186 个封装位号 → 丝印/CPL/装配/IPC-2581/3D/D356 全套 ⇒ 【板 md5 必变】⇒
-      留证链/Gerber/投产包全要重出 (一个位号平均散在 19~112 个文件)★ ⇒ ★**建议: 先过完原理图评审, 再一次性改名+整链重出; RAIL_*/NET_* 保留(否则 BOM
-      多假料号)★**'
     since: '2026-11-11'
     _by: main
     state: pending
@@ -12491,6 +13052,82 @@ needs_matrix:
     since: '2026-11-11'
     _by: sw-lead
     state: pending
+  - key: iss191_boss_pick_fix_option
+    to: main
+    item: '★ISS-191 拍板 1 (等老板, 项目总工转达; 我不外发)★ ⇒ 复位 P0 走哪条: ② 把 Q_AND 整颗改 DNP (★sw-lead 推荐★) / ① Q_ENVC
+      摘掉或必装 (★已用 RC1 反向用例实测否掉: 切不断故障链, 且 Q_ENVC 必装会把 EN_VCORE 拉低换成另一个 P0★) / ③ 等 SoM 球位 TBD-01 (首台板等不起)。
+      ★机械判据: 落表后 python3 SW/tools/timing_check.py --only F1_reset_rc ⇒ q_and_in_netlist False / q_and_gate_row_dnp
+      DNP / reset_n.q_and_drain_row_dnp DNP / reset_n.dnp_rows 含 Q_AND / tau_release_ms 仍 1.1★。 ★同源文件:
+      HW/PCB/RESET_P0_FIX_PLAN.md (B1/B5)。 due 2026-11-12'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss191_boss_q_envc_unify
+    to: main
+    item: '★ISS-191 拍板 2 (等老板, 项目总工转达)★ ⇒ Q_ENVC 三行 (表A L71/L72/L73 + 表B Q_ENVC.1/.2/.3) 是否同批统一为 DNP。
+      ★理由: 现在 L71 是 DNP 而 L72/L73 是必装 ⇒ BOM 按 ref 级口径 (任一行必装 ⇒ 整颗记必装) 记 Q_ENVC 必装 (要买) ⇒ **网表口径与 BOM 口径打架**;
+      统一 DNP 后 BOM 记 DNP, 与 ''SoM 自带 PMIC, 顺序链在 SoM 内部完成'' 的既有结论自洽。 ★机械判据: grep -n ''^Q_ENVC'' HW/BOM_v1.csv
+      ⇒ dnp 列应为 DNP (现在 必装); DNP 位号数 (ref 级, universe 291) 56 ⇒ 57。 due 2026-11-12'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss191_boss_r_pg_pull_dnp
+    to: main
+    item: '★ISS-191 拍板 3 (等老板, 项目总工转达)★ ⇒ R_PG_PULL 两行 (表A L62/L63) 是否也改 DNP。 ★收益: PG_AND 上只剩两个测试点时, 10k
+      上拉挂 1.8V 常流 180µA ⇒ 1.8V 侧 0.324mW / 电池 3.7V 侧 0.666mW ⇒ 420mAh 电池 ÷ 180µA = 2333h ≈ 97 天。 ★代价:
+      将来若按 ③ 接真实 PG, 这个上拉要回来 ⇒ **建议 ③ 落地前不要动**。 ★机械判据: python3 SW/tools/timing_check.py --only F1_reset_rc
+      ⇒ pullup_row_dnp 应为 DNP (现在 必装)。 due 2026-11-12'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss191_orig_som_pg_reset_spec
+    to: main
+    item: '★ISS-191 外部依赖 (★项目总工外发原厂, 我不外发★)★ ⇒ SoM 侧三件事: ① 是否提供 PG 输出 (球位 + 极性, TBD-01/TBD-12) ② RESET
+      释放要求 (SoC 要多久才认复位释放, 内部上电顺序) ③ 内部复位电路构成。 ★本单推荐 ② 不依赖这三项 ⇒ 不阻塞首台板; 但 ③ 落地需要。 ★现状仍是 [0数据]: 网表 L62/L64/L71
+      note 只写 ''PG 极性待原厂核 (TPS62130A PG 为开漏信号)''; Q_AND 型号/Vgs(th)/封装 也仍是 [0数据] (BOM value = 待选型, footprint/opn
+      = 待定) ⇒ **正因为没有官方数据, 才不能赌阈值, 必须做 ②**。 due 2026-11-14'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss191_u_en_sw_device_row_recheck
+    to: hw-lead
+    item: '★ISS-190 §7-6 的复查 (不重复立项, 只是确认它还开着)★ ⇒ U_EN_SW 在网表里**没有器件行** (L441/L442/L443/L444 只有 4 行 NET
+      引脚行, 全网表 0 行 U_EN_SW 的 IC 行) ⇒ 按器件口径 BOM/装配单会漏这颗开关。 ★它不在复位链上 ⇒ **与 ISS-191 本单零交集** (不影响 ② 的推荐)。
+      ★但它影响关机/负载开关那一支 ⇒ **建议与位号改名同批、但排在 dnp 改动之前单独做**, 因为它改行数 (513→514) ⇒ 会撞掉 ''网表锚点行数'' 这类断言。 ★机械判据:
+      grep -n ''U_EN_SW'' HW/netlist_v1.csv | grep -c '',IC,'' ⇒ 现为 0, 应为 >=1。 原始登记见 sw.yaml 的 iss190_netlist_u_en_sw_no_device_row。
+      due 2026-11-12'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss139_f9_sample_window
+    to: main
+    item: 请把 HW/STEP1_LANDING_LIST.md F9 (ISP tuning 1080p档缺mesh, 现=待清) 的状态 + 样机/设备窗口 (灰卡暗室 半天~1天) + 责任人
+      写进落地清单与项目计划表; 本单不碰 HW/**, 且标定窗口占的是板回板后的调试档期 (卡出图不卡板) => 档期被占会让 demo 段 1~2 人日 滑成整机段 1~2 人周
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss139_pipeline_spec_effort_alignment
+    to: main
+    item: '裁决口径差: SW/DEMO_OD_PIPELINE_SPEC.md 7.2 第9行写 路径B ISP tuning = 0~1 人天(微调), 而本机既有实测记录 (HW/IMX415_DEMO_SENSOR_FACTS.md
+      3.3) 给的是 1~2 人日(补 1920x1080 mesh + AE 曝光表换算, 含一次灰卡/暗室标定); 建议取 1~2 人日; 本单未改该文件 (DSI payload 口径 11-11
+      刚统一, 不许碰), 请 main 裁决后另派'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss139_tisp_timing_point
+    to: main
+    item: '建议 SW/DEMO_OD_TIMING_SPEC.md 增补一个 ISP 算法耗时打点 t_isp: 现有 11 段接力表把 t_capture 定义为 曝光结束->帧落用户态,
+      不含 ISP 处理 => 调降噪/tonemap 强度会改这段耗时而我们看不见; 不改现有 9 个打点名与 CSV 表头 (ISS-137/ISS-190 已统一); 本单未改该文件'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss139_od_input_dist_script
+    to: main
+    item: '立项书 4.2 B 组的 OD 输入分布统计脚本还没写 (要板端 ISP 帧: 采样>=200帧 -> 与板端逐字一致预处理 -> 与 calib_yolov5_100 同口径 mean/std/分位/饱和率
+      -> 自采有标注实拍集 F1); 板端不可达期间全部为 [0数据], 请在板可达后另派或授权本单下轮补'
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
   - key: soc_carrier_mainboard_site
     to: main
     item: ISS-084上游卡点_主板位定镜脚还是镜框(解D走不走变更流程)_载板化的全部结构结论都随它变_请裁_经项目总工转老板
@@ -12770,8 +13407,157 @@ needs_matrix:
     since: '2026-11-06'
     _by: mech-lead
     state: pending
-  answered_count: 157
-  total: 244
+  - key: iss192_pcb60x30_holes_set_b_to_set_a
+    to: hw-lead
+    item: '★★PIN-SET-2 孔位 Y 的两套互斥口径必须收敛成一套 —— 结构侧仲裁结论 = **套 A** (Y 按中心线平移, S 孔 ±5.00 不变)。★你的两个产物目前发的是**套
+      B** (S1 Y=2.50 / S2 Y=27.50), 与套 A **各差 7.50mm**。
+
+
+      ★要改的文件/行号/取值:
+
+      ① `HW/pcb60x30_check.py`:113-117 的 `HOLES` 表 —— S1 (8.00, 2.50) → **(8.00, 10.00)**; S2 (52.00,
+      27.50) → **(52.00, 20.00)**; P1 (8,15) / P2 (52,15) 两套一致, **不用改**;
+
+      ② 改完重跑 `python3 HW/pcb60x30_check.py` 重生成 `HW/pcb60x30_check.json` 的 `sec4_holes` —— RK3588 段 +
+      RK3576 段 **两段都要重生成** (HOLES 表共用)。
+
+
+      ★依据 (结构侧机械后果, 全部可复现):
+
+      (a) **打印包已经是套 A** —— 本轮纯 Python 解析 `MECH/print/temple_cage_revb.stl` (笼的 B 段 PCB 定位板, 板基线 Y=60)
+      实测让过孔孔心 = ⌀2.4 @(8.00,75.00)/(52.00,75.00) ⇒ 板坐标 (8,15)/(52,15); ⌀1.6 @(8.00,70.00)/(52.00,80.00)
+      ⇒ 板坐标 **(8,10)/(52,20) = 套 A**; 同法解析 `MECH/print/fit_coupon_revb.stl` 的 L 段 PCB 样板 (基线 4/84) 实测
+      = ⌀2.4 @(12,99)/(56,99) ⇒ (8,15)/(52,15), ⌀1.6 @(12,94)/(56,104) ⇒ **(8,10)/(52,20) = 套 A** ⇒ **若
+      PCB 按套 B 钻, M1.2 螺钉与笼的 ⌀1.6 让过孔差 7.50mm ⇒ 螺钉穿实心板 ⇒ 板装不进骨架/笼**;
+
+      (b) 你自己的三个产物已经写套 A —— `state/fragments/hw.yaml` claim `pcb_mount_holes_xy` = P1(8,15)P2(52,15)S1(8,10)S2(52,20);
+      `HW/hw_week_20261101_check.py`:55 的 exp 同; 你给结构侧的 needs_from `iss118_pcb_holes_30mm_y` **明写**「Y
+      按中心线平移 (旧中心 7.50 → 新中心 15.00, **S 孔 ±5.00 不变**)」⇒ 套 B 是 `pcb60x30_check.py` 一张表里的**单点孤例**;
+
+      (c) 套 B 的 S 孔壁距板边只有 **1.80mm** (套 A 7.30mm), 再叠加 ISS-049 §5 强制的「隔热垫 2 处螺钉位开 ⌀3.0 让位孔」⇒ 孔缘距板边只剩 **1.00mm**
+      ⇒ 破边;
+
+      (d) 套 B 把 X=8/52 处的骨架特征组从 5.00mm 拉到 12.50mm ⇒ 推翻你 ISS-049 §4「其余段宽度 ≥10.00mm (含两个 M1.2 凸台)」的骨架接口;
+
+      (e) 套 B 的 Y 规则 (孔心到板边 2.50) 本身就是 MECH_BUDGET §5.1 **已判死**的老口径边距规则。
+
+
+      ★套 B 唯一的优势是压紧力矩对角力臂 12.50mm (套 A 5.00mm) —— 那可以用「骨架端段加宽 + M1.2 加大预紧」单独取得, **不值得动已冻结的钻孔口径**。
+
+
+      ★影响面: `HW/pcb60x30_check.json` 的 `sec4_holes` 是 **ISS-118 的验收产物** ⇒ 下游 (钻孔 CAM / 骨架出图 / 打印包复核) 按它做就错
+      ⇒ **优先改这个**; 打印包 (`MECH/print/*`) 与量测清单 (`MECH/print/MEASURE_CHECKLIST.md` §J) **不用改** (已是套 A)。
+
+
+      ★结构侧权威表: `MECH/BOARD_GEOM_30MM.md` §4 (含完整依据/被否方案/影响面); 复算: `python3 MECH/pinset2_mech_check.py`
+      (读你的 `HW/pcb60x30_check.py` 只做**分歧探测**, 不改你文件 —— 改完这条 WARN 会自动消失)。★边界: 本单**没碰任何 HW/ 文件**。'
+    since: '2026-11-11'
+    waiting_on: agent
+    due: '2026-11-13'
+    _by: mech-lead
+    state: pending
+  - key: iss192_demo_board_zero_mounting_holes_keepout
+    to: main
+    item: "★demo 板 (`HW/PCB/demo_mainboard.kicad_pcb`, 160×100mm) **零安装孔 + 网表零 keepout** ⇒ 板出来无从锁紧。结构侧复核结果\
+      \ (只报不改, 板/网表/params 都归 hw-lead 与你):\n\n★[实测] 现状: ① 板文件里 **MountingHole footprint = 0 个**; 全板只有\
+      \ **2 个 `np_thru_hole`**, 两者都属 USB-C 座自身的壳体柱 (⌀0.762 钻, 局部坐标 ±5.78 / -2.625) ⇒ **没有任何一个孔是用来把板固定到结构上的**;\
+      \ ② `HW/PCB/demo_mainboard_params.json` 的 `misc.mounting_holes` 声明 4 个 `[[3,3],[57,3],[3,42],[57,42]]`\
+      \ ⌀2.2, 但在 160×100 板上 X 只跨 **54/160mm**、Y 只跨 **39/100mm** ⇒ 像 **60×45 时代的遗留坐标** (params 自己的 `_pending`\
+      \ 注释已写「原 60×45 是骨架生成器时代的草案」); 本轮解析 186 个 footprint 坐标复核这四点的最近器件距离: **(3,3)→22.9mm / (57,3)→6.8mm\
+      \ (`J_SOM_P1` BTB 座) / (3,42)→16.8mm / (57,42)→10.7mm (`J_SOM_P2`)** ⇒ 其中两点是**贴在器件区里**的, 不是板角安装孔;\
+      \ ③ `HW/netlist_v1.csv` **0 行**含固定孔/安装孔/keepout (cross_review C-11 实测 hits=0) ⇒ **原理图与网表都没有固定孔/keepout\
+      \ 行**。\n\n★[推算] 结构侧建议 (请裁, 结构侧不改你们的文件):\n1. **产品板 60×30 (真正要装进骨架的那块)**: 孔位就用 `MECH/BOARD_GEOM_30MM.md`\
+      \ §3 的 **PIN-SET-2 四孔 (套 A)**: **P1(8.00,15.00) / P2(52.00,15.00) ⌀2.0 H7 + S1(8.00,10.00) / S2(52.00,20.00)\
+      \ ⌀1.4** ⇒ 建议网表/原理图侧新增 **4 行机械特征行** (board 列 = `MAIN_PCB`, note 列写「结构固定孔, 不接电气网络」) —— 目的不是给它电气网络,\
+      \ 而是**让板图与网表两侧都有唯一真源**, 避免再出现「孔位只在脚本里」的情况。\n2. **keepout**: 产品板还需 **SoC 散热焊盘投影区** (依据: hw-lead `proto_pcb_thickness_tier`\
+      \ 答复「PCB 面上需要结构开孔 = 4 个固定孔 + SoC 散热焊盘投影区」)。建议 keepout 矩形 = 封装外廓 + 逃线带 = **X[14.20,33.00] × Y[6.15,23.85]**\
+      \ (MECH 0.80/边口径) 再外扩 0.50 ⇒ **X[13.70,33.50] × Y[5.65,24.35]**, 区内不布高器件/不开槽。\n3. **demo 板 160×100\
+      \ (台面试验板, 不是产品板)**: 两个选项, 二选一, 别同时做 ——\n   **(a) 删掉 `misc.mounting_holes`** (它指向一块不存在的 60×45 板,\
+      \ 且其中两点压在 BTB 座 6.8mm 内); demo 板用治具/压条固定, 不靠自身安装孔。★**结构侧推荐 (a)**: 改动最小、零新增风险;\n   (b) 若确实要板上安装孔:\
+      \ 改 **4×M3 (⌀3.2 钻 / ⌀6.5 焊盘)** 置于板角 **孔心 (4,4) / (156,4) / (4,96) / (156,96)** —— 本轮实测最近器件原点距离\
+      \ 16.0–25.5mm (最紧的是 (156,4) 对 `J_USB_C` @140,5.25 = 16.0mm) ⇒ 余量充足。\n4. ★**不要**把 PIN-SET-2 的四孔搬到\
+      \ demo 板上: demo 板不装进骨架, 它的孔没有对位对象, 搬过去只会让 §1 的产品板口径再次分叉。\n\n★复现: `python3 MECH/cross_review_check.py`\
+      \ (C-11 实测 hits=0); `MECH/BOARD_GEOM_30MM.md` §8 (完整复核与建议)。★边界: 本单**没碰 HW/ 任何文件** (板/网表/params 一律没动)。"
+    since: '2026-11-11'
+    waiting_on: agent
+    due: '2026-11-13'
+    _by: mech-lead
+    state: pending
+  - key: iss192_mech_scripts_dead_constants_disposition
+    to: main
+    item: '★★本域 MECH 脚本的 12/15mm 死常量已全部定性处理 (ISS-192 §2/§E), 有两件事需要你/项目总工裁:
+
+
+      ★(1) `MECH/fit_check.py` (M-FIT v2) **已标作废, 但文件保留** —— 定性理由: 它的整套基线 (板宽 **12** / 板长 **50** / 4 层
+      **0.80**) 一起死 (板宽 12→30 是老板 10-29 19:16 拍板 + §0 台账 11-01 20:5x 订正; 板长 50→60 是 10-28 项目总工裁; 4 层 0.80→6
+      层 1.00 是 hw-lead `proto_pcb_thickness_tier`)。**只把 `pcb_w` 12→30 改掉 = 造出「板宽30 + 板长50 + 厚0.80」的半迁移
+      Frankenstein 口径**, 比留着 12 更危险 (它看起来像现行口径, 其实是拼的) ⇒ 本单的做法是: 文件头写定性 + **运行期 stdout 顶部直接打横幅**「基线已作废,
+      现行版跑 `MECH/fit_check_v3_30mm.py`」, **数字一个不动** (v2 的结论是 ISS-017/ISS-042 的历史闭环记录, 别人引用「fit_check.py
+      §3① 叠放模型已判死」时仍要能复现)。
+
+      ★**要你裁的是**: `MECH/fit_check.py` 与 `MECH/fit_check_v3_30mm.py` **长期并存还是退役 v2**? 本域的倾向是**并存 + v2 打作废横幅**
+      (历史可复现 > 文件干净), 但如果项目侧要「一份脚本一个口径」, 请给一句话, 我就把它移进 `MECH/_archive/` 并同步所有引用它的地方 (现引用点: `MECH/iss065_check.py`
+      的 D-4/D-6 条目、`MECH/PCB_MOUNT_PIN_SET2.md`、`MECH/BOARD_WIDTH_15MM.md`)。
+
+      ★**引用纪律 (从本单起)**: 问「现行板装不装得下」⇒ 一律引 `MECH/fit_check_v3_30mm.py`; 引「历史闭环结论」⇒ 才引 v2 且必须带 "v2/12mm 口径"
+      标注。
+
+
+      ★(2) ★**30mm 板宽下金属骨架重量全线超支** —— 这是板宽翻倍带出来的新账, 需要预算裁: `MECH/skeleton_section_check.py` 迁到 30mm/RK3576
+      后, 4 个候选**全部**超 `MECH_BUDGET` §2.4 B 的「+1~3g/对」骨架预算 (最好候选 = 台阶形 t=0.8 **4.08g/对**, 超 1.08g; 15mm
+      板时代同一候选是 2.89g/对, 落进预算)。根因: SoC 段满宽 15.00→**30.00mm** 且满宽段长 10.00→**17.20mm** ⇒ 该段体积 ×3.08。另外**石墨片**也翻倍:
+      60×30×0.30 = 1.08g/片 = **2.16g/对** > W11「1~2g/对」上限 0.16g。
+
+      ★**结构侧建议的三个选项 (不拍板, 请裁)**: ① 满宽段只做到 SoC 投影 (X 15.00–32.20) 而不是整条; ② 横向扩散改由**石墨**承担 (石墨面内导热远好于铝),
+      金属骨架只做定位/局部; ③ 骨架材料分段 (铝骨架 + 局部铜)。
+
+      ★复现: `python3 MECH/skeleton_section_check.py` (rc=0, 判定段 §2/§3 的候选表 + 全部候选超预算条目)。
+
+
+      ★权威几何口径: `MECH/BOARD_GEOM_30MM.md` (板 60×30 / RK3576 17.20×16.10 / 逃线带 X[14.20,33.00]×Y[6.15,23.85]
+      / PIN-SET-2 套 A / 影响面)。★边界: 本单**没碰 HW/ 任何文件**。'
+    since: '2026-11-11'
+    waiting_on: agent
+    due: '2026-11-13'
+    _by: mech-lead
+    state: pending
+  - key: mech_iss127_temple_split
+    to: main
+    item: '★ISS-127 闭环的架构裁 (本单已把几何算完, 只差这一刀): 镜腿壳体改 **H 向分型 = 皮肤盖 + 内胆** 是否接受? 依据: 脱模斜度只吃垂直于拉出方向的截面, 现状
+      P=V (主腔深 38.00) ⇒ H 链被吃 Δ=2·38·tanα=1.327 ⇒ 电芯段链量产最坏 -0.577 (α=1.0°) / +0.087 (0.5°) / -1.240 (1.5°);
+      而判据要求 Δ≤0.35 ⇒ 等效腔深 h_max=20.05/10.03/6.68mm, **电芯自身高 23.50 ⇒ V 向脱模在任何 α 下都无解** ⇒ 唯一杠杆是换拉出方向: **P=H
+      ⇒ H 链 Δ=0** (P=L 更差 1.414; V 向分型只在 0.5° 勉强)。P1 代价: 零件 24→26 件, 模具 2 套/侧 (内胆是 H 向浅腔件, 抽芯行程仅 5.70
+      ⇒ 比现状 38 深 V 腔更好脱模), 外观多一条分型线 (贴肤面可做到零斜度), 皮肤盖 0.8mm×130mm 需加强筋 +0.15~0.25g/对。收益: 链① 三档 α 全部过 0.40
+      (0.750; 计盖自身 0.736/0.722/0.708) + 链② 四档全过 + **重量净减 0.38 g/对**。备选 P2 = 局部 H 向分型 (只在电芯段开盖, 改动面最小)
+      但链② 在 光面1.5°+含石墨+t=1.22 ⇒ 0.190 破线。我的假设: 按 **P1** 推进; 若要改动面最小走 P2 并同时接受该破线。详见 MECH/ISS127_H_CHAIN_SOLUTION.md
+      §C + MECH/iss127_h_chain_check.py (rc=0)。'
+    since: '2026-11-11'
+    _by: mech-lead
+    state: pending
+  - key: mech_iss127_graphite_cut
+    to: main
+    item: '★石墨裁剪 (预算裁): ISS-127 推荐方案 P1 的重量账**净减 0.38 g/对**的唯一来源 = 石墨从满板 (60×30×0.30 = 0.54cc × 2.00 ×
+      2 = **2.16 g/对**, 超 W11 1~2g 的 0.16) 裁到 **SoC 段 + X 向逃线带 5.00/边 (27.20×30×0.30 = 0.2448cc ⇒ 0.98
+      g/对**) —— 依据: 30mm 板宽下骨架候选 C 的 SoC 段**满宽 30.00**, 横向扩散通道 6.95mm/边 ⇒ 石墨的横向面内扩散功能已被满宽铝骨架覆盖, 石墨只铺 SoC
+      段即可。与本人 ISS-192 交卷 (2026-11-11 17:39) 的"要么缩石墨覆盖 (只铺 SoC 段+扩散带), 要么调 W11 预算"同源。影响: P1 金属+石墨合计 5.86
+      g/对 vs 基线 6.24 ⇒ 净减; 骨架本身 4.08 g/对 仍超 +1~3g 预算 1.08 (ISS-192 结论, 本单不动)。假设: 按裁剪推进。详见 MECH/ISS127_H_CHAIN_SOLUTION.md
+      §C.1 重量表。'
+    since: '2026-11-11'
+    _by: mech-lead
+    state: pending
+  - key: mech_iss127_graphite_in_hchain
+    to: main
+    item: '★石墨在链② (PCB/骨架堆叠 H 链) 里的位置口径要钉死: 是**挤占**链② 里的 0.30 空气隙, 还是**叠加**在 4.40 之外? 现状两处文档不一致: BOARD_GEOM_30MM
+      §5.4 写 "4.40 vs 7.30 ⇒ 余 2.60" (= 4.70 含石墨口径, 但同句又写 4.40 ⇒ 2.60, 差 0.30); skeleton_section_check.py
+      §4 写 "骨架1.0+石墨0.30 ⇒ 4.70 ⇒ 余 2.60"。本单按**叠加 (保守)** 计算 ⇒ 链② 在 α=1.5° + 含石墨 + 板厚 1.22 ⇒ 量产最坏 **0.190
+      < 0.40 破线** (这 0.190 是本单查出的新问题: DFM 评审只核过链① 从没按 0.40 判据核过链②)。若改为挤占口径 ⇒ 同格 0.490 ✅ 不破。⇒ 请 main 会同
+      hw-lead 钉死 (挤占 or 叠加), 这决定 ISS-127 的链② 是否需要额外动作。注: 无论怎么钉, P1 (H 向分型) 下链② 的脱模项 = 0 ⇒ 四档全过 (2.99/2.60/2.40/2.18
+      含石墨口径)。'
+    since: '2026-11-11'
+    _by: mech-lead
+    state: pending
+  answered_count: 160
+  total: 260
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -13309,6 +14095,41 @@ lint:
   key: s2_param_fill_targets
   value: params.P1..P4+boot_enter+usb_signatures+partition_layout+board_test
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: reset_release_policy
+  value: ★复位释放链口径 (待老板拍板随整链重出落表后生效; 现在生效的仍是现行网表口径 Q_AND(PG_AND)+RC_1.1ms)★ ⇒ RC 1.1ms (R_PU_RESET_N 10k
+    + R_SER_RESET_N 1k, C_RST 100nF) ⇒ 越过 0.7*VDD 1.324ms; 拉低者只有 SW_RST (Q_AND 改 DNP 后); 掉电方向随 1.8V 轨落
+    0 ⇒ 自动进复位
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss191_fix_option
+  value: '★ISS-191 三条改法里 sw-lead 的推荐 (★未拍板★)★ ⇒ ② Q_AND 整颗改 DNP (表A L65/L66/L67 + 表B Q_AND.1/.2/.3); 否掉
+    ① (RC1 实测: 只把 Q_ENVC 改必装 ⇒ 故障链不变; 摘掉 ⇒ 网表无 PG_VIO 网, 同引脚不能挂两条网, 收益 0) 与 ③ (依赖 TBD-01)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss191_reset_dnp_rows
+  value: '★ISS-191 落表行级清单★ ⇒ 必改: 表A L65/L66/L67 (Q_AND 三行) + 表B Q_AND.1/.2/.3 ⇒ DNP; 建议同批: 表A L71/L72/L73
+    + 表B Q_ENVC.1/.2/.3 ⇒ DNP (消 BOM/网表口径差, BOM 口径是 ref 级: 任一行必装则整颗记必装); 可选 (待老板点头): 表A L62/L63 (R_PG_PULL
+    ⇒ 省 180µA 常流)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss191_unc_drc_expect
+  value: '★ISS-191 对 PCB 的预期影响★ ⇒ 只改 dnp ⇒ unc 45 不变 / DRC 0 不变 / 板 md5 不变 (口径: 板生成器 gen_pcb_netlist_board.py
+    的 dnp 命中数=0 + 板文件 attr 命中数=0 + Q_AND 封装 3 焊盘网络不变 + 拓扑不变 + 既有先例 BOM 记 DNP 仍留在 CPL 的位号=41/56); 例外: ref_designator_rename
+    会改板 md5 与丝印, 但几何预期不变 ⇒ unc/DRC 须以重跑后的 fresh 实测为准'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss139_iq_coverage_snapshot
+  value: 'ar0234=0,ov04c10=0; 有现成IQ: imx415=8(isp3x仅1)/imx327=1/imx464=1/os04a10=8/ov02b10=2(isp3x=1)/gc8034=3/sc200ai=4'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss139_tuning_effort_split
+  value: demo路径B=1~2人日(补1920x1080mesh+AE曝光表换算); 整机路径A=5~10人日(1~2人周)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss139_tuning_device_window
+  value: demo=1次样机窗口(灰卡/暗室 半天~1天); 整机=1~2天暗室窗口
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 risks:
 - id: R-dsi-unknown
   text: ARS45 显示 TX 接口未确认 (媒体二手证据) — 若既无 DSI TX 也无 DP TX, 则显示链不成立
@@ -13392,15 +14213,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 162
+  artifacts: 174
   blockers: 43
   high_blockers: 33
-  open_needs: 87
+  open_needs: 100
   waiting_external_needs: 70
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 54
+  lint: 61
   agents_reporting: 4
   incomplete_fragments: 0

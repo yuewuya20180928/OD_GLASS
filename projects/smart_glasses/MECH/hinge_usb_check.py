@@ -3,6 +3,16 @@
 """
 MECH/hinge_usb_check.py —— ISS-085 跨铰链 USB / 连接器复核 的**机械自检**
 =====================================================================
+★ISS-192 迁版 (2026-11-11): 本脚本原基线是**板宽 12mm / 镜脚根部净高 37.0mm**,
+   两者都**已作废** (板宽: 老板 10-29 19:16 拍板 ≤30mm, §0 台账 11-01 20:5x 订正;
+   净高 37.0 是**已作废的叠放模型**算式 22+12+3, 现行是**锁死的腔体净高 38.00**)。
+   ⇒ 本脚本把这两个死常量**迁到现行口径** (板宽 30.00 / 净高 38.00), 因为它们**直接驱动判定**
+   (旧口径下 CONN_CAM 座体 17.5mm 与 CONN_LIGHT 座体 13.0mm 被判「> 12mm 板宽 ⇒ 放不下」
+   —— 那两条是**假红**, 现行 30mm 板宽下两条都放得下)。
+   ★注意: `MECH/USB_HINGE_STRUCTURE.md` 正文里 12mm 板宽时代推导的 **pin 数收敛建议**
+   (16p/20p/26p 等) 随板宽放宽而**需要重算** ⇒ 已登记 needs_from (见本脚本结尾 [5] 段)。
+   ★结构侧权威几何口径: `MECH/BOARD_GEOM_30MM.md`。
+
 目的: 让"跨铰链链路的几何账算得对不对、连接器 pin 占用统计得对不对"变成可复核的判定,
       而不是"读起来觉得差不多"。
 
@@ -41,8 +51,11 @@ DOC = os.path.join(HERE, "USB_HINGE_STRUCTURE.md")
 # ---------------------------------------------------------------- 几何基线
 # 全部来自 MECH/MECH_BUDGET.md (锁死/已推算值), 每条注明来源章节
 GEOM = {
-    "temple_h_mm":      (37.0,  "镜脚根部净高 = 电池22 + PCB12 + 走线槽3 (MECH_BUDGET §1.4.2)"),
-    "board_w_mm":       (12.0,  "主板板宽 (暂锁 12mm, HW/PCB_FORM_FACTOR_RECHECK §7)"),
+    # ★ISS-192: 37.0 = 已作废的叠放模型算式 (22+12+3) ⇒ 现行是锁死的腔体净高 **38.00**
+    #   (MECH_BUDGET §1.6.2; iss065_check.py D-4 已把它标成过时行)
+    "temple_h_mm":      (38.0,  "镜脚根部净高 [官方] 锁死 §1.6.2 (旧值 37.0 是已作废的叠放模型算式)"),
+    # ★ISS-192: 12.0 已作废 ⇒ 现行板宽 **30.00** (老板 10-29 19:16 拍板 ≤30mm; §0 台账 11-01 20:5x 订正)
+    "board_w_mm":       (30.0,  "主板板宽 [官方·决策] 老板 10-29 19:16 拍板 ≤30mm (§0 台账 11-01 20:5x 订正)"),
     "temple_t_mm":      (7.0,   "镜脚前后厚需求 7.0mm (MECH_BUDGET §1.4.2)"),
     "wall_mm":          (0.8,   "打印件单壁 0.8mm (FDM 最小可靠壁)"),
     "hinge_zone_mm":    (15.0,  "铰链区轴向占位 ~15mm (MECH_BUDGET §1.4.2)"),
@@ -236,14 +249,14 @@ def main() -> int:
             fit = "OK" if sock <= g["board_w_mm"] else "放不下"
             if sock > g["board_w_mm"]:
                 fails.append(f"{ref}: 座体宽 {sock}mm (触点区 {width}mm) > 主板板宽 "
-                             f"{g['board_w_mm']}mm -> 12mm 板放不下这个座")
+                             f"{g['board_w_mm']}mm -> 现行板宽放不下这个座")
         print(f"    {ref:<12}{str(dcount or '-'):>6}{len(d['conn']):>6}{len(req):>6}"
               f"{len(dnp):>6}{(f'{width:.1f}' if width else '-'):>10}{fit:>10}")
         rep["connectors"][ref] = {
             "declared": dcount, "used": len(d["conn"]), "required": len(req),
             "dnp": len(dnp), "strip_width_mm": width, "socket_width_mm": sock,
             "declared_strip_width_mm": decl_width,
-            "fits_12mm_board": (None if sock is None else sock <= g["board_w_mm"]),
+            "fits_board_width": (None if sock is None else sock <= g["board_w_mm"]),
             "decl_value": dval,
         }
         if ref == "J_CHG" and 6 not in d["conn"]:

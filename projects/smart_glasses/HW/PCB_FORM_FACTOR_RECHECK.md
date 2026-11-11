@@ -191,7 +191,7 @@
 | 来源 | 明细 | mm² |
 |---|---|---|
 | netlist 已画 (146 器件) | R 71×1.3=92 · C 21×2.3=48 · TP 40×0.25=10 · SW 6×4=24 · LED 3×2=6 · L 1×2.5=2.5 · U_CHG **WQFN-24** 4×4=16 · Type-C 16p=29 · J_UART=10 · J_BOOT1=8 | **246** |
-| 未画入必需件 `[推算]` | U_DCDC_VCORE(TPS62130A+电感+周边)=31 · U_DCDC_VIO=28 · 3×LDO+周边=21 · **U_BRIDGE(QFN6×6)+串阻/AC耦合=52** · U_PD(TPS25730)+周边=20 · 存储 SPI-NOR SOIC-8 `[官方]`=28 · CONN_CAM 24p=32 · CONN_LIGHT 26p=36 · 晶振+负载=10.4 · ESD×2=8 · SoC 去耦电容 ~30颗=30 | **296** |
+| 未画入必需件 `[推算]` | U_DCDC_VCORE(TPS62130A+电感+周边)=31 · U_DCDC_VIO=28 · 3×LDO+周边=21 · **U_BRIDGE(QFN6×6)+串阻/AC耦合=52** · U_PD(TPS25730)+周边=20 · 存储 SPI-NOR SOIC-8 `[官方]`=28 · CONN_CAM 31p=32 (★针数已订正★) · CONN_LIGHT 22p=36 (★针数已订正★ ⇒ ★**面积待按新针数重算**: 原 32/36 是按旧 24p/26p 估的 ⇒ 重算依据 `HW/PCB/PINOUT_FOOTPRINT_SPEC.md` §10 的 HIROSE 原厂 DIMENSION TABLE ⇒ ★**已并入 ISS-193 (定 opn/封装时一并重算)**) · 晶振+负载=10.4 · ESD×2=8 · SoC 去耦电容 ~30颗=30 | **296** |
 | **器件 land 合计** | | **542** |
 | + SoC 封装 + 逃线框 (p=0.5) | 9.6 × 11.6 | **113** |
 | **总占用** | | **655 mm²** |
