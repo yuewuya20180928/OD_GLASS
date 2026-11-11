@@ -1,12 +1,12 @@
 # 当前问题清单 (未闭环)
-> 生成时间 **2026-11-11 08:49** | 总登记 184 条 | 未闭合 **74** | 已关闭 97
+> 生成时间 **2026-11-11 08:58** | 总登记 185 条 | 未闭合 **75** | 已关闭 97
 > 真源: `projects/smart_glasses/state/issue_log.yaml` (由 `state/issue_check.py` 机械判定)
 
 ## 按责任方分桶
 | 责任方 | blocker | high | medium | low | 小计 |
 |---|---|---|---|---|---|
 | 👤 老板 | 0 | 7 | 0 | 0 | **7** |
-| 🔩 硬件总工 | 1 | 4 | 1 | 0 | **6** |
+| 🔩 硬件总工 | 1 | 4 | 2 | 0 | **7** |
 | 🏢 JBD | 0 | 0 | 0 | 0 | **0** |
 | 🧭 项目总工 | 7 | 23 | 8 | 0 | **38** |
 | ⚙️ 结构总工 | 0 | 4 | 5 | 0 | **9** |
@@ -88,6 +88,7 @@
 | ISS-047 | medium | mech-lead | 2026-11-13 | 结构侧需复核: 『对角半角』与『垂直半视场』两个口径混用 (MECH §1.5 那张 ≤40° 的表) |
 | ISS-092 | medium | mech-lead | 2026-11-13 | ★镜脚末端检修口 (J_DEBUG/J_UART 够不着 → 排针装上也用不了) 的开孔/盖板方案落到 MECH 尺寸链 |
 | ISS-188 | medium | sw-lead | 2026-11-13 | ★★DSI payload 8× 口径差 【第 6 处·收尾】: `SW/DEMO_OD_PIPELINE_SPEC.md:322` 仍写 373 Mbps (实为 2986) ⇒ 同一份 spec 里两处口径打架 ⇒ 下一个读它的人会拿到错数 |
+| ISS-189 | medium | hw-lead | 2026-11-13 | ★★DSI payload 8× 口径差 【第 8/9 处·收尾】: `HW/STEP1_LANDING_LIST.md:42` + `HW/PART_ALTERNATIVES_REGISTRY.md:24` 仍写 373 Mbps (实为 2986) ⇒ 依据虚到 8 倍 |
 | ISS-037 | low | sw-lead | 2026-10-29 | 模型资产与 INT8 量化管理缺失 (权重是资产, 现在散在 sw 需求里) |
 | ISS-113 | low | sw-lead | 2026-11-05 | ★RKNN_BENCH 的 B6 复现缺陷: `acc` 步单独跑会崩 (依赖 calib 步的 dataset.txt) |
 

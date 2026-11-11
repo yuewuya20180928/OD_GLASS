@@ -33,6 +33,48 @@ set -u
 PROJ=/home/yuewuya/.openclaw/workspace/projects/smart_glasses
 cd "$PROJ" || exit 1
 
+# ★★★★**★2026-11-11 09:0x 新增: 官方链 stage-1 板的 md5 (★自校准闸分档要用【输入的性质】, 不能用【过程量】★)** ★★★★
+# ★★★★**★为什么 (★实测: offverify 那轮被判错档 ⇒ "闸门形同虚设"又一起实例★)**: ★★★
+#   ★**原分档只看 `SKIP_STRAIGHT` (★"这轮有没有跑 straight 步"这个【过程量】★)**
+#   ⇒ ★**offverify 明明拿的就是官方 stage-1 (md5 8b33af51 · 17022 段), 却因"没带 --validate"被判成【档②】★★**
+#   ⇒ ★★**⇒ 档① 的严格比对 (几何 + unc 网名集合) 根本没跑 ⇒ 闸只报了段数/unc/DRC 就放行 ⇒ 闸门形同虚设 ★★**
+#   ⇒ ★★**⇒ 而且档② 那句理由自相矛盾**: "输入是【路由产物】(17022 段) ⇒ 当前路由器只出 17022 段 ⇒ 路由器代码已漂移" ★★
+OFFICIAL_S1_MD5="8b33af5181e8d80ef471c6d1f59298e6"
+
+# ★★★★**★2026-11-11 09:0x: 自校准闸分档判据 (★唯一实现★) ⇒ $1=输入md5 $2=输入段数 $3=VALIDATE标记 ⇒ echo 1|2 ★★★★
+# ★**档① = 输入就是【官方链 stage-1 板】(md5 命中) ⇒ 它的链产物【必须逐条复现官方终板】**
+# ★**档② = 输入是【路由产物】⇒ 只能判 DRC/unc, ★不许宣称"与官方同工艺"**
+pick_grade() {
+  local md5="$1" segi="$2" val="${3:-}"
+  if [ "$md5" = "$OFFICIAL_S1_MD5" ]; then echo 1; return 0; fi
+  if [ "$val" = "--validate" ] && [ "$segi" -ge 17000 ]; then echo 1; return 0; fi
+  echo 2
+}
+
+# ★★★★**★2026-11-11 09:0x 新增: `--self-test` (★分档判据必须能证伪★) ★★★★
+# ★**为什么 (★"闸要能证伪"铁律★)**: ★**分档判据刚被改过 (★从"过程量"改成"输入性质"★) ⇒ 必须有独立用例证明改对了★★**
+#   ★★**⇒ 而且必须带【反向用例】(★把判据改弱 ⇒ 自测必须红★)****
+if [ "${1:-}" = "--self-test" ]; then
+  fail=0
+  chk() { # $1=名字 $2=期望档 $3=实际档
+    if [ "$2" = "$3" ]; then echo "  ✅ $1 ⇒ 档$3"; else echo "  ❌ $1 ⇒ 期望档$2 实得档$3"; fail=1; fi
+  }
+  echo "★自校准闸分档判据自测 (★测的就是 pick_grade 本体, 不是副本★)"
+  chk "官方 stage-1 板 (★offverify 那轮的真实情况★)" 1 "$(pick_grade "$OFFICIAL_S1_MD5" 17022 "")"
+  chk "同段数但不是官方 stage-1 (★证明不靠段数★)" 2 "$(pick_grade "deadbeef00000000000000000000000000" 17022 "")"
+  chk "--validate + 17022 段" 1 "$(pick_grade "deadbeef00000000000000000000000000" 17022 "--validate")"
+  chk "路由产物臂 14023 段 (★必须仍走档②★)" 2 "$(pick_grade "deadbeef00000000000000000000000000" 14023 "")"
+  chk "官方 stage-1 就算段数不对也走档① (★证明靠 md5★)" 1 "$(pick_grade "$OFFICIAL_S1_MD5" 12345 "")"
+  # ★**★反向用例 (★铁律: 自测必须能证伪★)**: ★**把判据改弱成"永远档②" ⇒ 上面的档① 用例必须抓得住 ★★
+  # ★**常量体检: 本机若留着官方 stage-1 板 ⇒ 核一下常量没写错****
+  for f in /tmp/_straight7.kicad_pcb /tmp/offverify/in_official_s1.kicad_pcb; do
+    [ -f "$f" ] || continue
+    m="$(md5sum "$f" | awk '{print $1}')"
+    if [ "$m" = "$OFFICIAL_S1_MD5" ]; then echo "  ✅ 常量体检: $f md5 命中"; else echo "  ⚠️ 常量体检: $f md5=$m 与常量不同 (★该文件不是官方 stage-1★)"; fi
+  done
+  if [ "$fail" = "0" ]; then echo "ALL TESTS PASS"; exit 0; else echo "SELFTEST FAILED"; exit 1; fi
+fi
+
 ROUTE="${1:?用法: replay_patch_chain.sh <路由产物板> <标签> [--validate]}"
 TAG="${2:?用法: replay_patch_chain.sh <路由产物板> <标签> [--validate]}"
 VALIDATE="${3:-}"
@@ -156,6 +198,16 @@ else
   SEGI=$(grep -ac '(segment' "$IN" 2>/dev/null || echo 0)
 fi
 
+# ★★★★**★2026-11-11 09:0x: 自校准闸分档 (★按【输入的性质】判 ★ 不是按 SKIP_STRAIGHT 那个过程量★)****
+# ★★**★为什么 (★实测: offverify 拿的是官方 stage-1 却被判成档② ⇒ 档① 严格比对根本没跑★)****
+IN_MD5="$(md5sum "$IN" 2>/dev/null | awk '{print $1}')"
+GRADE="$(pick_grade "$IN_MD5" "$SEGI" "$VALIDATE")"
+if [ "$GRADE" = "1" ]; then
+  say "★自校准分档 = 档① (输入 md5=$IN_MD5 · $SEGI 段 ⇒ 是【官方链 stage-1】⇒ 链产物必须逐条复现官方终板)"
+else
+  say "★自校准分档 = 档② (输入 md5=$IN_MD5 · $SEGI 段 ⇒ 不是官方 stage-1 ⇒ 只判 DRC/unc, 不许宣称与官方同工艺)"
+fi
+
 # ★★★**★2026-11-09 04:5x 改: 链的【真实顺序】 = straight 步 → combo(margin 0.20) → loose(margin 0.0625)** ★★★
 # ★**旧版把 _nostub125(死支) 放① + combo 用 0.125 ⇒ 两处都错 ⇒ 走岔 ⇒ 17731 段**
 # ★**证据见文件头注释 (md5 血缘 + 逐段复现)**
@@ -215,7 +267,8 @@ fi
 #     ⇒ ★**因为官方链的 stage-1 (路由阶段) 产物是 17022 段, 而【当前路由器的产物只有 13407 段】**
 #     ⇒ ★**⇒ 路由产物臂与官方板【天然不可比】(★路由器代码已漂移) ⇒ ★这里只能出数, 不许说"可比"**
 SEGF=$(grep -ac '(segment' "$WORK/final_chain.kicad_pcb")
-if [ "$SKIP_STRAIGHT" = "1" ]; then
+# ★★**★2026-11-11 09:0x 修: 分档判据从【过程量 SKIP_STRAIGHT】改成【输入性质 GRADE】(★否则 offverify 这种"输入就是官方 stage-1 但没带 --validate"的轮次会被误判成档② ⇒ 严格比对不跑★)****
+if [ "$GRADE" = "1" ]; then
   # ★**档①: 必须逐条复现官方终板**
   if [ "$SEGF" != "18092" ]; then
     say "❌ 自校准闸(档①): 段数 = $SEGF ≠ 18092 (★官方终板) ⇒ ★**参数/顺序没对上 ⇒ 这块板不许拿去跟官方比**"
@@ -236,10 +289,19 @@ if [ "$SKIP_STRAIGHT" = "1" ]; then
   #   ⇒ ★**拿它比 unc ⇒ 判据失效 (★比的是上一级板的状态)** ⇒ ★★**必须 fresh DRC 终板自己** ★★
   FRESHDRC="$WORK/_final_fresh.drc.json"
   fresh_drc "$WORK/final_chain.kicad_pcb" "$FRESHDRC"
-  if [ -f "$FRESHDRC" ] && [ -f "/tmp/_drc45.json" ]; then
-    python3 "$PROJ/state/cmp_unc_sets.py" /tmp/_drc45.json "$FRESHDRC" 2>&1 | tail -8 | tee -a "$LOG"
-    python3 "$PROJ/state/cmp_unc_sets.py" /tmp/_drc45.json "$FRESHDRC" --strict >/dev/null 2>&1 || exit 13
+  # ★★★★**★2026-11-11 09:0x 修: 官方 unc 参照不许再靠 `/tmp/_drc45.json` 这种临时文件 (★缺了就静默跳过比对 ⇒ 又一次"闸门形同虚设"★)****
+  OFFDRC="/tmp/_drc45.json"
+  if [ ! -f "$OFFDRC" ]; then
+    OFFDRC="$WORK/_official_fresh.drc.json"
+    say "   ★官方 unc 参照 (/tmp/_drc45.json) 不在 ⇒ 现算官方板 fresh DRC ⇒ $OFFDRC"
+    fresh_drc "$PROJ/HW/PCB/demo_mainboard.kicad_pcb" "$OFFDRC"
   fi
+  if [ ! -f "$FRESHDRC" ] || [ ! -f "$OFFDRC" ]; then
+    say "❌ unc 网名集合比对做不了 (终板 DRC 或 官方参照 DRC 缺失) ⇒ ★**不许静默跳过** ⇒ rc=14"
+    exit 14
+  fi
+  python3 "$PROJ/state/cmp_unc_sets.py" "$OFFDRC" "$FRESHDRC" 2>&1 | tail -8 | tee -a "$LOG"
+  python3 "$PROJ/state/cmp_unc_sets.py" "$OFFDRC" "$FRESHDRC" --strict >/dev/null 2>&1 || exit 13
   say "★自校准闸(档①)通过 ⇒ 这块板与官方终板同工艺 ⇒ ★可以拿去跟官方比"
 else
   # ★**档②: 路由产物臂 ⇒ 只报数, 不许宣称"可比"**
