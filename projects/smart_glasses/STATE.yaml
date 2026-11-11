@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-11T08:26:49+08:00'
+  generated_at: '2026-11-11T08:45:48+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -19,14 +19,14 @@ meta:
       mtime_ns: 1793935073066378375
     main:
       file: pm.yaml
-      size: 37182
-      sha1: 2942ff25feec
-      mtime_ns: 1794356150188187290
+      size: 37183
+      sha1: f9085c19352e
+      mtime_ns: 1794357637380267821
     sw-lead:
       file: sw.yaml
-      size: 120785
-      sha1: ec5b72361a6c
-      mtime_ns: 1794345108128062441
+      size: 127026
+      sha1: 925e2048d2d6
+      mtime_ns: 1794357832685088342
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -2970,7 +2970,14 @@ domains:
         的三个数 (−2.69/10.09/16.65) 挂在 compose_max_for 名下 (实跑: compose_max_for(13.305)=2.319, display_out_max_for(13.305)=10.095)
         ⇒ 同一份 note 里 compose_max_for 有两个数 ⇒ 自相矛盾, 差的就是 TX 那 7.776ms ⇒ rev0 遗留, rev1/rev2 都没扫到 (我 rev1
         也漏了 ⇒ 我认) ⇒ ★**判 fail(轻量), 唯一阻塞 = 1 行 (精确 OLD/NEW 替换串已给 main), 改完我立刻签, 不再有第三次**。详见 HANDOFF/2026-11-11_sw-lead_ISS137_rev2_验证.md
-        §8。'
+        §8。 ★ISS-188 (2026-11-11 08:4x, owner=sw-lead) 已闭环: ★**本文件改了 2 处 (SW/DEMO_OD_PIPELINE_SPEC.md
+        的 322 + 379), 不是 1 处** ⇒ 322: 373/560 → **2986/4480** (并追加 TX 物理下限 7.776ms 的依据注, 口径 = 1920×1080×24×60
+        = 2985.98 Mbps, 与 HW/e2e_budget_rk3572.py §⑥ 同口径) + 379: 373Mbps → **2986Mbps** ⇒ ★**全 SW/ 目录
+        旧口径零残留 (grep 带空格+不带空格两种写法均 rc=1)** ⇒ ★**HW/e2e_budget_rk3572.py --selftest rc=0, 脚本 md5 改前改后相同
+        (7b820c14acfaee08a218cbf85557ef0b), 判据权威来源未动** ⇒ ★**另如实报出 4 处不在我分片的残留 (★只报, 不顺手改★): HW/STEP1_LANDING_LIST.md:42
+        + HW/PART_ALTERNATIVES_REGISTRY.md:24 (无空格写法 ⇒ 归 hw-lead) / config/agents/main/memory/2026-11-02.md:26
+        (归 main; ★08:4x 实测 main 已修好 MEMORY.md:1979) / state/_demo_hw_scheme_landing.py:11 的口径钉死注释里留着逐字串
+        ⇒ ★★会让验收 grep ① 不为 0, 建议 main 写成『原写的 373』★** ⇒ 详见 HANDOFF/2026-11-11_sw-lead_ISS188_DSI_payload_第6处.md。'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -3303,6 +3310,16 @@ domains:
         \ 动手。 ★**报告结构**: §0~§6 = rev0 判决 (一字未改) · **§7 = rev1 复验** (含 §7.0a ★验收标准自评 (逐条 通过/不通过/未验)★ ·\
         \ §7.0b 接口取值声明 · §7.0c 未决项与卡点 · §7.2 逐条证据 · §7.3 额外发现 · §7.4 退回建议 · §7.5 边界) ⇒ gate_check 交接单齐备率\
         \ **6/6**。"
+    - path: HANDOFF/2026-11-11_sw-lead_ISS188_DSI_payload_第6处.md
+      kind: handoff
+      version: v1.0
+      updated_at: '2026-11-11'
+      summary: '★ISS-188 交付: SW/DEMO_OD_PIPELINE_SPEC.md ★**改了 2 处 (322 + 379), 不是 1 处** ⇒ 322: 373 Mbps
+        payload → 2986 Mbps payload + @90Hz 560 Mbps → 4480 Mbps (并追加依据注: payload = 1920×1080×24×60 =
+        2985.98 Mbps, 与 HW/e2e_budget_rk3572.py §⑥ 同口径, TX 物理下限 7.776ms = 2986÷60÷6400 就是按这个 payload 算的)
+        + 379: 373Mbps 是 RGB888 口径 → 2986Mbps 是 RGB888 口径 ⇒ ★**全 SW/ 零残留 (grep 两种写法 rc=1)** ⇒ ★**--selftest
+        rc=0, 脚本 md5 未动** ⇒ 附 old→new 逐字串 + 机械证明 (实际改动行号 [322, 379], 行数 675 不变) + 自证命令实录 + 边界声明 + 4 处不在我分片的残留
+        (只报, 不顺手改)'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -4340,6 +4357,52 @@ domains:
         \ **note 其余内容一字未动** (`fixed.replace(NEW, OLD) == note` ⇒ True) ✓ ⇒ ★**零附带风险, 一个字符串的活**。\n  ★**★另外:\
         \ 这条是 rev0 遗留, rev1/rev2 都没扫到 (我 rev1 也漏了 ⇒ 我认, 不赖 main) ⇒ ★**改完跟我说一声, 我复跑一次 grep + --selftest\
         \ 就签** ★。"
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss188_dsi_payload_nospace_sweep
+      to: hw-lead
+      item: "★ISS-188 副产物 (★全仓扫出, 不在我分片, ★只报, 不顺手改★): **hw-lead 分片里还有 2 处活的旧 DSI payload 数字, ISS-186 那\
+        \ 5 处枚举没扫到 ⇒ 因为它们写的是『无空格』写法 (373Mbps), 而任务书的验收 grep 只查『373 Mbps』(带空格) ⇒ 机械验收抓不到 ⇒ 活的口径还在。★**具体\
+        \ (OLD → NEW)**:\n  ① `HW/STEP1_LANDING_LIST.md:42` ⇒ OLD `1920×1080@60 RGB888 ≈ 373Mbps ⇒ 4-lane\
+        \ 绰绰有余，**不需 DSC**` ⇒ NEW `1920×1080@60 RGB888 ≈ 2986Mbps ⇒ 4-lane 绰绰有余，**不需 DSC**` (★结论措辞一个字不动,\
+        \ 只改数字)\n  ② `HW/PART_ALTERNATIVES_REGISTRY.md:24` ⇒ OLD `DSI 4-lane 够 1920×1080 RGB888 (373Mbps)`\
+        \ ⇒ NEW `DSI 4-lane 够 1920×1080 RGB888 (2986Mbps)` (★同: 只改数字)\n★**依据 (与 ISS-186 那 5 处同源)**: payload\
+        \ = 1920×1080×24×60 = 2985.98 Mbps ⇒ 与 `HW/e2e_budget_rk3572.py` §⑥ 实打印 2986.0 Mbps 同口径 ⇒ TX 物理下限\
+        \ 7.776ms = 2986 ÷ 60 ÷ 6400 就是按这个 payload 算的 ⇒ ★**结论方向不变** (2986 占 4-lane@2.5Gbps raw 10Gbps\
+        \ 的 29.9%, 占脚本保守口径 6400Mbps 的 46.7% ⇒ 两口径都远低于 100% ⇒『不需 DSC』仍成立) ⇒ ★**是数字错+依据虚, 不是结论错**。★**建议**:\
+        \ hw-lead 各补 1 行即可 ⇒ 我不代改别人的分片。"
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss188_dsi_payload_main_side_grep_dirty
+      to: main
+      item: "★ISS-188 副产物 (★全仓扫出, 不在我分片, ★只报, 不顺手改★): **main 侧还有 3 处活的旧 DSI payload 数字 / 逐字串 ⇒ 机械验收命令\
+        \ ① 会一直不为 0 ⇒ 请 main 收尾时一并处理**。★**具体**:\n  ① `state/_demo_hw_scheme_landing.py:11` ★★**这条最要紧**\
+        \ ⇒ main 新加的『ISS-186 口径钉死』注释里留着**逐字串『373 Mbps』** ⇒ ★**验收命令 ① `grep -rn '373 Mbps|246 Mbps' ...`\
+        \ 因此永远命中 ⇒ ★**修法: 把注释里的『原来写 373 Mbps (偏小 8.0×)』改成『原来写的 373 (偏小 8.0×)』即可** ⇒ ⇒ 改完验收 ① 就能真正 0 命中。★**这条坑\
+        \ hw-lead 在 ISS-186 踩过一次** (其报告 §6 ① 第一遍输出: 他自己写的内部备注里留了逐字串, 把机械验收弄脏了 ⇒ 改完才清零) ⇒ ★**同样的坑别踩第二次**。\n\
+        \  ② `config/agents/main/MEMORY.md:1979` ⇒ `≈ 373 Mbps payload` ⇒ 应为 `≈ 2986 Mbps payload` (★main\
+        \ 08:4x 说这两处 main 在做 ⇒ 我只报, 没碰; ★**08:4x 实测: main 已把它改成 2986 Mbps ✔ ⇒ 这条已闭合, 只剩 ①③ 两条**)\n  ③\
+        \ `config/agents/main/memory/2026-11-02.md:26` ⇒ `4-lane DSI, 373Mbps ⇒ 不需 DSC` ⇒ 应改为 `4-lane\
+        \ DSI, 2986Mbps ⇒ 不需 DSC` (★08:4x 实测: 仍是 373Mbps ⇒ **这条还没改** ⇒ main 侧收尾时顺手改掉)\n★**另外两个不是 main\
+        \ 的活, 我已另开 needs_from 交回 hw-lead** (F1/F2: `HW/STEP1_LANDING_LIST.md:42` + `HW/PART_ALTERNATIVES_REGISTRY.md:24`,\
+        \ 无空格写法 `373Mbps` ⇒ 机械验收抓不到 ⇒ ★**活的口径还在**)。\n★**sw-lead 侧已闭合**: `SW/DEMO_OD_PIPELINE_SPEC.md`\
+        \ 322 + 379 两处 ⇒ 全 SW/ 零残留 ⇒ ★**ISS-188 的『第 6 处』已真闭合 (含 main 08:4x 追加授权的第 7 处)**。"
       since: '2026-11-11'
       state: pending
       target_missing: false
@@ -8586,11 +8649,16 @@ interface_claims:
   dsi_payload_1080p60_rgb888:
     values:
       hw-lead: 2986 Mbps
+      sw-lead: 2986 Mbps
     notes:
       hw-lead: 1920x1080x24x60 = 2985.98 Mbps (RGB888 24bpp); 与 HW/e2e_budget_rk3572.py §⑥ 实打印 2986.0
         Mbps 及 PROJECT_TRACKER.md:2099 同口径; TX 物理下限 7.776ms 即按此 payload 算出
+      sw-lead: 1920x1080x24x60 = 2985.98 Mbps (RGB888 24bpp); 与 HW/e2e_budget_rk3572.py §⑥ 实打印 2986.0
+        Mbps 同口径; TX 物理下限 7.776ms = 2986/60/6400 即按此 payload 算出; ★本单已把 SW/DEMO_OD_PIPELINE_SPEC.md:322
+        与 :379 两处旧口径订正成 2986 (★与 hw-lead 在 hw.yaml 的同名登记同名同值 ⇒ 交叉确认)
     by:
     - hw-lead
+    - sw-lead
     noncanonical_by: []
     conflict: false
   dsi_payload_800x1280_60_rgb888:
@@ -8605,10 +8673,14 @@ interface_claims:
   dsi_payload_1080p90_rgb888:
     values:
       hw-lead: 4480 Mbps
+      sw-lead: 4480 Mbps
     notes:
       hw-lead: 1920x1080x24x90 = 4478.976 Mbps; 脚本 §⑥ 打印 4479.0 (显示取整差 1 Mbps, 口径同源)
+      sw-lead: 1920x1080x24x90 = 4478.976 Mbps; 脚本 §⑥ 打印 4479.0 (显示取整差 1 Mbps, 口径同源); ★与 hw-lead 在 hw.yaml
+        的同名登记同名同值 ⇒ 交叉确认
     by:
     - hw-lead
+    - sw-lead
     noncanonical_by: []
     conflict: false
   temple_thickness:
@@ -10511,7 +10583,7 @@ interface_claims:
       main: 1920x1080
       sw-lead: 1920x1080
     notes:
-      main: 11-02 01:12 起 (原 800x600 作废); 像素量×4.3 ⇒ 合成/缩放负担↑ (与 RK3572 4TOPS 叠加)、DSI带宽@60RGB888≈373Mbps、★PPD反而降
+      main: 11-02 01:12 起 (原 800x600 作废); 像素量×4.3 ⇒ 合成/缩放负担↑ (与 RK3572 4TOPS 叠加)、DSI带宽@60RGB888≈2986Mbps、★PPD反而降
         (16 vs 26.7 PPD/°)、ISS-063 前提作废
       sw-lead: ★11-02 01:12 老板拍板显示件改视涯 0.49" SiOLED ⇒ 显示分辨率 800x600→1920×1080; ★像素量×4.3 ⇒ 合成/缩放路径与 ISP
         一处多预算要重算 (与 RK3572 4TOPS 叠加 ⇒ 60ms 更紧)
@@ -12082,6 +12154,37 @@ needs_matrix:
     since: '2026-11-11'
     _by: sw-lead
     state: pending
+  - key: iss188_dsi_payload_nospace_sweep
+    to: hw-lead
+    item: "★ISS-188 副产物 (★全仓扫出, 不在我分片, ★只报, 不顺手改★): **hw-lead 分片里还有 2 处活的旧 DSI payload 数字, ISS-186 那 5\
+      \ 处枚举没扫到 ⇒ 因为它们写的是『无空格』写法 (373Mbps), 而任务书的验收 grep 只查『373 Mbps』(带空格) ⇒ 机械验收抓不到 ⇒ 活的口径还在。★**具体 (OLD\
+      \ → NEW)**:\n  ① `HW/STEP1_LANDING_LIST.md:42` ⇒ OLD `1920×1080@60 RGB888 ≈ 373Mbps ⇒ 4-lane 绰绰有余，**不需\
+      \ DSC**` ⇒ NEW `1920×1080@60 RGB888 ≈ 2986Mbps ⇒ 4-lane 绰绰有余，**不需 DSC**` (★结论措辞一个字不动, 只改数字)\n  ②\
+      \ `HW/PART_ALTERNATIVES_REGISTRY.md:24` ⇒ OLD `DSI 4-lane 够 1920×1080 RGB888 (373Mbps)` ⇒ NEW `DSI\
+      \ 4-lane 够 1920×1080 RGB888 (2986Mbps)` (★同: 只改数字)\n★**依据 (与 ISS-186 那 5 处同源)**: payload = 1920×1080×24×60\
+      \ = 2985.98 Mbps ⇒ 与 `HW/e2e_budget_rk3572.py` §⑥ 实打印 2986.0 Mbps 同口径 ⇒ TX 物理下限 7.776ms = 2986 ÷\
+      \ 60 ÷ 6400 就是按这个 payload 算的 ⇒ ★**结论方向不变** (2986 占 4-lane@2.5Gbps raw 10Gbps 的 29.9%, 占脚本保守口径 6400Mbps\
+      \ 的 46.7% ⇒ 两口径都远低于 100% ⇒『不需 DSC』仍成立) ⇒ ★**是数字错+依据虚, 不是结论错**。★**建议**: hw-lead 各补 1 行即可 ⇒ 我不代改别人的分片。"
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss188_dsi_payload_main_side_grep_dirty
+    to: main
+    item: "★ISS-188 副产物 (★全仓扫出, 不在我分片, ★只报, 不顺手改★): **main 侧还有 3 处活的旧 DSI payload 数字 / 逐字串 ⇒ 机械验收命令 ①\
+      \ 会一直不为 0 ⇒ 请 main 收尾时一并处理**。★**具体**:\n  ① `state/_demo_hw_scheme_landing.py:11` ★★**这条最要紧** ⇒ main\
+      \ 新加的『ISS-186 口径钉死』注释里留着**逐字串『373 Mbps』** ⇒ ★**验收命令 ① `grep -rn '373 Mbps|246 Mbps' ...` 因此永远命中\
+      \ ⇒ ★**修法: 把注释里的『原来写 373 Mbps (偏小 8.0×)』改成『原来写的 373 (偏小 8.0×)』即可** ⇒ ⇒ 改完验收 ① 就能真正 0 命中。★**这条坑 hw-lead\
+      \ 在 ISS-186 踩过一次** (其报告 §6 ① 第一遍输出: 他自己写的内部备注里留了逐字串, 把机械验收弄脏了 ⇒ 改完才清零) ⇒ ★**同样的坑别踩第二次**。\n  ② `config/agents/main/MEMORY.md:1979`\
+      \ ⇒ `≈ 373 Mbps payload` ⇒ 应为 `≈ 2986 Mbps payload` (★main 08:4x 说这两处 main 在做 ⇒ 我只报, 没碰; ★**08:4x\
+      \ 实测: main 已把它改成 2986 Mbps ✔ ⇒ 这条已闭合, 只剩 ①③ 两条**)\n  ③ `config/agents/main/memory/2026-11-02.md:26`\
+      \ ⇒ `4-lane DSI, 373Mbps ⇒ 不需 DSC` ⇒ 应改为 `4-lane DSI, 2986Mbps ⇒ 不需 DSC` (★08:4x 实测: 仍是 373Mbps\
+      \ ⇒ **这条还没改** ⇒ main 侧收尾时顺手改掉)\n★**另外两个不是 main 的活, 我已另开 needs_from 交回 hw-lead** (F1/F2: `HW/STEP1_LANDING_LIST.md:42`\
+      \ + `HW/PART_ALTERNATIVES_REGISTRY.md:24`, 无空格写法 `373Mbps` ⇒ 机械验收抓不到 ⇒ ★**活的口径还在**)。\n★**sw-lead\
+      \ 侧已闭合**: `SW/DEMO_OD_PIPELINE_SPEC.md` 322 + 379 两处 ⇒ 全 SW/ 零残留 ⇒ ★**ISS-188 的『第 6 处』已真闭合 (含 main\
+      \ 08:4x 追加授权的第 7 处)**。"
+    since: '2026-11-11'
+    _by: sw-lead
+    state: pending
   - key: soc_carrier_mainboard_site
     to: main
     item: ISS-084上游卡点_主板位定镜脚还是镜框(解D走不走变更流程)_载板化的全部结构结论都随它变_请裁_经项目总工转老板
@@ -12362,7 +12465,7 @@ needs_matrix:
     _by: mech-lead
     state: pending
   answered_count: 157
-  total: 233
+  total: 235
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -12971,10 +13074,10 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 159
+  artifacts: 160
   blockers: 43
   high_blockers: 33
-  open_needs: 76
+  open_needs: 78
   waiting_external_needs: 70
   overdue_needs: 0
   target_missing_needs: 0

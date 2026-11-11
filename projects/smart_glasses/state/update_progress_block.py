@@ -98,6 +98,30 @@ def build_block(facts: str, extra: str = "") -> str:
     return "\n".join(body)
 
 
+def _facts_text_of_block(block: str) -> str:
+    """★**取代码块(事实部分)的文本** (★用于小节标记比对★)"""
+    m = re.search(r"```\n(.*?)\n```", block, re.S)
+    return m.group(1) if m else block
+
+
+def _facts_len_of_block(block: str) -> int:
+    """★**取代码块(事实部分)的长度** (★2026-11-11 08:6x 实测修★)
+
+    ★★★**★为什么不能拿【整块长度】判缩水 (★实测误报★)★★★:
+      旧块里可能带一次性【附录】(★`--extra` 的"补发上两轮"那种★)
+      ⇒ 旧块被撑到 6163 字符, 而【事实部分】其实只有 2000 多
+      ⇒ ★**拿整块比 ⇒ 事实完好也判"突然缩水" ⇒ 实时块永远刷不进去** ★★
+      ⇒ ★**⇒ 缩水判定必须只看【事实(代码块)部分】⇒ 附录变短不算缩水** ★★
+    """
+    m = re.search(r"```\n(.*?)\n```", block, re.S)
+    return len(m.group(1)) if m else len(block)
+
+
+def _markers_of(text: str) -> set:
+    """★**取事实里的小节标记** (★形如 `[板]` `[守卫]` `[待办]`★)"""
+    return set(re.findall(r"^\[[^\]]+\]", text, re.M))
+
+
 def replace_block(md: str, block: str) -> tuple[str, str]:
     """返回 (新内容, 说明)。标记之外的内容必须逐字节不变。"""
     if START not in md or END not in md:
@@ -139,12 +163,20 @@ def main() -> int:
         print(f"✗ 找不到 {MEMORY}", file=sys.stderr)
         return 1
     md = open(MEMORY, encoding="utf-8").read()
-    # ★★**缩水闸 (★"突然缩水"是坏输入的典型特征)**: ★**新块比旧块短于一半 ⇒ 拒绝写 + rc=1**
+    # ★★**缩水闸 (★2026-11-11 08:6x 两修★)**:
+    #   ★**① 比的是事实(代码块)部分, 不是整块** ⇒ 附录(extra)变短不再误报
+    #   ★**② 光比长度会误报 (★实测: 旧块里塞了一次性"补发上两轮"附录 ⇒ 6075 字符★)**
+    #      ⇒ ★**改成【结构判据】: ★**新事实缺了旧事实有的小节标记 ★且★ 长度缩水过半 ⇒ 才判坏输入★**
+    #      ⇒ ★**正常刷新 (小节都在·只是少了一次性附录) ⇒ 放行** ★★
+    #      ⇒ ★**半截文件 (小节缺+长度腰斩) ⇒ 依旧拦住** ★★
     try:
         _i = md.index(START); _j = md.index(END)
-        _old_len = len(md[_i:_j])
-        if _old_len > 0 and len(block) * 2 < _old_len:
-            print(f"✗ 拒绝写入: 新块 {len(block)} 字节 < 旧块 {_old_len} 字节的一半 ⇒ 突然缩水 (★典型坏输入)", file=sys.stderr)
+        _old_facts = _facts_len_of_block(md[_i:_j])
+        _old_text = _facts_text_of_block(md[_i:_j])
+        _new_facts = len(facts.strip())
+        _missing = _markers_of(_old_text) - _markers_of(facts)
+        if _missing and _new_facts * 2 < _old_facts:
+            print(f"✗ 拒绝写入: 事实小节缺失 {sorted(_missing)} 且长度 {_new_facts} < 旧事实 {_old_facts} 的一半 ⇒ 半截事实 (★典型坏输入★)", file=sys.stderr)
             print("★**⇒ 实时块保持原样, 未改动**", file=sys.stderr)
             return 1
     except ValueError:

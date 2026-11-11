@@ -6262,7 +6262,7 @@ issues:
   reporter: mech-lead
   raised: '2026-11-06'
   due: '2026-11-13'
-  status: fixed
+  status: verified
   external: false
   need_keys:
   - mech_rebase_netlist_hinge_mismatch
@@ -6274,8 +6274,8 @@ issues:
     条: 改值 8 条 + 加标注 9 条 + 新增 4 条 mech_temple_v_margin_30mm / mech_pcb_area_spare_mm2 / mech_hinge_drops_demo / mech_stale_claims_found; needs_from +2 条 mech_rebase_netlist_hinge_mismatch→main / mech_rebase_pcb_width_y_holes→hw-lead)
     + HANDOFF/2026-11-06_mech-lead_周更新.md (B1-B6 六块齐)'
   verify_by: main
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-11'
   note: '★2026-11-06 mech-lead 交卷并自推状态 (owner=mech-lead, verify_by=main, ★verify_result/verify_date **留空待 main 写** —— 我不自己验自己)。【本单做了什么】① 写 MECH/rebase_20261106.py: 一个**扫自己分片**的脚本 —— ★**只扫 value 字段不扫 note**
     (note 里出现历史数字是正常的记录, 不是过期取值; 第一版扫 value+note 误伤了 20 多条, 收窄到只扫 value 后才准) ⇒ 查出 9 条带过期口径 token; 再按「现行基线」逐 key 复核 ⇒ **8 条的值本身已过期**。② 处置分三类: **改值 8 条** (mech_conn_cam_pins 16p@0.5→31p@0.3 / mech_conn_light_pins
     20p@0.5→22p@0.5 / mech_j_chg_pins 8p@0.5→10p@0.5 / mech_hinge_links_count 4→0(demo) / temple_h_stack 7.00mm(340档)→6.35mm(315档) / temple_h_margin 0.30→0.95mm(315档) / mech_rilim_recommended_ohm 470→390
@@ -6290,7 +6290,12 @@ issues:
     ★2026-11-06 补记 (numpy 依赖 ⇒ 打印包自检本轮未能复跑, 诚实标注): ★**MECH/print/verify_pack_revb.py 依赖 numpy** (np.frombuffer 读 STL 二进制 + np.radians/trig 算斜面角), 而本机 python3.14 **无 numpy** 且装不上 (pip 清华镜像可通但 16.7MB wheel
     下载连续超时; PEP 668 禁 --user/--break-system-packages; /tmp 里的 wheel 残file不完整) ⇒ **本轮没有复跑这个脚本** ⇒ ★**「93/93 + 38/38 rc=0」是 11-01 那轮的记录, 本轮不重复声称复跑过**。⇒ 改用**纯 python 独立解析 STL** 复核 (不依赖 numpy): fit_coupon_revb.stl
     **25312 面 / 1236.0KB / 150.00×132.00×22.00mm** · temple_cage_revb.stl **2112 面 / 103.2KB / 60.00×122.40×27.80mm** · frame_typec_coupon_revb.stl **128 面 / 6.3KB / 33.00×3.00×7.20mm** ⇒ ★**三个包围盒与 11-01
-    自检记录逐个吻合** ⇒ 打印包几何本轮未见改动 (本轮确实一个字没改 MECH/print/)。★已登记 need mech_numpy_dep_for_print_check→main (due 11-13): 建议把 verify_pack_revb.py 改成纯 python 实现 ⇒ 89 项清单在任何机器上都能一条命令复核。'
+    自检记录逐个吻合** ⇒ 打印包几何本轮未见改动 (本轮确实一个字没改 MECH/print/)。★已登记 need mech_numpy_dep_for_print_check→main (due 11-13): 建议把 verify_pack_revb.py 改成纯 python 实现 ⇒ 89 项清单在任何机器上都能一条命令复核。 ★**2026-11-11 08:3x 项目总工 (main)
+    验收通过 (verify_result=pass)**: ★**验收全部是 main 自己实测** —— ① `python3 MECH/rebase_20261106.py` ⇒ **rc=0 · 自检 14/14 通过 (FAIL 0)** (main 自己跑的, 不是抄 owner); ② `state/fragments/mech.yaml` 的 interface_claims =
+    **184 条** (与 fix_ref 声明的 180→184 一致); ③ 新增 4 条 key 逐个在位 (`mech_temple_v_margin_30mm` / `mech_pcb_area_spare_mm2` / `mech_hinge_drops_demo` / `mech_stale_claims_found`) ⇒ 全 YES; ④ 8 条改值抽查与脚本 §7「逐 key
+    复核」表的**现值列逐条相同** (`mech_conn_cam_pins`=31p@0.3mm / `mech_conn_light_pins`=22p@0.5mm / `mech_j_chg_pins`=10p@0.5mm / `mech_hinge_links_count`=0(demo) / `pcb_mounting`=2x⌀2.0H7+2x⌀1.4); ⑤ ★**残留 4 条 (49.62
+    / 24.00 / 27.0 / 37-111) 是刻意的历史值**, 已逐条加 note 标明「仅供追溯, 不代表现行基线」⇒ ★**不是漏改** (owner 的说明成立); ★**★未变更的账 (如实记下)**: ★**实物 [实测] 条数仍 = 0** (0 件打印件 / 0 台样机 / 0 个实测温度) ⇒ ★**G2 仍不通过 (设计意图而已)** ⇒ ★**本单签的是「基线重算
+    + 过期值清理」这一件事, 不是「结构已验证」**.'
   dispatched_at: '2026-11-06'
 - id: ISS-186
   title: '★DSI payload 8× 口径差: 6 处「373/246 Mbps」实为 2986/1475 Mbps ⇒ 依据虚到 8 倍 ⇒ 下次有人拿它反推 TX 下限, 7.776ms 会塌成 ~0.97ms'
@@ -6312,7 +6317,7 @@ issues:
   reporter: main
   raised: '2026-11-11'
   due: '2026-11-13'
-  status: fixed
+  status: verified
   external: false
   need_keys: []
   fix_ref: "★**5 个文件, 5 处 (每个只改那一行数字 + 尾部追加一句依据注)** ⇒ md5 对拍:\n  ① `HW/DISPLAY_MODULE_DECISION.md:53` — md5 `4ac06b61e0752a1b66ff3ed3e083899a` → **`47e0393e7893cc24df29d45e436de735`**\n  ② `HW/STEP1_PARTS_SPEC.md:375`\
@@ -6321,8 +6326,8 @@ issues:
     \ → **`1e6ebdc4ceff247a2b380491c57c6c0d`**\n  ⇒ ★**交付报告**: `HANDOFF/2026-11-11_hw-lead_ISS186_DSI_payload_订正.md` (★old→new 逐字串 + 自证命令实录 + 边界声明)\n  ⇒ ★**⑤ `SW/DEMO_OD_PIPELINE_SPEC.md:322` 未改** (sw-lead\
     \ 分片, 按 main 派活边界归 sw-lead ⇒ 走其 needs_from `iss137_dsi_payload_caliber`)"
   verify_by: main
-  verify_result: null
-  verify_date: null
+  verify_result: pass
+  verify_date: '2026-11-11'
   note: "★2026-11-11 04:5x 项目总工开单 (源自 sw-lead rev3 复验 §9.3 F6 的「未做」项 ②)。\n★**为什么本单现在还没派出去**: ★**hw-lead 名下有 ISS-181 在飞** (status=fixing, 自研 demo 主板 → 可下单)\n⇒ ★**铁律: 同一 agent 同时只允许一个在飞任务** ⇒ ★**本轮 advance.py\
     \ 派不出 hw-lead 的活** ⇒ 本单先 open 挂起。\n★**本单没派的第二个理由 (★更硬★)**: ★**ISS-181 的板子活正由主会话的 v76mx 臂 campaign 实跑**\n⇒ ★**再派一条给 hw-lead 反而会和主会话抢同一块板** ⇒ ⇒ 等板子那条收口后再派。\n★**边界**: ★**没有改 hw-lead 的任何分片** (①③④⑥ 全是 hw-lead\
     \ 的活, main 一个字没动) · ★**没有发任何邮件** (⑥ 是给供应商的询价函草稿 ⇒ 改了也不发) · ★**没有改 §0 锁死表**。★2026-11-11 07:5x 项目总工**手工解冻派活** (★本单不是 advance.py 自动吐出来的★)。★**为什么 advance.py 派不出它**: advance.py 的 in_flight 判据是「owner 名下已有\
@@ -6352,7 +6357,14 @@ issues:
     \     (只写了自己的 `state/fragments/hw.yaml`, 走 `state/frag_write.py` 原子写)\n   · ★**没有碰 `PROJECT_TRACKER.md` §0 锁死表** (含 :2099 那条本来就对的 2986, 一个字节没动)\n   · ★**没有碰 `HW/e2e_budget_rk3572.py`** (md5 未变, selftest\
     \ rc=0)\n   · ★**没有改 `state/issue_log.yaml` 里其他 182 条 issue 的任何一个字节** (yaml 往返逐字节自检保证)\n★**超出本单范围的发现 (只报, 不顺手改)★**: ①`config/agents/main/MEMORY.md:1979` 仍写 373 Mbps (main 自己的文件)\n   ②`state/_demo_hw_scheme_landing.py:24/40/70`\
     \ 历史落账脚本里留着 373Mbps 三处 (★**★重跑它会把旧数灌回 tracker\n   ⇒ 风险最高的一条**) ③其余命中全是历史叙述/别的分辨率别的格式 (RAW10 / 50MHz) ⇒ ★**全仓现存唯一一处【活的】\n   旧 payload 口径就是 ⑤** ⇒ ★**没有第 7 处要改的东西**。\n★**待 main 做 (owner 侧到此为止)★**: verify_result=pass\
-    \ + verify_date=2026-11-11 (★**只有 main 能写这两栏**)\n   ⇒ 并请在 note 补一句「本单验收范围 = ①②③④⑥, ⑤ 归 sw-lead」。"
+    \ + verify_date=2026-11-11 (★**只有 main 能写这两栏**)\n   ⇒ 并请在 note 补一句「本单验收范围 = ①②③④⑥, ⑤ 归 sw-lead」。 ★**2026-11-11 08:3x 项目总工 (main) 验收通过 (verify_result=pass)**: ★**验收全部是 main 自己实测, 不是抄 owner 自评** —— ①\
+    \ `grep -rn '373 Mbps|246 Mbps' HW/ state/outbox/` ⇒ **0 命中** (旧值零残留); ② 5 处新值落点全部在位 (DISPLAY_MODULE_DECISION.md:53 / STEP1_PARTS_SPEC.md:375 / DEMO_BOARD_HW_DECISION.md:65 / WAVESHARE_2P8_INIT_AND_BACKLIGHT.md:398\
+    \ / outbox/visionox_display_inquiry.md:29); ③ ★**md5 对拍 5/5 通过** (现值 == owner note 声明的新值: 47e0393e / f4438fb5 / d50421a5 / 3f1652e5 / 1e6ebdc4) ⇒ **owner 没虚报**; ④ `HW/e2e_budget_rk3572.py` md5 `7b820c14acfaee08a218cbf85557ef0b`\
+    \ ⇒ **判据权威源没被偷改**; ⑤ `--selftest` **rc=0** (护栏 ⑧⑨⑩ 全过: TX 值型钉死 1.800/7.776 · 链路参数钉死 4-lane@2.0Gbps×0.8 · 默认路径带 TX); ⑥ ★**算账独立复核 (main 自己算)**: 1920×1080×24×60 = 2985.984 Mbps (文档 2986 ✔) · 800×1280×24×60\
+    \ = 1474.560 (文档 1475 ✔) · TX 下限 2986/60/6400 = 7.7760ms (文档 7.776 ✔) · 4-lane@2.5Gbps raw 占比 29.9% (文档 29.9% ✔) · 脚本口径 6400Mbps 占比 46.7% (文档 46.7% ✔) · 旧值倍数 2986/373 = 8.01× (「偏小 8.0×」成立 ✔) · @90Hz\
+    \ = 4479.0 (文档 4480 ✔ 舍入); ⑦ ★**结论方向未变** (4-lane 占比 29.9%/46.7% ⇒ 「demo 不需要 DSC」仍成立) ⇒ ★**本单修的是「数字错 + 依据虚」, 不是「结论错」** ⇒ 签字成立; ⑧ ★**⑤ `SW/DEMO_OD_PIPELINE_SPEC.md:322` 未改 = scope 内的正确取舍** (它在 sw-lead\
+    \ 分片 ⇒ ★**main 不代写别人的分片** · MEMORY.md:3138) ⇒ ★**main 已另开 ISS-188 给 sw-lead**, 不在本单偷改; ★**遗留提醒 (owner 已如实报出, main 认可)**: `config/agents/main/MEMORY.md:1979` 仍写 373 Mbps (main 自己的文件) + `state/_demo_hw_scheme_landing.py:24/40/70`\
+    \ 留 373 三处 (★**重跑它会把旧数灌回 tracker, 风险最高★) ⇒ ★**已登记进 ISS-188 一并处理**."
   dispatched_at: 2026-11-11 07:5x (项目总工手工解冻派活)
   fixed_at: '2026-11-11'
 - id: ISS-187
@@ -6404,4 +6416,54 @@ issues:
     \ ⇒ 以前改脚本的人可以把 TX 物理下限改小而 7 条护栏全绿; 现在 ⑧⑨⑩ 钉的是**已发布字面值** ⇒ M2 (默认值踢 TX) / M3 (lane 速率偷偷加倍) **现在会真变红** ⇒ ★**老板那条生死线数字 (合成段只剩 2.32ms) 不会再被悄悄改宽**。\n【★遗留 (sw-lead 如实报的「未做」项, 不藏)】① DSI payload 8× 口径差 6 处\
     \ (373/246 Mbps ⇒ 真值 2986/1475 Mbps) ⇒ ★**归 hw-lead 的分片, 已在 ISS-186 承接** (★本轮未派: ISS-181 在飞 ⇒ 一个 agent 同时只允许一个写会话★) ② ★**M8 变异体 (`T_PANEL` 5.00→4.00) selftest 仍全绿** ⇒ ★**基线就有的性质, 非本单引入** ⇒ 建议后续加护栏⑪。\n\
     【边界】★**没有改 §0 锁死表** · ★**没有改任何已发布数字** (stdout 逐字节已验) · ★**没有动其他 agent 的分片** · ★**没有发任何邮件/外联** · ★**没有下采购单**。"
+  dispatched_at: '2026-11-11'
+- id: ISS-188
+  title: '★★DSI payload 8× 口径差 【第 6 处·收尾】: `SW/DEMO_OD_PIPELINE_SPEC.md:322` 仍写 373 Mbps (实为 2986) ⇒ 同一份 spec 里两处口径打架 ⇒ 下一个读它的人会拿到错数'
+  severity: medium
+  source_blocker: SW-B14
+  source_agent: main
+  desc: '★**这是 ISS-186 的尾巴 (第 6 处)**: ISS-186 (owner=hw-lead) 修完了 ①②③④⑥ 五处 (HW/DISPLAY_MODULE_DECISION.md:53 / HW/STEP1_PARTS_SPEC.md:375 / HW/DEMO_BOARD_HW_DECISION.md:65 / HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md:398
+    / state/outbox/visionox_display_inquiry.md:29) ⇒ ★**唯一漏掉的就是这处**。
+
+    ★**为什么它没被 hw-lead 改**: 它在 **sw-lead 分片** ⇒ ★**main 不代写别人的分片** (MEMORY.md:3138) ⇒ ★**本单就是 main 为它开的**。
+
+    ★**现在的错状 (main 实测)**: `SW/DEMO_OD_PIPELINE_SPEC.md:322` 写 「1920×1080@60 RGB888 ≈ **373 Mbps payload** (@90Hz ≈ 560 Mbps)」 ⇒ ★**偏小 8.01×** (2986/373) ⇒ ★**而它引用的 `HW/DISPLAY_MODULE_DECISION.md §D3` 已经改成
+    2986** ⇒ ★**同一份 spec 里两处口径打架** ⇒ 读 spec 的人会拿到 373 ⇒ ★**若有人拿它反推 TX 物理下限, 7.776ms 会塌成 ~0.97ms** ⇒ ★**ISS-137 rev0 那个「显示 TX 从账上消失」的坑会原样回来, 而且更隐蔽**。
+
+    ★**要改**: 373 → **2986** · 560 → **4480** (@90Hz payload = 1920×1080×24×90 = 4479.0) ⇒ 依据与 ISS-186 那 5 处同口径 (payload = 宽×高×24×60, 与 `HW/e2e_budget_rk3572.py` §⑥ 一致 ⇒ TX 物理下限 7.776ms = 2986/60/6400)。
+
+    ★**顺带两处同源残留 (main 自己的, 一并处理 ⇒ 都在 main 侧, 不算本单)**: ① `config/agents/main/MEMORY.md:1979` 仍写 373 Mbps (main 自己的文件) ⇒ ② ★**`state/_demo_hw_scheme_landing.py:24/40/70` 留 373 三处** ⇒ ★**★风险最高的是它: 那个脚本是落账器,
+    重跑它会把旧数灌回 PROJECT_TRACKER.md** ⇒ ★**必须改, 否则前面所有订正会被一次重跑抹掉**。
+
+    ★**验收**: ① `grep -rn ''373 Mbps\|246 Mbps'' HW/ SW/ state/outbox/ config/ state/_demo_hw_scheme_landing.py` ⇒ **0 命中**; ② `SW/DEMO_OD_PIPELINE_SPEC.md:322` 与 `HW/DISPLAY_MODULE_DECISION.md:53` 口径一致
+    (都是 2986 / 4480); ③ ★**不许重跑 `state/_demo_hw_scheme_landing.py`** (它会把旧数灌回 tracker ⇒ 要改脚本本体, 不是重跑); ④ 不许改 `PROJECT_TRACKER.md §0` 锁死表; 不许发邮件 (询价函那处改完仍只是草稿)。'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-11-11'
+  due: '2026-11-13'
+  status: fixing
+  external: false
+  need_keys: []
+  task_brief: '目标: 闭环 ISS-188 —— ★**把 DSI payload 8× 口径差的第 6 处补齐** (`SW/DEMO_OD_PIPELINE_SPEC.md:322` 仍写 373 Mbps, 实为 2986) ⇒ ★**同一份 spec 里两处口径打架** (它引用的 `HW/DISPLAY_MODULE_DECISION.md §D3` 已改成 2986)。
+
+    输出: ① ★**你只改 `SW/DEMO_OD_PIPELINE_SPEC.md:322` 一处**: 373 → **2986** · @90Hz 560 → **4480** (@90Hz payload = 1920×1080×24×90 = 4479.0) ⇒ 依据与 ISS-186 那 5 处同口径 (payload = 宽×高×24×60, 与 `HW/e2e_budget_rk3572.py`
+    §⑥ 一致 ⇒ TX 物理下限 7.776ms = 2986/60/6400); ② 交付报告 `HANDOFF/2026-11-11_sw-lead_ISS188_DSI_payload_第6处.md` (含 old→new 逐字串 + 自证命令实录 + 边界声明); ③ 走 `state/frag_write.py` 原子写你自己的 `state/fragments/sw.yaml` (登记这处口径已统一).
+
+    验收: ① `grep -rn ''373 Mbps\|246 Mbps'' HW/ SW/ state/outbox/ config/ state/_demo_hw_scheme_landing.py` ⇒ **0 命中**; ② `SW/DEMO_OD_PIPELINE_SPEC.md:322` 与 `HW/DISPLAY_MODULE_DECISION.md:53` 口径一致 (都是 2986
+    / 4480); ③ `python3 HW/e2e_budget_rk3572.py --selftest` ⇒ rc=0 (★**不许改那个脚本** ⇒ 它是判据的权威来源); ④ ★**不许重跑 `state/_demo_hw_scheme_landing.py`** (★它把旧数灌回 tracker ⇒ 要改脚本本体, 不是重跑).
+
+    边界: ★**不许碰 hw-lead 的分片** (那 5 处已由 ISS-186 闭环并签字) · ★**不许碰 mech-lead / main 的分片** · ★**不许改 `PROJECT_TRACKER.md §0` 锁死表** · ★**不许发邮件** (`state/outbox/visionox_display_inquiry.md` 那处改完仍只是草稿 ⇒ 外发一律经老板)
+    · ★**不许碰任何板子相关文件** (demo_mainboard.kicad_pcb / gen_pcb_*.py / state/.lastgood/ / /tmp 链产物).
+
+    ★**★你只需动 1 行** —— `config/agents/main/MEMORY.md:1979` 与 `state/_demo_hw_scheme_landing.py:24/40/70` 这两处 ★**在 main 侧, 由 main 自己改** ⇒ ★**你不要碰** (那是 main 的活, 不是你的分片).'
+  fix_ref: SW/DEMO_OD_PIPELINE_SPEC.md:322 · config/agents/main/MEMORY.md:1979 · state/_demo_hw_scheme_landing.py:24/40/70
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '★2026-11-11 08:3x 项目总工 (main) 开单。★**本单是 ISS-186 的尾巴** ⇒ ★**ISS-186 已于同日 08:3x 验收签字 (pass), 本单不阻塞它**。
+
+    ★**分流理由**: ① `SW/DEMO_OD_PIPELINE_SPEC.md` 在 **sw-lead 分片** ⇒ ★**main 不代写别人的分片** (MEMORY.md:3138); ② `config/agents/main/MEMORY.md` + `state/_demo_hw_scheme_landing.py` 都在 **main 侧** ⇒ ★**这两处 main 可以自己改,
+    但放进本单一起做更省一次落账** ⇒ ★**本单 owner=sw-lead, 但 main 侧那两处 main 收尾时自己改** ⇒ ★**sw-lead 只需动 `SW/DEMO_OD_PIPELINE_SPEC.md:322` 一处** ⇒ ★**workload 分工: sw-lead 1 行, main 3 处**。
+
+    ★**⚠️ 特别提醒**: `state/_demo_hw_scheme_landing.py` 是**落账器** ⇒ ★**★重跑它 = 把 373 灌回 tracker ⇒ 前面所有订正被一次重跑抹掉** ⇒ ★**必须改脚本本体, 严禁用「重跑」代替「改」**。'
   dispatched_at: '2026-11-11'

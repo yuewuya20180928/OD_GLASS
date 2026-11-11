@@ -6,6 +6,13 @@ import sys
 import yaml
 
 PROJ = '/home/yuewuya/.openclaw/workspace/projects/smart_glasses'
+# ★★★**ISS-186 口径钉死 (2026-11-11, 项目总工 main)** ★★★
+# ★**本脚本是【落账器】⇒ 重跑它 = 把它写的字串灌回 PROJECT_TRACKER.md**
+# ⇒ ★**所以这里的每一个 payload 数字都必须是对的** ⇒ ★**原来写 373 Mbps (偏小 8.0×)
+#   会把 ISS-186 订正过的 5 处全部重新灌回错数** ⇒ ★**已订正为 2986**
+# ★**口径**: payload = 宽×高×24×60 (RGB888 24bpp) ⇒ 1920×1080@60 = 2985.98 Mbps ≈ 2986 Mbps ⇒ 与 `HW/e2e_budget_rk3572.py` §⑥ 同口径 (TX 物理下限 7.776ms = 2986/60/6400) ⇒ ★**ISS-186 订正**
+# ★**不许重跑本脚本**: 它是 2026-11-02 的一次性落账器 (无幂等护栏) ⇒ 重跑会重复追加
+
 sys.path.insert(0, f'{PROJ}/state')
 from frag_write import update_fragment
 
@@ -21,7 +28,7 @@ line44 = s[i:end]
 add44 = (" | ★★**2026-11-02 19:4x 方案定案** (`HW/DEMO_BOARD_HW_DECISION.md`): "
  "①**主控 = RK3572 核心板 (SOM) 焊/插在主板上** ⇒ 主板**不碰 SoC 球位图** (★**TBD-01 对 demo 板不再是阻塞**) "
  "②**sensor 模组 (IMX415) ↔ 主板 = 板内 FPC 座 0.5mm/24p, 2-lane CSI (MIPI 收端 D2/D3 预留 DNP, 原网表即此形态)** "
- "③**屏幕模组 (视涯 0.49\" + 驱动板) ↔ 主板 = 板内 FPC 座 0.5mm/20p, 4-lane DSI (373Mbps 负载, demo 不需要 DSC)** "
+ "③**屏幕模组 (视涯 0.49\" + 驱动板) ↔ 主板 = 板内 FPC 座 0.5mm/20p, 4-lane DSI (2986Mbps 负载, demo 不需要 DSC)** "
  "④**I2C 分离**: camera=I2C_A, display=I2C_B ⑤**demo 直接 USB-C 5V 供电, 不装电池/不上充电链** (充电链属整机阶段的镜框充电板) "
  "⑥**Step1 = 用公开 SBC (Forlinx OK3572-C 等) 当载体, 零 PCB 先跑链路; Step2 = 自研主板承接产品形态** "
  "⑦**厂家专属信息全部写进采购硬判据** (camera 模组随货给 1080p60 寄存器表/AC 耦合是否内置/供电; 屏模组随货给 init code + DSI 时序 + DDC 地址) ⇒ ★**不用发任何问询函**")
@@ -37,7 +44,7 @@ sec = """#### (1.61) ★★★★ 2026-11-02 19:4x: **demo 硬件方案定案** 
 |---|---|---|
 | **sensor 和主板怎么连** | ★**sensor 模组 (IMX415+镜头+支架) 带 0.5mm/24p FPC 出线 ↔ 主板板内 FPC 座**; **2-lane CSI** (1080p60 RAW10 = 1.244Gbps ⇒ 2 lane @700Mbps/lane 够) + MCLK + SCCB + RESET + 3 轨电源 + GND; AC 耦合**优先模组内置**(写进采购判据), 主板侧位保留 | 原网表**本来就是 2-lane 必装 + D2/D3 预留 DNP** ⇒ 决策与网表一致, 无需改; IMX415 数据来源 10/10 (零移植零自研 tuning) |
 | **主控芯片在主板上怎么放** | ★**不放裸芯片 ⇒ 用 RK3572 核心板 (SOM) 焊/插在主板上**; 布局: SOM 居中偏一侧、散热面朝下导热垫、**camera/display 两个 FPC 座放在 SOM 同侧或相邻侧** ⇒ MIPI 差分走线短直 ≤60mm、不跨分割、100Ω 差分; ★**主板因此完全绕开 SoC 球位图 ⇒ TBD-01 对 demo 板不再是阻塞** | RK3572 球位图官方未到; ★**RK357x 核心板/载板公开有货且公开原理图** (Forlinx OK3572-C / ArmSoM RK3576 / DFRobot) ⇒ 走开源渠道, 不用发问询函 |
-| **屏幕模组和主板怎么连** | ★**视涯 0.49" 1920×1080 面板 + 驱动板 = 一个屏模组, 带 0.5mm/20p FPC 出线 ↔ 主板板内 FPC 座**; **4-lane DSI** (1920×1080@60 RGB888 ≈ 373Mbps ⇒ 4-lane 绰绰有余, **demo 不需要 DSC**) + DDC + 3.3V/5V + EN + GND; ★**init code + DSI 时序 + DDC 地址 = 采购硬判据 (随货必须给) ⇒ 主板侧只需加一个 panel 节点 (公开框架) ⇒ 不用发问询函** | 带宽账; 老板 19:25③ + 规则④ |
+| **屏幕模组和主板怎么连** | ★**视涯 0.49" 1920×1080 面板 + 驱动板 = 一个屏模组, 带 0.5mm/20p FPC 出线 ↔ 主板板内 FPC 座**; **4-lane DSI** (1920×1080@60 RGB888 ≈ 2986Mbps ⇒ 4-lane 绰绰有余, **demo 不需要 DSC**) + DDC + 3.3V/5V + EN + GND; ★**init code + DSI 时序 + DDC 地址 = 采购硬判据 (随货必须给) ⇒ 主板侧只需加一个 panel 节点 (公开框架) ⇒ 不用发问询函** | 带宽账; 老板 19:25③ + 规则④ |
 
 **★ 主板最小集 (demo)**: SOM + USB-C 5V 输入 + 3.3V + 三路 sensor/panel LDO + **camera FPC 座 (0.5mm 24p)** + **display FPC 座 (0.5mm 20p)** + I2C_A/I2C_B + 调试 (USB-UART + JTAG) + BOOT/RESET + LED + (DNP) 充电位。
 
@@ -67,7 +74,7 @@ i['note'] = (i.get('note') or '') + (
     " ★★**2026-11-02 19:4x 项目总工已定案并落网表** (老板 19:35「最高优先级是敲定硬件方案」) ⇒ 三个问题都有答案: "
     "①sensor 模组 ↔ 主板 = **板内 FPC 座 0.5mm/24p + 2-lane CSI** (原网表即 2-lane 必装 + D2/D3 预留 ⇒ 无需改); "
     "②**主控用 RK3572 核心板 (SOM) 焊/插主板** ⇒ 主板不碰 SoC 球位图 ⇒ ★**TBD-01 对 demo 板不再阻塞**; "
-    "③屏幕模组 (视涯 0.49\" + 驱动板) ↔ 主板 = **板内 FPC 座 0.5mm/20p + 4-lane DSI** (373Mbps ⇒ 不需 DSC), "
+    "③屏幕模组 (视涯 0.49\" + 驱动板) ↔ 主板 = **板内 FPC 座 0.5mm/20p + 4-lane DSI** (2986Mbps ⇒ 不需 DSC), "
     "**init code/时序 = 采购硬判据** ⇒ 不用发问询函。"
     "★**网表已同步并全绿**: gen_netlist / gen_kicad_net / gen_netlist_pins / gen_bom rc=0; check_netlist 31 条全过 (14 条换成新口径); check_kicad_net 5 条全过; gate_check rc=0。"
     "★**留给 Step2 的尾巴**: FPC 具体料号/针数最终确认 (现网表仍用 40p/16p 旧针位, 多余脚标 NC/预留) + 三条 sensor 轨按 IMX415 重核 (ISS-150) + SOM 引脚定义来源 (公开渠道)。")

@@ -251,6 +251,13 @@ def main() -> int:
     rc_ao, out_ao, err_ao = run_sys("compare_arm_official.py", "--self-test")
     ao_out_n = len((out_ao or "").strip().splitlines())
     ao_ok = _selftest_ok(rc_ao, out_ao)
+    # ★★2026-11-11 08:5x 【新闸也要被守卫 (★承"守卫者也要被守卫"那条★)】★★
+    #   ★**margin_sweep_gate** = ★**"unc 变少 ≠ 板子更好" 的机器闸** (★判据仍是名单制·唯一实现★)
+    #   ⇒ ★**它的自测也必须挂在巡检上 ⇒ 不许只靠人记得手跑★**
+    #   ★★**只跑 --self-test-fast (★纯函数那三条·不跑 fresh DRC·不拖慢巡检★)★★
+    rc_mg, out_mg, err_mg = run_sys("margin_sweep_gate.py", "--self-test-fast")
+    mg_out_n = len((out_mg or "").strip().splitlines())
+    mg_ok = _selftest_ok(rc_mg, out_mg)
 
     # 2) gate
     rc_g, gate = jrun("gate_check.py")
@@ -274,6 +281,10 @@ def main() -> int:
     # ★★2026-11-06 23:4x: ★**两个自测通过时也要打印可见行** (★原先"静默通过" ⇒ 掉线了报告看不出来)
     print(f"{'✅' if dt_ok else '❌'} decision_truth --self-test rc={rc_dt} (输出 {dt_out_n} 行)")
     print(f"{'✅' if ao_ok else '❌'} compare_arm_official --self-test rc={rc_ao} (输出 {ao_out_n} 行)")
+    print(f"{'✅' if mg_ok else '❌'} margin_sweep_gate --self-test-fast rc={rc_mg} (输出 {mg_out_n} 行)")
+    if not mg_ok:
+        problems.append(f"★margin_sweep_gate --self-test-fast 没过 (rc={rc_mg}, 输出 {mg_out_n} 行): "
+                        f"{(err_mg or out_mg).strip().splitlines()[-1][:160] if (err_mg or out_mg).strip() else ''}")
     if not dt_ok:
         problems.append(f"★decision_truth --self-test 没过 (rc={rc_dt}, 输出 {dt_out_n} 行): "
                         f"{(err_dt or out_dt).strip().splitlines()[-1][:160] if (err_dt or out_dt).strip() else ''}")

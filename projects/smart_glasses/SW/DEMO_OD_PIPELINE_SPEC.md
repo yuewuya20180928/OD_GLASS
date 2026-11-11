@@ -319,7 +319,7 @@ k = min(1920/1920, 1080/1200) = 0.9
 | 面板 | 视涯 (SeeYA) 0.49" **1920×1080 SiOLED** (硅基 OLED / OLEDoS) | 老板 11-02 01:12 决定 + `HW/DISPLAY_MODULE_DECISION.md` · [决策文本] |
 | 接口 | **MIPI-DSI (D-PHY) + I2C** | `state/outbox/visionox_display_inquiry.md` Q2 (待面板厂书面确认) · [待核] |
 | SoC 侧 DSI | RK3572 **原生 4-lane MIPI-DSI 1.2** (无需 DP→DSI 桥接芯片) | `HW/CHIP_SELECTION_DECISION.md` §0' / `HW/DISPLAY_SENSOR_CHAIN.md` §表 · [媒体/模组厂] ★无官方 Brief Datasheet |
-| 带宽 | 1920×1080@60 RGB888 ≈ **373 Mbps payload** (@90Hz ≈ 560 Mbps) | `HW/DISPLAY_MODULE_DECISION.md` §D3 · [推算] |
+| 带宽 | 1920×1080@60 RGB888 ≈ **2986 Mbps payload** (@90Hz ≈ 4480 Mbps) | `HW/DISPLAY_MODULE_DECISION.md` §D3 · [推算] · ★**依据 (ISS-188 订正)**: payload = 1920×1080×24×60 = 2985.98 Mbps (@90Hz = 1920×1080×24×90 = 4478.98 Mbps ⇒ 取 4480; 脚本 §⑥ 实打 4479.0, 差 1Mbps 纯显示取整, 同真值) ⇒ 与 `HW/e2e_budget_rk3572.py` §⑥ 同口径 (TX 物理下限 7.776ms = 2986 Mbps ÷ 60fps ÷ 6400 Mbps 有效带宽, 即按这个 payload 算) ⇒ 与 `HW/DISPLAY_MODULE_DECISION.md` §2.2 (ISS-186 已订正处) 口径一致 |
 | DSC | **不强制要** (4-lane D-PHY 2.5Gbps 理论可行) —— 但**须确认 RK3572 的 DSI 控制器是否支持 DSC** (面板支持 ≠ SoC 支持) | `HW/DISPLAY_MODULE_DECISION.md` §D3 · [待核] |
 | 面板单色/全彩 | ★**未定** —— 这决定"能不能用颜色区分检测类别" | `visionox_display_inquiry.md` Q1 (草稿未发) · [待核] |
 | 面板 init code / 时序 | ★**未拿到** —— 公开可得 0 (只能靠模组厂/面板厂给) | `HW/OPEN_SOURCE_AVAILABILITY.md` §4 表 · [待核] |
@@ -376,7 +376,7 @@ k = min(1920/1920, 1080/1200) = 0.9
 | 内容区 | **1728×1080** | **1440×1080** |
 | 黑边 | **左右各 96px, 上下 0** | **左右各 240px, 上下 0** |
 | 缩放实现位置 | ★**CPU/RGA 做等比 letterbox 到一块 1920×1080 buffer, 再 1:1 送 plane** (不依赖 VOP 做非等比缩放) | 同左 |
-| plane 格式 | NV12 (若 DSI 链路吃 NV12) 或 RGB888 (带宽 ×3, 373Mbps 是 RGB888 口径) | 同左 |
+| plane 格式 | NV12 (若 DSI 链路吃 NV12) 或 RGB888 (带宽 ×3, 2986Mbps 是 RGB888 口径) | 同左 |
 
 ★**为什么缩放放 CPU/RGA 而不放 VOP**: VOP 若做 1920×1200 → 1920×1080 是**非等比** (x 1.0 / y 0.9) ⇒ 会把画面**纵向压扁 1.111×** ⇒ 违反等比原则 + 框会随内容一起被压扁 (框变形) ⇒ **必须先在 CPU 侧做成等比 letterbox 的 1920×1080 画布, 再 1:1 送屏**。
 ★**[待核] RK3572 的 VOP2 是否支持缩放** —— 若支持且支持**等比缩放**, 可以省掉 CPU 侧 resize, 但**那是优化不是前提**。
