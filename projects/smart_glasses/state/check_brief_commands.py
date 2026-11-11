@@ -59,13 +59,76 @@ def _exists(rel: str) -> bool:
     return False
 
 
+# ★★**否定语境识别 (★2026-11-11 20:5x 实测第三例误报后加·★)**★
+# ★**踩坑**: ★**brief 里写"真命令 = X, 不是不存在的 Y" ⇒ Y 被当成"要执行的命令"⇒ 误报** ★
+#   ⇒ ★**实测实例 (ISS-193)**: brief 原文 = `python3 state/gen_kicad_sch.py --pin-gap   # ★真命令, 不是不存在的 state/gen_pin_reality_gap.py★`
+#   ⇒ ★**真命令 X 是存在的 (闸本身没坏) ⇒ 误报的只是【被否定的那个 Y】** ★
+# ★**⇒ 解法 = 判定【路径前面/后面紧邻的是不是否定词】 ⇒ 是 ⇒ 它是【"别用它"的说明】不是【要跑的命令】 ⇒ 跳过**
+_NEG_BEFORE = re.compile(
+    r"(不存在|不是不存在的|不是真的|没有这个|无此文件|别跑|不要跑|别用|不要用|不是这个|not\s+exist)"
+    r"[\s`'\"),;:；。、]*$", re.I)
+_NEG_AFTER = re.compile(
+    r"^[\s`'\"),;:；。、]*"
+    r"(是不存在的|不存在|没有|已删除|not\s+exist)", re.I)
+
+# ★★**"本单新建"语境识别 (★2026-11-11 21:0x 加·★第二类误报★)** ★
+# ★**踩坑**: ★**brief 合法地要求 agent 【新建一个脚本】⇒ 那个路径【本来就不存在】⇒ 闸把它当"坏命令"报出来** ★
+#   ⇒ ★**实测实例**: ISS-192 的 brief 要求新建 `MECH/iss127_h_chain_check.py` (★交卷时它还不存在★)
+#     ⇒ ★**闸扫到它 ⇒ 误报 ⇒ 下轮 cron 会以为这条 brief 有病 ⇒ 白花一轮改 brief** ★
+# ★**⇒ 解法 = brief 里【显式声明】"这个路径是本单产出" ⇒ 闸就豁免它 (★且【只豁免被声明的那几个】, 不豁免别的★) ★
+# ★**★为什么要"显式声明"而不是"猜语境"**: ★**猜 ⇒ 闸会被"只写: HW/xxx.md"这类写法误豁免真实缺失命令** ★
+#   ⇒ ★**改成【brief 里写一句"★新建★ <路径>"】⇒ ★**由 brief 作者显式背书 ⇒ 闸只认这句 ⇒ 不误伤也不漏** ★
+_CREATE_RE = re.compile(
+    r"(新建|新增|新文件|新脚本|产出|输出文件|输出路径|交付文件|交付物)")
+
+
+def _is_negated(text: str, start: int, end: int) -> bool:
+    """★这个路径是不是【被否定掉的】(⇒ 只出现在"别用它"的说明里, 不是要执行的命令)★"""
+    before = text[max(0, start - 48):start]
+    if _NEG_BEFORE.search(before):
+        return True
+    after = text[end:end + 24]
+    if _NEG_AFTER.match(after):
+        return True
+    return False
+
+
+def _line_start(text: str, pos: int) -> int:
+    nl = text.rfind("\n", 0, pos)
+    return 0 if nl < 0 else nl + 1
+
+
+def declared_outputs(text: str) -> set:
+    """★brief 里【显式声明为"本单产出"】的路径集合 (★闸豁免它们★) ★
+    ★**判据**: ★**同一行**里, 路径前面 30 字内出现【新建/新增/产出/输出文件/交付物…】⇒ 它是产出物, 不是要跑的命令** ★"""
+    outs = set()
+    for rx in (_PATH_RE, _BARE_RE):
+        for m in rx.finditer(text):
+            ls = _line_start(text, m.start(1))
+            head = text[ls:m.start(1)]
+            if len(head) > 30:
+                head = head[-30:]
+            if _CREATE_RE.search(head):
+                outs.add(m.group(1))
+    return outs
+
+
 def find_refs(text: str) -> list[str]:
+    created = declared_outputs(text)
     refs = set()
     for m in _PATH_RE.finditer(text):
+        if m.group(1) in created:
+            continue
+        if _is_negated(text, m.start(1), m.end(1)):
+            continue
         refs.add(m.group(1))
     for m in _BARE_RE.finditer(text):
         b = m.group(1)
         if b in _SKIP:
+            continue
+        if b in created:
+            continue
+        if _is_negated(text, m.start(1), m.end(1)):
             continue
         refs.add(b)
     return sorted(refs)
@@ -97,12 +160,38 @@ def self_test() -> int:
     #   模拟: 若 find_refs 恒返空 ⇒ good/bad 都 rc=0 ⇒ ② 必然红 ⇒ 断言点在 ②
     if find_refs(bad) == []:
         fails.append("③ 反向用例失效: 坏 brief 一个都没抠出来")
+    # ★★**④ 否定语境用例 (★2026-11-11 20:5x 加·★ISS-193 实测第三例误报★)**:
+    #   brief 里"真命令 = X, 不是不存在的 Y" ⇒ Y 不该被当成要执行的命令 ⇒ 不该报
+    neg = ("`python3 state/gen_kicad_sch.py --pin-gap`  ★真命令, "
+           "不是不存在的 state/gen_pin_reality_gap.py★")
+    rc4, m4 = check_text(neg, "negated")
+    if rc4 != 0:
+        fails.append("④ 否定语境被误判成坏命令 (missing=%s)" % m4)
+    # ★**⑤ 否定语境的反向用例**: ★**真命令本身不存在 ⇒ 必须照样报** (否则就是把闸拆了)
+    neg_bad = ("`python3 state/gen_pin_reality_gap.py` ★真命令, "
+               "不是不存在的 state/nonexistent_zzz.py★")
+    rc5, m5 = check_text(neg_bad, "negated-bad")
+    if rc5 != 1 or "state/gen_pin_reality_gap.py" not in m5:
+        fails.append("⑤ 否定语境下的真命令没被抓到 (rc=%s, missing=%s)" % (rc5, m5))
+    # ★★**⑥ "本单新建"语境用例 (★2026-11-11 21:0x 加·★第二类误报★)**:
+    #   brief 合法要求 agent 新建一个脚本 ⇒ 那个路径本来就不存在 ⇒ 不该报
+    create = ("★新建 `MECH/iss127_h_chain_check.py` (★交卷时它还不存在★)\n"
+              "跑 `python3 state/merge.py`")
+    rc6, m6 = check_text(create, "create")
+    if rc6 != 0:
+        fails.append("⑥ 本单新建的产物被误判成坏命令 (missing=%s)" % m6)
+    # ★**⑦ "本单新建"的反向用例**: ★**真缺失命令必须照样报** (不许因为 brief 里出现过"新建"二字就整体豁免)
+    create_bad = ("★新建 `MECH/new_check.py`\n"
+                  "跑 `python3 state/does_not_exist_qq.py`")
+    rc7, m7 = check_text(create_bad, "create-bad")
+    if rc7 != 1 or "state/does_not_exist_qq.py" not in m7:
+        fails.append("⑦ 新建语境下的真缺失命令没被抓到 (rc=%s, missing=%s)" % (rc7, m7))
     if fails:
         for f in fails:
             print("❌", f)
         print("SELFTEST FAILED")
         return 1
-    print("ALL TESTS PASS (3 条: 正常brief不误报 / 坏brief被抓 / 反向用例)")
+    print("ALL TESTS PASS (7 条: 正常brief不误报 / 坏brief被抓 / 反向用例 / 否定语境不误报 / 否定语境下真命令仍被抓 / 本单新建不误报 / 新建语境下真缺失仍被抓)")
     return 0
 
 

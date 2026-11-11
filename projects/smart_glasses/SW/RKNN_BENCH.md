@@ -470,7 +470,7 @@ python3 state/gate_check.py      # 期望 Q1 18/18
 
 | §7.2 命令 | rc | 耗时 | 干净机实际输出 (节选) |
 |---|---|---|---|
-| `probe` | **0** | 3 s | rknn-toolkit2 2.3.2 / python 3.10.20 / onnx 1.14.1 / numpy 1.26.4; 模型 sha16 `20368be665f6f59a` (台账一致 True); 节点 245 / 12 算子; 板端不在 |
+| `probe` | **0** | 3 s | ★**2026-10-29 首跑**: rknn-toolkit2 2.3.2 / python 3.10.20 / onnx 1.14.1 / numpy 1.26.4; 模型 sha16 `20368be665f6f59a` (台账一致 True); 节点 245 / 12 算子; 板端不在 ★**★2026-11-11 21:2x 复跑 (ISS-196)**: python 3.10.22 / onnx 1.16.1 / numpy 1.26.4; 模型 sha16 **`1e2c716bd16ed9d3` (台账一致 False)** —— ★**根因 = 原件 `20368be665f6f59a` 已丢失, 该路径上现在是重建复刻件 (29,365,856 B, 同血缘 245 节点/12 算子), 而台账与 `SW/tools/rknn_bench.py:124` 常量仍记原件指纹 ⇒ 重建件须登记新资产 ID, 详见 HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md §3** |
 | `e2e` | **0** | 1 s | 模式A 达标需 NPU ≤ 20.4 ms; 模式B age=1 需 NPU ≤ 10.67 ms; 三档候选 56.99/67.01 · 54.98/67.01 · 48.47/50.34 ms |
 | `calib` | **0** | 2 s | 100 张 → `/tmp/rknn_bench/calib` (640×640 黑边) + `dataset.txt` |
 | `convert` | **0** | 39 s | 日志 `[dep] ⚠ …⇒ 自动先跑 calib 步`; 产物 **10.09 MiB**; load 0.22 s / build 35.6 s |

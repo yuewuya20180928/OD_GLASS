@@ -1174,6 +1174,36 @@ answers:
   value: duty=10%(f=1s/10s) mtbf=按需触发档 P=镜腿内发热量 待机B=0.127/0.147W→46/53mAh
   ref: HANDOFF/2026-11-01_sw-lead_周更新.md#B1-1+#B4-1 ; SW/POWER_STATE_SEMANTICS.md#6+#6.1 ; MECH/MECH_BUDGET.md#2.3
     ; HW/RELIABILITY_DESIGN.md#B9
+- key: demo_od_p0_1_rk3572_target
+  to: main
+  value: '【实测·2026-11-11 21:2x·sw-lead】结论: rk3572 不是 rknn-toolkit2 的合法 target_platform ⇒ need 的前提成立, 但
+    need 里写的核法本身跑不通, 已换核法。① 原核法 (python -c from rknn.api import RKNN; print(RKNN.RKNN_TARGET_PLATFORM))
+    必崩: AttributeError: type object RKNN has no attribute RKNN_TARGET_PLATFORM (该属性根本不存在)。② 真核法 A: grep
+    -n currently support ~/miniconda3/envs/rknn/lib/python3.10/site-packages/rknn/api/rknn.py ⇒ 支持清单在第
+    88-89 行, 内容 = rv1103 / rv1103b / rv1106 / rv1106b / rv1126b / rk2118 / rk3562 / rk3566 / rk3568 /
+    rk3576 / rk3588 (共 11 个, 无 rk3572)。③ 真核法 B: grep -rl rk3572 ~/miniconda3/envs/rknn/lib/python3.10/site-packages/rknn/
+    ⇒ 0 命中 (grep rc=1)。④ [官方] airockchip/rknn-toolkit2 README 的 Support Platform 清单 (最新 v2.5.0) 同样无 RK3572
+    ⇒ 不存在升级工具链就有 rk3572 的路 ⇒ RK3572 上只能用 target_platform=rk3576 转 (同代 RKNPU v2; RK3572 NPU 4 TOPS [官方·Rockchip
+    发布稿经 Forlinx/LinuxGizmos 转述] vs RK3576 6 TOPS ⇒ NPU 耗时会变长 [推算], 板端须实测)。⇒ 后果: ISS-145 的 M1 (直接复用 A7S
+    的 .rknn, 零转换) 不成立; 且 [实测] 本机 find / -xdev -name *.rknn = 0 命中 (连产物都不在) ⇒ M1 的零转换优势归零; M2 的 PC 侧其实已做完
+    (yolov5n F1 0.2927 实测) ⇒ 两条路卡在同一块能跑的 RK3572 板 ([实测] Radxa 192.168.2.5 ping 2 包 100% 丢包 + mDNS 不解析;
+    公开替代 Forlinx OK3572-C 官方站在售但镜像标 R&D)。★细节见 HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md §1
+    与 §4。'
+  ref: HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md §1/§4 (ISS-196)
+- key: demo_od_p0_3_build_env
+  to: main
+  value: '【实测·2026-11-11 21:2x·sw-lead】★这条 need 的前提已被推翻 ⇒ 应回答后退休 (内容已过期)。need 原文说本机缺 RKNN 工具链/源 ONNX/100
+    张校准集/.rknn 产物 (实测 ~/Public/radxa_yolo 不存在, conda envs 空, 无 *.onnx/*.rknn) ⇒ 本机实测现状 (2026-11-11 21:2x,
+    口径=本机文件系统 stat/ls/sha256sum): ① 工具链在: ~/miniconda3/envs/rknn/lib/python3.10/site-packages/rknn_toolkit2-2.3.2.dist-info
+    (Version 2.3.2, commit bd980be9; python 3.10.22 / onnx 1.16.1 / numpy 1.26.4)。② 源 ONNX 在: yolov5s-sim.onnx
+    29,365,856 B sha16 1e2c716bd16ed9d3 与 yolov5n-sim.onnx 7,931,774 B sha16 dfb5d060ca36fc27 (mtime 2026-11-02
+    20:41:00)。③ 校准集在: ~/Public/radxa_yolo/calib_yolov5_100/ 恰好 100 张 jpg, 但其中 1 张 0 字节 (000000010583.jpg)
+    ⇒ 实跑只吃 99 张 (静默掉样本, 不报错, 见 SW/MODEL_RELEASE_LIST.md §4.2)。④ COCO 在: /work/object_detection/data/coco/raw/val2017/
+    5000 张 + annotations/instances_val2017.json 19,987,840 B。⑤ 唯一真缺口 = .rknn 产物没留存 ([实测] find / -xdev
+    -name *.rknn = 0 命中, /tmp/rknn_bench 不存在) ⇒ 但这不是环境问题, 重跑一次 convert 即可 (实测 39 s, 产物 10.09 MiB)。⇒ 结论:
+    构建环境已恢复 ⇒ 本 need 退休, 不要继续当活账挂着。★别与另一件事混: 模型 sha 台账漂移是另一码事 (原件 20368be665f6f59a 已丢失, 路径上是重建复刻件且未登记新资产
+    ID), 见同一份事实页 §3, 与本条的环境问题无关。'
+  ref: HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md §2 (ISS-196)
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -1627,14 +1657,25 @@ interface_claims:
   ref: HANDOFF/2026-11-01_sw-lead_周更新.md#B4-1 ; HW/RELIABILITY_DESIGN.md#B9 ; MECH/MECH_BUDGET.md#2.3
 - key: rknn_target_platform
   value: rk3576_for_rk3572
-  note: '★★2026-11-02 20:3x 实测 (ISS-147): **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2
-    与最新 2.5.0 都抛 ValueError; rknn/api/rknn.py 与编译后 .so 里 rk3572 命中 0; 官方 Support Platform 无 RK3572) ⇒
-    **不存在升级 toolkit 就有 rk3572 的路** ⇒ RK3572 上只能用 `target_platform=''rk3576''` 转 (同代 RKNPU v2, 算力不等 4 vs
-    6 TOPS ⇒ [推算], 板端须实测) ⇒ ISS-145 的 M1「零转换复用 A7S 的 .rknn」不成立, 必须重转。★★**ISS-155 已钉 (2026-11-02)**: 板端验证判据三条
-    = ①板端 acc 能跑完 ②精度不塌 (F1 与 §1.4 同量级) ③NPU 耗时与 HW/e2e_budget_rk3572.py 预算对得上; ★**卡点 = Radxa A7S 不可达
-    ⇒ 需另取一块能跑的 RK357x 板** (ISS-151 清单, 与 demo Step1 载板合流)。★**规格侧已同步**: SW/DEMO_OD_PIPELINE_SPEC.md §0/§1.4/§2.1/§2.3/§6.2
-    凡写 "rk3572 target" 的表述一律改成 rk3576 + 注明"算力不等 (4 vs 6 TOPS) ⇒ 板端待验"。'
-  ref: ISS-147 + ISS-155 + SW/RKNN_BUILD_ENV_RECOVERY.md §2 · SW/DEMO_OD_PIPELINE_SPEC.md §2.3
+  note: '★★ISS-196 复测订正 (2026-11-11 21:2x, sw-lead; 证据分级逐句标)。【实测】**rk3572 不是 rknn-toolkit2 的合法 target_platform**:
+    本机 2.3.2 支持清单 rknn/api/rknn.py:88-89 = rv1103/rv1103b/rv1106/rv1106b/rv1126b/rk2118/rk3562/rk3566/rk3568/rk3576/rk3588
+    (共 11 个, 无 rk3572); 全库 grep -rl rk3572 site-packages/rknn/ = 0 命中; 且 RKNN.RKNN_TARGET_PLATFORM 属性根本不存在
+    (AttributeError) ⇒ need 里写的核法跑不通, 已换核法。【官方】airockchip/rknn-toolkit2 README 的 Support Platform 清单 (最新
+    v2.5.0) 同样无 RK3572 ⇒ 不存在升级工具链就有 rk3572 的路 ⇒ RK3572 上只能用 target_platform=rk3576 转 (同代 RKNPU v2; RK3572
+    NPU 4 TOPS [官方·Rockchip 发布稿经 Forlinx/LinuxGizmos 转述] vs RK3576 6 TOPS ⇒ NPU 耗时会变长 [推算], 板端须实测)。⇒ 后果:
+    **ISS-145 的 M1 (直接复用 A7S 的 .rknn, 零转换) 不成立**; 【实测】本机 find / -xdev -name *.rknn = 0 命中 (连产物都不在, /tmp/rknn_bench
+    不存在) ⇒ M1 的零转换优势归零; M2 的 PC 侧其实已做完 (yolov5n F1 0.2927 实测) ⇒ 两条路卡在同一块能跑的 RK3572 板 (【实测】Radxa 192.168.2.5
+    ping 2 包 100% 丢包 + mDNS 不解析)。★★ISS-155 板端三条判据 (板端 acc 跑完/精度不塌/NPU 耗时对预算) 一条未跑 = 【0数据】; 公开替代载体 Forlinx
+    OK3572-C + FET3572-C 官方站在售 (无需外发, 合老板 19:31 一律不发政策) 但其镜像 2026-06 公告标 R&D + 无主线内核 [官方·sbcwiki]。★★ISS-196
+    顺带实测: **构建环境已恢复** (工具链 2.3.2 / yolov5s ONNX 29,365,856 B sha16 1e2c716bd16ed9d3 / yolov5n 7,931,774
+    B sha16 dfb5d060ca36fc27 / 校准集 100 张 (其中 1 张 0 字节 ⇒ 实跑吃 99 张) / COCO val2017 5000 张 + instances_val2017.json
+    19,987,840 B) ⇒ 原 need demo_od_p0_3_build_env 的前提已被推翻, 应回答后退休。★★ISS-196 顺带查出**台账漂移根因**: 原件 20368be665f6f59a
+    已丢失 (全盘 0 命中), 该路径上现在是重建复刻件 (同血缘 245 节点/12 算子, 体积差 28,150 B) ⇒ 台账条目与 SW/tools/rknn_bench.py:124 的
+    ONNX_MODEL_SHA16 常量仍记原件指纹 ⇒ 重建件须登记新资产 ID (SW/RKNN_BUILD_ENV_RECOVERY.md §5 N10/N17 已写明但至今未执行) + 工具常量要跟着改
+    (★两处都不在 sw-lead 本单写入边界内 ⇒ 已交 main)。★注: probe 的比对源是工具硬编码常量, 不是 SW/RKNN_BENCH.md ⇒ 改文档对 probe 输出零影响
+    (SW/RKNN_BENCH.md:473 本单已订正成实测真值)。'
+  ref: ISS-147 + ISS-155 + ISS-196 (2026-11-11 复测) + SW/RKNN_BUILD_ENV_RECOVERY.md §2/§3.2/§5 N10-N17
+    + SW/DEMO_OD_PIPELINE_SPEC.md §2.3 + HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md §1/§3/§4
 - key: demo_model_choice
   value: yolov5n
   note: '★demo 第一版定 **yolov5n@640 INT8**: 实测同图集 (COCO val2017 前 300 张 + 同一批 100 张校准集) yolov5s F1 0.3017

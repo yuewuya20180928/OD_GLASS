@@ -33,6 +33,9 @@ PROJ = os.path.dirname(HERE)
 FULL = "--full" in sys.argv
 
 CSV = os.path.join(PROJ, "HW", "netlist_v1.csv")
+# ★★ BOM 的**真源** = 脚级真值表 (★2026-11-11 20:2x: BOM 改成从脚级表按器件聚合★)
+# ★★ (旧版 BOM 读的是导线级表 ⇒ 带着 75 个 RAIL_*/NET_* 伪器件 ⇒ 位号集合永不对★)
+PINS_CSV = os.path.join(PROJ, "HW", "netlist_v1_pins.csv")
 SCH = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_sch")
 PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
 BOM = os.path.join(PROJ, "HW", "BOM_v1.csv")
@@ -166,18 +169,26 @@ def check_sch_src_pack():
 
 
 def check_bom_against_netlist():
-    """★只读校验 BOM 与网表一致 (不许重生成 —— 门禁只读)"""
+    """★只读校验 BOM 与**其真源**一致 (不许重生成 —— 门禁只读)
+
+    ★★**口径 (2026-11-11 20:2x, ISS-193)**: BOM 现在由 `state/gen_bom.py` 从**脚级真值表**
+    `HW/netlist_v1_pins.csv` **按器件聚合**生成 (★584 脚 ⇒ 218 器件 / 0 伪器件 / 含 J_SOM_P2+P4★)
+    ⇒ 本校验的**对照源必须是同一张表**; 拿导线级表 `netlist_v1.csv` 比 ⇒ 必然报
+    「网表有 BOM 没有 75 个 (伪位号)」+「BOM 有网表没有 2 个 (J_SOM_P2/P4)」= **假失败** ★
+    ★★**DNP 口径 (ref 级)**: 该器件**所有脚**都标 DNP ⇒ 整器 DNP; 有任一必装 ⇒ 必装
+    (★与 `state/gen_bom.py` 的聚合口径逐字一致★) ★
+    """
     import csv as _csv
     try:
-        rows = list(_csv.DictReader(open(CSV, encoding="utf-8")))
+        rows = list(_csv.DictReader(open(PINS_CSV, encoding="utf-8")))
         brows = list(_csv.DictReader(open(BOM, encoding="utf-8")))
     except Exception as e:
-        return False, f"读不了 CSV/BOM: {e}"
+        return False, f"读不了 PINS_CSV/BOM: {e}"
     by_ref = {}
     for r in rows:
         ref = (r.get("ref") or "").strip()
         if ref:
-            by_ref.setdefault(ref, set()).add((r.get("dnp") or "").strip())
+            by_ref.setdefault(ref, set()).add((r.get("dnp") or "").strip().upper())
     net_all_dnp = {k for k, v in by_ref.items() if v == {"DNP"}}
     bom_refs = {(r.get("ref") or "").strip() for r in brows}
     net_refs = set(by_ref)
@@ -185,16 +196,21 @@ def check_bom_against_netlist():
     extra = sorted(bom_refs - net_refs)
     bom_dnp = {r.get("ref") for r in brows if (r.get("dnp") or "") == "DNP"}
     dnp_mismatch = sorted(bom_dnp ^ net_all_dnp)
-    if missing or extra or dnp_mismatch:
+    # ★伪器件不得进物料表 (★评审 R12★)
+    pseudo_in_bom = sorted(r for r in bom_refs if r.startswith("RAIL_") or r.startswith("NET_"))
+    if missing or extra or dnp_mismatch or pseudo_in_bom:
         msg = []
         if missing:
-            msg.append(f"网表有 BOM 没有 {len(missing)} 个 (例 {missing[:5]})")
+            msg.append(f"真源有 BOM 没有 {len(missing)} 个 (例 {missing[:5]})")
         if extra:
-            msg.append(f"BOM 有网表没有 {len(extra)} 个 (例 {extra[:5]})")
+            msg.append(f"BOM 有真源没有 {len(extra)} 个 (例 {extra[:5]})")
         if dnp_mismatch:
             msg.append(f"DNP 口径不一致 {len(dnp_mismatch)} 个 (例 {dnp_mismatch[:5]})")
+        if pseudo_in_bom:
+            msg.append(f"★伪器件混进物料表 {len(pseudo_in_bom)} 个 (★评审 R12★ 例 {pseudo_in_bom[:5]})")
         return False, "; ".join(msg)
-    return True, f"位号 {len(net_refs)} 个全对 · DNP {len(net_all_dnp)} 个一致"
+    return True, (f"位号 {len(net_refs)} 个全对 (★脚级真源口径★) · DNP {len(net_all_dnp)} 个一致"
+                  f" · 伪器件 0 个")
 
 
 def main():

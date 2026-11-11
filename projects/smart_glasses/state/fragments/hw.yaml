@@ -433,6 +433,15 @@ artifacts:
     订正 373Mbps -> 2986Mbps + 各补依据注 (payload = 1920×1080×24×60 = 2985.98 Mbps, 与 HW/e2e_budget_rk3572.py
     §⑥ 同口径, TX 物理下限 7.776ms = 2986÷60÷6400); ★结论方向一字未改 (仍不需要 DSC); ★自证: grep 旧值零命中 (HW/SW/state/outbox/state/_demo_hw_scheme_landing.py
     全部 rc=1) + selftest rc=0 (脚本 md5 未变) + merge 冲突 0 + 结构化断言 14 项全过'
+- path: HANDOFF/2026-11-11_hw-lead_ISS198_查找表补全.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-198 交卷: `state/gen_kicad_sch.py` 三张查找表补全 (OPN_KICAD +18 条按 ref, PREFIX_KICAD +2 条前缀 SW_/FB_)
+    ⇒ ★**`HW/PCB/PIN_REALITY_GAP.md` 的 `[0数据]` 器件级 29 → 3 (★剩下的 3 个全是非器件: CHG_GND_STAR 汇流位 / X1 晶振焊盘位
+    / BT_432243 电池座待选型 ⇒ 一个脚数都没编★)** ⇒ ★**26 个落库脚数全部来自本机 KiCad 官方库符号实测 (pin 计数, 且逐条与板文件封装焊盘数互校; 全部符号文件
+    pins>0 且无 (extends ⇒ 不踩假数坑★)**; ★**板/原理图/网表/BOM md5 一字未变 (611b869e / c78f9912 / 4814617e)★**; 验收 check_sch_pinfull
+    rc=0 (K=0) + check_sch_erc rc=0 + merge rc=0 (冲突 0) + gate_check rc=0 (Q1 18/18)★'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -1071,6 +1080,17 @@ needs_from:
   since: '2026-11-06'
   waiting_on: agent
   due: '2026-11-09'
+- key: iss198_pkg_vs_device_mismatch_5
+  to: main
+  item: '★**补表时撞出 5 条封装/器件不自洽 (★[实测] 板文件 + [官方] KiCad 库; 全是 DNP/待选型件 ⇒ 首版不贴 ⇒ 没炸板, 但量产选型前必须核★)**: (1)
+    `U_SUPV` 板文件封装只落 4 焊盘 (1,4,5,6) ⇒ TPS3808G01 类 = SOT-23-6 (1=RESET,2=GND,3=MR,4=CT,5=SENSE,6=VDD)
+    ⇒ ★**缺 GND(2) 与 MR(3)**★ ⇒ 装上也没地 (转必装 = 改板级); (2) `U_LDO_S28` 板文件只落 4 焊盘 (1,2,4,5) ⇒ TPS7A20-28 =
+    X2SON-5 ⇒ ★**缺 EN(3)**★ (转必装 = 改板级); (3) `Q1`/`Q2` BOM footprint 名 = SON-8 Q3 3.3x3.3mm, 但板文件封装只画
+    5 焊盘 (2,3,4,5,6) 且外形 4.94x5.0mm ⇒ 与 SON-8 不自洽; (4) `D_ESD_USB_D` BOM value 写「USB 2.0 双通道」但板上只有 1 根
+    I/O + GND (2 焊盘) ⇒ 双通道阵列 (SOT-23-3) 装不下; (5) `U_BATPROT` 板文件焊盘编号 2..7 vs BQ2970 (SOT-23-6) 实际 1..6
+    ⇒ 编号不对齐。★**本单只许改三张查找表 ⇒ 我一条没改, 只报给 main 裁决 (★改板 = 2-4 周 + 板费, 别在没有选型结论前动板★)★** ★证据: `HW/PCB/PIN_REALITY_GAP.md`
+    §2 的依据列 (2026-11-11 23:5x 重跑生成) + `HANDOFF/2026-11-11_hw-lead_ISS198_查找表补全.md` §6★'
+  since: '2026-11-11'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead

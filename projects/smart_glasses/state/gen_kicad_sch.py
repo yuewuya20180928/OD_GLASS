@@ -802,6 +802,29 @@ OPN_KICAD = {
     'U_TEMP':       ('Sensor_Temperature.kicad_symdir/TMP102xxDRL.kicad_sym', 'BOM opn=TI TMP117 ⇒ KiCad 官方库 Sensor_Temperature:TMP117xxDRV (extends TMP102xxDRL)'),
     'U_CHG':        ('Battery_Management.kicad_symdir/BQ25895RTW.kicad_sym', 'BOM opn=BQ25896RTWR ⇒ KiCad 官方库 Battery_Management:BQ25895RTW'),
     'J_TYPE_C':     ('Connector.kicad_symdir/USB_C_Receptacle_USB2.0_16P.kicad_sym', 'BOM opn=GCT USB4105 (USB2.0 16P) ⇒ KiCad 官方库 Connector:USB_C_Receptacle_USB2.0_16P (16 脚 + shield)'),
+
+    # ── 2026-11-11 ISS-198 补表 (hw-lead) ──
+    # ★**补表纪律 (★本批 18 条全部逐条实测过★)**: ① 符号文件里 (pin ... (at ⇒ pins>0 【实测】;
+    #   ② 该文件里 ★**没有 (extends★** ⇒ 不踩"继承父符号 ⇒ 自己文件 0 个 (pin 行 ⇒ 数出来 0 = 假数"的坑;
+    #   ③ 脚数 = KiCad 官方符号实测 pins 数, ★**并与板文件封装焊盘数互校**★ (不自洽的写进依据里, 上报, 不改板)
+    'Q1':         ('Transistor_FET.kicad_symdir/CSD16301Q2.kicad_sym', 'BOM footprint=SON-8 Q3 3.3x3.3mm ⇒ 本机无 CSD16406Q3 符号 ⇒ 取同厂牌同封装代理 Transistor_FET:CSD16301Q2 (Package_SON:Texas_DQK, ★实测 8 脚★) ★★板文件封装只画了 5 焊盘 (2,3,4,5,6) 且外形 4.94x5.0mm ≠ SON-8 3x3 ⇒ 封装与器件不自洽 (DNP 未装掩盖) ⇒ 见交卷报告★'),
+    'Q2':         ('Transistor_FET.kicad_symdir/CSD16301Q2.kicad_sym', 'BOM footprint=SON-8 Q3 3.3x3.3mm (同 Q1) ⇒ 本机无 CSD16406Q3 符号 ⇒ 同封装代理 Transistor_FET:CSD16301Q2 (Package_SON:Texas_DQK, ★实测 8 脚★) ★★板文件封装 5 焊盘 ≠ SON-8 ⇒ 见交卷报告★'),
+    'Q_AND':      ('Transistor_FET.kicad_symdir/Q_NMOS_GDS.kicad_sym', '板文件封装 3 焊盘 (1,2,3) ⇒ KiCad 官方库 Transistor_FET:Q_NMOS_GDS (G/D/S, ★实测 3 脚★) ★型号待选型, 脚数按封装/通用符号★'),
+    'Q_ENVC':     ('Transistor_FET.kicad_symdir/Q_NMOS_GDS.kicad_sym', '板文件封装 3 焊盘 (1,2,3) ⇒ KiCad 官方库 Transistor_FET:Q_NMOS_GDS (G/D/S, ★实测 3 脚★) ★型号待选型★'),
+    'Q_CHG_LED':  ('Transistor_FET.kicad_symdir/Q_NMOS_GDS.kicad_sym', '网表 3 脚 (镜框充电板, 不在本 PCB) ⇒ KiCad 官方库 Transistor_FET:Q_NMOS_GDS (★实测 3 脚★) ★型号待选型★'),
+    'Q_PG':       ('Transistor_FET.kicad_symdir/Q_PMOS_GDS.kicad_sym', '板文件封装 3 焊盘 (1,2,3) + value=P-MOS 高边开关 ⇒ KiCad 官方库 Transistor_FET:Q_PMOS_GDS (G/D/S, ★实测 3 脚★) ★型号待选型★'),
+    'U_BATPROT':  ('Battery_Management.kicad_symdir/BQ297xy.kicad_sym', 'BOM opn=BQ2970 (SOT-23-6) ⇒ KiCad 官方库 Battery_Management:BQ297xy (★实测 6 脚★; 板文件封装 6 焊盘 2..7 ⇒ 数量一致, ★但焊盘编号 2..7 与符号 1..6 不对齐★ ⇒ 见交卷报告)'),
+    'U_EN_SW':    ('Power_Management.kicad_symdir/AP22913CN4.kicad_sym', 'BOM opn=TPS22991RAA (UQFN-4) ⇒ 本机无 TPS22991 符号 ⇒ 取同脚数负载开关代理 Power_Management:AP22913CN4 (WLCSP-4, ★实测 4 脚★; 板文件封装 4 焊盘 1..4 ⇒ 一致)'),
+    'U_PWR_SW':   ('Power_Management.kicad_symdir/AP22913CN4.kicad_sym', 'BOM opn=TPS22991RAA (UQFN-4) ⇒ 本机无 TPS22991 符号 ⇒ 同脚数代理 Power_Management:AP22913CN4 (★实测 4 脚★; 板文件封装 4 焊盘 1..4 ⇒ 一致)'),
+    'U_SUPV':     ('Power_Supervisor.kicad_symdir/TPS3808DBV.kicad_sym', '网表 value=TPS3808G01 类 (SOT-23-6) ⇒ KiCad 官方库 Power_Supervisor:TPS3808DBV (★实测 6 脚★: 1=RESET,2=GND,3=MR,4=CT,5=SENSE,6=VDD) ★★板文件封装只落 4 焊盘 (1,4,5,6) ⇒ ★缺 GND(2) 与 MR(3)★ ⇒ 装上也跑不起来 (DNP 未装掩盖) ⇒ 见交卷报告★'),
+    'U_LDO_S28':  ('Regulator_Linear.kicad_symdir/TPS7A20xxxDQN.kicad_sym', '与已填 U_LDO_L18/L33 同族 (TPS7A20-28) ⇒ KiCad 官方库 Regulator_Linear:TPS7A20xxxDQN (★实测 5 脚★: 1=OUT,2=GND,3=EN,4=IN,5=Pad) ★★板文件封装只落 4 焊盘 (1,2,4,5) ⇒ ★缺 EN(3)★ ⇒ 见交卷报告★'),
+    'J_USB_C':    ('Connector.kicad_symdir/USB_C_Receptacle_USB2.0_16P.kicad_sym', 'BOM opn=GCT USB4105-16P (USB2.0 16P) ⇒ KiCad 官方库 Connector:USB_C_Receptacle_USB2.0_16P (★实测 17 脚★ = 16 信号 + SH; 板文件自绘 = 16 信号焊盘 + 2 个 np_thru_hole 壳体孔 ⇒ 电气脚数一致)'),
+    'D_TVS_VBUS': ('Diode.kicad_symdir/1.5KExxA.kicad_sym', 'BOM value=5V 级单向 TVS [待选型] (镜框充电板, 不在本 PCB) ⇒ KiCad 官方库 Diode:1.5KExxA (1500W 单向 TVS 族, ★实测 2 脚★) ★型号待选型; 任何 SMD 单向 TVS 都是 2 脚★'),
+    'D_ESD_CAM':  ('Power_Protection.kicad_symdir/TPD1E05U06DPY.kicad_sym', '板文件封装 2 焊盘 (1=信号, 2=GND) ⇒ KiCad 官方库 Power_Protection:TPD1E05U06DPY (X1SON-2 单通道 ESD: 1=I/O, 2=GND, ★实测 2 脚★) ★型号待选型★'),
+    'D_ESD_DEMO': ('Power_Protection.kicad_symdir/TPD1E05U06DPY.kicad_sym', '板文件封装 2 焊盘 (1=信号, 2=GND) ⇒ KiCad 官方库 Power_Protection:TPD1E05U06DPY (X1SON-2 单通道 ESD, ★实测 2 脚★) ★型号待选型★'),
+    'D_ESD_LIGHT':('Power_Protection.kicad_symdir/TPD1E05U06DPY.kicad_sym', '板文件封装 2 焊盘 (1=信号, 2=GND) ⇒ KiCad 官方库 Power_Protection:TPD1E05U06DPY (X1SON-2 单通道 ESD, ★实测 2 脚★) ★型号待选型★'),
+    'D_ESD_USB_D':('Power_Protection.kicad_symdir/TPD1E05U06DPY.kicad_sym', '板文件封装 2 焊盘 (1=USB_D_P_SRC, 2=GND) ⇒ KiCad 官方库 Power_Protection:TPD1E05U06DPY (X1SON-2 单通道 ESD, ★实测 2 脚★) ★★BOM value 写『USB 2.0 双通道』但板上只有 1 根 I/O + GND ⇒ 双通道阵列 (SOT-23-3) 装不下 ⇒ 见交卷报告★'),
+    'D_ESD_TC':   ('Power_Protection.kicad_symdir/SP0503BAHT.kicad_sym', '网表 4 脚 (3 信号 + GND; 镜框充电板, 不在本 PCB) ⇒ KiCad 官方库 Power_Protection:SP0503BAHT (SOT-143, 3 通道 TVS 阵列: 1=A, 2/3/4=K, ★实测 4 脚★) ★型号待选型★'),
 }
 # ── ③ 按前缀的通用件 (★本机 KiCad 官方库★) ──
 PREFIX_KICAD = [
@@ -809,8 +832,22 @@ PREFIX_KICAD = [
     ('R_',  'Device.kicad_symdir/R.kicad_sym',  'KiCad 官方库 Device:R'),
     ('C_',  'Device.kicad_symdir/C.kicad_sym',  'KiCad 官方库 Device:C'),
     ('L_',  'Device.kicad_symdir/L.kicad_sym',  'KiCad 官方库 Device:L'),
+    # ── 2026-11-11 ISS-198 补表 (hw-lead) ──
+    ('SW_', 'Switch.kicad_symdir/SW_Push.kicad_sym', '板文件封装 2 焊盘 (1,2) ⇒ KiCad 官方库 Switch:SW_Push (★实测 2 脚★) ★按键类通用件; ★新增非按键类 SW_* 须另立条目★'),
+    ('FB_', 'Device.kicad_symdir/FerriteBead.kicad_sym', '板文件封装 2 焊盘 (1,2) ⇒ KiCad 官方库 Device:FerriteBead (★实测 2 脚★) ★磁珠通用件; ★新增非 2 脚磁珠须另立条目★'),
 ]
 LED_KICAD = ('Device.kicad_symdir/LED.kicad_sym', 'KiCad 官方库 Device:LED')
+
+# ── ④ 非器件位 (★ISS-198 · hw-lead 2026-11-11★) ──
+# ★**为什么有这张表**: `real_pin_count()` 查不到 ⇒ 落 `[0数据]` ⇒ 但这 3 个位 ★**根本不是器件**★
+#   ⇒ 留着 `[0数据]` 是对的 (不编脚数), 但【必须】在 gap 文档里注明【非器件】, 否则会被当成"漏查/待选型"
+#   ⇒ 这张表只影响 gap 文档里的★说明文字★, ★**不影响脚数, 也不编任何脚数**★ ★★
+# ★**口径**: 单点汇流位 / 焊盘位 (不装) / 本机官方库无对应符号的待选型器件 ⇒ ★都不问原厂脚数★
+NON_DEVICE_REFS = {
+    'CHG_GND_STAR': '单点汇流位 (★net 汇流点, 不是器件★) ⇒ 脚数口径不适用',
+    'X1':           '晶振焊盘位 (★本版不装, 不是器件★) ⇒ 脚数口径不适用',
+    'BT_432243':    '电池座 (★本机 KiCad 官方库无对应符号 + BOM opn 仍是 [0数据] ⇒ 待选型★) ⇒ 脚数待型号',
+}
 
 
 def real_pin_count(ref, tbl_n):
@@ -895,6 +932,11 @@ def _gap_ctx(recs, fet, tbl_pins, n_tot, n_known, n_unknown):
             _md5_of(os.path.join(PROJ, "HW", "netlist_v1.csv")),
             _md5_of(FET_TBL))
     n_more = sum(1 for r in recs if r['real'] is not None and r['delta'] > 0)
+    # ★ISS-198: `[0数据]` 里的【非器件】(⇒ 不需要问原厂脚数) ★
+    nondev_refs = [r['ref'] for r in recs if r['real'] is None and r.get('nondev')]
+    n_nondev = len(nondev_refs)
+    need_orig_refs = [r['ref'] for r in recs if r['real'] is None and not r.get('nondev')]
+    n_need_orig = n_unknown - n_nondev
     return {
         "fet": fet, "fet_missing": miss,
         # raw (用来查表) / disp (用来显示) 分开, 免得格式化时互相串
@@ -906,6 +948,8 @@ def _gap_ctx(recs, fet, tbl_pins, n_tot, n_known, n_unknown):
         "tbl_pins": tbl_pins, "ball_used": ball_used, "som_total": som_total,
         "ball_unused": som_total - ball_used, "som_used": som_used,
         "md5s": md5s, "n_more": n_more,
+        "nondev_refs": nondev_refs, "n_nondev": n_nondev, "n_need_orig": n_need_orig,
+        "need_orig_refs": need_orig_refs,
     }
 
 
@@ -982,7 +1026,7 @@ def _gap_sec5(L, ctx):
     A("| ★**需谁做什么**★ | ★**① 老板批准外发一封问原厂的信 (★问 3 件事: ① %s 的 num=%s 到底有没有信号 "
       "② 完整球位表 (含 GND 球位该怎么分配) ③ §3 里那 %d 个 `[0数据]` 器件的真实脚数★) ⇒ "
       "★**② 硬件总工在回信后重跑 `python3 state/gen_kicad_sch.py --pin-gap` 刷新本文 ⇒ "
-      "③ 有了完整球位表才能启动老板【选项③】** ★★" % (cdisp, nraw, n_unknown))
+      "③ 有了完整球位表才能启动老板【选项③】** ★★" % (cdisp, nraw, ctx["n_need_orig"]))
     A("")
 
     # ---- 5.2 E-02: [0数据] 器件 ----
@@ -991,13 +1035,22 @@ def _gap_sec5(L, ctx):
     A("| 项 | 内容 |")
     A("|---|---|")
     A("| ★**事实 (★实测·口径见 §0★)**★ | [实测] ★**%d 个器件里, 真实脚数可查 = %d 个 · 查不到 = %d 个 "
-      "(`[0数据]`)** ⇒ ★**这 %d 个的 BOM `opn` / `footprint` 还是\"待定\" ⇒ 本机没有权威源可查** ★★"
-      % (n_tot, n_known, n_unknown, n_unknown))
+      "(`[0数据]`)** ⇒ ★**这 %d 个里 %d 个已判定为【非器件】(★%s★) ⇒ ★**真正还需要问原厂脚数的只剩 %d 个** ★★"
+      % (n_tot, n_known, n_unknown, n_unknown, ctx["n_nondev"],
+         " / ".join("`%s`" % x for x in ctx["nondev_refs"]), ctx["n_need_orig"]))
     A("| ★**为什么查不到**★ | ★**不是\"查得不够仔细\", 是\"没有源\"** ⇒ ★**§0 列的三个本机权威源 "
       "(KiCad 官方库 / `state/check_netlist_pins.py` 的 SPEC_PINS·PARTIAL_PINS / BOM 的 opn·footprint) "
-      "都答不上这 %d 个** ⇒ ★**⇒ 只能靠型号定下来之后回查官方库, 或直接问原厂** ★★" % n_unknown)
+      "都答不上这 %d 个** ⇒ ★**⇒ 只能靠型号定下来之后回查官方库, 或直接问原厂** ★★ (★**但这 %d 个里有 %d 个"
+      "本来就不是器件 ⇒ 【没脚数可查】, 不是\"查不到\"★)**" % (n_unknown, n_unknown, ctx["n_nondev"]))
     A("| ★**本轮怎么做的**★ | ★**标 `[0数据]`, 不猜、不估、不用\"同类器件一般多少脚\"去填** ⇒ "
       "★**§1 (表里多脚) 与 §2 (真实多脚) 的结论只基于那 %d 个有权威源的器件** ★★" % n_known)
+    A("| ★**ISS-198 补表后 (★实测★)**★ | ★**`state/gen_kicad_sch.py` 的 `OPN_KICAD` / `PREFIX_KICAD` 两张查找表已补全 "
+      "⇒ ★**`[0数据]` 从 29 → %d** ⇒ ★**其中 %d 个是【非器件】(★%s★) ⇒ ★**不用问原厂脚数**★; "
+      "★**真正还需要问原厂脚数的 = %d 个**%s ★★"
+      % (n_unknown, ctx["n_nondev"], " / ".join("`%s`" % x for x in ctx["nondev_refs"]),
+         ctx["n_need_orig"],
+         ("" if ctx["n_need_orig"] else
+          " ⇒ ★**⇒ E-02 这条外部依赖实际已关闭 (★不需要进那封问原厂的信★)★**")))
     A("| ★**需谁做什么**★ | ★**跟 E-01 同一封信里一起问 (★老板批准才外发★) ⇒ 回信后重跑 "
       "`python3 state/gen_kicad_sch.py --pin-gap` 自动补齐** ★★")
     A("")
@@ -1048,9 +1101,15 @@ def cmd_pin_reality_gap():
     for ref in sorted(tbl):
         t = tbl[ref]
         real, src = real_pin_count(ref, t)
+        nd = NON_DEVICE_REFS.get(ref)   # ★ISS-198: 非器件位 ⇒ 不编脚数, 只注明★
         if real is None:
             delta = '[0数据]'
-            note = '真实器件脚数本机查不到 ⇒ **[0数据]** (★不猜★); 真实脚数待型号回信后补'
+            if nd:
+                note = ('★**不是器件** (★%s★) ⇒ ★**不编脚数**★ (★留 `[0数据]` 不是漏查, 是本来就没脚数可查★)'
+                        % nd)
+                src = '★非器件★ ⇒ %s' % nd
+            else:
+                note = '真实器件脚数本机查不到 ⇒ **[0数据]** (★不猜★); 真实脚数待型号回信后补'
         else:
             delta = real - t
             if delta > 0:
@@ -1067,11 +1126,17 @@ def cmd_pin_reality_gap():
             'opn': (b.get('opn') or '').strip(),
             'footprint': (b.get('footprint') or '').strip(),
             'board': (b.get('board') or '').strip(),
+            'nondev': bool(nd),
         })
 
     n_tot = len(recs)
     n_known = sum(1 for r in recs if r['real'] is not None)
     n_unknown = n_tot - n_known
+    # ★ISS-198: `[0数据]` 里有多少是【非器件】(⇒ 不需要问原厂脚数) ★
+    nondev_refs = [r['ref'] for r in recs if r['real'] is None and r['nondev']]
+    need_orig_refs = [r['ref'] for r in recs if r['real'] is None and not r['nondev']]
+    n_nondev = len(nondev_refs)
+    n_need_orig = n_unknown - n_nondev
     n_eq = sum(1 for r in recs if r['real'] is not None and r['delta'] == 0)
     n_more = sum(1 for r in recs if r['real'] is not None and r['delta'] > 0)
     n_less = sum(1 for r in recs if r['real'] is not None and r['delta'] < 0)
@@ -1090,6 +1155,10 @@ def cmd_pin_reality_gap():
     A("> ★**2026-11-11 19:4x 订正 (main)**: ★**§5 原本是【手写进产物】的 ⇒ 任何一次 `--pin-gap` 重跑都会把它冲掉 "
       "(★实测 19:1x 就被冲掉过一次★) ⇒ ★**已搬进生成器 ⇒ 重跑不再丢★**; ★**并修掉三处交叉引用 + "
       "一个指向不存在脚本的假命令 (`state/gen_pin_reality_gap.py` → `python3 state/gen_kicad_sch.py --pin-gap`)★**  ")
+    A("> ★**2026-11-11 23:5x 补表 (ISS-198 · hw-lead)**: ★**`state/gen_kicad_sch.py` 的 `OPN_KICAD` / `PREFIX_KICAD` "
+      "两张查找表已补全 (★26 个 ref 从 `[0数据]` 落到★**本机 KiCad 官方库实测 pins 数**★ ⇒ 符号文件里 `(pin … (at` > 0 "
+      "且★**该文件没有 `(extends`★ (★不踩『继承父符号 ⇒ 自己文件 0 个 pin 行 ⇒ 数出来 0 = 假数』的坑★)) ★ "
+      "⇒ ★**`[0数据]` 从 29 → %d (★剩下的 %d 个是【非器件】: %s ⇒ 不需要问原厂脚数★)★**" % (n_unknown, n_nondev, " / ".join("`%s`" % x for x in nondev_refs)))
     A("")
     A("## 0. 口径 (★凡给出统计数必带口径★)")
     A("")
@@ -1110,6 +1179,8 @@ def cmd_pin_reality_gap():
     A("3. ★**RK3572 SOM 球位表**★ `HW/PCB/FET3572C_PIN_TABLE.csv` (★%s 球位/座★%s)"
       % ("/".join("%s=%d" % (k, v) for k, v in sorted(fet.items())), _gap_e01_ref(fet, _gap_missing(fet))))
     A("4. ★**BOM 型号**★ `HW/BOM_v1.csv` 的 `opn` / `footprint` 列 (★型号已定型 ⇒ 可回查官方库★)")
+    A("5. ★**板文件封装**★ `HW/PCB/demo_mainboard.kicad_pcb` 每器件的**焊盘数 / 焊盘编号** (★[实测]·用来互校"
+      "『符号脚数』与『封装焊盘数』是否自洽★ ⇒ 不自洽的写进依据里, ★**不改板**★)")
     A("")
     A("---")
     A("")
@@ -1152,8 +1223,13 @@ def cmd_pin_reality_gap():
         real = '[0数据]' if r['real'] is None else str(r['real'])
         delta = '[0数据]' if r['real'] is None else "%+d" % r['delta']
         src = r['src']
-        if r['opn']:
-            src = r['opn'] + " · " + src
+        if r['opn'] and not r['nondev']:
+            _opn = r['opn']
+            if _opn == '[0数据]':
+                # ★ISS-198: BOM 的 opn 也可能写 "[0数据]" (★型号未定★) ⇒ 别把它当【脚数未知】印出来
+                #   (★同一个标记在同一行里出现两次 ⇒ 读者会误以为脚数也没查到★) ⇒ 渲染成 "BOM 型号未定" ★
+                _opn = 'BOM 型号未定'
+            src = _opn + " · " + src
         A("| `%s` | %s | %d | %s | %s | %d | %s |"
           % (r['ref'], r['type'] or '-', r['tbl'], real, delta, r['dnp'], src))
     A("")
@@ -1169,6 +1245,8 @@ def cmd_pin_reality_gap():
     A("- ★**`[0数据]` = 本机查不到真实脚数** ★ ⇒ ★**型号回信后重跑 `python3 state/gen_kicad_sch.py --pin-gap` "
       "即可自动补齐** ★ (★**旧版本这里写的是 `state/gen_pin_reality_gap.py` —— 那个脚本【不存在】, "
       "照着跑必然失败 ⇒ ★**2026-11-11 19:4x 已订正★**) ★")
+    A("- ★**`[0数据]` 里现在只剩 %d 个 (★%s★) ⇒ ★**它们是【非器件】(汇流位 / 焊盘位 / 待选型电池座) ⇒ "
+      "【不编脚数】, 也不需要问原厂脚数** ★" % (n_nondev, " / ".join("`%s`" % x for x in nondev_refs)))
     A("- ★**没有改任何表** ★: `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` 一个字节都没动 "
       "(★md5 不变, 见交卷实测★)")
     A("")
@@ -1181,12 +1259,16 @@ def cmd_pin_reality_gap():
     A("## 6. ★**本轮未做/待下一轮 (★不硬凑★)**")
     A("")
     A("- ★**表里多脚的那几项** ★: 需要**原厂型号回信**才能定论 ⇒ ★**本轮不猜、不改表** ★")
-    A("- ★**`[0数据]` 的 %d 个器件** ★: BOM 里 `opn` / `footprint` 还是『待定』 ⇒ 无权威源可查 ⇒ ★**本轮标 `[0数据]`** ★" % n_unknown)
+    A("- ★**`[0数据]` 的 %d 个** ★: %d 个是【非器件】(★%s★) ⇒ 无脚数可查, ★**不编、不问原厂**★; "
+      "★**剩下 %d 个 (★%s★) 是待选型器件 ⇒ 型号定下来后回查官方库即可** ★"
+      % (n_unknown, n_nondev, " / ".join("`%s`" % x for x in nondev_refs), n_need_orig,
+         " / ".join("`%s`" % x for x in need_orig_refs)))
     A("")
     open(GAP_OUT, "w", encoding="utf-8").write("\n".join(L) + "\n")
     print("✅ 已生成 %s" % GAP_OUT)
     print("   器件 %d 个 (表侧 %d 脚, 含 DNP %d 脚)" % (n_tot, tbl_pins, dnp_pins))
-    print("   真实脚数可查 %d / 查不到 %d (标 [0数据])" % (n_known, n_unknown))
+    print("   真实脚数可查 %d / 查不到 %d (标 [0数据]; 其中非器件 %d 个: %s)"
+          % (n_known, n_unknown, n_nondev, " / ".join(nondev_refs)))
     print("   脚数一致 %d / 真实多脚 %d / 表里多脚 %d" % (n_eq, n_more, n_less))
     return 0
 

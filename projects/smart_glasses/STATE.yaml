@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-11T20:17:35+08:00'
+  generated_at: '2026-11-12T00:24:55+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,14 +9,14 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 194794
-      sha1: 743e50f54438
-      mtime_ns: 1794364690527636345
+      size: 196998
+      sha1: f058161ced0f
+      mtime_ns: 1794412617129714099
     mech-lead:
       file: mech.yaml
-      size: 174928
-      sha1: e44b36c9fa1a
-      mtime_ns: 1794396642110959983
+      size: 178100
+      sha1: 8875dbf929fd
+      mtime_ns: 1794404606452940385
     main:
       file: pm.yaml
       size: 45048
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1794396848804421024
     sw-lead:
       file: sw.yaml
-      size: 154397
-      sha1: e3aa93802597
-      mtime_ns: 1794395898921967468
+      size: 159710
+      sha1: 85b97adc511b
+      mtime_ns: 1794403730774324952
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -1345,6 +1345,16 @@ domains:
         订正 373Mbps -> 2986Mbps + 各补依据注 (payload = 1920×1080×24×60 = 2985.98 Mbps, 与 HW/e2e_budget_rk3572.py
         §⑥ 同口径, TX 物理下限 7.776ms = 2986÷60÷6400); ★结论方向一字未改 (仍不需要 DSC); ★自证: grep 旧值零命中 (HW/SW/state/outbox/state/_demo_hw_scheme_landing.py
         全部 rc=1) + selftest rc=0 (脚本 md5 未变) + merge 冲突 0 + 结构化断言 14 项全过'
+    - path: HANDOFF/2026-11-11_hw-lead_ISS198_查找表补全.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: '★ISS-198 交卷: `state/gen_kicad_sch.py` 三张查找表补全 (OPN_KICAD +18 条按 ref, PREFIX_KICAD +2 条前缀
+        SW_/FB_) ⇒ ★**`HW/PCB/PIN_REALITY_GAP.md` 的 `[0数据]` 器件级 29 → 3 (★剩下的 3 个全是非器件: CHG_GND_STAR 汇流位
+        / X1 晶振焊盘位 / BT_432243 电池座待选型 ⇒ 一个脚数都没编★)** ⇒ ★**26 个落库脚数全部来自本机 KiCad 官方库符号实测 (pin 计数, 且逐条与板文件封装焊盘数互校;
+        全部符号文件 pins>0 且无 (extends ⇒ 不踩假数坑★)**; ★**板/原理图/网表/BOM md5 一字未变 (611b869e / c78f9912 / 4814617e)★**;
+        验收 check_sch_pinfull rc=0 (K=0) + check_sch_erc rc=0 + merge rc=0 (冲突 0) + gate_check rc=0 (Q1
+        18/18)★'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2728,6 +2738,26 @@ domains:
       waiting_on: agent
       due: '2026-11-09'
       overdue: true
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss198_pkg_vs_device_mismatch_5
+      to: main
+      item: '★**补表时撞出 5 条封装/器件不自洽 (★[实测] 板文件 + [官方] KiCad 库; 全是 DNP/待选型件 ⇒ 首版不贴 ⇒ 没炸板, 但量产选型前必须核★)**:
+        (1) `U_SUPV` 板文件封装只落 4 焊盘 (1,4,5,6) ⇒ TPS3808G01 类 = SOT-23-6 (1=RESET,2=GND,3=MR,4=CT,5=SENSE,6=VDD)
+        ⇒ ★**缺 GND(2) 与 MR(3)**★ ⇒ 装上也没地 (转必装 = 改板级); (2) `U_LDO_S28` 板文件只落 4 焊盘 (1,2,4,5) ⇒ TPS7A20-28
+        = X2SON-5 ⇒ ★**缺 EN(3)**★ (转必装 = 改板级); (3) `Q1`/`Q2` BOM footprint 名 = SON-8 Q3 3.3x3.3mm, 但板文件封装只画
+        5 焊盘 (2,3,4,5,6) 且外形 4.94x5.0mm ⇒ 与 SON-8 不自洽; (4) `D_ESD_USB_D` BOM value 写「USB 2.0 双通道」但板上只有
+        1 根 I/O + GND (2 焊盘) ⇒ 双通道阵列 (SOT-23-3) 装不下; (5) `U_BATPROT` 板文件焊盘编号 2..7 vs BQ2970 (SOT-23-6)
+        实际 1..6 ⇒ 编号不对齐。★**本单只许改三张查找表 ⇒ 我一条没改, 只报给 main 裁决 (★改板 = 2-4 周 + 板费, 别在没有选型结论前动板★)★** ★证据: `HW/PCB/PIN_REALITY_GAP.md`
+        §2 的依据列 (2026-11-11 23:5x 重跑生成) + `HANDOFF/2026-11-11_hw-lead_ISS198_查找表补全.md` §6★'
+      since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
       decision: null
       decided_at: null
       answers: []
@@ -4331,7 +4361,21 @@ domains:
       decision: null
       decided_at: null
       answers: []
-      foreign_answers: []
+      foreign_answers:
+      - by: sw-lead
+        value: '【实测·2026-11-11 21:2x·sw-lead】结论: rk3572 不是 rknn-toolkit2 的合法 target_platform ⇒ need 的前提成立,
+          但 need 里写的核法本身跑不通, 已换核法。① 原核法 (python -c from rknn.api import RKNN; print(RKNN.RKNN_TARGET_PLATFORM))
+          必崩: AttributeError: type object RKNN has no attribute RKNN_TARGET_PLATFORM (该属性根本不存在)。② 真核法
+          A: grep -n currently support ~/miniconda3/envs/rknn/lib/python3.10/site-packages/rknn/api/rknn.py
+          ⇒ 支持清单在第 88-89 行, 内容 = rv1103 / rv1103b / rv1106 / rv1106b / rv1126b / rk2118 / rk3562 / rk3566
+          / rk3568 / rk3576 / rk3588 (共 11 个, 无 rk3572)。③ 真核法 B: grep -rl rk3572 ~/miniconda3/envs/rknn/lib/python3.10/site-packages/rknn/
+          ⇒ 0 命中 (grep rc=1)。④ [官方] airockchip/rknn-toolkit2 README 的 Support Platform 清单 (最新 v2.5.0)
+          同样无 RK3572 ⇒ 不存在升级工具链就有 rk3572 的路 ⇒ RK3572 上只能用 target_platform=rk3576 转 (同代 RKNPU v2; RK3572
+          NPU 4 TOPS [官方·Rockchip 发布稿经 Forlinx/LinuxGizmos 转述] vs RK3576 6 TOPS ⇒ NPU 耗时会变长 [推算], 板端须实测)。⇒
+          后果: ISS-145 的 M1 (直接复用 A7S 的 .rknn, 零转换) 不成立; 且 [实测] 本机 find / -xdev -name *.rknn = 0 命中 (连产物都不在)
+          ⇒ M1 的零转换优势归零; M2 的 PC 侧其实已做完 (yolov5n F1 0.2927 实测) ⇒ 两条路卡在同一块能跑的 RK3572 板 ([实测] Radxa 192.168.2.5
+          ping 2 包 100% 丢包 + mDNS 不解析; 公开替代 Forlinx OK3572-C 官方站在售但镜像标 R&D)。★细节见 HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md
+          §1 与 §4。'
     - key: demo_od_p0_3_build_env
       to: main
       item: '★P0: 本机缺 RKNN 工具链/源 ONNX/100 张校准集/.rknn 产物 (实测: ~/Public/radxa_yolo 不存在, conda envs 空, 无
@@ -4346,7 +4390,19 @@ domains:
       decision: null
       decided_at: null
       answers: []
-      foreign_answers: []
+      foreign_answers:
+      - by: sw-lead
+        value: '【实测·2026-11-11 21:2x·sw-lead】★这条 need 的前提已被推翻 ⇒ 应回答后退休 (内容已过期)。need 原文说本机缺 RKNN 工具链/源
+          ONNX/100 张校准集/.rknn 产物 (实测 ~/Public/radxa_yolo 不存在, conda envs 空, 无 *.onnx/*.rknn) ⇒ 本机实测现状
+          (2026-11-11 21:2x, 口径=本机文件系统 stat/ls/sha256sum): ① 工具链在: ~/miniconda3/envs/rknn/lib/python3.10/site-packages/rknn_toolkit2-2.3.2.dist-info
+          (Version 2.3.2, commit bd980be9; python 3.10.22 / onnx 1.16.1 / numpy 1.26.4)。② 源 ONNX 在: yolov5s-sim.onnx
+          29,365,856 B sha16 1e2c716bd16ed9d3 与 yolov5n-sim.onnx 7,931,774 B sha16 dfb5d060ca36fc27 (mtime
+          2026-11-02 20:41:00)。③ 校准集在: ~/Public/radxa_yolo/calib_yolov5_100/ 恰好 100 张 jpg, 但其中 1 张 0 字节
+          (000000010583.jpg) ⇒ 实跑只吃 99 张 (静默掉样本, 不报错, 见 SW/MODEL_RELEASE_LIST.md §4.2)。④ COCO 在: /work/object_detection/data/coco/raw/val2017/
+          5000 张 + annotations/instances_val2017.json 19,987,840 B。⑤ 唯一真缺口 = .rknn 产物没留存 ([实测] find /
+          -xdev -name *.rknn = 0 命中, /tmp/rknn_bench 不存在) ⇒ 但这不是环境问题, 重跑一次 convert 即可 (实测 39 s, 产物 10.09
+          MiB)。⇒ 结论: 构建环境已恢复 ⇒ 本 need 退休, 不要继续当活账挂着。★别与另一件事混: 模型 sha 台账漂移是另一码事 (原件 20368be665f6f59a 已丢失,
+          路径上是重建复刻件且未登记新资产 ID), 见同一份事实页 §3, 与本条的环境问题无关。'
     - key: demo_od_p0_4_panel_init_code
       to: main
       item: '★P0 + ★全局最长关键路径: 视涯 0.49" 1920x1080 的 DSI init code / 时序 / DSC 需求 / 单色还是全彩 全未拿到 (state/outbox/visionox_display_inquiry.md
@@ -4875,6 +4931,36 @@ domains:
       value: duty=10%(f=1s/10s) mtbf=按需触发档 P=镜腿内发热量 待机B=0.127/0.147W→46/53mAh
       ref: HANDOFF/2026-11-01_sw-lead_周更新.md#B1-1+#B4-1 ; SW/POWER_STATE_SEMANTICS.md#6+#6.1 ; MECH/MECH_BUDGET.md#2.3
         ; HW/RELIABILITY_DESIGN.md#B9
+    - key: demo_od_p0_1_rk3572_target
+      to: main
+      value: '【实测·2026-11-11 21:2x·sw-lead】结论: rk3572 不是 rknn-toolkit2 的合法 target_platform ⇒ need 的前提成立,
+        但 need 里写的核法本身跑不通, 已换核法。① 原核法 (python -c from rknn.api import RKNN; print(RKNN.RKNN_TARGET_PLATFORM))
+        必崩: AttributeError: type object RKNN has no attribute RKNN_TARGET_PLATFORM (该属性根本不存在)。② 真核法 A:
+        grep -n currently support ~/miniconda3/envs/rknn/lib/python3.10/site-packages/rknn/api/rknn.py
+        ⇒ 支持清单在第 88-89 行, 内容 = rv1103 / rv1103b / rv1106 / rv1106b / rv1126b / rk2118 / rk3562 / rk3566
+        / rk3568 / rk3576 / rk3588 (共 11 个, 无 rk3572)。③ 真核法 B: grep -rl rk3572 ~/miniconda3/envs/rknn/lib/python3.10/site-packages/rknn/
+        ⇒ 0 命中 (grep rc=1)。④ [官方] airockchip/rknn-toolkit2 README 的 Support Platform 清单 (最新 v2.5.0) 同样无
+        RK3572 ⇒ 不存在升级工具链就有 rk3572 的路 ⇒ RK3572 上只能用 target_platform=rk3576 转 (同代 RKNPU v2; RK3572 NPU
+        4 TOPS [官方·Rockchip 发布稿经 Forlinx/LinuxGizmos 转述] vs RK3576 6 TOPS ⇒ NPU 耗时会变长 [推算], 板端须实测)。⇒ 后果:
+        ISS-145 的 M1 (直接复用 A7S 的 .rknn, 零转换) 不成立; 且 [实测] 本机 find / -xdev -name *.rknn = 0 命中 (连产物都不在)
+        ⇒ M1 的零转换优势归零; M2 的 PC 侧其实已做完 (yolov5n F1 0.2927 实测) ⇒ 两条路卡在同一块能跑的 RK3572 板 ([实测] Radxa 192.168.2.5
+        ping 2 包 100% 丢包 + mDNS 不解析; 公开替代 Forlinx OK3572-C 官方站在售但镜像标 R&D)。★细节见 HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md
+        §1 与 §4。'
+      ref: HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md §1/§4 (ISS-196)
+    - key: demo_od_p0_3_build_env
+      to: main
+      value: '【实测·2026-11-11 21:2x·sw-lead】★这条 need 的前提已被推翻 ⇒ 应回答后退休 (内容已过期)。need 原文说本机缺 RKNN 工具链/源 ONNX/100
+        张校准集/.rknn 产物 (实测 ~/Public/radxa_yolo 不存在, conda envs 空, 无 *.onnx/*.rknn) ⇒ 本机实测现状 (2026-11-11
+        21:2x, 口径=本机文件系统 stat/ls/sha256sum): ① 工具链在: ~/miniconda3/envs/rknn/lib/python3.10/site-packages/rknn_toolkit2-2.3.2.dist-info
+        (Version 2.3.2, commit bd980be9; python 3.10.22 / onnx 1.16.1 / numpy 1.26.4)。② 源 ONNX 在: yolov5s-sim.onnx
+        29,365,856 B sha16 1e2c716bd16ed9d3 与 yolov5n-sim.onnx 7,931,774 B sha16 dfb5d060ca36fc27 (mtime
+        2026-11-02 20:41:00)。③ 校准集在: ~/Public/radxa_yolo/calib_yolov5_100/ 恰好 100 张 jpg, 但其中 1 张 0 字节
+        (000000010583.jpg) ⇒ 实跑只吃 99 张 (静默掉样本, 不报错, 见 SW/MODEL_RELEASE_LIST.md §4.2)。④ COCO 在: /work/object_detection/data/coco/raw/val2017/
+        5000 张 + annotations/instances_val2017.json 19,987,840 B。⑤ 唯一真缺口 = .rknn 产物没留存 ([实测] find / -xdev
+        -name *.rknn = 0 命中, /tmp/rknn_bench 不存在) ⇒ 但这不是环境问题, 重跑一次 convert 即可 (实测 39 s, 产物 10.09 MiB)。⇒
+        结论: 构建环境已恢复 ⇒ 本 need 退休, 不要继续当活账挂着。★别与另一件事混: 模型 sha 台账漂移是另一码事 (原件 20368be665f6f59a 已丢失, 路径上是重建复刻件且未登记新资产
+        ID), 见同一份事实页 §3, 与本条的环境问题无关。'
+      ref: HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md §2 (ISS-196)
     open_questions:
     - id: SW-Q1
       to: main
@@ -6852,14 +6938,31 @@ domains:
       foreign_answers: []
     - key: mech_numpy_dep_for_print_check
       to: main
-      item: '★ISS-017/ISS-027 的打印包自检脚本 MECH/print/verify_pack_revb.py **依赖 numpy** (np.frombuffer 读 STL
-        二进制 + np.radians/trig 算斜面角), 而本机 python3.14 **无 numpy** 且装不上: (a) pip 走清华镜像可通但 16.7MB wheel 下载**连续超时**(已试
-        --timeout 120 --retries 10, 仍卡在 Downloading); (b) PEP 668 externally-managed ⇒ --user/--break-system-packages
-        都被拒; (c) /tmp 里的 wheel 残file不完整(pip-unpack 里的 numpy-2.5.4 whl 只有 1.5MB, 装完报 wheel invalid)。★**后果**:
-        本轮**没能复跑打印包自检** (93/93 + 38/38 rc=0 是 11-01 那轮的记录) ⇒ 我改用**纯 python 独立解析 STL** 复核了三个包围盒 (150×132×22
-        / 60×122.40×27.80 / 33×3×7.20) ⇒ 与 11-01 记录逐个吻合 ⇒ 打印包本轮未见改动。★**我的假设 (不回应就按这个走)**: 打印包自检的**可复现性**不依赖
-        numpy ⇒ 我把 verify_pack_revb.py 改成**纯 python 实现** (STL 二进制读取用 struct + trig 用 math), 这样 ISS-017/ISS-027
-        的 89 项清单在**任何**机器上都能一条命令复核 ⇒ 同时登记 needs mech_mat_* 里的 numpy 缺失同源问题。经项目总工转达'
+      item: '★★本条内容已按 2026-11-11 21:2x 实测订正 (原「本机 python3.14 无 numpy 且装不上」的前提**已不成立**)
+
+
+        ★★**[实测] numpy 已恢复**: 本机 `python3 -c "import numpy; print(numpy.__version__)"` ⇒ **numpy 2.5.4**
+        (python3 3.14.4) ⇒ `python3 MECH/dfm_check.py` **rc=0** (面级统计脚本**能跑**) + `python3 MECH/print/verify_pack_revb.py`
+        **rc=0** (**尺寸判据 93/93 一致 + STL↔解析模型逐点互验 38/38 点一致**) ⇒ **本条的「numpy 缺失」阻塞已消除, 不再是活阻塞**。
+
+
+        ★★**但真正的剩余阻塞不是 numpy, 是【量产外形件模型还没做】**: Rev B 打印包是**检具 + 试样** (`MECH/print/temple_cage_revb.stl`
+        镜脚内腔检具 60×122.40×27.80 / `fit_coupon_revb.stl` 配合标定件 150×132×22 / `frame_typec_coupon_revb.stl`
+        面板试样 33×3×7.20) ⇒ **不含量产外壳件** ⇒ **量产外壳的脱模面级统计仍 0 个数据点** (**[0数据]**: 无量产外形件模型 ⇒ 脱模/分型/收缩/缩痕/飞边/顶针的面数统计**无对象可数**)。
+
+
+        ★**这条的未决性质已变 (内容不变, 状态变)**: 原问题 = 「本机装不上 numpy ⇒ 打印包自检复现不了」 ⇒ 现在 = 「**打印包自检可复现了, 但它只能证明 Rev B
+        检具/试样自身, 不能证明量产外壳能不能脱模**」 ⇒ **本条应转成「量产外形件模型 (给模具厂/给 DFM 面级统计用) 什么时候做、谁做」的问题**, 而不是环境问题。
+
+
+        ★**结构侧已备好的材料 (不需再问 numpy)**: `MECH/dfm_check.py` rc=0 已跑出 Rev B 几何的 **ZERO_DRAFT 面占 25-62%** (直壁)
+        + `fit_coupon` 另有 **2 个倒扣面 (α=−40°/−30°)** ⇒ **FDM 能打, 注塑/压铸出不来**; 脱模侧主腔深 38.00 双面 1° ⇒ 镜脚·H 链
+        (电芯段) 最坏 **0.75 − 1.327 = −0.577mm ⇒ 几何上做不出来** ⇒ 必须靠**结构改 (换拉出方向)**, 不能靠公差改 ⇒ 结构侧已交解法 `MECH/ISS127_H_CHAIN_SOLUTION.md`
+        §C.1 **P1 = 镜腿壳体 H 向分型 (皮肤盖 + 内胆)** (链① Δ_H=0 ⇒ 三档 α 全过 0.40)。
+
+
+        ★**要 main 回答的 (收敛成 1 条)**: **量产外形件 (量产外壳) 模型由谁做、何时给** —— 这是本条**现在唯一的剩余阻塞**; numpy / python 版本
+        / 脚本依赖**已不再是阻塞**。〔见 `HANDOFF/2026-11-11_mech-lead_ISS197_口径收敛与未决项选项表.md`〕'
       since: '2026-11-06'
       state: pending
       target_missing: false
@@ -6869,7 +6972,19 @@ domains:
       decision: null
       decided_at: null
       answers: []
-      foreign_answers: []
+      foreign_answers:
+      - by: mech-lead
+        value: '★★ISS-197 结构侧闭环 (口径收敛) + 未决项选项表交付。★[实测 2026-11-11 21:1x] 孔位口径**已收敛成一套 (套A)**: HW/pcb60x30_check.py
+          的 HOLES 与 HW/pcb60x30_check.json 的 sec4_holes 现值均为套A (S1 (8.00,10.00) / S2 (52.00,20.00), 与结构侧
+          §3 逐坐标一致) ⇒ MECH/BOARD_GEOM_30MM.md 原 5 处『套B 仍是活口径』已全部订正 (含 §9 U-3 关闭) ⇒ **口径分歧归零, 不再有两套打架**。★★**本条
+          (numpy) 的内容已按实测改写**: numpy **2.5.4** 已装上 ⇒ MECH/dfm_check.py rc=0 (面级统计能跑) + MECH/print/verify_pack_revb.py
+          rc=0 (尺寸判据 93/93 + STL↔解析模型逐点互验 38/38 点一致) ⇒ **numpy 不再是阻塞**; ★★**真正的剩余阻塞 = 【量产外形件模型还没做】** (Rev
+          B 打印包是检具+试样, 不含量产外壳 ⇒ 脱模面级统计**仍 0 个数据点** [0数据]) ⇒ **要你回答的收敛成 1 条: 量产外形件模型谁做、何时给**。★★**给你的未决项选项表
+          (一页, 带数字, 不替你拍板)**: HANDOFF/2026-11-11_mech-lead_ISS197_口径收敛与未决项选项表.md — U-1 金属骨架超重 (候选C 4.08
+          g/对 vs 预算+1~3 g/对 ⇒ 超 1.08 g) / U-2 石墨满板 2.16 g/对 > W11 上限 2 g/对 (超 0.16 g) / U-5 demo 板安装孔
+          (删 vs 改 4×M3) / ISS-127 三条 (镜腿 H 向分型 / 石墨裁剪 / 石墨在 H 链里挤占还是叠加) ⇒ 每条给现状数字 + ≥2 个选项 + 每个选项的代价(重量/件/钱)
+          + 我推荐哪个。★另: 孔位 need iss192_pcb60x30_holes_set_b_to_set_a (owner hw-lead) 已于 2026-11-11 20:08/20:11
+          落地 ⇒ 该条可闭。'
     - key: iss192_pcb60x30_holes_set_b_to_set_a
       to: hw-lead
       item: '★★PIN-SET-2 孔位 Y 的两套互斥口径必须收敛成一套 —— 结构侧仲裁结论 = **套 A** (Y 按中心线平移, S 孔 ±5.00 不变)。★你的两个产物目前发的是**套
@@ -7233,6 +7348,21 @@ domains:
         SiOLED 后已作废** ⇒ 镜框侧几何要按新模组重算 (ISS-133), 摄像头的孔位/沉孔深度要跟那一版一起定。'
       ref: MECH/CAMERA_WINDOW_SPEC.md (B1-B6) + MECH/camera_window_check.py (rc=0) + MECH/ISS047_FOV_TABLE.md
         + HANDOFF/2026-11-02_mech-lead_ISS047_FOV俯角表复核.md
+    - key: mech_numpy_dep_for_print_check
+      to: main
+      value: '★★ISS-197 结构侧闭环 (口径收敛) + 未决项选项表交付。★[实测 2026-11-11 21:1x] 孔位口径**已收敛成一套 (套A)**: HW/pcb60x30_check.py
+        的 HOLES 与 HW/pcb60x30_check.json 的 sec4_holes 现值均为套A (S1 (8.00,10.00) / S2 (52.00,20.00), 与结构侧
+        §3 逐坐标一致) ⇒ MECH/BOARD_GEOM_30MM.md 原 5 处『套B 仍是活口径』已全部订正 (含 §9 U-3 关闭) ⇒ **口径分歧归零, 不再有两套打架**。★★**本条
+        (numpy) 的内容已按实测改写**: numpy **2.5.4** 已装上 ⇒ MECH/dfm_check.py rc=0 (面级统计能跑) + MECH/print/verify_pack_revb.py
+        rc=0 (尺寸判据 93/93 + STL↔解析模型逐点互验 38/38 点一致) ⇒ **numpy 不再是阻塞**; ★★**真正的剩余阻塞 = 【量产外形件模型还没做】** (Rev
+        B 打印包是检具+试样, 不含量产外壳 ⇒ 脱模面级统计**仍 0 个数据点** [0数据]) ⇒ **要你回答的收敛成 1 条: 量产外形件模型谁做、何时给**。★★**给你的未决项选项表
+        (一页, 带数字, 不替你拍板)**: HANDOFF/2026-11-11_mech-lead_ISS197_口径收敛与未决项选项表.md — U-1 金属骨架超重 (候选C 4.08
+        g/对 vs 预算+1~3 g/对 ⇒ 超 1.08 g) / U-2 石墨满板 2.16 g/对 > W11 上限 2 g/对 (超 0.16 g) / U-5 demo 板安装孔 (删
+        vs 改 4×M3) / ISS-127 三条 (镜腿 H 向分型 / 石墨裁剪 / 石墨在 H 链里挤占还是叠加) ⇒ 每条给现状数字 + ≥2 个选项 + 每个选项的代价(重量/件/钱)
+        + 我推荐哪个。★另: 孔位 need iss192_pcb60x30_holes_set_b_to_set_a (owner hw-lead) 已于 2026-11-11 20:08/20:11
+        落地 ⇒ 该条可闭。'
+      ref: HANDOFF/2026-11-11_mech-lead_ISS197_口径收敛与未决项选项表.md + MECH/BOARD_GEOM_30MM.md §4.1/§6/§7/§9
+        + MECH/ISS127_H_CHAIN_SOLUTION.md §C.1
     open_questions:
     - id: MECH-Q1
       to: main
@@ -12228,14 +12358,23 @@ interface_claims:
     values:
       sw-lead: rk3576_for_rk3572
     notes:
-      sw-lead: '★★2026-11-02 20:3x 实测 (ISS-147): **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target_platform**
-        (2.3.2 与最新 2.5.0 都抛 ValueError; rknn/api/rknn.py 与编译后 .so 里 rk3572 命中 0; 官方 Support Platform 无
-        RK3572) ⇒ **不存在升级 toolkit 就有 rk3572 的路** ⇒ RK3572 上只能用 `target_platform=''rk3576''` 转 (同代 RKNPU
-        v2, 算力不等 4 vs 6 TOPS ⇒ [推算], 板端须实测) ⇒ ISS-145 的 M1「零转换复用 A7S 的 .rknn」不成立, 必须重转。★★**ISS-155 已钉
-        (2026-11-02)**: 板端验证判据三条 = ①板端 acc 能跑完 ②精度不塌 (F1 与 §1.4 同量级) ③NPU 耗时与 HW/e2e_budget_rk3572.py
-        预算对得上; ★**卡点 = Radxa A7S 不可达 ⇒ 需另取一块能跑的 RK357x 板** (ISS-151 清单, 与 demo Step1 载板合流)。★**规格侧已同步**:
-        SW/DEMO_OD_PIPELINE_SPEC.md §0/§1.4/§2.1/§2.3/§6.2 凡写 "rk3572 target" 的表述一律改成 rk3576 + 注明"算力不等
-        (4 vs 6 TOPS) ⇒ 板端待验"。'
+      sw-lead: '★★ISS-196 复测订正 (2026-11-11 21:2x, sw-lead; 证据分级逐句标)。【实测】**rk3572 不是 rknn-toolkit2 的合法
+        target_platform**: 本机 2.3.2 支持清单 rknn/api/rknn.py:88-89 = rv1103/rv1103b/rv1106/rv1106b/rv1126b/rk2118/rk3562/rk3566/rk3568/rk3576/rk3588
+        (共 11 个, 无 rk3572); 全库 grep -rl rk3572 site-packages/rknn/ = 0 命中; 且 RKNN.RKNN_TARGET_PLATFORM
+        属性根本不存在 (AttributeError) ⇒ need 里写的核法跑不通, 已换核法。【官方】airockchip/rknn-toolkit2 README 的 Support Platform
+        清单 (最新 v2.5.0) 同样无 RK3572 ⇒ 不存在升级工具链就有 rk3572 的路 ⇒ RK3572 上只能用 target_platform=rk3576 转 (同代 RKNPU
+        v2; RK3572 NPU 4 TOPS [官方·Rockchip 发布稿经 Forlinx/LinuxGizmos 转述] vs RK3576 6 TOPS ⇒ NPU 耗时会变长 [推算],
+        板端须实测)。⇒ 后果: **ISS-145 的 M1 (直接复用 A7S 的 .rknn, 零转换) 不成立**; 【实测】本机 find / -xdev -name *.rknn =
+        0 命中 (连产物都不在, /tmp/rknn_bench 不存在) ⇒ M1 的零转换优势归零; M2 的 PC 侧其实已做完 (yolov5n F1 0.2927 实测) ⇒ 两条路卡在同一块能跑的
+        RK3572 板 (【实测】Radxa 192.168.2.5 ping 2 包 100% 丢包 + mDNS 不解析)。★★ISS-155 板端三条判据 (板端 acc 跑完/精度不塌/NPU
+        耗时对预算) 一条未跑 = 【0数据】; 公开替代载体 Forlinx OK3572-C + FET3572-C 官方站在售 (无需外发, 合老板 19:31 一律不发政策) 但其镜像 2026-06
+        公告标 R&D + 无主线内核 [官方·sbcwiki]。★★ISS-196 顺带实测: **构建环境已恢复** (工具链 2.3.2 / yolov5s ONNX 29,365,856
+        B sha16 1e2c716bd16ed9d3 / yolov5n 7,931,774 B sha16 dfb5d060ca36fc27 / 校准集 100 张 (其中 1 张 0 字节
+        ⇒ 实跑吃 99 张) / COCO val2017 5000 张 + instances_val2017.json 19,987,840 B) ⇒ 原 need demo_od_p0_3_build_env
+        的前提已被推翻, 应回答后退休。★★ISS-196 顺带查出**台账漂移根因**: 原件 20368be665f6f59a 已丢失 (全盘 0 命中), 该路径上现在是重建复刻件 (同血缘
+        245 节点/12 算子, 体积差 28,150 B) ⇒ 台账条目与 SW/tools/rknn_bench.py:124 的 ONNX_MODEL_SHA16 常量仍记原件指纹 ⇒ 重建件须登记新资产
+        ID (SW/RKNN_BUILD_ENV_RECOVERY.md §5 N10/N17 已写明但至今未执行) + 工具常量要跟着改 (★两处都不在 sw-lead 本单写入边界内 ⇒ 已交
+        main)。★注: probe 的比对源是工具硬编码常量, 不是 SW/RKNN_BENCH.md ⇒ 改文档对 probe 输出零影响 (SW/RKNN_BENCH.md:473 本单已订正成实测真值)。'
     by:
     - sw-lead
     noncanonical_by: []
@@ -12759,6 +12898,19 @@ needs_matrix:
     since: '2026-11-06'
     waiting_on: agent
     due: '2026-11-09'
+    _by: hw-lead
+    state: pending
+  - key: iss198_pkg_vs_device_mismatch_5
+    to: main
+    item: '★**补表时撞出 5 条封装/器件不自洽 (★[实测] 板文件 + [官方] KiCad 库; 全是 DNP/待选型件 ⇒ 首版不贴 ⇒ 没炸板, 但量产选型前必须核★)**: (1)
+      `U_SUPV` 板文件封装只落 4 焊盘 (1,4,5,6) ⇒ TPS3808G01 类 = SOT-23-6 (1=RESET,2=GND,3=MR,4=CT,5=SENSE,6=VDD)
+      ⇒ ★**缺 GND(2) 与 MR(3)**★ ⇒ 装上也没地 (转必装 = 改板级); (2) `U_LDO_S28` 板文件只落 4 焊盘 (1,2,4,5) ⇒ TPS7A20-28
+      = X2SON-5 ⇒ ★**缺 EN(3)**★ (转必装 = 改板级); (3) `Q1`/`Q2` BOM footprint 名 = SON-8 Q3 3.3x3.3mm, 但板文件封装只画
+      5 焊盘 (2,3,4,5,6) 且外形 4.94x5.0mm ⇒ 与 SON-8 不自洽; (4) `D_ESD_USB_D` BOM value 写「USB 2.0 双通道」但板上只有 1
+      根 I/O + GND (2 焊盘) ⇒ 双通道阵列 (SOT-23-3) 装不下; (5) `U_BATPROT` 板文件焊盘编号 2..7 vs BQ2970 (SOT-23-6) 实际
+      1..6 ⇒ 编号不对齐。★**本单只许改三张查找表 ⇒ 我一条没改, 只报给 main 裁决 (★改板 = 2-4 周 + 板费, 别在没有选型结论前动板★)★** ★证据: `HW/PCB/PIN_REALITY_GAP.md`
+      §2 的依据列 (2026-11-11 23:5x 重跑生成) + `HANDOFF/2026-11-11_hw-lead_ISS198_查找表补全.md` §6★'
+    since: '2026-11-11'
     _by: hw-lead
     state: pending
   - key: fw_s2_test_gear
@@ -13396,14 +13548,31 @@ needs_matrix:
     state: pending
   - key: mech_numpy_dep_for_print_check
     to: main
-    item: '★ISS-017/ISS-027 的打印包自检脚本 MECH/print/verify_pack_revb.py **依赖 numpy** (np.frombuffer 读 STL
-      二进制 + np.radians/trig 算斜面角), 而本机 python3.14 **无 numpy** 且装不上: (a) pip 走清华镜像可通但 16.7MB wheel 下载**连续超时**(已试
-      --timeout 120 --retries 10, 仍卡在 Downloading); (b) PEP 668 externally-managed ⇒ --user/--break-system-packages
-      都被拒; (c) /tmp 里的 wheel 残file不完整(pip-unpack 里的 numpy-2.5.4 whl 只有 1.5MB, 装完报 wheel invalid)。★**后果**:
-      本轮**没能复跑打印包自检** (93/93 + 38/38 rc=0 是 11-01 那轮的记录) ⇒ 我改用**纯 python 独立解析 STL** 复核了三个包围盒 (150×132×22
-      / 60×122.40×27.80 / 33×3×7.20) ⇒ 与 11-01 记录逐个吻合 ⇒ 打印包本轮未见改动。★**我的假设 (不回应就按这个走)**: 打印包自检的**可复现性**不依赖
-      numpy ⇒ 我把 verify_pack_revb.py 改成**纯 python 实现** (STL 二进制读取用 struct + trig 用 math), 这样 ISS-017/ISS-027
-      的 89 项清单在**任何**机器上都能一条命令复核 ⇒ 同时登记 needs mech_mat_* 里的 numpy 缺失同源问题。经项目总工转达'
+    item: '★★本条内容已按 2026-11-11 21:2x 实测订正 (原「本机 python3.14 无 numpy 且装不上」的前提**已不成立**)
+
+
+      ★★**[实测] numpy 已恢复**: 本机 `python3 -c "import numpy; print(numpy.__version__)"` ⇒ **numpy 2.5.4**
+      (python3 3.14.4) ⇒ `python3 MECH/dfm_check.py` **rc=0** (面级统计脚本**能跑**) + `python3 MECH/print/verify_pack_revb.py`
+      **rc=0** (**尺寸判据 93/93 一致 + STL↔解析模型逐点互验 38/38 点一致**) ⇒ **本条的「numpy 缺失」阻塞已消除, 不再是活阻塞**。
+
+
+      ★★**但真正的剩余阻塞不是 numpy, 是【量产外形件模型还没做】**: Rev B 打印包是**检具 + 试样** (`MECH/print/temple_cage_revb.stl`
+      镜脚内腔检具 60×122.40×27.80 / `fit_coupon_revb.stl` 配合标定件 150×132×22 / `frame_typec_coupon_revb.stl`
+      面板试样 33×3×7.20) ⇒ **不含量产外壳件** ⇒ **量产外壳的脱模面级统计仍 0 个数据点** (**[0数据]**: 无量产外形件模型 ⇒ 脱模/分型/收缩/缩痕/飞边/顶针的面数统计**无对象可数**)。
+
+
+      ★**这条的未决性质已变 (内容不变, 状态变)**: 原问题 = 「本机装不上 numpy ⇒ 打印包自检复现不了」 ⇒ 现在 = 「**打印包自检可复现了, 但它只能证明 Rev B 检具/试样自身,
+      不能证明量产外壳能不能脱模**」 ⇒ **本条应转成「量产外形件模型 (给模具厂/给 DFM 面级统计用) 什么时候做、谁做」的问题**, 而不是环境问题。
+
+
+      ★**结构侧已备好的材料 (不需再问 numpy)**: `MECH/dfm_check.py` rc=0 已跑出 Rev B 几何的 **ZERO_DRAFT 面占 25-62%** (直壁)
+      + `fit_coupon` 另有 **2 个倒扣面 (α=−40°/−30°)** ⇒ **FDM 能打, 注塑/压铸出不来**; 脱模侧主腔深 38.00 双面 1° ⇒ 镜脚·H 链 (电芯段)
+      最坏 **0.75 − 1.327 = −0.577mm ⇒ 几何上做不出来** ⇒ 必须靠**结构改 (换拉出方向)**, 不能靠公差改 ⇒ 结构侧已交解法 `MECH/ISS127_H_CHAIN_SOLUTION.md`
+      §C.1 **P1 = 镜腿壳体 H 向分型 (皮肤盖 + 内胆)** (链① Δ_H=0 ⇒ 三档 α 全过 0.40)。
+
+
+      ★**要 main 回答的 (收敛成 1 条)**: **量产外形件 (量产外壳) 模型由谁做、何时给** —— 这是本条**现在唯一的剩余阻塞**; numpy / python 版本 /
+      脚本依赖**已不再是阻塞**。〔见 `HANDOFF/2026-11-11_mech-lead_ISS197_口径收敛与未决项选项表.md`〕'
     since: '2026-11-06'
     _by: mech-lead
     state: pending
@@ -13557,7 +13726,7 @@ needs_matrix:
     _by: mech-lead
     state: pending
   answered_count: 160
-  total: 260
+  total: 261
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -14213,10 +14382,10 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 174
+  artifacts: 175
   blockers: 43
   high_blockers: 33
-  open_needs: 100
+  open_needs: 101
   waiting_external_needs: 70
   overdue_needs: 0
   target_missing_needs: 0

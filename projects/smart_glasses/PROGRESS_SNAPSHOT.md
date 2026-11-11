@@ -1,4 +1,4 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-11 20:15)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-12 00:08)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
@@ -8,12 +8,13 @@
 - 阶段门: 【总体】 阶段门 G1 ⏸️ | 健康度 red | 距通过 G1 还差 1 项 | 未闭环高危 8 条 | 逾期 56 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=1
-- 问题单: 共 191 条 · closed=97 · deferred=14 · fixed=6 · fixing=1 · open=26 · verified=47
-- GitHub 上次推送: 2026-11-11T15:31:21+08:00
+- 问题单: 共 194 条 · closed=97 · deferred=14 · fixed=6 · fixing=2 · open=25 · verified=50
+- GitHub 上次推送: 2026-11-11T20:18:38+08:00
 
 ## 二、执行中 (谁在干什么)
 
 - **ISS-122** · main · ★★BGA 逃线层数: ★两套模型结论相反 (9 层 vs 3 层) ⇒ 破没破 4-6 层锁是 [0数据] 不是结论 —— 必须问 PCB · 派出于 ?
+- **ISS-198** · hw-lead · ★★[主线内·原理图侧·内部活] `PIN_REALITY_GAP.md` 里 29 个 `[0数据]` 的真实脚数 ⇒ 根因 = `sta · 派出于 2026-11-11
 
 ## 三、待办
 
@@ -50,7 +51,6 @@
 ### 3.3 三个总工可自行推进 (队列 cron 每 30 分钟自动派)
 
 - ISS-136 · hw-lead · ★★J_CHG 跨铰链 pin map 与 CHARGE_BOARD_SPEC.md §5 漂移 (spec 是旧的, 网表是对的) + c
-- ISS-193 · hw-lead · ★【内部活·不是原厂的事】29 个器件真实脚数查不到 ⇒ 根因是 BOM 没定 opn/封装 ⇒ 定封装 ⇒ 脚数自动补齐 ⇒ 选项③ 的内
 - ISS-195 · hw-lead · ★【ISS-194 的连带账·真影响】麦 M1 到 S1 压紧螺钉孔的孔壁净空随套A 从 ≈8.14mm 掉到 ≈1.26mm ⇒ `HW/
 
 ## 四、恢复步骤 (token 恢复后照此走)
