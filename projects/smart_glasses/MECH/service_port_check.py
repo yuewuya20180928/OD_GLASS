@@ -8,16 +8,23 @@ service_port_check.py —— ISS-092 镜脚末端检修口 规格书自证脚本
   (开口尺寸 / 单边间隙 / 盖板内腔 / 三条尺寸链余量 / 重量 / 探针伸入深度 / 冲突间距)
   都是**设计态几何 + 公差栈**, 没有人能靠"读一遍"确认它自洽 —— 必须机械复算。
 
-口径声明 (与 MECH/fit_check.py / board_width_15mm_check.py 一致):
+口径声明 (与 MECH/fit_check.py / MECH/BOARD_GEOM_30MM.md 一致):
   · 公差判据: **余量 ≥ 2 × 单边公差 = 2 × 0.30 = 0.60mm**, 且同时报名义/最坏两列。
   · 本脚本是 **设计态确定性计算**, **不是物理装配实测** ⇒ 证据级最高 [推算], 阶段门 G2 不认 (这是对的)。
   · 排布 = **沿长度串行** (叠放分支已由 fit_check.py 三重证明裁决作废)。
+  · ★ **主 PCB 板宽 = 30.00mm** (现行 60×30 板; 老板 10-29 19:16 拍板; MECH/BOARD_GEOM_30MM.md §0/§1
+    —— 本域唯一权威几何口径) —— 2026-11-12 由 **15.00mm 迁入** (ISS-203 / ISS-197 L6): 15mm 口径已作废,
+    此前本脚本的 V 链 PCB 段读数 (需求 21.00 / 余 +17.00) 是**给一块不存在的板打的分**。
+    ★ 板宽走 V 不走 H ⇒ 本次只动 V 链 PCB 段 (【5】5.4), H/L 链不受板宽影响。
 
-用法: python3 MECH/service_port_check.py
-退出码: 0 = 31/31 项一致 (报告已生成); 非 0 = 有项不一致
+用法: python3 MECH/service_port_check.py [--self-test]
+      --self-test = 反向用例: 强制 pcb_w 回 15.00 (旧板宽) ⇒ 读数必须回到迁移前基准 (54/54 项一致, FAIL 0)
+退出码: 0 = 54/54 项一致 (报告已生成); 非 0 = 有项不一致;
+        --self-test 下另: 0 = 反向用例与迁移前基准一致, 2 = 不一致
 """
 from __future__ import annotations
 
+import argparse
 import math
 import sys
 
@@ -31,7 +38,7 @@ BASE = {
     "cav_l":     130.00,   # §1.6.2 内腔长
     "wall":        0.80,   # §5.4 FDM 最小可靠单壁
     "frame_thk":   1.00,   # §5.1 铝/铜骨架
-    "pcb_thk":     0.80,   # §5.1 PCB 厚 (4 层); 6 层 = 1.00
+    "pcb_thk":     1.00,   # §5.1 PCB 厚 (★6 层现行; 4 层 0.80 已作废 —— ISS-206 依 MECH/BOARD_GEOM_30MM.md §1)
     "air_gap":     0.30,   # §2.4 皮肤侧空气隙
     "pad_thermal": 0.50,   # §2.4 皮肤侧隔热垫
     "cell_thk":    4.60,   # §1.6.1 Renata ICP582035PR-01 (315 档)
@@ -41,13 +48,14 @@ BASE = {
     "hinge_l":    15.00,   # 铰链区轴向占位 (L 0..15)
     "skeleton_x1": 42.00,  # 金属骨架末端 (板坐标 X)
     "pcb_l":      60.00,   # ISS-100 / ISS-107 定版 (fit_check.py 的 50 是旧值)
-    "pcb_w":      15.00,   # 老板拍板 15mm
+    "pcb_w":      30.00,   # 主 PCB 板宽 Y [官方-项目内: 老板 10-29 19:16 拍板, MECH/BOARD_GEOM_30MM.md §0/§1;
+                            # ★2026-11-12 由 15.00 迁入 (ISS-203 / ISS-197 L6) —— 15mm 口径已作废, 勿回改]
     "duct_v":      6.00,   # §5.6.2 垂直向走线槽占位 (口径)
     "duct_h":      2.00,   # §1.3
     "conn_margin": 15.00,  # §1.4.2
     # H 坐标 (本文 §1.1 新立)
     "h_skin_wall_in": 0.80,   # 皮肤侧外壁内表面 = H 0
-    "h_pcb_face":    2.40,   # PCB 元件面 (外侧)
+    "h_pcb_face":    2.60,   # PCB 元件面 (外侧) = 壁0.8 + 隔热0.5 + 空隙0.3 + **PCB 1.0** (6 层)
     "h_outer_in":    6.50,   # 镜脚外壁内表面
     "h_outer_out":   7.30,   # 镜脚外表面
     # J_DEBUG / J_UART 焊盘阵列 (本文 §3.2)
@@ -91,8 +99,12 @@ BASE = {
     "mass_total_lo": 48.90,   # MECH_BUDGET §3 315 档合计下限
     "mass_total_hi": 72.80,   # 315 档合计上限
     # 夹具基准 (PIN-SET-2, ISS-049/ISS-107)
-    "p2_x": 52.00, "p2_y": 7.50, "p2_d": 2.00,     # ⌀2.0 H7 圆销定位孔
-    "s2_x": 52.00, "s2_y": 12.50, "s2_d": 1.40,    # ⌀1.4 M1.2 压紧孔
+    # ★★ISS-206 (2026-11-12): ★**这套夹具基准已作废** (P2/S2 的 Y 仍是 15mm 板口径 7.50/12.50,
+    #   焊盘阵列起点 jd_y0=9.50 亦是旧口径) ⇒ 现行基准 = **P2(52.00,15.00) / S2(52.00,20.00)**
+    #   (MECH/BOARD_GEOM_30MM.md §3 套 A) ⇒ **本单只加注记, 不动数字**: 7.4/7.5 两式的符号/系数是按
+    #   旧基准写的, 只换数字会让公式反过来 ⇒ 造出【假红】; 真正的迁移 (公式 + 基准一起迁) 留到整链重出。
+    "p2_x": 52.00, "p2_y": 7.50, "p2_d": 2.00,     # ⌀2.0 H7 圆销定位孔 (★Y 已作废, 见上)
+    "s2_x": 52.00, "s2_y": 12.50, "s2_d": 1.40,    # ⌀1.4 M1.2 压紧孔 (★Y 已作废, 见上)
     "soc_escape_x0": 20.20, "soc_escape_x1": 31.80,  # SoC 逃线带
     "s2_repeat": 0.046,   # ISS-049 定位链重复性
 }
@@ -114,6 +126,13 @@ def near(a, b, tol=1e-6):
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--self-test", action="store_true",
+                    help="反向用例: 强制 pcb_w 回 15.00 (旧板宽) ⇒ 读数必须回到迁移前基准 (54/54, FAIL 0)")
+    args = ap.parse_args()
+    if args.self_test:
+        BASE["pcb_w"] = 15.00
+        print(">>> --self-test: pcb_w 强制回 15.00 (旧板宽) ⇒ 下面的读数应是【迁移前】那一版\n")
     print("=" * 100)
     print("SERVICE-PORT CHECK — ISS-092 镜脚末端检修口 (开孔 + 盖板) | mech-lead 2026-10-30")
     print("=" * 100)
@@ -126,16 +145,16 @@ def main() -> int:
     print(f"\n【1】H 坐标自洽 (§1.1)")
     h_chain = (BASE["h_skin_wall_in"] + BASE["pad_thermal"] + BASE["air_gap"]
                + BASE["pcb_thk"] + BASE["frame_thk"] + BASE["wall"])
-    chk("1.1 H 链 = 壁0.8+隔热0.5+空隙0.3+PCB0.8+骨架1.0+壁0.8 = 4.20",
-        near(h_chain, 4.20), f"H 链 = {h_chain:.2f}mm")
-    chk("1.2 PCB 元件面 H = 0.8+0.5+0.3+0.8 = 2.40",
+    chk("1.1 H 链 = 壁0.8+隔热0.5+空隙0.3+PCB1.0+骨架1.0+壁0.8 = 4.40",
+        near(h_chain, 4.40), f"H 链 = {h_chain:.2f}mm")
+    chk("1.2 PCB 元件面 H = 0.8+0.5+0.3+1.0 = 2.60",
         near(BASE["h_skin_wall_in"] + BASE["pad_thermal"] + BASE["air_gap"] + BASE["pcb_thk"],
              BASE["h_pcb_face"]), f"H_pcb = {BASE['h_pcb_face']:.2f}mm")
     chk("1.3 外壁内表面 H = 7.30-0.80 = 6.50",
         near(BASE["h_outer_out"] - BASE["wall"], BASE["h_outer_in"]),
         f"H_outer_in = {BASE['h_outer_in']:.2f}mm")
-    chk("1.4 外壁内表面与骨架外表面之间空腔 = 3.10mm (螺钉凸台/探针落这里)",
-        near(BASE["h_outer_in"] - (BASE["h_pcb_face"] + BASE["frame_thk"]), 3.10),
+    chk("1.4 外壁内表面与骨架外表面之间空腔 = 2.90mm (螺钉凸台/探针落这里)",
+        near(BASE["h_outer_in"] - (BASE["h_pcb_face"] + BASE["frame_thk"]), 2.90),
         f"空腔 = {BASE['h_outer_in'] - (BASE['h_pcb_face'] + BASE['frame_thk']):.2f}mm")
 
     # ------------------------------------------------------------------
@@ -196,10 +215,10 @@ def main() -> int:
         near(COVER_X, 13.20) and near(COVER_Y, 7.60) and near(BASE["cover_t"], 1.20),
         f"{COVER_X:.2f} × {COVER_Y:.2f} × {BASE['cover_t']:.2f}mm")
     cavity = BASE["h_outer_out"] - BASE["h_pcb_face"]
-    chk("4.2 盖板内腔 = 外表面 7.30 − PCB 元件面 2.40 = 4.90 ≥ 4.50 (硬要求)",
+    chk("4.2 盖板内腔 = 外表面 7.30 − PCB 元件面 2.60 = 4.70 ≥ 4.50 (硬要求)",
         cavity >= BASE["cavity_req"], f"内腔 {cavity:.2f}mm, 余 {cavity - BASE['cavity_req']:.2f}mm")
     boss_room = BASE["h_outer_in"] - (BASE["h_pcb_face"] + BASE["frame_thk"])
-    chk("4.3 螺钉凸台 (向内 1.60) 落在 PCB 段 3.10mm 空腔内",
+    chk("4.3 螺钉凸台 (向内 1.60) 落在 PCB 段 2.90mm 空腔内",
         BASE["screw_boss_in"] <= boss_room, f"空腔 {boss_room:.2f}mm ≥ 凸台 {BASE['screw_boss_in']:.2f}mm")
     screw_eng = BASE["wall"] + BASE["screw_boss_in"]
     chk("4.4 螺钉旋入总长 = 壁 0.8 + 凸台 1.6 = 2.40 = 1.5×d (自攻在塑料里的下限)",
@@ -221,12 +240,20 @@ def main() -> int:
         near(h_cell, 6.35) and near(BASE["cav_h"] - h_cell, 0.95)
         and near(BASE["cav_h"] - (h_cell + TOL["fdm_part"]), 0.65),
         f"需求 {h_cell:.2f} / 余 {BASE['cav_h'] - h_cell:+.2f} / 最坏 {BASE['cav_h'] - (h_cell + TOL['fdm_part']):+.2f}")
-    chk("5.2 H PCB 段 需求 4.20 → 余量 +3.10 (检修口 Δ0.00)",
-        near(h_pcb, 4.20) and near(BASE["cav_h"] - h_pcb, 3.10), f"需求 {h_pcb:.2f} / 余 {BASE['cav_h'] - h_pcb:+.2f}")
+    chk("5.2 H PCB 段 需求 4.40 → 余量 +2.90 (检修口 Δ0.00)",
+        near(h_pcb, 4.40) and near(BASE["cav_h"] - h_pcb, 2.90), f"需求 {h_pcb:.2f} / 余 {BASE['cav_h'] - h_pcb:+.2f}")
     chk("5.3 V 电池段 (控制段) 需求 29.50, 余量 +8.50",
         near(v_cell, 29.50) and near(BASE["cav_v"] - v_cell, 8.50), f"余 {BASE['cav_v'] - v_cell:+.2f}")
-    chk("5.4 V PCB 段 需求 21.00, 余量 +17.00 (开口只挖壁, Δ0.00)",
-        near(v_pcb, 21.00) and near(BASE["cav_v"] - v_pcb, 17.00), f"余 {BASE['cav_v'] - v_pcb:+.2f}")
+    v_margin = BASE["cav_v"] - v_pcb
+    v_margin_worst = v_margin - 2 * TOL["fdm_part"]   # 最坏: 腔体侧 + 走线槽侧 各让 1×0.30
+    chk(f"5.4 V PCB 段 需求 {v_pcb:.2f} (板宽 {BASE['pcb_w']:.2f} + 走线槽 {BASE['duct_v']:.2f}), "
+        f"余量 {v_margin:+.2f} (开口只挖壁, Δ0.00)",
+        v_margin >= CRIT and v_margin_worst >= CRIT,
+        f"需求 {v_pcb:.2f} / 余 {v_margin:+.2f} / 最坏 {v_margin_worst:+.2f} "
+        f"(单边口径最坏 {v_margin - TOL['fdm_part']:+.2f}) · 判据 ≥{CRIT:.2f}")
+    print(f"       ★ 口径同步提示 (ISS-206 · 2026-11-12): MECH/SERVICE_PORT_ISS092.md §1/§5.1 已按本脚本输出 "
+          f"重写 (30mm 板宽 + 6 层 1.0 板厚 ⇒ V PCB 段需求 {v_pcb:.2f} / 余 {v_margin:+.2f} / 最坏 {v_margin_worst:+.2f}; "
+          f"H PCB 段需求 4.40 / 余 +2.90) ⇒ 文档与脚本现已同口径")
     chk("5.5 L 需求 115.50, 余量 +14.50 (开口在 PCB 段内, Δ0.00)",
         near(l_need, 115.50) and near(BASE["cav_l"] - l_need, 14.50), f"余 {BASE['cav_l'] - l_need:+.2f}")
     chk("5.6 镜腿厚度锁死值 7.30mm 不变 (Δ = 0.00)",
@@ -267,8 +294,8 @@ def main() -> int:
     print(f"\n【7】产线可达性 (§7.2)")
     reach = BASE["h_outer_out"] - BASE["h_pcb_face"]
     need_reach = reach + BASE["pogo_travel"]
-    chk("7.1 探针可伸入净空 = 4.90mm", near(reach, 4.90), f"{reach:.2f}mm")
-    chk("7.2 含工作行程后需 ≥5.90mm 可伸入", near(need_reach, 5.90, 0.01),
+    chk("7.1 探针可伸入净空 = 4.70mm", near(reach, 4.70), f"{reach:.2f}mm")
+    chk("7.2 含工作行程后需 ≥5.70mm 可伸入", near(need_reach, 5.70, 0.01),
         f"需 {need_reach:.2f}mm (市售 pogo 伸出 typ. 6-11mm)")
     probe_need_x = (BASE["jd_cols"] - 1) * BASE["jd_pitch"] + 2 * 1.0
     probe_need_y = (BASE["jd_rows"] - 1) * BASE["jd_pitch"] + 2 * 1.0
@@ -307,7 +334,7 @@ def main() -> int:
         f"{open_l0 - (BASE['skeleton_x1'] + BASE['l_offset']):.2f}mm")
     chk("8.5 开口 X 末端 ≤ PCB 板端 (60.00) ⇒ 开口投影完全落在 PCB 内",
         open_x1 <= BASE["pcb_l"], f"开口 {open_x0:.2f}..{open_x1:.2f} vs 板端 {BASE['pcb_l']:.0f}")
-    chk("8.5b 螺钉凸台 (X 58.7..61.9) 在 H 4.90..6.50 ⇒ 与 PCB (H 1.60..2.40) 不干涉",
+    chk("8.5b 螺钉凸台 (X 58.7..61.9) 在 H 4.90..6.50 ⇒ 与 PCB (H 1.60..2.60) 不干涉",
         BASE["h_pcb_face"] + BASE["pcb_thk"] <= BASE["h_outer_in"] - BASE["screw_boss_in"],
         f"PCB 上表面 H={BASE['h_pcb_face'] + BASE['pcb_thk']:.2f} < 凸台下沿 H={BASE['h_outer_in'] - BASE['screw_boss_in']:.2f}")
     chk("8.6 开口不与 SoC 逃线带重叠 (2D 判定, X 向)",
@@ -343,6 +370,11 @@ def main() -> int:
     print("口径提醒: 全部为 **设计态几何 + 公差栈** ([推算]), **实物 [实测] = 0 条**。")
     print("          镜脚末端 V 净高 / 座体型号 / 磁铁拉脱力 / 麦克风磁场敏感度 = [0数据]。")
     print("=" * 100)
+    if args.self_test:
+        ok_base = (not fails) and total_n == 54
+        print(f"[反向用例] pcb_w=15.00 读数: {ok}/{total_n} 项一致 | FAIL {len(fails)} 项 ⇒ "
+              f"与迁移前基准 (54/54 项一致 | FAIL 0) {'一致 ✅' if ok_base else '不一致 ❌'}")
+        return 0 if ok_base else 2
     return 0 if not fails else 1
 
 

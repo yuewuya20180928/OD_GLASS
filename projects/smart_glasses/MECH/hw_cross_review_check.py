@@ -16,9 +16,17 @@ hw_cross_review_check.py —— ISS-089 硬件侧交叉评审 (机械/热/装配
        - 37.00mm (P9 页 / DECISIONS 2026-10-27 口径, 出自已作废的"叠放"模型)
        - 38.00mm (现行"沿长度串行"模型, MECH/fit_check.py BASE cav_v)
   ④ 公差: FDM 外形 ±0.30mm (MECH/fit_check.py 口径), 判据 ≥ 2 × 0.30 = 0.60mm
+  ⑤ ★ **主 PCB 板宽 = 30.00mm** (现行 60×30 板; 老板 10-29 19:16 拍板;
+     MECH/BOARD_GEOM_30MM.md §0/§1 —— 本域唯一权威几何口径)。
+     ★ 2026-11-12 由 **15.00mm 迁入** (ISS-203 / ISS-197 L5): 板宽 15 是已作废口径
+     (老板 10-29 拍板 30 之后 15 就死了) ⇒ 本脚本此前对「15mm 板」打的分全是**假判据**。
+     ★ 本脚本所有「vs 板宽」的判定都读 BASE["pcb_w"] —— 板宽一改, 逐项读数跟着改。
 
-用法:  python3 MECH/hw_cross_review_check.py [--json]
-退出码: 0 = 全部检查项跑完 (不代表所有结论都是 PASS, FAIL 项在输出里标红)
+用法:  python3 MECH/hw_cross_review_check.py [--json] [--self-test]
+       --self-test = 反向用例: 强制 pcb_w 回 15.00 (旧板宽) ⇒ 读数必须回到迁移前基准
+                        (PASS 14 / FAIL 17 / 条件通过 8 / 说明 15, 共 54 项) ⇒ 证明判据真在读这个常量
+退出码: 0 = 全部检查项跑完 (不代表所有结论都是 PASS, FAIL 项在输出里标红);
+        --self-test 下另: 0 = 反向用例与迁移前基准一致, 2 = 不一致
 """
 from __future__ import annotations
 
@@ -48,8 +56,9 @@ BASE = {
     "fpc_t": 0.20,              # FPC 成品厚 (4 层 1oz) [推算]
     "fpc_t_2oz": 0.25,          # FPC 成品厚 (固定段 2oz) [推算]
     "nest_gap": 0.15,           # FPC 嵌套间隙 [推算]
-    "pcb_len": 60.00,           # 主 PCB 板长 [决策 10-28]
-    "pcb_w": 15.00,             # 主 PCB 板宽 [决策 10-27]
+    "pcb_len": 60.00,           # 主 PCB 板长 [决策 10-28] (= 现行板长, 与 BOARD_GEOM_30MM §1 一致)
+    "pcb_w": 30.00,             # 主 PCB 板宽 Y [官方-项目内: 老板 10-29 19:16 拍板, MECH/BOARD_GEOM_30MM.md §0/§1;
+                                 # ★2026-11-12 由 15.00 迁入 (ISS-203 / ISS-197 L5) —— 15mm 口径已作废, 勿回改]
     "pcb_edge": 0.50,           # 4 角工艺边 [推算]
     "soc_escape_x": (20.20, 31.80),   # SoC 逃线带 X 区间 [推算, hw-lead 定版]
     "hole_x": (5.00, 15.00, 55.00),    # 3 个固定孔 X [决策 10-28]
@@ -120,7 +129,13 @@ def schematic_declared_pins():
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--self-test", action="store_true",
+                    help="反向用例: 强制 pcb_w 回 15.00 (旧板宽) ⇒ 读数必须回到迁移前基准 "
+                         "(PASS 14 / FAIL 17 / 条件通过 8 / 说明 15, 共 54 项)")
     args = ap.parse_args()
+    if args.self_test:
+        BASE["pcb_w"] = 15.00
+        print(">>> --self-test: pcb_w 强制回 15.00 (旧板宽) ⇒ 下面的读数应是【迁移前】那一版\n")
 
     print("=" * 100)
     print("ISS-089 硬件侧交叉评审 (机械/热/装配/跨铰链) —— 机械自检")
@@ -193,8 +208,11 @@ def main() -> int:
 
     # 板宽 vs V 带合计 (4 条 FPC 的 V 带互不重叠时)
     deficit = total_stack_fpc - BASE["pcb_w"]
+    fanout_margin = BASE["pcb_w"] - total_stack_fpc
     rec("STK-FANOUT", "★4 条 FPC 的 V 带合计 vs 主 PCB 板宽 (Y)",
-        f"{total_stack_fpc:.2f} vs {BASE['pcb_w']:.2f} → 缺 {deficit:.2f} mm", "FAIL",
+        f"{total_stack_fpc:.2f} vs {BASE['pcb_w']:.2f} → 缺 {deficit:.2f} mm "
+        f"(余 {fanout_margin:+.2f}, 判据 ≥{BASE['judge']:.2f})",
+        "PASS" if fanout_margin >= BASE["judge"] else "FAIL",
         "4 个座都在主 PCB 上, 若每条 FPC 各占自己的 V 带 (P9 的'求和'模型), "
         "脚内段必须做 V 向扇开; 要么改走线图, 要么改堆叠模型 (见 MECH/HW_CROSS_REVIEW.md §2.3)")
 
@@ -223,10 +241,12 @@ def main() -> int:
         f"板长 {BASE['pcb_len']:.2f} - 逃线带起点 X={BASE['soc_escape_x'][0]:.2f} - 工艺边 {BASE['pcb_edge']:.2f}")
     rec("PCB-X-GAP", "★铰链端 X 向缺口", f"{depth - avail:+.2f} mm", "FAIL",
         f"4 座排不开 {depth - avail:.2f}mm; 且固定孔 X=5.00 / 15.00 正好落在这一段里")
+    pcb_y_margin = BASE["pcb_w"] - (22 * BASE["pitch"] + 1.5)
     rec("PCB-Y", "单个座体的 Y (板宽向) 占用 vs 板宽",
         f"最宽 CONN_LIGHT 触点区 {22 * BASE['pitch']:.2f} + 壳体边 ~1.5 = {22 * BASE['pitch'] + 1.5:.2f} mm "
-        f"vs 板宽 {BASE['pcb_w']:.2f}", "PASS",
-        f"余 {BASE['pcb_w'] - (22 * BASE['pitch'] + 1.5):.2f}mm (≥{BASE['judge']:.2f}) —— 单个座放得下, "
+        f"vs 板宽 {BASE['pcb_w']:.2f}",
+        "PASS" if pcb_y_margin >= BASE["judge"] else "FAIL",
+        f"余 {pcb_y_margin:.2f}mm (≥{BASE['judge']:.2f}) —— 单个座放得下, "
         "4 个座不能沿 Y 并排")
 
     # ---------------------------------------------------------- (3b) 合并可行性
@@ -236,18 +256,26 @@ def main() -> int:
     total_pins = sum(r["declared_physical"] for r in pin_rows)
     merged_band = total_pins * BASE["pitch"] + 2 * BASE["fpc_edge_margin"]
     merged_body = total_pins * BASE["pitch"] + 2 * 1.50   # 座体壳边 ~1.5mm/侧
-    rec("MRG-54P", "全合并成 1 个连接器 (54p@0.5mm)",
-        f"触点区 {total_pins * BASE['pitch']:.2f} / FPC 带宽 {merged_band:.2f} / 座体 Y 向 {merged_body:.2f} mm",
-        "FAIL",
-        f"座体 Y 向 {merged_body:.2f}mm > 板宽 {BASE['pcb_w']:.2f}mm → 放不下; "
+    mrg54_margin = BASE["pcb_w"] - merged_body
+    rec("MRG-54P", f"全合并成 1 个连接器 ({total_pins}p@0.5mm · 网表实读)",
+        f"触点区 {total_pins * BASE['pitch']:.2f} / FPC 带宽 {merged_band:.2f} / 座体 Y 向 {merged_body:.2f} mm "
+        f"vs 板宽 {BASE['pcb_w']:.2f} (余 {mrg54_margin:+.2f}, 判据 ≥{BASE['judge']:.2f})",
+        "PASS" if mrg54_margin >= BASE["judge"] else "FAIL",
+        f"座体 Y 向 {merged_body:.2f}mm vs 板宽 {BASE['pcb_w']:.2f}mm ⇒ 余 {mrg54_margin:+.2f}mm "
+        f"(判据 ≥{BASE['judge']:.2f}) → 放不下; "
+        f"★ pin 数 = 网表实读 {total_pins}p (CONN_CAM 31 + CONN_LIGHT 22 + J_CHG 10 + CONN_USB 0; "
+        "P9 正文/器件表的 54p 口径 ≠ 网表 63p, 别按 54p 算); "
         "且接触排沿 V (镜脚高度) 方向 → FPC 带宽方向被锁死, 改成沿 X 会与'铰链轴竖直'矛盾 "
         "(FPC 绕竖直轴弯折 ⇒ 带宽 ∥ 竖直轴 = 镜脚高度)")
     # J_CHG + CONN_USB 合并 (两者框侧都落充电板)
     m14_pins = 10 + 4
     m14_band = m14_pins * BASE["pitch"] + 2 * BASE["fpc_edge_margin"]
     m14_body = m14_pins * BASE["pitch"] + 2 * 1.50
+    mrg14_margin = BASE["pcb_w"] - m14_body
     rec("MRG-14P", "★部分合并: J_CHG(10p) + CONN_USB(4p) → 1×14p@0.5mm",
-        f"FPC 带宽 {m14_band:.2f} / 座体 Y 向 {m14_body:.2f} mm vs 板宽 {BASE['pcb_w']:.2f}", "PASS",
+        f"FPC 带宽 {m14_band:.2f} / 座体 Y 向 {m14_body:.2f} mm vs 板宽 {BASE['pcb_w']:.2f} "
+        f"(余 {mrg14_margin:+.2f}, 判据 ≥{BASE['judge']:.2f})",
+        "PASS" if mrg14_margin >= BASE["judge"] else "FAIL",
         "结构上可行 (框侧两端都落充电板, 脚侧两端都落主 PCB); "
         "★ 但电气代价: 1.5A 充电电流与 90Ω USB 差分同缆 ⇒ 需独立层 + 间距>=3mm, 由 hw-lead 判")
     # 合并后铰链端 X 缺口
@@ -268,8 +296,8 @@ def main() -> int:
     rec("TOPO-1", "拓扑 A: V 向叠放 (P9 隐含的假设)",
         f"4 条 FPC 带宽合计 {v_sum_band:.2f}mm vs 净高 {BASE['cav_v_now']:.2f} → 余 "
         f"{BASE['cav_v_now'] - v_sum_band:.2f}mm", "COND",
-        "★ 后果: 4 个座在主 PCB 上 (板宽仅 15.00mm = V 向) 各自要占一条 V 带, "
-        f"而带宽合计 {v_sum_band:.2f}mm 远超板宽 → 必须在铰链前做 V 向扇开 "
+        f"★ 后果: 4 个座在主 PCB 上 (板宽 {BASE['pcb_w']:.2f}mm = V 向) 各自要占一条 V 带, "
+        f"而带宽合计 {v_sum_band:.2f}mm 超出板宽 {v_sum_band - BASE['pcb_w']:.2f}mm → 必须在铰链前做 V 向扇开 "
         "(最大 ~16mm), 且是板面内的面内弯 (半径受带宽限制, 12mm 宽的带做不出小半径) "
         "⇒ 拓扑 A 下 4 个座不可能全在主 PCB 同一面")
     rec("TOPO-2", "拓扑 B: H 向径向嵌套 (USB_HINGE_STRUCTURE §3.2(a) 已算过)",
@@ -459,6 +487,15 @@ def main() -> int:
         print(json.dumps({"results": RESULTS,
                           "summary": {"pass": npass, "fail": nfail, "cond": ncond, "info": ninfo}},
                          ensure_ascii=False, indent=2))
+    if args.self_test:
+        exp = (14, 17, 8, 15, 54)
+        got = (npass, nfail, ncond, ninfo, len(RESULTS))
+        ok = got == exp
+        print(f"[反向用例] pcb_w=15.00 读数: PASS {npass} / FAIL {nfail} / 条件通过 {ncond} / "
+              f"说明 {ninfo} (共 {len(RESULTS)} 项) ⇒ 与迁移前基准 "
+              f"(PASS 14 / FAIL 17 / 条件通过 8 / 说明 15, 共 54 项) "
+              f"{'一致 ✅' if ok else '不一致 ❌'}")
+        return 0 if ok else 2
     return 0
 
 

@@ -442,6 +442,18 @@ artifacts:
     / BT_432243 电池座待选型 ⇒ 一个脚数都没编★)** ⇒ ★**26 个落库脚数全部来自本机 KiCad 官方库符号实测 (pin 计数, 且逐条与板文件封装焊盘数互校; 全部符号文件
     pins>0 且无 (extends ⇒ 不踩假数坑★)**; ★**板/原理图/网表/BOM md5 一字未变 (611b869e / c78f9912 / 4814617e)★**; 验收 check_sch_pinfull
     rc=0 (K=0) + check_sch_erc rc=0 + merge rc=0 (冲突 0) + gate_check rc=0 (Q1 18/18)★'
+- path: HW/CHARGE_BOARD_SPEC.md
+  kind: spec
+  version: '2026-11-12'
+  updated_at: '2026-10-25'
+  summary: §5.2 J_CHG 跨铰链 pin map 表已按投板真源 HW/netlist_v1.csv 逐脚订正 (pin7 PWR_GOOD->NC, pin10 TS_RTN->HINGE_RSV),
+    并加 2026-11-12 订正注记 (ISS-136)
+- path: HW/check_bq25896_pinout.py
+  kind: gate_script
+  version: '2026-11-12'
+  updated_at: '2026-10-25'
+  summary: 'ISS-136: 检查项 ⑦ 从比硬编快照改成实读规格 §5.2 表 vs 网表逐脚对拍 (新增 ⑦a 同脚多网防护 + ⑦b 快照对齐); 已接入 state/gate_check.py
+    门禁链【Q6】, 闸红即 gate_check rc=1'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -1091,6 +1103,12 @@ needs_from:
     ⇒ 编号不对齐。★**本单只许改三张查找表 ⇒ 我一条没改, 只报给 main 裁决 (★改板 = 2-4 周 + 板费, 别在没有选型结论前动板★)★** ★证据: `HW/PCB/PIN_REALITY_GAP.md`
     §2 的依据列 (2026-11-11 23:5x 重跑生成) + `HANDOFF/2026-11-11_hw-lead_ISS198_查找表补全.md` §6★'
   since: '2026-11-11'
+- key: iss136_spec_residual_sections_sync
+  to: main
+  item: '★ISS-136 残留口径同步 (不在本单改写范围, 已报 main): ① HW/CHARGE_BOARD_SPEC.md §5.1 过铰链线表 (第 3/4/5/8/9 行仍写 J_CHG
+    pin8=VBUS_DET / pin6=CHG_STAT / pin7=PWR_GOOD / pin5=TS / pin9-10=I2C, 与网表错位) ② §7 的 P10 csv 镜像块 (同样带旧口径)
+    ③ ISS-112 那张三方口径对照表 (2026-10-29 历史快照, 其网表列已过期) —— 三处都需 main 拍板是否一并订正; 本单只改了 §5.2 的 pin map 表, 其余一字未动'
+  since: '2026-10-25'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead

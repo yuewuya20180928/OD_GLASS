@@ -20,6 +20,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 
 import yaml
@@ -32,6 +33,15 @@ TRACKER = os.path.join(PROJ, "PROJECT_TRACKER.md")
 
 AGENTS = ["main", "hw-lead", "sw-lead", "mech-lead"]
 FILE_OF = {"main": "pm.yaml", "hw-lead": "hw.yaml", "sw-lead": "sw.yaml", "mech-lead": "mech.yaml"}
+
+# ★★2026-11-12 (ISS-136): 硬件侧的**真源一致性闸** ★★
+#   HW/check_bq25896_pinout.py = BQ25896 24 脚 pinout 复核 + **J_CHG 跨铰链 pin map
+#   规格 §5.2 表 vs 网表逐脚对拍**。
+#   ★**为什么必须接进门禁链**: 它以前 rc=1 却**没人跑** ⇒ 门禁链缺它 ⇒ 规格↔网表漂移
+#   长期没人拦 (ISS-136 的根因: 检查项 ⑦ 当时只比"脚本硬编快照 vs 网表",
+#   **规格文件根本不在判定里** ⇒ 规格怎么改它都不红 ⇒ "一直是绿的假象")。
+#   ★接进来后: 规格表再漂移一次 ⇒ 本闸红 ⇒ daily_check/alignment_check 立刻看得见。
+HW_PINOUT_GATE = os.path.join(PROJ, "HW", "check_bq25896_pinout.py")
 
 # 6 项必填验收块: (代号, 说明, 标题关键词候选)
 REQUIRED_BLOCKS = [
@@ -147,6 +157,37 @@ def load_frag(aid: str) -> dict:
         return d if isinstance(d, dict) else {}
     except Exception:  # noqa: BLE001
         return {}
+
+
+def run_hw_pinout_gate() -> dict:
+    """★ISS-136 (2026-11-12): 跑 `HW/check_bq25896_pinout.py` —— 硬件侧真源一致性闸。
+
+    ★**为什么单独一个函数**: 这个闸以前是"**孤儿**" —— rc=1 却**没有任何门禁调用它**
+    ⇒ 规格 §5.2 与网表漂移长期没人拦 ⇒ ISS-136。
+    ★**为什么必须 subprocess 而不是 import**: 该脚本自己带 rc 契约 (0=过 / 1=有 FAIL),
+    用 subprocess 才能把它真实的失败传上来 (import 会把它的 rc 语义吃掉)。
+    ★**不许让失败静默**: 脚本不存在 / 跑不起来 / 超时 ⇒ 一律当作**闸红** (fail-closed),
+    绝不 "没跑就当过" (那又是一个新的绿的假象)。
+    """
+    if not os.path.exists(HW_PINOUT_GATE):
+        return {"ok": False, "rc": None, "name": "HW pinout 真源闸",
+                "detail": f"★闸脚本不存在: {HW_PINOUT_GATE} ⇒ 视为闸红 (不许静默跳过)"}
+    try:
+        p = subprocess.run([sys.executable, HW_PINOUT_GATE],
+                           cwd=PROJ, capture_output=True, text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "rc": None, "name": "HW pinout 真源闸",
+                "detail": "★闸脚本超时 (300s) ⇒ 视为闸红"}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "rc": None, "name": "HW pinout 真源闸",
+                "detail": f"★闸脚本跑不起来: {e} ⇒ 视为闸红"}
+    out = p.stdout or ""
+    fails = [ln.strip() for ln in out.splitlines() if ln.strip().startswith("[FAIL]")]
+    detail = ("; ".join(fails) if fails else "全部检查项通过")
+    if p.returncode != 0 and not fails:
+        detail = f"rc={p.returncode} 但未解析出 FAIL 行: " + (p.stderr or out).strip()[-300:]
+    return {"ok": p.returncode == 0, "rc": p.returncode, "name": "HW pinout 真源闸",
+            "detail": detail}
 
 
 def main() -> int:
@@ -329,6 +370,13 @@ def main() -> int:
         "hard_metric_agents": hm_ok, "hard_metric_total_agents": len(subs),
     }
 
+    # ★★2026-11-12 (ISS-136): 硬件侧真源一致性闸 ⇒ **真门禁** (不是只打印一行)
+    #   ★这条闸决定了本脚本的 rc: 硬件闸红 ⇒ gate_check 红 ⇒ daily_check / alignment_check 立刻看得见。
+    #   ★**以前这个脚本 rc=1 却没人跑** ⇒ 门禁链缺它 ⇒ 规格↔网表漂移无人拦 (ISS-136 根因)。
+    hw_gate = run_hw_pinout_gate()
+    report["hw_pinout_gate"] = hw_gate
+    report["summary"]["hw_pinout_gate_ok"] = hw_gate["ok"]
+
     # ---- 缺口清单 (可直接转成派活项) ----
     for a in subs:
         e = report["agents"][a]
@@ -345,10 +393,13 @@ def main() -> int:
         real_open = e["needs_total"] - e["needs_answered_incoming"] - e["needs_closable_unregistered"] - e["needs_waiting_external"]
         if real_open > 0:
             report["gaps"].append(f"{a}: {real_open} 条需求确实还没人答 (等另一个总工)")
+    # ★ISS-136: 硬件闸红 ⇒ 进缺口清单 (不许只在正文里飘一行)
+    if not hw_gate["ok"]:
+        report["gaps"].append(f"★硬件闸红: {hw_gate['name']} — {hw_gate['detail']}")
 
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
-        return 0
+        return 0 if hw_gate["ok"] else 1
 
     s = report["summary"]
     print("=" * 74)
@@ -398,11 +449,18 @@ def main() -> int:
         e = report["agents"][a]
         hit = [k for k, v in e["hard_metrics"].items() if v]
         print(f"   {a:<10} {e['hard_metrics_n']}/5 类: {hit}")
+    # ★★2026-11-12 (ISS-136): 硬件侧真源一致性闸 —— **真门禁** (红 ⇒ 本脚本 rc=1)
+    print(f"\n【Q6 硬件真源闸】 {hw_gate['name']}: "
+          f"{'✅ 通过' if hw_gate['ok'] else '❌ 红了'} (rc={hw_gate['rc']})")
+    print(f"   {hw_gate['detail']}")
+    if not hw_gate["ok"]:
+        print("   ★⇒ 规格 §5.2 与网表漂移 / 硬件 pinout 不合规 ⇒ 本闸红, 不许投板")
     print(f"\n【缺口清单】(可直接转成下一轮派活项) —— {len(report['gaps'])} 条")
     for g in report["gaps"]:
         print(f"   · {g}")
     print("\n" + "=" * 74)
-    return 0
+    # ★闸红 ⇒ rc=1 (以前这个硬件闸是孤儿: rc=1 却没人跑 ⇒ 门禁链缺它)
+    return 0 if hw_gate["ok"] else 1
 
 
 if __name__ == "__main__":

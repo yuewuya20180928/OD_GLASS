@@ -35,12 +35,25 @@ ISS-037 (sw-lead, 2026-10-27): 模型资产与 INT8 量化管理缺失
   ★ "metadata_props 为空" 是**取数方式**的问题, "许可未判定" 才是**阻断项**。
     两者从 ISS-087 起分开记。
 
+state = "missing" (ISS-201, 2026-11-12) —— 新增的第 6 个状态词
+-------------------------------------------------------------------
+  含义: 台账这一行登记的**内容** (size + sha256) **已不在盘上** —— 原件丢失。
+  ★ 它**不是** "quarantined" (quarantined = 已判死的坏模型) —— 两个不同的病, 不许混用。
+  ★ 它**不是** "文件不在": 路径上可能躺着**别的内容** (重建件) ⇒ 本状态一律按
+    **内容**判, 不按路径判 (见 check_one 的 missing 分支):
+      C1   = ❌ 原件缺失 (登记的 size/sha256 在盘上找不到)
+      C2/C3 = ⚠️ 不适用 (拿路径上的另一个内容去比 = 比错了对象) → 直接报出**是谁占着这个路径**
+  ⇒ **占用者必须另登记新资产 ID** (R-1 同一内容不得有两个 ID / R-2 版本只认 sha256):
+    台账不许把重建件挂到原件的 ID 上 (那是"冒充原件" = 假绿)。
+  ⇒ 原件的**许可结论不自动继承**给重建件 (重建件是另一次构建 ⇒ 许可要重新判定)。
+
 用法:
     python3 SW/tools/model_asset_check.py                # 全量检查
     python3 SW/tools/model_asset_check.py --no-smoke     # 跳过 C9 冒烟 (快)
     python3 SW/tools/model_asset_check.py --json         # 机读输出
     python3 SW/tools/model_asset_check.py --id MOD-YOLOV5S-320-INT8   # 只查一条
     python3 SW/tools/model_asset_check.py --new /path/to/new.onnx      # 新模型入库: 打印台账行骨架
+    python3 SW/tools/model_asset_check.py --selftest      # ★ISS-201 自检 + 反向用例 (rc=0 才算过)
 
 退出码: 0 = 台账与实物一致 (允许 WARN) | 1 = 有 FAIL | 2 = 用法/文件错
 ★ 语义: rc=0 **不等于可以量产**。量产放行看单独统计的 "放行阻断项 (L)" 计数 = 0
@@ -95,7 +108,11 @@ MODEL_SLOT_MIB = 15
 #   platform        : "candidate" (PC 侧源, 待转板端格式) | "A733-ref" (上一项目, 仅方法论参考)
 #   state           : "candidate" (交付集: 待定版) | "active" (交付集: 在用)
 #                   | "reference" (他项目参考) | "quarantined" (已判死: 坏模型 / chip ID 错)
-#                   | "licensing-hold" (许可受限, 未采购前禁入交付物, 但随时可因采购而复活)
+#                   | "licensing-hold" (许可受限/未判定, 禁入交付物, 但随时可因采购或判定而复活)
+#                   | ★ISS-201 (2026-11-12) 新增 "missing" (原件已丢失): 台账**保留该内容的身份记录**
+#                     (size/sha256 仍指原件), 但该内容**已不在盘上**; 原路径可已被**别的内容**占用
+#                     ⇒ 占用者必须**另登记新资产 ID** (R-1/R-2), 本条**不许冒充**原件
+#                     ⇒ ★ 绝不等于 "quarantined" (quarantined = 已判死的坏模型) —— 两个不同的病
 #   expected_license: 台账判定的许可串 (ISS-087 起: 由 license_probe.py 溯源判定, 不再等于
 #                   metadata_props 原值); None = 仍未判定 → 判 L1 阻断项
 #   license_state   : permissive | agpl-granted | agpl-no-grant | unknown  (见文件头)
@@ -143,8 +160,9 @@ MANIFEST = [
     {
         "id": "MOD-YOLOV5S-640-ARS45-SRC",
         "platform": "candidate",
-        "state": "licensing-hold",
-        "role": "★ 唯一实测可推理的 yolov5s ONNX (640x640) —— 走'采购'路线的转换链输入",
+        "state": "missing",
+        "role": "★ 原件 (29,337,706 B / 20368be665f6f59a) —— **原件已丢失**; 本条现在只保留"
+                "该内容的身份记录, 不再代表该路径上现存的东西 (★ISS-201 实测 2026-11-12)",
         "path": "/home/yuewuya/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx",
         "fmt": "onnx",
         "size": 29337706,
@@ -155,9 +173,72 @@ MANIFEST = [
         "expected_opset": 14,
         "expected_input": [1, 3, 640, 640],
         "expected_chip": None,
-        "note": "★ 2026-10-28 实测 onnxruntime @640 推理 OK (输出 [1,25200,85] + 3 路 "
-                "80/40/20 网格特征图); 血缘: ultralytics/yolov5 v6.0 → onnxsim → "
-                "onnx_extract 抽 3 路 head; 许可 AGPL-3.0 → 未采购前禁入交付物",
+        "note": "★★ ISS-201 (2026-11-12) 实测: **原件已丢失** —— 全盘搜 sha256[:16]="
+                "20368be665f6f59a ⇒ 0 命中 (ISS-196 §3.2); 该路径上现存的是**重建件** "
+                "(29,365,856 B / 1e2c716bd16ed9d3) ⇒ 已另登记为 MOD-YOLOV5S-640-ARS45-REBUILD; "
+                "★ 本条 state=missing (**不是 quarantined**: quarantined = 已判死的坏模型, "
+                "与『原件丢失、路径被重建件占用』不是一回事); "
+                "许可 AGPL-3.0 的溯源结论**只属原件**, **不继承**给重建件 (重建件 = 另一次构建); "
+                "原件血缘 (历史): ultralytics/yolov5 v6.0 → onnxsim → 抽 3 路 head; "
+                "原件 2026-10-28 实测 onnxruntime @640 推理 OK (输出 [1,25200,85] + 3 路 head)",
+    },
+    {
+        "id": "MOD-YOLOV5S-640-ARS45-REBUILD",
+        "platform": "candidate",
+        "state": "licensing-hold",
+        "role": "★ 重建件 (本地重建, 非逐字节复刻原件): yolov5s @640 PC 侧 ONNX 源 —— "
+                "SW/tools/rknn_bench.py 当前实际加载/转换的就是它; ★禁入交付物",
+        "path": "/home/yuewuya/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx",
+        "fmt": "onnx",
+        "size": 29365856,
+        "sha256_16": "1e2c716bd16ed9d3",
+        "expected_license": None,     # ← 台账 §1.2 许可列写 'unknown [0数据]' (脚本口径: 空 = 未判定 ⇒ L1)
+        "license_state": "unknown",
+        "license_grant": None,
+        "expected_opset": 13,
+        "expected_input": [1, 3, 640, 640],
+        "expected_chip": None,
+        "npu_ready": True,
+        "note": "★ ISS-201 (2026-11-12) 实测登记: **重建件** (mtime 2026-11-02 20:41, 与原件体积差 "
+                "28,150 B ⇒ 非逐字节同一份) ⇒ 按 R-1/R-2 另立 ID, **不冒充**原件 ID; "
+                "许可 = **unknown [0数据]** (license_probe.py 实测: metadata_props 的 "
+                "license/author/version 全为 None ⇒ 判不出来; ★**不沿用原件的 AGPL-3.0 结论** —— "
+                "重建件是另一次构建, 血缘需重新判定) ⇒ 按 §1.5 口径禁入交付物 ⇒ state=licensing-hold; "
+                "onnx 实测: producer=pytorch 2.4.0 / opset=13 / 245 节点 / 12 类算子 / "
+                "输入 [1,3,640,640] / 输出 4 个 (output + 3 路 raw head); "
+                "npu_ready=True 只表示**转换链第 1/2 段判据** (静态 shape + 无 NPU 高风险算子) 成立 "
+                "—— **第 3 段 (ONNX→NPU 厂商格式) 与板端精度仍 [0数据]** ⇒ 不进交付集; "
+                "★ 已有精度数字的归属: RKNN 管线 F1 INT8 0.3017 / FP32 同口径 0.3073 (292 张有标注图, "
+                "SW/RKNN_BENCH.md §7.6 A 轮, 权重 sha16=1e2c716bd16ed9d3) ⇒ 那是 **RKNN INT8 管线**的数, "
+                "不是本条 (ONNX) 的 measured_acc ⇒ 本条**不登记** measured_acc",
+    },
+    {
+        "id": "MOD-YOLOV5N-640-ARS45-REBUILD",
+        "platform": "candidate",
+        "state": "licensing-hold",
+        "role": "★ 重建件 (本地重建, 非逐字节复刻原件): yolov5n @640 PC 侧 ONNX 源 —— "
+                "demo 线 M2 的转换输入; ★禁入交付物",
+        "path": "/home/yuewuya/Public/radxa_yolo/acuity_pipeline/model/yolov5n-sim.onnx",
+        "fmt": "onnx",
+        "size": 7931774,
+        "sha256_16": "dfb5d060ca36fc27",
+        "expected_license": None,     # ← 台账 §1.2 许可列写 'unknown [0数据]' (脚本口径: 空 = 未判定 ⇒ L1)
+        "license_state": "unknown",
+        "license_grant": None,
+        "expected_opset": 13,
+        "expected_input": [1, 3, 640, 640],
+        "expected_chip": None,
+        "npu_ready": True,
+        "note": "★ ISS-201 (2026-11-12) 实测登记: **重建件** (mtime 2026-11-02 20:41) —— 与 s 重建件"
+                "是**两个不同的文件 / 两个不同的 sha** ⇒ 两个不同的资产 ID (R-1); "
+                "许可 = **unknown [0数据]** (license_probe.py 实测: metadata_props 空 ⇒ 判不出来; "
+                "★**不沿用原件的 AGPL-3.0 结论**) ⇒ 禁入交付物 ⇒ state=licensing-hold; "
+                "onnx 实测: producer=pytorch 2.4.0 / opset=13 / 245 节点 / 12 类算子 / "
+                "输入 [1,3,640,640] / 输出 4 个 (output + 3 路 raw head); "
+                "npu_ready=True 只表示转换链第 1/2 段判据成立 —— **第 3 段 (ONNX→NPU 厂商格式) "
+                "与板端精度仍 [0数据]** ⇒ 不进交付集; "
+                "★ 已有精度数字的归属: RKNN 管线 F1 INT8 0.2927 / FP32 同口径 0.2957 (281 张有标注图, "
+                "SW/RKNN_BENCH.md §7.6 B 轮, 权重 sha16=dfb5d060ca36fc27) ⇒ INT8 管线数, 非本条 measured_acc",
     },
     {
         "id": "MOD-YOLOV8S-COCO80-ONNX",
@@ -362,6 +443,54 @@ MANIFEST = [
 ]
 
 
+import re
+
+
+def parse_ledger_tables(md_path: str) -> dict:
+    """★ISS-201 (2026-11-12): 从 `SW/MODEL_ASSETS.md` 的表格里抽出 (大小, sha256) —— 按**表头**定位列,
+       不写死列序 (§1.2 主台账与 §8.1 的列序不一样)。
+       返回 {asset_id: (size_cell, sha_cell)}; 只认 ID 列以 "MOD-" 开头的行。"""
+    out = {}
+    if not os.path.exists(md_path):
+        return out
+    lines = open(md_path, encoding="utf-8").read().split("\n")
+    i = 0
+    while i < len(lines) - 1:
+        sep = lines[i + 1]
+        if (lines[i].lstrip().startswith("|") and sep.lstrip().startswith("|")
+                and sep.replace("|", "").replace(" ", "").replace(":", "")):
+            hdr = [c.strip() for c in lines[i].strip().strip("|").split("|")]
+            i_col = next((k for k, h in enumerate(hdr) if h.strip("*` ") == "ID"), None)
+            s_col = next((k for k, h in enumerate(hdr) if "大小" in h), None)
+            h_col = next((k for k, h in enumerate(hdr) if "sha256" in h.lower()), None)
+            j = i + 2
+            while j < len(lines) and lines[j].lstrip().startswith("|"):
+                cells = [c.strip() for c in lines[j].strip().strip("|").split("|")]
+                if i_col is not None and i_col < len(cells):
+                    aid = (cells[i_col].replace("**", "").replace("`", "")
+                           .replace("~~", "").strip())
+                    if aid.startswith("MOD-"):
+                        sz = cells[s_col] if (s_col is not None and s_col < len(cells)) else ""
+                        sha = cells[h_col] if (h_col is not None and h_col < len(cells)) else ""
+                        out[aid] = (sz, sha)
+                j += 1
+            i = j
+        else:
+            i += 1
+    return out
+
+
+def norm_size(cell: str):
+    """台账里的大小格 → int (取开头连续数字); 取不到 → None"""
+    m = re.match(r"^\s*(\d[\d,]*)", cell or "")
+    return int(m.group(1).replace(",", "")) if m else None
+
+
+def norm_sha(cell: str):
+    """台账里的 sha 格 → sha256[:16] (16 位十六进制); 取不到 → None"""
+    m = re.search(r"([0-9a-f]{16})", (cell or "").lower())
+    return m.group(1) if m else None
+
 def sha256_of(path: str) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -460,6 +589,30 @@ def check_one(a: dict) -> dict:
         res["checks"].append((code, None if ok is None else bool(ok), msg))
 
     p = a["path"]
+
+    # ★ ISS-201 (2026-11-12): state="missing" = **原件已丢失** (台账登记的那个内容不在盘上)。
+    #   ★ 路径上可能躺着**别的内容** (重建件) ⇒ 本分支按**内容**判, 不按路径判:
+    #     C1 = ❌ 原件缺失; C2/C3 = ⚠️ 不适用 + 直接报出**是谁占着这个路径**。
+    #   (若按路径判, "台账登的是原件、盘上是重建件" 会被误报成"台账大小写错了" —— 那正是台账在冒充原件)
+    if a.get("state") == "missing":
+        occ = [b["id"] for b in MANIFEST
+               if b["id"] != a["id"] and b.get("path") == a.get("path")]
+        who = (", ".join(occ) if occ else "**无台账资产认领** (裸奔)")
+        if os.path.exists(p):
+            add("C1", False,
+                f"★ 原件缺失 (state=missing): 台账登记的 {a.get('size')} B / "
+                f"{a.get('sha256_16')} 在盘上**不存在** (原件丢失)")
+            add("C2", None,
+                f"★ 不适用 (原件缺失): 该路径现存 {os.path.getsize(p)} B ⇒ 属 {who}")
+            add("C3", None,
+                f"★ 不适用 (原件缺失): 该路径现存 sha256[:16] = {sha256_of(p)[:16]} ⇒ 属 {who}")
+        else:
+            add("C1", False,
+                f"★ 原件缺失 (state=missing): 台账登记的 {a.get('size')} B / "
+                f"{a.get('sha256_16')} 在盘上**不存在**, 且该路径本身也不存在")
+            add("C2", None, "★ 不适用 (原件缺失): 该路径本身也不存在")
+            add("C3", None, "★ 不适用 (原件缺失): 该路径本身也不存在")
+        return res
 
     if a["fmt"] == "dir":
         if not os.path.isdir(p):
@@ -697,6 +850,7 @@ def print_human(results: list, dups: list) -> None:
     hold = [r for r in results if r["state"] == "licensing-hold"]
     quar = [r for r in results if r["state"] == "quarantined"]
     ref = [r for r in results if r["state"] == "reference"]
+    miss = [r for r in results if r["state"] == "missing"]
     for r in results:
         a = by_id.get(r["id"], {})
         print(f"\n▶ {r['id']}  [{r['fmt']} | {r['platform']} | {r['state']}]")
@@ -716,7 +870,7 @@ def print_human(results: list, dups: list) -> None:
     print("\n" + "-" * 100)
     print(f"汇总: 资产 {len(results)} 条 · FAIL {n_fail} · WARN {n_warn} · 重复组 {len(dups)}")
     print(f"交付集 (candidate/active): {len(ship)} 条 | licensing-hold: {len(hold)} 条 | "
-          f"quarantined: {len(quar)} 条 | reference: {len(ref)} 条")
+          f"quarantined: {len(quar)} 条 | reference: {len(ref)} 条 | missing: {len(miss)} 条")
     print(f"量产放行阻断项 (L): {len(blockers)} 条 "
           f"{'→ ✅ 放行阻断项已清零 (★不等于有可用模型: 量产可用模型清单见 SW/MODEL_RELEASE_GATE.md)' if not blockers else '→ ❌ 不许进量产评审 (见 §1.5)'}")
     if not blockers:
@@ -732,19 +886,158 @@ def print_human(results: list, dups: list) -> None:
     for tag, aid, msg in blockers:
         print(f"    - {tag}  [{aid}]  {msg}")
     if hold:
-        print("\n▶ licensing-hold (许可受限, 未采购前**禁入交付物**; 采购后可复活)")
+        print("\n▶ licensing-hold (许可受限/未判定, **禁入交付物**; 判定或采购后可复活)")
         for r in hold:
             a = by_id.get(r["id"], {})
-            print(f"    - {r['id']}: 许可 {a.get('expected_license')!r} "
-                  f"→ 须向 Ultralytics 采购 Enterprise License, 或改用 Apache-2.0 栈")
+            lic = a.get("expected_license")
+            if lic:
+                tail = f"许可 {lic!r} → 须向 Ultralytics 采购 Enterprise License, 或改用 Apache-2.0 栈"
+            else:
+                # ★ ISS-201: 许可**未判定** ≠ 已知是 AGPL —— 不许在这里沿用原件的许可结论
+                tail = ("许可**未判定** (license_state=unknown) → 禁入交付物; "
+                        "须先取得许可结论 (实测: license_probe 判不出来), 不许猜")
+            print(f"    - {r['id']}: {tail}")
     if quar:
         print("\n▶ quarantined (已判死, 不进任何流程)")
         for r in quar:
             why = [f"{c}: {m[:110]}" for c, ok, m in r["checks"]
                    if ok is False or (ok is None and ("失败" in m or "不存在" in m))]
             print(f"    - {r['id']}: " + ("; ".join(why) if why else "(登记为已隔离)"))
+    if miss:
+        print("\n▶ missing (★原件已丢失: 台账只保留该内容的身份记录; 路径占用者**必须另立资产 ID**)")
+        for r in miss:
+            occ = [b["id"] for b in MANIFEST
+                   if b["id"] != r["id"] and b.get("path") == r.get("path")]
+            a = by_id.get(r["id"], {})
+            print(f"    - {r['id']}: 原件 {a.get('size')} B / {a.get('sha256_16')} 不在盘上"
+                  + (f" ⇒ 该路径现被 {', '.join(occ)} 占用" if occ else " ⇒ 该路径现无台账资产认领"))
     print(f"退出码 rc = {1 if n_fail else 0}")
     print("-" * 100)
+
+
+# ---- ISS-201 (2026-11-12): 状态词表 (6 个) ----
+#   candidate / active        = 交付集 (PC 侧候选 / 板端在用)
+#   reference / quarantined / licensing-hold = 非交付集 (但都必须在报告里单列, 不许静默消失)
+#   missing                   = **原件已丢失** (★本单新增, 见文件头)
+STATE_VOCAB = ("candidate", "active", "reference", "quarantined", "licensing-hold", "missing")
+SHIP_STATES = ("candidate", "active")
+# ★ ISS-201 基线: 交付集条目数**本单前后不许变多** (改前 = 2 条)
+SHIP_BASELINE_MAX = 2
+
+
+def cmd_selftest() -> int:
+    """★ISS-201 (2026-11-12): 台账自检 + 反向用例 (rc=0 才算过)。
+
+    查三件事:
+      ① **状态词表自洽** —— 新增的 missing 必须同时在词表里、台账里、判据里 (不许只活在注释里);
+      ② **missing 语义自洽** —— 登记的 (size, sha256) 必须**不等于**该路径现存实物 (防"冒充原件"),
+         且路径占用者必须**另立资产 ID** 被登记 (不许裸奔);
+      ③ **反向用例** —— 把台账里的 sha / size 改一位 ⇒ C3 / C2 **必须翻红** ⇒ 改回必须翻绿
+         ⇒ 这证明台账↔实物是**真比对**, 不是把结论写死。
+    """
+    global SMOKE
+    old_smoke = SMOKE
+    SMOKE = False
+    fails = []
+
+    def case(name, ok, detail=""):
+        print(("  ✅ " if ok else "  ❌ ") + name + (f" — {detail}" if detail else ""))
+        if not ok:
+            fails.append(name)
+
+    print("=" * 100)
+    print("台账自检 + 反向用例 (ISS-201 · sw-lead · 2026-11-12)")
+    print("=" * 100)
+
+    # ---- S1 状态词表自洽 ----
+    used = {a["state"] for a in MANIFEST}
+    case("S1 状态词表自洽 (MANIFEST.state ⊆ 词表, 且 missing 被真正用上)",
+         used <= set(STATE_VOCAB) and "missing" in used,
+         f"台账用到的状态 = {sorted(used)}")
+
+    # ---- S2 missing 语义: 不许冒充 + 占用者必须已登记 ----
+    for a in MANIFEST:
+        if a.get("state") != "missing":
+            continue
+        p = a["path"]
+        if os.path.exists(p):
+            sz = os.path.getsize(p)
+            sha = sha256_of(p)[:16]
+            case(f"S2 missing 不冒充原件 ({a['id']}): 路径现存实物 ≠ 登记原件",
+                 sz != a["size"] or sha != a["sha256_16"],
+                 f"现存 {sz} B / {sha} vs 登记 {a['size']} B / {a['sha256_16']}")
+        else:
+            case(f"S2 missing 原件确已不在盘上 ({a['id']})", True, "路径本身也不存在")
+        occ = [b["id"] for b in MANIFEST if b["id"] != a["id"] and b.get("path") == p]
+        case(f"S2b 路径占用者已另立资产 ID ({a['id']})", bool(occ), f"占用者 = {occ or '无'}")
+
+    # ---- S3 / S4 反向用例: 台账改一位 ⇒ 必须翻红 (证明台账↔实物真比对) ----
+    # ★ 目标选**非 missing** 的资产 (missing 行的 C2/C3 按设计是"不适用" —— 那是 missing 语义, 不是本次要测的)
+    target = next((a for a in MANIFEST
+                   if a.get("state") != "missing" and a.get("sha256_16")
+                   and a.get("size") and os.path.exists(a["path"])), None)
+    if target is None:
+        case("S3 反向用例: 台账 sha 改一位 ⇒ C3 必须 FAIL", False, "没有可测资产 (盘上找不到)")
+    else:
+        flipped = ("0" if target["sha256_16"][0] != "0" else "1") + target["sha256_16"][1:]
+        bad = dict(target)
+        bad["sha256_16"] = flipped
+        c3 = [(ok, m) for c, ok, m in check_one(bad)["checks"] if c == "C3"]
+        case("S3 反向用例: 台账 sha 改一位 ⇒ C3 必须 FAIL (台账↔实物真比对)",
+             bool(c3) and c3[0][0] is False,
+             f"{target['id']}: {target['sha256_16']} → {flipped} ⇒ {c3[0][1] if c3 else '无 C3'}")
+        c3b = [(ok, m) for c, ok, m in check_one(target)["checks"] if c == "C3"]
+        case("S3b 恢复原值 ⇒ C3 必须 PASS", bool(c3b) and c3b[0][0] is True,
+             f"{target['id']}: {c3b[0][1] if c3b else '无 C3'}")
+        bad2 = dict(target)
+        bad2["size"] = target["size"] + 1
+        c2 = [(ok, m) for c, ok, m in check_one(bad2)["checks"] if c == "C2"]
+        case("S4 反向用例: 台账 size 改一位 ⇒ C2 必须 FAIL",
+             bool(c2) and c2[0][0] is False,
+             f"{target['id']}: {target['size']} → {target['size'] + 1}")
+
+    # ---- S5 交付集口径: 重建件不许因为"文件现在能用"就进交付集 ----
+    ship = [a["id"] for a in MANIFEST if a["state"] in SHIP_STATES]
+    reb = [a["id"] for a in MANIFEST if a["id"].endswith("-REBUILD")]
+    case("S5 重建件不在交付集 (state ∈ {candidate, active})",
+         all(i not in ship for i in reb),
+         f"重建件 = {reb} / 交付集 = {ship}")
+    case("S5b 交付集条目数不许变多 (ISS-201 基线 ≤ 2)",
+         len(ship) <= SHIP_BASELINE_MAX, f"交付集 {len(ship)} 条 (基线上限 {SHIP_BASELINE_MAX})")
+
+    # ---- S6 R-2 唯一性: 一个 sha 只对一个 ID ----
+    by_sha = {}
+    for a in MANIFEST:
+        if a.get("sha256_16"):
+            by_sha.setdefault(a["sha256_16"], []).append(a["id"])
+    for i in reb:
+        sha_i = next(a["sha256_16"] for a in MANIFEST if a["id"] == i)
+        ids = by_sha.get(sha_i, [])
+        case(f"S6 R-2 唯一性 ({i}): sha256 只对应 1 个资产 ID", len(ids) == 1, f"{ids}")
+
+    # ---- S7 台账文档 (SW/MODEL_ASSETS.md) ↔ MANIFEST 逐字段一致
+    #      (§1.2 前言原话: "改一个必须改另一个 (脚本自检会 diff 大小/sha256)" —— 这里把它变成真的)
+    led = parse_ledger_tables(os.path.join(PROJ, "SW", "MODEL_ASSETS.md"))
+    ids_man = {a["id"] for a in MANIFEST}
+    case("S7a 台账文档收录了 MANIFEST 的全部资产",
+         ids_man <= set(led),
+         f"文档 {len(led)} 条 / MANIFEST {len(ids_man)} 条; 缺 = {sorted(ids_man - set(led))}")
+    for a in MANIFEST:
+        if a["id"] not in led:
+            continue
+        lsz, lsha = led[a["id"]]
+        ok_sz = (a["fmt"] == "dir") or (norm_size(lsz) == a["size"])
+        ok_sha = (a["sha256_16"] is None) or (norm_sha(lsha) == a["sha256_16"])
+        case(f"S7b 台账↔MANIFEST 逐字段一致 ({a['id']}): 大小 + sha256",
+             ok_sz and ok_sha,
+             f"文档 {lsz} B / {lsha} vs MANIFEST {a['size']} B / {a['sha256_16']}")
+
+    SMOKE = old_smoke
+    print("-" * 100)
+    print(f"自检结果: {len(fails)} 条失败" + (f" ⇒ {fails}" if fails else " ⇒ ✅ 全过"))
+    print(f"退出码 rc = {1 if fails else 0}")
+    print("-" * 100)
+    return 1 if fails else 0
 
 
 def cmd_new(path: str) -> int:
@@ -805,10 +1098,15 @@ def main() -> int:
     ap.add_argument("--id", default=None, help="只检查某一条资产 id")
     ap.add_argument("--new", default=None, help="新模型入库: 打印台账行骨架")
     ap.add_argument("--no-smoke", action="store_true", help="跳过 C9 PC 侧推理冒烟 (更快)")
+    ap.add_argument("--selftest", action="store_true",
+                    help="★ISS-201: 台账自检 + 反向用例 (状态词表 / missing 语义 / 台账↔实物真比对)")
     args = ap.parse_args()
 
     if args.no_smoke:
         SMOKE = False
+
+    if args.selftest:
+        return cmd_selftest()
 
     if args.new:
         return cmd_new(args.new)
@@ -828,6 +1126,7 @@ def main() -> int:
             "model_slot_mib": MODEL_SLOT_MIB,
             "ship_set": [r["id"] for r in results if r["state"] in ("candidate", "active")],
             "licensing_hold": [r["id"] for r in results if r["state"] == "licensing-hold"],
+            "missing": [r["id"] for r in results if r["state"] == "missing"],
             "assets": results,
             "duplicates": dups,
             "release_blockers": count_release_blockers(results),

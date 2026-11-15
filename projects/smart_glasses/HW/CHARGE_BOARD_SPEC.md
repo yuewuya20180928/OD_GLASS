@@ -412,18 +412,22 @@ V_TS = VREGN × (RTH ∥ RT2) / (RT1 + (RTH ∥ RT2))
 
 | pin | 提案 (基线: 电池在镜脚) | 说明 |
 |---|---|---|
-| pin1 | `BAT_CHG+` | 充电电流 (与 pin2 并联) |
-| pin2 | `BAT_CHG+` | 充电电流 (与 pin1 并联) |
-| pin3 | `GND_CHG` | 回流 (与 pin4 并联) |
-| pin4 | `GND_CHG` | 回流 (与 pin3 并联) |
-| **pin5** | **`TS_BAT`** | ★**新增** —— NTC 在镜脚, TS 必须跨铰链 (现行 pin map 缺这一根) |
-| pin6 | `CHG_STAT` | 开漏, 主板侧上拉 |
-| pin7 | `PWR_GOOD` | 开漏, 主板侧上拉 |
-| pin8 | `VBUS_DET` | 1M+1M 分压输出 |
-| **pin9** | **`I2C_CHG_SCL`** (预留/DNP) | ★**新增** —— 给 SoC 编程 ICHG/IINLIM + 读 VBUS/IBAT |
-| **pin10** | **`I2C_CHG_SDA`** (预留/DNP) | ★**新增** |
+| pin1 | `BAT_CHG` | 充电电流 (与 pin2 并联) |
+| pin2 | `BAT_CHG` | 充电电流 (与 pin1 并联) |
+| pin3 | `GND` | 回流 (与 pin4 并联) |
+| pin4 | `GND` | 回流 (与 pin3 并联) |
+| pin5 | `CHG_STAT` | 开漏, 主板侧上拉 (充电状态回读) |
+| pin6 | `PWR_GOOD` | 开漏, 主板侧上拉 (输入电源良好) |
+| pin7 | `NC` | 预留不接 (DNP) —— 2026-11-04 起 VBUS_DET 改主板本地分压, 本脚不走跨铰链 |
+| pin8 | `TS_BAT` | 电池 NTC 在镜脚 ⇒ TS 必须跨铰链 (高阻无电流) |
+| pin9 | `HINGE_RSV` | 预留不接 (DNP) —— BQ25896 的 I2C 本板自闭环, 不跨铰链 |
+| pin10 | `HINGE_RSV` | 预留不接 (DNP) —— 2026-11-03 起跨铰链 `TS_RTN` 残留撤除, NTC 与 30.31k 下臂回 `PGND` |
 
-**与现行 pin map 的差异**: 现行 (P9) 是 pin5=CHG_STAT / pin6=PWR_GOOD / pin7=VBUS_DET / pin8-10=预留。本提案把 CHG_STAT/PG/VBUS_DET **各后移 1 位**, 把 pin5 让给 TS, 把 pin9/10 留给 I2C。
+> ★★2026-11-12 00:2x 订正 (ISS-136): ★**本表已按投板真源 `HW/netlist_v1.csv` 逐脚复算订正** (2026-11-11 19:2x main 实测 + 本单 2026-11-12 00:2x 独立复算, 逐脚 net 名对拍) ⇒ **真源 = 网表**, 本表是网表的**镜像**, 不再是与网表并行的第二口径。★★本轮只动两脚: pin7 `PWR_GOOD`→`NC` (2026-11-04 起 VBUS_DET 改主板本地分压 ⇒ 本脚不接) · pin10 `TS_RTN`→`HINGE_RSV` (2026-11-03 起跨铰链 `TS_RTN` 残留撤除 ⇒ NTC 与 30.31k 分压下臂改回 `PGND`)。★★**下方 ISS-112 那张三方对照表 = 2026-10-29 的历史快照** (它那列"网表实际"反映的是当时的网表, 早于上述两次网表改动) ⇒ 引用时一律以**本表 + 网表**为准; ★§5.1 表与 §7 的 P10 镜像块同属旧口径, 已登记 needs_from 转项目总工裁决。
+>
+> ★**机器可查**: `python3 HW/check_bq25896_pinout.py` (检查项 ⑦ 实读**本表**与网表逐脚对拍) ⇒ 本表与网表再漂移一次 ⇒ 脚本立刻变红; ★该脚本已接进 `state/gate_check.py` 门禁链 (【Q6】) ⇒ 漂移 = 闸红, 不再靠人记得跑。
+
+**与现行 pin map 的差异**: 现行 (P9, 网表) 是 pin5=CHG_STAT / pin6=PWR_GOOD / pin7=NC / pin8=TS_BAT / pin9-10=HINGE_RSV。★**本表已与之一致** (2026-11-12 订正, 见上方注记); 本轮不再保留"后移 1 位 / pin9-10 留给 I2C"的旧提案 —— BQ25896 的 I2C 跨铰链方案**未采用** (§5.3 J-3), pin9/pin10 留作预留。
 
 > 🔴 **ISS-112 (d) 查出的三方分歧 (2026-10-29 · hw-lead) —— `J_CHG` pin map **尚未锁定**, 三处口径互不相同**
 >

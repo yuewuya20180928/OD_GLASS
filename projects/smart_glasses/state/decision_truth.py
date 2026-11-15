@@ -114,15 +114,38 @@ def self_test():
         pend = (_new_state.get("summary") or {}).get("open_needs")
         print("★merge.build_state 真值: 等外部 %s → %s (内部未闭合 %s)" % (ext_old, ext_new, pend))
         assert ext_new < ext_old, "★★**新口径没有减少假挂项 ⇒ 跨分片老板决策没生效**"
-        # ★★2026-11-10 补录老板 11-04 决定后, 降幅从 7 变 8 (78→70):
-        #   ★**新增的第 8 条 = `demo_od_p0_4_panel_init_code` (sw.yaml 的 key)**
-        #   ★**同一问询在 sw.yaml 与 pm.yaml 用了两个不同 key ⇒ 老板 11-04「视崖已不用」的决定只记在
-        #     pm.yaml 的 `visionox_inquiry_release` 上 ⇒ sw.yaml 那条同 key 没回写 ⇒ 假挂进老板清单 6 天**
-        #   ⇒ 项目总工 2026-11-10 在 pm.yaml 补录同一决定 (别名 key) ⇒ 降幅 7→8
-        assert (ext_old - ext_new) == 8, ("★★**降幅应为 8 (2026-11-10 实测 78→70; 2026-11-06 是 78→71), 实测 %s**"
-                                         % (ext_old - ext_new))
-        print("✔ 假挂项减少 8 条 (2026-11-10 实测 78→70; 11-06 是 78→71, 多的一条是 11-10 补录的"
-              " `demo_od_p0_4_panel_init_code` 别名 key) ⇒ ★**回归护栏有效**")
+        # ★★**2026-11-12 02:2x 第 2 次复发 ⇒ 本次把硬编 `== 8` 改成【下限 >= 9 + 具名 key 断言】** ★★:
+        #   ★**为什么必须改 (★实测, 不是推测★)**: 老板 2026-11-12 02:02「不再发信, 全靠自己查资料」在 pm.yaml
+        #   给 `iss105_jchg_rfq_release` 落了 `decision` ⇒ ★**hw.yaml 里同一 key 的那条 (to: main, waiting_on: boss)
+        #   被【跨分片同 key 规则】正确关闭** ⇒ ★**降幅 8 → 9** ★ ⇒ ★**硬编 `== 8` = 一颗"老板下次拍板就自己炸"的雷**
+        #   (★**同一个病第 2 次复发**: 2026-11-10 补录老板 11-04「视崖已不用」时 已经 7 → 8 改过一次硬编数★)
+        #   ★**⇒ 改成下限断言**: ★**"跨分片规则失效 ⇒ 降幅掉回 0" 仍然会红 (这才是这道护栏真正要抓的)** ★
+        #   ★**⇒ 同时加具名 key 断言**: ★**比"数个数"更强 —— 数字对但关错了对象, 照样红** ★
+        #   ★★**反事实实测 (main 2026-11-12 02:2x 亲手跑过)**: 把 pm.yaml 里那条 decision 去掉 ⇒ 降幅回到 8
+        #   ⇒ ★**证明第 9 条确实由老板 02:02 那条决定产生, 不是别的改动带进来的** ★
+        _drop = ext_old - ext_new
+        assert _drop >= 9, ("★★**降幅应 >= 9 (2026-11-12 02:2x 实测 78→69; 2026-11-10 是 78→70; 11-06 是 78→71), 实测 %s**"
+                            "★★**这里红 = 跨分片同 key 规则失效了 (老板拍过的板没闭合) ⇒ 查 decision_keys()**"
+                            % (_drop,))
+        # ★**具名断言: 这 7 个 key 必须【在某个分片里有一条【自身没写 decision、但别处有老板 decision】的 need】**
+        #   ⇒ ★**它们正是"被跨分片同 key 规则关闭"的那批** ⇒ ★**数字对但关错了对象, 这里也会红** ★
+        _expect_closed = ("q16_aspect_ratio", "q4_battery_scope", "q1_latency_scope", "q17_display_fps",
+                          "q18_highspeed_cam", "demo_od_p0_4_panel_init_code", "iss105_jchg_rfq_release")
+        _alias_pairs = set()
+        for _aid, _fr in frags.items():
+            for _n in (_fr.get("needs_from") or []):
+                _k = _n.get("key")
+                if not _k or _n.get("decision"):
+                    continue
+                if (_n.get("waiting_on") or "agent") == "agent":
+                    continue
+                if _k in dec:
+                    _alias_pairs.add((_aid, _k))
+        _missing_alias = [k for k in _expect_closed if not any(kk == k for (_aa, kk) in _alias_pairs)]
+        assert not _missing_alias, ("★★**这些 key 本该被跨分片同 key 规则关闭, 却找不到对应的别名 need: %s**"
+                                    "★★**⇒ 要么 decision 被删了, 要么 need 被挪走/改名了**" % (_missing_alias,))
+        print("✔ 假挂项减少 %d 条 (2026-11-12 02:2x 实测 78→69; 11-10 是 78→70; 11-06 是 78→71) "
+              "⇒ ★**回归护栏有效 (下限 >= 9 + 7 个具名 key 全在)**" % (_drop,))
     except AssertionError:
         raise
     except Exception as _e:
@@ -149,9 +172,11 @@ def self_test():
                 if not old_answered(n) and not answered_by_decision(n, dec):
                     ext_new += 1
         assert ext_new < ext_old, "★★**新口径没有减少假挂项**"
-        assert (ext_old - ext_new) == 8, ("★★**降幅应为 8 (2026-11-10 实测 78→70; 2026-11-06 是 78→71), 实测 %s**"
+        # ★★2026-11-12 02:2x: 与上面主路径同一口径 ⇒ 硬编数改下限 (★**理由见主路径的注释★**)
+        assert (ext_old - ext_new) >= 9, ("★★**降幅应 >= 9 (2026-11-12 02:2x 实测 78→69; 11-10 是 78→70; 11-06 是 78→71), 实测 %s**"
+                                         "★★**这里红 = 跨分片同 key 规则失效了 ⇒ 查 decision_keys()**"
                                          % (ext_old - ext_new))
-        print("✔ 本地粗测: 等外部 %s → %s (★**降幅必须是 8**)" % (ext_old, ext_new))
+        print("✔ 本地粗测: 等外部 %s → %s (★**降幅必须 >= 9**)" % (ext_old, ext_new))
     # ④⑤ ★★★**消费者级护栏 (★兄弟 21:0x 回退实验指出: 护栏只守住 3 个消费者里的 1 个
     #   ⇒ ★**恰恰没覆盖"今天事故那一类"**: ★**只回退 advance.py ⇒ self-test 仍 PASS + gate 对账仍 ✅
     #   ⇒ ★**完全静默** ⇒ 5 条已拍板的 key 又冒出来问老板 (36→41) ⇒ ★**rc 也抓不到 (advance 正常就 rc=1)**)

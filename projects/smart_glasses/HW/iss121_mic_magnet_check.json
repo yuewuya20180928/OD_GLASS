@@ -148,22 +148,22 @@
     "pinset": {
       "P1": [
         8.0,
-        7.5,
+        15.0,
         2.0
       ],
       "S1": [
         8.0,
-        2.5,
+        10.0,
         1.4
       ],
       "P2": [
         52.0,
-        7.5,
+        15.0,
         2.0
       ],
       "S2": [
         52.0,
-        12.5,
+        20.0,
         1.4
       ]
     }
@@ -186,7 +186,7 @@
     "constraint_screw": 20.299999999999997,
     "band": "X <= 8.00",
     "conflicts": [
-      "PIN-SET-2 P1(8.00,7.50) ⌀2.0 / S1(8.00,2.50) ⌀1.4 —— X=8.00 落在带内, 需 Y 向避让",
+      "PIN-SET-2 P1(8.00,15.00) ⌀2.0 / S1(8.00,10.00) ⌀1.4 (现行60x30套A) —— X=8.00 落在带内, 需 Y 向避让",
       "跨铰链 4 连接器落板区 X 0..~24 (ISS-105 open, [0数据]) —— 与带内 X<=9.20 重叠"
     ],
     "usable_band_mm": 8.0
@@ -224,7 +224,21 @@
       "mag_pass": true,
       "skeleton_over_mic": false,
       "skeleton_cutout_needed": false,
-      "pinset_clearance_mm": 3.01
+      "pinset_clearance_mm": 1.26,
+      "pinset_governing_hole": "S1",
+      "pinset_clearance_per_hole_mm": {
+        "P1": 1.6912,
+        "S1": 1.2602,
+        "P2": 44.6031,
+        "S2": 45.4155
+      },
+      "pinset_clearance_legacy_15mm_mm": 3.01,
+      "pinset_governing_hole_legacy_15mm": "P1",
+      "pinset_clearance_delta_vs_legacy_mm": -1.75,
+      "pinset_wall_pass_nonoverlap": true,
+      "pinset_wall_pass_board_rule": true,
+      "pinset_wall_pass_iss092_precedent": true,
+      "pinset_wall_margin_vs_iss092_mm": 0.26
     },
     {
       "name": "M2 SoC 区前",
@@ -251,7 +265,21 @@
       "mag_pass": true,
       "skeleton_over_mic": false,
       "skeleton_cutout_needed": false,
-      "pinset_clearance_mm": 7.41
+      "pinset_clearance_mm": 6.86,
+      "pinset_governing_hole": "P1",
+      "pinset_clearance_per_hole_mm": {
+        "P1": 6.864,
+        "S1": 6.9448,
+        "P2": 32.6221,
+        "S2": 33.6139
+      },
+      "pinset_clearance_legacy_15mm_mm": 7.41,
+      "pinset_governing_hole_legacy_15mm": "P1",
+      "pinset_clearance_delta_vs_legacy_mm": -0.54,
+      "pinset_wall_pass_nonoverlap": true,
+      "pinset_wall_pass_board_rule": true,
+      "pinset_wall_pass_iss092_precedent": true,
+      "pinset_wall_margin_vs_iss092_mm": 5.86
     },
     {
       "name": "M3 mech-lead 假设位 (根部 SoC 区)",
@@ -278,7 +306,21 @@
       "mag_pass": true,
       "skeleton_over_mic": true,
       "skeleton_cutout_needed": true,
-      "pinset_clearance_mm": 15.96
+      "pinset_clearance_mm": 15.7,
+      "pinset_governing_hole": "P1",
+      "pinset_clearance_per_hole_mm": {
+        "P1": 15.6956,
+        "S1": 15.8934,
+        "P2": 23.6484,
+        "S2": 24.884
+      },
+      "pinset_clearance_legacy_15mm_mm": 15.96,
+      "pinset_governing_hole_legacy_15mm": "P1",
+      "pinset_clearance_delta_vs_legacy_mm": -0.26,
+      "pinset_wall_pass_nonoverlap": true,
+      "pinset_wall_pass_board_rule": true,
+      "pinset_wall_pass_iss092_precedent": true,
+      "pinset_wall_margin_vs_iss092_mm": 14.7
     }
   ],
   "criteria": {
@@ -289,6 +331,420 @@
       25.0,
       50.0,
       65.0
+    ],
+    "pinset_wall_refs_mm": {
+      "nonoverlap_hard": 0.0,
+      "board_rule_min_hole_clearance": 0.25,
+      "iss092_precedent": 1.0,
+      "self_tap_general_practice": 1.0
+    },
+    "pinset_wall_refs_sources": {
+      "nonoverlap_hard": "ISS-121 MD §3.2-4 既有口径「与 PIN-SET-2 不打架」= 净空 > 0",
+      "board_rule_min_hole_clearance": "[实测] HW/PCB/demo_mainboard.kicad_pro design_settings.rules.min_hole_clearance=0.25",
+      "iss092_precedent": "[推算] MECH/SERVICE_PORT_ISS092.md §8-11: P2 孔壁到 J_DEBUG 焊盘阵列最近 1.00mm 判通过",
+      "self_tap_general_practice": "[推算·通用] 自攻 M1.2 螺钉孔周围留 >=1.0mm (非本项目判据, 仅参考)"
+    }
+  },
+  "pinset_holes": {
+    "board": "60x30",
+    "set": "A (ISS-194 定版)",
+    "holes": {
+      "P1": [
+        8.0,
+        15.0,
+        2.0
+      ],
+      "S1": [
+        8.0,
+        10.0,
+        1.4
+      ],
+      "P2": [
+        52.0,
+        15.0,
+        2.0
+      ],
+      "S2": [
+        52.0,
+        20.0,
+        1.4
+      ]
+    },
+    "legacy_15mm_obsolete": {
+      "P1": [
+        8.0,
+        7.5,
+        2.0
+      ],
+      "S1": [
+        8.0,
+        2.5,
+        1.4
+      ],
+      "P2": [
+        52.0,
+        7.5,
+        2.0
+      ],
+      "S2": [
+        52.0,
+        12.5,
+        1.4
+      ]
+    }
+  },
+  "pinset_drift_guard": {
+    "ok": true,
+    "detail": "逐坐标一致 (4 孔)"
+  },
+  "mic_y_sensitivity": {
+    "mic_x": 5.0,
+    "y_range": [
+      0.8,
+      29.2
+    ],
+    "step": 0.01,
+    "worst": {
+      "y": 14.19,
+      "wall_mm": 0.55,
+      "governing_hole": "P1"
+    },
+    "best": {
+      "y": 29.2,
+      "wall_mm": 12.4893,
+      "governing_hole": "P1"
+    },
+    "at_current_y": [
+      12.0,
+      1.2602,
+      "S1"
+    ],
+    "bands": {
+      "nonoverlap": {
+        "ok": true,
+        "text": "[0.80..29.20]",
+        "runs": [
+          [
+            0.8,
+            29.2
+          ]
+        ]
+      },
+      "board_rule_0.25": {
+        "ok": true,
+        "text": "[0.80..29.20]",
+        "runs": [
+          [
+            0.8,
+            29.2
+          ]
+        ]
+      },
+      "iss092_1.00": {
+        "ok": true,
+        "text": "[0.80..8.50] / [11.50..12.93] / [17.07..29.20]",
+        "runs": [
+          [
+            0.8,
+            8.5
+          ],
+          [
+            11.5,
+            12.93
+          ],
+          [
+            17.07,
+            29.2
+          ]
+        ]
+      }
+    },
+    "samples": [
+      {
+        "y": 1.0,
+        "wall_mm": 7.6452,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 1.5,
+        "wall_mm": 7.1545,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 2.0,
+        "wall_mm": 6.665,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 2.5,
+        "wall_mm": 6.177,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 3.0,
+        "wall_mm": 5.6908,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 3.5,
+        "wall_mm": 5.207,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 4.0,
+        "wall_mm": 4.7261,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 4.5,
+        "wall_mm": 4.249,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 5.0,
+        "wall_mm": 3.7769,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 5.5,
+        "wall_mm": 3.3115,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 6.0,
+        "wall_mm": 2.8556,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 6.5,
+        "wall_mm": 2.4133,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 7.0,
+        "wall_mm": 1.9912,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 7.5,
+        "wall_mm": 1.6005,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 8.0,
+        "wall_mm": 1.2602,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 8.5,
+        "wall_mm": 1.0007,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 9.0,
+        "wall_mm": 0.8628,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 9.5,
+        "wall_mm": 0.85,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 10.0,
+        "wall_mm": 0.85,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 10.5,
+        "wall_mm": 0.85,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 11.0,
+        "wall_mm": 0.8628,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 11.5,
+        "wall_mm": 1.0007,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 12.0,
+        "wall_mm": 1.2602,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 12.5,
+        "wall_mm": 1.3005,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 13.0,
+        "wall_mm": 0.9602,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 13.5,
+        "wall_mm": 0.7007,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 14.0,
+        "wall_mm": 0.5628,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 14.5,
+        "wall_mm": 0.55,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 15.0,
+        "wall_mm": 0.55,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 15.5,
+        "wall_mm": 0.55,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 16.0,
+        "wall_mm": 0.5628,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 16.5,
+        "wall_mm": 0.7007,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 17.0,
+        "wall_mm": 0.9602,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 17.5,
+        "wall_mm": 1.3005,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 18.0,
+        "wall_mm": 1.6912,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 18.5,
+        "wall_mm": 2.1133,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 19.0,
+        "wall_mm": 2.5556,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 19.5,
+        "wall_mm": 3.0115,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 20.0,
+        "wall_mm": 3.4769,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 20.5,
+        "wall_mm": 3.949,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 21.0,
+        "wall_mm": 4.4261,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 21.5,
+        "wall_mm": 4.907,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 22.0,
+        "wall_mm": 5.3908,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 22.5,
+        "wall_mm": 5.877,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 23.0,
+        "wall_mm": 6.365,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 23.5,
+        "wall_mm": 6.8545,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 24.0,
+        "wall_mm": 7.3452,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 24.5,
+        "wall_mm": 7.837,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 25.0,
+        "wall_mm": 8.3297,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 25.5,
+        "wall_mm": 8.8231,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 26.0,
+        "wall_mm": 9.3171,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 26.5,
+        "wall_mm": 9.8117,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 27.0,
+        "wall_mm": 10.3067,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 27.5,
+        "wall_mm": 10.8022,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 28.0,
+        "wall_mm": 11.2981,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 28.5,
+        "wall_mm": 11.7942,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 29.0,
+        "wall_mm": 12.2907,
+        "governing_hole": "P1"
+      }
     ]
   },
   "verdict": {

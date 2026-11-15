@@ -8,6 +8,10 @@
   ⇒ ★★**而此前我们没有任何闸能发现它** (ERC 只查"画出来的那部分对不对"· C1~C6 查的是生成器自己的账本)★★
   ⇒ ★**⇒ 本件 = 先把这把尺子做出来 ⇒ 尺子先立, 后面 (6b) 才照尺子改图** ★★
 
+★★**口径 (2026-11-12 · ISS-205)**: ★**图上位号带数字后缀** (★`X` → `X_1`; 末字符本来就是数字的位号不动★)
+  ⇒ ★**图上位号 ≠ 表侧 ref** ⇒ 本闸比对前做一次【精确还原】(★见 `normalize_sch_refs`★)
+  ⇒ ★**还原是精确映射 (表里没有的位号不会被凭空造出来; 还原不了的照样被点名) ⇒ 尺子没放松** ★★
+
 ★★**判据 (★就这一条★)**:
   ★**逐器件比对: 【KiCad 从图纸里读出的脚数】 vs 【表里该 ref 的脚数(含 DNP)】 ⇒ 必须【逐个相等】**
   ⇒ 不等就点名"哪个器件差几个脚" ⇒ ★**rc=0 才算过**★
@@ -232,6 +236,42 @@ def evaluate(sch_counts, tbl_counts, comparator=compare_refs):
     return rc, universe, mismatches, stats
 
 
+# ─────────────────── 位号口径还原 (★ISS-205★) ───────────────────
+def kicad_ref(ref: str) -> str:
+    """★图上位号 = 表侧 ref (+ "_1" 后缀, ★末字符不是数字时才加★)
+    ★★**与 `state/gen_kicad_sch.py` 的 `kicad_ref()` 同口径 (★两边必须一致, 否则本闸会误报★)** ★★"""
+    r = (ref or "").strip()
+    if r and r[-1].isdigit():
+        return r
+    return r + "_1"
+
+
+def normalize_sch_refs(sch_counts, tbl_refs):
+    """★【口径还原】图上位号 → 表侧 ref ⇒ (counts, map, n_mapped)★
+
+    ★★**为什么需要 (★ISS-205·2026-11-12★)**: 生成器给位号加了数字后缀
+    (★KiCad 判「已标注」的条件 = 【位号最后一个字符是数字】⇒ 否则导出 BOM 时位号后面被打 "?"★)
+    ⇒ 图上位号 = 表侧 ref (+"_1"), 而真源表 `HW/netlist_v1_pins.csv` 里的 ref **没变**
+    ⇒ ★**不还原 ⇒ 372 条"不一致"全是【命名口径差】, 脚数其实一个没少 (★584 = 584★)** ★★
+
+    ★★**还原是【精确映射】, 不是模糊匹配 —— 尺子没有放松**: ★★
+      · 映射表由【表侧 ref 集合】反推 ⇒ 表里没有的位号不会被凭空造出来
+      · 只映射【确实加了后缀】的位号, 且【后缀名不与表内已有位号冲突】(★避免两个位号被合并★)
+      · 还原不了的图上位号 ⇒ **原样保留** ⇒ 照样被点名成不一致 (★真漏脚照样红★)
+    """
+    tbl = set(tbl_refs)
+    m = {}
+    for r in tbl:
+        k = kicad_ref(r)
+        if k != r and k not in tbl:
+            m[k] = r
+    out = collections.Counter()
+    for ref, n in sch_counts.items():
+        out[m.get(ref, ref)] += n
+    n_mapped = sum(n for ref, n in sch_counts.items() if ref in m)
+    return out, m, n_mapped
+
+
 # ─────────────────────────── 跑闸 ───────────────────────────
 def export_netlist(out_path: str):
     """★跑 KiCad 导网表 ⇒ (rc, stdout/stderr 尾巴)★"""
@@ -263,8 +303,10 @@ def run_gate(netlist_path=None, dnp_basis="incl"):
             if rc_exp != 0 or not os.path.exists(nl_path) or os.path.getsize(nl_path) == 0:
                 return 2, {"error": "KiCad 网表导出失败 (rc=%s) %s" % (rc_exp, export_note)}
         text = open(nl_path, encoding="utf-8", errors="replace").read()
-        sch_counts, sch_stats = parse_netlist_pin_counts(text)
+        sch_counts_raw, sch_stats = parse_netlist_pin_counts(text)
         tbl_incl, tbl_excl, tbl_stats = parse_table_pin_counts(TABLE)
+        # ★★位号口径还原 (★ISS-205★): 图上位号带数字后缀 ⇒ 比对前还原成表侧 ref (★精确映射★)
+        sch_counts, ref_map, n_mapped = normalize_sch_refs(sch_counts_raw, set(tbl_incl))
         rc, universe, mismatches, stats = evaluate(sch_counts, tbl_incl)
 
         # ★对照口径: 去掉 DNP 行 (★main 11:5x 的 203 就是这个口径★) ⇒ 两种口径都算出来, 便于当场复核
@@ -287,6 +329,11 @@ def run_gate(netlist_path=None, dnp_basis="incl"):
             },
             "alt_incl_dnp": {
                 "mismatched": stats["mismatched"] if dnp_basis == "incl" else None,
+            },
+            "ref_norm": {
+                "mapped_pins": n_mapped,
+                "mapped_refs": len(ref_map),
+                "note": "★ISS-205: 图上位号带数字后缀 ⇒ 已按精确映射还原成表侧 ref★",
             },
         }
     finally:
@@ -407,12 +454,24 @@ def self_test() -> int:
             fails.append("③ %s (comp) 条目数=%d (期望 4) ⇒ 说明段被认错了"
                          % (tag, st["components_section_entries"]))
 
+    # ④ 位号口径还原 (★ISS-205★): 还原必须【精确】⇒ 表里没有的位号还原不了 ⇒ 照样被点名 (★尺子没放松★)
+    norm_counts, norm_map, n_mapped = normalize_sch_refs(
+        {"U1_1": 2, "C1_1": 1, "R1_1": 1, "GHOST_1": 3}, {"U1", "C1", "R1", "J_GHOST"})
+    if (norm_counts.get("U1") != 2 or norm_counts.get("C1") != 1 or norm_counts.get("R1") != 1):
+        fails.append("④ 口径还原失败: 加了后缀的位号没还原 (U1=%s C1=%s R1=%s)"
+                     % (norm_counts.get("U1"), norm_counts.get("C1"), norm_counts.get("R1")))
+    if "GHOST_1" not in norm_counts:
+        fails.append("④ 表里没有的位号被凭空还原了 (GHOST_1) ⇒ 尺子被放松")
+    nrc, _, nmm, _ = evaluate(norm_counts, {"U1": 2, "C1": 1, "R1": 1, "J_GHOST": 2})
+    if nrc != 1 or not any(m["ref"] == "GHOST_1" for m in nmm):
+        fails.append("④ 还原不了的多余位号没被点名 (GHOST_1) ⇒ 尺子被放松")
+
     if fails:
         for f in fails:
             print("❌", f)
         print("SELFTEST FAILED")
         return 1
-    print("ALL TESTS PASS (合成样本含DNP / comp-不算脚 / 反向用例)")
+    print("ALL TESTS PASS (合成样本含DNP / comp-不算脚 / 反向用例 / 位号口径还原精确)")
     return 0
 
 
@@ -474,6 +533,10 @@ def main() -> int:
                                     else "只数非-DNP 行 (★main 11:5x 口径★)"))
     print("  总数: 图上 %d 脚 / 表里 %d 脚 · 不一致器件数 K=%d (universe=%d)"
           % (st["sch_pins"], st["tbl_pins"], st["mismatched"], st["universe"]))
+    rn = rep.get("ref_norm") or {}
+    if rn.get("mapped_refs"):
+        print("  [口径还原·ISS-205] 图上位号带数字后缀 ⇒ %d 个位号 (%d 个脚) 已按【精确映射】还原成表侧 ref"
+              % (rn["mapped_refs"], rn["mapped_pins"]))
     print("  (图上: %d 个器件 · %d 个网 · %d 个 node | 表里: %d 行 · %d 个 ref · 其中 DNP 行 %d)"
           % (rep["sch_stats"]["refs_on_schematic"], rep["sch_stats"]["nets"],
              rep["sch_stats"]["nodes"], rep["tbl_stats"]["rows"],

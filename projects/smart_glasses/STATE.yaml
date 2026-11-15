@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-12T00:24:55+08:00'
+  generated_at: '2026-11-15T20:56:02+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,24 +9,24 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 196998
-      sha1: f058161ced0f
-      mtime_ns: 1794412617129714099
+      size: 198205
+      sha1: 4bcbf50a68ef
+      mtime_ns: 1794422319913049296
     mech-lead:
       file: mech.yaml
-      size: 178100
-      sha1: 8875dbf929fd
-      mtime_ns: 1794404606452940385
+      size: 197827
+      sha1: b09c7e4e1abd
+      mtime_ns: 1794422815754078690
     main:
       file: pm.yaml
-      size: 45048
-      sha1: 4868564e12b0
-      mtime_ns: 1794396848804421024
+      size: 52496
+      sha1: 55e6c487b1cb
+      mtime_ns: 1794424214129617405
     sw-lead:
       file: sw.yaml
-      size: 159710
-      sha1: 85b97adc511b
-      mtime_ns: 1794403730774324952
+      size: 162166
+      sha1: 1df69f20ea3d
+      mtime_ns: 1794422331738628721
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -304,8 +304,11 @@ domains:
       waiting_on: agent
       due: '2026-10-27'
       overdue: false
-      decision: null
-      decided_at: null
+      decision: '★老板 2026-11-12 02:02 决定: ★**「不再发信, 全靠自己查资料」** ⇒ ★**DP→MIPI-DSI 桥接芯片询价不再启动** (★询价 = 外发
+        = 一律不发★) ⇒ ★**改为【自己网上查】**: ① 芯片规格书 (★桥接能力 / MIPI DSI 输入输出 lane 数与速率 / 工作电压 / 封装★) ② **公开渠道单价与交期**
+        (★只作选型参考, 不询价不下单★) ③ 查不到 ⇒ ★**标 `[0数据]` + 记为已知缺口 + 给降级方案 (★例如: 改走 SoM 自带 MIPI DSI 输出, 不加桥接芯片★)**
+        ⇒ ★**从待拍板清单退休**★'
+      decided_at: '2026-11-12'
       answers:
       - by: hw-lead
         value: '询价规格已给全: 800x600@60 / <300mW / DSI侧lane数可控 / 交期4-8周 / 面积待镜脚空间预算; 商务走main, 我不外联; 建议并行保留原生DSI方案A为首选'
@@ -757,23 +760,41 @@ domains:
       foreign_answers: []
     - key: ref_designator_rename
       to: boss
-      item: '★**位号规范: 要不要把带下划线的位号改掉** (★实测: KiCad BOM 里 255/291 个位号带字面量问号 ⇒ KiCad 判未标注 ⇒ 板厂看到的位号与丝印对不上★)
-        ⇒ ★**改它会改: netlist表 → BOM → 原理图11页 → 板里 186 个封装位号 → 丝印/CPL/装配/IPC-2581/3D/D356 全套 ⇒ 【板 md5 必变】⇒
-        留证链/Gerber/投产包全要重出 (一个位号平均散在 19~112 个文件)★ ⇒ ★**建议: 先过完原理图评审, 再一次性改名+整链重出; RAIL_*/NET_* 保留(否则 BOM
-        多假料号)★**'
+      item: '★**位号规范: 要不要改位号** (★实测: KiCad 导出的 BOM 里 **186/218** 个位号带字面量问号 ⇒ ★**★真根因 (★2026-11-12 03:0x
+        实测钉死★) = 【KiCad 判「已标注」的条件是【位号最后一个字符是数字】】** ⇒ 位号末字符是字母 ⇒ 判未标注 ⇒ BOM 里打 `?` ⇒ ★**【不是下划线命名的问题 ——
+        去下划线实测无效且会让位号不可读】★** ⇒ ★**解法 = 给位号加 `_1` 数字后缀 (★已在副本实测: 问号行数 0 + annotation errors 警告消失 + 零撞名★)**
+        ⇒ ★**改它 ⇒ netlist表 → BOM → 原理图 11 页 → 板里 186 个封装位号 → 丝印/CPL/装配/IPC-2581/3D/D356 全套 ⇒ 【板 md5 必变】⇒
+        留证链/Gerber/投产包全要重出** (★一个位号平均散在 19~112 个文件★) ⇒ ★**证据: `HW/PCB/KICAD_REF_QUESTIONMARK_ROOTCAUSE.md`
+        (★含全部对照实验★) · 实现单 ISS-205 (owner=hw-lead)★**'
       since: '2026-11-11'
       state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
-      decision: ★老板 2026-11-11 19:31 决定「全做」⇒ ★**位号改名随「一次整链重出」一起做** (★清单 `state/RECHAIN_ONEPASS_PLAN.md`
-        v2, 14 步★) ⇒ ★**`RAIL_*`/`NET_*` 保留** (★单点汇流位, 改了 BOM 多假料号★) ⇒ ★**该项从待拍板清单退休 (已并入整链重出)** ★**
+      decision: '★老板 2026-11-11 19:31 决定「全做」⇒ ★**位号改名随「一次整链重出」一起做** (★清单 `state/RECHAIN_ONEPASS_PLAN.md`
+        v2, 14 步★) ⇒ ★**`RAIL_*`/`NET_*` 保留** (★单点汇流位, 改了 BOM 多假料号★) ⇒ ★**该项从待拍板清单退休 (已并入整链重出)** ★★
+
+        ★**★2026-11-12 03:0x main 订正 (★★根因变了, 实现方案随之改写★★)★**: ★**旧记录写的「根因是下划线命名」是错的** ⇒ ★**实测钉死的真根因 =
+        【KiCad 判「已标注」的条件是位号末字符为数字】** (★带 `?` 的 186 个末字符 100% 是字母; 不带 `?` 的 32 个 100% 是数字; 零例外 + 在 /tmp
+        造最小对照工程逐个换位号复现★) ⇒ ⇒ ★**★★实现方案改为「加 `_1` 数字后缀」★★ (★不是去下划线★): ★**实测副本上改完 ⇒ 问号行数 0 + KiCad 的 annotation
+        errors 警告一并消失 + 186 个 ref 加后缀【零撞名】⇒ ★**可读性只多一个尾巴 (★`C_AC_CSI_D0_CK_N_1` 仍一眼看得出是「CSI D0 CK 负端」★)
+        ⇒ 比「去下划线」明显更优 ⇒ ★**⇒ 实现已开单 ISS-205 (owner=hw-lead · verify_by=main · due 11-14) ⇒ 落点在生成器 `state/gen_kicad_sch.py`
+        (★改在产生点★) ⇒ ★★板侧改动仍属整链重出第 1 步 (★与 C/D/E 合并落表★) ⇒ ★★该单会让原理图位号与板位号暂时不一致 (★预期中间态·不许因此改板★)★★ ⇒ ★★证据
+        `HW/PCB/KICAD_REF_QUESTIONMARK_ROOTCAUSE.md`★★** ★★'
       decided_at: '2026-11-11'
       answers:
       - by: boss
-        value: ★老板 2026-11-11 19:31 决定「全做」⇒ ★**位号改名随「一次整链重出」一起做** (★清单 `state/RECHAIN_ONEPASS_PLAN.md`
-          v2, 14 步★) ⇒ ★**`RAIL_*`/`NET_*` 保留** (★单点汇流位, 改了 BOM 多假料号★) ⇒ ★**该项从待拍板清单退休 (已并入整链重出)** ★**
+        value: '★老板 2026-11-11 19:31 决定「全做」⇒ ★**位号改名随「一次整链重出」一起做** (★清单 `state/RECHAIN_ONEPASS_PLAN.md`
+          v2, 14 步★) ⇒ ★**`RAIL_*`/`NET_*` 保留** (★单点汇流位, 改了 BOM 多假料号★) ⇒ ★**该项从待拍板清单退休 (已并入整链重出)** ★★
+
+          ★**★2026-11-12 03:0x main 订正 (★★根因变了, 实现方案随之改写★★)★**: ★**旧记录写的「根因是下划线命名」是错的** ⇒ ★**实测钉死的真根因
+          = 【KiCad 判「已标注」的条件是位号末字符为数字】** (★带 `?` 的 186 个末字符 100% 是字母; 不带 `?` 的 32 个 100% 是数字; 零例外 + 在
+          /tmp 造最小对照工程逐个换位号复现★) ⇒ ⇒ ★**★★实现方案改为「加 `_1` 数字后缀」★★ (★不是去下划线★): ★**实测副本上改完 ⇒ 问号行数 0 + KiCad
+          的 annotation errors 警告一并消失 + 186 个 ref 加后缀【零撞名】⇒ ★**可读性只多一个尾巴 (★`C_AC_CSI_D0_CK_N_1` 仍一眼看得出是「CSI
+          D0 CK 负端」★) ⇒ 比「去下划线」明显更优 ⇒ ★**⇒ 实现已开单 ISS-205 (owner=hw-lead · verify_by=main · due 11-14)
+          ⇒ 落点在生成器 `state/gen_kicad_sch.py` (★改在产生点★) ⇒ ★★板侧改动仍属整链重出第 1 步 (★与 C/D/E 合并落表★) ⇒ ★★该单会让原理图位号与板位号暂时不一致
+          (★预期中间态·不许因此改板★)★★ ⇒ ★★证据 `HW/PCB/KICAD_REF_QUESTIONMARK_ROOTCAUSE.md`★★** ★★'
         ref: 老板决策 2026-11-11 (项目总工代录)
       foreign_answers: []
     - key: iss191_reset_p0_fix_choice
@@ -802,6 +823,68 @@ domains:
           三行必须同改★) ⇒ ★**同批建议 `Q_ENVC` 三行统一 DNP** (★消 BOM 口径差★) · `R_PG_PULL` 先不动 ⇒ ★**落表时机 = 随「一次整链重出」一起做**
           ⇒ ★**该项从待拍板清单退休 (已并入整链重出)** ★**
         ref: 老板决策 2026-11-11 (项目总工代录)
+      foreign_answers: []
+    - key: self_research_policy_202612
+      to: boss
+      item: '★★【老板 2026-11-12 02:02 新口径】**不再发信, 全靠自己查资料** ★★
+
+        ★**替代 19:31 那条「不再做任何邮件咨询」** ⇒ ★**19:31 只说了【不发】, 今天补上了【发不发都不重要, 因为我们自己能查】** ★
+
+        ★★**具体口径 (★全部由项目总工/各总工自己执行, 不用老板批★)** ★★:
+
+        ★**① 查什么**: 芯片/器件/模组的**规格与球位/引脚定义**、**pinout / 封装尺寸 / 电气参数**、**公开渠道单价与交期** (★只作参考区间, 不询价不下单★)、**公开
+        dts / BSP / 社区实测**
+
+        ★**② 证据等级 (★每个数必须带等级★)**: `[官网]` (★厂商官网/官方 datasheet★) · `[实测]` (★本机可复现★) · `[媒体]` (★媒体/社区/论坛★)
+        · `[推算]` (★由已知量推★) · `[0数据]` (★查不到★)
+
+        ★**③ 查不到怎么办**: ★**如实标 `[0数据]` + 记为【已知缺口】+ 给【降级方案】** ⇒ ★**不许拿"等回信"挂着, 也不许拿"同类器件一般多少"去填** ⇒ ★**降级方案例子**:
+        实测样件 / 选官网参数直接满足的替代型号 / 改设计路径绕开它
+
+        ★**④ 边界**: ★**`state/outbox/` 全部草稿一律不发, 只留档** ⇒ ★**不许再拿「老板批一句可以发」当流程**
+
+        ★★**这一条是【可追的活】, 不是口号**: ★**它要求把项目里所有还写着「等原厂回信 / 等外部回复」的地方, 逐条换成【自己查的结果 + 证据等级】** ⇒ ★**谁改的、查了什么、结论是什么,
+        都要落到具体文档里★★'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-14'
+      overdue: true
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss105_jchg_rfq_release
+      to: boss
+      item: '★【老板 2026-11-12 02:02 已决 · 本条退休】J_CHG 询价函放行外发 —— ★**不再发信, 全靠自己查资料** ⇒ 本条不再上老板清单 (★原需求: J_CHG
+        询价草稿 `state/outbox/j_chg_rfq.md` 已就绪但未发, 请求放行外发给 Hirose + 国产对标★)。'
+      since: '2026-11-12'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-12'
+      overdue: false
+      decision: '★老板 2026-11-12 02:02 决定 (★覆盖 11-11 19:31 那条, 并补上【替代方案】★): ★**「不再发信, 全靠自己查资料」** ⇒ ★**J_CHG
+        询价函 `state/outbox/j_chg_rfq.md` 不发, 也不申请「采购动作豁免」** ⇒ ★**该外部依赖改为【自己网上查】**: ① Hirose FH12-22S-0.5SH(55)
+        等候选的**官网规格书** (单触点额定电流 / 可插厚度 / 防呆 / 座高) ② **公开分销渠道页面**的单价与交期 (★只作参考区间, 不询价不下单★) ③ 查不到 ⇒ ★**标
+        `[0数据]` + 记为已知缺口 + 给降级方案 (★如按实测样件验证, 或选官网参数直接满足的替代型号★) ⇒ ★**从待拍板清单退休**★
+
+        ★**本条 decision 记在 pm.yaml (main 自己的分片) 而不是 hw.yaml** ⇒ ★**依据 = `state/decision_truth.py` 的「老板决策是全局事实」机制
+        (同 key 在任何分片记了 decision ⇒ 所有分片的同 key need 都算已闭合)★** ⇒ ★**故意不写 hw.yaml (★hw-lead 此刻在跑 ISS-195 ⇒
+        不碰别人的分片, 不撞在飞单★)**★'
+      decided_at: '2026-11-12'
+      answers:
+      - by: boss
+        value: '★老板 2026-11-12 02:02 决定 (★覆盖 11-11 19:31 那条, 并补上【替代方案】★): ★**「不再发信, 全靠自己查资料」** ⇒ ★**J_CHG
+          询价函 `state/outbox/j_chg_rfq.md` 不发, 也不申请「采购动作豁免」** ⇒ ★**该外部依赖改为【自己网上查】**: ① Hirose FH12-22S-0.5SH(55)
+          等候选的**官网规格书** (单触点额定电流 / 可插厚度 / 防呆 / 座高) ② **公开分销渠道页面**的单价与交期 (★只作参考区间, 不询价不下单★) ③ 查不到 ⇒ ★**标
+          `[0数据]` + 记为已知缺口 + 给降级方案 (★如按实测样件验证, 或选官网参数直接满足的替代型号★) ⇒ ★**从待拍板清单退休**★
+
+          ★**本条 decision 记在 pm.yaml (main 自己的分片) 而不是 hw.yaml** ⇒ ★**依据 = `state/decision_truth.py` 的「老板决策是全局事实」机制
+          (同 key 在任何分片记了 decision ⇒ 所有分片的同 key need 都算已闭合)★** ⇒ ★**故意不写 hw.yaml (★hw-lead 此刻在跑 ISS-195
+          ⇒ 不碰别人的分片, 不撞在飞单★)**★'
+        ref: 老板决策 2026-11-12 (项目总工代录)
       foreign_answers: []
     answers:
     - key: reva_stl_regen
@@ -877,6 +960,30 @@ domains:
         比当时假设的 500mW 高 34%) ⇒ 换 SoC ⇒ 这条要重算, 可能直接破 43°C 皮肤红线 ⇒ 我排进 ISS-169 之后的下一件事; 需要的原始数据 (RK3572 功耗实测)
         现在板上还没实测 (板子刚通到连通性骨架这一步) ⇒ ★实测优先于推算。'
       ref: HW/PCB/FET3572C_PIN_TABLE.csv
+    - key: e01_som_balltable_selfcheck_202612
+      to: main
+      value: '★**E-01 (`FET3572C_PIN_TABLE.csv` 的 P2 座缺 `num=40`) 已关闭 · 2026-11-12 02:2x 项目总工【自己网上查】解决
+        (★老板 2026-11-12 02:02 指令「不再发信，全靠自己查资料」★)**
+
+        ★**① [官网]** Forlinx 官方手册 §2.6.2 **Table 4 (P2 Even Pin Definition)** 实测只有 **49 个数据行** ⇒ 从 `num=38`
+        直接跳到 `num=42` ⇒ ★**官方文档同样没有 `num=40`** ⇒ ★**不是我们抄漏, 是官方原样**
+
+        ★**② [实测]** 项目表 399 行 vs 官方 399 行 ⇒ `Signal Name`/`BALL`/`GPIO`/`VOL` **四列零差异** ⇒ ★**本表 = 官方手册逐格转录**
+        ⇒ ★**证据等级从【模组厂口径】升到【[官网]】**
+
+        ★**③ [实测]** `J_SOM_P2` 只用 1/7/9/11/13/31/33/45/100 ⇒ ★**不用 `pin40`** ⇒ ★**对本板零影响** ⇒ ⇒ ★**E-01
+        不再是任何人的阻塞项**
+
+        ★**④ 顺带查到**: (A) FET3576-C 与 FET3572-C **针脚兼容** ⇒ 升级不用改载板 (B) `P2_7` 官方默认功能是 `PWM0_CH1_M0` 而我们当
+        `UART_TX` ⇒ **引脚复用待核** ⇒ 已开 **ISS-201** (owner=hw-lead)
+
+        ★**完整证据**: `HW/PCB/RK3572_SOM_BALLTABLE_CROSSCHECK.md`
+
+        ★**已改在产生点**: `state/gen_kicad_sch.py` (§5.1 整段 + §5.2 + §6 + §2 注记) ⇒ `HW/PCB/PIN_REALITY_GAP.md`
+        已重跑刷新 ⇒ ★**受保护文件 md5 全未变** (★板 `611b869e13518c3c023fb178f91a0075` · 网表 `c78f991283cc82d56c8e3dd31657c785`
+        · 脚表 `4814617e22b567d76164e56bc5e39dc8` · `.kicad_pro` `3e504d2be83152e337949723e909be1b` · `FET3572C_PIN_TABLE.csv`
+        `67340a0b707095fc4c0755a4c79ea8b6`★)'
+      ref: HW/PCB/RK3572_SOM_BALLTABLE_CROSSCHECK.md
     open_questions:
     - id: PM-Q1
       to: sw-lead
@@ -1355,6 +1462,18 @@ domains:
         全部符号文件 pins>0 且无 (extends ⇒ 不踩假数坑★)**; ★**板/原理图/网表/BOM md5 一字未变 (611b869e / c78f9912 / 4814617e)★**;
         验收 check_sch_pinfull rc=0 (K=0) + check_sch_erc rc=0 + merge rc=0 (冲突 0) + gate_check rc=0 (Q1
         18/18)★'
+    - path: HW/CHARGE_BOARD_SPEC.md
+      kind: spec
+      version: '2026-11-12'
+      updated_at: '2026-10-25'
+      summary: §5.2 J_CHG 跨铰链 pin map 表已按投板真源 HW/netlist_v1.csv 逐脚订正 (pin7 PWR_GOOD->NC, pin10 TS_RTN->HINGE_RSV),
+        并加 2026-11-12 订正注记 (ISS-136)
+    - path: HW/check_bq25896_pinout.py
+      kind: gate_script
+      version: '2026-11-12'
+      updated_at: '2026-10-25'
+      summary: 'ISS-136: 检查项 ⑦ 从比硬编快照改成实读规格 §5.2 表 vs 网表逐脚对拍 (新增 ⑦a 同脚多网防护 + ⑦b 快照对齐); 已接入 state/gate_check.py
+        门禁链【Q6】, 闸红即 gate_check rc=1'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -1743,14 +1862,17 @@ domains:
       item: J_CHG 询价草稿 state/outbox/j_chg_rfq.md 已就绪 (硬判据 C-1~C-8 + F-1~F-5, 含单触点 >=0.5A 的书面确认、可插厚度 >=0.25mm、机械防呆),
         但**未发**。请求放行外发 (收件方 Hirose + 国产对标), 外发一律经你。★采购口径已按『实物一对』写进 RFQ 与 BOM 备料栏, 别只按网表的 1 只 ref 备料。
       since: '2026-10-28'
-      state: waiting_external
+      state: answered
       target_missing: false
       waiting_on: boss
       due: '2026-10-31'
-      overdue: true
+      overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: main
+        value: (老板决策, 跨分片同 key)
+        ref: 老板决策 (项目总工代录, 跨分片同 key)
       foreign_answers: []
     - key: iss105_hinge_end_conn_width
       to: main
@@ -2762,6 +2884,22 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss136_spec_residual_sections_sync
+      to: main
+      item: '★ISS-136 残留口径同步 (不在本单改写范围, 已报 main): ① HW/CHARGE_BOARD_SPEC.md §5.1 过铰链线表 (第 3/4/5/8/9 行仍写
+        J_CHG pin8=VBUS_DET / pin6=CHG_STAT / pin7=PWR_GOOD / pin5=TS / pin9-10=I2C, 与网表错位) ② §7 的 P10
+        csv 镜像块 (同样带旧口径) ③ ISS-112 那张三方口径对照表 (2026-10-29 历史快照, 其网表列已过期) —— 三处都需 main 拍板是否一并订正; 本单只改了 §5.2
+        的 pin map 表, 其余一字未动'
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -3519,6 +3657,36 @@ domains:
       version: '1.0'
       updated_at: '2026-10-25'
       summary: 'ISS-139 交卷报告: 结论先行 + 8 条问询清单 (只起草不外发) + 分片登记 + 自证命令'
+    - path: SW/MODEL_ASSETS.md
+      kind: doc
+      version: '1.1'
+      updated_at: '2026-11-12'
+      summary: 'ISS-201: §1.2 台账新增 2 条重建件 (MOD-YOLOV5S-640-ARS45-REBUILD / MOD-YOLOV5N-640-ARS45-REBUILD),
+        原 ID MOD-YOLOV5S-640-ARS45-SRC 置 state=missing (原件丢失); §1.1 R-5 状态机新增 missing 词'
+    - path: SW/tools/model_asset_check.py
+      kind: tool
+      version: '1.1'
+      updated_at: '2026-11-12'
+      summary: 'ISS-201: MANIFEST 同步登记 2 条重建件 + 原件置 missing; 新增状态词 missing (头注释词表 + check_one missing
+        分支 + 报告桶); 新增 --selftest (S1 词表自洽 / S2 missing 不冒充 / S3+S4 台账↔实物真比对反向用例 / S5 交付集口径 / S6 sha 唯一
+        / S7 台账文档↔MANIFEST 逐字段一致)'
+    - path: SW/tools/rknn_bench.py
+      kind: tool
+      version: '1.1'
+      updated_at: '2026-11-12'
+      summary: 'ISS-201: 第 125 行硬编码常量 ONNX_MODEL_SHA16 由 20368be665f6f59a 改为 1e2c716bd16ed9d3 (台账已先登记重建件,
+        不构成假绿) ⇒ probe 台账一致 True'
+    - path: SW/RKNN_BENCH.md
+      kind: doc
+      version: '1.1'
+      updated_at: '2026-11-12'
+      summary: 'ISS-201: 第 57 行 sha 订正为 1e2c716bd16ed9d3 并注明台账 ID 映射 (原 ID 原件已丢失置 missing); 第 473 行追加
+        2026-11-12 复跑记录'
+    - path: HANDOFF/2026-11-12_sw-lead_ISS201_台账登记重建件.md
+      kind: note
+      version: '1.0'
+      updated_at: '2026-11-12'
+      summary: 'ISS-201 交卷报告: 结论先行 + 逐处 改前改后 + 实测依据 + 验收自证输出 + 交付集条目数改前改后 (2 条 → 2 条) + 边界自证 + 残留项 (只报不改)'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -4910,6 +5078,23 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss201_rebuild_model_license
+      to: main
+      item: 'ISS-201 (2026-11-12) 实测: 两个重建件的许可 未判定 —— license_probe.py --onnx 实测 metadata_props 的 license/author/version
+        全为 None ⇒ verdict = unknown [0数据]; 台账 §1.2 按 R-3 登记为 unknown (脚本 MANIFEST: expected_license=None
+        ⇒ 日后若进交付集即触发阻断项 L1)。★原件的 AGPL-3.0 结论 不自动适用于 重建件 (重建件 = 2026-11-02 另一次构建, 血缘需重新判定)。请项目总工决定: (a)
+        向来源方/原厂取得重建件的许可结论 (外发一律经项目总工), 或 (b) 改走 Apache-2.0 栈。两个重建件 sha16: 1e2c716bd16ed9d3 (s) / dfb5d060ca36fc27
+        (n), 均 state=licensing-hold 禁入交付物; 转换链第 3 段与板端精度仍 [0数据]。'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: debug_port_form
       to: hw-lead
@@ -5371,6 +5556,56 @@ domains:
       version: '1.0'
       updated_at: '2026-10-25'
       summary: 'ISS-127 交接单: B1 七条结论摘要 / B2 验收标准 8 条自评 / B3 证据分级 / B4 接口取值 8 条 / B5 needs 5 条 / B6 复现命令'
+    - path: MECH/_frag_update_iss200.py
+      kind: script
+      version: '1.0'
+      updated_at: '2026-11-12'
+      summary: 'ISS-200 分片原子写脚本 (走 state/frag_write.py 的 update_fragment): ★**按 key 定位后替换** interface_claims.j_chg_pin_map
+        这一条 (★不用 CLI --add-claim, 它是追加语义 ⇒ 会造成同 key 两条★), 另新增 2 条 artifact + 3 条 need; 禁 open(p,"w")。'
+    - path: HANDOFF/2026-11-12_mech-lead_ISS200_J_CHG接口契约收敛.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-11-12'
+      summary: 'ISS-200 交卷单: 结构侧 J_CHG 接口契约收敛到网表真源 —— ①state/fragments/mech.yaml 的 interface_claims.j_chg_pin_map
+        逐脚订正 (pin7 VBUS_DET→NC / pin8 TS→TS_BAT / pin9-10 旧值(RSV / TS_RTN)→HINGE_RSV) ②MECH/USB_HINGE_STRUCTURE.md
+        §5.2 J_CHG 块整块改写 (5 条结论全部按现行 10p map 重推: 防呆 / 载流 / 电池脚 / 检测线 / pitch) ③逐脚复算依据 + 5 条越界残留只报不改 (MECH
+        §5.1+§5.3 / HW 4 处) + 验收自证命令。'
+    - path: MECH/_frag_update_iss202.py
+      kind: script
+      version: '1.0'
+      updated_at: '2026-11-12'
+      summary: 'ISS-202 分片原子写脚本 (走 state/frag_write.py 的 update_fragment): ★**按 key 定位后替换** interface_claims.mech_j_chg_pins
+        这一条 (★不用 CLI --add-claim, 它是追加语义 ⇒ 会造成同 key 两条★; ★**value 不动**, 只订正 note), 另新增 2 条 artifact +
+        5 条 need; 禁 open(p,"w")。'
+    - path: HANDOFF/2026-11-12_mech-lead_ISS202_J_CHG旧口径收尾.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-11-12'
+      summary: 'ISS-202 交卷单: 结构侧 J_CHG 旧口径收尾 —— ①MECH/USB_HINGE_STRUCTURE.md §5.1 表 J_CHG 行 (6 (1×6 @1.27)
+        / 6.35 / 8.35 → 10 (1×10 @0.5) / 3.5 / 5.5, 按 hinge_usb_check.py 复算) ②§5.3 C-4 (J_CHG → 8p @0.5
+        → 1×10p @0.5; 堆叠算式属几何数字 ⇒ 只报不改) ③§5.3 C-1 尾巴 (SYS 单触点载流 → BAT_CHG 双 pin 并联) ④§5.2 F-5 / F-6 (反插后果按
+        pin i ↔ pin 11-i 重算: 断路 + GND↔TS_BAT 短 + CHG_STAT↔PWR_GOOD 短) ⑤frag claim mech_j_chg_pins 的 note
+        (pin10=TS 专用回流 → HINGE_RSV) ⑥逐脚复算依据 + 越界残留只报不改 (本文件 11 处 + 其它 MECH 文档 3 份 + 脚本 RECOMMENDED_PINS)
+        + 验收自证命令。'
+    - path: MECH/hw_cross_review_check.py
+      kind: script
+      version: '1.1'
+      updated_at: '2026-11-12'
+      summary: ISS-203 板宽基线迁 30mm (pcb_w 15.00→30.00, 注释同步改掉 老板拍板15mm/[决策 10-27]); 4 条 vs 板宽的判定由写死 verdict
+        改为真判定 (判据仍是脚本自己的 余量≥0.60); MRG-54P 标题 54p 订正为 63p (网表实读); 新增 --self-test 反向用例 (强制回 15.00 ⇒ 读数回到迁移前基准
+        PASS14/FAIL17/条件8/说明15 共54项)
+    - path: MECH/service_port_check.py
+      kind: script
+      version: '1.1'
+      updated_at: '2026-11-12'
+      summary: ISS-203 板宽基线迁 30mm (pcb_w 15.00→30.00, 注释同步改掉 老板拍板15mm); 只动 V 链 PCB 段 检查 5.4 (需求 21.00/余+17.00
+        → 需求 36.00/余+2.00, 最坏 +1.40, 判据 0.60 未动); 运行期横幅打印 SERVICE_PORT_ISS092.md 口径漂移提示; 新增 --self-test
+        反向用例 (强制回 15.00 ⇒ 54/54 FAIL 0)
+    - path: HANDOFF/2026-11-12_mech-lead_ISS203_两个机械复核器pcb_w迁30mm.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-11-12'
+      summary: ISS-203 交接单 (B1~B6 六块齐全; 逐项 改前→改后 表; 反向用例两种跑法; 5 条 need 含 ISS-197 L1 两条板长 claim 只报不改)
     blockers:
     - id: MECH-B1
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -6735,7 +6970,7 @@ domains:
       target_missing: false
       waiting_on: boss
       due: '2026-11-12'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -6780,7 +7015,7 @@ domains:
       target_missing: false
       waiting_on: vendor
       due: '2026-11-12'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -6824,7 +7059,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-11-12'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -6896,7 +7131,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-11-13'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -6915,7 +7150,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-11-13'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -7035,7 +7270,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-11-13'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -7068,7 +7303,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-11-13'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -7111,7 +7346,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-11-13'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -7163,6 +7398,240 @@ domains:
         会同 hw-lead 钉死 (挤占 or 叠加), 这决定 ISS-127 的链② 是否需要额外动作。注: 无论怎么钉, P1 (H 向分型) 下链② 的脱模项 = 0 ⇒ 四档全过 (2.99/2.60/2.40/2.18
         含石墨口径)。'
       since: '2026-11-11'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss200_mech_doc_residual_old_pinmap
+      to: main
+      item: '★ISS-200 只报不改 (①**MECH/USB_HINGE_STRUCTURE.md §5.1 表** J_CHG 行仍写 『6 (1×6 @1.27) / 触点区宽 6.35
+        mm / 座体宽 8.35 mm』= 老 6 脚口径; ②**同文件 §5.3 C-4** 仍写『J_CHG → 8p @0.5』 (现行是 1×10p@0.5mm); ③**同文件 §5.3
+        C-1** 尾巴仍写『SYS 单触点载流下降 → 用 2 脚并联解决』(现行跨铰链载流是 BAT_CHG, SYS 不跨铰链); ④**同文件 F-5 / F-6** 的『SYS ↔ GND
+        反插短接』措辞仍是老 6 脚口径。★**这 4 处都在本单地界外** (本单只许动 §5.2 的 J_CHG 块) ⇒ **只报不改**。★**请裁**: 是否授权我在下一轮一并订正这 4
+        处 (文字口径, **不动任何几何数字**)。'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-14'
+      overdue: true
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss200_hw_residual_old_pinmap
+      to: main
+      item: '★ISS-200 只报不改 (★**HW/ 是 ISS-199 的地界, 我不许代改**★), 结构侧扫出 4 处仍带旧 J_CHG 口径: ①`HW/netlist_v1.csv`
+        **第 38 行 (J_CHG CONN 行) 与第 412 行 (P9 HINGE_CHG 行) 的 note 列** 仍写 『pin7=VBUS_DET / pin8=TS / pin9-10=预留』『SYS
+        经 J_CHG 回主 PCB』 = V1.5 期旧文字 (★**但同表逐脚 net 行是对的**, 机器判定以逐脚 net 名为准 ⇒ 建议 note 列订正, 别改逐脚行★); ②`HW/POWER_SHUTDOWN_V3.md`
+        第 129 行 『TS 专用回流 (J_CHG pin10 + R_TS_PULL/R_NTC_BAT 下端改接 TS_RTN)』 —— **TS_RTN 网在网表里 0 次出现**; ③`HW/J_CHG_SELECTION.md`
+        C-8 / §0-5 的防呆论证仍写『反插 = SYS/BAT_CHG 短接 GND → MOS 直通』 —— ★**在现行 10p map 下该论证不成立**: 180° 翻转是 pin
+        i ↔ pin 11-i ⇒ BAT_CHG(pin1/pin2) 落到 HINGE_RSV(pin10/pin9) = 预留脚 ⇒ **断路, 不短接**; 真实反插后果是 **GND(pin3)
+        ↔ TS_BAT(pin8) 短** + **CHG_STAT(pin5) ↔ PWR_GOOD(pin6) 短** ⇒ **机械防呆仍必需, 但理由要换**; ④`HW/CHARGE_BOARD_SPEC.md`
+        §5.1 表 + §7 的 P10 镜像块 (ISS-136 已登记 needs_from, 不重复登记)。★**转 ISS-199 / 项目总工裁决**。'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-14'
+      overdue: true
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss200_mech_frag_mech_j_chg_pins_note
+      to: main
+      item: '★ISS-200 只报不改 (★**本单只许动 `interface_claims.j_chg_pin_map` 这一条**★): **同域另一条 claim `mech_j_chg_pins`**
+        的 note 里仍断言现行口径为 『pin1/2=BAT_CHG, pin3/4=GND, pin5=CHG_STAT, pin6=PWR_GOOD, pin7=NC, pin8=TS,
+        pin9=RSV, **pin10=TS 专用回流**』 ⇒ ★**pin10 这一句现在是错的** (现行 pin10 = HINGE_RSV), 且该 note 自己在末尾写着『原值与本域另一条
+        claim j_chg_pin_map 自相矛盾』。★**订正 j_chg_pin_map 后, 分片内自相矛盾的那一条变成了 mech_j_chg_pins** ⇒ 合并器检不出这种**同域**不一致
+        (只有跨域同 key 才判冲突) ⇒ **必须人工收口**。★**请裁**: 是否授权我一并订正 `mech_j_chg_pins` 的 note (只改那一句 pin map 文字, **不动它的
+        value 10p@0.5mm**)。'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-14'
+      overdue: true
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss202_mech_doc_residual_jchg_old_6pin
+      to: main
+      item: '★ISS-202 只报不改 (★**本单地界只含 §5.1 表 J_CHG 行 / §5.3 C-4 / §5.3 C-1 / §5.2 F-5·F-6 四处**★): `MECH/USB_HINGE_STRUCTURE.md`
+        里 J_CHG **仍带老 6 脚 / 8p 口径** 共 11 处 —— ①§0 C-3 『J_CHG 1×6@1.27→8p@0.5 后, 堆叠降到 24.0 mm』 ②§0 C-5
+        『J_CHG 的 pin 定义里没有电池脚』+『0.55 A (SYS 口径) vs 1.5 A』 (⇒ 与 ISS-200 §5.2 第 4 条『有电池脚』直接矛盾) ③§0 C-6 『1×6
+        1.27mm 排线座无防呆, 反插 = SYS 短接到 GND』 ④§3.1 链路表 L-1 『J_CHG (1×6 1.27 mm 排线座) | 6 | 5 | 0』 ⑤§3.2b 声明版行
+        『40p + 40p + 4p + 1×6@1.27 | 49.62 mm』 (★[实测] 现网表声明 = 31.5 mm, `python3 MECH/hinge_usb_check.py`
+        §2) ⑥§3.2b 收敛版行 『16p + 20p + 4p + 8p@0.5 | 24.00 mm』 ⑦§3.2c 『声明版 49.62 mm / 收敛版 24.00 mm』 ⑧§7
+        『铰链区高度占位 49.62 → 24.00 mm (省 25.62 mm)』 ⑨§8 U-2 『(16p / 20p / 4p / 8p)』 ⑩§9 `mech_hinge_stack_fixed_mm`
+        注 『收敛版 (16p/20p/4p/8p @0.5)』 ⑪★**§9 `mech_j_chg_pins` 行仍写 value = `8p@0.5mm`** (★**与本分片 claim
+        `mech_j_chg_pins` 的 value `10p@0.5mm` 直接矛盾 ⇒ 结构侧文档里还藏着第 3 套 pin map**★)。★**另**: §5.2 F-3 行『缩 pin
+        (16p/20p/8p → 24.0 mm)』的 8p 同属旧口径, 但 §5.2 是 ISS-200 已定版区 ⇒ **我没碰**。⇒ ★**请裁**: 是否授权下一轮一并订正这 12
+        处 (★**文字口径为主**; §3.2b/§7/§9 的 49.62 / 24.00 / 25.62 是几何数字, 是否连带重算请一并给口径)。'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-14'
+      overdue: true
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss202_mech_c4_stack_arith_pending
+      to: main
+      item: '★ISS-202 边界内发现, 但**本单只报不改** (★属几何数字变更★): `MECH/USB_HINGE_STRUCTURE.md` §5.3 **C-4** 行, 本单已把
+        `J_CHG` 的 pin 规格从 **8p @0.5** 订正为 **1×10p @0.5** (ISS-202 · 2026-11-12), 但**同一行的触点区/堆叠算式仍是 8p
+        口径** (『8+20+4+8 = 40 脚 @0.5 = 20 mm 触点区』+『铰链区堆叠 24.0 mm (含间隙), 余 13.0 mm』) ⇒ ★**该行现在自相矛盾** (已就地打
+        ★ 标注『本格算式仍按原 8p 口径 ⇒ 与上格 1×10p 不一致; 属几何数字变更 ⇒ 本单只报不改』)。★**两种算式的候选重算值 (供裁, 本单未写入文档)**: 按本文行内算式
+        8+20+4+10 = 42 脚 @0.5 = **21.0 mm 触点区** + 4×1.0 mm 间隙 = **25.0 mm 堆叠 / 余 12.0 mm**; 按脚本算式 16+20+4+10
+        = 50 脚 @0.5 = **25.0 mm 堆叠** ⇒ **两种算式都落在 25.0 mm 堆叠** (但『触点区』那一格两法不同: 21.0 vs 25.0)。★**另**: 该表
+        `MECH/hinge_usb_check.py` 的 `RECOMMENDED_PINS[''J_CHG'']=8` (及其注释『SYS×2(载流) + VBUS_DET + BAT_DET
+        + …』= 老 6 脚期 map) 同源 ⇒ 见下一条 need。⇒ ★**请裁**: C-4 行按哪套算式重算, 以及是否授权改脚本 `RECOMMENDED_PINS` (脚本属既有件,
+        改它要单独授权)。'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-14'
+      overdue: true
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss202_mech_script_recommended_pins_jchg_8
+      to: main
+      item: '★ISS-202 只报不改 (★**`MECH/hinge_usb_check.py` 是既有脚本, 本单地界不含改它**★): 该脚本第 77 行 `RECOMMENDED_PINS
+        = {… "J_CHG": 8,   # SYS×2(载流) + VBUS_DET + BAT_DET + CHG_STAT + PWR_GOOD + GND×2 …}` ⇒ ★**"J_CHG
+        收敛成 8p" 仍是脚本里的活口径**, 且**注释还在用老 6 脚期的拆脚说法 (SYS 载流 / VBUS_DET / BAT_DET 跨铰链)** —— ★**后果**: 脚本算出的『收敛版垂直占位
+        24.0 mm (16p/20p/4p/8p 全 0.5mm)』建立在 8p 上, 而 `MECH/USB_HINGE_STRUCTURE.md` §5.3 C-4 / §3.2b / §9
+        三处都引用这个 24.0 ⇒ ★**口径链的根在脚本**。★[实测] 脚本里 `j_chg_pitch_mm` 已是 0.5 (对), `decl` 解析出的 J_CHG 声明也是 10
+        (对) ⇒ **只有 `RECOMMENDED_PINS` 与它的注释是旧口径**。⇒ ★**请裁**: 是否授权把 `RECOMMENDED_PINS[''J_CHG'']` 改成 10
+        并重算 24.0 mm 那条链 (连带 §3.2b / §7 / §9 的 24.00 / 25.62 引用)。'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-14'
+      overdue: true
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss202_mech_other_docs_jchg_old_pinmap
+      to: main
+      item: '★ISS-202 只报不改 (★**本单地界只有 `MECH/USB_HINGE_STRUCTURE.md` 那 4 处 + 本分片 claim 一条**★), 结构侧**其它文档**仍带
+        J_CHG 旧口径 (登记给项目总工裁, 建议下一轮一并收): ①`MECH/FPC_FAB_NOTES.md` **N-6** 『J_CHG 的 pin10 必须走成 TS 专用回流,
+        与 pin8 (TS 信号) 成对相邻』+ I-5 『反插 = BAT_CHG 短接 GND』 (⇒ 现 pin10 = HINGE_RSV, 且现行反插是**断路**不是短接) ②`MECH/RELIABILITY_TEST_PLAN.md`
+        **R10**『J_CHG 用 0.5mm pitch, SYS 双脚并联』+ **§T-14 失效模式**『J_CHG 反插导致 SYS 短接 GND』+ **T-14 判据**『SYS
+        与 GND 在反插位型下不得导通』+ **K-11**『J_CHG 8p @0.5mm』+ **K-12**『J_CHG 脚数 8p 还是 10p』 (★**T-14 的判据本身要改**:
+        现行 10p 下反插是 pin3(GND)↔pin8(TS_BAT) 短 + pin5(CHG_STAT)↔pin6(PWR_GOOD) 短, BAT_CHG 落预留脚 = 断路) ③`MECH/STRUCT_REVIEW_ISS065.md`
+        **R3**『V 方向只有 VBUS_DET 分压信号过铰链』+『占用 J_CHG pin9/pin10 中的一个 ⇒ 与 ISS-091 的 pin9/10 用途申请撞车』 (★**两条都过期**:
+        VBUS_DET 2026-11-04 起主板本地分压不跨铰链; pin9/10 现为 HINGE_RSV, TS 专用回流提案已被网表撤除)。⇒ ★**请裁**: 是否授权下一轮一并订正这三份
+        (★**不改任何几何数字, 只改 pin map / 跨铰链归属 / 防呆措辞**★)。'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-14'
+      overdue: true
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss202_mech_frag_old_needs_stale
+      to: main
+      item: '★ISS-202 只报不改 (★**本单只许新增 need, 不许改既有 need 条目**★; ★**关闭需求是 main 的活**★): **本分片里 2 条老 need 的口径已过期**,
+        请 main 裁 (回写 answers 关掉, 或改口径): ①`iss091_pin9_10_ntc_return` (2026-10-28) 还在问『**裁决: J_CHG 的 pin9/pin10
+        (预留) 是否改一个作 NTC 专用回流**』, 并把『改成 NTC 专用回流后偏差 <0.01C』当活结论 ⇒ ★**该提案已被网表撤除** ([实测] `TS_RTN` 在网表里 0
+        次出现, 2026-11-03 起残留撤除, NTC 与 30.31k 分压下臂改回 PGND) ⇒ **现行 pin9/10 = HINGE_RSV, 没有 TS 专用回流** ⇒ 这条
+        need 的前提已不存在。②`iss100_jchg_pitch_fix` (2026-10-28) 还在说『`MECH/hinge_usb_check.py` 的 j_chg_pitch_mm
+        仍是 1.27 (旧口径)』+『座体 6.50mm, 12mm 板就装得下』 ⇒ ★[实测] 该脚本 `j_chg_pitch_mm` **早已是 0.5** ⇒ 这条 need 也已过期
+        (且它引的『12mm 板宽』基线已被 ISS-192 迁到 30mm)。★**另**: ISS-200 登记的 `iss200_mech_doc_residual_old_pinmap`
+        与 `iss200_mech_frag_mech_j_chg_pins_note` 两条 **本单已做掉** (⇒ 本单只报不改, 请 main 回写 answers 闭合)。⇒ ★**请裁**:
+        是否由 main 直接给这 4 条 need 回写 answers 闭合。'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-14'
+      overdue: true
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss203_mech_service_port_doc_15mm_margin
+      to: main
+      item: MECH/SERVICE_PORT_ISS092.md 仍是 15mm 板宽口径 (§5.1 表 V PCB 段 需求 21.00 / 余 +17.00; §1.6.2 三条余量
+        0.95/17.00/14.50) ⇒ 现行 60x30 (板宽 30.00) 下 V PCB 段 = 需求 36.00 / 余 +2.00 (最坏 +1.40, 单边口径 +1.70)
+        ⇒ 文档正文失真 ⇒ 该文档不在 ISS-203 只写清单内 本单未改 ⇒ 请派一条改文档 (owner mech-lead) 或授权本单改
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss203_mech_claim_mainboard_len_carrier_direct
+      to: main
+      item: 'ISS-197 登记的 L1: 本分片 interface_claims 的 mainboard_len_carrier=69mm 与 mainboard_len_direct=76mm
+        仍是 12mm 宽口径的板长 ⇒ 与 MECH/BOARD_GEOM_30MM.md §1 现行板长 60.00mm 不一致 ⇒ 这两条是活接口取值 (合并器会拿它跟别人的 claim 比)
+        ⇒ 按 ISS-203 指令只报不改值 ⇒ 请 main + hw-lead 定最终值 (载板化/直接焊 两种方案是否还都在用)'
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss203_mech_service_port_pinset2_baseline_15mm
+      to: main
+      item: MECH/service_port_check.py 的夹具基准 p2_y=7.50 / s2_y=12.50 与焊盘阵列起点 jd_y0=9.50 仍是 15mm 板口径 ⇒ 现行套
+        A = P2(52.00,15.00) / S2(52.00,20.00) (BOARD_GEOM_30MM.md §3) ⇒ 若照套 A 换 检查 7.4 的公式 jd_y0 减 p2_y
+        符号会反 (P2 移到阵列上方) 会假红 ⇒ 需同时定 J_DEBUG 阵列在 30mm 板上的 Y ⇒ 本单只迁 pcb_w 未动这些 (其它结构几何数字不在只写清单)
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss203_mech_service_port_pcb_thk_4layer
+      to: main
+      item: MECH/service_port_check.py 的 pcb_thk=0.80 是 4 层口径 (脚本第 39 行自注 6 层=1.00) ⇒ 现行板厚 1.00 (6 层,
+        BOARD_GEOM_30MM.md §1) ⇒ H 链需求 4.20 改 4.40, 余 +3.10 改 +2.90 (仍大于判据 0.60) ⇒ 本单未动 (板厚属其它结构几何数字)
+      since: '2026-11-12'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss203_mech_hw_cross_review_old_escape_and_holes
+      to: main
+      item: MECH/hw_cross_review_check.py 的 soc_escape_x=(20.20,31.80) 是旧 SoC 逃线带, hole_x=(5.00,15.00,55.00)
+        是旧 3 固定孔 ⇒ 现行为 RK3576 逃线带 X[14.20,33.00] 与 PIN-SET-2 套 A 四孔 X=8/52 (BOARD_GEOM_30MM.md §2/§3)
+        ⇒ 影响 PCB-X-AVAIL 与 PCB-X-GAP 两项读数 ⇒ 本单只迁 pcb_w 未动 ⇒ 建议另派一条
+      since: '2026-11-12'
       state: pending
       target_missing: false
       waiting_on: agent
@@ -10041,10 +10510,21 @@ interface_claims:
     values:
       mech-lead: 10p@0.5mm
     notes:
-      mech-lead: '建议 pin 数 (SYS×2 载流 + 检测×2 + 状态×2 + GND×2); 若电池在镜脚需 10p 扛 1.5A★ISS-107 同型更正 (2026-11-06):
-        原值 ''8p@0.5mm'' 是 ISS-085 早期的 8p 口径, 网表 **V1.5 已定稿 1×10p@0.5mm** (pin1/2=BAT_CHG 载流双pin, pin3/4=GND
-        回流双pin, pin5=CHG_STAT, pin6=PWR_GOOD, pin7=NC (11-04 demo 改本地分压), pin8=TS, pin9=RSV, pin10=TS
-        专用回流)。原值与本域另一条 claim ''j_chg_pin_map'' 自相矛盾 ⇒ 属典型的**分片内不一致**。'
+      mech-lead: '★**已按网表真源订正 (ISS-202 · 2026-11-12)** —— 本 note 现与同域另一条 claim `j_chg_pin_map` (ISS-200
+        已订正) **逐脚完全一致**, ★**分片内不一致已消除**。★**value 不动** (`10p@0.5mm` —— [实测] `HW/netlist_v1.csv` J_CHG CONN
+        行 = “1×10p@0.5mm 排线座”, 选型件 Hirose FH12-10S-0.5SH(55) 亦为 1×10p@0.5) ⇒ 本条已从『建议 pin 数』升级为**定版**。★**现行
+        10p 逐脚 map** ([实测] 网表逐脚 net 名独立复算, 与 `HW/CHARGE_BOARD_SPEC.md` §5.2 (ISS-136 定版) 逐脚一致): pin1/2=BAT_CHG
+        (充电电流跨铰链, **双 pin 并联**) · pin3/4=GND (回流双 pin, 与电源 pin 相邻) · pin5=CHG_STAT (开漏, 主板侧 10k 上拉) ·
+        pin6=PWR_GOOD (开漏, 主板侧 10k 上拉) · ★**pin7=NC** (2026-11-04 起 VBUS_DET 改**主板本地**分压 `R_VBUS_DET_D1`/`_D2`
+        → `J_SOM_P1` pin100 ⇒ 本脚不接; ★**过期的是『VBUS_DET 跨铰链走 J_CHG pin7/pin8』这句话, 不是 VBUS_DET 这个网** —— 该网在网表里仍有
+        9 处, 仍是主板本地检测网) · ★**pin8=TS_BAT** (电池 NTC 在镜脚 / BQ25896 TS 在镜框 ⇒ TS 必须跨铰链, 高阻无电流, 源阻抗 3-4 kΩ)
+        · ★**pin9/10=HINGE_RSV** (预留 DNP —— BQ25896 的 I2C 本板自闭环, 不跨铰链)。★**原 note 的三处逐脚断言已作废**: ①『pin8=TS』⇒
+        现为 **TS_BAT**; ②『pin9=RSV』⇒ 现为 **HINGE_RSV**; ③★**『pin10=TS 专用回流』⇒ 现为 HINGE_RSV** —— ★**`TS_RTN`
+        这个网在网表里已 0 次出现** ([实测] `grep -c TS_RTN HW/netlist_v1.csv` = 0; 2026-11-03 起跨铰链 TS 专用回流残留撤除, NTC
+        与 30.31k 分压下臂改回 PGND) ⇒ **现行 10p map 里不存在跨铰链的 TS 专用回流**, 原 note 那句『pin10 = TS 专用回流』**随该口径一并作废**。★**原
+        note 开头『SYS×2 载流 + 检测×2 + 状态×2 + GND×2』是老 6 脚 map 的拆脚说法, 已作废** —— ★**跨铰链载流是 BAT_CHG** (pin1/pin2
+        双 pin 并联; 现行 `R_ILIM=390Ω` ⇒ ICHG 0.82 A ⇒ 单 pin 0.411 A ≤ 0.5 A 触点额定, 余量 1.22×), ★**SYS 根本不跨铰链**
+        (网表 J_CHG 无 SYS 脚)。★**原 note 末尾『原值与本域另一条 claim j_chg_pin_map 自相矛盾』一句现已失效** (两条已对齐)。'
     by:
     - mech-lead
     noncanonical_by: []
@@ -10274,10 +10754,18 @@ interface_claims:
     conflict: false
   j_chg_pin_map:
     values:
-      mech-lead: 1x10p:1/2=BAT_CHG,3/4=GND,5=CHG_STAT,6=PWR_GOOD,7=VBUS_DET,8=TS,9=RSV,10=TS_RTN
+      mech-lead: 1x10p:1/2=BAT_CHG,3/4=GND,5=CHG_STAT,6=PWR_GOOD,7=NC,8=TS_BAT,9/10=HINGE_RSV
     notes:
-      mech-lead: pin1/2 载流双 pin 并联 (单 pin 0.411A @390Ω), pin3/4 回流双 pin; pin10 = TS 专用回流 (偏差 0.44-0.99°C
-        → <0.01°C)
+      mech-lead: '★ISS-200 (2026-11-12) 按**网表真源**逐脚订正 (★[实测] `HW/netlist_v1.csv` 逐脚 net 名独立复算, 与 `HW/CHARGE_BOARD_SPEC.md`
+        §5.2 (ISS-136 定版) 逐脚一致★)。pin1/2 = BAT_CHG (充电电流跨铰链, **双 pin 并联**, 390Ω 档 ICHG 0.82A ⇒ **单 pin
+        0.411A ≤ 0.5A 触点额定**, 余量 1.22×); pin3/4 = GND (回流双 pin, 与电源 pin 相邻 ⇒ 环路面积最小); pin5 = CHG_STAT
+        (开漏, 主板侧 10k 上拉); pin6 = PWR_GOOD (开漏, 主板侧 10k 上拉); ★**pin7 = NC** (2026-11-04 起 VBUS_DET 改**主板本地**分压
+        `R_VBUS_DET_D1`/`_D2` → `J_SOM_P1` pin100 ⇒ 本脚不接; ★**过期的是『VBUS_DET 跨铰链走 J_CHG pin7/pin8』这句话, 不是
+        VBUS_DET 这个网** —— 该网在网表里仍有 9 处, 仍是主板本地检测网); ★**pin8 = TS_BAT** (电池 NTC 在镜脚 / BQ25896 TS 在镜框 ⇒
+        TS 必须跨铰链, 高阻无电流, 源阻抗 3-4 kΩ); ★**pin9/10 = HINGE_RSV** (预留 DNP —— BQ25896 的 I2C 本板自闭环, 不跨铰链)。★**历史沿革
+        (旧口径已作废, 勿再当活口径用)**: 原值 『7=VBUS_DET / 8=TS / 9=RSV / 10=TS_RTN』是 V1.5-V1.8 期口径 —— ★**`TS_RTN`
+        这个网在网表里已 0 次出现** (2026-11-03 起跨铰链 TS 专用回流残留撤除, NTC 与 30.31k 分压下臂改回 PGND) ⇒ **现行 10p map 里不存在跨铰链的
+        TS 专用回流**, 原 note 那句 『pin10 = TS 专用回流 (偏差 0.44-0.99°C → <0.01°C)』**随该口径一并作废** (那条偏差数字是按已不存在的跨铰链回流算的)。'
     by:
     - mech-lead
     noncanonical_by:
@@ -12579,6 +13067,31 @@ needs_matrix:
     since: '2026-11-11'
     _by: main
     state: pending
+  - key: self_research_policy_202612
+    to: boss
+    item: '★★【老板 2026-11-12 02:02 新口径】**不再发信, 全靠自己查资料** ★★
+
+      ★**替代 19:31 那条「不再做任何邮件咨询」** ⇒ ★**19:31 只说了【不发】, 今天补上了【发不发都不重要, 因为我们自己能查】** ★
+
+      ★★**具体口径 (★全部由项目总工/各总工自己执行, 不用老板批★)** ★★:
+
+      ★**① 查什么**: 芯片/器件/模组的**规格与球位/引脚定义**、**pinout / 封装尺寸 / 电气参数**、**公开渠道单价与交期** (★只作参考区间, 不询价不下单★)、**公开
+      dts / BSP / 社区实测**
+
+      ★**② 证据等级 (★每个数必须带等级★)**: `[官网]` (★厂商官网/官方 datasheet★) · `[实测]` (★本机可复现★) · `[媒体]` (★媒体/社区/论坛★)
+      · `[推算]` (★由已知量推★) · `[0数据]` (★查不到★)
+
+      ★**③ 查不到怎么办**: ★**如实标 `[0数据]` + 记为【已知缺口】+ 给【降级方案】** ⇒ ★**不许拿"等回信"挂着, 也不许拿"同类器件一般多少"去填** ⇒ ★**降级方案例子**:
+      实测样件 / 选官网参数直接满足的替代型号 / 改设计路径绕开它
+
+      ★**④ 边界**: ★**`state/outbox/` 全部草稿一律不发, 只留档** ⇒ ★**不许再拿「老板批一句可以发」当流程**
+
+      ★★**这一条是【可追的活】, 不是口号**: ★**它要求把项目里所有还写着「等原厂回信 / 等外部回复」的地方, 逐条换成【自己查的结果 + 证据等级】** ⇒ ★**谁改的、查了什么、结论是什么,
+      都要落到具体文档里★★'
+    since: '2026-11-12'
+    due: '2026-11-14'
+    _by: main
+    state: pending
   - key: iss081_pm_decisions
     to: main
     item: '板宽12mm还是15mm + 双显示hedge买不买, 两条PM裁决: 1) 板宽我建议15mm(逃线带误差容忍0.20-0.30mm->1.25mm, 且SoC横向热扩散通道2->3.5mm对散热是增益;
@@ -12911,6 +13424,15 @@ needs_matrix:
       1..6 ⇒ 编号不对齐。★**本单只许改三张查找表 ⇒ 我一条没改, 只报给 main 裁决 (★改板 = 2-4 周 + 板费, 别在没有选型结论前动板★)★** ★证据: `HW/PCB/PIN_REALITY_GAP.md`
       §2 的依据列 (2026-11-11 23:5x 重跑生成) + `HANDOFF/2026-11-11_hw-lead_ISS198_查找表补全.md` §6★'
     since: '2026-11-11'
+    _by: hw-lead
+    state: pending
+  - key: iss136_spec_residual_sections_sync
+    to: main
+    item: '★ISS-136 残留口径同步 (不在本单改写范围, 已报 main): ① HW/CHARGE_BOARD_SPEC.md §5.1 过铰链线表 (第 3/4/5/8/9 行仍写
+      J_CHG pin8=VBUS_DET / pin6=CHG_STAT / pin7=PWR_GOOD / pin5=TS / pin9-10=I2C, 与网表错位) ② §7 的 P10 csv
+      镜像块 (同样带旧口径) ③ ISS-112 那张三方口径对照表 (2026-10-29 历史快照, 其网表列已过期) —— 三处都需 main 拍板是否一并订正; 本单只改了 §5.2 的
+      pin map 表, 其余一字未动'
+    since: '2026-10-25'
     _by: hw-lead
     state: pending
   - key: fw_s2_test_gear
@@ -13278,6 +13800,16 @@ needs_matrix:
     item: '立项书 4.2 B 组的 OD 输入分布统计脚本还没写 (要板端 ISP 帧: 采样>=200帧 -> 与板端逐字一致预处理 -> 与 calib_yolov5_100 同口径 mean/std/分位/饱和率
       -> 自采有标注实拍集 F1); 板端不可达期间全部为 [0数据], 请在板可达后另派或授权本单下轮补'
     since: '2026-11-11'
+    _by: sw-lead
+    state: pending
+  - key: iss201_rebuild_model_license
+    to: main
+    item: 'ISS-201 (2026-11-12) 实测: 两个重建件的许可 未判定 —— license_probe.py --onnx 实测 metadata_props 的 license/author/version
+      全为 None ⇒ verdict = unknown [0数据]; 台账 §1.2 按 R-3 登记为 unknown (脚本 MANIFEST: expected_license=None
+      ⇒ 日后若进交付集即触发阻断项 L1)。★原件的 AGPL-3.0 结论 不自动适用于 重建件 (重建件 = 2026-11-02 另一次构建, 血缘需重新判定)。请项目总工决定: (a) 向来源方/原厂取得重建件的许可结论
+      (外发一律经项目总工), 或 (b) 改走 Apache-2.0 栈。两个重建件 sha16: 1e2c716bd16ed9d3 (s) / dfb5d060ca36fc27 (n), 均 state=licensing-hold
+      禁入交付物; 转换链第 3 段与板端精度仍 [0数据]。'
+    since: '2026-11-12'
     _by: sw-lead
     state: pending
   - key: soc_carrier_mainboard_site
@@ -13725,8 +14257,165 @@ needs_matrix:
     since: '2026-11-11'
     _by: mech-lead
     state: pending
-  answered_count: 160
-  total: 261
+  - key: iss200_mech_doc_residual_old_pinmap
+    to: main
+    item: '★ISS-200 只报不改 (①**MECH/USB_HINGE_STRUCTURE.md §5.1 表** J_CHG 行仍写 『6 (1×6 @1.27) / 触点区宽 6.35
+      mm / 座体宽 8.35 mm』= 老 6 脚口径; ②**同文件 §5.3 C-4** 仍写『J_CHG → 8p @0.5』 (现行是 1×10p@0.5mm); ③**同文件 §5.3
+      C-1** 尾巴仍写『SYS 单触点载流下降 → 用 2 脚并联解决』(现行跨铰链载流是 BAT_CHG, SYS 不跨铰链); ④**同文件 F-5 / F-6** 的『SYS ↔ GND
+      反插短接』措辞仍是老 6 脚口径。★**这 4 处都在本单地界外** (本单只许动 §5.2 的 J_CHG 块) ⇒ **只报不改**。★**请裁**: 是否授权我在下一轮一并订正这 4 处
+      (文字口径, **不动任何几何数字**)。'
+    waiting_on: agent
+    due: '2026-11-14'
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss200_hw_residual_old_pinmap
+    to: main
+    item: '★ISS-200 只报不改 (★**HW/ 是 ISS-199 的地界, 我不许代改**★), 结构侧扫出 4 处仍带旧 J_CHG 口径: ①`HW/netlist_v1.csv`
+      **第 38 行 (J_CHG CONN 行) 与第 412 行 (P9 HINGE_CHG 行) 的 note 列** 仍写 『pin7=VBUS_DET / pin8=TS / pin9-10=预留』『SYS
+      经 J_CHG 回主 PCB』 = V1.5 期旧文字 (★**但同表逐脚 net 行是对的**, 机器判定以逐脚 net 名为准 ⇒ 建议 note 列订正, 别改逐脚行★); ②`HW/POWER_SHUTDOWN_V3.md`
+      第 129 行 『TS 专用回流 (J_CHG pin10 + R_TS_PULL/R_NTC_BAT 下端改接 TS_RTN)』 —— **TS_RTN 网在网表里 0 次出现**; ③`HW/J_CHG_SELECTION.md`
+      C-8 / §0-5 的防呆论证仍写『反插 = SYS/BAT_CHG 短接 GND → MOS 直通』 —— ★**在现行 10p map 下该论证不成立**: 180° 翻转是 pin i
+      ↔ pin 11-i ⇒ BAT_CHG(pin1/pin2) 落到 HINGE_RSV(pin10/pin9) = 预留脚 ⇒ **断路, 不短接**; 真实反插后果是 **GND(pin3)
+      ↔ TS_BAT(pin8) 短** + **CHG_STAT(pin5) ↔ PWR_GOOD(pin6) 短** ⇒ **机械防呆仍必需, 但理由要换**; ④`HW/CHARGE_BOARD_SPEC.md`
+      §5.1 表 + §7 的 P10 镜像块 (ISS-136 已登记 needs_from, 不重复登记)。★**转 ISS-199 / 项目总工裁决**。'
+    waiting_on: agent
+    due: '2026-11-14'
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss200_mech_frag_mech_j_chg_pins_note
+    to: main
+    item: '★ISS-200 只报不改 (★**本单只许动 `interface_claims.j_chg_pin_map` 这一条**★): **同域另一条 claim `mech_j_chg_pins`**
+      的 note 里仍断言现行口径为 『pin1/2=BAT_CHG, pin3/4=GND, pin5=CHG_STAT, pin6=PWR_GOOD, pin7=NC, pin8=TS, pin9=RSV,
+      **pin10=TS 专用回流**』 ⇒ ★**pin10 这一句现在是错的** (现行 pin10 = HINGE_RSV), 且该 note 自己在末尾写着『原值与本域另一条 claim
+      j_chg_pin_map 自相矛盾』。★**订正 j_chg_pin_map 后, 分片内自相矛盾的那一条变成了 mech_j_chg_pins** ⇒ 合并器检不出这种**同域**不一致
+      (只有跨域同 key 才判冲突) ⇒ **必须人工收口**。★**请裁**: 是否授权我一并订正 `mech_j_chg_pins` 的 note (只改那一句 pin map 文字, **不动它的
+      value 10p@0.5mm**)。'
+    waiting_on: agent
+    due: '2026-11-14'
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss202_mech_doc_residual_jchg_old_6pin
+    to: main
+    item: '★ISS-202 只报不改 (★**本单地界只含 §5.1 表 J_CHG 行 / §5.3 C-4 / §5.3 C-1 / §5.2 F-5·F-6 四处**★): `MECH/USB_HINGE_STRUCTURE.md`
+      里 J_CHG **仍带老 6 脚 / 8p 口径** 共 11 处 —— ①§0 C-3 『J_CHG 1×6@1.27→8p@0.5 后, 堆叠降到 24.0 mm』 ②§0 C-5 『J_CHG
+      的 pin 定义里没有电池脚』+『0.55 A (SYS 口径) vs 1.5 A』 (⇒ 与 ISS-200 §5.2 第 4 条『有电池脚』直接矛盾) ③§0 C-6 『1×6 1.27mm
+      排线座无防呆, 反插 = SYS 短接到 GND』 ④§3.1 链路表 L-1 『J_CHG (1×6 1.27 mm 排线座) | 6 | 5 | 0』 ⑤§3.2b 声明版行 『40p +
+      40p + 4p + 1×6@1.27 | 49.62 mm』 (★[实测] 现网表声明 = 31.5 mm, `python3 MECH/hinge_usb_check.py` §2) ⑥§3.2b
+      收敛版行 『16p + 20p + 4p + 8p@0.5 | 24.00 mm』 ⑦§3.2c 『声明版 49.62 mm / 收敛版 24.00 mm』 ⑧§7 『铰链区高度占位 49.62
+      → 24.00 mm (省 25.62 mm)』 ⑨§8 U-2 『(16p / 20p / 4p / 8p)』 ⑩§9 `mech_hinge_stack_fixed_mm` 注 『收敛版
+      (16p/20p/4p/8p @0.5)』 ⑪★**§9 `mech_j_chg_pins` 行仍写 value = `8p@0.5mm`** (★**与本分片 claim `mech_j_chg_pins`
+      的 value `10p@0.5mm` 直接矛盾 ⇒ 结构侧文档里还藏着第 3 套 pin map**★)。★**另**: §5.2 F-3 行『缩 pin (16p/20p/8p → 24.0
+      mm)』的 8p 同属旧口径, 但 §5.2 是 ISS-200 已定版区 ⇒ **我没碰**。⇒ ★**请裁**: 是否授权下一轮一并订正这 12 处 (★**文字口径为主**; §3.2b/§7/§9
+      的 49.62 / 24.00 / 25.62 是几何数字, 是否连带重算请一并给口径)。'
+    waiting_on: agent
+    due: '2026-11-14'
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss202_mech_c4_stack_arith_pending
+    to: main
+    item: '★ISS-202 边界内发现, 但**本单只报不改** (★属几何数字变更★): `MECH/USB_HINGE_STRUCTURE.md` §5.3 **C-4** 行, 本单已把
+      `J_CHG` 的 pin 规格从 **8p @0.5** 订正为 **1×10p @0.5** (ISS-202 · 2026-11-12), 但**同一行的触点区/堆叠算式仍是 8p 口径**
+      (『8+20+4+8 = 40 脚 @0.5 = 20 mm 触点区』+『铰链区堆叠 24.0 mm (含间隙), 余 13.0 mm』) ⇒ ★**该行现在自相矛盾** (已就地打 ★ 标注『本格算式仍按原
+      8p 口径 ⇒ 与上格 1×10p 不一致; 属几何数字变更 ⇒ 本单只报不改』)。★**两种算式的候选重算值 (供裁, 本单未写入文档)**: 按本文行内算式 8+20+4+10 = 42
+      脚 @0.5 = **21.0 mm 触点区** + 4×1.0 mm 间隙 = **25.0 mm 堆叠 / 余 12.0 mm**; 按脚本算式 16+20+4+10 = 50 脚 @0.5
+      = **25.0 mm 堆叠** ⇒ **两种算式都落在 25.0 mm 堆叠** (但『触点区』那一格两法不同: 21.0 vs 25.0)。★**另**: 该表 `MECH/hinge_usb_check.py`
+      的 `RECOMMENDED_PINS[''J_CHG'']=8` (及其注释『SYS×2(载流) + VBUS_DET + BAT_DET + …』= 老 6 脚期 map) 同源 ⇒ 见下一条
+      need。⇒ ★**请裁**: C-4 行按哪套算式重算, 以及是否授权改脚本 `RECOMMENDED_PINS` (脚本属既有件, 改它要单独授权)。'
+    waiting_on: agent
+    due: '2026-11-14'
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss202_mech_script_recommended_pins_jchg_8
+    to: main
+    item: '★ISS-202 只报不改 (★**`MECH/hinge_usb_check.py` 是既有脚本, 本单地界不含改它**★): 该脚本第 77 行 `RECOMMENDED_PINS
+      = {… "J_CHG": 8,   # SYS×2(载流) + VBUS_DET + BAT_DET + CHG_STAT + PWR_GOOD + GND×2 …}` ⇒ ★**"J_CHG
+      收敛成 8p" 仍是脚本里的活口径**, 且**注释还在用老 6 脚期的拆脚说法 (SYS 载流 / VBUS_DET / BAT_DET 跨铰链)** —— ★**后果**: 脚本算出的『收敛版垂直占位
+      24.0 mm (16p/20p/4p/8p 全 0.5mm)』建立在 8p 上, 而 `MECH/USB_HINGE_STRUCTURE.md` §5.3 C-4 / §3.2b / §9
+      三处都引用这个 24.0 ⇒ ★**口径链的根在脚本**。★[实测] 脚本里 `j_chg_pitch_mm` 已是 0.5 (对), `decl` 解析出的 J_CHG 声明也是 10 (对)
+      ⇒ **只有 `RECOMMENDED_PINS` 与它的注释是旧口径**。⇒ ★**请裁**: 是否授权把 `RECOMMENDED_PINS[''J_CHG'']` 改成 10 并重算 24.0
+      mm 那条链 (连带 §3.2b / §7 / §9 的 24.00 / 25.62 引用)。'
+    waiting_on: agent
+    due: '2026-11-14'
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss202_mech_other_docs_jchg_old_pinmap
+    to: main
+    item: '★ISS-202 只报不改 (★**本单地界只有 `MECH/USB_HINGE_STRUCTURE.md` 那 4 处 + 本分片 claim 一条**★), 结构侧**其它文档**仍带
+      J_CHG 旧口径 (登记给项目总工裁, 建议下一轮一并收): ①`MECH/FPC_FAB_NOTES.md` **N-6** 『J_CHG 的 pin10 必须走成 TS 专用回流, 与
+      pin8 (TS 信号) 成对相邻』+ I-5 『反插 = BAT_CHG 短接 GND』 (⇒ 现 pin10 = HINGE_RSV, 且现行反插是**断路**不是短接) ②`MECH/RELIABILITY_TEST_PLAN.md`
+      **R10**『J_CHG 用 0.5mm pitch, SYS 双脚并联』+ **§T-14 失效模式**『J_CHG 反插导致 SYS 短接 GND』+ **T-14 判据**『SYS 与
+      GND 在反插位型下不得导通』+ **K-11**『J_CHG 8p @0.5mm』+ **K-12**『J_CHG 脚数 8p 还是 10p』 (★**T-14 的判据本身要改**: 现行
+      10p 下反插是 pin3(GND)↔pin8(TS_BAT) 短 + pin5(CHG_STAT)↔pin6(PWR_GOOD) 短, BAT_CHG 落预留脚 = 断路) ③`MECH/STRUCT_REVIEW_ISS065.md`
+      **R3**『V 方向只有 VBUS_DET 分压信号过铰链』+『占用 J_CHG pin9/pin10 中的一个 ⇒ 与 ISS-091 的 pin9/10 用途申请撞车』 (★**两条都过期**:
+      VBUS_DET 2026-11-04 起主板本地分压不跨铰链; pin9/10 现为 HINGE_RSV, TS 专用回流提案已被网表撤除)。⇒ ★**请裁**: 是否授权下一轮一并订正这三份
+      (★**不改任何几何数字, 只改 pin map / 跨铰链归属 / 防呆措辞**★)。'
+    waiting_on: agent
+    due: '2026-11-14'
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss202_mech_frag_old_needs_stale
+    to: main
+    item: '★ISS-202 只报不改 (★**本单只许新增 need, 不许改既有 need 条目**★; ★**关闭需求是 main 的活**★): **本分片里 2 条老 need 的口径已过期**,
+      请 main 裁 (回写 answers 关掉, 或改口径): ①`iss091_pin9_10_ntc_return` (2026-10-28) 还在问『**裁决: J_CHG 的 pin9/pin10
+      (预留) 是否改一个作 NTC 专用回流**』, 并把『改成 NTC 专用回流后偏差 <0.01C』当活结论 ⇒ ★**该提案已被网表撤除** ([实测] `TS_RTN` 在网表里 0 次出现,
+      2026-11-03 起残留撤除, NTC 与 30.31k 分压下臂改回 PGND) ⇒ **现行 pin9/10 = HINGE_RSV, 没有 TS 专用回流** ⇒ 这条 need 的前提已不存在。②`iss100_jchg_pitch_fix`
+      (2026-10-28) 还在说『`MECH/hinge_usb_check.py` 的 j_chg_pitch_mm 仍是 1.27 (旧口径)』+『座体 6.50mm, 12mm 板就装得下』
+      ⇒ ★[实测] 该脚本 `j_chg_pitch_mm` **早已是 0.5** ⇒ 这条 need 也已过期 (且它引的『12mm 板宽』基线已被 ISS-192 迁到 30mm)。★**另**:
+      ISS-200 登记的 `iss200_mech_doc_residual_old_pinmap` 与 `iss200_mech_frag_mech_j_chg_pins_note` 两条 **本单已做掉**
+      (⇒ 本单只报不改, 请 main 回写 answers 闭合)。⇒ ★**请裁**: 是否由 main 直接给这 4 条 need 回写 answers 闭合。'
+    waiting_on: agent
+    due: '2026-11-14'
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss203_mech_service_port_doc_15mm_margin
+    to: main
+    item: MECH/SERVICE_PORT_ISS092.md 仍是 15mm 板宽口径 (§5.1 表 V PCB 段 需求 21.00 / 余 +17.00; §1.6.2 三条余量 0.95/17.00/14.50)
+      ⇒ 现行 60x30 (板宽 30.00) 下 V PCB 段 = 需求 36.00 / 余 +2.00 (最坏 +1.40, 单边口径 +1.70) ⇒ 文档正文失真 ⇒ 该文档不在 ISS-203
+      只写清单内 本单未改 ⇒ 请派一条改文档 (owner mech-lead) 或授权本单改
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss203_mech_claim_mainboard_len_carrier_direct
+    to: main
+    item: 'ISS-197 登记的 L1: 本分片 interface_claims 的 mainboard_len_carrier=69mm 与 mainboard_len_direct=76mm
+      仍是 12mm 宽口径的板长 ⇒ 与 MECH/BOARD_GEOM_30MM.md §1 现行板长 60.00mm 不一致 ⇒ 这两条是活接口取值 (合并器会拿它跟别人的 claim 比)
+      ⇒ 按 ISS-203 指令只报不改值 ⇒ 请 main + hw-lead 定最终值 (载板化/直接焊 两种方案是否还都在用)'
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss203_mech_service_port_pinset2_baseline_15mm
+    to: main
+    item: MECH/service_port_check.py 的夹具基准 p2_y=7.50 / s2_y=12.50 与焊盘阵列起点 jd_y0=9.50 仍是 15mm 板口径 ⇒ 现行套
+      A = P2(52.00,15.00) / S2(52.00,20.00) (BOARD_GEOM_30MM.md §3) ⇒ 若照套 A 换 检查 7.4 的公式 jd_y0 减 p2_y
+      符号会反 (P2 移到阵列上方) 会假红 ⇒ 需同时定 J_DEBUG 阵列在 30mm 板上的 Y ⇒ 本单只迁 pcb_w 未动这些 (其它结构几何数字不在只写清单)
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss203_mech_service_port_pcb_thk_4layer
+    to: main
+    item: MECH/service_port_check.py 的 pcb_thk=0.80 是 4 层口径 (脚本第 39 行自注 6 层=1.00) ⇒ 现行板厚 1.00 (6 层, BOARD_GEOM_30MM.md
+      §1) ⇒ H 链需求 4.20 改 4.40, 余 +3.10 改 +2.90 (仍大于判据 0.60) ⇒ 本单未动 (板厚属其它结构几何数字)
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  - key: iss203_mech_hw_cross_review_old_escape_and_holes
+    to: main
+    item: MECH/hw_cross_review_check.py 的 soc_escape_x=(20.20,31.80) 是旧 SoC 逃线带, hole_x=(5.00,15.00,55.00)
+      是旧 3 固定孔 ⇒ 现行为 RK3576 逃线带 X[14.20,33.00] 与 PIN-SET-2 套 A 四孔 X=8/52 (BOARD_GEOM_30MM.md §2/§3) ⇒
+      影响 PCB-X-AVAIL 与 PCB-X-GAP 两项读数 ⇒ 本单只迁 pcb_w 未动 ⇒ 建议另派一条
+    since: '2026-11-12'
+    _by: mech-lead
+    state: pending
+  answered_count: 161
+  total: 278
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -14048,6 +14737,29 @@ lint:
     剩 netlist row 153 注释待改) / I2C 上拉 3.3V / 缺 VDDIO_PHY 轨 / netlist pin16 value 字段残留 1.8V。★★口径修正: 0.92W
     是 e-CAM 模组级含板载 ISP, 本项目 ISP 在 RK3572, 故 POWER_BUDGET_V3 里那条拒绝 AR0234CS 的否决理由口径不成立, 请 PM 按裸片数复算。'
   hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: main
+  key: e01_som_balltable_selfcheck_202612
+  value: '★**E-01 (`FET3572C_PIN_TABLE.csv` 的 P2 座缺 `num=40`) 已关闭 · 2026-11-12 02:2x 项目总工【自己网上查】解决 (★老板
+    2026-11-12 02:02 指令「不再发信，全靠自己查资料」★)**
+
+    ★**① [官网]** Forlinx 官方手册 §2.6.2 **Table 4 (P2 Even Pin Definition)** 实测只有 **49 个数据行** ⇒ 从 `num=38`
+    直接跳到 `num=42` ⇒ ★**官方文档同样没有 `num=40`** ⇒ ★**不是我们抄漏, 是官方原样**
+
+    ★**② [实测]** 项目表 399 行 vs 官方 399 行 ⇒ `Signal Name`/`BALL`/`GPIO`/`VOL` **四列零差异** ⇒ ★**本表 = 官方手册逐格转录**
+    ⇒ ★**证据等级从【模组厂口径】升到【[官网]】**
+
+    ★**③ [实测]** `J_SOM_P2` 只用 1/7/9/11/13/31/33/45/100 ⇒ ★**不用 `pin40`** ⇒ ★**对本板零影响** ⇒ ⇒ ★**E-01 不再是任何人的阻塞项**
+
+    ★**④ 顺带查到**: (A) FET3576-C 与 FET3572-C **针脚兼容** ⇒ 升级不用改载板 (B) `P2_7` 官方默认功能是 `PWM0_CH1_M0` 而我们当 `UART_TX`
+    ⇒ **引脚复用待核** ⇒ 已开 **ISS-201** (owner=hw-lead)
+
+    ★**完整证据**: `HW/PCB/RK3572_SOM_BALLTABLE_CROSSCHECK.md`
+
+    ★**已改在产生点**: `state/gen_kicad_sch.py` (§5.1 整段 + §5.2 + §6 + §2 注记) ⇒ `HW/PCB/PIN_REALITY_GAP.md`
+    已重跑刷新 ⇒ ★**受保护文件 md5 全未变** (★板 `611b869e13518c3c023fb178f91a0075` · 网表 `c78f991283cc82d56c8e3dd31657c785`
+    · 脚表 `4814617e22b567d76164e56bc5e39dc8` · `.kicad_pro` `3e504d2be83152e337949723e909be1b` · `FET3572C_PIN_TABLE.csv`
+    `67340a0b707095fc4c0755a4c79ea8b6`★)'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: hw-lead
   key: bat_chg_rate_cap
   value: 1.0A(待电芯规格书)
@@ -14162,7 +14874,7 @@ lint:
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: mech-lead
   key: j_chg_pin_map
-  value: 1x10p:1/2=BAT_CHG,3/4=GND,5=CHG_STAT,6=PWR_GOOD,7=VBUS_DET,8=TS,9=RSV,10=TS_RTN
+  value: 1x10p:1/2=BAT_CHG,3/4=GND,5=CHG_STAT,6=PWR_GOOD,7=NC,8=TS_BAT,9/10=HINGE_RSV
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: mech-lead
   key: fpc_copper_split
@@ -14382,15 +15094,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 175
+  artifacts: 189
   blockers: 43
   high_blockers: 33
-  open_needs: 101
-  waiting_external_needs: 70
+  open_needs: 117
+  waiting_external_needs: 69
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 61
+  lint: 62
   agents_reporting: 4
   incomplete_fragments: 0

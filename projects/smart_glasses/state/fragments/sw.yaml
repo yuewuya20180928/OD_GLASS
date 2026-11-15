@@ -445,6 +445,36 @@ artifacts:
   version: '1.0'
   updated_at: '2026-10-25'
   summary: 'ISS-139 交卷报告: 结论先行 + 8 条问询清单 (只起草不外发) + 分片登记 + 自证命令'
+- path: SW/MODEL_ASSETS.md
+  kind: doc
+  version: '1.1'
+  updated_at: '2026-11-12'
+  summary: 'ISS-201: §1.2 台账新增 2 条重建件 (MOD-YOLOV5S-640-ARS45-REBUILD / MOD-YOLOV5N-640-ARS45-REBUILD),
+    原 ID MOD-YOLOV5S-640-ARS45-SRC 置 state=missing (原件丢失); §1.1 R-5 状态机新增 missing 词'
+- path: SW/tools/model_asset_check.py
+  kind: tool
+  version: '1.1'
+  updated_at: '2026-11-12'
+  summary: 'ISS-201: MANIFEST 同步登记 2 条重建件 + 原件置 missing; 新增状态词 missing (头注释词表 + check_one missing 分支 +
+    报告桶); 新增 --selftest (S1 词表自洽 / S2 missing 不冒充 / S3+S4 台账↔实物真比对反向用例 / S5 交付集口径 / S6 sha 唯一 / S7 台账文档↔MANIFEST
+    逐字段一致)'
+- path: SW/tools/rknn_bench.py
+  kind: tool
+  version: '1.1'
+  updated_at: '2026-11-12'
+  summary: 'ISS-201: 第 125 行硬编码常量 ONNX_MODEL_SHA16 由 20368be665f6f59a 改为 1e2c716bd16ed9d3 (台账已先登记重建件,
+    不构成假绿) ⇒ probe 台账一致 True'
+- path: SW/RKNN_BENCH.md
+  kind: doc
+  version: '1.1'
+  updated_at: '2026-11-12'
+  summary: 'ISS-201: 第 57 行 sha 订正为 1e2c716bd16ed9d3 并注明台账 ID 映射 (原 ID 原件已丢失置 missing); 第 473 行追加 2026-11-12
+    复跑记录'
+- path: HANDOFF/2026-11-12_sw-lead_ISS201_台账登记重建件.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-12'
+  summary: 'ISS-201 交卷报告: 结论先行 + 逐处 改前改后 + 实测依据 + 验收自证输出 + 交付集条目数改前改后 (2 条 → 2 条) + 边界自证 + 残留项 (只报不改)'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -1154,6 +1184,14 @@ needs_from:
   item: '立项书 4.2 B 组的 OD 输入分布统计脚本还没写 (要板端 ISP 帧: 采样>=200帧 -> 与板端逐字一致预处理 -> 与 calib_yolov5_100 同口径 mean/std/分位/饱和率
     -> 自采有标注实拍集 F1); 板端不可达期间全部为 [0数据], 请在板可达后另派或授权本单下轮补'
   since: '2026-11-11'
+- key: iss201_rebuild_model_license
+  to: main
+  item: 'ISS-201 (2026-11-12) 实测: 两个重建件的许可 未判定 —— license_probe.py --onnx 实测 metadata_props 的 license/author/version
+    全为 None ⇒ verdict = unknown [0数据]; 台账 §1.2 按 R-3 登记为 unknown (脚本 MANIFEST: expected_license=None ⇒
+    日后若进交付集即触发阻断项 L1)。★原件的 AGPL-3.0 结论 不自动适用于 重建件 (重建件 = 2026-11-02 另一次构建, 血缘需重新判定)。请项目总工决定: (a) 向来源方/原厂取得重建件的许可结论
+    (外发一律经项目总工), 或 (b) 改走 Apache-2.0 栈。两个重建件 sha16: 1e2c716bd16ed9d3 (s) / dfb5d060ca36fc27 (n), 均 state=licensing-hold
+    禁入交付物; 转换链第 3 段与板端精度仍 [0数据]。'
+  since: '2026-11-12'
 answers:
 - key: debug_port_form
   to: hw-lead

@@ -54,7 +54,7 @@
 |---|---|---|
 | 模型 | `~/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx` | [实测] |
 | 台账 ID | `MOD-YOLOV5S-640-ARS45-SRC` (`SW/MODEL_ASSETS.md` §1.2) | — |
-| sha256[:16] | `20368be665f6f59a` —— **与台账一致** ✔ | [实测] |
+| sha256[:16] | `1e2c716bd16ed9d3` —— **与台账一致** ✔ (台账 ID = `MOD-YOLOV5S-640-ARS45-REBUILD`; 原 ID `MOD-YOLOV5S-640-ARS45-SRC` 的原件 `20368be665f6f59a` **已丢失**, 台账已置 state=`missing` ⇒ 重建件按 R-1/R-2 另立 ID, 不冒充原件) | [实测] 2026-11-12 复跑 |
 | 输入 / 输出 | 输入 `images [1,3,640,640]`; 输出 `output[1,25200,85]` + `350[1,3,80,80,85]` + `498[1,3,40,40,85]` + `646[1,3,20,20,85]` | [实测] |
 | 节点 / 算子 | 245 节点 / 12 类算子 (Mul 69, Conv 60, Sigmoid 60, Concat 17, Add 10, Slice 9, Reshape 6, MaxPool 3, Transpose 3, Sub 3, Pow 3, Resize 2) | [实测] |
 | 许可 | **AGPL-3.0** (`SW/MODEL_LICENSE.md` §1.2) ⇒ 商用阻断项 **L4** 未闭 | [实测·溯源] |
@@ -470,7 +470,7 @@ python3 state/gate_check.py      # 期望 Q1 18/18
 
 | §7.2 命令 | rc | 耗时 | 干净机实际输出 (节选) |
 |---|---|---|---|
-| `probe` | **0** | 3 s | ★**2026-10-29 首跑**: rknn-toolkit2 2.3.2 / python 3.10.20 / onnx 1.14.1 / numpy 1.26.4; 模型 sha16 `20368be665f6f59a` (台账一致 True); 节点 245 / 12 算子; 板端不在 ★**★2026-11-11 21:2x 复跑 (ISS-196)**: python 3.10.22 / onnx 1.16.1 / numpy 1.26.4; 模型 sha16 **`1e2c716bd16ed9d3` (台账一致 False)** —— ★**根因 = 原件 `20368be665f6f59a` 已丢失, 该路径上现在是重建复刻件 (29,365,856 B, 同血缘 245 节点/12 算子), 而台账与 `SW/tools/rknn_bench.py:124` 常量仍记原件指纹 ⇒ 重建件须登记新资产 ID, 详见 HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md §3** |
+| `probe` | **0** | 3 s | ★**2026-10-29 首跑**: rknn-toolkit2 2.3.2 / python 3.10.20 / onnx 1.14.1 / numpy 1.26.4; 模型 sha16 `20368be665f6f59a` (台账一致 True); 节点 245 / 12 算子; 板端不在 ★**★2026-11-11 21:2x 复跑 (ISS-196)**: python 3.10.22 / onnx 1.16.1 / numpy 1.26.4; 模型 sha16 **`1e2c716bd16ed9d3` (台账一致 False)** —— ★**根因 = 原件 `20368be665f6f59a` 已丢失, 该路径上现在是重建复刻件 (29,365,856 B, 同血缘 245 节点/12 算子), 而台账与 `SW/tools/rknn_bench.py:124` 常量仍记原件指纹 ⇒ 重建件须登记新资产 ID, 详见 HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md §3** | ★**2026-11-12 02:1x 复跑 (ISS-201)**: 台账已登记重建件新 ID `MOD-YOLOV5S-640-ARS45-REBUILD` (29,365,856 B / `1e2c716bd16ed9d3`), 原 ID `MOD-YOLOV5S-640-ARS45-SRC` 置 state=`missing` (原件丢失) ⇒ **模型 sha16 `1e2c716bd16ed9d3` (台账一致 True)** —— 台账与 `SW/tools/rknn_bench.py:125` 常量已同步, 详见 HANDOFF/2026-11-12_sw-lead_ISS201_台账登记重建件.md |
 | `e2e` | **0** | 1 s | 模式A 达标需 NPU ≤ 20.4 ms; 模式B age=1 需 NPU ≤ 10.67 ms; 三档候选 56.99/67.01 · 54.98/67.01 · 48.47/50.34 ms |
 | `calib` | **0** | 2 s | 100 张 → `/tmp/rknn_bench/calib` (640×640 黑边) + `dataset.txt` |
 | `convert` | **0** | 39 s | 日志 `[dep] ⚠ …⇒ 自动先跑 calib 步`; 产物 **10.09 MiB**; load 0.22 s / build 35.6 s |

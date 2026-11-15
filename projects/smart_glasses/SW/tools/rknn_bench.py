@@ -117,11 +117,12 @@ from rknn.api import RKNN  # noqa: E402
 # ----------------------------------------------------------------------------
 # 1. 固定输入 (全部来自项目库, 不许在这里拍脑袋改)
 # ----------------------------------------------------------------------------
-# 主模型候选: SW/MODEL_ASSETS.md §1.2 台账 MOD-YOLOV5S-640-ARS45-SRC
-#   —— 唯一实测可推理的 yolov5s ONNX (640), sha256[:16]=20368be665f6f59a
-#   ⚠️ 许可 = AGPL-3.0 (SW/MODEL_LICENSE.md §1.2) ⇒ 商用阻断项 L4, 本单不解决
+# 主模型候选: SW/MODEL_ASSETS.md §1.2 台账 MOD-YOLOV5S-640-ARS45-REBUILD
+#   —— 该路径上现存的**重建件** (★ISS-201 2026-11-12 实测: 29,365,856 B / sha256[:16]=1e2c716bd16ed9d3);
+#      原 ID MOD-YOLOV5S-640-ARS45-SRC 的原件 (20368be665f6f59a) 已丢失 ⇒ 台账已置 state=missing
+#   ⚠️ 重建件许可 = unknown (license_probe 实测判不出; ★不沿用原件的 AGPL 结论) ⇒ 禁入交付物, 本单不解决
 ONNX_MODEL = "/home/yuewuya/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx"
-ONNX_MODEL_SHA16 = "20368be665f6f59a"
+ONNX_MODEL_SHA16 = "1e2c716bd16ed9d3"
 CALIB_DIR = "/home/yuewuya/Public/radxa_yolo/calib_yolov5_100"   # 100 张 COCO val jpg
 COCO_ROOT = "/work/object_detection/data/coco/raw"
 VAL_DIR = os.path.join(COCO_ROOT, "val2017")

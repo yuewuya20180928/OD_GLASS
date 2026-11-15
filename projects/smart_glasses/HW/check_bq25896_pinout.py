@@ -30,6 +30,12 @@ BQ25896 24 脚 pinout 机械复核 (ISS-112 (d) · 2026-10-29 · hw-lead)
   ⑤ ★**附带查 J_CHG 跨铰链 pin map 三方口径是否一致** (见 §B4) —— 这条不在 ISS-112 范围内,
      但它是同一次复核里冒出来的**同等级返工风险**, 必须一并报出来
 
+★★★2026-11-12 (ISS-136) ★★ 本脚本从"**只看网表**"改成"**规格表 + 网表真对拍**":
+  ★**根因**: ⑦ 原来比的是「脚本里硬编的快照 vs 网表」—— ★**规格文件根本没参与判定**
+  ⇒ 规格 §5.2 怎么漂移它都不知道 ⇒ 这就是"**一直是绿的假象**"的来源 (方法论问题, 不是单个脚本问题)。
+  ⇒ 现在 ⑦ **实读** `HW/CHARGE_BOARD_SPEC.md` §5.2 的 pin map 表逐脚对拍网表 ⇒ **表一改就红**。
+  ★**真源 = `HW/netlist_v1.csv`** (投板真源); 规格 §5.2 表 = 网表的镜像; 脚本内 `spec_proposal` = 已批准基线快照。
+
 用法:
   python3 HW/check_bq25896_pinout.py
   python3 HW/check_bq25896_pinout.py --json
@@ -117,6 +123,22 @@ PIN_RE = re.compile(r"U_CHG\s+pin\s*(\d+)(?:\s*\+\s*pin\s*(\d+))?", re.I)
 JCHG_RE = re.compile(r"J_CHG\s+pin\s*(\d+)", re.I)
 
 RESULTS = []
+
+# ★★ISS-136 (2026-11-12) ★★ J_CHG 跨铰链 pin map 的**已批准基线快照**
+#   ★**真源 = `HW/netlist_v1.csv`** (投板真源, 与 PCB/原理图/BOM 同源) ⇒ 本快照必须逐脚等于它。
+#   ★历史 (为什么原来是错的):
+#     - 2026-10-29 ISS-112 (d): 快照 = 规格 §5.2 **提案** (pin5=TS_BAT / pin7=PWR_GOOD / pin8=VBUS_DET
+#       / pin9=I2C_SCL / pin10=I2C_SDA) ⇒ 与网表差 6 脚;
+#     - 2026-11-02 03:0x: 快照被改成 "V1.8 后" 的口径 (pin5=CHG_STAT / pin7=VBUS_DET / pin10=TS_RTN)
+#       ⇒ 当时与网表一致, 但网表后来又变 (见下), 快照就**过期**了;
+#     - 2026-11-04: 网表 pin7 由 VBUS_DET 改 **NC** (VBUS_DET 改主板本地分压);
+#     - 2026-11-03: 网表撤除跨铰链 `TS_RTN` 残留 ⇒ pin10 由 TS_RTN 改 **HINGE_RSV**;
+#       ⇒ pin10 现在是 DNP 预留位, NTC 与 30.31k 分压下臂改回 PGND。
+#   ★**今天 (2026-11-12) 的口径**: 规格 §5.2 表已按网表订正 (见 CHARGE_BOARD_SPEC.md §5.2 注记),
+#   本快照同步为同一真源 ⇒ ⑦ (规格实读) 与 ⑦b (本快照) 都与网表一致。
+SPEC_PROPOSAL = {1: "BAT_CHG", 2: "BAT_CHG", 3: "GND", 4: "GND",
+                  5: "CHG_STAT", 6: "PWR_GOOD", 7: "NC", 8: "TS_BAT",
+                  9: "HINGE_RSV", 10: "HINGE_RSV"}
 
 
 def rec(ok: bool, name: str, detail: str = "") -> None:
@@ -213,6 +235,34 @@ def scan_spec():
                 p10.append({"net": row.get("net", ""), "pins": pins, "node": nd,
                             "ref": row.get("ref", ""), "board": row.get("board", "")})
     return {"official_line_count": len(lines_found), "table": table, "p10": p10}
+
+
+def scan_spec_jchg_pinmap():
+    """★**实读** CHARGE_BOARD_SPEC.md §5.2 的 J_CHG pin map 表 → {pin: 网名}
+
+    ★★**为什么必须"实读" (ISS-136 · 2026-11-12)**: 检查项 ⑦ 原来比的是「脚本里硬编的快照
+    vs 网表」⇒ ★**规格文件根本没有参与判定** ⇒ 规格 §5.2 改了多少它都不会红 ⇒ "一直是绿的假象"。
+    ⇒ 现在规格表是判据的一部分 ⇒ 规格漂移 = 本脚本红 = 闸红。
+
+    ★只认 §5.2 一节内的表格行 ("| pinN | `网名` | ..."), 以 '>' 开头的引用块 (ISS-112 历史快照)
+      与其它章节一律不认 ⇒ 不会把历史对照表误当成现行提案。
+    """
+    txt = open(SPEC, encoding="utf-8").read()
+    m = re.search(r"^###\s*5\.2(?![.\d]).*$", txt, re.M)
+    if not m:
+        return {}
+    sec = txt[m.end():]
+    nxt = re.search(r"^###\s", sec, re.M)
+    if nxt:
+        sec = sec[:nxt.start()]
+    out = {}
+    for line in sec.splitlines():
+        if not line.startswith("|"):
+            continue
+        mm = re.match(r"^\|\s*\**\s*pin\s*(\d+)\s*\**\s*\|\s*\**\s*`([^`]+)`", line)
+        if mm:
+            out[int(mm.group(1))] = mm.group(2).strip()
+    return out
 
 
 def scan_p10json():
@@ -319,6 +369,10 @@ def main() -> int:
         "24 脚全部正确" if not wrong else "; ".join(wrong))
 
     # ---------- ⑦ J_CHG 跨铰链 pin map 三方口径 ----------
+    # ★★ISS-136 (2026-11-12) ★★ 这一段从"硬编快照 vs 网表"改成"**规格表实读 vs 网表**"。
+    # ★**为什么**: 原来比较的是脚本里写死的 spec_proposal ⇒ 规格 §5.2 改坏了脚本也不会红
+    #   ⇒ 门禁"一直是绿的假象" ⇒ 漂移被系统性放过。
+    # ★**真源 = HW/netlist_v1.csv** (投板真源); 规格 §5.2 表必须是它的镜像。
     jmap = defaultdict(set)
     with open(NETLIST, encoding="utf-8", newline="") as f:
         for r in csv.DictReader(f):
@@ -326,37 +380,38 @@ def main() -> int:
                 m = JCHG_RE.search(r.get(side) or "")
                 if m:
                     jmap[int(m.group(1))].add(r.get("net", ""))
-    # 规格 §5.2 提案表: | pin5 | `TS_BAT` | ... | pin6 | `CHG_STAT` | ... | pin7 | `PWR_GOOD` |
-    #                   pin8 | `VBUS_DET` | pin9 | `I2C_CHG_SCL` | pin10 | `I2C_CHG_SDA` |
-    # ★★2026-11-02 03:0x 更新: 原快照是**过期**的 —— V1.8 把 TS_BAT 从 pin5 挪到 pin8
-    #   (pin5 改给 CHG_STAT), 于是 CHG_STAT/PWR_GOOD/VBUS_DET 各前移一位;
-    #   pin9/pin10 的 BQ25896-I2C 跨铰链方案**未采用** (见 CHARGE_BOARD_SPEC.md §5.3
-    #   "若要据此调充电电流, 就需要 BQ25896 的 I2C 跨铰链" —— 本轮不做) ⇒ pin9 = 预留 HINGE_RSV, pin10 = TS 专用回流。
-    #   ⇒ 现在的网表是**新的**、这份快照是**旧的** ⇒ 本条判据应当跟网表对齐, 并把差异登记进 CHARGE_BOARD_SPEC.md §5。
-    spec_proposal = {1: "BAT_CHG", 2: "BAT_CHG", 3: "GND", 4: "GND",
-                     5: "CHG_STAT", 6: "PWR_GOOD", 7: "VBUS_DET", 8: "TS_BAT",
-                     9: "HINGE_RSV", 10: "TS_RTN"}
-    spec_p10 = {}
-    for row in spec["p10"]:
-        for side in ("node1", "node2"):
-            m = JCHG_RE.search(row.get(side) or "")
-            if m and row.get("net"):
-                spec_p10[int(m.group(1))] = row["net"]
+    # ★一个脚上挂多个网 = 真冲突 (旧代码 sorted(v)[0] 直接吞掉一个 ⇒ 又是假象)
+    multi_net = {p: sorted(v) for p, v in sorted(jmap.items()) if len(v) > 1}
+    rec(not multi_net, "⑦a J_CHG 每个脚只挂一个网 (无同脚多网冲突)",
+        "10 脚各挂 1 个网" if not multi_net else
+        "★同脚多网: " + "; ".join(f"pin{p}: {v}" for p, v in multi_net.items()))
     net_map = {p: sorted(v)[0] for p, v in sorted(jmap.items()) if v}
-    diff_p10 = {p: (spec_proposal.get(p), net_map.get(p))
-                for p in sorted(set(spec_proposal) | set(net_map))
-                if spec_proposal.get(p) != net_map.get(p)}
-    rec(not diff_p10, "⑦ J_CHG 跨铰链 pin map: 规格 §5.2 提案 == 网表实际",
-        "一致" if not diff_p10 else
-        "★不一致 (pin: 规格提案 vs 网表实际) = " +
-        "; ".join(f"pin{p}: {a} vs {b}" for p, (a, b) in diff_p10.items()))
+    # ★**规格表实读** (ISS-136: 这才是真判据 —— 以前这里根本不读规格)
+    spec_tbl = scan_spec_jchg_pinmap()
+    diff_spec = {p: (spec_tbl.get(p), net_map.get(p))
+                 for p in sorted(set(spec_tbl) | set(net_map))
+                 if spec_tbl.get(p) != net_map.get(p)}
+    rec(not diff_spec, "⑦ J_CHG 跨铰链 pin map: 规格 §5.2 表 (实读) == 网表实际",
+        "一致 (规格 §5.2 逐脚 = 网表)" if not diff_spec else
+        "★不一致 (pin: 规格 §5.2 表 vs 网表实际) = " +
+        "; ".join(f"pin{p}: {a} vs {b}" for p, (a, b) in diff_spec.items()))
+    # ★脚本内快照 (spec_proposal) 与真源的同一口径校验: 快照不得比真源"更新"
+    #   ⇒ 任何人改网表却不同步快照, 这里会红。
+    spec_proposal = SPEC_PROPOSAL
+    diff_snap = {p: (spec_proposal.get(p), net_map.get(p))
+                 for p in sorted(set(spec_proposal) | set(net_map))
+                 if spec_proposal.get(p) != net_map.get(p)}
+    rec(not diff_snap, "⑦b J_CHG 跨铰链 pin map: 脚本内 spec_proposal 快照 == 网表实际",
+        "快照与真源一致" if not diff_snap else
+        "★不一致 (pin: 脚本快照 vs 网表实际) = " +
+        "; ".join(f"pin{p}: {a} vs {b}" for p, (a, b) in diff_snap.items()))
 
     # ---------- 输出 ----------
     if args.json:
         print(json.dumps({"results": RESULTS,
                           "pin_hits": [{k: v for k, v in h.items() if k != "note"} for h in hits],
                           "j_chg_net": net_map, "j_chg_spec_proposal": spec_proposal,
-                          "j_chg_spec_p10_block": spec_p10}, ensure_ascii=False, indent=2))
+                          "j_chg_spec_52_table": spec_tbl}, ensure_ascii=False, indent=2))
         return 0 if all(r["ok"] for r in RESULTS) else 1
 
     print("=" * 76)

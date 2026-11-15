@@ -486,3 +486,65 @@ dispatches:
   at: '2026-11-12'
   brief: "★**目标**: 把 `HW/check_bq25896_pinout.py` 这个【一直是绿的假象】变成【真闸】——\n   ① `HW/CHARGE_BOARD_SPEC.md` §5.2 的 J_CHG 跨铰链 pin map 表 ⇒ 订正到与网表一致\n   ② 脚本里硬编的 `spec_proposal` ⇒ 与同一个真源一致\n   ③ ★**把该脚本接进 `state/gate_check.py`\
     \ 的门禁链** (★它现在 rc=1 却没人跑 ⇒ 门禁链缺它★)\n\n★**为什么现在做 (★main 2026-11-11 19:2x 实测, 不是推测★)**\n★**实测**: `pyth"
+- issue: ISS-195
+  agent: hw-lead
+  at: '2026-11-12'
+  brief: '★**目标**: 把 `HW/iss121_mic_magnet_check.py` / `.json` / `HW/ISS121_MIC_MAGNET_POSITION.md` 里★**引 15mm 老口径孔位**的三处, ★**按现行 60×30 板 + 套A 孔位重算** ⇒ 给出麦克风磁体/麦克风的孔壁净空与最小间距的 PASS/FAIL 与余量数字。
+
+
+    ★**为什么现在做 (★main 2026-11-11 20:2x 独立复算, 不是推测★)**:
+
+    · ISS-194 (孔位表 套B ⇒ 套A) 交卷后, 扫出三处仍引 15mm 老口径: `HW/iss121_mic_magnet'
+- issue: ISS-200
+  agent: mech-lead
+  at: '2026-11-12'
+  brief: "★**目标**: 把**结构侧**的 J_CHG pin map 旧口径收敛到网表真源 ⇒ ★**结构侧的接口契约不许和网表对着干** ★\n\n★**为什么现在做 (★main 2026-11-12 01:4x 实测, 不是推测★)**\n· ★**ISS-136 (hw-lead) 刚交卷并被我验收签字** ⇒ ★**口径已定: 网表是唯一真源, 文档是它的镜像** ★\n·\
+    \ ★**hw-lead 按纪律把结构侧那处旧口径登记成 need 转给我 (它不许代改你的地界)**, 我今晚扫全树, 结构侧有 2 处还在用旧口径:\n  ① ★**`state/fragments/mech.yaml` 的 "
+- issue: ISS-201
+  agent: sw-lead
+  at: '2026-11-12'
+  brief: "★**目标**: 把**模型资产台账 ↔ 磁盘实物 ↔ 工具硬编码常量**这条链收敛成一套 ⇒ ★**`probe` 必须打出「台账一致: True」, 且台账登记的是【重建件】而不是冒充原件** ★\n\n★**为什么现在做 (★main 2026-11-12 02:0x 实测, 不是推测★)**\n· ★**ISS-196 (你上一单) 交卷时把两处补丁明确交回给了 main\
+    \ (它自己的地界不许改)**: ★**§3.4 A/B + §4.5 U2/U5** ★\n  (★见 `HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md`★) ⇒ ★*"
+- issue: ISS-202
+  agent: mech-lead
+  at: '2026-11-12'
+  brief: '★**目标**: 把**结构侧剩下的 J_CHG 旧口径 (4 处文档 + 1 条分片 claim 的 note)** 收敛到网表真源 ⇒ ★**同一个接口不许再有第 3 套 pin map** ★
+
+
+    ★**为什么现在做 (★main 2026-11-12 02:0x 实测, 不是推测★)**
+
+    · ★**ISS-200 昨天 01:5x 刚交卷** ⇒ ★**它把 `MECH/USB_HINGE_STRUCTURE.md` §5.2 的 `J_CHG` 块 + `state/fragments/mech.yaml` 的 `interface_claims.j_chg_pin_map` 这两处收'
+- issue: ISS-203
+  agent: mech-lead
+  at: '2026-11-12'
+  brief: "★**目标**: 把**结构侧两个还在给「15mm 板」打分的机械复核器**迁到**现行 60×30 板** ⇒ ★**现在的绿灯/红灯说的不是现行板子, 这是假判据** ★\n\n★**为什么现在做 (★main 2026-11-12 02:0x 实测, 不是推测★)**\n· ★**ISS-197 (你上一单) 交卷时全仓扫出 8 条「活口径」(L1~L8), 其中 L5 /\
+    \ L6 就是本单** ⇒ ★**它当时只报不改, 登记成 need 交回给 main** ★\n· ★**我 02:0x 亲自 grep 复核了 (逐行原文)**:\n  · ★**`MECH/hw_cross_review_c"
+- issue: ISS-205
+  agent: sw-lead
+  at: '2026-11-12'
+  brief: "★**【owner 已于 2026-11-12 03:2x 由 main (项目总工) 改派: `hw-lead` → `sw-lead`】**\n  · ★**原因**: hw-lead 名额被 ISS-195 (★真在飞, 会话 `dc510f7c`, 03:17 仍在写★) 占住 ⇒ 铁律「一个 agent 同时只能\n    一个写会话」⇒ 本单不能给 hw-lead; ★**而本单是\
+    \ high + due 11-14 + 卡整链重出第 3 步** ⇒ 干等会把最高优先级\n    压在 medium 队列后面 ⇒ sw-lead 实测无在跑写会话 ⇒ 改派 sw-lead;\n  · ★**"
+- issue: ISS-206
+  agent: mech-lead
+  at: '2026-11-12'
+  brief: "★**目标**: ★**把结构侧剩下的 J_CHG 旧口径一次性收口到真源** ⇒ ★**同一个接口不许再有第 3 套 pin map** ★\n\n★**为什么现在做 (★main 2026-11-12 03:2x 实测, 不是推测★)**\n· ★**ISS-202 (你 02:34 交卷) 与 ISS-203 (你 02:46 交卷) 各登记了 7 条 need 给 main**\
+    \ ⇒ ★**它们全卡在\n  「等 main 裁」** ⇒ ★**main 已逐条裁完 (★下面的【main 裁决】段就是裁完的结果★) ⇒ ★**本单 = 裁完之后\n  的一次性执行单** ⇒ ★**你不用再等下一轮★"
+- issue: ISS-205
+  agent: sw-lead
+  at: '2026-11-15'
+  brief: "★**【owner 已于 2026-11-12 03:2x 由 main (项目总工) 改派: `hw-lead` → `sw-lead`】**\n  · ★**原因**: hw-lead 名额被 ISS-195 (★真在飞, 会话 `dc510f7c`, 03:17 仍在写★) 占住 ⇒ 铁律「一个 agent 同时只能\n    一个写会话」⇒ 本单不能给 hw-lead; ★**而本单是\
+    \ high + due 11-14 + 卡整链重出第 3 步** ⇒ 干等会把最高优先级\n    压在 medium 队列后面 ⇒ sw-lead 实测无在跑写会话 ⇒ 改派 sw-lead;\n  · ★**"
+- issue: ISS-195
+  agent: hw-lead
+  at: '2026-11-15'
+  brief: '★**目标**: 把 `HW/iss121_mic_magnet_check.py` / `.json` / `HW/ISS121_MIC_MAGNET_POSITION.md` 里★**引 15mm 老口径孔位**的三处, ★**按现行 60×30 板 + 套A 孔位重算** ⇒ 给出麦克风磁体/麦克风的孔壁净空与最小间距的 PASS/FAIL 与余量数字。
+
+
+    ★**为什么现在做 (★main 2026-11-11 20:2x 独立复算, 不是推测★)**:
+
+    · ISS-194 (孔位表 套B ⇒ 套A) 交卷后, 扫出三处仍引 15mm 老口径: `HW/iss121_mic_magnet'
+- issue: ISS-206
+  agent: mech-lead
+  at: '2026-11-15'
+  brief: "★**目标**: ★**把结构侧剩下的 J_CHG 旧口径一次性收口到真源** ⇒ ★**同一个接口不许再有第 3 套 pin map** ★\n\n★**为什么现在做 (★main 2026-11-12 03:2x 实测, 不是推测★)**\n· ★**ISS-202 (你 02:34 交卷) 与 ISS-203 (你 02:46 交卷) 各登记了 7 条 need 给 main**\
+    \ ⇒ ★**它们全卡在\n  「等 main 裁」** ⇒ ★**main 已逐条裁完 (★下面的【main 裁决】段就是裁完的结果★) ⇒ ★**本单 = 裁完之后\n  的一次性执行单** ⇒ ★**你不用再等下一轮★"

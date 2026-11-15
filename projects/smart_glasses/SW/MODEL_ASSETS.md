@@ -99,19 +99,23 @@
 | **R-2 版本只认 sha256** | 版本标识 = 文件 `sha256[:16]`, **文件名里的 v2/clean/final 一律不作数** | §1.4 实测: `_clean` 与 `_v2` 逐字节相同 |
 | **R-3 必填字段** | 来源路径 / 大小 / sha256 / 许可 / 格式与格式版本 / 状态 / 角色 / 备注 | ISS-037 验收① |
 | **R-4 许可不许空** | 许可未知必须显式写 `[0数据]`, 并生成放行阻断项 L1 | §1.5 |
-| **R-5 状态机** | `candidate`(PC 侧源) → `active`(板端在用) → `quarantined`(判死) / `reference`(他项目参考) | §1.2 |
+| **R-5 状态机** | `candidate`(PC 侧源) → `active`(板端在用) → `quarantined`(判死) / `reference`(他项目参考) / `licensing-hold`(许可受限**或未判定** ⇒ 禁入交付物) / ★**`missing`**(★**原件已丢失**: 台账只保留该内容的身份记录 (size/sha256 仍指原件), 该路径可已被**别的内容**占用 ⇒ 占用者必须**另立资产 ID**, 本条**不冒充**原件; **≠ `quarantined`** —— quarantined = 已判死的坏模型, 两个不同的病) | §1.2 / §1.4 |
 | **R-6 板端产物单独登记** | PC 侧源 (ONNX/PT) 与板端产物 (NBG/Art.Galaxy 格式) **分开登记** —— 容量门禁只管板端产物 | §1.6 |
 | **R-7 量化参数也是资产** | `.quantize` / 校准集 / 量化脚本 **必须与权重同批登记** —— 换量化参数 = 换模型 | §2.4 |
 
 ### 1.2 主台账 (唯一真源 = `SW/tools/model_asset_check.py` 的 `MANIFEST`)
 
 > 下表与脚本里的 `MANIFEST` **逐字段一致**; 改一个必须改另一个 (脚本自检会 diff 大小/sha256)。
+> ★ 许可列的 `unknown [0数据]` ⇔ 脚本 `MANIFEST` 的 `expected_license: None` (脚本口径: **空 = 未判定** ⇒ 触发阻断项 L1)。
+> ★ **ISS-201 (2026-11-12) 新增状态词 `missing`** (原件已丢失) —— 词表与判据见 `SW/tools/model_asset_check.py` 文件头 + `check_one()` 的 missing 分支; 自检/反向用例: `python3 SW/tools/model_asset_check.py --selftest` (rc=0 才算过)。
 
 | ID | 平台 | 状态 | 格式 | 来源路径 | 大小 (B) | sha256[:16] | 许可 | 备注 |
 |---|---|---|---|---|---|---|---|---|
 | ~~MOD-YOLOV5S-320-INT8~~ | candidate | **quarantined** | ONNX | `~/.openclaw/workspace/yolov5s-sim_320_clean.onnx` | 29,337,706 | `340978ec59391f69` | **AGPL-3.0** | ★ **已判死 (2026-10-28)**: C9 冒烟实测 onnxruntime 加载即失败 (只改输入 dim, 图内常量仍 640 尺度) → 模型本身是坏的; 许可 = AGPL-3.0 (溯源见 `SW/MODEL_LICENSE.md` §1) |
 | MOD-YOLOV5S-320-INT8-DUP | candidate | **quarantined** | ONNX | `~/.openclaw/workspace/yolov5s-sim_320_v2.onnx` | 29,337,706 | `340978ec59391f69` | **AGPL-3.0** | ★ 与上一条**逐字节相同** → 台账去重, 只留一条 (同因同坏) |
-| **MOD-YOLOV5S-640-ARS45-SRC** | candidate | **licensing-hold** | ONNX | `~/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx` | 29,337,706 | `20368be665f6f59a` | **AGPL-3.0** | ★ **唯一实测可推理的 yolov5s ONNX (640)** —— C9 冒烟 OK; 血缘: ultralytics/yolov5 v6.0 → onnxsim → 抽 3 路 head; 旧 ID `MOD-YOLOV5S-320-INT8-ACUITY` 名不副实 (ID 写 320 实为 640) → 已由本条取代 |
+| **MOD-YOLOV5S-640-ARS45-SRC** | candidate | **missing** | ONNX | `~/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx` | 29,337,706 | `20368be665f6f59a` | **AGPL-3.0** | ★★ **原件已丢失 (2026-11-12 实测)**: 全盘搜 sha16=`20368be665f6f59a` → **0 命中**; 该路径现被**重建件** `MOD-YOLOV5S-640-ARS45-REBUILD` 占用 ⇒ 本条**只保留原件的身份记录**, 不代表路径上现存的东西 (state=`missing` —— **不是** `quarantined`: quarantined = 已判死的坏模型, 与"原件丢失"不是一回事); 许可 AGPL-3.0 的溯源结论**只属原件**, **不继承**给重建件 |
+| **MOD-YOLOV5S-640-ARS45-REBUILD** | candidate | **licensing-hold** | ONNX | `~/Public/radxa_yolo/acuity_pipeline/model/yolov5s-sim.onnx` | 29,365,856 | `1e2c716bd16ed9d3` | **unknown** [0数据] | ★ **重建件** (2026-11-12 实测登记): 本地重建 (mtime 2026-11-02 20:41), 与原件体积差 28,150 B ⇒ **非逐字节同一份** ⇒ 按 R-1/R-2 另立 ID, **不冒充**原件 ID; 许可 = **unknown** (`license_probe.py` 实测: metadata_props 的 license/author/version 全为 None ⇒ 判不出来; ★**不沿用原件的 AGPL 结论** —— 重建件是另一次构建) ⇒ 禁入交付物; onnx 实测: producer=pytorch 2.4.0 / opset 13 / 245 节点 / 12 类算子 / 输入 `[1,3,640,640]` / 输出 4 个 (output + 3 路 raw head); ★ 转换链**第 3 段 (ONNX→NPU 厂商格式) + 板端精度 = [0数据]** ⇒ 不进交付集 |
+| **MOD-YOLOV5N-640-ARS45-REBUILD** | candidate | **licensing-hold** | ONNX | `~/Public/radxa_yolo/acuity_pipeline/model/yolov5n-sim.onnx` | 7,931,774 | `dfb5d060ca36fc27` | **unknown** [0数据] | ★ **重建件** (2026-11-12 实测登记): 与 s 重建件是**两个不同的文件 / 两个不同的 sha** ⇒ 两个不同的资产 ID (R-1); 许可 = **unknown** (同 s 重建件: `license_probe.py` 实测 metadata_props 空 ⇒ 判不出来) ⇒ 禁入交付物; onnx 实测: producer=pytorch 2.4.0 / opset 13 / 245 节点 / 12 类算子 / 输入 `[1,3,640,640]` / 输出 4 个; ★ 转换链**第 3 段 (ONNX→NPU 厂商格式) + 板端精度 = [0数据]** ⇒ 不进交付集 |
 | **MOD-YOLOV8S-COCO80-ONNX** | candidate | **licensing-hold** | ONNX | `/work/object_detection/yolov8s_coco80/workspace/yolov8s.onnx` | 44,842,647 | `111da30a25b6c585` | **AGPL-3.0** | ★ 备选主模型; opset 13 / 263 节点 / 17 算子类型; 输入 `[1,3,640,640]`; C9 冒烟 OK; **未采购 Enterprise 前禁入交付物** |
 | **MOD-SSDMBV2-FPNLITE-320-COCO90-TFODAPI** | candidate | **candidate** | SavedModel | `/work/object_detection/pretrained/ssd_mobilenet_v2_fpnlite_320x320_coco17_tpu-8` | 9,640,645 (saved_model.pb) | — | **Apache-2.0** | ★ **交付集里唯一许可干净的候选** (TF OD API, pipeline.config `num_classes: 90` → COCO 可用 80 类); ⚠️ NPU 可转换性 = [0数据] |
 | MOD-YOLOV8S-COCO80-NB | A733-ref | **quarantined** | NBG | `/work/object_detection/yolov8s_coco80/workspace/yolov8s_coco80.nb` | 8,450,776 | `7fa016615610adaa` | — | ★ chip ID **0x10000020 (错)** → 板端不可加载 |

@@ -74,7 +74,17 @@ CROSS_LINKS = ["J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"]
 
 # 建议收敛后的 pin 数 (方案A = 2-lane CSI / 原生 DSI / 无桥)
 RECOMMENDED_PINS = {
-    "J_CHG":      8,   # SYS×2(载流) + VBUS_DET + BAT_DET + CHG_STAT + PWR_GOOD + GND×2
+    # ★ISS-206 (2026-11-12): J_CHG 由 8 → 10, 对齐网表真源 1×10p@0.5mm
+    #   逐脚 map (HW/netlist_v1.csv 逐脚 net 行 + HW/CHARGE_BOARD_SPEC.md §5.2):
+    #     pin1/pin2 = BAT_CHG (充电电流双 pin 并联, 跨铰链载流)
+    #     pin3/pin4 = GND    (回流双 pin)
+    #     pin5 = CHG_STAT · pin6 = PWR_GOOD (两个开漏状态信号, 跨铰链)
+    #     pin7 = NC (★原走跨铰链的 VBUS_DET 已改主板本地分压 ⇒ 该脚不接)
+    #     pin8 = TS_BAT (NTC 在镜脚, 高阻跨铰链)
+    #     pin9/pin10 = HINGE_RSV (预留不装)
+    #   ★**SYS 不跨铰链** (网表 J_CHG 无 SYS 脚); ★**VBUS_DET 不跨铰链**
+    #   (主板本地分压, 网表里该网仍有 9 处); ★**BAT_DET 不跨铰链** (镜脚本地检测)
+    "J_CHG":     10,   # BAT_CHG×2 (载流) + GND×2 + CHG_STAT + PWR_GOOD + NC + TS_BAT + HINGE_RSV×2
     "CONN_USB":   4,   # D+ D- GND SHIELD
     "CONN_CAM":  16,   # 2-lane CSI 13 + 3 备用
     "CONN_LIGHT":20,   # 原生 DSI 15 + 5 备用
@@ -292,10 +302,15 @@ def main() -> int:
     rec_stack = sum(fpc_width_mm(RECOMMENDED_PINS[c], g["ffc_pitch_mm"])
                     for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB"))
     rec_stack += fpc_width_mm(RECOMMENDED_PINS["J_CHG"], g["ffc_pitch_mm"])
+    # ★标签由数据动态生成 (不再手写脚数) ⇒ 脚数变了标签不会变成旧口径 (ISS-206)
+    decl_comp = "/".join(f"{rep['connectors'][c]['declared'] or 0}p"
+                          for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_CHG"))
+    rec_comp = "/".join(f"{RECOMMENDED_PINS[c]}p"
+                        for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_CHG"))
     print(f"    垂直(高度)占位 声明版     = {decl_stack} mm  "
-          f"(40p×2 + 4p + 1×6@1.27) vs 镜脚净高 {g['temple_h_mm']} mm")
+          f"(网表声明 {decl_comp} 全 0.5mm) vs 镜脚净高 {g['temple_h_mm']} mm")
     print(f"    垂直(高度)占位 收敛版     = {rec_stack} mm  "
-          f"(16p/20p/4p/8p 全 0.5mm) vs 镜脚净高 {g['temple_h_mm']} mm")
+          f"({rec_comp} 全 0.5mm) vs 镜脚净高 {g['temple_h_mm']} mm")
     if decl_stack > g["temple_h_mm"]:
         findings.append(f"声明版 4 条链路在铰链区高度方向堆不下: {decl_stack} > "
                         f"{g['temple_h_mm']} mm -> 必须缩 pin, 见正文 §5.2 F-3 / §3.2")
