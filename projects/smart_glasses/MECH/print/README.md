@@ -26,11 +26,13 @@
 | `fit_coupon_revb.stl` | **配合尺寸标定件** (150×132×22mm) — A~I/M 段全部试样 |
 | `temple_cage_revb.stl` | **镜脚内腔检具** (60×113×28mm) — 电池座 / PCB 定位组 / 板厚三档 / 走线槽 / **ISS-092 检修口壁** |
 | `frame_typec_coupon_revb.stl` | **镜框端件 Type-C 面板试样** (两档开口并行) |
-| `optical_cage_TEMPLATE.stl` | 镜框光学舱托架 **模板** — ⚠️ 走鹃Ⅱ 三维尺寸未到 (u1) ⇒ **先别打**; 本单 **字节未改** |
+| `frame_typec_coupon_tier3_revb.stl` | ★**镜框端件 Type-C 面板第三档试样** (ISS-218) — 面板 A = **FDM 直成型 10.50×4.80** / 面板 B = **金属·CNC 10.25×4.55** / 工艺表征段 = 收缩率标定方块 + 孔径试样; 72.0×32.0×5.0mm |
+| `optical_cage_TEMPLATE.stl` | 镜框光学舱托架 **模板** — ⚠️ 走鹃Ⅱ 三维尺寸未到 (u1) ⇒ **先别打**; ★★**ISS-222 (2026-11-16) 已解冻重生**: 走鹃Ⅱ 作废 + C-6/C-8 落地 ⇒ 分光件座由 (14×6×10) 改为 **(7.78 × 8.84 × 11.0)** ⇒ **本件 md5 已变 (6f23c2e2… → 537dc6af…)**, 原禁改登记值作废 (登记在 `PROJECT_TRACKER.md`, 待 main 更新) |
 | `gen_print_pack_revb.py` | **Rev B 生成器** (纯 numpy 自写 STL, 无外部依赖) |
 | `print_model_revb.py` | **Rev B 解析模型** — 生成器同步记录的图元表 (盒/圆柱/圆管/棱柱) ⇒ 自检 **精确** 求尺寸, 不从 STL 反推 |
-| `verify_pack_revb.py` | **Rev B 自检** — 尺寸判据 **93/93** + STL↔规格逐点互验 **38/38** (rc=0) |
-| `MEASURE_CHECKLIST.md` | **逐项测量清单 (89 项有效待测)** — 谁打印谁按表填 |
+| `verify_pack_revb.py` | **Rev B 自检** — 尺寸判据 **112/112** (既有 93 + ★第三档 19) + STL↔规格逐点互验 **52/52** (既有 38 + ★第三档 14) + ★第三档余量对拍 4/4 + ★MECH_ANCHORS 对拍 7/7 (rc=0) · `--selftest` 反向用例 **8/8** |
+| `PRINT_COUPON_TIER3_SPEC.md` | ★**第三档试样规格** (ISS-218) — 最坏余量算式 / 加工余量 (FDM 收缩·孔径补偿·层纹方向 / CNC 公差带·表面处理) / 逐项测量清单条目 / 本机不可打印不可量测的降级说明 |
+| `MEASURE_CHECKLIST.md` | **逐项测量清单 (116 项有效待测)** — 谁打印谁按表填 |
 | `ENV_PROBE_20261101.md` | **环境探测记录** (打印机/切片器/量具/外网 四项实测 + 对旧记录的两处更正) |
 | `ENV_PROBE.log` | 旧记录 (2026-10-25) — 留档; 其中"无外网"一条已被 §4 更正 |
 | `gen_print_pack.py` / `verify_pack.py` / `GEOM_SPEC_REVA.md` | **Rev A (已过期, 留档)** |
@@ -39,8 +41,9 @@
 
 ```bash
 cd projects/smart_glasses
-python3 MECH/print/gen_print_pack_revb.py     # 重新生成 3 个 Rev B STL
-python3 MECH/print/verify_pack_revb.py         # 自检: 93/93 + 38/38, rc=0
+python3 MECH/print/gen_print_pack_revb.py     # 重新生成 4 个 Rev B STL (含第三档)
+python3 MECH/print/verify_pack_revb.py         # 自检: 112/112 + 52/52 + 4/4 + 7/7, rc=0
+python3 MECH/print/verify_pack_revb.py --selftest  # ★反向用例 8/8 (ISS-218 加的)
 python3 MECH/fit_check_v3_30mm.py               # M-FIT v3: 板宽 30 下的装配干涉 (rc=0)
 ```
 

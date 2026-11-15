@@ -91,7 +91,13 @@ def main() -> int:
         f"已用 {len(used_tbd)}/{len(legal_tbd)}: {sorted(used_tbd)[:6]}")
 
     # 5) 高速差分阻抗规则 (A 组 = 100Ω ±10%)
-    spec_imp = {c["id"]: (c.get("imp") or "") for c in spec["connections"]}
+    # ★★2026-11-16 ISS-223 落表 (补差A · 值迁移): 比对源从【只有 `imp`】改成【有效值
+    #    `imp` 或 `z_diff`】(与 state/gen_netlist.py 的 conn_row() 取值优先级逐字同源)。
+    #    ★**为什么必须同趟改**: A 组 20 条的 `imp` 已按补差A 清空 (差分阻抗搬进 `z_diff`),
+    #      若这里还只读 `imp` ⇒ want 变空 ⇒ 那 20 行被 `continue` 跳过 ⇒
+    #      ★**判据覆盖从 20 行静默掉到 0 行 (判据被悄悄废掉) ★**。
+    #    ★**改完之后覆盖行数一条没少 (仍按 A 组 NET 行逐条对照)★**
+    spec_imp = {c["id"]: (c.get("imp") or c.get("z_diff") or "") for c in spec["connections"]}
     bad_i = []
     for r in rows:
         cid = cell(r, "conn_id")

@@ -179,11 +179,11 @@ IINMAX = KILIM / RILIM          (KILIM = 320 / 355 / 390 AΩ, min/typ/max)
 实际输入电流上限 = min(ILIM 脚设定, IINLIM 寄存器设定)   ← datasheet 原文
 ```
 
-| `R_ILIM` | IINMAX (min/typ/max) | CC 段电池电流上限 (×Vbat/Vbus/η ≈ 0.822) | 铰链段实际载流 | 用途 |
+| `R_ILIM` | IINMAX (min/typ/max) | CC 段电池电流上限 (ICHG/IIN = η·Vbus/Vbat = **1.216 @3.70V** / **1.071 @4.20V**) | 铰链段实际载流 | 用途 |
 |---|---|---|---|---|
-| **390Ω ±1%** | 0.82 / 0.91 / **1.00 A** | 0.67 / 0.75 / **0.82 A** | **~0.75 A** | ★★**本规格推荐值** (V1.9, 老板 10-28 拍板『边戴边充不允许』⇒ 皮肤温度不再是充电时硬约束 ⇒ 充电电流可提速; 单 pin 0.411A ≤ 0.5A 触点天花板, 余量 1.22×) |
-| 300Ω ±1% | 1.07 / 1.18 / 1.30 A | 0.88 / 0.97 / 1.07 A | ~1.0 A | ❌ **300Ω 档正式判死** (V1.9): 单 pin 0.534A > 任何 0.5mm pitch FPC ZIF 的 0.5A 触点天花板 (只能靠 1.0mm pitch, 而铰链区装不下) ⇒ **不可选** |
-| 260Ω ±1% | 1.23 / 1.37 / 1.50 A | 1.01 / 1.13 / 1.23 A | ~1.1 A | datasheet 官方示例值 (KILIM=390 max 时 1.5A) |
+| **390Ω ±1%** | 0.82 / 0.91 / **1.00 A** | 0.997 / 1.107 / **1.216 A** | **~1.1 A** | ★★**待裁决 (V-4)**: 单 pin **0.608A** (pin1/pin2 双 pin 并联) > **0.50A 触点工作上限 21.6%** ⇒ **本档不成立**; 候选档位见 `DECISION_PENDING_2026-11-16.md` §3 (老板待拍项, ★本单不代拍★) ★ |
+| 300Ω ±1% | 1.07 / 1.18 / 1.30 A | 1.298 / 1.437 / **1.581 A** | ~1.4 A | ❌ **300Ω 档正式判死** (V1.9 · ★系数已按 1.216 修正★): 单 pin **0.791A** > 任何 0.5mm pitch FPC ZIF 的 0.5A 触点天花板 (只能靠 1.0mm pitch, 而铰链区装不下) ⇒ **不可选** |
+| 260Ω ±1% | 1.23 / 1.37 / 1.50 A | 1.496 / 1.657 / **1.824 A** | ~1.7 A | datasheet 官方示例值 (KILIM=390 max 时 1.5A) · 单 pin **0.912A** > 0.5A 触点天花板 ⇒ **同样不可选** |
 
 > ★**电阻功耗不是问题**: ILIM 脚被稳在 0.8V → P = 0.8²/390 = **1.64 mW** → 0402 足够 (不需要大功率电阻)。
 > ⚠️ **[待原厂]**: datasheet 的 KILIM 规格只在 "IINMAX = 1.5A" 工况点给出 (min/typ/max 320/355/390 AΩ)。**低电流档 (本设计 1.0A) 的 KILIM trim 是否同值, datasheet 原文未给** → 需 TI 确认 (见 §8 待决项 3)。若 KILIM 在低电流档偏大, 实际 IINMAX 会高于上表 → 仍被 1.3A 内的最坏值封住。
@@ -317,15 +317,15 @@ V_TS = VREGN × (RTH ∥ RT2) / (RT1 + (RTH ∥ RT2))
 ### 3.4 ★★对"跨铰链充电电流 1.0-1.5A"的影响 (量化)
 
 > **关键概念**: 铰链段流过的是**电池充电电流 ICHG**, 不是输入电流 IIN。
-> `ICHG ≈ IIN × (VBAT / VBUS) / η`, 取 VBAT=3.7V, VBUS=5V, η=90% → **ICHG ≈ 0.822 × IIN**。
+> ★★★**方向修正 (ISS-214 d10 · ISS-220 落表 2026-11-16)**: buck 功率守恒 `VBUS·IIN·η = VBAT·ICHG` ⇒ `ICHG ≈ IIN × η × (VBUS / VBAT)`, 取 VBUS=5V, η=90% → **ICHG ≈ 1.216 × IIN** (VBAT=3.70V) / **1.071 × IIN** (VBAT=4.20V)。★**旧口径写的 (VBAT/VBUS)/η 是 1.216 的精确倒数 (方向反了; ★门禁 R10 要求本文件不再出现旧系数的字面值, 故不重复写出★) ⇒ 本节所有 ICHG 数与单 pin 数都必须按 1.216 重算★**。
 
 | 场景 | 源侧能力 | `R_ILIM` | IIN 上限 | **铰链段 ICHG** | 相对 1.5A 设计点的余量 |
 |---|---|---|---|---|---|
-| ① Rd-only + 常见 Rp=56k 充电器 | 500 mA | 390Ω | 0.5A (源封顶) | **~0.41 A** | **3.7×** |
-| ② Rd-only + Rp=22k 充电器 | 1.5 A | 390Ω | 0.82-1.00A | **~0.67-0.82 A** | **1.8-2.2×** |
-| ③ 加 PD 5V/2A + `R_ILIM`=390Ω | 2 A | 390Ω | 0.82-1.00A | **~0.67-0.82 A** | **1.8-2.2×** |
-| ④ 加 PD 5V/2A + `R_ILIM`=260Ω (更激进) | 2 A | 260Ω | 1.23-1.50A | **~1.01-1.23 A** | **1.2-1.5×** |
-| ⑤ 加 PD 5V/2A + `R_ILIM`=300Ω ❌ | 2 A | 300Ω | 1.07-1.30A | **~0.88-1.07 A** | ❌ **判死**: 单 pin 0.534A > 0.5A 触点天花板 |
+| ① Rd-only + 常见 Rp=56k 充电器 | 500 mA | 390Ω | 0.5A (源封顶) | **~0.61 A** | **2.5×** |
+| ② Rd-only + Rp=22k 充电器 | 1.5 A | 390Ω | 0.82-1.00A | **~1.00-1.22 A** | **1.2-1.5×** |
+| ③ 加 PD 5V/2A + `R_ILIM`=390Ω | 2 A | 390Ω | 0.82-1.00A | **~1.00-1.22 A** | **1.2-1.5×** |
+| ④ 加 PD 5V/2A + `R_ILIM`=260Ω (更激进) | 2 A | 260Ω | 1.23-1.50A | **~1.50-1.82 A** | ❌ **0.8-1.0× (已到/超 1.5A 设计点)** |
+| ⑤ 加 PD 5V/2A + `R_ILIM`=300Ω ❌ | 2 A | 300Ω | 1.07-1.30A | **~1.30-1.58 A** | ❌ **判死**: 单 pin **0.791A** > 0.5A 触点天花板 |
 | ⑥ ★**最坏** ★: 不编程 ICHG + `R_ILIM` 不装 + 源支持 2A | 2 A | 无 | 寄存器 REG00 3.25A | **2.048 A (REG04 复位默认)** | ❌ **超 1.37×** |
 
 **结论 (三条)**:
@@ -394,7 +394,7 @@ V_TS = VREGN × (RTH ∥ RT2) / (RT1 + (RTH ∥ RT2))
 
 | # | 线 | 方向 | 充电板侧 (镜框) | 镜脚侧 | 取值 / 要求 | 证据 |
 |---|---|---|---|---|---|---|
-| 1 | **充电电流 (双 pin)** | 镜框 → 镜脚 | `U_CHG` pin13/14 (BAT) → `BAT_CHG` → `J_CHG` pin1 **+** pin2 | `J_CHG` → BQ2970 → 电池 | **1.0-1.5A**, 双 pin 并联 (每 pin ≤0.75A); 1.27mm→0.5mm 改后每 pin 载流下降 → 用并联解决 | [推算] `MECH/USB_HINGE_STRUCTURE.md` §5.3 C-1 + P1 §V1.2 |
+| 1 | **充电电流 (双 pin)** | 镜框 → 镜脚 | `U_CHG` pin13/14 (BAT) → `BAT_CHG` → `J_CHG` pin1 **+** pin2 | `J_CHG` → BQ2970 → 电池 | **1.0-1.5A**, 双 pin 并联 (★每 pin 额定 0.75A / 工作上限 0.50A (ISS-099 FH12-10S-0.5SH(55))★); 1.27mm→0.5mm 改后每 pin 载流下降 → 用并联解决 | [推算] `MECH/USB_HINGE_STRUCTURE.md` §5.3 C-1 + P1 §V1.2 |
 | 2 | **回流 (双 pin)** | 镜框 → 镜脚 | `J_CHG` pin3 **+** pin4 → 充电板 GND | 镜脚数字地 | 与电源 pin **相邻** → 环路面积最小 | [推算] P9 |
 | 3 | **VBUS_DET (高阻分压)** | ★**主板本地** (★**不跨铰链** · 2026-11-04 起) | ★**充电板侧不参与** —— 分压已改**主板本地**: `R_VBUS_DET_D1` 1M ← `RAIL_DEMO_5V`; `R_VBUS_DET_D2` 1M → GND; 中点网 `VBUS_DET_D` (+ `C_DET_VBUS_D` 100nF 滤波) | ★**主板本地** SoM 检测脚 `J_SOM_P1` pin100 (网名 `VBUS_DET`); ★**原 `J_CHG` pin8 跨铰链已撤除** ⇒ `J_CHG` **pin7 = `NC` (不接)** · **pin8 = `TS_BAT`** (TS 跨铰链) | 源阻抗 **500 kΩ** → **必须被 GND 夹持** (每根至少一侧相邻 GND) 且与 USB 差分对 **≥3mm** (判据数值不变, 现落在主板本地走线) | [实测] `HW/netlist_v1.csv` P1 第 434-439 行 (`R_VBUS_DET_D1`/`R_VBUS_DET_D2`/`C_DET_VBUS_D` + `VBUS_DET` → `J_SOM_P1` pin100) + P9 第 433 行 (`J_CHG` pin7 = `NC`) · [推算] `MECH/USB_HINGE_STRUCTURE.md` §5.2 第 5 条 · ★**已按网表真源订正 (ISS-199 · 2026-11-12)** |
 > ★★★**2026-11-12 订正 (ISS-199 · 本表已按网表真源 `HW/netlist_v1.csv` 逐脚对拍后改写)** ★★★ —— ★**上面这张 §5.1 表原先整体是旧口径, 而 2026-11-02 那条订正注记本身也已过期** (它还在传播 "pin7=VBUS_DET / pin10=TS 专用回流")。★★**现行真源口径 (逐脚, [实测] `HW/netlist_v1.csv` 实读)**: **pin1/2=`BAT_CHG`** · **pin3/4=`GND`** · **pin5=`CHG_STAT`** · **pin6=`PWR_GOOD`** · ★**pin7=`NC`** (2026-11-04 起 `VBUS_DET` 改**主板本地**分压 ⇒ 本脚不接) · ★**pin8=`TS_BAT`** (TS 跨铰链) · ★**pin9/10=`HINGE_RSV`** (预留不接; BQ25896 的 I2C **不跨铰链** —— PM 裁决, 充电板本地自闭环, 上拉 10k 挂 `REGN` 5V)。★★**`TS_RTN` 这个网在现行网表里已完全不存在 (0 处, 2026-11-03 撤除)** ⇒ "pin10 走 TS 专用回流" 是**过期口径**; NTC 与 30.31k 分压下臂回 `PGND`/`GND`。★★本表 §5.1 与 §7 的 P10 镜像块**已于本轮按同一真源订正**, 与 §5.2 表 (= 网表镜像) 一致 ⇒ ★**同一个接口不再有第 5 套 pin map**。★★**复算依据**: `HW/netlist_v1.csv` 逐脚 net 名 (P1 第 15/16/20/21/22/23 行 · P2 第 189/192 行 · P9 第 433 行 · P10 第 478/481/482 行) + `HW/CHARGE_BOARD_SPEC.md` §5.2 (ISS-136 已定版) + `state/p10_rows.json` (P10 页真上游, md5 `c2dc73fe1e9fbd8edec68828dec81c36`)。★**机器可查**: `python3 HW/check_bq25896_pinout.py` (检查项 ⑦ 实读 §5.2 表逐脚对拍网表) ⇒ 真源漂移 = 闸红。
@@ -533,7 +533,7 @@ P10,BTST,U_CHG pin21,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin21 BTST,C-01,CHG
 P10,REGN_5V,U_CHG pin22,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,"pin22 REGN (内部 LDO 5.0V, 4.8-5.5V, 限流 50mA) = TS 分压基准",C-01,CHG_BOARD
 P10,PMID,U_CHG pin23,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin23 PMID (RBFET 漏极 + HSFET 漏极),C-01,CHG_BOARD
 P10,PGND,U_CHG pin17+pin18,PGND,U_CHG,BQ25896,IC,必装,[官方],,pin17/18 PGND 功率地 (开关节点地); 'A single point connection is recommended between power PGND and the analog GND near the IC PGND pin'; PowerPAD 同接 PGND + ≥6 过孔,C-01,CHG_BOARD
-P10,ILIM,U_CHG pin10,R_ILIM,R_ILIM,390Ω ±1% (0402),R,必装,[官方],,"★输入电流硬件上限: IINMAX=KILIM/RILIM (KILIM 320/355/390 AΩ) → 0.82-1.00A; CC 段电池电流 ~0.67-0.82A; ILIM 脚稳在 0.8V, 功耗 0.8²/390=1.64mW; **必装件** (不装 → REG04 复位默认 ICHG=2048mA 会让铰链过 2.05A); ★★V1.9 (老板 10-28): 定 390Ω (单 pin 0.411A, 触点 ≥0.5A 余量 1.22×); 300Ω 档判死 (单 pin 0.534A > 0.5A 天花板)",C-01,CHG_BOARD
+P10,ILIM,U_CHG pin10,R_ILIM,R_ILIM,390Ω ±1% (0402),R,必装,[官方],,"★输入电流硬件上限: IINMAX=KILIM/RILIM (KILIM 320/355/390 AΩ) → 0.82-1.00A; ★★**CC 段电池电流 ~1.00-1.22A** (ICHG/IIN = η·Vbus/Vbat = 1.216 @3.70V / 1.071 @4.20V; ★旧口径 ~0.67-0.82A 是 (VBAT/VBUS)/η 的倒数, 已作废★); ILIM 脚稳在 0.8V, 功耗 0.8²/390=1.64mW; **必装件** (不装 → REG04 复位默认 ICHG=2048mA 会让铰链过 2.05A); ★★**390Ω 档真值: 单 pin 0.608A > 0.50A 触点工作上限 21.6% ⇒ 档位待 V-4 裁决 (老板待拍 · DECISION_PENDING_2026-11-16.md §3)**; 300Ω 档判死 (单 pin 0.791A > 0.5A 天花板)",C-01,CHG_BOARD
 P10,PGND,R_ILIM,PGND,R_ILIM,390Ω ±1% (0402),R,必装,[官方],,ILIM 电阻 地端,C-01,CHG_BOARD
 P10,PSEL,U_CHG pin2,R_PSEL,R_PSEL,10k ±1%,R,必装,[官方],,"PSEL 拉低 = 适配器/DCP → 源检测后 IINLIM 自动切 3.25A, 实际由 ILIM 电阻封顶; 拉高会锁 500mA",C-01,CHG_BOARD
 P10,PGND,R_PSEL,PGND,R_PSEL,10k ±1%,R,必装,[官方],,PSEL 下拉 地端,C-01,CHG_BOARD
@@ -548,7 +548,7 @@ P10,BAT_CHG,U_CHG pin13+pin14,C_BAT,C_BAT,10µF X7R 6.3V,C,必装,[官方],,★'
 P10,PGND,C_BAT,PGND,C_BAT,10µF X7R 6.3V,C,必装,[官方],,BAT 去耦 地端,C-03,CHG_BOARD
 P10,BAT_CHG,U_CHG pin13+pin14,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin13/14 BAT (内部 11mΩ BATFET); 充电电流路径 BAT→J_CHG→镜脚电池,C-03,CHG_BOARD
 P10,NC_UCHG,U_CHG pin24,NC_UCHG,NC,NC (datasheet: No Connect),NET,DNP,[官方],,pin24 NC: 不接 (16p 母座同类的 pin 名对照: VBUS1/PSEL2/PG3/STAT4/SCL5/SDA6/INT7/OTG8/CE9/ILIM10/TS11/QON12/BAT13-14/SYS15-16/PGND17-18/SW19-20/BTST21/REGN22/PMID23/NC24),C-01,CHG_BOARD
-P10,BAT_CHG,BAT_CHG,J_CHG pin1,BAT_CHG,跨铰链 1.0-1.5A (双 pin 并联),NET,必装,[推算],,"充电电流跨铰链 (J_CHG pin1/pin2 并联, 每 pin ≤0.75A); 铰链段**不装 π 滤波** (会破坏 BQ25896 环路稳定性); 载流/压降/发热核算见 ISS-091",C-03,HINGE
+P10,BAT_CHG,BAT_CHG,J_CHG pin1,BAT_CHG,跨铰链 1.0-1.5A (双 pin 并联),NET,必装,[推算],,"充电电流跨铰链 (J_CHG pin1/pin2 并联, ★每 pin 额定 0.75A / 工作上限 0.50A (ISS-099 FH12-10S-0.5SH(55))★); 铰链段**不装 π 滤波** (会破坏 BQ25896 环路稳定性); 载流/压降/发热核算见 ISS-091 (★结构侧须按 1.216 系数重算★)",C-03,HINGE
 P10,BAT_CHG,J_CHG pin1,J_CHG pin2,J_CHG,"1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",CONN,必装,[推算],,"双 pin 并联; ★**现行 pin map = 网表真源口径** (2026-11-12 已按 `HW/netlist_v1.csv` 逐脚对拍订正): 1/2=BAT_CHG, 3/4=GND, 5=CHG_STAT, 6=PWR_GOOD, 7=NC, 8=TS_BAT, 9/10=HINGE_RSV —— ★**原注记 (5=TS, 6=CHG_STAT, 7=PG, 8=VBUS_DET, 9/10=I2C 预留) 是旧口径** (PM 已裁决 I2C 不跨铰链)。★**已按网表真源订正 (ISS-199 · 2026-11-12)**",C-03,HINGE
 P10,BAT_CHG,J_CHG pin2,U_BATPROT,BAT_CHG,跨铰链 1.0-1.5A (双 pin 并联),NET,必装,[推算],,"镜脚侧: 进 BQ2970 + 2×MOS (保护 IC 与电池同板, **不在充电板**)",C-03,HINGE
 P10,GND_CHG,J_CHG pin3,J_CHG pin4,J_CHG,回流 (双 pin),NET,必装,[推算],,充电电流回流双 pin (与电源 pin 相邻 → 环路面积最小),C-03,HINGE
@@ -708,7 +708,8 @@ print("TS @0C  =", round(vts(27280),4), "V =", round(vts(27280)/VREGN*100,2), "%
 print("TS @60C =", round(vts(3020),4),  "V =", round(vts(3020)/VREGN*100,2),  "%  (datasheet V(T5)=34.375%)")
 for r in (390,300,260):
     lo,ty,hi = 320/r, 355/r, 390/r
-    print(f"R_ILIM={r} -> IINMAX {lo:.2f}/{ty:.2f}/{hi:.2f} A -> ICHG~{lo*0.822:.2f}/{ty*0.822:.2f}/{hi*0.822:.2f} A")
+    print(f"R_ILIM={r} -> IINMAX {lo:.2f}/{ty:.2f}/{hi:.2f} A -> ICHG@3.70V ~{lo*1.216:.2f}/{ty*1.216:.2f}/{hi*1.216:.2f} A"
+          f" | @4.20V ~{lo*1.071:.2f}/{ty*1.071:.2f}/{hi*1.071:.2f} A | 单 pin(2 并联)@3.70V max {hi*1.216/2:.3f} A")
 VBUS,VBAT,fs,L = 5.0,3.7,1.5e6,2.2e-6; D=VBAT/VBUS
 print("IRIPPLE =", round(VBUS*D*(1-D)/(fs*L),3), "A @2.2uH ;", round(VBUS*D*(1-D)/(fs*1e-6),3), "A @1.0uH")
 PY

@@ -5,6 +5,8 @@
 > `HW/e2e_budget_rk3572.py` (端到端账本) · `SW/RKNN_BENCH.md` §4~§5 (S5/模式A/模式B 口径)
 >
 > ★**本单只写【判据链】, 不替老板拍板**: 60ms 生死怎么裁 / 换不换芯片 / 降不降帧 ⇒ **只列选项 + 代价**。
+> ★**ISS-215 (2026-11-16) 显示侧重锚**: 本链的**显示侧口径**已从**整机 1920×1080** 重锚到 **demo 屏 Waveshare 2.8" 480×640** (ISS-212 定版) ⇒ TX 物理下限 **2.304 ms** (口径 A) / **2.048 ms** (口径 B) · `t_compose` [推算] **~0.44 ms** (÷6.75) · 显示输出侧合计 [推算] **~2.75 ms** · 合成段余量 **7.79 ms** ⇒ ★**逐处定性见 `SW/DEMO_60MS_DISPLAY_REANCHOR_TRIAGE.md`**★ ⇒ ★**整机 1080p 那套数 (7.776 / 2.32) 一律带 `整机路线·暂缓` 标注保留 —— 不删, 也不冒充 demo 口径**★
+> ★**ISS-221 (2026-11-16) demo 预算真源**: 本链**所有 demo 侧预算数** (TX 物理下限 / 合成段上限 / 显示输出侧 / 60ms 余量) 已改为**由 `SW/tools/demo_e2e_budget.py` (demo 口径真源脚本) 直接算出** ⇒ ★**不再从整机脚本减出来** ⇒ ★**换屏 / 改分辨率 / 改通道数 ⇒ 只改脚本输入 ⇒ 本链不许手抄数** ★ ⇒ 逐项锚点见 §4.5 前「demo 预算真源锚点」区块 ★ ⇒ ★**整机那套数仍只以「整机路线占位区」存在 (整机路线·暂缓) —— 不删, 也不冒充 demo 口径**★
 > ★**本单零外发**: 不发邮件 / 不询价 / 不采购 / 不联系任何供应商 (老板 2026-11-12 02:02) ⇒ 板端结论一律 **[0数据]**。
 > ★**自证命令见 §6.4**; **边界见 §6.5**。
 
@@ -63,8 +65,8 @@ sha256sum /work/models/*.rknn | cut -d' ' -f1
 | 4a 纯 NPU | `t_npu` | ★**SDK 内部计数器** ★ | ★**T2 翻案条款 (≤ 20.33 ms)** ★ |
 | 5 解码 | `t_decode` | post 线程 | 归因用 |
 | 6 画框 | `t_draw` | post 线程 | 归因用 |
-| 7 合成 | `t_compose` | post 线程 | ★**输出侧上限 10.09 ms (ISS-137)** ★ |
-| 8 上屏 | `t_display` | DRM/KMS | ★**TX 物理下限 7.776 ms @1080p** ★ |
+| 7 合成 | `t_compose` | post 线程 | ★**输出侧总额上限 10.09 ms (ISS-137 · 与显示分辨率无关)** ★ + ★**demo 合成段上限 7.79 ms** ★ (★**均由 `SW/tools/demo_e2e_budget.py` 输出, ISS-221**★) |
+| 8 上屏 | `t_display` | DRM/KMS | ★**demo TX 物理下限 2.304 ms @480×640 (2-lane; 口径 A) / 2.048 ms (口径 B)** ★ (★**由 `SW/tools/demo_e2e_budget.py` 输出, ISS-221**★) ⇒ ★**整机路线·暂缓: TX 物理下限 7.776 ms @1080p** ★ |
 | 9 光机 | `S10` | — | ★**[0数据]** (软件打不到) ★ |
 | 10 汇总 | `t_e2e_A_soft` | post 线程 | 终点 |
 | 11 计数 | `frames_total` / `frames_dropped` / `npu_err` / `box_count` | post 线程 | 事实量 |
@@ -175,8 +177,8 @@ age     = ceil(T_od / 16.67)                       ← ★框龄台阶★
 ```bash
 # ① ISP 段判据 (PASS/FAIL + 余量 + 代回账本后的 e2e)
 python3 SW/tools/timing_check.py --isp-csv /work/logs/board_isp.csv --only F9_isp_budget
-# ② 合成/上屏侧判据 (ISS-137: 输出侧总额 ≤ 10.09 ms ⇒ 合成段 ≤ 2.32 ms)
-python3 HW/e2e_budget_rk3572.py --t-compose-ms <第7段实测值>
+# ② 合成/上屏侧判据 (ISS-221: 走 demo 口径真源脚本 ⇒ 输出侧总额 ≤ 10.09 ms ⇒ demo 合成段 ≤ 7.79 ms ⇒ 已扣 demo TX 物理下限 2.304 ms)
+python3 SW/tools/demo_e2e_budget.py --t-compose-ms <第7段实测值> --t-display-ms <第8段实测值>
 # ③ N1~N5 (含 N3 纯 NPU 与 N5 散热)
 bash SW/tools/rk3572_target_smoke.sh
 ```
@@ -187,14 +189,47 @@ bash SW/tools/rk3572_target_smoke.sh
 | `verdict = FAIL` + `margin_ms < 0` | avg > 15.10 ms ⇒ **模式A 破线** | ⇒ ★**走 §5 出路** (ISP 侧只能降单帧处理量) ★ |
 | `verdict = INDET` | 缺一个数 / n < 300 / 未实测 | ⇒ **不许下结论**, 补测 (板端结论一律 [0数据]) |
 
+<!-- BEGIN demo 预算真源锚点 (ISS-221) —— ★本区块的每一个数都由 `python3 SW/tools/demo_e2e_budget.py` 输出, 不许手抄★ -->
+| 项 | 值 | 源 |
+|---|---|---|
+| demo TX 物理下限 (口径 A) | 2.304 ms | `SW/tools/demo_e2e_budget.py` |
+| demo TX 物理下限 (口径 B) | 2.048 ms | `SW/tools/demo_e2e_budget.py` |
+| demo t_compose 估算 (÷6.75) | 0.44 ms | `SW/tools/demo_e2e_budget.py` |
+| demo 显示输出侧合计 [推算] | 2.75 ms | `SW/tools/demo_e2e_budget.py` |
+| 输出侧总额上限 (yolov5s@640) | −2.69 ms | `SW/tools/demo_e2e_budget.py` |
+| 合成段上限 (yolov5s@640) | −4.99 ms | `SW/tools/demo_e2e_budget.py` |
+| 输出侧总额上限 (yolov5n@640) | 10.09 ms | `SW/tools/demo_e2e_budget.py` |
+| 合成段上限 (yolov5n@640) | 7.79 ms | `SW/tools/demo_e2e_budget.py` |
+| 输出侧总额上限 (yolov5s@320) | 16.65 ms | `SW/tools/demo_e2e_budget.py` |
+| 合成段上限 (yolov5s@320) | 14.35 ms | `SW/tools/demo_e2e_budget.py` |
+| 全链路 60ms 预算余量 (yolov5n@640) | 7.34 ms | `SW/tools/demo_e2e_budget.py` |
+<!-- END demo 预算真源锚点 (ISS-221) -->
+
+★**锚点区块怎么维护**: ★**改屏 / 改分辨率 / 改通道数 ⇒ 只改 `SW/tools/demo_e2e_budget.py` 的输入 (或命令行) ⇒ 重跑脚本 ⇒ 把上面区块的数原样更新★** ⇒ ★**门禁 `SW/tools/demo_timing_check.py` 会逐项比对「本区块的值 == 脚本输出」⇒ 手抄错一个数就红** ★
+★**ISS-221 顺带对齐的一处 0.01 ms**: ISS-215 表 A 的 yolov5s@640 行合成段上限原写 **−5.00** (整数化写法), 按脚本算术口径 (−2.69 − 2.304 = −4.994) 应为 **−4.99** ⇒ ★**两者都 < 0 ⇒ 「必不过」判定不变** ★ ⇒ 本链已按脚本口径统一为 **−4.99** (ISS-215 的交接单/定性表作为历史留档不改)
+
 ### 4.5 ★60ms 生死的完整判定链 (★四条全过 = 60ms 成立; 任一条不过 = 不成立★)
 
 | # | 条件 | 通过线 | 谁判 |
 |---|---|---|---|
 | **1** | ★**ISP 段** (段 12) | `t_isp_total` avg ≤ **15.10 ms** (p95 ≤ 17.33 ms) | `timing_check.py` F9 |
 | **2** | ★**纯 NPU** (段 4a) | `t_npu` ≤ **20.33 ms** (★**T2 翻案条款, 老板锁死**★); > 13.30 ms ⇒ 走 ISS-207 的 N3 | `rk3572_target_smoke.sh` N3 |
-| **3** | ★**显示输出侧** (段 7+段 8) | 合计 ≤ **10.09 ms** (⇒ 合成段 ≤ **2.32 ms**, 已扣 TX 物理下限 7.776 ms @1080p) | `HW/e2e_budget_rk3572.py --t-compose-ms` |
+| **3** | ★**显示输出侧** (段 7+段 8) | 合计 ≤ **10.09 ms** (★**输出侧总额上限, 与显示分辨率无关**★ ⇒ 合成段 ≤ **7.79 ms**, 已扣 **demo TX 物理下限 2.304 ms** @480×640 (口径 A) / 2.048 ms (口径 B) ⇒ ★**整机路线·暂缓: 整机 1080p 口径下是 合成段 ≤ 2.32 ms @ TX 7.776 ms**★) | `SW/tools/demo_e2e_budget.py --t-compose-ms … --t-display-ms …` (★**ISS-221: demo 口径真源脚本 (2 通道 @480×640) ⇒ 判据工具已从整机脚本换成 demo 脚本**★) |
 | **4** | ★**框龄台阶** | `age = ceil(T_od/16.67)`; 模式B 成立的前提是 **age = 1** (T_od ≤ 16.67) | 账本 (`e2e_budget_rk3572.py`) |
+
+<!-- BEGIN 整机路线占位区 (整机 1920×1080 路线 · 暂缓 · 非 demo 活动口径) -->
+★★**整机路线占位 (整机屏 0.49" 视涯 1920×1080 · 整机路线·暂缓 · 不是 demo 活动口径)**★ —— ★**判据第 3 条在整机口径下的原值 (逐字保留, 不删)**★:
+
+| 条件 | 通过线 | 谁判 |
+|---|---|---|
+| **3 (整机口径)** | 合计 ≤ **10.09 ms** (⇒ 合成段 ≤ **2.32 ms**, 已扣 TX 物理下限 7.776 ms @1080p) | `HW/e2e_budget_rk3572.py --t-compose-ms` (★**4-lane 带宽常量口径, 对 2-lane demo 屏不适用**★) |
+
+★★**整机路线占位 (逐字保留, 一个字不删): 整机屏的判据命令原样保留**★:
+```bash
+python3 HW/e2e_budget_rk3572.py --t-compose-ms <第7段实测值>
+```
+★**整机路线·暂缓 ⇒ demo 活动口径的判据工具是 `SW/tools/demo_e2e_budget.py`**★
+<!-- END 整机路线占位区 -->
 
 ★**模式A vs 模式B 怎么选 (★口径问题, 老板锁死项, 本单不裁★)★**: 模式A = 显示等 OD (显示帧率掉到 ~25fps, `SW/DISPLAY_MODE.md` 的 `wait_od`);
 模式B = 异步 60fps (`async_latest`) ⇒ ★**现行 yolov5n@640 的 age = 2 ⇒ 模式B 本来就不成立 (67.34 ms), 与 ISP 无关** ★
@@ -291,6 +326,8 @@ python3 SW/tools/isp_budget_solve.py                               # rc=0 (ISS-1
 python3 HW/e2e_budget_rk3572.py --selftest                         # rc=0 (账本自检)
 python3 state/merge.py && python3 state/gate_check.py              # rc=0 · 【Q1】18/18
 md5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv           # 611b869e… / c78f9912… (逐字节未变)
+# ★★【ISS-225 注 (2026-11-16)】★★ 上面那个网表 md5 是 ISS-210 当时 (ISS-220 落表**前**) 的值 ⇒ 现值 = 13f59a43dbd35dc6cb16e897c8c891ab
+# ⇒ ★★ 现在的"网表没被偷改"判据改由 `python3 SW/tools/timing_check.py` 的三方对账守 (锚点 ↔ 落表台账 ↔ 盘上真源) ⇒ 见 SW/SW_MD5_BASELINE_LEDGER.md §1 ★★
 ```
 
 ### 6.5 边界声明 (本单做了什么 / 没做什么)

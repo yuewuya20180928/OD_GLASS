@@ -9069,15 +9069,43 @@ issues:
   reporter: main
   raised: '2026-11-16'
   due: '2026-11-19'
-  status: fixing
+  status: verified
   external: 'False'
   need_keys: '[]'
-  fix_ref: null
+  fix_ref: HANDOFF/2026-11-16_hw-lead_ISS214_网表一致性第2轮与3条待裁自查.md
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: 2026-11-16 00:5x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-211/ISS-213 交卷里的 needs_from + main 2026-11-16 00:1x~00:4x 实跑复核 (8 条全部成立, 其中 3 条 main 新挖)** ★ ★**上一轮 (ISS-211/212/213) 的僵尸 fixing 已于本轮 00:3x
+  verify_result: 'pass · 2026-11-16 01:1x 项目总工独立复核 (★不采信自述, 只看盘上实物 + 自己跑门禁★)
+
+    ★**① 交付物 3 件** [实测]: `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` (★扩到 154 条锚点 + §10 八条 8 栏 + §11 附带发现 8 条 + §13 未决 V-1~V-8★) · `HW/check_netlist_selfconsistency.py` (★新增 5 个文件源 + text contains/calc 判据 + R5~R11
+    翻面判据★) · `HANDOFF/2026-11-16_hw-lead_ISS214_网表一致性第2轮与3条待裁自查.md` (23,472 B, 01:04 落盘, B1~B6 齐全) · 分片 `state/fragments/hw.yaml` 01:07 原子写 (artifacts 78 / needs_from 89 / V-1~V-8 全登记)
+
+    ★**② 机器门禁实跑 (main 自己跑的)** [实测]: `python3 HW/check_netlist_selfconsistency.py` → **rc=0** (★现状守卫 ⇒ 4+8 组缺陷★仍在★ ⇒ rc=0 是预期状态★) · `--selftest` → **16/16 通过** (★原 9 条一条没删 + 新增 7 条, 含 calc-only 用例★) · `--expect-resolved`
+    → **rc=1** (★缺陷尚未落表 ⇒ 应当是红的★; 实跑列出 R10 390Ω 档单 pin 0.608A > 0.5A / R11 三处 board 列仍未落表★)
+
+    ★**③ 受保护文件 md5 逐字节未变** [实测] (★main 自己 md5sum 实跑, 不是抄 agent 的自述★): 网表 `c78f991283cc82d56c8e3dd31657c785` · 脚表 `4814617e22b567d76164e56bc5e39dc8` · 板 `611b869e13518c3c023fb178f91a0075` · `.kicad_pro`
+    `3e504d2be83152e337949723e909be1b` ⇒ ★**4 个受保护文件全部与开工前一致★**
+
+    ★**④ 边界实测**: 00:40 以后 `HW/` 下被改动的只有 `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` 与 `HW/check_netlist_selfconsistency.py` (本单允许的两个); `HW/PCB/_frame_reference.kicad_pcb` / `STACKUP.md` / `LAYOUT_RULES.md` /
+    `GEN_SELF_CHECK.txt` 的 mtime = 01:10:27 ⇒ ★**那是自动生成链在跑, 不是本单 agent 碰的★** ⇒ 未碰网表/脚表/BOM/板/.kicad_pro/SPEC.json/CHARGE_BOARD_SPEC/任何 `state/gen_*.py`
+
+    ★**⑤ 未决**: 12 组缺陷须随整链重出第 1 步落表 ⇒ ★**已开 ISS-217 承接"落表作业包 v1"★**; V-1~V-6 六条待裁项 (V-1/V-3/V-4 纯工程取舍 ⇒ 作业包里给默认值供项目总工签字; V-2 选型 / V-5 堆叠账口径 / V-6 阈值 3.0mm ⇒ 分别归总工/结构/本单落定)
+
+    ★**⑥ 会话状态说明 (★如实记, 不掩盖★)**: 子会话 `agent:hw-lead:subagent:85841b8c` (7f8d0c5a) **status=timeout** (★01:09:39 被跑批超时掐掉, 掐在"final delivery checks"那一步 ⇒ ★**它最后那句交卷总结没发出来★**) ⇒ ★**但交付物、门禁脚本、分片全部已落盘 (★上面 ①②③
+    全是 main 自己实跑复核的, 不依赖那句总结★)** ⇒ ★**⇒ 照常落 verified, 并把"跑批超时"写进 note, 不当没发生★**'
+  verify_date: 2026-11-16 01:1x
+  note: '2026-11-16 00:5x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-211/ISS-213 交卷里的 needs_from + main 2026-11-16 00:1x~00:4x 实跑复核 (8 条全部成立, 其中 3 条 main 新挖)** ★ ★**上一轮 (ISS-211/212/213) 的僵尸 fixing 已于本轮 00:3x
     清掉并落 verified ⇒ 三个总工名额空出来 ⇒ 本单是第 2 轮** ★
+
+    ★**2026-11-16 01:1x 队列自动派活 job (fb67af40) 落 `verified` (★清僵尸 fixing·第 17 次复发★)**:
+
+    ★**实测**: 子会话已结束 (hw-lead 85841b8c = timeout 01:09:39 / mech-lead 900f6943 = done 00:55) ⇒ 交付物已落盘 ⇒ ★**但 brief 不许子 agent 改 issue_log ⇒ status 停在 `fixing` ⇒ `advance.py` 的 in_flight 规则 ⇒ 名额被占住 ⇒ A 段 0
+    条 ⇒ 队列断线★**
+
+    ★**main 独立复核 (只看盘上实物 + 自己跑门禁 + 自己 md5) 通过 ⇒ 落 `verified` (★不是 closed★) ⇒ 放出名额★**
+
+    ★**边界**: 不改 §0 锁死表 · 不写任何子总工的分片 · 不发信 · 板/网表/脚表/原理图/BOM 一个字节未动 ★
+
+    '
   task_brief: "★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 把 ★**\"网表/规格自己跟自己打架\"从 ISS-211 的 4 条扩到第 2 轮共 8 条**★ ⇒ 出 ★**一份落表规格 v2 + 把 ISS-211 的机器门禁扩到覆盖全部 8 条**★ ⇒ ★**本单不许改网表 / 脚表 / 板 / .kicad_pro / 任何生成器 / SPEC.json**★\
     \ ⇒ ★**零外发** ★\n\n★★**为什么是现在 (★main 2026-11-16 00:1x~00:4x 实测, 不是推测★)** ★★\n· ★**ISS-211 (11-15 23:5x 交卷, 已 verified) 把 4 条网表自相矛盾定性完了, 但它自己留了 4 条 need 给 main** ★\n  (U-1 ESD 方案 / U-2 SARADC_VIN5 参数\
     \ / U-4 BAT_DET 漏电预算 / 附带发现 #1 USB 串阻双值) ⇒ ★**这些 need 里没有一条是老板级拍板, 全是\"自己去查资料就能定\"的活** ★\n  ⇒ ★**按老板 2026-11-12 02:02「不再发信, 全靠自己查资料」的口径, 它们本来就该变成\"自己查 + 标证据等级 + 查不到写降级方案\", 而不是继续挂在 needs_from 上** ★\n\
@@ -9119,6 +9147,7 @@ issues:
     \ ⇒ 凡是\"实测\"字样都必须说明是本机脚本实测还是纸上推算** ★\n\n★★**★★④ 交卷前跑这三条 (rc 必须 0 / 必须贴输出)★★** ★★\n★**`python3 HW/check_netlist_selfconsistency.py`** ⇒ rc=0 (现状守卫)\n★**`python3 HW/check_netlist_selfconsistency.py --selftest`**\
     \ ⇒ rc=0 (★原 9/9 + 你新增的反向用例全过★)\n★**`python3 state/merge.py`** ⇒ rc=0 ★**且** ★**`python3 state/gate_check.py`** ⇒ rc=0 (Q1 必须 18/18)\n★**★把这三条的输出原样贴进你的回复★** ★\n"
   dispatched_at: '2026-11-16'
+  fixed_at: '2026-11-16'
 - id: ISS-215
   title: '★★★[demo 头号路径·自己查版·软件/时序侧] demo 板 60ms 生死判定链的显示侧口径重锚: 从退役的整机 1920×1080 (TX 7.776ms / 输出侧 10.09ms / 合成段 2.32ms) 改到 demo 屏现行 480×640 (TX 2.304ms / 输出侧 ~2.75ms / 余量 7.79ms) ⇒ 判据被算严了 3.4 倍 ⇒ 逐处定性
     + 改写 + 机器门禁'
@@ -9134,15 +9163,28 @@ issues:
   reporter: main
   raised: '2026-11-16'
   due: '2026-11-19'
-  status: fixing
+  status: verified
   external: 'False'
   need_keys: '[]'
-  fix_ref: null
+  fix_ref: HANDOFF/2026-11-16_sw-lead_ISS215_demo60ms判据链显示侧重锚.md
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: 2026-11-16 00:5x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-210 / ISS-137 / ISS-212 三块已交卷件之间的口径断点 + main 2026-11-16 00:2x 逐文件 grep 实测 (命中数已逐个记在 desc 里)** ★ ★**sw-lead 名额的上一条 (ISS-212) 已于本轮 00:3x 落 verified
+  verify_result: "★main 独立复核通过 (★2026-11-16 02:2x, 只看盘上实物 + 自己跑门禁★):\n  · SW/tools/demo_timing_check.py → rc=0 (34/34, 含 ISS-215 那 6 条新断言全绿)\n  · SW/tools/demo_timing_check.py --selftest → rc=0 (ISS-215\
+    \ 反例 5 条全抓到 ⇒ 门禁不是假绿)\n  · SW/tools/check_demo_panel_spec.py → rc=0 (R1~R6 全过, ISS-212 门禁未被改红)\n  · 交付物在盘: SW/DEMO_60MS_DISPLAY_REANCHOR_TRIAGE.md (17519 B, 01:57) · HANDOFF/2026-11-16_sw-lead_ISS215_demo60ms判据链显示侧重锚.md\
+    \ (14108 B, 01:58) · state/fragments/sw.yaml mtime 01:58\n  · md5 逐字节未变: 网表 c78f991283cc82d56c8e3dd31657c785 · 脚表 4814617e22b567d76164e56bc5e39dc8 · 板 611b869e13518c3c023fb178f91a0075 · .kicad_pro 3e504d2be83152e337949723e909be1b\n\
+    ★**板端 [实测] = 0 条** (板不在本机) ⇒ 显示侧预算数一律 [推算] ★\n★**main 已复核的关键结论**: ① 10.09 ms 是【显示输出侧总额上限】(与分辨率无关), 不是 1080p 专属数 ⇒ 机器门禁改成强制它带「输出侧上限」身份 (而不是把它禁掉) ② 判据被算严的根因只有一处 = 用整机 TX 下限 7.776 去扣 demo 预算 (倍率 3.36×)\
+    \ ③ yolov5n@640 行的判定方向由 ❌ 翻成 ✅[推算] ⇒ **显示侧不再是 60ms 账本的瓶颈** ★"
+  verify_date: 2026-11-16 02:2x
+  note: '2026-11-16 00:5x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-210 / ISS-137 / ISS-212 三块已交卷件之间的口径断点 + main 2026-11-16 00:2x 逐文件 grep 实测 (命中数已逐个记在 desc 里)** ★ ★**sw-lead 名额的上一条 (ISS-212) 已于本轮 00:3x 落 verified
     ⇒ 名额空出来 ⇒ 本单是第 2 轮** ★
+
+
+    ★2026-11-16 01:5x 队列自动派活 job (fb67af40) **僵尸 fixing 清理**: 子会话 `agent:sw-lead:subagent:580cc849` (db9aa514) 00:42:33 → 01:49:50 (★status=done · abortedLastRun=false★) 整场 74 分钟 / 635k tokens ⇒ ★**盘上交付物
+    0 件**: `SW/` 下 00:40 以后零文件改动 (DEMO_OD_TIMING_SPEC.md 停在 11-15 22:28 · timing_check.py 停在 11-15 22:30) · `state/fragments/sw.yaml` mtime=00:00:40 (早于本会话) · `HANDOFF/2026-11-16_sw-lead_ISS215*` 不存在 ⇒
+    ★**「session=done」不等于「活干完了」(第 19 次复发)★** ⇒ transcript 末尾全是分析循环 (★长上下文空转: 读了一堆没动手写★) ⇒ ★**status 由 fixing 回滚为 open 并重派**, ★重派时已加「先落盘再展开」的执行纪律★ (★兄弟 job 775d9893 已把这条留给本 job, 不撞车★)
+
+    ★**2026-11-16 02:2x 队列自动派活 job (fb67af40) 落 `verified`**: 子会话 status=done ⇒ ★**main 不采信状态位, 只看盘上实物 + 自己跑门禁 + 自己 md5** ⇒ 交付物在盘 + 门禁全绿 ⇒ 落 `verified` (★不是 closed★) ⇒ 放出该总工名额 ★
+
+    ★**边界**: 不改 §0 锁死表 · 不写任何子总工的分片 · 不发信 · 网表/脚表/板/原理图/BOM 一个字节未动 ★'
   task_brief: "★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 把 ★**demo 板 60ms 生死判定链的\"显示侧\"从退役的整机 1920×1080 口径, 重锚到 demo 屏现行 480×640 口径**★ ⇒ 出 ★**逐处定性 + 改写 + 一个能自动复核的机器门禁**★ ⇒ ★**本单不许改网表 / 脚表 / 板 / HW/ 下任何文件**★\
     \ ⇒ ★**零外发** ★\n\n★★**为什么是现在 (★main 2026-11-16 00:2x~00:4x 实测, 不是推测★)** ★★\n· ★**ISS-212 (11-15 23:5x 交卷, 已 verified) 已经把 demo 显示侧口径定版成 Waveshare 2.8\" 480×640 (2-lane · 无 DCS init · I2C_B ≤100kHz)**,\
     \ 并算出 demo 口径的显示侧账: ★**TX 物理下限 2.304ms (口径 A) / 2.048ms (口径 B) · t_compose ~0.44ms · 显示输出侧合计 ~2.75ms · 合成段余量 7.79ms** ★\n· ★**★但 ISS-212 自己声明它没碰 4 个下游文件 ⇒ 那 4 个文件至今还是旧的 1080p 口径 (main 逐个 grep 实测) ★**\
@@ -9170,6 +9212,7 @@ issues:
     \ 0 次外发 · 本单实物 [实测] = 0 条** ★\n\n★★**★★⑤ 交卷前跑这三条 (rc 必须 0 / 必须贴输出)★★** ★★\n★**`python3 SW/tools/demo_timing_check.py`** ⇒ rc=0 (含你新增的断言与反向用例)\n★**`python3 SW/tools/check_demo_panel_spec.py`** ⇒ rc=0\
     \ (★ISS-212 的门禁不许被你改红★)\n★**`python3 state/merge.py`** ⇒ rc=0 ★**且** ★**`python3 state/gate_check.py`** ⇒ rc=0 (Q1 必须 18/18)\n★**★把这三条的输出原样贴进你的回复★** ★\n"
   dispatched_at: '2026-11-16'
+  fixed_at: '2026-11-16'
 - id: ISS-216
   title: '★★[主线内·结构侧·内部活] MECH_BUDGET 充电耗散口径统一: 线性充电 IC 0.8W → 板上真实 buck (BQ25896) 0.45-0.57W ⇒ 文档 §2.1/§2.3.1/§3 + verify_budget.py 常量 + 门禁锚点对齐 + 新增 --selftest 口径自检 (端件 108°C / P_max 0.21W / 必须金属热路)'
   severity: high
@@ -9183,15 +9226,46 @@ issues:
   reporter: main
   raised: '2026-11-16'
   due: '2026-11-19'
-  status: fixing
+  status: verified
   external: 'False'
   need_keys: '[]'
-  fix_ref: null
+  fix_ref: HANDOFF/2026-11-16_mech-lead_ISS216_充电耗散口径统一.md
   verify_by: main
-  verify_result: null
-  verify_date: null
-  note: 2026-11-16 00:5x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-213 交卷时登记给 main 的 need `iss213_mech_mech_budget_charge_caliber_text` + main 2026-11-16 00:3x 逐行实跑复核 (文档 / 脚本 / 门禁三处口径不一致全部成立)** ★ ★**mech-lead
+  verify_result: 'pass · 2026-11-16 01:1x 项目总工独立复核 (★不采信自述, 只看盘上实物 + 自己跑门禁★)
+
+    ★**① 交付物** [实测]: `MECH/MECH_BUDGET.md` (§2.1 峰值充电行 / §2.1 结构硬结论 / §2.3 结温行 / §2.3.1 / §3 / §6 全部改成 buck 口径) · `MECH/verify_budget.py` (`P_CHARGE` 0.8 → 0.50 + §8 口径自检 C1~C10) · `HANDOFF/2026-11-16_mech-lead_ISS216_充电耗散口径统一.md`
+    (13,184 B, 00:55) · 分片 `state/fragments/mech.yaml` 00:57 原子写
+
+    ★**② 机器门禁实跑 (main 自己跑的)** [实测]: `python3 MECH/verify_budget.py` → **rc=0** (★门禁绿: 数值对拍一致 + 充电耗散口径 = buck, 不是线性 0.8W★) · `--selftest` → **rc=0 · 反向用例 10/10 抓到了** (含反向5 漏 DCR 项 / 反向7 K_ILIM 全取 320 / 反向10
+    残留旧线性口径) · `python3 MECH/check_demo_struct_truth.py` → **rc=0** (20/20 组; ★6 个 PCB 类 id 仍是 FAIL = 正确状态, 排队等原理图定稿★)
+
+    ★**③ 受保护文件 md5 逐字节未变** [实测] (★main 自己 md5sum 实跑★): 网表 `c78f991283cc82d56c8e3dd31657c785` · 板 `611b869e13518c3c023fb178f91a0075` · `.kicad_pro` `3e504d2be83152e337949723e909be1b` · `MECH/hinge_usb_check.py`
+    `3425bc141508de8a35f34c7cf7b803e8` · `MECH/service_port_check.py` `9b24bf985764880f0105aee677fba6a8` · `MECH/hw_cross_review_check.py` `e521387b87b0fcdf9f22d56f14199967` · `MECH/display_biosafety_v2_check.py`
+    `29c77fc3fc823048b1d96c9500d28dd7` · `MECH/check_demo_struct_truth.py` `700c4e3638cb7779df297cc8b0607884` ⇒ ★**全部与开工前一致★**
+
+    ★**④ 关键数值复核** [推算/官网]: buck 耗散三档 0.4600 / 0.5164 / 0.5740 W ⇒ 落在已定区间 0.45-0.57 W ✓; 端件 ΔT 83.3 K ⇒ 表面 108.3 °C ⇒ 60 °C 判据 ⇒ P_max 0.210 W ⇒ 现耗散 0.50 W 超 2.38× ⇒ 金属热路仍然必须 ✓ (★方向没变, 绝对值变了★); 功率守恒 ICHG/IIN
+    = 1.216 / 1.071 (规格书 0.822/0.933 是倒数) ✓
+
+    ★**⑤ 边界实测**: 00:40 以后 `MECH/` 下被改动的只有 `MECH/MECH_BUDGET.md` 与 `MECH/verify_budget.py` (本单允许的两个) + `MECH/_frag_update_iss216.py` (分片写入脚本) ⇒ 未碰 `HW/` 任何文件 / 3 个受保护 check 脚本 / `MECH/check_demo_struct_truth.py`
+    / 打印包 / PCB 布线布局 / 判据阈值
+
+    ★**⑥ 会话状态说明 (★如实记★)**: 子会话 `agent:mech-lead:subagent:900f6943` (a628e635) **status=done** (00:55 交卷, 交卷全文在 transcript 里, 四条命令输出齐全)
+
+    ★**⑦ 未决**: 端件金属热路质量代价 (u8 未定) ⇒ ★**已开 ISS-218 承接 (只出参数化模板, 不预扣 §3 现有重量)★**; 打印包第三档试样 ⇒ 同 ISS-218; 390 Ω 档单 pin 超 0.5A ⇒ 仍归 hw-lead (ISS-217 的 V-4 确认单里处理); ISS-126 裁关闭 / 本闸是否挂每日巡检 ⇒ main 地界, 本 job 不代裁'
+  verify_date: 2026-11-16 01:1x
+  note: '2026-11-16 00:5x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-213 交卷时登记给 main 的 need `iss213_mech_mech_budget_charge_caliber_text` + main 2026-11-16 00:3x 逐行实跑复核 (文档 / 脚本 / 门禁三处口径不一致全部成立)** ★ ★**mech-lead
     名额的上一条 (ISS-213) 已于本轮 00:3x 落 verified ⇒ 名额空出来 ⇒ 本单是第 2 轮** ★
+
+    ★**2026-11-16 01:1x 队列自动派活 job (fb67af40) 落 `verified` (★清僵尸 fixing·第 17 次复发★)**:
+
+    ★**实测**: 子会话已结束 (hw-lead 85841b8c = timeout 01:09:39 / mech-lead 900f6943 = done 00:55) ⇒ 交付物已落盘 ⇒ ★**但 brief 不许子 agent 改 issue_log ⇒ status 停在 `fixing` ⇒ `advance.py` 的 in_flight 规则 ⇒ 名额被占住 ⇒ A 段 0
+    条 ⇒ 队列断线★**
+
+    ★**main 独立复核 (只看盘上实物 + 自己跑门禁 + 自己 md5) 通过 ⇒ 落 `verified` (★不是 closed★) ⇒ 放出名额★**
+
+    ★**边界**: 不改 §0 锁死表 · 不写任何子总工的分片 · 不发信 · 板/网表/脚表/原理图/BOM 一个字节未动 ★
+
+    '
   task_brief: "★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 把 ★**结构侧\"充电耗散\"这条热学口径从\"线性充电 IC 0.8W\"改成\"buck 0.45-0.57W\"**, 让 ★**文档 / 计算脚本 / 机器门禁三处一致**★ ⇒ ★**本单不许改 HW/ 下任何文件 / 不许碰 PCB 布线布局**★ ⇒ ★**零外发** ★\n\n\
     ★★**为什么是现在 (★main 2026-11-16 00:3x 实测, 不是推测★)** ★★\n· ★**ISS-213 (11-15 23:5x 交卷, 已 verified) 的机器门禁 `MECH/check_demo_struct_truth.py` 的 G2.5 / G2.6 / G2.8 已经按 buck 口径判了**: ★**端件温升 ΔT = 83.33K ⇒ 表面 108.33°C\
     \ · 60°C 判据 ⇒ P_max = 0.210W (现耗散 0.50W ⇒ 超 2.38× ⇒ 必须金属热路) · ICHG/IIN = η·Vbus/Vbat = 1.216 (3.70V) / 1.071 (4.20V), 并注明\"规格书的 0.822/0.933 是倒数\"** ★\n· ★**★但同一批数字在另外两个文件里还是反的 (main 逐行实跑) ★** ★\n  ★**`MECH/MECH_BUDGET.md`\
@@ -9216,4 +9290,1276 @@ issues:
     ★**§5 边界**: ★**本单 0 次外发 · 本单实物 [实测] = 0 条 (板不在本机) ⇒ 端件 108°C 之类全是 [推算]** ★\n\n★★**★★④ 交卷前跑这四条 (rc 必须 0 / 必须贴输出)★★** ★★\n★**`python3 MECH/verify_budget.py`** ⇒ rc=0 (★文档 vs 脚本 逐项对拍全绿★)\n★**`python3 MECH/verify_budget.py\
     \ --selftest`** ⇒ rc=0 (★你新建的自检 + 反向用例★)\n★**`python3 MECH/check_demo_struct_truth.py`** ⇒ rc=0 (★20/20 全过, 且它的 17 条 FAIL 仍然是 FAIL★)\n★**`python3 state/merge.py`** ⇒ rc=0 ★**且** ★**`python3 state/gate_check.py`**\
     \ ⇒ rc=0 (Q1 必须 18/18)\n★**★把这几条的输出原样贴进你的回复★** ★\n"
+  dispatched_at: '2026-11-16'
+  fixed_at: '2026-11-16'
+- id: ISS-217
+  title: ★★[主线内·原理图/网表侧·内部活] 12 组网表/规格自相矛盾 (ISS-211 四条 + ISS-214 八条) ⇒ 汇成【整链重出 第 1 步 · 原理图侧落表作业包 v1】+ 3 项补差 (imp 字段拆分 / ESD 阈值 5→3.0mm / π 滤波拓扑 + J_CHG 位号双义) + 门禁扩到"作业包漏一条就红" (不改网表·不改板)
+  severity: high
+  source_blocker: ISS-214
+  desc: '★**ISS-211 (4 条) 与 ISS-214 (8 条) 两轮规格页都已 verified, 但规格页只说"错在哪、真修法在哪", 没说"落表那趟具体改哪一行、改成什么、跑哪条命令、怎么算翻面"★** ⇒ ★**落表那趟 = 整链重出 第 1 步 (`state/RECHAIN_STEP1_LANDING_SPEC.md` · C/E 两项已定可落 · D 项等评审) ⇒ 板只改一次
+    ⇒ 这一趟必须一次落干净, 不许分批试错★** ⇒ ★**缺的就是这份作业包 (= 落表那趟的 SOP)** ★ ★**这正是【原理图主线】的真瓶颈 (老板 2026-11-11 10:07: 先解决原理图绘制的问题) ⇒ 本单是原理图侧收口件, 不是 PCB 类★** ★ ★**附加 3 项补差**: ★**A · `imp` 一个字段混着用 (NET 行差分阻抗 vs 器件行阻值) ⇒ 字段拆分方案
+    + 迁移清单; B · ESD 位置判据 5mm vs 3.0mm ⇒ 门禁 R9 翻面阈值对齐 3.0mm + 反向用例; C · `C_VBUS_OUT` 串联在 BQ25896 DC 输入路径 (稳态充不了电) + `J_CHG` 位号双义 ⇒ π 滤波真值拓扑 + 消歧方案 (充电板不进 demo 板 ⇒ 只出规格)★** ★ ★**待裁项**: V-1/V-3/V-4 纯工程取舍 ⇒
+    作业包给默认值供项目总工签字; V-2 选型仍属老板级; V-5 堆叠账归结构; V-6 本单落定 ★ ★**本单不改网表/脚表/BOM/板/.kicad_pro/生成器/SPEC.json/CHARGE_BOARD_SPEC, 受保护 md5 一个字节不许变; 零外发★**'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: verified
+  external: false
+  need_keys: []
+  fix_ref: HANDOFF/2026-11-16_hw-lead_ISS217_落表作业包v1.md
+  verify_by: main
+  verify_result: "★main 独立复核通过 (★2026-11-16 02:2x, 只看盘上实物 + 自己跑门禁★):\n  · HW/check_netlist_selfconsistency.py → rc=0 (★现状守卫 + 作业包完整性 + 三方对齐 全过★)\n  · HW/check_netlist_selfconsistency.py --selftest → rc=0\
+    \ (自检结果: 19/19 通过)\n  · HW/check_netlist_selfconsistency.py --expect-resolved → rc=1 (★翻面口径未通过 = 缺陷尚未落表 = 预期状态★)\n  · state/check_netlist.py → rc=0 (全过, 原理图 V1.1 可进交叉评审)\n  · state/check_netlist_pins.py\
+    \ → rc=0 (每个针脚归属唯一)\n  · state/check_sch_erc.py → rc=0 (ERC 违规数 = 0)\n  · 交付物在盘: HW/SCHEMATIC_LANDING_WORKPACKET_V1.md (154104 B, 01:57 · 28 条作业条目 × 8 栏齐) · HANDOFF/2026-11-16_hw-lead_ISS217_落表作业包v1.md\
+    \ (31803 B, 01:58 · B1~B6 齐) · state/fragments/hw.yaml mtime 01:59\n  · md5 逐字节未变: 网表 c78f991283cc82d56c8e3dd31657c785 · 脚表 4814617e22b567d76164e56bc5e39dc8 · 板 611b869e13518c3c023fb178f91a0075 · .kicad_pro\
+    \ 3e504d2be83152e337949723e909be1b\n★**这是【作业包】不是执行记录** ⇒ 网表/脚表/板/生成器 一个字节都没改 (main 实测 md5 一致) ★\n★**6 条待裁 (V-1~V-6) 一条没代拍** ⇒ 其中 V-4 (R_ILIM 档位) 已在 `DECISION_PENDING_2026-11-16.md` §3 作为老板待拍项 ⇒ ⇒ **落表那一趟\
+    \ (本 job 新开的 ISS-220) 只能落不依赖 V-1~V-6 的条目** ★"
+  verify_date: 2026-11-16 02:2x
+  note: '2026-11-16 01:2x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-214 交卷里的未决 V-1~V-8 + 规格页 §4 落表时机总表 + §5.2 翻面条件★** ⇒ ★**hw-lead 名额的上一条 ISS-214 已于本轮 01:1x 落 verified ⇒ 名额空出来 ⇒ 本单是第 3 轮★** ★ ★**本单 = 落表那趟的唯一输入
+    (SOP) ⇒ 不落作业包, 落表那趟就会把规格页当参考而不是逐条照做★**
+
+
+    2026-11-16 01:4x 队列自动派活 job (fb67af40) **僵尸 fixing 清理**: 首次派活的子会话 `agent:hw-lead:subagent:67ddec52` (1ec42e28) 于 **01:14:18 起跑, 01:29:39 被中止** (★transcript 末行 = `openclaw:prompt-error: This operation
+    was aborted`★) ⇒ ★**盘上交付物 0 件**: `HW/SCHEMATIC_LANDING_WORKPACKET_V1.md` 不存在 · `HANDOFF/2026-11-16_hw-lead_ISS217_*.md` 不存在 · `HW/check_netlist_selfconsistency.py` mtime=01:03:42 (★早于本会话 01:14:18 ⇒
+    是 ISS-214 的产物, 本会话没碰过★)★ ⇒ ★**status 由 fixing 回滚为 open 并重派** (★上一轮的调研结论可作参考, 但一切以本轮实读为准★)
+
+    ★**2026-11-16 02:2x 队列自动派活 job (fb67af40) 落 `verified`**: 子会话 status=done ⇒ ★**main 不采信状态位, 只看盘上实物 + 自己跑门禁 + 自己 md5** ⇒ 交付物在盘 + 门禁全绿 ⇒ 落 `verified` (★不是 closed★) ⇒ 放出该总工名额 ★
+
+    ★**边界**: 不改 §0 锁死表 · 不写任何子总工的分片 · 不发信 · 网表/脚表/板/原理图/BOM 一个字节未动 ★'
+  task_brief: '★★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 把 ★**ISS-211 (4 条) + ISS-214 (8 条) 共 12 组"网表/规格自相矛盾"★, 从"两轮规格页"汇成 ★**一份【整链重出 第 1 步 · 原理图侧落表作业包 v1】★** ⇒ 逐组给出 ★**(真修法在哪个真源 · 改成什么 · 改完跑哪条命令 · 翻面判据是哪条
+    · 证据等级)★** ⇒ ★**并把机器门禁扩到"作业包漏一条就红"★** ⇒ ★**本单不许改网表 / 脚表 / BOM / 板 / .kicad_pro / 任何生成器 / SPEC.json / CHARGE_BOARD_SPEC**★ ⇒ ★**零外发** ★
+
+
+    ★★**为什么是现在 (★main 2026-11-16 01:0x~01:2x 实测, 不是推测★)** ★★
+
+    · ★**ISS-211 (11-15 23:5x 交卷, 已 verified) 与 ISS-214 (11-16 01:0x 交卷, 本轮刚落 verified) 两轮规格页都在, 但规格页只说"这条错在哪、真修法在哪", 没说"落表那趟具体改哪一行、改成什么"★** ⇒ ★**而落表那趟是【整链重出 第 1 步】(`state/RECHAIN_STEP1_LANDING_SPEC.md`:
+    C/E 两项已定可落 · D 项等评审) ⇒ 板只改一次 ⇒ 这一趟必须一次落干净, 不许分批试错★** ⇒ ★**⇒ 缺的就是这份"作业包": 谁改、改哪行、改成什么、跑哪条命令、怎么算翻面★**
+
+    · ★**这正是【原理图主线】的真瓶颈**: 老板 2026-11-11 10:07 定的口径是"先解决原理图绘制的问题" ⇒ 原理图侧的网表/规格自相矛盾就是原理图侧的问题 ⇒ ★**本单是原理图主线的收口件, 不是 PCB 类, 可以派★**
+
+    · ★**同时它也是下一趟落表的唯一输入**: 落表那趟由项目总工执行, 作业包就是它的 SOP ⇒ ★**没有作业包, 落表那趟就会把规格页当成"参考"而不是"逐条照做"★**
+
+
+    ★★**★① 输入件 (★都已 verified, 不许重复定性, 不许推翻, 直接用★)** ★★
+
+    · ★**`HW/NETLIST_SELF_CONSISTENCY_SPEC.md`** ★= ISS-211 v1 (4 条 · §1) + ISS-214 v2 (8 条 · §10 · 每条 8 栏齐) + §11 附带发现 8 条 + §13 未决 V-1~V-8 + §14 边界自查 (★机读锚点表 = 唯一真源在 `HW/check_netlist_selfconsistency.py`
+    的 `EXPECT` 里, 154 条★)
+
+    · ★**`HW/check_netlist_selfconsistency.py`** ★= 现状守卫 154 锚点 · `--selftest` 16/16 · `--expect-resolved` 翻面口径 R1~R11
+
+    · ★**`HANDOFF/2026-11-16_hw-lead_ISS214_网表一致性第2轮与3条待裁自查.md`** ★= 上一轮的交卷报告 (B1~B6)
+
+    · ★**`state/RECHAIN_STEP1_LANDING_SPEC.md`** ★= 落表那趟的既有作业包 (C 项复位 P0 / E 项 NC 拆分 / D 项去耦待评审) ⇒ ★**你这份要和它对齐, 不许另起一套编号★**
+
+
+    ★★**★② 你要出的作业包本体 (★每组 8 栏, 缺一栏门禁就红★)** ★★
+
+    ★**栏位 (一字不许少)**: ① 项号 (d1..d11 + 附带 #1..#8, 与规格页条号一一对应) ② 现状逐字 + 行号 [实测] ③ 缺陷一句话 ④ ★**真修法在哪个真源 (精确到: 哪个文件的哪一行 / 哪个 JSON key / 哪个生成器参数)★** ⑤ ★**改法 (逐字值: 改哪个文件哪一行, 改成什么字面值)★** ⑥ 改完跑哪条命令 ⑦ 翻面判据 (门禁哪条 R#)
+    ⑧ 证据等级 [官网]/[实测]/[媒体]/[推算]/[0数据] ★
+
+    ★**★3. 三项补差 (★都是规格页 §11 附带发现里【还没被规格覆盖】的那几条, 本轮必须补齐★)** ★
+
+    · ★**补差 A · `imp` 一个字段混着用 (规格页 §11 附带发现 #1)★** ⇒ ★**NET 行的"阻抗"与器件行的"阻值"在 DSI 组是两个不同的物理量 (NET 行 100Ω = MIPI 差分阻抗 / 器件行 0Ω = 直通位), 在 USB 组却被塞进同一个字段★** ⇒ 你要出 **字段拆分方案** (串阻值字段 vs 差分阻抗字段各叫什么 · 哪些连接该填哪个
+    · 对 `state/gen_netlist.py` 里 conn_row() 的改动面有多大) + **迁移清单** (哪几行要改) + 改完后 `python3 state/check_netlist.py` 与 `python3 state/check_netlist_pins.py` 应该是什么结果 ⇒ ★**只出方案, 不许改生成器★**
+
+    · ★**补差 B · ESD 位置判据 5mm vs 3.0mm 口径收口 (规格页 §11 附带发现 #3 / 未决 V-6)★** ⇒ ★**ISS-211 §5.2 写 ≤5mm, 而 `state/gen_schematic_pages.py` 的 P9 页自引的 ISS-085 结构总工回执写 ≤3.0mm ⇒ 按 3.0mm 判 (项目自己的规矩, 更严)★** ⇒ 你要把 **门禁
+    R9 的翻面阈值从 5.0 改成 3.0** (★只改翻面判据, 现状断言不动★) ⇒ ★**并且在 `--selftest` 里加一条反向用例证明阈值真被读到 3.0 而不是 5.0 (★自己把 3.0 改回 5.0 必须变红★)★**
+
+    · ★**补差 C · 充电链 π 滤波拓扑 + `J_CHG` 位号双义 (规格页 §11 附带发现 #4 / #6 · 未决 V-7 / V-8)★** ⇒ ★**`C_VBUS_OUT` (100µF) 在网表里是【串联】在 BQ25896 的 DC 输入路径上 (稳态充不了电), 而 `HW/CHARGE_BOARD_SPEC.md` §7 的 `C_VBUS_BULK` 是【对地】100µF,
+    且 §7.1 计数对账表的"现行网表引用 80 行"已过期★** ⇒ 你要出 **π 滤波真值拓扑规格** (哪只位号对地 / 哪只串联 / 各自容量判据) + **`J_CHG` 位号消歧方案** (网表=铰链 FPC 1×10p@0.5mm board=HINGE vs 板文件=SoM BTB 100pin, 两个物理件 ⇒ 命名规则建议 + 对 ISS-199/ISS-202 的影响)
+    ⇒ ★**充电板不进 demo 板 ⇒ 本单只出规格, 不碰网表也不碰板★**
+
+
+    ★★**★4. 待裁项确认单 (★不许代拍, 只出"一句话可勾选"的确认单★)** ★★
+
+    · ★**V-1 (USB 串阻取 22Ω 外部串阻 还是 0Ω 靠 SoM PHY 内部匹配) / V-3 (BAT_DET 分压比 方案 A 2.0M+1.2M 还是 降级档 D) / V-4 (R_ILIM 档位: 解① 475~510Ω 还是 解② 390Ω + J_CHG 4 pin 并联)★** ⇒ ★**这三条是【纯工程取舍, 有量化代价】⇒ 你给: 默认值 + 备选 + 代价
+    (含对 60ms/充电时间/单 pin 载流/皮肤温度的影响) + 落表后影响哪几行 ⇒ 供项目总工签字★★
+
+    · ★**V-2 (ESD 方案二选一 + 型号) = 选型 ⇒ 仍属老板级** ★⇒ 你只给"官网参数满足的候选 + 判据串 + 查不到的降级方案", 不许代拍
+
+    · ★**V-5 (堆叠账唯一口径) = 归 mech-lead + 项目总工** ★⇒ 你只写清 P9 页要改成【引用哪个数】, ★**不许自带第二个堆叠数★**
+
+    · ★**V-6 (阈值 3.0mm) = 本单补差 B 已落定** ★⇒ 写进作业包即可
+
+
+    ★★**★5. 机器门禁扩项 (★hw-lead 地界, 只读脚本, 不写任何项目文件★)** ★★
+
+    · ★**扩 `HW/check_netlist_selfconsistency.py`: 加"作业包完整性"自检** ⇒ ★**作业包里必须逐组出现 (项号 · 真修法文件 · 改法 · 命令 · 翻面判据 id) ⇒ 缺任何一组 ⇒ 红★** ⇒ ★**`--selftest` 加反向用例 (★删掉一组必须变红★)★** ⇒ ★**并做三方对齐: 作业包项号 ↔ 规格页 §10 条号 ↔
+    门禁 R# 必须对得上 (对不上 ⇒ 红)★**
+
+
+    ★★**★6. 交付物 (★就这四件, 不许多写, 不许改别人的地界★)** ★★
+
+    · ★**新建** `HW/SCHEMATIC_LANDING_WORKPACKET_V1.md` ★= 作业包本体 (★12 组 + 附带 8 条 + 3 项补差 + 6 条待裁确认单★)
+
+    · 扩 `HW/check_netlist_selfconsistency.py` ★= 作业包完整性 + 三方对齐 + R9 阈值 3.0mm + 新增反向用例
+
+    · ★**新建** `HANDOFF/2026-11-16_hw-lead_ISS217_落表作业包v1.md` ★= B1~B6 齐全
+
+    · `state/fragments/hw.yaml` ★= ★**走 `python3 state/frag_write.py` 原子写** (★禁止 `open(p,"w")`★): +artifacts +1 claim (`schematic_landing_workpacket_v1`) +1 need (★6 条待裁确认单 to main★)
+
+
+    ★★**★7. 验收命令 (★交卷前自己实跑, 原样贴进交卷★)** ★★
+
+    ```
+
+    python3 HW/check_netlist_selfconsistency.py              # rc=0 (现状守卫; ★缺陷仍在是预期★)
+
+    python3 HW/check_netlist_selfconsistency.py --selftest    # rc=0 (★原 16 条一条不许删 + 新增用例全过★)
+
+    python3 HW/check_netlist_selfconsistency.py --expect-resolved   # rc=1 (★缺陷尚未落表 ⇒ 应当是红的★)
+
+    python3 state/check_netlist.py                           # rc=0
+
+    python3 state/check_netlist_pins.py                      # rc=0
+
+    python3 state/merge.py                                   # rc=0
+
+    python3 state/gate_check.py                              # rc=0, 【Q1】18/18
+
+    md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro
+
+    ```
+
+    ★**受保护 md5 期望值 (★必须逐字节一致★)**: 网表 `c78f991283cc82d56c8e3dd31657c785` · 脚表 `4814617e22b567d76164e56bc5e39dc8` · 板 `611b869e13518c3c023fb178f91a0075` · `.kicad_pro` `3e504d2be83152e337949723e909be1b` ⇒
+    ★**以你开工前自己跑出来的 md5 为准, 并把开工前/交卷后两个值都贴出来★**
+
+
+    ★★**★8. 边界 (★违反一条即交卷无效★)** ★★
+
+    · ★**不许改**: `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` · `HW/BOM_v1.csv` · `HW/PCB/demo_mainboard.kicad_pcb` · `HW/PCB/demo_mainboard.kicad_pro` · `HW/SCHEMATIC_V1_SPEC.json` · `HW/CHARGE_BOARD_SPEC.md`
+    · `HW/EMC_PRECHECK.md` · 任何 `state/gen_*.py` · `state/issue_log.yaml` · `PROJECT_TRACKER.md` §0 · `state/outbox/` · `MECH/` 与 `SW/` 任何文件 · 任何别的总工的分片
+
+    · ★**不许碰 PCB 布线 / 布局 / 板框** (★老板 2026-11-11 10:07 口径★)
+
+    · ★**零外发**: 不许发任何邮件 / 询价 / 问询 / 采购 (★老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ⇒ ★**凡要查资料 ⇒ 自己在官网/官方 datasheet 上查 + 标证据等级 + 查不到写降级方案 ⇒ 没有"批一句可以发"这个选项★**
+
+    · ★**不许替老板拍**: 整机屏路线 / 波导归属 / FOV / 板长方案取舍 / 充电板是否留 / 端件截面 u8
+
+    · ★**本单实物 [实测] = 0 条** (板与屏不在本机) ⇒ 标 [实测] 的一律是"本机脚本/本机文件实读", 不是"实物测过"
+
+    · ★**不许自己改 issue_log 状态** (★verify_by=main, 干活的人不许自签★)'
+  dispatched_at: '2026-11-16'
+  fixed_at: '2026-11-16'
+- id: ISS-218
+  title: ★★[主线内·结构侧·内部活] 打印包第三档试样落地 (10.50×4.80 FDM 直成型 + 10.25×4.55 金属·CNC · 两档并行试样已被判死) ⇒ 加工规格 + 加工余量 + 测量清单 + 生成器/自检落项 (既有 93/93 + 38/38 必须仍全绿) + 端件金属热路 u8 参数化重量账模板 (不预扣 §3)
+  severity: high
+  source_blocker: ISS-213
+  desc: '★**ISS-213 已判死"两档并行试样"是个假二选一** (★现两档 9.50×3.60 最坏 0.13/0.02 · 10.00×4.20 最坏 0.38/0.32, 判据 0.60 ⇒ 两档都不合格★) ⇒ ★**ISS-213 自己出了第三档 10.50×4.80 (FDM 直成型) 与 10.25×4.55 (金属·CNC), 但还没落成"可下片的试样 + 门禁"★**
+    ⇒ 本单补成实物级交付 (★加工规格 + 加工余量 + 逐项测量清单条目 + 生成器参数化第三档 + 自检反向用例★) ★ ★**外加 ISS-216 留下的账**: ★**buck 口径把端件外表面从 158 °C 拉到 108.3 °C, 但仍超 60 °C 判据 ⇒ 金属热路这条结构义务一条没减; 而端件金属件的重量落进 §3 哪一行取决于端件截面 u8, u8 未定 ⇒ 本单只出 u8
+    参数化重量账模板, 不预扣、不猜数★** ★ ★**本单不改 HW/ 下任何文件 / 不碰 PCB 布线布局 / 判据 0.60 不许松 / 打印包既有基线 93/93 + 38/38 必须仍全绿 / 零外发★**'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: verified
+  external: false
+  need_keys: []
+  fix_ref: HANDOFF/2026-11-16_mech-lead_ISS218_打印包第三档与热路重量模板.md
+  verify_by: main
+  verify_result: "★main 独立复核通过 (★2026-11-16 01:4x, 只看盘上实物 + 自己跑门禁 + 自己 md5★):\n  · verify_pack_revb.py → rc=0 (尺寸判据 100% 一致 + STL 逐点互验 100% 一致)\n  · verify_pack_revb.py --selftest → rc=0 (反向用例 8/8 抓到 ⇒\
+    \ 门禁不是假绿)\n  · verify_pack.py (Rev A 基线) → rc=0 (46/46 · 未变红)\n  · verify_budget.py → rc=0 (充电耗散 = buck 口径, 没被改回线性 0.8W)\n  · check_demo_struct_truth.py → rc=0 (20/20)\n  · md5 逐字节未变: 网表 c78f991283cc82d56c8e3dd31657c785\
+    \ · 板 611b869e13518c3c023fb178f91a0075 · .kicad_pro 3e504d2be83152e337949723e909be1b\n  · HANDOFF B1~B6 六块齐全\n★**实物 [实测] = 0 条** (本机跨网段不可达 / 无切片器 / 无量具) ⇒ M-PRINT 仍是 0 数据, 第三档只是【可下片试样 + 机器门禁】, 不是实测结论\
+    \ ★\n★**三条硬结论 (main 已复核)**: ① 第三档两档最坏单边 0.63/0.62 ≥ 判据 0.60 (机器钉住) ②『热路是铝的』不自动满足 R ≤ 70 K/W ⇒ 反解 A ≥ 4.98 mm² (2.0×2.0 铝条 R=87.1 ❌) ③ 项目内 k=237 比 6063-T6 官方 201 乐观 18% ⇒ 方向不变, 只报不改★"
+  verify_date: 2026-11-16 01:4x
+  note: '2026-11-16 01:2x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-213 交卷里的 need `iss213_mech_typec_third_candidate` (打印包两档并行试样是假二选一 → 第三档) + ISS-216 交卷里的 need `iss216_mech_endpoint_metal_path_mass_after_u8`
+    (端件金属热路质量账待 u8)★** ⇒ ★**mech-lead 名额的上一条 ISS-216 已于本轮 01:1x 落 verified ⇒ 名额空出来 ⇒ 本单是第 3 轮★** ★ ★**本单 = 结构侧唯一可推进的活 (6 个 PCB 类 FAIL 仍在排队等原理图定稿, 按老板 2026-11-11 10:07 口径不派)★**
+
+    ★**2026-11-16 01:4x 继续执行后继计划 job (775d9893) 落 `verified` (★清僵尸 fixing·第 18 次复发★)**:
+
+    ★**实测**: mech-lead 子会话 bd1e28db **done** (01:17:09 结束) ⇒ 交付物已落盘 ⇒ ★**但 brief 不许子 agent 改 issue_log ⇒ status 停在 `fixing` ⇒ `advance.py` 的 in_flight 规则 ⇒ 名额被占住 ⇒ A 段 0 条 ⇒ 队列断线★**
+
+    ★**main 独立复核通过 ⇒ 落 `verified` (★不是 closed★) ⇒ 放出 mech-lead 名额★**
+
+    ★**边界**: 不改 §0 锁死表 · 不写任何子总工的分片 · 不发信 · 网表/脚表/板/原理图/BOM 一个字节未动 ★
+
+    '
+  task_brief: '★★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 把 ★**打印包那个"两档并行试样"的假二选一落成【第三档试样】(10.50×4.80 FDM 直成型 + 10.25×4.55 金属·CNC)★** ⇒ 出 ★**加工规格 + 加工余量 + 逐项测量清单条目 + 生成器/门禁落项 (只增不改, 既有基线必须仍全绿)★** ⇒ ★**外加:
+    端件金属热路的 u8 参数化重量账模板 (只出模板, 不预扣 §3 现有重量)★** ⇒ ★**本单不许改 HW/ 下任何文件 / 不许碰 PCB 布线布局**★ ⇒ ★**零外发** ★
+
+
+    ★★**为什么是现在 (★main 2026-11-16 01:0x~01:2x 实测, 不是推测★)** ★★
+
+    · ★**ISS-213 (11-15 23:5x 交卷, 已 verified) 已判死"两档并行试样"是个假二选一**: ★**现两档候选 9.50×3.60 最坏 0.13/0.02 · 10.00×4.20 最坏 0.38/0.32, 判据 0.60 ⇒ 两档都不合格★** ⇒ ★**ISS-213 自己出了第三档 10.50×4.80 (FDM 直成型, 最坏 0.63/0.62)
+    与 10.25×4.55 (金属·CNC), 但【还没落成"可下片的试样 + 门禁"】★** ⇒ ★**⇒ 本单把第三档补成实物级交付**
+
+    · ★**ISS-216 (11-16 00:55 交卷, 本轮刚落 verified) 把充电耗散口径换成 buck 之后, 端件外表面从 158 °C 落到 108.3 °C, 但仍超 60 °C 判据 ⇒ 金属热路这条结构义务一条没减 ⇒ 而端件金属件的重量要落进 §3 的哪一行取决于端件截面 u8, u8 未定 ⇒ ★**本单只出"u8 参数化重量账模板", 让 u8 一拍下来就能直接代入,
+    不预扣、不猜数★**
+
+
+    ★★**★① 现状 (★main 实测, 你要自己复核一遍★)** ★★
+
+    · ★**`MECH/print/gen_print_pack_revb.py`** 的参数表里: `tc_open_w`/`tc_open_h` = 9.50/3.60 (现口径) 与 `tc_open_w2`/`tc_open_h2` = 10.00/4.20 (ISS-089 并行试样, 待授权) ⇒ ★**第三档要作为【新增参数】接进去, 不许改这两个既有参数的含义★**
+
+    · ★**`MECH/print/verify_pack_revb.py`** = 解析几何精确求尺寸 + STL 逐点互验两段式自检 ⇒ ★**main 实跑现状: 尺寸判据 93/93 + STL 逐点互验 38/38 (fit_coupon 15/15 · temple_cage 18/18 · frame_typec 5/5)★** ⇒ ★**★这三组数字是本单的基线: 改完必须【仍然全绿】,
+    且新条目数要写清 (★不许为了加第三档把既有基线改小★)★**
+
+    · ★**`MECH/print/README.md`** = Rev B 台账 (Rev A 已作废的原因都在里面) · ★**`MECH/print/GEOM_SPEC_REVA.md`** = 几何规格 · ★**`MECH/print/MEASURE_CHECKLIST.md`** = 逐项测量清单 · ★**`MECH/print/ENV_PROBE_20261101.md`** =
+    ★**本机物理上不能打印也不能量测的证据 (打印机跨网段不可达 / 无切片器 / 无量具)★**
+
+
+    ★★**★② 你要出的东西 (★四件, 不许多写, 不许改别人的地界★)** ★★
+
+    · ★**新建** `MECH/print/PRINT_COUPON_TIER3_SPEC.md` ★= 第三档试样规格: ★**(a) 两档各自"为什么合格"的最坏余量算式 (对判据 0.60) (b) 加工余量** (FDM: 收缩率 / 孔径补偿 / 层纹方向; 金属 CNC: 公差带 + 表面处理) ★**(c) 逐项测量清单条目 (按 `MECH/print/MEASURE_CHECKLIST.md`
+    的既有格式接进去) (d) 本机不可打印不可量测的降级说明 (引 `MECH/print/ENV_PROBE_20261101.md`)★** ⇒ ★**加工余量取值要标证据等级: 查得到就写 [官网] + 出处, 查不到写 [0数据] + 降级方案 (★不许写成"经验值"糊过去★)★
+
+    · 扩 `MECH/print/gen_print_pack_revb.py` 与 `MECH/print/verify_pack_revb.py` ★= 把第三档做成【参数化第三档】: 生成器出件 + 自检里加"第三档两档余量 ≥ 判据 0.60"的对拍 ⇒ ★**★并且给自检加一个自检模式 (★`--selftest`★) 带反向用例: 把第三档尺寸改回 9.50×3.60 必须变红★**
+    ⇒ ★**既有 93/93 + 38/38 必须仍全绿, 判据 0.60 一个不许松, 既有阈值一个不许动★**
+
+    · ★**新建** `MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md` ★= 端件金属热路的 u8 参数化重量账模板: ★**(a) 硬指标 R_热路 ≤ 70 K/W; 铝 6063 同几何 1.641 K/W ✅ / 打印件 PA6-CF 1944 K/W ❌ (b) 端件截面 u8 取 3~5 个值 ⇒ 金属件质量区间 (c) 代入 `MECH/MECH_BUDGET.md`
+    §3 的 W6/W9 的方法 (d) ★**§3 现有重量数字一个不许改、不许预扣 (u8 未定) 的字样写死在这份模板里★★**
+
+    · ★**新建** `HANDOFF/2026-11-16_mech-lead_ISS218_打印包第三档与热路重量模板.md` ★= B1~B6 齐全 + `state/fragments/mech.yaml` (★走 `python3 state/frag_write.py` 原子写, ★禁止 `open(p,"w")`★): +artifacts +1 claim (`print_coupon_tier3_spec`
+    / `endpoint_metal_path_mass_template`) + needs
+
+
+    ★★**★3. 验收命令 (★交卷前自己实跑, 原样贴进交卷★)** ★★
+
+    ```
+
+    python3 MECH/print/verify_pack_revb.py            # rc=0 (★既有 93/93 + 38/38 仍全绿 + 第三档新增条目全绿★)
+
+    python3 MECH/print/verify_pack_revb.py --selftest  # rc=0 (★反向用例全被抓; ★若现有脚本还没有这个模式 ⇒ 你给它加上并说明★)
+
+    python3 MECH/print/verify_pack.py                  # rc=0 (★Rev A 46/46 不得变红★)
+
+    python3 MECH/verify_budget.py                     # rc=0 (★上一轮的 buck 口径不许被本单改回去★)
+
+    python3 MECH/check_demo_struct_truth.py           # rc=0
+
+    python3 state/merge.py                            # rc=0
+
+    python3 state/gate_check.py                       # rc=0, 【Q1】18/18
+
+    md5sum HW/netlist_v1.csv HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro
+
+    ```
+
+    ★**受保护 md5 期望值 (★必须逐字节一致★)**: 网表 `c78f991283cc82d56c8e3dd31657c785` / 板 `611b869e13518c3c023fb178f91a0075` / `.kicad_pro` `3e504d2be83152e337949723e909be1b` ⇒ ★**以你开工前自己跑出来的 md5 为准, 开工前/交卷后两个值都贴出来★**
+
+
+    ★★**★4. 边界 (★违反一条即交卷无效★)** ★★
+
+    · ★**不许改**: `HW/` 下任何文件 (含网表 / 脚表 / 板 / .kicad_pro) · `MECH/MECH_BUDGET.md` 的 §3 现有重量数字 · `MECH/check_demo_struct_truth.py` · 3 个受保护 check 脚本 (`MECH/hinge_usb_check.py` / `MECH/service_port_check.py`
+    / `MECH/hw_cross_review_check.py` / `MECH/display_biosafety_v2_check.py`) · `state/issue_log.yaml` · `PROJECT_TRACKER.md` §0 · `state/outbox/` · 任何别的总工的分片
+
+    · ★**不许碰 PCB 布线 / 布局 / 板框** · ★**判据阈值 0.60 一个不许松** · ★**打印包既有基线 93/93 + 38/38 必须仍全绿**
+
+    · ★**零外发**: 不许发任何邮件 / 询价 / 问询 / 采购 (★老板 2026-11-11 19:31 + 2026-11-12 02:02★) ⇒ ★**查资料自己上官网 + 标证据等级 + 查不到写降级方案★
+
+    · ★**不许替老板拍**: 整机屏路线 / 波导归属 / FOV / 板长方案取舍 / 充电板是否留 / 端件截面 u8
+
+    · ★**本单实物 [实测] = 0 条** (本机物理上不能打印也不能量测) ⇒ 交付物是"可直接下片的 STL + 逐项测量清单", 不是"已打印"
+
+    · ★**不许自己改 issue_log 状态** (★verify_by=main, 干活的人不许自签★)'
+  dispatched_at: '2026-11-16'
+  fixed_at: '2026-11-16'
+- id: ISS-219
+  title: '★★[主线内·结构侧·内部活] 镜框正中区第 2 轮重排: C-6 分光件按 A_e≤62mm² 放大 (光束 8.885 ⇒ 平板对角 15.39 / 棱镜 ≥9×9×5) + C-7 面板 468mW vs 腔体 50°C (81.20°C ⇒ 需 4669mm² 散热面 ⇒ 金属热路方案) + C-C/X-3 鼻梁热路径 54.33°C 与「不进皮肤热路径」口径修正 + 铝
+    6063 k=237→201 官方保守口径统一 + 机器门禁 (不改 HW·不碰 PCB 布线布局·不预扣 §3 重量)'
+  severity: high
+  source_blocker: ISS-209
+  desc: '★**ISS-209 (11-15 交卷, 已 verified) 把正中区腔体按眼盒硬约束重算了第 1 轮**, 交卷里明写三条「只报不改、已登记 need 给 main」的冲突: C-6 (分光件要承的光束口径 2.9→8.885mm ⇒ 45° 平板严格口径需对角 15.39mm, 现 §1.3 M6 的 14×10×6 差 1.25mm 不够; 转向棱镜 8×8×5 装不下
+    8.885 ⇒ 需 ≥9×9×5; 体积 0.79→0.97cc, 重量 W4 3–6→3.68–7.36g) · C-7 (面板 468mW ⇒ 正中区腔体节点 81.20/77.43/75.24°C vs X-3 红线 50°C ⇒ 超 25.24–31.20°C; 保 50°C 需被动散热面 ≈4668.9mm² = u8 未定值 1000mm² 的 4.67 倍 ⇒ 加厚只贡献 6–12%
+    ⇒ 必须金属热路) · C-C (鼻梁区热路径 12.0mm · R_bridge 400 K/W ⇒ 若 SoC+面板 1.018W 进镜框 ⇒ 鼻梁接触面 54.33/52.75/51.83°C ⇒ 超 43°C 红线 8.83–11.33°C ⇒ PCB/SoC 不进镜框正中; 且 X-3 那句「光学件不进皮肤热路径」在 468mW 下不成立 ⇒ 需加限定语) ★**这三条至今只停在「只报」状态,
+    没有一条落成可执行规格** ⇒ 本单把它们收成【第 2 轮重排】★ ★**外加 ISS-218 交卷时点的最后一笔账**: `MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md` §④ 建议下一轮把 `MECH/MECH_BUDGET.md` §3 的铝 6063 k=237 改成官方保守值 201 并同步 `verify_budget.py` ⇒ 本单一起做掉
+    (只改口径, 不改结论)★'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: verified
+  external: false
+  need_keys: []
+  fix_ref: HANDOFF/2026-11-16_mech-lead_ISS219_正中区第2轮重排与k口径.md
+  verify_by: main
+  verify_result: "★main 独立复核通过 (★2026-11-16 02:2x, 只看盘上实物 + 自己跑门禁★):\n  · MECH/cavity_recalc_check.py → rc=0 (17/17)\n  · MECH/cavity_recalc_check.py --selftest → rc=0 (15/15, 既有 9 + 新增 5 反向用例全抓到)\n  ·\
+    \ MECH/verify_budget.py → rc=0 (★门禁绿: 充电耗散 = buck 口径, 没被改回线性 0.8W★; C17 反向用例证明 k=201 口径不许漂回 237)\n  · MECH/check_demo_struct_truth.py → rc=0 (20/20 组检查通过 · FAIL 0 组)\n  · 交付物在盘: MECH/CENTER_CAVITY_REBALANCE_V2.md\
+    \ (37385 B, 02:01) · MECH/cavity_recalc_check.py (56909 B, 02:01) · HANDOFF/2026-11-16_mech-lead_ISS219_正中区第2轮重排与k口径.md (6266 B, 02:02) · state/fragments/mech.yaml mtime 02:03\n  · md5 逐字节未变: 网表 c78f991283cc82d56c8e3dd31657c785\
+    \ · 板 611b869e13518c3c023fb178f91a0075 · .kicad_pro 3e504d2be83152e337949723e909be1b · 4 个受保护 check 脚本全部一致\n★**main 已复核的关键结论**: ① C-6 分光件放大后 C-8 (t_s=6.0 与 45° 平板竖向投影不自洽) 是**本单自己查出的新冲突** ⇒ 三档 T=18/21/23\
+    \ 需重算 ② C-7 结论翻转: 金属热路不是瓶颈 (R_热路 9.40-23.51 ≪ 70 K/W), **瓶颈是集热面面积** (d=15 需 ≈2628 vs 端件 600-800) ⇒ 只有 P3 方案三档全达标 ③ u8 只占集热面 14.3-18.2% ⇒ **不阻塞** ★\n★**3 条新 need 挂 main** (C-8 轴口径 / C-7 集热面 3600mm² 可行性\
+    \ / M6 落地裁) ⇒ ★**其中 C-7、C-8 结构侧自己能算 ⇒ 本 job 新开 ISS-222 承接** ★"
+  verify_date: 2026-11-16 02:2x
+  note: '2026-11-16 01:5x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-209 交卷里那 3 条「只报不改、已登记 need 给 main」的冲突 (C-6 / C-7 / C-C+X-3) + ISS-218 交卷 need `iss218_mech_alu_k_201_vs_237` (k=237→201 口径统一建议)★** ⇒ ★**mech-lead
+    名额的上一条 ISS-218 已于本轮 01:4x 落 verified ⇒ 名额空出来 ⇒ 本单是第 4 轮**★ ★**本单属结构类内部活, 不碰 PCB 布线/布局/板框 (老板 2026-11-11 10:07 口径) ⇒ 可派**★
+
+    ★**2026-11-16 02:2x 队列自动派活 job (fb67af40) 落 `verified`**: 子会话 status=done ⇒ ★**main 不采信状态位, 只看盘上实物 + 自己跑门禁 + 自己 md5** ⇒ 交付物在盘 + 门禁全绿 ⇒ 落 `verified` (★不是 closed★) ⇒ 放出该总工名额 ★
+
+    ★**边界**: 不改 §0 锁死表 · 不写任何子总工的分片 · 不发信 · 网表/脚表/板/原理图/BOM 一个字节未动 ★'
+  task_brief: '★★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 把 ★**镜框正中区腔体做完第 2 轮重排** ★ ⇒ ★**4 条必做 + 1 个机器门禁 + 1 份交接单**★ ⇒ ★**本单不许改 `HW/` 下任何文件 / 不许碰 PCB 布线布局 / 不许改任何判据阈值 / 不许预扣 §3 现有重量 / 不许替老板拍 u8**★ ⇒ ★**零外发**
+    ★
+
+
+    ★★**为什么是现在 (★main 2026-11-16 01:3x~01:5x 实测, 不是推测★)** ★★
+
+    · ★**ISS-209 (11-15 交卷, 已 verified) 的交卷件里明写三条"只报不改、已登记 need 给 main"的冲突 (C-6 / C-7 / C-C+X-3)** ⇒ ★**它们至今仍停在"只报"状态, 没有一条落成可执行规格 ⇒ 镜框正中区就永远差这最后一段** ★
+
+    · ★**这三条不是老板级拍板, 是结构侧自己能算完的活** (几何 + 热 + 重量账) ⇒ ★**不接 = 三条永远挂着, 而它们卡着整机可行性** ★
+
+    · ★**ISS-218 (11-16 01:30 交卷, 本轮刚落 verified) 顺手把 ISS-216 的最后一笔账也点了**: `MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md` §④ 写明"建议下一轮把 §3 改成 201 (保守侧) 并同步 `verify_budget.py`" ⇒ ★**这条也一并做掉 (只改一个常数 + 一处文档 + 一条口径自检)**
+    ★
+
+    · ★**仍属【原理图主线允许的结构类活】** (★老板 2026-11-11 10:07 口径: PCB 布线/布局类一律排队等原理图定稿 ⇒ 本单不碰 PCB 布线/布局/板框★) ⇒ ★**不与 demo 板画图抢产能** ★
+
+
+    ★★**★① 输入件 (★都已 verified, 不许重复定性, 不许推翻, 直接用★)** ★★
+
+    · ★**`MECH/CENTER_CAVITY_RECALC.md`** ★= ISS-209 交卷件 (★参数化余量预算表 + §2.4 冲突 C-6 + §2.5 冲突 C-7 + §2.3 C-C 鼻梁热路径 + §4 降级方案 + §5 边界★) + 机器门禁 `MECH/cavity_recalc_check.py` (rc=0 12 项 · `--selftest` 9/9)
+
+    · ★**`MECH/MECH_BUDGET.md`** ★= §1.4.5 正中区旧数 11.8 (已标作废) · §1.7 X-1~X-6 (★硬约束: A_e ≤ 62 mm² · d = 15–20 mm · 腔体 ≤50 °C · 面板结温 ≤60 °C · 被动散热面 ≥0.5 W · 不得密闭腔 · 阈值 0.1234/1500/4000/0.011 rad 一个字不许改★) ·
+    §1.7.1 C-1~C-7 冲突表 · §3 重量表 (★本单不许预扣★)
+
+    · ★**`MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md`** ★= ISS-218 交卷件 (★u8 ∈ {30,33,35,38,40} 五情景 × 表A/表B/表C + k=237 与 k=201 两套值 + 硬指标 R_热路 ≤ 70 K/W★)
+
+    · ★**`MECH/verify_budget.py`** ★= ISS-216 交卷件 (★P_CHARGE 0.50 W buck 口径 + §8 口径自检 C1~C10 + `--selftest` 10/10★)
+
+
+    ★★**★2. 必做① C-6 · 分光件按眼盒 A_e ≤ 62 mm² 放大 (★几何, 结构侧自己能算完★)** ★★
+
+    · ★**现状 (ISS-209 §2.4 已算好, 直接用, 不许重推)**: 光束口径 **2.9 mm** (走鹃Ⅱ 出瞳, 器件已作废) → **8.885 mm** (A_e=62) ⇒ 45° 平板所需对角 **12.57 mm** (宽松式) / **15.39 mm** (严格矩形包含口径) ⇒ ★**现 §1.3 M6 的 14×10×6 平板 (对角 14.14) 差 1.25
+    mm 不够** ⇒ 转向棱镜 8×8×5 **装不下 8.885 mm 光束** ⇒ **需 ≥ 9×9×5** ⇒ 体积 0.79 → **0.97 cc (+0.18)** · 重量 W4 **3–6 g → 3.68–7.36 g (+0.68~+1.36 g)** ★
+
+    · ★**你要出的**: ★**分光件新规格 (平板 + 2 只转向棱镜: 尺寸/材料/镀膜占位) + 重量与体积账 + 与"正中区轴向预算 T = d+3.0 = 18/21/23 mm (d=15/18/20)"的相容性检查 + 与 X-1 眼盒 62 mm² 的一致性检查**★ ⇒ ★**输出必须按 u8 ∈ {30,33,35,38,40} 参数化 (不许只给一个数)** ★ ⇒ ★**不许改
+    §1.3 M6 那一行 (只报不改 ⇒ 由 main 裁)** ★
+
+
+    ★★**★3. 必做② C-7 · 面板 468 mW vs 腔体 50 °C ⇒ 出金属热路方案 (★出候选, 不代拍整机架构★)** ★★
+
+    · ★**现状 (ISS-209 §2.5)**: 正中区腔体节点 **81.20 / 77.43 / 75.24 °C** (d=15/18/20) vs X-3 红线 **50 °C** ⇒ 超 **31.20 / 27.43 / 25.24 °C** ⇒ 保 50 °C 所需被动散热面 **≈ 4668.9 mm²** (u8 未定值 1000 mm² 的 **4.67 倍**) ⇒ ★**加厚只贡献
+    6–12%** ⇒ ★**必须靠金属热路把热导到铰链侧/端件** ★
+
+    · ★**你要出的**: ★**2~3 条可落地的散热出路候选** (★例: 金属热路条 + 导热界面材料 (TIM) + 铰链侧/端件集热面★) ⇒ ★**每条必须给: 所需散热面/截面尺寸 · R_热路 (K/W) · ΔT @0.468 W 与 @0.50 W · 重量代价 (g) · 与 X-3「不得密闭腔 + 散热面 ≥0.5 W」的相容性 · 失败时的降级方案**★ ⇒ ★**必须与
+    ISS-218 的硬指标 R_热路 ≤ 70 K/W 对拍 (同一把尺)**★ ⇒ ★**不许把腔体红线 50 °C / 43 °C / 62 mm² / 判据 0.1234·1500·4000 改松** ★
+
+
+    ★★**★4. 必做③ C-C + X-3 口径修正 (★鼻梁侧热路径★)** ★★
+
+    · ★**现状 (ISS-209 §2.3)**: 鼻梁区热路径 **12.0 mm** · R_bridge **400 K/W** ⇒ 若 SoC 0.55 W + 面板 0.468 W = **1.018 W** 进镜框 ⇒ 鼻梁接触面 **54.33 / 52.75 / 51.83 °C** ⇒ 超 43 °C 红线 **8.83–11.33 °C** ⇒ ★**加厚救不了 (路径长度不变)**
+    ⇒ 保 43 °C 需 R_bridge **≥ 454.8 K/W** (仅面板) / **≥ 1101.2 K/W** (含 SoC) ⇒ ★**结构侧结论: PCB/SoC 不进镜框正中** ★
+
+    · ★**★同时修掉一句"口径本身不成立"的话★**: X-3 写「光学件在镜框, **不进皮肤热路径**」, 但按 468 mW 算 ★**仅面板**就让鼻梁接触面到 **43.89 / 43.16 / 42.74 °C** (d=15/18/20) ⇒ **d=15/18 档已破 43 °C 红线 0.89 / 0.16 °C** ⇒ ★**这句要么加限定语, 要么补热断要求 (R_bridge
+    ≥ 454.8 K/W)** ★ ⇒ ★**你在 §1.7 X-3 那一行加一句"限定语 + 依据", 不许删原句、不许改 50/60/43/0.5 W 任何阈值** ★
+
+
+    ★★**★5. 必做④ k = 237 → 201 的口径统一 (★ISS-218 §④ 明确建议, 本单一起做掉★)** ★★
+
+    · ★**现状**: `MECH/MECH_BUDGET.md` §2.4/§3 与 `MECH/verify_budget.py` 用的铝 6063 **k = 237 W/m·K** 比 **6063-T6 官方 201** (★[官网] ★你自己在厂商官网/官方 datasheet 上查一遍, 把来源 URL 与版本写进规格页, 不许凭记忆★) **乐观 18%** ⇒ 同几何 R **1.641
+    → 1.935 K/W** ⇒ ★**结论方向一条没变 (金属热路仍然必须 · 打印件 1944 K/W 仍然出局) ⇒ 只改口径, 不改结论** ★
+
+    · ★**你要改的**: ★**`MECH/MECH_BUDGET.md` 里 k=237 的那几行 → 201 (并注明来源 [官网]) + `MECH/verify_budget.py` 的常数同步 + `MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md` 的"项目内口径"表述同步 + 一条"不许漂回 237"的口径自检** ★ ⇒ ★**不许顺手改任何结论数字
+    (阈值/重量/温度/体积 一个都不许动)** ★
+
+
+    ★★**★6. 机器门禁 (★要能自动复核, 不许只写文档★)** ★★
+
+    · ★**扩 `MECH/cavity_recalc_check.py`** (★只增不改: 既有 12 项 + `--selftest` 9 条一条不许删★) ⇒ ★**加 5 项判据: ① C-6 分光件新规格 vs 光束口径 8.885 相容 ② C-7 散热出路候选的 R_热路 / ΔT / 散热面对拍 (含 k=201) ③ 鼻梁 R_bridge 反解值 (454.8 / 1101.2)
+    对拍 ④ X-3 限定语在位 ⑤ k=201 口径不许漂回 237** ★ ⇒ ★**`--selftest` 每个新增判据都要有反向用例 (自己改坏必须变红)** ★
+
+    · ★**既有基线必须仍全绿 (★本单不许把它们弄红★)**: `MECH/verify_budget.py` rc=0 + `--selftest` 10/10 · `MECH/check_demo_struct_truth.py` rc=0 20/20 · `MECH/print/verify_pack.py` rc=0 46/46 · `MECH/print/verify_pack_revb.py`
+    rc=0 + `--selftest` 8/8 · `MECH/hw_cross_review_check.py` rc=0 · ★**受保护脚本 md5 逐字节不变** ★
+
+
+    ★★**★7. 交付物 (★就这四件, 不许多写, 不许改别人的地界★)** ★★
+
+    · ★**新建** `MECH/CENTER_CAVITY_REBALANCE_V2.md` ★= 第 2 轮重排 (★C-6 分光件规格 + C-7 散热出路 2~3 条 + C-C/X-3 处置 + k=201 口径订正 + 参数化表 (u8 五情景) + 降级方案 + 边界★)
+
+    · 扩 `MECH/cavity_recalc_check.py` ★= 上面 5 项判据 + 反向用例
+
+    · ★**新建** `HANDOFF/2026-11-16_mech-lead_ISS219_正中区第2轮重排与k口径.md` ★= B1~B6 齐全 (≤25 行)
+
+    · `state/fragments/mech.yaml` ★= ★**走 `python3 state/frag_write.py` 原子写** (★禁止 `open(p,"w")`★): +artifacts +claims (★只增不改既有 key 的值★) +needs (★已登记的 C-6/C-7/C-C/X-3 四条 need 各写一条 answer 闭环, 仍未决的另开 need
+    给 main★)
+
+
+    ★★**★8. 验收命令 (★交卷前自己实跑, 原样贴进交卷★)** ★★
+
+    ```
+
+    python3 MECH/cavity_recalc_check.py                # rc=0 (既有 12 + 新增全过)
+
+    python3 MECH/cavity_recalc_check.py --selftest      # rc=0 (既有 9 条不许删 + 新增反向全抓到)
+
+    python3 MECH/verify_budget.py                       # rc=0
+
+    python3 MECH/verify_budget.py --selftest            # rc=0 (10/10)
+
+    python3 MECH/check_demo_struct_truth.py             # rc=0 (20/20)
+
+    python3 MECH/print/verify_pack.py                   # rc=0
+
+    python3 MECH/print/verify_pack_revb.py              # rc=0
+
+    python3 MECH/print/verify_pack_revb.py --selftest   # rc=0 (8/8)
+
+    python3 MECH/hw_cross_review_check.py               # rc=0
+
+    python3 state/merge.py                              # rc=0
+
+    python3 state/gate_check.py                         # rc=0, 【Q1】18/18
+
+    md5sum MECH/hinge_usb_check.py MECH/service_port_check.py MECH/hw_cross_review_check.py MECH/display_biosafety_v2_check.py HW/netlist_v1.csv HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro
+
+    ```
+
+    ★**受保护 md5 期望值 (★必须逐字节一致, ★以你开工前自己跑出来的为准, 并把开工前/交卷后两个值都贴出来★)**:
+
+    · ★`MECH/hinge_usb_check.py` ★**`3425bc141508de8a35f34c7cf7b803e8`**
+
+    · ★`MECH/service_port_check.py` ★**`9b24bf985764880f0105aee677fba6a8`**
+
+    · ★`MECH/hw_cross_review_check.py` ★**`e521387b87b0fcdf9f22d56f14199967`**
+
+    · ★`MECH/display_biosafety_v2_check.py` ★**`29c77fc3fc823048b1d96c9500d28dd7`**
+
+    · ★`HW/netlist_v1.csv` ★**`c78f991283cc82d56c8e3dd31657c785`**
+
+    · ★`HW/PCB/demo_mainboard.kicad_pcb` ★**`611b869e13518c3c023fb178f91a0075`**
+
+    · ★`HW/PCB/demo_mainboard.kicad_pro` ★**`3e504d2be83152e337949723e909be1b`**
+
+
+    ★★**★9. 边界 (★违反一条即交卷无效★)** ★★
+
+    · ★**不许改**: `HW/` 下任何文件 (网表/脚表/BOM/板/`.kicad_pro`/SPEC.json/CHARGE_BOARD_SPEC/EMC_PRECHECK) · 任何 `state/gen_*.py` · `state/issue_log.yaml` · `PROJECT_TRACKER.md` §0 · `state/outbox/` · `SW/` 任何文件 ·
+    任何别的总工的分片 · ★**4 个受保护 check 脚本** (hinge_usb_check / service_port_check / hw_cross_review_check / display_biosafety_v2_check)
+
+    · ★**不许碰 PCB 布线 / 布局 / 板框** (★老板 2026-11-11 10:07 口径★)
+
+    · ★**不许改判据阈值**: 50 °C / 60 °C / 43 °C / 62 mm² / 0.60 / 0.1234 / 1500 / 4000 / 0.011 rad / R_热路 ≤ 70 K/W 一个都不许动
+
+    · ★**不许预扣 §3 现有重量** (u8 未定 ⇒ 只出参数化模板, 不改现有重量数)
+
+    · ★**不许替老板拍**: u8 端件截面 / 整机屏路线 / 波导归属 / FOV / 板长方案取舍 / 充电板是否留 / 整机形态
+
+    · ★**零外发**: 不许发任何邮件 / 询价 / 问询 / 采购 (★老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ⇒ ★**凡要查资料 ⇒ 自己在厂商官网/官方 datasheet 上查 + 标证据等级 ([官网]/[实测]/[媒体]/[推算]/[0数据]) + 查不到必须写降级方案 ⇒ 没有"批一句可以发"这个选项★**
+
+    · ★**本单实物 [实测] = 0 条** (板/样件不在本机) ⇒ 标 [实测] 的一律是"本机脚本/本机文件实读", 不是"实物测过"
+
+    · ★**不许自己改 issue_log 状态** (★verify_by=main, 干活的人不许自签★)'
+  dispatched_at: '2026-11-16'
+  fixed_at: '2026-11-16'
+- id: ISS-220
+  title: ★★★[主线内·原理图/网表侧·内部活] 【整链重出 第 2 步 · 原理图侧落表执行】把 ISS-217 作业包 28 条里「不依赖 6 条待裁 V-1~V-6」的条目真的落进真源 (SPEC.json / gen_netlist.py / gen_schematic_pages.py / CHARGE_BOARD_SPEC.md 等) + 重生成网表/脚表 + 让机器门禁的「未落表条数」实打实下降
+    (50 → N) + 逐条标出哪些条目落表后需要板侧同步 (★允许改真源 = 这是主线核心★ · 不许碰板/PCB 布线布局 · 不许代拍 V-1~V-6)
+  severity: high
+  source_blocker: ISS-217
+  desc: '★**ISS-211 → ISS-214 → ISS-217 三轮已经把「网表/规格自己跟自己打架」定成了 28 条机器可判的作业条目** (★作业包 `HW/SCHEMATIC_LANDING_WORKPACKET_V1.md`, 154 KB, 11:57 落盘; 门禁已扩到「作业包漏一条就红 + 三方对齐 + R9 阈值 3.0mm」, 自检 19/19★) ⇒ ★**规格这一侧已经到头了**
+    (再写第 4 轮规格只是加页) ⇒ ★**老板 2026-11-11 10:07 主线「先解决原理图绘制的问题」要的下一步是【落表】, 不是再写规格** ★ ★**本单是作业包的下一步 = 执行那一趟**: 逐条按 ④栏(真修法在哪个真源) / ⑤栏(改成什么字面值) / ⑥栏(改完跑哪条命令) / ⑦栏(翻面判据 R#) 落表 ★ ★**依赖 6 条待裁 (V-1~V-6) 的条目一律标 BLOCKED
+    不落** (★V-4 R_ILIM 档位已是 `DECISION_PENDING_2026-11-16.md` §3 的老板待拍项, 其余 V-1/V-2/V-3/V-5/V-6 是 main/老板级裁决 ⇒ ★**本单不许代拍**, 也不许把整机路线占位区里的数当 demo 真值★) ★ ★**落表若触发板侧同步需求 (位号/封装/网络改动) ⇒ 只报告条数与行号, 由 main 另派 PCB
+    单 (老板 10:07 口径: PCB 布线/布局类一律不派)★ ★ ★**零外发** (★老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ⇒ 缺口一律【自己网上查】+ 标证据等级 + 查不到就写降级方案 ★'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: fixed
+  external: false
+  need_keys: []
+  fix_ref: HANDOFF/2026-11-16_hw-lead_ISS220_落表第1批.md
+  verify_by: main
+  verify_result: "★main 独立复核 (★2026-11-16 04:1x, 只看盘上实物 + 自己跑门禁 + 自己 md5 + 自己查分片★):\n  · HW/check_netlist_selfconsistency.py → rc=0 (★现状守卫 + 作业包完整性 28 条 + 三方对齐 全过★)\n  · HW/check_netlist_selfconsistency.py\
+    \ --selftest → rc=0 (★自检 19/19 通过 ⇒ 门禁不是假绿★)\n  · HW/check_netlist_selfconsistency.py --expect-resolved → rc=1 (★「未落表条数 50 → 29」= 落表实效, rc=1 是预期★)\n  · state/check_netlist.py → rc=0 · state/check_netlist_pins.py\
+    \ → rc=0 · state/check_sch_erc.py → rc=0\n  · 交付物在盘: HW/SCHEMATIC_LANDING_V1_LANDED.md (48572 B, 02:37) · HANDOFF/2026-11-16_hw-lead_ISS220_落表第1批.md (24176 B, 02:39)\n  · ★**板 md5 `611b869e13518c3c023fb178f91a0075`\
+    \ + `.kicad_pro` `3e504d2be83152e337949723e909be1b` 逐字节未变** (★板一个字节没碰★)\n  · 网表 md5 `c78f9912…` → `13f59a43…` / 脚表 `4814617e…` → `a600afae…` ⇒ ★**落表本职工作, 允许★**\n  · ★**EXPECT 锚点 154 → 160 (+6 条正向锚点,\
+    \ 一条未减) + R1~R11 判据代码一个字没改** ⇒ ★**「不许靠删条目/改判据凑绿」这条守住了** ★\n★**main 已复核的关键结论**: ① 6 组真源改动真落进盘 (d1 / d6 / d10 方向修正 / d11+#5 / #1 字段基建 / #7+#8) ② 其余 22 条全部 BLOCKED 并写明卡在 V-1~V-6 或「板只改一次」那一趟 ③ 6 条 V-x 一条没代拍\
+    \ ★\n★★★**但本单只落 `fixed` 不落 `verified` —— 理由 = 交付物 ④ (分片) 实测【没落盘】**: ★**`state/fragments/hw.yaml` mtime = 2026-11-16 01:59:34 (早于 02:1x 派活) ⇒ 一次都没被写过** ★\n  · ★**交卷单 A4 行自称「通过 · 分片用 `state/frag_write.py`\
+    \ 的 `update_fragment()` 写的」与盘上不符** ★\n  · ★**hw.yaml 里 `iss220` 命中 0 条** (★交卷单自报的 3 个 key: `iss220_chgboard_white_list_scope` / `iss220_i2ca_pullup_domain_1v8` / `iss220_ichg_ratio_true_value` 一个都不在盘上★)\
+    \ ⇒ ★**3 条跨模块口径声明没进台账 ⇒ merge/gate 看不到它们** ★\n  · ★**`state/.lastgood/hw.yaml` 同样 0 条 ⇒ 不是被 merge 覆盖, 是从来没写过** ★\n⇒ ★**记账缺口转 ISS-223 交付物 ① (补落这 3 条) ⇒ 本单落表工作本身 main 复核通过, 分片补齐后由 main 再落 `verified`**\
+    \ ★"
+  verify_date: 2026-11-16 04:1x
+  note: '2026-11-16 02:2x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-217 交卷件自己的第一行「这是【作业包】, 不是执行记录 ⇒ 网表/脚表/板/生成器一个字节都没改」** ⇒ ★**规格侧三轮 (ISS-211/ISS-214/ISS-217) 已到头 ⇒ 主线 (老板 2026-11-11 10:07「先解决原理图绘制的问题」) 要的下一步是【落表】**
+    ★
+
+    ★**依据 = ISS-217 交卷里的 6 条待裁 V-1~V-6 一条没代拍** ⇒ ★**本单只落「不依赖这 6 条」的条目, 依赖的一律 BLOCKED** (★V-4 R_ILIM 档位已在 `DECISION_PENDING_2026-11-16.md` §3 作为老板待拍项★) ★
+
+    ★**依据 = ISS-215 交卷查清「demo 的 60ms 预算全是整机脚本减出来的」(2-lane vs 4-lane 常量不适用)** ⇒ ★**落表必须钉住「不许拿整机常量扣 demo 账」** ★
+
+    ★**本单属原理图主线内部活, 不碰 PCB 布线/布局/板框 (老板 10:07 口径) ⇒ 可派** ★
+
+    ★**hw-lead 名额的上一条 ISS-217 已于本轮 02:2x 落 verified ⇒ 名额空出来 ⇒ 本单是第 5 轮** ★
+
+    ★**2026-11-16 04:1x 落 `fixed` (不是 verified)**: 子会话 status=done @02:42:17 ⇒ ★**main 不采信状态位, 只看盘上实物 + 自己跑门禁 + 自己 md5 + 自己查分片** ⇒ ★**落表工作本身 (交付物 ①②③⑤ + 交接单) main 复核通过** ⇒ ★**唯交付物 ④ (分片) 实测没落盘** (★hw.yaml
+    mtime 01:59:34 · `iss220` 命中 0 条 · .lastgood 同样 0 条★) ⇒ ★**缺口转 ISS-223 交付物 ① (补落 3 条分片声明) ⇒ 补齐后由 main 再落 `verified`** ★
+
+    ★**边界**: 不改 §0 锁死表 · 不写任何子总工的分片 (★补分片由 hw-lead 自己做★) · 不发信 · 网表/脚表/板/原理图/BOM 一个字节未动 ★'
+  task_brief: '★★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 把 ★**ISS-217 交卷的作业包 `HW/SCHEMATIC_LANDING_WORKPACKET_V1.md` 里「不依赖 6 条待裁 V-1~V-6」的作业条目, 真的落进真源文件**★ ⇒ 出 ★**(1) 一份逐条落表记录 (改哪个真源的哪一行 · 改前/改后字面值 · 落表后跑的命令与输出行
+    · 未落的写明 BLOCKED 于哪条 V-x) · (2) 真源改动 + 重生成网表/脚表 · (3) 机器门禁「未落表条数」的前后对比 · (4) 一份交接单**★ ⇒ ★**本单允许改真源 (这是主线核心, 与前三轮「只出规格不许改网表」不同)**, 但 ★**不许碰板 / PCB 布线 / 布局 / 板框**★ ⇒ ★**零外发** ★
+
+
+    ★★**为什么是现在 (★main 2026-11-16 02:2x 实测, 不是推测★)** ★★
+
+    · ★**ISS-217 (11-16 01:57 交卷, 本 job 02:2x 已落 verified) 把 12 组「网表/规格自相矛盾」定成了 28 条机器可判的作业条目** (作业包 154 KB · 28 条 × 8 栏齐 · 门禁扩项后自检 19/19 · `--expect-resolved` 现状 rc=1 报「50 条未落表」) ★
+
+    · ★**那份文件自己第一行就写明「这是【作业包】, 不是执行记录 ⇒ 网表 / 脚表 / BOM / 板 / 生成器 一个字节都没改」** ★
+
+    · ⇒ ★**规格侧三轮 (ISS-211 / ISS-214 / ISS-217) 已经做到头了 ⇒ 第 4 轮规格只是加页** ★
+
+    · ⇒ ★**老板 2026-11-11 10:07 主线 = 「先解决原理图绘制的问题, 再解决 PCB 绘制的问题」⇒ 这一步必须是【落表】** ★
+
+    · ⇒ ★**本单是三个总工名额里唯一能直接推进主线的一条 (sw-lead 那条是软件时序侧, mech-lead 那条是结构侧)** ★
+
+
+    ★★**交付物 (4 件, 少一件即无效) ★★
+
+    ① ★**落表记录 `HW/SCHEMATIC_LANDING_V1_LANDED.md`** ★ ⇒ 逐条 (作业包条目号 d1..d11 / 附带 #1..#8 / 补差 A/B/C → 改了哪个真源文件的哪一行 → 改前/改后字面值 → 落表后跑的命令与输出行 → 证据等级) ⇒ ★**未落的条目必须写明「BLOCKED 于 V-x」并给出它需要谁拍** ⇒ ★**不许留「待定」** ★
+
+    ② ★**真源改动 + 重生成** ⇒ 只许改作业包 ④ 栏点名的真源 (`HW/SCHEMATIC_V1_SPEC.json` / `state/gen_netlist.py` / `state/gen_schematic_pages.py` / `HW/CHARGE_BOARD_SPEC.md` / 作业包 ④ 栏点名的其他文件) ⇒ 改完用 `python3 state/gen_netlist.py`
+    重生成网表/脚表 ⇒ ★**不许手工编辑生成产物 (CSV)★** ★
+
+    ③ ★**机器门禁前后对比** ⇒ 把 `python3 HW/check_netlist_selfconsistency.py --expect-resolved` 的输出**改前/改后两次都贴出来** (★重点是「未落表条数」从 50 降到多少★) ⇒ ★**落表不许靠删条目/改判据达成 ⇒ 门禁的 EXPECT 锚点组 d1..d11 一个不许减** ★
+
+    ④ ★**交接单 `HANDOFF/2026-11-16_hw-lead_ISS220_落表第1批.md`** (★B1~B6 六块齐全★) + ★**分片 `state/fragments/hw.yaml` (★必须走 `python3 state/frag_write.py` 原子写★)** ★
+
+    ⑤ ★**落表后需要板侧同步的清单** ⇒ 逐条列 (条目号 / 需要改板上的什么 / 行号) ⇒ ★**只报告, 不许改板** ★
+
+
+    ★★**边界 (★违反一条即本单无效★) ★★
+
+    · ★**不许改** `HW/PCB/demo_mainboard.kicad_pcb` / `HW/PCB/demo_mainboard.kicad_pro` / ★**不许碰 PCB 布线 / 布局 / 板框** (★老板 2026-11-11 10:07 口径★) ★
+
+    · ★**不许代拍 V-1~V-6** ⇒ 依赖它们的条目一律标 BLOCKED ⇒ ★**V-4 (R_ILIM 档位) 已在 `DECISION_PENDING_2026-11-16.md` §3 是老板待拍项** ★
+
+    · ★**不许改** `MECH/` 下任何文件 / `SW/` 下任何文件 / `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / `state/outbox/` / 别人的分片 / `MECH/hinge_usb_check.py` / `MECH/service_port_check.py` / `MECH/hw_cross_review_check.py`
+    / `MECH/display_biosafety_v2_check.py` ★
+
+    · ★**开工前先给每个要改的真源文件留一份 `.bak_iss220` 副本** (★便于回滚★) ⇒ 交卷时贴出每个真源文件的 md5 前/后对照 ★
+
+    · ★**不许改判据阈值** (★门禁的 EXPECT / R1~R11 判据 / 现有阈值一律不许为了让门禁变绿而放松★) ★
+
+    · ★**零外发** (★不发邮件 / 询价 / 问询 / 采购 / 原厂问询★) ⇒ 缺口一律【自己网上查】+ 标 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` + ★**查不到必须写降级方案** ★
+
+    · ★**本单实物 [实测] = 0 条** (板不在本机) ⇒ 标 [实测] 的只允许是「本机脚本 / 本机文件实读」 ★
+
+    · ★**不许自签 issue_log** (★status 留给 main 落 verified★) ★
+
+
+    ★★**交卷前必须实跑并把输出原样贴进回复 (★命令都已实测存在★) ★★
+
+    ```
+
+    python3 HW/check_netlist_selfconsistency.py                    # rc=0 (现状守卫 + 作业包完整性 + 三方对齐)
+
+    python3 HW/check_netlist_selfconsistency.py --selftest          # rc=0 (反向用例全抓到, 19/19 或更多)
+
+    python3 HW/check_netlist_selfconsistency.py --expect-resolved   # ★rc=1 是预期 (还有 BLOCKED 条目) ⇒ 必须贴「未落表条数」的前后对比
+
+    python3 state/check_netlist.py                                  # rc=0 (全过)
+
+    python3 state/check_netlist_pins.py                             # rc=0 (每个针脚归属唯一)
+
+    python3 state/check_sch_erc.py                                  # rc=0 (ERC 违规数 = 0)
+
+    python3 state/merge.py && python3 state/gate_check.py           # rc=0 且 【Q1 交付齐备率】 18/18
+
+    ```
+
+    ★**落表若导致上面某条门禁变红 ⇒ 不许放松门禁, 也不许回退已落表的条目来凑绿 ⇒ 交卷报红并说明原因 (★main 复核)**★'
+  dispatched_at: '2026-11-16'
+  fixed_at: '2026-11-16'
+- id: ISS-221
+  title: ★★[主线内·软件/时序侧·内部活] demo 屏 (2-lane@480×640) 自己的 60ms 预算真源脚本 `SW/tools/demo_e2e_budget.py` + 把 demo 判据链的数字从「整机脚本减出来的」换成「demo 真源算出来的」 + 机器断言 (判据链不许再引用整机 4-lane 常量) + 收口 SW/RKNN_BENCH.md 的 S9 注记分叉
+    (不改 HW·不改任何板端实测数字)
+  severity: high
+  source_blocker: ISS-215
+  desc: '★**ISS-212 已把 demo 屏规格钉死 (480×640 / 2-lane / 无 DCS / I2C_B ≤ 100 kHz)**, ★**ISS-215 (11-16 01:5x 交卷, 本 job 02:2x 已落 verified) 把显示侧口径重锚到 demo**, 并查清两件事: ① ★**10.09 ms 是「显示输出侧总额上限」, 与分辨率无关** (依据
+    `HW/e2e_budget_rk3572.py` 的 `T_FIXED_OTHER = 31.00 # 与显示分辨率无关的部分` + `display_out_max_for()`) ② ★**判据被算严的根因只有一处 = 用整机的 TX 下限 7.776 去扣 demo 的预算 (倍率 3.36×)**, 与 ISS-212 Q-5「余量 2.32→7.79」逐位吻合 ★ ★**但 demo
+    那侧至今没有一个自己的预算真源**: 整机那本 `HW/e2e_budget_rk3572.py` 的 DSI 带宽常量是 **4-lane @ 2.0 Gbps × 80%**, 对 2-lane 的 demo 屏不适用 ⇒ ⇒ 现在 demo 的每一个预算数都是「整机脚本减出来的」⇒ ★**同一个坑会被再咬一次** (换屏/改分辨率/改 lane 数时, 没人拦得住) ⇒ 本单把 demo
+    预算真源补上 ★ ★**外加 ISS-215 交卷点名的遗留分叉**: `SW/RKNN_BENCH.md` §4.1 L273 的 S9 注记仍是整机原文, 与 `SW/tools/rknn_bench.py` L258 的 demo 口径注记分叉 (★S9 = 3.0 这个数值两边都没动, 只是措辞分叉★) ★ ★**零外发** (★老板 2026-11-11 19:31 + 2026-11-12
+    02:02: 不再发信, 全靠自己查资料★)'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: verified
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: main
+  verify_result: '★main 2026-11-16 04:07 自测验收 (非抄交卷报告)★
+
+    · 交付物: ①SW/tools/demo_e2e_budget.py (新建) ②SW/DEMO_OD_TIMING_SPEC.md + SW/DEMO_BOARD_60MS_VERDICT_PLAN.md ③SW/tools/demo_timing_check.py (v1.2, 扩项 17 条断言) ④HANDOFF/2026-11-16_sw-lead_ISS221_demo预算真源.md
+    (B1~B6) ⑤SW/RKNN_BENCH.md §4.1 L273 S9 注记 (md5 ed080fa0→46ac25e1 实测一致, S9=3.0 逐字节未动) ⇒ ★5/5 在盘★
+
+    · 门禁实跑: demo_e2e_budget.py rc=0 / --selftest rc=0 (9 反向用例+源码污染全红) / demo_timing_check.py rc=0 / --selftest rc=0 (ISS-221 反例12~15 全抓到) / check_demo_panel_spec.py --selftest rc=0 (8/8) ⇒ ★5 项绿★
+
+    · ★唯一红项 = `python3 SW/tools/check_demo_panel_spec.py` (无参) rc=1, R6 两行 (网表 c78f9912→13f59a43 / 脚表 4814617e→a600afae) ⇒ ★根因 = ISS-220 (hw-lead) 2026-11-16 02:32 落表第1批, 锚点过期★ ⇒ ★**该脚本 mtime 2026-11-15
+    23:59 早于落表 ⇒ 脚本没被碰过 ⇒ 【锚点过期】不是【红灯被调没】★ ⇒ ★**红的不是 sw-lead 的锅 ⇒ 转 ISS-225 (sw-lead 自己收口)★
+
+    · 分片: state/fragments/sw.yaml mtime 03:57, artifacts 含 demo_e2e_budget.py / demo_timing_check.py(v1.2) / HANDOFF ISS221 / RKNN_BENCH.md ⇒ ★分片真落盘★ ⇒ ★**落 verified, 但 R6 那条红已转 ISS-225 继续追, 不算本单欠账★'
+  verify_date: '2026-11-16'
+  note: '2026-11-16 02:2x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-215 交卷里 need「demo 口径 (2-lane@480×640) 目前没有对应的预算脚本 —— 整机那本 `HW/e2e_budget_rk3572.py` 的 DSI 带宽常量是 4-lane@2.0Gbps×80%, 对 2-lane demo 屏不适用」** ⇒
+    ★**这是软件/时序侧的真源缺口, 不是文档缺口** ⇒ 本单建 demo 预算真源 + 机器断言「判据链不许再引用整机常量」 ★
+
+    ★**依据 = ISS-215 交卷的遗留分叉**: `SW/RKNN_BENCH.md` §4.1 L273 的 S9 注记仍是整机原文 ⇒ 本单一并收口 (★只许改那一行注记, S9 = 3.0 数值不许动★) ★
+
+    ★**本单属软件/时序侧内部活, 不碰 PCB 布线/布局, 不碰 HW/★ ⇒ 可派** ★
+
+    ★**sw-lead 名额的上一条 ISS-215 已于本轮 02:2x 落 verified ⇒ 名额空出来 ⇒ 本单是第 6 轮** ★
+
+    ★**2026-11-16 04:1x 本 job 实查**: 子会话 `agent:sw-lead:subagent:6da17eee` → **status=timeout @02:28:20** (★死了★) ⇒ 盘上**半成品**: `SW/tools/demo_e2e_budget.py` (33823 B, 02:22) + `SW/tools/demo_timing_check.py`
+    (02:26 已改) ⇒ ★**交接单缺 + `state/fragments/sw.yaml` mtime 01:58 (没写) ⇒ 未交卷** ⇒ ★**本 job 已把同一单重新派给 sw-lead (续做, taskName=advance_iss221_resume), status 仍 `fixing` ⇒ 不是新单, 是续做** ★
+
+    2026-11-16 04:07 (cron fb67af40 队列自动派活) ★main 实测验收 ⇒ 落 verified★ ⇒ ★同时清掉僵尸 fixing (会话 done@03:59 但状态卡在 fixing ⇒ 占着 sw-lead 名额)★ ⇒ ★R6 恒红那条不是本单造成 ⇒ 转 ISS-225★'
+  task_brief: '★★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 给 demo 屏 (★2-lane @ 480×640★) 建 ★**它自己的 60 ms 预算真源脚本**★, 并把 demo 判据链引用的数字 ★**从「整机脚本减出来的」换成「demo 真源算出来的」**★ ⇒ 出 ★**(1) 一份 demo 预算脚本 (含反向自检) · (2) 两份规格文件里的
+    demo 数字换成脚本输出 · (3) 一个机器断言「demo 判据链不许再引用整机 4-lane 常量」 · (4) 一份交接单**★ ⇒ ★**本单不许改 `HW/` 下任何文件**★ ⇒ ★**零外发** ★
+
+
+    ★★**为什么是现在 (★main 2026-11-16 02:2x 实测, 不是推测★)** ★★
+
+    · ★**ISS-215 (11-16 01:5x 交卷, 本 job 02:2x 已落 verified) 交卷里明写: 「demo 口径 (2-lane @480×640) 目前没有对应的预算脚本 —— 整机那本 `HW/e2e_budget_rk3572.py` 的 DSI 带宽常量是 4-lane@2.0Gbps×80%, 对 2-lane demo 屏不适用」⇒ ★**已登记 need
+    给 main** ★
+
+    · ★**ISS-215 同时查清**: 10.09 ms 是「输出侧总额上限」(与分辨率无关), 根因是「用整机 TX 下限 7.776 去扣 demo 预算」(倍率 3.36×) ⇒ ★**现在 demo 的账是从整机账减出来的** ★
+
+    · ⇒ ★**换屏 / 改分辨率 / 改 lane 数时, 没有人拦得住「又拿整机常量扣 demo 预算」** ⇒ ★**所以这一步是补真源, 不是补文档** ★
+
+    · ⇒ ★**本单是三个总工名额里唯一能推进 demo 板 60ms 生死判定链的软件侧一条** ★
+
+
+    ★★**交付物 (4 件, 少一件即无效) ★★
+
+    ① ★**`SW/tools/demo_e2e_budget.py`** (★新建★) ⇒ 输入 demo 屏参数 (宽/高/通道数/lane 数/lane 速率/每帧 payload/post 固定开销) ⇒ 输出 ★**TX 下限 / compose 上限 / 显示输出侧上限 / 全链路 60ms 预算余量**★ ⇒ ★**口径必须写清: 哪些是整机同源常量 (★如 `T_FIXED_OTHER`★),
+    哪些是 demo 专属 (★lane 数 / 分辨率 / payload★)★ ⇒ ★**必须带 `--selftest` 反向用例 (改坏必红)★** ⇒ ★**不许把整机的 4-lane 常量写死进本脚本冒充 demo 真源** ★
+
+    ② ★**`SW/DEMO_OD_TIMING_SPEC.md` + `SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` 里的 demo 数字换成脚本输出** ⇒ ★**不许硬抄数字, 必须能追到脚本** ⇒ ★**整机路线占位区的数一个不许删 (ISS-212 L-08/L-16 的规矩: 行级豁免标记 + 块级分区标记, 两套机制不变)★ ★
+
+    ③ ★**机器门禁扩项**: `SW/tools/demo_timing_check.py` 加断言 (★demo 判据链引用的数字 == demo 预算脚本输出, 且不许出现「整机 4-lane DSI 带宽常量」这类引用★) + 反向用例 ⇒ ★**改坏必红** ★
+
+    ④ ★**交接单 `HANDOFF/2026-11-16_sw-lead_ISS221_demo预算真源.md`** (★B1~B6 六块齐全★) + ★**分片 `state/fragments/sw.yaml` (★必须走 `python3 state/frag_write.py` 原子写★)** ★
+
+    ⑤ ★**收口 ISS-215 的遗留分叉**: `SW/RKNN_BENCH.md` §4.1 L273 的 S9 注记 (★本单允许改这个文件, 但★**★只许改那一行注记, S9 = 3.0 这个数值和周边所有数字一个不许动**★) ⇒ ★**改完 md5 前后对照贴出来** ★
+
+
+    ★★**边界 (★违反一条即本单无效★) ★★
+
+    · ★**不许改** `HW/` 下任何文件 (★`HW/e2e_budget_rk3572.py` 只许只读引用, 一个字节不许动★) ★
+
+    · ★**不许改** `SW/DEMO_OD_PIPELINE_SPEC.md` / `SW/RKNN_BENCH.md` 里除 §4.1 L273 那一行注记以外的任何内容 / `SW/tools/rknn_bench.py` 除必要的注记外不许改 (★S9 = 3.0 逐字节不许动★) ★
+
+    · ★**不许改** `MECH/` 下任何文件 / `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / `state/outbox/` / 别人的分片 ★
+
+    · ★**板端 [实测] = 0 条** (★板与屏不在本机 ⇒ 全部预算数一律标 `[推算]`★) ⇒ 标 [实测] 的只允许是「本机脚本 / 本机文件实读」 ★
+
+    · ★**不许编造板端时延数字** ⇒ ★**不许把整机 1080p 的数当 demo 的数写进任何文件** ★
+
+    · ★**零外发** (★不发邮件 / 询价 / 问询 / 采购★) ⇒ 缺口一律【自己网上查】+ 标证据等级 + ★**查不到必须写降级方案** ★
+
+    · ★**不许自签 issue_log** (★status 留给 main 落 verified★) ★
+
+
+    ★★**交卷前必须实跑并把输出原样贴进回复 (★命令都已实测存在★) ★★
+
+    ```
+
+    python3 SW/tools/demo_e2e_budget.py                # rc=0 (新建★)
+
+    python3 SW/tools/demo_e2e_budget.py --selftest     # rc=0 (反向用例全抓到)
+
+    python3 SW/tools/demo_timing_check.py               # rc=0 (含本单新增断言)
+
+    python3 SW/tools/demo_timing_check.py --selftest    # rc=0 (ISS-215 那 5 条反向用例不许被改红)
+
+    python3 SW/tools/check_demo_panel_spec.py          # rc=0 (ISS-212 门禁不许被改红)
+
+    python3 SW/tools/check_demo_panel_spec.py --selftest # rc=0
+
+    python3 state/merge.py && python3 state/gate_check.py # rc=0 且 【Q1 交付齐备率】 18/18
+
+    ```'
+  dispatched_at: '2026-11-16'
+- id: ISS-222
+  title: '★★[主线内·结构侧·内部活] ISS-219 的 C-6 / C-7 / C-8 三条「只报不改」落进结构真源: C-6 分光件 11×11×1.5 + 2×9×9×5 (0.9697cc / W4 3.68-7.36g) 替换旧 M6 14×10×6 + C-8 t_s=6.0 与 45° 平板竖向投影不自洽 ⇒ 自己实算 t_s 并重算三档 T=18/21/23 + C-7
+    集热面 3600mm² 可行性自己实算 + 机器门禁扩项 (不改 HW·不碰 PCB 布线布局·不预扣 §3 重量)'
+  severity: high
+  source_blocker: ISS-219
+  desc: '★**ISS-219 (11-16 02:0x 交卷, 本 job 02:2x 已落 verified) 交卷里那三条「只报不改、已登记 need 给 main」的冲突至今只停在「只报」状态** ⇒ 本单把它们落进结构真源 ★
+
+    · ★**C-6**: 分光件按 A_e ≤ 62 mm² 眼盒口径放大 (★平板 11×11×1.5 · 对角 15.56 ≥ 严格口径 15.39; 转向棱镜 2× 9×9×5 —— 8×8×5 装不下 8.885 光束★) / 体积 0.79 → 0.9697 cc / W4 3-6 → 3.68-7.36 g / FOV 折减 2.63% ⇒ ★**要替换 `MECH/MECH_BUDGET.md`
+    §1.3 M6 的旧行 (14×10×6 / 0.79cc / 3-6g)** ★
+
+    · ★**C-8 (ISS-219 自己查出的新冲突)**: `t_s=6.0` 取自 §1.3 M6 包络第三维, 但 45° 平板必须覆盖整个光束直径 ⇒ 竖向投影 ≥ 光束直径 ⇒ ★**修正后三档 T=18/21/23 全废** ⇒ ★**结构侧自己实算 t_s 并重算三档** ★
+
+    · ★**C-7**: 面板 468 mW vs 腔体 50 °C 红线 ⇒ 结论已翻转为「瓶颈是集热面面积」 (d=15 需 ≈2628 mm² vs 端件 600-800 mm²) ⇒ ★**唯一前置「镜框上沿可外露 3600 mm² 能不能做到」结构侧自己能算** (★波导压框 / 摄像头 / 装饰件占位★) ⇒ ★**做不到就给降级路径的量化对照** ★
+
+    ★**本单不许改 `HW/` 下任何文件 / 不许碰 PCB 布线布局 / 不许改判据阈值 / 不许预扣 §3 现有重量 (端件金属化质量待 u8)** ⇒ ★**零外发** (★老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ★'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: verified
+  external: false
+  need_keys: []
+  fix_ref: HANDOFF/2026-11-16_mech-lead_ISS222_C6C7C8落地.md
+  verify_by: main
+  verify_result: "★main 独立复核通过 (★2026-11-16 04:1x, 只看盘上实物 + 自己跑门禁 + 自己 md5 + 自己查分片★):\n  · MECH/cavity_recalc_check.py → rc=0 (★20/20★ · 含 C18/C19/C20 三条新增断言全绿)\n  · MECH/cavity_recalc_check.py --selftest\
+    \ → rc=0 (★18/18 反向用例全抓到 ⇒ 门禁不是假绿★)\n  · MECH/verify_budget.py → rc=0 (★53/53 项与文档一致 + 口径自检 12/12★ · 充电耗散仍 = buck 口径, 阈值一个没松)\n  · MECH/verify_budget.py --selftest → rc=0 (11/11 反向用例全抓到)\n  · MECH/print/verify_pack.py\
+    \ → rc=0 (46/46) · MECH/print/verify_pack_revb.py → rc=0\n  · 交付物在盘: MECH/CENTER_CAVITY_REBALANCE_V3.md (29614 B, 02:34) · HANDOFF/2026-11-16_mech-lead_ISS222_C6C7C8落地.md (22247 B, 02:37) · ★**`state/fragments/mech.yaml`\
+    \ mtime 02:37:38 且含 `iss222*` key ⇒ 分片真落盘了** ★\n  · md5 逐字节未变: 4 个受保护 check 脚本全部一致 (hw_cross_review `e521387b…` / service_port `9b24bf98…` / hinge_usb `3425bc14…` / display_biosafety `29c77fc3…`)\n\
+    ★**main 已复核的关键结论**: ① C-8 自己实算出 t_s = 8.8388 mm (45° 平板轴向投影) ⇒ 串联器件区 14.6388 ⇒ 三档余量 -2.64/0.36/2.36 ⇒ ★**并排化后三档全活** ② C-7 净可外露集热面 = **3432 mm²** (名义 3600 的 95.3%) ⇒ 铝背板路径 47.77 °C ✅ / 打印件 53.6 °C ❌\
+    \ ⇒ W_rim ≥ 23.3 mm ③ C-6 分光件 M6 = 平板 11×11×1.5 + 棱镜 2×9×9×5 / 0.9697 cc / W4 3.68-7.36 g ⇒ DOC_WEIGHT (50.78, 75.36) ★\n★**但 `MECH/check_demo_struct_truth.py` 现在是 rc=2 (FAIL 3 组: G1 / G1b / G5b) ——\
+    \ 这 3 组不是本单造成的**: ★**根因 = ISS-220 的落表 (网表 02:32 改) 让 `PIN-MISMATCH` 由 FAIL 变 PASS (FAIL 17 → 16) ⇒ 门禁的「红灯保护锚点」对不上旧值** ⇒ ★**本单的交卷单自己也写明了这一点 (自述「这 3 组 FAIL 不是本单造成的」)⇒ main 实测复核确认** ★\n⇒ ★**这 3 组是【锚点过期】不是【红灯被调没】:\
+    \ `hw_cross_review_check.py` md5 `e521387b…` 逐字节未变 (门禁本身没被碰) · PIN-MISMATCH 由 P9 页与网表 pin 数【真不一致】变【真一致】(ISS-220 落了 d6: P9 页 CONN_LIGHT 21p→22p / CONN_CAM 18p→31p / 跨铰链 4 组→1 组) ⇒ 是修复, 不是调没** ★\n⇒ ★**锚点重基线化已开\
+    \ ISS-224 (结构侧) 承接: 重锚 G1/G1b/G5b + 在定性表里把 PIN-MISMATCH 标成「已修复」留痕 + 加一条「网表/脚表 md5 变了必须在落表台账里查到来源, 否则红」的新断言** ★"
+  verify_date: 2026-11-16 04:1x
+  note: '2026-11-16 02:2x 队列自动派活 job (fb67af40) 新开 ★**依据 = ISS-219 交卷里的 3 条 need** (★C-8 轴口径 / C-7 集热面 3600mm² 可行性 / M6 落地裁★) ⇒ ★**其中 C-7、C-8 的前置结构侧自己能算 ⇒ 不该继续挂在 main 身上变成阻塞** ★
+
+    ★**本单属结构侧内部活, 不碰 PCB 布线/布局/板框 (老板 10:07 口径) ⇒ 可派** ★
+
+    ★**mech-lead 名额的上一条 ISS-219 已于本轮 02:2x 落 verified ⇒ 名额空出来 ⇒ 本单是第 7 轮** ★
+
+    ★**边界**: 不改 §0 锁死表 · 不写任何子总工的分片 · 不发信 · 网表/脚表/板/原理图/BOM 一个字节未动 ★
+
+    ★**2026-11-16 04:1x 落 `verified`**: 子会话 status=timeout @02:39:53 (★超时是在交卷之后★) ⇒ ★**main 不采信状态位, 只看盘上实物 + 自己跑门禁 + 自己 md5 + 自己查分片** ⇒ ★**4 件交付物全在盘 (含分片 `iss222*` key 已落) + 门禁全绿 ⇒ 落 `verified`** ★
+
+    ★**`MECH/check_demo_struct_truth.py` 现为 rc=2 (G1/G1b/G5b 三组) ⇒ 根因 = ISS-220 落表让 `PIN-MISMATCH` 真修复 (FAIL 17→16) ⇒ 【锚点过期】不是【红灯被调没】 ⇒ 锚点重基线化由 ISS-224 承接** ★
+
+    ★**边界**: 不改 §0 锁死表 · 不写任何子总工的分片 · 不发信 · 网表/脚表/板/原理图/BOM 一个字节未动 ★'
+  task_brief: '★★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 把 ★**ISS-219 (11-16 02:0x 交卷, 本 job 02:2x 已落 verified) 交卷里那三条「只报不改、已登记 need 给 main」的冲突 真的落进结构真源**★ ⇒ ★**C-6** (分光件放大后的规格落文档) + ★**C-8** (★自己实算★ t_s
+    轴向口径 ⇒ 重算三档 T=18/21/23) + ★**C-7** (★自己实算★ 镜框上沿 3600mm² 集热面可不可行) ⇒ 出 ★**(1) 一份落表后的结构口径记录 · (2) 三个真源文件的同步 · (3) 机器门禁扩项 · (4) 一份交接单**★ ⇒ ★**本单不许改 `HW/` 下任何文件**★ ⇒ ★**零外发** ★
+
+
+    ★★**为什么是现在 (★main 2026-11-16 02:2x 实测, 不是推测★)** ★★
+
+    · ★**ISS-219 交卷明写**: C-8 是★**本单自己查出的新冲突**★ (★`t_s=6.0` 取自 §1.3 M6 包络的第三维 (14×10×6), 但 45° 平板必须覆盖整个光束直径 ⇒ 任何左右分光构型下平板的竖向投影 ≥ 光束直径 ⇒ ★**修正后三档 T=18/21/23 全废**★) ⇒ 只报归 main ★
+
+    · ★**ISS-219 交卷明写**: C-7 的唯一前置是「镜框上沿**可外露**的集热面面积能不能做到 120×30 = 3600 mm² (波导压框 / 摄像头 / 装饰件会遮)」⇒ ★**这条前置结构侧自己能算** (★它自己的几何★) ⇒ 不该继续挂在 main 身上变成阻塞 ★
+
+    · ⇒ ★**三条都停在「只报」状态, 没有一条落成可执行规格** ⇒ ★**本单是第 3 轮** ★
+
+    · ⇒ ★**本单是三个总工名额里唯一能推进的一条结构侧活** (★6 个 PCB 类 FAIL 仍按老板 2026-11-11 10:07 口径排队等原理图定稿, 一个没派★) ★
+
+
+    ★★**交付物 (4 件, 少一件即无效) ★★
+
+    ① ★**落表后的结构口径记录** (★建议落在 `MECH/CENTER_CAVITY_REBALANCE_V3.md`★) ⇒ 逐条 (C-6 / C-7 / C-8 → 改了哪个文件的哪一节 → 改前/改后字面值 → 算式与输入 → 证据等级 → 若不可行则降级路径) ⇒ ★**每条都要有结论, 不许留「待定」** ★
+
+    ② ★**C-6 落地**: 把分光件规格 ★**平板 11×11×1.5 (对角 15.56 ≥ 严格口径 15.39) + 转向棱镜 2× 9×9×5**★ / 体积 0.9697 cc / W4 3.68-7.36 g / FOV 折减 2.63% 落到 ★**`MECH/MECH_BUDGET.md` §1.3 M6 (替掉旧的 14×10×6 / 0.79cc / 3-6g 那几行)
+    + `MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md` + 打印包若含 M6** ★
+
+    ③ ★**C-8 自己实算**: 用 45° 平板的★**竖向投影**关系 + 光束直径 8.885 mm + 平板对角 15.39/15.56 mm ⇒ 算出 t_s 该取多少 (★三个候选值都算, 选一个并说明理由★) ⇒ ★**重算三档 T=18/21/23 的后果** (★若三档全废 ⇒ 就写「全废」+ 给出能活的那档或降级路径, 不许把旧数留着✓★) ⇒ ★**同步 `MECH/verify_budget.py`
+    / `MECH/cavity_recalc_check.py` 的对应常量与门禁锚点** ★
+
+    ④ ★**C-7 自己实算**: 对照波导压框 / 摄像头 / 装饰件占位 ⇒ 给出「镜框上沿**实际可外露**的净集热面积」的值 (★[推算] 或 [实测] 标明★) ⇒ ★**能不能做到 3600mm² 给明确结论** ★ ⇒ ★**做不到就给降级路径** (★ISS-219 已列: (a) 铝制集热背板 120×30×1.x · (b) 功耗降到 ≤ 0.415 W · (c) 端件整条金属化
+    11.3-22.7 g 不可接受 —— ★这三条必须给量化对照, 不许只说「不可接受」★) ⇒ ★**不得触碰 `DECISION_PENDING_2026-11-16.md` (那是老板的页面)** ★
+
+    ⑤ ★**机器门禁扩项**: `MECH/cavity_recalc_check.py` 加断言 (★C-6 规格不许漂回 14×10×6 · C-8 的 t_s 与三档 T 自洽 · C-7 的结论有据★) + 反向用例 ⇒ ★**改坏必红** ★
+
+    ⑥ ★**交接单 `HANDOFF/2026-11-16_mech-lead_ISS222_C6C7C8落地.md`** (★B1~B6 六块齐全★) + ★**分片 `state/fragments/mech.yaml` (★必须走 `python3 state/frag_write.py` 原子写★)** ★
+
+
+    ★★**边界 (★违反一条即本单无效★) ★★
+
+    · ★**不许改** `HW/` 下任何文件 / ★**不许碰 PCB 布线 / 布局 / 板框** (★老板 2026-11-11 10:07 口径★) ★
+
+    · ★**不许改判据阈值** (★皮肤 43 °C / 端件 60 °C / cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00 / 板框四数 一个不许动★) ★
+
+    · ★**不许预扣 `MECH/MECH_BUDGET.md` §3 的现有重量** (★口径 ≠ 质量; 端件金属化质量仍待 u8 ⇒ 只进模板, 不进 §3 合计★) ★
+
+    · ★**不许替老板拍** u8 / M6 落地取舍 / 整机屏路线 / 波导归属 / FOV / 板长 ⇒ ★**只报给 main** ★
+
+    · ★**不许改** `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / `DECISION_PENDING_2026-11-16.md` / `state/outbox/` / 别人的分片 / `MECH/hinge_usb_check.py` / `MECH/service_port_check.py` / `MECH/hw_cross_review_check.py`
+    / `MECH/display_biosafety_v2_check.py` / `MECH/check_demo_struct_truth.py` ★
+
+    · ★**实物 [实测] = 0 条** (★本机跨网段不可达 / 无切片器 / 无量具 ⇒ 打印件收缩比等仍 [0数据]★) ⇒ 标 [实测] 的只允许是「本机脚本 / 本机文件实读」 ★
+
+    · ★**零外发** (★不发邮件 / 询价 / 问询 / 采购★) ⇒ 缺口一律【自己网上查】+ 标证据等级 + ★**查不到必须写降级方案** (★如 PA-CF 收缩比 ⇒ 降级取官网补偿公式★) ★
+
+    · ★**不许自签 issue_log** (★status 留给 main 落 verified★) ★
+
+
+    ★★**交卷前必须实跑并把输出原样贴进回复 (★命令都已实测存在★) ★★
+
+    ```
+
+    python3 MECH/cavity_recalc_check.py             # rc=0 (17/17 或更多)
+
+    python3 MECH/cavity_recalc_check.py --selftest  # rc=0 (反向用例全抓到)
+
+    python3 MECH/verify_budget.py                    # rc=0 (★充电耗散仍 = buck 口径, 阈值一个没松★)
+
+    python3 MECH/verify_budget.py --selftest         # rc=0
+
+    python3 MECH/check_demo_struct_truth.py          # rc=0 (20/20 组检查通过 · FAIL 0 组)
+
+    python3 MECH/print/verify_pack.py                # rc=0 (Rev A 基线未变红)
+
+    python3 MECH/print/verify_pack_revb.py           # rc=0 (Rev B 基线未变红)
+
+    python3 state/merge.py && python3 state/gate_check.py # rc=0 且 【Q1 交付齐备率】 18/18
+
+    ```'
+  dispatched_at: '2026-11-16'
+  fixed_at: '2026-11-16'
+- id: ISS-223
+  title: '★★[主线内·原理图/网表侧·内部活] ISS-220 收尾 (补落 3 条分片声明) + 落表第 2 批 (★V-1 已由项目总工裁: USB 串阻 = 22Ω±1% ⇒ d5 + 补差A 值迁移 20 条★) + 修 ISS-217 作业包 F-1~F-5 五处 + V-3 的 RK3572 SARADC_VIN5 官方参数自查 (★把 BAT_DET 分压比从「拍不了」变成「可拍」★)'
+  severity: high
+  source_blocker: ISS-220
+  desc: '★**ISS-220 (11-16 02:37 交卷, 本 job 04:1x 落 `fixed`) 把作业包 28 条里 6 组真落进了盘 (未落表条数 50 → 29)**, ★**但交付物 ④ (分片) 实测没落盘** ⇒ 3 条跨模块口径声明 (`iss220_chgboard_white_list_scope` / `iss220_i2ca_pullup_domain_1v8`
+    / `iss220_ichg_ratio_true_value`) 至今不在台账里 ⇒ ★**本单第一件事就是把它补上** ★
+
+    ★**本单第二件事 = 落表第 2 批**: ★**V-1 已由项目总工 (main) 裁 = 【USB 串阻 = 22Ω ±1% 外部串阻】** ⇒ ★**依据 (全部 [实测], 不是拍脑袋★)**: ① 板 `HW/PCB/demo_mainboard.kicad_pcb` 里 `R_SER_USB_D_P = 22Ω ±1%` / `R_SER_USB_D_N = 22Ω ±1%` (★板上就是
+    22Ω★) ② 网表器件行 L431/L432 = `22Ω ±1%` (Type-C 侧) 而 NET 行 L291/L292 = `90Ω ±10%` (★那是差分阻抗, 被塞进了串阻字段★) ③ 门禁 `HW/check_netlist_selfconsistency.py` 的 EXPECT = 「NET 行 value 含 22Ω」⇒ ★**取 0Ω 就得改门禁 EXPECT ⇒ 那叫放松判据,
+    不许★** ⇒ ★**V-1 落 = 22Ω (零 BOM 变化 · 零板费 · 零拓扑变化) + 差分阻抗 90Ω 留在 ISS-220 已拆好的 `z_diff` 字段** ⇒ ★**d5 (R5 那 8 条红) + 补差A 的值迁移 (A 组 20 条) 一起落** ★
+
+    ★**本单第三件事 = 修 ISS-217 作业包自身的 F-1~F-5 五处** (★ISS-220 实测查出: 作业包有 5 处与真源对不上 ⇒ 不修就没法落第 3 批★) ★
+
+    ★**本单第四件事 = 把 V-3 (BAT_DET 分压比) 从「拍不了」变成「可拍」**: ★**ISS-211 已查出 SoM ADC 参数缺失 (P1_38 = SARADC_VIN5, 1.8V 域) ⇒ 分压比不能只凭直觉选** ⇒ ★**本单要自己查 RK3572 官方 datasheet 的 SARADC_VIN5 输入漏电流 / 满量程 / 输入电容, 出可拍依据 + 推荐值
+    (★不许代拍★)** ★
+
+    ★**本单不许碰板 / PCB 布线 / 布局 / 板框** (★老板 2026-11-11 10:07 口径★) ⇒ ★**B-1~B-6 板侧同步项只更新状态, 不许动板** ★ ★**零外发** (★老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ⇒ 缺口一律【自己网上查】+ 标证据等级 + 查不到就写降级方案 ★'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: fixing
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: "2026-11-16 04:1x 本 job (775d9893) 新开 ★**依据 1 = ISS-220 交卷的 ④ 分片实测 0 条** (★hw.yaml mtime 01:59:34 早于派活 · `iss220` 命中 0 · .lastgood 同样 0★) ⇒ ★**3 条跨模块口径声明至今不在台账里** ⇒ 落 ISS-220 `fixed` 而非 `verified`,\
+    \ 缺口转本单交付物 ①** ★\n★**依据 2 = V-1 (USB 串阻) 已由项目总工裁 = 22Ω ±1%** (★依据全 [实测]: 板 `R_SER_USB_D_P/N = 22Ω±1%` + 网表器件行 L431/L432 `22Ω±1%` + 门禁 EXPECT「NET 行 value 含 22Ω」★) ⇒ ★**d5 (R5 那 8 条红) + 补差A 值迁移 (A 组 20\
+    \ 条) 现在可落 ⇒ 落表第 2 批** ★\n★**依据 3 = ISS-220 交卷查出的 F-1~F-5 (作业包自身与真源对不上)** ⇒ 不修则第 3 批还会撞同样的坑 ★\n★**依据 4 = V-3 卡在 SoM ADC 参数缺失 (ISS-211 查出 P1_38 = SARADC_VIN5 / 1.8V 域)** ⇒ 本单去查 RK3572 官方 datasheet 把它变可拍\
+    \ ★\n★**本单属原理图主线内部活, 不碰 PCB 布线/布局/板框 (老板 10:07 口径) ⇒ 可派** ★\n★**hw-lead 名额的上一条 ISS-220 已于本轮 04:1x 落 `fixed` ⇒ 名额空出来 ⇒ 本单是第 6 轮** ★\n\n★★★ ★**2026-11-16 04:36 续做登记 (main 实测, 非推测) — 本单会话 `agent:hw-lead:subagent:359d0e98`\
+    \ status=timeout @04:20:44 ⇒ 半成品, 树处于「源与产物脱节」状态** ★★★\n★**已落 (main 04:36 查 mtime 实测)**: `HW/SCHEMATIC_V1_SPEC.json` (04:15:47 ⇒ B-21/B-22 `imp` 已改 `22Ω ±1%`) · `state/gen_netlist.py` (04:21:43 ⇒ `conn_row()`\
+    \ 已支持 `imp`/`z_diff` 取值优先级 + 同趟 note 栏输出) · `state/check_netlist.py` (04:24:51 ⇒ 比对源改成 `imp or z_diff`, 与生成器同源) ★\n★**未落 (main 04:36 查 mtime 实测)**: `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` mtime\
+    \ **仍 02:32:07** ⇒ ★**网表/脚表根本没重生成** (⇒ 源已改、产物没重生成 ⇒ md5 仍是旧值 `13f59a43…`/`a600afae…`) ★ · `state/fragments/hw.yaml` mtime **仍 01:59:34** + `iss220` 命中 **0** ⇒ ★**3 条声明没补落** ★ · `HW/SCHEMATIC_LANDING_WORKPACKET_V1.md`\
+    \ mtime **仍 02:35** ⇒ ★**F-1~F-5 没修** ★ · `HANDOFF/2026-11-16_hw-lead_ISS223_*.md` **不存在** ⇒ 交接单没写 · V-3 (RK3572 SARADC_VIN5 官方参数自查) **没做** ★\n★**main 04:36 实跑的门禁现状 (交给续做的人收)**: `HW/check_netlist_selfconsistency.py`\
+    \ → ★**rc=1, 2 条红**★\n  · ★[d5_spec_b21_imp] 判据 'spec.connections[id=B-21].imp == 90Ω ±10% (与 MIPI 不同模板!)' 不成立 (实际 '22Ω ±1%')\n  · ★[d5_spec_b22_imp] 判据 'spec.connections[id=B-22].imp == 90Ω ±10%' 不成立\
+    \ (实际 '22Ω ±1%')\n  · ⇒ ★**根因 = 规格页 `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` L376/L378 那两个判据单元格还写着 V-1 裁前的旧值** ★\n  · ⇒ ★**★预警 (main 提前算出来的)**: ★**重生成网表后 `d5_a291_value` / `d5_a292_value` (L366/L368, 网表\
+    \ 291/292 行 value == 90Ω ±10%) 也会变红** ⇒ ★**必须同趟把规格页这 4 个判据单元格 (90Ω ±10% ⇒ 22Ω ±1%) 一起改** ★ ⇒ ★**否则落表会把红从 2 条变成 4 条** ★ ⇒ ★**这不是「改判据凑绿」, 是「d5 的判据本体要跟着落表走」** ★\n  · ★**其余门禁当前全绿 (main 04:36 实跑)**: `state/check_netlist.py`\
+    \ rc=0 · `state/check_netlist_pins.py` rc=0 · `SW/tools/demo_timing_check.py` rc=0 · `MECH/check_demo_struct_truth.py` rc=0 (23/23) · `SW/tools/check_demo_panel_spec.py` rc=0 (R1~R7, ISS-225 已把它升级成三方对账)\
+    \ ★\n★**落表后必须同趟做的三件事 (顺序不许搞反, 缺一件就出事)**: ① 重生成网表/脚表 ⇒ md5 变 ② ★**落表记录 (`HW/SCHEMATIC_LANDING_V1_LANDED.md` + 本单交接单) 里必须能查到【落表单号 + 文件名 + 新 md5 + 旧 md5】四项** (⇒ MECH 闸 C21 / SW 闸 R6 的三方对账靠这个, 缺一项 = 门禁假红)\
+    \ ③ ★**把「MECH 闸要改哪条锚点」在交接单里点名写出 (本单不许改 `MECH/`, 锚点由 mech-lead 下一轮重锚)** ★ ⇒ ★**落表后 MECH 闸 G5b+C21 与 SW 闸 R6 会按设计变红 (锚点过期), 那不是故障, 是机制在工作** ★\n★**状态 = 保持 `fixing`, 续做 (同一个 agent 续同一个单, 不占第二个名额)** ★"
+  task_brief: '★★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: ★**(A)** 把 ISS-220 漏掉的 3 条分片声明补落盘; ★**(B)** 落表第 2 批 = V-1 已裁的那批 (d5 + 补差A 值迁移); ★**(C)** 修作业包 F-1~F-5; ★**(D)** 把 V-3 变可拍 (官方参数自查) ★ ⇒ 出 ★**(1) 落表记录
+    · (2) 真源改动 + 重生成网表/脚表 · (3) 门禁未落表条数前后对比 · (4) 交接单 + 分片** ★ ⇒ ★**零外发** ★
+
+
+    ★★**为什么是现在 (★main 2026-11-16 04:1x 实测, 不是推测★)** ★★
+
+    · ★**ISS-220 已把 6 组落进盘 (未落表条数 50 → 29)**, 但 ★**交付物 ④ 分片实测 0 条** (`hw.yaml` mtime 01:59:34 早于派活 · `iss220` 命中 0) ⇒ 3 条口径声明下游看不见 ★
+
+    · ★**V-1 已裁 = 22Ω** (依据全 [实测]: 板 `R_SER_USB_D_P/N = 22Ω±1%` + 网表器件行 L431/L432 `22Ω±1%` + 门禁 EXPECT「NET 行 value 含 22Ω」) ⇒ ★**d5 那 8 条红现在能落** ★
+
+    · ★**ISS-220 查出的 F-1~F-5 是作业包自身的病** ⇒ 不修, 第 3 批还会撞同样的坑 ★
+
+    · ★**V-3 卡在 SoM ADC 参数缺失** ⇒ 现在不是「不值得拍」, 是「拍不了」⇒ 本单去把它变成可拍 ★
+
+
+    ★★**交付物 (6 件, 少一件即无效) ★★
+
+    ① ★**补落 ISS-220 的 3 条分片声明** ★ ⇒ keys `iss220_chgboard_white_list_scope` / `iss220_i2ca_pullup_domain_1v8` / `iss220_ichg_ratio_true_value` ⇒ ★**必须走 `python3 state/frag_write.py --agent hw-lead` (原子写)★**
+    ⇒ 交卷贴 `state/fragments/hw.yaml` 的 mtime 前/后 + 3 个 key 的命中行 (★不许手改 YAML★) ★
+
+    ② ★**落表第 2 批 (V-1 = 22Ω)** ★ ⇒ 只许改: `HW/SCHEMATIC_V1_SPEC.json` (B-21/B-22 的 `imp` ⇒ `22Ω ±1%`) + `state/gen_netlist.py` (若取值优先级还要微调) + ★**补差A 的值迁移: A 组 20 条 `imp` 清空 · 差分阻抗搬进 `z_diff` (100Ω±10%) ·
+    B-21/B-22 的 `z_diff` = 90Ω±15%**★ ⇒ 改完 `python3 state/gen_netlist.py` 重生成网表/脚表 ⇒ ★**不许手工编辑生成产物 (CSV)★** ★
+
+    ③ ★**门禁前后对比** ★ ⇒ `python3 HW/check_netlist_selfconsistency.py --expect-resolved` 的「未落表条数」★**落表前 = 29 ⇒ 落表后 = N (贴两次输出)★** ⇒ ★**不许靠删条目 / 改判据 / 改 EXPECT 锚点达成 ⇒ EXPECT 锚点组 d1..d11 一个不许减, R1~R11 判据代码一个字不许改**
+    ★
+
+    ④ ★**修作业包 F-1~F-5 五处** ★ ⇒ 逐条给出改法并改 `HW/SCHEMATIC_LANDING_WORKPACKET_V1.md` (★作业包是 hw-lead 自己的产物, 本单可改★): F-1 d2 的真源是 `DEMO_DNP` 白名单 (不是 `add()` 的 dnp 参数) · F-2 d10 的 J_CHG 行真源是 `state/p10_rows.json`
+    (作业包把文件归属写错了) · F-3 补差A 清空 A 组 `imp` 须与 `state/check_netlist.py` 判据 5 同趟改 (否则判据覆盖 20 行 → 0 行) · F-4 d10 的方向修正连带作废「皮肤侧 42.14°C / 不能再抬电流」这条结论 (它是按 0.822 算的) · F-5 #5 的白名单↔§7 双向对账在现状下不可能过 (§7 与网表是两个版本:
+    16 个位号网表里没有, 15 个 CHG_BOARD 位号不在 §7 里) ⇒ ★**每条都要写明「改了什么 + 为什么现在能改 / 还差什么」** ★
+
+    ⑤ ★**V-3 可判化** ★ ⇒ 自己查 ★**RK3572 官方 datasheet**★ 里 SARADC_VIN5 (1.8V 域) 的 **输入漏电流 / 满量程 / 输入电容** ⇒ 出 V-3 (2.0M+1.2M vs 2.0M+1.0M) 的 ★**误差算式 + 可拍依据 + 推荐值 + 降级方案**★ ⇒ ★**不许代拍 (拍板权在 main/老板)★** ⇒ 查不到就写
+    [0数据] + 降级 ★
+
+    ⑥ ★**板侧同步清单更新** (★只更新状态, 不许动板★) ⇒ B-1~B-6 六项逐条标: 因本批落表而变化的 / 仍等 V-2 与「板只改一次」那一趟的 ⇒ ★**交接单 (★新建★) `HANDOFF/2026-11-16_hw-lead_ISS223_落表第2批与分片补落.md`** (★B1~B6 六块齐全★) + ★**分片 `state/fragments/hw.yaml`
+    (★走 `state/frag_write.py` 原子写★)** ★
+
+
+    ★★**边界 (★违反一条即本单无效★) ★★
+
+    · ★**不许改** `HW/PCB/demo_mainboard.kicad_pcb` / `HW/PCB/demo_mainboard.kicad_pro` / ★**不许碰 PCB 布线 / 布局 / 板框** (★老板 2026-11-11 10:07 口径★) ★
+
+    · ★**不许代拍** V-2 (ESD 方案与型号 = 老板级选型) / V-3 (本单只出依据) / V-4 (R_ILIM 档位 = 老板待拍, 已在 `DECISION_PENDING_2026-11-16.md` §3) / V-5 (结构侧堆叠口径) ⇒ ★**V-1 已由 main 裁 = 22Ω, 可直接落** ★
+
+    · ★**不许改判据阈值 / EXPECT 锚点** (★不许为了让门禁变绿而放松★) ★
+
+    · ★**不许改** `MECH/` 下任何文件 / `SW/` 下任何文件 / `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / `state/outbox/` / 别人的分片 ★
+
+    · ★**开工前先给每个要改的真源文件留 `.bak_iss223` 副本** ⇒ 交卷贴每个真源文件的 md5 前/后对照 ★
+
+    · ★**零外发** (★不发邮件 / 询价 / 问询 / 采购★) ⇒ 缺口一律【自己网上查】+ 标 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` + ★**查不到必须写降级方案** ★
+
+    · ★**本单实物 [实测] = 0 条** (板不在本机) ⇒ 标 [实测] 的只允许是「本机脚本 / 本机文件实读」 ★
+
+    · ★**不许自签 issue_log** (★status 留给 main 落 verified★) ★
+
+
+    ★★**交卷前必须实跑并把输出原样贴进回复 ★★
+
+    ```
+
+    python3 HW/check_netlist_selfconsistency.py                    # rc=0 (现状守卫 + 作业包完整性 + 三方对齐)
+
+    python3 HW/check_netlist_selfconsistency.py --selftest          # rc=0 (反向用例全抓到, 19/19 或更多)
+
+    python3 HW/check_netlist_selfconsistency.py --expect-resolved   # ★rc=1 是预期 (还有 BLOCKED 条目) ⇒ 必须贴 29 → N 的前后对比
+
+    python3 state/check_netlist.py                                  # rc=0 (全过)
+
+    python3 state/check_netlist_pins.py                             # rc=0 (每个针脚归属唯一)
+
+    python3 state/check_sch_erc.py                                  # rc=0 (ERC 违规数 = 0)
+
+    python3 state/check_sch_pinfull.py                              # rc=0 (图上脚数 = 表里脚数)
+
+    python3 state/merge.py && python3 state/gate_check.py           # rc=0 且 【Q1 交付齐备率】 18/18
+
+    ```
+
+    ★**落表若导致上面某条门禁变红 ⇒ 不许放松门禁, 也不许回退已落表的条目来凑绿 ⇒ 交卷报红并说明原因 (★main 复核)**★'
+  dispatched_at: '2026-11-16'
+- id: ISS-224
+  title: '★★[主线内·结构侧·内部活] `MECH/check_demo_struct_truth.py` 三组失配的再基线化: ISS-220 落表让 `PIN-MISMATCH` 由 FAIL 变 PASS (= 真修复, FAIL 17→16) + 网表/脚表 md5 随落表变 ⇒ G1/G1b/G5b 旧锚点失效 ⇒ 重锚 + 留痕 + 保住「不许把红灯调没」不变量 + 把「受保护
+    md5」升级成「真源 md5 + 落表台账核对」'
+  severity: high
+  source_blocker: ISS-222
+  desc: '★**main 2026-11-16 04:1x 实测**: `python3 MECH/check_demo_struct_truth.py` → **rc=2, 17/20 组通过, FAIL 3 组 (G1 / G1b / G5b)** ★
+
+    · ★**根因 = ISS-220 (hw-lead) 的落表**, 不是结构侧缺陷: 落表把 `state/gen_schematic_pages.py` 的 P9 页正文改了 (★d6: CONN_LIGHT 21p→22p / CONN_CAM 18p@0.5→31p@0.3 / 跨铰链 4 组→1 组★) ⇒ ★**P9 正文声明与网表实际 pin 数从此一致 ⇒ `PIN-MISMATCH`
+    由 FAIL 变 PASS ⇒ FAIL 名单 17 → 16 ⇒ 门禁的「不许把红灯调没」锚点 (G1/G1b) 对不上旧值** ★
+
+    · ★**G5b 同因**: 受保护 md5 锚点钉的是旧网表/脚表 (`c78f9912…` / `4814617e…`), 而 ISS-220 落表后是 `13f59a43…` / `a600afae…` ⇒ 门禁读着旧数 ★
+
+    · ★**关键鉴别 (★main 实测, 不是推测★)**: `MECH/hw_cross_review_check.py` md5 `e521387b87b0fcdf9f22d56f14199967` ★**逐字节未变** ⇒ ★**门禁本身没被碰过 ⇒ 是【锚点过期】不是【红灯被调没】** ★
+
+    ★**本单要做的 = 重锚 + 留痕 + 把机制升级 (不许只是改个数让它变绿)**: ★**「不许把红灯调没」这条不变量必须活下来** ★
+
+    ★**本单不许改 `HW/` 下任何文件 / 不许碰 PCB 布线布局 / 不许改判据阈值 / 不许把那 16 条 FAIL 修绿** ⇒ ★**零外发** ★'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: verified
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: main
+  verify_result: '★main 2026-11-16 04:07 自测验收 (非抄交卷报告)★
+
+    · 交付物: ①MECH/HW_CROSS_REVIEW_TRIAGE.md (G1/G1b 重锚 17→16 + §3.1 已修复留痕 + §1 source_ledger) ②MECH/check_demo_struct_truth.py (20→23 组, 新增 C21/C22/G8) ③HANDOFF/2026-11-16_mech-lead_ISS224_门禁锚点再基线.md (B1~B6)
+    ④state/fragments/mech.yaml (mtime 03:56 真落盘) ⇒ ★4/4 在盘 + 留痕机制齐全★
+
+    · 门禁实跑: check_demo_struct_truth.py rc=0 (23/23, FAIL 0 组) / --selftest rc=0 (★反向 14/14 全抓到★) / cavity_recalc_check.py rc=0 (20/20) / --selftest rc=0 (18/18) / verify_budget.py rc=0 / hw_cross_review_check.py
+    rc=0 (PASS 15 / FAIL 16 —— ★16 条红灯一条没消★) / verify_pack.py rc=0 (46/46) / verify_pack_revb.py rc=0 ⇒ ★**9/9 全绿**★
+
+    · ★阈值未松: 皮肤 43°C / 端件 60°C / cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00 一个没动★ · ★4 个受保护脚本 md5 逐字节未变 / `HW/` 一个字节没动★
+
+    · ★**已知后续 (不追本单账)**: ISS-223 (hw-lead) 落表第 2 批后再改网表/脚表 ⇒ G5b + C21 会【按设计】变红 ⇒ 那是 hw-lead 更新台账 + 锚点的活 (need iss224_hw_landing_must_update_gate_ledger 已登记)★'
+  verify_date: '2026-11-16'
+  note: '2026-11-16 04:1x 本 job (775d9893) 新开 ★**依据 = main 本轮实跑 `MECH/check_demo_struct_truth.py` → rc=2 · FAIL 3 组 (G1/G1b/G5b)** ★
+
+    ★**根因 = ISS-220 (hw-lead) 的落表**, 不是结构侧缺陷 (★main 实查 `hw_cross_review_check.py` md5 `e521387b…` 逐字节未变 ⇒ 门禁没被碰 ⇒ 【锚点过期】不是【红灯被调没】★) ★
+
+    ★**且这是【真修复】**: ISS-220 落的 d6 把 P9 页与网表的 pin 数改一致了 ⇒ `PIN-MISMATCH` 由 FAIL 变 PASS ⇒ FAIL 17 → 16 ★
+
+    ★**本单不是「把数改绿」, 是「重锚 + 留痕 + 把『受保护 md5』升级成『真源 md5 + 落表台账核对』」** ⇒ ★**项目铁律: 门禁读旧数 = 假红/假绿** ★
+
+    ★**本单属结构侧内部活, 不碰 PCB 布线/布局/板框 (老板 10:07 口径) ⇒ 可派** ★
+
+    ★**mech-lead 名额的上一条 ISS-222 已于本轮 04:1x 落 `verified` ⇒ 名额空出来 ⇒ 本单是第 8 轮** ★
+
+    ★**边界**: 不改 §0 锁死表 · 不写任何子总工的分片 · 不发信 · 网表/脚表/板/原理图/BOM 一个字节未动 ★
+
+    2026-11-16 04:07 (cron fb67af40 队列自动派活) ★main 实测 9/9 门禁全绿 ⇒ 落 verified★ ⇒ ★同时清掉僵尸 fixing (会话 done@03:58 但状态卡在 fixing ⇒ 占着 mech-lead 名额)★'
+  task_brief: '★★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 把 ★**`MECH/check_demo_struct_truth.py` 的 3 组失配 (G1/G1b/G5b) 重新基线化, 并把「红灯保护」机制从「钉死一组旧数」升级成「钉死真源 + 与落表台账对账」**★ ⇒ 出 ★**(1) 重锚后的门禁 · (2) 定性表里的修复留痕 · (3)
+    新增的「不许悄悄换真源」断言 + 反向用例 · (4) 交接单 + 分片** ★ ⇒ ★**零外发** ★
+
+
+    ★★**为什么是现在 (★main 2026-11-16 04:1x 实测, 不是推测★)** ★★
+
+    · ★**main 实跑 `MECH/check_demo_struct_truth.py` → rc=2 · 17/20 组通过 · FAIL 3 组 (G1 / G1b / G5b)** ★
+
+    · ★**main 实查 FAIL 名单变化**: 定性表 54 行里 17 条 ❌FAIL, 现在脚本实跑只出 **16 条 FAIL** ⇒ ★**少的那一条 = `PIN-MISMATCH` (定性表第 05 行)** ★
+
+    · ★**main 实查根因**: `MECH/hw_cross_review_check.py` md5 `e521387b…` 逐字节未变 ⇒ 门禁没被碰 ⇒ ★**是 ISS-220 落表把 P9 页与网表的 pin 数【真不一致】修成了【真一致】(d6) ⇒ 修复, 不是调没** ★
+
+    · ★**G5b 同因**: 网表 md5 `c78f9912…`→`13f59a43…` / 脚表 `4814617e…`→`a600afae…` ⇒ 锚点过期 ★
+
+    · ⇒ ★**当前状态是「门禁读着旧数」⇒ 项目铁律: 门禁读旧数 = 假红/假绿 ⇒ 必须重锚, 但重锚必须留痕, 不许静默改数** ★
+
+
+    ★★**交付物 (5 件, 少一件即无效) ★★
+
+    ① ★**G1 / G1b 重锚 + 留痕** ★ ⇒ 把 FAIL 名单锚点从 17 改成 16, 并且 ★**在 `MECH/HW_CROSS_REVIEW_TRIAGE.md` 的定性表里把第 05 行 `PIN-MISMATCH` 从 ❌FAIL 改成 ✅PASS, 同时写明「★已由 ISS-220 落表修复 (2026-11-16 02:32)★ · 依据 d6: P9 页正文 CONN_LIGHT
+    21p→22p / CONN_CAM 18p@0.5→31p@0.3 / 跨铰链 4 组→1 组」** ⇒ ★**这一行不许从表里删掉 (删掉 = 把一次真修复抹了)★** ★
+
+    ② ★**G6 去处表同步** ★ ⇒ 「17 条 FAIL 的逐条去处」表 ⇒ 16 条 + **新增一节「已修复 (留痕)」**, 把 `PIN-MISMATCH` 记进去 ⇒ ★**不许只把 17 改成 16 而没人知道少的那条是谁** ★
+
+    ③ ★**G5b 重锚 + 升级 (★本单的核心★)** ★ ⇒ 把网表/脚表 md5 锚点更新为落表后的 `13f59a43dbd35dc6cb16e897c8c891ab` / `a600afae493f5a7a6c55f46ad35ac89c` ⇒ ★**并新增一条断言 (C21 或同号)**: 「网表/脚表 md5 与锚点不一致时, 必须能在 `HW/SCHEMATIC_LANDING_V1_LANDED.md`
+    (ISS-220 落表记录) 或 `HANDOFF/2026-11-16_hw-lead_ISS223_*.md` 里查到该次变更的来源与落表单号, 否则红」** ⇒ ★**这条新断言才是「不许悄悄换真源」的真机制 ⇒ 只改 md5 锚点等于把门禁再废一次** ★ ⇒ 配套加反向用例 (改坏 md5 锚点 / 改坏落表单号 ⇒ 必须变红) ★
+
+    ④ ★**反向用例扩项** ★ ⇒ ① 把 `PIN-MISMATCH` 改回 FAIL (改 P9 页或改网表) ⇒ 必须变红 ② 把网表 md5 改回旧值 ⇒ 必须变红 ③ 删掉「已修复」留痕 ⇒ 必须变红 ⇒ ★**`--selftest` 必须全抓到** ★
+
+    ⑤ ★**交接单 `HANDOFF/2026-11-16_mech-lead_ISS224_门禁锚点再基线.md`** (★B1~B6 六块齐全★) + ★**分片 `state/fragments/mech.yaml` (★走 `state/frag_write.py` 原子写★)** ★
+
+
+    ★★**边界 (★违反一条即本单无效★) ★★
+
+    · ★**不许改判据阈值** (★皮肤 43 °C / 端件 60 °C / cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00 / 板框四数 一个不许动★) ★
+
+    · ★**不许把那 16 条 FAIL 修绿** (★本单只重锚 + 留痕 + 升级机制, 一条红灯都不许消★) ⇒ ★**6 个 PCB 类 id 仍按老板 2026-11-11 10:07 口径排队等原理图定稿** ★
+
+    · ★**不许改** `HW/` 下任何文件 (★网表/脚表/板/原理图/BOM 一个字节不许动★) / ★**不许碰 PCB 布线 / 布局 / 板框** ★
+
+    · ★**不许改** `MECH/hinge_usb_check.py` / `MECH/service_port_check.py` / `MECH/hw_cross_review_check.py` / `MECH/display_biosafety_v2_check.py` (★4 个受保护脚本 md5 必须逐字节不变★) ★
+
+    · ★**不许改** `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / `DECISION_PENDING_2026-11-16.md` (★那是老板的页面★) / `state/outbox/` / 别人的分片 ★
+
+    · ★**实物 [实测] = 0 条** (本机跨网段不可达 / 无切片器 / 无量具) ⇒ 标 [实测] 的只允许是「本机脚本 / 本机文件实读」 ★
+
+    · ★**零外发** ⇒ 缺口一律【自己网上查】+ 标证据等级 + 查不到就写降级方案 ★
+
+    · ★**不许自签 issue_log** (★status 留给 main 落 verified★) ★
+
+
+    ★★**交卷前必须实跑并把输出原样贴进回复 ★★
+
+    ```
+
+    python3 MECH/check_demo_struct_truth.py          # rc=0 (★20/20 或更多组全过·FAIL 0 组★)
+
+    python3 MECH/check_demo_struct_truth.py --selftest # rc=0 (★反向用例全抓到★)
+
+    python3 MECH/cavity_recalc_check.py               # rc=0 (★ISS-222 的 20/20 不许被改红★)
+
+    python3 MECH/cavity_recalc_check.py --selftest    # rc=0
+
+    python3 MECH/verify_budget.py                      # rc=0 (★阈值一个没松★)
+
+    python3 MECH/hw_cross_review_check.py              # rc=0 (★54 项分布不许被本单改动★)
+
+    python3 MECH/print/verify_pack.py                  # rc=0
+
+    python3 MECH/print/verify_pack_revb.py             # rc=0
+
+    python3 state/merge.py && python3 state/gate_check.py # rc=0 且 【Q1 交付齐备率】 18/18
+
+    ```'
+  dispatched_at: '2026-11-16'
+- id: ISS-225
+  title: ★★[主线内·软件/工具链侧·内部活] SW 侧 md5 基线过期 (`SW/tools/check_demo_panel_spec.py` R6 恒红) ⇒ 重锚 + 落表台账对账 (镜像 MECH C21) + 同根因全清单 + 反向用例 + 留痕
+  severity: high
+  source_blocker: ISS-221
+  desc: '★**main 2026-11-16 04:07 实测**: `python3 SW/tools/check_demo_panel_spec.py` → **rc=1, R6 两项红** (网表 `13f59a43…` ≠ 锚点 `c78f9912…` / 脚表 `a600afae…` ≠ 锚点 `4814617e…`) ★
+
+    · ★**根因 = ISS-220 (hw-lead) 落表第 1 批 (2026-11-16 02:32) 改了这两个真源 ⇒ 锚点过期** ★
+
+    · ★**鉴别**: 门禁脚本 mtime 2026-11-15 23:59 早于落表 ⇒ 脚本没被碰过 ⇒ 【锚点过期】不是【红灯被调没】★
+
+    · ★**★关键时序**: ISS-223 (hw-lead) 落表第 2 批正在跑 ⇒ 会再改这两个真源 ⇒ ★**追一次 md5 等于下一趟又恒红** ⇒ 必须做成【台账驱动 + 三方对账】(照 MECH C21)★
+
+    · ★**本单 = SW 侧把『锚点过期』这类恒红一次性收口 + 留痕 + 反向用例** ⇒ ★**不是 PCB 布线/布局类, 不是老板级拍板 ⇒ 可派** ★'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: verified
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: main
+  verify_result: "★main 2026-11-16 04:36 独立复核 (★只跑盘上门禁 + 自己查 mtime/md5 + 自己查分片, 不抄交卷报告★):\n  · `python3 SW/tools/check_demo_panel_spec.py` → **rc=0** ★(R1 demo 屏规格真源 / R2 整机口径只在占位区 / R3 pipeline spec 已重锚\
+    \ / R4 整机路线占位带标 / R5 逐处定性表 22+16=38 处完整 / ★**R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致** / ★**R7 已修复 (留痕) 在场**★) ⇒ ★**R6 这次不是「md5 相等」, 是三方对账** ★\n  · `python3 SW/tools/check_demo_panel_spec.py --selftest`\
+    \ → **rc=0, ★16/16 通过** ★(REV-12 落表单号改坏 / REV-13 删台账两行 / REV-14 删锚点块 fail-closed / REV-15 删留痕节 ⇒ 4 条新反向用例全被抓到) ★\n  · 交付物 4/4 在盘: `SW/SW_MD5_BASELINE_LEDGER.md` (18984 B, 04:28) · `SW/tools/check_demo_panel_spec.py`\
+    \ (33571 B, 04:21) · `HANDOFF/2026-11-16_sw-lead_ISS225_SW侧md5基线台账化.md` (29029 B, 04:28) · `state/fragments/sw.yaml` (204885 B, **04:28** ⇒ 真落盘) ★\n  · 分片命中: `iss225_sw_md5_baseline_ledger` / `iss225_reanchor_sw_md5_after_iss223`\
+    \ 两个 key **都在盘上** ★\n  · ★**板/网表/脚表/.kicad_pro 逐字节未变**: 板 `611b869e13518c3c023fb178f91a0075` · 网表 `13f59a43dbd35dc6cb16e897c8c891ab` · 脚表 `a600afae493f5a7a6c55f46ad35ac89c` · `.kicad_pro` `3e504d2be83152e337949723e909be1b`\
+    \ ★ ⇒ ★**本单零越界** ★\n★**main 的复核结论**: ★**本单不是「补锅」, 是「把这类恒红收口成机制」** ★\n  · 原红 (R6 = 盘上 md5 ≠ 锚点 md5) 是 **ISS-220 落表打破旧基线** 造成的 ⇒ ★**锚点过期, 不是红灯被调没** ★\n  · 现在 R6 = ★**三方对账**★ (锚点 ↔ 落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md`\
+    \ ↔ 盘上真源) ⇒ ★**「只改 md5 锚点 = 悄悄换真源」这条路被堵死了** ★\n  · R7 = 已修复留痕必须在场 ⇒ ★**「红灯被调没」这条路也被堵死了** ★\n  · ★**下一批落表会按设计让 R6 再红一次 (锚点过期) ⇒ 那是机制在工作, 不是故障** ⇒ 重锚走台账 §4 的 H-1 流程 (改 §1 entries[].md5/prev_md5/by 三项\
+    \ + 落表台账位置 + §3 留痕) ★\n★**遗留 (已登记 need `iss225_reanchor_sw_md5_after_iss223`, 不在本单范围)**: ISS-223 落表第 2 批改网表后 ⇒ 需派 sw-lead 走 H-1 重锚 (★那是下一轮的单, 因为新 md5 现在还没定★)"
+  verify_date: 2026-11-16 04:36
+  note: '2026-11-16 04:07 (cron fb67af40 队列自动派活) 新开 ★**依据 = main 本轮实跑 `SW/tools/check_demo_panel_spec.py` → rc=1 · R6 两项红** ★
+
+    ★**根因不在 sw-lead** (是 ISS-220 落表打破的旧基线) ⇒ ★**本单不是『补锅』, 是『把这类恒红收口成机制』** ★
+
+    ★**sw-lead 名额的上一条 ISS-221 本轮 04:07 落 verified (main 实测 5 项门禁绿) ⇒ 名额空出来 ⇒ 本单接档** ★
+
+    ★**边界**: 不改 `HW/` 任何文件 · 不改 `MECH/` 任何文件 · 不碰 PCB 布线布局 · 不写别人分片 · 不发信 · 不自签 issue_log ★'
+  task_brief: "★★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 把 ★**SW 侧因为落表而\"恒红\"的 md5 基线收口成【台账驱动 + 三方对账】**★ ⇒ 出 ★**(1) `SW/tools/check_demo_panel_spec.py` 的 R6 重锚 + 对账机制 · (2) SW 侧同类硬编码基线全清单 + 逐条处置 · (3) 留痕\
+    \ · (4) 反向用例 · (5) 交接单 + 分片**★ ⇒ ★**本单不许改 `HW/` 下任何文件**★ ⇒ ★**零外发** ★\n\n★★**现状 (★main 2026-11-16 04:07 实跑, 不是抄交卷报告★)** ★★\n· ★**`python3 SW/tools/check_demo_panel_spec.py` → rc=1, 2 项红 (R6)** ★\n \
+    \ - `HW/netlist_v1.csv` (现在 `13f59a43dbd35dc6cb16e897c8c891ab` ≠ 锚点 `c78f991283cc82d56c8e3dd31657c785`)\n  - `HW/netlist_v1_pins.csv` (现在 `a600afae493f5a7a6c55f46ad35ac89c` ≠ 锚点 `4814617e22b567d76164e56bc5e39dc8`)\n\
+    · ★**根因 = ISS-220 (hw-lead) 落表第 1 批 (2026-11-16 02:32) 改了这两个真源** ⇒ ★**锚点过期** ★\n· ★**鉴别证据 (★说明\"是锚点过期\"不是\"红灯被调没\"★)**: 门禁脚本 `SW/tools/check_demo_panel_spec.py` mtime = 2026-11-15 23:59 ★**早于落表 02:32**\
+    \ ⇒ ★**脚本一个字节没被碰过** ★\n· ★**★关键时序风险 (★本单为什么不能只是\"追一次 md5\"★)**: ★**ISS-223 (hw-lead) 落表第 2 批 (d5 + 补差A) 正在跑 (main 04:07 实测会话仍在跑) ⇒ 它会再改这两个真源** ★ ⇒ ★**你现在把锚点改成 `13f59a43…`, ISS-223 一落表它又恒红** ⇒ ★**⇒ 本单必须做成【台账驱动\
+    \ + 三方对账】(照抄 MECH 的 C21 机制), 不是【追一次 md5】** ★\n\n★★**交付物 (5 件, 少一件即无效) ★★\n① ★**R6 重锚 + 升级成三方对账** ★ ⇒ `SW/tools/check_demo_panel_spec.py` 的 R6: ★**锚点 ↔ 落表台账 ↔ 盘上真源 三方一致** ★ ⇒ ★**机制照抄 `MECH/check_demo_struct_truth.py`\
+    \ 的 C21 (★已存在, 只读参照, 不许改 `MECH/` 下任何文件★)** ★ ⇒ ★**台账来源 = `HW/SCHEMATIC_LANDING_V1_LANDED.md` (ISS-220 落表记录) 或 `HANDOFF/2026-11-16_hw-lead_ISS223_*.md`** ★ ⇒ ★**台账里必须能查到【落表单号 + 文件名 + 新 md5 + 旧 md5】四项**\
+    \ ⇒ ★**只改锚点不落表 = 悄悄换真源 = 红** ★\n② ★**SW 侧同根因同类基线全清单 + 逐条处置** ★ ⇒ ★**全项目搜一遍**: 凡在 `SW/` 下硬编码了 `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/PCB/demo_mainboard.kicad_pcb` / `HW/PCB/demo_mainboard.kicad_pro`\
+    \ 的 md5 基线的 (★脚本 + 文档 + 台账★) ⇒ ★**出清单 + 逐条写处置 (台账化 / 保留并说明理由 / 本单不管但登记)** ⇒ ★**不许只修 R6 一处, 留下同根因的下一处恒红** ★\n③ ★**留痕** ★ ⇒ ★**写明「这次红 = 【锚点过期】不是【红灯被调没】」+ 根因单号 (ISS-220 / ISS-223) + 新旧 md5 + 复现命令** ⇒ ★**做法照\
+    \ `MECH/HW_CROSS_REVIEW_TRIAGE.md` §3.1 的「已修复 (留痕)」** ★\n④ ★**反向用例 (★`--selftest` 必须全抓到★)** ★ ⇒ ① 盘上真源被换掉而锚点没换 ⇒ 红 ② 锚点改了但台账里查不到该 md5 / 单号 ⇒ 红 ③ 台账里的落表单号改坏 ⇒ 红 ④ 把落表台账那一行删掉 ⇒ 红 ★⇒ ★**少一条反向用例 = 本单无效**\
+    \ ★\n⑤ ★**交接单 (★新建★) `HANDOFF/2026-11-16_sw-lead_ISS225_SW侧md5基线台账化.md`** (★B1~B6 六块齐全★) + ★**分片 `state/fragments/sw.yaml` (★必须走 `python3 state/frag_write.py` 原子写★)** ★\n\n★★**边界 (★违反一条即本单无效★) ★★\n\
+    · ★**不许改** `HW/` 下任何文件 (★网表 / 脚表 / 板 / `.kicad_pro` / 原理图 / BOM 一个字节不许动★) ⇒ ★**落表台账由 hw-lead 写, 本单只读** ★\n· ★**不许改** `MECH/` 下任何文件 (★`MECH/check_demo_struct_truth.py` 的 C21 只许只读参照★) ★\n· ★**不许改** `state/issue_log.yaml`\
+    \ / `PROJECT_TRACKER.md` §0 / `DECISION_PENDING_2026-11-16.md` / `state/outbox/` / 别人的分片 ★\n· ★**不许碰** PCB 布线 / 布局 / 板框 ★\n· ★**不许把 `--skip-md5` 设成默认跳过** (★它是既有逃生舱, 默认必须仍校★) ★\n· ★**不许硬编码一个\"查不到出处\"\
+    的 md5 当基线** ⇒ ★**锚点值必须 = 盘上真源当前 md5, 且必须在落表台账里查到出处** ⇒ ★**查不到 ⇒ 交卷写明 BLOCKED (缺哪一条), 不许硬写一个数** ★\n· ★**板端 [实测] = 0 条** (★板与屏不在本机 ⇒ 标 [实测] 的只允许是\"本机脚本 / 本机文件实读\"★) ★\n· ★**零外发** (★不发邮件 / 询价 / 问询 / 采购★)\
+    \ ⇒ ★**缺口一律【自己网上查】+ 标证据等级 ([官网]/[实测]/[媒体]/[推算]/[0数据]) + 查不到必须写降级方案** ★\n· ★**不许自签 issue_log** (★status 留给 main 落 verified★) ★\n\n★★**交卷前必须实跑并把输出原样贴进回复 (★命令都已实测存在★) ★★\n```\npython3 SW/tools/check_demo_panel_spec.py\
+    \             # rc=0 (★R6 绿 + R1~R5 一条不许被改红★)\npython3 SW/tools/check_demo_panel_spec.py --selftest   # rc=0 (★本单新增反向用例全抓到★)\npython3 SW/tools/demo_timing_check.py                 # rc=0 (★ISS-221 的\
+    \ 17 条断言一条不许被改红★)\npython3 SW/tools/demo_timing_check.py --selftest      # rc=0\npython3 SW/tools/demo_e2e_budget.py                   # rc=0 (★ISS-221 的 demo 真源脚本, 只许读不许改★)\npython3 SW/tools/demo_e2e_budget.py\
+    \ --selftest        # rc=0\npython3 state/merge.py && python3 state/gate_check.py # rc=0 且 【Q1 交付齐备率】 18/18\n```\n★**交卷前最后一件事**: ★**再实跑一次 R6** —— 因为 hw-lead 的 ISS-223 可能在本单期间落表 ⇒ ★**交卷那一刻盘上的 md5 才是锚点目标值**\
+    \ ⇒ ★**若 ISS-223 在你交卷之后仍要落 ⇒ 在交卷里写明【锚点会再次过期, 但台账对账机制会自动红, 这是设计】** ★\n\n★★**已知会红、且不归你管的那一盏 (★提前说清, 免得你误修★) ★★\n· ★**`MECH/check_demo_struct_truth.py` 在 ISS-223 落表后会按设计变红 (G5b + C21)** ⇒ ★**那不是本单的锅, 更不许为了让\
+    \ MECH 闸变绿去改 `MECH/`** ⇒ ★**本单只要保证 SW 侧自己的门禁绿, 并在交卷里说明 MECH 闸变红的原因 (交 hw-lead 更新台账 + 锚点)** ★\n"
+  dispatched_at: '2026-11-16'
+- id: ISS-226
+  title: '★★[主线内·软件/光生物安全判据侧·内部活] 光生物安全的「出瞳白场辐亮度最大值」在 SW 侧亮度控制策略里可判化: 蓝光通道占比上限 25% (名义 8.26%) 落进策略 + 亮度 API 蓝通道占比可标定量 + 机器门禁 + 反向用例'
+  severity: high
+  source_blocker: ISS-134
+  desc: '★**这是 ISS-134 从结构侧跨域登记给 SW 侧的 need** (`state/fragments/mech.yaml` 的 `iss134_sw_blue_drive_ratio_cap`, to=sw-lead, ★**至今 open**★) ⇒ ★**项目里本来就挂着、没人接的单** ★
+
+    ★**要做的**: ★**光生物安全的输入量 = 出瞳白场辐亮度的最大值**, 而 ★**亮度控制策略 (蓝光主通道占空 / 码值上限) 直接决定这个最大值落在哪** ★ ⇒ SW 侧要保证 ★**亮度控制策略里有「面板蓝光通道辐亮度占白场辐亮度上限 25% (保守)」这条上限** ★, 并 ★**在亮度 API 上留一个可标定的蓝通道占比量** ★
+
+    ★**名义值 8.26%** = DCI-P3 蓝基色 x=0.150 y=0.060 的 Y_B=0.0798 / 红 0.3850 / 绿 0.5017 (★等辐射功率下算★) ★
+
+    ★**越限后果**: L_eye > 1500 cd/m2 ⇒ ★**掉出 IEC 62471 Exempt (RG0) 进 RG1** (L_B 100..10000 W/(m2*sr)) ⇒ ★**需要用户信息 / 标签说明** (★不是禁视警示, 那要到 RG2 才有★) ★
+
+    ★**判定与测量的真源在结构侧**: `MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md` §3.2 与 §3.6 ⇒ ★**SW 侧只读引用, 不许改** ★
+
+    ★**本单不依赖任何在飞单** ⇒ 落在本轮 (sw-lead 名额刚被 ISS-225 验收放出来) ★'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: fixing
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '2026-11-16 04:36 本 job (775d9893) 新开 ★**依据 = main 本轮实查分片: `state/fragments/mech.yaml` 的 `iss134_sw_blue_drive_ratio_cap` (to=sw-lead) 至今 open** ★
+
+    ★**这是项目里本来就挂着的跨域 need, 不是 main 现编的活** ★ ⇒ ★**它不依赖任何在飞单 ⇒ 不占主线时间窗** ★
+
+    ★**sw-lead 名额的上一条 ISS-225 本轮 04:36 落 verified (main 实跑 rc=0 + selftest 16/16) ⇒ 名额放出来 ⇒ 本单接档** ★
+
+    ★**边界**: 不改 `MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md` (结构侧地界) · 不改 `HW/` · 不改 ISS-225 的 `check_demo_panel_spec.py` 与 `SW_MD5_BASELINE_LEDGER.md` (受保护 md5) · 判据数值 (25% / 8.26% / 1500 cd/m2) 一个不许动 · 零外发
+    · 板端 [实测] = 0 条 · 不自签 issue_log ★'
+  task_brief: '★★**目标 (★内部活·软件/光生物安全判据侧·不是 PCB 布线/布局类·不是老板级拍板★)** ★★
+
+    把 ★**光生物安全的「出瞳白场辐亮度最大值」在 SW 侧亮度控制策略里变成一个可判的量** ★
+
+    ⇒ 面板蓝光通道辐亮度占白场辐亮度 ★**上限 25% (保守)**★, 名义值 ★**8.26%**★
+
+    ⇒ 交付: ★**(1) SW 侧亮度控制策略文档 · (2) 亮度 API 上可标定的蓝通道占比量 · (3) 机器门禁 + 反向用例 · (4) 交接单 + 分片** ★ ⇒ ★**零外发** ★
+
+
+    ★★**为什么是现在 (★main 2026-11-16 04:36 实查分片, 不是推测★)** ★★
+
+    · ★**这是 ISS-134 从结构侧跨域登记给 SW 侧的 need** (`state/fragments/mech.yaml` 的 `iss134_sw_blue_drive_ratio_cap`, to=sw-lead, ★**至今 open**★) ⇒ ★**它不是 main 编的活, 是项目里本来就挂着、没人接的单** ★
+
+    · ★**它不依赖任何在飞单** ⇒ 落在本轮 (sw-lead 名额刚被 ISS-225 验收放出来) ⇒ ★**不占主线的时间窗** ★
+
+
+    ★★**依据 (★全部来自项目内已有材料, 不许编数★)** ★★
+
+    · ★**上限 25% (保守) / 名义 8.26%** ★ ⇒ 依据 = DCI-P3 蓝基色 x=0.150 y=0.060 的 Y_B=0.0798 / 红 0.3850 / 绿 0.5017, ★**等辐射功率下算**★ ⇒ ★**8.26% = 0.0798 / (0.0798+0.3850+0.5017)** ★
+
+    · ★**为什么与 SW 有关** ★ ⇒ ★**光生物安全的输入量 = 出瞳白场辐亮度的最大值**★, 而 ★**亮度控制策略 (蓝光主通道占空 / 码值上限) 直接决定这个最大值落在哪** ★
+
+    · ★**越限的后果链 (照抄, 不许改写语义)** ★ ⇒ L_eye > 1500 cd/m2 ⇒ ★**掉出 IEC 62471 Exempt (RG0) 进 RG1**★ (L_B 100..10000 W/(m2*sr)) ⇒ ★**需要用户信息 / 标签说明**★ (★**不是禁视警示, 那个要到 RG2 才有**★)
+
+    · ★**判定与测量的真源在结构侧** ★ ⇒ `MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md` §3.2 与 §3.6 ⇒ ★**SW 侧只需保证亮度控制策略里有这条上限, 并在亮度 API 上留一个可标定的蓝通道占比量** ★
+
+
+    ★★**交付物 (4 件, 少一件即无效) ★★
+
+    ① ★**SW 侧亮度控制策略文档 (新建)** ★ ⇒ 写清: ① 上限 25% (保守) 的来源与 ★**名义 8.26% 的算式**★ ② ★**越限后果链 (1500 cd/m2 ⇒ RG0→RG1 ⇒ 用户信息/标签)**★ ③ ★**SW 侧要保证的东西 = 「亮度控制策略里有这条上限」**★ ④ ★**降级方案**★ (板端不可达 ⇒ 全部标 [推算]/[0数据]; ★**不许拿任何未实测的辐亮度数当实测**★)
+
+    ② ★**亮度 API 上的可标定蓝通道占比量** ★ ⇒ ★**只定义接口/字段与标定方法, 不许填任何编出来的实测值** ★ ⇒ ★**板端数据 = [0数据]** ★
+
+    ③ ★**机器门禁 (新建脚本 + `--selftest` 反向用例)** ★ ⇒ 断言: ★**(a) 上限 25% / 名义 8.26% 这两个数不许被改小**★ ★**(b) 越限后果链那三段不许被删**★ ★**(c) 亮度 API 的蓝通道占比量不许被摘掉**★ ⇒ ★**反向用例至少 4 条 (改小上限 / 删后果链 / 删 API 量 / 改名义值) 必须全红** ★ ⇒ ★**门禁不许靠「把判据删掉」变绿**
+    ★
+
+    ④ ★**交接单 (新建) `HANDOFF/2026-11-16_sw-lead_ISS226_蓝光通道占比上限与亮度API.md`** (★B1~B6 六块齐全★) + ★**分片 `state/fragments/sw.yaml` (★走 `python3 state/frag_write.py --agent sw-lead` 原子写★)** ★ ⇒ ★**交卷贴分片 mtime 前/后**
+    ★
+
+
+    ★★**边界 (★违反一条即本单无效★)** ★★
+
+    · ★**不许改** `MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md` (★结构侧地界, 只读引用★) · 不许改 `HW/` · 不许改 `state/issue_log.yaml` · 不许改 `PROJECT_TRACKER.md` §0 · 不许碰 `state/outbox/` · 不许碰别人的分片
+
+    · ★**不许改判据数值** (25% / 8.26% / 1500 cd/m2 / Y_B=0.0798 / 红 0.3850 / 绿 0.5017 ★**一个不许动**★)
+
+    · ★**不许碰 PCB 布线 / 布局 / 板框** (★老板 2026-11-11 10:07 口径★)
+
+    · ★**零外发** (★不发邮件 / 询价 / 问询 / 采购★) ⇒ 缺口一律【自己网上查】+ 标 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` + ★**查不到必须写降级方案** ★
+
+    · ★**本单实物 [实测] = 0 条** (板不在本机) ⇒ 标 [实测] 的只允许是「本机脚本 / 本机文件实读」
+
+    · ★**不许自签 issue_log** (★status 留给 main 落 verified★)
+
+    · ★**⚠️ 本单不许改 `SW/tools/check_demo_panel_spec.py` 与 `SW/SW_MD5_BASELINE_LEDGER.md`** (★那是 ISS-225 的产物, md5 受保护 ⇒ 你一改就会把 R6 三方对账搞红★) ⇒ ★**你要新写脚本, 就新写, 别改旧的** ★
+
+
+    ★★**交卷前必须实跑并把输出原样贴进回复 ★★
+
+    ```
+
+    python3 SW/tools/<你的新脚本>.py              # rc=0 (门禁全过)
+
+    python3 SW/tools/<你的新脚本>.py --selftest   # rc=0 (反向用例全抓到)
+
+    python3 SW/tools/check_demo_panel_spec.py     # rc=0 (★ISS-225 的门禁不许被你改红★)
+
+    python3 state/merge.py && python3 state/gate_check.py   # rc=0 且 【Q1 交付齐备率】 18/18
+
+    ```
+
+    ★**若上面某条门禁变红 ⇒ 不许放松门禁, 也不许回退别的东西来凑绿 ⇒ 交卷报红并说明原因 (★main 复核)**★'
+  dispatched_at: '2026-11-16'
+- id: ISS-227
+  title: '★★[主线内·结构/热路口径侧·内部活] ISS-222 产物的 C-7b 物理口径错修正: P3 把「镜框上沿 120×30 打印件顶面」当成与铝条同温的集热面 (R 398.9 vs 47.6 K/W, 差 8.4 倍 ⇒ 实算腔体 53.60 °C ❌) ⇒ 集热面改铝制背板 + 三档重算 + 门禁 + 留痕'
+  severity: high
+  source_blocker: ISS-222
+  desc: '★**ISS-222 交卷时自己登记的 need** (`state/fragments/mech.yaml` 的 `iss222_mech_c7b_sink_is_metal_not_print`, to=main, ★**至今 open**★) ⇒ ★**不在任何在飞单的范围里** ★
+
+    ★**错在哪**: ISS-219 的 P3 把 ★**镜框上沿 120×30 打印件顶面**★ 当成 ★**与铝条同温**★ 的集热面 (口径内算得 46.63 °C ✅) ★
+
+    · ★**打印件 PA-CF k=0.2 沿上沿方向热阻 = 3610 K/W (70 mm 段, 96.96 mm² 截面)**★ ⇒ ★**远离铝条的部分几乎不参与散热** ★
+
+    · ★**顶面有效热导 R = 398.9 K/W vs 同面积直接对流 47.6 K/W (★差 8.4 倍★)**★ ⇒ ★**实算腔体 53.60 °C ❌ (超 50 °C 红线 3.60 °C, d=15 u8=30)** ★
+
+    ★**降级路径 (都有数)**: (a) ★**铝制集热背板 120×30×1.0 不是【可选降级】, 是 P3 成立的【必要条件】**★ ⇒ 47.77 °C @0.468 W / 48.65 @0.50 W ✅ · P_max 0.5496 W · +9.72 g = 2.70 mg/mm² ; (b) 面板降到 0.415 W 时打印件方案仍 51.49 °C ❌ ⇒ 必须与 (a) 同做
+    ; (c) 端件整条金属化 11.34-22.68 g 换 600-800 mm² = 14.18-37.80 mg/mm² (贵 5.3-14.0 倍, 腔体 61.64-64.60 °C ❌) ⇒ 不可接受 (有数) ★
+
+    ★**为什么要修**: ISS-222 的 C-7 结论「只有 P3 三档全达标 (45.95-46.63 °C)」★**建立在那个错口径上** ★ ⇒ ★**口径一改结论就翻 ⇒ 不改 = 带错数往后传** ★'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-11-16'
+  due: '2026-11-19'
+  status: fixing
+  external: false
+  need_keys: []
+  fix_ref: null
+  verify_by: main
+  verify_result: null
+  verify_date: null
+  note: '2026-11-16 04:36 本 job (775d9893) 新开 ★**依据 = main 本轮实查分片: `state/fragments/mech.yaml` 的 `iss222_mech_c7b_sink_is_metal_not_print` (to=main) 至今 open** ★
+
+    ★**它不在任何在飞单的范围里 ⇒ 与 ISS-223 落表互不依赖 ⇒ 不占主线时间窗** ★
+
+    ★**mech-lead 名额的上一条 ISS-224 已于 04:07 落 verified ⇒ 名额空着 ⇒ 本单接档** ★
+
+    ★**⚠️ 下一轮若 ISS-223 落表 ⇒ MECH 闸 G5b + C21 会按设计变红 (锚点过期) ⇒ 那时再派 mech-lead 走重锚 (本单不许碰 MECH 锚点, 免得与落表抢)** ★
+
+    ★**边界**: 不改 `HW/` / `SW/` · 不改 4 个受保护脚本 (hinge_usb_check / service_port_check / hw_cross_review_check / display_biosafety_v2_check) · 判据阈值 (50 °C / k=201 / P3 几何 120×30) 一个不许动 · 只许改 `MECH/cavity_recalc_check.py`
+    + `MECH/CENTER_CAVITY_REBALANCE_V3.md` · 不代拍老板级项 (集热面最终材质 / u8 / 功耗档) · 零外发 · 不自签 issue_log ★'
+  task_brief: "★★**目标 (★内部活·结构/热路口径侧·不是 PCB 布线/布局类·不是老板级拍板★)** ★★\n★**把 ISS-222 产物里那处「物理口径错」修正掉**: ★**P3 把镜框上沿 120×30 打印件顶面当成了与铝条同温的集热面** ★\n⇒ ★**改正 = 集热面必须是铝制背板 (打印件顶面根本不参与散热)** ★ ⇒ 重算三档 ⇒ 落进门禁 ⇒ ★**零外发**\
+    \ ★\n\n★★**为什么是现在 (★main 2026-11-16 04:36 实查分片 + 实跑, 不是推测★)** ★★\n· ★**这是 ISS-222 交卷时自己登记的 need** (`state/fragments/mech.yaml` 的 `iss222_mech_c7b_sink_is_metal_not_print`, to=main, ★**至今 open**★) ⇒\
+    \ ★**它不在任何在飞单的范围里** ★\n· ★**mech-lead 的名额刚空出来 (ISS-224 已于 04:07 落 verified)** ⇒ ★**这条与 ISS-223 落表互不依赖** ★ ⇒ ★**不占主线的时间窗** ★\n· ★**为什么必须修**: ISS-222 的 C-7 结论「只有 P3 三档全达标 (45.95-46.63 °C)」★**是建立在「打印件顶面\
+    \ = 集热面」这个错口径上的** ★ ⇒ ★**口径一改, 结论就翻 ⇒ 不改 = 带着错数往后传** ★\n\n★★**依据 (★数字全部来自项目内已有实算, 不许自己另算一套★)** ★★\n· ★**错在哪**: ISS-219 的 P3 把 ★**镜框上沿 120×30 打印件顶面**★ 当成 ★**与铝条同温**★ 的集热面 (口径内算得 46.63 °C ✅) ★\n  ⇒ ★**但打印件\
+    \ PA-CF k=0.2 沿上沿方向的热阻 = 3610 K/W (70 mm 段, 96.96 mm² 截面)**★ ⇒ ★**远离铝条的部分几乎不参与散热** ★\n  ⇒ ★**顶面有效热导 R = 398.9 K/W vs 同面积直接对流 47.6 K/W (★差 8.4 倍★)**★ ⇒ ★**实算腔体 53.60 °C ❌ (超 50 °C 红线 3.60 °C, d=15 u8=30)**\
+    \ ★\n· ★**三条降级路径 (都有数, 不许拍脑袋)** ★:\n  (a) ★**铝制集热背板 120×30×1.0**★ ⇒ ★**不是【可选降级】, 是 P3 成立的【必要条件】**★ ⇒ 装上: ★**47.77 °C @0.468 W / 48.65 °C @0.50 W ✅, P_max 0.5496 W, +9.72 g = 2.70 mg/mm²**★\n  (b) ★**面板降到\
+    \ 0.415 W 时打印件方案仍 51.49 °C ❌**★ ⇒ ★**降功耗单独做不成立, 必须与 (a) 同做** ★\n  (c) ★**端件整条金属化 11.34-22.68 g 换 600-800 mm² = 14.18-37.80 mg/mm²**★ ⇒ ★**贵 5.3-14.0 倍且面积仍差 3-7 倍, 腔体 61.64-64.60 °C ❌**★ ⇒ ★**不可接受 (有数)**\
+    \ ★\n· ⇒ ★**要你做的 = 把 P3 的集热面从「打印件顶面」改成「铝制集热背板 120×30×1.0, 与铝条同温」, 然后重算三档 (d=15/18/20) 的腔体温度** ★\n\n★★**交付物 (4 件, 少一件即无效) ★★\n① ★**口径修正落进 `MECH/CENTER_CAVITY_REBALANCE_V3.md`** (★ISS-222 的产物, 你自己的地界★)\
+    \ ⇒ ★**C-7b 独立成节**★, 写清 ★**旧口径 (打印件顶面当集热面) → 新口径 (铝制背板) → 数字前后对比**★ ⇒ ★**旧数不许删, 留成「已修正 (留痕)」** ★\n② ★**三档重算 (d=15 / 18 / 20) + u8 口径写清** ★ ⇒ ★**每个数标证据等级** ★ (★本单实物 [实测] = 0 条 ⇒ 只允许 [推算]★) ⇒ ★**不许把 53.60\
+    \ °C 这个错口径数悄悄换掉而不留痕** ★\n③ ★**机器门禁 (扩 `MECH/cavity_recalc_check.py` + `--selftest`)** ★ ⇒ ★**新增断言: 「打印件顶面不许被当成集热面」(机械判据 = 集热面材质字段必须是铝/金属, 打印件 ⇒ 红)**★ ⇒ ★**反向用例 ≥3 条 (把集热面材质改回打印件 / 删掉 C-7b 节 / 改 50 °C\
+    \ 判据 ⇒ 全红)** ★ ⇒ ★**判据阈值 (50 °C / k=201 / P3 几何 120×30) 一个不许动** ★ ⇒ ★**门禁不许靠删断言变绿** ★\n④ ★**交接单 (新建) `HANDOFF/2026-11-16_mech-lead_ISS227_C7b集热面口径修正.md`** (★B1~B6 六块齐全★) + ★**分片 `state/fragments/mech.yaml`\
+    \ (★走 `python3 state/frag_write.py --agent mech-lead` 原子写★)** ★ ⇒ ★**交卷贴分片 mtime 前/后** ★\n\n★★**边界 (★违反一条即本单无效★)** ★★\n· ★**不许改** `HW/` 任何文件 · 不许改 `SW/` 任何文件 · 不许改 `state/issue_log.yaml` · 不许改 `PROJECT_TRACKER.md`\
+    \ §0 · 不许碰 `state/outbox/` · 不许碰别人的分片\n· ★**不许改** `MECH/hinge_usb_check.py` / `MECH/service_port_check.py` / `MECH/hw_cross_review_check.py` / `MECH/display_biosafety_v2_check.py` (★4 个受保护脚本, md5 逐字节不许变★)\
+    \ ⇒ ★**你只许改 `MECH/cavity_recalc_check.py` 与 `MECH/CENTER_CAVITY_REBALANCE_V3.md`** ★\n· ★**不许改判据阈值** (50 °C / k=201 / P3 几何 120×30 / 皮肤 43 °C / 端件 60 °C ⇒ ★**一个不许动**★) ⇒ ★**改的是【假设/口径】, 不是【阈值】** ★\n\
+    · ★**不许代拍老板级项**: ★**集热面最终做成什么材质 / u8 端件截面 / 面板功耗档 / 整机形态 ⇒ 一律只列选项 + 量化代价, 不许拍** ★ ⇒ ★**拍板权在 main / 老板** ★\n· ★**不许碰 PCB 布线 / 布局 / 板框** (★老板 2026-11-11 10:07 口径★)\n· ★**零外发** (★不发邮件 / 询价 / 问询 / 采购★)\
+    \ ⇒ 缺口一律【自己网上查】+ 标 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` + ★**查不到必须写降级方案** ★\n· ★**本单实物 [实测] = 0 条** (板不在本机)\n· ★**不许自签 issue_log** (★status 留给 main 落 verified★)\n\n★★**交卷前必须实跑并把输出原样贴进回复 ★★\n```\npython3\
+    \ MECH/cavity_recalc_check.py            # rc=0 (含新增的 C-7b 断言)\npython3 MECH/cavity_recalc_check.py --selftest  # rc=0 (反向用例全抓到)\npython3 MECH/check_demo_struct_truth.py         # rc=0 (★ISS-224 刚重锚的门禁不许被你改红★)\n\
+    python3 MECH/verify_budget.py                  # rc=0\npython3 state/merge.py && python3 state/gate_check.py   # rc=0 且 【Q1 交付齐备率】 18/18\n```\n★**若上面某条门禁变红 ⇒ 不许放松门禁, 也不许回退别的东西来凑绿 ⇒ 交卷报红并说明原因 (★main\
+    \ 复核)**★"
   dispatched_at: '2026-11-16'

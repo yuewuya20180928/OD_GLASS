@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import glob
 import hashlib
 import json
 import math
@@ -154,6 +155,112 @@ TOL = 1e-9
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(_HERE))     # projects/smart_glasses
 DEFAULT_NETLIST = os.path.normpath(os.path.join(_HERE, "..", "..", "HW", "netlist_v1.csv"))
+
+# ★★【ISS-225】SW 侧 md5 基线台账 (★锚点住这儿, 不再硬编码 md5★)
+#   ★ 机制照抄 MECH/check_demo_struct_truth.py 的 C21 (★只读参照, MECH/ 一个字节没碰★)
+#   ★ 锚点 = SW/SW_MD5_BASELINE_LEDGER.md §1 的机器可读 YAML 块
+#   ★ 本文件**只读**该台账 + 落表台账 (落表台账由 hw-lead 写) ⇒ SW 侧一个字节都不写
+SW_MD5_LEDGER_REL = os.path.join("SW", "SW_MD5_BASELINE_LEDGER.md")
+SW_MD5_ANCHOR_BEGIN = "# BEGIN SW_MD5_ANCHORS"
+SW_MD5_ANCHOR_END = "# END SW_MD5_ANCHORS"
+NETLIST_REL = os.path.join("HW", "netlist_v1.csv")
+
+
+def _sw_anchor_entries():
+    """读 SW 台账 §1 里 `HW/netlist_v1.csv` 的那条锚点 (读不到 ⇒ (None, 原因))。"""
+    path = os.path.join(_PROJECT_ROOT, SW_MD5_LEDGER_REL)
+    if not os.path.exists(path):
+        return None, "SW 侧 md5 基线台账不存在: %s" % SW_MD5_LEDGER_REL
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    m = re.search(re.escape(SW_MD5_ANCHOR_BEGIN) + r"(.*?)" + re.escape(SW_MD5_ANCHOR_END),
+                  text, re.S)
+    if not m:
+        return None, "台账里找不到锚点块"
+    try:
+        import yaml
+        data = yaml.safe_load(m.group(1))
+    except Exception as exc:                      # ★fail-closed: 读不到 ⇒ 红, 不许当"没锚点就跳过"★
+        return None, "锚点块解析失败: %s" % exc
+    anchors = (data or {}).get("anchors") or {}
+    for e in (anchors.get("source_ledger") or {}).get("entries") or []:
+        if str(e.get("file") or "") == NETLIST_REL:
+            return (anchors, e), ""
+    return None, "锚点里没有 %s 的条目" % NETLIST_REL
+
+
+def _md5_seen(text: str, value: str) -> bool:
+    return bool(value) and (value in text or value[:12] in text)
+
+
+def _netlist_baseline_state():
+    """→ (状态串, 允许的网表 md5 集合, 详情)。三方对账: 锚点 ↔ 落表台账 ↔ 盘上真源。"""
+    got = _sw_anchor_entries()
+    if not isinstance(got, tuple) or got[0] is None:
+        why = got[1] if isinstance(got, tuple) else "未知"
+        return ("BAD", set(), "读不到 SW 台账锚点: %s" % why)
+    (anchors, entry), _ = got
+    want = str(entry.get("md5") or "")
+    prev = str(entry.get("prev_md5") or "")
+    by = str(entry.get("by") or "")
+    if not want:
+        return ("BAD", set(), "锚点里 %s 没登记 md5" % NETLIST_REL)
+    # ① 落表台账对账: 单号 + 文件名 + 新旧 md5 必须在同一行
+    recs = []
+    for spec in ((anchors.get("source_ledger") or {}).get("landing_records")) or []:
+        p = os.path.join(_PROJECT_ROOT, spec)
+        if os.path.isfile(p):
+            recs.append((spec, open(p, encoding="utf-8").read()))
+            continue
+        d = os.path.dirname(spec) or "."
+        b = os.path.basename(spec)
+        for hit in sorted(glob.glob(os.path.join(_PROJECT_ROOT, d, b))):
+            recs.append((os.path.relpath(hit, _PROJECT_ROOT),
+                         open(hit, encoding="utf-8").read()))
+    if not recs:
+        return ("BAD", {want}, "落表台账位置一个都不存在")
+    hit = None
+    for name, text in recs:
+        if by and by not in text:
+            continue
+        ok = False
+        for line in text.split("\n"):
+            if NETLIST_REL not in line:
+                continue
+            if not _md5_seen(line, want):
+                continue
+            if prev and not _md5_seen(line, prev):
+                continue
+            ok = True
+            break
+        if ok:
+            hit = name
+            break
+    if hit is None:
+        return ("BAD", {want}, "落表台账里查不到 (单号 %s / 文件 %s / 新 md5 %s / 旧 md5 %s)"
+                % (by or "无", NETLIST_REL, want[:12], prev[:12] if prev else "无"))
+    # ② 盘上真源 vs 锚点
+    disk = os.path.join(_PROJECT_ROOT, NETLIST_REL)
+    got_md5 = hashlib.md5(open(disk, "rb").read()).hexdigest() if os.path.exists(disk) else ""
+    if got_md5 != want:
+        return ("BAD", {want}, "盘上真源 md5 %s ≠ 锚点登记 %s (真源被换了或锚点过期)"
+                % (got_md5, want))
+    allowed = {want} | ({prev} if prev else set())
+    return ("OK", allowed, "落表台账 = %s (单号 %s) · 盘上 md5 = %s" % (hit, by, got_md5))
+
+
+def netlist_baseline_ok() -> bool:
+    """三方对账成立? (锚点 ↔ 落表台账 ↔ 盘上真源)"""
+    return _netlist_baseline_state()[0] == "OK"
+
+
+def netlist_md5_allowed(md5: str) -> bool:
+    """这个网表 md5 是落表台账登记过的状态之一吗 (落表前 / 落表后)?"""
+    return md5 in _netlist_baseline_state()[1]
+
+
+def netlist_baseline_detail() -> str:
+    return _netlist_baseline_state()[2]
 
 
 def r(x: float, n: int = 3) -> float:
@@ -1173,7 +1280,13 @@ SELF_TESTS_LEGACY = [
     ("监督器 CT 悬空延时 = 20ms", lambda o: abs(o["F2_supervisor"]["delay_ct_open_ms"] - 20.0) < 0.01),
     ("两臂 0Ω 短路风险已标注", lambda o: o["F2_supervisor"]["divider_zero_risk"] is True),
     ("I2C t_r@100pF = 398ns", lambda o: abs(o["F3_i2c_rise"]["tr_ns_at_100pF"] - 398.0) < 1.0),
-    ("I2C 注记误差 >= 5 倍", lambda o: o["F3_i2c_rise"]["annotation_error_ratio"] >= 5.0),
+    # ★★【ISS-225 重锚】原断言 = 「I2C 注记误差 >= 5 倍」⇒ 它断言的是【网表侧那条矛盾仍在】⇒
+    #   ISS-220 d6 真把网表 I2C_A 改成 2.2k@1.8V (t_r=186ns) ⇒ **矛盾被上游真修好了** ⇒
+    #   ★**这不是把红灯调没, 是网表侧那盏灯被真修好了** (留痕: SW/SW_MD5_BASELINE_LEDGER.md §3 R-02)
+    #   ⇒ 断言方向反过来: ★**注记必须与实算一致** (不一致才红 ⇒ 那才是真缺陷)
+    ("I2C 网表注记与实算一致 (误差 < 1.01 倍 ⇒ 网表侧矛盾已被 ISS-220 d6 消除)",
+     lambda o: o["F3_i2c_rise"]["annotation_error_ratio"] is not None
+               and o["F3_i2c_rise"]["annotation_error_ratio"] < 1.01),
     ("I2C 300pF 超标准模式上限", lambda o: o["F3_i2c_rise"]["tr_ns_vs_cable_cap"]["300pF"] > 1000.0),
     ("ADC 源阻抗 500k", lambda o: abs(o["F4_adc_det"]["rth_ohm"] - 500000.0) < 1.0),
     ("ADC tau = 50ms", lambda o: abs(o["F4_adc_det"]["tau_ms"] - 50.0) < 0.5),
@@ -1271,9 +1384,16 @@ def _rev_pg_and_any_row(o, nl=None):
 NEW_TESTS = [
     ("网表锚点: md5 与行数可复算 (data_rows = lines_total - 1)",
      lambda o: o["NETLIST_ANCHOR"]["netlist_data_rows"] == o["NETLIST_ANCHOR"]["netlist_lines_total"] - 1),
-    ("网表锚点: 现行网表 = 513 数据行 / md5 c78f991283cc82d56c8e3dd31657c785",
-     lambda o: o["NETLIST_ANCHOR"]["netlist_data_rows"] == 513
-               and o["NETLIST_ANCHOR"]["netlist_md5"] == "c78f991283cc82d56c8e3dd31657c785"),
+    ("网表锚点: 现行网表 = 513 数据行 (行数不许变)",
+     lambda o: o["NETLIST_ANCHOR"]["netlist_data_rows"] == 513),
+    # ★★【ISS-225 重锚】原断言 = 「现行网表 md5 == c78f9912…」(硬编码一个落表前的旧值)
+    #   ⇒ ISS-220 落表把它改成 13f59a43… ⇒ **这条恒红** ⇒ ★**不许只追一次 md5** ⇒
+    #   ★**改成台账驱动**: ① 现行网表的 md5 必须是落表台账登记过的两个状态之一 (落表前/落表后)
+    #     ② 锚点 ↔ 落表台账 ↔ 盘上真源三方对账必须成立 (不许悄悄换真源)
+    ("网表锚点: 现行网表 md5 ∈ 落表台账登记的状态 (落表前 / 落表后)",
+     lambda o: netlist_md5_allowed(o["NETLIST_ANCHOR"]["netlist_md5"])),
+    ("网表锚点: 锚点 ↔ 落表台账 ↔ 盘上真源 三方对账成立 (不许悄悄换真源)",
+     lambda o: netlist_baseline_ok()),
     ("F1 实读: R_PU_RESET_N=10k / R_SER_RESET_N=1k / C_RST=100nF",
      lambda o: o["F1_reset_rc"]["r_pull_ohm"] == 10000
                and o["F1_reset_rc"]["r_ser_ohm"] == 1000
@@ -1311,9 +1431,12 @@ NEW_TESTS = [
     ("F3 复评: I2C_B @300pF = 1194ns > 1000ns ⇒ 标准模式**不通过** (最差总线)",
      lambda o: o["F3_i2c_rise"]["buses"]["I2C_B"]["tr_ns_vs_cable_cap"]["300pF"] > 1000.0
                and o["F3_i2c_rise"]["worst_bus"] == "I2C_B"),
-    ("F3 实读: 网表自带的 t_r 注记 2380ns 仍在 (与 2.2k 实算 186ns 不符 ⇒ 网表侧矛盾)",
-     lambda o: o["F3_i2c_rise"]["netlist_annotation_ns"] == 2380.0
-               and o["F3_i2c_rise"]["buses"]["I2C_A"]["annotation_stale"] is True),
+    # ★★【ISS-225 重锚】原断言 = 「网表自带的 t_r 注记 2380ns 仍在 (⇒ 网表侧矛盾)」
+    #   ⇒ ISS-220 d6 真把注记改成 186ns (与 2.2k 实算一致) ⇒ **那条矛盾不存在了** ⇒
+    #   ★**这不是把红灯调没, 是网表侧那盏灯被真修好了** (留痕: SW/SW_MD5_BASELINE_LEDGER.md §3 R-02)
+    ("F3 实读: 网表自带的 t_r 注记 186ns (ISS-220 d6 已把 I2C_A 改成 2.2k@1.8V ⇒ 注记与实算一致, 网表侧矛盾已消除)",
+     lambda o: o["F3_i2c_rise"]["netlist_annotation_ns"] == 186.0
+               and o["F3_i2c_rise"]["buses"]["I2C_A"]["annotation_stale"] is False),
     ("F4 实读: EN/SS/CT/MR 行数 = 10/0/1/0 (合计 11 行, CT 属 DNP 器件)",
      lambda o: o["F4_ctrl_pins"]["counts"] == {"EN": 10, "SS": 0, "CT": 1, "MR": 0}
                and o["F4_ctrl_pins"]["total_rows"] == 11),

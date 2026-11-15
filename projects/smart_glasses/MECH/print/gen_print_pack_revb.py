@@ -110,8 +110,19 @@ P = {
     "tc_open_h":     (3.60, "mm", "MECH_BUDGET §5.1 Type-C 开孔高 (现口径)", "[官网]"),
     "tc_open_w2":   (10.00, "mm", "ISS-089 建议开口 10.0 (待 PM 授权, 并行试样)", "[推算]"),
     "tc_open_h2":    (4.20, "mm", "ISS-089 建议开口 4.2 (待 PM 授权, 并行试样)", "[推算]"),
+    # --- ★第三档 (ISS-213 出口径 → ISS-218 落成"可下片的试样 + 门禁") ---
+    #     ★**上面两个既有参数的含义一个字没动** (现口径 / ISS-089 建议口径),
+    #     第三档是 **新增参数**, 自检里另开一组对拍 (见 verify_pack_revb.py)。
+    #     口径出处: MECH/HW_CROSS_REVIEW_TRIAGE.md §1 MECH_ANCHORS.typec_panel
+    #     (new_opening_x/y = FDM 直成型档 · metal_opening_x/y = 金属·CNC 档)
+    "tc_open_w3":   (10.50, "mm", "★ISS-213 第三档 FDM 直成型档 (MECH_ANCHORS.typec_panel.new_opening_x)", "[推算]"),
+    "tc_open_h3":    (4.80, "mm", "★ISS-213 第三档 FDM 直成型档 (MECH_ANCHORS.typec_panel.new_opening_y)", "[推算]"),
+    "tc_open_w4":   (10.25, "mm", "★ISS-213 第三档 金属·CNC 档 (MECH_ANCHORS.typec_panel.metal_opening_x)", "[推算]"),
+    "tc_open_h4":    (4.55, "mm", "★ISS-213 第三档 金属·CNC 档 (MECH_ANCHORS.typec_panel.metal_opening_y)", "[推算]"),
     "tc_wall_min":   (1.50, "mm", "MECH_BUDGET §5.1 末端承力壁厚", "[推算]"),
     "tc_plate_t":    (3.00, "mm", "Type-C 面板试样板厚 (检具自身, 非产品件)", "[推算]"),
+    "tc3_plate_t":   (3.00, "mm", "第三档试样板厚 (检具自身, 非产品件; 与 frame_typec 试样同)", "[推算]"),
+    "tc3_boss_h":    (2.00, "mm", "第三档工艺表征段 标定方块凸起高 (检具自身)", "[推算]"),
     # --- ISS-092 检修口 (C-1..C-15) ---
     "sp_open_x":    (10.20, "mm", "ISS-092 C-1 通窗开口 X", "[推算]"),
     "sp_open_y":     (4.60, "mm", "ISS-092 C-1 通窗开口 Y", "[推算]"),
@@ -202,7 +213,7 @@ def plate_xy(m, x0, x1, y0, y1, z0, z1, holes=(), rects=(), strips=192):
     holes = tuple(holes)
     rects = tuple(rects)
     edges = [y0, y1]
-    for (_xa, _xb, rya, _ryb) in rects:
+    for (_xa, _xb, rya, ryb) in rects:
         edges += [rya, ryb]
     for (_cx, cy, _r) in holes:
         edges += [cy - _r, cy + _r]
@@ -273,6 +284,18 @@ L = {
     "tc_pin_x": (4.0, 10.0),  # D 定位凸台 X (间距 6.00, Z=10.3)
     "tc_mag_x": (4.0, 10.0),  # D 磁铁沉槽孔心 X (Z=3.0)
     "tc_mag_z": 3.0,
+    # ---- frame_typec_tier3 (★ISS-218 第三档试样) ----
+    #   ★ 试样 **平放打印**: 面板在 XY 平面内, 板厚沿 Z ⇒ 开口的两个方向都落在
+    #     **层内 (in-layer)** ⇒ 层纹不横切开口边 (详见 PRINT_COUPON_TIER3_SPEC.md §2.1)
+    "tc3_fdm_x0":   0.00,      # FDM 直成型档 面板左边界 X
+    "tc3_cnc_x0":  16.00,      # 金属·CNC 档 面板左边界 X
+    "tc3_proc_x0": 32.00,      # 工艺表征段 (收缩率 + 孔径补偿) 左边界 X
+    "tc3_proc_x1": 72.00,      # 工艺表征段 右边界 X
+    "tc3_proc_y1": 32.00,      # 工艺表征段 上边界 Y
+    # 收缩率标定方块 (X 起, Y 起, 边长) —— 3 档跨度 4× (5/10/20)
+    "tc3_sq": ((33.00, 1.00, 5.00), (39.00, 8.00, 10.00), (50.00, 1.00, 20.00)),
+    # 孔径补偿试样 (孔心 X, 孔心 Y, 直径) —— 3 档 (⌀4 / ⌀6 / ⌀8)
+    "tc3_holes": ((35.00, 26.00, 4.00), (45.00, 26.00, 6.00), (57.00, 26.00, 8.00)),
 }
 
 # =====================================================================
@@ -481,10 +504,46 @@ def build_frame_typec():
     return m
 
 
+# =====================================================================
+# 件 4: ★第三档 Type-C 面板试样 (ISS-218)
+#   ★ 为什么单独一件 (不塞进 frame_typec_coupon_revb.stl):
+#     ① **既有 Rev B 基线 STL 一个字节都不动** (自检 93/93 + 38/38 的载体不变);
+#     ② 第三档是 **两种工艺** (FDM 直成型 / 金属·CNC) ⇒ 试样取向/余量口径不同,
+#        混在一块板上没法分别归因;
+#     ③ 第三档还要带一块 **工艺表征段** (收缩率标定方块 + 孔径补偿试样),
+#        那是"把加工余量从说法变成实测"的载体, 与面板试样分开更清楚。
+#   ★ 平放打印: 面板在 XY 平面内, 板厚沿 Z ⇒ 开口两个方向都在层内 (层纹不横切开口边)
+# =====================================================================
+def build_frame_typec_tier3():
+    """第三档试样: FDM 直成型 10.50×4.80 + 金属·CNC 10.25×4.55 + 工艺表征段"""
+    m = RecMesh("frame_typec_coupon_tier3_revb")
+    w = v("tc_wall_min")
+    t = v("tc3_plate_t")
+    # ---- 面板 A: FDM 直成型档 (10.50 × 4.80) ----
+    x0 = L["tc3_fdm_x0"]
+    ow, oh = v("tc_open_w3"), v("tc_open_h3")
+    plate_xy(m, x0, x0 + ow + 2 * w, 0.0, oh + 2 * w, 0.0, t,
+             rects=((x0 + w, x0 + w + ow, w, w + oh),))
+    # ---- 面板 B: 金属·CNC 档 (10.25 × 4.55) ----
+    x1 = L["tc3_cnc_x0"]
+    ow4, oh4 = v("tc_open_w4"), v("tc_open_h4")
+    plate_xy(m, x1, x1 + ow4 + 2 * w, 0.0, oh4 + 2 * w, 0.0, t,
+             rects=((x1 + w, x1 + w + ow4, w, w + oh4),))
+    # ---- 工艺表征段: 收缩率标定方块 (凸起) + 孔径补偿试样 (通孔) ----
+    px0, px1, py1 = L["tc3_proc_x0"], L["tc3_proc_x1"], L["tc3_proc_y1"]
+    plate_xy(m, px0, px1, 0.0, py1, 0.0, t,
+             holes=tuple((hx, hy, dia / 2) for (hx, hy, dia) in L["tc3_holes"]))
+    bh = v("tc3_boss_h")
+    for (sx, sy, s) in L["tc3_sq"]:
+        m.box(sx, sy, t, sx + s, sy + s, t + bh)
+    return m
+
+
 def main():
     jobs = (("fit_coupon_revb.stl", build_coupon),
             ("temple_cage_revb.stl", build_temple_cage),
-            ("frame_typec_coupon_revb.stl", build_frame_typec))
+            ("frame_typec_coupon_revb.stl", build_frame_typec),
+            ("frame_typec_coupon_tier3_revb.stl", build_frame_typec_tier3))
     for fn, builder in jobs:
         PM.reset()
         mesh = builder()

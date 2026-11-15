@@ -18,6 +18,14 @@ Rev B 打印包自检 (解析模型精确求尺寸 + STL 逐点互验) —— ve
     ④ 探针位置用绝对坐标 vs 射线参数 t **混用** ⇒ 差一个原点偏移
   ⇒ 改成 "解析算尺寸 + STL 判内外", 两边职责分开, 各自都不再有上述坑。
 
+★ 坑 ⑤ (ISS-218 第三档实测踩到, 补记): **盒端面是三角扇, 扇心会被 4 个三角形同时命中**。
+  盒 (x0,x1,y0,y1,z0,z1) 的 ±X 端面由 "扇心 (mid_y, mid_z) + 4 个角点" 的 4 个三角形拼成;
+  探针若落在 **扇心 (mid_y, mid_z)** 上, 射线会同时命中这 4 个三角形 ⇒ 命中数由 1 变 4
+  (偶数) ⇒ **奇偶判内外直接翻车** (本轮 5 个点真踩到了)。
+  ⇒ 纪律: **互验探针的 (y,z) 必须避开每个被穿越盒的 (mid_y, mid_z)**;
+    上面的 `frame_typec_tier3` 采样点刻意避开了所有扇心 (如 (6.75, 4.20, 1.5) 而不是
+    (6.75, 3.90, 1.5))。
+
 ⚠️ 口径 (与 verify_pack.py 一致, 不许误读):
   本脚本证明的是 **模型/规格层的一致性** (STL == 规格数字),
   **不能** 替代 M-PRINT (实物打印件实测尺寸) —— 实物还有 FDM 工艺偏差
@@ -25,11 +33,13 @@ Rev B 打印包自检 (解析模型精确求尺寸 + STL 逐点互验) —— ve
   ⇒ `state/measurements.yaml` 的 M-PRINT 仍为 [推算]/未测, 阶段门 G2 不认 (符合设计意图)。
 
 用法: python3 MECH/print/verify_pack_revb.py
+      python3 MECH/print/verify_pack_revb.py --selftest    # ★反向用例 (ISS-218 加的)
 退出码: 0 = 全部一致; 1 = 有偏差
 """
 from __future__ import annotations
 
 import os
+import re
 import struct
 import sys
 
@@ -40,7 +50,27 @@ sys.path.insert(0, HERE)
 
 import print_model_revb as PM  # noqa: E402
 from gen_print_pack_revb import (GAPS, L, OVERHANGS, P, WALLS,  # noqa: E402
-                                 build_coupon, build_frame_typec, build_temple_cage, v)
+                                 build_coupon, build_frame_typec,
+                                 build_frame_typec_tier3, build_temple_cage, v)
+
+# =====================================================================
+# ★ISS-218: 第三档 (Type-C 面板开孔) 的判据常量与锚点
+# ---------------------------------------------------------------------
+# 判据出处: MECH/HW_CROSS_REVIEW_TRIAGE.md §1 的 MECH_ANCHORS 块 (ISS-213 写死的口径)
+#   thresholds.crit = 0.60          通用判据: 最坏单边间隙 ≥ 0.60
+#   typec_panel.body_x/_y = 8.94/3.26  USB Type-C 母座本体 [官方]
+#   typec_panel.fdm_tol = 0.30     FDM 外形公差 ±0.30
+# 金属·CNC 档公差 ±0.05 (ISS-213 口径)
+# ★**本脚本只读这些数, 一个都不许改**; 反向用例专门抓"有人偷偷松判据"。
+# =====================================================================
+TRIAGE = os.path.abspath(os.path.join(HERE, os.pardir, "HW_CROSS_REVIEW_TRIAGE.md"))
+
+CRIT_SIDE = 0.60          # 判据: 最坏单边间隙 ≥ 0.60 (MECH/service_port_check.py CRIT)
+BODY_X = 8.94             # USB Type-C 母座本体宽 [官方]
+BODY_Y = 3.26             # USB Type-C 母座本体高 [官方]
+FDM_TOL = 0.30            # FDM 外形公差 ±0.30 (MECH/fit_check.py 口径)
+CNC_TOL = 0.05            # 金属·CNC 档公差 ±0.05 (ISS-213 口径)
+CRIT_EXPECTED = 0.60      # 判据不许松 —— 写死在这里供反向用例抓
 
 
 # ---------------------------------------------------------------- STL 读取
@@ -87,7 +117,8 @@ def build_model():
     parts = {}
     for name, builder in (("fit_coupon", build_coupon),
                           ("temple_cage", build_temple_cage),
-                          ("frame_typec", build_frame_typec)):
+                          ("frame_typec", build_frame_typec),
+                          ("frame_typec_tier3", build_frame_typec_tier3)):
         PM.reset()
         builder()
         parts[name] = list(PM.MODEL)
@@ -97,8 +128,92 @@ def build_model():
 def stl_points(name):
     fn = {"fit_coupon": "fit_coupon_revb.stl",
           "temple_cage": "temple_cage_revb.stl",
-          "frame_typec": "frame_typec_coupon_revb.stl"}[name]
+          "frame_typec": "frame_typec_coupon_revb.stl",
+          "frame_typec_tier3": "frame_typec_coupon_tier3_revb.stl"}[name]
     return load_stl(os.path.join(HERE, fn))
+
+
+# =====================================================================
+# ★ISS-218: 第三档余量对拍 + 锚点对拍
+# ---------------------------------------------------------------------
+# 最坏单边间隙 (与 ISS-213 §5.1 / MECH/check_demo_struct_truth.py G2.2-G2.4 同式):
+#     g_worst = (开口名义 − 工艺公差 − 母座本体) / 2
+# 判据 CRIT = 0.60 (单边)。
+# =====================================================================
+def worst_gap(opening, body, tol):
+    return (opening - tol - body) / 2.0
+
+
+def load_triage_anchors():
+    """读 MECH/HW_CROSS_REVIEW_TRIAGE.md 的 MECH_ANCHORS 块 (只读, 唯一真源)"""
+    import yaml
+    with open(TRIAGE, encoding="utf-8") as f:
+        txt = f.read()
+    m = re.search(r"# BEGIN MECH_ANCHORS(.*?)# END MECH_ANCHORS", txt, re.S)
+    if not m:
+        raise SystemExit("[verify] 定性表里找不到 MECH_ANCHORS 块")
+    data = yaml.safe_load(m.group(1))
+    return data["anchors"]
+
+
+def tier3_margin_rows():
+    """第三档余量对拍 4 行 (第三档 2 行必须过 + 现候选 2 行必须不过)。
+
+    ★ 全局量在 **调用时** 取 (不是 def 时冻住) —— 否则反向用例改不动它 (ISS-216 C-7 同款坑)。
+    """
+    rows = []
+    # 第三档 (ISS-213 出, 本单落成试样) —— 必须 ≥ 判据
+    rows.append(("★第三档 FDM 直成型档", P["tc_open_w3"][0], P["tc_open_h3"][0],
+                 FDM_TOL, True))
+    rows.append(("★第三档 金属·CNC 档", P["tc_open_w4"][0], P["tc_open_h4"][0],
+                 CNC_TOL, True))
+    # 两档现候选 (打印包现试样) —— 必须 < 判据 (证明"两档并行"是假二选一)
+    rows.append(("现口径 (打印包现试样 1)", P["tc_open_w"][0], P["tc_open_h"][0],
+                 FDM_TOL, False))
+    rows.append(("ISS-089 建议 (打印包现试样 2)", P["tc_open_w2"][0], P["tc_open_h2"][0],
+                 FDM_TOL, False))
+    out = []
+    for (name, ox, oy, tol, must_pass) in rows:
+        gx = worst_gap(ox, BODY_X, tol)
+        gy = worst_gap(oy, BODY_Y, tol)
+        if must_pass:
+            ok = (gx >= CRIT_SIDE and gy >= CRIT_SIDE)
+            note = f"第三档 ⇒ 必须 ≥ 判据 {CRIT_SIDE:.2f}"
+        else:
+            ok = (gx < CRIT_SIDE or gy < CRIT_SIDE)
+            note = f"现候选 ⇒ 必须 < 判据 {CRIT_SIDE:.2f} (证'两档并行'是假二选一)"
+        out.append((name, ox, oy, tol, gx, gy, ok, note))
+    return out
+
+
+def anchor_checks():
+    """第三档数字 vs MECH_ANCHORS 真源 的逐条对拍 (任何漂移都必须变红)"""
+    A = load_triage_anchors()
+    tc = A["typec_panel"]
+    out = []
+    out.append(("A1", "第三档 FDM 开口宽 == MECH_ANCHORS.new_opening_x",
+                abs(P["tc_open_w3"][0] - tc["new_opening_x"]) < 1e-9,
+                f"打印包 {P['tc_open_w3'][0]} vs 锚点 {tc['new_opening_x']}"))
+    out.append(("A2", "第三档 FDM 开口高 == MECH_ANCHORS.new_opening_y",
+                abs(P["tc_open_h3"][0] - tc["new_opening_y"]) < 1e-9,
+                f"打印包 {P['tc_open_h3'][0]} vs 锚点 {tc['new_opening_y']}"))
+    out.append(("A3", "第三档 金属·CNC 开口宽 == MECH_ANCHORS.metal_opening_x",
+                abs(P["tc_open_w4"][0] - tc["metal_opening_x"]) < 1e-9,
+                f"打印包 {P['tc_open_w4'][0]} vs 锚点 {tc['metal_opening_x']}"))
+    out.append(("A4", "第三档 金属·CNC 开口高 == MECH_ANCHORS.metal_opening_y",
+                abs(P["tc_open_h4"][0] - tc["metal_opening_y"]) < 1e-9,
+                f"打印包 {P['tc_open_h4'][0]} vs 锚点 {tc['metal_opening_y']}"))
+    out.append(("A5", "★判据阈值不许松 (CRIT == 0.60 == MECH_ANCHORS.thresholds.crit)",
+                abs(CRIT_SIDE - CRIT_EXPECTED) < 1e-9
+                and abs(CRIT_SIDE - A["thresholds"]["crit"]) < 1e-9,
+                f"脚本 {CRIT_SIDE} vs 锚点 {A['thresholds']['crit']} vs 写死 {CRIT_EXPECTED}"))
+    out.append(("A6", "母座本体 == MECH_ANCHORS.typec_panel.body_x/body_y",
+                abs(BODY_X - tc["body_x"]) < 1e-9 and abs(BODY_Y - tc["body_y"]) < 1e-9,
+                f"脚本 {BODY_X}×{BODY_Y} vs 锚点 {tc['body_x']}×{tc['body_y']}"))
+    out.append(("A7", "FDM 公差 == MECH_ANCHORS.typec_panel.fdm_tol",
+                abs(FDM_TOL - tc["fdm_tol"]) < 1e-9,
+                f"脚本 {FDM_TOL} vs 锚点 {tc['fdm_tol']}"))
+    return out
 
 
 def cross_check(name, model, tris, samples):
@@ -115,9 +230,11 @@ def cross_check(name, model, tris, samples):
     return agree, len(samples), bad
 
 
-def build_probes():
+def build_probes(tier3_model=None):
     out = []
     models = build_model()
+    if tier3_model is not None:
+        models["frame_typec_tier3"] = tier3_model
 
     # ================= fit_coupon =================
     PM.MODEL[:] = models["fit_coupon"]
@@ -429,6 +546,64 @@ def build_probes():
         meas = nearest_solid(sp, x0 + w / 2) if sp else None
         out.append(Probe("frame_typec", f"Type-C 左承力壁厚 ({name})", w, "mm", meas, 0.01,
                          "沿 +X 过开口高度取左壁实体段 = 左壁厚"))
+
+    # ================= frame_typec_tier3 (★ISS-218 第三档试样) =================
+    PM.MODEL[:] = models["frame_typec_tier3"]
+    t3 = v("tc3_plate_t")
+    w3 = v("tc_wall_min")
+    for (x0, ow, oh, tag) in ((L["tc3_fdm_x0"], v("tc_open_w3"), v("tc_open_h3"), "FDM 直成型档"),
+                              (L["tc3_cnc_x0"], v("tc_open_w4"), v("tc_open_h4"), "金属·CNC 档")):
+        xc = x0 + w3 + ow / 2          # 开口中心 X
+        yc = w3 + oh / 2               # 开口中心 Y
+        # 开口宽 (沿 +X 过开口中心取空档)
+        sp = PM.cover_x(yc, t3 / 2)
+        meas = nearest_gap(PM.voids(sp), xc)
+        out.append(Probe("frame_typec_tier3", f"★第三档 {tag} 开口宽 ({ow:.2f})", ow, "mm",
+                         meas, 0.01, "沿 +X 过开口中心取空档 = 开口宽"))
+        # 开口高 (沿 +Y 过开口中心取空档)
+        sp = PM.cover_y(xc, t3 / 2)
+        meas = nearest_gap(PM.voids(sp), yc)
+        out.append(Probe("frame_typec_tier3", f"★第三档 {tag} 开口高 ({oh:.2f})", oh, "mm",
+                         meas, 0.01, "沿 +Y 过开口中心取空档 = 开口高"))
+        # 左承力壁 (沿 +X 取开口中心处的左壁实体段)
+        sp = PM.cover_x(yc, t3 / 2)
+        meas = nearest_solid(sp, x0 + w3 / 2)
+        out.append(Probe("frame_typec_tier3", f"★第三档 {tag} 左承力壁厚", w3, "mm",
+                         meas, 0.01, "沿 +X 过开口中心取左壁实体段 = 左承力壁厚"))
+        # 下承力壁 (沿 +Y 取开口中心处的下壁实体段)
+        sp = PM.cover_y(xc, t3 / 2)
+        meas = nearest_solid(sp, w3 / 2)
+        out.append(Probe("frame_typec_tier3", f"★第三档 {tag} 下承力壁厚", w3, "mm",
+                         meas, 0.01, "沿 +Y 过开口中心取下壁实体段 = 下承力壁厚"))
+        # 外形 X (在开口带之外量, 取含本面板的那段实体)
+        sp = PM.cover_x(w3 / 2, t3 / 2)
+        meas = nearest_solid(sp, x0 + w3 / 2)
+        out.append(Probe("frame_typec_tier3", f"★第三档 {tag} 面板外形 X", ow + 2 * w3, "mm",
+                         meas, 0.01, "沿 +X 过下壁带取本面板实体段 = 面板外形宽"))
+        # 外形 Y (只对本面板成立 ⇒ 取含本面板 X 的那段)
+        sp = PM.cover_y(x0 + w3 / 2, t3 / 2)
+        meas = nearest_solid(sp, w3 / 2)
+        out.append(Probe("frame_typec_tier3", f"★第三档 {tag} 面板外形 Y", oh + 2 * w3, "mm",
+                         meas, 0.01, "沿 +Y 过本面板左壁取实体段 = 面板外形高"))
+    # 工艺表征段: 收缩率标定方块 (凸起) + 孔径补偿试样 (通孔)
+    for i, (sx, sy, s) in enumerate(L["tc3_sq"]):
+        sp = PM.cover_x(sy + s / 2, t3 + v("tc3_boss_h") / 2)
+        meas = nearest_solid(sp, sx + s / 2)
+        out.append(Probe("frame_typec_tier3", f"★第三档 收缩率标定方块 #{i+1} ({s:.2f}) X",
+                         s, "mm", meas, 0.01,
+                         "沿 +X 过方块中心取实体段 = 收缩率标称 (FDM 收缩比的分母)"))
+    sx, sy, s = L["tc3_sq"][2]
+    sp = PM.cover_y(sx + s / 2, t3 + v("tc3_boss_h") / 2)
+    meas = nearest_solid(sp, sy + s / 2)
+    out.append(Probe("frame_typec_tier3", f"★第三档 收缩率标定方块 #3 ({s:.2f}) Y",
+                     s, "mm", meas, 0.01,
+                     "沿 +Y 过方块中心取实体段 (与 X 对比 ⇒ 看各向异性)"))
+    for i, (hx, hy, dia) in enumerate(L["tc3_holes"]):
+        sp = PM.cover_x(hy, t3 / 2)
+        meas = nearest_gap(PM.voids(sp), hx)
+        out.append(Probe("frame_typec_tier3", f"★第三档 孔径补偿试样 #{i+1} ⌀{dia:.2f}",
+                         dia, "mm", meas, 0.01,
+                         "沿 +X 过孔心取空档 = 孔径 (FDM 孔径收缩的分母)"))
     return out, models
 
 
@@ -481,6 +656,25 @@ def cross_check_all(models):
             ((20.75, 1.5, 3.3), "Type-C(建议口径) 左承力壁内"),
             ((25.0, 1.5, 4.7), "Type-C(建议口径) 开口内 (应为空)"),
         ],
+        "frame_typec_tier3": [
+            # ★ 探针点必须避开 **盒端面三角扇的中心** (mid_y, mid_z) ——
+            #   命中扇心会同时打到 4 个扇形三角形 ⇒ 命中数 4 (偶数) ⇒ 奇偶判内外翻车
+            #   (见本文件头“坑 ⑤”)。故下列点的 Y 都刻意避开各盒的 mid_y。
+            ((6.75, 4.20, 1.5), "第三档 FDM 开口内 (应为空)"),
+            ((0.75, 4.20, 1.5), "第三档 FDM 左承力壁内"),
+            ((12.75, 4.20, 1.5), "第三档 FDM 右承力壁内"),
+            ((6.75, 0.60, 1.5), "第三档 FDM 下承力壁内"),
+            ((22.625, 4.10, 1.5), "第三档 金属·CNC 开口内 (应为空)"),
+            ((16.75, 4.10, 1.5), "第三档 金属·CNC 左承力壁内"),
+            ((35.50, 3.20, 4.0), "第三档 收缩率标定方块 #1 内"),
+            ((44.00, 13.50, 4.0), "第三档 收缩率标定方块 #2 内"),
+            ((60.00, 11.50, 4.0), "第三档 收缩率标定方块 #3 内"),
+            ((35.00, 26.50, 1.5), "第三档 孔径试样 ⌀4 孔内 (应为空)"),
+            ((45.00, 26.50, 1.5), "第三档 孔径试样 ⌀6 孔内 (应为空)"),
+            ((57.00, 26.50, 1.5), "第三档 孔径试样 ⌀8 孔内 (应为空)"),
+            ((50.00, 26.50, 1.5), "第三档 孔试样之间实体内"),
+            ((10.00, 20.00, 1.5), "第三档 面板外 (应为空)"),
+        ],
     }
     for name, samples in plans.items():
         tris = stl_points(name)
@@ -490,11 +684,25 @@ def cross_check_all(models):
     return report
 
 
+def evaluate(tier3_model=None, with_stl=False):
+    """跑一遍全部检查 ⇒ 返回各组结果 (main 与 --selftest 共用同一个口径)"""
+    probes, models = build_probes(tier3_model)
+    geo_bad = [(p.part, p.item, p.nominal, p.measured) for p in probes if not p.ok]
+    rows = tier3_margin_rows()
+    margin_bad = [r for r in rows if not r[6]]
+    acks = anchor_checks()
+    ack_bad = [a for a in acks if not a[2]]
+    stl = cross_check_all(models) if with_stl else None
+    return dict(probes=probes, models=models, geo_bad=geo_bad, rows=rows,
+                margin_bad=margin_bad, acks=acks, ack_bad=ack_bad, stl=stl)
+
+
 def main():
     print("=" * 100)
     print("Rev B 打印包自检 (解析模型精确求尺寸 + STL 逐点互验)")
     print("=" * 100)
-    probes, models = build_probes()
+    r = evaluate(with_stl=True)
+    probes = r["probes"]
     ok = 0
     cur = None
     for p in probes:
@@ -511,32 +719,168 @@ def main():
     print("\n" + "-" * 100)
     print(f"尺寸判据一致: {ok}/{len(probes)}")
 
+    # ---------------- ★ISS-218: 第三档余量判据对拍 ----------------
+    print("\n【★第三档余量判据对拍 (判据 CRIT = 0.60 — 一个不许松)】")
+    print(f"  口径: g_worst = (开口名义 − 工艺公差 − 母座本体 {BODY_X}×{BODY_Y}) / 2")
+    mok = 0
+    for (name, ox, oy, tol, gx, gy, good, note) in r["rows"]:
+        if good:
+            mok += 1
+        print(f"  {'✅' if good else '❌'} {name:<34} {ox:>6.2f}×{oy:<5.2f} "
+              f"公差 ±{tol:.2f} ⇒ 最坏单边 X {gx:>5.2f} / Y {gy:>5.2f}  {note}")
+    print(f"  合计: {mok}/{len(r['rows'])} 条对拍通过")
+
+    print("\n【★第三档数字 vs MECH_ANCHORS 真源 对拍 (任何漂移必须变红)】")
+    aok = 0
+    for (aid, aname, good, detail) in r["acks"]:
+        if good:
+            aok += 1
+        print(f"  {'✅' if good else '❌'} {aid} {aname:<56} {detail}")
+    print(f"  合计: {aok}/{len(r['acks'])} 条对拍通过")
+
     print("\n【STL ↔ 解析模型 逐点互验 (射线奇偶判内外)】")
     total_agree = 0
     total_n = 0
     all_bad = []
-    for (name, agree, total, bad) in cross_check_all(models):
+    for (name, agree, total, bad) in r["stl"]:
         total_agree += agree
         total_n += total
         all_bad += [(name,) + b for b in bad]
         flag = "✅" if agree == total else "❌"
-        print(f"  {flag} {name:<14} {agree}/{total} 点一致")
+        print(f"  {flag} {name:<20} {agree}/{total} 点一致")
         for (pt, a, s) in bad:
             print(f"       ❌ 点 {tuple(round(c,2) for c in pt)}: 解析={a} STL={s}")
     print(f"  合计: {total_agree}/{total_n} 点一致 "
           f"({'✅ STL 就是这套规格' if total_agree == total_n else '❌ STL 与规格不一致'})")
 
     print("\n" + "=" * 100)
-    good = (ok == len(probes)) and (total_agree == total_n)
+    good = (ok == len(probes)) and (total_agree == total_n) \
+        and (mok == len(r["rows"])) and (aok == len(r["acks"]))
     if good:
         print("★ Rev B 打印包: 尺寸判据 100% 一致 + STL 与规格逐点互验 100% 一致")
         print("  ⇒ **模型层已闭环** (可直接下片) —— 但 **实物 M-PRINT 仍为 0 数据**:")
         print("    必须实物打印 + 卡尺实测, 见 MECH/print/MEASURE_CHECKLIST.md")
+        print("★ 第三档 (ISS-218): 10.50×4.80 FDM 直成型 + 10.25×4.55 金属·CNC "
+              "已在 MECH/print/PRINT_COUPON_TIER3_SPEC.md 落成可下片试样")
     else:
         print("⚠️ 有偏差 —— 重新生成后再打")
-    print("★ optical_cage_TEMPLATE.stl 本单未改 (走鹃Ⅱ 三维尺寸 u1 未到)")
+    print("★ optical_cage_TEMPLATE.stl: ★★ISS-222 (2026-11-16) 已解冻重生 —— 走鹃Ⅱ 作废 + C-6/C-8 落地 "
+          "⇒ 分光件座 (7.78 × 8.84 × 11.0); md5 6f23c2e2… → 537dc6af… (旧登记值作废, 待 main 更新 PROJECT_TRACKER)")
     return 0 if good else 1
 
 
+# =====================================================================
+# ★ISS-218: 反向用例 (--selftest) —— 改坏第三档 / 松判据 ⇒ 必须变红
+#   ★ 写法照 MECH/check_demo_struct_truth.py --selftest。
+#   ★ 关键: 基准值必须在 **调用时** 取 (不能 def 时冻住) —— 否则反向用例改不动它
+#     ⇒ 自检变成自嗨 (ISS-216 C-7 同款坑, 本单不重蹈)。
+# =====================================================================
+_MUT_P_KEYS = ("tc_open_w3", "tc_open_h3", "tc_open_w4", "tc_open_h4")
+
+
+def _snapshot():
+    return (dict((k, P[k]) for k in _MUT_P_KEYS),
+            (CRIT_SIDE, BODY_X, BODY_Y, FDM_TOL, CNC_TOL))
+
+
+def _restore(snap):
+    for k, val in snap[0].items():
+        P[k] = val
+    g = globals()
+    (g["CRIT_SIDE"], g["BODY_X"], g["BODY_Y"],
+     g["FDM_TOL"], g["CNC_TOL"]) = snap[1]
+
+
+def _mut_p(key, val):
+    P[key] = (val,) + P[key][1:]
+
+
+def _build_tier3_width(width):
+    """临时把第三档 FDM 开口宽改成 width 造一个件 (只给反向用例用)"""
+    saved = P["tc_open_w3"]
+    P["tc_open_w3"] = (width,) + saved[1:]
+    PM.reset()
+    build_frame_typec_tier3()
+    model = list(PM.MODEL)
+    P["tc_open_w3"] = saved
+    return model
+
+
+def selftest():
+    print("=" * 100)
+    print("Rev B 打印包自检 —— ★反向用例 (ISS-218: 改坏第三档 / 松判据 ⇒ 必须变红)")
+    print("=" * 100)
+    snap = _snapshot()
+    results = []
+    try:
+        # ---------------- 基线必须全绿, 否则自测不成立 ----------------
+        base = evaluate(with_stl=True)
+        stl_ok = all(a == n for (_nm, a, n, _b) in base["stl"])
+        base_ok = (not base["geo_bad"] and not base["margin_bad"]
+                   and not base["ack_bad"] and stl_ok)
+        if not base_ok:
+            print("❌ 基线就不绿 ⇒ 门禁本身有问题, 自测不成立")
+            for b in base["geo_bad"]:
+                print(f"     几何红: {b}")
+            for b in base["margin_bad"]:
+                print(f"     余量红: {b[0]}")
+            for b in base["ack_bad"]:
+                print(f"     锚点红: {b[0]} {b[1]}")
+            return 1
+        print("  ✅ 基线绿: 几何探针全过 + 余量对拍全过 + 锚点对拍全过 + STL 逐点互验全过")
+
+        def case(name, target, mutate, expect):
+            _restore(snap)
+            mutate()
+            r = evaluate()
+            caught = bool(r[target])
+            results.append((name, caught))
+            print(f"  {'✅' if caught else '❌'} {name:<50} ⇒ {expect} "
+                  f"{'抓到了' if caught else '★抓不到★ (自检是自嗨!)'}")
+
+        case("反向1: 第三档 FDM 开口宽 10.50 → 9.50", "margin_bad",
+             lambda: _mut_p("tc_open_w3", 9.50), "余量对拍必须变红")
+        case("反向2: 第三档 FDM 开口高 4.80 → 3.60", "margin_bad",
+             lambda: _mut_p("tc_open_h3", 3.60), "余量对拍必须变红")
+        case("反向3: 第三档 金属·CNC 开口宽 10.25 → 9.50", "margin_bad",
+             lambda: _mut_p("tc_open_w4", 9.50), "余量对拍必须变红")
+        case("反向4: 第三档 金属·CNC 开口高 4.55 → 3.60", "margin_bad",
+             lambda: _mut_p("tc_open_h4", 3.60), "余量对拍必须变红")
+        case("反向5: ★判据 CRIT 0.60 → 0.30 (松判据)", "ack_bad",
+             lambda: globals().__setitem__("CRIT_SIDE", 0.30), "锚点对拍必须变红")
+        case("反向6: 母座本体 8.94 → 9.50 (假装母座更大)", "margin_bad",
+             lambda: globals().__setitem__("BODY_X", 9.50), "余量对拍必须变红")
+        case("反向7: 金属档公差 0.05 → 0.50 (假装 CNC 不准)", "margin_bad",
+             lambda: globals().__setitem__("CNC_TOL", 0.50), "余量对拍必须变红")
+
+        # 反向8: 实体按 9.50 造, 标称仍写 10.50 ⇒ 几何对拍 + STL 互验都必须变红
+        _restore(snap)
+        wrong = _build_tier3_width(9.50)
+        r = evaluate(tier3_model=wrong, with_stl=True)
+        caught_geo = bool(r["geo_bad"])
+        caught_stl = not all(a == n for (_nm, a, n, _b) in r["stl"])
+        results.append(("反向8: 实体按 9.50 造 (标称仍 10.50)", caught_geo and caught_stl))
+        print(f"  {'✅' if (caught_geo and caught_stl) else '❌'} "
+              f"{'反向8: 实体按 9.50 造 (标称仍 10.50)':<50} ⇒ "
+              f"几何对拍 + STL 互验必须变红 "
+              f"{'抓到了' if (caught_geo and caught_stl) else '★抓不到★ (自检是自嗨!)'}")
+        if caught_geo:
+            for b in r["geo_bad"][:3]:
+                print(f"       (几何红: {b[1]} 标称 {b[2]} 实测 {b[3]})")
+    finally:
+        _restore(snap)
+
+    caught = sum(1 for (_n, c) in results if c)
+    print("\n" + "-" * 100)
+    print(f"反向用例: {caught}/{len(results)} 抓到")
+    if caught != len(results):
+        print("❌ 有反向用例抓不到 ⇒ 自检不可信")
+        return 1
+    print("✅ 全部反向用例都抓到了 ⇒ 第三档门禁不是假绿")
+    return 0
+
+
 if __name__ == "__main__":
+    if "--selftest" in sys.argv[1:]:
+        sys.exit(selftest())
     sys.exit(main())

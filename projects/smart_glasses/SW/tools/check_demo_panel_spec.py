@@ -20,17 +20,35 @@ SW/tools/check_demo_panel_spec.py — ISS-212 demo 显示侧口径门禁 (Wavesh
   R3  `SW/DEMO_OD_PIPELINE_SPEC.md` 里被定性表判成 demo 活动口径的那几处, 确实已经改掉
   R4  整机路线占位**不许被一把删掉** (视涯 0.49" 仍是整机屏 ⇒ 必须还在且带「整机路线·暂缓」)
   R5  逐处定性表本身完整 (22 处 grep 命中 + 16 处关联活动口径)
-  R6  受保护文件 md5 逐字节未变 (板 / 网表 / 脚表 / .kicad_pro)
+  R6  ★★【ISS-225】受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源, 一致才过) ★★
+      机制照抄 `MECH/check_demo_struct_truth.py` 的 C21 (★只读参照, MECH/ 一个字节没碰★)
+      锚点住在 `SW/SW_MD5_BASELINE_LEDGER.md` §1 (机器可读 YAML 块) ⇒ 不是脚本里的硬编码常量
+      ① 网表 / 脚表 = 落表台账管理的真源 (锚点 ↔ 落表台账 ↔ 盘上, 三方必须一致)
+      ② 板 / .kicad_pro = 落表明令不许碰 ⇒ 纯 md5 硬保护
+      ⇒ ★只改锚点不落表 = 悄悄换真源 = 红; 改了真源不落表 = 悄悄换真源 = 红
+  R7  ★★【ISS-225】已修复 (留痕) 必须在场 (删节 / 删行 / 抹 md5 / 抹判别标记 ⇒ 红) ★★
+
+★★【ISS-225 重锚说明 (2026-11-16, sw-lead)】★★
+  ★**这次红 = 【锚点过期】, 不是【红灯被调没】**: hw-lead 的 **ISS-220 落表
+  (2026-11-16 02:32)** 真改了 `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv`
+  (md5 `c78f9912…`→`13f59a43…` / `4814617e…`→`a600afae…`), 而本脚本的 R6 锚点还钉在
+  落表前的旧 md5 ⇒ ★**门禁读旧数 = 假红** ⇒ 判别证据: ★**本脚本 mtime =
+  2026-11-15 23:59 早于落表 02:32 ⇒ 脚本一个字节没被碰过** ★
+  ⇒ ★**但"只把锚点里的 md5 换成新值" = 把门禁再废一次** ⇒ 所以升级成【台账驱动 +
+  三方对账】(见 R6) ⇒ ★**锚点会再次过期 (ISS-223 落表后), 但台账对账机制会自动红,
+  这是设计** ★ ⇒ 留痕账 = `SW/SW_MD5_BASELINE_LEDGER.md` §3
 
 用法:
     python3 SW/tools/check_demo_panel_spec.py                # 核对 (rc=0 = 全过)
     python3 SW/tools/check_demo_panel_spec.py --selftest      # 自检 (反向用例必须全红)
     python3 SW/tools/check_demo_panel_spec.py --json          # 机读输出
-    python3 SW/tools/check_demo_panel_spec.py --skip-md5      # 跳过 R6 (hw-lead 合法改板后用)
+    python3 SW/tools/check_demo_panel_spec.py --skip-md5      # 跳过 R6/R7 (hw-lead 合法改板后用; 默认不许跳过)
 """
 from __future__ import annotations
 
 import argparse
+import copy
+import glob
 import hashlib
 import json
 import os
@@ -105,13 +123,18 @@ R3_PAIRS = [
     ("DSI TX + 面板 init code (I2C)", "面板 I2C 控制 (0x45, 不用 DCS init code)"),
 ]
 
-# ★R6: 受保护文件 (交卷前后必须逐字节不变)
-PROTECTED_MD5 = {
-    os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb"): "611b869e13518c3c023fb178f91a0075",
-    os.path.join("HW", "netlist_v1.csv"): "c78f991283cc82d56c8e3dd31657c785",
-    os.path.join("HW", "netlist_v1_pins.csv"): "4814617e22b567d76164e56bc5e39dc8",
-    os.path.join("HW", "PCB", "demo_mainboard.kicad_pro"): "3e504d2be83152e337949723e909be1b",
-}
+# ★★【ISS-225】SW 侧 md5 基线台账 (★锚点住这儿, 不是硬编码常量★)
+#   ★ 机制照抄 `MECH/check_demo_struct_truth.py` 的 C21 (★只读参照, MECH/ 一个字节没碰★)
+#   ★ 锚点 = `SW/SW_MD5_BASELINE_LEDGER.md` §1 的机器可读 YAML 块 (改它 = 改判据 ⇒ 门禁会红)
+LEDGER_DOC = os.path.join("SW", "SW_MD5_BASELINE_LEDGER.md")
+ANCHOR_BEGIN = "# BEGIN SW_MD5_ANCHORS"
+ANCHOR_END = "# END SW_MD5_ANCHORS"
+
+# ★★【ISS-225】落表台账里必须能查到的四项 (缺一 ⇒ 查不到出处 ⇒ 红):
+#   ① 落表单号 (`by`) ② 文件名 (`file`) ③ 新 md5 (`md5`) ④ 旧 md5 (`prev_md5`)
+#   ★ 台账来源 = `HW/SCHEMATIC_LANDING_V1_LANDED.md` (ISS-220 落表记录) 或
+#     `HANDOFF/2026-11-16_hw-lead_ISS223_*.md` (ISS-223 落表第 2 批) —— 两者都在锚点里登记
+LEDGER_REQUIRED_ITEMS = ("by", "file", "md5", "prev_md5")
 
 
 def read_text(root: str, rel: str) -> str:
@@ -128,6 +151,73 @@ def md5_of(root: str, rel: str) -> str:
         for chunk in iter(lambda: f.read(65536), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+# ---------------------------------------------------------------- ISS-225 台账对账工具
+def load_sw_anchor(root: str):
+    """读 SW 侧 md5 基线台账 §1 的机器可读锚点。★读不到 ⇒ (None, 原因) ⇒ 门禁 fail-closed 红★"""
+    path = os.path.join(root, LEDGER_DOC)
+    if not os.path.exists(path):
+        return None, "SW 侧 md5 基线台账不存在: %s" % LEDGER_DOC
+    try:
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+    except OSError as exc:
+        return None, "SW 侧 md5 基线台账读不了: %s (%s)" % (LEDGER_DOC, exc)
+    m = re.search(re.escape(ANCHOR_BEGIN) + r"(.*?)" + re.escape(ANCHOR_END), text, re.S)
+    if not m:
+        return None, "台账里找不到锚点块 (%s ... %s)" % (ANCHOR_BEGIN, ANCHOR_END)
+    try:
+        import yaml
+    except ImportError as exc:
+        return None, "PyYAML 不可用, 读不了锚点块 (%s)" % exc
+    try:
+        data = yaml.safe_load(m.group(1))
+    except Exception as exc:                       # ★解析失败 ⇒ fail-closed 红, 不许当"没锚点就跳过"★
+        return None, "锚点块 YAML 解析失败: %s" % exc
+    anchors = (data or {}).get("anchors")
+    if not isinstance(anchors, dict):
+        return None, "锚点块里没有 anchors 段 (或格式不对)"
+    return anchors, ""
+
+
+def load_ledger_records(root: str, anchors: dict) -> list:
+    """把锚点里登记的落表台账位置逐个读出来 (支持 `*` 通配)。"""
+    recs = []
+    specs = ((anchors.get("source_ledger") or {}).get("landing_records")) or []
+    for spec in specs:
+        if not spec:
+            continue
+        p = os.path.join(root, spec)
+        if os.path.isfile(p):
+            recs.append((spec, read_text(root, spec)))
+            continue
+        d = os.path.dirname(spec) or "."
+        b = os.path.basename(spec)
+        for hit in sorted(glob.glob(os.path.join(root, d, b))):
+            rel = os.path.relpath(hit, root)
+            recs.append((rel, read_text(root, rel)))
+    return recs
+
+
+def md5_seen(text: str, value: str) -> bool:
+    """落表台账里是不是出现了这个 md5 (全文或 12 位前缀 —— 落表记录用的是前缀)。"""
+    if not value:
+        return False
+    return value in text or value[:12] in text
+
+
+def ledger_row_has(text: str, fname: str, new_md5: str, prev_md5: str) -> bool:
+    """落表台账里有没有**同一行**同时写着 文件名 + 新 md5 + 旧 md5 (四项缺一 ⇒ 不算查到)。"""
+    for line in text.split("\n"):
+        if fname and fname not in line:
+            continue
+        if not md5_seen(line, new_md5):
+            continue
+        if prev_md5 and not md5_seen(line, prev_md5):
+            continue
+        return True
+    return False
 
 
 def block_mask(text: str) -> list[bool]:
@@ -237,21 +327,112 @@ def check_r5_triage_table(root: str) -> list[str]:
     return fails
 
 
-# ---------------------------------------------------------------- R6
-def check_r6_protected_md5(root: str) -> list[str]:
-    fails = []
-    for rel, want in PROTECTED_MD5.items():
-        path = os.path.join(root, rel)
-        if not os.path.exists(path):
+# ---------------------------------------------------------------- R6 (ISS-225 三方对账)
+def check_r6_three_way(root: str, anchors=None) -> list[str]:
+    """R6: ★锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致★ (不许悄悄换真源)。
+
+    机制照抄 `MECH/check_demo_struct_truth.py` 的 C21 (★只读参照, MECH/ 一个字节没碰★):
+      ① 盘上真源的 md5 == 锚点 §1 `entries[].md5`
+      ② 锚点的 md5 / 旧 md5 / 落表单号 / 文件名 在落表台账里都能查到
+      ③ 落表台账登记的位置一个都不存在 ⇒ 红
+    ⇒ 只改锚点不落表 = 悄悄换真源 ⇒ 红; 改了真源不落表 = 悄悄换真源 ⇒ 红
+    """
+    fails: list[str] = []
+    if anchors is None:
+        anchors, err = load_sw_anchor(root)
+        if anchors is None:
+            return ["R6 读不到 SW 侧 md5 基线台账锚点 ⇒ 门禁 fail-closed: %s" % err]
+
+    # ---- ① 硬保护 (板 / .kicad_pro): 落表明令不许碰 ⇒ 纯 md5 比对 ----
+    hard = list(anchors.get("hard_protected") or [])
+    if not hard:
+        fails.append("R6 锚点里没有 hard_protected 段 (板 / .kicad_pro 失保护)")
+    for e in hard:
+        rel = str(e.get("file") or "")
+        want = str(e.get("md5") or "")
+        if not rel or not want:
+            fails.append("R6 hard_protected 条目缺 file/md5: %r" % (e,))
+            continue
+        if not os.path.exists(os.path.join(root, rel)):
             fails.append("R6 受保护文件不存在: %s" % rel)
             continue
         got = md5_of(root, rel)
         if got != want:
             fails.append("R6 受保护文件 md5 变了: %s (%s ≠ %s)" % (rel, got, want))
+
+    # ---- ② 台账管理的真源 (网表 / 脚表): 锚点 ↔ 落表台账 ↔ 盘上 ----
+    ledger = anchors.get("source_ledger") or {}
+    entries = list(ledger.get("entries") or [])
+    if not entries:
+        fails.append("R6 锚点里没有 source_ledger.entries (受管真源失台账对账)")
+    recs = load_ledger_records(root, anchors)
+    if not recs:
+        fails.append("R6 锚点 source_ledger.landing_records 里登记的位置一个都不存在 "
+                     "(落表台账查不到 ⇒ 无从对账)")
+    for e in entries:
+        rel = str(e.get("file") or "")
+        by = str(e.get("by") or "")
+        want = str(e.get("md5") or "")
+        prev = str(e.get("prev_md5") or "")
+        if not rel:
+            fails.append("R6 source_ledger.entries 里有空 file")
+            continue
+        if not want:
+            fails.append("R6 锚点里 %s 没登记 md5 (查不到出处的基线不许当基线)" % rel)
+            continue
+        # ②-a 盘上真源 vs 锚点
+        if not os.path.exists(os.path.join(root, rel)):
+            fails.append("R6 盘上真源不存在: %s" % rel)
+            continue
+        got = md5_of(root, rel)
+        if got != want:
+            fails.append("R6 盘上真源 md5 %s = %s ≠ 锚点登记 %s (真源被换了或锚点过期)"
+                         % (rel, got, want))
+        # ②-b 落表台账对账: 单号 + 文件名 + 新旧 md5 必须都查得到
+        why: list[str] = []
+        hit = None
+        for name, text in recs:
+            if by and by not in text:
+                why.append("%s: 无落表单号 %s" % (name, by))
+                continue
+            if not ledger_row_has(text, rel, want, prev):
+                why.append("%s: 无【文件名 + 新 md5 + 旧 md5】同一行" % name)
+                continue
+            hit = name
+            break
+        if hit is None:
+            fails.append("R6 %s: 落表台账里查不到 (单号 %s / 文件 %s / 新 md5 %s / 旧 md5 %s) "
+                         "⇒ 悄悄换真源? 查过: %s"
+                         % (rel, by or "无", rel, want[:12], (prev[:12] if prev else "无"),
+                            "; ".join(why) or "无台账文件"))
     return fails
 
 
-def run_all(root: str, skip_md5: bool = False) -> list[str]:
+# ---------------------------------------------------------------- R7 (ISS-225 留痕在场)
+def check_r7_trace_present(root: str, anchors=None) -> list[str]:
+    """R7: 已修复 (留痕) 必须在场 ⇒ ★删节 / 删行 / 抹 md5 / 抹判别标记 ⇒ 红★"""
+    fails: list[str] = []
+    try:
+        text = read_text(root, LEDGER_DOC)
+    except FileNotFoundError as exc:
+        return ["R7 读不到留痕账 %s (%s)" % (LEDGER_DOC, exc)]
+    m = re.search(r"^##[^\n]*已修复[^\n]*留痕[^\n]*$", text, re.M)
+    if not m:
+        return ["R7 留痕账里没有「已修复 (留痕)」那一节 (删了 ⇒ 一次真变更被从账上抹了)"]
+    tail = text[m.end():]
+    nxt = re.search(r"^##\s", tail, re.M)
+    sec = text[m.start(): m.end() + (nxt.start() if nxt else len(tail))]
+    for lit, why in (("ISS-220", "落表单号"),
+                     ("c78f991283cc82d56c8e3dd31657c785", "旧 md5"),
+                     ("13f59a43dbd35dc6cb16e897c8c891ab", "新 md5"),
+                     ("锚点过期", "判别标记 (是锚点过期)"),
+                     ("红灯被调没", "判别标记 (不是红灯被调没)")):
+        if lit not in sec:
+            fails.append("R7 留痕节的「%s」没了 (%s) ⇒ 一次真变更被从账上抹了" % (lit, why))
+    return fails
+
+
+def run_all(root: str, skip_md5: bool = False, anchor=None) -> list[str]:
     fails: list[str] = []
     fails += check_r1_demo_spec_core(root)
     fails += check_r2_no_active_legacy(root)
@@ -259,7 +440,13 @@ def run_all(root: str, skip_md5: bool = False) -> list[str]:
     fails += check_r4_整机_placeholder_kept(root)
     fails += check_r5_triage_table(root)
     if not skip_md5:
-        fails += check_r6_protected_md5(root)
+        if anchor is None:
+            anchor, err = load_sw_anchor(root)
+            if anchor is None:
+                fails.append("R6 读不到 SW 侧 md5 基线台账锚点 ⇒ 门禁 fail-closed: %s" % err)
+                anchor = {}
+        fails += check_r6_three_way(root, anchor)
+        fails += check_r7_trace_present(root, anchor)
     return fails
 
 
@@ -286,6 +473,109 @@ SELFTEST_CASES = [
     ("REV-8 把定性表的 L-22 行删掉", TRIAGE,
      lambda t: t.replace("L-22", "L-XX"), "R5"),
 ]
+
+
+# ★★【ISS-225 新增】台账对账反向用例 (跑**带 md5 校验**的 run_all ⇒ 需在临时目录搭一棵完整的树)
+#  ★ 要拷进临时树的文件 (板 4.9MB ⇒ 走硬链接, 省时省空间; 本组用例不改它 ⇒ 不会污染真盘)
+R6_TREE_FILES = (
+    DEMO_SPEC,
+    TRIAGE,
+    PIPELINE,
+    LEDGER_DOC,
+    os.path.join("HW", "SCHEMATIC_LANDING_V1_LANDED.md"),
+    os.path.join("HW", "netlist_v1.csv"),
+    os.path.join("HW", "netlist_v1_pins.csv"),
+    os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb"),
+    os.path.join("HW", "PCB", "demo_mainboard.kicad_pro"),
+)
+# ★ 大文件走硬链接 (只读不改 ⇒ 安全); 跨文件系统失败 ⇒ 回退拷贝
+R6_HARDLINK = (os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb"),)
+
+# (用例名, 期望变红的规则前缀, 要改的盘上文件 (None = 不改盘), 文件改法, 锚点改法)
+R6_SELFTEST_CASES = [
+    ("REV-9 盘上真源被换掉而锚点没换", "R6",
+     os.path.join("HW", "netlist_v1.csv"),
+     lambda p: _append_text(p, "\n# ISS-225 selftest: 盘上真源被换掉\n"), None),
+    ("REV-10 锚点改成台账里查不到的哈希", "R6", None, None,
+     lambda a: a["source_ledger"]["entries"][0].__setitem__(
+         "md5", "deadbeefdeadbeefdeadbeefdeadbeef")),
+    ("REV-11 锚点里的落表单号改坏 (ISS-220 → ISS-999)", "R6", None, None,
+     lambda a: a["source_ledger"]["entries"][0].__setitem__("by", "ISS-999")),
+    ("REV-12 落表台账里的落表单号被改坏 (ISS-220 → ISS-999)", "R6",
+     os.path.join("HW", "SCHEMATIC_LANDING_V1_LANDED.md"),
+     lambda p: _replace_text(p, "ISS-220", "ISS-999"), None),
+    ("REV-13 把落表台账里那两行删掉", "R6",
+     os.path.join("HW", "SCHEMATIC_LANDING_V1_LANDED.md"),
+     lambda p: _drop_lines(p, "HW/netlist_v1.csv"), None),
+    ("REV-14 把锚点块整个删掉 (fail-closed)", "R6",
+     LEDGER_DOC, lambda p: _drop_block(p, ANCHOR_BEGIN, ANCHOR_END), None),
+    ("REV-15 把「已修复 (留痕)」那一节删掉", "R7",
+     LEDGER_DOC, lambda p: _drop_section(p, r"^##[^\n]*已修复[^\n]*留痕[^\n]*$"), None),
+]
+
+
+# ---------------------------------------------------------------- selftest 文本改坏工具
+def _append_text(path: str, blob: str) -> None:
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(blob)
+
+
+def _replace_text(path: str, old: str, new: str) -> None:
+    with open(path, encoding="utf-8") as f:
+        t = f.read()
+    if old not in t:
+        raise AssertionError("改坏动作没生效: %r 不在 %s" % (old, path))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(t.replace(old, new))
+
+
+def _drop_lines(path: str, needle: str) -> None:
+    with open(path, encoding="utf-8") as f:
+        t = f.read()
+    kept = [ln for ln in t.split("\n") if needle not in ln]
+    if len(kept) == len(t.split("\n")):
+        raise AssertionError("改坏动作没生效: %r 不在 %s" % (needle, path))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("\n".join(kept))
+
+
+def _drop_block(path: str, begin: str, end: str) -> None:
+    with open(path, encoding="utf-8") as f:
+        t = f.read()
+    out = re.sub(re.escape(begin) + r".*?" + re.escape(end), "", t, flags=re.S)
+    if out == t:
+        raise AssertionError("改坏动作没生效: %s 块不在 %s" % (begin, path))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(out)
+
+
+def _drop_section(path: str, head_re: str) -> None:
+    with open(path, encoding="utf-8") as f:
+        t = f.read()
+    m = re.search(head_re, t, re.M)
+    if not m:
+        raise AssertionError("改坏动作没生效: 标题 %r 不在 %s" % (head_re, path))
+    tail = t[m.end():]
+    nxt = re.search(r"^##\s", tail, re.M)
+    cut = m.end() + (nxt.start() if nxt else len(tail))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(t[:m.start()] + t[cut:])
+
+
+def _build_r6_tree(tmp: str, root: str, name: str) -> str:
+    work = os.path.join(tmp, name)
+    for rel in R6_TREE_FILES:
+        src = os.path.join(root, rel)
+        dst = os.path.join(work, rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        if rel in R6_HARDLINK:
+            try:
+                os.link(src, dst)
+                continue
+            except OSError:
+                pass
+        shutil.copy2(src, dst)
+    return work
 
 
 def selftest(root: str) -> int:
@@ -324,6 +614,44 @@ def selftest(root: str) -> int:
                 print("  ❌ %-52s ⇒ %s 没变红 (期望它红) — 实得失败项: %s"
                       % (name, expect_rule, fails[:2]))
                 failed += 1
+
+        # ---------------- ISS-225 新增: R6 三方对账 + R7 留痕在场 ----------------
+        print("--- ISS-225 台账对账反向用例 (R6/R7) ---")
+        base_work = _build_r6_tree(tmp, root, "base")
+        base_fails = run_all(base_work, skip_md5=False)
+        if base_fails:
+            print("  ❌ 基线就不绿: %s ⇒ 台账对账自测不成立" % base_fails[:3])
+            failed += 1
+        else:
+            print("  ✅ 基线全绿 (R1~R7 在临时树上全过)")
+            passed += 1
+        for idx, (name, expect_rule, rel, fmut, amut) in enumerate(R6_SELFTEST_CASES):
+            work = _build_r6_tree(tmp, root, "r6_%02d" % idx)
+            anchor = None
+            if amut is not None:
+                anch, err = load_sw_anchor(work)
+                if anch is None:
+                    print("  ❌ %-52s ⇒ 临时树读不到锚点 (%s)" % (name, err))
+                    failed += 1
+                    continue
+                anchor = copy.deepcopy(anch)
+                amut(anchor)
+            if fmut is not None:
+                try:
+                    fmut(os.path.join(work, rel))
+                except AssertionError as exc:
+                    print("  ❌ %-52s ⇒ %s" % (name, exc))
+                    failed += 1
+                    continue
+            fails = run_all(work, skip_md5=False, anchor=anchor)
+            hit = [f for f in fails if f.startswith(expect_rule)]
+            if hit:
+                print("  ✅ %-52s ⇒ %s 变红 (%s)" % (name, expect_rule, hit[0][:70]))
+                passed += 1
+            else:
+                print("  ❌ %-52s ⇒ %s 没变红 (期望它红) — 实得失败项: %s"
+                      % (name, expect_rule, fails[:2]))
+                failed += 1
     print("--- SELFTEST %d/%d 通过 ---" % (passed, passed + failed))
     return 0 if failed == 0 else 1
 
@@ -332,7 +660,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="ISS-212 demo 显示侧口径门禁")
     ap.add_argument("--selftest", action="store_true", help="只跑反向自检")
     ap.add_argument("--json", action="store_true", help="机读输出")
-    ap.add_argument("--skip-md5", action="store_true", help="跳过 R6 受保护文件 md5 校验")
+    ap.add_argument("--skip-md5", action="store_true",
+                    help="跳过 R6/R7 台账对账与留痕检查 (★既有逃生舱; 默认必须仍校★)")
     ap.add_argument("--root", default=PROJ, help="项目根目录 (默认: 脚本所在项目根)")
     args = ap.parse_args()
 
@@ -354,7 +683,8 @@ def main() -> int:
         print("   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅")
         print("   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅")
         if not args.skip_md5:
-            print("   R6 受保护文件 md5 逐字节未变 ✅")
+            print("   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅")
+            print("   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅")
         return 0
 
     print("❌ ISS-212 demo 显示侧口径门禁: %d 项不通过" % len(fails))

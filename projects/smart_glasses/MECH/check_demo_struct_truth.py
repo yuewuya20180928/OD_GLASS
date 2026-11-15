@@ -4,22 +4,31 @@
 check_demo_struct_truth.py —— ISS-213 结构侧真值门禁 (demo 板当前成立的条目)
 =================================================================================
 ★**它守的不是"54 项全绿", 是"demo 板当前成立的条目不许变红 + 那 6 条 PCB 类
-不许被静默 + 板框真源/判据阈值不许被偷改"** ★
+不许被静默 + 板框真源/判据阈值不许被偷改 + ★真源不许被悄悄换掉★"** ★
 
-为什么要有这个闸 (main 2026-11-15 23:2x~23:4x 实测):
-  ① `MECH/hw_cross_review_check.py` 报 **PASS 14 / FAIL 17 / 条件通过 8 / 说明 15
-     (共 54 项) 而 rc = 0** ⇒ 17 条"按现在的图纸/口径做出来会出问题"挂着, 一个红灯都不点;
-  ② `state/daily_check.py` 里 grep 不到 `hw_cross_review` / `service_port` /
-     `hinge_usb` / `display_biosafety` / `cavity_recalc` 任何一个 ⇒ **这 17 条在每日
-     巡检里完全隐形** (本项目同类问题第三次复发);
-  ⇒ 本闸 = **让这 17 条从"隐形"变成"有账"**: G1 专门断言那 17 条**仍然是 FAIL**
-    (谁把它们"修绿" ⇒ 门禁立刻红), G3 断言 6 个 PCB 类 id **已登记排队** (不许静默)。
+★★ ISS-224 再基线 (2026-11-16, mech-lead) —— ★★从「钉死一组旧数」升级成「钉死真源 +
+与落表台账对账」★★
+  ① 背景: hw-lead 的 **ISS-220 落表 (2026-11-16 02:32)** 真改了网表/脚表 (md5
+     `c78f9912…`→`13f59a43…` / `4814617e…`→`a600afae…`), 并把 `PIN-MISMATCH`
+     (P9 页正文 21p vs 网表 22p) **真修好了** ⇒ 本闸的 3 组红灯 (G1 / G1b / G5b)
+     是「**门禁读着旧数**」⇒ ★**门禁读旧数 = 假红/假绿** ⇒ 必须重锚。
+  ② ★**但只改 md5 锚点 = 把门禁再废一次** ⇒ 所以新增 **C21**: ★**网表/脚表的 md5
+     锚点 ↔ 落表台账 ↔ 盘上真源, 三方必须对得上** —— 锚点里的 md5 必须能在
+     `HW/SCHEMATIC_LANDING_V1_LANDED.md` (ISS-220 落表记录) 或
+     `HANDOFF/2026-11-16_hw-lead_ISS223_*.md` 里查到【落表单号 + 文件名 + 新旧两个
+     md5】, 否则红 ⇒ ★**"悄悄换真源"这条路被堵死** ★
+  ③ 另加 **C22** (`PIN-MISMATCH` 独立复核: 自己从 P9 页正文 + 网表实读, 不看
+     `hw_cross_review_check.py` 的判定) 与 **G8** (已修复的留痕必须在场: 删行 /
+     删节 / 抹留痕都红) ⇒ ★**"悄悄抹掉一次真修复"这条路也被堵死** ★
+
+★**本闸的 16 条 FAIL 一条都不许消** —— 6 个 PCB 类 id 仍按老板 2026-11-11 10:07
+  口径排队等原理图定稿 (排队是**正确状态**, 不是缺陷)。
 
 判据来源 (全部只读, 一个字不改):
   · `MECH/HW_CROSS_REVIEW_TRIAGE.md` §1 的 `MECH_ANCHORS` yaml 块 (本单写死的口径)
   · `MECH/BOARD_GEOM_30MM.md` §1 (板框真源四数)
   · `MECH/service_port_check.py` / `MECH/hw_cross_review_check.py` (判据阈值, **只 import 读常量**)
-  · `HW/netlist_v1.csv` (网表实读)
+  · `HW/netlist_v1.csv` (网表实读) · `HW/SCHEMATIC_V1.md` P9 页 (页正文实读)
 
 用法:
     python3 MECH/check_demo_struct_truth.py               # rc=0 全过 / rc=2 有红
@@ -27,7 +36,8 @@ check_demo_struct_truth.py —— ISS-213 结构侧真值门禁 (demo 板当前�
     python3 MECH/check_demo_struct_truth.py --json         # 机器可读输出
 
 ★**边界**: 本脚本 **只读** 任何文件; 不改 `MECH/hw_cross_review_check.py` /
-  `MECH/service_port_check.py` / `MECH/hinge_usb_check.py` 的判据语义, 不改板框真源,
+  `MECH/service_port_check.py` / `MECH/hinge_usb_check.py` /
+  `MECH/display_biosafety_v2_check.py` 的判据语义, 不改板框真源,
   不改判据阈值, 不碰 `HW/`, 不碰 `state/daily_check.py` (是否挂巡检由 main 裁)。
 """
 from __future__ import annotations
@@ -35,6 +45,7 @@ from __future__ import annotations
 import argparse
 import copy
 import csv
+import glob
 import hashlib
 import importlib.util
 import json
@@ -49,10 +60,10 @@ TRIAGE = os.path.join(HERE, "HW_CROSS_REVIEW_TRIAGE.md")
 BOARD_GEOM = os.path.join(HERE, "BOARD_GEOM_30MM.md")
 
 # ★ 受保护文件 md5 (交卷前逐字节不变; 值来自任务书 + cavity_recalc_check.py 的 MD5_EXPECTED)
+# ★★【ISS-224】网表 / 脚表**不在这里写死** —— 它们的 md5 真源是 §1 锚点的
+#   `source_ledger.entries` (可与落表台账对账) ⇒ 这里只留 6 个"硬保护"文件。
 MD5_EXPECTED = {
     "HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",
-    "HW/netlist_v1.csv": "c78f991283cc82d56c8e3dd31657c785",
-    "HW/netlist_v1_pins.csv": "4814617e22b567d76164e56bc5e39dc8",
     "HW/PCB/demo_mainboard.kicad_pro": "3e504d2be83152e337949723e909be1b",
     "MECH/hinge_usb_check.py": "3425bc141508de8a35f34c7cf7b803e8",
     "MECH/service_port_check.py": "9b24bf985764880f0105aee677fba6a8",
@@ -60,16 +71,25 @@ MD5_EXPECTED = {
     "MECH/display_biosafety_v2_check.py": "29c77fc3fc823048b1d96c9500d28dd7",
 }
 
+# ★★【ISS-224】"不许悄悄换真源"机制管的两个真源 (网表/脚表) —— 锚点必须覆盖这两个
+LEDGER_REQUIRED = ("HW/netlist_v1.csv", "HW/netlist_v1_pins.csv")
+
 # ★ 6 个 PCB 类 id (排队等原理图定稿 —— 判定语义不许改, 只登记排队)
 PCB_CLASS_IDS = ("STK-FANOUT", "PCB-X-GAP", "MRG-54P", "MRG-X-4", "MRG-X-3", "FRM-SUM")
 
-# ★ 基准判定汇总 (hw_cross_review_check.py 迁移后基准)
-BASE_SUMMARY = dict(pass_=14, fail=17, cond=8, info=15, total=54)
+# ★ 基准判定汇总 (★【ISS-224 再基线】PASS 14→15 / FAIL 17→16: 少的那条 = PIN-MISMATCH,
+#   它被 ISS-220 真修好了 ⇒ 见 HW_CROSS_REVIEW_TRIAGE.md §2 第 05 行 + §3.1)
+BASE_SUMMARY = dict(pass_=15, fail=16, cond=8, info=15, total=54)
 
 # ★ demo 板当前成立且必须 PASS 的项 (从 triage §2 判定表里摘出来的 PASS 项)
 DEMO_PASS_IDS = ("STK-cav_v_-触点", "STK-cav_v_-FP", "RAD-fpc_t", "RAD-fpc_t_2oz", "PCB-Y",
                  "MRG-14P", "TOPO-2", "C1 铰链区 V 向", "C2 铰链区 H 向",
                  "C3 镜脚电芯段 V 向", "C4 主 PCB 段 H 向", "C5 镜脚 L 向")
+
+# ★★【ISS-224】P9 页旧口径标记 (出现 = 有人把 P9 页回退成 ISS-220 之前的样子)
+P9_STALE_MARKERS = ("1×21p@0.5mm", "18p@0.5mm", "4 组跨铰链", "(10+4+18+21)×0.5")
+# ★★【ISS-224】P9 页新口径标记 (必须出现 = d6 真的落了)
+P9_NEW_MARKERS = ("1×22p@0.5mm", "31p@0.3mm", "1 组跨铰链")
 
 
 # ====================================================================== 工具
@@ -132,7 +152,7 @@ def normalize_item(item: str) -> str:
 
 
 def parse_triage_rows(doc_text: str) -> list:
-    """切出 §2 定性表, 逐行解出 (序号, 项号, 判定, 处置)。"""
+    """切出 §2 定性表, 逐行解出 (序号, 项号, 判定, 处置, 备注)。"""
     m = re.search(r"##\s*2\s*★\s*54 项逐条定性表(.*?)\n---\n\n##\s*3", doc_text, re.S)
     if not m:
         return []
@@ -147,8 +167,9 @@ def parse_triage_rows(doc_text: str) -> list:
         item = cells[1].strip("`")
         verdict = cells[2]
         disp = cells[6].replace("*", "")
+        note = cells[8] if len(cells) > 8 else ""
         rows.append(dict(num=num, item=item, base=normalize_item(item),
-                         verdict=verdict, disp=disp))
+                         verdict=verdict, disp=disp, note=note))
     return rows
 
 
@@ -169,6 +190,22 @@ def parse_queue_rows(doc_text: str) -> dict:
     return out
 
 
+def parse_fixed_section(doc_text: str):
+    """★【ISS-224】切出 §3.1「已修复 (留痕)」节 —— 一次真修复不许从账上消失。"""
+    m = re.search(r"^##\s*3\.1[^\n]*已修复[^\n]*$", doc_text, re.M)
+    if not m:
+        return None
+    nxt = re.search(r"^\s*---\s*$", doc_text[m.end():], re.M)
+    body = doc_text[m.end(): m.end() + (nxt.start() if nxt else len(doc_text))]
+    ids = []
+    for line in body.splitlines():
+        if line.startswith("| **"):
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) >= 2:
+                ids.append(cells[1].strip("`"))
+    return {"ids": ids, "text": body}
+
+
 def run_cross_review(root: str) -> dict:
     """实跑 hw_cross_review_check.py --json (只读, 不改它)。"""
     p = subprocess.run([sys.executable, os.path.join(root, "MECH", "hw_cross_review_check.py"),
@@ -181,12 +218,90 @@ def run_cross_review(root: str) -> dict:
     return d
 
 
+# ====================================================== 真源实读 (C22 用)
+def netlist_pin_counts(path: str) -> dict:
+    """从网表实读: 每个连接器实际占用的 pin 数 (mandatory + DNP)。"""
+    rows = list(csv.reader(open(path, encoding="utf-8")))
+    hdr = rows[0]
+    i1, i2 = hdr.index("node1"), hdr.index("node2")
+    u: dict[str, set] = {}
+    for r in rows[1:]:
+        if not r or len(r) < len(hdr):
+            continue
+        for cell in (r[i1], r[i2]):
+            m = re.match(r"^(\w+)\s+pin(\d+)$", cell.strip())
+            if not m:
+                continue
+            u.setdefault(m.group(1), set()).add(int(m.group(2)))
+    return {k: len(v) for k, v in u.items()}
+
+
+def extract_page(text: str, page: str) -> str:
+    """切出 `## P9 ...` 这一页的正文。"""
+    m = re.search(r"^##\s*" + page + r"[^\n]*$", text, re.M)
+    if not m:
+        return ""
+    nxt = re.search(r"^##\s", text[m.end():], re.M)
+    return text[m.start(): m.end() + (nxt.start() if nxt else len(text))]
+
+
+def declared_pins(p9_text: str) -> dict:
+    """从 P9 页正文抽连接器的 pin 数声明 (划掉的连接器不算声明)。"""
+    t = re.sub(r"~~.*?~~", "", p9_text, flags=re.S)
+    out = {}
+    for conn in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+        vals = set()
+        for m in re.finditer(re.escape(conn) + r"[^。\n]{0,40}?(\d+)\s*(?:×\s*(\d+)\s*)?p(?![A-Za-z0-9])", t):
+            vals.add(int(m.group(2) or m.group(1)))
+        out[conn] = sorted(vals)
+    return out
+
+
+def load_pin_truth(root: str) -> dict:
+    """★【ISS-224】独立读出 (P9 页声明 vs 网表实际) —— 不看 hw_cross_review_check.py 的判定。"""
+    net = netlist_pin_counts(os.path.join(root, "HW", "netlist_v1.csv"))
+    sch = read_text(os.path.join(root, "HW", "SCHEMATIC_V1.md"))
+    p9 = extract_page(sch, "P9")
+    return {"net": net, "decl": declared_pins(p9), "p9": p9}
+
+
+def load_ledger_records(root: str, anchors: dict) -> list:
+    """把锚点里登记的落表台账位置逐个读出来 (支持 `*` 通配)。"""
+    sl = anchors.get("source_ledger") or {}
+    specs = sl.get("landing_records") or []
+    recs = []
+    for spec in specs:
+        if not spec:
+            continue
+        p = os.path.join(root, spec)
+        if os.path.isfile(p):
+            recs.append((spec, read_text(p)))
+            continue
+        d = os.path.dirname(spec) or "."
+        b = os.path.basename(spec)
+        for hit in sorted(glob.glob(os.path.join(root, d, b))):
+            recs.append((os.path.relpath(hit, root), read_text(hit)))
+    return recs
+
+
+def md5_seen(text: str, value: str) -> bool:
+    """台账里是不是出现了这个 md5 (全文或 12 位前缀 —— 落表记录用的是前缀)。"""
+    if not value:
+        return False
+    return value in text or value[:12] in text
+
+
 # ====================================================================== 检查组
-def run_checks(root: str, anchors: dict, facts: dict, xrev: dict) -> list:
-    """返回 [(组号, 组名, ok, 明细)]。anchors 可被 --selftest 篡改 ⇒ 反向用例。"""
+def run_checks(root: str, anchors: dict, facts: dict, xrev: dict,
+               doc: str = None, pin_truth: dict = None) -> list:
+    """返回 [(组号, 组名, ok, 明细)]。anchors/doc/pin_truth 可被 --selftest 篡改 ⇒ 反向用例。"""
     out = []
     A = anchors
     sp, hx = facts["sp"], facts["hx"]
+    if doc is None:
+        doc = read_text(os.path.join(root, "MECH", "HW_CROSS_REVIEW_TRIAGE.md"))
+    if pin_truth is None:
+        pin_truth = load_pin_truth(root)
 
     def g(code, name, ok, detail):
         out.append((code, name, bool(ok), detail))
@@ -194,7 +309,7 @@ def run_checks(root: str, anchors: dict, facts: dict, xrev: dict) -> list:
     # ---------------- G1 不许把红灯调没 ----------------
     s = xrev["summary"]
     n_total = len(xrev["results"])
-    g("G1", "不许把红灯调没 (FAIL 名单仍是 17 条)",
+    g("G1", "不许把红灯调没 (FAIL 名单仍是 16 条)",
       s["pass"] == BASE_SUMMARY["pass_"] and s["fail"] == BASE_SUMMARY["fail"]
       and s["cond"] == BASE_SUMMARY["cond"] and s["info"] == BASE_SUMMARY["info"]
       and n_total == BASE_SUMMARY["total"],
@@ -286,7 +401,6 @@ def run_checks(root: str, anchors: dict, facts: dict, xrev: dict) -> list:
       not bad_pass, f"共 {len(DEMO_PASS_IDS)} 项, 不再 PASS 的 = {bad_pass or '无'}")
 
     # ---------------- G3 6 条 PCB 类已登记排队 (不许静默) ----------------
-    doc = read_text(os.path.join(root, "MECH", "HW_CROSS_REVIEW_TRIAGE.md"))
     q = parse_queue_rows(doc)
     missing = [i for i in PCB_CLASS_IDS if not q.get(i, "").strip()]
     in_anchor = [i for i in PCB_CLASS_IDS if i not in A.get("pcb_class_queued", [])]
@@ -330,13 +444,121 @@ def run_checks(root: str, anchors: dict, facts: dict, xrev: dict) -> list:
       and abs(hx["cav_v_now"] - th_anchor["cav_v"]) < 1e-9,
       f"service_port: cavity_req={sp['cavity_req']} cav_v={sp['cav_v']} duct_v={sp['duct_v']} "
       f"CRIT={facts['sp_crit']:.2f}; hw_cross_review: judge={hx['judge']} cav_v_now={hx['cav_v_now']}")
+
+    # ---------------- G5b 受保护文件 md5 逐字节未变 ----------------
+    # ★【ISS-224】6 个硬保护文件 (板/.kicad_pro + 4 个 check 脚本) 用脚本里的 MD5_EXPECTED;
+    #   ★网表/脚表 = 锚点 source_ledger 里登记的落表后真值 (由 C21 与落表台账对账)。
+    ledger = A.get("source_ledger") or {}
+    entries = list(ledger.get("entries") or [])
+    ent_by_file = {str(e.get("file")): e for e in entries}
     badmd5 = []
     for rel, want in MD5_EXPECTED.items():
         got = md5(os.path.join(root, rel))
         if got != want:
             badmd5.append(f"{rel}: {got} != {want}")
-    g("G5b", "受保护文件 md5 逐字节未变 (板/网表/脚表/.kicad_pro + 3 个 check 脚本)", not badmd5,
-      "; ".join(badmd5) if badmd5 else f"{len(MD5_EXPECTED)} 个文件全部一致")
+    for rel in LEDGER_REQUIRED:
+        e = ent_by_file.get(rel)
+        want = str((e or {}).get("md5") or "")
+        got = md5(os.path.join(root, rel))
+        if not want:
+            badmd5.append(f"{rel}: 锚点 source_ledger 里没登记 md5")
+        elif got != want:
+            badmd5.append(f"{rel}: {got} != {want}")
+    g("G5b", "受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)",
+      not badmd5,
+      "; ".join(badmd5) if badmd5 else
+      f"{len(MD5_EXPECTED)} 个硬保护文件 + {len(LEDGER_REQUIRED)} 个台账管理真源 全部一致")
+
+    # ---------------- C21 真源变更台账对账 (不许悄悄换真源) ----------------
+    #  ★★【ISS-224 新增】★★ 网表/脚表的 md5 锚点 ↔ 落表台账 ↔ 盘上真源, 三方必须一致:
+    #   ① 锚点登记的 md5 必须在落表台账里查到 (落表单号 + 文件名 + 新旧两个 md5)
+    #   ② 盘上真源的 md5 必须等于锚点登记的那个
+    #   ⇒ 只改锚点不落表 = 悄悄换真源 ⇒ 红; 改了真源不落表 = 悄悄换真源 ⇒ 红
+    problems = []
+    recs = load_ledger_records(root, A)
+    if not recs:
+        problems.append("锚点 source_ledger.landing_records 里登记的位置一个都不存在 (台账查不到)")
+    files = [str(e.get("file")) for e in entries]
+    miss_req = [f for f in LEDGER_REQUIRED if f not in files]
+    if miss_req:
+        problems.append(f"锚点 source_ledger.entries 缺受管真源 = {miss_req}")
+    hit_detail = []
+    for e in entries:
+        f = str(e.get("file") or "")
+        by = str(e.get("by") or "")
+        want = str(e.get("md5") or "")
+        prev = str(e.get("prev_md5") or "")
+        if not f:
+            problems.append("source_ledger.entries 里有空 file")
+            continue
+        # ② 盘上真源 vs 锚点
+        p = os.path.join(root, f)
+        if not os.path.exists(p):
+            problems.append(f"{f}: 盘上文件不存在")
+            continue
+        actual = md5(p)
+        if actual != want:
+            problems.append(f"{f}: 盘上 md5 {actual} != 锚点登记 {want} (真源被换了或锚点过期)")
+        # ① 落表台账对账
+        hit = None
+        why = []
+        for name, text in recs:
+            if by and by not in text:
+                why.append(f"{name}: 无落表单号 {by}")
+                continue
+            if f not in text:
+                why.append(f"{name}: 无文件名 {f}")
+                continue
+            if not md5_seen(text, want):
+                why.append(f"{name}: 无新 md5 {want[:12]}")
+                continue
+            if prev and not md5_seen(text, prev):
+                why.append(f"{name}: 无旧 md5 {prev[:12]}")
+                continue
+            hit = name
+            break
+        if hit is None:
+            problems.append(f"{f}: 落表台账里查不到 (单号 {by} / 文件 {f} / 新旧 md5) ⇒ "
+                            f"悄悄换真源? 查过: {why or '无台账文件'}")
+        else:
+            hit_detail.append(f"{f} ← {hit} ({by})")
+    g("C21", "真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)",
+      not problems,
+      "; ".join(problems) if problems else
+      f"台账可查 = {[n for n, _ in recs]}; 对上 = {hit_detail}")
+
+    # ---------------- C22 PIN-MISMATCH 独立复核 ----------------
+    #  ★★【ISS-224 新增】★★ 不看 hw_cross_review_check.py 的判定, 自己实读 P9 页 + 网表
+    prob22 = []
+    net = pin_truth["net"]
+    decl = pin_truth["decl"]
+    p9 = pin_truth["p9"]
+    pt = A.get("pin_truth") or {}
+    for conn in ("J_CHG", "CONN_LIGHT", "CONN_CAM"):
+        if conn not in pt:
+            prob22.append(f"锚点 pin_truth 缺 {conn}")
+    for conn, want in pt.items():
+        got = net.get(conn)
+        if got != want:
+            prob22.append(f"网表实读 {conn} = {got}p ≠ 锚点 {want}p")
+    for conn in ("J_CHG", "CONN_LIGHT", "CONN_CAM"):
+        d = decl.get(conn) or []
+        if not d:
+            prob22.append(f"P9 页正文抽不到 {conn} 的 pin 声明")
+        elif net.get(conn) not in d:
+            prob22.append(f"P9 页声明 {conn}={d} ≠ 网表实读 {net.get(conn)}p")
+    stale = [k for k in P9_STALE_MARKERS if k in p9]
+    if stale:
+        prob22.append(f"P9 页正文仍有旧口径 = {stale}")
+    missing_new = [k for k in P9_NEW_MARKERS if k not in p9]
+    if missing_new:
+        prob22.append(f"P9 页正文缺新口径 = {missing_new}")
+    g("C22", "PIN-MISMATCH 独立复核 (P9 页声明 vs 网表实际 + d6 新旧口径)",
+      not prob22,
+      "; ".join(prob22) if prob22 else
+      f"网表实读 CONN_LIGHT {net.get('CONN_LIGHT')}p / CONN_CAM {net.get('CONN_CAM')}p / "
+      f"J_CHG {net.get('J_CHG')}p; P9 声明 CONN_LIGHT {decl.get('CONN_LIGHT')} / "
+      f"CONN_CAM {decl.get('CONN_CAM')} / J_CHG {decl.get('J_CHG')}; 旧口径 0 处 / 新口径 3 处")
 
     # ---------------- G6 定性表 54/54 + 处置不留空 ----------------
     rows = parse_triage_rows(doc)
@@ -350,11 +572,11 @@ def run_checks(root: str, anchors: dict, facts: dict, xrev: dict) -> list:
       len(rows) == BASE_SUMMARY["total"] and not miss_items and not extra_items and not empty_disp,
       f"表内 {len(rows)} 行 / 应 {BASE_SUMMARY['total']}; 缺项号 = {miss_items or '无'}; "
       f"多余项号 = {extra_items or '无'}; 处置留空或待定 = {empty_disp or '无'}")
-    # 17 条 FAIL 每条都有明确去处
+    # 16 条 FAIL 每条都有明确去处
     fail_rows = [r for r in rows if "FAIL" in r["verdict"]]
     ok_disp = ("维持现状", "出规格", "修掉", "登记 need 给 main", "排队等原理图定稿")
     no_dest = [r["item"] for r in fail_rows if r["disp"].strip() not in ok_disp]
-    g("G6b", "17 条 FAIL 每条都有明确去处 (修掉/出规格/登记 need 给 main/排队等原理图定稿)",
+    g("G6b", "16 条 FAIL 每条都有明确去处 (修掉/出规格/登记 need 给 main/排队等原理图定稿)",
       len(fail_rows) == BASE_SUMMARY["fail"] and not no_dest,
       f"FAIL 行 {len(fail_rows)} 条; 去处不在受控词表里的 = {no_dest or '无'}")
 
@@ -370,48 +592,121 @@ def run_checks(root: str, anchors: dict, facts: dict, xrev: dict) -> list:
     g("G7", "分片 claim `mech_hinge_stack_fixed_mm` = 25.00 (ISS-206 裁 2 的 16p/20p/4p/10p)",
       fixed == "25.00", f"实测 value = {fixed}")
 
+    # ---------------- G8 已修复的留痕必须在场 ----------------
+    #  ★★【ISS-224 新增】★★ 一次真修复不许从账上消失 (删行 / 删节 / 抹留痕 ⇒ 红)
+    prob8 = []
+    pm_rows = [r for r in rows if r["base"] == "PIN-MISMATCH"]
+    if not pm_rows:
+        prob8.append("§2 定性表里找不到 PIN-MISMATCH 那一行 (行被删 = 抹掉一次真修复)")
+    else:
+        r0 = pm_rows[0]
+        if "FAIL" in r0["verdict"]:
+            prob8.append(f"PIN-MISMATCH 判定 = {r0['verdict']} (ISS-220 落表后应为 PASS)")
+        elif "PASS" not in r0["verdict"]:
+            prob8.append(f"PIN-MISMATCH 判定 = {r0['verdict']} (应为 ✅ PASS)")
+        if "ISS-220" not in r0["note"]:
+            prob8.append("PIN-MISMATCH 行的备注里没有 ISS-220 留痕")
+        if "落表" not in r0["note"]:
+            prob8.append("PIN-MISMATCH 行的备注里没有「落表」留痕")
+    fixed_sec = parse_fixed_section(doc)
+    if fixed_sec is None:
+        prob8.append("§3.1「已修复 (留痕)」节不见了 (删节 = 抹掉一次真修复)")
+    else:
+        if "PIN-MISMATCH" not in fixed_sec["ids"]:
+            prob8.append("§3.1「已修复」节里没有 PIN-MISMATCH")
+        if "ISS-220" not in fixed_sec["text"]:
+            prob8.append("§3.1「已修复」节里没有落表单号 ISS-220")
+    g("G8", "已修复的留痕必须在场 (PIN-MISMATCH 行 + §3.1「已修复 (留痕)」节)",
+      not prob8,
+      "; ".join(prob8) if prob8 else
+      f"§2 行在位 (判定 = {pm_rows[0]['verdict'] if pm_rows else '—'}, 备注带 ISS-220/落表) + "
+      f"§3.1 已修复节在位 (列着 {fixed_sec['ids'] if fixed_sec else '—'})")
+
     return out
 
 
 # ====================================================================== selftest
-def selftest(root: str, anchors: dict, facts: dict, xrev: dict) -> int:
-    base = run_checks(root, anchors, facts, xrev)
+def selftest(root: str, anchors: dict, facts: dict, xrev: dict,
+             doc: str, pin_truth: dict) -> int:
+    base = run_checks(root, anchors, facts, xrev, doc=doc, pin_truth=pin_truth)
     base_bad = [c for c in base if not c[2]]
     cases = []
 
-    def mut(name, fn, expect):
-        a = copy.deepcopy(anchors)
-        fn(a)
-        cases.append((name, a, expect))
+    def add(name, expect, a=None, d=None, p=None):
+        cases.append((name,
+                      a if a is not None else copy.deepcopy(anchors),
+                      d if d is not None else doc,
+                      p if p is not None else pin_truth,
+                      expect))
 
-    mut("反向1: 板宽锚点 30.00 → 15.00 (旧板宽)",
-        lambda a: a["board_geom"].__setitem__("board_width_y", 15.00), "G4")
-    mut("反向2: 判据 CRIT 0.60 → 0.30 (松判据)",
-        lambda a: a["thresholds"].__setitem__("crit", 0.30), "G5")
-    mut("反向3: 新开孔 10.50 → 9.50 (退回到不合格的现口径)",
-        lambda a: a["typec_panel"].__setitem__("new_opening_x", 9.50), "G2.2")
-    mut("反向4: buck 耗散 0.50 → 0.15 (假装不需要金属热路)",
-        lambda a: a["thermal"].__setitem__("p_buck_w", 0.15), "G2.6")
-    mut("反向5: FAIL 名单里删掉 NET-LED (把红灯调没)",
-        lambda a: a.__setitem__("fail_expect", [x for x in a["fail_expect"] if x != "NET-LED"]), "G1b")
-    mut("反向6: 排队表里删掉 FRM-SUM (静默丢弃排队条目)",
-        lambda a: a.__setitem__("pcb_class_queued",
-                                [x for x in a["pcb_class_queued"] if x != "FRM-SUM"]), "G3")
-    mut("反向7: 板重 3.33 → 3.30 (板框真源被偷改)",
-        lambda a: a["board_geom"].__setitem__("board_mass_g", 3.30), "G4")
-    mut("反向8: cavity_req 4.50 → 5.00 (松硬要求)",
-        lambda a: a["thresholds"].__setitem__("cavity_req", 5.00), "G5")
+    # ---- 原 ISS-213 的 8 条反向用例 ----
+    def m1(a): a["board_geom"].__setitem__("board_width_y", 15.00)
+    add("反向1: 板宽锚点 30.00 → 15.00 (旧板宽)", "G4", a=mut(copy.deepcopy(anchors), m1))
+    def m2(a): a["thresholds"].__setitem__("crit", 0.30)
+    add("反向2: 判据 CRIT 0.60 → 0.30 (松判据)", "G5", a=mut(copy.deepcopy(anchors), m2))
+    def m3(a): a["typec_panel"].__setitem__("new_opening_x", 9.50)
+    add("反向3: 新开孔 10.50 → 9.50 (退回到不合格的现口径)", "G2.2",
+        a=mut(copy.deepcopy(anchors), m3))
+    def m4(a): a["thermal"].__setitem__("p_buck_w", 0.15)
+    add("反向4: buck 耗散 0.50 → 0.15 (假装不需要金属热路)", "G2.6",
+        a=mut(copy.deepcopy(anchors), m4))
+    def m5(a): a.__setitem__("fail_expect", [x for x in a["fail_expect"] if x != "NET-LED"])
+    add("反向5: FAIL 名单里删掉 NET-LED (把红灯调没)", "G1b",
+        a=mut(copy.deepcopy(anchors), m5))
+    def m6(a): a.__setitem__("pcb_class_queued",
+                             [x for x in a["pcb_class_queued"] if x != "FRM-SUM"])
+    add("反向6: 排队表里删掉 FRM-SUM (静默丢弃排队条目)", "G3",
+        a=mut(copy.deepcopy(anchors), m6))
+    def m7(a): a["board_geom"].__setitem__("board_mass_g", 3.30)
+    add("反向7: 板重 3.33 → 3.30 (板框真源被偷改)", "G4",
+        a=mut(copy.deepcopy(anchors), m7))
+    def m8(a): a["thresholds"].__setitem__("cavity_req", 5.00)
+    add("反向8: cavity_req 4.50 → 5.00 (松硬要求)", "G5",
+        a=mut(copy.deepcopy(anchors), m8))
+
+    # ---- ISS-224 新增: 真源不许被悄悄换 / 真修复不许被悄悄抹 ----
+    # ⑨ P9 页正文回退成 21p (⇒ PIN-MISMATCH 改回 FAIL)
+    def m9(p):
+        p["p9"] = (p["p9"].replace("1×22p@0.5mm", "1×21p@0.5mm")
+                       .replace("31p@0.3mm", "18p@0.5mm")
+                       .replace("1 组跨铰链", "4 组跨铰链通道"))
+        p["decl"] = declared_pins(p["p9"])
+    add("反向9: P9 页正文回退成 21p (PIN-MISMATCH 改回 FAIL)", "C22",
+        p=mut_pin(copy.deepcopy(pin_truth), m9))
+    # ⑩ 网表 CONN_LIGHT 改回 21p
+    def m10(p): p["net"]["CONN_LIGHT"] = 21
+    add("反向10: 网表 CONN_LIGHT 改回 21p (网表被回退)", "C22",
+        p=mut_pin(copy.deepcopy(pin_truth), m10))
+    # ⑪ 网表 md5 锚点改回旧值
+    def m11(a): a["source_ledger"]["entries"][0].__setitem__("md5", "c78f991283cc82d56c8e3dd31657c785")
+    add("反向11: 网表 md5 锚点改回旧值 c78f9912… (锚点回滚)", "G5b",
+        a=mut(copy.deepcopy(anchors), m11))
+    # ⑫ md5 锚点改成台账里不存在的哈希
+    def m12(a): a["source_ledger"]["entries"][0].__setitem__("md5", "deadbeefdeadbeefdeadbeefdeadbeef")
+    add("反向12: 网表 md5 锚点改成台账里查不到的哈希", "C21",
+        a=mut(copy.deepcopy(anchors), m12))
+    # ⑬ 落表单号改坏
+    def m13(a): a["source_ledger"]["entries"][0].__setitem__("by", "ISS-999")
+    add("反向13: 落表单号改坏 (ISS-220 → ISS-999)", "C21",
+        a=mut(copy.deepcopy(anchors), m13))
+    # ⑭ 删掉「已修复」留痕 (§2 行的备注 + §3.1 整节)
+    def m14(d):
+        d = d.replace("★**已由 ISS-220 落表修复 (2026-11-16 02:32)** ★", "")
+        d = re.sub(r"^##\s*3\.1[^\n]*已修复[^\n]*$.*?(?=^##\s*4\s)", "", d, flags=re.S | re.M)
+        return d
+    add("反向14: 删掉「已修复」留痕 (行 05 备注 + §3.1 整节)", "G8",
+        d=m14(doc))
 
     print("=" * 100)
-    print("ISS-213 机器门禁 —— 反向用例 (改坏任一锚点必须变红)")
+    print("ISS-213/224 机器门禁 —— 反向用例 (改坏任一锚点必须变红)")
     print("=" * 100)
     if base_bad:
         print(f"❌ 基线就不绿: {[c[0] for c in base_bad]} ⇒ 门禁本身有问题, 自测不成立")
         return 2
     print(f"  ✅ 基线全绿 ({len(base)}/{len(base)} 组检查)")
     ok = 0
-    for name, a, expect in cases:
-        res = run_checks(root, a, facts, xrev)
+    for name, a, d, p, expect in cases:
+        res = run_checks(root, a, facts, xrev, doc=d, pin_truth=p)
         red = [c[0] for c in res if not c[2]]
         hit = expect in red
         flag = "✅" if hit else "❌"
@@ -421,6 +716,16 @@ def selftest(root: str, anchors: dict, facts: dict, xrev: dict) -> int:
     print("-" * 100)
     print(f"反向用例: {ok}/{len(cases)} 抓到了")
     return 0 if ok == len(cases) else 2
+
+
+def mut(d: dict, fn) -> dict:
+    fn(d)
+    return d
+
+
+def mut_pin(d: dict, fn) -> dict:
+    fn(d)
+    return d
 
 
 # ====================================================================== main
@@ -434,16 +739,18 @@ def main() -> int:
     anchors = load_anchors(doc)
     facts = load_sources(PROJ)
     xrev = run_cross_review(PROJ)
+    pin_truth = load_pin_truth(PROJ)
 
     if args.selftest:
-        return selftest(PROJ, anchors, facts, xrev)
+        return selftest(PROJ, anchors, facts, xrev, doc, pin_truth)
 
-    res = run_checks(PROJ, anchors, facts, xrev)
+    res = run_checks(PROJ, anchors, facts, xrev, doc=doc, pin_truth=pin_truth)
     print("=" * 100)
-    print("ISS-213 结构侧真值门禁 (demo 板当前成立的条目 + 板框/阈值/红灯保护)")
+    print("ISS-213/224 结构侧真值门禁 (demo 板当前成立的条目 + 板框/阈值/红灯保护 + 真源台账对账)")
     print("=" * 100)
     print(f"定性表: MECH/HW_CROSS_REVIEW_TRIAGE.md  |  源: MECH/service_port_check.py + "
-          f"MECH/hw_cross_review_check.py + MECH/BOARD_GEOM_30MM.md")
+          f"MECH/hw_cross_review_check.py + MECH/BOARD_GEOM_30MM.md + "
+          f"HW/netlist_v1.csv + HW/SCHEMATIC_V1.md")
     print("-" * 100)
     for code, name, ok, detail in res:
         print(f"  [{'OK ' if ok else 'FAIL'}] {code:<5} {name}")
@@ -454,6 +761,7 @@ def main() -> int:
     print("口径提醒: 全部为 **设计态几何 + 公差栈** ([推算]); **实物 [实测] = 0 条**。")
     print("          本闸守的是 **demo 板当前成立的条目**, 不是'54 项全绿'。")
     print("          ★ 6 个 PCB 类 id 仍是 FAIL 是**正确状态** (排队等原理图定稿), 不是缺陷。")
+    print("          ★ ISS-224: `PIN-MISMATCH` 是**被 ISS-220 真修好了**, 不是被调没 ⇒ 留痕在 §2 第 05 行 + §3.1。")
     print("=" * 100)
     if args.json:
         print(json.dumps({"checks": [{"code": c, "name": n, "ok": o, "detail": d}

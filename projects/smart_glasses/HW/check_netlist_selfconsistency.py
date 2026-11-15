@@ -1,9 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ISS-211 机器门禁 —— ★**网表自身一致性 4 处缺陷的「现状守卫」** ★
+ISS-211 / ★ISS-214★ 机器门禁 —— ★**网表自身一致性 4 处 (第 1 轮) + 7 组 (第 2 轮) 缺陷的「现状守卫」** ★
 ================================================================================
+★★**2026-11-16 · ISS-214 第 2 轮扩展** ★★
+· 第 1 轮 (ISS-211): d1 I2C_A 上拉 / d2 BAT_DET 全 DNP / d3 U_EN_SW 无本体行 / d4 USB D− 无 ESD
+· 第 2 轮 (ISS-214): d5 USB 串阻双值 / d6 CONN_LIGHT 21p vs 22p + P9 堆叠账 /
+  d7 SARADC_VIN5 满量程 + 分压比 / d8 BAT_DET 漏电预算 / d9 USB D− ESD 方案与型号判据 /
+  d10 CHARGE_BOARD_SPEC ICHG/IIN 方向 / d11 NET-LED board 列
+· ★**第 2 轮新读 5 个"根因层"文件** (不是产物层): `state/gen_schematic_pages.py` (P9 页正文) ·
+  `HW/CHARGE_BOARD_SPEC.md` (§2.4/§3.4) · `HW/EMC_PRECHECK.md` (USB 2.0 差分 90Ω/480Mbps) ·
+  `HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.txt` (RK3572 官方 datasheet 抽取文本) ·
+  `HW/PCB/FET3572C_PIN_TABLE.csv` (SoM 厂 IO 域表)
 ★**它不是"检查网表对不对", 是"检查【规格页】跟【现行网表】还对不对得上"** ★
+
+★★**2026-11-16 · ISS-217 第 3 轮扩展 (★落表作业包门禁★)** ★★
+· ★**新增第 4 个被检查对象**: `HW/SCHEMATIC_LANDING_WORKPACKET_V1.md` (★落表作业包本体, 28 条作业条目★)
+· ★**新增 "作业包完整性" 自检**: ★**作业包里必须逐组出现 (项号 · 真修法文件 · 改法 · 命令 · 翻面判据 id) ⇒ 缺任何一组 ⇒ 红** ★
+· ★**新增 "三方对齐" 自检**: ★**作业包项号 ↔ 规格页条号 ↔ 门禁 R# 必须对得上 (对不上 ⇒ 红)** ★
+· ★**R9 的翻面阈值从 5.0 收紧到 3.0 mm** (★按 `state/gen_schematic_pages.py` P9 页自引的 ISS-085 规矩; ★**现状断言一条字都不动**★) + ★**新增一条反向用例证明阈值真被读到 3.0 而不是 5.0** ★
 
 ★★**它守的是三件事 (★规格页 ⇄ 本脚本 ⇄ 现行文件 三方对齐★)** ★★
 
@@ -61,7 +76,18 @@ REL = {
     "spec": os.path.join("HW", "SCHEMATIC_V1_SPEC.json"),
     "board": os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb"),
     "specpage": os.path.join("HW", "NETLIST_SELF_CONSISTENCY_SPEC.md"),
+    # ── ★ISS-214 第 2 轮新增的 5 条要读的文件 (★全是"根因层"文件, 不是产物层★) ──
+    "pages": os.path.join("state", "gen_schematic_pages.py"),        # ★P9 页正文 (堆叠账/铰链通道的源头)
+    "chgspec": os.path.join("HW", "CHARGE_BOARD_SPEC.md"),           # ★§2.4/§3.4 ICHG/IIN 系数 (源头)
+    "emc": os.path.join("HW", "EMC_PRECHECK.md"),                    # ★USB 2.0 差分 90Ω + 480Mbps (源头)
+    "rk": os.path.join("HW", "RK3572_PIN_TABLE", "rk3572_datasheet_V1.1.txt"),  # ★RK3572 官方 datasheet 抽取文本
+    "sompins": os.path.join("HW", "PCB", "FET3572C_PIN_TABLE.csv"),   # ★SoM 厂 IO 域表 (SARADC_VIN5 = 1.8V)
+    # ── ★ISS-217 第 3 轮新增: 落表作业包本体 (★"作业包漏一条就红" 的被检查对象★) ──
+    "workpacket": os.path.join("HW", "SCHEMATIC_LANDING_WORKPACKET_V1.md"),
 }
+
+# ★纯文本类文件 (判据写成 'text contains X' / 'text notcontains X')★
+TEXT_KINDS = {"pages", "chgspec", "emc", "rk", "specpage"}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ★★ 期望值 (★唯一真源: 规格页的锚点表必须与这里逐字一致★) ★★
@@ -75,13 +101,37 @@ REL = {
 #     "footprint.<REF>.<attr> == v" 板封装属性 (value | pads | pad1.net | pad2.net | pad3.net)
 #     "spec.<path> == value"        SCHEMATIC_V1_SPEC.json 里的字段 (connections[id=B-01].level)
 #     "esd_on_net(<netA>,<netB>) == N"  板上带 ESD 的位号里, 焊盘挂在这两条网上的个数
+#     "text contains X"             ★★纯文本文件里含子串 X (第 2 轮: pages/chgspec/emc/rk/specpage)★★
+#     "text notcontains X"          ★★纯文本文件里不含子串 X ★★
+#     "calc(<expr>) <op> <num>"     ★★数值判据 (op ∈ ==/>/>=/</<=), <expr> 见 CALC_EXPRS★★
 # ─────────────────────────────────────────────────────────────────────────────
+
+# ★★第 2 轮 (ISS-214) 的数值表达式 (★全部只读现行文件, 不引入外部数据★★)
+#   node_v@<V>        BAT_DET 分压链在电池 <V> 时 ADC 节点电压 (V)
+#   leak_ua@<V>       BAT_DET 分压链在电池 <V> 时的漏电流 (µA)
+#   leak_note_ua@<V>  R_BAT_DET_1 的 note 里**自称**的漏电流 (µA)  (★缺陷: 与上面那个对不上★)
+#   esd_dist_usb      板面 D_ESD_USB_D → J_USB_C 距离 (mm)
+#   r_ilim            R_ILIM 的阻值 (Ω, 从网表 value 解析)
+#   iinmax_max        IINMAX = KILIM_max / R_ILIM (A, KILIM_max = 390 AΩ [官方 BQ25896])
+#   ichg_ratio@<Vbat> ICHG/IIN = η·Vbus/Vbat (η=0.90 / Vbus=5.0V, 见规格页 §10 第 (7) 条)
+#   ichg_max@<Vbat>   铰链段 ICHG 上限 (A) = iinmax_max × ichg_ratio
+#   ichg_pin_max@<Vbat> 铰链段**单 pin** 载流上限 (A) = ichg_max / 2 (J_CHG pin1/pin2 双 pin 并联)
+ETA_BUCK = 0.90      # ★BQ25896 充电效率 (datasheet: 92.5% @2A / 90.5% @3A ⇒ 取保守 90%)★
+VBUS_CHG = 5.0       # ★VBUS = 5.0V (CHARGE_BOARD_SPEC §3.4 口径)★
+KILIM_MAX = 390.0    # ★BQ25896 KILIM max = 390 AΩ (datasheet)★
+# ★★ISS-217: ESD 距 J_USB_C 的【翻面】阈值 ★★
+#   ★依据: `state/gen_schematic_pages.py` P9 页自引的 ISS-085 结构总工回执
+#         「④ **ESD 距连接器 ≤3.0mm** / CMC 距弯折起点 ≥5.0mm, 一律放 PCB 端, 不许上 FPC」
+#   ★ISS-211 §5.2 写的「≤ 5 mm」口径【作废】⇒ 取项目自己的规矩 (更严) = 3.0mm
+#   ★★现状断言 (`d9_esd_dist` = calc(esd_dist_usb) > 5) 一条字都不许动 ★★
+#   ★★现状 47.99mm 无论按 5 还是按 3.0 判都成立 ⇒ 改阈值不动现状断言★★
+ESD_MAX_DIST_MM = 3.0
 
 EXPECT: list[tuple[str, str, str, str]] = [
     # ── 第 (1) 条: I2C_A 上拉 —— NET 行说 4.7k/3.3V, 器件行说 2.2k/1.8V ──
-    ("d1_a167_value", "netlist", "167", "value == 上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF)"),
+    ("d1_a167_value", "netlist", "167", "value == 上拉 2.2k 到 1.8V (RAIL_VDD_1V8_IO, 灌 0.64mA @VOL=0.4V, t_r=186ns@100pF / 559ns@300pF)"),
     ("d1_a167_ref", "netlist", "167", "ref == NET_I2C_A_SCL"),
-    ("d1_a168_value", "netlist", "168", "value == 上拉 4.7k 到 3.3V"),
+    ("d1_a168_value", "netlist", "168", "value == 上拉 2.2k 到 1.8V"),
     ("d1_a168_ref", "netlist", "168", "ref == NET_I2C_A_SDA"),
     ("d1_a169_value", "netlist", "169", "value == 2.2k ±1%"),
     ("d1_a169_net", "netlist", "169", "net == VDD_1V8_IO"),
@@ -92,10 +142,10 @@ EXPECT: list[tuple[str, str, str, str]] = [
     ("d1_a171_value", "netlist", "171", "value contains 上拉 2.2k 到 1.8V"),
     ("d1_b367_net", "pins", "367", "net == I2C_A_SCL"),
     ("d1_b368_net", "pins", "368", "net == VDD_1V8_IO"),
-    ("d1_spec_b01_level", "spec", "?", "spec.connections[id=B-01].level == 3.3V"),
-    ("d1_spec_b01_imp", "spec", "?", "spec.connections[id=B-01].imp == 上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF)"),
-    ("d1_spec_b02_level", "spec", "?", "spec.connections[id=B-02].level == 3.3V"),
-    ("d1_spec_b02_imp", "spec", "?", "spec.connections[id=B-02].imp == 上拉 4.7k 到 3.3V"),
+    ("d1_spec_b01_level", "spec", "?", "spec.connections[id=B-01].level == 1.8V"),
+    ("d1_spec_b01_imp", "spec", "?", "spec.connections[id=B-01].imp == 上拉 2.2k 到 1.8V (RAIL_VDD_1V8_IO, 灌 0.64mA @VOL=0.4V, t_r=186ns@100pF / 559ns@300pF)"),
+    ("d1_spec_b02_level", "spec", "?", "spec.connections[id=B-02].level == 1.8V"),
+    ("d1_spec_b02_imp", "spec", "?", "spec.connections[id=B-02].imp == 上拉 2.2k 到 1.8V"),
 
     # ── 第 (2) 条: BAT_DET 分压链全 DNP, 但 SoC ADC 输入脚必装 ──
     ("d2_a181_ref", "netlist", "181", "ref == NET_BAT_DET"),
@@ -149,7 +199,246 @@ EXPECT: list[tuple[str, str, str, str]] = [
     ("d4_esd_on_dminus", "board", "?", "esd_on_net(USB_D_N_SRC,NET_USB_D_N_TYPEC) == 0"),
     ("d4_bom62_value", "bom", "62", "value == ESD 阵列 [待选型] (USB 2.0 双通道)"),
     ("d4_bom62_fp", "bom", "62", "footprint contains 2 焊盘"),
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # ★★第 2 轮 (ISS-214) 追加的 7 组锚点 (d5..d11) —— ★ISS-211 的 4 条 (d1..d4) 一条不许删★★
+    # ═══════════════════════════════════════════════════════════════════════
+
+    # ── 第 (1) 条 · USB 串阻: 同一颗器件两个阻值 (ISS-211 附带发现 #1) ──
+    # ★★2026-11-16 ISS-223 落表第 2 批 (V-1 已由 main 裁 = 22Ω): 这 4 条【现状断言】
+    #   跟着落表走 —— `d5_a291_value` / `d5_a292_value` (表A L291/L292 的 NET 行 value)
+    #   由 `90Ω ±10%` 改为 `22Ω ±1%`; `d5_spec_b21_imp` / `d5_spec_b22_imp` 改为 `22Ω ±1%`。
+    #   ★★【这不是「改判据凑绿」】: 判据本体 (L291/L292 的 NET 行 value 必须 == SPEC.json
+    #   B-21/B-22 的 `imp`) 一个字没改, 改的只是【断言的现状值】⇒ ★**锚点条数一条没减
+    #   (d5 组仍 16 条) · 判据阈值与 EXPECT 锚点组一条没删**★。
+    #   ★**反向用例方向同步翻转 (见 `--selftest` 的 `m_spec_b21_imp`)**: 落表后现状已是
+    #   22Ω ⇒ 反向用例改成【退回 90Ω 的旧缺陷】, 与 ISS-220 落表时 d1/d6 的处理同型。
+    ('d5_a291_value', 'netlist', '291', 'value == 22Ω ±1%'),
+    ('d5_a291_ref', 'netlist', '291', 'ref == NET_USB_D_P_SRC'),
+    ('d5_a292_value', 'netlist', '292', 'value == 22Ω ±1%'),
+    ('d5_a292_ref', 'netlist', '292', 'ref == NET_USB_D_N_SRC'),
+    ('d5_a431_value', 'netlist', '431', 'value == 22Ω ±1%'),
+    ('d5_a431_ref', 'netlist', '431', 'ref == R_SER_USB_D_P'),
+    ('d5_a432_value', 'netlist', '432', 'value == 22Ω ±1%'),
+    ('d5_a432_ref', 'netlist', '432', 'ref == R_SER_USB_D_N'),
+    ('d5_a291_rows', 'netlist', '?', 'count(ref==NET_USB_D_P_SRC) == 1'),
+    ('d5_a292_rows', 'netlist', '?', 'count(ref==NET_USB_D_N_SRC) == 1'),
+    ('d5_spec_b21_imp', 'spec', '?', 'spec.connections[id=B-21].imp == 22Ω ±1%'),
+    ('d5_spec_b21_signal', 'spec', '?', 'spec.connections[id=B-21].signal == USB_D+'),
+    ('d5_spec_b22_imp', 'spec', '?', 'spec.connections[id=B-22].imp == 22Ω ±1%'),
+    ('d5_spec_b22_signal', 'spec', '?', 'spec.connections[id=B-22].signal == USB_D-'),
+    ('d5_emc_90_480', 'emc', '?', 'text contains D+/D- 90 Ω 差分, 480 Mbps'),
+    ('d5_emc_template', 'emc', '?', 'text contains 不是同一套阻抗模板'),
+
+    # ── 第 (2) 条 · CONN_LIGHT 21p vs 22p + P9 堆叠账 (ISS-213 STK-P9) ──
+    ('d6_pages_light_21p', 'pages', '?', 'text notcontains `CONN_LIGHT` (**1×21p@0.5mm**)'),
+    ('d6_pages_light_22p', 'pages', '?', 'text contains 1×22p@0.5mm'),
+    ('d6_pages_cam_18p', 'pages', '?', 'text notcontains `CONN_CAM` (**18p@0.5mm**)'),
+    ('d6_pages_cam_31p', 'pages', '?', 'text contains `CONN_CAM` (**31p@0.3mm'),
+    ('d6_pages_usb_4p', 'pages', '?', 'text notcontains `CONN_USB` (**4p@0.5mm**)'),
+    ('d6_pages_stack_265', 'pages', '?', 'text notcontains (10+4+18+21)×0.5 = **26.5mm**'),
+    ('d6_pages_stack_370', 'pages', '?', 'text notcontains 镜脚根部净高 **37.0mm**'),
+    ('d6_pages_stack_380', 'pages', '?', 'text contains 镜脚根部净高 **38.00mm**'),
+    ('d6_a237_value', 'netlist', '237', 'value == ★22p@0.5mm (HIROSE FH12-22S-0.5SH(55), 右角/底接触/1固定柱; 官方封装抄 RPi CM5IO)'),
+    ('d6_a237_board', 'netlist', '237', 'board == MAIN_PCB'),
+    ('d6_a290_value', 'netlist', '290', 'value == ★31p@0.3mm 板内 FPC 座 (Radxa Camera 4K; 座 HIROSE FH35C-31S-0.3SHW(50); 针位见 HW/PCB/FPC_PIN_TABLES.md)'),
+    ('d6_a290_board', 'netlist', '290', 'board == MAIN_PCB'),
+    ('d6_b_light_pins', 'pins', '?', 'count(ref==CONN_LIGHT) == 22'),
+    ('d6_b_cam_pins', 'pins', '?', 'count(ref==CONN_CAM) == 31'),
+    ('d6_net_no_conusb', 'netlist', '?', 'count(ref==CONN_USB) == 0'),
+    ('d6_bom5_value', 'bom', '5', 'value contains 22p@0.5mm'),
+    ('d6_bom5_fp', 'bom', '5', 'footprint contains FH12-22S-0.5SH'),
+
+    # ── 第 (3) 条 · SARADC_VIN5 满量程 + BAT_DET 分压比 (ISS-211 U-2) ──
+    ('d7_a181_value', 'netlist', '181', 'value == 1M+1M 分压 + 100nF'),
+    ('d7_a182_value', 'netlist', '182', 'value == 1M ±1%'),
+    ('d7_a183_value', 'netlist', '183', 'value == 1M ±1%'),
+    ('d7_a184_value', 'netlist', '184', 'value == 100nF ±10%'),
+    ('d7_a186_node1', 'netlist', '186', 'node1 == J_SOM_P1 pin38'),
+    ('d7_a186_dnp', 'netlist', '186', 'dnp == 必装'),
+    ('d7_rk_table', 'rk', '?', 'text contains Table 3-16 Electrical Characteristics for SARADC'),
+    ('d7_rk_resolution', 'rk', '?', 'text contains Resolution                                                                 NA           12         NA       Bit'),
+    ('d7_rk_ain', 'rk', '?', 'text contains Anglog Input Range             AIN                                        AVSS18       NA         AVDD18    V'),
+    ('d7_som_p138_signal', 'sompins', '39', 'signal == SARADC_VIN5'),
+    ('d7_som_p138_vol', 'sompins', '39', 'vol == 1.8V'),
+    ('d7_som_p138_num', 'sompins', '39', 'num == 38'),
+    ('d7_node_v', 'netlist', '?', 'calc(node_v@4.2) == 2.1'),
+    ('d7_node_over', 'netlist', '?', 'calc(node_v@4.2) > 1.8'),
+
+    # ── 第 (4) 条 · BAT_DET 分压链漏电预算 (ISS-211 U-4) ──
+    ('d8_a182_note', 'netlist', '182', 'note contains 漏电流 ~1.65µA @5V'),
+    ('d8_bom86_value', 'bom', '86', 'value == 1M ±1%'),
+    ('d8_bom86_dnp', 'bom', '86', 'dnp == DNP'),
+    ('d8_bom87_value', 'bom', '87', 'value == 1M ±1%'),
+    ('d8_bom87_dnp', 'bom', '87', 'dnp == DNP'),
+    ('d8_bom27_value', 'bom', '27', 'value == 100nF ±10%'),
+    ('d8_leak_now', 'netlist', '?', 'calc(leak_ua@4.2) == 2.1'),
+    ('d8_leak_claim', 'netlist', '?', 'calc(leak_note_ua@5) == 1.65'),
+
+    # ── 第 (5) 条 · USB D− 的 ESD 方案 + 型号判据 (ISS-211 U-1) ──
+    ('d9_pages_esd_3mm', 'pages', '?', 'text contains ESD 距连接器 ≤3.0mm'),
+    ('d9_pages_two_ends', 'pages', '?', 'text contains 两端 ESD'),
+    ('d9_emc_480', 'emc', '?', 'text contains 480 Mbps'),
+    ('d9_esd_dist', 'netlist', '?', 'calc(esd_dist_usb) > 5'),
+    ('d9_esd_pads2', 'board', '?', 'footprint.D_ESD_USB_D.pads == 2'),
+    ('d9_esd_dual_claim', 'netlist', '417', 'value == ESD 阵列 [待选型] (USB 2.0 双通道)'),
+    ('d9_esd_on_dminus', 'board', '?', 'esd_on_net(USB_D_N_SRC,NET_USB_D_N_TYPEC) == 0'),
+
+    # ── 第 (7) 条 · CHARGE_BOARD_SPEC §2.4/§3.4 的 ICHG/IIN 系数方向 (ISS-213 THM-RATIO) ──
+    ('d10_spec_0822', 'chgspec', '?', 'text notcontains CC 段电池电流上限 (×Vbat/Vbus/η ≈ 0.822)'),
+    ('d10_spec_ratio_1216', 'chgspec', '?', 'text contains ICHG/IIN = η·Vbus/Vbat = **1.216 @3.70V** / **1.071 @4.20V**'),
+    ('d10_spec_formula', 'chgspec', '?', 'text notcontains ICHG ≈ IIN × (VBAT / VBUS) / η'),
+    ('d10_spec_0822_val', 'chgspec', '?', 'text notcontains ICHG ≈ 0.822 × IIN'),
+    ('d10_spec_script', 'chgspec', '?', 'text notcontains lo*0.822'),
+    ('d10_spec_script_1216', 'chgspec', '?', 'text contains lo*1.216'),
+    ('d10_spec_0411', 'chgspec', '?', 'text notcontains 单 pin 0.411A ≤ 0.5A 触点天花板'),
+    ('d10_spec_0608', 'chgspec', '?', 'text contains 单 pin **0.608A**'),
+    ('d10_a47_value', 'netlist', '47', 'value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)'),
+    ('d10_a48_value', 'netlist', '48', 'value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)'),
+    ('d10_bom97_value', 'bom', '97', 'value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)'),
+    ('d10_a497_note', 'netlist', '497', 'note contains 工作上限 0.50A'),
+    ('d10_ratio_370', 'netlist', '?', 'calc(ichg_ratio@3.7) == 1.216'),
+    ('d10_ratio_420', 'netlist', '?', 'calc(ichg_ratio@4.2) == 1.071'),
+    ('d10_pin_max_370', 'netlist', '?', 'calc(ichg_pin_max@3.7) == 0.608'),
+    ('d10_pin_max_420', 'netlist', '?', 'calc(ichg_pin_max@4.2) == 0.536'),
+
+    # ── 第 (8) 条 · NET-LED / C_VBUS_GND 的 board 列 (ISS-213 NET-LED) ──
+    ('d11_a11_ref', 'netlist', '11', 'ref == C_VBUS_OUT'),
+    ('d11_a11_board', 'netlist', '11', 'board == CHG_BOARD'),
+    ('d11_a12_ref', 'netlist', '12', 'ref == C_VBUS_GND'),
+    ('d11_a12_board', 'netlist', '12', 'board == CHG_BOARD'),
+    ('d11_a13_ref', 'netlist', '13', 'ref == U_CHG'),
+    ('d11_a13_board', 'netlist', '13', 'board == CHG_BOARD'),
+    ('d11_a10_ref', 'netlist', '10', 'ref == C_VBUS_GND'),
+    ('d11_a10_board', 'netlist', '10', 'board == CHG_BOARD'),
+    ('d11_b148_board', 'pins', '148', 'board == CHG_BOARD'),
+    ('d11_b149_board', 'pins', '149', 'board == CHG_BOARD'),
+    ('d11_b154_board', 'pins', '154', 'board == CHG_BOARD'),
+    ('d11_b155_board', 'pins', '155', 'board == CHG_BOARD'),
+    ('d11_led508_board', 'netlist', '508', 'board == CHG_BOARD'),
+    ('d11_led509_board', 'netlist', '509', 'board == CHG_BOARD'),
+    ('d11_led_refs', 'netlist', '?', 'count(ref==R_CHG_LED) == 2'),
+    ('d11_board_cvbgnd_pads', 'board', '?', 'footprint.C_VBUS_GND.pads == 2'),
+    ('d11_board_cvbgnd_pad2', 'board', '?', 'footprint.C_VBUS_GND.pad2.net == VBUS_5V_CHG'),
+    ('d11_board_no_cvbout', 'board', '?', 'count_footprint(C_VBUS_OUT) == 0'),
 ]
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# ★★ISS-217: 落表作业包三方对齐表 (★唯一真源 = 本表★) ★★
+# ═════════════════════════════════════════════════════════════════════════════
+# ★**id**            作业包里的项号 (必须逐个出现, 缺一个就红)
+# ★**loc**           作业包 ① 栏必须逐字写出的规格页定位串
+# ★**sec / mark**    规格页的哪一节 / 该节里必须存在的标记 (★三方对齐的"规格页那一侧"★)
+# ★**head**          mark 是否必须出现在【标题行】(★§1 / §10 的条号是标题; §11 / §13 是正文★)
+# ★**anchor**        门禁 EXPECT 里的锚点组前缀 (★三方对齐的"门禁锚点那一侧"★)
+# ★**r**             作业包 ⑦ 栏必须声明的翻面判据 R# 集合 (★三方对齐的"翻面判据那一侧"★)
+# ★**absorb**        该条目被吸收到哪个主项 (★None = 它自己就是主项★)
+WP_MAP: dict[str, dict] = {
+    # ── 主项 d1..d11 (★规格页 §1 四条 + §10 七组 = ISS-211 的 4 条 + ISS-214 的 8 条★) ──
+    "d1":  {"loc": "§1 第 (1) 条",  "sec": 1,  "mark": "第 (1) 条", "head": True,
+            "anchor": "d1",  "r": ("R1",),          "absorb": None},
+    "d2":  {"loc": "§1 第 (2) 条",  "sec": 1,  "mark": "第 (2) 条", "head": True,
+            "anchor": "d2",  "r": ("R2",),          "absorb": None},
+    "d3":  {"loc": "§1 第 (3) 条",  "sec": 1,  "mark": "第 (3) 条", "head": True,
+            "anchor": "d3",  "r": ("R3",),          "absorb": None},
+    "d4":  {"loc": "§1 第 (4) 条",  "sec": 1,  "mark": "第 (4) 条", "head": True,
+            "anchor": "d4",  "r": ("R4", "R9"),     "absorb": None},
+    "d5":  {"loc": "§10 第 (1) 条", "sec": 10, "mark": "第 (1) 条", "head": True,
+            "anchor": "d5",  "r": ("R5",),          "absorb": None},
+    "d6":  {"loc": "§10 第 (2) 条", "sec": 10, "mark": "第 (2) 条", "head": True,
+            "anchor": "d6",  "r": ("R6",),          "absorb": None},
+    "d7":  {"loc": "§10 第 (3) 条", "sec": 10, "mark": "第 (3) 条", "head": True,
+            "anchor": "d7",  "r": ("R2", "R7"),     "absorb": None},
+    "d8":  {"loc": "§10 第 (4) 条", "sec": 10, "mark": "第 (4) 条", "head": True,
+            "anchor": "d8",  "r": ("R8",),          "absorb": None},
+    "d9":  {"loc": "§10 第 (5) 条", "sec": 10, "mark": "第 (5) 条", "head": True,
+            "anchor": "d9",  "r": ("R4", "R9"),     "absorb": None},
+    "d10": {"loc": "§10 第 (7) 条", "sec": 10, "mark": "第 (7) 条", "head": True,
+            "anchor": "d10", "r": ("R10",),         "absorb": None},
+    "d11": {"loc": "§10 第 (8) 条", "sec": 10, "mark": "第 (8) 条", "head": True,
+            "anchor": "d11", "r": ("R11",),         "absorb": None},
+    # ── 规格页 §11 附带发现 #1..#8 (★§11 自己写明每条"已并进第 (N) 条"★) ──
+    "#1":  {"loc": "§11 附带发现 #1", "sec": 11, "mark": "#1 ·", "head": False,
+            "anchor": "d5",  "r": ("R5",),  "absorb": "d5"},
+    "#2":  {"loc": "§11 附带发现 #2", "sec": 11, "mark": "#2 ·", "head": False,
+            "anchor": "d8",  "r": ("R8",),  "absorb": "d8"},
+    "#3":  {"loc": "§11 附带发现 #3", "sec": 11, "mark": "#3 ·", "head": False,
+            "anchor": "d9",  "r": ("R9",),  "absorb": "d9"},
+    "#4":  {"loc": "§11 附带发现 #4", "sec": 11, "mark": "#4 ·", "head": False,
+            "anchor": "d11", "r": ("R11",), "absorb": "d11"},
+    "#5":  {"loc": "§11 附带发现 #5", "sec": 11, "mark": "#5 ·", "head": False,
+            "anchor": "d11", "r": ("R11",), "absorb": "d11"},
+    "#6":  {"loc": "§11 附带发现 #6", "sec": 11, "mark": "#6 ·", "head": False,
+            "anchor": "d11", "r": ("R11",), "absorb": "d11"},
+    "#7":  {"loc": "§11 附带发现 #7", "sec": 11, "mark": "#7 ·", "head": False,
+            "anchor": "d11", "r": ("R11",), "absorb": "d11"},
+    "#8":  {"loc": "§11 附带发现 #8", "sec": 11, "mark": "#8 ·", "head": False,
+            "anchor": "d10", "r": ("R10",), "absorb": "d10"},
+    # ── ISS-217 的 3 项补差 (★规格页 §11 里还没被规格覆盖的那几条★) ──
+    "补差A": {"loc": "§11 附带发现 #1",   "sec": 11, "mark": "#1 ·", "head": False,
+              "anchor": "d5",  "r": ("R5",),  "absorb": "d5"},
+    "补差B": {"loc": "§11 附带发现 #3",   "sec": 11, "mark": "#3 ·", "head": False,
+              "anchor": "d9",  "r": ("R9",),  "absorb": "d9"},
+    "补差C": {"loc": "§11 附带发现 #4 / #6", "sec": 11, "mark": "#4 ·", "head": False,
+              "anchor": "d11", "r": ("R11",), "absorb": "d11"},
+    # ── 6 条待裁确认单 (★规格页 §13 V-1..V-6★) ──
+    "待裁V-1": {"loc": "§13 V-1", "sec": 13, "mark": "V-1", "head": False,
+                "anchor": "d5",  "r": ("R5",),           "absorb": "d5"},
+    "待裁V-2": {"loc": "§13 V-2", "sec": 13, "mark": "V-2", "head": False,
+                "anchor": "d9",  "r": ("R4", "R9"),      "absorb": "d9"},
+    "待裁V-3": {"loc": "§13 V-3", "sec": 13, "mark": "V-3", "head": False,
+                "anchor": "d7",  "r": ("R2", "R7", "R8"), "absorb": "d7"},
+    "待裁V-4": {"loc": "§13 V-4", "sec": 13, "mark": "V-4", "head": False,
+                "anchor": "d10", "r": ("R10",),          "absorb": "d10"},
+    "待裁V-5": {"loc": "§13 V-5", "sec": 13, "mark": "V-5", "head": False,
+                "anchor": "d6",  "r": ("R6",),           "absorb": "d6"},
+    "待裁V-6": {"loc": "§13 V-6", "sec": 13, "mark": "V-6", "head": False,
+                "anchor": "d9",  "r": ("R9",),           "absorb": "d9"},
+}
+
+# ★作业包条目的机器可读块 (★格式由本脚本定义, 作业包必须照这个格式写★) ★
+WP_ITEM_RE = re.compile(r"<!-- WPITEM:BEGIN id=(.+?) -->\n(.*?)\n<!-- WPITEM:END -->", re.S)
+WP_MARKS = "①②③④⑤⑥⑦⑧"
+# ★④ 栏里的"真修法文件"必须落在工程里真实存在的文件 (★后缀白名单★) ★
+WP_FILE_RE = re.compile(r"[A-Za-z0-9_./-]+\.(?:py|json|md|csv|txt|yaml|yml|net|kicad_pcb|kicad_pro)")
+
+# ★★工程相对路径索引 (★建一次, 缓存在模块级★)
+_WP_PATH_INDEX: list[str] | None = None
+
+
+def _wp_project_paths() -> list[str]:
+    """工程里所有文件的相对路径 (★只索引一次★)。"""
+    global _WP_PATH_INDEX
+    if _WP_PATH_INDEX is None:
+        idx: list[str] = []
+        base = DEFAULT_ROOT
+        for dirpath, dirnames, filenames in os.walk(base):
+            dirnames[:] = [d for d in dirnames
+                           if d not in (".git", "__pycache__", "node_modules", ".openclaw", ".clawhub")]
+            for fn in filenames:
+                idx.append(os.path.relpath(os.path.join(dirpath, fn), base).replace(os.sep, "/"))
+        _WP_PATH_INDEX = idx
+    return _WP_PATH_INDEX
+
+
+def _wp_path_ok(root: str, token: str) -> bool:
+    """作业包 ④ 栏里写的路径是不是工程里真实存在的文件。
+
+    ★先在【被检查的 root】下找; 找不到再到【脚本自己所在的工程根】下找
+    (★自检时 root 是临时副本, 里面只拷了门禁要读的那几份文件, 而作业包 ④ 栏
+    指的是工程里的真源 ⇒ 落到临时副本上会误报"文件不存在"★);
+    再不行按【后缀】匹配 (★裸文件名如 SPEC.json → HW/SCHEMATIC_V1_SPEC.json★)。"""
+    t = token.replace("\\", "/")
+    while t.startswith("./"):
+        t = t[2:]
+    for base in (root, DEFAULT_ROOT):
+        if os.path.isfile(os.path.join(base, t)):
+            return True
+    for rel in _wp_project_paths():
+        if rel == t or rel.endswith("/" + t):
+            return True
+    return False
 
 
 class CheckError(Exception):
@@ -262,9 +551,158 @@ def _split_call(check: str, name: str) -> tuple[str, str]:
     return pred, rhs[2:].strip()
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ★★第 2 轮 (ISS-214): 数值判据 calc(<expr>) <op> <num> ★★
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _res_ohm(s: str) -> float | None:
+    """'390Ω ±1%' / '1M ±1%' / '22Ω' → 欧姆。★M=兆 / m=毫 / k=千, 大小写区分★★"""
+    s = (s or "").strip()
+    m = re.search(r"([\d.]+)\s*([kKmMrRΩΩ]|ohm)?", s)
+    if not m:
+        return None
+    try:
+        v = float(m.group(1))
+    except ValueError:
+        return None
+    unit = m.group(2) or ""
+    if unit in ("k", "K"):
+        v *= 1e3
+    elif unit in ("M",):          # ★兆 (1M = 1e6) ★
+        v *= 1e6
+    elif unit in ("m",):          # ★毫 ★
+        v *= 1e-3
+    return v
+
+
+def _net_rows(ctx: dict) -> list[dict]:
+    return ctx.get("rows") or []
+
+
+def _ref_value(ctx: dict, ref: str) -> str:
+    for r in _net_rows(ctx):
+        if _norm(r.get("ref")) == ref:
+            return r.get("value") or ""
+    return ""
+
+
+def _ref_note(ctx: dict, ref: str) -> str:
+    for r in _net_rows(ctx):
+        if _norm(r.get("ref")) == ref:
+            return r.get("note") or ""
+    return ""
+
+
+def _board_xy(root: str) -> dict:
+    return _board_ref_xy(os.path.join(root, REL["board"]))
+
+
+def _calc_expr(ctx: dict, expr: str) -> float | None:
+    """算出一个数值 (★None = 算不出来★)。"""
+    expr = expr.strip()
+
+    if expr.startswith("node_v@"):
+        v = float(expr.split("@", 1)[1])
+        top = _res_ohm(_ref_value(ctx, "R_BAT_DET_1"))
+        bot = _res_ohm(_ref_value(ctx, "R_BAT_DET_2"))
+        if not top or not bot or top + bot <= 0:
+            return None
+        return v * bot / (top + bot)
+
+    if expr.startswith("leak_ua@"):
+        v = float(expr.split("@", 1)[1])
+        top = _res_ohm(_ref_value(ctx, "R_BAT_DET_1"))
+        bot = _res_ohm(_ref_value(ctx, "R_BAT_DET_2"))
+        if not top or not bot or top + bot <= 0:
+            return None
+        return v * 1e6 / (top + bot)
+
+    if expr.startswith("leak_note_ua@"):
+        note = _ref_note(ctx, "R_BAT_DET_1")
+        m = re.search(r"~\s*([\d.]+)\s*[µμ]A", note)
+        if not m:
+            return None
+        return float(m.group(1))
+
+    if expr == "esd_dist_usb":
+        xy = _board_xy(ctx["root"])
+        a, b = xy.get("J_USB_C"), xy.get("D_ESD_USB_D")
+        if not a or not b:
+            return None
+        return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+
+    if expr == "r_ilim":
+        return _res_ohm(_ref_value(ctx, "R_ILIM"))
+
+    if expr == "iinmax_max":
+        r = _res_ohm(_ref_value(ctx, "R_ILIM"))
+        if not r:
+            return None
+        return KILIM_MAX / r
+
+    if expr.startswith("ichg_ratio@"):
+        vbat = float(expr.split("@", 1)[1])
+        if vbat <= 0:
+            return None
+        return ETA_BUCK * VBUS_CHG / vbat
+
+    if expr.startswith("ichg_max@"):
+        vbat = float(expr.split("@", 1)[1])
+        r = _res_ohm(_ref_value(ctx, "R_ILIM"))
+        if not r:
+            return None
+        return (KILIM_MAX / r) * (ETA_BUCK * VBUS_CHG / vbat)
+
+    if expr.startswith("ichg_pin_max@"):
+        vbat = float(expr.split("@", 1)[1])
+        r = _res_ohm(_ref_value(ctx, "R_ILIM"))
+        if not r:
+            return None
+        return (KILIM_MAX / r) * (ETA_BUCK * VBUS_CHG / vbat) / 2.0
+
+    return None
+
+
+def _eval_calc(ctx: dict, check: str) -> tuple[bool, str]:
+    """calc(<expr>) <op> <num> → (ok, 实际值文本)。"""
+    m = re.match(r"^calc\(([^)]*)\)\s*(==|>=|<=|>|<)\s*(-?[\d.]+)\s*$", check)
+    if not m:
+        return False, f"★calc 判据写法不认识: {check!r}"
+    expr, op, rhs = m.group(1), m.group(2), float(m.group(3))
+    got = _calc_expr(ctx, expr)
+    if got is None:
+        return False, f"★calc({expr}) 算不出来 (★现行文件缺数据?)"
+    tol = max(1e-3, abs(rhs) * 1e-3)
+    if op == "==":
+        ok = abs(got - rhs) <= tol
+    elif op == ">":
+        ok = got > rhs
+    elif op == ">=":
+        ok = got >= rhs - tol
+    elif op == "<":
+        ok = got < rhs
+    else:  # "<="
+        ok = got <= rhs + tol
+    return ok, f"calc({expr})={got:.6g} {op} {rhs:g} ⇒ {ok}"
+
+
 def _eval_check(ctx: dict, check: str) -> tuple[bool, str]:
     """返回 (ok, 实际值文本)。"""
     check = check.strip()
+
+    # ★★第 2 轮 (ISS-214): 'text contains X' / 'text notcontains X' (★必须最先判,
+    #    否则会被下面那条通用的 "field contains value" 正则抢走★★)
+    if check.startswith("text contains ") or check.startswith("text notcontains "):
+        neg = check.startswith("text notcontains ")
+        want = check.split(" ", 2)[2].strip()
+        body = ctx.get("text", "")
+        hit = want in body
+        ok = (not hit) if neg else hit
+        return ok, f"{'not ' if neg else ''}contains {want!r} ⇒ {hit}"
+
+    # ★★第 2 轮 (ISS-214): 'calc(<expr>) <op> <num>' 数值判据 ★★
+    if check.startswith("calc("):
+        return _eval_calc(ctx, check)
 
     # ★"field contains value" (★必须先判, 因为它不含 '==')
     cm = re.match(r"^(\w+)\s+contains\s+(.*)$", check)
@@ -363,6 +801,15 @@ def _eval_check(ctx: dict, check: str) -> tuple[bool, str]:
                     break
         return str(n) == want, f"esd_on_net={n}"
 
+    # count_footprint(<REF>) == N  (★第 2 轮: 板文件里有没有这个位号的封装★)
+    if lhs.startswith("count_footprint("):
+        body = lhs[len("count_footprint("):]
+        body = body[:-1] if body.endswith(")") else body
+        ref = body.strip()
+        fps = ctx["board"]
+        n = sum(1 for r in fps if r == ref)
+        return str(n) == want, f"count_footprint({ref})={n}"
+
     # 普通列比较
     field = lhs
     if field == "count":
@@ -429,6 +876,165 @@ def _row_at(rows: list[dict], line_no: str) -> dict:
     raise CheckError(f"★行号 {n} 不在 {len(rows)} 行里 (文件被截断?)")
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ★★ISS-217: 作业包完整性 + 三方对齐 (★"作业包漏一条就红"★)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _spec_section(text: str, num: int) -> str | None:
+    """取规格页 '## N. …' 那一节的正文 (到下一节 '## M.' 为止)。"""
+    m = re.search(rf"^##\s+{num}\.\s.*$", text, re.M)
+    if not m:
+        return None
+    start = m.end()
+    m2 = re.search(r"^##\s+\d+\.\s", text[start:], re.M)
+    end = start + (m2.start() if m2 else len(text) - start)
+    return text[start:end]
+
+
+def _wp_fields(body: str) -> dict[str, str]:
+    """把一条作业条目的 ①..⑧ 栏抽成 {栏位: 内容}。
+
+    ★★栏位可以跨多行 (★本作业包里 d10 / 补差A / 待裁V-2… 的 ⑤ 栏带表格与子列表★):
+    一个栏位的内容 = 从它的起始行到【下一个栏位起始行】之间的全部行。★★
+    """
+    out: dict[str, str] = {}
+    cur: str | None = None
+    buf: list[str] = []
+    for line in body.split("\n"):
+        hit = None
+        for mark in WP_MARKS:
+            if line.startswith(mark):
+                hit = mark
+                break
+        if hit:
+            if cur is not None:
+                out[cur] = "\n".join(buf).strip()
+            cur = hit
+            rest = line[len(hit):].lstrip()
+            if rest.startswith(":"):
+                rest = rest[1:].strip()
+            elif rest.startswith("："):
+                rest = rest[1:].strip()
+            buf = [rest]
+        elif cur is not None:
+            buf.append(line)
+    if cur is not None:
+        out[cur] = "\n".join(buf).strip()
+    return out
+
+
+def check_workpacket(root: str, verbose: bool = False) -> tuple[int, list[str]]:
+    """落表作业包完整性 + 三方对齐 (★作业包 ↔ 规格页 ↔ 门禁 R#★)。"""
+    errors: list[str] = []
+    report: list[str] = []
+    path = _path(root, "workpacket")
+    if not os.path.exists(path):
+        return 1, [f"★缺文件: {REL['workpacket']} (★ISS-217 落表作业包本体, "
+                   f"★没有它, 落表那趟就没有 SOP★)"]
+    with open(path, encoding="utf-8") as fh:
+        wp = fh.read()
+    specpage_path = _path(root, "specpage")
+    spec_text = ""
+    if os.path.exists(specpage_path):
+        with open(specpage_path, encoding="utf-8") as fh:
+            spec_text = fh.read()
+
+    # ---- ① 解析作业包条目 (★重复 id 也要红★) ----
+    items: dict[str, str] = {}
+    for m in WP_ITEM_RE.finditer(wp):
+        bid = m.group(1).strip()
+        if bid in items:
+            errors.append(f"★作业包里项号 {bid!r} 出现了两次 ⇒ 落表那趟会不知道听谁的 ⇒ 红")
+        items[bid] = m.group(2)
+    extra = sorted(set(items) - set(WP_MAP))
+    for bid in extra:
+        errors.append(f"★作业包里多出项号 {bid!r} (★门禁的 WP_MAP 里没有 ⇒ 对不上★)")
+    for bid in sorted(WP_MAP):
+        if bid not in items:
+            errors.append(f"★作业包里**缺** {bid!r} 这一组 ⇒ 落表作业包漏一条就红")
+
+    # ---- ② 逐条查 8 栏 + 三方对齐 ----
+    exp_anchor_prefixes = {k.split("_", 1)[0] for k, _, _, _ in EXPECT if "_" in k}
+    for bid, meta in WP_MAP.items():
+        if bid not in items:
+            continue
+        f = _wp_fields(items[bid])
+        missing = [m for m in WP_MARKS if not f.get(m, "").strip()]
+        if missing:
+            errors.append(f"★作业包 {bid!r} 缺栏位 {''.join(missing)} (★8 栏一字不许少★)")
+            continue
+        f1 = f["①"].replace("*", "")
+        f4 = f["④"]
+        f5 = f["⑤"]
+        f6 = f["⑥"]
+        f7 = f["⑦"].replace("*", "")
+
+        # ① 项号: 必须逐字写出规格页定位串; 有吸收项的必须写"吸收到 X"
+        if meta["loc"] not in f1:
+            errors.append(f"★作业包 {bid!r} 的 ① 栏没有写规格页定位串 {meta['loc']!r} "
+                          f"(★三方对齐: 作业包项号 ↔ 规格页条号★)")
+        if meta["absorb"]:
+            if "吸收到" not in f1 or meta["absorb"] not in f1:
+                errors.append(f"★作业包 {bid!r} 的 ① 栏没有写『吸收到 {meta['absorb']}』 "
+                              f"(★规格页 §11 写明每条已并进哪一条★)")
+
+        # ④ 真修法文件: 必须至少指到一个工程里真实存在的文件
+        files = [m.group(0) for m in WP_FILE_RE.finditer(f4)]
+        real = [p for p in files if _wp_path_ok(root, p)]
+        if not real:
+            errors.append(f"★作业包 {bid!r} 的 ④ 栏没有指到工程里真实存在的文件 "
+                          f"(★找到的路径 = {files or '无'}★) ⇒ 真修法没写清楚")
+        elif len(f4.strip()) < 20:
+            errors.append(f"★作业包 {bid!r} 的 ④ 栏太短 (★真修法要精确到: 哪个文件的哪一行 / "
+                          f"哪个 JSON key / 哪个生成器参数★)")
+
+        # ⑤ 改法: 必须有实质内容 (★长度 + 有反引号字面值 + 不许是占位符★)
+        if len(f5.strip()) < 40:
+            errors.append(f"★作业包 {bid!r} 的 ⑤ 栏 (改法) 太短 ⇒ 落表那趟没法照做")
+        elif "`" not in f5:
+            errors.append(f"★作业包 {bid!r} 的 ⑤ 栏 (改法) 没有字面值 (★要写清改成什么字面量★)")
+        elif any(t in f5 for t in ("TODO", "待补", "待填", "XXX")):
+            errors.append(f"★作业包 {bid!r} 的 ⑤ 栏 (改法) 还是占位符 ⇒ 落表那趟没法照做")
+
+        # ⑥ 命令: 必须是可跑的命令
+        if "python3" not in f6 or len(f6.strip()) < 20:
+            errors.append(f"★作业包 {bid!r} 的 ⑥ 栏 (命令) 不是一条可跑的命令 ⇒ 落表那趟没法照做")
+
+        # ⑦ 翻面判据: 必须逐个 R# 都写出来, 且与 WP_MAP 完全一致
+        got_r = tuple(sorted(set(re.findall(r"R\d+", f7))))
+        want_r = tuple(sorted(set(meta["r"])))
+        if got_r != want_r:
+            errors.append(f"★作业包 {bid!r} 的 ⑦ 栏 (翻面判据) 写的是 {list(got_r)} "
+                          f"⇒ 门禁这边是 {list(want_r)} ⇒ 三方对齐失败")
+
+        # 三方对齐 · 规格页那一侧: 该节里必须真的有那个标记
+        sec = _spec_section(spec_text, meta["sec"]) if spec_text else None
+        if sec is None:
+            errors.append(f"★规格页里找不到 §{meta['sec']} 这一节 ⇒ 三方对齐失败 (项号 {bid!r})")
+        elif meta["head"]:
+            if not any(meta["mark"] in h for h in re.findall(r"^#{2,4}\s.*$", sec, re.M)):
+                errors.append(f"★规格页 §{meta['sec']} 里没有标题含 {meta['mark']!r} "
+                              f"⇒ 作业包项号 ↔ 规格页条号 对不上 (项号 {bid!r})")
+        else:
+            if meta["mark"] not in sec:
+                errors.append(f"★规格页 §{meta['sec']} 里没有 {meta['mark']!r} "
+                              f"⇒ 作业包项号 ↔ 规格页条号 对不上 (项号 {bid!r})")
+
+        # 三方对齐 · 门禁锚点那一侧: EXPECT 里必须有该锚点组的 key
+        if meta["anchor"] not in exp_anchor_prefixes:
+            errors.append(f"★门禁 EXPECT 里没有锚点组 {meta['anchor']}_* ⇒ "
+                          f"作业包项号 ↔ 门禁锚点组 对不上 (项号 {bid!r})")
+
+        if verbose:
+            report.append(f"   {'OK  ' if not errors else '    '} 作业包 {bid:<10} "
+                          f"规格页={meta['loc']:<18} 锚点={meta['anchor']:<4} "
+                          f"R#={','.join(want_r)}")
+
+    if verbose:
+        report.append(f"── 作业包: {len(items)} 条 (门禁要求 {len(WP_MAP)} 条) ──")
+    return (1 if errors else 0), errors + report
+
+
 def check_guard(root: str, verbose: bool) -> tuple[int, list[str]]:
     """现状守卫: 规格页 ⇄ 本脚本 ⇄ 现行文件 三方对齐。"""
     errors: list[str] = []
@@ -451,19 +1057,29 @@ def check_guard(root: str, verbose: bool) -> tuple[int, list[str]]:
 
     # ---- ② 现行文件 ⇄ EXPECT ----
     ctx_common: dict = {"spec": _read_json(_path(root, "spec")),
-                         "board": _read_board(_path(root, "board"))}
+                         "board": _read_board(_path(root, "board")),
+                         "root": root}
     cache: dict[str, list[dict]] = {}
+    tcache: dict[str, str] = {}
 
     def rows_of(kind: str) -> list[dict]:
         if kind not in cache:
             cache[kind] = _read_rows(_path(root, kind))
         return cache[kind]
 
+    def text_of(kind: str) -> str:
+        if kind not in tcache:
+            with open(_path(root, kind), encoding="utf-8") as fh:
+                tcache[kind] = fh.read()
+        return tcache[kind]
+
     for key, f, ln, chk in EXPECT:
         ctx = dict(ctx_common)
-        if f in ("netlist", "pins", "bom"):
+        if f in ("netlist", "pins", "bom", "sompins"):
             ctx["rows"] = rows_of(f)
             ctx["row"] = _row_at(ctx["rows"], ln)
+        if f in TEXT_KINDS:
+            ctx["text"] = text_of(f)
         ok, actual = _eval_check(ctx, chk)
         if not ok:
             errors.append(
@@ -491,6 +1107,11 @@ def check_guard(root: str, verbose: bool) -> tuple[int, list[str]]:
     if verbose:
         report.append("── 判据 b: BOM 里 U_EN_SW 的 type 仍是 NET (现状断言) ──")
         report.append("   (见上方 d3_bom208_type / d3_bom208_value)")
+
+    # ---- ④ ★ISS-217: 落表作业包完整性 + 三方对齐 (★作业包漏一条就红★) ----
+    wp_rc, wp_out = check_workpacket(root, verbose)
+    errors.extend(x for x in wp_out if x.startswith("★"))
+    report.extend(x for x in wp_out if not x.startswith("★"))
 
     return (1 if errors else 0), errors + report
 
@@ -525,7 +1146,7 @@ def _board_ref_xy(path: str) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _parse_res(s: str) -> float | None:
-    """'1M' / '100k' / '220Ω' → 欧姆。"""
+    """'1M' / '100k' / '220Ω' → 欧姆。★M=兆 / m=毫 / k=千 (大小写区分)★"""
     s = (s or "").strip()
     m = re.search(r"([\d.]+)\s*([kKMmRrΩ]|ohm)?", s)
     if not m:
@@ -534,9 +1155,13 @@ def _parse_res(s: str) -> float | None:
         v = float(m.group(1))
     except ValueError:
         return None
-    unit = (m.group(2) or "").lower()
-    if unit in ("k", "kohm", "kω"):
+    unit = m.group(2) or ""
+    if unit in ("k", "K", "kohm", "kω"):
         v *= 1e3
+    elif unit == "M":
+        v *= 1e6
+    elif unit == "m":
+        v *= 1e-3
     return v
 
 
@@ -549,6 +1174,7 @@ def check_resolved(root: str, verbose: bool) -> tuple[int, list[str]]:
     bom = _read_rows(_path(root, "bom"))
     spec = _read_json(_path(root, "spec"))
     board = _read_board(_path(root, "board"))
+    netrows = net   # ★R4 里曾用 `net` 当循环变量 (已改名 pnet) ⇒ 这里留一份不受影响的引用★
 
     # ---- R1: I2C_A 上拉 —— NET 行必须与器件行一致 (2.2k / 1.8V) ----
     stale = [r for r in net if "4.7k 到 3.3V" in (r.get("value") or "")
@@ -637,9 +1263,9 @@ def check_resolved(root: str, verbose: bool) -> tuple[int, list[str]]:
     for ref, info in board.items():
         if "ESD" not in ref.upper():
             continue
-        for _num, net in info.get("pads_list", []):
-            if net in dminus:
-                hit.append((ref, net))
+        for _num, pnet in info.get("pads_list", []):
+            if pnet in dminus:
+                hit.append((ref, pnet))
                 break
     if not hit:
         errors.append(
@@ -652,6 +1278,129 @@ def check_resolved(root: str, verbose: bool) -> tuple[int, list[str]]:
     if verbose:
         report.append(f"   R4 (USB D− ESD) 检查完毕, 命中位号 = {hit}")
 
+    # ═══════════════════════════════════════════════════════════════════════
+    # ★★第 2 轮 (ISS-214) 的 R5..R11 —— ★落表后按这几条翻面★★
+    # ═══════════════════════════════════════════════════════════════════════
+
+    # ---- R5: USB 串阻必须是 22Ω (不再是 90Ω) ----
+    for r in netrows:
+        if _norm(r.get("ref")) in ("NET_USB_D_P_SRC", "NET_USB_D_N_SRC"):
+            v = r.get("value") or ""
+            if "90Ω" in v:
+                errors.append(
+                    f"★R5 未落表: 表A 行 {r['_line']} 的 NET 行 value 还是 {v!r} "
+                    f"⇒ USB 串阻还挂着【差分阻抗】当【串阻】用")
+            if "22Ω" not in v:
+                errors.append(f"★R5 未落表: 表A 行 {r['_line']} 的 NET 行 value 里没有 22Ω")
+    for cid in ("B-21", "B-22"):
+        hc = [c for c in spec.get("connections", []) if c.get("id") == cid]
+        if not hc:
+            errors.append(f"★R5 未落表: SPEC.json 里没有 connections id={cid}")
+            continue
+        imp = hc[0].get("imp") or ""
+        if "90Ω" in imp:
+            errors.append(f"★R5 未落表: SPEC.json {cid}.imp 仍含 90Ω (=差分阻抗, 不是串阻)")
+        if "22Ω" not in imp:
+            errors.append(f"★R5 未落表: SPEC.json {cid}.imp 里没有 22Ω")
+    if verbose:
+        report.append("   R5 (USB 串阻 22Ω) 检查完毕")
+
+    # ---- R6: P9 页的 CONN_LIGHT 必须写 22p, 且堆叠算式不能再用 21 ----
+    with open(_path(root, "pages"), encoding="utf-8") as fh:
+        pages_txt = fh.read()
+    if "1×21p@0.5mm" in pages_txt:
+        errors.append("★R6 未落表: P9 页正文里还有『CONN_LIGHT 1×21p@0.5mm』")
+    if "1×22p@0.5mm" not in pages_txt:
+        errors.append("★R6 未落表: P9 页正文里没有『CONN_LIGHT 1×22p@0.5mm』")
+    if "(10+4+18+21)×0.5" in pages_txt:
+        errors.append("★R6 未落表: P9 页的堆叠算式还在用 CONN_LIGHT=21p")
+    n_light = sum(1 for r in pins if _norm(r.get("ref")) == "CONN_LIGHT")
+    if n_light != 22:
+        errors.append(f"★R6 未落表: 脚表里 CONN_LIGHT 的脚行数 = {n_light} (应为 22)")
+    if verbose:
+        report.append(f"   R6 (P9 页 CONN_LIGHT 22p) 检查完毕, 脚表脚行数 = {n_light}")
+
+    # ---- R7: 分压比必须既进得了 1.8V, 又不能浪费 12bit ----
+    top = _parse_res(next((r.get("value") or "" for r in net
+                           if _norm(r.get("ref")) == "R_BAT_DET_1"), ""))
+    bot = _parse_res(next((r.get("value") or "" for r in net
+                           if _norm(r.get("ref")) == "R_BAT_DET_2"), ""))
+    if top and bot and top > 0 and bot > 0:
+        vnode = 4.2 * bot / (top + bot)
+        if vnode > 1.8:
+            errors.append(f"★R7 未落表: 分压后 {vnode:.3f}V > 1.8V (SARADC_VIN5 是 1.8V 域)")
+        if vnode < 1.2:
+            errors.append(
+                f"★R7 未落表: 分压后只有 {vnode:.3f}V ⇒ 12bit 量程利用率过低 "
+                f"(低于 1.2V = 66.7% 满量程) ⇒ 分压比定得太保守")
+    if verbose:
+        report.append("   R7 (分压比) 检查完毕")
+
+    # ---- R8: 漏电预算的 note 必须与阻值自洽 ----
+    leak_note = next((r.get("note") or "" for r in net
+                      if _norm(r.get("ref")) == "R_BAT_DET_1"), "")
+    if "~1.65µA @5V" in leak_note:
+        errors.append("★R8 未落表: R_BAT_DET_1 的 note 仍写『漏电流 ~1.65µA @5V』(与 1M+1M 对不上)")
+    if verbose:
+        report.append("   R8 (漏电预算 note) 检查完毕")
+
+    # ---- R9: ESD 必须真的贴到 J_USB_C (★≤3.0mm, 按 ISS-085 规矩; 原 5.0mm 作废★) ----
+    import math as _math
+    xy = _board_ref_xy(_path(root, "board"))
+    if "J_USB_C" in xy and "D_ESD_USB_D" in xy:
+        a, b = xy["J_USB_C"], xy["D_ESD_USB_D"]
+        d = _math.hypot(a[0] - b[0], a[1] - b[1])
+        if d > ESD_MAX_DIST_MM:
+            errors.append(
+                f"★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = {d:.2f} mm > {ESD_MAX_DIST_MM} mm "
+                f"⇒ ESD 还是不在接口旁边")
+        if verbose:
+            report.append(f"   R9 (ESD 位置) 检查完毕, 距离 = {d:.2f} mm "
+                          f"(阈值 {ESD_MAX_DIST_MM} mm)")
+    else:
+        errors.append("★R9 未落表: 板文件里找不到 D_ESD_USB_D 或 J_USB_C 的坐标")
+
+    # ---- R10: ICHG/IIN 系数方向必须倒过来, 且单 pin 载流必须 ≤ 触点额定 ----
+    with open(_path(root, "chgspec"), encoding="utf-8") as fh:
+        cs_txt = fh.read()
+    if "0.822" in cs_txt:
+        errors.append("★R10 未落表: CHARGE_BOARD_SPEC 里还有 0.822 (那是倒数, 方向反了)")
+    if "1.216" not in cs_txt or "1.071" not in cs_txt:
+        errors.append("★R10 未落表: CHARGE_BOARD_SPEC 里没有 1.216 / 1.071 这两个真值")
+    for r in netrows:
+        if _norm(r.get("ref")) == "R_ILIM":
+            v = r.get("value") or ""
+            if "0.411A" in v:
+                errors.append(f"★R10 未落表: 表A 行 {r['_line']} 的 R_ILIM value 还写着单 pin 0.411A (错值)")
+    pin_max = _calc_expr({"rows": netrows, "root": root}, "ichg_pin_max@3.7")
+    if pin_max is not None and pin_max > 0.5:
+        errors.append(
+            f"★R10 未落表: 390Ω 档单 pin 载流上限 = {pin_max:.3f} A > 0.5 A 触点额定 "
+            f"⇒ R_ILIM 档位没重新定")
+    if verbose:
+        report.append(f"   R10 (ICHG/IIN 方向) 检查完毕, 单 pin 上限 = {pin_max}")
+
+    # ---- R11: 充电板本地网的 board 列必须一致 ----
+    for netname in ("VBUS_5V_CHG", "VBUS_5V_F1"):
+        bad_rows = [(r["_line"], r.get("board")) for r in net
+                    if _norm(r.get("net")) == netname and _norm(r.get("board")) != "CHG_BOARD"]
+        if bad_rows:
+            errors.append(
+                f"★R11 未落表: 网 {netname} 上还有 {len(bad_rows)} 行的 board 列不是 CHG_BOARD "
+                f"(行/board = {bad_rows})")
+    for r in netrows:
+        if _norm(r.get("ref")) == "C_VBUS_GND" and _norm(r.get("board")) != "CHG_BOARD":
+            errors.append(
+                f"★R11 未落表: C_VBUS_GND 的 board 列仍是 {r.get('board')!r} "
+                f"(表A 行 {r['_line']}) ⇒ π 滤波对地电容被分到另一块板上")
+    if verbose:
+        report.append("   R11 (board 列一致性) 检查完毕")
+
+    # ---- ★ISS-217: 作业包完整性 + 三方对齐 (★落表那趟的 SOP 本身也要被门禁守住★) ----
+    wp_rc, wp_out = check_workpacket(root, verbose)
+    errors.extend(x for x in wp_out if x.startswith("★"))
+    report.extend(x for x in wp_out if not x.startswith("★"))
+
     return (1 if errors else 0), errors + report
 
 
@@ -659,7 +1408,11 @@ def check_resolved(root: str, verbose: bool) -> tuple[int, list[str]]:
 # 自检 (--selftest): 反向用例 —— 改坏任一锚点 ⇒ 必须变红
 # ─────────────────────────────────────────────────────────────────────────────
 
-FIXTURES = ["netlist", "pins", "bom", "spec", "board", "specpage"]
+FIXTURES = ["netlist", "pins", "bom", "spec", "board", "specpage",
+            # ★★第 2 轮 (ISS-214) 新增的 5 条要读的文件 (自检要在临时副本里改坏它们)★★
+            "pages", "chgspec", "emc", "rk", "sompins",
+            # ★★第 3 轮 (ISS-217) 新增: 落表作业包本体 (★自检要在临时副本里删掉一组★)★★
+            "workpacket"]
 
 
 def _copy_fixture(root: str, dst: str) -> str:
@@ -711,7 +1464,8 @@ def _csv_escape(v: str) -> str:
 
 
 def selftest(root: str) -> int:
-    print("╔══ ISS-211 门禁自检 (反向用例: 改坏锚点 ⇒ 必须变红) ══╗")
+    print("╔══ ISS-211/ISS-214 门禁自检 (反向用例: 改坏锚点 ⇒ 必须变红) ══╗")
+    print("★ 原 9 个用例 (ISS-211 · d1..d4) **一条不许删**; ★ 第 2 轮 (ISS-214) 追加 7 个 (d5..d11) ★")
     cases: list[tuple[str, bool, str]] = []
 
     # 用例 0: 基线必须是绿的 —— 否则后面的"抓到"没有意义
@@ -724,7 +1478,8 @@ def selftest(root: str) -> int:
         shutil.rmtree(tmp, ignore_errors=True)
 
     def m_net_value(tmp):
-        _mutate_line(os.path.join(tmp, REL["netlist"]), 167, "value", "上拉 2.2k 到 1.8V")
+        # ★★2026-11-16 ISS-220 落表后: L167 的现状已是 2.2k/1.8V ⇒ 反向用例改成【退回 4.7k/3.3V 的旧缺陷】★
+        _mutate_line(os.path.join(tmp, REL["netlist"]), 167, "value", "上拉 4.7k 到 3.3V")
 
     def m_net_dnp(tmp):
         _mutate_line(os.path.join(tmp, REL["netlist"]), 182, "dnp", "必装")
@@ -739,9 +1494,10 @@ def selftest(root: str) -> int:
         p = os.path.join(tmp, REL["spec"])
         with open(p, encoding="utf-8") as fh:
             obj = json.load(fh)
+        # ★★2026-11-16 ISS-220 落表后: B-01.level 已是 1.8V ⇒ 反向用例改成【退回 3.3V 的旧缺陷】★
         for c in obj.get("connections", []):
             if c.get("id") == "B-01":
-                c["level"] = "1.8V"
+                c["level"] = "3.3V"
         with open(p, "w", encoding="utf-8") as fh:
             json.dump(obj, fh, ensure_ascii=False, indent=2)
 
@@ -767,14 +1523,163 @@ def selftest(root: str) -> int:
     def m_net_delete_esd_note(tmp):
         _mutate_line(os.path.join(tmp, REL["netlist"]), 417, "note", "[D_ESD_USB_D] ESD")
 
-    cases.append(_run_case("用例1 改坏 L167 的 value (4.7k→2.2k) ⇒ 必须红", root, m_net_value))
+    # ── ★★第 2 轮 (ISS-214) 的 7 个反向用例 (d5..d11) ★★ ──
+    def m_spec_b21_imp(tmp):
+        p = os.path.join(tmp, REL["spec"])
+        with open(p, encoding="utf-8") as fh:
+            obj = json.load(fh)
+        # ★★2026-11-16 ISS-223 落表后: B-21.imp 已是 22Ω ±1% ⇒ 反向用例改成【退回 90Ω 的旧缺陷】★
+        #   ★与 ISS-220 落表时 d1 (m_net_value) / d6 (m_pages_21p_to_22p) 同型处理★
+        for c in obj.get("connections", []):
+            if c.get("id") == "B-21":
+                c["imp"] = "90Ω ±10% (与 MIPI 不同模板!)"
+        with open(p, "w", encoding="utf-8") as fh:
+            json.dump(obj, fh, ensure_ascii=False, indent=2)
+
+    def m_pages_21p_to_22p(tmp):
+        p = os.path.join(tmp, REL["pages"])
+        with open(p, encoding="utf-8") as fh:
+            s = fh.read()
+        # ★★2026-11-16 ISS-220 落表后: P9 页已是 22p ⇒ 反向用例改成【退回 21p 的旧缺陷】★
+        #   ★只换 pin 数那 4 个字符 (★新页的 pin 数后面还跟着封装与身份说明, 整段带标记的串已不存在★)
+        s = s.replace("1×22p@0.5mm", "1×21p@0.5mm", 1)
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(s)
+
+    def m_net_rbatdet2_2m(tmp):
+        # ★把下臂改成 2M ⇒ calc(node_v@4.2) 从 2.1 变成 2.8 ⇒ d7_node_v / d7_node_over 双双变红
+        _mutate_line(os.path.join(tmp, REL["netlist"]), 183, "value", "2M ±1%")
+
+    def m_net_leak_note(tmp):
+        # ★把 note 里自称的漏电流从 1.65µA 改成 2.5µA (★与 1M+1M 真值一致了⇒ 缺陷消失⇒ 必须变红★)
+        p = os.path.join(tmp, REL["netlist"])
+        with open(p, encoding="utf-8") as fh:
+            raw = fh.read()
+        raw = raw.replace("漏电流 ~1.65µA @5V", "漏电流 ~2.5µA @5V", 1)
+        with open(p, "w", encoding="utf-8", newline="") as fh:
+            fh.write(raw)
+
+    def m_board_move_esd(tmp):
+        # ★★calc-only 用例: 把板上的 D_ESD_USB_D 挪到 J_USB_C (140, 5.25) 旁边 ⇒
+        #   calc(esd_dist_usb) > 5 不再成立 ⇒ d9_esd_dist 变红, 而 d9 的逐字锚点全都还在
+        p = os.path.join(tmp, REL["board"])
+        with open(p, encoding="utf-8") as fh:
+            s = fh.read()
+        s = s.replace("(at 94.95 21.8", "(at 138 5.25", 1)
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(s)
+
+    def m_chgspec_0822(tmp):
+        p = os.path.join(tmp, REL["chgspec"])
+        with open(p, encoding="utf-8") as fh:
+            s = fh.read()
+        # ★★2026-11-16 ISS-220 落表后: 规格页已是 1.216 ⇒ 反向用例改成【退回旧系数 0.822 的旧缺陷】★
+        s = s.replace("ICHG ≈ 1.216 × IIN", "ICHG ≈ 0.822 × IIN", 1)
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(s)
+
+    def m_net_cvbgnd_board(tmp):
+        # ★★2026-11-16 ISS-220 落表后: L12 的 board 已是 CHG_BOARD ⇒ 反向用例改成【退回 MAIN_PCB 的旧缺陷】★
+        _mutate_line(os.path.join(tmp, REL["netlist"]), 12, "board", "MAIN_PCB")
+
+    # ── ★★第 3 轮 (ISS-217) 的 2 个新反向用例 (★作业包门禁 + R9 阈值★) ──
+    def m_wp_delete_d11(tmp):
+        # ★★删掉作业包里的 d11 一组 ⇒ 作业包完整性检查必须变红 (★"作业包漏一条就红"★)
+        p = os.path.join(tmp, REL["workpacket"])
+        with open(p, encoding="utf-8") as fh:
+            s = fh.read()
+        s2 = re.sub(r"<!-- WPITEM:BEGIN id=d11 -->\n.*?\n<!-- WPITEM:END -->\n", "", s, flags=re.S)
+        if s2 == s:
+            raise RuntimeError("★没找到 d11 那一组 (作业包格式变了?)")
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(s2)
+
+    def m_wp_break_r_alignment(tmp):
+        # ★★把作业包 d5 的 ⑦ 栏 (翻面判据) 从 R5 改成 R1 ⇒ 三方对齐必须变红
+        p = os.path.join(tmp, REL["workpacket"])
+        with open(p, encoding="utf-8") as fh:
+            s = fh.read()
+        s2 = s.replace("⑦ 翻面判据: ★**R5** ★ (★`--expect-resolved` 的 R5 段:",
+                       "⑦ 翻面判据: ★**R1** ★ (★`--expect-resolved` 的 R5 段:", 1)
+        if s2 == s:
+            raise RuntimeError("★没找到 d5 的 ⑦ 栏 (作业包格式变了?)")
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(s2)
+
+    def _esd_threshold_case(root):
+        """★反向用例: 证明 R9 的翻面阈值真被读到 3.0 而不是 5.0。★
+        做法: 把板上的 D_ESD_USB_D 挪到距 J_USB_C **4.0 mm** 处 (★4.0 落在 3.0 与 5.0 之间,
+        正好能区分两个阈值★) ⇒
+             ① 真实脚本 (阈值 3.0) 必须报 R9 未落表;
+             ② 把脚本副本里的阈值改回 5.0 ⇒ 同一块板【不】报 R9。
+        ⇒ 两条断言同时成立 = "阈值真被读到 3.0 而不是 5.0" 被证明;
+        ⇒ 谁把常量改回 5.0, 断言① 立刻失败 ⇒ 自检变红。"""
+        import importlib.util
+        tmp = tempfile.mkdtemp(prefix="iss217_esd_threshold_")
+        try:
+            _copy_fixture(root, tmp)
+            # ---- 把 ESD 挪到 4.0mm 处 (J_USB_C 在 (140.0, 5.25)) ----
+            bp = os.path.join(tmp, REL["board"])
+            with open(bp, encoding="utf-8") as fh:
+                bs = fh.read()
+            bs2 = bs.replace("(at 94.95 21.8", "(at 144 5.25", 1)
+            if bs2 == bs:
+                return "用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处", False, "★板文件里找不到 D_ESD_USB_D 的坐标"
+            with open(bp, "w", encoding="utf-8") as fh:
+                fh.write(bs2)
+            # ---- ① 真实脚本 (阈值 3.0) 必须报 R9 ----
+            _rc, errs = check_resolved(tmp, False)
+            r9_real = [e for e in errs if e.startswith("★R9")]
+            if not r9_real:
+                return ("用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处 (真实阈值 3.0 必须报 R9)",
+                        False, "★4.0mm 处没报 R9 ⇒ 阈值不是 3.0 (或没被读到)")
+            # ---- ② 脚本副本把阈值改回 5.0 ⇒ 同一块板不报 R9 ----
+            with open(os.path.abspath(__file__), encoding="utf-8") as fh:
+                src = fh.read()
+            src2 = src.replace("ESD_MAX_DIST_MM = 3.0", "ESD_MAX_DIST_MM = 5.0", 1)
+            if src2 == src:
+                return ("用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处 (真实阈值 3.0 必须报 R9)",
+                        False, "★脚本里没找到 ESD_MAX_DIST_MM = 3.0 (常量被改名了?)")
+            alt_path = os.path.join(tmp, "alt_gate.py")
+            with open(alt_path, "w", encoding="utf-8") as fh:
+                fh.write(src2)
+            spec = importlib.util.spec_from_file_location("iss217_alt_gate", alt_path)
+            alt = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(alt)
+            _rc2, errs2 = alt.check_resolved(tmp, False)
+            r9_alt = [e for e in errs2 if e.startswith("★R9")]
+            if r9_alt:
+                return ("用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处 (真实阈值 3.0 必须报 R9)",
+                        False, f"★阈值改成 5.0 后仍然报 R9 ⇒ 常量没被真正读到 ({r9_alt[:1]})")
+            return ("用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处 (真实阈值 3.0 必须报 R9)",
+                    True, "★4.0mm: 阈值 3.0 报红 / 阈值 5.0 不报 ⇒ 阈值真被读到 3.0 ✔")
+        except Exception as exc:
+            return "用例18 [R9阈值] 阈值反向用例", False, f"异常: {exc}"
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    cases.append(_run_case("用例1 [d1] 改坏 L167 的 value (2.2k/1.8V→4.7k/3.3V) ⇒ 必须红", root, m_net_value))
     cases.append(_run_case("用例2 改坏 L182 的 dnp (DNP→必装) ⇒ 必须红", root, m_net_dnp))
     cases.append(_run_case("用例3 改坏 L169 note (删掉『已作废』) ⇒ 必须红", root, m_net_note))
     cases.append(_run_case("用例4 改坏 BOM L208 的 type (NET→IC) ⇒ 必须红", root, m_bom_type))
-    cases.append(_run_case("用例5 改坏 SPEC.json B-01.level ⇒ 必须红", root, m_spec_level))
+    cases.append(_run_case("用例5 [d1] 改坏 SPEC.json B-01.level (1.8V→3.3V) ⇒ 必须红", root, m_spec_level))
     cases.append(_run_case("用例6 改坏板封装 U_EN_SW 的 Value ⇒ 必须红", root, m_board_value))
     cases.append(_run_case("用例7 改坏规格页锚点表 (规格页⇄脚本漂移) ⇒ 必须红", root, m_specpage_anchor))
     cases.append(_run_case("用例8 改坏 L417 的 note (删掉 Forlinx 规矩引用) ⇒ 必须红", root, m_net_delete_esd_note))
+
+    # ★★第 2 轮 (ISS-214) 追加的 7 个反向用例 (★d5..d11 每组 ≥1 个★) ★★
+    cases.append(_run_case("用例9 [d5] 改坏 SPEC.json B-21.imp (22Ω→90Ω 退回旧缺陷) ⇒ 必须红", root, m_spec_b21_imp))
+    cases.append(_run_case("用例10 [d6] 改坏 P9 页 (22p→21p) ⇒ 必须红", root, m_pages_21p_to_22p))
+    cases.append(_run_case("用例11 [d7] 改坏 L183 下臂 (1M→2M, 触发 calc) ⇒ 必须红", root, m_net_rbatdet2_2m))
+    cases.append(_run_case("用例12 [d8] 改坏 L182 note 的自称漏电流 (1.65→2.5µA) ⇒ 必须红", root, m_net_leak_note))
+    cases.append(_run_case("用例13 [d9] 把板上 D_ESD_USB_D 挪到 J_USB_C 旁 (calc-only) ⇒ 必须红", root, m_board_move_esd))
+    cases.append(_run_case("用例14 [d10] 改坏 CHARGE_BOARD_SPEC 的 1.216 ⇒ 必须红", root, m_chgspec_0822))
+    cases.append(_run_case("用例15 [d11] 改坏 L12 的 board 列 (CHG_BOARD→MAIN_PCB) ⇒ 必须红", root, m_net_cvbgnd_board))
+
+    # ★★第 3 轮 (ISS-217) 追加的 3 个反向用例 (★作业包门禁 + R9 阈值★) ★★
+    cases.append(_run_case("用例16 [ISS-217] 删掉作业包里的 d11 一组 ⇒ 必须红", root, m_wp_delete_d11))
+    cases.append(_run_case("用例17 [ISS-217] 改坏作业包 d5 的 ⑦ 栏 (R5→R1, 三方对齐) ⇒ 必须红", root, m_wp_break_r_alignment))
+    cases.append(_esd_threshold_case(root))
 
     ok = 0
     for name, good, detail in cases:
@@ -802,6 +1707,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--verbose", action="store_true", help="打印逐条锚点明细")
     ap.add_argument("--expect-resolved", action="store_true",
                     help="★翻面口径: 4 条缺陷必须已消失 (落表后才 rc=0) ★")
+    ap.add_argument("--check-workpacket", action="store_true",
+                    help="★只跑作业包完整性 + 三方对齐 (ISS-217) ★")
     ap.add_argument("--selftest", action="store_true", help="跑自检 (反向用例, 只动临时副本)")
     ap.add_argument("--emit-anchors", action="store_true",
                     help="打印规格页用的锚点表 (唯一真源 = 本脚本 EXPECT)")
@@ -816,16 +1723,26 @@ def main(argv: list[str] | None = None) -> int:
     if args.selftest:
         return selftest(root)
 
+    if args.check_workpacket:
+        rc, out = check_workpacket(root, args.verbose)
+        for line in out:
+            print(line)
+        if rc == 0:
+            print(f"✅ rc=0: ★落表作业包 {len(WP_MAP)} 条齐全, 8 栏齐, 三方对齐 (作业包 ↔ 规格页 ↔ 门禁 R#) 全过★")
+        else:
+            print(f"★★ rc=1: 落表作业包有 {len([x for x in out if x.startswith('★')])} 条问题 ★★")
+        return rc
+
     try:
         if args.expect_resolved:
             rc, out = check_resolved(root, args.verbose)
             if rc == 0:
-                print("✅ rc=0: ★4 条缺陷已全部消失★ (翻面口径通过)")
+                print("✅ rc=0: ★第 1 轮 4 条 + 第 2 轮 7 组缺陷已全部消失★ (翻面口径通过)")
             else:
                 print(f"★★ rc=1: 翻面口径未通过 ({len(out)} 条未落表) ★★")
                 for line in out:
                     print(f"   {line}")
-                print("★**说明**: 现在 4 条缺陷仍在 ⇒ 本口径应当是红的; ★"
+                print("★**说明**: 现在缺陷仍在 ⇒ 本口径应当是红的; ★"
                       "等它们随『整链重出 第 1 步』落表后本口径才转绿★")
             return rc
         rc, out = check_guard(root, args.verbose)
@@ -835,8 +1752,10 @@ def main(argv: list[str] | None = None) -> int:
             print(line)
         if rc == 0:
             print("✅ rc=0: ★现状与 HW/NETLIST_SELF_CONSISTENCY_SPEC.md 一致★")
-            print("★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ 4 条缺陷★仍在★ ⇒ "
+            print("★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ ★**第 1 轮 4 条 + 第 2 轮 7 组缺陷★仍在★ ⇒ "
                   "rc=0 是预期状态 ★")
+            print("★**落表作业包 (HW/SCHEMATIC_LANDING_WORKPACKET_V1.md) 完整性 + 三方对齐: 全过** "
+                  f"(★{len(WP_MAP)} 条作业条目, 8 栏齐★)")
             print("★**翻面条件见规格页 §⑤**; 落表后请改用 `--expect-resolved` ★")
         else:
             print(f"★★ rc=1: 现状与规格页不一致 ({len(errors)} 条) ★★")

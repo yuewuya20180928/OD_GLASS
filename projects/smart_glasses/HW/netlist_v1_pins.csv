@@ -145,8 +145,8 @@ C_TEMP.1,VDD_3V3_IO,C_TEMP,1,P2,100nF ±10%,C,必装,MAIN_PCB,B-01,,,[推算],,[
 C_TEMP.2,GND,C_TEMP,2,P2,100nF ±10%,C,必装,MAIN_PCB,B-01,,,[推算],,[I2C_A_SCL] TMP117 去耦 地端
 C_VBUS_DEMO.1,RAIL_DEMO_5V,C_VBUS_DEMO,1,P1,10µF ±20%,C,必装,MAIN_PCB,A-24,,,[推算],,[RAIL_DEMO_5V] VBUS 体电容
 C_VBUS_DEMO.2,GND,C_VBUS_DEMO,2,P1,10µF ±20%,C,必装,MAIN_PCB,A-24,,,[推算],,[RAIL_DEMO_5V] VBUS 体电容 地端
-C_VBUS_GND.1,GND,C_VBUS_GND,1,P1,[待选型] 100µF,C,DNP,MAIN_PCB,C-01,,,[推算],,"π 滤波后级**对地**电容 (★V1.6 修正: 原来 C_VBUS_OUT 一颗当两个用 —— 既是 FB·U_CHG 的串联电容, 又是对地电容 · 一颗 2 脚件落进 3 个网 = 导出后一脚悬空); BQ25896 建议 ≥100µF"
-C_VBUS_GND.2,VBUS_5V_CHG,C_VBUS_GND,2,P1,[待选型] 100µF,C,DNP,MAIN_PCB,C-01,,,[推算],,π 滤波后级对地电容的信号端 (与 C_VBUS_OUT 同一节点)
+C_VBUS_GND.1,GND,C_VBUS_GND,1,P1,[待选型] 100µF,C,DNP,CHG_BOARD,C-01,,,[推算],,"π 滤波后级**对地**电容 (★V1.6 修正: 原来 C_VBUS_OUT 一颗当两个用 —— 既是 FB·U_CHG 的串联电容, 又是对地电容 · 一颗 2 脚件落进 3 个网 = 导出后一脚悬空); BQ25896 建议 ≥100µF"
+C_VBUS_GND.2,VBUS_5V_CHG,C_VBUS_GND,2,P1,[待选型] 100µF,C,DNP,CHG_BOARD,C-01,,,[推算],,π 滤波后级对地电容的信号端 (与 C_VBUS_OUT 同一节点)
 C_VBUS_IC.1,VBUS_5V_CHG,C_VBUS_IC,1,P10,1µF X7R 25V,C,必装,CHG_BOARD,C-01,,,[官方],,★BQ25896 pin1 VBUS: 'Place a 1-µF ceramic capacitor from VBUS to PGND and place it as close as possible to IC'; 本板 VBUS 电压域名沿用主网表 VBUS_5V_CHG (π 滤波后级到 IC 脚)
 C_VBUS_IC.2,PGND,C_VBUS_IC,2,P10,1µF X7R 25V,C,必装,CHG_BOARD,C-01,,,[官方],,去耦地端 = BQ25896 PGND (pin17/18) 同一地网; datasheet 'A single point connection is recommended between power PGND and the analog GND near the IC PGND pin' ⇒ 本板用 R_STAR_PGND 位单点汇流
 C_VBUS_IN.1,VBUS_5V_ESD,C_VBUS_IN,1,P1,[待选型] 10µF,C,DNP,CHG_BOARD,C-01,,,[推算],,π 滤波输入电容位 (值待充电 IC 定; 内置则改 DNP)
@@ -189,13 +189,13 @@ J_BOOT1.pin3,SPI_MOSI_BOOT,J_BOOT1,pin3,P3,启动存储焊盘位 (4p 信号 + 2p
 J_BOOT1.pin4,SPI_MISO_BOOT,J_BOOT1,pin4,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,MAIN_PCB,,,,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | [VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): 
 J_BOOT1.pin5,VDD_3V3_IO,J_BOOT1,pin5,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,MAIN_PCB,,,,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | [VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): 
 J_BOOT1.pin6,GND,J_BOOT1,pin6,P3,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,MAIN_PCB,,,,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | 焊盘位 GND 预留 (外挂 SPI-NOR 用)
-J_CHG.pin1,BAT_CHG,J_CHG,pin1,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
+J_CHG.pin1,BAT_CHG,J_CHG,pin1,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (★每 pin 额定 0.75A / 工作上限 0.50A (ISS-099: FH12-10S-0.5SH(55) · 0.5mm pitch); ★按 ICHG/IIN=1.216 真值, 390Ω 档单 pin = 0.608A > 0.50A ⇒ 档位待 V-4 裁决★); 铰链段压降与发热按结构实际长度核算 (★结构侧须按 1.216 系数重算·IS"
 J_CHG.pin10,NC,J_CHG,pin10,P9,预留 (NC),NET,DNP,HINGE,,,,[推算],,[NC] ★2026-11-04: J_CHG pin7 原走跨铰链 VBUS_DET ⇒ demo 板改本地分压 ⇒ 本脚预留不接
-J_CHG.pin2,BAT_CHG,J_CHG,pin2,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
+J_CHG.pin2,BAT_CHG,J_CHG,pin2,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (★每 pin 额定 0.75A / 工作上限 0.50A (ISS-099: FH12-10S-0.5SH(55) · 0.5mm pitch); ★按 ICHG/IIN=1.216 真值, 390Ω 档单 pin = 0.608A > 0.50A ⇒ 档位待 V-4 裁决★); 铰链段压降与发热按结构实际长度核算 (★结构侧须按 1.216 系数重算·IS"
 J_CHG.pin3,GND,J_CHG,pin3,P1,回流 (双 pin),NET,必装,HINGE,C-02,,,[推算],,[GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 · 环路面积最小)
 J_CHG.pin4,GND,J_CHG,pin4,P1,回流 (双 pin),NET,必装,HINGE,C-02,,,[推算],,[GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 · 环路面积最小)
-J_CHG.pin5,CHG_STAT,J_CHG,pin5,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
-J_CHG.pin6,PWR_GOOD,J_CHG,pin6,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (每 pin ≈0.75A, 1.27mm 排线); 铰链段压降与发热按结构实际长度核算"
+J_CHG.pin5,CHG_STAT,J_CHG,pin5,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (★每 pin 额定 0.75A / 工作上限 0.50A (ISS-099: FH12-10S-0.5SH(55) · 0.5mm pitch); ★按 ICHG/IIN=1.216 真值, 390Ω 档单 pin = 0.608A > 0.50A ⇒ 档位待 V-4 裁决★); 铰链段压降与发热按结构实际长度核算 (★结构侧须按 1.216 系数重算·IS"
+J_CHG.pin6,PWR_GOOD,J_CHG,pin6,P1,跨铰链 1.5A (双 pin 并联),NET,必装,HINGE,C-02,,,[推算],,"[BAT_CHG] 双 pin 并联 (★每 pin 额定 0.75A / 工作上限 0.50A (ISS-099: FH12-10S-0.5SH(55) · 0.5mm pitch); ★按 ICHG/IIN=1.216 真值, 390Ω 档单 pin = 0.608A > 0.50A ⇒ 档位待 V-4 裁决★); 铰链段压降与发热按结构实际长度核算 (★结构侧须按 1.216 系数重算·IS"
 J_CHG.pin7,NC,J_CHG,pin7,P9,预留 (NC),NET,DNP,HINGE,,,,[推算],,[NC] ★2026-11-04: J_CHG pin7 原走跨铰链 VBUS_DET ⇒ demo 板改本地分压 ⇒ 本脚预留不接
 J_CHG.pin8,TS_BAT,J_CHG,pin8,P1,跨铰链 (高阻),NET,必装,HINGE,C-01,,,[推算],,[TS_BAT] ★V1.5 补画: **TS 跨铰链这一段** (V1.2 把电池/NTC 搬镜脚时漏了) · 走 J_CHG pin8
 J_CHG.pin9,NC,J_CHG,pin9,P9,预留 (NC),NET,DNP,HINGE,,,,[推算],,[NC] ★2026-11-04: J_CHG pin7 原走跨铰链 VBUS_DET ⇒ demo 板改本地分压 ⇒ 本脚预留不接
@@ -326,8 +326,8 @@ R_ID_JMP0.1,ID_DETECT_0,R_ID_JMP0,1,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[�
 R_ID_JMP0.2,GND,R_ID_JMP0,2,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[推算],,ID 跳线位 0 -> GND (装上 = 该位 0)
 R_ID_JMP1.1,ID_DETECT_1,R_ID_JMP1,1,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[推算],,[ID_DETECT_1] 板级 ID 位 1 跳线位 (焊盘跳线编码 2 位)
 R_ID_JMP1.2,GND,R_ID_JMP1,2,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[推算],,ID 跳线位 1 -> GND (装上 = 该位 0)
-R_ILIM.1,IINLIM,R_ILIM,1,P1,390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A · 单 pin 0.411A),R,必装,CHG_BOARD,C-01,,,[官方],,"[IINLIM] ★★V1.7 按 ISS-091 结构核算定 **470Ω**: BQ25896 的 IINLIM 复位默认 **2048mA** [官方] (不装 = 铰链吃 ~1.68A); 结构总工核算 (MECH/HINGE_POWER_CALC.md, 可跑): **300Ω · ICHG 1.07A · 充电时皮肤侧 47.1°C 超 ISO 13732-1 的 43°C 红线** "
-R_ILIM.2,GND,R_ILIM,2,P1,390Ω ±1% (IINMAX ≈1.00A · ICHG ≈0.82A · 单 pin 0.411A),R,必装,CHG_BOARD,,,,[官方],,[IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限)
+R_ILIM.1,IINLIM,R_ILIM,1,P1,390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决),R,必装,CHG_BOARD,C-01,,,[官方],,[IINLIM] ★★★**方向修正 (ISS-214 d10 · ISS-220 落表 2026-11-16)**: buck 功率守恒 ⇒ ICHG/IIN = η·Vbus/Vbat = **1.216 @3.70V** / **1.071 @4.20V** (η=0.90 取 BQ25896 官方 92.5%@2A 的保守值) ⇒ ★**旧口径写的 (VBAT/VBUS)/η = 0.82
+R_ILIM.2,GND,R_ILIM,2,P1,390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决),R,必装,CHG_BOARD,,,,[官方],,[IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限)
 R_JTAG_TCK.1,JTAG_TCK_SOC,R_JTAG_TCK,1,P8,100Ω ±1%,R,必装,MAIN_PCB,B-19,,,[推算],,[JTAG_TCK] JTAG TCK 串阻 (隔离 SoC 调试脚)
 R_JTAG_TCK.2,JTAG_TCK,R_JTAG_TCK,2,P8,100Ω ±1%,R,必装,MAIN_PCB,B-19,,,[推算],,[JTAG_TCK] JTAG TCK 串阻 (隔离 SoC 调试脚)
 R_JTAG_TDI.1,JTAG_TDI_SOC,R_JTAG_TDI,1,P8,100Ω ±1%,R,必装,MAIN_PCB,B-19,,,[推算],,[JTAG_TDI] JTAG TDI 串阻 (隔离 SoC 调试脚)

@@ -92,6 +92,18 @@ def main() -> int:
                 state_blockers[bid] = {"agent": aid, "severity": b.get("severity"),
                                        "desc": str(b.get("desc"))[:120]}
 
+    # ★★2026-11-16 04:2x (main) 修 C5 的【口径错】(★老账 16 条假红一次清掉★) ★★
+    # ★**症状**: `source_blocker=ISS-xxx 在 STATE.yaml 里不存在 (幻觉引用)` × 16 ★
+    #   (ISS-155/190/145/208/129/203/214/213/209/217/215/219/220/222 + 本轮新开的 223/224)
+    # ★**根因**: `state_blockers` 只收 STATE.yaml 各 domain 的 **blockers 清单**, 而台账里的
+    #   `source_blocker` 记的是**上一条问题单的 id** (★本项目近几轮的新单一律这么记★) ⇒
+    #   ⇒ 一个**真实存在**的 issue id 被当成幻觉引用 ⇒ ★**假红 (门禁读着错的集合)** ★
+    # ★**修法 (修在产生点, 不擦产物)**: 合法引用 = ★**STATE 的 blocker id ∪ 问题单台账里真实存在的 issue id**★
+    #   ⇒ ★**反幻觉的意图一点没松** (不存在的 id 照样红) ⇒ ★**只把【假红】变回真判定** ★
+    # ★**判据方向没动**: C5 的反向检查 (STATE 里每个 high/blocker 阻塞都必须有 issue 登记) 一行没改 ★
+    ledger_ids = {it.get("id") for it in issues if it.get("id")}
+    valid_sb = set(state_blockers.keys()) | ledger_ids
+
     errs: list[str] = []
     warns: list[str] = []
     per_issue = []
@@ -151,7 +163,7 @@ def main() -> int:
 
         # C5 双向覆盖
         sb = it.get("source_blocker")
-        if sb and sb not in state_blockers:
+        if sb and sb not in valid_sb:
             problems.append(f"source_blocker={sb} 在 STATE.yaml 里不存在 (幻觉引用)")
         if not sb:
             warns_i.append("没关联 source_blocker (无法自动核对是否真解决)")

@@ -2,6 +2,7 @@
 
 > **产出方**: 软件总工 (sw-lead) · **原始日期**: 2026-10-27 (ISS-090) · **★本次复评**: 2026-11-11 (ISS-190, source=SW-TIM-B1) · **对应 issue**: ISS-090 + ISS-190
 > **★被评审对象 (本次复评锚点)★**: `HW/netlist_v1.csv` —— **513 数据行 / 514 物理行 (含 1 行表头)**, md5 **`c78f991283cc82d56c8e3dd31657c785`**, mtime **2026-11-05 10:57:26**, 表头 `page,net,node1,node2,ref,value,type,dnp,evidence,tbd,note,conn_id,board,footprint,opn` (V1.8/V1.9 变更后)
+> ★**【ISS-225 台账化注 (2026-11-16, sw-lead)】**: ★**上面这个 md5 `c78f9912…` = 本次复评 (ISS-190) 当时的事实, 是 ISS-220 落表 (2026-11-16 02:32) **之前**的网表指纹** ⇒ ★**不改它 (改它 = 改历史)★ ⇒ ★**网表现值 = `13f59a43dbd35dc6cb16e897c8c891ab`; 现值锚点 + 三方对账机制 (锚点 ↔ 落表台账 ↔ 盘上真源) 见 `SW/SW_MD5_BASELINE_LEDGER.md` §1 / §3 (R-01·R-03)** ★
 > · ★**上一版 (2026-10-27) 的被评审对象 = 476 行版本** —— 中间 37 行是 V1.7/V1.8/V1.9 变更, ★**上一版从未复评** ⇒ 本次复评把 F1~F8 逐条重跑。
 > **评审口径 (ERC §D2 的另一半)**: mech-lead 挑机械/热/装配刺, sw-lead 挑**时序 / 信号 / 电源时序**刺。本文只挑这三类, 不碰机械。
 > **本文边界**: ① **只读** `HW/` `MECH/` `state/issue_log.yaml` `PROJECT_TRACKER.md` —— ★**本单一行网表都没改** (网表侧矛盾只**报**, 见 §7) ② **不拍板**: 硬件改法一律写成"接口请求 / 改动请求"交项目总工裁决 ③ **未联系任何供应商或原厂** (外发一律经项目总工) ④ 本文里的每个"可算的数"都能用 `SW/tools/timing_check.py` 复算 —— ★**该脚本在 ISS-190 里已从"手抄常量"改成"实读网表"**, 自检 **55/55 通过 (既有 21 条全保留 + 新增 23 条 + 反向 11 条), rc=0**。
@@ -351,7 +352,7 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 > ③ **等 SoM 球位 TBD-01 落地后, 再把真实存在的 PG 输出接进复位链** (★不猜球位★)。
 > ★**顺带点名: `U_SUPV pin1` 也是 DNP 且接在 `RESET_N` 上 (L409)** ⇒ ★**它不参与"谁在拉复位"** —— `RESET_N` 上真正会拉低的只有 `Q_AND` (必装) 与复位键 `SW_RST` (必装); ★若日后 `U_SUPV` 改必装, 它的开漏释放也会进来 ⇒ **改 `RESET_N` 的拉低者时必须把 `U_SUPV pin1` 一起算进去**。
 
-> ★**这 7 条全部登记在 `state/fragments/sw.yaml` 的 `needs_from` (to=hw-lead)**, 逐条给了行号与判据; ★**本单没有改网表一行** (可 `md5sum HW/netlist_v1.csv` 对拍: `c78f991283cc82d56c8e3dd31657c785` 复评前后一致)。
+> ★**这 7 条全部登记在 `state/fragments/sw.yaml` 的 `needs_from` (to=hw-lead)**, 逐条给了行号与判据; ★**本单没有改网表一行** (可 `md5sum HW/netlist_v1.csv` 对拍: `c78f991283cc82d56c8e3dd31657c785` 复评前后一致) ⇒ ★**(ISS-225 注: 该 md5 是**落表前**的值; 网表现值与三方对账见 `SW/SW_MD5_BASELINE_LEDGER.md` §1)** ★。
 
 ---
 
@@ -495,6 +496,8 @@ python3 state/gate_check.py
 # ---- 以下是 §1.1 表里逐条引用到的 grep 复现命令 (期望值写在注释里) ----
 
 # 网表锚点 (期望 md5 = c78f991283cc82d56c8e3dd31657c785 ; 行数 = 514 物理行 / 513 数据行)
+# ★★【ISS-225 注 (2026-11-16)】★★ 上面那个 md5 是 ISS-190 复评当时 (ISS-220 落表**前**) 的值 ⇒ 现值 = 13f59a43dbd35dc6cb16e897c8c891ab
+# ⇒ ★★ 现在"网表没被偷改"的判据由 `python3 SW/tools/timing_check.py` 的三方对账守 (锚点 ↔ 落表台账 ↔ 盘上真源) ⇒ 见 SW/SW_MD5_BASELINE_LEDGER.md §1 ★★
 md5sum HW/netlist_v1.csv; wc -l < HW/netlist_v1.csv
 
 # F4: 控制脚 (期望 11 = EN 10 + CT 1; ★上一版记 0 ⇒ 旧结论已被推翻)
@@ -559,4 +562,4 @@ python3 SW/tools/timing_check.py --netlist /tmp/netlist_mut.csv | grep -E "tr_ns
 #      (且该次运行有多条自检转红 ⇒ rc=1 ⇒ 证明它真在读网表, 不是在演常量)
 ```
 
-> ★**边界声明 (复评版)**: 本单**只读** `HW/netlist_v1.csv` (md5 复评前后均为 `c78f991283cc82d56c8e3dd31657c785`); 反向用例与 `--reverse-demo` 写的都是 `/tmp` 下的**副本**; 网表侧矛盾一律只报 (§7) 并登记 `needs_from` 给 hw-lead; ★**未联系任何供应商/原厂**; ★**未改** `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / 别人的分片。
+> ★**边界声明 (复评版)**: 本单**只读** `HW/netlist_v1.csv` (md5 复评前后均为 `c78f991283cc82d56c8e3dd31657c785` ⇒ ★**ISS-225 注: 该 md5 是 ISS-220 落表**前**的值; 现值 `13f59a43dbd35dc6cb16e897c8c891ab` 见 `SW/SW_MD5_BASELINE_LEDGER.md` §1**★); 反向用例与 `--reverse-demo` 写的都是 `/tmp` 下的**副本**; 网表侧矛盾一律只报 (§7) 并登记 `needs_from` 给 hw-lead; ★**未联系任何供应商/原厂**; ★**未改** `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / 别人的分片。

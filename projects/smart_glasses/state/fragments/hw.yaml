@@ -542,6 +542,47 @@ artifacts:
   updated_at: '2026-11-15'
   summary: '★ISS-211 交卷报告 (B1~B6 齐全, 25 行)★: 结论摘要 / 验收标准自评 / 证据分级 / 接口取值 (0 条) / 未决卡点 U-1~U-4 / 自证复现命令;
     ★受保护 md5 交卷前后逐字节不变★'
+- path: HW/NETLIST_SELF_CONSISTENCY_SPEC.md
+  kind: spec
+  version: v2.0
+  updated_at: '2026-11-16'
+  summary: '★网表自身一致性第2轮 (ISS-214) 落表规格 v2 (★扩写 ISS-211 那一份, 不另起炉灶★): §2 锚点表 64 → 154 条 (第1轮 d1-d4 64 条一条没删
+    + 第2轮 d5-d11 90 条); 新增 §10 (★任务书 8 条逐条 8 栏齐: 项号/现状逐字+行号/问题/根因追到源头/目标取值或判据/改哪张表哪一行/验收判据/证据等级★) + §11
+    附带发现 8 条 + §12 证据分级 + §13 未决 8 条 (need 全 to main) + §14 边界自查; 根因层全部追到 SPEC.json connections[40][41]
+    / gen_schematic_pages.py:147 手写串 / gen_netlist.py BAT_DET 段 / CHARGE_BOARD_SPEC.md §2.4+§3.4 手写公式
+    / gen_netlist.py CHG_BOARD_REFS 白名单; ★不改网表/脚表/BOM/板/SPEC.json/CHARGE_BOARD_SPEC/任何生成器★'
+- path: HW/check_netlist_selfconsistency.py
+  kind: gate
+  version: v2.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-214 机器门禁扩展★: 锚点 64 → 154 条 (新增 90 条, 覆盖第2轮 7 组); 新增 5 个根因层文件源 (state/gen_schematic_pages.py
+    / HW/CHARGE_BOARD_SPEC.md / HW/EMC_PRECHECK.md / HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.txt / HW/PCB/FET3572C_PIN_TABLE.csv);
+    新判据类型 text contains / text notcontains (根因层逐字比对) + calc(expr) op num (★物理量自洽: 分压后电压/漏电/note自称值/ESD距离/ICHG系数/单pin载流★);
+    --selftest 9/9 → 16/16 (原 9 个一条没删 + 新 7 个, 含 1 个 calc-only 用例); --expect-resolved 新增 R5~R11 翻面判据 (★落表那趟不用再补写期望值★);
+    修 _parse_res 的 M/m 量级 bug; ★只读, 不写任何项目文件★'
+- path: HANDOFF/2026-11-16_hw-lead_ISS214_网表一致性第2轮与3条待裁自查.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-214 交卷报告 (B1~B6 齐全)★: B1 结论摘要 (8 条逐条 + 3 条待裁) / B2 验收标准自评 (通过 8 / 未验 5 / 不通过 0) / B3
+    证据分级 (6 份一手官方件) / B4 接口取值声明 (6 条口径 claim) / B5 未决 8 条 (V-1~V-8, 全 to main) / B6 自证复现命令; ★零外发 + 实物[实测]=0
+    条 + 受保护 md5 逐字节不变★'
+- path: HW/SCHEMATIC_LANDING_WORKPACKET_V1.md
+  kind: workpacket
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-217 整链重出第1步 · 原理图侧落表作业包 v1★: 28 条作业条目 (d1..d11 主项 11 组 + 规格页 §11 附带发现 #1..#8 共 8 条 +
+    3 项补差 A/B/C + 6 条待裁确认单 V-1..V-6), 每条 8 栏齐 (项号 · 现状逐字+行号 · 缺陷一句话 · 真修法在哪个真源 · 改法逐字值 · 改完跑哪条命令 · 翻面判据
+    R# · 证据等级); 真修法全部追到真源层 (SPEC.json 的 level/imp/z_diff 键 · state/gen_netlist.py 的 conn_row/BAT_DET 段/USB
+    ESD 段/U_EN_SW 段/R_ILIM 段/J_CHG 段/CHG_BOARD_REFS 白名单 · state/gen_netlist_pins.py · state/gen_schematic_pages.py
+    的 PAGES[P9] 手写字符串 · HW/CHARGE_BOARD_SPEC.md §2.4/§3.4/§4.2/§7/§7.1); ★本单一个字节都没改网表/脚表/BOM/板/SPEC.json/CHARGE_BOARD_SPEC/任何生成器★'
+- path: HANDOFF/2026-11-16_hw-lead_ISS217_落表作业包v1.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-217 交卷报告 (B1~B6 齐全)★: B1 结论摘要 (11 组逐条 + 8 条附带发现落点 + 3 项补差) / B2 验收标准自评 (通过 8 · 未验 6 ·
+    不通过 0) / B3 证据分级 (6 份一手官方件) / B4 接口取值声明 (3 条口径 claim) / B5 未决 8 条 (V-1~V-8, 全 to main) / B6 自证复现命令;
+    ★零外发 + 实物[实测]=0 条 + 受保护 md5 逐字节不变★'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -1257,6 +1298,81 @@ needs_from:
     不同模板!) 而 L431/L432 的 value 写 22Ω ±1%, 同一颗 R_SER_USB_D_P/D_N 差 4 倍 ⇒ 与第 (1) 条同型 (规格 imp vs 器件行), 根因很可能也在
     HW/SCHEMATIC_V1_SPEC.json 的同源连接条目 imp 字段 ⇒ 建议与第 (1) 条同批查一遍'
   since: '2026-11-15'
+- key: iss214_usb_series_r_final
+  to: main
+  item: '★ISS-214 V-1: USB 串阻最终取 22Ω 外部串阻, 还是 0Ω (靠 SoM USB PHY 内部匹配)? ⇒ 官方已定: USB 1.1 要求 28~44Ω / 工业主流
+    22Ω / onsemi STF202-22 内置 RS nom 22Ω ⇒ 若 SoM 手册说内部已匹配则改 0Ω; ★但 90Ω 那个错值 (差分阻抗误填) 无论哪种都必须清; 卡第 (1)
+    条落表 (改 SPEC.json connections[40][41].imp 一个字段)'
+  since: '2026-11-16'
+- key: iss214_usb_dminus_esd_scheme
+  to: main
+  item: '★ISS-214 V-2: USB D− 的 ESD 方案二选一 (① 3 脚双通道阵列: TI TPD2EUSB30 DRT SOT-3 1.0x0.8mm, 0.7pF/线, IEC
+    61000-4-2 level 4 contact 8kV / air 8kV, Vclamp 8V; ② 2 只单通道低电容 TVS ≤1pF) + 型号 + D− 侧选型; ★共同底线: ESD
+    必须从 USB_D_P_SRC (SoM 侧) 挪到 NET_USB_D_P_TYPEC/NET_USB_D_N_TYPEC (Type-C 侧) 且距 J_USB_C ≤3.0mm; ★排除 onsemi
+    STF202-22 (官方线电容 68pF = USB 全速级); 卡第 (5) 条落表 (要改板 + 重跑布线)'
+  since: '2026-11-16'
+- key: iss214_bat_det_divider_ratio
+  to: main
+  item: '★ISS-214 V-3: BAT_DET 分压比取方案 A (2.0M+1.2M ⇒ 1.575V typ / 1.595V worst / 利用率 87.5% / 漏电 1.31µA)
+    还是降级档 D (2.0M+1.0M ⇒ 1.419V / 77.8%)? ⇒ ★本单推荐 A (三个指标同时最优, 且 0.205V 余量已覆盖 SoM 手册可能更严的 abs-max ⇒ 不必等
+    SoM 手册也能落); 卡第 (3)(4) 条落表'
+  since: '2026-11-16'
+- key: iss214_r_ilim_rating
+  to: main
+  item: '★ISS-214 V-4: R_ILIM 档位二选一 — 解① (475~510Ω, 单 pin 0.465-0.499A ✅, 但充电慢 ~30%) 或解② (保留 390Ω + J_CHG
+    载流 pin 从 2 只加到 4 只 pin1/2/9/10, 单 pin 0.304A ✅ 余 39%, 但要改 J_CHG pinmap ⇒ 归 ISS-199/ISS-202 地界); ★解③
+    (1A 触点连接器) 已判死 (ISS-099: 铰链区装不下) / 解④ (软件限流) 不可行 (IINLIM 复位默认 2048mA 是硬件行为); ★本单已用 BQ25896 官方把方向定死
+    (ICHG/IIN = η·Vbus/Vbat = 1.216/1.071, 0.822 是倒数) ⇒ 390Ω 档的单 pin 0.411A 判据不成立; ★这条卡 CHARGE_BOARD_SPEC
+    §2.4 表推荐值栏怎么写'
+  since: '2026-11-16'
+- key: iss214_stack_account_caliber
+  to: main
+  item: '★ISS-214 V-5: 堆叠账唯一口径 —— 本单建议 FPC 带宽 35.50mm (触点区 27.00 + 4条×2×0.50 走线边距) vs 锁死腔体净高 38.00mm (37.0
+    是已作废的叠放模型算式); ★P9 页正文归 hw-lead, 数字归 MECH + 项目总工; ★P9 页不许再自带第二个堆叠数 (26.5 与 DECISIONS.md 2026-10-27
+    的 26.5 必须同时废掉); 卡第 (2) 条落表'
+  since: '2026-11-16'
+- key: iss214_esd_distance_threshold
+  to: main
+  item: '★ISS-214 V-6: ESD 位置判据口径收口 — ISS-211 写 ≤5mm, 而 state/gen_schematic_pages.py P9 页自引的 ISS-085 结构总工回执写的是
+    ≤3.0mm ⇒ 本轮按 3.0mm 判 (更严, 是项目自己的规矩); ★门禁 --expect-resolved 的 R9 现在实现的是 5.0mm ⇒ 落表那趟要改成 3.0'
+  since: '2026-11-16'
+- key: iss214_c_vbus_out_series_cap_p0
+  to: main
+  item: '★ISS-214 V-7 (不在本单 8 条内, 登记给 main 派单): C_VBUS_OUT (100µF) 在网表里是【串联】在 VBUS_5V_F1 → U_CHG pin1
+    之间的 (L9+L11, note 自己写 串联), 而 CHARGE_BOARD_SPEC §7 (L516) 的 C_VBUS_BULK 是【对地】100µF 且网表里根本没有 C_VBUS_BULK
+    ⇒ ① 规格 §7 与网表的 π 滤波拓扑/位号不一致 ② 100µF 串联在充电 IC 的 DC 输入路径上 ⇒ 稳态充不了电 ⇒ 充电板 (整机阶段) 的 P0; ★充电板不进 demo 板
+    ⇒ 不阻塞本轮; ★另 §7.1 计数对账表的 现行网表引用 80 行 也已过期'
+  since: '2026-11-16'
+- key: iss214_j_chg_ref_collision
+  to: main
+  item: '★ISS-214 V-8 (不在本单 8 条内, 登记给 main 派单): J_CHG 在网表里是铰链 FPC 座 1×10p@0.5mm (board=HINGE), 在板文件里却是
+    SoM BTB CHG (100pin, 部分已分配) 只有 2 个焊盘 (pin1=BAT_CHG / pin6=PWR_GOOD) ⇒ 同一个位号指两个物理件; ★且 P9 页的 J_CHG
+    pin map (5=CHG_STAT / 6=PWR_GOOD / 7=VBUS_DET) 与网表对不上 (网表: 7=NC / 8=TS_BAT, 且没有 5/6 的行) ⇒ 归 ISS-199/ISS-202
+    地界; ★与 V-4 的解② (4 pin 并联) 一起排'
+  since: '2026-11-16'
+- key: iss217_landing_workpacket_v1_6_decisions
+  to: main
+  item: '★ISS-217 落表作业包 v1 已出 (HW/SCHEMATIC_LANDING_WORKPACKET_V1.md, 28 条作业条目 × 8 栏齐; 门禁已扩项: 作业包完整性 +
+    三方对齐 + R9 阈值 3.0mm + 自检 19/19) ⇒ 6 条待裁请项目总工/老板签字, 每条已配齐【默认值 + 备选 + 量化代价 + 落表后影响哪几行】: 【V-1 USB 串阻】默认
+    22Ω 外部串阻 / 备选 0Ω 靠 SoM PHY 内部匹配 (SoM 手册 [0数据]); 两种裁法都必须清掉 90Ω (它是差分线阻抗不是串阻, 串在 90Ω 线上摆幅减半); 影响: SPEC.json
+    connections[40]/[41] 的 imp + 表A L291/L292/L431/L432。【V-2 ESD 方案+型号 (选型=老板级, 本单不代拍)】方案① 3 脚双通道阵列 (TI
+    TPD2EUSB30: 0.7pF/线, IEC 61000-4-2 level 4 contact 8kV, Vclamp 8V, SOT-3 DRT 1.0x0.8mm) vs 方案② 2 只单通道;
+    共同底线 = ESD 必须从 USB_D_P_SRC 挪到 NET_USB_D_P_TYPEC/NET_USB_D_N_TYPEC 且距 J_USB_C ≤3.0mm; 排除项 = onsemi
+    STF202-22 线电容 68pF (USB 全速 12Mbps 级, 本项目 480Mbps 高速线禁用); 影响: state/gen_netlist.py USB ESD 段 + 脚表 +
+    板封装/位置 + 布线重跑。【V-3 BAT_DET 分压比】默认 A (2.0M+1.2M ⇒ 1.575V typ / 1.595V worst / 12bit 利用率 87.5% / 漏电
+    1.31uA) / 备选降级档 D (2.0M+1.0M ⇒ 1.400V / 77.8% / 1.40uA); 代价: 60ms 端到端延迟 / 充电时间 / 单 pin 载流 / 皮肤温度 四项均不受影响
+    (分压链是高阻小电流支路, 不在充电功率路径上), 差别只在电压余量 0.205V vs 0.381V 与电量读数分辨率; 影响: state/gen_netlist.py BAT_DET 段 +
+    表A L181/L182/L183/L186 + 脚表 + BOM + note 的漏电流数。【V-4 R_ILIM 档位】默认解① 487Ω (单 pin 0.487A, 余量 2.6%; ★不许取
+    475Ω = 0.499A 余量 0.2% 等于没余量★) / 备选解② 保留 390Ω + J_CHG 载流 pin 由 pin1/2 加到 pin1/2/9/10 (单 pin 0.304A,
+    余量 39%, 但要改 pinmap, 归 ISS-199/202 + 本作业包 §4.C 的位号改名方案); 解③ (换 1A 触点连接器) 已判死 (铰链区装不下), 解④ (软件限流) 不可行
+    (IINLIM 复位默认 2048mA 是硬件行为); 代价: 解① 充电慢约 30% (29min → 38min) 但皮肤温度更低 (电芯内阻发热 114mW → 约 68mW), 解② 充电时间不变但要动结构与
+    pinmap; 影响: CHARGE_BOARD_SPEC.md L182/L184-L186/L320/L711 + state/gen_netlist.py 的 R_ILIM 与 J_CHG
+    两条 add() + BOM L97。【V-5 堆叠账唯一口径】归 mech-lead + 项目总工 (数字不是 hw-lead 的地界); 本单只写清 P9 页要引用哪个数 (FPC 带宽口径
+    35.50mm vs 锁死腔体净高 38.00mm; ★37.0 是已作废的叠放模型算式 (22+12+3)★), 建议 P9 页改成引用式写法【宁可不写数, 也不写第二个错数】; 影响: state/gen_schematic_pages.py
+    的 PAGES[P9] 一行 + DECISIONS.md 那一行 (归项目总工) + MECH 第 08 项。【V-6 ESD 位置判据 5mm → 3.0mm】★本单已按项目自己的规矩 (ISS-085)
+    落定为 3.0mm 并写进作业包 + 门禁 (现状断言 calc(esd_dist_usb) > 5 一字不动) ⇒ 只需知会 main, 无需签字★。★本单一票未代拍: V-2 选型 / V-5
+    数字 / 整机屏路线 / 波导归属 / FOV / 板长方案 / 充电板是否留 / 端件截面 u8 全部留空给老板与项目总工★'
+  since: '2026-11-16'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -1569,6 +1685,35 @@ answers:
     未碰 issue_log 与 PROJECT_TRACKER §0, 未碰别人分片; 板 md5 611b869e13518c3c023fb178f91a0075 与网表 md5 c78f991283cc82d56c8e3dd31657c785
     交卷时实测未变; 未发任何邮件未联系任何原厂供应商未下任何采购单。'
   ref: HW/PCB/RK3572_UART0_TX_PINMUX_VERDICT.md + HANDOFF/2026-11-15_hw-lead_ISS204_UART0_TX_pinmux核.md
+- key: iss211_saradc_vin5_params
+  to: main
+  value: '★ISS-214 已用【官方】关掉一半★: RK3572 Datasheet Rev 1.1 §3.10 Table 3-16 (PDF p.45-46) 原文 = Resolution
+    12 Bit / Anglog Input Range AIN = AVSS18 ~ AVDD18; 电气总表 SARADC Analog Power(1.8V) SARADC_AVDD1V8 =
+    1.62/1.8/1.98 V ⇒ ★ADC 满量程 = 0 ~ 1.8V 标称 / 1.98V max (不再是纯 [0数据])★; SoM 厂 IO 域表 FET3572C_PIN_TABLE.csv
+    L39 = P1,38,1AE17,SARADC_VIN5,1.8V ⇒ P1_38 是 1.8V 域; ⇒ 1:1 分压 @4.2V = 2.100V > AVDD18 max 1.98V ⇒
+    ★过压已在【芯片级】判死, 不再需要模块 abs-max 才成立★; ⇒ 分压比候选与判据已出 (上限 ≤1.8V / 利用率 ≥1.2V / 源阻抗因 100nF 蓄水池不是阻塞项): 推荐 2.0M+1.2M
+    (节点 1.575V typ / 1.595V worst / 利用率 87.5% / 漏电 1.31µA), 降级档 2.0M+1.0M (1.419V); ★仍 [0数据] 的只剩: SoM
+    模块自身 abs-max / SAR-ADC 输入电容 Cin / 采样保持时间 ⇒ ★不阻塞落表 (推荐档的 0.205V 余量已覆盖常见档位)★'
+  ref: HW/NETLIST_SELF_CONSISTENCY_SPEC.md §10 第 (3) 条
+- key: iss211_bat_det_leakage_budget
+  to: main
+  value: '★ISS-214 已出数 + 结论: 漏电根本不是约束★: 1M+1M 真值漏电 = 2.10µA @4.2V / 2.50µA @5V / 1.85µA @3.7V (⇒ L182
+    note 自称的 ~1.65µA @5V 与自己的阻值对不上, 1.65µA 其实是 3.3V/2MΩ 的值 ⇒ 标签 @5V 写错了, 差 1.52×); 功耗 @4.2V = 8.82µW =
+    整机待机地板 0.05W 的 0.018% (HW/POWER_BUDGET_V3.md 待机-B 0.03-0.06W); ⇒ 折中判据 = 分压链功耗 ≤ 待机预算 1% ⇒ 上+下臂总阻 ≥
+    35.3kΩ @4.2V ⇒ 现值有 57× 余量 ⇒ ★⇒ 分压比只由 ADC 上限 + 12bit 利用率两条决定; 推荐档 2.0M+1.2M 的漏电 1.31µA 比现值还低 ⇒ 漏电/利用率两个矛盾一次解掉★;
+    不改会怎样: ①保持 DNP ⇒ 漏电=0 但 ADC 读浮空噪声 (电量乱跳/关机误判) ②照 1M+1M 装上 ⇒ 2.100V 过压烧脚 (P0) ③装 2.0M+1.2M ⇒ 三项全合格'
+  ref: HW/NETLIST_SELF_CONSISTENCY_SPEC.md §10 第 (4) 条
+- key: iss211_usb_ser_r_value_conflict
+  to: main
+  value: '★ISS-214 已定性并给出官方口径★: 根因 = HW/SCHEMATIC_V1_SPEC.json 的 connections[40] (id=B-21, signal=USB_D+)
+    的 imp = 90Ω ±10% (与 MIPI 不同模板!) 与 connections[41] (id=B-22, signal=USB_D-) 的 imp = 90Ω ±10% ⇒ state/gen_netlist.py:772-774
+    的 conn_row() 把 imp 逐字抄进网表 NET 行 value ⇒ L291/L292 显示 90Ω 而 L431/L432 的器件行显示 22Ω ±1%; ★★90Ω 不是串阻值,
+    是【差分线阻抗】★★ (HW/EMC_PRECHECK.md:211 原文: USB 2.0 差分 D+/D- 90 Ω 差分, 480 Mbps, 与 MIPI 的 100 Ω 不是同一套阻抗模板);
+    ★[官网] ON Semi AND8074/D: USB 1.1 规范要求串阻 28~44Ω, 工业主流 22Ω 或 30Ω; onsemi STF202-22T1G datasheet 内置 RS
+    nom = 22Ω ⇒ ★真值 = 串阻 22Ω ±1% + 差分线 90Ω±15% 受控阻抗 (两个量分两个字段); ⇒ 修法 = 改 SPEC.json 的 imp (★不许手改网表★) →
+    重跑 gen_netlist.py ⇒ L291/L292 自动变; ★仍 [0数据]: SoM USB PHY 的驱动阻抗 / 外部串阻是否必需 (若 SoM 手册说内部已匹配 ⇒ 串阻位改 0Ω,
+    但 90Ω 那个错值仍必须清)'
+  ref: HW/NETLIST_SELF_CONSISTENCY_SPEC.md §10 第 (1) 条
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -2659,6 +2804,72 @@ interface_claims:
     R1 (SoM 侧无预留脚) 成立'
   note: ''
   ref: ''
+- key: iss214_usb_series_r_value
+  value: USB 2.0 D+/D- 串阻 = 22Ω ±1% (源端匹配) + 差分线 = 90Ω±15% 受控阻抗 (板级) ⇒ 网表 L291/L292 的 90Ω 是【差分阻抗误填进串阻字段】,
+    落表后作废; USB 速率 = 480 Mbps (HW/EMC_PRECHECK.md:211) ⇒ ESD 结电容预算 ≤1.0 pF/线
+  note: ★ISS-214 第 2 轮 · [官网] AND8074/D (USB 1.1 要求 28~44Ω, 工业主流 22Ω/30Ω, Zo 90Ω±15%) + onsemi STF202-22T1G
+    (RS nom 22Ω); 根因 = SCHEMATIC_V1_SPEC.json connections[40][41].imp; ★落表时改 SPEC.json 再重跑生成器, 不许手改网表★
+  ref: HW/NETLIST_SELF_CONSISTENCY_SPEC.md §10 第 (1) 条
+- key: iss214_usb_esd_cap_budget
+  value: 'USB 2.0 (480 Mbps) 入口 ESD 结电容预算 = ≤1.0 pF/线; IEC 61000-4-2 ≥ level 4 contact (8kV) / air 8kV;
+    Vclamp ≤8V @1A; ⇒ 【排除 onsemi STF202-22 一类滤波+端接+ESD 三合一集成件: 官方线电容 68 pF = USB 全速 12Mbps 级】; D− 必须单独护;
+    共同底线 = ESD 必须落在 Type-C 侧 (NET_USB_D_P_TYPEC/NET_USB_D_N_TYPEC) 且距 J_USB_C ≤3.0mm'
+  note: ★ISS-214 第 2 轮 · [官网] TI TPD2EUSB30/TPD4EUSB30 (SLVSAC2G) 0.7/0.8pF, level 4 contact, Vclamp 8V
+    + onsemi STF202-22T1G 68pF; 候选件 = TI TPD2EUSB30 (DRT SOT-3 1.0x0.8mm) ★V-2 待老板拍方案①/②★
+  ref: HW/NETLIST_SELF_CONSISTENCY_SPEC.md §10 第 (5) 条
+- key: iss214_bat_det_divider
+  value: BAT_DET = SoM SARADC_VIN5 (J_SOM_P1 pin38, AVDD18 1.8V 标称 / 1.98V max); 推荐分压 2.0M ±1% + 1.2M
+    ±1% ⇒ ADC 节点 @4.2V = 1.575V typ / 1.595V worst (≤1.8V, 利用率 87.5%); 降级档 2.0M+1.0M ⇒ 1.419V; 漏电 @4.2V
+    = 1.31µA (8.8µW→5.5µW, 占待机地板 0.05W 的 0.011%); ⇒ 1:1 (现值) 作废 (2.100V > AVDD18 max ⇒ 过压)
+  note: ★ISS-214 第 2 轮 · [官网] RK3572 Rev1.1 §3.10 Table 3-16 p.45-46 + SARADC_AVDD1V8 1.62/1.8/1.98V;
+    软件侧电量换算需按 1.575V@4.2V / 1.125V@3.0V 标定 ★V-3 待老板拍 A/D★
+  ref: HW/NETLIST_SELF_CONSISTENCY_SPEC.md §10 第 (3)(4) 条
+- key: iss214_ichg_iin_ratio
+  value: 铰链段电池充电电流 ICHG/IIN = η·Vbus/Vbat (★buck 功率守恒, 方向是乘不是除★) = 1.216 @VBAT 3.70V / 1.071 @VBAT 4.20V
+    (η=0.90 保守; BQ25896 官方 92.5%@2A / 90.5%@3A) ⇒ CHARGE_BOARD_SPEC §2.4/§3.4 的 0.822/0.933 是精确倒数 = 作废;
+    ⇒ 390Ω 档 ICHG = 0.997/1.107/1.216 A, 单 pin (pin1/pin2 并联) = 0.499-0.608A ⇒ 0.608A > 0.5A 触点额定 ⇒ 390Ω
+    档的单 pin 判据不成立
+  note: ★ISS-214 第 2 轮 · [官网] TI BQ25896 SLUSC76C (92.5%/90.5% 效率 + IINMAX=KILIM/RILIM + KILIM 320/355/390
+    AΩ); MECH 侧 G2.8 已按真值判 (1.216/1.071) ⇒ 两边口径现已一致, 待 CHARGE_BOARD_SPEC 落表; ★V-4 待老板拍解①(475~510Ω) / 解②(390Ω+4
+    pin 并联)★
+  ref: HW/NETLIST_SELF_CONSISTENCY_SPEC.md §10 第 (7) 条
+- key: iss214_vbus_5v_chg_net_scope
+  value: net VBUS_5V_CHG = 【充电板本地网】(U_CHG pin1 / C_VBUS_OUT / C_VBUS_IC 都在 CHG_BOARD); 现行 C_VBUS_GND 的
+    board 列错标 MAIN_PCB ⇒ 主板那半边无物理通路 (板上 VBUS_5V_CHG 只有 C_VBUS_GND 一个封装; J_CHG 只带 BAT_CHG / PWR_GOOD) ⇒
+    任何 VBUS 过铰链的假设不成立; ⇒ C_VBUS_GND 的 board 目标 = CHG_BOARD (根因 = gen_netlist.py 的 CHG_BOARD_REFS 白名单漏了它)
+  note: '★ISS-214 第 2 轮 · [实测] 表A L9-L13 / 脚表 L148/L149/L154/L155 / 板文件 186 封装逐个查 net; ★同型铁证: 同一个白名单注释里已记过
+    R_VBUS_DET_1/2 的同类坑 (分压放在主板=采不到电) 而这次漏了旁边的电容★'
+  ref: HW/NETLIST_SELF_CONSISTENCY_SPEC.md §10 第 (8) 条
+- key: iss214_hinge_channel_count
+  value: 现行网表里 board==HINGE 的连接器只有 J_CHG (1×10p@0.5mm) = 1 组跨铰链通道; CONN_USB 已于 2026-11-04 19:5x 删除 (gen_netlist.py:117
+    HINGE_REFS 注释); CONN_CAM (31p@0.3mm) / CONN_LIGHT (22p@0.5mm) 都是 board=MAIN_PCB 的板内 FPC 座 ⇒ P9 页的
+    4 组跨铰链通道与 (10+4+18+21)×0.5=26.5mm 堆叠账全过期; ⇒ 堆叠账唯一口径建议 FPC 带宽 35.50mm vs 锁死腔体净高 38.00mm (37.0 是已作废的叠放模型算式)
+  note: ★ISS-214 第 2 轮 · [实测] gen_schematic_pages.py:147 逐字 + 网表/脚表/板文件计数 + MECH/cross_review_check.py:64
+    逐字 + MECH/HW_CROSS_REVIEW_TRIAGE.md 第 08 项 STK-FPC (35.50); ★V-5 最终数字归 MECH + 项目总工★
+  ref: HW/NETLIST_SELF_CONSISTENCY_SPEC.md §10 第 (2) 条
+- key: schematic_landing_workpacket_v1
+  value: '★整链重出第1步的原理图侧落表 SOP = HW/SCHEMATIC_LANDING_WORKPACKET_V1.md (28 条作业条目 × 8 栏)★ ⇒ 落表那趟照它逐条做 (谁改
+    · 改哪个文件的哪一行 · 改成什么字面值 · 跑哪条命令 · 怎么算翻面), 不许把规格页当参考; 编号体系 = d1..d11 (11 组, 覆盖 ISS-211 的 4 条 + ISS-214
+    的 8 条) + 附带 #1..#8 + 补差 A/B/C + 待裁 V-1..V-6; ★门禁已扩项: HW/check_netlist_selfconsistency.py 现在同时查【作业包完整性
+    (漏一条即红)】+【三方对齐 (作业包项号 ↔ 规格页条号 ↔ 门禁锚点组 ↔ 翻面判据 R#)】+【R9 的 ESD 距离阈值 3.0mm (按 ISS-085; 现状断言 calc(esd_dist_usb)
+    > 5 一字不动)】+【自检 19/19 (原 16 一条没删 + 新 3)】★'
+  note: '★ISS-217 · [实测] 28 条的 8 栏 + 154 条锚点 + 19 个反向用例全过 (本机实跑); ★这是落表那趟唯一的输入: 规格页讲为什么错, 作业包讲照着怎么做★'
+  ref: HW/SCHEMATIC_LANDING_WORKPACKET_V1.md + HW/check_netlist_selfconsistency.py (WP_MAP)
+- key: iss220_chgboard_white_list_scope
+  value: 充电板归属 = CHG_BOARD_REFS 白名单驱动 (漏一颗就默认落 MAIN_PCB) ⇒ 白名单补 C_VBUS_GND 后, π 滤波后级对地电容与 C_VBUS_OUT 同板
+  note: '来源 = state/gen_netlist.py 的 CHG_BOARD_REFS + board_for(); ★⚠️ 本条带一个【已知的板侧不一致】: 网表/BOM 已判 CHG_BOARD,
+    而 demo 主 PCB 上 C_VBUS_GND 的封装还在 (板 md5 未动) ⇒ 板侧同步项 B-1 未做前, 板与网表已知不一致'
+  ref: ISS-220 · HW/SCHEMATIC_LANDING_V1_LANDED.md §1.5 + §4 B-1
+- key: iss220_i2ca_pullup_domain_1v8
+  value: I2C_A 上拉 = 2.2k 到 RAIL_VDD_1V8_IO (1.8V 域)
+  note: '来源 = HW/SCHEMATIC_V1_SPEC.json B-01/B-02 (level=1.8V / imp=上拉 2.2k 到 1.8V); 依据: SoM 的 I2C5 (P2_31/P2_33)
+    是 1.8V 域 (FET3572C_PIN_TABLE.csv) ⇒ 3.3V 上拉 = 过压; 灌流 0.64mA / t_r 186ns@100pF'
+  ref: ISS-220 · HW/SCHEMATIC_LANDING_V1_LANDED.md §1.1
+- key: iss220_ichg_ratio_true_value
+  value: ICHG/IIN = η·Vbus/Vbat = 1.216 @3.70V / 1.071 @4.20V (η=0.90)
+  note: 来源 = HW/CHARGE_BOARD_SPEC.md §2.4 表头 + §3.4 公式 + §7 自检脚本; buck 功率守恒 VBUS·IIN·η = VBAT·ICHG; 旧口径
+    (VBAT/VBUS)/η 是它的倒数 (方向反了) ⇒ 网表/规格里所有 ICHG 数与单 pin 数必须按 1.216 重算
+  ref: ISS-220 · HW/SCHEMATIC_LANDING_V1_LANDED.md §1.4
 open_questions:
 - id: HW-Q1
   to: main

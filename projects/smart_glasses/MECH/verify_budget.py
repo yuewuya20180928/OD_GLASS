@@ -94,6 +94,34 @@ ENDPIECE_T_AMBIENT = 25.0        # °C  [推算]
 ENDPIECE_T_LIMIT = 60.0          # °C  [推算] 端件外表面判据 (烫手)
 ENDPIECE_P_MAX = 0.21            # W  [推算] (60−25)/166.667
 
+# ---- ★ISS-219 (2026-11-16) 金属热路 k 口径订正: 237 → 201 (官方保守侧) ----
+# 旧口径 k=237 (项目内乐观值) 已于 ISS-219 订正为 **201 W/m·K** (6063-T6 官方值)。
+# 官方来源 (三家独立厂商官网互证, [官网]):
+#   · Hydro Innovation & Technology: "Hydro 6063_Rev.4 – 03/2023",
+#     Technical datasheet - Extruded products, Alloy EN AW-6063 [AlMg0.7Si]
+#     https://www.hydro.com/globalassets/08-about-hydro/hydro-worldwide/austria/nenzing/
+#       alloy-data-sheets/hydro-en-aw-6063.pdf
+#     (T6: Thermal Conductivity 201 W/m·K, Density 2.70 g/cm³; 依 EN 755-2:2016 /
+#      EN-573-3:2013; 参考 MNC Handbok nr 12 version 2, SIS 1989)
+#   · Aalco: Aluminium Alloy 6063 - T6 Extrusions datasheet (Spec BS EN 755-2:2008)
+#     https://www.aalco.co.uk/datasheets/Aluminium-Alloy-6063-T6-Extrusions_158.ashx
+#   · Kaiser Aluminum: Tube & Pipe Alloy 6063 Technical Data Rev. 05/06
+#     https://online.kaiseraluminum.com/depot/PublicProductInformation/Document/1066/
+#       Kaiser_Aluminum_6063_Tube_and_Pipe.pdf
+K_AL_6063_T6 = 201.0             # W/m·K [官网] 6063-T6 (ISS-219 订正; 旧口径 237 已作废)
+K_AL_6063_T6_LEGACY = 237.0      # W/m·K [旧口径·已订正] 只留追溯, 不许当活口径用
+RHO_AL_6063_T6 = 2.70e-3         # g/mm³ [官网] 2.70 g/cm³
+ENDPOINT_GEOM_L_MM = 70.0        # mm  沿臂长 (ISS-213 §5.4 同几何口径)
+ENDPOINT_GEOM_A_MM2 = 180.0      # mm² 同几何截面积
+# ★**只改口径, 不改结论**: 同几何 R 1.641 → 1.935 K/W; 打印件 PA6-CF 1944 K/W 仍然出局;
+#   R_热路 ≤ 70 K/W ⇒ 截面积 A ≥ 4.9751 mm² (201 侧; 旧 237 侧 4.2194) ⇒ 2.0×2.0 铝条仍不合格。
+R_AL_201 = ENDPOINT_GEOM_L_MM * 1000.0 / (K_AL_6063_T6 * ENDPOINT_GEOM_A_MM2)      # K/W
+R_AL_237 = ENDPOINT_GEOM_L_MM * 1000.0 / (K_AL_6063_T6_LEGACY * ENDPOINT_GEOM_A_MM2)  # K/W
+R_PRINT_6063 = ENDPOINT_GEOM_L_MM * 1000.0 / (K_WALL * ENDPOINT_GEOM_A_MM2)        # K/W (打印件)
+A_MIN_R70_201 = ENDPOINT_GEOM_L_MM * 1000.0 / (K_AL_6063_T6 * 70.0)                 # mm²
+A_MIN_R70_237 = ENDPOINT_GEOM_L_MM * 1000.0 / (K_AL_6063_T6_LEGACY * 70.0)          # mm²
+R_PATH_MAX_KW = 70.0            # K/W [推算] ISS-216 §3 注 / ISS-218 §1.1 硬指标
+
 # ---- 电池三档位 (§1.6.2 / §1.6.3) ----
 # 电池厚度/长度: 340mAh 用 Renata ICP582035PR-01 [官网] 4.6×23.5×40.5
 #                 575/675mAh 尚无具体型号 -> 厚度/长度为 [推算] 输入假设 (脚本里已标)
@@ -123,7 +151,7 @@ WEIGHT_ITEMS = [
     ("光机 走鹃Ⅱ", 0.5, 0.5, "[官网]"),
     ("衍射光波导 ×2", 7.0, 9.4, "[展会]/[官网]"),
     ("摄像头模组", 1.5, 3.0, "[推算]"),
-    ("一拖二分光件", 3.0, 6.0, "[推算]"),
+    ("一拖二分光件", 3.68, 7.36, "[推算] (ISS-222 C-6 落地: 0.9697 cc)"),
     ("ARS45 主 PCB", 5.0, 7.0, "[推算]"),
     ("充电板+Type-C+屏蔽罩", 2.0, 3.0, "[推算]"),
     ("电池 420mAh", 6.0, 6.0, "[推算]"),
@@ -134,7 +162,18 @@ WEIGHT_ITEMS = [
     ("紧固件/螺钉/UV胶/泡棉", 1.0, 2.0, "[推算]"),
     ("MEMS 麦克风 ×2", 0.1, 0.1, "[推算]"),
 ]
-DOC_WEIGHT = (50.1, 74.0)   # §3 合计 (第二轮更正后)
+DOC_WEIGHT = (50.78, 75.36)   # §3 合计 (第二轮更正后 + ISS-222 C-6 落地: W4 3-6 → 3.68-7.36 g)
+
+# ---- ★ISS-222 (2026-11-16) C-6 落地常量 (分光件规格不许漂回 14×10×6 / 0.79cc / 3-6g) ----
+SPL_PLATE_V3 = (11.0, 11.0, 1.5)     # 45° 半透半反平板 (C-6)
+SPL_PRISM_V3 = (9.0, 9.0, 5.0)       # 转向棱镜 ×2 (C-6)
+SPL_V_CC_V3 = 0.9697                 # 分光组件体积 (连续口径)
+SPL_V_CC_V3_ENG = 0.9915             # 工程取值 (11×11×1.5 + 2×9×9×5)
+SPL_W4_V3 = (3.68, 7.36)             # §3 W4 新带
+SPL_PLATE_DIAG_V3 = 15.5563          # 11√2 (≥ 严格口径 15.3890)
+FOV_LOSS_PCT_V3 = 2.63               # (1 − M) × 100, M = 0.9737
+#: ★ISS-222 C-8: 分光件在正中区前后向 (轴向) 的占位 = 45° 平板的轴向投影
+TS_AXIAL_MM_V3 = 11.0 * math.sin(math.radians(45.0)) + 1.5 * math.cos(math.radians(45.0))
 
 # ---- 摄像头几何 (§1.5) ----
 CAM_D = 32.0                # mm 镜头到眼点距离 (镜眼距12-14 + 镜片/镜框厚度)
@@ -187,7 +226,7 @@ def power_for_limit(model_fn, limit):
 # ======================================================================
 # 1b. ★buck 充电耗散模型 (ISS-216) —— P = Pin − Pout + P_DCR
 # ======================================================================
-def charge_dissipation(i_in, v_bat=CHG_VBAT, eta=CHG_ETA, r_dcr=CHG_R_DCR):
+def charge_dissipation(i_in, v_bat=None, eta=None, r_dcr=None):
     """开关型 buck 充电耗散。
 
     返回 (P_diss, ICHG, Pin, Pout, P_DCR):
@@ -196,7 +235,16 @@ def charge_dissipation(i_in, v_bat=CHG_VBAT, eta=CHG_ETA, r_dcr=CHG_R_DCR):
       Pout = VBAT · ICHG = eta · Pin
       P_DCR = ICHG² · R_DCR            (充电电感铜损)
     ★线性口径 (Vin−Vout)·I 不适用 (那是线性稳压器公式)。
+
+    ★注意: 默认值必须在**调用时**解析 (不能写成 def f(x, eta=CHG_ETA) —— 那会在 def 时
+      就把全局值冻住 ⇒ --selftest 的反向用例改不动它 ⇒ 门禁形同虚设)。
     """
+    if v_bat is None:
+        v_bat = CHG_VBAT
+    if eta is None:
+        eta = CHG_ETA
+    if r_dcr is None:
+        r_dcr = CHG_R_DCR
     i_chg = eta * CHG_VBUS * i_in / v_bat
     p_in = CHG_VBUS * i_in
     p_out = v_bat * i_chg
@@ -290,6 +338,10 @@ LEGACY_LINEAR_MARKERS = (
     "MP2721",
 )
 
+# ★旧标记允许出现的条件 (该行必须明确写了“旧口径已判死/作废”) —— 历史沿革要可追溯,
+#   但**不许把旧口径当活口径用**。
+LEGACY_DEAD_MARKERS = ("判死", "作废", "已死", "旧口径", "不再适用", "历史沿革")
+
 
 def read_budget_md():
     if not os.path.exists(BUDGET_MD):
@@ -341,9 +393,17 @@ def caliber_checks(text):
                 f"§2.1 行: {row[:110] if row else '(找不到该行)'}"))
 
     legacy = [m for m in LEGACY_LINEAR_MARKERS if m in text]
-    out.append(("C7", "文档里旧线性口径标记已清除 (全文)",
-                not legacy,
-                f"残留标记: {legacy or '无'}"))
+    # ★旧标记只允许出现在**已明确判死/作废**的行里 (历史沿革可追溯, 但不许当活口径)
+    live = []
+    for line in text.splitlines():
+        hit = [m for m in LEGACY_LINEAR_MARKERS if m in line]
+        if not hit:
+            continue
+        if not any(w in line for w in LEGACY_DEAD_MARKERS):
+            live.append((hit, line.strip()[:110]))
+    out.append(("C7", "文档里旧线性口径标记只存在于已判死/作废的行 (不许当活口径)",
+                not live,
+                f"未标注作废的残留: {live or '无'} (全文命中标记 {legacy or '无'})"))
 
     out.append(("C8", "文档 §2.1 行不再出现 0.8W 充电耗散",
                 ("0.8 W" not in row) and ("0.8W" not in row),
@@ -357,6 +417,43 @@ def caliber_checks(text):
     out.append(("C10", "已定区间边界不许被放松 (ISS-213 §5.3 / ISS-089 自-4: 0.45-0.57W)",
                 abs(P_CHARGE_LO - 0.45) < 1e-9 and abs(P_CHARGE_HI - 0.57) < 1e-9,
                 f"区间 = [{P_CHARGE_LO:.2f}, {P_CHARGE_HI:.2f}]W (已定 0.45-0.57W)"))
+    # ★C11 (ISS-219): 金属热路的 k 口径 = 6063-T6 官方 201 W/m·K, 不许漂回旧乐观值 237
+    live_237 = []
+    for line in text.splitlines():
+        if "237" not in line:
+            continue
+        if not any(w in line for w in LEGACY_DEAD_MARKERS):
+            live_237.append(line.strip()[:110])
+    out.append(("C11", "金属热路 k 口径 = 6063-T6 官方 201 W/m·K (不许漂回旧口径 237)",
+                abs(K_AL_6063_T6 - 201.0) < 1e-9
+                and "k=**201**" in text
+                and not live_237,
+                f"K_AL_6063_T6={K_AL_6063_T6:.1f} (201) · 旧口径 237 只许出现在已标注作废/订正的行里; "
+                f"未标注的 237 残留: {live_237 or '无'}"))
+    # ★C12 (ISS-222): C-6 落表 —— 分光件规格不许漂回旧口径 (14×10×6 / 0.79cc / 3-6g)
+    c12_det = []
+    m6 = [ln for ln in text.splitlines() if ln.strip().startswith("| M6 |")]
+    w4 = [ln for ln in text.splitlines() if ln.strip().startswith("| W4 |")]
+    if not m6:
+        c12_det.append("结构真源找不到 §1.3 M6 行")
+    else:
+        for lit in ("11 × 11 × 1.5", "0.9697"):
+            if lit not in m6[0]:
+                c12_det.append(f"§1.3 M6 行缺新规格 '{lit}'")
+    if not w4:
+        c12_det.append("结构真源找不到 §3 W4 行")
+    elif "3.68-7.36" not in w4[0].replace("**", ""):
+        c12_det.append(f"§3 W4 行没有 3.68-7.36: {w4[0][:80]}")
+    if "50.78 - 75.36" not in text.replace("−", "-").replace("—", "-"):
+        c12_det.append("§3 合计没有 50.78 - 75.36")
+    if abs(SPL_V_CC_V3 - 0.9697) > 1e-9:
+        c12_det.append(f"脚本常量 SPL_V_CC_V3 = {SPL_V_CC_V3} (应 0.9697)")
+    if abs(DOC_WEIGHT[0] - 50.78) > 1e-9 or abs(DOC_WEIGHT[1] - 75.36) > 1e-9:
+        c12_det.append(f"DOC_WEIGHT = {DOC_WEIGHT} (应 50.78, 75.36)")
+    out.append(("C12", "C-6 落表 (平板 11×11×1.5 + 棱镜 2×9×9×5 / 0.9697cc / W4 3.68-7.36g) 不许漂回旧口径",
+                not c12_det,
+                "M6 行 / §3 W4 行 / 合计 50.78-75.36 / 脚本常量 全部在位" if not c12_det
+                else "; ".join(c12_det)))
     return out
 
 
@@ -528,6 +625,23 @@ def run(verbose=True):
         print(f"  {'✅' if ok else '❌'} {code:<3} {name}")
         print(f"        {detail}")
 
+    # ---------------- §2b 金属热路 k 口径 (ISS-219) ----------------
+    hr("§2b 金属热路 k 口径 (ISS-219) — 6063-T6 官方 201 W/m·K (旧口径 237 已订正)")
+    print(f"  k = {K_AL_6063_T6:.0f} W/m·K  [官网] Hydro EN AW-6063 'Hydro 6063_Rev.4 – 03/2023'")
+    print(f"      (T6 Thermal Conductivity 201 W/m·K · Density 2.70 g/cm³) + Aalco + Kaiser 三家互证")
+    print(f"  旧口径 {K_AL_6063_T6_LEGACY:.0f} W/m·K (项目内乐观值) ⇒ ★已订正, 只留追溯, 不许当活口径")
+    print()
+    print(f"  同几何 (L={ENDPOINT_GEOM_L_MM:.0f}mm, A={ENDPOINT_GEOM_A_MM2:.0f}mm²):")
+    print(f"    铝 6063-T6 @ k=201 ⇒ R = {R_AL_201:.3f} K/W ⇒ 0.50 W 下 ΔT = {0.5 * R_AL_201:.2f} K  ✅")
+    print(f"    (旧口径 k=237 ⇒ R = {R_AL_237:.3f} K/W ⇒ ΔT = {0.5 * R_AL_237:.2f} K) —— 只留追溯")
+    print(f"    打印件 PA6-CF @ k=0.2 ⇒ R = {R_PRINT_6063:.1f} K/W ⇒ 0.50 W 下 ΔT = {0.5 * R_PRINT_6063:.0f} K  ❌")
+    print()
+    print(f"  R_热路 ≤ {R_PATH_MAX_KW:.0f} K/W ⇒ 截面积 A ≥ {A_MIN_R70_201:.4f} mm² (k=201 侧; 旧 237 侧 "
+          f"{A_MIN_R70_237:.4f})")
+    print(f"  ⇒ 2.0×2.0 = 4.0 mm² 铝条 R = {ENDPOINT_GEOM_L_MM * 1000.0 / (K_AL_6063_T6 * 4.0):.2f} K/W "
+          f"❌ 不合格 ⇒ **热路必须是铝/铜件, 不能是打印件** (结论方向未变)")
+    print()
+
     hr("自检: 复算值 vs MECH_BUDGET.md 发布值")
     bad = 0
     for nm, got, doc, tol in checks:
@@ -624,11 +738,15 @@ def selftest() -> int:
          "| **B. 峰值: 充电** | Type-C 输入 (5V) + 线性充电 IC | **0.8 W @ 1A** (IC 自身耗散 = "
          "(5−4.2)V × 1A) | `[推算]`; 充电 IC 拓扑参考 MPS MP26029/MP2710/MP2721 资料 `[官网]` |",
          "C6"),
-        ("反向10: 文档里残留旧的线性口径标记 (整行没删干净)",
+        ("反向10: 文档里残留旧的线性口径标记 (整行没删干净, 没标作废)",
          "| **B. 峰值: 充电** | Type-C 输入 (5V) + 开关型 buck 充电 IC (**BQ25896**) | "
          "**0.45-0.57 W** (代表值 **0.50 W**) — 耗散 = **Pin − Pout + P_DCR** | `[推算]`; "
-         "旧口径 (5−4.2)V × 1A = 0.8 W @ 1A 已判死 |",
+         "旧公式 (5−4.2)V × 1A = 0.8 W @ 1A 留档 |",
          "C7"),
+        ("反向11: 文档里的 C-6 规格漂回旧口径 (M6 回到 10×10×1.5 / 0.79cc · W4 回到 3-6 g)",
+         "| M6 | **一拖二分光件** (平板 + 2 转向棱镜) | [框] | 10 × 10 × 1.5 | 0.79 | 旧口径 | 0.02 | 旧 | `[推算]` |\n"
+         "| W4 | 一拖二分光件 (平板+2棱镜) | 1 | 3-6 | **3-6** | 旧口径 | `[推算]` |",
+         "C12"),
     ]
 
     print("=" * 100)
