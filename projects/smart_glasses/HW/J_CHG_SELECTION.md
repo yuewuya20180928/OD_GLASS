@@ -27,7 +27,7 @@
 | # | 判据 | 值 | 来源 | 证据 |
 |---|---|---|---|---|
 | C-1 | 位数 / 间距 | **1×10p @ 0.5mm** | 网表 V1.5 定稿 (`HW/netlist_v1.csv` 第 35 行) | [官方-项目内] |
-| C-2 | pin map | pin1/2=BAT_CHG (充电电流**双 pin 并联**) · pin3/4=GND (回流双 pin) · pin5=CHG_STAT · pin6=PWR_GOOD · pin7=VBUS_DET · **pin8=TS** · pin9=预留 · **pin10=TS 专用回流** | 网表 V1.5 + V1.8 (第 21 行 TS_RTN) | [官方-项目内] |
+| C-2 | pin map | pin1/2=BAT_CHG (充电电流**双 pin 并联**) · pin3/4=GND (回流双 pin) · pin5=CHG_STAT · pin6=PWR_GOOD · ★**pin7=NC** (2026-11-04 起 `VBUS_DET` 改主板本地分压 ⇒ 本脚不接) · ★**pin8=TS_BAT** (TS 跨铰链) · ★**pin9/10=HINGE_RSV** (预留不接, DNP; BQ25896 的 I2C **不跨铰链** —— PM 裁决, 充电板本地自闭环, 上拉 10k 挂 `REGN` 5V) | ★**已按网表真源订正 (ISS-199 · 2026-11-12)**: 依据 = `HW/netlist_v1.csv` 逐脚实读 (P1 第 15/16/20/21/22/23 行 · P2 第 189/192 行 · P9 第 433 行 · P10 第 478/481/482 行) + `HW/CHARGE_BOARD_SPEC.md` §5.2 (ISS-136 定版) ⇒ **真源 = 网表**; ★**原行 「pin7=VBUS_DET / pin10=TS 专用回流」 是旧口径** (跨铰链 `TS_RTN` 这个网现行网表 0 处, 2026-11-03 撤除) | [官方-项目内] |
 | C-3 | **单触点额定电流** | **≥0.35A** (任务下限) / **建议 ≥0.5A** (见 §0-3) | ISS-099 + ISS-091 M-6 | [推算] |
 | C-4 | 充电电流档 | `R_ILIM` = **390Ω** → ICHG 0.822A (max) → **单 pin 0.411A** | `HW/POWER_SHUTDOWN_V3.md` / 网表 `R_ILIM` 行 (V1.8) | [官方-项目内] |
 | C-5 | 座体高度 | **≤ 2.5mm** (铰链端 H 链余量 ≥1.40mm) | 本轮 §4 | [推算] |
@@ -193,7 +193,7 @@
 
 | 结论 | 等级 | 依据 |
 |---|---|---|
-| J_CHG = 1×10p@0.5mm + pin map (pin1/2 BAT_CHG, pin3/4 GND, pin5 CHG_STAT, pin6 PWR_GOOD, pin7 VBUS_DET, pin8 TS, pin9 预留, pin10 TS_RTN) | **[官方-项目内]** | `HW/netlist_v1.csv` 第 35 行 (V1.5) + 第 21 行 (V1.8) |
+| J_CHG = 1×10p@0.5mm + pin map (pin1/2 BAT_CHG, pin3/4 GND, pin5 CHG_STAT, pin6 PWR_GOOD, pin7 NC, pin8 TS_BAT, pin9/10 HINGE_RSV) | **[官方-项目内]** | ★**已按网表真源订正 (ISS-199 · 2026-11-12)**: `HW/netlist_v1.csv` 逐脚实读 (P1 第 15/16/20/21/22/23 行 · P2 第 189/192 行 · P9 第 433 行 · P10 第 478/481/482 行) + `HW/CHARGE_BOARD_SPEC.md` §5.2 (ISS-136 定版); ★**原行 「pin7 VBUS_DET / pin8 TS / pin10 TS_RTN」 是旧口径** —— `TS_RTN` 现行网表 0 处 (2026-11-03 撤除), `VBUS_DET` 已于 2026-11-04 起改**主板本地**分压 |
 | `R_ILIM` = 390Ω → ICHG 0.822A → 单 pin 0.411A | **[官方-项目内] + [推算]** | 网表 `R_ILIM` 行 (V1.8) + BQ25896 KILIM 320/355/390 AΩ [官方 datasheet] |
 | FH12: 0.5mm pitch · 0.5A DC/触点 · 全触点导通时 70% · 50V AC · 耐压 150V · 绝缘 500MΩ · UL94 V-0 · -40~+85°C · 20 次 · 座高 2.0mm (加强锁 +0.4) · 支持 FPC 0.18±0.05mm · 10 脚位置号在列 | **[官方]** | Hirose FH12 系列规格书 (20p, Farnell 转载) |
 | FH12 28p 外形宽 18.1mm / 进深 6.4mm / 高 2mm | **[官方]** | FH12 规格书 + 经销商参数页 |

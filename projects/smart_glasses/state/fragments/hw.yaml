@@ -1,6 +1,6 @@
 agent: hw-lead
 role: 硬件总工
-updated_at: '2026-11-11'
+updated_at: '2026-11-15'
 updated_by: hw-lead
 status:
   phase: P3(画板前致命项清零)+PCB布线收官
@@ -28,7 +28,14 @@ status:
     验** 或 **转 deferred 并写清新 due**, **没有一条自验自签**。★**⑤ 本周新增 5 条 needs** (ISS-181 三条出路 / 板规则+工艺参数拍板 / ISS-128
     按 0.42mm 重算 / SoM IO 域映射 / BOM 生成器备料倍数)。★**⑥ 边界**: 未发邮件 / 未联系供应商 / 未放行 RFQ / 未下单; 未改 sw.yaml·mech.yaml·pm.yaml
     / 别人的 issue / SW/ / MECH/ / PROJECT_TRACKER.md 锁死变量表; 未改网表生成器与 BOM 生成器 (走 needs); 官方板**本窗口未动** (md5
-    仍 611b869e)。'
+    仍 611b869e)。
+
+
+    ★【ISS-195 交卷 2026-11-15】麦 M1 到 S1 压紧螺钉孔的孔壁净空, 已按现行 60x30 板 / 套A 孔位复算并落文档: 净空 1.26mm (控制孔 S1) ⇒ PASS,
+    余量 +0.26mm (不重叠>0 / 板规则 0.25 / ISS-092 先例 1.00 三条全 PASS); 逐孔 P1 1.69 / S1 1.26 / P2 44.60 / S2 45.42;
+    HW/ISS121_MIC_MAGNET_POSITION.md 8 处订正 (15mm 老口径 3.01mm 只留档), 交卷报告 HANDOFF/2026-11-15_hw-lead_ISS195_麦克风孔壁净空_套A复算.md;
+    ★新登记 needs iss195_mic_y_landing_decision (麦Y落位请 main 裁决: 中线Y=15.00 只有 0.55mm ⇒ 不许取); ★另发现盘上 iss121_mic_magnet_check.json
+    是过期件 (死会话改脚本未重跑) —— 本单已重跑对齐, 判定数字未变.'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -454,6 +461,87 @@ artifacts:
   updated_at: '2026-10-25'
   summary: 'ISS-136: 检查项 ⑦ 从比硬编快照改成实读规格 §5.2 表 vs 网表逐脚对拍 (新增 ⑦a 同脚多网防护 + ⑦b 快照对齐); 已接入 state/gate_check.py
     门禁链【Q6】, 闸红即 gate_check rc=1'
+- path: HW/ISS121_MIC_MAGNET_POSITION.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-195: PIN-SET-2 孔位口径由 15mm 老口径订正为现行 60x30 板套A (P1(8,15)/P2(52,15)/S1(8,10)/S2(52,20));
+    §3.2-4 孔壁净空 3.01mm→1.26mm(控制孔S1); §3.6 P-3 补入脚本§F Y敏感度(最差Y=14.19⇒0.55mm); §4-10/§5/§6/§7-U7/§8/页脚
+    同步; 判据阈值一条未改; 15mm老值只留档对照'
+- path: HANDOFF/2026-11-15_hw-lead_ISS195_麦克风孔壁净空_套A复算.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-195 交卷报告: 麦M1(2.90x1.60@X5.00/Y12.00) 到 S1 压紧螺钉孔孔壁净空 = 1.26mm (控制孔S1) ⇒ PASS, 余量 +0.26mm
+    (ISS-092先例1.00/板规则0.25/不重叠>0 三条全PASS); 逐孔 P1 1.69/S1 1.26/P2 44.60/S2 45.42; 独立复算逐字一致; 发现盘上json过期(死会话改脚本未重跑)已修;
+    新增待main裁决项 U-7 麦Y落位'
+- path: HANDOFF/2026-11-15_hw-lead_ISS199_J_CHG_pinmap_第2口径收敛.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: 'ISS-199: HW 侧 J_CHG pin map 第 2 口径全部收敛到网表真源 —— 4 处 (CHARGE_BOARD_SPEC §5.1 表 5 行 + §5.1 订正注记
+    1 条 + §7 P10 csv 镜像块 8 行 + J_CHG_SELECTION 第 30/196 行 + POWER_SHUTDOWN_V3 第 129 行) 逐脚对拍 netlist_v1.csv
+    订正; 门禁 11/11 PASS + Q1 18/18 + Q6 通过; 三个 md5 一字未变; 另报第 5 处旧口径 (CHARGE_STATUS_READBACK.md) 与 6 项地界外残留'
+- path: HW/PCB/RK3572_UART0_TX_PINMUX_VERDICT.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: '★ISS-204 交卷: J_SOM_P2.pin7 当 UART_TX 用 —— 不用引脚复用, 出厂默认功能就是 UART0_TX_M0_DEBUG, 设计正确零改动。三源交叉:
+    ①Rockchip 官方 datasheet §2.6 Table 2-1 p.31 原文 JTAG_TCK_M1/UART0_TX_M0/GPIO0_D4_u U33 GPIO0_D4 + JTAG_TMS_M1/UART0_RX_M0/GPIO0_D5_u
+    V32 GPIO0_D5 (p.30 PWM0_CH1_M0/.../GPIO0_C3_d W33 GPIO0_C3) ②Rockchip 官方内核 develop-6.12 rk3572-pinctrl.dtsi
+    uart0 节点 uart0_tx_m0 = <0 RK_PD4 9> / uart0_rx_m0 = <0 RK_PD5 9>, GPIO0_D4 全 pad 只 FUNC9 uart0_tx_m0
+    + FUNC10 jtag_tck_m1 ③Forlinx 手册 §2.6.2 Table 3 (P2 Odd) 7|U33|UART0_TX_M0_DEBUG|GPIO0_D4_u|3.3V +
+    §2.7.9 按功能表 UART0_TX_M0_DEBUG=O|P2_7 + §3.5.5 原文 JTAG_TCK_M1/TMS_M1 与 UART_Debug-UART0_M0 复用 + UART
+    Debug 默认 P2_7/P2_9。★前提纠错: PWM0_CH1_M0 是 P2_3 (W33) 不是 P2_7, P2_7 是奇数脚在 Table 3 不在 Table 4。BOOT: SARADC_VIN0_BOOT=P1_28
+    / PMIC_VDC=P3_10 官方 GPIO 列都是空 专用脚无复用功能, 与 UART0 零交集 不影响启动。替代脚候选+改板代价全交齐 (P2_7=0; P1_56 UART11 低; P1_3
+    高牺牲SD卡; P2_73 1.8V中; P4_21 中; P2_13 高)。含 3 条顺带发现 F1 官方要求 UART 串100欧+TVS 而本板没有 / F2 TBD-01 可用官网数据直接关
+    / F3 P1_56+P1_60 零pinmux成本第二路。'
+- path: HANDOFF/2026-11-15_hw-lead_ISS204_UART0_TX_pinmux核.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: '★ISS-204 交卷报告: 结论=能复用且无需复用 (P2_7 出厂默认即 UART0_TX_M0_DEBUG), 证据=Rockchip datasheet p.31 Table
+    2-1 原文 + 官方内核 rk3572-pinctrl.dtsi + Forlinx Table 3/§2.7.9/§3.5.5 三源交叉; 前提纠错 (PWM0_CH1_M0=P2_3); BOOT
+    零交集; 板 md5 611b869e13518c3c023fb178f91a0075 与网表 md5 c78f991283cc82d56c8e3dd31657c785 均未变; 未碰网表/板/原理图/生成器/issue_log;
+    未发任何邮件未联系供应商未下单; 查不到项: Forlinx Pin Multiplexing Comparison Table [0数据] 需登录, 降级为 Rockchip datasheet
+    + 官方内核两份一手源交叉。'
+- path: HW/PCB/TP_INT_REMAP_SPEC.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ISS-174 判真伪 (c) 部分成立 + CONN_LIGHT 22 脚全表 + SoM GPIO 候选表 (主选 J_SOM_P4 pin62/GPIO2_D7_z/ball
+    B7) + 原理图变更规格 + 整链重出清单 + 6 项 [0数据] 降级
+- path: HW/check_tp_int_gap.py
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-174 机器门禁: 22 脚落点 + NET_TP_INT/TP_RESET 现状 + GPIO 池剩余数 + 候选脚空着; rc=0=一致, --selftest 5/5'
+- path: HANDOFF/2026-11-15_hw-lead_ISS174_TPINT改脚规格.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ISS-174 交卷报告 (结论先行 + 候选表 + 规格摘要 + 复现命令输出)
+- path: HW/NETLIST_SELF_CONSISTENCY_SPEC.md
+  kind: spec
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: '★网表自身一致性 4 处 (I2C_A 上拉 NET 行 4.7k/3.3V vs 器件行 2.2k/1.8V / BAT_DET 分压链全 DNP 但 SoM ADC 脚 J_SOM_P1
+    pin38 必装 / U_EN_SW 无器件本体行 ⇒ BOM L208 登记成 NET 行 / USB D− 无 ESD 而 D_ESD_USB_D 仅 2 焊盘却自称双通道) 的★逐条落表规格★:
+    4 条 × 6 栏 (现象 / 为什么是缺陷 / 修法精确到改哪个字段 / 影响面 / 落表时机 / 证据等级) + 门禁翻面条件 (§⑤) + 根因链 (§3) + 附带发现 5 条 (§6)
+    + 未决 4 条 (§7); ★本单不改网表 / 不改板 / 不改生成器★'
+- path: HW/check_netlist_selfconsistency.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: '★ISS-211 机器门禁★: 守 ★规格页 ⇄ 脚本 ⇄ 现行文件 三方对齐★ (64 条锚点: a 规格页与网表逐字对账 / b BOM 里 U_EN_SW 的 type 仍是
+    NET 现状断言 / c 4 条各自不该改错的锚点仍在); 现状守卫 rc=0 (★4 条缺陷仍在才是预期★) + --expect-resolved 翻面口径 (落表后 rc=0) + --selftest
+    9/9 反向用例 (改坏任一锚点必红) + --emit-anchors 重生成规格页锚点表; ★只读, 不写任何项目文件★'
+- path: HANDOFF/2026-11-15_hw-lead_ISS211_网表自身一致性4处.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: '★ISS-211 交卷报告 (B1~B6 齐全, 25 行)★: 结论摘要 / 验收标准自评 / 证据分级 / 接口取值 (0 条) / 未决卡点 U-1~U-4 / 自证复现命令;
+    ★受保护 md5 交卷前后逐字节不变★'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -1109,6 +1197,66 @@ needs_from:
     pin8=VBUS_DET / pin6=CHG_STAT / pin7=PWR_GOOD / pin5=TS / pin9-10=I2C, 与网表错位) ② §7 的 P10 csv 镜像块 (同样带旧口径)
     ③ ISS-112 那张三方口径对照表 (2026-10-29 历史快照, 其网表列已过期) —— 三处都需 main 拍板是否一并订正; 本单只改了 §5.2 的 pin map 表, 其余一字未动'
   since: '2026-10-25'
+- key: iss195_mic_y_landing_decision
+  to: main
+  item: '★ISS-195: 麦的Y落位请裁决 (套A 60x30板): Y=12.00 ⇒ 孔壁净空1.26mm(S1控制) 余量+0.26 PASS; 板中线 Y=15.00 ⇒ 0.55mm
+    破 ISS-092先例1.00mm ⇒ 落位带限 [0.80..8.50]/[11.50..12.93]/[17.07..29.20]; 不许取Y=15.00; 默认假设沿用Y=12.00'
+  since: '2026-11-15'
+- key: iss199_jchg_pinmap_residual_5th_vocab
+  to: main
+  item: 'ISS-199 收尾后 HW 侧仍有第 5 套 J_CHG 旧口径 (本单地界外, 报 main): ① HW/CHARGE_STATUS_READBACK.md 第 43 行仍写整套旧
+    pin map (pin7=VBUS_DET, pin8=TS, pin9/10=预留), 第 19 行仍写 NET_VBUS_DET 走 J_CHG pin7 跨铰链 —— 这是当前口径表不是历史快照,
+    需按网表真源订正; ② HW/CHARGE_BOARD_SPEC.md §2.2 表第 117/118/119/120 行: PG 写 J_CHG pin7 (应 pin6), STAT 写 pin6
+    (应 pin5), SCL/SDA 写 pin9/pin10 (应是预留不接) —— §2.2 不在本单可改清单; ③ HW/POWER_SHUTDOWN_V3.md 第 114/116 行仍写
+    VBUS_DET 经 J_CHG pin7 跨铰链 与 TS 专用回流 J_CHG pin10 —— 本单对该文件只许动第 129 行; ④ HW/SCHEMATIC_V1.md 第 618 行旧
+    pin map 摘要 + 第 61/62 行 TS 专用回流 描述 —— 该文件是生成物 (state/gen_schematic_pages.py 从 netlist_v1.csv 生成), 根因在生成器硬编码,
+    手改会被下次 gen 覆盖, 改生成器不在本单地界; ⑤ HW/CHARGE_BOARD_SPEC.md §7 csv 第 581/582/583 行 VBUS_DET 分压臂仍写充电板侧 + board=CHG_BOARD
+    (现行网表是 MAIN_PCB 的 R_VBUS_DET_D1/D2), 改 board 会连带 §7.1 计数对账表 (地界外); ⑥ 同块第 568/569 行 I2C 上拉写 DNP 不装,
+    真上游 state/p10_rows.json 是必装 10k 挂 REGN 5V (PM 已裁决) —— 是装配取值不是 pin map; ⑦ 结构侧 mech.yaml interface_claims
+    仍写 7=VBUS_DET / 8=TS / 9=RSV / 10=TS_RTN, 仍未同步网表。★本单已把题单点名的 4 处 (CHARGE_BOARD_SPEC §5.1 表 + §5.1 订正注记
+    + §7 P10 csv 镜像块 + J_CHG_SELECTION 第 30/196 行 + POWER_SHUTDOWN_V3 第 129 行) 全部收敛到网表真源, 门禁 rc=0。'
+  since: '2026-11-15'
+- key: iss204_uart_debug_100ohm_tvs
+  to: main
+  item: '★ISS-204 顺带查出的真缺陷级项 (本单只登记, 未改网表): Forlinx OK3572-C 手册 §3.5.5 官方原文要求 UART Debug 串接 100 欧姆电阻 (if
+    plug-in is used) + 在插口位置附近加 TVS 管, 且 Note 明说保留 Q1/Q2 是为了防止外部 (U6) 电流经 UART0_TX/RX 回灌进 CPU 导致影响启动甚至损坏。★实测本板缺口:
+    HW/netlist_v1.csv 的 UART_TX/UART_RX 两条网络目前只有 J_SOM_P2 pin7 到 J_UART pin1 / pin9 到 J_UART pin2 加 TP_UART
+    测试点, 全网表无 UART 网络上的串联电阻, 也无 UART 网络上的 ESD/TVS 阵列。★请裁决: (a) 单独开一条 issue 走网表流程加 100 欧 x2 + 一只双通道 ESD/TVS
+    阵列 (载板改动, 不动 SoM 侧, 不需整链重出); 还是 (b) 判为 demo 版可接受并记录到 PIN_REALITY_GAP 待产品版补。★证据: HW/PCB/RK3572_UART0_TX_PINMUX_VERDICT.md
+    §5 F1 (Forlinx §3.5.5 原文 + 本机 netlist 实读)。★边界: 本单 ISS-204 只出文档不改网表不改板, 故只登记不动手。'
+  since: '2026-11-15'
+- key: iss204_pingap_gen_pin2_7_fix
+  to: main
+  item: '★ISS-204 结论已闭环 (P2_7 无缺陷, 出厂默认即 UART0_TX_M0_DEBUG), 但仓里有 2 处人写的文档带着错口径, 本单不许改 (边界), 请项目总工落账:
+    (1) HW/PCB/RK3572_SOM_BALLTABLE_CROSSCHECK.md §3 发现 A 那条 官方 P2_7 = PWM0_CH1_M0 / GPIO0_C3_d 是错的 ——
+    应为 P2_7 = UART0_TX_M0_DEBUG / GPIO0_D4_u / ball U33, 而 PWM0_CH1_M0 / GPIO0_C3_d 是 P2_3 / ball W33。
+    (2) HW/PCB/PIN_REALITY_GAP.md §5.1 里同一句 待核: P2_7 官方默认功能是 PWM0_CH1_M0 我们拿它当 UART_TX 用 需用官方 pinmux 表交叉核
+    —— 该文件是 state/gen_kicad_sch.py --pin-gap 的产物, 要改必须在生成器里改不能手改产物, 而本单不许动生成器也不许重跑 (会带上 main 的改动), 所以留给项目总工在生成器里改后重跑。★注意:
+    我们自己的数据一直是对的 (HW/PCB/FET3572C_PIN_TABLE.csv 行 P2,7,U33,UART0_TX_M0_DEBUG,GPIO0_D4_u + HW/PCB/SOM_PIN_VERIFY.md:96
+    UART0_TX_M0_DEBUG | P2_7), 错位只在人写文档里。★证据: HW/PCB/RK3572_UART0_TX_PINMUX_VERDICT.md §1 与 §7。'
+  since: '2026-11-15'
+- key: iss211_usb_esd_dminus_select
+  to: main
+  item: 'ISS-211 U-1: USB D− 的 ESD 方案二选一 (① 换 3 脚双通道阵列封装 D+ / D− / GND  ② 保留现有 2 脚件 + 另加一只 D_ESD_USB_D_N)
+    + 型号判据 (结电容 ≤3pF 量级 / 钳位电压 / IEC 61000-4-2 等级) ⇒ ★卡第 (4) 条落表★, 且它要改板 + 挪位置 (现距 J_USB_C 实测 47.99mm,
+    判据 ≤5mm) + 重跑布线 ⇒ 必须并进整链重出 第 1 步; ★板级选型, 不由本单代拍; 零外发, 本单只出缺什么 + 判据★'
+  since: '2026-11-15'
+- key: iss211_saradc_vin5_params
+  to: main
+  item: 'ISS-211 U-2: SoM SARADC_VIN5 (J_SOM_P1 pin38, 1.8V 域) 的 ★ADC 满量程范围 / 采样源阻抗要求 / abs-max★ ⇒ ★卡第
+    (2) 条的分压比★; 不关掉就把一颗 1.8V 域 ADC 脚灌到 2.1V (1:1 分压 @4.2V 实算) ⇒ 需 Forlinx 手册或 BSP dtsi 佐证; 项目库目前 [0数据]'
+  since: '2026-11-15'
+- key: iss211_bat_det_leakage_budget
+  to: main
+  item: 'ISS-211 U-4: BAT_DET 分压链若从 1M+1M 改到 100k 量级 (★2026-10-27 ISS-096/098 合并单里 hw-lead 自己提过的方向: 源阻抗
+    50kΩ★), 漏电从 ~1.65µA@5V 抬约 10 倍 ⇒ 对整机待机功耗 / 续航 (老板关注 ≥1h) 的影响需算一遍 ⇒ 本单出数, 老板拍; 不阻塞落表'
+  since: '2026-11-15'
+- key: iss211_usb_ser_r_value_conflict
+  to: main
+  item: 'ISS-211 附带发现 #1 (本单不落表, 只登记): ★同一颗 USB 串阻在表A 里有两个打架的阻值★ —— L291/L292 的 value 写 90Ω ±10% (与 MIPI
+    不同模板!) 而 L431/L432 的 value 写 22Ω ±1%, 同一颗 R_SER_USB_D_P/D_N 差 4 倍 ⇒ 与第 (1) 条同型 (规格 imp vs 器件行), 根因很可能也在
+    HW/SCHEMATIC_V1_SPEC.json 的同源连接条目 imp 字段 ⇒ 建议与第 (1) 条同批查一遍'
+  since: '2026-11-15'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -1377,6 +1525,50 @@ answers:
     未发任何邮件/未联系供应商/未下单。'
   ref: HANDOFF/2026-11-11_hw-lead_ISS186_DSI_payload_订正.md + HW/DISPLAY_MODULE_DECISION.md:53 + HW/STEP1_PARTS_SPEC.md:375
     + HW/DEMO_BOARD_HW_DECISION.md:65 + HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md:398 + state/outbox/visionox_display_inquiry.md:29
+- key: iss136_spec_residual_sections_sync
+  to: main
+  value: 'ISS-136 残留口径已由 ISS-199 全部交付: ① CHARGE_BOARD_SPEC.md §5.1 过铰链线表 第 399/402/403/406/407 行 + §5.1
+    第 400 行那条 2026-11-02 订正注记 (整条重写) ② 同文件 §7 的 P10 csv 镜像块 第 552/559/564/565/566/567/581/584 行 ③ J_CHG_SELECTION.md
+    第 30 行 (C-2 行) + 第 196 行 ④ POWER_SHUTDOWN_V3.md 第 129 行 —— 全部按 HW/netlist_v1.csv 逐脚对拍订正 (pin7=NC,
+    pin8=TS_BAT, pin9/10=HINGE_RSV), 每处加 已按网表真源订正 (ISS-199 2026-11-12) 注记; 门禁 check_bq25896_pinout rc=0
+    (11/11 PASS) + gate_check rc=0 (Q1 18/18, Q6 通过) + merge rc=0; 网表/板/p10_rows.json 三个 md5 一字未变。★ISS-136
+    的 ISS-112 三方对照表未动 (地界外, 已加注记); 结构侧 mech.yaml interface_claims 4 脚旧值仍未同步 (本单另立 need)。请 main 收口闭合本 key。'
+  ref: HANDOFF/2026-11-15_hw-lead_ISS199_J_CHG_pinmap_第2口径收敛.md
+- key: iss204_uart0_tx_pinmux_verdict
+  to: main
+  value: '★【ISS-204 结论】J_SOM_P2.pin7 可以当 UART_TX 用 —— 且根本不需要引脚复用: 它的出厂默认功能就是 UART0_TX_M0_DEBUG ⇒ 本板设计正确,
+    零改动, 零改板代价, 投板一次成功概率不受影响。★证据等级 [官网] x3 独立源交叉: (1) Rockchip 官方 datasheet (https://rockchip.fr/RK3572
+    datasheet V1.0.pdf, RK3572 Datasheet Rev 1.0, 51 页) §2.6 Pin Number List / Table 2-1 Pin Number Order
+    Information p.31 原文 JTAG_TCK_M1/UART0_TX_M0/GPIO0_D4_u  U33  GPIO0_D4 + JTAG_TMS_M1/UART0_RX_M0/GPIO0_D5_u  V32  GPIO0_D5;
+    同表 p.30 原文 PWM0_CH1_M0/PDM_CLK1_M0/HDMI_TX_CEC_M1/SPI0_CSN1_M0/GPIO0_C3_d  W33  GPIO0_C3 (2) Rockchip
+    官方内核仓库 develop-6.12 arch/arm64/boot/dts/rockchip/rk3572-pinctrl.dtsi 原文 uart0 节点 /* uart0_tx_m0 */
+    <0 RK_PD4 9 &pcfg_pull_up> /* uart0_rx_m0 */ <0 RK_PD5 9 &pcfg_pull_up> ⇒ GPIO0_D4 全 pad 只有 FUNC9
+    uart0_tx_m0 + FUNC10 jtag_tck_m1 (3) Forlinx OK3572-C 手册 §2.6.2 Table 3 (P2 Connector Interface Odd
+    Pin Definition) 原文 7|U33|UART0_TX_M0_DEBUG|GPIO0_D4_u|3.3V|UART0 send (Debug Serial Port) 与 9|V32|UART0_RX_M0_DEBUG|GPIO0_D5_u|3.3V,
+    §2.7.9 UART Interface Control Pins 按功能表原文 UART0|UART0_TX_M0_DEBUG|O|UART0 data sending|P2_7, §3.5.5
+    原文 JTAG_TCK_M1/JTAG_TMS_M1 is located in the PMUIO1 domain and is multiplexed with UART_Debug—UART0_M0
+    与 The UART Debug is set by default to UART0_TX_M0_DEBUG (P2_7)/UART0_RX_M0_DEBUG (P2_9) ⇒ 三源在球位 U33
+    这一级完全对上。★【前提纠错, 重要】官方 PWM0_CH1_M0/GPIO0_C3_d 是 P2_3 (ball W33) 不是 P2_7; P2_7 是奇数脚, 在 Table 3 (Odd)
+    不在 Table 4 (Even) ⇒ 当时按偶数表读把 NUM=3 那行读成了 NUM=7 ⇒ 我们自己的数据一直是对的 (FET3572C_PIN_TABLE.csv 行 P2,7,U33,UART0_TX_M0_DEBUG,GPIO0_D4_u
+    + SOM_PIN_VERIFY.md:96 UART0_TX_M0_DEBUG | P2_7), 错位只在人写的 RK3572_SOM_BALLTABLE_CROSSCHECK.md §3 发现
+    A。★BOOT 副作用核对 [官网]+[实测]: SARADC_VIN0_BOOT = P1_28 (ball 1AF21, 1.8V) 与 PMIC_VDC = P3_10 在官方表里 GPIO
+    列都是 —— (专用脚, 无任何 GPIO 复用功能) ⇒ 物理上不可能复用成 UART0_TX/RX ⇒ 零交集, 不影响启动; 本板 P1_28 确实在用 (BOOT_N, 10k 上拉 +
+    BOOT 键) 而 P3_10 未用 (PMIC_VDC 全在 SoM 内部)。★替代脚候选+改板代价已交齐 (本单不需要): uart0_tx_m0=GPIO0_D4=P2_7 本板在用代价 0;
+    uart11_tx_m1=GPIO2_B6=P1_56 官方默认已是 UART11_TX_M1_3V3 且本板空着 代价低(加2网络+排针+100欧x2+TVS 不换脚); uart0_tx_m1=GPIO2_A1=P1_3
+    代价高(牺牲SD卡, 整链重出 2-4周+4-8K); uart8_tx_m0=GPIO3_C6=P2_73 代价中(1.8V需电平转换); uart9_tx_m0=GPIO4_B4=P4_21
+    代价中; uart10_tx_m2=GPIO0_C4=P2_13 代价高(牺牲 KEY_VOL_P)。★顺带 3 条发现: F1 官方 §3.5.5 要求 UART Debug 串 100 欧 +
+    插口旁加 TVS 且明说反灌会 affecting the startup and even causing damage, 而实测我们网表 UART_TX/UART_RX 只有 J_SOM_P2
+    pin7/9 到 J_UART pin1/2 + TP_UART 测试点, 无任何串阻无 TVS ⇒ 建议另开 issue 走网表流程 (本单不改网表); F2 网表 UART 两行挂的 [待原厂]
+    TBD-01 可用官网数据直接关 (TX=O / RX=I / 3.3V / 单端) 不需要问任何人; F3 将来若要调试口+应用口两路, P1_56+P1_60 (UART11, 出厂默认即 UART)
+    是零 pinmux 成本的第二路。★要你落账的 3 处订正: (1) HW/PCB/RK3572_SOM_BALLTABLE_CROSSCHECK.md §3 发现 A 改 P2_7 = UART0_TX_M0_DEBUG/GPIO0_D4_u/U33
+    且 PWM0_CH1_M0 = P2_3/W33; (2) HW/PCB/PIN_REALITY_GAP.md §5.1 同上 —— 该文件是 state/gen_kicad_sch.py --pin-gap
+    的产物, 要改必须在生成器里改不能手改产物, 而本单不许动生成器也不许重跑, 故留给你; (3) ISS-204 那条待 hw-lead 核 pinmux 的 need 可关。★查不到项 [0数据]
+    + 降级: Forlinx FET3572-C SoM Pin Multiplexing Comparison Table 需在下载区登录注册, 公开直链取不到 ⇒ 已用两份更强的一手源 (Rockchip
+    datasheet §2.6 Table 2-1 SoC 级真源 + Rockchip 官方内核 rk3572-pinctrl.dtsi IOMUX FUNC 权威) 替代, 结论等价且更强, 不影响结论;
+    本板 UART 反灌实测 [0数据] (无实板不测不猜) ⇒ 降级 = 按 F1 用官方拓扑规避。★边界: 未改网表/板/原理图/生成器/PIN_REALITY_GAP/FET3572C_PIN_TABLE,
+    未碰 issue_log 与 PROJECT_TRACKER §0, 未碰别人分片; 板 md5 611b869e13518c3c023fb178f91a0075 与网表 md5 c78f991283cc82d56c8e3dd31657c785
+    交卷时实测未变; 未发任何邮件未联系任何原厂供应商未下任何采购单。'
+  ref: HW/PCB/RK3572_UART0_TX_PINMUX_VERDICT.md + HANDOFF/2026-11-15_hw-lead_ISS204_UART0_TX_pinmux核.md
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -2426,6 +2618,47 @@ interface_claims:
   value: 4480 Mbps
   note: 1920x1080x24x90 = 4478.976 Mbps; 脚本 §⑥ 打印 4479.0 (显示取整差 1 Mbps, 口径同源)
   ref: HW/e2e_budget_rk3572.py §⑥
+- key: mic_pinset_wall_clearance
+  value: 1.26mm(S1控制)
+  note: 麦封装2.90x1.60@板X5.00/Y12.00 到 PIN-SET-2 套A孔壁净空; 判据 不重叠>0/板规则0.25/ISS-092先例1.00 全PASS 余量+0.26mm;
+    Y落位不得取板中线Y15.00(那里只有0.55mm), 允许带[0.80..8.50]/[11.50..12.93]/[17.07..29.20]; HW/ISS121_MIC_MAGNET_POSITION.md
+    §3.2-4 + HW/iss121_mic_magnet_check.json
+  ref: ''
+- key: j_chg_pin_map
+  value: '1x10p: 1/2=BAT_CHG, 3/4=GND, 5=CHG_STAT, 6=PWR_GOOD, 7=NC, 8=TS_BAT, 9/10=HINGE_RSV'
+  note: ★真源 = HW/netlist_v1.csv (投板真源), 逐脚实读 [实测]; 与 state/p10_rows.json + HW/netlist_v1_pins.csv 三方互证。★ISS-136
+    已定版 CHARGE_BOARD_SPEC.md §5.2 表; ★ISS-199 已把 HW 侧其余 4 处第二口径 (CHARGE_BOARD_SPEC §5.1 表 + §5.1 订正注记
+    + §7 P10 csv 镜像块 + J_CHG_SELECTION 第 30/196 行 + POWER_SHUTDOWN_V3 第 129 行) 全部收敛到本口径 ⇒ 同一接口不再有第 5 套
+    pin map。★结构侧 mech.yaml interface_claims 仍是 7=VBUS_DET / 8=TS / 9=RSV / 10=TS_RTN ⇒ 需结构侧同步 (已报 main)。★pin7=NC
+    (2026-11-04 起 VBUS_DET 改主板本地分压) · pin9/10 不接 (BQ25896 的 I2C 本板自闭环, PM 裁决) · 跨铰链 TS_RTN 已于 2026-11-03
+    撤除 (现行网表 0 处)
+  ref: HW/CHARGE_BOARD_SPEC.md §5.2
+- key: j_som_p2_pin7_uart_tx_pinmux
+  value: P2_7 = UART0_TX_M0_DEBUG / GPIO0_D4_u / ball U33 / 3.3V / TX=O, P2_9 = UART0_RX_M0_DEBUG / GPIO0_D5_u
+    / ball V32 / 3.3V / RX=I
+  note: '★ISS-204 实测闭环 [官网]x3: Rockchip datasheet Rev1.0 §2.6 Table 2-1 p.31 原文 JTAG_TCK_M1/UART0_TX_M0/GPIO0_D4_u
+    U33 GPIO0_D4 + JTAG_TMS_M1/UART0_RX_M0/GPIO0_D5_u V32 GPIO0_D5; Rockchip 官方内核 develop-6.12 rk3572-pinctrl.dtsi
+    原文 uart0_tx_m0 = <0 RK_PD4 9> / uart0_rx_m0 = <0 RK_PD5 9> (GPIO0_D4 全 pad 只 FUNC9 uart0_tx_m0 + FUNC10
+    jtag_tck_m1); Forlinx 手册 §2.6.2 Table 3 (P2 Odd) + §2.7.9 按功能表 (UART0_TX_M0_DEBUG = O = P2_7) + §3.5.5
+    (UART Debug 默认 P2_7/P2_9)。★⇒ 结论: 该脚是 UART0_TX 出厂默认功能, 无需引脚复用, 与 JTAG_TCK_M1 互斥但我们不占 JTAG。★纠错: PWM0_CH1_M0/GPIO0_C3_d
+    是 P2_3 (ball W33), 不是 P2_7 ⇒ 官方 P2_7 没有任何缺陷。★BOOT 零交集: SARADC_VIN0_BOOT=P1_28 与 PMIC_VDC=P3_10 官方
+    GPIO 列皆空(专用脚, 无 GPIO 复用功能), 本板 P1_28 在用 (BOOT_N) 而 P3_10 未用。★遗留待 PM 落账: F1 官方要求 UART 串 100 欧 + TVS
+    而本板无 (建议另开 issue); F2 TBD-01 可用本条数据直接关闭 (TX=O/RX=I/3.3V/单端); F3 P1_56+P1_60 = UART11_TX_M1/RX_M1 官方默认即
+    UART 3.3V, 本板空着, 可作零 pinmux 成本第二路串口。'
+  ref: HW/PCB/RK3572_UART0_TX_PINMUX_VERDICT.md
+- key: ISS-174_tp_int_som_pin_reserved
+  value: 'J_SOM_P4 pin62 (GPIO2_D7_z, ball B7, 3.3V, 官方默认 ETH0_RXCLK) = 预留给屏侧触控中断 TP_INT 的 SoM 侧脚 (R1
+    前瞻占位); 现行 Waveshare 2.8inch 22p 屏无触控中断脚 (Touch Port=I2C, 屏内 MCU @0x45) ⇒ 本板不接、0 网表改动、0 原理图改动、不改板、BOM
+    不变; 换 Radxa 8HD/10FHD 40p 屏 (pin26=TP_INT) 时才落 ⇒ 该脚不得他用; 官方三源: Rockchip ds V1.1 p.27 + 官方内核 rk3572-pinctrl.dtsi
+    (bank2 RK_PD7, FUNC0=GPIO) + Forlinx 手册'
+  note: ''
+  ref: ''
+- key: ISS-174_verdict
+  value: '(c) 部分成立: issue 主体三条断言全不成立 (NET_TP_INT 网表 0 命中; 22p 屏座无触控/复位脚; TP_RESET 是挂 RESET_N 的测试点位号不是网名);
+    根因=issue 提于 2026-11-03 换屏前, 2026-11-04 换 Waveshare 2.8inch 后 Radxa 8HD 39p 针位表整表作废但 issue 未清; 仅前瞻残项
+    R1 (SoM 侧无预留脚) 成立'
+  note: ''
+  ref: ''
 open_questions:
 - id: HW-Q1
   to: main

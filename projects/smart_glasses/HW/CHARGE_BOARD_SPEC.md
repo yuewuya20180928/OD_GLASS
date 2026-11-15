@@ -396,15 +396,15 @@ V_TS = VREGN × (RTH ∥ RT2) / (RT1 + (RTH ∥ RT2))
 |---|---|---|---|---|---|---|
 | 1 | **充电电流 (双 pin)** | 镜框 → 镜脚 | `U_CHG` pin13/14 (BAT) → `BAT_CHG` → `J_CHG` pin1 **+** pin2 | `J_CHG` → BQ2970 → 电池 | **1.0-1.5A**, 双 pin 并联 (每 pin ≤0.75A); 1.27mm→0.5mm 改后每 pin 载流下降 → 用并联解决 | [推算] `MECH/USB_HINGE_STRUCTURE.md` §5.3 C-1 + P1 §V1.2 |
 | 2 | **回流 (双 pin)** | 镜框 → 镜脚 | `J_CHG` pin3 **+** pin4 → 充电板 GND | 镜脚数字地 | 与电源 pin **相邻** → 环路面积最小 | [推算] P9 |
-| 3 | **VBUS_DET (高阻分压)** | 镜框 → 镜脚 | `R_VDET_TOP` 1M ← VBUS; `R_VDET_BOT` 1M → GND; 中点 → `J_CHG` pin8 | SoC ADC | 源阻抗 **500 kΩ** → **必须被 GND 夹持** (每根至少一侧相邻 GND) 且与 USB 差分对 **≥3mm** | [推算] `MECH/USB_HINGE_STRUCTURE.md` §5.2 第 5 条 |
-> ★★2026-11-02 03:0x 订正 (ISS-136): 上表与网表**有一处整体错位** —— 网表实际是 **pin5=CHG_STAT / pin6=PWR_GOOD / pin7=VBUS_DET / pin8=TS_BAT / pin9=HINGE_RSV(预留) / pin10=TS 专用回流**, 原因是 **V1.8 把 TS_BAT 从 pin5 挪到 pin8** (pin5 改给 CHG_STAT), 其余信号各前移一位; 而 **BQ25896 的 I2C 跨铰链方案未采用** (§5.3: "若要据此调充电电流, 就需要 BQ25896 的 I2C 跨铰链" —— 本轮不做) ⇒ pin9 留空、pin10 改走 TS 专用回流。**网表是对的, 本表待更新** ⇒ `HW/check_bq25896_pinout.py` 的快照已同步。
+| 3 | **VBUS_DET (高阻分压)** | ★**主板本地** (★**不跨铰链** · 2026-11-04 起) | ★**充电板侧不参与** —— 分压已改**主板本地**: `R_VBUS_DET_D1` 1M ← `RAIL_DEMO_5V`; `R_VBUS_DET_D2` 1M → GND; 中点网 `VBUS_DET_D` (+ `C_DET_VBUS_D` 100nF 滤波) | ★**主板本地** SoM 检测脚 `J_SOM_P1` pin100 (网名 `VBUS_DET`); ★**原 `J_CHG` pin8 跨铰链已撤除** ⇒ `J_CHG` **pin7 = `NC` (不接)** · **pin8 = `TS_BAT`** (TS 跨铰链) | 源阻抗 **500 kΩ** → **必须被 GND 夹持** (每根至少一侧相邻 GND) 且与 USB 差分对 **≥3mm** (判据数值不变, 现落在主板本地走线) | [实测] `HW/netlist_v1.csv` P1 第 434-439 行 (`R_VBUS_DET_D1`/`R_VBUS_DET_D2`/`C_DET_VBUS_D` + `VBUS_DET` → `J_SOM_P1` pin100) + P9 第 433 行 (`J_CHG` pin7 = `NC`) · [推算] `MECH/USB_HINGE_STRUCTURE.md` §5.2 第 5 条 · ★**已按网表真源订正 (ISS-199 · 2026-11-12)** |
+> ★★★**2026-11-12 订正 (ISS-199 · 本表已按网表真源 `HW/netlist_v1.csv` 逐脚对拍后改写)** ★★★ —— ★**上面这张 §5.1 表原先整体是旧口径, 而 2026-11-02 那条订正注记本身也已过期** (它还在传播 "pin7=VBUS_DET / pin10=TS 专用回流")。★★**现行真源口径 (逐脚, [实测] `HW/netlist_v1.csv` 实读)**: **pin1/2=`BAT_CHG`** · **pin3/4=`GND`** · **pin5=`CHG_STAT`** · **pin6=`PWR_GOOD`** · ★**pin7=`NC`** (2026-11-04 起 `VBUS_DET` 改**主板本地**分压 ⇒ 本脚不接) · ★**pin8=`TS_BAT`** (TS 跨铰链) · ★**pin9/10=`HINGE_RSV`** (预留不接; BQ25896 的 I2C **不跨铰链** —— PM 裁决, 充电板本地自闭环, 上拉 10k 挂 `REGN` 5V)。★★**`TS_RTN` 这个网在现行网表里已完全不存在 (0 处, 2026-11-03 撤除)** ⇒ "pin10 走 TS 专用回流" 是**过期口径**; NTC 与 30.31k 分压下臂回 `PGND`/`GND`。★★本表 §5.1 与 §7 的 P10 镜像块**已于本轮按同一真源订正**, 与 §5.2 表 (= 网表镜像) 一致 ⇒ ★**同一个接口不再有第 5 套 pin map**。★★**复算依据**: `HW/netlist_v1.csv` 逐脚 net 名 (P1 第 15/16/20/21/22/23 行 · P2 第 189/192 行 · P9 第 433 行 · P10 第 478/481/482 行) + `HW/CHARGE_BOARD_SPEC.md` §5.2 (ISS-136 已定版) + `state/p10_rows.json` (P10 页真上游, md5 `c2dc73fe1e9fbd8edec68828dec81c36`)。★**机器可查**: `python3 HW/check_bq25896_pinout.py` (检查项 ⑦ 实读 §5.2 表逐脚对拍网表) ⇒ 真源漂移 = 闸红。
 
-| 4 | **CHG_STAT (开漏)** | 镜框 → 镜脚 | `U_CHG` pin4 → `J_CHG` pin6 | SoC GPIO, **主板侧** 10k 上拉 → 3.3V | LOW=充电中 / HIGH=完成或禁用 / **1Hz 闪烁=故障** | [官方] datasheet + STAT 状态表 |
-| 5 | **PWR_GOOD (开漏)** | 镜框 → 镜脚 | `U_CHG` pin3 → `J_CHG` pin7 | SoC GPIO, **主板侧** 10k 上拉 → 3.3V | LOW = 输入源良好 (VBUS 在 VVBUS_OP 内 & IBATSRC>30mA) | [官方] datasheet |
+| 4 | **CHG_STAT (开漏)** | 镜框 → 镜脚 | `U_CHG` pin4 → `J_CHG` pin**5** | SoC GPIO, **主板侧** 10k 上拉 → 3.3V | LOW=充电中 / HIGH=完成或禁用 / **1Hz 闪烁=故障** | [官方] datasheet + STAT 状态表 · [实测] 网表 P10 第 482 行 (`U_CHG` pin4 ↔ `J_CHG` pin5) · ★**已按网表真源订正 (ISS-199 · 2026-11-12)** |
+| 5 | **PWR_GOOD (开漏)** | 镜框 → 镜脚 | `U_CHG` pin3 → `J_CHG` pin**6** | SoC GPIO, **主板侧** 10k 上拉 → 3.3V | LOW = 输入源良好 (VBUS 在 VVBUS_OP 内 & IBATSRC>30mA) | [官方] datasheet · [实测] 网表 P10 第 481 行 (`U_CHG` pin3 ↔ `J_CHG` pin6) · ★**已按网表真源订正 (ISS-199 · 2026-11-12)** |
 | 6 | **USB D+/D−** | 镜脚 → 镜框 | `CONN_USB` pin1/2 → 板内走线 → `J_TYPE_C` A6+B6 / A7+B7 | SoC → 22Ω 串阻 (主板侧) → `CONN_USB` | **90Ω ±10% 差分**; D+/D− 双份并联 **≤3.5mm**; **不装共模扼流圈**; 两端各一组 ESD | [官方] USB-IF Table 3-5 Note 2 + [推算] P9 两条硬规则 |
 | 7 | **USB 回流** | | `CONN_USB` pin3 (独立回流地) | 镜脚 GND | 独立 pin, 不与电源共 pin | [推算] P9 |
-| 8 | **TS (电池 NTC)** | 镜脚 → 镜框 | `U_CHG` pin11 (TS) → `J_CHG` pin5 | NTC 10k ∥ 30.31k → GND | 源阻抗 3-4 kΩ → 跨铰链 OK; **充电板侧只有 5.24k 上臂 (REGN→TS)** | [官方] Equation 2 + [推算] |
-| 9 | **BQ25896 I2C** | 镜脚 → 镜框 | `U_CHG` pin5/6 → `J_CHG` pin9/pin10 | SoC, **主板侧** 4.7k 上拉 → 3.3V | 400kHz; **跨铰链跑 400kHz I2C 是新增的 EMI/边沿风险** | [待裁决] §5.3 |
+| 8 | **TS (电池 NTC)** | 镜脚 → 镜框 | `U_CHG` pin11 (TS) → `J_CHG` pin**8** | NTC 10k ∥ 30.31k → GND | 源阻抗 3-4 kΩ → 跨铰链 OK; **充电板侧只有 5.24k 上臂 (REGN→TS)** | [官方] Equation 2 + [推算] · [实测] 网表 P1 第 42 行 / P10 第 478 行 (`U_CHG` pin11 ↔ `J_CHG` pin8) + `state/p10_rows.json` 同源 · ★**已按网表真源订正 (ISS-199 · 2026-11-12)** |
+| 9 | **BQ25896 I2C** | ★**不跨铰链** (本版: 充电板本地自闭环) | `U_CHG` pin5/6 (SCL/SDA) → 充电板**本地** `R_PU_SCL`/`R_PU_SDA` 10k 上拉 → `REGN` 5V; ★**不接 `J_CHG`** (`J_CHG` pin9/10 = `HINGE_RSV` 预留不接, DNP) | ★**无跨铰链 I2C** (SoC 不参与; 将来若要引出再议) | 400kHz; **跨铰链跑 400kHz I2C 是新增的 EMI/边沿风险** —— ★**本版不跨铰链 ⇒ 该风险不落地** (PM 裁决: 充电 IC 的 I2C 本板自闭环) | [实测] 网表 P10 第 483/485 行 (note 明写 "I2C 不跨铰链 ⇒ J_CHG pin9/pin10 本版留空不接") + P1 第 20/21 行 (`HINGE_RSV`) · ★**已按网表真源订正 (ISS-199 · 2026-11-12)** |
 
 ### 5.2 ★`J_CHG` pin map 提案 (10p @0.5mm)
 
@@ -549,22 +549,22 @@ P10,PGND,C_BAT,PGND,C_BAT,10µF X7R 6.3V,C,必装,[官方],,BAT 去耦 地端,C-
 P10,BAT_CHG,U_CHG pin13+pin14,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin13/14 BAT (内部 11mΩ BATFET); 充电电流路径 BAT→J_CHG→镜脚电池,C-03,CHG_BOARD
 P10,NC_UCHG,U_CHG pin24,NC_UCHG,NC,NC (datasheet: No Connect),NET,DNP,[官方],,pin24 NC: 不接 (16p 母座同类的 pin 名对照: VBUS1/PSEL2/PG3/STAT4/SCL5/SDA6/INT7/OTG8/CE9/ILIM10/TS11/QON12/BAT13-14/SYS15-16/PGND17-18/SW19-20/BTST21/REGN22/PMID23/NC24),C-01,CHG_BOARD
 P10,BAT_CHG,BAT_CHG,J_CHG pin1,BAT_CHG,跨铰链 1.0-1.5A (双 pin 并联),NET,必装,[推算],,"充电电流跨铰链 (J_CHG pin1/pin2 并联, 每 pin ≤0.75A); 铰链段**不装 π 滤波** (会破坏 BQ25896 环路稳定性); 载流/压降/发热核算见 ISS-091",C-03,HINGE
-P10,BAT_CHG,J_CHG pin1,J_CHG pin2,J_CHG,"1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",CONN,必装,[推算],,"双 pin 并联; ★本单提案 pin map: 1/2=BAT_CHG, 3/4=GND, 5=TS, 6=CHG_STAT, 7=PG, 8=VBUS_DET, 9/10=I2C 预留 —— 待 PM 裁决 (见 §5.2)",C-03,HINGE
+P10,BAT_CHG,J_CHG pin1,J_CHG pin2,J_CHG,"1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",CONN,必装,[推算],,"双 pin 并联; ★**现行 pin map = 网表真源口径** (2026-11-12 已按 `HW/netlist_v1.csv` 逐脚对拍订正): 1/2=BAT_CHG, 3/4=GND, 5=CHG_STAT, 6=PWR_GOOD, 7=NC, 8=TS_BAT, 9/10=HINGE_RSV —— ★**原注记 (5=TS, 6=CHG_STAT, 7=PG, 8=VBUS_DET, 9/10=I2C 预留) 是旧口径** (PM 已裁决 I2C 不跨铰链)。★**已按网表真源订正 (ISS-199 · 2026-11-12)**",C-03,HINGE
 P10,BAT_CHG,J_CHG pin2,U_BATPROT,BAT_CHG,跨铰链 1.0-1.5A (双 pin 并联),NET,必装,[推算],,"镜脚侧: 进 BQ2970 + 2×MOS (保护 IC 与电池同板, **不在充电板**)",C-03,HINGE
 P10,GND_CHG,J_CHG pin3,J_CHG pin4,J_CHG,回流 (双 pin),NET,必装,[推算],,充电电流回流双 pin (与电源 pin 相邻 → 环路面积最小),C-03,HINGE
 P10,GND_CHG,J_CHG pin4,GND,J_CHG,回流 (双 pin),NET,必装,[推算],,回流进镜脚侧数字地,C-03,HINGE
 P10,TS_BAT,R_TS1,U_CHG pin11,R_TS1,5.24k ±1%,R,必装,[官方],,★TS 分压上臂 REGN→TS (datasheet Equation 2: RT1=5.24k); TS 网跨铰链到镜脚电池侧 NTC,C-03,CHG_BOARD
 P10,REGN_5V,R_TS1,REGN_5V,R_TS1,5.24k ±1%,R,必装,[官方],,TS 上臂 取自 REGN (5.0V),C-03,CHG_BOARD
 P10,TS_BAT,U_CHG pin11,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin11 TS: 硬件级电池过温/欠温停充 (不依赖 SoC); 阈值 V(T1)=73.25% / V(T5)=34.375% of REGN,C-03,CHG_BOARD
-P10,TS_BAT,R_TS1,J_CHG pin5,TS_BAT,高阻检测线 (源阻抗 3-4kΩ),NET,必装,[推算],,TS 跨铰链 (NTC 在镜脚电池侧); 源阻抗仅 3-4kΩ → 跨铰链 OK,C-03,HINGE
+P10,TS_BAT,R_TS1,J_CHG pin8,TS_BAT,高阻检测线 (源阻抗 3-4kΩ),NET,必装,[推算],,TS 跨铰链 (NTC 在镜脚电池侧); 源阻抗仅 3-4kΩ → 跨铰链 OK; ★**走 `J_CHG` pin8** (网表 P1 第 42 行 / P10 第 478 行) —— ★**原写 pin5 是旧口径**; ★**已按网表真源订正 (ISS-199 · 2026-11-12)**,C-03,HINGE
 P10,TS_BAT,R_TS2,TS_BAT,R_TS2,30.31k ±1%,R,必装,[官方],,"★TS 分压下臂 (**镜脚侧**, 与 NTC 并联): datasheet Equation 2 → RT2=30.31k; 装在电池旁 (NTC 旁边), 引线尽量短",C-03,MAIN_PCB
 P10,GND,R_TS2,GND,R_TS2,30.31k ±1%,R,必装,[官方],,TS 下臂 地端,C-03,MAIN_PCB
 P10,TS_BAT,R_NTC_BAT,TS_BAT,R_NTC_BAT,10k NTC B=3435 (103AT) 贴电芯,R,必装,[官方],,★电池 NTC (**镜脚侧**): 与 R_TS2 并联; 'Recommend 103AT-2 thermistor'; 贴电芯表面; ★现行网表把它放在 CHG_BOARD 且接 BAT_PROT → 必须改,C-03,MAIN_PCB
 P10,GND,R_NTC_BAT,GND,R_NTC_BAT,10k NTC B=3435 (103AT),R,必装,[官方],,NTC 地端 (贴电芯负极侧),C-03,MAIN_PCB
-P10,CHG_STAT,U_CHG pin4,J_CHG pin6,CHG_STAT,开漏 (主板侧 10k 上拉 3.3V),NET,必装,[官方],,★STAT: LOW=充电中 / HIGH=完成或禁用 / 1Hz 闪烁=故障; **上拉只能在主板侧** (充电板无 3.3V),B-05,HINGE
-P10,PWR_GOOD,U_CHG pin3,J_CHG pin7,PWR_GOOD,开漏 (主板侧 10k 上拉 3.3V),NET,必装,[官方],,★PG: LOW=输入源良好 (VBUS 在 VVBUS_OP 内 & IBATSRC>30mA); 上拉在主板侧,B-06,HINGE
-P10,I2C_CHG_SCL,U_CHG pin5,J_CHG pin9,I2C_CHG_SCL,400kHz (上拉在主板侧 4.7k→3.3V),NET,DNP,[待裁决],,"★BQ25896 I2C 跨铰链 (预留): 用于 SoC 编程 REG04(ICHG)/REG00(IINLIM) 与读 VBUS/IBAT; 上拉只放主板侧, 本板不留上拉; 待 PM 裁决 (J-3)",B-08,HINGE
-P10,I2C_CHG_SDA,U_CHG pin6,J_CHG pin10,I2C_CHG_SDA,400kHz (上拉在主板侧 4.7k→3.3V),NET,DNP,[待裁决],,同 SCL; 待 PM 裁决 (J-3),B-08,HINGE
+P10,CHG_STAT,U_CHG pin4,J_CHG pin5,CHG_STAT,开漏 (主板侧 10k 上拉 3.3V),NET,必装,[官方],,★STAT: LOW=充电中 / HIGH=完成或禁用 / 1Hz 闪烁=故障; **上拉只能在主板侧** (充电板无 3.3V); ★**走 `J_CHG` pin5** (网表 P10 第 482 行) —— ★**原写 pin6 是旧口径**; ★**已按网表真源订正 (ISS-199 · 2026-11-12)**,B-05,HINGE
+P10,PWR_GOOD,U_CHG pin3,J_CHG pin6,PWR_GOOD,开漏 (主板侧 10k 上拉 3.3V),NET,必装,[官方],,★PG: LOW=输入源良好 (VBUS 在 VVBUS_OP 内 & IBATSRC>30mA); 上拉在主板侧; ★**走 `J_CHG` pin6** (网表 P10 第 481 行) —— ★**原写 pin7 是旧口径**; ★**已按网表真源订正 (ISS-199 · 2026-11-12)**,B-06,HINGE
+P10,HINGE_RSV,J_CHG pin9,J_CHG pin9,J_CHG,预留 (不装),NET,DNP,[实测],,"[INVENTORY] ★**`J_CHG` pin9 归 `HINGE_RSV` 预留不接** (网表 P1 第 20 行) —— ★**BQ25896 的 I2C 不跨铰链** (PM 裁决: 充电 IC 的 I2C 本板自闭环, 上拉 10k 挂 `REGN` 5V, 见 `R_PU_SCL` 行) ⇒ ★**原行 (I2C_CHG_SCL 跨铰链 → `J_CHG` pin9) 是旧口径**; ★**已按网表真源订正 (ISS-199 · 2026-11-12)**",B-08,HINGE
+P10,HINGE_RSV,J_CHG pin10,J_CHG pin10,J_CHG,预留 (不装),NET,DNP,[实测],,"[INVENTORY] ★**`J_CHG` pin10 归 `HINGE_RSV` 预留不接** (网表 P1 第 21 行; ★**跨铰链 `TS_RTN` 已于 2026-11-03 撤除**, 现行网表 0 处) —— ★**BQ25896 的 I2C 不跨铰链** (PM 裁决, 同 SCL) ⇒ ★**原行 (I2C_CHG_SDA 跨铰链 → `J_CHG` pin10) 是旧口径**; ★**已按网表真源订正 (ISS-199 · 2026-11-12)**",B-08,HINGE
 P10,I2C_CHG_SCL,U_CHG pin5,R_PU_SCL,R_PU_SCL,10k ±1%,R,DNP,[官方],,BQ25896 SCL 上拉位 (留位): **跨铰链版本不装** (上拉在主板侧); 不跨版本也不装,B-08,CHG_BOARD
 P10,I2C_CHG_SDA,U_CHG pin6,R_PU_SDA,R_PU_SDA,10k ±1%,R,DNP,[官方],,BQ25896 SDA 上拉位 (留位): 同上,B-08,CHG_BOARD
 P10,INT_CHG,U_CHG pin7,R_PU_INT,R_PU_INT,10k ±1%,R,DNP,[官方],,"INT 开漏 256µs 脉冲; **本版不跨铰链** (J_CHG 无余量), 留位不装; 若将来要跨, 上拉必须移到主板侧 3.3V 并顶掉 J_CHG pin9/pin10",B-07,CHG_BOARD
@@ -578,10 +578,10 @@ P10,GND,J_TYPE_C A1+A12+B1+B12,GND,J_TYPE_C,Type-C 16p 母座 (物理 A/B 脚位
 P10,GND,J_TYPE_C shield,GND,J_TYPE_C,Type-C 16p 母座 (物理 A/B 脚位),CONN,必装,[官方],,"屏蔽壳 → GND **单点接** (短粗铜皮, 不用细线); 与机壳地的接法待结构定 (ISS-065)",C-01,CHG_BOARD
 P10,NC_SBU1,J_TYPE_C A8,NC_SBU1,NC,SBU1 不接 (规范要求),NET,DNP,[官方],,"★USB-IF Table 3-5 Note 3: 'Contacts A8 and B8 (SBU1 and SBU2) shall be not connected unless required for a specified purpose'; 本机不做 Alt Mode → 悬空 (焊盘可留, 不接)",B-23,CHG_BOARD
 P10,NC_SBU2,J_TYPE_C B8,NC_SBU2,NC,SBU2 不接 (规范要求),NET,DNP,[官方],,SBU2 同上,B-23,CHG_BOARD
-P10,VBUS_DET,USB_VBUS_RAW,R_VDET_TOP,R_VDET_TOP,1M ±1%,R,必装,[推算],,VBUS 检测分压 上臂 (充电板侧): 1M+1M → 源阻抗 500kΩ; 跨铰链必须被 GND 夹持 (每根至少一侧相邻 GND) 且与 USB 差分对 ≥3mm (MECH §5.2 第5条),B-09,CHG_BOARD
+P10,VBUS_DET,USB_VBUS_RAW,R_VDET_TOP,R_VDET_TOP,1M ±1%,R,必装,[推算],,VBUS 检测分压 上臂 (充电板侧): 1M+1M → 源阻抗 500kΩ; ★**主板本地**走线必须被 GND 夹持 (每根至少一侧相邻 GND) 且与 USB 差分对 ≥3mm (MECH §5.2 第5条) —— ★**`VBUS_DET` 已于 2026-11-04 起改主板本地分压; 不再跨铰链** (网表 P1 第 434-439 行); ★**已按网表真源订正 (ISS-199 · 2026-11-12)**,B-09,CHG_BOARD
 P10,VBUS_DET,R_VDET_BOT,VBUS_DET,R_VDET_BOT,1M ±1%,R,必装,[推算],,VBUS 检测分压 下臂 (充电板侧); 中点 = VBUS_DET 网 (2.5V @ VBUS 5V),B-09,CHG_BOARD
 P10,GND,R_VDET_BOT,GND,R_VDET_BOT,1M ±1%,R,必装,[推算],,VBUS 检测分压 下臂 地端,B-09,CHG_BOARD
-P10,VBUS_DET,R_VDET_TOP,J_CHG pin8,VBUS_DET,1M+1M 分压输出 (2.5V @5V),NET,必装,[推算],,"跨铰链高阻检测线 (500kΩ 源阻抗 → 易受干扰, 必须 GND 夹持 + 远离 USB 差分)",B-09,HINGE
+P10,NC,J_CHG pin7,NC,NC,预留 (NC),NET,DNP,[实测],,"[NC] ★2026-11-04: `J_CHG` pin7 原走跨铰链 `VBUS_DET` ⇒ demo 板改**主板本地**分压** (网表 P1 第 434-439 行: `R_VBUS_DET_D1`/`R_VBUS_DET_D2`/`C_DET_VBUS_D`, 中点 `VBUS_DET_D` → `J_SOM_P1` pin100) ⇒ 本脚预留不接; ★**`J_CHG` pin8 现归 `TS_BAT` (TS 跨铰链)** ⇒ ★**原行 (`VBUS_DET` → `J_CHG` pin8) 跨铰链说法是旧口径** (★**`VBUS_DET` 这个网本身仍在**, 主板本地, 未废); ★**已按网表真源订正 (ISS-199 · 2026-11-12)**",B-09,HINGE
 P10,GND,PGND,GND,R_STAR_PGND,0Ω (可选: 单点星接),R,DNP,[官方],,"★BQ25896: 'A single point connection is recommended between power PGND and the analog GND near the IC PGND pin'; 若项目管理上只用单地, 删掉此位并把 PGND 全并到 GND (只改网表 1 行)",C-01,CHG_BOARD
 P10,VBUS_5V,TP_VBUS,VBUS_5V,TP_VBUS,测试点,TP,必装,[推算],,充电板侧 VBUS 测点 (π 滤波后级),C-01,CHG_BOARD
 P10,TS_BAT,TP_TS,TS_BAT,TP_TS,测试点,TP,必装,[推算],,TS 电压测点 (调 TS 分压 / 验证 NTC 跨铰链通断),C-03,CHG_BOARD

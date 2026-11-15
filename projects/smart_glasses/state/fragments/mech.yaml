@@ -1,23 +1,28 @@
 agent: mech-lead
 role: 结构总工(带散热)
-updated_at: '2026-11-11'
+updated_at: '2026-11-15'
 updated_by: mech-lead
 status:
   phase: P3
-  progress_pct: 96
+  progress_pct: 98
   health: yellow
-  summary: '2026-11-06 周更新: 本轮**不报百分比**, 只报「离结构侧可打样还差哪几件事」。①★本域基线在 10-29~11-04 之间动了 5 次 (板宽 15→30 / 显示件换视涯
-    SiOLED / 11-02 老板拍板 demo 一块板⇒跨铰链取消 / CONN_CAM 改 31p@0.3mm / CONN_LIGHT 定稿 22p@0.5mm), 而本域 180 条 claims
-    里的取值**最后一次重算基线还是 10-28** ⇒ ★★**基线漂移 = 8 条 claim 的值已过期**。②★ISS-107 同型问题 (原单 10-29 已 verified, 只处理了「有对手方」的那一半):
-    合并器只报两家都声明同 key 的冲突 (本域冲突 0, 看着很干净), 而**没有对手方的过期值合并器根本检不出来** ⇒ 本轮新写 MECH/rebase_20261106.py 专门扫这类
-    (只扫 value 不扫 note, 不误伤历史记录), 查出 9 条带过期口径 token / 8 条值已过期, 已改 8 条 + 加标注 9 条 + 新增 4 条。③★离结构侧可打样还差 **6
-    件事**: (a) 打印件 0 件 (Rev B 包已就绪 93/93+38/38 rc=0, 但 ISS-040 执行方未定) (b) 板厚档位未定 (t=1.22 破 ISS-092 检修口净空
-    4.50 硬要求, 差 0.02) (c) PIN-SET-2 的 Y 坐标在板宽 15→30 后全作废, 待 hw-lead 确认 (d) 净高 37.0→38.00 与 板宽 30 的 V 链余量只剩
-    2.00mm (硬顶 31.40) 两处口径要同步到文档 (e) 量产外形件几何 0 数据点 (DFM 面级统计做不了) (f) 波导/镜头/光机外形全 [0数据] ⇒ 镜框侧干涉判不了。④★结构侧本轮硬数字:
-    V 链余量 2.00mm(最坏 1.40) / 板宽硬顶 31.40mm / PCB 面积余 122.3mm² (RK3576 双面贴) / H 链 315 档余 0.95mm(最坏 0.65)
-    / L 链余 14.50mm / 检修口净空 5.29/4.90/4.70/4.48 (板厚 0.41/0.80/1.00/1.22) / 跨铰链 1.5A 保守口径 ΔV 166.2mV 发热
-    249.3mW 皮肤 ΔT 12.50°C / 装配干涉 13 项 / DFM 拦截 27 条。⑤★诚实边界: **实物 [实测] 仍 0 条** (0 件打印/0 台样机/0 个实测温度) ⇒
-    阶段门 G2 仍不通过 (设计意图); 未改 hw/sw/pm 分片与 HW/ SW/ PROJECT_TRACKER 锁死表; 未联系任何供应商/原厂/JBD。'
+  summary: '2026-11-15 ISS-213 (结构侧 54 项交叉复核逐条定性 + demo 板真缺陷收口): ★**结构侧 54 项表逐条定性完成, 一处不漏** (`MECH/HW_CROSS_REVIEW_TRIAGE.md`:
+    项号/现状判定/关键数字/demo 相关性/MECH 地界/处置/恢复条件/证据等级 8 列 × 54 行, 处置栏 54/54 非空, 没有一条写「待定」)。★**17 条 FAIL 每条都有明确去处**:
+    排队等原理图定稿 6 个 id / 7 行 (STK-FANOUT/PCB-X-GAP/MRG-54P/MRG-X-4/MRG-X-3×2/FRM-SUM, 逐条写了恢复条件, 判据阈值一个没松
+    ⇒ 它们**仍然是 FAIL**, 这是正确状态) + 登记 need 给 main 4 条 (P9 页 pin 数与堆叠账 / NET-LED 网表 board 列 / CHARGE_BOARD_SPEC
+    §3.4 的 ICHG/IIN 方向 / M-15 印刷公差) + 出规格 6 条 (MECH 地界内本单收掉)。★**新机器门禁 `MECH/check_demo_struct_truth.py`**
+    (20 组检查 rc=0, `--selftest` 8/8 反向用例全被抓): 它守的是「demo 板当前成立的条目」而不是「54 项全绿」⇒ **G1/G1b 不许把红灯调没** (断言 FAIL
+    名单仍是 17 条且逐条对齐) · G2 demo 当前项独立复算全过 · G3/G3b 6 条 PCB 类已登记排队且没被静默 · G4 板框四数 60.00/30.00/1.00/3.33g
+    没被改 · G5 判据阈值 (cavity_req 4.50/CRIT 0.60/cav_v 38.00/duct_v 6.00) 未松 + 8 个受保护文件 md5 未变 · G6 定性表 54/54
+    + 处置不留空 · G7 分片 25.00。★**demo 板真缺陷收掉 6 条**: ①CHG-OPEN —— 真根因是「判据只在名义值上验」⇒ 打印包两档现候选 (9.50×3.60 最坏 0.13/0.02、10.00×4.20
+    最坏 0.38/0.32, 判据 0.60) **都判不合格, 二选一是假的** ⇒ 新出 10.50×4.80 (FDM 直成型, 最坏 0.63/0.62) 与 10.25×4.55 (金属·CNC
+    ±0.05) ②CHG-PRINT-TOL —— 该特征不得靠打印面 ⇒ 扩孔 ±0.10 或金属嵌件 ±0.05 ③THM-RATIO 3.70/4.20 —— ICHG/IIN = η·Vbus/Vbat
+    = 1.216/1.071 (规格书 0.822/0.933 是倒数) ⇒ 390Ω 档单 pin 0.50–0.61A 超 0.5A 额定 ④THM-SURF —— 口径钉死为 buck (0.45–0.57W)
+    ⇒ 108°C, 60°C 判据 ⇒ P_max 0.21W ⇒ 超 2.4× ⑤THM-PATH —— 打印件 R=1944 K/W (0.5W 打进去 +972K 不可能) vs 铝 1.64
+    K/W (+0.82K) ⇒ **端件必须金属热路** ⑥腔体 —— 检修口内腔 4.70 ≥ cavity_req 4.50 (余 +0.20) ⇒ **ISS-126 的前提已被现口径超越,
+    可裁关闭** (issue_log 是 main 地界, 一笔没动)。★**边界**: 未改 HW/ 任何文件 · 网表/脚表/板/.kicad_pro · state/gen_*.py · state/daily_check.py
+    · state/issue_log.yaml (含 ISS-126) · PROJECT_TRACKER.md §0 · state/outbox/ · 别人的分片 · BOARD_GEOM_30MM
+    §1 四数 · 判据阈值 · 3 个受保护 check 脚本; ★没碰 PCB 布线/布局/板框; ★本闸挂不挂每日巡检交 main 裁; ★零外发; ★本单 [实测] 实物 = 0 条。'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -421,6 +426,117 @@ artifacts:
   version: '1.0'
   updated_at: '2026-11-12'
   summary: ISS-203 交接单 (B1~B6 六块齐全; 逐项 改前→改后 表; 反向用例两种跑法; 5 条 need 含 ISS-197 L1 两条板长 claim 只报不改)
+- path: HANDOFF/2026-11-15_mech-lead_ISS206_J_CHG旧口径一次性收口.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: ISS-206 交接单 (B1 结论 / B2 验收自评 / B3 证据分级 / B4 接口取值 / B5 未决与卡点 U-1~U-6 / B6 复现命令 + 裁 1 改前改后两套跑法
+    + 每个数字变化属于哪一类 + grep 残留逐行归类 + 边界自检)。
+- path: MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md
+  kind: spec
+  version: '2.0'
+  updated_at: '2026-11-15'
+  summary: '显示件光生物安全判据 V2 (硅基 OLED 面光源 + 衍射光波导): 6 条判据 (出光面辐亮度/光谱与蓝光占比/45-50C 亮度行为/IEC 62471 条款与报告/观察距离与视场角/波导散射后等效辐亮度折算),
+    每条含 判据+数值+证据等级+出处+怎么测+降级方案; 附 12 个 [0数据] 的降级总表 + 与旧口径 ISS-048 (LED 点光源) 的 D-1~D-11 逐条差异。'
+- path: MECH/JBD_ROLE_NARROWING.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: 'JBD 角色收窄记录: 作废清单 V-1~V-7 / 保留项 K-1~K-4 / 对 ISS-004/013/016/048/133 的影响 (只报不改) / 波导归属可查结论 (公开在售或量产
+    >=11 家, 波导不是 JBD 独家) / 老板待拍板的候选表 (A 舜宇奥来-歌尔奥来 / B 瑞声xDispelix / C JBD 刻蚀波导) + 取舍 + 我的建议 (按 B 公开几何先做参数化占位,
+    镜框不等 JBD 就能开工)。'
+- path: HANDOFF/2026-11-15_mech-lead_ISS134_显示口径与光生物安全V2.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: ISS-134 交接单 (B1 结论 C-1~C-7 / B2 验收标准自评 / B3 证据分级 / B4 接口取值 / B5 未决与卡点 / B6 复现命令)。
+- path: MECH/DISPLAY_LEGACY_V2_CLOSEOUT.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: 'ISS-208 交卷件: 33 处「走鹃」逐处定性表 (文件/原行号/原句摘要/类别/处置/改写后机器分类, 活动 27 + 历史 6) + 眼盒约束落位说明 (结构侧真源 = MECH/MECH_BUDGET.md,
+    4 条理由 + 引用的 V2 判据) + 与结构真源的冲突项 C-1..C-5 (只报不改) + 旧数字清单 + 证据分级 + 复现命令 + 边界。'
+- path: MECH/display_biosafety_v2_check.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: 'ISS-208 机器门禁: 5 项检查 (走鹃活动口径=0 / 眼盒条目落在结构真源 / V2 判据 6 条关键量被引 / 交卷件 33 行表自洽 / 判据文件 md5 未变),
+    rc=0 全过, 失败点名是哪一条; 带 --selftest (6 个用例: 基线 / 塞活动口径 / 删 62mm2 / 删 0.1234 / 破坏定性表 / 篡改判据文件)。'
+- path: HANDOFF/2026-11-15_mech-lead_ISS208_走鹃旧口径收口与眼盒约束落地.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: ISS-208 交卷报告 (结论 / 交付物 / 冲突与 need / 验收自证输出 / 边界)。
+- path: MECH/CENTER_CAVITY_RECALC.md
+  kind: recalc
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: 'ISS-209 交卷件: 镜框正中区光学腔体按眼盒硬约束 (A_e<=62mm2 + d=15-20mm) 重排 —— 参数化余量预算表 9 行 (3 d × 3 A_e, 每个数由
+    cavity_recalc_check.py 算出并被门禁逐格回读比对) + 出瞳面 ±3mm 装配公差带单独成行 (占 6.0mm 行程, 9 行里占 27-33%) + 冲突量化 5 条 (只报不改)
+    + 降级方案 6 条 + 出路候选 4 条 (不替老板拍板) + 边界。★T = d + 3.0 = 18/21/23mm (d=15/18/20), 全部超 10-12mm 目标上沿 +6/+9/+11mm;
+    与旧数 11.8mm 的冲突量 3.2/6.2/8.2mm (与 1.7.1 C-1 逐字一致); A_e 在 <=62mm2 合法区内对轴向预算影响 = 0.00mm (面板口径 9.125mm
+    顶死)。★[实测]实物 = 0 条。'
+- path: MECH/cavity_recalc_check.py
+  kind: check
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: 'ISS-209 机器门禁: 12 项检查 (X-1/X-2 在位 / 参数表 9 行逐格一致 / C-1 冲突量 3.2 与 8.2 一致 / 判据文件 md5 未变 / ±3mm
+    带单独成行 / 重量重核一致 / 鼻梁热路径一致 / 4 个受保护脚本 md5 未变 / 分片 claim 25.00 / 判据阈值未松 / 分光件冲突量一致 / 边界声明齐全), rc=0 全过,
+    失败点名是哪一条; 带 --selftest (9 个反向用例: 改坏参数表 / 删 62 / 改坏冲突量 / 篡改判据文件 / 删一行表 / 改坏重量数 / 篡改分片 claim / 篡改受保护脚本
+    / 改掉 ±3 带) 全被抓; --emit-rows 原样重生成三张表。'
+- path: HANDOFF/2026-11-15_mech-lead_ISS209_正中区腔体重排.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: ISS-209 交卷单 (B1 结论 / B2 验收自评 / B3 证据分级 / B4 接口取值 / B5 未决与卡点 / B6 自证命令), B1~B6 六块齐全。
+- path: MECH/_frag_update_iss209.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: 'ISS-209 分片原子写脚本 (走 state/frag_write.py 的 update_fragment): U-3 订正 mech_hinge_stack_fixed_mm
+    24.00→25.00 (按 key 定位后替换, 不用 CLI --add-claim 的追加语义) + 新增 3 artifact / 2 claim / 6 need; 禁 open(p,"w");
+    只动自己分片的一个 key + 追加。'
+- path: MECH/HW_CROSS_REVIEW_TRIAGE.md
+  kind: spec
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: 'ISS-213 交卷件: 结构侧 54 项交叉复核**逐条定性表** (项号/现状判定/关键数字/demo 相关性/MECH 地界/处置/恢复条件/证据等级, 54/54 一处不漏,
+    处置栏无一条留空或写''待定'') + **17 条 FAIL 逐条去处表** (排队等原理图定稿 6 个 id / 7 行 + 登记 need 给 main 4 条 + 出规格 6 条) + 6
+    个 PCB 类 id 的**排队表 + 恢复条件** + demo 板当前成立的 6 条真缺陷收口记录 (Type-C 开孔 / 印刷公差 / buck 功率守恒 / 端件温升口径 / 散热路径
+    / 腔体) + ISS-126 真实状态结论 (交 main 裁) + **机器可读锚点 yaml 块** (门禁按它复核, 改锚点=改判据⇒门禁红)。★关键数: 现口径 9.50×3.60 最坏单边
+    0.13/0.02、ISS-089 建议 10.00×4.20 最坏 0.38/0.32 (判据 0.60 ⇒ **两档现候选都判不合格, 打印包的''二选一''是假选择**) ⇒ 新出 **10.50×4.80**
+    (FDM 直成型, 最坏 0.63/0.62) 与 **10.25×4.55** (金属·CNC ±0.05, 最坏 0.63/0.62); 端件温升按 buck 口径 0.45–0.57W ⇒
+    ΔT 83K ⇒ 108°C, 60°C 判据 ⇒ P_max 0.21W ⇒ 打印件 R=1944 K/W (0.5W 打进去 +972K 不可能) vs 铝 1.64 K/W (+0.82K)
+    ⇒ **必须金属热路**; 功率守恒 ICHG/IIN = η·Vbus/Vbat = 1.216 (3.70V) / 1.071 (4.20V), 规格书 0.822/0.933 是倒数 ⇒ 390Ω
+    档单 pin 0.50–0.61A 超 0.5A 额定; 检修口内腔 7.30−2.60 = 4.70 ≥ cavity_req 4.50 (余 +0.20) ⇒ **ISS-126 的前提已被现口径超越**。★[实测]实物
+    = 0 条 (几何/热学全为 [推算])。'
+- path: MECH/check_demo_struct_truth.py
+  kind: check
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: 'ISS-213 机器门禁: **20 组检查** (rc=0 全过 / rc=2 有红, 失败点名哪一组)。★它守的是 **''demo 板当前成立的条目'', 不是''54 项全绿''**
+    ⇒ G1/G1b **不许把红灯调没** (断言 hw_cross_review_check.py 的 FAIL 名单仍是 17 条且逐条对齐, 谁改判据/阈值/把 FAIL 抹成 PASS ⇒
+    立刻红) · G2 demo 当前项**独立复算**全过 (内腔 4.70≥4.50 / 新开孔两档最坏单边 ≥0.60 / 两档现候选判不合格 / buck 温升 108°C / P_max 0.21W
+    / 金属 vs 打印件热阻 / 功率守恒 1.216·1.071 / demo PASS 12 项) · G3/G3b 6 个 PCB 类 id **已登记排队且恢复条件非空**, 且**在 check
+    脚本里仍然是 FAIL** (不许修绿) · G4/G4b 板框四数 60.00/30.00/1.00/3.33g 没被改 · G5/G5b 判据阈值 (cavity_req 4.50 / CRIT
+    0.60 / cav_v 38.00 / duct_v 6.00) 未松 + 8 个受保护文件 md5 逐字节未变 · G6/G6b 定性表 54 项全覆盖 + 处置不留空 + 17 条 FAIL
+    每条都在受控词表里 · G7 分片 claim mech_hinge_stack_fixed_mm = 25.00; ★`--selftest` **8 个反向用例全被抓** (板宽/判据/开孔/耗散/FAIL
+    名单/排队表/板重/cavity_req 任一改坏 ⇒ 必须变红)。★**本闸是否挂每日巡检交 main 裁 —— 本单没改 state/daily_check.py**。'
+- path: HANDOFF/2026-11-15_mech-lead_ISS213_结构54项定性表与demo真缺陷收口.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: 'ISS-213 交接单 (B1~B6 齐全, 27 行): B1 结论 6 条 (54/54 定性 · 17/17 FAIL 有去处 · 机器门禁 20/20 + selftest
+    8/8 · CHG-OPEN 真根因与第三档口径 · 端件温升/功率守恒/金属热路 · ISS-126 真实状态) + B2 逐条自评 + B3 证据分级 + B4 接口取值 5 条新 claim
+    + B5 未决项 7 条 (交 main 的 6 条新 need / 打印包第三档 / MECH_BUDGET 文字 / u8 / ISS-126 裁 / 挂巡检 / 不替老板拍) + B6 自证复现命令
+    (含 8 个 md5)。'
+- path: MECH/_frag_update_iss213.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-11-15'
+  summary: 'ISS-213 分片原子写脚本 (走 state/frag_write.py 的 update_fragment): 新增 4 artifact / 5 claim / 6 need;
+    ★**不改任何已有 claim 的 value** (U-3 的 mech_hinge_stack_fixed_mm 实测已是 25.00, ISS-209 已收 ⇒ 本单只复核不重复写); 禁
+    open(p,"w"); 只动自己分片。'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -1447,6 +1563,238 @@ needs_from:
     是旧 3 固定孔 ⇒ 现行为 RK3576 逃线带 X[14.20,33.00] 与 PIN-SET-2 套 A 四孔 X=8/52 (BOARD_GEOM_30MM.md §2/§3) ⇒ 影响
     PCB-X-AVAIL 与 PCB-X-GAP 两项读数 ⇒ 本单只迁 pcb_w 未动 ⇒ 建议另派一条
   since: '2026-11-12'
+- key: iss206_mech_claim_mainboard_len_carrier_direct_scheme_choice
+  to: main
+  item: '★ISS-206 裁 6 的闸命中 ⇒ 本分片 interface_claims 的 mainboard_len_carrier=69mm 与 mainboard_len_direct=76mm
+    **只报不改** (value 一字未动, 只补了 note 注明来源)。★**判据 (我自己复算的, 不猜)**: ①claim 语义 —— 两条 note 分别写『载板化后主板长』/『直接焊时主板长』;
+    ②同域真源 MECH/SOC_CARRIER_EVAL.md §3 (A 直接焊 电池40.5+主板76+余15=131mm 超1.3mm / B 载板 40.5+69+15=125mm 余5.2mm)
+    + §5 表 (A 910mm2 / B 832mm2) + §7 结论『载板化把主板长度 76→69mm』⇒ **明确是 A/B 两套互斥方案**, 不是同一块板的两个口径; ③ISS-084
+    结论行写明『拍板权留给项目总工』。⇒ **按 brief 的闸: 数值订正 = 方案取舍 = 老板级 ⇒ 只报不改 + 报你裁**。★**我的建议 (供裁, 不替你拍)**: ①若 A/B 方案已因
+    11-02『demo 一块板』作废 ⇒ 这两条应整体标作废 (不是改成 60.00); ②若还要保留作对照 ⇒ value 保持 69/76 但 note 必须写明『A/B 方案板长, 非现行板板长』(本单已按此补注)。★**请明确一句:
+    这两条 claim 算『现行板长』还是『历史方案对照』?** —— 合并器只报两家都声明同 key 的冲突, 单边过期值它检不出来 (ISS-107 同型教训)。'
+  since: '2026-11-15'
+- key: iss206_mech_hw_cross_review_escape_band_rk3572
+  to: main
+  item: '★ISS-206 裁 8 只报不改 (一字未动): MECH/hw_cross_review_check.py 的 soc_escape_x=(20.20, 31.80) / hole_x=(5.00,
+    15.00, 55.00) 仍是 **旧 SoC (RK3576)** 的逃线带与固定孔位。★**理由 (两条, 都是既有裁决, 不是我的偏好)**: ①老板 10-29 10:07 口径『PCB
+    布线/布局类一律排队等原理图定稿』⇒ 逃线带 = 布局类; ②主控已从 RK3576 换成 RK3572 ⇒ 逃线带本身要重算 ⇒ 属整链重出的一步, 换主控后单改这三个数只会造出【假绿/假红】。★**本单实测**:
+    该脚本 rc=0, 汇总 PASS 14 / FAIL 17 / 条件通过 8 / 说明 15 (共 54 项), ★**分布未因本单变红** (本单一字没碰它) —— 其中 FAIL 里含『7.7
+    焊盘阵列与 SoC 逃线带间距 ≥5.0mm (实测 18.70mm)』这类仍依赖旧逃线带位置的项, **整链重出时必须一起重算**。★**请裁**: 逃线带重算挂到哪一单 (整链重出计划 / 原理图定稿后单独一单)?'
+  since: '2026-11-15'
+- key: iss206_mech_frag_claim_hinge_stack_24_vs_doc_25
+  to: main
+  item: '★ISS-206 边界内发现, **本单只报不改**: MECH/USB_HINGE_STRUCTURE.md 的 §9 claim 镜像行已按裁 2 改成 mech_hinge_stack_fixed_mm
+    = 25.00 (16p/20p/4p/**10p** @0.5) 堆叠 余 12.00, 但**本分片 state/fragments/mech.yaml 的同名 claim 仍是 value=24.00
+    + note 『收敛版 (16p/20p/4p/8p @0.5mm) 堆叠, 余 13.00』** ⇒ ★**文档与分片现在差 1.0 mm + 差一整套 8p 口径**。★**为什么我不动**:
+    本单边界明确『只许新增/改写本分片里 **裁 6 那两条 claim** 与 本单相关的 need/artifact 条目』⇒ 这条 claim 不在可写清单里 ⇒ 报你裁。★**建议**: 改成
+    value=25.00 + note 换 10p 口径 (与文档 §9 一致); 该 claim 已标『2026-11-06 标注: 仅供追溯, 现行板无跨铰链』⇒ 影响面 = 追溯口径, 不是活基线。★**顺带**:
+    mech_hinge_stack_declared_mm=49.62 同样带旧 8p/40p 口径, 也在文档 §9 镜像范围内。'
+  since: '2026-11-15'
+- key: iss206_mech_close_iss202_203_needs_via_main_answers
+  to: main
+  item: '★ISS-206 已按你的裁决把 ISS-202 / ISS-203 登记的 8 条 need 全部执行完毕 (裁 1~5 + 裁 7 已改完并实测通过, 裁 6/裁 8 按闸只报不改并各登记
+    1 条 need)。但 **state/fragments/pm.yaml 里没有这 8 条key 的 answer** ⇒ merge.py 的闭单口径 (需求 (owner,key,to) 被闭合
+    ⟺ 存在 key 相同且 **作者 = to** 的答复) 认不到 ⇒ ★**Q4 需求闭环率上这 8 条仍算『等 main 回音』**。★**要你做**: 在 pm.yaml 落这 8 条 key
+    的 answer (作者必须是 main)。★**8 条 key**: iss202_mech_doc_residual_jchg_old_6pin / iss202_mech_script_recommended_pins_jchg_8
+    / iss202_mech_other_docs_jchg_old_pinmap / iss202_mech_c4_stack_arith_pending / iss203_mech_service_port_doc_15mm_margin
+    / iss203_mech_claim_mainboard_len_carrier_direct / iss203_mech_service_port_pinset2_baseline_15mm
+    / iss203_mech_service_port_pcb_thk_4layer。★另: iss203_mech_hw_cross_review_old_escape_and_holes 那条
+    = 本单的裁 8, 已由 iss206_mech_hw_cross_review_escape_band_rk3572 细化。'
+  since: '2026-11-15'
+- key: iss134_mech_boss_decide_waveguide_vendor_and_fov
+  to: main
+  since: '2026-11-15'
+  item: '★ISS-134 待老板拍的那一维 = 波导归属 (选谁 / 是否与光引擎打包 / 单台样机是否走公开采购而非 JBD 问询)。★我不替老板定, 只列 3 个候选 + 取舍 + 建议:
+    A 舜宇奥来(歌尔奥来, LM3027 0.74mm/30°(D)/<4.3g/眼盒15x10mm, 12吋产线+歌尔舜宇背书, 眼盒偏大抢鼻梁区空间) / B 瑞声xDispelix (0.7mm/25°/4.7g/出瞳4mm/出瞳距18mm/60x41mm/透过率90%,
+    公开参数最全, 结构最友好, 但双主体流程长) / C JBD 刻蚀波导 (Pavo Lite 是唯一公开的整机开发套件, 但只供波导不供光引擎, 耦合责任在我们)。★我的建议 = 按 B 的公开几何做镜框参数化占位
+    (卡槽+可换压框), A 或 C 到货只重做压框。★★但要连 FOV 目标一起拍: 公开波导只有 20-30°(D), 我们 D3 口径要 120° 对角, 差一个量级 ⇒ 老板要选 是降 FOV
+    目标迁就现成波导 还是 接受定制/更贵的波导。★在 FOV 没定前, 占位件按 FOV 可变设计 (耦入/耦出角可调), 否则重演 11-02 方案变了全部重算。'
+- key: iss134_mech_reassign_iss004_013_016_048
+  to: main
+  since: '2026-11-15'
+  item: '★ISS-134 只报不改 (issue 状态与 owner 是 main 的活, 我一字没动 state/issue_log.yaml)。建议逐条: ①ISS-016 (走鹃Ⅱ 长宽高,
+    deferred/owner=jbd) => 置 closed, note 随 11-02 换型作废 (依据 HW/DISPLAY_MODULE_DECISION.md 2.3)。②ISS-048
+    (光生物安全参数, deferred/owner=jbd) => owner 改 mech-lead, 按 MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md 闭环; 理由从
+    等JBD草稿发出 改成 按 V2 判据表, 外部依赖已归零 (12 个 0数据 全部有可测替代量)。③ISS-004 (波导未选型卡镜框打印) => owner 改 pm/mech-lead, 理由改
+    等老板拍波导归属, 镜框可先用参数化占位开工, 不再等 JBD。④ISS-013 (severity=blocker, 缺 2D 外形图/容差角/彩虹纹) => ★真阻塞源不是 JBD 而是 缺几何数据,
+    三家公开规格 (舜宇/Dispelix/JBD) 都没公开 2D 外形图; note 要改写成 缺几何数据+用参数化占位与可换压框绕开。⑤连带: MECH/PROTOTYPE_PLAN.md B3
+    批的开工前置条件写着 JBD 回 u1+u4 之前镜框一律不开工 => 这条前置条件要一起改 (该文档不在本单交付物清单内, 我只报不改)。'
+- key: iss134_mech_close_legacy_zoujuan_refs
+  to: main
+  since: '2026-11-15'
+  item: '★ISS-134 预存量上报 (验收 grep 相关): grep -rn 走鹃 MECH/*.md 在本单之前就有 33 处, 分布 5 份旧文档 = MECH_BUDGET.md 21
+    处 / PROTOTYPE_PLAN.md 6 处 / SOC_CARRIER_EVAL.md 3 处 / STRUCT_REVIEW_ISS065.md 2 处 / CLEARANCE_FIX.md
+    1 处。★这 5 份不在本单交付物清单内 (只写这些) => 我未改 => ★如实上报: 这些命中目前仍处在活动口径而非已作废语境。★建议派一个 5 分钟收口单, 逐份加一条 走鹃Ⅱ 口径已作废(11-02
+    换型) 的行内标注, 沿用 MECH_BUDGET.md 已有的 划线+已作废 体例 (见该文件 1.4/1.5)。★本单新增的 2 份文档里 走鹃 只出现在 已作废/历史沿革 语境。'
+- key: iss134_mech_archive_jbd_question_list
+  to: main
+  since: '2026-11-15'
+  item: '★ISS-134 只报不改: 根目录 JBD_QUESTION_LIST.md 是 main 的地界, 我一字没动。按老板 11-11 19:31 + 11-12 02:02 不再发信
+    + 11-02 显示件改型, 该清单里的 走鹃Ⅱ 出瞳/波长/光通量/MTF/光生物安全 等问项已全部作废 (另 波导交给 JBD 推荐 那条是 10-21 老板定的, 现已被公开采购路线取代)
+    ⇒ 建议 main 把它归档为历史件, 不要留着当活清单。★同批: state/outbox/ 下的 jbd_query.md / jbd_query_addendum.md / visionox_display_inquiry.md
+    / visionox_display_dsc_mode_query.md 我一律不发只留档。'
+- key: iss134_sw_blue_drive_ratio_cap
+  to: sw-lead
+  since: '2026-11-15'
+  item: '★ISS-134 给 SW 侧的一条硬约束 (光生物安全): 面板蓝光通道辐亮度占白场辐亮度上限 25% (保守), 名义值 8.26% (DCI-P3 蓝基色 x=0.150 y=0.060
+    的 Y_B=0.0798 / 红 0.3850 / 绿 0.5017, 等辐射功率下算)。★为什么与 SW 有关: 光生物安全的输入量是 出瞳白场辐亮度 的**最大值**, 而亮度控制策略 (蓝光主通道占空/码值上限)
+    直接决定这个最大值落在哪。★越限的后果: L_eye > 1500 cd/m2 就掉出 IEC 62471 Exempt(RG0) 进 RG1 (L_B 100..10000 W/(m2*sr)),
+    需要用户信息/标签说明 (不是禁视警示, 那个要到 RG2 才有)。★判定与测量在 MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md 3.2 与 3.6; SW 侧只需保证亮度控制策略里有这条上限,
+    并在亮度 API 上留一个可标定的蓝通道占比量。'
+- key: iss208_mech_legacy_zoujuan_closeout_done
+  to: main
+  since: '2026-11-15'
+  item: '★ISS-134 遗留 need `iss134_mech_close_legacy_zoujuan_refs` 已闭环: 5 份旧文档 33 处「走鹃」逐处定性 = 活动 27 (全部改写成现行口径)
+    + 历史 6 (保留原文 + 加「已作废 (2026-11-15, ISS-134 V2)」+ 一句话原因), 一处不漏。★机器门禁已建: `python3 MECH/display_biosafety_v2_check.py`
+    → rc=0 (5 项检查: 走鹃活动口径=0 / 眼盒条目落位 / V2 六条关键量被引 / 交卷件 33 行表自洽 / 判据文件 md5 未变), 带 `--selftest` 6 用例全过。★逐处定性表见
+    MECH/DISPLAY_LEGACY_V2_CLOSEOUT.md §1; 眼盒约束已落进结构真源 MECH/MECH_BUDGET.md 1.7 (X-1..X-6)。★判据文件一字没改 (md5
+    96239070dc7c0ec00edb1b758a698769 / bda4a29464336bc1452c913602ce3f46)。'
+- key: iss208_mech_rebudget_frame_cavity_d15_20
+  to: main
+  since: '2026-11-15'
+  item: '★ISS-208 只报不改 (重排正中区腔体是下一单的活, 我只给量差): 按 DISPLAY_BIOSAFETY_CRITERIA_V2 3 ⑤-b 的口径, 评估距离 d=15-20mm
+    (同类公开 18mm) + 鼻梁区分光件 ⇒ 共同决定镜框上沿/正中区厚度; 而 MECH/MECH_BUDGET.md 1.4.5 现有「正中区 >=11.8mm」(旧口径: 走鹃II 4.8
+    + 分光件 6.0 + 余量 1.0) ⇒ ★差 3.2mm (d=15) ~ 8.2mm (d=20)。★我的处置: 11.8mm 旧数保留在表内并已标已作废 (只报不改), 重排口径写成 MECH/MECH_BUDGET.md
+    1.7 X-2, 下一单直接引。★建议 main 派单重排正中区腔体 (面板 1.48mm + 一级耦合光学 + d 净空 + 一拖二分光件), 并定 d 落在框内还是框外。'
+- key: iss208_mech_waveguide_eyebox_le_62mm2_gate
+  to: main
+  since: '2026-11-15'
+  item: '★ISS-208 眼盒面积硬约束 (老板拍波导归属时必须一起拍): 入眼 2000 cd/m2 ⇒ A_e <= 62 mm2 (≈8x7.7mm) (V2 C-4/C-5, [推算],
+    公式 L_eye,max = 0.1234/A_e, A_e 以 m2 代入)。★但公开在售波导的标称眼盒全部超限: 12x10 = 120 mm2 (超 58 mm2 = 1.94x, 入眼上限只剩
+    1028 cd/m2) · 15x10 = 150 mm2 (超 88 mm2 = 2.42x, 只剩 823 cd/m2) ⇒ 都达不到 2000 cd/m2 户外目标。★所以「眼盒面积 <=
+    62 mm2」必须从结果变成**选型前置条件**; 且公开规格里的「出瞳 4mm」≠ 眼盒面积, 不能替代 (A_e 的厂商定义式公开查不到 ⇒ [0数据], 已写降级方案: 要求供方按 V2 3
+    ⑥ 定义式给 A_e)。★已落进结构真源 MECH/MECH_BUDGET.md 1.7 X-1 / X-6, 下一单镜框占位件照它做。'
+- key: iss208_mech_recompute_optical_thermal_468mw
+  to: main
+  since: '2026-11-15'
+  item: '★ISS-208 只报不改 (与走鹃绑在一起的旧数字一律只报不改, 由 main 裁): 旧口径 = 光机 7.5x5.0x4.8mm / 0.18cc / 0.5g / 出瞳 2.9mm
+    / 98mW / 分光件 ~14x10x6 / 0.79cc / 正中区 11.8mm / 双光机 5.8mm / 鼻梁区 T_patch 37.3C + 镜框节点 46.9C + 入皮肤 23.9mW。★现行输入
+    = 视涯 0.49 面板 468mW (90Hz/100% duty) + 一级耦合光学 (ISS-133) ⇒ 光学侧功耗 >=4.8x, 体积/重量/鼻梁区温度全部需重算 (本机无样件, 我不给新数)。★现行热学判据已落
+    MECH/MECH_BUDGET.md 1.7 X-3 (腔体 <=50C / 面板结温 <=60C / >=0.5W 被动散热面 / 不得密闭腔), 重算归下一单。'
+- key: iss208_main_fix_v2_section_refs
+  to: main
+  since: '2026-11-15'
+  item: '★ISS-208 只报不改 (改判据是 main 的活): DISPLAY_BIOSAFETY_CRITERIA_V2.md 内部节号自指对不上 — C-4 写「出处 3.5 (式 5/6/7)」、①
+    写「本文 3.7 的蓝光折算系数」, 而该文件 3 实际只有 ①~⑥ 六条 ⇒ 3.5 / 3.7 不存在。★不影响任何阈值 (62mm2 / 1500 / 4000 / 50C / 60C /
+    15-20mm / 0.011rad / 0.1234 全部照抄无误), 只影响「引哪一节」的检索 ⇒ 建议 main 统一改成 3 ⑤-b / 3 ⑥ / 3 ③-c。★我已在结构真源里按语义引用
+    (1.7 X-1..X-6 + 1.7.2 承接表), 判据文件一个字没改 (md5 96239070dc7c0ec00edb1b758a698769)。'
+- key: iss209_mech_cavity_rebudget_done
+  to: main
+  item: '★ISS-209 重排完成 (闭环 ISS-208 登记的 need iss208_mech_rebudget_frame_cavity_d15_20): 正中区轴向厚度需求 T = d
+    + 3.0 (含出瞳面 ±3mm 带) = 18.00/21.00/23.00mm (d=15/18/20); 与 §1.4.5 旧数 11.8mm 的冲突量 = 3.20/6.20/8.20mm
+    (与 §1.7.1 C-1 逐字一致); vs 现行目标 10-12mm 全档超差 +6.0/+9.0/+11.0mm ⇒ 镜框最厚处从 12mm 变 18-23mm (×1.50-1.92);
+    可动余量 (扣器件区 11.8 + 带 6.0) = 0.20/3.20/5.20mm ⇒ d=15 档装配不可行 (判据 0.60)。★眼盒维度: A_e 在 <=62mm2 合法区内对轴向预算影响
+    = 0.00mm (面板等效直径 9.125mm 顶死) ⇒ 老板拍波导眼盒时厚度不用让步。★交卷件 MECH/CENTER_CAVITY_RECALC.md + 机器门禁 MECH/cavity_recalc_check.py
+    (rc=0, 12 项 + --selftest 9/9)。★未改 MECH_BUDGET 任何既有数字 (只新增 §1.8 指针段)。'
+  since: '2026-11-15'
+- key: iss209_mech_splitter_resize_for_eyebox62
+  to: main
+  item: '★ISS-209 新冲突 C-6 (只报不改, 请裁): X-1 的眼盒 <=62mm2 ⇒ 分光件要承的光束口径从 2.9mm 变 8.885mm ⇒ §1.3 M6 的 14×10×6mm
+    / 0.79cc / W4 3-6g 全部偏小: 按光束重算 = 平板对角需求 12.57mm (§1.2 宽松式) / 15.39mm (严格矩形包含口径, 比 10×10 的 14.14mm
+    差 1.25mm) + 转向棱镜需 >=9×9×5 (现 8×8 装不下) ⇒ 分光组件 0.97cc (+0.18cc) / W4 3.68-7.36g (+0.68~+1.36g) / 正中区腔体占位要放大。★连带:
+    整机重量上限 74.0g → 76.13g (d=20 档 + 分光件)。★只报不改, 几何数字变更请裁。'
+  since: '2026-11-15'
+- key: iss209_mech_cavity_heat_468mw_vs_50c
+  to: main
+  item: '★ISS-209 新冲突 C-7 (只报不改): 面板 468mW (V2 §3 ③-d) 放正中区 ⇒ 按 ISS-065 §2.3 模型, 腔体节点 81.20/77.43/75.24°C
+    (d=15/18/20) vs X-3 的腔体红线 50°C ⇒ 超 31.20/27.43/25.24°C; 保 50°C 所需被动散热面 ≈ 4668.9mm² (u8 未定值 1000mm²
+    的 4.67 倍) ⇒ 加厚只贡献 297.6-537.6mm² (6.4%-11.5%) ⇒ ★腔体散热不能靠加厚, 必须金属热路导到铰链侧/端件 (X-3: >=0.5W 被动散热面 + 不得密闭腔)。★归
+    ISS-208 的 468mW 重算单 (iss208_mech_recompute_optical_thermal_468mw), 本单不拍板。'
+  since: '2026-11-15'
+- key: iss209_mech_nose_bridge_heat_path
+  to: main
+  item: '★ISS-209 C-C (量化, 只报): 若 PCB/SoC 要挪到镜框正中 —— 鼻梁区热路径 = 12.0mm (节点→鼻梁接触面, ISS-065 §2.3 L_bridge;
+    ★加厚方向朝耳侧 ⇒ 这条路径长度不变), R_bridge = 400K/W; SoC 0.55W + 面板 0.468W = 1.018W 进镜框 ⇒ 鼻梁接触面 54.33/52.75/51.83°C
+    (d=15/18/20) ⇒ 对 43°C 红线余量 -11.33/-9.75/-8.83°C; 加鼻梁侧热断 (R_bridge=1000) 仍 43.74/43.03/42.61°C ⇒ 加厚救不了;
+    保 43°C 所需 R_bridge = 454.8/409.9/383.9 K/W (仅面板) / 1101.2/1003.6/946.9 K/W (含 SoC)。⇒ 结构侧论据: PCB 不进镜框正中
+    (与 ISS-065 §2.4 同向)。'
+  since: '2026-11-15'
+- key: iss209_mech_x3_skin_path_claim
+  to: main
+  item: '★ISS-209 与 X-3 口径的冲突 (只报不改, 建议裁): X-3 写「光学件在镜框, 不进皮肤热路径」, 但按 468mW 面板算, 仅面板就让鼻梁接触面到 43.89/43.16/42.74°C
+    (d=15/18/20) ⇒ d=15/18 档已破 43°C 红线 0.89/0.16°C ⇒ 这句话在现行功耗下不成立 (除非配鼻梁侧热断 >=454.8 K/W)。★X-3 在 MECH_BUDGET
+    §1.7, 本单未改该行一个字 ⇒ 请裁: 加限定语还是补热断要求。'
+  since: '2026-11-15'
+- key: iss209_mech_d_value_decision
+  to: boss
+  item: '★ISS-209 需老板/判据侧拍的一维: 评估距离 d 取 15 / 18 / 20 的取舍 (我给数, 不拍板) —— d=15: T=18.00mm, 可动余量仅 0.20mm (<
+    判据 0.60 ⇒ 装配不可行, 出瞳面 ±3mm 带无处放); d=18 (同类公开值): T=21.00mm, 可动余量 3.20mm (唯一「装得下且有余量」的折中); d=20: T=23.00mm,
+    可动余量 5.20mm 但镜框最厚 23mm (×1.92 于 12mm 目标)。★d 是 V2 判据 (§3 ⑤-b), 结构侧不许放宽或收紧 ⇒ 经项目总工转老板。'
+  waiting_on: boss
+  since: '2026-11-15'
+- key: iss213_mech_cross_domain_to_main
+  to: main
+  item: '★ISS-213 跨域条目汇总 —— **本单只报增量, 不指派任何别的 agent, 请 main 派给对应总工**。①**PIN-MISMATCH / STK-P9 / TOPO-3**:
+    HW 原理图 P9 页正文 pin 数 (21p vs 网表/同页器件表 22p) 与堆叠账 (缺 4×2×0.50 走线边距 + 拓扑未定义) ⇒ 归 hw-lead (已有 need `iss089_p9_topology_and_stack`)
+    —— ★结构侧建议: 拓扑定义按**拓扑 B (H 向径向嵌套)**, 堆叠按触点区 27.00 / FPC 带宽 35.50 两个口径分列。②**NET-LED**: 充电灯 (D_CHG_LED/Q_CHG_LED/R_CHG_LED)
+    的网表 board 列标错 —— 网表 `[''CHG_BOARD'']` 但同页注记写「装在充电板 (镜框) 靠近 Type-C 座」, 且 `R_CHG_LED` 两端分别标 CHG_BOARD
+    (net VBUS_5V_CHG) 与 MAIN_PCB, 而 VBUS_5V_CHG 只存在于充电板 ⇒ **LED 链条物理上只能在镜框** ⇒ BOM 备料 / 装配 / ISS-103 导光孔位置会跟着做错
+    ⇒ 归 hw-lead (已有 need `iss089_chg_led_board_column`)。③**THM-RATIO-3.70 / 4.20**: `HW/CHARGE_BOARD_SPEC.md`
+    §3.4 的 ICHG/IIN 系数**方向反了** (写 0.822/0.933 = 倒数), 物理真值 = η·Vbus/Vbat = **1.216 / 1.071** ⇒ 390Ω 档实际
+    ICHG 是表值 0.67–0.82A 的 ~1.48 倍 ⇒ **单 pin 0.50–0.61A 超 0.5A 触点额定** ⇒ 390Ω 档判据要重算 ⇒ 需 hw-lead 用 BQ25896
+    datasheet 原文确认 (已有 need `iss089_ichg_ratio_datasheet`)。④**CHG-PRINT-TOL**: `CHARGE_BOARD_SPEC` M-15
+    的「面板开孔宽公差 ±0.1 (9.4~9.6)」的**名义 + 公差两处都不合格** ⇒ 归 hw-lead (已有 need `iss089_typec_opening_and_print_pack`)
+    ⇒ 新口径见 need `iss213_mech_typec_third_candidate`。⑤**CHG-AREA**: 充电板 25×10 的器件 land 179mm² = 71% ⇒ 余
+    71mm² **只够双面贴, 单面贴装不下** ⇒ 充电板 PCB 必须双面贴 ⇒ 归 hw-lead (新)。★全部为**增量**, 已有 need 的 key 我一个没动、没重复派活。'
+  since: '2026-11-15'
+- key: iss213_mech_iss126_premise_superseded
+  to: main
+  item: '★ISS-213: `state/issue_log.yaml` 的 **ISS-126** (open / owner=main / due 2026-11-05) 的**前提已被现口径超越**
+    ⇒ 请裁 (issue_log 是你的地界, **我一笔没动**)。现状: ISS-126 仍按「板厚 0.41/0.80/1.00/1.22 四档都有可能, **只有 0.80 及以下才安全**,
+    1.22 档净空 4.48 破 4.50」在写, 解锁条件挂在「等 PCB 厂 DFM 报告 (ISS-122)」。但**结构真源现行板厚 = 1.00mm (6 层)** (`MECH/BOARD_GEOM_30MM.md`
+    §1 + `MECH/service_port_check.py` BASE `pcb_thk`=1.00, 注释「6 层现行; 4 层 0.80 已作废」) ⇒ 检修口盖板内腔 = 外表面 7.30
+    − PCB 元件面 2.60 = **4.70mm ≥ cavity_req 4.50 ✅ 余 0.20** (判据出处 = `service_port_check.py` 检查项 4.2, 实跑
+    **54/54 OK / FAIL 0**) ⇒ 「只有 0.80 及以下才安全」在现口径下**不成立** (1.00 档本来就过); 且 ISS-126 引的「6 层 ≈ 0.41mm」与现口径
+    (6 层 = 1.00mm) **对不上**。⇒ **真实状态 = 可裁关闭**(或改写为「板厚若改到 1.22 档才需要重开」)。★顺带: 本域分片 claim `sp_clearance_vs_pcb_thickness`
+    的 value 仍写「4.48-5.29mm」且 note 挂「板厚档位待 hw-lead + PCB 厂 DFM (ISS-122)」⇒ **该 claim 也已被现口径超越**, 请一并裁 (claim
+    是我的地界, 本单**没动别的 key**, 等你裁了我再改)。★证据: [实测] (本机实跑 `service_port_check.py`)。'
+  since: '2026-11-15'
+- key: iss213_mech_typec_third_candidate
+  to: main
+  item: '★ISS-213 增量 (挂在已有 need `iss089_typec_opening_and_print_pack` 之上, **不重复派活**): **打印包的「两档并行试样」是个假二选一**
+    —— 两档现候选在最坏公差下**都判不合格**。①现口径 **9.50×3.60** (母座 8.94×3.26, FDM ±0.30, 判据 0.60) ⇒ 名义单边 X 0.28 / Y 0.17,
+    **最坏 X 0.13 / Y 0.02** ❌; ②ISS-089 建议 **10.00×4.20** ⇒ 名义 X 0.53 / Y 0.47, **最坏 X 0.38 / Y 0.32**
+    ❌ ⇒ ★**根因: `MECH/HW_CROSS_REVIEW.md` §3.2 的三条处置都只把名义间隙推到 0.47, 没在最坏公差下验判据**。⇒ **本单已出第三档 (结构侧现行口径)**:
+    **FDM 直成型 10.50×4.80** (最坏 0.63/0.62 ✅, 端件面板最小外形 13.50×7.80 含承力壁 ≥1.50) 与 **金属嵌件/CNC ±0.05 10.25×4.55**
+    (最坏 0.63/0.62 ✅, 外形 13.25×7.55); ★**该特征不得靠打印面成型** ⇒ 打印后扩孔 (±0.10) 或金属嵌件。★**下游两件要排期**: (a) `HW/CHARGE_BOARD_SPEC.md`
+    M-15 的名义 + 公差两处改 (归 hw-lead) ⇒ (b) `MECH/print/gen_print_pack_revb.py` 加第三档试样 (`tc_open_w3/h3`) +
+    重生成 `frame_typec_coupon_revb.stl` + 更新 `MECH/print/MEASURE_CHECKLIST.md` M 段 —— ★(b) 是我的地界, 但它会动 Rev
+    B 打印包基线 (自检 93/93 + 38/38) 与分片 claim `mprint_status` ⇒ **本单没改**, 请 main 排期后我来落。★顺带: 打印包现试样尺寸实测 33×3×7.2mm
+    ⇒ 加第三档后面板外形会变长 (13.50+2×1.50 侧壁), B1 批试样清单要跟着改。[推算]'
+  since: '2026-11-15'
+- key: iss213_mech_endpoint_thermal_path_metal
+  to: main
+  item: '★ISS-213: 端件 (镜框) 的**散热路径**必须有金属件 —— 这不是「最好有」, 是**唯一可行解**。算式: 打印件 PA6-CF k=0.2 W/m·K, 沿臂长 70mm、截面
+    180mm² ⇒ **R = 0.070/(0.2×1.8e-4) ≈ 1944 K/W** ⇒ 0.5W 打进去 **+972 K** (端件瞬间汽化); 铝 6063 (k=237) 同几何
+    ⇒ **R = 1.64 K/W** ⇒ **+0.82 K** ⇒ 差 **1185×**。⇒ **端件必须设金属导热路径 (铝屏蔽罩 → 金属骨架/桥)**; 端件外表面温升按 buck 口径
+    0.45–0.57W ⇒ ΔT 83K ⇒ **108°C** ⇒ 对 60°C 判据 ⇒ **P_max = 0.21W** ⇒ 现值超 **2.4–2.7×** ⇒ 没有金属热路就必然超温。★验收办法
+    (B1 批加测项): 端件表面最热点 (充电板正上方) 充电 1A 稳态 30min 实测 **≤ 60°C**; 无金属热路的打印件版本直接判不合格。★**阻塞**: 镜框端件截面 **u8 未定义**
+    ⇒ 端件形状/尺寸定不下来 (已有 need `iss089_frame_section_u8_block`) ⇒ ★**本单不替项目总工定端件截面**, 只把判据与验收办法摆出来。★老板已拍「边戴边充不允许」⇒
+    充电时眼镜不戴 ⇒ 43°C 皮肤红线不适用, 但端件表面仍要过 60°C (烫手)。[推算]'
+  since: '2026-11-15'
+- key: iss213_mech_pcb_class_6_queued
+  to: main
+  item: '★ISS-213: 结构侧 54 项交叉复核里 **6 个 PCB 类 id / 7 行 FAIL 按老板 2026-11-11 10:07 口径「PCB 布线/布局类一律不派, 排队等原理图定稿」**
+    ⇒ 本单**只定性 + 写恢复条件, 一个没动, 判据阈值一个没松** ⇒ 它们在 `MECH/hw_cross_review_check.py` 里**仍然是 FAIL (正确状态)**。名单
+    + 恢复条件: ①`STK-FANOUT` (行 13, 缺 5.50mm) —— 恢复条件: 原理图 P9 定稿给出 4 条 FPC 实际落点与拓扑 + 4 座沿 V 向排布方案定稿 ⇒ 复算
+    FPC 带宽合计 ≤ 板宽 30.00 − 0.60; ②`PCB-X-GAP` (行 18, 缺 6.00mm) —— 4 座沿板长排布方案定稿 (含固定孔 X=5.00/15.00 一并重排)
+    ⇒ 25.70 ≤ 可用 X + 0.60; ③`MRG-54P` (行 20, 缺 4.50mm) —— 跨铰链连接器集合定稿; 若仍全合并 ⇒ 需 63p 座体 Y 向 ≤ 30.00 − 0.60
+    或改接触排方向 (★pin 数 = 网表实读 **63p**, P9 的 54p 口径 ≠ 网表); ④`MRG-X-4` (行 22, 缺 6.00mm) 同 ②; ⑤`MRG-X-3` (行
+    23 缺 0.50 / 行 24 缺 3.80, 两个实例) 同 ②; ⑥`FRM-SUM` (行 28, 框侧合计 31.00 vs 端件可用 V 30–40 ⇒ −1.00~+9.00) ——
+    框侧落点与走线拓扑定稿 **且** u8 端件截面定义 ⇒ 框侧 V 向带宽合计 ≤ 端件可用 V 高 − 0.60。★**排队的账已经在位**: 全文见 `MECH/HW_CROSS_REVIEW_TRIAGE.md`
+    §3/§4, 机器门禁 `MECH/check_demo_struct_truth.py` 的 **G3/G3b** 断言这 6 个 id 已登记排队、恢复条件非空、**且在 check 脚本里仍然是
+    FAIL** ⇒ 谁把它「修绿」或静默丢弃, 门禁立刻红。★请 main 排期 (原理图定稿后复活)。'
+  since: '2026-11-15'
+- key: iss213_mech_mech_budget_charge_caliber_text
+  to: main
+  item: '★ISS-213: `MECH/MECH_BUDGET.md` §2.1 的充电耗散口径要改 (文字 + 连带 `MECH/verify_budget.py` 的 `P_CHARGE`
+    常量) —— ★**本单没改** (它牵 §2.3 皮肤热链与 §3 重量表, 不是我一个单能收的)。现状: §2.1 写「**0.8 W @ 1A** (IC 自身耗散 = (5−4.2)V ×
+    1A)」= **线性充电 IC** 公式, 而 P10 充电板是**开关型 buck** (网表有 SW/L_CHG/C_BST/PMID) ⇒ 耗散应按 **Pin − Pout + DCR =
+    0.45–0.57W** ⇒ 端件外表面温升 83K ⇒ **108°C** (0.8W 口径是 133K ⇒ 158°C) ⇒ 60°C 判据 ⇒ **P_max = 0.21W** ⇒ **必须金属热路**
+    (见 need `iss213_mech_endpoint_thermal_path_metal`)。★结构侧现行口径已记在分片 claim `mech_endpoint_surface_temp_caliber`
+    + `mech_mech_budget_linear_0p8w_dead` ⇒ 请 main 排期改文档与脚本常量 (改完请回我一声, 我好把门禁锚点对齐)。★**判据阈值一个不许顺带松** (cavity_req
+    4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00)。[推算]'
+  since: '2026-11-15'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -1782,12 +2130,20 @@ interface_claims:
   ref: ''
 - key: mainboard_len_carrier
   value: 69mm
-  note: 载板化后主板长12mm宽6层双面贴面积模型
-  ref: ''
+  note: '载板化后主板长12mm宽6层双面贴面积模型 | ★ISS-206 (2026-11-15) 复核后【value 维持 69mm 不改】+ 补注来源: 本值是 MECH/SOC_CARRIER_EVAL.md
+    的 B 档 (BTB 载板化) **互斥方案** 的板长, 不是现行板板长 —— 同文件 §3/§5/§7 (A 直接焊 76 / B 载板 69, 且 A 超镜脚 1.3mm / B 余 5.2mm)
+    明确把两者当 **两套互斥方案** 建模 (ISS-084 结论行亦写『拍板权留给项目总工』) ⇒ 按 ISS-206 裁 6 的闸: ★**这属方案取舍 (老板级), 不是数值订正 ⇒ 只报不改
+    + 登记 need 给 main** (need key=iss206_mech_claim_mainboard_len_carrier_direct_scheme_choice)。★现行 demo
+    板板长 = 60.00mm / 板宽 30.00 / 板厚 1.00 (6 层) (MECH/BOARD_GEOM_30MM.md §1), 另见同分片 claim pcb_length_proposed=60mm。'
+  ref: MECH/SOC_CARRIER_EVAL.md 3/5/7 (A/B 互斥方案) + MECH/BOARD_GEOM_30MM.md 1
 - key: mainboard_len_direct
   value: 76mm
-  note: 直接焊时主板长_与hw-lead_ISS-078一致76x12=912mm2
-  ref: ''
+  note: '直接焊时主板长_与hw-lead_ISS-078一致76x12=912mm2 | ★ISS-206 (2026-11-15) 复核后【value 维持 76mm 不改】+ 补注来源: 本值是
+    MECH/SOC_CARRIER_EVAL.md 的 A 档 (SoC 直接焊) **互斥方案** 的板长, 不是现行板板长 —— 同文件 §3/§5/§7 (A 直接焊 76 / B 载板 69)
+    明确把两者当 **两套互斥方案** 建模 ⇒ 按 ISS-206 裁 6 的闸: ★**这属方案取舍 (老板级), 不是数值订正 ⇒ 只报不改 + 登记 need 给 main**。★本值同时是
+    BOARD_GEOM_30MM.md §1/§7 列的【作废值】之一 (板长 76) —— 但那说的是 **现行 demo 板**; 本 claim 讲的是 **A 档方案** 的板长 ⇒ 两者不是同一个数,
+    不能互相覆盖。'
+  ref: MECH/SOC_CARRIER_EVAL.md 3/5/7 (A/B 互斥方案) + MECH/BOARD_GEOM_30MM.md 1/7
 - key: temple_len_overrun_direct
   value: +1.3mm
   note: 直接焊在镜脚里的长度超差_载板化修掉
@@ -1838,9 +2194,10 @@ interface_claims:
     demo 跨铰链取消 (11-02) **已不适用于任何现行板** ⇒ **仅供追溯, 不代表现行基线**; 现行 demo 无跨铰链, 整机阶段重算见 MECH/rebase_20261106.py。'
   ref: MECH/USB_HINGE_STRUCTURE.md#3.2b
 - key: mech_hinge_stack_fixed_mm
-  value: '24.00'
-  note: '收敛版 (16p/20p/4p/8p @0.5mm) 堆叠, 余 13.00 | ★2026-11-06 标注: 本值是 **收敛版 (16p/20p/4p/8p)** 的堆叠, 同上**仅供追溯**;
-    现行板无跨铰链。'
+  value: '25.00'
+  note: '收敛版 (16p/20p/4p/**10p** @0.5mm) 堆叠, 余 12.00 | ★ISS-209 (2026-11-15) 按 ISS-206 裁 2 订正: 原值 24.00
+    + note 的 8p 口径 (16p/20p/4p/8p, 余 13.00) 与 MECH/USB_HINGE_STRUCTURE.md §9 不一致 (文档已写 25.00), 本单按 U-3
+    把它改成 25.00 + 10p 口径; ★2026-11-06 标注保留: 仅供追溯, 现行板无跨铰链。'
   ref: MECH/USB_HINGE_STRUCTURE.md#3.2b
 - key: mech_usb_diff_z
   value: 90ohm±10%
@@ -2522,6 +2879,111 @@ interface_claims:
     ZERO_DRAFT 占比只作参考线)。复算: python3 MECH/iss127_h_chain_check.py (rc=0) + --self-test (rc=0)。[推算] 本机不可打印/量测,
     无 [实测]。'
   ref: ''
+- key: biosafety_eye_luminance_max
+  value: 1500cd/m2
+  note: '★ISS-134 (2026-11-15) 光生物安全判据 V2 设计目标: 出瞳 (波导眼盒) 处白场辐亮度上限 1500 cd/m2, 对应 IEC 62471 L_B <= 100
+    W/(m2*sr) = Exempt/RG0 (免标签)。推导: LB ≈ 0.066 x L_eye (蓝光占白场 8.26% [DCI-P3 基色算] x B(460)=0.80 [IEC 62471
+    Table 4.2]) ⇒ L_eye <= 100/0.066 = 1515 cd/m2。保守口径 (蓝光占比按 25% 算) 则 <= 500 cd/m2。[推算] 判据全文 MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md
+    §3 ①。'
+  ref: MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md#3
+- key: biosafety_eye_luminance_max_rg1
+  value: 4000cd/m2
+  note: '★ISS-134: 可接受上限 (RG1 低风险级, 需用户信息但不需禁视警示), 对应 L_B <= 10000 W/(m2*sr)。RG2 门槛 4e6 W/(m2*sr) 距我们
+    4 个数量级 ⇒ 光生物安全不是本项目风险源。[媒体] IEC 62471:2006 Table 6.1 原文 + [推算]。'
+  ref: MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md#3
+- key: biosafety_blue_drive_ratio
+  value: <=25%
+  note: '★ISS-134: SW 侧亮度控制的约束项 - 面板蓝光通道辐亮度占白场辐亮度上限 25% (保守)。名义值: DCI-P3 蓝基色 (x=0.150,y=0.060) Y_B=0.0798
+    vs 红 0.3850/绿 0.5017 ⇒ 等辐射功率下蓝光占白场辐亮度 8.26%; 25% 是保守上限, 驱动蓝光到 100% 满码时需按此设限。[推算] ⇒ 这是 SW 亮度策略的一条硬约束,
+    交 sw-lead。'
+  ref: MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md#3
+- key: waveguide_eyebox_area_max
+  value: <=62mm2
+  note: '★ISS-134 结构侧新硬约束: 波导眼盒 (出瞳) 面积上限 62 mm2 (约 8x7.7mm), 才能在视涯 0.49 面板 3000 cd/m2 + 全半球收集 + 波导总效率
+    1.83% 下拿到入眼白场 2000 cd/m2 (户外可用)。公式 L_eye,max = 0.1234 / A_e (m2); A_e=150mm2 -> 823 cd/m2, 64 -> 1928,
+    25 -> 4936。⇒ 眼盒尺寸不是供应商给什么就用什么, 是结构侧要提前定的数 (夹住镜框上沿厚度与鼻梁区分光件空间)。[推算] η=1.83% 由 JBD 官网 3lm -> 4000nits
+    入眼反算。'
+  ref: MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md#3
+- key: optical_cavity_temp_max
+  value: 50C
+  note: '★ISS-134: 镜框内光学腔体稳态温度上限 50C (腔内空气与腔壁)。热源: 视涯 0.49 面板 468 mW @90Hz/100% duty [官网 datasheet] ⇒
+    0.47W 全部变成热, 镜框需 >=0.5W 被动散热面 (上表面+铰链侧), 不得做密闭腔。光学件在镜框不进皮肤热路径 (与 MECH_BUDGET M4 的 43C 皮肤红线不冲突)。[官网]+[推算]'
+  ref: MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md#3
+- key: panel_junction_temp_max
+  value: 60C
+  note: '★ISS-134: 面板结温上限 60C, 取 JBD 同类 MicroLED 光引擎公开工作温度 -20~60C 作可比红线 (视涯 0.49 datasheet 两页逐页渲染复核:
+    无工作温度/无光谱/无 62471 声明/无 L50 => [0数据])。[官网] JBD 蜂鸟Ⅱ 参数页。'
+  ref: MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md#3
+- key: mech_struct_truth_biosafety_entries
+  value: MECH/MECH_BUDGET.md 1.7 X-1..X-6
+  note: '★ISS-208: 光生物安全 V2 (C-4/C-5) 已落进**结构侧真源**, 下一单直接引条目号。X-1 眼盒面积 A_e<=62mm2 (≈8x7.7mm); X-2 评估距离
+    d=15-20mm ⇒ 镜框上沿/正中区厚度 (与 1.4.5 的 11.8mm 差 3.2-8.2mm, 下一单重排); X-3 镜框内腔体 <=50C / 面板结温 <=60C / >=0.5W
+    被动散热面 / 不得密闭腔; X-4 出瞳辐亮度 <=1500 (RG0) / <=500 / <=4000 (RG1); X-5 占位几何 (眼盒 12x10/15x10, 片厚 0.7-1.0mm,
+    FOV 20-30 度D, 出瞳 4mm + 出瞳距 18mm, 必须 FOV 可变 + 可换压框); X-6 选型前置条件 (眼盒面积先问, 公开眼盒 120/150mm2 全部超限 58/88mm2)。[推算]
+    (公式与输入全部来自 V2, 未改判据阈值)。'
+  ref: MECH/MECH_BUDGET.md#1.7
+- key: mech_center_cavity_rebudget
+  value: d=15/18/20 => T=18/21/23mm(含±3带)
+  note: '★ISS-209 (2026-11-15) 正中区腔体重排 (按 X-1 眼盒<=62mm2 + X-2 评估距离 d=15-20mm): 正中区轴向厚度需求 T = d + 3.0 (含出瞳面
+    ±3mm 可调带) = 18.00/21.00/23.00mm (d=15/18/20); 与旧数 11.8mm 的冲突量 = d - 11.8 = 3.20/6.20/8.20mm (与 MECH_BUDGET
+    1.7.1 C-1 逐字一致); vs 现行目标 10-12mm 全档超差 +6.0/+9.0/+11.0mm; 扣器件区 11.8 与带 6.0 后的可动余量 = 0.20/3.20/5.20mm
+    (d=15 档 < 判据 0.60 ⇒ 装配不可行)。★口径: 耦合光学出射面→波导出瞳面净空 (器件区嵌套其中), 加厚方向朝耳侧 ⇒ 眼距 d 不受影响。★A_e 在 <=62mm2 合法区内对轴向预算影响
+    = 0.00mm (面板有效面积 65.40mm2, 等效直径 9.125mm 顶死) ⇒ 老板拍波导眼盒时厚度不用让步。★[推算] 出处 MECH/CENTER_CAVITY_RECALC.md
+    §1 + MECH_BUDGET.md 1.7 X-1/X-2 + V2 C-4/C-5; 门禁 python3 MECH/cavity_recalc_check.py (rc=0)。'
+  ref: MECH/CENTER_CAVITY_RECALC.md §1 + MECH/MECH_BUDGET.md §1.7 X-1/X-2
+- key: mech_center_cavity_splitter_resize
+  value: A_e=62 => 分光件 0.97cc / W4 3.68-7.36g
+  note: '★ISS-209 新冲突 (只报不改): 分光件要承的光束口径必须 >= 眼盒等效直径 D_e (25/40/62 mm2 => 5.642/7.136/8.885mm), 而 §1.3
+    M6 的 14×10×6 / 0.79cc / W4 3-6g 是按走鹃Ⅱ 2.9mm 光束定的 (器件已作废) ⇒ 按 A_e=62 重算: 45° 平板所需对角 12.57mm (§1.2 宽松式)
+    / 15.39mm (严格矩形包含口径, 比 10×10 平板的 14.14mm 差 1.25mm), 转向棱镜 8×8 装不下 8.885mm 光束 (需 >=9×9×5) ⇒ 分光组件 0.97cc
+    (+0.18cc) / W4 3.68-7.36g (+0.68~+1.36g) / 腔体占位要放大。★只报不改 + 登记 need (iss209_mech_splitter_resize_for_eyebox62)。[推算]'
+  ref: MECH/CENTER_CAVITY_RECALC.md §2.4 + MECH/MECH_BUDGET.md §1.3 M6
+- key: mech_typec_panel_opening_spec
+  value: 10.50x4.80(FDM直成型)/10.25x4.55(金属·CNC)
+  note: '★ISS-213 (2026-11-15) 结构侧现行口径: 镜框端件 Type-C 面板开孔。★**根因**: 原口径只把**名义**间隙推到 0.47 (10.0×4.2 档), **没在最坏公差下验判据**
+    ⇒ 现口径 9.50×3.60 的最坏单边 X 0.13 / Y 0.02, ISS-089 建议 10.00×4.20 的最坏 X 0.38 / Y 0.32 (判据 0.60) ⇒ **两档现候选
+    都判不合格, 打印包的''两档并行试样''是假二选一**。★**本单新出**: ①FDM 直成型 **10.50×4.80** (最坏 0.63/0.62 ✅, 端件面板最小外形 13.50×7.80
+    含承力壁 ≥1.50) ② 金属嵌件/CNC ±0.05 **10.25×4.55** (最坏 0.63/0.62 ✅, 外形 13.25×7.55); ★**该特征不得靠打印面成型** ⇒ 打印后扩孔
+    (±0.10) 或金属嵌件 (±0.05)。判据出处: 母座本体 8.94×3.26 [官方] + FDM ±0.30 + CRIT = 2×0.30 = 0.60。★下游未动: HW/CHARGE_BOARD_SPEC.md
+    M-15 (名义+公差, 归 hw-lead) + MECH/print/gen_print_pack_revb.py 要加第三档试样 (交 main 排期)。[推算]'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md §5.1 + §1 anchors.typec_panel
+- key: mech_endpoint_surface_temp_caliber
+  value: 'buck: 83K/108C@0.50W; 60C判据⇒P_max=0.21W'
+  note: '★ISS-213 端件外表面温升**现行口径 = buck** (P10 网表有 SW/L_CHG/C_BST/PMID ⇒ 开关型 buck, 耗散 = Pin−Pout+DCR =
+    0.45–0.57W), **不是** MECH_BUDGET §2.1 的 0.8W (那是线性稳压器公式 (5−4.2)×I ⇒ 对 buck 不适用, 本单判死该口径)。端件外表面 R_conv
+    = 1/(10 W/m²K × 0.030×0.020 m²) = 166.67 K/W ⇒ P=0.50W ⇒ ΔT **83K ⇒ 表面 108°C** (0.8W 口径 ⇒ 133K ⇒ 158°C);
+    ★**60°C 判据 ⇒ P_max = (60−25)/166.67 = 0.21W** ⇒ 现耗散超 **2.4–2.7×** ⇒ **必须金属热路** (打印件沿臂 70mm R = 1944
+    K/W ⇒ 0.5W 打进去 +972K 不可能; 铝6063 同几何 R = 1.64 K/W ⇒ +0.82K)。验收: B1 批端件表面 (充电板正上方) 充电 1A 稳态 30min 实测
+    ≤60°C; 老板已拍''边戴边充不允许'' ⇒ 43°C 皮肤红线不适用, 但端件表面仍要过 60°C (烫手)。[推算]'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md §5.3/§5.4
+- key: mech_mech_budget_linear_0p8w_dead
+  value: 0.8W线性口径已作废(P10是buck)
+  note: '★ISS-213 判定: `MECH/MECH_BUDGET.md` §2.1 的『**0.8 W @ 1A** (IC 自身耗散 = (5−4.2)V × 1A)』是**线性充电 IC**
+    的公式, 而 P10 充电板是**开关型 buck** ⇒ 该口径对现行方案**不适用 (判死)**; 现行耗散口径 = 0.45–0.57W (Pin−Pout+DCR), 端件温升口径见 claim
+    `mech_endpoint_surface_temp_caliber`。★**本单未改 MECH_BUDGET 那一行** (它牵 `MECH/verify_budget.py` 的 P_CHARGE
+    常量 = 0.8 与 §2.3 皮肤热链) ⇒ 文字改动交 main 排期。'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md §5.3 + MECH/MECH_BUDGET.md §2.1
+- key: mech_iss126_current_status
+  value: 内腔4.70>=4.50余0.20⇒前提已被现口径超越
+  note: '★ISS-213 复核 (2026-11-15): `state/issue_log.yaml` 的 **ISS-126** (open / owner=main / due 2026-11-05)
+    至今仍按「板厚 0.41/0.80/1.00/1.22 四档都有可能, **只有 0.80 及以下才安全**, 1.22 档净空 4.48 破 4.50」在写, 并把解锁条件挂在「等 PCB 厂
+    DFM 报告 (ISS-122)」。★**但结构真源现行板厚就是 1.00mm (6 层)** (`MECH/BOARD_GEOM_30MM.md` §1 + `MECH/service_port_check.py`
+    BASE `pcb_thk`=1.00, 注释「6 层现行; 4 层 0.80 已作废」) ⇒ 检修口盖板内腔 = 外表面 7.30 − PCB 元件面 2.60 = **4.70mm ≥ cavity_req
+    4.50 ✅ 余 0.20** (判据出处 = service_port_check.py 检查项 4.2, 实跑 54/54 OK) ⇒ **ISS-126 的前提已被现口径超越**; 且它引的「6
+    层 ≈ 0.41mm」与现口径 (6 层 = 1.00) 对不上。★**真实状态 = 可裁关闭** (或改写为「板厚若改到 1.22 档才需重开」)。★**issue_log 是 main 地界,
+    本单一字未动** ⇒ 交 main 裁; 同域 claim `sp_clearance_vs_pcb_thickness` 仍写「4.48-5.29mm / 待 ISS-122」, 一并交 main
+    裁。[实测] (实跑 service_port_check.py)'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md §5.5 + MECH/service_port_check.py BASE/§4.2
+- key: mech_hw_cross_review_triage_54
+  value: 54项逐条定性/17条FAIL有去处/6个PCB类排队
+  note: '★ISS-213 交卷摘要: `MECH/hw_cross_review_check.py` 实测 **PASS 14 / FAIL 17 / 条件通过 8 / 说明 15 (共 54
+    项) 而 rc=0** ⇒ 17 条「按现在的图纸/口径做出来会出问题」挂着, 一个红灯都不点; 且 `state/daily_check.py` 里 grep 不到 hw_cross_review
+    / service_port / hinge_usb / display_biosafety / cavity_recalc 任何一个 ⇒ **17 条在每日巡检里完全隐形** (同类问题第三次复发)。★**本单收口**:
+    ① `MECH/HW_CROSS_REVIEW_TRIAGE.md` = 54 项逐条定性表 (处置栏 54/54 非空) + 17 条 FAIL 逐条去处 (排队等原理图定稿 **6 个 id
+    / 7 行** + 登记 need 给 main **4 条** + 出规格 **6 条**) + 机器可读锚点; ② `MECH/check_demo_struct_truth.py` = 机器门禁
+    **20 组** (G1/G1b **不许把红灯调没**: 断言 FAIL 名单仍是 17 条且逐条对齐; G3/G3b 6 个 PCB 类 id 已登记排队 **且在 check 脚本里仍然是
+    FAIL**) + `--selftest` **8/8** 反向用例; ③ 板框真源四数与判据阈值 一个没动。★**本闸挂不挂每日巡检交 main 裁 —— 本单没改 state/daily_check.py**。[实测]'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md + MECH/check_demo_struct_truth.py
 open_questions:
 - id: MECH-Q1
   to: main

@@ -13,7 +13,7 @@
 
 ## 0. 一句话结论
 
-**口径 A = 曝光积分开始的瞬间 → 视涯光机出光的瞬间**, 全程 **11 段**、**9 个打点 + 1 个汇总 + 1 个口径开关**,
+**口径 A = 曝光积分开始的瞬间 → 视涯光机出光的瞬间**, 全程 **12 段**、**10 个打点 + 1 个汇总 + 1 个口径开关**,
 由 **4 个进程 + 1 个硬件事件** 接力完成; ★**每段必须同时报 `纯硬件耗时` 与 `SDK 总耗时` 两个数**,
 ★**单帧不算数** (≥300 帧, min/avg/max/p50/p95 + 帧数)。
 
@@ -61,7 +61,12 @@
 
 ---
 
-## 2. ★★ 谁在什么时刻做什么 (11 段接力表) —— 本单核心
+## 2. ★★ 谁在什么时刻做什么 (12 段接力表) —— 本单核心
+
+> ★**v1.2 (2026-11-15, ISS-210)**: ★**新增第 12 段 = ISP 段** (★补上 ISS-124 点名的那个缺口: 板端不测 ISP 段,
+> ISS-129 的「纯 NPU S5 > 20.33ms ⇒ 60ms 不可保」翻案条款在板到手时**判不了**★)。
+> ★**其它 11 段的既有数字一个没动**; 只新增 1 行段 + §3.1 加 1 行字段 + §2 下面加两段说明。
+> ★**段号口径**: 段号 = **定义序** (1~12), **不是流水序** ⇒ 段 12 (ISP) 在流水上位于**段 2 之后 / 段 3 之前**。
 
 **图例**: `P` = 进程 · `T` = 线程 · `K` = 内核/驱动 · `H` = 硬件
 
@@ -69,6 +74,7 @@
 |---|---|---|---|---|---|---|---|---|
 | 1 | 曝光 | `exposure_us` | **H** (sensor) | 曝光积分开始 (t0) | 曝光积分结束 | **sensor 驱动每帧上报** | 曝光时长 | 读出 |
 | 2 | 采集 | `t_capture` | **K** (V4L2/csi) → **T** (capture) | 曝光结束 | 帧落到用户态 buffer | `v4l2_buffer.timestamp` (单调时钟) | 读出 + CSI 传输 + 帧拷贝 | ★**曝光时长** (单列) · 预处理 |
+| 12 | ★**ISP** (★流水位 = **段 2 之后 ⇒ 段 3 之前**★) | ★**`t_isp_hw`** (纯硬件耗时) + ★**`t_isp_total`** (SDK 总耗时 / 管线可见) | **K** (rkisp 驱动 / rkaiq) → **H** (ISP 硬件) | 帧交给 ISP (VICAP 把这一帧**原始帧** dequeue 出来交给 ISP) | ISP **frame-done** (处理完的 NV12 已交付用户态) | ★**两个数各取自己的时间戳对** (都在 **CLOCK_MONOTONIC** 域): ① `t_isp_total` = `ts_isp_out` (ISP frame-done) − `ts_isp_in` (VICAP dequeue); ② `t_isp_hw` = `ts_isp_out` − `ts_isp_hw_start` (ISP 硬件开始执行) ⇒ ★**为什么不是"wall clock 包一次函数调用"**: ISP 是**异步流水**, 用户态根本没有"调用前/调用后"两个点可打 ⇒ 只能用**驱动/帧统计上报的时间戳** (VICAP buf timestamp + rkaiq/ISP frame-done 统计) | 去马赛克 / AWB / AE / 降噪 / HDR / 缩放 (全幅 2688×1520 → 640×480@60) + 驱动搬运 + rkaiq 用户态处理与交付 | ★**曝光时长** (段 1, 单列) · ★**VICAP 读出与 CSI 传输** (段 2) · 用户态预处理 (段 3) · NPU (段 4) · 显示侧 (段 7/8) |
 | 3 | 预处理 | `t_pre` | **T** (capture, 同帧线程内) | 拿到 NV12/NV12 帧 | 送进 NPU 的输入张量就绪 | `clock_gettime(MONOTONIC)` | 取 Y 平面 + RGB 转换 + letterbox 640×640 + /255 + NCHW 布局 | NPU 推理 · **画框** |
 | 4 | NPU 提交 | (并入 `t_sdk_total`) | **T** (capture) | 调 `rknn_run` 前 | `rknn_run` 返回后 | 同上 | ★**纯 NPU 推理 + SDK 内部搬运 + 反量化** | 前/后处理 |
 | 4a | ★**纯 NPU** | **`t_npu`** | **K/H** (NPU) | NPU 开始执行 | NPU 执行完 | ★**SDK 内部计数器** (不是 wall clock!) | 只算网络执行 | ★**反量化 / 张量搬运 / API 调用开销** |
@@ -77,8 +83,13 @@
 | 7 | 合成 | `t_compose` | **T** (post) | 画完框的帧 | 显示帧 (1920×1080) 就绪 | 同上 | letterbox + 等比缩放 + 叠加 | plane commit · TX |
 | 8 | 上屏 | `t_display` | **K** (DRM/KMS) → **H** (DSI) | 调 `drmModeCommit` 前 | commit 返回 (A-soft 终点) | commit 前后 wall clock | plane commit + page flip | ★**面板内部延迟 (S10)** |
 | 9 | 光机 | `S10` | **H** (视涯光机) | 收到 DSI 包 | 出光 | ★**[0数据]** | 面板内部逐帧延迟 | — |
-| 10 | 汇总 | `t_e2e_A_soft` | **T** (post) | t0 (曝光积分开始) | t8 (commit 返回) | 跨进程 ⇒ **统一单调时钟 + 同进程内汇总** | 段 1~8 | S10 |
+| 10 | 汇总 | `t_e2e_A_soft` | **T** (post) | t0 (曝光积分开始) | t8 (commit 返回) | 跨进程 ⇒ **统一单调时钟 + 同进程内汇总** | 段 1~8 + ★**段 12 (ISP)** | S10 |
 | 11 | 计数 | `frames_total` / `frames_dropped` / `npu_err` / `box_count` | **T** (post) | 每帧 | 每帧 | — | 事实量 (不是时间点) | — |
+
+★**段数自检 (机械可判)**: 本表 **12 段** = 段号 {1,2,3,4,5,6,7,8,9,10,11,12} + 段 4 的 **4a** 纯 NPU 子行
+⇒ 数据行 **13 行** ⇒ `grep -oE '^\| [0-9]+a? \|' SW/DEMO_OD_TIMING_SPEC.md | grep -c ''` = 13 (段 4a 是子行, 不计段数)。
+
+★**ISP 段的时间来源为什么与其它段不同 (★ISP 是异步流水, 用户态打不到"调用前/调用后"★) ⇒ 完整口径裁决见 §2.4**。
 
 ### 2.1 ★★ 跨进程时钟一致性 (最容易出错的一处)
 
@@ -86,7 +97,9 @@
 ⇒ ★**必须用同一个单调时钟基准**: `clock_gettime(CLOCK_MONOTONIC)`,
 ⇒ ★**不许用 `CLOCK_REALTIME`** (会被 NTP 校时跳变打断 ⇒ 出现负耗时)。
 ⇒ **t0 来自 sensor 驱动上报的 V4L2 timestamp** —— 它也是 `CLOCK_MONOTONIC` 域 ⇒ 同一个基准。
-⇒ ★**汇总必须在一个进程里做** (post 线程): 把每帧的 9 个打点**同帧打包**成一个结构体传过去, 不靠时间戳事后对齐。
+⇒ ★**汇总必须在一个进程里做** (post 线程): 把每帧的 10 个打点**同帧打包**成一个结构体传过去, 不靠时间戳事后对齐。
+⇒ ★**ISP 段 (段 12) 的两个时间戳也必须在同一个 `CLOCK_MONOTONIC` 域里** ⇒ 板端取数时**必须核对 VICAP buf timestamp 与
+rkisp/frame-done 的时钟源** (若一个是 `CLOCK_REALTIME`、另一个是 `MONOTONIC` ⇒ 相减出来的是垃圾 ⇒ 负值或几十秒 ⇒ 一眼看出不对)。
 
 ### 2.2 ★ 谁在什么时刻做"什么" —— 事件时间线 (单帧视角)
 
@@ -94,6 +107,8 @@
  t0  sensor 曝光积分开始 ──────────────────────────────── H (sensor)
  t1  曝光结束, 帧开始读出                                  H/K
  t2  帧落到用户态 buffer (V4L2 timestamp = t2)            K → T(capture)
+ t2b ★ISP 段: ts_isp_in (帧交给 ISP) ──▶ ts_isp_hw_start ──▶ ts_isp_out (frame-done)   K/H (rkisp+ISP)
+     ⇒ t_isp_total = ts_isp_out − ts_isp_in (管线可见) · t_isp_hw = ts_isp_out − ts_isp_hw_start (纯硬件)
  t3  预处理完成, 输入张量就绪                              T(capture)
  t4  rknn_run 返回 (含纯 NPU t_npu + SDK 总耗时 t_sdk_total)  T(capture) → K(NPU)
  t5  decode+NMS 完成, 框列表就绪                          T(post)
@@ -112,6 +127,37 @@
 | 帧队列深度 | **2** (起步值, 实测后调) | 深度 1 ⇒ 采集与推理串行, 推理慢就掉帧; 深度 ≥4 ⇒ 排队把框龄拉大 |
 | `age` 的来源 | 不是 `t_capture` 里的时间, 是**这一帧在队列里等了几拍** | ⇒ ★**必须单独记 `queue_wait_ms`**, 否则 `t_capture` 里混了排队, 归因不了 |
 
+### 2.4 ★★ ISP 段的时间来源为什么与其它段不同 (★ISS-124 点名的缺口, 本节是它的口径裁决★)
+
+| 段 | 时间来源 | 为什么 |
+|---|---|---|
+| 段 2~8 | ★**用户态自己打的 `clock_gettime(MONOTONIC)`** | 这些段都是**同步调用** ⇒ 调用前/调用后两个点都打得到 |
+| 段 4a (纯 NPU) | **SDK 内部计数器** (不是 wall clock!) | 网络执行是**硬件**在跑 ⇒ 只有 SDK/驱动的内部计数器知道 |
+| ★**段 12 (ISP)** | ★**驱动/帧统计上报的时间戳对** (VICAP buf timestamp + rkaiq/ISP frame-done) | ★**ISP 是异步流水**: 用户态**没有**"调用前/调用后"两个点可打 ⇒ ★**只能拿驱动侧的两个时间戳相减** ⇒ ★**这就是"ISP 段的时间来源与其它段不同"的技术原因, 不是口径不统一** |
+
+★**板端取这三个时间戳 (★三条命令, 板到手直接抄★)**:
+
+```bash
+media-ctl -p                                              # 确认 ISP 节点输入=全幅 / 输出=640×480@60
+cat /sys/kernel/debug/rkisp/*                            # ISP 实际生效的输入/输出尺寸与 scaling 配置
+cat /proc/interrupts | grep -i isp                       # 跑 60s 数帧 ⇒ 实测吞吐 (帧数 × 单帧像素 / 时长)
+```
+
+★★★**两条口径纪律 (★ISS-124 已钉死, 本段照抄, 不许自己发明★)** ★★★
+1. ★**ISP 段必须报【纯硬件耗时 `t_isp_hw`】与【SDK 总耗时 `t_isp_total`】两个数, 不许合并成一个数** ★
+   (同 §3.2 的 A733 基准: 纯硬件 27.19ms vs SDK 总 36.51ms, 差 9.29ms = INT8→FP32 软件反量化)。
+   ⇒ ★**60ms 判据用的是 `t_isp_total` (管线可见的那个)**, `t_isp_hw` 单列只用于**归因** (谁慢: ISP 硬件 vs 驱动/用户态)。
+2. ★**12M Pixel 是【单帧分辨率上限】, 不是【每秒能力】** ⇒ ★**不许用它推 MP/s** ⇒
+   ★**ISP 段的吞吐只能靠实测帧率判**: 实测 **≥ 60fps @ 全幅 2688×1520 输入** ⇒ **245.1 MP/s 被官方实现确认** (ISS-124 判据 ②)。
+
+★**ISP 段判据 (★数字来自 ISS-124 反解, 判定线已固化进 `SW/tools/timing_check.py` 的 F9_isp_budget★)**:
+
+| 判据 | 线 | 出处 |
+|---|---|---|
+| ★**模式A 生死线** | **`t_isp_total` avg ≤ 15.10 ms** | `SW/ISP_CAPABILITY_RESEARCH.md` §② · `SW/tools/isp_budget_solve.py` |
+| 模式B 上限 (前提 age=1) | `t_isp_total` p95 ≤ 17.33 ms | 同上 |
+| ★**现占位 8.00 ms 的余量** | **+7.09 ms (模式A) / +9.33 ms (模式B)** | 同上 (精确值 +7.095 / +9.33) |
+
 ---
 
 ## 3. ★ 报数规则 (SOUL.md 铁律的 demo 版)
@@ -124,6 +170,7 @@
 | `p50` / `p95` | ★**必报** —— avg 会被长尾拉偏 |
 | `n` (采样帧数) | **≥ 300 帧** (或跑满 60s) |
 | 证据等级 | `[实测]` (板端跑出来的) / `[推算]` (模型代入) / `[0数据]` |
+| ★**ISP 段 (`t_isp_hw` + `t_isp_total`)** | ★**两个数都要报, 同口径 (跟 §3.2 其它段一模一样)**: `t_isp_hw` = **纯硬件耗时** (ISP 硬件开始执行 → frame-done) · `t_isp_total` = **SDK 总耗时** (帧交给 ISP → frame-done, 管线可见) ⇒ ★**不许合并成一个数** (ISS-124 已钉死) ⇒ ★**60ms 判据用 `t_isp_total`**; 判定线: avg ≤ **15.10 ms** (模式A) / p95 ≤ **17.33 ms** (模式B, age=1) ⇒ ★**已固化进 `SW/tools/timing_check.py` 的 `F9_isp_budget`** (`--isp-csv` / `--isp-avg-ms` 直接出 PASS/FAIL + 差多少) |
 
 ### 3.2 ★★ "纯硬件耗时" vs "SDK 总耗时" 必须分开报 (不许只报一个)
 
@@ -210,9 +257,12 @@ python3 HW/e2e_budget_rk3572.py --t-compose-ms <第7段实测值>
 ### 3.4 CSV 行格式 (板端照抄)
 
 ```
-frame_idx,ts_capture,ts_pre,ts_npu,ts_sdk_total,ts_decode,ts_draw,ts_compose,ts_display,exposure_us,queue_wait_ms,box_count,npu_err,frame_dropped
+frame_idx,ts_capture,ts_isp_in,ts_isp_hw_start,ts_isp_out,ts_pre,ts_npu,ts_sdk_total,ts_decode,ts_draw,ts_compose,ts_display,exposure_us,queue_wait_ms,box_count,npu_err,frame_dropped
 ```
-⇒ 每帧一行 (表头 14 列, **一行不换行** —— 换行会让下游 csv 解析踩坑); 结束时由汇总脚本算 min/avg/max/p50/p95 + 帧数。
+⇒ 每帧一行 (表头 **17 列**, **一行不换行** —— 换行会让下游 csv 解析踩坑); 结束时由汇总脚本算 min/avg/max/p50/p95 + 帧数。
+⇒ ★**ISP 三列 (v1.2 新增)**: `ts_isp_in` (帧交给 ISP / VICAP dequeue) · `ts_isp_hw_start` (ISP 硬件开始执行) · `ts_isp_out` (ISP frame-done)
+⇒ ★**由此派生两个数**: `t_isp_total = ts_isp_out − ts_isp_in` (★判据用这个) · `t_isp_hw = ts_isp_out − ts_isp_hw_start` (★归因用这个)
+⇒ ★**取不到 `ts_isp_hw_start` 时**: 那一列留空 ⇒ `t_isp_hw` 报 **[0数据]** ⇒ ★**不许拿 `t_isp_total` 顶替它** (两个数不许合并)。
 
 ---
 
@@ -232,7 +282,7 @@ frame_idx,ts_capture,ts_pre,ts_npu,ts_sdk_total,ts_decode,ts_draw,ts_compose,ts_
 
 | 判据 | 判定 | 依据 |
 |---|---|---|
-| ① 9 个打点**全有值** | 缺一项 ⇒ ❌ (不是"数值不好看", 是**没测到**) | §3.1 |
+| ① 10 个打点**全有值** | 缺一项 ⇒ ❌ (不是"数值不好看", 是**没测到**) | §3.1 |
 | ② 每段 min/avg/max/p50/p95 + **n ≥ 300** | n < 300 ⇒ ⚠️ 不作结论 | §3.1 |
 | ③ `t_npu` 与 `t_sdk_total` **都报了** | 只报一个 ⇒ ❌ | §3.2 |
 | ④ `t_e2e_A_soft` 与 `t_e2e_A_hard` **分列** (后者标 [0数据]) | 混报 ⇒ ❌ | §1.3 |
@@ -241,6 +291,8 @@ frame_idx,ts_capture,ts_pre,ts_npu,ts_sdk_total,ts_decode,ts_draw,ts_compose,ts_
 | ⑦ `t_compose` 有值 | ★**它是 60ms 成败的关键未知数** | §3.3 |
 | ⑧ 采样帧数 / 丢帧 / `npu_err` / `box_count` 四个事实量都有 | 缺 ⇒ ⚠️ | §2 段 11 |
 | ⑨ ★**demo 阶段 60ms 不设门限** | ★只记录 | `DEMO_OD_PIPELINE_SPEC.md` §5.4 |
+| ★**⑩** | ★**ISP 段的两个数 (`t_isp_hw` + `t_isp_total`) 都报** | ★缺一个 ⇒ ❌ (★不许合并成一个数★) | §3.1 · §2.4 |
+| ★**⑪** | ★**ISP 段 avg ≤ 15.10 ms (模式A 生死线)** | ★超了 ⇒ 模式A 破线 (★由 `SW/tools/timing_check.py` 的 `F9_isp_budget` 机械判, 不许人工目测★) | §2.4 · `SW/ISP_CAPABILITY_RESEARCH.md` §② |
 
 ---
 
@@ -248,11 +300,11 @@ frame_idx,ts_capture,ts_pre,ts_npu,ts_sdk_total,ts_decode,ts_draw,ts_compose,ts_
 
 | 不做 | 为什么 |
 |---|---|
-| **不写可执行代码** | 本单出**规格**; 实现是板端到位后的下一步 (同 ISS-144 的教训) |
+| **不写可执行代码** | 本单出**规格**; 实现是板端到位后的下一步 (同 ISS-144 的教训) · ★**例外: ISS-210 (2026-11-15) 把 §2 的 ISP 段判据固化进了 `SW/tools/timing_check.py` (F9_isp_budget) ⇒ 那一条不再是"只有文档里的一段话"★ |
 | **不设 60ms 门限** | demo 阶段只记录 (上游 §5.4 已裁决) |
 | **不编 S10 / A-hard 的数** | 光机逐帧延迟 = **[0数据]**, 需高速摄影/示波器 |
 | **不碰 `HW/` `MECH/` `PROJECT_TRACKER.md` / 网表 / 板文件** | 写入边界 |
-| **不改 `SW/tools/timing_check.py`** | 它是**硬件时序算术复核器**, 不含视频打点 (上游 §5.1 已纠正) |
+| ★~~**不改 `SW/tools/timing_check.py`**~~ | ★**v1.2 (ISS-210) 例外已开**: 它是**硬件时序算术复核器**, 不含视频打点 (上游 §5.1 已纠正) ⇒ ★**ISS-210 只往里加 ISP 段的算术判据 (不碰它原有的任何一条)** |
 
 ---
 
@@ -261,6 +313,8 @@ frame_idx,ts_capture,ts_pre,ts_npu,ts_sdk_total,ts_decode,ts_draw,ts_compose,ts_
 ```bash
 cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
 python3 SW/tools/demo_timing_check.py --selftest    # 本单规格自检 (rc=0)
+python3 SW/tools/timing_check.py --only F9_isp_budget   # ★ISS-210: ISP 段判据段 (无实测 ⇒ INDET + [0数据])
+python3 SW/tools/timing_check.py --isp-csv /path/board_isp.csv   # ★ISS-210: 喂板端 ISP 段 CSV ⇒ 直接出 PASS/FAIL + 差多少
 ```
 
 ★**本单的可自证部分**: 规格里的**段数 / 打点名 / 时钟基准 / 报数字段 / 判据条数**全部由脚本机械核对

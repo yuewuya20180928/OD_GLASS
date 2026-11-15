@@ -111,6 +111,42 @@ SOURCES = {
     "ISS085_MIN_GND_PINS": "[官方] ISS-085 (mech-lead) 跨铰链 ≥2 GND pin 规则",
 }
 
+# ----------------------------------------------------------------------------
+# 0b. ISP 段判据常数 (ISS-210, 2026-11-15) —— 来源 = ISS-124 的反解 (已验证件)
+# ----------------------------------------------------------------------------
+# ★★口径纪律 (SOUL.md 铁律的 ISP 版, ISS-124 已钉死, 本脚本照抄) ★★:
+#   ① ISP 段必须报【纯硬件耗时】与【SDK 总耗时】两个数, 不许合并成一个数;
+#   ② ★12M Pixel 是【单帧分辨率上限】, 不是【每秒能力】 ⇒ 不许用它推 MP/s。
+# ★★判据出处: SW/ISP_CAPABILITY_RESEARCH.md §② + SW/ISP_CAPABILITY_RESEARCH.json
+#      (isp_ms_budget_60ms_line: modeA 15.095 / modeB 17.33 / 现占位 8.00 / 余量 7.095 / 9.33)
+# ★★判定线取 ISS-124 的【发布值】 15.10 / 17.33 ms (逐字引用, 不许调松);
+#      精确反解值 (同一次反解的未舍入结果) 一并给出: 15.095 ms ⇒ 与发布值差 0.005 ms
+#      ⇒ 远小于板端 0.01 ms 级分辨率 ⇒ 不改变任何结论。
+ISP_BUDGET = {
+    "budget_ms": 60.0,          # ms  老板锁死的端到端硬指标 (不许调松)
+    "T_FIXED_ms": 34.00,        # ms  HW/e2e_budget_rk3572.py T_FIXED (五段拆分之和)
+    "S3_now_ms": 8.00,          # ms  现行 ISP 段占位 (SW/SW_REQUIREMENTS.md §10.1)
+    "POST_MS": 5.6,             # ms  HW/e2e_budget_rk3572.py POST_MS
+    "FRAME_MS": 16.67,          # ms  60fps 帧周期
+    "S5_ms": 13.305,            # ms  RK3572 + yolov5n@640 纯 NPU [推算] = 8.87*(6/4)
+    "min_frames": 300,          # 帧 SW/DEMO_OD_TIMING_SPEC.md §3.1 (n<300 不作结论)
+    "limit_mode_a_ms": 15.10,   # ms  ★模式A 生死线 (ISS-124 发布值, 逐字引用, 不许改)
+    "limit_mode_b_ms": 17.33,   # ms  ★模式B 上限 (ISS-124 发布值; 前提 age=1)
+    "npu_t2_flip_ms": 20.33,    # ms  老板 10-29 T2 翻案条款 (ISS-129): 纯 NPU > 20.33 ⇒ 60ms 不保
+}
+
+ISP_BUDGET_SOURCES = {
+    "budget_ms": "[锁死项] 老板锁死的端到端 60ms 硬指标 (SW/RKNN_BENCH.md §5.1 / SW/DEMO_OD_TIMING_SPEC.md §3.3.1)",
+    "T_FIXED_ms": "[推算] HW/e2e_budget_rk3572.py T_FIXED = 34.00 (五段拆分恒等还原)",
+    "S3_now_ms": "[推算·无官方背书] 现行 ISP 段占位 8.00 ms (SW/SW_REQUIREMENTS.md §10.1; ISS-124 D1/D2)",
+    "POST_MS": "[推算] HW/e2e_budget_rk3572.py POST_MS = 5.6",
+    "FRAME_MS": "[实测口径] 60fps 帧周期 16.67 ms",
+    "S5_ms": "[推算] RK3576 8.87 ms × (6 TOPS / 4 TOPS) = 13.305 ms (RKNN_BENCH.md §4.3)",
+    "limit_mode_a_ms": "[推算] ISS-124 反解, 发布值 15.10 ms (SW/ISP_CAPABILITY_RESEARCH.md §②; json 精确值 15.095)",
+    "limit_mode_b_ms": "[推算] ISS-124 反解, 发布值 17.33 ms (前提 age=1; json 精确值 17.33)",
+    "npu_t2_flip_ms": "[锁死项] 老板 2026-10-29 T2 翻案条款 (ISS-129)",
+}
+
 # 判定用的容差
 TOL = 1e-9
 
@@ -122,6 +158,197 @@ DEFAULT_NETLIST = os.path.normpath(os.path.join(_HERE, "..", "..", "HW", "netlis
 
 def r(x: float, n: int = 3) -> float:
     return round(x + 0.0, n)
+
+
+# ----------------------------------------------------------------------------
+# 0c. ISP 段判据 (ISS-210) —— 把 ISS-124 的反解变成可执行判据
+# ----------------------------------------------------------------------------
+def _pct(vals, q):
+    """线性插值分位数 (q ∈ [0,100]); 空表 ⇒ None。"""
+    if not vals:
+        return None
+    s = sorted(float(v) for v in vals)
+    if len(s) == 1:
+        return s[0]
+    pos = (len(s) - 1) * (q / 100.0)
+    lo = int(math.floor(pos))
+    hi = int(math.ceil(pos))
+    if lo == hi:
+        return s[lo]
+    return s[lo] + (s[hi] - s[lo]) * (pos - lo)
+
+
+def read_isp_csv(path: str) -> dict:
+    """读板端 ISP 段 CSV (格式见 SW/DEMO_OD_TIMING_SPEC.md §3.4) ⇒ 判据输入。
+
+    ★需要的列: ts_isp_in / ts_isp_hw_start / ts_isp_out (都是 CLOCK_MONOTONIC 域的 ms)
+    ★派生: t_isp_total = ts_isp_out − ts_isp_in (判据用) · t_isp_hw = ts_isp_out − ts_isp_hw_start (归因用)
+    ★缺 ts_isp_hw_start 的行 ⇒ 该行的纯硬件数不计入 (报 [0数据]), 不拿 total 顶替。
+    """
+    totals: list[float] = []
+    hws: list[float] = []
+    skipped = 0
+    with open(path, newline="", encoding="utf-8", errors="ignore") as fh:
+        rd = csv.DictReader(fh)
+        for row in rd:
+            def g(name):
+                v = (row.get(name) or "").strip()
+                if v == "":
+                    return None
+                try:
+                    return float(v)
+                except ValueError:
+                    return None
+            t_in, t_hw, t_out = g("ts_isp_in"), g("ts_isp_hw_start"), g("ts_isp_out")
+            if t_in is None or t_out is None:
+                skipped += 1
+                continue
+            totals.append(t_out - t_in)
+            if t_hw is not None:
+                hws.append(t_out - t_hw)
+    return {
+        "avg_total_ms": (sum(totals) / len(totals)) if totals else None,
+        "avg_hw_ms": (sum(hws) / len(hws)) if hws else None,
+        "p95_total_ms": _pct(totals, 95),
+        "n": len(totals),
+        "source": path,
+        "_skipped_rows": skipped,
+    }
+
+
+def isp_budget_verdict(meas=None) -> dict:
+    """★ISS-210: ISP 段判据 —— 从实测输入算出 PASS/FAIL + 数值 + 差多少。
+
+    ★被判定的是【t_isp_total】(管线可见 / SDK 总耗时口径): 它才是占用 60ms 预算的那个数;
+      【t_isp_hw】(纯硬件耗时) 必须**另外单独报**, 只用于归因 (谁慢: ISP 硬件 vs 驱动/用户态)
+      ⇒ ★两个数不许合并成一个数 (ISS-124 已钉死)★。
+    ★无实测输入 ⇒ verdict = INDET + [0数据] (不许假装测过)。
+
+    meas 支持的键:
+      avg_total_ms : 管线可见 ISP 段平均值 (★判据用它★)
+      avg_hw_ms    : 纯硬件耗时平均值 (归因用)
+      p95_total_ms : 管线可见 ISP 段 p95 (模式B 上限 17.33 ms)
+      n            : 采样帧数 (<300 ⇒ 不作结论)
+      npu_ms       : 纯 NPU 耗时 (可选; 交叉核对 T2 翻案条款 20.33 ms)
+      source       : 来源说明 (板端 CSV 路径等)
+    """
+    m = dict(meas or {})
+    B = ISP_BUDGET
+    fixed_other = B["T_FIXED_ms"] - B["S3_now_ms"]            # 26.00
+    t_od = B["S5_ms"] + B["POST_MS"]                         # 18.905
+    limit_a_exact = B["budget_ms"] - fixed_other - t_od       # 15.095 (精确反解)
+    limit_a = B["limit_mode_a_ms"]                            # 15.10 (ISS-124 发布值)
+    limit_b = B["limit_mode_b_ms"]                            # 17.33
+    headroom_exact = limit_a_exact - B["S3_now_ms"]           # 7.095 (精确)
+
+    avg_total = m.get("avg_total_ms")
+    avg_hw = m.get("avg_hw_ms")
+    p95_total = m.get("p95_total_ms")
+    n = m.get("n")
+    npu = m.get("npu_ms")
+
+    out = {
+        "judged_number": "t_isp_total (管线可见 / SDK 总耗时口径)",
+        "criteria": {
+            "limit_mode_a_ms": limit_a,
+            "limit_mode_a_exact_ms": limit_a_exact,
+            "limit_mode_b_p95_ms": limit_b,
+            "isp_now_ms": B["S3_now_ms"],
+            "headroom_now_mode_a_ms": headroom_exact,
+            "headroom_now_mode_a_doc": "7.09",
+            "headroom_now_mode_b_ms": limit_b - B["S3_now_ms"],
+            "headroom_now_mode_b_doc": "9.33",
+            "published_numbers": "ISP 上限: 模式A 15.10 ms / 模式B 17.33 ms; 现占位 8.00 ms 的余量 +7.09 / +9.33 ms",
+            "budget_ms": B["budget_ms"],
+            "T_FIXED_ms": B["T_FIXED_ms"],
+            "T_FIXED_minus_S3_ms": fixed_other,
+            "T_od_ms": t_od,
+            "age_baseline": 2,
+            "min_frames": B["min_frames"],
+        },
+        "measurement": {
+            "avg_total_ms": avg_total,
+            "avg_hw_ms": avg_hw,
+            "p95_total_ms": p95_total,
+            "n": n,
+            "npu_ms": npu,
+            "source": m.get("source"),
+        },
+        "sources": dict(ISP_BUDGET_SOURCES),
+    }
+
+    # ── 没有实测输入 ⇒ INDET (板不在本机 ⇒ 板端结论一律 [0数据]) ──
+    if avg_total is None:
+        out.update({
+            "verdict": "INDET",
+            "verdict_latency": "INDET",
+            "reason": "板端 ISP 段未实测 (本机无可达板) ⇒ 板端结论一律 [0数据] ⇒ 不作判定",
+            "evidence": "[0数据]",
+            "margin_ms": None,
+            "e2e_modeA_ms": None,
+            "e2e_modeB_ms": None,
+            "mode_b_note": "模式B 前提 age=1 (T_od <= 16.67); 现行 yolov5n@640 的 age=2 ⇒ 模式B 本来就不成立, 与 ISP 无关",
+        })
+        return out
+
+    # ── 延迟线判定 ──
+    margin = r(limit_a - avg_total, 3)
+    margin_exact = r(limit_a_exact - avg_total, 3)
+    latency = "PASS" if avg_total <= limit_a else "FAIL"
+    report_complete = avg_hw is not None
+    enough_frames = (n is None) or (n >= B["min_frames"])
+    reasons = []
+    if not report_complete:
+        reasons.append("缺【纯硬件耗时 t_isp_hw】⇒ 违反 §3.1『两个数同口径』纪律 (不许合并成一个数)")
+    if n is not None and n < B["min_frames"]:
+        reasons.append("采样帧数 n=%s < %d ⇒ 不作结论 (§3.1)" % (n, B["min_frames"]))
+
+    if latency == "FAIL":
+        overall = "FAIL"
+        reasons.insert(0, "ISP 段 avg %.3f ms > 15.10 ms 生死线 ⇒ 模式A 破线 (超 %.3f ms)"
+                       % (avg_total, -margin))
+    elif not report_complete or not enough_frames:
+        overall = "INDET"
+    else:
+        overall = "PASS"
+
+    # ★把实测 ISP 段代回 60ms 账本 (模式A / 模式B)
+    e2e_a = r(fixed_other + avg_total + t_od, 3)
+    e2e_b = r(fixed_other + avg_total + 2 * B["FRAME_MS"], 3)   # age=2 (现行锁定基线)
+
+    out.update({
+        "verdict": overall,
+        "verdict_latency": latency,
+        "margin_ms": margin,
+        "margin_ms_exact_line": margin_exact,
+        "margin_note": ("正数 = 距 15.10 ms 生死线 (ISS-124 发布线) 还差多少 ms; 负数 = 超了多少 ms;"
+                        " margin_ms_exact_line = 对精确反解线 15.095 ms 的差值 (两者差 0.005 ms, 不改变结论)"),
+        "e2e_modeA_ms": e2e_a,
+        "e2e_modeA_verdict": "PASS" if e2e_a <= B["budget_ms"] else "FAIL",
+        "e2e_modeB_ms": e2e_b,
+        "e2e_modeB_verdict": "PASS" if e2e_b <= B["budget_ms"] else "FAIL",
+        "mode_b_note": "模式B 前提 age=1 (T_od <= 16.67); 现行 yolov5n@640 的 age=2 ⇒ 模式B 本来就不成立, 与 ISP 无关",
+        "slowdown_vs_now": (r(avg_total / B["S3_now_ms"], 3) if B["S3_now_ms"] else None),
+        "slowdown_vs_now_note": "ISP 最多能慢到现占位 8.00 ms 的几倍才破 60ms 硬线 (ISS-124 的 1.89x / 2.17x)",
+        "report_complete": report_complete,
+        "frames_enough": enough_frames,
+        "p95_mode_b_verdict": ("PASS" if p95_total is not None and p95_total <= limit_b
+                                else ("FAIL" if p95_total is not None else "INDET")),
+        "reason": ("; ".join(reasons) if reasons else
+                   "ISP 段两个数都报、样本足够 (n=%s)、模式A 生死线内 (余量 %.3f ms)"
+                   % (n, margin)),
+        "evidence": "[实测] (板端跑出来的)" if m.get("source") else "[实测] (未注明来源)",
+    })
+    if avg_total > limit_a_exact and avg_total <= limit_a:
+        out["warning"] = ("测值 %.3f ms 距精确反解线 %.3f ms 只差 %.3f ms ⇒ 建议复测一轮 (板端分辨率 0.01 ms 级)"
+                          % (avg_total, limit_a_exact, limit_a - avg_total))
+    if npu is not None:
+        out["t2_flip_check"] = {
+            "npu_ms": npu,
+            "threshold_ms": B["npu_t2_flip_ms"],
+            "verdict": "FAIL(命中 T2 翻案条款: 纯 NPU > 20.33ms ⇒ 60ms 不可保)" if npu > B["npu_t2_flip_ms"] else "PASS",
+        }
+    return out
 
 
 # ----------------------------------------------------------------------------
@@ -507,7 +734,7 @@ def drop_refs_copy(nl: Netlist, dest: str, refs) -> str:
 # ----------------------------------------------------------------------------
 # 2. 逐条结论的计算 —— 全部现读现算
 # ----------------------------------------------------------------------------
-def compute(nl: Netlist) -> dict:
+def compute(nl: Netlist, isp_meas=None) -> dict:
     o: dict = {}
     o["NETLIST_ANCHOR"] = nl.anchor()
 
@@ -927,6 +1154,10 @@ def compute(nl: Netlist) -> dict:
                    % (reset_rail, reset_v, ",".join(x.get("ref", "") for x in soc_io_rows) or "(无)"),
     }
 
+    # ---------------------------------------------------------------- F9 ISP 段判据 (ISS-210)
+    # ★板端没实测时 ⇒ meas=None ⇒ verdict = INDET + [0数据] (不许假装测过)
+    o["F9_isp_budget"] = isp_budget_verdict(isp_meas)
+
     return o
 
 
@@ -1174,6 +1405,50 @@ REV_TESTS = [
 ]
 
 
+# --- ISP 段判据用例 (★ISS-210: 正向 + ★反向: 超 15.10 ms 必被抓★) ---
+def _isp(meas):
+    return isp_budget_verdict(meas)
+
+
+ISP_TESTS = [
+    ("ISP 模式A 生死线 = 15.10 ms (ISS-124 发布值, 不许调松)",
+     lambda o: isp_budget_verdict()["criteria"]["limit_mode_a_ms"] == 15.10),
+    ("ISP 模式B 上限 = 17.33 ms (ISS-124 发布值)",
+     lambda o: isp_budget_verdict()["criteria"]["limit_mode_b_p95_ms"] == 17.33),
+    ("ISP 精确反解线 = 15.095 ms (json 口径, 与发布线差 0.005 ms)",
+     lambda o: abs(isp_budget_verdict()["criteria"]["limit_mode_a_exact_ms"] - 15.095) < 0.001),
+    ("ISP 现占位 8.00 ms 的余量 = +7.09 ms (精确 7.095) / +9.33 ms",
+     lambda o: (abs(isp_budget_verdict()["criteria"]["headroom_now_mode_a_ms"] - 7.095) < 0.001
+                and isp_budget_verdict()["criteria"]["headroom_now_mode_a_doc"] == "7.09"
+                and abs(isp_budget_verdict()["criteria"]["headroom_now_mode_b_ms"] - 9.33) < 1e-9)),
+    ("模型复现: X=8.00 ms 时模式A e2e = 52.91 ms (与 HW/e2e_budget_rk3572.py 同源)",
+     lambda o: abs((ISP_BUDGET["T_FIXED_ms"] - ISP_BUDGET["S3_now_ms"]) + ISP_BUDGET["S3_now_ms"]
+                   + ISP_BUDGET["S5_ms"] + ISP_BUDGET["POST_MS"] - 52.905) < 0.001),
+    ("★反向: ISP avg = 15.11 ms ⇒ 必须 FAIL (超 15.10 必被抓) 且给出差值",
+     lambda o: _isp({"avg_total_ms": 15.11, "avg_hw_ms": 12.0, "n": 300})["verdict"] == "FAIL"
+               and _isp({"avg_total_ms": 15.11, "avg_hw_ms": 12.0, "n": 300})["margin_ms"] < 0),
+    ("ISP avg = 15.10 ms ⇒ PASS (恰好在生死线上)",
+     lambda o: _isp({"avg_total_ms": 15.10, "avg_hw_ms": 12.0, "n": 300})["verdict_latency"] == "PASS"),
+    ("ISP avg = 8.00 ms (现占位) ⇒ PASS + 余量 +7.09 ms",
+     lambda o: _isp({"avg_total_ms": 8.0, "avg_hw_ms": 7.0, "n": 300})["verdict"] == "PASS"
+               and abs(_isp({"avg_total_ms": 8.0, "avg_hw_ms": 7.0, "n": 300})["margin_ms"] - 7.10) < 0.001),
+    ("★反向: 无实测输入 ⇒ INDET + [0数据] (不许假装测过)",
+     lambda o: _isp(None)["verdict"] == "INDET" and _isp(None)["evidence"] == "[0数据]"),
+    ("★反向: 只报 SDK 总耗时、缺纯硬件耗时 ⇒ 不许静默 PASS (⇒ INDET + 理由)",
+     lambda o: (_isp({"avg_total_ms": 8.0, "n": 300})["report_complete"] is False
+                and _isp({"avg_total_ms": 8.0, "n": 300})["verdict"] == "INDET"
+                and "纯硬件" in _isp({"avg_total_ms": 8.0, "n": 300})["reason"])),
+    ("★反向: 采样帧数 n=120 < 300 ⇒ 不作结论 (INDET)",
+     lambda o: _isp({"avg_total_ms": 8.0, "avg_hw_ms": 7.0, "n": 120})["verdict"] == "INDET"),
+    ("ISP p95 = 18.00 ms ⇒ 模式B 上限 (17.33) FAIL",
+     lambda o: _isp({"avg_total_ms": 8.0, "avg_hw_ms": 7.0, "p95_total_ms": 18.0, "n": 300})
+               ["p95_mode_b_verdict"] == "FAIL"),
+    ("T2 交叉核对: 纯 NPU 21.00 ms ⇒ 命中老板翻案条款 (20.33 ms)",
+     lambda o: _isp({"avg_total_ms": 8.0, "avg_hw_ms": 7.0, "n": 300, "npu_ms": 21.0})
+               ["t2_flip_check"]["verdict"].startswith("FAIL")),
+]
+
+
 def run_selftests(o: dict, nl: Netlist):
     """→ (通过数, 总数, 逐条 (名字, ok))"""
     results = []
@@ -1194,6 +1469,13 @@ def run_selftests(o: dict, nl: Netlist):
     for name, fn in REV_TESTS:
         try:
             ok = bool(fn(o, nl))
+        except Exception as e:  # noqa: BLE001
+            ok = False
+            name += "  [EXC %s]" % e
+        results.append((name, ok))
+    for name, fn in ISP_TESTS:
+        try:
+            ok = bool(fn(o))
         except Exception as e:  # noqa: BLE001
             ok = False
             name += "  [EXC %s]" % e
@@ -1266,6 +1548,19 @@ def main() -> int:
     ap.add_argument("--reverse-demo", action="store_true", help="只跑反向用例演示")
     ap.add_argument("--only", action="append", default=[], metavar="KEY",
                     help="只打印某个结论段 (可重复), 例如 --only F1_reset_rc --only F3_i2c_rise")
+    # ★ISS-210: 板端 ISP 段实测输入 (无输入 ⇒ verdict=INDET + [0数据])
+    ap.add_argument("--isp-csv", default=None,
+                    help="板端 ISP 段 CSV (SW/DEMO_OD_TIMING_SPEC.md §3.4 格式: ts_isp_in/ts_isp_hw_start/ts_isp_out)")
+    ap.add_argument("--isp-avg-ms", type=float, default=None,
+                    help="板端实测: ISP 段管线可见 (SDK 总耗时) 平均值 ms")
+    ap.add_argument("--isp-hw-avg-ms", type=float, default=None,
+                    help="板端实测: ISP 段纯硬件耗时平均值 ms (归因用; 必须另外报)")
+    ap.add_argument("--isp-p95-ms", type=float, default=None,
+                    help="板端实测: ISP 段管线可见 p95 ms (模式B 上限 17.33 ms)")
+    ap.add_argument("--isp-frames", type=int, default=None,
+                    help="板端实测: 采样帧数 (n < 300 ⇒ 不作结论)")
+    ap.add_argument("--npu-ms", type=float, default=None,
+                    help="板端实测: 纯 NPU 耗时 ms (交叉核对 T2 翻案条款 20.33 ms)")
     args = ap.parse_args()
 
     if not os.path.exists(args.netlist):
@@ -1275,7 +1570,27 @@ def main() -> int:
     if args.reverse_demo:
         return reverse_demo(nl)
 
-    o = compute(nl)
+    # ★ISS-210: 汇总板端 ISP 段实测输入 (CSV 优先, 命令行可覆盖单值)
+    isp_meas = {}
+    if args.isp_csv:
+        if not os.path.exists(args.isp_csv):
+            print("[FATAL] ISP CSV 不存在: %s" % args.isp_csv, file=sys.stderr)
+            return 2
+        isp_meas.update(read_isp_csv(args.isp_csv))
+    if args.isp_avg_ms is not None:
+        isp_meas["avg_total_ms"] = args.isp_avg_ms
+    if args.isp_hw_avg_ms is not None:
+        isp_meas["avg_hw_ms"] = args.isp_hw_avg_ms
+    if args.isp_p95_ms is not None:
+        isp_meas["p95_total_ms"] = args.isp_p95_ms
+    if args.isp_frames is not None:
+        isp_meas["n"] = args.isp_frames
+    if args.npu_ms is not None:
+        isp_meas["npu_ms"] = args.npu_ms
+    if not isp_meas:
+        isp_meas = None
+
+    o = compute(nl, isp_meas=isp_meas)
 
     # ★--only: 只打印指定结论段 (★复现命令里最省事的一条, 不需要管道★)
     if args.only:
@@ -1313,8 +1628,8 @@ def main() -> int:
         print("   %-34s : %-14s  %s" % (k, DEVICE[k], SOURCES.get(k, "(网表实读, 无需器件常数)")))
     print()
 
-    print("=== SELF-TEST (%d 项: 既有 %d + 新增 %d + 反向 %d) ==="
-          % (total, len(SELF_TESTS_LEGACY), len(NEW_TESTS), len(REV_TESTS)))
+    print("=== SELF-TEST (%d 项: 既有 %d + 新增 %d + 反向 %d + ISP %d) ==="
+          % (total, len(SELF_TESTS_LEGACY), len(NEW_TESTS), len(REV_TESTS), len(ISP_TESTS)))
     for name, ok in results:
         print("  [%s] %s" % ("PASS" if ok else "FAIL", name))
     print("\nSELFTEST %d/%d 通过, rc=%d" % (passed, total, 1 if passed != total else 0))

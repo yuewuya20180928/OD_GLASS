@@ -126,7 +126,7 @@
 | 复位链: PG_AND + R_PG_PULL + Q_AND + EN 链 (R_EN_VCORE + Q_ENVC) + SUPV_CT | 12 | P8 |
 | SoC 侧 USB VBUS 检测 (VBUS_DET → J_CHG pin7 → SoC 占位脚) | 1 | P6 |
 | `CONN_USB` pin4 预留 → GND (双回流) | 1 改 | P9 |
-| TS 专用回流 (J_CHG pin10 + R_TS_PULL/R_NTC_BAT 下端改接 TS_RTN) | 4 | P1 |
+| ★**TS 专用回流 —— 已撤除 (2026-11-03)**: 原 V1.8 改动行 「TS 专用回流 (J_CHG pin10 + R_TS_PULL/R_NTC_BAT 下端改接 `TS_RTN`)」 **不再成立** —— `TS_RTN` 这个网在现行网表中 **0 处** [实测]; 现行 `J_CHG` pin10 = `HINGE_RSV` (预留不接, DNP), NTC 与 30.31k 分压下臂回 `PGND`/`GND` ⇒ **功率回流仍走 `J_CHG` pin3/pin4 双 pin 并联**, 不经 TS 细线 | 4 (原 V1.8 计划行数; **现行网表已无此改动**) | P1 · ★**已按网表真源订正 (ISS-199 · 2026-11-12)** |
 | `R_ILIM` 470Ω → **390Ω** + 口径改写 | 3 改 | P1 |
 
 ★**网表规范 (V1.8 明确写进代码注释)**: **一行 = 一根导线 = 两个同网的器件脚** ⇒ 每个 2 脚器件必须出现在 **2 行** (一脚一行), 3 脚器件 (MOS) 出现 3 行。违反这条 = 导出 `.net` 时该脚悬空 (门禁 `check_kicad_net.py` 第 5 条"两脚件恰好 2 脚"就是判这个)。

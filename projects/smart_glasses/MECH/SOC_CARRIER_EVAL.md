@@ -6,6 +6,7 @@
 > 自证脚本: `python3 MECH/carrier_eval.py` (rc=0, 自检 12/12)
 > 边界: **本件只新建 `MECH/SOC_CARRIER_EVAL.md` + `MECH/carrier_eval.py`**。未改 MECH_BUDGET.md / CLEARANCE_FIX.md /
 > fit_check.py / PROJECT_TRACKER.md / HW/ / SW/; 未写 `state/` 任何文件 (含分片); 未联系任何供应商。
+> ★**口径收口公告 (2026-11-15, ISS-134 V2 / ISS-208)**: 本文件内全部「走鹃Ⅱ」字样已**逐处定性并处置** (逐处定性表见 `MECH/DISPLAY_LEGACY_V2_CLOSEOUT.md`): ① 仍在陈述现状的**活动口径** → 已改写为现行口径 (显示件 = 视涯 0.49" SiOLED, **MIPI D-PHY**; 光生物安全走 **IEC 62471-7:2023 大光源辐亮度体系**, 旧 "LED 点光源 Exempt 1.0 W/m²" 已作废); ② 记录当时状态的**历史沿革** → 保留原文 + 「**已作废 (2026-11-15, ISS-134 V2)**」标注。★机器门禁 `python3 MECH/display_biosafety_v2_check.py`。
 
 ---
 
@@ -386,7 +387,7 @@ python3 state/gate_check.py            # Q1 必须 18/18
 |---|---|---|
 | ISP 链路 | 模组自带 ISP + 驱动 → 曝光/增益/帧率/中断/DMA 全链可跑 | ✅ |
 | OD 链路 | 模组自带 NPU runtime → yolov5s INT8 640×640 可跑，出框 + NMS | ✅ |
-| 显示链路 | 若模组带 MIPI-DSI TX → 可直连走鹃Ⅱ；若只有 DP/HDMI → **仍需桥接芯片，这条验不到** | ⚠️ 看接口 |
+| 显示链路 | 若模组带 MIPI-DSI TX → 可直连显示面板 (视涯 0.49" SiOLED, MIPI D-PHY)；若只有 DP/HDMI → **仍需桥接芯片，这条验不到** | ⚠️ 看接口 |
 | **★ 显示 TX 判定** | 模组规格书会写明视频输出接口类型 → **ISS-083（DSI TX 到底是哪一种）最直接的公开证据** | ✅✅ |
 | **★ 引脚→功能映射** | 模组厂出版引脚定义表 + 原理图 → **直接绕开 ISS-081 的卡点** | ✅✅ |
 | 功耗构成 | 分别关 ISP/NPU/显示测差值 → 给 sw-lead 一个**分项**功耗表（比整机 1.22W 有用） | ✅ |
@@ -395,7 +396,7 @@ python3 state/gate_check.py            # Q1 必须 18/18
 ## 9.2 (i) 台架 EVT：**要解决什么**
 
 1. **模组选型**：必须能买到**引脚定义表公开**的 AR9481/ARS45 模组（ISS-083 正在找，我**不外联**）。
-2. **显示输出口必须是 MIPI-DSI** 才能接走鹃Ⅱ；若只有 HDMI/DP → 台架也得加桥接板，验证价值打折。
+2. **显示输出口必须是 MIPI-DSI** 才能接显示面板 (视涯 0.49" SiOLED, MIPI D-PHY)；若只有 HDMI/DP → 台架也得加桥接板，验证价值打折。
 3. **CSI 摄像头输入**：模组 CSI 口是否引出 + 能否驱动我们的 OV04C10/AR0234CS（可能得用模组自带 sensor）。
 4. **ISP 调参**：模组 ISP 是给机器人/扫地机 sensor 调的；我们用鱼眼 120° → **LDC + 数字 shift 参数要在模组 SDK 上重做**。
 5. **存储/启动**：模组自带 eMMC → 启动链 / rootfs 分区 / OTA 要按模组重做（`SW/FLASH_AND_VERSION.md`）。
@@ -411,7 +412,7 @@ python3 state/gate_check.py            # Q1 必须 18/18
 - **OD 延迟**：AR9481 8TOPS vs ARS45 6TOPS（tracker §2.1：640×640@60 ~11ms vs ~15ms）→ **台架值偏乐观，不能当 60ms 达标证据**。
 - **ISP 画质**：模组 ISP 是机器人相机调的 → 我们的鱼眼 120° 畸变/LDC 要重调，调不动就证不了。
 - **引脚映射**：模组引脚 ≠ SoC 球位 → **模组证不了 ARS45 的球位图**（只证平台可行）。
-- **光学链**：走鹃Ⅱ / 一拖二分光 / 波导 与 SoC 无关，台架里挂不上 → 光学件仍全部 `[0数据]`。
+- **光学链**：面板 + 一级耦合光学 (ISS-133) / 一拖二分光 / 波导 与 SoC 无关，台架里挂不上 → 光学件仍全部 `[0数据]`。
 
 ## 9.4 兜底路线与 ISS-084 的关系（★ 本单最有价值的一句）
 

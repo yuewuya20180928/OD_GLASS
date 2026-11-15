@@ -1,6 +1,6 @@
 agent: sw-lead
 role: 软件总工
-updated_at: '2026-11-11'
+updated_at: '2026-11-15'
 updated_by: sw-lead
 status:
   phase: P2(方案设计)
@@ -475,6 +475,121 @@ artifacts:
   version: '1.0'
   updated_at: '2026-11-12'
   summary: 'ISS-201 交卷报告: 结论先行 + 逐处 改前改后 + 实测依据 + 验收自证输出 + 交付集条目数改前改后 (2 条 → 2 条) + 边界自证 + 残留项 (只报不改)'
+- path: HANDOFF/2026-11-15_sw-lead_ISS205_问号归零.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: 'ISS-205 交卷报告: 判据①问号行数 186→0 (实测 kicad-cli sch export bom, 带?行数=0, 数据行218) · ②annotation errors
+    警告 出现→消失 (stdout+stderr 双查) · ③三条闸 ERC=0/pinfull=0(K=0)/loadable=0(C1C2C3全过) · ④位号唯一性 218个/218唯一/零重复
+    · ⑤受保护文件 md5 板/网表/脚表/kicad_pro 四个全部逐字节未变 (另 BOM_v1.csv + FET3572C_PIN_TABLE.csv 亦未变) · ⑥板里186个封装位号本单未动
+    (板 md5 未变) · ⑦投产包走方案A重出 (gen_production_pack rc=0/rc_all=0, 73文件22M) ⇒ chain_gate rc 1→0, sch_src
+    md5 12/12 已同步 · ⑧自证: 重跑 gen_kicad_sch.py 后 11/11 页剔除 uuid 逐字节相同 ⇒ 图确为生成器产物 (非手改), 随后按字节还原, 原理图零改动
+    · 缺口G1-G4只报不改 (板侧位号仍旧名/板缺R_CC1+R_CC2/板比图少32器件/生成器每次重铸uuid) · 本单未发任何邮件询价采购'
+- path: HW/PCB/production/
+  kind: pkg
+  version: '2026-11-15'
+  updated_at: '2026-11-15'
+  summary: '投产包按ISS-205方案A重出 (脚本 gen_production_pack.sh, rc=0): doc/demo_mainboard-kicad-bom.xml 带?行数
+    186→0 · doc/sch_src 12个文件 md5 与 HW/PCB 源逐个相等 · 32个gerber md5变化经逐文件diff证明只有CreationDate时间戳不同 (剔除时间戳后32/32逐字节相同)
+    ⇒ 板几何与铜层零改动'
+- path: SW/ISP_CAPABILITY_RESEARCH.md
+  kind: doc
+  version: '2026-11-15'
+  updated_at: '2026-11-15'
+  summary: 'ISS-124 (03a/03b) 自查: 官方对 RK3572/RK3576 从未给过 ISP MP/s 吞吐上限, 也未给过 ISP 功耗 ⇒ 问03a判不了, ISP_SCALING_MODE
+    §6 的 98.1%(250=ARS45已作废) 与 49.3%(497.7=4K60像素率) 两套口径对 RK3572 都不成立; 官方唯一口径 = 12M Pixel/帧 (单帧分辨率上限,
+    不是 12M MP/s) ⇒ 全幅占34.05% / 1080p60占17.28%; ★查出两条口径塌方: ①延迟预算里 ISP 段的官方口径 <10ms 原厂是酷芯微/ARS45 (已作废) ⇒
+    对 RK3572 已失效, ISP段ms的官方口径=[0数据] ②S3=8.00ms 本身就是按全幅2688x1520->640x480@60占位。降级A 线性插值 237.2mW (带180.2~312.2,
+    Δ=+117.2mW) + 官方整机三档包络校验 (670+117=787mW < 官方<1W) ⇒ 皮肤满载10/10档位仍超43C ⇒ 43°C结论不翻案; 降级B 反解 ISP段上限 15.10ms(模式A)/17.33ms(模式B
+    age=1), 现值8.00ms余量+7.09/+9.33ms; 降级C 需一块可达的RK357x板 + DEMO_OD_TIMING_SPEC 11段表补ISP打点。零外发, [实测]仍0条'
+- path: SW/tools/isp_budget_solve.py
+  kind: tool
+  version: '2026-11-15'
+  updated_at: '2026-11-15'
+  summary: 'ISS-124 反解器 (新写, 不改任何既有脚本, rc=0 自检11/11): import SW/tools/timing_check.py (皮肤模型 35.0/50.13/43C)
+    + HW/e2e_budget_rk3572.py (端到端模型); 60ms 从函数默认值取, S3=8.0 从 RKNN_BENCH §4.1 现场解析, ISP功耗锚点从 POWER_BUDGET_V3
+    §2.3 现场解析, 官方12M/4096x3072 从 RK3572 datasheet 文本层现场解析 ⇒ 阈值不会两边漂; 自检含 反解模型在 ISP=S3 时逐位复现 e2e.e2e()
+    的 modeA/modeB'
+- path: SW/RK3572_TARGET_COMPAT_V2.md
+  kind: doc
+  version: v2.0
+  updated_at: '2026-11-15'
+  summary: 'ISS-207 官方口径 + 兼容矩阵 + 与 v1.0 逐条差异 + 降级 A/B/C + 复现命令 (新建, 未改 v1.0 一个字); 查证表 18 条, 每条标 [官网]/[实测]/[媒体]/[推算]/[0数据]
+    并给出处 URL; 官方检索面: rknn-toolkit2 README/releases/CHANGELOG/doc×12 + rknn_model_zoo + rknpu2 + PyPI'
+- path: SW/tools/rk3572_target_smoke.sh
+  kind: tool
+  version: '2026-11-15'
+  updated_at: '2026-11-15'
+  summary: 'ISS-207 板端一次性验证包 (降级 A+C, 新建): P1~P6 自动核对 (device-tree 含 rk3572 / librknnrt 版本 / 板端 lite2
+    / 产物 sha256 sidecar 比对 / COCO 数据集) + 内置 lite2 精度评测器 (与 rknn_bench.py acc 同口径: 逐类 IoU 贪心匹配) + N1~N5
+    输出 PASS/FAIL/INDET + 数值 + 失败原因 + summary.json; 板端不许重转 (脚本无任何 convert 路径); --dry-run 本机 rc=0'
+- path: SW/tools/rk3572_model_rebuild.sh
+  kind: tool
+  version: '2026-11-15'
+  updated_at: '2026-11-15'
+  summary: 'ISS-207 PC 侧一键重建 (降级 B, 新建): 找带 rknn-toolkit2 的 python -> rknn_bench.py convert -> 落盘 SW/artifacts/models/
+    (不许留 /tmp) -> 写 .sha256 sidecar -> 与参考 sha 比对; 本机实跑 rc=0 (产物 4989367 B); --dry-run rc=0'
+- path: HANDOFF/2026-11-15_sw-lead_ISS207_rk3572target与验证包.md
+  kind: handoff
+  version: '2026-11-15'
+  updated_at: '2026-11-15'
+  summary: ISS-207 交卷报告 (24 行, 结论先行 + 兼容矩阵 + 证据分级 + 接口取值 + 卡点 + 复现命令)
+- path: SW/artifacts/models/yolov5n-sim_heads_d730e558d3dfe25c_rk3576_int8_heads.rknn
+  kind: model
+  version: '2026-11-15'
+  updated_at: '2026-11-15'
+  summary: 重建并落盘的 yolov5n@640 heads INT8 产物 (target_platform=rk3576, w8a8/normal/channel, 4989367 B) +
+    .sha256 sidecar + .meta.json; 替代 v1.0 写在 /tmp 会被系统清理的产物清单
+- path: SW/DEMO_BOARD_60MS_VERDICT_PLAN.md
+  kind: plan
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'RK3572 端到端 60ms 生死判定链: 六段 (P1~P6 / 12 段打点 / N1~N5 / 60ms 判定 / 三条出路 / 板永不到降级结论); 板到手 30 分钟出结论'
+- path: SW/DEMO_OD_TIMING_SPEC.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'v1.2: §2 段表 11 段 => 12 段 (新增段 12 = ISP, 六列齐全) + §3.1 加 ISP 字段行 + §2.4 ISP 时间戳口径裁决 + §3.4 CSV
+    加 3 列'
+- path: SW/tools/timing_check.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '新增 F9_isp_budget 判据 (ISP 段 avg<=15.10ms 出 PASS/FAIL + 差多少) + 13 条自测 (含反向: 超 15.10 必被抓) =>
+    SELFTEST 68/68 rc=0'
+- path: HANDOFF/2026-11-15_sw-lead_ISS210_60ms判据链.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-210 交卷 (B1~B6): 判据链 + ISP 判据固化进机器 + 板永不到的降级结论'
+- path: SW/tools/demo_timing_check.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '规格自检器同步 (ISS-210 连带): CSV 表头基线 14 列 => 17 列 + 新增 3 条断言 (ISP 打点名 / ISP 判据线 15.10+17.33 / 12
+    段) => 23/23 rc=0, selftest 4/4'
+- path: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: '★★demo 显示侧真源规格: 480×640 / 2-lane / 无 DCS (官方驱动零 DSI 写) / I2C 0x45 控制序列 / I2C_B ≤100kHz 硬上限
+    / dts 片段 / ST7701 参照件 / 板端 30 分钟验证清单 V0~V9 / 整机路线占位+降级方案'
+- path: SW/DEMO_PANEL_SPEC_TRIAGE.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: '逐处定性表: 22 处 grep 命中 (1920×1080|视涯|SeeYA) + 16 处关联活动口径 = 38 处 ⇒ 改写 33 / 整机占位标注 4 / 原样保留 1'
+- path: SW/tools/check_demo_panel_spec.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: '机器门禁: R1 真源四组必填 / R2 整机口径不许当 demo 活动口径 / R3 pipeline 已重锚 (28 对) / R4 整机占位不许删 / R5 定性表完整 /
+    R6 受保护 md5 ⇒ rc=0, selftest 8/8'
+- path: HANDOFF/2026-11-15_sw-lead_ISS212_demo显示侧重锚Waveshare.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-15'
+  summary: ISS-212 交卷件 (B1~B6)
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -925,9 +1040,17 @@ needs_from:
   waiting_on: sw-lead
 - key: demo_od_p0_4_panel_init_code
   to: main
-  item: '★P0 + ★全局最长关键路径: 视涯 0.49" 1920x1080 的 DSI init code / 时序 / DSC 需求 / 单色还是全彩 全未拿到 (state/outbox/visionox_display_inquiry.md
-    是草稿未发)。★''屏上有画面''不需要 camera (测试图卡即可验 DRM/KMS+DSI), 所以这条链路上最短的那根线是面板而不是 sensor ⇒ 请项目总工/老板放行外发问询函 (Q2
-    的 init sequence + Q1 的单色全彩 是硬项)'
+  item: '★**已结 (ISS-212, 2026-11-15 sw-lead)**: 本条 (视涯 0.49" 的 DCS init code / 时序 / DSC / 单色全彩) **不再是任何前置条件**;
+    原问的「请放行外发问询函」**作废** (老板 2026-11-11 19:31 + 2026-11-12 02:02: 一律不发, 全靠自己查资料)。 ★**demo 半 = 自己查完, 已闭环
+    [官网]**: demo 屏 = Waveshare 2.8inch DSI LCD (SKU 22028 / 480×640 / 2-lane), **不需要任何 DCS init 序列** ——
+    树莓派官方内核 `panel-waveshare-dsi.c` (commit d8e5eb49991de6b8fa9231532a11036e24aa84de) **零 DSI 写**, 面板与背光全走
+    I2C (模组内 MCU @0x45: probe 0xC0/0xC2/0xAC · enable 0xAD=0x01 · disable 0xAD=0x00 · 背光 0xAB+0xAA), 触摸
+    GT911 @0x14 可选, I2C_B 速率 ≤100kHz (t_r@300pF=1194.7ns) ⇒ **demo 阶段 1 直接上真面板**。 ⇒ 规格 `SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md`
+    (含板端 30 分钟验证清单 V0~V9) + 逐处定性表 `SW/DEMO_PANEL_SPEC_TRIAGE.md` (22 grep 命中 + 16 关联 = 38 处) + 机器门禁 `SW/tools/check_demo_panel_spec.py`
+    (rc=0 / selftest 8/8)。 ★**整机视涯半 = [0数据] + 降级方案 (不许留成外部依赖)**: 视涯侧 DCS init 序列 / 时序 / 单色全彩 / 逐帧延迟 全部未拿到且**一律不外发**
+    ⇒ ① demo 不依赖视涯 (显示侧全部走 Waveshare 2.8") ⇒ 整机选型未决**不阻塞 demo**; ② 整机屏若仍是视涯 ⇒ 采购硬判据加「**必须支持非 DSC 的 1920×1080@60
+    RGB888**」 (RK3572 **没有 DSC 编码器** ⇒ VESA DSC 3:1 出不来); ③ 面板厂坚持只给 DSC ⇒ 整机路线换 SoC 到 RK3588; ④ 逐帧延迟 S10=5.0ms
+    占位 ⇒ 整机阶段实测, 不猜。 ★**整机屏路线 / 最终选型 / FOV = 老板拍板 (sw-lead 不代拍)**。'
   since: '2026-11-02'
   due: '2026-11-04'
   waiting_on: boss
@@ -1242,6 +1365,39 @@ answers:
     构建环境已恢复 ⇒ 本 need 退休, 不要继续当活账挂着。★别与另一件事混: 模型 sha 台账漂移是另一码事 (原件 20368be665f6f59a 已丢失, 路径上是重建复刻件且未登记新资产
     ID), 见同一份事实页 §3, 与本条的环境问题无关。'
   ref: HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md §2 (ISS-196)
+- key: iss124_isp_capability_and_power_selfresearch
+  to: main
+  value: '【推算·2026-11-15·sw-lead·零外发】ISS-124 两条都自查完了, 结论是可判的部分判完、判不了的部分已成降级方案, 建议降为常规确认项+一条实测待办: ①官方对
+    RK3572 (datasheet V1.1 §1.2.10, md5 c0e37630) 与 RK3576 (rock-chips.com Brief Datasheet V1.2, md5 76d0904d)
+    全文检索 MP/s|megapixel|throughput|pixels/s 零命中 ⇒ 官方只给单帧分辨率上限 12M/16M Pixel, 从未给 MP/s 吞吐 ⇒ 问03a判不了; ★12M
+    Pixel 是单帧分辨率上限不是每秒能力, 谁也不许替谁下结论。②★真正卡的是03b: 延迟预算里 ISP 段的官方口径 <10ms 原厂是酷芯微/ARS45 (官网 artosyn.cn + 松山湖论坛)
+    ⇒ 换芯到RK3572后这条E2已失效 ⇒ ISP段ms的官方口径=[0数据]; SW_REQUIREMENTS §10.6 把 S3 排成相对最强这个评级需重定 (只报不改, 请转派)。③★反解(本单最有用):
+    60ms硬线下 ISP段最多 15.10ms(模式A)/17.33ms(模式B, 前提age=1), 现占8.00ms ⇒ 余量+7.09/+9.33ms, 即 ISP 最多慢到现值1.89x/2.17x
+    才破线; 模式B 在现行 yolov5n@640 的 age=2 下本来就不成立(67.34ms), 与ISP无关。④功耗: 官方无ISP功耗表(热阻四项全TBD) ⇒ 用 POWER_BUDGET_V3
+    §2.3 锚点(60mW@62MP/s)线性插值 ⇒ 全幅245.1MP/s=237.2mW (敏感性带180.2~312.2, Δ=+117.2mW); 官方整机三档(<10mW/670mW/<1W)做包络校验
+    670+117=787mW<官方<1W 自洽; 皮肤重估满载10/10档位仍超43C(镜腿内无桥中位 60.1→65.9C) ⇒ 43°C结论不翻案只是更差; 唯一能进红线的待机-B档与ISP吞吐无关。⑤实测计划:
+    需一块可达的RK357x板 (非等板子回来, 本机此刻无可达板) + ★DEMO_OD_TIMING_SPEC §2 的11段表缺ISP段打点须另派补 ⇒ 判据 ISP段avg<=15.10ms
+    且 实测帧率>=60fps@全幅 (即245.1MP/s被官方实现确认)。交付 SW/ISP_CAPABILITY_RESEARCH.md + .json + SW/tools/isp_budget_solve.py;
+    复现 python3 SW/tools/isp_budget_solve.py (rc=0 自检11/11); timing_check.py md5 cdc59f554fc6c82fe2588c2845b08977
+    未变'
+  ref: HANDOFF/2026-11-15_sw-lead_ISS124_ISP能力与功耗自查.md
+- key: iss207_rk3572_target_official_caliber
+  to: main
+  value: '【实测+官网·2026-11-15·sw-lead·零外发】ISS-207 官方口径自查完毕: ①最新 rknn-toolkit2 = v2.5.0 (2026-10-20, GitHub
+    releases + PyPI) [官网]; ②该版官方 Support Platform 8 系列 (RK3588/RK3576/RK3566-68/RK3562/RV1103-06/RV1103B-06B/RV1126B/RK2118)
+    无 RK3572, release notes 全文无 rk3572 [官网]; ③本机 2.3.2 官方库自打印合法 target 11 项亦无 rk3572, config(rk3572)=ValueError
+    而 config(rk3576)=rc=0 [实测] ⇒ 升级到最新版也不会有 rk3572 target, 必须用 target_platform=rk3576; ④RK3572 BSP runtime
+    认不认 rk3576-target 产物: 官方无此口径 (已检索 rknn-toolkit2 README/releases/CHANGELOG/doc 12 个 PDF + rknn_model_zoo
+    + rknpu2 + PyPI) ⇒ 命题判 (b), 只能板端实测 (判据 N1) 回答 [0数据]; ⑤ISS-155 里的 同代同架构 (4TOPS/3核 RKNPU v2) 仍是我方 [推算],
+    未升级成官方依据; ⑥本机转换链其实是活的 (miniconda3 envs/rknn + rknn-toolkit2 2.3.2), 已实跑重建并落盘 SW/artifacts/models/
+    + sha256 sidecar, PC 侧 F1=0.29265 (281 张, 与 v1.0 逐位一致); ⑦.rknn 非逐字节可复现 (同工具链连转三次三个 sha256, 字节数恒同,
+    但两次 acc F1 逐位相同) ⇒ 身份锚用拷贝那一刻的 sidecar'
+  ref: HANDOFF/2026-11-15_sw-lead_ISS207_rk3572target与验证包.md ; SW/RK3572_TARGET_COMPAT_V2.md
+- key: iss139_tisp_timing_point
+  to: main
+  value: '已落地 (ISS-210, 2026-11-15): DEMO_OD_TIMING_SPEC.md §2 段表 11=>12 段 (新增段 12 = ISP, 六列齐全) + §3.1
+    加 ISP 字段行 + §2.4 ISP 时间戳口径裁决 (驱动/帧统计时间戳对) + 判据固化进 timing_check.py F9_isp_budget'
+  ref: HANDOFF/2026-11-15_sw-lead_ISS210_60ms判据链.md §B1
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -1331,8 +1487,9 @@ interface_claims:
   ref: SW/FLASH_AND_VERSION.md#4.5.1
 - key: display_resolution
   value: 1920x1080
-  note: ★11-02 01:12 老板拍板显示件改视涯 0.49" SiOLED ⇒ 显示分辨率 800x600→1920×1080; ★像素量×4.3 ⇒ 合成/缩放路径与 ISP 一处多预算要重算
-    (与 RK3572 4TOPS 叠加 ⇒ 60ms 更紧)
+  note: '★11-02 01:12 老板拍板显示件改视涯 0.49" SiOLED ⇒ 显示分辨率 800x600→1920×1080; ★像素量×4.3 ⇒ 合成/缩放路径与 ISP 一处多预算要重算
+    (与 RK3572 4TOPS 叠加 ⇒ 60ms 更紧) ★ISS-212 (2026-11-15): 本键 = **整机屏**口径 (视涯 0.49" 1920×1080, **整机路线·暂缓**);
+    ★**demo 显示分辨率 = 480×640** (Waveshare 2.8" SKU 22028) ⇒ 见新键 `demo_panel_resolution`'
   ref: SW/SW_REQUIREMENTS.md#12.1
 - key: model_asset_id_scheme
   value: MOD-<FAMILY>-<VER>-<RES>
@@ -1734,7 +1891,9 @@ interface_claims:
   note: '★★F8 落地: 面板 init code 的**公开开源来源** = Rockchip BSP kernel `develop-6.12` `rk3576-evb.dtsi` 的 `dsi_panel:
     panel@0` (compatible=simple-panel-dsi, 4-lane, MIPI_DSI_FMT_RGB888, flags=VIDEO|VIDEO_BURST|LPM|NO_EOT_PACKET,
     263 条 panel-init-sequence) ⇒ 已落 `HW/PCB/panel_simple_dsi_template.dtsi` ⇒ ★**面板 init code 不用问厂家**
-    (demo 屏用公开模板; 视崖 0.49" 的 init 属采购硬判据, 不影响 demo)。★F10 ESD 判据: 紧贴接口 + 寄生电容 ≤0.4pF (Forlinx 手册 §3.5)。'
+    (demo 屏用公开模板; 视崖 0.49" 的 init 属采购硬判据, 不影响 demo)。★F10 ESD 判据: 紧贴接口 + 寄生电容 ≤0.4pF (Forlinx 手册 §3.5)。
+    ★ISS-212 (2026-11-15): demo 屏 (Waveshare 2.8") **不需要任何 DCS init 序列** ⇒ 本键指**整机/参考 dts** (整机路线·暂缓);
+    demo 侧见 `demo_panel_dcs_init=none` + `demo_panel_i2c_addr=0x45`'
   ref: HW/PCB/panel_simple_dsi_template.dtsi + HW/PCB/LAYOUT_RULES.md
 - key: rknn_cut_cache_key
   value: sha256_fingerprint
@@ -1845,6 +2004,106 @@ interface_claims:
   value: demo=1次样机窗口(灰卡/暗室 半天~1天); 整机=1~2天暗室窗口
   note: '2026-11-11 sw-lead: 本项目无暗室/灰卡/标定板与预算 => 窗口须占样机档期; 板回板后若档期被占, demo 段 1~2 人日会滑成整机段 1~2 人周'
   ref: HW/STEP1_LANDING_LIST.md F9 + state/BOSS_DECISIONS_20261110.md:44
+- key: iss205_sch_ref_suffix_vs_board_ref
+  value: 图上位号=表侧ref加_1数字后缀 (末字符本就是数字的32个不动, 其中R_BAT_DET_1名字里本来就带_1) ⇒ KiCad判已标注 ⇒ BOM问号归零 (实测 186→0)
+  note: '2026-11-15 sw-lead实测: 板里186个封装位号仍是加后缀前的旧名 (板上156个位号末字符还是字母) ⇒ 图上218 vs 板上186, 交集30, 图上有板上无188个
+    (186个改名 + R_CC1/R_CC2板上真没有封装) ⇒ 预期的中间态, 板侧改名+补件属整链重出第1步, 本单按brief不许碰板'
+  ref: HANDOFF/2026-11-15_sw-lead_ISS205_问号归零.md §5
+- key: iss207_rknn_target_caliber
+  value: 转换 target_platform=rk3576 (官方合法 target; rk3572 不是任何已发布版 rknn-toolkit2 的合法 target) ⇒ 官方层不存在 rk3572
+    编译产物, RK3572 BSP runtime 接受性只能由板端 load_rknn 判定 (判据 N1)
+  note: '2026-11-15 sw-lead 官方口径自查: GitHub releases/PyPI v2.5.0 Support Platform 无 RK3572; 本机 2.3.2 官方库自打印
+    11 项合法 target 无 rk3572; RK3572 runtime 认 rk3576-target 产物 官方无此口径 ⇒ [0数据]'
+  ref: SW/RK3572_TARGET_COMPAT_V2.md §1/§2/§3
+- key: iss207_rknn_artifact_identity
+  value: RKNN 产物身份锚 = 拷贝那一刻的 sha256 (写在 .sha256 sidecar, 与产物同目录, 下板时一起拷) ⇒ 板端 P6 比对用 sidecar, 不许拿历史常量当锚;
+    落盘目录固定 SW/artifacts/models/ (不许留 /tmp, /tmp 会被系统清理)
+  note: '2026-11-15 sw-lead 实测: 同 rknn-toolkit2 2.3.2 + 同源 ONNX 连转三次 => 三个 sha256 (1c5ff7ba/d33689b9/dec2e404),
+    字节数恒为 4989367 B, 差异集中在 2.75~3.0MB 区段; 两次独立 acc 步 F1 逐位相同 (0.29265402843601895) ⇒ 数值可复现, 字节不可复现'
+  ref: SW/RK3572_TARGET_COMPAT_V2.md §1.18/§6.3 ; SW/tools/rk3572_model_rebuild.sh
+- key: iss207_rk3572_judgement_thresholds
+  value: N1 load_rknn=0 且 init_runtime=0; N2 板端 F1 >= 0.2427 (PC 基线 0.2927 - 0.05); N3 纯 NPU t_npu <=
+    13.30ms [推算], t_sdk_total <= 13.30ms 时可保守判 PASS (t_npu <= t_sdk_total), 13.30 < t_sdk_total <= 20.33
+    判 INDET 不判 FAIL; N4 纯 NPU 与 SDK 总耗时必须分开报; N5 散热/功耗/频率/供电已记录
+  note: 2026-11-15 sw-lead 固化进 SW/tools/rk3572_target_smoke.sh (降级 C), 板端一条命令直接出 PASS/FAIL/INDET + 数值
+    + 失败原因; 通过线在下板前定死, 跑完只填数不改线
+  ref: SW/RK3572_TARGET_COMPAT_V2.md §5.3 ; SW/tools/rk3572_target_smoke.sh
+- key: iss210_isp_verdict_criteria
+  value: 模式A t_isp_total avg<=15.10ms; 模式B p95<=17.33ms
+  note: ISS-124 反解 (精确 15.095/17.33); 现占位 8.00ms 余量 +7.09/+9.33ms; 判定实现 SW/tools/timing_check.py F9_isp_budget;
+    60ms 硬指标锁死不许调松
+  ref: ''
+- key: iss210_60ms_verdict_chain
+  value: 板到手30min出结论/板永不到降级结论已写死
+  note: 'SW/DEMO_BOARD_60MS_VERDICT_PLAN.md 六段; 降级结论: RK3572 模式A [推算] 62.7~65.7ms (yolov5s@640) / 52.91ms
+    (yolov5n@640); 板端一律 [0数据]'
+  ref: ''
+- key: demo_panel_resolution
+  value: 480x640
+  note: 'ISS-212 (2026-11-15): demo 显示侧口径重锚 = Waveshare 2.8inch DSI LCD (SKU 22028) 480×640 (boss 2026-11-04
+    01:19 拍板); 整机屏 1920×1080 (视涯) = 整机路线·暂缓'
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §1
+- key: demo_panel_dsi_lanes
+  value: '2'
+  note: '屏侧物理只有 2 对差分 (15p: DN0/DP0 + DN1/DP1 + CK) ⇒ 软件 dsi,lanes=<2>; 板上的 lane2/lane3 留给将来整机屏; RK3572
+    max_data_lanes=4 / 1.8Gbps per lane'
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §2
+- key: demo_panel_mode
+  value: 480x640@60.85
+  note: 时序逐字抄官方驱动 (clock=50000kHz / htotal=830 / vtotal=990) ⇒ 刷新率 50e6/(830*990)=60.849 Hz
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §1.1
+- key: demo_panel_refresh_hz
+  value: '60.85'
+  note: 由官方 ws_panel_2_8_mode 算得 (50e6/821700); 源 60fps 与面板 60.85Hz 无 TE 可同步 ⇒ 撕裂靠整帧提交/错帧率处理
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §1.1/§2
+- key: demo_panel_dcs_init
+  value: none
+  note: '★★这块屏不需要任何 DCS init 序列: 树莓派官方内核 panel-waveshare-dsi.c 全文零 mipi_dsi_dcs_write ⇒ 面板+背光由模组内 MCU
+    经 I2C 控 ⇒ panel-init-sequence 故意不写'
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §3
+- key: demo_panel_i2c_addr
+  value: '0x45'
+  note: Waveshare 模组内 MCU (面板+背光) 7-bit 地址 0x45 (官方 firmware overlay panel_disp1@45); 与同总线 TMP117 0x48
+    不冲突
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §4.1
+- key: demo_panel_touch_i2c_addr
+  value: '0x14'
+  note: 触摸 GT911 @0x14 (官方 overlay goodix@14), demo 阶段可不接
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §4.1
+- key: demo_panel_i2c_max_rate
+  value: 100kHz
+  note: ★I2C_B (4.7k@RAIL_VDD_3V3_IO 3.3V, 走 CONN_LIGHT 22p FPC) ⇒ t_r@300pF=1194.7ns > 1000ns ⇒ 面板控制总线必须
+    ≤100kHz (本机 timing_check.py F3 实跑)
+  ref: SW/SW_TIMING_REVIEW.md §6 + SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §4.2
+- key: demo_panel_backlight_ctrl
+  value: 0xAB+0xAA
+  note: '★背光无独立脚 ⇒ 由模组内 MCU 经 I2C 控: 写 0xAB = 0xFF - 亮度, 再写 0xAA=0x01 生效; ★不许用 DCS 0x51 (本屏不认)'
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §3.1/§4.3
+- key: demo_panel_payload
+  value: 448.6Mbps
+  note: 480×640×24×60.849 = 448.63 Mbps payload ⇒ 2 lane 时 224.3 Mbps/lane (RK3572 驱动上限 1.8Gbps/lane ⇒
+    余量 8.0×)
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §2
+- key: demo_panel_tx_floor_ms
+  value: '2.304'
+  note: 'TX 物理下限 (同 HW/e2e_budget_rk3572.py §⑥ 口径: 2 lane × 2.0Gbps × 80% = 3200 Mbps 有效) ⇒ 7.3728 Mbit/帧
+    ÷ 3200 Mbps = 2.304 ms (口径B 1.8Gbps 满效率 = 2.048 ms)'
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §2/§7.3
+- key: demo_panel_letterbox_p1
+  value: k=0.25;pad_y=170
+  note: AR0234CS 1920×1200 (16:10) → 480×640 (3:4 竖屏) ⇒ k=min(480/1920,640/1200)=0.25, 内容 480×300, 黑边上下各
+    170px (左右 0); ★黑边方向从左右翻成上下
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §7.1
+- key: demo_panel_letterbox_p2
+  value: k=0.75;pad_y=140
+  note: 640×480 (4:3) → 480×640 ⇒ k=0.75, 内容 480×360, 黑边上下各 140px; (可选旋转档 1200×1920 → k=0.3333, 内容 400×640,
+    左右各 40px, display.rotate 默认 0 未拍板)
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §7.1
+- key: demo_panel_box_line_px
+  value: P1=8;P2=3
+  note: 框画在缩放之前 ⇒ 屏上目标 ≥2px ⇒ P1 k=0.25 需 8px (屏上 2.0px), P2 k=0.75 需 3px (屏上 2.25px); 旧口径 2px 在屏上只剩 0.5px
+    ⇒ 必须改
+  ref: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md §7.2
 open_questions:
 - id: SW-Q1
   to: main

@@ -38,10 +38,13 @@ REQUIRED_POINTS = [
 ]
 REQUIRED_FIELDS = ["min", "avg", "max", "p50", "p95", "n"]
 CSV_HEADER = [
-    "frame_idx", "ts_capture", "ts_pre", "ts_npu", "ts_sdk_total",
+    "frame_idx", "ts_capture", "ts_isp_in", "ts_isp_hw_start", "ts_isp_out",
+    "ts_pre", "ts_npu", "ts_sdk_total",
     "ts_decode", "ts_draw", "ts_compose", "ts_display",
     "exposure_us", "queue_wait_ms", "box_count", "npu_err", "frame_dropped",
 ]
+# ★ISS-210 (2026-11-15): §2 段表 11 段 => **12 段** (新增段 12 = ISP) ⇒ CSV 表头 14 列 => **17 列**
+#   (多出 ts_isp_in / ts_isp_hw_start / ts_isp_out 三列 ⇒ 派生 t_isp_total (判据用) + t_isp_hw (归因用))
 
 
 class CheckError(Exception):
@@ -107,7 +110,7 @@ def check_spec(spec: str, include_file_checks: bool = True) -> list:
         detail = "表头 %d 列, 与规定一致=%s" % (len(got), csv_ok)
     else:
         detail = "找不到 CSV 表头行"
-    out.append(("CSV 表头 14 列齐全且顺序一致", csv_ok, detail))
+    out.append(("CSV 表头 17 列齐全且顺序一致", csv_ok, detail))
 
     # ⑦ 口径 A 必须分 A-soft / A-hard 两层 (不许混报)
     out.append((
@@ -184,6 +187,23 @@ def check_spec(spec: str, include_file_checks: bool = True) -> list:
             "在" if os.path.exists(UPSTREAM) else "缺",
         ))
 
+    # ⑲ ★ISS-210 (2026-11-15): 12 段接力表 + ISP 段打点名 + ISP 判据线 (新增段 12 = ISP)
+    out.append((
+        "ISP 段打点名齐全 (t_isp_hw + t_isp_total, 两个数不许合并)",
+        "t_isp_hw" in spec and "t_isp_total" in spec,
+        "有" if ("t_isp_hw" in spec and "t_isp_total" in spec) else "缺",
+    ))
+    out.append((
+        "ISP 段判据线齐全 (模式A 15.10 / 模式B 17.33 ms)",
+        "15.10" in spec and "17.33" in spec,
+        "有" if ("15.10" in spec and "17.33" in spec) else "缺",
+    ))
+    out.append((
+        "时序接力表 = 12 段 (段号 1..12, 含段 12 = ISP)",
+        spec.count("| 12 | ") >= 1,
+        "找到段 12 行" if spec.count("| 12 | ") >= 1 else "缺",
+    ))
+
     # ⑱ 本单不许写板端时延数字 —— 全文不得出现"板端实测 xx ms"式的假数
     fake = re.findall(r"板端实测[^。\n]{0,30}?(\d+\.\d+)\s*ms", spec)
     out.append((
@@ -202,12 +222,15 @@ t_e2e_A_soft t_e2e_A_hard S10
 CLOCK_MONOTONIC 不许用 `CLOCK_REALTIME`
 min avg max p50 p95 n
 300 帧
-frame_idx,ts_capture,ts_pre,ts_npu,ts_sdk_total,ts_decode,ts_draw,ts_compose,ts_display,exposure_us,queue_wait_ms,box_count,npu_err,frame_dropped
+frame_idx,ts_capture,ts_isp_in,ts_isp_hw_start,ts_isp_out,ts_pre,ts_npu,ts_sdk_total,ts_decode,ts_draw,ts_compose,ts_display,exposure_us,queue_wait_ms,box_count,npu_err,frame_dropped
 A-soft A-hard
 S10 = [0数据]
 exposure_us 不并进 `t_capture`
 27.19 36.51 9.29
 | 10 | 汇总 | | 11 | 段
+| 12 | ISP |
+t_isp_hw t_isp_total
+15.10 17.33
 t0 t1 t2 t3 t4 t5 t6 t7 t8 t9
 不设门限
 t_compose 4.32
