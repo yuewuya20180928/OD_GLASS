@@ -5,11 +5,12 @@ updated_by: sw-lead
 status:
   phase: P2
   progress_pct: 100
-  health: green
-  summary: 'ISS-235 完成: 3 条 SW 侧过期断言已订正成跟当前真源走的断言 (F8 方向翻正 / REV-3 基线 1->2 / REV-12 动态定位当前落表单号), 每条都补了真的改得到目标的反向用例;
-    5 道门禁全绿 (timing_check 71/71 · demo 16/16 · shutdown 17/17 · merge+gate_check Q1 18/18); HW/ 0 字节写入,
-    没回退 ISS-233 落表成果'
-  updated_at: '2026-11-11'
+  health: yellow
+  summary: '★ISS-255 (+ISS-256) 已交卷: 生产链门禁的 4 条 mtime 准入判据 ⇒ 【内容锚点】(① 台账登记 md5 / ② 原理图语义内容 (归一化去 uuid)
+    / ③ PCB 焊盘级等价 / ④ BOM 逐行 (位号,value,dnp)) ⇒ ②④ 的假红被治好, ③ 的真红保持红 (硬规矩①满足), --selftest 14/14 rc=0, daily_check
+    --self-test-fast rc=0, merge+gate_check rc=0。★零落表 (板/.kicad_pro md5 逐字节不变) · 零外发 · 未代拍板级项。★健康度 yellow
+    的原因 = 链上 ①③⑤ 三红都是真红 (板侧那趟没排上 + hw-lead 落表未进台账) ⇒ 不是本单故障'
+  updated_at: '2026-11-16'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -847,6 +848,63 @@ artifacts:
     没变红 ⇒ 有问题」) ⇒ 装回又绿 (rc=0) ⇒ 证明该断言真在读网表不是摆设 (沙盒做完已清掉); ★附带订正派活口径: timing_check.py 没有 --selftest flag
     (argparse rc=2), 71 条 selftest 是默认路径 ⇒ 裸跑即 71/71; ★零落表 (受保护 5 件 md5 逐字节不变) · 零外发 · 零实物 [实测]=0 条 ·
     V-2/V-3/V-4 一条没拍'
+- path: SW/research/ISS250_rknn_toolkit2_target_查证表.md
+  kind: note
+  version: v1.1
+  updated_at: '2026-11-16'
+  summary: '★ISS-250 查证表: E-01~E-12 全部填实 (rk3572 不在 toolkit2 合法 target 列表 / rknn3-toolkit 官方支持 RK3572
+    / 二进制 wheel + not compatible / 依赖冲突) + 降级方案 3 条路线 (代价+条件+谁拍) + 板端可达时的执行清单 (一条命令 + P1~P6 + N1~N5 量化判据);
+    E-11/E-12 = [0数据·受下载速率限制]'
+- path: HANDOFF/2026-11-16_sw-lead_ISS250_查证表收尾与rknn3验证.md
+  kind: handoff
+  version: v1.1
+  updated_at: '2026-11-16'
+  summary: '★ISS-250 交卷单 (含 ISS-254 侧重锚): B1~B6 齐全 + 【第 4 轮补齐 B7/B8/B9 + E-11/E-12 改口径说明】(上一轮 B7/B8/B9
+    因超时未落盘, 本轮按查证表已落盘证据补写, 未改任何结论)'
+- path: SW/research/enum_target2.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-250 复现件: rknn-toolkit2 合法 target 实测枚举脚本 (28 候选全跑, 合法 11 个 / 被拒 16 个含 rk3572 与 rk3572b)'
+- path: SW/research/enum_target3.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-250 复现件: target_platform 逐一 config() 探测脚本 (E-02~E-05 实测来源)'
+- path: state/check_chain_content_anchor.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-255/ISS-256 新建: 生产链四环的【内容锚点】判据实现 (★独立文件, 便于单测与反向自证★)。① 网表 = md5 == 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    最新登记的 md5 (★台账没登记 ⇒ 红, 不许拿 mtime 顶替★) · ② 原理图 = 语义内容一致 (A 位号集合 == 脚表 218==218 / B 网名多重集 == 脚表 584==584
+    ⇒ 等价于 ⊇ 且无残留旧名 / C 网表侧一颗 2 脚件落进 N 个网 ⇒ 红, ★R3-A1 同口径★ ⇒ 抓 F1 那类只改连线登记的落表★) · ③ PCB = 焊盘级等价 (★复用 state/check_pcb_nets.py
+    的 C1/C2★) · ④ BOM = 逐行 (位号,value,dnp) 一致 (★期望值用 state/gen_bom.py 自己的聚合口径算 ⇒ 零漂移★)。★★ISS-256 核心: 任何地方都不用
+    .kicad_sch 的 md5 当锚 ⇒ 只比归一化指纹 (去 uuid/时间戳) ⇒ uuid 抖动 ⇒ 判据结果不变。--selftest 14 条反向用例 14/14 rc=0 (含 uuid
+    抖动仍绿 / 删器件 / 改网名 / BOM 改 value/dnp/删行 / 网表 md5 不符 / 板不等价 / F1 落表前 / 全改回去)'
+- path: HANDOFF/2026-11-16_sw-lead_ISS255_chain_gate内容锚点.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-255 (+ISS-256) 交卷单 (B1~B8): B1 病灶 (mtime 假红/假绿 + 三条实测事实 + ★② 原理图那条红也是名义红的实测证明: 图上位号 218==脚表218
+    / 标签 584==脚表584 / 缺新网名 0 / 残留旧名 0 ⇒ F1 改的是 node2 槽不是网名 ⇒ 图本来就最新★) · B2 判据对照表 (逐环 改前 mtime → 改后 内容锚点)
+    · B3 反向用例 14 条原样输出 · B4 五环改前改后 rc 对照 (快检 rc=1 / 全检 / 新工具 / daily_check / merge+gate_check) · B5 边界自审逐条
+    · B6 修法文案改前改后 · B7 三条 need (台账登记口径 / ③ 准出与准出段全绿互斥 / ③ 依赖 KiCad python) + 复现命令 · B8 交付物清单'
+- path: SW/SW_MD5_BASELINE_LEDGER.md
+  kind: ledger
+  version: v6
+  updated_at: '2026-10-25'
+  summary: '★ISS-258 (H-1 第 6 跳) 重锚: §1 锚点 2 条 (网表/脚表) × 4 字段 改到 ISS-257 落表后的盘上真值 (网表 16ac89f7…→e06c1dd6…,
+    脚表 ef436a37…→287e7861…, by=ISS-257, landed_at=2026-11-16 21:22) + §1 landing_records 加 HANDOFF/2026-11-16_hw-lead_ISS257_*.md
+    + §3 追加 R-09 留痕行 (追加式, R-01~R-08 一字未改) + §3 末尾追加第 6 跳指针。★R6 的 6 条判据 / R7 逻辑 / --skip-md5 语义一个字没动;
+    反向用例一条没删 (16/16); HW/ 受保护 5 件 md5 逐字节不变; 零落表/零外发/零实物/不代拍板/不自签 issue_log。★依据: HW/SCHEMATIC_LANDING_V1_LANDED.md
+    §18.4 L1069/L1070 (单号+文件名+新旧 md5 四项同行齐全)'
+- path: HANDOFF/2026-11-16_sw-lead_ISS258_H1重锚第6跳.md
+  kind: handoff
+  version: v1
+  updated_at: '2026-10-25'
+  summary: '★ISS-258 交卷单 (B1~B6 齐全): 病灶=锚点过期不是真源被换; 根因=ISS-257 落表第 6 批 (G1a-7 选型落表, 2026-11-16 21:22);
+    判别证据=①门禁脚本 mtime 早于落表 ②反向自证 绿→红→绿 (R6 两条 + timing_check 掉回 69/71 + selftest 掉回 15/16) ③台账四项同一行; ★答复任务书
+    ③: timing_check.py 掉的 2 条读的就是 SW/SW_MD5_BASELINE_LEDGER.md §1 同一个锚点块, SW/ 下无第二处 md5 锚点 ⇒ 未改任何阈值即回绿'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -1686,6 +1744,37 @@ needs_from:
     (L1742 + L1762 已 == 1), 但答复必须由 main 以 main 身份登记, SW 侧代签会做成自闭合, 本单只补了一条 answers 记录不代签★; ★另附一条派活口径订正:
     timing_check.py 没有 --selftest flag (argparse rc=2), 71 条 selftest 就是默认路径 ⇒ 裸跑即 71/71'
   since: '2026-11-16'
+- key: iss250_pick_downgrade_route
+  to: main
+  since: '2026-11-16'
+  item: '★ISS-250 降级方案选哪条 (B8 路线①/②/③): ① rk3576-target 维持现状 (新增下载 0 B, 板端接受性 [0数据], 失败则整条作废) ② rknn3-toolkit
+    1.2.0 独立 conda env (需 98 MB wheel + numpy>=2.0/torch>=2.2 与 toolkit2 2.3.2 冲突 + RK3572 仍 Beta) ③ 降
+    OD 负载 / 回 RK3576 换 SoC (板级改版+重打样, 周级); 三条共用同一套 N1~N5 判据 ⇒ 换路线不换判据; 路线①/③ 涉 60ms 生死与换芯片 = 商务决策 ⇒ 老板拍'
+- key: iss250_e11_e12_pending_install_test
+  to: main
+  since: '2026-11-16'
+  item: '★ISS-250 待办 (不属本轮): rknn3-toolkit 1.2.0 本机安装实测 + config(target_platform=''rk3572'') 实跑 —— 需 ①
+    下 wheel 102,657,410 B 并校验官方 md5 a972e03af94fd18e21f026558735b28d ② 建【独立 conda env (python3.10)】③ 装依赖
+    numpy>=2.0/torch>=2.2 ④ 实跑 config 并记 min/avg/max; 本机下载实测单路 ≈6.2 KB/s (7 路并发合计 ≈43.5 KB/s) ⇒ 单路 ≈4.6
+    h / 并发 ≈0.47 h ⇒ 需单独开下载窗口, 本轮已停掉残留后台下载'
+- key: iss255_ledger_registration_required
+  to: main
+  item: '★ISS-255 新判据①要求: hw-lead 每落一次网表, 必须同时在 HW/SCHEMATIC_LANDING_V1_LANDED.md 的 md5 台账里补一行 (单号 | 文件
+    | 旧 md5 | 新 md5), 否则 ① 必红 (★这是设计不是故障★)。★交卷时刻 20:58 实测: hw-lead 20:50 的 ISS-257 落表改了网表 (7dcf251a…)
+    但台账还登记 16ac89f7… ⇒ ① 红。★请 main 转 hw-lead 补登记, 登记完 ① 即绿, 本单不用再改代码★'
+  since: '2026-11-16'
+- key: iss255_pcb_exit_vs_full_green
+  to: main
+  item: '★ISS-255 验收口径请示: 任务书 §⑤ 的「chain_gate --full 准出段也要绿」与硬规矩①「③ 必须保持红」在板侧那趟 (PCB 类) 没排上之前互斥 (③ 的准出
+    = check_pcb_nets rc=1, ★改前改后同色, 本单没动那一行★)。★我按硬规矩①选 (③ 红) 并如实报, 未为「准出段好看」去调它★。★请 main 明确: 以「③ 红 + ②④
+    准出绿」为准★'
+  since: '2026-11-16'
+- key: iss255_pcb_anchor_needs_kicad_python
+  to: main
+  item: '★ISS-255 的③判据复用 state/check_pcb_nets.py (走 state/pcbnew_py.sh ⇒ 需要 KiCad AppImage 的 python, ★本机有,
+    实测 0.63s 一次★)。★若将来在没有 KiCad 的机器上跑快检, ③ 会走「保守判红」分支 (★不许假绿★) ⇒ 那台机器上③恒红。★请 main 拍板是否要一个「纯文本解析 .kicad_pcb」的无
+    KiCad 兜底实现 (★本单没做: 那是另一份工作量且会引入两套解析口径的风险★)'
+  since: '2026-11-16'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -1882,6 +1971,16 @@ answers:
     rc=0 (末行「反向演示: ✅ 变红 ⇒ 它真在读网表 (不是演常量)」)。★反向自证: /tmp/iss248/sandbox 沙盒里把 L1762 改回 == 0 ⇒ --reverse-demo
     立刻 rc=1 (末行回到「❌ 没变红 ⇒ 有问题」) ⇒ 装回又绿 ⇒ 证明该断言真在读网表不是摆设。★零落表 · 零外发 · 零实物 [实测]=0 条'
   ref: HANDOFF/2026-11-16_sw-lead_ISS248_reverse-demo演示段口径对齐.md (B1~B6)
+- key: iss258_sw_md5_anchor_netlist
+  to: main
+  value: 'SW 侧 §1 锚点已重锚到 ISS-257 落表后真值: 网表 e06c1dd633566aa44732762c2ff99d1c / 脚表 287e7861a0d1007748d92d9fbecdd490
+    (by=ISS-257, landed_at=2026-11-16 21:22)'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS258_H1重锚第6跳.md
+- key: iss258_sw_gate_green
+  to: main
+  value: '交卷实测: check_demo_panel_spec.py rc=0 (R1~R7 全过) · timing_check.py rc=0 (SELFTEST 71/71) · check_demo_panel_spec.py
+    --selftest rc=0 (16/16) · merge rc=0 · gate_check rc=0; 反向自证 绿→红→绿 已实测; 受保护 5 件 md5 逐字节不变'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS258_H1重锚第6跳.md
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -2904,6 +3003,57 @@ interface_claims:
   note: '★[实测] 2026-11-16 sw-lead · ISS-248 · 注: timing_check.py 没有 --selftest flag (argparse rc=2), 它的
     71 条 selftest 是默认路径 ⇒ 裸跑即 71/71 ⇒ 派活口径里不要写 --selftest'
   ref: SW/tools/timing_check.py (--reverse-demo 演示段 + main() 默认路径)
+- key: iss250_rknn3_toolkit_is_official_rk3572_path
+  value: ★[官方]+[实测] rknn3-toolkit (仓库 airockchip/rknn3-toolkit, 官方 AI 账号) README 首句与 Supported Platforms
+    均写 RK3572; CHANGELOG V1.0.4 「Added RK3572 platform support (Beta)」, v1.2.0 (2026-11-05) 补 MatMul/LLM
+    + 修内存泄漏 ⇒ RK3572 的官方工具链路径 = rknn3-toolkit, 不是 rknn-toolkit2 (后者 11 个合法 target 实测无 rk3572, rk3572 与
+    rk3572b 均被拒)
+  note: '★[实测] 本机 rknn-toolkit2 2.3.2 实跑枚举 28 个候选 target ⇒ 合法 11 个 (rv1103/rv1103b/rv1106/rv1106b/rv1126b/rk2118/rk3562/rk3566/rk3568/rk3576/rk3588),
+    config(target_platform=''rk3572'') 抛 ValueError: Invalid target_platform ''rk3572''! (rknn/api/rknn_base.py:896)'
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md (E-01~E-05, E-05b)
+- key: iss250_rknn3_is_binary_wheel_not_compatible_toolkit2
+  value: '★[官方] rknn3-toolkit 是【二进制 wheel 发行】不是源码可编: packages/ 下 4 个预编译 wheel + requirements + md5sum.txt,
+    仓库无 Python/C++ 源码树; cp310-linux wheel = 102,657,410 B (≈98 MB), 官方 md5 = a972e03af94fd18e21f026558735b28d;
+    README Notes 段写死 「RKNN3-Toolkit is not compatible with RKNN-Toolkit and RKNN-Toolkit2」 ⇒ 要换就得【独立 conda
+    env】; 依赖 numpy>=2.0 + torch>=2.2 ⇒ 与 toolkit2 2.3.2 栈冲突'
+  note: '★[实测] 2026-11-16 20:1x 下载速率本机实测 (7 路 range 并发) 合计 ≈43.5 KB/s ⇒ 单路 ≈6.2 KB/s ⇒ 单路全量 ≈4.6 h / 7
+    路并发 ≈0.47 h ⇒ E-11/E-12 本轮改判 [0数据·受下载速率限制]: 本轮不下 wheel / 不 clone / 不 pip install; 并已停掉上一轮超时残留的后台下载进程
+    (7 个 curl range)'
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md (E-06~E-12)
+- key: iss250_downgrade_routes_and_board_checklist
+  value: '★ISS-250 降级方案 3 条路线 (只列代价+启用条件+谁拍, 不替老板选): ① rk3576-target 维持现状 (新增下载 0 B, 产物 4,989,367 B 已在盘,
+    板端接受性 [0数据]) ② rknn3-toolkit 1.2.0 独立 env (98 MB wheel + numpy>=2.0/torch>=2.2 冲突 + RK3572 仍 Beta)
+    ③ 降 OD 负载 / 回 RK3576 换 SoC (板级改版+重打样, 周级); 板端执行清单 = 现有 SW/tools/rk3572_target_smoke.sh 一条命令 + P1~P6
+    前置 + N1~N5 量化判据 (N1 load_rknn/init_runtime ret==0; N2 F1>=0.2427; N3 t_npu<=13.30ms / >20.33ms 命中老板
+    T2 翻案; N4 纯硬件与 SDK 总耗时必须分开报; N5 散热/频率/供电三项齐全)'
+  note: ★板端执行清单本机可先跑 --dry-run (rc=0) ⇒ 板到手前命令就绪; 三条路线共用同一套 N1~N5 判据 ⇒ 换路线不换判据
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md (降级方案 + 板端可达时的执行清单)
+- key: iss255_chain_gate_content_anchor
+  value: done
+  note: '★ISS-255 (+ISS-256) 已交卷: state/chain_gate.py 的 4 条 mtime 准入判据 ⇒ 内容锚点 (实现全在 state/check_chain_content_anchor.py)。★★实测结果:
+    ① 红 (★真红: hw-lead 20:50 的 ISS-257 落表还没进落表台账 ⇒ 登记完就绿, 不是本单弄坏的★) · ② 绿 (★假红被治好: 位号 218==218 · 标签 584==584
+    · 归一化指纹 870a4e6c…★) · ③ 红 (★真红, 硬规矩①满足: C1 网表 480 / 板上 482 ⇒ 板侧那趟没做★) · ④ 绿 (★218 行 (位号,value,dnp)
+    与脚表聚合逐行一致★) · ⑤ 红 (依赖 e1..e4 + 投产包原理图源文件与 HW/PCB/ 不一致) ⇒ chain_gate rc=1。--selftest 14/14 rc=0 · daily_check
+    --self-test-fast rc=0 · merge+gate_check rc=0 (Q1 18/18)。★★零落表: 20:58 实测网表 7dcf251a…/脚表 87a7d2d9…/BOM
+    13a045dd… (★mtime 全 = 20:50:04 = hw-lead 落表链, 我的动作在 20:55 之后★) · 板 611b869e… 与 .kicad_pro 3e504d2b…
+    逐字节不变。★ISS-256 验收: 沙盒重生成的 11 个 .kicad_sch md5 全变 (d5904b16… → e1debe9d…) 但归一化指纹逐字节相同 (870a4e6cf3ed…
+    ⇒ 870a4e6cf3ed…) ⇒ md5 永久不可当锚点, 本单任何判据都不用它'
+  ref: ''
+- key: iss258_sw_md5_anchor_netlist
+  value: SW 侧 §1 锚点 (网表) = e06c1dd633566aa44732762c2ff99d1c (by=ISS-257, prev_md5=16ac89f77c25a3f61834cc7ebcd78a7f,
+    landed_at=2026-11-16 21:22) ⇒ 盘上实测真值
+  note: '[实测] md5sum HW/netlist_v1.csv'
+  ref: ''
+- key: iss258_sw_md5_anchor_pins
+  value: SW 侧 §1 锚点 (脚表) = 287e7861a0d1007748d92d9fbecdd490 (by=ISS-257, prev_md5=ef436a37412ac9b6eac3c9f41f1edca4,
+    landed_at=2026-11-16 21:22) ⇒ 盘上实测真值
+  note: '[实测] md5sum HW/netlist_v1_pins.csv'
+  ref: ''
+- key: iss258_sw_md5_hop_count
+  value: SW 侧 md5 锚点重锚跳数 = 第 6 跳 (先例 ISS-223→ISS-233→ISS-243→ISS-249 四跳 + ISS-245 第 4 跳 + ISS-254 第 5
+    跳; 本单 ISS-258)
+  note: '[实测] 台账 §3 R-01~R-09 行'
+  ref: ''
 open_questions:
 - id: SW-Q1
   to: main

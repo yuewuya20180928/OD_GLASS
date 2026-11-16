@@ -368,3 +368,120 @@ md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv \
 
 ---
 <!-- ★★② ISS-250 查证表部分 (B7 / B8 / B9) 见下 ★★ -->
+
+---
+
+## B7 ★ISS-250 `rknn3-toolkit` 查证结论 (★对应查证表 E-01 ~ E-12★)
+
+| 项 | 结论 | 等级 |
+|---|---|---|
+| **B7-1** | ★**rknn-toolkit2 这条线不管 RK3572** (★官方口径 + 本机实测双向确认★): ★**官方 README 里无 RK3572 字样**; ★**本机 2.3.2 实跑枚举 28 个候选 target ⇒ 合法 11 个** (★`rv1103` `rv1103b` `rv1106` `rv1106b` `rv1126b` `rk2118` `rk3562` `rk3566` `rk3568` `rk3576` `rk3588`★) ⇒ ★**`rk3572` 与 `rk3572b` 均被拒** (`ValueError: Invalid target_platform 'rk3572'!`, `rknn/api/rknn_base.py:896`) ⇒ ★**不存在 "b 变体" 后门** ★ | ★`[实测]` + ★`[官方]` ★ |
+| **B7-2** | ★**RK3572 的官方工具链路径 = `rknn3-toolkit`** (★仓库 `airockchip/rknn3-toolkit` = Rockchip 官方 AI 账号★): ★**README 首句 + Supported Platforms 均写 RK3572** · ★**CHANGELOG V1.0.4 (2026-06-01) 「Added RK3572 platform support (Beta)」** · ★**v1.2.0 (2026-11-05) 补 MatMul APIs / LLM 支持 / 修内存泄漏** ⇒ ★**RK3572 官方适配存在 (非协处理器模式, NPU 集成在 SoC 内)** ★ | ★`[官方]` ★ |
+| **B7-3** | ★**官方性证据链** (★别只凭仓库名★): ★**`airockchip` 同一账号下并存 `rknn-toolkit2` (★3549★) `rknn_model_zoo` (★2906★) `rknn-llm` (★1771★) `rknn3-toolkit` (★173★) 等 28 个仓库**; ★**`rockchip-linux` org 只有 11 个仓库且是 2024-03-25 旧快照 (无 rknn3)** ⇒ 官方线 = `airockchip/*`; ★**PyPI: `rknn3-toolkit` / `rknn-toolkit3` / `rknn-toolkit` 全 404, 只有 `rknn-toolkit2` 200**; ★**GitHub 全站搜 `rknn-toolkit3` total_count = 0** ★ | ★`[实测]` ★ |
+| **B7-4** | ★**发行形态 = 二进制 wheel, 不是源码可编** (★仓库无 Python/C++ 源码树, `packages/` 下只有 4 个预编译 wheel + requirements + md5sum.txt★) ⇒ ★**cp310-linux wheel = 102,657,410 B (≈98 MB), 官方 md5 = `a972e03af94fd18e21f026558735b28d`**; ★**支持 Python 3.10 / 3.12** (★本机 conda env `rknn` 正是 3.10 ⇒ 版本对得上★) ★ | ★`[官方]` ★ |
+| **B7-5** | ★**版本线与安装硬约束**: ★**RKNN3 Toolkit 是 1.x 独立编号, 与 toolkit2 的 2.x 不是同一条线 ⇒ 不存在 "3 比 2 新所以要换" 这层关系**; ★**README Notes 段写死 「RKNN3-Toolkit is not compatible with RKNN-Toolkit and RKNN-Toolkit2」 ⇒ 不能同环境 ⇒ 要换就得【独立 conda env】**; ★**依赖 `numpy>=2.0` + `torch>=2.2` ⇒ 与 toolkit2 2.3.2 栈冲突 (与上面那句口径互相印证)**; ★**RK3572 至今仍带 Beta 标签** ★ | ★`[官方]` ★ |
+| **B7-6** | ★**★E-11 / E-12 = `[0数据·受下载速率限制]`★** — ★**本轮【不下 wheel / 不 clone 仓库 / 不 pip install】** (★下载是最贵的坑★); ★**wheel 102,657,410 B + 官方 md5 `a972e03af94fd18e21f026558735b28d` + 依赖冲突 ⇒ 独立 conda env (python3.10)**★; ★**本机安装实测 + `config(target_platform='rk3572')` 实跑 = 待办 (不属本轮)** ★ | ★`[0数据·受下载速率限制]` ★ |
+
+---
+
+## B8 ★ISS-250 降级方案 (★3 条路线 · 每条带量化代价 + 启用条件 + 谁拍·★不替老板拍板★)
+
+| 路线 | 做什么 | 量化代价 | 启用条件 | 谁拍 |
+|---|---|---|---|---|
+| **① rk3576-target (维持现状)** | ★**继续用本机已装 rknn-toolkit2 2.3.2 + `target_platform='rk3576'` (★实测 ret=0★) ⇒ 产物已在盘: `SW/artifacts/models/yolov5n-sim_heads_d730e558d3dfe25c_rk3576_int8_heads.rknn` (4,989,367 B) + `.sha256` + `.meta.json`★** | ★**新增下载 = 0 B** · 转换 build(INT8) 25~26 s (已实跑) · PC F1 = 0.29265 (281 张, 已实跑) · ★**板端 runtime 接受性 = `[0数据]` (板不可达) ⇒ 风险 R1: N1 一 FAIL 则整条路线作废**★ | ★**板端 N1 (`load_rknn` + `init_runtime` 都 ret == 0) 通过** ★ | ★**main 先验 · 涉 60ms 生死 ⇒ 老板** ★ |
+| **② rknn3-toolkit 1.2.0 (官方 RK3572 路径)** | ★**独立 conda env (python3.10) 装 `rknn3_toolkit-1.2.0-cp310-…whl` ⇒ `config(target_platform='rk3572')` ⇒ 官方 RK3572 适配** ★** | ★**wheel 102,657,410 B (≈98 MB) + 新建独立 env (`numpy>=2.0` / `torch>=2.2`) ⇒ 与 toolkit2 2.3.2 栈冲突 ⇒ 现 env 不能复用** · ★**下载: 单路 ≈6.2 KB/s ⇒ ≈4.6 h; 7 路并发 ≈43.5 KB/s ⇒ ≈0.47 h (★本机实测★)**★ · ★**RK3572 仍 Beta ⇒ 精度/耗时零基线, 判据须从零建**★ | ★**老板批准「新建独立 conda env + 投下载窗口」· 且 路线① 的 N1 FAIL** ★ | ★**老板 (★新增 env / 占资源 / 是否切官方 RKNN3 栈★)** ★ |
+| **③ 降 OD 负载 / 回 RK3576 (换 SoC)** | ★**不追 RK3572 工具链: 降 OD 负载 (640×480@30) 或换回 RK3576** ★** | ★**板级改版 + 重新打样 (周期以周计) · 60 ms 余量按 RK3576 实测链重算 (纯 NPU 15.4~17.4 ms / 模式A 55~57 ms)**★ | ★**路线① N1 FAIL 且 路线② 不可行 / 不被批准** ★ | ★**老板 (★换芯片 = 商务决策★)** ★ |
+
+★**三条路线共用同一套板端判据 (N1~N5, 见 B9) ⇒ 换路线不换判据; 本单只列代价 + 条件 + 谁拍, ★不替老板选 (★未决项 O-1★)** ★
+
+---
+
+## B9 ★ISS-250 板端可达时的执行清单 (★一条命令 + 逐条步骤 + 量化判据★)
+
+★**一条命令 (★板端, 在项目根目录执行★)** ★
+```bash
+cd <项目根> && bash SW/tools/rk3572_target_smoke.sh \
+  --artifact ./yolov5n-sim_heads_d730e558d3dfe25c_rk3576_int8_heads.rknn \
+  --expect-sha256 $(awk '{print $1}' yolov5n-sim_heads_d730e558d3dfe25c_rk3576_int8_heads.rknn.sha256) \
+  --images 300 --out ./evidence/ISS250_$(date +%Y%m%d) --power-note "<供电方式>"
+```
+★**本机可先跑 `--dry-run` (rc=0, 只打印板端将执行的每一条命令) ⇒ ★板到手前命令就绪, 不用现写★** ★
+
+| 步 | 在验什么 | 判据 (★量化★) |
+|---|---|---|
+| **P1** | 板型对不对 | ★`/proc/device-tree/compatible` 含 `rk3572`★ |
+| **P2** | 板端 runtime 版本 | ★`librknnrt.so` 版本已记录 (★与 PC 侧 toolkit 版本对得上才继续★)★ |
+| **P3** | 板端有 toolkit-lite2 | ★`rknn-toolkit-lite2` 存在★ |
+| **P4** | 产物在位 | ★`.rknn` 存在且大小 = 4,989,367 B★ |
+| **P5** | 校准集在位 | ★COCO val2017 + `instances_val2017.json`★ |
+| **P6** | 产物同一性 | ★**产物 sha256 == sidecar** (★板端【不许重转】, 脚本里无任何 convert/build 路径★)★ |
+| **N1** | ★**跨平台接受性 (本单最要紧的一条)**★ | ★`load_rknn` ret == 0 **且** `init_runtime` ret == 0 ⇒ 路线①成立; 否则 ⇒ 路线①作废 (转 ② / ③)★ |
+| **N2** | 精度 | ★F1 ≥ **0.2427** (= PC 基线 0.2927 − 0.05)★ |
+| **N3** | 纯 NPU 耗时 | ★`t_npu ≤ 13.30 ms` [推算]★; ★`13.30 < t_sdk_total ≤ 20.33` ⇒ **INDET** (★要纯 NPU 的数, 不许拿 SDK 总耗时顶★); ★`> 20.33` ⇒ ★**命中老板 T2 翻案条件 (纯 NPU S5 > 20.33 ms ⇒ 60 ms 不可保)**★ |
+| **N4** | 口径纪律 | ★**纯硬件耗时与 SDK 总耗时必须分开报, 两个数都要**★ (★缺纯 NPU ⇒ INDET, 不许合并成一个数★) |
+| **N5** | 可比性 | ★散热 / 频率 / 供电三项都在证据里★ (★缺 ⇒ N3 的数没有可比性★) |
+
+★**三种结局 (★判据不变, 结论不同★)** ★
+· ★**✅ 全过** ⇒ 路线①成立, 60 ms 硬线继续按 `SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` 判
+· ★**⚠️ N1 过但 N3 不行** ⇒ ★**命中 T2** ⇒ 降 OD 负载 / 回 RK3576 (路线③)
+· ★**❌ N1 不过** ⇒ ★**路线①作废** ⇒ 走路线② (rknn3-toolkit) 或 路线③ (换 SoC)
+
+★**走路线② 时的额外前置 (★本轮只列, 不执行★)**: ★独立 conda env (python3.10) + wheel md5 校验 `a972e03af94fd18e21f026558735b28d` + `config(target_platform='rk3572')` 实跑 ⇒ ★这三步没做完, 路线② 连「能不能装」都还是 `[0数据]`★** ★
+
+---
+
+## B10 ★第 4 轮收尾 (★2026-11-16 20:1x · sw-lead·★三件收尾, 15 分钟内交卷★)★
+
+### B10.1 ★本轮做完了哪三件 (★对应任务书 ①②③★)★
+
+| # | 任务 | 落点 | 判定 |
+|---|---|---|---|
+| **①** | ★**查证表两处「待填」换成真内容** ★ | ★**`SW/research/ISS250_rknn_toolkit2_target_查证表.md`**: 「降级方案」= B8 的 3 条路线 (★每条带量化代价 + 启用条件 + 谁拍★); 「板端可达时的执行清单」= B9 (★一条命令 + P1~P6 + N1~N5 + 三种结局★) ⇒ ★**`grep -n "待填" ⇒ 0 命中**★ | ★**✅** ★ |
+| **②** | ★**分片登记** ★ | ★**`state/fragments/sw.yaml`**: ★**走 `python3 state/frag_write.py` 的 `update_fragment` 原子写 (★没裸开文件★)★ ⇒ claim × 3 (`iss250_rknn3_toolkit_is_official_rk3572_path` / `iss250_rknn3_is_binary_wheel_not_compatible_toolkit2` / `iss250_downgrade_routes_and_board_checklist`) · artifact × 4 (★查证表 + 交卷单 + `enum_target2.py` + `enum_target3.py`★) · need × 2 (★`iss250_pick_downgrade_route` → main / 老板; `iss250_e11_e12_pending_install_test` → main★) · status 已更新★ ⇒ ★**`grep -c iss250 state/fragments/sw.yaml` ⇒ 5** ★ · ★**`python3 state/merge.py` ⇒ rc=0** ★ | ★**✅** ★ |
+| **③** | ★**E-11 / E-12 改口径** ★ | ★**两行都改判 `[0数据·受下载速率限制]`** + 写清 wheel 体积 / 官方 md5 / 依赖冲突 / 独立 conda env (python3.10) + 待办四步 (★见 B7-6 / 查证表 E-11 / E-12★) ⇒ ★**本轮零下载 / 零 clone / 零 pip install** ★ | ★**✅** ★ |
+
+### B10.2 ★★重要披露 1: B7 / B8 / B9 上一轮【没落盘】, 本轮才补写★★
+
+★**任务书说的「上一轮交卷单 B8 / B9 已经写好了 ⇒ 直接抄进来」, ★实际盘上不成立★★
+⇒ ★**本轮开工时 `HANDOFF/2026-11-16_sw-lead_ISS250_查证表收尾与rknn3验证.md` 末尾只有一行占位注释 `<!-- ★★② ISS-250 查证表部分 (B7 / B8 / B9) 见下 ★★ -->`, ★B7/B8/B9 的正文【不在盘上】** (★上一轮超时被掐, 正文只在内存里★)
+⇒ ★**所以 B7 / B8 / B9 是本轮补写的, 依据全部来自【盘上已落盘的证据】**: ★**① 查证表 E-01 ~ E-10 (上一轮已落盘) ② 既有已验证件 `SW/RK3572_TARGET_COMPAT_V2.md` §5 (N1~N5 判据) + §6.3 (实测数: 4,989,367 B / F1 0.29265 / build 25~26 s) ③ 既有脚本 `SW/tools/rk3572_target_smoke.sh` 的实际参数与阈值 (★N3 判据文本就在脚本里, 不是本轮发明的★)** ★
+⇒ ★**★没有改任何既有结论, 没有新增任何未经查证的数字; 补写只是把已落盘的证据按交卷单格式落到位★★** ★
+⇒ ★**交卷单自身原有的交叉引用 (B1 ②-1~②-6 / B2 V-9 / V-10 / B6.6「B8 三条路线」/ 未决项 O-1 / O-2) ★本来就是照着 B7/B8/B9 写的 ⇒ 本轮补写后这些引用才第一次指向真实存在的正文★** ★
+
+### B10.3 ★★重要披露 2: 本轮开工时发现【上一轮残留的后台下载还在跑】⇒ 已停掉★★
+
+★**事实 (本机实测, 20:1x)**: ★**上一轮超时被杀, 但它起的 `nohup /tmp/iss250_dl.sh` (7 个 `curl -r` range 并发, 目标 = 官方 cp310 wheel) ★仍在后台跑, 本轮开工时已下 27,971,584 B / 102,657,410 B (26.7%)**★
+⇒ ★**任务书绝对禁止下载 ⇒ 本轮 `kill -9` 停掉全部 7 个 curl + 父脚本 ⇒ 复查 `ps` ⇒ 0 个残留**★ (★`ps -ef | grep -cE "[i]ss250_dl|[r]knn3_toolkit"` ⇒ **0**★)
+⇒ ★**★已下的部分字节留在 `/tmp/iss250_rknn3/parts/` (★未拼装 / 未安装 / 未 md5 校验 ⇒ 不构成任何证据, 也不当作 wheel 用★)** ★
+⇒ ★**★顺带实测到了下载速率 (★这正是 E-11/E-12 改口径要的那个数★)★**: ★**7 路并发合计 ≈ 43.5 KB/s (15 s 采样: 26,746,880 → 27,414,528 B) ⇒ 单路 ≈ 6.2 KB/s ⇒ 单路全量 ≈ 4.6 h / 7 路并发全量 ≈ 0.47 h**★ ⇒ ★**与任务书给的 ~14 KB/s 口径同量级 (★单路 vs 并发的口径差, 结论不变: 本轮下载代价太高 ⇒ 不做★)** ★
+⇒ ★**本轮自身新增下载 = 0 B** ★
+
+### B10.4 ★边界自评 (★本轮逐条★)★
+
+| 边界 | 自证 | 判定 |
+|---|---|---|
+| ★**零外发** ★ | ★**本轮外部动作 = 0 (★连只读 GET 都没做: 结论全部引自上一轮已落盘的 E-01~E-10★)** ★ | ★**✅** ★ |
+| ★**零下载** ★ | ★**本轮自己 0 下载; 上一轮残留的 7 个后台 curl 已 `kill -9` 停掉并复查 0 残留 (B10.3)★** ★ | ★**✅** ★ |
+| ★**不 clone 仓库 / 不 pip install** ★ | ★**未执行任何 `git clone` / `pip install`★** ★ | ★**✅** ★ |
+| ★**不改网表 / 脚表 / BOM / 板 / `.kicad_pro`** ★ | ★**本轮只写了 3 个文件: 查证表 / 交卷单 / `state/fragments/sw.yaml`; `HW/` 0 写入★** ★ | ★**✅** ★ |
+| ★**不改 `HW/` 与 `MECH/` ★ | ★**0 写入★** ★ | ★**✅** ★ |
+| ★**不替老板拍板** ★ | ★**B8 三条路线只列「代价 + 启用条件 + 谁拍」, ★本单一条都不选; 选哪条 = 未决项 O-1 → main / 老板★** ★ | ★**✅** ★ |
+| ★**不自签 issue_log** ★ | ★**`state/issue_log.yaml` 0 改动★** ★ | ★**✅** ★ |
+| ★**实物 [实测] = 0 条** ★ | ★**板与屏不在本机 ⇒ 0 条; 本轮所有 [实测] 都是「本机脚本实跑 / 本机文件实读 / 本机网络采样」★** ★ | ★**✅** ★ |
+| ★**每 5 分钟写一次盘** ★ | ★**20:1x 查证表落盘 → 20:16 分片落盘 + merge → 本段交卷单落盘 ⇒ 逐条落盘, 没攒内存★** ★ | ★**✅** ★ |
+
+### B10.5 ★本轮验收命令原样输出 (★机械可判★)★
+
+```
+$ grep -n "待填" SW/research/ISS250_rknn_toolkit2_target_查证表.md ; echo "rc=$?"
+rc=1                                    # ⇒ 0 处「待填」
+$ grep -c "iss250" state/fragments/sw.yaml
+5                                       # ⇒ claim/artifact/need 全部落盘
+$ python3 state/merge.py ; echo "rc=$?"
+✅ STATE.yaml 已刷新 (2026-11-16T20:16:29+08:00)
+rc=0
+$ ps -ef | grep -cE "[i]ss250_dl|[r]knn3_toolkit"
+0                                       # ⇒ 残留后台下载已全部停掉
+```
+
+★**★本单到此为止: 不下载 / 不 clone / 不 pip install / 不改板 / 不替老板拍板 / 不自签 issue_log / 不再多干别的★** ★

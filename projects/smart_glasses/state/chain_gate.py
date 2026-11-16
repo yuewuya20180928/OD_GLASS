@@ -14,11 +14,22 @@ chain_gate.py —— ★生产链"环节之间"的**准入 / 准出**门禁 (202
 
 ★**链条 (生产链)**: 网表 → 原理图 → PCB → BOM → 投产资料包
 ★**每环两道判据**:
-  · **准入 (entry)**: 本环开工前 —— 上游产物存在 · **比上游源新** (mtime 新鲜度) · 上游准出已通过
+  · **准入 (entry)**: 本环开工前 —— 上游产物存在 · ★**内容与上游一致 (★内容锚点, 不是 mtime★)**★ · 上游准出已通过
   · **准出 (exit)**: 本环交付前 —— 本环的**机器门禁 rc=0** (只读脚本, 不许改文件)
 
+★★**2026-11-16 (ISS-255 + ISS-256 · sw-lead) 判据换锚** ★:
+  ★**原来**: 准入用 ★**文件 mtime 比新鲜度** (`mt(X) >= mt(CSV) - 1`) ⇒ ★**mtime 既会假红 (内容没变也红) 也会假绿 (内容旧了但 mtime 新)**★
+  ★**现在**: 准入用 ★**内容锚点** (★实现见 `state/check_chain_content_anchor.py`★)
+    · ① 网表   : ★**md5 == 落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 最新登记的 md5** ★
+    · ② 原理图 : ★**语义内容一致** (位号集合 == · 网名集合 ⊇ 且无残留旧名 · 网表连线语义自洽) ★
+                   ⇒ ★**`.kicad_sch` 的 md5 永久不可当锚点 (ISS-256) ⇒ 只比归一化内容** ★
+    · ③ PCB    : ★**焊盘级等价** (★复用 `state/check_pcb_nets.py` 的 C1/C2★) ★
+    · ④ BOM    : ★**逐行 (位号, value, dnp) 一致** ★
+  ★**判据的「语义」一个字没放松, 只换了「测量方式」★ ⇒ ★**不许假绿, 也不许假红** ★
+  ★**③ 必须保持红** (★板侧那趟 = PCB 类 = 按老板 11-11 10:07 口径排队不派 ⇒ 板确实过期 ⇒ 真红★) ★
+
 用法:
-  python3 state/chain_gate.py            # 快检 (秒级): 只查新鲜度 + 齐全性 ⇒ 可挂 daily_check
+  python3 state/chain_gate.py            # 快检 (秒级): 只查内容锚点 + 齐全性 ⇒ 可挂 daily_check
   python3 state/chain_gate.py --full     # 全检 (约 1~2 分钟): 额外真跑 KiCad/网表门禁
 退出码: 0 = 全过; 1 = 有环节没过 (打印哪一环的准入/准出、为什么、怎么修)
 """
@@ -31,6 +42,20 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
 FULL = "--full" in sys.argv
+
+# ★★2026-11-16 (ISS-255) 内容锚点实现 (★独立文件, 便于单测与反向自证★)
+# ★★导入失败 ⇒ ★**门禁拒绝裁决 (rc=2, 不许假绿)** ★
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+try:
+    import check_chain_content_anchor as CA
+except Exception as _e:                       # noqa: BLE001
+    print("=" * 78)
+    print("生产链准入/准出门禁 · chain_gate")
+    print("=" * 78)
+    print(f"★**内容锚点模块导入失败**: {type(_e).__name__}: {_e}")
+    print("   ⇒ ★**门禁拒绝裁决 (rc=2)**: 宁可门禁跑不起来, 也不许拿 mtime 顶替内容判据")
+    sys.exit(2)
 
 CSV = os.path.join(PROJ, "HW", "netlist_v1.csv")
 # ★★ BOM 的**真源** = 脚级真值表 (★2026-11-11 20:2x: BOM 改成从脚级表按器件聚合★)
@@ -216,7 +241,7 @@ def check_bom_against_netlist():
 def main():
     print("=" * 78)
     print("生产链准入/准出门禁 · chain_gate "
-          + ("(全检: 真跑 KiCad + 网表门禁)" if FULL else "(快检: 新鲜度 + 齐全性)"))
+          + ("(全检: 真跑 KiCad + 网表门禁)" if FULL else "(快检: 内容锚点 + 齐全性)"))
     print("=" * 78)
     fails = 0
     rows = []
@@ -229,10 +254,10 @@ def main():
                      "✅" if exit_ok else "❌", exit_msg))
 
     # ---------- 环 1: 网表 ----------
-    e1 = os.path.exists(CSV) and mt(CSV) >= mt(GEN_NETLIST) - 1
-    e1m = f"产物 {ts(CSV)} vs 生成器 {ts(GEN_NETLIST)}"
-    if not os.path.exists(CSV):
-        e1, e1m = False, f"网表不存在 ({CSV})"
+    # ★★2026-11-16 (ISS-255): 准入判据由「mtime 比新鲜度」换成「内容锚点」 ★
+    e1, e1m = CA.anchor_netlist(PROJ)
+    if os.path.exists(CSV):
+        e1m = f"内容锚点: {e1m}"
     x1, x1m = True, "快检跳过 (全检才跑)"
     if FULL:
         rc, msg = run([sys.executable, "state/check_netlist.py"])
@@ -243,11 +268,11 @@ def main():
     stage("① 网表 (HW/netlist_v1.csv)", e1, e1m, x1, x1m)
 
     # ---------- 环 2: 原理图 ----------
-    e2 = (os.path.exists(SCH) and os.path.exists(CSV)
-          and mt(SCH) >= mt(CSV) - 1 and e1 and x1)
-    e2m = f"原理图 {ts(SCH)} ≥ 网表 {ts(CSV)}"
+    e2, e2m = CA.anchor_schematic(PROJ)
     if not os.path.exists(SCH):
         e2, e2m = False, "原理图不存在"
+    else:
+        e2m = f"内容锚点: {e2m}"
     x2, x2m = True, "快检跳过"
     if FULL:
         rc, msg = run([sys.executable, "state/check_sch_loadable.py"])
@@ -258,18 +283,16 @@ def main():
     stage("② 原理图 (.kicad_sch)", e2, e2m, x2, x2m)
 
     # ---------- 环 3: PCB ----------
-    e3 = (os.path.exists(PCB) and os.path.exists(CSV)
-          and mt(PCB) >= mt(CSV) - 1 and e1 and x1)
-    e3m = f"PCB {ts(PCB)} ≥ 网表 {ts(CSV)}"
+    e3, e3m = CA.anchor_pcb(PROJ)
     if not os.path.exists(PCB):
         e3, e3m = False, "PCB 不存在"
+    else:
+        e3m = f"内容锚点: {e3m}"
     x3, x3m = True, "快检跳过"
     if FULL:
-        rc, msg = run(["bash", os.path.join(HERE, "pcbnew_py.sh"), "state/check_pcb_nets.py"])
+        rc, _ = CA.run_pcb_check(PROJ)        # ★复用准入那次跑的结果 (★不重复跑 pcbnew★)
         x3 = rc == 0
         x3m = f"check_pcb_nets rc={rc}"
-        if not x3:
-            x3m += " | " + (msg.strip().splitlines()[-1][:120] if msg.strip() else "")
         rc2, _ = run([sys.executable, "state/check_pcb_drc.py"])
         x3m += f" · check_pcb_drc rc={rc2}"
         x3 = x3 and rc2 == 0
@@ -286,10 +309,11 @@ def main():
     stage("③ PCB (.kicad_pcb)", e3, e3m, x3, x3m + " | " + lay_txt)
 
     # ---------- 环 4: BOM ----------
-    e4 = (os.path.exists(BOM) and os.path.exists(CSV) and mt(BOM) >= mt(CSV) - 1)
-    e4m = f"BOM {ts(BOM)} ≥ 网表 {ts(CSV)}"
+    e4, e4m = CA.anchor_bom(PROJ)
     if not os.path.exists(BOM):
         e4, e4m = False, "BOM 不存在"
+    else:
+        e4m = f"内容锚点: {e4m}"
     x4, x4m = check_bom_against_netlist()
     stage("④ BOM (HW/BOM_v1.csv)", e4, e4m, x4, x4m)
 
@@ -333,8 +357,8 @@ def main():
     print("-" * 78)
     if fails:
         print(f"❌ 生产链有 {fails} 个环节没过 ⇒ ★**下游产物不许用** (先修上游, 再重生成下游)")
-        print("   修法: ① 网表/原理图/PCB/BOM 任一比它的源旧 ⇒ 重跑对应生成器 "
-              "(`python3 state/gen_netlist.py` / `gen_kicad_sch.py` / `gen_bom.py` / "
+        print("   修法: ① 网表/原理图/PCB/BOM 任一**内容**与上游不一致 (★看每行「准入:」栏的口径★) ⇒ 重跑对应生成器 "
+              "(`python3 state/gen_netlist.py` / `python3 state/gen_kicad_sch.py` / `python3 state/gen_bom.py` / "
               "`bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py`) "
               "② 投产包缺件 ⇒ `bash state/gen_production_pack.sh` "
               "③ 投产包缺/多/旧**原理图源文件** ⇒ `cp -p HW/PCB/demo_mainboard*.kicad_sch "

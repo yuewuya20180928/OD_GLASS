@@ -229,8 +229,8 @@
 
 | 行 | 原文 (逐字) |
 |---|---|
-| ★**L417** | `P1,USB_D_P_SRC,D_ESD_USB_D,USB_D_P_SRC,D_ESD_USB_D,ESD 阵列 [待选型] (USB 2.0 双通道),D,必装,[推算],,"[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**",A-24,MAIN_PCB,,` |
-| ★**L418** | `P1,GND,D_ESD_USB_D,GND,D_ESD_USB_D,ESD 阵列 [待选型],D,必装,[推算],,"[D_ESD_USB_D] ESD 地端",A-24,MAIN_PCB,,` |
+| ★**L417** | `P1,USB_D_P_SRC,D_ESD_USB_D,USB_D_P_SRC,D_ESD_USB_D,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V),D,必装,[官方],,"[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**",A-24,MAIN_PCB,,TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)` |
+| ★**L418** | `P1,GND,D_ESD_USB_D,GND,D_ESD_USB_D,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V),D,必装,[官方],,"[D_ESD_USB_D] ESD 地端",A-24,MAIN_PCB,,TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)` |
 | ★**L432** | `P1,NET_USB_D_N_TYPEC,R_SER_USB_D_N,J_USB_C A7+B7,R_SER_USB_D_N,22Ω ±1%,R,必装,[推算],,"[NET_USB_D_N_TYPEC] ★SoM USB2 (OTG1) D- → 板载 Type-C: 串阻的 Type-C 侧",A-24,MAIN_PCB,,` |
 | ★**L431** | `P1,NET_USB_D_P_TYPEC,R_SER_USB_D_P,J_USB_C A6+B6,R_SER_USB_D_P,22Ω ±1%,R,必装,[推算],,"[NET_USB_D_P_TYPEC] ★SoM USB2 (OTG1) D+ → 板载 Type-C: 串阻的 Type-C 侧 (★串阻必须真串在中间, 不能与 SoM 侧同网★)",A-24,MAIN_PCB,,` |
 
@@ -353,11 +353,11 @@
 | d3_board_value | board | ? | footprint.U_EN_SW.value == EN 输入 (高=放行底板) |
 | d3_board_pads | board | ? | footprint.U_EN_SW.pads == 4 |
 | d3_ctrl_a50_type | netlist | 50 | type == IC |
-| d4_a417_value | netlist | 417 | value == ESD 阵列 [待选型] (USB 2.0 双通道) |
+| d4_a417_value | netlist | 417 | value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) |
 | d4_a417_net | netlist | 417 | net == USB_D_P_SRC |
 | d4_a417_dnp | netlist | 417 | dnp == 必装 |
 | d4_a417_note | netlist | 417 | note contains Forlinx 载板指引要求 ESD 紧贴接口 |
-| d4_a418_value | netlist | 418 | value == ESD 阵列 [待选型] |
+| d4_a418_value | netlist | 418 | value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) |
 | d4_a432_net | netlist | 432 | net == NET_USB_D_N_TYPEC |
 | d4_a432_ref | netlist | 432 | ref == R_SER_USB_D_N |
 | d4_esd_pads | board | ? | footprint.D_ESD_USB_D.pads == 2 |
@@ -365,7 +365,7 @@
 | d4_esd_pad1_net | board | ? | footprint.D_ESD_USB_D.pad1.net == USB_D_P_SRC |
 | d4_esd_pad2_net | board | ? | footprint.D_ESD_USB_D.pad2.net == GND |
 | d4_esd_on_dminus | board | ? | esd_on_net(USB_D_N_SRC,NET_USB_D_N_TYPEC) == 0 |
-| d4_bom62_value | bom | 62 | value == ESD 阵列 [待选型] (USB 2.0 双通道) |
+| d4_bom62_value | bom | 62 | value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) |
 | d4_bom62_fp | bom | 62 | footprint contains 2 焊盘 |
 | d5_a291_value | netlist | 291 | value == 22Ω ±1% |
 | d5_a291_ref | netlist | 291 | ref == NET_USB_D_P_SRC |
@@ -427,7 +427,7 @@
 | d9_emc_480 | emc | ? | text contains 480 Mbps |
 | d9_esd_dist | netlist | ? | calc(esd_dist_usb) > 5 |
 | d9_esd_pads2 | board | ? | footprint.D_ESD_USB_D.pads == 2 |
-| d9_esd_dual_claim | netlist | 417 | value == ESD 阵列 [待选型] (USB 2.0 双通道) |
+| d9_esd_dual_claim | netlist | 417 | value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) |
 | d9_esd_on_dminus | board | ? | esd_on_net(USB_D_N_SRC,NET_USB_D_N_TYPEC) == 0 |
 | d10_spec_0822 | chgspec | ? | text notcontains CC 段电池电流上限 (×Vbat/Vbus/η ≈ 0.822) |
 | d10_spec_ratio_1216 | chgspec | ? | text contains ICHG/IIN = η·Vbus/Vbat = **1.216 @3.70V** / **1.071 @4.20V** |
@@ -1046,8 +1046,8 @@ Bottom Offset Voltage Error    EOB            FAIN=10kHz ramp wave         NA   
 
 | 来源 | 逐字 |
 |---|---|
-| ★表A **L417** ★ | `P1,USB_D_P_SRC,D_ESD_USB_D,USB_D_P_SRC,D_ESD_USB_D,ESD 阵列 [待选型] (USB 2.0 双通道),D,必装,[推算],,"[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**",A-24,MAIN_PCB,,` |
-| ★表A **L418** ★ | `P1,GND,D_ESD_USB_D,GND,D_ESD_USB_D,ESD 阵列 [待选型],D,必装,[推算],,[D_ESD_USB_D] ESD 地端,A-24,MAIN_PCB,,` |
+| ★表A **L417** ★ | `P1,USB_D_P_SRC,D_ESD_USB_D,USB_D_P_SRC,D_ESD_USB_D,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V),D,必装,[官方],,"[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**",A-24,MAIN_PCB,,TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)` |
+| ★表A **L418** ★ | `P1,GND,D_ESD_USB_D,GND,D_ESD_USB_D,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V),D,必装,[官方],,[D_ESD_USB_D] ESD 地端,A-24,MAIN_PCB,,TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)` |
 | ★**板文件实测** ★ | `D_ESD_USB_D` **只有 2 个焊盘**; pad1 → `USB_D_P_SRC` (★串阻的 **SoM 侧**★), pad2 → `GND`; 封装原点 (94.95, 21.8); `J_USB_C` 原点 (140, 5.25) ⇒ ★**距离 47.99mm** ★ |
 | ★**板上 ESD 位号统计** ★ | 4 个 (`D_ESD_CAM`/`D_ESD_DEMO`/`D_ESD_LIGHT`/`D_ESD_USB_D`); ★**挂 `USB_D_N_SRC` 或 `NET_USB_D_N_TYPEC` 的 = 0 个** ★ |
 | ★**`state/gen_schematic_pages.py` P9 页 (★本轮新补的官方规矩锚★)** ★ | `④ **ESD 距连接器 ≤3.0mm** / CMC 距弯折起点 ≥5.0mm, 一律放 PCB 端, 不许上 FPC**` (★ISS-085 结构总工回, 2026-10-24 左右★) |

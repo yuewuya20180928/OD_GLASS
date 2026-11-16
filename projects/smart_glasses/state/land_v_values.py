@@ -39,13 +39,30 @@ state/land_v_values.py — ★参数化 V 值一键落表器★ (★ISS-236 · �
         --boss-decision "2026-11-16 A1 = E" --boss-decision "2026-11-16 A3 = 680"
     # 非法取值 ⇒ 报错退出 (非零 rc) + 零写盘
     python3 state/land_v_values.py --decision V-3=E2
+    # ★落表器自测 (★11 条反向用例 · 全在临时副本里做 · 真盘零写入★)
+    python3 state/land_v_values.py --selftest
+    # ★V-2 的两轴 (★架构 A3/W-1 + 型号 选型级★) ⇒ 不给就按真源现状走
+    python3 state/land_v_values.py --decision V-2=1 --v2-arch 2 --v2-model "TPD2EUSB30 (...)"
     # 回滚 (把某次落表整个还原)
     python3 state/land_v_values.py --rollback state/.bak_land_v_values_20261116-120000
+
+★★**ISS-260 (2026-11-16) 的 V-2 重写 (★hw-lead★)**★★
+  ★**V-2 的配方改成【读当前真源】**: 定位靠【位号 + 网名】(★`add(..., "D_ESD_USB_D", ...)`★),
+  ★**不再靠 value 串匹配** ⇒ ★**ISS-257 把真源换成真型号之后, 本工具不会再漂** ★
+  ★**两轴彻底分开**:
+    · ★**架构轴** (2脚单通道 / 3脚双通道 / 2脚双向) ⇒ ★**归 A3 / W-1 裁** ⇒
+      ★**本工具【不】替老板选架构** ⇒ 默认按【真源现状】走; 换架构必须显式
+      `--v2-arch` + `--v2-model` + `--v2-evidence` (★`--boss-decision` 也必须同时覆盖两轴★) ★
+    · ★**型号轴** (真 OPN) ⇒ ★**本工具一个字都不许改** ⇒ 真源现值原样保住;
+      ★**现值是占位/判据串 ⇒ 拒绝落** (★型号归选型级 / 老板★) ⇒
+      ★**绝不许把 ISS-257 已落的真型号降级成一句判据串** ★
+  ★**落表动作 = 只挪网 (USB_D_P_SRC → NET_USB_D_P_TYPEC)** ⇒ ★**行数不变 ⇒ 门禁锚点行号不漂移** ★
 """
 
 from __future__ import annotations
 
 import argparse
+import csv
 import difflib
 import hashlib
 import os
@@ -143,6 +160,13 @@ class Decision:
     warnings: list = field(default_factory=list)
     notes: list = field(default_factory=list)
     rejected: str = ""     # 非空 = 必须打回 (rc≠0)
+    errors: list = field(default_factory=list)     # ★非空 = 落表前校验不过 (rc=3 · 零写盘)★
+    v2_readout: list = field(default_factory=list)  # ★V-2 的真源读数 (★架构 / 型号两轴★)★
+    v2_arch: str = ""       # ★本次落表实际用的架构档 (★1/2/3★)★
+    v2_model: str = ""      # ★本次落表实际用的型号串★
+    v2_src_arch: str = ""    # ★真源现状的架构档★
+    v2_src_model: str = ""   # ★真源现状的型号串★
+    line_shift_extra: list = field(default_factory=list)  # ★额外的行号漂移 (★只有架构 ② 用得到★)★
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -218,7 +242,8 @@ V3_LOWER_OLD = (
 )
 
 
-def v3_recipe(value: str) -> Decision:
+def v3_recipe(value: str, root: str = "", arch_req: str = "", model_req: str = "",
+              ev_req: str = "") -> Decision:
     d = Decision(v="V-3", value=value)
     if value == "DEG4":
         # ★★降级④: BAT_DET 链保持 DNP, 网表一格不改 ⇒ 13 条永远不转绿★★
@@ -472,7 +497,8 @@ V4_CHG_POWER_OLD = ("> ★**电阻功耗不是问题**: ILIM 脚被稳在 0.8V �
                     "(不需要大功率电阻)。")
 
 
-def v4_recipe(value: str) -> Decision:
+def v4_recipe(value: str, root: str = "", arch_req: str = "", model_req: str = "",
+              ev_req: str = "") -> Decision:
     d = Decision(v="V-4", value=value)
     o = V4_OPTS[value]
     d.delta = -1 if o["green"] else 0
@@ -605,47 +631,303 @@ def v4_recipe(value: str) -> Decision:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 4 · V-2 (ESD 方案与型号) —★逐字照抄 ISS-233 §3.2 (V2-1) + §3.2 ③ 的行号漂移清单★
+# 4 · V-2 (ESD 落表) —★ISS-260 重写 (2026-11-16 · hw-lead)★
+#
+# ★★**为什么重写 (★实测, 不是推测★)**★★
+#   ISS-236 的 V-2 配方把【改前原串】硬编码在工具里 (`V2_ESD_OLD`)。ISS-257 (21:22 已 verified)
+#   把 `state/gen_netlist.py` 的 D_ESD_USB_D 那两行换成了【真型号】(TPD1E05U06DPYR · evidence [官方])
+#   ⇒ ★**旧串在真源里出现 0 次** ⇒ `--decision V-2=1` 当场 rc=3 (★零写盘★) ⇒
+#   ★**决策页 §A 承诺的「A1+A2+A3 一并拍 ⇒ 一条命令 ⇒ 15 条一次落」在 V-2 这一格当场失效** ★
+#
+# ★★**这一版的两轴分离 (★本版的核心★)**★★
+#   ★**架构轴 (2脚单通道 / 3脚双通道 / 2脚双向)**: ★**归 A3 / W-1 裁** ⇒
+#     ★**落表器【只】认【真源现状】(默认 = 现状架构) ⇒ 绝不替老板选架构** ★
+#     ★**换架构必须显式 `--v2-arch=<arch>` + `--v2-model=<型号>` + `--v2-evidence=<等级>`** ★
+#   ★**型号轴 (真 OPN)**: ★**本工具一个字都不许改** ⇒
+#     ★**现状是占位/判据串 ⇒ 拒绝落 (★型号未落 ⇒ 归选型级 / 老板★)** ★
+#     ★**绝不许把 ISS-257 已落的真型号降级成一句判据串** ★
+#
+# ★★**落表动作 (★与架构无关的那部分★)**★★
+#   ★**把 D_ESD_USB_D 的信号行从 SoM 侧挪到 Type-C 侧** (★ISS-211 第(4)条: 不挪等于没护★)
+#   ★**行数【不变】⇒ 门禁锚点的行号【不漂移】⇒ ISS-236 那套 +1 漂移机制整个不需要了** ★
 # ═══════════════════════════════════════════════════════════════════════════
 
-V2_ESD_OLD = (
-    '    add("P1", "USB_D_P_SRC", "D_ESD_USB_D", "USB_D_P_SRC", "D_ESD_USB_D",\n'
-    '        "ESD 阵列 [待选型] (USB 2.0 双通道)", "D", "必装", "[推算]", "",\n'
-    '        "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— '
-    '★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")\n'
-    '    add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D", "ESD 阵列 [待选型]", "D", "必装",\n'
-    '        "[推算]", "", "[D_ESD_USB_D] ESD 地端", "A-24")\n'
-)
-# ★★V-2 的 value 写法 (★ISS-233 §3.2 的规矩: 拍型号 vs 只拍方案★)★★
-# ★**本工具【不替老板拍型号】** ⇒ ★**默认落【判据串】+ evidence `[推算]`** ★
-# ★**若老板拍了具体型号 (★例: TPD2EUSB30★) ⇒ value 改成
-#   「TPD2EUSB30 (3脚双通道, 0.7pF/线, Vclamp 8V@1A, IEC 61000-4-2 level 4 contact)」
-#   + evidence 改成 `[官方]` ⇒ ★**那是【另一次落表】, 不在本工具的白名单里 (★不许自由字符串★)** ★
-V2_ESD_VALUE_JUDGE = ("ESD 阵列 (USB 2.0 双通道, D+/D− 共用一颗, ≤1pF/线, IEC 61000-4-2 level 4)")
-V2_ESD_VALUE_MODEL = ("TPD2EUSB30 (3脚双通道, 0.7pF/线, Vclamp 8V@1A, "
-                      "IEC 61000-4-2 level 4 contact)")
-V2_ESD_NEW = (
-    '    add("P1", "NET_USB_D_P_TYPEC", "D_ESD_USB_D", "NET_USB_D_P_TYPEC", "D_ESD_USB_D",\n'
-    '        "%(v)s", "D", "必装", "%(ev)s", "",\n'
-    '        "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (3脚双通道: pin1=D+ / pin2=D− / pin3=GND) —— '
-    '★**已从 SoM 侧 USB_D_P_SRC 挪到 Type-C 侧 NET_USB_D_P_TYPEC** (★ISS-211 第(4)条: 不挪等于没护★)", "A-24")\n'
-    '    add("P1", "NET_USB_D_N_TYPEC", "D_ESD_USB_D", "NET_USB_D_N_TYPEC", "D_ESD_USB_D",\n'
-    '        "%(v)s", "D", "必装", "%(ev)s", "",\n'
-    '        "[D_ESD_USB_D] ★D− 侧 (pin2) —— ★**官方口径: 两条数据线都要护** '
-    '(ON Semi AND8074/D + TI TPD2EUSB30 2ch)", "A-24")\n'
-    '    add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D", "%(v)s", "D", "必装",\n'
-    '        "%(ev)s", "", "[D_ESD_USB_D] ESD 地端 (pin3)", "A-24")\n'
-)
+V2_REF = "D_ESD_USB_D"
 
-# ★★网表行号漂移 (★2 行 → 3 行 ⇒ 后面所有行 +1★)★★
+# ★★SoM 侧网名 → Type-C 侧网名 (★挪网对照表★)★★
+V2_NET_MOVE = {
+    "USB_D_P_SRC": "NET_USB_D_P_TYPEC",
+    "USB_D_N_SRC": "NET_USB_D_N_TYPEC",
+}
+
+# ★★架构档 (★只有这三个是老板 A3 / W-1 桌上的选项★)★★
+V2_ARCHS = {
+    "1": dict(
+        shape="single2",
+        title="① 2 脚单通道",
+        desc="★一颗 2 脚件只护一条线 (D+ / 地) ★⇒ ★**D− 侧仍裸奔 (ISS-241 Q-A 明写的代价: USB 只护 D+)★** ★",
+        cost="★**占位【焊盘数】不变 (2) ⇒ footprint 不换封装** ★ ⇒ ★**但占位间距 2.30mm ≠ DPY 0.65mm ⇒ 仍要按厂商 land 重画 (ISS-241 矩阵 §3.1 ③) ⇒ + 挪位置 (47.99mm → ≤3.0mm) + 板焊盘 net 同步改 (B-9)** ★",
+    ),
+    "2": dict(
+        shape="dual3",
+        title="② 3 脚双通道",
+        desc="★一颗 3 脚件覆盖 D+ / D− / 地 (pin1=D+ / pin2=D− / pin3=GND) ★⇒ ★**D− 侧一起护上** ★",
+        cost="★★**占位只有 2 焊盘 ⇒ 3 脚件物理落不下 ⇒ 必须先改 footprint (板那一趟 B-3) ⇒ 板 md5 要变**★★",
+    ),
+    "3": dict(
+        shape="bidir2",
+        title="③ 2 脚双向件",
+        desc="★`PESD5V0S1BA` (SOD-323) pin1=K1 / pin2=K2 对称 ⇒ ★**天然免疫 pad 序接反** ★",
+        cost="★★**SOD-323 官方 land 间距 ≠ 占位 2.30mm ⇒ 要重画 land ⇒ 仍是板那一趟**★★",
+    ),
+}
+
+# ★★架构名 → 形态 (★从真源读出来的那一档★)★★
+V2_SHAPE2ARCH = {"single2": "1", "dual3": "2", "bidir2": "3"}
+
+# ★★网表行号漂移 (★只有架构 ② (2 行 → 3 行) 才用得上★)★★
 # ★★L417 = D+ 行 (改写但行号不变) · ★**L418 = 新增的 D− 行** · ★**原 L418 (GND 行) 顺移到 L419** ★
-#   ⇒ ★**锚点行号 ≥ 418 的全部 +1** (★418 本身也要 +1 ⇒ 它指的是 GND 行, 不是新插的 D− 行★)
 V2_NETLIST_SHIFT_FROM = 418
 # ★★脚表行号漂移 (★D_ESD_USB_D 从 2 脚变 3 脚 ⇒ 新 pin3 落在 L174 ⇒ 后面所有行 +1★)★★
 V2_PINS_SHIFT_FROM = 174
 
+# ★★型号像不像真 OPN (★第一个 token 必须含数字 ⇒ 「ESD 阵列 [待选型] …」这种占位串会被挡下★)★★
+V2_OPN_RE = re.compile(r"^[A-Z][A-Z0-9\-]*[0-9][A-Z0-9\-]*\b")
+# ★★占位/判据串的禁用词 (★真型号串里一个字都不该有★)★★
+V2_PLACEHOLDER_MARKS = ("待选型", "阵列 [待", "ESD 阵列", "待裁", "TODO")
 
-def v2_recipe(value: str) -> Decision:
+
+def _py_str(s: str) -> str:
+    """去掉 Python 字符串字面量的外层引号。"""
+    s = s.strip()
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in "\"'":
+        return s[1:-1]
+    return s
+
+
+def _split_call_args(body: str, base: int) -> tuple[list[str], list[tuple[int, int]]]:
+    """把 `add(...)` 的实参切开。返回 (实参列表, 每个实参的 [起, 止) 偏移) ★偏移是绝对偏移★。"""
+    args: list[str] = []
+    spans: list[tuple[int, int]] = []
+    seg_start = 0
+    depth = 0
+    quote = None
+    i = 0
+    n = len(body)
+    while i < n:
+        ch = body[i]
+        if quote:
+            if ch == "\\" and i + 1 < n:
+                i += 2
+                continue
+            if ch == quote:
+                quote = None
+            i += 1
+            continue
+        if ch in "\"'":
+            quote = ch
+            i += 1
+            continue
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        if ch == "," and depth == 0:
+            seg = body[seg_start:i]
+            lead = len(seg) - len(seg.lstrip())
+            core = seg.strip()
+            args.append(core)
+            spans.append((base + seg_start + lead, base + seg_start + lead + len(core)))
+            seg_start = i + 1
+            i += 1
+            continue
+        i += 1
+    seg = body[seg_start:]
+    lead = len(seg) - len(seg.lstrip())
+    core = seg.strip()
+    if core:
+        args.append(core)
+        spans.append((base + seg_start + lead, base + seg_start + lead + len(core)))
+    return args, spans
+
+
+def scan_add_calls(txt: str) -> list[dict]:
+    """扫出 `state/gen_netlist.py` 里所有 `add(...)` 调用 (★只认行首的 add(★)★)。"""
+    calls: list[dict] = []
+    for m in re.finditer(r"(?m)^[ \t]*add\(", txt):
+        open_i = txt.index("(", m.start())
+        depth = 0
+        j = open_i
+        quote = None
+        while j < len(txt):
+            ch = txt[j]
+            if quote:
+                if ch == "\\":
+                    j += 2
+                    continue
+                if ch == quote:
+                    quote = None
+                j += 1
+                continue
+            if ch in "\"'":
+                quote = ch
+                j += 1
+                continue
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        if depth != 0:
+            continue
+        body = txt[open_i + 1:j]
+        args, spans = _split_call_args(body, open_i + 1)
+        calls.append({
+            "off": m.start(), "end": j + 1, "raw": txt[m.start():j + 1],
+            "args": args, "spans": spans,
+            "line": txt.count("\n", 0, m.start()) + 1,
+        })
+    return calls
+
+
+def v2_read_source(root: str) -> dict:
+    """★从【当前真源】现读 D_ESD_USB_D 的现状 (★不靠任何硬编码的旧串★)★。"""
+    ro = {"errors": [], "warnings": [], "rows": [], "arch": "", "model": "", "evidence": "",
+          "opn": "", "opn_line": 0, "block": ""}
+    path = os.path.join(root, GEN_NETLIST)
+    if not os.path.exists(path):
+        ro["errors"].append(f"★★缺文件: {GEN_NETLIST} ⇒ 拒绝落 ★")
+        return ro
+    txt = read_text(path)
+    rows = []
+    for c in scan_add_calls(txt):
+        if len(c["args"]) < 12:
+            continue
+        if _py_str(c["args"][4]) != V2_REF:
+            continue
+        rows.append({
+            "line": c["line"], "off": c["off"], "end": c["end"], "raw": c["raw"],
+            "spans": c["spans"],
+            "page": _py_str(c["args"][0]), "net": _py_str(c["args"][1]),
+            "node1": _py_str(c["args"][2]), "node2": _py_str(c["args"][3]),
+            "ref": _py_str(c["args"][4]), "value": _py_str(c["args"][5]),
+            "typ": _py_str(c["args"][6]), "dnp": _py_str(c["args"][7]),
+            "ev": _py_str(c["args"][8]), "tbd": _py_str(c["args"][9]),
+            "note": _py_str(c["args"][10]), "cid": _py_str(c["args"][11]),
+        })
+    ro["rows"] = rows
+    if not rows:
+        ro["errors"].append(
+            f"★★【状态漂移】{GEN_NETLIST} 里找不到 `{V2_REF}` 的 add(...) 行 ⇒ "
+            f"★**期望: 至少 1 行 `add(..., \"{V2_REF}\", ...)`** ⇒ ★**实际: 0 行** ⇒ 拒绝落 ★")
+        return ro
+
+    # ── 架构判定 (★按行数 + GND 行数★) ──
+    gnd_rows = [r for r in rows if r["net"] == "GND"]
+    sig_rows = [r for r in rows if r["net"] != "GND"]
+    if len(rows) == 2 and len(gnd_rows) == 1 and len(sig_rows) == 1:
+        ro["arch"] = "single2"
+    elif len(rows) == 3 and len(gnd_rows) == 1 and len(sig_rows) == 2:
+        ro["arch"] = "dual3"
+    else:
+        ro["arch"] = "unknown"
+        ro["errors"].append(
+            f"★★【状态漂移】{V2_REF} 在 {GEN_NETLIST} 里的行数 / 网名不是已知形态 ⇒ "
+            f"★**期望: 2 行 (1 信号 + 1 GND) 或 3 行 (2 信号 + 1 GND)** ⇒ "
+            f"★**实际: {len(rows)} 行 (GND {len(gnd_rows)} 行 / 信号 {len(sig_rows)} 行) "
+            f"⇒ 行号 {[r['line'] for r in rows]}** ⇒ 拒绝落 ★")
+
+    # ── 行必须【连续】(★中间夹了别的行 ⇒ 拼不出一个可替换的块 ⇒ 拒绝落★) ──
+    base = rows[0]["off"]
+    for a, b in zip(rows, rows[1:]):
+        gap = txt[a["end"]:b["off"]]
+        if gap.strip():
+            ro["errors"].append(
+                f"★★【状态漂移】{V2_REF} 的 L{a['line']} 与 L{b['line']} 之间夹了别的内容 ⇒ "
+                f"★**⇒ 拼不出一个可替换的整块 ⇒ 拒绝落** ★")
+    ro["block"] = txt[base:rows[-1]["end"]]
+    for r in rows:
+        r["rel_spans"] = [(s - base, e - base) for (s, e) in r["spans"]]
+
+    # ── 型号 / evidence (★几行的 value 必须一致★) ──
+    vals = {r["value"] for r in rows}
+    if len(vals) != 1:
+        ro["errors"].append(
+            f"★★【状态漂移】{V2_REF} 的 {len(rows)} 行 value 不一致 ⇒ "
+            f"★**期望: 同一颗器件的同一串 value** ⇒ ★**实际: {sorted(vals)}** ⇒ 拒绝落 ★")
+    ro["model"] = rows[0]["value"]
+    ro["evidence"] = rows[0]["ev"]
+
+    # ── 型号轴: 现在是占位/判据串 ⇒ 拒绝落 (★不许把占位串原样留着当「落了」★) ──
+    if any(m in ro["model"] for m in V2_PLACEHOLDER_MARKS) or not V2_OPN_RE.match(ro["model"]):
+        ro["errors"].append(
+            f"★★【型号轴未落】{GEN_NETLIST} 里 {V2_REF} 的 value 还是【占位 / 判据串】★★\n"
+            f"   ★**期望**: 一条真 OPN (★第一个 token 必须含数字, 例 `TPD1E05U06DPYR ...`★)\n"
+            f"   ★**实际**: {ro['model']!r}\n"
+            f"   ★**⇒ 型号归【选型级 / 老板】(ISS-241 矩阵 · ISS-257 已落的那条就是本工具要保住的那条)★**\n"
+            f"   ★**⇒ 本工具【不】写判据串, 也不替你选型号 ⇒ 拒绝落 (★零写盘★)**★")
+
+    # ── BOM 侧的 OPN (PARTS 字典) 必须与网表 value 指的是同一颗器件 ──
+    m = re.search(r'"' + re.escape(V2_REF) + r'"\s*:\s*\{[^\n]*?"opn"\s*:\s*"([^"]*)"', txt)
+    if m:
+        ro["opn"] = m.group(1)
+        ro["opn_line"] = txt.count("\n", 0, m.start()) + 1
+        a_tok = ro["model"].split(" ")[0]
+        b_tok = ro["opn"].split(" ")[0]
+        if a_tok != b_tok:
+            ro["errors"].append(
+                f"★★【状态漂移】{V2_REF} 的网表 value 与 PARTS 字典的 OPN 不是同一颗器件 ⇒ "
+                f"★**期望: 两边第一个 token 相同** ⇒ ★**实际: 网表 {a_tok!r} / PARTS {b_tok!r}** ⇒ 拒绝落 ★")
+    else:
+        ro["warnings"].append(f"★★**PARTS 字典里没找到 {V2_REF} 的 opn ⇒ 型号一致性这一条本轮没校到** ★")
+    return ro
+
+
+def _splice(txt: str, spans: list[tuple[int, int]], news: list[str]) -> str:
+    """按 (起, 止) 偏移替换 txt 里的若干段 (★倒序替换, 免得偏移串了★)。"""
+    out = txt
+    for (s, e), nt in sorted(zip(spans, news), key=lambda x: -x[0][0]):
+        out = out[:s] + nt + out[e:]
+    return out
+
+
+def v2_netlist_line(root: str, ref: str, net: str) -> int | None:
+    """在 `HW/netlist_v1.csv` 里找 (ref, net) 那一行的行号 (1-based, 含表头)。"""
+    path = os.path.join(root, "HW/netlist_v1.csv")
+    if not os.path.exists(path):
+        return None
+    hits = []
+    with open(path, encoding="utf-8", newline="") as fh:
+        for i, line in enumerate(fh, start=1):
+            cells = next(csv.reader([line.rstrip("\n")]), [])
+            if len(cells) > 4 and cells[4].strip() == ref and cells[1].strip() == net:
+                hits.append(i)
+    if len(hits) != 1:
+        return None
+    return hits[0]
+
+
+def v2_dual3_block(model: str, evidence: str) -> str:
+    """★架构 ② 的目标块: 3 行 (D+ / D− / GND) (★value = 老板拍的型号, 不是判据串★)★。"""
+    return (
+        '    add("P1", "NET_USB_D_P_TYPEC", "D_ESD_USB_D", "NET_USB_D_P_TYPEC", "D_ESD_USB_D",\n'
+        '        "%s", "D", "必装", "%s", "",\n'
+        '        "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (3脚双通道: pin1=D+ / pin2=D− / pin3=GND) —— '
+        '★**已从 SoM 侧 USB_D_P_SRC 挪到 Type-C 侧 NET_USB_D_P_TYPEC** (★ISS-211 第(4)条: 不挪等于没护★) —— '
+        '★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")\n'
+        '    add("P1", "NET_USB_D_N_TYPEC", "D_ESD_USB_D", "NET_USB_D_N_TYPEC", "D_ESD_USB_D",\n'
+        '        "%s", "D", "必装", "%s", "",\n'
+        '        "[D_ESD_USB_D] ★D− 侧 (pin2) —— ★**官方口径: 两条数据线都要护** '
+        '(ON Semi AND8074/D + TI TPD2EUSB30 2ch) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")\n'
+        '    add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D", "%s", "D", "必装",\n'
+        '        "%s", "", "[D_ESD_USB_D] ESD 地端 (pin3)", "A-24")\n'
+    ) % (model, evidence, model, evidence, model, evidence)
+
+
+def v2_recipe(value: str, root: str = "", arch_req: str = "", model_req: str = "",
+              ev_req: str = "") -> Decision:
     d = Decision(v="V-2", value=value)
     if value == "2":
         # ★★ISS-230 实测: V-2 只落网表侧 ⇒ --expect-resolved 7→7 ⇒ 一条都转不绿 = 假绿★★
@@ -656,34 +938,153 @@ def v2_recipe(value: str) -> Decision:
 
     d.delta = 0          # ★网表侧 0 条转绿 (ISS-230 实测 7→7)★
     d.board_delta = 3    # ★板那一趟 (B-3/B-4/B-5) 才转绿 3 条 (R4×2 + R9)★
-    d.notes.append("★方案① = D+/D− 共用一颗 3 脚双通道 ESD (★value 串 = 判据串 + evidence [推算] ★"
-                   "⇒ **本工具不替老板拍型号**★)")
-    d.notes.append("★★**网表侧落表 = 0 条转绿** (★ISS-230 实测 7→7★) ⇒ ★**必须写成两段: 网表侧 + 板那一趟**★")
+
+    ro = v2_read_source(root)
+    d.errors += ro["errors"]
+    d.v2_readout.append(f"★**真源现状 (★现读 `{GEN_NETLIST}`, 不靠硬编码旧串★)**: "
+                         f"架构 = ★**{ro['arch'] or '★(读不出来)★'}** ★ · "
+                         f"型号 = ★**{ro['model'] or '★(读不出来)★'}** ★ · "
+                         f"evidence = ★**{ro['evidence'] or '★(读不出来)★'}** ★")
+    if ro["opn"]:
+        d.v2_readout.append(f"★**BOM 侧 OPN (PARTS 字典 L{ro['opn_line']})**: `{ro['opn']}` ★")
+    if ro["errors"]:
+        d.notes.append("★★**真源读不出来 / 读出来不自洽 ⇒ 本次【拒绝落】(★零写盘★) ⇒ 修法见交卷单 §B2** ★")
+        return d
+
+    cur_arch = ro["arch"]
+    cur_shape = V2_ARCHS.get(V2_SHAPE2ARCH.get(cur_arch, ""), None)
+    want_arch = arch_req or V2_SHAPE2ARCH.get(cur_arch, "")
+    d.v2_src_arch = V2_SHAPE2ARCH.get(cur_arch, "")
+    d.v2_src_model = ro["model"]
+
+    # ── 架构轴: 老板没拍 ⇒ 落表器【只】认真源现状 (★不替老板选架构★) ──
+    if not arch_req:
+        d.notes.append(
+            f"★★**架构轴 (A3 / W-1) 未拍 ⇒ 本次落表按【真源现状】"
+            f"{cur_shape['title'] if cur_shape else cur_arch} 走** ★\n"
+            f"   ★**落表器【不】替你选架构** ★ ⇒ ★**换架构必须显式 `--v2-arch=<1|2|3>` + `--v2-model=<型号>`** ★")
+    elif arch_req not in V2_ARCHS:
+        d.errors.append(f"★★`--v2-arch` 取值 {arch_req!r} 不认识 ⇒ 只认 {sorted(V2_ARCHS)} ★")
+        return d
+    else:
+        d.notes.append(
+            f"★★**架构轴 (A3 / W-1) = {V2_ARCHS[arch_req]['title']}** (★老板显式指定★) ★\n"
+            f"   {V2_ARCHS[arch_req]['desc']}\n"
+            f"   代价: {V2_ARCHS[arch_req]['cost']}")
+
+    # ── 型号轴: 真源是真型号 ⇒ 原样保住; 要改 ⇒ 必须显式给型号 + 证据等级 ──
+    model = ro["model"]
+    evidence = ro["evidence"]
+    d.v2_arch = want_arch
+    d.v2_model = model
+    if model_req:
+        model = model_req
+        evidence = ev_req or evidence
+        d.notes.append(
+            f"★★**型号轴 = 老板显式指定**: `{model}` (★evidence `{evidence}`★) ★\n"
+            f"   ★**本工具【不】写判据串** ⇒ 型号必须由老板 / 选型给出来 ★")
+        if not ev_req:
+            d.warnings.append("★★**`--v2-model` 给了但 `--v2-evidence` 没给 ⇒ 沿用真源现状的 evidence "
+                              f"(`{evidence}`) ⇒ ★**证据等级必须由落表人自己负责** ★")
+    else:
+        d.notes.append(
+            f"★★**型号轴: 真源现值原样保住 (★一个字都不改★) ⇒ `{model}` + evidence `{evidence}`** ★\n"
+            f"   ★**⇒ 本次落表【不会】把真型号降级成一句判据串 (★ISS-257 的成果不会被 undo★)** ★")
+
+    rows = ro["rows"]
+    sig_rows = [r for r in rows if r["net"] != "GND"]
+    src_shape = cur_arch
+    want_shape = V2_ARCHS[want_arch]["shape"]
+
+    # ── 已落过? (★挪网已经做过了 ⇒ 明确区分于「状态漂移」★) ──
+    already = [r for r in sig_rows if r["net"] in V2_NET_MOVE.values()]
+    if already and want_shape == src_shape:
+        d.errors.append(
+            "★★【已落过】D_ESD_USB_D 的信号行已经在 Type-C 侧了 ⇒ "
+            f"★**期望: 还在 SoM 侧 ({' / '.join(sorted(V2_NET_MOVE))})** ⇒ "
+            f"★**实际: L{already[0]['line']} net = {already[0]['net']}** ⇒ "
+            f"★**不要重复落 (★零写盘★)**★")
+        return d
+
+    if want_shape == src_shape:
+        # ═══ 同架构 ⇒ 只做【挪网】(★行数不变 ⇒ 行号不漂移★) ═══
+        target_net = None
+        sig = None
+        for r in sig_rows:
+            if r["net"] in V2_NET_MOVE:
+                target_net = V2_NET_MOVE[r["net"]]
+                sig = r
+                break
+        if target_net is None:
+            d.errors.append(
+                f"★★【状态漂移】D_ESD_USB_D 的信号行网名不在挪网对照表里 ⇒ "
+                f"★**期望: {sorted(V2_NET_MOVE)} 之一** ⇒ ★**实际: {[r['net'] for r in sig_rows]}** ⇒ 拒绝落 ★")
+            return d
+        old_block = ro["block"]
+        edits = []
+        if sig["net"] != target_net:
+            edits.append((sig["rel_spans"][1], '"%s"' % target_net))
+            if sig["node2"] == sig["net"]:
+                edits.append((sig["rel_spans"][3], '"%s"' % target_net))
+        if model_req:
+            for r in rows:
+                edits.append((r["rel_spans"][5], '"%s"' % model))
+        new_block = _splice(old_block, [x[0] for x in edits], [x[1] for x in edits]) if edits else old_block
+        d.patches.append(Patch(
+            GEN_NETLIST, old_block, new_block,
+            f"V2-1 D_ESD_USB_D 挪到 Type-C 侧 (★架构 {cur_arch} ⇒ 行数不变, 只动网名★)"))
+
+        # ── 门禁 EXPECT: 只有「网名」这一条现状值要改 (★value / evidence 一个字不动★) ──
+        csv_line = v2_netlist_line(root, V2_REF, sig["net"])
+        if csv_line is None:
+            d.errors.append(
+                f"★★【状态漂移】在 `HW/netlist_v1.csv` 里找不到 ref={V2_REF} 且 net={sig['net']} 的行 ⇒ "
+                f"★**⇒ 门禁锚点行号算不出来 ⇒ 拒绝落**★")
+            return d
+        d.expects.append(ExpectPatch(
+            "d4_a417_net", f"net == {target_net}",
+            f"d4 表A L{csv_line} ESD 信号行 net (★从 SoM 侧挪到 Type-C 侧★)"))
+        d.v2_readout.append(
+            f"★**落表动作**: 只动 1 行的 net (真源 L{sig['line']} → `{target_net}`) ⇒ "
+            f"★**行数不变 ⇒ 门禁锚点行号不漂移** ★")
+
+    elif want_shape == "dual3" and src_shape == "single2":
+        # ═══ ① → ②: 2 行变 3 行 (★D− 行新插 ⇒ 网表行号 ≥418 全部 +1★) ═══
+        if not model_req:
+            d.errors.append(
+                "★★【型号轴必须同时拍】架构换成 ② (3脚双通道) ⇒ ★**必须同时给 `--v2-model <真 OPN>`** ★\n"
+                "   ★**理由: 换架构必然改 value ⇒ 本工具【不许】写判据串代替型号 (★那会把 ISS-257 的成果 undo 掉★)** ★\n"
+                "   ★**⇒ 型号归【选型级 / 老板】(A3 / W-1 一起拍) ⇒ 拒绝落 (★零写盘★)**★")
+            return d
+        d.patches.append(Patch(
+            GEN_NETLIST, ro["block"], v2_dual3_block(model, evidence),
+            "V2-1 D_ESD_USB_D: 2 行 → 3 行 (pin1=D+ / pin2=D− / pin3=GND) + 挪到 Type-C 侧"))
+        d.line_shift_extra = [("netlist", V2_NETLIST_SHIFT_FROM), ("pins", V2_PINS_SHIFT_FROM)]
+        d.expects += [
+            ExpectPatch("d4_a417_value", f"value == {model}", "d4 表A L417 ESD D+ 行 value (★落成老板拍的型号★)"),
+            ExpectPatch("d4_a417_net", "net == NET_USB_D_P_TYPEC", "d4 表A L417 ESD D+ 行 net (从 SoM 侧挪到 Type-C 侧)"),
+            ExpectPatch("d4_a418_value", f"value == {model}", "d4 表A L419 ESD GND 行 value (★行号随插行 +1★)"),
+            ExpectPatch("d9_esd_dual_claim", f"value == {model}", "d9 表A L417 自称双通道的 value"),
+            ExpectPatch("d4_bom62_value", f"value == {model}", "d4 BOM L62 D_ESD_USB_D value"),
+        ]
+        d.v2_readout.append("★**落表动作**: 2 行 → 3 行 (★新增 D− 行★) ⇒ ★**门禁锚点行号 ≥418 全部 +1** ★")
+    else:
+        d.errors.append(
+            f"★★【架构切换不支持】真源现状 = ★**{cur_arch}** ★ ⇒ 目标 = ★**{want_shape}** ★\n"
+            f"   ★**⇒ 换架构 = 改 footprint = 板那一趟 (★本工具【只】落网表侧, 板一个字节都不碰★) ⇒ 拒绝落** ★")
+        return d
+
+    # ── 板那一趟的清单 (★本工具【不做】★) ──
     d.warnings.append("★★**V-2=1 的板那一趟本工具【不做】** (★`HW/PCB/demo_mainboard.kicad_pcb` 一个字节都不碰★) ⇒ "
-                      "★**板侧 B-3 (2 脚换 3 脚封装) / B-4 (挪到 J_USB_C 旁 ≤3.0mm) / B-5 (D− 补 ESD) 继续排队**★")
-    d.warnings.append("★★**V-2 落表会改行数** (★网表 513→514 · 脚表 584→585★) ⇒ "
-                      "★**门禁锚点的行号会整体漂移 ⇒ 本工具逐条改 (ISS-233 §3.2 ③ 的清单)★** ⇒ "
-                      "★**SW / MECH 两边的台账对账项 (落表单号 / 文件名 / 新旧 md5) 都要重填**★")
-
-    d.patches += [
-        Patch(GEN_NETLIST, V2_ESD_OLD, V2_ESD_NEW % {"v": V2_ESD_VALUE_JUDGE, "ev": "[推算]"},
-              "V2-1 USB ESD 段: 2 行 → 3 行 (pin1=D+ / pin2=D− / pin3=GND) + 挪到 Type-C 侧"),
-    ]
-    d.warnings.append("★★**型号还没拍 ⇒ 本次落表 value 写【判据串】+ evidence `[推算]`** ★★\n"
-                      "   ★**若老板拍了具体型号 (★例: TPD2EUSB30★) ⇒ value 要换成\n"
-                      "   「TPD2EUSB30 (3脚双通道, 0.7pF/线, Vclamp 8V@1A, IEC 61000-4-2 level 4 contact)」\n"
-                      "   + evidence 换成 `[官方]` ⇒ ★**那是另一次落表 (★型号是老板/选型级的拍板项★)** ★")
-
-    # ── 门禁 EXPECT: ESD 那组 + 行号漂移 ──
-    d.expects += [
-        ExpectPatch("d4_a417_value", f"value == {V2_ESD_VALUE_JUDGE}", "d4 表A L417 ESD D+ 行 value"),
-        ExpectPatch("d4_a417_net", "net == NET_USB_D_P_TYPEC", "d4 表A L417 ESD D+ 行 net (从 SoM 侧挪到 Type-C 侧)"),
-        ExpectPatch("d4_a417_note", "note contains 已从 SoM 侧 USB_D_P_SRC 挪到 Type-C 侧 NET_USB_D_P_TYPEC",
-                    "d4 表A L417 note (ISS-211 第(4)条)"),
-        ExpectPatch("d4_a418_value", f"value == {V2_ESD_VALUE_JUDGE}", "d4 表A L419 ESD GND 行 value (★行号随插行 +1★)"),
-        ExpectPatch("d9_esd_dual_claim", f"value == {V2_ESD_VALUE_JUDGE}", "d9 表A L417 自称双通道的 value"),
-        ExpectPatch("d4_bom62_value", f"value == {V2_ESD_VALUE_JUDGE}", "d4 BOM L62 D_ESD_USB_D value"),
-    ]
+                      "★**板侧 B-3 (换封装 / 改占位焊盘) / B-4 (挪到 J_USB_C 旁 ≤3.0mm) / B-5 (D− 补 ESD) 继续排队**★")
+    d.warnings.append("★★**网名挪了 ⇒ 板上的 footprint 焊盘网名也必须同趟改** (★`D_ESD_USB_D` pad1: "
+                      "`USB_D_P_SRC` → `NET_USB_D_P_TYPEC`★) ⇒ ★**板那一趟漏改 ⇒ 网表与板对不上** ★")
+    d.notes.append("★★**网表侧落表 = 0 条转绿** (★ISS-230 实测 7→7★) ⇒ ★**必须写成两段: 网表侧 + 板那一趟**★")
+    d.notes.append("★★**两个未决 (★本工具【不】代拍, 只把两件事分开列出来★)**★★\n"
+                   "   ① ★**架构轴 (A3 / W-1)**: ① 2脚单通道 / ② 3脚双通道 / ③ 2脚双向件 —— "
+                   "★**物理约束: 占位只有 2 焊盘 ⇒ ② 落不下 (ISS-241 硬发现①) ⇒ ② 必须先改 footprint (板那一趟)** ★\n"
+                   "   ② ★**型号轴 (选型级)**: 现状 `TPD1E05U06DPYR` = ISS-241 矩阵 ③ 的推荐项 (★evidence [官网]★) —— "
+                   "★**换架构 ⇒ 必须同时换型号 ⇒ 两轴必须一起拍** ★")
     return d
 
 
@@ -864,15 +1265,19 @@ class Plan:
         self.expects: list[ExpectPatch] = []
         self.line_shifts: list[tuple[str, int]] = []
         self.spec_extra: list[str] = []
+        self.errors: list[str] = []
+        self.readout: list[str] = []
         for d in decisions:
             self.patches += d.patches
             self.expects += d.expects
-            if d.v == "V-2" and d.value == "1":
-                self.line_shifts = [("netlist", V2_NETLIST_SHIFT_FROM), ("pins", V2_PINS_SHIFT_FROM)]
+            self.errors += d.errors
+            self.readout += d.v2_readout
+            # ★★行号漂移: ★**只有架构 ② (2 行 → 3 行) 才需要**★ ⇒ ★**架构 ① (只挪网) 行数不变 ⇒ 不漂移** ★
+            self.line_shifts += d.line_shift_extra
 
     # ── 校验: 每条补丁的 old 必须【恰好】出现 count 次 ──
     def verify(self) -> list[str]:
-        errs = []
+        errs = list(self.errors)
         cache: dict[str, str] = {}
         for p in self.patches:
             if p.path not in cache:
@@ -884,9 +1289,17 @@ class Plan:
                 cache[p.path] = read_text(fp)
             n = find_after(cache[p.path], p.ctx, p.old)[1]
             if n != p.count:
-                errs.append(
-                    f"★★补丁对不上 (★状态漂移 or 已落过?★): {p.path} · {p.label} ⇒ "
-                    f"旧值出现 {n} 次 (期望 {p.count} 次)")
+                if n == 0:
+                    errs.append(
+                        f"★★【状态漂移 or 已落过】★★ 补丁对不上: {p.path} · {p.label} ⇒ "
+                        f"★**旧串在真源里出现 0 次 (期望 {p.count} 次)** ⇒ "
+                        f"★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ "
+                        f"本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★")
+                else:
+                    errs.append(
+                        f"★★【重复 / 歧义】★★ 补丁对不上: {p.path} · {p.label} ⇒ "
+                        f"★**旧串在真源里出现 {n} 次 (期望 {p.count} 次)** ⇒ "
+                        f"★**⇒ 真源里有多个一样的块 ⇒ 定位不可靠 ⇒ 拒绝落 (★零写盘★)** ★")
         # EXPECT 锚点
         cpath = os.path.join(self.root, CHECK_SCRIPT)
         ctxt = read_text(cpath) if os.path.exists(cpath) else ""
@@ -1167,6 +1580,259 @@ def do_rollback(root: str, bdir: str) -> int:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════
+# 9 · 落表器自测 (★--selftest★) —— ★★全在临时副本里做, 真盘零写入★★
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ★★自测要搬进临时副本的文件 (★够干跑用就行, 不搬全工程★)★★
+SELFTEST_FILES = [
+    "state/gen_netlist.py",
+    "HW/check_netlist_selfconsistency.py",
+    "HW/netlist_v1.csv",
+    "HW/netlist_v1_pins.csv",
+    "HW/BOM_v1.csv",
+    "HW/PCB/demo_mainboard.kicad_pcb",
+    "HW/PCB/demo_mainboard.kicad_pro",
+    # ★V-3 / V-4 的配方也要碰这几个 (★不然用例7 会被「缺文件」误杀★)★
+    "HW/SCHEMATIC_V1_SPEC.json",
+    "HW/CHARGE_BOARD_SPEC.md",
+    "HW/NETLIST_SELF_CONSISTENCY_SPEC.md",
+    "HW/SCHEMATIC_LANDING_V1_LANDED.md",
+    # ★V-4 的配方要读 p10_rows.json (★不然用例7 会被「缺文件」误杀★)★
+    "state/p10_rows.json",
+]
+
+# ★★ISS-257 之前 (★占位串那一版★) 的 D_ESD_USB_D 两行 (★本轮实测的坏案例·必须当回归用例★)★★
+SELFTEST_V2_OLD_BLOCK = (
+    '    add("P1", "USB_D_P_SRC", "D_ESD_USB_D", "USB_D_P_SRC", "D_ESD_USB_D",\n'
+    '        "ESD 阵列 [待选型] (USB 2.0 双通道)", "D", "必装", "[推算]", "",\n'
+    '        "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— '
+    '★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")\n'
+    '    add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D", "ESD 阵列 [待选型]", "D", "必装",\n'
+    '        "[推算]", "", "[D_ESD_USB_D] ESD 地端", "A-24")\n'
+)
+
+
+def _sbx_copy(root: str, tag: str) -> str:
+    """把自测要用的文件复制进一个临时目录 (★真盘只读★)。"""
+    import shutil
+    import tempfile
+    tmp = tempfile.mkdtemp(prefix="land_v_selftest_%s_" % tag)
+    for rel in SELFTEST_FILES:
+        src = os.path.join(root, rel)
+        dst = os.path.join(tmp, rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        if not os.path.exists(src):
+            raise RuntimeError("★自测要用的文件不存在: %s" % rel)
+        shutil.copy2(src, dst)
+    return tmp
+
+
+def _sbx_run(tmp: str, args: list[str]) -> tuple[int, str]:
+    """在临时副本里跑一次落表器 (★子进程, 走真实命令行路径★)。"""
+    cmd = [sys.executable, os.path.join(HERE, "land_v_values.py"), "--root", tmp] + args
+    p = subprocess.run(cmd, capture_output=True, text=True,
+                       env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+    return p.returncode, (p.stdout or "") + (p.stderr or "")
+
+
+def _sbx_md5s(tmp: str) -> dict:
+    out = {}
+    for rel in ("HW/PCB/demo_mainboard.kicad_pcb", "HW/PCB/demo_mainboard.kicad_pro",
+                "HW/netlist_v1.csv", "HW/netlist_v1_pins.csv", "HW/BOM_v1.csv"):
+        fp = os.path.join(tmp, rel)
+        out[rel] = md5(fp) if os.path.exists(fp) else "★(缺)★"
+    return out
+
+
+def _sbx_replace_block(tmp: str, new_block: str) -> None:
+    """把临时副本里的 D_ESD_USB_D 那一段整块换掉 (★只动真源那一处★)。"""
+    path = os.path.join(tmp, GEN_NETLIST)
+    txt = read_text(path)
+    ro = v2_read_source(tmp)
+    if not ro["rows"]:
+        raise RuntimeError("★自测: 真源里找不到 D_ESD_USB_D")
+    old = ro["block"]
+    if new_block is None:
+        new_block = ""
+    if old not in txt:
+        raise RuntimeError("★自测: 真源里找不到那一块原文")
+    txt = txt.replace(old, new_block, 1)
+    write_text(path, txt)
+
+
+def run_selftest(root: str) -> int:
+    """★落表器自测 (★≥6 条反向用例★) ⇒ ★rc=0 = 全过★。"""
+    import shutil
+    import tempfile
+
+    print("╔══ 落表器自测 (★--selftest★ · ★全在临时副本里做 · 真盘零写入★) ══╗")
+    print(f"★ 工程根: {root}")
+    print("")
+
+    real_before = {rel: md5(os.path.join(root, rel)) for rel in SELFTEST_FILES
+                   if os.path.exists(os.path.join(root, rel))}
+    protected_before = {rel: md5(os.path.join(root, rel)) for rel in
+                        ("HW/PCB/demo_mainboard.kicad_pcb", "HW/PCB/demo_mainboard.kicad_pro",
+                         "HW/netlist_v1.csv", "HW/netlist_v1_pins.csv", "HW/BOM_v1.csv")}
+
+    cases = []
+    tmps = []
+
+    def new_case(name: str) -> tuple[str, str]:
+        tmp = _sbx_copy(root, "c%d" % len(cases))
+        tmps.append(tmp)
+        cases.append((name, tmp))
+        return tmp, tmp
+
+    def check(name: str, ok: bool, detail: str = "") -> bool:
+        mark = "✅" if ok else "★★"
+        print(f"   {mark} {name}")
+        if detail:
+            for l in detail.strip().split("\n")[:12]:
+                print(f"        {l}")
+        return ok
+
+    all_ok = True
+
+    # ── 用例 1: ★本轮实测的坏案例 (★ISS-257 之前的占位串★) ⇒ V-2 路径必须立刻红 ──
+    tmp, _ = new_case("regress_placeholder")
+    _sbx_replace_block(tmp, SELFTEST_V2_OLD_BLOCK)
+    rc, out = _sbx_run(tmp, ["--decision", "V-2=1"])
+    all_ok &= check(
+        "用例1 ★【回归·本轮实测坏案例】真源退回 ISS-257 之前的占位串 ⇒ V-2 必须红 (rc≠0) ★",
+        rc != 0 and "型号轴未落" in out,
+        f"rc={rc}\n{out.strip()[-700:]}")
+
+    # ── 用例 2: ★已落过 ⇒ 必须红, 且文案必须说清【已落过】(不许与【状态漂移】混在一起)★ ──
+    tmp, _ = new_case("already_landed")
+    ro = v2_read_source(tmp)
+    txt = read_text(os.path.join(tmp, GEN_NETLIST))
+    txt = txt.replace('add("P1", "USB_D_P_SRC", "D_ESD_USB_D", "USB_D_P_SRC", "D_ESD_USB_D",',
+                      'add("P1", "NET_USB_D_P_TYPEC", "D_ESD_USB_D", "NET_USB_D_P_TYPEC", "D_ESD_USB_D",', 1)
+    write_text(os.path.join(tmp, GEN_NETLIST), txt)
+    rc, out = _sbx_run(tmp, ["--decision", "V-2=1"])
+    all_ok &= check(
+        "用例2 ★【已落过】信号行已在 Type-C 侧 ⇒ 必须红 (rc≠0) 且文案写【已落过】★",
+        rc != 0 and "已落过" in out,
+        f"rc={rc}\n{out.strip()[-700:]}")
+
+    # ── 用例 3: ★状态漂移 (★删掉 GND 那一行★) ⇒ 必须红且文案写【状态漂移】★ ──
+    tmp, _ = new_case("drift")
+    ro = v2_read_source(tmp)
+    gnd = [r for r in ro["rows"] if r["net"] == "GND"][0]
+    path = os.path.join(tmp, GEN_NETLIST)
+    txt = read_text(path)
+    txt = txt.replace(gnd["raw"] + "\n", "", 1)
+    write_text(path, txt)
+    rc, out = _sbx_run(tmp, ["--decision", "V-2=1"])
+    all_ok &= check(
+        "用例3 ★【状态漂移】真源少了一行 ⇒ 必须红 (rc≠0) 且文案写【状态漂移】★",
+        rc != 0 and "状态漂移" in out,
+        f"rc={rc}\n{out.strip()[-700:]}")
+
+    # ── 用例 4: V-2=2 必须打回 ──
+    tmp, _ = new_case("v2_2")
+    rc, out = _sbx_run(tmp, ["--decision", "V-2=2"])
+    all_ok &= check(
+        "用例4 ★ V-2=2 (只落网表侧 = 假绿) 必须打回 (rc≠0) ★",
+        rc != 0 and "必须打回" in out,
+        f"rc={rc}\n{out.strip()[-400:]}")
+
+    # ── 用例 5: 非法取值必须打回 ──
+    tmp, _ = new_case("bad_value")
+    rc, out = _sbx_run(tmp, ["--decision", "V-2=E2"])
+    all_ok &= check(
+        "用例5 ★ 非法取值 V-2=E2 必须打回 (rc≠0) ★",
+        rc != 0 and "非法取值" in out,
+        f"rc={rc}\n{out.strip()[-400:]}")
+
+    # ── 用例 6: --apply 不带 --boss-decision 必须拒绝 ──
+    tmp, _ = new_case("apply_no_boss")
+    rc, out = _sbx_run(tmp, ["--decision", "V-2=1", "--apply"])
+    all_ok &= check(
+        "用例6 ★ `--apply` 不带 `--boss-decision` 必须拒绝 (rc≠0) ★",
+        rc != 0 and "boss-decision" in out,
+        f"rc={rc}\n{out.strip()[-400:]}")
+
+    # ── 用例 7: ★V-3 / V-4 的锚点必须仍然是【当前真源】 (★从「碰巧成立」变成「被断言住」★) ──
+    tmp, _ = new_case("v3_v4_anchor")
+    rc3, out3 = _sbx_run(tmp, ["--decision", "V-3=E"])
+    rc4, out4 = _sbx_run(tmp, ["--decision", "V-4=680"])
+    all_ok &= check(
+        "用例7 ★ V-3=E 与 V-4=680 的锚点必须仍然是【当前真源】 (各 rc=0) ★",
+        rc3 == 0 and rc4 == 0,
+        f"V-3=E rc={rc3} / V-4=680 rc={rc4}\n{out3.strip()[-200:]}\n{out4.strip()[-200:]}")
+
+    # ── 用例 8: ★绝不许把真型号降级成判据串 (★ISS-257 的成果不许被 undo★) ──
+    tmp, _ = new_case("no_downgrade")
+    rc, out = _sbx_run(tmp, ["--decision", "V-2=1"])
+    new_lines = [l for l in out.split("\n") if l.strip().startswith("+ 新:")]
+    # ★★降级判定 (★要精确: 旧 note 里本来就写着「ESD 阵列」, 那个不算降级★)★★
+    downgrade = [l for l in new_lines
+                 if ("ESD 阵列 (USB 2.0 双通道" in l) or ("[待选型]" in l)
+                 or ('"[推算]"' in l)]
+    keeps_model = any("TPD1E05U06DPYR" in l for l in new_lines)
+    all_ok &= check(
+        "用例8 ★ V-2 的 diff 新值行里【不许】出现判据串 / [推算] / [待选型] (★不许把真型号降级★) ★",
+        rc == 0 and keeps_model and not downgrade,
+        f"rc={rc}\n" + "\n".join(new_lines[:12]) + ("\n★降级行: %s" % downgrade if downgrade else ""))
+
+    # ── 用例 9: ★换架构必须同时给型号 (★不许自己写判据串★) ──
+    tmp, _ = new_case("arch_switch_needs_model")
+    rc, out = _sbx_run(tmp, ["--decision", "V-2=1", "--v2-arch", "2"])
+    all_ok &= check(
+        "用例9 ★ `--v2-arch=2` 不给 `--v2-model` ⇒ 必须红 (★不许自己挑架构 / 自己写判据串★) ★",
+        rc != 0 and "型号轴必须同时拍" in out,
+        f"rc={rc}\n{out.strip()[-700:]}")
+
+    # ── 用例 10: ★每个用例跑完, 5 个受保护 md5 必须逐字节不变 (★自测自己也不许写盘★) ──
+    md5_ok = True
+    detail = []
+    for name, t in cases:
+        now = _sbx_md5s(t)
+        for rel, h in now.items():
+            if h != protected_before.get(rel):
+                md5_ok = False
+                detail.append(f"{name}: {rel} 变了 ⇒ {h} (期望 {protected_before.get(rel)})")
+    all_ok &= check(
+        "用例10 ★ 每个用例跑完, 5 个受保护 md5 必须逐字节不变 (★自测自己也不许写盘★) ★",
+        md5_ok, "\n".join(detail))
+
+    # ── 用例 11: ★真盘的 5 个受保护 md5 自测前后必须逐字节不变 ──
+    real_ok = True
+    detail2 = []
+    for rel, h in protected_before.items():
+        now = md5(os.path.join(root, rel))
+        if now != h:
+            real_ok = False
+            detail2.append(f"{rel}: {now} (期望 {h})")
+    for rel, h in real_before.items():
+        now = md5(os.path.join(root, rel))
+        if now != h:
+            real_ok = False
+            detail2.append(f"{rel}: {now} (期望 {h})")
+    all_ok &= check(
+        "用例11 ★ 真盘的 5 个受保护 md5 (+ 真源) 自测前后必须逐字节不变 ★",
+        real_ok, "\n".join(detail2))
+
+    # ── 清理临时副本 ──
+    for t in tmps:
+        shutil.rmtree(t, ignore_errors=True)
+
+    print("")
+    print("★★【自测用例汇总】★★")
+    for i, (name, _t) in enumerate(cases, start=1):
+        print(f"   {i}. {name}")
+    n = len(cases)
+    print(f"   {n + 1}. ★每个用例跑完 5 个受保护 md5 逐字节不变★")
+    print(f"   {n + 2}. ★真盘 5 个受保护 md5 自测前后不变★")
+    print("")
+    if all_ok:
+        print(f"✅ rc=0: ★**落表器自测全过 ({n + 2} 条) · 真盘零写入** ★")
+        return 0
+    print("★★ rc=1: ★**落表器自测有红的** ★", file=sys.stderr)
+    return 1
 # 10 · 主流程
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -1188,6 +1854,15 @@ def main(argv: list[str] | None = None) -> int:
                     help='★老板拍板凭据: "<日期> <A1|A2|A3> = <值>"★ (★`--apply` 必带★)')
     ap.add_argument("--root", default=DEFAULT_ROOT, help="工程根 (默认 = state/ 的上一级)")
     ap.add_argument("--rollback", default=None, help="★从某个备份目录还原 (★落表回滚★)")
+    ap.add_argument("--selftest", action="store_true",
+                    help="★落表器自测 (★≥11 条反向用例·全在临时副本里做·真盘零写入★)")
+    ap.add_argument("--v2-arch", default="",
+                    help="★V-2 的【架构轴】(★A3 / W-1 裁★): 1=2脚单通道 · 2=3脚双通道 · 3=2脚双向件 "
+                         "★**不给 = 按真源现状走 (★落表器不替你选架构★)**")
+    ap.add_argument("--v2-model", default="",
+                    help="★V-2 的【型号轴】(★选型级·老板拍★): 真 OPN 串 (★不给 = 真源现值原样保住★)")
+    ap.add_argument("--v2-evidence", default="",
+                    help="★配合 `--v2-model` 用的 evidence 等级 (★[官网] / [实测] / [推算]★)")
     args = ap.parse_args(argv)
 
     root = os.path.abspath(args.root)
@@ -1197,6 +1872,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.rollback:
         return do_rollback(root, os.path.abspath(args.rollback))
+
+    if args.selftest:
+        return run_selftest(root)
 
     if not args.decision:
         print(__doc__.strip())
@@ -1223,7 +1901,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"   ★{v}★: {WHITELIST_DOC[v]}", file=sys.stderr)
             print("★★ ★**零写盘** ★ (★本工具在解析阶段就退了, 一个字节都没碰★)", file=sys.stderr)
             return 2
-        decisions.append(WHITELIST[v][val](val))
+        decisions.append(WHITELIST[v][val](val, root, args.v2_arch, args.v2_model, args.v2_evidence))
 
     # ── ② 被否决的取值 (★必须打回★) ──
     for d in decisions:
@@ -1251,6 +1929,11 @@ def main(argv: list[str] | None = None) -> int:
     print(f"★ 决定: {', '.join('%s=%s' % (d.v, d.value) for d in decisions)}")
     print(f"★ 模式: {'★APPLY (真落)★' if args.apply else '★DRY-RUN (只打印, 零写盘)★'}")
     print("")
+    if plan.readout:
+        print("★★【★V-2 两轴读数 (★架构 / 型号 分开列·不混成一句★)】★★")
+        for l in plan.readout:
+            print(f"   {l}")
+        print("")
     print("★★【逐字 diff (★文件 + 行号 + 旧值 + 新值★)】★★")
     print(plan.diff_text())
 
@@ -1315,9 +1998,22 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     # ★★拍板码 → 拍板项 (★DECISION_PENDING_2026-11-16.md §A: A1=V-3 · A2=V-4 · A3=V-2★) ★★
     A_ITEM = {"A1": "V-3", "A2": "V-4", "A3": "V-2"}
+    # ★★A3 (V-2) 的凭据可以带【覆盖】(★架构 / 型号两轴★)★★
+    A3_EXTRA = re.compile(r"^1(?:/arch=(?P<arch>[123]))?(?:/model=(?P<model>.+))?$")
     boss_map: dict[str, str] = {}
+    boss_cover: dict[str, tuple[str, str]] = {}
     for _d, _c, _v in boss:
         _item = A_ITEM[_c]
+        if _item == "V-2":
+            m3 = A3_EXTRA.match(_v)
+            if not m3:
+                print(f"★★ rc=2: ★★A3 的取值 {_v!r} 写法不对** ⇒ "
+                      f"★只认 `1` (★两段走 · 架构 / 型号按真源现状★) 或 "
+                      f"`1/arch=<1|2|3>/model=<真 OPN>` (★显式覆盖两轴★)★", file=sys.stderr)
+                print("★★ ★**零写盘** ★", file=sys.stderr)
+                return 2
+            boss_cover["V-2"] = (m3.group("arch") or "", m3.group("model") or "")
+            _v = "1"
         if _v not in WHITELIST[_item]:
             print(f"★★ rc=2: ★★拍板原文里的值 {_v!r} 不在 {_item} 白名单里** "
                   f"⇒ {{{', '.join(sorted(WHITELIST[_item]))}}} ★", file=sys.stderr)
@@ -1334,6 +2030,33 @@ def main(argv: list[str] | None = None) -> int:
         print("   ★**每个要落的 V 值都必须有一张 `--boss-decision` 凭据 (★值要对得上★)** ★", file=sys.stderr)
         print("★★ ★**零写盘** ★", file=sys.stderr)
         return 2
+
+    # ── ⑤b V-2 的两轴覆盖 (★要求 `--boss-decision` 同时覆盖架构 + 型号★) ──
+    v2d = next((d for d in decisions if d.v == "V-2"), None)
+    if v2d is not None:
+        _arch, _model = boss_cover.get("V-2", ("", ""))
+        _changed = (v2d.v2_arch != v2d.v2_src_arch) or (v2d.v2_model != v2d.v2_src_model)
+        if _changed and not (_arch and _model):
+            print(f"★★ rc=2: ★★本次 V-2 落表要动【架构 / 型号】两轴** ⇒ "
+                  f"★**`--boss-decision` 必须同时覆盖两轴** (★不许只写 `A3 = 1`★) ⇒ ", file=sys.stderr)
+            print(f"   ★**写法**: \"<日期> A3 = 1/arch={v2d.v2_arch}/model={v2d.v2_model}\" ★",
+                  file=sys.stderr)
+            print(f"   ★**本次实际落表**: 架构 ★**{v2d.v2_arch}** ★ · 型号 ★**{v2d.v2_model}** ★",
+                  file=sys.stderr)
+            print(f"   ★**真源现状**: 架构 ★**{v2d.v2_src_arch or '★(读不出来)★'}** ★ · "
+                  f"型号 ★**{v2d.v2_src_model or '★(读不出来)★'}** ★", file=sys.stderr)
+            print("★★ ★**零写盘** ★", file=sys.stderr)
+            return 2
+        if _arch and _arch != v2d.v2_arch:
+            print(f"★★ rc=2: ★★凭据里写的架构 {_arch!r} 与本次落表实际用的 "
+                  f"{v2d.v2_arch!r} 对不上** ⇒ ★**凭据必须与命令行 `--v2-arch` 一致** ★", file=sys.stderr)
+            print("★★ ★**零写盘** ★", file=sys.stderr)
+            return 2
+        if _model and _model != v2d.v2_model:
+            print(f"★★ rc=2: ★★凭据里写的型号与本次落表实际用的对不上** ⇒ "
+                  f"★**凭据必须与命令行 `--v2-model` 一致** ★", file=sys.stderr)
+            print("★★ ★**零写盘** ★", file=sys.stderr)
+            return 2
 
     # ── ⑥ 备份 (★有回滚★) ──
     touched = sorted({p.path for p in plan.patches} | {CHECK_SCRIPT, SPEC_PAGE, LANDED_LEDGER})

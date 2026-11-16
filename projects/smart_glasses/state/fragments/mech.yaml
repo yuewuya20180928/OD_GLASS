@@ -904,6 +904,14 @@ artifacts:
   summary: 'ISS-251 B 组口径的第三落点 (本轮只核对, 原文一个字没改): L40 铝 6063-T6 官方值 = 现项目内口径 201 W/m·K (Hydro EN AW-6063
     Rev.4-03/2023 + Aalco + Kaiser 三家互证) + L41 旧项目内口径 237 已订正只留追溯 + L45 口径订正说明 (只改口径不改结论) + L55-56 A_min
     4.219 / 4.975 mm² + L230 证据表 + L244 落账行'
+- path: HANDOFF/2026-11-16_mech-lead_ISS259_H1重锚第6跳.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-259 交卷单 (mech-lead 2026-11-16 21:5x): MECH 侧 §1 锚点第 6 跳重锚到 ISS-257 落表后的真值 (网表 16ac89f7→e06c1dd6
+    · 脚表 ef436a37→287e7861) · §1 landing_records +1 (ISS-257 台账位置) · §3.1 追加 R-06 留痕 + 顶部注记/Q-12/§7 第
+    6 跳注 · 门禁 rc=0 23/23 FAIL 0 · --selftest rc=0 14/14 · 反向自证 3 组 (两条一起回退 + 逐条回退) 均 rc=2 点名 G5b+C21 后装回
+    rc=0 · 4 个 check 脚本 md5 逐字节不变 (不在锚点里, 写死在门禁脚本 MD5_EXPECTED) · 判据逻辑 0 改动 · 零外发 · 零实物 · 不替老板拍板'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -3969,6 +3977,36 @@ interface_claims:
   note: '本轮 0 个受保护文件改动 (逐字节不变): MECH/check_demo_struct_truth.py = fa9b59e593a13408ad9505d986276f63 (基线一致)
     · MECH/service_port_check.py = 9b24bf985764880f0105aee677fba6a8 · MECH/hinge_usb_check.py = 3425bc141508de8a35f34c7cf7b803e8
     ⇒ 含夹具基准 Y / 焊盘阵列 Y / pcb_thk 三处常量一律没动'
+  ref: MECH/check_demo_struct_truth.py
+- key: iss259_mech_md5_anchor_netlist
+  value: e06c1dd633566aa44732762c2ff99d1c
+  note: MECH 侧 §1 source_ledger 锚点 (网表 HW/netlist_v1.csv) = e06c1dd633566aa44732762c2ff99d1c; prev_md5=16ac89f77c25a3f61834cc7ebcd78a7f;
+    by=ISS-257; landed_at=2026-11-16 21:22 (盘上真值, 实测 md5sum 逐字节核对; 依据 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    §18.4 L1069 三段式)
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md
+- key: iss259_mech_md5_anchor_pins
+  value: 287e7861a0d1007748d92d9fbecdd490
+  note: MECH 侧 §1 source_ledger 锚点 (脚表 HW/netlist_v1_pins.csv) = 287e7861a0d1007748d92d9fbecdd490; prev_md5=ef436a37412ac9b6eac3c9f41f1edca4;
+    by=ISS-257; landed_at=2026-11-16 21:22 (盘上真值, 实测 md5sum 逐字节核对; 依据 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    §18.4 L1070 三段式; 本跳脚表也跟着跳了)
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md
+- key: iss259_mech_md5_hop_count
+  value: 第 6 跳
+  note: 'MECH 侧 md5 锚点重锚跳数 = 第 6 跳 (跳链: ISS-220 基线 → ISS-223 第1跳 R-02 → ISS-233 第2跳 R-03 → ISS-243 第3跳
+    R-04 → ISS-249 第4跳 R-05 → ISS-257 第6跳 R-06); 锚点 by 单号链 = ISS-243 → ISS-249 → ISS-257'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md
+- key: iss259_mech_md5_landing_ticket
+  value: ISS-257
+  note: 本次 MECH 侧锚点挂的落表单号 = ISS-257 (hw-lead 第 6 批 G1a-7 选型落表, 2026-11-16 21:22); 凭据落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    §18 + §18.4 L1069/L1070 (网表/脚表 旧/中/新 md5 三段式逐行) + 交接单 HANDOFF/2026-11-16_hw-lead_ISS257_G1a7选型落表.md;
+    已登记进 §1 landing_records (共 6 处)
+  ref: HW/SCHEMATIC_LANDING_V1_LANDED.md
+- key: iss259_mech_gate_contract
+  value: rc=0 23/23 · selftest rc=0 14/14
+  note: 'MECH 侧门禁契约 (交卷后不变): python3 MECH/check_demo_struct_truth.py ⇒ rc=0 且 23/23 组检查通过且 FAIL 0 组; python3
+    MECH/check_demo_struct_truth.py --selftest ⇒ rc=0 且 14/14 反向用例全抓到 (一条没删); 受保护脚本 md5 fa9b59e593a13408ad9505d986276f63
+    逐字节不变 (板 611b869e13518c3c023fb178f91a0075 / .kicad_pro 3e504d2be83152e337949723e909be1b 零差异); 判据逻辑与阈值
+    0 改动'
   ref: MECH/check_demo_struct_truth.py
 open_questions:
 - id: MECH-Q1

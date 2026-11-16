@@ -1,4 +1,4 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-16 19:51)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-16 22:52)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
@@ -8,14 +8,14 @@
 - 阶段门: 【总体】 阶段门 G1 ⏸️ | 健康度 red | 距通过 G1 还差 1 项 | 未闭环高危 9 条 | 逾期 66 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=0
-- 问题单: 共 248 条 · closed=97 · deferred=15 · fixed=5 · fixing=3 · open=17 · verified=111
-- GitHub 上次推送: 2026-11-16T15:21:35+08:00
+- 问题单: 共 257 条 · closed=97 · deferred=15 · fixed=5 · fixing=3 · open=18 · verified=119
+- GitHub 上次推送: 2026-11-16T20:17:55+08:00
 
 ## 二、执行中 (谁在干什么)
 
-- **ISS-249** · hw-lead · ★★[主线内·原理图/网表侧·落表执行·内部活] ★★ISS-247 的 F1 落表作业包 → 真落进真源 (★`state/gen_net · 派出于 2026-11-16 19:45
-- **ISS-250** · sw-lead · ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法 targ · 派出于 2026-11-16 19:45
-- **ISS-251** · mech-lead · ★★[主线内·MECH 侧·口径收口·内部活] ★★mech-lead 自己登记给 main 的 3 条「只报不改 ⇒ 现在授权改」老账一次 · 派出于 2026-11-16 19:45
+- **ISS-258** · sw-lead · ★★[主线内·SW 侧·H-1 重锚·内部活] ★★`SW/tools/check_demo_panel_spec.py` rc=1 (R6 · 派出于 2026-11-16
+- **ISS-259** · mech-lead · ★★[主线内·MECH 侧·H-1 重锚·内部活] ★★`MECH/check_demo_struct_truth.py` rc=2 (21 · 派出于 2026-11-16
+- **ISS-260** · hw-lead · ★★[主线内·原理图/网表/选型侧·工具自测·内部活] ★★★**`state/land_v_values.py` 的 V-2 落表路径在  · 派出于 2026-11-16
 
 ## 三、待办
 
@@ -43,6 +43,7 @@
 - ISS-156 · ★★[demo 供应链] 自研主板的三件前置选型: camera 模组 / 屏模组 / RK3572 核心板 (★主板的 FPC 座由模组倒逼)
 - ISS-160 · ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) 
 - ISS-169 · ★★[demo 板可制造性] demo 主板的边界已定 (Type-C 供电 · 不装电池 · 板上只有这一块) + SoM 座的 pin1 排向待查证 +
+- ISS-261 · ★★[门禁侧·口径缺陷·内部活] ★★`state/delivery_health.py` 的【口径①】把 `delivery.mode=none` 的 j
 
 ### 3.3 三个总工可自行推进 (队列 cron 每 30 分钟自动派)
 
@@ -63,28 +64,24 @@
   "passed_gates": [
     "G0"
   ],
-  "results": [
-    {
-      "gate": "G0",
-      "name": "纸面冻结 (需求/口径/方案定型)",
-      "passed": true,
-      "deferred": false,
-      "deferred_note": null,
-      "missing": 0,
-      "miss_issue": [],
-      "miss_dec": [],
-      "miss_meas": [],
-      "defer_meas": []
-    },
-    {
-      "gate": "G1",
-      "name": "原理图 / PCB 定稿",
-      "passed": false,
-      "deferred": false,
-      "deferred_note": null,
-      "missing": 1,
-      "miss_issue": [],
-      "miss_dec": [],
-      "miss_meas": [
-        "PCB �
+  "g1a": {
+    "passed": false,
+    "red": 2,
+    "criteria": [
+      {
+        "id": "G1a-1",
+        "name": "ERC = 0 (KiCad 自己跑 ERC)",
+        "desc": "原理图电气规则零违规",
+        "ok": true,
+        "detail": "rc=0 (python3 state/check_sch_erc.py)"
+      },
+      {
+        "id": "G1a-2",
+        "name": "图上脚数 == 表里脚数 (K=0)",
+        "desc": "逐器件点名, 少画一根脚都不许过",
+        "ok": true,
+        "detail": "rc=0 (python3 state/check_sch_pinfull.py)"
+      },
+      {
+        "id
 ```

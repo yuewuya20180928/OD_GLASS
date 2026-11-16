@@ -185,11 +185,16 @@ EXPECT: list[tuple[str, str, str, str]] = [
     ("d3_ctrl_a50_type", "netlist", "50", "type == IC"),
 
     # ── 第 (4) 条: USB D− 全程无 ESD, 而 D_ESD_USB_D 自称"双通道" ──
-    ("d4_a417_value", "netlist", "417", "value == ESD 阵列 [待选型] (USB 2.0 双通道)"),
+    # ★★2026-11-16 ISS-257 落表 (★hw-lead·续做第 1 轮★): D_ESD_USB_D 的 value 已随 G1a-7
+    #   落成真型号 `TPD1E05U06DPYR (...)` ⇒ ★**这 3 条锚点的【现状值】跟着落表走** ★
+    #   (★与 ISS-220 落表时 d1/d6、ISS-223 落表时 d5 的处理同型: 判据本体 (value 必须
+    #   等于板上那颗 ESD 的真型号) 一个字没改, 改的只是【断言的现状值】⇒ 锚点条数一条没减★
+    #   ★★**板侧 (d4_esd_value) 一条都没动** ★ ⇒ 板封装 Value 属性仍停在旧串 ⇒ ★**PCB 类待办**★
+    ("d4_a417_value", "netlist", "417", "value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)"),
     ("d4_a417_net", "netlist", "417", "net == USB_D_P_SRC"),
     ("d4_a417_dnp", "netlist", "417", "dnp == 必装"),
     ("d4_a417_note", "netlist", "417", "note contains Forlinx 载板指引要求 ESD 紧贴接口"),
-    ("d4_a418_value", "netlist", "418", "value == ESD 阵列 [待选型]"),
+    ("d4_a418_value", "netlist", "418", "value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)"),
     ("d4_a432_net", "netlist", "432", "net == NET_USB_D_N_TYPEC"),
     ("d4_a432_ref", "netlist", "432", "ref == R_SER_USB_D_N"),
     ("d4_esd_pads", "board", "?", "footprint.D_ESD_USB_D.pads == 2"),
@@ -197,7 +202,7 @@ EXPECT: list[tuple[str, str, str, str]] = [
     ("d4_esd_pad1_net", "board", "?", "footprint.D_ESD_USB_D.pad1.net == USB_D_P_SRC"),
     ("d4_esd_pad2_net", "board", "?", "footprint.D_ESD_USB_D.pad2.net == GND"),
     ("d4_esd_on_dminus", "board", "?", "esd_on_net(USB_D_N_SRC,NET_USB_D_N_TYPEC) == 0"),
-    ("d4_bom62_value", "bom", "62", "value == ESD 阵列 [待选型] (USB 2.0 双通道)"),
+    ("d4_bom62_value", "bom", "62", "value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)"),
     ("d4_bom62_fp", "bom", "62", "footprint contains 2 焊盘"),
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -281,7 +286,9 @@ EXPECT: list[tuple[str, str, str, str]] = [
     ('d9_emc_480', 'emc', '?', 'text contains 480 Mbps'),
     ('d9_esd_dist', 'netlist', '?', 'calc(esd_dist_usb) > 5'),
     ('d9_esd_pads2', 'board', '?', 'footprint.D_ESD_USB_D.pads == 2'),
-    ('d9_esd_dual_claim', 'netlist', '417', 'value == ESD 阵列 [待选型] (USB 2.0 双通道)'),
+    # ★★ISS-257 落表同型 (★上面 d4_a417_value 的注释同样适用★): 网表侧已不写「双通道」自称
+    #   ⇒ 这条锚点跟着改钉【落表后的真型号】; ★**板侧的「双通道」自称仍在** ⇒ ★**板待跟 (PCB 类)**★
+    ('d9_esd_dual_claim', 'netlist', '417', 'value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)'),
     ('d9_esd_on_dminus', 'board', '?', 'esd_on_net(USB_D_N_SRC,NET_USB_D_N_TYPEC) == 0'),
 
     # ── 第 (7) 条 · CHARGE_BOARD_SPEC §2.4/§3.4 的 ICHG/IIN 系数方向 (ISS-213 THM-RATIO) ──

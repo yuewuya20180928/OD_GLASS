@@ -44,11 +44,11 @@
 |---|---|---|---|---|---|---|---|---|---|---|
 | VBUS_5V | J_TYPE_C A4+A9+B4+B9 | D_ESD_TC | RAIL_VBUS_5V | 5.0V ±5% | RAIL | 必装 | CHG_BOARD | [推算] |  | 电源域: 目标 5.0V ±5% / 最大电流 2.0A (PD 5V/2A); **充电链整条在充电板**, SYS 经 J_CHG 回主 PCB; SoC 侧球位号 TBD-0 |
 | VBUS_5V | J_TYPE_C | USB_VBUS_RAW | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, pin3=CC2, pin4=D+, pin5 |
-| USB_VBUS_RAW | USB_VBUS_RAW | D_ESD_TC | D_ESD_TC | ESD 阵列 [待选型] | D | 必装 | CHG_BOARD | [推算] |  | Type-C VBUS 入口 ESD 阵列 (规格 C-01 'Type-C 座 + ESD 阵列'); 通道数/钳位电压随 Type-C 座定 |
-| VBUS_5V_ESD | D_ESD_TC | FB_VBUS | FB_VBUS | π 滤波磁珠 [待选型] | L | 必装 | CHG_BOARD | [推算] |  | [VBUS_5V_ESD] VBUS 入口 π 滤波磁珠位 (阻抗/电流随充电 IC 环路稳定性定) |
+| USB_VBUS_RAW | USB_VBUS_RAW | D_ESD_TC | D_ESD_TC | SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚) | D | 必装 | CHG_BOARD | [实测] |  | Type-C VBUS 入口 ESD 阵列 (规格 C-01 'Type-C 座 + ESD 阵列'); 通道数/钳位电压随 Type-C 座定 |
+| VBUS_5V_ESD | D_ESD_TC | FB_VBUS | FB_VBUS | BLM31PG121SN1 (Murata 1206 · 120Ω@100MHz · 3A · DCR 25mΩ) | L | 必装 | CHG_BOARD | [官方] |  | [VBUS_5V_ESD] VBUS 入口 π 滤波磁珠位 (阻抗/电流随充电 IC 环路稳定性定) |
 | VBUS_5V_ESD | VBUS_5V_ESD | C_VBUS_IN | C_VBUS_IN | [待选型] 10µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波输入电容位 (值待充电 IC 定; 内置则改 DNP) |
 | GND | C_VBUS_IN | GND | C_VBUS_IN | [待选型] 10µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波输入电容 地端 |
-| VBUS_5V_F1 | FB_VBUS | VBUS_5V_F1 | FB_VBUS | π 滤波磁珠 [待选型] | L | 必装 | CHG_BOARD | [推算] |  | [VBUS_5V_F1] π 滤波磁珠 后级侧 (与 FB_VBUS 同一颗) |
+| VBUS_5V_F1 | FB_VBUS | VBUS_5V_F1 | FB_VBUS | BLM31PG121SN1 (Murata 1206 · 120Ω@100MHz · 3A · DCR 25mΩ) | L | 必装 | CHG_BOARD | [官方] |  | [VBUS_5V_F1] π 滤波磁珠 后级侧 (与 FB_VBUS 同一颗) |
 | VBUS_5V_F1 | VBUS_5V_F1 | C_VBUS_OUT | C_VBUS_OUT | [待选型] 100µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波后级电容位 (BQ25896 建议 ≥100µF) |
 | GND | C_VBUS_GND | GND | C_VBUS_GND | [待选型] 100µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波后级**对地**电容 (★V1.6 修正: 原来 C_VBUS_OUT 一颗当两个用 —— 既是 FB·U_CHG 的串联电容, 又是对地电容 · 一颗 2 脚件落进 3  |
 | VBUS_5V_CHG | C_VBUS_OUT | U_CHG pin1 | C_VBUS_OUT | [待选型] 100µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波电容 (后级, 串联) 位 |
@@ -89,19 +89,19 @@
 | TS_BAT | R_TS_TOP | U_CHG pin11 | R_TS_TOP | 5.24k ±1% (RT1: REGN 到 TS) | R | DNP | CHG_BOARD | [官方] |  | [R_TS_TOP] ★DNP: 同上 (TS 分压上臂) / [TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度 |
 | IINLIM | U_CHG pin10 | R_ILIM | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] ★★★**方向修正 (ISS-214 d10 · ISS-220 落表 2026-11-16)**: buck 功率守恒 ⇒ ICHG/IIN = η·Vbus/ |
 | GND | R_ILIM | GND | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限) |
-| BAT_SW | U_PWR_SW pin1 | U_BATPROT | U_PWR_SW | VIN (输入) | NET | 必装 | MAIN_PCB | [推算] |  | [BAT_SW] 电池保护 (BQ2970 + 2×MOS) 引脚 · **负载开关输入**; ★V1.8: 开关装镜脚 (与电池/保护板同板); 关机时充电链仍在电池侧带电 ⇒  |
-| SYS | U_PWR_SW pin3 | RAIL_SYS | U_PWR_SW | [待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断) | IC | 必装 | MAIN_PCB | [推算] |  | [SYS] ★V1.8 硬件断电通路的主器件: VOUT · 镜脚系统轨 SYS (SoC + 2×DC-DC + 7×LDO + sensor + 光机 全在其下游); **反向 |
-| GND | U_PWR_SW pin4 | GND | U_PWR_SW | 地脚 | NET | 必装 | MAIN_PCB | [推算] |  | [SYS] 负载开关 地脚 |
+| BAT_SW | U_PWR_SW pin1 | U_BATPROT | U_PWR_SW | VIN (输入) | NET | 必装 | MAIN_PCB | [官方] |  | [BAT_SW] 电池保护 (BQ2970 + 2×MOS) 引脚 · **负载开关输入**; ★V1.8: 开关装镜脚 (与电池/保护板同板); 关机时充电链仍在电池侧带电 ⇒  |
+| SYS | U_PWR_SW pin3 | RAIL_SYS | U_PWR_SW | TPS22991RAA (负载开关 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA · ≥2A · R_on 25mΩ@5V · 无 RCB ⇒ 选型口径待 A5 追认) | IC | 必装 | MAIN_PCB | [官方] |  | [SYS] ★V1.8 硬件断电通路的主器件: VOUT · 镜脚系统轨 SYS (SoC + 2×DC-DC + 7×LDO + sensor + 光机 全在其下游); **反向 |
+| GND | U_PWR_SW pin4 | GND | U_PWR_SW | 地脚 | NET | 必装 | MAIN_PCB | [官方] |  | [SYS] 负载开关 地脚 |
 | BAT_SW | C_SW_IN | U_PWR_SW pin1 | C_SW_IN | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [BAT_SW] 开关输入端去耦 (紧贴 VIN; 另一端接地) |
 | GND | C_SW_IN | GND | C_SW_IN | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [BAT_SW] 开关输入端去耦 的地端 |
 | SYS | C_SW_OUT | U_PWR_SW pin3 | C_SW_OUT | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [SYS] 开关引脚端去耦 (紧贴 VOUT, 承 SoC 上电冲击; 另一端接地) |
 | GND | C_SW_OUT | GND | C_SW_OUT | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [SYS] 开关引脚端去耦 的地端 |
 | PWR_ON | R_PD_ON | U_PWR_SW pin2 | R_PD_ON | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★V1.8: ON 脚 **10k 下拉 = 默认关** (关机态就是默认态); SoC GPIO 拉高即保持开机; SoC 关机时把该 GPIO 配成高阻 ·  |
 | GND | R_PD_ON | GND | R_PD_ON | 10k ±1% | R | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ON 脚下拉的接地端 |
-| PWR_ON | U_PWR_SW pin2 | J_SOM_P3 pin88 | U_PWR_SW | ON 输入 (高电平 = 导通 = 开机) | NET | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), 脚号与是否可配开漏**待原厂** |
-| PWR_ON | Q_PG | U_PWR_SW pin2 | Q_PG | [待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— 原 N-MOS 低边接法是**错的 |
-| BAT_SW | Q_PG | NET_BAT_SW | Q_PG | [待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_ON] ★V1.9: Q_PG **漏极**接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS |
-| PWR_GOOD | Q_PG | J_CHG pin6 | Q_PG | [待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确) | SW | 必装 | MAIN_PCB | [推算] |  | [PWR_GOOD] Q_PG **栅极** = 充电板 PG (经 J_CHG pin6 跨铰链, 框侧开漏信号; 主板侧 R_PU_PG 10k 上拉 3.3V)。★V1.9: |
+| PWR_ON | U_PWR_SW pin2 | J_SOM_P3 pin88 | U_PWR_SW | ON 输入 (高电平 = 导通 = 开机) | NET | 必装 | MAIN_PCB | [官方] |  | [PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), 脚号与是否可配开漏**待原厂** |
+| PWR_ON | Q_PG | U_PWR_SW pin2 | Q_PG | DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA) | SW | 必装 | MAIN_PCB | [官方] |  | [PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— 原 N-MOS 低边接法是**错的 |
+| BAT_SW | Q_PG | NET_BAT_SW | Q_PG | DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA) | SW | 必装 | MAIN_PCB | [官方] |  | [PWR_ON] ★V1.9: Q_PG **漏极**接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS |
+| PWR_GOOD | Q_PG | J_CHG pin6 | Q_PG | DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA) | SW | 必装 | MAIN_PCB | [官方] |  | [PWR_GOOD] Q_PG **栅极** = 充电板 PG (经 J_CHG pin6 跨铰链, 框侧开漏信号; 主板侧 R_PU_PG 10k 上拉 3.3V)。★V1.9: |
 | BAT_CHG | J_CHG pin1 | TP_BAT_CHG | TP_BAT_CHG | 跨铰链段压降测点 | TP | 必装 | MAIN_PCB | [推算] |  | [BAT_CHG] ★跨铰链充电电流段压降测点 (1.5A 下压降 = 接触电阻×1.5A); 铰链段发热与压降按结构实际长度核算 (结构总工) |
 | V_CORE | RAIL_V_CORE | U_DCDC_VCORE | RAIL_V_CORE | [待原厂] (典型 0.8-0.9V) | RAIL | DNP | MAIN_PCB | [官方] | TBD-02 | 电源域: 目标 [待原厂] (典型 0.8-0.9V) / 最大电流 ≥2.0A (0.9W/0.8V×1.5=1.69A); IC TPS62130A; SoC 侧球位号 TBD |
 | SYS_PCB | RAIL_BOARD_5V | U_DCDC_VCORE VIN | RAIL_BOARD_5V | 5.0V (F13: 由 CARRIER_BOARD_EN 门控) | NET | DNP | MAIN_PCB | [推算] |  | [V_CORE] U_DCDC_VCORE 输入脚供电 (SYS 镜脚本地产生, 电池保护后); LDO 输入下限 1.6V / DC-DC 输入 3-17V [官方] |
@@ -191,13 +191,13 @@
 | GND | RAIL_GND | GND | RAIL_GND | 机壳地 / 数字地 (单点汇流) | RAIL | 必装 | MAIN_PCB | [推算] |  | 电源域: 目标 — / 最大电流 —; 单点汇流位置由结构总工定 (ISS-065); SoC 侧球位号 TBD-01 |
 | GND | RAIL_GND | CHG_GND_STAR | CHG_GND_STAR | 单点汇流位 | CONN | 必装 | MAIN_PCB | [推算] |  | [GND] 充电板↔主 PCB 的地单点汇流位 (结构总工定位置, ISS-065) |
 | GND | CHG_GND_STAR | GND | CHG_GND_STAR | 单点汇流位 | CONN | 必装 | MAIN_PCB | [推算] |  | [GND] 汇流位 接主板数字地 (与机壳地分开) |
-| USB_D_P_SRC | D_ESD_USB_D | USB_D_P_SRC | D_ESD_USB_D | ESD 阵列 [待选型] (USB 2.0 双通道) | D | 必装 | MAIN_PCB | [推算] |  | [D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口** |
-| GND | D_ESD_USB_D | GND | D_ESD_USB_D | ESD 阵列 [待选型] | D | 必装 | MAIN_PCB | [推算] |  | [D_ESD_USB_D] ESD 地端 |
+| USB_D_P_SRC | D_ESD_USB_D | USB_D_P_SRC | D_ESD_USB_D | TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) | D | 必装 | MAIN_PCB | [官方] |  | [D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口** |
+| GND | D_ESD_USB_D | GND | D_ESD_USB_D | TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) | D | 必装 | MAIN_PCB | [官方] |  | [D_ESD_USB_D] ESD 地端 |
 | RAIL_DEMO_5V | J_USB_C A4+A9+B4+B9 | RAIL_DEMO_5V | J_USB_C | Type-C 16p 座 (demo 板 5V 输入 + USB 数据) | CONN | 必装 | MAIN_PCB | [官方] |  | [RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW |
-| RAIL_DEMO_5V | D_ESD_DEMO | RAIL_DEMO_5V | D_ESD_DEMO | ESD 阵列 [待选型] (USB 2.0) | D | 必装 | MAIN_PCB | [推算] |  | [RAIL_DEMO_5V] USB-C VBUS 入口 ESD 阵列 (紧贴 J_USB_C) |
-| GND | D_ESD_DEMO | GND | D_ESD_DEMO | ESD 阵列 [待选型] | D | 必装 | MAIN_PCB | [推算] |  | [RAIL_DEMO_5V] USB ESD 阵列 地端 |
-| RAIL_DEMO_5V | FB_DEMO | RAIL_DEMO_5V | FB_DEMO | π 滤波磁珠 [待选型] | L | 必装 | MAIN_PCB | [推算] |  | [RAIL_DEMO_5V] VBUS π 滤波 (磁珠+体电容) |
-| GND | FB_DEMO | GND | FB_DEMO | π 滤波磁珠 [待选型] | L | 必装 | MAIN_PCB | [推算] |  | [RAIL_DEMO_5V] π 滤波 地端 |
+| RAIL_DEMO_5V | D_ESD_DEMO | RAIL_DEMO_5V | D_ESD_DEMO | PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA) | D | 必装 | MAIN_PCB | [官方] |  | [RAIL_DEMO_5V] USB-C VBUS 入口 ESD 阵列 (紧贴 J_USB_C) |
+| GND | D_ESD_DEMO | GND | D_ESD_DEMO | PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA) | D | 必装 | MAIN_PCB | [官方] |  | [RAIL_DEMO_5V] USB ESD 阵列 地端 |
+| RAIL_DEMO_5V | FB_DEMO | RAIL_DEMO_5V | FB_DEMO | BLM21PG221SN1D (Murata 0805 · 220Ω@100MHz · 2A · DCR 45mΩ max) | L | 必装 | MAIN_PCB | [官方] |  | [RAIL_DEMO_5V] VBUS π 滤波 (磁珠+体电容) |
+| GND | FB_DEMO | GND | FB_DEMO | BLM21PG221SN1D (Murata 0805 · 220Ω@100MHz · 2A · DCR 45mΩ max) | L | 必装 | MAIN_PCB | [官方] |  | [RAIL_DEMO_5V] π 滤波 地端 |
 | RAIL_DEMO_5V | C_VBUS_DEMO | RAIL_DEMO_5V | C_VBUS_DEMO | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [RAIL_DEMO_5V] VBUS 体电容 |
 | GND | C_VBUS_DEMO | GND | C_VBUS_DEMO | 10µF ±20% | C | 必装 | MAIN_PCB | [推算] |  | [RAIL_DEMO_5V] VBUS 体电容 地端 |
 | GND | R_CC1_D | GND | R_CC1_D | 5.1k ±1% (CC1 下拉) | R | 必装 | MAIN_PCB | [官方] |  | [R_CC1_D] USB-C CC1 5.1k 下拉 (⇒ UFP 受电端) |
@@ -554,15 +554,15 @@
 | PG_AND | R_PG_PULL | U_DCDC_VCORE pin4 | R_PG_PULL | 10k ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-12 | [PG_AND] ★V1.8 复位链 ①: 两路 DC-DC 的 **PG 开漏信号直接并联** (任一路不 ok · 本网被上拉拉高); PG 极性 (ok=低/高) **待原厂 |
 | VDD_1V8_IO | R_PG_PULL | RAIL_VDD_1V8_IO | R_PG_PULL | 10k ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-12 | [PG_AND] ★V1.8 复位链 ①: 并联后的上拉 (10k 挂常供电轨); 阻值偏大则 PG 上升沿慢 (跨铰链还要算分布电容) |
 | PG_AND | U_DCDC_VIO pin4 | U_DCDC_VCORE pin4 | NET_PG_AND | PG 开漏并联 (两路 DC-DC) | NET | 必装 | MAIN_PCB | [官方] | TBD-12 | [PG_AND] ★V1.8 复位链 ①: 两路 DC-DC 的 PG 脚并到同一网 (开漏信号可以直接并联) |
-| RESET_N | Q_AND | NET_RESET_N | Q_AND | [待选型] N-MOS (硬件 AND) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [RESET_N] ★V1.8 复位链 ②: **Q_AND 把『两路 PG 都好』变成硬件许可** —— 漏极 = RESET_N; 任一路 PG 坏 · PG_AND 高 ·  |
-| GND | Q_AND | GND | Q_AND | [待选型] N-MOS (硬件 AND) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [RESET_N] Q_AND 源极接地 |
-| PG_AND | Q_AND | U_DCDC_VIO pin4 | Q_AND | [待选型] N-MOS (硬件 AND) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [PG_AND] Q_AND 栅极 = PG_AND (两路 PG 都好时为低 · Q_AND 关) |
+| RESET_N | Q_AND | NET_RESET_N | Q_AND | AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V) | SW | 必装 | MAIN_PCB | [官方] | TBD-12 | [RESET_N] ★V1.8 复位链 ②: **Q_AND 把『两路 PG 都好』变成硬件许可** —— 漏极 = RESET_N; 任一路 PG 坏 · PG_AND 高 ·  |
+| GND | Q_AND | GND | Q_AND | AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V) | SW | 必装 | MAIN_PCB | [官方] | TBD-12 | [RESET_N] Q_AND 源极接地 |
+| PG_AND | Q_AND | U_DCDC_VIO pin4 | Q_AND | AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V) | SW | 必装 | MAIN_PCB | [官方] | TBD-12 | [PG_AND] Q_AND 栅极 = PG_AND (两路 PG 都好时为低 · Q_AND 关) |
 | EN_VCORE | R_EN_VCORE | RAIL_VDD_1V8_IO | R_EN_VCORE | 10k ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-12 | [EN_VCORE] ★V1.8 复位链 ③: V_CORE 的 DC-DC **EN 脚上拉** (默认关) —— 由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动 ⇒ |
 | VDD_1V8_IO | R_EN_VCORE | RAIL_VDD_1V8_IO | R_EN_VCORE | 10k ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-12 | [EN_VCORE] EN 上拉的另一端 (常供电轨) |
 | EN_VCORE | U_DCDC_VCORE pin13 | R_EN_VCORE | U_DCDC_VCORE | EN 输入 (高 = 使能) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-12 | [EN_VCORE] ★V1.8: V_CORE buck 的 EN 节点 (由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动) |
-| PG_AND | Q_ENVC | U_DCDC_VIO pin4 | Q_ENVC | [待选型] N-MOS (反相) | SW | DNP | MAIN_PCB | [推算] | TBD-12 | [PG_VIO] ★V1.8: V_SOC_IO 的 PG 有效 (低) · Q_ENVC 关 · EN_VCORE 被上拉为高 · V_CORE 使能 ⇒ **顺序链**; PG |
-| GND | Q_ENVC | GND | Q_ENVC | [待选型] N-MOS (反相) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [PG_VIO] Q_ENVC 源极接地 |
-| EN_VCORE | Q_ENVC | R_EN_VCORE | Q_ENVC | [待选型] N-MOS (反相) | SW | 必装 | MAIN_PCB | [推算] | TBD-12 | [EN_VCORE] Q_ENVC 漏极 = EN_VCORE (把 EN 拉低 = 不使能) |
+| PG_AND | Q_ENVC | U_DCDC_VIO pin4 | Q_ENVC | AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V) | SW | DNP | MAIN_PCB | [官方] | TBD-12 | [PG_VIO] ★V1.8: V_SOC_IO 的 PG 有效 (低) · Q_ENVC 关 · EN_VCORE 被上拉为高 · V_CORE 使能 ⇒ **顺序链**; PG |
+| GND | Q_ENVC | GND | Q_ENVC | AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V) | SW | 必装 | MAIN_PCB | [官方] | TBD-12 | [PG_VIO] Q_ENVC 源极接地 |
+| EN_VCORE | Q_ENVC | R_EN_VCORE | Q_ENVC | AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V) | SW | 必装 | MAIN_PCB | [官方] | TBD-12 | [EN_VCORE] Q_ENVC 漏极 = EN_VCORE (把 EN 拉低 = 不使能) |
 | EN_VIO | U_DCDC_VIO pin13 | NET_PWR_ON | U_DCDC_VIO | EN 输入 (高 = 使能) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-12 | [EN_VIO] ★V1.8: V_SOC_IO buck 的 EN **直接由 PWR_ON 开机节点驱动** (它是上电第一路; PG 极性/EN 极性待原厂核) |
 | SUPV_CT | U_SUPV pin4 | RAIL_VDD_1V8_IO | U_SUPV | CT 脚 (阈值/延时选择) | NET | DNP | MAIN_PCB | [待原厂] | TBD-12 | [U_SUPV] ★DNP: ★SoM 内部 PMIC 已做上电复位 (Forlinx 官方载板复位电路 = 按键+100nF+ESD, 无监督器) ⇒ 主板不装监督器 / [SU |
 | XTAL_IN | SoC_NC | X1 | NET_XTAL_IN | 12pF | NET | DNP | MAIN_PCB | [同Die参考-待官方确认] | TBD-12 | 时钟: 外部晶振位 (XTAL_IN); 参考版**同时**给 内部RC(不装) 与 外部晶振(焊盘位+2×12pF, 不装) 两套 |
@@ -599,9 +599,9 @@
 | FSIN_OUT | R_SER_FSIN | TP_FSIN | R_SER_FSIN | 50Ω ±1% | R | 必装 | MAIN_PCB | [推算] | TBD-13 | [FSIN_OUT] FSIN 引出串阻 (50Ω 源端匹配) |
 | PG_AND | U_DCDC_VCORE pin4 | TP_PG_VCORE | TP_PG_VCORE | PG (开漏, 需上拉) | TP | 必装 | MAIN_PCB | [官方] | TBD-12 | [PG_AND] V_CORE 轨 PG 状态引出 (开漏; ★两路 PG 并联成一个 wired-AND 节点 ⇒ 测试点挂公共网) |
 | PG_AND | U_DCDC_VIO pin4 | TP_PG_VIO | TP_PG_VIO | PG (开漏, 需上拉) | TP | 必装 | MAIN_PCB | [官方] | TBD-12 | [PG_AND] V_SOC_IO 轨 PG 状态引出 (开漏; 同上, 与 V_CORE 的 PG 并联) |
-| V_SOC_IO | RAIL_V_SOC_IO | R_SUPV_DIV1 | R_SUPV_DIV1 | [待选型] 分压上臂 (0Ω 跳线位) | R | 必装 | MAIN_PCB | [推算] | TBD-02 | [SUPV_SENSE] ★V1.1: 电压监控分压 (把 V_SOC_IO 的实际电压映射到监控芯片窗口) · **原厂电压定了只改两颗电阻, 不改板** (ISS-082 的正 |
-| SUPV_SENSE | R_SUPV_DIV1 | R_SUPV_DIV2 | R_SUPV_DIV2 | [待选型] 分压下臂 (0Ω 跳线位) | R | 必装 | MAIN_PCB | [推算] | TBD-02 | [SUPV_SENSE] 分压下臂 (到地) |
-| GND | R_SUPV_DIV2 | GND | R_SUPV_DIV2 | [待选型] 分压下臂 (0Ω 跳线位) | R | 必装 | MAIN_PCB | [推算] | TBD-02 | [SUPV_SENSE] 分压下臂 地端 |
+| V_SOC_IO | RAIL_V_SOC_IO | R_SUPV_DIV1 | R_SUPV_DIV1 | 0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板 | R | 必装 | MAIN_PCB | [官方] | TBD-02 | [SUPV_SENSE] ★V1.1: 电压监控分压 (把 V_SOC_IO 的实际电压映射到监控芯片窗口) · **原厂电压定了只改两颗电阻, 不改板** (ISS-082 的正 |
+| SUPV_SENSE | R_SUPV_DIV1 | R_SUPV_DIV2 | R_SUPV_DIV2 | 0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板 | R | 必装 | MAIN_PCB | [官方] | TBD-02 | [SUPV_SENSE] 分压下臂 (到地) |
+| GND | R_SUPV_DIV2 | GND | R_SUPV_DIV2 | 0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板 | R | 必装 | MAIN_PCB | [官方] | TBD-02 | [SUPV_SENSE] 分压下臂 地端 |
 | VDD_1V8_IO | U_SUPV pin6 | RAIL_VDD_1V8_IO | U_SUPV | [待选型] 电压监控 + 复位 (TPS3808G01 类) | IC | DNP | MAIN_PCB | [推算] | TBD-12 | [U_SUPV] ★DNP: ★SoM 内部 PMIC 已做上电复位 (Forlinx 官方载板复位电路 = 按键+100nF+ESD, 无监督器) ⇒ 主板不装监督器 / [VD |
 | SUPV_SENSE | U_SUPV pin5 | U_SUPV | U_SUPV | [待选型] 电压监控 + 复位 (TPS3808G01 类) | IC | DNP | MAIN_PCB | [推算] | TBD-02 | [U_SUPV] ★DNP: ★SoM 内部 PMIC 已做上电复位 (Forlinx 官方载板复位电路 = 按键+100nF+ESD, 无监督器) ⇒ 主板不装监督器 / [SU |
 | RESET_N | U_SUPV pin1 | NET_RESET_N | U_SUPV | 开漏释放 | IC | DNP | MAIN_PCB | [推算] | TBD-12 | [U_SUPV] ★DNP: ★SoM 内部 PMIC 已做上电复位 (Forlinx 官方载板复位电路 = 按键+100nF+ESD, 无监督器) ⇒ 主板不装监督器 / [RE |
@@ -634,11 +634,11 @@
 ### 器件表 (8 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| GND | D_ESD_TC | GND | D_ESD_TC | ESD 阵列 [待选型] | D | 必装 | CHG_BOARD | [推算] |  | [GND] ★V1.4 补: Type-C 入口 ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 · ESD 不工作) |
-| GND | D_ESD_CAM | GND | D_ESD_CAM | ESD 阵列 [待选型] | D | 必装 | MAIN_PCB | [推算] |  | [GND] ★V1.4 补: 跨铰链 CSI ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 · ESD 不工作) |
+| GND | D_ESD_TC | GND | D_ESD_TC | SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚) | D | 必装 | CHG_BOARD | [实测] |  | [GND] ★V1.4 补: Type-C 入口 ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 · ESD 不工作) |
+| GND | D_ESD_CAM | GND | D_ESD_CAM | TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) | D | 必装 | MAIN_PCB | [官方] |  | [GND] ★V1.4 补: 跨铰链 CSI ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 · ESD 不工作) |
 | HINGE_CHG | J_CHG | J_CHG | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | [INVENTORY] [HINGE_CHG] 通道 1/4 **充电电流 + 状态回读** (★V1.2 改: 电池在镜脚 ⇒ 跨铰链的是**充电电流 1.0-1.5A**, * |
-| CSI_D0_CK_P | CONN_CAM pin18 | D_ESD_CAM | D_ESD_CAM | ESD 阵列 [待选型] (多通道 CSI) | D | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_CK_P] ★跨铰链 CSI 主板侧 ESD 阵列位 (紧贴 CONN_CAM); 通道数随 lane 数定 |
-| GND | D_ESD_CAM | GND | D_ESD_CAM | ESD 阵列 [待选型] | D | 必装 | MAIN_PCB | [推算] | TBD-03 | [CSI_D0_CK_P] CSI ESD 地端 |
+| CSI_D0_CK_P | CONN_CAM pin18 | D_ESD_CAM | D_ESD_CAM | TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) | D | 必装 | MAIN_PCB | [官方] | TBD-03 | [CSI_D0_CK_P] ★跨铰链 CSI 主板侧 ESD 阵列位 (紧贴 CONN_CAM); 通道数随 lane 数定 |
+| GND | D_ESD_CAM | GND | D_ESD_CAM | TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) | D | 必装 | MAIN_PCB | [官方] | TBD-03 | [CSI_D0_CK_P] CSI ESD 地端 |
 | GND | CHG_GND_STAR | GND | CHG_GND_STAR | 单点汇流位 | CONN | 必装 | MAIN_PCB | [推算] |  | [GND] ★跨铰链回流要求: 柔性段的 GND 必须走**连续参考面**(不能细线), 两端各留 ≥2 个 GND pin; 单点汇流位置由结构总工定 (ISS-065) |
 | BAT_CHG | J_CHG pin1 | TP_BAT_CHG | TP_BAT_CHG | 跨铰链段压降测点 | TP | 必装 | MAIN_PCB | [推算] |  | [BAT_CHG] ★跨铰链充电电流段: 双 pin 并联载流 + 压降/发热核算 (1.5A × 接触电阻); **充电路径上不装 π 滤波** (会破坏 BQ25896 环路稳 |
 | NC | J_CHG pin7 | NC | J_CHG | 预留 (NC) | NET | DNP | HINGE | [推算] |  | [NC] ★2026-11-04: J_CHG pin7 原走跨铰链 VBUS_DET ⇒ demo 板改本地分压 ⇒ 本脚预留不接 |
@@ -712,16 +712,16 @@
 | PGND | R_STAR_PGND | U_CHG pin17+pin18 | R_STAR_PGND | 0Ω / 铜皮短接 (PGND 单点星接) | R | 必装 | CHG_BOARD | [官方] |  | ★PGND 与 GND 的单点汇流位 (datasheet: 'A single point connection is recommended between power PGN |
 | GND | R_STAR_PGND | J_TYPE_C A1 | R_STAR_PGND | 0Ω / 铜皮短接 (PGND 单点星接) | R | 必装 | CHG_BOARD | [官方] |  | 星接位的 GND 端 (充电板地 = Type-C GND 四脚 + J_CHG pin3/pin4 回流) ★裁决 (PM): **必装** (DNP 会让 PGND 整个悬空  |
 | NC | U_CHG pin24 | NC | U_CHG | BQ25896 | IC | DNP | CHG_BOARD | [官方] |  | pin24 NC (datasheet: No Connect); 全 24 脚对照: 1 VBUS / 2 PSEL / 3 PG / 4 STAT / 5 SCL / 6 SD |
-| VBUS_5V | D_TVS_VBUS | J_TYPE_C A4 | D_TVS_VBUS | 5V 级单向 TVS [待选型] | D | 必装 | CHG_BOARD | [推算] |  | ⚠️ 待裁决: 规格 §4.3 提到但 §7 连接清单未列的件 (插线尖峰 TVS: VRWM ≥5.0V, 钳位电压 < BQ25896 绝对最大 22V); 位置紧靠 Type |
-| GND | D_TVS_VBUS | J_TYPE_C A1 | D_TVS_VBUS | 5V 级单向 TVS [待选型] | D | 必装 | CHG_BOARD | [推算] |  | TVS 地端 (与座侧 GND 同网) ★裁决 (PM): **必装** (Type-C 入口 TVS 是标配); VRWM 5-6V 档, **脉冲电流额定 ≥3A** (PD  |
+| VBUS_5V | D_TVS_VBUS | J_TYPE_C A4 | D_TVS_VBUS | SMBJ5.0A (Littelfuse 单向 TVS · SMB · VRWM 5.0V · Vc 9.2V@65.3A · 600W) | D | 必装 | CHG_BOARD | [官方] |  | ⚠️ 待裁决: 规格 §4.3 提到但 §7 连接清单未列的件 (插线尖峰 TVS: VRWM ≥5.0V, 钳位电压 < BQ25896 绝对最大 22V); 位置紧靠 Type |
+| GND | D_TVS_VBUS | J_TYPE_C A1 | D_TVS_VBUS | SMBJ5.0A (Littelfuse 单向 TVS · SMB · VRWM 5.0V · Vc 9.2V@65.3A · 600W) | D | 必装 | CHG_BOARD | [官方] |  | TVS 地端 (与座侧 GND 同网) ★裁决 (PM): **必装** (Type-C 入口 TVS 是标配); VRWM 5-6V 档, **脉冲电流额定 ≥3A** (PD  |
 | TS_BAT | TP_TS | U_CHG pin11 | TP_TS | 测试点 | TP | 必装 | CHG_BOARD | [推算] |  | TS 电压测点 (调 TS 分压 / 验证 NTC 跨铰链通断): 0°C 应读 ~3.663V (73.25% REGN), 60°C 应读 ~1.719V (34.375% R |
 | VBUS_5V_CHG | R_CHG_LED | U_CHG pin1 | R_CHG_LED | 1k ±1% (按 LED Vf 定) | R | 必装 | CHG_BOARD | [推算] |  | ★V1.9 充电灯 (老板 10-28 拍板『关机时充电灯要亮』): 电阻把 **VBUS 供电** 接到 LED 阳极 —— 关机插电时 VBUS 有电而 SoC 已断电 ⇒ 灯 |
 | LED_CHG_A | R_CHG_LED | D_CHG_LED | R_CHG_LED | 1k ±1% (按 LED Vf 定) | R | 必装 | CHG_BOARD | [推算] |  | [LED_CHG_A] 限流电阻的 LED 侧 (与 LED 阳极同网) |
 | LED_CHG_A | D_CHG_LED | D_CHG_LED | D_CHG_LED | LED (待选型, 充电板侧) | LED | 必装 | CHG_BOARD | [推算] |  | [LED_CHG_A] ★充电灯阳极; 装在**充电板 (镜框) 靠近 Type-C 座**的位置 → 用户插线时可见 (结构需开导光孔, 见 ISS-103) |
 | CHG_LED_K | D_CHG_LED | Q_CHG_LED | D_CHG_LED | LED (待选型, 充电板侧) | LED | 必装 | CHG_BOARD | [推算] |  | [CHG_LED_K] 充电灯阴极 (与 Q_CHG_LED 漏极同网) |
-| CHG_LED_K | Q_CHG_LED | Q_CHG_LED | Q_CHG_LED | [待选型] N-MOS | SW | 必装 | CHG_BOARD | [推算] |  | [CHG_LED_K] ★充电灯的本地开关管: 漏极 = LED 阴极, 源极 = GND, 栅极 = 本地 STAT; 充电中 (STAT 低) → 导通 → 灯亮; 完成/禁用 |
-| GND | Q_CHG_LED | GND | Q_CHG_LED | [待选型] N-MOS | SW | 必装 | CHG_BOARD | [推算] |  | [CHG_LED_K] Q_CHG_LED 源极接地 |
-| CHG_STAT | Q_CHG_LED | U_CHG pin4 | Q_CHG_LED | [待选型] N-MOS | SW | 必装 | CHG_BOARD | [推算] |  | [CHG_STAT] ★2026-11-03 09:5x 订正: BQ25896 的 STAT (pin4) 是**单个开漏输出**, 不能同时挂两个网 ⇒ 充电板本地 LED 栅 |
+| CHG_LED_K | Q_CHG_LED | Q_CHG_LED | Q_CHG_LED | 2N7002 (onsemi N-MOS SOT-23 · VGS(th) max 2.0V · IGSS ≤10nA) | SW | 必装 | CHG_BOARD | [官方] |  | [CHG_LED_K] ★充电灯的本地开关管: 漏极 = LED 阴极, 源极 = GND, 栅极 = 本地 STAT; 充电中 (STAT 低) → 导通 → 灯亮; 完成/禁用 |
+| GND | Q_CHG_LED | GND | Q_CHG_LED | 2N7002 (onsemi N-MOS SOT-23 · VGS(th) max 2.0V · IGSS ≤10nA) | SW | 必装 | CHG_BOARD | [官方] |  | [CHG_LED_K] Q_CHG_LED 源极接地 |
+| CHG_STAT | Q_CHG_LED | U_CHG pin4 | Q_CHG_LED | 2N7002 (onsemi N-MOS SOT-23 · VGS(th) max 2.0V · IGSS ≤10nA) | SW | 必装 | CHG_BOARD | [官方] |  | [CHG_STAT] ★2026-11-03 09:5x 订正: BQ25896 的 STAT (pin4) 是**单个开漏输出**, 不能同时挂两个网 ⇒ 充电板本地 LED 栅 |
 
 ---
 

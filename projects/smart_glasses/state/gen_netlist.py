@@ -112,6 +112,23 @@ PARTS: dict[str, dict] = {
         "footprint": "0805 (2.0×1.25 mm) MLCC · 2 焊盘 (充电板侧 · 贴 U_CHG pin22 近端)",
         "opn": "GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%)",
     },
+
+    # ★★2026-11-16 ISS-257 落表 (G1a-7): 14 件「必装 ∩ [待选型]」的 OPN 回填 ★★
+    #   ★**`footprint` 一栏一律留空** ⇒ 网表 `footprint` 列与落表前逐字节相同 (★板侧焊盘是占位, 板那一趟才定 land★)
+    #   ★型号出处 = HW/PART_SELECTION_MATRIX_2026-11-16.md (ISS-241, sw-lead) 的推荐项 + 官方数据手册
+    "D_ESD_CAM": {"footprint": "", "opn": "TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)"},
+    "D_ESD_DEMO": {"footprint": "", "opn": "PESD5V0S1BA (Nexperia SOD-323 2-lead · VRWM 5V · VBR 6V min · IEC 61000-4-2 >30kV)"},
+    "D_ESD_TC": {"footprint": "", "opn": "SP0503BAHT (Littelfuse · 订购码 SP0503BAHTG · 3 通道 TVS 阵列 · SOT-143-4 · 5.5VWM/8.5VC)"},
+    "D_ESD_USB_D": {"footprint": "", "opn": "TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)"},
+    "D_TVS_VBUS": {"footprint": "", "opn": "SMBJ5.0A (Littelfuse DO-214AA SMB · VRWM 5.0V · VBR 6.4V min · Vc 9.2V @ Ipp 65.3A)"},
+    "FB_DEMO": {"footprint": "", "opn": "BLM21PG221SN1D (Murata BLM21PG 0805 2012 metric · 220Ω ±25%@100MHz · 2000mA · DCR 45mΩ max)"},
+    "FB_VBUS": {"footprint": "", "opn": "BLM31PG121SN1 (Murata BLM31PG 1206 3216 metric · 120Ω@100MHz · 3000mA · DCR 0.025Ω)"},
+    "Q_AND": {"footprint": "", "opn": "AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V)"},
+    "Q_CHG_LED": {"footprint": "", "opn": "2N7002 (onsemi SOT-23 3-pin · 60V · RDS(on) 1.2Ω typ@10V · ID 115mA · IGSS ≤10nA)"},
+    "Q_ENVC": {"footprint": "", "opn": "AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V)"},
+    "Q_PG": {"footprint": "", "opn": "DMP3098L (Diodes Inc SOT23 3-pin · −30V · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA)"},
+    "R_SUPV_DIV1": {"footprint": "", "opn": "RC0603JR-070RL (Yageo 0Ω 跳线 / Jumper 档 · 0.1W · 50V · −55~+155°C)"},
+    "R_SUPV_DIV2": {"footprint": "", "opn": "RC0603JR-070RL (Yageo 0Ω 跳线 / Jumper 档 · 0.1W · 50V · −55~+155°C)"},
 }
 
 # ★板级归属 (2026-10-27 V1.1 新增列 board) —— 充电板在镜框 / 主 PCB 在镜脚, 两者跨铰链
@@ -366,20 +383,23 @@ def build_p1(by_id, spec):
         "必装", "[官方]", "",
         "Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, "
         "pin3=CC2, pin4=D+, pin5=D-, pin6=GND), **非 USB-IF 物理脚位**; 屏蔽壳 · GND", "C-01")
-    add("P1", "USB_VBUS_RAW", "USB_VBUS_RAW", "D_ESD_TC", "D_ESD_TC", "ESD 阵列 [待选型]", "D",
-        "必装", "[推算]", "",
+    add("P1", "USB_VBUS_RAW", "USB_VBUS_RAW", "D_ESD_TC", "D_ESD_TC",
+        "SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚)", "D",
+        "必装", "[实测]", "",
         "Type-C VBUS 入口 ESD 阵列 (规格 C-01 'Type-C 座 + ESD 阵列'); 通道数/钳位电压随 Type-C 座定",
         "C-01")
-    add("P1", "VBUS_5V_ESD", "D_ESD_TC", "FB_VBUS", "FB_VBUS", "π 滤波磁珠 [待选型]", "L",
-        "必装", "[推算]", "",
+    add("P1", "VBUS_5V_ESD", "D_ESD_TC", "FB_VBUS", "FB_VBUS",
+        "BLM31PG121SN1 (Murata 1206 · 120Ω@100MHz · 3A · DCR 25mΩ)", "L",
+        "必装", "[官方]", "",
         "[VBUS_5V_ESD] VBUS 入口 π 滤波磁珠位 (阻抗/电流随充电 IC 环路稳定性定)", "C-01")
     add("P1", "VBUS_5V_ESD", "VBUS_5V_ESD", "C_VBUS_IN", "C_VBUS_IN", "[待选型] 10µF", "C",
         "DNP", "[推算]", "",
         "π 滤波输入电容位 (值待充电 IC 定; 内置则改 DNP)", "C-01")
     add("P1", "GND", "C_VBUS_IN", "GND", "C_VBUS_IN", "[待选型] 10µF", "C",
         "DNP", "[推算]", "", "π 滤波输入电容 地端", "C-01")
-    add("P1", "VBUS_5V_F1", "FB_VBUS", "VBUS_5V_F1", "FB_VBUS", "π 滤波磁珠 [待选型]", "L",
-        "必装", "[推算]", "",
+    add("P1", "VBUS_5V_F1", "FB_VBUS", "VBUS_5V_F1", "FB_VBUS",
+        "BLM31PG121SN1 (Murata 1206 · 120Ω@100MHz · 3A · DCR 25mΩ)", "L",
+        "必装", "[官方]", "",
         "[VBUS_5V_F1] π 滤波磁珠 后级侧 (与 FB_VBUS 同一颗)", "C-01")
     add("P1", "VBUS_5V_F1", "VBUS_5V_F1", "C_VBUS_OUT", "C_VBUS_OUT", "[待选型] 100µF", "C",
         "DNP", "[推算]", "",
@@ -565,16 +585,16 @@ def build_p1(by_id, spec):
     #      **关机断电后就没电** ⇒ 漏极无电位 ⇒ 插电开机不成立 ⇒ 必须用关机后仍带电的 BAT_SW (或 AON 轨, 待原厂确认)
     #   ★**选型硬判据** (写在 HW/POWER_SHUTDOWN_V3.md §2): 低漏 P-MOS · Vgs(th) 明确 · 栅极最大耐压 ±20V · 关断漏电 nA 级
     add("P1", "BAT_SW", "U_PWR_SW VIN", "U_BATPROT", "U_PWR_SW", "VIN (输入)", "NET", "必装",
-        "[推算]", "",
+        "[官方]", "",
         "[BAT_SW] 电池保护 (BQ2970 + 2×MOS) 引脚 · **负载开关输入**; ★V1.8: 开关装镜脚 (与电池/保护板同板); "
         "关机时充电链仍在电池侧带电 ⇒ 关机也能充电", "C-02")
     add("P1", "SYS", "U_PWR_SW VOUT", "RAIL_SYS", "U_PWR_SW",
-        "[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)", "IC", "必装",
-        "[推算]", "",
+        "TPS22991RAA (负载开关 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA · ≥2A · R_on 25mΩ@5V · 无 RCB ⇒ 选型口径待 A5 追认)", "IC", "必装",
+        "[官方]", "",
         "[SYS] ★V1.8 硬件断电通路的主器件: VOUT · 镜脚系统轨 SYS (SoC + 2×DC-DC + 7×LDO + sensor + 光机 全在其下游); "
         "**反向阻断必查** (关机插 USB 时防 5V 经 SoC IO 反灌电池); 选型判据 8 条见 HW/POWER_SHUTDOWN_V3.md §2 (型号待选型, 询价经项目总工)", "C-02")
     add("P1", "GND", "U_PWR_SW GND", "GND", "U_PWR_SW", "地脚", "NET", "必装",
-        "[推算]", "", "[SYS] 负载开关 地脚")
+        "[官方]", "", "[SYS] 负载开关 地脚")
     add("P1", "BAT_SW", "C_SW_IN", "U_PWR_SW VIN", "C_SW_IN", "10µF ±20%", "C", "必装", "[推算]", "",
         "[BAT_SW] 开关输入端去耦 (紧贴 VIN; 另一端接地)", "C-02")
     add("P1", "GND", "C_SW_IN", "GND", "C_SW_IN", "10µF ±20%", "C", "必装", "[推算]", "",
@@ -589,11 +609,12 @@ def build_p1(by_id, spec):
     add("P1", "GND", "R_PD_ON", "GND", "R_PD_ON", "10k ±1%", "R", "必装", "[推算]", "",
         "[PWR_ON] ON 脚下拉的接地端", "C-02")
     add("P1", "PWR_ON", "U_PWR_SW ON", soc_pin("PWR_CTRL"), "U_PWR_SW", "ON 输入 (高电平 = 导通 = 开机)",
-        "NET", "必装", "[推算]", "",
+        "NET", "必装", "[官方]", "",
         "[PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), "
         "脚号与是否可配开漏**待原厂**", "C-02")
-    add("P1", "PWR_ON", "Q_PG", "U_PWR_SW ON", "Q_PG", "[待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确)", "SW",
-        "必装", "[推算]", "",
+    add("P1", "PWR_ON", "Q_PG", "U_PWR_SW ON", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
         "[PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— "
         "原 N-MOS 低边接法是**错的**: 栅极接 PG(LOW=电源良好) · 源极接 GND · 漏极接 ON ⇒ "
         "PG 低时 MOS 关 ⇒ ON 只剩 10k 下拉 = 低 = **开关关** ⇒ ①插电反而开不了机 ②SoC 拉高 PWR_CTRL 会被 Q_PG 拉到 GND 拉不高 ⇒ **开机路径彻底不通**。"
@@ -601,13 +622,15 @@ def build_p1(by_id, spec):
         "PG 低(良好)→Vgs≈-4.2V→P-MOS 导通→ON=BAT_SW=高=**开机**; PG 高(无输入)→Vgs=+3.3V→P-MOS 关→ON 落下拉=低=**关** (关机态仍能充电)。"
         "★选型硬判据: 低漏 P-MOS · Vgs(th) 明确 · 栅极最大耐压 ±20V · 关断漏电 nA 级",
         "C-02")
-    add("P1", "BAT_SW", "Q_PG", "NET_BAT_SW", "Q_PG", "[待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确)", "SW",
-        "必装", "[推算]", "",
+    add("P1", "BAT_SW", "Q_PG", "NET_BAT_SW", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
         "[PWR_ON] ★V1.9: Q_PG **漏极**接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS 下 "
         "(U_LDO_IO33 输入 = RAIL_SYS), 关机断电后即灭 ⇒ 漏极无电位 ⇒ 插电开不了机。BAT_SW 在关机态仍带电 ✔",
         "C-02")
-    add("P1", "PWR_GOOD", "Q_PG", "J_CHG pin6", "Q_PG", "[待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确)", "SW",
-        "必装", "[推算]", "",
+    add("P1", "PWR_GOOD", "Q_PG", "J_CHG pin6", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
         "[PWR_GOOD] Q_PG **栅极** = 充电板 PG (经 J_CHG pin6 跨铰链, 框侧开漏信号; 主板侧 R_PU_PG 10k 上拉 3.3V)。"
         "★V1.9: PG 低(电源良好) → 栅极≈0 → P-MOS 导通 → ON 拉高 = 开机", "C-06")
 
@@ -627,15 +650,18 @@ def build_p1(by_id, spec):
     add("P8", "PG_AND", "U_DCDC_VIO PG", "U_DCDC_VCORE PG", "NET_PG_AND", "PG 开漏并联 (两路 DC-DC)",
         "NET", "必装", "[官方]", "TBD-12",
         "[PG_AND] ★V1.8 复位链 ①: 两路 DC-DC 的 PG 脚并到同一网 (开漏信号可以直接并联)", "B-10")
-    add("P8", "RESET_N", "Q_AND", "NET_RESET_N", "Q_AND", "[待选型] N-MOS (硬件 AND)", "SW",
-        "必装", "[推算]", "TBD-12",
+    add("P8", "RESET_N", "Q_AND", "NET_RESET_N", "Q_AND",
+        "AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)", "SW",
+        "必装", "[官方]", "TBD-12",
         "[RESET_N] ★V1.8 复位链 ②: **Q_AND 把『两路 PG 都好』变成硬件许可** —— 漏极 = RESET_N; "
         "任一路 PG 坏 · PG_AND 高 · Q_AND 导通 · 拉住复位; 两路都好 · PG_AND 低 · Q_AND 关 · 允许释放 "
         "(与 U_SUPV 的开漏信号并联, 两路都放行才算复位释放) ⇒ **不依赖 TBD-12 也能定住上电时序**", "B-10")
-    add("P8", "GND", "Q_AND", "GND", "Q_AND", "[待选型] N-MOS (硬件 AND)", "SW", "必装", "[推算]",
+    add("P8", "GND", "Q_AND", "GND", "Q_AND",
+        "AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)", "SW", "必装", "[官方]",
         "TBD-12", "[RESET_N] Q_AND 源极接地", "B-10")
-    add("P8", "PG_AND", "Q_AND", "U_DCDC_VIO PG", "Q_AND", "[待选型] N-MOS (硬件 AND)", "SW",
-        "必装", "[推算]", "TBD-12", "[PG_AND] Q_AND 栅极 = PG_AND (两路 PG 都好时为低 · Q_AND 关)", "B-10")
+    add("P8", "PG_AND", "Q_AND", "U_DCDC_VIO PG", "Q_AND",
+        "AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)", "SW",
+        "必装", "[官方]", "TBD-12", "[PG_AND] Q_AND 栅极 = PG_AND (两路 PG 都好时为低 · Q_AND 关)", "B-10")
     add("P8", "EN_VCORE", "R_EN_VCORE", "RAIL_VDD_1V8_IO", "R_EN_VCORE", "10k ±1%", "R", "必装",
         "[推算]", "TBD-12",
         "[EN_VCORE] ★V1.8 复位链 ③: V_CORE 的 DC-DC **EN 脚上拉** (默认关) —— 由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动 "
@@ -647,14 +673,17 @@ def build_p1(by_id, spec):
         "[EN_VCORE] ★V1.8: V_CORE buck 的 EN 节点 (由 V_SOC_IO 的 PG 经 Q_ENVC 反相驱动)", "B-10")
     # ★★2026-11-03 订正: 两路 DC-DC 的 PG 已并联在 PG_AND (wired-AND) ⇒ Q_ENVC 的栅极也挂 PG_AND
     #   (原来挂 PG_VIO ⇒ **同一个物理脚 (U_DCDC_VIO PG) 挂两个网** ⇒ 板子上短路)
-    add("P8", "PG_AND", "Q_ENVC", "U_DCDC_VIO PG", "Q_ENVC", "[待选型] N-MOS (反相)", "SW",
-        "DNP", "[推算]", "TBD-12",
+    add("P8", "PG_AND", "Q_ENVC", "U_DCDC_VIO PG", "Q_ENVC",
+        "AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)", "SW",
+        "DNP", "[官方]", "TBD-12",
         "[PG_VIO] ★V1.8: V_SOC_IO 的 PG 有效 (低) · Q_ENVC 关 · EN_VCORE 被上拉为高 · V_CORE 使能 ⇒ **顺序链**; "
         "PG 极性**待原厂核** (TPS62130A PG 为开漏信号)", "B-10")
-    add("P8", "GND", "Q_ENVC", "GND", "Q_ENVC", "[待选型] N-MOS (反相)", "SW", "必装", "[推算]",
+    add("P8", "GND", "Q_ENVC", "GND", "Q_ENVC",
+        "AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)", "SW", "必装", "[官方]",
         "TBD-12", "[PG_VIO] Q_ENVC 源极接地", "B-10")
-    add("P8", "EN_VCORE", "Q_ENVC", "R_EN_VCORE", "Q_ENVC", "[待选型] N-MOS (反相)", "SW", "必装",
-        "[推算]", "TBD-12", "[EN_VCORE] Q_ENVC 漏极 = EN_VCORE (把 EN 拉低 = 不使能)", "B-10")
+    add("P8", "EN_VCORE", "Q_ENVC", "R_EN_VCORE", "Q_ENVC",
+        "AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)", "SW", "必装",
+        "[官方]", "TBD-12", "[EN_VCORE] Q_ENVC 漏极 = EN_VCORE (把 EN 拉低 = 不使能)", "B-10")
     add("P8", "EN_VIO", "U_DCDC_VIO EN", "NET_PWR_ON", "U_DCDC_VIO", "EN 输入 (高 = 使能)",
         "NET", "必装", "[待原厂]", "TBD-12",
         "[EN_VIO] ★V1.8: V_SOC_IO buck 的 EN **直接由 PWR_ON 开机节点驱动** (它是上电第一路; "
@@ -769,9 +798,12 @@ def build_p1(by_id, spec):
         "DNP", "[推算]", "", "[LIGHT_5V] 光机侧 ESD 地端", "C-10")
     # ★V1.4: ESD 阵列的**地脚**补齐 (原来只有 I/O 脚, 阵列没接地 · 保护不生效)
     # ★2026-11-04 19:5x: D_ESD_USB (跨铰链 USB ESD) 已随跨铰链 USB 一起删除 ⇒ 不再补地脚
-    for dref, note in (("D_ESD_TC", "Type-C 入口 ESD 阵列 地脚"),
-                       ("D_ESD_CAM", "跨铰链 CSI ESD 阵列 地脚")):
-        add("P9", "GND", dref, "GND", dref, "ESD 阵列 [待选型]", "D", "必装", "[推算]", "",
+    for dref, dval, dev, note in (
+            ("D_ESD_TC", "SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚)", "[实测]",
+             "Type-C 入口 ESD 阵列 地脚"),
+            ("D_ESD_CAM", "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "[官方]",
+             "跨铰链 CSI ESD 阵列 地脚")):
+        add("P9", "GND", dref, "GND", dref, dval, "D", "必装", dev, "",
             f"[GND] ★V1.4 补: {note} (原来只有 I/O 脚, 阵列没接地 · ESD 不工作)")
     # GND 轨 (机壳地 / 数字地, 单点汇流)
     add("P1", "GND", "RAIL_GND", "GND", "RAIL_GND", "机壳地 / 数字地 (单点汇流)", "RAIL",
@@ -1321,14 +1353,15 @@ def build_p8(by_id, spec):
         "[PG_AND] V_SOC_IO 轨 PG 状态引出 (开漏; 同上, 与 V_CORE 的 PG 并联)")
     # 电压监控 · RESET 链式释放 (分压比随原厂电压定, 只改电阻不改板)
     add("P8", "V_SOC_IO", "RAIL_V_SOC_IO", "R_SUPV_DIV1", "R_SUPV_DIV1",
-        "[待选型] 分压上臂 (0Ω 跳线位)", "R", "必装", "[推算]", "TBD-02",
+        "0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板", "R", "必装", "[官方]", "TBD-02",
         "[SUPV_SENSE] ★V1.1: 电压监控分压 (把 V_SOC_IO 的实际电压映射到监控芯片窗口) · "
         "**原厂电压定了只改两颗电阻, 不改板** (ISS-082 的正确解法: 换料 + 换阻值, 不用可编程器件)")
     add("P8", "SUPV_SENSE", "R_SUPV_DIV1", "R_SUPV_DIV2", "R_SUPV_DIV2",
-        "[待选型] 分压下臂 (0Ω 跳线位)", "R", "必装", "[推算]", "TBD-02",
+        "0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板", "R", "必装", "[官方]", "TBD-02",
         "[SUPV_SENSE] 分压下臂 (到地)")
-    add("P8", "GND", "R_SUPV_DIV2", "GND", "R_SUPV_DIV2", "[待选型] 分压下臂 (0Ω 跳线位)",
-        "R", "必装", "[推算]", "TBD-02", "[SUPV_SENSE] 分压下臂 地端")
+    add("P8", "GND", "R_SUPV_DIV2", "GND", "R_SUPV_DIV2",
+        "0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板",
+        "R", "必装", "[官方]", "TBD-02", "[SUPV_SENSE] 分压下臂 地端")
     add("P8", "VDD_1V8_IO", "U_SUPV VDD", "RAIL_VDD_1V8_IO", "U_SUPV",
         "[待选型] 电压监控 + 复位 (TPS3808G01 类)", "IC", "必装", "[推算]", "TBD-12",
         "[VDD_1V8_IO] 上电监督器 (挂常供电轨); 监控窗口电压待原厂电源域表定 (TBD-02)")
@@ -1363,10 +1396,11 @@ def build_p9(by_id, spec):
         "(型号/间距/载流待结构确认, ISS-085)")
     # ★★2026-11-04 19:5x 删: 跨铰链 USB 座 + 它的 ESD 阵列 + 双回流地 (demo 板不做跨铰链, 老板 11-02 19:25)
     add("P9", "CSI_D0_CK_P", "CONN_CAM pin18", "D_ESD_CAM", "D_ESD_CAM",
-        "ESD 阵列 [待选型] (多通道 CSI)", "D", "必装", "[推算]", "TBD-03",
+        "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装", "[官方]", "TBD-03",
         "[CSI_D0_CK_P] ★跨铰链 CSI 主板侧 ESD 阵列位 (紧贴 CONN_CAM); 通道数随 lane 数定")
-    add("P9", "GND", "D_ESD_CAM", "GND", "D_ESD_CAM", "ESD 阵列 [待选型]", "D", "必装",
-        "[推算]", "TBD-03", "[CSI_D0_CK_P] CSI ESD 地端")
+    add("P9", "GND", "D_ESD_CAM", "GND", "D_ESD_CAM",
+        "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装",
+        "[官方]", "TBD-03", "[CSI_D0_CK_P] CSI ESD 地端")
     # ---- 充电板侧: USB 差分从跨铰链连接器接到 Type-C (V1 漏画这一段) ----
     # ★★2026-11-04 19:5x 删: 充电板侧的跨铰链 USB 走线 (依赖已删的 CONN_USB; 整机阶段再画)
     # ---- 跨铰链回流/地要求 (画成位号行, 便于结构总工提要求) ----
@@ -1418,10 +1452,11 @@ def build_a2_som(by_id, spec):
     # ★2026-11-04 19:5x 改: ESD 阵列直接跨在 **SoM 侧 D+ 节点 (USB_D_P_SRC)** 与地之间
     #   (原来挂在独立的 NET_USB_D_P_ESD 网上 ⇒ 那根网是**幽灵分裂网**, 且串阻被拉进第三个网)
     add("P1", "USB_D_P_SRC", "D_ESD_USB_D", "USB_D_P_SRC", "D_ESD_USB_D",
-        "ESD 阵列 [待选型] (USB 2.0 双通道)", "D", "必装", "[推算]", "",
+        "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装", "[官方]", "",
         "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
-    add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D", "ESD 阵列 [待选型]", "D", "必装",
-        "[推算]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
+    add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D",
+        "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装",
+        "[官方]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
     # ★★2026-11-05 03:45 修 (BOM 备料错): 这一行的 ref 是 J_USB_C, 但 value/type 写的是**网**的
     #   ("5.0V ±5% (USB-C 5V)" / RAIL) ⇒ BOM 生成器按"每个 ref 取第一行" ⇒ ★**BOM 里 USB-C 座的值变成
     #   "5.0V ±5% (USB-C 5V) / RAIL"** ⇒ 备料的人会以为那是条 5V 轨, 而不是座
@@ -1431,14 +1466,17 @@ def build_a2_som(by_id, spec):
         "Type-C 16p 座 (demo 板 5V 输入 + USB 数据)", "CONN", "必装", "[官方]", "",
         "[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~13V) 与 U_EN_SW", "A-24")
     add("P1", "RAIL_DEMO_5V", "D_ESD_DEMO", "RAIL_DEMO_5V", "D_ESD_DEMO",
-        "ESD 阵列 [待选型] (USB 2.0)", "D", "必装", "[推算]", "",
+        "PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA)", "D", "必装", "[官方]", "",
         "[RAIL_DEMO_5V] USB-C VBUS 入口 ESD 阵列 (紧贴 J_USB_C)", "A-24")
-    add("P1", "GND", "D_ESD_DEMO", "GND", "D_ESD_DEMO", "ESD 阵列 [待选型]", "D", "必装",
-        "[推算]", "", "[RAIL_DEMO_5V] USB ESD 阵列 地端", "A-24")
-    add("P1", "RAIL_DEMO_5V", "FB_DEMO", "RAIL_DEMO_5V", "FB_DEMO", "π 滤波磁珠 [待选型]", "L",
-        "必装", "[推算]", "", "[RAIL_DEMO_5V] VBUS π 滤波 (磁珠+体电容)", "A-24")
-    add("P1", "GND", "FB_DEMO", "GND", "FB_DEMO", "π 滤波磁珠 [待选型]", "L", "必装",
-        "[推算]", "", "[RAIL_DEMO_5V] π 滤波 地端", "A-24")
+    add("P1", "GND", "D_ESD_DEMO", "GND", "D_ESD_DEMO",
+        "PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA)", "D", "必装",
+        "[官方]", "", "[RAIL_DEMO_5V] USB ESD 阵列 地端", "A-24")
+    add("P1", "RAIL_DEMO_5V", "FB_DEMO", "RAIL_DEMO_5V", "FB_DEMO",
+        "BLM21PG221SN1D (Murata 0805 · 220Ω@100MHz · 2A · DCR 45mΩ max)", "L",
+        "必装", "[官方]", "", "[RAIL_DEMO_5V] VBUS π 滤波 (磁珠+体电容)", "A-24")
+    add("P1", "GND", "FB_DEMO", "GND", "FB_DEMO",
+        "BLM21PG221SN1D (Murata 0805 · 220Ω@100MHz · 2A · DCR 45mΩ max)", "L", "必装",
+        "[官方]", "", "[RAIL_DEMO_5V] π 滤波 地端", "A-24")
     add("P1", "RAIL_DEMO_5V", "C_VBUS_DEMO", "RAIL_DEMO_5V", "C_VBUS_DEMO", "10µF ±20%", "C",
         "必装", "[推算]", "", "[RAIL_DEMO_5V] VBUS 体电容", "A-24")
     add("P1", "GND", "C_VBUS_DEMO", "GND", "C_VBUS_DEMO", "10µF ±20%", "C", "必装",

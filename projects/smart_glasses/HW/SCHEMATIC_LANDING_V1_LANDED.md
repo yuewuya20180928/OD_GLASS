@@ -913,3 +913,338 @@ python3 HW/check_iss247_f1_landed.py                # ★必须 rc=1★
 cp -a /tmp/gen_netlist_iss249_FIXED.py state/gen_netlist.py && python3 state/gen_netlist.py
 python3 HW/check_iss247_f1_landed.py                # ★必须 rc=0★
 ```
+
+---
+
+## ★★18 · 第 6 批落表条目 (ISS-257 · 2026-11-16 · 硬件总工 (hw-lead) 执行 · ★**G1a-7 选型已落表: 14 件「必装 ∩ [待选型]」落成真型号**★) ★★
+
+★**★草稿于 2026-11-16 20:47 落盘 (★按 ISS-257 §⑨ 时间纪律: 第 1 步就把「改哪几行 + 型号是什么」写进盘上, 不攒在内存里★)★**
+
+### ★★18.1 · 一句话结论 ★★
+
+★**BOM 里「必装 ∩ value 含 `[待选型]`」的 14 件, 全部落成真型号 (value + opn) ⇒ `state/check_stage_g1a.py` 的 G1a-7 转绿**; ★**落表只碰 `value` / `opn` / `evidence` 三列文字, 脚数 584 / 器件 218 / K=0 一动没动, `footprint` 列一字未写, 任何 `net`/`node1`/`node2`/`tbd`/`dnp`/`note` 未动, 板 + `.kicad_pro` 逐字节不变** ★
+
+### ★★18.2 · ★★14 件的落表决定 (★改哪一行 · 改前 · 改后 · 证据等级★) ★★
+
+| # | 位号 | 落表真源行 | 改前 value | 改后 value | 落表后 opn | 证据 |
+|---|---|---|---|---|---|---|
+| 1 | `D_ESD_CAM` | `state/gen_netlist.py` L1365/L1368/L774 | `ESD 阵列 [待选型] (多通道 CSI)` / `ESD 阵列 [待选型]` | `TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)` | `TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · IEC 61000-4-2 lvl4)` | `[官网]` (TI SLVSBO7O · ISS-241 矩阵 §3.1 ①) |
+| 2 | `D_ESD_DEMO` | L1433/L1436 | `ESD 阵列 [待选型] (USB 2.0)` | `PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA)` | `PESD5V0S1BA (Nexperia SOD-323 2-lead · VBR 6V min · IEC 61000-4-2 >30kV)` | `[官网]` (Nexperia 官方产品页/手册 · 矩阵 §3.1 ②) |
+| 3 | `D_ESD_TC` | L369/L774 | `ESD 阵列 [待选型]` | `SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚)` | `SP0503BAHT (Littelfuse · 订购码 SP0503BAHTG · 3 通道 TVS 阵列 · SOT-143-4 · 5.5VWM/8.5VC)` | `[实测]` (★本机 KiCad 官方库 `SP0503BAHT.kicad_sym` 实测 4 脚 1=A/2,3,4=K★) |
+| 4 | `D_ESD_USB_D` | L1420/L1423 | `ESD 阵列 [待选型] (USB 2.0 双通道)` | `TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)` | 同 #1 | `[官网]` (TI SLVSBO7O · 矩阵 §3.1 ③) |
+| 5 | `D_TVS_VBUS` | `state/p10_rows.json` 2 行 | `5V 级单向 TVS [待选型]` | `SMBJ5.0A (Littelfuse 单向 TVS · SMB · VRWM 5.0V · Vc 9.2V@65.3A · 600W)` | `SMBJ5.0A (Littelfuse DO-214AA SMB · VBR 6.4V min · Vc 9.2V @ Ipp 65.3A)` | `[官网]` (Littelfuse 官方 SMB-J 系列页 · 矩阵 §3.3 ⑦) |
+| 6 | `FB_DEMO` | L1438/L1440 | `π 滤波磁珠 [待选型]` | `BLM21PG221SN1D (Murata 0805 · 220Ω@100MHz · 2A · DCR 45mΩ max)` | `BLM21PG221SN1D (Murata BLM21PG 0805 2012 metric · 220Ω ±25%@100MHz · 2000mA)` | `[官网]` (Murata 官方 lineup + BLM21 族表 · 矩阵 §3.2 ⑤) |
+| 7 | `FB_VBUS` | L373/L381 | `π 滤波磁珠 [待选型]` | `BLM31PG121SN1 (Murata 1206 · 120Ω@100MHz · 3A · DCR 25mΩ)` | `BLM31PG121SN1 (Murata BLM31PG 1206 3216 metric · 120Ω@100MHz · 3000mA · DCR 0.025Ω)` | `[官网]` (Murata 官方 BLM31P 系列表 · 矩阵 §3.2 ⑥) |
+| 8 | `Q_AND` | L630/L635/L637 | `[待选型] N-MOS (硬件 AND)` | `AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)` | `AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V)` | `[官网]` (AOS 官方手册 Rev3.1 · 矩阵 §3.4 ⑧) |
+| 9 | `Q_CHG_LED` | `state/p10_rows.json` 3 行 | `[待选型] N-MOS` | `2N7002 (onsemi N-MOS SOT-23 · VGS(th) max 2.0V · IGSS ≤10nA)` | `2N7002 (onsemi SOT-23 3-pin · 60V · RDS(on) 1.2Ω typ@10V · ID 115mA)` | `[官网]` (onsemi/Microchip 官方手册 · 矩阵 §3.4 ⑪) |
+| 10 | `Q_ENVC` | L650/L654/L656 | `[待选型] N-MOS (反相)` | `AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)` | 同 #8 | `[官网]` (AOS 官方手册 · 矩阵 §3.4 ⑨) |
+| 11 | `Q_PG` | L595/L604/L609 | `[待选型] **P-MOS 高边开关** (低漏, Vgs(th) 明确)` | `DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)` | `DMP3098L (Diodes Inc SOT23 3-pin · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA)` | `[官网]` (Diodes Inc 原厂手册 PDF 实读 · 矩阵 §3.4 ⑩) |
+| 12 | `R_SUPV_DIV1` | L1323 | `[待选型] 分压上臂 (0Ω 跳线位)` | `0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板` | `RC0603JR-070RL (Yageo 0Ω 跳线 / Jumper 档 · 0.1W · 50V · −55~+155°C)` | `[官网]` (Yageo/Panasonic 官方系列 · 矩阵 §3.8) |
+| 13 | `R_SUPV_DIV2` | L1327/L1330 | `[待选型] 分压下臂 (0Ω 跳线位)` | 同 #12 | 同 #12 | `[官网]` |
+| 14 | `U_PWR_SW` | L571 | `[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)` | `TPS22991RAA (负载开关 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA · ≥2A · R_on 25mΩ@5V · 无 RCB ⇒ 选型口径待 A5 追认)` | ★**opn 列一字未动** (原值就是 `TPS22991RAA`) ★ | `[官网]` (TI SLVSFK0B · ISS-172/ISS-234) |
+
+★**`PARTS` 字典 (真源)**: ★**只给 13 件加 `opn` 一栏, `footprint` 一栏一律留空 (⇒ 网表 `footprint` 列与落表前逐字节相同)★**; ★**`U_PWR_SW` 的 `PARTS` 条目一个字节没动**★
+
+★**★`state/p10_rows.json` 也是真源 (不是生成物)★**: ★**`state/gen_netlist.py` L1383-L1397 的 `build_p10_json()` 逐字写着「充电板整页的行数据由 `state/p10_rows.json` 提供」⇒ `D_TVS_VBUS` / `Q_CHG_LED` 这 5 行的真源在那个 JSON 里 ⇒ 本单改它的 `value` + `evidence` 两栏 (★ISS-223 第 2 批改 `J_CHG` 那条 note 时是同型先例★)★
+
+★**★落表真源只动了这三样★**: ★**① `state/gen_netlist.py` 的 29 行 `add(...)` 的 `value` + `evidence` 两栏 (14 件 × 各自行数) ★ ② `state/gen_netlist.py` 的 `PARTS` 字典 (只加 13 条 `opn`) ★ ③ `state/p10_rows.json` 的 5 行的 `value` + `evidence` 两栏 ★**
+
+
+---
+
+### ★★18.2b · ★★两套证据等级词表各归各 (★本轮 P0 的根因 · ★必须写在台账里, 不然下一轮还会踩★)★★ ★★
+
+★**项目里有两套并存的证据等级词表, 一字不通用, 混用必红** ★:
+
+| 词表 | 归谁 | 合法值 | 判据在哪儿 |
+|---|---|---|---|
+| ★**落表链八档** ★ | ★**网表 / 脚表 / BOM 的 `evidence` 列** ★ | `[官方]` `[推算]` `[实测]` `[待原厂]` `[待JBD]` `[待视涯]` `[同Die参考-待官方确认]` `[0数据]` | ★**`state/check_netlist.py` L30 `LEGAL_EVIDENCE`** ★ |
+| ★**选型五档** ★ | ★**选型矩阵 / 选型缺口清单 / 交卷单散文** ★ | `[官网]` `[实测]` `[媒体]` `[推算]` `[0数据]` | ★**`HW/check_part_selection_matrix.py` L46 / `HW/check_part_selection_gaps.py` L56 `ALLOWED_EVIDENCE`** ★ |
+
+★**⇒ 本批 §18.2 那张表里的「证据」一栏 = 【选型五档 · 散文口径】(★`[官网]` 说的是"这条结论的来源是厂商官网"★)**;
+★**⇒ 而落进网表 CSV `evidence` 列的那个字 = 【落表链八档】(★只能是 `[官方]`★)** ★
+★**⇒ 上一轮 (20:50) 把这两栏混写成同一个字 `[官网]` ⇒ 落进 CSV 的 29 行全非法 ⇒ `state/check_netlist.py` 由绿转红 ⇒ G1a-5 ❌ ⇒ 原理图定稿门跟着红** ★
+
+★**★本轮修法 (★唯一一条, 不许有第二条★)**: ★**在真源里把 evidence 写成 `[官网]` 的那 29 行改回 `[官方]` ⇒ 重生成 ⇒ CSV 自动统一 ⇒ 不用手改 CSV** ★
+★**★选型五档那一套一个字不许动★** (★`HW/PART_SELECTION_MATRIX_2026-11-16.md` / 选型缺口清单 / 交卷单散文 全部逐字节未动★)
+
+### ★★18.3 · ★★本轮 (续做第 1 轮) 的改动 · 逐行登记 (★行号 + 改前 + 改后 + 命令 + 输出行★)★★ ★★
+
+★**★真源改法 (★只改 evidence 文字 · value/opn/footprint/dnp/net/node/type/tbd/note 一律没动★)★★ ★*
+
+| 真源 | 行 | 改前 | 改后 | 改了几处 |
+|---|---|---|---|---|
+| ★**`state/gen_netlist.py`** ★ | ★**L393 / L402 / L593 / L617 / L627 / L633 / L655 / L660 / L664 / L678 / L682 / L686 / L804 / L1356 / L1360 / L1364 / L1399 / L1403 / L1455 / L1459 / L1469 / L1473 / L1476 / L1479** ★ | `"[官网]"` | `"[官方]"` | ★**24** ★ |
+| ★**`state/p10_rows.json`** ★ | ★**L806 / L821 / L911 / L926 / L941** ★ | `"evidence": "[官网]"` | `"evidence": "[官方]"` | ★**5** ★ |
+
+★**⇒ 合计 29 处 ⇒ 与网表 CSV 里 29 行 `[官网]` 逐行对得上 (★不多不少★)** ★
+
+★**★落表器 (★一次性落表器, 落完即冻结★)**: ★**`state/_apply_iss257_r1_evidence_official.py`** ★
+★**它自带"改前快照 + 计数断言 + 只许改 evidence 文字"的护栏**: ★**改前先把 `HW/netlist_v1.csv` 拷成 `state/_iss257_r1_snapshot/netlist_v1.csv.before` (md5 `7dcf251a10ce748c44d467473b3f56d6`) ⇒ 预检 `[官网]` 出现次数必须 == 24 / 5 (★不符即中止★) ⇒ 真改 ⇒ 改后目标文件里不许再剩 `[官网]`** ★
+
+★**★命令与输出行 (★硬顺序 · ★板那条不许跑★)★★ ★*
+
+```
+$ python3 state/_apply_iss257_r1_evidence_official.py --apply
+★预检 state/gen_netlist.py: `[官网]` × 24 (符合期望)
+★预检 state/p10_rows.json: `[官网]` × 5 (符合期望)
+★已改 state/gen_netlist.py (md5 1c2d33bf9f1749430632348f97ad4a1b)
+★已改 state/p10_rows.json (md5 0903844f5754e36b4cc8386373477fa1)
+★真改完成 ⇒ 接下来必须跑重生成链 (★6 条, 板那条不许跑★)
+rc=0
+
+$ python3 state/gen_netlist.py && python3 state/gen_kicad_net.py && python3 state/gen_netlist_pins.py \
+    && python3 state/gen_bom.py && python3 state/gen_schematic_pages.py && python3 state/gen_kicad_sch.py
+  gen_netlist.py         rc=0   (10 页齐全 P1-P10)
+  gen_kicad_net.py       rc=0   "✅ 已导出 HW/netlist_v1.net: 218 个器件 / 153 个 net / 153 行 net"
+  gen_netlist_pins.py    rc=0   "✅ HW/netlist_v1_pins.csv 已生成 (584 行 = 每引脚一行, 覆盖 218 个器件)"
+  gen_bom.py             rc=0   "✅ 自检全过 (无伪器件 / P2+P4 在表 / qty=1 / 采购状态 / 板级归属)"
+  gen_schematic_pages.py rc=0   (P1-P10 行数与落表前一致)
+  gen_kicad_sch.py       rc=0   (11 个 .kicad_sch 全部写出)
+
+$ python3 state/check_netlist.py
+  ✅ 证据等级合法 (7 档)                      ← ★★本轮 P0 的靶心: 由 ❌ 转 ✅★★
+  ❌ 1 项不通过  →  ★★修完后 rc=0★★
+```
+
+★**★改完立刻验 (★本轮 P0 的验收口径★)★★ ★*
+
+```
+$ python3 state/check_netlist.py        ⇒ rc=0   (★修前是 rc=1 + "非法值 ['[官网]']"★)
+$ python3 state/check_stage_g1a.py      ⇒ rc=1   (★G1a-5 由 ❌ 回 ✅ · G1a-4/G1a-8 仍红是预期★)
+     ✅ G1a-1 / ✅ G1a-2 / ✅ G1a-3 / ❌ G1a-4 / ✅ G1a-5 / ✅ G1a-6 / ✅ G1a-7 / ❌ G1a-8
+$ python3 state/check_netlist_pins.py   ⇒ rc=0
+$ python3 state/check_sch_erc.py        ⇒ rc=0   (ERC=0)
+$ python3 state/check_sch_pinfull.py    ⇒ rc=0   ("图上 584 脚 / 表里 584 脚 · 不一致器件数 K=0 (universe=218)")
+```
+
+★**★改动的【逐行逐列】自证 (★假绿铁律: 只改 evidence, 别的列一个字不许变★)★★ ★*
+
+★**改前快照 `state/_iss257_r1_snapshot/netlist_v1.csv.before` (md5 `7dcf251a10ce748c44d467473b3f56d6`) ⇄ 改后 `HW/netlist_v1.csv` (md5 `e06c1dd633566aa44732762c2ff99d1c`) 逐行逐列比对 (★本机实跑★)** ★
+
+```
+表头一致: True | 行数: 513 -> 513
+行数相同: True | 有差异的行数: 29
+差异涉及的列: ['evidence']
+★除 evidence 外有变化的列: 无 ⇒ 只有 evidence 变了 ✅
+★evidence 列变化行数: 29 (应=29)
+★evidence 变化明细: 全部 [官网]→[官方] ? True
+```
+
+★**⇒ 29 行的落点 (★行号 + 位号 + 网名, 逐条可核★)★★ ★*
+
+| 位号 | 落表的行 (CSV 物理行号) | 改前 | 改后 |
+|---|---|---|---|
+| `FB_VBUS` | L5, L8 | `[官网]` | `[官方]` |
+| `U_PWR_SW` | L50 | `[官网]` | `[官方]` |
+| `Q_PG` | L59, L60, L61 | `[官网]` | `[官方]` |
+| `Q_AND` | L65, L66, L67 | `[官网]` | `[官方]` |
+| `Q_ENVC` | L71, L72, L73 | `[官网]` | `[官方]` |
+| `D_ESD_CAM` | L163, L413, L414 | `[官网]` | `[官方]` |
+| `R_SUPV_DIV1` | L404 | `[官网]` | `[官方]` |
+| `R_SUPV_DIV2` | L405, L406 | `[官网]` | `[官方]` |
+| `D_ESD_USB_D` | L417, L418 | `[官网]` | `[官方]` |
+| `D_ESD_DEMO` | L420, L421 | `[官网]` | `[官方]` |
+| `FB_DEMO` | L422, L423 | `[官网]` | `[官方]` |
+| `D_TVS_VBUS` | L505, L506 | `[官网]` | `[官方]` |
+| `Q_CHG_LED` | L512, L513, L514 | `[官网]` | `[官方]` |
+| ★**合计** ★ | ★**29 行 / 13 个位号** ★ | — | ★**`D_ESD_TC` 的 3 行本来就是 `[实测]` ⇒ 两套词表都合法 ⇒ 一行没动** ★ |
+
+★**★BOM 顺手统一 (★不用手改 BOM: 真源一改 + 重生成 ⇒ BOM 的 evidence 列自动从混的变齐的★)★★ ★*
+
+```
+改前 BOM_v1.csv evidence 分布: {'[推算]': 145, '[官方]': 45, '[官网]': 12, '[待原厂]': 8, '[实测]': 5, '[同Die参考-待官方确认]': 3}
+改后 BOM_v1.csv evidence 分布: {'[推算]': 145, '[官方]': 57, '[待原厂]': 8, '[实测]': 5, '[同Die参考-待官方确认]': 3}
+                                              ↑ 45 + 12 = 57 ⇒ [官网] 归零 ✅
+```
+
+### ★★18.4 · ★★md5 台账 (★单号 + 文件名 + 新 md5 + 旧 md5 四项同行齐全 · ★SW 侧 R6 / MECH 侧 G5b+C21 重锚要读这张表★)★★ ★★
+
+★**★三段式 (★把"上一轮 20:50 落表"和"本轮 21:2x 修红"两段都记全, 免得 SW/MECH 侧重锚时对不上号★)★★ ★*
+
+| 单号 | 文件 | 旧 md5 (★§17 基线 = ISS-257 之前★) | 中间 md5 (★20:50 上一轮落表后★) | 新 md5 (★本轮修红后★) | 变了? |
+|---|---|---|---|---|---|
+| ★**ISS-257** ★ | ★**`state/gen_netlist.py`** (★真源★) ★ | `519b14ff71d15722183f848e6adba5dc` | `477e54f8bbfd211c9de612eab7826eee` | `1c2d33bf9f1749430632348f97ad4a1b` | ★**是 (★14 件 value/opn 落表 + 24 处 evidence 文字★)** ★ |
+| ★**ISS-257** ★ | ★**`state/p10_rows.json`** (★真源★) ★ | `056c52699278fb3fbdcb39e5df6681f1` | `71ac25e193aafa4b5db26acded982c7c` | `0903844f5754e36b4cc8386373477fa1` | ★**是 (★5 行的 value/opn 落表 + 5 处 evidence 文字★)** ★ |
+| ★**ISS-257** ★ | ★**`HW/netlist_v1.csv`** (表A) ★ | `16ac89f77c25a3f61834cc7ebcd78a7f` | `7dcf251a10ce748c44d467473b3f56d6` | `e06c1dd633566aa44732762c2ff99d1c` | ★**是 (★14 件 value/opn + 29 行 evidence★)** ★ |
+| ★**ISS-257** ★ | ★**`HW/netlist_v1_pins.csv`** (脚表) ★ | `ef436a37412ac9b6eac3c9f41f1edca4` | `87a7d2d9e10185ad47077a9ab3cb19e5` | `287e7861a0d1007748d92d9fbecdd490` | ★**是 (★evidence 列 + 14 件 opn★)** ★ |
+| ★**ISS-257** ★ | ★**`HW/BOM_v1.csv`** ★ | `2a7305741134788dfee9f13f34c656b4` | `13a045ddcd8ad8e45c4dda37e666fb72` | `94642d07a69e8d60dd2af57f69b93607` | ★**是 (★14 件 value/opn + evidence 列统一★)** ★ |
+| ★**ISS-257** ★ | ★**`HW/netlist_v1.net`** ★ | `564fed05c1f5f9dab09efce51eebae74` | `bdd691a764f2ff714a582e9add972dee` | `bdd691a764f2ff714a582e9add972dee` | ★**否 (★逐字节不变 ⇒ 电气连通性零变化★)** ★ |
+| ★**ISS-257** ★ | ★**`HW/SCHEMATIC_V1.md`** (原理图页) ★ | `d37bbd0d8fb0754f038c734adb11316d` | `ef1ebc425cbe45b2c9e2d03d89d0d37d` | `a274748acb139acff1fb9d7297d153bb` | ★**是 (★P1/P9/P10 页的器件表 evidence 列★)** ★ |
+| ★**ISS-257-r1** ★ | ★**`HW/check_netlist_selfconsistency.py`** (★门禁★) ★ | `19743c14bd50cd917551db0a6d642a39` | `19743c14bd50cd917551db0a6d642a39` | `8e7996fbcb5e97346ccd65e06ebe7b33` | ★**是 (★EXPECT 4 个单元格 + 2 段注释; ★判据本体/阈值/锚点条数一条没动★)** ★ |
+| ★**ISS-257-r1** ★ | ★**`HW/NETLIST_SELF_CONSISTENCY_SPEC.md`** (★规格页★) ★ | `d633265b4532a007643904d6a73140cf` | `af7adec326d53831c3b975d9e05aa2d8` | `42c74f677a298c43453f94859968eb47` | ★**是 (★锚点表用 `--emit-anchors` 整块机械重生成 + 2 处现状逐字表更新★)** ★ |
+| ★**ISS-257-r1** ★ | ★**`HW/check_g1a7_selection_landed.py`** (★本单新门禁★) ★ | ★**不存在 (★新建★)** ★ | ★**不存在** ★ | `339fd52d9966a37c8735a58cf60c2ec4` |
+| ★**ISS-257-r1** ★ | ★**`HANDOFF/2026-11-16_hw-lead_ISS257_G1a7选型落表.md`** (★交卷单★) ★ | ★**不存在 (★新建★)** ★ | ★**不存在** ★ | `212142548eda1978c986523c37b08e7b` |
+| ★**ISS-257-r1** ★ | ★**`HW/ISS257_g1a7_reverse_proof_sandbox.log`** (★反向自证原始日志★) ★ | ★**不存在 (★新建★)** ★ | ★**不存在** ★ | `305d8004b52ee7bbf54c2515150f40c3` |
+| ★**ISS-257-r1** ★ | ★**`state/_apply_iss257_r1_evidence_official.py`** (★一次性落表器★) ★ | ★**不存在 (★新建★)** ★ | ★**不存在** ★ | `cad1c65b52fed71cbf6201c7b1cadc07` |
+| ★**ISS-257-r1** ★ | ★**`state/_iss257_r1_sandbox_proof.py`** (★三步沙盒法跑批器★) ★ | ★**不存在 (★新建★)** ★ | ★**不存在** ★ | `3c0fadd5fce3378b68bbd1ad86dbfdca` |
+| ★**ISS-257** ★ | ★**`HW/PCB/demo_mainboard.kicad_pcb`** (★受保护·板★) ★ | `611b869e13518c3c023fb178f91a0075` | `611b869e13518c3c023fb178f91a0075` | `611b869e13518c3c023fb178f91a0075` | ★**否 (★逐字节不变★)** ★ |
+| ★**ISS-257** ★ | ★**`HW/PCB/demo_mainboard.kicad_pro`** (★受保护★) ★ | `3e504d2be83152e337949723e909be1b` | `3e504d2be83152e337949723e909be1b` | `3e504d2be83152e337949723e909be1b` | ★**否 (★逐字节不变★)** ★ |
+
+★**★`.kicad_sch` 的口径 (★沿用 §17.6 的结论, 一字不改★)★★ ★**
+★**`HW/PCB/demo_mainboard*.kicad_sch` (11 个) 的 md5 【不可当锚点】** (★跑 `check_sch_erc.py` / `check_sch_pinfull.py` 就会重铸 UUID★) ⇒ ★**只登记"归一化后同图"这条判据, 不登记 md5** ★
+
+★**★链路上另外两个没变的 (★自证用★)★★ ★**
+★**① `HW/netlist_v1.net` 逐字节不变 ⇒ 电气连通性零变化 (★14 件落表 + 29 行 evidence 都是"文字层", 一个网名都没动★)** ★
+★**② 脚数 584 / 器件 218 / K=0 三条一个数没变 (★`state/check_sch_pinfull.py` 实测: "图上 584 脚 / 表里 584 脚 · 不一致器件数 K=0 (universe=218)"★)** ★
+
+### ★★18.5 · ★★反向自证 (★三步沙盒法 · 原样★)★★ ★★
+
+★**★原始日志: ★**`HW/ISS257_g1a7_reverse_proof_sandbox.log`** (★本机实跑·已落盘★) ★
+★**★沙盒 = 最小镜像 (★不复制整个项目★)**: ★**`/tmp/iss257_sbx/state/{6 个生成器 + p10_rows.json + check_netlist.py}` + ★**`/tmp/iss257_sbx/HW/{netlist_v1.csv, netlist_v1_pins.csv, BOM_v1.csv, SCHEMATIC_V1_SPEC.json, PCB/*}` + ★**`/tmp/iss257_sbx/HW/check_g1a7_selection_landed.py`** ★
+★**★沙盒保真校验**: ★**沙盒重生成出来的网表 md5 必须逐字等于真盘对应态的 md5** ★
+
+```
+── 步骤 0 · 沙盒基线 (装的是【修好】的源) ⇒ 门禁应当是绿的 ──
+  沙盒重生成 rc=0
+  沙盒网表 md5 = e06c1dd633566aa44732762c2ff99d1c   (★应 = 真盘现值 e06c1dd633566aa44732762c2ff99d1c · 一致 ⇒ 沙盒保真★)
+  $ (沙盒) python3 state/check_netlist.py
+  ★rc=0★
+  ✅ 证据等级合法 (7 档)
+  $ (沙盒) python3 HW/check_g1a7_selection_landed.py --root /tmp/iss257_sbx
+  ★rc=0★
+  OK   C1  必装 ∩ 「[待选型]」 = 0 件 (期望 0)
+  OK   C2  14 个落表位号逐个点名 … — 0 条不合格
+  OK   C3  表 584 脚 / 218 器件 · 图 584 脚 / 218 符号 · K=0
+  OK   C4  板 611b869e / .kicad_pro 3e504d2b
+  OK   C5  evidence 列全在落表链八档白名单里 — 0 条非法
+  OK   C6  14 个位号: dnp=必装 / evidence 合法 / 无 [待选型] / opn 三方一致 — 0 条不合格
+
+── 步骤 1 · ★把本轮改的那 29 行改回旧值 ⇒ 重生成 ⇒ 门禁必须红★ ──
+  ★沙盒真源已改回旧值: state/gen_netlist.py 24 处 + state/p10_rows.json 5 处 ⇒ 29 行 [官网]★
+  沙盒重生成 rc=0
+  沙盒网表 md5 = 7dcf251a10ce748c44d467473b3f56d6
+  (★真盘 20:50 旧态 = 7dcf251a10ce748c44d467473b3f56d6 · ★两者一致 ⇒ 沙盒逐字节保真★)
+  $ (沙盒) python3 state/check_netlist.py
+  ★rc=1★
+    ❌ 证据等级合法 (7 档)
+         非法值 ['[官网]']
+    ❌ 1 项不通过
+  $ (沙盒) python3 HW/check_g1a7_selection_landed.py --root /tmp/iss257_sbx
+  ★rc=1★  (★必须是 1 ⇒ 判据真在被读★)
+    OK   C1 … OK   C2 … OK   C3 … OK   C4 …
+    FAIL C5  evidence 列全在落表链八档白名单里 (★`[官网]` ⇒ 红★) — 3 条非法
+    FAIL C6  14 个位号: dnp=必装 / evidence 合法 / 无 [待选型] / opn 三方一致 — 25 条不合格
+  ❌ rc=1: ★**落表被改坏了** ★
+
+── 步骤 2 · 装回 (改回 [官方]) ⇒ 重生成 ⇒ 门禁必须重新变绿 ──
+  ★沙盒真源已装回 (29 行 [官方])★
+  沙盒重生成 rc=0
+  沙盒网表 md5 = e06c1dd633566aa44732762c2ff99d1c   (★应 = 真盘现值 e06c1dd633566aa44732762c2ff99d1c★)
+  $ (沙盒) python3 state/check_netlist.py                    ★rc=0★  ✅ 证据等级合法 (7 档)
+  $ (沙盒) python3 HW/check_g1a7_selection_landed.py --root … ★rc=0★  (六条全 OK)
+
+── 步骤 3 · ★真盘零污染校验 (沙盒跑完, 真盘 md5 逐个比对)★ ──
+  ✔  HW/netlist_v1.csv  e06c1dd633566aa44732762c2ff99d1c
+  ✔  HW/netlist_v1_pins.csv  287e7861a0d1007748d92d9fbecdd490
+  ✔  HW/BOM_v1.csv  94642d07a69e8d60dd2af57f69b93607
+  ✔  HW/PCB/demo_mainboard.kicad_pcb  611b869e13518c3c023fb178f91a0075
+  ✔  HW/PCB/demo_mainboard.kicad_pro  3e504d2be83152e337949723e909be1b
+  ⇒ 差异 0 处 (★必须 0 ⇒ 真盘一个字节都没被沙盒碰过★)
+
+★★结论: 步骤1 红 (rc=1 · 非法值 ['[官网]'] · C5 FAIL) ⇒ 步骤2 绿 (rc=0)
+   ⇒ ★★证明: 我真改了判据盯的东西, 不是把红灯调没★★
+   ⇒ 沙盒网表 md5 与真盘对应态【逐字相同】⇒ 沙盒保真 ⇒ 真盘 md5 零差异
+```
+
+★**★新门禁自己的 11 条反向用例 (★每条都把判据读的东西改坏 ⇒ 必须红★)★★ ★*
+
+| # | 反向用例 | 期望 | 实测 |
+|---|---|---|---|
+| M1 | 把 `Q_AND` 的 value 改回「[待选型]」 | rc=1 | ★**rc=1 ✔** ★ |
+| M2 | 从 BOM 删掉一个落表位号 (`Q_PG`) | rc=1 | ★**rc=1 ✔** ★ |
+| M3 | 脚表里删掉一个脚 (改脚数) | rc=1 | ★**rc=1 ✔** ★ |
+| ★**M4** ★ | ★**把网表某行的 evidence 改成「[官网]」(★本轮 P0 的坑★)** ★ | rc=1 | ★**rc=1 ✔** ★ |
+| M5 | 板文件被改动 (md5 变) | rc=1 | ★**rc=1 ✔** ★ |
+| M6 | `.kicad_pro` 被改动 (md5 变) | rc=1 | ★**rc=1 ✔** ★ |
+| M7 | 把 `U_PWR_SW` 的 opn 清空 | rc=1 | ★**rc=1 ✔** ★ |
+| M8 | 把 `R_SUPV_DIV1` 的 value 换成「[待原厂]」 | rc=1 | ★**rc=1 ✔** ★ |
+| M9 | 脚表里删掉一个位号 (器件数 218→217) | rc=1 | ★**rc=1 ✔** ★ |
+| M10 | 把 `FB_VBUS` 的 dnp 改成 DNP | rc=1 | ★**rc=1 ✔** ★ |
+| M11 | 把 BOM 的 evidence 改成「[官网]」 | rc=1 | ★**rc=1 ✔** ★ |
+
+★**★自检护栏 (★本轮加的一条·防"用例写错还报通过"★)★★ ★
+★**每条反向用例跑之前先对 fixture 副本取指纹 ⇒ ★**突变没生效 ⇒ 直接判该用例"没抓到"并说明是用例本身写错了** ★
+★**★实例: M9 第一次写的是「删 `TP_GND`」⇒ ★**脚表里根本没有 `TP_GND` ⇒ 突变是空操作 ⇒ 门禁当然还是绿的 ⇒ 护栏把它判成"用例本身写错了" ⇒ 改成 `CHG_GND_STAR` (★真存在★) 后才真抓到** ★
+
+### ★★18.6 · ★★本批【没落】的东西 (★逐条 + 卡在谁★)★★ ★★
+
+| # | 没落的 | 卡在谁 | 为什么本单不落 |
+|---|---|---|---|
+| 1 | ★**V-2 / V-3 / V-4 的最终值** (★`R_SUPV_DIV1/2` 的最终阻值 · `R_ILIM` 的档位★) | ★**老板 A1 / A2 / A3** ★ | ★**任务书明令「不许落 V-2 / V-3 / V-4」⇒ 这两处的字一个字没碰 (★`R_SUPV_DIV1/2` 仍写「首版装 0Ω · V-3 分压最终阻值待 A1 拍板」★)** ★ |
+| 2 | ★**`D_ESD_USB_D` 的板侧封装 Value 属性** (★仍停在旧串 `ESD 阵列 [待选型] (USB 2.0 双通道)`★) | ★**PCB 类** (★板是受保护件, 本单不派★) | ★**板 + `.kicad_pro` 必须逐字节不变 ⇒ 锚点 `d4_esd_value` ★**故意保持钉在旧串**★ ⇒ 谁改板谁改它 (★见 §18.4 的 d4 行★) ★ |
+| 3 | ★**USB D− 线仍然裸奔** (★R4 未落表·`--expect-resolved` 18 条里的一条★) | ★**老板定方案 + PCB 类** | ★**"一颗双通道阵列 (要改板)" 还是 "两颗单通道 (也要改板)" ⇒ 两案都要动板 ⇒ 本单只把网表侧的 D+ 落成真型号★** ★ |
+| 4 | ★**`U_PWR_SW` 落成 `TPS22991RAA` 的追认** (★决策页 §A5 / §Q2 的建议默认★) | ★**老板一句追认** ★ | ★**value 里已经明写「⇒ 选型口径待 A5 追认」⇒ 本单不代拍⇒ 登记成 need 交 main (★不许自己从老板清单里划掉★)★** ★ |
+| 5 | ★**`R_SER_CSI_MCLK` 是【必装】但 value 仍写 `[待原厂]`** (★SoC 侧球位★) | ★**SoC 侧球位** (★零外发政策下只能等/走开源替代料评估★) | ★**这不是 G1a-7 的判据 (★G1a-7 只管 `[待选型]`★) ⇒ 登记成 need 交 main, ★不在本单偷偷"落表"★** ★ |
+| 6 | ★**G1a-4 的 18 条未落表** (★R2 / R3 / R4 / R7 / R8 / R9 / R10★) | ★**老板 A1/A2/A3 + PCB 类** | ★**★本单不许把其中任何一条"顺手落掉" ⇒ `--expect-resolved` 仍 18 条, 一条不许上升★** ★ |
+| 7 | ★**G1a-8 关机语义 + 负载开关选型已决** | ★**老板审阅 ISS-097** | ★**同上★** ★ |
+| 8 | ★**选型矩阵里其余 8 件** (★ISS-241 矩阵 22 件, 本单只落 14 件★) | ★**按 ISS-241 矩阵继续★** | ★**本单只落 G1a-7 点名的 14 件 ⇒ 其余不越界★** ★ |
+| 9 | ★**`HW/PCB/demo_mainboard*.kicad_sch` (11 个) 的 md5 登记** | — | ★**沿用 §17.6 的结论: md5 不可当锚点 ⇒ 本台账不登记它的 md5★** ★ |
+
+### ★★18.7 · ★★复现命令 (★B6 自证★)★★ ★★
+
+```
+# ★落表链路 (改源 → 重生成; ★板不碰★) ★
+python3 state/_apply_iss257_r1_evidence_official.py --apply        # 改真源 (29 处 evidence 文字)
+python3 state/gen_netlist.py && python3 state/gen_kicad_net.py && python3 state/gen_netlist_pins.py \
+  && python3 state/gen_bom.py && python3 state/gen_schematic_pages.py && python3 state/gen_kicad_sch.py
+
+# ★必跑门禁 (★逐条要 rc★) ★
+python3 state/check_netlist.py                     # ★rc=0★ (★本轮 P0 的靶心★)
+python3 state/check_netlist_pins.py                # rc=0
+python3 state/check_sch_erc.py                     # rc=0 (ERC=0)
+python3 state/check_sch_pinfull.py                 # rc=0 (584=584 · K=0)
+python3 state/check_stage_g1a.py                   # rc=1 (★G1a-5 ✅ / G1a-7 ✅ · G1a-4+G1a-8 仍红是预期★)
+python3 state/check_stage_g1a.py --selftest        # rc=0
+python3 HW/check_g1a7_selection_landed.py          # rc=0 (★本单新门禁★)
+python3 HW/check_g1a7_selection_landed.py --selftest  # rc=0 (★11/11 反向用例全抓到★)
+python3 HW/check_netlist_selfconsistency.py        # rc=0
+python3 HW/check_netlist_selfconsistency.py --expect-resolved   # rc=1 (★仍 18 条★)
+python3 HW/check_netlist_contradiction_r3.py       # rc=1 (★FINDINGS = 2 = F2+F3★)
+python3 HW/check_netlist_contradiction_r3.py --selftest         # rc=0 (12/12)
+python3 HW/check_part_selection_matrix.py          # rc=0 (8/8)
+python3 state/merge.py && python3 state/gate_check.py           # rc=0 (★Q1 18/18★)
+
+# ★反向自证 (★三步沙盒法★) ★
+python3 state/_iss257_r1_sandbox_proof.py          # ★落 HW/ISS257_g1a7_reverse_proof_sandbox.log★
+
+# ★受保护 md5 (★板 / .kicad_pro 必须逐字节不变★) ★
+md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv \
+       HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro
+# e06c1dd6… / 287e7861… / 94642d07… / 611b869e… / 3e504d2b…   (★后两个逐字节不变★)
+
+# ★落表台账 / 新门禁 / 交卷单 / 反向日志 (★本单产出物★) ★
+#   HW/SCHEMATIC_LANDING_V1_LANDED.md  §18
+#   HW/check_g1a7_selection_landed.py
+#   HW/ISS257_g1a7_reverse_proof_sandbox.log
+#   HANDOFF/2026-11-16_hw-lead_ISS257_G1a7选型落表.md
+```
+
+### ★★18.8 · ★★生产链准入 (`state/chain_gate.py`) 的实测 (★§18 就是 ① 网表准入转绿的钥匙★)★★ ★★
+
+```
+$ python3 state/chain_gate.py        ⇒ rc=1  (★生产链有 2 个环节没过 ⇒ 下游产物不许用★)
+
+环节                          准入    准出
+① 网表 (HW/netlist_v1.csv)    ✅     ✅
+    准入: 内容锚点: 网表 md5 `e06c1dd63356…` == 落表台账最新登记 (L1069) · 11-16 21:22   ← ★★★本单 §18 转绿的那一条★★★
+② 原理图 (.kicad_sch)         ✅     ✅
+    准入: 内容锚点: 位号 218 == 脚表 218 · 标签 584 == 脚 584 · 归一化指纹 870a4e6cf3ed… · 11 个 .kicad_sch 归一化后一致 (★uuid 抖动不影响本判据★)
+③ PCB (.kicad_pcb)            ❌     ✅
+    准入: 内容锚点: ★**板与网表不等价** (C1/C2 红 ⇒ 板是旧网表的板) · ❌ C1 焊盘级等价 (ref,焊盘号)→网络 — 网表 480 / 板上(带网) 482 · 11-06 07:07
+④ BOM (HW/BOM_v1.csv)         ✅     ✅
+    准入: 内容锚点: 逐行一致: 218 行 (位号,value,dnp) == 脚表聚合 · 11-16 21:22
+⑤ 投产资料包 (HW/PCB/production/) ❌ ✅
+    准入: 30/30 必备产物齐全 · ★**投产包比 原理图 旧 ⇒ 投板用的是旧板的 Gerber** · ★原理图源文件: 与 HW/PCB/ 没有一一对应: 内容与源不一致 11 个
+```
+
+★**★① 网表准入由红转绿 = 本单 §18 台账登记的直接效果 (★这正是 §18 存在的理由★)★★ ★
+★**⇒ 网表 md5 `e06c1dd63356…` 与台账最新登记 (L1069 = §18.4 的 md5 台账表) 逐字对上 ⇒ 链的内容锚点判据 (★`state/check_chain_content_anchor.py`, ★ISS-255 sw-lead 建的★) 通过** ★
+
+★**★剩下两条红的归属 (★都不是本单的域, 本单不碰·不代拍★)★★ ★
+| 环节 | 为什么红 | 归谁 | 本单为什么不碰 |
+|---|---|---|---|
+| ★**③ PCB 准入** ★ | ★**板是 11-06 07:07 的旧网表的板** ⇒ 与现行网表不等价 (★焊盘级 C1 红: 网表 480 / 板上 482★) ★ | ★**PCB 类** (★布线/布局/板那一趟★) | ★**板是受保护件 (`611b869e…`), 任务书明令不许碰** ★★⇒ 登记为 need 交 main (★已在 `iss257_h1_reanchor_to_mech_lead` 之后另记★)★★ |
+| ★**⑤ 投产资料包准入** ★ | ★**投产包里的原理图源文件是旧副本** (★11 个与 `HW/PCB/` 下的不一致★) ★ | ★**投产/PCB 类** ★ | ★**① 本单不产投产包; ② ★★更重要: §17.6 已实测 —— `check_sch_erc.py` / `check_sch_pinfull.py` 一跑就会重铸 11 个 `.kicad_sch` 的 UUID ⇒ 现在 `cp` 过去, 下一次跑门禁立刻又旧 ⇒ 同步是白干 ⇒ 真正的修法是让 ⑤ 用【归一化指纹】判据 (★② 已经这么判了·★②现在就是绿的★)** ★★ |
+
+★**⇒ 结论: 本单把能自己修的那条 (① 网表准入) 修绿了; ★**剩下两条按设计属于 PCB/投产那一趟, 本单登记交 main, 不越界修绿** ★**
