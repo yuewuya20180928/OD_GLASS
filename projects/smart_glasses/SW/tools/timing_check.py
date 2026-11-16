@@ -1735,11 +1735,14 @@ def reverse_demo(nl: Netlist) -> int:
         path2 = drop_refs_copy(nl, os.path.join(tmp, "mut2.csv"), ("U_PWR_SW",))
         mut2 = compute(Netlist(path2))
         print("改坏: 从副本里删掉 U_PWR_SW 全部行")
+        # ★★【ISS-248 订正 (2026-11-16, sw-lead)】★★ 演示段口径对齐 REV-3 (权威判据, L1573~L1576):
+        #   基线 = 2 颗负载开关 (U_PWR_SW + U_EN_SW) ⇒ 删掉 U_PWR_SW 后 `rail_switching_devices` 掉到
+        #   **1 (不是 0)** ⇒ 本演示的「变红」判红值 = **1** (★REV-3b 两颗都删 ⇒ 0, 不受影响★)
         print("改后: 装机开关数 rail_switching_devices = %s (基线 %s) ⇒ 断电主开关判据 %s; "
               "load_switch_refs = %s"
               % (mut2["F8_power_off"]["rail_switching_devices"],
                  base["F8_power_off"]["rail_switching_devices"],
-                 "❌变红" if mut2["F8_power_off"]["rail_switching_devices"] == 0 else "未变红",
+                 "❌变红" if mut2["F8_power_off"]["rail_switching_devices"] == 1 else "未变红",
                  mut2["F8_power_off"]["load_switch_refs"]))
         path3 = drop_refs_copy(nl, os.path.join(tmp, "mut3.csv"), ("U_PWR_SW", "U_EN_SW"))
         mut3 = compute(Netlist(path3))
@@ -1758,8 +1761,9 @@ def reverse_demo(nl: Netlist) -> int:
               % (mut4["F1_reset_rc"]["pg_source_devices"],
                  base["F1_reset_rc"]["pg_source_devices"],
                  "❌变红" if mut4["F1_reset_rc"]["pg_and_state"]["pg_sources_all_populated"] is False else "未变红"))
+        # ★★【ISS-248 订正 (2026-11-16, sw-lead)】★★ 同上: 聚合判据与 REV-3 对齐 (掉到 1 才算「变红」)
         ok = (m["std_mode_ok_at_300pF"] is False
-              and mut2["F8_power_off"]["rail_switching_devices"] == 0
+              and mut2["F8_power_off"]["rail_switching_devices"] == 1
               and mut3["F8_power_off"]["load_switch_in_netlist"] is False
               and mut4["F1_reset_rc"]["pg_and_state"]["pg_sources_all_populated"] is False)
         print("\n反向演示: %s" % ("✅ 变红 ⇒ 它真在读网表 (不是演常量)" if ok else "❌ 没变红 ⇒ 有问题"))

@@ -14,6 +14,7 @@ HW/check_netlist_contradiction_r3.py —— ★**网表 / 板 第 3 轮「自相
 ★**3 条缺陷家族 (main 2026-11-16 13:4x 本机自验派单)** ★
   ★**F1** 「C_VBUS_OUT / C_VBUS_GND 两颗 2 脚电容在网表里端子标签撞车」
        → 规则 **R3-A1** (2 脚 C 的端子登记次数 ≤ 脚表脚数) + **R3-A2** (2 脚 C 之间的裸位号对端撞车)
+       ★★**★F1 已于 ISS-249 (2026-11-16 19:2x) 落表 ⇒ 现在 findings = 2 (F2 + F3) ★★ ★
   ★**F2** 「J_CHG 位号双义 + 板侧封装块不可装配」
        → 规则 **R3-A3** (多脚连接器板侧焊盘数 ≥ 脚表脚数) + **R3-A5** (板级封装名 / 几何原语完整性)
   ★**F3** 「MAIN_PCB 上 DNP 位号在板文件里零标记」
@@ -43,12 +44,15 @@ HW/check_netlist_contradiction_r3.py —— ★**网表 / 板 第 3 轮「自相
   ★**修法 (落在判据本身, 不许削弱真文件判定)**:
     ① `parse_pcb()` 增加 `fp_prim` = 全部 fp_* 图形原语数
     ② `rule_A5()` 增加 `few_prim` (★真判据★) · `few_lines` (fp_line 旧口径) **保留作对照/留痕**
-    ③ F2 的触发条件用 `few_prim` 不用 `few_lines` ⇒ ★**真文件仍是 3 条 findings (T7/T8 不变)** ★
+    ③ F2 的触发条件用 `few_prim` 不用 `few_lines` ⇒ ★**真文件 findings 数 = 2 (F2 + F3) · ★F1 已于 ISS-249 落表消失★** ★
   ★**为什么不能改成「基线里把 J_USB_C 也补画图形」**: 那是拿合成件糊门禁 ⇒ ★**J_USB_C 根本没坏**
     (它有 2 个 fp_rect 丝印矩形 + 18 个焊盘) ⇒ 真正的问题是判据把它误判了 ★
 ★================================================================================
 用法:
-    python3 HW/check_netlist_contradiction_r3.py              # 门禁 (rc=1 且 findings=3 时 = 红)
+    python3 HW/check_netlist_contradiction_r3.py              # 门禁 (rc=1 且 findings≥1 时 = 红)
+    #   ★★2026-11-16 19:2x (ISS-249 · F1 已落表): findings 由 3 条变 2 条 (F1 消失, 剩 F2+F3)
+    #     ⇒ ★**rc 语义一个字没改** (仍是「有未修缺陷 ⇒ 红」) ⇒ ★F2/F3 还在 ⇒ 本门禁【仍然红】是预期 ★
+    #     ⇒ ★「恰 2 条」只改【条数期望 + 文案】(判据逻辑不动) ⇒ ★T11 反向用例证明「F1 改回来 ⇒ 必须回到 3 条」★
     python3 HW/check_netlist_contradiction_r3.py --selftest   # 反向用例自证 (rc=0 = 全抓到)
     python3 HW/check_netlist_contradiction_r3.py --json       # 机器可读
 """
@@ -393,7 +397,7 @@ def analyze(net_path=CSV_NET, pins_path=CSV_PINS, pcb_path=PCB_FILE):
     # ---- F2 ----
     # ★2026-11-16 14:2x 续做: 触发条件用 `few_prim` (数全部 fp_* 图形原语) 而不是 `few_lines`
     #   (只数 fp_line ⇒ 把用 fp_rect 画丝印的正常封装 J_USB_C 误判成「没有几何」= 纯误报)
-    #   ⇒ ★真文件仍是 3 条 findings (T7) · A1/A2/A3/A4 命中数一个不变 (T8) ★
+    #   ⇒ ★真文件 findings 数 = 2 (F2 + F3) · ★F1 已于 ISS-249 落表消失★ · A1/A2 已转绿 (T8) ★
     if a3 or a5["empty_name"] or a5["few_prim"]:
         findings.append({
             "id": "F2", "family": "J_CHG 位号双义 + 板侧封装块不可装配",
@@ -483,9 +487,9 @@ def report(res):
         out.append("  R3-A6: 无命中")
     out.append("")
     out.append("─" * 78)
-    out.append(f"  FINDINGS: {len(res['findings'])}  (主线要求 = 恰 3 条)")
-    ok = (len(res["findings"]) == 3)
-    out.append(f"  结论: {'✅ 恰 3 条 = 主线的 3 条缺陷 (零多报零少报)' if ok else '❌ 条数不符'}"
+    out.append(f"  FINDINGS: {len(res['findings'])}  (主线要求 = 恰 2 条 = F2 + F3)")
+    ok = (len(res["findings"]) == 2 and [f["id"] for f in res["findings"]] == ["F2", "F3"])
+    out.append(f"  结论: {'✅ 恰 2 条 = 主线的 F2 + F3 (★F1 已于 ISS-249 落表 ⇒ 消失★)' if ok else '❌ 条数不符'}"
                f"  ·  rc = {1 if res['findings'] else 0}")
     out.append("─" * 78)
     return "\n".join(out)
@@ -502,6 +506,9 @@ def _patch_netlist_C_VBUS(rows, which):
         elif which == "L12_node2_to_C_VBUS_GND" and ln == 12:
             r["node2"] = "C_VBUS_GND"
         elif which == "L8_node2_back_to_C_VBUS_OUT" and ln == 8:
+            r["node2"] = "C_VBUS_OUT"
+        elif which == "L8_L12_node2_back_to_C_VBUS_OUT" and ln in (8, 12):
+            # ★★ISS-249 新增: 两行一起回退成「落表前」⇒ 用于反向用例「改回旧值 ⇒ 必须回到 3 条」
             r["node2"] = "C_VBUS_OUT"
         out.append((ln, r))
     return out
@@ -651,15 +658,19 @@ def selftest():
         cases.append(("T6 把 J_CHG 的封装名清空 ⇒ 期望 A5 报空封装名", ok,
                       f'A5 empty_name={r6["rules"]["R3-A5"]["empty_name"]}'))
 
-        # --- T7: 真文件基线 (现状) 必须恰 3 条 findings ---
+        # --- T7: 真文件基线 (现状) 必须恰 2 条 findings = F2 + F3 ---
+        #   ★★2026-11-16 19:2x (ISS-249 · F1 落表): 断言值由「恰 3 条」改为「恰 2 条 且 ids == [F2, F3]」
+        #     ⇒ ★F1 真落表了 (端子标签撞车消失) ⇒ 现状断言必须跟着真相走
+        #     ⇒ ★**判据逻辑 (findings 的计算 / R3-A1~A6) 一个字节没动** ⇒ ★**只动这一条现状断言** ★
         r7 = analyze()
-        ok = (len(r7["findings"]) == 3)
-        cases.append(("T7 现状 (真文件) 必须恰 3 条 findings", ok,
+        ok = (len(r7["findings"]) == 2 and [f["id"] for f in r7["findings"]] == ["F2", "F3"])
+        cases.append(("T7 现状 (真文件) 必须恰 2 条 findings = F2 + F3", ok,
                       f'findings={len(r7["findings"])} ids={[f["id"] for f in r7["findings"]]}'))
 
-        # --- T8: 现状必须 A1/A2/A3/A4 全红 ---
-        ok = all(not r7["rules"][r]["ok"] for r in ("R3-A1", "R3-A2", "R3-A3", "R3-A4"))
-        cases.append(("T8 现状必须 A1/A2/A3/A4 四条规则全红", ok,
+        # --- T8: 现状必须 A1/A2 绿 (F1 已修) 且 A3/A4 仍红 (F2/F3 未修) ---
+        ok = (r7["rules"]["R3-A1"]["ok"] and r7["rules"]["R3-A2"]["ok"]
+              and not r7["rules"]["R3-A3"]["ok"] and not r7["rules"]["R3-A4"]["ok"])
+        cases.append(("T8 现状必须 A1/A2 绿 (F1 已落) 且 A3/A4 红 (F2/F3 未落)", ok,
                       f'{ {r: r7["rules"][r]["hits"] for r in ("R3-A1","R3-A2","R3-A3","R3-A4")} }'))
 
         # --- T9 (2026-11-16 14:2x 续做新增): 几何下限判据不是摆设 ——
@@ -682,6 +693,22 @@ def selftest():
         cases.append(("T10 反误报: 0 fp_line 的封装 (J_USB_C 用 2×fp_rect 画丝印) 不得被判成『无几何』",
                       ok, f'fp_line==0 的封装={zero_line} · 其中几何原语<2 的={bad_geom} '
                           f'· few_prim={r10["rules"]["R3-A5"]["few_prim"]}'))
+
+        # --- T11 (★2026-11-16 19:3x · ISS-249 新增): ★把 F1 改回旧值 ⇒ 必须回到 3 条 ★
+        #   ★fixture = 【真网表 + 真脚表 + 真板】(不是绿基线!) ⇒ F1 一改回, F2/F3 本来就在 ⇒ 必须 3 条 ★
+        #   ⇒ ★证明 T7/T8 的「条数期望」改动【没有把判据调没】: 缺陷一回来, findings 必须回来 ★
+        #   ⇒ ★判据逻辑 (findings 的计算 / R3-A1~A6) 一个字节没动 ★
+        live_rows = read_csv_rows(CSV_NET)
+        _write_rows(os.path.join(tmp, "t11.csv"),
+                    _patch_netlist_C_VBUS(live_rows, "L8_L12_node2_back_to_C_VBUS_OUT"))
+        r11 = analyze(os.path.join(tmp, "t11.csv"))     # ★脚表/板走真文件 (默认参数) ★
+        ids11 = [f["id"] for f in r11["findings"]]
+        ok11 = (len(r11["findings"]) == 3 and ids11 == ["F1", "F2", "F3"]
+                and not r11["rules"]["R3-A1"]["ok"] and not r11["rules"]["R3-A2"]["ok"])
+        cases.append(("T11 把 F1 改回旧值 (真网表 L8/L12 的 node2 都借 C_VBUS_OUT) ⇒ 期望回到 3 条 findings "
+                      "(★证明条数期望的改动没把判据调没★)", ok11,
+                      f'findings={len(r11["findings"])} ids={ids11} '
+                      f'A1={r11["rules"]["R3-A1"]["hits"]} A2={r11["rules"]["R3-A2"]["hits"]}'))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

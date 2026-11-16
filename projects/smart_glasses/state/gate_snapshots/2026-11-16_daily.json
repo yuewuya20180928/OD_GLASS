@@ -15,7 +15,7 @@
       "deferred": 7,
       "needed_all": 11
     },
-    "open_internal": 119,
+    "open_internal": 131,
     "open_external": 9
   },
   "gate": {
@@ -24,10 +24,10 @@
     "needs_closable_unregistered": 0,
     "needs_waiting_external": 81,
     "global_waiting_external": 72,
-    "global_pending": 198,
+    "global_pending": 212,
     "reconciliation": {
-      "merge_open_needs": 198,
-      "gate_global_pending": 198,
+      "merge_open_needs": 212,
+      "gate_global_pending": 212,
       "merge_waiting_external": 72,
       "gate_global_waiting_external": 72,
       "ok": true
@@ -35,27 +35,27 @@
     "evidence_ok_agents": 3,
     "evidence_total_agents": 3,
     "needs_answered_incoming": 76,
-    "needs_total": 351,
+    "needs_total": 365,
     "answers_effective": 62,
-    "answers_registered": 98,
-    "interface_claims_total": 645,
-    "hard_metric_agents": 2,
+    "answers_registered": 101,
+    "interface_claims_total": 676,
+    "hard_metric_agents": 0,
     "hard_metric_total_agents": 3,
     "hw_pinout_gate_ok": true
   },
   "issues": {
-    "total": 240,
+    "total": 252,
     "by_status": {
       "closed": 97,
       "deferred": 15,
-      "verified": 104,
-      "open": 17,
+      "verified": 115,
+      "open": 19,
       "fixed": 5,
-      "fixing": 2
+      "fixing": 1
     },
     "overdue": 0,
     "external": 31,
-    "internal": 209,
+    "internal": 221,
     "uncovered_blockers": [],
     "errors": [],
     "warnings": [
@@ -217,13 +217,80 @@
       "ISS-239: 没关联 source_blocker (无法自动核对是否真解决)",
       "ISS-240: 没关联 source_blocker (无法自动核对是否真解决)",
       "ISS-241: 没关联 source_blocker (无法自动核对是否真解决)",
-      "ISS-242: 没关联 source_blocker (无法自动核对是否真解决)"
+      "ISS-242: 没关联 source_blocker (无法自动核对是否真解决)",
+      "ISS-252: 没关联 source_blocker (无法自动核对是否真解决)",
+      "ISS-253: 没关联 source_blocker (无法自动核对是否真解决)",
+      "ISS-254: 没关联 source_blocker (无法自动核对是否真解决)",
+      "ISS-255: 没关联 source_blocker (无法自动核对是否真解决)",
+      "ISS-256: 没关联 source_blocker (无法自动核对是否真解决)"
     ]
   },
   "stage": {
     "current_gate": "G1",
     "passed_gates": [
       "G0"
-    ]
+    ],
+    "g1a": {
+      "passed": false,
+      "red": 3,
+      "criteria": [
+        {
+          "id": "G1a-1",
+          "name": "ERC = 0 (KiCad 自己跑 ERC)",
+          "desc": "原理图电气规则零违规",
+          "ok": true,
+          "detail": "rc=0 (python3 state/check_sch_erc.py)"
+        },
+        {
+          "id": "G1a-2",
+          "name": "图上脚数 == 表里脚数 (K=0)",
+          "desc": "逐器件点名, 少画一根脚都不许过",
+          "ok": true,
+          "detail": "rc=0 (python3 state/check_sch_pinfull.py)"
+        },
+        {
+          "id": "G1a-3",
+          "name": "KiCad 真能打开/导出 (loadable)",
+          "desc": "图纸必须是 KiCad 能解析的真文件, 不是文本",
+          "ok": true,
+          "detail": "rc=0 (python3 state/check_sch_loadable.py)"
+        },
+        {
+          "id": "G1a-4",
+          "name": "落表已清零 (翻面口径)",
+          "desc": "★网表/脚表/BOM 里那 18 条待落表条目必须归零★",
+          "ok": false,
+          "detail": "rc=1 (python3 HW/check_netlist_selfconsistency.py --expect-resolved) ⇒ ★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm > 3.0 mm ⇒ ESD 还是不在接口旁边 | ★R10 未落表: 390Ω 档单 pin 载流上限 = 0.608 A > 0.5 A 触点额定 ⇒ R_ILIM 档位没重新定 | ★**说明**: 现在缺陷仍在 ⇒ 本口径应当是红的; ★等它们随『整链重出 第 1 步』落表后本口径才转绿★"
+        },
+        {
+          "id": "G1a-5",
+          "name": "网表尺子 (含表↔网表双向一致)",
+          "desc": "逐脚零差异",
+          "ok": true,
+          "detail": "rc=0 (python3 state/check_netlist.py)"
+        },
+        {
+          "id": "G1a-6",
+          "name": "网表脚表尺子 (针脚归属唯一)",
+          "desc": "一个脚不能挂两个网",
+          "ok": true,
+          "detail": "rc=0 (python3 state/check_netlist_pins.py)"
+        },
+        {
+          "id": "G1a-7",
+          "name": "选型已落表 (必装件无「[待选型]」)",
+          "desc": "★BOM 里必装器件的 value 不许还写「[待选型]」★",
+          "ok": false,
+          "detail": "必装且仍写「[待选型]」= 14 件 ⇒ D_ESD_CAM(ESD 阵列 [待选型]), D_ESD_DEMO(ESD 阵列 [待选型] (USB 2.0)), D_ESD_TC(ESD 阵列 [待选型]), D_ESD_USB_D(ESD 阵列 [待选型] (USB 2.0 双通道)), D_TVS_VBUS(5V 级单向 TVS [待选型]), FB_DEMO(π 滤波磁珠 [待选型])"
+        },
+        {
+          "id": "G1a-8",
+          "name": "关机语义 + 负载开关选型已决",
+          "desc": "ISS-097 / ISS-172 状态",
+          "ok": false,
+          "detail": "ISS-097=fixed · ISS-172=verified"
+        }
+      ]
+    }
   }
 }

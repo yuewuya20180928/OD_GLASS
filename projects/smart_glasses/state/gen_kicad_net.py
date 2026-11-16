@@ -66,6 +66,11 @@ FOOTPRINT = {
 #   (本机没装 kicad-footprints, 编一个库名就是假信息); PCB 工程师按此映射到实际库封装。
 REF_FOOTPRINT = {
     "U_CHG": "TI_RTW0024H (WQFN-24 4x4mm P0.5, TI 封装图 4224801/A)",
+    # ★★2026-11-16 ISS-243 落表 (G-6)★: C_REGN (BQ25896 REGN 去耦电容) 选定 **0805 / 4.7µF / 16V / X7R**
+    #   (OPN GRM21BR71C475KA73L) ⇒ 类型通用占位符 "Capacitor_SMD:C_0402_1005Metric" (0402) 与 BOM 的 0805 **对不上**
+    #   ⇒ 板侧照 .net 画 land 会画成 0402 ⇒ 贴不上 0805 片 ⇒ 改为位号级覆盖 (★只改 C_REGN 一个位号★)。
+    #   ★注: C_REGN 在**充电板** (CHG_BOARD) 上, 不在 demo_mainboard 主板 ⇒ 本条只影响 .net 的封装声明, 不改板。
+    "C_REGN": "Capacitor_SMD:C_0805_2012Metric (0805 / 2.0x1.25 mm, Murata GRM21 系列 land pattern)",
 }
 
 # 别名 → 规范网名

@@ -138,6 +138,29 @@ def decision_done(pm: dict, key: str) -> bool:
     return bool(to) and to in (ans_by_key.get(key) or [])
 
 
+def _g1a_reading():
+    """★**G1a「原理图定稿」独立闸的读数 (★2026-11-16 19:5x main 加★)**
+    ★**只读·只显示★**: ★**不改 G1 的 pass/fail 语义, 不改 rc 语义★**
+    ⇒ 目的: G1 一关卡两件事 (原理图 + PCB), 而 G1 的缺口 100% 是 PCB 的 ⇒ 看板永远「差 1 项」
+    ⇒ ★**把原理图侧的真相单独显示出来, 让真实进度不再被那一项埋掉★**
+    """
+    import subprocess
+    script = os.path.join(HERE, "check_stage_g1a.py")
+    if not os.path.exists(script):
+        return None
+    try:
+        p = subprocess.run([sys.executable, script, "--json"], cwd=PROJ, timeout=900,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        txt = p.stdout.decode("utf-8", "replace")
+        if not txt.strip().startswith("{"):
+            return None
+        d = json.loads(txt)
+        return {"passed": bool(d.get("passed")), "red": int(d.get("red", 0)),
+                "criteria": d.get("results") or []}
+    except Exception:
+        return None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true")
@@ -228,10 +251,14 @@ def main() -> int:
         i = [g["id"] for g in GATES].index(cur["gate"]["id"])
         nxt = GATES[i + 1] if i + 1 < len(GATES) else None
 
+    # ★★2026-11-16 19:5x: G1a 读数 (★只显示, 不改任何 pass/fail 语义★)
+    _g1a = _g1a_reading()
+
     if args.json:
         print(json.dumps({
             "current_gate": cur["gate"]["id"] if cur else "G4-done",
             "passed_gates": passed,
+            "g1a": _g1a,
             "results": [{"gate": r["gate"]["id"], "name": r["gate"]["name"], "passed": r["passed"],
                          "deferred": bool(r["gate"].get("deferred")),
                          "deferred_note": r["gate"].get("deferred_note"),
@@ -274,6 +301,17 @@ def main() -> int:
             print(f"      ▸ 本关内已延后的实测项 ({len(r['defer_meas'])}):")
             for x in r["defer_meas"]:
                 print(f"          - {x}")
+        # ★★2026-11-16 19:5x: G1 下面挂 G1a 的读数 (★原理图侧单独显示★)
+        if g["id"] == "G1" and _g1a:
+            if _g1a["passed"]:
+                print("      ▸ ★G1a 原理图定稿 (★独立闸★): ✅ 全绿 ⇒ ★**原理图侧已定稿** ★")
+            else:
+                _reds = [c["id"] for c in _g1a["criteria"] if not c.get("ok")]
+                print(f"      ▸ ★G1a 原理图定稿 (★独立闸★): ❌ 还差 {_g1a['red']} 条: {', '.join(_reds)}")
+                print("          ★**G1 的缺口是 PCB 的 (unconnected) ⇒ 原理图侧的真相在这一行** ★")
+                for c in _g1a["criteria"]:
+                    if not c.get("ok"):
+                        print(f"          - {c['id']} {c['name']} ⇒ {c['detail'][:110]}")
     if DEFERRED_MEASUREMENTS:
         print("\n⏸  延后到整机/量产阶段的实测项 (**没删, 只是不在当期验收范围**):")
         for k, v in DEFERRED_MEASUREMENTS.items():

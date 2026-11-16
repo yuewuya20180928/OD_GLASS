@@ -733,4 +733,48 @@ awk '/^```csv/{f=1;next} /^```$/{if(f){f=0}} f' HW/CHARGE_BOARD_SPEC.md | grep '
 
 ---
 
+## 12. ★ISS-243 落表补记 (2026-11-16 · hw-lead) ★ `C_REGN` 的值 / 型号 / ★**放置要求**★
+
+> ★**本节是【追加】, 不删改 §0~§11 任何既有内容** ★
+
+### 12.1 · 官方值 (★TI SLUSC76C pin22 原文, 本机 PDF 实读 ★)
+
+> "Internally, REGN is connected to the cathode of the boost-strap diode.
+> **Connect a 4.7 µF (10 V rating) ceramic capacitor from REGN to analog GND.**
+> The capacitor should be placed close to the IC. REGN also serves as bias rail of TS pin."
+
+★出处: TI BQ25896 数据手册 (SLUSC76C) §Pin Functions 表, **pin22 REGN 行** · ★**本机 `pdftotext` 实读, 缓存 `state/.cache_iss243/bq25896.txt` L338~343** ★ · 证据等级 `[官网]`
+
+### 12.2 · 落表后的三处值 (★ISS-243 2026-11-16 已落表★)
+
+| 位置 | 落表前 | 落表后 |
+|---|---|---|
+| `HW/netlist_v1.csv` L44/L45 (真源 `state/gen_netlist.py` L500/L502) | `[待选型] 1µF` | ★**`4.7µF ±10% (10V)`** ★ |
+| `HW/netlist_v1_pins.csv` L132/L133 | `[待选型] 1µF` | ★**`4.7µF ±10% (10V)`** ★ |
+| `HW/BOM_v1.csv` L43 | `[待选型] 1µF` / opn 空 / footprint 待定 | ★**`4.7µF ±10% (10V)` / opn `GRM21BR71C475KA73L` / footprint 0805** ★ |
+
+★**注**: ★**value 栏里的 `(10V)` 是手册要求的【最低耐压】; 实际选定 OPN `GRM21BR71C475KA73L` 的耐压是 **16 V** (≥10 V ✔) —— 两者不矛盾, 选型在手册要求之上留了 1.6× 余量** ★ · 出处: ISS-241 选型矩阵 §3.7 ⑳ `[官网]`
+
+### 12.3 · ★★★ 放置要求 (★★**充电板贴 U_CHG pin22**★★) ★★★
+
+★**要求 (逐字)**: ★**`C_REGN` 必须贴装在充电板上 `U_CHG` 的 pin22 (REGN) 近端 —— 手册原文 "The capacitor should be placed close to the IC"** ★
+★**⇒ 充电板侧的 `C_REGN` footprint 位置必须定在 `U_CHG` pin22 一侧, 不许沿用网表给的通用位置** ★
+
+| 约束 | 数值 | 出处 |
+|---|---|---|
+| 器件本体 | ★**0805 = 2.0 × 1.25 mm (Murata GRM21 系列)** ★ | `[官网]` (ISS-241 矩阵 §3.7) |
+| 焊盘数 | ★**2** (pad1 = REGN / pad2 = GND) ★ | `[实测]` (网表 + 脚表) |
+| 充电板尺寸 | ★**25 × 10 × 0.8 mm** ⇒ 0805 本体在面积上可行 ★ | `[推算]` (`MECH/MECH_BUDGET.md` §1.3 M3, 本文件 L15 已引) |
+| ★**落板批次必须核的** ★ | ★**① footprint 落位在 `U_CHG` pin22 近端 (不得离 IC 太远) ② 走线从 `U_CHG` pin22 直接到 `C_REGN` pad1, 回路尽量短 (手册要求 + 本 LDO 是 TS 偏置轨, 阻抗大 ⇒ 采样点漂移) ③ 电容的 GND 端接 analog GND (★BQ25896 的 PGND 与 analog GND 官方建议单点连接, 见本文件 §2 表格★)** ★ | ★**落板批次 (★板那一趟排队中, 本单不碰板★)** ★ |
+
+### 12.4 · 交叉引用
+
+- ★**落表台账**: `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16 (ISS-243) ★
+- ★**独立机器门禁**: `HW/check_iss243_cregn.py` (+ `--selftest`) ★
+- ★**pad↔pin 映射表 (L2/L3)**: `HW/MOS_PAD_PIN_MAPPING.md` ★
+- ★**交卷单**: `HANDOFF/2026-11-16_hw-lead_ISS243_C_REGN官方值落表与4条落表前置.md` ★
+
+---
+
 *文档结束。生成于 2026-10-27, 起草 hw-lead (器件级规格), 待项目总工审校。*
+*★§12 为 2026-11-16 ISS-243 追加 (hw-lead); §0~§11 一字未改。★*

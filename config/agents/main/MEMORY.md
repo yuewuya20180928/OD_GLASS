@@ -1,9 +1,9 @@
 <!-- PROGRESS-BLOCK-START -->
 
-★**进展播报 2026-11-16 15:05:00** (机器读数 · 脚本自动生成)
+★**进展播报 2026-11-16 19:51:33** (机器读数 · 脚本自动生成)
 
 ```
-=== 进展播报 11-16 15:03:33 ===
+=== 进展播报 11-16 19:46:14 ===
 [板] 11-06 07:07:17 · 4.9MB · 18092 段走线 · 433 过孔
 [布线] 上次实测 unconnected=45 · DRC违规=0
 [留证] 自验时刻 2026-11-09T04:11:35 · verified_by main (verify_and_release.sh)
@@ -3486,3 +3486,39 @@ ExecStart=... /home/radxa/v31_v4l2_od_rtsp /dev/video0 640 480 2 86400 /etc/npu/
   ⇒ ★★**⇒ 父 job 也可能一起死 (★本轮实测: 派它的 cron 775d9893 父会话自己在 09:53:51 就死于同一波 529 ⇒ transcript 最后三条全是 error★) ⇒ ★★⇒ 【没有任何在跑的会话会接手 ⇒ 只能由派活 job 自己重派】★★** ★
 - ★★★**★⇒ 处置范式 (★本轮照此执行·可直接复用★)**: ① **不新建 issue, 不重开** (★status 已是 fixing, 重开反而制造第二条在飞记录★) ⇒ ② **`state/dispatch_log.yaml` 追加一条续派记录** (flock + 锁内重读 + tmp/os.replace) + **`issue_log.yaml` 的 note 追加一段续派记录** (★status 不动★) ⇒ ③ **重派时带【精确断点】: "上一轮零写盘, 等于从零开始" + 受保护 md5 复核值 + "先写盘 → 再补自证 → 最后跑验收" 的顺序纪律 + 【抗 529 纪律】(★撞上 overloaded_error 就原地重试, 每拿到一个结论立刻写盘, 别攒到最后一起写★)**** ⇒ ④ **runTimeout 给 5400s (90 分钟)**, 绕开默认 8 分钟 spawn 超时 ★
 - ★★★**★⇒ 一条通用新教训 (★比单条 bug 更值钱★)**: ★**"子 agent 会话死了" 有四种死法, 处置前必须先分清, 否则会重派一个"其实已经干完一半"的活**: ① **8 分钟默认 timeout** (老毛病) ② **spawn 被 Aborted** (父会话先死) ③ **上游 529 过载** (★本轮新发现的第 4 种★ ⇒ 特征 = transcript 全是只读 + 一串 `overloaded_error`) ④ **task 超长/上下文溢出** (★MEMORY 里 11-12 12:5x 那次: 跑 1h53m 死在分析阶段★) ⇒ ★★**⇒ 每一种的"续做断点"写法完全不同 ⇒ 判死因必须在重派之前** ★
+
+### 【★★★★铁律 (★2026-11-16 15:5x 实测·cron fb67af40 派活轮·★两条新判据 + 一次跨 job 去重★)★★★★】
+- ★★★**★① 判「这个 agent 的名额空不空」⇒ 不许只看 run 状态, 更不许只看 issue 状态 ⇒ 必须【会话是否还在续做】★★** ★
+  - ★**本轮实测 (★兄弟 job 775d9893 给我的·★我本机复核过 transcript 与 sessions_list★)**: ISS-243 的续做会话 `agent:hw-lead:subagent:8f42d87e` (session 77a705e5) 的 **run 15:52:32 已收尾 (status=done)**, ★**但会话本身还在续做交卷** (★15:55:31 仍在改门禁脚本 `HW/check_iss243_cregn.py` · transcript 还在长★) ⇒ ⇒ ★**「run=done」不等于「这个 agent 没人管了」** ★
+  - ⇒ ★★★**⇒ 派活前必查三样 (★顺序不能换★)**: ★**(a) `sessions_list` 里该 agent 的会话【在不在】** (★哪怕 status=done/timeout, ★**只要它还在这个 agent 名下的活跃会话里 + transcript 末行时间在近几分钟内 ⇒ 它就还占着这个 agent 的写会话名额★**) ⇒ ★**(b) transcript 末行 timestamp / 文件 mtime 【是不是还在动】** (★静默 = 真死了, 可以清僵尸; 在动 = 还在飞, 不许重派★) ⇒ ★**(c) `state/dispatch_log.yaml` 里【兄弟 job 是不是刚派过同一条】** (★本轮 dispatch_log 里 ISS-243 有两条记录: 我的「僵尸判定+纪律块」和兄弟 job 的「已 spawn」⇒ ★**两 job 都会派 ⇒ 派活前必须交叉核对 dispatch_log + sessions_list, 不许只看 advance.py 的 A 段★**★) ★
+  - ⇒ ★**本轮正确处置 (★可复用范式★)**: ★**不 spawn (兄弟 job 已派) + 把我实测出来的续做硬规矩追加进 issue_log 的 task_brief (★下轮谁派都直接可用★) + dispatch_log 里注明「本 job 未 spawn」防下轮误判成两条会话 + 复核在跑会话的落盘链(不抄报告)** ★ ⇒ ★**兄弟 job 的 run 与我的 run 撞车时, 唯一安全的动作是【不写同一批产物】+【只补 brief/日志】** ★
+- ★★★**★② 【门禁脚本报红 ≠ 盘上真错】⇒ 判红之前先 `grep` 真源一眼★** ★
+  - ★**本轮实测**: ISS-243 的自建门禁 `HW/check_iss243_cregn.py` 在 15:53:57 报 C7 FAIL「真源里 C_REGN 还是『[待选型] 1µF』」⇒ ★**这是误报 (比对串写错)** ⇒ ★**15:54 修好后 C7 PASS** ⇒ ★**真源 `state/gen_netlist.py` L103/L111/L512/L517 本来就正确** (★value `4.7µF ±10% (10V)` + `PARTS[C_REGN]` = 0805 / `GRM21BR71C475KA73L`★) ⇒ ★**基线没漂: `--expect-resolved` 仍恰 18 条 · gate_check rc=0【Q1】18/18 · 板 `611b869e…` + `.kicad_pro` `3e504d2b…` 逐字节未变** ★
+  - ⇒ ★★★**⇒ 新纪律: 看到门禁红, 先分清是【盘上真错】还是【脚本比对串错】⇒ ★**先 `grep` 真源一眼 (★30 秒成本, 避免去查一个根本没错的盘★) ⇒ ★**且不许照着一条 FAIL 就去改已经正确的真源 (★那是把对的改成错的★)** ★** ⇒ ★★**派单 brief 里必须写明这一条** (★否则子 agent 会把时间全花在追一个误报上★) ★★ ★
+- ★★**★⇒ 本轮顺手固化 (★已落盘★)**: `state/_apply_20261116_1545_redispatch_iss243.py` (★僵尸判定 + task_brief 追加块 + dispatch_log 记录, 幂等★) · `state/issue_log.yaml` 的 ISS-243.task_brief 追加「★注 (main 2026-11-16 15:4x 追加)」块 (★含: 真源=gen_netlist.py 而非 CSV · TI PDF 本机已有 `/tmp/bq25896.pdf` (pin22 原文在 txt 340~343 行) · OPN 用 ISS-241 矩阵 §3.7 的 GRM21BR71C475KA73L · selfconsistency 基线 18 条 · 台账=`HW/SCHEMATIC_LANDING_V1_LANDED.md` §16 (不是 WORKPACKET §9) · 重生成硬顺序 gen_netlist→gen_kicad_net→gen_netlist_pins→gen_bom→gen_schematic_pages→gen_kicad_sch · curl 一律前台 + `--max-time 20` · W-3 留痕交 main★) ⇒ ★**下一轮无论哪个 job 派 ISS-243, 这块都在, 不用再查一遍★** ★★ ⇒ ★**另: 派活前必跑的 `state/check_brief_commands.py` 会把「本单新建的产物路径」误判成坏命令 ⇒ ★**brief 里每个新产物路径必须单独一行 + 前缀「★新建**」+ 路径 (★同一行列多个路径时, 第二个之后的会被误判★) ⇒ 本轮实测: 把 5 个新产物拆成 5 行后闸过 (0 问题)** ★**
+
+### 【★★★★铁律 (★2026-11-16 17:3x~17:4x 实测·cron fb67af40 派活轮·★【跨 job 同分钟撞车(第 2 次·同一批 3 条)】+ 【派活前命令存在性闸的第四类误报已修】★)★★★★】
+- ★★★**★① 两个派活 cron 会在【同一分钟】抢同一批单 ⇒ 派活前必须【交叉核对 `dispatch_log` + `sessions_list`】⇒ 不许只看 `advance.py` 的 A 段★** ★
+  - ★**本轮实测 (17:37~17:41 全过程留痕)**: ★**17:37 我读 `advance.py --json` ⇒ ISS-245 / ISS-246 / ISS-247 三条全 `open` ⇒ 17:40 我跑 `python3 state/advance.py --apply --only ISS-245` ⇒ ★**它已成【空操作】** ⇒ ★**查 `state/dispatch_log.yaml` 才发现: 三条在 17:39:10 已被【兄弟 job 775d9893「ARS45 继续执行后继计划」】标 fixing** ⇒ ★**`sessions_list` 确认 `sw-lead` / `mech-lead` / `hw-lead` 各有 1 条 `status=running` 会话 (17:39:00 起, transcript 首条 task 与三条 brief 逐字对得上)** ⇒ ★⇒ ★**三条活的都在跑 ⇒ 本 job 一条都没派 (也不许派) ⇒ 本轮派活产出 = 0** ★
+  - ⇒ ★★★**★⇒ 处置范式 (★与 MEMORY 里 15:5x 那条同型, 本轮复现并坐实★)**: ★**① 不 spawn ② 不写同一批产物 (分片/台账/交卷单一律不碰) ③ 只补【不碰共享状态文件】的留痕 (本轮只写 MEMORY + 闸脚本)** ⇒ ★**★不要去改 `dispatch_log.yaml` (★`advance.py` 写它时【不加锁】⇒ 我这边加锁写反而可能覆盖兄弟 job 正在写的条目★) ⇒ ★**issue_log 里 status=fixing 已经是防重派的真闸** ★
+  - ⇒ ★★★**★⇒ 新增一条硬判据 (★省掉一次竞态★)**: ★**`advance.py --apply --only` 会把【本轮 internal 里所有 open 单】一起标 fixing (它内部按 agent 名额挑单, `--only` 只是二次过滤) ⇒ 所以正确的顺序是【先 `sessions_list` 看有没有 running 会话 ⇒ 再 `--apply` ⇒ 再回读 `dispatch_log` 确认没有别人刚派的同名单 ⇒ 最后才 spawn】★** ★**本轮因为兄弟 job 早 40 秒落 fixing, 我的 `--apply` 恰好空转 ⇒ 侥幸没造成"僵尸 fixing"; 下次不能靠侥幸** ★
+- ★★★**★② 派活前的「命令存在性闸」`state/check_brief_commands.py` 的【第四类误报】本轮当场修掉 (★自测 7 条 → 10 条, rc=0★)★★** ★
+  - ★**现象**: ★**ISS-245 / ISS-246 / ISS-247 三条 brief 全被点成「引用了不存在的路径」⇒ 点名的正是各自的【交卷单 `HANDOFF/2026-11-16_*.md`】** ⇒ ★**但那三个文件【本来就是本单要新建的交卷单】⇒ 交卷前必然不存在 ⇒ 属于误报 (第 4 类: 前 3 类 = 否定语境 / 本单新建同一行 / 路径散在子目录)** ★
+  - ★**根因**: ★**闸的 `declared_outputs()` 只认【同一行 30 字内出现「新建/产出/交付文件…」】的路径 ⇒ 而 brief 的天然写法是【标题一行 + 列表项一行】("★⑥ 交卷物 (4 件)★" / "2. ★`HANDOFF/xxx.md`★") ⇒ 跨行 ⇒ 闸看不见 ⇒ 误报** ★
+  - ⇒ ★★★**★⇒ 修法 (★已落盘 `state/check_brief_commands.py`★)**: ★**① `_CREATE_RE` 增补「交卷」; ② 新增 `_declared_by_prev_heading()`: 本行是列表项 + 往上【连续的列表项】同属【标题匹配「交卷物/交付物/产出物 (N 件)」的小节】⇒ 判为产出物 ⇒ 豁免** ★
+    - ★**边界纪律 (★不许放宽成"整段豁免"★)**: ★**① 本行必须是列表项 (★"另跑 `xxx.py`" 这种非列表行不豁免★) ② 往上只跨【连续列表项】, 跨到非列表行就停 ③ 标题必须带「N 件」份量口径 (★"验收标准 (…原样输出…)" 这种不算★)** ★
+  - ⇒ ★★★**★⇒ 自测 7 → 10 条 (★rc=0★)**: ★**⑧ 交卷物标题下的交付物不误报 / ⑨ 交卷物豁免不许放过别处的真缺失命令 / ⑩ 普通列表项里的缺失路径照样被抓** ⇒ ★**默认跑法实测: 「查了 9 条待办单的 task_brief, 有问题的 0 条」(★修之前是 3 条误报★)** ★
+  - ⇒ ★★★**★⇒ 【MEMORY 里 15:5x 记的 workaround 从此不必】**: ★**旧规矩是「brief 里每个新产物路径必须单独一行 + 前缀『★新建★』」⇒ 本轮起, 只要写在【交卷物/交付物 (N 件)】小节里就天然豁免 ⇒ 写 brief 的人不用再为了过闸去改措辞** ★★ ⇒ ★**但「命令真的不存在」依然会红 (自测 ⑨/⑩ 盯着)** ★★
+
+### 【★★★★铁律 (★2026-11-16 20:0x~20:1x 实测·【`sessions_spawn` 报「file lock stale」= 子会话【可能已经起来了】⇒ 直接重试 = 派了重复单】★)★★★★】
+- ★★★**★① 现象 (★本机实测, 不是推测★)**: ★**20:01:47 我调 `sessions_spawn` (sw-lead · ISS-250) ⇒ 返回 `file lock stale for /home/yuewuya/.openclaw/agents/main/sessions/<main-session>.jsonl` ⇒ 我以为失败 ⇒ 20:02:02 原样重试 ⇒ 成功返回 `3082f8a5`★** ★
+  ⇒ ★**实测真相 (★20:0x 由队列 cron fb67af40 独立查到并告警★)**: ★**两条 sw-lead 子会话同时在跑, 任务书逐字相同** ★ · `b082e4ae` (20:01:47 起 = **第一次那个其实起来了**) · `3082f8a5` (20:02:02 = 我的重试) ★
+  ⇒ ★**⇒ 新硬判据: ★`sessions_spawn` 报【file lock stale】这类错误时, 【子会话很可能已经创建成功】⇒ 禁止直接重试 ⇒ 必须先 `sessions_list` 核对 ⇒ 确认没有同任务书的会话再决定重试** ★** (★本轮损失: 20:03~20:06 两条并行改 `SW/SW_MD5_BASELINE_LEDGER.md` + 查证表 ⇒ 靠 cron 告警 + main 硬 kill 才没把脚本改成半成品★) ★
+- ★★★**★② 撞车当场怎么处置 (★本轮已走完, 范式照抄★)** ★
+  - ★**① 谁有 kill 权限**: ★**`subagents kill` 只认本 requester 的子会话** ⇒ ★**兄弟 job (cron) 发现撞车却杀不掉 ⇒ 只能由【派活的那一方】亲手 kill** ★
+  - ★**② 保留谁**: ★**保留先起来的那条 (b082e4ae) ⇒ kill 后起来的那条 (3082f8a5)** ★ ⇒ ★**判据 = 同 agent + 同任务书 ⇒ 只留一条** ★
+  - ★**③ 杀完必须验伤 (★本轮已验★)**: ★**两个 SW 脚本 mtime 没变 (check_demo_panel_spec 08:33 / timing_check 18:32 ⇒ 没有半成品脚本)** · ★**`state/fragments/sw.yaml` 能解析 + `merge.py` rc=0 (⇒ 分片没被互相覆盖)** · ★**台账文件尾部完整 (160 行, 表格行收尾, 新锚点 16ac89f7 已在里面)** ★
+  - ★**④ 台账留痕**: ★**由【发现方】写 note 即可 (★不动 status★) ⇒ kill 的一方不用再改台账** ★
+- ★★★**★③ 派活前的正确顺序 (★把 17:3x 那条补全成一条完整链★)** ★
+  ★**① `sessions_list` 查该 agent 有没有 running 会话 ⇒ ② `advance.py --apply --only` 落 fixing ⇒ ③ 回读 `dispatch_log` 确认没有别人刚派的同名单 ⇒ ④ `sessions_spawn` ⇒ ⑤ ★★**spawn 若报错 ⇒ 立刻 `sessions_list` 核对 ⇒ 禁止直接重试** ★★ ⇒ ⑥ 落 `dispatch_log` 留痕** ★
+  ★★**⇒ 一句话: ★`spawn` 报错不是「没起来」的证据, 是「不知道起没起来」的证据 ⇒ 查了才知道** ★★ ★

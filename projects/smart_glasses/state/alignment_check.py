@@ -145,20 +145,46 @@ def main() -> int:
 
     # ── 7. 台账里 fixing 的有没有对应交接单/产出 ──
     import datetime as _dt
+    import re as _re
     now = _dt.datetime.now()
+    today = now.date()
+    date_only_nojudge = []
     for iid in sorted(log_running):
         it = byid.get(iid, {})
         if it.get("fix_ref"):
             continue
         # ★僵尸判定: 派出超过 3 小时且仍无 fix_ref ⇒ 真僵尸 (刚派出的还没产出不算)
         disp = str(it.get("dispatched_at") or "")
-        try:
-            dd = _dt.datetime.fromisoformat(disp.replace("Z", "+00:00")).replace(tzinfo=None)
-            age_h = (now - dd).total_seconds() / 3600.0
-        except Exception:
-            age_h = 0.0
+        # ★★2026-11-16 19:4x (main) 修【假红】: `dispatched_at` 多数只写到【日期】(实测 152/247 条) ★★
+        #   ⇒ fromisoformat('2026-11-16') 被当成【当天 00:00】⇒ ★**19:1x 刚派出的 3 条被算成 19.5 小时** ⇒ 误报「僵尸 fixing」
+        #   ⇒ ★**这正是本项目吃过的亏**: ISS-235/236/246 三次「僵尸 fixing」假红 ⇒ ★**判据必须分「当日/跨日」** ★
+        #   ⇒ 【当日 + 只有日期】= 派出的确切时刻不可知 ⇒ 僵尸判据【本日不可判】(★**不算违规**, 但要打印出来给人看★)
+        #   ⇒ 【跨日 + 只有日期】= 至少已过 24 小时 ⇒ ★**仍按真僵尸判 (判定阈值 3 小时一个没改)** ★
+        #   ⇒ 【有时刻】= ★**照旧精确判** ★
+        age_h = 0.0
+        _disp_s = disp.strip()
+        if _re.fullmatch(r"\d{4}-\d{2}-\d{2}", _disp_s):
+            try:
+                d0 = _dt.date.fromisoformat(_disp_s)
+            except Exception:
+                d0 = None
+            if d0 is not None:
+                if d0 >= today:
+                    age_h = 0.0
+                    date_only_nojudge.append(iid)
+                else:
+                    age_h = (now - _dt.datetime.combine(d0, _dt.time.min)).total_seconds() / 3600.0
+        else:
+            try:
+                dd = _dt.datetime.fromisoformat(disp.replace("Z", "+00:00")).replace(tzinfo=None)
+                age_h = (now - dd).total_seconds() / 3600.0
+            except Exception:
+                age_h = 0.0
         if age_h > 3:
             problems.append(f"{iid} 处于 fixing 超过 {age_h:.1f} 小时仍无 fix_ref ⇒ 僵尸 fixing")
+    if date_only_nojudge:
+        info["当日派出的单"] = (f"{len(date_only_nojudge)} 条 dispatched_at 只有日期 (无时刻) ⇒ 僵尸判据本日不可判 "
+                                f"(★不算违规★): {date_only_nojudge}")
 
     # ── 输出 ──
     print("=" * 78)

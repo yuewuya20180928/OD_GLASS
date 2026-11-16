@@ -781,6 +781,72 @@ artifacts:
   version: '1.0'
   updated_at: '2026-10-25'
   summary: 'ISS-241 交卷单 (B1~B6): 21 件选型矩阵 + 3 条硬发现 + 10 条缺口 + 落表前置条件 L1~L6'
+- path: HW/PART_SELECTION_GAPS_CLOSEOUT.md
+  kind: closeout
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-244 收口页 (新建): ISS-241 登记的 10 条选型缺口 G-1~G-10 逐条自查补全 + 22 件 OPN 回填清单 (只出清单, 不落表)。一张表每条缺口一行,
+    列 = 缺口 / 归谁 / 本轮自查结果 / 证据等级 / 出处 / 降级方案 / 还差什么 / 状态 (八栏齐全)。★四条重点缺口从描述性缺口升级成带官方出处 + 可复跑算式 + 可量化代价:
+    G-5 (LED 亮度: Kingbright 厂商 PDF 第 3 页的 Luminous Intensity vs. Forward Current 归一化曲线数字化 ⇒ 1 mA 工作点只有
+    20 mA 标称亮度的 4.8%~7.2% = 暗 14~21 倍; 红 ≈11 mcd typ / 绿 ≈0.7~0.9 mcd typ; 改 R 到 20 mA 档的代价 = 红 68Ω /
+    绿 55Ω + 功耗 2.2mW→66mW + IEC 62471 重算) · G-3+G-4 (业界依据 TI SLVAF82B §3.2/§4 的 each data line + 紧贴连接器
+    + USB2.0 Cd<4pF, 配 Würth ANP002 Fig9/11; 本板实测 CSI-2 十条线里九条裸奔 / USB D− 裸奔; 代价 = 焊盘 +1 与 +4 + 面积 ×15,
+    但双通道 Cd 1.5/1.9pF 达标 ⇒ 结电容不是瓶颈) · G-1 (两种写法的电学后果都算出来: 写法A S=BAT_SW ⇒ PG 低 VGS=-4.2V 导通 / PG 高 VGS=-0.9V
+    关断 = 逻辑自洽; 写法B note 首句直译 ⇒ 上电 VGS=0V 不导通 + PG 高 VGS=+3.3V 反向偏置 ⇒ 开机路径彻底不通 ⇒ note 首句与 note 正文自述的正解互斥;
+    连带需 D-S-G 引脚序器件) · G-10 (TI TPS3808G01 官方公式 V_IT=(1+R1/R2)x0.405V 与 R1+R2=4MΩ ⇒ 三档轨电压的 E96 候选阻值与误差带;
+    但真正阻塞是 U_SUPV 与 U_DCDC_VIO 都是 DNP ⇒ 分压两臂装上会把 RAIL_V_SOC_IO 短路到地 ⇒ 建议两臂随 U_SUPV 一并 DNP)。其余六条 (G-2/G-6/G-7/G-8/G-9)
+    写成已转单 / 已闭合 + 出处, 不重复论证。落表锚点一律 ref+net + 当刻行号 (行号会随落表漂移)。★零外发, 实物 [实测]=0 条 (所有 [实测] 都是文件 / 网表 / 板文件实读与脚本实跑),
+    未改网表 / 脚表 / BOM / 板 / ISS-241 矩阵与门禁'
+- path: HW/check_part_selection_gaps.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-244 机器门禁 (新建, 内容级不挂 md5): C0 基准块合法 JSON · C1 G-1~G-10 十条一条不许漏 · C2 每条带齐 状态 / 证据等级 / 出处
+    / 降级方案 四栏 · C3 证据等级只取 [官网]/[实测]/[媒体]/[推算]/[0数据] 五级白名单 (写 [官方] = 红) · C4 不许出现挂起措辞 (老板 11-12 02:02 政策:
+    不发信, 查不到就写 [0数据] + 降级方案) · C5 OPN 回填清单必须 22 件全在 (件数由脚本自己跑 HW/BOM_v1.csv 统计, 不抄任何硬编码数字) · C6 每行必须带非空的落表锚点。--selftest
+    7 条反向用例 7/7 全抓到, 每条自证三件事: 变异确实落到盘上副本 / 期望那条真的变红 / 其余 check 仍绿 (M7 基准块破坏 = C0 红 + C1~C6 一致地红 = fail-closed)'
+- path: state/.cache_iss244/
+  kind: evidence-cache
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-244 证据落盘目录 (新建): led/ 五份 Kingbright 原厂 PDF + TI TPD2E2U06 与 TPDxE05U06 数据手册 + ★数字化脚本
+    extract_ivif.py (坐标轴标定取自 PDF 文本层 pdftotext -bbox, 非人眼量; RANSAC 提迹线; 三条自证: 过原点 / 20mA 点约 1.00 / 单调)
+    + 逐件 JSON 结果 ivif_*.json; mos/ AO3407A 与 DMP3098L 原厂手册 (G-1); ref/ TI TPS3808 数据手册 SBVS050N Rev.N
+    (G-10) 与 TI SLVAF82B (G-3/G-4); supv_divider_solve.py (G-10 分压候选表算式); build_closout.py (收口页生成器, 正文表与机器可读基准块同源)'
+- path: SW/SW_MD5_BASELINE_LEDGER.md
+  kind: ledger
+  version: v1.4
+  updated_at: '2026-11-16'
+  summary: '★ISS-245 · SW 侧 md5 基线台账重锚 (H-1 第 4 跳, 依据 ISS-243 落表第 4 批 2026-11-16 15:45): §1 锚点 entries
+    两条各改 4 个字段 — 网表 md5 34132f7e…→611c3ba3db3dc7de7213063375b96d01 / 脚表 md5 b21b743a…→ef436a37412ac9b6eac3c9f41f1edca4
+    / prev_md5 各填上一跳旧值 / by=ISS-243 / landed_at=2026-11-16 15:45 (取重生成产物落盘 mtime 15:45:45, 不是自编); §1 landing_records
+    加 ISS-243 交接单位置 (4 项); §3 追加 R-07 留痕行 (跳数/谁改的/单号/新旧 md5/复现命令 齐全) + 追加 1 句现值指针 — ★追加式: R-01~R-06 历史行一个字没改★;
+    判据逻辑 0 改动 (R6 六条 + R7 逻辑原样) · --skip-md5 未设成默认跳过 · 反向用例一条没删 (16/16) · HW/ 下 0 字节写入 (5 个受保护 md5 逐字节不变)
+    · 门禁 check_demo_panel_spec.py rc=0 (R1~R7 全过) + timing_check.py rc=0 (selftest 71/71)'
+- path: HANDOFF/2026-11-16_sw-lead_ISS245_SW侧H1重锚第4跳.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-245 交卷单 (B1 结论摘要 / B2 验收标准自评 / B3 证据分级 / B4 接口取值声明 / B5 验收命令原样输出 + 未决项与卡点 / B6 边界审计 +
+    自证复现命令): 交卷绿 = check_demo_panel_spec.py rc=0 (R1~R7 全过) · timing_check.py rc=0 (SELFTEST 71/71) ·
+    check_demo_panel_spec.py --selftest rc=0 (16/16) · merge+gate_check rc=0 (Q1 18/18) · 受保护 5 件 md5
+    逐字节不变; ★反向自证 (必做): /tmp/iss245/sandbox 沙盒里把锚点 md5 改回旧值 34132f7e…/b21b743a… ⇒ R6 那 2 条重新变红 (rc=1) ⇒
+    装回去又绿 (rc=0) ⇒ 证明该判据跟盘上真值走不是摆设; ★事实纠正一条: timing_check.py 没有 --selftest flag (argparse rc=2), 其 71
+    条 selftest 是默认路径 ⇒ 裸跑即 71/71; 另记 --reverse-demo 的聚合断言 (L1762 仍判 ==0) 在 ISS-235 把 REV-3 基线翻成 2→1 后变陈旧,
+    与锚点无关 (隔离实测), 本单不修 (改了会毁掉脚本 mtime 早于落表这条判别证据) ⇒ 登记 need 给 main; 零外发 · 零实物 [实测]=0 条 · V-2/V-3/V-4 一条没拍'
+- path: HANDOFF/2026-11-16_sw-lead_ISS248_reverse-demo演示段口径对齐.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-248 交卷单 (B1 结论摘要 / B2 验收标准自评 / B3 证据分级 / B4 接口取值声明 / B5 未决项与卡点 / B6 边界审计 + 自证复现命令): --reverse-demo
+    演示段口径对齐到同文件权威判据 REV-3 (删掉 U_PWR_SW 后 rail_switching_devices 从 2 掉到 1, 不是 0) ⇒ 改演示段 2 处过期期望值 (改前 L1742
+    打印判红条件 + 改前 L1762 聚合 ok 判据, == 0 → == 1) + 4 行留痕注释, 判据逻辑 0 改动 (helper / REV-3 / REV-3b / REV-3c 一字未动,
+    71 条 selftest 一条没删); 交卷绿 = timing_check.py rc=0 (SELFTEST 71/71) + --reverse-demo rc=0 (末行「反向演示: ✅
+    变红 ⇒ 它真在读网表 (不是演常量)」) + check_demo_panel_spec.py rc=0 (R1~R7 全过) + --selftest rc=0 (16/16) + merge/gate_check
+    rc=0 (Q1 18/18); ★反向自证 (必做): /tmp/iss248/sandbox 沙盒里把 L1762 改回 == 0 ⇒ --reverse-demo 重新 rc=1 (末行回到「❌
+    没变红 ⇒ 有问题」) ⇒ 装回又绿 (rc=0) ⇒ 证明该断言真在读网表不是摆设 (沙盒做完已清掉); ★附带订正派活口径: timing_check.py 没有 --selftest flag
+    (argparse rc=2), 71 条 selftest 是默认路径 ⇒ 裸跑即 71/71; ★零落表 (受保护 5 件 md5 逐字节不变) · 零外发 · 零实物 [实测]=0 条 ·
+    V-2/V-3/V-4 一条没拍'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -1601,6 +1667,25 @@ needs_from:
     by 再改), 别写死 ISS-220** ★ ④ 本轮我只写了交卷单 §7 (追加) + 本条分片; state/issue_log.yaml 零写入 (不自签); HW/ MECH/ 零写入;
     板端 [实测] = 0 条 ⇒ ★**请勿再把 ISS-221 派给 sw-lead (已完, 第二次重复派活)** ★'
   since: '2026-11-16'
+- key: iss245_reverse_demo_stale_agg
+  to: main
+  item: 'ISS-245 交卷时顺带实测到: SW/tools/timing_check.py 的 --reverse-demo 演示聚合行 L1762 仍判 mut2[rail_switching_devices]
+    == 0, 但 ISS-235 (台账 §3 R-06) 已把 REV-3 基线从 1→0 翻正成 2→1 ⇒ 该演示 rc=1 (反向演示: 没变红 ⇒ 有问题)。★权威判据没坏: 71 条 selftest
+    里的 REV-3 / REV-3b 已经是对的 (从 2 掉到 1, 实测 PASS)。★与锚点无关: 把锚点改回旧 md5 再跑 --reverse-demo 仍是 rc=1 (隔离实测)。★本单不修的理由:
+    改了会改门禁脚本 mtime, 正好毁掉本单『脚本 mtime 早于落表 ⇒ 是锚点过期不是红灯被调没』这条判别证据; 且不在任务书验收清单内。★要 main 授权: 允许 SW 把 L1762
+    改成跟 REV-3 一致 (== 1), 或明确 --reverse-demo 不再作为门禁口径。另附一条事实纠正: timing_check.py 没有 --selftest flag (argparse
+    rc=2), 它的 71 条 selftest 是默认路径 ⇒ 裸跑即 71/71, 请订正派活口径'
+  since: '2026-11-16'
+- key: iss248_verify_close_reverse_demo
+  to: main
+  item: 'ISS-248 (sw-lead) 已交卷: --reverse-demo 演示段口径对齐到权威判据 REV-3 (删掉 U_PWR_SW 后 rail_switching_devices
+    从 2 掉到 1, 不是 0) ⇒ --reverse-demo 恢复 rc=0 (末行「反向演示: ✅ 变红 ⇒ 它真在读网表 (不是演常量)」) · timing_check.py 仍 rc=0
+    (SELFTEST 71/71) · check_demo_panel_spec.py rc=0 · --selftest rc=0 (16/16) · merge+gate_check rc=0
+    (Q1 18/18) · 受保护 5 件 md5 逐字节不变; ★请 main 做两件事: ① verify 后把 state/issue_log.yaml 的 ISS-248 落 verified
+    (★本单不自签 issue_log, 零自改★) ② 顺带把 ISS-245 登记的 need「iss245_reverse_demo_stale_agg」(to=main) 闭掉 —— ★它描述的问题已被本单实际修掉
+    (L1742 + L1762 已 == 1), 但答复必须由 main 以 main 身份登记, SW 侧代签会做成自闭合, 本单只补了一条 answers 记录不代签★; ★另附一条派活口径订正:
+    timing_check.py 没有 --selftest flag (argparse rc=2), 71 条 selftest 就是默认路径 ⇒ 裸跑即 71/71'
+  since: '2026-11-16'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -1776,6 +1861,27 @@ answers:
     L3 D_ESD_CAM pad 对调或改双向件; L4 6 件充电板器件 footprint 另行定; L5 G-1 Q_PG 源漏措辞矛盾由 PM 裁决; L6 R_SUPV_DIV 最终阻值待
     TBD-02'
   ref: HANDOFF/2026-11-16_sw-lead_ISS241_BOM待选型21件OPN选型矩阵.md
+- key: iss244_gaps_closeout
+  to: main
+  value: '★ISS-244 已交卷 (零外发, 实物[实测]=0条): ① HW/PART_SELECTION_GAPS_CLOSEOUT.md (新建) = G-1~G-10 逐条自查补全 (每条八栏:
+    缺口/归谁/本轮自查结果/证据等级/出处/降级方案/还差什么/状态) + 22 件 OPN 回填清单 (登记范围 22 / 当前待落 21 / C_REGN 已被并发落表落掉); ② HW/check_part_selection_gaps.py
+    (新建) = C0~C6 六条断言 + --selftest 八条反向用例 8/8 全抓到 (每条自证: 变异真的落到副本 / 目标那条真的变红 / 其余仍绿); ③ 证据落盘 state/.cache_iss244/
+    (五份 Kingbright 原厂 PDF + TI TPS3808 / SLVAF82B / TPD2E2U06 / TPDxE05U06 + AO3407A / DMP3098L + 数字化脚本
+    extract_ivif.py + 分压算式脚本 supv_divider_solve.py + 生成器 build_closout.py)。★四条重点缺口的结论: G-5 LED 1mA 档只有标称亮度的
+    4.8~7.2% (厂商曲线数字化, 四颗料互证); G-3+G-4 业界依据 = 差分对正负两根都要护 + 紧贴连接器, USB2.0 Cd<4pF 判据下双通道件达标 ⇒ 代价在焊盘与面积不在结电容;
+    G-1 写法A 逻辑自洽 / 写法B 开机路径不通 ⇒ note 首句必须改 (连带需 D-S-G 引脚序); G-10 官方公式与三档候选阻值已算出, 但真正阻塞是 U_SUPV 与 U_DCDC_VIO
+    都 DNP ⇒ 建议两臂随 U_SUPV 一并 DNP。★留 main 与老板拍六项 (V-2 ESD 二选一 / V-3 / V-4 / G-1 源漏写法 / G-10 要不要恢复监督器 / LED
+    亮度档) ⇒ 本单一条未代拍; 请 main 落 verified 并把六项并进 DECISION_PENDING; ★state/issue_log.yaml 本单零写入 (verify 留给
+    main); ★HW/ 只新增两个文件 (收口页 + 门禁), 网表 / 脚表 / BOM / 板 / ISS-241 矩阵与门禁 一个字节未改'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS244_选型缺口自查补全与OPN回填清单.md
+- key: iss245_reverse_demo_stale_agg
+  to: main
+  value: '★SW 侧已按 ISS-248 (main 2026-11-16 18:3x 开单, owner=sw-lead) 把这条 need 实际修掉: SW/tools/timing_check.py
+    的 --reverse-demo 演示段 2 处过期期望值 (改前 L1742 打印判红条件 + 改前 L1762 聚合 ok 判据) 已从 == 0 对齐成 == 1, 与同文件权威判据 REV-3
+    (L1573~L1578, 「从 2 掉到 1 (★不是 0★)」) 同源; REV-3b (两颗都删 ⇒ 0) 未动, 71 条 selftest 一条没删 ⇒ --reverse-demo 恢复
+    rc=0 (末行「反向演示: ✅ 变红 ⇒ 它真在读网表 (不是演常量)」)。★反向自证: /tmp/iss248/sandbox 沙盒里把 L1762 改回 == 0 ⇒ --reverse-demo
+    立刻 rc=1 (末行回到「❌ 没变红 ⇒ 有问题」) ⇒ 装回又绿 ⇒ 证明该断言真在读网表不是摆设。★零落表 · 零外发 · 零实物 [实测]=0 条'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS248_reverse-demo演示段口径对齐.md (B1~B6)
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -2718,6 +2824,86 @@ interface_claims:
   value: BOM=1uF vs TI BQ25896 手册 pin22=4.7uF(10V) -> 落表批次须改 BOM value
   note: '[官网] TI SLUSC76C pin22 原文; 本单不落表'
   ref: ''
+- key: iss244_g5_led_brightness_1ma
+  value: 1 mA 工作点只有 20 mA 标称亮度的 4.8%~7.2% (暗 14~21 倍); 红 AA1608SURSK 约 11 mcd typ @1.35 mA / 绿 KP-2012SGC
+    约 0.7~0.9 mcd typ @1.10 mA / 充电灯 APT1608SURCK 约 5.5 mcd typ
+  note: ★[官网]+[推算] 2026-11-16 sw-lead · 依据 = Kingbright 官方数据手册第 3 页的 Luminous Intensity vs. Forward Current
+    (以 20 mA 归一化) 曲线数字化, 四颗料互相印证 (5.10 / 5.10 / 4.77 / 5.24 / 7.19 %); 数字化脚本 state/.cache_iss244/led/extract_ivif.py
+    (标定取自 PDF 文本层 + RANSAC + 三条自证), 原厂 PDF 全部落盘 ⇒ 可复核。电流账 = R_LED_G/R_LED_R 1kΩ ±1% @3.3V ⇒ 红 1.35 mA
+    / 绿 1.10 mA / Vf 取 2.5 V max 时只剩 0.80 mA (比 ISS-241 写的 1.1~1.3 mA 更宽)。★这颗不是显示白场 (显示件是 0.49in SiOLED
+    / demo 是 Waveshare 2.8in LCD) ⇒ 光生物安全的白场辐亮度判定不直接落在它身上, 但它是眼旁指示光源 ⇒ 仍需按 IEC 62471 单列评估 ⇒ 登记为需老板拍
+  ref: HW/PART_SELECTION_GAPS_CLOSEOUT.md
+- key: iss244_g1_qpg_vgs_truth
+  value: 写法A (S=BAT_SW / D=ON / G=PG) ⇒ PG 低 VGS=-4.2V 导通 (|VGSth|max 2.4V) / PG 高 VGS=-0.9V 关断 (|VGSth|min
+    1.4V) = 逻辑自洽; 写法B (网表 note 首句直译 S=ON / D=BAT_SW) ⇒ 上电 ON 被 10k 下拉到 0V ⇒ VGS=0V 不导通, PG 高时 VGS=+3.3V
+    反向偏置 ⇒ PG 高低都关 ⇒ 开机路径彻底不通
+  note: '★[官网]+[实测] 2026-11-16 sw-lead · 依据 = AOS AO3407A 官方手册 (VGS(th) -1.4/-1.9/-2.4V, VGS 绝对最大 ±20V,
+    引脚 pin1=G pin2=S pin3=D) + Diodes DMP3098L 官方手册 (VGS(th) -1.0/-1.8/-2.1V, IDSS ≤800 nA) + 网表 L59/L60/L61
+    原文 + 板文件 pad↔net 实读 ⇒ 手册 PDF 落盘 state/.cache_iss244/mos/。★结论: 网表 note 首句与 note 正文自述的正解互斥 ⇒ 首句必须改 (改网表
+    note 归落表 / 原理图那一趟, 本单一字未改)。★连带: 按写法A 需要器件引脚序 = D-S-G, 而 SOT-23 库标准序是 G/S/D ⇒ 要么选 D-S-G 序器件 (在售件本轮
+    [0数据]), 要么重画 land ⇒ G-1 与 G-2 / G-7 必须同批处理'
+  ref: HW/PART_SELECTION_GAPS_CLOSEOUT.md
+- key: iss244_g10_supv_divider_official
+  value: 'V_IT=(1+R1/R2)x0.405V, R1+R2=4MΩ (R1 上臂 = 被监控轨→SENSE, R2 下臂 = SENSE→GND), 阈值精度 typ ±1.5%, 迟滞
+    1.5%, SENSE 脚建议 1nF 滤波电容; 候选: 轨 3.3V ⇒ 3.480M/549k ⇒ 触发 2.9722V (2.8108~3.1378); 轨 1.8V ⇒ 3.010M/1.000M
+    ⇒ 1.6240V (1.5359~1.7145); 轨 1.2V ⇒ 2.490M/1.500M ⇒ 1.0773V (1.0188~1.1373)'
+  note: ★[官网]+[推算] 2026-11-16 sw-lead · 依据 = TI TPS3808 数据手册 SBVS050N Rev.N (落盘 state/.cache_iss244/ref/tps3808.pdf)
+    §7.3.1 + Figure 7-1 + Ordering Information (TPS3808G01 Adjustable 0.405V); 算式脚本 state/.cache_iss244/supv_divider_solve.py
+    可复跑。★触发点取轨标称 x0.90 (轨跌 10% 报欠压), 电阻 1%, 误差带含电阻 ±1% 与阈值精度。★★真正的阻塞不是阻值算不出, 而是 U_SUPV 三行 dnp=DNP (网表
+    L407~L409) 且产生被监控轨的 U_DCDC_VIO 也 dnp=DNP (L84/L86) ⇒ 监督器本体不装 ⇒ 分压两臂装上只会把 RAIL_V_SOC_IO 短路到地 (ISS-190
+    同判) ⇒ 建议两臂随 U_SUPV 一并置 DNP (降级①); 若决定恢复监督器才按上表取值 (降级②) ⇒ 本单只出依据 + 代价, 不代拍
+  ref: HW/PART_SELECTION_GAPS_CLOSEOUT.md
+- key: iss244_g3g4_esd_single_sided_basis
+  value: 业界通行 = 差分对正负两根都要护 + 紧贴连接器; USB 2.0 判据 Cd<4pF ⇒ 双通道 TPD2E2U06 1.5pF typ / 1.9pF max 达标 ⇒ 代价在焊盘
+    (+1 与 +4) 与面积 (x15), 不在结电容; 本板实测 CSI-2 十条线里九条裸奔, USB D− 裸奔
+  note: '★[官网]+[实测] 2026-11-16 sw-lead · 依据 = TI SLVAF82B (落盘 state/.cache_iss244/ref/ti_slvaf82_usb_esd.pdf)
+    §3.2/§4 (the diodes are connected to each data line + place the diodes as close to the source of ESD,
+    in this case the connector + USB 2.0 capacitance less than 4 pF is recommended); Würth ANP002 §7 Figure
+    9 与 Figure 11 (单通道器件也是 D+/D− 各一颗); TI TPD2E2U06 Rev.C (CL 1.5/1.9 pF) 与 TPDxE05U06 Rev.O (IO 电容 0.42
+    pF typ) 数据手册落盘 state/.cache_iss244/led/。★网表实测: D_ESD_CAM 只有 GND + CSI_D0_CK_P 两个焊盘 ⇒ CSI-2 五对差分 (CK
+    + D0~D3) 共十条线里九条无 ESD 占位; D_ESD_USB_D 只有 USB_D_P_SRC + GND ⇒ USB_D_N_SRC 只在串阻行。★只出依据 + 代价, V-2 二选一不代拍'
+  ref: HW/PART_SELECTION_GAPS_CLOSEOUT.md
+- key: iss244_opn_backfill_22_rows
+  value: OPN 回填清单 = ISS-241 登记范围 22 件 (逐行带 ref+net 稳定锚点 + 网表/脚表/BOM 当刻行号, 行号会随落表漂移) + 要不要改 land + 谁拍 +
+    状态; 其中当前仍待落 21 件, 1 件 (C_REGN) 已被并发落表批次落掉 (2026-11-16 15:45:45 实测 BOM 已改)
+  note: '★[实测] 2026-11-16 sw-lead · 收口页 HW/PART_SELECTION_GAPS_CLOSEOUT.md §4 · 型号与证据等级逐字取自 ISS-241 矩阵基准块
+    (不重挑), 锚点由生成器 state/.cache_iss244/build_closout.py 现算 ⇒ 与盘上真源同源。★**件数控两个机器派生源**: 登记范围 = ISS-241 矩阵基准块
+    expected_refs = 22 (登记事实) / 当前待落 = HW/BOM_v1.csv 实跑 待选型∩必装−越界件 = 21 (盘上事实); 两者差的一件是 C_REGN (已被并发落表落掉)
+    ⇒ 清单保留该行并写 landed_note 落表证据。★交 main 排落表批次; ★落表注意: value 栏换型号+判据串 / opn 栏要含变体字母 / 主板件多数要重画 land (G-7)
+    / 充电板 5 件封装占位待定归 ISS-243 L4 / R_SUPV_DIV1 与 DIV2 在 G-10 拍板前不建议填最终阻值'
+  ref: HW/PART_SELECTION_GAPS_CLOSEOUT.md §4
+- key: iss245_sw_md5_anchor_netlist
+  value: HW/netlist_v1.csv 锚点 md5 = 611c3ba3db3dc7de7213063375b96d01 (by=ISS-243 · prev_md5=34132f7e40a241e1fae1476be0eafbd5
+    · landed_at=2026-11-16 15:45)
+  note: '★[实测] 2026-11-16 sw-lead · ISS-245 · H-1 重锚第 4 跳 · 值取盘上真值 (本机 md5sum), 不抄台账; 落表凭据 = HW/SCHEMATIC_LANDING_V1_LANDED.md
+    §16 + §16.4 L656 (单号+文件名+新旧 md5 四项齐全且在同一行) ⇒ R6 判据 ②③④⑤ 成立; 反向自证: /tmp 沙盒把锚点改回旧 md5 ⇒ R6 变红 ⇒ 装回去又绿'
+  ref: SW/SW_MD5_BASELINE_LEDGER.md §1
+- key: iss245_sw_md5_anchor_pins
+  value: HW/netlist_v1_pins.csv 锚点 md5 = ef436a37412ac9b6eac3c9f41f1edca4 (by=ISS-243 · prev_md5=b21b743a7702d30729f0d653c15392df
+    · landed_at=2026-11-16 15:45)
+  note: ★[实测] 2026-11-16 sw-lead · ISS-245 · H-1 重锚第 4 跳 · 值取盘上真值 (本机 md5sum); 落表凭据 = HW/SCHEMATIC_LANDING_V1_LANDED.md
+    §16.4 L657 (旧 b21b743a… → 新 ef436a37… · 只有 L132/L133 两行); ISS-243 只改了 C_REGN 的 value/footprint/opn
+    三处 (网表 L44/L45 + 脚表 L132/L133 + BOM L43)
+  ref: SW/SW_MD5_BASELINE_LEDGER.md §1
+- key: iss245_sw_md5_hop_count
+  value: SW 侧 md5 锚点重锚跳数 = 第 4 跳 (先例 ISS-223 → ISS-233 → ISS-229, 本单 ISS-245); 锚点 by 单号链 = ISS-233 → ISS-243
+  note: ★[实测] 2026-11-16 sw-lead · 留痕见台账 §3 R-01~R-07 (追加式, 历史行一个字没改); 交卷门禁 = check_demo_panel_spec.py
+    rc=0 (R1~R7 全过) + timing_check.py rc=0 (SELFTEST 71/71) + check_demo_panel_spec.py --selftest rc=0
+    (16/16) + merge/gate_check rc=0 (Q1 18/18); ★HW/ 下 0 字节写入, 5 个受保护 md5 交卷前后逐字节不变; ★V-2/V-3/V-4 一条没拍,
+    零外发, 实物 [实测]=0 条
+  ref: SW/SW_MD5_BASELINE_LEDGER.md §3 R-07
+- key: iss248_f8_rail_switching_demo_expect
+  value: 'SW 侧 F8 装机负载开关数: 基线 = 2 颗 (U_PWR_SW + U_EN_SW 都必装); 删掉 U_PWR_SW 后必须掉到 1 (★不是 0★) ⇒ --reverse-demo
+    演示段的判红值 = 1'
+  note: '★[实测] 2026-11-16 sw-lead · ISS-248 · 口径与同文件权威判据 REV-3 (L1573~L1578) 同源; REV-3b (两颗都删 ⇒ 0) 未受影响;
+    交卷 = timing_check.py rc=0 (71/71) + --reverse-demo rc=0; 反向自证: 沙盒把 L1762 改回 == 0 ⇒ 立刻 rc=1 ⇒ 装回又绿'
+  ref: SW/tools/timing_check.py L1745 + L1766 (演示段) · L1573~L1578 (REV-3 权威判据)
+- key: iss248_reverse_demo_contract
+  value: 'python3 SW/tools/timing_check.py --reverse-demo 交卷契约: rc=0 且末行「反向演示: ✅ 变红 ⇒ 它真在读网表 (不是演常量)」;
+    中段 4 段突变演示 (I2C 上拉 / U_PWR_SW / 两颗都删 / PG_AND 行级 dnp) 必须 4 段全变红'
+  note: '★[实测] 2026-11-16 sw-lead · ISS-248 · 注: timing_check.py 没有 --selftest flag (argparse rc=2), 它的
+    71 条 selftest 是默认路径 ⇒ 裸跑即 71/71 ⇒ 派活口径里不要写 --selftest'
+  ref: SW/tools/timing_check.py (--reverse-demo 演示段 + main() 默认路径)
 open_questions:
 - id: SW-Q1
   to: main

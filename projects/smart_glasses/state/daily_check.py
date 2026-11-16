@@ -497,6 +497,22 @@ def main() -> int:
     print(_pf_line)
     if _pf_bad:
         problems.append("★原理图脚数完整性不过 (★尺子 state/check_sch_pinfull.py★) ⇒ ★**原理图不许进投产包**")
+    # ★★2026-11-16 19:4x 【★G1a「原理图定稿」独立闸进巡检 (★老板 11-16「原理图和 PCB 不是同一个概念」★)】★★
+    #   ★**G1a = 原理图定稿 (★与 PCB 定稿分开判★) ⇒ 原理图侧今天就能独立判绿/判红, 不被 PCB 的 unconnected 拖住★★
+    #   ⇒ ★**红的三条是【待拍/待落表】, 不是【有人失职】⇒ 打进巡检行但不记进 problems (★不然每天都成新异常=噪音★)★★
+    _g1a_line = "  原理图 G1a      (闸未跑)"
+    try:
+        _rc_g1a, _out_g1a, _err_g1a = run_sys("check_stage_g1a.py", "--json")
+        _g1a = json.loads(_out_g1a) if _out_g1a.strip().startswith("{") else None
+        if _g1a:
+            _reds = [r["id"] for r in _g1a.get("results", []) if not r.get("ok")]
+            _g1a_line = (f"  原理图 G1a      {'✅ 全绿 (原理图侧定稿)' if not _reds else f'❌ 还差 {len(_reds)} 条: ' + ', '.join(_reds)}"
+                         f"  (★新闸 state/check_stage_g1a.py · 与 PCB 定稿分开判★)")
+        else:
+            _g1a_line = "  原理图 G1a      (★闸输出无法解析★)"
+    except Exception as _e:
+        _g1a_line = f"  原理图 G1a      (★闸异常: {str(_e)[:80]}★)"
+    print(_g1a_line)
     r = cur.get("readiness") or {}
     print(f"  执行就绪度     纸面阶段 {'✅就绪' if r.get('paper_ready') else '❌未就绪'} | "
           f"样机阶段 {'✅就绪' if r.get('sample_ready') else '❌不就绪'} | "

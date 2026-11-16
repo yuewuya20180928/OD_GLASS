@@ -6,15 +6,15 @@ status:
   phase: P3
   progress_pct: 99
   health: yellow
-  summary: '★2026-11-16 ISS-238 (走鹃旧口径 C1 门禁红) 结清: main 10:4x 实跑 display_biosafety_v2_check.py rc=1 (C1
-    活动口径 = 5, 违规行 MECH_BUDGET.md:71/94/849/880/944) ⇒ 本单逐行读盘核对拆成 4 处假阳性 (本已带 ISS-222 形态或裸「已作废」) + 1 处真漏标
-    (L880 零标注) ⇒ ① 文档侧只动那 5 行 (追加 canonical 标注 已作废 (2026-11-15, ISS-134 V2); L880 另加 旧口径/历史口径 限定语; M6
-    0.9697 / W4 3.68-7.36 g / 合计 50.78-75.36 一个数字没动) ⇒ 门禁回到 rc=0 / 5-5 / 活动口径 = 0 (历史沿革 31→36) ② 判据侧只交提案
-    (受保护脚本一个字没改): P1 regex / P2 四选一 / P3 单串+清单流程 (推荐 P3) + 底线 BL-1~BL-5 + 10 条反向用例 RU-1~RU-10 ⇒ 拍板权在 main
-    ③ 新机器门禁 check_zoujuan_marker_consistency.py (不依赖受保护脚本; K1-K5 + --selftest 9/9, 每条反向用例带自证断言 + 独立对抗
-    10/10 + 破坏测试证明断言承重) ⇒ 「走鹃旧口径已收口」这句话有机器背书. ★4 个受保护文件 md5 逐字节不变 (29c77fc3 / 96239070 / bda4a294 / fa9b59e5)
-    · 板 611b869e / .kicad_pro 3e504d2b / 网表 34132f7e / 脚表 b21b743a 不变 · 零外发 · 板端 [实测] = 0 条 · 不自签 issue_log
-    (status 留给 main 落 verified) · 未碰 HW/ SW/ PROJECT_TRACKER §0.'
+  summary: '★2026-11-16 ISS-251 (MECH 侧三处老账收口 · 续做轮 19:4x) 结清: 上一轮 19:19~19:29 被 runTimeout 掐在改文档半路上 (只改了
+    MECH/SERVICE_PORT_ISS092.md mtime 19:25:58, 交卷层一件没落) ⇒ 本轮只补缺口 ⇒ ① 三处逐条订正表 (A 充电耗散 buck 0.45-0.57W
+    代表值 0.50W · B 铝 k=201 官方保守侧 · C 检修口 60×30 套A), 已在盘的标已落 + 出处行号, 本轮补的标本轮补 ② 新机器门禁 MECH/check_budget_caliber.py
+    (rc=0 17/17 · --selftest rc=0 13/13: 改回旧口径 4 + 改数字 4 + 删依据出处 2 + 改文档数字 3) ③ 交卷单 HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md
+    (B1-B6 + 附A/附B/附C) ④ 分片 5 artifact + 5 claim + 4 need (走 frag_write.py 原子写) ⑤ 并发说明: check_demo_struct_truth.py
+    的 G5b/C21 红是 hw-lead ISS-249 落表造成的 HW/netlist_v1.csv md5 16ac89f7... ≠ 锚点 611c3ba3..., 非本单失败, 本单不许修
+    ★本轮 0 个 MECH/HW 文件改动 (三处口径只核对不重复改) · 受保护 3 脚本 md5 逐字节不变 (fa9b59e5 / 9b24bf98 / 3425bc14) · 零外发 · 板端
+    [实测] = 0 条 · 不自签 issue_log (verify 留给 main) · 未碰 HW/ SW/ PROJECT_TRACKER §0 · 不替老板拍板 (d 值 / u8 截面
+    / 集热面 / 板长 / 板厚只列选项与量化代价)'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -851,6 +851,59 @@ artifacts:
   summary: ISS-240 交接单 (mech-lead 2026-11-16), B1~B6 齐全。B1 目标与范围 + 关键认知更正 (跨铰链架构对 demo 板已不成立, 不是三选一) ·
     B2 事实与数据 F-1~F-20 每条带出处与证据分级 · B3 三口径对照表 + R1/R3 构成对比 · B4 逐条改法映射 M-01~M-18 + M-04 三档处置 (只报不改, 一票交
     main) · B5 验收命令实跑输出原样贴出 · B6 边界自证逐项。★实物 [实测] = 0 条, 零外发, 受保护 11 个 md5 逐字节未变。
+- path: HANDOFF/2026-11-16_mech-lead_ISS245_MECH侧H1重锚第3跳.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-246 交卷单 (mech-lead 2026-11-16 18:4x 续做): MECH 侧 §3.1 锚点第 3 跳重锚 · 门禁 rc=0 23/23 · --selftest
+    rc=0 14/14 · 反向自证 14/14 · 沙盒绿-红-绿三步 (stepA 23/23 → stepB 21/23 FAIL 2 → stepC 23/23) · merge+gate_check
+    rc=0 Q1 18/18 · 受保护 5 件 md5 逐字节不变 · 本轮 0 个 MECH/HW 文件改动 · 零外发 · 零实物 · 不替老板拍板'
+- path: MECH/HW_CROSS_REVIEW_TRIAGE.md
+  kind: gate
+  version: v3.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-246 第 3 跳重锚 (上一轮 17:43 已落, 本轮只如实记已落): §3.1 锚点 2 条 4 字段改到 ISS-243 落表后真值 (网表 611c3ba3 /
+    脚表 ef436a37, by=ISS-243, landed_at=2026-11-16 15:45:45) + §1 landing_records 加 ISS-243 台账位置 + §3.1
+    追加 R-04 留痕行 · 门禁 rc=0 23/23 · 反向自证 14/14 · 判据逻辑与阈值一个字没动'
+- path: HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-251 交卷单 (mech-lead 2026-11-16 19:4x 续做轮): 三处老账 (A 充电耗散 buck 0.45-0.57W 代表值 0.50W / B 铝
+    k=201 官方保守侧 / C 检修口 60×30 套A 基准 P2 Y=15.00 S2 Y=20.00) 逐条订正表 (旧值→新值 + 文件 + 行号 + 证据等级 + 依据出处) + 新机器门禁
+    check_budget_caliber.py (rc=0 17/17 · selftest rc=0 13/13 反向用例四类全抓到) + 受保护 3 脚本 md5 逐字节不变 + 本轮 0 个
+    MECH/HW 文件改动 + 零外发 + 不替老板拍板 + 不自签 issue_log (verify 留给 main)'
+- path: MECH/check_budget_caliber.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: '★ISS-251 本轮新建的口径门禁 (只判口径, 不碰别的域判据, 不重算 verify_budget 的数值对拍, 不碰 HW/ 与三个受保护脚本): A1-A6 充电耗散 (buck
+    标识 / BQ25896 / P_CHARGE=0.50 / 区间 0.45-0.57 / 文档 §2.1 行 / 旧线性口径只许标死) + B1-B6 铝 k (活口径 201 / 237 只留追溯
+    / 文档活口径行带官网标签 / 237 不许当活口径 / 模板现口径 201 / 三家厂商互证出处) + C1-C5 检修口 (板 60×30 / 套 A 基准 P2 Y=15.00 S2 Y=20.00
+    / §5.1 余量 +2.00 最坏 +1.40 / 旧 15mm 口径只许标死 / BOARD_GEOM_30MM §3 指针) ⇒ rc=0 17/17 · --selftest rc=0 13/13
+    (改回旧口径 4 条 + 改数字 4 条 + 删依据出处 2 条 + 改文档数字 3 条)'
+- path: MECH/MECH_BUDGET.md
+  kind: doc
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-251 A/B 两组口径的文档侧落点 (本轮只核对 + 补出处行号, 原文一个字没改): L597 §2.1 峰值充电行 = 开关型 buck BQ25896 / 0.45-0.57W
+    (代表值 0.50W) / Pin − Pout + P_DCR; L604-605 旧线性口径 0.8W 已标已判死 (历史沿革); L698-700 三档复算 0.46/0.52/0.57W
+    + 旧温度行作废; L519 + L707 + L875 + L1017 + L1092 金属热路 k 口径统一 201 W/m·K (旧 237 只留追溯, 三家官网互证)'
+- path: MECH/SERVICE_PORT_ISS092.md
+  kind: doc
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-251 C 组口径的文档侧落点 (本轮只核对 + 补出处行号, 原文一个字没改): L5 ISS-251 口径订正范围声明 (只订文档不碰脚本常量); L19 + L200
+    + L201 §5.1 V PCB 段 = 需求 36.00 / 余 +2.00 / 最坏 +1.40 (单边口径 +1.70), 镜腿三条锁死尺寸链一毫米不动; L22 + L281 + L322
+    夹具基准换 30mm 板套 A (P2 52.00/15.00 · S2 52.00/20.00, 不新增基准孔); L4 + L34 + L36 + L83 + L192 旧 15mm 板口径全部标已作废已订正;
+    L89 唯一未迁项 (焊盘阵列 Y 起点 9.50 / 开口 Y 8.67..13.27) 已如实标注并登记 need'
+- path: MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md
+  kind: doc
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-251 B 组口径的第三落点 (本轮只核对, 原文一个字没改): L40 铝 6063-T6 官方值 = 现项目内口径 201 W/m·K (Hydro EN AW-6063
+    Rev.4-03/2023 + Aalco + Kaiser 三家互证) + L41 旧项目内口径 237 已订正只留追溯 + L45 口径订正说明 (只改口径不改结论) + L55-56 A_min
+    4.219 / 4.975 mm² + L230 证据表 + L244 落账行'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -2271,6 +2324,44 @@ needs_from:
     与 mech_hinge_radial_mm=4.40 / mech_hinge_stack_declared_mm=49.62 三个旧 key 是否按 demo(1条/3.35/5.00) +
     整机(3~4条/4.05/25.30) 拆 key? ⇒ ★本单已把两条新 claim (mech_hinge_stack_truth_mm=25.30 / mech_hinge_stack_demo_mm=5.00)
     落进分片, 旧 claim 一个字没改★ ⇒ 映射全文见 MECH/HINGE_FPC_GEOMETRY_TRUTH.md §4 与交卷单 B4。'
+  since: '2026-11-16'
+- key: iss246_mech_handoff_review
+  to: main
+  item: 'ISS-246 交卷待 main 复核: 交卷单 6 段 (B2 自评 / B3 证据分级 / B4 接口取值声明 / B5 验收命令原样输出 / B6 边界审计 / 附交卷物清单) +
+    分片 state/fragments/mech.yaml (走 frag_write.py 原子写, 2 artifact + 5 claim + 1 need) + merge/gate_check
+    输出 (rc=0, Q1 18/18)。本轮只补这 3 件, 0 个 MECH/HW 文件改动, 未动 §3.1 锚点数字, 零外发, 不替老板拍板 ⇒ 请 main 跑 verify。'
+  since: '2026-11-16'
+- key: iss251_mech_service_port_pad_y_migrate
+  to: main
+  item: ★ISS-251 检修口 C 组唯一未迁项, 要 main + hw-lead 同批拍定 30mm 板上的最终值 (本单一个字没碰受保护脚本)★ ⇒ MECH/service_port_check.py
+    里的 ① 夹具基准常量 p2_y / s2_y (现仍是旧 15mm 板口径 7.50 / 12.50) ② J_DEBUG 焊盘阵列 Y (现 Y 9.50..10.77, 开口 Y 8.67..13.27
+    就是按这个旧基准算的) ③ pcb_thk ⇒ 三处都要迁到 30mm 板套 A 口径 (P2 52.00/15.00 · S2 52.00/20.00) ⇒ 迁完后 §5.1 开口 Y 与 P-5
+    最近距离 3.23mm / 8.53mm 都要重算 ⇒ ★这三条常量在受保护脚本里, 本单不许碰, 等 main 定版后由 main/hw-lead 落 (或 main 授权我改并重基线 md5)⇒
+    现状已如实标注在 SERVICE_PORT_ISS092.md L5 / L89 / L281 / L322
+  since: '2026-11-16'
+- key: iss251_mech_demo_truth_gate_red_concurrent
+  to: main
+  item: ★并发说明 (不是本单失败, 本单不许去修)★ ⇒ MECH/check_demo_struct_truth.py 现在 21/23 组通过 · FAIL 2 组 = G5b / C21,
+    原因是 HW/netlist_v1.csv 盘上 md5 16ac89f7... 与脚本锚点 611c3ba3... 不一致 ⇒ 那是 hw-lead 的 ISS-249 落表造成的网表 md5
+    变化 ⇒ ★本单 (mech-lead) 一个字节没碰 HW/ 也没碰该受保护脚本 ⇒ 要 main 派 hw-lead 把 G5b / C21 的 md5 锚点重锚到 ISS-249 的现值 (或由
+    main 授权重基线) ⇒ 在那之前该闸 rc 必须是 2 (21/23), 别当成绿
+  since: '2026-11-16'
+- key: iss251_mech_owner_decisions_pending
+  to: main
+  item: '★ISS-251 只列选项 + 量化代价, 一个字没代拍 (5 项等 main/老板裁决)★ ⇒ (a) d 值 (遮挡计算用) 15 / 18 / 20 mm: d=15 时集热背板
+    W_rim 门槛 22.15 mm @0.468W (余量最小), d 上移 ⇒ 门槛上移但集热面积与质量更贵 ⇒ (b) u8 端件截面: 现状 2.0×2.0 = 4.0 mm² 不合格 (R=73.84
+    K/W > 70 判据), 最小合格 4.975 mm² ⇒ 2.5×2.0 = 5.0 mm² (R=69.65 K/W, 只余 0.35 K/W) ⇒ (c) 集热面材质/面积: 铝 6063-T6
+    (k=201) vs 铜 (k 约 400, 同截面 R 减半, 同体积质量约 +78%) ⇒ (d) 板长 (60 现行 vs 更长) ⇒ (e) 板厚档位 (1.0mm 现行 / 0.8mm
+    已作废) ⇒ ★本单没有代任何一项拍板, 只给量化区间; 依据见 MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md §2.5 / §2.6 与 MECH/MECH_BUDGET.md
+    §2.3.1'
+  since: '2026-11-16'
+- key: iss251_mech_handoff_review
+  to: main
+  item: 'ISS-251 交卷待 main 复核: 交卷单 HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md (B1-B6 六块齐全 + 附 A
+    三处逐条订正表 + 附 B 并发说明一行 + 附 C 边界自审) + 新门禁 MECH/check_budget_caliber.py (rc=0 17/17 · --selftest rc=0
+    13/13) + 分片 state/fragments/mech.yaml (走 frag_write.py 原子写: 5 artifact + 5 claim + 4 need) ⇒ 本轮 0
+    个 MECH/HW 文件改动 (三处老账口径上一轮/早前已落, 本轮只核对 + 补出处与行号, 不重复改) · 受保护 3 脚本 md5 逐字节不变 · 零外发 · 不自签 state/issue_log.yaml
+    (verify 留给 main) · 不替老板拍板 ⇒ 请 main 跑 verify'
   since: '2026-11-16'
 answers:
 - key: pcb_outline_confirm
@@ -3822,6 +3913,63 @@ interface_claims:
   note: 'demo 板口径(网表 board==HINGE 只 J_CHG): 真源重算 = 10×0.5 = 5.00 mm ⇒ 镜脚净高 38.0 余 33.00 mm; 径向 = 3.00+1×0.35
     = 3.35 mm ⇒ 净空 5.4 余 2.05 mm。依据 老板 2026-11-02 19:25 指示② 跨铰链取消(ISS-240 新增)'
   ref: MECH/HINGE_FPC_GEOMETRY_TRUTH.md
+- key: iss246_mech_md5_anchor_netlist
+  value: 611c3ba3db3dc7de7213063375b96d01
+  note: MECH 侧 §3.1 锚点 (网表 HW/netlist_v1.csv) = 611c3ba3db3dc7de7213063375b96d01; prev_md5=34132f7e40a241e1fae1476be0eafbd5;
+    by=ISS-243; landed_at=2026-11-16 15:45:45 (盘上真值, 实测 md5sum 逐字节核对)
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md
+- key: iss246_mech_md5_anchor_pins
+  value: ef436a37412ac9b6eac3c9f41f1edca4
+  note: MECH 侧 §3.1 锚点 (脚表 HW/netlist_v1_pins.csv) = ef436a37412ac9b6eac3c9f41f1edca4; prev_md5=b21b743a7702d30729f0d653c15392df;
+    by=ISS-243; landed_at=2026-11-16 15:45:45 (盘上真值, 实测 md5sum 逐字节核对)
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md
+- key: iss246_mech_md5_hop_count
+  value: 第 3 跳
+  note: 'MECH 侧 md5 锚点重锚跳数 = 第 3 跳 (跳链: ISS-220 → ISS-223 第1跳 R-02 → ISS-233 第2跳 R-03 → ISS-243 第3跳 R-04);
+    锚点 by 单号链 = ISS-233 → ISS-243'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md
+- key: iss246_mech_md5_landing_ticket
+  value: ISS-243
+  note: 本次 MECH 侧锚点挂的落表单号 = ISS-243 (hw-lead 第 4 批, 2026-11-16 15:45:45); 凭据落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    §16 + §16.4 L656/L657 (网表/脚表 新旧 md5 逐行) + 交接单 HANDOFF/2026-11-16_hw-lead_ISS243_C_REGN官方值落表与4条落表前置.md;
+    已登记进 §1 landing_records
+  ref: HW/SCHEMATIC_LANDING_V1_LANDED.md
+- key: iss246_mech_gate_contract
+  value: rc=0 23/23 · selftest rc=0 14/14
+  note: 'MECH 侧门禁契约 (交卷后不变): python3 MECH/check_demo_struct_truth.py ⇒ rc=0 且 23/23 组检查通过且 FAIL 0 组; python3
+    MECH/check_demo_struct_truth.py --selftest ⇒ rc=0 且 14/14 反向用例全抓到 (一条没删); 受保护脚本 md5 fa9b59e593a13408ad9505d986276f63
+    逐字节不变'
+  ref: MECH/check_demo_struct_truth.py
+- key: iss251_mech_charge_dissipation_caliber
+  value: buck 0.45-0.57 W (代表值 0.50 W)
+  note: '充电耗散口径 = 开关型 buck (板上器件 BQ25896, 网表实读 U_CHG/SW/L_CHG/C_BST/PMID ⇒ 开关型变换器, 5V→3.7-4.2V 时 D<1 ⇒
+    降压档); 旧线性充电 IC 公式 (5-4.2)V × 1A = 0.8 W 已判死 (ISS-216); 三处同源: MECH/verify_budget.py L86 + L89 + MECH/MECH_BUDGET.md
+    L597 + 机器门禁锚点 check_demo_struct_truth.py anchors.thermal.p_buck_w=0.50 ⇒ 文档/脚本/门禁三处同一个数'
+  ref: MECH/verify_budget.py
+- key: iss251_mech_al_k_caliber
+  value: 201 W/m·K (6063-T6 官方保守侧)
+  note: '金属热路 k 口径 (ISS-219): 活口径 201 W/m·K (Hydro EN AW-6063 Hydro 6063_Rev.4-03/2023 + Aalco 6063-T6
+    datasheet + Kaiser 6063 Rev.05/06 三家官网互证); 旧项目内乐观值 237 只留追溯不许当活口径; 同几何 R 1.641 → 1.935 K/W, 0.50W
+    下 ΔT +0.82 → +0.97 K, A_min 4.2194 → 4.9751 mm² ⇒ 只改口径不改结论 (热路仍必须金属 / 打印件仍出局 / 2.0×2.0 铝条仍不合格)'
+  ref: MECH/MECH_BUDGET.md
+- key: iss251_mech_service_port_board_caliber
+  value: 60×30 板 · 套 A (P2 Y=15.00 / S2 Y=20.00)
+  note: '检修口文档板宽口径 (ISS-206 已订正 板宽 15 → 30.00): §1 边界表 PCB 行 60 (L) × 30 (V) × 1.0 (6 层); 夹具基准复用 PIN-SET-2
+    套 A (P1 8.00/15.00 · P2 52.00/15.00 · S1 8.00/10.00 · S2 52.00/20.00) 不新增基准孔; §5.1 V PCB 段余量 +2.00
+    / 最坏 +1.40 (单边口径 +1.70); ★焊盘阵列 Y 起点 9.50 仍按旧 15mm 板基准, 本单不迁 (受保护脚本常量不许动 ⇒ need iss251_mech_service_port_pad_y_migrate)'
+  ref: MECH/SERVICE_PORT_ISS092.md
+- key: iss251_mech_caliber_gate_contract
+  value: rc=0 17/17 · --selftest rc=0 13/13
+  note: 'ISS-251 新口径门禁契约 (交卷后不变): python3 MECH/check_budget_caliber.py ⇒ rc=0 且 17/17 检查项通过; python3 MECH/check_budget_caliber.py
+    --selftest ⇒ rc=0 且 13/13 反向用例全抓到 (四类: 改回旧口径 4 / 改数字 4 / 删依据出处 2 / 改文档数字 3); 本门禁只判口径, 不重复 verify_budget.py
+    的数值对拍, 不碰 HW/, 不碰三个受保护脚本 (md5 fa9b59e5 / 9b24bf98 / 3425bc14 逐字节不变)'
+  ref: MECH/check_budget_caliber.py
+- key: iss251_mech_protected_md5
+  value: fa9b59e5 / 9b24bf98 / 3425bc14
+  note: '本轮 0 个受保护文件改动 (逐字节不变): MECH/check_demo_struct_truth.py = fa9b59e593a13408ad9505d986276f63 (基线一致)
+    · MECH/service_port_check.py = 9b24bf985764880f0105aee677fba6a8 · MECH/hinge_usb_check.py = 3425bc141508de8a35f34c7cf7b803e8
+    ⇒ 含夹具基准 Y / 焊盘阵列 Y / pcb_thk 三处常量一律没动'
+  ref: MECH/check_demo_struct_truth.py
 open_questions:
 - id: MECH-Q1
   to: main

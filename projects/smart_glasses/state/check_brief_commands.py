@@ -79,7 +79,44 @@ _NEG_AFTER = re.compile(
 # ★**★为什么要"显式声明"而不是"猜语境"**: ★**猜 ⇒ 闸会被"只写: HW/xxx.md"这类写法误豁免真实缺失命令** ★
 #   ⇒ ★**改成【brief 里写一句"★新建★ <路径>"】⇒ ★**由 brief 作者显式背书 ⇒ 闸只认这句 ⇒ 不误伤也不漏** ★
 _CREATE_RE = re.compile(
-    r"(新建|新增|新文件|新脚本|产出|输出文件|输出路径|交付文件|交付物)")
+    r"(新建|新增|新文件|新脚本|产出|输出文件|输出路径|交付文件|交付物|交卷|交付清单|产出物)")
+
+# ★★**列表项行 (★"交卷物 (N 件)" 标题下面的 1. 2. 3. …★)** ★
+_LIST_ITEM_RE = re.compile(r"^\s*(?:★\*\*|★)?\s*(?:\d+[.、)]|[-*])\s")
+# ★★**【交卷物/交付物】标题行 (★必须带"N 件"这种份量单位, 防止把普通段落标题误当标题★)** ★
+_DELIV_HEAD_RE = re.compile(
+    r"(交卷物|交付物|产出物|交卷清单|交付清单|产出清单)\s*[（(]?\s*\d+\s*件"
+    r"|本单要交[^\n]{0,8}\d+\s*件")
+
+
+def _declared_by_prev_heading(text: str, line_start: int) -> bool:
+    """★当前行是列表项, 且它所属的【小节标题】是"交卷物/交付物/产出物 (N 件)"这类
+    ⇒ 这一行里的路径是【本单产出物】⇒ 闸豁免它 ★
+
+    ★★**为什么加这条 (★2026-11-16 17:4x main 实测第四类误报★)** ★★
+    ★**踩坑**: brief 的交卷物段长这样 ⇒ 标题与路径【分两行】⇒ 闸的"同一行声明"口径看不见 ⇒ 误报 ★
+      ★**`★★**⑥ 交卷物 (4 件)** ★★`** ★
+      ★**`2. ★**`HANDOFF/2026-11-16_sw-lead_ISS245_....md`** (★B1 ...★)`** ★
+    ★⇒ ★**ISS-245 / ISS-246 / ISS-247 三条待办单全被点成"引用了不存在的路径"** ★
+      ★⇒ ★**其实那三个都是【本单要新建的交卷单】⇒ 交卷时才有 ⇒ 交卷前必然不存在** ★
+    ★**⇒ 解法 = 本行是列表项 + 往上连续的列表项属于【交卷物标题】小节 ⇒ 豁免** ★
+    ★**★边界纪律 (★不许放宽成"整段豁免"★)**:
+      ★**① 本行必须是列表项** (★"另跑 xxx.py" 这种非列表行 ⇒ 不豁免★) ★
+      ★**② 往上只跨【连续的列表项】(★跨到非列表行就停★) ⇒ 只能豁免【交卷物小节内部】的路径 ★
+      ★**③ 标题必须匹配【N 件】口径 ⇒ "验收标准 (…输出…)" 这种标题不算★ ★
+    """
+    if not _LIST_ITEM_RE.match(text[line_start:line_start + 60]):
+        return False
+    head = text[:line_start]
+    lines = head.split("\n")
+    for ln in reversed(lines):
+        s = ln.strip()
+        if not s:
+            continue
+        if _LIST_ITEM_RE.match(s):
+            continue  # ★还在同一小节里 ⇒ 继续往上找标题★
+        return bool(_DELIV_HEAD_RE.search(s))  # ★第一行非列表行 = 本小节的标题★
+    return False
 
 
 def _is_negated(text: str, start: int, end: int) -> bool:
@@ -108,7 +145,7 @@ def declared_outputs(text: str) -> set:
             head = text[ls:m.start(1)]
             if len(head) > 30:
                 head = head[-30:]
-            if _CREATE_RE.search(head):
+            if _CREATE_RE.search(head) or _declared_by_prev_heading(text, ls):
                 outs.add(m.group(1))
     return outs
 
@@ -186,12 +223,32 @@ def self_test() -> int:
     rc7, m7 = check_text(create_bad, "create-bad")
     if rc7 != 1 or "state/does_not_exist_qq.py" not in m7:
         fails.append("⑦ 新建语境下的真缺失命令没被抓到 (rc=%s, missing=%s)" % (rc7, m7))
+    # ★★**⑧ "交卷物 (N 件)" 标题下的交付物豁免 (★2026-11-16 17:4x main 实测第四类误报★)**:
+    #   brief 交卷物段: 标题一行 + 列表项一行 ⇒ 那个 HANDOFF/xxx.md 本单才建 ⇒ 不该报
+    head_decl = ("★★**⑥ 交卷物 (4 件)** ★★\n"
+                 "1. ★**`SW/SW_MD5_BASELINE_LEDGER.md`** (★§1 锚点 2 条★)\n"
+                 "2. ★**`HANDOFF/2026-11-16_sw-lead_ISS245_xxx.md`** (★B1~B6★)\n"
+                 "3. ★**`state/fragments/sw.yaml`** (★原子写★)\n")
+    rc8, m8 = check_text(head_decl, "head-decl")
+    if rc8 != 0:
+        fails.append("⑧ 交卷物标题下的交付物被误判成坏命令 (missing=%s)" % m8)
+    # ★★**⑨ ⑧ 的反向用例**: ★**标题豁免不许把【别处的真缺失命令】一起放过** ★
+    head_bad = (head_decl + "另跑 `python3 state/does_not_exist_zz.py`\n")
+    rc9, m9 = check_text(head_bad, "head-decl-bad")
+    if rc9 != 1 or "state/does_not_exist_zz.py" not in m9:
+        fails.append("⑨ 交卷物豁免把真缺失命令一起放过了 (rc=%s, missing=%s)" % (rc9, m9))
+    # ★★**⑩ 反向用例**: ★**没有"交卷物/交付物"标题的普通列表项 ⇒ 缺失路径照样被抓** ★
+    plain_list = ("本单要做两件事:\n"
+                  "1. 改 `HW/definitely_missing_file.md` 里的内容\n")
+    rc10, m10 = check_text(plain_list, "plain-list")
+    if rc10 != 1 or "HW/definitely_missing_file.md" not in m10:
+        fails.append("⑩ 普通列表项里的缺失路径没被抓到 (rc=%s, missing=%s)" % (rc10, m10))
     if fails:
         for f in fails:
             print("❌", f)
         print("SELFTEST FAILED")
         return 1
-    print("ALL TESTS PASS (7 条: 正常brief不误报 / 坏brief被抓 / 反向用例 / 否定语境不误报 / 否定语境下真命令仍被抓 / 本单新建不误报 / 新建语境下真缺失仍被抓)")
+    print("ALL TESTS PASS (10 条: 正常brief不误报 / 坏brief被抓 / 反向用例 / 否定语境不误报 / 否定语境下真命令仍被抓 / 本单新建不误报 / 新建语境下真缺失仍被抓 / 交卷物标题交付物不误报 / 交卷物豁免不放过错失命令 / 普通列表项缺失路径仍被抓)")
     return 0
 
 

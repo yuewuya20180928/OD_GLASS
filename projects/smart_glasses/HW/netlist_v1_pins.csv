@@ -129,8 +129,8 @@ C_KEY_VP.1,KEY_VOL_P,C_KEY_VP,1,P7,100nF ±10%,C,必装,MAIN_PCB,,,,[推算],,"[
 C_KEY_VP.2,GND,C_KEY_VP,2,P7,100nF ±10%,C,必装,MAIN_PCB,,,,[推算],,"[KEY_VOL_P] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线)"
 C_PMID.1,PMID,C_PMID,1,P10,10µF X7R 25V,C,必装,CHG_BOARD,C-01,,,[官方],,"★datasheet: 'put 1µF on VBUS to PGND, and the rest capacitance on PMID to PGND' ⇒ PMID 电容不可省; 纹波复算 IRIPPLE = VBUS·D·(1-D)/(fs·L) = 0.29A @5V/3.7V/1.5MHz/2.2µH (datasheet 指引 20-40%)"
 C_PMID.2,PGND,C_PMID,2,P10,10µF X7R 25V,C,必装,CHG_BOARD,C-01,,,[官方],,PMID 电容 地端 (PGND)
-C_REGN.1,REGN,C_REGN,1,P1,[待选型] 1µF,C,必装,CHG_BOARD,C-01,,,[官方],,[REGN] BQ25896 REGN 去耦电容 (datasheet 要求)
-C_REGN.2,GND,C_REGN,2,P1,[待选型] 1µF,C,必装,CHG_BOARD,C-01,,,[官方],,[REGN] REGN 去耦电容 地端
+C_REGN.1,REGN,C_REGN,1,P1,4.7µF ±10% (10V),C,必装,CHG_BOARD,C-01,0805 (2.0×1.25 mm) MLCC · 2 焊盘 (充电板侧 · 贴 U_CHG pin22 近端),GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%),[官方],,[REGN] BQ25896 REGN 去耦电容 (datasheet 要求) ★ISS-243 落表: TI SLUSC76C pin22 原文 'Connect a 4.7 µF (10 V rating) ceramic capacitor from REGN to analog GND' ⇒ value 订正 4.7µF ±10% (10V) · OPN GRM21BR71C475KA73
+C_REGN.2,GND,C_REGN,2,P1,4.7µF ±10% (10V),C,必装,CHG_BOARD,C-01,0805 (2.0×1.25 mm) MLCC · 2 焊盘 (充电板侧 · 贴 U_CHG pin22 近端),GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%),[官方],,[REGN] REGN 去耦电容 地端 ★ISS-243 落表: 同上 (TI SLUSC76C pin22: 电容从 REGN 接到 analog GND; 手册要求 'placed close to the IC' ⇒ 充电板贴 U_CHG pin22 近端)
 C_RST.1,RESET_N_SOC,C_RST,1,P8,100nF ±10%,C,必装,MAIN_PCB,B-10,,,[推算],,[RESET_N_SOC] RESET_N 对地 RC 电容 (τ=100ms; **释放时期待原厂 TBD-12**)
 C_RST.2,GND,C_RST,2,P8,100nF ±10%,C,必装,MAIN_PCB,B-10,,,[推算],,RESET RC 电容 地端
 C_SUPV.1,VDD_1V8_IO,C_SUPV,1,P8,100nF ±10%,C,DNP,MAIN_PCB,B-10,,,[推算],,[C_SUPV] ★DNP: 同上 (监督器去耦电容) | [VDD_1V8_IO] 监督器 就近去耦

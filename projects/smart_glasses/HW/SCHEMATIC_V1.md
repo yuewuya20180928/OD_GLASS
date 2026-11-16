@@ -48,11 +48,11 @@
 | VBUS_5V_ESD | D_ESD_TC | FB_VBUS | FB_VBUS | π 滤波磁珠 [待选型] | L | 必装 | CHG_BOARD | [推算] |  | [VBUS_5V_ESD] VBUS 入口 π 滤波磁珠位 (阻抗/电流随充电 IC 环路稳定性定) |
 | VBUS_5V_ESD | VBUS_5V_ESD | C_VBUS_IN | C_VBUS_IN | [待选型] 10µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波输入电容位 (值待充电 IC 定; 内置则改 DNP) |
 | GND | C_VBUS_IN | GND | C_VBUS_IN | [待选型] 10µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波输入电容 地端 |
-| VBUS_5V_F1 | FB_VBUS | C_VBUS_OUT | FB_VBUS | π 滤波磁珠 [待选型] | L | 必装 | CHG_BOARD | [推算] |  | [VBUS_5V_F1] π 滤波磁珠 后级侧 (与 FB_VBUS 同一颗) |
+| VBUS_5V_F1 | FB_VBUS | VBUS_5V_F1 | FB_VBUS | π 滤波磁珠 [待选型] | L | 必装 | CHG_BOARD | [推算] |  | [VBUS_5V_F1] π 滤波磁珠 后级侧 (与 FB_VBUS 同一颗) |
 | VBUS_5V_F1 | VBUS_5V_F1 | C_VBUS_OUT | C_VBUS_OUT | [待选型] 100µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波后级电容位 (BQ25896 建议 ≥100µF) |
 | GND | C_VBUS_GND | GND | C_VBUS_GND | [待选型] 100µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波后级**对地**电容 (★V1.6 修正: 原来 C_VBUS_OUT 一颗当两个用 —— 既是 FB·U_CHG 的串联电容, 又是对地电容 · 一颗 2 脚件落进 3  |
 | VBUS_5V_CHG | C_VBUS_OUT | U_CHG pin1 | C_VBUS_OUT | [待选型] 100µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波电容 (后级, 串联) 位 |
-| VBUS_5V_CHG | C_VBUS_GND | C_VBUS_OUT | C_VBUS_GND | [待选型] 100µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波后级对地电容的信号端 (与 C_VBUS_OUT 同一节点) |
+| VBUS_5V_CHG | C_VBUS_GND | VBUS_5V_CHG | C_VBUS_GND | [待选型] 100µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波后级对地电容的信号端 (与 C_VBUS_OUT 同一节点) |
 | VBUS_5V_CHG | U_CHG | NET_VBUS_5V_CHG | U_CHG | BQ25896 | IC | 必装 | CHG_BOARD | [官方] |  | [VBUS_5V_CHG] 1A 单节锂电充电 IC (TI); 输入接 VBUS_5V_F1, BAT 脚接 BAT 轨, STAT/PG 脚回主 PCB (见 P2) |
 | BAT_CHG | U_CHG pin13+pin14 | RAIL_BAT_CHG | NET_BAT_PROT | 单端 | NET | 必装 | CHG_BOARD | [官方] |  | [BAT_CHG] ★V1.2: 充电电流路径 (1.0-1.5A) 镜框充电板 BQ25896 · 跨铰链 · 镜脚电池; **铰链段不加 π 滤波** (会破坏充电 IC 的环 |
 | BAT_CHG | RAIL_BAT_CHG | J_CHG pin1 | RAIL_BAT_CHG | 跨铰链 1.5A (双 pin 并联) | NET | 必装 | HINGE | [推算] |  | [BAT_CHG] 充电电流跨铰链 (J_CHG pin1/pin2 并联); 载流/压降/发热核算见 P9 页 |
@@ -84,8 +84,8 @@
 | PGND | R_TS_PULL | PGND | R_TS_PULL | 30.31k ±1% (RT2) | R | DNP | MAIN_PCB | [官方] |  | [R_TS_PULL] ★DNP: 同上 (NTC 分压下臂) / [TS_BAT] TS 对地下拉 = **RT2 30.31k** (BQ25896 datasheet 温度检 |
 | TS_BAT | J_CHG pin8 | R_NTC_BAT | J_CHG | 跨铰链 (高阻) | NET | 必装 | HINGE | [推算] |  | [TS_BAT] ★V1.5 补画: **TS 跨铰链这一段** (V1.2 把电池/NTC 搬镜脚时漏了) · 走 J_CHG pin8 |
 | REGN | U_CHG pin22 | R_TS_TOP | U_CHG | BQ25896 内部 5V (REGN) | NET | 必装 | CHG_BOARD | [官方] |  | [REGN] ★V1.6 补: BQ25896 的 **REGN 5V** (内部 LDO 输出, RT1 的参考端) —— 原来 R_TS_TOP 的 REGN 端没有对应节点  |
-| REGN | C_REGN | U_CHG pin22 | C_REGN | [待选型] 1µF | C | 必装 | CHG_BOARD | [官方] |  | [REGN] BQ25896 REGN 去耦电容 (datasheet 要求) |
-| GND | C_REGN | GND | C_REGN | [待选型] 1µF | C | 必装 | CHG_BOARD | [官方] |  | [REGN] REGN 去耦电容 地端 |
+| REGN | C_REGN | U_CHG pin22 | C_REGN | 4.7µF ±10% (10V) | C | 必装 | CHG_BOARD | [官方] |  | [REGN] BQ25896 REGN 去耦电容 (datasheet 要求) ★ISS-243 落表: TI SLUSC76C pin22 原文 'Connect a 4.7 µ |
+| GND | C_REGN | GND | C_REGN | 4.7µF ±10% (10V) | C | 必装 | CHG_BOARD | [官方] |  | [REGN] REGN 去耦电容 地端 ★ISS-243 落表: 同上 (TI SLUSC76C pin22: 电容从 REGN 接到 analog GND; 手册要求 'plac |
 | TS_BAT | R_TS_TOP | U_CHG pin11 | R_TS_TOP | 5.24k ±1% (RT1: REGN 到 TS) | R | DNP | CHG_BOARD | [官方] |  | [R_TS_TOP] ★DNP: 同上 (TS 分压上臂) / [TS_BAT] ★V1.5 补画: **RT1 5.24k (REGN 到 TS)** —— BQ25896 温度 |
 | IINLIM | U_CHG pin10 | R_ILIM | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] ★★★**方向修正 (ISS-214 d10 · ISS-220 落表 2026-11-16)**: buck 功率守恒 ⇒ ICHG/IIN = η·Vbus/ |
 | GND | R_ILIM | GND | R_ILIM | 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决) | R | 必装 | CHG_BOARD | [官方] |  | [IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限) |

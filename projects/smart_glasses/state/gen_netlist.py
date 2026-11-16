@@ -100,6 +100,18 @@ PARTS: dict[str, dict] = {
         "footprint": "WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8mm, TI 封装图 4224801/A)",
         "opn": "BQ25896RTWR",
     },
+    # ★★2026-11-16 ISS-243 落表 (G-6): `C_REGN` = BQ25896 REGN 去耦电容 · 官方值 ★★
+    #   ★依据 (TI SLUSC76C 数据手册 pin22 REGN 原文, ★本机 PDF 实读 · 缓存 state/.cache_iss243/bq25896.txt L338~343★):
+    #     "Internally, REGN is connected to the cathode of the boost-strap diode.
+    #      Connect a 4.7 µF (10 V rating) ceramic capacitor from REGN to analog GND.
+    #      The capacitor should be placed close to the IC."
+    #   ★改的是什么: 原 value 「[待选型] 1µF」⇒ 与手册冲突 (手册要 **4.7 µF / 10 V rating**) ⇒ 订正为 `4.7µF ±10% (10V)`
+    #   ★OPN 取 ISS-241 选型矩阵 §3.7 推荐项 `GRM21BR71C475KA73L` (0805 / 4.7µF / **16V** / X7R / ±10%)
+    #     ⇒ ★16V ≥ 手册要求的 10V ✔ (value 栏写的是手册【最低耐压要求】10V, 实际选型耐压 16V★)
+    "C_REGN": {
+        "footprint": "0805 (2.0×1.25 mm) MLCC · 2 焊盘 (充电板侧 · 贴 U_CHG pin22 近端)",
+        "opn": "GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%)",
+    },
 }
 
 # ★板级归属 (2026-10-27 V1.1 新增列 board) —— 充电板在镜框 / 主 PCB 在镜脚, 两者跨铰链
@@ -366,7 +378,7 @@ def build_p1(by_id, spec):
         "π 滤波输入电容位 (值待充电 IC 定; 内置则改 DNP)", "C-01")
     add("P1", "GND", "C_VBUS_IN", "GND", "C_VBUS_IN", "[待选型] 10µF", "C",
         "DNP", "[推算]", "", "π 滤波输入电容 地端", "C-01")
-    add("P1", "VBUS_5V_F1", "FB_VBUS", "C_VBUS_OUT", "FB_VBUS", "π 滤波磁珠 [待选型]", "L",
+    add("P1", "VBUS_5V_F1", "FB_VBUS", "VBUS_5V_F1", "FB_VBUS", "π 滤波磁珠 [待选型]", "L",
         "必装", "[推算]", "",
         "[VBUS_5V_F1] π 滤波磁珠 后级侧 (与 FB_VBUS 同一颗)", "C-01")
     add("P1", "VBUS_5V_F1", "VBUS_5V_F1", "C_VBUS_OUT", "C_VBUS_OUT", "[待选型] 100µF", "C",
@@ -378,7 +390,7 @@ def build_p1(by_id, spec):
         "又是对地电容 · 一颗 2 脚件落进 3 个网 = 导出后一脚悬空); BQ25896 建议 ≥100µF", "C-01")
     add("P1", "VBUS_5V_CHG", "C_VBUS_OUT", "U_CHG pin1", "C_VBUS_OUT", "[待选型] 100µF", "C",
         "DNP", "[推算]", "", "π 滤波电容 (后级, 串联) 位", "C-01")
-    add("P1", "VBUS_5V_CHG", "C_VBUS_GND", "C_VBUS_OUT", "C_VBUS_GND", "[待选型] 100µF", "C",
+    add("P1", "VBUS_5V_CHG", "C_VBUS_GND", "VBUS_5V_CHG", "C_VBUS_GND", "[待选型] 100µF", "C",
         "DNP", "[推算]", "",
         "π 滤波后级对地电容的信号端 (与 C_VBUS_OUT 同一节点)", "C-01")
     add("P1", "VBUS_5V_CHG", "U_CHG", "NET_VBUS_5V_CHG", "U_CHG", "BQ25896", "IC",
@@ -497,10 +509,15 @@ def build_p1(by_id, spec):
         "必装", "[官方]", "",
         "[REGN] ★V1.6 补: BQ25896 的 **REGN 5V** (内部 LDO 输出, RT1 的参考端) —— 原来 R_TS_TOP 的"
         " REGN 端没有对应节点 · 导出后一脚悬空; 同时补 REGN 去耦电容位", "C-01")
-    add("P1", "REGN", "C_REGN", "U_CHG pin22", "C_REGN", "[待选型] 1µF", "C",
-        "必装", "[官方]", "", "[REGN] BQ25896 REGN 去耦电容 (datasheet 要求)", "C-01")
-    add("P1", "GND", "C_REGN", "GND", "C_REGN", "[待选型] 1µF", "C",
-        "必装", "[官方]", "", "[REGN] REGN 去耦电容 地端", "C-01")
+    add("P1", "REGN", "C_REGN", "U_CHG pin22", "C_REGN", "4.7µF ±10% (10V)", "C",
+        "必装", "[官方]", "",
+        "[REGN] BQ25896 REGN 去耦电容 (datasheet 要求) ★ISS-243 落表: TI SLUSC76C pin22 原文 "
+        "'Connect a 4.7 µF (10 V rating) ceramic capacitor from REGN to analog GND' ⇒ value 订正 4.7µF ±10% (10V) · "
+        "OPN GRM21BR71C475KA73L (0805/4.7µF/16V/X7R/±10%) · 放置: 充电板贴 U_CHG pin22 近端", "C-01")
+    add("P1", "GND", "C_REGN", "GND", "C_REGN", "4.7µF ±10% (10V)", "C",
+        "必装", "[官方]", "",
+        "[REGN] REGN 去耦电容 地端 ★ISS-243 落表: 同上 (TI SLUSC76C pin22: 电容从 REGN 接到 analog GND; "
+        "手册要求 'placed close to the IC' ⇒ 充电板贴 U_CHG pin22 近端)", "C-01")
     # ★★2026-11-02 02:0x 修一个**真缺陷**: 这里的 node2 原写 "U_CHG pin22" (BQ25896 的 REGN 脚),
     #   正确是 **pin11 (TS 脚)** —— RT1 是 REGN→TS 的上拉, 另一端必须落在 TS。
     #   ★为什么一直没被抓到: `.net` 生成器会**按连通性重排引脚**, 所以 .net 一直是对的,

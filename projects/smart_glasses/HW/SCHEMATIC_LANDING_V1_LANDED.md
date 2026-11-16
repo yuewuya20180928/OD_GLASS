@@ -590,3 +590,326 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro
 # ★★锚点表 (规格页 ⇄ 脚本 逐字一致) ★★
 python3 HW/check_netlist_selfconsistency.py --emit-anchors | wc -l    # 162
 ```
+
+---
+
+## ★★16 · 第 4 批落表条目 (ISS-243 · 2026-11-16 · 硬件总工 (hw-lead) 执行 · ★**C_REGN 官方值落表**★) ★★
+
+### ★★16.1 · 一句话结论 + 前后对比 ★★
+
+★**`C_REGN` (BQ25896 REGN 去耦电容) 的 value 从「[待选型] 1µF」订正为「4.7µF ±10% (10V)」, 并首次带上 footprint (0805) 与 opn (`GRM21BR71C475KA73L`); 三处落表 = 网表 L44/L45 + 脚表 L132/L133 + BOM L43; ★**真源改 `state/gen_netlist.py` (不是手改 CSV), 按硬顺序重生成 6 件生成物; 板 (`.kicad_pcb` / `.kicad_pro`) 逐字节未动** ★
+
+★**依据 (TI 官方值, 本机 PDF 实读)**: TI BQ25896 (SLUSC76C) §Pin Functions 表 pin22 REGN 行原文 ——
+> "Internally, REGN is connected to the cathode of the boost-strap diode. **Connect a 4.7 µF (10 V rating) ceramic capacitor from REGN to analog GND.** The capacitor should be placed close to the IC. REGN also serves as bias rail of TS pin."
+
+★**缓存**: `state/.cache_iss243/bq25896.pdf` (1675426 B) + `state/.cache_iss243/bq25896.txt` (`pdftotext` 输出, pin22 原文在 **L338~343**) ★ · 证据等级 `[官网]`
+
+### ★★16.2 · 落表条目 · 逐条 (★改了哪个真源的哪一行 · 改前/改后字面值 · 跑的命令与输出行 · 证据等级★) ★★
+
+| # | 改的文件 (真源) | 行 | 改前 | 改后 | 证据等级 |
+|---|---|---|---|---|---|
+| ★**1** ★ | ★**`state/gen_netlist.py`** (★真源★) | ★**L500** ★ | ★**`"[待选型] 1µF"`** ★ | ★**`"4.7µF ±10% (10V)"`** ★ (+ note 补 TI 原文 + OPN + 放置要求) ★ | ★`[官网]` (TI SLUSC76C pin22, 本机 PDF 实读) ★ |
+| ★**2** ★ | ★**`state/gen_netlist.py`** (★真源★) | ★**L502** ★ | ★**`"[待选型] 1µF"`** ★ | ★**`"4.7µF ±10% (10V)"`** ★ (+ note 补地端 + 放置要求) ★ | ★`[官网]` ★ |
+| ★**3** ★ | ★**`state/gen_netlist.py`** (★真源★) | ★**`PARTS` 字典 (U_CHG 之后新增 `C_REGN` 条目)** ★ | ★**无条目 ⇒ footprint/opn 两栏空 ⇒ BOM 采购状态 = "待选型"** ★ | ★**`footprint` = "0805 (2.0×1.25 mm) MLCC · 2 焊盘 (充电板侧 · 贴 U_CHG pin22 近端)" · `opn` = "GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%)"** ★ | ★`[官网]` (Murata 官方 MLCC 系列页 + ISS-241 矩阵 §3.7 ⑳) ★ |
+| ★**4** ★ | ★**`state/gen_kicad_net.py`** (★真源★) | ★**`REF_FOOTPRINT` 字典 (新增 `C_REGN` 一条)** ★ | ★**落类型通用占位符 `Capacitor_SMD:C_0402_1005Metric` (0402) ⇒ 与 BOM 的 0805 对不上** ★ | ★**`Capacitor_SMD:C_0805_2012Metric (0805 / 2.0x1.25 mm, Murata GRM21 系列 land pattern)`** ★ | ★`[推算]` (★位号级覆盖的先例 = `U_CHG`; ★只改 `C_REGN` 一个位号★) ★ |
+
+★**落表后三张表的实际落点 (★重生成后逐行实读★)** ★
+
+| 表 | 行 | 落表后 |
+|---|---|---|
+| ★**`HW/netlist_v1.csv`** ★ | ★**L44 / L45** ★ | ★**value = `4.7µF ±10% (10V)`** · footprint = `0805 (2.0×1.25 mm) MLCC · 2 焊盘 (充电板侧 · 贴 U_CHG pin22 近端)` · opn = `GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%)`** ★ |
+| ★**`HW/netlist_v1_pins.csv`** ★ | ★**L132 / L133** ★ | ★**value = `4.7µF ±10% (10V)`** · footprint/opn 同上 (脚表脚号来自 `.net` ⇒ 顺序是硬的) ★ |
+| ★**`HW/BOM_v1.csv`** ★ | ★**L43** ★ | ★**value = `4.7µF ±10% (10V)`** · footprint = 0805 · opn = `GRM21BR71C475KA73L (…)` · ★**procurement 由 `待选型` → `已定型-无源件`** ★ |
+
+★**★跑的命令 + 输出行 (★本机实跑·原样★)★★** ★
+★`python3 state/gen_netlist.py` (rc=0) ⇒ ★**表A 512 行里只有 L44/L45 两行变 (4 行 diff)★** ★
+★`python3 state/gen_kicad_net.py` (rc=0) ⇒ ★**`HW/netlist_v1.net` 只有 L18 一行变 (`C_REGN` 的 comp 行)★** ★
+★`python3 state/gen_netlist_pins.py` (rc=0) ⇒ ★**脚表 584 行不变, 只有 L132/L133 两行变 (4 行 diff)★** ★
+★`python3 state/gen_bom.py` (rc=0) ⇒ ★**BOM 218 行不变, 只有 L43 一行变 (2 行 diff)★** ★
+★`python3 state/gen_schematic_pages.py` (rc=0) · `python3 state/gen_kicad_sch.py` (rc=0) ⇒ ★**生成物跟随 (11 个 `.kicad_sch` 含随机 UUID ⇒ md5 必变, 与 ISS-233 同因)** ★
+★`python3 HW/check_netlist_selfconsistency.py` ⇒ ★**rc=0 (现状守卫绿)★** ★
+★`python3 HW/check_netlist_selfconsistency.py --expect-resolved` ⇒ ★**rc=1 · 落表前 18 条 ⇒ 落表后仍 18 条 (两份输出逐字节相同, `diff` 空)★** ★
+★`python3 state/check_netlist.py` / `check_netlist_pins.py` / `check_sch_erc.py` / `check_sch_pinfull.py` ⇒ ★**全 rc=0★** ★
+★`python3 HW/check_netlist_contradiction_r3.py` ⇒ ★**rc=1 · 恰 3 条 findings (ISS-242 的门禁未被本单改红)★** ★
+★`python3 HW/check_part_selection_matrix.py` ⇒ ★**rc=0 (8/8, ISS-241 的门禁未被本单改红)★** ★
+★`python3 state/merge.py && python3 state/gate_check.py` ⇒ ★**rc=0 · 【Q1】18/18★** ★
+★`python3 HW/check_iss243_cregn.py` (+ `--selftest`) ⇒ ★**rc=0 (本单新建的独立门禁, 7 条断言 + 7 条反向用例)★** ★
+
+★**门禁锚点同步**: ★**本单【不动】`HW/check_netlist_selfconsistency.py` 的 `EXPECT` 现状断言值, 也不动 `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` 的 `<!-- ANCHORS -->` 块** ⇒ ★**理由: 本单只改 1 个器件的 value/footprint/opn, 没有增删行 ⇒ 行号不漂移 ⇒ 落表后现状守卫仍 rc=0 (实测) ⇒ 无需重生成锚点块 (若强行重生成反而会引入无谓 diff)★** ★
+
+### ★★16.3 · 本批【没落】的东西 (★逐条 + 卡在谁★) ★★
+
+| 条目 | 归因 | 卡在谁 |
+|---|---|---|
+| ★**`C_REGN` 的 DC-bias 降容后的实际容值** ★ | ★**[0数据]** (Murata 的 DC bias 曲线需按料号查官方曲线 ⇒ 本单未取到 ⇒ **没写进 value 串**) ★ | 落表批次 / 采购复核 |
+| ★**`C_REGN` 的 W-3 (老板点头) 留痕** ★ | ★**`DECISION_PENDING_2026-11-16.md` 的 W-3 写着「C_REGN 落表前要老板点一次头」 ⇒ 本单按 ISS-243 授权 (main 层级已开单) + TI 官方值落表 ⇒ ★**该 W-3 条目请 main 去标掉 (本单不碰 `DECISION_PENDING`)** ★ | ★**main (老板级留痕)★** ★ |
+| ★**三件 MOS 的 pad↔pin 映射 / `D_ESD_CAM` 的 pad 序** ★ | ★**只出表 + 只出改法映射 (L2/L3) ⇒ 不改板** ★ | 落板批次 (★板那一趟排队中★) · 缺口 G-2 / G-3 |
+| ★**充电板 6 件的 footprint 候选** ★ | ★**只出清单 (L4) ⇒ 充电板件不在 `demo_mainboard.kicad_pcb` 上 ⇒ 无几何可判** ★ | 充电板那一趟 (main 排期) · 缺口 G-8 |
+| ★**ISS-242 的 `C_VBUS_OUT` / `C_VBUS_GND` 各落进 3 个网** ★ | ★**本单只许改 `C_REGN` 那几行 ⇒ 两条缺陷原样留在盘上** ★ | 落表批次 (main 排期) |
+
+### ★★16.4 · 受保护 md5 前后对照 (★本单起跑基线 ⇒ 交卷实测★) ★★
+
+| 文件 | 前 (本单起跑) | 后 (交卷) | 变了? |
+|---|---|---|---|
+| ★**`HW/PCB/demo_mainboard.kicad_pcb`** ★ | ★**`611b869e13518c3c023fb178f91a0075`** ★ | ★**`611b869e13518c3c023fb178f91a0075`** ★ | ★**否 (受保护·逐字节不变)★** ★ |
+| ★**`HW/PCB/demo_mainboard.kicad_pro`** ★ | ★**`3e504d2be83152e337949723e909be1b`** ★ | ★**`3e504d2be83152e337949723e909be1b`** ★ | ★**否 (受保护·逐字节不变)★** ★ |
+| ★**`HW/netlist_v1.csv`** ★ | `34132f7e40a241e1fae1476be0eafbd5` | `611c3ba3db3dc7de7213063375b96d01` | ★**是 (★只有 L44/L45 两行★)** ★ |
+| ★**`HW/netlist_v1_pins.csv`** ★ | `b21b743a7702d30729f0d653c15392df` | `ef436a37412ac9b6eac3c9f41f1edca4` | ★**是 (★只有 L132/L133 两行★)** ★ |
+| ★**`HW/BOM_v1.csv`** ★ | `c195a117ff17490d4d1e1a5b8f1995a7` | `2a7305741134788dfee9f13f34c656b4` | ★**是 (★只有 L43 一行★)** ★ |
+| ★**`HW/netlist_v1.net`** ★ | `978ab59e297e6bb89f873b763569eccb` | `564fed05c1f5f9dab09efce51eebae74` | ★**是 (★只有 L18 一行·`C_REGN` 的 comp 行★)** ★ |
+| ★**`HW/SCHEMATIC_V1.md`** ★ | `b1fa5a0c17726037ff3407b31ecbb631` | `289fbafa2874588412cf292b469c73fc` | ★**是 (★生成物·跟着网表走★)** ★ |
+| ★**`HW/BOM_pseudo_refs_v1.csv`** ★ | `47e1659a42d8d3f6728ea653df1eb530` | `47e1659a42d8d3f6728ea653df1eb530` | ★**否** ★ |
+| ★**`state/gen_netlist.py`** (★真源★) ★ | `9dfb6771c9beb110021bba182f128c64` | `ed12961ef619d04b90bb6d28b2a727ac` | ★**是 (★真源·2 处 value + 1 条 PARTS★)** ★ |
+| ★**`state/gen_kicad_net.py`** (★真源★) ★ | ★**`5910d40fa7ac73b2b085d2c5eb594548`** ★ | `884221269982d13de8e075c7a31304e4` | ★**是 (★真源·1 条 REF_FOOTPRINT★)** ★ |
+| ★**`HW/PCB/demo_mainboard*.kicad_sch`** (11 个) ★ | 各自不同 (★生成物含随机 UUID★) | 各自不同 (★`demo_mainboard_p1.kicad_sch` = `662d9c004dbeb53de3c0aaec667d2d09`★) | ★**是 (★生成物; 同因 ISS-233★)** ★ |
+
+★**★回滚副本★**: ★**`state/.bak_iss243/`** (★本单起跑基线: `gen_netlist.py` / `netlist_v1.csv` / `netlist_v1_pins.csv` / `BOM_v1.csv` / `netlist_v1.net` / `SCHEMATIC_V1.md` / `BOM_pseudo_refs_v1.csv` + `kicad_sch/` 11 个 + `gen_kicad_net.py`★) ★
+★**★缓存★**: ★**`state/.cache_iss243/`** (★TI 原厂 PDF + `pdftotext` 输出★) ★
+
+### ★★16.5 · 第 4 批复现命令 (★B6 自证★) ★★
+
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+
+# ★★落表链路 (改源 → 重生成; ★板不碰★) ★★
+python3 state/gen_netlist.py && python3 state/gen_kicad_net.py && \
+python3 state/gen_netlist_pins.py && python3 state/gen_bom.py && \
+python3 state/gen_schematic_pages.py && python3 state/gen_kicad_sch.py
+
+# ★★8 条必跑门禁 ★★
+python3 HW/check_netlist_selfconsistency.py                    # rc=0 (现状守卫)
+python3 HW/check_netlist_selfconsistency.py --expect-resolved   # rc=1 (★预期: 仍 18 条未落表★)
+python3 state/check_netlist.py                                  # rc=0
+python3 state/check_netlist_pins.py                             # rc=0
+python3 state/check_sch_erc.py                                  # rc=0
+python3 state/check_sch_pinfull.py                              # rc=0
+python3 HW/check_netlist_contradiction_r3.py                    # rc=1 (★恰 3 条·ISS-242 的门禁★)
+python3 HW/check_part_selection_matrix.py                       # rc=0 (8/8·ISS-241 的门禁)
+python3 state/merge.py && python3 state/gate_check.py           # rc=0 (Q1 18/18)
+python3 HW/check_iss243_cregn.py                                # rc=0 (本单新建门禁)
+python3 HW/check_iss243_cregn.py --selftest                     # rc=0 (反向用例 7/7)
+
+# ★★受保护 md5 (必须逐字节不变) ★★
+md5sum HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro
+# 611b869e13518c3c023fb178f91a0075 / 3e504d2be83152e337949723e909be1b
+
+# ★★落表台账 / 映射表 / 交卷单 (本单产出物) ★★
+grep -n "ISS-243" HW/SCHEMATIC_LANDING_V1_LANDED.md | head
+ls -la HW/MOS_PAD_PIN_MAPPING.md \
+  "HANDOFF/2026-11-16_hw-lead_ISS243_C_REGN官方值落表与4条落表前置.md"
+```
+
+---
+
+## ★★17 · 第 5 批落表条目 (ISS-249 · 2026-11-16 19:2x~19:4x · 硬件总工 (hw-lead) 执行 · ★**F1 真落表 (ISS-242 第 1 条缺陷)**★) ★★
+
+> ★**单号**: `ISS-249` · ★**owner**: hw-lead · ★**verify_by**: main (项目总工) ★
+> ★**作业包**: `HW/SCHEMATIC_LANDING_F1_WORKPACKET_V1.md` (ISS-247 交卷) · ★**机器门禁**: `HW/check_iss247_f1_landed.py` ★
+> ★**零外发** (不发邮件 / 不询价 / 不问询 / 不采购 / 不原厂问询) · ★**实物 [实测] = 0 条** (板与屏不在本机 ⇒ 标 [实测] 的一律是「本机脚本 / 本机文件实读」) ★
+> ★**边界自查**: ★**没碰** `HW/PCB/demo_mainboard.kicad_pcb` / `.kicad_pro` (md5 逐字节不变) · ★**没碰** 布线 / 布局 / 板框 · ★**没落任何 V 值** (V-2 / V-3 / V-4 一律不碰) · ★**没改** `SW/` / `MECH/` / `state/fragments/{pm,sw,mech}.yaml` / `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 · ★**没代老板拍任何一条** ★
+
+### ★★17.1 · 一句话结论 + 前后对比 ★★
+
+★★**F1 真落表了: `state/gen_netlist.py` 两行 `add()` 的 node2 槽, 从「借来的裸位号 `C_VBUS_OUT`」改成「本行自己的网名」⇒ 网表里 `C_VBUS_OUT` / `C_VBUS_GND` 两颗 2 脚电容的端子登记各回到 2 次 (= 脚表脚数) ⇒ ★**一颗 2 脚件不再落进 3 个网 ⇒ 导出后不再一脚悬空** ★★ ⇒ ★**电气连通性零变化 (脚表 / BOM / `.net` / 板 / `.kicad_pro` 全部逐字节不变)** ★★
+
+| 指标 | 落表前 | 落表后 | 怎么量的 |
+|---|---|---|---|
+| ★**`HW/check_iss247_f1_landed.py` (判定模式)** ★ | ★**rc=1** (S1/S3/S4/S5 红) ★ | ★**rc=0** (S1~S6 全绿) ★ | 同上 (逐条看输出) ★ |
+| ★**`C_VBUS_OUT` 的端子登记次数** ★ | ★**4 次 > 脚数 2** ★ | ★**2 次 = 脚数 2** ★ | 同上 S4 段 ★ |
+| ★**`C_VBUS_GND` 的端子登记次数** ★ | ★**2 次** (但 L12 借了别人的位号) ★ | ★**2 次** (L12 借的是网名 `VBUS_5V_CHG`) ★ | 同上 S4 段 ★ |
+| ★**`HW/check_netlist_contradiction_r3.py` 的 findings** ★ | ★**3 条 (F1+F2+F3)** ★ | ★**2 条 (F2+F3)** ★ ★**F1 消失** ★ | 同上 FINDINGS 段 ★ |
+| ★**`HW/check_netlist_selfconsistency.py --expect-resolved` 未落表条数** ★ | ★**18 条** ★ | ★**18 条 (一条不许上升; 下降更好)** ★ | 同上 ★ |
+| ★**网表行数 / 脚表行数 / BOM 行数** ★ | ★**513 / 584 / 218** ★ | ★**513 / 584 / 218** ★ (零增零删) ★ | `wc -l` ★ |
+
+### ★★17.2 · 落表条目 · 逐条 (★改了哪个真源的哪一行 · 改前/改后字面值 · 证据等级★) ★★
+
+| # | 改的文件 (真源) | 行 | 改前 | 改后 | 证据等级 |
+|---|---|---|---|---|---|
+| ★**1** ★ | ★**`state/gen_netlist.py`** (★真源★) | ★**L381** ★ (FB_VBUS 后级行) ★ | ★**`add("P1", "VBUS_5V_F1", "FB_VBUS", "C_VBUS_OUT", "FB_VBUS", ...)`** ★ | ★**`add("P1", "VBUS_5V_F1", "FB_VBUS", "VBUS_5V_F1", "FB_VBUS", ...)`** ★ | ★`[实测]` (2026-11-16 19:2x 本机 `grep -n` + `diff` 实读) ★ |
+| ★**2** ★ | ★**`state/gen_netlist.py`** (★真源★) ★ | ★**L393** ★ (C_VBUS_GND 信号端行) ★ | ★**`add("P1", "VBUS_5V_CHG", "C_VBUS_GND", "C_VBUS_OUT", "C_VBUS_GND", ...)`** ★ | ★**`add("P1", "VBUS_5V_CHG", "C_VBUS_GND", "VBUS_5V_CHG", "C_VBUS_GND", ...)`** ★ | ★`[实测]` (同上) ★ |
+
+★★**逐字 diff (真源 · 本机实跑 `diff -u state/.bak_iss249/gen_netlist.py state/gen_netlist.py`)★★** ★
+
+```diff
+@@ -378,7 +378,7 @@
+-    add("P1", "VBUS_5V_F1", "FB_VBUS", "C_VBUS_OUT", "FB_VBUS", "π 滤波磁珠 [待选型]", "L",
++    add("P1", "VBUS_5V_F1", "FB_VBUS", "VBUS_5V_F1", "FB_VBUS", "π 滤波磁珠 [待选型]", "L",
+@@ -390,7 +390,7 @@
+-    add("P1", "VBUS_5V_CHG", "C_VBUS_GND", "C_VBUS_OUT", "C_VBUS_GND", "[待选型] 100µF", "C",
++    add("P1", "VBUS_5V_CHG", "C_VBUS_GND", "VBUS_5V_CHG", "C_VBUS_GND", "[待选型] 100µF", "C",
+```
+
+★★**为什么必须是「自己的网名」而不是「对方的裸位号」**: ★把 L12 改成 `C_VBUS_GND` 照样红 (★`C_VBUS_GND` 的裸位号会被登记 3 次 > 脚数 2★ ⇒ 只是把撞车从 `C_VBUS_OUT` 挪到 `C_VBUS_GND`) ⇒ ★**两处缺一不可, 且必须各自改成自己的网名** ⇒ ★**证据: `HW/check_iss247_f1_landed.py --selftest` 的 T2 用例 (改成 `C_VBUS_GND` ⇒ 必须红) 实跑通过** ★ ★`[实测]` ★
+
+★**落表后三张表的实际落点 (★重生成后逐行实读★)** ★
+
+| 表 | 行 | 落表后 (逐字) |
+|---|---|---|
+| ★**`HW/netlist_v1.csv`** ★ | ★**L8** ★ | ★**`P1,VBUS_5V_F1,FB_VBUS,VBUS_5V_F1,FB_VBUS,...`** ★ (node2 由 `C_VBUS_OUT` → `VBUS_5V_F1`) ★ |
+| ★**`HW/netlist_v1.csv`** ★ | ★**L12** ★ | ★**`P1,VBUS_5V_CHG,C_VBUS_GND,VBUS_5V_CHG,C_VBUS_GND,...`** ★ (node2 由 `C_VBUS_OUT` → `VBUS_5V_CHG`) ★ |
+| ★**`HW/SCHEMATIC_V1.md`** ★ | ★**P1 页表A 镜像的两行** ★ | ★**与上表逐字同步 (只差这两个 node2 单元)** ★ |
+
+★★**★跑的命令 + 输出行 (★本机实跑·原样★)★★** ★
+★**落表链路** ★`python3 state/gen_netlist.py && python3 state/gen_kicad_net.py && python3 state/gen_netlist_pins.py && python3 state/gen_bom.py && python3 state/gen_schematic_pages.py && python3 state/gen_kicad_sch.py` (★rc=0★) ★
+★`python3 HW/check_iss247_f1_landed.py` ⇒ ★**rc=0 · S1~S6 全绿 · 「判定: ✅ F1 已落表」** ★
+★`python3 HW/check_iss247_f1_landed.py --selftest` ⇒ ★**rc=0 · 用例 11 条 · 通过 11 条 · 失败 0 条** ★
+★`python3 HW/check_netlist_selfconsistency.py` ⇒ ★**rc=0 (现状守卫绿)** ★
+★`python3 HW/check_netlist_selfconsistency.py --expect-resolved` ⇒ ★**rc=1 · 仍 18 条未落表 (一条没上升)** ★
+★`python3 state/check_netlist.py` / `check_netlist_pins.py` / `check_sch_erc.py` / `check_sch_pinfull.py` ⇒ ★**全 rc=0** ★ (★`check_sch_pinfull.py`: 图上 584 脚 = 表里 584 脚 · K=0★)
+★`python3 HW/check_netlist_contradiction_r3.py` ⇒ ★**rc=1 · FINDINGS: 2 (F2+F3) · 结论「✅ 恰 2 条」** ★ (★**rc 语义一个字没改** ⇒ F2/F3 还在 ⇒ 本门禁仍红是预期★)
+★`python3 HW/check_netlist_contradiction_r3.py --selftest` ⇒ ★**rc=0 · 反向用例 12 条 · 全抓到** ★
+★`python3 state/merge.py && python3 state/gate_check.py` ⇒ ★**rc=0 · 【Q1】18/18 · 【Q2】3/3** ★
+
+### ★★17.3 · ★★反向自证 (★三步 · 原样★)★★ ★★
+
+| 步骤 | 动作 | 实测结果 |
+|---|---|---|
+| ★**1** ★ | ★**把那 2 行 node2 改回旧值** (★`cp state/.bak_iss249/gen_netlist.py state/gen_netlist.py` · md5 回到 `ed12961e…`★) + `python3 state/gen_netlist.py` (★网表 md5 回到 `611c3ba3…`★) | — |
+| ★**2** ★ | ★**跑 `python3 HW/check_iss247_f1_landed.py`** ★ | ★**rc=1** ★ · 末行「判定: ❌ F1 未落表 (★网表里 node2 槽仍借用了别的器件裸位号★)」 ★ · S1 红 (L12 node2=`C_VBUS_OUT`) · S3 红 (L8 node2=`C_VBUS_OUT`) · S4 红 (`C_VBUS_OUT` 登记 4 次 > 脚数 2) · S5 红 (L12 撞车) ★ |
+| ★**3** ★ | ★**装回** (★`cp /tmp/gen_netlist_iss249_FIXED.py state/gen_netlist.py` · md5 回到 `519b14ff…`★) + `python3 state/gen_netlist.py` (★网表 md5 回到 `16ac89f7…`★) + 再跑门禁 | ★**rc=0** ★ · 「判定: ✅ F1 已落表」 ★ |
+
+★★**⇒ 证明: ★**我真改了判据盯的东西, 不是把红灯调没** ★ ⇒ ★**反向自证全程其余生成物逐字节不变** (★脚表 `ef436a37…` / BOM `2a730574…` / `.net` `564fed05…` / `SCHEMATIC_V1.md` `d37bbd0d…` / 板 `611b869e…` / `.kicad_pro` `3e504d2b…`★) ★ ★`[实测]` ★
+
+★★**★【2026-11-16 19:42 续做补记 · ★上表是【配方】, 这一段是【已跑的原始输出】★】★★
+★★**本表原样在 `/tmp/iss249_sbx/` 沙盒里【实跑】过一遍 (★真盘全程只读★)** ★
+★**沙盒保真性自证**: ★**沙盒用落表前的 `gen_netlist.py` 重生成出的网表 md5 = `611c3ba3db3dc7de7213063375b96d01` ⇒ 与真盘落表前逐字相同** ★ ⇒ ★**同一套输入 ⇒ 同一个产物 ⇒ 沙盒的红/绿与真盘等价** ★ ★`[实测]` ★
+
+| 步 | 沙盒状态 | 沙盒网表 md5 | 门禁 rc | 判据 | 判定行 |
+|---|---|---|---|---|---|
+| ★**3** ★ | ★**装 `state/.bak_iss249/gen_netlist.py` (node2 借回 `C_VBUS_OUT`)** ★ | ★**`611c3ba3…`** ★ | ★**rc=1** ★ | ★**S1 / S3 / S4 / S5 红** ★ | ★**「❌ F1 未落表」** ★ |
+| ★**6** ★ | ★**装 `/tmp/gen_netlist_iss249_FIXED.py` (node2 = `VBUS_5V_F1` / `VBUS_5V_CHG`)** ★ | ★**`16ac89f7…`** ★ | ★**rc=0** ★ | ★**S1~S6 全绿** ★ | ★**「✅ F1 已落表」** ★ |
+
+★★**原始输出落盘**: ★**`HW/ISS249_reverse_proof_sandbox.log`** ★ (★全文 · 含沙盒搭建命令 / 两步 grep / 两次门禁完整输出 / 真盘 8 个 md5 跑前跑后 `diff` 零差异★) ★
+★★**交卷单对应段**: ★**`HANDOFF/2026-11-16_hw-lead_ISS249_F1落表.md` §B4.4** ★ (★含沙盒结构说明 + 完整原样输出 + 复现命令在 §B6.0 ⑤★) ★ ★`[实测]` ★
+
+★★**★行号订正 (★以盘上 `grep -n` 为准★)★**: ★**本节两处病灶行是 ★**L381 / L393**★ (★`grep -n 'add("P1", "VBUS_5V_F1", "FB_VBUS"' state/gen_netlist.py` ⇒ L381 · `grep -n 'add("P1", "VBUS_5V_CHG", "C_VBUS_GND"' state/gen_netlist.py` ⇒ L393★) ⇒ ★**派单里写的「L391」与盘上不符, 以 L393 为准** ★ ★`[实测]` ★
+
+### ★★17.4 · ★★两处受保护脚本的改动 (★H-1 重基线 · 逐行改前改后 + md5 台账 + 反向用例清单★)★★ ★★
+
+> ★**为什么动这两个脚本**: ★**F1 落表 = 现状变了 ⇒ 两条门禁的【现状断言】(不是判据) 变陈旧 ⇒ 落表后必红** ★
+> ★**ISS-247 作业包 §7 已经给了 R3 的处方** (`HW/SCHEMATIC_LANDING_F1_WORKPACKET_V1.md` §「已落表后的门禁口径回退」) ⇒ ★**本单按处方执行 + 按 main 19:3x 口径补了「反向用例不许删」那一条** ★
+> ★**绝对没做的事**: ★**判据逻辑一个字没动** ⇒ `HW/check_iss247_f1_landed.py` 的 `crit_S1`~`crit_S6` 六个判据函数 ★**逐字节相同** (★本机脚本比对: 6/6 相同★) ⇒ `HW/check_netlist_contradiction_r3.py` 的 findings 计算 / R3-A1~A6 一个字节没动 ⇒ ★**没有删任何一条断言, 只改了【条数期望 + 文案 + fixture 起点】** ★
+
+★**★门禁脚本 ①: `HW/check_iss247_f1_landed.py` (★md5 `5a62b02e…` → `83ea5cab…`★)★** ★
+
+| 位置 | 改前 | 改后 | 为什么 |
+|---|---|---|---|
+| ★**`--selftest` 的 T0** ★ | ★**「现状 (真文件) 必须红 (F1 未落表)」** ★ ⇒ ★**落表后活文件变绿 ⇒ 这条必红** ★ | ★**「fixture 回退成落表前 (L8/L12 都借 C_VBUS_OUT) ⇒ 期望红 (S1+S3+S4+S5 全红)」** ★ ⇒ ★**先把 fixture 显式回退, 再判红** ★ | ★**fixture 起点被写死在「未落表」★ ⇒ ★**改成与活文件状态无关** ⇒ ★**落表前跑 / 落表后跑 = 同一套断言** ★ (★main 19:3x 口径★) ★ |
+| ★**`--selftest` 的 T4 / T5** ★ | ★**直接拿活文件当基线, 只改一行** ⇒ ★**落表后等于两行都改对了 ⇒ 抓不到红** ★ | ★**先复现旧基线 (两行都借 `C_VBUS_OUT`), 再只改一行** ⇒ ★**S3 / S1 仍红** ★ | 同上 |
+| ★**`--selftest` 的 T6** ★ | ★**只测活文件态** ★ | ★**两种起点都测: ① 回退态 + 两行都改对 ⇒ 绿 ② 活文件态 ⇒ 绿** ★ | ★**main 口径「两种都测」★** |
+| ★**新增 helper `_mutate_both_to_old()`** ★ | ★**无** ★ | ★**把两处病灶行的 node2 一起改回旧值 ⇒ 复现「F1 未落表」基线** ★ | ★**支撑 T0 / T4 / T5 / T6 的状态无关性** ★ |
+| ★**判据 `crit_S1` ~ `crit_S6`** ★ | — | ★**逐字节相同 (6/6 本机比对)** ★ | ★**不许动判据** ★ |
+
+★**★反向用例清单 (★`--selftest` 实跑 11 条 · 通过 11 · 失败 0★)★** ★
+
+| 用例 | 断言 | 实跑 |
+|---|---|---|
+| T0 | ★**fixture 回退成落表前 ⇒ 红 (S1+S3+S4+S5 全红)** ★ | ✅ 红判据=`['S1','S3','S4','S5']` · landed=False |
+| T1 | L12 的 node2 改回 `C_VBUS_OUT` ⇒ 红 | ✅ S4红=True S5红=True |
+| T2 | L12 的 node2 改成 `C_VBUS_GND` (★main 提的错值★) ⇒ 红 | ✅ S4 命中 `['C_VBUS_GND']` |
+| T3 | L8 的 node2 改回 `C_VBUS_OUT` ⇒ 红 | ✅ S4 命中 `['C_VBUS_OUT']` · S3红=True |
+| T4 | 回退态 + 只修 L12 ⇒ 红 (S3 仍红) | ✅ S3红=True |
+| T5 | 回退态 + 只修 L8 ⇒ 红 (S1 仍红) | ✅ S1红=True |
+| T6 | ★**两种起点都改对 ⇒ 绿** ★ | ✅ 回退态 landed=True · 活文件态 landed=True |
+| T7 | 改一颗【无关】的 2 脚 C ⇒ 红 (★通用性★) | ✅ S4 命中 `['C_HF_V_CORE']` |
+| T8 | 脚表里 `C_VBUS_GND` 的信号脚改成 GND ⇒ 红 | ✅ S1红=True |
+| T9 | ★**反误报: 合法器件↔器件直连 (2 脚 R) 不判红** ★ | ✅ S6 记下合法直连 1 处 · landed=True |
+| T10 | `C_VBUS_OUT@VBUS_5V_CHG` 的 node2 改成 `C_VBUS_GND` ⇒ 红 (S2) | ✅ S2红=True |
+
+★**★门禁脚本 ②: `HW/check_netlist_contradiction_r3.py` (★md5 `da466cc6…` → `ef7b9f50…`★)★** ★
+
+| 位置 | 改前 | 改后 | 为什么 |
+|---|---|---|---|
+| ★**主模式摘要** ★ | ★**`FINDINGS: {n} (主线要求 = 恰 3 条)` · `ok = (len(findings) == 3)`** ★ | ★**`FINDINGS: {n} (主线要求 = 恰 2 条 = F2 + F3)` · `ok = (len(findings) == 2 and ids == ["F2","F3"])`** ★ | ★**作业包 §7 处方** ⇒ ★**只改条数期望与文案** ★ ★**rc 语义 (`1 if findings else 0`) 一个字节没动 ⇒ F2/F3 还在 ⇒ 本门禁仍 rc=1 (预期)** ★ |
+| ★**`--selftest` 的 T7** ★ | ★**`ok = (len(findings) == 3)`** ★ | ★**`ok = (len(findings) == 2 and ids == ["F2","F3"])`** ★ | ★**现状断言跟着真相走** ★ |
+| ★**`--selftest` 的 T8** ★ | ★**`all(not A1/A2/A3/A4 命中)` (四条规则全红)** ★ | ★**`A1 绿 且 A2 绿 且 A3 红 且 A4 红`** ★ | ★**F1 修好后 A1/A2 本就该转绿** ★ |
+| ★**`--selftest` 新增 T11** ★ | ★**无** ★ | ★**「把 F1 改回旧值 (真网表 L8/L12 的 node2 都借 `C_VBUS_OUT`) ⇒ 期望回到 3 条 findings (F1+F2+F3)」** ★ | ★**main 19:3x 口径: 反向用例不许删 + 必须新增「改回旧值 ⇒ 必须回到 3 条」⇒ 证明条数期望的改动没把判据调没** ★ (★fixture = 真网表 + 真脚表 + 真板, 不是绿基线★) ★ |
+| ★**helper `_patch_netlist_C_VBUS`** ★ | ★**3 个定向改写分支** ★ | ★**+1 个分支 `L8_L12_node2_back_to_C_VBUS_OUT`** ★ | ★**供 T11 用** ★ |
+| ★**findings 计算 / R3-A1~A6 / 板几何判据** ★ | — | ★**一个字节没动** ★ | ★**不许动判据** ★ |
+
+★**★反向用例清单 (★`--selftest` 实跑 12 条 · 通过 12 · 失败 0★)★** ★
+
+| 用例 | 断言 | 实跑 |
+|---|---|---|
+| T0 | 绿基线必须 0 findings | ✅ findings=0 |
+| T1 | L12 改回 `C_VBUS_OUT` ⇒ A1+A2 红 | ✅ A1=1 A2=1 |
+| T2 | L12 改成 `C_VBUS_GND` ⇒ A1 红 | ✅ A1=1 |
+| T3 | L8 改回 `C_VBUS_OUT` ⇒ A1 红 | ✅ A1=1 |
+| T4 | J_CHG 板侧焊盘数改成 1 ⇒ A3 红 | ✅ A3=1 |
+| T5 | 删掉 `BT_432243` 的 DNP 标记 ⇒ A4 红 | ✅ A4=1 |
+| T6 | J_CHG 封装名清空 ⇒ A5 报空封装名 | ✅ empty_name=1 |
+| ★**T7** ★ | ★**现状必须恰 2 条 = F2+F3** ★ | ★**✅ findings=2 ids=`['F2','F3']`** ★ |
+| ★**T8** ★ | ★**现状必须 A1/A2 绿 且 A3/A4 红** ★ | ★**✅ `{'R3-A1': 0, 'R3-A2': 0, 'R3-A3': 1, 'R3-A4': 43}`** ★ |
+| T9 | J_CHG 的 fp_* 几何原语全删 ⇒ 几何下限判据红 | ✅ few_prim=1 |
+| T10 | ★**反误报: 0 fp_line 的封装不得判成「无几何」** ★ | ✅ few_prim=0 · bad_geom=[] |
+| ★**T11 (★本单新增★)** ★ | ★**把 F1 改回旧值 ⇒ 必须回到 3 条 findings** ★ | ★**✅ findings=3 ids=`['F1','F2','F3']` A1=1 A2=1** ★ |
+
+### ★★17.5 · ★★md5 台账 (★单号 + 文件名 + 旧 md5 + 新 md5 四项同行齐全 · ★SW 侧 R6 判据要读★)★★ ★★
+
+| 单号 | 文件 | 旧 md5 | 新 md5 | 变了? |
+|---|---|---|---|---|
+| ★**ISS-249** ★ | ★**`state/gen_netlist.py`** (★真源★) ★ | `ed12961ef619d04b90bb6d28b2a727ac` | `519b14ff71d15722183f848e6adba5dc` | ★**是 (★2 行 node2★)** ★ |
+| ★**ISS-249** ★ | ★**`HW/netlist_v1.csv`** (表A) ★ | `611c3ba3db3dc7de7213063375b96d01` | `16ac89f77c25a3f61834cc7ebcd78a7f` | ★**是 (★只有 L8 / L12 两行的 node2 单元★)** ★ |
+| ★**ISS-249** ★ | ★**`HW/SCHEMATIC_V1.md`** (原理图页) ★ | `289fbafa2874588412cf292b469c73fc` | `d37bbd0d8fb0754f038c734adb11316d` | ★**是 (★只有 P1 页那两行★)** ★ |
+| ★**ISS-249** ★ | ★**`HW/netlist_v1_pins.csv`** (脚表) ★ | `ef436a37412ac9b6eac3c9f41f1edca4` | `ef436a37412ac9b6eac3c9f41f1edca4` | ★**否 (★逐字节不变★)** ★ |
+| ★**ISS-249** ★ | ★**`HW/BOM_v1.csv`** ★ | `2a7305741134788dfee9f13f34c656b4` | `2a7305741134788dfee9f13f34c656b4` | ★**否 (★逐字节不变★)** ★ |
+| ★**ISS-249** ★ | ★**`HW/netlist_v1.net`** ★ | `564fed05c1f5f9dab09efce51eebae74` | `564fed05c1f5f9dab09efce51eebae74` | ★**否 (★逐字节不变 ⇒ 电气连通性零变化★)** ★ |
+| ★**ISS-249** ★ | ★**`HW/BOM_pseudo_refs_v1.csv`** ★ | `47e1659a42d8d3f6728ea653df1eb530` | `47e1659a42d8d3f6728ea653df1eb530` | ★**否** ★ |
+| ★**ISS-249** ★ | ★**`HW/PCB/demo_mainboard.kicad_pcb`** (★受保护·板★) ★ | `611b869e13518c3c023fb178f91a0075` | `611b869e13518c3c023fb178f91a0075` | ★**否 (★逐字节不变★)** ★ |
+| ★**ISS-249** ★ | ★**`HW/PCB/demo_mainboard.kicad_pro`** (★受保护★) ★ | `3e504d2be83152e337949723e909be1b` | `3e504d2be83152e337949723e909be1b` | ★**否 (★逐字节不变★)** ★ |
+| ★**ISS-249** ★ | ★**`HW/check_iss247_f1_landed.py`** (★受保护脚本①·自证 fixture 改造★) ★ | `5a62b02ef69a7168fac815e60c84bee0` | `83ea5cab6989e47a339bf231516fc32c` | ★**是 (★只动 --selftest 的 fixture 起点 + T0/T4/T5/T6 + 1 个 helper + docstring; 判据 S1~S6 逐字节相同★)** ★ |
+| ★**ISS-249** ★ | ★**`HW/check_netlist_contradiction_r3.py`** (★受保护脚本②·条数期望回退★) ★ | `da466cc6f9c413f7e8be3b086d3c82b2` | `ef7b9f50087217a43d96aae91a85a781` | ★**是 (★只动 T7/T8 现状断言 + 主模式条数期望与文案 + 新增 T11 反向用例 + 1 个 helper 分支; findings 计算 / R3-A1~A6 逐字节未动★)** ★ |
+| ★**ISS-249** ★ | ★**`HW/PCB/demo_mainboard*.kicad_sch`** (11 个) ★ | 各自不同 | 各自不同 | ★**是 (★纯 UUID 抖动 + 时间戳 ⇒ 归一化后 11/11 逐字节相同 ⇒ F1 对图形零影响★; 详见 §17.6)** ★ |
+
+### ★★17.6 · ★★`.kicad_sch` 的 UUID 抖动 (★本机新发现: 连门禁自己都会重铸★)★★ ★★
+
+★★**本机实测**: ★**`state/check_sch_pinfull.py` 与 `state/check_sch_erc.py` 内部会 `subprocess` 调 `state/gen_kicad_sch.py`** ⇒ ★**跑这两条门禁 = 重铸 11 个 `.kicad_sch` 的随机 UUID** ⇒ ★**⇒ 「restore 回落表前」这条口径 (NEXT_BATCH §5 口径甲) 只能维持到下一次跑这两条门禁为止** ★★
+
+★★**⇒ 本单交卷时的处置**: ★**跑完全部门禁后, 最后一次把 11 个 `.kicad_sch` restore 回落表前字节态** ⇒ ★**台账里只列「真变了」的件 (真源 + 网表 + 原理图页 + 两个门禁脚本)** ⇒ ★**但下次谁跑一次 `check_sch_pinfull.py`, md5 照样抖** ⇒ ★**⇒ 口径结论 (写进下一批清单): ★`.kicad_sch` 的 md5 【不可当锚点】, 只能当「归一化后是否同图」的判据★** ★★`[实测]` (★本机实跑 + 归一化比对 11/11 SAME★) ★
+
+### ★★17.7 · ★★本批【没落】的东西 (★逐条 + 卡在谁★)★★ ★★
+
+| 条目 | 归因 | 卡在谁 |
+|---|---|---|
+| ★**V-2 (USB ESD 方案 / 型号)** ★ | ★**本单只落 F1 ⇒ V 值一条不落** ★ | ★**老板 (A1)** ★ |
+| ★**V-3 (电池分压链 `R_BAT_DET_1/2` + `C_DET_BAT` 出 `DEMO_DNP`)** ★ | ★**同上** ★ | ★**老板 (A2)** ★ |
+| ★**V-4 (`R_ILIM` 档位 390 → 680/470)** ★ | ★**同上** ★ | ★**老板 (A3)** ★ |
+| ★**F2 (J_CHG 位号消歧 + 板侧封装块)** ★ | ★**R3-A3 / R3-A5 仍红 ⇒ 本单不动** ★ | ★**板那一趟 (老板 2026-11-11 10:07 口径排队)** ★ |
+| ★**F3 (板侧 DNP 零标记)** ★ | ★**R3-A4 仍红 (43 个 DNP 位号零标记)** ★ | ★**板那一趟** ★ |
+| ★**R3-A6 附加观察 (充电 IC 供电无直流通路)** ★ | ★**只登记, 不动 (归 V-7)** ★ | ★**充电板整机阶段 P0** ★ |
+| ★**SW / MECH 两侧的 H-1 重锚** ★ | ★**只登记 need, 不碰那两份台账** ★ | ★**sw-lead (ISS-245) / mech-lead (ISS-246)** ★ |
+
+### ★★17.8 · ★★第 5 批复现命令 (★B6 自证★)★★ ★★
+
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+
+# ★★落表链路 (★改源 → 重生成; ★板不碰★) ★★
+python3 state/gen_netlist.py && python3 state/gen_kicad_net.py && \
+python3 state/gen_netlist_pins.py && python3 state/gen_bom.py && \
+python3 state/gen_schematic_pages.py && python3 state/gen_kicad_sch.py
+
+# ★★必跑门禁 (★逐条要 rc★) ★★
+python3 HW/check_iss247_f1_landed.py                # rc=0 (★F1 已落表·S1~S6 全绿★)
+python3 HW/check_iss247_f1_landed.py --selftest     # rc=0 (★11/11 · fixture 与活文件状态无关★)
+python3 HW/check_netlist_selfconsistency.py          # rc=0 (现状守卫)
+python3 HW/check_netlist_selfconsistency.py --expect-resolved   # rc=1 (★仍 18 条·不许上升★)
+python3 state/check_netlist.py                      # rc=0
+python3 state/check_netlist_pins.py                 # rc=0
+python3 state/check_sch_erc.py                      # rc=0 (ERC=0)
+python3 state/check_sch_pinfull.py                  # rc=0 (图上 584 脚 = 表里 584 脚 · K=0)
+python3 HW/check_netlist_contradiction_r3.py        # rc=1 (★FINDINGS=2 = F2+F3 · F1 已消失★)
+python3 HW/check_netlist_contradiction_r3.py --selftest   # rc=0 (★12/12 · 含 T11「改回 F1 ⇒ 必须 3 条」★)
+python3 state/merge.py && python3 state/gate_check.py   # rc=0 (★Q1 18/18 · Q2 3/3★)
+
+# ★★受保护 md5 (★脚表 / BOM / 板 / .kicad_pro 必须逐字节不变★) ★★
+md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv \
+       HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro
+# 16ac89f7… / ef436a37… / 2a730574… / 611b869e… / 3e504d2b…
+
+# ★★反向自证 (★把那 2 行改回旧值 ⇒ 必须重新红 ⇒ 装回 ⇒ 又绿★) ★★
+cp -a state/.bak_iss249/gen_netlist.py state/gen_netlist.py && python3 state/gen_netlist.py
+python3 HW/check_iss247_f1_landed.py                # ★必须 rc=1★
+cp -a /tmp/gen_netlist_iss249_FIXED.py state/gen_netlist.py && python3 state/gen_netlist.py
+python3 HW/check_iss247_f1_landed.py                # ★必须 rc=0★
+```

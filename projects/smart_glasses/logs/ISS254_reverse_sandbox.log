@@ -1,0 +1,57 @@
+### 沙盒网表 md5 (= 真盘实测值) ###
+16ac89f77c25a3f61834cc7ebcd78a7f  /tmp/iss254_rev/HW/netlist_v1.csv
+
+=========== [A] 沙盒·当前锚点 (改后 16ac89f7) ⇒ 期望绿 ===========
+✅ ISS-212 demo 显示侧口径门禁: 全过
+   R1 demo 屏规格真源 (480×640 / 2-lane / 无 DCS / I2C_B ≤100kHz + 附属必填项) ✅
+   R2 demo 规格里整机口径只在「整机路线占位区」内 ✅
+   R3 pipeline spec 的 demo 活动口径已重锚 ✅
+   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+RC_A_panel=0
+  [PASS] T2 交叉核对: 纯 NPU 21.00 ms ⇒ 命中老板翻案条款 (20.33 ms)
+
+SELFTEST 71/71 通过, rc=0
+RC_A_timing=0
+
+=========== [B] 把沙盒锚点 md5 改回旧值 611c3ba3 ⇒ 期望红 ===========
+★沙盒锚点已改回旧 md5 (611c3ba3…) ★
+37:        by: ISS-249                 # ★ 落表单号 (这次变更挂在哪个单号下)
+38:        prev_md5: 611c3ba3db3dc7de7213063375b96d01
+39:        md5: 611c3ba3db3dc7de7213063375b96d01
+42:        by: ISS-243
+43:        prev_md5: b21b743a7702d30729f0d653c15392df
+44:        md5: ef436a37412ac9b6eac3c9f41f1edca4
+60:| ③ | ★**锚点 `entries[].prev_md5` 也能在**落表台账**里查到** ★ | 只写新值不写旧值 = **查不到变更史** |
+110:| **R-04** | ★**本文件 §1 锚点 `anchors.source_ledger.entries[]` 里 `file: HW/netlist_v1.csv` 那一条 (★= R6 三方对账的锚点本身★)** ★ | ★**恒红**: `R6 盘上真源 md5 HW/netlist_v1.csv = 3215020b… ≠ 锚点登记 13f59a43… (真源被换了或锚点过期)` ★ (★同步红: `SW/tools/timing_check.py` 2 条 —— 「网表锚点: 现行网表 md5 ∈ 落表台账登记的状态」+「锚点 ↔ 落表台账 ↔ 盘上真源 三方对账成立」★) ★ | ★**hw-lead** (★落表的是他, 本单只重锚, 不代签★) | ★**ISS-223** (★落表第 2 批, 2026-11-16 05:18★) + ★**ISS-231** (★走 §4 H-1 重锚★) ★ | ★**ISS-223 (落表第 2 批) 真改了网表 ⇒ 锚点过期** (★旧锚点 `13f59a43dbd35dc6cb16e897c8c891ab` → 新锚点 `3215020b6d4120e1b7728227effdc6d3`★) ⇒ ★**本单只改 §1 那一条的 4 个字段 (md5 / prev_md5 / by / landed_at) + 加本行留痕; R6 的 6 条判据 / R7 的判据逻辑一个字没动, `--skip-md5` 没设成默认跳过, `HW/` 下 0 字节写入** ⇒ ★**判别证据 (双向, 均可复跑)★**: ① ★**上游合法落表, 有据** —— `HW/SCHEMATIC_LANDING_V1_LANDED.md` L309 (「第 2 批 (★ISS-223 …」) + L449 (★`HW/netlist_v1.csv` · 旧 `13f59a43dbd35dc6cb16e897c8c891ab` → 新 `3215020b6d4120e1b7728227effdc6d3`· 「是」★) ⇒ ★**落表单号 + 文件名 + 新 md5 + 旧 md5 四项齐全且在同一行 ⇒ R6 判据 ②③④⑤ 都过** ★ ② ★**门禁脚本一个字没被碰过** —— `SW/tools/check_demo_panel_spec.py` mtime = 2026-11-16 04:21:04 · `SW/tools/timing_check.py` mtime = 2026-11-16 04:21:42 ⇒ ★**都早于落表时刻 05:18:41** ⇒ ★**是锚点过期, 不是红灯被调没** ★ ③ ★**反向自证 (★R6 跟盘上真值走, 不跟脚本走★)**: 把 `md5 = 13f59a43dbd35dc6cb16e897c8c891ab` 的网表副本 (`state/.bak_iss223_r2/netlist_v1.csv.bak_iss223_r2`) 塞回临时树 ⇒ ★**R6 立刻红**「盘上真源 md5 = 13f59a43… ≠ 锚点登记 3215020b…」⇒ ★**证明改的是锚点, 不是把红灯调没** ★ ④ ★**并发声明**: ★**ISS-232 (hw-lead, 在飞) 交卷时还没落表** (★无 ISS-232 交接单 + `HW/netlist_v1.csv` mtime 仍是 05:18:41 + 盘上 md5 仍是 `3215020b…`★) ⇒ ★**本单锚的是交卷那一刻盘上实测值; ISS-232 若之后落表改了网表, 走 §4 H-1 再重锚一次 (这是设计)** ★ ★ | ★**`python3 SW/tools/check_demo_panel_spec.py`** (★**rc=0 · R1~R7 全过**★) · ★**`python3 SW/tools/check_demo_panel_spec.py --selftest`** (★**rc=0 · 16/16**★) · ★**`python3 SW/tools/timing_check.py`** (★**rc=0 · 70/70**★) · ★**`md5sum HW/netlist_v1.csv`** (★现值 `3215020b…`★) | ★**✅ 已修复 (留痕)** ★ |
+❌ ISS-212 demo 显示侧口径门禁: 1 项不通过
+   - R6 盘上真源 md5 HW/netlist_v1.csv = 16ac89f77c25a3f61834cc7ebcd78a7f ≠ 锚点登记 611c3ba3db3dc7de7213063375b96d01 (真源被换了或锚点过期)
+RC_B_panel=1
+  [PASS] 网表锚点: 现行网表 = 513 数据行 (行数不许变)
+  [FAIL] 网表锚点: 现行网表 md5 ∈ 落表台账登记的状态 (落表前 / 落表后)
+  [FAIL] 网表锚点: 锚点 ↔ 落表台账 ↔ 盘上真源 三方对账成立 (不许悄悄换真源)
+  [PASS] F3 复评: I2C_A @300pF = 559ns ≤ 1000ns ⇒ 标准模式**通过** (旧结论已翻转)
+  [PASS] F3 复评: I2C_B @300pF = 1194ns > 1000ns ⇒ 标准模式**不通过** (最差总线)
+  [PASS] ★反向: ISP avg = 15.11 ms ⇒ 必须 FAIL (超 15.10 必被抓) 且给出差值
+  [PASS] ISP p95 = 18.00 ms ⇒ 模式B 上限 (17.33) FAIL
+SELFTEST 69/71 通过, rc=1
+RC_B_timing=1
+
+=========== [C] 装回新锚点 16ac89f7 ⇒ 期望又绿 ===========
+★沙盒锚点已装回新 md5 (16ac89f7…) ★
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+RC_C_panel=0
+
+SELFTEST 71/71 通过, rc=0
+RC_C_timing=0
+
+=========== [D] 真盘未动核验 ===========
+16ac89f77c25a3f61834cc7ebcd78a7f  /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/netlist_v1.csv
+ef436a37412ac9b6eac3c9f41f1edca4  /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/netlist_v1_pins.csv
+2a7305741134788dfee9f13f34c656b4  /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pro

@@ -72,9 +72,41 @@ FORBIDDEN_PHRASES = (
 SKIP_BEGIN = "<!-- C4-SKIP-BEGIN -->"
 SKIP_END = "<!-- C4-SKIP-END -->"
 
-# OPN 回填清单必须覆盖的位号集合 = BOM 待选型∩必装 − 越界件
-#   ★ 越界件不在本单范围 (ISS-172 已办 / ISS-243 在办)
+# OPN 回填清单必须覆盖的位号集合
+#   ★ 两个机器派生源, 不抄任何硬编码数字:
+#     ① scope   = ISS-241 矩阵基准块里的 expected_refs (登记范围, 本单必须全覆盖)
+#     ② pending = HW/BOM_v1.csv 实跑的「待选型∩必装 − 越界件」(当前还待落的)
+#   ★ 两者可以不等: 落表批次会把某件的「待选型」改掉 ⇒ 该件已不在 pending 里
+#     ⇒ 清单仍保留它 (登记范围不变) 但必须写清 landed_note (落表证据) ⇒ 否则红
+#   ★ 这就是 ISS-225 的 H-1 重锚纪律: 锚点过期 ⇒ 红 ⇒ 留痕重锚, 不许把红灯调没
 OUT_OF_SCOPE_REFS = {"U_PWR_SW", "U_EN_SW"}
+
+# ISS-241 矩阵 (只读) —— 登记范围从它的机器可读基准块里读, 不硬编码
+MATRIX_REL = os.path.join("HW", "PART_SELECTION_MATRIX_2026-11-16.md")
+MATRIX_BEGIN = "<!-- BEGIN 选型证据基准块 -->"
+MATRIX_END = "<!-- END 选型证据基准块 -->"
+
+
+def expected_scope_from_matrix(root):
+    """从 ISS-241 矩阵的机器可读基准块取登记范围 expected_refs"""
+    p = os.path.join(root, MATRIX_REL)
+    if not os.path.isfile(p):
+        return None
+    with open(p, encoding="utf-8") as fh:
+        text = fh.read()
+    if MATRIX_BEGIN not in text or MATRIX_END not in text:
+        return None
+    blob = text.split(MATRIX_BEGIN, 1)[1].split(MATRIX_END, 1)[0].strip()
+    blob = re.sub(r"^```json\s*", "", blob)
+    blob = re.sub(r"```\s*$", "", blob)
+    try:
+        data = json.loads(blob)
+    except Exception:  # noqa: BLE001
+        return None
+    refs = data.get("expected_refs")
+    if not isinstance(refs, list) or not refs:
+        return None
+    return [str(r).strip() for r in refs]
 
 
 # ---------------------------------------------------------------- helpers
@@ -140,7 +172,7 @@ def _nonempty(val):
 
 # ---------------------------------------------------------------- checks
 
-def evaluate(text, baseline, exp_refs):
+def evaluate(text, baseline, exp_refs, scope_refs=None):
     """跑 C0~C6 ⇒ 返回 {check_id: (ok, [失败信息])}"""
     res = {}
 
@@ -203,19 +235,29 @@ def evaluate(text, baseline, exp_refs):
             f4.append("正文出现挂起措辞 %r × %d (政策: 不发信, 查不到就写 [0数据] + 降级方案)" % (ph, cnt))
     res["C4"] = (not f4, f4)
 
-    # ---- C5 OPN 清单必须 22 件全在 (以 BOM 实跑结果为准)
+    # ---- C5 OPN 清单必须全覆盖登记范围, 且当前待落的一件不许漏
     f5 = []
     got_refs = [str(r.get("ref", "")) for r in opn]
+    scope = scope_refs if scope_refs is not None else set(exp_refs)
+    for ref in scope:
+        if ref not in got_refs:
+            f5.append("OPN 回填清单缺 ISS-241 登记范围内的 %s" % ref)
     for ref in exp_refs:
         if ref not in got_refs:
-            f5.append("OPN 回填清单缺件 %s" % ref)
+            f5.append("OPN 回填清单缺当前仍待选型的 %s" % ref)
     for ref in got_refs:
-        if ref not in exp_refs:
-            f5.append("OPN 回填清单出现越界件 %s (不在 BOM 待选型∩必装−越界件 集合内)" % ref)
+        if ref not in scope and ref not in exp_refs:
+            f5.append("OPN 回填清单出现越界件 %s (不在 ISS-241 登记范围, 也不在当前 BOM 待选型集合内)" % ref)
     if len(got_refs) != len(set(got_refs)):
         f5.append("OPN 回填清单有重复位号")
-    if len(got_refs) != len(exp_refs):
-        f5.append("OPN 回填清单件数 = %d (BOM 实跑应为 %d)" % (len(got_refs), len(exp_refs)))
+    if len(got_refs) != len(scope):
+        f5.append("OPN 回填清单件数 = %d (ISS-241 登记范围应为 %d)" % (len(got_refs), len(scope)))
+    # 已被别的落表批次改掉的件 ⇒ 必须写清落表证据 (landed_note), 否则红
+    for r in opn:
+        ref = str(r.get("ref", ""))
+        if ref in scope and ref not in exp_refs:
+            if not _nonempty(r.get("landed_note")):
+                f5.append("%s 已不在 BOM 待选型集合 (疑被别的落表批次落掉) 但清单没写 landed_note (落表证据)" % ref)
     res["C5"] = (not f5, f5)
 
     # ---- C6 清单每行必须带非空的「落表锚点」
@@ -240,17 +282,19 @@ def run(root):
         text = fh.read()
     baseline, berr = extract_baseline(text)
     exp_refs = expected_refs_from_bom(root)
-    res = evaluate(text, baseline, exp_refs)
+    scope_refs = expected_scope_from_matrix(root)
+    res = evaluate(text, baseline, exp_refs, scope_refs)
     if berr:
         res["C0"] = (False, [berr])
-    return res, text, exp_refs
+    return res, text, exp_refs, scope_refs
 
 
-def print_report(res, exp_refs):
+def print_report(res, exp_refs, scope_refs=None):
     order = ["C0", "C1", "C2", "C3", "C4", "C5", "C6"]
     npass = 0
     print("=== ISS-244 选型缺口自查补全 + OPN 回填清单 · 机器门禁 ===")
-    print("OPN 清单应覆盖件数 (BOM 待选型∩必装 − 越界件, 本脚本实跑) = %d" % len(exp_refs))
+    print("OPN 清单应覆盖件数 (ISS-241 登记范围, 从矩阵基准块读) = %s" % (len(scope_refs) if scope_refs else "?"))
+    print("其中当前仍待落 (HW/BOM_v1.csv 实跑 待选型∩必装 − 越界件) = %d" % len(exp_refs))
     for cid in order:
         ok, msgs = res.get(cid, (False, ["未运行"]))
         npass += 1 if ok else 0
@@ -281,6 +325,7 @@ def selftest(root):
     with open(doc_path, encoding="utf-8") as fh:
         base_text = fh.read()
     exp_refs = expected_refs_from_bom(root)
+    scope_refs = expected_scope_from_matrix(root)
 
     tmpdir = tempfile.mkdtemp(prefix="iss244_selftest_")
     passed = 0
@@ -288,7 +333,7 @@ def selftest(root):
     try:
         def evaluate_text(txt):
             bl, err = extract_baseline(txt)
-            r = evaluate(txt, bl, exp_refs)
+            r = evaluate(txt, bl, exp_refs, scope_refs)
             if err:
                 r["C0"] = (False, [err])
             return r
@@ -325,6 +370,13 @@ def selftest(root):
                         r["land_anchor"] = ""
             out = mutate_baseline_json(txt, fn)
             return out, "Q_PG"
+        def m8(txt):
+            def fn(d):
+                for r in d["opn_rows"]:
+                    if r.get("ref") == "C_REGN":
+                        r["landed_note"] = ""
+            out = mutate_baseline_json(txt, fn)
+            return out, "C_REGN"
 
         cases = [
             ("M1 删掉一条缺口 (G-7) → 期望 C1 红", "C1", m1),
@@ -332,6 +384,7 @@ def selftest(root):
             ("M3 证据等级写成 [官方] → 期望 C3 红", "C3", m3),
             ("M5 清单里删一件 (D_ESD_CAM) → 期望 C5 红", "C5", m5),
             ("M6 某行落表锚点清空 → 期望 C6 红", "C6", m6),
+            ("M8 已被别的批次落掉的件清空 landed_note → 期望 C5 红", "C5", m8),
         ]
 
         for name, target, mut in cases:
@@ -371,21 +424,19 @@ def selftest(root):
         print("      变异落地(探针 %r 在副本里)=%s · 目标 C4 变红=%s · 其余 check 仍绿=%s"
               % (probe, landed, target_red, others_green))
 
-        # M7: 破坏基准块 JSON ⇒ C0 红, 其余仍绿 (fail-closed 不许整体塌)
+        # M7: 破坏基准块 JSON ⇒ C0 红, 且 C1~C6 按设计 **fail-closed 一致地红** (基准块没了就没法判定)
         total += 1
-        blob = base_text.split(BASELINE_BEGIN, 1)[1].split(BASELINE_END, 1)[0]
-        payload = blob.split("```json", 1)[1].rsplit("```", 1)[0]
-        broken = payload.replace('"issue"', '"issue_XXX"', 1)
-        mutated = base_text.replace(blob, blob.replace(payload, broken, 1), 1)
-        landed = '"issue_XXX"' in mutated
+        probe = '"issue": "ISS-244" BROKEN'
+        mutated = base_text.replace('"issue": "ISS-244"', '"issue": "ISS-244" BROKEN', 1)
+        landed = probe in mutated
         res_m = evaluate_text(mutated)
         target_red = not res_m["C0"][0]
         others = [c for c in ("C1", "C2", "C3", "C4", "C5", "C6") if c != "C0"]
-        others_green = all(res_m[c][0] for c in others)
-        ok = landed and target_red and others_green
+        others_red = all(not res_m[c][0] for c in others)
+        ok = landed and target_red and others_red
         passed += 1 if ok else 0
-        print("[%s] %s" % ("PASS" if ok else "FAIL", "M7 破坏基准块 JSON → 期望 C0 红"))
-        print("      变异落地=%s · 目标 C0 变红=%s · 其余 check 仍绿=%s" % (landed, target_red, others_green))
+        print("[%s] %s" % ("PASS" if ok else "FAIL", "M7 破坏基准块 JSON → 期望 C0 红 (且 C1~C6 一致地红 = fail-closed)"))
+        print("      变异落地=%s · 目标 C0 变红=%s · 其余 check 一致地红(fail-closed)=%s" % (landed, target_red, others_red))
 
         print("--- SELFTEST %d/%d ---" % (passed, total))
         return 0 if passed == total else 1
@@ -420,18 +471,20 @@ def main():
     if do_selftest:
         return selftest(root)
 
-    res, text, exp_refs = run(root)
+    res, text, exp_refs, scope_refs = run(root)
     if do_json:
         out = {
             "issue": "ISS-244",
             "checks": {k: {"pass": v[0], "failures": v[1]} for k, v in res.items()},
-            "expected_refs_count": len(exp_refs),
-            "expected_refs": exp_refs,
+            "scope_refs_count": len(scope_refs) if scope_refs else None,
+            "scope_refs": scope_refs,
+            "pending_refs_count": len(exp_refs),
+            "pending_refs": exp_refs,
         }
         print(json.dumps(out, ensure_ascii=False, indent=2))
         return 0 if all(v[0] for v in res.values()) else 1
 
-    ok = print_report(res, exp_refs)
+    ok = print_report(res, exp_refs, scope_refs)
     return 0 if ok else 1
 
 
