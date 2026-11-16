@@ -509,6 +509,38 @@ needs_from:
     claim × 2 · ★**证据等级 [实测] (三份文档里就是这个数, main 已逐条核过)** ★
 
     ★**注**: ★**这是【唯一】因为本轮交卷而新增的老板待拍板项** ⇒ ★**C 段 36 → 37** ★'
+- key: iss273_h1_anchor_single_source
+  to: mech-lead
+  item: '★★【main 2026-11-17 05:2x 裁决】H-1 重锚机制收口: 网表/脚表 md5 锚点已跳 6 跳 (ISS-220→ISS-223→ISS-233→ISS-243→ISS-249→ISS-257)
+    ⇒ 每次上游合法落表 = 域侧锚点当场过期 ⇒ 门禁红 ⇒ 再开一条 dispatch 单 → 人工重锚 + 人工留痕 ⇒ 2026-11-17 05:0x 这一轮【白跑了一整轮】(派了 ISS-253,
+    而该单 11-16 20:0x 就 verified 且已被 ISS-259 第 6 跳覆盖; 派单还写错了文件: 真锚点在 MECH/HW_CROSS_REVIEW_TRIAGE.md §1 MECH_ANCHORS
+    块, 不是 check_demo_struct_truth.py)★★ ⇒ ★【裁决: 判决源从【域侧锚点副本】换成【落表台账最新记录】⇒ 合法落表不再红, 而「悄悄换真源」仍然红】★ ⇒ 已开
+    ISS-273 (owner=mech-lead · verify_by=main · due 11-21 · medium) ★ ⇒ ★【派 H-1 单的三条硬规矩 (★本轮踩出来的★)】: ①
+    派之前必须先查 issue_log 里该单 status + 盘上锚点现值 ⇒ 已 verified / 已被后一跳覆盖的单一律不许再派 ② 派单必须写【锚点文件 + 具体字段 + 新旧值】, 不许写【门禁脚本名】(脚本是读锚点的,
+    不是锚点) ③ 锚点现值必须自己 md5sum 盘上真源再写进派单, 不许抄上一跳的旧值★★'
+  since: '2026-11-17'
+- key: iss272_gap2_mode_watermark
+  to: main
+  item: '★ISS-272 (sw-lead 独立复核) 缺口2: delivery_truth.py 用 jobs.json 的【当前】mode 套到全部 12 轮历史 ⇒ 10 分钟进展播报
+    announce 时代的 10 轮真投递失败被追溯洗成「本来就不投」⇒ 老板一旦改回 announce 同一批 run 记录立刻变「没送到 12」假故障复现。★sw-lead 建议: 记 mode
+    变更水位线, 只对水位线之后的 run 套 mode=none, 之前一律按 announce 判 (宁可多报不可漏报)。★不需改 OpenClaw cron 侧 (run 记录补字段周期长),
+    水位线可挂在 delivery_health.py 已在维护的 state/.delivery_health_alerted.json 旁。★本条只是【登记】, 改判据是老板口径 + 另一趟动代码,
+    不占三个总工名额。'
+  since: '2026-11-17'
+- key: iss272_gap3_status_blacklist
+  to: main
+  item: '★ISS-272 (sw-lead 独立复核) 缺口3: classify_run 的 status 判据只认精确字符串 error ⇒ (timeout,False,none) 与 (cancelled,False,none)
+    都归 no_delivery ⇒ 真故障被吞成「本来就不投」。★当前风险等级 [实测] 盘上 run 记录 status 全集 = {ok:1669, error:2127} ⇒ 今天不触发。★sw-lead
+    建议 fail-closed 改法: status 不在成功集合 (ok/success/completed/None) ⇒ 算 run_error, 且 mode=none 那一支保持在 run_error
+    之后。★改之前必须先确认上游状态取值全集 (目前只有 ok/error 两个)。★本条只是【登记】, 不占三个总工名额。'
+  since: '2026-11-17'
+- key: iss272_gap4_aclss_unknown
+  to: main
+  item: '★ISS-272 (sw-lead 独立复核) 缺口4 ★★代价最高的一条★★: delivery_health.py 的 clsA 在排除 mode=none 时, 把 classify()
+    归到「认不出来的错误」(兜底注释写着「认不出来 ⇒ 按真故障处理, 宁可吵不可漏」) 也一起排除了 ⇒ 沙盒实测 E3: mode=none 的 job 撞上一个未知错误 ⇒ A 类 0 条 /
+    B 类 0 条 ⇒ 一条告警都不出 ⇒ 【真故障零告警】。★sw-lead 建议: classify() 返回值从 A/B 两分改成三分 (A/B/U=unknown), 让 unknown 不受
+    mode 过滤。★改动只在 delivery_health.py 里 (不是 ISS-272 的地界 ⇒ sw-lead 只报不改)。★本条只是【登记】, 不占三个总工名额。'
+  since: '2026-11-17'
 answers:
 - key: reva_stl_regen
   to: mech-lead

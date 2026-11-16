@@ -1551,6 +1551,28 @@ def backup_files(root: str, paths: list[str], tag: str) -> str:
     return bdir
 
 
+def regen_all(root: str) -> list[tuple[str, int, str]]:
+    """★按 GEN_ORDER 重跑一遍生成链 (★回滚后必须做!★)
+
+    ★★**为什么必须有这一步 (★2026-11-17 复验实测到的坑★)**★★
+      · ★**备份里只有【真源 + 门禁 + 规格页 + 台账】(★派生产物是从真源生成的, 不备份★)** ⇒
+        只还原真源 ⇒ ★**网表 / 脚表 / BOM / 原理图页面 停在【落表后】的版本** ⇒
+        ★**真源与产物不一致 (半回滚) ⇒ 现状守卫 18 条 EXPECT 全红 (rc=1)★**
+      · ⇒ ★**回滚 = 还原真源 + 重生成派生产物 (★顺序还是硬的: netlist → kicad_net → pins★)**★
+
+    ★**返回 [(脚本, rc, 错误尾部)] (★rc≠0 不抛异常, 由调用方决定当不当 fatal★)**
+    """
+    out: list[tuple[str, int, str]] = []
+    for script, _kind in GEN_ORDER:
+        sp = os.path.join(root, script)
+        if not os.path.exists(sp):
+            out.append((script, -1, "★缺文件 (★沙盒最小副本里可能没带★)"))
+            continue
+        rc, so = run([sys.executable, sp], root)
+        out.append((script, rc, so.strip()[-1200:] if rc != 0 else ""))
+    return out
+
+
 def do_rollback(root: str, bdir: str) -> int:
     if not os.path.isdir(bdir):
         print(f"★★ rc=2: 回滚目录不存在: {bdir}", file=sys.stderr)
@@ -1574,8 +1596,39 @@ def do_rollback(root: str, bdir: str) -> int:
             shutil.copy2(src, dst)
             n += 1
     print(f"✅ rc=0: 已从 {bdir} 还原 {n} 个文件")
+
+    # ── ★★回滚必须把【派生产物】一起回滚 (★2026-11-17 复验实测到的坑★)★★
+    #   只还原真源 ⇒ 网表/脚表/BOM/原理图 停在【落表后】⇒ 真源与产物不一致 (半回滚) ⇒
+    #   现状守卫 18 条 EXPECT 全红 (rc=1) ⇒ ⇒ 回滚后必须按 GEN_ORDER 重生成一遍
+    print("★★ 回滚后重生成派生产物 (★不然 = 半回滚: 真源回去了, 产物没回去★)★★")
+    regen_failed = []
+    for script, rc, err in regen_all(root):
+        if rc == 0:
+            print(f"   ★ 重生成 OK: {script}")
+        elif rc == -1:
+            print(f"   ★ 跳过: {script} ({err})")
+        else:
+            regen_failed.append(f"{script}(rc={rc})")
+            print(f"   ★★ 重生成失败: {script} rc={rc}", file=sys.stderr)
+            if err:
+                for l in err.strip().split("\n")[-6:]:
+                    print(f"        {l}", file=sys.stderr)
+
+    # ── 回滚后自检: 现状守卫必须回绿 (★rc=0 = 真源与产物重新一致★) ──
+    gpath = os.path.join(root, CHECK_SCRIPT)
+    if os.path.exists(gpath):
+        grc, gout = run([sys.executable, gpath], root)
+        print(f"★ 回滚后现状守卫: rc={grc} (★期望 0 = 真源与产物重新一致★)")
+        for l in gout.strip().split("\n")[-3:]:
+            print(f"     {l}")
+        if grc != 0:
+            regen_failed.append(f"现状守卫 rc={grc}")
     if os.path.exists(info):
         print(open(info, encoding="utf-8").read())
+    if regen_failed:
+        print(f"★★ rc=1: 回滚后派生产物重生成/自检有问题: {'; '.join(regen_failed)} ★★",
+              file=sys.stderr)
+        return 1
     return 0
 
 
@@ -1600,6 +1653,19 @@ SELFTEST_FILES = [
     "HW/SCHEMATIC_LANDING_V1_LANDED.md",
     # ★V-4 的配方要读 p10_rows.json (★不然用例7 会被「缺文件」误杀★)★
     "state/p10_rows.json",
+    # ★★2026-11-17 复验新增: 回滚往返回用例要真跑一遍生成链 (★不然用例12 没法验「半回滚」★)★★
+    "state/gen_kicad_net.py",
+    "state/gen_netlist_pins.py",
+    "state/gen_bom.py",
+    "state/gen_schematic_pages.py",
+    "HW/PCB/pinout_footprint.json",
+    "HW/PCB/som_pin_assign.json",
+    "HW/BOM_pseudo_refs_v1.csv",
+    # ★★用例12 的【回滚后现状守卫】要读这几个 (★门禁 REL 里那几项根因层文件★)★★
+    "HW/EMC_PRECHECK.md",
+    "HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.txt",
+    "HW/PCB/FET3572C_PIN_TABLE.csv",
+    "HW/SCHEMATIC_LANDING_WORKPACKET_V1.md",
 ]
 
 # ★★ISS-257 之前 (★占位串那一版★) 的 D_ESD_USB_D 两行 (★本轮实测的坏案例·必须当回归用例★)★★
@@ -1815,6 +1881,32 @@ def run_selftest(root: str) -> int:
     all_ok &= check(
         "用例11 ★ 真盘的 5 个受保护 md5 (+ 真源) 自测前后必须逐字节不变 ★",
         real_ok, "\n".join(detail2))
+
+    # ── 用例 12: ★★【回滚往返回】★★ ★落表 ⇒ 产物变 ⇒ 回滚 ⇒ 产物必须逐字节回到落表前 + 现状守卫回绿★★
+    #   ★★2026-11-17 复验实测到的坑: 老版 `--rollback` 只还原真源, 派生产物(网表/脚表/BOM)停在落表后★★
+    #   ⇒ ★**半回滚** ⇒ 现状守卫 18 条 EXPECT 全红 (rc=1) ⇒ ⇒ 回滚后必须重生成派生产物★★
+    tmp, _ = new_case("rollback_roundtrip")
+    rt_artifacts = ("HW/netlist_v1.csv", "HW/netlist_v1_pins.csv", "HW/BOM_v1.csv")
+    pre = {rel: md5(os.path.join(tmp, rel)) for rel in rt_artifacts}
+    d12 = WHITELIST["V-3"]["E"]("E", tmp, "", "", "")
+    plan12 = Plan(tmp, [d12])
+    errs12 = plan12.verify()
+    touched12 = sorted({p.path for p in plan12.patches} | {CHECK_SCRIPT, SPEC_PAGE, LANDED_LEDGER})
+    bdir12 = backup_files(tmp, touched12, "rt")
+    plan12.apply_patches()
+    regen12 = regen_all(tmp)
+    post = {rel: md5(os.path.join(tmp, rel)) for rel in rt_artifacts}
+    landed_changed = any(post[rel] != pre[rel] for rel in rt_artifacts)
+    rb_rc = do_rollback(tmp, bdir12)
+    back = {rel: md5(os.path.join(tmp, rel)) for rel in rt_artifacts}
+    roundtrip_ok = all(back[rel] == pre[rel] for rel in rt_artifacts)
+    grc12, _gout = run([sys.executable, os.path.join(tmp, CHECK_SCRIPT)], tmp)
+    all_ok &= check(
+        "用例12 ★【回滚往返回】落表⇒产物变⇒回滚⇒产物逐字节回到落表前 且 现状守卫回绿 (rc=0) ★",
+        (not errs12) and landed_changed and roundtrip_ok and rb_rc == 0 and grc12 == 0,
+        f"verify_errs={errs12}\n落表后产物变了: {landed_changed}\n回滚后逐字节回去: {roundtrip_ok} "
+        f"(pre={pre} / back={back})\n回滚 rc={rb_rc} · 现状守卫 rc={grc12}\n"
+        f"重生成: {[(s, r) for s, r, _ in regen12]}")
 
     # ── 清理临时副本 ──
     for t in tmps:
@@ -2098,6 +2190,10 @@ def main(argv: list[str] | None = None) -> int:
         ([sys.executable, os.path.join(root, "state/check_netlist_pins.py")], "尺子2"),
         ([sys.executable, os.path.join(root, "state/check_sch_erc.py")], "尺子3 (ERC=0)"),
         ([sys.executable, os.path.join(root, "state/check_sch_pinfull.py")], "尺子4 (图=表)"),
+        # ★★ISS-262 (2026-11-17 · hw-lead): 行号锚点守卫 (★纯漂移 ⇒ 机器重锚 + 打印新行号★)
+        #   ⇒ ★**落表后【行号整体位移】不再是无声无息** ★ ⇒ ★**锚点行号由机器改, 不许人手改** ★
+        ([sys.executable, os.path.join(root, "HW/check_land_row_anchors.py"), "--reanchor"],
+         "★行号锚点守卫 (ISS-262 · 纯漂移自动重锚·期望 rc=0)★"),
     ]
     failed = []
     for cmd, kind in gates:

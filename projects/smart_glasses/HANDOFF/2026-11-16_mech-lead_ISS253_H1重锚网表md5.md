@@ -363,3 +363,447 @@ grep -n "^| \*\*R-0" MECH/HW_CROSS_REVIEW_TRIAGE.md
 | **1** | ★**本交卷单 (B1~B6 齐全)** ★ | `HANDOFF/2026-11-16_mech-lead_ISS253_H1重锚网表md5.md` ★ |
 | **2** | ★**被重锚的定性表 (锚点 4 字段 + landing_records + §3.1 R-05)** ★ | `MECH/HW_CROSS_REVIEW_TRIAGE.md` ★ |
 | **3** | ★**自己分片 (走 `state/frag_write.py` 原子写)** ★ | `state/fragments/mech.yaml` ★ |
+
+---
+
+## ★附2 · 2026-11-17 05:0x 续做复核 (★重派复核 · 本单早已落表并 verified ⇒ 本轮零字节改动锚点★)
+
+| 项 | 值 |
+|---|---|
+| **单号** | ★**ISS-253 (重派复核)** · **owner**: mech-lead · **verify_by**: main ★ |
+| **本轮性质** | ★**复核单 —— 不是新落表单**: 本单 (=ISS-253) 已于 **2026-11-16 20:07** 落表交付, main 20:1x 独立复核并把 `state/issue_log.yaml` 的 ISS-253 标成 **`verified`**; 随后被 hw-lead 的 **ISS-257 第 6 批落表**覆盖, main 21:4x 另派 **ISS-259 (第 6 跳)**, ISS-259 亦已 `verified` ⇒ ★**本轮 = 一张【过期旧派单】的复核, 不是一次新的重锚** ★ |
+| **本轮改了几个字节** | ★**0 个** ★ (★`MECH/HW_CROSS_REVIEW_TRIAGE.md` md5 前后逐字节同 = `920b497b3664e40aebc23f2ea63463c2`★) |
+
+### ★附2.0 一句话 (★给 main 先看这一条★)
+
+★★**ISS-253 这张派单的前提已经过期: 锚点早就不在 `611c3ba3…` 了, 现在在 `e06c1dd6…`** ★★
+⇒ ★**盘上网表 (`HW/netlist_v1.csv`) = `e06c1dd633566aa44732762c2ff99d1c` (hw-lead ISS-257 第 6 批落表, 2026-11-16 21:22; 盘上 mtime 22:25, 内容未再变) = §1 锚点 `source_ledger.entries[0].md5` 现值 ⇒ 门禁 **rc=0 · 23/23 · FAIL 0** ★
+⇒ ★**★若照本派单字面把锚点改成 `16ac89f77c25a3f61834cc7ebcd78a7f` (prev `611c3ba3…` · by `ISS-249`), 门禁会【立刻变红】rc=2 · 21/23 · FAIL G5b + C21** ★ ⇒ ★**⇒ 已用真盘实测证明 (见 ★附2.4★): 那等于把网表谎报成「ISS-249 落表后的旧版本」, 而盘上真源已经是 ISS-257 版 ⇒ 这不是重锚, 是把绿灯打红** ★
+⇒ ★**所以本轮: 锚点一个字没动, MECH/ 与 HW/ 零字节写入, 做的是【复核 + 反向自证 + 留痕】** ★
+
+---
+
+### ★附2.1 B1′ 结论摘要
+
+| 序 | 结论 | 证据 |
+|---|---|---|
+| **1.1′** | ★**ISS-253 早已完结**: 交卷单在盘 (mtime 2026-11-16 20:07:47) · §3.1 **R-05** 留痕行在位 (网表 `611c3ba3…` → `16ac89f7…`, by ISS-249) · `state/issue_log.yaml` 的 **ISS-253 status = `verified`** ⇒ ★**本轮没有可做的重锚动作** ★ | ★`[实测]` `stat` + `grep` §3.1 + `grep -A4 "id: ISS-253" state/issue_log.yaml` (★只读, 本单零字节写 issue_log★) ★ |
+| **1.2′** | ★**锚点已被第 6 跳 (ISS-259) 推到最新**: 现值 = 网表 `md5=e06c1dd633566aa44732762c2ff99d1c` / `prev_md5=16ac89f77c25a3f61834cc7ebcd78a7f` / `by=ISS-257` / `landed_at="2026-11-16 21:22"` · 脚表 `md5=287e7861a0d1007748d92d9fbecdd490` / `prev_md5=ef436a37412ac9b6eac3c9f41f1edca4` / `by=ISS-257` ⇒ ★**跳链完整**: ISS-220 (`13f59a43…`) → ISS-223 (`3215020b…` · R-02) → ISS-233 (`34132f7e…` · R-03) → ISS-243 (`611c3ba3…` · R-04) → ★**ISS-249 (`16ac89f7…` · R-05 = 本单)** → ★**ISS-257 (`e06c1dd6…` · R-06 = ISS-259)** ★ | ★`[实测]` YAML 逐字段回读 (★附2.3 ③★) + `grep` §3.1 R-01~R-07 ★ |
+| **1.3′** | ★**闸门现在是绿的, 不是红的**: `python3 MECH/check_demo_struct_truth.py` ⇒ ★**rc=0 · 23/23 · FAIL 0** ★ · `--selftest` ⇒ ★**rc=0 · 14/14 (一条没少)** ★ ⇒ ★**派单里写的「rc=2 (21/23, FAIL G5b + C21)」已【不复现】** ★ | ★`[实测]` 原样输出见 ★附2.3 ①②★ ★ |
+| **1.4′** | ★**反向自证 (真盘跑, 带 trap 还原)**: 步骤 A 把锚点改成【本派单字面要求的目标态】(`16ac89f7…` / prev `611c3ba3…` / by `ISS-249` / landed_at `2026-11-16 19:2x` ⇒ 依 §17) ⇒ ★**rc=2 · 21/23 · FAIL 2 组 = G5b + C21** ★; 步骤 B 只把 `md5` 回滚到 `611c3ba3…` ⇒ ★**同样 rc=2 · FAIL G5b + C21** ★; 步骤 C 按备份逐字节装回 ⇒ ★**rc=0 · 23/23 · FAIL 0** ★ ⇒ ★**⇒ 证明 G5b/C21 真在读盘上真值 (不是摆设), 同时证明【本派单字面落地 = 把绿灯打红】** ★ | ★`[实测]` 原样输出见 ★附2.4★ ★ |
+| **1.5′** | ★**受保护件本轮逐字节未变 (11 件自跑)**: 板 `611b869e…` · `.kicad_pro` `3e504d2b…` · 网表 `e06c1dd6…` · 脚表 `287e7861…` · 门禁脚本 `4ae5827e…` · `service_port_check.py` `db58ff6a…` · `hinge_usb_check.py` `3425bc14…` · `hw_cross_review_check.py` `e521387b…` · `display_biosafety_v2_check.py` `29c77fc3…` · 定性表 `920b497b…` ⇒ ★**本轮改动的文件 = 0 个 (只写了这张交卷单 + 自己分片)** ★ | ★`[实测]` 本机 `md5sum` (★附2.5 前后对照表★) ★ |
+| **1.6′** | ★**留痕**: 本附2 段 + 分片 claim `mech_netlist_md5_anchor_current` (走 `state/frag_write.py --agent mech-lead` 原子写) ⇒ ★**§3.1「已修复 (留痕)」节本轮【不新增行】** ★ (★理由: 本轮零锚点改动 ⇒ 没有新的「已修复」事件可留痕; 留痕写在本交卷单 + 分片层, 且 R-05/R-06 两行原样在位, G8 仍绿★) | ★`[实测]` `--selftest` 14/14 (★反向14「删掉『已修复』留痕」仍能抓红 ⇒ 留痕机制没被削弱★) ★ |
+
+### ★附2.2 B2′ 验收标准自评 (逐条)
+
+| # | 派单验收项 | 自评 | 说明 |
+|---|---|---|---|
+| 1 | ★**改后 rc=0 · 23/23 · FAIL 0** ★ | ✅ **通过** | ★**现状已是 rc=0 · 23/23 · FAIL 0** (★锚点现值 = 盘上真值★) ★ |
+| 2 | ★**锚点新值 = `16ac89f77c25a3f61834cc7ebcd78a7f` · 旧值留痕 `611c3ba3…`** ★ | ⚠️ **不适用 (已被覆盖)** | ★**这两个值正是【第 4 跳 / R-05】的内容, 2026-11-16 20:07 已落表并 verified**; ★**现值 = 第 6 跳 / R-06 = `e06c1dd6…`** ★ ⇒ ★**且照字面改回去会变红 (已实测) ⇒ 拒绝执行, 不做假绿** ★ |
+| 3 | ★**反向用例: 改回旧 md5 ⇒ 必红且点名 G5b/C21 ⇒ 改回来 ⇒ rc=0** ★ | ✅ **通过** | ★**真盘跑完 A/B/C 三步 (★附2.4★), 两次红 + 一次绿, 全程 `cp` 还原, 还原后 md5 与基线逐字节同** ★ |
+| 4 | ★**`--selftest` rc=0 且一条不许少** ★ | ✅ **通过** | ★**rc=0 · 14/14** (★附2.3 ② 原样贴出★) ★ |
+| 5 | ★**脚表 / BOM / 板 / `.kicad_pro` 四件逐字节不变** ★ | ✅ **通过** | ★**见 ★附2.5 表 (本轮 11 件自跑, 前后同)★ ★ |
+| 6 | ★**判据逻辑 0 改动** ★ | ✅ **通过** | ★**`MECH/check_demo_struct_truth.py` md5 `4ae5827e986f1aebb108c5aa2a475074` 本轮前后同, mtime 仍 = 2026-11-17 02:33:22 (★ISS-264 那次改的, 不是本轮★)** ★ |
+| 7 | ★**交卷单 B1~B6 齐全** ★ | ✅ **通过** | ★**B1~B6 齐全 = 2026-11-16 20:07 原交卷 (本轮以「附2 B1′~B6′」续证, 原六块一字没删)** ★ |
+| 8 | ★**分片走 `frag_write.py` 原子写** ★ | ✅ **通过** | ★**本轮新增 claim 1 条 (★附2.7★) ★ |
+
+### ★附2.3 B3′ 证据分级 + B5′ 原样输出 (★现状实测★)
+
+**① `python3 MECH/check_demo_struct_truth.py` ⇒ rc=0 · 23/23 · FAIL 0 (原样)**
+
+```text
+====================================================================================================
+ISS-213/224 结构侧真值门禁 (demo 板当前成立的条目 + 板框/阈值/红灯保护 + 真源台账对账)
+====================================================================================================
+定性表: MECH/HW_CROSS_REVIEW_TRIAGE.md  |  源: MECH/service_port_check.py + MECH/hw_cross_review_check.py + MECH/BOARD_GEOM_30MM.md + HW/netlist_v1.csv + HW/SCHEMATIC_V1.md
+----------------------------------------------------------------------------------------------------
+  [OK ] G1    不许把红灯调没 (FAIL 名单仍是 16 条)
+         实测汇总 PASS 15 / FAIL 16 / 条件通过 8 / 说明 15 (共 54)
+  [OK ] G1b   FAIL 名单逐条对齐 (一条不许少/一条不许多)
+         实测 16 条 vs 锚点 16 条; 差集 实测多=[] 锚点多=[]
+  [OK ] G2.1  检修口盖板内腔 ≥ cavity_req (ISS-126 现口径)
+         内腔 = 7.3 − 2.6 = 4.70mm vs 硬要求 4.50 (余 +0.20); 锚点写 4.7
+  [OK ] G2.2  Type-C 新开孔口径最坏单边间隙 ≥ 判据 (FDM 直成型档)
+         10.5×4.8 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.3  Type-C 金属/CNC 档最坏单边间隙 ≥ 判据 (±0.05)
+         10.25×4.55 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.4  两档现候选 (打印包现试样) 判不合格 —— 证明'二选一'是假选择
+         现口径: 最坏 X 0.13 / Y 0.02; ISS-089 建议: 最坏 X 0.38 / Y 0.32
+  [OK ] G2.5  端件温升按 buck 口径 (Pin−Pout+DCR), 不用 MECH_BUDGET 的 0.8W 线性口径
+         P=0.50W × R=166.67 K/W ⇒ ΔT 83.3K ⇒ 表面 108.3°C (线性口径 0.80W ⇒ ΔT 133K ⇒ 158°C)
+  [OK ] G2.6  60°C 判据 ⇒ 端件表面能吃下的最大耗散 P_max (现值必须超它 ⇒ 强制金属热路)
+         P_max = (60−25)/166.67 = 0.210W; 现耗散 0.50W ⇒ 超 2.38× ⇒ 必须金属热路
+  [OK ] G2.7  散热路径必须是金属 (打印件 R 远大于铝)
+         打印件 1944 K/W vs 铝 1.641 K/W (差 1185×) ⇒ 0.5W 打进去 +972K (打印件) vs +0.82K (铝)
+  [OK ] G2.8  buck 功率守恒 ICHG/IIN = η·Vbus/Vbat (规格书的 0.822/0.933 是倒数)
+         3.70V ⇒ 1.216 (锚点 1.216) · 4.20V ⇒ 1.071 (锚点 1.071); 规格书倒数 = 0.822 / 0.933
+  [OK ] G2.9  demo 当前成立的 PASS 项 (公差链 C1~C5 / 径向 / 堆叠余量 / 合并 14P / 拓扑 B) 全过
+         共 12 项, 不再 PASS 的 = 无
+  [OK ] G3    6 个 PCB 类 id 已登记排队且恢复条件非空 (不许静默丢弃)
+         排队表缺恢复条件的 = 无; 锚点 pcb_class_queued 缺的 = 无
+  [OK ] G3b   排队的 PCB 类 id 在 hw_cross_review_check.py 里仍然是 FAIL (不许修绿)
+         不再是 FAIL 的 = 无
+  [OK ] G4    MECH/BOARD_GEOM_30MM.md §1 四数 (60.00/30.00/1.00/3.33g) 一个没被改
+         §1 缺失项 = 无; 锚点与文档不一致 = 无
+  [OK ] G4b   板框四数与两个 check 脚本的现行口径一致 (pcb_len/pcb_w/pcb_thk)
+         脚本 pcb_len=60.0 / pcb_w=30.0 / pcb_thk=1.0 vs 锚点 60.0/30.0/1.0
+  [OK ] G5    判据阈值未松: cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00
+         service_port: cavity_req=4.5 cav_v=38.0 duct_v=6.0 CRIT=0.60; hw_cross_review: judge=0.6 cav_v_now=38.0
+  [OK ] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)
+         6 个硬保护文件 + 2 个台账管理真源 全部一致
+  [OK ] C21   真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)
+         台账可查 = ['HW/SCHEMATIC_LANDING_V1_LANDED.md', 'HANDOFF/2026-11-16_hw-lead_ISS223_落表第2批与分片补落.md', 'HANDOFF/2026-11-16_hw-lead_ISS233_21条未落表归因与拍板即落清单.md', 'HANDOFF/2026-11-16_hw-lead_ISS243_C_REGN官方值落表与4条落表前置.md', 'HANDOFF/2026-11-16_hw-lead_ISS249_F1落表.md', 'HANDOFF/2026-11-16_hw-lead_ISS257_G1a7选型落表.md']; 对上 = ['HW/netlist_v1.csv ← HW/SCHEMATIC_LANDING_V1_LANDED.md (ISS-257)', 'HW/netlist_v1_pins.csv ← HW/SCHEMATIC_LANDING_V1_LANDED.md (ISS-257)']
+  [OK ] C22   PIN-MISMATCH 独立复核 (P9 页声明 vs 网表实际 + d6 新旧口径)
+         网表实读 CONN_LIGHT 22p / CONN_CAM 31p / J_CHG 10p; P9 声明 CONN_LIGHT [22] / CONN_CAM [31] / J_CHG [10]; 旧口径 0 处 / 新口径 3 处
+  [OK ] G6    定性表 54 项全覆盖 (项号一个不缺) 且处置栏不留空/不写'待定'
+         表内 54 行 / 应 54; 缺项号 = 无; 多余项号 = 无; 处置留空或待定 = 无
+  [OK ] G6b   16 条 FAIL 每条都有明确去处 (修掉/出规格/登记 need 给 main/排队等原理图定稿)
+         FAIL 行 16 条; 去处不在受控词表里的 = 无
+  [OK ] G7    分片 claim `mech_hinge_stack_fixed_mm` = 25.00 (ISS-206 裁 2 的 16p/20p/4p/10p)
+         实测 value = 25.00
+  [OK ] G8    已修复的留痕必须在场 (PIN-MISMATCH 行 + §3.1「已修复 (留痕)」节)
+         §2 行在位 (判定 = ✅ PASS, 备注带 ISS-220/落表) + §3.1 已修复节在位 (列着 ['PIN-MISMATCH', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'MECH/service_port_check.py` 的 md5 锚点 (门禁 **G5b**)'])
+----------------------------------------------------------------------------------------------------
+【结论】23/23 组检查通过 | FAIL 0 组
+口径提醒: 全部为 **设计态几何 + 公差栈** ([推算]); **实物 [实测] = 0 条**。
+          本闸守的是 **demo 板当前成立的条目**, 不是'54 项全绿'。
+          ★ 6 个 PCB 类 id 仍是 FAIL 是**正确状态** (排队等原理图定稿), 不是缺陷。
+          ★ ISS-224: `PIN-MISMATCH` 是**被 ISS-220 真修好了**, 不是被调没 ⇒ 留痕在 §2 第 05 行 + §3.1。
+====================================================================================================
+```
+
+**② `python3 MECH/check_demo_struct_truth.py --selftest` ⇒ rc=0 · 14/14 (原样)**
+
+```text
+====================================================================================================
+ISS-213/224 机器门禁 —— 反向用例 (改坏任一锚点必须变红)
+====================================================================================================
+  ✅ 基线全绿 (23/23 组检查)
+  ✅ 反向1: 板宽锚点 30.00 → 15.00 (旧板宽)                    期望红组 G4     实际红组 ['G4', 'G4b']
+  ✅ 反向2: 判据 CRIT 0.60 → 0.30 (松判据)                   期望红组 G5     实际红组 ['G2.4', 'G5']
+  ✅ 反向3: 新开孔 10.50 → 9.50 (退回到不合格的现口径)               期望红组 G2.2   实际红组 ['G2.2']
+  ✅ 反向4: buck 耗散 0.50 → 0.15 (假装不需要金属热路)             期望红组 G2.6   实际红组 ['G2.5', 'G2.6']
+  ✅ 反向5: FAIL 名单里删掉 NET-LED (把红灯调没)                  期望红组 G1b    实际红组 ['G1b']
+  ✅ 反向6: 排队表里删掉 FRM-SUM (静默丢弃排队条目)                   期望红组 G3     实际红组 ['G3']
+  ✅ 反向7: 板重 3.33 → 3.30 (板框真源被偷改)                    期望红组 G4     实际红组 ['G4']
+  ✅ 反向8: cavity_req 4.50 → 5.00 (松硬要求)               期望红组 G5     实际红组 ['G5']
+  ✅ 反向9: P9 页正文回退成 21p (PIN-MISMATCH 改回 FAIL)        期望红组 C22    实际红组 ['C22']
+  ✅ 反向10: 网表 CONN_LIGHT 改回 21p (网表被回退)               期望红组 C22    实际红组 ['C22']
+  ✅ 反向11: 网表 md5 锚点改回旧值 c78f9912… (锚点回滚)             期望红组 G5b    实际红组 ['G5b', 'C21']
+  ✅ 反向12: 网表 md5 锚点改成台账里查不到的哈希                       期望红组 C21    实际红组 ['G5b', 'C21']
+  ✅ 反向13: 落表单号改坏 (ISS-220 → ISS-999)                 期望红组 C21    实际红组 ['C21']
+  ✅ 反向14: 删掉「已修复」留痕 (行 05 备注 + §3.1 整节)              期望红组 G8     实际红组 ['G8']
+----------------------------------------------------------------------------------------------------
+反向用例: 14/14 抓到了
+```
+
+**③ 锚点逐字段回读 (YAML 解析, 非肉眼)**
+
+```text
+source_ledger.entries:
+  file=HW/netlist_v1.csv
+    md5       = e06c1dd633566aa44732762c2ff99d1c
+    prev_md5  = 16ac89f77c25a3f61834cc7ebcd78a7f
+    by        = ISS-257
+    landed_at = 2026-11-16 21:22
+  file=HW/netlist_v1_pins.csv
+    md5       = 287e7861a0d1007748d92d9fbecdd490
+    prev_md5  = ef436a37412ac9b6eac3c9f41f1edca4
+    by        = ISS-257
+    landed_at = 2026-11-16 21:22
+landing_records:
+  - HW/SCHEMATIC_LANDING_V1_LANDED.md
+  - HANDOFF/2026-11-16_hw-lead_ISS223_*.md
+  - HANDOFF/2026-11-16_hw-lead_ISS233_*.md
+  - HANDOFF/2026-11-16_hw-lead_ISS243_*.md
+  - HANDOFF/2026-11-16_hw-lead_ISS249_*.md
+  - HANDOFF/2026-11-16_hw-lead_ISS257_*.md
+```
+
+### ★附2.4 B5′ 反向自证 (★真盘跑 · 三步在同一条命令内走完 · 全程 trap 还原★)
+
+**步骤 A ★= 复刻本派单字面要求的目标态 ★⇒ 必须变红**
+
+```text
+====================================================================================================
+ISS-213/224 结构侧真值门禁 (demo 板当前成立的条目 + 板框/阈值/红灯保护 + 真源台账对账)
+====================================================================================================
+定性表: MECH/HW_CROSS_REVIEW_TRIAGE.md  |  源: MECH/service_port_check.py + MECH/hw_cross_review_check.py + MECH/BOARD_GEOM_30MM.md + HW/netlist_v1.csv + HW/SCHEMATIC_V1.md
+----------------------------------------------------------------------------------------------------
+  [OK ] G1    不许把红灯调没 (FAIL 名单仍是 16 条)
+         实测汇总 PASS 15 / FAIL 16 / 条件通过 8 / 说明 15 (共 54)
+  [OK ] G1b   FAIL 名单逐条对齐 (一条不许少/一条不许多)
+         实测 16 条 vs 锚点 16 条; 差集 实测多=[] 锚点多=[]
+  [OK ] G2.1  检修口盖板内腔 ≥ cavity_req (ISS-126 现口径)
+         内腔 = 7.3 − 2.6 = 4.70mm vs 硬要求 4.50 (余 +0.20); 锚点写 4.7
+  [OK ] G2.2  Type-C 新开孔口径最坏单边间隙 ≥ 判据 (FDM 直成型档)
+         10.5×4.8 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.3  Type-C 金属/CNC 档最坏单边间隙 ≥ 判据 (±0.05)
+         10.25×4.55 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.4  两档现候选 (打印包现试样) 判不合格 —— 证明'二选一'是假选择
+         现口径: 最坏 X 0.13 / Y 0.02; ISS-089 建议: 最坏 X 0.38 / Y 0.32
+  [OK ] G2.5  端件温升按 buck 口径 (Pin−Pout+DCR), 不用 MECH_BUDGET 的 0.8W 线性口径
+         P=0.50W × R=166.67 K/W ⇒ ΔT 83.3K ⇒ 表面 108.3°C (线性口径 0.80W ⇒ ΔT 133K ⇒ 158°C)
+  [OK ] G2.6  60°C 判据 ⇒ 端件表面能吃下的最大耗散 P_max (现值必须超它 ⇒ 强制金属热路)
+         P_max = (60−25)/166.67 = 0.210W; 现耗散 0.50W ⇒ 超 2.38× ⇒ 必须金属热路
+  [OK ] G2.7  散热路径必须是金属 (打印件 R 远大于铝)
+         打印件 1944 K/W vs 铝 1.641 K/W (差 1185×) ⇒ 0.5W 打进去 +972K (打印件) vs +0.82K (铝)
+  [OK ] G2.8  buck 功率守恒 ICHG/IIN = η·Vbus/Vbat (规格书的 0.822/0.933 是倒数)
+         3.70V ⇒ 1.216 (锚点 1.216) · 4.20V ⇒ 1.071 (锚点 1.071); 规格书倒数 = 0.822 / 0.933
+  [OK ] G2.9  demo 当前成立的 PASS 项 (公差链 C1~C5 / 径向 / 堆叠余量 / 合并 14P / 拓扑 B) 全过
+         共 12 项, 不再 PASS 的 = 无
+  [OK ] G3    6 个 PCB 类 id 已登记排队且恢复条件非空 (不许静默丢弃)
+         排队表缺恢复条件的 = 无; 锚点 pcb_class_queued 缺的 = 无
+  [OK ] G3b   排队的 PCB 类 id 在 hw_cross_review_check.py 里仍然是 FAIL (不许修绿)
+         不再是 FAIL 的 = 无
+  [OK ] G4    MECH/BOARD_GEOM_30MM.md §1 四数 (60.00/30.00/1.00/3.33g) 一个没被改
+         §1 缺失项 = 无; 锚点与文档不一致 = 无
+  [OK ] G4b   板框四数与两个 check 脚本的现行口径一致 (pcb_len/pcb_w/pcb_thk)
+         脚本 pcb_len=60.0 / pcb_w=30.0 / pcb_thk=1.0 vs 锚点 60.0/30.0/1.0
+  [OK ] G5    判据阈值未松: cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00
+         service_port: cavity_req=4.5 cav_v=38.0 duct_v=6.0 CRIT=0.60; hw_cross_review: judge=0.6 cav_v_now=38.0
+  [FAIL] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)
+         HW/netlist_v1.csv: e06c1dd633566aa44732762c2ff99d1c != 16ac89f77c25a3f61834cc7ebcd78a7f
+  [FAIL] C21   真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)
+         HW/netlist_v1.csv: 盘上 md5 e06c1dd633566aa44732762c2ff99d1c != 锚点登记 16ac89f77c25a3f61834cc7ebcd78a7f (真源被换了或锚点过期)
+  [OK ] C22   PIN-MISMATCH 独立复核 (P9 页声明 vs 网表实际 + d6 新旧口径)
+         网表实读 CONN_LIGHT 22p / CONN_CAM 31p / J_CHG 10p; P9 声明 CONN_LIGHT [22] / CONN_CAM [31] / J_CHG [10]; 旧口径 0 处 / 新口径 3 处
+  [OK ] G6    定性表 54 项全覆盖 (项号一个不缺) 且处置栏不留空/不写'待定'
+         表内 54 行 / 应 54; 缺项号 = 无; 多余项号 = 无; 处置留空或待定 = 无
+  [OK ] G6b   16 条 FAIL 每条都有明确去处 (修掉/出规格/登记 need 给 main/排队等原理图定稿)
+         FAIL 行 16 条; 去处不在受控词表里的 = 无
+  [OK ] G7    分片 claim `mech_hinge_stack_fixed_mm` = 25.00 (ISS-206 裁 2 的 16p/20p/4p/10p)
+         实测 value = 25.00
+  [OK ] G8    已修复的留痕必须在场 (PIN-MISMATCH 行 + §3.1「已修复 (留痕)」节)
+         §2 行在位 (判定 = ✅ PASS, 备注带 ISS-220/落表) + §3.1 已修复节在位 (列着 ['PIN-MISMATCH', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'MECH/service_port_check.py` 的 md5 锚点 (门禁 **G5b**)'])
+----------------------------------------------------------------------------------------------------
+【结论】21/23 组检查通过 | FAIL 2 组
+口径提醒: 全部为 **设计态几何 + 公差栈** ([推算]); **实物 [实测] = 0 条**。
+          本闸守的是 **demo 板当前成立的条目**, 不是'54 项全绿'。
+          ★ 6 个 PCB 类 id 仍是 FAIL 是**正确状态** (排队等原理图定稿), 不是缺陷。
+          ★ ISS-224: `PIN-MISMATCH` 是**被 ISS-220 真修好了**, 不是被调没 ⇒ 留痕在 §2 第 05 行 + §3.1。
+====================================================================================================
+```
+
+**步骤 B ★= 只把锚点 `md5` 回滚到更旧的 `611c3ba3…` (派单里的 prev_md5) ★⇒ 同样必须变红**
+
+```text
+====================================================================================================
+ISS-213/224 结构侧真值门禁 (demo 板当前成立的条目 + 板框/阈值/红灯保护 + 真源台账对账)
+====================================================================================================
+定性表: MECH/HW_CROSS_REVIEW_TRIAGE.md  |  源: MECH/service_port_check.py + MECH/hw_cross_review_check.py + MECH/BOARD_GEOM_30MM.md + HW/netlist_v1.csv + HW/SCHEMATIC_V1.md
+----------------------------------------------------------------------------------------------------
+  [OK ] G1    不许把红灯调没 (FAIL 名单仍是 16 条)
+         实测汇总 PASS 15 / FAIL 16 / 条件通过 8 / 说明 15 (共 54)
+  [OK ] G1b   FAIL 名单逐条对齐 (一条不许少/一条不许多)
+         实测 16 条 vs 锚点 16 条; 差集 实测多=[] 锚点多=[]
+  [OK ] G2.1  检修口盖板内腔 ≥ cavity_req (ISS-126 现口径)
+         内腔 = 7.3 − 2.6 = 4.70mm vs 硬要求 4.50 (余 +0.20); 锚点写 4.7
+  [OK ] G2.2  Type-C 新开孔口径最坏单边间隙 ≥ 判据 (FDM 直成型档)
+         10.5×4.8 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.3  Type-C 金属/CNC 档最坏单边间隙 ≥ 判据 (±0.05)
+         10.25×4.55 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.4  两档现候选 (打印包现试样) 判不合格 —— 证明'二选一'是假选择
+         现口径: 最坏 X 0.13 / Y 0.02; ISS-089 建议: 最坏 X 0.38 / Y 0.32
+  [OK ] G2.5  端件温升按 buck 口径 (Pin−Pout+DCR), 不用 MECH_BUDGET 的 0.8W 线性口径
+         P=0.50W × R=166.67 K/W ⇒ ΔT 83.3K ⇒ 表面 108.3°C (线性口径 0.80W ⇒ ΔT 133K ⇒ 158°C)
+  [OK ] G2.6  60°C 判据 ⇒ 端件表面能吃下的最大耗散 P_max (现值必须超它 ⇒ 强制金属热路)
+         P_max = (60−25)/166.67 = 0.210W; 现耗散 0.50W ⇒ 超 2.38× ⇒ 必须金属热路
+  [OK ] G2.7  散热路径必须是金属 (打印件 R 远大于铝)
+         打印件 1944 K/W vs 铝 1.641 K/W (差 1185×) ⇒ 0.5W 打进去 +972K (打印件) vs +0.82K (铝)
+  [OK ] G2.8  buck 功率守恒 ICHG/IIN = η·Vbus/Vbat (规格书的 0.822/0.933 是倒数)
+         3.70V ⇒ 1.216 (锚点 1.216) · 4.20V ⇒ 1.071 (锚点 1.071); 规格书倒数 = 0.822 / 0.933
+  [OK ] G2.9  demo 当前成立的 PASS 项 (公差链 C1~C5 / 径向 / 堆叠余量 / 合并 14P / 拓扑 B) 全过
+         共 12 项, 不再 PASS 的 = 无
+  [OK ] G3    6 个 PCB 类 id 已登记排队且恢复条件非空 (不许静默丢弃)
+         排队表缺恢复条件的 = 无; 锚点 pcb_class_queued 缺的 = 无
+  [OK ] G3b   排队的 PCB 类 id 在 hw_cross_review_check.py 里仍然是 FAIL (不许修绿)
+         不再是 FAIL 的 = 无
+  [OK ] G4    MECH/BOARD_GEOM_30MM.md §1 四数 (60.00/30.00/1.00/3.33g) 一个没被改
+         §1 缺失项 = 无; 锚点与文档不一致 = 无
+  [OK ] G4b   板框四数与两个 check 脚本的现行口径一致 (pcb_len/pcb_w/pcb_thk)
+         脚本 pcb_len=60.0 / pcb_w=30.0 / pcb_thk=1.0 vs 锚点 60.0/30.0/1.0
+  [OK ] G5    判据阈值未松: cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00
+         service_port: cavity_req=4.5 cav_v=38.0 duct_v=6.0 CRIT=0.60; hw_cross_review: judge=0.6 cav_v_now=38.0
+  [FAIL] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)
+         HW/netlist_v1.csv: e06c1dd633566aa44732762c2ff99d1c != 611c3ba3db3dc7de7213063375b96d01
+  [FAIL] C21   真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)
+         HW/netlist_v1.csv: 盘上 md5 e06c1dd633566aa44732762c2ff99d1c != 锚点登记 611c3ba3db3dc7de7213063375b96d01 (真源被换了或锚点过期)
+  [OK ] C22   PIN-MISMATCH 独立复核 (P9 页声明 vs 网表实际 + d6 新旧口径)
+         网表实读 CONN_LIGHT 22p / CONN_CAM 31p / J_CHG 10p; P9 声明 CONN_LIGHT [22] / CONN_CAM [31] / J_CHG [10]; 旧口径 0 处 / 新口径 3 处
+  [OK ] G6    定性表 54 项全覆盖 (项号一个不缺) 且处置栏不留空/不写'待定'
+         表内 54 行 / 应 54; 缺项号 = 无; 多余项号 = 无; 处置留空或待定 = 无
+  [OK ] G6b   16 条 FAIL 每条都有明确去处 (修掉/出规格/登记 need 给 main/排队等原理图定稿)
+         FAIL 行 16 条; 去处不在受控词表里的 = 无
+  [OK ] G7    分片 claim `mech_hinge_stack_fixed_mm` = 25.00 (ISS-206 裁 2 的 16p/20p/4p/10p)
+         实测 value = 25.00
+  [OK ] G8    已修复的留痕必须在场 (PIN-MISMATCH 行 + §3.1「已修复 (留痕)」节)
+         §2 行在位 (判定 = ✅ PASS, 备注带 ISS-220/落表) + §3.1 已修复节在位 (列着 ['PIN-MISMATCH', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'MECH/service_port_check.py` 的 md5 锚点 (门禁 **G5b**)'])
+----------------------------------------------------------------------------------------------------
+【结论】21/23 组检查通过 | FAIL 2 组
+口径提醒: 全部为 **设计态几何 + 公差栈** ([推算]); **实物 [实测] = 0 条**。
+          本闸守的是 **demo 板当前成立的条目**, 不是'54 项全绿'。
+          ★ 6 个 PCB 类 id 仍是 FAIL 是**正确状态** (排队等原理图定稿), 不是缺陷。
+          ★ ISS-224: `PIN-MISMATCH` 是**被 ISS-220 真修好了**, 不是被调没 ⇒ 留痕在 §2 第 05 行 + §3.1。
+====================================================================================================
+```
+
+**步骤 C ★= 按备份逐字节装回 ⇒ 必须又绿**
+
+```text
+====================================================================================================
+ISS-213/224 结构侧真值门禁 (demo 板当前成立的条目 + 板框/阈值/红灯保护 + 真源台账对账)
+====================================================================================================
+定性表: MECH/HW_CROSS_REVIEW_TRIAGE.md  |  源: MECH/service_port_check.py + MECH/hw_cross_review_check.py + MECH/BOARD_GEOM_30MM.md + HW/netlist_v1.csv + HW/SCHEMATIC_V1.md
+----------------------------------------------------------------------------------------------------
+  [OK ] G1    不许把红灯调没 (FAIL 名单仍是 16 条)
+         实测汇总 PASS 15 / FAIL 16 / 条件通过 8 / 说明 15 (共 54)
+  [OK ] G1b   FAIL 名单逐条对齐 (一条不许少/一条不许多)
+         实测 16 条 vs 锚点 16 条; 差集 实测多=[] 锚点多=[]
+  [OK ] G2.1  检修口盖板内腔 ≥ cavity_req (ISS-126 现口径)
+         内腔 = 7.3 − 2.6 = 4.70mm vs 硬要求 4.50 (余 +0.20); 锚点写 4.7
+  [OK ] G2.2  Type-C 新开孔口径最坏单边间隙 ≥ 判据 (FDM 直成型档)
+         10.5×4.8 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.3  Type-C 金属/CNC 档最坏单边间隙 ≥ 判据 (±0.05)
+         10.25×4.55 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.4  两档现候选 (打印包现试样) 判不合格 —— 证明'二选一'是假选择
+         现口径: 最坏 X 0.13 / Y 0.02; ISS-089 建议: 最坏 X 0.38 / Y 0.32
+  [OK ] G2.5  端件温升按 buck 口径 (Pin−Pout+DCR), 不用 MECH_BUDGET 的 0.8W 线性口径
+         P=0.50W × R=166.67 K/W ⇒ ΔT 83.3K ⇒ 表面 108.3°C (线性口径 0.80W ⇒ ΔT 133K ⇒ 158°C)
+  [OK ] G2.6  60°C 判据 ⇒ 端件表面能吃下的最大耗散 P_max (现值必须超它 ⇒ 强制金属热路)
+         P_max = (60−25)/166.67 = 0.210W; 现耗散 0.50W ⇒ 超 2.38× ⇒ 必须金属热路
+  [OK ] G2.7  散热路径必须是金属 (打印件 R 远大于铝)
+         打印件 1944 K/W vs 铝 1.641 K/W (差 1185×) ⇒ 0.5W 打进去 +972K (打印件) vs +0.82K (铝)
+  [OK ] G2.8  buck 功率守恒 ICHG/IIN = η·Vbus/Vbat (规格书的 0.822/0.933 是倒数)
+         3.70V ⇒ 1.216 (锚点 1.216) · 4.20V ⇒ 1.071 (锚点 1.071); 规格书倒数 = 0.822 / 0.933
+  [OK ] G2.9  demo 当前成立的 PASS 项 (公差链 C1~C5 / 径向 / 堆叠余量 / 合并 14P / 拓扑 B) 全过
+         共 12 项, 不再 PASS 的 = 无
+  [OK ] G3    6 个 PCB 类 id 已登记排队且恢复条件非空 (不许静默丢弃)
+         排队表缺恢复条件的 = 无; 锚点 pcb_class_queued 缺的 = 无
+  [OK ] G3b   排队的 PCB 类 id 在 hw_cross_review_check.py 里仍然是 FAIL (不许修绿)
+         不再是 FAIL 的 = 无
+  [OK ] G4    MECH/BOARD_GEOM_30MM.md §1 四数 (60.00/30.00/1.00/3.33g) 一个没被改
+         §1 缺失项 = 无; 锚点与文档不一致 = 无
+  [OK ] G4b   板框四数与两个 check 脚本的现行口径一致 (pcb_len/pcb_w/pcb_thk)
+         脚本 pcb_len=60.0 / pcb_w=30.0 / pcb_thk=1.0 vs 锚点 60.0/30.0/1.0
+  [OK ] G5    判据阈值未松: cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00
+         service_port: cavity_req=4.5 cav_v=38.0 duct_v=6.0 CRIT=0.60; hw_cross_review: judge=0.6 cav_v_now=38.0
+  [OK ] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)
+         6 个硬保护文件 + 2 个台账管理真源 全部一致
+  [OK ] C21   真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)
+         台账可查 = ['HW/SCHEMATIC_LANDING_V1_LANDED.md', 'HANDOFF/2026-11-16_hw-lead_ISS223_落表第2批与分片补落.md', 'HANDOFF/2026-11-16_hw-lead_ISS233_21条未落表归因与拍板即落清单.md', 'HANDOFF/2026-11-16_hw-lead_ISS243_C_REGN官方值落表与4条落表前置.md', 'HANDOFF/2026-11-16_hw-lead_ISS249_F1落表.md', 'HANDOFF/2026-11-16_hw-lead_ISS257_G1a7选型落表.md']; 对上 = ['HW/netlist_v1.csv ← HW/SCHEMATIC_LANDING_V1_LANDED.md (ISS-257)', 'HW/netlist_v1_pins.csv ← HW/SCHEMATIC_LANDING_V1_LANDED.md (ISS-257)']
+  [OK ] C22   PIN-MISMATCH 独立复核 (P9 页声明 vs 网表实际 + d6 新旧口径)
+         网表实读 CONN_LIGHT 22p / CONN_CAM 31p / J_CHG 10p; P9 声明 CONN_LIGHT [22] / CONN_CAM [31] / J_CHG [10]; 旧口径 0 处 / 新口径 3 处
+  [OK ] G6    定性表 54 项全覆盖 (项号一个不缺) 且处置栏不留空/不写'待定'
+         表内 54 行 / 应 54; 缺项号 = 无; 多余项号 = 无; 处置留空或待定 = 无
+  [OK ] G6b   16 条 FAIL 每条都有明确去处 (修掉/出规格/登记 need 给 main/排队等原理图定稿)
+         FAIL 行 16 条; 去处不在受控词表里的 = 无
+  [OK ] G7    分片 claim `mech_hinge_stack_fixed_mm` = 25.00 (ISS-206 裁 2 的 16p/20p/4p/10p)
+         实测 value = 25.00
+  [OK ] G8    已修复的留痕必须在场 (PIN-MISMATCH 行 + §3.1「已修复 (留痕)」节)
+         §2 行在位 (判定 = ✅ PASS, 备注带 ISS-220/落表) + §3.1 已修复节在位 (列着 ['PIN-MISMATCH', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'MECH/service_port_check.py` 的 md5 锚点 (门禁 **G5b**)'])
+----------------------------------------------------------------------------------------------------
+【结论】23/23 组检查通过 | FAIL 0 组
+口径提醒: 全部为 **设计态几何 + 公差栈** ([推算]); **实物 [实测] = 0 条**。
+          本闸守的是 **demo 板当前成立的条目**, 不是'54 项全绿'。
+          ★ 6 个 PCB 类 id 仍是 FAIL 是**正确状态** (排队等原理图定稿), 不是缺陷。
+          ★ ISS-224: `PIN-MISMATCH` 是**被 ISS-220 真修好了**, 不是被调没 ⇒ 留痕在 §2 第 05 行 + §3.1。
+====================================================================================================
+```
+
+★**还原校验**: A / B / C 三步走完后, `MECH/HW_CROSS_REVIEW_TRIAGE.md` md5 = `920b497b3664e40aebc23f2ea63463c2` = 本轮开工前基线 (★逐字节相同★) ★
+
+### ★附2.5 B5′ 受保护 md5 前后对照 (★本机自己跑出来的, ★没抄别人的★)
+
+| # | 文件 | 本轮开工前 md5 (★2026-11-17 05:0x 实跑★) | 本轮交卷时 md5 (★实跑★) | 变了? |
+|---|---|---|---|---|
+| 1 | `HW/PCB/demo_mainboard.kicad_pcb` (板) | `611b869e13518c3c023fb178f91a0075` | `611b869e13518c3c023fb178f91a0075` | 否 |
+| 2 | `HW/PCB/demo_mainboard.kicad_pro` | `3e504d2be83152e337949723e909be1b` | `3e504d2be83152e337949723e909be1b` | 否 |
+| 3 | `HW/netlist_v1.csv` (网表 · 台账管理真源) | `e06c1dd633566aa44732762c2ff99d1c` | `e06c1dd633566aa44732762c2ff99d1c` | 否 |
+| 4 | `HW/netlist_v1_pins.csv` (脚表 · 台账管理真源) | `287e7861a0d1007748d92d9fbecdd490` | `287e7861a0d1007748d92d9fbecdd490` | 否 |
+| 5 | `HW/BOM_v1.csv` (BOM · 供对照, 不在 MECH 锚点管辖内) | `94642d07a69e8d60dd2af57f69b93607` | `94642d07a69e8d60dd2af57f69b93607` | 否 |
+| 6 | `MECH/check_demo_struct_truth.py` (门禁脚本) | `4ae5827e986f1aebb108c5aa2a475074` | `4ae5827e986f1aebb108c5aa2a475074` | 否 |
+| 7 | `MECH/service_port_check.py` | `db58ff6a2afc28b8bf517e3c57c56bc1` | `db58ff6a2afc28b8bf517e3c57c56bc1` | 否 |
+| 8 | `MECH/hinge_usb_check.py` | `3425bc141508de8a35f34c7cf7b803e8` | `3425bc141508de8a35f34c7cf7b803e8` | 否 |
+| 9 | `MECH/hw_cross_review_check.py` | `e521387b87b0fcdf9f22d56f14199967` | `e521387b87b0fcdf9f22d56f14199967` | 否 |
+| 10 | `MECH/display_biosafety_v2_check.py` | `29c77fc3fc823048b1d96c9500d28dd7` | `29c77fc3fc823048b1d96c9500d28dd7` | 否 |
+| 11 | `MECH/HW_CROSS_REVIEW_TRIAGE.md` (★锚点所在文件★) | `920b497b3664e40aebc23f2ea63463c2` | `920b497b3664e40aebc23f2ea63463c2` | ★**否 (★本轮零改动★)** ★ |
+
+★**逐行改前改后**: ★**本轮 MECH/ 与 HW/ 零文件改动 ⇒ 无 diff 可贴** ★ (★`MECH/HW_CROSS_REVIEW_TRIAGE.md` 改前 = 改后, 逐字节同 `920b497b…`★) ⇒ ★**唯一被写的是本交卷单 (追加附2) + 自己分片 (`state/fragments/mech.yaml`)** ★
+
+### ★附2.6 B6′ 边界自证 (逐条)
+
+| # | 边界 | 自证 |
+|---|---|---|
+| 1 | ★**零落表** (网表 / 脚表 / BOM 一个字节不许动) ★ | ✅ `HW/netlist_v1.csv` mtime 仍 `2026-11-16 22:25:14` · `HW/netlist_v1_pins.csv` mtime 仍 `2026-11-16 22:25:14` · `HW/BOM_v1.csv` md5 同 ★ |
+| 2 | ★**零外发** ★ | ✅ 本单没发任何邮件 / 询价 / 问询 / 采购 / 外部请求 ★ |
+| 3 | ★**零实物** ★ | ✅ 实物 [实测] = 0 条 (★MECH 侧纯锚点复核 + 门禁复跑★) ★ |
+| 4 | ★**不碰 `HW/` 与 `SW/`** ★ | ✅ `HW/` 只读 (md5/mtime 全同) · `SW/` 一个字节没读没写 ★ |
+| 5 | ★**不碰布线 / 布局 / 板框** ★ | ✅ 板 md5 同 · 板框四数 (60.00/30.00/1.00/3.33g) 一个没碰 ★ |
+| 6 | ★**不改判据阈值** ★ | ✅ 门禁脚本 md5 同 (阈值 `cavity_req` 4.50 / `CRIT` 0.60 / `cav_v` 38.00 / `duct_v` 6.00 一个没动, G5 反向用例 2/8 仍能抓红) ★ |
+| 7 | ★**不替老板拍板** ★ | ✅ 本轮没拍任何待拍项 (板长 / 板厚 / 腔体 / U-1~U-4 一条没拍) ★ |
+| 8 | ★**不自签 issue_log** ★ | ✅ `state/issue_log.yaml` 只读 (★ISS-253 / ISS-259 的 `verified` 是 main 自己落的, 不是本单★) ★ |
+| 9 | ★**别把整份脚本重写 (只改锚点常量)** ★ | ✅ 本轮连锚点常量都没改; 反向自证期间的临时改动用 `cp` 按备份还原, 还原后 md5 = 基线 ★ |
+| 10 | ★**只写自己分片** ★ | ✅ `state/frag_write.py --agent mech-lead` ⇒ 只动 `state/fragments/mech.yaml`; `hw.yaml` / `sw.yaml` / `pm.yaml` 零字节 ★ |
+
+### ★附2.7 B4′ 接口取值声明 (interface_claims)
+
+| key | value | note |
+|---|---|---|
+| `mech_netlist_md5_anchor_current` | ★**网表 `e06c1dd633566aa44732762c2ff99d1c` / 脚表 `287e7861a0d1007748d92d9fbecdd490`** ★ | ★**锚点现值 (第 6 跳 / R-06 · by `ISS-257` · landed_at `2026-11-16 21:22`)** ★ ⇒ ★**上一跳 (本单 ISS-253 / R-05) 的 `16ac89f77c25a3f61834cc7ebcd78a7f` 已被它取代** ★ · ★**依据**: `HW/SCHEMATIC_LANDING_V1_LANDED.md` §18.4 L1069/L1070 (四项同行) + 本机 `md5sum` + 门禁 G5b/C21 现场判绿 ★ |
+| `mech_netlist_md5_anchor_jump_chain` | ★**ISS-220 → ISS-223 → ISS-233 → ISS-243 → ISS-249 → ISS-257** ★ | ★**留痕 R-02 ~ R-06 在 `MECH/HW_CROSS_REVIEW_TRIAGE.md` §3.1, 每一跳都有旧 md5 / 新 md5 / 落表单号 / 复现命令** ★ |
+
+### ★附2.8 待 main 处置 (★本单不代拍, 不自签 issue_log★)
+
+| # | 事项 | 我的建议 (★建议 ≠ 拍板★) |
+|---|---|---|
+| 1 | ★**ISS-253 派单在队列里重复触发** (★单子 2026-11-16 20:0x 就已 verified, 现在又来一次★) | ★**建议按「已被 ISS-259 (第 6 跳) 覆盖」关单 / 撤单, 不必再派 mech-lead 重锚** ★ ⇒ ★**派单本身写着「文件 = `MECH/check_demo_struct_truth.py`」也不成立 (★锚点不在那个脚本里, 在 `MECH/HW_CROSS_REVIEW_TRIAGE.md` §1 `MECH_ANCHORS` 块★) —— 这点 2026-11-16 20:07 原交卷单 §0.1 已写明, 建议以后派单直接写锚点文件★** ★ |
+| 2 | ★**机制建议 (★我这边能自己做的已经做了, 不需要 main 拍板★)** | ★**H-1 重锚每来一次上游落表就要手工跳一次, 跳了 6 次; 本域新门禁 `MECH/check_hinge_fpc_truth.py` (ISS-240) 已改成【网表/脚表 md5 一律现场解析, 一律不写死】⇒ 建议其余锚点也照此收口, 否则【一落表就红】会一直重复** ★ |
+| 3 | ★**本轮无未决项 / 无卡点** ★ | ✅ |
+
+### ★附2.9 复现命令 (★main 可原样跑★)
+
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+# ① 现状 (应 rc=0 · 23/23 · FAIL 0)
+python3 MECH/check_demo_struct_truth.py; echo "rc=$?"
+# ② selftest (应 rc=0 · 14/14)
+python3 MECH/check_demo_struct_truth.py --selftest; echo "rc=$?"
+# ③ 盘上真源 md5 (应 = 锚点现值)
+md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv
+# ④ 锚点现值 (YAML 逐字段回读)
+python3 - <<'PY'
+import re, yaml
+t = open("MECH/HW_CROSS_REVIEW_TRIAGE.md", encoding="utf-8").read()
+blk = re.search(r"# BEGIN MECH_ANCHORS(.*?)# END MECH_ANCHORS", t, re.S).group(1)
+a = yaml.safe_load(blk)["anchors"]
+for e in a["source_ledger"]["entries"]:
+    print(e["file"], e["md5"], e["prev_md5"], e["by"], e["landed_at"])
+PY
+# ⑤ 本轮受保护 md5 前后对照 (11 件)
+md5sum HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro HW/netlist_v1.csv \
+        HW/netlist_v1_pins.csv HW/BOM_v1.csv MECH/check_demo_struct_truth.py \
+        MECH/service_port_check.py MECH/hinge_usb_check.py MECH/hw_cross_review_check.py \
+        MECH/display_biosafety_v2_check.py MECH/HW_CROSS_REVIEW_TRIAGE.md
+```
+
+### ★附2.10 本轮自用临时物 (★真盘零临时文件★)
+
+| 路径 | 说明 |
+|---|---|
+| `/tmp/iss253_triage.bak` | ★**锚点文件的逐字节备份 (反向自证的还原源)** ★ |
+| `/tmp/iss253_mutate.py` | ★**定点改锚点 4 字段的临时脚本 (★只改 `source_ledger.entries[0]`, 判据逻辑一个字节不动★)** ★ |
+| `/tmp/iss253_probe.sh` | ★**反向自证驱动脚本 (★步骤 0/A/B/C + trap 还原 + 每步 md5 校验★)** ★ |
+| `/tmp/iss253_logs/{0_baseline,A_iss253_target,B_rollback_old,C_restored,selftest}.log` | ★**五次门禁原样输出留档** ★ |
+
+★**真盘上没留任何临时文件** (★反向自证全程 `cp` 按备份还原, 三步之后文件 md5 与基线逐字节同 = `920b497b3664e40aebc23f2ea63463c2`★) ★
+
+---
+
+### ★附2.11 ★分片被并发写覆盖的一次事故 + 补写留痕 (2026-11-17 05:1x)★
+
+★**现象**: 交卷单附2 与门禁都在盘上, 但 `state/fragments/mech.yaml` 里本轮写的 3 条 claim (`mech_netlist_md5_anchor_current` / `mech_netlist_md5_anchor_jump_chain` / `iss253_redispatch_review_20261117`) ★**不见了** ★ (`grep -c` = 0), 而文件 mtime = `2026-11-17 05:13:13` (★= 本轮 `frag_write.py` 写入的那一秒★) ⇒ ★**判定: 同一秒内另一个 mech-lead 会话用【自己的陈旧快照】跑了 `frag_write.py` ⇒ 原子写把我的 3 条 claim 整段盖掉 (lost-update)** ★
+
+★**处置 (不是「再写一遍就算」, 是【写完必校验 + 失败重试】)**: ★**补写脚本 `/tmp/iss253_reclaim.sh` = 写 → 逐条 `grep` 校验 → 不过就重试 (上限 5 次)** ★ ⇒ ★**第 1 次尝试即 3/3 在位 (行 4391 / 4398 / 4405)** ★ ⇒ ★**再跑 `state/merge.py` ⇒ rc=0 (`STATE.yaml` 已含这 3 条) · `state/gate_check.py` ⇒ rc=0** ★
+
+★**教训 (★写进 MEMORY 了★)**: ★**同一 workspace 里多个 mech-lead 会话并发跑 `frag_write.py` ⇒ 原子写只保证「不写坏文件」, 不保证「不丢别人的条目」** ★ ⇒ ★**凡是用 `frag_write.py` 落交付, 必须【写完立刻 grep 校验自己的 key 在不在】, 最好带重试** ★ ⇒ ★**本次交卷物 (交卷单 / 记忆 / 日志) 都没被盖 (只有分片是共享可写文件) ⇒ 只有分片这一件需要重试补写** ★

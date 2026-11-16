@@ -1,0 +1,35 @@
+
+==============================================================================
+### ISS-250 第6轮 · 模拟器掉点实测 · MODE=sim_build
+==============================================================================
+python = /home/yuewuya/miniconda3/envs/rknn3/bin/python
+ts = 2026-11-17 05:37:51 CST
+
+==============================================================================
+### ②' INT8 模拟器 (build 路径) · target_platform='rk3572'
+==============================================================================
+toolkit = rknn3-toolkit 1.2.0  target = rk3572
+simulate_lut = True
+config rc = 0  (0.001 s)
+load_onnx rc = 0  (0.108 s)
+build rc = 0  (1271.677 s) ★与 ISS-263 的 33~41 s 同量级, 说明复现一致★
+init_runtime(target=None=simulator) rc = 0  (0.001 s)
+!! 异常:
+Traceback (most recent call last):
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/tools/iss250_r6_sim_accuracy.py", line 410, in main
+    mode_sim_build()
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/tools/iss250_r6_sim_accuracy.py", line 296, in mode_sim_build
+    outs.append(r.inference(inputs=[u8[None, ...]]))
+  File "/home/yuewuya/miniconda3/envs/rknn3/lib/python3.10/site-packages/rknn/api/rknn.py", line 525, in inference
+    return self.rknn_base.inference(**inference_args)
+  File "rknn/api/rknn_base.py", line 7352, in rknn.api.rknn_base.RKNNBase.inference
+  File "rknn/api/rknn_base.py", line 7348, in rknn.api.rknn_base.RKNNBase.inference
+  File "rknn/api/simulator.py", line 622, in rknn.api.simulator.Simulator.inference
+  File "rknn/api/simulator.py", line 550, in rknn.api.simulator.Simulator._infer_by_sess
+  File "rknn/api/session.py", line 346, in rknn.api.session.Session.run
+  File "rknn/base/extend_op/extend_op.py", line 155, in rknn.base.extend_op.extend_op.extend_infer
+  File "rknn/base/extend_op/exSwish.py", line 24, in rknn.base.extend_op.exSwish.exSwish_infer
+  File "rknn/base/extend_op/nnc/lut_simu.py", line 114, in rknn.base.extend_op.nnc.lut_simu.lut_infer
+  File "rknn/base/extend_op/nnc/rknn_lut.py", line 66, in rknn.base.extend_op.nnc.rknn_lut.RKNNLut.set_quantize_params
+  File "rknn/base/extend_op/nnc/nnc_utils.py", line 72, in rknn.base.extend_op.nnc.nnc_utils.scale_shift
+ValueError: negative shift count

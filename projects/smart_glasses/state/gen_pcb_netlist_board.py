@@ -68,6 +68,19 @@ if not PCB.endswith(".kicad_pcb"):
     print("   ★正解: 板文件 OUT=/tmp/vXX_R.kicad_pcb · 日志 LOG=/tmp/vXX_R.log ⇒ **两个路径分开**")
     print("   ★参考事故: v69 臂 (2026-11-07 03:07) ⇒ 跑了 6 小时, rc=1")
     sys.exit(3)
+# ★★2026-11-17 ISS-269 建议项 · **裸跑生成器不许覆盖正式板** (★最后一道闸 ★)
+#   ★**为什么要有**: 生成器是**唯一**能写正式板的东西 ⇒ 一次手滑的裸跑 (★没带任何 env★)
+#   ★   就可能把唯一那块板覆盖掉 (★层数掉 6 / DNP 标记没了 / Value 陈旧 ★) ⇒ 「板只改一次」当场破
+#   ★**拦在产生点** (★本项目铁律: 修在产生点, 不许在产物上擦 ★)
+#   ★**怎么用**: 写正式板必须显式 `PCB_ALLOW_OFFICIAL=1` ⇒ ★实验臂 (★PCB_OUT=/tmp/…★) 一律不受影响 ★
+_OFFICIAL_PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
+if (os.path.abspath(PCB) == os.path.abspath(_OFFICIAL_PCB)
+        and os.environ.get("PCB_ALLOW_OFFICIAL") != "1"):
+    print("❌ 拒绝覆盖正式板: %s" % _OFFICIAL_PCB)
+    print("   ★理由: 裸跑生成器一次 ⇒ 唯一那块板可能被无 env 覆盖 (★层数/DNP/Value 三条默认值 ★)")
+    print("   ★正解: 覆盖正式板必须显式 PCB_ALLOW_OFFICIAL=1 (★那一趟由项目总工授权 ★)")
+    print("   ★实验臂: PCB_OUT=/tmp/xxx.kicad_pcb (★不受本闸影响 ★)")
+    sys.exit(3)
 # ★2026-11-05 19:15 **探针不许改项目文件** ⇒ REPORT 可用 env 改到 /tmp
 REPORT = os.environ.get("PCB_REPORT") or os.path.join(PROJ, "HW", "PCB", "PCB_NETLIST_FILL.txt")
 
@@ -573,14 +586,72 @@ def _pin_net_from_netlist(ref=None):
     return _out
 
 
+# ★★2026-11-17 ISS-269 X-4 / B-2 · 生成器侧两条取值规则 (★提成独立函数 ★)
+#   ★**为什么提成函数**: 让机器闸 `HW/check_pcb_generator_defaults.py` 能把**本文件的源码抽出来**
+#   ★   做【行为判定】(★把这两个函数 exec 进沙盒 namespace 再喂自造样例★)
+#   ★   ⇒ 而不是只做静态字符串匹配 (★静态匹配 = 改个注释就能骗过闸★)
+#   ★**纪律**: 这两个函数**不许 import pcbnew** (★闸在系统 python 下跑 ★)
+
+
+def pick_board_values(rows):
+    """★板封装 Value 的取值规则 (B-2) = ★**器件本体行优先**★
+
+    ★**判据 (机器可算, 不许"看着像")**:
+      · 该 ref 的行里 ★`type` ∉ {"NET", ""} ⇒ 是**器件本体行**★
+        (★网节点行 type=NET, 它的 value 是**脚功能串**如 'EN 输入 (高=放行底板)' / 'GND'★)
+      · 本体行的 value = ★器件身份描述★ (★'TPS22991RAA (…)' / 'TPS7A20-28' / '10µF' / '1k ±1%'★)
+      · 同 ref 有多条本体行 ⇒ 取**第一条** (★行序即真源序★)
+      · 该 ref **一条本体行都没有** ⇒ 回退到**首见非空 value** (★旧行为, 保底不炸★)
+    ★**口径与 `state/gen_bom.py::_pick_value` 同款** (★本体行优先★)
+      ⇒ ★板封装 Value 与 BOM 的 value 同源 ⇒ 板厂/贴片厂看到的跟 BOM 看到的是同一句★
+    ★**为什么必须改**: 旧写法取该 ref 在网表里的【第一行】⇒ 多行器件 (★本体行 + 各脚行★)
+      拿到的是**脚功能串** ⇒ 板上 `U_EN_SW` 的 Value = 'EN 输入 (高=放行底板)' (★实测 2026-11-17★)
+      ⇒ 贴片程序里没有这颗料 ⇒ 那是投板后才发现的类别 (★★R3 判据 / 作业包 S3 B-2★★)
+    """
+    value_of = {}
+    value_body = {}
+    for r in rows:
+        ref = (r.get("ref") or "").strip()
+        if not ref:
+            continue
+        val = (r.get("value") or "").strip()
+        if not val:
+            continue
+        if ref not in value_of:                      # ★兜底: 首见非空 (★旧行为★)
+            value_of[ref] = val[:40]
+        typ = (r.get("type") or "").strip()
+        if typ not in ("NET", "") and ref not in value_body:   # ★本体行优先★
+            value_body[ref] = val[:40]
+    for ref, val in value_body.items():
+        value_of[ref] = val
+    return value_of
+
+
+def dnp_refs_from_rows(rows):
+    """★板上要打 DNP 标记的位号集合 (X-4) = ★**网表 `dnp` 列**★ (★真源已在盘, 不另立一套★)
+
+    ★**判据 (机器可算)**: 该行 `dnp` 列逐字 == "DNP" ⇒ 该 ref 是 DNP 件
+    ★**为什么用 dnp 列而不是另立白名单**:
+      ★网表 `HW/netlist_v1.csv` 的 dnp 列已有 ★必装 / DNP / 可选★ 三值
+      (★2026-11-17 实测: 384 必装 / 125 DNP / 4 可选★) ⇒ **DNP 真源已在盘** ⇒ 生成器直接读它
+      ⇒ 以后落表批次改 dnp 列 ⇒ 重跑生成器 ⇒ 板上的 DNP 标记自动跟着走
+      (★不用手工维护第二套名单 ⇒ 也就不会出现"名单和网表不一致"★)
+    """
+    out = set()
+    for r in rows:
+        ref = (r.get("ref") or "").strip()
+        if not ref:
+            continue
+        if (r.get("dnp") or "").strip() == "DNP":
+            out.add(ref)
+    return out
+
+
 def main():
     rows = load_rows()
     per_ref, placeholder, notes = derive_pads(rows)
-    value_of = {}
-    for r in rows:
-        ref = (r.get("ref") or "").strip()
-        if ref and ref not in value_of:
-            value_of[ref] = (r.get("value") or "")[:40]
+    # ★★2026-11-17 ISS-269 B-2: 本体行优先 (★口径同 gen_bom.py::_pick_value ★)
+    value_of = pick_board_values(rows)
     for ref in per_ref:
         if ref not in value_of:
             # ★只在节点串里出现的器件 (J_SOM_P1..P4) —— ref 列没有它 ⇒ 值给个占位
@@ -588,7 +659,13 @@ def main():
     board = pcbnew.BOARD()
     # ★2026-11-05: 铜层数可配 (环境变量 PCB_LAYERS) ⇒ ★**6 层布不通时试 8 层**
     #   (Forlinx 官方载板是 10 层 ⇒ 6 层对 400 个 0.4mm pitch BTB 焊盘本来就偏紧)
-    board.SetCopperLayerCount(int(os.environ.get("PCB_LAYERS", 6)))
+    # ★★2026-11-17 ISS-269 X-3: 默认层数 6 → **8** (★盘上板实测 = 8 铜层 ★)
+    #   ★**为什么必须改**: 不显式传 PCB_LAYERS ⇒ 默认 6 ⇒ **裸跑一次生成器 ⇒ 板掉到 6 层**
+    #   ★⇒ 「板只改一次」那一趟白做 ⇒ ★这是**复发型缺陷** (★HW/PCB/STACKUP.md 记着 11-06 同型事故 ★)
+    #   ★**保留 env 覆盖能力** (★实验臂 PCB_LAYERS=6 那种还要用 ★) + ★**打印实际层数** (★防"以为改了" ★)
+    _PCB_LAYERS = int(os.environ.get("PCB_LAYERS", 8))
+    board.SetCopperLayerCount(_PCB_LAYERS)
+    print("  ★实际层数 = %d  (env PCB_LAYERS 可覆盖; ★默认 8 = 盘上板实测层数★)" % _PCB_LAYERS)
     add_outline(board)
 
     # 网络 (只建真实被焊盘用到的网)
@@ -1074,6 +1151,22 @@ def main():
     add_display_fpc(board, netmap, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                                 "..", "HW", "PCB", "display_fpc_params.json"),
                     _light_pins)
+
+    # ★★2026-11-17 ISS-269 X-4: **DNP 标记** (★真源 = 网表 `dnp` 列 ★)
+    #   ★**为什么必须做**: 生成器里原本 DNP 零命中 (★2026-11-17 实测 grep -c "DNP\|dnp" = 0 ★)
+    #   ★   ⇒ 板上 43 个 DNP 位号**零标记** ⇒ 贴片厂/装配按"必装"处理 (★含电池座/电池保护/2 颗 MOS ★)
+    #   ★   ⇒ 这正是 `HW/check_netlist_contradiction_r3.py` 的 F3 (★DNP 零标记 ★)
+    #   ★**标记三件套** (★KiCad 10.0.8 实跑验证 ⇒ 落盘文本 = (attr exclude_from_pos_files exclude_from_bom dnp) ★)
+    _dnp_refs = dnp_refs_from_rows(rows)
+    _dnp_marked = 0
+    for _fp in board.GetFootprints():
+        if _fp.GetReference() in _dnp_refs:
+            _fp.SetAttributes(_fp.GetAttributes()
+                              | pcbnew.FP_EXCLUDE_FROM_POS_FILES
+                              | pcbnew.FP_EXCLUDE_FROM_BOM
+                              | pcbnew.FP_DNP)
+            _dnp_marked += 1
+    print("  ★DNP 标记: %d 个位号打了 (exclude_from_bom / exclude_from_pos_files / dnp)" % _dnp_marked)
 
     board.BuildListOfNets()
 

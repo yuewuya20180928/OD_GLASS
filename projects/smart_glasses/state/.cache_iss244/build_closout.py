@@ -29,6 +29,9 @@ OUT_REL = os.path.join("HW", "PART_SELECTION_GAPS_CLOSEOUT.md")
 
 CACHE = os.path.join(HERE, "led")
 
+sys.path.insert(0, HERE)
+import post_landing  # noqa: E402  (同目录的落表后回归模块; 只读盘上真源)
+
 
 # ------------------------------------------------------------------ 数据源
 
@@ -425,9 +428,9 @@ def build():
         if ref in landed_elsewhere:
             bo_val = (bo[0].get("value") if bo else "") or ""
             bo_opn = (bo[0].get("opn") if bo else "") or ""
-            row["status"] = "★已落表 (并发落表批次, 2026-11-16 15:45 实测 BOM 已改) · 本单无需再落"
+            row["status"] = "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落"
             row["landed_note"] = ("登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: "
-                                  "BOM %s 行的 value=%r / opn=%r (本单实读, 2026-11-16 15:45 之后的状态) "
+                                  "BOM %s 行的 value=%r / opn=%r (本单实读, 2026-11-17 05:0x 的盘上状态) "
                                   "⇒ 该件的 OPN 回填已完成, 不进落表批次" % (bo_lines or "?", bo_val, bo_opn))
             row["need_land"] = "不适用 (已落表)"
             row["decision_owner"] = "无需再拍 (已落表)"
@@ -441,10 +444,14 @@ def build():
         d["self_check_result"] = d.pop("finding")
         gaps.append(d)
 
+    pl = post_landing.compute(ROOT)
     baseline = {
         "issue": "ISS-244",
         "author": "sw-lead",
         "generated": "2026-11-16",
+        "reanchor_note": ("★H-1 重锚第 1 跳 (2026-11-17 05:0x): 板侧又落了一批 (网表/脚表/BOM 落盘时刻 "
+                          "2026-11-16 22:25:14) ⇒ 登记范围 22 件里 14 件已落表 / 8 件仍待落 ⇒ "
+                          "本单的 landed_note 与 §5 落表后回归表按盘上真值重算"),
         "scope_note": ("本块由 state/.cache_iss244/build_closout.py 生成 ⇒ 表与块同源, 改数据只改脚本。"
                        "落表锚点里的网表/脚表/BOM 行号会在落表批次后漂移 ⇒ ★锚点以 ref+net 为准★。"),
         "gap_count": len(gaps),
@@ -454,13 +461,18 @@ def build():
         "landed_elsewhere": landed_elsewhere,
         "gaps": gaps,
         "opn_rows": opn_rows,
+        "post_landing": {
+            "pending_refs": pl["pending_refs"],
+            "landed_refs": pl["landed_refs"],
+            "rows": pl["rows"],
+        },
     }
-    return gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline
+    return gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline, pl
 
 
 # ------------------------------------------------------------------ 正文渲染
 
-def render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline):
+def render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline, pl):
     L = []
     A = L.append
     A("# ISS-241 选型缺口 (G-1~G-10) 逐条自查补全 + 22 件 OPN 回填清单 (ISS-244)")
@@ -475,6 +487,11 @@ def render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline)
       "**带官方出处 + 可复跑算式 + 可量化代价**的条目; 6 条 (G-2/G-6/G-7/G-8/G-9) 写成「已转单 / 已闭合 + 出处」不重复论证。"
       "另交 **22 件 OPN 回填清单** (只出清单, 一字未落表)。★**本单不替老板拍任何一条** (V-2 / V-3 / V-4 / G-1 / G-10 / 亮度档 全部只出依据 + 代价)。")
     A("")
+    A("★**2026-11-17 05:0x 增补 (H-1 重锚第 1 跳)**: 板侧又落了 13 件 ⇒ ① 每行 `landed_note` 重算 ② **新增 §5 落表后回归**: "
+      "把「板占位 land ↔ 落地器件引脚序 ↔ 网表 note 端子角色」三方逐件交叉核对 ⇒ **查出 3 条实物级 P0** "
+      "(① `Q_PG` 角色本身错 + land 不对 ⇒ 开机路径不通 ② `Q_AND` 栅/漏对调 ⇒ 复位链硬件 AND 门不成立 ③ `D_ESD_CAM` ESD 器件接反 ⇒ 保护失效 + CSI lane 被钳) "
+      "⇒ **每条都给了最小修法** (多是「两个外侧 pad 对调」) ⇒ ★**仍然只出依据 + 代价, 一件都没代拍**★。")
+    A("")
     A("## §1 口径与边界")
     A("")
     A("- **范围**: 只交依据 + 清单。网表 / 脚表 / BOM **一个字未改**; ISS-241 矩阵正文与门禁脚本 **一个字未改**; 板 / 布线 / 布局未碰。")
@@ -483,11 +500,11 @@ def render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline)
       "**未发任何邮件 / 询价 / 问询 / 采购**。查不到的一律写 `[0数据]` + 降级方案, 不挂任何把结论悬在外部回函上的措辞。")
     A("- **件数控 (两个机器派生源, 都不抄硬编码数字)**: ① **登记范围** = ISS-241 矩阵基准块的 `expected_refs` = **%d 件** (本单必须全覆盖); "
       "② **当前仍待落** = `HW/BOM_v1.csv` 实跑「待选型∩必装 − 越界件」= **%d 件**。两者不等的原因见下 (G-9)。" % (len(scope_refs), len(pending_refs)))
-    A("- ★**并发落表落地的实况 (2026-11-16 15:45:45 实测)**: 本单生成期间, `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` "
-      "被另一个落表批次改过一次 ⇒ `C_REGN` 的 BOM value 已从「[待选型] 1µF」变成「4.7µF ±10% (10V)」且 opn 已填 "
-      "⇒ 该件**已不在 BOM 待选型集合里**, 但它仍在 ISS-241 的登记范围内 ⇒ 本单清单**保留这一行**并标注「已落表 + 落表证据 (landed_note)」。"
+    A("- ★**并发落表落地的实况 (最新一次实读: 2026-11-17 05:0x)**: 本单生成期间, `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` "
+      "被落表批次改过 **两次** —— ① 2026-11-16 15:45 (`C_REGN`) ② 2026-11-16 22:25 (选型落表批次, 又落 13 件) ⇒ 登记范围 22 件里 **%d 件已落表 / %d 件仍待落** "
+      "⇒ 已落表的件**不在 BOM 待选型集合里**, 但仍在 ISS-241 的登记范围内 ⇒ 本单清单**保留这些行**并标注「已落表 + 落表证据 (landed_note)」。"
       "★**本单门禁的 C5 就是按这个口径写的**: 登记范围内的一件被并发落掉而又不写落表证据 ⇒ **红** (锚点过期 ⇒ 红 ⇒ 走 H-1 重锚 + 留痕, 不许把红灯调没)。"
-      "本单本轮为此重跑了一次生成器 + 门禁 (见交卷单 B5)。")
+      "★**本轮已按 H-1 重锚第 1 跳处理** (见 §5)。" % (len(pl["landed_refs"]), len(pl["pending_refs"])))
     A("- **落表锚点**: 一律写 `ref + net` 这样的稳定锚点 + 当刻的行号; ★**行号会随落表漂移** ⇒ 落表时以 ref+net 为准★。")
     A("")
     A("## §2 ★G-1~G-10 逐条自查结果 (一条不许少)")
@@ -538,7 +555,7 @@ def render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline)
     A("## §4 ★OPN 回填清单 (只出清单, 不落表)")
     A("")
     A("★**登记范围 = %d 件** (ISS-241 矩阵基准块的 `expected_refs`, 机器派生) · 其中 **%d 件当前仍待落** · "
-      "**%d 件已被并发落表批次落掉** (`%s`) ⇒ 该行保留并标注落表证据, 不进落表批次。"
+      "**%d 件已被并发落表批次落掉** (%s) ⇒ 该行保留并标注落表证据, 不进落表批次。"
       % (len(scope_refs), len(pending_refs), len(landed_elsewhere), ", ".join("`%s`" % x for x in landed_elsewhere) or "无"))
     A("")
     A("| # | 位号 | 板 | 矩阵推荐项 (型号) | 证据等级 | 封装兼容性结论 | 落表锚点 (ref+net, ★行号会随落表漂移★) | 要改 footprint / land? | 谁拍 | 状态 |")
@@ -562,7 +579,88 @@ def render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline)
     A("6. **`C_REGN` 已被并发落表批次落掉** (BOM value 4.7 µF / 10 V + opn 已填, 2026-11-16 15:45 实测) ⇒ **不进落表批次**, 清单里保留该行只作登记。")
     A("7. **`R_SUPV_DIV1/2`** 在 G-10 拍板前, **建议先不填最终阻值** ⇒ 若采纳「随 U_SUPV 一并 DNP」, 直接把两行的 dnp 改成 DNP。")
     A("")
-    A("## §5 出处表")
+    A("## §5 ★落表后回归 (2026-11-17 05:0x 实测) — H-1 重锚第 1 跳")
+    A("")
+    A("★**背景**: ISS-244 第一轮交卷 (2026-11-16 15:59) 之后, 板侧又落了一批选型件 "
+      "(网表 / 脚表 / BOM 落盘时刻 = **2026-11-16 22:25:14**) ⇒ 登记范围 22 件里 **%d 件已落表 / %d 件仍待落** "
+      "⇒ 本单门禁 C5 **按设计变红** (锚点过期 = 红 ⇒ 走 H-1 重锚 + 留痕, **不许把红灯调没**)。"
+      % (len(pl["landed_refs"]), len(pl["pending_refs"])))
+    A("")
+    A("⇒ 本轮按 **H-1 重锚第 1 跳** 处理: ① 重算每一行的 `landed_note` (落表证据) ② 按盘上真值**重判**十条缺口的状态 "
+      "③ 新增本节的**落表后回归表** (三方交叉核对) ④ 收口页正文与机器可读基准块**同源** (都由 `state/.cache_iss244/build_closout.py` 生成)。")
+    A("")
+    A("### §5.1 「板占位 land ↔ 器件引脚序 ↔ 网表 note 角色」三方交叉核对 (逐件实读)")
+    A("")
+    A("★**为什么加这一节**: ISS-244 第一轮只给了「占位 land 与在售器件的 land 普遍不重合」这个**几何层**的结论 (G-7); "
+      "板侧把料真正落下来之后, 才第一次有可能回答更致命的那一层: **★落地的器件, 装到现在的占位焊盘上, 引脚还对不对得上★** "
+      "⇒ 本节把三份盘上真源摆到一张表里逐件对: ① `HW/PCB/demo_mainboard.kicad_pcb` 的 pad→net (占位 land) "
+      "② `HW/netlist_v1.csv` 每行的 note 写的端子角色 ③ 厂商手册的引脚序。")
+    A("")
+    A("| 位号 | 落地型号 | 器件引脚序 (官方 PDF 实读) | 板占位 land (pad→net) | 网表 note 定的角色 | 判定 | 要改哪几处 |")
+    A("|---|---|---|---|---|---|---|")
+    for r in pl["rows"]:
+        pad_txt = ("<br>".join("pad%s=%s" % (p["pad"], p["net"]) for p in r["pad_map"])
+                   if r["pad_map"] else "板文件查无此位号")
+        role_txt = "<br>".join("%s=%s" % (c["net"], c["netlist_role"]) for c in r["checks"]) if r["checks"] else "–"
+        pin_txt = ("<br>".join("pin%s=%s" % (k, v) for k, v in sorted(r["device_pin_order"].items()))
+                   if r["device_pin_order"] else "–")
+        A("| `%s` | `%s` | %s | %s | %s | **%s** | %s |" % (
+            r["ref"], r["model"], pin_txt, pad_txt, role_txt, r["verdict"],
+            (r["fix"] or "–") if r["fix"] else ("见 §5.2 拓扑备注" if r.get("p0") else "–")))
+    A("")
+    A("★**引脚序的出处与分级 (不许混成一条)**:")
+    A("")
+    A("- `TPD1E05U06DPYR`: TI `SLVSBO7O` Table 4-1 原文「**GND = pin 2 / I/O = pin 1**」⇒ **[官网]** (本轮实读, 落盘 `state/.cache_iss244/led/tpd4e05u06.pdf`, 10 页)。")
+    A("- `AO3400A` / `DMP3098L`: 厂商手册 p1 的 Pin Configuration **图上没印引脚号** ⇒ 本节只把「**排布** (G/S 在一侧, D 在另一侧)」当 **[官网·图读]**, "
+      "而「哪一根是 1/2/3」按 JEDEC TO-236 (SOT-23) 通用编号 ⇒ **[推算]** ⇒ ★**两层分开标注, 不合并成 [官网]★**。")
+    A("- `PESD5V0S1BA`: 双向件 ⇒ 极性无关 ⇒ 不参与引脚序判定。")
+    A("")
+    A("### §5.2 ★三条 P0 (板那一趟必须同批改, 否则板子出来就是坏的)")
+    A("")
+    A("**P0-a · `Q_PG` — 开机路径不通 (角色本身就错 + land 也不对)**:")
+    A("")
+    A("- **网表 note 的角色 = 错接**: `HW/netlist_v1.csv` L58 note 的「正解」段写「源极接 ON · 漏极接 BAT_SW · 栅极接 PG」 "
+      "⇒ 这就是 ISS-244 §3.3 的**写法B**: 上电瞬间 ON 被 10 kΩ 下拉到 0 V ⇒ Vgs = 0 − 0 = **0 V** ⇒ 不导通; PG 高时 Vgs = **+3.3 V** (对 P 沟道是反向偏置) "
+      "⇒ **PG 高低都关 ⇒ 开机路径彻底不通**。⇒ ★**唯一电学自洽的是写法A: S=BAT_SW / D=ON / G=PG**★ (PG 低 ⇒ Vgs = 0 − 4.2 = **−4.2 V** ⇒ 导通 ⇒ ON 被拉到 BAT_SW ⇒ 开机)。")
+    A("- **落地的器件引脚序 = G-S-D**: `DMP3098L` (Diodes) pin1=G / pin2=S / pin3=D ⇒ ★**按写法A 排, land 目标 = pad1=PWR_GOOD(G) / pad2=BAT_SW(S) / pad3=PWR_ON(D)**★ "
+      "⇒ 现在占位是 pad1=PWR_ON / pad2=BAT_SW / pad3=PWR_GOOD ⇒ ★**只需把两个外侧 pad 的网名对调 (pad1 ↔ pad3), pad2 不动**★。")
+    A("- ⇒ **落表批次 + 板那一趟要一起做的两件事**: ① 网表 note 的角色措辞改成写法A (本单不改网表) ② land 把 pad1/pad3 的网名对调。")
+    A("- ★**顺带订正 ISS-244 第一轮的降级①**: 当时写「写法A 需要 D-S-G 引脚序器件, 在售件 [0数据]」⇒ ★**本轮实读证明: 用已落地的 G-S-D 器件 (DMP3098L) + 板侧对调两个外侧 pad 就够, 不需要买 D-S-G 器件**★。")
+    A("")
+    A("**P0-b · `Q_AND` — 栅/漏对调 (复位链的硬件 AND 门不成立)**:")
+    A("")
+    A("- 网表 note 的角色是对的 (L64 漏极=RESET_N / L65 源极=GND / L66 栅极=PG_AND) ⇒ ★**但落地的 `AO3400A` 引脚序是 pin1=G / pin2=S / pin3=D**★ "
+      "⇒ 现在的占位 (pad1=RESET_N / pad2=GND / pad3=PG_AND) 装上去 = **栅极接 RESET_N、漏极接 PG_AND** ⇒ 复位链的硬件 AND 门不成立。")
+    A("- ⇒ **land 目标 = pad1=PG_AND(G) / pad2=GND(S) / pad3=RESET_N(D)** ⇒ 同样是**两个外侧 pad 对调**。")
+    A("- ★**对照**: `Q_ENVC` 的占位 (pad1=PG_AND / pad2=GND / pad3=EN_VCORE) 与 `AO3400A` 的 G-S-D **正好对上** ⇒ ★**三颗 MOS 里只有这一颗不用动 land**★。")
+    A("")
+    A("**P0-c · `D_ESD_CAM` — ESD 器件接反 (跨铰链 CSI 时钟线既没保护又被钳)**:")
+    A("")
+    A("- 落地件 `TPD1E05U06DPYR`: pin1 = **I/O**, pin2 = **GND** (TI Table 4-1, 原文) ⇒ 而占位 land 是 **pad1=GND / pad2=CSI_D0_CK_P** ⇒ ★**正好相反**★。")
+    A("- ⇒ 装上去: 器件的 I/O 脚接地、器件的 GND 脚接信号 ⇒ **正向 ESD 到地无通路 (保护失效)** + **CSI lane 的负向摆幅被内部二极管钳到 GND 附近**。")
+    A("- ⇒ **land 目标 = pad1=CSI_D0_CK_P(I/O) / pad2=GND** ⇒ 两个 pad 对调 (ISS-241 §3 的候选1 栏已预告过这条, 本轮落到实物)。")
+    A("")
+    A("★**另外两条「不是 P0 但必须同批」**: ① `R_SUPV_DIV1/2` 已落成 **0 Ω 跳线且 dnp=必装**, 而 `U_SUPV` 三行 dnp=**DNP** ⇒ **装 0 Ω = 把 `V_SOC_IO` 经两臂短路到地** "
+      "(ISS-190 同判) ⇒ 建议随 `U_SUPV` 一并置 DNP (G-10 降级①); ② `D_ESD_TC` 落的是 **3 通道** `SP0503BAHT`, 而网表只接了 1 个通道 (USB_VBUS_RAW) + GND ⇒ **另 2 个通道闲置** ⇒ Type-C 的 D+/D− 仍未被这阵列覆盖。")
+    A("")
+    A("### §5.3 十条缺口按落表后的盘上真值重判")
+    A("")
+    A("| 缺口 | 落表后的盘上真值 (2026-11-17 05:0x 实读) | 本轮变化 | 状态 |")
+    A("|---|---|---|---|")
+    A("| **G-1** | `Q_PG` 已落 `DMP3098L` (G-S-D) + 网表 note 仍是**写法B 的错角色** + 占位 land 也不对 ⇒ **三方互不一致** | ★由「note 措辞矛盾」升级成**实物级 P0** (§5.2 P0-a), 并给出**只对调两个外侧 pad** 的最小修法 | 需老板拍 (写法) + 需落表 + 需板那一趟 |")
+    A("| **G-2** | 3 颗 MOS 的占位 pad 序 = 网表行序 (`Q_AND`=D/S/G · `Q_PG`=S/D/G · `Q_ENVC`=G/S/D) ⇒ **与落地的 G-S-D 器件逐件核对后: 2 颗不符, 1 颗相符** | ★由「三件都不同」精确到**逐件结论 + 目标 pad→网** (§5.1 / §5.2) | 已转单 (hw-lead 板那一趟) · 追加 P0-b |")
+    A("| **G-3** | `D_ESD_CAM` 已落 `TPD1E05U06DPYR` (**单通道**) ⇒ CSI-2 五对差分共 10 条线仍只有 `CSI_D0_CK_P` 一条有保护 ⇒ **9 条裸奔**; 且这颗的 pad↔pin **接反** | ★保护范围结论不变, 但**新增「接反」这条实物级缺陷** (§5.2 P0-c) | 需老板拍 (V-2) · 依据与代价已备齐 |")
+    A("| **G-4** | `D_ESD_USB_D` 已落 `TPD1E05U06DPYR` (**单通道**, 引脚序对得上) ⇒ `USB_D_N_SRC` 仍无保护 ⇒ **D− 裸奔**; 另一颗 `D_ESD_TC` 是 3 通道件但只接了 1 通道 | ★**从「设计缺口」变成「已落地的缺口」** ⇒ 现在是**已装机状态**下的实际风险, 不是「还没选」 | 需老板拍 (V-2) · 依据与代价已备齐 |")
+    A("| **G-5** | LED 四颗 (`D_LED_R` / `D_LED_G` / `D_CHG_LED` / 2 颗按键 LED) 仍**待选型** ⇒ 1 kΩ 串阻 + 3.3 V ⇒ 0.8~1.35 mA 的工作点**仍未改**; 厂商曲线数字化结论 (1 mA 档 = 标称亮度的 4.8%~7.2%) 不受落表影响 | 无变化 (这三条仍待落 ⇒ 亮度档仍需老板拍) | 需老板拍 (亮度档) + 需落表 (若选改 R) |")
+    A("| **G-6** | `C_REGN` 已落 4.7 µF / 10 V (Murata 0805, X7R) ⇒ 与 TI BQ25896 pin22 手册一致 | ★**已闭合** (落表证据见 §4 landed_note) | 已闭合 |")
+    A("| **G-7** | 主板在册件的占位 land 仍与厂商 land 不重合 (ESD 占位 2.30 mm 间距 vs X1SON 0.65 mm; MOS 占位 1.27~1.53 mm vs SOT-23 0.95 mm; FB_DEMO 占位 0.8 mm vs 0805) ⇒ **本轮又多了 13 件已落地的实物可核** | ★范围扩大 (14 件已落表 ⇒ 几何结论可逐件核) | 已转单 (hw-lead 板那一趟) · 与 G-1/G-2 同批 |")
+    A("| **G-8** | 6 件充电板器件 (`D_ESD_TC`/`FB_VBUS`/`D_TVS_VBUS`/`Q_CHG_LED`/`D_CHG_LED`/`C_REGN`) 里 **5 件已落型号**, 但**板文件里查无此位号** ⇒ 封装占位仍「待定」 | ★型号已落 ≠ 封装已定 ⇒ 落表批次仍需另补 footprint | 已转单 (ISS-243 L4) · 已闭合 |")
+    A("| **G-9** | 登记范围 = 22 (不变) / 当前仍待落 = **%d** (%s) ⇒ 两个数都要写, 来源都注明 | ★口径差从 1 件扩大到 %d 件 (全部是被并发落表批次合法落掉的) ⇒ 本单门禁 C5 按双源判定 | 已闭合 |" % (
+        len(pl["pending_refs"]), ", ".join("`%s`" % x for x in pl["pending_refs"]),
+        len(pl["landed_refs"]) - 1))
+    A("| **G-10** | `R_SUPV_DIV1/2` 已落成 **0 Ω 跳线 (RC0603JR-070RL) 且 dnp=必装**, 而 `U_SUPV` 三行 dnp=**DNP** ⇒ **短路到地的风险已从「设计缺陷」变成「装机缺陷」** | ★由「阻塞在阻值算不出」变成**「阻塞在要不要装」** ⇒ 降级① (两臂随 U_SUPV 一并 DNP) 变成零成本动作 | 需老板拍 + 需落表 |")
+    A("")
+    A("## §6 出处表")
     A("")
     A("| # | 出处 | 类型 | 支持的结论 | 落盘位置 |")
     A("|---|---|---|---|---|")
@@ -596,11 +694,20 @@ def render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline)
         ("S12", "网表 / 脚表 / BOM / 板文件 实读", "[实测]",
          "G-3/G-4 的「只护一边」事实 + G-5 的 1 kΩ 事实 + G-10 的 dnp 事实 + 22 件的落表锚点",
          "`HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` / `HW/PCB/demo_mainboard.kicad_pcb`"),
+        ("S13", "★TI `TPD4E05U06` 数据手册 SLVSBO7O (2024-08 改版, 10 页) Table 4-1 + Figure 4-1 (DPY 2-Pin X1SON Top View)", "[官网]",
+         "§5.1 的 `TPD1E05U06DPYR` 引脚序: **GND = pin 2 / I/O = pin 1** ⇒ `D_ESD_CAM` 占位 land (pad1=GND) 接反 ⇒ P0-c",
+         "`state/.cache_iss244/led/tpd4e05u06.pdf`"),
+        ("S14", "AOS `AO3400A` (5 页) p1 Pin Configuration 图 + Diodes `DMP3098L` (5 页) p1 Pin Configuration 图", "[官网·图读] + 编号 [推算]",
+         "§5.1 的 `AO3400A` / `DMP3098L` 引脚序: 排布 G/S 一侧 + D 另一侧 (**图上未印引脚号**) ⇒ 编号按 JEDEC TO-236 ⇒ P0-a / P0-b",
+         "`state/.cache_iss244/mos/AO3400A.pdf` / `DMP3098L.pdf`"),
+        ("S15", "★落表后回归计算模块 (板文件 pad→net + 网表 note 角色 + 器件引脚序 三方交叉核对)", "[实测]",
+         "§5.1 逐件结论 + §5.2 三条 P0 的最小修法 ⇒ 一条命令可复跑",
+         "`state/.cache_iss244/post_landing.py`"),
     ]
     for s in srcs:
         A("| %s | %s | %s | %s | %s |" % s)
     A("")
-    A("## §6 自证复现命令")
+    A("## §7 自证复现命令")
     A("")
     A("```bash")
     A("# ① 件数 (两个机器派生源, 都不抄硬编码数字)")
@@ -629,11 +736,14 @@ def render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline)
     A("python3 HW/check_part_selection_gaps.py             # rc=0")
     A("python3 HW/check_part_selection_gaps.py --selftest   # rc=0")
     A("")
+    A("# ④b 落表后回归 (三方交叉核对)")
+    A("python3 state/.cache_iss244/post_landing.py")
+    A("")
     A("# ⑤ 上游门禁 (ISS-241) 不许被本单改红")
     A("python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_matrix.py --selftest")
     A("```")
     A("")
-    A("## §7 ★机器可读基准块 (门禁脚本读这一块)")
+    A("## §8 ★机器可读基准块 (门禁脚本读这一块)")
     A("")
     A("<!-- BEGIN ISS244 缺口收口基准块 -->")
     A("```json")
@@ -641,7 +751,7 @@ def render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline)
     A("```")
     A("<!-- END ISS244 缺口收口基准块 -->")
     A("")
-    A("## §8 边界自证")
+    A("## §9 边界自证")
     A("")
     A("| 边界 | 自证 |")
     A("|---|---|")
@@ -658,8 +768,8 @@ def render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline)
 
 
 def main():
-    gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline = build()
-    text = render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline)
+    gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline, pl = build()
+    text = render(gaps, opn_rows, scope_refs, pending_refs, landed_elsewhere, baseline, pl)
     out = os.path.join(ROOT, OUT_REL)
     if "--check" in sys.argv:
         print(text[:3000])

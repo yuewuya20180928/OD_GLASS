@@ -1,16 +1,18 @@
 agent: sw-lead
 role: 软件总工
-updated_at: '2026-11-16'
+updated_at: '2026-11-17'
 updated_by: sw-lead
 status:
-  phase: P2
+  phase: delivered
   progress_pct: 100
-  health: yellow
-  summary: '★ISS-255 (+ISS-256) 已交卷: 生产链门禁的 4 条 mtime 准入判据 ⇒ 【内容锚点】(① 台账登记 md5 / ② 原理图语义内容 (归一化去 uuid)
-    / ③ PCB 焊盘级等价 / ④ BOM 逐行 (位号,value,dnp)) ⇒ ②④ 的假红被治好, ③ 的真红保持红 (硬规矩①满足), --selftest 14/14 rc=0, daily_check
-    --self-test-fast rc=0, merge+gate_check rc=0。★零落表 (板/.kicad_pro md5 逐字节不变) · 零外发 · 未代拍板级项。★健康度 yellow
-    的原因 = 链上 ①③⑤ 三红都是真红 (板侧那趟没排上 + hw-lead 落表未进台账) ⇒ 不是本单故障'
-  updated_at: '2026-11-16'
+  health: 绿
+  summary: '★ISS-250 第5轮 (独立复核侧) + 第6轮 (板可达性实测 + 模拟器掉点) 交卷 (2026-11-17 05:2x~06:0x, sw-lead) ★ 第6轮三条新事实:
+    ① 板端可达性实测 = 不通且根因定位 (无 enp4s0 + 两网段全段扫无第三方主机 + mDNS 无解析 + 无 adb/USB) ⇒ 板端接受性仍 [0数据], 其前置只有「板没做出来」「板没接网通电」两类需要别人,
+    板端 runtime 自己就能装 (官方公开仓库) ⇒ 不许挂等外部回复 ② 板不可达时「精度掉点」今天就有数: 两套 toolkit 自带 NPU 模拟器, 实测两路线量化掉点基本一致 (逐 head
+    余弦差 <0.0001) ⇒ 路线② 量化质量不劣于路线① (★模拟器口径, 非板端真值★) ③ 板端 runtime 官方公开仓库 ⇒ 零采购。★ 边界: 零外发 · 未碰 HW/ 与 MECH/
+    · 未改 PROJECT_TRACKER §0 · 未自签 issue_log · 未替老板拍板 (rk3572 vs rk3576 仍是老板级) · 本轮未追加共享查证表 (避免与并行会话互相覆盖,
+    12 行落在 SW/research/ISS250_r6_复核记录.md)★'
+  updated_at: '2026-11-17'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -905,6 +907,270 @@ artifacts:
   summary: '★ISS-258 交卷单 (B1~B6 齐全): 病灶=锚点过期不是真源被换; 根因=ISS-257 落表第 6 批 (G1a-7 选型落表, 2026-11-16 21:22);
     判别证据=①门禁脚本 mtime 早于落表 ②反向自证 绿→红→绿 (R6 两条 + timing_check 掉回 69/71 + selftest 掉回 15/16) ③台账四项同一行; ★答复任务书
     ③: timing_check.py 掉的 2 条读的就是 SW/SW_MD5_BASELINE_LEDGER.md §1 同一个锚点块, SW/ 下无第二处 md5 锚点 ⇒ 未改任何阈值即回绿'
+- path: HANDOFF/2026-11-17_sw-lead_ISS263_rknn3_toolkit安装实测与rk3572转换.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: 'ISS-263 交卷单 (B1-B6 齐全): rknn3-toolkit 1.2.0 装上 + config(rk3572) 过 + 3 次转换 rc=0 + 往返自证 rc=0;
+    板端仍 [0数据]'
+- path: SW/RK3572_TARGET_COMPAT_V2.md
+  kind: note
+  version: '2.1'
+  updated_at: '2026-11-17'
+  summary: 'ISS-263 追加 §5.4 + §6.4 实测栏 (只追加, 老字未删): 装上了 / config 过了 / 转换 3 次读数 / 板端仍 [0数据]'
+- path: logs/iss263/roundtrip_probe.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 往返自证原始日志 (含 load_rknn 真签名 + rc=0 + 再导出 md5 一致 + 板端 RKNN3_ERR_DEVICE_UNAVAILABLE 原文)
+- path: logs/iss263/gates_r2.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 第3趟验收复跑原始日志 (A0 import rc=0 / A1 config rk3572 rc=0 + rk3576 报错 / G1_RC=0 / G2_RC=0
+    71-71 / G3_MERGE_RC=0 / G3_GATE_RC=0 Q1 18-18 Q2 3-3 / G4 受保护5件md5不变 / G5 toolkit2未污染 / G6 rknn3-toolkit
+    1.2.0)
+- path: SW/tools/iss263_roundtrip_probe.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 往返自证脚本 (按 inspect 真签名 load_rknn(model_path, weight_path) 调; 判据未改; 输出 rc_load_rknn /
+    再导出 md5 比对 / init_runtime 板端探测)
+- path: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md
+  kind: research
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-270 SW 侧『外部回复挂账』全量自查: 5 条 (E-1 SW-FW-B4 / E-2 fw_s2_test_gear / E-3 model_license_stack_decision+model_toolchain_q9_addendum
+    / E-4 ars45_art_galaxy_sdk / E-5 reset_release_policy) 逐条换成【自己查的结果 + 证据等级 + 降级方案】; 口径: 外部依赖 = 只有外部方能回答的;
+    SW 侧真·外部依赖 = 0 条; 含 SW/** 文档外部依赖字样扫描 28 处清单 + 板到手即跑 P3 命令清单 (全部 [推算] 未实测)。'
+- path: HANDOFF/2026-11-17_sw-lead_ISS270_SW侧外部依赖自查.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-270 sw-lead 交卷单 (B1~B6 齐全): 结论/自评/证据分级/接口取值/卡点/复现命令。'
+- path: HANDOFF/2026-11-17_sw-lead_ISS235_残留订正_SW_TIMING_REVIEW_7-1_7-6.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-235 交卷后残留订正 (follow-on): SW/SW_TIMING_REVIEW.md §7-1 / §7-6 文档侧同款过期断言 = 断言写死了已被上游合法落表真修好的旧事实
+    ⇒ 按追加式订正成 已修复 (上游已修) (7-1 = ISS-220 d6 2026-11-16 02:32 · 7-6 = ISS-233 2026-11-16 06:48:38 网表 L442
+    器件本体行) ⇒ 7 行一条没删 + 原文一字未改 + 另外 5 条 (7-2/7-3/7-4/7-5/7-7) 逐条回盘仍成立一个字没改 + 5 处 前置 表述一起订正 + §13 两条自带复现命令与文档声称对齐
+    (13 / 1) + §1.1 F8 行三个数改成现值 ⇒ 判据代码一个字节没动 + 受保护 5 件 md5 逐字节不变'
+- path: SW/SW_TIMING_REVIEW.md
+  kind: doc
+  version: '1.2'
+  updated_at: '2026-10-25'
+  summary: 'ISS-235 残留订正 (2026-11-17, sw-lead): 追加式订正 §7-1 (I2C_A 注记矛盾 = ISS-220 d6 已修) + §7-6 (U_EN_SW
+    无器件行 = ISS-233 已修, 现网表 L442 type=IC) 两行状态 + 现值 + 5 处 前置 表述 + §13 两条复现命令 (原记 →0 实跑 1 = 文档自相矛盾, 订正后
+    13/1 与实跑一致) + §1.1 F8 行 (rail_switching_devices 1→2 · load_switch_without_device_row [] · U_PWR_SW
+    grep 9→10) + §10.1 / §8 CR-1 / §7 节末回盘说明; ★7 行一条没删 · 原文一字未改 · 只追加状态与现值 (追加式, 不改历史)★; ★判据代码 (timing_check.py
+    / check_demo_panel_spec.py / check_shutdown_semantics.py) 一个字节没动★'
+- path: SW/LOAD_SWITCH_SELECTION_FACTS.md
+  kind: doc
+  version: '2.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-172 第 2 轮 (2026-11-17) 追加: 落表后回归 —— §0.1 第 2 轮补记 + §7 表下补记 (L1 已由 ISS-257 落表) + §9 (9.1
+    落表后网表现状 / 9.2 残留缺口 3 条 / 9.3 C9 六条子判据 / 9.4 新增反向用例 M9~M12 + --sandbox 真改网表自证) + 机器基准块重锚 (netlist_value_snapshot
+    对齐现行网表 + 新增 netlist_value_pre_drift / netlist_drift 9 字段 / residual_gaps 3 条); ★8 条判据逐格评定 / RCB 专项结论
+    / §4 推荐 / 2 条降级方案 一字未改'
+- path: SW/tools/check_load_switch_selection.py
+  kind: tool
+  version: '2.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-172 第 2 轮: 门禁加 C9 (落表后回归 6 条子判据 —— a 快照重锚 / b drift 五字段齐全 / c drift 与快照自洽 / d 落表前后串变了则
+    dropped_requirements 非空 / e 网表提到 RCB 时落地型号在册且 RCB 判定与网表口径一致且判据覆盖反向阻断 / f residual_gaps 非空) + M9~M12
+    4 条反向用例 + --sandbox 模式 (在 /tmp 临时树上真改网表跑真脚本 4/4); ★C0~C8 判据与阈值一字未改'
+- path: HANDOFF/2026-11-16_sw-lead_ISS172_负载开关选型证据矩阵.md
+  kind: handoff
+  version: '2.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-172 交卷单追加第 2 轮章节 (B1 至 B6): 结论摘要 4 条 / 改了哪三样 / 新增证据分级 / C9 六条子判据 / 未决 R-1~R-4 / 自证复现命令
+    + 受保护 4 件 md5 漂移归属 (归属 hw-lead 落表批次, 非本单); ★第 1 轮内容一字未删'
+- path: HW/check_part_selection_landed_crosscheck.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-241 附录门禁 (只读): 落表批次回填核对 (HIT/DEVIATION/OPEN 三分) + ★PAD-序机检 (板上占位 pad 序 vs 落表器件引脚序, 抓出
+    D_ESD_CAM 器件脚接错 + Q_AND 需重画 land) + 焊盘数 vs 脚数。C0~C5 + --selftest 5/5 (M1 删BOM位号→C1 / M2 删矩阵位号→C0 /
+    M3 清候选→C3 / M4 pad 序改对→C4 不再报 / M5 改坏 Q_ENVC→C4 报★)。--strict ⇒ rc=1 (缺陷是真的)'
+- path: SW/LOAD_SWITCH_SELECTION_FACTS.md
+  kind: doc
+  version: '3.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-172 第 3 轮 (2026-11-17 04:5x 补证轮): 圣邦微 SGM2572 / SGM2575S 官方数据手册 PDF 已从官方服务器直取 ⇒ 证据等级全部
+    [媒体]→[官网] (全文已无 [媒体] 依赖) + 关闭两个 [0数据] 格 (绝对最大额定 VIN -0.3~6V ⇒ 判据 1 满足; 4-ball 引脚原表 A1 OUT/A2 IN/B1
+    GND/B2 ON) + 新查出 SGM2575S RON max = 63 mΩ (SGM2572 = 60 mΩ) ⇒ 唯一 RCB+RON 双满足只在 typ 口径成立; ★机器基准块同步订正
+    FB2.cost / FB2.condition / FB2.basis / conclusion.recommendation_by_a5_order 四处仍写「引脚定义 [0数据] 须核原表」的过期文字
+    + meta 加 round3_date / round3_note ⇒ 矩阵与基准块不再各说各话; ★8 条判据逐格评定结论 / RCB 专项结论 / §4 推荐 / 2 条降级方案结构 一字未改'
+- path: HANDOFF/2026-11-16_sw-lead_ISS172_负载开关选型证据矩阵.md
+  kind: handoff
+  version: '3.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-172 交卷单追加第 3 轮章节 (B1 至 B6): 补证轮结论摘要 4 条 / 本轮改了哪几样 / 新增 [官网] 证据表 (S11 S12 官方 PDF 直取 URL
+    + 页内原文数值) / 门禁复跑 rc=0 + selftest 12/12 + sandbox 4/4 (判据 C0~C9 一字未改) / 未决 R-5 RON typ-vs-max 口径 +
+    R-6 SYS 0.55A vs 2A 口径 + R-7 TI 官网 UQFN-HR+RCB 未穷举 + R-8 TPS22917 与 TPS22910A 的 RON max 未取得 / 受保护
+    4 件 md5 与第 2 轮逐字节一致; ★第 1~2 轮内容一字未删'
+- path: state/.cache_iss244/post_landing.py
+  kind: tool
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-244 第 2 轮 (2026-11-17 05:0x) 新建: 落表后回归计算模块 (只读) ⇒ 把「板占位 land (pad→net) ↔ 落地器件引脚序 ↔ 网表
+    note 定的端子角色」三方逐件交叉核对 ⇒ 查出 3 条实物级 P0 (Q_PG 角色本身错 + land 不对 ⇒ 开机路径不通 / Q_AND 栅漏对调 ⇒ 复位链硬件 AND 门不成立 /
+    D_ESD_CAM ESD 器件接反 ⇒ 保护失效 + CSI lane 被钳) ⇒ 每条都给了最小修法 (多是「两个外侧 pad 对调」) ⇒ 只出依据 + 代价, 一条未代拍'
+- path: HW/check_part_selection_gaps.py
+  kind: gate
+  version: v1.1
+  updated_at: '2026-11-17'
+  summary: '★ISS-244 第 2 轮: 门禁加 C7 (落表后回归表: 已落表的件逐件有行 + 判定 + 出处 + 有引脚序不符必须有修法) + 加两条反向用例 M9/M10 (删一行 /
+    清空出处 ⇒ C7 红) + 全部用例加「红因指名」自证 (红的那一条必须指名道姓说是哪个目标, 防「随便塌一条也算过」) ⇒ C0~C7 八条断言 rc=0 / selftest 10/10'
+- path: SW/research/ISS250_rknn_toolkit2_target_查证表.md
+  kind: research
+  version: v2.0
+  updated_at: '2026-11-17T05:50:00+08:00'
+  summary: '★ISS-250 查证表 v2.0 (2026-11-17 05:5x): 21 条查证行 (E-01~E-21, 每行 = 查了什么/去哪查/结论/证据等级/原文摘录); E-11/E-12
+    由 [0数据·受下载速率限制] 改判为 [实测] (ISS-263 实跑 + 本轮复核 config 正反两面); 新增 E-13 (官方 v2.5.0 仍无 rk3572) / E-14 (官方无跨芯片口径
+    ⇒ [0数据]) / E-15 (RK3576=host SoC vs RK3572=SoC 内 NPU) / E-16 (板端库分叉 rkcp vs native + 官方板端命令) / E-17
+    (产物两件套 .rknn+.weight) / E-18 (官方两个 model zoo 均 0 个 .rknn ⇒ 官方预编译模型不存在) / E-19 (RK3576 6 TOPS 官网 vs
+    RK3572 4 TOPS 媒体 ⇒ 13.30 ms 门槛须重估) / E-20 (RK3572 不在 RKNPU2 名单) / E-21 (两工具链 target 集合互斥 本轮自测); §2
+    降级方案 8 条 (5 条候选逐条判死/判活 + R1/R2/R3); §3 板端执行清单两条分支 (路线① lite2 / 路线② RKNN3 native) + N1~N5 判据 + 每条 FAIL
+    的下一步动作★'
+- path: SW/tools/rk3572_rknn3_board_smoke.sh
+  kind: tool
+  version: v1.0
+  updated_at: '2026-11-17T05:45:00+08:00'
+  summary: '★ISS-250 路线② (官方 rknn3-toolkit / target_platform=rk3572) 板端验证包: P1 板型 (device-tree 含 rk3572)
+    / P3'' 板端 librknn3_api_native.so (RK3572 专用, RK3576 用的是 rkcp ⇒ 不通用) / P4'' 两件套 .rknn + .weight / P6''
+    双 sha256 / N1 接受性 (demo 二进制或 lite3 python 两条模式) / N3 N4 N5; --dry-run rc=0; 本机实跑判 FAIL+INDET 且 rc=1
+    (不假装通过) ⇒ 板端判定逻辑可执行★'
+- path: SW/tools/check_iss250_rknn_target_gate.py
+  kind: tool
+  version: v1.0
+  updated_at: '2026-11-17T05:50:00+08:00'
+  summary: '★ISS-250 机器门禁 (可选第 5 件): ① 每条查证行必须带五级证据等级之一 ② 任务书点名的 4 条必答命题全覆盖 ③ 降级方案 ≥2 条且 代价/启用前提/谁拍 三列非空
+    ④ 判据不许出现 等回信/等原厂回信/待外部确认 类措辞 ⑤ 板端执行清单 (N1~N5) 在位; --selftest 反向用例 5/5 rc=0 (4 反向 + 1 正向) ⇒ 正向 PASS
+    rc=0★'
+- path: HANDOFF/2026-11-16_sw-lead_ISS250_rknn-toolkit2_RK3572_target查证与降级方案.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-17T06:00:00+08:00'
+  summary: '★ISS-250 交卷单 (B1~B6 六块齐全): B1 六条结论摘要 / B2 12 条验收标准自评 / B3 15 条证据分级 / B4 6 条接口取值声明 / B5 6 条未决项
+    + 4 条给 main 的 need / B6 全部自证复现命令 + 板端一条命令; 附交付物清单 + 边界 + 下一步; ★零外发·板端 [实测]=0 条·不替老板拍板 (推荐≠已决定)·issue_log
+    零写入 (status 留给 main)★'
+- path: HANDOFF/2026-11-17_sw-lead_ISS250_独立复核与target机器门禁.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-250 第5轮 (独立复核侧) 交卷单 B1~B6 齐全 ★ 6 条结论: ①题面结论自己重测成立 (toolkit2 2.3.2 合法11个含rk3576不含rk3572/rk3572b)
+    ②新结论 rknn3 1.2.0 合法全集7个含rk3572拒rk3576 ③新结论 两条线交集=∅ (路线产物不可互换) ④新结论 两代产物容器magic不同 (RKNN vs RKNX+RKNX-W,
+    板端要RKNN3代runtime且两件套必拷) ⑤升级toolkit2仍无rk3572 (最新v2.5.0) ⑥事实产物闸 rc=0 + 反向自证 rc=1 ⑦RK3572产物从/var/tmp归档进仓库
+    ★ 板端接受性仍 [0数据] 明写四处, 不挂等外部回复★'
+- path: SW/tools/check_rknn_target_compat.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-250 第5轮新产出的事实产物闸 (12条判据: 版本x2 / 合法target集x2 / 互斥不变量 / 容器magicx2 / md5锚点 / sha256 sidecar自洽
+    / 板端恒NOT_VERIFIED) ⇒ rc=0 (9 PASS 0 FAIL 3 NOTE) · --selftest rc=0 (把产物magic改坏 ⇒ 闸红 rc=1) ★与并行会话的文档完备性闸口径不同互补不重叠★'
+- path: SW/research/ISS250_r5_复现包.md
+  kind: repro
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-250 第5轮复现包: 4条命令30秒自复现 + 原始日志清单 + 板端执行清单 (一条命令 + N1~N5 量化判据) + 路线②两段式验法 (官方垫刀模型先验runtime
+    再上我们的两件套产物)★'
+- path: SW/artifacts/models/rk3572_rknn3/
+  kind: artifact
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★RK3572 产物落盘归档 (抗 /var/tmp 被清): heads版 .rknn 249360B + .weight 1960448B · 整模型版 .rknn 339992B
+    + .weight 7353856B · 各自 .sha256 sidecar (4/4 OK) + .meta.json (记 toolchain rknn3-toolkit 1.2.0 / 源ONNX
+    md5 f13ef9cc / 三次build耗时 33.231 34.035 41.595 s / 板端接受性=NOT_VERIFIED[0数据])★'
+- path: logs/iss250_r5/
+  kind: log
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-250 第5轮原始日志 (本机实跑原样): enum_toolkit2_rknn_env.log (30候选⇒11合法) · enum_rknn3_env.log (30候选)
+    · enum_rknn3_legalset.log (补测 rk182x/rk1860/rk186x ⇒ 全集7) · gate_run.log (rc=0) · gate_selftest.log
+    (rc=1 反向)★'
+- path: logs/iss263/config_probe_r3.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 第4趟 config 正反自证复跑原始日志 (rk3572 rc=0 elapsed=0.018s / rk3576 ValueError 原文一字不差)
+- path: logs/iss263/roundtrip_probe_r3.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 第4趟 往返自证复跑原始日志 (load_rknn 真签名 / rc_load_rknn=0 x2 / REEXPORT_MD5_MATCH_ORIG=True x2
+    / 板端 RKNN3_ERR_DEVICE_UNAVAILABLE rc=-1 / list_devices=[])
+- path: logs/iss263/convert_rk3572_3runs_r3.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 第4趟 转换会话B (故意并发争抢CPU 口径) 3次读数 t_total 68.810/51.040/59.832 s 全部rc=0 产物md5 97a34fff0b855b92681f26627dba5354
+- path: logs/iss263/convert_rk3572_3runs_r3_clean.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 第4趟 转换会话C (干净口径 引用用这个) 3次读数 t_total 49.148/54.950/44.050 s 全部rc=0 产物md5 97a34fff0b855b92681f26627dba5354
+- path: logs/iss263/gates_r3.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 第4趟 门禁复跑原始日志 (G1_RC=0 / G2_RC=0 SELFTEST 71-71 / G3_MERGE_RC=0 / G3_GATE_RC=0 / 受保护5件md5逐字节不变
+    / G5 toolkit2 2.3.2未污染 / G6 rknn3-toolkit 1.2.0)
+- path: logs/iss263/gate_full_r3.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 第4趟 gate_check.py 全量输出 (Q1 交付齐备率 18-18 / Q2 证据分级率 3-3 / Q6 硬件真源闸通过)
+- path: SW/RK3572_TARGET_COMPAT_V2.md
+  kind: note
+  version: '2.2'
+  updated_at: '2026-11-17'
+  summary: 'ISS-263 第4趟 追加 5.5 + 6.5 实测栏 (只追加 老字零删除 已用 difflib 校验): 独立复验 14 项 + 转换耗时 3会话x9读数的CPU-bound口径订正'
+- path: logs/iss263/acceptance_r3_final.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 第4趟 最终验收复跑原始日志 (A0 import rc=0 dist version 1.2.0 / A1 config rk3572 rc=0 elapsed=0.021s
+    + rk3576 ValueError / A2 转换3次读数 干净口径 / A3 产物 md5 97a34fff0b855b92681f26627dba5354 x3)
+- path: logs/iss263/gates_r3_final2.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ISS-263 第4趟 最终门禁复跑原始日志 (G1_RC=0 / G2_RC=0 71-71 / G3_MERGE_RC=0 / G3_GATE_RC=0 Q1 18-18 / 受保护5件md5逐字节不变
+    / G5 toolkit2 2.3.2未污染)
+- path: HANDOFF/2026-11-17_sw-lead_ISS272_投递口径mode_none归类独立复核.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-272 独立复核交卷单 (B1~B6 六块齐全)★ ★**结论: main 的改判 = 对 + 有 3 个缺口**★ ★证据: ①独立复现 --selftest rc=0
+    (main 31 条 / 本单加压后 44 条) ②自己 swap 修前修后 diff = 只 4 行口径①变 (run 记录 md5 前后 NO_DRIFT) ③14 条反向加压 (12 过 2
+    不过) ④变异测试 6 个变体 5 个被抓 (M6 探出端到端 announce 分支零执行) ⑤A/B/D 三类可见性沙盒实测 (E1/E2/E3/F)★'
+- path: state/delivery_truth.py
+  kind: code
+  version: '1.1'
+  updated_at: '2026-10-25'
+  summary: '★ISS-272 独立复核改动: ★**只加 --selftest 的合成 run 记录用例组 (断言 31 → 44, rc=0)★** ★**判据 classify_run 逐字节未改
+    (1253 B, 与 main 的 ISS-261 版 == 比较 True)★** ★md5: main 的 ISS-261 版 8dad8b39d873b3d930acb1c076e240cb
+    → 本单加压版 a4cb793c41f33ee1681d46023c2ac2a7★ ★**动机: 变异测试 M6 实测出「端到端 announce 分支在当前盘上一次都没执行过」(盘上 9 个 cron
+    job 的 delivery.mode 全是 none) ⇒ 该分支零覆盖 ⇒ 用合成记录把它钉死★**'
+- path: SW/research/ISS250_r6_复核记录.md
+  kind: research
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-250 第6轮 12 行查证记录 (R6-01~R6-12): 板端可达性实测 / 官方 release 复查 / 模拟器掉点 / 模拟器硬约束 / runtime 公开来源
+    / 降级方案代价底座 / 板端清单 P0~P5 / 缺口 G-1~G-5'
+- path: SW/tools/iss250_r6_sim_accuracy.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 掉点实测脚本 (4 步分进程 ref/sim_build×2/cmp) —— 两套 toolkit 的 import 名都叫 rknn 故不能同进程; 实测 build 48.579
+    s / 34.780 s; 输出逐 head 余弦 + rel-L2 + 检测级 conf 0.25/0.5/0.75
+- path: HANDOFF/2026-11-17_sw-lead_ISS250_第6轮_板可达性实测与模拟器掉点.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '第6轮交卷单 (B1~B6 齐全): 三条新增事实 + 12 行查证 + 板端清单 P0~P5 + 缺口 G-1~G-5; ★板端接受性仍 [0数据], 未替老板拍板★'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -956,9 +1222,38 @@ blockers:
   - vendor
   waiting_since: '2026-10-26'
 - id: SW-FW-B4
-  desc: S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序) 与 P3 (BOOT 态 VID:PID)
-    只能干等原厂, 拿不到任何一手数据
-  severity: medium
+  desc: 'S2 无板先验的 L2 层 (空板/半板) 器材未定 (逻辑分析仪 + USB 协议分析仪 + SPI-NOR 空板) → P1 (BOOT 电平/时序) 与 P3 (BOOT 态 VID:PID)
+    只能干等原厂, 拿不到任何一手数据 〔★2026-11-17 ISS-270 自查订正★
+
+    ★本条【不再是外部依赖】(★口径: 外部依赖 = 只有外部方能回答的; 凡本仓库 / 公开资料 / 本机实跑能回答的, 一律不是★)。
+
+    ★自己查了什么: ①`python3 SW/tools/boot_rescue_probe.py --selftest` ⇒ 10/10 PASS, rc=0 [实测] ②同脚本 `--config
+    SW/tools/s2_rescue_config.json --out /tmp/iss270_probe_local.json` 真跑 ⇒ 本机实枚举 8 个 USB 设备的真实 VID:PID
+    / product / manufacturer / serial / bcdDevice / busnum / devnum ⇒ 判 `NOT_IDENTIFIED`, rc=1 (本机无 BOOT
+    板, 判定逻辑正确, 没瞎判) [实测] ③源码 `SW/tools/boot_rescue_probe.py` L57/L92/L107 ⇒ 三个采集源 = `/sys/bus/usb/devices`
+    (无需 root) + `lsusb` 兜底 + `dmesg` [实测] ④`SW/FLASH_AND_VERSION.md:525` (L2-2) ⇒ BOOT 引脚有效电平 = 万用表 (既有结论,
+    零采购) [实测·本机文档]。
+
+    ★结论: **P3 不需要任何采购** ⇒ 采集机制已在本机实跑通, 缺的只是板子本身 ⇒ 这是【板不可达】, **不是挂外部回复**; P1 拆两半: 电平 = 万用表 (零采购), 时序 t1~t4
+    = 3 条零采购替代 (板载打时间戳 / GPIO 紧循环采样 / usbmon) [推算·本机无板]。
+
+    ★证据等级: P3 采集链 **[实测]** + P3 板端真值 **[0数据]** + P1 电平路径 **[实测·本机文档]** + P1 替代路径 **[推算]**。
+
+    ★降级方案 (必须项): ①P3 零采购 = `lsusb` + `/sys/bus/usb/devices` + `dmesg` + 现有探针 (可复制命令清单见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`
+    §4.1, 板到手即跑, 本单**未实测**板端) ②要协议层 ⇒ 内核 usbmon (`/sys/kernel/debug/usb/usbmon/*`) + `tshark` 替代 USB 协议分析仪
+    (需 root + debugfs, 仍零采购) ③usbmon 不可用 ⇒ 板端 `dmesg` 的 `new ... USB device` 行 + `getprop` 兜底 ④P1 ⇒ 万用表判电平
+    + 打时间戳判顺序 + GPIO 紧循环判边沿 (~ms); **唯一真缺口 = 亚毫秒窗口** (老板已在 `test_equipment_budget` 点名的那台逻辑分析仪, 本单**不新增任何采购建议**)。
+
+    ★还需要谁做什么: sw-lead 板到手即跑 §4 命令清单; hw-lead 仅需确认 BOOT 测试点 / 跳线位置; 老板 仅当亚毫秒窗口成为硬判据时拍器材 —— **不许再挂外部回复形态**。
+
+    ★本条是否还挂在老板清单上: **是** ⇒ key `test_equipment_budget` (`state/fragments/pm.yaml:231`), 老板 2026-11-04
+    19:10 已收窄成「只剩逻辑分析仪 (8ch/≥24MHz/带 PC 解码) 一项, 除此之外不再提任何采购建议」+「不许再提采购 RK3572 主板/开发板」⇒ 本单落在该口径内。
+
+    ★本单动作: severity medium ⇒ low (不再卡外部方, 只卡板) + 追加本段; **老字一个字节没删**。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`
+    §1 / §2 / §4。
+
+    ★订正结束★〕 '
+  severity: low
   needs_from:
   - main
   - hw-lead
@@ -1115,18 +1410,71 @@ needs_from:
   to: main
   item: 'S2 无板先验 L2 层 (空板/半板) 的器材与排期 (走 main): ①逻辑分析仪 (>=8ch, >=100MS/s) 抓 BOOT/RESET 时序 ②USB 协议分析仪 (可与逻辑分析仪合并)
     抓 BOOT 态 VID:PID ③SPI-NOR 空板 (128MB) + 焊台 + Type-C 数据线 x2。→ 这三样能把 P1 (BOOT 电平/时序) 和 P3 (枚举特征) 从''完全空白''变成''知道一半'';
-    没有它们, P1/P3 只能等原厂'
+    没有它们, P1/P3 只能等原厂 〔★2026-11-17 ISS-270 自查订正★
+
+    ★本条【不再是外部依赖】, 且【与 `SW-FW-B4` 合并成一条结论】。
+
+    ★自己查了什么: 同 `SW-FW-B4` 的 ①②③④ + 读 `state/fragments/pm.yaml:231` 预算清单原文 + `grep -n "U_DCDC_VCORE\|U_DCDC_VIO\|Q_AND"
+    HW/netlist_v1.csv` (只读)。
+
+    ★结论: 三样器材里**只有 1 样真的不可替代** —— ①**USB 协议分析仪 = 不必要** (P3 只要 VID:PID, sysfs/lsusb 已够; 要协议层用 usbmon+tshark)
+    ②**SPI-NOR 空板 = 不必要** (P4 启动存储/分区表 ⇒ 板端 `/proc/mtd` + `/sys/class/mtd` + `dmesg` 的 JEDEC ID 就够, **不需要第二块空板**)
+    ③**逻辑分析仪 = 只覆盖 P1 的亚毫秒窗口这一格** ⇒ ⇒ **撤掉『没有它们, P1/P3 就没数据』这个挂账形态**。
+
+    ★证据等级: 采集机制与工具链 **[实测]** / 板端真值 **[推算]** (本机无板)。
+
+    ★降级方案 (必须项): ①三样器材里 2 样各有零采购等价物 (usbmon+tshark 顶协议分析仪; `/proc/mtd` 顶 SPI-NOR 空板) ②P1 电平用万用表 + 时序用打时间戳
+    / GPIO 紧循环采样 ③只剩亚毫秒一格 ⇒ **先拆 P1 三格再谈器材** (电平 [A 已够] + 边沿次序 [C 已够] + 亚毫秒窗口 [唯一真缺口])。
+
+    ★什么时候真的绕不过去: 只有当 P1 判据要求 <1ms 分辨率 **且** A/B/C 都只能给 ms 级 ⇒ 才需要老板已点名的逻辑分析仪 ⇒ **这是内部器材决策, 不是外部依赖**。
+
+    ★还需要谁做什么: sw-lead 板到手即跑; 老板 仅剩逻辑分析仪一项 (已在 `test_equipment_budget`)。
+
+    ★本条是否还挂在老板清单上: **是** ⇒ key `test_equipment_budget` (`state/fragments/pm.yaml:231`); ★**本单只交"不花钱能不能拿到
+    P1/P3"的结论, 不替老板决定买不买**★。
+
+    ★老字一个字节没删。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md` §1 / §2 / §4.3。
+
+    ★订正结束★〕 '
   since: '2026-10-27'
   due: '2026-10-29'
 - key: model_toolchain_q9_addendum
-  to: vendor
+  to: main
   item: 'Q9 追加 10 条 (模型转换专项, 经 main 转达, 我不单独对外): ①Art.Galaxy 支持的输入格式与 opset 范围 ②yolov5s 12 类算子 (Conv/Sigmoid/Mul/Concat/Slice/Resize/Pow/Sub/MaxPool/Reshape/Transpose/Add)
     覆盖情况 ③支持的量化方案 + 输出能否直通量化整数而不强制 FP32 (A733 上反量化占 SDK 总 25~29%) ④校准集最少张数与推荐分布 ⑤板端模型文件头布局 + ARS45 的 chip
     ID 是多少 (错则板端加载后报 SRAM size 错) ⑥Art.Galaxy 是否与 VeriSilicon ACUITY/VIPLite 同源 (假设 H1, 决定 A733 的 p1/p2
     脚本能否复用) ⑦官方是否提供预编译的 yolov5 板端模型及其许可与类别映射是否正确 (A733 官方 .nb 实测类别映射错→422 false positive) ⑧转换产物体积上限 (板端槽位
-    15MiB) ⑨冷启动加载耗时 ⑩工具链运行平台与是否需要授权/NDA -> 卡 SW/MODEL_ASSETS.md §2.9 转换骨架 B0~B9 全部九步'
+    15MiB) ⑨冷启动加载耗时 ⑩工具链运行平台与是否需要授权/NDA -> 卡 SW/MODEL_ASSETS.md §2.9 转换骨架 B0~B9 全部九步 〔★2026-11-17 ISS-270
+    自查订正★
+
+    ★本条 10 问全部围绕 **Art.Galaxy** (①~⑥⑨⑩) + ⑦ 官方预编译模型 ⇒ ★与 `ars45_art_galaxy_sdk` / `model_license_stack_decision`
+    第 ③ 路同源 ⇒ **【已退休 · 不再是路径】**。
+
+    ★自己查了什么: GitHub 仓库搜索 `q=Art.Galaxy` (total=115, 命中全是同名无关项目) / `q=artgalaxy` (4, 全无关) / `q=Art+Galaxy+NPU`
+    (**0**) / GitHub 代码搜索 `"Art.Galaxy"` (**0 结果**) / Gitee `search/repositories?q=artgalaxy` (**[] 0
+    条**) / Docker Hub `?query=artgalaxy` (★本机不可达 http=000 rc=28★) / web_search「Art.Galaxy 酷芯微 工具链 SDK
+    公开 下载」(8 条, **0 条相关**) / 本机 `SW/tools/int8_chain.py` 的 `ART_GALAXY_HINTS` 8 个候选路径**全不存在** ⇒ 公开渠道 **[0数据]**
+    (真的没有, 不是没查); ★**决定性一条 (不用查)**: 主控基线 2026-11-02 01:00 已翻到**瑞芯微 RK3572** ⇒ **Art.Galaxy 是酷芯微 (A733
+    线) 的工具链, 与现在的芯片不同厂、不同 NPU 架构** ⇒ 即便明天原厂给了也不该用。
+
+    ★结论: 本条不再是外部依赖 ⇒ **不挂账**。
+
+    ★降级方案 (必须项): ①Art.Galaxy 永远不来 ⇒ **零影响** (转换链走 rknn3-toolkit 1.2.0 官方 RK3572 路线: ISS-263 实测 `config(''rk3572'')`
+    rc=0 + 反向自证 `rk3576` 必报错 + 产物 md5 `97a34fff0b855b92681f26627dba5354` 三次一致; 板端 `init_runtime` rc=-1
+    = 板端 [0数据]) ②要复用 A733 ⇒ **只复用方法论** (p1/p2/p5 五步流程), **不复用产物** (`.nb` 头 + chip ID `0x1000003B` 对 RK3572
+    **无效**, `SW/MODEL_ASSETS.md` §1.6 已实测踩坑) ③板端 runtime 与 `.rknn` 不匹配 ⇒ 走 `SW/DEMO_BOARD_60MS_VERDICT_PLAN.md`
+    §5 三条出路表。
+
+    ★还需要谁做什么: **无** —— 本条不需要任何人做任何事; 请 main 收口 (关闭或降级为"已退休")。
+
+    ★本条是否还挂在老板清单上: **否**。
+
+    ★本单动作: `waiting_on` vendor ⇒ agent (挂账形态撤掉, 收口动作归 main); **老字一个字节没删**。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`
+    §1 / §2 E-4。
+
+    ★订正结束★〕'
   since: '2026-10-27'
-  waiting_on: vendor
+  waiting_on: agent
   due: '2026-10-29'
 - key: model_license_yolov5sim
   to: vendor
@@ -1201,23 +1549,122 @@ needs_from:
   due: '2026-10-29'
   item: '★ISS-087 请项目总工并进老板拍板 (不采购路线的可执行起点): ① 交付集主模型改用 Apache-2.0 栈 (首选 YOLOX-s: 80 类 + 许可干净 + Rockchip
     官方 model zoo 已有同族 NPU 完整转换配方 examples/yolox/; 本机权重下载卡在 3.48MB 停滞 → 需内网镜像/公司代理) ② 或维持 Ultralytics 路线并采购
-    Enterprise License ③ 或等原厂提供''许可由原厂承担''的预编译模型 (已并进 Q9 追加第 7 条) —— 三条路都请给一句话结论, 我按结论推进转换链'
+    Enterprise License ③ 或等原厂提供''许可由原厂承担''的预编译模型 〔★2026-11-17 ISS-270 自查订正★
+
+    ★三条路的客观裁决 (★**不代拍**★)。
+
+    ★自己查了什么: ①`api.github.com/repos/Megvii-BaseDetection/YOLOX` ⇒ `license.spdx_id = Apache-2.0` (stars
+    10711) [官网] ②`repos/PaddlePaddle/PaddleDetection` ⇒ Apache-2.0 [官网] ③`repos/airockchip/YOLOX` ⇒ Apache-2.0
+    (Rockchip 官方 fork) [官网] ④`repos/airockchip/rknn_model_zoo` (Apache-2.0, stars 2907) `contents/examples`
+    ⇒ **有 `yolox` 和 `ppyoloe` 两个官方 NPU 转换配方目录** [官网] ⑤★**权重实测下载成功**: `curl -L https://ftrg.zbox.filez.com/v2/delivery/data/95f00b0fc900458ba134f8b180b3f7a1/examples/yolox/yolox_s.onnx`
+    ⇒ **http=200, size=35891401 B, speed=8620318 B/s (4 s 下完 35.9 MB)** ⇒ sha256 `a39c8476d10c242298d6a8654cb29937a9cc3c062358f4d96367689df23d1796`
+    / md5 `9f29ae623a0d9b0263b24cdba02e98d5` [实测] ⑥onnx 探针 ⇒ opset 11 / **273 节点** / 算子集 `{Concat,Mul,Constant,Add,Sigmoid,Resize,Conv,MaxPool}`
+    ⇒ **无 NMS / TopK / NonZero** (后处理已外置) / 输入 `images`[1,3,640,640] / 输出 3 路 head [1,85,80,80] [1,85,40,40]
+    [1,85,20,20] [实测] ⑦★**对照**: GitHub Releases CDN 在本机**不通** (`curl -L --max-time 55 .../0.1.1rc0/yolox_s.onnx`
+    ⇒ **rc=28, 55 s 下载 0 B**) [实测] ⇒ **"卡在 3.48MB / 需内网镜像或公司代理"这个阻塞前提已不存在**。
+
+    ★结论: **第 ① 路 (YOLOX-s Apache-2.0 栈) 技术门槛已清零** (许可 [官网] + 权重 **[实测]** 本机可下载 + 官方 NPU 配方 [官网]); **第
+    ② 路** (采购 Ultralytics Enterprise) 的必要性因 ① 门槛清零而下降, 仍由老板拍; **第 ③ 路【已退休 · 不再是路径】** —— 三条独立理由: (a) 主控基线
+    2026-11-02 01:00 老板直接拍板 = **瑞芯微 RK3572** (`HW/CHIP_SELECTION_DECISION.md` §0'') ⇒ 酷芯微 / Art.Galaxy
+    那条线**没有承载体** (b) A733 官方 `.nb` 已实测"类别映射错 → 422 false positive" (`SW/MODEL_ASSETS.md` §1.6) ⇒ 官方资产**也不省事**
+    (c) 老板 2026-11-12 02:02 已定"不再发信, 全靠自己查资料" ⇒ 这一路的**形式**本身被取消。
+
+    ★证据等级: 许可 [官网] / 权重可得 + 指纹 + 图结构 **[实测]** / GitHub CDN 不通 **[实测]** / "第 ③ 路已退休" [实测·本机文档·基线翻案记录]。
+
+    ★降级方案 (必须项): ①权重源不通 ⇒ 退化到本机**已实测可用**的 Apache-2.0 候选 `SW/artifacts/models/ssd_mbv2_fpnlite_320_fp32_head_npu.onnx`
+    (F1@IoU0.5 = **0.4346**, 299 张实测, `SW/MODEL_RELEASE_GATE.md` §4.5) ⇒ **商用不受阻**, 只是输入分辨率 640→320 /
+    精度换档 ②**双源**: `airockchip/YOLOX` fork + zoo CDN ⇒ 任一通即可 ③**换栈兜底**: PaddleDetection PP-YOLOE (Apache-2.0)
+    → ONNX → 同一套 rknn3-toolkit 1.2.0 链 (zoo `examples/ppyoloe` 有 `python/` + `cpp/` + `patch_for_model_export/`)
+    ⇒ 仍零采购。
+
+    ★还需要谁做什么: **老板给一句话结论** (本条 `waiting_on` 仍保持 `boss`, **sw-lead 不代拍**); 老板点头后 sw-lead 立刻用 rknn3-toolkit
+    1.2.0 + zoo 配方把 YOLOX-s 转成 rk3572 `.rknn`; main 关掉或改口径 `model_yolox_weight_download` (技术前提已消失)。
+
+    ★本条是否还挂在老板清单上: **是** ⇒ key `model_license_stack_decision` (waiting_on=boss) ★—— **这一条本单只交客观结论, 一句话结论仍由老板给**★。
+
+    ★老字一个字节没删。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md` §1 / §2 E-3。
+
+    ★订正结束★〕  (已并进 Q9 追加第 7 条) —— 三条路都请给一句话结论, 我按结论推进转换链'
 - key: ars45_art_galaxy_sdk
-  to: vendor
+  to: main
   since: '2026-10-28'
-  waiting_on: vendor
+  waiting_on: agent
   due: '2026-10-29'
   item: '★ISS-087 转换链 B0 阻塞项 (经 main 转达, 我不单独对外): Art.Galaxy 工具链包 + 手册 —— ①提供形式 (docker 镜像? SDK? 需授权/NDA?)
     ②跑在 Linux x86 还是 Windows ③导入/量化/导出三条命令的完整参数 ④支持的输入格式与 opset 范围 ⑤量化方案名 + 校准集张数/分布要求 + 输出能否直通量化整数⑥产物体积上限
     ⑦板端文件头布局 (是否同 VPMN) + **ARS45 真实 chip ID** (⚠️ A733 的 0x1000003B 不可套用, 套错 → 板端加载报 SRAM size 错) → 工具链落地后设
-    ART_GALAXY_HOME, 我这边 B0/B4/B5 一条命令自动转 READY'
+    ART_GALAXY_HOME, 我这边 B0/B4/B5 一条命令自动转 READY 〔★2026-11-17 ISS-270 自查订正★
+
+    ★**【已退休 · 不再是前置】Art.Galaxy 不是本项目的工具链。**
+
+    ★自己查了什么: ①GitHub 仓库搜索 `q=Art.Galaxy` (total=115, 命中全是同名无关项目: 艺术/星系主题) / `q=artgalaxy` (4, 全无关) / `q=Art+Galaxy+NPU`
+    (**0**) ②GitHub 代码搜索 `"Art.Galaxy"` (**0 结果**) ③Gitee `search/repositories?q=artgalaxy` (**[] 0 条**)
+    ④Docker Hub `?query=artgalaxy` (★本机不可达 http=000 rc=28★) ⑤web_search「Art.Galaxy 酷芯微 工具链 SDK 公开 下载」(8
+    条, **0 条相关**) ⑥本机 `ART_GALAXY_HINTS` 8 个候选路径**全不存在** [实测] ⑦★**替代已实测可用**: `python -c "from rknn.api
+    import RKNN; print(''IMPORT_OK'')"` (env `/home/yuewuya/miniconda3/envs/rknn3`) ⇒ **IMPORT_OK**; `pip
+    list` ⇒ rknn3-toolkit **1.2.0** / onnx 1.23.2 / onnxruntime 1.23.2 / torch 2.4.0+cpu; ISS-263 实测 `config(''rk3572'')`
+    rc=0 / 反向自证 `rk3576` 必报错 (`ValueError: Unsupported target_platform ''rk3576''. Supported target_platform:
+    gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572`) / 产物 md5 `97a34fff0b855b92681f26627dba5354`
+    三次一致 / 板端 `init_runtime` rc=-1 = 板端 [0数据] ⑧★**官方口径**: `airockchip/rknn3-toolkit` README「Supported
+    Platforms: RK1820 / RK1828 / **RK3572**」+「Non-coprocessor mode (RK3572): The NPU is integrated inside
+    the SoC」; `airockchip/rknn3-model-zoo` README §3 ⇒ **| RK3572 Series | - | Linux / Android |** [官网]。
+
+    ★结论: 公开渠道**确实找不到** [0数据] (不是没查); ★**更根本**: 它是**已作废芯片线** (酷芯微 / A733) 的工具链, 现在的主控是瑞芯微 RK3572 ⇒ **即便明天原厂给了也不该用**
+    ⇒ ⇒ **Art.Galaxy 不是前置 ⇒ 本条不挂账**。
+
+    ★证据等级: 公开渠道查不到 **[0数据]** / rknn3-toolkit 1.2.0 可用 **[实测]** (ISS-263 可复核 + 本单复跑 IMPORT_OK) / 官方支持 RK3572
+    [官网]。
+
+    ★降级方案 (必须项): ①Art.Galaxy 永远不来 ⇒ **不影响任何东西** (转换链已通) ②要复用 A733 资产 ⇒ **只复用方法论不复用产物** (见上) ③板端 runtime
+    与 `.rknn` 不匹配 ⇒ 已有出路表 (`SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` §5: ①rk3576-target ②rknn3 ③换 SoC)。
+
+    ★还需要谁做什么: **无** —— ★本条**不需要任何人做任何事** ⇒ 主干上把它从"前置阻塞"降为"已退休"。
+
+    ★本条是否还挂在老板清单上: **否** (pm.yaml 的 `test_equipment_budget` 只涉及器材, 与本条无关)。
+
+    ★本单动作: `waiting_on` vendor ⇒ agent (挂账形态撤掉, 收口动作归 main); **老字一个字节没删**。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`
+    §1 / §2 E-4。
+
+    ★订正结束★〕'
 - key: model_yolox_weight_download
   to: main
   since: '2026-10-28'
-  waiting_on: boss
+  waiting_on: agent
   due: '2026-10-29'
   item: 'ISS-087 换栈路线的唯一阻塞: YOLOX-s 官方权重 (Apache-2.0) 在本机下载卡在 3.48MB 停滞 (github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.onnx)
-    → ①能否走公司代理/内网镜像? ②或由项目总工下载后放到共享目录? 权重入库后我登记台账 (sha256 + Apache-2.0 + NPU 转换可行性待验)'
+    → ①能否走公司代理/内网镜像? ②或由项目总工下载后放到共享目录? 权重入库后我登记台账 (sha256 + Apache-2.0 + NPU 转换可行性待验) 〔★2026-11-17 ISS-270
+    自查订正★
+
+    ★本条【不再是外部依赖】★ —— ★**"本机下载卡在 3.48MB ⇒ 需内网镜像 / 公司代理"这个阻塞前提已消失**★。
+
+    ★自己查了什么: ①★**对照 (原阻塞点复现)**: `curl -L --max-time 55 -o /dev/null -w "http=%{http_code} size=%{size_download}"
+    https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.onnx` ⇒ **http=000,
+    size=0, rc=28 (55 s 超时)** ⇒ GitHub Releases CDN 在本机确实不通 [实测] ②★**替代 CDN 实测通**: `curl -L https://ftrg.zbox.filez.com/v2/delivery/data/95f00b0fc900458ba134f8b180b3f7a1/examples/yolox/yolox_s.onnx`
+    ⇒ **http=200, size=35891401 B, speed=8620318 B/s (4 s 下完 35.9 MB)** ⇒ sha256 `a39c8476d10c242298d6a8654cb29937a9cc3c062358f4d96367689df23d1796`
+    / md5 `9f29ae623a0d9b0263b24cdba02e98d5` [实测] ⇒ **该文件即 Rockchip 官方 model zoo `examples/yolox/model/`
+    里那份 `yolox_s.onnx`** (来源: `airockchip/rknn_model_zoo` 的 `examples/yolox/README.md` "Pretrained Model"
+    段) ⇒ **不需要公司代理 / 内网镜像 / 任何人帮忙下载**。
+
+    ★结论: 本条的技术阻塞**已解除** ⇒ 权重**已在本机可取得** ⇒ ⇒ **这条 need 的技术理由已不成立** ⇒ 建议 main 关闭或改口径 (★关闭动作归 main, sw-lead
+    不自行改 main 的分片★)。
+
+    ★证据等级: **[实测]** (两个 CDN 的对照下载 + sha256/md5 指纹)。
+
+    ★降级方案 (必须项): ①权重下载仍不通 ⇒ 退化到本机**已实测可用**的 Apache-2.0 候选 `SW/artifacts/models/ssd_mbv2_fpnlite_320_fp32_head_npu.onnx`
+    (F1@IoU0.5 = 0.4346, 299 张实测) ⇒ **商用不受阻**, 只是输入分辨率 640→320 / 精度换档 ②**双源**: `airockchip/YOLOX` fork
+    + zoo CDN ⇒ 任一通即可 ③**换栈兜底**: PaddleDetection PP-YOLOE (Apache-2.0) → ONNX → 同一套 rknn3-toolkit 1.2.0
+    链 (zoo `examples/ppyoloe` 有 `python/` + `cpp/` + `patch_for_model_export/`) ⇒ 仍零采购。
+
+    ★还需要谁做什么: main (关闭或改口径本条); 老板 (模型栈那一句话结论仍在 `model_license_stack_decision`, **sw-lead 不代拍**); sw-lead
+    (老板点头后立刻用 rknn3-toolkit 1.2.0 + zoo 配方把 YOLOX-s 转成 rk3572 `.rknn` 并登记台账 sha256 + Apache-2.0 + NPU
+    转换可行性)。
+
+    ★本条是否还挂在老板清单上: **否** (本条 `to: main`; 老板那条在 `model_license_stack_decision`)。
+
+    ★本单动作: `waiting_on` boss ⇒ agent (技术前提已消失, 挂账形态撤掉, 收口归 main); **老字一个字节没删**。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`
+    §1 / §2 E-3。
+
+    ★订正结束★〕'
 - key: SW-MODEL-B2-ISS101-RU1
   to: main
   item: '【ISS-101·R-U1·需 boss 拍板】采购 Ultralytics Enterprise License 还是走 Apache-2.0 栈? sw-lead 已给 3 路径对比
@@ -1687,7 +2134,15 @@ needs_from:
     ⑤【请 main】落 ISS-228 verified + 确认 need iss148_rk3572_gpio0_vccio_domain_check 变 answered; ⑥【请派 hw-lead】两处勘误
     即 HW/AR0234CS_OPEN_SOURCE_FACTS.md L241/L474 的 I2C0 提法 与 全文 VCCIO1_VCC 1.8V only 提法 + AR0234CS 若上则
     VDD_IO 走 1.8V 即 Note 19.2, 顺带解掉 VDDIO_PHY 缺轨; ⑦【已知不归本单】check_demo_panel_spec.py 的 R6 红 + MECH G5b/C21
-    红 = ISS-223 锚点过期, 本单不许改锚点. 残留 0数据: SoM 侧 VCCIO rail 网名 ⇒ 降级方案 D-3 已锁死 即不许自己编网名, 本单不写等原厂回信.'
+    红 = ISS-223 锚点过期, 本单不许改锚点. 残留 0数据: SoM 侧 VCCIO rail 网名 ⇒ 降级方案 D-3 已锁死 即不许自己编网名, 本单不写等原厂回信. 〔★2026-11-17
+    ISS-270 自查订正★
+
+    ★**2026-11-17 ISS-270 自查订正 (紧邻上一句)**: 上一句里的『原厂回信』是 ISS-228 当时的【**否定式自述**】(『本单不写原厂回信』), **不是挂账形态**
+    ⇒ 与 ISS-270 §0 口径 (外部依赖 = 只有外部方能回答的; 本仓库 / 公开资料 / 本机实跑能回答的, 一律不是) 完全一致 ⇒ ★SoM 侧 VCCIO rail 网名这一项的正确形态是【**待落表
+    / 待 hw-lead 网表真源**】, 不是外部回复形态★ ⇒ ISS-270 已把 SW 侧 5 条外部依赖挂账逐条换成【自己查的结果 + 证据等级 + 降级方案】(见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`)
+    ⇒ 本条不构成外部依赖。
+
+    ★订正结束★〕 '
   since: '2026-11-16'
 - key: iss234_boss_pick_5q
   to: main
@@ -1775,6 +2230,130 @@ needs_from:
     实测 0.63s 一次★)。★若将来在没有 KiCad 的机器上跑快检, ③ 会走「保守判红」分支 (★不许假绿★) ⇒ 那台机器上③恒红。★请 main 拍板是否要一个「纯文本解析 .kicad_pcb」的无
     KiCad 兜底实现 (★本单没做: 那是另一份工作量且会引入两套解析口径的风险★)'
   since: '2026-11-16'
+- key: iss263_board_acceptance_rk3572
+  to: main
+  item: 'ISS-263 板端接受性仍 [0数据]: 转换链已通 (rknn3-toolkit 1.2.0 + target_platform=rk3572, 3 次 rc=0, 产物 249360
+    B md5 97a34fff0b855b92681f26627dba5354, t_total 33.389/34.108/41.672 s), 但本机 list_devices()=[] =>
+    板端推理起不起得来/精度/板端 e2e 延迟一个数都没有。板到手后请按 SW/tools/iss263_roundtrip_probe.py 的 init_runtime(target=rk3572,
+    core_mask=RKNN3_NPU_CORE_0) 口径补测; 路线①/②/③ 选哪条请老板拍, sw-lead 只交路线②实测结论。'
+  since: '2026-11-17'
+- key: iss270_extdep_selfcheck_closeout
+  to: main
+  item: '
+
+    ★ISS-270 (SW 侧外部依赖全量自查) 交卷 ⇒ 请项目总工**收口**下列 4 条 (技术依据 = `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`, 本单零外发/零落表/零采购):
+
+    ①**`ars45_art_galaxy_sdk`** (原 waiting_on=vendor) ⇒ **【已退休】**: Art.Galaxy 是酷芯微 (A733 线) 的工具链, 而主控基线
+    2026-11-02 01:00 已翻到瑞芯微 RK3572 (`HW/CHIP_SELECTION_DECISION.md` §0'') ⇒ 即便原厂给了也不该用; 公开渠道全查无 (GitHub/Gitee/Docker/web_search)
+    ⇒ 转换链走 **rknn3-toolkit 1.2.0** (官方 RK3572 路线, ISS-263 实测) ⇒ 建议关闭或降级为"已退休"。
+
+    ②**`model_toolchain_q9_addendum`** (原 waiting_on=vendor) ⇒ 同 ①, 10 问全围绕 Art.Galaxy + ⑦官方预编译模型 ⇒ 建议一并关闭。
+
+    ③**`model_yolox_weight_download`** (原 waiting_on=boss) ⇒ **技术前提已消失**: GitHub Releases CDN 本机不通 (rc=28,
+    55 s 下载 0 B), 但 **Rockchip 官方 model zoo 的 CDN 可通** (`ftrg.zbox.filez.com/.../yolox_s.onnx` ⇒ http=200,
+    35,891,401 B, 8.62 MB/s, 4 s 下完, sha256 `a39c8476d10c242298d6a8654cb29937a9cc3c062358f4d96367689df23d1796`)
+    ⇒ 不需要内网镜像/公司代理 ⇒ 建议关闭或改口径。
+
+    ④**`reset_release_policy` 的 "PG 源 DNP 待确认"** ⇒ **不是外部依赖, 是【待落表批次】**: 网表真源 `HW/netlist_v1.csv` row79/row86
+    已写死 `dnp=DNP` (原因 "SoM 自带 PMIC") ⇒ 处置办法 = ISS-191 选项② (`Q_AND` 整颗改 DNP, 表A L65/L66/L67 + 表B Q_AND.1/.2/.3)
+    ⇒ **本单一次都没跑 `land_v_values.py --apply`, 网表/脚表/BOM 一个字节没动** ⇒ 请 main 排落表批次。
+
+    ★附: ★**`SW/tools/s2_rescue_config.json` 的基线描述过期** (仍写 RK3576, 实际 11-02 已翻 RK3572) ⇒ `version_block_magic
+    = "RK35"` **不受影响** (RK3572 同属 RK35xx 系列) ⇒ 只需订正描述文字 ⇒ ★**本单不改既有结论**, 请 main 裁决。
+
+    ★另: ★**老板那条一句话结论仍在 `model_license_stack_decision` (waiting_on=boss)**, 本单只交客观结论 (第①路技术门槛已清零 + 第③路已退休),
+    **不代拍**。
+
+    '
+  since: '2026-11-17'
+- key: iss270_s2_test_gear_zero_cost
+  to: main
+  item: '
+
+    ★ISS-270 (SW 侧外部依赖全量自查) ⇒ 关于 `fw_s2_test_gear` 这三样器材的**零采购结论** (技术依据 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`
+    §2 E-1/E-2 + §4, 本单**零采购**):
+
+    ①**USB 协议分析仪 = 不必要** ⇒ P3 (BOOT 态 VID:PID) 用 `lsusb` + `/sys/bus/usb/devices` + `dmesg` 就够 ⇒ **采集机制本机已实跑通**
+    (`SW/tools/boot_rescue_probe.py` 真跑 ⇒ 本机枚举出 8 个设备真实 VID:PID, 判 NOT_IDENTIFIED rc=1, 逻辑正确) ⇒ 要协议层则用内核
+    usbmon + tshark (仍零采购, 需 root+debugfs)。
+
+    ②**SPI-NOR 空板 = 不必要** ⇒ P4 (启动存储/分区表) 用板端 `/proc/mtd` + `/sys/class/mtd` + `dmesg` 的 JEDEC ID 就够 ⇒
+    **不需要第二块空板**。
+
+    ③**逻辑分析仪 = 只覆盖 P1 的亚毫秒窗口这一格** ⇒ P1 拆三格: 电平 [**万用表**已够, 仓库既有结论 `SW/FLASH_AND_VERSION.md:525`] + 边沿次序
+    [GPIO 紧循环采样 ~ms] + 亚毫秒窗口 [**唯一真缺口**]。
+
+    ★⇒ **结论: 不花钱能拿到 P1/P3 (P4 同理); 三样器材里只剩 1 样且只覆盖 1 格** ⇒ ★**本单不替老板决定买不买**, 老板那条 `test_equipment_budget`
+    已收窄成"只剩逻辑分析仪一项" ⇒ **本单落在该口径内, 不新增任何采购建议**。
+
+    ★请 main: 把 `fw_s2_test_gear` 从"器材/排期挂账"降级为"**板到手即跑的命令清单已备好**" (清单 = `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`
+    §4, 全部标 [推算] 未实测, 本机无板) ⇒ 何时跑 = 板到手的时刻, 不是外部回复形态。
+
+    '
+  since: '2026-11-17'
+- key: iss241_f1_f2_land_redraw_needed
+  to: hw-lead
+  item: '★ISS-241 落表后两条 pad 序缺陷需在板那一趟一起修: ① D_ESD_CAM 板文件 pad1=GND/pad2=CSI_D0_CK_P, 落表器件 TPD1E05U06DPYR
+    pin1=I/O/pin2=GND ⇒ 器件脚接错 (ESD 不工作); 修法: 重画 land 对调 pad1/pad2, 或改用双向件 PESD5V0S1BA (代价 Cd 35pF vs 0.42pF),
+    或改板 ② Q_AND 占位 pad 序 D/S/G 而 AO3400A 引脚序 G/S/D ⇒ RESET_N 落 G 脚 ⇒ 硬件 AND 变 OR; 重画 land 时必须把 pad↔pin
+    显式改成 RESET_N→D / GND→S / PG_AND→G; Q_ENVC 恰好对上不用改, Q_PG 待缺口 G-1 裁决后再定 land ③ 5 件按键 (KMR2/B3U gullwing
+    land 外扩 4.6×3.2mm > 占位 bbox 3.0×3.0) 建议 5 个键 land 一次画齐。机检只读: python3 HW/check_part_selection_landed_crosscheck.py
+    --strict (rc=1 即含缺陷)。本单不落表/不改板, 只给依据与代价'
+  since: '2026-11-17'
+- key: iss250_n3_threshold_recheck
+  to: main
+  item: '★ISS-250 新证据 ⇒ N3 的通过线 t_npu ≤ 13.30 ms 必须重估, 不可当既定门槛★: 该线的基数是『RK3572 ≈ RK3576 的纯 NPU 13.305
+    ms』[推算], 而本轮查到 RK3576 官方 datasheet = 6 TOPS@INT8 [官网] 而 RK3572 = 4 TOPS [媒体] ⇒ 算力差 −33% ⇒ 同产物在 RK3572
+    上的纯 NPU 耗时可能 ×1.5 ⇒ 52.91 ms 那条模式A e2e 也要打折。★请 main 决定: ① 现在就把 N3/60 ms 降级为观察项 ② 还是等板端实测后按实测重定线 (sw-lead
+    只列, 不拍, 这是老板级)★。★同时给出板端取数口径: 纯 NPU 耗时须 C API RKNN_QUERY_PERF_DETAIL 取, 拿不到就判 INDET, 不许拿 SDK 总耗时顶 (N4
+    铁律)★'
+  since: '2026-11-17'
+- key: iss250_rknn3_board_toolchain
+  to: main
+  item: '★ISS-250 路线② 的板端工具链问题 (★不构成阻塞, 板到手时 sw-lead 可自解★): 板端 BSP 是否自带 RKNN3 runtime (librknn3_api.so
+    + librknn3_api_native.so, RK3572 专用 native 库; RK3576/RK3588 用的是 rkcp 库, 不通用) ⇒ 本机 0 台设备 [0数据] 无法查。★官方已给可自带路径:
+    rknn3-toolkit 仓的 rknn3-runtime/examples/rknn3_model_test_demo ⇒ ./build-linux.sh -t rk3572 -a aarch64
+    -b Release → adb push install/rknn3_model_test_Linux /userdata/ → ./rknn3_model_test <rknn> <weight>
+    0x1 ⇒ 返回 0 即 N1 PASS★。★请 main 在板可达时把『adb/ssh 通路 + 可写的 /userdata』准备好 (这是硬件/板侧的事) ⇒ 另: 路线② 的板端精度评测器
+    (lite3 acc) 与 C API perf 采集尚未有现成脚本, 板到后由 sw-lead 补 (已列进本单 B5 O-4)★'
+  since: '2026-11-17'
+- key: iss250_sync_compat_v2
+  to: main
+  item: '★台账同步请求 (★不阻塞任何判据★): 本轮 ISS-250 新查到的 5 条官方证据 (E-13 v2.5.0 仍无 rk3572 / E-15 RK3576=host SoC vs
+    RK3572=SoC 内 NPU / E-16 板端库分叉 rkcp vs native + 官方板端命令 / E-19 RK3576 6 TOPS 官方 vs RK3572 4 TOPS / E-20
+    RK3572 不在 RKNPU2 名单) 目前只写在本单查证表 SW/research/ISS250_rknn_toolkit2_target_查证表.md 里。★SW/RK3572_TARGET_COMPAT_V2.md
+    (ISS-207/ISS-263 的受保护产出) 本轮【一个字没改】(边界内) ⇒ 请 main 裁决是否回写进去 (或另开单给 sw-lead 做) ⇒ ★另: ISS-263 交卷单里那句『ISS-250
+    已落 verified; 路线选哪条 = need iss250_pick_downgrade_route』与本单结论一致 (转换链已通/板端待板), 本单不替 main 落 issue_log
+    status★'
+  since: '2026-11-17'
+- key: iss272_need_mode_watermark
+  to: main
+  item: '★[ISS-272 复核发现的缺口 2 · 待 main 拍]★ state/delivery_truth.py 的 collect() 用 jobs.json 的**当前** delivery.mode
+    套到全部 12 轮历史 run 上, 而 run 记录里 delivery.mode 字段 3796/3796 全缺 ⇒ 无法按轮还原当时那个 job 是不是开着推送 ⇒ 两个方向都出事: ①「ARS45
+    10 分钟进展播报」announce 时代 (11-05 12:36~11-11 10:21, 该时段 216 轮真送到作证) 的 **10 轮 status=ok + delivered=false
+    = 真投递失败** 被追溯洗成「本来就不投」 (★今天不在 12 轮窗口内, 不影响输出★) ②[推算] 老板一旦把推送改回 announce, 同一批 run 记录立刻变「没送到 12」⇒ 假故障复现
+    (★实测同一批数据两个数★) ⇒ ★**sw-lead 建议: 在 delivery_truth.py 里记一条 mode 变更水位线, 只对水位线之后的 run 套用 mode=none, 之前的一律按
+    announce 判 (宁可多报不可漏报)★** ★**为什么不用「run 记录补 delivery.mode 字段」: 那要动 OpenClaw cron 上游, 周期长得多★** ★**sw-lead
+    不代拍, 请 main 裁决要不要开单★**'
+  since: '2026-11-17'
+- key: iss272_need_status_blacklist
+  to: main
+  item: '★[ISS-272 复核发现的缺口 3 · 待 main 拍]★ state/delivery_truth.py 的 classify_run 只认**精确** status == error
+    ⇒ 实测 classify_run(timeout, False, none) = no_delivery, classify_run(cancelled, False, none) = no_delivery
+    ⇒ **真故障被吞成「本来就不投」** ⇒ ★**当前风险等级 = 低**: 盘上 run 记录 status 取值全集 = {ok: 1669, error: 2127}, 非 ok/error
+    的 finished run = 0 ⇒ 今天不触发 ⇒ ★**sw-lead 建议: 把 status == error 改成黑名单成功态 (status not in (ok, success,
+    completed, None) ⇒ run_error), fail-closed 方向, 与本项目宁可吵不可漏铁律一致★** ★**代价: 改之前必须先确认上游状态取值全集, 否则 skipped/cancelled-by-user
+    之类会被误报成 run_error★** ★**sw-lead 不代拍 (判据一个字没改), 请 main 裁决是在 ISS-261 落 verified 之后另开单, 还是并进本单★**'
+  since: '2026-11-17'
+- key: iss272_need_a_class_unknown
+  to: main
+  item: '★[ISS-272 复核发现的缺口 4 · 待 main 拍 · ★注意: 这条要改的是 state/delivery_health.py, 那是 A/B/D 三类的地界, 本单只报不改★]★
+    沙盒实测 E3: 一个 mode=none 的 job 连挂 5 次、错误是「认不出来的错误」⇒ **A 类 0 条 / B 类 0 条 ⇒ 一条告警都不出** ⇒ ★**与 delivery_health.py
+    里 classify() 自己写的兜底「认不出来 ⇒ 按真故障处理 (宁可吵, 不可漏)」直接矛盾** (★A 类的 mode=none 排除把这条兜底整个吃掉了★) ⇒ ★**sw-lead 建议:
+    classify() 从 A/B 两分改成 A/B/U 三分 (U = unknown), 让 unknown 不受 mode=none 过滤; 推送关着 ⇒ 投递通道坏了跟我无关, 但 job
+    自己出了个没人认识的新错误跟推送开没开无关★** ⇒ ★**这是 2026-11-11 10:3x 引入的既有行为, 不是 ISS-261 引入的 (ISS-261 无责)★** ⇒ 请 main
+    裁决要不要开单做'
+  since: '2026-11-17'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -1981,6 +2560,94 @@ answers:
   value: '交卷实测: check_demo_panel_spec.py rc=0 (R1~R7 全过) · timing_check.py rc=0 (SELFTEST 71/71) · check_demo_panel_spec.py
     --selftest rc=0 (16/16) · merge rc=0 · gate_check rc=0; 反向自证 绿→红→绿 已实测; 受保护 5 件 md5 逐字节不变'
   ref: HANDOFF/2026-11-16_sw-lead_ISS258_H1重锚第6跳.md
+- key: iss172_round2_post_landing_regression
+  to: main
+  value: '【第 2 轮交卷 · 2026-11-17 · 零外发 · 实物 [实测] = 0 条】ISS-172 第 2 轮 = 落表后回归: ① 派单前提已过期 —— 网表 L50 的 [待选型]
+    串已由 ISS-257 (hw-lead) 在 11-16 22:25 落成型号串 ⇒ 第 1 轮的 C6 从此拿着过期快照照样绿 ⇒ 实测到 矩阵与网表各说各话 这个洞 ② 已补: 基准块快照重锚
+    + drift 登记 + 3 条残留缺口登记 + 门禁加 C9 (6 条子判据) + M9~M12 + --sandbox 真改网表反向自证 4/4 ③ 8 条判据逐格评定 / RCB 专项结论
+    / §4 推荐 / 2 条降级方案 一字未改, 仍不代拍 ④ 待办: R-1 残留缺口谁修 (落表批次 / main) · R-2 谁改 value 栏谁重锚 (sw-lead 下轮) · R-3
+    OPN 变体字母仍未锁 (TPS22991RAA 无变体后缀, 上电斜率与 QOD 未锁) · R-4 老板拍 §A5 优先级序'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §9 + SW/tools/check_load_switch_selection.py
+- key: iss241_post_landing_crosscheck
+  to: main
+  value: '★ISS-241 复核 rc: 4 条验收命令全绿 (矩阵门禁 8/8 + selftest 9/9 + step1 8/8 + merge/gate Q1 18/18) + 追加只读核对脚本
+    rc=0 (selftest 5/5)。★受保护 md5: 板与 .kicad_pro 逐字节未变; 3 个 CSV 在 11-16 22:25 被落表批次重生成 (三方独立记录对齐: mech
+    ISS-240 / 我自己 ISS-172 第二轮) ⇒ 不归本单。★新发现 3 条: F-1 D_ESD_CAM 器件脚接错 (板白投级) / F-2 Q_AND 需重画 land / F-3
+    落表遗留 [实测] 标签与 [0数据] 误标。★剩 8 件 OPEN, 证据已在矩阵里可直接回填'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS241_BOM待选型21件OPN选型矩阵.md
+- key: iss172_round3_evidence_upgrade
+  to: main
+  value: '【第 3 轮交卷 · 2026-11-17 · 零外发 · 实物 [实测]=0 条】ISS-172 第 3 轮 = 补证轮: ① 圣邦微两颗候选官方 PDF 直取 ⇒ 证据等级全 [媒体]→[官网],
+    全文已无 [媒体] 依赖; ② 关闭两个 [0数据] (绝对最大额定 VIN -0.3~6V ⇒ 判据 1 满足; 4-ball 引脚原表) ⇒ 改板返工代价最高的一项不再是未知, 但查出三颗 RCB
+    候选的球编号全与网表 1/2/3/4 不兼容 ⇒ 板那一趟必须逐线重核; ③ 新事实 SGM2575S RON max 63 mΩ ⇒ 唯一 RCB+RON 双满足只在 typ 口径 ⇒ 请老板连同
+    SYS 0.55A/2A 口径一起拍; ④ 顺手补自证: 机器基准块 4 处仍写「引脚定义 [0数据]」的过期文字已订正 + meta 加 round3_* ⇒ 矩阵与基准块不再各说各话; ⑤ 门禁复跑
+    rc=0 · selftest 12/12 · sandbox 4/4 (判据一字未改) · 既有 SW 侧闸全绿 · merge rc=0 · gate_check rc=0 Q1 18/18;
+    ★8 条判据逐格评定 / RCB 结论 / §4 推荐 / 2 条降级方案 一字未改, 仍不代拍; ★待办 R-5 RON typ-vs-max · R-6 SYS 0.55A vs 2A · R-7
+    TI 官网 UQFN-HR+RCB 未穷举 · R-8 TPS22917 与 TPS22910A 的 RON max 未取得'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS172_负载开关选型证据矩阵.md 第 3 轮 B1-B6
+- key: iss244_h1_reanchor_round1
+  to: main
+  value: '★ISS-244 第 2 轮 (2026-11-17 05:0x) = 落表后回归 + H-1 重锚第 1 跳: ① 触发 = 板侧又落了一批选型件 (网表/脚表/BOM 落盘时刻 2026-11-16
+    22:25:14) ⇒ 登记范围 22 件里 14 件已落表 / 8 件仍待落 ⇒ 本单门禁 C5 按设计变红 (开工时实测 rc=1, 6/7 PASS, C5 红 14 条) ⇒ 走 H-1
+    重锚 (重算 landed_note + 重判十条缺口 + 留痕), 不许把红灯调没; ② 新增 §5 落表后回归: 三方交叉核对 (板占位 land ↔ 落地器件引脚序 ↔ 网表 note 端子角色)
+    ⇒ 查出 3 条实物级 P0 (Q_PG 角色本身错 ⇒ 开机路径不通 / Q_AND 栅漏对调 ⇒ 复位链硬件 AND 门不成立 / D_ESD_CAM ESD 器件接反 ⇒ 保护失效 + CSI
+    lane 被钳) ⇒ 每条给了最小修法 (多是「两个外侧 pad 对调」); ③ 门禁加 C7 + 反向用例 M9/M10 ⇒ 交卷绿 = 上游 ISS-241 门禁 8/8 + selftest
+    9/9 / merge+gate_check rc=0 (Q1 18/18) / 本单门禁 C0~C7 8/8 / selftest 10/10 / LED 数字化自证 2/2 / G-10 分压表
+    rc=0; ④ 受保护 7 件 md5 与第 1 轮交卷时逐字节相同 (网表 e06c1dd6… / 脚表 287e7861… / BOM 94642d07… / 板 611b869e… / 矩阵
+    da609d7d… / ISS-241 门禁 fb286e5f…) ⇒ 本轮零落表、零外发、实物 [实测]=0 条; ★V-2 / V-3 / V-4 / G-1 写法 / G-10 / LED
+    亮度档 一条未代拍'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS244_选型缺口自查补全与OPN回填清单.md §7
+- key: iss250_pick_downgrade_route
+  to: main
+  value: '★ISS-250 侧已把该 need 的选项补全 (SW 侧不拍, 只给代价+前提+谁拍+推荐默认值)★: 5 条候选逐条判死/判活 ⇒ ① 升级 toolkit 【判死·官方 v2.5.0
+    仍无 rk3572·净收益 0】 ② 官方预编译模型 【判死·官方两个 model zoo 均 0 个 .rknn⇒不存在】 ③ 芯片名映射写法 (rk3576-target 直上板) 【无官方背书·三条结构性反证
+    (RK3576=host SoC / 板端库 rkcp vs native / RK3572 不在 RKNPU2 名单)·零新增成本·保留为先试路线 R1】 ④ 换模型路线 M2 yolov5n@640
+    【判活·模式A e2e [推算] 52.91 ms·F1 0.29265 vs 0.3017·需重新标定·不阻塞首台板】 ⑤ 改 60 ms 判据口径 【老板级·只列不拍】; 另两条自查出的路线:
+    R2 = 官方 rknn3-toolkit 1.2.0 (★主机侧已实测通: 3 次转换 rc=0, 产物 249,360 B + .weight 1,960,448 B; 板端仍 [0数据]★)
+    · R3 = 降负载/回 RK3576 (板级改版·周级·商务决策)。★推荐默认值 (推荐≠已决定): 板一通电先跑 R1 的 N1 (零新增成本, 一条命令) ⇒ N1 FAIL 立刻转 R2
+    ⇒ R2 也不行才启 R3 ⇒ 两条命令均已就绪且 --dry-run rc=0, 板到手即出结论, 不需要任何外部回复才能动★'
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md §2 + §3 · HANDOFF/2026-11-16_sw-lead_ISS250_rknn-toolkit2_RK3572_target查证与降级方案.md
+    (B1/B2/B5)
+- key: iss250_downgrade_routes_and_board_checklist
+  to: main
+  value: '★本条 (2026-11-16 20:1x 登记) 已被 2026-11-17 05:5x 的两条新 claim 取代, 请以新条为准★: 新 claim iss250_downgrade_routes
+    (8 条: 5 条候选逐条判死/判活 + R1/R2/R3, 每条带代价/前提/谁拍) + iss250_board_checklist (板端两条分支: 路线① rk3572_target_smoke.sh
+    / 路线② 新增 rk3572_rknn3_board_smoke.sh, 判据 N1~N5)。★本条 note 里写的『E-11/E-12 本轮改判 [0数据·受下载速率限制]』已【过期】: 这两条现已由
+    ISS-263 实跑 + 本轮复核改判为 [实测] (rknn3-toolkit 1.2.0 已装独立 env, config(target_platform=rk3572) rc=0, 转换 3
+    次全 rc=0 产物 249,360 B + .weight 1,960,448 B) ⇒ 本条保留作留痕, 不用再按 [0数据] 口径引用★'
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md (v2.0, E-11/E-12 改判记录)
+- key: iss250_e11_e12_pending_install_test
+  to: main
+  value: '★已闭合 (2026-11-17 05:2x, sw-lead 第6轮复验)★ 官方独立工具链 rknn3-toolkit 1.2.0 已在本机装进独立 conda env /home/yuewuya/miniconda3/envs/rknn3
+    (py3.10.22), wheel 102657410 B 且 md5 与官方 md5sum.txt 一致 (a972e03af94fd18e21f026558735b28d); config(target_platform=rk3572)
+    rc=0 (读数 0.019 s / 0.013 s / 0.001 s 三次), 反向自证 config(rk3576) 必报 ValueError: Unsupported target_platform
+    rk3576, Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572; 完整模型转换
+    3 次全 rc=0, 产物 249360 B 加同名 .weight 1960448 B, md5 97a34fff0b855b92681f26627dba5354 三次逐字节一致, 主机侧 t_total
+    min 33.389 / avg 36.390 / max 41.672 s (★主机侧转换耗时, 不是板端延迟★); toolkit2 旧 env 装前装后 pip list 逐行相同 ⇒ 未污染;
+    板端接受性仍 [0数据] (init_runtime target rk3572 rc 减一, DEVICE_UNAVAILABLE, 本机 0 台设备). ⇒ 本条待办不再是阻塞项, 板端那一半见
+    need iss250_rknn3_board_toolchain 与交卷单 B5 O-4/O-5'
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md E-11/E-12/E-37 · HANDOFF/2026-11-16_sw-lead_ISS250_rknn-toolkit2_RK3572_target查证与降级方案.md
+    B1-5 · logs/iss263/
+- key: iss272_review_verdict
+  to: main
+  value: '★★main 的改判 = 对 (判据正确) + 有 3 个缺口 (缺口 1 已由本单补上, 缺口 2/3/4 待 main 拍)★★ ★**① 对**: mode=none ⇒ delivered=false
+    ⇒ 本来就不投, 语义正确 (推送本来就没开 ⇒ delivered=false 是预期行为) ★**② 隔离性我独立复现**: 自己 swap 修前修后各跑一次 delivery_health.py
+    ⇒ diff 只 4 行口径①变, A类/B类/D类/口径②/结论行 逐字节不变, run 记录 md5 前后 NO_DRIFT ★**③ 反向用例够硬**: 判据本身够硬 (变异测试 6 个变体
+    5 个被抓); 但端到端 announce 分支在当前盘上零执行 (M6 实测) ⇒ 本单已用合成 run 记录补上 (断言 31→44, rc=0) ★**④ 真故障藏没藏**: job 自己挂了藏不住
+    (口径① 这轮没跑成 7/4/6/6 照样计数 + B 类告警照样响); 投递类故障看不见但推送本来就关着语义上不算故障; ★**唯一真缺口 = 沙盒 E3 实测: mode=none 的 job
+    撞上认不出来的错误 ⇒ A类 0 条 B类 0 条 一条告警都不出 ⇒ 与 classify() 自己写的 宁可吵不可漏 兜底原则直接矛盾 (★2026-11-11 10:3x 既有行为, 非 ISS-261
+    引入★)★ ★**⑤ 三个缺口今天都不影响输出** (实测当前 12 轮窗口全落在 mode=none 时代) ★ ⇒ ★**main 可以把 ISS-261 从 fixed 落 verified,
+    并把缺口 2/3/4 开成 needs_from 拍板**★'
+  ref: HANDOFF/2026-11-17_sw-lead_ISS272_投递口径mode_none归类独立复核.md B1/B5
+- key: iss250_r6_supplement
+  to: main
+  value: '★ISS-250 第6轮 (sw-lead, 2026-11-17 05:2x~06:0x) 三条新增事实, 请 main 复验时一并看★: ① 【板端可达性实测】= 不通且根因定位
+    (本机无 enp4s0 网卡 + 两网段全段 TCP 扫无第三方主机 + mDNS 无解析 + 无 adb/USB) ⇒ 板端 N1 仍 [0数据], 但它的前置只有两类需要别人 (① 板没做出来
+    ② 板没接网通电), 而板端 runtime 自己就能装 (官方公开仓库) ⇒ 这一格不许再挂成「等外部回复」② 【板不可达时「精度掉点」今天就有数】: 两套 toolkit 自带 NPU 模拟器
+    (init_runtime(target=None)), 实测两条路线量化掉点基本一致 (逐 head 余弦差 <0.0001, 检测级 IoU 0.756 vs 0.773) ⇒ 「rknn3/rk3572
+    的量化质量不劣于 toolkit2/rk3576」有了板端之外的第一个数 (★模拟器口径, 非板端真值★) ③ 【板端 runtime 官方公开仓库】⇒ 零采购零外发。★★本轮刻意没把 12 行查证追加进共享查证表
+    (并行会话正在写同一文件, 追加会互相覆盖) ⇒ 落在 SW/research/ISS250_r6_复核记录.md (R6-01~R6-12), 要并表请 main 或下一轮唯一写会话做★'
+  ref: HANDOFF/2026-11-17_sw-lead_ISS250_第6轮_板可达性实测与模拟器掉点.md · SW/research/ISS250_r6_复核记录.md · logs/iss250_r6/
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -2113,11 +2780,41 @@ interface_claims:
     不重叠 (一个测模型, 一个测刷写救砖)
   ref: SW/MODEL_ASSETS.md#4.2
 - key: reset_release_policy
-  value: Q_AND(PG_AND)+RC_1.1ms;PG源DNP待确认
+  value: 'Q_AND(PG_AND)+RC_1.1ms;PG源DNP待确认 〔★2026-11-17 ISS-270 自查订正★: PG源DNP待确认 ⇒ 已作废 (网表真源 row79/row86
+    已写死 dnp=DNP) ⇒ 改成【待落表批次】(归 main, ISS-191 选项② Q_AND 整颗改 DNP) ⇒ ★不是外部依赖★; 证据等级: 网表事实 [实测] / PG 极性 [0数据·待补
+    PDF 文本抽取]; 降级方案: ①落表改 Q_AND 为 DNP (链变纯 RC, τ=1.1ms) ②不落表则按『只有 SW_RST 能拉低』设计 ③PG 极性查不到 ⇒ 按『开漏+上拉』画,
+    极性反了改 Q_AND 接法 (不改板) ⇒ 不构成阻塞; 还需要谁做什么: main (落表批次), hw-lead 不必介入; 本条是否还挂在老板清单上: 否; 详见 SW/EXTERNAL_DEPENDENCY_SELFCHECK.md
+    §2 E-5〕'
   note: '★ISS-190 复评 (2026-11-11) 改写: 复位释放现在由 **Q_AND 硬件 AND** (栅=PG_AND, 漏=RESET_N, 源=GND) + R_PG_PULL
     10k 上拉决定 ⇒ 上一版 ''复位释放时刻不由任何已画出的器件决定'' **被推翻** (PG 已进复位链); RC 释放 τ = (10k+1k)×100nF = **1.1ms**, 到
     0.7×1.8V = 1.324ms (网表 note 的 ''τ=100ms'' 错 90.9 倍); ★但两路 PG 源器件 U_DCDC_VCORE/U_DCDC_VIO 都是 DNP ⇒
-    PG_AND 恒高 ⇒ Q_AND 恒导通 ⇒ RESET_N 恒拉低 ⇒ 已登记 needs_from hw-lead (P0)'
+    PG_AND 恒高 ⇒ Q_AND 恒导通 ⇒ RESET_N 恒拉低 ⇒ 已登记 needs_from hw-lead (P0) 〔★2026-11-17 ISS-270 自查订正★
+
+    ★**"PG 源 DNP 待确认"【不是外部依赖】⇒ 改成【待落表批次】(归 main)。**
+
+    ★自己查了什么: `grep -n "U_DCDC_VCORE\|U_DCDC_VIO\|Q_AND\|Q_ENVC" HW/netlist_v1.csv` (★只读, 本单一次都没跑 `state/land_v_values.py
+    --apply`★) ⇒ row79 `U_DCDC_VCORE` type=IC **dnp=DNP** (note 原文 "[V_CORE] ★**DNP** — SoM 自带 PMIC ⇒
+    主板不产 SoC 核心轨") · row86 `U_DCDC_VIO` type=IC **dnp=DNP** (同因) · row67 `Q_AND` type=SW **dnp=必装** (复位链
+    AND 门) · row71 `Q_ENVC` type=SW **dnp=DNP** · row70/74 `EN_VCORE`/`EN_VIO` 网 evidence=**[待原厂]** tbd=**TBD-12**
+    ("PG 极性 (ok=低/高) **待原厂核** (TPS62130A)") ⇒ **[实测]** (网表真源已写死)。
+
+    ★结论: ①**PG 源 DNP 已是既成事实, 不是"待确认"项** ⇒ "待确认"这个措辞作废 ②它的后果 (PG_AND 恒高 ⇒ Q_AND 恒导通 ⇒ RESET_N 恒拉低) 是**设计后果**,
+    处置办法**已有既有结论** (ISS-191 选项②: `Q_AND` 整颗改 DNP, 表A L65/L66/L67 + 表B Q_AND.1/.2/.3) ⇒ **归 main 的落表批次**;
+    ★**本单不许自己改网表**★ ③唯一还带原厂色彩的是 TBD-12 的 **PG 极性** ⇒ 但 PG 极性查的是 **TI 官方 datasheet** 不是原厂 ⇒ 本单 PDF 正文没抽出来
+    (本机无 `pdftotext`) ⇒ 标 **[0数据·待补 PDF 文本抽取]** + 降级方案。
+
+    ★证据等级: 网表 DNP 事实 **[实测]** / PG 极性 **[0数据·待补 PDF 文本抽取]** / "改接法不改板" **[实测·本机文档]** (网表 note 原文)。
+
+    ★降级方案 (必须项): ①**落表批次** 按 ISS-191 选项② 把 `Q_AND` 整颗改 DNP ⇒ 复位释放链从 "PG 硬件 AND" 变纯 RC, 与 `SW/SW_TIMING_REVIEW.md`
+    §11 的 **1.1ms** 口径一致 ②**不落表也能设计** ⇒ 复位链保持"恒拉低" ⇒ SW 侧按"**只有 SW_RST 能拉低**"设计 (= `reset_release_policy`
+    第二条 (`:2590`) 已写的口径) ③**PG 极性查不到** ⇒ 网表 note 原文兜底: "画法按最通用的『**开漏 + 上拉**』, **极性反了只需改 Q_AND 接法**" ⇒
+    ⇒ **极性反了不改板**, 只改接法 ⇒ **不构成阻塞**。
+
+    ★还需要谁做什么: **main (落表批次)**; hw-lead 不必介入 (不需要改板); sw-lead (补 TI PDF 文本抽取, 非阻塞)。
+
+    ★本条是否还挂在老板清单上: **否**。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md` §1 / §2 E-5。
+
+    ★订正结束★〕'
   ref: SW/SW_TIMING_REVIEW.md §11 + SW/tools/timing_check.py (ISS-190 复评)
 - key: reset_tau_release
   value: 1.1ms
@@ -2551,9 +3248,17 @@ interface_claims:
     ⇒ 交叉确认
   ref: HW/e2e_budget_rk3572.py §⑥
 - key: reset_release_policy
-  value: ★复位释放链口径 (待老板拍板随整链重出落表后生效; 现在生效的仍是现行网表口径 Q_AND(PG_AND)+RC_1.1ms)★ ⇒ RC 1.1ms (R_PU_RESET_N 10k
+  value: '★复位释放链口径 (待老板拍板随整链重出落表后生效; 现在生效的仍是现行网表口径 Q_AND(PG_AND)+RC_1.1ms)★ ⇒ RC 1.1ms (R_PU_RESET_N 10k
     + R_SER_RESET_N 1k, C_RST 100nF) ⇒ 越过 0.7*VDD 1.324ms; 拉低者只有 SW_RST (Q_AND 改 DNP 后); 掉电方向随 1.8V 轨落
-    0 ⇒ 自动进复位
+    0 ⇒ 自动进复位 〔★2026-11-17 ISS-270 自查订正★
+
+    ★**2026-11-17 ISS-270 自查订正**: 本条 (复位释放链整链口径) 与同 key 第一条 (`state/fragments/sw.yaml` `:2152`) 的 "PG
+    源 DNP 待确认" 同源 ⇒ **"待确认"已作废** (网表真源 `HW/netlist_v1.csv` row79/row86 已写死 `dnp=DNP`, 原因 "SoM 自带 PMIC")
+    ⇒ 复位释放链的**最终口径**取决于 **main 的落表批次** (ISS-191 选项②: `Q_AND` 整颗改 DNP ⇒ 链变纯 RC, τ=1.1ms) ⇒ ★**不是外部依赖, 是待落表批次**★
+    ⇒ 落表前, 本条现在生效的口径 (Q_AND(PG_AND)+RC_1.1ms) 保持不变; 落表后本条随之更新。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`
+    §2 E-5。
+
+    ★订正结束★〕'
   note: ''
   ref: ''
 - key: iss191_fix_option
@@ -3053,6 +3758,289 @@ interface_claims:
   value: SW 侧 md5 锚点重锚跳数 = 第 6 跳 (先例 ISS-223→ISS-233→ISS-243→ISS-249 四跳 + ISS-245 第 4 跳 + ISS-254 第 5
     跳; 本单 ISS-258)
   note: '[实测] 台账 §3 R-01~R-09 行'
+  ref: ''
+- key: iss263_rknn3_toolkit_version
+  value: rknn3-toolkit 1.2.0 (env /home/yuewuya/miniconda3/envs/rknn3, python 3.10.22, pip 26.3); toolkit2
+    2.3.2 旧 env /home/yuewuya/miniconda3/envs/rknn 未被污染 (装前装后 pip list 逐行相同)
+  note: '[实测] VERSION file = rknn3-toolkit 1.2.0 / dist version = 1.2.0; 证据 logs/iss263/config_probe.log
+    + gates.log G5'
+  ref: logs/iss263/config_probe.log
+- key: iss263_rknn3_target_platform
+  value: rk3572 (config rc=0, CONFIG_OK target=rk3572 elapsed=0.019s); SDK 支持集 = gongga2, rk1820, rk1828,
+    rk182x, rk1860, rk186x, rk3572 (rk3576 不在其中)
+  note: '[实测] 反向自证: 错 target rk3576 报 ValueError: Unsupported target_platform => target 参数真被读了'
+  ref: logs/iss263/config_probe.log
+- key: iss263_rknn3_artifact_heads
+  value: yolov5n_heads_int8_rk3572_run{1,2,3}.rknn = 249360 B, md5 97a34fff0b855b92681f26627dba5354 (3
+    次逐字节一致, 可复现); 整模型 yolov5s_full_int8_rk3572.rknn = 339992 B, md5 e8927025d8d0494a1a949802bbac7a1f
+  note: '[实测] 3 次 rc_config/rc_load_onnx/rc_build/rc_export 全 0'
+  ref: logs/iss263/convert_rk3572_3runs.log
+- key: iss263_rknn3_convert_latency
+  value: t_total min=33.389 avg=36.390 max=41.672 s (n=3, target_platform=rk3572)
+  note: '[实测] 口径 = 主机侧一次 ONNX 到 .rknn 转换耗时; 绝不可当板端 e2e 延迟用 (跨口径不许比大小)'
+  ref: logs/iss263/convert_rk3572_3runs.log
+- key: iss263_rknn3_roundtrip_load_rknn
+  value: load_rknn(model_path, weight_path) rc=0 (heads + 整模型两个产物都是), 再 export_rknn 出来 md5 与原文件完全一致 (REEXPORT_MD5_MATCH_ORIG
+    = True); 真签名 load_rknn(self, model_path, weight_path, lora_weight_path=None, load_ctx=False, **kwargs)
+  note: '[实测] 往返自证判据未改, 按 inspect 真签名调; export_rknn 一次产出 .rknn + 同名 .weight 两个文件'
+  ref: logs/iss263/roundtrip_probe.log
+- key: iss263_rknn3_board_acceptance
+  value: '[0数据] 未验: init_runtime(target=rk3572, core_mask=RKNN3_NPU_CORE_0) rc=-1, RKNN3_ERR_DEVICE_UNAVAILABLE,
+    adb: no devices/emulators found, list_devices()=[] => 本机 0 台 RK3572 设备'
+  note: '[0数据] 主机侧转换链已通 不等于 板端跑通; 板端接受性/板端 e2e 延迟 一个数都没有'
+  ref: logs/iss263/roundtrip_probe.log
+- key: sw_extdep_criterion
+  value: external=仅外部方能回答
+  note: '★ISS-270 判定口径: 外部依赖 = 只有外部方能回答的; 凡本仓库 / 公开资料 / 本机实跑能回答的, 一律不是外部依赖; 『查不到』标 [0数据] + 必须给降级方案, 不许写成外部回复挂账;
+    『缺板』写板不可达 + 板到手即跑命令; 『缺器材』先穷尽零采购路径; 『老板拍板』是内部决策, 不是外部依赖'
+  ref: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md §0
+- key: boot_vidpid_capture_path
+  value: sysfs+lsusb+dmesg+usbmon
+  note: '★ISS-270: P3 (BOOT 态 VID:PID) 零采购取数路径 = /sys/bus/usb/devices (无需 root) + lsusb 兜底 + dmesg (E2),
+    采集机制已用 SW/tools/boot_rescue_probe.py 在本机实跑通 (枚举 8 个设备真实 VID:PID, 判 NOT_IDENTIFIED rc=1); 要事务级 ⇒ 内核
+    usbmon + tshark; 板端真值仍 [0数据] (板不可达) ⇒ 命令清单见 §4.1'
+  ref: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md §4.1
+- key: iss235_residual_doc_fix
+  value: 'SW/SW_TIMING_REVIEW.md §7-1 / §7-6 已按追加式订正成 已修复 (上游已修): 7-6 = ISS-233 (2026-11-16 06:48:38 ·
+    网表 L442 器件本体行 type=IC · dnp=必装 · opn=TPS22991RAA) · 7-1 = ISS-220 d6 (2026-11-16 02:32) ⇒ 现值 = IC
+    行数 1 · annotation_error_ratio 1.0 · rail_switching_devices 2 · load_switch_without_device_row []'
+  note: '[实测] 2026-11-17 04:5x~05:1x 实跑; ★7 行一条没删 · 原文一字未改 · 只追加状态与现值★; ★另外 5 条 (7-2/7-3/7-4/7-5/7-7)
+    逐条回盘网表仍全部成立 ⇒ 一个字没改 (没把任何一条真问题消掉)★; ★上游修的, 本单 HW/ 0 字节写入★'
+  ref: ''
+- key: iss235_doc_repro_selfconsistent
+  value: SW/SW_TIMING_REVIEW.md §13 两条自带复现命令实跑 = 文档订正后的声称 (grep -c U_EN_SW = 13 · grep -n U_EN_SW | grep
+    -c ,IC, = 1 · grep -c U_PWR_SW = 10) ⇒ 文档与真源同向 (订正前文档写 →0 而实跑 = 1 = 文档自相矛盾)
+  note: '[实测] 本单的反向自证 = 照文档自己的命令跑, 结果与文档一致; ★§1.1 F8 行声称 rail_switching_devices : 2 / load_switch_without_device_row
+    : [] 亦与 timing_check.py --only F8_power_off 实算一致★'
+  ref: ''
+- key: iss235_residual_needs_to_close
+  value: 'state/fragments/sw.yaml 的 needs_from 里三条已被上游满足但仍开着: iss190_netlist_i2ca_note_contradiction (7-1
+    · 判据 annotation_error_ratio 现 1.0) + iss190_netlist_u_en_sw_no_device_row 与 iss191_u_en_sw_device_row_recheck
+    (7-6 · 判据 grep ,IC, 现 1) ⇒ 由 hw-lead 登记 answer (to=sw-lead) 关闭'
+  note: '[实测] ★本单刻意不登记 answer: gate_check 的 self_closed 判据 = 需求发起人自己答自己 ⇒ 我登记 to=sw-lead 会触发门禁 自闭合 告警
+    ⇒ 那是把闭环做成假的★ ⇒ 正确做法 = 被问方 hw-lead 登记 ⇒ 已列 HANDOFF B5 U-A★'
+  ref: ''
+- key: iss172_netlist_landed_reanchor
+  value: '网表 L50 已于 2026-11-16 21:2x~22:25 由 ISS-257 (hw-lead) 落表: value 栏 = TPS22991RAA (负载开关 1=VIN/2=ON/3=VOUT/4=GND,
+    UQFN-4 RAA · ≥2A · R_on 25mΩ@5V · 无 RCB ⇒ 选型口径待 A5 追认); ★基准块 netlist_value_snapshot 已重锚到该字符串, 并新增
+    netlist_value_pre_drift / netlist_drift (9 字段) / residual_gaps (3 条)'
+  note: '[实测] 2026-11-17 实读 HW/netlist_v1.csv (md5 e06c1dd633566aa44732762c2ff99d1c) + state/_apply_iss257_g1a7_selection.py
+    (一次性落表器)'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §9.1 + 机器基准块
+- key: iss172_c9_post_landing_gate
+  value: '门禁加 C9 (落表后回归): a 基准块快照必须等于现行网表 value 栏 / b netlist_drift 五字段齐全 / c drift 与快照自洽 / d 落表前后串变了则
+    dropped_requirements 非空 / e 网表提到 RCB 时落地型号必须在册且 RCB 判定与网表口径一致且判据覆盖反向阻断 / f residual_gaps 非空; ★规则 =
+    谁改 U_PWR_SW 的 value 栏谁重锚基准块'
+  note: '[实测] 门禁 rc=0 · --selftest 12/12 · --sandbox 4/4 (在 /tmp 临时树上真改网表: value 栏再变 / RCB 口径翻转 / 换未查证型号
+    三条必红, 改网表别的行必须保持绿)'
+  ref: SW/tools/check_load_switch_selection.py C9 + M9~M12
+- key: iss172_residual_gaps_after_landing
+  value: '落表后残留 3 条缺口 (本单只登记不落表): G-1 L50 note 栏仍写型号待选型而同行 value 栏已落型号 / G-2 L50 note 栏仍写反向阻断必查而同行 value
+    栏写无 RCB / G-3 L442 note 栏仍写 ISS-172 待老板点头; ★归属 = 落表批次 / main'
+  note: '[实测] 2026-11-17 逐行实读 HW/netlist_v1.csv L50 与 L442; ★C9(f) 强制这份登记不许为空'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §9.2 + 基准块 residual_gaps
+- key: iss172_netlist_md5_drift_attribution
+  value: '受保护 4 件 md5 现状: 网表 e06c1dd633566aa44732762c2ff99d1c / 脚表 287e7861a0d1007748d92d9fbecdd490 /
+    BOM 94642d07a69e8d60dd2af57f69b93607 / 板 611b869e13518c3c023fb178f91a0075; ★第 1 轮交卷时网表是 34132f7e…
+    ⇒ 三个漂移全部归属 ISS-249/257/262/268 (hw-lead) 的落表批次, 不是本单; ★板 md5 自始至终一字未改'
+  note: '[实测] md5sum 实跑; ★本单对 HW/ 与 MECH/ 写入 0 字节 (只读); ★零外发 · 实物 [实测] = 0 条'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS172_负载开关选型证据矩阵.md 第 2 轮 B6
+- key: iss241_pad_order_defect_after_landing
+  value: '★F-1 D_ESD_CAM: 板文件 pad1=GND/pad2=CSI_D0_CK_P, 而落表器件 TPD1E05U06DPYR pin1=I/O/pin2=GND ⇒ 贴上去
+    ESD 的 I/O 脚接系统地、GND 脚接 CSI ⇒ CSI lane 上没有 ESD ⇒ 不修就投板=板白投。★F-2 Q_AND: 占位 pad 序 D/S/G 而落表 AO3400A 引脚序
+    G/S/D ⇒ RESET_N 会落到 G 脚 ⇒ 硬件 AND 变硬件 OR ⇒ 复位被误释放。机检: HW/check_part_selection_landed_crosscheck.py
+    C4 (--strict rc=1)'
+  note: '[实测]=读板文件 pad(net)+读落表表, 非硬件实测; ★修法(重画 land / 改双向件 / 改板)只给依据与代价, 一票交 main + 板那一趟; 器件参数全部 [官网]'
+  ref: ''
+- key: iss241_landed_consumption_13_of_22
+  value: '落表批次 (2026-11-16 22:25, hw-lead) 已消费 ISS-241 矩阵: HIT=13 (落表OPN=矩阵推荐项, 含 C_REGN 按 TI BQ25896
+    手册改 4.7µF/10V) · DEVIATION=1 (D_ESD_TC 落 SP0503BAHT 3通道 SOT-143-4, 理由站得住但充电板须落 4 焊盘 land, footprint
+    仍写待定) · OPEN=8 (D_LED_G/D_LED_R/D_CHG_LED + SW_BOOT/SW_KEY_PWR/SW_KEY_VM/SW_KEY_VP/SW_RST, 每件矩阵里仍有
+    ≥2 候选 + 官方链接 + 非空降级方案 ⇒ 可直接回填, 不用重查)'
+  note: '★落表遗留两处口径问题归落表批次: D_ESD_TC 的 evidence 栏写 [实测] 但板端无实物 (应为 [官网]); 5 件按键 opn 栏写 [0数据] 但矩阵有候选 (不是查不到)。本单只读核对,
+    不落表'
+  ref: ''
+- key: iss172_round3_official_datasheet_pull
+  value: 圣邦微 SGM2575S 与 SGM2572 的官方数据手册 PDF 已从官方服务器直取成功 (SGM2575S.PDF 779390 B / 7 页 / JULY 2025-REV.A.1
+    · SGM2572.pdf 28 页 / MAY 2022) ⇒ 两颗候选的证据等级由 [媒体] 全部升级为 [官网] ⇒ 矩阵全文已无 [媒体] 依赖
+  note: '[实测] 2026-11-17 04:5x 直取 (本机 pdftotext 提取, 非搜索引文也非第三方镜像) · 零外发 · 实物 [实测] = 0 条'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §6 出处表 S11/S12
+- key: iss172_ron_typ_max_verdict
+  value: '★新查事实: SGM2575S 官方 EC 表 RDSON 30 mΩ typ / 63 mΩ max (SGM2572 34/60 · TPS22916 60 typ / 100 max
+    @85C) ⇒ typ 口径下 SGM2575S 是唯一同时带 True RCB 且 RON ≤ 40 mΩ 的在售型号; max 口径下没有任何一颗带 RCB 的在售型号能过判据 3 ⇒ 老板须一并拍「RON
+    按 typ 还是按 max 判」+「SYS 电流按 0.55 A 还是 2 A 算」(63 mΩ @0.55A = 34.7 mV; @2A = 126 mV 而 SYS 下限 3.5 V = SoC
+    UVLO 3.5 V)'
+  note: '[官网] 官方 EC 表原文 · [推算] 压降按网表 L37 的 SYS 最大 0.55A 与下限 3.5V; ★本单不代拍'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §3.4 事实 B / §4 第 3 条 / §0 第 4 条
+- key: iss244_post_landing_p0_qpg_qand_esdcam
+  value: 'Q_PG: 写法A (S=BAT_SW / D=ON / G=PG) 才电学自洽; 落地件 DMP3098L 引脚序 1=G/2=S/3=D ⇒ land 目标 = pad1=PWR_GOOD(G)
+    / pad2=BAT_SW(S) / pad3=PWR_ON(D) (两个外侧 pad 对调, pad2 不动) + 网表 note 角色同批改写法A | Q_AND: note 角色对 (D=RESET_N/S=GND/G=PG_AND)
+    但 AO3400A 是 G-S-D ⇒ land 目标 = pad1=PG_AND/pad2=GND/pad3=RESET_N (两个外侧 pad 对调) | D_ESD_CAM: TPD1E05U06DPYR
+    pin1=I/O / pin2=GND, 而占位 pad1=GND / pad2=CSI_D0_CK_P ⇒ 正好相反 ⇒ 正向 ESD 失效 + CSI lane 负向摆幅被钳到地 | Q_ENVC
+    与 D_ESD_USB_D 两颗已对上, 不用动 land'
+  note: ★[官网]+[实测] 2026-11-17 sw-lead · 依据 = TI SLVSBO7O Table 4-1 (本轮实读, 落盘 state/.cache_iss244/led/tpd4e05u06.pdf)
+    + AOS AO3400A p1 Pin Configuration 图 + Diodes DMP3098L p1 Pin Configuration 图 (图上未印引脚号 ⇒ 编号按 JEDEC
+    TO-236 记 [推算], 与排布 [官网·图读] 分开标注) + 板文件逐焊盘实读 + 网表 L58~L60 / L64~L66 / L161~L162 / L412~L413 实读; 计算模块
+    state/.cache_iss244/post_landing.py 一条命令可复跑
+  ref: HW/PART_SELECTION_GAPS_CLOSEOUT.md §5.1/§5.2
+- key: iss250_rknn3572_target_status
+  value: '★[官网]+[实测] rk3572 在 rknn-toolkit2 (本机 2.3.2 / 官方最新 v2.5.0) 的合法 target 列表中【不存在】: 11 个合法 target
+    = rv1103/rv1103b/rv1106/rv1106b/rv1126b/rk2118/rk3562/rk3566/rk3568/rk3576/rk3588, rk3572 与 rk3572b
+    双双被拒 (ValueError: Invalid target_platform ''rk3572''!, 抛点 rknn/api/rknn_base.py:896); 官方 README Support
+    Platform 8 个系列 (v2.5.0) 无 RK3572, v2.5.0 release notes 全篇无 rk3572, 仓库 tree 1852 条路径 0 条含 3572, doc/
+    19 个 PDF 无 RK3572 专章 ⇒ ★官方 RK3572 路径 = rknn3-toolkit 1.2.0 (本机独立 env 已装 + config(target_platform=rk3572)
+    rc=0 实测 + 反向自证 rk3576 必报错)★'
+  note: '★[实测] 2026-11-17 05:1x~05:3x sw-lead 复跑两条 env 的 config 正反两面: toolkit2 2.3.2 rk3572 -> ValueError
+    / rk3576 -> ret=0 (0.017s); rknn3-toolkit 1.2.0 rk3572 -> ret=0 (0.001s) / rk3576 -> ValueError: Unsupported
+    target_platform ''rk3576''. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x,
+    rk3572 ⇒ 两工具链 target 集合互斥★'
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md (E-02/E-03/E-05/E-13/E-21)
+- key: iss250_cross_chip_acceptance_status
+  value: '★[官网]+[0数据] 官方层【不存在】任何一句『rk3576 转出来的 .rknn 能在 RK3572 上跑通』⇒ 该命题官方只能标 [0数据], 唯一能回答它的是板端 N1 (load_rknn
+    + init_runtime 返回值)。★并且有三条结构性反证: ① 官方 RKNN3 README 把 RK3576 写成 host SoC (给 RK1820/RK1828 当协处理器宿主),
+    把 RK3572 写成 NPU 集成在自己 SoC 内 ⇒ 不是同一角色; ② 官方 runtime demo README 明文 RK3576/RK3588 = librknn3_api.so
+    + librknn3_api_rkcp.so, 而 RK3572 = librknn3_api.so + librknn3_api_native.so ⇒ 板端库分叉; ③ airockchip/rknpu
+    README: RK3562/RK3566/RK3568/RK3576/RK3588/RV1103… 全部指向 RKNPU2 ⇒ RK3572 不在 RKNPU2 名单 ⇒ 跨家族复用无官方支撑★'
+  note: '★[官网] 检索面 (零外发 GET): rknn-toolkit2 README+release notes+tree+doc · rknn3-toolkit README+tree+runtime
+    demo README · airockchip/rknpu README; ★[0数据] 板端接受性 = 0 条数据 (本机 0 台 RK3572 设备, init_runtime rc=-1
+    / RKNN3_ERR_DEVICE_UNAVAILABLE) ⇒ 路线① 只能当『先试』, 不能当有官方背书的默认解★'
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md (E-14/E-15/E-16/E-20)
+- key: iss250_npu_diff_3572_vs_3576
+  value: '★RK3576 = 6 TOPS@INT8 [官网] (Rockchip 官方 Brief Datasheet V1.2 原文: NPU ● 6 TOPS@INT8) · ★RK3572
+    = 4 TOPS INT8 [媒体] (linuxgizmos / SBCwiki / Forlinx 三家交叉一致; 官方 PDF 本轮未取到 ⇒ 不升级为 [官网]) ⇒ ★差 −33% (4/6)。★⇒
+    ISS-155 里那句『RK3572 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2)』被再证伪: RK3576 官方是 6 TOPS 不是 4 TOPS, 且两颗分属
+    RKNN3/native 与 RKNN2/rkcp 两个家族★。★后果: N3 的通过线 t_npu ≤ 13.30 ms 是按『RK3572 ≈ RK3576 的 13.305 ms』推算来的,
+    在这条新证据下必须板端实测后重估, 不得当既定通过线 [推算]★'
+  note: ★[官网] rock-chips.com/uploads/pdf/2024.3.18/192/RK3576 Brief Datasheet V1.2-20240311.pdf · ★[媒体]
+    三家交叉 · ★[推算] 推导链 = 算力 2/3 + SW/DEMO_OD_TIMING_SPEC.md 的 13.305 ms 推算基数 ⇒ 同产物耗时可能 ×1.5 ⇒ 60 ms 硬线的验收线要重算
+    (老板级, 已登记 need)★
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md (E-19) + SW/DEMO_OD_TIMING_SPEC.md + SW/DEMO_BOARD_60MS_VERDICT_PLAN.md
+- key: iss250_downgrade_routes
+  value: '★8 条 (任务书点名 5 条候选逐条判死/判活 + 本轮查出的 3 条路线): C1 升级 toolkit 【❌判死·官方 v2.5.0 仍无 rk3572·净收益 0】 · C2
+    rk3576-target 直上板 【⚠️无官方背书·新增下载 0 B·产物 4,989,367 B 已在盘·板端接受性 [0数据]】 · C3 官方预编译模型 【❌判死·官方 rknn3-model-zoo
+    (2602 条/0 个 .rknn) 与 rknn_model_zoo (1888 条/0 个 .rknn) 都不提交二进制⇒ 不存在】 · C4 换模型路线 M2 yolov5n@640 【✅判活·模式A
+    e2e [推算] 52.91 ms·精度 F1 0.29265 (vs 0.3017)·需重新标定·不阻塞首台板】 · C5 改 60 ms 判据口径 【⚠️老板级·只列不拍】 · R1 = C2
+    的路线版 · R2 = 官方 rknn3-toolkit 路线 (★主机侧已实测通: 3 次转换 rc=0 产物 249,360 B + .weight 1,960,448 B; 板端仍 [0数据]★)
+    · R3 = 降 OD 负载 / 回 RK3576 换 SoC 【板级改版 + 重打样·周级·商务决策】★'
+  note: '★每条都带量化代价 / 启用前提 / 谁拍 三列 (机器门禁实测: 8 条, 代价列/前提列/谁拍列 全非空) · ★推荐默认值 = 板一通电先跑 R1 的 N1 (零新增成本), N1
+    FAIL 立刻转 R2, R2 也不行才启 R3 ⇒ ★这是【推荐】不是【已决定】, 路线取舍仍由老板拍 (need iss250_pick_downgrade_route)★'
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md §2 (降级方案表)
+- key: iss250_board_checklist
+  value: '★两条分支 + 每条一条命令 + N1~N5 量化判据 (两分支通用, 换路线不换判据): 路线① (rk3576-target 产物 + 板端 rknn-toolkit-lite2)
+    ⇒ bash SW/tools/rk3572_target_smoke.sh --artifact <rknn> --expect-sha256 <sha> --images 300 --out
+    <dir> --power-note <供电> ; ★路线② (本轮新增, 官方 RKNN3 产物两件套 + 板端 librknn3_api_native.so) ⇒ bash SW/tools/rk3572_rknn3_board_smoke.sh
+    --rknn <rknn> --weight <weight> --expect-sha256 <sha> --out <dir> ★; 判据: N1 load_rknn + init_runtime
+    都 ret==0 (否则路线作废) · N2 F1 ≥ 0.2427 (路线①; 路线② 无现成门槛⇒先量后定) · N3 t_npu ≤ 13.30 ms [推算, 须板端实测后重估] · 13.30
+    < t_sdk_total ≤ 20.33 ⇒ INDET · > 20.33 ⇒ 命中老板 T2 翻案 · N4 纯硬件与 SDK 总耗时必须分开报 · N5 散热/频率/供电三项齐全'
+  note: '★[实测] 两条 --dry-run 都 rc=0; ★路线② 脚本在本机 (非板) 实跑 ⇒ P1/P3-prime FAIL + N1/N3 INDET + rc=1 (不假装通过)
+    ⇒ 板端判定逻辑可执行; ★官方板端命令形态 (E-16 原文): ./build-linux.sh -t rk3572 -a aarch64 -b Release → adb push install/rknn3_model_test_Linux
+    /userdata/ → adb push <rknn> <weight> → adb shell 后 ./rknn3_model_test <rknn> <weight> 0x1 ★'
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md §3 + SW/tools/rk3572_rknn3_board_smoke.sh + SW/tools/rk3572_target_smoke.sh
+- key: iss250_gate
+  value: '★[实测] 机器门禁 (ISS-250 可选第 5 件, 已做): python3 SW/tools/check_iss250_rknn_target_gate.py ⇒ PASS rc=0
+    (8 项: 每条查证行有证据等级 / 4 条必答命题全覆盖 / 降级 ≥2 / 代价·前提·谁拍非空 / 判据不许写等回信 / 板端清单在位); --selftest ⇒ SELFTEST 5/5
+    rc=0 (4 个反向用例各自报红 + 1 个正向用例全绿)★'
+  note: '★[实测] 2026-11-17 05:5x sw-lead 本机实跑; 门禁只读, 不改被检文件; 反向用例覆盖: 抽证据等级 ⇒ G1 红 / 删降级方案 ⇒ G3 红 / 插入等原厂回信
+    ⇒ G4 红 / 删命题② ⇒ G2 红 ★'
+  ref: SW/tools/check_iss250_rknn_target_gate.py
+- key: iss250_rknn3572_target_status
+  value: ★rk3572 不在 rknn-toolkit2 合法 target 列表 (本机2.3.2实测11个含rk3576不含rk3572与rk3572b; 官方最新v2.5.0 (2026-10-20)
+    release notes 亦无 RK3572) ⇒ RK3572 的官方路径 = rknn3-toolkit 1.2.0 + target_platform=rk3572 (本机已装, config()
+    rc=0, 已转出 .rknn + .weight 两件套)
+  note: '★[实测] (两条 conda env 各枚举30候选, 本轮自己重写脚本重测) + [官网] (GitHub releases + README) ★出处: logs/iss250_r5/*
+    · SW/research/ISS250_rknn_toolkit2_target_查证表.md E-30 E-31 E-34 E-36'
+  ref: SW/research/ISS250_rknn_toolkit2_target_查证表.md
+- key: iss250_toolchain_target_mutex
+  value: ★两条工具链的合法 target 集合交集 = ∅ (toolkit2 的11个 ∩ rknn3 的7个 = 空集) ⇒ 路线① (rk3576-target 产物) 与 路线② (rk3572-target
+    产物) 在产物层面不可互相顶替 ⇒ 板端验时必须先声明验的是哪一代产物, 否则 runtime 报格式不认识会被误判成模型不对
+  note: '★[实测] ★判据 G5: SW/tools/check_rknn_target_compat.py ⇒ rc=0'
+  ref: SW/tools/check_rknn_target_compat.py
+- key: iss250_artifact_container_generation
+  value: ★toolkit2 产物 = 单文件 magic RKNN (0x524B4E4E), 内嵌 JSON 明写 target_platform 为 rk3576, version 2.3.2
+    ★rknn3 产物 = 两件套 magic RKNX (0x524B4E58) + 伴生权重 RKNX-W ⇒ 板端跑 RK3572 产物要的是 RKNN3 代 runtime (不是 RKNN2
+    的 librknnrt), 且 .rknn 与 .weight 必须一起拷, 少一个必失败
+  note: ★[实测] (本机 xxd + strings) ★判据 G6 G7 + 归档 meta.json
+  ref: SW/tools/check_rknn_target_compat.py
+- key: iss250_board_acceptance
+  value: '★NOT_VERIFIED [0数据] ★— 板不可达 ⇒ 本单只证明转得出来, 不证明板端吃不吃 ⇒ 板到手后按两段式验法执行: ① 官方预转换模型 (RKNN3_SDK/rknn3_models/v1.2.0,
+    云盘访问码 rknn) 先验板端 RKNN3 Runtime ② 再上我们自己的 rk3572 产物 (.rknn + .weight 两件套) ⇒ 两段各出1份日志 + 1份失败归属结论 (runtime层
+    / 模型层)'
+  note: '★[0数据] ★四处显式声明: 查证表 G9 / 交卷单 B1⑧ / B3⑨ / 产物 meta.json'
+  ref: SW/research/ISS250_r5_复现包.md
+- key: iss250_gates
+  value: '★两条闸口径不同互补: ① 文档完备性闸 SW/tools/check_iss250_rknn_target_gate.py ⇒ rc=0 (查证行证据等级/命题覆盖/降级代价与谁拍/无等回信措辞/板端清单在位)
+    ② 事实产物闸 SW/tools/check_rknn_target_compat.py ⇒ rc=0 (本轮新产出: 实跑两条工具链 + 产物容器字节 + md5/sha256 锚点 + 板端恒
+    NOT_VERIFIED), --selftest ⇒ rc=0 (内部把产物 magic 改坏 ⇒ 闸红 rc=1)'
+  note: ★[实测] ★建议对外口径以事实产物闸为准 (它对着盘上真值跑, 文档闸只保证写得齐)
+  ref: SW/tools/check_rknn_target_compat.py
+- key: iss263_rknn3_convert_latency_r4
+  value: min=44.050 avg=49.383 max=54.950 (n=3, 会话C 干净口径, target_platform=rk3572); 附 会话A轻负载 min=33.389
+    avg=36.390 max=41.672 / 会话B并发争抢 min=51.040 avg=59.894 max=68.810 / 9次全体 min=33.389 avg=48.555 max=68.810
+  note: '[实测] 第4趟独立复测: t_build 占 t_total 的 98.9~99.8% 即纯CPU-bound (INT8校准+图优化) => 引用必须带当时主机负载这个前提 不许单报一个数当稳定值;
+    与板端e2e延迟无关 不许混用'
+  ref: logs/iss263/convert_rk3572_3runs_r3_clean.log
+- key: iss263_rknn3_r4_reverify
+  value: 14项复验 13项与上趟一字不差 唯一口径订正=转换耗时; config(rk3572) rc=0 elapsed=0.018s; 反向 rk3576 ValueError 原文一字不差;
+    往返自证 rc_load_rknn=0 x2 + REEXPORT_MD5_MATCH_ORIG=True x2; 产物md5 跨3会话9-9逐字节相同 (249360 B); 板端 init_runtime
+    rc=-1 RKNN3_ERR_DEVICE_UNAVAILABLE list_devices=[]; 门禁 G1/G2/G3 rc=0 Q1 18-18 Q2 3-3; 受保护5件md5逐字节不变;
+    toolkit2 2.3.2旧环境pip list逐行相同未污染
+  note: '[实测] 本单第4趟独立复跑 结论方向不变 (转换链已通 板端仍0数据)'
+  ref: logs/iss263/gates_r3.log
+- key: iss250_delivery_reverified_20261117_0530
+  value: '★第6轮 (2026-11-17 05:2x~05:3x) 交卷复验: 盘上真值与两份交卷单逐条一致, 无结论漂移★ ① toolkit2 2.3.2: config rk3572 报
+    ValueError Invalid target_platform rk3572 (抛点 rknn/api/rknn_base.py:896), config rk3576 rc=0 ② rknn3-toolkit
+    1.2.0: config rk3572 rc=0, config rk3576 与 rk3588 均被拒 (Supported target_platform 列表 7 项含 rk3572) ③
+    门禁 check_iss250_rknn_target_gate.py 正向 PASS rc=0 加 selftest 5/5 rc=0; 门禁 check_rknn_target_compat.py
+    12 条判据 9 PASS 0 FAIL 3 NOTE rc=0, selftest 改坏 magic ⇒ G6 转红 rc=1 ④ 板端两条分支 dry-run 均 rc=0; ⑤ 三道既有判据全绿
+    (check_demo_panel_spec rc=0, timing_check SELFTEST 71/71 rc=0, demo_e2e_budget rc=0); ⑥ state/merge.py
+    rc=0, state/gate_check.py rc=0 且 Q1 18/18. ★板端接受性仍 [0数据], 复验不使其变绿★'
+  note: '★四件交付物齐备: 查证表 (31 条查证行 E-01~E-37, 4 条必答命题全覆盖, 每行带证据等级) + 降级方案 8 条 (C1~C5 判死判活 + R1~R3, 每条带量化代价/启用前提/谁拍)
+    + 板端执行清单两条分支 (一条命令 + P1~P6 前置 + N1~N5 判据 + 失败下一步动作, 无等回信措辞) + 交接单 B1~B6 六块齐全 + 分片 14 条 claim / 5 条
+    need / 3 条 answer★'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS250_rknn-toolkit2_RK3572_target查证与降级方案.md · SW/research/ISS250_rknn_toolkit2_target_查证表.md
+    E-37
+- key: iss272_delivery_truth_md5_20261117
+  value: a4cb793c41f33ee1681d46023c2ac2a7
+  note: ★ISS-272 独立复核后的 state/delivery_truth.py md5 (★只加了 selftest 合成用例, 判据未改★)★ ★**main 的 ISS-261 判据版
+    md5 = 8dad8b39d873b3d930acb1c076e240cb** (★该值已写进 issue_log ISS-261 note, 落 verified 时请一并登记两个值, 否则
+    issue_log 里的 md5 会过期★)★ ★修前备份 state/.bak_delivery_truth_20261117_0435_iss261.py = 00ff09721fad2b1fa8621d5af5573f7f★
+  ref: ''
+- key: iss250_r6_board_reachability
+  value: '★[实测] 板端可达性实测 (2026-11-17 05:3x~05:4x, sw-lead): 本机此刻【没有任何可执行板端验真的通道】⇒ 板端接受性仍 [0数据]★ —— 证据:
+    ① ip link show enp4s0 ⇒ ''Device does not exist'' (TOOLS.md 记录 A7S 板挂的就是这条有线 LAN) ② 192.168.2.0/24
+    与 192.168.71.0/24 两网段全段 TCP 22/5555 扫描 ⇒ 只开出本机自己 (.2.3 / .71.4) + 网关, 无任何第三方主机 ③ getent hosts radxa-cubie-a7s.local
+    ⇒ rc=2 无解析 ④ adb 未安装, lsusb 只有 BT + RTL8152 网卡。★⇒ 「板不可达」从断言变成【实测 + 根因】: 板端 N1 的客观前置分三类 = ① 板没做出来 (PCB
+    布线中) ② 板没接网/没通电 (物理动作, 零采购) ③ 板端 runtime 没装 (★完全在自己手里, clone 官方公开仓库即可★) ⇒ ③ 不许再被写成阻塞项★'
+  note: logs/iss250_r6/board_reach_probe.log (命令 + 输出原文) · ★零外发·未碰 HW/MECH★
+  ref: ''
+- key: iss250_r6_sim_accuracy_two_chains
+  value: '★[实测·模拟器口径] 板不可达时「精度掉点」今天就有数了: 两套 toolkit 都自带 NPU 模拟器 (init_runtime(target=None); 源码实读 envs/rknn/.../rknn/api/rknn.py:283
+    与 envs/rknn3/.../rknn/api/rknn.py:424, docstring 原文 ''default is None, means simulator'')★ ⇒ n=30
+    张同图同预处理实测 (vs FP32 onnxruntime 参考): rknn3-1.2.0/target=rk3572 逐 head 余弦 0.999511/0.999603/0.999671
+    (min 0.999040/0.999243/0.999269), rel-L2 0.031296/0.028152/0.025289, 检测级 (top-100, conf 0.75) 匹配 48.67/59.77,
+    平均 IoU 0.756215; 对照 toolkit2-2.3.2/target=rk3576 余弦 0.999524/0.999628/0.999697, rel-L2 0.030780/0.027073/0.023915,
+    IoU 0.772955 ⇒ ★★两条路线的量化掉点基本一致 (逐 head 余弦差 <0.0001) ⇒ 「rknn3/rk3572 的量化质量不劣于 toolkit2/rk3576」有了板端之外的第一个数★★
+    ★★口径警告: 模拟器 ≠ 板端 NPU (rknn3 的 simulate_lut=True 更接近但不等价, 该档 build 本轮未跑完 ⇒ [0数据]), 板端 N1/N2 才是终判; 模拟器耗时
+    271.96/317.39 ms 每张是 CPU 耗时, 不可当板端耗时★'
+  note: 'logs/iss250_r6/sim_accuracy.json + sim_accuracy_*.log · 脚本 SW/tools/iss250_r6_sim_accuracy.py
+    (4 步分进程: 两套 toolkit 的 import 名都叫 rknn, 同进程会互相覆盖)'
+  ref: ''
+- key: iss250_r6_rknn3_runtime_public_source
+  value: '★[官网] 路线② 的板端 runtime = 官方【公开仓库】⇒ 零采购零外发 ⇒ 这一格不是阻塞项★: 官方 README 首段 ''RKNN3 Runtime: On-board
+    runtime library providing C/C++ programming interfaces'' ⇒ 路径 github.com/airockchip/rknn3-toolkit/tree/main/rknn3-runtime
+    (★就在同一个公开仓库里★); 同仓另有 rknn3-toolkit-lite (板端 Python 接口) 与 rkllm3-server; GitHub 搜 org:airockchip+rknn3
+    ⇒ total_count=2 ⇒ ★⇒ clone + ./build-linux.sh -t rk3572 -a aarch64 就能出 librknn3_api.so + librknn3_api_native.so
+    (RK3572 走 native 库, 不是 rkcp)★ ⇒ 不需要向任何外部方要东西, 不许写成 needs_from'
+  note: raw.githubusercontent.com/airockchip/rknn3-toolkit/main/README.md (抓 2026-11-17 05:23 GMT+8) +
+    api.github.com/search/repositories?q=org:airockchip+rknn3
+  ref: ''
+- key: iss250_r6_simulator_constraint
+  value: '★[实测] 模拟器有一条硬约束 (踩到才知道): 两套 toolkit 都拒绝把 load_rknn 载入的模型跑模拟器 —— 原文 ''RKNN model that loaded
+    by load_rknn not support inference on the simulator, please set target first! If you really want to
+    inference on the simulator, use load_xxx & build instead of load_rknn!'' ⇒ 想拿模拟器掉点必须同会话 load_onnx
+    → build → init_runtime(target=None) (本轮 build 48.579 s (rknn3/rk3572) / 34.780 s (toolkit2/rk3576),
+    与 ISS-263 的 33.231/34.035/41.595 s 同量级 ⇒ 复现一致) ⇒ ★别再试「拿盘上归档的 .rknn 直接跑模拟器」★'
+  note: logs/iss250_r6/sim_accuracy_*.log · SW/tools/iss250_r6_sim_accuracy.py
   ref: ''
 open_questions:
 - id: SW-Q1

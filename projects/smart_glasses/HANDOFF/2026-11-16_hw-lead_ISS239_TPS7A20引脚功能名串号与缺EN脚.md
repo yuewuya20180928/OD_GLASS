@@ -229,3 +229,41 @@ python3 /tmp/iss239_rehearsal/smart_glasses/HW/check_pin_function_labels.py --se
 | `state/fragments/hw.yaml` | **追加** | 只 `--add-artifact` / `--add-claim` / `--add-need`, ★**没删改别人的 key** ★ |
 
 ★**本单没碰**: `state/gen_netlist.py` · `state/gen_netlist_pins.py` · `state/gen_kicad_net.py` · `state/gen_bom.py` · `state/check_*.py` (全部) · `HW/check_step1_parts_spec.py` · `HW/check_netlist_selfconsistency.py` · `MECH/**` · `SW/**` · `PROJECT_TRACKER.md` · `state/issue_log.yaml` · 板 / `.kicad_pro` / `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` / `HW/STEP1_PARTS_SPEC.md` / `HW/PART_ALTERNATIVES_REGISTRY.md`。
+
+---
+
+## B7 · ★★2026-11-17 补记 (★落表后维护 · H-1 重锚第 1 跳 · 追加式·历史不改★)★★
+
+### B7.1 起因 (★全部本机实测★)
+
+★**ISS-239 交卷 (2026-11-16 11:50) 之后, main 12:2x~12:4x 独立实跑 11 道验收命令 ⇒ 已落 verified** ★
+⇒ ★**但 2026-11-16 21:22 的 ISS-257 落表第 6 批 (G1a-7) 把 网表/脚表/BOM 三个 md5 改了** ★
+⇒ ★**本闸 (`HW/check_pin_function_labels.py`) 的 5 个 md5 基线是【过期锚点】, 不是真源被偷换** ★
+  (★实测 `grep -c "check_pin_function_labels" HANDOFF/*ISS257*` = 0 ⇒ ISS-257 交接单根本没提本闸★)
+⇒ ★**补记前实测: `--expect-known` ⇒ rc=1 (假红)** ★ (★缺陷快照 15/15 仍一致, 多出的是 3 条 `MD5_CHANGED`★)
+
+### B7.2 做了什么 (★逐条·文件 + 行号·详见 `HW/PIN_FUNCTION_TABLE_CLOSEOUT.md` §11★)
+
+- ★**重锚 3 个 md5 基线** (`PROTECTED_MD5` L141~L147): 网表 → `e06c1dd6…` · 脚表 → `287e7861…` · BOM → `94642d07…`; ★**板 / `.kicad_pro` 两个值一个字节没动** ★
+- ★**新增 ④b 台账对账** (L414~L458 `check4b_md5_ledger()` + L864~L891 三个常量): ★**脚本里的基线 md5 必须在落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 里查得到; 重锚链链尾必须 == 基线** ★ ⇒ ★**"改基线凑绿"被堵死** ★
+- ★**新增 3 条反向用例 T11 / T12 / T13** (L800 / L819 / L830) ⇒ `--selftest` **10/10 → 13/13**
+- ★**`KNOWN_DEFECTS` (15 条) 与其 SHA256 一个字节没动** ★ ⇒ ★**判据本体没被放宽★**
+
+### B7.3 交卷时实测 (★本机实跑·2026-11-17★)
+
+| 命令 | rc | 要点 |
+|---|---|---|
+| `python3 HW/check_pin_function_labels.py` | ★**1** ★ | ★首行「当前基线 = 已知缺陷 ISS-239 ⇒ rc=1 属预期, 落表后应转绿」★ + ★**15 条 = 14 串号 + 1 缺脚**★ + ④/④b 0 条 |
+| `python3 HW/check_pin_function_labels.py --expect-known` | ★**0** ★ | ★**15/15 逐条一致**★ |
+| `python3 HW/check_pin_function_labels.py --selftest` | ★**0** ★ | ★**13/13**★ (T11/T12/T13 各带"自证改到了目标")★ |
+| `python3 HW/check_step1_parts_spec.py` | 0 | C1~C8 **8/8** (★ISS-237 立的闸没被本单改红★) |
+| `python3 state/check_sch_pinfull.py` | 0 | ★584=584 · 本单**没动脚数基线**★ |
+| `python3 state/check_netlist.py` / `check_netlist_pins.py` / `check_sch_erc.py` | 0 / 0 / 0 | ★ERC=0★ |
+| `python3 HW/check_land_row_anchors.py` | 0 | ★310/310 (★ISS-262 守卫没被打断·本文件 0 条锚点★)★ |
+| `python3 state/merge.py` / `python3 state/gate_check.py` | 0 / 0 | ★【Q1】18/18★ |
+
+### B7.4 留给 main 的 (★追加·B5 里的 3 条仍然挂着★)
+
+- ★**落表批次现在多一件**: 除了 F1~F4 + 重生成链, ★**还要同步 `HW/check_pin_function_labels.py` 的 5 个 md5 基线 + 在 `MD5_ANCHOR_CHAIN` 追加一跳 (单号 / 旧 md5 / 新 md5 / 落表时刻 / 台账行号)** ★
+- ★**MECH `MECH/HW_CROSS_REVIEW_TRIAGE.md` §1 + SW `SW/SW_MD5_BASELINE_LEDGER.md` §1 两个 H-1 重锚** (★本单仍然只点名, 不代改★)
+- ★**ISS-237 那句错话照旧更正**: 「7 颗 TPS7A20 的 EN 一行都没有 ⇒ 全表关断」经 main 实测不成立 (★网表 L102/L112/L122/L132/L142/L152 都有 EN 行★) ⇒ 真病灶是本单这两条 (★pin4/pin5 功能名串号 + U_LDO_S28 缺 pin3★)

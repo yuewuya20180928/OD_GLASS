@@ -180,7 +180,7 @@ def evaluate(text, baseline, exp_refs, scope_refs=None):
     if baseline is None:
         res["C0"] = (False, ["基准块缺失或非法 JSON"])
         # 基准块没了, 后面几条无法判定 ⇒ 全部按红处理 (fail-closed)
-        for cid in ("C1", "C2", "C3", "C4", "C5", "C6"):
+        for cid in ("C1", "C2", "C3", "C4", "C5", "C6", "C7"):
             res[cid] = (False, ["基准块不可用 ⇒ 本条无法判定 (fail-closed)"])
         return res
     res["C0"] = (True, [])
@@ -268,6 +268,33 @@ def evaluate(text, baseline, exp_refs, scope_refs=None):
             f6.append("清单 %s 的「落表锚点」为空" % r.get("ref"))
     res["C6"] = (not f6, f6)
 
+    # ---- C7 落表后回归表: 每件「已落表」的件都要有一行 + 判定 + 出处 + (有引脚序不符就必须有修法)
+    f7 = []
+    pl = baseline.get("post_landing") or {}
+    rows7 = pl.get("rows") or []
+    if not rows7:
+        f7.append("基准块缺 post_landing (落表后回归表)")
+    got7 = {str(r.get("ref", "")) for r in rows7}
+    scope_set = scope if scope is not None else set(exp_refs)
+    for ref in sorted(ref for ref in scope_set if ref not in exp_refs):
+        if ref not in got7:
+            f7.append("落表后回归表缺已落表件 %s" % ref)
+    for r in rows7:
+        ref = r.get("ref", "?")
+        if not _nonempty(r.get("verdict")):
+            f7.append("落表后回归 %s 的「判定」栏为空" % ref)
+        if not _nonempty(r.get("source")):
+            f7.append("落表后回归 %s 的「出处」栏为空" % ref)
+        checks = r.get("checks") or []
+        mism = [c for c in checks if not c.get("match")]
+        if mism and not _nonempty(r.get("fix")):
+            f7.append("落表后回归 %s 有引脚序不符 (pad %s) 但没写修法"
+                      % (ref, ",".join(str(c.get("pad")) for c in mism)))
+        for c in checks:
+            if not _nonempty(c.get("device_role")) or not _nonempty(c.get("netlist_role")):
+                f7.append("落表后回归 %s 的某条 pad 核对缺「器件脚角色 / 网表角色」" % ref)
+    res["C7"] = (not f7, f7)
+
     return res
 
 
@@ -290,7 +317,7 @@ def run(root):
 
 
 def print_report(res, exp_refs, scope_refs=None):
-    order = ["C0", "C1", "C2", "C3", "C4", "C5", "C6"]
+    order = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7"]
     npass = 0
     print("=== ISS-244 选型缺口自查补全 + OPN 回填清单 · 机器门禁 ===")
     print("OPN 清单应覆盖件数 (ISS-241 登记范围, 从矩阵基准块读) = %s" % (len(scope_refs) if scope_refs else "?"))
@@ -377,32 +404,72 @@ def selftest(root):
                         r["landed_note"] = ""
             out = mutate_baseline_json(txt, fn)
             return out, "C_REGN"
+        def m9(txt):
+            # 删掉落表后回归表的一行 (动态取最后一行 ⇒ 不受「哪件已落表」漂移影响)
+            def fn(d):
+                pl = d.get("post_landing") or {}
+                rows = pl.get("rows") or []
+                if rows:
+                    pl["rows"] = rows[:-1]
+                    d["post_landing"] = pl
+            out = mutate_baseline_json(txt, fn)
+            return out, ""  # probe 动态取 (见下)
+
+        def _m9_probe(base_text):
+            bl, _ = extract_baseline(base_text)
+            rows = ((bl or {}).get("post_landing") or {}).get("rows") or []
+            return str(rows[-1].get("ref", "")) if rows else ""
+
+        def m10(txt):
+            # 把落表后回归表里某件的「出处」清空 ⇒ 期望 C7 红
+            def fn(d):
+                pl = d.get("post_landing") or {}
+                rows = pl.get("rows") or []
+                if rows:
+                    rows[0]["source"] = ""
+                    pl["rows"] = rows
+                    d["post_landing"] = pl
+            out = mutate_baseline_json(txt, fn)
+            return out, ""  # probe 动态取
+
+        def _m10_probe(base_text):
+            bl, _ = extract_baseline(base_text)
+            rows = ((bl or {}).get("post_landing") or {}).get("rows") or []
+            return str(rows[0].get("ref", "")) if rows else ""
 
         cases = [
-            ("M1 删掉一条缺口 (G-7) → 期望 C1 红", "C1", m1),
-            ("M2 某条缺口降级方案清空 → 期望 C2 红", "C2", m2),
-            ("M3 证据等级写成 [官方] → 期望 C3 红", "C3", m3),
-            ("M5 清单里删一件 (D_ESD_CAM) → 期望 C5 红", "C5", m5),
-            ("M6 某行落表锚点清空 → 期望 C6 红", "C6", m6),
-            ("M8 已被别的批次落掉的件清空 landed_note → 期望 C5 红", "C5", m8),
+            ("M1 删掉一条缺口 (G-7) → 期望 C1 红", "C1", m1, None),
+            ("M2 某条缺口降级方案清空 → 期望 C2 红", "C2", m2, None),
+            ("M3 证据等级写成 [官方] → 期望 C3 红", "C3", m3, None),
+            ("M5 清单里删一件 (D_ESD_CAM) → 期望 C5 红", "C5", m5, None),
+            ("M6 某行落表锚点清空 → 期望 C6 红", "C6", m6, None),
+            ("M8 已被别的批次落掉的件清空 landed_note → 期望 C5 红", "C5", m8, None),
+            ("M9 落表后回归表删掉一行 → 期望 C7 红", "C7", m9, "落表后回归表缺已落表件"),
+            ("M10 落表后回归表某件清空出处 → 期望 C7 红", "C7", m10, "出处"),
         ]
 
-        for name, target, mut in cases:
+        for name, target, mut, expect_msg in cases:
             total += 1
             mutated, probe = mut(base_text)
+            if not probe:
+                probe = _m9_probe(base_text) if mut is m9 else _m10_probe(base_text)
             # ① 变异确实落到盘上副本里 (副本里找得到探针串)
             landed = probe in mutated
             # ② 变异后的判定
             res_m = evaluate_text(mutated)
             target_red = not res_m[target][0]
             # ③ 其余 check 仍绿 (证明红的是目标那一条)
-            others = [c for c in ("C0", "C1", "C2", "C3", "C4", "C5", "C6") if c != target]
+            others = [c for c in ("C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7") if c != target]
             others_green = all(res_m[c][0] for c in others)
-            ok = landed and target_red and others_green
+            # ④ (可选) 红的那一条必须**指名道姓**说清是哪个目标 (防“随便塌一条也算过”)
+            msg_ok = True
+            if expect_msg:
+                msg_ok = any(expect_msg in m and (probe in m or expect_msg == "出处") for m in res_m[target][1])
+            ok = landed and target_red and others_green and msg_ok
             passed += 1 if ok else 0
             print("[%s] %s" % ("PASS" if ok else "FAIL", name))
-            print("      变异落地(探针 %r 在副本里)=%s · 目标 %s 变红=%s · 其余 check 仍绿=%s"
-                  % (probe, landed, target, target_red, others_green))
+            print("      变异落地(探针 %r 在副本里)=%s · 目标 %s 变红=%s · 其余 check 仍绿=%s · 红因指名=%s"
+                  % (probe, landed, target, target_red, others_green, msg_ok))
             if not target_red:
                 for m in res_m[target][1]:
                     print("        %s: %s" % (target, m))
@@ -416,7 +483,7 @@ def selftest(root):
         landed = probe in mutated
         res_m = evaluate_text(mutated)
         target_red = not res_m["C4"][0]
-        others = [c for c in ("C0", "C1", "C2", "C3", "C5", "C6") if c != "C4"]
+        others = [c for c in ("C0", "C1", "C2", "C3", "C5", "C6", "C7") if c != "C4"]
         others_green = all(res_m[c][0] for c in others)
         ok = landed and target_red and others_green
         passed += 1 if ok else 0
@@ -431,7 +498,7 @@ def selftest(root):
         landed = probe in mutated
         res_m = evaluate_text(mutated)
         target_red = not res_m["C0"][0]
-        others = [c for c in ("C1", "C2", "C3", "C4", "C5", "C6") if c != "C0"]
+        others = [c for c in ("C1", "C2", "C3", "C4", "C5", "C6", "C7") if c != "C0"]
         others_red = all(not res_m[c][0] for c in others)
         ok = landed and target_red and others_red
         passed += 1 if ok else 0

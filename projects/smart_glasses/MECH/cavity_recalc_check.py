@@ -92,7 +92,11 @@ FIT_JUDGE_MM = 0.60        # FDM 单边公差 ×2 的通用判据
 MD5_EXPECTED = {
     "MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md": "96239070dc7c0ec00edb1b758a698769",
     "MECH/hinge_usb_check.py": "3425bc141508de8a35f34c7cf7b803e8",
-    "MECH/service_port_check.py": "9b24bf985764880f0105aee677fba6a8",
+    # ★★【ISS-264 · H-1 重基线 · 2026-11-17】★★ service_port_check.py 的 md5 由
+    #   `9b24bf985764880f0105aee677fba6a8` → `db58ff6a2afc28b8bf517e3c57c56bc1`
+    #   (ISS-264 迁夹具基准常量 p2_y/s2_y 到 30mm 板套 A 口径 ⇒ 受保护脚本重基线)
+    #   留痕: MECH/HW_CROSS_REVIEW_TRIAGE.md §3.1 **R-07** 行
+    "MECH/service_port_check.py": "db58ff6a2afc28b8bf517e3c57c56bc1",
     "MECH/hw_cross_review_check.py": "e521387b87b0fcdf9f22d56f14199967",
     "MECH/display_biosafety_v2_check.py": "29c77fc3fc823048b1d96c9500d28dd7",
 }

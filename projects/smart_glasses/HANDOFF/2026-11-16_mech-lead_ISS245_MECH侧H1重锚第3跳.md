@@ -491,3 +491,180 @@ find MECH -type f -newermt "2026-11-16 18:40:00" ; echo "(空 ⇒ 0 改动)"
 ---
 
 ★**★交卷人**: ★**mech-lead (结构总工, 带散热)** ★ · ★**交卷时刻**: ★**2026-11-16 18:5x (GMT+8)** ★ · ★**verify_by**: ★**main (项目总工)** ★ · ★**本单 §3.1 锚点数字本轮未动 (★第 3 跳是上一轮 17:43 落的★)· 本轮只补交卷单 6 段 + 分片 + 验收输出** ★
+
+---
+
+# ★附·续 · 2026-11-17 04:5x~05:0x 续做复核 (★main 复核用 · 本轮只补当期证据, §3.1 锚点一个数字都没再动★)
+
+> ★**写在最前面, 免得下一个人误读上面的历史数字★**: ★**本单 3 件交卷物早在 2026-11-16 18:47~18:51 就已全部落盘** (交卷单 493 行 · 3 份沙盒日志 · 分片 2 artifact + 5 claim + 1 need) ⇒ ★**本轮 (2026-11-17 04:5x~05:0x, 网关重载后重入) 不是"重做", 是【复核 + 补当期证据】** ★
+> ★**⇒ 当期实测 (2026-11-17 05:07:16 CST): 门禁 rc=0 · 23/23 · FAIL 0 组 · `--selftest` rc=0 · 14/14 · `merge.py` rc=0 · `gate_check.py` rc=0 (Q1 18/18) · §3.1 锚点仍是 ISS-259 第 6 跳的值 (本单一个字节都没再动) · `HW/` 本轮 0 字节写入** ★
+
+## ★C-1 3 件交卷物在位复核 (★只读, 0 改动★)
+
+| 序 | 交卷物 | 路径 | mtime | md5 (★本轮追加附录前★) | 本轮状态 |
+|---|---|---|---|---|---|
+| **1** | ★**§3.1 锚点重锚 (第 3 跳)** ★ | ★**`MECH/HW_CROSS_REVIEW_TRIAGE.md`** ★ | ★**2026-11-17 02:33:58** ★ | ★**`920b497b3664e40aebc23f2ea63463c2`** ★ | ★**★在位 · 本轮 0 改动★** (★R-04 留痕行在 · §2 第 05 行在 · 判据逻辑未动★) ★ |
+| **2** | ★**本交接单 (B1~B6 + 附)** ★ | ★**`HANDOFF/2026-11-16_mech-lead_ISS245_MECH侧H1重锚第3跳.md`** ★ | ★**2026-11-16 18:51:27** ★ | ★**`1cea46af6e8c9f5e7adc9f44de7b882d`** ★ | ★**★在位 (493 行) · 本轮只【追加本附录】, 正文一个字没改★** ★ |
+| **3** | ★**分片 (原子写)** ★ | ★**`state/fragments/mech.yaml`** ★ | ★**2026-11-17 04:26:58** ★ | ★**`b61e92551f45281ebad5750b4dfa0d42`** ★ | ★**★在位 · `iss246_mech_*` 5 条 claim + 1 条 need 全在 ★ 本轮只追加"续做复核"那几条★** ★ |
+
+★**⇒ 留痕链完整, 没有断链**: ★**`MECH/HW_CROSS_REVIEW_TRIAGE.md` 顶部的 ISS-246 注 → 交卷单 (本文件) → 分片 `iss246_mech_*` claim 三处互指, 路径一字不差** ★
+
+## ★C-2 当期真值 (★2026-11-17 05:07:16 CST 实测 · 不是 11-16 18:4x 的历史值★)
+
+```
+$ md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro
+e06c1dd633566aa44732762c2ff99d1c  HW/netlist_v1.csv
+287e7861a0d1007748d92d9fbecdd490  HW/netlist_v1_pins.csv
+94642d07a69e8d60dd2af57f69b93607  HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+```
+
+★**★ 逐条归属 (★谁动了它, 一条不含糊★)★**:
+
+| 件 | 11-16 18:4x (本单交卷时) | 当期 (11-17 05:07) | 变了没 | 归属 (★不是我★) |
+|---|---|---|---|---|
+| ★**网表 `HW/netlist_v1.csv`** ★ | ★**`611c3ba3…`** ★ | ★**`e06c1dd6…`** ★ | ★**变了** ★ | ★**上游 hw-lead 落表: ISS-249 第 5 批 (`16ac89f7…`) → ISS-257 第 6 批 (`e06c1dd6…`, 2026-11-16 21:22) ⇒ 对应 §3.1 留痕 R-05 / R-06, 由 ISS-249 / ISS-259 两单落的锚** ★ |
+| ★**脚表 `HW/netlist_v1_pins.csv`** ★ | ★**`ef436a37…`** ★ | ★**`287e7861…`** ★ | ★**变了** ★ | ★**上游 hw-lead 落表: ISS-257 第 6 批 (evidence 列 + 14 件 opn, 2026-11-16 21:22) ⇒ §3.1 留痕 R-06** ★ |
+| ★**BOM `HW/BOM_v1.csv`** ★ | ★**`2a730574…`** ★ | ★**`94642d07…`** ★ | ★**变了** ★ | ★**上游 hw-lead 落表 (mtime 2026-11-16 22:25:14, 与 ISS-257 同批) · ★**BOM 不在 G5b 受保护集里 (G5b = 板 + `.kicad_pro` + 4 个 check 脚本 + 网表/脚表) ⇒ 本单的门禁不因 BOM 变红** ★ ★ |
+| ★**板 `HW/PCB/demo_mainboard.kicad_pcb`** ★ | ★**`611b869e…`** ★ | ★**`611b869e…`** ★ | ★**没变 (逐字节相同)** ★ | ★**无人动 (★本单从头到尾没碰 PCB 布线/布局/板框★)** ★ |
+| ★**`.kicad_pro`** ★ | ★**`3e504d2b…`** ★ | ★**`3e504d2b…`** ★ | ★**没变 (逐字节相同)** ★ | ★**无人动** ★ |
+
+★**⇒ 一句话: 本单 (mech-lead) 对 `HW/` 的写入 = 0 字节; 网表/脚表/BOM 的变化全部是上游 hw-lead 后续合法落表, 且每一跳都在 `MECH/HW_CROSS_REVIEW_TRIAGE.md` §3.1 有 R-05 / R-06 留痕 ⇒ ★**这不是"真源被换", 是"锚点跟着真源走"** ★
+
+## ★C-3 本轮复跑 (★原样输出★)
+
+```
+TS=2026-11-17 05:07:16 CST
+### gate
+RC=0
+  [OK ] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)
+  [OK ] C21   真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)
+【结论】23/23 组检查通过 | FAIL 0 组
+### selftest
+RC=0
+  ✅ 反向14: 删掉「已修复」留痕 (行 05 备注 + §3.1 整节)              期望红组 G8     实际红组 ['G8']
+----------------------------------------------------------------------------------------------------
+反向用例: 14/14 抓到了
+```
+
+```
+$ python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-17T05:04:59+08:00)
+   产出 420 | 阻塞 43 (高危 33) | 未闭合需求 247 | 冲突 0 | 健康度 red
+MERGE_RC=0
+```
+
+```
+$ python3 state/gate_check.py
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+【Q3 接口声明率】 全员 interface_claims 共 750 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+GATE_RC=0
+```
+
+## ★C-4 本轮新沙盒反向自证 (★绿 → 红 → 红 → 绿 · ★这是"G5b/C21 不是摆设"的当期证据★) ★
+
+★**为什么上一轮留档的 3 份日志不够**: ★**那 3 份 (stepA/stepB/stepC @2026-11-16 18:47) 是【第 3 跳当时】的沙盒, 锚点值 = `611c3ba3…` / `ef436a37…`; 而盘上锚点此后又被 ISS-249 / ISS-257 连推 2 跳 ⇒ ★**当期需要一份对【盘上现值】再证一次的沙盒** ★
+
+★**沙盒位置**: ★**`/tmp/iss246_rev/sandbox/`** (★真盘一个字节没动★) ⇒ ★**A 绿 (锚点 = 盘上现值) → B1 锚点整条回滚到 ISS-233 第 2 跳 (`34132f7e…` / `b21b743a…`) ⇒ 双红 → B2 锚点整条设成【本单第 3 跳的值】(`611c3ba3…` / `ef436a37…`) ⇒ 仍双红 (★证明本单落的那对锚点自己也是活的★) → C 装回盘上现值 ⇒ 又绿** ★
+
+**★stepA (★沙盒基线, 锚点 = 盘上现值 ISS-257 第 6 跳★) ⇒ 绿 ★**
+```
+  [OK ] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)
+  [OK ] C21   真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)
+         台账可查 = ['HW/SCHEMATIC_LANDING_V1_LANDED.md', 'HANDOFF/2026-11-16_hw-lead_ISS223_落表第2批与分片补落.md', 'HANDOFF/2026-11-16_hw-lead_ISS233_21条未落表归因与拍板即落清单.md', 'HANDOFF/2026-11-16_hw-lead_ISS243_C_REGN官方值落表与4条落表前置.md', 'HANDOFF/2026-11-16_hw-lead_ISS249_F1落表.md', 'HANDOFF/2026-11-16_hw-lead_ISS257_G1a7选型落表.md']; 对上 = ['HW/netlist_v1.csv ← HW/SCHEMATIC_LANDING_V1_LANDED.md (ISS-257)', 'HW/netlist_v1_pins.csv ← HW/SCHEMATIC_LANDING_V1_LANDED.md (ISS-257)']
+【结论】23/23 组检查通过 | FAIL 0 组
+RC=0
+```
+
+**★stepB1 (★锚点整条回滚到 ISS-233 第 2 跳★) ⇒ ★红, 且红的恰是 G5b + C21 这 2 组★**
+```
+  [FAIL] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)
+         HW/netlist_v1.csv: e06c1dd633566aa44732762c2ff99d1c != 34132f7e40a241e1fae1476be0eafbd5; HW/netlist_v1_pins.csv: 287e7861a0d1007748d92d9fbecdd490 != b21b743a7702d30729f0d653c15392df
+  [FAIL] C21   真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)
+         HW/netlist_v1.csv: 盘上 md5 e06c1dd633566aa44732762c2ff99d1c != 锚点登记 34132f7e40a241e1fae1476be0eafbd5 (真源被换了或锚点过期); HW/netlist_v1_pins.csv: 盘上 md5 287e7861a0d1007748d92d9fbecdd490 != 锚点登记 b21b743a7702d30729f0d653c15392df (真源被换了或锚点过期)
+【结论】21/23 组检查通过 | FAIL 2 组
+RC=2
+```
+
+**★stepB2 (★锚点整条设成【本单第 3 跳】的值 `611c3ba3…` / `ef436a37…`★) ⇒ ★仍双红 (★盘上真源已走到第 6 跳, 这一对旧锚点自然过期★) ★**
+```
+  [FAIL] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)
+         HW/netlist_v1.csv: e06c1dd633566aa44732762c2ff99d1c != 611c3ba3db3dc7de7213063375b96d01; HW/netlist_v1_pins.csv: 287e7861a0d1007748d92d9fbecdd490 != ef436a37412ac9b6eac3c9f41f1edca4
+  [FAIL] C21   真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)
+         HW/netlist_v1.csv: 盘上 md5 e06c1dd633566aa44732762c2ff99d1c != 锚点登记 611c3ba3db3dc7de7213063375b96d01 (真源被换了或锚点过期); HW/netlist_v1_pins.csv: 盘上 md5 287e7861a0d1007748d92d9fbecdd490 != 锚点登记 ef436a37412ac9b6eac3c9f41f1edca4 (真源被换了或锚点过期)
+【结论】21/23 组检查通过 | FAIL 2 组
+RC=2
+```
+
+**★stepC (★锚点装回盘上现值★) ⇒ ★又绿★**
+```
+  [OK ] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)
+  [OK ] C21   真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)
+         对上 = ['HW/netlist_v1.csv ← HW/SCHEMATIC_LANDING_V1_LANDED.md (ISS-257)', 'HW/netlist_v1_pins.csv ← HW/SCHEMATIC_LANDING_V1_LANDED.md (ISS-257)']
+【结论】23/23 组检查通过 | FAIL 0 组
+RC=0
+```
+
+★**⇒ 绿 → 红 → 红 → 绿 四步齐 ⇒ G5b / C21 这 2 组不是摆设 (★真盘始终 23/23 绿, 沙盒里才红★); 且 ★**本单第 3 跳落的那对锚点自己也是活的 (B2 双红)** ★**
+
+**★4 份沙盒日志留档 (★本轮新写·md5 可核★)★**
+
+| 序 | 留档 | 路径 | md5 |
+|---|---|---|---|
+| ★**C-1** ★ | ★**沙盒 stepA (绿, 23/23)** ★ | ★**`HANDOFF/2026-11-17_mech-lead_ISS246_续做复核_sandbox_1_A_基线.log`** ★ | ★**`a5c7ce46f87a347967cfe0ee7bcd0f68`** ★ |
+| ★**C-2** ★ | ★**沙盒 stepB1 (★红, 21/23 · FAIL 2 = G5b + C21★)** ★ | ★**`HANDOFF/2026-11-17_mech-lead_ISS246_续做复核_sandbox_2_B1_回滚ISS233.log`** ★ | ★**`718487fd4b9bb1a4a07f51e216453a56`** ★ |
+| ★**C-3** ★ | ★**沙盒 stepB2 (★红, 21/23 · FAIL 2 = G5b + C21★)** ★ | ★**`HANDOFF/2026-11-17_mech-lead_ISS246_续做复核_sandbox_3_B2_设成ISS246第3跳.log`** ★ | ★**`4292d7f0a39d0214084b5f2074942b9f`** ★ |
+| ★**C-4** ★ | ★**沙盒 stepC (绿, 23/23)** ★ | ★**`HANDOFF/2026-11-17_mech-lead_ISS246_续做复核_sandbox_4_C_装回现值.log`** ★ | ★**`8cf18600bc432912f0145b655e6e1ccd`** ★ |
+
+## ★C-5 本轮动过的文件 (★逐条自证★)
+
+| 序 | 文件 | 本轮动作 | 说明 |
+|---|---|---|---|
+| **1** | ★**`HANDOFF/2026-11-16_mech-lead_ISS245_MECH侧H1重锚第3跳.md`** ★ | ★**追加本附录 (C-1~C-6)** ★ | ★**正文 B1~B6 一个字没改 (追加式)** ★ |
+| **2** | ★**`HANDOFF/2026-11-17_mech-lead_ISS246_续做复核_sandbox_*.log` (4 份)** ★ | ★**新建** ★ | ★**本轮沙盒原样输出留档** ★ |
+| **3** | ★**`state/fragments/mech.yaml`** ★ | ★**`frag_write.py --agent mech-lead` 原子写 (tmp + fsync + os.replace)** ★ | ★**追加"续做复核"的 artifact / claim / need 各 1 条 · ★**未手改 yaml**★** ★ |
+
+★**★ 本轮 0 改动 (★硬证据★)★**:
+· ★**`MECH/HW_CROSS_REVIEW_TRIAGE.md`** ★ ⇒ md5 `920b497b3664e40aebc23f2ea63463c2` · mtime `2026-11-17 02:33:58` (★早于本轮 04:5x★) ⇒ ★**§3.1 锚点 / R-04 / R-05 / R-06 / R-07 / §2 第 05 行 / 判据阈值 一个字节都没动** ★
+· ★**`MECH/check_demo_struct_truth.py`** ★ ⇒ md5 `4ae5827e986f1aebb108c5aa2a475074` · mtime `2026-11-17 02:33:22` ⇒ ★**判据逻辑 / 阈值 / 14 条反向用例 一个字节都没动** ★
+· ★**`HW/` 全目录** ★ ⇒ ★**本轮 0 字节写入** ★ (★`find HW MECH -newermt '2026-11-17 04:50'` 列出的文件全部是【并发跑着的别的 agent】写的: `HW/check_part_selection_landed_crosscheck.py` / `HW/PIN_FUNCTION_TABLE_CLOSEOUT.md` / `HW/ISS247_reverify_acceptance_rc.log` 等 = hw-lead; `MECH/_append_handoff_iss240_r2.py` = 另一个 mech-lead 会话 (ISS-240 r2) ⇒ ★**都不是本单写的**★) ★
+· ★**`state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / `DECISION_PENDING_2026-11-16.md` / SW 分片 / SW 台账** ★ ⇒ ★**一个字节没动 (verify 留给 main)** ★
+· ★**零外发** ★ (★本轮没发任何邮件/询价/问询/采购, 老板 2026-11-11 19:31 + 2026-11-12 02:02 口径照执行★) · ★**零实物 [实测] = 0 条** ★ · ★**没碰 PCB 布线 / 布局 / 板框** ★ · ★**不替老板拍板** ★
+
+## ★C-6 本轮未决项与卡点 (★需要谁回答什么★)
+
+· ★**本单本身没有未决项**: ★**3 件交卷物在位 + 当期门禁绿 + 反向自证当期重做一遍 ⇒ 请 main 落 verify (★`state/issue_log.yaml` 本单不自改★)** ★
+· ★**唯一前瞻卡点 (给下一个接手的总工, 不是本单的活)★**: ★**hw-lead 后续每落一次网表/脚表, §3.1 锚点就会再过期一次 ⇒ 就要再走一跳 H-1 (照 R-02/R-03/R-04/R-05/R-06 的格式: 改 `md5`/`prev_md5`/`by`/`landed_at` 4 字段 + §3.1 追加一行留痕 + §1 `landing_records` 登记新台账位置 + 门禁回到 rc=0)** ★ ⇒ ★**本轮实测锚点现值 = 网表 `e06c1dd6…` (ISS-257 第 6 跳) / 脚表 `287e7861…` (ISS-257 第 6 跳); 若 2026-11-17 05:07 之后 hw-lead 又落表, 以 `stat HW/netlist_v1.csv` + `md5sum` 的实测为准, 不要照抄本附录的数字** ★ ★
+
+★**★续做复核人**: ★**mech-lead (结构总工, 带散热)** ★ · ★**续做时刻**: ★**2026-11-17 05:07~05:1x (GMT+8)** ★ · ★**verify_by**: ★**main (项目总工)** ★ · ★**本轮 §3.1 锚点数字一个都没再动 · 只补了当期证据 + 留痕** ★
+
+
+---
+
+## ★C-7 · 2026-11-17 05:1x 追加订正 (★只补一条, 别让 main 被 md5 差异带跑偏★)
+
+★**C-1 表第 3 行记的 `state/fragments/mech.yaml` md5 = `b61e92551f45281ebad5750b4dfa0d42` (mtime `2026-11-17 04:26:58`) 是【本轮追加本附录之前】的快照** ★ ⇒ ★**它现在已经不是现值了, 因为分片是【多 agent 并发追加】的文件** ★
+
+★**实测现值 (2026-11-17 05:1x)**: ★**`state/fragments/mech.yaml` md5 = `71dd2b5ee4d513a80232bbe728c277ad`** ★ (★mtime `2026-11-17 05:08:56`★) ⇒ ★**md5 变动原因 = 两次合法追加, 都不是本单改的**: ★**① 本单自己那一次** (★`frag_write.py --agent mech-lead` 原子写 · 追加 `iss246_mech_continue_verify_20261117` 等"续做复核"条目★) ★**② 另一个并发 agent (★ISS-244 hw-lead 的 `state/.cache_iss244/write_frag_r2.py` + `post_landing.py`★) 在 `05:08:28~05:08:56` 也往同一个分片追加了它自己的条目** ★ ⇒ ★**⇒ 结论: ★★分片 md5 不可作为"本单动没动"的判据 (它天生会变) ⇒ 判据是【本单的 `iss246_mech_*` claim 条目在不在 + YAML 合法 + merge 后 STATUS 对得上】★ ★**实测这三条全过** ★
+
+★**实测三条判据 (2026-11-17 05:1x)** ★:
+
+```
+$ grep -c "iss246_mech_continue_verify_20261117" state/fragments/mech.yaml
+1
+$ python3 -c "import yaml;d=yaml.safe_load(open('state/fragments/mech.yaml'));print('YAML OK, claims=',len(d['interface_claims']))"
+YAML OK, claims= 261
+$ python3 state/merge.py && python3 state/gate_check.py
+✅ STATE.yaml 已刷新 (2026-11-17T05:09:34+08:00)
+MERGE_RC=0
+GATE_RC=0
+```
+
+★**★同时订正 C-6 那条前瞻卡点里的一个数字 (★不是错, 是"截至时刻"要写清★)★**: ★**C-6 写的是「本轮实测锚点现值 = 网表 `e06c1dd6…` / 脚表 `287e7861…` (ISS-257 第 6 跳)」** ★ ⇒ ★**2026-11-17 05:1x 复测: 这两个值【仍然成立】, 三个生成物的 mtime 都停在 `2026-11-16 22:25:14` (★hw-lead 的 ISS-257 落表那一刻★) ⇒ ★**05:07 之后没有任何人再落过网表/脚表/BOM** ⇒ ★**锚点没再过期, 门禁保持 23/23 绿** ★ ★**⇒ 但 C-6 那句「若之后 hw-lead 又落表, 以 `stat` + `md5sum` 实测为准, 不要照抄本附录的数字」依然有效, 下一个接手的人照办即可** ★
+
+★**★本订正只追加了这一节, C-1~C-6 正文一个字没改** ★ ★**`MECH/HW_CROSS_REVIEW_TRIAGE.md` 本轮依然 0 改动 (md5 仍 = `920b497b3664e40aebc23f2ea63463c2`)** ★
+
+★**★订正人**: ★**mech-lead (结构总工, 带散热)** ★ · ★**订正时刻**: ★**2026-11-17 05:1x (GMT+8)** ★ · ★**verify_by**: ★**main (项目总工)** ★

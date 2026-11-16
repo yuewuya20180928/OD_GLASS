@@ -1,0 +1,1212 @@
+###################################################################
+# ISS-262 · hw-lead 验收跑批 (★2026-11-17 05:14:25 CST★)
+# 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+###################################################################
+=== 【跑前】受保护 5 件 md5 ===
+e06c1dd633566aa44732762c2ff99d1c  HW/netlist_v1.csv
+287e7861a0d1007748d92d9fbecdd490  HW/netlist_v1_pins.csv
+94642d07a69e8d60dd2af57f69b93607  HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+
+=========================================================
+★ 干跑 V-2=1 (零写盘)
+$ python3 state/land_v_values.py --decision V-2=1
+╔══ V 值落表器 (★默认 dry-run · 零写盘★) ══╗
+★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+★ 决定: V-2=1
+★ 模式: ★DRY-RUN (只打印, 零写盘)★
+
+★★【★V-2 两轴读数 (★架构 / 型号 分开列·不混成一句★)】★★
+   ★**真源现状 (★现读 `state/gen_netlist.py`, 不靠硬编码旧串★)**: 架构 = ★**single2** ★ · 型号 = ★**TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)** ★ · evidence = ★**[官方]** ★
+   ★**BOM 侧 OPN (PARTS 字典 L122)**: `TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)` ★
+   ★**落表动作**: 只动 1 行的 net (真源 L1454 → `NET_USB_D_P_TYPEC`) ⇒ ★**行数不变 ⇒ 门禁锚点行号不漂移** ★
+
+★★【逐字 diff (★文件 + 行号 + 旧值 + 新值★)】★★
+── [V2-1 D_ESD_USB_D 挪到 Type-C 侧 (★架构 single2 ⇒ 行数不变, 只动网名★)] state/gen_netlist.py:1454  (匹配 1 处)
+   - 旧:     add("P1", "USB_D_P_SRC", "D_ESD_USB_D", "USB_D_P_SRC", "D_ESD_USB_D",
+   - 旧:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装", "[官方]", "",
+   - 旧:         "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
+   - 旧:     add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D",
+   - 旧:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装",
+   - 旧:         "[官方]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
+   + 新:     add("P1", "NET_USB_D_P_TYPEC", "D_ESD_USB_D", "NET_USB_D_P_TYPEC", "D_ESD_USB_D",
+   + 新:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装", "[官方]", "",
+   + 新:         "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
+   + 新:     add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D",
+   + 新:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装",
+   + 新:         "[官方]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d4_a417_net  (d4 表A L417 ESD 信号行 net (★从 SoM 侧挪到 Type-C 侧★))
+   - 旧: net == USB_D_P_SRC
+   + 新: net == NET_USB_D_P_TYPEC
+
+★★【落表后期望 `--expect-resolved` 条数变化】★★
+   基线 (2026-11-16 ISS-233 交卷后): ★**18 条** ★
+   · V-2=1: ★**+0 条** ★ ⇒ ★**落完仍红 (按降级/判决不成立)**★
+   ⇒ 落表后期望: ★**18 条** ★
+   · ★**V-2=1 的板那一趟** ⇒ 再转绿 ★**3 条** ★ ⇒ ★**板那一趟落完 = 15 条** ★ (★本工具【不】做, 板一个字节都不碰★)
+
+★★【要连带改的台账 / 锚点】★★
+   · `HW/check_netlist_selfconsistency.py` 的 `EXPECT` 现状断言值: ★**1 条** ★
+       ★ d4_a417_net★ (d4 表A L417 ESD 信号行 net (★从 SoM 侧挪到 Type-C 侧★))
+   · `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` 的 `<!-- ANCHORS -->` 块: ★**整块重生成** ★
+   · `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` §5.5: ★**新增落表状态段** ★
+   · `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16: ★**新增落表台账 (单号 + 文件名 + 新旧 md5)** ★
+
+★★【会要谁走 H-1 重锚】★★
+   · ★**sw-lead**★: `SW/SW_MD5_BASELINE_LEDGER.md` §1 `entries` 的 `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` 两条 (★+ BOM 那条若台账里有★)
+   · ★**mech-lead**★: `MECH/HW_CROSS_REVIEW_TRIAGE.md` §1 `source_ledger.entries` + §3.1 留痕新增一行
+   ★**两边的 H-1 都要填四项: 落表单号 + 文件名 + 新 md5 + 旧 md5 ★** (★四项在 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16.2 里必须可查★)
+
+★★【★落表前必须看一眼的警告★】★★
+   ★ V-2=1: ★★**V-2=1 的板那一趟本工具【不做】** (★`HW/PCB/demo_mainboard.kicad_pcb` 一个字节都不碰★) ⇒ ★**板侧 B-3 (换封装 / 改占位焊盘) / B-4 (挪到 J_USB_C 旁 ≤3.0mm) / B-5 (D− 补 ESD) 继续排队**★
+   ★ V-2=1: ★★**网名挪了 ⇒ 板上的 footprint 焊盘网名也必须同趟改** (★`D_ESD_USB_D` pad1: `USB_D_P_SRC` → `NET_USB_D_P_TYPEC`★) ⇒ ★**板那一趟漏改 ⇒ 网表与板对不上** ★
+
+✅ rc=0: ★**DRY-RUN 完成 · 零写盘** ★ (★盘上 5 个 md5 逐字节不变★)
+   ★**要真落就加 `--apply --boss-decision "<日期> <A1|A2|A3> = <值>"` ★**
+--- rc=0 ---
+干跑 V-2=1 (零写盘) ⇒ rc=0
+
+=========================================================
+★ 干跑 V-3=E (零写盘)
+$ python3 state/land_v_values.py --decision V-3=E
+╔══ V 值落表器 (★默认 dry-run · 零写盘★) ══╗
+★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+★ 决定: V-3=E
+★ 模式: ★DRY-RUN (只打印, 零写盘)★
+
+★★【逐字 diff (★文件 + 行号 + 旧值 + 新值★)】★★
+── [E-1 规格页 B-08.level] HW/SCHEMATIC_V1_SPEC.json:426  (匹配 1 处)
+           "id": "B-08",   ★定位锚点 (未改)★
+   - 旧:       "level": "0-3.3V (分压)",
+   + 新:       "level": "0-1.8V (分压, SARADC_VIN5 1.8V 域)",
+
+── [E-2 规格页 B-08.imp] HW/SCHEMATIC_V1_SPEC.json:427  (匹配 1 处)
+           "id": "B-08",   ★定位锚点 (未改)★
+   - 旧:       "imp": "1M+1M 分压 + 100nF",
+   + 新:       "imp": "100k+60k 分压 + 100nF",
+
+── [E-3 删 DEMO_DNP 三行 (R_BAT_DET_1 / R_BAT_DET_2 / C_DET_BAT)] state/gen_netlist.py:348  (匹配 1 处)
+   - 旧:     "R_BAT_DET_1": "同上 (电池电压分压上臂)",
+   - 旧:     "R_BAT_DET_2": "同上 (电池电压分压下臂)",
+   - 旧:     "C_DET_BAT": "同上 (电池 ADC 滤波)",
+   + 新: (整行删除 · 不留空行)
+
+── [E-4/E-5 上臂 value+note] state/gen_netlist.py:912  (匹配 1 处)
+   - 旧:         add("P2", f"{src}_RAW", srcnode, r1, r1, "1M ±1%", "R", "必装", "[推算]", "",
+   - 旧:             f"[{src}_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V", cid)
+   + 新:         add("P2", f"{src}_RAW", srcnode, r1, r1, "100k ±1%", "R", "必装", "[推算]", "",
+   + 新:             f"[{src}_RAW] 分压上臂 (100k); ★方案E (ISS-223 §11.4): R_th=37.5kΩ ⇒ ADC 输入漏电 ~1µA 只造成 37.5mV 偏移 (2.1% FS, 可软件标定)★; ★常开静态功耗 26.25µA / 110µW (V-3 裁决的代价)★", cid)
+
+── [E-6/E-7 下臂 value+note] state/gen_netlist.py:914  (匹配 1 处)
+   - 旧:         add("P2", src, r2, "GND", r2, "1M ±1%", "R", "必装", "[推算]", "",
+   - 旧:             f"[{src}] 分压下臂 地端", cid)
+   + 新:         add("P2", src, r2, "GND", r2, "60k ±1%", "R", "必装", "[推算]", "",
+   + 新:             f"[{src}] 分压下臂 地端 (60k ±1%)", cid)
+
+── [selftest 用例2: L182 dnp 必装→DNP (退回旧缺陷)] HW/check_netlist_selfconsistency.py:1585  (匹配 1 处)
+   - 旧:         _mutate_line(os.path.join(tmp, REL["netlist"]), 182, "dnp", "必装")
+   + 新:         _mutate_line(os.path.join(tmp, REL["netlist"]), 182, "dnp", "DNP")
+
+── [selftest 用例2 名字按新现状更新] HW/check_netlist_selfconsistency.py:1792  (匹配 1 处)
+   - 旧:     cases.append(_run_case("用例2 改坏 L182 的 dnp (DNP→必装) ⇒ 必须红", root, m_net_dnp))
+   + 新:     cases.append(_run_case("用例2 改坏 L182 的 dnp (必装→DNP, 退回旧缺陷) ⇒ 必须红", root, m_net_dnp))
+
+── [selftest 用例7: 规格页锚点表的突变串按新现状翻转] HW/check_netlist_selfconsistency.py:1619  (匹配 1 处)
+   - 旧:         s = s.replace("| d2_a182_dnp | netlist | 182 | dnp == DNP |",
+   - 旧:                       "| d2_a182_dnp | netlist | 182 | dnp == 必装 |", 1)
+   + 新:         s = s.replace("| d2_a182_dnp | netlist | 182 | dnp == 必装 |",
+   + 新:                       "| d2_a182_dnp | netlist | 182 | dnp == DNP |", 1)
+
+── [selftest 用例11 注释按新现状更新 (★突变方向不用翻★)] HW/check_netlist_selfconsistency.py:1651  (匹配 1 处)
+   - 旧:         # ★把下臂改成 2M ⇒ calc(node_v@4.2) 从 2.1 变成 2.8 ⇒ d7_node_v / d7_node_over 双双变红
+   + 新:         # ★把下臂改成 2M ⇒ calc(node_v@4.2) 从 1.575V 变成 4.0V ⇒ d7_node_v / d7_node_over 双双变红
+
+── [selftest 用例11 名字按新现状更新] HW/check_netlist_selfconsistency.py:1803  (匹配 1 处)
+   - 旧:     cases.append(_run_case("用例11 [d7] 改坏 L183 下臂 (1M→2M, 触发 calc) ⇒ 必须红", root, m_net_rbatdet2_2m))
+   + 新:     cases.append(_run_case("用例11 [d7] 改坏 L183 下臂 (60k→2M, 触发 calc) ⇒ 必须红", root, m_net_rbatdet2_2m))
+
+── [selftest 用例12 注释按新现状更新] HW/check_netlist_selfconsistency.py:1655  (匹配 1 处)
+   - 旧:         # ★把 note 里自称的漏电流从 1.65µA 改成 2.5µA (★与 1M+1M 真值一致了⇒ 缺陷消失⇒ 必须变红★)
+   + 新:         # ★把 note 里自称的 ADC 输入漏电从 1µA 改成 2.5µA (★与本档 ~1µA 占位值不一致⇒ 必须变红★)
+
+── [selftest 用例12: 突变串按新 note 翻转] HW/check_netlist_selfconsistency.py:1659  (匹配 1 处)
+   - 旧:         raw = raw.replace("漏电流 ~1.65µA @5V", "漏电流 ~2.5µA @5V", 1)
+   + 新:         raw = raw.replace("ADC 输入漏电 ~1µA", "ADC 输入漏电 ~2.5µA", 1)
+
+── [selftest 用例12 名字按新现状更新] HW/check_netlist_selfconsistency.py:1804  (匹配 1 处)
+   - 旧:     cases.append(_run_case("用例12 [d8] 改坏 L182 note 的自称漏电流 (1.65→2.5µA) ⇒ 必须红", root, m_net_leak_note))
+   + 新:     cases.append(_run_case("用例12 [d8] 改坏 L182 note 的自称漏电流 (1→2.5µA) ⇒ 必须红", root, m_net_leak_note))
+
+── [规格页 §2 表第 (2) 条 现状栏] HW/NETLIST_SELF_CONSISTENCY_SPEC.md:297  (匹配 1 处)
+   - 旧: | ★(2) ★ | 表A L182/L183/L184/L185 与表B L100/L307/L309 的 `dnp` 仍 = DNP, 而 L181/L186/L210 是必装 | ★**成立 (缺陷在)** ★ |
+   + 新: | ★(2) ★ | 表A L182/L183/L184/L185 与表B L100/L307/L309 的 `dnp` 仍 = DNP, 而 L181/L186/L210 是必装 | ★★**落表后 (2026-11-16 V-3=E): 已修 (三颗从 DEMO_DNP 拿出来 ⇒ 必装; 阻值 100k+60k; 分压后 1.575V ≤ 1.8V) ⇒ ★**R2 组全绿**★ ★ |
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d2_a182_dnp  (d2 表A R_BAT_DET_1 DNP→必装)
+   - 旧: dnp == DNP
+   + 新: dnp == 必装
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d2_a183_dnp  (d2 表A R_BAT_DET_2 DNP→必装)
+   - 旧: dnp == DNP
+   + 新: dnp == 必装
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d2_a184_dnp  (d2 表A C_DET_BAT (滤波脚) DNP→必装)
+   - 旧: dnp == DNP
+   + 新: dnp == 必装
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d2_a185_dnp  (d2 表A C_DET_BAT (地端) DNP→必装)
+   - 旧: dnp == DNP
+   + 新: dnp == 必装
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d2_b307_dnp  (d2 表B R_BAT_DET_1 pin1 DNP→必装)
+   - 旧: dnp == DNP
+   + 新: dnp == 必装
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d2_b309_dnp  (d2 表B R_BAT_DET_2 pin1 DNP→必装)
+   - 旧: dnp == DNP
+   + 新: dnp == 必装
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d2_b100_dnp  (d2 表B C_DET_BAT pin1 DNP→必装)
+   - 旧: dnp == DNP
+   + 新: dnp == 必装
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d7_a181_value  (d7 表A L181 (NET_BAT_DET 行) 的 value = 规格页 B-08.imp)
+   - 旧: value == 1M+1M 分压 + 100nF
+   + 新: value == 100k+60k 分压 + 100nF
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d2_a182_value  (d2 表A 上臂 value)
+   - 旧: value == 1M ±1%
+   + 新: value == 100k ±1%
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d7_a182_value  (d7 上臂 value)
+   - 旧: value == 1M ±1%
+   + 新: value == 100k ±1%
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d7_a183_value  (d7 下臂 value)
+   - 旧: value == 1M ±1%
+   + 新: value == 60k ±1%
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d8_bom86_value  (d8 BOM L86 上臂 value)
+   - 旧: value == 1M ±1%
+   + 新: value == 100k ±1%
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d8_bom87_value  (d8 BOM L87 下臂 value)
+   - 旧: value == 1M ±1%
+   + 新: value == 60k ±1%
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d8_bom86_dnp  (d8 BOM L86 DNP→必装)
+   - 旧: dnp == DNP
+   + 新: dnp == 必装
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d8_bom87_dnp  (d8 BOM L87 DNP→必装)
+   - 旧: dnp == DNP
+   + 新: dnp == 必装
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d2_a182_note  (d2 表A note (DNP 前缀已消失))
+   - 旧: note contains DNP: 同上
+   + 新: note contains 分压上臂 (100k)
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d8_a182_note  (d8 表A note 自称漏电)
+   - 旧: note contains 漏电流 ~1.65µA @5V
+   + 新: note contains ADC 输入漏电 ~1µA
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d7_node_v  (d7 分压后节点电压现状 (1.575V ≤ 1.8V))
+   - 旧: calc(node_v@4.2) == 2.1
+   + 新: calc(node_v@4.2) == 1.575
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d7_node_over  (d7 分压后节点电压不再超 1.8V (★判据本体阈值不变, 只翻断言方向★))
+   - 旧: calc(node_v@4.2) > 1.8
+   + 新: calc(node_v@4.2) < 1.8
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d8_leak_now  (d8 分压链静态电流现状 (26.25µA))
+   - 旧: calc(leak_ua@4.2) == 2.1
+   + 新: calc(leak_ua@4.2) == 26.25
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d8_leak_claim  (d8 note 自称漏电现状 (1µA 占位值))
+   - 旧: calc(leak_note_ua@5) == 1.65
+   + 新: calc(leak_note_ua@5) == 1
+
+★★【落表后期望 `--expect-resolved` 条数变化】★★
+   基线 (2026-11-16 ISS-233 交卷后): ★**18 条** ★
+   · V-3=E: ★**-13 条** ★ ⇒ ★**转绿**★
+   ⇒ 落表后期望: ★**5 条** ★
+
+★★【要连带改的台账 / 锚点】★★
+   · `HW/check_netlist_selfconsistency.py` 的 `EXPECT` 现状断言值: ★**21 条** ★
+       ★ d2_a182_dnp★ (d2 表A R_BAT_DET_1 DNP→必装)
+       ★ d2_a183_dnp★ (d2 表A R_BAT_DET_2 DNP→必装)
+       ★ d2_a184_dnp★ (d2 表A C_DET_BAT (滤波脚) DNP→必装)
+       ★ d2_a185_dnp★ (d2 表A C_DET_BAT (地端) DNP→必装)
+       ★ d2_b307_dnp★ (d2 表B R_BAT_DET_1 pin1 DNP→必装)
+       ★ d2_b309_dnp★ (d2 表B R_BAT_DET_2 pin1 DNP→必装)
+       ★ d2_b100_dnp★ (d2 表B C_DET_BAT pin1 DNP→必装)
+       ★ d7_a181_value★ (d7 表A L181 (NET_BAT_DET 行) 的 value = 规格页 B-08.imp)
+       ★ d2_a182_value★ (d2 表A 上臂 value)
+       ★ d7_a182_value★ (d7 上臂 value)
+       ★ d7_a183_value★ (d7 下臂 value)
+       ★ d8_bom86_value★ (d8 BOM L86 上臂 value)
+       ★ d8_bom87_value★ (d8 BOM L87 下臂 value)
+       ★ d8_bom86_dnp★ (d8 BOM L86 DNP→必装)
+       ★ d8_bom87_dnp★ (d8 BOM L87 DNP→必装)
+       ★ d2_a182_note★ (d2 表A note (DNP 前缀已消失))
+       ★ d8_a182_note★ (d8 表A note 自称漏电)
+       ★ d7_node_v★ (d7 分压后节点电压现状 (1.575V ≤ 1.8V))
+       ★ d7_node_over★ (d7 分压后节点电压不再超 1.8V (★判据本体阈值不变, 只翻断言方向★))
+       ★ d8_leak_now★ (d8 分压链静态电流现状 (26.25µA))
+       ★ d8_leak_claim★ (d8 note 自称漏电现状 (1µA 占位值))
+   · `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` 的 `<!-- ANCHORS -->` 块: ★**整块重生成** ★
+   · `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` §5.5: ★**新增落表状态段** ★
+   · `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16: ★**新增落表台账 (单号 + 文件名 + 新旧 md5)** ★
+
+★★【会要谁走 H-1 重锚】★★
+   · ★**sw-lead**★: `SW/SW_MD5_BASELINE_LEDGER.md` §1 `entries` 的 `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` 两条 (★+ BOM 那条若台账里有★)
+   · ★**mech-lead**★: `MECH/HW_CROSS_REVIEW_TRIAGE.md` §1 `source_ledger.entries` + §3.1 留痕新增一行
+   ★**两边的 H-1 都要填四项: 落表单号 + 文件名 + 新 md5 + 旧 md5 ★** (★四项在 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16.2 里必须可查★)
+
+★★【★落表前必须看一眼的警告★】★★
+   ★ V-3=E: ★★**V-3 落表会改【demo 的产品语义】**: `DEMO_DNP` 的原始理由是「demo 主板不装电池」⇒ ★**把 BAT_DET 链改成必装 = 宣称 demo 板要装电池 / 或这链在 demo 上是空焊盘但要预留★** ⇒ ★**这条语义归 main 拍 (ISS-223 F-1)★**
+
+✅ rc=0: ★**DRY-RUN 完成 · 零写盘** ★ (★盘上 5 个 md5 逐字节不变★)
+   ★**要真落就加 `--apply --boss-decision "<日期> <A1|A2|A3> = <值>"` ★**
+--- rc=0 ---
+干跑 V-3=E (零写盘) ⇒ rc=0
+
+=========================================================
+★ 干跑 V-4=680 (零写盘)
+$ python3 state/land_v_values.py --decision V-4=680
+╔══ V 值落表器 (★默认 dry-run · 零写盘★) ══╗
+★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+★ 决定: V-4=680
+★ 模式: ★DRY-RUN (只打印, 零写盘)★
+
+★★【逐字 diff (★文件 + 行号 + 旧值 + 新值★)】★★
+── [V4-1/V4-2 R_ILIM value (L520 + L530 两处)] state/gen_netlist.py:557  (匹配 2 处)
+   - 旧: "390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)"
+   + 新: "680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16)"
+
+── [V4-3 R_ILIM note 的档位真值段] state/gen_netlist.py:562  (匹配 1 处)
+   - 旧: "★★**390Ω 档真值**: IINMAX = KILIM_max/RILIM = 390/390 = 1.00A; ICHG@3.70V = **1.216A**; J_CHG pin1/pin2 双 pin 并联 ⇒ **单 pin 0.608A > 0.50A 触点工作上限 21.6%** ⇒ **390Ω 档不成立, 档位待 V-4 裁决** (老板待拍项 · DECISION_PENDING_2026-11-16.md §3); "
+   + 新: "★★**680Ω 档真值 (V-4 裁定 2026-11-16)**: IINMAX = KILIM_max/RILIM = 390/680 = 0.574A; ICHG@3.70V = **0.698A**; J_CHG pin1/pin2 双 pin 并联 ⇒ **单 pin 0.349A ≤ 0.50A 触点工作上限 (余量 1.43×)** ⇒ **680Ω 档成立**; "
+
+── [★补充: note 里『V1.9 终值待 V-4 裁决』字样随裁决一并收口] state/gen_netlist.py:560  (匹配 1 处)
+   - 旧: "★★**V1.7 (470Ω) 已作废** (V1.8 起改 390Ω; ★**V1.9 终值待 V-4 裁决**)★ "
+   + 新: "★★**V1.7 (470Ω) 已作废** (V1.8 起改 390Ω; ★**V1.9 终值 = 680Ω (V-4 裁定 2026-11-16)**)★ "
+
+── [V4-4 p10_rows.json J_CHG/BAT_CHG 行 note] state/p10_rows.json:688  (匹配 1 处)
+   - 旧: ★**按 ICHG/IIN = 1.216 真值, 390Ω 档单 pin = 0.608A > 0.50A 工作上限 21.6% ⇒ 档位待 V-4 裁决**★
+   + 新: ★**按 ICHG/IIN = 1.216 真值, 680Ω 档单 pin = 0.349A ⇒ V-4 裁定 2026-11-16**★
+
+── [V4-5 CHARGE_BOARD_SPEC §2.2 脚表 R_ILIM 行] HW/CHARGE_BOARD_SPEC.md:124  (匹配 1 处)
+   - 旧: | **10** | ILIM | AI | `R_ILIM` → PGND | **390Ω ±1% (0402)** | [官方] "IINMAX = KILIM/RILIM", KILIM = 320/355/390 AΩ | 见 §2.4; ILIM 脚被稳在 **0.8V**, 电阻功耗 = 0.8²/R ≈ 2.1mW |
+   + 新: | **10** | ILIM | AI | `R_ILIM` → PGND | **680Ω ±1% (0402) (0402)** | [官方] "IINMAX = KILIM/RILIM", KILIM = 320/355/390 AΩ | 见 §2.4; ILIM 脚被稳在 **0.8V**, 电阻功耗 = 0.8²/680 ≈ 0.94mW |
+
+── [V4-6 CHARGE_BOARD_SPEC §2.4 档位表 (★并在其下补一行把 390Ω 标成【已判死】★)] HW/CHARGE_BOARD_SPEC.md:184  (匹配 1 处)
+   - 旧: | **390Ω ±1%** | 0.82 / 0.91 / **1.00 A** | 0.997 / 1.107 / **1.216 A** | **~1.1 A** | ★★**待裁决 (V-4)**: 单 pin **0.608A** (pin1/pin2 双 pin 并联) > **0.50A 触点工作上限 21.6%** ⇒ **本档不成立**; 候选档位见 `DECISION_PENDING_2026-11-16.md` §3 (老板待拍项, ★本单不代拍★) ★ |
+   + 新: | **680Ω ±1%** | 0.47 / 0.52 / **0.57 A** | 0.572 / 0.635 / **0.698 A** | **~0.6-0.7 A** | ★★**V-4 裁定 (2026-11-16)**: 单 pin **0.349A** (pin1/pin2 双 pin 并联) ≤ **0.50A 触点工作上限** ⇒ 触点余量 **1.43×** · 铰链余量 **2.15×** (相对 1.5A 设计点) · 420mAh CC ≈ **36min** ★ || ~~390Ω ±1%~~ | 0.82 / 0.91 / **1.00 A** | 0.997 / 1.107 / **1.216 A** | **~1.1 A** | ❌ **390Ω 档已判死 (V-4 裁定 2026-11-16)**: 单 pin **0.608A** > **0.50A 触点工作上限 21.6%** ⇒ 不可选 |
+
+── [V4-7 CHARGE_BOARD_SPEC §2.4 功耗句] HW/CHARGE_BOARD_SPEC.md:188  (匹配 1 处)
+   - 旧: > ★**电阻功耗不是问题**: ILIM 脚被稳在 0.8V → P = 0.8²/390 = **1.64 mW** → 0402 足够 (不需要大功率电阻)。
+   + 新: > ★**电阻功耗不是问题**: ILIM 脚被稳在 0.8V → P = 0.8²/680 = **0.94mW** → 0402 足够 (不需要大功率电阻)。
+
+── [V4-8a CHARGE_BOARD_SPEC §3.4 场景表 ①] HW/CHARGE_BOARD_SPEC.md:324  (匹配 1 处)
+   - 旧: | ① Rd-only + 常见 Rp=56k 充电器 | 500 mA | 390Ω | 0.5A (源封顶) | **~0.61 A** | **2.5×** |
+   + 新: | ① Rd-only + 常见 Rp=56k 充电器 | 500 mA | 680Ω | 0.5A (源封顶) | **~0.61 A** | **2.5×** |
+
+── [V4-8b CHARGE_BOARD_SPEC §3.4 场景表 ②] HW/CHARGE_BOARD_SPEC.md:325  (匹配 1 处)
+   - 旧: | ② Rd-only + Rp=22k 充电器 | 1.5 A | 390Ω | 0.82-1.00A | **~1.00-1.22 A** | **1.2-1.5×** |
+   + 新: | ② Rd-only + Rp=22k 充电器 | 1.5 A | 680Ω | 0.47-0.57A | **~0.572-0.698 A** | **2.15×** |
+
+── [V4-8c CHARGE_BOARD_SPEC §3.4 场景表 ③] HW/CHARGE_BOARD_SPEC.md:326  (匹配 1 处)
+   - 旧: | ③ 加 PD 5V/2A + `R_ILIM`=390Ω | 2 A | 390Ω | 0.82-1.00A | **~1.00-1.22 A** | **1.2-1.5×** |
+   + 新: | ③ 加 PD 5V/2A + `R_ILIM`=680Ω | 2 A | 680Ω | 0.47-0.57A | **~0.572-0.698 A** | **2.15×** |
+
+── [V4-9a CHARGE_BOARD_SPEC §7 CSV 的 ILIM 行] HW/CHARGE_BOARD_SPEC.md:536  (匹配 1 处)
+   - 旧: P10,ILIM,U_CHG pin10,R_ILIM,R_ILIM,390Ω ±1% (0402),R,必装,[官方],
+   + 新: P10,ILIM,U_CHG pin10,R_ILIM,R_ILIM,680Ω ±1% (0402),R,必装,[官方],
+
+── [V4-9b CHARGE_BOARD_SPEC §7 CSV 的 PGND 行] HW/CHARGE_BOARD_SPEC.md:537  (匹配 1 处)
+   - 旧: P10,PGND,R_ILIM,PGND,R_ILIM,390Ω ±1% (0402),R,必装,[官方],
+   + 新: P10,PGND,R_ILIM,PGND,R_ILIM,680Ω ±1% (0402),R,必装,[官方],
+
+── [V4-11 §2.1 本规格的封顶链行] HW/CHARGE_BOARD_SPEC.md:253  (匹配 1 处)
+   - 旧: | **本规格的封顶链** | ILIM 脚 `R_ILIM` = 390Ω → **0.82-1.00A 硬件上限**, 与寄存器无关 | [官方] |
+   + 新: | **本规格的封顶链** | ILIM 脚 `R_ILIM` = 680Ω → **0.47-0.57A 硬件上限**, 与寄存器无关 | [官方] |
+
+── [V4-12a §3.3 的第一条正文] HW/CHARGE_BOARD_SPEC.md:313  (匹配 1 处)
+   - 旧: - `R_ILIM` = 390Ω (→ 输入 0.82-1.00A, CC 段电池电流 ~0.67-0.82A)。
+   + 新: - `R_ILIM` = 680Ω (→ 输入 0.47-0.57A, CC 段电池电流 ~0.572-0.698A)。
+
+── [V4-12b §3.3 的第二条正文] HW/CHARGE_BOARD_SPEC.md:315  (匹配 1 处)
+   - 旧: - ⇒ **`R_ILIM` = 390Ω 是"无软件依赖"的基线; 有软件时 SoC 按 BC1.2 结果写 REG00 (IINLIM) 来精确贴合源能力。**
+   + 新: - ⇒ **`R_ILIM` = 680Ω 是"无软件依赖"的基线; 有软件时 SoC 按 BC1.2 结果写 REG00 (IINLIM) 来精确贴合源能力。**
+
+── [V4-13 §3.6 的接受判据那句] HW/CHARGE_BOARD_SPEC.md:337  (匹配 1 处)
+   - 旧: - 若**接受** → 按本规格出 P10, `R_ILIM`=390Ω, J_CHG pin9/pin10 留空给未来的 I2C。
+   + 新: - 若**接受** → 按本规格出 P10, `R_ILIM`=680Ω, J_CHG pin9/pin10 留空给未来的 I2C。
+
+── [V4-14 §8 推算表的 R_ILIM 行] HW/CHARGE_BOARD_SPEC.md:650  (匹配 1 处)
+   - 旧: | `R_ILIM` = 390Ω → IIN 0.82-1.00A → ICHG ~0.67-0.82A | **[推算·可复算]** | 公式见 §2.4 / §3.4, B6 可复现 |
+   + 新: | `R_ILIM` = 680Ω → IIN 0.47-0.57A → ICHG ~0.572-0.698A | **[推算·可复算]** | 公式见 §2.4 / §3.4, B6 可复现 |
+
+── [V4-15 §9 的 ISS-091 历史闭环行 (★保留 10-28 的历史事实 + 记 V-4 改档★)] HW/CHARGE_BOARD_SPEC.md:620  (匹配 1 处)
+   - 旧: → **定 390Ω**, 300Ω 判死 | **结构总工** | 已闭环 | §2.4 (`R_ILIM` = 390Ω) |
+   + 新: → **定 390Ω**, 300Ω 判死 → ★★**V-4 裁定 2026-11-16 改档为 680Ω**★ | **结构总工** | 已闭环 | §2.4 (`R_ILIM` = 680Ω) |
+
+── [V4-9 CHARGE_BOARD_SPEC §7 CSV R_ILIM 行 note] HW/CHARGE_BOARD_SPEC.md:536  (匹配 1 处)
+   - 旧: ILIM 脚稳在 0.8V, 功耗 0.8²/390=1.64mW; **必装件** (不装 → REG04 复位默认 ICHG=2048mA 会让铰链过 2.05A); ★★**390Ω 档真值: 单 pin 0.608A > 0.50A 触点工作上限 21.6% ⇒ 档位待 V-4 裁决 (老板待拍 · DECISION_PENDING_2026-11-16.md §3)**; 300Ω 档判死 (单 pin 0.791A > 0.5A 天花板)
+   + 新: ILIM 脚稳在 0.8V, 功耗 0.8²/680=0.94mW; **必装件** (不装 → REG04 复位默认 ICHG=2048mA 会让铰链过 2.05A); ★★**680Ω 档真值 (V-4 裁定 2026-11-16): 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点**; 300Ω 档判死 (单 pin 0.791A > 0.5A 天花板)
+
+── [V4-10 CHARGE_BOARD_SPEC §10 自检脚本档位列表] HW/CHARGE_BOARD_SPEC.md:709  (匹配 1 处)
+   - 旧: for r in (390,300,260):
+   + 新: for r in (680,475,1200):
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d10_a47_value  (d10 表A L47 R_ILIM value)
+   - 旧: value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)
+   + 新: value == 680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16)
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d10_a48_value  (d10 表A L48 R_ILIM value)
+   - 旧: value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)
+   + 新: value == 680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16)
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d10_bom97_value  (d10 BOM L97 R_ILIM value)
+   - 旧: value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)
+   + 新: value == 680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16)
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d10_pin_max_370  (d10 单 pin 载流现状 @3.70V (0.349A))
+   - 旧: calc(ichg_pin_max@3.7) == 0.608
+   + 新: calc(ichg_pin_max@3.7) == 0.349
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d10_pin_max_420  (d10 单 pin 载流现状 @4.20V (0.307A))
+   - 旧: calc(ichg_pin_max@4.2) == 0.536
+   + 新: calc(ichg_pin_max@4.2) == 0.307
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d10_spec_0608  (d10 CHARGE_BOARD_SPEC 的单 pin 现状值 (0.349A))
+   - 旧: text contains 单 pin **0.608A**
+   + 新: text contains 单 pin **0.349A**
+
+★★【落表后期望 `--expect-resolved` 条数变化】★★
+   基线 (2026-11-16 ISS-233 交卷后): ★**18 条** ★
+   · V-4=680: ★**-1 条** ★ ⇒ ★**转绿**★
+   ⇒ 落表后期望: ★**17 条** ★
+
+★★【要连带改的台账 / 锚点】★★
+   · `HW/check_netlist_selfconsistency.py` 的 `EXPECT` 现状断言值: ★**6 条** ★
+       ★ d10_a47_value★ (d10 表A L47 R_ILIM value)
+       ★ d10_a48_value★ (d10 表A L48 R_ILIM value)
+       ★ d10_bom97_value★ (d10 BOM L97 R_ILIM value)
+       ★ d10_pin_max_370★ (d10 单 pin 载流现状 @3.70V (0.349A))
+       ★ d10_pin_max_420★ (d10 单 pin 载流现状 @4.20V (0.307A))
+       ★ d10_spec_0608★ (d10 CHARGE_BOARD_SPEC 的单 pin 现状值 (0.349A))
+   · `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` 的 `<!-- ANCHORS -->` 块: ★**整块重生成** ★
+   · `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` §5.5: ★**新增落表状态段** ★
+   · `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16: ★**新增落表台账 (单号 + 文件名 + 新旧 md5)** ★
+
+★★【会要谁走 H-1 重锚】★★
+   · ★**sw-lead**★: `SW/SW_MD5_BASELINE_LEDGER.md` §1 `entries` 的 `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` 两条 (★+ BOM 那条若台账里有★)
+   · ★**mech-lead**★: `MECH/HW_CROSS_REVIEW_TRIAGE.md` §1 `source_ledger.entries` + §3.1 留痕新增一行
+   ★**两边的 H-1 都要填四项: 落表单号 + 文件名 + 新 md5 + 旧 md5 ★** (★四项在 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16.2 里必须可查★)
+
+✅ rc=0: ★**DRY-RUN 完成 · 零写盘** ★ (★盘上 5 个 md5 逐字节不变★)
+   ★**要真落就加 `--apply --boss-decision "<日期> <A1|A2|A3> = <值>"` ★**
+--- rc=0 ---
+干跑 V-4=680 (零写盘) ⇒ rc=0
+
+=========================================================
+★ 落表器自测 (≥11 条)
+$ python3 state/land_v_values.py --selftest
+╔══ 落表器自测 (★--selftest★ · ★全在临时副本里做 · 真盘零写入★) ══╗
+★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+
+   ✅ 用例1 ★【回归·本轮实测坏案例】真源退回 ISS-257 之前的占位串 ⇒ V-2 必须红 (rc≠0) ★
+        rc=3
+        ★★ rc=3: ★**落表前校验不过 ⇒ 拒绝落 (★零写盘★)** ★
+           ★★【状态漂移】D_ESD_USB_D 的 2 行 value 不一致 ⇒ ★**期望: 同一颗器件的同一串 value** ⇒ ★**实际: ['ESD 阵列 [待选型]', 'ESD 阵列 [待选型] (USB 2.0 双通道)']** ⇒ 拒绝落 ★
+           ★★【型号轴未落】state/gen_netlist.py 里 D_ESD_USB_D 的 value 还是【占位 / 判据串】★★
+           ★**期望**: 一条真 OPN (★第一个 token 必须含数字, 例 `TPD1E05U06DPYR ...`★)
+           ★**实际**: 'ESD 阵列 [待选型] (USB 2.0 双通道)'
+           ★**⇒ 型号归【选型级 / 老板】(ISS-241 矩阵 · ISS-257 已落的那条就是本工具要保住的那条)★**
+           ★**⇒ 本工具【不】写判据串, 也不替你选型号 ⇒ 拒绝落 (★零写盘★)**★
+           ★★【状态漂移】D_ESD_USB_D 的网表 value 与 PARTS 字典的 OPN 不是同一颗器件 ⇒ ★**期望: 两边第一个 token 相同** ⇒ ★**实际: 网表 'ESD' / PARTS 'TPD1E05U06DPYR'** ⇒ 拒绝落 ★
+   ✅ 用例2 ★【已落过】信号行已在 Type-C 侧 ⇒ 必须红 (rc≠0) 且文案写【已落过】★
+        rc=3
+        ★★ rc=3: ★**落表前校验不过 ⇒ 拒绝落 (★零写盘★)** ★
+           ★★【已落过】D_ESD_USB_D 的信号行已经在 Type-C 侧了 ⇒ ★**期望: 还在 SoM 侧 (USB_D_N_SRC / USB_D_P_SRC)** ⇒ ★**实际: L1454 net = NET_USB_D_P_TYPEC** ⇒ ★**不要重复落 (★零写盘★)**★
+   ✅ 用例3 ★【状态漂移】真源少了一行 ⇒ 必须红 (rc≠0) 且文案写【状态漂移】★
+        rc=3
+        ★★ rc=3: ★**落表前校验不过 ⇒ 拒绝落 (★零写盘★)** ★
+           ★★【状态漂移】D_ESD_USB_D 在 state/gen_netlist.py 里的行数 / 网名不是已知形态 ⇒ ★**期望: 2 行 (1 信号 + 1 GND) 或 3 行 (2 信号 + 1 GND)** ⇒ ★**实际: 1 行 (GND 0 行 / 信号 1 行) ⇒ 行号 [1454]** ⇒ 拒绝落 ★
+   ✅ 用例4 ★ V-2=2 (只落网表侧 = 假绿) 必须打回 (rc≠0) ★
+        rc=2
+        ★★ rc=2: ★**V-2=2 必须打回** ★
+        ★★**V-2=2 (只落网表侧) 必须打回**★★ ⇒ ★**ISS-230 实测 (2026-11-16 06:2x, main 已核): V-2 网表侧全落完, `--expect-resolved` 仍是 7 条 ⇒ 一条都转不绿 = 假绿**★ ⇒ ★**不许当正路**★ ⇒ ★**要落 V-2 就必须写成【网表侧 + 板那一趟】两段 (V-2=1)★**
+        ★★ ★**零写盘** ★
+   ✅ 用例5 ★ 非法取值 V-2=E2 必须打回 (rc≠0) ★
+        rc=2
+        ★★ rc=2: ★**非法取值 V-2=E2** ⇒ 白名单里只有 {1, 2} ★
+           ★V-2★: V-2 ∈ {1, 2}  (1 = 网表侧+板侧两段走 · 2 = 只落网表侧 ⇒ ISS-230 实测是假绿 ⇒ 必须打回)
+        ★★ ★**零写盘** ★ (★本工具在解析阶段就退了, 一个字节都没碰★)
+   ✅ 用例6 ★ `--apply` 不带 `--boss-decision` 必须拒绝 (rc≠0) ★
+        rc=2
+        板那一趟本工具【不做】** (★`HW/PCB/demo_mainboard.kicad_pcb` 一个字节都不碰★) ⇒ ★**板侧 B-3 (换封装 / 改占位焊盘) / B-4 (挪到 J_USB_C 旁 ≤3.0mm) / B-5 (D− 补 ESD) 继续排队**★
+           ★ V-2=1: ★★**网名挪了 ⇒ 板上的 footprint 焊盘网名也必须同趟改** (★`D_ESD_USB_D` pad1: `USB_D_P_SRC` → `NET_USB_D_P_TYPEC`★) ⇒ ★**板那一趟漏改 ⇒ 网表与板对不上** ★
+        
+        ★★ rc=2: ★**`--apply` 必须带 `--boss-decision "<日期> <A1|A2|A3> = <值>"`** ★
+           ★**这是「不许替老板拍板」的机器化保证 ⇒ 缺这条就拒绝执行** ★
+        ★★ ★**零写盘** ★
+   ✅ 用例7 ★ V-3=E 与 V-4=680 的锚点必须仍然是【当前真源】 (各 rc=0) ★
+        V-3=E rc=0 / V-4=680 rc=0
+        改成必装 = 宣称 demo 板要装电池 / 或这链在 demo 上是空焊盘但要预留★** ⇒ ★**这条语义归 main 拍 (ISS-223 F-1)★**
+        
+        ✅ rc=0: ★**DRY-RUN 完成 · 零写盘** ★ (★盘上 5 个 md5 逐字节不变★)
+           ★**要真落就加 `--apply --boss-decision "<日期> <A1|A2|A3> = <值>"` ★**
+         文件名 + 新 md5 + 旧 md5 ★** (★四项在 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16.2 里必须可查★)
+        
+        ✅ rc=0: ★**DRY-RUN 完成 · 零写盘** ★ (★盘上 5 个 md5 逐字节不变★)
+           ★**要真落就加 `--apply --boss-decision "<日期> <A1|A2|A3> = <值>"` ★**
+   ✅ 用例8 ★ V-2 的 diff 新值行里【不许】出现判据串 / [推算] / [待选型] (★不许把真型号降级★) ★
+        rc=0
+           + 新:     add("P1", "NET_USB_D_P_TYPEC", "D_ESD_USB_D", "NET_USB_D_P_TYPEC", "D_ESD_USB_D",
+           + 新:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装", "[官方]", "",
+           + 新:         "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
+           + 新:     add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D",
+           + 新:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装",
+           + 新:         "[官方]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
+           + 新: net == NET_USB_D_P_TYPEC
+   ✅ 用例9 ★ `--v2-arch=2` 不给 `--v2-model` ⇒ 必须红 (★不许自己挑架构 / 自己写判据串★) ★
+        rc=3
+        ★★ rc=3: ★**落表前校验不过 ⇒ 拒绝落 (★零写盘★)** ★
+           ★★【型号轴必须同时拍】架构换成 ② (3脚双通道) ⇒ ★**必须同时给 `--v2-model <真 OPN>`** ★
+           ★**理由: 换架构必然改 value ⇒ 本工具【不许】写判据串代替型号 (★那会把 ISS-257 的成果 undo 掉★)** ★
+           ★**⇒ 型号归【选型级 / 老板】(A3 / W-1 一起拍) ⇒ 拒绝落 (★零写盘★)**★
+   ✅ 用例10 ★ 每个用例跑完, 5 个受保护 md5 必须逐字节不变 (★自测自己也不许写盘★) ★
+   ✅ 用例11 ★ 真盘的 5 个受保护 md5 (+ 真源) 自测前后必须逐字节不变 ★
+✅ rc=0: 已从 /tmp/land_v_selftest_c9_1k7my5mf/state/.bak_land_v_values_rt_20261117-051426 还原 5 个文件
+★★ 回滚后重生成派生产物 (★不然 = 半回滚: 真源回去了, 产物没回去★)★★
+   ★ 重生成 OK: state/gen_netlist.py
+   ★ 重生成 OK: state/gen_kicad_net.py
+   ★ 重生成 OK: state/gen_netlist_pins.py
+   ★ 重生成 OK: state/gen_bom.py
+   ★ 重生成 OK: state/gen_schematic_pages.py
+   ★ 跳过: state/gen_kicad_sch.py (★缺文件 (★沙盒最小副本里可能没带★))
+★ 回滚后现状守卫: rc=0 (★期望 0 = 真源与产物重新一致★)
+     ★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ ★**第 1 轮 4 条 + 第 2 轮 7 组缺陷★仍在★ ⇒ rc=0 是预期状态 ★
+     ★**落表作业包 (HW/SCHEMATIC_LANDING_WORKPACKET_V1.md) 完整性 + 三方对齐: 全过** (★28 条作业条目, 8 栏齐★)
+     ★**翻面条件见规格页 §⑤**; 落表后请改用 `--expect-resolved` ★
+★V 值落表回滚副本 (★落表器自动打的★)
+★落表时间: 2026-11-17 05:14:26
+★还原命令:
+  python3 state/land_v_values.py --rollback state/.bak_land_v_values_rt_20261117-051426
+  - HW/NETLIST_SELF_CONSISTENCY_SPEC.md
+  - HW/SCHEMATIC_LANDING_V1_LANDED.md
+  - HW/SCHEMATIC_V1_SPEC.json
+  - HW/check_netlist_selfconsistency.py
+  - state/gen_netlist.py
+
+   ✅ 用例12 ★【回滚往返回】落表⇒产物变⇒回滚⇒产物逐字节回到落表前 且 现状守卫回绿 (rc=0) ★
+        verify_errs=[]
+        落表后产物变了: True
+        回滚后逐字节回去: True (pre={'HW/netlist_v1.csv': 'e06c1dd633566aa44732762c2ff99d1c', 'HW/netlist_v1_pins.csv': '287e7861a0d1007748d92d9fbecdd490', 'HW/BOM_v1.csv': '94642d07a69e8d60dd2af57f69b93607'} / back={'HW/netlist_v1.csv': 'e06c1dd633566aa44732762c2ff99d1c', 'HW/netlist_v1_pins.csv': '287e7861a0d1007748d92d9fbecdd490', 'HW/BOM_v1.csv': '94642d07a69e8d60dd2af57f69b93607'})
+        回滚 rc=0 · 现状守卫 rc=0
+        重生成: [('state/gen_netlist.py', 0), ('state/gen_kicad_net.py', 0), ('state/gen_netlist_pins.py', 0), ('state/gen_bom.py', 0), ('state/gen_schematic_pages.py', 0), ('state/gen_kicad_sch.py', -1)]
+
+★★【自测用例汇总】★★
+   1. regress_placeholder
+   2. already_landed
+   3. drift
+   4. v2_2
+   5. bad_value
+   6. apply_no_boss
+   7. v3_v4_anchor
+   8. no_downgrade
+   9. arch_switch_needs_model
+   10. rollback_roundtrip
+   11. ★每个用例跑完 5 个受保护 md5 逐字节不变★
+   12. ★真盘 5 个受保护 md5 自测前后不变★
+
+✅ rc=0: ★**落表器自测全过 (12 条) · 真盘零写入** ★
+--- rc=0 ---
+落表器自测 (≥11 条) ⇒ rc=0
+
+=========================================================
+★ 尺子1 网表
+$ python3 state/check_netlist.py
+========================================================================
+  原理图 netlist 门禁 · 项目总工机械验收
+========================================================================
+  ✅ netlist 表头齐全 (13 列)
+       15 列
+  ✅ 56 条连接全覆盖 (57 条)
+       覆盖 57/57
+  ✅ 每条 net 两端齐全
+       513 行
+  ✅ DNP 标注合法 (必装/DNP/可选)
+  ✅ 证据等级合法 (7 档)
+  ✅ TBD 编号在 13 项画不了清单内 (TBD-01..TBD-13)
+       用了 9 个
+  ✅ 每个 [待原厂] 节点都有 TBD 编号
+       已用 9/13: ['TBD-01', 'TBD-02', 'TBD-03', 'TBD-04', 'TBD-06', 'TBD-10']
+  ✅ A 组阻抗逐条对照规格 (36 条 net)
+       全部一致
+  ✅ A 组 20 条已迁移连接: z_diff 非空 且 imp 为空 (★F-3 加强型断言★)
+       20/20 合规 (★A-11/A-12 单端与 A-24 那 15 条不在范围内★)
+  ✅ A 组差分对成对出现
+       11 对
+  ✅ 测试点全部在图 (12 个)
+  ✅ 电源轨全部在图 (13 条)
+  ✅ 显示双出口互斥 (R_SEL_* 与 BR_* 不得同时装)
+       R_SEL 装 10 个 / BR 装 0 个
+  ✅ 10 页齐全 (P1-P10)
+       实际 ['P1', 'P10', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9']
+  ✅ 同一 net 不得有多个输出驱动
+  ✅ 每行都有位号 (ref)
+  ✅ 板级归属合法 (CHG_BOARD/MAIN_PCB/HINGE)
+       {'CHG_BOARD': 94, 'HINGE': 15, 'MAIN_PCB': 404}
+  ✅ camera/display FPC 座在主板 (demo 形态, 不跨铰链)
+       CONN_CAM / CONN_LIGHT
+  ✅ 充电链连接器仍标 HINGE (整机阶段镜框充电板)
+       J_CHG / CONN_USB
+  ✅ SoC 侧节点全在主 PCB (MAIN_PCB)
+  ✅ 充电板器件在充电板 (CHG_BOARD)
+  ✅ 电池与电池保护在主 PCB (MECH 体积硬约束)
+       BT/U_BATPROT/Q1/Q2 全在 MAIN_PCB
+  ✅ P9 跨铰链界面页存在 (≥8 行: 充电链 J_CHG + TS + 预留)
+       8 行
+  ✅ 电池 NTC → BQ25896 TS 脚 (硬件停充) 在图
+       R_NTC_BAT + TS_BAT 已在图
+  ✅ ★USB 走板载 Type-C 且 22Ω 串阻真串在中间 (不被短接)
+       USB_D_P/USB_D_N 都经 CONN_USB
+  ✅ P10 充电板页有内容 (≥30 行)
+       63 行
+  ✅ RK3572 无 DP TX ⇒ 方案B 已整条删除 (无 U_BRIDGE/DP_TX/串阻/对地电容/BR_*)
+       0 行残留 ✅
+  ✅ U_TEMP 已定型 TMP117 (I2C 0x48)
+       6 行
+  ✅ SYS 轨不得跨铰链 (电池在镜脚, SYS 本地产生)
+  ✅ 跨铰链连接器无断链 (声明 pin 数 == 实际引用)
+       J_CHG10/CONN_USB4/CONN_CAM18/CONN_LIGHT21 全对
+  ✅ 铰链区堆叠高度 (demo 不跨铰链 ⇒ N/A)
+       ★N/A (原 37.0mm 预算属整机跨铰链阶段; demo 板 camera/display 均为板内 FPC 座)
+  ✅ 跨铰链充电电流双 pin 并联 (pin1/pin2)
+       pin1/pin2 同网
+
+  ✅ 全过 — 原理图 V1.1 可进交叉评审
+========================================================================
+--- rc=0 ---
+尺子1 网表 ⇒ rc=0
+
+=========================================================
+★ 尺子2 脚表
+$ python3 state/check_netlist_pins.py
+========================================================================
+  网表针脚级门禁 · check_netlist_pins (★一个针脚只能属于一个网)
+========================================================================
+  ✅ C1 一个针脚只能属于一个网 — 冲突 0 处
+  ✅ C2/C3 CONN_CAM: 针数 31/31
+  ✅ C2/C3 CONN_LIGHT: 针数 22/22
+  ✅ C2/C3 J_BOOT1: 针数 6/6
+  ✅ C2/C3 J_CHG: 针数 10/10
+  ✅ C2/C3 J_DEBUG: 针数 4/4
+  ✅ C2/C3 J_UART: 针数 2/2
+  ✅ C2/C3 U_CHG: 针数 24/24
+  ✅ C2/C3 U_TEMP: 针数 6/6
+       (其余带脚号的器件: ['J_SOM_P1', 'J_SOM_P2', 'J_SOM_P3', 'J_SOM_P4', 'Q1', 'Q2', 'U_BATPROT', 'U_DCDC_VCORE', 'U_DCDC_VIO', 'U_EN_SW', 'U_LDO_IO18', 'U_LDO_IO33', 'U_LDO_L18', 'U_LDO_L33', 'U_LDO_S12', 'U_LDO_S18B', 'U_LDO_S28', 'U_PWR_SW', 'U_SUPV'])
+  ✅ C2b J_SOM_P1: 用到 10 脚 (座共 100 脚) · 越界 []
+  ✅ C2b J_SOM_P2: 用到 9 脚 (座共 100 脚) · 越界 []
+  ✅ C2b J_SOM_P3: 用到 19 脚 (座共 100 脚) · 越界 []
+  ✅ C2b J_SOM_P4: 用到 14 脚 (座共 100 脚) · 越界 []
+  ✅ C4 同一器件只能属于一块板 — 跨板 0 个
+  ✅ C5 SoC 侧信号在 RK3572 引脚表里存在 — 未知 0 个
+  ✅ C5b SoC 侧节点都已被引脚分配表选中 — 未分配 0 个
+  ✅ C6 SoM 的 VCC_DCIN 7 脚都接上了 — 7/7 (91,93,95,97,98,99,100)
+  ✅ C7 F13 底板使能 CARRIER_BOARD_EN (J_SOM_P3 pin87) 已接 — 1 行
+  ✅ C8 4 组 SOM 座都用上了 — ['J_SOM_P1', 'J_SOM_P2', 'J_SOM_P3', 'J_SOM_P4']
+  ✅ C9 I2C_A 从设备地址与 HW/I2C_ADDR_TABLE.md 一致且唯一 — 1 个在挂: CONN_CAM=0x1a
+  ✅ C9 I2C_B 从设备地址与 HW/I2C_ADDR_TABLE.md 一致且唯一 — 2 个在挂: CONN_LIGHT=0x45, U_TEMP=0x48
+       (C9 判据: 表 ↔ 网表 双向一致 · 同总线地址唯一)
+------------------------------------------------------------------------
+✅ 全过 —— 每个针脚归属唯一, 连接器针数与针号齐, SoC 节点全部落到真实引脚
+--- rc=0 ---
+尺子2 脚表 ⇒ rc=0
+
+=========================================================
+★ 尺子3 ERC (期望 ERC=0)
+$ python3 state/check_sch_erc.py
+═══ 原理图 ERC 闸 (★sch_erc · HW/PCB/demo_mainboard.kicad_sch★)
+  ERC 违规数 = 0 (★报告自称 0★) · 分类 {}
+  判定: ✅ 过 (ERC=0)
+--- rc=0 ---
+尺子3 ERC (期望 ERC=0) ⇒ rc=0
+
+=========================================================
+★ 尺子4 图=表
+$ python3 state/check_sch_pinfull.py
+═══ 原理图脚数完整性闸 (★sch_pinfull · HW/PCB/demo_mainboard.kicad_sch★)
+  [口径] 表里脚数 = 含 DNP 行 (★判据口径·默认★)
+  总数: 图上 584 脚 / 表里 584 脚 · 不一致器件数 K=0 (universe=218)
+  [口径还原·ISS-205] 图上位号带数字后缀 ⇒ 186 个位号 (457 个脚) 已按【精确映射】还原成表侧 ref
+  (图上: 218 个器件 · 153 个网 · 584 个 node | 表里: 584 行 · 218 个 ref · 其中 DNP 行 117)
+  逐个点名 (ref: 图= a 表= b):
+  [对照口径] 去掉 DNP 行 (★main 11:5x 口径★): 图上 584 脚 / 表里 467 脚 · 不一致 50
+  判定: ✅ 过 (逐器件脚数全相等)
+--- rc=0 ---
+尺子4 图=表 ⇒ rc=0
+
+=========================================================
+★ 现状守卫 (期望 rc=0)
+$ python3 HW/check_netlist_selfconsistency.py
+   [报告项] D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm (★规格页 §①(4) 引的就是这个数★)
+   [加强型断言·F-3] A 组 22 条 / 已迁移 20 条: `z_diff` 非空 且 `imp` 为空 ⇒ ✅ 全过 (★A-11/A-12 单端与 A-24 那 15 条【不在】断言范围内★)
+✅ rc=0: ★现状与 HW/NETLIST_SELF_CONSISTENCY_SPEC.md 一致★
+★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ ★**第 1 轮 4 条 + 第 2 轮 7 组缺陷★仍在★ ⇒ rc=0 是预期状态 ★
+★**落表作业包 (HW/SCHEMATIC_LANDING_WORKPACKET_V1.md) 完整性 + 三方对齐: 全过** (★28 条作业条目, 8 栏齐★)
+★**翻面条件见规格页 §⑤**; 落表后请改用 `--expect-resolved` ★
+--- rc=0 ---
+现状守卫 (期望 rc=0) ⇒ rc=0
+
+=========================================================
+★ 翻面口径 (期望 rc=1)
+$ python3 HW/check_netlist_selfconsistency.py --expect-resolved
+★★ rc=1: 翻面口径未通过 (18 条未落表) ★★
+   ★R2 未落表: R_BAT_DET_1 仍是 DNP (表A 行 182)
+   ★R2 未落表: R_BAT_DET_1 在脚表里仍是 DNP (行 307)
+   ★R2 未落表: R_BAT_DET_1 在脚表里仍是 DNP (行 308)
+   ★R2 未落表: R_BAT_DET_2 仍是 DNP (表A 行 183)
+   ★R2 未落表: R_BAT_DET_2 在脚表里仍是 DNP (行 309)
+   ★R2 未落表: R_BAT_DET_2 在脚表里仍是 DNP (行 310)
+   ★R2 未落表: C_DET_BAT 仍是 DNP (表A 行 184)
+   ★R2 未落表: C_DET_BAT 仍是 DNP (表A 行 185)
+   ★R2 未落表: C_DET_BAT 在脚表里仍是 DNP (行 100)
+   ★R2 未落表: C_DET_BAT 在脚表里仍是 DNP (行 101)
+   ★R2 未落表: 分压后 4.2V × 1e+06/(1e+06+1e+06) = 2.100V > 1.8V 域 ADC 上限 (J_SOM_P1 pin38 = SARADC_VIN5, 1.8V 域) ⇒ 贴上去就是过压
+   ★R3 未落表: 板封装 U_EN_SW 的 Value 属性还是脚级功能串 'EN 输入 (高=放行底板)' ⇒ 板文件也要同趟改
+   ★R4 未落表: 板上仍然没有任何 ESD 位号挂在 D− 那条网上 (USB_D_N_SRC / NET_USB_D_N_TYPEC) ⇒ D− 仍然裸奔
+   ★R4 未落表: D_ESD_USB_D 仍然只有 2 个焊盘 (D+ + GND) ⇒ 仍不是双通道
+   ★R7 未落表: 分压后 2.100V > 1.8V (SARADC_VIN5 是 1.8V 域)
+   ★R8 未落表: R_BAT_DET_1 的 note 仍写『漏电流 ~1.65µA @5V』(与 1M+1M 对不上)
+   ★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm > 3.0 mm ⇒ ESD 还是不在接口旁边
+   ★R10 未落表: 390Ω 档单 pin 载流上限 = 0.608 A > 0.5 A 触点额定 ⇒ R_ILIM 档位没重新定
+★**说明**: 现在缺陷仍在 ⇒ 本口径应当是红的; ★等它们随『整链重出 第 1 步』落表后本口径才转绿★
+--- rc=1 ---
+翻面口径 (期望 rc=1) ⇒ rc=1
+
+=========================================================
+★ G1a-7 选型落表
+$ python3 HW/check_g1a7_selection_landed.py
+============================================================================
+  G1a-7 选型落表门禁 (★ISS-257 · 守住「必装件无「[待选型]」」这条绿★)
+============================================================================
+   OK   C1  必装 ∩ 「[待选型]」 = 0 件 (期望 0)
+   OK   C2  14 个落表位号逐个点名 (value/opn/占位词/三方在表) — 0 条不合格
+   OK   C3  表 584 脚 / 218 器件 · 图 584 脚 / 218 符号 · K=0 (期望 584/218/K=0)
+   OK   C4  板 611b869e / .kicad_pro 3e504d2b (期望 611b869e / 3e504d2b)
+   OK   C5  evidence 列全在落表链八档白名单里 (★`[官网]` ⇒ 红★) — 0 条非法
+   OK   C6  14 个位号: dnp=必装 / evidence 合法 / 无 [待选型] / opn 三方一致 — 0 条不合格
+----------------------------------------------------------------------------
+✅ rc=0: ★★G1a-7 落表还在 (★14 件全落 + 脚数 584/218/K=0 + 板逐字节不变 + evidence 合白名单★)
+--- rc=0 ---
+G1a-7 选型落表 ⇒ rc=0
+
+=========================================================
+★ G1a 阶段门 (期望 rc=1)
+$ python3 state/check_stage_g1a.py
+==============================================================================
+  G1a · 原理图定稿 (★与 PCB 定稿分开判 · 老板 11-16「原理图和 PCB 不是同一个概念」★)
+==============================================================================
+  ✅ G1a-1  ERC = 0 (KiCad 自己跑 ERC)
+         rc=0 (python3 state/check_sch_erc.py)
+  ✅ G1a-2  图上脚数 == 表里脚数 (K=0)
+         rc=0 (python3 state/check_sch_pinfull.py)
+  ✅ G1a-3  KiCad 真能打开/导出 (loadable)
+         rc=0 (python3 state/check_sch_loadable.py)
+  ❌ G1a-4  落表已清零 (翻面口径)
+         rc=1 (python3 HW/check_netlist_selfconsistency.py --expect-resolved) ⇒ ★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm > 3.0 mm ⇒ ESD 还是不在接口旁边 | ★R10 未落表: 390Ω 档
+  ✅ G1a-5  网表尺子 (含表↔网表双向一致)
+         rc=0 (python3 state/check_netlist.py)
+  ✅ G1a-6  网表脚表尺子 (针脚归属唯一)
+         rc=0 (python3 state/check_netlist_pins.py)
+  ✅ G1a-7  选型已落表 (必装件无「[待选型]」)
+         必装且仍写「[待选型]」= 0 件
+  ❌ G1a-8  关机语义 + 负载开关选型已决
+         ISS-097=fixed · ISS-172=verified
+------------------------------------------------------------------------------
+❌ G1a 还差 2 条 ⇒ ★**原理图【画】已经画完, 差的是「值」与「拍板」** ★
+     · G1a-4 落表已清零 (翻面口径)
+     · G1a-8 关机语义 + 负载开关选型已决
+--- rc=1 ---
+G1a 阶段门 (期望 rc=1) ⇒ rc=1
+
+=========================================================
+★ ★ISS-262 新闸·体检
+$ python3 HW/check_land_row_anchors.py
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+★ 锚点条数: 310  (PASS=310 · DRIFT=0 · RED=0)
+★ ✅ 全部锚点: 行号没变 + 实体没变 ⇒ 通过
+--- rc=0 ---
+★ISS-262 新闸·体检 ⇒ rc=0
+
+=========================================================
+★ ★ISS-262 新闸·反向用例
+$ python3 HW/check_land_row_anchors.py --selftest
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /tmp/iss262_anchor_byu92mxf
+★ 锚点条数: 310  (PASS=310 · DRIFT=0 · RED=0)
+★ ✅ 全部锚点: 行号没变 + 实体没变 ⇒ 通过
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /tmp/iss262_anchor_dv6cl3to
+★ 锚点条数: 310  (PASS=238 · DRIFT=72 · RED=0)
+
+★★【⚠️ 纯漂移 (行号变了 · 实体内容没变) ⇒ 假绿风险 ⇒ 必须机器重锚】★★
+   ⚠️ d1_a167_value [netlist] 行号 167 → 167 · ★行号变了 (167 → 169) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 169★
+   ⚠️ d1_a167_ref [netlist] 行号 167 → 167 · ★行号变了 (167 → 169) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 169★
+   ⚠️ d1_a168_value [netlist] 行号 168 → 168 · ★行号变了 (168 → 170) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 170★
+   ⚠️ d1_a168_ref [netlist] 行号 168 → 168 · ★行号变了 (168 → 170) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 170★
+   ⚠️ d1_a169_value [netlist] 行号 169 → 169 · ★行号变了 (169 → 171) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 171★
+   ⚠️ d1_a169_net [netlist] 行号 169 → 169 · ★行号变了 (169 → 171) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 171★
+   ⚠️ d1_a169_ref [netlist] 行号 169 → 169 · ★行号变了 (169 → 171) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 171★
+   ⚠️ d1_a169_note [netlist] 行号 169 → 169 · ★行号变了 (169 → 171) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 171★
+   ⚠️ d1_a170_value [netlist] 行号 170 → 170 · ★行号变了 (170 → 172) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 172★
+   ⚠️ d1_a170_net [netlist] 行号 170 → 170 · ★行号变了 (170 → 172) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 172★
+   ⚠️ d1_a171_value [netlist] 行号 171 → 171 · ★行号变了 (171 → 173) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 173★
+   ⚠️ d2_a181_ref [netlist] 行号 181 → 181 · ★行号变了 (181 → 183) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 183★
+   ⚠️ d2_a181_dnp [netlist] 行号 181 → 181 · ★行号变了 (181 → 183) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 183★
+   ⚠️ d2_a182_ref [netlist] 行号 182 → 182 · ★行号变了 (182 → 184) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 184★
+   ⚠️ d2_a182_dnp [netlist] 行号 182 → 182 · ★行号变了 (182 → 184) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 184★
+   ⚠️ d2_a182_value [netlist] 行号 182 → 182 · ★行号变了 (182 → 184) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 184★
+   ⚠️ d2_a182_note [netlist] 行号 182 → 182 · ★行号变了 (182 → 184) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 184★
+   ⚠️ d2_a183_ref [netlist] 行号 183 → 183 · ★行号变了 (183 → 185) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 185★
+   ⚠️ d2_a183_dnp [netlist] 行号 183 → 183 · ★行号变了 (183 → 185) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 185★
+   ⚠️ d2_a184_ref [netlist] 行号 184 → 184 · ★行号变了 (184 → 186) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 186★
+   ⚠️ d2_a184_dnp [netlist] 行号 184 → 184 · ★行号变了 (184 → 186) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 186★
+   ⚠️ d2_a185_ref [netlist] 行号 185 → 185 · ★行号变了 (185 → 187) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 187★
+   ⚠️ d2_a185_dnp [netlist] 行号 185 → 185 · ★行号变了 (185 → 187) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 187★
+   ⚠️ d2_a186_node1 [netlist] 行号 186 → 186 · ★行号变了 (186 → 188) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 188★
+   ⚠️ d2_a186_dnp [netlist] 行号 186 → 186 · ★行号变了 (186 → 188) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 188★
+   ⚠️ d2_a186_note [netlist] 行号 186 → 186 · ★行号变了 (186 → 188) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 188★
+   ⚠️ d3_a441_type [netlist] 行号 441 → 441 · ★行号变了 (441 → 443) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 443★
+   ⚠️ d3_a441_value [netlist] 行号 441 → 441 · ★行号变了 (441 → 443) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 443★
+   ⚠️ d3_a442_type [netlist] 行号 442 → 442 · ★行号变了 (442 → 444) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 444★
+   ⚠️ d3_a443_type [netlist] 行号 443 → 443 · ★行号变了 (443 → 445) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 445★
+   ⚠️ d3_a444_type [netlist] 行号 444 → 444 · ★行号变了 (444 → 446) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 446★
+   ⚠️ d3_ctrl_a50_type [netlist] 行号 50 → 50 · ★行号变了 (50 → 52) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 52★
+   ⚠️ d4_a417_value [netlist] 行号 417 → 417 · ★行号变了 (417 → 419) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 419★
+   ⚠️ d4_a417_net [netlist] 行号 417 → 417 · ★行号变了 (417 → 419) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 419★
+   ⚠️ d4_a417_dnp [netlist] 行号 417 → 417 · ★行号变了 (417 → 419) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 419★
+   ⚠️ d4_a417_note [netlist] 行号 417 → 417 · ★行号变了 (417 → 419) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 419★
+   ⚠️ d4_a418_value [netlist] 行号 418 → 418 · ★行号变了 (418 → 420) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 420★
+   ⚠️ d4_a432_net [netlist] 行号 432 → 432 · ★行号变了 (432 → 434) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 434★
+   ⚠️ d4_a432_ref [netlist] 行号 432 → 432 · ★行号变了 (432 → 434) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 434★
+   ⚠️ d5_a291_value [netlist] 行号 291 → 291 · ★行号变了 (291 → 293) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 293★
+   ⚠️ d5_a291_ref [netlist] 行号 291 → 291 · ★行号变了 (291 → 293) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 293★
+   ⚠️ d5_a292_value [netlist] 行号 292 → 292 · ★行号变了 (292 → 294) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 294★
+   ⚠️ d5_a292_ref [netlist] 行号 292 → 292 · ★行号变了 (292 → 294) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 294★
+   ⚠️ d5_a431_value [netlist] 行号 431 → 431 · ★行号变了 (431 → 433) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 433★
+   ⚠️ d5_a431_ref [netlist] 行号 431 → 431 · ★行号变了 (431 → 433) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 433★
+   ⚠️ d5_a432_value [netlist] 行号 432 → 432 · ★行号变了 (432 → 434) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 434★
+   ⚠️ d5_a432_ref [netlist] 行号 432 → 432 · ★行号变了 (432 → 434) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 434★
+   ⚠️ d6_a237_value [netlist] 行号 237 → 237 · ★行号变了 (237 → 239) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 239★
+   ⚠️ d6_a237_board [netlist] 行号 237 → 237 · ★行号变了 (237 → 239) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 239★
+   ⚠️ d6_a290_value [netlist] 行号 290 → 290 · ★行号变了 (290 → 292) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 292★
+   ⚠️ d6_a290_board [netlist] 行号 290 → 290 · ★行号变了 (290 → 292) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 292★
+   ⚠️ d7_a181_value [netlist] 行号 181 → 181 · ★行号变了 (181 → 183) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 183★
+   ⚠️ d7_a182_value [netlist] 行号 182 → 182 · ★行号变了 (182 → 184) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 184★
+   ⚠️ d7_a183_value [netlist] 行号 183 → 183 · ★行号变了 (183 → 185) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 185★
+   ⚠️ d7_a184_value [netlist] 行号 184 → 184 · ★行号变了 (184 → 186) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 186★
+   ⚠️ d7_a186_node1 [netlist] 行号 186 → 186 · ★行号变了 (186 → 188) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 188★
+   ⚠️ d7_a186_dnp [netlist] 行号 186 → 186 · ★行号变了 (186 → 188) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 188★
+   ⚠️ d8_a182_note [netlist] 行号 182 → 182 · ★行号变了 (182 → 184) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 184★
+   ⚠️ d9_esd_dual_claim [netlist] 行号 417 → 417 · ★行号变了 (417 → 419) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 419★
+   ⚠️ d10_a47_value [netlist] 行号 47 → 47 · ★行号变了 (47 → 49) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 49★
+   ⚠️ d10_a48_value [netlist] 行号 48 → 48 · ★行号变了 (48 → 50) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 50★
+   ⚠️ d10_a497_note [netlist] 行号 497 → 497 · ★行号变了 (497 → 499) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 499★
+   ⚠️ d11_a11_ref [netlist] 行号 11 → 11 · ★行号变了 (11 → 13) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 13★
+   ⚠️ d11_a11_board [netlist] 行号 11 → 11 · ★行号变了 (11 → 13) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 13★
+   ⚠️ d11_a12_ref [netlist] 行号 12 → 12 · ★行号变了 (12 → 14) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 14★
+   ⚠️ d11_a12_board [netlist] 行号 12 → 12 · ★行号变了 (12 → 14) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 14★
+   ⚠️ d11_a13_ref [netlist] 行号 13 → 13 · ★行号变了 (13 → 15) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 15★
+   ⚠️ d11_a13_board [netlist] 行号 13 → 13 · ★行号变了 (13 → 15) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 15★
+   ⚠️ d11_a10_ref [netlist] 行号 10 → 10 · ★行号变了 (10 → 12) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 12★
+   ⚠️ d11_a10_board [netlist] 行号 10 → 10 · ★行号变了 (10 → 12) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 12★
+   ⚠️ d11_led508_board [netlist] 行号 508 → 508 · ★行号变了 (508 → 510) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 510★
+   ⚠️ d11_led509_board [netlist] 行号 509 → 509 · ★行号变了 (509 → 511) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 511★
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /tmp/iss262_anchor_dv6cl3to
+★ 锚点条数: 310  (PASS=310 · DRIFT=0 · RED=0)
+★ ✅ 全部锚点: 行号没变 + 实体没变 ⇒ 通过
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /tmp/iss262_anchor_7cil9qo9
+★ 锚点条数: 310  (PASS=309 · DRIFT=0 · RED=1)
+
+★★【❌ 红 (内容变了 / 实体没了 / 台账被改 / 两边漂了)】★★
+   ❌ d10_a47_value [netlist] ★行号没变 + 实体内容变了 (台账里那颗器件在本表里找不到了) ⇒ **红**: 器件被换/被删, 锚点已指向别的行★
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /tmp/iss262_anchor__txcrqcg
+★ 锚点条数: 311  (PASS=308 · DRIFT=1 · RED=2)
+
+★★【⚠️ 纯漂移 (行号变了 · 实体内容没变) ⇒ 假绿风险 ⇒ 必须机器重锚】★★
+   ⚠️ d10_a48_value [netlist] 行号 48 → 48 · ★行号变了 (48 → 47) + 内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 47★
+
+★★【❌ 红 (内容变了 / 实体没了 / 台账被改 / 两边漂了)】★★
+   ❌ d10_a47_value [netlist] ★源码⇄规格页不一致: 源码 = netlist/48 / 规格页 = netlist/47 ⇒ ★不许只改一边★
+   ❌ d10_a47_value [netlist] ★行号变了 (47 → 48) + 内容也变了 ⇒ **红**: ★实体在挪行时被改了, 机器不许自动改 (要人/落表那一趟裁决★)
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /tmp/iss262_anchor_i1wqk85a
+★ 锚点条数: 311  (PASS=309 · DRIFT=1 · RED=1)
+
+★★【⚠️ 纯漂移 (行号变了 · 实体内容没变) ⇒ 假绿风险 ⇒ 必须机器重锚】★★
+   ⚠️ d10_a47_value [netlist] 行号 54 → 47 · ★行号变了 (54 → 47) + 实体内容没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 47★
+
+★★【❌ 红 (内容变了 / 实体没了 / 台账被改 / 两边漂了)】★★
+   ❌ __registry__ [-] ★台账被改过 (本脚本登记 sha=18d5715e2ac7… / 实际 sha=992507e7f9f8…) ⇒ ★**不许为了凑绿改台账**★ ⇒ 只有「落表那一趟显式重新基线」才允许, 且必须在交卷单说明★
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /tmp/iss262_anchor_3s4d_4gb
+★ 锚点条数: 311  (PASS=310 · DRIFT=0 · RED=1)
+
+★★【❌ 红 (内容变了 / 实体没了 / 台账被改 / 两边漂了)】★★
+   ❌ d2_b307_dnp [pins] ★源码⇄规格页不一致: 源码 = pins/307 / 规格页 = pins/999 ⇒ ★不许只改一边★
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /tmp/iss262_anchor__du2i1xy
+★ 锚点条数: 310  (PASS=94 · DRIFT=216 · RED=0)
+
+★★【⚠️ 纯漂移 (行号变了 · 实体内容没变) ⇒ 假绿风险 ⇒ 必须机器重锚】★★
+   ⚠️ gen_009a7d9bd6_0 [gen] 行号 404 → 407 · ★行号变了 (404 → 407) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 407★
+   ⚠️ gen_012586941d_1 [gen] 行号 600 → 603 · ★行号变了 (600 → 603) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 603★
+   ⚠️ gen_0157dabb91_0 [gen] 行号 1032 → 1035 · ★行号变了 (1032 → 1035) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1035★
+   ⚠️ gen_027e7e3fd1_0 [gen] 行号 779 → 782 · ★行号变了 (779 → 782) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 782★
+   ⚠️ gen_057a46bcf7_0 [gen] 行号 1551 → 1554 · ★行号变了 (1551 → 1554) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1554★
+   ⚠️ gen_0b11316ab7_0 [gen] 行号 453 → 456 · ★行号变了 (453 → 456) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 456★
+   ⚠️ gen_0bac078269_0 [gen] 行号 1426 → 1429 · ★行号变了 (1426 → 1429) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1429★
+   ⚠️ gen_0c9b53fe03_0 [gen] 行号 933 → 936 · ★行号变了 (933 → 936) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 936★
+   ⚠️ gen_0de94faac3_0 [gen] 行号 1261 → 1264 · ★行号变了 (1261 → 1264) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1264★
+   ⚠️ gen_109b620c43_1 [gen] 行号 488 → 491 · ★行号变了 (488 → 491) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 491★
+   ⚠️ gen_10b24a54cf_0 [gen] 行号 1051 → 1054 · ★行号变了 (1051 → 1054) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1054★
+   ⚠️ gen_1195b762e7_0 [gen] 行号 448 → 451 · ★行号变了 (448 → 451) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 451★
+   ⚠️ gen_1215334513_1 [gen] 行号 681 → 684 · ★行号变了 (681 → 684) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 684★
+   ⚠️ gen_12c0bbe919_0 [gen] 行号 431 → 434 · ★行号变了 (431 → 434) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 434★
+   ⚠️ gen_12c52a2915_0 [gen] 行号 877 → 880 · ★行号变了 (877 → 880) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 880★
+   ⚠️ gen_12d8f670e4_1 [gen] 行号 1119 → 1122 · ★行号变了 (1119 → 1122) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1122★
+   ⚠️ gen_12db1a4c4e_0 [gen] 行号 1291 → 1294 · ★行号变了 (1291 → 1294) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1294★
+   ⚠️ gen_13811309f8_1 [gen] 行号 920 → 923 · ★行号变了 (920 → 923) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 923★
+   ⚠️ gen_150195b521_0 [gen] 行号 1487 → 1490 · ★行号变了 (1487 → 1490) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1490★
+   ⚠️ gen_165875fdcd_0 [gen] 行号 1030 → 1033 · ★行号变了 (1030 → 1033) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1033★
+   ⚠️ gen_1733e20854_0 [gen] 行号 816 → 819 · ★行号变了 (816 → 819) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 819★
+   ⚠️ gen_17729f0dd0_1 [gen] 行号 1482 → 1485 · ★行号变了 (1482 → 1485) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1485★
+   ⚠️ gen_18fd38d4d7_0 [gen] 行号 960 → 963 · ★行号变了 (960 → 963) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 963★
+   ⚠️ gen_19067f9ebb_0 [gen] 行号 528 → 531 · ★行号变了 (528 → 531) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 531★
+   ⚠️ gen_1a0ee8f5c1_0 [gen] 行号 1027 → 1030 · ★行号变了 (1027 → 1030) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1030★
+   ⚠️ gen_1a551f96c1_1 [gen] 行号 537 → 540 · ★行号变了 (537 → 540) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 540★
+   ⚠️ gen_1a7c76efb8_0 [gen] 行号 1359 → 1362 · ★行号变了 (1359 → 1362) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1362★
+   ⚠️ gen_1ddccaec78_0 [gen] 行号 1173 → 1176 · ★行号变了 (1173 → 1176) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1176★
+   ⚠️ gen_1e7b4d26be_0 [gen] 行号 1127 → 1130 · ★行号变了 (1127 → 1130) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1130★
+   ⚠️ gen_1eba677fa0_0 [gen] 行号 1311 → 1314 · ★行号变了 (1311 → 1314) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1314★
+   ⚠️ gen_1f4dac8209_0 [gen] 行号 1532 → 1535 · ★行号变了 (1532 → 1535) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1535★
+   ⚠️ gen_2009da3e9c_0 [gen] 行号 958 → 961 · ★行号变了 (958 → 961) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 961★
+   ⚠️ gen_20d1ca10f9_1 [gen] 行号 522 → 525 · ★行号变了 (522 → 525) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 525★
+   ⚠️ gen_257fcd9f0d_0 [gen] 行号 1094 → 1097 · ★行号变了 (1094 → 1097) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1097★
+   ⚠️ gen_269a222b0a_1 [gen] 行号 901 → 904 · ★行号变了 (901 → 904) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 904★
+   ⚠️ gen_2766b748fd_0 [gen] 行号 451 → 454 · ★行号变了 (451 → 454) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 454★
+   ⚠️ gen_27e4bf8670_0 [gen] 行号 1530 → 1533 · ★行号变了 (1530 → 1533) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1533★
+   ⚠️ gen_2a52e9963a_0 [gen] 行号 1302 → 1305 · ★行号变了 (1302 → 1305) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1305★
+   ⚠️ gen_2acbb130c3_0 [gen] 行号 806 → 809 · ★行号变了 (806 → 809) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 809★
+   ⚠️ gen_2cab6efba1_0 [gen] 行号 1355 → 1358 · ★行号变了 (1355 → 1358) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1358★
+   ⚠️ gen_2ecc4844a0_2 [gen] 行号 490 → 493 · ★行号变了 (490 → 493) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 493★
+   ⚠️ gen_30623431a8_1 [gen] 行号 1273 → 1276 · ★行号变了 (1273 → 1276) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1276★
+   ⚠️ gen_32b03a5519_0 [gen] 行号 1544 → 1547 · ★行号变了 (1544 → 1547) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1547★
+   ⚠️ gen_3585090813_0 [gen] 行号 1065 → 1068 · ★行号变了 (1065 → 1068) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1068★
+   ⚠️ gen_36c8bf1990_0 [gen] 行号 884 → 887 · ★行号变了 (884 → 887) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 887★
+   ⚠️ gen_38ed9a805e_0 [gen] 行号 557 → 560 · ★行号变了 (557 → 560) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 560★
+   ⚠️ gen_39915b86bd_0 [gen] 行号 615 → 618 · ★行号变了 (615 → 618) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 618★
+   ⚠️ gen_39c95fa16d_0 [gen] 行号 532 → 535 · ★行号变了 (532 → 535) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 535★
+   ⚠️ gen_3a4bb10f22_0 [gen] 行号 1288 → 1291 · ★行号变了 (1288 → 1291) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1291★
+   ⚠️ gen_3cb4446740_0 [gen] 行号 395 → 398 · ★行号变了 (395 → 398) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 398★
+   ⚠️ gen_3da24fb50c_0 [gen] 行号 1024 → 1027 · ★行号变了 (1024 → 1027) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1027★
+   ⚠️ gen_3dec2298fb_0 [gen] 行号 886 → 889 · ★行号变了 (886 → 889) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 889★
+   ⚠️ gen_3e4c7af963_1 [gen] 行号 1477 → 1480 · ★行号变了 (1477 → 1480) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1480★
+   ⚠️ gen_3f0fb5295b_0 [gen] 行号 1561 → 1564 · ★行号变了 (1561 → 1564) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1564★
+   ⚠️ gen_40ffbe0d98_0 [gen] 行号 1102 → 1105 · ★行号变了 (1102 → 1105) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1105★
+   ⚠️ gen_43a07697c5_0 [gen] 行号 546 → 549 · ★行号变了 (546 → 549) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 549★
+   ⚠️ gen_43e82d6921_1 [gen] 行号 1471 → 1474 · ★行号变了 (1471 → 1474) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1474★
+   ⚠️ gen_44d3d3cc18_0 [gen] 行号 444 → 447 · ★行号变了 (444 → 447) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 447★
+   ⚠️ gen_464313d104_0 [gen] 行号 736 → 739 · ★行号变了 (736 → 739) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 739★
+   ⚠️ gen_47365ed51f_0 [gen] 行号 757 → 760 · ★行号变了 (757 → 760) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 760★
+   ⚠️ gen_47727e1817_0 [gen] 行号 1507 → 1510 · ★行号变了 (1507 → 1510) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1510★
+   ⚠️ gen_47a241996b_0 [gen] 行号 504 → 507 · ★行号变了 (504 → 507) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 507★
+   ⚠️ gen_489a519478_0 [gen] 行号 1304 → 1307 · ★行号变了 (1304 → 1307) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1307★
+   ⚠️ gen_48d6ffdcaa_0 [gen] 行号 1275 → 1278 · ★行号变了 (1275 → 1278) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1278★
+   ⚠️ gen_490cac778e_0 [gen] 行号 1490 → 1493 · ★行号变了 (1490 → 1493) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1493★
+   ⚠️ gen_49dfa277fc_1 [gen] 行号 1055 → 1058 · ★行号变了 (1055 → 1058) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1058★
+   ⚠️ gen_4a4a38b6d6_0 [gen] 行号 1468 → 1471 · ★行号变了 (1468 → 1471) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1471★
+   ⚠️ gen_4a97a67a71_0 [gen] 行号 398 → 401 · ★行号变了 (398 → 401) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 401★
+   ⚠️ gen_4c3a8ef737_0 [gen] 行号 1123 → 1126 · ★行号变了 (1123 → 1126) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1126★
+   ⚠️ gen_4d711a6046_0 [gen] 行号 587 → 590 · ★行号变了 (587 → 590) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 590★
+   ⚠️ gen_4d78feada4_0 [gen] 行号 665 → 668 · ★行号变了 (665 → 668) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 668★
+   ⚠️ gen_4d972ac09b_0 [gen] 行号 606 → 609 · ★行号变了 (606 → 609) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 609★
+   ⚠️ gen_4e4231e528_1 [gen] 行号 647 → 650 · ★行号变了 (647 → 650) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 650★
+   ⚠️ gen_4ef7ffa8b0_0 [gen] 行号 930 → 933 · ★行号变了 (930 → 933) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 933★
+   ⚠️ gen_4f7938ac78_0 [gen] 行号 1407 → 1410 · ★行号变了 (1407 → 1410) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1410★
+   ⚠️ gen_517c35de8e_0 [gen] 行号 478 → 481 · ★行号变了 (478 → 481) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 481★
+   ⚠️ gen_538046e03f_0 [gen] 行号 896 → 899 · ★行号变了 (896 → 899) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 899★
+   ⚠️ gen_5386458969_0 [gen] 行号 650 → 653 · ★行号变了 (650 → 653) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 653★
+   ⚠️ gen_53ac4d6261_0 [gen] 行号 1494 → 1497 · ★行号变了 (1494 → 1497) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1497★
+   ⚠️ gen_53ce3ee6a4_0 [gen] 行号 468 → 471 · ★行号变了 (468 → 471) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 471★
+   ⚠️ gen_58e951c0e0_1 [gen] 行号 1321 → 1324 · ★行号变了 (1321 → 1324) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1324★
+   ⚠️ gen_5a2651e1fe_0 [gen] 行号 1515 → 1518 · ★行号变了 (1515 → 1518) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1518★
+   ⚠️ gen_5abf6fbaae_0 [gen] 行号 407 → 410 · ★行号变了 (407 → 410) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 410★
+   ⚠️ gen_5bd48f8845_1 [gen] 行号 946 → 949 · ★行号变了 (946 → 949) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 949★
+   ⚠️ gen_5c1c363d63_0 [gen] 行号 653 → 656 · ★行号变了 (653 → 656) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 656★
+   ⚠️ gen_5f76c0b245_1 [gen] 行号 1097 → 1100 · ★行号变了 (1097 → 1100) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1100★
+   ⚠️ gen_608ea9e693_0 [gen] 行号 386 → 389 · ★行号变了 (386 → 389) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 389★
+   ⚠️ gen_60917fab6f_0 [gen] 行号 1465 → 1468 · ★行号变了 (1465 → 1468) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1468★
+   ⚠️ gen_627e543b50_0 [gen] 行号 434 → 437 · ★行号变了 (434 → 437) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 437★
+   ⚠️ gen_6291bc19bc_0 [gen] 行号 1177 → 1180 · ★行号变了 (1177 → 1180) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1180★
+   ⚠️ gen_62daece7fc_0 [gen] 行号 1371 → 1374 · ★行号变了 (1371 → 1374) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1374★
+   ⚠️ gen_6369e37b38_0 [gen] 行号 1538 → 1541 · ★行号变了 (1538 → 1541) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1541★
+   ⚠️ gen_63883cc1bf_0 [gen] 行号 492 → 495 · ★行号变了 (492 → 495) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 495★
+   ⚠️ gen_63a854c37d_0 [gen] 行号 962 → 965 · ★行号变了 (962 → 965) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 965★
+   ⚠️ gen_6430d450e8_0 [gen] 行号 416 → 419 · ★行号变了 (416 → 419) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 419★
+   ⚠️ gen_6567285319_0 [gen] 行号 1317 → 1320 · ★行号变了 (1317 → 1320) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1320★
+   ⚠️ gen_67f720eaa3_0 [gen] 行号 1411 → 1414 · ★行号变了 (1411 → 1414) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1414★
+   ⚠️ gen_6860ffd85d_1 [gen] 行号 1015 → 1018 · ★行号变了 (1015 → 1018) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1018★
+   ⚠️ gen_6a95a5b48a_1 [gen] 行号 1457 → 1460 · ★行号变了 (1457 → 1460) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1460★
+   ⚠️ gen_6ac3ba2b73_1 [gen] 行号 1294 → 1297 · ★行号变了 (1294 → 1297) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1297★
+   ⚠️ gen_6b31211ecb_0 [gen] 行号 867 → 870 · ★行号变了 (867 → 870) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 870★
+   ⚠️ gen_6b5c6aab39_0 [gen] 行号 391 → 394 · ★行号变了 (391 → 394) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 394★
+   ⚠️ gen_6c3808e292_0 [gen] 行号 1270 → 1273 · ★行号变了 (1270 → 1273) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1273★
+   ⚠️ gen_6c8d01e97f_0 [gen] 行号 968 → 971 · ★行号变了 (968 → 971) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 971★
+   ⚠️ gen_6d32a55db9_0 [gen] 行号 1183 → 1186 · ★行号变了 (1183 → 1186) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1186★
+   ⚠️ gen_6d49c859df_0 [gen] 行号 465 → 468 · ★行号变了 (465 → 468) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 468★
+   ⚠️ gen_6e7e58f0ea_2 [gen] 行号 684 → 687 · ★行号变了 (684 → 687) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 687★
+   ⚠️ gen_72b45a9096_1 [gen] 行号 788 → 791 · ★行号变了 (788 → 791) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 791★
+   ⚠️ gen_74ce60b793_0 [gen] 行号 1454 → 1457 · ★行号变了 (1454 → 1457) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1457★
+   ⚠️ gen_792c084349_0 [gen] 行号 1040 → 1043 · ★行号变了 (1040 → 1043) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1043★
+   ⚠️ gen_79b6d2bf4a_0 [gen] 行号 1280 → 1283 · ★行号变了 (1280 → 1283) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1283★
+   ⚠️ gen_7a3e8b314a_0 [gen] 行号 1391 → 1394 · ★行号变了 (1391 → 1394) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1394★
+   ⚠️ gen_7d6b661ebd_0 [gen] 行号 1362 → 1365 · ★行号变了 (1362 → 1365) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1365★
+   ⚠️ gen_7f4a08b340_0 [gen] 行号 1398 → 1401 · ★行号变了 (1398 → 1401) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1401★
+   ⚠️ gen_7f56cf2659_0 [gen] 行号 1375 → 1378 · ★行号变了 (1375 → 1378) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1378★
+   ⚠️ gen_87ff029235_0 [gen] 行号 378 → 381 · ★行号变了 (378 → 381) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 381★
+   ⚠️ gen_8887c3e9d1_0 [gen] 行号 400 → 403 · ★行号变了 (400 → 403) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 403★
+   ⚠️ gen_88a8e6d887_0 [gen] 行号 1365 → 1368 · ★行号变了 (1365 → 1368) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1368★
+   ⚠️ gen_8a1c937353_0 [gen] 行号 912 → 915 · ★行号变了 (912 → 915) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 915★
+   ⚠️ gen_8ad7043f2f_0 [gen] 行号 1012 → 1015 · ★行号变了 (1012 → 1015) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1015★
+   ⚠️ gen_8bb41f2239_0 [gen] 行号 914 → 917 · ★行号变了 (914 → 917) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 917★
+   ⚠️ gen_8db36f7bb5_0 [gen] 行号 922 → 925 · ★行号变了 (922 → 925) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 925★
+   ⚠️ gen_8e143d9f51_0 [gen] 行号 596 → 599 · ★行号变了 (596 → 599) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 599★
+   ⚠️ gen_903ccc8595_0 [gen] 行号 1510 → 1513 · ★行号变了 (1510 → 1513) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1513★
+   ⚠️ gen_93a76cd22b_0 [gen] 行号 1264 → 1267 · ★行号变了 (1264 → 1267) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1267★
+   ⚠️ gen_94832f8960_0 [gen] 行号 437 → 440 · ★行号变了 (437 → 440) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 440★
+   ⚠️ gen_94f4d000e2_0 [gen] 行号 813 → 816 · ★行号变了 (813 → 816) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 816★
+   ⚠️ gen_958a8bd8cc_1 [gen] 行号 1309 → 1312 · ★行号变了 (1309 → 1312) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1312★
+   ⚠️ gen_9636e406d2_0 [gen] 行号 498 → 501 · ★行号变了 (498 → 501) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 501★
+   ⚠️ gen_97abebed7b_0 [gen] 行号 1548 → 1551 · ★行号变了 (1548 → 1551) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1551★
+   ⚠️ gen_99b4c59ba2_0 [gen] 行号 1133 → 1136 · ★行号变了 (1133 → 1136) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1136★
+   ⚠️ gen_9a9dc25385_0 [gen] 行号 1336 → 1339 · ★行号变了 (1336 → 1339) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1339★
+   ⚠️ gen_9b0930fed0_0 [gen] 行号 765 → 768 · ★行号变了 (765 → 768) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 768★
+   ⚠️ gen_9c57381682_0 [gen] 行号 382 → 385 · ★行号变了 (382 → 385) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 385★
+   ⚠️ gen_9e17014867_0 [gen] 行号 1341 → 1344 · ★行号变了 (1341 → 1344) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1344★
+   ⚠️ gen_a000980468_2 [gen] 行号 486 → 489 · ★行号变了 (486 → 489) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 489★
+   ⚠️ gen_a68f806f10_1 [gen] 行号 609 → 612 · ★行号变了 (609 → 612) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 612★
+   ⚠️ gen_a6ad6a748a_1 [gen] 行号 1527 → 1530 · ★行号变了 (1527 → 1530) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1530★
+   ⚠️ gen_a6d292205b_1 [gen] 行号 659 → 662 · ★行号变了 (659 → 662) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 662★
+   ⚠️ gen_a963f53b31_0 [gen] 行号 1296 → 1299 · ★行号变了 (1296 → 1299) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1299★
+   ⚠️ gen_aa003a8bab_0 [gen] 行号 870 → 873 · ★行号变了 (870 → 873) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 873★
+   ⚠️ gen_abc0655d97_0 [gen] 行号 513 → 516 · ★行号变了 (513 → 516) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 516★
+   ⚠️ gen_abda2a2c7e_0 [gen] 行号 790 → 793 · ★行号变了 (790 → 793) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 793★
+   ⚠️ gen_ae325ec4b7_1 [gen] 行号 517 → 520 · ★行号变了 (517 → 520) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 520★
+   ⚠️ gen_af7ad93e86_0 [gen] 行号 864 → 867 · ★行号变了 (864 → 867) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 867★
+   ⚠️ gen_afc48fb869_0 [gen] 行号 591 → 594 · ★行号变了 (591 → 594) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 594★
+   ⚠️ gen_b0ec43a539_2 [gen] 行号 662 → 665 · ★行号变了 (662 → 665) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 665★
+   ⚠️ gen_b12347e59b_0 [gen] 行号 1330 → 1333 · ★行号变了 (1330 → 1333) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1333★
+   ⚠️ gen_b12b312ee0_0 [gen] 行号 481 → 484 · ★行号变了 (481 → 484) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 484★
+   ⚠️ gen_b524845b6f_0 [gen] 行号 794 → 797 · ★行号变了 (794 → 797) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 797★
+   ⚠️ gen_b7250d1583_2 [gen] 行号 631 → 634 · ★行号变了 (631 → 634) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 634★
+   ⚠️ gen_b79b0b6b89_0 [gen] 行号 691 → 694 · ★行号变了 (691 → 694) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 694★
+   ⚠️ gen_b7c01b1a7e_0 [gen] 行号 892 → 895 · ★行号变了 (892 → 895) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 895★
+   ⚠️ gen_b819a5d3f4_0 [gen] 行号 1129 → 1132 · ★行号变了 (1129 → 1132) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1132★
+   ⚠️ gen_b8632ac9e0_0 [gen] 行号 943 → 946 · ★行号变了 (943 → 946) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 946★
+   ⚠️ gen_b8b5235abe_0 [gen] 行号 428 → 431 · ★行号变了 (428 → 431) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 431★
+   ⚠️ gen_b90fe4cb2e_0 [gen] 行号 1060 → 1063 · ★行号变了 (1060 → 1063) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1063★
+   ⚠️ gen_b9800861bf_0 [gen] 行号 797 → 800 · ★行号变了 (797 → 800) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 800★
+   ⚠️ gen_bb2d6e2268_0 [gen] 行号 783 → 786 · ★行号变了 (783 → 786) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 786★
+   ⚠️ gen_bbbb7f9d61_0 [gen] 行号 441 → 444 · ★行号变了 (441 → 444) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 444★
+   ⚠️ gen_be4bf06460_0 [gen] 行号 1131 → 1134 · ★行号变了 (1131 → 1134) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1134★
+   ⚠️ gen_bff1b1ceb3_0 [gen] 行号 729 → 732 · ★行号变了 (729 → 732) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 732★
+   ⚠️ gen_c1d4d2fd60_0 [gen] 行号 1175 → 1178 · ★行号变了 (1175 → 1178) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1178★
+   ⚠️ gen_c1efde6f18_1 [gen] 行号 413 → 416 · ★行号变了 (413 → 416) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 416★
+   ⚠️ gen_c213fc8ec5_0 [gen] 行号 786 → 789 · ★行号变了 (786 → 789) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 789★
+   ⚠️ gen_c2b36fa23c_0 [gen] 行号 1348 → 1351 · ★行号变了 (1348 → 1351) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1351★
+   ⚠️ gen_c326cdc8ed_0 [gen] 行号 643 → 646 · ★行号变了 (643 → 646) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 646★
+   ⚠️ gen_c481a139fd_0 [gen] 行号 424 → 427 · ★行号变了 (424 → 427) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 427★
+   ⚠️ gen_c64743d780_0 [gen] 行号 1474 → 1477 · ★行号变了 (1474 → 1477) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1477★
+   ⚠️ gen_c6d68783bb_0 [gen] 行号 602 → 605 · ★行号变了 (602 → 605) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 605★
+   ⚠️ gen_c8e442e260_1 [gen] 行号 484 → 487 · ★行号变了 (484 → 487) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 487★
+   ⚠️ gen_cb106d2c9e_0 [gen] 行号 472 → 475 · ★行号变了 (472 → 475) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 475★
+   ⚠️ gen_cb7578c828_0 [gen] 行号 611 → 614 · ★行号变了 (611 → 614) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 614★
+   ⚠️ gen_cc2c81dac0_0 [gen] 行号 1577 → 1580 · ★行号变了 (1577 → 1580) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1580★
+   ⚠️ gen_cc32424a10_0 [gen] 行号 1401 → 1404 · ★行号变了 (1401 → 1404) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1404★
+   ⚠️ gen_ce434a2f8d_0 [gen] 行号 1480 → 1483 · ★行号变了 (1480 → 1483) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1483★
+   ⚠️ gen_d0dd3ee0c5_0 [gen] 行号 1484 → 1487 · ★行号变了 (1484 → 1487) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1487★
+   ⚠️ gen_d3f97e7114_0 [gen] 行号 1328 → 1331 · ★行号变了 (1328 → 1331) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1331★
+   ⚠️ gen_d60dc05615_0 [gen] 行号 1368 → 1371 · ★行号变了 (1368 → 1371) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1371★
+   ⚠️ gen_d64e42d5c1_0 [gen] 行号 916 → 919 · ★行号变了 (916 → 919) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 919★
+   ⚠️ gen_d65c78c93d_0 [gen] 行号 1306 → 1309 · ★行号变了 (1306 → 1309) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1309★
+   ⚠️ gen_d70a7a3db9_0 [gen] 行号 1492 → 1495 · ★行号变了 (1492 → 1495) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1495★
+   ⚠️ gen_d8763c825f_0 [gen] 行号 1180 → 1183 · ★行号变了 (1180 → 1183) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1183★
+   ⚠️ gen_d9175f8534_0 [gen] 行号 763 → 766 · ★行号变了 (763 → 766) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 766★
+   ⚠️ gen_dafc2f9137_0 [gen] 行号 1004 → 1007 · ★行号变了 (1004 → 1007) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1007★
+   ⚠️ gen_dc6e3a386b_0 [gen] 行号 1319 → 1322 · ★行号变了 (1319 → 1322) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1322★
+   ⚠️ gen_de7f74ccab_0 [gen] 行号 1524 → 1527 · ★行号变了 (1524 → 1527) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1527★
+   ⚠️ gen_df8f6208b7_0 [gen] 行号 1111 → 1114 · ★行号变了 (1111 → 1114) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1114★
+   ⚠️ gen_e27ba36104_0 [gen] 行号 1351 → 1354 · ★行号变了 (1351 → 1354) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1354★
+   ⚠️ gen_e2fde67261_1 [gen] 行号 625 → 628 · ★行号变了 (625 → 628) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 628★
+   ⚠️ gen_e40ea24c7e_0 [gen] 行号 1564 → 1567 · ★行号变了 (1564 → 1567) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1567★
+   ⚠️ gen_e44a9ccd26_0 [gen] 行号 889 → 892 · ★行号变了 (889 → 892) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 892★
+   ⚠️ gen_e59b5627df_0 [gen] 行号 1139 → 1142 · ★行号变了 (1139 → 1142) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1142★
+   ⚠️ gen_e5ab9cf6a7_0 [gen] 行号 525 → 528 · ★行号变了 (525 → 528) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 528★
+   ⚠️ gen_e62d71a88f_0 [gen] 行号 687 → 690 · ★行号变了 (687 → 690) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 690★
+   ⚠️ gen_e707330234_0 [gen] 行号 1268 → 1271 · ★行号变了 (1268 → 1271) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1271★
+   ⚠️ gen_e92e0d1b24_0 [gen] 行号 495 → 498 · ★行号变了 (495 → 498) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 498★
+   ⚠️ gen_ee4a07c8c0_0 [gen] 行号 567 → 570 · ★行号变了 (567 → 570) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 570★
+   ⚠️ gen_f02affdc26_0 [gen] 行号 861 → 864 · ★行号变了 (861 → 864) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 864★
+   ⚠️ gen_f28e111219_1 [gen] 行号 1534 → 1537 · ★行号变了 (1534 → 1537) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1537★
+   ⚠️ gen_f2cb1ad751_0 [gen] 行号 899 → 902 · ★行号变了 (899 → 902) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 902★
+   ⚠️ gen_f39848760f_1 [gen] 行号 604 → 607 · ★行号变了 (604 → 607) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 607★
+   ⚠️ gen_f3ef6ae346_0 [gen] 行号 706 → 709 · ★行号变了 (706 → 709) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 709★
+   ⚠️ gen_f4012fad4d_0 [gen] 行号 809 → 812 · ★行号变了 (809 → 812) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 812★
+   ⚠️ gen_f43285b73d_0 [gen] 行号 849 → 852 · ★行号变了 (849 → 852) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 852★
+   ⚠️ gen_f45227e1ba_0 [gen] 行号 1088 → 1091 · ★行号变了 (1088 → 1091) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1091★
+   ⚠️ gen_f5a9e9bd9e_0 [gen] 行号 671 → 674 · ★行号变了 (671 → 674) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 674★
+   ⚠️ gen_f7d5231c72_0 [gen] 行号 411 → 414 · ★行号变了 (411 → 414) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 414★
+   ⚠️ gen_f9ad3067f1_1 [gen] 行号 1313 → 1316 · ★行号变了 (1313 → 1316) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1316★
+   ⚠️ gen_fae109698b_1 [gen] 行号 1377 → 1380 · ★行号变了 (1377 → 1380) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1380★
+   ⚠️ gen_fb49f48520_0 [gen] 行号 457 → 460 · ★行号变了 (457 → 460) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 460★
+   ⚠️ gen_fd32f00fe8_1 [gen] 行号 669 → 672 · ★行号变了 (669 → 672) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 672★
+   ⚠️ gen_fe14a2ae7b_0 [gen] 行号 940 → 943 · ★行号变了 (940 → 943) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 943★
+   ⚠️ gen_ff02cf2adf_0 [gen] 行号 598 → 601 · ★行号变了 (598 → 601) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 601★
+   ⚠️ gen_ffaa5a5eee_0 [gen] 行号 676 → 679 · ★行号变了 (676 → 679) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 679★
+   ⚠️ gen_ffecefa1c6_0 [gen] 行号 1171 → 1174 · ★行号变了 (1171 → 1174) + 调用签名没变 ⇒ 纯漂移 ⇒ ★已自动更新锚点行号 = 1174★
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /tmp/iss262_anchor__du2i1xy
+★ 锚点条数: 310  (PASS=310 · DRIFT=0 · RED=0)
+★ ✅ 全部锚点: 行号没变 + 实体没变 ⇒ 通过
+╔══ 落表行号锚点守卫 · 反向用例 (--selftest) ══╗
+   ✅ T1 ★正向: 一条都没漂 ⇒ 必须绿 (rc=0)  ★rc=0★
+   ✅ T2 ★反向: 纯漂移 (行号变 / 内容不变) ⇒ 必须被报出来  ★rc=3 · DRIFT=72★
+   ✅ T3 ★反向: 纯漂移 ⇒ `--reanchor` 机器改完 ⇒ 必须重新变绿  ★reanchor rc=0 · 复跑 rc=0 · DRIFT=0 · RED=0★
+   ✅ T4 ★反向: 内容变 (行号不变) ⇒ 必须红 (rc=1)  ★rc=1 · RED=1 · 锚点=d10_a47_value@L47★
+   ✅ T5 ★反向: 行号 + 内容都变 ⇒ 必须红 (rc=1)  ★rc=1 · RED=2 · 锚点=d10_a47_value@47→48 · 该锚点判红=True★
+   ✅ T6 ★反向: 台账被偷改 ⇒ 必须红 (rc=1)  ★rc=1 · 改的是 d10_a47_value★
+   ✅ T7 ★反向: 源码 ⇄ 规格页 锚点表漂了 ⇒ 必须红 (rc=1)  ★rc=1★
+   ✅ T8 ★反向: 生成器源码行号漂移 (★V-3 删 DEMO_DNP 3 行那一种★) ⇒ 必须被报出来  ★rc=3 · DRIFT=216 · 其中源码行=216★
+   ✅ T9 ★反向: 源码行漂移 ⇒ `--reanchor` 机器改完 ⇒ 必须重新变绿  ★reanchor rc=0 · 复跑 rc=0 · DRIFT=0 · RED=0★
+★ 结果: 9/9
+★ rc=0: 全部反向用例通过 (★真盘零写入★)
+--- rc=0 ---
+★ISS-262 新闸·反向用例 ⇒ rc=0
+
+=========================================================
+★ ★ISS-262 新闸·机器重锚干跑
+$ python3 HW/check_land_row_anchors.py --reanchor --dry-run
+★ 重锚后自检:
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+★ 锚点条数: 310  (PASS=310 · DRIFT=0 · RED=0)
+★ ✅ 全部锚点: 行号没变 + 实体没变 ⇒ 通过
+--- rc=0 ---
+★ISS-262 新闸·机器重锚干跑 ⇒ rc=0
+
+=========================================================
+★ merge
+$ python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-17T05:15:48+08:00)
+   产出 433 | 阻塞 43 (高危 33) | 未闭合需求 252 | 冲突 0 | 健康度 red
+--- rc=0 ---
+merge ⇒ rc=0
+
+=========================================================
+★ gate_check (Q1 18/18)
+$ python3 state/gate_check.py
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-17_hw-lead_ISS268_板只改一次作业包v3_§0两行口径订正.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-17_sw-lead_ISS270_SW侧外部依赖自查.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-17_mech-lead_ISS271_板侧开口S6认领与LED位置约束.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '官方', '推算', '0数据']
+   sw-lead    标签: ['实测', '官方', '推算', '0数据', '0 数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 764 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    276 条
+   sw-lead    225 条
+   mech-lead  263 条
+
+【Q4 需求闭环率】
+   问方视角 (我的需求被别人答了): 76/403  ← 与 merge.py 口径一致
+   答方视角 (我登记的答复): 117 条, 其中 62 条真对上了别人的需求 key
+   hw-lead    被答 27/145 | 我答 44 条(有效 31) | 产出 140 | 阻塞 7
+   sw-lead    被答 12/95 | 我答 28 条(有效 5) | 产出 145 | 阻塞 15
+   mech-lead  被答 37/163 | 我答 45 条(有效 26) | 产出 138 | 阻塞 12
+   ├─ ⚠️ **疑似漏登记 (答案在对方文档正文里, 但没进 answers)**: 0 条  ← 需人工判定, 也有可能是 waiting_on 标错
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 79 条 | **全局 70 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 252 条**
+   ✅ 与 merge.py 自对账一致 (等外部 70 / 等总工 252)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 11 个
+      q1_latency_scope: 发起方 ['main', 'sw-lead']
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q17_display_fps: 发起方 ['main', 'sw-lead']
+      q18_highspeed_cam: 发起方 ['main', 'sw-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+
+【Q5 硬指标覆盖】 2/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    5/5 类: ['功耗(W)', '皮肤温度(°C)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)', 'FCCSP 球间距(pitch)']
+   sw-lead    1/5 类: ['端到端延迟(ms)']
+   mech-lead  5/5 类: ['功耗(W)', '皮肤温度(°C)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)', 'FCCSP 球间距(pitch)']
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 98 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 61 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 89 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+--- rc=0 ---
+gate_check (Q1 18/18) ⇒ rc=0
+
+=== 【跑后】受保护 5 件 md5 ===
+e06c1dd633566aa44732762c2ff99d1c  HW/netlist_v1.csv
+287e7861a0d1007748d92d9fbecdd490  HW/netlist_v1_pins.csv
+94642d07a69e8d60dd2af57f69b93607  HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+
+########## ★rc 汇总表★ ##########
+干跑 V-2=1 (零写盘) ⇒ rc=0
+干跑 V-3=E (零写盘) ⇒ rc=0
+干跑 V-4=680 (零写盘) ⇒ rc=0
+     ★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ ★**第 1 轮 4 条 + 第 2 轮 7 组缺陷★仍在★ ⇒ rc=0 是预期状态 ★
+落表器自测 (≥11 条) ⇒ rc=0
+尺子1 网表 ⇒ rc=0
+尺子2 脚表 ⇒ rc=0
+尺子3 ERC (期望 ERC=0) ⇒ rc=0
+尺子4 图=表 ⇒ rc=0
+★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ ★**第 1 轮 4 条 + 第 2 轮 7 组缺陷★仍在★ ⇒ rc=0 是预期状态 ★
+现状守卫 (期望 rc=0) ⇒ rc=0
+翻面口径 (期望 rc=1) ⇒ rc=1
+G1a-7 选型落表 ⇒ rc=0
+G1a 阶段门 (期望 rc=1) ⇒ rc=1
+★ISS-262 新闸·体检 ⇒ rc=0
+★ISS-262 新闸·反向用例 ⇒ rc=0
+★ISS-262 新闸·机器重锚干跑 ⇒ rc=0
+merge ⇒ rc=0
+gate_check (Q1 18/18) ⇒ rc=0
+########## ★跑批结束★ ##########
+DONE

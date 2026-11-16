@@ -103,7 +103,15 @@ git config user.email "yuewuya20180928@users.noreply.github.com"
 #   → 之前推过一次 .v11_backup/ 与 HW/.iss075_bak/ (公开仓库里不该有)
 find "$PROJ" -maxdepth 3 \( -name '.*_bak' -o -name '*_backup' -o -name '.*_backup' \) -type d -exec rm -rf {} + 2>/dev/null
 find "$PUB" -maxdepth 5 \( -name '.*_bak' -o -name '*_backup' -o -name '.*_backup' \) -type d -exec rm -rf {} + 2>/dev/null
-rsync -a --delete --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
+# ★★2026-11-17 06:1x 实测事故 ⇒ rsync 加**尺寸上限** (--max-size):
+#   sw-lead 的 ISS250 (RKNN toolkit2 量化) 在 `logs/iss250_r6/` 留了 3 个 **245MB 的 .pkl**
+#   ⇒ 无上限的 rsync 把它们抄进发布树 ⇒ git add -A commit 进仓
+#   ⇒ GitHub pre-receive 直接拒收 (GH001: 245.14 MB > 100.00 MB) ⇒ **整轮发布白跑**
+#   ⇒⇒ 修法是**修在产生点**: rsync 阶段就用 --max-size 挡住 (50MB)
+#     ⇒ 大二进制产物根本进不了发布树 ⇒ 不用等 push 被拒才发现
+#   ⇒ 另有提交前的 size_publish_gate.sh 兜底 (防 rsync 规则被改漏 / 非 rsync 路径进来的大文件)
+rsync -a --delete --max-size=50m \
+      --exclude '__pycache__' --exclude '*.pyc' --exclude '.git' \
       --exclude 'BOOTSTRAP.md' --exclude '.openclaw' --exclude 'workspace-state.json' \
       --exclude '*.tmp' --exclude '.DS_Store' \
       --exclude '.*_bak' --exclude '*_backup' --exclude '.*_backup' --exclude '.bak_*' \
@@ -499,6 +507,16 @@ for junk in projects/smart_glasses/BOOTSTRAP.md projects/smart_glasses/.openclaw
   git rm -q --cached --ignore-unmatch "$junk" 2>/dev/null
   rm -f "$junk" 2>/dev/null
 done
+git add -A
+# ★★2026-11-17 06:1x: 提交前**尺寸闸** (独立可单测: state/size_publish_gate.sh --selftest)
+#   rsync 的 --max-size 是第一道; 这道是第二道 (兜底: 非 rsync 路径进来的大文件 / 规则被改漏)
+#   ⇒ 超限文件从发布树撤下 (git rm --cached + 删工作区副本) ⇒ 文档照推, 不让大产物卡死整轮发布
+SIZE_OUT="$(bash "$PROJ/state/size_publish_gate.sh" "$PUB" --max-mb 50 2>&1)"; SIZE_RC=$?
+echo "$SIZE_OUT" | sed 's/^/[4.8] /'
+if [ "$SIZE_RC" != "0" ]; then
+  echo "[4.8] ★大文件闸执行失败 ⇒ 中止发布 (不推陈旧文档)"
+  exit 1
+fi
 git add -A
 if [ "$BOARD_BAD" = "1" ]; then
   # ★★★2026-11-05 09:20 **板级隔离 v3: 板 + 它的派生产物 (Gerber/钻孔/坐标/贴片) 一起撤**

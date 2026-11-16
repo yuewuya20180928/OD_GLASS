@@ -3,18 +3,14 @@ role: 结构总工(带散热)
 updated_at: '2026-11-01T21:40:00+08:00'
 updated_by: mech-lead
 status:
-  phase: P3
-  progress_pct: 99
-  health: yellow
-  summary: '★2026-11-16 ISS-251 (MECH 侧三处老账收口 · 续做轮 19:4x) 结清: 上一轮 19:19~19:29 被 runTimeout 掐在改文档半路上 (只改了
-    MECH/SERVICE_PORT_ISS092.md mtime 19:25:58, 交卷层一件没落) ⇒ 本轮只补缺口 ⇒ ① 三处逐条订正表 (A 充电耗散 buck 0.45-0.57W
-    代表值 0.50W · B 铝 k=201 官方保守侧 · C 检修口 60×30 套A), 已在盘的标已落 + 出处行号, 本轮补的标本轮补 ② 新机器门禁 MECH/check_budget_caliber.py
-    (rc=0 17/17 · --selftest rc=0 13/13: 改回旧口径 4 + 改数字 4 + 删依据出处 2 + 改文档数字 3) ③ 交卷单 HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md
-    (B1-B6 + 附A/附B/附C) ④ 分片 5 artifact + 5 claim + 4 need (走 frag_write.py 原子写) ⑤ 并发说明: check_demo_struct_truth.py
-    的 G5b/C21 红是 hw-lead ISS-249 落表造成的 HW/netlist_v1.csv md5 16ac89f7... ≠ 锚点 611c3ba3..., 非本单失败, 本单不许修
-    ★本轮 0 个 MECH/HW 文件改动 (三处口径只核对不重复改) · 受保护 3 脚本 md5 逐字节不变 (fa9b59e5 / 9b24bf98 / 3425bc14) · 零外发 · 板端
-    [实测] = 0 条 · 不自签 issue_log (verify 留给 main) · 未碰 HW/ SW/ PROJECT_TRACKER §0 · 不替老板拍板 (d 值 / u8 截面
-    / 集热面 / 板长 / 板厚只列选项与量化代价)'
+  phase: 交卷完成_判决源改造
+  progress_pct: 100
+  health: green
+  summary: ★ISS-273 (main 05:18 派单, cron 尚未派发 ⇒ 我按 owner=mech-lead 自取) = 网表/脚表 md5 的判决源从【域侧锚点副本】换成【落表台账
+    HW/SCHEMATIC_LANDING_V1_LANDED.md 的最新落表记录 (链头)】⇒ 合法落表不再红 (R2 绿) 而悄悄换真源照样红 (R1 红, G5b+C21 双红) · 判最新靠有向链不靠行序
+    ⇒ R4 绿, 取不准一律判红 (R3/R5a/R5b) · R6 板 md5 变仍红且点名硬保护组 · 老 14 条反向用例一条没少 ⇒ selftest 21/21 · 门禁 23/23 rc=0
+    · 本单只动 2 件 (门禁脚本 + triage 纯追加 Q-14/source_ledger_role/§3.1 R-08) · 落表台账/网表/脚表/BOM/板/.kicad_pro 逐字节未动
+    · 零落表 · 零外发 · 未碰 HW/ 与 SW/ · 不替老板拍板 · 未自签 issue_log (verify 留给 main)★
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -912,6 +908,103 @@ artifacts:
     · 脚表 ef436a37→287e7861) · §1 landing_records +1 (ISS-257 台账位置) · §3.1 追加 R-06 留痕 + 顶部注记/Q-12/§7 第
     6 跳注 · 门禁 rc=0 23/23 FAIL 0 · --selftest rc=0 14/14 · 反向自证 3 组 (两条一起回退 + 逐条回退) 均 rc=2 点名 G5b+C21 后装回
     rc=0 · 4 个 check 脚本 md5 逐字节不变 (不在锚点里, 写死在门禁脚本 MD5_EXPECTED) · 判据逻辑 0 改动 · 零外发 · 零实物 · 不替老板拍板'
+- path: HANDOFF/2026-11-16_mech-lead_ISS253_H1重锚网表md5.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-16'
+  summary: '★补登 (ISS-264): ISS-253 (MECH 侧 H-1 重锚 · 网表 md5 → 16ac89f7…) 的交卷单在盘上, 但当时分片条目没落盘 ⇒ 本单按 ISS-259
+    交卷报告发现 #1 补登分片 (只补自己 mech-lead 的分片)★'
+- path: HANDOFF/2026-11-17_mech-lead_ISS264_检修口常量迁30mm套A.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ★ISS-264 交卷单 (检修口三处常量迁 30mm 板套 A 口径 + 受保护脚本 H-1 重基线 + 补登 ISS-253 分片) —— B1~B6 六块齐全 + 验收原始日志
+    (rc 原样贴) + 沙盒反向自证 (改回 7.50 ⇒ 红并点名 ⇒ 装回 ⇒ 绿)★
+- path: MECH/DEBUG_PORT_LAYOUT_CONSTRAINTS.md
+  kind: constraint-table
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-267 检修口/调试口板侧开口约束表 (板侧布局作业包可直接引用): §1 口径矩阵 (每量: 脚本现值/脚本出处/文档记值/盘上板实测/冲突/证据级) + §2 板框口径冲突影响表
+    (三套框各自 H/V/L 链复算 + 逐量换框会不会变 + 选框后必须重算 8 条 + 三选项代价与谁拍) + §3 jd_y0 合法区间与候选枚举 (A/C1-C3/B1-B2/D) + §4
+    本单机器查出的 8 条口径差异 (F-1~F-8) + §4.1 与 ISS-266 作业包/SCHEMATIC_LANDING 的板侧假设对不上的 6 条 (点名到行) + §5 板侧布局作业包可直接引用的约束清单
+    + 降级方案 + §6 未决 7 条 + §7 复现命令. ★纯分析·零写板·零改阈值·不替老板拍板框/拍 jd_y0★'
+- path: MECH/jd_y0_feasibility.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-267 新增独立脚本 (不碰任何既有闸): 只读 import MECH/service_port_check.py 取 BASE/TOL/CRIT ⇒ 阈值零漂移; 复算
+    jd_y0 合法区间 (扫描 + 绑定判据定位) + 候选表 + 三套板框的 H/V/L 链复算 + 板侧落表交叉核对 (只读读 HW/PCB/demo_mainboard.kicad_pcb 的
+    J_DEBUG/J_UART footprint 与落表 pin 数); --selftest 4 个反向用例 (现值复算/旧15mm口径回代/jd_y0=24.50 判红/口径矛盾留痕) rc=0;
+    --json 机器可读. ★受保护三脚本 md5 一个字节没动★'
+- path: MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md
+  kind: spec
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '板那一趟 (S1~S13) 的 MECH 侧两个无人认领缺口的认领规格页: §1 开口对象与约束 (J_DEBUG/J_UART · 必须清空区 7.62x2.54 · 净空判据
+    CRIT 0.60 / cavity_req 4.50 / cav_v 38.00 / duct_v 6.00 一个都不许改) + §2 jd_y0 合法区间 [1.665, 11.730] 与候选
+    (贴 jd_y0_feasibility.py --json 原始片段) + §3 板框三套 x 开口可行性判定表 (60x30 套A 能开 · 160x100 台架板不能开 内腔4.10<4.50/V-68.00/L-85.50
+    · 60x15 不能开 套A 孔心Y=15=板边) + §4 X 向开口区间 [47.00, 60.00] (座体型号/脚数 [0数据] ⇒ 给区间不给单值) + §5 给 hw-lead 的 S6
+    认领句 (逐字可抄) + §6 D_LED_G 位置查证 (结构侧零规定 = [0数据]) 与板侧候选机械约束条件 MC-1~MC-10 + 可放行坐标空间 (首选窗口 X 33.00..47.71)
+    + 93.49mm 独立复算 93.492727 + G-5 亮度档隐藏前置。零写板 · 零落表 · 零外发 · 零改既有 MECH 文件'
+- path: MECH/board_port_opening_s6_check.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: 'ISS-271 复算器 (只读 import 受保护闸脚本 service_port_check.py 取 BASE/TOL/CRIT ⇒ 阈值零漂移; 不改任何既有 MECH 文件):
+    四张表 (表A 板框三套 x 开口可行性 + Edge.Cuts 实读 / 表B X 向开口区间 / 表C LED_G_D 走线 93.49mm 独立复算 93.492727 / 表D 主PCB指示灯候选可放行坐标空间
+    + S-3 复核) + --selftest 5 个反向用例 rc=0 + --json 机器可读'
+- path: HANDOFF/2026-11-16_mech-lead_ISS245_MECH侧H1重锚第3跳.md
+  kind: handoff
+  version: v1.1
+  updated_at: '2026-11-17'
+  summary: 'ISS-246 交卷单 v1.1: 在 v1.0 正文之后【追加式】补 C-1~C-6 续做复核附录 (当期真值 2026-11-17 05:07:16 实测 / 门禁 23/23
+    rc=0 / selftest 14/14 rc=0 / merge+gate_check rc=0 Q1 18/18 / 4 步沙盒反证 绿-红-红-绿 / 本轮动过的文件逐条自证) ⇒ B1~B6
+    正文一个字没改'
+- path: HANDOFF/2026-11-17_mech-lead_ISS246_续做复核_sandbox_1_A_基线.log
+  kind: evidence
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '沙盒 stepA 基线: 锚点=盘上现值 (ISS-257 第6跳) ⇒ 23/23 绿 rc=0 ⇒ G5b 与 C21 均 [OK]'
+- path: HANDOFF/2026-11-17_mech-lead_ISS246_续做复核_sandbox_2_B1_回滚ISS233.log
+  kind: evidence
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '沙盒 stepB1: 锚点整条回滚到 ISS-233 第2跳 (34132f7e… / b21b743a…) ⇒ 21/23 rc=2 ⇒ 红的恰是 G5b + C21 这 2 组'
+- path: HANDOFF/2026-11-17_mech-lead_ISS246_续做复核_sandbox_3_B2_设成ISS246第3跳.log
+  kind: evidence
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '沙盒 stepB2: 锚点整条设成【本单第3跳】的值 (611c3ba3… / ef436a37…) ⇒ 仍 21/23 rc=2 ⇒ G5b + C21 双红 ⇒ 证明本单落的那对锚点自己也是活的'
+- path: HANDOFF/2026-11-17_mech-lead_ISS246_续做复核_sandbox_4_C_装回现值.log
+  kind: evidence
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '沙盒 stepC: 锚点装回盘上现值 ⇒ 又 23/23 绿 rc=0 ⇒ 真盘始终绿, 只有沙盒里才红'
+- path: HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md
+  kind: handoff
+  version: v1.1
+  updated_at: '2026-11-17'
+  summary: 'ISS-251 交卷单 v1.1 (2026-11-17 05:0x 续做复核): B1-B6 六块 + 附A 三处逐条订正表 + 附B 并发说明 + 附C 边界自审 + 附D 续做复核
+    (交付物②的 改前/改后 实跑对比 18 行差值表 + C 组行号订正表 + 受保护 md5 漂移归属 + need 状态更新); 门禁 MECH/check_budget_caliber.py
+    rc=0 17/17 · selftest rc=0 13/13; verify_budget.py rc=0 53/53 口径自检 12/12'
+- path: HANDOFF/2026-11-17_mech-lead_ISS264_检修口常量迁30mm套A.md
+  kind: 勘误追加
+  version: '1.1'
+  updated_at: '2026-11-17'
+  summary: '★ISS-264 交卷单 §附 F (勘误 · 2026-11-17 05:2x 追加) + §附 G (重派后复跑记录): §0.1 第 2 条三条数订正 (上界 12.13→11.73
+    / 下界 3.57→1.665 / 「重叠 12.37mm」机理→检查项 2.5 判红), 老字一字未删; §0.1 第 1 条 P-5 3.23/8.53 与 开口 Y 7.835..12.435
+    不变; 附 G 复跑 rc: service_port_check 0 (57/57) · --selftest 0 · check_demo_struct_truth 0 (23/23) · --selftest
+    0 (14/14) · verify_budget 0 · check_budget_caliber 0 (17/17) · merge+gate 0 (Q1 18/18) · 沙盒文件级反向自证:
+    改回 7.50 ⇒ rc=1 FAIL 2 点名 p2_y/s2_y ⇒ 装回 ⇒ rc=0 md5 复原 db58ff6a… 字节级一致'
+- path: HANDOFF/2026-11-17_mech-lead_ISS273_锚点台账化.md
+  kind: 交卷单
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-273 (2026-11-17 05:2x~05:5x, mech-lead) 交卷单: B1~B6 六块齐全 + §0.1 给 main 的三句话 + 附 A 机制说明
+    / 附 B 交卷物 / 附 C 交卷标准; ★本单只动 2 件 (MECH/check_demo_struct_truth.py 判决源改造 + MECH/HW_CROSS_REVIEW_TRIAGE.md
+    纯追加 Q-14/source_ledger_role/R-08)★ ⇒ 门禁 23/23 rc=0 · --selftest 21/21 (老 14 条一条没少 + 新 R1~R6 七条) ·
+    其它 5 个闸 + merge/gate rc=0 Q1 18/18 · 6 个硬保护文件 + 落表台账 + 网表/脚表/BOM/板/.kicad_pro 逐字节未动, 只有门禁脚本本体 md5
+    4ae5827e…→6972b867… (H-1 重基线, §3.1 R-08 留痕) · 零落表 · 零外发 · 未碰 HW/ 与 SW/ · 未自签 issue_log'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -2371,6 +2464,102 @@ needs_from:
     个 MECH/HW 文件改动 (三处老账口径上一轮/早前已落, 本轮只核对 + 补出处与行号, 不重复改) · 受保护 3 脚本 md5 逐字节不变 · 零外发 · 不自签 state/issue_log.yaml
     (verify 留给 main) · 不替老板拍板 ⇒ 请 main 跑 verify'
   since: '2026-11-16'
+- key: iss264_mech_jd_y0_and_open_y_caliber
+  to: main
+  item: '★ISS-264 迁完夹具基准常量后, MECH 侧只剩 jd_y0 (J_DEBUG 焊盘阵列 Y 起点) 一项没迁★ ⇒ 它现在是所有检修口 Y 向数的总开关: (a) 开口 Y 现值
+    7.835..12.435 (随 jd_y0 线性平移) (b) P-5 最近距离 P2 3.23mm / S2 8.53mm (随 jd_y0 变) (c) 文档 MECH/SERVICE_PORT_ISS092.md
+    L89 那行旧值 8.67..13.27 与脚本口径差 0.835mm (那两数对应 jd_y0=10.97) ⇒ ★本单已按追加式标了现值指针 + 标旧值已作废, 老字一行没删, 但最终定版要
+    main + hw-lead 一起拍★ ⇒ 本单不代拍 (★选项+代价见交卷单 B5★)'
+  since: '2026-11-17'
+- key: iss264_mech_gate_script_md5_rebase
+  to: main
+  item: '★ISS-264 走 H-1 重基线 ⇒ 两个门禁脚本的 md5 连带变了 (本单只改它们里的 MD5_EXPECTED 台账字典, 判据逻辑/阈值一个字节没动)★ ⇒ MECH/check_demo_struct_truth.py:
+    fa9b59e593a13408ad9505d986276f63 → 4ae5827e986f1aebb108c5aa2a475074; MECH/cavity_recalc_check.py:
+    8492eaf3313d70574eb971856fb02ea2 → c4bf9151dd59826fb2320c34e8afbd0f; MECH/service_port_check.py: 9b24bf985764880f0105aee677fba6a8
+    → db58ff6a2afc28b8bf517e3c57c56bc1 ⇒ ★state/issue_log.yaml 是 main 地界, 本单一个字没碰 (不自签)★ ⇒ 请 main 把这三个新
+    md5 落进 issue_log 的受保护锚点'
+  since: '2026-11-17'
+- key: iss267_mech_jd_y0_and_frame_decision
+  to: main
+  item: '★ISS-267 给 main 的两拍 (合成一拍给 hw-lead/mech-lead 一起用): (a) 板框口径三套并存要拍 (§2.4 三选项+代价+谁拍; 机器已判台架板 V链-68.00/L链-85.50/盖板内腔4.10<4.50
+    三处判红) ⇒ 建议并进决策页 D1~D4; (b) jd_y0 在合法区间 [1.665,11.730] 里定一个 (候选表 A 9.50 / C 10.00-11.00; B 不可用; D 成本高)
+    ⇒ ★并附三条口径差异要 main 订正 ISS-264 §0.1: 上界 11.73 不是 12.13 (漏判据 2.5) / 下界 1.665 不是 3.57 (座体半高重复计) / 24.50
+    的 重叠12.37mm 在脚本自己公式下复现不出来 (真实拦路是 2.5 判红)★; ★另 作业包 HW/PCB/BOARD_ONEPASS_WORKPACKET.md:301 与 :310 的
+    产品板60x15 与 ISS-118 板宽30 冲突, 且 :164/:289 里 MECH 侧只认领了 D_LED_G 位置 ⇒ 检修口/调试口开口在 板只改一次 那一趟里无人认领 ⇒ 建议把
+    MECH/DEBUG_PORT_LAYOUT_CONSTRAINTS.md §1/§3 挂进 S6 布局步★; ★本单不代拍★'
+  since: '2026-11-17'
+- key: iss267_mech_debug_part_model
+  to: hw-lead
+  item: '★ISS-267 板侧落表与 MECH 模型对不上三条, 要 hw-lead 定: (1) J_DEBUG 脚数: 落表是 1x4 (HW/BOM_v1.csv:71 + netlist_v1_pins.csv:202-205)
+    而 MECH/service_port_check.py 按 2x5 (10脚 Cortex-10) 算 ⇒ 必须清空区X宽7.62 与开口X10.20 要重算; (2) J_UART 相对位置:
+    盘上板实读 J_DEBUG@(144.30,58.00) · J_UART@(20.74,70.00) 相距123.6mm, 而 MECH 模型让它们紧邻 ⇒ 开口X 49.21..59.41 在盘上板不成立;
+    (3) 座体真实高度 (现在 2.54 是假设, BOM 型号/间距/引脚编号待结构与装配复核) ⇒ 开口Y宽4.60/单边间隙1.03/开口Y区间 7.835..12.435 全部依赖它 ⇒ [0数据]
+    ⇒ ★本单不代拍, 只登记缺口★'
+  since: '2026-11-17'
+- key: iss271_mech_s6_port_opening_claim
+  to: main
+  item: '★ISS-271 交卷: 板那一趟 (S1~S13) 的 MECH 侧开口认领句, 请挂进 HW/PCB/BOARD_ONEPASS_WORKPACKET.md §3-S6 (★本单没改那个文件,
+    它是 hw-lead 地界★)。逐字可抄的句子在 MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md §5.1, 要点: (a) Y 向 jd_y0 ∈ [1.665,
+    11.730] (现状 9.50, 距上界余 2.23), 候选 A 9.50 / C1 10.00 / C2 10.50 / C3 11.00 (B1 余量归零 B2 判红 ⇒ 不可用); (b)
+    必须清空区 X 50.50..58.12 x Y jd_y0±1.27 (7.62x2.54, 清的是 Cortex-10 座体不是焊盘), 开口 10.20x4.60, 单边间隙 X 1.29
+    / Y 1.03 (最坏 0.99/0.73); (c) X 向 jd_x0 ∈ [48.290, 51.090] (2x5 口径) 或 [48.925, 51.725] (落表 1x4 口径),
+    开口 X 可放行区间 [47.00, 60.00], 现状开口 X 49.21..59.41 (末端距板端仅 0.59); (d) 板框三套判定 (本单脚本实算, 不是抄的): 60x30 套 A
+    = 能开 (三链全绿 V 最坏 +1.40, 盖板内腔 4.70 >= 4.50); 160x100 台架板 = 不能开 (盖板内腔 4.10 < 4.50 / V 链 -68.00 / L 链
+    -85.50 三处判红); 60x15 = 不能开 (套 A 孔心 Y=15 = 板边, 孔壁一半在板外 ⇒ P-5 判据无基准); (e) S-3 硬约束: PCB 末端 X 50.0..60.0
+    段不得布 2.54mm 以上器件/凸起; (f) 降级方案: 若 jd_y0/jd_x0 定不下来 ⇒ 板侧按 预留而非落位 处理, 留出 Y 1.665..11.730 整条带 + X 47.00..60.00。★拍板框
+    + 拍 jd_y0 + 拍 jd_x0 三者互相依赖 (框决定孔位, 孔位决定区间), 建议合成一拍★ 本单不代拍★'
+  since: '2026-11-17'
+- key: iss271_mech_s6_ledg_window
+  to: hw-lead
+  item: '★ISS-271 给 hw-lead 的板侧坐标空间 (S6 布局直接可用, 不需要等结构侧给坐标★): (1) 检修口/调试口 —— Y 向 jd_y0 ∈ [1.665, 11.730]
+    (现状 9.50), X 向 jd_x0 ∈ [48.290, 51.090] (2x5 口径) 或 [48.925, 51.725] (落表 1x4 口径), 开口 X 可放行区间 [47.00,
+    60.00], 必须清空区 X 50.50..58.12 x Y jd_y0±1.27 (7.62x2.54), 开口 10.20x4.60, 单边间隙 X 1.29 / Y 1.03。落表 1x4
+    (HW/BOM_v1.csv:71) 与脚本 2x5 的差异 ⇒ 开口 X 两端会差 0.635mm ⇒ 脚数与 jd_x0 必须一起定。★J_UART 相对位置仍悬 (盘上板 J_DEBUG@(144.30,58.00)
+    与 J_UART@(20.74,70.00) 相距 123.6mm, 而 MECH 模型让它们紧邻 ⇒ 开口 X 49.21..59.41 在盘上板不成立)★; (2) ★D_LED_G 落位窗口
+    (本单实算, 60x30 套 A 板坐标)★ —— 可放行矩形 18 块, 全高可用 X 带 3 条 (X 3.00..6.40 宽 3.40 / X 9.60..14.20 宽 4.60 / ★X
+    33.00..47.71 宽 14.71 = 首选窗口★) x Y 1.60..28.40; 避让矩形 = SoC 逃线带 X14.20..33.00 x Y6.15..23.85 + SoC 封装体
+    X15.00..32.20 x Y6.95..23.05 + J_CHG keepout X0..3.00 x Y11.75..18.25 + 检修口开口含盖板搭边 X47.71..60.00 +
+    PIN-SET-2 四孔加判据 0.60 保护区; (3) ★LED_G_D 93.49mm 本单独立复算 = 93.492727mm (对得上, 差 +0.002727) ⇒ 根因是 R_LED_G@x=5.90
+    最左下角 与 D_LED_G@x=101.25 右上区 分居板子两端 (93.49 里 99.9% 是 X 向) ⇒ 结构侧给不出 不许挪 的理由 ⇒ ★挪 R_LED_G 贴 D_LED_G 即可
+    (纯布局, 不改网表/不改封装/不改板框)★ ⇒ 归 hw-lead★'
+  since: '2026-11-17'
+- key: iss271_mech_ledg_g5_brightness_gate
+  to: main
+  item: '★ISS-271 自发现的隐藏前置 (★会让 板只改一次 破掉★): D_LED_G 的亮度档 G-5 还没拍 (HW/PART_SELECTION_GAPS_CLOSEOUT.md:28)
+    —— 1kΩ 串阻 + 3.3V ⇒ I ≈ 1.10 mA ⇒ 绿光 KP-2012SGC 只有 0.7~0.9 mcd typ (20mA 标称 12 mcd 的约 5%~7%) ⇒ 白天/强光下基本看不见。若
+    要求指示灯必须看得见 是硬要求 ⇒ 亮度档必须先拍 (降级 ① 接受暗 / ② 改串阻到 20mA 档 ⇒ 改网表 ⇒ 落表批次 / ③ PWM 驱动)。★亮度档会改 R_LED_G 阻值 ⇒ 会改网表
+    ⇒ 会改 BOM ⇒ 会改板面落位 ⇒ 若 G-5 在 S6 之后拍, 板还要再改一次 ⇒ 铁律破★ ⇒ 建议 main 把 G-5 排进 S6 的前置 (本单只登记, 不代拍)。★另: 结构侧对
+    D_LED_G 的位置从来没有过规定 (逐条 grep 有出处: D_LED_G 仅 1 命中且是 ISS-267 自己引述作业包那行, 指示灯/状态灯/电源灯 0 命中, 打印包 Rev B 零
+    LED/导光柱/窗口特征) ⇒ [0数据] ⇒ 所以 要不要外露 要不要看得见 这条决策从来没被写下来, 建议 main 一并拍 (U-8)★'
+  since: '2026-11-17'
+- key: iss246_mech_continue_verify
+  to: main
+  item: 'ISS-246 续做复核已完成 (交接给 main 落 verify): 3 件交卷物 11-16 18:47~18:51 已落盘, 本轮 04:5x~05:1x 只补当期证据 ⇒ 门禁
+    rc=0 23/23 · --selftest rc=0 14/14 · merge rc=0 · gate_check rc=0 (Q1 18/18) · 沙盒反证 绿-红-红-绿 四步原样输出留档
+    4 份 ⇒ 交卷单已追加 C-1~C-6 附录 (当期真值 05:07:16 / 本轮动过的文件逐条) ⇒ 本轮 §3.1 锚点数字一个都没再动, HW/ 0 字节写入, 未碰 issue_log
+    (verify 留给 main) ⇒ 复核请按 05:07 实测值核, 别照抄历史数字 (网表/脚表此后又被上游推了 2 跳)'
+  since: '2026-11-17'
+- key: iss264_mech_jd_y0_legal_range_errata_pending
+  to: main
+  item: '★要 main 拍/改两件 (mech-lead 一条都不代拍): ① 决策页 A 段把「jd_y0 合法区间」那一行改成订正后的 [1.665, 11.730] mm, 并把「按相对位置迁
+    ⇒ 孔与焊盘阵列重叠 12.37mm」改写成「检查项 2.5 判红 (焊盘上沿 25.77 > 13.00, 余量 −12.77mm)」—— ★P-5 3.23/8.53 与 开口 Y 7.835..12.435
+    不变, 照用即可★ ② 拍检查项 2.5 的 Y 上限 13.00 要不要按 30mm 板口径订正为 28.00 (★F-4 / ISS-267 U6★): 订正 ⇒ 区间上界 11.73 → 26.73,
+    候选表整张重算, 且 jd_y0=24.50 几何上变可行 (P-2 8.50 / S-2 3.80) 但治具/探针对位前提要重谈; 不订正 ⇒ 维持最保守的窄带, 候选只有 A 9.50 / C
+    10.00~11.00 可用 ★另: jd_y0 最终值仍需 main + hw-lead 给 30mm 板上 J_DEBUG 阵列真实起点 (★F-6/F-7 已证明落表与 MECH 模型形状/位置不一致,
+    [0数据]★)'
+  since: '2026-11-17'
+- key: iss273_mech_ledger_format_contract
+  to: main
+  item: '★要 main 立一条【落表台账格式契约】(★我只读 HW/, 不许改台账也不许替 hw-lead 下口径★): hw-lead 每次落表, 每个受管文件必须留一行「表格行: 落表单号
+    + 文件名 + 改前 md5 + 改后 md5」(★现在的 §17.5 / §18.4 就是这种写法★) ⇒ 门禁靠这个解析落表链并取链头 ⇒ ★若改写法 ⇒ 门禁解析不到 ⇒ 判红 ⇒ 又变成「一落表就红」的另一种形态★
+    ⇒ ★**请明确: 这条格式契约是写进落表作业包模板, 还是写进 MECH/ 的台账说明? (★我建议前者, 因为落表是 hw-lead 的动作★)**★'
+  since: '2026-11-17'
+- key: iss273_mech_ledger_itself_anchor
+  to: main
+  item: '★要 main 拍机制边界 (★我不代拍★): 本单把判决源换到【落表台账】⇒ ★**台账本身成了新的真源** ⇒ 台账被改 = 判决源被改**★ ⇒ 要不要给落表台账本身再加一层 md5
+    锚 / 评审流程? ★**不加的代价** = 台账是单点 (谁改了台账谁说了算); ★**加的代价** = 又多一层要随落表重锚的东西 ⇒ 有可能绕回「一落表就红」 ⇒ ★**这个取舍请你拍; 另:
+    SW 侧同构问题 (SW/tools/check_demo_panel_spec.py 的 R6) 按 brief 不在我地界, 我只把可复用口径写进交卷单附 A, 由你另派**★'
+  since: '2026-11-17'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -2704,6 +2893,53 @@ answers:
     (不依赖受保护脚本, 5 判据 + selftest 9/9 + 独立对抗 10/10) ⇒ 「已收口」这句话从此有机器背书 ⇒ ⑤ 待你裁两件: 放宽走哪个方案, 以及新门禁要不要挂进 state/daily_check.py
     (现在 0 命中, 巡检看不见)'
   ref: MECH/DISPLAY_BIOSAFETY_V2_MARKER_POLICY_PROPOSAL.md + HANDOFF/2026-11-16_mech-lead_ISS238_走鹃旧口径C1门禁红.md
+- key: iss251_mech_service_port_pad_y_migrate
+  to: main
+  value: '★部分闭环 (ISS-264 已落 2/3): ① 夹具基准常量 p2_y/s2_y 已迁 30mm 板套 A (15.00 / 20.00) ② pcb_thk 1.00 只核不动
+    (6 层现行) ③ 焊盘阵列 Y (jd_y0=9.50) 仍未迁 ⇒ 本 need 只剩 jd_y0 一项, 要 main + hw-lead 定版★ ⇒ 迁完后已重算: P-5 最近距离 P2
+    3.23mm / S2 8.53mm (旧 15mm 板基准 1.00/1.03mm 已作废); 开口 Y 脚本实算 7.835..12.435 (随 jd_y0 变)'
+  ref: HANDOFF/2026-11-17_mech-lead_ISS264_检修口常量迁30mm套A.md
+- key: iss267_mech_workpacket_port_assumptions
+  to: main
+  value: '★已交卷, 本单不改作业包 (那是 hw-lead 的文件, 边界纪律)★ —— 已给出逐字可抄的 S6 认领句 (MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md
+    §5.1) + 板框三套 x 开口可行性判定 (§3, 本单脚本实算) + X 向开口区间 (§4, [47.00, 60.00]) + 降级方案 (§4.3: 预留 Y 1.665..11.730
+    整条带 + X 47.00..60.00, 板面浪费约 13.00x10.20mm 但 板只改一次 不破)。作业包 :301/:310 的 产品板 60x15 仍待 hw-lead 改 (ISS-118
+    板宽 30 已是现行权威口径)。★本单新发现两条要 main 排期: (a) G-5 亮度档必须排在 S6 之前, 否则 板只改一次 破; (b) D_LED_G 要不要外露这条决策结构侧从未写过
+    ([0数据]), 建议一并拍 (U-8)★'
+  ref: HANDOFF/2026-11-17_mech-lead_ISS271_板侧开口S6认领与LED位置约束.md
+- key: iss251_mech_service_port_pad_y_migrate
+  to: main
+  value: ★本单 N1 的剩余范围已缩到只剩一项 = J_DEBUG 焊盘阵列 Y 起点 jd_y0 = 9.50 (旧 15mm 板基准)★ ⇒ ISS-264 已把 ① 夹具基准常量 p2_y/s2_y
+    迁到 30mm 板套 A (15.00/20.00) 且 ③ pcb_thk 核定为 1.00 ⇒ 该剩余项已由 ISS-264 另立 need iss264_mech_jd_y0_and_open_y_caliber
+    跟踪 ⇒ ★本单 N1 实质被 ISS-264 接管, 我不代 main 关单; 文档现状 = SERVICE_PORT_ISS092.md L6/L91/L284/L326 已写 ISS-264
+    现值指针 (开口 Y 现值 7.835..12.435 · P-5 最近距离 3.23/8.53 mm)
+  ref: HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md 附 D.4
+- key: iss251_mech_handoff_review
+  to: main
+  value: '交卷单已升 v1.1 (追加 附 D): 补齐交付物②的 改前/改后 实跑对比 (改前 = /tmp 沙盒复原旧口径, 与 MECH_BUDGET L700 旧三行逐字吻合) + C
+    组行号按 ISS-264 02:34 追加式编辑逐条订正 + 受保护 md5 漂移归属登记 + 4 条 need 状态更新; 本轮盘上改动只有 2 件 (本交卷单 + 本分片), HW/ 零改动,
+    三个受保护脚本零改动, 三处老账文档口径一个字节没改; 零外发 · 不代拍 · 不签 issue_log'
+  ref: HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md
+- key: iss264_mech_jd_y0_legal_range_errata
+  to: main
+  value: '★ISS-264 §0.1 第 2 条的三条数已由我自己订正 (纯追加, 老字未删): 合法区间 = [1.665, 11.730] mm (上界绑检查项 2.5「焊盘并集 Y ≤ 13.00」;
+    下界 = jd_y0 − 1.665 ≥ 0) ⇒ 现状 jd_y0=9.50 距上界只剩 2.23mm; 「按相对位置迁 jd_y0=24.50 ⇒ 重叠 12.37mm」这句在闸脚本 7.4
+    通用式下复现不出 (实为 +8.50 不重叠), 真正拦路是 2.5 判红 (余量 −12.77mm) ⇒ 结论方向不变, 机理改写。★§0.1 第 1 条那组数 (P-5 3.23 / 8.53
+    · 开口 Y 7.835..12.435 · 必须清空区 8.865..11.405) 一个字不变, 决策页 A 段照用; 要改的只是「合法区间」那一行的两个端点 + 「按比例迁」的机理描述。★另附
+    ISS-267 的四条必须点名的事实: F-4 检查项 2.5 的 13.00 是 15mm 板遗留常量 (30mm 板对应 28.00, 若订正则上界变 26.73, 候选表整张重算) · F-6
+    落表 J_DEBUG 是 1×4 而脚本按 2×5 算 (必须清空区 X 宽要重算) · F-7 盘上板 J_DEBUG 与 J_UART 相距 123.6mm ⇒ 开口 X 49.21..59.41
+    在盘上板不成立 · F-8 座体高 2.54 是假设不是落表事实 [0数据] ⇒ ★Y 向数可用, X 向数与座体高度相关的数等真实型号定版★'
+  ref: HANDOFF/2026-11-17_mech-lead_ISS264_检修口常量迁30mm套A.md §附 F + §附 G
+- key: iss273_mech_h1_judge_source_change
+  to: main
+  value: '★ISS-273 交卷 (判决源改造): 网表/脚表 md5 的判决源已从【域侧锚点副本】换成【落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 的最新落表记录
+    (链头)】⇒ ★合法落表不再红 (R2 绿) · 悄悄换真源照样红 (R1 红, G5b+C21 双红) · 判最新靠有向链不靠行序 ⇒ 行序打乱仍取最新 (R4 绿), 取不准一律判红 (R3/R5a/R5b
+    红) · 板 md5 变仍红且点名硬保护组 (R6 红, C21 不红) · 老 14 条反向用例一条没少期望全不变 ⇒ --selftest 21/21 · 门禁 23/23 rc=0 · 6
+    个硬保护文件 + 落表台账 + 网表/脚表/BOM/板/.kicad_pro 逐字节未动, 只有门禁脚本本体 md5 4ae5827e…→6972b867… (H-1 重基线, §3.1 R-08
+    留痕)★ ⇒ ★**给 main 的三句话**: ①合法落表后还红不红 ⇒ 不红 (链头自动前移, 域侧锚点副本降级为历史留痕) ②真源被偷偷换还红不红 ⇒ 红 (盘上 ≠ 台账链头 ⇒ 两组同红)
+    ③台账那条记录过期/取错了会不会假绿 ⇒ 不会 (判最新靠图不靠行序 ⇒ 取错只会假红不会假绿; 取不准一律判红)★'
+  ref: HANDOFF/2026-11-17_mech-lead_ISS273_锚点台账化.md (B1~B6 + 附 A/B/C) · logs/iss273/acceptance_01_gate.log
+    · logs/iss273/acceptance_02_md5_and_gates.log
 interface_claims:
 - key: battery_capacity_tier
   value: 315mAh无桥/387mAh有桥
@@ -4008,6 +4244,236 @@ interface_claims:
     逐字节不变 (板 611b869e13518c3c023fb178f91a0075 / .kicad_pro 3e504d2be83152e337949723e909be1b 零差异); 判据逻辑与阈值
     0 改动'
   ref: MECH/check_demo_struct_truth.py
+- key: iss253_mech_md5_anchor_netlist
+  value: 16ac89f77c25a3f61834cc7ebcd78a7f
+  note: '★补登 (ISS-264): ISS-253 (MECH 侧 H-1 重锚 · 网表 md5 过期 ⇒ G5b+C21 红) 这一跳的分片条目当时没落盘 (grep -c iss253
+    state/fragments/mech.yaml = 0), 本单补登 —— §1 source_ledger 锚点 (网表 HW/netlist_v1.csv) 重锚到 16ac89f77c25a3f61834cc7ebcd78a7f;
+    旧值 611c3ba3db3dc7de7213063375b96d01; by=ISS-249; landed_at=2026-11-16 19:2x (盘上实测 md5sum 逐字节核对) ⇒
+    机器留痕在 MECH/HW_CROSS_REVIEW_TRIAGE.md §3.1 R-05 行 (那一跳后被 ISS-259 第 6 跳再重锚到 e06c1dd6…, 本条是历史留痕)★'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md
+- key: iss253_mech_md5_hop_count
+  value: 第 4 跳 (按 §3.1 R-05 行内自述)
+  note: '★补登 (ISS-264): ISS-253 这一跳 = MECH 侧 md5 锚点重锚第 4 跳 (★行内自述照抄, 不另发明★ —— 注意跳号链本身差一: R-02=第1跳 / R-03=第2跳
+    / R-04=第3跳 / R-05=第4跳 (本跳) / R-06=第6跳 (ISS-259) ⇒ 第 5 跳空号) ⇒ 锚点 by 单号链 = ISS-233 → ISS-243 → ISS-249★'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md
+- key: iss253_mech_md5_landing_ticket
+  value: ISS-249
+  note: '★补登 (ISS-264): ISS-253 这一跳挂的落表单号 = ISS-249 (hw-lead 第 5 批 F1 落表, 2026-11-16 19:2x); 凭据落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    §17 + §17.5 L852 (网表旧/新 md5 逐行) + 交接单 HANDOFF/2026-11-16_hw-lead_ISS249_F1落表.md★'
+  ref: HW/SCHEMATIC_LANDING_V1_LANDED.md
+- key: iss253_mech_gate_contract
+  value: rc=0 23/23 · selftest rc=0 14/14
+  note: '★补登 (ISS-264): ISS-253 交卷时的门禁契约 —— python3 MECH/check_demo_struct_truth.py ⇒ rc=0 且 23/23 组检查通过且
+    FAIL 0 组; python3 MECH/check_demo_struct_truth.py --selftest ⇒ rc=0 且 14/14 反向用例全抓到 (一条没删); ★受保护脚本
+    md5 当时逐字节不变 (check_demo_struct_truth.py = fa9b59e593a13408ad9505d986276f63 / service_port_check.py
+    = 9b24bf985764880f0105aee677fba6a8 / hinge_usb_check.py = 3425bc141508de8a35f34c7cf7b803e8)★ ⇒ ★注:
+    这三个值是 ISS-253 当时的快照 (历史留痕, 不改) —— service_port_check.py 的 md5 已于 ISS-264 按授权重基线 (见 iss264_mech_protected_md5_rebase)★'
+  ref: MECH/check_demo_struct_truth.py
+- key: iss264_mech_service_port_caliber
+  value: P2 Y=15.00 / S2 Y=20.00 (30mm 板 PIN-SET-2 套 A)
+  note: '★ISS-264 口径收口 (授权: 老板 2026-10-29 19:16 板宽 30 + ISS-194 孔位套A 已 verified + MECH/BOARD_GEOM_30MM.md
+    §3 官方表): MECH/service_port_check.py 的 p2_y 7.50→15.00 · s2_y 12.50→20.00 (旧值按追加式标作废, 一行没删) · pcb_thk
+    1.00 只核不动 ⇒ 判据阈值 (CRIT 0.60 / cavity_req 4.50 / cav_v 38.00 / duct_v 6.00) 一个字节没动 ⇒ 脚本现值 57/57 · rc=0★'
+  ref: MECH/service_port_check.py
+- key: iss264_mech_service_port_p5_gap
+  value: P2 3.23mm / S2 8.53mm (旧 15mm 板基准 1.00 / 1.03mm 已作废)
+  note: '★ISS-264 重算结果 (P-5 夹具基准孔到 J_DEBUG 焊盘阵列的最近距离, 脚本检查项 7.4 / 7.5 实跑输出): P2 孔壁 Y 14.00..16.00 → 焊盘阵列
+    Y 9.50..10.77 = 3.23mm; S2 孔壁 Y 19.30..20.70 → 9.50..10.77 = 8.53mm; 判据 ≥0.60 ⇒ 均过 ⇒ 判据结论不变 (旧 15mm
+    板基准 p2_y 7.50 / s2_y 12.50 下是 1.00 / 1.03mm, 已作废) ⇒ ★注意: 焊盘阵列 Y (jd_y0=9.50) 还没迁 ⇒ 这两个数等 jd_y0 定版后要再重算一次★'
+  ref: MECH/service_port_check.py
+- key: iss264_mech_service_port_open_y
+  value: 7.835..12.435 (随未迁的 jd_y0=9.50 ⇒ 待 main+hw-lead 定版)
+  note: '★ISS-264 重算结果 (开口 Y, 脚本检查项 8.1b 实跑输出): 开口 Y 7.835..12.435 (宽 4.60) = 必须清空区 (Cortex-10 座体) Y 8.865..11.405
+    + 单边间隙 1.03 (判据 0.60) ⇒ ★★口径不一致发现 (★报 main, 本单只标注不代拍★): MECH/SERVICE_PORT_ISS092.md L89 那行旧值 8.67..13.27
+    是 ISS-251 的手算值, 与脚本口径差 0.835mm (那两数对应 jd_y0=10.97, 而脚本 jd_y0=9.50) ⇒ 已按追加式在文档里标现值指针 + 标旧值已作废 (老字一行没删)★'
+  ref: MECH/SERVICE_PORT_ISS092.md
+- key: iss264_mech_protected_md5_rebase
+  value: db58ff6a2afc28b8bf517e3c57c56bc1 (prev 9b24bf985764880f0105aee677fba6a8)
+  note: '★ISS-264 H-1 重基线 (受保护脚本本体被本单按授权改了常量 ⇒ 首次出现自己改自己的重基线): MECH/service_port_check.py md5 9b24bf985764880f0105aee677fba6a8
+    → db58ff6a2afc28b8bf517e3c57c56bc1 ⇒ 台账同步改了 2 处 MD5_EXPECTED 字典 (MECH/check_demo_struct_truth.py +
+    MECH/cavity_recalc_check.py) ⇒ G5b 由红转绿 (rc=2 22/23 → rc=0 23/23) ⇒ 机器留痕 = MECH/HW_CROSS_REVIEW_TRIAGE.md
+    §1 service_port_rebase 块 + §3.1 R-07 行 ⇒ 新反向用例: service_port_check.py --selftest ② 把 p2_y/s2_y 回旧
+    15mm 板口径 ⇒ 7.4b/7.5b 必红并点名 p2_y/s2_y (几何 7.4/7.5 仍绿 ⇒ 判据未松)★ ⇒ ★连带: 因台账字典更新, MECH/check_demo_struct_truth.py
+    md5 = 4ae5827e986f1aebb108c5aa2a475074 (旧 fa9b59e593a13408ad9505d986276f63), MECH/cavity_recalc_check.py
+    md5 = c4bf9151dd59826fb2320c34e8afbd0f (旧 8492eaf3313d70574eb971856fb02ea2) ⇒ 这两个新值请 main 落进 issue_log
+    锚点 (issue_log 是 main 地界, 本单一个字没碰)★'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md
+- key: iss264_mech_h1_leave_trace
+  value: R-07
+  note: '★ISS-264 的 H-1 留痕行号 = MECH/HW_CROSS_REVIEW_TRIAGE.md §3.1 R-07 (跳数/谁改的/单号 ISS-264/新旧 md5/复现命令)
+    + §0 Q-13 + §1 service_port_rebase 块 ⇒ ★与 R-02~R-06 的区别 (★写死在文件里, 不许下一个人再猜★): R-02~R-06 = 上游换真源 ⇒
+    改 §1 source_ledger; R-07 = 本域受保护脚本按授权改常量 ⇒ 改 2 处 MD5_EXPECTED 字典 (判决源仍是门禁脚本自己的字典, §1 只做台账/留痕)★'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md
+- key: iss264_mech_gate_contract
+  value: service_port_check rc=0 57/57 · --selftest rc=0 (3 反向用例) · check_demo_struct_truth rc=0 23/23
+    · selftest rc=0 14/14
+  note: '★ISS-264 交卷时的门禁契约 (main 可原样跑): python3 MECH/service_port_check.py ⇒ rc=0 且 57/57 项一致 (54 旧基准
+    + 3 新增: 7.4b/7.5b 口径钉死 + 8.1b 开口 Y 现值); python3 MECH/service_port_check.py --selftest (★与 --self-test
+    等价★) ⇒ rc=0 且 3 个反向用例全抓到 (① 旧板宽 pcb_w=15.00 ⇒ FAIL 0 ② 回改旧 15mm 板口径 ⇒ 7.4b/7.5b 必红并点名 p2_y/s2_y、几何
+    7.4/7.5 仍绿 ③ 装回又全绿); python3 MECH/check_demo_struct_truth.py ⇒ rc=0 且 23/23; --selftest ⇒ rc=0 且 14/14
+    (一条没删); python3 MECH/cavity_recalc_check.py ⇒ rc=0 23/23; python3 MECH/verify_budget.py ⇒ rc=0; python3
+    MECH/check_budget_caliber.py ⇒ rc=0 17/17★'
+  ref: MECH/service_port_check.py
+- key: iss267_mech_jd_y0_legal_range
+  value: '[1.665, 11.730] mm (MECH 现行框 60x30 套A 口径)'
+  note: '★ISS-267 机器重算 (MECH/jd_y0_feasibility.py, 判据照用 service_port_check.py 未改一字): 上界 11.730 由检查项 2.5
+    (焊盘并集 Y<=13.00 ⇒ jd_y0+1.27<=13.00) 绑, 不是 P-2 的 12.13 ⇒ ★ISS-264 §0.1 漏了 2.5 这条判据★; 下界 1.665 由派生判据
+    D0 (开口下沿 jd_y0-1.665 >=0 须整口在板内) 绑, ★ISS-264 写的 3.57 = 1.27+1.27+1.03 把两个座体半高重复计了一次★; ⇒ 现状 jd_y0=9.50
+    距上界只剩 2.23mm (不是 2.63mm)★. ★本单只算不拍★'
+  ref: ''
+- key: iss267_mech_board_frame_conflict
+  value: '三套板框并存: 1台架板160x100x1.6/8层 2产品板60x30套A 3产品板60x15原始定版'
+  note: '★ISS-267 板框口径冲突 (板只改一次的头号坑): MECH/service_port_check.py 现在按 60x30 套A 算 (BASE pcb_l=60/pcb_w=30/pcb_thk=1.0),
+    而盘上板实读 Edge.Cuts = 160.00x100.00 + thickness 1.6 + 8 铜层 (HW/PCB/demo_mainboard_params.json board 同值),
+    原始定版是 60x15 (HW/PCB_OUTLINE_60x15.md 1.1). ★机器复算三套框各自锁死链: 台架板 盖板内腔 4.10 < 4.50 判红 + V 链 106.00 (余
+    -68.00) 判红 + L 链 215.50 (余 -85.50) 判红 ⇒ 它当不了镜脚板 (params.json _pending 自述 先能装下所有件的尺寸); 60x30 全绿 (V
+    最坏 +1.40); 60x15 几何全绿但套A孔位在15mm板上不成立 (P-2 孔心Y=15=板边) ⇒ 套A整套作废. ★并附 逐量换框会不会变表 + 选框后必须重算 8 条 + 三选项代价与谁拍
+    (老板拍板框/mech给结构可行性/hw给布通)★. ★不代拍★'
+  ref: ''
+- key: iss267_mech_jd_y0_candidates
+  value: A 9.50 / C 10.00-11.00 / B 贴判据不可用 / D 改X排布
+  note: '★ISS-267 候选枚举 (只列不代拍): A 9.50 = 开口Y 7.835..12.435 · P-2 3.23(余+2.63) · S-2 8.53(余+7.93) · 2.5
+    余 +2.23 ⇒ 零改动但等于把旧15mm板口径留在30mm板上; C1 10.00 (2.5余+1.73) / C2 10.50 (+1.23) / C3 11.00 (+0.73) ⇒ 两头都有余量,
+    代价=需hw-lead给30mm板上J_DEBUG真实起点[0数据]; B1 11.73 = 2.5余量归零不可用 / B2 12.13 = P-2余0.00 且2.5判红不可用; D 改X排布
+    = HW地界 成本最高 只登记不建议. ★另: 按相对位置迁 jd_y0=24.50 ⇒ 按脚本现值 2.5 判红 (焊盘上沿25.77>13.00, 余-12.77) ⇒ 走不通=机器可判; 但
+    7.4 通用式 (两区间最近距离 max) 下 P-2=+8.50 不重叠 ⇒ ★ISS-264 那句 重叠12.37mm 在脚本自己公式下复现不出来★ (本单不引用该机理)★'
+  ref: ''
+- key: iss267_mech_board_side_crosscheck
+  value: 落表 J_DEBUG=1x4 vs MECH 脚本 2x5; 盘上板 J_DEBUG 与 J_UART 相距 123.6mm
+  note: '★ISS-267 板侧落表交叉核对 ([实测] 只读): HW/BOM_v1.csv:71 = 1x4 1.27mm 排针(JTAG), HW/netlist_v1_pins.csv:202-205
+    只有 pin1..pin4 ⇒ 与 service_port_check.py BASE jd_cols=5/jd_rows=2 (2x5 Cortex-10) 不一致 ⇒ 必须清空区X向宽度7.62
+    与开口X 10.20 要重算; 盘上板实读 J_DEBUG @ (144.30,58.00) 4焊盘 · J_UART @ (20.74,70.00) 2焊盘 ⇒ 两脚相距123.6mm, 而 MECH
+    模型让它们紧邻 (X=jd_x1+1.27) ⇒ 开口X 49.21..59.41 在盘上板不成立; 座体高2.54 是假设非事实 (BOM 型号待结构与装配复核) ⇒ [0数据] ⇒ ★结论:
+    Y向约束表可用(依2.54假设), X向与必须清空区必须等真实型号/位置定版后重算★'
+  ref: ''
+- key: iss271_mech_s6_port_open_claim
+  value: '板框三套判定: 60x30 套A 能开 / 160x100 不能开 / 60x15 不能开; 开口 X 可放行 [47.00, 60.00], 现状 49.21..59.41'
+  note: '★ISS-271 本单脚本实算 (MECH/board_port_opening_s6_check.py): 60x30 = H/V/L 三链全绿 (V 余 +2.00 最坏 +1.40,
+    L 余 +14.50) + 盖板内腔 4.70 >= 4.50 ⇒ 能开; 160x100 = 盖板内腔 4.10 < 4.50 + V 链 -68.00 (最坏 -68.60) + L 链 -85.50
+    三处判红 ⇒ 不能开; 60x15 = 几何全绿但套 A 孔心 Y=15.00 = 板边 (孔壁 14.00..16.00, 一半在板外) + S2 孔心 Y=20.00 板外 5.70mm ⇒
+    P-5 判据无基准 ⇒ 不能开。X 向: 开口 X 可放行区间 [47.00, 60.00] (骨架末端 +5mm 夹下界, 板端夹上界); jd_x0 ∈ [48.290, 51.090] (2x5)
+    或 [48.925, 51.725] (落表 1x4)★'
+  ref: ''
+- key: iss271_mech_ledg_position_finding
+  value: 结构侧对 D_LED_G/D_LED_R/D_LED_B 的位置零规定 = [0数据]; 93.49mm 实算 93.492727 对得上
+  note: '★ISS-271 查证 (逐条 grep, 出处行号可复核): MECH/ 全域 grep D_LED_G = 1 命中且是 ISS-267 文件自己引述作业包那行 (MECH/DEBUG_PORT_LAYOUT_CONSTRAINTS.md:177)
+    ⇒ 不是规定; 指示灯/状态灯/电源灯/电量灯 = 0 命中; MECH/LED 的命中全是显示件光源 (走鹃II LED 点光源, 已作废) 与充电灯链; MECH/print/ Rev B 打印包零
+    LED/导光柱/窗口特征 ⇒ 打印包尺寸链里也没有 LED 位 ⇒ [0数据]。但结构侧有 5 条可推出位置的既有硬约束 (S-1 骨架 X>=45 停 / S-2 末端外侧面 V 净高 >=7.10
+    / ★S-3 PCB 末端 X 50..60 段不得布 2.54mm 以上器件 (MECH/SERVICE_PORT_ISS092.md:333-335)★ / S-4 麦克风声孔 >=40 与导光孔
+    >=50 但都标 [0数据] 待确认 (:323/:324) / S-5 镜腿上下分壳, 隔热垫 0.5 + 空气隙 0.3 不可断) + 板侧候选条件 MC-1~MC-10。93.49mm 独立复算:
+    读盘上板 demo_mainboard.kicad_pcb 焊盘绝对坐标 R_LED_G.2@(7.50,62.60) 与 D_LED_G.1@(100.80,56.60) ⇒ dx 93.30
+    dy -6.00 ⇒ sqrt(8740.89) = 93.492727mm ⇒ 与作业包 93.49 差 +0.002727 (四舍五入一致) ⇒ 数没错; 根因 = 排版器把 LED 与串阻分居板子两端,
+    99.9% 是 X 向 ⇒ 纯布局问题, 结构侧给不出不许挪的理由★'
+  ref: ''
+- key: iss271_mech_ledg_admissible_window
+  value: 首选窗口 板坐标 X 33.00..47.71 (宽 14.71) x Y 1.60..28.40 (60x30 套A 口径)
+  note: '★ISS-271 本单脚本实算 (MECH/board_port_opening_s6_check.py 表D): 避让矩形 = SoC 逃线带 X14.20..33.00 x Y6.15..23.85
+    + SoC 封装体 X15.00..32.20 x Y6.95..23.05 + J_CHG keepout X0..3.00 x Y11.75..18.25 + 检修口开口含盖板搭边 X47.71..60.00
+    + PIN-SET-2 四孔加判据 0.60 保护区; 器件边距带 0.80 + 0805 占位 fab bbox 2.70x1.60 ⇒ 器件中心窗口 X 2.15..57.85 / Y 1.60..28.40
+    ⇒ 可放行矩形 18 块, 全高可用 X 带 3 条 (3.00..6.40 / 9.60..14.20 / ★33.00..47.71 最宽 14.71 = 首选★) ⇒ ★只给空间不定坐标:
+    最终坐标是 PCB 布局的活 (hw-lead), 最终取舍是老板拍板 (亮度档 G-5 + 是否要求外露)★; S-3 复核: 0805 bbox 高 1.60 < 2.54 ⇒ 天然满足★'
+  ref: ''
+- key: iss246_mech_continue_verify_20261117
+  value: 绿→红→红→绿 (23/23 · 21/23 · 21/23 · 23/23) · 当期门禁 rc=0 23/23 · selftest rc=0 14/14 · merge rc=0
+    · gate_check rc=0 (Q1 18/18)
+  note: '2026-11-17 04:5x~05:1x 续做复核 (网关重载后重入): 3 件交卷物早在 11-16 18:47~18:51 就已落盘, 本轮不是重做, 是【复核 + 补当期证据】
+    ⇒ §3.1 锚点一个数字都没再动 (现值仍是 ISS-259 第6跳: 网表 e06c1dd6… / 脚表 287e7861…) ⇒ 沙盒反证四步: 回滚 ISS-233 版 ⇒ G5b/C21
+    双红; 设成 ISS-246 第3跳版 ⇒ 仍双红; 装回 ⇒ 又绿 ⇒ 这 2 组不是摆设 ⇒ HW/ 本轮 0 字节写入 (网表/脚表/BOM 的变化全是上游 hw-lead 后续落表, 板与
+    .kicad_pro 逐字节不变) ⇒ 零外发 · 零实物 · 不替老板拍板'
+  ref: HANDOFF/2026-11-16_mech-lead_ISS245_MECH侧H1重锚第3跳.md
+- key: iss251_mech_caliber_before_after_delta_v11
+  value: 充电耗散 0.80→0.50 W (−0.30 W / −37.5%) · 皮肤侧 75.1→60.0 °C (−15.1 K) · 端件表面 158.3→108.3 °C (−50.0
+    K) · 超 60 °C 判据 3.81×→2.38× · 金属热路 R 1.641→1.935 K/W (+17.9%) · A_min 4.2194→4.9751 mm² · 2.5×2.0
+    铝条余量 10.93→0.35 K/W
+  note: 改前 = 同一份脚本骨架复制到 /tmp/iss251_before 沙盒, 只把 4 个活口径常量改回旧值 (CHG_TOPOLOGY linear / P_CHARGE 0.80 /
+    区间 0.80-0.80 / K_AL 237.0) 后实跑 ⇒ rc=2 · 45/53 · 口径自检 6/12 · 红组 C1/C3/C4/C5/C10/C11; 盘上 MECH/verify_budget.py
+    一个字节没动; 该改前跑出的 75.1 / 136.2 / 151.2 °C 与 MECH/MECH_BUDGET.md L700 已作废的旧三行逐字吻合 ⇒ 复原无误; 改后 rc=0 · 53/53
+    · 口径自检 12/12; ★结论方向一条没变 (充电板挪出贴皮肤处 / 充电时摘下来 / 端件必须金属热路; 打印件 1944 K/W 仍出局)
+  ref: HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md 附 D.1
+- key: iss251_mech_c_group_line_numbers_v11
+  value: C-1 L36→L37 · C-2 L200/L201→L202/L203 · C-3 L19→L20 · C-4 L22/L281/L322→L23/L283/L325 · C-5 L4/L34/L36/L83/L192/L281/L322→L5/L35/L37/L90/L194/L283/L325
+    · C-6 L5 不变 · C-7 L89→L90 (+L91 ISS-264 现值指针)
+  note: 原因 = ISS-264 于 2026-11-17 02:34 对 MECH/SERVICE_PORT_ISS092.md 做追加式编辑 (老字一行没删) ⇒ 行号后移 1-3 行; ★值一个没变
+    (60×30 / 36.00 / +2.00 / +1.40 / 15.00 / 20.00); A 组 B 组行号全部不变 (verify_budget.py mtime 11-16 02:34:53
+    · MECH_BUDGET.md 11-16 10:52:10 · 模板 11-16 06:23 ⇒ 本轮一个字节没碰); 门禁 17/17 仍绿
+  ref: HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md 附 D.2
+- key: iss251_mech_protected_md5_current_v11
+  value: 4ae5827e (check_demo_struct_truth) / db58ff6a (service_port_check) / 3425bc14 (hinge_usb_check)
+  note: ★上一轮 (11-16 19:45) 的 fa9b59e5 / 9b24bf98 / 3425bc14 基线已过期, 归属 ISS-264 的 H-1 重基线 (只改 MD5_EXPECTED
+    一行 + 迁 p2_y/s2_y + 加 7.4b/7.5b/8.1b), mtime 11-17 02:33:22 / 02:35:00 / 11-12 03:32 全部晚于本单交卷时刻 ⇒ 不是本单
+    (ISS-251) 改的; ★本单这三件一个字节没碰, 判据阈值一字未动; 老值 fa9b59e5 只留追溯
+  ref: HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md 附 D.3
+- key: iss246_mech_frag_md5_correction_20261117
+  value: 71dd2b5ee4d513a80232bbe728c277ad
+  note: '交卷单 C-1 表第3行记的 b61e9255… 是【追加本附录之前】的分片快照, 现已不是现值: 分片是多 agent 并发追加的文件 (本单自己一次 + 并发 ISS-244 agent
+    05:08:56 一次) ⇒ 分片 md5 不可作"本单动没动"的判据 ⇒ 判据 = 本单 iss246_mech_* claim 在位 + YAML 合法 + merge/gate_check
+    rc=0, 三条实测全过; ★交接单已追加 C-7 订正节 (追加式, C-1~C-6 正文未改); ★§3.1 锚点本轮 0 改动 (md5 仍 920b497b…)'
+  ref: HANDOFF/2026-11-16_mech-lead_ISS245_MECH侧H1重锚第3跳.md
+- key: iss264_mech_jd_y0_legal_range_errata
+  value: '★ISS-264 §0.1 第 2 条三条数订正 (机器复算为准): ① 合法区间上界 12.13 → 11.73 (绑闸脚本检查项 2.5「焊盘并集 Y ≤ 13.00」, 不是 P-2)
+    ⇒ 现状 jd_y0=9.50 距上界只剩 2.23mm (不是 2.63) ② 下界 3.57 → 1.665 (开口下沿 = jd_y0 − 0.635 − 1.03 = jd_y0 − 1.665;
+    3.57 多算了一个 1.27) ⇒ 区间宽度 8.56 → 10.07 ③ 「24.50 ⇒ 孔与焊盘阵列重叠 12.37mm」在闸脚本 7.4 通用式下复现不出 (实为 +8.50, 不重叠)
+    ⇒ 真正拦路是检查项 2.5 (焊盘上沿 25.77 > 13.00 ⇒ 余量 −12.77mm) ⇒ 结论方向不变 (jd_y0 绝不许按比例迁), 机理改成 2.5 判红 ⇒ 订正后合法区间
+    = [1.665, 11.730] mm'
+  note: '★来源: ISS-267 (2026-11-17 03:36) §表 0 F-1/F-2/F-3 + MECH/jd_y0_feasibility.py 机器复算; ★只订正分析结论的数与机理,
+    脚本/阈值/常量一个字节没动 (service_port_check.py md5 仍 db58ff6a2afc28b8bf517e3c57c56bc1); ★§0.1 第 1 条给 main 的
+    P-5 / 开口 Y 那组数 (3.23 / 8.53 / 7.835..12.435 / 必须清空区 8.865..11.405) 全部不变, 决策页 A 段照用; ★勘误全文: HANDOFF/2026-11-17_mech-lead_ISS264_检修口常量迁30mm套A.md
+    §附 F (纯追加, 老字一字未删)'
+  ref: ''
+- key: mech_netlist_md5_anchor_current
+  value: 网表 e06c1dd633566aa44732762c2ff99d1c / 脚表 287e7861a0d1007748d92d9fbecdd490
+  note: MECH 闸 §1 MECH_ANCHORS 块 source_ledger.entries 的【现行锚点】(第 6 跳 / R-06, by=ISS-257, landed_at=2026-11-16
+    21:22) ⇒ 与盘上真源逐字节一致 (本机 md5sum 实测, 2026-11-17 05:0x) ⇒ 门禁 G5b/C21 现场判绿。★**旧跳 (本单 ISS-253 / R-05 =
+    16ac89f7…, ISS-243 / R-04 = 611c3ba3…) 均为历史留痕, 不是现值**★ · 依据 HW/SCHEMATIC_LANDING_V1_LANDED.md §18.4
+    L1069/L1070 (四项同行) + MECH/HW_CROSS_REVIEW_TRIAGE.md §3.1 R-01~R-07
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md §1 source_ledger
+- key: mech_netlist_md5_anchor_jump_chain
+  value: ISS-220 → ISS-223 → ISS-233 → ISS-243 → ISS-249 → ISS-257
+  note: 'MECH 侧 md5 锚点重锚跳链 (每跳都留痕在 MECH/HW_CROSS_REVIEW_TRIAGE.md §3.1, 旧/新 md5 + 落表单号 + 复现命令齐全): ISS-220
+    基线 13f59a43… → ISS-223 第1跳 R-02 3215020b… → ISS-233 第2跳 R-03 34132f7e… → ISS-243 第3跳 R-04 611c3ba3…
+    → ★**ISS-249 第4跳 R-05 (= 本单 ISS-253) 16ac89f7…**★ → ★**ISS-257 第6跳 R-06 (= ISS-259) e06c1dd6… (现行)**★
+    ⇒ ★**上游每次合法落表都要同步这条锚点, 否则 G5b+C21 立刻红 (rc=2 · 21/23)**★'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md §3.1
+- key: iss253_redispatch_review_20261117
+  value: 锚点零字节改动 · 门禁 rc=0 23/23 FAIL 0 · selftest rc=0 14/14 · 反向自证 rc=2 点名 G5b+C21
+  note: '★**2026-11-17 05:0x 收到 ISS-253 重派 ⇒ 本单早已于 2026-11-16 20:07 落表交付且 issue_log 已 verified, 随后被 ISS-259
+    (第 6 跳 / ISS-257 落表) 覆盖 ⇒ 锚点现值 = e06c1dd6…**★ ⇒ ★**本轮【没有】把锚点改回 16ac89f7…/611c3ba3…**: 真盘实测证明那样做会 rc=2
+    · 21/23 · FAIL G5b+C21 (盘上 md5 e06c1dd6… != 锚点登记 16ac89f7…), 且等于把网表谎报成 ISS-249 旧版本 ⇒ 不做假绿**★ ⇒ ★**反向自证
+    (真盘 + trap 还原, 三步同命令内走完): A 复刻本派单目标态 ⇒ rc=2 点名 G5b/C21; B 只回滚 md5 到 611c3ba3… ⇒ rc=2 点名 G5b/C21; C
+    按备份逐字节装回 ⇒ rc=0 23/23 ⇒ 证明锚点真在被读**★ ⇒ ★**本轮 MECH/ 与 HW/ 零字节写入 (受保护 11 件 md5 前后同, triage md5 前后同 =
+    920b497b3664e40aebc23f2ea63463c2) · 零外发 · 零实物 · 不碰 SW/ · 不碰布线/布局/板框 · 不改判据阈值 · 不替老板拍板 · 不自签 issue_log**★'
+  ref: HANDOFF/2026-11-16_mech-lead_ISS253_H1重锚网表md5.md §附2
+- key: iss251_mech_final_reverify_v12
+  value: 'ISS-251 终态复跑: 三道机器闸全绿 (verify_budget rc=0 53/53 口径自检 12/12 · check_budget_caliber rc=0 17/17
+    · --selftest rc=0 13/13) · merge rc=0 · gate_check rc=0 Q1 18/18; ★main 已于 11-16 19:5x 独立复验并落 verified
+    (issue_log verify_by=main)'
+  note: '★本轮 (11-17 05:2x gateway reload 后二次续做) 盘上改动只有 2 件: 本交卷单追加 附 E + 本分片 (frag_write.py 原子写); MECH
+    三个老账相关文件 (verify_budget.py 95d6b011 / MECH_BUDGET.md f3e2fa20 / SERVICE_PORT_ISS092.md 7c88923c) 一个字节没动
+    (md5 与 11-16 19:45 交卷时一致); HW/ 零改动; issue_log 只读零写; 三个受保护脚本本轮一个字节没碰; 零外发 · 零实物; 不替老板拍板 (d 值/u8 截面/集热面/板长/板厚
+    五项只列选项+代价) · ★**派单 §③ 的并发告警已由上游解绿**: check_demo_struct_truth.py 本轮 rc=0 23/23 FAIL 0 (11-16 19:45
+    时是 rc=2 21/23 FAIL G5b+C21 ⇒ 归属 ISS-259 第6跳重锚 + ISS-264 的 H-1 受保护脚本重基线 ⇒ 不是本单修的, 本单这三件脚本一个字节没碰) ·
+    ★附 B 并发说明保留但状态由 红 改为 已由上游解绿'
+  ref: HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md 附 E
+- key: iss273_mech_judge_source
+  value: ★落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 里该文件的最新落表记录 (链头)★★ ⇒ 网表/脚表 md5 的判决源从【域侧锚点副本】换成【台账链头】★
+    ⇒ 合法落表不再红 (链头跟着盘上走), 悄悄换真源照样红 (盘上 ≠ 链头) ★ ⇒ 台账只读, 本单一个字没改它
+  note: '★ISS-273 (main 2026-11-17 05:18 派单) 的机制改造; ★**判「最新」靠有向链 (改前 md5 → 改后 md5) 不靠行序** ⇒ 台账行序打乱仍取最新
+    ⇒ 「取错记录造成假绿」被堵死; ★**取不准一律判红** (链头不唯一 / 链断 / 有记录不在链上 / 链头无单号)★; ★实测: 门禁 23/23 rc=0 · --selftest 21/21
+    (老 14 条一条没少、期望全不变)★'
+  ref: ''
+- key: iss273_mech_ledger_chain_heads
+  value: ★网表 `e06c1dd63356` · 脚表 `287e7861a0d1`★ (★台账里 7 条记录 → 有向链 → 唯一链头, by ISS-257★) ⇒ 这是判决用的现值 (★不是域侧锚点副本里的数★)
+  note: '★源: HW/SCHEMATIC_LANDING_V1_LANDED.md §18.4 md5 台账 (ISS-257) + §2/§6/§13/§15.4/§16.4/§17.5 的历史跳链
+    (ISS-220 → ISS-223 → ISS-233 → ISS-243 → ISS-249 → ISS-257)★; ★域侧锚点副本 source_ledger.entries[] 同时降级为【历史留痕】(6
+    跳历史一条没删)★'
+  ref: ''
+- key: iss273_mech_gate_script_md5
+  value: 6972b867c8243bc971408f972dc7727e
+  note: '★MECH/check_demo_struct_truth.py 本体 md5 改前 4ae5827e986f1aebb108c5aa2a475074 → 改后 6972b867c8243bc971408f972dc7727e
+    (★本单改了它的取值/比对逻辑 ⇒ H-1 重基线★) ⇒ ★它自己不在 G5b 那 6 个硬保护文件里 ⇒ 没有 md5 追尾★ ⇒ 留痕: MECH/HW_CROSS_REVIEW_TRIAGE.md
+    §3.1 **R-08** (★brief 写的是 R-07, 但 R-07 已被 ISS-264 占用 ⇒ 本单用下一号, 不覆盖前 7 条★) + §0 Q-14 + §1 source_ledger_role
+    块★'
+  ref: ''
 open_questions:
 - id: MECH-Q1
   to: main

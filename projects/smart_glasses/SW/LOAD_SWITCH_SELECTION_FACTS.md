@@ -2,9 +2,9 @@
 
 > **作者**: 软件总工 (sw-lead) · **日期**: 2026-11-16 · **验证人**: boss (拍板) / main (复核)
 > **上游 (只读)**: `HW/POWER_SHUTDOWN_V3.md` §2 (8 条选型判据 · 一字不改) · `SW/SHUTDOWN_SEMANTICS_SPEC.md` §3 Q2 (ISS-234 交卷件) · `DECISION_PENDING_2026-11-16.md` §A5 + §Q2 (拍板待办) · `HW/netlist_v1.csv` L37/L50/L56/L58/L442 (现状真源)
-> **边界**: ★**本单只交证据, 不落表** (网表 L50 的 `[待选型]` 判据串等老板拍完型号再由落表批次改) · ★**不改** `HW/` `MECH/` 任何文件 (只读) · ★**零外发** (不发邮件 / 不询价 / 不问供应商 / 不下单) · ★**实物 [实测] = 0 条** (本单全部是公开数据手册级证据, 没有一颗实物被测过)
+> **边界**: ★**本单只交证据, 不落表** (★**第 2 轮 2026-11-17: 网表 L50 的 `[待选型]` 串已由 ISS-257 落表批次落成型号串 ⇒ 派单前提过期 ⇒ 本单第 2 轮只做「快照重锚 + C9 落表后回归门禁」, 仍然一个字都不落表**) · ★**不改** `HW/` `MECH/` 任何文件 (只读) · ★**零外发** (不发邮件 / 不询价 / 不问供应商 / 不下单) · ★**实物 [实测] = 0 条** (本单全部是公开数据手册级证据, 没有一颗实物被测过)
 > **政策**: 老板 2026-11-12 02:02「不再发信, 全靠自己查资料」⇒ 证据等级只取 `[官网]` / `[实测]` / `[媒体]` / `[推算]` / `[0数据]` · **查不到就写 [0数据] + 降级方案, 不许编**
-> **机器门禁**: `python3 SW/tools/check_load_switch_selection.py` (rc=0 = 全过) · `--selftest` (8 条反向用例全红)
+> **机器门禁**: `python3 SW/tools/check_load_switch_selection.py` (rc=0 = 全过) · `--selftest` (★**第 2 轮起 12 条**反向用例全红 ★)
 
 ---
 
@@ -14,12 +14,24 @@
 
 1. ★**结论 (机器可判)**: ★**就本次查证范围内, 没有「同封装 (UQFN-4 RAA) 且带 RCB」的原厂在售型号** ⇒ 必须走降级方案 (FB1 外部反灌保护 / FB2 改板换带 RCB 型号) 之一。带 RCB 的 5 款 (TPS22916 / TPS22917 / TPS22910A / SGM2572 / SGM2575S) 封装分别是 DSBGA-4 YFP · SOT-23-6 DBV · DSBGA-4 YZV · WLCSP-0.8×0.8-4B · WLCSP-0.76×0.76-4B, 没有一个是 RAA。
 2. ★**按 A5 建议序 (① 反向阻断 > ② IQ<5µA > ③ RON 越小越好 > ④ 封装/面积) 的推荐**:
-   - 若老板把 ① 放最前 ⇒ **SGM2575SADYG/TR** (圣邦微 · True RCB 导通态也挡 · 30 mΩ · 2A · 0.578 mm²) 是本次查证范围内**唯一同时满足 RCB 与 RON ≤ 40 mΩ** 的在售型号 ⇒ 代价 = 改板 + 引脚定义本轮 [0数据] 须核数据手册原表;
+   - 若老板把 ① 放最前 ⇒ **SGM2575SADYG/TR** (圣邦微 · True RCB 导通态也挡 · ★**30 mΩ typ / 63 mΩ max**· 2A · 0.578 mm²) 是本次查证范围内**唯一同时满足 RCB 与 RON ≤ 40 mΩ (typ 口径)** 的在售型号 ⇒ 代价 = 改板 + ★**引脚编号体系整体换 (A1=VOUT/A2=VIN/B1=GND/B2=ON, 与现网表 1/2/3/4 无一兼容)**;
    - 若老板把 ④ (封装/面积/**不改板**) 放最前 ⇒ **TPS22991RAA** (唯一与现网表 footprint 逐字一致的 UQFN-4 RAA ⇒ 换料不换板) ⇒ RCB 缺口用 **FB1** 兜;
    - 若 ② (关机续航) 放最前 ⇒ **TPS22916BYFPR / TPS22917xDBVR** 的关断漏电最好 (10 nA typ), 但 RON 60 / 80 mΩ 超判据 3。
 3. ★**ISS-234 点名的 `TPS22991RAA` 仍留在册 (不许悄悄删)** —— 但本轮补上了一条它此前没写的事实: ★**它的关断漏电 ISD max = 20 µA @ -40~85 °C > 判据 4 的 5 µA 门槛** (typ 14 nA 远低于门槛) ⇒ 按 max 口径它是**唯一硬超判据**的一条, 在关机账 108 µA 里占 18.5%。
-4. ★**两条顺带查出来的落表阻塞**: ①现网表 OPN `TPS22991RAA` **只锁了封装没锁变体字母** (TI 有 B/BN/C/CN 四个变体, 上电上升时间 141 µs vs 662 µs, QOD 有无也不同); ②SGM2575S / SGM2572 的 4-ball 引脚定义本轮为 [0数据] (官网产品页不给引脚表) ⇒ **改板前必须先拿到数据手册原表**, 否则封装焊盘编号对不上 = 白投一版板。
-5. ★**本单不代拍**: 优先级序与型号的最终拍板 = 老板 (`DECISION_PENDING_2026-11-16.md` §A5 / §Q2)。
+4. ★**2026-11-17 04:5x 补证轮 (★把上一轮剩下的缺口填平★)**: ★**圣邦微两颗候选的官方数据手册 PDF 已从官方服务器直取成功** ⇒ ① SGM2575S / SGM2572 的证据等级全部从 [媒体] → **[官网]**, 全文已无 [媒体] 依赖; ② ★**两个 [0数据] 关闭**: 绝对最大额定 (VIN −0.3~6 V ⇒ 判据 1 满足) 与 **4-ball 引脚原表** (SGM2575S: A1 OUT / A2 IN / B1 GND / B2 ON; SGM2572: A1 VOUT / A2 VIN / B1 GND / B2 ON) ⇒ ★**原来那条「改板返工代价最高的一项」已不再是未知**; ③ ★**查出一条对推荐有实质影响的新事实**: SGM2575S 的 **RON max = 63 mΩ** (SGM2572 = 60 mΩ) ⇒ ★**「唯一 RCB + RON 双满足」只在 typ 口径成立; max 口径下没有任何一颗带 RCB 的在售型号能过判据 3** ⇒ 建议老板拍优先级序时★**一并拍「RON 按 typ 还是按 max 判」+「SYS 电流按 0.55 A 还是 2 A 算」** (§4 第 3 条落点 / §3.4 事实 B)。
+5. ★**两条顺带查出来的落表阻塞**: ①现网表 OPN `TPS22991RAA` **只锁了封装没锁变体字母** (TI 有 B/BN/C/CN 四个变体, 上电上升时间 141 µs vs 662 µs, QOD 有无也不同); ②★**【2026-11-17 已解除】** SGM2575S / SGM2572 的 4-ball 引脚定义不再是 [0数据] ⇒ ★**但取到后反而多了一条硬事实: 三颗 RCB 候选 (TPS22916 / SGM2572 / SGM2575S) 的球编号全是 A1=VOUT / A2=VIN / B1=GND / B2=ON, 与现网表 1=VIN/2=ON/3=VOUT/4=GND 无一兼容 ⇒ 改板不是「换个料号」, 是「换引脚编号体系」⇒ 板那一趟必须逐线重核** (§3.4 事实 A)。
+6. ★**本单不代拍**: 优先级序与型号的最终拍板 = 老板 (`DECISION_PENDING_2026-11-16.md` §A5 / §Q2)。
+
+
+## §0.1 ★第 2 轮补记 (2026-11-17): 落表已经发生 ⇒ 派单前提 `[待选型]` 已过期
+
+★**本节是 2026-11-17 第 2 轮实测补的; 第 1 轮 (2026-11-16 12:58 交卷) 的 8 条判据逐格评定、RCB 专项结论与 §4 推荐一字未改。**
+
+1. ★**派单书的前提已不成立 (不是本单做错了, 是世界变了)**: 派单 (main 2026-11-16 10:4x 实读) 的前提是「网表 L50 value 栏至今是 `[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)`」★**该前提在 2026-11-16 21:2x~22:25 之间失效** ⇒ 落表批次 **ISS-257 (hw-lead · G1a-7 选型落表)** 把 L50 的 value 栏改成 ★**`TPS22991RAA (负载开关 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA · ≥2A · R_on 25mΩ@5V · 无 RCB ⇒ 选型口径待 A5 追认)`** ⇒ **[实测]** 2026-11-17 实读 `HW/netlist_v1.csv` L50 (md5 `e06c1dd633566aa44732762c2ff99d1c`)。
+2. ★**落表用的就是本单的矩阵**: ISS-257 落的型号 = `TPS22991RAA` = 本矩阵里**唯一与现网表 footprint 逐字一致** (UQFN-4 RAA 0.85×0.75 mm 0.4 mm pitch) 的候选 ⇒ ★**「换料不换板」这条结论已被落表批次采纳**; 并且落表串里★**明写了「无 RCB ⇒ 选型口径待 A5 追认」** ⇒ ★**RCB 缺口没有被落表掩盖, 而是被写进了网表** ⇒ 与本单 §3.3 的结论 (无同封装带 RCB 的在售型号) 一致。
+3. ★**但落表把两条判据从网表 value 栏里拿掉了 (必须登记, 不能装作没发生)**: 旧串写「IQ ≤5µA」与「带反向阻断」, 新串只剩「≥2A」「R_on 25mΩ@5V」, 并把「带反向阻断」改写成「无 RCB」⇒ ★**判据 4 (IQ) 与判据 5 (反向阻断) 在网表侧不再以「要求」的形式出现** ⇒ ★**判据真源仍是 `HW/POWER_SHUTDOWN_V3.md` §2 (8 条, 一个字没改, 门禁 C7 逐条比)** ⇒ 本矩阵的逐格评定继续按 8 条判据走, 网表侧的失声登记在基准块 `netlist_drift.dropped_requirements`。
+4. ★**落表后残留 3 条缺口 (本单只登记, 不落表)**: 见 §9.2 ⇒ 归属 = 落表批次 / main。
+5. ★**第 2 轮只做两件事**: ① 把基准块的网表快照**重锚**到现行 value, 并把 drift 登记成机器可读块; ② **给门禁加一条 C9 (落表后回归)**, 让「矩阵与网表各说各话」这件事在落表之后**仍然抓得住** ⇒ ★**第 1 轮的 C6 只对落表前的快照有效, 落表后是个洞 (本轮实测发现)**。
 
 ---
 
@@ -49,10 +61,10 @@
 |---|---|---|---|---|---|---|
 | C1 | **TPS22991RAA** | TI | UQFN-4 (RAA) 0.85×0.75mm · 0.6375 mm² | **无** | ★**逐字一致 ⇒ 换料不换板** (现网表 OPN 就是它) | [官网] |
 | C2 | **TPS22916BYFPR** | TI | DSBGA-4 (YFP) 1 mm² | **有** (Always-ON true) | ★**封装不同 ⇒ 必须改板**; 引脚 A1=VOUT / A2=VIN / B1=GND / B2=ON ⇒ **与网表 1=VIN/2=ON/3=VOUT/4=GND 不兼容** | [官网] |
-| C3 | **SGM2572ADYG/TR** | 圣邦微 (国产) | WLCSP-0.8×0.8-4B · 0.64 mm² | **有** (仅禁用态) | ★**封装不同 ⇒ 必须改板**; 引脚定义本轮 [0数据] | [官网] |
+| C3 | **SGM2572ADYG/TR** | 圣邦微 (国产) | WLCSP-0.8×0.8-4B · 0.64 mm² | **有** (仅禁用态) | ★**封装不同 ⇒ 必须改板**; ★**引脚 A1=VOUT / A2=VIN / B1=GND / B2=ON** (官方 PDF 原表) | [官网] |
 | C4 | TPS22917xDBVR | TI | SOT-23-6 (DBV) 2.9×2.8mm · 8.12 mm² | **有** (Always-ON true) | ★**6 脚 + 超判据 6 面积 ⇒ 必须改板**; 引脚 1=VIN/2=GND/3=ON/4=CT/5=QOD/6=VOUT | [官网] |
 | C5 | TPS22910AYZVR | TI | DSBGA-4 (YZV) WCSP 0.9×0.9 · 1.5625 mm² | **有** (Full-Time, ON+OFF) | ★**封装不同 ⇒ 必须改板**; ON 极性需按具体 OPN 核对 | [官网] |
-| C6 | **SGM2575SADYG/TR** | 圣邦微 (国产) | WLCSP-0.76×0.76-4B · 0.578 mm² | **有** (True RCB, 导通态也挡) | ★**封装不同 ⇒ 必须改板**; 引脚定义本轮 [0数据] | [媒体] |
+| C6 | **SGM2575SADYG/TR** | 圣邦微 (国产) | WLCSP-0.76×0.76-4B · 0.578 mm² | **有** (True RCB, 导通态也挡) | ★**封装不同 ⇒ 必须改板**; ★**引脚 A1=OUT / A2=IN / B1=GND / B2=ON** (官方 PDF 原表) | [官网] |
 
 > ★**候选册说明 (机器基准块口径)**: 门禁 C1 的反向用例是「**把候选砍到 2 个 ⇒ 红**」⇒ 机器基准块的 `candidates` 册**正好取 3 个** (C1 / C2 / C3) 才能自证「砍一个就红」; C4 / C5 / C6 以基准块的 `alternates` 数组**同字段并列**, 正文 §2 矩阵 **6 行全部逐格填满**, 没有一个是「大概/应该」。
 > ★**全部为原厂在售**: TI 官网产品页均标 ACTIVE / Catalog; 圣邦微官网订购信息栏标「量产」。
@@ -61,14 +73,14 @@
 
 | # | 判据 | C1 TPS22991RAA | C2 TPS22916BYFPR | C3 SGM2572ADYG/TR | C4 TPS22917xDBVR | C5 TPS22910AYZVR | C6 SGM2575SADYG/TR |
 |---|---|---|---|---|---|---|---|
-| 1 | VIN 绝对额定 ≥ 5V | 绝对最大 VIN −0.3~**6 V**; 工作 1.0–5.5 V ✔ | 绝对最大 VIN −0.3~**6 V**; 工作 1.0–5.5 V ✔ | 工作 1–5.5 V ✔; 绝对最大 [0数据] | 工作 1–5.5 V ✔; 绝对最大 [0数据] | 工作 1.4–5.5 V ✔; 绝对最大 [0数据] | 工作 1.2–5.5 V ✔; 绝对最大 [0数据] |
-| 2 | Iout ≥ 2A | **3 A** ✔ | **2 A** (脉冲 2.5 A) ⚠卡门槛 | **2 A** ⚠卡门槛 | **2 A** ⚠卡门槛 | **2 A** ⚠卡门槛 | **2 A** ⚠卡门槛 |
-| 3 | R_on ≤ 40mΩ @3.7V | **25 mΩ typ @5V** (3.7V 内插 ~27–28) ✔ 目标≤30 | 60 mΩ typ @5V (max 100@85°C) ✘ | **34 mΩ @3.3V/5V** ✔ | 80 mΩ typ @5V ✘ | 61 mΩ @3.3V ✘ | **30 mΩ** ✔ 目标≤30 |
-| 4 | 关机漏电 IQ ≤ 5µA | ISD **14 nA typ** / ★**20 µA max @-40~85°C** ✘ (max 口径) | ISD 10 nA typ / 100 nA max ✔ | 关断 90 nA typ ✔ | ISD 10 nA typ ✔ (max 未取得) | ISD 1.2 µA typ ✔ | IRC 10 nA typ / 900 nA max ✔ |
+| 1 | VIN 绝对额定 ≥ 5V | 绝对最大 VIN −0.3~**6 V**; 工作 1.0–5.5 V ✔ | 绝对最大 VIN −0.3~**6 V**; 工作 1.0–5.5 V ✔ | ★绝对最大 VIN −0.3~**6 V**; 工作 1–5.5 V ✔ | 工作 1–5.5 V ✔; 绝对最大 [0数据] | 工作 1.4–5.5 V ✔; 绝对最大 [0数据] | ★绝对最大 VIN −0.3~**6 V**; 工作 1.2–5.5 V ✔ |
+| 2 | Iout ≥ 2A | **3 A** ✔ | **2 A** (脉冲 2.5 A) ⚠卡门槛 | **2 A** (脉冲 2.5 A) ⚠卡门槛 | **2 A** ⚠卡门槛 | **2 A** ⚠卡门槛 | **2 A** ⚠卡门槛 |
+| 3 | R_on ≤ 40mΩ @3.7V | **25 mΩ typ @5V** (3.7V 内插 ~27–28) ✔ 目标≤30 | 60 mΩ typ @5V (max 100@85°C) ✘ | ★**34 mΩ typ / 60 mΩ max** ⇒ typ ✔ / ★max ✘ | 80 mΩ typ @5V ✘ | 61 mΩ @3.3V ✘ | ★**30 mΩ typ / ★63 mΩ max** ⇒ typ ✔ / ★max ✘ |
+| 4 | 关机漏电 IQ ≤ 5µA | ISD **14 nA typ** / ★**20 µA max @-40~85°C** ✘ (max 口径) | ISD 10 nA typ / 100 nA max ✔ | ★ISD **90 nA typ / 440 nA max** ✔ | ISD 10 nA typ ✔ (max 未取得) | ISD 1.2 µA typ ✔ | ★ISD **0.15 µA typ / 0.5 µA max** ✔ |
 | 5 | 必须有反向阻断 | ★**无** ✘ (缺口) | **有** Always-ON true ✔ | **有** (仅禁用态) ✔ | **有** Always-ON true ✔ | **有** Full-Time ✔ | **有** True RCB ✔ |
 | 6 | 面积 ≤ 2×2mm | 0.6375 mm² ✔ | 1 mm² ✔ | 0.64 mm² ✔ | 8.12 mm² ✘ | 1.5625 mm² ✔ | 0.578 mm² ✔ |
-| 7 | −40 ~ +85 °C | −55~+125 °C ✔ | −40~+85 °C ✔ | −40~+85 °C ✔ | −45~+125 °C ✔ | −40~+85 °C ✔ | [0数据] (同厂系列 −40~+85 仅作参考) |
-| 8 | ON 兼容 3.3V GPIO + 确定默认态 | ON=pin2 高有效 ✔ (内部下拉 [0数据], 外部 10k 兜底) | 高有效 ✔ + 智能下拉 750 kΩ typ ✔ | 低阈值 1.8 V GPIO ✔ (内部下拉 [0数据]) | ON=pin3 高有效 ✔ + 750 kΩ typ ✔ | 高/低两版 ★**须按 OPN 核对** | 阈值 [0数据] + 智能下拉 1 MΩ ✔ |
+| 7 | −40 ~ +85 °C | −55~+125 °C ✔ | −40~+85 °C ✔ | −40~+85 °C ✔ | −45~+125 °C ✔ | −40~+85 °C ✔ | ★**−40~+125 °C** ✔ (原表已取) |
+| 8 | ON 兼容 3.3V GPIO + 确定默认态 | ON=pin2 高有效 ✔ (内部下拉 [0数据], 外部 10k 兜底) | 高有效 ✔ + 智能下拉 750 kΩ typ ✔ | ★VIH **1.1 V** / VIL 0~0.4 V ✔ (3.3V GPIO 可驱动) | ON=pin3 高有效 ✔ + 750 kΩ typ ✔ | 高/低两版 ★**须按 OPN 核对** | ★VIH **0.71 V** / VIL 0~0.3 V ✔ + 智能下拉 1 MΩ ✔ |
 
 > ★每格的**官方数值 / 出处 / 证据等级**在 §2 的逐候选明细小节 (TPS22991RAA / TPS22916BYFPR / SGM2572ADYG/TR / TPS22917xDBVR / TPS22910AYZVR / SGM2575SADYG/TR) 里逐格给出; 上表是同一份数据的紧凑视图 (出处见 §6 出处表)。
 
@@ -103,14 +115,18 @@
 ### SGM2572ADYG/TR — 圣邦微 · 国产 · 量产 (原 §2.5)
 
 - **封装**: WLCSP-0.8 × 0.8-4B (4 ball, 绿色) ⇒ **不是 RAA ⇒ 必须改板**; 官网订购信息栏三个 OPN (A/B/C = 上升 85 / 1600 / 2200 µs), 状态「量产」`[官网]`。
-- **判据 1**: 工作 1–5.5 V ⇒ 工作上限已过 5 V 门槛; **绝对最大额定官网产品页未列 ⇒ [0数据]** (落表前须查 SGM2572.pdf 原表) `[官网]`。
-- **判据 2**: 最大持续电流 2 A ⇒ **卡门槛** `[官网]`。
-- **判据 3**: RON 34 mΩ @5 V 与 34 mΩ @3.3 V ⇒ 3.7 V 档约 34 mΩ ⇒ **满足** (目标 ≤30 mΩ 差一点); 压降 @1A = 34 mV `[官网]`。
-- **判据 4**: 低关断电流 90 nA typ ⇒ **满足** (关机账 108 µA 的 0.08%); ON 态静态电流官网未列, 原厂选型指南记 0.22 µA typ / 0.44 µA max ⇒ 同样满足, 但该数字来自原厂指南的第三方镜像 ⇒ 按 `[媒体]` 记 `[媒体]`。
-- **判据 5**: ★**有, 但只在禁用态** —— 官网原文「禁用时提供反向电流保护」+「适用于功率区应用的双向电源」⇒ 对本板「关机插 USB (开关禁用)」场景是覆盖的; ★**导通态不挡** ⇒ 缺口说明必须写清这一条 `[官网]`。
-- **判据 6**: 0.64 mm² ⇒ **满足** (与现 RAA 同面积, 但不是同一封装, 不能直接换料) `[官网]`。
-- **判据 7**: −40 ~ +85 °C ⇒ **满足** `[官网]`。
-- **判据 8**: 低阈值 1.8 V GPIO 控制输入 ⇒ 3.3 V GPIO 可直接驱动 ⇒ **满足**; 内部智能下拉阻值官网未列 ⇒ [0数据], 靠外部 10k 下拉兜底; 无 power-off latch `[官网]`。
+★**★2026-11-17 04:5x 本轮补证 (★官方 PDF 直取成功 ⇒ 证据等级从 [官网] 官网产品页 + [媒体] 第三方镜像 升级为 [官网] 官方数据手册★)**
+
+- **封装**: WLCSP-0.8 × 0.8-4B (4 ball, 绿色封装) ⇒ **不是 RAA ⇒ 必须改板**; 官网订购信息栏三个 OPN (A/B/C = 上升 85 / 1600 / 2200 µs), 状态「量产」`[官网]`。
+- **★引脚定义 (★本轮从官方 PDF 原表取到 ⇒ 原 [0数据] 已关闭★)**: 官方手册 PIN CONFIGURATION (TOP VIEW) = **A1 VOUT / A2 VIN / B1 GND / B2 ON**; PIN DESCRIPTION 原文「A2 VIN — Switch Input. It is recommended to use a bypass capacitor (ceramic) to ground.」「B2 ON — Switch Control Input. Active high enables the device. **Do not float this pin.**」⇒ ★**与网表 1=VIN / 2=ON / 3=VOUT / 4=GND 完全不兼容 ⇒ 改板必须重画 footprint** `[官网]`。
+- **判据 1**: 工作 1–5.5 V; ★**绝对最大额定 (官方 PDF ABSOLUTE MAXIMUM RATINGS 表): Input Voltage Range VIN = −0.3 V to 6 V / Output Voltage Range VOUT = −0.3 V to 6 V / ON Pin Voltage Range VON = −0.3 V to 6 V** ⇒ **满足** (6 V > 5 V) `[官网]`。
+- **判据 2**: Maximum Continuous Switch Current, **IMAX = 2 A**; 脉冲 IPLS = 2.5 A (pulse < 300 µs, 2% duty) ⇒ **卡门槛** `[官网]`。
+- **判据 3**: RON **34 mΩ typ / ★60 mΩ max** @ VIN=5 V 与 @ VIN=3.3 V ⇒ 3.7 V 档 typ ≈ 34 mΩ ⇒ **按 typ 满足** (目标 ≤30 mΩ 差一点); ★**按 max 口径不满足 (60 mΩ > 40 mΩ, 超 50%)**; 压降 @1A = 34 mV typ / 60 mV max `[官网]`。
+- **判据 4**: Shutdown Current ISD **90 nA typ / 440 nA max** (VIN=5.5 V, VON=0 V); Quiescent Current IQ **220 nA typ / 400 nA max** (VIN=3.3 V) / 320 nA typ / 560 nA max (VIN=5 V) / 140 nA typ / 300 nA max (VIN=1 V); Supply Leakage Current in Shutdown Mode ILEAKAGE 450 nA max; ON Pin Leakage Current ION 420 nA max ⇒ **typ 与 max 双双满足** (关机账 108 µA 的 0.4%) `[官网]`。
+- **判据 5**: ★**有, 但只在禁用态** —— ★**官方手册 APPLICATION INFORMATION 原文: "If the ON pin is pulled low, the device is disabled, while VIN > 1V or VOUT > 1V is met, the reverse current protection function is activated. This function prevents the current flowing from VOUT to VIN…"** ⇒ ★**全手册无 "True Reverse Current Blocking" 字样、无 VT_RCB 行 ⇒ 官方坐实「仅禁用态」** ⇒ 对本板「关机插 USB (开关禁用)」场景是覆盖的; ★**导通态不挡** ⇒ 缺口说明必须写清这一条 `[官网]`。
+- **判据 6**: 0.64 mm² (WLCSP-0.8×0.8-4B) ⇒ **满足** (与现 RAA 同面积, 但不是同一封装, 不能直接换料); 官方手册热阻 θJA = 279 ℃/W `[官网]`。
+- **判据 7**: 官方 PACKAGE/ORDERING INFORMATION 表 SPECIFIED TEMPERATURE RANGE = **−40 ℃ to +85 ℃** ⇒ **满足** `[官网]`。
+- **判据 8**: ★**官方 RECOMMENDED OPERATING CONDITIONS: ON Pin Input High Voltage VIH = 1.1 V to 5.5 V (min 1.1 V) / ON Pin Input Low Voltage VIL = 0 V to 0.4 V** ⇒ 3.3 V GPIO 可直接驱动 ⇒ **满足**; 官网特性栏另有「低阈值 1.8V GPIO 控制输入」; 官方手册未列内部下拉阻值 ⇒ 靠外部 10k 下拉兜底; 无 power-off latch `[官网]`。
 
 ### TPS22917xDBVR — TI · 带 Always-ON true RCB · 备选 (原 §2.6)
 
@@ -138,15 +154,20 @@
 
 ### SGM2575SADYG/TR — 圣邦微 · 国产 · True RCB (原 §2.8)
 
-- **封装**: WLCSP-0.76 × 0.76-4B = 0.578 mm² ⇒ **面积最小的候选**, 但封装不同 ⇒ **必须改板**; 数据手册标题即「5.5V, 2A, 30 mΩ RDSON Load Switch with Reverse Current Protection」`[媒体]`。
-- **判据 1**: 标题 5.5 V + 选型指南 VIN 1.2–5.5 V ✔; 绝对最大 [0数据] `[媒体]`。
-- **判据 2**: 2 A ⇒ 卡门槛 `[媒体]`。
-- **判据 3**: 30 mΩ ⇒ ★**满足, 且是查证范围内唯一同时带 True RCB 且 RON ≤ 40 mΩ 的在售型号**; @3.7 V 的 max 档未取得 ⇒ 按 max 口径未判定 `[媒体]`。
-- **判据 4**: 关断态反向电流 IRC 10 nA typ / 900 nA max; ON 脚漏电 10 nA typ / 900 nA max; 选型指南静态电流 0.23 µA ⇒ 满足 `[媒体]`。
-- **判据 5**: ★**有, True RCB** —— 数据手册原文「The reverse current protection function is activated when VOUT is higher than VIN by VT_RCB. The reverse current protection is enabled whether the ON pin is high or …」; 触发点 VT_RCB = 6 mV typ (24/50 mV), 迟滞 30 mV ⇒ **比 SGM2572 的「仅禁用态」更强** `[媒体]`。
-- **判据 6**: 0.578 mm² ⇒ 满足, 6 个候选里最小 `[媒体]`。
-- **判据 7**: ★[0数据] (官网产品页与 PDF 原表本轮未取得; 同厂同系列 −40~+85 °C **只作参考, 不作本型号证据**) `[0数据]`。
-- **判据 8**: ON 阈值: 提取到的数据手册文本为 VIH 0.71 V / VIL 0.3 V (疑为分压比例或表格截断) ⇒ **精确值按 [0数据] 记, 落表前必须查 PDF 原表**; Smart Pull-Down 1 MΩ (Disabled), 输出下拉 230 Ω typ / 300 Ω max ⇒ 默认态有内部下拉兜底 (外部 10k 仍保留); QOD 仅 SGM2575SAD 版本有 `[媒体]`。
+★**★2026-11-17 04:5x 本轮补证 (★官方 PDF 直取成功 ⇒ 全部 [媒体] → [官网]★)**
+
+- **封装**: WLCSP-0.76 × 0.76-4B = 0.578 mm² ⇒ **面积最小的候选**, 但封装不同 ⇒ **必须改板**; 数据手册标题即「5.5V, 2A, 30 mΩ RDSON Load Switch with Reverse Current Protection」`[官网]`。
+- **★引脚定义 (★本轮从官方 PDF 原表取到 ⇒ 原 [0数据] 已关闭★)**: 官方手册 PIN CONFIGURATION (TOP VIEW) = **A1 OUT / A2 IN / B1 GND / B2 ON**; PIN DESCRIPTION 原文「A1 OUT — Switch Output.」「A2 IN — Switch Input. It is recommended to use a bypass capacitor (ceramic) to ground.」「B1 GND — Ground.」「B2 ON — Switch Control Input. Setting the ON pin to a high logic level enables the device, and setting it to a low logic level disables the device.」⇒ ★**与网表 1=VIN / 2=ON / 3=VOUT / 4=GND 完全不兼容 ⇒ 改板必须重画 footprint** `[官网]`。
+- **判据 1**: ★**绝对最大额定 (官方 PDF ABSOLUTE MAXIMUM RATINGS 表): Input Voltage Range VIN = −0.3 V to 6 V / Output Voltage Range VOUT = −0.3 V to 6 V / ON Pin Voltage Range VON = −0.3 V to 6 V**; RECOMMENDED OPERATING CONDITIONS: Input Voltage Range VIN = 1.2 V to 5.5 V ⇒ **满足** (6 V > 5 V) `[官网]`。
+- **判据 2**: Maximum Continuous Switch Current, **IMAX = 2 A** ⇒ **卡门槛** `[官网]`。
+- **判据 3**: ★**官方 EC 表 On-Resistance RDSON: VIN = 5.5 V → typ 30 mΩ / ★max 63 mΩ; VIN = 3.3 V → typ 30 mΩ / ★max 63 mΩ; VIN = 1.2 V → typ 48 mΩ** (IOUT = −200 mA, VON = 1.2 V) ⇒ 3.7 V 档 typ ≈ 30 mΩ ⇒ ★**按 typ 满足 (30 mΩ ≤ 40 mΩ, 也压住目标 ≤30 mΩ)**; ★**按 max 口径不满足 (63 mΩ > 40 mΩ, 超 57%)** —— ★**这是本轮新查出来的口径差异, 见 §4 末条** `[官网]`。
+- **判据 4**: ★**官方 EC 表: Shutdown Current ISD (VIN=5.5 V, VON=0 V) TJ=−40~85 °C → typ 0.15 µA / ★max 0.5 µA; TJ=−40~125 °C → typ 0.15 µA / max 1.2 µA; Supply Leakage Current in Shutdown Mode ILEAKAGE 同档; Quiescent Current IQ (VIN=3.3 V) typ 0.37 µA / max 1.1 µA; (VIN=5.5 V) typ 0.57 µA / max 1.5 µA; ON Pin Leakage Current ION 10 nA typ / 900 nA max; Reverse Current When Disabled IRC 10 nA typ / 900 nA max** ⇒ **typ 与 max 双双满足 ≤5 µA** (官方 FEATURES 栏: Low Shutdown Current 0.15 µA TYP · Low Quiescent Current 0.23 µA TYP) `[官网]`。
+- **判据 5**: ★**有, True RCB** —— ★**官方 EC 表原文: "True Reverse Current Blocking / RCB Protection Trip Point VT_RCB (VOUT − VIN): typ 6 mV, min 24 mV, max 50 mV / RCB Hysteresis VRCB_HYS: 30 mV"**; ★**官方 APPLICATION INFORMATION 原文: "The reverse current protection function is activated when VOUT is higher than VIN by VT_RCB. The reverse current protection is enabled whether the ON pin is high or low. This function prevents the current flowing from OUT to IN…"** ⇒ **导通态也挡**, 比 SGM2572 的「仅禁用态」更强 `[官网]`。
+  - ★**⚠️ 官方手册内部措辞不一致 (本轮如实记录, 不替厂家圆场)**: 同一份手册的 FEATURES 栏写的是「**Reverse Current Protection When Disabled**」(与 SGM2572 同措辞), 而 EC 表写「**True Reverse Current Blocking**」、APPLICATION INFORMATION 写「enabled whether the ON pin is high or low」、FUNCTIONAL BLOCK DIAGRAM 里也画了 Reverse Current Blocking 模块 ⇒ ★**以 EC 表 + 应用说明 + 功能框图三处一致为准 = True RCB (导通态也挡); FEATURES 那一行按厂家的简写看待, 不作反向证据** `[官网]`。
+- **判据 6**: 0.578 mm² (WLCSP-0.76×0.76-4B) ⇒ 满足, 6 个候选里最小; 官方热阻 θJA = 221 ℃/W / θJB = 82.6 ℃/W / θJC = 92.9 ℃/W `[官网]`。
+- **判据 7**: ★**官方 PACKAGE/ORDERING INFORMATION 表 SPECIFIED TEMPERATURE RANGE = −40 ℃ to +125 ℃** (两个 OPN 皆是) ⇒ **满足**, 上限余量 40 °C `[官网]`。
+- **判据 8**: ★**官方 RECOMMENDED OPERATING CONDITIONS: ON Pin Input High Voltage VIH = 0.71 V to 5.5 V / ON Pin Input Low Voltage VIL = 0 V to 0.3 V** ⇒ 3.3 V GPIO 可直接驱动 ⇒ **满足**; 官方 FEATURES「Low Threshold 1.2V GPIO Control Input」+「Smart ON」(上电期间智能下拉电阻避免 ON 引脚悬空, ON > VIH 后断开 ⇒ 默认态确定) + EC 表 Smart Pull-Down Resistance RPD_ON = 1 MΩ (Disabled) · Output Pull-Down Resistance RPD = 230 Ω typ / 300 Ω max (仅 SGM2575SAD 有 QOD) ⇒ **默认态有内部下拉兜底 (外部 10k 下拉仍保留)**; 另有 UVLO: VUVLO_R 0.94 V typ / 1.26 V max (TJ=−40~125 °C), 迟滞 100 mV ⇒ SYS 下限 3.5 V 场景不受影响 `[官网]`。
+- **★订购信息 (官方 PACKAGE/ORDERING INFORMATION 表)**: SGM2575SAYG/TR (marking 01) 与 ★**SGM2575SADYG/TR (marking 00)**, 均为 WLCSP-0.76×0.76-4B · −40 ℃ to +125 ℃ · Tape and Reel 4000 `[官网]`。
 
 ---
 
@@ -160,12 +181,14 @@
 | **TPS22916BYFPR** | **有** | 「Always-ON true Reverse Current Blocking (RCB): Activation current (IRCB): −500 mA (typ.) / Reverse leakage (IIN,RCB): −300 nA (max.)」 | TI 官网产品页 Features | [官网] |
 | **TPS22917xDBVR** | **有** | 「Always-ON true Reverse Current Blocking (RCB): Activation current (IRCB): −500 mA (typical) / Reverse leakage (IIN,RCB): −1 µA (maximum)」 | TI 官网产品页 Features | [官网] |
 | **TPS22910AYZVR** | **有** | 「The TPS22910A, TPS22912C, and TPS22913B/C devices provide reverse current protection in ON and OFF states. An internal reverse voltage comparator disables the power-switch when the output voltage (VOUT) is driven higher than the input voltage (VIN), by VRCP, to quickly (10 µs typ) stop the flow of current towards the input side of the switch. Reverse current protection is always active, even when the power-switch is disabled.」 | TI 官网产品页 描述栏 | [官网] |
-| **SGM2572ADYG/TR** | **有** (仅禁用态) | 「禁用时提供反向电流保护」+「适用于功率区应用的双向电源」 | 圣邦微官网产品页 特性栏 | [官网] |
-| **SGM2575SADYG/TR** | **有** (True, 导通态也挡) | 「The reverse current protection function is activated when VOUT is higher than VIN by VT_RCB. The reverse current protection is enabled whether the ON pin is high or …」+ 「True Reverse Current Blocking (RCB) Protection Trip Point VT_RCB: VOUT − VIN, 6 mV typ, 24 / 50 mV; RCB Hysteresis VRCB_HYS 30 mV」 | 圣邦微数据手册 SGM2575S.PDF | [媒体] |
+| **SGM2572ADYG/TR** | **有** (仅禁用态) | ★**官方数据手册 APPLICATION INFORMATION 原文: "If the ON pin is pulled low, the device is disabled, while VIN > 1V or VOUT > 1V is met, the reverse current protection function is activated. This function prevents the current flowing from VOUT to VIN…"** (★**全手册无 "True Reverse Current Blocking" 字样、无 VT_RCB 行 ⇒ 官方坐实「仅禁用态」★) | 圣邦微官方数据手册 SGM2572.pdf (MAY 2022, SG Micro Corp) §APPLICATION INFORMATION + FEATURES 栏 | [官网] |
+| **SGM2575SADYG/TR** | **有** (True, 导通态也挡) | ★**官方数据手册 APPLICATION INFORMATION 原文: "The reverse current protection function is activated when VOUT is higher than VIN by VT_RCB. The reverse current protection is enabled whether the ON pin is high or low. This function prevents the current flowing from OUT to IN…"** + ★**EC 表原文: "True Reverse Current Blocking / RCB Protection Trip Point VT_RCB (VOUT − VIN): typ 6 mV, min 24 mV, max 50 mV / RCB Hysteresis VRCB_HYS: 30 mV"** | 圣邦微官方数据手册 SGM2575S.PDF (JULY 2025 – REV.A.1, SG Micro Corp) §APPLICATION INFORMATION + §ELECTRICAL CHARACTERISTICS | [官网] |
 | TPS22918DBVR (★查过 = 无) | **无** | 官网 Features 只有「Inrush current control, Quick output discharge」 | TI 官网产品页 | [官网] |
 | TPS22919DCKR (★查过 = 无) | **无** | 官网 Features 只有「Inrush current control, Quick output discharge, Short circuit protection, Thermal shutdown」 | TI 官网产品页 | [官网] |
 
 > ★**brief 点名的「TPS22918 / TPS22919 一类是不是带 RCB」已按官方数据手册/官网 Features 逐个核过**: ★**这两款都【不带】RCB** —— 它们是「可调上升时间 + 可调 QOD」型 (TPS22918 SOT-23-6, RON 52 mΩ @5V / 53 mΩ @3.3V, IQ 8.3 µA, 2A, −40~+105 °C; TPS22919 SC70-6, RON 89/90/105 mΩ, IQ 8 µA, ISD 2 nA, 1.5A, 带短路保护, −40~+125 °C) ⇒ **不要把它们当 RCB 备选** `[官网]`。
+> ★**2026-11-17 04:5x 本轮独立复核 (TI 官网产品页实抓)**: TPS22991 Features 栏 = 「Inrush current control, Quick output discharge, Thermal shutdown」(★无 RCB 条目★) · TPS22916 Features 栏 = 「Always-ON true Reverse Current Blocking (RCB) / Activation current (IRCB): −500 mA (typ.) / Reverse leakage (IIN,RCB): −300 nA (max.)」 · TPS22917 Features 栏 = 同型 (反向漏 −1 µA max) · TPS22910A Features 栏 = 「Full-Time Reverse Current Protection」+ 描述栏「Reverse current protection is always active, even when the power-switch is disabled.」 · TPS22918 Features 栏 = 「Inrush current control, Quick output discharge」(★无 RCB★) · TPS22919 Features 栏 = 「Inrush current control, Quick output discharge, Short circuit protection, Thermal shutdown」(★无 RCB★) ⇒ ★**六款 TI 候选的 RCB 判定逐条被官网原文坐实, 零推断** `[官网]`。
+> ★**⚠️ 官方手册内部措辞不一致 (如实记录, 不替厂家圆场)**: SGM2575S 手册 FEATURES 栏写「Reverse Current Protection When Disabled」(与 SGM2572 同措辞), 但 EC 表写「True Reverse Current Blocking」、APPLICATION INFORMATION 写「enabled whether the ON pin is high or low」、功能框图也画了 Reverse Current Blocking 模块 ⇒ ★**以三处一致为准 = True RCB (导通态也挡); FEATURES 那一行按厂家简写看待, 不作反向证据** `[官网]`。
 
 ### 3.2 为什么 RCB 对本板是**硬需求**而不是形式条款
 
@@ -178,6 +201,30 @@
 - 就本次查证范围 (TI TPS229xx 单路族 91/16/17/18/19/10A + 圣邦微 SGM2572 / SGM2575S): 带 RCB 的 5 款封装分别是 DSBGA-4 YFP · SOT-23-6 DBV · DSBGA-4 YZV · WLCSP-0.8×0.8-4B · WLCSP-0.76×0.76-4B ⇒ **没有一款是现网表 footprint 的 UQFN-4 RAA (0.85 × 0.75, 0.4 mm pitch)** ⇒ ★**必须走降级方案**。
 - ★**残留缺口 [0数据]**: TI 官网参数筛选器里「4 脚 UQFN-HR (RAA) 全系 + 带 RCB」的型号本轮**未逐项穷举** ⇒ 若老板要 100% 穷举, 需按官网 Load Switch 参数筛选器 (Package = UQFN-HR 4 / Reverse Current Protection = Yes) 过滤后逐个核数据手册 ⇒ **这是一条人工动作, 本单不做, 也不能靠推断代替**。
 
+### 3.4 ★★2026-11-17 补证后的两条新事实 (★都在本轮实抓的官方手册里★)
+
+- ★**事实 A — 三颗带 RCB 的候选共用同一套球编号, 且都不是网表的 1/2/3/4**:
+
+  | 型号 | 官方手册 PIN CONFIGURATION (TOP VIEW) | 与网表 1=VIN/2=ON/3=VOUT/4=GND |
+  |---|---|---|
+  | TPS22916BYFPR (DSBGA-4 YFP) | A1 VOUT / A2 VIN / B1 GND / B2 ON | ★**不兼容** |
+  | SGM2572ADYG/TR (WLCSP-0.8×0.8-4B) | A1 VOUT / A2 VIN / B1 GND / B2 ON | ★**不兼容** |
+  | SGM2575SADYG/TR (WLCSP-0.76×0.76-4B) | A1 OUT / A2 IN / B1 GND / B2 ON | ★**不兼容** |
+
+  ⇒ ★**改板价值**: ① 三颗 RCB 候选的**逻辑引脚排布完全一致** ⇒ 原理图符号可共用, 改板只需画一套「VOUT 在 A1 / VIN 在 A2」的 footprint 家族 (物理封装不同: BGA-4 bump / WLCSP-0.8 / WLCSP-0.76); ② ★**反过来看, 现网表的 UQFN-4 RAA (1=VIN/2=ON/3=VOUT/4=GND) 与三颗 RCB 候选没有任何一颗引脚对得上** ⇒ ★**改板不是「换个料」, 是「换引脚编号体系」⇒ 板那一趟必须重核每一根线** `[官网]` + `[推算]`。
+- ★**事实 B — ★「唯一 RCB + RON ≤ 40 mΩ 双满足」只在 typ 口径成立, max 口径下没有任何一颗 RCB 候选过判据 3★**:
+
+  | 型号 | RON typ | RON max | 对判据 3 (≤40 mΩ @3.7V) |
+  |---|---|---|---|
+  | TPS22991RAA (无 RCB) | 25 mΩ @5V | 本轮未取得 | typ ✔ |
+  | TPS22916BYFPR (RCB) | 60 mΩ @5V | **100 mΩ @85 °C** | typ ✘ / max ✘ |
+  | TPS22917xDBVR (RCB) | 80 mΩ @5V | 本轮未取得 | typ ✘ |
+  | TPS22910AYZVR (RCB) | 60 mΩ @5V / 61 mΩ @3.3V | 本轮未取得 | typ ✘ |
+  | SGM2572ADYG/TR (RCB 仅禁用态) | 34 mΩ | **60 mΩ** | typ ✔ / max ✘ |
+  | **SGM2575SADYG/TR (True RCB)** | **30 mΩ** | **63 mΩ** | ★**typ ✔ / max ✘** |
+
+  ⇒ ★**SGM2575S 仍是「唯一 typ 口径同时带 True RCB 且 RON ≤ 40 mΩ」的在售型号**, 但 ★**max 口径下 63 mΩ 超判据 3 门槛 57%** ⇒ **[推算] 压降**: 按网表 L37 的 SYS 最大 0.55 A 算, 63 mΩ ⇒ **34.7 mV**; 按 1 A 算 ⇒ **63 mV**; 按 2 A 算 ⇒ **126 mV** (SYS 下限 3.5 V, SoC UVLO 3.5 V) ⇒ ★**按本板真实工况 (0.55 A) 压降可接受; 按 2 A 满载口径不可接受** ⇒ 判据 2 与网表 L37 的口径冲突 (§1 末) 在这里变成了**可量化的分歧点**, 请老板与 main 一并裁。
+
 ---
 
 ## §4 建议 (按 A5 建议序打分 · ★不代拍★)
@@ -188,15 +235,16 @@
 |---|---|---|---|---|---|
 | C1 TPS22991RAA | ✘ 无 | △ typ 14 nA ✔ / ★max 20 µA ✘ | ✔ 25 mΩ (最优) | ✔ 0.6375 mm² **+ 同封装 = 不改板** | **若 ④ 优先 ⇒ 推荐 (唯一不改板)**, RCB 缺口走 FB1 |
 | C2 TPS22916BYFPR | ✔ Always-ON true | ✔ 10 nA typ / 100 nA max | ✘ 60 mΩ | ✔ 1 mm² (改板) | 若 ①+② 优先 ⇒ 推荐; 压降代价最大的一档 |
-| C3 SGM2572ADYG/TR | ✔ (仅禁用态) | ✔ 90 nA typ | ✔ 34 mΩ | ✔ 0.64 mm² (改板) | 中庸档; ★禁用态阻断正好覆盖关机场景, 导通态不挡 |
+| C3 SGM2572ADYG/TR | ✔ (仅禁用态) | ✔ 90 nA typ / 440 nA max | ✔ 34 mΩ typ / ✘ 60 mΩ max | ✔ 0.64 mm² (改板) | 中庸档; ★禁用态阻断正好覆盖关机场景, 导通态不挡 |
 | C4 TPS22917xDBVR | ✔ Always-ON true | ✔ 10 nA typ | ✘ 80 mΩ | ✘ 8.12 mm² (超判据 6) | 不推荐 (面积 + 压降双输) |
 | C5 TPS22910AYZVR | ✔ Full-Time | ✔ 1.2 µA typ | ✘ 61 mΩ | ✔ 1.5625 mm² (改板) | 次选 (RCB 语义最强, 导通态也挡) |
-| C6 SGM2575SADYG/TR | ✔ True RCB | ✔ 10 nA typ / 900 nA max | ✔ **30 mΩ (带 RCB 里最优)** | ✔ **0.578 mm² (最小)** (改板) | **若 ① 排最前 ⇒ 推荐这个** (唯一 RCB + RON 双满足) |
+| C6 SGM2575SADYG/TR | ✔ True RCB | ✔ 0.15 µA typ / 0.5 µA max | ✔ **30 mΩ typ (带 RCB 里最优)** / ✘ 63 mΩ max | ✔ **0.578 mm² (最小)** (改板) | **若 ① 排最前 ⇒ 推荐这个** (唯一 typ 口径 RCB + RON 双满足) |
 
-★**三条给老板的落点**:
-1. ★**A5 说的「判据互斥」在本次查证范围内不成立**: `TPS22916/17` 确实是「有 RCB 但 RON 60~80 mΩ」, 但 ★**国产 `SGM2575S` 把互斥打破了** (True RCB + 30 mΩ + 2A + 0.578 mm²) ⇒ 老板的优先级序可以变成「① 优先且不改 RON」⇒ 代价从「改板」+「压降变大」变成只有「改板 + 须核 4-ball 引脚定义」。
+★**四条给老板的落点**:
+1. ★**A5 说的「判据互斥」在本次查证范围内不成立**: `TPS22916/17` 确实是「有 RCB 但 RON 60~80 mΩ」, 但 ★**国产 `SGM2575S` 把互斥打破了** (True RCB + 30 mΩ typ + 2A + 0.578 mm²) ⇒ 老板的优先级序可以变成「① 优先且不改 RON」⇒ 代价从「改板」+「压降变大」变成只有「改板 + 须核 4-ball 引脚定义」。
 2. ★**唯一不用改板的是 TPS22991RAA, 但它有两处硬伤**: ① 无 RCB (关机插 USB 会反灌, §3.2 已证); ② 关断漏电 max 20 µA 超判据 4 (关机账 108 µA 的 18.5%)。
-3. ★**本单不代拍优先级序, 也不代拍型号** ⇒ 请老板在 §A5 上给一句「① 优先 / ④ 优先 / ② 优先」, 本单的矩阵立刻能收敛成一个型号 + 一条降级路线。
+3. ★**2026-11-17 补证新增的第 3 条落点 — ★「唯一 RCB + RON 双满足」只在 typ 口径成立★**: SGM2575S 的官方 EC 表给出 **RDSON max = 63 mΩ** (SGM2572 是 60 mΩ) ⇒ ★**max 口径下没有任何一颗带 RCB 的在售型号能过判据 3 的 40 mΩ 门槛** ⇒ 请老板在拍优先级序时★**一并拍「RON 按 typ 还是按 max 判」** ⇒ [推算] 按本板真实工况 (网表 L37: SYS 最大 0.55 A) 算, 63 mΩ 的压降只有 **34.7 mV**; 按 1 A 算 63 mV; 按 2 A 算 126 mV ⇒ ★**「0.55 A 还是 2 A」这个口径分歧, 直接决定 RCB 候选能不能上**。
+4. ★**本单不代拍优先级序, 也不代拍型号** ⇒ 请老板在 §A5 上给一句「① 优先 / ④ 优先 / ② 优先」, 本单的矩阵立刻能收敛成一个型号 + 一条降级路线。
 
 ---
 
@@ -216,14 +264,14 @@
 
 ### FB2 —— 改板路线: 换成带 RCB 的在售型号
 
-- **改了什么**: 换 U_PWR_SW 的封装与型号 ⇒ 首选 **SGM2575SADYG/TR** (True RCB · 30 mΩ · 2A · 0.578 mm²), 次选 **TPS22910AYZVR** (Full-Time RCB · 61 mΩ @3.3V), 再次 **TPS22916BYFPR** (Always-ON true RCB · 60 mΩ @5V) 或 **TPS22917xDBVR** (RCB · 80 mΩ @5V · 但面积超判据 6) · 变体 D: 若 RCB 缺口被判为「由充电板/结构侧保证」(USB 5V 永不与 SYS 相连), 则整条改板路线可免, 直接落 TPS22991RAA · 变体 E: 极端方案 —— 换带理想二极管/电源路径管理的 SoM 或换电池供电方案 (把反灌问题挪到 SoM 侧解决)。
-- **代价**: 面积 SGM2575S 0.578 mm² (比现 RAA 的 0.6375 mm² 还小一点) / TPS22910A 1.5625 mm² / TPS22916 1 mm² / TPS22917 8.12 mm² (超判据 6) · 工艺 ★**改板 = 改原理图 + 改 PCB footprint + 重跑 DRC/ERC + 重跑网表/脚表门禁 ⇒ 板那一趟必须排进计划** (ISS-172 落表后才能启动) · 延期 ★板改版 + 重新投板 + 重测, 按本项目节奏至少 1~2 个排期窗口; ★**SGM2575S / SGM2572 的 4-ball 引脚定义本轮为 [0数据] ⇒ 改板前必须先拿到数据手册原表核对 4 个 ball 的 VIN/ON/VOUT/GND 编号 (这是改板返工代价最高的一项)** · 变体 E 代价最大 (SoM/电池方案重选 + 全部下游电源树重画), 不在本单范围。
+- **改了什么**: 换 U_PWR_SW 的封装与型号 ⇒ 首选 **SGM2575SADYG/TR** (True RCB · 30 mΩ typ / 63 mΩ max · 2A · 0.578 mm²), 次选 **TPS22910AYZVR** (Full-Time RCB · 61 mΩ @3.3V), 再次 **TPS22916BYFPR** (Always-ON true RCB · 60 mΩ @5V) 或 **TPS22917xDBVR** (RCB · 80 mΩ @5V · 但面积超判据 6) · 变体 D: 若 RCB 缺口被判为「由充电板/结构侧保证」(USB 5V 永不与 SYS 相连), 则整条改板路线可免, 直接落 TPS22991RAA · 变体 E: 极端方案 —— 换带理想二极管/电源路径管理的 SoM 或换电池供电方案 (把反灌问题挪到 SoM 侧解决)。
+- **代价**: 面积 SGM2575S 0.578 mm² (比现 RAA 的 0.6375 mm² 还小一点) / TPS22910A 1.5625 mm² / TPS22916 1 mm² / TPS22917 8.12 mm² (超判据 6) · 工艺 ★**改板 = 改原理图 + 改 PCB footprint + 重跑 DRC/ERC + 重跑网表/脚表门禁 ⇒ 板那一趟必须排进计划** (ISS-172 落表后才能启动) · 延期 ★板改版 + 重新投板 + 重测, 按本项目节奏至少 1~2 个排期窗口; ★**2026-11-17 补证: SGM2575S / SGM2572 / TPS22916 三颗候选的官方引脚原表已全部取到 (见 §3.4 事实 A) ⇒ 原来那条「引脚定义 [0数据] ⇒ 改板前必须先核原表」的前置阻塞【已关闭】; 但新固化成一条必做动作: 三颗候选的球编号都是 A1=VOUT/A2=VIN/B1=GND/B2=ON, 与现网表 1=VIN/2=ON/3=VOUT/4=GND 【无一兼容】⇒ 板那一趟必须逐线重核, 不是换个料号了事** · 变体 E 代价最大 (SoM/电池方案重选 + 全部下游电源树重画), 不在本单范围。
 - **适用条件**: 老板把 ① (反向阻断) 排在最前且接受改板 ⇒ 这是「把反灌硬约束做实」的唯一无缺口路线; 若同时要求 RON ≤ 40 mΩ, 则本次查证范围内只有 **SGM2575S** 同时满足。
-- **依据**: `[官网]` / `[媒体]` 各型号的封装 / RCB / RON / IQ 数值见 §6 出处表; `[实测]` 现网表 footprint 与引脚定义来自 `HW/netlist_v1.csv` L50/L58; `[推算]` 排期代价按本项目板改版既有节奏估计 (本轮未取项目管理排期表), 具体天数由项目总工核。
+- **依据**: `[官网]` / `[媒体]` 各型号的封装 / RCB / RON / IQ 数值见 §6 出处表; ★**2026-11-17: 圣邦微两颗候选已从 [媒体] (搜索引擎文本化 / 第三方镜像) 升级为 [官网] (官方 PDF 直取) ⇒ 全文已无 [媒体] 依赖** `[实测]` 现网表 footprint 与引脚定义来自 `HW/netlist_v1.csv` L50/L58; `[推算]` 排期代价按本项目板改版既有节奏估计 (本轮未取项目管理排期表), 具体天数由项目总工核。
 
 ---
 
-## §6 出处表 (取数时间 2026-11-16 11:47~11:52 GMT+8 · 全部公开数据手册/官网)
+## §6 出处表 (取数时间 ★第 1 轮 2026-11-16 11:47~11:52 GMT+8 + 第 3 轮补证 2026-11-17 04:52~04:57 GMT+8★ · 全部公开数据手册/官网)
 
 | # | 来源 | 类型 | 用于 | 等级 |
 |---|---|---|---|---|
@@ -237,13 +285,13 @@
 | S8 | TI 官网产品页 `https://www.ti.com/product/TPS22918` (Features 只有 Inrush current control / Quick output discharge ⇒ **无 RCB**; RON 52 mΩ @5V / 53 mΩ @3.3V; IQ 8.3 µA; 2A; SOT-23-6; −40~+105 °C) | 官网 | §3.1 「查过 = 无」 | [官网] |
 | S9 | TI 官网产品页 `https://www.ti.com/product/TPS22919` (Features 无 Reverse current protection ⇒ **无 RCB**; RON 89/90/105 mΩ; IQ 8 µA; ISD 2 nA; 1.5A; SC70-6; −40~+125 °C) | 官网 | §3.1 「查过 = 无」 | [官网] |
 | S10 | 圣邦微官网产品页 `https://www.sg-micro.com/cn/product/SGM2572` (特性栏: 1V~5.5V / 2A / RON 34 mΩ @5V 与 @3.3V / 关断电流 90 nA typ / 禁用时反向电流保护 / 低阈值 1.8V GPIO / 双向电源 / 上升时间 A 85µs B 1600µs C 2200µs / 快速输出放电 / WLCSP-0.8×0.8-4B; 订购信息栏: 量产 · −40℃~+85℃ · 3 个 OPN) | 官网 | C3 全部 8 格 + RCB 判定 | [官网] |
-| S11 | 圣邦微数据手册 `https://www.sg-micro.com/rect/assets/a8959667-d386-4c95-a64d-205e9b7b4446/SGM2575S.PDF` (2 JULY 2025, SG Micro Corp; 标题 5.5V/2A/30 mΩ RDSON + Reverse Current Protection; True RCB 触发点 6 mV typ / 24 / 50 mV, 迟滞 30 mV; IRC 10 nA typ / 900 nA max; ION 10 nA typ / 900 nA max; RPD 230/300 Ω; 智能下拉 1 MΩ; WLCSP-0.76×0.76-4B) | 原厂数据手册 (本轮经搜索引擎文本化抓取, PDF 直取为二进制) | C6 全部 8 格 + RCB 判定 | [媒体] |
-| S12 | SGMICRO 官方选型指南 2025 Q3 (Avnet 镜像) `https://my.avnet.com/wcm/connect/04f1699a-86ea-4f07-b19d-0aa9aab2b58a/SGMICRO+Product+Selection+Guide+(2025+Q3).pdf` (行 SGM2572: 静态 0.22 µA / 关断 <0.44 µA; 行 SGM2575S: 静态 0.23 µA / VIN 1.2–5.5 V / 2A) | 原厂文档的第三方镜像 | C3 判据 4 · C6 判据 1/2/4 | [媒体] |
+| S11 | ★**圣邦微官方数据手册 (2026-11-17 直取, 非搜索引文) `https://www.sg-micro.com/rect/assets/a8959667-d386-4c95-a64d-205e9b7b4446/SGM2575S.PDF`** (PDF 779390 B · 7 页 · JULY 2025 – REV.A.1, SG Micro Corp; 标题 5.5V/2A/30 mΩ RDSON + Reverse Current Protection; ★**ABSOLUTE MAXIMUM RATINGS: VIN/VOUT/VON −0.3 V to 6 V · IMAX 2 A**; ★**PIN CONFIGURATION (TOP VIEW): A1 OUT / A2 IN / B1 GND / B2 ON**; ★**EC 表: RDSON 30 mΩ typ / ★63 mΩ max @5.5 V 与 @3.3 V, 48 mΩ @1.2 V; ISD 0.15 µA typ / 0.5 µA max (-40~85 °C) / 1.2 µA max (-40~125 °C); IQ 0.37 µA typ / 1.1 µA max @3.3 V; IRC 10 nA typ / 900 nA max; ION 10 nA typ / 900 nA max; RPD 230/300 Ω; RPD_ON 1 MΩ; ★**True Reverse Current Blocking VT_RCB typ 6 mV / min 24 / max 50 mV, 迟滞 30 mV**; VIH 0.71 V / VIL 0~0.3 V; UVLO 0.94/1.26 V; WLCSP-0.76×0.76-4B; θJA 221 ℃/W; 订购表 SGM2575SAYG/TR + SGM2575SADYG/TR, −40℃ to +125℃**) | 原厂官方数据手册 (★官方服务器直取 PDF + 本机 pdftotext 提取, 非搜索引擎引文★) | C6 全部 8 格 + 引脚定义 + RCB 判定 | [官网] |
+| S12 | ★**圣邦微官方数据手册 (2026-11-17 直取) `https://www.sg-micro.com/rect/assets/2cfc9d3d-567e-4a1a-b62e-e71150753502/SGM2572.pdf`** (PDF 28 页 · MAY 2022, SG Micro Corp; ★**ABSOLUTE MAXIMUM RATINGS: VIN/VOUT/VON −0.3 V to 6 V · IMAX 2 A · IPLS 2.5 A (pulse <300 µs, 2% duty) · θJA 279 ℃/W**; ★**PIN CONFIGURATION (TOP VIEW): A1 VOUT / A2 VIN / B1 GND / B2 ON**, PIN DESCRIPTION 原文「B2 ON — Switch Control Input. Active high enables the device. Do not float this pin.」; ★**EC 表: RON 34 mΩ typ / ★60 mΩ max @5 V 与 @3.3 V; ISD 90 nA typ / 440 nA max; IQ 220 nA typ / 400 nA max @3.3 V; ILEAKAGE 450 nA max; ION 420 nA max; IRC 1 µA max; RPD 280/370 Ω; VIH 1.1 V / VIL 0~0.4 V**; ★**APPLICATION INFORMATION 原文「If the ON pin is pulled low, the device is disabled, while VIN > 1V or VOUT > 1V is met, the reverse current protection function is activated…」且全手册无 "True Reverse Current Blocking" / VT_RCB**; WLCSP-0.8×0.8-4B; 订购表 SGM2572AD/BD/CDYG/TR, −40℃ to +85℃**) | 原厂官方数据手册 (★官方服务器直取 PDF + 本机 pdftotext 提取★) | C3 全部 8 格 + 引脚定义 + RCB 判定 | [官网] |
 | S13 | `HW/POWER_SHUTDOWN_V3.md` §2 (8 条判据原文 · 只读) + §3 (Q_PG P-MOS 高边 / ON 脚 10k 下拉 / 真关机拓扑) + §6 (关机功耗预算 ~108 µA) | 项目内部文档 (只读) | §1 判据 · §3.2 拓扑依据 · §4 关机账占比 | [实测] (项目内部口径) |
 | S14 | `HW/netlist_v1.csv` L37 (SYS 3.0–4.2V / 最大 0.55A / SYS 下限 3.5V / SoC UVLO 3.5V) · L50 (U_PWR_SW 本体行, value 栏 = `[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)`, footprint = UQFN-4 RAA 0.85 x 0.75 mm 0.4 mm pitch, OPN = TPS22991RAA) · L56 (`R_PD_ON` 10k) · L58 (ON 节点) · L440–L444 (U_EN_SW 引脚与 CARRIER_BOARD_EN) | 网表 (只读) | §1 判据串对照 · §2 引脚一致性 · §3.2 · §5 代价推算 | [实测] |
 | S15 | `SW/SHUTDOWN_SEMANTICS_SPEC.md` §3 (ISS-234 交卷: Q2 推荐 TPS22991RAA + 要求登记「无 RCB」缺口 + N-1「整机负载开关选型必须同时看 RON/IQ/RCB 三条」) + `DECISION_PENDING_2026-11-16.md` §A5 / §Q2 (拍板待办 + 建议优先级序) | 项目内部文档 (只读) | §0 摘要 · §3 缺口承接 · §4 打分依据 | [实测] (项目内部口径) |
 
-> ★**证据等级统计**: `[官网]` 为主 (TI 官网产品页 + 数据手册 + 圣邦微官网产品页) · `[媒体]` 仅用于「原厂数据手册经搜索引擎文本化抓取」与「原厂选型指南的第三方镜像」 · `[推算]` 只用于压降/漏电/关机账占比/排期代价的推导 · `[0数据]` 明确标出本轮没查到的格子 · ★**实物 [实测] = 0 条**。
+> ★**证据等级统计 (2026-11-17 补证后)**: `[官网]` 占绝对主体 (TI 官网产品页 ×5 + TI 数据手册 ×3 + 圣邦微官网产品页 ×2 + ★**圣邦微官方数据手册 PDF 直取 ×2★) · ★**全文已无 [媒体] 依赖** (上一轮的 [媒体] 来自「搜索引擎文本化引文」与「原厂选型指南的第三方镜像」, 本轮全部换成官方服务器直取 PDF) · `[推算]` 只用于压降/漏电/关机账占比/排期代价的推导 · `[0数据]` 只剩两处 (TI 官网筛选器未穷举 UQFN-HR+RCB 全系 · TPS22917/TPS22910A 的 RON max 档未取得) · ★**实物 [实测] = 0 条**。
 
 ---
 
@@ -251,11 +299,14 @@
 
 | # | 落表时必须一起改的项 | 现状 | 归属 |
 |---|---|---|---|
-| L1 | `HW/netlist_v1.csv` L50 的 value 栏 `[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)` ⇒ 换成老板拍定的型号 + 判据串 | ★**本单不改** (等老板拍板) | 落表批次 |
+| L1 | `HW/netlist_v1.csv` L50 的 value 栏 `[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)` ⇒ 换成老板拍定的型号 + 判据串 | ★**2026-11-16 22:25 已由 hw-lead 的 ISS-257 落表批次落成 `TPS22991RAA (负载开关 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA · ≥2A · R_on 25mΩ@5V · 无 RCB ⇒ 选型口径待 A5 追认)` ⇒ 本单不需改, 但 ★**它落的是「不改板」分支, 「无 RCB」缺口仍在 ⇒ 仍等 §A5 追认** | 已落 (ISS-257) · 追认等老板 |
 | L2 | 同行的 OPN 栏 `TPS22991RAA` ⇒ 补全变体字母 (B/BN/C/CN 之一, 影响 QOD 有无与上电斜率) | 本单只报 | 落表批次 |
 | L3 | L442 `U_EN_SW` 的 value 栏 `TPS22991RAA (负载开关: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85 x 0.75 mm)` ⇒ 若整机型号改封装, 这颗也要一起改 | 本单只报 | 落表批次 |
 | L4 | 若选带 RCB 的改板型号 ⇒ 原理图 + PCB footprint 一起改 (DSBGA-4 / WLCSP-4 ball 的焊盘编号与现 RAA 不同) | 本单只报 | hw-lead (板那一趟) |
-| L5 | 判据 2 与网表 L37 的口径冲突 (2A vs 0.55A) | 本单只报 | 老板 / main 裁 |
+| L5 | 判据 2 与网表 L37 的口径冲突 (2A vs 0.55A) ★**2026-11-17 补证后升级为量化分歧点**: max 口径下 RCB 候选全部不过判据 3 (SGM2575S 63 mΩ / SGM2572 60 mΩ), 而按 0.55 A 实工况压降只有 34.7 mV ⇒ ★**这一句直接决定 RCB 候选能不能上** | 本单只报 | 老板 / main 裁 |
+
+
+> ★**§7 表下补记 (2026-11-17 第 2 轮)**: ★**L1 已由 ISS-257 (hw-lead) 落表** (value 栏 = `TPS22991RAA (负载开关 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA · ≥2A · R_on 25mΩ@5V · 无 RCB ⇒ 选型口径待 A5 追认)`) ⇒ ★**不是本单落的, 本单一个字都没改网表**; ★**L2 (OPN 补变体字母) 仍开着** (落表串用的就是 `TPS22991RAA` 无变体后缀, 而 TI 有 B/BN/C/CN 四个变体: 上电上升时间 141 µs vs 662 µs, QOD 有无也不同 ⇒ 上电斜率与 QOD 行为仍**未锁**) ⇒ ★**L3 (L442 跟着改) 未触发** (本轮不改封装) ⇒ ★**L5 (判据 2 与 L37 的 2A vs 0.55A 口径冲突) 仍开着** ⇒ ★**落表后残留 3 条缺口 (G-1 / G-2 / G-3), 见 §9.2**。
 
 ---
 
@@ -264,10 +315,77 @@
 ```bash
 cd projects/smart_glasses
 python3 SW/tools/check_load_switch_selection.py             # rc=0 = 证据矩阵门禁全过
-python3 SW/tools/check_load_switch_selection.py --selftest   # rc=0 = 8/8 反向用例全红
+python3 SW/tools/check_load_switch_selection.py --selftest   # rc=0 = 12/12 反向用例全红 (M1~M8 第1轮 + M9~M12 第2轮)
+python3 SW/tools/check_load_switch_selection.py --sandbox    # rc=0 = 4/4 ★真改网表★的反向自证 (C9 抓的是网表那一侧)
 python3 SW/tools/check_shutdown_semantics.py                 # rc=0 (ISS-234 的闸, 本单不许打红)
 python3 state/merge.py && python3 state/gate_check.py         # rc=0, Q1 18/18
 ```
+
+
+## §9 第 2 轮 (2026-11-17) 落表后回归 —— 快照重锚 + C9 门禁
+
+### 9.1 落表后网表现状 (2026-11-17 实读 · [实测])
+
+| 位置 | 落表前 (第 1 轮快照) | 落表后 (现行真值) | 归属 |
+|---|---|---|---|
+| `HW/netlist_v1.csv` L50 value 栏 | `[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)` | `TPS22991RAA (负载开关 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA · ≥2A · R_on 25mΩ@5V · 无 RCB ⇒ 选型口径待 A5 追认)` | ISS-257 (hw-lead) |
+| 同行证据等级栏 | `[推算]` | `[官方]` | ISS-257 (hw-lead) |
+| 同行 OPN 栏 | `TPS22991RAA` | `TPS22991RAA` (**一字未改**) | 本来就在 |
+| 同行 footprint 栏 | `UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch` | **一字未改** | 本来就在 |
+| L442 (`U_EN_SW`) value 栏 | `TPS22991RAA (负载开关: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85 x 0.75 mm)` | **一字未改** | —— |
+| 现行网表 md5 | `34132f7e…` (第 1 轮交卷时) | `e06c1dd633566aa44732762c2ff99d1c` | ISS-249 / 257 / 262 / 268 (hw-lead) |
+
+> ★**md5 漂移归属**: 网表 / 脚表 / BOM 三个 md5 自第 1 轮交卷后变了 ⇒ ★**全部是 hw-lead 的落表批次 (ISS-249 / ISS-257 / ISS-262 / ISS-268) 干的, 不是本单** ⇒ 本单对 `HW/` 的写入量 = **0 字节** (只读)。板 md5 `611b869e…` 自始至终一字未改。
+
+### 9.2 落表后残留缺口 (3 条 · 本单只登记, 不落表)
+
+| # | 缺口 | 为什么算缺口 | 归属 |
+|---|---|---|---|
+| G-1 | L50 note 栏仍写「型号待选型, 询价经项目总工」 | ★**同一行的 value 栏已经落成型号串了** ⇒ 一个说"还没选", 一个说"选好了" ⇒ 同一个器件本体行自相矛盾 | 落表批次 |
+| G-2 | L50 note 栏仍写「**反向阻断必查** (关机插 USB 时防 5V 经 SoC IO 反灌电池)」 | ★**同一行的 value 栏写着「无 RCB」** ⇒ 「必查」与「无」并存 ⇒ 这颗器件到底带不带反向阻断, 网表自相矛盾 ⇒ ★**这正是本单 §3 要做实的那个缺口, 现在它被写进网表自己身上了** | 落表批次 |
+| G-3 | L442 (`U_EN_SW`) note 栏仍写「ISS-172 待老板点头」 | ISS-172 已交卷 ⇒ 实际只剩「A5 优先级序」这一句 ⇒ 状态词过期 | main / 落表批次 |
+
+★**这 3 条本单一条都不改** ⇒ ★**理由 = 本单边界是「不落表」**; ★**改法归属已登记在基准块顶层 `residual_gaps` (机器可读) + §9.2 (人读) ⇒ ★**门禁 C9(f) 强制这份登记不许为空** ⇒ ★**落表批次可以把网表改了, 但不许把「残留缺口登记」删掉**。
+
+### 9.3 门禁第 2 轮加的 C9 (落表后回归)
+
+★**第 1 轮的洞 (实测)**: C6 只校验「基准块里的**快照**」与矩阵判据对不对得上 ⇒ ★**网表被落表批次改了以后, 快照并不会自己跟着变** ⇒ C6 拿着一份已经过期的快照照样绿 ⇒ ★**「不许矩阵与判据串各说各话」在落表之后就失效了**。
+
+★**C9 的 6 条子判据 (全部机械可判)**:
+
+| # | 子判据 | 红了意味着 |
+|---|---|---|
+| a | 基准块 `netlist_value_snapshot` 必须**等于现行网表** U_PWR_SW 本体行的 value 栏 (归一化比较) | 网表又变了 / 快照没重锚 ⇒ 矩阵对网表的陈述已过期 |
+| b | `netlist_drift` 必须存在且 `landed_by` / `landed_at` / `reason` / `pre_drift_snapshot` / `post_drift_snapshot` 五个字段非空 | 落表漂移没登记来源 ⇒ 无法追责 |
+| c | `netlist_drift.pre_drift_snapshot` 必须等于顶层 `netlist_value_pre_drift`; `post_drift_snapshot` 必须等于 `netlist_value_snapshot` | drift 记录与快照自相矛盾 |
+| d | 落表前后串**不一样**时 ⇒ `netlist_drift.dropped_requirements` 必须非空 | 落表悄悄丢了判据却没人登记 |
+| e | 现行网表 value **提到 RCB** 时 ⇒ 落地型号必须在候选册里 + 它的 RCB 判定必须与网表口径一致 (网表说「无 RCB」⇒ 矩阵必须判「无」) + 矩阵判据必须覆盖「反向阻断」 | ★**网表说无, 矩阵说有 ⇒ 各说各话 (本轮要堵的就是这个)** |
+| f | 顶层 `residual_gaps` 必须非空 | 落表后的残留缺口没登记 |
+
+★**为什么 C9 不违反「不挂 md5」那条铁律**: C9 锚的是**内容** (value 栏字符串), 不是 md5 ⇒ ★**网表落别的批次 (改别的行) 不影响 C9; 只有 U_PWR_SW 本体行的 value 栏再变一次, C9 才会红** ⇒ ★**红了就是"该重锚了", 不是"网表动了"** ⇒ ★**重锚成本 = 改基准块 1 处 + 登记 drift 1 条**。
+
+### 9.4 第 2 轮新增的反向用例 (M9~M12)
+
+| 用例 | 变异 | 期望红 |
+|---|---|---|
+| M9 | 把基准块 `netlist_value_snapshot` 改回落表前的旧串 (模拟"落表了没重锚") | C9 |
+| M10 | 把落地型号 `TPS22991RAA` 的 RCB 判定从「无」改成「有」 (模拟"网表说无, 矩阵说有") | C9 |
+| M11 | 删掉整个 `netlist_drift` 块 (模拟"漂移不登记") | C9 |
+| M12 | 清空 `residual_gaps` (模拟"残留缺口不登记") | C9 |
+
+★**每条都自证「它真的改到了目标」**: 变异函数改不动就报「变异函数没有改到任何东西」⇒ 算失败; 变异后必须**指定的那一条**红 ⇒ 否则算失败; ★**且要落盘回读再跑一遍** (ISS-227 同款教训)。
+
+★**但 M1~M12 只改【文档副本】⇒ 它们证明不了「网表真的变了门禁会红」—— 而 C9 的全部意义就在网表变的那一侧** ⇒ ★**第 2 轮另加 `--sandbox` 模式: 在 /tmp 临时树上真的改网表, 再跑真脚本** (★真盘 0 字节写入★):
+
+| 用例 | 真改网表的哪一处 | 期望 |
+|---|---|---|
+| ① | `U_PWR_SW` 本体行的 value 栏 (落表批次再落一次) | 红 (C9 + C6) |
+| ② | 同行的「无 RCB」翻成「带 RCB」 | 红 (C9) |
+| ③ | 同行换成候选册里没有的型号 | 红 (C9 + C6) |
+| ④ | ★**网表别的行** (落别的批次, 与本单无关) | ★**必须绿 (不许误伤)** |
+
+★**④ 是关键**: 它证明 C9 锚的是**内容**不是 md5 ⇒ 别人落别的批次不会把我的门禁打红; ★**而①~③ 证明 C9 抓的确实是网表那一侧** ⇒ ★**两条合起来 = 「谁动 U_PWR_SW 的 value 栏谁必须来重锚」**。
+
 
 <!-- BEGIN 选型证据基准块 -->
 ```json
@@ -278,8 +396,12 @@ python3 state/merge.py && python3 state/gate_check.py         # rc=0, Q1 18/18
     "author": "sw-lead",
     "date": "2026-11-16",
     "evidence_policy": "老板 2026-11-12 02:02 不再发信 · 全靠自己查资料 · 证据等级只取 [官网]/[实测]/[媒体]/[推算]/[0数据]",
-    "boundary": "只交证据 · 不落表 · 网表 L50 的 [待选型] 判据串等老板拍完型号再由落表批次改",
-    "scope_note": "机器基准块 candidates 册取 3 个 (门禁 C1 的反向用例设计为「把候选砍到 2 个 ⇒ 红」⇒ 基准册必须正好 3 个才能自证); 其余 3 个同族/国产候选以 alternates 数组并列 (同样 8 条判据逐格填满), 正文 §2 矩阵共 6 个型号全部逐格填满"
+    "boundary": "只交证据 · 不落表 · ★第 2 轮 (2026-11-17): 落表已由 ISS-257 发生 (不是本单落的), 本单仍不落表, 只重锚快照 + 加 C9 落表后回归门禁",
+    "scope_note": "机器基准块 candidates 册取 3 个 (门禁 C1 的反向用例设计为「把候选砍到 2 个 ⇒ 红」⇒ 基准册必须正好 3 个才能自证); 其余 3 个同族/国产候选以 alternates 数组并列 (同样 8 条判据逐格填满), 正文 §2 矩阵共 6 个型号全部逐格填满",
+    "round2_date": "2026-11-17",
+    "round2_note": "★第 2 轮 = 落表后回归: ISS-257 已把网表 L50 的 [待选型] 串落成型号串 ⇒ 派单前提过期 ⇒ 本轮只做 [基准块快照重锚 + drift 登记 + 门禁加 C9], ★8 条判据的逐格评定与 §4 推荐一字未改",
+    "round3_date": "2026-11-17",
+    "round3_note": "★第 3 轮 = 补证轮 (2026-11-17 04:5x): 圣邦微两颗候选 (SGM2572 / SGM2575S) 的官方数据手册 PDF 已从官方服务器直取 ⇒ 证据等级全部从 [媒体] 升级为 [官网] (全文已无 [媒体] 依赖) + 关闭两个 [0数据] 格 (绝对最大额定 VIN -0.3~6V => 判据 1 满足; 4-ball 引脚原表) + 新查出 SGM2575S RON max = 63 mΩ (SGM2572 = 60 mΩ) ⇒ 『唯一 RCB + RON 双满足』只在 typ 口径成立 ⇒ ★本轮只改这些格子的证据与文字, ★8 条判据的逐格评定结论 / RCB 专项结论 / §4 推荐 / 2 条降级方案的结构 一字未改; ★机器基准块本轮同步订正了 FB2.cost / FB2.condition / FB2.basis / conclusion.recommendation_by_a5_order 四处仍写着『引脚定义 [0数据] 须核原表』的过期文字 (正文 §5 已在第 3 轮改正, 基准块本轮跟上) ⇒ ★矩阵与基准块不再各说各话"
   },
   "criteria": [
     {
@@ -326,9 +448,9 @@ python3 state/merge.py && python3 state/gate_check.py         # rc=0, Q1 18/18
     {
       "id": "FB2",
       "change": "改板路线: 换掉 U_PWR_SW 的封装与型号, 选原厂在售且带反向阻断的型号 —— 首选 SGM2575S (圣邦微 WLCSP-0.76x0.76-4B · True RCB · 30 mΩ · 2A), 次选 TPS22910AYZVR (TI DSBGA-4 YZV 0.9x0.9 WCSP · Full-Time RCB · 61 mΩ @3.3V), 再次 TPS22916BYFPR (TI DSBGA-4 YFP 1 mm² · Always-ON true RCB · 60 mΩ @5V) 或 TPS22917xDBVR (TI SOT-23-6 · RCB · 80 mΩ @5V); 变体 D: 若 RCB 缺口在本项目被判为『由结构/充电板侧保证』(例如 USB 5V 永不与 SYS 相连), 则整条改板路线可免, 直接落 TPS22991RAA; 变体 E: 极端方案 —— 改用带理想二极管/电源路径管理的 SoM 或换电池供电方案 (把反灌问题挪到 SoM 侧解决)",
-      "cost": "面积: SGM2575S 0.76x0.76 = 0.578 mm² (比现 UQFN-4 RAA 的 0.6375 mm² 略小); TPS22910A 1.5625 mm²; TPS22916 1 mm²; TPS22917 SOT-23-6 8.12 mm² (超判据 6 的 2x2 mm²)。工艺: 改板 = 改原理图 + 改 PCB footprint + 重跑 DRC/ERC + 重跑网表/脚表门禁 ⇒ 板那一趟必须排进计划 (ISS-172 落表后才能启动)。延期: 板改版 + 重新投板 + 重测, 按本项目节奏至少 1~2 个排期窗口; SGM2575S 的引脚定义本轮为 [0数据] ⇒ 改板前必须先拿到 SGM2575S.pdf 原表核对 4 个 ball 的 VIN/ON/VOUT/GND 编号 (改板返工代价最高的一项)。变体 E 代价最大: SoM/电池方案重选 + 全部下游电源树重画, 不在本单范围",
-      "condition": "适用条件: 老板把 A5 建议序的第 ① 条 (反向阻断) 排在最前, 且接受改板一次 ⇒ 这是『把反灌硬约束做实』的唯一无缺口路线; 若同时要求 RON <= 40 mΩ, 则只有 SGM2575S (30 mΩ) 在本次查证范围内同时满足 RCB 与 RON",
-      "basis": "[官网] 封装/RCB/RON/IQ 数值来自各原厂官网产品页与数据手册 (见 §6 出处表); [实测] 现网表 footprint 与引脚定义来自 HW/netlist_v1.csv L50/L58 (UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch · 1=VIN/2=ON/3=VOUT/4=GND); [推算] 排期代价按本项目板改版既有节奏估计 (本轮未取项目管理排期表), 具体天数由项目总工核"
+      "cost": "面积: SGM2575S 0.76x0.76 = 0.578 mm² (比现 UQFN-4 RAA 的 0.6375 mm² 略小); TPS22910A 1.5625 mm²; TPS22916 1 mm²; TPS22917 SOT-23-6 8.12 mm² (超判据 6 的 2x2 mm²)。工艺: 改板 = 改原理图 + 改 PCB footprint + 重跑 DRC/ERC + 重跑网表/脚表门禁 ⇒ 板那一趟必须排进计划 (ISS-172 落表后才能启动)。延期: 板改版 + 重新投板 + 重测, 按本项目节奏至少 1~2 个排期窗口; ★2026-11-17 补证: SGM2575S / SGM2572 / TPS22916 三颗候选的官方引脚原表已全部取到 (SGM2575S: A1 OUT / A2 IN / B1 GND / B2 ON; SGM2572 与 TPS22916: A1 VOUT / A2 VIN / B1 GND / B2 ON) ⇒ ★原来那条『引脚定义 [0数据] ⇒ 改板前必须先核原表』的前置阻塞【已关闭】; ★但新固化成一条必做动作: 三颗候选的球编号与现网表 1=VIN/2=ON/3=VOUT/4=GND 无一兼容 ⇒ 板那一趟必须逐线重核, 不是换个料号了事; ★另: SGM2575S 的 RON max = 63 mΩ (SGM2572 = 60 mΩ) ⇒ max 口径下没有任何一颗带 RCB 的在售型号能过判据 3 的 40 mΩ 门槛 ⇒ 选型前必须先拍『RON 按 typ 还是 max 判』。变体 E 代价最大: SoM/电池方案重选 + 全部下游电源树重画, 不在本单范围",
+      "condition": "适用条件: 老板把 A5 建议序的第 ① 条 (反向阻断) 排在最前, 且接受改板一次 ⇒ 这是『把反灌硬约束做实』的唯一无缺口路线; 若同时要求 RON <= 40 mΩ, 则只有 SGM2575S (30 mΩ typ / ★63 mΩ max) 在本次查证范围内同时满足 RCB 与 RON —— ★但这只在 typ 口径成立; 按 max 口径 (63 mΩ > 40 mΩ) 没有任何一颗带 RCB 的在售型号能过判据 3 ⇒ 选型前必须先拍『RON 按 typ 还是 max 判』+『SYS 电流按 0.55 A 还是 2 A 算』",
+      "basis": "[官网] 封装/RCB/RON/IQ 数值来自各原厂官网产品页与数据手册 (见 §6 出处表); [实测] 现网表 footprint 与引脚定义来自 HW/netlist_v1.csv L50/L58 (UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch · 1=VIN/2=ON/3=VOUT/4=GND); [推算] 排期代价按本项目板改版既有节奏估计 (本轮未取项目管理排期表), 具体天数由项目总工核; ★[官网] 2026-11-17 补证 (圣邦微官方数据手册 PDF 直取, 见 §6 出处表 S11/S12): SGM2575S EC 表 RDSON 30 mΩ typ / ★63 mΩ max @5.5 V 与 @3.3 V + True Reverse Current Blocking (VT_RCB typ 6 mV / min 24 / max 50 mV) + PIN CONFIGURATION A1 OUT / A2 IN / B1 GND / B2 ON + ABSOLUTE MAXIMUM VIN/VOUT/VON −0.3~6 V / IMAX 2 A; SGM2572 EC 表 RON 34 mΩ typ / 60 mΩ max + 禁用态反向电流保护 (全手册无 True RCB / VT_RCB) + PIN CONFIGURATION A1 VOUT / A2 VIN / B1 GND / B2 ON"
     }
   ],
   "candidates": [
@@ -441,53 +563,53 @@ python3 state/merge.py && python3 state/gate_check.py         # rc=0, Q1 18/18
     {
       "id": "SGM2572ADYG/TR",
       "vendor": "圣邦微 SGMICRO (国产)",
-      "package": "WLCSP-0.8 x 0.8-4B (4 ball, 绿色封装) —— 不是 UQFN-4 RAA => 换封装 => 必须改板; 官网订购信息栏标『量产』, 三个 OPN: SGM2572ADYG/TR (上升 85 us) / SGM2572BDYG/TR (1600 us) / SGM2572CDYG/TR (2200 us)",
+      "package": "WLCSP-0.8 x 0.8-4B (4 ball, 绿色封装) —— 不是 UQFN-4 RAA => 换封装 => 必须改板; 官网订购信息栏标『量产』, 三个 OPN: SGM2572ADYG/TR (上升 85 us) / SGM2572BDYG/TR (1600 us) / SGM2572CDYG/TR (2200 us); ★官方手册 PIN CONFIGURATION (TOP VIEW) = A1 VOUT / A2 VIN / B1 GND / B2 ON => 与网表 1=VIN/2=ON/3=VOUT/4=GND 不兼容",
       "cells": {
         "1": {
-          "value": "工作输入电压范围 1 V ~ 5.5 V (官网特性栏) => 判据 1 (VIN 绝对额定 >= 5V): 工作上限 5.5 V 已 > 5 V, 但官网产品页未列绝对最大额定表 => 绝对最大额定按 [0数据] 记, 落表前必须查 SGM2572.pdf 原表确认 VIN/VOUT 的绝对最大值",
-          "source": "圣邦微官网产品页 https://www.sg-micro.com/cn/product/SGM2572 (特性栏 输入电压范围 1V 至 5.5V) —— 绝对最大额定表本轮未在官网页面呈现",
+          "value": "★绝对最大额定 (官方数据手册 ABSOLUTE MAXIMUM RATINGS 表): Input Voltage Range VIN = -0.3 V to 6 V / Output Voltage Range VOUT = -0.3 V to 6 V / ON Pin Voltage Range VON = -0.3 V to 6 V; RECOMMENDED OPERATING CONDITIONS: Input Voltage Range VIN = 1 V to 5.5 V => 判据 1 (VIN 绝对额定 >= 5V) 满足 (6 V > 5 V)",
+          "source": "圣邦微官方数据手册 https://www.sg-micro.com/rect/assets/2cfc9d3d-567e-4a1a-b62e-e71150753502/SGM2572.pdf (MAY 2022, SG Micro Corp) §ABSOLUTE MAXIMUM RATINGS + §RECOMMENDED OPERATING CONDITIONS —— ★2026-11-17 由官方服务器直取 PDF (非搜索引擎引文)",
           "evidence": "[官网]"
         },
         "2": {
-          "value": "最大持续电流 2 A (官网特性栏) => 判据 2 (Iout >= 2A) 正好卡在门槛, 无余量",
-          "source": "圣邦微官网产品页 https://www.sg-micro.com/cn/product/SGM2572 (特性栏 最大持续电流 2A)",
+          "value": "Maximum Continuous Switch Current, IMAX = 2 A (ABSOLUTE MAXIMUM RATINGS 表); Maximum Pulsed Switch Current IPLS = 2.5 A (pulse < 300 us, 2% duty cycle) => 判据 2 (Iout >= 2A) 正好卡在门槛, 无余量",
+          "source": "圣邦微官方数据手册 SGM2572.pdf (MAY 2022) §ABSOLUTE MAXIMUM RATINGS (Maximum Continuous Switch Current IMAX / Maximum Pulsed Switch Current IPLS 行) + §ELECTRICAL CHARACTERISTICS 表头 (Full = -40℃ to +85℃)",
           "evidence": "[官网]"
         },
         "3": {
-          "value": "RON = 34 mΩ @ VIN = 5 V; RON = 34 mΩ @ VIN = 3.3 V (官网特性栏两行) => 3.7 V 档按 3.3/5 V 两点内插约 34 mΩ => ★判据 3 (<= 40 mΩ @3.7V, 目标 <= 30 mΩ) 满足; 压降 @1A = 34 mV (比 TPS22916 的 60 mV 少 26 mV), 比现 OPN TPS22991RAA 的 25 mΩ 多 9 mV",
-          "source": "圣邦微官网产品页 https://www.sg-micro.com/cn/product/SGM2572 (特性栏 低导通电阻 RON = 34mΩ (VIN = 5V) / RON = 34mΩ (VIN = 3.3V))",
+          "value": "RON = 34 mΩ typ / ★60 mΩ max (VIN = 5V, VON = 1.2V, IOUT = -200mA); RON = 34 mΩ typ / 60 mΩ max (VIN = 3.3V); ★官方 EC 表只有 5V 与 3.3V 两档 => 3.7 V 档按 typ 约 34 mΩ => ★判据 3 (<= 40 mΩ @3.7V, 目标 <= 30 mΩ) 按 typ 满足, ★按 max 不满足 (60 mΩ > 40 mΩ, 超 50%); 压降 @1A = 34 mV typ / 60 mV max",
+          "source": "圣邦微官方数据手册 SGM2572.pdf (MAY 2022) §ELECTRICAL CHARACTERISTICS 表 On-Resistance (RON) 两行 (VIN = 5V 与 VIN = 3.3V, VON = 1.2V, IOUT = -200mA, MIN/TYP/MAX 列)",
           "evidence": "[官网]"
         },
         "4": {
-          "value": "低关断电流 90 nA (typ) (官网特性栏) => 判据 4 (关机漏电 IQ <= 5 uA) 满足 (90 nA = 关机账 108 uA 的 0.08%); ON 态静态电流官网产品页未列, SGMICRO 官方选型指南 (2025 Q3, Avnet 镜像) 记 0.22 uA typ / 0.44 uA max => 同样满足 <= 5 uA, 但这一条数字来自原厂指南的第三方镜像, 按 [媒体] 记",
-          "source": "圣邦微官网产品页 https://www.sg-micro.com/cn/product/SGM2572 (低关断电流 90nA 典型值) + SGMICRO 官方选型指南 2025 Q3 (Avnet 镜像) https://my.avnet.com/wcm/connect/04f1699a-86ea-4f07-b19d-0aa9aab2b58a/SGMICRO+Product+Selection+Guide+%282025+Q3%29.pdf",
-          "evidence": "[媒体]"
+          "value": "★官方 EC 表: Shutdown Current ISD = 90 nA typ / 440 nA max (VIN = 5.5V, VON = 0V); Quiescent Current IQ = 220 nA typ / 400 nA max (VIN = 3.3V) / 320 nA typ / 560 nA max (VIN = 5V) / 140 nA typ / 300 nA max (VIN = 1V); Supply Leakage Current in Shutdown Mode ILEAKAGE = 450 nA max; ON Pin Leakage Current ION = 420 nA max => 判据 4 (关机漏电 IQ <= 5 uA) typ 与 max 双双满足 (440 nA = 关机账 108 uA 的 0.4%)",
+          "source": "圣邦微官方数据手册 SGM2572.pdf (MAY 2022) §ELECTRICAL CHARACTERISTICS 表 (Quiescent Current IQ / Shutdown Current ISD / Supply Leakage Current in Shutdown Mode ILEAKAGE / ON Pin Leakage Current ION 行) + §FEATURES 栏 (低关断电流 90nA 典型值)",
+          "evidence": "[官网]"
         },
         "5": {
-          "value": "有 RCB —— 官网特性栏原文『禁用时提供反向电流保护』, 另有『适用于功率区应用的双向电源』; ★关键限定: 官网写的是禁用时 (off-state) 阻断, 不是导通也挡的 always-ON true RCB ⇒ 对本板『关机插 USB』场景 (开关处于禁用态) 是覆盖的, 但开关导通时的反灌仍会通过通道发生, 缺口说明必须写清这一点",
-          "source": "圣邦微官网产品页 https://www.sg-micro.com/cn/product/SGM2572 (特性栏 禁用时提供反向电流保护 / 适用于功率区应用的双向电源)",
+          "value": "有 RCB —— ★官方数据手册 APPLICATION INFORMATION 原文: \"If the ON pin is pulled low, the device is disabled, while VIN > 1V or VOUT > 1V is met, the reverse current protection function is activated. This function prevents the current flowing from VOUT to VIN…\" ★且全手册无 \"True Reverse Current Blocking\" 字样、无 VT_RCB 行 => 官方坐实『仅禁用态』; 对本板『关机插 USB』(开关处于禁用态) 场景是覆盖的, ★但开关导通时的反灌仍会通过通道发生, 缺口说明必须写清这一点",
+          "source": "圣邦微官方数据手册 https://www.sg-micro.com/rect/assets/2cfc9d3d-567e-4a1a-b62e-e71150753502/SGM2572.pdf §APPLICATION INFORMATION (Reverse Current Protection 段) + §ELECTRICAL CHARACTERISTICS 表 (Reverse Current When Disabled IRC 行) + §FEATURES 栏 (Reverse Current Protection When Disabled)",
           "evidence": "[官网]"
         },
         "6": {
-          "value": "封装 WLCSP-0.8 x 0.8 mm = 0.64 mm² (官网特性栏与订购信息栏) => 判据 6 (面积 <= 2 x 2 mm) 满足, 与现 UQFN-4 RAA 的 0.6375 mm² 基本同面积 (但不是同一个封装, 不能直接换料)",
-          "source": "圣邦微官网产品页 https://www.sg-micro.com/cn/product/SGM2572 (采用绿色 WLCSP-0.8 x 0.8-4B 封装 / 订购信息栏 Package 列)",
+          "value": "封装 WLCSP-0.8 x 0.8 mm = 0.64 mm² (官网特性栏与订购信息栏; 官方手册 PACKAGE/ORDERING INFORMATION 表同) => 判据 6 (面积 <= 2 x 2 mm) 满足, 与现 UQFN-4 RAA 的 0.6375 mm² 基本同面积 (但不是同一个封装, 不能直接换料); 官方热阻 WLCSP-0.8×0.8-4B θJA = 279 ℃/W",
+          "source": "圣邦微官网产品页 https://www.sg-micro.com/cn/product/SGM2572 (特性栏 + 订购信息栏 Package 列) + 圣邦微官方数据手册 SGM2572.pdf §ABSOLUTE MAXIMUM RATINGS (Package Thermal Resistance 行)",
           "evidence": "[官网]"
         },
         "7": {
-          "value": "工作温度 -40 °C ~ +85 °C (官网订购信息栏 Operating Temperature Range 列) => 判据 7 满足",
-          "source": "圣邦微官网产品页 https://www.sg-micro.com/cn/product/SGM2572 (订购信息栏 Operating Temperature Range = -40℃ to +85℃, MSL1)",
+          "value": "★官方 PACKAGE/ORDERING INFORMATION 表 SPECIFIED TEMPERATURE RANGE = -40℃ to +85℃ (三个 OPN 同) => 判据 7 (-40 ~ +85 °C) 满足",
+          "source": "圣邦微官方数据手册 SGM2572.pdf (MAY 2022) §PACKAGE/ORDERING INFORMATION 表 (MODEL / PACKAGE DESCRIPTION / SPECIFIED TEMPERATURE RANGE 列) + 官网订购信息栏 Operating Temperature Range",
           "evidence": "[官网]"
         },
         "8": {
-          "value": "低阈值 1.8 V GPIO 控制输入 (官网特性栏) => 3.3 V GPIO 可直接驱动 => 判据 8 满足; ★ON 脚内部智能下拉阻值官网产品页未列 => 按 [0数据] 记, 本设计靠网表外部 10k 下拉保证默认关, 不依赖芯片内部下拉; 官网描述『由导通引脚控制』未提 power-off latch",
-          "source": "圣邦微官网产品页 https://www.sg-micro.com/cn/product/SGM2572 (特性栏 低阈值 1.8V GPIO 控制输入 + 描述栏 由导通引脚控制)",
+          "value": "★官方 RECOMMENDED OPERATING CONDITIONS: ON Pin Input High Voltage VIH = 1.1V to 5.5V (min 1.1V) / ON Pin Input Low Voltage VIL = 0V to 0.4V; EC 表 VIH 1.1V / VIL 0.4V => 3.3V GPIO 可直接驱动 => 判据 8 满足; 官网特性栏另有『低阈值 1.8V GPIO 控制输入』; ★官方手册 PIN DESCRIPTION 原文『B2 ON — Switch Control Input. Active high enables the device. Do not float this pin.』=> 默认态需外部 10k 下拉保证 (网表 L56 R_PD_ON 已在); 无 power-off latch",
+          "source": "圣邦微官方数据手册 SGM2572.pdf (MAY 2022) §RECOMMENDED OPERATING CONDITIONS (ON Pin Input High Voltage / ON Pin Input Low Voltage 行) + §ELECTRICAL CHARACTERISTICS 表 + §PIN DESCRIPTION 表 + 官网产品页特性栏 (低阈值 1.8V GPIO 控制输入) + 网表 HW/netlist_v1.csv L56 (R_PD_ON 10k)",
           "evidence": "[官网]"
         }
       },
       "rcb": {
         "verdict": "有",
-        "quote": "禁用时提供反向电流保护 / 适用于功率区应用的双向电源 (官网特性栏原文照抄; ★官网措辞限定在『禁用时』, 不是 always-ON true RCB)",
-        "source": "圣邦微官网产品页 https://www.sg-micro.com/cn/product/SGM2572 (特性栏 与 描述栏)",
+        "quote": "If the ON pin is pulled low, the device is disabled, while VIN > 1V or VOUT > 1V is met, the reverse current protection function is activated. This function prevents the current flowing from VOUT to VIN, and is very useful when SGM2572 is disabled and the output needs to be driven by another voltage source. (官方数据手册 APPLICATION INFORMATION 原文照抄; ★全手册无 \"True Reverse Current Blocking\" / VT_RCB => 官方坐实『仅禁用态』, 不是 always-ON)",
+        "source": "圣邦微官方数据手册 https://www.sg-micro.com/rect/assets/2cfc9d3d-567e-4a1a-b62e-e71150753502/SGM2572.pdf (MAY 2022, SG Micro Corp) §APPLICATION INFORMATION (Reverse Current Protection 段) + §ELECTRICAL CHARACTERISTICS 表 (Reverse Current When Disabled IRC 行)",
         "evidence": "[官网]"
       }
     }
@@ -602,71 +724,95 @@ python3 state/merge.py && python3 state/gate_check.py         # rc=0, Q1 18/18
     {
       "part": "SGM2575SADYG/TR",
       "vendor": "圣邦微 SGMICRO (国产)",
-      "package": "WLCSP-0.76 x 0.76-4B (4 ball, 绿色封装) => 0.578 mm², 比现 UQFN-4 RAA 的 0.6375 mm² 还小一点, 但封装不同 => 必须改板; 数据手册标题即 5.5V, 2A, 30 mΩ RDSON Load Switch with Reverse Current Protection",
+      "package": "WLCSP-0.76 x 0.76-4B (4 ball, 绿色封装) => 0.578 mm², 比现 UQFN-4 RAA 的 0.6375 mm² 还小一点, 但封装不同 => 必须改板; 数据手册标题即 5.5V, 2A, 30 mΩ RDSON Load Switch with Reverse Current Protection; ★官方手册 PIN CONFIGURATION (TOP VIEW) = A1 OUT / A2 IN / B1 GND / B2 ON => 与网表 1=VIN/2=ON/3=VOUT/4=GND 不兼容",
       "cells": {
         "1": {
-          "value": "数据手册标题 5.5V; 官方选型指南记 VIN 1.2 ~ 5.5 V => 工作上限 5.5 V; 绝对最大额定表本轮未取得 (PDF 抓取为二进制) => 按 [0数据] 记",
-          "source": "圣邦微数据手册 https://www.sg-micro.com/rect/assets/a8959667-d386-4c95-a64d-205e9b7b4446/SGM2575S.PDF (标题行) + SGMICRO 官方选型指南 2025 Q3 (Avnet 镜像) 行 SGM2575S (VIN 1.2-5.5 V)",
-          "evidence": "[媒体]"
+          "value": "★绝对最大额定 (官方数据手册 ABSOLUTE MAXIMUM RATINGS 表): Input Voltage Range VIN = -0.3 V to 6 V / Output Voltage Range VOUT = -0.3 V to 6 V / ON Pin Voltage Range VON = -0.3 V to 6 V; RECOMMENDED OPERATING CONDITIONS: Input Voltage Range VIN = 1.2V to 5.5V => 判据 1 (VIN 绝对额定 >= 5V) 满足 (6 V > 5 V)",
+          "source": "圣邦微官方数据手册 https://www.sg-micro.com/rect/assets/a8959667-d386-4c95-a64d-205e9b7b4446/SGM2575S.PDF (JULY 2025 - REV.A.1, SG Micro Corp) §ABSOLUTE MAXIMUM RATINGS + §RECOMMENDED OPERATING CONDITIONS —— ★2026-11-17 由官方服务器直取 PDF (非搜索引擎引文)",
+          "evidence": "[官网]"
         },
         "2": {
-          "value": "2 A 连续电流 (数据手册标题 5.5V, 2A; 选型指南 Output Current 2000 mA) => 判据 2 卡在门槛",
-          "source": "圣邦微数据手册 SGM2575S.PDF 标题行 + SGMICRO 官方选型指南 2025 Q3 (Avnet 镜像) 行 SGM2575S",
-          "evidence": "[媒体]"
+          "value": "Maximum Continuous Switch Current, IMAX = 2 A (ABSOLUTE MAXIMUM RATINGS 表); FEATURES 栏 Maximum Continuous Current: 2A => 判据 2 (Iout >= 2A) 卡在门槛",
+          "source": "圣邦微官方数据手册 SGM2575S.PDF (JULY 2025 - REV.A.1) §ABSOLUTE MAXIMUM RATINGS (Maximum Continuous Switch Current IMAX 行) + §FEATURES 栏",
+          "evidence": "[官网]"
         },
         "3": {
-          "value": "RDSON 30 mΩ (数据手册标题 5.5V, 2A, 30 mΩ RDSON) => 3.7 V 档按 30 mΩ 量级 => ★判据 3 (<= 40 mΩ @3.7V, 目标 <= 30 mΩ) 满足, 且是本次查证范围内唯一同时带 True RCB 且 RON <= 40 mΩ 的在售型号; 具体 @3.7 V 的 max 档本轮未取得 => 按 max 口径未判定",
-          "source": "圣邦微数据手册 https://www.sg-micro.com/rect/assets/a8959667-d386-4c95-a64d-205e9b7b4446/SGM2575S.PDF 标题行 (30 mΩ RDSON)",
-          "evidence": "[媒体]"
+          "value": "★官方 EC 表 On-Resistance RDSON: VIN = 5.5V, VON = 1.2V, IOUT = -200mA => typ 30 mΩ / ★max 63 mΩ; VIN = 3.3V 同 => typ 30 mΩ / max 63 mΩ; VIN = 1.2V => typ 48 mΩ => 3.7 V 档 typ 约 30 mΩ => ★判据 3 (<= 40 mΩ @3.7V, 目标 <= 30 mΩ) 按 typ 满足 (★查证范围内唯一 typ 口径同时带 True RCB 且 RON <= 40 mΩ 的在售型号), ★但按 max 不满足 (63 mΩ > 40 mΩ, 超 57%); [推算] 压降 @0.55A (网表 L37 SYS 最大) = 34.7 mV / @1A = 63 mV / @2A = 126 mV",
+          "source": "圣邦微官方数据手册 SGM2575S.PDF (JULY 2025 - REV.A.1) §ELECTRICAL CHARACTERISTICS 表 On-Resistance (RDSON) 三行 (VIN = 5.5V / 3.3V / 1.2V, VON = 1.2V, IOUT = -200mA, MIN/TYP/MAX 列)",
+          "evidence": "[官网]"
         },
         "4": {
-          "value": "关断态反向电流 IRC typ 10 nA / max 900 nA (数据手册表: Reverse Current When Disabled, VIN = VON = 0V, VOUT = 5V); ON 脚漏电 ION typ 10 nA / max 900 nA (VON = 3.3V); 官方选型指南记静态电流 0.23 uA => 判据 4 (<= 5 uA) 满足",
-          "source": "圣邦微数据手册 SGM2575S.PDF 电气特性表 (Reverse Current When Disabled / ON Pin Leakage Current / Smart Pull-Down Resistance 行) + SGMICRO 官方选型指南 2025 Q3 (Avnet 镜像)",
-          "evidence": "[媒体]"
+          "value": "★官方 EC 表: Shutdown Current ISD (VIN = 5.5V, VON = 0V) TJ = -40℃ to +85℃ => typ 0.15 µA / ★max 0.5 µA; TJ = -40℃ to +125℃ => typ 0.15 µA / max 1.2 µA; Supply Leakage Current in Shutdown Mode ILEAKAGE 同档; Quiescent Current IQ (VIN = 3.3V) => typ 0.37 µA / max 1.1 µA, (VIN = 5.5V) => typ 0.57 µA / max 1.5 µA; ON Pin Leakage Current ION = 10 nA typ / 900 nA max; Reverse Current When Disabled IRC = 10 nA typ / 900 nA max => 判据 4 (关机漏电 IQ <= 5 uA) typ 与 max 双双满足 (0.5 µA max)",
+          "source": "圣邦微官方数据手册 SGM2575S.PDF (JULY 2025 - REV.A.1) §ELECTRICAL CHARACTERISTICS 表 (Shutdown Current ISD / Supply Leakage Current in Shutdown Mode ILEAKAGE / Quiescent Current IQ / ON Pin Leakage Current ION / Reverse Current When Disabled IRC 行) + §FEATURES 栏 (Low Shutdown Current 0.15μA TYP · Low Quiescent Current 0.23μA TYP)",
+          "evidence": "[官网]"
         },
         "5": {
-          "value": "有 RCB 且是 True RCB —— 数据手册原文: The reverse current protection function is activated when VOUT is higher than VIN by VT_RCB. The reverse current protection is enabled whether the ON pin is high or ... ; 触发点 VT_RCB = VOUT - VIN: 6 mV typ (24 / 50 mV 上下限), 迟滞 VRCB_HYS 30 mV => ★判据 5 满足, 且比 SGM2572 的『仅禁用态』更强 (导通态也挡)",
-          "source": "圣邦微数据手册 https://www.sg-micro.com/rect/assets/a8959667-d386-4c95-a64d-205e9b7b4446/SGM2575S.PDF (Reverse Current Protection 应用说明段 + True Reverse Current Blocking (RCB) Protection Trip Point / RCB Hysteresis 行)",
-          "evidence": "[媒体]"
+          "value": "有 RCB 且是 True RCB —— ★官方 EC 表原文: \"True Reverse Current Blocking / RCB Protection Trip Point VT_RCB (VOUT - VIN): typ 6 mV, min 24 mV, max 50 mV / RCB Hysteresis VRCB_HYS: 30 mV\"; ★官方 APPLICATION INFORMATION 原文: \"The reverse current protection function is activated when VOUT is higher than VIN by VT_RCB. The reverse current protection is enabled whether the ON pin is high or low. This function prevents the current flowing from OUT to IN…\" => ★判据 5 满足, 且比 SGM2572 的『仅禁用态』更强 (导通态也挡); ★⚠️ 同一份手册的 FEATURES 栏写的是『Reverse Current Protection When Disabled』(厂家简写), 与 EC 表 + 应用说明 + 功能框图三处一致口径相左 => 以三处一致为准 = True RCB, FEATURES 那行不作反向证据",
+          "source": "圣邦微官方数据手册 https://www.sg-micro.com/rect/assets/a8959667-d386-4c95-a64d-205e9b7b4446/SGM2575S.PDF (JULY 2025 - REV.A.1, SG Micro Corp) §ELECTRICAL CHARACTERISTICS 表 (True Reverse Current Blocking / RCB Protection Trip Point VT_RCB / RCB Hysteresis 行) + §APPLICATION INFORMATION (Reverse Current Protection 段) + §FEATURES 栏 + §FUNCTIONAL BLOCK DIAGRAM",
+          "evidence": "[官网]"
         },
         "6": {
-          "value": "WLCSP-0.76 x 0.76-4B = 0.578 mm² => 判据 6 (面积 <= 2 x 2 mm) 满足, 是 6 个候选里面积最小的",
-          "source": "圣邦微数据手册 SGM2575S.PDF (Available in a Green WLCSP-0.76 x 0.76-4B Package) + SGMICRO 官方选型指南 2025 Q3 行 SGM2575S",
-          "evidence": "[媒体]"
+          "value": "WLCSP-0.76 x 0.76 mm = 0.578 mm² (官方 FEATURES 栏 Available in a Green WLCSP-0.76×0.76-4B Package) => 判据 6 (面积 <= 2 x 2 mm) 满足, 是 6 个候选里面积最小的; 官方热阻 WLCSP-0.76×0.76-4B θJA = 221 ℃/W / θJB = 82.6 ℃/W / θJC = 92.9 ℃/W",
+          "source": "圣邦微官方数据手册 SGM2575S.PDF (JULY 2025 - REV.A.1) §FEATURES 栏 (Available in a Green WLCSP-0.76×0.76-4B Package) + §ABSOLUTE MAXIMUM RATINGS (Package Thermal Resistance 行) + §PACKAGE/ORDERING INFORMATION 表",
+          "evidence": "[官网]"
         },
         "7": {
-          "value": "工作温度本轮未取得 (官网产品页未抓取到 SGM2575S 页面, PDF 为二进制) => 按 [0数据] 记; 同厂同系列 SGM2572/SGM2575 官网标 -40 ~ +85 °C, 只能作为参考, 不能当本型号的官方值",
-          "source": "圣邦微数据手册 SGM2575S.PDF 订购信息表 —— 本轮未取得; 参考同厂 SGM2572 官网 -40℃ to +85℃ (仅作系列参考, 不作本型号证据)",
-          "evidence": "[0数据]"
+          "value": "★官方 PACKAGE/ORDERING INFORMATION 表 SPECIFIED TEMPERATURE RANGE = -40℃ to +125℃ (SGM2575SAYG/TR 与 SGM2575SADYG/TR 两个 OPN 同) => 判据 7 (-40 ~ +85 °C) 满足, 上限余量 40 ℃",
+          "source": "圣邦微官方数据手册 SGM2575S.PDF (JULY 2025 - REV.A.1) §PACKAGE/ORDERING INFORMATION 表 (MODEL / PACKAGE DESCRIPTION / SPECIFIED TEMPERATURE RANGE / ORDERING NUMBER 列)",
+          "evidence": "[官网]"
         },
         "8": {
-          "value": "ON 脚输入高低阈值: 数据手册电气表提取到的文本为 VIH 0.71 V / VIL 0.3 V (疑为分压比例或表格截断) => 精确值按 [0数据] 记, 落表前必须查 PDF 原表; Smart Pull-Down Resistance 1 MΩ (Disabled), 输出下拉 RPD 230 Ω typ / 300 Ω max => 默认态有内部下拉兜底, 外部 10k 下拉仍保留; 上升时间/QOD 选项: QOD 仅 SGM2575SAD 有 (数据手册 Quick Output Discharge (SGM2575SAD Only))",
-          "source": "圣邦微数据手册 SGM2575S.PDF 电气特性表 (ON Pin Input High Voltage / ON Pin Input Low Voltage / Smart Pull-Down Resistance / Output Pull-Down Resistance 行) + Features (Quick Output Discharge (SGM2575SAD Only))",
-          "evidence": "[媒体]"
+          "value": "★官方 RECOMMENDED OPERATING CONDITIONS: ON Pin Input High Voltage VIH = 0.71V to 5.5V / ON Pin Input Low Voltage VIL = 0V to 0.3V; EC 表 VIH 0.71 V / VIL 0.3 V => 3.3 V GPIO 可直接驱动 => 判据 8 满足; 官方 FEATURES 栏『Low Threshold 1.2V GPIO Control Input』+『Smart ON』(上电期间智能下拉电阻避免 ON 引脚悬空, ON > VIH 后断开 => 默认态确定); EC 表 Smart Pull-Down Resistance RPD_ON = 1 MΩ (Disabled), Output Pull-Down Resistance RPD = 230 Ω typ / 300 Ω max (仅 SGM2575SAD 有 QOD); 另有 UVLO: VUVLO_R typ 0.94 V / max 1.26 V (TJ = -40℃ to +125℃), 迟滞 100 mV => SYS 下限 3.5 V 场景不受影响",
+          "source": "圣邦微官方数据手册 SGM2575S.PDF (JULY 2025 - REV.A.1) §RECOMMENDED OPERATING CONDITIONS (ON Pin Input High Voltage / ON Pin Input Low Voltage 行) + §ELECTRICAL CHARACTERISTICS 表 (ON Pin Leakage Current / Smart Pull-Down Resistance / Output Pull-Down Resistance / UVLO Threshold, Rising / UVLO Hysteresis 行) + §FEATURES 栏 (Low Threshold 1.2V GPIO Control Input / Smart ON) + §APPLICATION INFORMATION (Smart ON 表 1)",
+          "evidence": "[官网]"
         }
       },
       "rcb": {
         "verdict": "有",
-        "quote": "The reverse current protection function is activated when VOUT is higher than VIN by VT_RCB. The reverse current protection is enabled whether the ON pin is high or ... (原文照抄, 后半句在 PDF 提取中被截断); True Reverse Current Blocking (RCB) Protection Trip Point VT_RCB: VOUT - VIN, 6 mV typ, 24 / 50 mV; RCB Hysteresis VRCB_HYS 30 mV",
-        "source": "圣邦微数据手册 https://www.sg-micro.com/rect/assets/a8959667-d386-4c95-a64d-205e9b7b4446/SGM2575S.PDF (Reverse Current Protection 段 + 电气特性表 RCB 行)",
-        "evidence": "[媒体]"
+        "quote": "The reverse current protection function is activated when VOUT is higher than VIN by VT_RCB. The reverse current protection is enabled whether the ON pin is high or low. This function prevents the current flowing from OUT to IN, and is very useful when SGM2575S is disabled and the output needs to be driven by another voltage source. (官方数据手册 APPLICATION INFORMATION 原文照抄) + True Reverse Current Blocking / RCB Protection Trip Point VT_RCB: VOUT - VIN, typ 6 mV, min 24 mV, max 50 mV; RCB Hysteresis VRCB_HYS 30 mV (官方 EC 表原文照抄)",
+        "source": "圣邦微官方数据手册 https://www.sg-micro.com/rect/assets/a8959667-d386-4c95-a64d-205e9b7b4446/SGM2575S.PDF (JULY 2025 - REV.A.1, SG Micro Corp) §APPLICATION INFORMATION (Reverse Current Protection 段) + §ELECTRICAL CHARACTERISTICS 表 (True Reverse Current Blocking / VT_RCB / VRCB_HYS 行)",
+        "evidence": "[官网]"
       }
     }
   ],
   "conclusion": {
     "same_package_with_rcb_available": false,
-    "same_package_check_scope": "本次查证范围 = TI TPS229xx 单路负载开关族 (91/16/17/18/19/10A) + 圣邦微 SGM2572/SGM2575S。范围内带 RCB 的 4 款 (TPS22916 / TPS22917 / TPS22910A / SGM2572 / SGM2575S) 封装分别是 DSBGA-4 YFP / SOT-23-6 DBV / DSBGA-4 YZV / WLCSP-0.8x0.8-4B / WLCSP-0.76x0.76-4B —— 没有一款是现网表 footprint 的 UQFN-4 RAA (0.85 x 0.75, 0.4 mm pitch)。★残留缺口 [0数据]: TI 官网参数筛选器里 4 脚 UQFN-HR (RAA) 全系带 RCB 的型号本轮未逐项穷举 ⇒ 若老板要求 100% 穷举, 需按 TI 官网 Load Switch 参数筛选器 (Package = UQFN-HR 4 / VIN <= 5.5 / Reverse Current Protection = Yes) 过滤后逐个核数据手册, 这是一条人工动作 (本单不做, 也不能靠推断代替)",
+    "same_package_check_scope": "本次查证范围 = TI TPS229xx 单路负载开关族 (91/16/17/18/19/10A) + 圣邦微 SGM2572/SGM2575S。范围内带 RCB 的 4 款 (TPS22916 / TPS22917 / TPS22910A / SGM2572 / SGM2575S) 封装分别是 DSBGA-4 YFP / SOT-23-6 DBV / DSBGA-4 YZV / WLCSP-0.8x0.8-4B / WLCSP-0.76x0.76-4B —— 没有一款是现网表 footprint 的 UQFN-4 RAA (0.85 x 0.75, 0.4 mm pitch)。★残留缺口 [0数据]: TI 官网参数筛选器里 4 脚 UQFN-HR (RAA) 全系带 RCB 的型号本轮未逐项穷举 ⇒ 若老板要求 100% 穷举, 需按 TI 官网 Load Switch 参数筛选器 (Package = UQFN-HR 4 / VIN <= 5.5 / Reverse Current Protection = Yes) 过滤后逐个核数据手册, 这是一条人工动作 (本单不做, 也不能靠推断代替)。★2026-11-17 补证: 三颗带 RCB 候选的官方引脚原表已取到 (TPS22916 A1=VOUT/A2=VIN/B1=GND/B2=ON · SGM2572 A1=VOUT/A2=VIN/B1=GND/B2=ON · SGM2575S A1=OUT/A2=IN/B1=GND/B2=ON) => 三者球编号一致但与现网表 1=VIN/2=ON/3=VOUT/4=GND 无一兼容 ⇒ 改板必须重画 footprint 并逐线重核",
     "recommendation_order_source": "DECISION_PENDING_2026-11-16.md §A5 (老板待拍优先级序: 1 反向阻断 > 2 IQ < 5uA > 3 RON 越小越好 > 4 封装/面积)",
-    "recommendation_by_a5_order": "按 A5 建议序: (1) 反向阻断优先 => 唯一同时满足 RCB + RON <= 40 mΩ 的在售型号是 SGM2575SADYG/TR (True RCB, 30 mΩ, 2A, 0.578 mm²), 代价 = 改板 + 引脚定义本轮 [0数据] 须核 PDF 原表; (2) 若 IQ/关机续航优先 => TPS22916BYFPR (ISD 10 nA typ / 100 nA max) 与 TPS22917xDBVR (10 nA typ) 最好, 但 RON 60/80 mΩ 超判据 3; (3) 若 RON 优先 => TPS22991RAA 25 mΩ 最优但无 RCB, 且关断漏电 max 20 uA 超判据 4; (4) 若 封装/面积/不改板优先 => 只有 TPS22991RAA (同封装 UQFN-4 RAA, 换料不换板) 满足, RCB 缺口用 FB1 兜",
+    "recommendation_by_a5_order": "按 A5 建议序: (1) 反向阻断优先 => 唯一同时满足 RCB + RON <= 40 mΩ 的在售型号是 SGM2575SADYG/TR (True RCB, 30 mΩ, 2A, 0.578 mm²), 代价 = 改板 + ★引脚原表已取到 (2026-11-17 补证) ⇒ 三颗 RCB 候选的球编号 A1=VOUT/A2=VIN/B1=GND/B2=ON 与现网表 1/2/3/4 无一兼容 ⇒ 板那一趟必须逐线重核; ★另注: SGM2575S RON 30 mΩ typ / 63 mΩ max ⇒ 『唯一 RCB + RON 双满足』只在 typ 口径成立, max 口径下没有 RCB 候选能过判据 3; (2) 若 IQ/关机续航优先 => TPS22916BYFPR (ISD 10 nA typ / 100 nA max) 与 TPS22917xDBVR (10 nA typ) 最好, 但 RON 60/80 mΩ 超判据 3; (3) 若 RON 优先 => TPS22991RAA 25 mΩ 最优但无 RCB, 且关断漏电 max 20 uA 超判据 4; (4) 若 封装/面积/不改板优先 => 只有 TPS22991RAA (同封装 UQFN-4 RAA, 换料不换板) 满足, RCB 缺口用 FB1 兜",
     "recommendation_disclaimer": "★本单只交证据 + 按 A5 建议序的推荐, 不代拍优先级序, 不代拍型号 ⇒ 最终拍板 = 老板 (DECISION_PENDING_2026-11-16.md §A5 / §Q2)",
     "key_findings": [
       "TPS22991RAA (ISS-234 点名推荐) 唯一硬超判据的是判据 4 的 max 口径: 关断漏电 ISD max 20 uA @ -40~85 °C > 5 uA (typ 14 nA 远低于门槛) => 关机账 108 uA 里这一项按 max 占 18.5%",
       "现网表 OPN 'TPS22991RAA' 只锁了封装 (RAA), 没有变体字母: TI 数据手册 Device Comparison Table 列 TPS22991B/BN (快上电) 与 TPS22991C/CN (慢上电) 四个变体, 上电上升时间 141 us (B/BN) vs 662 us (C/CN) @3.3V, 且 QOD 有无随变体不同 => 落表批次必须补全 OPN 变体字母",
       "RCB 缺口在本板是硬需求而不是形式条款: 关机插 USB 时充电板 PG 拉低 => Q_PG (P-MOS 高边, HW/POWER_SHUTDOWN_V3.md §3) 把 ON 拉到 BAT_SW => 负载开关被强制导通 => 5V 经 SoC IO 到 SYS 再经开关通道反灌回 BAT_SW; N 沟道体二极管只挡 VIN->VOUT 方向, 挡不住导通态的通道反灌 => 没有 RCB 就真的会把电池反灌",
-      "判据口径冲突 (本单只报不改): HW/POWER_SHUTDOWN_V3.md §2 判据 2 写 Iout >= 2A (持续 1A 上下), 而 HW/netlist_v1.csv L37 写 SYS 最大电流 0.55A (330 mA x 1.5 + 瞬态) => 两处口径不一致, 压降与发热推算按 0.55A / 1A / 2A 三档都给, 由老板与 main 裁"
+      "判据口径冲突 (本单只报不改): HW/POWER_SHUTDOWN_V3.md §2 判据 2 写 Iout >= 2A (持续 1A 上下), 而 HW/netlist_v1.csv L37 写 SYS 最大电流 0.55A (330 mA x 1.5 + 瞬态) => 两处口径不一致, 压降与发热推算按 0.55A / 1A / 2A 三档都给, 由老板与 main 裁",
+      "2026-11-17 补证: 圣邦微两颗候选 (SGM2572 / SGM2575S) 的官方数据手册 PDF 已从官方服务器直取 => 证据等级全部从 [媒体] 升级为 [官网], 全文已无 [媒体] 依赖; 同时关闭了两个 [0数据] 格 (绝对最大额定 VIN -0.3~6V => 判据 1 满足; 4-ball 引脚原表)",
+      "2026-11-17 补证查出的实质影响: SGM2575S 官方 EC 表给出 RDSON max = 63 mΩ (SGM2572 = 60 mΩ) => 『唯一 RCB + RON <= 40 mΩ 双满足』只在 typ 口径成立; max 口径下没有任何一颗带 RCB 的在售型号能过判据 3 => 建议老板拍优先级序时一并拍『RON 按 typ 还是按 max 判』+『SYS 电流按 0.55A 还是 2A 算』",
+      "2026-11-17 补证查出的引脚硬事实: TPS22916BYFPR / SGM2572ADYG/TR / SGM2575SADYG/TR 三颗带 RCB 的候选, 官方手册 PIN CONFIGURATION 全是 A1=VOUT / A2=VIN / B1=GND / B2=ON, 与现网表 1=VIN/2=ON/3=VOUT/4=GND 无一兼容 => 改板不是『换个料号』而是『换引脚编号体系』, 板那一趟必须逐线重核"
     ]
   },
-  "netlist_value_snapshot": "[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)"
+  "netlist_value_snapshot": "TPS22991RAA (负载开关 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA · ≥2A · R_on 25mΩ@5V · 无 RCB ⇒ 选型口径待 A5 追认)",
+  "netlist_value_pre_drift": "[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)",
+  "netlist_drift": {
+    "landed_by": "ISS-257 (hw-lead · G1a-7 选型落表 · main 2026-11-16 verified)",
+    "landed_at": "2026-11-16 21:2x 决定 / 2026-11-16 22:25:14 写盘 (HW/netlist_v1.csv mtime)",
+    "landed_ref": "state/_apply_iss257_g1a7_selection.py (一次性落表器) + state/gen_netlist.py (真源)",
+    "reason": "G1a-7 要求把 14 件「必装 ∩ value 含 [待选型]」回填成真实可采购型号; U_PWR_SW 落的是本矩阵里唯一与现 footprint 逐字一致的 TPS22991RAA, 并把 RCB 缺口写进 value 栏 ⇒ 落表批次明知缺 RCB 也要落, 口径留给 A5 追认",
+    "pre_drift_snapshot": "[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)",
+    "post_drift_snapshot": "TPS22991RAA (负载开关 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA · ≥2A · R_on 25mΩ@5V · 无 RCB ⇒ 选型口径待 A5 追认)",
+    "dropped_requirements": [
+      "网表 value 栏不再写 IQ ≤5µA ⇒ 判据 4 (关机漏电) 在网表侧失声 (判据真源 HW/POWER_SHUTDOWN_V3.md §2 一字未改, 本矩阵仍按判据 4 逐格评)",
+      "网表 value 栏不再写 带反向阻断 ⇒ 改成 无 RCB ⇒ 判据 5 (反向阻断) 在网表侧从「必须」变成「已知缺口」"
+    ],
+    "residual_gaps_ref": "顶层 residual_gaps (三条)",
+    "verify": "main 2026-11-16 13:2x~13:3x 实跑复验 ISS-172 (rc=0 · selftest 8/8); ★本次 drift 由 sw-lead 2026-11-17 第 2 轮实测发现并重锚"
+  },
+  "residual_gaps": [
+    "L50 note 栏仍写「选型判据 8 条见 HW/POWER_SHUTDOWN_V3.md §2 (型号待选型, 询价经项目总工)」⇒ 与同一行的 value 栏 (已落型号 TPS22991RAA) 自相矛盾 ⇒ 残留缺口 ⇒ 归落表批次",
+    "L50 note 栏仍写「反向阻断必查 (关机插 USB 时防 5V 经 SoC IO 反灌电池)」⇒ 与同一行 value 栏的「无 RCB」并存 ⇒ 同一器件本体行里「必查」与「无」互相矛盾 ⇒ 残留缺口 ⇒ 归落表批次",
+    "L442 (U_EN_SW) note 栏仍写「选型 = TPS22991RAA (项目总工 11-03 已裁, ISS-172 待老板点头)」⇒ ISS-172 已交卷 ⇒ 实际只剩「A5 优先级序」这一句 ⇒ 残留缺口 ⇒ 归 main / 落表批次"
+  ],
+  "netlist_update_note": "★2026-11-16 22:25 由 hw-lead 的 ISS-257 落表批次把网表 L50 的 value 栏从 『[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)』改成上面这行 => 本快照已跟到落表后的真值 (★本单只交证据, 不落表, 不改网表★); 落表落的是『不改板』分支 (TPS22991RAA 同封装), 『无 RCB』缺口仍在, 等 §A5 追认"
 }
 ```
 <!-- END 选型证据基准块 -->

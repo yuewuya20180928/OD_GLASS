@@ -33,6 +33,18 @@
      · ★**不许为了凑绿去改脚本里的基线值** ⇒ 改基线 = 改代码, 走 review
      · ★**落表批次必须同步更新这 5 个基线值** (网表/脚表 md5 会变) ⇒ 否则本闸会红 ⇒ **这是设计意图**
 
+  ④b **md5 基线可追溯性 (★2026-11-17 补·H-1 重锚第 1 跳·★自己发现的漏★)**
+     · ★**为什么必须补**: 只比【盘上 md5 == 脚本基线】的话, ★**改一下脚本里的基线值就能凑绿** ★
+       (★这正是 ISS-239 任务书点名的红线★) ⇒ 补一条【台账对账】
+     · ★**脚本里的基线 md5 必须能在落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 里查到** ★
+       ⇒ 查不到 ⇒ `MD5_BASELINE_UNTRACED` 红 ⇒ **"改基线凑绿"这条路被堵死**
+     · ★**H-1 重锚链** (`MD5_ANCHOR_CHAIN` · 逐跳留痕) 的**链尾必须 == 当前基线**
+       ⇒ 不一致 ⇒ `MD5_CHAIN_INCONSISTENT` 红 ⇒ **用台账里的历史旧值顶替基线也堵死**
+     · ★**本闸第 1 跳 (2026-11-17)**: ISS-257 落表 (2026-11-16 21:22) 后 网表/脚表/BOM 三个基线已重锚
+       ⇒ 台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §18.4 L1069 / L1070 / L1071
+       ⇒ **板 / `.kicad_pro` 两个基线逐字节不变 (硬保护)** ⇒ 旧值 (34132f7e… / b21b743a… / c195a117…)
+       是【历史事实】, 留痕在 `MD5_ANCHOR_CHAIN` 里, **一个字没抹**
+
 ★★**官方 pinout 出处 (★[官网]·自己去 ti.com 查的★)**:
   TI **TPS7A20** datasheet **SBVS338H – MARCH 2020 – REVISED JULY 2024**,
   §4 *Pin Configuration and Functions* → 表 *Pin Functions: X2SON, SOT-23*:
@@ -68,6 +80,8 @@
 ★**落表后怎么转绿 (★交 main 的操作说明·本单不落表★)** ★★:
   1. 改 `state/gen_netlist.py` / `state/gen_netlist_pins.py` (真根因改法见 `HW/PIN_FUNCTION_TABLE_CLOSEOUT.md`)
   2. 重跑生成器 ⇒ 网表/脚表 md5 变 ⇒ **同步更新本脚本里 `PROTECTED_MD5` 的 5 个基线值**
+     ⇒ ★**并且在 `MD5_ANCHOR_CHAIN` 里追加一跳 (单号 / 旧 md5 / 新 md5 / 落表时刻 / 台账行号)★**
+       ⇒ ★**新基线值必须能在落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 里查到** ⇒ ④b 才不会红 ★
   3. 缺陷清零 ⇒ 更新本脚本里 `KNOWN_DEFECTS` 快照 (或直接删掉 `--expect-known` 分支)
   4. ⇒ 默认模式 rc=0 / `--expect-known` rc=0
 
@@ -123,11 +137,11 @@ TPS7A20_REFS = (
 )
 TPS7A20_PINS = ("pin1", "pin2", "pin3", "pin4", "pin5")
 
-# ★**受保护文件 md5 基线 (★写在脚本里·不许为了凑绿改这里★) ★**
+# ★**受保护文件 md5 基线 (★写在脚本里·不许为了凑绿改这里★) ★** ★★H-1 重锚 (2026-11-17 · 本闸第 1 跳): 网表/脚表/BOM 三个基线 = ★**ISS-257 落表后真盘实测值** (台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §18.4 L1069/L1070/L1071 · 2026-11-16 21:22) ★** 旧值 (ISS-239 交卷时 = 34132f7e… / b21b743a… / c195a117…) 是历史事实, 逐跳留痕在 `MD5_ANCHOR_CHAIN`★** ★**板 / `.kicad_pro` 两个逐字节不变 (硬保护)★**
 PROTECTED_MD5 = {
-    "HW/netlist_v1.csv": "34132f7e40a241e1fae1476be0eafbd5",
-    "HW/netlist_v1_pins.csv": "b21b743a7702d30729f0d653c15392df",
-    "HW/BOM_v1.csv": "c195a117ff17490d4d1e1a5b8f1995a7",
+    "HW/netlist_v1.csv": "e06c1dd633566aa44732762c2ff99d1c",
+    "HW/netlist_v1_pins.csv": "287e7861a0d1007748d92d9fbecdd490",
+    "HW/BOM_v1.csv": "94642d07a69e8d60dd2af57f69b93607",
     "HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",
     "HW/PCB/demo_mainboard.kicad_pro": "3e504d2be83152e337949723e909be1b",
 }
@@ -397,6 +411,53 @@ def check4_protected_md5(root: str, baseline: dict = None) -> list:
     return out
 
 
+def check4b_md5_ledger(root: str, baseline: dict = None, ledger_file: str = None,
+                       refs: dict = None, chain: dict = None) -> list:
+    """④b md5 基线可追溯性 ⇒ findings list
+
+    ★**堵死「改脚本里的基线值来凑绿」这条路**:
+      · 脚本里的基线 md5 必须能在★**落表台账**★ `HW/SCHEMATIC_LANDING_V1_LANDED.md` 里查到
+        ⇒ 查不到 ⇒ `MD5_BASELINE_UNTRACED` 红
+      · ★**H-1 重锚链的链尾必须 == 当前基线** ⇒ 不一致 ⇒ `MD5_CHAIN_INCONSISTENT` 红
+        ⇒ ⇒【用台账里的历史旧值顶替基线】也堵死 (旧值虽在台账里, 但 ≠ 盘上现值 ⇒ ④ 先红)
+    """
+    baseline = baseline or PROTECTED_MD5
+    ledger_file = ledger_file or MD5_LEDGER_FILE
+    refs = refs if refs is not None else MD5_LEDGER_REFS
+    chain = chain if chain is not None else MD5_ANCHOR_CHAIN
+    out = []
+    path = os.path.join(root, ledger_file)
+    if not os.path.exists(path):
+        out.append({
+            "key": "md5ledger:%s" % ledger_file, "kind": "MD5_LEDGER_MISSING",
+            "expected": ledger_file, "actual": "★文件不存在★",
+            "reasons": ["落表台账不存在 ⇒ 无法证明 md5 基线可追溯 (★本闸要求落表台账在树里★)"],
+        })
+        return out
+    txt = open(path, encoding="utf-8", errors="replace").read()
+    for rel, ref in sorted(refs.items()):
+        want = baseline.get(rel, "")
+        if not want:
+            continue
+        if want not in txt:
+            out.append({
+                "key": "md5ledger:%s" % rel, "kind": "MD5_BASELINE_UNTRACED",
+                "expected": "%s ∈ %s (%s)" % (want, ledger_file, ref),
+                "actual": "★落表台账里查不到这个 md5★",
+                "reasons": ["脚本里的基线 md5 在落表台账里查不到 ⇒ 疑似【改基线凑绿】 "
+                            "(★台账 %s %s★)" % (ledger_file, ref)],
+            })
+        ch = chain.get(rel) or []
+        if ch and ch[-1][2] != want:
+            out.append({
+                "key": "md5chain:%s" % rel, "kind": "MD5_CHAIN_INCONSISTENT",
+                "expected": ch[-1][2], "actual": want,
+                "reasons": ["H-1 重锚链的链尾与脚本基线不一致 (★链尾 = %s %s★)"
+                            % (ch[-1][0], ch[-1][4])],
+            })
+    return out
+
+
 # ─────────────────────────── 已知缺陷快照比对 ───────────────────────────
 def compare_known(computed: dict, known: dict) -> dict:
     """★实算缺陷清单 vs 冻结快照 ⇒ (ok, 差异说明 list) ★"""
@@ -469,7 +530,7 @@ def run(root: str) -> dict:
     rows = load_pins_rows(root)
     defects, advisories = analyze_pins(rows)
     pinout_f = check3_pinout_integrity(root)
-    md5_f = check4_protected_md5(root)
+    md5_f = check4_protected_md5(root) + check4b_md5_ledger(root)
     all_defects = dict(defects)
     for f in pinout_f + md5_f:
         all_defects[f["key"]] = f
@@ -514,12 +575,12 @@ def main_default(root: str, as_json: bool) -> int:
             print("   · %-22s [%s] 期望 %r 实得 %r" % (f["key"], f["kind"], f["expected"], f["actual"]))
     if md5_f:
         print()
-        print("  ── 【④ 受保护文件 md5】 ──")
+        print("  ── 【④/④b 受保护文件 md5 + 基线可追溯性 (★台账对账★)】 ──")
         for f in md5_f:
             print("   · %-40s [%s] 期望 %s 实得 %s" % (f["key"], f["kind"], f["expected"], f["actual"]))
     else:
         print()
-        print("  ── 【④ 受保护文件 md5】 5 个基线全部一致 ✔")
+        print("  ── 【④/④b 受保护文件 md5 + 基线可追溯性】 5 个基线全部一致 + 3 个基线在落表台账里可查 ✔")
     print()
     print("  判定: %s" % ("❌ 不过 (%d 条缺陷) ⇒ ★当前是已知缺陷基线, 落表批次里修★" % total
                           if total else "✅ 过 (0 条缺陷) ⇒ 已转绿"))
@@ -736,6 +797,46 @@ def selftest() -> int:
     else:
         cases.append(("T10 已知缺陷快照 SHA256 一致 (快照不许偷改)", known_digest[:16] + "…"))
 
+    # ── T11 ★把 md5 基线改成【落表台账里查不到】的任意值 ⇒ ④ 与 ④b 必须同时红 ★
+    bad = dict(PROTECTED_MD5)
+    bad["HW/netlist_v1.csv"] = "deadbeef" * 4
+    f4 = check4_protected_md5(PROJ, baseline=bad)
+    f4b = check4b_md5_ledger(PROJ, baseline=bad)
+    kinds = {x["kind"] for x in f4 + f4b}
+    if "MD5_CHANGED" not in kinds:
+        fails.append("T11 失效: 篡改 md5 基线后 ④ 没报 MD5_CHANGED")
+    elif "MD5_BASELINE_UNTRACED" not in kinds:
+        fails.append("T11 失效: 篡改 md5 基线后 ④b 没报 MD5_BASELINE_UNTRACED "
+                     "(★台账对账不是承重的·白写的★)")
+    else:
+        # ★自证: 正常基线必须是干净的 (④ + ④b) ⇒ 证明红确实来自这次篡改★
+        if check4_protected_md5(PROJ) or check4b_md5_ledger(PROJ):
+            fails.append("T11 前提不成立: 正常基线本应干净")
+        else:
+            cases.append(("T11 改基线凑绿 ⇒ ④+④b 双红 (★台账里查不到这个 md5★)",
+                          "报=%s" % sorted(kinds)))
+
+    # ── T12 ★把 md5 基线改成【落表台账里的历史旧值】⇒ 仍然红 (★用旧值顶替不算数★) ★
+    old = dict(PROTECTED_MD5)
+    old["HW/netlist_v1.csv"] = "34132f7e40a241e1fae1476be0eafbd5"   # ★ISS-233 之后的旧值 (台账里查得到) ★
+    f = check4_protected_md5(PROJ, baseline=old) + check4b_md5_ledger(PROJ, baseline=old)
+    if not f:
+        fails.append("T12 失效: 用落表台账里的历史旧值顶替基线竟没报 "
+                     "(★旧值 ≠ 盘上现值 ⇒ 必须红★)")
+    else:
+        cases.append(("T12 用落表台账里的历史旧值顶替基线 ⇒ 仍红",
+                      "报=%s" % sorted({x["kind"] for x in f})))
+
+    # ── T13 ★链尾与基线不一致 ⇒ 红 (★H-1 重锚链不是摆设★) ★
+    ch = {k: list(v) for k, v in MD5_ANCHOR_CHAIN.items()}
+    ch["HW/netlist_v1.csv"] = ch["HW/netlist_v1.csv"][:-1]   # ★把链尾砍掉 ⇒ 链尾 ≠ 基线 ★
+    f = check4b_md5_ledger(PROJ, chain=ch)
+    if not f:
+        fails.append("T13 失效: 砍掉 H-1 重锚链的链尾竟没报 (★链尾检查不是承重的★)")
+    else:
+        cases.append(("T13 砍掉 H-1 重锚链的链尾 ⇒ ④b 红",
+                      "报=%s" % [x["kind"] for x in f]))
+
     print("═══ 引脚功能名闸 · ★--selftest★ 反向用例自测 ═══")
     for i, (name, detail) in enumerate(cases, start=1):
         print("   [T%-2d] ✔ %s  —— %s" % (i, name, detail))
@@ -751,6 +852,44 @@ def selftest() -> int:
 # ★**已知缺陷快照的 SHA256 (★硬编码基线·不许与 KNOWN_DEFECTS 一起被偷改★)** ★
 # ★**改 KNOWN_DEFECTS 就必须同时改这一行, 且必须在交卷单里说明为什么改 (★落表批次清零时改★)** ★
 KNOWN_SNAPSHOT_SHA256 = "4b48cfee483dfd8a4931c518aa13151be869c54a90f0cd04925e9f67436deca1"
+
+
+# ─────────────────── ④b 落表台账对账 (★H-1 重锚可追溯★·2026-11-17 补) ───────────────────
+# ★**为什么必须补这一条 (★ISS-239 交卷后自己发现的漏★)**:
+#   ④ 号检查只比【盘上 md5 == 脚本里的基线】⇒ ★**光有这一条, 谁都可以直接改脚本里的基线值来凑绿** ★
+#   (★这正是 ISS-239 任务书点名的红线: 「不许改脚本里的基线值来凑绿」★)
+#   ⇒ 补一条【台账对账】: ★**脚本里的基线值必须能在落表台账里查到** ★
+#   ⇒ 落表台账 = `HW/SCHEMATIC_LANDING_V1_LANDED.md` (★落表批次的唯一真源登记处★)
+#   ⇒ 【改基线凑绿】这条路被堵死: 台账里查不到的 md5 ⇒ ④b 红 ★
+MD5_LEDGER_FILE = "HW/SCHEMATIC_LANDING_V1_LANDED.md"
+
+# ★**哪些文件走台账对账 (★落表会变的 3 个★); 板 / `.kicad_pro` 是硬保护, 走纯 md5 比对 ★**
+MD5_LEDGER_REFS = {
+    "HW/netlist_v1.csv": "§18.4 L1069 (ISS-257 · 2026-11-16 21:22)",
+    "HW/netlist_v1_pins.csv": "§18.4 L1070 (ISS-257 · 2026-11-16 21:22)",
+    "HW/BOM_v1.csv": "§18.4 L1071 (ISS-257 · 2026-11-16 21:22)",
+}
+
+# ★**H-1 重锚链 (★追加式留痕·历史不改·逐条可回台账核★)** ★
+#   ★**链尾必须 == `PROTECTED_MD5` 里的当前基线** ⇒ 不一致 ⇒ `MD5_CHAIN_INCONSISTENT` 红
+MD5_ANCHOR_CHAIN = {
+    "HW/netlist_v1.csv": [
+        ("ISS-233", "3215020b6d4120e1b7728227effdc6d3", "34132f7e40a241e1fae1476be0eafbd5", "2026-11-16 06:48", "§15.4 L552"),
+        ("ISS-243", "34132f7e40a241e1fae1476be0eafbd5", "611c3ba3db3dc7de7213063375b96d01", "2026-11-16 15:45", "§16.4 L656"),
+        ("ISS-249", "611c3ba3db3dc7de7213063375b96d01", "16ac89f77c25a3f61834cc7ebcd78a7f", "2026-11-16 19:3x", "§17.5 L852"),
+        ("ISS-257", "16ac89f77c25a3f61834cc7ebcd78a7f", "e06c1dd633566aa44732762c2ff99d1c", "2026-11-16 21:22", "§18.4 L1069"),
+    ],
+    "HW/netlist_v1_pins.csv": [
+        ("ISS-233", "a600afae493f5a7a6c55f46ad35ac89c", "b21b743a7702d30729f0d653c15392df", "2026-11-16 06:48", "§15.4 L553"),
+        ("ISS-243", "b21b743a7702d30729f0d653c15392df", "ef436a37412ac9b6eac3c9f41f1edca4", "2026-11-16 15:45", "§16.4 L657"),
+        ("ISS-257", "ef436a37412ac9b6eac3c9f41f1edca4", "287e7861a0d1007748d92d9fbecdd490", "2026-11-16 21:22", "§18.4 L1070"),
+    ],
+    "HW/BOM_v1.csv": [
+        ("ISS-233", "92b51580867deca9f8b04af88d925d96", "c195a117ff17490d4d1e1a5b8f1995a7", "2026-11-16 06:48", "§15.4 L554"),
+        ("ISS-243", "c195a117ff17490d4d1e1a5b8f1995a7", "2a7305741134788dfee9f13f34c656b4", "2026-11-16 15:45", "§16.4 L658"),
+        ("ISS-257", "2a7305741134788dfee9f13f34c656b4", "94642d07a69e8d60dd2af57f69b93607", "2026-11-16 21:22", "§18.4 L1071"),
+    ],
+}
 
 
 def main(argv=None) -> int:

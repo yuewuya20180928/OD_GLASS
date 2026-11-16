@@ -32,19 +32,19 @@ merge rc=0
 ==========================================================================
 
 【Q1 交付齐备率】 18/18 个必填验收块齐全
-   hw-lead    6/6  缺: 无   交接单: 2026-11-16_hw-lead_ISS242_网表板第3轮自相矛盾3条.md   ★按 2026-11-16_hw-lead_ISS242_网表板第3轮自相矛盾3条.md 计分 (最新一份 2026-11-16_hw-lead_ISS243_C_REGN官方值落表与4条落表前置.md 缺 ['B1', 'B2', 'B4', 'B5'])
-   sw-lead    6/6  缺: 无   交接单: 2026-11-16_sw-lead_ISS241_BOM待选型21件OPN选型矩阵.md
-   mech-lead  6/6  缺: 无   交接单: 2026-11-16_mech-lead_ISS240_跨铰链FPC几何三口径收口.md
+   hw-lead    6/6  缺: 无   交接单: 2026-11-17_hw-lead_ISS268_板只改一次作业包v3_§0两行口径订正.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-17_sw-lead_ISS270_SW侧外部依赖自查.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-17_mech-lead_ISS271_板侧开口S6认领与LED位置约束.md
 
 【Q2 证据分级率】 3/3 个总工的交付做了证据分级
    hw-lead    标签: ['实测', '官方', '推算', '0数据']
-   sw-lead    标签: ['实测', '官方', '推算', '0数据']
+   sw-lead    标签: ['实测', '官方', '推算', '0数据', '0 数据']
 gate rc=0
 
 ### ③ 本单门禁
 === ISS-244 选型缺口自查补全 + OPN 回填清单 · 机器门禁 ===
 OPN 清单应覆盖件数 (ISS-241 登记范围, 从矩阵基准块读) = 22
-其中当前仍待落 (HW/BOM_v1.csv 实跑 待选型∩必装 − 越界件) = 21
+其中当前仍待落 (HW/BOM_v1.csv 实跑 待选型∩必装 − 越界件) = 8
 [PASS] C0
 [PASS] C1
 [PASS] C2
@@ -52,27 +52,32 @@ OPN 清单应覆盖件数 (ISS-241 登记范围, 从矩阵基准块读) = 22
 [PASS] C4
 [PASS] C5
 [PASS] C6
---- 7/7 PASS ---
+[PASS] C7
+--- 8/8 PASS ---
 rc=0
 
 ### ④ 本单门禁 --selftest
 [PASS] M1 删掉一条缺口 (G-7) → 期望 C1 红
-      变异落地(探针 'G-7' 在副本里)=True · 目标 C1 变红=True · 其余 check 仍绿=True
+      变异落地(探针 'G-7' 在副本里)=True · 目标 C1 变红=True · 其余 check 仍绿=True · 红因指名=True
 [PASS] M2 某条缺口降级方案清空 → 期望 C2 红
-      变异落地(探针 'G-3' 在副本里)=True · 目标 C2 变红=True · 其余 check 仍绿=True
+      变异落地(探针 'G-3' 在副本里)=True · 目标 C2 变红=True · 其余 check 仍绿=True · 红因指名=True
 [PASS] M3 证据等级写成 [官方] → 期望 C3 红
-      变异落地(探针 '[官方]' 在副本里)=True · 目标 C3 变红=True · 其余 check 仍绿=True
+      变异落地(探针 '[官方]' 在副本里)=True · 目标 C3 变红=True · 其余 check 仍绿=True · 红因指名=True
 [PASS] M5 清单里删一件 (D_ESD_CAM) → 期望 C5 红
-      变异落地(探针 'D_ESD_CAM' 在副本里)=True · 目标 C5 变红=True · 其余 check 仍绿=True
+      变异落地(探针 'D_ESD_CAM' 在副本里)=True · 目标 C5 变红=True · 其余 check 仍绿=True · 红因指名=True
 [PASS] M6 某行落表锚点清空 → 期望 C6 红
-      变异落地(探针 'Q_PG' 在副本里)=True · 目标 C6 变红=True · 其余 check 仍绿=True
+      变异落地(探针 'Q_PG' 在副本里)=True · 目标 C6 变红=True · 其余 check 仍绿=True · 红因指名=True
 [PASS] M8 已被别的批次落掉的件清空 landed_note → 期望 C5 红
-      变异落地(探针 'C_REGN' 在副本里)=True · 目标 C5 变红=True · 其余 check 仍绿=True
+      变异落地(探针 'C_REGN' 在副本里)=True · 目标 C5 变红=True · 其余 check 仍绿=True · 红因指名=True
+[PASS] M9 落表后回归表删掉一行 → 期望 C7 红
+      变异落地(探针 'R_SUPV_DIV2' 在副本里)=True · 目标 C7 变红=True · 其余 check 仍绿=True · 红因指名=True
+[PASS] M10 落表后回归表某件清空出处 → 期望 C7 红
+      变异落地(探针 'C_REGN' 在副本里)=True · 目标 C7 变红=True · 其余 check 仍绿=True · 红因指名=True
 [PASS] M4 正文塞一句挂起措辞 → 期望 C4 红
       变异落地(探针 '等原厂回信' 在副本里)=True · 目标 C4 变红=True · 其余 check 仍绿=True
 [PASS] M7 破坏基准块 JSON → 期望 C0 红 (且 C1~C6 一致地红 = fail-closed)
       变异落地=True · 目标 C0 变红=True · 其余 check 一致地红(fail-closed)=True
---- SELFTEST 8/8 ---
+--- SELFTEST 10/10 ---
 rc=0
 
 ### ⑤ LED 曲线数字化自证 (--selftest)
@@ -112,13 +117,44 @@ rc=0
 
 ### ⑦ 件数双源统计
 ISS-241 登记范围 = 22
-当前仍待落 = 21
-已被并发落表落掉 = ['C_REGN']
+当前仍待落 = 8
+已被并发落表落掉 = ['C_REGN', 'D_ESD_CAM', 'D_ESD_DEMO', 'D_ESD_TC', 'D_ESD_USB_D', 'D_TVS_VBUS', 'FB_DEMO', 'FB_VBUS', 'Q_AND', 'Q_CHG_LED', 'Q_ENVC', 'Q_PG', 'R_SUPV_DIV1', 'R_SUPV_DIV2']
 
-### ⑧ 受保护文件 md5 (交卷前后逐字节未变)
-611c3ba3db3dc7de7213063375b96d01  HW/netlist_v1.csv
-ef436a37412ac9b6eac3c9f41f1edca4  HW/netlist_v1_pins.csv
-2a7305741134788dfee9f13f34c656b4  HW/BOM_v1.csv
+### ⑦b 落表后回归 (三方交叉核对)
+登记范围 22 件 / 仍待落 8 件 / 已落表 14 件
+- C_REGN       4.7µF ±10%             – 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判 
+- D_ESD_CAM    TPD1E05U06DPYR         ★P0 (引脚序/角色级): ✘ 占位 land 与器件引脚序对不上 板侧改 land: pad1: GND → CSI_D0_CK_P; pad2: CSI_D0_CK_P → GND
+      pad 1  net=GND            器件脚=I/O  网表角色=GND  MISMATCH
+      pad 2  net=CSI_D0_CK_P    器件脚=GND  网表角色=I/O  MISMATCH
+- D_ESD_DEMO   PESD5V0S1BA            – 双向件 ⇒ 极性无关, 不参与引脚序判定       
+- D_ESD_TC     SP0503BAHT             – 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判 
+- D_ESD_USB_D  TPD1E05U06DPYR         ✔ 引脚序与占位 land 对得上            
+      pad 1  net=USB_D_P_SRC    器件脚=I/O  网表角色=I/O  OK
+      pad 2  net=GND            器件脚=GND  网表角色=GND  OK
+- D_TVS_VBUS   SMBJ5.0A               – 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判 
+- FB_DEMO      BLM21PG221SN1D         – 无源件 / 不引脚序敏感 ⇒ 只差 land 几何 (G-7) 
+- FB_VBUS      BLM31PG121SN1          – 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判 
+- Q_AND        AO3400A                ★P0 (引脚序/角色级): ✘ 占位 land 与器件引脚序对不上 板侧改 land: pad1: RESET_N → PG_AND; pad3: PG_AND → RESET_N
+      pad 1  net=RESET_N        器件脚=G    网表角色=D    MISMATCH
+      pad 2  net=GND            器件脚=S    网表角色=S    OK
+      pad 3  net=PG_AND         器件脚=D    网表角色=G    MISMATCH
+- Q_CHG_LED    2N7002                 – 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判 
+- Q_ENVC       AO3400A                ✔ 引脚序与占位 land 对得上            
+      pad 1  net=PG_AND         器件脚=G    网表角色=G    OK
+      pad 2  net=GND            器件脚=S    网表角色=S    OK
+      pad 3  net=EN_VCORE       器件脚=D    网表角色=D    OK
+- Q_PG         DMP3098L               ★P0 (引脚序/角色级): ✘ 占位 land 与器件引脚序对不上 板侧改 land: pad1: PWR_ON → PWR_GOOD; pad3: PWR_GOOD → PWR_ON  ★**同时网表 note 的角色必须同批改成写法A (S=BAT_SW / D=ON / G=PG)** ⇒ 否则按 note 的错角色排出来的 land 一样开机不通
+      pad 1  net=PWR_ON         器件脚=G    网表角色=S    MISMATCH
+      pad 2  net=BAT_SW         器件脚=S    网表角色=D    MISMATCH
+      pad 3  net=PWR_GOOD       器件脚=D    网表角色=G    MISMATCH
+- R_SUPV_DIV1  0Ω ±1% 跳线              ★P0 (装配级): 0 Ω 且必装 + U_SUPV DNP ⇒ 短路到地 (见拓扑备注) 
+- R_SUPV_DIV2  0Ω ±1% 跳线              ★P0 (装配级): 0 Ω 且必装 + U_SUPV DNP ⇒ 短路到地 (见拓扑备注) 
+rc=0
+
+### ⑧ 受保护文件 md5 (本单只读不改)
+e06c1dd633566aa44732762c2ff99d1c  HW/netlist_v1.csv
+287e7861a0d1007748d92d9fbecdd490  HW/netlist_v1_pins.csv
+94642d07a69e8d60dd2af57f69b93607  HW/BOM_v1.csv
 611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
 3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
 da609d7d1844617cdb1e4f425b8b052c  HW/PART_SELECTION_MATRIX_2026-11-16.md

@@ -8,13 +8,15 @@
 
 ★ISS-241 登记的 10 条缺口 (G-1~G-10) **本轮逐条自查完毕**: 4 条重点缺口 (G-5 / G-3+G-4 / G-10 / G-1) 从「描述性缺口」升级成**带官方出处 + 可复跑算式 + 可量化代价**的条目; 6 条 (G-2/G-6/G-7/G-8/G-9) 写成「已转单 / 已闭合 + 出处」不重复论证。另交 **22 件 OPN 回填清单** (只出清单, 一字未落表)。★**本单不替老板拍任何一条** (V-2 / V-3 / V-4 / G-1 / G-10 / 亮度档 全部只出依据 + 代价)。
 
+★**2026-11-17 05:0x 增补 (H-1 重锚第 1 跳)**: 板侧又落了 13 件 ⇒ ① 每行 `landed_note` 重算 ② **新增 §5 落表后回归**: 把「板占位 land ↔ 落地器件引脚序 ↔ 网表 note 端子角色」三方逐件交叉核对 ⇒ **查出 3 条实物级 P0** (① `Q_PG` 角色本身错 + land 不对 ⇒ 开机路径不通 ② `Q_AND` 栅/漏对调 ⇒ 复位链硬件 AND 门不成立 ③ `D_ESD_CAM` ESD 器件接反 ⇒ 保护失效 + CSI lane 被钳) ⇒ **每条都给了最小修法** (多是「两个外侧 pad 对调」) ⇒ ★**仍然只出依据 + 代价, 一件都没代拍**★。
+
 ## §1 口径与边界
 
 - **范围**: 只交依据 + 清单。网表 / 脚表 / BOM **一个字未改**; ISS-241 矩阵正文与门禁脚本 **一个字未改**; 板 / 布线 / 布局未碰。
 - **证据分级**: 只用 `[官网]` / `[实测]` / `[媒体]` / `[推算]` / `[0数据]` 五级。
 - **零外发**: 老板 2026-11-11 19:31 + 2026-11-12 02:02 政策 —— 本轮全部资料来自 web_search / web_fetch / 带 `--max-time` 的 curl + `pdftotext` 实读, **未发任何邮件 / 询价 / 问询 / 采购**。查不到的一律写 `[0数据]` + 降级方案, 不挂任何把结论悬在外部回函上的措辞。
-- **件数控 (两个机器派生源, 都不抄硬编码数字)**: ① **登记范围** = ISS-241 矩阵基准块的 `expected_refs` = **22 件** (本单必须全覆盖); ② **当前仍待落** = `HW/BOM_v1.csv` 实跑「待选型∩必装 − 越界件」= **21 件**。两者不等的原因见下 (G-9)。
-- ★**并发落表落地的实况 (2026-11-16 15:45:45 实测)**: 本单生成期间, `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` 被另一个落表批次改过一次 ⇒ `C_REGN` 的 BOM value 已从「[待选型] 1µF」变成「4.7µF ±10% (10V)」且 opn 已填 ⇒ 该件**已不在 BOM 待选型集合里**, 但它仍在 ISS-241 的登记范围内 ⇒ 本单清单**保留这一行**并标注「已落表 + 落表证据 (landed_note)」。★**本单门禁的 C5 就是按这个口径写的**: 登记范围内的一件被并发落掉而又不写落表证据 ⇒ **红** (锚点过期 ⇒ 红 ⇒ 走 H-1 重锚 + 留痕, 不许把红灯调没)。本单本轮为此重跑了一次生成器 + 门禁 (见交卷单 B5)。
+- **件数控 (两个机器派生源, 都不抄硬编码数字)**: ① **登记范围** = ISS-241 矩阵基准块的 `expected_refs` = **22 件** (本单必须全覆盖); ② **当前仍待落** = `HW/BOM_v1.csv` 实跑「待选型∩必装 − 越界件」= **8 件**。两者不等的原因见下 (G-9)。
+- ★**并发落表落地的实况 (最新一次实读: 2026-11-17 05:0x)**: 本单生成期间, `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` 被落表批次改过 **两次** —— ① 2026-11-16 15:45 (`C_REGN`) ② 2026-11-16 22:25 (选型落表批次, 又落 13 件) ⇒ 登记范围 22 件里 **14 件已落表 / 8 件仍待落** ⇒ 已落表的件**不在 BOM 待选型集合里**, 但仍在 ISS-241 的登记范围内 ⇒ 本单清单**保留这些行**并标注「已落表 + 落表证据 (landed_note)」。★**本单门禁的 C5 就是按这个口径写的**: 登记范围内的一件被并发落掉而又不写落表证据 ⇒ **红** (锚点过期 ⇒ 红 ⇒ 走 H-1 重锚 + 留痕, 不许把红灯调没)。★**本轮已按 H-1 重锚第 1 跳处理** (见 §5)。
 - **落表锚点**: 一律写 `ref + net` 这样的稳定锚点 + 当刻的行号; ★**行号会随落表漂移** ⇒ 落表时以 ref+net 为准★。
 
 ## §2 ★G-1~G-10 逐条自查结果 (一条不许少)
@@ -63,34 +65,47 @@
 
 ## §4 ★OPN 回填清单 (只出清单, 不落表)
 
-★**登记范围 = 22 件** (ISS-241 矩阵基准块的 `expected_refs`, 机器派生) · 其中 **21 件当前仍待落** · **1 件已被并发落表批次落掉** (``C_REGN``) ⇒ 该行保留并标注落表证据, 不进落表批次。
+★**登记范围 = 22 件** (ISS-241 矩阵基准块的 `expected_refs`, 机器派生) · 其中 **8 件当前仍待落** · **14 件已被并发落表批次落掉** (`C_REGN`, `D_ESD_CAM`, `D_ESD_DEMO`, `D_ESD_TC`, `D_ESD_USB_D`, `D_TVS_VBUS`, `FB_DEMO`, `FB_VBUS`, `Q_AND`, `Q_CHG_LED`, `Q_ENVC`, `Q_PG`, `R_SUPV_DIV1`, `R_SUPV_DIV2`) ⇒ 该行保留并标注落表证据, 不进落表批次。
 
 | # | 位号 | 板 | 矩阵推荐项 (型号) | 证据等级 | 封装兼容性结论 | 落表锚点 (ref+net, ★行号会随落表漂移★) | 要改 footprint / land? | 谁拍 | 状态 |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | `C_REGN` | CHG_BOARD | `GRM21BR71C475KA73L` | [官网] | 落2焊盘+充电板侧封装另行定 | 网表 L44,L45 (ref=C_REGN, nets=REGN+GND) · 脚表 C_REGN.1,C_REGN.2 · BOM L43 (ref=C_REGN) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次, 2026-11-16 15:45 实测 BOM 已改) · 本单无需再落 |
+| 1 | `C_REGN` | CHG_BOARD | `GRM21BR71C475KA73L` | [官网] | 落2焊盘+充电板侧封装另行定 | 网表 L44,L45 (ref=C_REGN, nets=REGN+GND) · 脚表 C_REGN.1,C_REGN.2 · BOM L43 (ref=C_REGN) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
 | 2 | `D_CHG_LED` | CHG_BOARD | `APT1608SURCK` | [官网] | 落2焊盘+充电板侧封装另行定 | 网表 L510,L511 (ref=D_CHG_LED, nets=LED_CHG_A+CHG_LED_K) · 脚表 D_CHG_LED.1,D_CHG_LED.2 · BOM L57 (ref=D_CHG_LED) | 充电板侧封装占位待定 ⇒ 板那一趟定 (ISS-243 L4) | main (充电板那一趟) | 已转单 (ISS-243 L4) · 需落表 |
-| 3 | `D_ESD_CAM` | MAIN_PCB | `TPD1E05U06DPYR` | [官网] | 条件兼容 | 网表 L163,L413,L414 (ref=D_ESD_CAM, nets=GND+CSI_D0_CK_P+GND) · 脚表 D_ESD_CAM.1,D_ESD_CAM.2 · BOM L58 (ref=D_ESD_CAM) | 是 — 占位 2.30 mm 与 SOD-323 1.3 mm / X1SON 0.65 mm 都不重合 ⇒ 板那一趟重画 land | PM (V-2) / 落表批次 | 需老板拍 (V-2) · 需落表 |
-| 4 | `D_ESD_DEMO` | MAIN_PCB | `PESD5V0S1BA` | [官网] | 条件兼容 | 网表 L420,L421 (ref=D_ESD_DEMO, nets=RAIL_DEMO_5V+GND) · 脚表 D_ESD_DEMO.1,D_ESD_DEMO.2 · BOM L59 (ref=D_ESD_DEMO) | 是 — 同 D_ESD_CAM, 占位 2.30 mm 需重画 | 落表批次 (main 排期) | 需落表 |
-| 5 | `D_ESD_TC` | CHG_BOARD | `PESD5V0S1BA` | [官网] | 落2焊盘+充电板侧封装另行定 | 网表 L4,L162 (ref=D_ESD_TC, nets=USB_VBUS_RAW+GND) · 脚表 D_ESD_TC.1,D_ESD_TC.2,D_ESD_TC.3,D_ESD_TC.4 · BOM L61 (ref=D_ESD_TC) | 充电板侧封装占位待定 ⇒ 板那一趟定 (ISS-243 L4) | main (充电板那一趟) | 已转单 (ISS-243 L4) · 需落表 |
-| 6 | `D_ESD_USB_D` | MAIN_PCB | `TPD1E05U06DPYR` | [官网] | 条件兼容 | 网表 L417,L418 (ref=D_ESD_USB_D, nets=USB_D_P_SRC+GND) · 脚表 D_ESD_USB_D.1,D_ESD_USB_D.2 · BOM L62 (ref=D_ESD_USB_D) | 是 — 同上; 若 V-2 选双边 ⇒ 还要加第 3 个焊盘 (SOT-23-3) | PM (V-2) / 落表批次 | 需老板拍 (V-2) · 需落表 |
+| 3 | `D_ESD_CAM` | MAIN_PCB | `TPD1E05U06DPYR` | [官网] | 条件兼容 | 网表 L163,L413,L414 (ref=D_ESD_CAM, nets=GND+CSI_D0_CK_P+GND) · 脚表 D_ESD_CAM.1,D_ESD_CAM.2 · BOM L58 (ref=D_ESD_CAM) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 4 | `D_ESD_DEMO` | MAIN_PCB | `PESD5V0S1BA` | [官网] | 条件兼容 | 网表 L420,L421 (ref=D_ESD_DEMO, nets=RAIL_DEMO_5V+GND) · 脚表 D_ESD_DEMO.1,D_ESD_DEMO.2 · BOM L59 (ref=D_ESD_DEMO) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 5 | `D_ESD_TC` | CHG_BOARD | `PESD5V0S1BA` | [官网] | 落2焊盘+充电板侧封装另行定 | 网表 L4,L162 (ref=D_ESD_TC, nets=USB_VBUS_RAW+GND) · 脚表 D_ESD_TC.1,D_ESD_TC.2,D_ESD_TC.3,D_ESD_TC.4 · BOM L61 (ref=D_ESD_TC) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 6 | `D_ESD_USB_D` | MAIN_PCB | `TPD1E05U06DPYR` | [官网] | 条件兼容 | 网表 L417,L418 (ref=D_ESD_USB_D, nets=USB_D_P_SRC+GND) · 脚表 D_ESD_USB_D.1,D_ESD_USB_D.2 · BOM L62 (ref=D_ESD_USB_D) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
 | 7 | `D_LED_G` | MAIN_PCB | `KP-2012SGC` | [官网] | 兼容 | 网表 L305 (ref=D_LED_G, nets=GND) · 脚表 D_LED_G.1,D_LED_G.2 · BOM L64 (ref=D_LED_G) | 否 — 0805 本体 2.0×1.25 mm 与占位 fab bbox 2.70×1.60 mm 对齐 ⇒ land 不用动 | PM / 结构 (亮度档) + 落表批次 | 需老板拍 (亮度档 G-5) · 需落表 |
 | 8 | `D_LED_R` | MAIN_PCB | `AA1608SURSK` | [官网] | 兼容 | 网表 L302 (ref=D_LED_R, nets=GND) · 脚表 D_LED_R.1,D_LED_R.2 · BOM L65 (ref=D_LED_R) | 否 — 0603 本体 1.6×0.8 mm 在同 bbox 内偏小, 落板后位置略靠内 | PM / 结构 (亮度档) + 落表批次 | 需老板拍 (亮度档 G-5) · 需落表 |
-| 9 | `D_TVS_VBUS` | CHG_BOARD | `SMBJ5.0A` | [官网] | 落2焊盘+充电板侧封装另行定 | 网表 L505,L506 (ref=D_TVS_VBUS, nets=VBUS_5V+GND) · 脚表 D_TVS_VBUS.1,D_TVS_VBUS.2 · BOM L66 (ref=D_TVS_VBUS) | 充电板侧封装占位待定 ⇒ 板那一趟定 (ISS-243 L4) | main (充电板那一趟) | 已转单 (ISS-243 L4) · 需落表 |
-| 10 | `FB_DEMO` | MAIN_PCB | `BLM21PG221SN1D` | [官网] | 兼容 | 网表 L422,L423 (ref=FB_DEMO, nets=RAIL_DEMO_5V+GND) · 脚表 FB_DEMO.1,FB_DEMO.2 · BOM L67 (ref=FB_DEMO) | 否 — 占位 2 焊盘与 0603 land 兼容 | 落表批次 (main 排期) | 需落表 |
-| 11 | `FB_VBUS` | CHG_BOARD | `BLM31PG121SN1` | [官网] | 落2焊盘+充电板侧封装另行定 | 网表 L5,L8 (ref=FB_VBUS, nets=VBUS_5V_ESD+VBUS_5V_F1) · 脚表 FB_VBUS.1,FB_VBUS.2 · BOM L68 (ref=FB_VBUS) | 充电板侧封装占位待定 ⇒ 板那一趟定 (ISS-243 L4) | main (充电板那一趟) | 已转单 (ISS-243 L4) · 需落表 |
-| 12 | `Q_AND` | MAIN_PCB | `AO3400A` | [官网] | 条件兼容 | 网表 L65,L66,L67 (ref=Q_AND, nets=RESET_N+GND+PG_AND) · 脚表 Q_AND.1,Q_AND.2,Q_AND.3 · BOM L82 (ref=Q_AND) | 是 — 占位 pad 序 = D/S/G 与 SOT-23 库序 G/S/D 不符 ⇒ 必重画 | hw-lead (板那一趟) + 落表批次 | 需落表 (G-2) |
-| 13 | `Q_CHG_LED` | CHG_BOARD | `2N7002` | [官网] | 落3焊盘+充电板侧封装另行定 | 网表 L512,L513,L514 (ref=Q_CHG_LED, nets=CHG_LED_K+GND+CHG_STAT) · 脚表 Q_CHG_LED.1,Q_CHG_LED.2,Q_CHG_LED.3 · BOM L83 (ref=Q_CHG_LED) | 充电板侧封装占位待定 ⇒ 板那一趟定 (ISS-243 L4) | main (充电板那一趟) | 已转单 (ISS-243 L4) · 需落表 |
-| 14 | `Q_ENVC` | MAIN_PCB | `AO3400A` | [官网] | 条件兼容 | 网表 L71,L72,L73 (ref=Q_ENVC, nets=PG_AND+GND+EN_VCORE) · 脚表 Q_ENVC.1,Q_ENVC.2,Q_ENVC.3 · BOM L84 (ref=Q_ENVC) | 是 — 占位 pad 序 = G/S/D 与库序一致 ⇒ 本件 land 可不重画, 但 G-2 同批处理时一并核 | hw-lead (板那一趟) + 落表批次 | 需落表 (G-2) |
-| 15 | `Q_PG` | MAIN_PCB | `DMP3098L` | [官网] | 条件兼容 | 网表 L59,L60,L61 (ref=Q_PG, nets=PWR_ON+BAT_SW+PWR_GOOD) · 脚表 Q_PG.1,Q_PG.2,Q_PG.3 · BOM L85 (ref=Q_PG) | 是 — 占位 pad 序 = S/D/G 与库序 G/S/D 不符 ⇒ 必重画; 且 G-1 裁决后 pad↔pin 映射会再变一次 | PM / main (G-1 拍板) + hw-lead (板那一趟) | 需老板拍 (G-1) · 需落表 (G-1/G-2) |
-| 16 | `R_SUPV_DIV1` | MAIN_PCB | `RC0603JR-070RL` | [官网] | 兼容 | 网表 L404 (ref=R_SUPV_DIV1, nets=V_SOC_IO) · 脚表 R_SUPV_DIV1.1,R_SUPV_DIV1.2 · BOM L147 (ref=R_SUPV_DIV1) | 否 — 占位 2 焊盘 0603 兼容 | main / PM (G-10 拍板) | 需老板拍 (G-10) · 需落表 |
-| 17 | `R_SUPV_DIV2` | MAIN_PCB | `RC0603JR-070RL` | [官网] | 兼容 | 网表 L405,L406 (ref=R_SUPV_DIV2, nets=SUPV_SENSE+GND) · 脚表 R_SUPV_DIV2.1,R_SUPV_DIV2.2 · BOM L148 (ref=R_SUPV_DIV2) | 否 — 占位 2 焊盘 0603 兼容 | main / PM (G-10 拍板) | 需老板拍 (G-10) · 需落表 |
+| 9 | `D_TVS_VBUS` | CHG_BOARD | `SMBJ5.0A` | [官网] | 落2焊盘+充电板侧封装另行定 | 网表 L505,L506 (ref=D_TVS_VBUS, nets=VBUS_5V+GND) · 脚表 D_TVS_VBUS.1,D_TVS_VBUS.2 · BOM L66 (ref=D_TVS_VBUS) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 10 | `FB_DEMO` | MAIN_PCB | `BLM21PG221SN1D` | [官网] | 兼容 | 网表 L422,L423 (ref=FB_DEMO, nets=RAIL_DEMO_5V+GND) · 脚表 FB_DEMO.1,FB_DEMO.2 · BOM L67 (ref=FB_DEMO) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 11 | `FB_VBUS` | CHG_BOARD | `BLM31PG121SN1` | [官网] | 落2焊盘+充电板侧封装另行定 | 网表 L5,L8 (ref=FB_VBUS, nets=VBUS_5V_ESD+VBUS_5V_F1) · 脚表 FB_VBUS.1,FB_VBUS.2 · BOM L68 (ref=FB_VBUS) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 12 | `Q_AND` | MAIN_PCB | `AO3400A` | [官网] | 条件兼容 | 网表 L65,L66,L67 (ref=Q_AND, nets=RESET_N+GND+PG_AND) · 脚表 Q_AND.1,Q_AND.2,Q_AND.3 · BOM L82 (ref=Q_AND) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 13 | `Q_CHG_LED` | CHG_BOARD | `2N7002` | [官网] | 落3焊盘+充电板侧封装另行定 | 网表 L512,L513,L514 (ref=Q_CHG_LED, nets=CHG_LED_K+GND+CHG_STAT) · 脚表 Q_CHG_LED.1,Q_CHG_LED.2,Q_CHG_LED.3 · BOM L83 (ref=Q_CHG_LED) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 14 | `Q_ENVC` | MAIN_PCB | `AO3400A` | [官网] | 条件兼容 | 网表 L71,L72,L73 (ref=Q_ENVC, nets=PG_AND+GND+EN_VCORE) · 脚表 Q_ENVC.1,Q_ENVC.2,Q_ENVC.3 · BOM L84 (ref=Q_ENVC) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 15 | `Q_PG` | MAIN_PCB | `DMP3098L` | [官网] | 条件兼容 | 网表 L59,L60,L61 (ref=Q_PG, nets=PWR_ON+BAT_SW+PWR_GOOD) · 脚表 Q_PG.1,Q_PG.2,Q_PG.3 · BOM L85 (ref=Q_PG) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 16 | `R_SUPV_DIV1` | MAIN_PCB | `RC0603JR-070RL` | [官网] | 兼容 | 网表 L404 (ref=R_SUPV_DIV1, nets=V_SOC_IO) · 脚表 R_SUPV_DIV1.1,R_SUPV_DIV1.2 · BOM L147 (ref=R_SUPV_DIV1) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
+| 17 | `R_SUPV_DIV2` | MAIN_PCB | `RC0603JR-070RL` | [官网] | 兼容 | 网表 L405,L406 (ref=R_SUPV_DIV2, nets=SUPV_SENSE+GND) · 脚表 R_SUPV_DIV2.1,R_SUPV_DIV2.2 · BOM L148 (ref=R_SUPV_DIV2) | 不适用 (已落表) | 无需再拍 (已落表) | ★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落 |
 | 18 | `SW_BOOT` | MAIN_PCB | `KMR231ULCLFS` | [官网] | 条件兼容 | 网表 L386,L387 (ref=SW_BOOT, nets=BOOT_N+GND) · 脚表 SW_BOOT.1,SW_BOOT.2 · BOM L153 (ref=SW_BOOT) | 是 — 占位 2.20 mm vs gullwing 外扩 4.6 mm ⇒ 必重画 | 落表批次 (main 排期) | 需落表 |
 | 19 | `SW_KEY_PWR` | MAIN_PCB | `KMR231ULCLFS` | [官网] | 条件兼容 | 网表 L310,L312 (ref=SW_KEY_PWR, nets=KEY_PWR+GND) · 脚表 SW_KEY_PWR.1,SW_KEY_PWR.2 · BOM L155 (ref=SW_KEY_PWR) | 是 — 同上 | 落表批次 (main 排期) | 需落表 |
 | 20 | `SW_KEY_VM` | MAIN_PCB | `B3U-1000P` | [官网] | 条件兼容 | 网表 L320,L322 (ref=SW_KEY_VM, nets=KEY_VOL_M+GND) · 脚表 SW_KEY_VM.1,SW_KEY_VM.2 · BOM L156 (ref=SW_KEY_VM) | 是 — 同上 | 落表批次 (main 排期) | 需落表 |
 | 21 | `SW_KEY_VP` | MAIN_PCB | `B3U-1000P` | [官网] | 条件兼容 | 网表 L315,L317 (ref=SW_KEY_VP, nets=KEY_VOL_P+GND) · 脚表 SW_KEY_VP.1,SW_KEY_VP.2 · BOM L157 (ref=SW_KEY_VP) | 是 — 同上 | 落表批次 (main 排期) | 需落表 |
 | 22 | `SW_RST` | MAIN_PCB | `KMR231ULCLFS` | [官网] | 条件兼容 | 网表 L382,L383 (ref=SW_RST, nets=RESET_N+GND) · 脚表 SW_RST.1,SW_RST.2 · BOM L158 (ref=SW_RST) | 是 — 同上 | 落表批次 (main 排期) | 需落表 |
 
-- ★`C_REGN` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L43 行的 value='4.7µF ±10% (10V)' / opn='GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%)' (本单实读, 2026-11-16 15:45 之后的状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`C_REGN` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L43 行的 value='4.7µF ±10% (10V)' / opn='GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`D_ESD_CAM` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L58 行的 value='TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)' / opn='TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`D_ESD_DEMO` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L59 行的 value='PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA)' / opn='PESD5V0S1BA (Nexperia SOD-323 2-lead · VRWM 5V · VBR 6V min · IEC 61000-4-2 >30kV)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`D_ESD_TC` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L61 行的 value='SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚)' / opn='SP0503BAHT (Littelfuse · 订购码 SP0503BAHTG · 3 通道 TVS 阵列 · SOT-143-4 · 5.5VWM/8.5VC)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`D_ESD_USB_D` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L62 行的 value='TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)' / opn='TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`D_TVS_VBUS` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L66 行的 value='SMBJ5.0A (Littelfuse 单向 TVS · SMB · VRWM 5.0V · Vc 9.2V@65.3A · 600W)' / opn='SMBJ5.0A (Littelfuse DO-214AA SMB · VRWM 5.0V · VBR 6.4V min · Vc 9.2V @ Ipp 65.3A)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`FB_DEMO` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L67 行的 value='BLM21PG221SN1D (Murata 0805 · 220Ω@100MHz · 2A · DCR 45mΩ max)' / opn='BLM21PG221SN1D (Murata BLM21PG 0805 2012 metric · 220Ω ±25%@100MHz · 2000mA · DCR 45mΩ max)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`FB_VBUS` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L68 行的 value='BLM31PG121SN1 (Murata 1206 · 120Ω@100MHz · 3A · DCR 25mΩ)' / opn='BLM31PG121SN1 (Murata BLM31PG 1206 3216 metric · 120Ω@100MHz · 3000mA · DCR 0.025Ω)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`Q_AND` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L82 行的 value='AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)' / opn='AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`Q_CHG_LED` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L83 行的 value='2N7002 (onsemi N-MOS SOT-23 · VGS(th) max 2.0V · IGSS ≤10nA)' / opn='2N7002 (onsemi SOT-23 3-pin · 60V · RDS(on) 1.2Ω typ@10V · ID 115mA · IGSS ≤10nA)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`Q_ENVC` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L84 行的 value='AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)' / opn='AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`Q_PG` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L85 行的 value='DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)' / opn='DMP3098L (Diodes Inc SOT23 3-pin · −30V · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`R_SUPV_DIV1` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L147 行的 value='0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板' / opn='RC0603JR-070RL (Yageo 0Ω 跳线 / Jumper 档 · 0.1W · 50V · −55~+155°C)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
+- ★`R_SUPV_DIV2` 的落表证据 (landed_note): 登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L148 行的 value='0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板' / opn='RC0603JR-070RL (Yageo 0Ω 跳线 / Jumper 档 · 0.1W · 50V · −55~+155°C)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次
 
 ★**落表时的通用注意事项**:
 
@@ -102,7 +117,78 @@
 6. **`C_REGN` 已被并发落表批次落掉** (BOM value 4.7 µF / 10 V + opn 已填, 2026-11-16 15:45 实测) ⇒ **不进落表批次**, 清单里保留该行只作登记。
 7. **`R_SUPV_DIV1/2`** 在 G-10 拍板前, **建议先不填最终阻值** ⇒ 若采纳「随 U_SUPV 一并 DNP」, 直接把两行的 dnp 改成 DNP。
 
-## §5 出处表
+## §5 ★落表后回归 (2026-11-17 05:0x 实测) — H-1 重锚第 1 跳
+
+★**背景**: ISS-244 第一轮交卷 (2026-11-16 15:59) 之后, 板侧又落了一批选型件 (网表 / 脚表 / BOM 落盘时刻 = **2026-11-16 22:25:14**) ⇒ 登记范围 22 件里 **14 件已落表 / 8 件仍待落** ⇒ 本单门禁 C5 **按设计变红** (锚点过期 = 红 ⇒ 走 H-1 重锚 + 留痕, **不许把红灯调没**)。
+
+⇒ 本轮按 **H-1 重锚第 1 跳** 处理: ① 重算每一行的 `landed_note` (落表证据) ② 按盘上真值**重判**十条缺口的状态 ③ 新增本节的**落表后回归表** (三方交叉核对) ④ 收口页正文与机器可读基准块**同源** (都由 `state/.cache_iss244/build_closout.py` 生成)。
+
+### §5.1 「板占位 land ↔ 器件引脚序 ↔ 网表 note 角色」三方交叉核对 (逐件实读)
+
+★**为什么加这一节**: ISS-244 第一轮只给了「占位 land 与在售器件的 land 普遍不重合」这个**几何层**的结论 (G-7); 板侧把料真正落下来之后, 才第一次有可能回答更致命的那一层: **★落地的器件, 装到现在的占位焊盘上, 引脚还对不对得上★** ⇒ 本节把三份盘上真源摆到一张表里逐件对: ① `HW/PCB/demo_mainboard.kicad_pcb` 的 pad→net (占位 land) ② `HW/netlist_v1.csv` 每行的 note 写的端子角色 ③ 厂商手册的引脚序。
+
+| 位号 | 落地型号 | 器件引脚序 (官方 PDF 实读) | 板占位 land (pad→net) | 网表 note 定的角色 | 判定 | 要改哪几处 |
+|---|---|---|---|---|---|---|
+| `C_REGN` | `4.7µF ±10%` | – | 板文件查无此位号 | – | **– 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判** | – |
+| `D_ESD_CAM` | `TPD1E05U06DPYR` | pin1=I/O<br>pin2=GND | pad1=GND<br>pad2=CSI_D0_CK_P | GND=GND<br>CSI_D0_CK_P=I/O | **★P0 (引脚序/角色级): ✘ 占位 land 与器件引脚序对不上** | 板侧改 land: pad1: GND → CSI_D0_CK_P; pad2: CSI_D0_CK_P → GND |
+| `D_ESD_DEMO` | `PESD5V0S1BA` | – | pad1=RAIL_DEMO_5V<br>pad2=GND | – | **– 双向件 ⇒ 极性无关, 不参与引脚序判定** | – |
+| `D_ESD_TC` | `SP0503BAHT` | – | 板文件查无此位号 | – | **– 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判** | – |
+| `D_ESD_USB_D` | `TPD1E05U06DPYR` | pin1=I/O<br>pin2=GND | pad1=USB_D_P_SRC<br>pad2=GND | USB_D_P_SRC=I/O<br>GND=GND | **✔ 引脚序与占位 land 对得上** | – |
+| `D_TVS_VBUS` | `SMBJ5.0A` | – | 板文件查无此位号 | – | **– 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判** | – |
+| `FB_DEMO` | `BLM21PG221SN1D` | – | pad1=RAIL_DEMO_5V<br>pad2=GND | – | **– 无源件 / 不引脚序敏感 ⇒ 只差 land 几何 (G-7)** | – |
+| `FB_VBUS` | `BLM31PG121SN1` | – | 板文件查无此位号 | – | **– 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判** | – |
+| `Q_AND` | `AO3400A` | pin1=G<br>pin2=S<br>pin3=D | pad1=RESET_N<br>pad2=GND<br>pad3=PG_AND | RESET_N=D<br>GND=S<br>PG_AND=G | **★P0 (引脚序/角色级): ✘ 占位 land 与器件引脚序对不上** | 板侧改 land: pad1: RESET_N → PG_AND; pad3: PG_AND → RESET_N |
+| `Q_CHG_LED` | `2N7002` | – | 板文件查无此位号 | – | **– 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判** | – |
+| `Q_ENVC` | `AO3400A` | pin1=G<br>pin2=S<br>pin3=D | pad1=PG_AND<br>pad2=GND<br>pad3=EN_VCORE | PG_AND=G<br>GND=S<br>EN_VCORE=D | **✔ 引脚序与占位 land 对得上** | – |
+| `Q_PG` | `DMP3098L` | pin1=G<br>pin2=S<br>pin3=D | pad1=PWR_ON<br>pad2=BAT_SW<br>pad3=PWR_GOOD | PWR_ON=S<br>BAT_SW=D<br>PWR_GOOD=G | **★P0 (引脚序/角色级): ✘ 占位 land 与器件引脚序对不上** | 板侧改 land: pad1: PWR_ON → PWR_GOOD; pad3: PWR_GOOD → PWR_ON  ★**同时网表 note 的角色必须同批改成写法A (S=BAT_SW / D=ON / G=PG)** ⇒ 否则按 note 的错角色排出来的 land 一样开机不通 |
+| `R_SUPV_DIV1` | `0Ω ±1% 跳线` | – | pad1=V_SOC_IO<br>pad2=SUPV_SENSE | – | **★P0 (装配级): 0 Ω 且必装 + U_SUPV DNP ⇒ 短路到地 (见拓扑备注)** | 见 §5.2 拓扑备注 |
+| `R_SUPV_DIV2` | `0Ω ±1% 跳线` | – | pad1=SUPV_SENSE<br>pad2=GND | – | **★P0 (装配级): 0 Ω 且必装 + U_SUPV DNP ⇒ 短路到地 (见拓扑备注)** | 见 §5.2 拓扑备注 |
+
+★**引脚序的出处与分级 (不许混成一条)**:
+
+- `TPD1E05U06DPYR`: TI `SLVSBO7O` Table 4-1 原文「**GND = pin 2 / I/O = pin 1**」⇒ **[官网]** (本轮实读, 落盘 `state/.cache_iss244/led/tpd4e05u06.pdf`, 10 页)。
+- `AO3400A` / `DMP3098L`: 厂商手册 p1 的 Pin Configuration **图上没印引脚号** ⇒ 本节只把「**排布** (G/S 在一侧, D 在另一侧)」当 **[官网·图读]**, 而「哪一根是 1/2/3」按 JEDEC TO-236 (SOT-23) 通用编号 ⇒ **[推算]** ⇒ ★**两层分开标注, 不合并成 [官网]★**。
+- `PESD5V0S1BA`: 双向件 ⇒ 极性无关 ⇒ 不参与引脚序判定。
+
+### §5.2 ★三条 P0 (板那一趟必须同批改, 否则板子出来就是坏的)
+
+**P0-a · `Q_PG` — 开机路径不通 (角色本身就错 + land 也不对)**:
+
+- **网表 note 的角色 = 错接**: `HW/netlist_v1.csv` L58 note 的「正解」段写「源极接 ON · 漏极接 BAT_SW · 栅极接 PG」 ⇒ 这就是 ISS-244 §3.3 的**写法B**: 上电瞬间 ON 被 10 kΩ 下拉到 0 V ⇒ Vgs = 0 − 0 = **0 V** ⇒ 不导通; PG 高时 Vgs = **+3.3 V** (对 P 沟道是反向偏置) ⇒ **PG 高低都关 ⇒ 开机路径彻底不通**。⇒ ★**唯一电学自洽的是写法A: S=BAT_SW / D=ON / G=PG**★ (PG 低 ⇒ Vgs = 0 − 4.2 = **−4.2 V** ⇒ 导通 ⇒ ON 被拉到 BAT_SW ⇒ 开机)。
+- **落地的器件引脚序 = G-S-D**: `DMP3098L` (Diodes) pin1=G / pin2=S / pin3=D ⇒ ★**按写法A 排, land 目标 = pad1=PWR_GOOD(G) / pad2=BAT_SW(S) / pad3=PWR_ON(D)**★ ⇒ 现在占位是 pad1=PWR_ON / pad2=BAT_SW / pad3=PWR_GOOD ⇒ ★**只需把两个外侧 pad 的网名对调 (pad1 ↔ pad3), pad2 不动**★。
+- ⇒ **落表批次 + 板那一趟要一起做的两件事**: ① 网表 note 的角色措辞改成写法A (本单不改网表) ② land 把 pad1/pad3 的网名对调。
+- ★**顺带订正 ISS-244 第一轮的降级①**: 当时写「写法A 需要 D-S-G 引脚序器件, 在售件 [0数据]」⇒ ★**本轮实读证明: 用已落地的 G-S-D 器件 (DMP3098L) + 板侧对调两个外侧 pad 就够, 不需要买 D-S-G 器件**★。
+
+**P0-b · `Q_AND` — 栅/漏对调 (复位链的硬件 AND 门不成立)**:
+
+- 网表 note 的角色是对的 (L64 漏极=RESET_N / L65 源极=GND / L66 栅极=PG_AND) ⇒ ★**但落地的 `AO3400A` 引脚序是 pin1=G / pin2=S / pin3=D**★ ⇒ 现在的占位 (pad1=RESET_N / pad2=GND / pad3=PG_AND) 装上去 = **栅极接 RESET_N、漏极接 PG_AND** ⇒ 复位链的硬件 AND 门不成立。
+- ⇒ **land 目标 = pad1=PG_AND(G) / pad2=GND(S) / pad3=RESET_N(D)** ⇒ 同样是**两个外侧 pad 对调**。
+- ★**对照**: `Q_ENVC` 的占位 (pad1=PG_AND / pad2=GND / pad3=EN_VCORE) 与 `AO3400A` 的 G-S-D **正好对上** ⇒ ★**三颗 MOS 里只有这一颗不用动 land**★。
+
+**P0-c · `D_ESD_CAM` — ESD 器件接反 (跨铰链 CSI 时钟线既没保护又被钳)**:
+
+- 落地件 `TPD1E05U06DPYR`: pin1 = **I/O**, pin2 = **GND** (TI Table 4-1, 原文) ⇒ 而占位 land 是 **pad1=GND / pad2=CSI_D0_CK_P** ⇒ ★**正好相反**★。
+- ⇒ 装上去: 器件的 I/O 脚接地、器件的 GND 脚接信号 ⇒ **正向 ESD 到地无通路 (保护失效)** + **CSI lane 的负向摆幅被内部二极管钳到 GND 附近**。
+- ⇒ **land 目标 = pad1=CSI_D0_CK_P(I/O) / pad2=GND** ⇒ 两个 pad 对调 (ISS-241 §3 的候选1 栏已预告过这条, 本轮落到实物)。
+
+★**另外两条「不是 P0 但必须同批」**: ① `R_SUPV_DIV1/2` 已落成 **0 Ω 跳线且 dnp=必装**, 而 `U_SUPV` 三行 dnp=**DNP** ⇒ **装 0 Ω = 把 `V_SOC_IO` 经两臂短路到地** (ISS-190 同判) ⇒ 建议随 `U_SUPV` 一并置 DNP (G-10 降级①); ② `D_ESD_TC` 落的是 **3 通道** `SP0503BAHT`, 而网表只接了 1 个通道 (USB_VBUS_RAW) + GND ⇒ **另 2 个通道闲置** ⇒ Type-C 的 D+/D− 仍未被这阵列覆盖。
+
+### §5.3 十条缺口按落表后的盘上真值重判
+
+| 缺口 | 落表后的盘上真值 (2026-11-17 05:0x 实读) | 本轮变化 | 状态 |
+|---|---|---|---|
+| **G-1** | `Q_PG` 已落 `DMP3098L` (G-S-D) + 网表 note 仍是**写法B 的错角色** + 占位 land 也不对 ⇒ **三方互不一致** | ★由「note 措辞矛盾」升级成**实物级 P0** (§5.2 P0-a), 并给出**只对调两个外侧 pad** 的最小修法 | 需老板拍 (写法) + 需落表 + 需板那一趟 |
+| **G-2** | 3 颗 MOS 的占位 pad 序 = 网表行序 (`Q_AND`=D/S/G · `Q_PG`=S/D/G · `Q_ENVC`=G/S/D) ⇒ **与落地的 G-S-D 器件逐件核对后: 2 颗不符, 1 颗相符** | ★由「三件都不同」精确到**逐件结论 + 目标 pad→网** (§5.1 / §5.2) | 已转单 (hw-lead 板那一趟) · 追加 P0-b |
+| **G-3** | `D_ESD_CAM` 已落 `TPD1E05U06DPYR` (**单通道**) ⇒ CSI-2 五对差分共 10 条线仍只有 `CSI_D0_CK_P` 一条有保护 ⇒ **9 条裸奔**; 且这颗的 pad↔pin **接反** | ★保护范围结论不变, 但**新增「接反」这条实物级缺陷** (§5.2 P0-c) | 需老板拍 (V-2) · 依据与代价已备齐 |
+| **G-4** | `D_ESD_USB_D` 已落 `TPD1E05U06DPYR` (**单通道**, 引脚序对得上) ⇒ `USB_D_N_SRC` 仍无保护 ⇒ **D− 裸奔**; 另一颗 `D_ESD_TC` 是 3 通道件但只接了 1 通道 | ★**从「设计缺口」变成「已落地的缺口」** ⇒ 现在是**已装机状态**下的实际风险, 不是「还没选」 | 需老板拍 (V-2) · 依据与代价已备齐 |
+| **G-5** | LED 四颗 (`D_LED_R` / `D_LED_G` / `D_CHG_LED` / 2 颗按键 LED) 仍**待选型** ⇒ 1 kΩ 串阻 + 3.3 V ⇒ 0.8~1.35 mA 的工作点**仍未改**; 厂商曲线数字化结论 (1 mA 档 = 标称亮度的 4.8%~7.2%) 不受落表影响 | 无变化 (这三条仍待落 ⇒ 亮度档仍需老板拍) | 需老板拍 (亮度档) + 需落表 (若选改 R) |
+| **G-6** | `C_REGN` 已落 4.7 µF / 10 V (Murata 0805, X7R) ⇒ 与 TI BQ25896 pin22 手册一致 | ★**已闭合** (落表证据见 §4 landed_note) | 已闭合 |
+| **G-7** | 主板在册件的占位 land 仍与厂商 land 不重合 (ESD 占位 2.30 mm 间距 vs X1SON 0.65 mm; MOS 占位 1.27~1.53 mm vs SOT-23 0.95 mm; FB_DEMO 占位 0.8 mm vs 0805) ⇒ **本轮又多了 13 件已落地的实物可核** | ★范围扩大 (14 件已落表 ⇒ 几何结论可逐件核) | 已转单 (hw-lead 板那一趟) · 与 G-1/G-2 同批 |
+| **G-8** | 6 件充电板器件 (`D_ESD_TC`/`FB_VBUS`/`D_TVS_VBUS`/`Q_CHG_LED`/`D_CHG_LED`/`C_REGN`) 里 **5 件已落型号**, 但**板文件里查无此位号** ⇒ 封装占位仍「待定」 | ★型号已落 ≠ 封装已定 ⇒ 落表批次仍需另补 footprint | 已转单 (ISS-243 L4) · 已闭合 |
+| **G-9** | 登记范围 = 22 (不变) / 当前仍待落 = **8** (`D_CHG_LED`, `D_LED_G`, `D_LED_R`, `SW_BOOT`, `SW_KEY_PWR`, `SW_KEY_VM`, `SW_KEY_VP`, `SW_RST`) ⇒ 两个数都要写, 来源都注明 | ★口径差从 1 件扩大到 13 件 (全部是被并发落表批次合法落掉的) ⇒ 本单门禁 C5 按双源判定 | 已闭合 |
+| **G-10** | `R_SUPV_DIV1/2` 已落成 **0 Ω 跳线 (RC0603JR-070RL) 且 dnp=必装**, 而 `U_SUPV` 三行 dnp=**DNP** ⇒ **短路到地的风险已从「设计缺陷」变成「装机缺陷」** | ★由「阻塞在阻值算不出」变成**「阻塞在要不要装」** ⇒ 降级① (两臂随 U_SUPV 一并 DNP) 变成零成本动作 | 需老板拍 + 需落表 |
+
+## §6 出处表
 
 | # | 出处 | 类型 | 支持的结论 | 落盘位置 |
 |---|---|---|---|---|
@@ -118,8 +204,11 @@
 | S10 | TI `TPS3808` 数据手册 SBVS050N Rev. N (36 页) §7.3.1 + Figure 7-1 + Ordering Information | [官网] | G-10: V_IT = (1 + R1/R2) × 0.405 V, R1+R2 = 4 MΩ, 阈值精度/迟滞 | `state/.cache_iss244/ref/tps3808.pdf` |
 | S11 | ★分压候选表计算脚本 | [推算] | G-10 的三档候选阻值 + E96 取值 + 误差带 | `state/.cache_iss244/supv_divider_solve.py` |
 | S12 | 网表 / 脚表 / BOM / 板文件 实读 | [实测] | G-3/G-4 的「只护一边」事实 + G-5 的 1 kΩ 事实 + G-10 的 dnp 事实 + 22 件的落表锚点 | `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` / `HW/PCB/demo_mainboard.kicad_pcb` |
+| S13 | ★TI `TPD4E05U06` 数据手册 SLVSBO7O (2024-08 改版, 10 页) Table 4-1 + Figure 4-1 (DPY 2-Pin X1SON Top View) | [官网] | §5.1 的 `TPD1E05U06DPYR` 引脚序: **GND = pin 2 / I/O = pin 1** ⇒ `D_ESD_CAM` 占位 land (pad1=GND) 接反 ⇒ P0-c | `state/.cache_iss244/led/tpd4e05u06.pdf` |
+| S14 | AOS `AO3400A` (5 页) p1 Pin Configuration 图 + Diodes `DMP3098L` (5 页) p1 Pin Configuration 图 | [官网·图读] + 编号 [推算] | §5.1 的 `AO3400A` / `DMP3098L` 引脚序: 排布 G/S 一侧 + D 另一侧 (**图上未印引脚号**) ⇒ 编号按 JEDEC TO-236 ⇒ P0-a / P0-b | `state/.cache_iss244/mos/AO3400A.pdf` / `DMP3098L.pdf` |
+| S15 | ★落表后回归计算模块 (板文件 pad→net + 网表 note 角色 + 器件引脚序 三方交叉核对) | [实测] | §5.1 逐件结论 + §5.2 三条 P0 的最小修法 ⇒ 一条命令可复跑 | `state/.cache_iss244/post_landing.py` |
 
-## §6 自证复现命令
+## §7 自证复现命令
 
 ```bash
 # ① 件数 (两个机器派生源, 都不抄硬编码数字)
@@ -148,11 +237,14 @@ python3 state/.cache_iss244/supv_divider_solve.py
 python3 HW/check_part_selection_gaps.py             # rc=0
 python3 HW/check_part_selection_gaps.py --selftest   # rc=0
 
+# ④b 落表后回归 (三方交叉核对)
+python3 state/.cache_iss244/post_landing.py
+
 # ⑤ 上游门禁 (ISS-241) 不许被本单改红
 python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_matrix.py --selftest
 ```
 
-## §7 ★机器可读基准块 (门禁脚本读这一块)
+## §8 ★机器可读基准块 (门禁脚本读这一块)
 
 <!-- BEGIN ISS244 缺口收口基准块 -->
 ```json
@@ -160,6 +252,7 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
   "issue": "ISS-244",
   "author": "sw-lead",
   "generated": "2026-11-16",
+  "reanchor_note": "★H-1 重锚第 1 跳 (2026-11-17 05:0x): 板侧又落了一批 (网表/脚表/BOM 落盘时刻 2026-11-16 22:25:14) ⇒ 登记范围 22 件里 14 件已落表 / 8 件仍待落 ⇒ 本单的 landed_note 与 §5 落表后回归表按盘上真值重算",
   "scope_note": "本块由 state/.cache_iss244/build_closout.py 生成 ⇒ 表与块同源, 改数据只改脚本。落表锚点里的网表/脚表/BOM 行号会在落表批次后漂移 ⇒ ★锚点以 ref+net 为准★。",
   "gap_count": 10,
   "opn_row_count": 22,
@@ -189,12 +282,20 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
   ],
   "pending_refs": [
     "D_CHG_LED",
+    "D_LED_G",
+    "D_LED_R",
+    "SW_BOOT",
+    "SW_KEY_PWR",
+    "SW_KEY_VM",
+    "SW_KEY_VP",
+    "SW_RST"
+  ],
+  "landed_elsewhere": [
+    "C_REGN",
     "D_ESD_CAM",
     "D_ESD_DEMO",
     "D_ESD_TC",
     "D_ESD_USB_D",
-    "D_LED_G",
-    "D_LED_R",
     "D_TVS_VBUS",
     "FB_DEMO",
     "FB_VBUS",
@@ -203,15 +304,7 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
     "Q_ENVC",
     "Q_PG",
     "R_SUPV_DIV1",
-    "R_SUPV_DIV2",
-    "SW_BOOT",
-    "SW_KEY_PWR",
-    "SW_KEY_VM",
-    "SW_KEY_VP",
-    "SW_RST"
-  ],
-  "landed_elsewhere": [
-    "C_REGN"
+    "R_SUPV_DIV2"
   ],
   "gaps": [
     {
@@ -335,8 +428,8 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "land_anchor": "网表 L44,L45 (ref=C_REGN, nets=REGN+GND) · 脚表 C_REGN.1,C_REGN.2 · BOM L43 (ref=C_REGN)",
       "need_land": "不适用 (已落表)",
       "decision_owner": "无需再拍 (已落表)",
-      "status": "★已落表 (并发落表批次, 2026-11-16 15:45 实测 BOM 已改) · 本单无需再落",
-      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L43 行的 value='4.7µF ±10% (10V)' / opn='GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%)' (本单实读, 2026-11-16 15:45 之后的状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L43 行的 value='4.7µF ±10% (10V)' / opn='GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "D_CHG_LED",
@@ -357,10 +450,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "MAIN_PCB",
       "package_verdict": "条件兼容",
       "land_anchor": "网表 L163,L413,L414 (ref=D_ESD_CAM, nets=GND+CSI_D0_CK_P+GND) · 脚表 D_ESD_CAM.1,D_ESD_CAM.2 · BOM L58 (ref=D_ESD_CAM)",
-      "need_land": "是 — 占位 2.30 mm 与 SOD-323 1.3 mm / X1SON 0.65 mm 都不重合 ⇒ 板那一趟重画 land",
-      "decision_owner": "PM (V-2) / 落表批次",
-      "status": "需老板拍 (V-2) · 需落表",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L58 行的 value='TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)' / opn='TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "D_ESD_DEMO",
@@ -369,10 +462,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "MAIN_PCB",
       "package_verdict": "条件兼容",
       "land_anchor": "网表 L420,L421 (ref=D_ESD_DEMO, nets=RAIL_DEMO_5V+GND) · 脚表 D_ESD_DEMO.1,D_ESD_DEMO.2 · BOM L59 (ref=D_ESD_DEMO)",
-      "need_land": "是 — 同 D_ESD_CAM, 占位 2.30 mm 需重画",
-      "decision_owner": "落表批次 (main 排期)",
-      "status": "需落表",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L59 行的 value='PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA)' / opn='PESD5V0S1BA (Nexperia SOD-323 2-lead · VRWM 5V · VBR 6V min · IEC 61000-4-2 >30kV)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "D_ESD_TC",
@@ -381,10 +474,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "CHG_BOARD",
       "package_verdict": "落2焊盘+充电板侧封装另行定",
       "land_anchor": "网表 L4,L162 (ref=D_ESD_TC, nets=USB_VBUS_RAW+GND) · 脚表 D_ESD_TC.1,D_ESD_TC.2,D_ESD_TC.3,D_ESD_TC.4 · BOM L61 (ref=D_ESD_TC)",
-      "need_land": "充电板侧封装占位待定 ⇒ 板那一趟定 (ISS-243 L4)",
-      "decision_owner": "main (充电板那一趟)",
-      "status": "已转单 (ISS-243 L4) · 需落表",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L61 行的 value='SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚)' / opn='SP0503BAHT (Littelfuse · 订购码 SP0503BAHTG · 3 通道 TVS 阵列 · SOT-143-4 · 5.5VWM/8.5VC)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "D_ESD_USB_D",
@@ -393,10 +486,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "MAIN_PCB",
       "package_verdict": "条件兼容",
       "land_anchor": "网表 L417,L418 (ref=D_ESD_USB_D, nets=USB_D_P_SRC+GND) · 脚表 D_ESD_USB_D.1,D_ESD_USB_D.2 · BOM L62 (ref=D_ESD_USB_D)",
-      "need_land": "是 — 同上; 若 V-2 选双边 ⇒ 还要加第 3 个焊盘 (SOT-23-3)",
-      "decision_owner": "PM (V-2) / 落表批次",
-      "status": "需老板拍 (V-2) · 需落表",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L62 行的 value='TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)' / opn='TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "D_LED_G",
@@ -429,10 +522,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "CHG_BOARD",
       "package_verdict": "落2焊盘+充电板侧封装另行定",
       "land_anchor": "网表 L505,L506 (ref=D_TVS_VBUS, nets=VBUS_5V+GND) · 脚表 D_TVS_VBUS.1,D_TVS_VBUS.2 · BOM L66 (ref=D_TVS_VBUS)",
-      "need_land": "充电板侧封装占位待定 ⇒ 板那一趟定 (ISS-243 L4)",
-      "decision_owner": "main (充电板那一趟)",
-      "status": "已转单 (ISS-243 L4) · 需落表",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L66 行的 value='SMBJ5.0A (Littelfuse 单向 TVS · SMB · VRWM 5.0V · Vc 9.2V@65.3A · 600W)' / opn='SMBJ5.0A (Littelfuse DO-214AA SMB · VRWM 5.0V · VBR 6.4V min · Vc 9.2V @ Ipp 65.3A)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "FB_DEMO",
@@ -441,10 +534,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "MAIN_PCB",
       "package_verdict": "兼容",
       "land_anchor": "网表 L422,L423 (ref=FB_DEMO, nets=RAIL_DEMO_5V+GND) · 脚表 FB_DEMO.1,FB_DEMO.2 · BOM L67 (ref=FB_DEMO)",
-      "need_land": "否 — 占位 2 焊盘与 0603 land 兼容",
-      "decision_owner": "落表批次 (main 排期)",
-      "status": "需落表",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L67 行的 value='BLM21PG221SN1D (Murata 0805 · 220Ω@100MHz · 2A · DCR 45mΩ max)' / opn='BLM21PG221SN1D (Murata BLM21PG 0805 2012 metric · 220Ω ±25%@100MHz · 2000mA · DCR 45mΩ max)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "FB_VBUS",
@@ -453,10 +546,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "CHG_BOARD",
       "package_verdict": "落2焊盘+充电板侧封装另行定",
       "land_anchor": "网表 L5,L8 (ref=FB_VBUS, nets=VBUS_5V_ESD+VBUS_5V_F1) · 脚表 FB_VBUS.1,FB_VBUS.2 · BOM L68 (ref=FB_VBUS)",
-      "need_land": "充电板侧封装占位待定 ⇒ 板那一趟定 (ISS-243 L4)",
-      "decision_owner": "main (充电板那一趟)",
-      "status": "已转单 (ISS-243 L4) · 需落表",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L68 行的 value='BLM31PG121SN1 (Murata 1206 · 120Ω@100MHz · 3A · DCR 25mΩ)' / opn='BLM31PG121SN1 (Murata BLM31PG 1206 3216 metric · 120Ω@100MHz · 3000mA · DCR 0.025Ω)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "Q_AND",
@@ -465,10 +558,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "MAIN_PCB",
       "package_verdict": "条件兼容",
       "land_anchor": "网表 L65,L66,L67 (ref=Q_AND, nets=RESET_N+GND+PG_AND) · 脚表 Q_AND.1,Q_AND.2,Q_AND.3 · BOM L82 (ref=Q_AND)",
-      "need_land": "是 — 占位 pad 序 = D/S/G 与 SOT-23 库序 G/S/D 不符 ⇒ 必重画",
-      "decision_owner": "hw-lead (板那一趟) + 落表批次",
-      "status": "需落表 (G-2)",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L82 行的 value='AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)' / opn='AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "Q_CHG_LED",
@@ -477,10 +570,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "CHG_BOARD",
       "package_verdict": "落3焊盘+充电板侧封装另行定",
       "land_anchor": "网表 L512,L513,L514 (ref=Q_CHG_LED, nets=CHG_LED_K+GND+CHG_STAT) · 脚表 Q_CHG_LED.1,Q_CHG_LED.2,Q_CHG_LED.3 · BOM L83 (ref=Q_CHG_LED)",
-      "need_land": "充电板侧封装占位待定 ⇒ 板那一趟定 (ISS-243 L4)",
-      "decision_owner": "main (充电板那一趟)",
-      "status": "已转单 (ISS-243 L4) · 需落表",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L83 行的 value='2N7002 (onsemi N-MOS SOT-23 · VGS(th) max 2.0V · IGSS ≤10nA)' / opn='2N7002 (onsemi SOT-23 3-pin · 60V · RDS(on) 1.2Ω typ@10V · ID 115mA · IGSS ≤10nA)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "Q_ENVC",
@@ -489,10 +582,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "MAIN_PCB",
       "package_verdict": "条件兼容",
       "land_anchor": "网表 L71,L72,L73 (ref=Q_ENVC, nets=PG_AND+GND+EN_VCORE) · 脚表 Q_ENVC.1,Q_ENVC.2,Q_ENVC.3 · BOM L84 (ref=Q_ENVC)",
-      "need_land": "是 — 占位 pad 序 = G/S/D 与库序一致 ⇒ 本件 land 可不重画, 但 G-2 同批处理时一并核",
-      "decision_owner": "hw-lead (板那一趟) + 落表批次",
-      "status": "需落表 (G-2)",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L84 行的 value='AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)' / opn='AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "Q_PG",
@@ -501,10 +594,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "MAIN_PCB",
       "package_verdict": "条件兼容",
       "land_anchor": "网表 L59,L60,L61 (ref=Q_PG, nets=PWR_ON+BAT_SW+PWR_GOOD) · 脚表 Q_PG.1,Q_PG.2,Q_PG.3 · BOM L85 (ref=Q_PG)",
-      "need_land": "是 — 占位 pad 序 = S/D/G 与库序 G/S/D 不符 ⇒ 必重画; 且 G-1 裁决后 pad↔pin 映射会再变一次",
-      "decision_owner": "PM / main (G-1 拍板) + hw-lead (板那一趟)",
-      "status": "需老板拍 (G-1) · 需落表 (G-1/G-2)",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L85 行的 value='DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)' / opn='DMP3098L (Diodes Inc SOT23 3-pin · −30V · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "R_SUPV_DIV1",
@@ -513,10 +606,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "MAIN_PCB",
       "package_verdict": "兼容",
       "land_anchor": "网表 L404 (ref=R_SUPV_DIV1, nets=V_SOC_IO) · 脚表 R_SUPV_DIV1.1,R_SUPV_DIV1.2 · BOM L147 (ref=R_SUPV_DIV1)",
-      "need_land": "否 — 占位 2 焊盘 0603 兼容",
-      "decision_owner": "main / PM (G-10 拍板)",
-      "status": "需老板拍 (G-10) · 需落表",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L147 行的 value='0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板' / opn='RC0603JR-070RL (Yageo 0Ω 跳线 / Jumper 档 · 0.1W · 50V · −55~+155°C)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "R_SUPV_DIV2",
@@ -525,10 +618,10 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "board": "MAIN_PCB",
       "package_verdict": "兼容",
       "land_anchor": "网表 L405,L406 (ref=R_SUPV_DIV2, nets=SUPV_SENSE+GND) · 脚表 R_SUPV_DIV2.1,R_SUPV_DIV2.2 · BOM L148 (ref=R_SUPV_DIV2)",
-      "need_land": "否 — 占位 2 焊盘 0603 兼容",
-      "decision_owner": "main / PM (G-10 拍板)",
-      "status": "需老板拍 (G-10) · 需落表",
-      "landed_note": ""
+      "need_land": "不适用 (已落表)",
+      "decision_owner": "无需再拍 (已落表)",
+      "status": "★已落表 (并发落表批次; 本轮 2026-11-17 05:0x 实读 BOM 已改) · 本单无需再落",
+      "landed_note": "登记范围内但当前已不在 BOM 待选型集合 ⇒ 已被别的落表批次落掉: BOM L148 行的 value='0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板' / opn='RC0603JR-070RL (Yageo 0Ω 跳线 / Jumper 档 · 0.1W · 50V · −55~+155°C)' (本单实读, 2026-11-17 05:0x 的盘上状态) ⇒ 该件的 OPN 回填已完成, 不进落表批次"
     },
     {
       "ref": "SW_BOOT",
@@ -590,12 +683,747 @@ python3 HW/check_part_selection_matrix.py && python3 HW/check_part_selection_mat
       "status": "需落表",
       "landed_note": ""
     }
-  ]
+  ],
+  "post_landing": {
+    "pending_refs": [
+      "D_CHG_LED",
+      "D_LED_G",
+      "D_LED_R",
+      "SW_BOOT",
+      "SW_KEY_PWR",
+      "SW_KEY_VM",
+      "SW_KEY_VP",
+      "SW_RST"
+    ],
+    "landed_refs": [
+      "C_REGN",
+      "D_ESD_CAM",
+      "D_ESD_DEMO",
+      "D_ESD_TC",
+      "D_ESD_USB_D",
+      "D_TVS_VBUS",
+      "FB_DEMO",
+      "FB_VBUS",
+      "Q_AND",
+      "Q_CHG_LED",
+      "Q_ENVC",
+      "Q_PG",
+      "R_SUPV_DIV1",
+      "R_SUPV_DIV2"
+    ],
+    "rows": [
+      {
+        "ref": "C_REGN",
+        "model": "4.7µF ±10%",
+        "opn": "GRM21BR71C475KA73L",
+        "bom_value": "4.7µF ±10% (10V)",
+        "bom_opn": "GRM21BR71C475KA73L (Murata 0805 / 4.7µF / 16V / X7R / ±10%)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            43,
+            "REGN"
+          ],
+          [
+            44,
+            "GND"
+          ]
+        ],
+        "on_main_board": false,
+        "charge_board": true,
+        "pad_map": [],
+        "device_pin_order": {},
+        "device_pkg": "",
+        "device_source": "",
+        "device_evidence": "- / 编号 -",
+        "checks": [],
+        "verdict": "– 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判",
+        "fix": "",
+        "topology_note": "不在主板 (充电板件, 板文件查无此位号) ⇒ 无几何可判; BOM 已按 TI BQ25896 pin22 手册落成 4.7 µF / 10 V ⇒ **G-6 闭合**。",
+        "source": "板文件 + BOM 实读",
+        "p0": ""
+      },
+      {
+        "ref": "D_ESD_CAM",
+        "model": "TPD1E05U06DPYR",
+        "opn": "TPD1E05U06DPYR",
+        "bom_value": "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)",
+        "bom_opn": "TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            162,
+            "GND"
+          ],
+          [
+            412,
+            "CSI_D0_CK_P"
+          ],
+          [
+            413,
+            "GND"
+          ]
+        ],
+        "on_main_board": true,
+        "charge_board": false,
+        "pad_map": [
+          {
+            "pad": "1",
+            "net": "GND",
+            "at": "-0.45 -0.2"
+          },
+          {
+            "pad": "2",
+            "net": "CSI_D0_CK_P",
+            "at": "1.85 -0.2"
+          }
+        ],
+        "device_pin_order": {
+          "1": "I/O",
+          "2": "GND"
+        },
+        "device_pkg": "DPY (X1SON, 2 pin)",
+        "device_source": "TI `TPD4E05U06` 数据手册 SLVSBO7O (2024-08 改版) Table 4-1「Pin Functions TPD1E05U06 DPY and DYA」: GND = pin 2 / I/O = pin 1 (本轮实读, 落盘 `state/.cache_iss244/led/tpd4e05u06.pdf`)",
+        "device_evidence": "[官网] / 编号 [官网]",
+        "checks": [
+          {
+            "pad": "1",
+            "net": "GND",
+            "at": "-0.45 -0.2",
+            "device_role": "I/O",
+            "netlist_role": "GND",
+            "match": false
+          },
+          {
+            "pad": "2",
+            "net": "CSI_D0_CK_P",
+            "at": "1.85 -0.2",
+            "device_role": "GND",
+            "netlist_role": "I/O",
+            "match": false
+          }
+        ],
+        "verdict": "★P0 (引脚序/角色级): ✘ 占位 land 与器件引脚序对不上",
+        "fix": "板侧改 land: pad1: GND → CSI_D0_CK_P; pad2: CSI_D0_CK_P → GND",
+        "topology_note": "★**land 与器件引脚序正好相反 (P0)**: 占位 land pad1=GND / pad2=信号, 而器件 pin1=I/O / pin2=GND ⇒ 装上去 = ESD 器件对**正向** ESD 失效 (I/O 脚接地, 到地无通路) + CSI lane 的**负向**摆幅被内部二极管钳到 GND 附近。",
+        "source": "TI `TPD4E05U06` 数据手册 SLVSBO7O (2024-08 改版) Table 4-1「Pin Functions TPD1E05U06 DPY and DYA」: GND = pin 2 / I/O = pin 1 (本轮实读, 落盘 `state/.cache_iss244/led/tpd4e05u06.pdf`)",
+        "target_pad_nets": {
+          "1": "CSI_D0_CK_P",
+          "2": "GND"
+        },
+        "p0": "pin-order"
+      },
+      {
+        "ref": "D_ESD_DEMO",
+        "model": "PESD5V0S1BA",
+        "opn": "PESD5V0S1BA",
+        "bom_value": "PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA)",
+        "bom_opn": "PESD5V0S1BA (Nexperia SOD-323 2-lead · VRWM 5V · VBR 6V min · IEC 61000-4-2 >30kV)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            419,
+            "RAIL_DEMO_5V"
+          ],
+          [
+            420,
+            "GND"
+          ]
+        ],
+        "on_main_board": true,
+        "charge_board": false,
+        "pad_map": [
+          {
+            "pad": "1",
+            "net": "RAIL_DEMO_5V",
+            "at": "-0.45 -0.2"
+          },
+          {
+            "pad": "2",
+            "net": "GND",
+            "at": "1.85 -0.2"
+          }
+        ],
+        "device_pin_order": {},
+        "device_pkg": "SOD-323 (双向件)",
+        "device_source": "Nexperia `PESD5V0S1BA` 双向 ESD (ISS-241 §3 已实读官方手册: 单通道双向) ⇒ 极性无关 ⇒ 不参与引脚序判定",
+        "device_evidence": "[官网] / 编号 [官网]",
+        "checks": [],
+        "verdict": "– 双向件 ⇒ 极性无关, 不参与引脚序判定",
+        "fix": "",
+        "topology_note": "双向件 ⇒ 极性无关 ✔; 只差 land 几何 (G-7)。",
+        "source": "Nexperia `PESD5V0S1BA` 双向 ESD (ISS-241 §3 已实读官方手册: 单通道双向) ⇒ 极性无关 ⇒ 不参与引脚序判定",
+        "p0": ""
+      },
+      {
+        "ref": "D_ESD_TC",
+        "model": "SP0503BAHT",
+        "opn": "SP0503BAHT",
+        "bom_value": "SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚)",
+        "bom_opn": "SP0503BAHT (Littelfuse · 订购码 SP0503BAHTG · 3 通道 TVS 阵列 · SOT-143-4 · 5.5VWM/8.5VC)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            3,
+            "USB_VBUS_RAW"
+          ],
+          [
+            161,
+            "GND"
+          ]
+        ],
+        "on_main_board": false,
+        "charge_board": true,
+        "pad_map": [],
+        "device_pin_order": {},
+        "device_pkg": "",
+        "device_source": "",
+        "device_evidence": "- / 编号 -",
+        "checks": [],
+        "verdict": "– 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判",
+        "fix": "",
+        "topology_note": "充电板件 (板文件查无此位号) ⇒ footprint 仍「待定」(G-8); ★落地的是 **3 通道** SP0503BAHT (SOT-143 4 脚), 而网表只接了 1 个通道 (USB_VBUS_RAW) + GND ⇒ **另 2 个通道闲置** ⇒ Type-C 的 D+/D− 仍未被这阵列覆盖。",
+        "source": "板文件 + BOM 实读",
+        "p0": ""
+      },
+      {
+        "ref": "D_ESD_USB_D",
+        "model": "TPD1E05U06DPYR",
+        "opn": "TPD1E05U06DPYR",
+        "bom_value": "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)",
+        "bom_opn": "TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            416,
+            "USB_D_P_SRC"
+          ],
+          [
+            417,
+            "GND"
+          ]
+        ],
+        "on_main_board": true,
+        "charge_board": false,
+        "pad_map": [
+          {
+            "pad": "1",
+            "net": "USB_D_P_SRC",
+            "at": "-0.45 -0.2"
+          },
+          {
+            "pad": "2",
+            "net": "GND",
+            "at": "1.85 -0.2"
+          }
+        ],
+        "device_pin_order": {
+          "1": "I/O",
+          "2": "GND"
+        },
+        "device_pkg": "DPY (X1SON, 2 pin)",
+        "device_source": "TI `TPD4E05U06` 数据手册 SLVSBO7O (2024-08 改版) Table 4-1「Pin Functions TPD1E05U06 DPY and DYA」: GND = pin 2 / I/O = pin 1 (本轮实读, 落盘 `state/.cache_iss244/led/tpd4e05u06.pdf`)",
+        "device_evidence": "[官网] / 编号 [官网]",
+        "checks": [
+          {
+            "pad": "1",
+            "net": "USB_D_P_SRC",
+            "at": "-0.45 -0.2",
+            "device_role": "I/O",
+            "netlist_role": "I/O",
+            "match": true
+          },
+          {
+            "pad": "2",
+            "net": "GND",
+            "at": "1.85 -0.2",
+            "device_role": "GND",
+            "netlist_role": "GND",
+            "match": true
+          }
+        ],
+        "verdict": "✔ 引脚序与占位 land 对得上",
+        "fix": "",
+        "topology_note": "引脚序对得上 ✔; 但仍是**单边** (只护 D+, USB_D_N_SRC 无保护) ⇒ G-4 仍开。",
+        "source": "TI `TPD4E05U06` 数据手册 SLVSBO7O (2024-08 改版) Table 4-1「Pin Functions TPD1E05U06 DPY and DYA」: GND = pin 2 / I/O = pin 1 (本轮实读, 落盘 `state/.cache_iss244/led/tpd4e05u06.pdf`)",
+        "p0": ""
+      },
+      {
+        "ref": "D_TVS_VBUS",
+        "model": "SMBJ5.0A",
+        "opn": "SMBJ5.0A",
+        "bom_value": "SMBJ5.0A (Littelfuse 单向 TVS · SMB · VRWM 5.0V · Vc 9.2V@65.3A · 600W)",
+        "bom_opn": "SMBJ5.0A (Littelfuse DO-214AA SMB · VRWM 5.0V · VBR 6.4V min · Vc 9.2V @ Ipp 65.3A)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            504,
+            "VBUS_5V"
+          ],
+          [
+            505,
+            "GND"
+          ]
+        ],
+        "on_main_board": false,
+        "charge_board": true,
+        "pad_map": [],
+        "device_pin_order": {},
+        "device_pkg": "",
+        "device_source": "",
+        "device_evidence": "- / 编号 -",
+        "checks": [],
+        "verdict": "– 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判",
+        "fix": "",
+        "topology_note": "充电板件 (板文件查无此位号) ⇒ 封装/land 归充电板那一趟 (G-8); 引脚序无关。",
+        "source": "板文件 + BOM 实读",
+        "p0": ""
+      },
+      {
+        "ref": "FB_DEMO",
+        "model": "BLM21PG221SN1D",
+        "opn": "BLM21PG221SN1D",
+        "bom_value": "BLM21PG221SN1D (Murata 0805 · 220Ω@100MHz · 2A · DCR 45mΩ max)",
+        "bom_opn": "BLM21PG221SN1D (Murata BLM21PG 0805 2012 metric · 220Ω ±25%@100MHz · 2000mA · DCR 45mΩ max)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            421,
+            "RAIL_DEMO_5V"
+          ],
+          [
+            422,
+            "GND"
+          ]
+        ],
+        "on_main_board": true,
+        "charge_board": false,
+        "pad_map": [
+          {
+            "pad": "1",
+            "net": "RAIL_DEMO_5V",
+            "at": "-0.4 -0.3"
+          },
+          {
+            "pad": "2",
+            "net": "GND",
+            "at": "0.4 0.3"
+          }
+        ],
+        "device_pin_order": {},
+        "device_pkg": "",
+        "device_source": "",
+        "device_evidence": "- / 编号 -",
+        "checks": [],
+        "verdict": "– 无源件 / 不引脚序敏感 ⇒ 只差 land 几何 (G-7)",
+        "fix": "",
+        "topology_note": "在主板: 占位 2 焊盘 (pad 间距 0.8 mm, 0805 尺��级) vs Murata BLM21PG221SN1D = 0805 ⇒ **land 几何要重画 (G-7)**; 引脚序无关 (无源件)。",
+        "source": "板文件 + BOM 实读",
+        "p0": ""
+      },
+      {
+        "ref": "FB_VBUS",
+        "model": "BLM31PG121SN1",
+        "opn": "BLM31PG121SN1",
+        "bom_value": "BLM31PG121SN1 (Murata 1206 · 120Ω@100MHz · 3A · DCR 25mΩ)",
+        "bom_opn": "BLM31PG121SN1 (Murata BLM31PG 1206 3216 metric · 120Ω@100MHz · 3000mA · DCR 0.025Ω)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            4,
+            "VBUS_5V_ESD"
+          ],
+          [
+            7,
+            "VBUS_5V_F1"
+          ]
+        ],
+        "on_main_board": false,
+        "charge_board": true,
+        "pad_map": [],
+        "device_pin_order": {},
+        "device_pkg": "",
+        "device_source": "",
+        "device_evidence": "- / 编号 -",
+        "checks": [],
+        "verdict": "– 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判",
+        "fix": "",
+        "topology_note": "充电板件 (板文件查无此位号) ⇒ 封装/land 归充电板那一趟 (G-8); 引脚序无关。",
+        "source": "板文件 + BOM 实读",
+        "p0": ""
+      },
+      {
+        "ref": "Q_AND",
+        "model": "AO3400A",
+        "opn": "AO3400A",
+        "bom_value": "AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)",
+        "bom_opn": "AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            64,
+            "RESET_N"
+          ],
+          [
+            65,
+            "GND"
+          ],
+          [
+            66,
+            "PG_AND"
+          ]
+        ],
+        "on_main_board": true,
+        "charge_board": false,
+        "pad_map": [
+          {
+            "pad": "1",
+            "net": "RESET_N",
+            "at": "-1.4 -2"
+          },
+          {
+            "pad": "2",
+            "net": "GND",
+            "at": "-0.13 -2"
+          },
+          {
+            "pad": "3",
+            "net": "PG_AND",
+            "at": "1.4 2"
+          }
+        ],
+        "device_pin_order": {
+          "1": "G",
+          "2": "S",
+          "3": "D"
+        },
+        "device_pkg": "SOT-23",
+        "device_source": "AOS `AO3400A` 数据手册 (本轮实读, 落盘 `state/.cache_iss244/mos/AO3400A.pdf`) p1 Pin Configuration 图: 排布 = G/S 一侧 + D 另一侧 (图上**未印引脚号**) ⇒ 编号 1=G / 2=S / 3=D 按 JEDEC TO-236 (SOT-23) 通用编号 ⇒ 编号这一层标 [推算]",
+        "device_evidence": "[官网] / 编号 [推算]",
+        "checks": [
+          {
+            "pad": "1",
+            "net": "RESET_N",
+            "at": "-1.4 -2",
+            "device_role": "G",
+            "netlist_role": "D",
+            "match": false
+          },
+          {
+            "pad": "2",
+            "net": "GND",
+            "at": "-0.13 -2",
+            "device_role": "S",
+            "netlist_role": "S",
+            "match": true
+          },
+          {
+            "pad": "3",
+            "net": "PG_AND",
+            "at": "1.4 2",
+            "device_role": "D",
+            "netlist_role": "G",
+            "match": false
+          }
+        ],
+        "verdict": "★P0 (引脚序/角色级): ✘ 占位 land 与器件引脚序对不上",
+        "fix": "板侧改 land: pad1: RESET_N → PG_AND; pad3: PG_AND → RESET_N",
+        "topology_note": "角色本身正确 (D=RESET_N / S=GND / G=PG_AND) ⇒ 差的是占位 land 与器件引脚序的对应关系。",
+        "source": "AOS `AO3400A` 数据手册 (本轮实读, 落盘 `state/.cache_iss244/mos/AO3400A.pdf`) p1 Pin Configuration 图: 排布 = G/S 一侧 + D 另一侧 (图上**未印引脚号**) ⇒ 编号 1=G / 2=S / 3=D 按 JEDEC TO-236 (SOT-23) 通用编号 ⇒ 编号这一层标 [推算]",
+        "target_pad_nets": {
+          "1": "PG_AND",
+          "2": "GND",
+          "3": "RESET_N"
+        },
+        "p0": "pin-order"
+      },
+      {
+        "ref": "Q_CHG_LED",
+        "model": "2N7002",
+        "opn": "2N7002",
+        "bom_value": "2N7002 (onsemi N-MOS SOT-23 · VGS(th) max 2.0V · IGSS ≤10nA)",
+        "bom_opn": "2N7002 (onsemi SOT-23 3-pin · 60V · RDS(on) 1.2Ω typ@10V · ID 115mA · IGSS ≤10nA)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            511,
+            "CHG_LED_K"
+          ],
+          [
+            512,
+            "GND"
+          ],
+          [
+            513,
+            "CHG_STAT"
+          ]
+        ],
+        "on_main_board": false,
+        "charge_board": true,
+        "pad_map": [],
+        "device_pin_order": {},
+        "device_pkg": "",
+        "device_source": "",
+        "device_evidence": "- / 编号 -",
+        "checks": [],
+        "verdict": "– 不在主板 (充电板件 / 板文件查无此位号) ⇒ 无几何可判",
+        "fix": "",
+        "topology_note": "充电板件 (板文件查无此位号) ⇒ footprint 仍「待定」(G-8); 角色 D=CHG_LED_K / S=GND / G=CHG_STAT ⇒ 充电板 land 须按 **1=G / 2=S / 3=D** 建 (2N7002 的常规序)。",
+        "source": "板文件 + BOM 实读",
+        "p0": ""
+      },
+      {
+        "ref": "Q_ENVC",
+        "model": "AO3400A",
+        "opn": "AO3400A",
+        "bom_value": "AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V)",
+        "bom_opn": "AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            70,
+            "PG_AND"
+          ],
+          [
+            71,
+            "GND"
+          ],
+          [
+            72,
+            "EN_VCORE"
+          ]
+        ],
+        "on_main_board": true,
+        "charge_board": false,
+        "pad_map": [
+          {
+            "pad": "1",
+            "net": "PG_AND",
+            "at": "-1.4 -2"
+          },
+          {
+            "pad": "2",
+            "net": "GND",
+            "at": "-0.13 -2"
+          },
+          {
+            "pad": "3",
+            "net": "EN_VCORE",
+            "at": "1.4 2"
+          }
+        ],
+        "device_pin_order": {
+          "1": "G",
+          "2": "S",
+          "3": "D"
+        },
+        "device_pkg": "SOT-23",
+        "device_source": "AOS `AO3400A` 数据手册 (本轮实读, 落盘 `state/.cache_iss244/mos/AO3400A.pdf`) p1 Pin Configuration 图: 排布 = G/S 一侧 + D 另一侧 (图上**未印引脚号**) ⇒ 编号 1=G / 2=S / 3=D 按 JEDEC TO-236 (SOT-23) 通用编号 ⇒ 编号这一层标 [推算]",
+        "device_evidence": "[官网] / 编号 [推算]",
+        "checks": [
+          {
+            "pad": "1",
+            "net": "PG_AND",
+            "at": "-1.4 -2",
+            "device_role": "G",
+            "netlist_role": "G",
+            "match": true
+          },
+          {
+            "pad": "2",
+            "net": "GND",
+            "at": "-0.13 -2",
+            "device_role": "S",
+            "netlist_role": "S",
+            "match": true
+          },
+          {
+            "pad": "3",
+            "net": "EN_VCORE",
+            "at": "1.4 2",
+            "device_role": "D",
+            "netlist_role": "D",
+            "match": true
+          }
+        ],
+        "verdict": "✔ 引脚序与占位 land 对得上",
+        "fix": "",
+        "topology_note": "角色与占位 land 都已与器件引脚序对上 ✔ (三颗 MOS 里唯一不用动 land 的一颗)。",
+        "source": "AOS `AO3400A` 数据手册 (本轮实读, 落盘 `state/.cache_iss244/mos/AO3400A.pdf`) p1 Pin Configuration 图: 排布 = G/S 一侧 + D 另一侧 (图上**未印引脚号**) ⇒ 编号 1=G / 2=S / 3=D 按 JEDEC TO-236 (SOT-23) 通用编号 ⇒ 编号这一层标 [推算]",
+        "p0": ""
+      },
+      {
+        "ref": "Q_PG",
+        "model": "DMP3098L",
+        "opn": "DMP3098L",
+        "bom_value": "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)",
+        "bom_opn": "DMP3098L (Diodes Inc SOT23 3-pin · −30V · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            58,
+            "PWR_ON"
+          ],
+          [
+            59,
+            "BAT_SW"
+          ],
+          [
+            60,
+            "PWR_GOOD"
+          ]
+        ],
+        "on_main_board": true,
+        "charge_board": false,
+        "pad_map": [
+          {
+            "pad": "1",
+            "net": "PWR_ON",
+            "at": "-1.4 -2"
+          },
+          {
+            "pad": "2",
+            "net": "BAT_SW",
+            "at": "-0.13 -2"
+          },
+          {
+            "pad": "3",
+            "net": "PWR_GOOD",
+            "at": "1.4 2"
+          }
+        ],
+        "device_pin_order": {
+          "1": "G",
+          "2": "S",
+          "3": "D"
+        },
+        "device_pkg": "SOT-23",
+        "device_source": "Diodes `DMP3098L` 数据手册 (本轮实读, 落盘 `state/.cache_iss244/mos/DMP3098L.pdf`) p1 Pin Configuration 图: 排布 = G/S 一侧 + D 另一侧 (图上**未印引脚号**) ⇒ 编号 1=G / 2=S / 3=D 按 JEDEC TO-236 (SOT-23) 通用编号 ⇒ 编号这一层标 [推算]",
+        "device_evidence": "[官网] / 编号 [推算]",
+        "checks": [
+          {
+            "pad": "1",
+            "net": "PWR_ON",
+            "at": "-1.4 -2",
+            "device_role": "G",
+            "netlist_role": "S",
+            "match": false
+          },
+          {
+            "pad": "2",
+            "net": "BAT_SW",
+            "at": "-0.13 -2",
+            "device_role": "S",
+            "netlist_role": "D",
+            "match": false
+          },
+          {
+            "pad": "3",
+            "net": "PWR_GOOD",
+            "at": "1.4 2",
+            "device_role": "D",
+            "netlist_role": "G",
+            "match": false
+          }
+        ],
+        "verdict": "★P0 (引脚序/角色级): ✘ 占位 land 与器件引脚序对不上",
+        "fix": "板侧改 land: pad1: PWR_ON → PWR_GOOD; pad3: PWR_GOOD → PWR_ON  ★**同时网表 note 的角色必须同批改成写法A (S=BAT_SW / D=ON / G=PG)** ⇒ 否则按 note 的错角色排出来的 land 一样开机不通",
+        "topology_note": "★**角色本身就错 (P0)**: 网表 note 定的「源极接 ON · 漏极接 BAT_SW」是高边 P-MOS 的错接 —— ISS-244 §3.3 写法B: 上电瞬间 ON 被 10 kΩ 下拉到 0 V ⇒ Vgs = 0 ⇒ 不导通; PG 高时 Vgs = +3.3 V (对 P 沟道是反向偏置) ⇒ **PG 高低都关 ⇒ 开机路径彻底不通**。⇒ 正确角色 = **S=BAT_SW / D=ON / G=PG** (写法A)。",
+        "source": "Diodes `DMP3098L` 数据手册 (本轮实读, 落盘 `state/.cache_iss244/mos/DMP3098L.pdf`) p1 Pin Configuration 图: 排布 = G/S 一侧 + D 另一侧 (图上**未印引脚号**) ⇒ 编号 1=G / 2=S / 3=D 按 JEDEC TO-236 (SOT-23) 通用编号 ⇒ 编号这一层标 [推算]",
+        "target_pad_nets": {
+          "1": "PWR_GOOD",
+          "2": "BAT_SW",
+          "3": "PWR_ON"
+        },
+        "p0": "pin-order"
+      },
+      {
+        "ref": "R_SUPV_DIV1",
+        "model": "0Ω ±1% 跳线",
+        "opn": "RC0603JR-070RL",
+        "bom_value": "0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板",
+        "bom_opn": "RC0603JR-070RL (Yageo 0Ω 跳线 / Jumper 档 · 0.1W · 50V · −55~+155°C)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            403,
+            "V_SOC_IO"
+          ]
+        ],
+        "on_main_board": true,
+        "charge_board": false,
+        "pad_map": [
+          {
+            "pad": "1",
+            "net": "V_SOC_IO",
+            "at": "0 0.1"
+          },
+          {
+            "pad": "2",
+            "net": "SUPV_SENSE",
+            "at": "1.6 0.1"
+          }
+        ],
+        "device_pin_order": {},
+        "device_pkg": "",
+        "device_source": "",
+        "device_evidence": "- / 编号 -",
+        "checks": [],
+        "verdict": "★P0 (装配级): 0 Ω 且必装 + U_SUPV DNP ⇒ 短路到地 (见拓扑备注)",
+        "fix": "",
+        "topology_note": "★**装配级风险 (P0)**: 已落成 0 Ω 跳线且 dnp=**必装**, 而监督器本体 `U_SUPV` 三行 dnp=**DNP** ⇒ 装 0 Ω = 把 `V_SOC_IO` 经两臂短路到地 (ISS-190 同判) ⇒ 建议随 U_SUPV 一并置 DNP (G-10 降级①)。",
+        "source": "板文件 + BOM 实读",
+        "p0": "assembly"
+      },
+      {
+        "ref": "R_SUPV_DIV2",
+        "model": "0Ω ±1% 跳线",
+        "opn": "RC0603JR-070RL",
+        "bom_value": "0Ω ±1% 跳线 (首版装 0Ω) · V-3 分压最终阻值待 A1 拍板",
+        "bom_opn": "RC0603JR-070RL (Yageo 0Ω 跳线 / Jumper 档 · 0.1W · 50V · −55~+155°C)",
+        "bom_dnp": "必装",
+        "netlist_rows": [
+          [
+            404,
+            "SUPV_SENSE"
+          ],
+          [
+            405,
+            "GND"
+          ]
+        ],
+        "on_main_board": true,
+        "charge_board": false,
+        "pad_map": [
+          {
+            "pad": "1",
+            "net": "SUPV_SENSE",
+            "at": "0 0.1"
+          },
+          {
+            "pad": "2",
+            "net": "GND",
+            "at": "1.6 0.1"
+          }
+        ],
+        "device_pin_order": {},
+        "device_pkg": "",
+        "device_source": "",
+        "device_evidence": "- / 编号 -",
+        "checks": [],
+        "verdict": "★P0 (装配级): 0 Ω 且必装 + U_SUPV DNP ⇒ 短路到地 (见拓扑备注)",
+        "fix": "",
+        "topology_note": "同上 (两臂必须同进同退, 只改一颗 = 悬空分压)。",
+        "source": "板文件 + BOM 实读",
+        "p0": "assembly"
+      }
+    ]
+  }
 }
 ```
 <!-- END ISS244 缺口收口基准块 -->
 
-## §8 边界自证
+## §9 边界自证
 
 | 边界 | 自证 |
 |---|---|

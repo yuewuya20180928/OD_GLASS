@@ -21,6 +21,21 @@ check_demo_struct_truth.py —— ISS-213 结构侧真值门禁 (demo 板当前�
      `hw_cross_review_check.py` 的判定) 与 **G8** (已修复的留痕必须在场: 删行 /
      删节 / 抹留痕都红) ⇒ ★**"悄悄抹掉一次真修复"这条路也被堵死** ★
 
+★★ ISS-273 判决源改造 (2026-11-17, mech-lead) —— ★★把「判决源」从【域侧锚点副本】
+  换成【落表台账的最新落表记录 (链头)】★★
+  ① 背景: 网表/脚表的 md5 锚点 (域侧副本) 每次上游【合法】落表就当场过期 ⇒ 门禁红 ⇒
+     人工开一条 dispatch 单 + 人工重锚 + 人工留痕 ⇒ ★**已跳 6 跳 (R-02~R-06)**★;
+     ★**2026-11-17 05:0x 那一轮连派单前提都过期了 (ISS-253 的活早做完) ⇒ 纯浪费** ★
+  ② ★**改后**: G5b / C21 直接读 `HW/SCHEMATIC_LANDING_V1_LANDED.md` (★只读★) 里该文件的
+     【最新落表记录 = 链头】⇒ ★**合法落表不再红** (链头跟着盘上走) ★ ⇒ 域侧锚点副本
+     `source_ledger.entries[]` ★**降级为历史留痕**★ (6 跳历史一条都不许删)
+  ③ ★**判据语义一点没松** —— 「悄悄换真源」照样红: ★**盘上 md5 ≠ 台账链头 ⇒ 红** (R1) ·
+     ★**台账里查不到该文件 ⇒ 红** (R3) · ★**落表单号缺失 / 与台账对不上 ⇒ 红** (R5) ·
+     ★**板 / `.kicad_pro` md5 变 ⇒ 仍红且点名硬保护那一组** (R6)
+  ④ ★**判「最新」靠【图】(改前 md5 → 改后 md5 的链) 不靠【行序】** ⇒ 台账行序被打乱也照样
+     取最新那条 ⇒ ★**「取错记录造成假绿」这条路被堵死** (R4)
+  ⑤ `--selftest` 反向用例 14 → ★**21**★ 条 (★老的 14 条一条没少、期望全不变★)
+
 ★**本闸的 16 条 FAIL 一条都不许消** —— 6 个 PCB 类 id 仍按老板 2026-11-11 10:07
   口径排队等原理图定稿 (排队是**正确状态**, 不是缺陷)。
 
@@ -66,7 +81,13 @@ MD5_EXPECTED = {
     "HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",
     "HW/PCB/demo_mainboard.kicad_pro": "3e504d2be83152e337949723e909be1b",
     "MECH/hinge_usb_check.py": "3425bc141508de8a35f34c7cf7b803e8",
-    "MECH/service_port_check.py": "9b24bf985764880f0105aee677fba6a8",
+    # ★★【ISS-264 · H-1 重基线 · 2026-11-17】★★ service_port_check.py 的 md5 由
+    #   `9b24bf985764880f0105aee677fba6a8` → `db58ff6a2afc28b8bf517e3c57c56bc1`
+    #   (原因: ISS-264 迁了夹具基准常量 p2_y 7.50→15.00 / s2_y 12.50→20.00 到 30mm 板套 A 口径,
+    #    并加了 7.4b/7.5b 口径钉死 + 8.1b 开口 Y 现值 + --selftest 反向用例 ⇒ 受保护脚本必须重基线)
+    #   留痕: MECH/HW_CROSS_REVIEW_TRIAGE.md §3.1 **R-07** 行 (跳数/谁改的/单号/新旧 md5/复现命令)
+    #   ★**判据逻辑 / 阈值 (CRIT 0.60 / cavity_req 4.50 / cav_v 38.00 / duct_v 6.00) 一个字节没动** ★
+    "MECH/service_port_check.py": "db58ff6a2afc28b8bf517e3c57c56bc1",
     "MECH/hw_cross_review_check.py": "e521387b87b0fcdf9f22d56f14199967",
     "MECH/display_biosafety_v2_check.py": "29c77fc3fc823048b1d96c9500d28dd7",
 }
@@ -291,9 +312,128 @@ def md5_seen(text: str, value: str) -> bool:
     return value in text or value[:12] in text
 
 
+# ====================================================================== 落表台账判决源 (ISS-273)
+#  ★★【ISS-273 · 2026-11-17】★★ 判决源从【域侧锚点副本】换成【落表台账的最新记录 (链头)】:
+#   · 台账 = HW/SCHEMATIC_LANDING_V1_LANDED.md (★只读: 台账本身一个字都不许改★)
+#   · 记录 = 台账里该文件的【改前 md5 → 改后 md5】表格行 (行内第一个 md5 = 前驱, 最后一个 = 改后)
+#   · 链头 = 「不是任何记录的改前 md5」的那个改后 md5 ⇒ ★**判最新靠图 (前驱→改后), 不靠行序**
+#     ⇒ 台账行序被打乱也不影响判定 ⇒ 「取错记录造成假绿」这条路被堵死
+LEDGER_CANON = "HW/SCHEMATIC_LANDING_V1_LANDED.md"
+LEDGER_MD_RE = re.compile(r"\b[0-9a-f]{32}\b|\b[0-9a-f]{12}\b")
+
+
+def ledger_records(text: str, rel: str) -> list:
+    """从落表台账文本里抽出 rel 的落表记录 ⇒ [{'prev','new','iss','sec','row'}] (★行序无关★)。"""
+    out = []
+    ctx_iss = None          # ★最近的带单号标题 ⇒ 批次单号 (行里没写单号时继承它)
+    title = "(文首)"
+    base = os.path.basename(rel)
+    for ln in text.splitlines():
+        s = ln.strip()
+        if s.startswith("#"):
+            title = s
+            hit = re.findall(r"ISS-\d+", s)
+            if hit:
+                ctx_iss = hit[0]
+            continue
+        if not s.startswith("|"):
+            continue
+        if rel not in s and base not in s:
+            continue
+        tk = LEDGER_MD_RE.findall(s)
+        if len(tk) < 2:
+            continue            # ★只有一个 md5 ⇒ 不是「改前→改后」记录行
+        row_iss = re.findall(r"ISS-\d+", s)
+        out.append({"prev": tk[0][:12], "new": tk[-1][:12],
+                    "iss": row_iss[0] if row_iss else ctx_iss,
+                    "sec": title, "row": s[:140]})
+    return out
+
+
+def ledger_state(rel: str, text: str) -> dict:
+    """算该受管真源在台账里的链头 / 链 / 产出单号表 (★取不准就返回 head=None ⇒ 判红★)。"""
+    recs = ledger_records(text, rel)
+    new_keys = {r["new"] for r in recs}
+    prev_keys = {r["prev"] for r in recs}
+    heads = sorted(new_keys - prev_keys)
+    producer = {}
+    for r in recs:
+        producer.setdefault(r["new"], set())
+        if r["iss"]:
+            producer[r["new"]].add(r["iss"])
+    why = ""
+    head = None
+    if not recs:
+        why = "台账里一条记录都没有"
+    elif not heads:
+        why = "没有链头 (每条记录都是别人的前驱 ⇒ 台账不成链)"
+    elif len(heads) > 1:
+        why = f"链头不唯一 = {heads} (取不准 ⇒ 不许判绿)"
+    else:
+        head = heads[0]
+    chain = []
+    if head:
+        by_new = {}
+        for r in recs:
+            by_new.setdefault(r["new"], []).append(r)
+        cur, seen = head, {head}
+        chain = [head]
+        while True:
+            rs = by_new.get(cur) or []
+            if not rs:
+                break                       # 链尾 (起源值, 没有产出记录)
+            prevs = {r["prev"] for r in rs if r["prev"] != r["new"]}
+            if len(prevs) != 1:
+                why = why or f"链上 {cur} 的前驱不唯一 = {sorted(prevs)}"
+                chain = []
+                break
+            p = prevs.pop()
+            if p in seen:
+                why = why or f"链成环 ({p})"
+                chain = []
+                break
+            cur = p
+            seen.add(cur)
+            chain.append(cur)
+    return {"records": recs, "head": head, "chain": chain,
+            "producer": producer, "why": why,
+            "head_iss": sorted(producer.get(head, set())) if head else [],
+            "known": new_keys | prev_keys}
+
+
+def ledger_canonical_text(root: str, anchors: dict, overrides: dict = None) -> tuple:
+    """取判决源台账文本 (默认 HW/SCHEMATIC_LANDING_V1_LANDED.md, ★只读★) + 它的 spec 名。"""
+    ov = overrides or {}
+    sl = anchors.get("source_ledger") or {}
+    specs = list(sl.get("landing_records") or [])
+    spec = LEDGER_CANON
+    if not (os.path.isfile(os.path.join(root, spec)) or spec in ov):
+        for s in specs:
+            if os.path.isfile(os.path.join(root, s)) or s in ov:
+                spec = s
+                break
+    if spec in ov:
+        return str(ov[spec]), spec
+    p = os.path.join(root, spec)
+    if os.path.isfile(p):
+        return read_text(p), spec
+    return "", spec
+
+
+def synth_ledger(recs_by_file: dict, tag: str = "合成") -> str:
+    """把抽出来的落表记录重排成一份【合成台账】(★反向用例专用: 专测「行序打乱仍取最新」★)。"""
+    lines = [f"# {tag}落表台账 (★仅供反向用例★)", ""]
+    for rel, recs in recs_by_file.items():
+        for i, r in enumerate(recs):
+            lines.append(f"| {tag} {i} | `{rel}` | `{r['prev']}` | `{r['new']}` | "
+                         f"{r['iss'] or '★无单号★'} | 说明 |")
+    return "\n".join(lines) + "\n"
+
+
 # ====================================================================== 检查组
 def run_checks(root: str, anchors: dict, facts: dict, xrev: dict,
-               doc: str = None, pin_truth: dict = None) -> list:
+               doc: str = None, pin_truth: dict = None,
+               ledger_texts: dict = None, md5_override: dict = None) -> list:
     """返回 [(组号, 组名, ok, 明细)]。anchors/doc/pin_truth 可被 --selftest 篡改 ⇒ 反向用例。"""
     out = []
     A = anchors
@@ -446,86 +586,108 @@ def run_checks(root: str, anchors: dict, facts: dict, xrev: dict,
       f"CRIT={facts['sp_crit']:.2f}; hw_cross_review: judge={hx['judge']} cav_v_now={hx['cav_v_now']}")
 
     # ---------------- G5b 受保护文件 md5 逐字节未变 ----------------
-    # ★【ISS-224】6 个硬保护文件 (板/.kicad_pro + 4 个 check 脚本) 用脚本里的 MD5_EXPECTED;
-    #   ★网表/脚表 = 锚点 source_ledger 里登记的落表后真值 (由 C21 与落表台账对账)。
+    # ★★【ISS-273 · 2026-11-17 · 判决源改造】★★
+    #   ★【旧】网表/脚表 = 锚点 source_ledger (域侧副本) 里登记的 md5 ⇒ 上游每落一次表就红一次 (已跳 6 跳)
+    #   ★【新】网表/脚表 = ★**落表台账 (HW/SCHEMATIC_LANDING_V1_LANDED.md) 的最新记录 (链头)**★
+    #        ⇒ 合法落表不再红 (链头跟着盘上走) · 悄悄换真源照样红 (盘上 ≠ 链头)
+    #   ★域侧锚点副本【降级】为「历史留痕」: 它的 md5 必须是台账链里的历史值 + 它的落表单号必须对得上
+    #        ⇒ 锚点编造 (md5 不在链里 / 单号对不上) 仍红, 但【停在历史值】不再红 (R2 = 本单要达成的行为)
+    #   ★6 个硬保护文件 (板/.kicad_pro + 4 个 check 脚本) 仍读脚本自己的 MD5_EXPECTED 字典 (一个字没动)
     ledger = A.get("source_ledger") or {}
     entries = list(ledger.get("entries") or [])
     ent_by_file = {str(e.get("file")): e for e in entries}
+
+    def fmd5(rel):
+        if md5_override and rel in md5_override:
+            return str(md5_override[rel])
+        return md5(os.path.join(root, rel))
+
+    led_text, led_spec = ledger_canonical_text(root, A, ledger_texts)
     badmd5 = []
     for rel, want in MD5_EXPECTED.items():
-        got = md5(os.path.join(root, rel))
+        got = fmd5(rel)
         if got != want:
             badmd5.append(f"{rel}: {got} != {want}")
+    led_state = {}
     for rel in LEDGER_REQUIRED:
+        st = ledger_state(rel, led_text)
+        led_state[rel] = st
+        got = fmd5(rel)
+        if not led_text:
+            badmd5.append(f"{rel}: 落表台账读不到 ({led_spec})")
+        elif not st["records"]:
+            badmd5.append(f"{rel}: 落表台账里查不到任何记录 (台账查不到)")
+        elif not st["head"]:
+            badmd5.append(f"{rel}: 台账链头取不准 ({st['why']})")
+        elif got[:12] != st["head"]:
+            badmd5.append(f"{rel}: 盘上 md5 {got[:12]}… != 台账最新记录 {st['head']}… (真源被换了?)")
+        # 域侧锚点副本: 历史留痕, 但不许胡说
         e = ent_by_file.get(rel)
-        want = str((e or {}).get("md5") or "")
-        got = md5(os.path.join(root, rel))
-        if not want:
-            badmd5.append(f"{rel}: 锚点 source_ledger 里没登记 md5")
-        elif got != want:
-            badmd5.append(f"{rel}: {got} != {want}")
+        if not e:
+            badmd5.append(f"{rel}: 锚点 source_ledger.entries 没登记 (历史留痕缺失)")
+        else:
+            am = str(e.get("md5") or "")[:12]
+            aby = str(e.get("by") or "")
+            if not am or am not in st["known"]:
+                badmd5.append(f"{rel}: 锚点副本 md5 {am or '(空)'}… 台账链里查不到 (锚点胡说?)")
+            elif aby not in st["producer"].get(am, set()):
+                badmd5.append(f"{rel}: 锚点副本落表单号 {aby or '(空)'} 与台账对不上 "
+                              f"(台账产出该 md5 的单号 = {sorted(st['producer'].get(am, []))})")
     g("G5b", "受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)",
       not badmd5,
       "; ".join(badmd5) if badmd5 else
-      f"{len(MD5_EXPECTED)} 个硬保护文件 + {len(LEDGER_REQUIRED)} 个台账管理真源 全部一致")
+      f"{len(MD5_EXPECTED)} 个硬保护文件 全部一致 + {len(LEDGER_REQUIRED)} 个台账管理真源 "
+      f"= 台账最新记录 (链头: "
+      + ", ".join(f"{r}={led_state[r]['head']}" for r in LEDGER_REQUIRED)
+      + ") + 域侧锚点副本 = 历史留痕 (允许停在历史值)")
 
     # ---------------- C21 真源变更台账对账 (不许悄悄换真源) ----------------
-    #  ★★【ISS-224 新增】★★ 网表/脚表的 md5 锚点 ↔ 落表台账 ↔ 盘上真源, 三方必须一致:
-    #   ① 锚点登记的 md5 必须在落表台账里查到 (落表单号 + 文件名 + 新旧两个 md5)
-    #   ② 盘上真源的 md5 必须等于锚点登记的那个
-    #   ⇒ 只改锚点不落表 = 悄悄换真源 ⇒ 红; 改了真源不落表 = 悄悄换真源 ⇒ 红
+    #  ★★【ISS-273】★★ 判决源 = 落表台账最新记录 (链头); 域侧锚点副本 = 历史留痕
+    #   ① 台账里必须查得到该受管真源的落表记录 (查不到 ⇒ 红)
+    #   ② 记录必须能算出【唯一链头】(取不准 ⇒ 红 ⇒ 不许假绿)
+    #   ③ 链头必须带落表单号 (字段缺失 ⇒ 红)
+    #   ④ 链必须连得起来 (断了 / 有记录不在链上 ⇒ 红)
+    #   ⑤ 盘上真源 md5 必须 == 链头 (被换了 ⇒ 红)
+    #   ⑥ 域侧锚点副本必须登记受管真源, 且它的 md5 / 落表单号必须在台账里对得上 (历史留痕不许胡说)
     problems = []
-    recs = load_ledger_records(root, A)
-    if not recs:
-        problems.append("锚点 source_ledger.landing_records 里登记的位置一个都不存在 (台账查不到)")
-    files = [str(e.get("file")) for e in entries]
-    miss_req = [f for f in LEDGER_REQUIRED if f not in files]
-    if miss_req:
-        problems.append(f"锚点 source_ledger.entries 缺受管真源 = {miss_req}")
-    hit_detail = []
-    for e in entries:
-        f = str(e.get("file") or "")
-        by = str(e.get("by") or "")
-        want = str(e.get("md5") or "")
-        prev = str(e.get("prev_md5") or "")
-        if not f:
-            problems.append("source_ledger.entries 里有空 file")
+    for rel in LEDGER_REQUIRED:
+        st = led_state.get(rel) or {}
+        recs = st.get("records") or []
+        head = st.get("head")
+        if not recs:
+            problems.append(f"{rel}: 落表台账 ({led_spec}) 里查不到任何记录 ⇒ 台账没记这次落表?")
             continue
-        # ② 盘上真源 vs 锚点
-        p = os.path.join(root, f)
-        if not os.path.exists(p):
-            problems.append(f"{f}: 盘上文件不存在")
+        if not head:
+            problems.append(f"{rel}: 台账最新记录取不准 ({st.get('why')}) ⇒ 取错记录可能假绿 ⇒ 判红")
             continue
-        actual = md5(p)
-        if actual != want:
-            problems.append(f"{f}: 盘上 md5 {actual} != 锚点登记 {want} (真源被换了或锚点过期)")
-        # ① 落表台账对账
-        hit = None
-        why = []
-        for name, text in recs:
-            if by and by not in text:
-                why.append(f"{name}: 无落表单号 {by}")
-                continue
-            if f not in text:
-                why.append(f"{name}: 无文件名 {f}")
-                continue
-            if not md5_seen(text, want):
-                why.append(f"{name}: 无新 md5 {want[:12]}")
-                continue
-            if prev and not md5_seen(text, prev):
-                why.append(f"{name}: 无旧 md5 {prev[:12]}")
-                continue
-            hit = name
-            break
-        if hit is None:
-            problems.append(f"{f}: 落表台账里查不到 (单号 {by} / 文件 {f} / 新旧 md5) ⇒ "
-                            f"悄悄换真源? 查过: {why or '无台账文件'}")
+        if not st.get("head_iss"):
+            problems.append(f"{rel}: 台账最新记录 ({head}) 缺落表单号 (字段缺失)")
+        if not st.get("chain"):
+            problems.append(f"{rel}: 落表链断了 / 不唯一 ({st.get('why')})")
         else:
-            hit_detail.append(f"{f} ← {hit} ({by})")
-    g("C21", "真源变更台账对账 (网表/脚表: 锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致)",
+            orphan = sorted({r["new"] for r in recs} - set(st["chain"]))
+            if orphan:
+                problems.append(f"{rel}: 台账里有记录不在链上 = {orphan}")
+        got = fmd5(rel)
+        if got[:12] != head:
+            problems.append(f"{rel}: 盘上 md5 {got[:12]} != 台账最新 {head} (真源被换了或台账没更新)")
+        e = ent_by_file.get(rel)
+        if not e:
+            problems.append(f"锚点 source_ledger.entries 缺受管真源 = {rel}")
+            continue
+        am = str(e.get("md5") or "")[:12]
+        aby = str(e.get("by") or "")
+        if not am or am not in st["known"]:
+            problems.append(f"{rel}: 锚点副本 md5 {am or '(空)'} 台账链里查不到 (锚点胡说?)")
+        elif aby not in st["producer"].get(am, set()):
+            problems.append(f"{rel}: 锚点副本落表单号 {aby or '(空)'} 与台账对不上 "
+                            f"(台账记 {sorted(st['producer'].get(am, []))})")
+    g("C21", "真源变更台账对账 (盘上真源 ↔ 落表台账最新记录 (链头) ↔ 域侧锚点历史副本)",
       not problems,
       "; ".join(problems) if problems else
-      f"台账可查 = {[n for n, _ in recs]}; 对上 = {hit_detail}")
+      "台账最新记录 (链头) = "
+      + ", ".join(f"{r} {led_state[r]['head']} (by {led_state[r]['head_iss']})" for r in LEDGER_REQUIRED)
+      + "; 锚点副本 = 历史留痕 (允许停在历史值, 但不许与台账对不上)")
 
     # ---------------- C22 PIN-MISMATCH 独立复核 ----------------
     #  ★★【ISS-224 新增】★★ 不看 hw_cross_review_check.py 的判定, 自己实读 P9 页 + 网表
@@ -632,12 +794,12 @@ def selftest(root: str, anchors: dict, facts: dict, xrev: dict,
     base_bad = [c for c in base if not c[2]]
     cases = []
 
-    def add(name, expect, a=None, d=None, p=None):
+    def add(name, expect, a=None, d=None, p=None, lt=None, mo=None):
         cases.append((name,
                       a if a is not None else copy.deepcopy(anchors),
                       d if d is not None else doc,
                       p if p is not None else pin_truth,
-                      expect))
+                      lt, mo, expect))
 
     # ---- 原 ISS-213 的 8 条反向用例 ----
     def m1(a): a["board_geom"].__setitem__("board_width_y", 15.00)
@@ -697,6 +859,66 @@ def selftest(root: str, anchors: dict, facts: dict, xrev: dict,
     add("反向14: 删掉「已修复」留痕 (行 05 备注 + §3.1 整节)", "G8",
         d=m14(doc))
 
+    # ---- ISS-273 新增: 判决源 = 落表台账最新记录 (链头) · 域侧锚点副本降级为历史留痕 ----
+    base_led = read_text(os.path.join(root, LEDGER_CANON))
+    recs_net = ledger_records(base_led, "HW/netlist_v1.csv")
+    recs_pins = ledger_records(base_led, "HW/netlist_v1_pins.csv")
+    net_head = ledger_state("HW/netlist_v1.csv", base_led)["head"]
+    head_rec = next((r for r in recs_net if r["new"] == net_head), None)
+
+    def drop_rel(text, rel):
+        """把台账里该文件的全部落表记录行删掉 (⇒ 台账查不到这个文件)。"""
+        b = os.path.basename(rel)
+        out = []
+        for ln in text.splitlines():
+            t = ln.strip()
+            if t.startswith("|") and (rel in t or b in t) and len(LEDGER_MD_RE.findall(t)) >= 2:
+                continue
+            out.append(ln)
+        return "\n".join(out) + "\n"
+
+    def break_head_ticket(text, rel, ticket="ISS-999"):
+        """把台账最新记录那一行的落表单号改坏 (⇒ 单号与台账/锚点对不上)。"""
+        head = ledger_state(rel, text)["head"]
+        out, hit = [], 0
+        for ln in text.splitlines():
+            if head and head[:12] in ln and ln.strip().startswith("|") and "ISS-" in ln:
+                ln = re.sub(r"ISS-\d+", ticket, ln, count=1)
+                hit += 1
+            out.append(ln)
+        assert hit, "没找到台账最新记录那一行"
+        return "\n".join(out) + "\n"
+
+    # R1 —— 盘上网表被偷偷改 (md5 变, 台账没更新) ⇒ 必须红
+    add("R1: 盘上网表被偷偷改 (md5 变, 台账没更新)", "C21",
+        mo={"HW/netlist_v1.csv": "0badc0de0badc0de0badc0de0badc0de"})
+    # R2 —— 盘上 md5 == 台账最新, 但域侧锚点副本停在历史值 (旧值在台账链里) ⇒ 必须绿 (本单要达成的行为)
+    def m_r2(a):
+        e = a["source_ledger"]["entries"][0]
+        e["md5"] = "16ac89f77c25a3f61834cc7ebcd78a7f"
+        e["by"] = "ISS-249"
+    add("R2: 盘上 md5 == 台账最新, 域侧锚点副本停在历史值 ⇒ 必须绿", None,
+        a=mut(copy.deepcopy(anchors), m_r2))
+    # R3 —— 台账里查不到该文件的任何记录 ⇒ 必须红
+    add("R3: 台账里查不到网表的任何落表记录", "C21",
+        lt={LEDGER_CANON: drop_rel(base_led, "HW/netlist_v1.csv")})
+    # R4 —— 台账里同一条链的多跳记录顺序打乱 ⇒ 仍取最新那条 ⇒ 必须绿 (不许假红也不许假绿)
+    synth4 = synth_ledger({"HW/netlist_v1.csv": list(reversed(recs_net)),
+                            "HW/netlist_v1_pins.csv": list(reversed(recs_pins))})
+    add("R4: 台账里同一条链的记录顺序打乱 ⇒ 仍取最新 ⇒ 必须绿", None,
+        lt={LEDGER_CANON: synth4})
+    # R5a —— 台账最新记录的落表单号被改坏 (与台账/锚点对不上) ⇒ 必须红
+    add("R5a: 台账最新记录的落表单号被改坏 (与台账对不上)", "C21",
+        lt={LEDGER_CANON: break_head_ticket(base_led, "HW/netlist_v1.csv")})
+    # R5b —— 台账最新记录的落表单号字段缺失 ⇒ 必须红
+    synth5 = synth_ledger({"HW/netlist_v1.csv": [dict(head_rec or {}, iss=None)],
+                            "HW/netlist_v1_pins.csv": recs_pins})
+    add("R5b: 台账最新记录的落表单号字段缺失", "C21",
+        lt={LEDGER_CANON: synth5})
+    # R6 —— 板 / .kicad_pro md5 变 (硬保护) ⇒ 仍红, 且点名硬保护那一组 (G5b), 不是 C21
+    add("R6: 板 md5 变 (硬保护) ⇒ 红, 且 C21 不红", ("G5b", ("C21",)),
+        mo={"HW/PCB/demo_mainboard.kicad_pcb": "11111111111111111111111111111111"})
+
     print("=" * 100)
     print("ISS-213/224 机器门禁 —— 反向用例 (改坏任一锚点必须变红)")
     print("=" * 100)
@@ -705,14 +927,22 @@ def selftest(root: str, anchors: dict, facts: dict, xrev: dict,
         return 2
     print(f"  ✅ 基线全绿 ({len(base)}/{len(base)} 组检查)")
     ok = 0
-    for name, a, d, p, expect in cases:
-        res = run_checks(root, a, facts, xrev, doc=d, pin_truth=p)
+    for name, a, d, p, lt, mo, expect in cases:
+        res = run_checks(root, a, facts, xrev, doc=d, pin_truth=p,
+                         ledger_texts=lt, md5_override=mo)
         red = [c[0] for c in res if not c[2]]
-        hit = expect in red
+        if expect is None:
+            hit, exp_txt = (not red), "绿 (不许红)"
+        elif isinstance(expect, tuple):
+            must, forbid = expect
+            hit = (must in red) and all(x not in red for x in forbid)
+            exp_txt = f"{must} 红 / {list(forbid)} 不红"
+        else:
+            hit, exp_txt = (expect in red), f"{expect} 红"
         flag = "✅" if hit else "❌"
         if hit:
             ok += 1
-        print(f"  {flag} {name:<48} 期望红组 {expect:<6} 实际红组 {red or '无'}")
+        print(f"  {flag} {name:<48} 期望 {exp_txt:<24} 实际红组 {red or '无'}")
     print("-" * 100)
     print(f"反向用例: {ok}/{len(cases)} 抓到了")
     return 0 if ok == len(cases) else 2

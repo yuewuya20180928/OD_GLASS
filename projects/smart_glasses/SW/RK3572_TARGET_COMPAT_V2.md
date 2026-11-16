@@ -158,6 +158,58 @@ curl -sS "https://raw.githubusercontent.com/airockchip/rknn-toolkit2/master/READ
 
 ★**三种结局照旧** (v1.0 §4.1): ✅ 全过 ⇒ rk3576-target 路线成立 · ⚠️ N1 过但 N3 不行 ⇒ 命中 T2, 降 OD 负载 / 回 RK3576 · ❌ N1 不过 ⇒ 换 SoC 或找 RK3572 专用 BSP。
 
+### 5.4 ★追加 (ISS-263 · 2026-11-17 · 路线② `rknn3-toolkit 1.2.0` 实测栏)★
+
+★**本段是追加, §5.1~§5.3 一个字没删没改** ★ ⇒ ★**§5.3 的 N1~N5 判据原样继续有效, 本段只是把路线② (换用官方 rknn3-toolkit 1.2.0 + `target_platform='rk3572'`) 的实测结果填进来** ★
+
+| 必答项 (本单口径) | 实测结果 | 等级 |
+|---|---|---|
+| ★**装上了没有** ★ | ★**装上了**: 独立 conda env `/home/yuewuya/miniconda3/envs/rknn3` (python 3.10.22 / pip 26.3), `rknn3-toolkit 1.2.0` (VERSION file = rknn3-toolkit 1.2.0, dist version = 1.2.0) · ★**toolkit2 2.3.2 旧环境 `/home/yuewuya/miniconda3/envs/rknn` 装前装后 pip list 逐行相同 ⇒ 未污染** ★ | ★[实测] ★ |
+| ★**config 过了没有** ★ | ★**过了**: `config(target_platform='rk3572')` ⇒ `CONFIG_OK target=rk3572 elapsed=0.019s` (rc=0) · ★**反向自证: 错 target `rk3576` ⇒ `ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572` ⇒ target 参数真被读了** ★ | ★[实测] ★ |
+| ★**转换耗时 3 次读数** ★ | ★**`t_total` = 33.389 / 34.108 / 41.672 s ⇒ min 33.389 / avg 36.390 / max 41.672 s (n=3, target_platform=rk3572)** ★ · 3 次 `rc_config=0 / rc_load_onnx=0 / rc_build=0 / rc_export=0` · 产物 249360 B, md5 `97a34fff0b855b92681f26627dba5354` (三次逐字节一致) | ★[实测] ★ |
+| ★**板端仍是 [0数据]** ★ | ★★**[0数据] —— 仍是 0** ★★: `init_runtime(target='rk3572', core_mask=RKNN3_NPU_CORE_0)` ⇒ rc=**-1**, SDK 原文 `RKNN3 init failed. error code: RKNN3_ERR_DEVICE_UNAVAILABLE` + `adb: unable to connect for root: no devices/emulators found`; `list_devices() = []` ⇒ **本机 0 台 RK3572 设备** ⇒ ★**§5.3 的 N1 (load_rknn ret + init_runtime ret 都=0) 仍判不了, 板端接受性一个数都没有** ★ | ★[0数据] ★ |
+
+★**★往返自证 (★本单补, 对 §5.3 的 N1 是主机侧的一半★)** ★:
+★**`load_rknn` 真签名 = `load_rknn(self, model_path, weight_path, lora_weight_path=None, load_ctx=False, **kwargs)`** ★ ⇒ ★**`export_rknn` 一次产出 `.rknn` + 同名 `.weight` 两个文件 (本单实测 `.rknn` 249360 B + `.weight` 1960448 B), 只传 `model_path` 会报 `TypeError: RKNN.load_rknn() missing 1 required positional argument: 'weight_path'`** ★
+⇒ ★**按真签名配上传回 ⇒ `rc_load_rknn = 0` (heads + 整模型两个产物都是), 再 `export_rknn` 出来 md5 与原文件完全一致 (`REEXPORT_MD5_MATCH_ORIG = True`)** ★
+★**⇒ 路线②的主机侧结论 = 「转换链已通」 (config 过 / 3 次 rc=0 / 产物可复现 / 能读回来); 板端那一半仍是 [0数据]** ★
+
+★**本段口径纪律**: ★**上面的 33.389~41.672 s 是「主机侧一次 ONNX→.rknn 转换耗时」, 不是板端 e2e 延迟, 不许与 §5.3 的 N3 (`t_npu ≤ 13.30 ms` / `t_sdk_total ≤ 20.33 ms`) 混用或直接比大小** ★ (★SOUL.md: 跨口径对比必须统一, 否则结论是错的★)
+
+### 5.5 ★追加 (ISS-263 第4趟 · 2026-11-17 · 独立复验 + 转换耗时口径订正)★
+
+★**本段是追加, §5.1~§5.4 一个字没删没改** ★ ⇒ ★**§5.4 的结论方向不变 (转换链已通 / 板端 [0数据]), 本段只做两件事: ①把上一趟的结论独立复跑一遍 ②把「转换耗时」这个数的隐含前提补出来** ★
+
+★**★订正 (★本段唯一的口径变化★)** ★:
+
+★**§5.4 那行「转换耗时 3 次读数 = 33.389 / 34.108 / 41.672 s」是真读数, 但它带着一个 §5.4 没写出来的前提: 【当时机器闲】** ★
+★**第4趟把这条拆成 3 个会话 × 共 9 次读数 (★故意先并发争抢再干净重跑, 这样才能定位变量★)** ★:
+
+| 会话 | 时刻 | 主机条件 | 3 次 t_total (s) | min / avg / max (s) | 产物 md5 |
+|---|---|---|---|---|---|
+| ★A (第3趟 · 原读数) ★ | 02:51 | 轻负载 (无并发) | 33.389 / 34.108 / 41.672 | 33.389 / 36.390 / 41.672 | `97a34fff…5354` |
+| ★B (第4趟 · 故意争抢) ★ | 05:13 | ★**并发跑了门禁脚本 ⇒ 抢 CPU** ★ | 68.810 / 51.040 / 59.832 | 51.040 / 59.894 / 68.810 | `97a34fff…5354` |
+| ★C (第4趟 · 干净重跑) ★ | 05:16 | ★**机器上只有 openclaw gateway 常驻, 无自己的并发** ★ | 49.148 / 54.950 / 44.050 | ★**44.050 / 49.383 / 54.950** ★ | `97a34fff…5354` |
+| ★**9 次全体** ★ | — | — | — | ★**min 33.389 / avg 48.555 / max 68.810** ★ | ★**9/9 逐字节相同** ★ |
+
+★**归因**: ★**逐次算过 t_build / t_total = 98.9~99.8% ⇒ 耗时几乎全在 INT8 校准 + 图优化 (纯 CPU-bound)** ★; ★**会话B 比 会话C 慢 1.10~1.56× 而产物 md5 一模一样 ⇒ 变量是主机 CPU, 不是工具链不确定性** ★
+★**⇒ 引用纪律 (★本段新增★)**: ★**报「一次转换多少秒」必须同时给出「当时主机负载」; 保守引用取会话C (干净口径 44.050 / 49.383 / 54.950 s), 理论下界取会话A (33.389 / 36.390 / 41.672 s); 不许单报一个数当稳定值** ★
+
+★**复验结果 (★本趟本机实跑, 13/14 条与上一趟一字不差★)** ★:
+
+| 必答项 | 本趟独立复跑结果 | 等级 |
+|---|---|---|
+| ★**装上了没有** ★ | ★**装上了**: `VERSION file = rknn3-toolkit 1.2.0` / `dist version = 1.2.0` · 独立 env `/home/yuewuya/miniconda3/envs/rknn3` (python 3.10.22) · wheel md5 重算 = `a972e03af94fd18e21f026558735b28d` (102657410 B, 与官方发布页同) · toolkit2 旧 env `rknn-toolkit2 2.3.2` / `numpy 1.26.4` / `onnx 1.16.1` 与基线逐行相同 ⇒ 未污染** ★ | ★[实测] ★ |
+| ★**config 过了没有** ★ | ★**过了**: `CONFIG_OK target=rk3572 elapsed=0.018s` (rc=0) · ★**反向自证: 错 target `rk3576` ⇒ 同一句 `ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572` (一字不差) ⇒ target 参数真被读了** ★ | ★[实测] ★ |
+| ★**转换耗时 3 次读数** ★ | ★**§5.5 开头那张表 = 9 次读数 (3 会话) ; 引用口径见上** ★ · 9 次全部 `rc_config=0 / rc_load_onnx=0 / rc_build=0 / rc_export=0` · 产物 249360 B, md5 `97a34fff0b855b92681f26627dba5354` ★**跨 3 会话 9/9 逐字节一致** ★ | ★[实测] ★ |
+| ★**往返自证** ★ | ★**`load_rknn(model_path, weight_path)` rc=0 ×2 (0.002s / 0.004s) + `REEXPORT_MD5_MATCH_ORIG = True` ×2 (heads 249360 B + 整模型 339992 B)** ★ | ★[实测] ★ |
+| ★**板端仍是 [0数据]** ★ | ★★**[0数据] —— 仍是 0** ★★: `init_runtime(target='rk3572', core_mask=RKNN3_NPU_CORE_0)` ⇒ rc=**-1**, SDK 原文 `RKNN3 init failed. error code: RKNN3_ERR_DEVICE_UNAVAILABLE` + `adb: unable to connect for root: no devices/emulators found`; `list_devices() = []` ⇒ ★**§5.3 的 N1 仍判不了, 板端接受性一个数都没有** ★ | ★[0数据] ★ |
+| ★**门禁** ★ | ★**`check_demo_panel_spec.py` G1_RC=0 (R1~R7 全过) · `timing_check.py` G2_RC=0 (SELFTEST 71/71) · `state/merge.py` + `state/gate_check.py` G3_MERGE_RC=0 / G3_GATE_RC=0, 【Q1】18/18, 【Q2】3/3 · 受保护 5 件 md5 逐字节不变** ★ | ★[实测] ★ |
+
+★**本段口径纪律 (★补 §5.4 那句纪律★)**: ★**① 上面的秒数是「主机侧一次 ONNX→.rknn 转换耗时」, 不是板端 e2e 延迟, 不许与 §5.3 的 N3 (`t_npu ≤ 13.30 ms` / `t_sdk_total ≤ 20.33 ms`) 混用或直接比大小** ★
+★**② 本趟新增: 该耗时是 CPU-bound 量 (t_build 占 98.9~99.8%), 引用时必须带「当时主机负载」这个前提** ★
+★**③ 板端结论本段一个字没放宽: 转换链已通 ≠ RK3572 板端能跑** ★
+
 ---
 
 ## 6. ⑥ 复现命令 (本机, 全部已实跑)
@@ -200,6 +252,34 @@ bash SW/tools/rk3572_target_smoke.sh \
 | 板端 | **[0数据]** —— 本机无板, 未跑过 1 次 |
 | ★验证包鲁棒性自测 | 在**非板子**的本机上跑实跑模式 (不带 `--dry-run`) ⇒ P1/P2/P3 判 FAIL 并打印原因, N1~N3 判 INDET, `summary.json` 正常落盘, **rc=1** (不假装通过) ⇒ **板端判定逻辑可执行** |
 
+### 6.4 ★追加 (ISS-263 · 2026-11-17 · 路线② `rknn3-toolkit 1.2.0` 实跑记录)★
+
+★**本段是追加, §6.3 原表一个单元格没删没改** ★
+
+| 项 | 值 |
+|---|---|
+| 装环境 | 独立 conda env `/home/yuewuya/miniconda3/envs/rknn3` (python 3.10.22 / pip 26.3) · `rknn3-toolkit 1.2.0` · numpy 2.2.6 · torch 2.4.0+cpu · onnx 1.23.2 · onnxruntime 1.23.2 · ★**toolkit2 旧 env `/home/yuewuya/miniconda3/envs/rknn` (rknn-toolkit2 2.3.2) 未被污染** ★ |
+| wheel | 官方 `rknn3_toolkit-1.2.0-cp310-cp310-manylinux2014_x86_64.whl` 102,657,410 B · md5 `a972e03af94fd18e21f026558735b28d` (拼装后本机重算一致 ⇒ 校验过才装) · 7 路 range 并发 + 断点续传, 00:50:29→01:11:03 拉完 (≈20.6 min, 平均 ≈83 KB/s) |
+| ★**config** ★ | ★**`config(target_platform='rk3572')` ⇒ rc=0, `CONFIG_OK target=rk3572 elapsed=0.019s`** ★ · ★**反向自证 `rk3576` ⇒ `ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572`** ★ |
+| ★**转换 (3 次, target_platform=rk3572)** ★ | ★**`t_total` = 33.389 / 34.108 / 41.672 s ⇒ min 33.389 / avg 36.390 / max 41.672 s** ★ · 3 次全 `rc_config=0 / rc_load_onnx=0 / rc_build=0 / rc_export=0` · 产物 `yolov5n_heads_int8_rk3572_run{1,2,3}.rknn` = **249360 B · md5 `97a34fff0b855b92681f26627dba5354` (三次逐字节一致)** ★ |
+| 整模型 (yolov5s@640) | `yolov5s_full_int8_rk3572.rknn` = 339992 B · md5 `e8927025d8d0494a1a949802bbac7a1f` (+ 同名 `.weight` 7353856 B) · t_build 73.924 s / t_total 74.314 s |
+| ★**往返自证** ★ | ★**`load_rknn(model_path, weight_path)` ⇒ rc=0 (两个产物都是) · 再 `export_rknn` md5 与原文件完全一致 (`REEXPORT_MD5_MATCH_ORIG = True`)** ★ · ★**真签名 `load_rknn(self, model_path, weight_path, lora_weight_path=None, load_ctx=False, **kwargs)`** ★ |
+| ★**板端** ★ | ★★**[0数据] —— 仍是 0** ★★: `init_runtime(target='rk3572', core_mask=RKNN3_NPU_CORE_0)` ⇒ rc=**-1** / `RKNN3_ERR_DEVICE_UNAVAILABLE` / `adb: no devices/emulators found` / `list_devices() = []` |
+| 门禁 | `check_demo_panel_spec.py` ⇒ G1_RC=0 (R1~R7 全过) · `timing_check.py` ⇒ G2_RC=0 (SELFTEST 71/71) · `state/merge.py` + `state/gate_check.py` ⇒ G3_MERGE_RC=0 / G3_GATE_RC=0 · 受保护 5 件 md5 装前=装后=交卷复测 三处逐字节一致 |
+| 原始日志 | `logs/iss263/` 11 件: `rknn3_download.log` · `install.log` · `install_step2.log` · `install_step2b.log` · `baseline_env.log` · `config_probe.log` · `convert_rk3572_probe.log` · `convert_rk3572_3runs.log` · `extra_probe.log` · `gates.log` · `roundtrip_probe.log` |
+| 交卷单 | `HANDOFF/2026-11-17_sw-lead_ISS263_rknn3_toolkit安装实测与rk3572转换.md` |
+
+★**复现命令 (ISS-263 追加, 与 §6 的 ①②③④ 并列)** ★:
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+# 装好后的 env 直接可用 (★不重下 wheel / 不重装★)
+/home/yuewuya/miniconda3/envs/rknn3/bin/python -c "from rknn.api import RKNN; print('rknn3-toolkit 1.2.0 ok')"
+/home/yuewuya/miniconda3/envs/rknn3/bin/python SW/tools/iss263_config_probe.py       # ⇒ rk3572 rc=0 且 rk3576 报错
+/home/yuewuya/miniconda3/envs/rknn3/bin/python SW/tools/iss263_roundtrip_probe.py   # ⇒ 往返自证 + 板端不可达证据
+/home/yuewuya/miniconda3/envs/rknn3/bin/python SW/tools/iss263_rknn3_convert.py    # ⇒ 3 次转换读数
+bash SW/tools/iss263_gates.sh                                                      # ⇒ G1/G2/G3 + 受保护 5 件 md5
+```
+
 ---
 
 ## 7. ⑦ 边界 (本单做了什么 / 没做什么)
@@ -226,3 +306,36 @@ bash SW/tools/rk3572_target_smoke.sh \
 
 > **本单纪律声明**: 本单**未联系任何供应商**; **未下单**; **未修改**上表以外任何既有文件;
 > 板端结果一律 **[0数据]**; 所有本机数字标 **[实测]** 并给复现命令; 所有官方页面抓取标 **[官网]** 并给 URL。
+
+---
+
+### 6.5 ★追加 (ISS-263 第4趟 · 2026-11-17 · 独立复验的复现命令与原始日志落点)★
+
+★**本段是追加, §6.1~§6.4 一个字没删没改** ★
+
+★**本趟新落盘的原始日志 (★`logs/iss263/` 下, 零转录误差★)** ★:
+
+| 文件 | 内容 |
+|---|---|
+| `logs/iss263/config_probe_r3.log` | ★config 正/反向自证复跑 (rk3572 rc=0 / 0.018s · rk3576 ValueError)★ |
+| `logs/iss263/roundtrip_probe_r3.log` | ★往返自证复跑 (rc_load_rknn=0 ×2 · REEXPORT_MD5_MATCH_ORIG=True ×2 · 板端 rc=-1 · list_devices=[])★ |
+| `logs/iss263/convert_rk3572_3runs_r3.log` | ★转换会话B (争抢口径) 3 次读数★ |
+| `logs/iss263/convert_rk3572_3runs_r3_clean.log` | ★转换会话C (干净口径) 3 次读数 ★ |
+| `logs/iss263/gates_r3.log` | ★门禁复跑 (G1/G2/G3 rc + 受保护 5 件 md5 + G5/G6 pip list)★ |
+| `logs/iss263/gate_full_r3.log` | ★`gate_check.py` 全量输出 (Q1 18/18 · Q2 3/3 · Q6 通过)★ |
+
+★**复现命令 (★第4趟实际敲过的★)** ★:
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+# ① config 正/反向自证 (⇒ config_probe_r3.log)
+./../../miniconda3/envs/rknn3/bin/python SW/tools/iss263_config_probe.py
+# ② 往返自证 + 板端探测 (⇒ roundtrip_probe_r3.log)
+/home/yuewuya/miniconda3/envs/rknn3/bin/python SW/tools/iss263_roundtrip_probe.py
+# ③ 转换 3 次 (⇒ convert_rk3572_3runs_r3_clean.log; ★测耗时时请确保机器上没有别的重活★)
+/home/yuewuya/miniconda3/envs/rknn3/bin/python SW/tools/iss263_rknn3_convert.py
+# ④ 门禁 (⇒ gates_r3.log + gate_full_r3.log)
+bash SW/tools/iss263_gates.sh
+python3 state/merge.py && python3 state/gate_check.py
+```
+
+★**交卷单**: `HANDOFF/2026-11-17_sw-lead_ISS263_rknn3_toolkit安装实测与rk3572转换.md` (★§4 是第4趟的独立复验记录, 含 3 会话 × 9 读数的耗时口径订正★)

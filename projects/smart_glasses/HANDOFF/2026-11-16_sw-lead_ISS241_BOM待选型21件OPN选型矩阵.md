@@ -303,3 +303,127 @@ $ python3 state/frag_write.py --agent sw-lead --add-answer ...     (2 条)
 | 3 | ★**`Q_PG` 漏电档 vs 栅压耐压档的拍板** | 关机续航账 (ISS-172 的 108 µA) 算不准; ±20 V 门槛无人认领 | main / PM |
 | 4 | ★**G-1 的 `Q_PG` 源漏矛盾裁决** | 原理图/落表那一趟的拓扑依据 | main / PM + 原理图那一趟 |
 | 5 | ★**U-C 的 8 条 [0数据]** | 落表/改板前必须按官网原表补齐 (尤其 `DMP3098L` 的 VGS 绝对最大 + 在售页) | 落表批次 (按官网原表) |
+
+---
+
+# ★★ B7 · 2026-11-17 05:0x 交卷后复核附录 (落表批次回填核对 + 受保护文件漂移归因)
+
+> **作者**: sw-lead (软件总工) · **时间**: 2026-11-17 04:51~05:0x (网关 reload 后续跑) · **单号**: ISS-241 收口复核
+> **为什么有本附录**: ISS-241 首轮交卷是 2026-11-16 13:47~14:30; ★**之后 2026-11-16 22:25 hw-lead 的落表批次把大部分 OPN 回填进了网表/脚表/BOM** ⇒ 本附录做三件事: ① 复核本单 4 条验收命令仍然全绿 ② 把"受保护 md5 漂移"归因清楚 (不是本单改的) ③ ★**把落表结果 vs 矩阵推荐逐件对齐, 抓出 3 条新发现 (其中 1 条会直接让板白投)** ★
+> **本附录仍是"只出证据, 不落表"**: 网表 / 脚表 / BOM / 板 **一个字没改**; 附录脚本 `HW/check_part_selection_landed_crosscheck.py` **只读** (自测在 tempfile 沙盒改副本)
+
+## ★7.1 复核结论 (本单 4 条验收命令 + 追加 1 条只读核对 ⇒ 全绿)
+
+| # | 命令 | 本轮 (2026-11-17 05:0x) 实跑 | rc |
+|---|---|---|---|
+| ① | `python3 HW/check_part_selection_matrix.py` | C0~C7 **8/8 全过** (覆盖 22/22 · 候选完整 · 封装结论 · 证据/降级/推荐 · 白名单 · 无空话 · 无越界) | **0** |
+| ② | `python3 HW/check_part_selection_matrix.py --selftest` | **9/9 全抓到** (M1 删位号→C1 红 / M2 清候选→C2 / M3 删降级→C4 / M4 越界→C7 / M5 非法证据等级→C5 / M6 删封装结论→C3 / M7 清推荐→C4 / M8 破基准块→C0 / M9 候选降到 1→C2) | **0** |
+| ③ | `python3 HW/check_step1_parts_spec.py` | **8/8 通过** (★**ISS-237 的屏口径门禁一道没打红**) | **0** |
+| ④ | `python3 state/merge.py && python3 state/gate_check.py` | merge rc=0 (STATE.yaml 已刷新) · gate_check rc=0 (**Q1 18/18** · 冲突 0 · Q6 硬件真源闸通过) | **0** |
+| ★⑤ (追加) | `python3 HW/check_part_selection_landed_crosscheck.py` | 落表回填核对 + ★**PAD-序机检** ⇒ 默认 rc=0 (只报告不修) · `--selftest` rc=0 (5/5) · `--strict` rc=1 (★**因为 C4 真抓到了缺陷 —— 这是设计如此, 缺陷是真的**) | 0 / 0 / 1 |
+
+## ★7.2 ★受保护 md5: 3 个 CSV 漂了, **但不是本单改的** (归因 + 交叉证据)
+
+| 受保护文件 | 任务书基线 (11-16 13:21) | 本单交卷时 (11-16 14:31) | 现在 (11-17 05:0x) | 结论 |
+|---|---|---|---|---|
+| `HW/netlist_v1.csv` | `34132f7e…` | `34132f7e…` | ★**`e06c1dd6…`** | ★**11-16 22:25 漂** ⇒ hw-lead 落表批次重生成网表, **不是本单** |
+| `HW/netlist_v1_pins.csv` | `b21b743a…` | `b21b743a…` | ★**`287e7861…`** | 同上 |
+| `HW/BOM_v1.csv` | `c195a117…` | `c195a117…` | ★**`94642d07…`** | 同上 |
+| `HW/PCB/demo_mainboard.kicad_pcb` | `611b869e…` | `611b869e…` | `611b869e…` | ★**逐字节未变** ✔ |
+| `HW/PCB/demo_mainboard.kicad_pro` | `3e504d2b…` | `3e504d2b…` | `3e504d2b…` | ★**逐字节未变** ✔ |
+
+★**归因的交叉证据 (不是我自己说的, 是别的总工已经写进盘里的同一结论)**:
+· `HANDOFF/2026-11-16_mech-lead_ISS240_跨铰链FPC几何三口径收口.md` §表: `34132f7e… → e06c1dd6…` / `b21b743a… → 287e7861…` / `c195a117… → 94642d07…`, 漂移时间 **"11-16 22:25"**, 归因 **"hw-lead 重生成网表"**。
+· 我自己 `HANDOFF/2026-11-16_sw-lead_ISS172_负载开关选型证据矩阵.md` §B6 也记了同一条: "第 1 轮是 34132f7e… ⇒ 变了, 归属 ISS-249/257/262/268 (hw-lead), 不是本单"。
+· 盘上 mtime 佐证: 三个 CSV mtime = **2026-11-16 22:25:14**; 本单三个交付物 mtime = 14:28/14:31 ⇒ ★**本单写盘时间比漂移早 8 小时, 且本单全程只读这三个文件** (脚本 `HW/check_part_selection_landed_crosscheck.py` 亦为纯读)。
+· ★**本单自己的交付物 md5 (交卷时 = 现在, 未被任何人改)**: `HW/PART_SELECTION_MATRIX_2026-11-16.md` = `da609d7d1844617cdb1e4f425b8b052c` · `HW/check_part_selection_matrix.py` = `fb286e5f4834fcda045bf8e7bcfecfdf` · 本交卷单 (加附录前) = `4859344eb417d600aca7a77ed04f0dc2`。
+
+★**一句话**: ★**"本单没碰任何受保护文件; 3 个 CSV 的漂移是 11-16 22:25 落表批次 (hw-lead) 的重生成, 时间戳与另外两位总工的独立记录三方对齐"** —— ★**本单不认领这次漂移, 也不为它背书内容** (漂移后的内容是落表批次的事, 本单只核对"矩阵 → 落表值"的一致性, 见 §7.3)。
+
+## ★7.3 ★落表批次已经消费了 ISS-241 的 13/22 ⇒ 逐件一致性核对 (HIT / DEVIATION / OPEN)
+
+> 机检: `python3 HW/check_part_selection_landed_crosscheck.py` (C2 三分统计) · ★**只读, 不落表**
+
+| 分类 | 数量 | 位号 |
+|---|---|---|
+| ★**HIT (落表 OPN = ISS-241 推荐项)** | **13** | `C_REGN` (GRM21BR71C475KA73L) · `D_ESD_CAM`/`D_ESD_USB_D` (TPD1E05U06DPYR) · `D_ESD_DEMO` (PESD5V0S1BA) · `D_TVS_VBUS` (SMBJ5.0A) · `FB_DEMO` (BLM21PG221SN1D) · `FB_VBUS` (BLM31PG121SN1) · `Q_AND`/`Q_ENVC` (AO3400A) · `Q_CHG_LED` (2N7002) · `Q_PG` (DMP3098L) · `R_SUPV_DIV1`/`R_SUPV_DIV2` (RC0603JR-070RL) |
+| ★**DEVIATION (落了但 ≠ 推荐项)** | **1** | `D_ESD_TC`: 落表 `SP0503BAHT` (Littelfuse 3 通道 TVS/ESD 阵列 · SOT-143 **4 脚** · 5.5VWM/8.5VC) vs ISS-241 推荐 `PESD5V0S1BA` (2 脚双向) ⇒ ★**理由站得住** (Type-C 入口要同时覆盖 CC1/CC2 与 D+/D− 多通道, 2 脚件只保护 1 条) ⇒ ★**代价 = 充电板 footprint 仍写「待定」, 落板批次必须给这颗落 4 焊盘 land (SOT-143-4)**, 否则器件放不下 |
+| ★**OPEN (BOM 里仍待选型)** | **8** | `D_LED_G` · `D_LED_R` · `D_CHG_LED` · `SW_BOOT` · `SW_KEY_PWR` · `SW_KEY_VM` · `SW_KEY_VP` · `SW_RST` ⇒ ★**这 8 件在 ISS-241 矩阵里证据仍完整 (每件 ≥2 候选 + 官方链接 + 非空降级方案) ⇒ 可直接被下一批落表引用, 不用重查** (清单见 §7.5) |
+
+★**这说明什么 (给 main 的读法)**: ISS-241 的矩阵**不是白写** —— 落表批次 13/14 个已落 OPN 直接取自本矩阵的推荐项 (含 `C_REGN` 按 TI BQ25896 手册改成 4.7µF/10V, 正是本单 §0 那条硬发现); ★**但落表只做了"填型号", 没做"核 pad 序"** ⇒ 抓出下面 F-1/F-2。
+
+## ★7.4 ★★★ 3 条新发现 (本附录新增 · 全部是"读板文件 + 读落表表"的实测级几何事实, 不是猜)
+
+### ★F-1 【★★★ 会让板白投】`D_ESD_CAM` 落表后器件脚接错 ⇒ CSI lane 上没有 ESD
+
+| 项 | 事实 | 来源 |
+|---|---|---|
+| 板上占位 | **pad1 = GND, pad2 = CSI_D0_CK_P** | `HW/PCB/demo_mainboard.kicad_pcb` 该 footprint 块 pad 的 `(net …)` 实读 |
+| 落表器件 | `TPD1E05U06DPYR` (TI DPY X1SON-2), **pin1 = I/O, pin2 = GND** | TI 数据手册 pinout (ISS-241 §3.1 已带链接) + BOM `opn` 栏自带 `1=I/O 2=GND` |
+| ⇒ 后果 | 贴上去后: 器件 **I/O 脚接系统地**、器件 **GND 脚接 CSI 信号** ⇒ ESD 不工作, 且器件的参考地浮在信号上, 可能给 CSI lane 引入漏电/钳位异常 | 由上面两行直推 |
+| 对照 | `D_ESD_USB_D` (pad1=USB_D_P_SRC/pad2=GND) ✔ 对上; `D_ESD_DEMO` 落的是双向件 PESD5V0S1BA (K1/K2) ⇒ 无极性 ⇒ ✔ 免疫 | 同上 |
+| ★**修法 3 条 (依据与代价, 我不拍)** | ① **重画 land 对调 pad1/pad2** (板批次, 零料号成本) ② **改用双向件 `PESD5V0S1BA`** (ISS-241 候选2, 无极性 ⇒ 不动 land; 代价 = Cd 35pF vs 0.42pF, 对 CSI 高速 lane 是**数量级劣化** ⇒ 只有当 owner 判定"CSI lane 的 ESD 不必极致"才行) ③ 改板加多通道阵列 (占一个板次) | ★**归 hw-lead 板那一趟 + main; 本单只给依据** |
+| 机检 | `python3 HW/check_part_selection_landed_crosscheck.py` ⇒ C4 报 ★ (D_ESD_CAM 2 处 + Q_AND 2 处); `--selftest` 的 M4 反向自证: ★**把 pad 序改对 ⇒ C4 立刻不再报该件** ⇒ 证明 C4 真在核 pad 序不是摆设 | |
+
+### ★F-2 【★★】`Q_AND` 落表 `AO3400A` 后**仍必须重画 land**, 否则硬件 AND 变成硬件 OR
+
+| 项 | 事实 |
+|---|---|
+| 板上占位 | pad1 = **RESET_N (漏极 D)**, pad2 = GND (源极 S), pad3 = **PG_AND (栅极 G)** ⇒ ★**占位 pad 序 = D/S/G** |
+| 落表器件 | `AO3400A` (SOT-23) 引脚序 = **G/S/D** (pin1=G, pin2=S, pin3=D) |
+| ⇒ 后果 | 若按标准 SOT-23 land 直接贴: RESET_N 落到 **G 脚**、PG_AND 落到 **D 脚** ⇒ ★**"两路都有效才拉低" 的硬件 AND 变成"任一路有效就拉低" ⇒ 复位会被误释放** |
+| 对照 | `Q_ENVC` 占位恰好是 G/S/D ⇒ ✔ 唯一不用改映射的一件; `Q_PG` 占位是 S/D/G ⇒ ★**须等缺口 G-1 (网表 note 的源漏措辞与 P-MOS 高边拓扑相反) 裁决后定 land** |
+| 状态 | ★**这正是 ISS-241 缺口 G-2 ("占位 pad 序号是网表顺序, 不是库封装的 G/S/D 顺序") —— 落表把 G-2 从"隐患"变成了"必修"** |
+
+### ★F-3 【★】落表遗留的两处证据等级/落表口径问题 (归落表批次, 我不代改)
+
+| 问题 | 现状 | 该是什么 | 依据 |
+|---|---|---|---|
+| `D_ESD_TC` 的 evidence 栏 | 脚表/网表写 **`[实测]`** | ★**`[官网]`** (Littelfuse SP0503BAHT 手册) | ★**板端没有实物, 本单 `[实测]` = 0 条**; 写 `[实测]` 会污染"哪些结论有实物背书"这条账 |
+| 5 件按键 `opn` 栏 | 写 **`[0数据]`** | ★**直接回填 ISS-241 推荐项** (BOOT/PWR/RST = `KMR231ULCLFS`, VM/VP = `B3U-1000P`) | ★**不是"查不到"**: ISS-241 矩阵里这 5 件各有 2 个带官方手册链接的候选 + 封装兼容性结论 + 降级方案 (§7.5) ⇒ `[0数据]` 会误导下一棒去重查 |
+
+## ★7.5 剩余 8 件 OPEN 的 ISS-241 推荐项 (下一批落表可直接引用, 不用重查)
+
+| 位号 | 板位 | ISS-241 推荐 | 候选 2 | 封装兼容 | 代价 (落表时必须一起记) |
+|---|---|---|---|---|---|
+| `D_LED_G` | MAIN_PCB | `KP-2012SGC` (0805 绿 565/568nm) | `APH1608SGC` (0603) | 兼容 | 1k 串阻下电流只有 ~1.1mA ⇒ 1mA 点亮度 `[0数据]` (缺口 G-5, 改 R 属改网表) |
+| `D_LED_R` | MAIN_PCB | `AA1608SURSK` (0603 PLCC-2 红 630nm, 160mcd typ) | `APT1608SURCK` (0603, 80mcd typ) | 兼容 | 两颗 LED 封装不同 (绿 0805 / 红 0603) ⇒ 两套 land; 若要求同封装需换绿料 |
+| `D_CHG_LED` | CHG_BOARD | `APT1608SURCK` (0603 红 = 充电中) | `APT1608CGCK` (0603 绿 = 完成) | 充电板侧封装待定 ⇒ 落 2 焊盘 land | 单色灯表达不了红/绿两态 (要双色 = 0805 四脚 + 第二颗 MOS, 改网表); 导光孔高度对齐 0.75mm (ISS-103) |
+| `SW_BOOT` | MAIN_PCB | `KMR231ULCLFS` (OF 3.0N, 2 脚无固定脚) | `B3U-1000P` (1.5N, 更薄 1.6mm) | 条件兼容 | KMR2 gullwing land 外扩 4.6×3.2mm > 占位 bbox 3.00×3.00 ⇒ 必须重画 land |
+| `SW_KEY_PWR` | MAIN_PCB | `KMR231ULCLFS` | `B3U-1000P` | 条件兼容 | 同上 (电源键误触代价最高 ⇒ OF 偏大优先) |
+| `SW_KEY_VM` | MAIN_PCB | `B3U-1000P` (寿命 200,000 次, 总高 1.6mm 最薄) | `KMR221ULCLFS` | 条件兼容 | 本体 3.0×2.5mm 与 bbox 几乎正好, 须重画 land; 触感比 KMR2 轻 |
+| `SW_KEY_VP` | MAIN_PCB | `B3U-1000P` (与 VM 同料 ⇒ 左右手感一致) | `KMR221ULCLFS` | 条件兼容 | 同上 |
+| `SW_RST` | MAIN_PCB | `KMR231ULCLFS` (3.0N + 0.25mm 行程 + 段落感明显) | `B3U-1000P` | 条件兼容 | 同 KMR2 land 外扩问题; 寿命 150,000 次对复位键够用 |
+
+★**注意**: 这 5 件按键的候选都不是"随便挑" —— **KMR2 / B3U 都是 gullwing 2 脚版, land 会外扩**, 落板批次重画时顺手把 5 个键的 land 一起画齐, 别一件一件来。
+
+## ★7.6 本附录的边界 (逐项自证)
+
+| 边界 | 自证 |
+|---|---|
+| ★**零外发** | 本附录只读公开盘面文件 + 官网/手册链接; ★**没发邮件 / 没联系供应商 / 没询价 / 没下单** (老板 2026-11-12 02:02 政策) |
+| ★**不落表** | 网表 / 脚表 / BOM 的 value 与 opn 栏 **本单一个字没改** (附录脚本纯读; 自测改的是 tempfile 副本) |
+| ★**不碰 PCB 布线/布局/板框** | 本附录只**读** `demo_mainboard.kicad_pcb` 的 pad 几何; ★**F-1/F-2 的 land 改法是"给板批次的建议", 不是我自己改板** |
+| ★**不替老板/main 拍板** | F-1 三条修法、F-2 映射表、7 件 OPEN 的型号 ⇒ ★**只给依据与代价, 一票交 main 排期** |
+| ★**实物 [实测] = 0 条** | 本附录出现的"实读"全部是**读板文件/读表**的几何与文本事实, ★**不是硬件实测**; 器件参数仍全部是 `[官网]` |
+| ★**不改别人的文件** | 本轮新增/改动只有: ★**本交卷单 (加 B7 附录)** + ★**新文件 `HW/check_part_selection_landed_crosscheck.py`**; ★**与在飞 hw-lead (ISS-239/ISS-266) 的文件名零交集** |
+| ★**不改 `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0** | 未碰 |
+
+## ★7.7 复现命令 (本轮实跑, 输出原样)
+
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+python3 HW/check_part_selection_matrix.py            # rc=0 (C0~C7 8/8)
+python3 HW/check_part_selection_matrix.py --selftest  # rc=0 (9/9)
+python3 HW/check_step1_parts_spec.py                 # rc=0 (8/8, ISS-237 屏口径没打红)
+python3 state/merge.py && python3 state/gate_check.py # rc=0 (Q1 18/18)
+python3 HW/check_part_selection_landed_crosscheck.py            # rc=0 (只读核对; C4 报 ★ PAD 序)
+python3 HW/check_part_selection_landed_crosscheck.py --selftest  # rc=0 (5/5)
+md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv \
+       HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro
+```
+
+★**给 main 的 3 句话**:
+1. ★**矩阵可用、门禁全绿, 落表批次已按矩阵落了 13/14 个 OPN** ⇒ 选型这一环不再是卡点。
+2. ★**但板还没法投**: F-1 (`D_ESD_CAM` 器件脚接错) + F-2 (`Q_AND` 需重画 land) 两条必须在板那一趟一起修, ★**不修就投板 = 板白投 + CSI 高速 lane 无 ESD**。
+3. ★**还差 8 件 OPEN (3 LED + 5 按键)** ⇒ 证据已在矩阵里, ★**下一批落表直接引用 §7.5, 不用重查**; ★**我这边不代拍、不落表**。

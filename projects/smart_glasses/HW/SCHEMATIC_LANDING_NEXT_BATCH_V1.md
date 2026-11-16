@@ -259,3 +259,140 @@ md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv \
 ---
 
 > ★**本清单只登记与排期, ★不落盘、不拍板、不碰板、不碰别人的分片★ ⇒ ★**下一批请照 §6 的整串门禁 + §3 的 5 项配套一起做** ★ ★
+
+---
+
+## 9 · ★★【ISS-262 · 2026-11-17 03:4x · hw-lead】V-3 + V-4 同批落表清单 (★追加段 · 老字一句没删★)★★
+
+> ★**本段作者**: hw-lead · ★**单号**: ISS-262 · ★**性质**: ★**只登记与排期, ★零落表 · 零拍板 · 零写盘真源★ ★
+> ★**依据**: 任务书 `state/dispatch_briefs/ISS-262_hw_land_row_anchor_guard.md` §③③ · ★**数字全部来自本机实跑 (★日志 `HW/ISS262_acceptance_rc.log`★)** ★
+
+### 9.1 · ★**哪些条目必须同批落 (★逐条 + 撞车类型★)** ★
+
+| # | ★**条目** ★ | ★**撞车类型** ★ | ★**撞车详情 (★实测★)** ★ | ★**同批落的理由** ★ |
+|---|---|---|---|---|
+| 1 | ★**`HW/netlist_v1.csv` (表A)** ★ | ★**md5 撞车** ★ | ★**V-3=E 改 L181-L186 六行 · V-4=680 改 L47/L48/L497 三行 · V-2=1 改 L417/L418 网名 ⇒ 三条都改这同一个文件** ★ | ★**三处改动落进同一个 md5 ⇒ 必须一次落完, 落完只重锚 1 次 (★SW/MECH 侧省一轮★)** ★ |
+| 2 | ★**`HW/netlist_v1_pins.csv` (表B)** ★ | ★**md5 撞车** ★ | ★**V-3=E 改 6 行 (脚表 L100/L307/L309 一带) · V-4=680 改 L329/L330 ⇒ 同一个文件** ★ | ★**同上** ★ |
+| 3 | ★**`HW/BOM_v1.csv`** ★ | ★**md5 撞车** ★ | ★**V-3=E 改 3 行 (L86/L87 一带) · V-4=680 改 L97 ⇒ 同一个文件** ★ | ★**同上** ★ |
+| 4 | ★**`state/gen_netlist.py` (真源)** ★ | ★**md5 撞车 + ★**行号漂移撞车** ★ | ★**V-3=E 删 `DEMO_DNP` 3 个条目 (L348 一带) ⇒ ★**L348 之后所有行号整体 -3** ★ · V-4=680 改 L557/L560/L562 一带 · V-2=1 改 L1454 ⇒ 三条都改这同一个文件** ★ | ★**★这一条是本批【唯一的行号漂移源】★ ★ (★见 9.2 的订正★)** ★ |
+| 5 | ★**`HW/check_netlist_selfconsistency.py` 的 `EXPECT` 现状断言** ★ | ★**内容撞车 (★断言值随落表走★)** ★ | ★**V-3=E 要改 21 条断言 · V-4=680 要改 6 条 · V-2=1 要改 1 条 (`d4_a417_net`) ⇒ 同一个列表** ★ | ★**★同一批落 ⇒ 断言一次改齐; 分批落 ⇒ 中间态红, 且【改一半的断言】就是【假绿】的前身★ ★** ★ |
+| 6 | ★**`HW/NETLIST_SELF_CONSISTENCY_SPEC.md` 的 `<!-- ANCHORS -->` 块** ★ | ★**内容撞车 (★整块重生成★)** ★ | ★**三条都要整块重生成 (★`state/land_v_values.py` 的 `regen_spec_anchors(root)`★)** ★ | ★**一次重生成 ⇒ 规格页与源码逐字一致 (★不一致 ⇒ 新闸 `HW/check_land_row_anchors.py` 直接红★)** ★ |
+| 7 | ★**`state/p10_rows.json`** ★ | ★**md5 撞车** ★ | ★**V-4=680 改 J_CHG / BAT_CHG 行的 note (L688 一带)** ★ | ★**同批落** ★ |
+| 8 | ★**`HW/CHARGE_BOARD_SPEC.md`** ★ | ★**md5 撞车** ★ | ★**V-4=680 改 §2.2 / §2.4 / §3.4 / §7 CSV / §8 / §9 / §10 共 15 处** ★ | ★**同批落** ★ |
+| 9 | ★**`HW/SCHEMATIC_V1_SPEC.json`** ★ | ★**md5 撞车** ★ | ★**V-3=E 改 B-08 的 `level` / `imp` (L426/L427)** ★ | ★**同批落** ★ |
+
+★**★口径订正 (★必须写进下一批的作业包★)★** ★:
+> ★**「V-3 删 3 行 ⇒ 所有行号锚点 -3」这句话, 对【网表 / 脚表 / BOM 的行号】不成立** ★
+> ★**★[实测]★ 表A 513 行不变 (只有 L181-L186 六行变) · 脚表 584 行不变 (6 行变) · BOM 218 行不变 (3 行变) ⇒ ★**CSV 的行号一条都不漂** ★ ★
+> ★**★[实测]★ V-3=E 删的是 `state/gen_netlist.py:348` 那个 Python 字典的 3 个条目 ⇒ ★**真正 -3 的是【生成器源码行号】** ★ ★
+> ★⇒ ★**下一批的作业包: 【表行锚点】不用改行号; 【生成器源码行锚点】必须改 (★F1 那对现在在 `state/gen_netlist.py` L400 / L413 —— ISS-249 落表后已与旧文里的 L381 / L393 不同了★)★ ★
+
+### 9.2 · ★**落表顺序 (★参照 ISS-243 / ISS-249 / ISS-257 的既有硬顺序, ★不许自创★)** ★
+
+★**★硬顺序 = `state/land_v_values.py` 的 `GEN_ORDER` (★既有常量, ★本单一个字没改★)★** ★:
+
+```
+① 改真源 (★state/gen_netlist.py / state/p10_rows.json / HW/SCHEMATIC_V1_SPEC.json / HW/CHARGE_BOARD_SPEC.md★)
+      ↓
+② 重生成 6 件 (★GEN_ORDER, ★顺序是硬的, ★不许换★)
+   1. state/gen_netlist.py       ⇒ HW/netlist_v1.csv        (网表 表A)
+   2. state/gen_kicad_net.py     ⇒ HW/netlist_v1.net
+   3. state/gen_netlist_pins.py  ⇒ HW/netlist_v1_pins.csv   (脚表 表B)
+   4. state/gen_bom.py           ⇒ HW/BOM_v1.csv
+   5. state/gen_schematic_pages.py⇒ HW/SCHEMATIC_V1.md
+   6. state/gen_kicad_sch.py     ⇒ HW/PCB/demo_mainboard*.kicad_sch
+      ↓
+③ 改门禁现状断言 (★HW/check_netlist_selfconsistency.py 的 EXPECT, ★落表器自带的 apply_expect_patch★)
+      ↓
+④ 规格页 ANCHORS 块整块重生成 (★regen_spec_anchors(root)★)
+      ↓
+⑤ 规格页 §5.5 + 落表台账 §16 / §18.4 (★带真实 md5★)
+      ↓
+⑥ ★**ISS-262 新增这一步: 行号锚点守卫 ★**
+   python3 HW/check_land_row_anchors.py --reanchor
+   ⇒ ★**打印「N 条锚点行号漂移, 新行号 = …」⇒ 机器改 EXPECT 行号 + 规格页 ANCHORS 行号 + 台账★ ★
+   ⇒ ★**这一条已自动挂进 `state/land_v_values.py` 的落表后门禁链 (★不用人记得跑★)★ ★
+      ↓
+⑦ 落表后门禁实跑 (★顺序同上 + 新闸, ★任一条红 ⇒ 自动回滚★)
+      ↓
+⑧ 受保护 md5 核对 (★板 611b869e… / .kicad_pro 3e504d2b… 必须逐字节不变★)
+```
+
+★**★为什么第 ⑥ 步必须放在 ⑦ 之前 (★顺序是硬的, ★不许自创★)** ★:
+> ★**门禁 `HW/check_netlist_selfconsistency.py` 是按【行号】找行的 ⇒ 行号没重锚 ⇒ 它查的根本不是那颗器件 ⇒ ★**「假绿」就是这么来的** ★ ⇒ ★**先重锚, 再跑门禁, 顺序反了就等于没跑★ ★**
+
+### 9.3 · ★**落表后要重基线的完整清单 (★谁负责哪一跳★)** ★
+
+| # | ★**要重基线的东西** ★ | ★**谁** ★ | ★**在哪改** ★ | ★**填什么** ★ |
+|---|---|---|---|---|
+| 1 | ★**网表 / 脚表 md5 台账** ★ | ★**hw-lead** ★ | ★**`HW/SCHEMATIC_LANDING_V1_LANDED.md` §18.4 (md5 台账表)** ★ | ★**单号 + 文件名 + 新 md5 + 旧 md5 四项同行齐全 (★四项缺一项 ⇒ SW/MECH 没法重锚★)** ★ |
+| 2 | ★**SW 侧 md5 台账** ★ | ★**sw-lead** ★ | ★**`SW/SW_MD5_BASELINE_LEDGER.md` §1 `entries`** ★ | ★**`HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / (★BOM 若在表里★) 三条 ★** ★ |
+| 3 | ★**MECH 侧 md5 台账** ★ | ★**mech-lead** ★ | ★**`MECH/HW_CROSS_REVIEW_TRIAGE.md` §1 `source_ledger.entries` + §3.1 留痕新增一行** ★ | ★**同上三项** ★ |
+| 4 | ★**受保护脚本的 md5 字典 (4 处)** ★ | ★**hw-lead (HW 侧 2 处) + mech-lead (MECH 侧 2 处)** ★ | ★**① `HW/check_pin_function_labels.py` 的 `PROTECTED_MD5` (网表/脚表/BOM/板/`.kicad_pro` 5 条基线) ★② `HW/check_g1a7_selection_landed.py` 的板 md5 + 14 件三方位号核对 ★③ `MECH/cavity_recalc_check.py` 的 `MD5_EXPECTED` ★④ `MECH/check_demo_struct_truth.py` 的 `MD5_EXPECTED`** ★ | ★**★改 md5 基线 = 【承认新基线】, 必须在交卷单里说明为什么改 (★不许为了凑绿改★)★ ★** ★ |
+| 5 | ★**BOM** ★ | ★**hw-lead** ★ | ★**`HW/BOM_v1.csv` + §18.4 台账 + `HW/check_pin_function_labels.py` 的 `PROTECTED_MD5`** ★ | ★**BOM 的 md5 与 218 行内容要跟网表同批变, 不许分批** ★ |
+| 6 | ★**规格页 ANCHORS 块** ★ | ★**hw-lead (★落表器自动★)** ★ | ★**`HW/NETLIST_SELF_CONSISTENCY_SPEC.md` 的 `<!-- ANCHORS:BEGIN/END -->`** ★ | ★**★必须与 `HW/check_netlist_selfconsistency.py` 的 `EXPECT` 逐字一致 ⇒ 不一致 ⇒ 新闸直接红 (★已实跑验证: T7 用例★)★ ★** ★ |
+| 7 | ★**★ISS-262 新闸的行号锚点台账★** ★ | ★**hw-lead (★落表器自动★)** ★ | ★**`HW/land_row_anchors_registry.json` + `HW/check_land_row_anchors.py` 里的 `REGISTRY_SHA256` 常量** ★ | ★**★机器写 (★`--reanchor` 自动同步★) ⇒ 不许人手改行号★ ★** ★ |
+
+### 9.4 · ★**板那一趟 (★PCB 类★) ⇒ ★**排队, 不在本单**★ ★
+
+| ★**板侧项** ★ | ★**为什么排板那一趟** ★ | ★**排队给谁** ★ |
+|---|---|---|
+| ★**V-2 的 B-3 (换封装) / B-4 (挪到 J_USB_C 旁 ≤3.0mm) / B-5 (D− 补 ESD)** ★ | ★**★落表器【不做】板那一趟 (★板 `611b869e…` 与 `.kicad_pro` `3e504d2b…` 必须逐字节不变★) ⇒ 干跑日志原样: 「V-2=1 的板那一趟本工具【不做】… 继续排队」** ★ | ★**板那一趟 (★老板 2026-11-11 10:07「先原理图后 PCB」口径★)** ★ |
+| ★**R4×2 (ESD 双通道 / D− 侧) + R9 (ESD 距接口 ≤3.0mm)** ★ | ★**★D− 侧要新增位号 `D_ESD_USB_N` ⇒ 落表器侧【零配方】(`grep -c` = 0) ⇒ 网表/脚表/BOM 三处要加行 ⇒ 又是一次行号位移 (★本闸会自动报漂移并机器重锚★)** ★ | ★**板那一趟 + 落表器配方缺口 (★要 main 排下一趟给 hw-lead★)** ★ |
+| ★**R3 (U_EN_SW 板封装 Value 属性)** ★ | ★**★板文件是受保护件 ⇒ 落表那趟不碰; ★**落表那趟的板侧清单是 4 条, 但落表器自己的 `board_delta` 字段只数到 3 条 ⇒ 差的就是 R3 这条, 落表那趟的作业包必须点名它** ★** ★ | ★**板那一趟** ★ |
+
+---
+
+> ★**★本段只登记与排期, ★零落表 · 零拍板 · 零写盘真源 · 板一个字节没碰★ ⇒ ★**下一批请照 §9.2 的硬顺序 + §9.3 的 7 项重基线一起做** ★ ★
+
+---
+
+## 10 · ★★【ISS-247 复验 · 2026-11-17 05:0x · hw-lead】下一批三条配方 dry-run 实测 + ★**真源行号漂移硬规矩**★★ (★追加段 · 老字一句没删★)★★
+
+> ★**本段作者**: hw-lead · ★**单号**: ISS-247 (★复验轮★) · ★**性质**: ★**只登记与实测, 零落表 · 零拍板 · 零写真源** ★
+> ★**依据**: ★**本机实跑 (★验收日志 `HW/ISS247_reverify_acceptance_rc.log` + 交卷单 `HANDOFF/2026-11-17_hw-lead_ISS247_复验与下一批落表路径实测.md`★)** ★
+> ★**触发**: ★**网关 reload 后 ISS-247 任务书被重投 ⇒ 第一动作 = 查台账 (ISS-247 已 verified · F1 已由 ISS-249 真落) ⇒ 不重做已验证的交付物, 改成【复验 + 现状订正】★** ★
+
+### 10.1 · ★**复验结论 (★ISS-247 五件交付物仍在盘且仍成立★)** ★
+
+| ★**项** ★ | ★**2026-11-17 05:0x 实测** ★ |
+|---|---|
+| ★**F1 落表状态** ★ | ★**已落** (★`HW/check_iss247_f1_landed.py` rc=0 · S1~S6 全绿 · `--selftest` rc=0 11/11★) ★ |
+| ★**R3 矛盾判据** ★ | ★**恰 2 条 (F2 + F3) · rc=1** (★F1 已消失★) ★ |
+| ★**V-2/V-3/V-4 是否被代拍** ★ | ★**没有** (★`--expect-resolved` 仍 18 条★) ★ |
+| ★**真盘 5 个受保护 md5** ★ | ★网表 `e06c1dd6…` · 脚表 `287e7861…` · BOM `94642d07…` · 板 `611b869e…` · `.kicad_pro` `3e504d2b…` (★跑前跑后逐字节不变★) ★ |
+| ★**md5 现状注记** ★ | ★**§2.3 表里那三个值 (`611c3ba3…` / `16ac89f7…`) 已作废** ⇒ ★**现行 = ISS-249 (11-16 19:22) + ISS-257 (11-16 21:22) 两次合法落表后的 `e06c1dd6…` / `287e7861…` / `94642d07…`★** ★ |
+
+### 10.2 · ★**下一批三条配方的沙盒 dry-run 实测 (★★每条都 rc=0 ⇒ 一次落的路径仍然通★★)** ★
+
+★**沙盒**: `/home/yuewuya/.openclaw/tmpwork/iss247_dryrun` (★`rsync` 整树拷贝 107 MB ★ 真盘只读 ★ 跑完已 `rm -rf`★) ★
+
+| ★**命令 (★沙盒内★)** ★ | ★**rc** ★ | ★**配方命中的现行真源位置 (★2026-11-17 05:0x 快照★)** ★ |
+|---|---|---|
+| ★`python3 state/land_v_values.py --decision V-3=E` ★ | ★**0** ★ | ★`state/gen_netlist.py:348` (删 `DEMO_DNP` 三行) + `:912` / `:914` (上下臂 value+note) + `HW/SCHEMATIC_V1_SPEC.json:426/427` (B-08 level/imp) + 门禁 EXPECT/selftest 9 处 ★ |
+| ★`python3 state/land_v_values.py --decision V-4=680` ★ | ★**0** ★ | ★`state/gen_netlist.py:557` (2 处) + `:560` + `:562` + `state/p10_rows.json:688` + `HW/CHARGE_BOARD_SPEC.md` 12 处 ★ |
+| ★`python3 state/land_v_values.py --decision V-2=1` ★ | ★**0** ★ | ★`state/gen_netlist.py:1454` (D_ESD_USB_D 挪 Type-C 侧) + 门禁断言 `d4_a417_net` ★ |
+
+★**★每条配方都打印「(匹配 1 处)」⇒ 旧串在现行真源里唯一命中 ⇒ ISS-260 修过的 V-2 路径没被后续落表打穿 ⇒ 下一批不用先补配方, 直接落** ★
+★**沙盒零写盘自证**: ★`md5sum -c` ⇒ `HW/netlist_v1.csv: OK` / `HW/netlist_v1_pins.csv: OK` / `HW/BOM_v1.csv: OK` ★
+
+### 10.3 · ★★**【硬规矩 · 下一批落表前必读】真源行号是一次性快照, 落表那一刻就再漂**★★ ★
+
+★★**F1 那对行号的历史 (★本轮实测, ★与 §9.1 的订正逐字一致★)** ★★
+
+| ★**条目** ★ | ★**ISS-247 交卷时写的** ★ | ★**ISS-249 落表时写的** ★ | ★**2026-11-17 05:0x 实测** ★ | ★**漂了** ★ |
+|---|---|---|---|---|
+| ★**F1 改法 1 (FB_VBUS 后级行)** ★ | ★L381 ★ | ★L381 ★ | ★**L400** ★ | ★**+19** ★ |
+| ★**F1 改法 2 (C_VBUS_GND 信号端行)** ★ | ★L393 ★ | ★L393 ★ | ★**L413** ★ | ★**+20** ★ |
+
+⇒ ★**§2.2 表里那两行「现值」已经过期 (★它们是 ISS-249 当时的快照★)** ⇒ ★**下一批任何人照抄 §2.2 的 L537 / L547 / L1420~L1424 都会打偏** ★
+⇒ ★**★行号 = 【一次性快照】, 只在落表那一刻有效★** ⇒ ★**下一批落表前必须重跑一次 dry-run 取当时的行号; 落表脚本一律用「唯一字符串 + 上下文锚点 + `assert count == 1`」定位, 不许裸行号 (★ISS-243 / ISS-249 / ISS-257 三个已落表单都是这么做的★)** ★
+⇒ ★**同一条纪律对 SW/MECH 侧的 md5 锚点一样成立 (★md5 也是一次性快照★) ⇒ 下一批一次落完只广播一次新 md5, 两边各重锚 1 次** ★
+
+### 10.4 · ★**本段对下一批作业包的要求 (★逐条, 落表人照抄即可★)** ★
+
+1. ★**落表前**: ★**先在沙盒里 `python3 state/land_v_values.py --decision V-3=E --decision V-4=680 --decision V-2=1` (★dry-run·零写盘★) ⇒ 打印出当时的命中行号与 diff, 把它当【唯一权威行号】** ★
+2. ★**落表中**: ★**用落表器自己的 Patch 机制 (★`old` 唯一命中 + `ctx` 锚点★) ⇒ 不依赖行号** ★
+3. ★**落表后**: ★**必须按 ISS-262 §9.2 的硬顺序走 (★① 改真源 → ② 重生成 6 件 → ③ 改门禁 EXPECT → ④ 重生成规格页 ANCHORS → ⑤ 台账 → ⑥ `HW/check_land_row_anchors.py --reanchor` → ⑦ 落表后门禁实跑 → ⑧ 受保护 md5 核对★) ⇒ ★**⑥ 必须在 ⑦ 之前, 顺序反了就等于没跑门禁** ★
+4. ★**落表后必跑**: ★**`HW/check_iss247_f1_landed.py` (rc=0) · `HW/check_netlist_contradiction_r3.py` (★仍恰 2 条 F2+F3 · rc=1★) · `HW/check_netlist_selfconsistency.py --expect-resolved` (★条数按落表器 stdout 的预期值, ★不许回退到 18★) · `HW/check_land_row_anchors.py` (rc=0) · 四道尺子 + `state/merge.py` + `state/gate_check.py`** ★
+5. ★**落表后**: ★**广播一次新 md5 给 sw-lead / mech-lead (★四项齐全: 落表单号 + 文件名 + 新 md5 + 旧 md5★) ⇒ 链上是 H-1 重锚的第 7 跳** ★

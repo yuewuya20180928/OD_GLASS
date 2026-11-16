@@ -1,3 +1,9 @@
+> ★★【已作废 · 不要再派】★★ ★**2026-11-17 05:2x main 标注**★
+> 本单 (ISS-253 H-1 重锚 第 4 跳 R-05) ★**已于 2026-11-16 20:0x 落表交付**★, 之后又被 ★**ISS-259 (第 6 跳 R-06, by ISS-257)**★ 覆盖 ⇒ ★**现在盘上的锚点现值 = 网表 `e06c1dd633566aa44732762c2ff99d1c` / 脚表 `287e7861a0d1007748d92d9fbecdd490`**★
+> ⇒ ★**照本单字面落地 = 把网表谎报成 ISS-249 旧版本 = 打红 + 做假绿** ★ ⇒ ★**本单已作废, 不要再派 mech-lead 重锚** ★
+> ★**另**: 本单写的「文件 = `MECH/check_demo_struct_truth.py`」★**不成立** ★ ⇒ ★**锚点在 `MECH/HW_CROSS_REVIEW_TRIAGE.md` §1 `MECH_ANCHORS` 块**, 脚本只是**读**它 ⇒ ★**以后派 H-1 单请直接写锚点文件** ★
+> ★**替代任务书**: `state/dispatch_briefs/ISS-259_mech_h1_reanchor_jump6.md` (第 6 跳, 已 verified) · 机制收口单 = `state/dispatch_briefs/ISS-273_mech_h1_anchor_single_source.md` (★判决源改成台账最新记录, 合法落表不再红★)
+
 ★**ISS-253 · MECH 侧 H-1 重锚 (网表 md5 过期 ⇒ `check_demo_struct_truth.py` 红)** ★ (main · 2026-11-16 20:0x)
 
 ★★**为什么派这一件**: ★**ISS-249 合法落表 (F1) ⇒ 网表 md5 `611c3ba3…` → `16ac89f7…` ⇒ MECH 侧的锚点过期 ⇒ `MECH/check_demo_struct_truth.py` **rc=2 (21/23, FAIL G5b + C21)** ★

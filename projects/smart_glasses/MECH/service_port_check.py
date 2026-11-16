@@ -17,10 +17,17 @@ service_port_check.py —— ISS-092 镜脚末端检修口 规格书自证脚本
     此前本脚本的 V 链 PCB 段读数 (需求 21.00 / 余 +17.00) 是**给一块不存在的板打的分**。
     ★ 板宽走 V 不走 H ⇒ 本次只动 V 链 PCB 段 (【5】5.4), H/L 链不受板宽影响。
 
-用法: python3 MECH/service_port_check.py [--self-test]
-      --self-test = 反向用例: 强制 pcb_w 回 15.00 (旧板宽) ⇒ 读数必须回到迁移前基准 (54/54 项一致, FAIL 0)
-退出码: 0 = 54/54 项一致 (报告已生成); 非 0 = 有项不一致;
-        --self-test 下另: 0 = 反向用例与迁移前基准一致, 2 = 不一致
+用法: python3 MECH/service_port_check.py [--self-test|--selftest]
+      --self-test / --selftest = 反向用例 (★两个, 一条不许删★):
+        ① (★ISS-203 旧用例, 保留★) 强制 pcb_w 回 15.00 (旧板宽) ⇒ 读数必须回到迁移前基准
+           (★现基准 = N_ITEMS_BASE = 57 项 = 板宽迁移前 54 项 + ISS-264 新增 3 项口径/现值检查★)
+        ② (★ISS-264 新用例★) 强制 p2_y / s2_y 回【旧 15mm 板口径】(7.50 / 12.50)
+           ⇒ 【7.4b / 7.5b 两条口径钉死】必红并【点名 p2_y / s2_y】;
+           ⇒ 同时 7.4 / 7.5 两条【几何判据】必须仍然绿 (旧基准下 1.00 / 1.03mm ≥ 判据 0.60)
+              —— 这是【迁的是常量, 不是松判据】的机器证据
+        ③ 装回现行口径 ⇒ 必须又全绿
+退出码: 0 = 全部项一致 (报告已生成); 非 0 = 有项不一致;
+        --self-test 下另: 0 = 三个反向用例都与预期一致, 2 = 不一致
 """
 from __future__ import annotations
 
@@ -99,12 +106,19 @@ BASE = {
     "mass_total_lo": 48.90,   # MECH_BUDGET §3 315 档合计下限
     "mass_total_hi": 72.80,   # 315 档合计上限
     # 夹具基准 (PIN-SET-2, ISS-049/ISS-107)
-    # ★★ISS-206 (2026-11-12): ★**这套夹具基准已作废** (P2/S2 的 Y 仍是 15mm 板口径 7.50/12.50,
-    #   焊盘阵列起点 jd_y0=9.50 亦是旧口径) ⇒ 现行基准 = **P2(52.00,15.00) / S2(52.00,20.00)**
-    #   (MECH/BOARD_GEOM_30MM.md §3 套 A) ⇒ **本单只加注记, 不动数字**: 7.4/7.5 两式的符号/系数是按
-    #   旧基准写的, 只换数字会让公式反过来 ⇒ 造出【假红】; 真正的迁移 (公式 + 基准一起迁) 留到整链重出。
-    "p2_x": 52.00, "p2_y": 7.50, "p2_d": 2.00,     # ⌀2.0 H7 圆销定位孔 (★Y 已作废, 见上)
-    "s2_x": 52.00, "s2_y": 12.50, "s2_d": 1.40,    # ⌀1.4 M1.2 压紧孔 (★Y 已作废, 见上)
+    # ★★ISS-206 (2026-11-12) 注记 · ★★ISS-264 (2026-11-17) 实际迁移落地 ★★:
+    #   ISS-206 当时只加注记不动数字 (因为 7.4/7.5 两式的符号/系数是按旧基准写的, 只换数字会让公式反过来
+    #   ⇒ 造出【假红】) ⇒ ★**ISS-264 把【公式 + 基准】一起迁了**: 7.4/7.5 改成【两个 Y 区间的最近距离】通用式
+    #   (对旧基准 7.50/12.50 与新基准 15.00/20.00 都给出正确读数, 旧基准下复算仍得 1.00 / 1.03mm ⇒ 可回溯)。
+    #   ★**现行基准 = 30mm 板 PIN-SET-2 套 A** (MECH/BOARD_GEOM_30MM.md §3 [官方]):
+    #     P2 (52.00, 15.00) / S2 (52.00, 20.00) ⇒ 孔心 Y 与焊盘阵列 (Y 9.50..10.77) 不重叠, 最近距离 3.23 / 8.53mm。
+    #   ★**旧口径留档 (已作废, 不许回改)**: p2_y = **7.50** / s2_y = **12.50** = **15mm 板口径**
+    #     (板宽 15 已于 ISS-100/ISS-118/ISS-130 作废) —— 旧基准下 7.4/7.5 读数 = 1.00 / 1.03mm
+    #     (仍过判据 0.60 ⇒ 判据结论不变, 错的只是基准)。
+    #   ★**仍未迁 (别的单的地界, 等 main + hw-lead)**: 焊盘阵列起点 jd_y0 = 9.50 (旧 15mm 板口径)
+    #     ⇒ 开口 Y 跟着它算 ⇒ need `iss251_mech_service_port_pad_y_migrate` 仍挂 (只差 jd_y0 一项)。
+    "p2_x": 52.00, "p2_y": 15.00, "p2_d": 2.00,     # ⌀2.0 H7 圆销定位孔 (★现行 30mm 板套 A Y=15.00; 旧值 7.50 = 15mm 板口径, 已作废)
+    "s2_x": 52.00, "s2_y": 20.00, "s2_d": 1.40,    # ⌀1.4 M1.2 压紧孔 (★现行 30mm 板套 A Y=20.00; 旧值 12.50 = 15mm 板口径, 已作废)
     "soc_escape_x0": 20.20, "soc_escape_x1": 31.80,  # SoC 逃线带
     "s2_repeat": 0.046,   # ISS-049 定位链重复性
 }
@@ -112,12 +126,24 @@ BASE = {
 TOL = {"fdm_part": 0.30, "fdm_feat": 0.25}
 CRIT = 2 * TOL["fdm_part"]          # 0.60mm 判据
 
+# ★★ISS-264 (2026-11-17): 夹具基准口径真值 (MECH/BOARD_GEOM_30MM.md §3 PIN-SET-2 套 A [官方])
+#   —— **只用于【口径钉死检查】(7.4b/7.5b), 不参与任何几何计算** ⇒ 改这里 = 改口径 (要重走口径变更流程)
+PIN_SET_A = {"p2_x": 52.00, "p2_y": 15.00, "s2_x": 52.00, "s2_y": 20.00}
+# ★ 作废口径留档 (15mm 板): 只留名字, 不参与计算 —— 反向用例用它把门禁打红
+PIN_SET_LEGACY_15MM = {"p2_y": 7.50, "s2_y": 12.50}
+
+# ★★ISS-264: 迁移前的自证基线项数 (板宽迁移前 54 项 ⇒ 迁常量后加 3 项口径/现值检查 = 57 项)
+N_ITEMS_BASE = 57
+
 RESULTS = []
+# ★★ISS-264 (2026-11-17): --selftest 的第 ③ 段 (装回现行口径) 用它压掉逐项打印, 只留结论块
+VERBOSE = True
 
 
 def chk(name, ok, detail=""):
     RESULTS.append((name, bool(ok), detail))
-    print(f"  [{'OK ' if ok else 'FAIL'}] {name}" + (f"  — {detail}" if detail else ""))
+    if VERBOSE:
+        print(f"  [{'OK ' if ok else 'FAIL'}] {name}" + (f"  — {detail}" if detail else ""))
     return bool(ok)
 
 
@@ -125,14 +151,12 @@ def near(a, b, tol=1e-6):
     return abs(a - b) <= tol
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--self-test", action="store_true",
-                    help="反向用例: 强制 pcb_w 回 15.00 (旧板宽) ⇒ 读数必须回到迁移前基准 (54/54, FAIL 0)")
-    args = ap.parse_args()
-    if args.self_test:
-        BASE["pcb_w"] = 15.00
-        print(">>> --self-test: pcb_w 强制回 15.00 (旧板宽) ⇒ 下面的读数应是【迁移前】那一版\n")
+def run_report() -> tuple:
+    """跑一遍全量核算 (读全局 BASE) ⇒ 返回 (通过数, 总数, 失败名单, 全部明细行)。
+
+    ★★ISS-264 (2026-11-17): 拆成独立函数, 好让 --self-test 能用不同的 BASE 跑多遍 (反向用例)。
+    """
+    RESULTS.clear()
     print("=" * 100)
     print("SERVICE-PORT CHECK — ISS-092 镜脚末端检修口 (开孔 + 盖板) | mech-lead 2026-10-30")
     print("=" * 100)
@@ -302,12 +326,35 @@ def main() -> int:
     chk("7.3 净开口容得下 2×5 探针阵列 (7.08 × 3.27)",
         OPEN_X >= probe_need_x and OPEN_Y >= probe_need_y,
         f"需 {probe_need_x:.2f} × {probe_need_y:.2f} / 有 {OPEN_X:.2f} × {OPEN_Y:.2f}")
+    # ★★ISS-264 (2026-11-17): 7.4/7.5 的【公式 + 基准】同批迁移 ——
+    #   旧式 (jd_y0 - p2_y) 只在【孔在焊盘阵列下方】时成立; 套 A 基准下 P2 (Y 15.00) 在阵列 (Y 9.50..10.77)
+    #   **上方** ⇒ 旧式会算出负数 = 假红 (ISS-206 注记里点名的那个坑)。
+    #   ⇒ 改成【两个 Y 区间的最近距离】通用式 (重叠时为负) ⇒ 新基准 3.23 / 8.53mm; 旧基准回代仍得 1.00 / 1.03mm。
+    #   ★**判据阈值 CRIT = 0.60 一个数字没动** —— 本单是【迁常量/迁公式】, 不是【松判据】。
+    p2_wall_y0 = BASE["p2_y"] - BASE["p2_d"] / 2.0
+    p2_wall_y1 = BASE["p2_y"] + BASE["p2_d"] / 2.0
+    p2_gap = max(p2_wall_y0 - jd_y1, BASE["jd_y0"] - p2_wall_y1)
+    s2_wall_y0 = BASE["s2_y"] - BASE["s2_d"] / 2.0
+    s2_wall_y1 = BASE["s2_y"] + BASE["s2_d"] / 2.0
+    s2_gap = max(s2_wall_y0 - jd_y1, BASE["jd_y0"] - s2_wall_y1)
     chk("7.4 夹具基准复用 PIN-SET-2 P2 (⌀2.0 H7) —— 孔壁到焊盘阵列 ≥0.60",
-        (BASE["jd_y0"] - BASE["p2_y"]) - BASE["p2_d"] / 2 >= CRIT,
-        f"{BASE['jd_y0'] - BASE['p2_y'] - BASE['p2_d'] / 2:.2f}mm")
+        p2_gap >= CRIT,
+        f"P2 孔壁 Y {p2_wall_y0:.2f}..{p2_wall_y1:.2f} → 焊盘阵列 Y {BASE['jd_y0']:.2f}..{jd_y1:.2f} "
+        f"= {p2_gap:.2f}mm (≥{CRIT:.2f})")
     chk("7.5 夹具基准复用 S2 (⌀1.4) —— 孔壁到焊盘阵列 ≥0.60",
-        (BASE["s2_y"] - jd_y1) - BASE["s2_d"] / 2 >= CRIT,
-        f"{BASE['s2_y'] - jd_y1 - BASE['s2_d'] / 2:.2f}mm")
+        s2_gap >= CRIT,
+        f"S2 孔壁 Y {s2_wall_y0:.2f}..{s2_wall_y1:.2f} → 焊盘阵列 Y {BASE['jd_y0']:.2f}..{jd_y1:.2f} "
+        f"= {s2_gap:.2f}mm (≥{CRIT:.2f})")
+    # ★★ISS-264 新增: 【口径钉死】—— 夹具基准常量必须等于 30mm 板套 A 真值 (BOARD_GEOM_30MM.md §3)
+    #   ⇒ 反向用例把 p2_y / s2_y 改回旧 15mm 板口径 ⇒ 这两条必红并【点名是谁】
+    chk("7.4b ★口径钉死: p2_y = 15.00 (30mm 板 PIN-SET-2 套 A, MECH/BOARD_GEOM_30MM.md §3)",
+        near(BASE["p2_y"], PIN_SET_A["p2_y"]),
+        f"p2_y = {BASE['p2_y']:.2f} (真值 {PIN_SET_A['p2_y']:.2f}; ★旧值 7.50 = 15mm 板口径, 已作废, 不许回改)")
+    chk("7.5b ★口径钉死: s2_y = 20.00 (30mm 板 PIN-SET-2 套 A, MECH/BOARD_GEOM_30MM.md §3)",
+        near(BASE["s2_y"], PIN_SET_A["s2_y"]),
+        f"s2_y = {BASE['s2_y']:.2f} (真值 {PIN_SET_A['s2_y']:.2f}; ★旧值 12.50 = 15mm 板口径, 已作废, 不许回改)")
+    print(f"       ★ P-5 (夹具基准孔) 最近距离现值 (ISS-264 迁移后): P2 = {p2_gap:.2f}mm / S2 = {s2_gap:.2f}mm "
+          f"(判据 ≥{CRIT:.2f} ⇒ 均过) · ★旧 15mm 板基准 (p2_y 7.50 / s2_y 12.50) 下是 1.00 / 1.03mm —— 已作废")
     chk("7.6 焊盘共面 ≤0.05mm 可达 (ISS-049 定位链重复性 0.046 ≤ 0.05)",
         BASE["s2_repeat"] <= BASE["cortex_pad_coplan"],
         f"重复性 {BASE['s2_repeat']:.3f}mm ≤ {BASE['cortex_pad_coplan']:.2f}mm")
@@ -321,6 +368,14 @@ def main() -> int:
     open_x1 = content_x1 + cl_x
     open_l0 = open_x0 + BASE["l_offset"]
     open_l1 = open_x1 + BASE["l_offset"]
+    # ★★ISS-264 (2026-11-17): 开口 Y 现值 (随基准重算) —— 开口 Y 由【焊盘阵列 Y + 单边间隙】决定,
+    #   夹具基准 (p2_y/s2_y) 迁移**不影响**它; 它仍跟着 jd_y0 = 9.50 (旧 15mm 板口径, 未迁) 走。
+    open_y0 = body_y0 - cl_y
+    open_y1 = body_y1 + cl_y
+    chk("8.1b 开口 Y 区间 (板坐标) 现值 —— 须含住必须清空区",
+        open_y0 <= body_y0 and open_y1 >= body_y1,
+        f"开口 Y {open_y0:.3f}..{open_y1:.3f} (宽 {OPEN_Y:.2f}) = 必须清空区 Y {body_y0:.3f}..{body_y1:.3f} "
+        f"+ 单边间隙 {cl_y:.2f} · ★jd_y0={BASE['jd_y0']:.2f} 仍是旧 15mm 板基准 ⇒ 开口 Y 仍待 main + hw-lead 定版")
     chk("8.1 开口在 PCB 段内 (板坐标 X 49.21..59.41 ⇒ 镜脚 L 89.71..99.91)",
         near(open_x0, 49.21, 0.02) and near(open_x1, 59.41, 0.02)
         and near(open_l0, 89.71, 0.02) and near(open_l1, 99.91, 0.02),
@@ -370,11 +425,105 @@ def main() -> int:
     print("口径提醒: 全部为 **设计态几何 + 公差栈** ([推算]), **实物 [实测] = 0 条**。")
     print("          镜脚末端 V 净高 / 座体型号 / 磁铁拉脱力 / 麦克风磁场敏感度 = [0数据]。")
     print("=" * 100)
+    return ok, total_n, fails, list(RESULTS)
+
+
+# =====================================================================
+# ★★ISS-264 (2026-11-17) 反向用例 (--self-test / --selftest)
+# =====================================================================
+def selftest() -> int:
+    """三个反向用例 (★旧的一条不许删★)。
+
+    ① (★ISS-203 旧用例·保留★) pcb_w 强制回 15.00 (旧板宽) ⇒ 读数必须全绿 (FAIL 0)。
+    ② (★ISS-264 新用例★) p2_y / s2_y 强制回【旧 15mm 板口径】(7.50 / 12.50)
+       ⇒ 【7.4b / 7.5b 两条口径钉死】必红并【点名 p2_y / s2_y】;
+       ⇒ 同时 7.4 / 7.5 两条【几何判据】必须仍然绿 (旧基准 1.00 / 1.03mm ≥ 判据 0.60)
+          ⇒ 这是【本单迁的是常量, 不是松判据】的机器证据。
+    ③ 装回现行口径 (15.00 / 20.00) ⇒ 必须又全绿。
+    """
+    global VERBOSE
+    saved = dict(BASE)
+    errs = []
+
+    # ---------------- ① 旧用例 (ISS-203 板宽迁移 · 保留不许删) ----------------
+    BASE["pcb_w"] = 15.00
+    print(">>> [反向用例 ① · ISS-203 板宽迁移 · 旧用例保留] pcb_w 强制回 15.00 (旧板宽)\n")
+    ok_a, tot_a, fails_a, _rows_a = run_report()
+    if fails_a:
+        errs.append(f"① pcb_w=15.00 期望 FAIL 0, 实得 {fails_a}")
+    if tot_a != N_ITEMS_BASE:
+        errs.append(f"① 项数 {tot_a} ≠ 基准 N_ITEMS_BASE = {N_ITEMS_BASE}")
+    BASE.clear()
+    BASE.update(saved)
+
+    # ---------------- ② 新用例 (ISS-264 夹具基准迁移) ----------------
+    BASE["p2_y"] = PIN_SET_LEGACY_15MM["p2_y"]
+    BASE["s2_y"] = PIN_SET_LEGACY_15MM["s2_y"]
+    print(">>> [反向用例 ② · ISS-264 夹具基准迁移 · 本单新增] p2_y / s2_y 强制回旧 15mm 板口径 "
+          f"({PIN_SET_LEGACY_15MM['p2_y']:.2f} / {PIN_SET_LEGACY_15MM['s2_y']:.2f}) "
+          "⇒ 【7.4b / 7.5b 口径钉死】两条必红并点名 p2_y / s2_y\n")
+    ok_b, tot_b, fails_b, rows_b = run_report()
+
+    def _row(prefix):
+        for r in rows_b:
+            if r[0].startswith(prefix):
+                return r
+        return None
+
+    r74, r74b, r75, r75b = _row("7.4 "), _row("7.4b"), _row("7.5 "), _row("7.5b")
+    print(">>> [反向用例 ② · 决定性四行 (★点名是谁★)]")
+    for r in (r74, r74b, r75, r75b):
+        if r:
+            print(f"   [{'OK ' if r[1] else 'FAIL'}] {r[0]}  — {r[2]}")
+    print()
+    if r74b is None or r74b[1]:
+        errs.append("② 7.4b (p2_y 口径钉死) 没变红 ⇒ 反向用例没抓到")
+    else:
+        if "p2_y" not in r74b[2]:
+            errs.append("② 7.4b 变红了但没点名 p2_y ⇒ 明细里查不到是谁")
+    if r75b is None or r75b[1]:
+        errs.append("② 7.5b (s2_y 口径钉死) 没变红 ⇒ 反向用例没抓到")
+    else:
+        if "s2_y" not in r75b[2]:
+            errs.append("② 7.5b 变红了但没点名 s2_y ⇒ 明细里查不到是谁")
+    if r74 is None or not r74[1]:
+        errs.append("② 7.4 (几何判据) 不绿 ⇒ 判据被松了 (本单只许迁常量)")
+    if r75 is None or not r75[1]:
+        errs.append("② 7.5 (几何判据) 不绿 ⇒ 判据被松了 (本单只许迁常量)")
+    BASE.clear()
+    BASE.update(saved)
+
+    # ---------------- ③ 装回现行口径 ⇒ 必须又全绿 ----------------
+    VERBOSE = False
+    print(">>> [反向用例 ③] 装回现行口径 (p2_y 15.00 / s2_y 20.00) ⇒ 必须又全绿\n")
+    ok_c, tot_c, fails_c, _rows_c = run_report()
+    VERBOSE = True
+    if fails_c:
+        errs.append(f"③ 装回后期望 FAIL 0, 实得 {fails_c}")
+    if tot_c != N_ITEMS_BASE:
+        errs.append(f"③ 装回后项数 {tot_c} ≠ 基准 N_ITEMS_BASE = {N_ITEMS_BASE}")
+
+    print("=" * 100)
+    if errs:
+        print("[反向用例] ❌ 不一致 (⇒ rc=2):")
+        for e in errs:
+            print(f"   ❌ {e}")
+    else:
+        print("[反向用例] ✅ 一致 —— ① 旧板宽用例 FAIL 0 · "
+              "② 旧 15mm 板口径回改 ⇒ 7.4b / 7.5b 必红并点名 p2_y / s2_y, "
+              "几何 7.4 / 7.5 仍绿 (判据 0.60 未松) · ③ 装回又全绿")
+    print("=" * 100)
+    return 0 if not errs else 2
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--self-test", "--selftest", dest="self_test", action="store_true",
+                    help="反向用例: ① pcb_w 回 15.00 (旧板宽) ② p2_y/s2_y 回旧 15mm 板口径 (7.50/12.50) ⇒ 必红并点名")
+    args = ap.parse_args()
     if args.self_test:
-        ok_base = (not fails) and total_n == 54
-        print(f"[反向用例] pcb_w=15.00 读数: {ok}/{total_n} 项一致 | FAIL {len(fails)} 项 ⇒ "
-              f"与迁移前基准 (54/54 项一致 | FAIL 0) {'一致 ✅' if ok_base else '不一致 ❌'}")
-        return 0 if ok_base else 2
+        return selftest()
+    _ok, _total, fails, _rows = run_report()
     return 0 if not fails else 1
 
 

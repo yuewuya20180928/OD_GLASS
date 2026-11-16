@@ -35,5 +35,8 @@ print("当前仍待落 =",len(pend))
 print("已被并发落表落掉 =",[r for r in scope if r not in pend])
 PYEOF
 echo
-echo "### ⑧ 受保护文件 md5 (交卷前后逐字节未变)"
+echo "### ⑦b 落表后回归 (三方交叉核对)"
+python3 state/.cache_iss244/post_landing.py; echo "rc=$?"
+echo
+echo "### ⑧ 受保护文件 md5 (本单只读不改)"
 md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro HW/PART_SELECTION_MATRIX_2026-11-16.md HW/check_part_selection_matrix.py

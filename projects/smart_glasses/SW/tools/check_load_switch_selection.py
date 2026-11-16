@@ -46,6 +46,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 
@@ -75,6 +76,15 @@ N_CRITERIA = 8
 
 # ★ISS-234 (SW/SHUTDOWN_SEMANTICS_SPEC.md §3 Q2) 点名的候选 —— 不许把前人的候选悄悄删掉
 MUST_HAVE_CANDIDATE = "TPS22991RAA"
+
+# ★2026-11-17 sw-lead 第 2 轮新增 (C9 落表后回归):
+#   ISS-257 (hw-lead) 在 2026-11-16 22:25 把网表 L50 的 `[待选型]` 判据串落成了型号串
+#   ⇒ 第 1 轮的 C6 只校验【基准块里的快照】, 而网表被落表批次改了以后快照不会自己跟着变
+#   ⇒ C6 拿着一份已经过期的快照照样绿 ⇒「矩阵与网表各说各话」在落表之后就失效了 (实测到的洞)
+#   ⇒ C9 锚的是【内容】(value 栏字符串) 不是 md5 ⇒ 落表别的行不影响它;
+#     只有 U_PWR_SW 本体行的 value 栏再变一次, C9 才会红 ⇒ 红了 = "该重锚了", 不是 "网表动了"
+NETLIST_DRIFT_REQUIRED = ["landed_by", "landed_at", "reason",
+                          "pre_drift_snapshot", "post_drift_snapshot"]
 
 # ★"没查" 的占位词 —— 出现在格子里 = 没查
 EMPTY_TOKENS = re.compile(r"(TBD|待查|待定|待补|待填|待核|XXXX|\?\?\?)", re.IGNORECASE)
@@ -333,6 +343,70 @@ def run_checks(doc_text: str, net_text: str, criteria_text: str):
         if not re.search(r"^\|\s*%d\s*\|" % n, prose, re.MULTILINE):
             fail("C8", "正文判据表里没有 `| %d |` 这一行" % n)
 
+    # ── C9 落表后回归: 快照重锚 + RCB 口径不许各说各话 (2026-11-17 第 2 轮新增) ──
+    crit_norm9 = [(int(c.get("id")), norm(str(c.get("text") or ""))) for c in criteria
+                  if str(c.get("id", "")).isdigit()]
+    rows9, _hdr9 = find_netlist_rows(net_text, "U_PWR_SW")
+    live9 = str(rows9[0].get("value") or "") if rows9 else ""
+    if not live9:
+        fail("C9", "网表里找不到 U_PWR_SW 的器件本体行 (落表后回归没法做)")
+    snap9 = norm(str(data.get("netlist_value_snapshot") or ""))
+    if live9 and not snap9:
+        fail("C9", "基准块缺 `netlist_value_snapshot` (落表后必须重锚到现行网表 value 栏)")
+    elif live9 and snap9 != norm(live9):
+        fail("C9", "基准块 `netlist_value_snapshot` 与现行网表 U_PWR_SW 本体行的 value 栏对不上 ⇒ "
+                   "落表后没重锚 (或网表又变了) ⇒ 矩阵对网表的陈述已过期")
+
+    drift9 = data.get("netlist_drift") or {}
+    if not isinstance(drift9, dict) or not drift9:
+        fail("C9", "基准块缺 `netlist_drift` (网表 value 栏变过 ⇒ 漂移必须登记: 谁落的/什么时候/为什么)")
+    else:
+        for f in NETLIST_DRIFT_REQUIRED:
+            if not str(drift9.get(f) or "").strip():
+                fail("C9", "`netlist_drift` 缺字段 `%s` (落表漂移不许不登记)" % f)
+        pre9 = norm(str(drift9.get("pre_drift_snapshot") or ""))
+        post9 = norm(str(drift9.get("post_drift_snapshot") or ""))
+        if pre9 and pre9 != norm(str(data.get("netlist_value_pre_drift") or "")):
+            fail("C9", "`netlist_drift.pre_drift_snapshot` 与顶层 `netlist_value_pre_drift` 对不上")
+        if post9 and post9 != snap9:
+            fail("C9", "`netlist_drift.post_drift_snapshot` 与 `netlist_value_snapshot` 对不上")
+        if pre9 and post9 and pre9 != post9:
+            dropped9 = drift9.get("dropped_requirements") or []
+            if not (isinstance(dropped9, list) and dropped9
+                    and all(str(x).strip() for x in dropped9)):
+                fail("C9", "落表前后 value 串变了 ⇒ `netlist_drift.dropped_requirements` 必须非空 "
+                           "(落表悄悄丢了哪些判据必须写出来)")
+
+    # ── C9(e): 网表提到 RCB ⇒ 矩阵不许跟它各说各话 ──────────────────────────
+    if live9 and re.search(r"RCB|反向阻断", live9):
+        m_land = re.match(r"\s*([A-Za-z0-9][A-Za-z0-9\-/]*)", live9)
+        landed9 = m_land.group(1) if m_land else ""
+        if not landed9:
+            fail("C9", "从网表 value 栏解析不出落地型号 (格式变了?) ⇒ RCB 口径没法核")
+        elif landed9 not in ids:
+            fail("C9", "网表 value 栏的落地型号 `%s` 不在候选册里 (不许落表用一个没查过的型号)" % landed9)
+        else:
+            landed_c = next((c for c in candidates if str(c.get("id")) == landed9), None)
+            if landed_c is not None:
+                v9 = str((landed_c.get("rcb") or {}).get("verdict") or "").strip()
+                ln9 = norm(live9)
+                if "无RCB" in ln9 or "noRCB" in ln9.lower():
+                    want9 = "无"
+                elif ("带RCB" in ln9 or "有RCB" in ln9 or "trueRCB" in ln9.lower()
+                      or "fulltimeRCB" in ln9.lower()):
+                    want9 = "有"
+                else:
+                    want9 = None
+                if want9 and v9 != want9:
+                    fail("C9", "网表 value 栏说 `%s` RCB, 但矩阵里 %s 的 RCB 判定是 `%s` ⇒ 各说各话"
+                               % (want9, landed9, v9 or "(空)"))
+        if not any("反向阻断" in t for _i, t in crit_norm9):
+            fail("C9", "网表 value 栏提到了 RCB/反向阻断, 但矩阵八条判据里没有「反向阻断」这一条")
+
+    gaps9 = data.get("residual_gaps") or []
+    if not (isinstance(gaps9, list) and gaps9 and all(str(g).strip() for g in gaps9)):
+        fail("C9", "基准块顶层 `residual_gaps` 必须是非空字符串列表 (落表后的残留缺口必须登记)")
+
     return fails
 
 
@@ -467,6 +541,90 @@ def _mut_drift_criteria(text: str) -> str:
                   r'\g<1>R_on ≤ 30mΩ @3.7V\g<2>', text, count=1)
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# ★2026-11-17 sw-lead 第 2 轮新增的 4 条变异 (全部对着 C9 落表后回归打)
+# ★每条都必须自证「它真的改到了目标」: 改不动 → 返回原文 → 自检框架判失败 (ISS-227 同款教训)
+# ──────────────────────────────────────────────────────────────────────────────
+def _mut_stale_snapshot(text: str) -> str:
+    """把基准块 `netlist_value_snapshot` 改成陈旧值 (模拟「网表落了表, 快照没重锚」)。"""
+    m = re.search(r'("netlist_value_snapshot"\s*:\s*)"([^"]*)"', text)
+    if not m:
+        return text
+    return (text[:m.start()] + m.group(1) + '"' + m.group(2)
+            + " · [STALE-SNAPSHOT]" + '"' + text[m.end():])
+
+
+def _mut_rcb_polarity_flip(text: str) -> str:
+    """把落地型号 TPS22991RAA 的 RCB 判定从「无」翻成「有」 (模拟「网表说无, 矩阵说有」)。"""
+    m = re.search(r'\{\s*"id"\s*:\s*"TPS22991RAA"', text)
+    if not m:
+        return text
+    depth = 0
+    end = None
+    for i in range(m.start(), len(text)):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    if end is None:
+        return text
+    seg = text[m.start():end]
+    seg2 = re.sub(r'("verdict"\s*:\s*)"(有|无|查不到)"', r'\1"有"', seg, count=1)
+    if seg2 == seg:
+        return text
+    return text[:m.start()] + seg2 + text[end:]
+
+
+def _drop_top_key(text: str, key: str) -> str:
+    """删掉 JSON 里一个顶层键 (键名 + 值 + 尾逗号一起删) ⇒ JSON 仍合法 (不留悬空逗号)。"""
+    m = re.search(r'"%s"\s*:\s*' % re.escape(key), text)
+    if not m:
+        return text
+    vstart = m.end()
+    if vstart >= len(text) or text[vstart] != "{":
+        return text
+    depth = 0
+    vend = None
+    for i in range(vstart, len(text)):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                vend = i + 1
+                break
+    if vend is None:
+        return text
+    mt = re.compile(r"[ \t]*,[ \t]*\n").match(text, vend)
+    if not mt:
+        return text          # ★本键是最后一个 ⇒ 不动 (免得留悬空逗号)
+    return text[:m.start()].rstrip() + "\n" + text[mt.end():].lstrip()
+
+
+def _mut_drop_drift(text: str) -> str:
+    """删掉整个 `netlist_drift` 块 (模拟「落表漂移不登记来源」)。"""
+    return _drop_top_key(text, "netlist_drift")
+
+
+def _mut_clear_residual_gaps(text: str) -> str:
+    """把 `residual_gaps` 清空 (模拟「落表后的残留缺口不登记」)。"""
+    m = re.search(r'("residual_gaps"\s*:\s*)\[', text)
+    if not m:
+        return text
+    depth = 0
+    for i in range(m.end() - 1, len(text)):
+        if text[i] == "[":
+            depth += 1
+        elif text[i] == "]":
+            depth -= 1
+            if depth == 0:
+                return text[:m.end() - 1] + "[]" + text[i + 1:]
+    return text
+
+
 SELFTEST_CASES = [
     ("M1 删掉一条判据 (#5 反向阻断那条)", _mut_drop_criterion, "C2"),
     ("M2 证据等级写成非法词 [官方]", _mut_bad_evidence, "C3"),
@@ -476,7 +634,84 @@ SELFTEST_CASES = [
     ("M6 删掉 ISS-234 点名的 TPS22991RAA", _mut_drop_tps22991, "C6"),
     ("M7 某个格子的出处清空", _mut_clear_source, "C2"),
     ("M8 判据文本与 HW §2 真源漂移", _mut_drift_criteria, "C7"),
+    ("M9 基准块网表快照陈旧 (落表后没重锚)", _mut_stale_snapshot, "C9"),
+    ("M10 落地型号 RCB 判定翻成「有」 (网表说无, 矩阵说有)", _mut_rcb_polarity_flip, "C9"),
+    ("M11 删掉整个 netlist_drift 块 (漂移不登记)", _mut_drop_drift, "C9"),
+    ("M12 清空 residual_gaps (残留缺口不登记)", _mut_clear_residual_gaps, "C9"),
 ]
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ★C9 的【真改网表】反向自证 (--sandbox)
+# ★ISS-227 同款教训: --selftest 的 12 条变异全部改【文档副本】⇒ 只能证明
+#   「文档改了门禁会红」, 证明不了「网表真的变了门禁会红」—— 而 C9 的全部意义
+#   就在网表变的那一侧 ⇒ 必须单独把网表改了再跑一遍 (在 /tmp 临时树上, 真盘 0 字节写入)
+# ──────────────────────────────────────────────────────────────────────────────
+def _sb_m_value_changed(net_text: str) -> str:
+    """① 落表批次又改了 U_PWR_SW 的 value 栏 ⇒ 基准块快照过期。"""
+    return re.sub(r'("TPS22991RAA \(负载开关[^"]*")',
+                  r'"TPS22916BYFPR (负载开关 · DSBGA-4 YFP · 带 RCB)', net_text, count=1)
+
+
+def _sb_m_rcb_flip(net_text: str) -> str:
+    """② 网表口径从「无 RCB」翻成「带 RCB」⇒ 与矩阵判定各说各话。"""
+    return re.sub(r'("TPS22991RAA \(负载开关[^"]*?)无 RCB',
+                  r'\1带 RCB', net_text, count=1)
+
+
+def _sb_m_unknown_part(net_text: str) -> str:
+    """③ 网表落了一个没查过的型号 ⇒ 不在候选册里。"""
+    return re.sub(r'("TPS22991RAA \(负载开关[^"]*")',
+                  r'"XYZ9999ZZZ (某未查证型号)', net_text, count=1)
+
+
+def _sb_m_other_row(net_text: str) -> str:
+    """④ 落表批次改了网表【别的行】⇒ C9 不许误伤 (不挂 md5, 锚内容)。"""
+    return net_text.replace("RAIL_SYS", "RAIL_SYS_A", 1) if "RAIL_SYS_A" not in net_text else net_text
+
+
+SANDBOX_CASES = [
+    ("① 网表 U_PWR_SW value 栏又变了 (落表批次再落一次)", _sb_m_value_changed, 1, ["C9"]),
+    ("② 网表说「带 RCB」但矩阵判「无」", _sb_m_rcb_flip, 1, ["C9"]),
+    ("③ 网表落了一个不在候选册里的型号", _sb_m_unknown_part, 1, ["C9"]),
+    ("④ 网表改了别的行 (落别的批次)", _sb_m_other_row, 0, []),
+]
+
+
+def run_sandbox(proj_root: str):
+    """在 /tmp 临时树上真的改网表 ⇒ 跑真脚本 ⇒ 证明 C9 抓的是网表那一侧。
+
+    返回 (passed, total, [(name, ok, detail), ...])。
+    """
+    results = []
+    for label, mut, want_rc, want_ids in SANDBOX_CASES:
+        tmp_root = tempfile.mkdtemp(prefix="iss172_c9_sandbox_")
+        try:
+            os.makedirs(os.path.join(tmp_root, "SW"), exist_ok=True)
+            os.makedirs(os.path.join(tmp_root, "HW"), exist_ok=True)
+            shutil.copy(os.path.join(proj_root, DOC_REL), os.path.join(tmp_root, DOC_REL))
+            shutil.copy(os.path.join(proj_root, CRITERIA_REL), os.path.join(tmp_root, CRITERIA_REL))
+            net_text = read_text(os.path.join(proj_root, NETLIST_REL))
+            net2 = mut(net_text)
+            if net2 == net_text:
+                results.append((label, False, "★变异函数没改到网表 (自证失败: 没改到目标)"))
+                continue
+            with open(os.path.join(tmp_root, NETLIST_REL), "w", encoding="utf-8") as fh:
+                fh.write(net2)
+            proc = subprocess.run(
+                [sys.executable, os.path.join(proj_root, "SW", "tools", "check_load_switch_selection.py"),
+                 "--root", tmp_root], capture_output=True, text=True)
+            out = proc.stdout + proc.stderr
+            got = sorted(set(re.findall(r"^\s+(C\d+):", out, re.MULTILINE)))
+            ok = (proc.returncode == want_rc) and all(c in got for c in want_ids)
+            detail = "rc=%d (期望 %d) · 红=%s" % (proc.returncode, want_rc, got or "[]")
+            if not ok:
+                detail += " ★期望 %s" % (want_ids or "绿")
+            results.append((label, ok, detail))
+        finally:
+            shutil.rmtree(tmp_root, ignore_errors=True)
+    passed = sum(1 for _n, ok, _d in results if ok)
+    return passed, len(results), results
 
 
 def run_selftest(proj_root: str, doc_text: str, net_text: str, criteria_text: str):
@@ -533,6 +768,8 @@ def run_selftest(proj_root: str, doc_text: str, net_text: str, criteria_text: st
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="ISS-172 负载开关选型证据矩阵门禁")
     ap.add_argument("--selftest", action="store_true", help="跑反向自检 (≥5 条)")
+    ap.add_argument("--sandbox", action="store_true",
+                    help="★C9 落表后回归的【真改网表】反向自证 (在 /tmp 临时树上, 真盘 0 写入)")
     ap.add_argument("--json", action="store_true", help="机读输出")
     ap.add_argument("--root", default=PROJ, help="项目根目录")
     args = ap.parse_args(argv)
@@ -550,6 +787,17 @@ def main(argv=None) -> int:
     doc_text = read_text(doc_path)
     net_text = read_text(net_path)
     crit_text = read_text(crit_path)
+
+    if args.sandbox:
+        passed, total, results = run_sandbox(PROJ)
+        for name, ok, detail in results:
+            print("%s %s — %s" % ("[PASS]" if ok else "[FAIL]", name, detail))
+        print("sandbox: %d/%d" % (passed, total))
+        if args.json:
+            print(json.dumps({"sandbox_passed": passed, "sandbox_total": total,
+                              "cases": [{"name": n, "ok": o, "detail": d} for n, o, d in results]},
+                             ensure_ascii=False, indent=2))
+        return 0 if (total >= 4 and passed == total) else 1
 
     if args.selftest:
         passed, total, results = run_selftest(root, doc_text, net_text, crit_text)
