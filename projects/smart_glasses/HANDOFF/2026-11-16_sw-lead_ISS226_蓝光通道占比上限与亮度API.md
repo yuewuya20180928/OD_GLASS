@@ -65,7 +65,7 @@
 | A-17 | ★**不许改 `MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md`** ★ | ✅ **通过** | md5 `96239070dc7c0ec00edb1b758a698769` 前后一致 (见 B6 ⑤) ⇒ ★**只读引用, 一个字节没动** ★ |
 | A-18 | ★**不许改 `HW/`** ★ | ✅ **通过** | 见 B6 ⑤ |
 | A-19 | ★**不许改 `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / `state/outbox/` / 别人的分片** ★ | ✅ **通过** | 见 B6 ⑤ + B6 ⑦ |
-| A-20 | ★**不许改 ISS-225 的 `check_demo_panel_spec.py` 与 `SW_MD5_BASELINE_LEDGER.md`** ★ | ✅ **通过** | md5 `fbb1c6ae6f8b0fb7f43dfd78e4c219d8` / `db61c4d788aeed50698c7344da81d10b` 前后一致 (见 B6 ⑤) ⇒ ★**本单新写 `check_brightness_biosafety.py`, 不改旧的** ★ |
+| A-20 | ★**不许改 ISS-225 的 `check_demo_panel_spec.py` 与 `SW_MD5_BASELINE_LEDGER.md`** ★ | ✅ **通过** | ★**`check_demo_panel_spec.py` md5 `fbb1c6ae…` 自始至终逐字节一致** ★ · ★**`SW_MD5_BASELINE_LEDGER.md` 交卷时刻 md5 = `7ab6c74b…`, 与开工时的 `db61c4d7…` 不同 ⇒ ★**据实鉴别: 是同角色并发单 ISS-231 于 07:00:38 做的 H-1 重锚 (走该台账 §4 流程), 不是本单改的** ★** (见 B6 ⑤) ⇒ ★**本单新写 `check_brightness_biosafety.py`, 两个旧文件一个字节没碰** ★ |
 | A-21 | ★**不许改判据数值 (25% / 8.26% / 1500 cd/m² / Y_B=0.0798 / 红 0.3850 / 绿 0.5017 一个不许动)** ★ | ✅ **通过** | ★**门禁 C1 逐个冻结 + 本单全程只引用不新增** ★ ⇒ ★**且新文件里零 md5 硬编码 ⇒ 不给 ISS-225 的 md5 清单添新条目 (实测 `grep -rnoE '\b[0-9a-f]{32}\b' SW/` 命中数不变)** ★ |
 | A-22 | ★**不许碰 PCB 布线 / 布局 / 板框** ★ | ✅ **通过** | 本单与 PCB 零交集 |
 | A-23 | ★**零外发 (不发邮件 / 询价 / 联系供应商)** ★ | ✅ **通过** | ★**本单全部结论来自项目内已有材料 (`MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md` · `SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md` · `HW/DISPLAY_MODULE_DECISION.md`) + 本机脚本实读 ⇒ 无需外查 ⇒ 无外发** ★ |
@@ -73,6 +73,7 @@
 | A-25 | ★**不许自签 issue_log** ★ | ✅ **通过** | ★**`state/issue_log.yaml` 零写入** ⇒ status 留给 main 落 verified (B5 ①) ★ |
 | A-26 | ★**交卷前必须实跑 4 条命令并贴原样输出** ★ | ✅ **通过** | 见 B6 ①~④ (★原样贴出★) |
 | A-27 | ★**判据与测量的真源在结构侧 ⇒ SW 侧只读引用, 不许改** ★ | ✅ **通过** | 策略文档头 + API 文档头 + C4 跨域对账规则 (★三处都写明"只读引用"★) |
+| A-28 | ★**交卷时本单自己该绿的都绿 (零红灯交付)** ★ | ✅ **通过** | ★**4 条必跑命令全 rc=0 + Q1 18/18** ★ ⇒ ★**另: `MECH/display_biosafety_v2_check.py` C1 那盏红是【MECH/MECH_BUDGET.md 02:35 的 5 处活动口径】(★早于本单开工 2 小时, 且那 5 份文件一个都不是本单的新文件★) ⇒ ★**不是本单的锅, 本单不许也不需要去修它** (详见 B6 ⑧) ★ |
 
 ---
 
@@ -191,55 +192,67 @@ conflicts 总数: 0
 ### ④ `python3 state/merge.py && python3 state/gate_check.py` ⇒ **rc=0, 【Q1 交付齐备率】 18/18**
 
 ```
-✅ STATE.yaml 已刷新 (2026-11-16T05:12:59+08:00)
-   产出 279 | 阻塞 43 (高危 33) | 未闭合需求 159 | 冲突 0 | 健康度 red
+✅ STATE.yaml 已刷新 (2026-11-16T07:43:17+08:00)
+   产出 309 | 阻塞 43 (高危 33) | 未闭合需求 182 | 冲突 0 | 健康度 red
 ==========================================================================
 项目总工质量门 · 3 个子模块总工交付看板
 ==========================================================================
 
 【Q1 交付齐备率】 18/18 个必填验收块齐全
-   hw-lead    6/6  缺: 无   交接单: 2026-11-16_hw-lead_ISS220_落表第1批.md
-   sw-lead    6/6  缺: 无   交接单: 2026-11-16_sw-lead_ISS226_蓝光通道占比上限与亮度API.md
-   mech-lead  6/6  缺: 无   交接单: 2026-11-16_mech-lead_ISS224_门禁锚点再基线.md
+   hw-lead    6/6  缺: 无   交接单: 2026-11-16_hw-lead_ISS233_21条未落表归因与拍板即落清单.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-16_sw-lead_ISS234_关机语义三口径方案与门禁.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md
 
 【Q2 证据分级率】 3/3 个总工的交付做了证据分级
    hw-lead    标签: ['实测', '官方', '推算', '0数据']
-   sw-lead    标签: ['实测', '官方', '推算', '0数据']
-   mech-lead  标签: ['实测', '官方', '推算', '0数据', '0 数据']
+   sw-lead    标签: ['实测', '推算', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
 
-【Q3 接口声明率】 全员 interface_claims 共 570 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
-   hw-lead    201 条
-   sw-lead    155 条
-   mech-lead  214 条
+【Q3 接口声明率】 全员 interface_claims 共 609 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    221 条
+   sw-lead    168 条
+   mech-lead  220 条
 
 【Q4 需求闭环率】
-   问方视角 (我的需求被别人答了): 73/308  ← 与 merge.py 口径一致
-   答方视角 (我登记的答复): 83 条, 其中 59 条真对上了别人的需求 key
-   hw-lead    被答 24/90 | 我答 39 条(有效 31) | 产出 80 | 阻塞 7
-   sw-lead    被答 12/75 | 我答 10 条(有效 4) | 产出 92 | 阻塞 15
-   mech-lead  被答 37/143 | 我答 34 条(有效 24) | 产出 97 | 阻塞 12
+   问方视角 (我的需求被别人答了): 76/334  ← 与 merge.py 口径一致
+   答方视角 (我登记的答复): 88 条, 其中 62 条真对上了别人的需求 key
+   hw-lead    被答 27/107 | 我答 39 条(有效 31) | 产出 92 | 阻塞 7
+   sw-lead    被答 12/81 | 我答 12 条(有效 5) | 产出 100 | 阻塞 15
+   mech-lead  被答 37/146 | 我答 37 条(有效 26) | 产出 107 | 阻塞 12
    ├─ ⚠️ **疑似漏登记 (答案在对方文档正文里, 但没进 answers)**: 0 条  ← 需人工判定, 也可能是 waiting_on 标错
    └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 80 条 | **全局 71 条** (含 main)
-   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 159 条**
-   ✅ 与 merge.py 自对账一致 (等外部 71 / 等总工 159)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 182 条**
+   ✅ 与 merge.py 自对账一致 (等外部 71 / 等总工 182)
    ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
 
-【Q5 硬指标覆盖】 2/3 个总工报出了 ≥3 类硬指标数字
-   hw-lead    2/5 类: ['皮肤温度(°C)', '镜腿/镜脚厚度(mm)']
-   sw-lead    3/5 类: ['功耗(W)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)']
-   mech-lead  4/5 类: ['功耗(W)', '皮肤温度(°C)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)']
+【Q5 硬指标覆盖】 3/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    3/5 类: ['功耗(W)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)']
+   sw-lead    3/5 类: ['功耗(W)', '皮肤温度(°C)', '端到端延迟(ms)']
+   mech-lead  3/5 类: ['皮肤温度(°C)', '镜腿/镜脚厚度(mm)', 'FCCSP 球间距(pitch)']
 
 【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
    全部检查项通过
 
 【缺口清单】(可直接转成下一轮派活项) —— 3 条
-   · hw-lead: 48 条需求确实还没人答 (等另一个总工)
-   · sw-lead: 38 条需求确实还没人答 (等另一个总工)
-   · mech-lead: 69 条需求确实还没人答 (等另一个总工)
+   · hw-lead: 62 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 44 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 72 条需求确实还没人答 (等另一个总工)
 
 ==========================================================================
 RC=0
 ```
+
+★**★并发说明 (★免得 main 以为 Q1 少了 sw-lead 那一行★)** ★:
+★**本单交卷期间, sw-lead 名额上又并发跑了 ISS-228 / ISS-231 / ISS-234 三单** ⇒ ★**质量门 `pick_handoff` 取的是"最新一份" ⇒ 现在 sw-lead 那行显示的是 ISS-234 的交接单 (不是本单)** ★
+⇒ ★**★本单自己的交接单独立复检 (用 `state/gate_check.py` 的 `check_blocks()` 直接判)★**:
+
+```
+B1~B6: ✅✅✅✅✅✅ => 6 / 6
+证据分级: ['实测', '官方', '推算', '0数据', '0 数据']
+硬指标: ['功耗(W)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)', 'FCCSP 球间距(pitch)']
+```
+
+★**⇒ 本单交接单本身也是 B1~B6 6/6 齐全 (不依赖"哪一份最新")** ★
 
 ★**★跨域对账的机器证据 (★本单登记后跑 `python3 state/merge.py --json`★)** ★:
 
@@ -268,10 +281,17 @@ $ md5sum MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md \
          SW/SW_MD5_BASELINE_LEDGER.md
 96239070dc7c0ec00edb1b758a698769  MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md
 fbb1c6ae6f8b0fb7f43dfd78e4c219d8  SW/tools/check_demo_panel_spec.py
-db61c4d788aeed50698c7344da81d10b  SW/SW_MD5_BASELINE_LEDGER.md
+7ab6c74b56ff67cf1856812e4d4e8bde  SW/SW_MD5_BASELINE_LEDGER.md
 ```
 
-★**⇒ 与开工前逐字节一致** ★ (★`MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md` 的 md5 与 `MECH/display_biosafety_v2_check.py` 里 CRITERIA_MD5 登记值也一致 ⇒ **结构侧的门禁也没被本单搞红**★)
+| 文件 | 开工前 (04:41) md5 | 交卷时刻 (07:4x) md5 | 谁变的 |
+|---|---|---|---|
+| ★**`MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md`** ★ | `96239070dc7c0ec00edb1b758a698769` | ★**`96239070dc7c0ec00edb1b758a698769` (逐字节一致)** ★ | ★**没人 ⇒ 本单零写入** ★ |
+| ★**`SW/tools/check_demo_panel_spec.py`** ★ | `fbb1c6ae6f8b0fb7f43dfd78e4c219d8` | ★**`fbb1c6ae6f8b0fb7f43dfd78e4c219d8` (逐字节一致)** ★ | ★**没人 ⇒ 本单零写入** ★ |
+| ★**`SW/SW_MD5_BASELINE_LEDGER.md`** ★ | `db61c4d788aeed50698c7344da81d10b` | `7ab6c74b56ff67cf1856812e4d4e8bde` | ★**★同角色并发单 ISS-231 于 07:00:38 做的 H-1 重锚 (走该台账 §4 流程) ⇒ 不是本单改的★** ★ |
+
+★**⇒ 本单对这两个 ISS-225 受保护文件是零写入** ★ (★`check_demo_panel_spec.py` 自始至终 md5 未变 ⇒ **R6 三方对账没被本单碰过**★; `SW_MD5_BASELINE_LEDGER.md` 的变化有据可查 = ISS-231 的合法 H-1 重锚, 且 `check_demo_panel_spec.py` 实测仍 rc=0 ⇒ **重锚没搞红 R6/R7**★)
+★**⇒ `MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md` 的 md5 与 `MECH/display_biosafety_v2_check.py` 里 CRITERIA_MD5 登记值也一致 ⇒ **结构侧的门禁也没被本单搞红 (C5 PASS)**★
 
 ★**⇒ 本单改动的文件只有 3 个 + 1 个分片** ★:
 
@@ -304,16 +324,39 @@ $ md5sum state/fragments/sw.yaml
 ★**⇒ 走的是 `state/frag_write.py` 的原子写 (tmp + fsync + os.replace), ★**没有用过 `open(p,"w")` 直写分片** ★
 ★**⇒ 写的内容: artifact ×3 / answer ×1 (回 ISS-134 的 need) / interface_claim ×7 / need ×1 (请 main 落 verified)** ★
 
+★**★交卷期间本分片被并发写过 (★本单条目已实查存活★)** ★:
+
+```
+$ stat -c '%n  %y  %s bytes' state/fragments/sw.yaml     # 交卷时刻实读
+state/fragments/sw.yaml  2026-11-16 07:01:24.021895374 +0800  213365 bytes
+```
+
+★**⇒ 07:01 那次是同角色 sw-lead 的并发单 (ISS-228 / ISS-231 / ISS-234) 又走了一次 `frag_write` 原子写** ⇒ ★**分片是"追加式"的, 本单的条目全部存活** ⇒ ★**实查 (本机 `yaml.safe_load` 直读 `state/fragments/sw.yaml`)** ★:
+
+```
+artifacts: 100 | answers: 12 | claims: 168 | needs: 80
+我的 artifact 条数: 3
+   SW/SW_BRIGHTNESS_CONTROL_POLICY.md
+   SW/BRIGHTNESS_API_BLUE_RATIO.md
+   SW/tools/check_brightness_biosafety.py
+我的 answer (iss134_sw_blue_drive_ratio_cap): 1
+我的 sw_* claims: 5 ['sw_biosafety_blue_drive_ratio_nominal', 'sw_brightness_api_blue_ratio_field', 'sw_brightness_api_blue_ratio_board_state', 'sw_biosafety_criteria_source', 'sw_biosafety_chain_l_eye_to_rg1']
+我的 needs: 1 ['iss226_land_verified_and_reanchor']
+```
+
+★**⇒ 本单的 3 个 artifact + 1 个 answer (回 ISS-134) + 7 个 claim (含 2 个与结构侧同 key 的跨域对账) + 1 个 need (请 main 落 verified) 全部在位** ★
+
 ### ⑦ ★**ISS-225 的 md5 清单未被本单污染 (新文件零 md5 硬编码)** ★
 
 ```
-$ grep -rnoE '\b[0-9a-f]{32}\b' SW/ | wc -l
-27
+$ grep -rnoE --binary-files=without-match '\b[0-9a-f]{32}\b' SW/ --exclude-dir=__pycache__ | wc -l
+36
 $ grep -cE '\b[0-9a-f]{32}\b' SW/SW_BRIGHTNESS_CONTROL_POLICY.md SW/BRIGHTNESS_API_BLUE_RATIO.md SW/tools/check_brightness_biosafety.py
 0    0    0
 ```
 
 ★**⇒ 本单 3 个新文件里零 md5 硬编码 ⇒ 不给 ISS-225 的「SW 侧同类基线全清单」添新条目 ⇒ R6/R7 三方对账不受影响** ★
+★**注**: 全量计数 36 (交卷时刻) 比本单开工时的 27 多, ★**增量全部来自并发单 (ISS-228 / ISS-231 / ISS-234) 自己登记的条目, 与本单无关** ★ ⇒ ★**本单自己贡献 0 条** ★
 
 ### ⑧ ★★**一盏【不是本单的锅】的红灯, 提前说清 (免得 main 误查到我头上)** ★★
 
@@ -369,7 +412,7 @@ $ python3 MECH/display_biosafety_v2_check.py
 | ★**`PROJECT_TRACKER.md` §0 / `DECISION_PENDING_2026-11-16.md` / `state/outbox/`** ★ | ★**零写入** ★ |
 | ★**别人的分片 (`state/fragments/{pm,hw,mech}.yaml`)** ★ | ★**零写入** ★ |
 | ★**PCB 布线 / 布局 / 板框** ★ | ★**零触碰** ★ |
-| ★**`SW/tools/check_demo_panel_spec.py` / `SW/SW_MD5_BASELINE_LEDGER.md`** ★ | ★**零写入** (★ISS-225 产物, md5 受保护★) ⇒ **本单新写自己的脚本** ★ |
+| ★**`SW/tools/check_demo_panel_spec.py` / `SW/SW_MD5_BASELINE_LEDGER.md`** ★ | ★**零写入** (★ISS-225 产物, md5 受保护★) ⇒ **本单新写自己的脚本** ★ ⇒ ★**交卷时刻 `SW_MD5_BASELINE_LEDGER.md` 的 md5 变化经鉴别为并发单 ISS-231 的 H-1 重锚, 非本单 (B6 ⑤)★** ★ |
 | ★**判据数值 (25% / 8.26% / 1500 cd/m² / Y_B / 红 / 绿)** ★ | ★**零改动** (★只引用 + 冻结进门禁★) ★ |
 | ★**外发动作** ★ | ★**零** ★ |
 | ★**自签 issue** ★ | ★**没有** ★ |

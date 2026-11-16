@@ -22,7 +22,12 @@ OUT = os.path.join(PROJ, "PROGRESS_SNAPSHOT.md")
 
 def sh(cmd, cwd=PROJ):
     try:
-        return subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True, timeout=120).stdout.strip()
+        # ★**errors="replace" 是必须的 (★2026-11-16 09:4x main 实测发现的真缺陷★)**:
+        # ★**下游命令按【字节】截断 (例: `head -c 600`) ⇒ 会把一个多字节 UTF-8 汉字劈成半个**
+        # ★**⇒ text=True 用严格 utf-8 解码 ⇒ 直接抛 UnicodeDecodeError ⇒ §5 整段变成一行报错字符串**
+        # ★**⇒ 快照的「阶段门原始输出」这一节就永久废掉了 (★断电续传凭据里少一块真信息★)**
+        return subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True,
+                             errors="replace", timeout=120).stdout.strip()
     except Exception as e:
         return f"<{e}>"
 

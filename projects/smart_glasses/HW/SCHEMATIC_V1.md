@@ -215,7 +215,7 @@
 | VBUS_DET | J_SOM_P1 pin100 | VBUS_DET_D | J_SOM_P1 | 1M+1M 分压 + 100nF | NET | 必装 | MAIN_PCB | [官方] |  | [VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链) |
 | CARRIER_BOARD_EN | J_SOM_P3 pin87 | U_EN_SW pin2 | J_SOM_P3 | EN 输出 | NET | 必装 | MAIN_PCB | [官方] |  | [CARRIER_BOARD_EN] ★★F13 致命项: SoM 的 P3_87 (输出, 3.3V, 1K 上拉) ⇒ **底板上电许可**; Forlinx 原文: 底板早于 |
 | CARRIER_BOARD_EN | U_EN_SW pin2 | CARRIER_BOARD_EN | U_EN_SW | EN 输入 (高=放行底板) | NET | 必装 | MAIN_PCB | [官方] |  | [U_EN_SW] EN ← CARRIER_BOARD_EN ⇒ 主板各路只在 SoM 就绪后上电 |
-| RAIL_DEMO_5V | U_EN_SW pin1 | RAIL_DEMO_5V | U_EN_SW | 5V 输入 | NET | 必装 | MAIN_PCB | [官方] |  | [U_EN_SW] IN = 5V (Type-C 直供) |
+| RAIL_DEMO_5V | U_EN_SW pin1 | RAIL_DEMO_5V | U_EN_SW | TPS22991RAA (负载开关: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85 x 0.75 mm) | IC | 必装 | MAIN_PCB | [官方] |  | [U_EN_SW] ★★器件本体行 (type=IC · 挂在 pin1/VIN 上 · 同族正确写法 = U_PWR_SW 本体行挂 pin3/VOUT)★★ ★pin1 脚级功 |
 | RAIL_BOARD_5V | U_EN_SW pin3 | RAIL_BOARD_5V | U_EN_SW | 5V 输出 (受 CARRIER_BOARD_EN 门控) | NET | 必装 | MAIN_PCB | [官方] |  | [RAIL_BOARD_5V] ★**底板所有 3.3V/5V 支路都挂这条** (不是 SYS) ⇒ 这就是 F13 的落法 |
 | GND | U_EN_SW pin4 | GND | U_EN_SW | GND | NET | 必装 | MAIN_PCB | [官方] |  | [U_EN_SW] 地 |
 | RAIL_DEMO_5V | J_SOM_P3 pin91 | RAIL_DEMO_5V | J_SOM_P3 | 5-13V 输入 (SoM 侧) | NET | 必装 | MAIN_PCB | [官方] |  | [VCC_DCIN] ★SoM 自己的电源输入 (P3_91; 手册 §2.4.2 DC 5~13V; 7 脚并联载流) ⇒ **直供 5V (与 USB-C 5V 同网), 不经 |
@@ -430,8 +430,8 @@
 ### 器件表 (9 行 netlist 记录)
 | net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| USB_D_P_SRC | J_SOM_P1 pin92 | R_SER_USB_D_P | NET_USB_D_P_SRC | 90Ω ±10% (与 MIPI 不同模板!) | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 90Ω ±10% (与 MIPI 不同模板!); 连接 Type-C → 主 PCB (跨铰链则经 CONN_US |
-| USB_D_N_SRC | J_SOM_P1 pin94 | R_SER_USB_D_N | NET_USB_D_N_SRC | 90Ω ±10% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 90Ω ±10%; 连接 同上; 测试点 TP_USB_D- |
+| USB_D_P_SRC | J_SOM_P1 pin92 | R_SER_USB_D_P | NET_USB_D_P_SRC | 22Ω ±1% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 22Ω ±1%; 差分阻抗 90Ω ±15% 受控阻抗; 连接 Type-C → 主 PCB (跨铰链则经 CON |
+| USB_D_N_SRC | J_SOM_P1 pin94 | R_SER_USB_D_N | NET_USB_D_N_SRC | 22Ω ±1% | NET | 必装 | MAIN_PCB | [待原厂] | TBD-10 | 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 22Ω ±1%; 差分阻抗 90Ω ±15% 受控阻抗; 连接 同上; 测试点 TP_USB_D- |
 | USB_CC1 | J_TYPE_C A5 | R_CC1 | NET_USB_CC1 | Rd 5.1k 到 GND ×2 (PD sink 时由 TPS25730 接管) | NET | 必装 | CHG_BOARD | [推算] | TBD-10 | 方向 Type-C→PD控制器; 电平 —; 阻抗 Rd 5.1k 到 GND ×2 (PD sink 时由 TPS25730 接管); 连接 Type-C; 测试点 — |
 | USB_CC2 | J_TYPE_C B5 | R_CC2 | R_CC2 | 5.1k ±1% | R | 必装 | CHG_BOARD | [推算] |  | [USB_CC2] Type-C Rd (非 PD 时下拉; 接 PD 控制器时由控制器接管) |
 | GND | R_CC1 | GND | R_CC1 | 5.1k ±1% | R | 必装 | CHG_BOARD | [推算] |  | Type-C Rd 下拉端 |

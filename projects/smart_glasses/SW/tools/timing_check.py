@@ -819,6 +819,30 @@ def set_dnp_at_lines_copy(nl: Netlist, dest: str, line_nos, dnp: str = "DNP") ->
     return dest
 
 
+def drop_device_rows_copy(nl: Netlist, dest: str, ref: str) -> str:
+    """★把某个位号的**器件本体行** (type=IC/SW) 从网表副本里删掉 (★引脚行 type=NET 留着★)。
+
+    ★用途 (ISS-235): 模拟「BOM/装配单里那颗开关**只有引脚行、没有器件行**」⇒ BOM 会漏掉它。
+      ★与 `drop_refs_copy` 的区别: 后者把该位号的**全部行**删掉 (模拟「这颗器件不在网表里」),
+        本函数只删器件本体行 (模拟「器件在网表里、但 BOM 里没有它」) ⇒ ★两者是不同的缺陷, 必须分别有反向用例 ★。
+    """
+    out_lines = []
+    for idx, ln in enumerate(nl.lines):
+        if idx == 0 or not ln.strip():
+            out_lines.append(ln)
+            continue
+        body = ln.rstrip("\r")
+        fields, _q = _split_csv_line(body)
+        fref = fields[4] if len(fields) > 4 else ""
+        ftype = (fields[6] if len(fields) > 6 else "").strip().upper()
+        if fref == ref and ftype in ("IC", "SW"):
+            continue
+        out_lines.append(ln)
+    with open(dest, "w", encoding="utf-8-sig", newline="") as fh:
+        fh.write("\n".join(out_lines))
+    return dest
+
+
 def drop_refs_copy(nl: Netlist, dest: str, refs) -> str:
     """把某个位号的**全部行**从网表副本里删掉 (用来模拟"该器件不在网表了")。"""
     refs = set(refs)
@@ -1328,6 +1352,27 @@ def _mk_reverse(name, edits=None, drop=(), fn=None):
     return (name, runner)
 
 
+def _mk_reverse_device_row(name, ref, fn):
+    """★反向用例 (ISS-235): 在**网表副本**上只删掉某位号的**器件本体行** (引脚行留着)
+    ⇒ 对应判据必须变红。
+
+    ★模拟的缺陷 = 「该位号在网表里 (引脚行还在), 但**没有器件行** ⇒ BOM/装配单会漏掉它」。
+    ★与 `_mk_reverse(drop=...)` 的区别: 后者把整颗器件删掉 ⇒ 这是另一种缺陷 (器件不在网表里)。
+    """
+    def runner(o, nl=None):
+        if nl is None:
+            return False
+        tmp = tempfile.mkdtemp(prefix="timing_rev_devrow_")
+        try:
+            path = drop_device_rows_copy(nl, os.path.join(tmp, "mutated.csv"), ref)
+            mut = Netlist(path)
+            mo = compute(mut)
+            return bool(fn(o, mo))
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+    return (name, runner)
+
+
 def _mk_reverse_dnp(name, targets, fn):
     """★反向用例 (行级): 把副本里某些行的 `dnp` 列改成 DNP ⇒ 对应判据必须变红。
 
@@ -1379,6 +1424,35 @@ def _rev_pg_and_any_row(o, nl=None):
         return True
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+# ----------------------------------------------------------------------------
+# ★★【ISS-235】F8 两条目标判据 —— ★写成**具名函数**, 正向用例与反向用例**共用同一个函数** ★
+#   ⇒ ★这样反向自证才敢叫「真的改到了目标」: 同一个判据函数, 在基线上 True、在突变体上 False ★
+#   ⇒ ★**不许**把判据写成两套 (正向一套 / 反向另一套) ⇒ 那样「红」可能只是别的条红 (ISS-227 教训) ★
+# ----------------------------------------------------------------------------
+def _f8_all_load_switches_have_device_row(o: dict) -> bool:
+    """F8 目标判据①: **每一颗**负载开关都必须有器件行 ⇒ BOM/装配单不许漏掉任何一颗。
+
+    ★语义: 网表里认出来的每颗负载开关 (U_PWR_SW / U_EN_SW, 以及任何值里写明
+      「负载开关/电源开关/load switch」而被兜底认出来的 IC) 都必须有**器件本体行**
+      (type=IC/SW) ⇒ 否则 BOM/装配单里那颗开关会凭空消失 (只留引脚行 ⇒ 装配时拿不到器件)。
+    ★**ISS-235**: ISS-233 落表 (2026-11-16 06:48:38) 给 U_EN_SW 补了器件本体行 (网表 L442)
+      ⇒ 原断言「U_EN_SW 必须**没有**器件行」恒红 ⇒ 方向翻成这条【正面事实】(★判据更强★)。
+    """
+    f8 = o["F8_power_off"]
+    return (f8["load_switch_without_device_row"] == []
+            and "U_PWR_SW" in f8["load_switch_refs"]
+            and "U_EN_SW" in f8["load_switch_refs"])
+
+
+def _f8_rail_switching_count_is(o: dict, n: int) -> bool:
+    """F8 目标判据②: 装机负载开关数 == n (★基线 = 2: U_PWR_SW + U_EN_SW 两颗都必装★)。
+
+    ★**ISS-235**: ISS-233 给 U_EN_SW 补了器件本体行 (dnp=必装) ⇒ 基线由 1 变 2
+      ⇒ 反向用例 REV-3 删掉 U_PWR_SW 后必须掉到 **1 (不是 0)**。
+    """
+    return o["F8_power_off"]["rail_switching_devices"] == n
 
 
 NEW_TESTS = [
@@ -1460,8 +1534,17 @@ NEW_TESTS = [
      lambda o: "U_PWR_SW" in o["F8_power_off"]["load_switch_refs"]
                and "U_EN_SW" in o["F8_power_off"]["load_switch_refs"]
                and o["F8_power_off"]["on_pin_pulldown_ohm"] == 10000),
-    ("F8 实读: U_EN_SW 在网表里**没有器件行** (只有引脚行 ⇒ BOM/装配单会漏掉这颗开关)",
-     lambda o: o["F8_power_off"]["load_switch_without_device_row"] == ["U_EN_SW"]),
+    # ★★【ISS-235 订正 (2026-11-16, sw-lead)】★★
+    #   ★**原断言 = 「U_EN_SW 在网表里**没有器件行**」** ⇒ 那是 **ISS-233 落表之前**的旧事实
+    #     (2026-11-16 06:48:38, hw-lead 落表第 3 批: 网表 **L442** 一行给 U_EN_SW 补了器件本体行,
+    #      type NET→IC ⇒ BOM L208 / 脚表 L531 同步) ⇒ **这条恒红** ★
+    #   ⇒ ★**判据方向翻过来**: 现在断言的是【正向事实】=「**每一颗**负载开关都必须有器件行」
+    #     ⇒ 语义 = 「BOM/装配单不许漏掉任何一颗负载开关」
+    #   ⇒ ★**判据强度不许比原来弱**: 原来判「U_EN_SW 必须**没有**器件行」(一个具体位号的负面事实),
+    #     现在判「**一颗都不许没有**器件行」(全集正面事实 + 两个位号都必须在场) ⇒ **更强** ★
+    #   ⇒ ★**判据绑在【网表实读值】上** (反向用例 REV-3c 证明: 删掉 U_EN_SW 的器件本体行 ⇒ 这条立刻变红) ★
+    ("★F8 实读: 负载开关 U_PWR_SW / U_EN_SW **都必须有器件行** (BOM/装配单不许漏掉任何一颗负载开关)",
+     lambda o: _f8_all_load_switches_have_device_row(o)),
     ("F4' 实读: ADC 装机链是 VBUS_DET_D; BAT_DET 三颗全 DNP",
      lambda o: o["F4_adc_det"]["active_chain"] == "VBUS_DET_D"
                and all(not c["populated"] for c in o["F4_adc_det"]["chains"] if c["tag"] == "BAT_DET")),
@@ -1480,12 +1563,33 @@ REV_TESTS = [
         "REV-2 反向: 把 I2C_A 上拉改成 4.7k ⇒ t_r@100pF 必须回到 398ns (旧文档那个数)",
         edits=[("R_PU_I2CA_SCL", "4.7k ±1%"), ("R_PU_I2CA_SDA", "4.7k ±1%")],
         fn=lambda o, mo: abs(mo["F3_i2c_rise"]["buses"]["I2C_A"]["tr_ns_at_100pF"] - 398.0) < 1.0),
+    # ★★【ISS-235 订正 (2026-11-16, sw-lead)】★★
+    #   ★**基线 1 → 2**: ISS-233 落表给 U_EN_SW 补了器件本体行 (type=IC · dnp=必装) ⇒
+    #     网表里现在 **两颗**负载开关都装机 ⇒ `rail_switching_devices` 基线 = **2** (不是 1) ★
+    #   ⇒ 删掉 U_PWR_SW 后开关数必须掉到 **1 (不是 0)** ⇒ ★**REV-3b (两个都删 ⇒ 0) 不受影响** ★
+    #   ⇒ ★**反向自证自带「我确实改到了目标」**: 第 1 条 (U_PWR_SW 不在 mutant 的 load_switch_refs 里)
+    #     证明突变真的落到了那颗开关上; 第 3/4 条证明【目标判据】在 mutant 上红、在基线上绿 ★
     _mk_reverse(
-        "REV-3 反向: 从网表里删掉 U_PWR_SW ⇒ 装机开关数必须从 1 掉到 0 (断电主开关没了)",
+        "REV-3 反向: 从网表里删掉 U_PWR_SW ⇒ 装机开关数必须从 2 掉到 1 (★不是 0★ · 断电主开关没了)",
         drop=("U_PWR_SW",),
         fn=lambda o, mo: "U_PWR_SW" not in mo["F8_power_off"]["load_switch_refs"]
-                          and mo["F8_power_off"]["rail_switching_devices"] == 0
-                          and o["F8_power_off"]["rail_switching_devices"] == 1),
+                          and mo["F8_power_off"]["rail_switching_devices"] == 1
+                          and not _f8_rail_switching_count_is(mo, 2)
+                          and _f8_rail_switching_count_is(o, 2)),
+    # ★★【ISS-235 新增】F8 那条翻正后的判据的专属反向用例 ★★
+    #   ★**突变 = 只删掉 U_EN_SW 的【器件本体行】(type=IC)**, 引脚行 (type=NET) 留着 ★★
+    #     ⇒ 模拟的正是「BOM/装配单里那颗开关只有引脚行、没有器件行 ⇒ BOM 会漏掉它」
+    #   ⇒ ★**自证「我确实改到了目标」**: mutant 里 `load_switch_without_device_row == ["U_EN_SW"]`
+    #     (⇒ 真的只剩引脚行) 且 U_EN_SW **仍在** load_switch_refs 里 (⇒ 位号还在网表上, 不是被整颗删了) ★
+    #   ⇒ ★**红的是【目标那条判据】**: `_f8_all_load_switches_have_device_row(mutant) == False`
+    #     而基线 `_f8_all_load_switches_have_device_row(base) == True` ⇒ **同一个函数** 判定 ⇒ 不是别的条红 ★
+    _mk_reverse_device_row(
+        "REV-3c 反向: 把 U_EN_SW 的**器件本体行**删掉 (只留引脚行) ⇒ F8『不许漏掉任何一颗负载开关』必须变红",
+        ref="U_EN_SW",
+        fn=lambda o, mo: (mo["F8_power_off"]["load_switch_without_device_row"] == ["U_EN_SW"]
+                          and "U_EN_SW" in mo["F8_power_off"]["load_switch_refs"]
+                          and not _f8_all_load_switches_have_device_row(mo)
+                          and _f8_all_load_switches_have_device_row(o))),
     _mk_reverse(
         "REV-3b 反向: 把 U_PWR_SW 与 U_EN_SW 都删掉 ⇒ F8『硬件断电通路存在』必须变红",
         drop=("U_PWR_SW", "U_EN_SW"),

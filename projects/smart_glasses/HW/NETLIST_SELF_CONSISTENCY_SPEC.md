@@ -4,6 +4,8 @@
 > ★**日期**: 2026-11-15 (★第 1 轮 · ISS-211★) · ★**2026-11-16 扩写 (★第 2 轮 · ISS-214★)** · ★**执行**: 硬件总工 (hw-lead) · ★**单号**: ISS-211 + ISS-214 · ★**owner**: hw-lead · ★**verify_by**: main
 > ★**门禁**: ★**`HW/check_netlist_selfconsistency.py`** (rc=0 / `--selftest` / `--expect-resolved`)
 > ★**受保护 md5 (★交卷前后逐字节不变★)**: 板 `611b869e13518c3c023fb178f91a0075` · 网表 `c78f991283cc82d56c8e3dd31657c785` · 脚表 `4814617e22b567d76164e56bc5e39dc8` · `.kicad_pro` `3e504d2be83152e337949723e909be1b`
+> ★**★★受保护 md5 · 现行值 (★2026-11-16 07:3x 二次独立复核 · 本机 md5sum 实测★)★★★**: 板 `611b869e13518c3c023fb178f91a0075` (★不变★) · 网表 `34132f7e40a241e1fae1476be0eafbd5` · 脚表 `b21b743a7702d30729f0d653c15392df` · `.kicad_pro` `3e504d2be83152e337949723e909be1b` (★不变★)
+> ★**★为什么网表/脚表的基线变了 (★不是本单改的, 是 main 授权的落表★)★★**: 上一行的 `c78f9912…` / `4814617e…` 是 ★**2026-11-16 01:04 (ISS-214 交卷) 时的值**★ ⇒ ★**2026-11-16 06:48 (ISS-233 第 3 批落表) 合法改了这两张表**★ (★网表 L442 + 脚表 L531 + BOM L208 三行补 `U_EN_SW` 器件本体行 ⇒ `--expect-resolved` 21 → 18★) ⇒ ★**⇒ 审计基线以本行的"现行值"为准; 板与 `.kicad_pro` 逐字节未变 (板只改一次那一趟还没走)★** ⇒ ★**★这一条是【基线台账跟着合法落表走】, 不是【有人偷改了受保护文件】★★**
 > ★**★★第 2 轮 (ISS-214) 的扩写说明 (★2026-11-16·hw-lead★)★★**
 > ★**本文件是【扩写】, 不是另起炉灶**: ★**第 1 轮的 §1 四条 (d1..d4, 64 条锚点) 一条不许删**; ★**第 2 轮的 7 组新锚点 (d5..d11, 90 条) 加在 §2 的同一张锚点表里** ⇒ ★**"规格页 ⇄ 脚本 ⇄ 现行文件"三方对齐仍然只有一套** ⇒ ★**第 2 轮的 8 条明细见 §10 (每条 8 栏齐), 附带发现见 §11, 未决项见 §13, 边界自查见 §14** ★
 
@@ -167,17 +169,19 @@
 | 行 | 原文 (逐字) |
 |---|---|
 | ★**L441** | `P1,CARRIER_BOARD_EN,U_EN_SW pin2,CARRIER_BOARD_EN,U_EN_SW,EN 输入 (高=放行底板),NET,必装,[官方],,"[U_EN_SW] EN ← CARRIER_BOARD_EN ⇒ 主板各路只在 SoM 就绪后上电",A-24,MAIN_PCB,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA` |
-| ★**L442** | `P1,RAIL_DEMO_5V,U_EN_SW pin1,RAIL_DEMO_5V,U_EN_SW,5V 输入,NET,必装,[官方],,"[U_EN_SW] IN = 5V (Type-C 直供)",A-24,MAIN_PCB,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA` |
+| ★**L442** ★ | ★**★2026-11-16 ISS-233 落表后 = 器件本体行★** | ★`P1,RAIL_DEMO_5V,U_EN_SW pin1,RAIL_DEMO_5V,U_EN_SW,"TPS22991RAA (负载开关: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85 x 0.75 mm)",IC,必装,[官方],,"[U_EN_SW] ★★器件本体行 (type=IC · 挂在 pin1/VIN 上 · 同族正确写法 = U_PWR_SW 本体行挂 pin3/VOUT)★★ ★pin1 脚级功能: IN = 5V 输入 (Type-C 直供 5V)★ | pin2 = EN 输入 (高=放行底板) | pin3 = 5V 输出 (受 CARRIER_BOARD_EN 门控) | pin4 = GND | ★★F13 落法: 底板所有 3.3V/5V 支路都挂 RAIL_BOARD_5V (不是 SYS) ⇒ 主板各路只在 SoM 就绪后上电 ⇒ 防底板早于核心板上电损坏处理器★★ | ★选型 = TPS22991RAA (项目总工 11-03 已裁, ISS-172 待老板点头; 同 UQFN-4 封装 ⇒ 若改 TPS22916/17 = 换料不换板)★",A-24,MAIN_PCB,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA` ★ |
 | ★**L443** | `P1,RAIL_BOARD_5V,U_EN_SW pin3,RAIL_BOARD_5V,U_EN_SW,5V 输出 (受 CARRIER_BOARD_EN 门控),NET,必装,[官方],,"[RAIL_BOARD_5V] ★**底板所有 3.3V/5V 支路都挂这条** (不是 SYS) ⇒ 这就是 F13 的落法",A-24,MAIN_PCB,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA` |
 | ★**L444** | `P1,GND,U_EN_SW pin4,GND,U_EN_SW,GND,NET,必装,[官方],,"[U_EN_SW] 地",A-24,MAIN_PCB,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA` |
 
-★**表B `HW/netlist_v1_pins.csv`**: ★**L531/L532/L533/L534** = `U_EN_SW.pin1..pin4`, ★**`type` 也全是 `NET`** ⇒ ★**两张表都缺本体行**。
+★**表B `HW/netlist_v1_pins.csv`**: ★**L531/L532/L533/L534** = `U_EN_SW.pin1..pin4` ⇒ ★**★2026-11-16 ISS-233 落表后: L531 (pin1) 的 `type` = `IC` + value = 器件身份描述 (★它跟着表A L442 的本体行走★); L532/L533/L534 仍是 `NET` 脚级功能串 (★这就是"本体行挂在其中一脚上, 其余脚是 NET 行"的正确写法★)** ⇒ ★**表A / 表B / BOM 三处都已有本体行 (★BOM L208 的 type = IC·value = 器件身份描述·procurement = 已定型-IC★)**。
 
 ★**★对照: 同一块板上同类器件 `U_PWR_SW` 有本体行★** ⇒ ★**表A L50**: `P1,SYS,U_PWR_SW pin3,RAIL_SYS,U_PWR_SW,"[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)",IC,必装,[推算],…` ⇒ ★**表B 里 `U_PWR_SW.pin3` 的 `type` 也是 `IC`, value 同样是器件身份描述 ⇒ 这就是"器件本体行"的正确写法 (★本体行挂在其中一脚上, 其余脚是 NET 行★)**。
 
-★**后果已经在 BOM 上显形** ⇒ ★**`HW/BOM_v1.csv` L208**: `U_EN_SW,1,EN 输入 (高=放行底板),NET,必装,镜脚主 PCB,P1,[官方],,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,待定,待定,待分类,` ⇒ ★**一颗 4 脚 IC 的 value 栏里躺着一句脚功能串, type 栏是 NET**。
+★**后果已经在 BOM 上显形** ⇒ ★**`HW/BOM_v1.csv` L208 (★落表前★)**: `U_EN_SW,1,EN 输入 (高=放行底板),NET,必装,镜脚主 PCB,P1,[官方],,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,待定,待定,待分类,` ⇒ ★**一颗 4 脚 IC 的 value 栏里躺着一句脚功能串, type 栏是 NET** ⇒ ★**★落表后 (★2026-11-16 ISS-233★)**: `U_EN_SW,1,"TPS22991RAA (负载开关: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85 x 0.75 mm)",IC,必装,镜脚主 PCB,P1,[官方],,"UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch",TPS22991RAA,待定,待定,已定型-IC,型号已定 (官网/官方数据手册), 封装与替代料待采购确认` ⇒ ★**★value = 器件身份描述 · type = IC · procurement 从「待分类」变「已定型-IC」⇒ 这颗负载开关不再是一颗【伪物料】, 备料台账能认出它是料★**。
 
 ★**★连板文件也被传染了 (★main 没提到这一层, 是本单新挖的★)★** ⇒ ★**板文件 `HW/PCB/demo_mainboard.kicad_pcb` 里 `U_EN_SW` 封装 (★4 焊盘★) 的 `Value` 属性 = "EN 输入 (高=放行底板)"** ⇒ ★**根因在 `state/gen_pcb_components.py:156`: `fp.SetValue(per_ref[ref][0][2][:40] …)` ⇒ 板封装 Value = 该 ref 在网表里**第一行**的 value ⇒ 网表缺本体行 ⇒ 第一行是 NET 行 ⇒ 脚功能串被写进板文件 ⇒ ⇒ ★**BOM 的"板文件 Value 兜底"也就跟着取了这句话**。
+
+★**★2026-11-16 ISS-233 落表后的【板侧残留项】 (★归「板只改一次」那一趟, 本单不许碰板★)★**: ★**板文件里 `U_EN_SW` 封装的 `Value` 属性仍是 "EN 输入 (高=放行底板)" (★受保护 md5 `611b869e…` 逐字节不变★) ⇒ ⇒ ★**R3 的第 4 条 (板侧) 仍然红, `--expect-resolved` 因此是 18 条而不是 15 条★** ⇒ ★**★且板那一趟不能指望生成器自动改: `gen_pcb_components.py` 对【已在板上的封装】走 `if ref in have: … continue` 分支 ⇒ 不会重写 Value ⇒ ★**必须手工把板封装 Value 改成器件身份描述 (★板侧同步清单 B-2★)★** ⇒ ★**同理, 原理图侧 `HW/PCB/demo_mainboard_p1.kicad_sch` 里 `U_EN_SW` 符号的 `Value` 属性已随本次落表变成器件身份描述 (★因为本体行挂在 pin1 = 脚表第一行★), 而 `MPN` 属性一直是 TPS22991RAA★**。
 
 #### ② 为什么它是缺陷 (★可判定依据★)
 
@@ -291,7 +295,7 @@
 |---|---|---|
 | ★(1) ★ | 表A L167/L168 的 value 仍含 "4.7k 到 3.3V" + L169/L170 是 2.2k/VDD_1V8_IO + L169 note 仍含 "已作废" + SPEC.json B-01/B-02 的 `level` 仍 = 3.3V | ★**成立 (缺陷在)** ★ |
 | ★(2) ★ | 表A L182/L183/L184/L185 与表B L100/L307/L309 的 `dnp` 仍 = DNP, 而 L181/L186/L210 是必装 | ★**成立 (缺陷在)** ★ |
-| ★(3) ★ | 表A/表B 里 `ref==U_EN_SW` 的行数 = 4 且 `type!=NET` 的行数 = **0**; BOM L208 的 type = NET; 板封装 `U_EN_SW` 的 Value = 脚功能串 | ★**成立 (缺陷在)** ★ |
+| ★(3) ★ | 表A/表B 里 `ref==U_EN_SW` 的行数 = 4 且 `type!=NET` 的行数 = **0**; BOM L208 的 type = NET; 板封装 `U_EN_SW` 的 Value = 脚功能串 | ★**★落表后 (★2026-11-16 ISS-233★): 网表侧已修 (表A/表B 各 1 条 `type==IC` 的本体行 + BOM L208 type=IC/value=器件身份描述) ⇒ ★**只剩板封装 Value 一条仍红 (★归「板只改一次」那一趟★)** ★** |
 | ★(4) ★ | 板封装 `D_ESD_USB_D` 焊盘数 = 2 + Value 自称双通道 + 挂 D− 两张网的 ESD 位号数 = 0 | ★**成立 (缺陷在)** ★ |
 
 ★**锚点表 (★机读; 门禁脚本会逐条比对这张表, 漂移即红★)★**
@@ -337,15 +341,15 @@
 | d2_b210_net | pins | 210 | net == BAT_DET |
 | d3_a441_type | netlist | 441 | type == NET |
 | d3_a441_value | netlist | 441 | value == EN 输入 (高=放行底板) |
-| d3_a442_type | netlist | 442 | type == NET |
+| d3_a442_type | netlist | 442 | type == IC |
 | d3_a443_type | netlist | 443 | type == NET |
 | d3_a444_type | netlist | 444 | type == NET |
 | d3_a_rows | netlist | ? | count(ref==U_EN_SW) == 4 |
-| d3_a_body | netlist | ? | count(ref==U_EN_SW&type!=NET) == 0 |
+| d3_a_body | netlist | ? | count(ref==U_EN_SW&type!=NET) == 1 |
 | d3_b_rows | pins | ? | count(ref==U_EN_SW) == 4 |
-| d3_b_body | pins | ? | count(ref==U_EN_SW&type!=NET) == 0 |
-| d3_bom208_type | bom | 208 | type == NET |
-| d3_bom208_value | bom | 208 | value == EN 输入 (高=放行底板) |
+| d3_b_body | pins | ? | count(ref==U_EN_SW&type!=NET) == 1 |
+| d3_bom208_type | bom | 208 | type == IC |
+| d3_bom208_value | bom | 208 | value == TPS22991RAA (负载开关: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85 x 0.75 mm) |
 | d3_board_value | board | ? | footprint.U_EN_SW.value == EN 输入 (高=放行底板) |
 | d3_board_pads | board | ? | footprint.U_EN_SW.pads == 4 |
 | d3_ctrl_a50_type | netlist | 50 | type == IC |
@@ -363,9 +367,9 @@
 | d4_esd_on_dminus | board | ? | esd_on_net(USB_D_N_SRC,NET_USB_D_N_TYPEC) == 0 |
 | d4_bom62_value | bom | 62 | value == ESD 阵列 [待选型] (USB 2.0 双通道) |
 | d4_bom62_fp | bom | 62 | footprint contains 2 焊盘 |
-| d5_a291_value | netlist | 291 | value == 90Ω ±10% (与 MIPI 不同模板!) |
+| d5_a291_value | netlist | 291 | value == 22Ω ±1% |
 | d5_a291_ref | netlist | 291 | ref == NET_USB_D_P_SRC |
-| d5_a292_value | netlist | 292 | value == 90Ω ±10% |
+| d5_a292_value | netlist | 292 | value == 22Ω ±1% |
 | d5_a292_ref | netlist | 292 | ref == NET_USB_D_N_SRC |
 | d5_a431_value | netlist | 431 | value == 22Ω ±1% |
 | d5_a431_ref | netlist | 431 | ref == R_SER_USB_D_P |
@@ -373,9 +377,9 @@
 | d5_a432_ref | netlist | 432 | ref == R_SER_USB_D_N |
 | d5_a291_rows | netlist | ? | count(ref==NET_USB_D_P_SRC) == 1 |
 | d5_a292_rows | netlist | ? | count(ref==NET_USB_D_N_SRC) == 1 |
-| d5_spec_b21_imp | spec | ? | spec.connections[id=B-21].imp == 90Ω ±10% (与 MIPI 不同模板!) |
+| d5_spec_b21_imp | spec | ? | spec.connections[id=B-21].imp == 22Ω ±1% |
 | d5_spec_b21_signal | spec | ? | spec.connections[id=B-21].signal == USB_D+ |
-| d5_spec_b22_imp | spec | ? | spec.connections[id=B-22].imp == 90Ω ±10% |
+| d5_spec_b22_imp | spec | ? | spec.connections[id=B-22].imp == 22Ω ±1% |
 | d5_spec_b22_signal | spec | ? | spec.connections[id=B-22].signal == USB_D- |
 | d5_emc_90_480 | emc | ? | text contains D+/D- 90 Ω 差分, 480 Mbps |
 | d5_emc_template | emc | ? | text contains 不是同一套阻抗模板 |
@@ -559,7 +563,7 @@ $ python3 HW/check_netlist_selfconsistency.py --emit-anchors # 重新生成上�
 
 ### ★5.3 ★★落表状态 (★ISS-220 第 1 批 · 2026-11-16 · 硬件总工执行★)★★
 
-★★**一句话**: ★**本页的 12 组 (d1..d11 + #1..#8) 里, d1 / d6 / d10 (方向修正部分) / d11 (+#5) / #7 (核验) / #8 / 补差A (字段基建) 已落表; 其余全部 BLOCKED (V-1~V-6 + 板只改一次那一趟)** ⇒ ★**逐条落表记录 = `HW/SCHEMATIC_LANDING_V1_LANDED.md` · 作业包 = `HW/SCHEMATIC_LANDING_WORKPACKET_V1.md` §8 · 交接单 = `HANDOFF/2026-11-16_hw-lead_ISS220_落表第1批.md`** ★
+★★**一句话**: ★**本页的 12 组 (d1..d11 + #1..#8) 里, d1 / d3 (★网表侧 3/4★) / d6 / d10 (方向修正部分) / d11 (+#5) / #7 (核验) / #8 / 补差A (字段基建) 已落表; 其余全部 BLOCKED (V-1~V-6 + 板只改一次那一趟)** ⇒ ★**逐条落表记录 = `HW/SCHEMATIC_LANDING_V1_LANDED.md` · 作业包 = `HW/SCHEMATIC_LANDING_WORKPACKET_V1.md` §8 · 交接单 = `HANDOFF/2026-11-16_hw-lead_ISS220_落表第1批.md`** ★
 
 | 项号 | 落表状态 | 卡在谁 |
 |---|---|---|
@@ -567,16 +571,68 @@ $ python3 HW/check_netlist_selfconsistency.py --emit-anchors # 重新生成上�
 | d6 | ★**已落表** (R6 转绿) ★ | 堆叠数值归 MECH + 项目总工 (V-5) ⇒ ★本页不自带第二个数★ |
 | d10 | ★**部分落表** (R10 4→1) ★ | ★**V-4** (R_ILIM 档位, 老板待拍) ★ |
 | d11 / #5 | ★**已落表** (R11 转绿) ★ | ★**板侧封装归属待『板只改一次』那一趟** ★ |
-| #1 / 补差A | ★**部分落表** (字段基建 + 数据) ★ | ★**V-1** (B-21/B-22 的 `imp` 迁移) ★ |
+| #1 / 补差A | ★**部分落表** (字段基建 + 数据) ★ | ★**V-1** (B-21/B-22 的 `imp` 迁移) ★★**(★★已被 §5.5 supersede: ★**已落表** (ISS-223 第 2 批 · 05:13) ⇒ V-1 已关闭★★)★★** |
 | #7 | ★**已核验** (一个字没改) ★ | — |
 | #8 | ★**已落表** (并入 d10) ★ | — |
 | d2 / d7 / d8 / #2 | ★**BLOCKED** ★ | ★**V-3** ★ |
-| d3 | ★**BLOCKED** ★ | ★**板只改一次** (与 d4 同批, d4 卡 V-2) ★ |
+| d3 | ★**★部分落表 (★2026-11-16 ISS-233★)★** ★**网表侧 3/4 已落 (表A/表B 本体行 + BOM type/value ⇒ `--expect-resolved` 21 → 18)★** | ★**★板侧 1 条 (板封装 `U_EN_SW` 的 `Value` 属性) 归「板只改一次」那一趟 (★`gen_pcb_components.py` 对已在板上的封装不重写 Value ⇒ 必须手工改 = 板侧同步清单 B-2★)★** |
 | d4 / d9 | ★**BLOCKED** ★ | ★**V-2** + 板侧换封装/挪位置 ★ |
-| d5 | ★**BLOCKED** ★ | ★**V-1** ★ |
+| d5 | ★**BLOCKED** ★ | ★**V-1** ★★**(★★已被 §5.5 supersede: ★**已落表** (ISS-223 第 2 批 · 05:13) ⇒ V-1 已关闭★★)★★** |
 | #4 / #6 / 补差C | ★**BLOCKED** ★ | ★**ISS-199/202** + 充电板整机阶段单 (V-7) ★ |
 
 ★**门禁实测**: ★**`--expect-resolved` 的「未落表条数」50 → 29** ★ · 现状守卫 `rc=0` (★锚点表已同步: 154 → **160** 条, 一条未减; 已落表条目的 ① 现状逐字已改成新现状★) · `--selftest` **19/19** (★用例 1/5/10/14/15 的突变方向按新现状翻转★) · `--expect-resolved` `rc=1` (★预期: 剩余条目仍 BLOCKED★) ★
+
+### ★5.4 ★★落表状态 (★ISS-233 第 3 批 · 2026-11-16 · 硬件总工执行 · ★d3 网表侧★)★★
+
+★★**一句话**: ★**d3 的 4 条未落表里, 【网表侧 3 条】已落 (★表A L442 + 表B L531 + BOM L208 三行, 逐字改一行不多★) ⇒ ★**`--expect-resolved` 21 → 18** ★; ★**【板侧 1 条】(板封装 `U_EN_SW` 的 `Value` 属性) 仍红 ⇒ 归「板只改一次」那一趟 (板侧同步清单 B-2)★** ⇒ ★**本次落表【没有碰任何 V 值】(V-2 / V-3 / V-4 老板都没拍) ⇒ 一条 V 值都没落★** ★
+
+| 落表项 | 逐字改了什么 | 门禁变化 |
+|---|---|---|
+| ★**表A L442** ★ | ★`type` `NET` → `IC`; `value` `5V 输入` → `TPS22991RAA (负载开关: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85 x 0.75 mm)`; `note` 换成【本体行 + 4 个脚的功能 + F13 理由 + ISS-172 指针】★ | ★**R3 判据 1/4 转绿** ★ |
+| ★**表B L531** ★ | ★跟着表A 走 (`type`=IC · value=器件身份描述) ★ | ★**R3 判据 2/4 转绿** ★ |
+| ★**BOM L208** ★ | ★`value` = 器件身份描述; `type` `NET` → `IC`; `procurement` `待分类` → `已定型-IC` ★ | ★**R3 判据 3/4 转绿** ★ |
+| ★**板封装 `U_EN_SW`.Value** ★ | ★**没动 (受保护 md5 `611b869e…` 逐字节不变)★** | ★**R3 判据 4/4 仍红 ⇒ 归板那一趟★** |
+
+★**门禁锚点同步 (★只改【现状断言值】, 判据本体与阈值一个字没动, 锚点条数 160 → 160 一条未减★)★**: `d3_a442_type` (`type == NET` → `== IC`) · `d3_a_body` (`count(...&type!=NET) == 0` → `== 1`) · `d3_b_body` (同型) · `d3_bom208_type` (`type == NET` → `== IC`) · `d3_bom208_value` (`value == EN 输入 (高=放行底板)` → `== <器件身份描述>`) · ★**`d3_board_value` 一个字没动 (★板没动★)** ★ · ★**`--selftest` 用例4 的突变方向按新现状翻转 (`BOM L208 type` `IC→NET` 退回旧缺陷) ⇒ 21/21 仍全过★** ★
+
+★**门禁实测 (★ISS-233 本单实跑★)★**: 现状守卫 `rc=0` (★锚点表已同步, 160 条一条未减★) · `--selftest` `rc=0` **21/21** · `--expect-resolved` `rc=1` **18 条未落表** (★落表前 21 条: R2×11 / R7 / R8 = 13 条 V-3 · R4×2 + R9×1 = 3 条 V-2+板 · R10×1 = 1 条 V-4 · R3×4 = 4 条 → 本单落掉 R3 的 3 条 ⇒ 剩 R3 板侧 1 条★) · 四道尺子全 `rc=0` (`check_netlist.py` / `check_netlist_pins.py` / `check_sch_erc.py` / `check_sch_pinfull.py`) · ★**反向自证两条都过 (★b1: 旧脚本+旧数据 ⇒ md5 逐字节回到基线 + `--expect-resolved` 回到 21 条; b2: 新脚本+旧数据 ⇒ 现状守卫红 5 条 + `--expect-resolved` 回到 21 条★) ⇒ 证明判据没被「调没」★**
+
+---
+
+### ★5.5 ★★落表状态 (★ISS-223 第 2 批 · 2026-11-16 05:13 · ★d5 / 补差A 值迁移 / ★V-1 已落定 = 22Ω★)★★
+
+★★**一句话**: ★**ISS-220 (第 1 批) 落了 d1 / d6 / d10 的方向部分 / d11 / #5 / #8 / 补差A 的【字段基建】, 但 d5 与 #1 的【值迁移】当时卡在 V-1 ⇒ ★**main 裁了 V-1 = 22Ω 之后, ISS-223 (第 2 批) 把这 4 个单元格落了 ⇒ R5 全组 8 条清零** ★★ ⇒ ★**⇒ §5.3 状态表里 "d5 = BLOCKED / V-1" 与 "#1 / 补差A = 部分落表 / V-1" 两行 (★那是 2026-11-16 02:39 的状态★) 已被本节 supersede: d5 与 #1 = 已落表** ★ (★证据: `HW/SCHEMATIC_LANDING_V1_LANDED.md` 第 309-311 行 "V-1 已由 main 裁 = 22Ω"★)
+
+| 落表项 | 逐字改了什么 | 门禁变化 |
+|---|---|---|
+| ★**`HW/SCHEMATIC_V1_SPEC.json` · connections[B-21] `imp`** ★ | ★`90Ω ±10% (与 MIPI 不同模板!)` → ★`22Ω ±1%` (★`z_diff` 另立 = `90Ω ±15% 受控阻抗`★) ★ | ★**R5 的 spec 侧条件转绿** ★ |
+| ★**connections[B-22] `imp`** ★ | ★`90Ω ±10%` → ★`22Ω ±1%` (★同上★) ★ | ★**同上** ★ |
+| ★**表A L291 (`USB_D_P_SRC` NET 行)** ★ | ★`value` `90Ω ±10% (与 MIPI 不同模板!)` → ★`22Ω ±1%`; note 里的 "阻抗 90Ω ±10%…" → ★"阻抗 22Ω ±1%; 差分阻抗 90Ω ±15% 受控阻抗" ★ | ★**R5 净表侧转绿** ★ |
+| ★**表A L292 (`USB_D_N_SRC` NET 行)** ★ | ★同上 ★ | ★**同上** ★ |
+
+★★**★注意 (★本单自己实跑出来的★)★★**: ★**板上的 `R_SER_USB_D_P` / `R_SER_USB_D_N` 本来就是 22Ω ±1% ⇒ 这一条是"网表追平板", 不是"板要改" ⇒ d5 不进板侧同步清单** ★ (★证据: `HW/SCHEMATIC_LANDING_V1_LANDED.md` §10.1 / B-7·★本单 07:3x 实跑: 网表 L431/L432 两行 value 仍 = `22Ω ±1%`★)
+
+★★**门禁实测 (★转录自 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §10.1 · ★ISS-223 第 2 批实跑★)★**: `--expect-resolved` 未落表条数 ★**25 → 21**★ · ★**R5 全组 8 条清零**★ · `--selftest` 用例 9 的突变方向同步翻转 (★"改坏 B-21.imp (90Ω→22Ω)" 改成 "退回 90Ω 的旧缺陷"★)
+
+### ★★5.5.2 · 8 条 × 当前落表状态 一览 (★2026-11-16 07:3x 本单二次独立复核 · 逐条本机实读★)★★
+
+| 任务书条 | ★定性时现状 (★历史, 已作废★)★ | ★★当前实测现状 (2026-11-16 07:3x)★★ | 落表状态 | 卡在谁 |
+|---|---|---|---|---|
+| (1) USB 串阻双值 | L291/L292 = `90Ω ±10%`; SPEC.json B-21/B-22 `imp` = 90Ω | ★**L291/L292 = `22Ω ±1%`; L431/L432 = `22Ω ±1%`; SPEC.json connections[40]/[41] `imp` = `22Ω ±1%`, `z_diff` = `90Ω ±15% 受控阻抗`** ★ | ★**已落表 (ISS-223 第 2 批 · 05:13) ★** | — |
+| (2) CONN_LIGHT 21p vs 22p | P9 页正文 `1×21p@0.5mm` | ★**P9 页 `state/gen_schematic_pages.py:147` = `1×22p@0.5mm` + "★pin21/pin22 是地脚, 不是『5V 预留』"; 网表 L237 = `★22p@0.5mm`; 同页 `CONN_USB` 已删 / `CONN_CAM` 31p@0.3mm 三处全对上** ★ | ★**已落表 (ISS-220 第 1 批) ★** | ★堆叠数值归 MECH (V-5)★ |
+| (3) SARADC 满量程 + 分压比 | 1:1 分压 @4.2V = 2.100V > 1.8V 域 | ★**官方口径已定 ([官网] RK3572 §3.10 Table 3-16 p.45-46); 分压比未落: 表A L182/L183 仍 `1M ±1%` 且 DNP** ★ | ★**口径已定 / 分压比未落** ★ | ★**V-3** ★ |
+| (4) BAT_DET 漏电预算 | note 自称 `~1.65µA @5V` | ★**note 仍写 `漏电流 ~1.65µA @5V` (与 1M+1M 对不上, 真值 2.50µA @5V)** ★ | ★**未落表** ★ | ★**V-3** ★ |
+| (5) USB D− ESD | D− 侧 0 颗 ESD; `D_ESD_USB_D` 自称双通道 | ★**仍只有表A L417/L418 两脚 (D+ + GND); D− 侧 (`USB_D_N_SRC` / `NET_USB_D_N_TYPEC`) 仍裸奔; 板上 `D_ESD_USB_D` → `J_USB_C` 距离 = 47.99mm** ★ | ★**未落表** ★ | ★**V-2** + 板那一趟★ |
+| (6) ISS-211 已定 4 条 | d1..d4 | ★**d1 已落; d3 网表侧 3/4 已落 (ISS-233 · 06:48), 板侧 1 条仍红; d2 = (3)(4) 未落; d4 = (5) 未落** ★ | ★**2 条已落 / 2 条未落** ★ | ★**V-2 / V-3** + 板那一趟★ |
+| (7) THM-RATIO 系数方向 | `CHARGE_BOARD_SPEC.md:182` = `0.822` | ★**L182 = `ICHG/IIN = η·Vbus/Vbat = 1.216 @3.70V / 1.071 @4.20V`; L184 的 390Ω 档标「待裁决 (V-4)」; 单 pin 0.608A > 0.5A 触点额定仍红** ★ | ★**方向已落 (ISS-220 第 1 批) / 档位未落** ★ | ★**V-4** ★ |
+| (8) NET-LED board 列 | 表A L12 `C_VBUS_GND` board = `MAIN_PCB` | ★**表A L10 + L12 两行 `C_VBUS_GND` 的 board 都是 `CHG_BOARD`; L508/L509 两行 `R_CHG_LED` 的 board 也都是 `CHG_BOARD`** ★ | ★**已落表 (ISS-220 第 1 批) ★** | — |
+
+★★**★⇒ 8 条里现在还红着的只有 4 条半 (★`--expect-resolved` 18 条, 本单 07:3x 实跑数★)★★**:
+· ★**(3)(4)** ★ = BAT_DET 分压比 + 漏电 note (★卡 V-3 ⇒ 13 条红: R2×11 + R7 + R8★)
+· ★**(5)** ★ = USB D− 无 ESD (★卡 V-2 + 板那一趟 ⇒ 3 条红: R4×2 + R9★)
+· ★**(7)** ★ = 390Ω 档位 (★卡 V-4 ⇒ 1 条红: R10★)
+· ★**d3 的板侧 1 条** ★ = 板封装 `U_EN_SW`.Value (★归「板只改一次」那一趟 ⇒ R3★)
+⇒ ★**★已落: (1)(2)(8) 三条 + (6) 里的 d1 与 d3 网表侧 + (7) 的方向部分 ⇒ ★**8 条里【只剩 4 条半】没落, 全部卡在 3 个 V 值 (V-2/V-3/V-4) + 板那一趟** ⇒ ★**⇒ 与 ISS-233 交卷单 §3 的【拍板即落清单】完全对齐: 老板只要拍 V-2/V-3/V-4, 剩下这 4 条半一次落干净** ★ ★
 
 ---
 
@@ -630,7 +686,7 @@ $ python3 HW/check_netlist_selfconsistency.py --emit-anchors # 重新生成上�
 
 ★**只新增**: ★`HW/NETLIST_SELF_CONSISTENCY_SPEC.md` (本文件) · `HW/check_netlist_selfconsistency.py` · `HANDOFF/2026-11-15_hw-lead_ISS211_网表自身一致性4处.md` · ★`state/fragments/hw.yaml` 一条登记 (★走 `state/frag_write.py` 原子写★)
 
-★**受保护 md5 (★交卷前后逐字节不变★)**: 板 `611b869e13518c3c023fb178f91a0075` · 网表 `c78f991283cc82d56c8e3dd31657c785` · 脚表 `4814617e22b567d76164e56bc5e39dc8` · `.kicad_pro` `3e504d2be83152e337949723e909be1b`
+★**受保护 md5 (★交卷前后逐字节不变★)**: 板 `611b869e13518c3c023fb178f91a0075` · 网表 `c78f991283cc82d56c8e3dd31657c785` · 脚表 `4814617e22b567d76164e56bc5e39dc8` · `.kicad_pro` `3e504d2be83152e337949723e909be1b` ★**(★这是 ISS-211 交卷时 2026-11-15 23:5x 的基线; 现已被 main 授权的 ISS-233 落表更新 ⇒ 现行值见文件头「受保护 md5 · 现行值」行★)**
 
 ---
 
@@ -638,6 +694,7 @@ $ python3 HW/check_netlist_selfconsistency.py --emit-anchors # 重新生成上�
 
 > ★**本节是 §1 第 1 轮 4 条的【扩写】, 不是另起炉灶**: ★**第 1 轮 (ISS-211) 的 d1..d4 锚点 (64 条) 一条不许删**, ★**本节 7 组新锚点 (d5..d11, 90 条) 加在同一个锚点表里** ⇒ ★**"规格页 ⇄ 脚本 ⇄ 现行文件"三方对齐仍然只有一套**.
 > ★**本节不写任何"已经改好", 只写"现状逐字 + 该改成什么 + 验收判据"** ⇒ ★**门禁仍然是【现状守卫】不是【合格证】**.
+> ★**★★★重要 (★2026-11-16 07:3x 二次独立复核 加的提示★)★★★**: 本节各条的 ① 现状 = 【**定性时的原文** (2026-11-16 00:4x~00:5x 实读)】 ⇒ ★**凡后来落过表的条目 (d5 / #1 / d6 / d11 / #8 / d10 的方向部分 / d3 的网表侧), 那些行的现值已经被后续落表改写 ⇒ 本节的 ① 现状【不可】再当"现在的文件长什么样"用** ★ ⇒ ★**逐条当前实测现状见 §5.5.2 的对账表; 落表状态见 §5.3 / §5.4 / §5.5 三段★★**
 
 ★**本节 8 条与任务书的对应 (★一条不重一条不漏★)**:
 
@@ -1324,7 +1381,7 @@ def board_for(r: dict) -> str:
 
 | # | 未决 | 需要谁回答 | 卡住什么 | 截止口径 |
 |---|---|---|---|---|
-| ★**V-1** ★ | ★**USB 串阻最终取 22Ω 外部串阻, 还是 0Ω (靠 SoM PHY 内部匹配)?** ★ | ★**老板 / SoM 手册** ★ | ★第 (1) 条的落表 (★改 `imp` 字段就行, 但取 22 还是 0 要拍★) ★ | 第 1 步那一趟之前 |
+| ★**V-1** ★ | ★**【★2026-11-16 05:13 已由 main 裁 = 22Ω ⇒ 本条已关闭★】USB 串阻最终取 22Ω 外部串阻, 还是 0Ω (靠 SoM PHY 内部匹配)?** ★ | ★**main (★已裁★) · 残余只剩 SoM 手册核对驱动阻抗一条 (★[0数据] · 降级已按 22Ω 落★)** ★ | ★第 (1) 条的落表 (★**已落: ISS-223 第 2 批 05:13 ⇒ R5 全组 8 条清零★**) ★ | ★**已关闭 (2026-11-16 05:13)** ★ |
 | ★**V-2** ★ | ★**ESD 方案二选一 (① 3 脚双通道阵列 / ② 2 只单通道) + 型号 (≤1pF/线 / Vclamp ≤8V / IEC level 4) + ★★D− 侧选型★★** ★ | ★**老板 (选型是老板级; 零外发 ⇒ 型号一律官网参数满足的替代件) ★** | ★**第 (5) 条的落表 (★它要改板 + 重跑布线★)** ★ | 第 1 步那一趟之前 |
 | ★**V-3** ★ | ★**BAT_DET 分压比: 方案 A (2.0M+1.2M) 还是降级档 D (2.0M+1.0M)?** ★ | ★**老板 (★本单已把候选/判据/推荐给全, A 三个指标同时最优★)** ★ | 第 (3)(4) 条的落表 | 第 1 步那一趟之前 |
 | ★**V-4** ★ | ★**R_ILIM 档位: 解① (475~510Ω, 充电慢 ~30%) 还是解② (390Ω + J_CHG 4 pin 并联, 要改 J_CHG pinmap)?** ★ | ★**老板 (★解③ 已判死; 解④ 不可行★)** ★ | ★**第 (7) 条的落表 (★`CHARGE_BOARD_SPEC.md` §2.4/§3.4 的推荐值栏写什么★)** ★ | ★**第 1 步那一趟之前 (★这条比别的都卡: 它决定 §2.4 表怎么写★)** ★ |
@@ -1343,4 +1400,4 @@ def board_for(r: dict) -> str:
 
 ★**只动**: ★`HW/NETLIST_SELF_CONSISTENCY_SPEC.md` (★扩写: §2 锚点表 64→**154 条** + 新增 §10~§14★) · ★`HW/check_netlist_selfconsistency.py` (★扩: 新增 5 个文件源 + 新判据类型 `text contains`/`calc(...)` + 新增 90 条锚点 + 新增 7 个反向用例 + R5~R11 翻面判据 + `_parse_res` 修 M/m 量级★) · ★`HANDOFF/2026-11-16_hw-lead_ISS214_网表一致性第2轮与3条待裁自查.md` (★新建★) · ★`state/fragments/hw.yaml` (★走 `state/frag_write.py` 原子写★)
 
-★**受保护 md5 (★交卷前后逐字节不变★)**: 板 `611b869e13518c3c023fb178f91a0075` · 网表 `c78f991283cc82d56c8e3dd31657c785` · 脚表 `4814617e22b567d76164e56bc5e39dc8` · `.kicad_pro` `3e504d2be83152e337949723e909be1b`
+★**受保护 md5 (★交卷前后逐字节不变★)**: 板 `611b869e13518c3c023fb178f91a0075` · 网表 `c78f991283cc82d56c8e3dd31657c785` · 脚表 `4814617e22b567d76164e56bc5e39dc8` · `.kicad_pro` `3e504d2be83152e337949723e909be1b` ★**(★这是 ISS-214 交卷时 2026-11-16 01:04 的基线; 现已被 main 授权的 ISS-233 落表 (2026-11-16 06:48) 更新 ⇒ 现行值见文件头「受保护 md5 · 现行值」行★)**

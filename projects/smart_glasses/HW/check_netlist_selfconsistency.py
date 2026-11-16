@@ -171,15 +171,15 @@ EXPECT: list[tuple[str, str, str, str]] = [
     # ── 第 (3) 条: U_EN_SW 没有器件本体行 ⇒ BOM 把它登记成 NET 行 ──
     ("d3_a441_type", "netlist", "441", "type == NET"),
     ("d3_a441_value", "netlist", "441", "value == EN 输入 (高=放行底板)"),
-    ("d3_a442_type", "netlist", "442", "type == NET"),
+    ("d3_a442_type", "netlist", "442", "type == IC"),
     ("d3_a443_type", "netlist", "443", "type == NET"),
     ("d3_a444_type", "netlist", "444", "type == NET"),
     ("d3_a_rows", "netlist", "?", "count(ref==U_EN_SW) == 4"),
-    ("d3_a_body", "netlist", "?", "count(ref==U_EN_SW&type!=NET) == 0"),
+    ("d3_a_body", "netlist", "?", "count(ref==U_EN_SW&type!=NET) == 1"),
     ("d3_b_rows", "pins", "?", "count(ref==U_EN_SW) == 4"),
-    ("d3_b_body", "pins", "?", "count(ref==U_EN_SW&type!=NET) == 0"),
-    ("d3_bom208_type", "bom", "208", "type == NET"),
-    ("d3_bom208_value", "bom", "208", "value == EN 输入 (高=放行底板)"),
+    ("d3_b_body", "pins", "?", "count(ref==U_EN_SW&type!=NET) == 1"),
+    ("d3_bom208_type", "bom", "208", "type == IC"),
+    ("d3_bom208_value", "bom", "208", "value == TPS22991RAA (负载开关: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85 x 0.75 mm)"),
     ("d3_board_value", "board", "?", "footprint.U_EN_SW.value == EN 输入 (高=放行底板)"),
     ("d3_board_pads", "board", "?", "footprint.U_EN_SW.pads == 4"),
     ("d3_ctrl_a50_type", "netlist", "50", "type == IC"),
@@ -1035,6 +1035,92 @@ def check_workpacket(root: str, verbose: bool = False) -> tuple[int, list[str]]:
     return (1 if errors else 0), errors + report
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# ★★F-3 遗留的【加强型断言】 (★ISS-230 · 2026-11-16 · hw-lead★)
+# ═══════════════════════════════════════════════════════════════════════════════
+# ★**判据**: A 组【已迁移过的那 20 条】在 `HW/SCHEMATIC_V1_SPEC.json` 里必须
+#   ★**`z_diff` 非空 且 `imp` 为空**★ (差分阻抗只许住在 `z_diff` 字段里)。
+# ★**为什么必须有这条断言 (★F-3 的原话★)**:
+#   补差A (2026-11-16 ISS-223) 把「差分阻抗」从 `imp` 搬进了 `z_diff`, 而
+#   `state/check_netlist.py` 判据 5 的比对源是【`imp` or `z_diff`】⇒
+#   ★**谁把差分阻抗塞回 `imp` 并把 `z_diff` 清空, 判据 5 照样全绿 (它先读到了 `imp`)
+#   ⇒ 字段分工被静默破坏 ⇒ 这条断言把【字段分工本身】锁死★**。
+# ★**为什么【只针对这 20 条】(★两个坑各会造一批假红★)**:
+#   ① A 组一共 **22** 条 (A-01~A-22); 另 2 条 (A-11 / A-12) 是★**单端**★连接
+#      (`imp` = "单端, 需包地" / "单端", `z_diff` 天然为空) ⇒ 它们本来就该 `imp` 非空、
+#      `z_diff` 为空 ⇒ 拖进来 = 造 **2** 条假红。
+#   ② ★**更不许把网表里 `conn_id=A-24` 的 15 条 NET 行拖进来★**: 那 15 条是
+#      `J_TYPE_C` 16p 母座的功能串 (GND / USB_CC1 / USB_CC2 / CARRIER_BOARD_EN /
+#      RAIL_DEMO_5V / RAIL_BOARD_5V 等) ⇒ ★**本来就没有阻抗值**★ ⇒ 拖进来 = 造 **15** 条真红。
+#   (★main 2026-11-16 05:5x 实测基线: `state/check_netlist.py` 判据 5 覆盖 **37** 条 A 组 NET 行,
+#     其中 want 非空、真正被比对的 **22** 条, 另 **15** 条因 `imp`/`z_diff` 双空而跳过 —— 那 15 条全是 A-24★)
+MIGRATED_A_IDS: tuple[str, ...] = (
+    "A-01", "A-02", "A-03", "A-04", "A-05", "A-06", "A-07", "A-08", "A-09", "A-10",
+    "A-13", "A-14", "A-15", "A-16", "A-17", "A-18", "A-19", "A-20", "A-21", "A-22",
+)
+# ★单端连接 (★不进断言范围, 但要防着它们被误改成差分★)
+SINGLE_ENDED_A_IDS: tuple[str, ...] = ("A-11", "A-12")
+
+
+def check_a_group_field_discipline(root: str) -> tuple[int, list[str]]:
+    """★F-3 加强型断言: A 组已迁移的 20 条必须 `z_diff` 非空 且 `imp` 为空。
+
+    ★**独立于 EXPECT 锚点表** (★所以不会动 `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` 的
+    锚点表 ⇒ 规格页 ⇄ 脚本的 160 条锚点一条没增没减★) —— 它是【纪律断言】, 不是【现状断言】。
+    ★只进 `check_guard()` (现状守卫) ⇒ **不进 `check_resolved()`** ⇒ ★**`--expect-resolved`
+    的「未落表条数」仍然是 21, 一条不多一条不少★**。
+    """
+    errors: list[str] = []
+    report: list[str] = []
+    spec = _read_json(_path(root, "spec"))
+    by_id = {c.get("id"): c for c in spec.get("connections", [])}
+
+    # ① 断言自身的集合自洽: 20 条必须真的都在 A 组里 (规格页漂移 ⇒ 断言先红)
+    a_all = sorted(i for i, c in by_id.items() if c.get("group") == "A")
+    not_in_a = [i for i in MIGRATED_A_IDS if by_id.get(i, {}).get("group") != "A"]
+    if not_in_a:
+        errors.append(
+            f"★A组字段分工: {not_in_a} 不在 A 组里 (或 SPEC.json 里没有) ⇒ 断言集合本身漂移了")
+    gone = [i for i in MIGRATED_A_IDS if i not in by_id]
+    if gone:
+        errors.append(f"★A组字段分工: SPEC.json 里缺 {gone} ⇒ 断言集合本身漂移了")
+
+    # ② 逐条: `z_diff` 非空 且 `imp` 为空
+    bad_zd: list[str] = []
+    bad_imp: list[str] = []
+    for cid in MIGRATED_A_IDS:
+        c = by_id.get(cid)
+        if not c:
+            continue
+        if not (c.get("z_diff") or "").strip():
+            bad_zd.append(cid)
+        if (c.get("imp") or "").strip():
+            bad_imp.append(cid)
+    if bad_zd:
+        errors.append(
+            f"★A组字段分工: {len(bad_zd)} 条已迁移连接的 `z_diff` 为空 {bad_zd} "
+            f"⇒ 差分阻抗被清空了 (★必须住在 `z_diff`, 不许回落进 `imp`★)")
+    if bad_imp:
+        errors.append(
+            f"★A组字段分工: {len(bad_imp)} 条已迁移连接的 `imp` 不为空 {bad_imp} "
+            f"⇒ 差分阻抗被塞回【串阻/阻抗】字段了 (★`imp` 已被 `z_diff` 取代★)")
+
+    # ③ 反向保护: 单端连接不许被误改成差分
+    bad_single = [cid for cid in SINGLE_ENDED_A_IDS
+                  if (by_id.get(cid, {}).get("z_diff") or "").strip()]
+    if bad_single:
+        errors.append(
+            f"★A组字段分工: {bad_single} 是单端连接, `z_diff` 必须为空 "
+            f"(★单端不许写差分阻抗★)")
+
+    ok = not (bad_zd or bad_imp or bad_single or not_in_a or gone)
+    report.append(
+        f"   [加强型断言·F-3] A 组 {len(a_all)} 条 / 已迁移 {len(MIGRATED_A_IDS)} 条: "
+        f"`z_diff` 非空 且 `imp` 为空 ⇒ {'✅ 全过' if ok else '★★红★★'} "
+        f"(★A-11/A-12 单端与 A-24 那 15 条【不在】断言范围内★)")
+    return (1 if errors else 0), errors + report
+
+
 def check_guard(root: str, verbose: bool) -> tuple[int, list[str]]:
     """现状守卫: 规格页 ⇄ 本脚本 ⇄ 现行文件 三方对齐。"""
     errors: list[str] = []
@@ -1112,6 +1198,12 @@ def check_guard(root: str, verbose: bool) -> tuple[int, list[str]]:
     wp_rc, wp_out = check_workpacket(root, verbose)
     errors.extend(x for x in wp_out if x.startswith("★"))
     report.extend(x for x in wp_out if not x.startswith("★"))
+
+    # ---- ⑤ ★★ISS-230 (F-3 遗留): A 组 20 条已迁移连接的【字段分工】加强型断言 ★★
+    #   ★★刻意【不进 `check_resolved()`】⇒ `--expect-resolved` 的「未落表条数」仍是 21 ★★
+    fd_rc, fd_out = check_a_group_field_discipline(root)
+    errors.extend(x for x in fd_out if x.startswith("★"))
+    report.extend(x for x in fd_out if not x.startswith("★"))
 
     return (1 if errors else 0), errors + report
 
@@ -1466,6 +1558,7 @@ def _csv_escape(v: str) -> str:
 def selftest(root: str) -> int:
     print("╔══ ISS-211/ISS-214 门禁自检 (反向用例: 改坏锚点 ⇒ 必须变红) ══╗")
     print("★ 原 9 个用例 (ISS-211 · d1..d4) **一条不许删**; ★ 第 2 轮 (ISS-214) 追加 7 个 (d5..d11) ★")
+    print("★ 第 3 轮 (ISS-217) 追加 3 个 (作业包 ×2 + R9 阈值 ×1) ★ ★ 第 4 轮 (ISS-230 · F-3) 追加 2 个 (A 组字段分工) ★")
     cases: list[tuple[str, bool, str]] = []
 
     # 用例 0: 基线必须是绿的 —— 否则后面的"抓到"没有意义
@@ -1488,7 +1581,8 @@ def selftest(root: str) -> int:
         _mutate_line(os.path.join(tmp, REL["netlist"]), 169, "note", "[VDD_1V8_IO] I2C_A 上拉 (已订正)")
 
     def m_bom_type(tmp):
-        _mutate_line(os.path.join(tmp, REL["bom"]), 208, "type", "IC")
+        # ★★2026-11-16 ISS-233 落表后: BOM L208 的 U_EN_SW type 已是 IC ⇒ 反向用例改成【退回 NET 的旧缺陷】
+        _mutate_line(os.path.join(tmp, REL["bom"]), 208, "type", "NET")
 
     def m_spec_level(tmp):
         p = os.path.join(tmp, REL["spec"])
@@ -1606,6 +1700,35 @@ def selftest(root: str) -> int:
         with open(p, "w", encoding="utf-8") as fh:
             fh.write(s2)
 
+    # ── ★★第 4 轮 (ISS-230 · F-3 遗留): A 组字段分工加强型断言 的 2 个反向用例 ★─
+    def m_spec_a01_zdiff_empty(tmp):
+        # ★★F-3 加强型断言的反向用例 (ISS-230): 把 A-01 的 `z_diff` 清空 ⇒ 必须红 ★★
+        #   ★为什么【这条必须红】而【判据 5 不会红】: `state/check_netlist.py` 判据 5 的
+        #     比对源是【`imp` or `z_diff`】⇒ z_diff 空了它就【跳过】这行 (want 变空)
+        #     ⇒ 判据覆盖行数从 22 静默掉到 21 ⇒ ★**只有【字段分工】断言能抓住它**★
+        #     ⇒ 这就是 F-3 说的「判据被静默放松」★
+        p = os.path.join(tmp, REL["spec"])
+        with open(p, encoding="utf-8") as fh:
+            obj = json.load(fh)
+        for c in obj.get("connections", []):
+            if c.get("id") == "A-01":
+                c["z_diff"] = ""
+        with open(p, "w", encoding="utf-8") as fh:
+            json.dump(obj, fh, ensure_ascii=False, indent=2)
+
+    def m_spec_a13_imp_refilled(tmp):
+        # ★★F-3 加强型断言的第 2 个反向用例 (ISS-230): 把差分阻抗【塞回 `imp` 字段】(★
+        #   `z_diff` 同时清空) ⇒ 判据 5 因为先读到 `imp` 仍然全绿 ⇒ 只有字段分工断言能红 ★
+        p = os.path.join(tmp, REL["spec"])
+        with open(p, encoding="utf-8") as fh:
+            obj = json.load(fh)
+        for c in obj.get("connections", []):
+            if c.get("id") == "A-13":
+                c["imp"] = "100Ω ±10%"
+                c["z_diff"] = ""
+        with open(p, "w", encoding="utf-8") as fh:
+            json.dump(obj, fh, ensure_ascii=False, indent=2)
+
     def _esd_threshold_case(root):
         """★反向用例: 证明 R9 的翻面阈值真被读到 3.0 而不是 5.0。★
         做法: 把板上的 D_ESD_USB_D 挪到距 J_USB_C **4.0 mm** 处 (★4.0 落在 3.0 与 5.0 之间,
@@ -1661,7 +1784,7 @@ def selftest(root: str) -> int:
     cases.append(_run_case("用例1 [d1] 改坏 L167 的 value (2.2k/1.8V→4.7k/3.3V) ⇒ 必须红", root, m_net_value))
     cases.append(_run_case("用例2 改坏 L182 的 dnp (DNP→必装) ⇒ 必须红", root, m_net_dnp))
     cases.append(_run_case("用例3 改坏 L169 note (删掉『已作废』) ⇒ 必须红", root, m_net_note))
-    cases.append(_run_case("用例4 改坏 BOM L208 的 type (NET→IC) ⇒ 必须红", root, m_bom_type))
+    cases.append(_run_case("用例4 [d3] 改坏 BOM L208 的 type (IC→NET, 退回旧缺陷) ⇒ 必须红", root, m_bom_type))
     cases.append(_run_case("用例5 [d1] 改坏 SPEC.json B-01.level (1.8V→3.3V) ⇒ 必须红", root, m_spec_level))
     cases.append(_run_case("用例6 改坏板封装 U_EN_SW 的 Value ⇒ 必须红", root, m_board_value))
     cases.append(_run_case("用例7 改坏规格页锚点表 (规格页⇄脚本漂移) ⇒ 必须红", root, m_specpage_anchor))
@@ -1680,6 +1803,12 @@ def selftest(root: str) -> int:
     cases.append(_run_case("用例16 [ISS-217] 删掉作业包里的 d11 一组 ⇒ 必须红", root, m_wp_delete_d11))
     cases.append(_run_case("用例17 [ISS-217] 改坏作业包 d5 的 ⑦ 栏 (R5→R1, 三方对齐) ⇒ 必须红", root, m_wp_break_r_alignment))
     cases.append(_esd_threshold_case(root))
+
+    # ★★第 4 轮 (ISS-230 · F-3 遗留): A 组 20 条已迁移连接的【字段分工】加强型断言 ★★
+    cases.append(_run_case("用例19 [ISS-230/F-3] 清空 A-01 的 z_diff ⇒ 必须红 (字段分工断言)",
+                            root, m_spec_a01_zdiff_empty))
+    cases.append(_run_case("用例20 [ISS-230/F-3] 把差分阻抗塞回 A-13 的 imp 字段 ⇒ 必须红",
+                            root, m_spec_a13_imp_refilled))
 
     ok = 0
     for name, good, detail in cases:

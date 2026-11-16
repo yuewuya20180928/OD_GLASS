@@ -13,6 +13,16 @@ MECH/hinge_power_calc.py —— ISS-091 第2轮: 跨铰链充电电流 1.0A 载�
   - R_ILIM 公式: HW/CHARGE_BOARD_SPEC.md §2.4 (IINMAX = KILIM/RILIM, KILIM=320/355/390 AΩ)
   - 铰链段几何: MECH/USB_HINGE_STRUCTURE.md §4.1/§4.2 (弯折弧长 4.71mm @R3.0; 固定段每端>=8mm)
 
+★★【ISS-229 口径订正 · 2026-11-16 · mech-lead】★★
+  ★**旧口径 `ICHG_FACTOR = 0.822` 是【倒数方向】的 (Vbat/Vbus)/eta** ⇒ 它是
+  ★**ICHG/IIN = eta·Vbus/Vbat 的倒数** ⇒ 旧表 (rilim_table / copper_vs_rilim)
+  ★**全部充电皮肤温度数偏乐观** ⇒ **旧表整体作废** (留痕见 `MECH/HINGE_POWER_CALC.md` 文件头)。
+  ★**改正后的系数 (来源 = `HW/CHARGE_BOARD_SPEC.md` §2.4, ISS-220 第 1 批已改正)**:
+  ★    Vbat=3.70V ⇒ **1.216**   Vbat=4.20V ⇒ **1.071**
+  ★**本表取最坏 (Vbat 最低) 的 1.216 作主口径**; 两个值都在输出里列出。
+  ★**本单只改【系数】与【由它派生的数】**: k_eff 50.13 / R_path / 环境基准 35C /
+  ★R_cell 0.10 / 铜厚档 1oz·2oz / KILIM 320·355·390 **一个都没动**。
+
 证据等级: [实测] 我算的 / [官方] 厂商规格 / [推算] 由前两者推导 / [0数据] 查不到
 """
 import json
@@ -30,8 +40,15 @@ T_REDLINE = 43.0          # °C ISO 13732-1 烧伤阈值 (MECH_BUDGET §2.2)
 T_TARGET = 40.0           # °C 设计目标上沿
 
 KILIM_MIN, KILIM_TYP, KILIM_MAX = 320.0, 355.0, 390.0   # AΩ [官方] BQ25896
-ICHG_FACTOR = 0.822        # Vbat/Vbus/η  (CHARGE_BOARD_SPEC §2.4 口径)
-RILIM_VALUES = [300, 390, 470, 680]
+
+# ★★【ISS-229 口径订正 2026-11-16】★★ ICHG/IIN = eta·Vbus/Vbat (CHARGE_BOARD_SPEC §2.4 已改正口径)
+#   ★旧值 0.822 = (Vbat/Vbus)/eta = 它的【倒数】⇒ 旧表温度数全部偏乐观 ⇒ 已作废
+ICHG_FACTOR_VBAT_370 = 1.216   # Vbat=3.70V (最坏: 电芯最低)  [推算, CHARGE_BOARD_SPEC §2.4]
+ICHG_FACTOR_VBAT_420 = 1.071   # Vbat=4.20V (CV 末端)       [推算, CHARGE_BOARD_SPEC §2.4]
+ICHG_FACTOR = ICHG_FACTOR_VBAT_370   # ★主表取最坏 (Vbat 最低) 的那个
+ICHG_FACTOR_VOID_LEGACY = 0.822      # ★旧 (倒数方向) 值 —— 只留痕, 不参与任何计算
+
+RILIM_VALUES = [300, 390, 470, 680, 1200]   # ★ISS-229: 加 1.2kΩ (V-4 候选档, 见交接单)
 
 # --- 铰链段 FPC 载流铜箔 ---
 # 长度: 铰链段 7-9mm + 两端固定段 >=8mm -> >=23mm; ISS-085 §4.2 总长 >=31mm
@@ -174,7 +191,11 @@ def main():
     print()
     print("=" * 100)
     print("[3] ★ R_ILIM 档位表   IINMAX = KILIM/R_ILIM  [官方: KILIM=320/355/390 AΩ]")
-    print("    ICHG = IINMAX x 0.822 (Vbat/Vbus/eta)  [推算, CHARGE_BOARD_SPEC §2.4 口径]")
+    print("    ★★【ISS-229 口径订正】ICHG = IINMAX x 1.216 (Vbat=3.70V) / x 1.071 (Vbat=4.20V)")
+    print("       系数 = eta·Vbus/Vbat (HW/CHARGE_BOARD_SPEC §2.4, ISS-220 第 1 批已改正)")
+    print(f"       ★ 两个系数都列出: Vbat=3.70V ⇒ {ICHG_FACTOR_VBAT_370} | Vbat=4.20V ⇒ {ICHG_FACTOR_VBAT_420}")
+    print(f"       ★ 本表取【最坏 (Vbat 最低)】的 {ICHG_FACTOR} 作主口径")
+    print(f"       ★ 旧值 {ICHG_FACTOR_VOID_LEGACY} = (Vbat/Vbus)/eta = 【倒数方向】⇒ 已作废 (留痕)")
     print("=" * 100)
     rilim_tab = []
     for R_ILIM in RILIM_VALUES:
@@ -208,6 +229,15 @@ def main():
                 T_skin_opt=T_SKIN_BASE + dt_total_opt,
                 t_charge_min=CELL_CAPACITY_MAH / (I * 1000.0) * 60.0,
             )
+            row["evidence"] = {
+                "ICHG": "[推算]",
+                "dV_P_skin": "[推算]",
+                "board_measured": 0,
+                "basis": ("ICHG 系数源 = HW/CHARGE_BOARD_SPEC.md §2.4 (ICHG/IIN = eta·Vbus/Vbat, "
+                          "1.216@3.70V / 1.071@4.20V, 取最坏 1.216); "
+                          "压降/发热/皮肤温度 = [推算] (k_eff 50.13 K/W, 基准 35C, R_cell 0.10Ω, "
+                          "R_path 口径A保守); 板端 [实测] = 0 条"),
+            }
             rilim_tab.append(row)
             print(f"R_ILIM={R_ILIM:>4}ohm {tag:>3} | IINMAX={iin[idx]:.3f}A | ICHG={I:.3f}A "
                   f"| 单pin={I/2:.3f}A | dV(A口径)={dv_c*1000:5.1f}mV (B口径 {dv_o*1000:4.1f}mV) "
@@ -257,9 +287,65 @@ def main():
             T = T_SKIN_BASE + dt
             print(f"{R_ILIM:>7}ohm {bname:<24} {I:>8.3f} {dv*1000:>8.1f} {p*1000:>11.1f} "
                   f"{T:>9.1f} {'PASS' if T <= T_REDLINE else 'FAIL':>8}")
-            cmp_rows.append(dict(R_ILIM=R_ILIM, build=bname, ICHG=I, dV_mV=dv*1000,
-                                  P_mW=p*1000, T_skin=T, pass_43=T <= T_REDLINE))
+            cmp_rows.append(dict(R_ILIM=R_ILIM, tag="max", build=bname, ICHG=I,
+                                  dV_mV=dv*1000, P_mW=p*1000, T_skin=T,
+                                  pass_43=T <= T_REDLINE,
+                                  evidence={"ICHG": "[推算]", "dV_P_skin": "[推算]",
+                                            "board_measured": 0,
+                                            "basis": "同 rilim_table (系数 1.216 @3.70V)"}))
     out["copper_vs_rilim"] = cmp_rows
+
+    # ------------------------------------------------------------------
+    # 3c. ★ISS-229: 每档 × min/typ/max × 2 铜厚 的全网格 (给 V-4 更新包用)
+    #     (不改 rilim_table / copper_vs_rilim 的字段名与形状, 只是追加一张网格表)
+    # ------------------------------------------------------------------
+    print()
+    print("=" * 100)
+    print("[3c] ★ISS-229 V-4 全网格: 每档 x min/typ/max x 1oz/2oz  (口径A保守 + 电芯 100% 进皮肤路径)")
+    print("=" * 100)
+    print(f"{'R_ILIM':>8} {'档':>4} {'铜厚':>10} {'ICHG(A)':>8} {'单pin(A)':>9} {'dV(mV)':>8} "
+          f"{'P铰链(mW)':>11} {'P电芯(mW)':>11} {'皮肤(C)':>9} {'pass_43':>8} {'充电(min)':>10}")
+    grid_rows = []
+    for R_ILIM in RILIM_VALUES:
+        for idx, tag in enumerate(("min", "typ", "max")):
+            base = [r for r in rilim_tab if r["R_ILIM"] == R_ILIM and r["tag"] == tag][0]
+            I = base["ICHG_A"]
+            for bname, tw, tt in (("1oz 0.3mm", w, t),
+                                  ("2oz 0.4mm", 0.40e-3, 70e-6)):
+                r_tt = r_trace(L, tw, tt)
+                r_p = r_plane(L, 4.5e-3, tt)
+                R = r_path(R_CONTACT_PER_PIN_PER_INTERFACE[1], r_tt, r_tt, r_p, False)
+                dv, p = I * R, I * I * R
+                p_cell = I * I * R_CELL_INTERNAL
+                dt = skin_rise(p) + skin_rise(p_cell)
+                T = T_SKIN_BASE + dt
+                t400 = CELL_CAPACITY_MAH / (I * 1000.0) * 60.0
+                t420 = 420.0 / (I * 1000.0) * 60.0
+                print(f"{R_ILIM:>7}ohm {tag:>4} {bname:>10} {I:>8.3f} {I/2:>9.3f} "
+                      f"{dv*1000:>8.1f} {p*1000:>11.1f} {p_cell*1000:>11.1f} {T:>9.1f} "
+                      f"{'PASS' if T <= T_REDLINE else 'FAIL':>8} {t400:>10.1f}")
+                grid_rows.append(dict(
+                    R_ILIM=R_ILIM, tag=tag, build=bname,
+                    IINMAX_A=base["IINMAX_A"], ICHG_A=I, per_pin_A=I / 2.0,
+                    dV_mV=dv * 1000, P_mW=p * 1000, P_cell_mW=p_cell * 1000,
+                    T_skin=T, pass_43=T <= T_REDLINE,
+                    t_charge_min_400mAh=t400, t_charge_min_420mAh=t420,
+                    contact_rating_0p5A_ok=(I / 2.0) <= 0.5,
+                    evidence={"ICHG": "[推算]", "dV_P_skin": "[推算]", "board_measured": 0,
+                              "basis": "同 rilim_table (系数 1.216 @3.70V 最坏口径)"}))
+    out["rilim_full_grid"] = grid_rows
+
+    # 系数登记 (两个值都列出来)
+    out["ichg_factor"] = {
+        "vbat_3p70": ICHG_FACTOR_VBAT_370,
+        "vbat_4p20": ICHG_FACTOR_VBAT_420,
+        "used_worst_case": ICHG_FACTOR,
+        "used_basis": "Vbat 最低 (3.70V) ⇒ 系数最大 ⇒ 温度最高 (最坏)",
+        "legacy_void": ICHG_FACTOR_VOID_LEGACY,
+        "legacy_note": "旧值 0.822 = (Vbat/Vbus)/eta = 本系数的【倒数方向】⇒ 旧表温度数全部偏乐观 ⇒ 已作废",
+        "source": "HW/CHARGE_BOARD_SPEC.md §2.4 (ISS-220 第 1 批落表已改正)",
+        "evidence": "[推算]",
+    }
 
     # ------------------------------------------------------------------
     # 4. 机械

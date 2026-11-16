@@ -527,7 +527,7 @@ P10,SW,U_CHG pin19+pin20,C_BST,C_BST,47nF 25V,C,必装,[官方],,★自举电容
 P10,BTST,U_CHG pin21,C_BST,C_BST,47nF 25V,C,必装,[官方],,BTST ↔ SW 自举电容 另一端,C-01,CHG_BOARD
 P10,REGN_5V,U_CHG pin22,C_REGN,C_REGN,4.7µF 10V,C,必装,[官方],,★'Connect a 4.7 µF (10 V rating) ceramic capacitor from REGN to analog GND',C-01,CHG_BOARD
 P10,GND,C_REGN,GND,C_REGN,4.7µF 10V,C,必装,[官方],,REGN 去耦 地端 (模拟地),C-01,CHG_BOARD
-P10,VBUS_5V_CHG,U_CHG pin1,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,TI BQ25896 **WQFN (RTW) 24pin 4×4mm 16mm², 0.5mm pitch, 0.8mm max height, OPN BQ25896RTWR** (ti.com/lit/gpn/BQ25896 封装附录 + ti.com/product/BQ25896); 充电 IC 装镜框充电板; 单价/交期 [0数据] 询价走项目总工,C-01,CHG_BOARD
+P10,VBUS_5V_CHG,U_CHG pin1,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,"TI BQ25896 **WQFN (RTW) 24pin 4×4mm 16mm², 0.5mm pitch, 0.8mm max height, OPN BQ25896RTWR** (ti.com/lit/gpn/BQ25896 封装附录 + ti.com/product/BQ25896); 充电 IC 装镜框充电板; 单价/交期 [0数据] 询价走项目总工",C-01,CHG_BOARD
 P10,SW,U_CHG pin19+pin20,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin19/20 SW 开关节点,C-01,CHG_BOARD
 P10,BTST,U_CHG pin21,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,pin21 BTST,C-01,CHG_BOARD
 P10,REGN_5V,U_CHG pin22,U_CHG,U_CHG,BQ25896,IC,必装,[官方],,"pin22 REGN (内部 LDO 5.0V, 4.8-5.5V, 限流 50mA) = TS 分压基准",C-01,CHG_BOARD

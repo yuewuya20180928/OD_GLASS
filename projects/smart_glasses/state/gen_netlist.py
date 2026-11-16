@@ -1493,8 +1493,16 @@ def build_a2_som(by_id, spec):
     add("P1", "CARRIER_BOARD_EN", "U_EN_SW ON", "CARRIER_BOARD_EN", "U_EN_SW",
         "EN 输入 (高=放行底板)", "NET", "必装", "[官方]", "",
         "[U_EN_SW] EN ← CARRIER_BOARD_EN ⇒ 主板各路只在 SoM 就绪后上电", "A-24")
-    add("P1", "RAIL_DEMO_5V", "U_EN_SW VIN", "RAIL_DEMO_5V", "U_EN_SW", "5V 输入", "NET",
-        "必装", "[官方]", "", "[U_EN_SW] IN = 5V (Type-C 直供)", "A-24")
+    add("P1", "RAIL_DEMO_5V", "U_EN_SW VIN", "RAIL_DEMO_5V", "U_EN_SW",
+        "TPS22991RAA (负载开关: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85 x 0.75 mm)", "IC",
+        "必装", "[官方]", "",
+        "[U_EN_SW] ★★器件本体行 (type=IC · 挂在 pin1/VIN 上 · 同族正确写法 = U_PWR_SW 本体行挂 pin3/VOUT)★★ "
+        "★pin1 脚级功能: IN = 5V 输入 (Type-C 直供 5V)★ | pin2 = EN 输入 (高=放行底板) | "
+        "pin3 = 5V 输出 (受 CARRIER_BOARD_EN 门控) | pin4 = GND | "
+        "★★F13 落法: 底板所有 3.3V/5V 支路都挂 RAIL_BOARD_5V (不是 SYS) ⇒ 主板各路只在 SoM 就绪后上电 ⇒ "
+        "防底板早于核心板上电损坏处理器★★ | "
+        "★选型 = TPS22991RAA (项目总工 11-03 已裁, ISS-172 待老板点头; 同 UQFN-4 封装 ⇒ 若改 TPS22916/17 = 换料不换板)★",
+        "A-24")
     add("P1", "RAIL_BOARD_5V", "U_EN_SW VOUT", "RAIL_BOARD_5V", "U_EN_SW",
         "5V 输出 (受 CARRIER_BOARD_EN 门控)", "NET", "必装", "[官方]", "",
         "[RAIL_BOARD_5V] ★**底板所有 3.3V/5V 支路都挂这条** (不是 SYS) ⇒ 这就是 F13 的落法", "A-24")

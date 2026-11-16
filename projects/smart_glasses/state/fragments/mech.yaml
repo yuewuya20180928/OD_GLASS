@@ -4,12 +4,24 @@ updated_at: '2026-11-16'
 updated_by: mech-lead
 status:
   phase: P3
-  progress_pct: 99
+  progress_pct: '99'
   health: yellow
-  summary: '2026-11-16 ISS-224 (门禁锚点再基线): ISS-220 落表把 PIN-MISMATCH 真的修好了 (FAIL 17→16) + 网表/脚表 md5 随落表变
-    ⇒ 门禁读旧数 = 假红 ⇒ 本单重锚 + 留痕 + 升级机制: ① §2 第 05 行改成 ✅PASS 并写明 ISS-220 落表依据 (d6) ② §3 去处表 17→16 + 新增 §3.1『已修复
-    (留痕)』 ③ 新增 C21 真源变更台账对账 (锚点 ↔ 落表台账 ↔ 盘上真源 三方一致) ④ 新增 C22 PIN-MISMATCH 独立复核 + G8 留痕在场 ⑤ 门禁 20→23 组,
-    selftest 8→14 条反向用例 ⇒ rc=0 (23/23 + 14/14); 16 条红灯一条未消, 6 个 PCB 类 id 仍排队'
+  summary: '2026-11-16 ISS-229 (充电皮肤温度按改正系数 1.216 重算 + MECH 闸 G5b/C21 重锚【两跳】): ★**根因 = 换算系数方向反了** —— buck
+    功率守恒 ICHG/IIN = η·Vbus/Vbat = 0.90×5.0/3.70 = **1.216** (@4.20V ⇒ 1.071), 旧 **0.822** = (Vbat/Vbus)/η
+    = 1.216 的**精确倒数** ⇒ 系数偏小 ⇒ 电流偏小 ⇒ 温度偏乐观 ⇒ 旧表 rilim_table / copper_vs_rilim / rilim_full_grid **全部作废
+    (逐字留痕, 不删)** ⇒ 新数 (max 档 1oz): 皮肤侧 300Ω **61.4** ❌ / 390Ω **50.6** ❌ (超 43 °C 红线 7.6 °C) / 470Ω **45.8**
+    ❌ / **680Ω 40.1** ✅ (余 2.9 °C) / **1.2kΩ 36.7** ✅; 单 pin max 0.790 / **0.608** ❌ / 0.505 / 0.349 /
+    0.198 A; TS 偏移 1.46 / **1.13** / 0.93 / **0.65** ✅ / 0.37 °C (留 1 °C 裕量只在 680Ω/1.2kΩ 成立); 充电时间 (400
+    mAh 仅 CC 段) 15/20/24/34/61 min ⇒ **活档 = 680Ω / 1.2kΩ** (V-4 待 main/老板拍, **本单不代拍**); 原 42.14 °C / 47.07
+    °C **无有效数字**。★**MECH 闸重锚【两跳】**: 第 1 跳 = ISS-223 第 2 批落表 (13f59a43…→3215020b…) + §3.1 **R-02** 留痕;
+    ★**第 2 跳 = 交卷期间 hw-lead 的 ISS-233 第 3 批并发落表 (06:48:38) 改了网表 L442 + 脚表 L531** (3215020b…→34132f7e40a241e1fae1476be0eafbd5
+    / a600afae…→b21b743a7702d30729f0d653c15392df) ⇒ 按 H-1 再重锚 + §3.1 **R-03** 留痕 ⇒ ⇒ 门禁 **G5b + C21 由
+    FAIL 回到 [OK] (rc=2 21/23 → rc=0 23/23)**, `--selftest` **14/14** 反向用例一条没删 (门禁脚本 md5 `fa9b59e5…` 未变
+    ⇒ 判据没被改软); ★**HW/ 一个字节没改** (并发落表是 hw-lead 的活, 本单只跟 MECH 锚点; 没卡住/等待/干预另一个 agent 的单); ★**触发的第 2 跳是 ISS-233
+    不是 ISS-232** (ISS-232 交接单 §10 明写它没改网表)。★**三道门禁实跑全绿**: check_demo_struct_truth **23/23** + cavity_recalc
+    **22/22** + verify_budget 绿。★阈值一个不许动 (皮肤 43 °C / 端件 60 °C / cavity_req 4.50 / CRIT 0.60 / cav_v 38.00
+    / duct_v 6.00) · 零外发 · 板端 [实测] = 0 条 · **不自签 issue_log** (status 留给 main 落 verified) · 未碰 HW/ SW/
+    PROJECT_TRACKER §0。'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -689,6 +701,109 @@ artifacts:
   updated_at: '2026-11-16'
   summary: 'ISS-224 交接单 (B1~B6 齐全): 3 组失配 (G1/G1b/G5b) 的再基线化 + 『不许悄悄换真源』机制 (C21) + 『不许悄悄抹真修复』机制 (G8) +
     16 条红灯一条未消'
+- path: HANDOFF/2026-11-16_mech-lead_ISS227_C7b集热面口径修正.md
+  kind: handoff
+  version: iss227
+  updated_at: '2026-11-16'
+  summary: 'ISS-227 交接单 (B1~B6 齐全): C-7b 集热面口径修正 (打印件顶面 ⇒ 铝制集热背板 120×30×1.0) + 三档重算 (d=15/18/20 = 47.77/47.47/47.27
+    °C ✅, u8=30) + u8 口径写清 + 旧数全部留痕 (53.60/45.95/46.63) + ★门禁自身漏洞堵死 (C21 抓节命中 H1 ⇒ 「删整节」可绕过 ⇒ 修成只认 level>=2
+    真小节 + 新增 C22 + 修好反向 19 假用例 + 新增反向 22/23) ⇒ 主检 22/22 · selftest 24/24'
+- path: MECH/CENTER_CAVITY_REBALANCE_V3.md
+  kind: doc
+  version: iss227
+  updated_at: '2026-11-16'
+  summary: 'ISS-227 (续做) 落进 §2.5「C-7b 集热面口径修正」独立成节: §2.5.0 一句话口径修正 (旧→新) + §2.5.1 对比表 C7B-01~04 (旧 3 行标已修正·留痕)
+    + §2.5.2 u8 口径 + U8-01~05 敏感度 + §2.5.3 R7B-01~03 需求侧余量 + §2.5.4 保守上界 + §2.5.5 结论 + §2.5.6 门禁漏洞留痕;
+    头部/§4 门禁说明同步'
+- path: MECH/cavity_recalc_check.py
+  kind: script
+  version: iss227
+  updated_at: '2026-11-16'
+  summary: 'ISS-227 (续做) 机器门禁: 判据 21→22 项 (新增 C22 整节存在性) · 反向 21→23 条 (+基线 = 24); ★修好抓节函数只认 level>=2 真小节
+    (原命中 H1 ⇒ 抓到整篇文档 ⇒ 「节存在性」断言空转) + 修好反向 19 假用例 (原删的是文档头部不是 §2.5, 现加自证断言) + 新增反向 22/23 (删表行 / 改节标题);
+    阈值一个没动 (50 °C / k=201 / 120×30)'
+- path: MECH/hinge_power_calc.py
+  kind: script
+  version: v2.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-229 充电电流换算系数改正: ICHG_FACTOR 0.822 → **1.216 @Vbat 3.70V** / **1.071 @4.20V** (buck 功率守恒
+    ICHG/IIN = η·Vbus/Vbat; 旧 0.822 = (Vbat/Vbus)/η = 1.216 的【精确倒数】⇒ 方向反了 ⇒ 只留痕不参与计算, 常量 ICHG_FACTOR_VOID_LEGACY
+    保留) + RILIM_VALUES 增 **1.2kΩ** 候选档 + 皮肤侧温度 / 单 pin 载流 / TS 偏移 / 充电时间 全部按新系数重算。--json 出 rilim_table(15
+    行) / copper_vs_rilim(10 行) / rilim_full_grid(30 行)。★口径一个没动 (k_eff 50.13 K/W · R_path 口径A保守 110.78
+    mΩ · 基准 35 °C · R_cell 0.10 Ω · 铜厚 1oz/2oz · KILIM 320/355/390 AΩ · 红线 43 °C)。★[实测] = 脚本实跑 (rc=0),
+    **板端 [实测] = 0 条**, 温度/发热全为 [推算]。'
+- path: MECH/hinge_power_calc.json
+  kind: data
+  version: v2.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-229 活口径表唯一真源: ichg_factor (1.216 @3.70V / 1.071 @4.20V / legacy_void 0.822 留痕) + rilim_table
+    15 行 (5 档 × min/typ/max) + copper_vs_rilim 10 行 + rilim_full_grid 30 行 (5 档 × min/typ/max × 1oz/2oz),
+    每行带 evidence (ICHG=[推算] / board_measured=0)。★**下游 (热路 / 整机重量账 / 充电板规格 / 决策页) 只能引用这里的现行值** ⇒ 旧数 (47.1/42.1/39.9/37.3
+    °C 等, 按作废系数 0.822 算) 一律带「已作废」标记。'
+- path: MECH/HINGE_POWER_CALC.md
+  kind: calc
+  version: v2.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-229 口径订正留痕 + 全表重出: §0-A (一句话说明旧表整体作废 + 新系数推导 + 复现命令) + §0-A.1 旧值→新值对照表 22 行 (旧数不删) + 正文
+    M-1/M-3/M-4/M-6/M-7/M-8 与 §4.1/§4.2/§4.3/§5.3/§7-N8 逐处标「旧值已作废」。★**新数**: max 档 1oz 皮肤侧 300Ω 61.4 ❌
+    / 390Ω 50.6 ❌ (超 43 °C 红线 7.6 °C) / 470Ω 45.8 ❌ / **680Ω 40.1 ✅** (余 2.9 °C) / **1.2kΩ 36.7 ✅**; 单
+    pin max 0.790/0.608/0.505/0.349/0.198 A; TS 偏移 1.46/1.13/0.93/0.65/0.37 °C; 充电时间 (400 mAh 仅 CC 段)
+    15/20/24/34/61 min。★**旧 42.14 °C / 47.07 °C (按 0.822 算) 判为「无有效数字」** ⇒ 活档 = 680Ω / 1.2kΩ (V-4 待 main/老板拍,
+    本单不代拍)。'
+- path: MECH/FPC_FAB_NOTES.md
+  kind: note
+  version: v2.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-229 同型旧数清理: §0-A 口径订正留痕 + §0-A.1 对照表 (系数 / 390Ω 档 ICHG 0.822→1.216 A / 单 pin 0.411→0.608
+    A / 铰链段发热 15-127 → **8.3-276.8 mW** / 300Ω 档皮肤 47.1→**61.4 °C** ❌ / 2oz 57.4 °C ❌) + §载流表 / P-4 /
+    X-2 / 证据表逐处标旧数作废。★结论 (加厚铜箔救不了充电发热) 在改正系数下**更强**: 300Ω 档 2oz 仍超红线 14.4 °C ⇒ 唯一有效杠杆仍是 R_ILIM 换料不换板。'
+- path: MECH/HW_CROSS_REVIEW_TRIAGE.md
+  kind: spec
+  version: v2.1
+  updated_at: '2026-11-16'
+  summary: 'ISS-229 MECH 闸重锚【第 2 跳】: §1 `source_ledger.entries` 跟 **ISS-233 第 3 批并发落表** 再重锚一次 —— 网表 `3215020b6d4120e1b7728227effdc6d3`
+    → `34132f7e40a241e1fae1476be0eafbd5` (by=ISS-233, landed_at 2026-11-16 06:48:38) · 脚表 `a600afae493f5a7a6c55f46ad35ac89c`
+    → `b21b743a7702d30729f0d653c15392df` (by=ISS-233, landed_at 2026-11-16 06:48:38) ⇒ §3.1 新增 **R-03**
+    行 (谁改的 / 哪个单号 / 新旧 md5 / 复现命令) · §0 Q-10 与 §7 注同步 ⇒ ★**门禁 G5b + C21 由 FAIL 回到 [OK] (rc=2 21/23 → rc=0
+    23/23)**, `--selftest` **14/14** 反向用例一条没删 (门禁脚本 md5 `fa9b59e5…` 未变 ⇒ 判据没被改软) · ★**HW/ 一个字节没改** (本单只重锚
+    MECH 侧锚点 + 留痕) · ★**没卡住/等待/干预另一个 agent 的单**'
+- path: HANDOFF/2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: ISS-229 交接单 (B1 结论 12 条 / B2 逐条自评 21 条 + 未验 3 条 / B3 证据分级四档 / B4 接口取值 4 条 + V-4 30 行全网格 / B5
+    未决 6 条 / B6 七条复现命令 + 与 main 独立推算逐条对拍一致 + 受保护 md5 实测) + **B7 本轮补交** (三道门禁 + 两条 selftest 实跑输出 + 两条逐字确认
+    + 分片落地记录)。★板端 [实测] = 0 条, 零外发, 不自签 issue_log, 不代拍 V-4。
+- path: MECH/_frag_update_iss229.py
+  kind: script
+  version: v1.0
+  updated_at: '2026-11-16'
+  summary: 'ISS-229 分片原子写脚本 (走 state/frag_write.py 的 update_fragment: tmp + fsync + os.replace, 零 open(p,"w")):
+    新增 artifact 6 条 / interface_claim 4 条 (系数 1.216 + 1.071 / 活口径表指针 / 网表 md5 锚点 ISS-223) + 同型旧值收口 6 条
+    (皮肤侧表 / 充电时间 / TS 偏移 / 铰链段发热 / 皮肤增量 / 两条老板/网表现值只补 note) + answers 2 条 (iss223 / iss230) + needs 3
+    条 (main 整机阶段判据 / hw-lead PCB_OUTLINE 旧数 / sw-lead EVT PWR-05 充电电流判据) + 旧 need 订正追加 2 条 (只加不改)。'
+- path: MECH/CENTER_CAVITY_REBALANCE_V3.md
+  kind: doc
+  version: iss237c
+  updated_at: '2026-11-16'
+  summary: 'ISS-237 闭环轮 (并发会话, 同一 agent) 落进 §2.6「C-7c」: W_rim 门槛用活口径 (鳍模型) 重算成两档 (22.15 mm @0.468W / 25.63
+    mm @0.50W, 摄像头凸包让位, u8=30, d=15) + W7T-01~05 门槛表 (ISS-222 登记的 23.30 只报不改·留痕) + W7C-01~04 扫描表 + W7M-01~04
+    背板质量⇒整机重量账 (57.96-85.08 g) + §2.6.5 结论; ★判据阈值一个没动 (50 °C / k=201 / 背板 120×W_rim×1.0); ★与 ISS-227 的
+    C-7b 同源 (同一活口径 = 铝制集热背板)'
+- path: MECH/cavity_recalc_check.py
+  kind: script
+  version: iss237c
+  updated_at: '2026-11-16'
+  summary: 'ISS-237 闭环轮 (并发会话, 同一 agent) 机器门禁: 新增 C23 (C-7c 的 W_rim 门槛两档 + W_rim 扫描表 + 背板质量与整机重量账逐格 +
+    阈值不许动) + 反向 24/25/26 (改门槛 / 改重量数 / 删整节) ⇒ 盘上门禁 = 23 项判据 + 27 条反向用例 (其中 ISS-227 贡献 C21/C22 + 反向 18~23)'
+- path: MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md
+  kind: spec
+  version: v1.2
+  updated_at: '2026-11-16'
+  summary: 'ISS-237 闭环轮 (并发会话, 同一 agent) 改: 新增 §2.6 表 D『镜框上沿集热背板』参数化质量 (120×W_rim×1.0 铝 6063-T6 ⇒ m =
+    0.324×W_rim g = 7.18-9.72 g) + §3.2 新增 W9 归属行 (背板记 W9) + §5 五步走插入 Step 0 (先查 W_rim 门槛再查 u8) + §5.1
+    第 ⑥ 条; ★背板质量一个数没进 §3 合计 (与 u8 端件金属化同一规矩: W_rim 未定 ⇒ 不预扣); 出处 MECH/CENTER_CAVITY_REBALANCE_V3.md §2.6,
+    门禁 C23 逐格回读'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -968,14 +1083,22 @@ needs_from:
   due: '2026-10-30'
   waiting_on: boss
   item: 'R_ILIM 档位裁决: 我建议 300->470Ω (换料不换板, 皮肤 47.1C->39.9C, 充电 22->35min)。300Ω 档在''边戴边充''下贴皮肤侧 47.1C
-    超 ISO13732-1 的 43C 红线; 390Ω 为42.1C(逼近红线)。请老板/PM 拍板 300/390/470/680。依据 MECH/HINGE_POWER_CALC.md §4'
+    超 ISO13732-1 的 43C 红线; 390Ω 为42.1C(逼近红线)。请老板/PM 拍板 300/390/470/680。依据 MECH/HINGE_POWER_CALC.md §4
+    | ★**ISS-229 订正 (2026-11-16, 只加不改)**: 本条里的『皮肤 47.1C → 39.9C / 390Ω 42.1C / 充电 22→35min』全部按**作废系数 0.822**
+    算 ⇒ **已作废, 无有效数字** ⇒ 现行口径: max 档 1oz 皮肤侧 300Ω **61.4** ❌ / 390Ω **50.6** ❌ / 470Ω **45.8** ❌ / **680Ω
+    40.1** ✅ / **1.2kΩ 36.7** ✅ °C; 单 pin max 0.790 / 0.608 / 0.505 / 0.349 / 0.198 A; 充电时间 15 / 20 /
+    24 / 34 / 61 min ⇒ 活档 = **680Ω / 1.2kΩ** ⇒ **裁决入口仍是 V-4** (`DECISION_PENDING_2026-11-16.md` §A2),
+    详见 HANDOFF/2026-11-16_mech-lead_ISS229_*.md §B4.2。★本单不代拍。'
 - key: iss091_worn_while_charging
   to: main
   since: '2026-10-28'
   due: '2026-10-30'
   waiting_on: boss
   item: '''边戴边充''产品行为是否保留: 这直接等价于 ''R_ILIM <= 470Ω'' (因为充电发热主项是电芯内阻 I^2R 而非铰链段, 电芯 3M背胶直接贴镜脚皮肤侧, 300Ω档
-    47.1C / 乐观口径也 44.2C)。若维持''充电时摘下''(现有结论)则 390~470Ω 皆可'
+    47.1C / 乐观口径也 44.2C)。若维持''充电时摘下''(现有结论)则 390~470Ω 皆可 | ★**ISS-229 订正 (2026-11-16, 只加不改)**: 本条里的『300Ω
+    档 47.1C / 乐观口径也 44.2C』按**作废系数 0.822** 算 ⇒ **已作废** ⇒ 现行: 300Ω max 皮肤侧 **61.4 °C** ❌ / 乐观 55.1 °C ❌;
+    390Ω max **50.6 °C** ❌ / 乐观 46.9 °C ❌; 470Ω max **45.8 °C** ❌ / 乐观 43.2 °C; 680Ω max **40.1 °C** ✅;
+    1.2kΩ max **36.7 °C** ✅ ⇒ 『边戴边充不允许』这条产品语义**仍然有效** (充电时眼镜不在皮肤上), 但**活档只剩 680Ω / 1.2kΩ** (V-4 待拍)。'
 - key: iss091_contact_res_def
   to: hw-lead
   since: '2026-10-28'
@@ -2034,7 +2157,52 @@ needs_from:
     prev_md5 改成旧的 (落表单号 by 填你那次的单号); ② 落表记录 (HW/SCHEMATIC_LANDING_V1_LANDED.md 或 HANDOFF/2026-11-16_hw-lead_ISS223_*.md)
     里 必须能查到【落表单号 + 该文件名 + 新 md5 + 旧 md5】四项 ⇒ 门禁 C21 逐项对账. ★ISS-223 (落表第 2 批, d5 + 补差A 值迁移) 一定会再改网表/脚表
     ⇒ 请在交卷时把新旧 md5 与单号写进落表记录, 并把锚点那一条一起更新 (我只读, 锚点更新由落表方做或在交接单里点我). ★只改锚点不落表 = 悄悄换真源; 只落表不改锚点 = 门禁假红 ⇒
-    两条路都被 C21 堵死'
+    两条路都被 C21 堵死 ★**【ISS-229 实测补注】** 2026-11-16 交卷期间又发生一次并发落表: **ISS-233 第 3 批** (06:48:38) 改了网表 L442
+    + 脚表 L531 ⇒ 锚点又落后 ⇒ 门禁 C21 双红 ⇒ **我已按 H-1 再重锚到 `34132f7e40a241e1fae1476be0eafbd5` / `b21b743a7702d30729f0d653c15392df`
+    (by=ISS-233), 留痕在 `MECH/HW_CROSS_REVIEW_TRIAGE.md` §3.1 R-03** ⇒ ★**请以后落表时直接同步 MECH 侧锚点, 别等门禁红了一遍再补**
+    ★'
+  since: '2026-11-16'
+- key: iss229_mech_charge_skin_temp_scope_to_main
+  to: main
+  since: '2026-11-16'
+  due: '2026-11-19'
+  item: '★ISS-229 出数 (改正系数 1.216) 后, 请裁【整机阶段】口径要不要跟: ①**充电时皮肤侧 43 °C 红线** —— 老板 10-28 已拍「边戴边充不允许」⇒ 充电时眼镜不在皮肤上
+    ⇒ 皮肤侧这条在充电场景**不是硬约束**; 但**与佩戴无关**的三条仍成立 (铰链段温升 / **TS 停充门限偏差** 390Ω max 1.13 °C / **单 pin 触点额定** 390Ω
+    max 0.608A) ⇒ 问 main: 整机阶段的『充电链』判据要不要按 680Ω / 1.2kΩ 重写? ★**本单只登记, 不改别人的件** (PROJECT_TRACKER §0 / DECISION_PENDING
+    / issue_log 一个字节都没碰); ②**V-4 建议默认值** (680Ω 或 1.2kΩ) 仍**待老板拍** ⇒ DECISION_PENDING_2026-11-16.md §A2
+    的 V-4 行可直接引用本单 §B4.2 的 **30 行全网格** (含 1.2kΩ 新候选档); ③本域既有 need `iss091_rilim_decision` 里的 47.1 °C /
+    42.1 °C 是按**作废系数 0.822** 算的 ⇒ 本单**只加订正说明、没删历史条目** ⇒ 以 §B4.2 为准。'
+- key: iss229_mech_hw_pcb_outline_old_charge_numbers
+  to: hw-lead
+  since: '2026-11-16'
+  due: '2026-11-19'
+  item: 'ISS-229 已出改正系数下的权威表 ⇒ `HW/PCB_OUTLINE_60x15.md` 里还有三处带 **0.822 旧口径**的数 (★**只报不改, HW 地界由 hw-lead
+    自己改**): ①§3.4 表 (L142~L147) 的 ICHG / 单 pin / 余量列 —— 390Ω 现写 0.82A / 0.411A / ✅余量 1.22× ⇒ 新值 **1.216A
+    / 0.608A / ❌超 0.5A 天花板 21.6%**; 470Ω 现写 0.68A / 0.341A / ✅ ⇒ 新值 **1.009A / 0.505A / ❌超 1.0%**; 680Ω
+    现写 0.47A / 0.236A ⇒ 新值 **0.697A / 0.349A / ✅余量 1.43×**; 300Ω 现写 0.534A ⇒ 新值 **0.790A**; ②L149 那句「390Ω
+    max 档充电 ~29.20min / 典型 32.08min」⇒ 新值 **~19.7min / ~21.7min** (400 mAh 仅 CC 段, 实际再加 10-20%); ③§4.2
+    O-4 行「TS 参考地被 1A 回流抬高 14-32mV = 0.44-0.99 °C」⇒ 新值 390Ω max **36.5 mV = 1.13 °C** (留 1 °C 裕量只在 680Ω
+    / 1.2kΩ 成立)。★出处: `MECH/HINGE_POWER_CALC.md` §0-A.1 + `MECH/hinge_power_calc.json` (rilim_table / copper_vs_rilim
+    / rilim_full_grid); 复现: `python3 MECH/hinge_power_calc.py` (rc=0)。'
+- key: iss229_mech_sw_evt_pwr05_charge_current_criterion
+  to: sw-lead
+  since: '2026-11-16'
+  due: '2026-11-19'
+  item: 'ISS-229 重算后, `SW/EVT_TEMPLATE.md` **PWR-05**「充电电流 ≥ 1.5A @5V/2A 适配器」与现行 R_ILIM 体系不相容 (★**只报不改,
+    SW 地界由 sw-lead 自己改**): 改正系数 1.216 下 max 档**电池侧**充电电流 = 390Ω 1.216A / 680Ω 0.697A / 1.2kΩ 0.395A ⇒
+    连现行 V-4 候选 (680Ω) 也只有 0.697A, **1.5A 达不到**; 若该判据量的是**输入电流 IIN**, 390Ω 档 IINMAX max = 1.00A (680Ω 档
+    0.574A) ⇒ 同样达不到 ⇒ ★请 sw-lead 复核它到底量哪个量 (输入电流 vs 电池侧电流), 并给改法 (降阈值 / 改判据对象 / 或注明 demo 板不装充电链故本项不适用
+    —— charge IC 在 demo 板是 DNP 位)。★该不兼容**在旧 0.822 系数下就已存在** (390Ω max = 0.822A) ⇒ 属既存判据, 不是 ISS-229 造成,
+    本单只把新系数下的准确数摆出来。★出处: `MECH/HINGE_POWER_CALC.md` §0-A.1 + `MECH/hinge_power_calc.json`; 复现: `python3
+    MECH/hinge_power_calc.py` (rc=0)。'
+- key: iss229_hw_landing_must_sync_mech_anchor_iss233
+  to: hw-lead
+  item: '★**ISS-233 第 3 批落表 (2026-11-16 06:48:38) 改了网表 L442 + 脚表 L531** ⇒ MECH 闸 `MECH/check_demo_struct_truth.py`
+    的 **G5b + C21 双红 (rc=2, 21/23)** ⇒ ★**我已按 H-1 流程把 MECH 侧锚点 跟过去** (网表 `34132f7e40a241e1fae1476be0eafbd5`
+    / 脚表 `b21b743a7702d30729f0d653c15392df`, by=ISS-233, landed_at 2026-11-16 06:48:38, 留痕在 `MECH/HW_CROSS_REVIEW_TRIAGE.md`
+    §3.1 R-03) ⇒ 门禁回 rc=0 (23/23) ★ ⇒ ★**但下次落表请直接同步 MECH 侧锚点** (§1 `source_ledger.entries` 的 `md5` / `prev_md5`
+    / `by` / `landed_at` 四个字段), 别等我这边红了一遍再补 ⇒ ★**落表记录里必须能查到【落表单号 + 该文件名 + 新 md5 + 旧 md5】四项** (C21 逐项对账)
+    ⇒ ★**注意: ISS-232 本身没改网表** (其交接单 §10 明写「网表 md5 `3215020b…` 不变」) ⇒ 真正触发重锚的是 ISS-233'
   since: '2026-11-16'
 answers:
 - key: pcb_outline_confirm
@@ -2305,6 +2473,60 @@ answers:
     而 30 mm 这个数在项目内查无出处 (框截面 u8 未定)'
   ref: MECH/CENTER_CAVITY_REBALANCE_V3.md §2.1-2.2 + MECH/MECH_BUDGET.md §1.10.3 + MECH/cavity_recalc_check.py
     C20
+- key: iss222_mech_c7b_sink_is_metal_not_print
+  to: main
+  value: '★已闭环 (口径侧): ISS-227 已把 P3 的活口径从「打印件顶面 (假同温)」改成「铝制集热背板 120×30×1.0 (6063-T6, k=201)」并重算三档 ⇒ d=15/18/20
+    = 47.77 / 47.47 / 47.27 °C ✅ (u8=30, 0.468 W) ⇒ @0.50 W 代表负载 = 48.65 / 48.32 / 48.11 °C ⇒ 仍 ≤ 50 °C;
+    P_max @d=15 = 0.5496 W (u8=30) / 0.5663 W (u8=40); 打印件顶面有效热导 R = 398.9 K/W vs 同面积直接对流 47.6 K/W (差
+    8.4 倍) ⇒ 打印件方案腔体真值 53.60 °C ❌ (超红线 3.60 °C) ⇒ 铝制背板 = P3 成立的必要条件 (+9.72 g = 2.70 mg/mm²); 降功耗单做不成立
+    (面板 0.415 W ⇒ 打印件仍 51.49 °C ❌); 端件整条金属化 11.34-22.68 g / 14.18-37.80 mg/mm² (贵 5.3-14.0 倍且面积差 3-7 倍)
+    ⇒ 不可接受 (有数). ★但「集热面最终做成什么材质」是老板级项, 本单不拍 ⇒ 请 main / 老板裁 (铝 6063-T6 / 镁 / 其他金属 / 打印件 + 独立热路) ⇒ 机器门禁
+    C21 (集热面材质字段必须金属, 打印件 ⇒ 红) + C22 (整节存在性) 已把这条变成硬判据'
+  ref: MECH/CENTER_CAVITY_REBALANCE_V3.md §2.5 + MECH/cavity_recalc_check.py C21/C22
+- key: iss223_skin_temp_recompute
+  to: hw-lead
+  value: '已按改正后的系数重算并落盘 (ISS-229): **ICHG/IIN = η·Vbus/Vbat = 0.90×5.0/3.70 = 1.216216 ⇒ 1.216** (@Vbat
+    4.20V ⇒ 1.071; 主口径取最坏 1.216), 旧 0.822 = 1.216 的精确倒数 ⇒ 作废留痕。★max 档 1oz 皮肤侧 = 300Ω **61.4** / 390Ω **50.6**
+    / 470Ω **45.8** / 680Ω **40.1** / 1.2kΩ **36.7** °C ⇒ **活档 = 680Ω / 1.2kΩ**; 单 pin max = 0.790 / 0.608
+    / 0.505 / 0.349 / 0.198 A ⇒ **390Ω 与 470Ω 档超 0.5 A 触点额定**; TS 偏移 = 1.46 / 1.13 / 0.93 / 0.65 / 0.37
+    °C ⇒ **留 1 °C 裕量只在 680Ω / 1.2kΩ 成立**; 充电时间 (400 mAh 仅 CC 段) = 15 / 20 / 24 / 34 / 61 min ⇒ **原 42.14
+    °C (按 0.822 算) 已作废 ⇒ 无有效数字**。★[推算] 板端 [实测] = 0 条。复现: python3 MECH/hinge_power_calc.py (rc=0)'
+  ref: HANDOFF/2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md §B4.2 + MECH/HINGE_POWER_CALC.md §0-A.1
+- key: iss230_skin_temp_void_marked
+  to: hw-lead
+  value: '你标的作废成立, 且 ISS-229 已交叉核对并给出新数: 42.14 °C / 47.07 °C **无有效数字** (按作废系数 0.822 算) ⇒ 现行 = **390Ω max
+    皮肤侧 50.6 °C ❌** (超 43 °C 红线 7.6 °C) + **单 pin 0.608A ❌** (超 0.5 A 触点额定 21.6%) ⇒ 390Ω 档在改正口径下判 FAIL;
+    同句的充电时间 ~29.20min / 典型 32.08min 同样出自作废表 ⇒ 新值 **~19.7min / ~21.7min** (400 mAh 仅 CC 段); O-4 行 TS 偏移
+    0.44-0.99 °C ⇒ 新值 390Ω max **36.5 mV = 1.13 °C** (留 1 °C 裕量只在 680Ω/1.2kΩ 成立)。★**680Ω 复核**: max 1oz
+    皮肤 **40.1 °C ✅** (余 2.9 °C) + 单 pin **0.349A ✅** (余量 1.43×) + TS **0.65 °C ✅** ⇒ 与你 11-01 的 `chg_rilim_recommended`=680Ω
+    一致 ⇒ 建议默认值仍 680Ω (电芯若 ≤1C 则退 1.2kΩ); ★**V-4 由 main/老板拍, 本单不代拍**; 另建议把 `HW/PCB_OUTLINE_60x15.md` §3.4
+    表 / L149 充电时间 / §4.2 O-4 行这三处旧数按新表订正 (已登记 need)。'
+  ref: HANDOFF/2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md §B4.2 §U-2 + MECH/HINGE_POWER_CALC.md §0-A.1
+- key: iss219_mech_c7_sink_area_confirm
+  to: main
+  value: '门槛更新 (活口径, 两档): ISS-227 把 P3 活口径从打印件顶面 (假同温) 改成铝制集热背板 120×W_rim×1.0 后, 同一条 W_rim 门槛在两个口径下不是一个数
+    ⇒ 用鳍模型重算: 22.15 mm @0.468 W (面板功耗) / 25.63 mm @0.50 W (ISS-216 代表负载) (摄像头凸包让位·u8=30·d=15) ⇒ ISS-222
+    登记的 23.30 mm 只在面板功耗下成立 (0.50 W 下 50.67 °C ❌) ⇒ 若框截面按 23.30 裁, 必须同时确认峰值功耗 ≤ 0.468 W; 净可外露面积 3432 mm²
+    结论不变 (面积仍不是阻塞项); 背板质量 m = 0.324 × W_rim g = 7.18-9.72 g ⇒ 整机 57.96-85.08 g (387 mAh) ⇒ 背板质量不预扣 (W_rim
+    为 [0数据])'
+  ref: MECH/CENTER_CAVITY_REBALANCE_V3.md §2.6 · MECH/cavity_recalc_check.py C23
+- key: iss229_mech_v4_update_package_and_gate_reanchor
+  to: main
+  value: '★**ISS-229 收口 (4 件交付物全齐)** ⇒ ① 系数改正 (0.822 倒数方向 → **1.216 @3.70V / 1.071 @4.20V**, 取最坏 1.216)
+    + 三张表重出 (rilim_table 15 / copper_vs_rilim 10 / rilim_full_grid 30 行) ⇒ ★**max 档 1oz 皮肤侧: 300Ω 61.4
+    ❌ / 390Ω 50.6 ❌ (超 43 °C 红线 7.6 °C) / 470Ω 45.8 ❌ / 680Ω 40.1 ✅ (余 2.9 °C) / 1.2kΩ 36.7 ✅** ⇒ 单 pin
+    max 0.790 / 0.608 / 0.505 / 0.349 / 0.198 A ⇒ TS 偏移 1.46 / 1.13 / 0.93 / 0.65 / 0.37 °C ⇒ 充电 (400
+    mAh 仅 CC 段) 15/20/24/34/61 min ⇒ ★**活档 = 680Ω / 1.2kΩ** (★**V-4 待 main/老板拍, 本单不代拍, 一句「建议选 X」都没写**★)
+    ⇒ ★**原 42.14 °C / 47.07 °C 判为无有效数字** (按作废的 0.822 算) ★ ★② 文档 `MECH/HINGE_POWER_CALC.md` §0-A + §0-A.1
+    口径订正留痕 (旧值→新值对照 22 行, 旧数一个没删) ★ ★③ V-4 更新包 = 30 行全网格 (每档 × min/typ/max × 1oz/2oz: 新皮肤侧 + pass_43 +
+    充电时间 + 单 pin vs 0.5 A 触点额定) + 「充电时皮肤侧是否仍是硬约束」的现状说明 (老板 10-28 已拍「边戴边充不允许」⇒ 充电时眼镜不在皮肤上 ⇒ 皮肤侧 43 °C 在产品语义上不是硬约束;
+    ★**但铰链段温升 / TS 停充门限 / 单 pin 触点额定这 3 条与佩戴无关, 依然成立**★; 只作说明, 未改老板已拍口径) ★ ★④ MECH 闸重锚: **两跳** (第 1 跳
+    ISS-223 `13f59a43…`→`3215020b…`; ★**第 2 跳 = 交卷期间 hw-lead 的 ISS-233 第 3 批并发落表 (06:48:38) 改了网表 L442
+    + 脚表 L531 ⇒ 再跟到 `34132f7e…` / `b21b743a…`**★) ⇒ §3.1 **R-02 + R-03** 两行留痕 ⇒ ★**门禁 rc=2 (21/23) → rc=0
+    (23/23)**, `--selftest` **14/14** 一条没删 ★ ⇒ ★**HW/ 一个字节没改** (并发落表是 hw-lead 的活, 本单只跟 MECH 锚点; 没卡住/等待/干预另一个
+    agent 的单) ★ ⇒ 板端 [实测] = 0 条 · 零外发 · 未自签 issue_log · ★**与 main 本轮独立推算逐条一致** (390Ω max 50.6 / 470Ω max
+    45.8 / 680Ω max 40.1, ICHG / P / ΔT 全同值)'
+  ref: HANDOFF/2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md (B1~B6) + MECH/HINGE_POWER_CALC.md §0-A
 interface_claims:
 - key: battery_capacity_tier
   value: 315mAh无桥/387mAh有桥
@@ -2613,29 +2835,45 @@ interface_claims:
   note: '@1.0A 铰链段压降 (mV), 保守基准 110.8mV; 接触电阻 5-30mΩ/pin/界面 [0数据] [推算]'
   ref: MECH/HINGE_POWER_CALC.md#2.2
 - key: mech_hinge_chg_power_mw_at_1a
-  value: 15-127
-  note: '@1.0A 铰链段发热 (mW), 对应皮肤侧 +0.8~+6.4C [推算]'
-  ref: MECH/HINGE_POWER_CALC.md#3.2
+  value: 8.3-276.8
+  note: '铰链段发热 (mW) —— 全候选网格 (5 档 × min/typ/max × 1oz/2oz), 口径A保守; 下限 = 1.2kΩ min 档 2oz, 上限 = 300Ω max
+    档 1oz; 现行 390Ω 档 = **78.7-163.8 mW**。★**ISS-229 订正 (2026-11-16)**: 原值 `15-127` 按**作废系数 0.822** 算 (上界
+    127 mW = 300Ω 档 max 旧 ICHG 1.069 A × R_path 110.78 mΩ) ⇒ **已作废 (留痕, 不删)**; ★新值 **8.3-276.8 mW** (上界
+    ×2.19, 电流² 律) ⇒ 皮肤侧增量见 `mech_hinge_chg_skin_rise_c_at_1a`。★结论 (铜箔轴向导热极强 ⇒ 铜箔自身温升 <0.1 °C ⇒ 不做额外散热铜箔)
+    在新系数下不变。★[推算]'
+  ref: MECH/FPC_FAB_NOTES.md §0-A.1 + MECH/hinge_power_calc.json#rilim_full_grid
 - key: mech_hinge_chg_skin_rise_c_at_1a
-  value: 0.8-6.4
-  note: 铰链段发热引起的贴皮肤处温度增量 (C), 用 MECH_BUDGET §2.3 口径 k_eff=50.13 K/W, 基准35C [推算]
-  ref: MECH/HINGE_POWER_CALC.md#3.2
+  value: 0.42-13.88
+  note: '铰链段发热引起的贴皮肤处温度增量 (C), 用 MECH_BUDGET §2.3 口径 k_eff=50.13 K/W, 基准 35 °C; 全候选网格 (下限 = 1.2kΩ min
+    档 2oz, 上限 = 300Ω max 档 1oz)。★**ISS-229 订正 (2026-11-16)**: 原值 `0.8-6.4` 按**作废系数 0.822** 算 ⇒ **已作废 (留痕,
+    不删)**; ★新值 **0.42-13.88 °C**。★[推算]'
+  ref: MECH/FPC_FAB_NOTES.md §0-A.1 + MECH/hinge_power_calc.json#rilim_full_grid
 - key: mech_rilim_recommended_ohm
   value: '390'
   note: '建议值(非拍板): 换料不换板 (ILIM脚稳在0.8V, P=0.8^2/470=1.36mW, 0402足够); ICHG max 0.682A / 单pin 0.341A / 皮肤39.9C
     / 充电~35min [推算]★ISS-107 同型更正 (2026-11-06): 原值 ''470'' 是**结构侧 10-28 的建议值**; **老板 10-28 拍板『边戴边充不允许』⇒
     390Ω** (ICHG 0.822A / 单 pin 0.411A / 充电 ~29min), 网表 R_ILIM 行已是 390Ω。⇒ 本条 ''建议'' 已被拍板取代, 现行值 = 390。★注意:
-    本域另一条 claim ''r_ilim_set'' 已写 390ohm ⇒ 原值 470 与它自相矛盾。'
+    本域另一条 claim ''r_ilim_set'' 已写 390ohm ⇒ 原值 470 与它自相矛盾。 | ★**ISS-229 订正 (2026-11-16)**: 本条 value 仍是**现行网表/老板
+    10-28 拍板值 390Ω** (一字未动); 但 note 里 0.682A / 0.341A / 皮肤 39.9°C / 充电 ~35min 是按**作废系数 0.822** 算的 ⇒ **已作废
+    (留痕)** ⇒ 按 1.216: 390Ω max = ICHG **1.216A** / 单 pin **0.608A** (>0.5A 触点天花板 21.6%) / 皮肤侧 **50.6 °C
+    ❌** (超 43 °C 红线 7.6 °C) / TS 偏移 **1.13 °C** ⇒ ★**390Ω 档在改正口径下判 FAIL**; 活档 = **680Ω** (皮肤 40.1 °C /
+    单 pin 0.349A / 余量 1.43× / 充 ~34min) 或 **1.2kΩ** (36.7 °C / 0.198A / ~61min, 若电芯 ≤1C) ⇒ ★**V-4 建议默认值待
+    main/老板拍, 本单不代拍**。'
   ref: MECH/HINGE_POWER_CALC.md#4.3
 - key: mech_rilim_charge_skin_temp_c
-  value: 300:47.1/390:42.1/470:39.9/680:37.3
-  note: 各档 ICHG=max 的贴皮肤侧温度 (C), 口径A保守 (回流走GND双pin铜箔, 接触30mΩ/界面, FPC 1oz/0.3mm/31mm, R_cell=0.10Ω); 300Ω档超
-    ISO13732-1 的 43C 红线 [推算]
-  ref: MECH/HINGE_POWER_CALC.md#4.1
+  value: 300:61.4/390:50.6/470:45.8/680:40.1
+  note: '各档 ICHG=max 的贴皮肤侧温度 (C), 口径A保守 (回流走GND双pin铜箔, 接触30mΩ/界面, FPC 1oz/0.3mm/31mm, R_cell=0.10Ω), **系数
+    1.216 @Vbat3.70V 最坏档**。★**ISS-229 订正 (2026-11-16)**: 原值 `300:47.1/390:42.1/470:39.9/680:37.3` 是按**作废系数
+    0.822** 算的 ⇒ **已作废 (逐字留痕在此, 不删)**; ★新值 = 300Ω **61.4** ❌ / 390Ω **50.6** ❌ (超 43 °C 红线 7.6 °C) / 470Ω
+    **45.8** ❌ / 680Ω **40.1** ✅ (余 2.9 °C) / **1.2kΩ 36.7 ✅** (本轮新增候选档) ⇒ 活档 = 680Ω / 1.2kΩ。2oz 版: 300Ω
+    57.4 / 390Ω 48.3 / 470Ω 44.1 / 680Ω 39.4 / 1.2kΩ 36.4 °C。★[推算] 板端 [实测] = 0 条。'
+  ref: MECH/HINGE_POWER_CALC.md §0-A.1 + MECH/hinge_power_calc.json#rilim_table
 - key: mech_rilim_charging_minutes
-  value: 300:22/390:29/470:35/680:51
-  note: 各档满充时间 (min, 仅CC段估算, 未计CV拐点, 实际再加10-20%) [推算]
-  ref: MECH/HINGE_POWER_CALC.md#4
+  value: 300:15/390:20/470:24/680:34
+  note: '各档满充时间 (min, 400mAh, 仅CC段估算, 未计CV拐点, 实际再加10-20%), ICHG=max 档。★**ISS-229 订正 (2026-11-16)**: 原值
+    `300:22/390:29/470:35/680:51` 按**作废系数 0.822** 算 ⇒ **已作废 (留痕, 不删)**; ★新值 = 300Ω **15** / 390Ω **20**
+    / 470Ω **24** / 680Ω **34** / **1.2kΩ 61** min (电流↑ ⇒ 时间↓)。★[推算]'
+  ref: MECH/HINGE_POWER_CALC.md §0-A.1 + MECH/hinge_power_calc.json#rilim_table
 - key: mech_j_chg_min_contact_rating_a
   value: '0.5'
   note: J_CHG 单触点最小额定电流 (A) = 选型硬判据; 0.5mm pitch FPC ZIF 座典型 0.3-0.5A [0数据 型号未选]; 若只有0.3A型号则 R_ILIM 只能选680Ω
@@ -2663,9 +2901,13 @@ interface_claims:
   note: 电芯内阻 (Ω), 区间0.08-0.15 [0数据 丰江432243规格书未查到]; 充电发热主项 = I^2*R (1.069A时114mW, 电芯直接贴镜脚皮肤侧) [推算]
   ref: MECH/HINGE_POWER_CALC.md#6-M3
 - key: mech_ts_ref_offset_c
-  value: 0.44-0.99
-  note: TS跨铰链参考地被1A回流抬高14-32mV 造成的等效温度偏差 (C), TS斜率32.4mV/C [推算]; 减害方案=pin9/pin10改NTC专用回流 (待PM裁决)
-  ref: MECH/HINGE_POWER_CALC.md#6-M4
+  value: 0.37-1.46
+  note: 'TS 跨铰链参考地被充电回流抬高造成的等效温度偏差 (C), TS 斜率 32.4 mV/C, 偏移 = ICHG×30mΩ。★**ISS-229 订正 (2026-11-16)**:
+    原值 `0.44-0.99` 是按**作废系数 0.822** 算的 ⇒ **已作废 (留痕, 不删)**; ★新值逐档 (max 档) = 300Ω **1.46** / 390Ω **1.13**
+    / 470Ω **0.93** / 680Ω **0.65** ✅ / 1.2kΩ **0.37** ✅ °C ⇒ ★**「留 1 °C 门限裕量」只在 680Ω / 1.2kΩ 成立** (390Ω
+    档已超)。⇒ 这是一条**指向 680Ω/1.2kΩ 的独立约束** (与皮肤温度 / 单 pin 触点额定同向)。★减害方案 pin9/pin10 改 NTC 专用回流 已被 ISS-206 作废
+    (pin10 现为 HINGE_RSV 预留不装) ⇒ 偏差靠选档解决, 不改 pin map。★[推算]'
+  ref: MECH/HINGE_POWER_CALC.md §0-A.1 + M-4 + MECH/hinge_power_calc.json#rail_impact
 - key: mech_bat_det_location
   value: temple_local
   note: SoC的BAT_DET在镜脚本地(不在J_CHG 10p pin map) -> 读到真实电芯电压, 不会被铰链压降虚高 [推算]
@@ -2774,8 +3016,11 @@ interface_claims:
   ref: MECH/FPC_FAB_NOTES.md#7
 - key: r_ilim_set
   value: 390ohm
-  note: 老板 10-28 拍板 (边戴边充不允许 → 皮肤温度不再是充电时硬约束); ICHG 0.822A (max), 单 pin 0.411A; ★300Ω 档单 pin 0.534A >
-    0.5mm ZIF 的 0.5A 额定天花板 → 建议正式判死
+  note: '老板 10-28 拍板 (边戴边充不允许 → 皮肤温度不再是充电时硬约束); ICHG 0.822A (max), 单 pin 0.411A; ★300Ω 档单 pin 0.534A >
+    0.5mm ZIF 的 0.5A 额定天花板 → 建议正式判死 | ★**ISS-229 订正 (2026-11-16)**: 本条 value 仍是**网表现值 / 老板 10-28 拍板值 390Ω**
+    (一字未动); 但 note 里「ICHG 0.822A (max), 单 pin 0.411A」按**作废系数 0.822** 算 ⇒ **已作废 (留痕)** ⇒ 按 1.216: 390Ω
+    max = ICHG **1.216A** / 单 pin **0.608A** ⇒ 300Ω 档单 pin **0.790A** (旧 0.534A) ⇒ 300Ω 档正式判死、390Ω 档在皮肤
+    43 °C + 0.5A 触点 + TS 1 °C 三条上全破 ⇒ 活档 680Ω / 1.2kΩ (V-4 待拍, 本单不代拍)。'
   ref: HW/POWER_SHUTDOWN_V3.md
 - key: hinge_stack_touch_zone
   value: 27.00mm
@@ -3424,6 +3669,61 @@ interface_claims:
     §3.1『已修复 (留痕)』登记一行 ⇒ 门禁 G8 逐条守 (删行 / 删节 / 抹留痕都红)'
   note: ISS-224 新增. 动机 = 一次真修复如果从表里消失, 下一个人会当它『从来没存在过』重新踩一遍 ⇒ 留痕机制 = 结构性根因修法, 不是文字承诺
   ref: MECH/check_demo_struct_truth.py G8 + MECH/HW_CROSS_REVIEW_TRIAGE.md §3.1 (R-01)
+- key: mech_c7b_sink_surface_caliber_iss227
+  value: P3 (镜框上沿集热) 活口径集热面 = 铝制集热背板 120×30×1.0 (6063-T6, k=201 W/m·K), 根部与铝条同温, 沿长度方向按鳍模型 (G=0.029313
+    W/K, R=34.11 K/W), 并联端件 u8×20 (主口径 u8=30) ⇒ R_支路 37.72 K/W ⇒ d=15/18/20 腔体 47.77/47.47/47.27 °C ≤
+    50 °C; 「打印件顶面当集热面」是旧口径 (ISS-219 名义同温) 已作废但留痕 (C7B-01/02/03 标已修正·留痕); 打印件顶面有效热导 R=398.9 K/W vs 同面积直接对流
+    47.6 K/W (差 8.4 倍) ⇒ 打印件方案腔体真值 53.60 °C ❌ ⇒ 下游 (热/电/整机重量账) 一律按金属背板算, 不许再按打印件顶面算
+  note: ISS-227 (续做) 结构侧对外的活口径声明. 集热面最终材质仍是老板级项 (main/老板裁), 本单只给量化代价 (铝背板 +9.72 g / 2.70 mg/mm² vs 端件整条金属化
+    11.34-22.68 g / 14.18-37.80 mg/mm²). [推算] (本单实物 [实测]=0)
+  ref: MECH/CENTER_CAVITY_REBALANCE_V3.md §2.5 + MECH/cavity_recalc_check.py C21/C22
+- key: mech_c7b_gate_anti_section_delete_iss227
+  value: 'C-7b 口径修正节的机器保证: ① 抓节只认 level>=2 的真小节标题 (H1 文档标题不算 —— 本文件 H1 第 1 行就同时含「C-7b」「集热面口径修正」, 不排除它就会抓到整篇文档
+    ⇒ 断言空转) ② 「C-7b 集热面口径修正」小节必须存在且唯一 (唯一 = 防口径分叉) ③ 12 行关键表 (C7B×4 / U8×5 / R7B×3) 必须住在 §2.5 节内 ④ 留痕/新口径字面值必须住在节内
+    ⇒ 删整节 / 删表 / 改节名 三条绕过路全红'
+  note: '给所有后来写门禁的人看的规矩: 「有断言」不等于「断言有效」⇒ 每条反向用例必须自证「它真的改到了目标」, 否则就是一条永远绿着的假用例 ⇒ 本单已把这条自证写进删节用例 (删完必须查
+    C7B-04 行确实不在了). [实测] (本机实跑 主检 22/22 + selftest 24/24 + 独立对抗 4/4)'
+  ref: MECH/cavity_recalc_check.py C22 + 反向 19/22/23
+- key: mech_ichg_factor_vbat_370
+  value: '1.216'
+  note: '★改正后的活口径: ICHG/IIN = η·Vbus/Vbat @Vbat=3.70V (η=0.90, Vbus=5.0V) ⇒ 0.90×5.0/3.70 = 1.216216 ⇒
+    **1.216** (Vbat 最低 ⇒ 系数最大 ⇒ 温度最高 ⇒ 取最坏档)。★**旧值 0.822 = (Vbat/Vbus)/η = 1.216 的精确倒数 ⇒ 方向反了 ⇒ 已作废 (只留痕,
+    不参与计算)** ⇒ 下游凡引用充电电流的数 (皮肤温度 / 铰链发热 / 电芯发热 / 单 pin 载流 / TS 偏移 / 充电时间) 一律按 1.216 重算。★[推算] (系数源 HW/CHARGE_BOARD_SPEC.md
+    §2.4 + §3.4 方向修正, ISS-214 d10 · ISS-220 第 1 批落表已改正)。'
+  ref: MECH/HINGE_POWER_CALC.md §0-A + MECH/hinge_power_calc.py L44~L49
+- key: mech_ichg_factor_vbat_420
+  value: '1.071'
+  note: 'CV 段末端口径: ICHG/IIN = η·Vbus/Vbat @Vbat=4.20V ⇒ 0.90×5.0/4.20 = 1.071429 ⇒ **1.071**。★本表主口径取最坏的
+    **1.216** (@3.70V), 1.071 也在输出里列出。★旧值 0.933 同属倒数方向, 已作废留痕。★[推算] (系数源同 §2.4/§3.4)。'
+  ref: MECH/hinge_power_calc.py L47 + MECH/hinge_power_calc.json#ichg_factor
+- key: mech_charge_skin_temp_live_table
+  value: MECH/hinge_power_calc.json#rilim_table
+  note: '★**充电皮肤侧温度的活口径表 = `MECH/hinge_power_calc.json` 的 `rilim_table` (15 行) / `copper_vs_rilim` (10
+    行) / `rilim_full_grid` (30 行)** ⇒ 下游 (热路 / 整机重量账 / 充电板规格 / 决策页 §9) **只能引用 JSON 里的现行值** ⇒ 文档里的旧数一律带「已作废」标记。★max
+    档 1oz 皮肤侧: 300Ω **61.4** ❌ / 390Ω **50.6** ❌ (超 43 °C 红线 7.6 °C) / 470Ω **45.8** ❌ / 680Ω **40.1**
+    ✅ / 1.2kΩ **36.7** ✅ °C ⇒ 活档 = 680Ω / 1.2kΩ。★**旧值 (作废, 按 0.822 系数算): 47.1 / 42.1 / 39.9 / 37.3 / 35.8
+    °C** ⇒ 旧 42.14 °C / 47.07 °C **无有效数字**。★[推算] 板端 [实测] = 0 条。'
+  ref: MECH/hinge_power_calc.json + MECH/HINGE_POWER_CALC.md §0-A.1
+- key: mech_netlist_md5_anchor_iss233
+  value: ★**网表 `HW/netlist_v1.csv` = `34132f7e40a241e1fae1476be0eafbd5`** (落表单 **ISS-233** 第 3 批, 落表时刻
+    2026-11-16 06:48:38; 上一跳 `3215020b6d4120e1b7728227effdc6d3` = ISS-223 第 2 批) · ★**脚表 `HW/netlist_v1_pins.csv`
+    = `b21b743a7702d30729f0d653c15392df`** (落表单 **ISS-233**, 落表时刻 2026-11-16 06:48:38; 上一跳 `a600afae493f5a7a6c55f46ad35ac89c`
+    = ISS-220)
+  note: '★**这是 MECH 闸 §1 `source_ledger` 锚点的现行真值 (交卷那一刻盘上 md5sum 实测)** ⇒ ★**md5 链**: 网表 `13f59a43dbd35dc6cb16e897c8c891ab`
+    (ISS-220) → `3215020b6d4120e1b7728227effdc6d3` (ISS-223) → `34132f7e40a241e1fae1476be0eafbd5` (ISS-233);
+    脚表 `4814617e22b567d76164e56bc5e39dc8` (ISS-220) → `a600afae493f5a7a6c55f46ad35ac89c` (ISS-220) → `b21b743a7702d30729f0d653c15392df`
+    (ISS-233) ⇒ ★**每次落表都要同步 MECH 侧锚点 (H-1 流程), 不然门禁 C21 立刻红** ★ ⇒ ★**留痕**: `MECH/HW_CROSS_REVIEW_TRIAGE.md`
+    §3.1 **R-02** (ISS-223 跳) + **R-03** (ISS-233 并发跳) ★ ⇒ ★**门禁 G5b + C21: FAIL → [OK]** (rc=2 21/23
+    → rc=0 23/23; `--selftest` 14/14) ⇒ ★**注意: 触发第 2 跳的是 ISS-233 (第 3 批落表), 不是 ISS-232** (★ISS-232 交接单
+    §10 明写「本单网表侧一条都没改」★) ★ ★[实测] (本机 md5sum + 盘上 mtime + 门禁实跑前后对照)'
+  ref: MECH/HW_CROSS_REVIEW_TRIAGE.md §1 source_ledger + §3.1 R-02 (ISS-223 跳) + R-03 (ISS-233 跳)
+- key: mech_c7c_wrim_threshold_two_tier_iss237
+  value: 'W_rim 门槛两档 (活口径·鳍模型·摄像头凸包让位·u8=30·d=15): 22.15 mm @0.468 W (面板功耗) / 25.63 mm @0.50 W (ISS-216
+    代表负载) ⇒ ISS-222 登记的 23.30 mm 只覆盖面板功耗 (0.50 W 下 50.67 °C ❌); 背板质量 m = 0.324 × W_rim g (7.18-9.72 g)
+    ⇒ 整机 57.96-85.08 g (387 mAh 配置, 不含端件金属化); 打印件顶面在同一 W_rim 下全部 ❌ (53.60-56.53 °C) ⇒ 金属背板仍是 P3 成立的必要条件'
+  note: 并发会话 (ISS-222 闭环 / ISS-237 闭环轮) 的追加, 与 ISS-227 的 C-7b 口径修正同源 (同一活口径 = 铝制集热背板 120×30×1.0); W_rim
+    裁多少仍是老板级项, 本单只给要裁到多少才不破红线与每毫米多少钱两个数; 出处 MECH/CENTER_CAVITY_REBALANCE_V3.md §2.6
+  ref: MECH/CENTER_CAVITY_REBALANCE_V3.md §2.6 · MECH/cavity_recalc_check.py C23
 open_questions:
 - id: MECH-Q1
   to: main

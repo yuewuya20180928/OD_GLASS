@@ -113,6 +113,38 @@ def main() -> int:
     chk(f"A 组阻抗逐条对照规格 ({len(a_nets)} 条 net)", not bad_i,
         f"不一致 {bad_i[:4]}" if bad_i else "全部一致")
 
+    # 5b) ★★F-3 遗留的【加强型断言】 (ISS-230 · 2026-11-16 · hw-lead) ★★
+    #   ★**判据**: A 组【已迁移过的那 20 条】(A-01~A-10 / A-13~A-22) 在 SPEC.json 里必须
+    #     ★**`z_diff` 非空 且 `imp` 为空**★ (差分阻抗只许住在 `z_diff` 字段)。
+    #   ★**为什么必须独立成一条 (★判据 5 自己抓不到★)**: 判据 5 的比对源是【`imp` or `z_diff`】
+    #     ⇒ 谁把差分阻抗塞回 `imp` 并把 `z_diff` 清空, 判据 5 仍然全绿 (它先读到了 `imp`)
+    #     ⇒ ★**判据覆盖行数会从 22 静默掉到 21 而门禁不红**★ ⇒ F-3 说的「判据被静默放松」。
+    #   ★**为什么只针对 20 条 (★拖进来就造假红★)**:
+    #     ① A 组共 **22** 条, A-11 / A-12 是★**单端**★ (`imp` = "单端, 需包地" / "单端",
+    #        `z_diff` 天然为空) ⇒ 拖进来 = 造 **2** 条假红;
+    #     ② ★**网表里 `conn_id=A-24` 的 15 条 NET 行不许拖进来★** —— 那 15 条是 `J_TYPE_C`
+    #        16p 母座的功能串 (GND / USB_CC1 / USB_CC2 / CARRIER_BOARD_EN / RAIL_DEMO_5V /
+    #        RAIL_BOARD_5V 等) ⇒ ★**本来就没有阻抗值**★ ⇒ 拖进来 = 造 **15** 条真红。
+    #     (★main 2026-11-16 05:5x 实测基线: 判据 5 覆盖 37 条 A 组 NET 行, 实际被比对 22 条,
+    #       15 条因 `imp`/`z_diff` 双空而跳过 —— 那 15 条全是 A-24★)
+    MIGRATED_A_IDS = (
+        "A-01", "A-02", "A-03", "A-04", "A-05", "A-06", "A-07", "A-08", "A-09", "A-10",
+        "A-13", "A-14", "A-15", "A-16", "A-17", "A-18", "A-19", "A-20", "A-21", "A-22",
+    )
+    spec_by_id = {c["id"]: c for c in spec["connections"]}
+    gone_a = [cid for cid in MIGRATED_A_IDS if cid not in spec_by_id]
+    bad_zd = [cid for cid in MIGRATED_A_IDS
+              if cid in spec_by_id and not (spec_by_id[cid].get("z_diff") or "").strip()]
+    bad_imp = [cid for cid in MIGRATED_A_IDS
+               if cid in spec_by_id and (spec_by_id[cid].get("imp") or "").strip()]
+    bad_single = [cid for cid in ("A-11", "A-12")
+                  if cid in spec_by_id and (spec_by_id[cid].get("z_diff") or "").strip()]
+    bad_a5b = gone_a + bad_zd + bad_imp + bad_single
+    chk("A 组 20 条已迁移连接: z_diff 非空 且 imp 为空 (★F-3 加强型断言★)",
+        not bad_a5b,
+        (f"z_diff 空 {bad_zd[:4]} · imp 非空 {bad_imp[:4]} · 单端误填 {bad_single[:2]} · 缺失 {gone_a[:4]}"
+         if bad_a5b else f"20/20 合规 (★A-11/A-12 单端与 A-24 那 15 条不在范围内★)"))
+
     # 6) 差分对完整 (每个 _P 有 _N)
     pset = {cell(r, "conn_id") for r in rows if cell(r, "conn_id").startswith("A-")}
     nset = {cell(r, "conn_id") for r in rows if cell(r, "conn_id").startswith("A-")}

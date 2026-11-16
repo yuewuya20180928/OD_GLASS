@@ -1,9 +1,9 @@
 <!-- PROGRESS-BLOCK-START -->
 
-★**进展播报 2026-11-16 05:14:25** (机器读数 · 脚本自动生成)
+★**进展播报 2026-11-16 09:57:13** (机器读数 · 脚本自动生成)
 
 ```
-=== 进展播报 11-16 05:12:40 ===
+=== 进展播报 11-16 09:55:44 ===
 [板] 11-06 07:07:17 · 4.9MB · 18092 段走线 · 433 过孔
 [布线] 上次实测 unconnected=45 · DRC违规=0
 [留证] 自验时刻 2026-11-09T04:11:35 · verified_by main (verify_and_release.sh)
@@ -3467,3 +3467,22 @@ ExecStart=... /home/radxa/v31_v4l2_od_rtsp /dev/video0 640 480 2 86400 /etc/npu/
 - ★★**★⇒ 新开单时 `source_blocker` 必须填【真实的 STATE 阻塞 id】(★不是 issue id!★)★★**: ★**本轮实测: 上批 8 条里 7 条的 `source_blocker` 填的是 issue id (ISS-190 / ISS-145 / ISS-203 ...) ⇒ `issue_check.py` C5 判"幻觉引用"⇒ 8 条违规里 7 条是假阳性** ★
   ⇒ ★**⇒ 本轮 3 条新单分别填 `HW-B3` / `PM-B5` / `MECH-B2` (都是 STATE.yaml 里真实存在的 blocker id) ⇒ ★★`issue_check.py` 违规从 35 条降到 33 条, 且我这条零违规** ★★ ⇒ ★**⇒ 下次开单继续这样填** ★
 - ★★**★★⇒ 派活前必跑的命令存在性闸, 本轮第一次【在开单前】就卡住了 3 个 HANDOFF 路径 (★因为交卷文件还不存在★)★★**: ★**`check_brief_commands.py` 的 `declared_outputs()` 只认【同一行 30 字内出现"新建/产出/交付文件"等词】的路径 ⇒ ★★brief 里写交卷单路径时必须写成「★新建★ `HANDOFF/...md`」才不会被判成缺失** ★★ ⇒ ★**⇒ 新开单的 brief 里, 凡是本单要产出的新文件, ★★一律带「★新建★」前缀** ★
+
+### 【★★铁律: ★★僵尸 fixing 第 20 次复发 (2026-11-16 08:2x·★【新变体】: 交付物在盘但【跑不起来】★★)★★】
+- ★★**本轮实测 (★同一批两条同时中招, 但形态不同★)**: ★**ISS-235 (sw-lead) = 典型 0 产出** (子会话 `31d009e7` 07:23:29→08:07:52 status=done+aborted, transcript 末条 = 「Let me make the code changes to timing_check.py first.」⇒ 死在动手前; `timing_check.py` + `check_demo_panel_spec.py` mtime 仍 04:21 一字节没动; HANDOFF 不存在; 分片 `key: iss235` = 0 条) ⇒ ★**ISS-236 (hw-lead) = 【新形态】(★交付物① 落盘了 83257 B / 1414 行, 但 `py_compile` ⇒ SyntaxError line 619, 实跑 `--decision V-3=E` ⇒ rc=2 起不来; 交付物② `HW/SCHEMATIC_FINALIZATION_CLOSEOUT.md` 不存在)★** ⇒ ★**两个子会话都死在 TPM rate limit (`rate limit exceeded(TPM) (1039)`) + timeout, 不是 agent 偷懒** ★
+- ★★**★★⇒ 【新铁律·本轮最有价值的一条】: 判「交付物在不在」不能只看【文件存不存在 + mtime】—— ★★必须【跑一下看能不能起来】★★** ★
+  ⇒ ★**ISS-236 的 `state/land_v_values.py` 明明在盘、83 KB、1414 行、mtime 07:43 ⇒ ★★任何只看「产物在不在」的判据都会判它「半交卷 · 可接着做」⇒ ★★但它其实【一跑就炸】⇒ ★★若照「半交卷」路径直接重派, 子 agent 会对着一个起不来的脚本干瞪眼, 再花一轮才发现** ★
+  ⇒ ★**⇒ 清僵尸时, 对每个「疑似有产出」的交付物必跑一次【它自己的入口命令】+ (★若是脚本 ⇒ 加 `python3 -m py_compile`★) ⇒ ★★起不来 ⇒ 它就不算交付** ★
+- ★★**★★⇒ 【重派时必须带上【精确断点】, 不许让子 agent 重写已有的大文件】★★**: ★**main 本轮在 /tmp 副本上把 L619~L623 这 5 行 mask 掉 ⇒ py_compile 全文件干净 ⇒ ★★断点精确到 5 行** ⇒ ★★派活 brief 里写清「★文件已在盘 · 1414 行 · 只有这 5 行是散的散文 · 改成注释就编译通过 · 别重写★」⇒ ★**省掉子 agent 一轮「读 1414 行 → 找错 → 重写」** ★
+  ⇒ ★**⇒ 这是「半交卷」形态的处置细则: ★★不是「补缺」而是【续做】⇒ 任务书第一句必须是「你的第一个动作 = 修这 5 行, 不是重写整个文件」★** ★
+- ★★**★⇒ 判「0 产出」时, 必须排除【别的会话写的】: `state/fragments/sw.yaml` mtime 07:41 看着像本单产出, 实则是 ISS-221 那条会话写的 ⇒ ★★判据要用 `key: <iss-id>` 精确 grep artifact key, 不能用 mtime** ★
+- ★★**★⇒ 派活 job (fb67af40) 动 `issue_log.yaml` 有 precedent (★`state/_apply_20261116_0155_zombie215.py`★) ⇒ ★**但要区分三种形态: ① 真交卷只差推状态 ⇒ main 独立复核后落 `verified` (★本轮 ISS-229 属这类: HANDOFF 63194 B + 7 道闸全 rc=0 + 分片 07:49 ⇒ ★**它不是僵尸, 本 job 没碰它, 留给兄弟 job 775d9893 清账★**) ② 交付物在盘但跑不起来 ⇒ 退回 open 重派 + 带精确断点 (★ISS-236★) ③ 0 产出 ⇒ 退回 open 重派 + brief 按最新裁决重写 (★ISS-235★)** ★
+- ★★**★⇒ 顺序铁律本轮再次验证有效: ★★① 先落 `fixing` (★`advance.py --apply --only`★) ② 再 spawn ③ 再 `subagents list` 核对 (★本轮两 agent 各 1 条, 无重复★) ⇒ ★**窗口关闭, 下一轮 cron 不会重复派** ★
+
+### 【★★铁律 (★2026-11-16 10:1x 实测·僵尸 fixing 第 17 次复发·★【新死因: 上游 529 过载】★)】: ★**派活 cron 判"僵尸"时, 必须先看【死因类型】, 不止看"会话没了"★**
+- ★★**本轮实测 (cron fb67af40 队列自动派活)**: ★**ISS-237 (hw-lead) status=fixing, 但它的会话 `agent:hw-lead:subagent:da6572a5` (88c14231) 09:50:25→09:54:25 status=failed** ⇒ ★**死因 = 连撞 4 条 `overloaded_error (2064)/(529)` (★不是默认 8 分钟 timeout·不是 spawn 被 Aborted·不是 task 超时★)** ⇒ ★**⇒ 这是第 17 次僵尸 fixing, 但死因是【前 16 次没有的新变体】** ★
+- ★★★**★⇒ 判据升级 (★老铁律 "查两个 transcript" 之上再加一条★)**: ★**除了查【派活方 cron 会话】+【agent 会话】两边的结束事件, 还要【扫 agent 会话 transcript 里的 `stopReason":"error"` + `overloaded_error`】** ⇒ ★**因为 529 死掉的会话【不像 timeout 那样有明显的超时标记】, 只看 sessions 列表的 status=failed 会误判成"agent 干失败了自己退了" ⇒ ★★实际是【什么都没干】** ★
+  ⇒ ★**⇒ 配套判据: ★【零写盘】= 数 transcript 里的 tool_use 里【有没有写操作】(★本轮 22 条 assistant 消息全是 ls/md5sum/grep/官网 fetch, 一个写操作都没有★) ⇒ ★★再加一条【交付物逐字节复核】(★`HW/check_step1_parts_spec.py` 不在盘 · `HANDOFF/*ISS237*` 不在盘 · `HW/STEP1_PARTS_SPEC.md` mtime 仍 Nov 11 19:33★) ⇒ ★★两条都指向"那一轮等于没干"** ★
+  ⇒ ★★**⇒ 父 job 也可能一起死 (★本轮实测: 派它的 cron 775d9893 父会话自己在 09:53:51 就死于同一波 529 ⇒ transcript 最后三条全是 error★) ⇒ ★★⇒ 【没有任何在跑的会话会接手 ⇒ 只能由派活 job 自己重派】★★** ★
+- ★★★**★⇒ 处置范式 (★本轮照此执行·可直接复用★)**: ① **不新建 issue, 不重开** (★status 已是 fixing, 重开反而制造第二条在飞记录★) ⇒ ② **`state/dispatch_log.yaml` 追加一条续派记录** (flock + 锁内重读 + tmp/os.replace) + **`issue_log.yaml` 的 note 追加一段续派记录** (★status 不动★) ⇒ ③ **重派时带【精确断点】: "上一轮零写盘, 等于从零开始" + 受保护 md5 复核值 + "先写盘 → 再补自证 → 最后跑验收" 的顺序纪律 + 【抗 529 纪律】(★撞上 overloaded_error 就原地重试, 每拿到一个结论立刻写盘, 别攒到最后一起写★)**** ⇒ ④ **runTimeout 给 5400s (90 分钟)**, 绕开默认 8 分钟 spawn 超时 ★
+- ★★★**★⇒ 一条通用新教训 (★比单条 bug 更值钱★)**: ★**"子 agent 会话死了" 有四种死法, 处置前必须先分清, 否则会重派一个"其实已经干完一半"的活**: ① **8 分钟默认 timeout** (老毛病) ② **spawn 被 Aborted** (父会话先死) ③ **上游 529 过载** (★本轮新发现的第 4 种★ ⇒ 特征 = transcript 全是只读 + 一串 `overloaded_error`) ④ **task 超长/上下文溢出** (★MEMORY 里 11-12 12:5x 那次: 跑 1h53m 死在分析阶段★) ⇒ ★★**⇒ 每一种的"续做断点"写法完全不同 ⇒ 判死因必须在重派之前** ★

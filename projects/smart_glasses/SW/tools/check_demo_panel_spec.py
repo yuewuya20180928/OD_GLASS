@@ -491,6 +491,76 @@ R6_TREE_FILES = (
 # ★ 大文件走硬链接 (只读不改 ⇒ 安全); 跨文件系统失败 ⇒ 回退拷贝
 R6_HARDLINK = (os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb"),)
 
+# ---------------------------------------------------------------- selftest 落表单号改坏工具
+# ★★【ISS-235】必须定义在 R6_SELFTEST_CASES **之前** (模块级列表求值顺序) ★★
+def _break_current_landing_ticket(path: str, bogus: str = "ISS-999") -> None:
+    """★把落表台账里【当前的】落表单号改坏 ⇒ R6 必须红 (★ISS-235★)。
+
+    ★**不许硬编码任何单号** (★ISS-235 的根因: 原来这里写死 `"ISS-220"` ⇒ ISS-233 落表
+      (2026-11-16 06:48:38) 之后锚点单号已变成 ISS-233 ⇒ 改坏 ISS-220 不再影响判据 ④
+      ⇒ 这条自证就废了 (实测: selftest 15/16, 红的就是它)★)
+    ⇒ 当前单号从 **§1 锚点块** (`source_ledger.entries[].by`) **动态读出** ★
+    ⇒ ★**自带「我确实改到了目标」的断言** ★:
+      ① 锚点里登记的单号读得到 (读不到 ⇒ 用例本身坏了 ⇒ 直接失败)
+      ② 伪造单号不与锚点登记的单号撞 (撞了 ⇒ 用例本身坏了)
+      ③ 改坏后台账里**不再有**原单号 (⇒ 改坏真的生效)
+      ④ 改坏后台账里**有**伪造单号 (⇒ 改到的确实是那个单号)
+      ⑤ **锚点里登记的那个单号** == 被改掉的那个单号 (⇒ 不是随便拿一个 ISS-xxx 去改)
+    ⇒ ★锚点登记的【全部】落表台账位置都改 (★R6 是「任一处查到即算查到」⇒ 只改一处可能白改★)
+    """
+    work = os.path.dirname(os.path.dirname(os.path.abspath(path)))      # ← 临时树根
+    anchors, err = load_sw_anchor(work)
+    if anchors is None:
+        raise AssertionError("临时树读不到 SW 侧锚点 ⇒ 定位不到当前落表单号 (%s)" % err)
+    ledger_cfg = anchors.get("source_ledger") or {}
+    entries = list(ledger_cfg.get("entries") or [])
+    bys = sorted({str(e.get("by") or "") for e in entries if e.get("by")})
+    if not bys:
+        raise AssertionError("锚点 source_ledger.entries 里没有登记落表单号 (by) ⇒ 定位不到当前落表单号")
+    if bogus in bys:
+        raise AssertionError("伪造单号 %s 与锚点登记的单号 %s 撞了 ⇒ 用例本身坏了" % (bogus, bys))
+
+    # ---- 要改坏的落表台账位置: 锚点登记的**全部**位置 ----
+    targets: list[str] = []
+    for spec in (ledger_cfg.get("landing_records") or []):
+        if not spec:
+            continue
+        cand = os.path.join(work, spec)
+        if os.path.isfile(cand):
+            targets.append(cand)
+            continue
+        d = os.path.dirname(spec) or "."
+        b = os.path.basename(spec)
+        for hit in sorted(glob.glob(os.path.join(work, d, b))):
+            targets.append(hit)
+    if os.path.abspath(path) not in [os.path.abspath(t) for t in targets]:
+        targets.append(path)
+
+    hit_any = False
+    for tgt in targets:
+        with open(tgt, encoding="utf-8") as f:
+            text = f.read()
+        broken = text
+        for by in bys:
+            broken = broken.replace(by, bogus)
+        if broken == text:
+            continue
+        hit_any = True
+        with open(tgt, "w", encoding="utf-8") as f:
+            f.write(broken)
+        # ---- 自证: 我确实改到了目标 ----
+        with open(tgt, encoding="utf-8") as f:
+            after = f.read()
+        for by in bys:
+            if by in after:
+                raise AssertionError("改坏没生效: 原单号 %s 还在 %s 里" % (by, tgt))
+        if bogus not in after:
+            raise AssertionError("改坏没生效: 伪造单号 %s 不在 %s 里" % (bogus, tgt))
+    if not hit_any:
+        raise AssertionError("改坏动作没生效: 锚点登记的落表单号 %s 不在任何一个落表台账位置里 (%s)"
+                             % ("/".join(bys), ", ".join(targets)))
+
+
 # (用例名, 期望变红的规则前缀, 要改的盘上文件 (None = 不改盘), 文件改法, 锚点改法)
 R6_SELFTEST_CASES = [
     ("REV-9 盘上真源被换掉而锚点没换", "R6",
@@ -499,11 +569,11 @@ R6_SELFTEST_CASES = [
     ("REV-10 锚点改成台账里查不到的哈希", "R6", None, None,
      lambda a: a["source_ledger"]["entries"][0].__setitem__(
          "md5", "deadbeefdeadbeefdeadbeefdeadbeef")),
-    ("REV-11 锚点里的落表单号改坏 (ISS-220 → ISS-999)", "R6", None, None,
+    ("REV-11 锚点里的落表单号被改坏 (⇒ 当前值 → ISS-999)", "R6", None, None,
      lambda a: a["source_ledger"]["entries"][0].__setitem__("by", "ISS-999")),
-    ("REV-12 落表台账里的落表单号被改坏 (ISS-220 → ISS-999)", "R6",
+    ("REV-12 落表台账里的【当前】落表单号被改坏 (★动态取自 §1 锚点块 ⇒ 不许硬编码任何单号★)", "R6",
      os.path.join("HW", "SCHEMATIC_LANDING_V1_LANDED.md"),
-     lambda p: _replace_text(p, "ISS-220", "ISS-999"), None),
+     _break_current_landing_ticket, None),
     ("REV-13 把落表台账里那两行删掉", "R6",
      os.path.join("HW", "SCHEMATIC_LANDING_V1_LANDED.md"),
      lambda p: _drop_lines(p, "HW/netlist_v1.csv"), None),

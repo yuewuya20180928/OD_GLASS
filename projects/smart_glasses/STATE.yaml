@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-16T05:18:04+08:00'
+  generated_at: '2026-11-16T10:20:46+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,14 +9,14 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 243107
-      sha1: c8b0e8855a79
-      mtime_ns: 1794777238384138627
+      size: 269624
+      sha1: 6094aed4d89c
+      mtime_ns: 1794793285933388860
     mech-lead:
       file: mech.yaml
-      size: 292208
-      sha1: 78d331322676
-      mtime_ns: 1794772602087534777
+      size: 325372
+      sha1: edc0270bd2cb
+      mtime_ns: 1794786573875120486
     main:
       file: pm.yaml
       size: 67031
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1794773757854886745
     sw-lead:
       file: sw.yaml
-      size: 214752
-      sha1: 2aa56463971a
-      mtime_ns: 1794777172713080254
+      size: 218855
+      sha1: 84c13a8d2b31
+      mtime_ns: 1794789587068404286
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -1175,43 +1175,19 @@ domains:
   hw-lead:
     agent: hw-lead
     role: 硬件总工
-    updated_at: '2026-11-15'
+    updated_at: '2026-11-16'
     updated_by: hw-lead
     status:
-      phase: P3(画板前致命项清零)+PCB布线收官
-      progress_pct: 92
-      health: yellow
-      summary: '2026-11-06 周更新 (项目总工派, 本周唯一写会话窗口)。★**① ISS-181 布线轮实测 (官方板 md5 611b869e)**: unconnected
-        **45** / DRC **0** / 板↔网表逐焊盘等价 **482/482** / 零铜网 **24** / 差分单边零铜 **11** / Gerber **30** + 投产包
-        51 文件 ⇒ **G1 仍未开 (unc≠0), 不许投板**。★**② 本周三条真实推进 (都是实测, 不是推断)**: **(a) 0.0625mm 网格阶梯** (0.125 →
-        0.0625, margin 取半格 0.03125) ⇒ **unc 45→42** 且 **退铜名单 0 / 差分死腿 0 / 逐网孤岛不变多** (Δ 侧全达标) ⇒ ★**只差 DRC
-        12 条清零就能晋级** ⇒ **本周离可下单最近的一步**; **(b) v57 臂 (BTB 出脚线宽 0.20→0.15mm) ⇒ REJECT**: DRC 115 (108 条
-        track_width 是**板规则**红 0.2 vs 实际 0.15 + 7 条真 clearance) + unc 60 + 退铜 8 网 + 孤岛变多 17 ⇒ ★**单改线宽这条路判死**;
-        **(c) 根因定量**: SoM BTB 0.4mm pitch · 0.2mm 焊盘 ⇒ 间隙 0.200mm ⇒ 0.20mm 线 + 两侧 0.20 净距 = 需 0.600 >
-        0.400 pitch ⇒ **沿排方向物理穿不过去** ⇒ ★**自研 A\* 与 freerouting 2.1.0 两个独立引擎撞同一堵墙 ⇒ 物理约束, 不是算法问题** ⇒ 三条出路
-        (改布局/改封装/改工艺) 已登记 needs 请项目总工拍板。★**③ 本周最高价值产出: 证伪 STATE 里『RK3572 无官方 Brief Datasheet』那条高危阻塞**
-        —— 官方 datasheet **就在项目库里** (Rockchip RK3572 Rev 1.1, 47 页, md5 c0e3763036e2f6a3e8a2f68f2254851d)
-        ⇒ 证据等级 [媒体] → **[官方]** ⇒ 出 HW/RK3572_OFFICIAL_DATASHEET_FACTS.md (8 节) + 自证脚本 (rc=0, **22/22 断言命中**):
-        封装 FCCSP550L/14.3×15.5mm/**pitch 0.42·0.52·0.65mm 混合**/550球 (⇒ **ISS-128『pitch 未知只能 [推算]』前提作废**,
-        最小 0.42mm 落在 ≥0.4mm 可行区间 ⇒ 不需 HDI); 内存 **单通道 32bit** (⇒ 订正 CHIP_SHORTLIST_EVIDENCE 的 RK3576 216bit
-        误用); ISP **单通道 12M**/4096×3072 (⇒ **Q03 的『余量 1.9% vs 50.7%』两口径都不是 RK3572 的数**, RK3572 按官方像素能力算余量
-        **82.7%**); VO **DSI-1.2 + HDMI2.1 + eDP1.3(DP1.2 compliant) 都有** (⇒ **Q16 对 RK3572 = 两者都有**,
-        并打掉『RK3572 无 DP』那个 [媒体] 口径 ⇒ 『因为无 DP 要加桥接芯片』的推理链要重写; 但『能直插标准 DP 口』= [0数据], eDP 是嵌入式形态, 须查 SoM
-        引脚图); 电源域 Table 3-1 (p.39 渲染图核对) ⇒ **VCCIO1~6 max 3.63V** ⇒ ★**推翻我 11-02 那条『VCCIO1 属 1.8V only
-        ⇒ I2C_A 整条降 1.8V』** (根因: pdftotext 多行单元格错位) ⇒ **I2C_A 上拉 = 2.8V, 理由只剩 sensor 侧 abs-max 一条**; 散热
-        **官方热阻四行全 TBD** ⇒ **功耗账维持 [推算]** (别把找到 datasheet 误当成功耗有官方依据)。★**④ 逾期 issue 收口**: 逾期 13 条里 12 条已
-        verified (含 vr=pass 的 10 条) ⇒ 已按『verified→closed 需 verify_by 那侧写 verify_result=pass + verify_date』的规则,
-        全部写 **fixed/等 main 验** 或 **转 deferred 并写清新 due**, **没有一条自验自签**。★**⑤ 本周新增 5 条 needs** (ISS-181
-        三条出路 / 板规则+工艺参数拍板 / ISS-128 按 0.42mm 重算 / SoM IO 域映射 / BOM 生成器备料倍数)。★**⑥ 边界**: 未发邮件 / 未联系供应商 /
-        未放行 RFQ / 未下单; 未改 sw.yaml·mech.yaml·pm.yaml / 别人的 issue / SW/ / MECH/ / PROJECT_TRACKER.md 锁死变量表;
-        未改网表生成器与 BOM 生成器 (走 needs); 官方板**本窗口未动** (md5 仍 611b869e)。
-
-
-        ★【ISS-195 交卷 2026-11-15】麦 M1 到 S1 压紧螺钉孔的孔壁净空, 已按现行 60x30 板 / 套A 孔位复算并落文档: 净空 1.26mm (控制孔 S1) ⇒
-        PASS, 余量 +0.26mm (不重叠>0 / 板规则 0.25 / ISS-092 先例 1.00 三条全 PASS); 逐孔 P1 1.69 / S1 1.26 / P2 44.60
-        / S2 45.42; HW/ISS121_MIC_MAGNET_POSITION.md 8 处订正 (15mm 老口径 3.01mm 只留档), 交卷报告 HANDOFF/2026-11-15_hw-lead_ISS195_麦克风孔壁净空_套A复算.md;
-        ★新登记 needs iss195_mic_y_landing_decision (麦Y落位请 main 裁决: 中线Y=15.00 只有 0.55mm ⇒ 不许取); ★另发现盘上 iss121_mic_magnet_check.json
-        是过期件 (死会话改脚本未重跑) —— 本单已重跑对齐, 判定数字未变.'
+      phase: reviewing
+      progress_pct: 100
+      health: 绿
+      summary: '★ISS-236 交卷 (2026-11-16 09:3x~09:4x, hw-lead)★: 交付物 2 件全在盘 (★state/land_v_values.py 落表器
+        + HW/SCHEMATIC_FINALIZATION_CLOSEOUT.md 定稿收口清单★) · 三条反向自证全过 (★① dry-run 后盘上 5 个 md5 逐字节不变 ② --decision
+        V-3=E2 ⇒ rc=2 零写盘 ③ 在 /tmp/iss236_root 副本上真落 V-3=E ⇒ --expect-resolved 18 → 5 (少 13 条) 且 7 道门禁全绿
+        + 落完副本已回滚还原★) · 另加两条自证 (④ --apply 缺 --boss-decision ⇒ rc=2 ⑤ V-2=2 假绿档 ⇒ rc=2) · 8 条验收命令逐条实跑 (rc=0
+        / selftest 21/21 / expect-resolved rc=1 18 条 / 四道尺子 rc=0 / merge+gate_check rc=0 Q1 18/18) · ★盘上一个
+        V 值都没落 (真盘 DEMO_DNP 三行仍在 L319-321 · 1M ±1% 仍在 · 台账无 §16)· 板一个字节没碰 · 零外发 ⇒ 实物 [实测] = 0 条★ · 4 条
+        need 已登记 (boss 拍板 / main 派板那一趟 / sw-lead H-1 / mech-lead H-1)'
     artifacts:
     - path: HW/HARDWARE_BREAKDOWN.md
       kind: breakdown
@@ -1770,6 +1746,96 @@ domains:
       summary: '★ISS-217 交卷报告 (B1~B6 齐全)★: B1 结论摘要 (11 组逐条 + 8 条附带发现落点 + 3 项补差) / B2 验收标准自评 (通过 8 · 未验
         6 · 不通过 0) / B3 证据分级 (6 份一手官方件) / B4 接口取值声明 (3 条口径 claim) / B5 未决 8 条 (V-1~V-8, 全 to main) / B6
         自证复现命令; ★零外发 + 实物[实测]=0 条 + 受保护 md5 逐字节不变★'
+    - path: HW/SCHEMATIC_LANDING_V1_LANDED.md
+      kind: note
+      version: '2.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-223 落表第2批记录: §10 逐条落表 (d5 + 补差A 值迁移 + F-1~F-5 就地修) / §11 V-3 可判化 (RK3572 SARADC 官方参数自查
+        + 误差算式 + 推荐 E 方案 + 4 条降级) / §12 板侧 B-1~B-8 / §13 md5 前后对照 / §14 复现命令'
+    - path: HANDOFF/2026-11-16_hw-lead_ISS223_落表第2批与分片补落.md
+      kind: note
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-223 交接单 B1~B6: 结论摘要 / 验收自评 15 条 / 证据分级 / 3 条 interface_claims 补落 / 11 条卡点 / 复现命令'
+    - path: state/calc_v3_batdet.py
+      kind: note
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: V-3 误差预算自算脚本 (公式口径 = SW/tools/timing_check.py F4, V_FS 订正为 1.8V 域) ⇒ 5 个方案 × 漏电扫描 5 点 ×
+        C_in 扫描 3 点 ⇒ 可复现
+    - path: HW/SCHEMATIC_LANDING_BATCH3_WORKPACKET_V2.md
+      kind: workpacket
+      version: v2.0
+      updated_at: '2026-10-25'
+      summary: '第3批落表作业包v2: V-2/V-3/V-4 每个选项的逐字改法 (文件+行+旧值+新值) + 影响面 + 板侧连带项 + 量化代价 + 换选项要不要重做; V-3 覆盖方案E
+        + ISS-223 §11.4 的4条降级 (各写到落到网表哪一行/哪个字段); 3个建议默认值已在一次性副本实跑'
+    - path: HW/check_chg_spec7_vs_netlist.py
+      kind: tool
+      version: v1.0
+      updated_at: '2026-10-25'
+      summary: '§7 CSV 合法性体检 + §7↔网表双向差集清单 (只读): 41/40/交集25/16/15 逐条给该§7补/该网表补/该改名/该归板/该留白的处置建议; 并写清本单没做双向对账的原因'
+    - path: HANDOFF/2026-11-16_hw-lead_ISS232_板网表焊盘级等价2处多余定位.md
+      kind: note
+      version: '1.0'
+      updated_at: '2026-11-16'
+      summary: 'ISS-232 交卷: 板↔网表焊盘级等价红的那 2 处多余的根因 = 板侧陈旧 (不是网表写法错; 任务书的裸端/编号脚推断实测被证伪) + 网表侧无修法 + 板侧 B-1
+        逐字修法与连带项 + 五变体实跑证据 + 顺带收 ISS-228 的 VCCIO1_VCC 勘误'
+    - path: HANDOFF/2026-11-16_hw-lead_ISS233_21条未落表归因与拍板即落清单.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-233 交卷: 21 条未落表逐条归因 (A=3 / B=14 / C=4) + A 类当场落表 (R3 网表侧 3 条, 21→18) + V-2/V-3/V-4
+        拍板即可一键落的逐字清单 (三节九维齐) + 两条反向自证 (旧脚本+旧数据 ⇒ 回基线+21 条; 新脚本+旧数据 ⇒ 守卫红 5 条+21 条)'
+    - path: HW/SCHEMATIC_LANDING_V1_LANDED.md
+      kind: landing-ledger
+      version: v1
+      updated_at: '2026-10-25'
+      summary: ★§15 = ISS-233 落表记录 (单号 + 逐条改前改后 + 锚点同步 + 反向自证 + 新旧 md5 对照 + 复现命令)★; §10~§14 = ISS-223
+        第 2 批 (未动)
+    - path: HW/NETLIST_SELF_CONSISTENCY_SPEC.md
+      kind: spec
+      version: v1
+      updated_at: '2026-10-25'
+      summary: ★§5.4 = ISS-233 的 d3 网表侧落表状态 (新增)★ + §1 第(3)条的现状逐字改成落表后 + §2 的 ★(3)★ 行 + §5.3 的 d3 行改成『部分落表』;
+        锚点表整块用 --emit-anchors 重生成 (160 条一条未减)
+    - path: HW/netlist_v1.csv
+      kind: landing
+      version: v1
+      updated_at: '2026-10-25'
+      summary: ★L442 = U_EN_SW 器件本体行 (type NET→IC · value → TPS22991RAA 器件身份描述 · note → 本体行+4脚功能+F13理由+ISS-172指针)★
+        (513 行不变, 只 1 行变; 新 md5 34132f7e…)
+    - path: HW/NETLIST_SELF_CONSISTENCY_SPEC.md
+      kind: spec
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: '★ISS-214 二次独立复核 (2026-11-16 07:3x): 规格页加『受保护 md5·现行值』基线行 + 新增 §5.5 (ISS-223 落表状态: d5/#1
+        已落, V-1 已关闭) + §5.5.2 (8 条 × 当前落表状态一览) + §5.3 两行 supersede 指向 + §13 的 V-1 标已关闭 + §10 头加『①现状=定性时原文』提示★'
+    - path: HANDOFF/2026-11-16_hw-lead_ISS214_网表一致性第2轮与3条待裁自查.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: '★追加 B7 二次独立复核: 交付物 4 件在盘 + 门禁 rc=0 / selftest 21/21 / expect-resolved rc=1 (18 条) + 规格页
+        3 类账漂移已修 + 8 条当前状态表 + md5 现行值 + 2 条 need 给 main (md5 基线台账 / ISS-236 零产出)★'
+    - path: state/land_v_values.py
+      kind: tool
+      version: '1.1'
+      updated_at: '2026-11-16'
+      summary: ★参数化 V 值一键落表器 (默认 dry-run · --apply 强制 --boss-decision)★ · 白名单写死 V-3{E,A,D,DEG4} / V-4{680,470,390}
+        / V-2{1,2} · 干跑打逐字 diff (文件+行号+旧值+新值, 行号与 ISS-233 §3 的 L 号一致) + 预期 --expect-resolved 变化 + 台账/锚点清单
+        + H-1 重锚名单 · 落表前备份 + 失败自动回滚 (--rollback) · 落表后 7 道门禁实跑 + 新 md5 打到 stdout · 本单定点修了 5 处落表单号 (ISS-235→ISS-236)
+        + 1 处干跑行号定位 (ctx 锚点行 → 真正要改的行)
+    - path: HW/SCHEMATIC_FINALIZATION_CLOSEOUT.md
+      kind: breakdown
+      version: '1.0'
+      updated_at: '2026-11-16'
+      summary: '★原理图定稿收口清单★: 18 条未落表逐条 (CR-01~CR-18 · 条目 id + 阻塞原因 + 解锁动作 + 责任方 + 落表后期望条数) + 板侧 B-1~B-8
+        (只列·标明排队等原理图定稿) + V-2/V-3/V-4 三值选项与代价 (照抄 ISS-233 §3) + 结尾一行【还差什么才能定稿】的总数 (老板 3 个值 → 板那一趟 4 条
+        → 18→0)'
+    - path: HANDOFF/2026-11-16_hw-lead_ISS236_一键落表器与定稿收口清单.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-11-16'
+      summary: ★ISS-236 交卷单 (B1~B6 六块齐全 + 三条反向自证的实跑输出 + 8 条验收命令实跑输出)★
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2944,14 +3010,32 @@ domains:
         IO domain / VCCIO 分组表, 或 BSP rk3572.dtsi 的 io-domains / pinctrl rockchip,pins 里的 VCCIO 网名 => 这条不核,
         U2 最终改法不能定稿 (due 11-03)。'
       since: '2026-11-02'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: sw-lead
+        value: '【已交付·2026-11-16·sw-lead·零外发】RK3572 GPIO0→VCCIO 官方映射核出来了, 但结论比 need 问的更关键: ①【勘误1】本板 I2C_A
+          走 I2C5_M3 即 GPIO3_C4 球 AH33 与 GPIO3_C1 球 AL33, 不是 need 说的 I2C0/GPIO0_B0 球1K21 与 GPIO0_B1 球U32
+          —— 那两根球位本板 SoM 根本没引出, 实读 SoM 表命中 0 条 ⇒ need 里那条 3.3V/2.8V 超 SoC 侧 abs-max 因而整条 I2C_A 要重新设计 的推论链不成立;
+          ②【勘误2】VCCIO1_VCC 属 1.8V only max 1.98V 是错的 —— VCCIO1_VCC 与 PMUIO1_VCC 及 VCCIO1~6 同属 1.8V/3.3V
+          档 max 3.63V; 1.8V only 档只有 PMUIO0_VCC1V8 与 VCCIO0_VCC1V8; ③【正面回答】datasheet §2.6 引脚表本身按 IO 供电域分组排,
+          每组末尾跟该组供电网名 ⇒ 不需另找 bank→VCCIO 表; 本单用该规则 + Forlinx 官方手册三条交叉验证 (JTAG_TCK_M0 与 TMS_M0 属 VCCIO1;
+          JTAG_TCK_M1 与 TMS_M1 属 PMUIO1; SDMMC0 六脚属 VCCIO1) + 机器反证 (109 可比球位 108 一致) 三重独立验证 ⇒ 结论成立; ④
+          GPIO0 被劈成两组: GPIO0_A0..B3 属 PMUIO0_VCC1V8 即 1.8V only abs-max 1.98V; GPIO0_B4..D5 属 PMUIO1_VCC
+          即 1.8V/3.3V abs-max 3.63V ⇒ 把 GPIO0 映射到某一个 VCCIO 组 这个提问方式本身是错的; ⑤【落表判据串】B-01/B-02 的 imp 为 上拉
+          2.2k 到 1.8V 即 RAIL_VDD_1V8_IO 灌 0.64mA 电压 0.4V t_r 186ns@100pF 与 559ns@300pF; level 为 1.8V ——
+          与 ISS-220 第 1 批已落表值完全一致, 不需改值, 只需把 d1 的依据从待核改成官网 1.8V, 出处为 Forlinx OK3572-C 手册 §2.6.2 Table
+          4 逐字 P2_31 AH33 I2C5_SCL_M3 GPIO3_C4_d 1.8V; ⑥【AR0234CS 额外结论】若整板换 AR0234CS, VDD_IO 应走 1.8V 而非
+          2.8V: VIH=0.7x1.8=1.26V, 1.8V 上拉够; 且 onsemi Note 19.2 规定 VDD_IO 与 VDDIO_PHY 在都是 1.8V 时可并轨, 可顺带解掉
+          VDDIO_PHY 缺一条 1.8V 轨 那条硬伤 ⇒ 零新增器件; ⑦【剩余 0数据】SoM 侧 VCCIO 供电轨网名仍无 ⇒ 已落降级方案 D-3 即不许自己编网名, 已锁死.
+          产出: SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md 与 SW/tools/check_rk3572_vccio_domain.py, 门禁 C1~C8
+          通过且 selftest 16/16. 板端实测 0 条, 零外发, HW/ 与 MECH/ 一个字节没动, issue_log 未自签.'
+        ref: SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md
       foreign_answers:
       - by: hw-lead
         value: '★**这条不用查了 —— 我在官方 datasheet 里查到了, 而且推翻了我们之前的推断**。官方 Table 3-1 (p.39) 的分组 (★**渲染图核对, 不是扁平文本猜**
@@ -3530,6 +3614,355 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss223_board_sync_8_items
+      to: main
+      item: '板侧同步清单 8 项 (落表记录 §12 的 B-1~B-8): C_VBUS_GND 封装归属 / U_EN_SW 板封装 Value / ESD 换 3 脚封装 / ESD
+        挪到 ≤3.0mm / D- 侧补 ESD / 充电板 π 滤波拓扑 / B-7 d5 不进清单(网表追平板) / B-8 若 V-3 拍方案 E 则 R_BAT_DET_1/2 阻值要改
+        ⇒ 必须并进板只改一次那一趟'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss223_skin_temp_recompute
+      to: mech-lead
+      item: '充电时皮肤侧温度必须重算: 原 42.14°C 是按错的 0.822 系数算的 (单 pin 0.411A); 按 1.216 系数电芯内阻发热 114mW 升到 148mW ⇒
+        ISO 13732-1 的 43°C 红线还没有可信判据 ⇒ 请用 MECH/HINGE_POWER_CALC.md 重算 (ISS-091 地界)'
+      since: '2026-11-16'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: mech-lead
+        value: '已按改正后的系数重算并落盘 (ISS-229): **ICHG/IIN = η·Vbus/Vbat = 0.90×5.0/3.70 = 1.216216 ⇒ 1.216**
+          (@Vbat 4.20V ⇒ 1.071; 主口径取最坏 1.216), 旧 0.822 = 1.216 的精确倒数 ⇒ 作废留痕。★max 档 1oz 皮肤侧 = 300Ω **61.4**
+          / 390Ω **50.6** / 470Ω **45.8** / 680Ω **40.1** / 1.2kΩ **36.7** °C ⇒ **活档 = 680Ω / 1.2kΩ**;
+          单 pin max = 0.790 / 0.608 / 0.505 / 0.349 / 0.198 A ⇒ **390Ω 与 470Ω 档超 0.5 A 触点额定**; TS 偏移 =
+          1.46 / 1.13 / 0.93 / 0.65 / 0.37 °C ⇒ **留 1 °C 裕量只在 680Ω / 1.2kΩ 成立**; 充电时间 (400 mAh 仅 CC 段)
+          = 15 / 20 / 24 / 34 / 61 min ⇒ **原 42.14 °C (按 0.822 算) 已作废 ⇒ 无有效数字**。★[推算] 板端 [实测] = 0 条。复现:
+          python3 MECH/hinge_power_calc.py (rc=0)'
+        ref: HANDOFF/2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md §B4.2 + MECH/HINGE_POWER_CALC.md
+          §0-A.1
+      foreign_answers: []
+    - key: iss223_sw_vdet_fs_domain_fix
+      to: sw-lead
+      item: 'SW/tools/timing_check.py 的 DEVICE[V_DET_FS]=3.3 对 BAT_DET 链是错的: BAT_DET 走 J_SOM_P1 pin38=SARADC_VIN5
+        = 1.8V 域 ⇒ SW 算出的漏电偏移占满量程偏小 1.83 倍 (3.3/1.8) ⇒ 请按 1.8V 域订正 (本单只报不改, SW 地界)'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss223_chg_spec7_csv_not_valid
+      to: sw-lead
+      item: HW/CHARGE_BOARD_SPEC.md 第7节的 CSV 块有一行 (U_CHG, L530) 的 note 里逗号未加引号 ⇒ board 列被解析成 0.8mm max
+        height ⇒ 第7节这个 CSV 块本身不是合法 CSV ⇒ 7.1 的对账表不能直接用 ⇒ 请在充电板整页那一趟修
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss230_row_shift_false_green
+      to: main
+      item: '落表那趟必带: 行号漂移会造假绿 —— V-2 落表后有4条锚点 (d11_led508_board/d11_led509_board/d2_b307_dnp/d2_b309_dnp)
+        换了行照样绿, 门禁不会提醒 ⇒ 必须把整组行号逐条改对, 不能只看门禁红不红; 新行号见作业包 §3.1 的 A 表'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss230_demo_battery_semantics
+      to: main
+      item: 'demo 板装不装电池: gen_netlist.py 的 DEMO_DNP 原始理由就是 demo不装电池⇒电池侧那套一律DNP ⇒ V-3 落表成必装等于改了 demo 的产品语义
+        ⇒ 落表那趟要么同时确认, 要么把 DEMO_DNP 改成只对demo生效的开关而不是直接删行'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss230_chg_spec7_reconcile_deferred
+      to: main
+      item: §7↔网表的双向对账仍没做 (两个版本, 起点不成立) ⇒ 对账+改网表归充电板整页那一趟 (真源=state/p10_rows.json); 本单已把16/15差集清单化并给了处置建议,
+        可直接当那趟的输入清单
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss230_skin_temp_void_marked
+      to: mech-lead
+      item: PCB_OUTLINE_60x15.md L149/L190 的 42.14°C (及同句 47.07°C) 已由本单标成作废 (口径 0.822 方向反了) + 指向 MECH/HINGE_POWER_CALC.md
+        ⇒ 新温度数仍归 ISS-229, 本单没写一个新数 ⇒ V-4 建议默认值 680Ω 在 ISS-229 出数后要复核一次
+      since: '2026-11-16'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: mech-lead
+        value: '你标的作废成立, 且 ISS-229 已交叉核对并给出新数: 42.14 °C / 47.07 °C **无有效数字** (按作废系数 0.822 算) ⇒ 现行 = **390Ω
+          max 皮肤侧 50.6 °C ❌** (超 43 °C 红线 7.6 °C) + **单 pin 0.608A ❌** (超 0.5 A 触点额定 21.6%) ⇒ 390Ω 档在改正口径下判
+          FAIL; 同句的充电时间 ~29.20min / 典型 32.08min 同样出自作废表 ⇒ 新值 **~19.7min / ~21.7min** (400 mAh 仅 CC 段);
+          O-4 行 TS 偏移 0.44-0.99 °C ⇒ 新值 390Ω max **36.5 mV = 1.13 °C** (留 1 °C 裕量只在 680Ω/1.2kΩ 成立)。★**680Ω
+          复核**: max 1oz 皮肤 **40.1 °C ✅** (余 2.9 °C) + 单 pin **0.349A ✅** (余量 1.43×) + TS **0.65 °C ✅**
+          ⇒ 与你 11-01 的 `chg_rilim_recommended`=680Ω 一致 ⇒ 建议默认值仍 680Ω (电芯若 ≤1C 则退 1.2kΩ); ★**V-4 由 main/老板拍,
+          本单不代拍**; 另建议把 `HW/PCB_OUTLINE_60x15.md` §3.4 表 / L149 充电时间 / §4.2 O-4 行这三处旧数按新表订正 (已登记 need)。'
+        ref: HANDOFF/2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md §B4.2 §U-2 + MECH/HINGE_POWER_CALC.md
+          §0-A.1
+      foreign_answers: []
+    - key: iss232_board_b1_stale_footprint
+      to: main
+      item: 'C1 焊盘级等价红的 2 处多余 = 板侧陈旧: demo 主 PCB 上还留着 ISS-220 (d11/#5) 已改判 CHG_BOARD 的 C_VBUS_GND 封装 (板
+        186 封装, 差集恰好 = [C_VBUS_GND]) ⇒ 真修法 = 板侧同步项 B-1: 重跑 state/gen_pcb_netlist_board.py 即自动消失 (板生成器按
+        board 列过滤) ⇒ 本单不许碰板 (板 md5 611b869e… 逐字节不变) ⇒ 派板那一趟必须带: ① HW/check_netlist_selfconsistency.py
+        的 d11_board_cvbgnd_pads / d11_board_cvbgnd_pad2 两条锚点同步改 + 规格页 HW/NETLIST_SELF_CONSISTENCY_SPEC.md
+        的锚点表逐字同步 ② HW/SCHEMATIC_LANDING_V1_LANDED.md §4/§12 记落表单号 + 新旧板 md5 供 SW/MECH 走 H-1 ③ 不许走网表侧那条路
+        (board 改回 MAIN_PCB) = 假绿 (实测自证门禁 d11_a10_board + d11_a12_board 红, --expect-resolved 21 → 24)'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss232_no_netlist_change_anchor_ok
+      to: sw-lead
+      item: ISS-232 交卷结论 = 网表侧一条都没改 ⇒ 网表 md5 仍是 3215020b6d4120e1b7728227effdc6d3, 脚表仍是 a600afae… ⇒ SW/SW_MD5_BASELINE_LEDGER.md
+        §1 source_ledger 的两条网表/脚表锚点这一轮【不用动】(你 R-04 里预留的 ISS-232 落表重锚不触发) ⇒ 但板侧 B-1 那一趟板 md5 会变 ⇒ 你的 hard_protected[]
+        (板 611b869e… / .kicad_pro 3e504d2b…) 必须走 H-1 重锚 (落表单号 + 文件名 + 新旧 md5 四项齐全 + §3 留痕) ⇒ 本单没动 SW/
+        一个字节, 只登记
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss232_mech_anchor_after_b1
+      to: mech-lead
+      item: ISS-232 交卷结论 = 网表侧没改 ⇒ MECH/HW_CROSS_REVIEW_TRIAGE.md §1 source_ledger 的网表锚点 (R-02, by=ISS-223,
+        3215020b…) 这一轮不用动 ⇒ 但板侧 B-1 (拿掉 C_VBUS_GND 封装) 那一趟板 md5 会变 ⇒ G5b 的 8 个受保护文件组 (含板 611b869e… / .kicad_pro
+        3e504d2b…) 必须走 H-1 重锚 + §3.1 留痕 (与 R-02 同款) ⇒ 本单没动 MECH/ 一个字节, 只登记
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss233_sw_md5_reanchor
+      to: sw-lead
+      item: 'ISS-233 落表 (R3 网表侧 A 类) ⇒ 网表 md5 3215020b6d4120e1b7728227effdc6d3 → 34132f7e40a241e1fae1476be0eafbd5,
+        脚表 a600afae493f5a7a6c55f46ad35ac89c → b21b743a7702d30729f0d653c15392df ⇒ SW/SW_MD5_BASELINE_LEDGER.md
+        §1 entries[] 里 HW/netlist_v1.csv 与 HW/netlist_v1_pins.csv 两条锚点要按 H-1 重锚 (落表单号 = ISS-233 · 文件名
+        · 新 md5 · 旧 md5 四项齐全) ⇒ SW/tools/check_demo_panel_spec.py 的 R6/R7 会按 §1 复核 ⇒ 不重锚就恒红 ⇒ 依据: HW/SCHEMATIC_LANDING_V1_LANDED.md
+        §15.4 (ISS-233 的 md5 前后对照) + 交接单 HANDOFF/2026-11-16_hw-lead_ISS233_21条未落表归因与拍板即落清单.md §3.1④⑤ ⇒
+        本单没动 SW/ 一个字节 (只登记 need)'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss233_mech_md5_reanchor
+      to: mech-lead
+      item: 'ISS-233 落表 (R3 网表侧 A 类) ⇒ 网表 md5 3215020b6d4120e1b7728227effdc6d3 → 34132f7e40a241e1fae1476be0eafbd5,
+        脚表 a600afae493f5a7a6c55f46ad35ac89c → b21b743a7702d30729f0d653c15392df ⇒ MECH/HW_CROSS_REVIEW_TRIAGE.md
+        §1 source_ledger.entries 的网表/脚表两条要按 H-1 重锚 (落表单号 = ISS-233 · 文件名 · 新旧 md5) + §3.1 新增一行留痕 (与 R-02
+        同款: 谁改的 / 哪个单号 / 新旧 md5 / 复现命令) ⇒ MECH/check_demo_struct_truth.py 的 G5b + C21 回绿 ⇒ 依据: HW/SCHEMATIC_LANDING_V1_LANDED.md
+        §15.4 (C21 台账对账要求四项在落表台账里可查) ⇒ 本单没动 MECH/ 一个字节 (只登记 need)'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss233_board_dnp_marking
+      to: main
+      item: '★板侧新发现 (只报, 本单不许碰板)★: HW/PCB/demo_mainboard.kicad_pcb 里 exclude_from_* / (dnp …) / (attr
+        …) 实测 0 处 ⇒ 网表里 board=MAIN_PCB 且标 DNP 的真实器件约 41 颗 (R_BAT_DET_1/2 · C_DET_BAT · U_BATPROT · BT_432243
+        · Q1/Q2 · U_SUPV · U_DCDC_* · U_LDO_* · X1 · J_BOOT1 · TP_BAT …), 板上看不出任何件是『不装』 ⇒ 装配/贴片按板上位置全贴
+        ⇒ 必须并进『板只改一次』那一趟 (与 B-8-新 同一类; V-3 若拍方案 E, C_DET_BAT 也要一起说清) ⇒ 依据: 本单实跑 grep -c ''exclude_from|(dnp
+        |(attr '' = 0 + netlist 的 dnp 列统计 ⇒ 受保护 md5 (板 611b869e… / .kicad_pro 3e504d2b…) 逐字节不变'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss233_v3_demo_battery_semantics
+      to: main
+      item: '★V-3 落表前必须先定的产品语义 (ISS-223 F-1 已登记, 本单不代拍)★: state/gen_netlist.py 的 DEMO_DNP 原始理由是 『demo
+        主板用 Type-C 供电 ⇒ 不装电池 ⇒ 电池侧那套一律 DNP』 ⇒ 把 R_BAT_DET_1/2 + C_DET_BAT 改成必装 = 宣称 demo 板要装电池 / 或这链在
+        demo 上是空焊盘但要预留 ⇒ ⇒ 落表那趟要么同时确认 demo 的电池语义, 要么把 DEMO_DNP 改成『只对 demo 生效的开关』而不是直接删行 ⇒ 归 main 拍, 不归本单
+        ⇒ 详见交接单 HANDOFF/2026-11-16_hw-lead_ISS233_21条未落表归因与拍板即落清单.md §3.1⑤ 的 B-8-新2'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss214_md5_baseline_drift
+      to: main
+      item: '★受保护 md5 基线台账过期★: 本单 brief 里的网表 c78f9912… / 脚表 4814617e… 已被 main 授权的 ISS-233 落表 (2026-11-16
+        06:48, 网表 L442 + 脚表 L531 + BOM L208) 合法取代 ⇒ 现行值 = 网表 34132f7e40a241e1fae1476be0eafbd5 / 脚表 b21b743a7702d30729f0d653c15392df
+        (板 611b869e… 与 .kicad_pro 3e504d2b… 逐字节不变) ⇒ 以后派单模板的受保护 md5 必须取『上次落表后的现行值』, 否则每轮都会假红一次 ⇒ 依据: HW/SCHEMATIC_LANDING_V1_LANDED.md
+        §15.4 + 本单 07:3x 实跑 md5sum'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss236_zero_output_check
+      to: main
+      item: '★ISS-236 (hw-lead 名额, 07:2x 派活) 盘上零产出★: 本单 07:3x 实测 07:20 之后 HW/ state/ HANDOFF/ 除 main 自己的
+        apply 脚本与 dispatch_log 外无任何新产出 ⇒ 若该子会话已死, hw-lead 名额会像 11-15 那轮一样卡在 fixing ⇒ 请 main 查子会话状态 (本单不碰
+        issue_log, 只报事实)'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss236_boss_v_decision
+      to: boss
+      item: '★老板拍 V-2 / V-3 / V-4 三个值 (拍板码 A1 = V-3 · A2 = V-4 · A3 = V-2)★ ⇒ 落表器 state/land_v_values.py
+        已经备好, 拍完给一张 ''--boss-decision "<日期> <A1|A2|A3> = <值>"'' 凭据就能一条命令落进网表/脚表/BOM + 落表台账 + 门禁锚点 ⇒ ★**不拍
+        ⇒ 原理图不能定稿 (--expect-resolved 18 条永远红)★** ⇒ 依据: HANDOFF/2026-11-16_hw-lead_ISS236_一键落表器与定稿收口清单.md
+        §3 (照抄 ISS-233 §3) + HW/SCHEMATIC_FINALIZATION_CLOSEOUT.md §3.4 · ★本单不代拍, --apply 缺凭据就 rc=2 拒绝执行
+        (机器化保证)★'
+      since: '2026-11-16'
+      state: waiting_external
+      target_missing: false
+      waiting_on: boss
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss236_board_batch
+      to: main
+      item: '★派「板只改一次」那一趟时必须带齐板侧 8 项 (★B-1 C_VBUS_GND 封装从 demo 主 PCB 拿掉 / B-2 板封装 U_EN_SW 的 Value 属性改成器件身份描述
+        (R3 判据) / B-3 D_ESD_USB_D 从 2 脚换 3 脚封装 / B-4 把 D_ESD_USB_D 挪到 J_USB_C 旁 ≤3.0mm (现距 47.99mm, 布线必须重跑,
+        必须与 B-3 同趟) / B-5 USB D− 那条路上补 ESD / B-6 充电板 π 滤波的位号与拓扑 (归 V-7) / ★(B-7 已结·d5 是网表追平板·不进清单)★ /
+        B-8 若 V-3 拍方案 E ⇒ 板侧 R_BAT_DET_1/2 阻值 1M→100k/60k★) + B-8-新 (C_DET_BAT 的 DNP 标记) + B-9 (ESD 焊盘
+        net 归属换到 Type-C 侧) + B-10 (阻值/DNP 属性·无封装变更)★ ⇒ ★**这 4 条门禁 (CR-14 / CR-15 / CR-16 / CR-17) 只能板那一趟转绿**★
+        ⇒ 依据: HW/SCHEMATIC_FINALIZATION_CLOSEOUT.md §2 (逐字照抄 HW/SCHEMATIC_LANDING_V1_LANDED.md §12) ·
+        ★本单没碰板 (受保护 md5 逐字节不变)· 按老板 11-11 10:07 口径 PCB 布线/布局类不派, 排队等原理图定稿★'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss236_h1_reanchor
+      to: sw-lead
+      item: '★V 值真落之后走 H-1 重锚★: SW/SW_MD5_BASELINE_LEDGER.md §1 entries 的 HW/netlist_v1.csv / HW/netlist_v1_pins.csv
+        两条 (★+ BOM 那条若台账里有★) ⇒ 四项 (★落表单号 ISS-236 + 文件名 + 新 md5 + 旧 md5★) 要填, 且四项在 HW/SCHEMATIC_LANDING_V1_LANDED.md
+        §16.2 里可查 (C21 台账对账) ⇒ ★**V-3=E 落表后的实测新 md5 (在 /tmp 副本上实跑): 网表 cb477b37aa0d3ae36ed359d4b96c16a7
+        / 脚表 b65d200080ba9abbf4c6589584546ac8 / BOM 1119c2a860c273833adaaf21af09d953 (旧 34132f7e… / b21b743a…
+        / c195a117…)★** ⇒ ★**本单没动 SW/ 一个字节 (只登记 need)★**'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss236_h1_reanchor_mech
+      to: mech-lead
+      item: '★V 值真落之后走 H-1 重锚★: MECH/HW_CROSS_REVIEW_TRIAGE.md §1 source_ledger.entries 的网表/脚表两条 + §3.1
+        留痕新增一行 (★谁改的 / 哪个单号 / 新旧 md5 / 复现命令★) ⇒ 四项 (★落表单号 ISS-236 + 文件名 + 新 md5 + 旧 md5★) 要填 ⇒ MECH/check_demo_struct_truth.py
+        的 G5b + C21 回绿 ⇒ ★**本单没动 MECH/ 一个字节 (只登记 need)★**'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -3911,101 +4344,12 @@ domains:
     updated_at: '2026-11-16'
     updated_by: sw-lead
     status:
-      phase: P2(方案设计)
-      progress_pct: 70
-      health: yellow
-      summary: '11-02 晚: 交出 ISS-147 构建环境恢复单 (SW/RKNN_BUILD_ENV_RECOVERY.md, 只恢复环境+核 P0-1+给模型建议, 不写 demo
-        代码)。★★核心结论 (P0-1 已闭合): rk3572 不是任何已发布版 rknn-toolkit2 的合法 target_platform —— 2.3.2 与最新 2.5.0 的
-        config(''rk3572'') 均抛 ValueError: Invalid target_platform ''rk3572''! (rk3576 返 0), 源码/二进制/官方
-        README 三处均无 rk3572 ⇒ ★ISS-145 的 M1 (直接复用 A7S .rknn) 前提不成立, 必须重转; 替代路线 = target_platform=''rk3576''
-        (RK3572 与 RK3576 同代同架构, 但 4 vs 6 TOPS 算力不等) —— 推算, 待板端验证。工具链已在本机恢复 (conda env ~/miniconda3/envs/rknn,
-        与 rknn_bench.py 硬编码路径一致, 仓库脚本零改动可跑), 转换链四步全 rc=0 实测跑通; 源 ONNX 从官方 yolov5 v6.0 权重重建, 算子直方图与台账丢失那张逐个一致;
-        ★**3 个模型精度都实测了 (300 张 COCO): yolov5s F1 0.3017 vs yolov5n F1 0.2927, 差距仅 0.0090 (推翻 ISS-145 引用的''少
-        4 点 mAP50'') ⇒ 建议 demo 第一版用 yolov5n (60ms 余量最大 + 误检少 + 产物小一半), 代价是召回低 0.0291 需眼镜场景实拍验证。★记录 2 个会静默出错的坑:
-        3 路 head 输出名必须改名 354/498/646 (否则 step_cut 失败); rknn_bench.py 的 cut 模型缓存不失效 ⇒ 换权重重测会跑出上一个权重的数字
-        (本单实测两次结果逐字节相同)。仍 yellow 的原因: 板子 Radxa A7S 192.168.2.5 不可达 (ssh No route to host + ARP FAILED)
-        ⇒ P0-2 板端 librknnrt 版本号 + 板端实测 S5 两项无法闭合; §6 留 18 条待核, 没用推断冒充事实。 ★ISS-157 (2026-11-02 23:3x) 已修:
-        rknn_bench.py 的 cut 模型缓存键**改为含模型指纹** ⇒ 换权重自动失效 (修前会静默跑出上一个权重的数字, 且不报错); 输出新增「本次权重 + 缓存 HIT/MISS」打印
-        + 多指纹自检; 实测验收: 同权重两次结果完全一致 / 换权重结果必须不同 (修前是坏的, 现已变绿); 两个模型 F1 已重测 (yolov5s 0.3017 / yolov5n 0.2927)。
-        ★ISS-137 rev1 复验 (11-11 00:2x): 技术内容全过 (R2~R6 + ④TX 独立复算 + ⑥ 已发布数字逐字节未动), 但 R1 只修一半 (state/issue_log.yaml:4702
-        仍写 17.65ms) ⇒ 判 fail(轻量), 补那 1 处 note 同步即可签。详见 HANDOFF/2026-11-10_sw-lead_ISS137_验证.md §7。 ★ISS-137
-        rev2 复验 (11-11 01:5x): ★**5 处订正 5/5 逐条命中 rev1 点名的原文 (R1 唯一阻塞真闭合)** + 技术内容全过 (R2~R6 + ④TX + ⑥逐字节未动
-        + 边界, 逐条重跑) + 4 个交付物 md5 与 rev1 逐字节相同 ⇒ ★**但又抓到第 6 处同类残留 (F5): note【交付】② 段仍把 display_out_max_for
-        的三个数 (−2.69/10.09/16.65) 挂在 compose_max_for 名下 (实跑: compose_max_for(13.305)=2.319, display_out_max_for(13.305)=10.095)
-        ⇒ 同一份 note 里 compose_max_for 有两个数 ⇒ 自相矛盾, 差的就是 TX 那 7.776ms ⇒ rev0 遗留, rev1/rev2 都没扫到 (我 rev1
-        也漏了 ⇒ 我认) ⇒ ★**判 fail(轻量), 唯一阻塞 = 1 行 (精确 OLD/NEW 替换串已给 main), 改完我立刻签, 不再有第三次**。详见 HANDOFF/2026-11-11_sw-lead_ISS137_rev2_验证.md
-        §8。 ★ISS-188 (2026-11-11 08:4x, owner=sw-lead) 已闭环: ★**本文件改了 2 处 (SW/DEMO_OD_PIPELINE_SPEC.md
-        的 322 + 379), 不是 1 处** ⇒ 322: 373/560 → **2986/4480** (并追加 TX 物理下限 7.776ms 的依据注, 口径 = 1920×1080×24×60
-        = 2985.98 Mbps, 与 HW/e2e_budget_rk3572.py §⑥ 同口径) + 379: 373Mbps → **2986Mbps** ⇒ ★**全 SW/ 目录
-        旧口径零残留 (grep 带空格+不带空格两种写法均 rc=1)** ⇒ ★**HW/e2e_budget_rk3572.py --selftest rc=0, 脚本 md5 改前改后相同
-        (7b820c14acfaee08a218cbf85557ef0b), 判据权威来源未动** ⇒ ★**另如实报出 4 处不在我分片的残留 (★只报, 不顺手改★): HW/STEP1_LANDING_LIST.md:42
-        + HW/PART_ALTERNATIVES_REGISTRY.md:24 (无空格写法 ⇒ 归 hw-lead) / config/agents/main/memory/2026-11-02.md:26
-        (归 main; ★08:4x 实测 main 已修好 MEMORY.md:1979) / state/_demo_hw_scheme_landing.py:11 的口径钉死注释里留着逐字串
-        ⇒ ★★会让验收 grep ① 不为 0, 建议 main 写成『原写的 373』★** ⇒ 详见 HANDOFF/2026-11-11_sw-lead_ISS188_DSI_payload_第6处.md。
-        ★ISS-190 (2026-11-11, owner=sw-lead) 已交付: ★**SW_TIMING_REVIEW.md 重新锚定到现行网表 (513 数据行 / md5 c78f991283cc82d56c8e3dd31657c785
-        / 2026-11-05 10:57)** —— 上一版 (2026-10-27) 锚在 476 行版上, 从未复评 ⇒ 复评后 **4 条被推翻 / 3 条部分推翻**: ① ''复位释放时刻不由任何已画出的器件决定''
-        **推翻** (PG 已进链: R_PG_PULL 10k + Q_AND 硬件 AND) ★**但新 P0: 两路 PG 源器件 U_DCDC_VCORE/U_DCDC_VIO 都是 DNP
-        ⇒ PG_AND 恒高 ⇒ Q_AND 恒导通 ⇒ RESET_N 恒拉低**; ② ''供电器件控制脚在网表里根本不存在'' **部分推翻** (EN 10 行 / SS 0 / CT
-        1 属 DNP / MR 0 ⇒ SS·MR 仍成立); ③ ''没有硬件断电通路 ⇒ 关机只能软件深睡'' **推翻** (U_PWR_SW TPS22991RAA, ON 脚 R_PD_ON
-        10k 下拉 ⇒ 默认关) ⇒ 关机语义反转为 ''PWR_ON 高阻 → SYS 真断电''; ④ ''I2C_A 4.7k ⇒ 1195ns 超标'' **结论翻转** (现 2.2k/1.8V
-        ⇒ 186ns/559ns 通过; 超标的是 I2C_B 4.7k/3.3V ⇒ 1194.7ns); ⑤ 监督器 ''CT 悬空 = 20ms'' **推翻** (U_SUPV 整颗 DNP);
-        ⑥ TMP117 改挂 **I2C_B** ⇒ ''与 camera 同总线'' 不成立; ⑦ 跨铰链 USB 链 **不存在** (CONN_USB 0 行, J_CHG 不带 D+/D−)
-        ⇒ demo 板走板内 J_USB_C。 ★**timing_check.py 从 ''手抄常量'' 改成 ''实读网表''**: csv 实读 + 输出首段打印锚点 (md5+514/513
-        行) + 6 条反向用例 (改坏副本 ⇒ 判据变红) ⇒ **SELFTEST 48/48 rc=0** (既有 21 条一条没删) ⇒ 验收 #2 外部复现: 改坏 I2C_A 上拉一行
-        ⇒ t_r 398.2→847.3ns 且 7 条自测转红。 ★**只报不改网表**: 新发现 7 条网表侧待修项 (I2C_A 注记矛盾 / RESET_N 恒低 / 分压 0Ω 短路
-        / 电量链全 DNP / Q_ENVC dnp 矛盾 / U_EN_SW 无器件行 / J_USB_C D− 无 ESD) 全部经 frag_write 登记 needs_from 给 hw-lead。
-        ★ISS-191 (2026-11-11 15:2x, owner=sw-lead / verify_by=main, due 2026-11-13) 已交卷: ★**只出方案页, 一行网表/原理图/板/投产包都没动**★
-        (本单动过的文件只有 3 处: HW/PCB/RESET_P0_FIX_PLAN.md / HANDOFF/2026-11-11_sw-lead_ISS191_复位P0方案.md / 本分片)
-        ⇒ **方案页正文 = HW/PCB/RESET_P0_FIX_PLAN.md (B1~B6 齐全)**, 交卷摘要 = HANDOFF/2026-11-11_sw-lead_ISS191_复位P0方案.md。
-        ★**结论 = 推荐 ISS-190 三条改法里的第 ② 条: 把 Q_AND 整颗改 DNP** (表A L65/L66/L67 + 表B Q_AND.1/.2/.3 三行同改) ⇒ RESET_N
-        上只剩按键一个拉低者 ⇒ 首台板能启动; **明确否掉 ① 的两个子项** (Q_ENVC 必装 ⇒ 故障链一点没动, 且 EN_VCORE 会被拉低换成另一个 P0; 摘掉 ⇒ 网表根本没有
-        PG_VIO 这条网, 同一引脚不能挂两条网, 改动面大而收益 0); ③ 依赖 SoM 球位 TBD-01 ⇒ 首台板等不起, 出局。 ★**实测读数 (行级口径)**: PG_AND
-        6 行 (L62/L63/L64/L67/L71/L402/L403), 唯一 DNP 的是 L71 Q_ENVC; 两路 PG 的连接行 dnp 全是必装 ⇒ **PG 源器件 DNP
-        不成立**; 但 U_DCDC_VCORE (L79) / U_DCDC_VIO (L86) 的 **IC 行 DNP** ⇒ 两颗 DC-DC 实物不装 ⇒ PG 脚不在板上 ⇒ PG_AND
-        更没人拉低 ⇒ 栅极恒高 ⇒ Q_AND 导通 ⇒ RESET_N 恒低。 ★**4 条 /tmp 反向用例 (RC1~RC4) 实测**: RC1 只把 Q_ENVC 改必装 ⇒ 故障链不变
-        (否掉 ①); RC3 只改 L67 ⇒ 器件级仍显示装 ⇒ **证明三行必须同改**; RC4 三行全改 ⇒ q_and_in_netlist False / RESET_N 拉低者只剩
-        SW_RST。 ★**unc 45 / DRC 0 不变** (5 条论据: 板生成器 gen_pcb_netlist_board.py 的 dnp 命中数=0 + 板文件 attr 命中数=0
-        + Q_AND 封装 3 焊盘(pad1=RESET_N,pad2=GND,pad3=PG_AND)网络不变 + 拓扑不变 + 既有先例 BOM 记 DNP 却仍在 CPL 里的位号=41/56)
-        ⇒ **改 dnp 不改板 ⇒ 可与 ref_designator_rename 同表不同列一次落表**。 ★**落表时必须同步改 SW/tools/timing_check.py 的 5
-        条断言** (RC4 上跑全量自检精确红 5 条, 已逐条列在方案页 B5-3) ⇒ **本单无权改, 留给落表的人**。 ★ISS-221 (2026-11-16, owner=sw-lead,
-        续做单) 已交付: ★**demo 屏 (2 通道 @480×640) 有了自己的 60ms 预算真源脚本 `SW/tools/demo_e2e_budget.py`** ⇒ demo 判据链的每一个预算数
-        (TX 物理下限 2.304/2.048 ms / 合成段上限 7.79 ms / 显示输出侧 2.75 ms / 全链路 60ms 余量 7.34 ms) **不再从整机脚本减出来**
-        ⇒ 口径分层: (A) 整机同源常量只引用不重算 (T_FIXED_OTHER 31.00 / POST 5.60 / FRAME 16.67 / S9 3.00) + (B) demo
-        专属 (480×640 / 2-lane / 24bpp / 2.0Gbps×80% / 1.8Gbps×100% / 缩放除数 6.75) ⇒ **源码零整机 DSI 常量** (自带泄漏扫描)
-        ⇒ --selftest 31/31 (9 种改坏 + 1 种源码污染全抓到) ⇒ ★**机器门禁扩项**: `SW/tools/demo_timing_check.py` 新增 check_demo_budget_source()
-        17 条断言 (锚点区块逐项 == 真源脚本输出 11 项 / 锚点项齐全 / demo 活动口径零整机 4-lane DSI 指纹 / 判据工具必须是 demo 真源脚本 / 表 A 逐行
-        == 真源输出 / 两份文档锚点逐项一致) + 反向用例 7 条 ⇒ **34/34 → 51/51, selftest 10/10 → 18/18** (ISS-215 那 5 条一条没被改红)
-        ⇒ ★**真实文件改坏必红实测**: 锚点里 2.304 改 2.400 ⇒ rc=1 双红 ⇒ 按 md5 -c 还原 ⇒ rc=0。★**上一轮 (agent:sw-lead:subagent:6da17eee,
-        02:28 超时死) 留的半成品实况**: ① 脚本**完整可用** (不重写, 另做 8 项独立手算复核全对); ② 两份规格文件**已换数** (不重写); ③ 门禁**只写了常量没写检查函数
-        ⇒ 等于没做** (本单补齐) ⇒ ★**且那半个常量里有个真错**: 上一轮的 MACHINE_DSI_FINGERPRINTS 含 @2.0Gbps 与 80% 效率 —— ★**那不是整机指纹**
-        (demo 口径 A 本身就是 2 通道 × 2.0Gbps × 80%) ⇒ 照抄成门禁会对**正确的** DEMO_OD_TIMING_SPEC.md L230 误报红 ⇒ 本单改成只收
-        4-lane / 4 lane / 4 通道 / 6400 Mbps; ④ 交接单与分片**全缺** (分片 mtime 01:58 ⇒ 与 ISS-220 栽在同一处) ⇒ 本单补齐;
-        ⑤ RKNN_BENCH.md L273 **未动** ⇒ 本单同步 (ISS-215 交接单 B5-① 请求授权的那一行) ⇒ ★**只改那一行注记**: S9=3.0 与周边 S1~S10
-        及模式 A/B 公式数字逐字节未动, diff 只出 1 行, md5 ed080fa0188d91a2cacf27c8073a3155 → 46ac25e1eb96ee296e60cb37485524f9。★**板端
-        [实测] = 0 条** (板与屏不在本机) ⇒ 屏侧全 [推算]。★**如实报出开工前就红的两处 (非本单所致, 只报不改)**: `check_demo_panel_spec.py`
-        R6 (HW/netlist_v1.csv 与 _pins.csv 在 2026-11-16 02:32 被 hw-lead ISS-220 落表第 1 批改掉 ⇒ ISS-212 时期钉的
-        md5 基线过期 ⇒ 该门禁恒红) + `timing_check.py` 65/68 的 3 项 FAIL (同根因; 对照实验: RKNN_BENCH.md 换回改前版本结果一模一样
-        65/68) ⇒ ★**已在 needs_from.iss221_verify_and_close_iss215_needs 登记给 main**。详见 HANDOFF/2026-11-16_sw-lead_ISS221_demo预算真源.md
-        (B1~B6)。 ★ISS-225 (2026-11-16, owner=sw-lead, verify_by=main) 已交付: ★**SW 侧『因为落表而恒红』的 md5 基线收口成【台账驱动
-        + 三方对账】**★ ⇒ 新建 `SW/SW_MD5_BASELINE_LEDGER.md` (★锚点 §1 机器可读 YAML / 全清单 §2 (8 条 S-01…S-08 逐条处置)
-        / 已修复留痕 §3 (R-01/R-02/R-03) / 交接约定 §4 (H-1~H-6)★) ⇒ `check_demo_panel_spec.py` 的 **R6 重锚 + 三方对账**
-        (6 项核对: 盘上 md5 == 锚点 / 锚点 md5 在落表台账查得到 / 旧 md5 查得到 / 落表单号查得到 / 文件名+新md5+旧md5 同一行 / 登记位置一个都不存在
-        ⇒ 红) + **新增 R7『已修复 (留痕) 必须在场』** (照 MECH G8) + **--selftest 8 → 16 条 (16/16 全抓到)**: 新增 REV-9 盘上真源被换
-        / REV-10 锚点改成查不到的哈希 / REV-11 锚点单号改坏 / REV-12 台账单号被改坏 / REV-13 删台账那两行 / REV-14 删锚点块 (fail-closed)
-        / REV-15 删留痕节 ⇒ ★**同根因第二处恒红一起收掉**: `timing_check.py` 开工时 rc=1 / 65/68 (3 条 FAIL 全是 ISS-220 落表引起)
-        ⇒ ① 硬编码网表 md5 基线改成台账驱动 (现行网表 md5 必须 ∈ 落表台账登记的两个状态 + 三方对账成立) ② 两条 F3 I2C 断言断言的是【网表侧 2380ns 矛盾仍在】,
-        而 **ISS-220 d6 真把网表 I2C_A 改成 2.2k@1.8V/186ns ⇒ 那条矛盾被上游真修好了** ⇒ 断言方向反过来 (注记必须与实算一致) ⇒ **rc=0 /
-        70/70** ⇒ ★**判别证据 (是锚点过期, 不是红灯被调没)**: 门禁脚本 mtime = 2026-11-15 23:59 早于落表 02:32 ⇒ 脚本一个字节没被碰过; 且喂落表前的网表
-        (`state/.bak_iss220/HW_netlist_v1.csv.bak_iss220`) 跑 `timing_check.py` ⇒ **正好只有那 2 条内容断言红、其余 68
-        条全过 (68/70)** ⇒ 红灯跟网表真值走 ⇒ ★**HW/ 与 MECH/ 一个字节没碰** (落表台账只读) · `state/issue_log.yaml` 零写入 (status
-        留给 main) · 别人的分片零写入 · `--skip-md5` 默认仍校 · **零外发** · **板端 [实测] = 0 条** (板与屏不在本机) ⇒ ★**ISS-223 落表后
-        SW 门禁会再红 —— 这是设计, 走台账 §4 H-1 重锚即可** ★ ⇒ 详见 HANDOFF/2026-11-16_sw-lead_ISS225_SW侧md5基线台账化.md (B1~B6)。
-        ★**ISS-225 交卷时的实时观察 (2026-11-16 04:27)**: ★**ISS-223 的【源】已经在动了** (`state/gen_netlist.py` mtime
-        = 04:21:43 · `HW/SCHEMATIC_V1_SPEC.json` / `state/check_netlist.py` 同窗口被改) ⇒ ★**但【产物】还没重生成** (`HW/netlist_v1.csv`
-        / `_pins.csv` 的 mtime 仍是 02:32 = ISS-220 那次) ⇒ ★**网表 md5 随时可能变** ★ ⇒ ★**ISS-223 一落表, 下一条 SW 报必然红在
-        R6 —— 那是『锚点过期』的红 (设计), 不是 SW 坏了** ★ ⇒ 重锚流程见 `SW/SW_MD5_BASELINE_LEDGER.md` §4 H-1 / H-4b (改 §1
-        的 md5/prev_md5/by 三项 + 加落表台账位置 + §3 加一行留痕)。★**本单交卷那一刻盘上 md5 = 锚点目标值 (13f59a43… / a600afae…), R6
-        实跑 rc=0** ★'
+      phase: P2
+      progress_pct: 100
+      health: green
+      summary: 'ISS-235 完成: 3 条 SW 侧过期断言已订正成跟当前真源走的断言 (F8 方向翻正 / REV-3 基线 1->2 / REV-12 动态定位当前落表单号), 每条都补了真的改得到目标的反向用例;
+        5 道门禁全绿 (timing_check 71/71 · demo 16/16 · shutdown 17/17 · merge+gate_check Q1 18/18); HW/ 0
+        字节写入, 没回退 ISS-233 落表成果'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -4687,6 +5031,77 @@ domains:
         + 算式自洽重算) ; C2 后果链三段不许被删 (锚点 3 段 + 6 个关键措辞必须在正文) ; C3 API 蓝通道占比量不许被摘掉 (字段/上下限/名义值/单位/标定方法 + 策略侧挂靠同字段同上限)
         ; C4 跨域交叉核对 (与 MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md 只读对账 ⇒ 只改脚本也红) ; C5 不许编造实测值 (板端必须 null/uncalibrated
         + 两个文档只允许出现 25%/8.26% 两个百分数) ; C6 降级方案不许被删。--selftest 13 条反向用例 13/13 全抓到, 三层 fail-closed (缺失即红/跨域对账/正文与锚点双在)。'
+    - path: SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md
+      kind: official-facts
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-228 RK3572 GPIO0→VCCIO 官方映射自查: 引脚表按供电域分组解析 + 三重 Forlinx 官方交叉验证 + 机器反证 108/109; 勘误两条
+        (本板 I2C_A 走 I2C5 不是 I2C0 / VCCIO1_VCC 不属 1.8V only); B-01/B-02 最终取值 2.2k/1.8V'
+    - path: SW/tools/check_rk3572_vccio_domain.py
+      kind: tool
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: ISS-228 机器门禁 C1~C8 + --selftest 16 条反向用例 (结论换无出处数 / 证据等级被抹 / 降级方案被删 / [0数据]被改成具体电压 四类破坏全部变红);
+        每次重跑官方 PDF 解析做反证
+    - path: HANDOFF/2026-11-16_sw-lead_ISS228_RK3572_GPIO0_VCCIO官方映射自查.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-228 交卷: 官方口径自查结论 + 给 hw-lead 的可落表判据串 (B-01/B-02 = 2.2k/1.8V) + 机器门禁 + 交接单; 回掉 ISS-148
+        跨域 need'
+    - path: HANDOFF/2026-11-16_sw-lead_ISS231_SW侧R6锚点重锚.md
+      kind: note
+      version: '1.0'
+      updated_at: '2026-11-16'
+      summary: '★ISS-231 交卷单: SW 侧 R6 锚点重锚 (走 SW/SW_MD5_BASELINE_LEDGER.md §4 H-1) ⇒ 网表锚点 13f59a43dbd35dc6cb16e897c8c891ab
+        → 3215020b6d4120e1b7728227effdc6d3 (落表单号 ISS-223, 落表时刻 2026-11-16 05:18) + §3 留痕 R-04; 证据: check_demo_panel_spec
+        rc=0 (R1~R7 全过) + --selftest rc=0 16/16 + timing_check rc=0 70/70 + merge/gate_check rc=0 Q1 18/18
+        + 反向自证 (网表副本回退 13f59a43 ⇒ R6 红) ⇒ HW/ MECH/ 零写入'
+    - path: SW/SW_MD5_BASELINE_LEDGER.md
+      kind: note
+      version: '1.1'
+      updated_at: '2026-11-16'
+      summary: '★ISS-231 重锚落点: SW 侧 md5 基线台账 §1 锚点块 entries[] 里 HW/netlist_v1.csv 那一条 (by=ISS-223 / prev_md5=13f59a43dbd35dc6cb16e897c8c891ab
+        / md5=3215020b6d4120e1b7728227effdc6d3 / landed_at=2026-11-16 05:18) + §3 留痕 R-04 行; R6 判据 6 条与
+        R7 判据逻辑一字未改, HW/ 与 MECH/ 零写入'
+    - path: SW/SHUTDOWN_SEMANTICS_SPEC.md
+      kind: spec
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: ISS-234 关机/待机/关机充电灯三口径定义页 + 2x2 方案表 + 给老板的一页(5条待拍) + 硬件最小需求清单
+    - path: SW/tools/check_shutdown_semantics.py
+      kind: tool
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: ISS-234 关机语义三口径机器门禁 (R1~R7 + --selftest 17/17 反向用例全红; 内容级不挂 md5)
+    - path: HANDOFF/2026-11-16_sw-lead_ISS234_关机语义三口径方案与门禁.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: ISS-234 交卷单 (B1~B6 齐全) + 派单前提更正 + 3 条 SW 侧过期断言的精确修法
+    - path: SW/tools/timing_check.py
+      kind: tool
+      version: '2.0'
+      updated_at: '2026-11-16'
+      summary: 'ISS-235: F8 断言方向翻正 (load_switch_without_device_row==[] + 两个位号都在 load_switch_refs, 语义=BOM/装配单不许漏掉任何一颗负载开关)
+        + REV-3 基线 1->2 (突变后 0->1, REV-3b 不变) + 新增 REV-3c 反向自证 (只删 U_EN_SW 器件本体行); 判据强度只增不减, selftest
+        71/71 rc=0'
+    - path: SW/tools/check_demo_panel_spec.py
+      kind: tool
+      version: '2.0'
+      updated_at: '2026-11-16'
+      summary: 'ISS-235: REV-12 改成按 §1 锚点块动态读出当前落表单号再改坏 (不再硬编码 ISS-220, 现读出 ISS-233) + 自带 5 条我确实改到了目标的断言;
+        --selftest 16/16 rc=0'
+    - path: SW/SW_MD5_BASELINE_LEDGER.md
+      kind: ledger
+      version: '1.1'
+      updated_at: '2026-11-16'
+      summary: 'ISS-235: §3 已修复(留痕) 追加 R-06 行 (3 条过期断言订正 + 双向翻转判别证据), R-01~R-05 历史行一个字没改, R7 仍绿'
+    - path: HANDOFF/2026-11-16_sw-lead_ISS235_SW侧3条过期断言订正.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-11-16'
+      summary: 'ISS-235 交卷单 (B1~B6 齐全): 3 条断言订正前后 + 3 条反向自证 (改坏=>红=>改回=>绿) + 门禁原样输出 + 边界审计'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -6203,7 +6618,19 @@ domains:
       decision: null
       decided_at: null
       answers: []
-      foreign_answers: []
+      foreign_answers:
+      - by: sw-lead
+        value: '★已闭合 (ISS-231, sw-lead, 2026-11-16 06:2x 走台账 §4 H-1 完成重锚)★: ① SW/SW_MD5_BASELINE_LEDGER.md
+          §1 锚点块 entries[] 里 HW/netlist_v1.csv 那一条已改为 by=ISS-223 / prev_md5=13f59a43dbd35dc6cb16e897c8c891ab
+          / md5=3215020b6d4120e1b7728227effdc6d3 / landed_at=2026-11-16 05:18 (落表时刻 = 网表重生成时刻 05:18:41,
+          不是自编); ② §3 留痕加 R-04 一行 (单号+新旧 md5+判别证据+复现命令); ③ landing_records 复查结论 = ISS-223 的落表记录已在已登记位置
+          (HW/SCHEMATIC_LANDING_V1_LANDED.md §13 L449 同一行写着文件名+旧 13f59a43+新 3215020b, 单号 ISS-223 在 L309;
+          交卷单 HANDOFF/2026-11-16_hw-lead_ISS223_落表第2批与分片补落.md 也已存在且已被通配登记) ⇒ 不需要新增登记位置; ④ 门禁实跑: check_demo_panel_spec
+          rc=0 (R1~R7 全过, R6 绿 + R7 留痕在场) + --selftest rc=0 16/16 + timing_check rc=0 70/70 (开工时是 rc=1
+          68/70, 同根因, 本单没改它一个字节) + merge/gate_check rc=0 Q1 18/18; ⑤ 反向自证: 把 md5=13f59a43 的网表副本塞回 /tmp
+          临时树 ⇒ R6 立刻红 ⇒ 改的是锚点, 不是把红灯调没; ⑥ 并发: ISS-232 交卷时还没落表 (无 ISS-232 交接单 + 网表 mtime 仍是 05:18:41)
+          ⇒ 本单锚的是交卷那一刻盘上实测值, 没卡它没等它没干预它; ISS-232 落表后请再派 sw-lead 走一次 H-1 (这是设计); ⑦ 边界: HW/ 与 MECH/ 零写入,
+          issue_log 零写入 (status 留给 main 落 verified), 别人分片零写入, 零外发, 实物[实测]=0 条'
     - key: iss226_land_verified_and_reanchor
       to: main
       item: 'ISS-226 已交付, 请落 verified (本单不自签, state/issue_log.yaml 零写入)。★证据 = 4 条命令全 rc=0 + Q1 交付齐备率 18/18★:
@@ -6215,6 +6642,114 @@ domains:
         里查不到) ⇒ 那是锚点过期的红, 不是故障 ⇒ 请派 sw-lead 走 SW/SW_BRIGHTNESS_CONTROL_POLICY.md §6 H-1 流程 (锚点 + 正文 +
         脚本冻结值 + API 文档 四处同改)★。★板端 [实测] = 0 条 (板与屏不在本机) ⇒ 亮度 API 的蓝通道占比标定值 = null/uncalibrated/[0数据], 一个实测值都没编;
         EVT 时需实验室出出瞳光谱辐亮度实测再灌标定通路★。'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss228_verify_l
+      to: main
+      item: 'ISS-228 已交卷 零外发, 板端实测 0 条, HW/ 与 MECH/ 一个字节没动, issue_log 未自签. 证据: SW/tools/check_rk3572_vccio_domain.py
+        rc=0 C1~C8 + --selftest 16/16 全红 + check_brightness_biosafety.py rc=0 + state/gate_check.py rc=0
+        且 Q1 18/18. 要点: ①【勘误】原 need 的 I2C0/GPIO0_B0/B1 前提对本板不成立: 本板 I2C_A 走 I2C5_M3 即 GPIO3_C4/C1, 官方
+        VOL=1.8V; 球 1K21/U32 本板 SoM 未引出; ②【勘误】VCCIO1_VCC 属 1.8V only 是错的, 1.8V only 档只有 PMUIO0_VCC1V8
+        与 VCCIO0_VCC1V8; ③ GPIO0 被劈成 PMUIO0_VCC1V8 与 PMUIO1_VCC 两组; ④ B-01/B-02 = 2.2k/1.8V, 与 ISS-220
+        已落表值一致, 不需改值, 只需换依据; ⑤【请 main】落 ISS-228 verified + 确认 need iss148_rk3572_gpio0_vccio_domain_check
+        变 answered; ⑥【请派 hw-lead】两处勘误 即 HW/AR0234CS_OPEN_SOURCE_FACTS.md L241/L474 的 I2C0 提法 与 全文 VCCIO1_VCC
+        1.8V only 提法 + AR0234CS 若上则 VDD_IO 走 1.8V 即 Note 19.2, 顺带解掉 VDDIO_PHY 缺轨; ⑦【已知不归本单】check_demo_panel_spec.py
+        的 R6 红 + MECH G5b/C21 红 = ISS-223 锚点过期, 本单不许改锚点. 残留 0数据: SoM 侧 VCCIO rail 网名 ⇒ 降级方案 D-3 已锁死 即不许自己编网名,
+        本单不写等原厂回信.'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss234_boss_pick_5q
+      to: main
+      item: ISS-234 给老板的 5 条待拍 (Q1 demo 板要不要关机态 / Q2 负载开关选型 ISS-172 / Q3 关机电流账 108µA 口径 / Q4 demo 关机时充电灯
+        / Q5 长按10s话术) — 每条带推荐默认值但不代拍, 等老板拍
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss234_hw_doc_conflicts
+      to: main
+      item: 'ISS-234 发现两处 HW 口径冲突需裁: (1) 待机 0.15W 的皮肤温度 POWER_SHUTDOWN_V3 §6 写 41.6-42.6°C 而 POWER_BUDGET_V3/SW
+        镜像写 45.9-46.9°C, 我取保守侧; (2) 关机账 VBUS_DET 50µA 与文中 100k+100k 算式对不上 (5V/200k=25µA) 且现行网表是 1M+1M
+        — 我不改 HW/ 请项目总工裁'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss234_sw_stale_assertions
+      to: main
+      item: 'ISS-234 交卷时刻 3 条 SW 侧断言过期 (源头=ISS-233 落表第3批 06:48:38 + 按设计做的 H-1 重锚, 与本单无关): (1) SW/tools/timing_check.py
+        断言 U_EN_SW 在网表里没有器件行 (现在有了, 该条要反向); (2) 同脚本 REV-3 期望装机开关数 1->0 (现在基线 2->1); (3) SW/tools/check_demo_panel_spec.py
+        REV-12 硬编码 ISS-220 (现锚点单号 ISS-233) — 这两个脚本本单被冻结不许动, 请派单授权更新'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers:
+      - by: sw-lead
+        value: '已按 ISS-235 授权订正完: (1) timing_check F8 断言方向翻正 (必须有器件行) + 新增 REV-3c 反向用例; (2) REV-3 基线 1->2
+          / 突变后 0->1, REV-3b 不变; (3) check_demo_panel_spec REV-12 改成按 §1 锚点动态读当前单号 (ISS-233) 再改坏, 自带 5
+          条自证断言. 5 道门禁全绿: timing_check rc=0 71/71 · demo rc=0 16/16 · shutdown rc=0 17/17 · merge+gate_check
+          rc=0 Q1 18/18 · 受保护 5 件 md5 逐字节不变. 留痕已登记 SW/SW_MD5_BASELINE_LEDGER.md §3 R-06'
+    - key: iss234_battery_chain_dnp
+      to: hw-lead
+      item: 'ISS-234 实读网表: 整机电池链 BT_432243/U_BATPROT/Q1/Q2 全部 DNP => U_PWR_SW 的 VIN(BAT_SW) 在 demo 装机态无源,
+        整机真断电通路要成立必须把这条链落装 — 落装时点/落表单号请回我 (我这边要按 H-1 重锚 md5)'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss221_redispatch_reverify_0730
+      to: main
+      item: 'ISS-221 重复派活复验 (2026-11-16 07:3x, gateway reload 后队列重投同一单): ★**本单零重做** ★ —— ① 5 件交付物逐字节在盘
+        (md5 见交卷单 §7.2: demo_e2e_budget.py=ee64b86a… / demo_timing_check.py=a6e891f1… / DEMO_OD_TIMING_SPEC.md=576d2391…
+        / DEMO_BOARD_60MS_VERDICT_PLAN.md=6cfaf725… / RKNN_BENCH.md=46ac25e1… = 与 04:07 记录一致, S9=3.0 逐字节未动)
+        ② 7 条门禁本机实跑: demo_e2e_budget rc=0 / --selftest rc=0 (31/31) / demo_timing_check rc=0 (51/51) /
+        --selftest rc=0 (18/18) / check_demo_panel_spec rc=0 (R1~R7 全过, ISS-225 已把 R6 收口) / merge+gate_check
+        rc=0 且 Q1 18/18 ⇒ ★**ISS-221 自身门禁全绿** ★ ③ ★**唯一红项 = check_demo_panel_spec.py --selftest 的 REV-12
+        (15/16) ⇒ 根因 = ISS-233 合法落表把 SW 侧锚点 by 从 ISS-220 重锚到 ISS-233 ⇒ REV-12 写死改 ISS-220 已不在 R6 依赖路径上
+        ⇒ 【有断言 ≠ 断言有效】, 门禁本身没坏 ⇒ 已归 ISS-235 (main 07:2x 开单, owner=sw-lead, status=fixing) ⇒ ★**本单只报不改:
+        有并行 sw-lead 会话 31d009e7 正在改 timing_check.py / check_demo_panel_spec.py, 碰了就撞** ★ ⇒ ★**给 ISS-235
+        的一手提示: REV-12 必须改「锚点当前真正依赖的那个单号」(从锚点读 by 再改), 别写死 ISS-220** ★ ④ 本轮我只写了交卷单 §7 (追加) + 本条分片; state/issue_log.yaml
+        零写入 (不自签); HW/ MECH/ 零写入; 板端 [实测] = 0 条 ⇒ ★**请勿再把 ISS-221 派给 sw-lead (已完, 第二次重复派活)** ★'
       since: '2026-11-16'
       state: pending
       target_missing: false
@@ -6333,6 +6868,46 @@ domains:
         不自签 issue_log★'
       ref: HANDOFF/2026-11-16_sw-lead_ISS226_蓝光通道占比上限与亮度API.md ; SW/SW_BRIGHTNESS_CONTROL_POLICY.md ;
         SW/BRIGHTNESS_API_BLUE_RATIO.md
+    - key: iss148_rk3572_gpio0_vccio_domain_check
+      to: hw-lead
+      value: '【已交付·2026-11-16·sw-lead·零外发】RK3572 GPIO0→VCCIO 官方映射核出来了, 但结论比 need 问的更关键: ①【勘误1】本板 I2C_A
+        走 I2C5_M3 即 GPIO3_C4 球 AH33 与 GPIO3_C1 球 AL33, 不是 need 说的 I2C0/GPIO0_B0 球1K21 与 GPIO0_B1 球U32
+        —— 那两根球位本板 SoM 根本没引出, 实读 SoM 表命中 0 条 ⇒ need 里那条 3.3V/2.8V 超 SoC 侧 abs-max 因而整条 I2C_A 要重新设计 的推论链不成立;
+        ②【勘误2】VCCIO1_VCC 属 1.8V only max 1.98V 是错的 —— VCCIO1_VCC 与 PMUIO1_VCC 及 VCCIO1~6 同属 1.8V/3.3V
+        档 max 3.63V; 1.8V only 档只有 PMUIO0_VCC1V8 与 VCCIO0_VCC1V8; ③【正面回答】datasheet §2.6 引脚表本身按 IO 供电域分组排,
+        每组末尾跟该组供电网名 ⇒ 不需另找 bank→VCCIO 表; 本单用该规则 + Forlinx 官方手册三条交叉验证 (JTAG_TCK_M0 与 TMS_M0 属 VCCIO1; JTAG_TCK_M1
+        与 TMS_M1 属 PMUIO1; SDMMC0 六脚属 VCCIO1) + 机器反证 (109 可比球位 108 一致) 三重独立验证 ⇒ 结论成立; ④ GPIO0 被劈成两组: GPIO0_A0..B3
+        属 PMUIO0_VCC1V8 即 1.8V only abs-max 1.98V; GPIO0_B4..D5 属 PMUIO1_VCC 即 1.8V/3.3V abs-max 3.63V
+        ⇒ 把 GPIO0 映射到某一个 VCCIO 组 这个提问方式本身是错的; ⑤【落表判据串】B-01/B-02 的 imp 为 上拉 2.2k 到 1.8V 即 RAIL_VDD_1V8_IO
+        灌 0.64mA 电压 0.4V t_r 186ns@100pF 与 559ns@300pF; level 为 1.8V —— 与 ISS-220 第 1 批已落表值完全一致, 不需改值,
+        只需把 d1 的依据从待核改成官网 1.8V, 出处为 Forlinx OK3572-C 手册 §2.6.2 Table 4 逐字 P2_31 AH33 I2C5_SCL_M3 GPIO3_C4_d
+        1.8V; ⑥【AR0234CS 额外结论】若整板换 AR0234CS, VDD_IO 应走 1.8V 而非 2.8V: VIH=0.7x1.8=1.26V, 1.8V 上拉够; 且 onsemi
+        Note 19.2 规定 VDD_IO 与 VDDIO_PHY 在都是 1.8V 时可并轨, 可顺带解掉 VDDIO_PHY 缺一条 1.8V 轨 那条硬伤 ⇒ 零新增器件; ⑦【剩余 0数据】SoM
+        侧 VCCIO 供电轨网名仍无 ⇒ 已落降级方案 D-3 即不许自己编网名, 已锁死. 产出: SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md 与 SW/tools/check_rk3572_vccio_domain.py,
+        门禁 C1~C8 通过且 selftest 16/16. 板端实测 0 条, 零外发, HW/ 与 MECH/ 一个字节没动, issue_log 未自签.'
+      ref: SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md
+    - key: iss225_reanchor_sw_md5_after_iss223
+      to: main
+      value: '★已闭合 (ISS-231, sw-lead, 2026-11-16 06:2x 走台账 §4 H-1 完成重锚)★: ① SW/SW_MD5_BASELINE_LEDGER.md
+        §1 锚点块 entries[] 里 HW/netlist_v1.csv 那一条已改为 by=ISS-223 / prev_md5=13f59a43dbd35dc6cb16e897c8c891ab
+        / md5=3215020b6d4120e1b7728227effdc6d3 / landed_at=2026-11-16 05:18 (落表时刻 = 网表重生成时刻 05:18:41,
+        不是自编); ② §3 留痕加 R-04 一行 (单号+新旧 md5+判别证据+复现命令); ③ landing_records 复查结论 = ISS-223 的落表记录已在已登记位置 (HW/SCHEMATIC_LANDING_V1_LANDED.md
+        §13 L449 同一行写着文件名+旧 13f59a43+新 3215020b, 单号 ISS-223 在 L309; 交卷单 HANDOFF/2026-11-16_hw-lead_ISS223_落表第2批与分片补落.md
+        也已存在且已被通配登记) ⇒ 不需要新增登记位置; ④ 门禁实跑: check_demo_panel_spec rc=0 (R1~R7 全过, R6 绿 + R7 留痕在场) + --selftest
+        rc=0 16/16 + timing_check rc=0 70/70 (开工时是 rc=1 68/70, 同根因, 本单没改它一个字节) + merge/gate_check rc=0
+        Q1 18/18; ⑤ 反向自证: 把 md5=13f59a43 的网表副本塞回 /tmp 临时树 ⇒ R6 立刻红 ⇒ 改的是锚点, 不是把红灯调没; ⑥ 并发: ISS-232 交卷时还没落表
+        (无 ISS-232 交接单 + 网表 mtime 仍是 05:18:41) ⇒ 本单锚的是交卷那一刻盘上实测值, 没卡它没等它没干预它; ISS-232 落表后请再派 sw-lead 走一次
+        H-1 (这是设计); ⑦ 边界: HW/ 与 MECH/ 零写入, issue_log 零写入 (status 留给 main 落 verified), 别人分片零写入, 零外发, 实物[实测]=0
+        条'
+      ref: HANDOFF/2026-11-16_sw-lead_ISS231_SW侧R6锚点重锚.md §B1/§B6 ; SW/SW_MD5_BASELINE_LEDGER.md §1 +
+        §3 R-04
+    - key: iss234_sw_stale_assertions
+      to: main
+      value: '已按 ISS-235 授权订正完: (1) timing_check F8 断言方向翻正 (必须有器件行) + 新增 REV-3c 反向用例; (2) REV-3 基线 1->2
+        / 突变后 0->1, REV-3b 不变; (3) check_demo_panel_spec REV-12 改成按 §1 锚点动态读当前单号 (ISS-233) 再改坏, 自带 5 条自证断言.
+        5 道门禁全绿: timing_check rc=0 71/71 · demo rc=0 16/16 · shutdown rc=0 17/17 · merge+gate_check rc=0
+        Q1 18/18 · 受保护 5 件 md5 逐字节不变. 留痕已登记 SW/SW_MD5_BASELINE_LEDGER.md §3 R-06'
+      ref: HANDOFF/2026-11-16_sw-lead_ISS235_SW侧3条过期断言订正.md
     open_questions:
     - id: SW-Q1
       to: main
@@ -6368,12 +6943,24 @@ domains:
     updated_by: mech-lead
     status:
       phase: P3
-      progress_pct: 99
+      progress_pct: '99'
       health: yellow
-      summary: '2026-11-16 ISS-224 (门禁锚点再基线): ISS-220 落表把 PIN-MISMATCH 真的修好了 (FAIL 17→16) + 网表/脚表 md5
-        随落表变 ⇒ 门禁读旧数 = 假红 ⇒ 本单重锚 + 留痕 + 升级机制: ① §2 第 05 行改成 ✅PASS 并写明 ISS-220 落表依据 (d6) ② §3 去处表 17→16
-        + 新增 §3.1『已修复 (留痕)』 ③ 新增 C21 真源变更台账对账 (锚点 ↔ 落表台账 ↔ 盘上真源 三方一致) ④ 新增 C22 PIN-MISMATCH 独立复核 + G8
-        留痕在场 ⑤ 门禁 20→23 组, selftest 8→14 条反向用例 ⇒ rc=0 (23/23 + 14/14); 16 条红灯一条未消, 6 个 PCB 类 id 仍排队'
+      summary: '2026-11-16 ISS-229 (充电皮肤温度按改正系数 1.216 重算 + MECH 闸 G5b/C21 重锚【两跳】): ★**根因 = 换算系数方向反了**
+        —— buck 功率守恒 ICHG/IIN = η·Vbus/Vbat = 0.90×5.0/3.70 = **1.216** (@4.20V ⇒ 1.071), 旧 **0.822**
+        = (Vbat/Vbus)/η = 1.216 的**精确倒数** ⇒ 系数偏小 ⇒ 电流偏小 ⇒ 温度偏乐观 ⇒ 旧表 rilim_table / copper_vs_rilim / rilim_full_grid
+        **全部作废 (逐字留痕, 不删)** ⇒ 新数 (max 档 1oz): 皮肤侧 300Ω **61.4** ❌ / 390Ω **50.6** ❌ (超 43 °C 红线 7.6 °C)
+        / 470Ω **45.8** ❌ / **680Ω 40.1** ✅ (余 2.9 °C) / **1.2kΩ 36.7** ✅; 单 pin max 0.790 / **0.608**
+        ❌ / 0.505 / 0.349 / 0.198 A; TS 偏移 1.46 / **1.13** / 0.93 / **0.65** ✅ / 0.37 °C (留 1 °C 裕量只在
+        680Ω/1.2kΩ 成立); 充电时间 (400 mAh 仅 CC 段) 15/20/24/34/61 min ⇒ **活档 = 680Ω / 1.2kΩ** (V-4 待 main/老板拍,
+        **本单不代拍**); 原 42.14 °C / 47.07 °C **无有效数字**。★**MECH 闸重锚【两跳】**: 第 1 跳 = ISS-223 第 2 批落表 (13f59a43…→3215020b…)
+        + §3.1 **R-02** 留痕; ★**第 2 跳 = 交卷期间 hw-lead 的 ISS-233 第 3 批并发落表 (06:48:38) 改了网表 L442 + 脚表 L531**
+        (3215020b…→34132f7e40a241e1fae1476be0eafbd5 / a600afae…→b21b743a7702d30729f0d653c15392df) ⇒ 按
+        H-1 再重锚 + §3.1 **R-03** 留痕 ⇒ ⇒ 门禁 **G5b + C21 由 FAIL 回到 [OK] (rc=2 21/23 → rc=0 23/23)**, `--selftest`
+        **14/14** 反向用例一条没删 (门禁脚本 md5 `fa9b59e5…` 未变 ⇒ 判据没被改软); ★**HW/ 一个字节没改** (并发落表是 hw-lead 的活, 本单只跟
+        MECH 锚点; 没卡住/等待/干预另一个 agent 的单); ★**触发的第 2 跳是 ISS-233 不是 ISS-232** (ISS-232 交接单 §10 明写它没改网表)。★**三道门禁实跑全绿**:
+        check_demo_struct_truth **23/23** + cavity_recalc **22/22** + verify_budget 绿。★阈值一个不许动 (皮肤 43
+        °C / 端件 60 °C / cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00) · 零外发 · 板端 [实测] = 0 条
+        · **不自签 issue_log** (status 留给 main 落 verified) · 未碰 HW/ SW/ PROJECT_TRACKER §0。'
     artifacts:
     - path: MECH/MECH_BUDGET.md
       kind: budget
@@ -7066,6 +7653,112 @@ domains:
       updated_at: '2026-11-16'
       summary: 'ISS-224 交接单 (B1~B6 齐全): 3 组失配 (G1/G1b/G5b) 的再基线化 + 『不许悄悄换真源』机制 (C21) + 『不许悄悄抹真修复』机制 (G8)
         + 16 条红灯一条未消'
+    - path: HANDOFF/2026-11-16_mech-lead_ISS227_C7b集热面口径修正.md
+      kind: handoff
+      version: iss227
+      updated_at: '2026-11-16'
+      summary: 'ISS-227 交接单 (B1~B6 齐全): C-7b 集热面口径修正 (打印件顶面 ⇒ 铝制集热背板 120×30×1.0) + 三档重算 (d=15/18/20 =
+        47.77/47.47/47.27 °C ✅, u8=30) + u8 口径写清 + 旧数全部留痕 (53.60/45.95/46.63) + ★门禁自身漏洞堵死 (C21 抓节命中 H1
+        ⇒ 「删整节」可绕过 ⇒ 修成只认 level>=2 真小节 + 新增 C22 + 修好反向 19 假用例 + 新增反向 22/23) ⇒ 主检 22/22 · selftest 24/24'
+    - path: MECH/CENTER_CAVITY_REBALANCE_V3.md
+      kind: doc
+      version: iss227
+      updated_at: '2026-11-16'
+      summary: 'ISS-227 (续做) 落进 §2.5「C-7b 集热面口径修正」独立成节: §2.5.0 一句话口径修正 (旧→新) + §2.5.1 对比表 C7B-01~04 (旧
+        3 行标已修正·留痕) + §2.5.2 u8 口径 + U8-01~05 敏感度 + §2.5.3 R7B-01~03 需求侧余量 + §2.5.4 保守上界 + §2.5.5 结论 +
+        §2.5.6 门禁漏洞留痕; 头部/§4 门禁说明同步'
+    - path: MECH/cavity_recalc_check.py
+      kind: script
+      version: iss227
+      updated_at: '2026-11-16'
+      summary: 'ISS-227 (续做) 机器门禁: 判据 21→22 项 (新增 C22 整节存在性) · 反向 21→23 条 (+基线 = 24); ★修好抓节函数只认 level>=2
+        真小节 (原命中 H1 ⇒ 抓到整篇文档 ⇒ 「节存在性」断言空转) + 修好反向 19 假用例 (原删的是文档头部不是 §2.5, 现加自证断言) + 新增反向 22/23 (删表行 /
+        改节标题); 阈值一个没动 (50 °C / k=201 / 120×30)'
+    - path: MECH/hinge_power_calc.py
+      kind: script
+      version: v2.0
+      updated_at: '2026-11-16'
+      summary: 'ISS-229 充电电流换算系数改正: ICHG_FACTOR 0.822 → **1.216 @Vbat 3.70V** / **1.071 @4.20V** (buck
+        功率守恒 ICHG/IIN = η·Vbus/Vbat; 旧 0.822 = (Vbat/Vbus)/η = 1.216 的【精确倒数】⇒ 方向反了 ⇒ 只留痕不参与计算, 常量 ICHG_FACTOR_VOID_LEGACY
+        保留) + RILIM_VALUES 增 **1.2kΩ** 候选档 + 皮肤侧温度 / 单 pin 载流 / TS 偏移 / 充电时间 全部按新系数重算。--json 出 rilim_table(15
+        行) / copper_vs_rilim(10 行) / rilim_full_grid(30 行)。★口径一个没动 (k_eff 50.13 K/W · R_path 口径A保守 110.78
+        mΩ · 基准 35 °C · R_cell 0.10 Ω · 铜厚 1oz/2oz · KILIM 320/355/390 AΩ · 红线 43 °C)。★[实测] = 脚本实跑 (rc=0),
+        **板端 [实测] = 0 条**, 温度/发热全为 [推算]。'
+    - path: MECH/hinge_power_calc.json
+      kind: data
+      version: v2.0
+      updated_at: '2026-11-16'
+      summary: 'ISS-229 活口径表唯一真源: ichg_factor (1.216 @3.70V / 1.071 @4.20V / legacy_void 0.822 留痕) + rilim_table
+        15 行 (5 档 × min/typ/max) + copper_vs_rilim 10 行 + rilim_full_grid 30 行 (5 档 × min/typ/max × 1oz/2oz),
+        每行带 evidence (ICHG=[推算] / board_measured=0)。★**下游 (热路 / 整机重量账 / 充电板规格 / 决策页) 只能引用这里的现行值** ⇒ 旧数
+        (47.1/42.1/39.9/37.3 °C 等, 按作废系数 0.822 算) 一律带「已作废」标记。'
+    - path: MECH/HINGE_POWER_CALC.md
+      kind: calc
+      version: v2.0
+      updated_at: '2026-11-16'
+      summary: 'ISS-229 口径订正留痕 + 全表重出: §0-A (一句话说明旧表整体作废 + 新系数推导 + 复现命令) + §0-A.1 旧值→新值对照表 22 行 (旧数不删)
+        + 正文 M-1/M-3/M-4/M-6/M-7/M-8 与 §4.1/§4.2/§4.3/§5.3/§7-N8 逐处标「旧值已作废」。★**新数**: max 档 1oz 皮肤侧 300Ω
+        61.4 ❌ / 390Ω 50.6 ❌ (超 43 °C 红线 7.6 °C) / 470Ω 45.8 ❌ / **680Ω 40.1 ✅** (余 2.9 °C) / **1.2kΩ
+        36.7 ✅**; 单 pin max 0.790/0.608/0.505/0.349/0.198 A; TS 偏移 1.46/1.13/0.93/0.65/0.37 °C; 充电时间 (400
+        mAh 仅 CC 段) 15/20/24/34/61 min。★**旧 42.14 °C / 47.07 °C (按 0.822 算) 判为「无有效数字」** ⇒ 活档 = 680Ω /
+        1.2kΩ (V-4 待 main/老板拍, 本单不代拍)。'
+    - path: MECH/FPC_FAB_NOTES.md
+      kind: note
+      version: v2.0
+      updated_at: '2026-11-16'
+      summary: 'ISS-229 同型旧数清理: §0-A 口径订正留痕 + §0-A.1 对照表 (系数 / 390Ω 档 ICHG 0.822→1.216 A / 单 pin 0.411→0.608
+        A / 铰链段发热 15-127 → **8.3-276.8 mW** / 300Ω 档皮肤 47.1→**61.4 °C** ❌ / 2oz 57.4 °C ❌) + §载流表 / P-4
+        / X-2 / 证据表逐处标旧数作废。★结论 (加厚铜箔救不了充电发热) 在改正系数下**更强**: 300Ω 档 2oz 仍超红线 14.4 °C ⇒ 唯一有效杠杆仍是 R_ILIM 换料不换板。'
+    - path: MECH/HW_CROSS_REVIEW_TRIAGE.md
+      kind: spec
+      version: v2.1
+      updated_at: '2026-11-16'
+      summary: 'ISS-229 MECH 闸重锚【第 2 跳】: §1 `source_ledger.entries` 跟 **ISS-233 第 3 批并发落表** 再重锚一次 —— 网表
+        `3215020b6d4120e1b7728227effdc6d3` → `34132f7e40a241e1fae1476be0eafbd5` (by=ISS-233, landed_at
+        2026-11-16 06:48:38) · 脚表 `a600afae493f5a7a6c55f46ad35ac89c` → `b21b743a7702d30729f0d653c15392df`
+        (by=ISS-233, landed_at 2026-11-16 06:48:38) ⇒ §3.1 新增 **R-03** 行 (谁改的 / 哪个单号 / 新旧 md5 / 复现命令)
+        · §0 Q-10 与 §7 注同步 ⇒ ★**门禁 G5b + C21 由 FAIL 回到 [OK] (rc=2 21/23 → rc=0 23/23)**, `--selftest`
+        **14/14** 反向用例一条没删 (门禁脚本 md5 `fa9b59e5…` 未变 ⇒ 判据没被改软) · ★**HW/ 一个字节没改** (本单只重锚 MECH 侧锚点 + 留痕)
+        · ★**没卡住/等待/干预另一个 agent 的单**'
+    - path: HANDOFF/2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md
+      kind: handoff
+      version: v1.0
+      updated_at: '2026-11-16'
+      summary: ISS-229 交接单 (B1 结论 12 条 / B2 逐条自评 21 条 + 未验 3 条 / B3 证据分级四档 / B4 接口取值 4 条 + V-4 30 行全网格
+        / B5 未决 6 条 / B6 七条复现命令 + 与 main 独立推算逐条对拍一致 + 受保护 md5 实测) + **B7 本轮补交** (三道门禁 + 两条 selftest 实跑输出
+        + 两条逐字确认 + 分片落地记录)。★板端 [实测] = 0 条, 零外发, 不自签 issue_log, 不代拍 V-4。
+    - path: MECH/_frag_update_iss229.py
+      kind: script
+      version: v1.0
+      updated_at: '2026-11-16'
+      summary: 'ISS-229 分片原子写脚本 (走 state/frag_write.py 的 update_fragment: tmp + fsync + os.replace, 零
+        open(p,"w")): 新增 artifact 6 条 / interface_claim 4 条 (系数 1.216 + 1.071 / 活口径表指针 / 网表 md5 锚点 ISS-223)
+        + 同型旧值收口 6 条 (皮肤侧表 / 充电时间 / TS 偏移 / 铰链段发热 / 皮肤增量 / 两条老板/网表现值只补 note) + answers 2 条 (iss223 / iss230)
+        + needs 3 条 (main 整机阶段判据 / hw-lead PCB_OUTLINE 旧数 / sw-lead EVT PWR-05 充电电流判据) + 旧 need 订正追加 2
+        条 (只加不改)。'
+    - path: MECH/CENTER_CAVITY_REBALANCE_V3.md
+      kind: doc
+      version: iss237c
+      updated_at: '2026-11-16'
+      summary: 'ISS-237 闭环轮 (并发会话, 同一 agent) 落进 §2.6「C-7c」: W_rim 门槛用活口径 (鳍模型) 重算成两档 (22.15 mm @0.468W
+        / 25.63 mm @0.50W, 摄像头凸包让位, u8=30, d=15) + W7T-01~05 门槛表 (ISS-222 登记的 23.30 只报不改·留痕) + W7C-01~04
+        扫描表 + W7M-01~04 背板质量⇒整机重量账 (57.96-85.08 g) + §2.6.5 结论; ★判据阈值一个没动 (50 °C / k=201 / 背板 120×W_rim×1.0);
+        ★与 ISS-227 的 C-7b 同源 (同一活口径 = 铝制集热背板)'
+    - path: MECH/cavity_recalc_check.py
+      kind: script
+      version: iss237c
+      updated_at: '2026-11-16'
+      summary: 'ISS-237 闭环轮 (并发会话, 同一 agent) 机器门禁: 新增 C23 (C-7c 的 W_rim 门槛两档 + W_rim 扫描表 + 背板质量与整机重量账逐格
+        + 阈值不许动) + 反向 24/25/26 (改门槛 / 改重量数 / 删整节) ⇒ 盘上门禁 = 23 项判据 + 27 条反向用例 (其中 ISS-227 贡献 C21/C22 +
+        反向 18~23)'
+    - path: MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md
+      kind: spec
+      version: v1.2
+      updated_at: '2026-11-16'
+      summary: 'ISS-237 闭环轮 (并发会话, 同一 agent) 改: 新增 §2.6 表 D『镜框上沿集热背板』参数化质量 (120×W_rim×1.0 铝 6063-T6 ⇒
+        m = 0.324×W_rim g = 7.18-9.72 g) + §3.2 新增 W9 归属行 (背板记 W9) + §5 五步走插入 Step 0 (先查 W_rim 门槛再查 u8)
+        + §5.1 第 ⑥ 条; ★背板质量一个数没进 §3 合计 (与 u8 端件金属化同一规矩: W_rim 未定 ⇒ 不预扣); 出处 MECH/CENTER_CAVITY_REBALANCE_V3.md
+        §2.6, 门禁 C23 逐格回读'
     blockers:
     - id: MECH-B1
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -7627,7 +8320,11 @@ domains:
       to: main
       item: 'R_ILIM 档位裁决: 我建议 300->470Ω (换料不换板, 皮肤 47.1C->39.9C, 充电 22->35min)。300Ω 档在''边戴边充''下贴皮肤侧 47.1C
         超 ISO13732-1 的 43C 红线; 390Ω 为42.1C(逼近红线)。请老板/PM 拍板 300/390/470/680。依据 MECH/HINGE_POWER_CALC.md
-        §4'
+        §4 | ★**ISS-229 订正 (2026-11-16, 只加不改)**: 本条里的『皮肤 47.1C → 39.9C / 390Ω 42.1C / 充电 22→35min』全部按**作废系数
+        0.822** 算 ⇒ **已作废, 无有效数字** ⇒ 现行口径: max 档 1oz 皮肤侧 300Ω **61.4** ❌ / 390Ω **50.6** ❌ / 470Ω **45.8**
+        ❌ / **680Ω 40.1** ✅ / **1.2kΩ 36.7** ✅ °C; 单 pin max 0.790 / 0.608 / 0.505 / 0.349 / 0.198 A;
+        充电时间 15 / 20 / 24 / 34 / 61 min ⇒ 活档 = **680Ω / 1.2kΩ** ⇒ **裁决入口仍是 V-4** (`DECISION_PENDING_2026-11-16.md`
+        §A2), 详见 HANDOFF/2026-11-16_mech-lead_ISS229_*.md §B4.2。★本单不代拍。'
       since: '2026-10-28'
       state: waiting_external
       target_missing: false
@@ -7641,7 +8338,11 @@ domains:
     - key: iss091_worn_while_charging
       to: main
       item: '''边戴边充''产品行为是否保留: 这直接等价于 ''R_ILIM <= 470Ω'' (因为充电发热主项是电芯内阻 I^2R 而非铰链段, 电芯 3M背胶直接贴镜脚皮肤侧, 300Ω档
-        47.1C / 乐观口径也 44.2C)。若维持''充电时摘下''(现有结论)则 390~470Ω 皆可'
+        47.1C / 乐观口径也 44.2C)。若维持''充电时摘下''(现有结论)则 390~470Ω 皆可 | ★**ISS-229 订正 (2026-11-16, 只加不改)**: 本条里的『300Ω
+        档 47.1C / 乐观口径也 44.2C』按**作废系数 0.822** 算 ⇒ **已作废** ⇒ 现行: 300Ω max 皮肤侧 **61.4 °C** ❌ / 乐观 55.1 °C
+        ❌; 390Ω max **50.6 °C** ❌ / 乐观 46.9 °C ❌; 470Ω max **45.8 °C** ❌ / 乐观 43.2 °C; 680Ω max **40.1
+        °C** ✅; 1.2kΩ max **36.7 °C** ✅ ⇒ 『边戴边充不允许』这条产品语义**仍然有效** (充电时眼镜不在皮肤上), 但**活档只剩 680Ω / 1.2kΩ**
+        (V-4 待拍)。'
       since: '2026-10-28'
       state: waiting_external
       target_missing: false
@@ -9832,6 +10533,12 @@ domains:
           波导压框 ×2 扣 0 (在镜片位 U 形卡槽 + 上沿内侧, 不占上沿外表面); 装饰件 [0数据] 不扣; 对照 d=15 档 P3 需求 2627.7 mm² ⇒ 余 +804.3
           (+30.6%) ⇒ 面积不是 C-7 的阻塞项, 但 3600 达不到; 真正的硬门槛换成 上沿前后宽 W_rim ≥ 23.30 mm (d=15) / 22.14 (d=18)
           / 21.39 (d=20), 而 30 mm 这个数在项目内查无出处 (框截面 u8 未定)'
+      - by: mech-lead
+        value: '门槛更新 (活口径, 两档): ISS-227 把 P3 活口径从打印件顶面 (假同温) 改成铝制集热背板 120×W_rim×1.0 后, 同一条 W_rim 门槛在两个口径下不是一个数
+          ⇒ 用鳍模型重算: 22.15 mm @0.468 W (面板功耗) / 25.63 mm @0.50 W (ISS-216 代表负载) (摄像头凸包让位·u8=30·d=15) ⇒
+          ISS-222 登记的 23.30 mm 只在面板功耗下成立 (0.50 W 下 50.67 °C ❌) ⇒ 若框截面按 23.30 裁, 必须同时确认峰值功耗 ≤ 0.468 W;
+          净可外露面积 3432 mm² 结论不变 (面积仍不是阻塞项); 背板质量 m = 0.324 × W_rim g = 7.18-9.72 g ⇒ 整机 57.96-85.08 g (387
+          mAh) ⇒ 背板质量不预扣 (W_rim 为 [0数据])'
     - key: iss219_mech_m6_splitter_spec_landing
       to: main
       item: '★ISS-219 请裁 §1.3 M6 的落地: 现行 **14×10×6 / 0.79cc / W4 3-6g** 是按走鹃Ⅱ 2.9mm 光束定的, 与 X-1 的 62mm²
@@ -9873,7 +10580,15 @@ domains:
       decision: null
       decided_at: null
       answers: []
-      foreign_answers: []
+      foreign_answers:
+      - by: mech-lead
+        value: '★已闭环 (口径侧): ISS-227 已把 P3 的活口径从「打印件顶面 (假同温)」改成「铝制集热背板 120×30×1.0 (6063-T6, k=201)」并重算三档
+          ⇒ d=15/18/20 = 47.77 / 47.47 / 47.27 °C ✅ (u8=30, 0.468 W) ⇒ @0.50 W 代表负载 = 48.65 / 48.32 /
+          48.11 °C ⇒ 仍 ≤ 50 °C; P_max @d=15 = 0.5496 W (u8=30) / 0.5663 W (u8=40); 打印件顶面有效热导 R = 398.9
+          K/W vs 同面积直接对流 47.6 K/W (差 8.4 倍) ⇒ 打印件方案腔体真值 53.60 °C ❌ (超红线 3.60 °C) ⇒ 铝制背板 = P3 成立的必要条件 (+9.72
+          g = 2.70 mg/mm²); 降功耗单做不成立 (面板 0.415 W ⇒ 打印件仍 51.49 °C ❌); 端件整条金属化 11.34-22.68 g / 14.18-37.80
+          mg/mm² (贵 5.3-14.0 倍且面积差 3-7 倍) ⇒ 不可接受 (有数). ★但「集热面最终做成什么材质」是老板级项, 本单不拍 ⇒ 请 main / 老板裁 (铝 6063-T6
+          / 镁 / 其他金属 / 打印件 + 独立热路) ⇒ 机器门禁 C21 (集热面材质字段必须金属, 打印件 ⇒ 红) + C22 (整节存在性) 已把这条变成硬判据'
     - key: iss222_mech_print_pack_optical_cage_md5
       to: main
       item: '★打印包的禁改项被解冻了: MECH/print/optical_cage_TEMPLATE.stl 原是 走鹃Ⅱ 尺寸未到 ⇒ 字节必须不变 的禁改项 (md5 6f23c2e2f52e81060e5c0bbecb4cc881,
@@ -9897,7 +10612,85 @@ domains:
         prev_md5 改成旧的 (落表单号 by 填你那次的单号); ② 落表记录 (HW/SCHEMATIC_LANDING_V1_LANDED.md 或 HANDOFF/2026-11-16_hw-lead_ISS223_*.md)
         里 必须能查到【落表单号 + 该文件名 + 新 md5 + 旧 md5】四项 ⇒ 门禁 C21 逐项对账. ★ISS-223 (落表第 2 批, d5 + 补差A 值迁移) 一定会再改网表/脚表
         ⇒ 请在交卷时把新旧 md5 与单号写进落表记录, 并把锚点那一条一起更新 (我只读, 锚点更新由落表方做或在交接单里点我). ★只改锚点不落表 = 悄悄换真源; 只落表不改锚点 = 门禁假红
-        ⇒ 两条路都被 C21 堵死'
+        ⇒ 两条路都被 C21 堵死 ★**【ISS-229 实测补注】** 2026-11-16 交卷期间又发生一次并发落表: **ISS-233 第 3 批** (06:48:38) 改了网表
+        L442 + 脚表 L531 ⇒ 锚点又落后 ⇒ 门禁 C21 双红 ⇒ **我已按 H-1 再重锚到 `34132f7e40a241e1fae1476be0eafbd5` / `b21b743a7702d30729f0d653c15392df`
+        (by=ISS-233), 留痕在 `MECH/HW_CROSS_REVIEW_TRIAGE.md` §3.1 R-03** ⇒ ★**请以后落表时直接同步 MECH 侧锚点, 别等门禁红了一遍再补**
+        ★'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss229_mech_charge_skin_temp_scope_to_main
+      to: main
+      item: '★ISS-229 出数 (改正系数 1.216) 后, 请裁【整机阶段】口径要不要跟: ①**充电时皮肤侧 43 °C 红线** —— 老板 10-28 已拍「边戴边充不允许」⇒
+        充电时眼镜不在皮肤上 ⇒ 皮肤侧这条在充电场景**不是硬约束**; 但**与佩戴无关**的三条仍成立 (铰链段温升 / **TS 停充门限偏差** 390Ω max 1.13 °C / **单
+        pin 触点额定** 390Ω max 0.608A) ⇒ 问 main: 整机阶段的『充电链』判据要不要按 680Ω / 1.2kΩ 重写? ★**本单只登记, 不改别人的件** (PROJECT_TRACKER
+        §0 / DECISION_PENDING / issue_log 一个字节都没碰); ②**V-4 建议默认值** (680Ω 或 1.2kΩ) 仍**待老板拍** ⇒ DECISION_PENDING_2026-11-16.md
+        §A2 的 V-4 行可直接引用本单 §B4.2 的 **30 行全网格** (含 1.2kΩ 新候选档); ③本域既有 need `iss091_rilim_decision` 里的 47.1
+        °C / 42.1 °C 是按**作废系数 0.822** 算的 ⇒ 本单**只加订正说明、没删历史条目** ⇒ 以 §B4.2 为准。'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-19'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss229_mech_hw_pcb_outline_old_charge_numbers
+      to: hw-lead
+      item: 'ISS-229 已出改正系数下的权威表 ⇒ `HW/PCB_OUTLINE_60x15.md` 里还有三处带 **0.822 旧口径**的数 (★**只报不改, HW 地界由 hw-lead
+        自己改**): ①§3.4 表 (L142~L147) 的 ICHG / 单 pin / 余量列 —— 390Ω 现写 0.82A / 0.411A / ✅余量 1.22× ⇒ 新值 **1.216A
+        / 0.608A / ❌超 0.5A 天花板 21.6%**; 470Ω 现写 0.68A / 0.341A / ✅ ⇒ 新值 **1.009A / 0.505A / ❌超 1.0%**;
+        680Ω 现写 0.47A / 0.236A ⇒ 新值 **0.697A / 0.349A / ✅余量 1.43×**; 300Ω 现写 0.534A ⇒ 新值 **0.790A**; ②L149
+        那句「390Ω max 档充电 ~29.20min / 典型 32.08min」⇒ 新值 **~19.7min / ~21.7min** (400 mAh 仅 CC 段, 实际再加 10-20%);
+        ③§4.2 O-4 行「TS 参考地被 1A 回流抬高 14-32mV = 0.44-0.99 °C」⇒ 新值 390Ω max **36.5 mV = 1.13 °C** (留 1 °C
+        裕量只在 680Ω / 1.2kΩ 成立)。★出处: `MECH/HINGE_POWER_CALC.md` §0-A.1 + `MECH/hinge_power_calc.json` (rilim_table
+        / copper_vs_rilim / rilim_full_grid); 复现: `python3 MECH/hinge_power_calc.py` (rc=0)。'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-19'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss229_mech_sw_evt_pwr05_charge_current_criterion
+      to: sw-lead
+      item: 'ISS-229 重算后, `SW/EVT_TEMPLATE.md` **PWR-05**「充电电流 ≥ 1.5A @5V/2A 适配器」与现行 R_ILIM 体系不相容 (★**只报不改,
+        SW 地界由 sw-lead 自己改**): 改正系数 1.216 下 max 档**电池侧**充电电流 = 390Ω 1.216A / 680Ω 0.697A / 1.2kΩ 0.395A
+        ⇒ 连现行 V-4 候选 (680Ω) 也只有 0.697A, **1.5A 达不到**; 若该判据量的是**输入电流 IIN**, 390Ω 档 IINMAX max = 1.00A (680Ω
+        档 0.574A) ⇒ 同样达不到 ⇒ ★请 sw-lead 复核它到底量哪个量 (输入电流 vs 电池侧电流), 并给改法 (降阈值 / 改判据对象 / 或注明 demo 板不装充电链故本项不适用
+        —— charge IC 在 demo 板是 DNP 位)。★该不兼容**在旧 0.822 系数下就已存在** (390Ω max = 0.822A) ⇒ 属既存判据, 不是 ISS-229
+        造成, 本单只把新系数下的准确数摆出来。★出处: `MECH/HINGE_POWER_CALC.md` §0-A.1 + `MECH/hinge_power_calc.json`; 复现:
+        `python3 MECH/hinge_power_calc.py` (rc=0)。'
+      since: '2026-11-16'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: '2026-11-19'
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss229_hw_landing_must_sync_mech_anchor_iss233
+      to: hw-lead
+      item: '★**ISS-233 第 3 批落表 (2026-11-16 06:48:38) 改了网表 L442 + 脚表 L531** ⇒ MECH 闸 `MECH/check_demo_struct_truth.py`
+        的 **G5b + C21 双红 (rc=2, 21/23)** ⇒ ★**我已按 H-1 流程把 MECH 侧锚点 跟过去** (网表 `34132f7e40a241e1fae1476be0eafbd5`
+        / 脚表 `b21b743a7702d30729f0d653c15392df`, by=ISS-233, landed_at 2026-11-16 06:48:38, 留痕在 `MECH/HW_CROSS_REVIEW_TRIAGE.md`
+        §3.1 R-03) ⇒ 门禁回 rc=0 (23/23) ★ ⇒ ★**但下次落表请直接同步 MECH 侧锚点** (§1 `source_ledger.entries` 的 `md5`
+        / `prev_md5` / `by` / `landed_at` 四个字段), 别等我这边红了一遍再补 ⇒ ★**落表记录里必须能查到【落表单号 + 该文件名 + 新 md5 + 旧 md5】四项**
+        (C21 逐项对账) ⇒ ★**注意: ISS-232 本身没改网表** (其交接单 §10 明写「网表 md5 `3215020b…` 不变」) ⇒ 真正触发重锚的是 ISS-233'
       since: '2026-11-16'
       state: pending
       target_missing: false
@@ -10185,6 +10978,63 @@ domains:
         21.39 (d=20), 而 30 mm 这个数在项目内查无出处 (框截面 u8 未定)'
       ref: MECH/CENTER_CAVITY_REBALANCE_V3.md §2.1-2.2 + MECH/MECH_BUDGET.md §1.10.3 + MECH/cavity_recalc_check.py
         C20
+    - key: iss222_mech_c7b_sink_is_metal_not_print
+      to: main
+      value: '★已闭环 (口径侧): ISS-227 已把 P3 的活口径从「打印件顶面 (假同温)」改成「铝制集热背板 120×30×1.0 (6063-T6, k=201)」并重算三档
+        ⇒ d=15/18/20 = 47.77 / 47.47 / 47.27 °C ✅ (u8=30, 0.468 W) ⇒ @0.50 W 代表负载 = 48.65 / 48.32 / 48.11
+        °C ⇒ 仍 ≤ 50 °C; P_max @d=15 = 0.5496 W (u8=30) / 0.5663 W (u8=40); 打印件顶面有效热导 R = 398.9 K/W vs
+        同面积直接对流 47.6 K/W (差 8.4 倍) ⇒ 打印件方案腔体真值 53.60 °C ❌ (超红线 3.60 °C) ⇒ 铝制背板 = P3 成立的必要条件 (+9.72 g =
+        2.70 mg/mm²); 降功耗单做不成立 (面板 0.415 W ⇒ 打印件仍 51.49 °C ❌); 端件整条金属化 11.34-22.68 g / 14.18-37.80 mg/mm²
+        (贵 5.3-14.0 倍且面积差 3-7 倍) ⇒ 不可接受 (有数). ★但「集热面最终做成什么材质」是老板级项, 本单不拍 ⇒ 请 main / 老板裁 (铝 6063-T6 / 镁
+        / 其他金属 / 打印件 + 独立热路) ⇒ 机器门禁 C21 (集热面材质字段必须金属, 打印件 ⇒ 红) + C22 (整节存在性) 已把这条变成硬判据'
+      ref: MECH/CENTER_CAVITY_REBALANCE_V3.md §2.5 + MECH/cavity_recalc_check.py C21/C22
+    - key: iss223_skin_temp_recompute
+      to: hw-lead
+      value: '已按改正后的系数重算并落盘 (ISS-229): **ICHG/IIN = η·Vbus/Vbat = 0.90×5.0/3.70 = 1.216216 ⇒ 1.216** (@Vbat
+        4.20V ⇒ 1.071; 主口径取最坏 1.216), 旧 0.822 = 1.216 的精确倒数 ⇒ 作废留痕。★max 档 1oz 皮肤侧 = 300Ω **61.4** / 390Ω
+        **50.6** / 470Ω **45.8** / 680Ω **40.1** / 1.2kΩ **36.7** °C ⇒ **活档 = 680Ω / 1.2kΩ**; 单 pin max
+        = 0.790 / 0.608 / 0.505 / 0.349 / 0.198 A ⇒ **390Ω 与 470Ω 档超 0.5 A 触点额定**; TS 偏移 = 1.46 / 1.13
+        / 0.93 / 0.65 / 0.37 °C ⇒ **留 1 °C 裕量只在 680Ω / 1.2kΩ 成立**; 充电时间 (400 mAh 仅 CC 段) = 15 / 20 / 24
+        / 34 / 61 min ⇒ **原 42.14 °C (按 0.822 算) 已作废 ⇒ 无有效数字**。★[推算] 板端 [实测] = 0 条。复现: python3 MECH/hinge_power_calc.py
+        (rc=0)'
+      ref: HANDOFF/2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md §B4.2 + MECH/HINGE_POWER_CALC.md §0-A.1
+    - key: iss230_skin_temp_void_marked
+      to: hw-lead
+      value: '你标的作废成立, 且 ISS-229 已交叉核对并给出新数: 42.14 °C / 47.07 °C **无有效数字** (按作废系数 0.822 算) ⇒ 现行 = **390Ω
+        max 皮肤侧 50.6 °C ❌** (超 43 °C 红线 7.6 °C) + **单 pin 0.608A ❌** (超 0.5 A 触点额定 21.6%) ⇒ 390Ω 档在改正口径下判
+        FAIL; 同句的充电时间 ~29.20min / 典型 32.08min 同样出自作废表 ⇒ 新值 **~19.7min / ~21.7min** (400 mAh 仅 CC 段); O-4
+        行 TS 偏移 0.44-0.99 °C ⇒ 新值 390Ω max **36.5 mV = 1.13 °C** (留 1 °C 裕量只在 680Ω/1.2kΩ 成立)。★**680Ω 复核**:
+        max 1oz 皮肤 **40.1 °C ✅** (余 2.9 °C) + 单 pin **0.349A ✅** (余量 1.43×) + TS **0.65 °C ✅** ⇒ 与你 11-01
+        的 `chg_rilim_recommended`=680Ω 一致 ⇒ 建议默认值仍 680Ω (电芯若 ≤1C 则退 1.2kΩ); ★**V-4 由 main/老板拍, 本单不代拍**;
+        另建议把 `HW/PCB_OUTLINE_60x15.md` §3.4 表 / L149 充电时间 / §4.2 O-4 行这三处旧数按新表订正 (已登记 need)。'
+      ref: HANDOFF/2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md §B4.2 §U-2 + MECH/HINGE_POWER_CALC.md
+        §0-A.1
+    - key: iss219_mech_c7_sink_area_confirm
+      to: main
+      value: '门槛更新 (活口径, 两档): ISS-227 把 P3 活口径从打印件顶面 (假同温) 改成铝制集热背板 120×W_rim×1.0 后, 同一条 W_rim 门槛在两个口径下不是一个数
+        ⇒ 用鳍模型重算: 22.15 mm @0.468 W (面板功耗) / 25.63 mm @0.50 W (ISS-216 代表负载) (摄像头凸包让位·u8=30·d=15) ⇒ ISS-222
+        登记的 23.30 mm 只在面板功耗下成立 (0.50 W 下 50.67 °C ❌) ⇒ 若框截面按 23.30 裁, 必须同时确认峰值功耗 ≤ 0.468 W; 净可外露面积 3432
+        mm² 结论不变 (面积仍不是阻塞项); 背板质量 m = 0.324 × W_rim g = 7.18-9.72 g ⇒ 整机 57.96-85.08 g (387 mAh) ⇒ 背板质量不预扣
+        (W_rim 为 [0数据])'
+      ref: MECH/CENTER_CAVITY_REBALANCE_V3.md §2.6 · MECH/cavity_recalc_check.py C23
+    - key: iss229_mech_v4_update_package_and_gate_reanchor
+      to: main
+      value: '★**ISS-229 收口 (4 件交付物全齐)** ⇒ ① 系数改正 (0.822 倒数方向 → **1.216 @3.70V / 1.071 @4.20V**, 取最坏 1.216)
+        + 三张表重出 (rilim_table 15 / copper_vs_rilim 10 / rilim_full_grid 30 行) ⇒ ★**max 档 1oz 皮肤侧: 300Ω
+        61.4 ❌ / 390Ω 50.6 ❌ (超 43 °C 红线 7.6 °C) / 470Ω 45.8 ❌ / 680Ω 40.1 ✅ (余 2.9 °C) / 1.2kΩ 36.7 ✅**
+        ⇒ 单 pin max 0.790 / 0.608 / 0.505 / 0.349 / 0.198 A ⇒ TS 偏移 1.46 / 1.13 / 0.93 / 0.65 / 0.37 °C
+        ⇒ 充电 (400 mAh 仅 CC 段) 15/20/24/34/61 min ⇒ ★**活档 = 680Ω / 1.2kΩ** (★**V-4 待 main/老板拍, 本单不代拍, 一句「建议选
+        X」都没写**★) ⇒ ★**原 42.14 °C / 47.07 °C 判为无有效数字** (按作废的 0.822 算) ★ ★② 文档 `MECH/HINGE_POWER_CALC.md`
+        §0-A + §0-A.1 口径订正留痕 (旧值→新值对照 22 行, 旧数一个没删) ★ ★③ V-4 更新包 = 30 行全网格 (每档 × min/typ/max × 1oz/2oz:
+        新皮肤侧 + pass_43 + 充电时间 + 单 pin vs 0.5 A 触点额定) + 「充电时皮肤侧是否仍是硬约束」的现状说明 (老板 10-28 已拍「边戴边充不允许」⇒ 充电时眼镜不在皮肤上
+        ⇒ 皮肤侧 43 °C 在产品语义上不是硬约束; ★**但铰链段温升 / TS 停充门限 / 单 pin 触点额定这 3 条与佩戴无关, 依然成立**★; 只作说明, 未改老板已拍口径)
+        ★ ★④ MECH 闸重锚: **两跳** (第 1 跳 ISS-223 `13f59a43…`→`3215020b…`; ★**第 2 跳 = 交卷期间 hw-lead 的 ISS-233
+        第 3 批并发落表 (06:48:38) 改了网表 L442 + 脚表 L531 ⇒ 再跟到 `34132f7e…` / `b21b743a…`**★) ⇒ §3.1 **R-02 + R-03**
+        两行留痕 ⇒ ★**门禁 rc=2 (21/23) → rc=0 (23/23)**, `--selftest` **14/14** 一条没删 ★ ⇒ ★**HW/ 一个字节没改** (并发落表是
+        hw-lead 的活, 本单只跟 MECH 锚点; 没卡住/等待/干预另一个 agent 的单) ★ ⇒ 板端 [实测] = 0 条 · 零外发 · 未自签 issue_log · ★**与
+        main 本轮独立推算逐条一致** (390Ω max 50.6 / 470Ω max 45.8 / 680Ω max 40.1, ICHG / P / ΔT 全同值)'
+      ref: HANDOFF/2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md (B1~B6) + MECH/HINGE_POWER_CALC.md
+        §0-A
     open_questions:
     - id: MECH-Q1
       to: main
@@ -12531,6 +13381,253 @@ interface_claims:
     noncanonical_by:
     - hw-lead
     conflict: false
+  iss223_usb_series_r_22ohm:
+    values:
+      hw-lead: USB 串阻已落表 = 22Ω ±1% (V-1 由 main 裁); 差分线 90Ω ±15% 受控阻抗搬进 z_diff 字段, 不再塞进 imp
+    notes:
+      hw-lead: '★ISS-223 落表第2批 · [实测] SPEC.json B-21/B-22 imp=22Ω ±1% + 表A L291/L292 value=22Ω ±1% (note
+        带 差分阻抗 90Ω ±15% 受控阻抗) + 门禁 R5 8 条全绿; ★[官网] ON Semi AND8074/D (串阻 28~44Ω 规范 / 22Ω·30Ω 工业值 / Zo
+        90Ω±15%) + onsemi STF202-22T1G (内置 RS 20/22/24Ω); ★[0数据] SoM USB PHY 驱动阻抗 (降级: 已按 22Ω 落, 手册到手只核对驱动阻抗一条)'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss223_rk3572_saradc_fs_1v8:
+    values:
+      hw-lead: RK3572 SARADC (SARADC_VIN5) 满量程 = AVDD18 = 1.62/1.8/1.98V (min/typ/max), 12bit ⇒ 1 LSB
+        = 439.5µV@1.8V / 483.4µV@1.98V; DNL ±3 / INL ±6 / offset ±20 LSB (max) ⇒ ADC 自身误差合计 29 LSB
+    notes:
+      hw-lead: '★ISS-223 · [官网] RK3572 Datasheet Rev 1.1 §3.10 Table 3-16 + 电气总表 SARADC_AVDD1V8 + §1.2
+        特性 (12bit / 1MS/s / 8 单端通道); ★★注意: datasheet 里那几条 Input leakage current IPAD -10/NA/10µA 属于 Table
+        3-4 数字 GPIO, 不是 SARADC ⇒ SARADC 的 输入漏电流/输入电容/t_acq = [0数据] (TRM 不公开)★; ★★⇒ SW/tools/timing_check.py
+        的 V_DET_FS=3.3 对 BAT_DET 链 (1.8V 域) 是错的★'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss223_v3_batdet_option_set_gap:
+    values:
+      hw-lead: '★V-3 (BAT_DET 分压链) 的现有选项集 A(2.0M+1.2M) vs D(2.0M+1.0M) 是【伪选择】: 两者 R_top 都是 2.0M ⇒ 漏电误差项
+        (ΔV_bat = I_leak × R_top) 与电阻比容差项 (±1.00%) 完全相同; 真正的决策是【分压链的阻抗等级】 (SAR ADC 要 kΩ 级源阻抗, 750k 差 3
+        个数量级) ⇒ 推荐新增 E = 100k+60k+100nF (R_th 37.5k ⇒ t_settle(½LSB) 34ms; 漏电@1µA = 2.1%FS; 总误差 <2.9%FS;
+        代价 26.25µA/110µW 常开)'
+    notes:
+      hw-lead: '★ISS-223 · [实测] state/calc_v3_batdet.py 本机实跑 (公式口径 = SW/tools/timing_check.py F4, V_FS
+        订正为 1.8V 域); ★★本单只出依据不代拍, 网表仍是 1M+1M + DNP 一格没改★; ★降级: ①按需使能上臂 ②用途降级为低电量告警粗判 ③三个数到手回填 ④改读 BQ25896
+        的 I2C 遥测'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss230_batch3_landing_map_v2:
+    values:
+      hw-lead: '第3批落表的逐字改法映射已做成: V-2/V-3/V-4 每个选项 ⇒ 改哪个文件的哪一行 ⇒ 改成什么字面值 ⇒ 重跑哪些生成器 ⇒ 哪几条判据转绿 ⇒ 门禁会怎么变;
+        已在一次性副本实跑验证 (21→8→7条)'
+    notes:
+      hw-lead: 落点 = HW/SCHEMATIC_LANDING_BATCH3_WORKPACKET_V2.md; 老板拍完任一项 ⇒ 照着那一节改即可, 不用重做映射
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss230_a_group_field_discipline_assertion:
+    values:
+      hw-lead: A组已迁移的20条 (A-01~A-10/A-13~A-22) 在 SPEC.json 里必须 z_diff 非空 且 imp 为空; 断言范围不含 A-11/A-12 (单端)
+        与 A-24 那15条 (J_TYPE_C母座功能串, 本来就没有阻抗值)
+    notes:
+      hw-lead: '为什么必须有: 判据 5 的比对源是 imp or z_diff ⇒ 谁把差分阻抗塞回 imp 并清空 z_diff, 判据5照样全绿 ⇒ 字段分工被静默破坏; 反向用例19/20就在
+        --selftest 里跑'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss230_v2_netlist_side_turns_zero_green:
+    values:
+      hw-lead: 'V-2 (ESD) 的网表侧落表一条判据都转不绿: R4(2条)+R9(1条) 读的是板文件 kicad_pcb ⇒ 只有板只改一次那一趟才能转绿 ⇒ V-2 必须写成 网表侧落表
+        + 板侧那一趟 两段'
+    notes:
+      hw-lead: ⇒ 按V-2落完能少4条这个预期不成立 (main任务书里 R4/R9 的条数实测是3条不是4条, 4条是R3) ⇒ 作业包 §3.0
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss230_chg_spec7_csv_legal_and_diff_listed:
+    values:
+      hw-lead: 'CHARGE_BOARD_SPEC §7 的 CSV 块已修成合法CSV (U_CHG 那行 note 补引号 ⇒ 81行×13列齐); §7↔网表双向差集已清单化: §7唯一位号41
+        / 网表CHG_BOARD唯一位号40 / 交集25 / §7有网表没有16 / 网表有§7没有15, 逐条给了处置建议'
+    notes:
+      hw-lead: ★本单【没有】做双向对账, 原因 = §7 与网表是两个版本, 对账的起点不成立 (§7 = 充电板整机阶段的镜像清单80行; 网表 = 现行demo主PCB网表513行)
+        ⇒ 只修§7侧, 改网表归充电板整页那一趟 (真源 = state/p10_rows.json)
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss232_c1_two_extra_root_cause:
+    values:
+      hw-lead: 'C1 焊盘级等价红的 2 处「多余」(= C_VBUS_GND pad1=GND / pad2=VBUS_5V_CHG) = 【板侧陈旧】, 不是网表写法错: 门禁先按 board
+        列过滤 (state/check_pcb_nets.py: rows=[r for r in rows if (r.get(board) or MAIN_PCB).strip()==MAIN_PCB])
+        ⇒ ISS-220 已改判 CHG_BOARD 的 C_VBUS_GND 两行 (表A L10/L12) 整行被滤掉 ⇒ 板上那个封装 (pad1=GND / pad2=VBUS_5V_CHG,
+        原点 107.7/42.5mm) 推不出来 ⇒ 判「多余 2」⇒ 真修法在板侧同步项 B-1 (拿掉该封装), 本单不许碰板 ⇒ 网表侧一条都不用改'
+    notes:
+      hw-lead: '任务书写的「裸端 ⇒ 占位号 ⇒ 该改成 pin<N>」实测被证伪: 改成 pin1/pin2 后 C1 一克没变 (变体 B); 真因是那两行在推焊盘号之前就被 board
+        过滤掉了 ⇒ 变体 A 的 probe 实测: 513 行 → 404 行, 过滤后 per_ref 里没有 C_VBUS_GND ⇒ 另: 板上 VBUS_5V_CHG 全板只有 C_VBUS_GND
+        pad2 一个焊盘 ⇒ 主板这半边是死头支路'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss232_board_side_b1_scope:
+    values:
+      hw-lead: '板侧同步项 B-1 的精确范围 = 【只删一颗封装 C_VBUS_GND】: 用当前网表跑板生成器 ⇒ 186 → 185 个封装, 差集恰好 = [C_VBUS_GND]
+        ⇒ 其余 185 颗一颗不多一颗不少 (B-2~B-8 是另外的批次)'
+    notes:
+      hw-lead: '落地时必须连带改的 (实测会红的那 2 条): HW/check_netlist_selfconsistency.py 的 EXPECT 两条 d11_board_cvbgnd_pads
+        / d11_board_cvbgnd_pad2 (+ 规格页 HW/NETLIST_SELF_CONSISTENCY_SPEC.md 的锚点表必须与脚本 EXPECT 逐字一致) ⇒ 不改这两条,
+        板改完自证门禁立刻红 2 条 (变体 D 实测)'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss232_netlist_side_no_change:
+    values:
+      hw-lead: 本单网表侧一条都没改 ⇒ 网表 md5 3215020b6d4120e1b7728227effdc6d3 不变 ⇒ SW/SW_MD5_BASELINE_LEDGER.md
+        §1 的 source_ledger.entries[] (网表 by=ISS-223 / 3215020b…) 与 MECH/HW_CROSS_REVIEW_TRIAGE.md 的网表锚点
+        (R-02, by=ISS-223) 【不用动】; 但 B-1 那一趟板 md5 会变 ⇒ SW hard_protected[] (板 611b869e… + .kicad_pro 3e504d2b…)
+        与 MECH G5b 受保护文件组必须走 H-1 重锚
+    notes:
+      hw-lead: 落表单号 = ISS-232 (本单未落表 ⇒ 按 SW 的 H-1 定义属于「没落表就别改锚点」那一类); 板侧那一趟的落表单号待 main 派 (建议 B-1 与 B-2~B-8
+        同单同批, 免得板 md5 变两次)
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss228_vccio1_errata_applied:
+    values:
+      hw-lead: 'ISS-228 (sw-lead) 登记给 hw-lead 的勘误已落盘: HW/AR0234CS_OPEN_SOURCE_FACTS.md L241 (§3.3 表第 6
+        行) / L243 (该表下的推论段) / L474 (§7 表第 ② 行) 三处逐字订正 —— ① I2C0 提法改成本板真实口径 I2C5_M3 (GPIO3_C4/C1, 球 AH33/AL33,
+        Forlinx 官方逐脚 VOL = 1.8V; 球 1K21/U32 本板 SoM 未引出) ⇒ 「3.3V/2.8V 超 SoC 侧 abs-max ⇒ 整条 I2C_A 要重设计」不成立
+        ② 「VCCIO1_VCC 属 1.8V only (max 1.98V)」改正为 VCCIO1_VCC 与 PMUIO1_VCC + VCCIO1~6_VCC 同属 1.8V/3.3V
+        档 (max 3.63V), 1.8V only 档只有 PMUIO0_VCC1V8 + VCCIO0_VCC1V8'
+    notes:
+      hw-lead: '依据全是项目内已有官方材料, 零外发: HW/RK3572_OFFICIAL_DATASHEET_FACTS.md §VCCIO L79-L95 (p.39 渲染图口径)
+        + HW/PCB/FET3572C_PIN_TABLE.csv L132/L134 (AH33 = I2C5_SCL_M3 / GPIO3_C4_d / 1.8V · AL33 = I2C5_SDA_M3
+        / GPIO3_C1_d / 1.8V; 1K21/U32 命中 0 条) + SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md §4/§5 ⇒ 落盘后该文件 513
+        行不变 (行号不漂), md5 99ba7a41cb25c7fc834515620374339e → b8fab9621ac67b34da4536b5ec4f1370; 未改 SW/ 与
+        MECH/ 一个字节'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss233_expect_resolved_open:
+    values:
+      hw-lead: 18 条 (21 → 18)
+    notes:
+      hw-lead: ISS-233 落表后 --expect-resolved 的未落表条数 (R2×11 + R7 + R8 = V-3 13 条 · R4×2 + R9×1 = V-2+板
+        3 条 · R10 = V-4 1 条 · R3 板侧 1 条); 本单 A 类落掉 3 条 (R3 网表侧) ⇒ 21 → 18
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  iss233_r3_landing_scope:
+    values:
+      hw-lead: 表A L442 / 表B L531 / BOM L208
+    notes:
+      hw-lead: ISS-233 落表的三个落点 (真源 = state/gen_netlist.py 的 build_p1() 里 U_EN_SW 第 2 条 add() 一处, 改 type/value/note
+        三个字段)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  iss233_net_md5_after:
+    values:
+      hw-lead: 34132f7e40a241e1fae1476be0eafbd5
+    notes:
+      hw-lead: ISS-233 落表后的网表 md5 (旧值 3215020b6d4120e1b7728227effdc6d3 留痕在落表台账 §15.4) ⇒ SW/MECH 两边走 H-1
+        重锚用
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  iss233_pins_md5_after:
+    values:
+      hw-lead: b21b743a7702d30729f0d653c15392df
+    notes:
+      hw-lead: ISS-233 落表后的脚表 md5 (旧值 a600afae493f5a7a6c55f46ad35ac89c) ⇒ SW/MECH 两边走 H-1 重锚用
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  iss233_bom_md5_after:
+    values:
+      hw-lead: c195a117ff17490d4d1e1a5b8f1995a7
+    notes:
+      hw-lead: ISS-233 落表后的 BOM md5 (旧值 92b51580867deca9f8b04af88d925d96); BOM 只有 L208 一行变 (value=器件身份描述
+        · type=NET→IC · procurement 待分类→已定型-IC)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  iss233_u_en_sw_identity:
+    values:
+      hw-lead: TPS22991RAA
+    notes:
+      hw-lead: 'U_EN_SW 的器件身份 (4 脚: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85x0.75mm); 项目总工 11-03 已裁 =
+        TPS22991RAA (ISS-172 待老板点头); 网表 opn 列/板封装早已是它 ⇒ 本单只是把本体行补上 ⇒ 若改 TPS22916/17 = 同封装换料不换板'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  iss236_v3_whitelist:
+    values:
+      hw-lead: E / A / D / DEG4
+    notes:
+      hw-lead: V-3 (BAT_DET 分压链) 取值白名单 (state/land_v_values.py 内写死) · E=100k+60k+100nF (建议) · A=2.0M+1.2M
+        (R_th=750kΩ ⇒ 漏电误差占 41.7% FS) · D=2.0M+1.0M (R_th=666.7kΩ ⇒ 37.0% FS) · DEG4=保持 DNP 网表一格不改 (⇒
+        13 条永远红 ⇒ 原理图不能定稿)
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  iss236_v4_whitelist:
+    values:
+      hw-lead: 680 / 470 / 390
+    notes:
+      hw-lead: V-4 (R_ILIM 档位) 取值白名单 (Ω) · 680=建议 (单 pin 0.349A ≤ 0.50A 触点上限, 余量 1.43×) · 470=贴边 (★注意
+        ISS-233 §3.3 原文写的是 475 不是 470·落表器会打一条警告★) · 390=现状档 ⇒ 判死
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  iss236_v2_whitelist:
+    values:
+      hw-lead: '1'
+    notes:
+      hw-lead: V-2 (ESD 方案与型号) 取值白名单 · 1 = 网表侧 + 板那一趟两段走 (唯一正路) · 2 = 只落网表侧 ⇒ ISS-230 实测 7→7 假绿 ⇒ 落表器在解析阶段就
+        rc=2 打回
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  iss236_expect_resolved_baseline:
+    values:
+      hw-lead: '18'
+    notes:
+      hw-lead: '交卷时的 --expect-resolved 未落表条数基线 (2026-11-16 09:3x 本机实跑) · 落表后期望: V-3=E → 5 · V-3+E 加 V-4=680
+        → 4 · 再加板那一趟 4 条 (CR-14~CR-17) → 0 (定稿) · ★V-3 若拍 DEG4 ⇒ 下限 = 13 条·原理图不能定稿★'
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
   temple_thickness:
     values:
       mech-lead: 7.30mm
@@ -13155,18 +14252,24 @@ interface_claims:
     conflict: false
   mech_hinge_chg_power_mw_at_1a:
     values:
-      mech-lead: 15-127
+      mech-lead: 8.3-276.8
     notes:
-      mech-lead: '@1.0A 铰链段发热 (mW), 对应皮肤侧 +0.8~+6.4C [推算]'
+      mech-lead: '铰链段发热 (mW) —— 全候选网格 (5 档 × min/typ/max × 1oz/2oz), 口径A保守; 下限 = 1.2kΩ min 档 2oz, 上限 =
+        300Ω max 档 1oz; 现行 390Ω 档 = **78.7-163.8 mW**。★**ISS-229 订正 (2026-11-16)**: 原值 `15-127` 按**作废系数
+        0.822** 算 (上界 127 mW = 300Ω 档 max 旧 ICHG 1.069 A × R_path 110.78 mΩ) ⇒ **已作废 (留痕, 不删)**; ★新值 **8.3-276.8
+        mW** (上界 ×2.19, 电流² 律) ⇒ 皮肤侧增量见 `mech_hinge_chg_skin_rise_c_at_1a`。★结论 (铜箔轴向导热极强 ⇒ 铜箔自身温升 <0.1
+        °C ⇒ 不做额外散热铜箔) 在新系数下不变。★[推算]'
     by:
     - mech-lead
     noncanonical_by: []
     conflict: false
   mech_hinge_chg_skin_rise_c_at_1a:
     values:
-      mech-lead: 0.8-6.4
+      mech-lead: 0.42-13.88
     notes:
-      mech-lead: 铰链段发热引起的贴皮肤处温度增量 (C), 用 MECH_BUDGET §2.3 口径 k_eff=50.13 K/W, 基准35C [推算]
+      mech-lead: '铰链段发热引起的贴皮肤处温度增量 (C), 用 MECH_BUDGET §2.3 口径 k_eff=50.13 K/W, 基准 35 °C; 全候选网格 (下限 = 1.2kΩ
+        min 档 2oz, 上限 = 300Ω max 档 1oz)。★**ISS-229 订正 (2026-11-16)**: 原值 `0.8-6.4` 按**作废系数 0.822** 算 ⇒
+        **已作废 (留痕, 不删)**; ★新值 **0.42-13.88 °C**。★[推算]'
     by:
     - mech-lead
     noncanonical_by: []
@@ -13178,26 +14281,37 @@ interface_claims:
       mech-lead: '建议值(非拍板): 换料不换板 (ILIM脚稳在0.8V, P=0.8^2/470=1.36mW, 0402足够); ICHG max 0.682A / 单pin 0.341A
         / 皮肤39.9C / 充电~35min [推算]★ISS-107 同型更正 (2026-11-06): 原值 ''470'' 是**结构侧 10-28 的建议值**; **老板 10-28
         拍板『边戴边充不允许』⇒ 390Ω** (ICHG 0.822A / 单 pin 0.411A / 充电 ~29min), 网表 R_ILIM 行已是 390Ω。⇒ 本条 ''建议'' 已被拍板取代,
-        现行值 = 390。★注意: 本域另一条 claim ''r_ilim_set'' 已写 390ohm ⇒ 原值 470 与它自相矛盾。'
+        现行值 = 390。★注意: 本域另一条 claim ''r_ilim_set'' 已写 390ohm ⇒ 原值 470 与它自相矛盾。 | ★**ISS-229 订正 (2026-11-16)**:
+        本条 value 仍是**现行网表/老板 10-28 拍板值 390Ω** (一字未动); 但 note 里 0.682A / 0.341A / 皮肤 39.9°C / 充电 ~35min
+        是按**作废系数 0.822** 算的 ⇒ **已作废 (留痕)** ⇒ 按 1.216: 390Ω max = ICHG **1.216A** / 单 pin **0.608A** (>0.5A
+        触点天花板 21.6%) / 皮肤侧 **50.6 °C ❌** (超 43 °C 红线 7.6 °C) / TS 偏移 **1.13 °C** ⇒ ★**390Ω 档在改正口径下判 FAIL**;
+        活档 = **680Ω** (皮肤 40.1 °C / 单 pin 0.349A / 余量 1.43× / 充 ~34min) 或 **1.2kΩ** (36.7 °C / 0.198A
+        / ~61min, 若电芯 ≤1C) ⇒ ★**V-4 建议默认值待 main/老板拍, 本单不代拍**。'
     by:
     - mech-lead
     noncanonical_by: []
     conflict: false
   mech_rilim_charge_skin_temp_c:
     values:
-      mech-lead: 300:47.1/390:42.1/470:39.9/680:37.3
+      mech-lead: 300:61.4/390:50.6/470:45.8/680:40.1
     notes:
-      mech-lead: 各档 ICHG=max 的贴皮肤侧温度 (C), 口径A保守 (回流走GND双pin铜箔, 接触30mΩ/界面, FPC 1oz/0.3mm/31mm, R_cell=0.10Ω);
-        300Ω档超 ISO13732-1 的 43C 红线 [推算]
+      mech-lead: '各档 ICHG=max 的贴皮肤侧温度 (C), 口径A保守 (回流走GND双pin铜箔, 接触30mΩ/界面, FPC 1oz/0.3mm/31mm, R_cell=0.10Ω),
+        **系数 1.216 @Vbat3.70V 最坏档**。★**ISS-229 订正 (2026-11-16)**: 原值 `300:47.1/390:42.1/470:39.9/680:37.3`
+        是按**作废系数 0.822** 算的 ⇒ **已作废 (逐字留痕在此, 不删)**; ★新值 = 300Ω **61.4** ❌ / 390Ω **50.6** ❌ (超 43 °C 红线
+        7.6 °C) / 470Ω **45.8** ❌ / 680Ω **40.1** ✅ (余 2.9 °C) / **1.2kΩ 36.7 ✅** (本轮新增候选档) ⇒ 活档 = 680Ω
+        / 1.2kΩ。2oz 版: 300Ω 57.4 / 390Ω 48.3 / 470Ω 44.1 / 680Ω 39.4 / 1.2kΩ 36.4 °C。★[推算] 板端 [实测] = 0
+        条。'
     by:
     - mech-lead
     noncanonical_by: []
     conflict: false
   mech_rilim_charging_minutes:
     values:
-      mech-lead: 300:22/390:29/470:35/680:51
+      mech-lead: 300:15/390:20/470:24/680:34
     notes:
-      mech-lead: 各档满充时间 (min, 仅CC段估算, 未计CV拐点, 实际再加10-20%) [推算]
+      mech-lead: '各档满充时间 (min, 400mAh, 仅CC段估算, 未计CV拐点, 实际再加10-20%), ICHG=max 档。★**ISS-229 订正 (2026-11-16)**:
+        原值 `300:22/390:29/470:35/680:51` 按**作废系数 0.822** 算 ⇒ **已作废 (留痕, 不删)**; ★新值 = 300Ω **15** / 390Ω
+        **20** / 470Ω **24** / 680Ω **34** / **1.2kΩ 61** min (电流↑ ⇒ 时间↓)。★[推算]'
     by:
     - mech-lead
     noncanonical_by: []
@@ -13263,9 +14377,13 @@ interface_claims:
     conflict: false
   mech_ts_ref_offset_c:
     values:
-      mech-lead: 0.44-0.99
+      mech-lead: 0.37-1.46
     notes:
-      mech-lead: TS跨铰链参考地被1A回流抬高14-32mV 造成的等效温度偏差 (C), TS斜率32.4mV/C [推算]; 减害方案=pin9/pin10改NTC专用回流 (待PM裁决)
+      mech-lead: 'TS 跨铰链参考地被充电回流抬高造成的等效温度偏差 (C), TS 斜率 32.4 mV/C, 偏移 = ICHG×30mΩ。★**ISS-229 订正 (2026-11-16)**:
+        原值 `0.44-0.99` 是按**作废系数 0.822** 算的 ⇒ **已作废 (留痕, 不删)**; ★新值逐档 (max 档) = 300Ω **1.46** / 390Ω **1.13**
+        / 470Ω **0.93** / 680Ω **0.65** ✅ / 1.2kΩ **0.37** ✅ °C ⇒ ★**「留 1 °C 门限裕量」只在 680Ω / 1.2kΩ 成立**
+        (390Ω 档已超)。⇒ 这是一条**指向 680Ω/1.2kΩ 的独立约束** (与皮肤温度 / 单 pin 触点额定同向)。★减害方案 pin9/pin10 改 NTC 专用回流 已被
+        ISS-206 作废 (pin10 现为 HINGE_RSV 预留不装) ⇒ 偏差靠选档解决, 不改 pin map。★[推算]'
     by:
     - mech-lead
     noncanonical_by: []
@@ -13409,8 +14527,11 @@ interface_claims:
     values:
       mech-lead: 390ohm
     notes:
-      mech-lead: 老板 10-28 拍板 (边戴边充不允许 → 皮肤温度不再是充电时硬约束); ICHG 0.822A (max), 单 pin 0.411A; ★300Ω 档单 pin
-        0.534A > 0.5mm ZIF 的 0.5A 额定天花板 → 建议正式判死
+      mech-lead: '老板 10-28 拍板 (边戴边充不允许 → 皮肤温度不再是充电时硬约束); ICHG 0.822A (max), 单 pin 0.411A; ★300Ω 档单 pin
+        0.534A > 0.5mm ZIF 的 0.5A 额定天花板 → 建议正式判死 | ★**ISS-229 订正 (2026-11-16)**: 本条 value 仍是**网表现值 / 老板
+        10-28 拍板值 390Ω** (一字未动); 但 note 里「ICHG 0.822A (max), 单 pin 0.411A」按**作废系数 0.822** 算 ⇒ **已作废 (留痕)**
+        ⇒ 按 1.216: 390Ω max = ICHG **1.216A** / 单 pin **0.608A** ⇒ 300Ω 档单 pin **0.790A** (旧 0.534A) ⇒
+        300Ω 档正式判死、390Ω 档在皮肤 43 °C + 0.5A 触点 + TS 1 °C 三条上全破 ⇒ 活档 680Ω / 1.2kΩ (V-4 待拍, 本单不代拍)。'
     by:
     - mech-lead
     noncanonical_by: []
@@ -14672,6 +15793,102 @@ interface_claims:
         §3.1『已修复 (留痕)』登记一行 ⇒ 门禁 G8 逐条守 (删行 / 删节 / 抹留痕都红)'
     notes:
       mech-lead: ISS-224 新增. 动机 = 一次真修复如果从表里消失, 下一个人会当它『从来没存在过』重新踩一遍 ⇒ 留痕机制 = 结构性根因修法, 不是文字承诺
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  mech_c7b_sink_surface_caliber_iss227:
+    values:
+      mech-lead: P3 (镜框上沿集热) 活口径集热面 = 铝制集热背板 120×30×1.0 (6063-T6, k=201 W/m·K), 根部与铝条同温, 沿长度方向按鳍模型 (G=0.029313
+        W/K, R=34.11 K/W), 并联端件 u8×20 (主口径 u8=30) ⇒ R_支路 37.72 K/W ⇒ d=15/18/20 腔体 47.77/47.47/47.27 °C
+        ≤ 50 °C; 「打印件顶面当集热面」是旧口径 (ISS-219 名义同温) 已作废但留痕 (C7B-01/02/03 标已修正·留痕); 打印件顶面有效热导 R=398.9 K/W vs
+        同面积直接对流 47.6 K/W (差 8.4 倍) ⇒ 打印件方案腔体真值 53.60 °C ❌ ⇒ 下游 (热/电/整机重量账) 一律按金属背板算, 不许再按打印件顶面算
+    notes:
+      mech-lead: ISS-227 (续做) 结构侧对外的活口径声明. 集热面最终材质仍是老板级项 (main/老板裁), 本单只给量化代价 (铝背板 +9.72 g / 2.70 mg/mm²
+        vs 端件整条金属化 11.34-22.68 g / 14.18-37.80 mg/mm²). [推算] (本单实物 [实测]=0)
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  mech_c7b_gate_anti_section_delete_iss227:
+    values:
+      mech-lead: 'C-7b 口径修正节的机器保证: ① 抓节只认 level>=2 的真小节标题 (H1 文档标题不算 —— 本文件 H1 第 1 行就同时含「C-7b」「集热面口径修正」,
+        不排除它就会抓到整篇文档 ⇒ 断言空转) ② 「C-7b 集热面口径修正」小节必须存在且唯一 (唯一 = 防口径分叉) ③ 12 行关键表 (C7B×4 / U8×5 / R7B×3) 必须住在
+        §2.5 节内 ④ 留痕/新口径字面值必须住在节内 ⇒ 删整节 / 删表 / 改节名 三条绕过路全红'
+    notes:
+      mech-lead: '给所有后来写门禁的人看的规矩: 「有断言」不等于「断言有效」⇒ 每条反向用例必须自证「它真的改到了目标」, 否则就是一条永远绿着的假用例 ⇒ 本单已把这条自证写进删节用例
+        (删完必须查 C7B-04 行确实不在了). [实测] (本机实跑 主检 22/22 + selftest 24/24 + 独立对抗 4/4)'
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  mech_ichg_factor_vbat_370:
+    values:
+      mech-lead: '1.216'
+    notes:
+      mech-lead: '★改正后的活口径: ICHG/IIN = η·Vbus/Vbat @Vbat=3.70V (η=0.90, Vbus=5.0V) ⇒ 0.90×5.0/3.70 = 1.216216
+        ⇒ **1.216** (Vbat 最低 ⇒ 系数最大 ⇒ 温度最高 ⇒ 取最坏档)。★**旧值 0.822 = (Vbat/Vbus)/η = 1.216 的精确倒数 ⇒ 方向反了 ⇒
+        已作废 (只留痕, 不参与计算)** ⇒ 下游凡引用充电电流的数 (皮肤温度 / 铰链发热 / 电芯发热 / 单 pin 载流 / TS 偏移 / 充电时间) 一律按 1.216 重算。★[推算]
+        (系数源 HW/CHARGE_BOARD_SPEC.md §2.4 + §3.4 方向修正, ISS-214 d10 · ISS-220 第 1 批落表已改正)。'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_ichg_factor_vbat_420:
+    values:
+      mech-lead: '1.071'
+    notes:
+      mech-lead: 'CV 段末端口径: ICHG/IIN = η·Vbus/Vbat @Vbat=4.20V ⇒ 0.90×5.0/4.20 = 1.071429 ⇒ **1.071**。★本表主口径取最坏的
+        **1.216** (@3.70V), 1.071 也在输出里列出。★旧值 0.933 同属倒数方向, 已作废留痕。★[推算] (系数源同 §2.4/§3.4)。'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_charge_skin_temp_live_table:
+    values:
+      mech-lead: MECH/hinge_power_calc.json#rilim_table
+    notes:
+      mech-lead: '★**充电皮肤侧温度的活口径表 = `MECH/hinge_power_calc.json` 的 `rilim_table` (15 行) / `copper_vs_rilim`
+        (10 行) / `rilim_full_grid` (30 行)** ⇒ 下游 (热路 / 整机重量账 / 充电板规格 / 决策页 §9) **只能引用 JSON 里的现行值** ⇒ 文档里的旧数一律带「已作废」标记。★max
+        档 1oz 皮肤侧: 300Ω **61.4** ❌ / 390Ω **50.6** ❌ (超 43 °C 红线 7.6 °C) / 470Ω **45.8** ❌ / 680Ω **40.1**
+        ✅ / 1.2kΩ **36.7** ✅ °C ⇒ 活档 = 680Ω / 1.2kΩ。★**旧值 (作废, 按 0.822 系数算): 47.1 / 42.1 / 39.9 / 37.3
+        / 35.8 °C** ⇒ 旧 42.14 °C / 47.07 °C **无有效数字**。★[推算] 板端 [实测] = 0 条。'
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  mech_netlist_md5_anchor_iss233:
+    values:
+      mech-lead: ★**网表 `HW/netlist_v1.csv` = `34132f7e40a241e1fae1476be0eafbd5`** (落表单 **ISS-233** 第 3
+        批, 落表时刻 2026-11-16 06:48:38; 上一跳 `3215020b6d4120e1b7728227effdc6d3` = ISS-223 第 2 批) · ★**脚表 `HW/netlist_v1_pins.csv`
+        = `b21b743a7702d30729f0d653c15392df`** (落表单 **ISS-233**, 落表时刻 2026-11-16 06:48:38; 上一跳 `a600afae493f5a7a6c55f46ad35ac89c`
+        = ISS-220)
+    notes:
+      mech-lead: '★**这是 MECH 闸 §1 `source_ledger` 锚点的现行真值 (交卷那一刻盘上 md5sum 实测)** ⇒ ★**md5 链**: 网表 `13f59a43dbd35dc6cb16e897c8c891ab`
+        (ISS-220) → `3215020b6d4120e1b7728227effdc6d3` (ISS-223) → `34132f7e40a241e1fae1476be0eafbd5`
+        (ISS-233); 脚表 `4814617e22b567d76164e56bc5e39dc8` (ISS-220) → `a600afae493f5a7a6c55f46ad35ac89c`
+        (ISS-220) → `b21b743a7702d30729f0d653c15392df` (ISS-233) ⇒ ★**每次落表都要同步 MECH 侧锚点 (H-1 流程), 不然门禁
+        C21 立刻红** ★ ⇒ ★**留痕**: `MECH/HW_CROSS_REVIEW_TRIAGE.md` §3.1 **R-02** (ISS-223 跳) + **R-03** (ISS-233
+        并发跳) ★ ⇒ ★**门禁 G5b + C21: FAIL → [OK]** (rc=2 21/23 → rc=0 23/23; `--selftest` 14/14) ⇒ ★**注意:
+        触发第 2 跳的是 ISS-233 (第 3 批落表), 不是 ISS-232** (★ISS-232 交接单 §10 明写「本单网表侧一条都没改」★) ★ ★[实测] (本机 md5sum
+        + 盘上 mtime + 门禁实跑前后对照)'
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  mech_c7c_wrim_threshold_two_tier_iss237:
+    values:
+      mech-lead: 'W_rim 门槛两档 (活口径·鳍模型·摄像头凸包让位·u8=30·d=15): 22.15 mm @0.468 W (面板功耗) / 25.63 mm @0.50 W
+        (ISS-216 代表负载) ⇒ ISS-222 登记的 23.30 mm 只覆盖面板功耗 (0.50 W 下 50.67 °C ❌); 背板质量 m = 0.324 × W_rim g
+        (7.18-9.72 g) ⇒ 整机 57.96-85.08 g (387 mAh 配置, 不含端件金属化); 打印件顶面在同一 W_rim 下全部 ❌ (53.60-56.53 °C)
+        ⇒ 金属背板仍是 P3 成立的必要条件'
+    notes:
+      mech-lead: 并发会话 (ISS-222 闭环 / ISS-237 闭环轮) 的追加, 与 ISS-227 的 C-7b 口径修正同源 (同一活口径 = 铝制集热背板 120×30×1.0);
+        W_rim 裁多少仍是老板级项, 本单只给要裁到多少才不破红线与每毫米多少钱两个数; 出处 MECH/CENTER_CAVITY_REBALANCE_V3.md §2.6
     by:
     - mech-lead
     noncanonical_by:
@@ -16388,6 +17605,184 @@ interface_claims:
     - sw-lead
     noncanonical_by: []
     conflict: false
+  rk3572_i2c_a_pullup_level:
+    values:
+      sw-lead: 1.8V
+    notes:
+      sw-lead: 本板 I2C_A 上拉轨最终电压; Forlinx OK3572-C 官方手册 §2.6.2 Table 4 逐字 P2_31 与 P2_33 = I2C5_M3 = GPIO3_C4/C1
+        = VOL 1.8V; B-01/B-02 的 level 字段
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  rk3572_i2c_a_pullup_r:
+    values:
+      sw-lead: 2.2k
+    notes:
+      sw-lead: B-01/B-02 上拉阻值; R>= (1.8 减 0.4) 除 3mA = 467 欧 取 2.2k; 灌流 0.64mA 不超 3mA; t_r=2.2k x 100pF
+        x 0.847 约 186ns; 输入全官网, 算术为推算
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  rk3572_gpio0_b0_b1_domain:
+    values:
+      sw-lead: PMUIO0_VCC1V8
+    notes:
+      sw-lead: 原 need 问的 GPIO0_B0 球1K21 与 GPIO0_B1 球U32 的供电组; 1.8V only abs-max 1.98V ⇒ 这两根脚本身永远上不了 3.3V/2.8V;
+        但本板 I2C_A 不接在这两根上 ⇒ 对 I2C_A 无因果关系
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  rk3572_gpio0_b0_b1_on_som:
+    values:
+      sw-lead: 'no'
+    notes:
+      sw-lead: 球 1K21 与 U32 本板 FET3572-C SoM 未引出, 实读 SoM 表命中 0 条 ⇒ 原 need 的 I2C0 前提对本板不成立
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  rk3572_gpio0_b4_d5_domain:
+    values:
+      sw-lead: PMUIO1_VCC
+    notes:
+      sw-lead: GPIO0 的另一半 GPIO0_B4..GPIO0_D5 ⇒ 1.8V/3.3V abs-max 3.63V ⇒ GPIO0 被劈成两个供电组, bank 到组 不是 1:1
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  rk3572_i2c_a_pullup_source:
+    values:
+      sw-lead: forlinx-2.6.2-t4
+    notes:
+      sw-lead: 本板 I2C_A 上拉取值的官方出处 供 hw-lead 落表时直接引用 = Forlinx OK3572-C 官方手册 §2.6.2 Table 4 (P2 Even);
+        佐证 = Rockchip RK3572 Datasheet Rev 1.1 §3.1/§3.2 p.39
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_netlist_md5_anchor_current:
+    values:
+      sw-lead: 3215020b6d4120e1b7728227effdc6d3
+    notes:
+      sw-lead: HW/netlist_v1.csv 的现行锚点 (ISS-223 落表第 2 批, 2026-11-16 05:18); SW 侧 R6 三方对账与 timing_check.py
+        都以它为准; 交卷时刻盘上实测值
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_netlist_md5_anchor_prev:
+    values:
+      sw-lead: 13f59a43dbd35dc6cb16e897c8c891ab
+    notes:
+      sw-lead: 上一代锚点 (ISS-220 落表第 1 批, 2026-11-16 02:32); R6 判据 ③ 要求它在落表台账里查得到 (HW/SCHEMATIC_LANDING_V1_LANDED.md
+        §13 L449)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  sw_netlist_md5_anchor_by:
+    values:
+      sw-lead: ISS-223
+    notes:
+      sw-lead: 这一代锚点的落表单号; R6 判据 ④ 要求它在落表台账里出现 (LANDED L309)
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  shutdown_semantics_demo:
+    values:
+      sw-lead: 深睡
+    notes:
+      sw-lead: 'ISS-234: demo 板关机=深睡+底板支路断电 (U_EN_SW 关 RAIL_BOARD_5V); SoM 供电路径无开关 => 做不到真断电 (推荐默认值, 待老板拍)'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  shutdown_semantics_整机:
+    values:
+      sw-lead: 真断电
+    notes:
+      sw-lead: 'ISS-234: 整机关机=真断电 (U_PWR_SW + R_PD_ON 10k + Q_PG P-MOS 高边), 与 PROJECT_TRACKER §0 关机语义行一致'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  poweroff_static_current:
+    values:
+      sw-lead: 108µA/0.40mW
+    notes:
+      sw-lead: 'ISS-234: AON 50 + BQ25896 2 + BQ2970 1 + 开关IQ 5 + VBUS_DET 50 µA; 满足锁死项 关机(断电)<0.05W;
+        VBUS_DET 项算式存疑 (25µA 或 2.5µA)'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  standby_skin_temp:
+    values:
+      sw-lead: 45.9-46.9°C(红线43C)
+    notes:
+      sw-lead: 'ISS-234: 待机 0.15W 取保守侧; HW/POWER_SHUTDOWN_V3 §6 写 41.6-42.6°C 与之冲突, 待项目总工裁'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss235_sw_gate_green:
+    values:
+      sw-lead: timing_check rc=0 (71/71) · check_demo_panel_spec rc=0 (--selftest 16/16) · check_shutdown_semantics
+        rc=0 (--selftest 17/17) · merge+gate_check rc=0 (Q1 18/18)
+    notes:
+      sw-lead: '[实测] 2026-11-16 08:4x 实跑, 输出原样贴在 HANDOFF/2026-11-16_sw-lead_ISS235_SW侧3条过期断言订正.md B6'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss235_f8_device_row_rule:
+    values:
+      sw-lead: 'F8 目标判据① = _f8_all_load_switches_have_device_row(o): load_switch_without_device_row ==
+        [] 且 U_PWR_SW / U_EN_SW 都在 load_switch_refs 里'
+    notes:
+      sw-lead: '[实测] 正向用例与 REV-3c 共用同一判据函数 => 红的一定是目标那条 (ISS-227 教训)'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss235_f8_rail_switching_baseline:
+    values:
+      sw-lead: 2 (U_PWR_SW + U_EN_SW, 两颗都必装) · 删 U_PWR_SW => 1 · 两颗都删 => 0
+    notes:
+      sw-lead: '[实测] REV-3 基线=2 / 突变后=1 (不是 0); REV-3b (两颗都删=>0) 未改'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss235_rev12_dynamic_ticket:
+    values:
+      sw-lead: REV-12 被改的单号 = §1 锚点块 source_ledger.entries[].by (当前=ISS-233) => 改坏 => R6 红
+    notes:
+      sw-lead: '[实测] 不再硬编码任何单号; 下次落表换单号它照样能变红 (这就是本单订正它的全部价值)'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss235_protected_md5:
+    values:
+      sw-lead: 网表 34132f7e… · 脚表 b21b743a… · BOM c195a117… · 板 611b869e… · .kicad_pro 3e504d2b… (交卷前后逐字节不变)
+    notes:
+      sw-lead: '[实测] 本单 HW/ 0 字节写入, 没有回退 ISS-233 的落表成果; 喂落表前网表(65/71)证明新判据跟网表真值走而不是把红灯调没'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
 needs_matrix:
   pending:
   - key: soc_cost_criterion
@@ -16654,20 +18049,6 @@ needs_matrix:
       3.3V 认不了 1.8V 高电平, 影响面反而更大) / D 并到 VDD_IO 2.8V 已被官方 Note 10 + Table 13 明确排除不用再讨论。★hw-lead 倾向 B,
       但前提是 camera 板上有什么轨可用还没查 (已另登记给 mech-lead)。★同时要定 sensor 轨上电时序怎么实现 (RC 延时 or SoC GPIO 拉 TPS7A20 的
       EN 脚)。★本单未改 netlist_v1.csv 与 gen_netlist.py (禁写范围) (due 11-04)。'
-    since: '2026-11-02'
-    _by: hw-lead
-    state: pending
-  - key: iss148_rk3572_gpio0_vccio_domain_check
-    to: sw-lead
-    item: '★ISS-148 U2 的收尾依赖这一条, 请 sw-lead 配合核 RK3572 的 IO domain。★onsemi AR0234CS/D Table 14 p.17 给出
-      VIN DC Input Voltage 上限 = VDD_IO + 0.3 V, 我们 VDD_IO = 2.8V => sensor 侧 I2C 引脚只能承受 3.1V => I2C_A
-      上拉从 3.3V 改 2.8V (已登记 need iss148_hw_i2c_pullup_3v3_to_2v8)。★但 SoC 侧还没核: I2C0_SCL = GPIO0_B0 (球 1K21)
-      / I2C0_SDA = GPIO0_B1 (球 U32), 而本地 HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.txt 的 abs-max 表把 VCCIO1_VCC
-      归在 1.8V only GPIO supply voltage 一栏 (max 1.98 V), 且引脚表里 GPIO0 组紧跟 VCCIO1_VCC 出现 => 若属实, SoC 侧 GPIO0
-      只允许 1.98V, 那 3.3V 与 2.8V 上拉都超 SoC 侧 abs-max, 整条 I2C_A 电平域要重新设计 (整条降 1.8V 或加电平转换), 不是只改上拉。★本地 txt
-      是 pdftotext 转出的扁平引脚表, 没有 bank 对照 GPIO 的权威表, 只能靠引脚表顺序推断, 不能当结论。★请核 Rockchip 官方 RK3572 IO domain /
-      VCCIO 分组表, 或 BSP rk3572.dtsi 的 io-domains / pinctrl rockchip,pins 里的 VCCIO 网名 => 这条不核, U2 最终改法不能定稿
-      (due 11-03)。'
     since: '2026-11-02'
     _by: hw-lead
     state: pending
@@ -16946,6 +18327,166 @@ needs_matrix:
       > 5 一字不动) ⇒ 只需知会 main, 无需签字★。★本单一票未代拍: V-2 选型 / V-5 数字 / 整机屏路线 / 波导归属 / FOV / 板长方案 / 充电板是否留 / 端件截面
       u8 全部留空给老板与项目总工★'
     since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss223_board_sync_8_items
+    to: main
+    item: '板侧同步清单 8 项 (落表记录 §12 的 B-1~B-8): C_VBUS_GND 封装归属 / U_EN_SW 板封装 Value / ESD 换 3 脚封装 / ESD 挪到
+      ≤3.0mm / D- 侧补 ESD / 充电板 π 滤波拓扑 / B-7 d5 不进清单(网表追平板) / B-8 若 V-3 拍方案 E 则 R_BAT_DET_1/2 阻值要改 ⇒ 必须并进板只改一次那一趟'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss223_sw_vdet_fs_domain_fix
+    to: sw-lead
+    item: 'SW/tools/timing_check.py 的 DEVICE[V_DET_FS]=3.3 对 BAT_DET 链是错的: BAT_DET 走 J_SOM_P1 pin38=SARADC_VIN5
+      = 1.8V 域 ⇒ SW 算出的漏电偏移占满量程偏小 1.83 倍 (3.3/1.8) ⇒ 请按 1.8V 域订正 (本单只报不改, SW 地界)'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss223_chg_spec7_csv_not_valid
+    to: sw-lead
+    item: HW/CHARGE_BOARD_SPEC.md 第7节的 CSV 块有一行 (U_CHG, L530) 的 note 里逗号未加引号 ⇒ board 列被解析成 0.8mm max height
+      ⇒ 第7节这个 CSV 块本身不是合法 CSV ⇒ 7.1 的对账表不能直接用 ⇒ 请在充电板整页那一趟修
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss230_row_shift_false_green
+    to: main
+    item: '落表那趟必带: 行号漂移会造假绿 —— V-2 落表后有4条锚点 (d11_led508_board/d11_led509_board/d2_b307_dnp/d2_b309_dnp)
+      换了行照样绿, 门禁不会提醒 ⇒ 必须把整组行号逐条改对, 不能只看门禁红不红; 新行号见作业包 §3.1 的 A 表'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss230_demo_battery_semantics
+    to: main
+    item: 'demo 板装不装电池: gen_netlist.py 的 DEMO_DNP 原始理由就是 demo不装电池⇒电池侧那套一律DNP ⇒ V-3 落表成必装等于改了 demo 的产品语义
+      ⇒ 落表那趟要么同时确认, 要么把 DEMO_DNP 改成只对demo生效的开关而不是直接删行'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss230_chg_spec7_reconcile_deferred
+    to: main
+    item: §7↔网表的双向对账仍没做 (两个版本, 起点不成立) ⇒ 对账+改网表归充电板整页那一趟 (真源=state/p10_rows.json); 本单已把16/15差集清单化并给了处置建议,
+      可直接当那趟的输入清单
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss232_board_b1_stale_footprint
+    to: main
+    item: 'C1 焊盘级等价红的 2 处多余 = 板侧陈旧: demo 主 PCB 上还留着 ISS-220 (d11/#5) 已改判 CHG_BOARD 的 C_VBUS_GND 封装 (板
+      186 封装, 差集恰好 = [C_VBUS_GND]) ⇒ 真修法 = 板侧同步项 B-1: 重跑 state/gen_pcb_netlist_board.py 即自动消失 (板生成器按 board
+      列过滤) ⇒ 本单不许碰板 (板 md5 611b869e… 逐字节不变) ⇒ 派板那一趟必须带: ① HW/check_netlist_selfconsistency.py 的 d11_board_cvbgnd_pads
+      / d11_board_cvbgnd_pad2 两条锚点同步改 + 规格页 HW/NETLIST_SELF_CONSISTENCY_SPEC.md 的锚点表逐字同步 ② HW/SCHEMATIC_LANDING_V1_LANDED.md
+      §4/§12 记落表单号 + 新旧板 md5 供 SW/MECH 走 H-1 ③ 不许走网表侧那条路 (board 改回 MAIN_PCB) = 假绿 (实测自证门禁 d11_a10_board
+      + d11_a12_board 红, --expect-resolved 21 → 24)'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss232_no_netlist_change_anchor_ok
+    to: sw-lead
+    item: ISS-232 交卷结论 = 网表侧一条都没改 ⇒ 网表 md5 仍是 3215020b6d4120e1b7728227effdc6d3, 脚表仍是 a600afae… ⇒ SW/SW_MD5_BASELINE_LEDGER.md
+      §1 source_ledger 的两条网表/脚表锚点这一轮【不用动】(你 R-04 里预留的 ISS-232 落表重锚不触发) ⇒ 但板侧 B-1 那一趟板 md5 会变 ⇒ 你的 hard_protected[]
+      (板 611b869e… / .kicad_pro 3e504d2b…) 必须走 H-1 重锚 (落表单号 + 文件名 + 新旧 md5 四项齐全 + §3 留痕) ⇒ 本单没动 SW/ 一个字节,
+      只登记
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss232_mech_anchor_after_b1
+    to: mech-lead
+    item: ISS-232 交卷结论 = 网表侧没改 ⇒ MECH/HW_CROSS_REVIEW_TRIAGE.md §1 source_ledger 的网表锚点 (R-02, by=ISS-223,
+      3215020b…) 这一轮不用动 ⇒ 但板侧 B-1 (拿掉 C_VBUS_GND 封装) 那一趟板 md5 会变 ⇒ G5b 的 8 个受保护文件组 (含板 611b869e… / .kicad_pro
+      3e504d2b…) 必须走 H-1 重锚 + §3.1 留痕 (与 R-02 同款) ⇒ 本单没动 MECH/ 一个字节, 只登记
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss233_sw_md5_reanchor
+    to: sw-lead
+    item: 'ISS-233 落表 (R3 网表侧 A 类) ⇒ 网表 md5 3215020b6d4120e1b7728227effdc6d3 → 34132f7e40a241e1fae1476be0eafbd5,
+      脚表 a600afae493f5a7a6c55f46ad35ac89c → b21b743a7702d30729f0d653c15392df ⇒ SW/SW_MD5_BASELINE_LEDGER.md
+      §1 entries[] 里 HW/netlist_v1.csv 与 HW/netlist_v1_pins.csv 两条锚点要按 H-1 重锚 (落表单号 = ISS-233 · 文件名 ·
+      新 md5 · 旧 md5 四项齐全) ⇒ SW/tools/check_demo_panel_spec.py 的 R6/R7 会按 §1 复核 ⇒ 不重锚就恒红 ⇒ 依据: HW/SCHEMATIC_LANDING_V1_LANDED.md
+      §15.4 (ISS-233 的 md5 前后对照) + 交接单 HANDOFF/2026-11-16_hw-lead_ISS233_21条未落表归因与拍板即落清单.md §3.1④⑤ ⇒ 本单没动
+      SW/ 一个字节 (只登记 need)'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss233_mech_md5_reanchor
+    to: mech-lead
+    item: 'ISS-233 落表 (R3 网表侧 A 类) ⇒ 网表 md5 3215020b6d4120e1b7728227effdc6d3 → 34132f7e40a241e1fae1476be0eafbd5,
+      脚表 a600afae493f5a7a6c55f46ad35ac89c → b21b743a7702d30729f0d653c15392df ⇒ MECH/HW_CROSS_REVIEW_TRIAGE.md
+      §1 source_ledger.entries 的网表/脚表两条要按 H-1 重锚 (落表单号 = ISS-233 · 文件名 · 新旧 md5) + §3.1 新增一行留痕 (与 R-02
+      同款: 谁改的 / 哪个单号 / 新旧 md5 / 复现命令) ⇒ MECH/check_demo_struct_truth.py 的 G5b + C21 回绿 ⇒ 依据: HW/SCHEMATIC_LANDING_V1_LANDED.md
+      §15.4 (C21 台账对账要求四项在落表台账里可查) ⇒ 本单没动 MECH/ 一个字节 (只登记 need)'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss233_board_dnp_marking
+    to: main
+    item: '★板侧新发现 (只报, 本单不许碰板)★: HW/PCB/demo_mainboard.kicad_pcb 里 exclude_from_* / (dnp …) / (attr …)
+      实测 0 处 ⇒ 网表里 board=MAIN_PCB 且标 DNP 的真实器件约 41 颗 (R_BAT_DET_1/2 · C_DET_BAT · U_BATPROT · BT_432243
+      · Q1/Q2 · U_SUPV · U_DCDC_* · U_LDO_* · X1 · J_BOOT1 · TP_BAT …), 板上看不出任何件是『不装』 ⇒ 装配/贴片按板上位置全贴 ⇒
+      必须并进『板只改一次』那一趟 (与 B-8-新 同一类; V-3 若拍方案 E, C_DET_BAT 也要一起说清) ⇒ 依据: 本单实跑 grep -c ''exclude_from|(dnp
+      |(attr '' = 0 + netlist 的 dnp 列统计 ⇒ 受保护 md5 (板 611b869e… / .kicad_pro 3e504d2b…) 逐字节不变'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss233_v3_demo_battery_semantics
+    to: main
+    item: '★V-3 落表前必须先定的产品语义 (ISS-223 F-1 已登记, 本单不代拍)★: state/gen_netlist.py 的 DEMO_DNP 原始理由是 『demo 主板用
+      Type-C 供电 ⇒ 不装电池 ⇒ 电池侧那套一律 DNP』 ⇒ 把 R_BAT_DET_1/2 + C_DET_BAT 改成必装 = 宣称 demo 板要装电池 / 或这链在 demo 上是空焊盘但要预留
+      ⇒ ⇒ 落表那趟要么同时确认 demo 的电池语义, 要么把 DEMO_DNP 改成『只对 demo 生效的开关』而不是直接删行 ⇒ 归 main 拍, 不归本单 ⇒ 详见交接单 HANDOFF/2026-11-16_hw-lead_ISS233_21条未落表归因与拍板即落清单.md
+      §3.1⑤ 的 B-8-新2'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss214_md5_baseline_drift
+    to: main
+    item: '★受保护 md5 基线台账过期★: 本单 brief 里的网表 c78f9912… / 脚表 4814617e… 已被 main 授权的 ISS-233 落表 (2026-11-16
+      06:48, 网表 L442 + 脚表 L531 + BOM L208) 合法取代 ⇒ 现行值 = 网表 34132f7e40a241e1fae1476be0eafbd5 / 脚表 b21b743a7702d30729f0d653c15392df
+      (板 611b869e… 与 .kicad_pro 3e504d2b… 逐字节不变) ⇒ 以后派单模板的受保护 md5 必须取『上次落表后的现行值』, 否则每轮都会假红一次 ⇒ 依据: HW/SCHEMATIC_LANDING_V1_LANDED.md
+      §15.4 + 本单 07:3x 实跑 md5sum'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss236_zero_output_check
+    to: main
+    item: '★ISS-236 (hw-lead 名额, 07:2x 派活) 盘上零产出★: 本单 07:3x 实测 07:20 之后 HW/ state/ HANDOFF/ 除 main 自己的
+      apply 脚本与 dispatch_log 外无任何新产出 ⇒ 若该子会话已死, hw-lead 名额会像 11-15 那轮一样卡在 fixing ⇒ 请 main 查子会话状态 (本单不碰
+      issue_log, 只报事实)'
+    since: '2026-11-16'
+    _by: hw-lead
+    state: pending
+  - key: iss236_board_batch
+    to: main
+    waiting_on: agent
+    since: '2026-11-16'
+    item: '★派「板只改一次」那一趟时必须带齐板侧 8 项 (★B-1 C_VBUS_GND 封装从 demo 主 PCB 拿掉 / B-2 板封装 U_EN_SW 的 Value 属性改成器件身份描述
+      (R3 判据) / B-3 D_ESD_USB_D 从 2 脚换 3 脚封装 / B-4 把 D_ESD_USB_D 挪到 J_USB_C 旁 ≤3.0mm (现距 47.99mm, 布线必须重跑,
+      必须与 B-3 同趟) / B-5 USB D− 那条路上补 ESD / B-6 充电板 π 滤波的位号与拓扑 (归 V-7) / ★(B-7 已结·d5 是网表追平板·不进清单)★ / B-8
+      若 V-3 拍方案 E ⇒ 板侧 R_BAT_DET_1/2 阻值 1M→100k/60k★) + B-8-新 (C_DET_BAT 的 DNP 标记) + B-9 (ESD 焊盘 net 归属换到
+      Type-C 侧) + B-10 (阻值/DNP 属性·无封装变更)★ ⇒ ★**这 4 条门禁 (CR-14 / CR-15 / CR-16 / CR-17) 只能板那一趟转绿**★ ⇒ 依据:
+      HW/SCHEMATIC_FINALIZATION_CLOSEOUT.md §2 (逐字照抄 HW/SCHEMATIC_LANDING_V1_LANDED.md §12) · ★本单没碰板 (受保护
+      md5 逐字节不变)· 按老板 11-11 10:07 口径 PCB 布线/布局类不派, 排队等原理图定稿★'
+    _by: hw-lead
+    state: pending
+  - key: iss236_h1_reanchor
+    to: sw-lead
+    waiting_on: agent
+    since: '2026-11-16'
+    item: '★V 值真落之后走 H-1 重锚★: SW/SW_MD5_BASELINE_LEDGER.md §1 entries 的 HW/netlist_v1.csv / HW/netlist_v1_pins.csv
+      两条 (★+ BOM 那条若台账里有★) ⇒ 四项 (★落表单号 ISS-236 + 文件名 + 新 md5 + 旧 md5★) 要填, 且四项在 HW/SCHEMATIC_LANDING_V1_LANDED.md
+      §16.2 里可查 (C21 台账对账) ⇒ ★**V-3=E 落表后的实测新 md5 (在 /tmp 副本上实跑): 网表 cb477b37aa0d3ae36ed359d4b96c16a7
+      / 脚表 b65d200080ba9abbf4c6589584546ac8 / BOM 1119c2a860c273833adaaf21af09d953 (旧 34132f7e… / b21b743a…
+      / c195a117…)★** ⇒ ★**本单没动 SW/ 一个字节 (只登记 need)★**'
+    _by: hw-lead
+    state: pending
+  - key: iss236_h1_reanchor_mech
+    to: mech-lead
+    waiting_on: agent
+    since: '2026-11-16'
+    item: '★V 值真落之后走 H-1 重锚★: MECH/HW_CROSS_REVIEW_TRIAGE.md §1 source_ledger.entries 的网表/脚表两条 + §3.1
+      留痕新增一行 (★谁改的 / 哪个单号 / 新旧 md5 / 复现命令★) ⇒ 四项 (★落表单号 ISS-236 + 文件名 + 新 md5 + 旧 md5★) 要填 ⇒ MECH/check_demo_struct_truth.py
+      的 G5b + C21 回绿 ⇒ ★**本单没动 MECH/ 一个字节 (只登记 need)★**'
     _by: hw-lead
     state: pending
   - key: fw_s2_test_gear
@@ -17355,6 +18896,66 @@ needs_matrix:
       里查不到) ⇒ 那是锚点过期的红, 不是故障 ⇒ 请派 sw-lead 走 SW/SW_BRIGHTNESS_CONTROL_POLICY.md §6 H-1 流程 (锚点 + 正文 + 脚本冻结值
       + API 文档 四处同改)★。★板端 [实测] = 0 条 (板与屏不在本机) ⇒ 亮度 API 的蓝通道占比标定值 = null/uncalibrated/[0数据], 一个实测值都没编;
       EVT 时需实验室出出瞳光谱辐亮度实测再灌标定通路★。'
+    since: '2026-11-16'
+    _by: sw-lead
+    state: pending
+  - key: iss228_verify_l
+    to: main
+    item: 'ISS-228 已交卷 零外发, 板端实测 0 条, HW/ 与 MECH/ 一个字节没动, issue_log 未自签. 证据: SW/tools/check_rk3572_vccio_domain.py
+      rc=0 C1~C8 + --selftest 16/16 全红 + check_brightness_biosafety.py rc=0 + state/gate_check.py rc=0
+      且 Q1 18/18. 要点: ①【勘误】原 need 的 I2C0/GPIO0_B0/B1 前提对本板不成立: 本板 I2C_A 走 I2C5_M3 即 GPIO3_C4/C1, 官方 VOL=1.8V;
+      球 1K21/U32 本板 SoM 未引出; ②【勘误】VCCIO1_VCC 属 1.8V only 是错的, 1.8V only 档只有 PMUIO0_VCC1V8 与 VCCIO0_VCC1V8;
+      ③ GPIO0 被劈成 PMUIO0_VCC1V8 与 PMUIO1_VCC 两组; ④ B-01/B-02 = 2.2k/1.8V, 与 ISS-220 已落表值一致, 不需改值, 只需换依据;
+      ⑤【请 main】落 ISS-228 verified + 确认 need iss148_rk3572_gpio0_vccio_domain_check 变 answered; ⑥【请派 hw-lead】两处勘误
+      即 HW/AR0234CS_OPEN_SOURCE_FACTS.md L241/L474 的 I2C0 提法 与 全文 VCCIO1_VCC 1.8V only 提法 + AR0234CS 若上则
+      VDD_IO 走 1.8V 即 Note 19.2, 顺带解掉 VDDIO_PHY 缺轨; ⑦【已知不归本单】check_demo_panel_spec.py 的 R6 红 + MECH G5b/C21
+      红 = ISS-223 锚点过期, 本单不许改锚点. 残留 0数据: SoM 侧 VCCIO rail 网名 ⇒ 降级方案 D-3 已锁死 即不许自己编网名, 本单不写等原厂回信.'
+    since: '2026-11-16'
+    _by: sw-lead
+    state: pending
+  - key: iss234_boss_pick_5q
+    to: main
+    item: ISS-234 给老板的 5 条待拍 (Q1 demo 板要不要关机态 / Q2 负载开关选型 ISS-172 / Q3 关机电流账 108µA 口径 / Q4 demo 关机时充电灯
+      / Q5 长按10s话术) — 每条带推荐默认值但不代拍, 等老板拍
+    since: '2026-11-16'
+    _by: sw-lead
+    state: pending
+  - key: iss234_hw_doc_conflicts
+    to: main
+    item: 'ISS-234 发现两处 HW 口径冲突需裁: (1) 待机 0.15W 的皮肤温度 POWER_SHUTDOWN_V3 §6 写 41.6-42.6°C 而 POWER_BUDGET_V3/SW
+      镜像写 45.9-46.9°C, 我取保守侧; (2) 关机账 VBUS_DET 50µA 与文中 100k+100k 算式对不上 (5V/200k=25µA) 且现行网表是 1M+1M —
+      我不改 HW/ 请项目总工裁'
+    since: '2026-11-16'
+    _by: sw-lead
+    state: pending
+  - key: iss234_sw_stale_assertions
+    to: main
+    item: 'ISS-234 交卷时刻 3 条 SW 侧断言过期 (源头=ISS-233 落表第3批 06:48:38 + 按设计做的 H-1 重锚, 与本单无关): (1) SW/tools/timing_check.py
+      断言 U_EN_SW 在网表里没有器件行 (现在有了, 该条要反向); (2) 同脚本 REV-3 期望装机开关数 1->0 (现在基线 2->1); (3) SW/tools/check_demo_panel_spec.py
+      REV-12 硬编码 ISS-220 (现锚点单号 ISS-233) — 这两个脚本本单被冻结不许动, 请派单授权更新'
+    since: '2026-11-16'
+    _by: sw-lead
+    state: pending
+  - key: iss234_battery_chain_dnp
+    to: hw-lead
+    item: 'ISS-234 实读网表: 整机电池链 BT_432243/U_BATPROT/Q1/Q2 全部 DNP => U_PWR_SW 的 VIN(BAT_SW) 在 demo 装机态无源,
+      整机真断电通路要成立必须把这条链落装 — 落装时点/落表单号请回我 (我这边要按 H-1 重锚 md5)'
+    since: '2026-11-16'
+    _by: sw-lead
+    state: pending
+  - key: iss221_redispatch_reverify_0730
+    to: main
+    item: 'ISS-221 重复派活复验 (2026-11-16 07:3x, gateway reload 后队列重投同一单): ★**本单零重做** ★ —— ① 5 件交付物逐字节在盘 (md5
+      见交卷单 §7.2: demo_e2e_budget.py=ee64b86a… / demo_timing_check.py=a6e891f1… / DEMO_OD_TIMING_SPEC.md=576d2391…
+      / DEMO_BOARD_60MS_VERDICT_PLAN.md=6cfaf725… / RKNN_BENCH.md=46ac25e1… = 与 04:07 记录一致, S9=3.0 逐字节未动)
+      ② 7 条门禁本机实跑: demo_e2e_budget rc=0 / --selftest rc=0 (31/31) / demo_timing_check rc=0 (51/51) / --selftest
+      rc=0 (18/18) / check_demo_panel_spec rc=0 (R1~R7 全过, ISS-225 已把 R6 收口) / merge+gate_check rc=0 且
+      Q1 18/18 ⇒ ★**ISS-221 自身门禁全绿** ★ ③ ★**唯一红项 = check_demo_panel_spec.py --selftest 的 REV-12 (15/16)
+      ⇒ 根因 = ISS-233 合法落表把 SW 侧锚点 by 从 ISS-220 重锚到 ISS-233 ⇒ REV-12 写死改 ISS-220 已不在 R6 依赖路径上 ⇒ 【有断言 ≠
+      断言有效】, 门禁本身没坏 ⇒ 已归 ISS-235 (main 07:2x 开单, owner=sw-lead, status=fixing) ⇒ ★**本单只报不改: 有并行 sw-lead
+      会话 31d009e7 正在改 timing_check.py / check_demo_panel_spec.py, 碰了就撞** ★ ⇒ ★**给 ISS-235 的一手提示: REV-12
+      必须改「锚点当前真正依赖的那个单号」(从锚点读 by 再改), 别写死 ISS-220** ★ ④ 本轮我只写了交卷单 §7 (追加) + 本条分片; state/issue_log.yaml
+      零写入 (不自签); HW/ MECH/ 零写入; 板端 [实测] = 0 条 ⇒ ★**请勿再把 ISS-221 派给 sw-lead (已完, 第二次重复派活)** ★'
     since: '2026-11-16'
     _by: sw-lead
     state: pending
@@ -18191,12 +19792,65 @@ needs_matrix:
       prev_md5 改成旧的 (落表单号 by 填你那次的单号); ② 落表记录 (HW/SCHEMATIC_LANDING_V1_LANDED.md 或 HANDOFF/2026-11-16_hw-lead_ISS223_*.md)
       里 必须能查到【落表单号 + 该文件名 + 新 md5 + 旧 md5】四项 ⇒ 门禁 C21 逐项对账. ★ISS-223 (落表第 2 批, d5 + 补差A 值迁移) 一定会再改网表/脚表
       ⇒ 请在交卷时把新旧 md5 与单号写进落表记录, 并把锚点那一条一起更新 (我只读, 锚点更新由落表方做或在交接单里点我). ★只改锚点不落表 = 悄悄换真源; 只落表不改锚点 = 门禁假红
-      ⇒ 两条路都被 C21 堵死'
+      ⇒ 两条路都被 C21 堵死 ★**【ISS-229 实测补注】** 2026-11-16 交卷期间又发生一次并发落表: **ISS-233 第 3 批** (06:48:38) 改了网表 L442
+      + 脚表 L531 ⇒ 锚点又落后 ⇒ 门禁 C21 双红 ⇒ **我已按 H-1 再重锚到 `34132f7e40a241e1fae1476be0eafbd5` / `b21b743a7702d30729f0d653c15392df`
+      (by=ISS-233), 留痕在 `MECH/HW_CROSS_REVIEW_TRIAGE.md` §3.1 R-03** ⇒ ★**请以后落表时直接同步 MECH 侧锚点, 别等门禁红了一遍再补**
+      ★'
     since: '2026-11-16'
     _by: mech-lead
     state: pending
-  answered_count: 180
-  total: 339
+  - key: iss229_mech_charge_skin_temp_scope_to_main
+    to: main
+    since: '2026-11-16'
+    due: '2026-11-19'
+    item: '★ISS-229 出数 (改正系数 1.216) 后, 请裁【整机阶段】口径要不要跟: ①**充电时皮肤侧 43 °C 红线** —— 老板 10-28 已拍「边戴边充不允许」⇒ 充电时眼镜不在皮肤上
+      ⇒ 皮肤侧这条在充电场景**不是硬约束**; 但**与佩戴无关**的三条仍成立 (铰链段温升 / **TS 停充门限偏差** 390Ω max 1.13 °C / **单 pin 触点额定**
+      390Ω max 0.608A) ⇒ 问 main: 整机阶段的『充电链』判据要不要按 680Ω / 1.2kΩ 重写? ★**本单只登记, 不改别人的件** (PROJECT_TRACKER
+      §0 / DECISION_PENDING / issue_log 一个字节都没碰); ②**V-4 建议默认值** (680Ω 或 1.2kΩ) 仍**待老板拍** ⇒ DECISION_PENDING_2026-11-16.md
+      §A2 的 V-4 行可直接引用本单 §B4.2 的 **30 行全网格** (含 1.2kΩ 新候选档); ③本域既有 need `iss091_rilim_decision` 里的 47.1
+      °C / 42.1 °C 是按**作废系数 0.822** 算的 ⇒ 本单**只加订正说明、没删历史条目** ⇒ 以 §B4.2 为准。'
+    _by: mech-lead
+    state: pending
+  - key: iss229_mech_hw_pcb_outline_old_charge_numbers
+    to: hw-lead
+    since: '2026-11-16'
+    due: '2026-11-19'
+    item: 'ISS-229 已出改正系数下的权威表 ⇒ `HW/PCB_OUTLINE_60x15.md` 里还有三处带 **0.822 旧口径**的数 (★**只报不改, HW 地界由 hw-lead
+      自己改**): ①§3.4 表 (L142~L147) 的 ICHG / 单 pin / 余量列 —— 390Ω 现写 0.82A / 0.411A / ✅余量 1.22× ⇒ 新值 **1.216A
+      / 0.608A / ❌超 0.5A 天花板 21.6%**; 470Ω 现写 0.68A / 0.341A / ✅ ⇒ 新值 **1.009A / 0.505A / ❌超 1.0%**; 680Ω
+      现写 0.47A / 0.236A ⇒ 新值 **0.697A / 0.349A / ✅余量 1.43×**; 300Ω 现写 0.534A ⇒ 新值 **0.790A**; ②L149 那句「390Ω
+      max 档充电 ~29.20min / 典型 32.08min」⇒ 新值 **~19.7min / ~21.7min** (400 mAh 仅 CC 段, 实际再加 10-20%); ③§4.2
+      O-4 行「TS 参考地被 1A 回流抬高 14-32mV = 0.44-0.99 °C」⇒ 新值 390Ω max **36.5 mV = 1.13 °C** (留 1 °C 裕量只在 680Ω
+      / 1.2kΩ 成立)。★出处: `MECH/HINGE_POWER_CALC.md` §0-A.1 + `MECH/hinge_power_calc.json` (rilim_table /
+      copper_vs_rilim / rilim_full_grid); 复现: `python3 MECH/hinge_power_calc.py` (rc=0)。'
+    _by: mech-lead
+    state: pending
+  - key: iss229_mech_sw_evt_pwr05_charge_current_criterion
+    to: sw-lead
+    since: '2026-11-16'
+    due: '2026-11-19'
+    item: 'ISS-229 重算后, `SW/EVT_TEMPLATE.md` **PWR-05**「充电电流 ≥ 1.5A @5V/2A 适配器」与现行 R_ILIM 体系不相容 (★**只报不改,
+      SW 地界由 sw-lead 自己改**): 改正系数 1.216 下 max 档**电池侧**充电电流 = 390Ω 1.216A / 680Ω 0.697A / 1.2kΩ 0.395A
+      ⇒ 连现行 V-4 候选 (680Ω) 也只有 0.697A, **1.5A 达不到**; 若该判据量的是**输入电流 IIN**, 390Ω 档 IINMAX max = 1.00A (680Ω
+      档 0.574A) ⇒ 同样达不到 ⇒ ★请 sw-lead 复核它到底量哪个量 (输入电流 vs 电池侧电流), 并给改法 (降阈值 / 改判据对象 / 或注明 demo 板不装充电链故本项不适用
+      —— charge IC 在 demo 板是 DNP 位)。★该不兼容**在旧 0.822 系数下就已存在** (390Ω max = 0.822A) ⇒ 属既存判据, 不是 ISS-229
+      造成, 本单只把新系数下的准确数摆出来。★出处: `MECH/HINGE_POWER_CALC.md` §0-A.1 + `MECH/hinge_power_calc.json`; 复现: `python3
+      MECH/hinge_power_calc.py` (rc=0)。'
+    _by: mech-lead
+    state: pending
+  - key: iss229_hw_landing_must_sync_mech_anchor_iss233
+    to: hw-lead
+    item: '★**ISS-233 第 3 批落表 (2026-11-16 06:48:38) 改了网表 L442 + 脚表 L531** ⇒ MECH 闸 `MECH/check_demo_struct_truth.py`
+      的 **G5b + C21 双红 (rc=2, 21/23)** ⇒ ★**我已按 H-1 流程把 MECH 侧锚点 跟过去** (网表 `34132f7e40a241e1fae1476be0eafbd5`
+      / 脚表 `b21b743a7702d30729f0d653c15392df`, by=ISS-233, landed_at 2026-11-16 06:48:38, 留痕在 `MECH/HW_CROSS_REVIEW_TRIAGE.md`
+      §3.1 R-03) ⇒ 门禁回 rc=0 (23/23) ★ ⇒ ★**但下次落表请直接同步 MECH 侧锚点** (§1 `source_ledger.entries` 的 `md5` /
+      `prev_md5` / `by` / `landed_at` 四个字段), 别等我这边红了一遍再补 ⇒ ★**落表记录里必须能查到【落表单号 + 该文件名 + 新 md5 + 旧 md5】四项**
+      (C21 逐项对账) ⇒ ★**注意: ISS-232 本身没改网表** (其交接单 §10 明写「网表 md5 `3215020b…` 不变」) ⇒ 真正触发重锚的是 ISS-233'
+    since: '2026-11-16'
+    _by: mech-lead
+    state: pending
+  answered_count: 184
+  total: 370
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -18553,6 +20207,23 @@ lint:
     未碰 issue_log 与 PROJECT_TRACKER §0, 未碰别人分片; 板 md5 611b869e13518c3c023fb178f91a0075 与网表 md5 c78f991283cc82d56c8e3dd31657c785
     交卷时实测未变; 未发任何邮件未联系任何原厂供应商未下任何采购单。'
   hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: mech-lead
+  key: iss229_mech_v4_update_package_and_gate_reanchor
+  value: '★**ISS-229 收口 (4 件交付物全齐)** ⇒ ① 系数改正 (0.822 倒数方向 → **1.216 @3.70V / 1.071 @4.20V**, 取最坏 1.216)
+    + 三张表重出 (rilim_table 15 / copper_vs_rilim 10 / rilim_full_grid 30 行) ⇒ ★**max 档 1oz 皮肤侧: 300Ω 61.4
+    ❌ / 390Ω 50.6 ❌ (超 43 °C 红线 7.6 °C) / 470Ω 45.8 ❌ / 680Ω 40.1 ✅ (余 2.9 °C) / 1.2kΩ 36.7 ✅** ⇒ 单 pin
+    max 0.790 / 0.608 / 0.505 / 0.349 / 0.198 A ⇒ TS 偏移 1.46 / 1.13 / 0.93 / 0.65 / 0.37 °C ⇒ 充电 (400
+    mAh 仅 CC 段) 15/20/24/34/61 min ⇒ ★**活档 = 680Ω / 1.2kΩ** (★**V-4 待 main/老板拍, 本单不代拍, 一句「建议选 X」都没写**★)
+    ⇒ ★**原 42.14 °C / 47.07 °C 判为无有效数字** (按作废的 0.822 算) ★ ★② 文档 `MECH/HINGE_POWER_CALC.md` §0-A + §0-A.1
+    口径订正留痕 (旧值→新值对照 22 行, 旧数一个没删) ★ ★③ V-4 更新包 = 30 行全网格 (每档 × min/typ/max × 1oz/2oz: 新皮肤侧 + pass_43 +
+    充电时间 + 单 pin vs 0.5 A 触点额定) + 「充电时皮肤侧是否仍是硬约束」的现状说明 (老板 10-28 已拍「边戴边充不允许」⇒ 充电时眼镜不在皮肤上 ⇒ 皮肤侧 43 °C 在产品语义上不是硬约束;
+    ★**但铰链段温升 / TS 停充门限 / 单 pin 触点额定这 3 条与佩戴无关, 依然成立**★; 只作说明, 未改老板已拍口径) ★ ★④ MECH 闸重锚: **两跳** (第 1 跳
+    ISS-223 `13f59a43…`→`3215020b…`; ★**第 2 跳 = 交卷期间 hw-lead 的 ISS-233 第 3 批并发落表 (06:48:38) 改了网表 L442
+    + 脚表 L531 ⇒ 再跟到 `34132f7e…` / `b21b743a…`**★) ⇒ §3.1 **R-02 + R-03** 两行留痕 ⇒ ★**门禁 rc=2 (21/23) → rc=0
+    (23/23)**, `--selftest` **14/14** 一条没删 ★ ⇒ ★**HW/ 一个字节没改** (并发落表是 hw-lead 的活, 本单只跟 MECH 锚点; 没卡住/等待/干预另一个
+    agent 的单) ★ ⇒ 板端 [实测] = 0 条 · 零外发 · 未自签 issue_log · ★**与 main 本轮独立推算逐条一致** (390Ω max 50.6 / 470Ω max
+    45.8 / 680Ω max 40.1, ICHG / P / ΔT 全同值)'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: main
   key: e01_som_balltable_selfcheck_202612
   value: '★**E-01 (`FET3572C_PIN_TABLE.csv` 的 P2 座缺 `num=40`) 已关闭 · 2026-11-12 02:2x 项目总工【自己网上查】解决 (★老板
@@ -18801,6 +20472,68 @@ lint:
   key: iss220_ichg_ratio_true_value
   value: ICHG/IIN = η·Vbus/Vbat = 1.216 @3.70V / 1.071 @4.20V (η=0.90)
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss223_usb_series_r_22ohm
+  value: USB 串阻已落表 = 22Ω ±1% (V-1 由 main 裁); 差分线 90Ω ±15% 受控阻抗搬进 z_diff 字段, 不再塞进 imp
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss223_rk3572_saradc_fs_1v8
+  value: RK3572 SARADC (SARADC_VIN5) 满量程 = AVDD18 = 1.62/1.8/1.98V (min/typ/max), 12bit ⇒ 1 LSB = 439.5µV@1.8V
+    / 483.4µV@1.98V; DNL ±3 / INL ±6 / offset ±20 LSB (max) ⇒ ADC 自身误差合计 29 LSB
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss223_v3_batdet_option_set_gap
+  value: '★V-3 (BAT_DET 分压链) 的现有选项集 A(2.0M+1.2M) vs D(2.0M+1.0M) 是【伪选择】: 两者 R_top 都是 2.0M ⇒ 漏电误差项 (ΔV_bat
+    = I_leak × R_top) 与电阻比容差项 (±1.00%) 完全相同; 真正的决策是【分压链的阻抗等级】 (SAR ADC 要 kΩ 级源阻抗, 750k 差 3 个数量级) ⇒ 推荐新增
+    E = 100k+60k+100nF (R_th 37.5k ⇒ t_settle(½LSB) 34ms; 漏电@1µA = 2.1%FS; 总误差 <2.9%FS; 代价 26.25µA/110µW
+    常开)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss230_batch3_landing_map_v2
+  value: '第3批落表的逐字改法映射已做成: V-2/V-3/V-4 每个选项 ⇒ 改哪个文件的哪一行 ⇒ 改成什么字面值 ⇒ 重跑哪些生成器 ⇒ 哪几条判据转绿 ⇒ 门禁会怎么变; 已在一次性副本实跑验证
+    (21→8→7条)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss230_a_group_field_discipline_assertion
+  value: A组已迁移的20条 (A-01~A-10/A-13~A-22) 在 SPEC.json 里必须 z_diff 非空 且 imp 为空; 断言范围不含 A-11/A-12 (单端) 与 A-24
+    那15条 (J_TYPE_C母座功能串, 本来就没有阻抗值)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss230_v2_netlist_side_turns_zero_green
+  value: 'V-2 (ESD) 的网表侧落表一条判据都转不绿: R4(2条)+R9(1条) 读的是板文件 kicad_pcb ⇒ 只有板只改一次那一趟才能转绿 ⇒ V-2 必须写成 网表侧落表 +
+    板侧那一趟 两段'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss230_chg_spec7_csv_legal_and_diff_listed
+  value: 'CHARGE_BOARD_SPEC §7 的 CSV 块已修成合法CSV (U_CHG 那行 note 补引号 ⇒ 81行×13列齐); §7↔网表双向差集已清单化: §7唯一位号41
+    / 网表CHG_BOARD唯一位号40 / 交集25 / §7有网表没有16 / 网表有§7没有15, 逐条给了处置建议'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss232_c1_two_extra_root_cause
+  value: 'C1 焊盘级等价红的 2 处「多余」(= C_VBUS_GND pad1=GND / pad2=VBUS_5V_CHG) = 【板侧陈旧】, 不是网表写法错: 门禁先按 board 列过滤
+    (state/check_pcb_nets.py: rows=[r for r in rows if (r.get(board) or MAIN_PCB).strip()==MAIN_PCB])
+    ⇒ ISS-220 已改判 CHG_BOARD 的 C_VBUS_GND 两行 (表A L10/L12) 整行被滤掉 ⇒ 板上那个封装 (pad1=GND / pad2=VBUS_5V_CHG,
+    原点 107.7/42.5mm) 推不出来 ⇒ 判「多余 2」⇒ 真修法在板侧同步项 B-1 (拿掉该封装), 本单不许碰板 ⇒ 网表侧一条都不用改'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss232_board_side_b1_scope
+  value: '板侧同步项 B-1 的精确范围 = 【只删一颗封装 C_VBUS_GND】: 用当前网表跑板生成器 ⇒ 186 → 185 个封装, 差集恰好 = [C_VBUS_GND] ⇒ 其余
+    185 颗一颗不多一颗不少 (B-2~B-8 是另外的批次)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss232_netlist_side_no_change
+  value: 本单网表侧一条都没改 ⇒ 网表 md5 3215020b6d4120e1b7728227effdc6d3 不变 ⇒ SW/SW_MD5_BASELINE_LEDGER.md §1 的 source_ledger.entries[]
+    (网表 by=ISS-223 / 3215020b…) 与 MECH/HW_CROSS_REVIEW_TRIAGE.md 的网表锚点 (R-02, by=ISS-223) 【不用动】; 但 B-1
+    那一趟板 md5 会变 ⇒ SW hard_protected[] (板 611b869e… + .kicad_pro 3e504d2b…) 与 MECH G5b 受保护文件组必须走 H-1 重锚
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss228_vccio1_errata_applied
+  value: 'ISS-228 (sw-lead) 登记给 hw-lead 的勘误已落盘: HW/AR0234CS_OPEN_SOURCE_FACTS.md L241 (§3.3 表第 6 行) /
+    L243 (该表下的推论段) / L474 (§7 表第 ② 行) 三处逐字订正 —— ① I2C0 提法改成本板真实口径 I2C5_M3 (GPIO3_C4/C1, 球 AH33/AL33, Forlinx
+    官方逐脚 VOL = 1.8V; 球 1K21/U32 本板 SoM 未引出) ⇒ 「3.3V/2.8V 超 SoC 侧 abs-max ⇒ 整条 I2C_A 要重设计」不成立 ② 「VCCIO1_VCC
+    属 1.8V only (max 1.98V)」改正为 VCCIO1_VCC 与 PMUIO1_VCC + VCCIO1~6_VCC 同属 1.8V/3.3V 档 (max 3.63V), 1.8V
+    only 档只有 PMUIO0_VCC1V8 + VCCIO0_VCC1V8'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: mech-lead
   key: mech_reltest_cases
   value: 12类(8必选+盐雾/温循/插拔FPC/振动)
@@ -18961,6 +20694,32 @@ lint:
   value: '定性表里被真修好的条目不许删行/删节: 只能把现状判定改成 ✅PASS + 备注里写明【谁修的 + 依据什么 + 落在哪个落表单号 + 怎么复现】, 并在 MECH/HW_CROSS_REVIEW_TRIAGE.md
     §3.1『已修复 (留痕)』登记一行 ⇒ 门禁 G8 逐条守 (删行 / 删节 / 抹留痕都红)'
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: mech_c7b_sink_surface_caliber_iss227
+  value: P3 (镜框上沿集热) 活口径集热面 = 铝制集热背板 120×30×1.0 (6063-T6, k=201 W/m·K), 根部与铝条同温, 沿长度方向按鳍模型 (G=0.029313
+    W/K, R=34.11 K/W), 并联端件 u8×20 (主口径 u8=30) ⇒ R_支路 37.72 K/W ⇒ d=15/18/20 腔体 47.77/47.47/47.27 °C ≤
+    50 °C; 「打印件顶面当集热面」是旧口径 (ISS-219 名义同温) 已作废但留痕 (C7B-01/02/03 标已修正·留痕); 打印件顶面有效热导 R=398.9 K/W vs 同面积直接对流
+    47.6 K/W (差 8.4 倍) ⇒ 打印件方案腔体真值 53.60 °C ❌ ⇒ 下游 (热/电/整机重量账) 一律按金属背板算, 不许再按打印件顶面算
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: mech_c7b_gate_anti_section_delete_iss227
+  value: 'C-7b 口径修正节的机器保证: ① 抓节只认 level>=2 的真小节标题 (H1 文档标题不算 —— 本文件 H1 第 1 行就同时含「C-7b」「集热面口径修正」, 不排除它就会抓到整篇文档
+    ⇒ 断言空转) ② 「C-7b 集热面口径修正」小节必须存在且唯一 (唯一 = 防口径分叉) ③ 12 行关键表 (C7B×4 / U8×5 / R7B×3) 必须住在 §2.5 节内 ④ 留痕/新口径字面值必须住在节内
+    ⇒ 删整节 / 删表 / 改节名 三条绕过路全红'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: mech_netlist_md5_anchor_iss233
+  value: ★**网表 `HW/netlist_v1.csv` = `34132f7e40a241e1fae1476be0eafbd5`** (落表单 **ISS-233** 第 3 批, 落表时刻
+    2026-11-16 06:48:38; 上一跳 `3215020b6d4120e1b7728227effdc6d3` = ISS-223 第 2 批) · ★**脚表 `HW/netlist_v1_pins.csv`
+    = `b21b743a7702d30729f0d653c15392df`** (落表单 **ISS-233**, 落表时刻 2026-11-16 06:48:38; 上一跳 `a600afae493f5a7a6c55f46ad35ac89c`
+    = ISS-220)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: mech_c7c_wrim_threshold_two_tier_iss237
+  value: 'W_rim 门槛两档 (活口径·鳍模型·摄像头凸包让位·u8=30·d=15): 22.15 mm @0.468 W (面板功耗) / 25.63 mm @0.50 W (ISS-216
+    代表负载) ⇒ ISS-222 登记的 23.30 mm 只覆盖面板功耗 (0.50 W 下 50.67 °C ❌); 背板质量 m = 0.324 × W_rim g (7.18-9.72 g)
+    ⇒ 整机 57.96-85.08 g (387 mAh 配置, 不含端件金属化); 打印件顶面在同一 W_rim 下全部 ❌ (53.60-56.53 °C) ⇒ 金属背板仍是 P3 成立的必要条件'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: main
   key: battery_location
   value: 镜脚侧
@@ -19092,6 +20851,36 @@ lint:
   key: sw_netlist_baseline_states
   value: 13f59a43dbd35dc6cb16e897c8c891ab (落表后) · c78f991283cc82d56c8e3dd31657c785 (落表前)
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: shutdown_semantics_demo
+  value: 深睡
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: shutdown_semantics_整机
+  value: 真断电
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss235_sw_gate_green
+  value: timing_check rc=0 (71/71) · check_demo_panel_spec rc=0 (--selftest 16/16) · check_shutdown_semantics
+    rc=0 (--selftest 17/17) · merge+gate_check rc=0 (Q1 18/18)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss235_f8_device_row_rule
+  value: 'F8 目标判据① = _f8_all_load_switches_have_device_row(o): load_switch_without_device_row == [] 且
+    U_PWR_SW / U_EN_SW 都在 load_switch_refs 里'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss235_f8_rail_switching_baseline
+  value: 2 (U_PWR_SW + U_EN_SW, 两颗都必装) · 删 U_PWR_SW => 1 · 两颗都删 => 0
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss235_rev12_dynamic_ticket
+  value: REV-12 被改的单号 = §1 锚点块 source_ledger.entries[].by (当前=ISS-233) => 改坏 => R6 红
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss235_protected_md5
+  value: 网表 34132f7e… · 脚表 b21b743a… · BOM c195a117… · 板 611b869e… · .kicad_pro 3e504d2b… (交卷前后逐字节不变)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 risks:
 - id: R-dsi-unknown
   text: ARS45 显示 TX 接口未确认 (媒体二手证据) — 若既无 DSI TX 也无 DP TX, 则显示链不成立
@@ -19175,15 +20964,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 279
+  artifacts: 319
   blockers: 43
   high_blockers: 33
-  open_needs: 159
-  waiting_external_needs: 71
+  open_needs: 186
+  waiting_external_needs: 72
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 109
+  lint: 132
   agents_reporting: 4
   incomplete_fragments: 0

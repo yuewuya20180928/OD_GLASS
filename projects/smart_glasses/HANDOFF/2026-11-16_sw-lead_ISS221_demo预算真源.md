@@ -257,3 +257,159 @@ python3 SW/tools/demo_e2e_budget.py --lanes 4 --lane-rate-gbps 2.0    # 换屏�
 - ★**板端 [实测]**: 缺第 7 段 `t_compose` 与第 8 段 `t_display` 两个实测值 ⇒ 没有它们, demo 屏侧全部只能停在 [推算] ⇒ ★**生死判定 (60ms 成立与否) 板子接上才有答案**。
 - ★**demo 屏 DSI 实测效率**: 口径 A 的 80% 链路效率是**行业通用假设**, 本项目**没有板端实测** ⇒ 板端接上后建议用 `--lane-rate-gbps / --lanes` 试算, 或直接代入实测。
 - 其余: 无 (本单能做的都做完了)。
+
+---
+
+# ★7. 2026-11-16 07:3x 【重复派活】复验记录 (gateway reload 后队列重投本单)
+
+## 7.0 一句话结论
+
+★**本单 (ISS-221) 已于 2026-11-16 03:5x 交付完毕、04:07 由 main 实测落 `verified` ⇒ 本次重复派活零重做** ★
+· 5 件交付物 ★**逐字节在盘** ★ (md5 与 main 04:07 记录的基线一致, 见 §7.2)
+· 7 条门禁 ★**逐条本机实跑** ★ (§7.1) ⇒ ★**ISS-221 自身的 4 条门禁全绿 (31/31 · 51/51 · 18/18 · Q1 18/18)** ★
+· ★**唯一红项 = `check_demo_panel_spec.py --selftest` 的 REV-12** ★ ⇒ ★**根因不在本单交付物** ★ (§7.3, 代码级定位) ⇒ ★**已归 ISS-235 (main 2026-11-16 07:2x 开单, owner=sw-lead, status=fixing)** ★ ⇒ ★**本单只报不改 (★有并行 sw-lead 会话 `31d009e7` 正在改这两个文件, 越权改 = 并行写盘冲突★)** ★
+
+## 7.1 复验矩阵 (2026-11-16 07:3x 本机实跑)
+
+| # | 命令 | rc | 结果 | 与 ISS-221 交卷时 (03:5x) 对比 |
+|---|---|---|---|---|
+| ① | `python3 SW/tools/demo_e2e_budget.py` | **0** | 账算得出: TX 下限 口径A 2.304 / 口径B 2.048 · t_compose 0.44 · 输出侧 2.75 · cap_yolov5n 10.09 · compose_yolov5n 7.79 · 余量 7.34 | ★**一致 (与 §B6-① 同数)** ★ |
+| ② | `python3 SW/tools/demo_e2e_budget.py --selftest` | **0** | **31/31** (9 种「改坏」+ 1 种源码污染 全抓到) | ★**一致 (与 §B6-② 同数)** ★ |
+| ③ | `python3 SW/tools/demo_timing_check.py` | **0** | **51/51** (含本单新增 17 条 ISS-221 断言) | ★**一致 (与 §B6-③ 同数)** ★ |
+| ④ | `python3 SW/tools/demo_timing_check.py --selftest` | **0** | **18/18** (ISS-215 那 5 条反向用例一条没被改红) | ★**一致 (与 §B6-④ 同数)** ★ |
+| ⑤ | `python3 SW/tools/check_demo_panel_spec.py` | **0** | R1~R7 全过 (R6 三方对账一致 · R7 留痕在场) | ★★**交卷时是 rc=1 (R6 锚点过期) ⇒ 现已转绿** ★★ (ISS-225 收口, main 04:36 落 verified) |
+| ⑥ | `python3 SW/tools/check_demo_panel_spec.py --selftest` | ★**1** ★ | ★**15/16 —— 红的是 REV-12** ★ | ★★**交卷时是 rc=0 (8/8) ⇒ 现红, 根因见 §7.3, 不在本单交付物上** ★★ |
+| ⑦ | `python3 state/merge.py && python3 state/gate_check.py` | **0** | ★**【Q1 交付齐备率】18/18** ★ | ★**一致 (与 §B6-⑥ 同数)** ★ |
+
+★**①~④⑦ 全绿 ⇒ ISS-221 的判定链本身没有退化** ★
+★**⑥ 的红 = ISS-233 合法落表 (2026-11-16 06:48:38) 造成的【断言写死了旧事实】, 不是 ISS-221 的交付物坏了** ★
+
+## 7.2 交付物 md5 复验 (2026-11-16 07:3x 本机实测)
+
+| 文件 | 07:3x md5 | 判定 |
+|---|---|---|
+| `SW/tools/demo_e2e_budget.py` | `ee64b86a945fd857044484c1d16d3a63` | ★**本单新建件, 在盘** ★ |
+| `SW/tools/demo_timing_check.py` | `a6e891f1f22a7831fe99fa2650639d7a` | ★**v1.2 扩项件, 在盘** ★ |
+| `SW/DEMO_OD_TIMING_SPEC.md` | `576d239138565b1112a827f9f983f839` | 在盘 |
+| `SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` | `6cfaf725da672dea510775808a7e0fa3` | 在盘 |
+| `SW/RKNN_BENCH.md` | `46ac25e1eb96ee296e60cb37485524f9` | ★**与 main 04:07 记录的「改后 md5」一致 ⇒ §B6-⑦ 的 md5 前后对照仍然成立** ★ · ★**S9 = 3.0 逐字节未动** ★ (L273 现文见下) |
+| `HANDOFF/2026-11-16_sw-lead_ISS221_demo预算真源.md` | ★**(本 §7 追加前)** `208fd0a0f782ea782ce2107753eb7676` ★ | 本轮追加 §7 后 md5 变化, 属预期 |
+| `state/fragments/sw.yaml` | — | ★**`iss221_verify_and_close_iss215_needs` key 在盘 + `SW/tools/demo_e2e_budget.py` / `demo_timing_check.py` / ISS-221 交接单 / `SW/RKNN_BENCH.md` 4 条 artifact 在盘** ★ |
+
+★**`SW/RKNN_BENCH.md` §4.1 L273 现文 (07:3x 实读, S9 数值 3.0 未动)** ★
+```
+S9   = 3.0  ms    显示输出侧 (★11-11 按 ISS-137 澄清: = DSI TX/桥接 + 合成 + 缩放; 板端对应 DEMO_OD_TIMING_SPEC §3.2 第7段合成 + 第8段上屏, ★**ISS-221 同步 (2026-11-16): demo 活动口径 TX 物理下限 = 2.304 ms @480×640 (2-lane; 口径 A) / 2.048 ms (口径 B) —— 数值由 `SW/tools/demo_e2e_budget.py` (demo 口径真源脚本) 算出**★; ★**整机路线·暂缓: TX 物理下限 @1080p = 7.776ms**★; ★**S9 数值 3.0 (@800×600 基线占位) 不变 —— 数值一个字不许动**★)
+```
+
+## 7.3 ★唯一红项 REV-12 的根因 (★本机代码级定位, [实测]★)
+
+★**现象** ★ (07:3x 实跑, 输出原样)
+```
+  ❌ REV-12 落表台账里的落表单号被改坏 (ISS-220 → ISS-999)             ⇒ R6 没变红 (期望它红) — 实得失败项: []
+--- SELFTEST 15/16 通过 ---
+```
+★**根因 = 【反向用例自己失效了 (fail-open), 门禁本身没坏】, 三条硬证据** ★
+
+1. ★**REV-12 的改坏动作** (`SW/tools/check_demo_panel_spec.py` L504~L506): `_replace_text(p, "ISS-220", "ISS-999")` ⇒ 把 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 里的 **"ISS-220" 全量替换**成 "ISS-999" (该台账里 ISS-220 共 10 处) ★
+2. ★**R6 ②-b 真正依赖的是锚点里的 `by`** (`check_demo_panel_spec.py` L391~L401): `if by and by not in text: continue` ⇒ ★**`by` 现在是 `ISS-233`, 不是 `ISS-220`** ★ (`SW/SW_MD5_BASELINE_LEDGER.md` §1 `source_ledger.entries[0]`: `file: HW/netlist_v1.csv` / `by: ISS-233` / `prev_md5: 3215020b…` / `md5: 34132f7e…` / `landed_at: "2026-11-16 06:48"`) ⇒ ★**REV-12 改的那 10 处 "ISS-220" 一处都不在 R6 的依赖路径上** ★ ⇒ R6 自然不会红
+3. ★**R6 ②-b 的第二道条件 `ledger_row_has()` (L211~L221) 要求【同一行】同时有 文件名 + 新 md5 + 旧 md5** ⇒ 该行在台账 L552 (`ISS-233` 的 md5 前后对照行: `3215020b…` → `34132f7e…`) ★**逐字命中, 与 ISS-220 那一批毫无关系** ★
+
+⇒ ★**结论: 【有断言 ≠ 断言有效】(ISS-227 同款教训) —— REV-12 是一条【改不到目标】的反向用例, 不是 R6 漏检** ★
+⇒ ★**这不是「红灯被调没」的反面, 是「反向用例写死了旧事实」** ★
+
+★**归属与处置 (★本单不越权★)** ★
+· ★**main 已于 2026-11-16 07:2x 开 ISS-235** (标题: 「ISS-233 落表把 SW 侧 3 条断言打成过期红 ⇒ 订正 `timing_check.py` F8 / REV-3 + `check_demo_panel_spec.py` REV-12 (★订正不是放宽★) + 每条补反向自证 ⇒ SW 门禁回全绿」), owner=sw-lead, ★**status = `fixing`** ★
+· ★**同一时刻有并行 sw-lead 会话 `31d009e7` 在动 `timing_check.py` / `check_demo_panel_spec.py`** (07:33 还在规划「Fix 1: F8 assertion (timing_check.py L1463-1464)」) ⇒ ★**本单绝不碰这两个文件, 免得并行写盘互相覆盖** ★
+· ★**给 ISS-235 的一手提示 (省它再查一遍)**: REV-12 要改坏, ★**必须改「锚点当前真正依赖的那个单号」(即从锚点读 `by` 再改, 别写死 ISS-220)**, 或改链上被 `ledger_row_has()` 依赖的字段 (新旧 md5 之一) ⇒ ★**只改一个不再被依赖的标签 ⇒ R6 当然不红** ★
+
+## 7.4 本次复验的原始输出 (07:3x 原样)
+
+### ① `python3 SW/tools/demo_e2e_budget.py` ⇒ rc=0 (§2/§3 关键行)
+```
+【§2 demo 屏 TX 物理下限 (★一帧比特 / 链路有效带宽★)】
+      每帧 payload = 480 × 640 × 24 bit + 0 bit(固定开销) = 7372800 bit (7.3728 Mbit)
+      口径 A: 2 通道 × 2.0 Gbps × 80% ⇒ 有效 3200 Mbps ⇒ ★**TX 下限 = 2.304 ms**★
+      口径 B: 2 通道 × 1.8 Gbps × 100% ⇒ 有效 3600 Mbps ⇒ ★**TX 下限 = 2.048 ms**★
+【§3 demo 显示输出侧 [推算] 与 60ms 预算账】
+      t_compose 估算 = S9 占位 3.00 ÷ 6.75 = 0.44 ms  [推算]
+      显示输出侧合计 = t_compose 0.44 + 上屏(TX 下限) 2.300 = 2.75 ms  [推算]
+      RK3572 + yolov5n@640        13.31      10.09 ms       7.79 ms       52.66        7.34       ✅ 过
+✅ 自检: 本份账零异常 (值型锚点 / 结构恒等 全部对齐)
+```
+### ② `python3 SW/tools/demo_e2e_budget.py --selftest` ⇒ rc=0 (**31/31**)
+```
+  ✅ 改坏必红: TX 被重复扣减                                       检出 6 项
+  ✅ 改坏必红: 余量符号反了                                         检出 6 项
+  ✅ 源码泄漏扫描能抓住被注入的整机 token                                注入后检出 1 项
+  ✅ 板端实测代入后余量转负 (合成 20ms + 上屏 5ms ⇒ 判不过)                 余量 -14.91 ms
+★反向用例: 9 种「改坏」+ 1 种「源码污染」全部必须红 ⇒ 改坏必红
+```
+### ③ `python3 SW/tools/demo_timing_check.py` ⇒ rc=0 (**51/51**, 含 ISS-221 新增 17 条)
+```
+  ✅ [ISS-221] demo 真源脚本可执行且算得出账 (SW/tools/demo_e2e_budget.py) TX下限(口径A)=2.304 ms · 3 个方案 · 60ms 预算=60.0 ms
+  ✅ [ISS-221] demo 真源脚本源码零整机 DSI 常量            0 项
+  ✅ [ISS-221] SW/DEMO_OD_TIMING_SPEC.md 锚点区块逐项 == demo 真源脚本输出 11 项全对上
+  ✅ [ISS-221] SW/DEMO_BOARD_60MS_VERDICT_PLAN.md 锚点区块逐项 == demo 真源脚本输出 11 项全对上
+  ✅ [ISS-221] 两份文档的锚点区块逐项一致                    一致
+------------------------------------------------------------------------------
+★板端时延数字 = [0数据] (无板) —— 本脚本只核规格结构, 不编数
+```
+### ④ `python3 SW/tools/demo_timing_check.py --selftest` ⇒ rc=0 (**18/18**)
+```
+==============================================================================
+自检 (demo_timing_check): 18/18
+  ✅ ISS-221 反例9 锚点 TX 下限手抄错必被抓到        抓到: ['[ISS-221] SW/DEMO_OD_TIMING_SPEC.md 锚点区块逐项 == demo 真源脚本输出', ...]
+  ✅ ISS-221 反例12 混入整机 4-lane 指纹必被抓到    抓到: ['[ISS-221] SW/DEMO_OD_TIMING_SPEC.md demo 活动口径零「整机 4-lane DSI」指纹']
+  ✅ ISS-221 反例15 表 A 手抄错必被抓到           抓到: ['[ISS-221] SW/DEMO_OD_TIMING_SPEC.md demo 活动口径表逐行 == demo 真源脚本输出']
+==============================================================================
+退出码 rc = 0 (0=自检全过)
+```
+### ⑤ `python3 SW/tools/check_demo_panel_spec.py` ⇒ rc=0 (**R1~R7 全过**)
+```
+✅ ISS-212 demo 显示侧口径门禁: 全过
+   R1 demo 屏规格真源 (480×640 / 2-lane / 无 DCS / I2C_B ≤100kHz + 附属必填项) ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+```
+### ⑥ `python3 SW/tools/check_demo_panel_spec.py --selftest` ⇒ ★**rc=1 (15/16) — 唯一红项** ★
+```
+  ✅ REV-9 盘上真源被换掉而锚点没换                                   ⇒ R6 变红 (R6 盘上真源 md5 HW/netlist_v1.csv = fb313d362dd32ec12620bd64d7b828eb ≠ 锚点登)
+  ✅ REV-10 锚点改成台账里查不到的哈希                                 ⇒ R6 变红 (R6 盘上真源 md5 HW/netlist_v1.csv = 34132f7e40a241e1fae1476be0eafbd5 ≠ 锚点登)
+  ✅ REV-11 锚点里的落表单号改坏 (ISS-220 → ISS-999)                ⇒ R6 变红 (R6 HW/netlist_v1.csv: 落表台账里查不到 (单号 ISS-999 / 文件 HW/netlist_v1.csv / 新 ))
+  ❌ REV-12 落表台账里的落表单号被改坏 (ISS-220 → ISS-999)             ⇒ R6 没变红 (期望它红) — 实得失败项: []
+  ✅ REV-13 把落表台账里那两行删掉                                   ⇒ R6 变红 (R6 HW/netlist_v1.csv: 落表台账里查不到 (单号 ISS-233 / 文件 HW/netlist_v1.csv / 新 ))
+  ✅ REV-14 把锚点块整个删掉 (fail-closed)                        ⇒ R6 变红 (R6 读不到 SW 侧 md5 基线台账锚点 ⇒ 门禁 fail-closed: ...)
+  ✅ REV-15 把「已修复 (留痕)」那一节删掉                              ⇒ R7 变红 (R7 留痕账里没有「已修复 (留痕)」那一节 (删了 ⇒ 一次真变更被从账上抹了))
+--- SELFTEST 15/16 通过 ---
+```
+### ⑦ `python3 state/merge.py && python3 state/gate_check.py` ⇒ rc=0, ★**Q1 18/18** ★
+```
+✅ STATE.yaml 已刷新 (2026-11-16T07:34:54+08:00)
+   产出 302 | 阻塞 43 (高危 33) | 未闭合需求 180 | 冲突 0 | 健康度 red
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-16_hw-lead_ISS233_21条未落表归因与拍板即落清单.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-16_sw-lead_ISS234_关机语义三口径方案与门禁.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-16_mech-lead_ISS229_充电皮肤温度重算与MECH闸重锚.md
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+【Q3 接口声明率】 全员 interface_claims 共 605 条
+【Q5 硬指标覆盖】 3/3 个总工报出了 ≥3 类硬指标数字
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+```
+
+## 7.5 ★本轮我写了什么 / 没写什么 (边界自证)
+
+| 类别 | 路径 | 动作 |
+|---|---|---|
+| ★**写了** ★ | 本文件 `HANDOFF/2026-11-16_sw-lead_ISS221_demo预算真源.md` | ★**追加 §7 (本节)** ★ |
+| ★**写了** ★ | `state/fragments/sw.yaml` | ★**一条 key (`iss221_redispatch_reverify_0730`), 走 `python3 state/frag_write.py` 原子写** ★ |
+| ★**没写** ★ | `SW/tools/timing_check.py` · `SW/tools/check_demo_panel_spec.py` · `SW/SW_MD5_BASELINE_LEDGER.md` | ★**并行 sw-lead 会话 `31d009e7` 正在改 (ISS-235) ⇒ 碰了就撞** ★ |
+| ★**没写** ★ | `state/issue_log.yaml` | ★**不自签 (status 留给 main)** ★ |
+| ★**没写** ★ | `HW/` 下任何文件 · `MECH/` 下任何文件 · `state/outbox/` · `PROJECT_TRACKER.md` · `SW/DEMO_OD_PIPELINE_SPEC.md` · `SW/tools/rknn_bench.py` | ★**本单禁改区 / 非本单允许清单, 零写入** ★ |
+
+★**板端 [实测] = 0 条** ⇒ §7.1 里的每一个 ms 数字要么是 ★**本机脚本实跑输出 (=[实测·本机])** ★, 要么是 ★**[推算] (屏侧)** ★ ⇒ ★**没有一个板端实测值被编出来** ★
+
+## 7.6 ★给 main 的三句话
+
+1. ★**ISS-221 已完 (04:07 落 verified), 本次重复派活零重做、零越界** ⇒ ★**请勿再把本单派给 sw-lead** ★ (第 3 次重投就是队列没认账, 不是活没干完)
+2. ★**唯一红项 REV-12 的根因我已查到代码级 (§7.3), 已归 ISS-235, 不在 ISS-221 头上** ⇒ ★**REV-12 必须改「锚点当前依赖的单号」而不是写死 ISS-220** ★
+3. ★**§B2 里那行「`check_demo_panel_spec.py` rc=0 ❌ 不通过」现已转绿 (ISS-225 收口), 本单最后一条待办「请裁定 R6 md5 基线过期」也随之闭合** ⇒ ★**ISS-221 的待办清单现在是空的** ★

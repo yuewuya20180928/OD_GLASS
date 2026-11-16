@@ -233,6 +233,28 @@ C7B_BACKPLATE_GEOM = (120.0, 30.0, 1.0)        # 长 × 前后宽 × 厚 (mm)
 
 
 # ======================================================================
+# §0e ★ISS-237 (2026-11-16 · 闭环轮) 新增常量 —— C-7c:
+#     「镜框上沿前后宽 W_rim」这个 C-7 的唯一前置, 用**活口径** (鳍模型) 重新实算门槛
+#     + 集热背板的质量账 + 整机重量影响
+#     依据: MECH/CENTER_CAVITY_REBALANCE_V3.md §2.6
+#     ★★改的是【口径的适用范围】(门槛在哪个功耗下成立), 不是【阈值】:
+#        腔体 50 °C / k=201 / 120×30×1.0 / 0.468 W / 0.50 W 一个不许动
+# ======================================================================
+
+#: C-7c 的 W_rim 扫描点 (mm) —— ① 面板功耗门槛点 ② ISS-222 已登记的 23.30
+#:   ③ 0.50 W 代表负载门槛点 ④ 现占位 30.00 (30 mm 本身在项目内查无出处)
+C7C_W_LIST_MM = (22.15, 23.30, 25.63, 30.00)
+
+#: C-7c 的 u8 口径 (端件截面 V 高) —— 沿用 ISS-227 的主口径 30 (保守端)
+C7C_U8_MM = 30.0
+
+#: 整机重量锚点 (ISS-222 C-6 落地后的 §3 合计, 387 mAh 配置) —— 只引用, 一个数不许改
+C7C_DOC_WEIGHT = (50.78, 75.36)
+
+#: 摄像头凸包占位 (mm²) —— 与 C-7 / C-7b 活口径共用 (不在本节新造)
+
+
+# ======================================================================
 # §1 计算 —— 文档里所有数都从这里出来
 # ======================================================================
 def compute() -> dict:
@@ -748,6 +770,116 @@ def compute_v3(c: dict | None = None, cv2: dict | None = None) -> dict:
     )
 
 
+# ======================================================================
+# ★ISS-237 (2026-11-16 · 闭环轮): C-7c —— W_rim 门槛 (鳍模型) + 背板质量账
+# ======================================================================
+def compute_c7c(c: dict | None = None, cv2: dict | None = None,
+                 v3: dict | None = None) -> dict:
+    """★ISS-237 闭环轮: 把 C-7 的唯一前置「镜框上沿前后宽 W_rim」用**活口径** (鳍模型) 实算成门槛。
+
+    ★★为什么必须再算一遍 (不是重复劳动):
+      ISS-222 §2.2 给的门槛 **W_rim ≥ 23.30 mm** 来自 **lumped (集热面当等温面)** 模型
+      + **0.468 W 面板功耗**; 而 ISS-227 §2.5 已经把活口径换成**鳍模型**
+      (背板 120×30×1.0, 沿长度方向有温差) ⇒ **同一条门槛在两个口径下不是一个数**
+      ⇒ 而 ISS-216 的**代表负载是 0.50 W** ⇒ 按 23.30 裁框截面 ⇒ 0.50 W 下腔体会摸/破红线。
+
+    口径 (全部沿用上面的尺 A / 尺 B / 鳍模型, 一个公式没新造):
+      · 背板: 长 120 mm × 前后宽 W_rim × 厚 1.0 mm (6063-T6, k=201, ρ=2.70)
+      · 鳍模型: m = sqrt(h·P/(k·A_c)), G = sqrt(h·P·k·A_c)·tanh(m·L), R = 1/G
+      · 摄像头凸包让位: 有效面积 = 120×W_rim − 168 ⇒ G 按面积比缩 (与 §2.5.4 保守上界 ① 同款)
+      · 并联支路: 背板 ∥ 端件外表面 u8×20; R_支路 = R_热路(9.403) + 并联集热支路
+      · 腔体节点: 尺 A (R_skin 495.238 / R_amb 160000/A_conv(d) / 基准 35 °C)
+    """
+    if c is None:
+        c = compute()
+    if cv2 is None:
+        cv2 = compute_v2(c)
+    if v3 is None:
+        v3 = compute_v3(c, cv2)
+    r_sb = cv2["r_sb"]
+    a_conv_by_d = cv2["a_conv_by_d"]
+    ht = cv2["cand"]["P3"]["r_path"]          # R_热路 9.403 K/W (铝条 + TIM)
+    u8 = C7C_U8_MM
+    r_end = R_COL_KW_NUM / (u8 * ENDPOINT_COL_W_MM)
+    a_cam = CAM_BUMP_X_MM * CAM_BUMP_Y_MM      # 168 mm²
+    bar_len_mm = 50.0
+
+    # ---- 背板鳍模型 (深度 = W_rim) ----
+    def bp_fin(depth: float, relief: bool = True) -> float:
+        a_c = depth * BACKPLATE_T_MM
+        per = depth
+        m = math.sqrt(H_CONV_COL * per * 1e-3 / (K_AL_6063_T6 * a_c * 1e-6))
+        g = math.sqrt(H_CONV_COL * per * 1e-3 * K_AL_6063_T6 * a_c * 1e-6) \
+            * math.tanh(m * SINK_LX_MM * 1e-3)
+        r = 1.0 / g
+        if relief:
+            a_nom = SINK_LX_MM * depth
+            r = r * (a_nom / (a_nom - a_cam))     # G 按面积比缩 ⇒ R 按比例放大
+        return r
+
+    def rb_of(depth: float, relief: bool = True) -> float:
+        return ht + 1.0 / (1.0 / bp_fin(depth, relief) + 1.0 / r_end)
+
+    def cav(r_branch: float, d: float, p_w: float) -> float:
+        r_amb = 160000.0 / a_conv_by_d[d]
+        r_eff = 1.0 / (1.0 / r_sb + 1.0 / r_amb + 1.0 / r_branch)
+        return T_BASE_C + p_w * r_eff
+
+    def t15(depth: float, p_w: float, relief: bool = True) -> float:
+        return cav(rb_of(depth, relief), 15.0, p_w)
+
+    def w_min(p_w: float, relief: bool = True):
+        """T@15 ≤ 50 °C 的最小 W_rim (二分; 背板深度 = W_rim, 越宽越凉)"""
+        lo, hi = 5.0, 60.0
+        if t15(hi, p_w, relief) > T_CAV_LIMIT_C:
+            return None
+        for _ in range(100):
+            mid = (lo + hi) / 2.0
+            if t15(mid, p_w, relief) <= T_CAV_LIMIT_C:
+                hi = mid
+            else:
+                lo = mid
+        return hi
+
+    # ---- 打印件顶面路径 (对照: 同一个 W_rim 下打印件更差) ----
+    def r_print_at(depth: float) -> float:
+        a_base = bar_len_mm * depth
+        r_base = R_COL_KW_NUM / a_base
+        a_c_rim = 2.0 * RIM_WALL_MM * depth + 2.0 * RIM_WALL_MM * RIM_HEIGHT_MM
+        per_rim = depth + 2.0 * RIM_WALL_MM
+        l_ext = (SINK_LX_MM - bar_len_mm) * 1e-3
+        m = math.sqrt(H_CONV_COL * per_rim * 1e-3 / (K_PRINT_RIM * a_c_rim * 1e-6))
+        g = math.sqrt(H_CONV_COL * per_rim * 1e-3 * K_PRINT_RIM * a_c_rim * 1e-6) \
+            * math.tanh(m * l_ext)
+        return 1.0 / (1.0 / r_base + 1.0 / (1.0 / g))
+
+    r_amb15 = 160000.0 / a_conv_by_d[15.0]
+    rows = []
+    for w in C7C_W_LIST_MM:
+        rb = rb_of(w, True)
+        m_bp = SINK_LX_MM * w * BACKPLATE_T_MM * RHO_AL_G_MM3
+        rows.append(dict(
+            w=w, a_bp=SINK_LX_MM * w, m_bp=m_bp,
+            r_fin=bp_fin(w, True), r_branch=rb,
+            t468={d: cav(rb, d, P_PANEL_W) for d in C7B_D_LIST_MM},
+            t50=cav(rb, 15.0, P_COL_05W),
+            p_max=(T_CAV_LIMIT_C - T_BASE_C) * (1.0 / r_sb + 1.0 / r_amb15 + 1.0 / rb),
+            w_total_lo=C7C_DOC_WEIGHT[0] + m_bp, w_total_hi=C7C_DOC_WEIGHT[1] + m_bp,
+            t_print=cav(ht + r_print_at(w), 15.0, P_PANEL_W),
+        ))
+
+    w_min_468 = w_min(P_PANEL_W, True)
+    w_min_500 = w_min(P_COL_05W, True)
+    w_min_468_nr = w_min(P_PANEL_W, False)
+    w_min_500_nr = w_min(P_COL_05W, False)
+
+    return dict(rows=rows, u8=u8, r_end=r_end, ht=ht, a_cam=a_cam,
+                w_min_468=w_min_468, w_min_500=w_min_500,
+                w_min_468_no_relief=w_min_468_nr, w_min_500_no_relief=w_min_500_nr,
+                m_bp_per_mm=RHO_AL_G_MM3 * SINK_LX_MM * BACKPLATE_T_MM,
+                doc_weight=C7C_DOC_WEIGHT)
+
+
 def fmt(x: float, nd: int = 2) -> str:
     s = f"{x:.{nd}f}"
     if "." in s:
@@ -877,27 +1009,62 @@ def parse_rows_pat(doc: str, pat: str) -> list:
     return out
 
 
-def _section_text(doc: str, keys) -> str:
-    """★ISS-227: 抓出标题里同时含 keys 全部关键字的那一节正文 (到下一个同级或更高级标题为止)。
+def _heading_hits(doc: str, keys, min_level: int = 1):
+    """★ISS-227 续做: 找出正文里所有「标题同时含 keys 全部关键字」的标题。
 
-    用于门禁回读「C-7b 集热面口径修正」独立节 —— 找不到 = 节被删了 = 门禁红。
+    返回 [(行下标, 标题层级, 标题全文)]。
+
+    ★★**min_level 是本函数存在的理由** (2026-11-16 05:1x main 实测抓到的真缺陷):
+      文档 H1 大标题**常常也含这些关键字** (本文件第 1 行就同时含 "C-7b" 与
+      "集热面口径修正") ⇒ 若不排除 H1, 「节存在性」断言会变成**永远为真**
+      (抓到的"节" = 整篇 349 行文档) ⇒ ★**门禁可被"删掉整个 C-7b 节"绕过** ★
+      —— 这是反向 19 抓不到任何一条的**根因**。
+    ⇒ 判定「独立成节」只认 **level >= min_level (默认 2 = 非文档标题)** 的标题。
     """
     lines = doc.splitlines()
+    out = []
     for i, ln in enumerate(lines):
         m = re.match(r"^(#{1,6})\s+(.*)$", ln)
         if not m:
             continue
+        lvl = len(m.group(1))
+        if lvl < min_level:
+            continue
         head = m.group(2)
         if all(k in head for k in keys):
-            lvl = len(m.group(1))
-            out = [ln]
-            for ln2 in lines[i + 1:]:
-                m2 = re.match(r"^(#{1,6})\s", ln2)
-                if m2 and len(m2.group(1)) <= lvl:
-                    break
-                out.append(ln2)
-            return "\n".join(out)
-    return ""
+            out.append((i, lvl, head))
+    return out
+
+
+def _section_spans(doc: str, keys, min_level: int = 2):
+    """★ISS-227 续做: 同 _heading_hits, 但把每个命中标题的**正文范围**也切出来。
+
+    返回 [(标题行下标, 结束行下标(不含), 标题全文, 节正文)] —— 结束于下一个
+    **同级或更高级**标题 (level <= 本标题 level)。
+    """
+    lines = doc.splitlines()
+    out = []
+    for i, lvl, head in _heading_hits(doc, keys, min_level):
+        end = len(lines)
+        for j in range(i + 1, len(lines)):
+            m2 = re.match(r"^(#{1,6})\s", lines[j])
+            if m2 and len(m2.group(1)) <= lvl:
+                end = j
+                break
+        out.append((i, end, head, "\n".join(lines[i:end])))
+    return out
+
+
+def _section_text(doc: str, keys, min_level: int = 1) -> str:
+    """★ISS-227: 抓出标题里同时含 keys 全部关键字的那一节正文 (到下一个同级或更高级标题为止)。
+
+    用于门禁回读「C-7b 集热面口径修正」独立节 —— 找不到 = 节被删了 = 门禁红。
+
+    ★★**min_level 默认 1 是为兼容旧调用; 但 C21/C22 一律显式传 min_level=2** ★★
+    ⇒ 否则会命中 H1 文档标题 ⇒ 抓到整篇文档 ⇒ "节存在性"断言变成空断言。
+    """
+    spans = _section_spans(doc, keys, min_level)
+    return spans[0][3] if spans else ""
 
 
 def _first_int(cell: str):
@@ -1595,10 +1762,20 @@ def check_all(root: str) -> list:
         det.append(f"P3 几何被改了: {SINK_LX_MM}×{SINK_WRIM_MM} (应 120×30)")
 
     # (3) 文档侧: C-7b「集热面口径修正」必须独立成节
-    sec = _section_text(v3, ["C-7b", "集热面口径修正"])
-    if not sec:
+    # ★★2026-11-16 05:1x 续做修正 (main 实测抓到的真缺陷):
+    #   原实现用 _section_text(doc, ["C-7b","集热面口径修正"]) ⇒ **命中的是 H1 文档标题**
+    #   (第 1 行同时含这两个关键字) ⇒ 抓到的"节" = 整篇 349 行文档 ⇒
+    #   「节存在性」断言变成**永远为真** ⇒ 反向 19「删掉整个 C-7b 节」抓不到任何一条
+    #   ⇒ **门禁可被删节绕过**。⇒ 现在只认 **level>=2** 的小节标题 (min_level=2)。
+    spans_c7b = _section_spans(v3, ["C-7b", "集热面口径修正"], min_level=2)
+    if not spans_c7b:
         ok = False
-        det.append("V3 交卷件缺 C-7b「集热面口径修正」独立节")
+        det.append("V3 交卷件缺 C-7b「集热面口径修正」独立节 (level>=2 的小节标题都没了)")
+    elif len(spans_c7b) > 1:
+        ok = False
+        det.append(f"V3 里 C-7b「集热面口径修正」小节出现 {len(spans_c7b)} 次 (应唯一) ⇒ "
+                   f"口径分叉: {[s[2][:40] for s in spans_c7b]}")
+    sec = spans_c7b[0][3] if spans_c7b else ""
 
     if sec:
         # (4) 口径前后对比表: 4 行齐全
@@ -1759,6 +1936,208 @@ def check_all(root: str) -> list:
                 f"{fmt(_c7b['C7B-04']['t468'][20.0],2)} °C ✅ (u8=30); "
                 f"旧口径 打印件顶面 = {fmt(_c7b['C7B-03']['t468'][15.0],2)} °C ❌ (已修正·留痕)"))
 
+    # ================= ★ISS-227 续做新增 1 项判据 (只增, 既有 21 项一条没删) =================
+    # C22 —— C-7b「集热面口径修正」**整节存在性** (专查「删掉整节」这个绕过口子)
+    #   ★★为什么必须有这一项 (2026-11-16 05:1x main 实测抓到的真缺陷):
+    #     C21 原本用 _section_text(doc, ["C-7b","集热面口径修正"]) 抓节 ⇒ 命中的是
+    #     **H1 文档标题** (第 1 行也同时含这两个关键字) ⇒ 抓到的是**整篇 349 行文档**
+    #     ⇒ 「节存在性」断言变成**永远为真** ⇒ 反向 19「删掉整个 C-7b 节」一条都抓不到
+    #     ⇒ ★**门禁可被删节绕过** ★
+    #   ⇒ 现在 C21/C22 一律用 min_level=2 (只认真小节标题, 不认 H1), 且 C22 专查四件事:
+    #     ① 该小节在文档里**唯一** (不许口径分叉) ② 12 行关键表行**住在节内**
+    #     ③ 留痕/新口径关键字面值**住在节内** ④ 旧→新对比两边的材料**都在节内**
+    ok22 = True
+    det22 = []
+    want22 = ({"C7B-01", "C7B-02", "C7B-03", "C7B-04"}
+              | {f"U8-0{i}" for i in range(1, 6)}
+              | {f"R7B-0{i}" for i in range(1, 4)})
+    spans22 = _section_spans(v3, ["C-7b", "集热面口径修正"], min_level=2)
+    if not spans22:
+        ok22 = False
+        det22.append("V3 交卷件里没有 level>=2 的「C-7b 集热面口径修正」小节 "
+                      "⇒ 整节被删 / 被改名 / 被降级成正文")
+    elif len(spans22) > 1:
+        ok22 = False
+        det22.append(f"「C-7b 集热面口径修正」小节出现 {len(spans22)} 次 ⇒ 口径分叉")
+    else:
+        sec22 = spans22[0][3]
+        ids22 = set()
+        for _pat in (r"C7B-\d+", r"U8-\d+", r"R7B-\d+"):
+            for _r in parse_rows_pat(sec22, _pat):
+                ids22.add(_r["idx"])
+        miss22 = sorted(want22 - ids22)
+        if miss22:
+            ok22 = False
+            det22.append(f"§2.5 节里缺关键表行 {miss22} ⇒ {len(want22)} 行关键表必须住在节内")
+        for lit in ("53.60", "47.77", "u8 = 30", "120×30", "k=201", "已修正", "留痕"):
+            if lit not in sec22:
+                ok22 = False
+                det22.append(f"§2.5 节里缺关键字面值 {lit!r}")
+                break
+        for lit in ("打印件", "铝制集热背板"):
+            if lit not in sec22:
+                ok22 = False
+                det22.append(f"§2.5 节里缺 {lit!r} ⇒ 旧→新口径对比不全")
+                break
+    res.append(("C22", "C-7b 整节存在性 (小节唯一 · 12 行关键表住节内 · 留痕字面值在节内 · 旧→新对比齐)", ok22,
+                "; ".join(det22) if det22 else
+                f"§2.5 小节唯一在位 · {len(want22)} 行关键表 (C7B×4 / U8×5 / R7B×3) + "
+                f"留痕与新口径字面值全住在节内"))
+
+    # ================= ★ISS-237 闭环轮新增 1 项判据 (只增, 既有 22 项一条没删) =================
+    # C23 —— C-7c: C-7 的唯一前置「W_rim」用活口径 (鳍模型) 实算的门槛 + 背板质量/整机重量账
+    #   ★★为什么必须有这一项:
+    #     ISS-222 §2.2 登记的 C-7 硬门槛 W_rim ≥ 23.30 mm 来自 lumped 模型 + 只按 0.468 W;
+    #     ISS-227 已把活口径换成鳍模型 ⇒ 门槛在两个口径下不是一个数;
+    #     而 ISS-216 的代表负载是 0.50 W ⇒ 按 23.30 裁框截面 ⇒ 0.50 W 下 50.67 °C ❌
+    #     ⇒ ⇒ 门槛必须**两档** (面板功耗 / 代表负载) 且必须**进机器门禁**。
+    ok23 = True
+    det23 = []
+    cc = compute_c7c(c, cv2, cv3)
+
+    # (1) 阈值不许动 (脚本常量侧)
+    if T_CAV_LIMIT_C != 50.0:
+        ok23 = False
+        det23.append(f"腔体红线被改了: {T_CAV_LIMIT_C} (应 50.0)")
+    if K_AL_6063_T6 != 201.0:
+        ok23 = False
+        det23.append(f"铝 k 被改了: {K_AL_6063_T6} (应 201.0)")
+    if (SINK_LX_MM, SINK_WRIM_MM, BACKPLATE_T_MM) != C7B_BACKPLATE_GEOM:
+        ok23 = False
+        det23.append(f"背板几何被改了: {SINK_LX_MM}×{SINK_WRIM_MM}×{BACKPLATE_T_MM} (应 120×30×1.0)")
+    if abs(P_PANEL_W - 0.468) > 1e-9 or abs(P_COL_05W - 0.50) > 1e-9:
+        ok23 = False
+        det23.append(f"面板/代表负载被改了: {P_PANEL_W} / {P_COL_05W} (应 0.468 / 0.50)")
+
+    # (2) §2.6 「C-7c」必须独立成节 (level>=2, 唯一)
+    spans23 = _section_spans(v3, ["C-7c", "W_rim"], min_level=2)
+    if not spans23:
+        ok23 = False
+        det23.append("V3 交卷件里没有 level>=2 的「C-7c」小节 ⇒ 整节被删 / 被改名")
+    elif len(spans23) > 1:
+        ok23 = False
+        det23.append(f"「C-7c」小节出现 {len(spans23)} 次 ⇒ 口径分叉")
+    sec23 = spans23[0][3] if spans23 else ""
+
+    if sec23:
+        # (3) 门槛表 W7T-01~05: 两档门槛逐格 + 旧登记门槛留痕
+        rowst = {r["idx"]: r for r in parse_rows_pat(sec23, r"W7T-\d+")}
+        want_t = {
+            "W7T-01": (P_PANEL_W, cc["w_min_468"]),
+            "W7T-02": (P_COL_05W, cc["w_min_500"]),
+            "W7T-03": (P_PANEL_W, cc["w_min_468_no_relief"]),
+            "W7T-04": (P_COL_05W, cc["w_min_500_no_relief"]),
+        }
+        if len(rowst) != 5:
+            ok23 = False
+            det23.append(f"W7T 行数 {len(rowst)} ≠ 5")
+        else:
+            for rid, (p_w, wmin) in want_t.items():
+                r = rowst.get(rid)
+                if r is None:
+                    ok23 = False
+                    det23.append(f"缺 {rid} 行")
+                    break
+                cells = r["cells"]
+                if len(cells) != 5:
+                    ok23 = False
+                    det23.append(f"{rid} 列数 {len(cells)} ≠ 5")
+                    break
+                for ci, wv, nd, tol in ((1, p_w, 2, 0.006), (2, wmin, 2, 0.02)):
+                    e = _cmp(cc, cells[ci], wv, nd, tol)
+                    if e:
+                        ok23 = False
+                        det23.append(f"{rid} 第{ci+1}列 {e}")
+                        break
+                if not ok23:
+                    break
+            # 旧登记门槛 23.30 (只报不改 · 留痕)
+            if ok23:
+                r05 = rowst.get("W7T-05")
+                if r05 is None or "23.30" not in r05["cells"][2]:
+                    ok23 = False
+                    det23.append("W7T-05 行缺 ISS-222 已登记的 23.30 (留痕)")
+                elif "留痕" not in r05["cells"][3] and "留痕" not in r05["cells"][4]:
+                    ok23 = False
+                    det23.append("W7T-05 行没标「只报不改 (留痕)」")
+
+        # (4) W_rim 扫描表 W7C-01~04: 逐格
+        if ok23:
+            rowsc = {r["idx"]: r for r in parse_rows_pat(sec23, r"W7C-\d+")}
+            if len(rowsc) != 4:
+                ok23 = False
+                det23.append(f"W7C 行数 {len(rowsc)} ≠ 4")
+            else:
+                for i, w in enumerate(cc["rows"]):
+                    rid = f"W7C-0{i + 1}"
+                    r = rowsc.get(rid)
+                    if r is None:
+                        ok23 = False
+                        det23.append(f"缺 {rid} 行")
+                        break
+                    cells = r["cells"]
+                    if len(cells) != 11:
+                        ok23 = False
+                        det23.append(f"{rid} 列数 {len(cells)} ≠ 11")
+                        break
+                    for ci, wv, nd, tol in (
+                            (0, w["w"], 2, 0.006), (1, w["a_bp"], 0, 0.6),
+                            (2, w["m_bp"], 2, 0.006), (3, w["r_fin"], 2, 0.006),
+                            (4, w["r_branch"], 2, 0.006), (5, w["t468"][15.0], 2, 0.006),
+                            (6, w["t468"][18.0], 2, 0.006), (7, w["t468"][20.0], 2, 0.006),
+                            (8, w["t50"], 2, 0.006), (9, w["p_max"], 4, 0.00006)):
+                        e = _cmp(cc, cells[ci], wv, nd, tol)
+                        if e:
+                            ok23 = False
+                            det23.append(f"{rid} 第{ci+1}列 {e}")
+                            break
+                    if not ok23:
+                        break
+
+        # (5) 背板质量 ⇒ 整机重量表 W7M-01~04: 逐格
+        if ok23:
+            rowsm = {r["idx"]: r for r in parse_rows_pat(sec23, r"W7M-\d+")}
+            if len(rowsm) != 4:
+                ok23 = False
+                det23.append(f"W7M 行数 {len(rowsm)} ≠ 4")
+            else:
+                for i, w in enumerate(cc["rows"]):
+                    rid = f"W7M-0{i + 1}"
+                    r = rowsm.get(rid)
+                    if r is None:
+                        ok23 = False
+                        det23.append(f"缺 {rid} 行")
+                        break
+                    cells = r["cells"]
+                    if len(cells) != 5:
+                        ok23 = False
+                        det23.append(f"{rid} 列数 {len(cells)} ≠ 5")
+                        break
+                    for ci, wv, nd, tol in ((0, w["w"], 2, 0.006), (1, w["m_bp"], 2, 0.006),
+                                            (2, w["w_total_lo"], 2, 0.006),
+                                            (3, w["w_total_hi"], 2, 0.006)):
+                        e = _cmp(cc, cells[ci], wv, nd, tol)
+                        if e:
+                            ok23 = False
+                            det23.append(f"{rid} 第{ci+1}列 {e}")
+                            break
+                    if not ok23:
+                        break
+
+        # (6) 关键口径字面值必须住在节内 (门槛两档 + 旧登记门槛 + 质量线 + 打印件对照)
+        if ok23:
+            for lit in (fmt(cc["w_min_468"], 2), fmt(cc["w_min_500"], 2),
+                        "23.30", "0.324", "50.67", "56.53"):
+                if lit not in sec23:
+                    ok23 = False
+                    det23.append(f"§2.6 节里缺关键字面值 {lit!r}")
+                    break
+    res.append(("C23", "C-7c W_rim 门槛两档 (面板/0.5W) · 扫描表 · 背板质量与整机重量账 · 阈值不许动", ok23,
+                "; ".join(det23) if det23 else
+                f"W_rim 门槛 {fmt(cc['w_min_468'],2)} mm @0.468W / {fmt(cc['w_min_500'],2)} mm @0.50W; "
+                f"背板 {fmt(cc['m_bp_per_mm'],3)} g/mm ⇒ 整机 {fmt(cc['rows'][0]['w_total_lo'],2)}-"
+                f"{fmt(cc['rows'][-1]['w_total_hi'],2)} g"))
+
     return res
 
 
@@ -1808,16 +2187,18 @@ def selftest(root: str) -> int:
     res = check_all(root)
     cases.append(("基线: 全过", all(r[2] for r in res), "0 条不过"))
 
-    def run_case(name: str, mutate, expect_cid: str):
+    def run_case(name: str, mutate, expect_cid):
+        """expect_cid: str 或可迭代的 str 集合 ⇒ 命中其中任一条即算抓到。"""
         tmp = tempfile.mkdtemp(prefix="cavity_selftest_")
         try:
             _make_copy(root, tmp)
             mutate(tmp)
             r2 = check_all(tmp)
             bad = [r for r in r2 if not r[2]]
-            hit = any(r[0] == expect_cid for r in bad)
+            exp = {expect_cid} if isinstance(expect_cid, str) else set(expect_cid)
+            hit = any(r[0] in exp for r in bad)
             detail = ("抓到: " + ",".join(r[0] for r in bad)) if bad else "没抓到任何一条"
-            cases.append((name, hit, f"{expect_cid} 未被抓; {detail}"))
+            cases.append((name, hit, f"{'/'.join(sorted(exp))} 未被抓; {detail}"))
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 
@@ -1942,23 +2323,64 @@ def selftest(root: str) -> int:
         _set_row_cell(V3_REL, "C7B-04", 1, "打印件 PA-CF", tmp)
 
     def mut_c7b_drop_section(tmp):
-        # 删掉整个 C-7b「集热面口径修正」节 ⇒ 红
+        # ★删掉整个 C-7b「集热面口径修正」节 ⇒ 红
+        # ★★2026-11-16 05:1x 续做修正 (原实现是**假用例**):
+        #   原实现用 `"C-7b" in ln and "集热面口径修正" in ln` 找起点 ⇒ **先命中 H1 文档标题**
+        #   (第 1 行也含这两个关键字) ⇒ 实际删掉的是**文档头部** (§0 之前那十几行),
+        #   **§2.5 节根本没被删** ⇒ 门禁当然一条红都没有 ⇒ ★反向用例形同虚设★
+        #   ⇒ 现在用 **level>=2 的真小节标题** 定位, 删到下一个同级/更高级标题为止。
         p = os.path.join(tmp, V3_REL)
         lines = open(p, encoding="utf-8").read().splitlines(True)
         start = None
+        lvl = None
         for i, ln in enumerate(lines):
-            if re.match(r"^#{1,6}\s", ln) and "C-7b" in ln and "集热面口径修正" in ln:
+            m = re.match(r"^(#{2,6})\s+(.*)$", ln)
+            if not m:
+                continue
+            head = m.group(2)
+            if "C-7b" in head and "集热面口径修正" in head:
                 start = i
+                lvl = len(m.group(1))
                 break
-        assert start is not None, "C-7b 节没找到"
+        assert start is not None, "C-7b 小节没找到"
         end = len(lines)
         for j in range(start + 1, len(lines)):
-            if re.match(r"^##\s", lines[j]):
+            m2 = re.match(r"^(#{1,6})\s", lines[j])
+            if m2 and len(m2.group(1)) <= lvl:
                 end = j
                 break
         out = lines[:start] + lines[end:]
         assert len(out) < len(lines)
+        # ★自证: 确认真的删掉了 §2.5 (而不是删错了地方)
+        #   ★★2026-11-16 07:4x (ISS-237 闭环轮) 修正: 原来判 "C7B-04 还在" ⇒
+        #   §2.6 的正文里也会**引用** C7B-04 (对照说明) ⇒ 断言会误报 ⇒
+        #   改成只判「**表格行**还在」 (行首是 | C7B-04 / **C7B-04**)。
+        assert not any(re.match(r"^\|\s*(\*\*)?C7B-04", ln) for ln in out), \
+            "C7B-04 表格行还在 ⇒ 删错地方了"
         open(p, "w", encoding="utf-8").write("".join(out))
+
+    def mut_c7b_drop_table(tmp):
+        # ★删掉 §2.5 里的**关键表行** (C7B-01~04) 但**留着节标题** ⇒ 红
+        #   (这一条抓的是「节还在但表没了」这种半吊子删改)
+        p = os.path.join(tmp, V3_REL)
+        lines = open(p, encoding="utf-8").read().splitlines(True)
+        out = [ln for ln in lines if not re.match(r"^\|\s*(\*\*)?C7B-\d+", ln)]
+        assert len(out) < len(lines)
+        open(p, "w", encoding="utf-8").write("".join(out))
+
+    def mut_c7b_rename_section(tmp):
+        # ★把 §2.5 的**节标题改名** (内容留着, 但不再叫「集热面口径修正」) ⇒ 红
+        p = os.path.join(tmp, V3_REL)
+        lines = open(p, encoding="utf-8").read().splitlines(True)
+        done = False
+        for i, ln in enumerate(lines):
+            m = re.match(r"^(#{2,6})\s+(.*)$", ln)
+            if m and "C-7b" in m.group(2) and "集热面口径修正" in m.group(2):
+                lines[i] = m.group(1) + " 2.5 ★ C-7b 热学口径小结\n"
+                done = True
+                break
+        assert done, "C-7b 小节标题没找到"
+        open(p, "w", encoding="utf-8").write("".join(lines))
 
     def mut_c7b_threshold(tmp):
         # 把腔体红线 50 °C 改成 55 °C ⇒ 判据阈值不许动 ⇒ 红
@@ -1971,6 +2393,62 @@ def selftest(root: str) -> int:
     def mut_c7b_temp(tmp):
         # 改坏活口径三档重算的 d=15 温度 (47.77 → 47.00 °C) ⇒ 红
         _set_row_cell(V3_REL, "C7B-04", 4, "47.00", tmp)
+
+    # ---- ★ISS-237 闭环轮新增 3 条反向用例 (既有 23 条一条没删) ----
+    def _mutate_in_section(tmp: str, rel: str, keys, min_level: int,
+                           old: str, new: str, count: int = 1) -> None:
+        """在指定小节**内部**改字面值 (不许误伤别的节)
+
+        ★★行下标 vs 字符下标 (2026-11-16 07:5x 自己踩的坑):
+          _section_spans 返回的 (i0, i1) 是**行下标** ⇒ 必须按行切片;
+          之前写成 text[:i0] + sec2 + text[i1:] (当字符下标用) ⇒ 文件被截断成乱码
+          ⇒ 反而一条红都不报 (反向用例形同虚设) ⇒ 现在按行拼。
+        """
+        p = os.path.join(tmp, rel)
+        lines = open(p, encoding="utf-8").read().splitlines(True)
+        text = "".join(lines)
+        spans = _section_spans(text, keys, min_level=min_level)
+        assert spans, f"小节 {keys} 没找到"
+        i0, i1, head, _sec = spans[0]
+        body = "".join(lines[i0:i1])
+        assert old in body, f"变异点 {old!r} 不在 §{head[:30]!r} 节内"
+        body2 = body.replace(old, new, count)
+        out = lines[:i0] + [body2] + lines[i1:]
+        open(p, "w", encoding="utf-8").write("".join(out))
+
+    def mut_c7c_threshold(tmp):
+        # 改坏 C-7c 的 W_rim 门槛 (面板功耗档 22.15 → 20.00) ⇒ 红
+        _mutate_in_section(tmp, V3_REL, ["C-7c"], 2, "22.15", "20.00")
+
+    def mut_c7c_weight(tmp):
+        # 改坏 C-7c 的整机重量数 (60.50 → 60.00) ⇒ 红
+        _mutate_in_section(tmp, V3_REL, ["C-7c"], 2, "60.50", "60.00")
+
+    def mut_c7c_drop_section(tmp):
+        # ★删掉整个 §2.6「C-7c」节 ⇒ 红 (自证: 确认真的删掉了 §2.6)
+        p = os.path.join(tmp, V3_REL)
+        lines = open(p, encoding="utf-8").read().splitlines(True)
+        start = None
+        lvl = None
+        for i, ln in enumerate(lines):
+            m = re.match(r"^(#{2,6})\s+(.*)$", ln)
+            if not m:
+                continue
+            if "C-7c" in m.group(2):
+                start = i
+                lvl = len(m.group(1))
+                break
+        assert start is not None, "C-7c 小节没找到"
+        end = len(lines)
+        for j in range(start + 1, len(lines)):
+            m2 = re.match(r"^(#{1,6})\s", lines[j])
+            if m2 and len(m2.group(1)) <= lvl:
+                end = j
+                break
+        out = lines[:start] + lines[end:]
+        assert len(out) < len(lines)
+        assert not any(("W7C-04" in ln) for ln in out), "W7C-04 行还在 ⇒ 删错地方了"
+        open(p, "w", encoding="utf-8").write("".join(out))
 
     run_case("反向1: 改坏一行参数表 (R1 的 T 18 → 17)", mut_row, "C2")
     run_case("反向2: 删掉 62 (结构真源 X-1 行 62 → 63 mm²)", mut_62, "C1")
@@ -1990,9 +2468,16 @@ def selftest(root: str) -> int:
     run_case("反向16: 改坏 C-8 的 t_s 三档余量 (TS-3 的 -2.64 → -2.00)", mut_c8_slack, "C19")
     run_case("反向17: 改坏 C-7 的净可外露面积 (A3-05 的 3432 → 3600 mm²)", mut_c7_area, "C20")
     run_case("反向18: 把活口径的集热面材质改回打印件 (C7B-04 → 打印件 PA-CF)", mut_c7b_material, "C21")
-    run_case("反向19: 删掉整个 C-7b「集热面口径修正」节", mut_c7b_drop_section, "C21")
+    run_case("反向19: 删掉整个 C-7b「集热面口径修正」节", mut_c7b_drop_section, ("C21", "C22"))
     run_case("反向20: 把腔体红线 50 °C 改成 55 °C", mut_c7b_threshold, "C21")
     run_case("反向21: 改坏活口径三档重算的 d=15 温度 (C7B-04 的 47.77 → 47.00 °C)", mut_c7b_temp, "C21")
+    # ---- ★ISS-227 续做新增 2 条反向用例 (既有 21 条一条没删) ----
+    run_case("反向22: 删掉 §2.5 里的关键表行 (C7B-01~04 四行) 但留着节标题", mut_c7b_drop_table, "C22")
+    run_case("反向23: 把 §2.5 的节标题改名 (内容留着, 但不再叫「集热面口径修正」)", mut_c7b_rename_section, "C22")
+    # ---- ★ISS-237 闭环轮新增 3 条反向用例 (既有 23 条一条没删) ----
+    run_case("反向24: 改坏 C-7c 的 W_rim 门槛 (面板功耗档 22.15 → 20.00)", mut_c7c_threshold, "C23")
+    run_case("反向25: 改坏 C-7c 的整机重量数 (60.50 → 60.00)", mut_c7c_weight, "C23")
+    run_case("反向26: 删掉整个 §2.6「C-7c」节", mut_c7c_drop_section, "C23")
 
     npass = sum(1 for _, ok, _ in cases if ok)
     print("=== cavity_recalc_check --selftest ===")
