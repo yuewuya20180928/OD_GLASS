@@ -745,6 +745,42 @@ artifacts:
   version: '1.0'
   updated_at: '2026-11-16'
   summary: 'ISS-235 交卷单 (B1~B6 齐全): 3 条断言订正前后 + 3 条反向自证 (改坏=>红=>改回=>绿) + 门禁原样输出 + 边界审计'
+- path: SW/LOAD_SWITCH_SELECTION_FACTS.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-11-16'
+  summary: 'ISS-172: 负载开关 U_PWR_SW/U_EN_SW 选型证据矩阵 —— 6 个原厂在售型号 × HW/POWER_SHUTDOWN_V3.md §2 八条判据逐格填满 (每格带官方数值+出处+证据等级)
+    + RCB 专项逐候选官方原文摘录 (含 TPS22918/TPS22919 查过=无) + 按 DECISION_PENDING_2026-11-16.md §A5 序的推荐 + 2 条降级方案
+    (FB1 不改板 / FB2 改板) + 出处表 S1~S15; ★只交证据不代拍型号, ★不落表'
+- path: SW/tools/check_load_switch_selection.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-11-16'
+  summary: 'ISS-172 机器门禁: C0~C8 (基准块合法JSON / 候选数≥3 / 八判据逐格非空+每格有出处 / 证据等级只取官网-实测-媒体-推算-0数据五级 / RCB 三选一
+    / 结论=无同封装带RCB⇒降级≥2条 / ISS-234 候选在册 + 网表判据串逐阈值对拍 / 判据文本 vs HW §2 真源 / 正文小节在位) + --selftest 8/8 反向用例
+    (每条自证真的改到了目标) + --json + --root; ★内容级不挂 md5'
+- path: HANDOFF/2026-11-16_sw-lead_ISS172_负载开关选型证据矩阵.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-16'
+  summary: 'ISS-172 交卷单 (B1~B6 齐全): 六候选 × 八判据矩阵 + RCB 专项 + A5 序推荐 + 2 条降级方案 + 门禁原样输出 + 边界审计 (HW/MECH 0
+    字节写入, 零外发, 不落表)'
+- path: HW/PART_SELECTION_MATRIX_2026-11-16.md
+  kind: selection-matrix
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'BOM 待选型 21 件必装器件 OPN 选型证据矩阵: 21 件 x >=2 候选 x 官方参数 x 封装兼容性结论 x 证据等级 x 降级方案 + 缺口 G-1~G-10 +
+    出处表 S1~S22 + 机器可读基准块'
+- path: HW/check_part_selection_matrix.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-241 选型矩阵机器门禁: C0~C7 共 8 条断言 (覆盖/候选完整性/封装结论/证据等级/降级方案/空话/越界) + --selftest 9 条反向用例自证'
+- path: HANDOFF/2026-11-16_sw-lead_ISS241_BOM待选型21件OPN选型矩阵.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-241 交卷单 (B1~B6): 21 件选型矩阵 + 3 条硬发现 + 10 条缺口 + 落表前置条件 L1~L6'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -1708,6 +1744,38 @@ answers:
     5 道门禁全绿: timing_check rc=0 71/71 · demo rc=0 16/16 · shutdown rc=0 17/17 · merge+gate_check rc=0 Q1
     18/18 · 受保护 5 件 md5 逐字节不变. 留痕已登记 SW/SW_MD5_BASELINE_LEDGER.md §3 R-06'
   ref: HANDOFF/2026-11-16_sw-lead_ISS235_SW侧3条过期断言订正.md
+- key: iss172_load_switch_selection_evidence_matrix
+  to: main
+  value: '【已交付·2026-11-16·sw-lead·零外发·实物[实测]=0条】ISS-172 负载开关选型证据矩阵已交卷: ① 新建 SW/LOAD_SWITCH_SELECTION_FACTS.md
+    —— 6 个原厂在售型号 (TI TPS22991RAA / TPS22916BYFPR / TPS22917xDBVR / TPS22910AYZVR + 圣邦微 SGM2572ADYG/TR
+    / SGM2575SADYG/TR) × HW/POWER_SHUTDOWN_V3.md §2 八条判据逐格填满, 每格带官方数值 + 出处 (手册章节/表格 + URL) + 证据等级, 并把
+    ISS-234 点名的 无 RCB 缺口做实 (§3.1 逐候选官方原文摘录, 另查证 TPS22918/TPS22919 不带 RCB); ② 新建 SW/tools/check_load_switch_selection.py
+    —— C0~C8 + --selftest 8/8 (每条反向用例自证真的改到了目标); ③ 新建本交卷单; ④ 分片只加 artifact/claim/answer, 没动别人的 key'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md
+- key: iss172_load_switch_boss_decision_request
+  to: main
+  value: '【给老板的一句话拍板·不代拍】ISS-172 现在只差优先级序这一句: 请在 DECISION_PENDING_2026-11-16.md §A5 上回一句 ① 反向阻断优先 / ②
+    关机续航优先 / ③ 压降优先 / ④ 不改板优先。矩阵立刻能收敛成一个型号 + 一条降级路线: ① ⇒ SGM2575SADYG/TR (改板, 4-ball 引脚须核原表); ④ ⇒ TPS22991RAA
+    (不改板, RCB 缺口走 FB1 外部反灌保护或改拓扑); ② ⇒ TPS22916BYFPR (改板, RON 60mΩ 超判据3)。★型号拍板也留给老板, 本单不代拍'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §4 / §5
+- key: iss172_landing_handoff
+  to: main
+  value: '【落表前置条件·等拍板】网表 HW/netlist_v1.csv L50 的 [待选型] 判据串本单一个字没改 (md5 34132f7e… 不变) —— 等老板拍完型号后由落表批次改:
+    ① L50 value 栏换成拍定型号 + 判据串; ② L50 OPN 栏补全变体字母 (TI TPS22991 有 B/BN/C/CN 四变体, 上电斜率 141us vs 662us, QOD
+    有无随变体不同); ③ L442 U_EN_SW 的 value 栏同步 (若整机型号改封装); ④ 若选带 RCB 的改板型号 ⇒ 原理图 + PCB footprint 一起改 (板那一趟必须排进计划)'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §7
+- key: iss241_part_selection_evidence_matrix
+  to: main
+  value: '交卷: HW/PART_SELECTION_MATRIX_2026-11-16.md (21 件 x >=2 候选 + 官方参数 + 封装兼容结论 + 证据等级 + 降级方案 + 缺口
+    G-1~G-10 + 出处表 S1~S22) + HW/check_part_selection_matrix.py (C0~C7 rc=0, selftest 9/9) + 交卷单; 分片只加
+    artifact/claim/answer'
+  ref: HW/PART_SELECTION_MATRIX_2026-11-16.md
+- key: iss241_landing_handoff
+  to: main
+  value: '落表前置条件: L1 C_REGN value 1uF->4.7uF(10V) + 充电板贴 U_CHG pin22; L2 Q_AND/Q_PG 占位 land 重画须人工核 pad<->pin;
+    L3 D_ESD_CAM pad 对调或改双向件; L4 6 件充电板器件 footprint 另行定; L5 G-1 Q_PG 源漏措辞矛盾由 PM 裁决; L6 R_SUPV_DIV 最终阻值待
+    TBD-02'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS241_BOM待选型21件OPN选型矩阵.md
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -2600,6 +2668,56 @@ interface_claims:
   value: 网表 34132f7e… · 脚表 b21b743a… · BOM c195a117… · 板 611b869e… · .kicad_pro 3e504d2b… (交卷前后逐字节不变)
   note: '[实测] 本单 HW/ 0 字节写入, 没有回退 ISS-233 的落表成果; 喂落表前网表(65/71)证明新判据跟网表真值走而不是把红灯调没'
   ref: HANDOFF/2026-11-16_sw-lead_ISS235_SW侧3条过期断言订正.md
+- key: iss172_load_switch_rcb_status
+  value: TPS22991RAA=无 · TPS22916BYFPR=有(Always-ON true) · TPS22917xDBVR=有(Always-ON true) · TPS22910AYZVR=有(Full-Time,
+    ON+OFF 两态) · SGM2572ADYG/TR=有(仅禁用态) · SGM2575SADYG/TR=有(True RCB, 导通态也挡) · TPS22918DBVR=无(查过) · TPS22919DCKR=无(查过)
+  note: '[官网]/[媒体] 逐候选官方原文摘录 (不是转述) 见 SW/LOAD_SWITCH_SELECTION_FACTS.md §3.1; ★TPS22918/TPS22919 是可调上升时间+可调QOD
+    型, 不带 RCB, 不要把它们当 RCB 备选'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §3.1
+- key: iss172_same_package_with_rcb_available
+  value: false —— 本次查证范围 (TI TPS229xx 单路族 91/16/17/18/19/10A + 圣邦微 SGM2572/SGM2575S) 内带 RCB 的 5 款封装 =
+    DSBGA-4 YFP / SOT-23-6 DBV / DSBGA-4 YZV / WLCSP-0.8x0.8-4B / WLCSP-0.76x0.76-4B, 没有一款是现网表 footprint
+    的 UQFN-4 RAA (0.85 x 0.75 mm, 0.4 mm pitch)
+  note: '[官网] 残留缺口 [0数据]: TI 官网参数筛选器里 4脚 UQFN-HR + RCB 本轮未逐项穷举 ⇒ 100% 穷举是一条人工动作 (本单不做, 也不能靠推断代替); 机器门禁
+    C5 强制: 此结论一旦成立必须同时存在 ≥2 条降级方案'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §3.3
+- key: iss172_load_switch_recommendation_by_a5
+  value: '按 DECISION_PENDING_2026-11-16.md §A5 序 (① 反向阻断 > ② IQ<5uA > ③ RON 越小越好 > ④ 封装/面积): ① 排最前 ⇒ SGM2575SADYG/TR
+    (查证范围内唯一 RCB + RON≤40mΩ 双满足: True RCB / 30 mΩ / 2 A / 0.578 mm²; 代价 = 改板 + 4-ball 引脚定义本轮 [0数据] 须核数据手册原表);
+    ④ 放最前 (不改板) ⇒ TPS22991RAA (唯一与现网表 footprint 逐字一致 ⇒ 换料不换板, RCB 缺口走 FB1 兜); ② 放最前 ⇒ TPS22916BYFPR /
+    TPS22917xDBVR (关断漏电 10 nA typ 最好, 但 RON 60 / 80 mΩ 超判据 3)'
+  note: ★本单只交证据 + 按 A5 建议序的推荐, 不代拍优先级序, 不代拍型号 ⇒ 最终拍板 = 老板 (DECISION_PENDING_2026-11-16.md §A5 / §Q2)
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §4
+- key: iss172_netlist_criteria_alignment
+  value: '网表 L50 判据串 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断) 与矩阵八条判据逐条对得上 (门禁 C6 按阈值逐 token 核: 2A→判据2 /
+    40mΩ→判据3 / 3.7V→判据3 / 5µA→判据4 / 反向阻断→判据5); 矩阵八条判据文本与 HW/POWER_SHUTDOWN_V3.md §2 真源逐字一致 (门禁 C7 核)'
+  note: '[实测] 网表一行没改 (md5 34132f7e… 交卷前后逐字节不变) ⇒ 本单只交证据, 落表等老板拍完型号后由落表批次改 L50 的 [待选型] 串与 OPN 变体字母'
+  ref: SW/tools/check_load_switch_selection.py C6/C7
+- key: iss172_tps22991_isd_max_finding
+  value: TPS22991RAA 关断漏电 ISD typ 14 nA / ★max 20 µA @-40~85°C ⇒ 按 max 口径它是六个候选里唯一硬超判据4 (5 µA 门槛) 的一条,
+    在关机账 108 µA 里占 18.5%
+  note: '[官网] TI 数据手册 SLVSFK0B §6.5; ISS-234 交卷件只给了 推荐 TPS22991RAA + 登记无 RCB 缺口, 本单补的是这条 max 口径事实 (ISS-234
+    此前没写)'
+  ref: SW/LOAD_SWITCH_SELECTION_FACTS.md §2.3 / §6 S2
+- key: iss172_protected_md5
+  value: 网表 34132f7e… · 脚表 b21b743a… · BOM c195a117… · 板 611b869e… (交卷前后逐字节不变)
+  note: '[实测] 本单 HW/ 与 MECH/ 全部 0 字节写入 (只读) ⇒ 硬件线一个字节没动; 判据真源 HW/POWER_SHUTDOWN_V3.md §2 只读未改; 实物 [实测]
+    = 0 条'
+  ref: HANDOFF/2026-11-16_sw-lead_ISS172_负载开关选型证据矩阵.md
+- key: iss241_esd_single_channel_only
+  value: ESD 4 件全部 2 焊盘占位 -> 只能单通道 2 脚器件 (TPD1E05U06DPY / PESD5V0S1BA / PESD5V0U1BA-Q); TPD2E2U06 双通道最少
+    3 脚落不下
+  note: '[官网] TI SLLSEG9C + SLVSBO7O; V-2 ESD 方案二选一的可选集被焊盘数物理限定, 只给证据不代拍'
+  ref: ''
+- key: iss241_pad_pin_mapping_mismatch
+  value: '占位 pad 序=网表行顺序: Q_AND=D/S/G, Q_ENVC=G/S/D, Q_PG=S/D/G; SOT-23 库引脚序=G/S/D -> Q_AND/Q_PG 必须重画
+    land'
+  note: '[实测] 板文件逐焊盘实读; 落板批次必看, 接反 Vgs 极性就反开机路径不通'
+  ref: ''
+- key: iss241_regn_cap_value_conflict
+  value: BOM=1uF vs TI BQ25896 手册 pin22=4.7uF(10V) -> 落表批次须改 BOM value
+  note: '[官网] TI SLUSC76C pin22 原文; 本单不落表'
+  ref: ''
 open_questions:
 - id: SW-Q1
   to: main
