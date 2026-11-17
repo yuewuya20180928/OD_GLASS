@@ -37,8 +37,9 @@
 | ★**`B07_ESD_USB_D_3PIN`** ★ | ★ISS-266 ★ | D_ESD_USB_D 从 2 脚换 3 脚封装 (B-3) | ★**S4** ★ | W-1/W-2 (老板: 一颗双通道 vs 两颗单通道) | [实测] 板上是 2 脚占位 (pad1 / pad2) | `python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ R4: D_ESD_USB_D 焊盘数 = 3` |
 | ★**`B08_ESD_USB_D_NEAR`** ★ | ★ISS-266 ★ | D_ESD_USB_D 距 J_USB_C 47.99 mm (B-4) | ★**S4** ★ | W-1/W-2 (老板) | [实测] D_ESD_USB_D @ (94.95, 21.8) · J_USB_C @ (140.00, 5.25) ⇒ 中心距 47.99 mm (要求 ≤ 3.0 mm) | `python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ R9: D_ESD_USB_D ↔ J_USB_C 中心距 ≤ 3.0 mm` |
 | ★**`B09_ESD_USB_D_MINUS`** ★ | ★ISS-266 ★ | USB D− 那条路没有 ESD (B-5) | ★**S4** ★ | 落表侧另派 (B-5 两条路都要改网表) | [实测] 板上挂 USB_D_N_SRC / NET_USB_D_N_TYPEC 的 ESD 位号数 = 0 | `python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ R4: D− 两张网的 ESD 位号数 ≥ 1` |
+| ★**`B32_V2_NET_RENAME`** ★ | ★ISS-283 ★ | V-2 网改名 (D_ESD_USB_D pad1: `USB_D_P_SRC` → `NET_USB_D_P_TYPEC`) ⇒ 板面 3 处焊盘网名必须同趟改 (★§③-1★) | ★**S4** ★ | ★**板只改一次那一趟 (★本单零写板★)** ★ | [实测] 网表 L417 已落 `NET_USB_D_P_TYPEC` (★台账 §16.2 链头 L1353 · ISS-283 · 12:16:08★); 板面仍挂旧网名 `USB_D_P_SRC` 的焊盘 **3 处**: `D_ESD_USB_D.pad1` / `R_SER_USB_D_P` 一端 / `J_SOM_P1` 的 USB_D_P 脚 ⇒ 网表与板对不上 | `python3 HW/check_board_frame_caliber.py` ⇒ C6 绿 (★盘上 md5 == 落表台账登记★) |
 | ★**`B10_Q_AND_LAND`** ★ | ★ISS-244 ★ | Q_AND 占位 land 的 pad↔pin 与器件引脚序对不上 (硬件 AND 门不成立) | ★**S6** ★ | 落表批次 (AO3400A 已落) | [实测] 板: pad1=RESET_N(D) / pad2=GND(S) / pad3=PG_AND(G) = D/S/G; AO3400A 引脚序 = 1=G / 2=S / 3=D ⇒ 装上去 = 栅极接 RESET_N、漏极接 PG_AND | `bash state/pcbnew_py.sh -c "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print([(p.GetNumber(),p.GetNetname()) for p in [f for f in b.GetFootprints() if f.GetReference()=='Q_AND'][0].Pads()])" ⇒ pad1 挂 PG_AND / pad3 挂 RESET_N` |
-| ★**`B11_Q_PG_LAND`** ★ | ★ISS-244 ★ | Q_PG 占位 land 序错 + 网表 note 角色与拓扑相反 (开不了机) | ★**S6** ★ | PM/老板拍写法A (ISS-244 G-1) + 落表批次改 note | [实测] 板: pad1=PWR_ON(S) / pad2=BAT_SW(D) / pad3=PWR_GOOD(G) = S/D/G; DMP3098L 引脚序 = 1=G / 2=S / 3=D; 网表 note 首句写 S=ON / D=BAT_SW ⇒ Vgs=0 不导通, PG 高时 Vgs=+3.3V 反偏 ⇒ 开机路径彻底不通 | `bash state/pcbnew_py.sh -c "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print([(p.GetNumber(),p.GetNetname()) for p in [f for f in b.GetFootprints() if f.GetReference()=='Q_PG'][0].Pads()])" ⇒ pad1 挂 PWR_GOOD / pad3 挂 PWR_ON` |
+| ★**`B11_Q_PG_LAND`** ★ | ★ISS-244 ★ | Q_PG 占位 land 序错 (开不了机) ★**★网表 note 已落写法A (★ISS-283·12:30:23★) ⇒ 只剩板那一趟重画 land (§③-2)★** ★ | ★**S6** ★ | ★**写法A 已拍 (★老板 2026-11-17 09:49★) + 网表 note 已落表 (★台账 §16.2 链头 L1353·12:30:23★) ⇒ 只剩板那一趟重画这 3 根线** ★ | [实测] 板: pad1=PWR_ON(S) / pad2=BAT_SW(D) / pad3=PWR_GOOD(G) = S/D/G; DMP3098L 引脚序 = 1=G / 2=S / 3=D ⇒ 板上 land 仍是旧接法 ⇒ 写法B ⇒ Vgs=0 不导通, PG 高时 Vgs=+3.3V 反偏 ⇒ 开机路径彻底不通; ★**网表 note 已落写法A: pad1=PWR_GOOD(G) / pad2=BAT_SW(S) / pad3=PWR_ON(D) ⇒ 板面与网表对不上** ★ | `bash state/pcbnew_py.sh -c "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print([(p.GetNumber(),p.GetNetname()) for p in [f for f in b.GetFootprints() if f.GetReference()=='Q_PG'][0].Pads()])" ⇒ pad1 挂 PWR_GOOD / pad3 挂 PWR_ON` |
 | ★**`B12_Q_ENVC_LAND`** ★ | ★ISS-241 ★ | Q_ENVC 占位 land 序 (天然对上, 但必须核一遍) | ★**S6** ★ | - | [实测] 板: pad1=PG_AND(G) / pad2=GND(S) / pad3=EN_VCORE(D) = G/S/D ⇒ 与 SOT-23 库序一致 (三件 MOS 里唯一天然对上的) | `bash state/pcbnew_py.sh -c "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print([(p.GetNumber(),p.GetNetname()) for p in [f for f in b.GetFootprints() if f.GetReference()=='Q_ENVC'][0].Pads()])" ⇒ pad1=PG_AND / pad2=GND / pad3=EN_VCORE` |
 | ★**`B13_ESD_CAM_PAD`** ★ | ★ISS-244 ★ | D_ESD_CAM 的 pad 序与单向件相反 (ESD 不工作 + CSI 负摆幅被钳到地) | ★**S6** ★ | - | [实测] 板: pad1=GND / pad2=CSI_D0_CK_P; TPD1E05U06DPYR pin1=I/O / pin2=GND ⇒ 正好相反 (另两件 ESD 是 pad1=信号/pad2=GND) | `bash state/pcbnew_py.sh -c "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print([(p.GetNumber(),p.GetNetname()) for p in [f for f in b.GetFootprints() if f.GetReference()=='D_ESD_CAM'][0].Pads()])" ⇒ pad1 挂 CSI_D0_CK_P` |
 | ★**`B14_S6_20_COORDS`** ★ | ★ISS-274 ★ | S6 的 20 个坐标固化钉位 (原文「21 个」是重复计数) | ★**S6** ★ | - | [实测] 20 个 distinct 坐标 (10×R_SEL_* + 10×TP_DSI_*); 其中 19 个现值已等于目标 (固化钉位), 真实位移只有 R_SEL_D3_P 一处 (78.90, 9.50 → 122.30, 5.50) | `python3 HW/check_board_frame_caliber.py ⇒ rc=0 (帧 id B160x100 · 20 个坐标逐个一致 ±0.01 mm)` |
@@ -57,7 +58,7 @@
 | ★**`B27_CHAINGATE`** ★ | ★ISS-266 ★ | 投产包准入闸 chain_gate 转绿 | ★**S11** ★ | S1~S10 | [实测] chain_gate rc=1 (③ PCB 准入红「板与网表不等价」 + ⑤ 投产资料包红) | `python3 state/chain_gate.py ⇒ rc=0` |
 | ★**`B28_RELEASE`** ★ | ★ISS-266 ★ | 留证链 + 盖章 + 发布闸 | ★**S12** ★ | S10 | [实测] Gerber 32 个齐 (C6 通过); 留证链与盖章闸属 S12 | `python3 state/check_pcb_drc.py ⇒ C6 生产文件齐 · rc=0` |
 | ★**`B29_WRITEBACK`** ★ | ★ISS-266 ★ | 回写台账 + 决策页 + 分片 | ★**S13** ★ | S9~S12 | [实测] 落表台账 / 决策页 / 分片 三处待回写 (★板级结论必须落决策页 ★) | `python3 state/merge.py ⇒ rc=0 && python3 state/gate_check.py ⇒ rc=0 (Q1 18/18)` |
-| ★**`B30_LED_BRIGHTNESS`** ★ | ★ISS-271 ★ | LED 亮度档 G-5 未拍 (改串阻 ⇒ 改网表 ⇒ 改 BOM ⇒ 改板面落位) | ★**S6** ★ | 老板 (G-5 亮度档) | [实测] 1kΩ + 3.3V ⇒ 1.10 mA ⇒ KP-2012SGC 仅 0.7~0.9 mcd ⇒ 白天看不见 | `python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ rc=1 且条数不变 (档位落表在落表批次)` |
+| ★**`B30_LED_BRIGHTNESS`** ★ | ★ISS-271 ★ | LED 亮度档 G-5 **已拍 = 20mA 档** (R_LED_R 68Ω / R_LED_G 55Ω) ★**★已落表 (★ISS-283·12:30:23★) ⇒ 板那一趟只须重出 BOM (footprint 不变 ⇒ 不构成额外板改)★** ★ | ★**S6** ★ | ★**已拍 (★老板 2026-11-17 09:49·A5 = 20mA★) ⇒ 剩【IEC 62471 分级重算】登记给 main (★不代拍★)** ★ | [实测] G-5 已拍「选项 ② = 改 R 到 20 mA 档」⇒ 已落表: R_LED_R = 68Ω ±1% / R_LED_G = 55Ω ±1% ⇒ 单颗 ~20 mA · 功耗 2.2 mW→66 mW (★两颗 ≈ 0.13 W 进电池账★) · 亮度 ×14 ⇒ IEC 62471 分级要重算 (★已登记 need·不代拍★); ★旧 1kΩ + 3.3V ⇒ 1.10 mA ⇒ KP-2012SGC 仅 0.7~0.9 mcd ⇒ 白天看不见 (★已被 20 mA 档取代★) ★ | `python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ rc=1 且条数不变 (★20mA 档已落表; 板侧项归 §③-1~§③-3★)` |
 | ★**`B31_P7_TARGET`** ★ | ★ISS-266 ★ | P7: 画哪一块板 (160×100 台架板 vs 产品板) | ★**S6** ★ | 老板 (P7) | [实测] 现役板 = 160×100 台架板 (8 铜层 / 186 封装 / 160.10×100.10); 产品板 = 60×30 套A (★另一坐标帧 F30A, 数不可混用 ★) | `python3 HW/check_board_frame_caliber.py ⇒ rc=0 (三条帧 id B160x100 / F30A / P60x15 互不混用)` |
 
 ---
@@ -73,6 +74,22 @@
 | ★**ISS-276** (mech-lead 11-17 07:0x) ★ | ★检修口/调试口开口**必须拆成两条** (合并不可行) · 座体真实高度 **[0数据]** · `D_LED_G` 光孔 **[0数据]** ★ | ★`B15_SVC_PORT_SPLIT` / `B16_LED_G_OPTO` ★ | ★**作业包缺 → 本页补入** ★ |
 | ★**ISS-239** (hw-lead 11-16 2x) ★ | ★`U_LDO_S28.pin3` A/B 两案 ⇒ **若走 A 案, 板必须补 pad3** · 7 颗 TPS7A20 板封装 Value = 脚功能串 ★ | ★`B03_ULDO_S28_PAD3` / `B06_TPS7A20_VALUE` ★ | ★**作业包缺 → 本页补入** ★ |
 | ★**ISS-269 / ISS-266 / ISS-271** (本轮窗口内) ★ | ★X-3/X-4/B-2 三坑 (生成器侧已修) · S1~S13 作业包本体 · LED 亮度档 G-5 未拍 ★ | ★`B05_U_EN_SW_VALUE` / `B17_DNP_43` / `B01`~`B31` 全表 / `B30_LED_BRIGHTNESS` ★ | ★**作业包已有 (只核对) + 生成器侧已修** ★ |
+| ★**ISS-283** (hw-lead 2026-11-17 12:16~12:30 真落表后) ★ | ★**V-2 网改名 (A3) + W-4 写法A (A4) + G-5 20mA 档 (A5) 三次落表 ⇒ 板那一趟必须同趟吃掉 3 条板侧同步项 (★见下面 §3-追加 三条★)** ★ | ★`B32_V2_NET_RENAME` (§③-1) · `B11_Q_PG_LAND` (§③-2) · `B07_ESD_USB_D_3PIN` / `B08_ESD_USB_D_NEAR` / `B09_ESD_USB_D_MINUS` (§③-3) · `B30_LED_BRIGHTNESS` (G-5 已落) ★ | ★**本页补入 (追加式) · 板那一趟清掉** ★ |
+
+### ★★§3-追加 · ★★ISS-283 落表带来的板侧同步项 (★3 条 · 追加式 · 上面每一行老字一字未删★) ★★
+
+★**背景 (★main 13:1x 本机实读盘面 + 实跑闸·★不是推测★)**: ★**ISS-283 在 2026-11-17 12:16:08 (A3 / V-2=1) 与 12:30:23 (A4 / W-4 写法A + A5 / G-5 20mA 档) 两次真落表** ★
+⇒ ★**网表 / 脚表 / BOM 三件已变 (板一个字节没变)** ⇒ ★**板那一趟 (「板只改一次」那一趟) 必须同趟吃掉下面 3 条, 否则网表与板对不上** ★
+★**三条的编号 = 网表 note 里引用的「ISS-283 板侧清单 §③-N」** ★
+
+| 编号 | 板侧项 | 来源 | 落表事实 (★台账出处★) | 板那一趟要做的事 | 判据 (★真命令★) |
+|---|---|---|---|---|---|
+| ★**§③-1** ★ | ★**V-2 网改名: `D_ESD_USB_D` pad1 网名 `USB_D_P_SRC` → `NET_USB_D_P_TYPEC`** ★ | ★**ISS-283 · A3 (V-2=1)** ★ | ★**网表 L417 的 net 已落 `NET_USB_D_P_TYPEC`** (★台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16.2 · 链头 L1353 · ISS-283 · 12:16:08★) ⇒ ★**板面 3 处焊盘网名还挂旧的 `USB_D_P_SRC`** (★`D_ESD_USB_D.pad1` / `R_SER_USB_D_P` 一端 / `J_SOM_P1` 的 USB_D_P 脚★) ★ | ★**这 3 处焊盘网名同趟改成 `NET_USB_D_P_TYPEC`** (★不改 ⇒ 网表与板对不上★) ⇒ ★**对应条目 = `B32_V2_NET_RENAME`** ★ | ★`python3 HW/check_board_frame_caliber.py` ⇒ ★**C6 绿** (★盘上 md5 == 落表台账登记★) ★ |
+| ★**§③-2** ★ | ★**`Q_PG` land 重画 (pad1 ↔ pad3 的网互换)** ★ | ★**ISS-283 · A4 (W-4 写法A)** ★ | ★**网表已落: pad1 = `PWR_GOOD` (G) / pad2 = `BAT_SW` (S) / pad3 = `PWR_ON` (D)** (★台账 §16.2 · 链头 L1353 · ISS-283 · 12:30:23★) ⇒ ★**DMP3098L 引脚序 = 1=G / 2=S / 3=D ⇒ 板上 land 仍是旧接法 (pad1=`PWR_ON` / pad3=`PWR_GOOD`) ⇒ 这 3 根线必须重画** ★ | ★**重画 `Q_PG` 的 3 根线** (★pad1→`PWR_GOOD` / pad2→`BAT_SW` / pad3→`PWR_ON`★) ⇒ ★**对应条目 = `B11_Q_PG_LAND`** ★ | ★`bash state/pcbnew_py.sh -c "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print([(p.GetNumber(),p.GetNetname()) for p in [f for f in b.GetFootprints() if f.GetReference()=='Q_PG'][0].Pads()])"` ⇒ ★**pad1 挂 `PWR_GOOD` / pad3 挂 `PWR_ON`** ★ |
+| ★**§③-3** ★ | ★**D− 侧 ESD 三件仍挂着 (R4×2 + R9)** ★ | ★**ISS-266 (板侧) · ISS-283 (登记)** ★ | ★**落表侧已落, 板侧未清**: ① `D_ESD_USB_D` 板上仍是 **2 焊盘** ② D− 网 (`USB_D_N_SRC` / `NET_USB_D_N_TYPEC`) 上 **ESD 位号数 = 0** ③ `D_ESD_USB_D` → `J_USB_C` 板面距离 **47.99 mm** > 3.0 mm 判据 ⇒ ★**这 4 条是 G1a-4 的最后 4 条未落表项 (板侧)** ★ | ★**板那一趟清掉这 4 条** ⇒ ★**对应条目 = `B07_ESD_USB_D_3PIN` / `B08_ESD_USB_D_NEAR` / `B09_ESD_USB_D_MINUS`** ★ | ★`python3 HW/check_netlist_selfconsistency.py --expect-resolved` ⇒ ★**R4 / R9 转绿** ★ |
+
+★**★铁律 (★本单口径·★零写板★)**: ★**这 3 条本单【一条都不许在盘上做】** ★ ⇒ ★**板 `611b869e…` 与 `.kicad_pro 3e504d2b…` 逐字节不变** ★ ⇒ ★**Gerber / 投产包一律不许用 (★板现在仍是「旧网表的板」★)** ★ ⇒ ★**板改 = 「板只改一次」那一趟, 由 main 统一开** ★
+★**★登记 (★只登记 · 不代拍★)**: ★**G-5 亮度档 ⇒ 亮度 ×14 ⇒ 眼旁光源的 IEC 62471 分级要重算 ⇒ 登记成 need 给 main (★hw-lead 不代拍★)** ★
 
 ---
 
@@ -83,7 +100,7 @@
 | ★**S1** ★ | ★1 ★ | ★`B01_REF_SUFFIX` ★ |
 | ★**S2** ★ | ★3 ★ | ★`B02_C_VBUS_GND`, `B03_ULDO_S28_PAD3`, `B04_R_SUPV_DIV_DNP` ★ |
 | ★**S3** ★ | ★2 ★ | ★`B05_U_EN_SW_VALUE`, `B06_TPS7A20_VALUE` ★ |
-| ★**S4** ★ | ★3 ★ | ★`B07_ESD_USB_D_3PIN`, `B08_ESD_USB_D_NEAR`, `B09_ESD_USB_D_MINUS` ★ |
+| ★**S4** ★ | ★4 ★ | ★`B07_ESD_USB_D_3PIN`, `B08_ESD_USB_D_NEAR`, `B09_ESD_USB_D_MINUS`, `B32_V2_NET_RENAME` ★ |
 | ★**S5** ★ | ★1 ★ | ★`B19_BAT_DET` ★ |
 | ★**S6** ★ | ★9 ★ | ★`B10_Q_AND_LAND`, `B11_Q_PG_LAND`, `B12_Q_ENVC_LAND`, `B13_ESD_CAM_PAD`, `B14_S6_20_COORDS`, `B15_SVC_PORT_SPLIT`, `B16_LED_G_OPTO`, `B30_LED_BRIGHTNESS`, `B31_P7_TARGET` ★ |
 | ★**S7** ★ | ★2 ★ | ★`B17_DNP_43`, `B18_J_CHG_DISAMB` ★ |
@@ -270,6 +287,17 @@ ISS-276
       "evidence": "[实测]"
     },
     {
+      "id": "B32_V2_NET_RENAME",
+      "source_iss": "ISS-283",
+      "title": "V-2 网改名: D_ESD_USB_D pad1 网名 USB_D_P_SRC → NET_USB_D_P_TYPEC ⇒ 板面 3 处焊盘网名必须同趟改 (★§③-1★)",
+      "current_state": "[实测] 网表 L417 已落 NET_USB_D_P_TYPEC (★台账 §16.2 链头 L1353 · ISS-283 · 12:16:08★); 板面仍挂旧网名 USB_D_P_SRC 的焊盘 3 处: D_ESD_USB_D.pad1 / R_SER_USB_D_P 一端 / J_SOM_P1 的 USB_D_P 脚 ⇒ 网表与板对不上",
+      "action": "板那一趟把这 3 处焊盘网名同趟改成 NET_USB_D_P_TYPEC (★不改 ⇒ 网表与板对不上★) ⇒ 见板侧清单 §③-1; ★本单零写板★",
+      "criterion": "python3 HW/check_board_frame_caliber.py ⇒ C6 绿 (★盘上 md5 == 落表台账登记★)",
+      "step": "S4",
+      "blocked_by": "板只改一次那一趟 (★本单零写板★)",
+      "evidence": "[实测]"
+    },
+    {
       "id": "B10_Q_AND_LAND",
       "source_iss": "ISS-244",
       "title": "Q_AND 占位 land 的 pad↔pin 与器件引脚序对不上 (硬件 AND 门不成立)",
@@ -283,12 +311,12 @@ ISS-276
     {
       "id": "B11_Q_PG_LAND",
       "source_iss": "ISS-244",
-      "title": "Q_PG 占位 land 序错 + 网表 note 角色与拓扑相反 (开不了机)",
-      "current_state": "[实测] 板: pad1=PWR_ON(S) / pad2=BAT_SW(D) / pad3=PWR_GOOD(G) = S/D/G; DMP3098L 引脚序 = 1=G / 2=S / 3=D; 网表 note 首句写 S=ON / D=BAT_SW ⇒ Vgs=0 不导通, PG 高时 Vgs=+3.3V 反偏 ⇒ 开机路径彻底不通",
-      "action": "land 目标 = pad1=PWR_GOOD(G) / pad2=BAT_SW(S) / pad3=PWR_ON(D) (两个外侧 pad 对调) + 网表 note 角色同批改成写法A (S=BAT_SW / D=ON / G=PG)",
+      "title": "Q_PG 占位 land 序错 (开不了机) ★**网表 note 已落写法A (★ISS-283·12:30:23★) ⇒ 只剩板那一趟重画 land (★§③-2★)**★",
+      "current_state": "[实测] 板: pad1=PWR_ON(S) / pad2=BAT_SW(D) / pad3=PWR_GOOD(G) = S/D/G; DMP3098L 引脚序 = 1=G / 2=S / 3=D ⇒ 板上 land 仍是旧接法 ⇒ 写法B ⇒ Vgs=0 不导通, PG 高时 Vgs=+3.3V 反偏 ⇒ 开机路径彻底不通; ★**网表 note 已落写法A: pad1=PWR_GOOD(G) / pad2=BAT_SW(S) / pad3=PWR_ON(D) (★台账 §16.2 链头 L1353 · ISS-283 · 12:30:23★) ⇒ 板面与网表对不上**★",
+      "action": "板那一趟重画 Q_PG 的 3 根线 (★pad1→PWR_GOOD(G) / pad2→BAT_SW(S) / pad3→PWR_ON(D)★) + 网表 note 角色已于 2026-11-17 12:30:23 同批落成写法A (★S=BAT_SW / D=ON / G=PG★)",
       "criterion": "bash state/pcbnew_py.sh -c \"import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print([(p.GetNumber(),p.GetNetname()) for p in [f for f in b.GetFootprints() if f.GetReference()=='Q_PG'][0].Pads()])\" ⇒ pad1 挂 PWR_GOOD / pad3 挂 PWR_ON",
       "step": "S6",
-      "blocked_by": "PM/老板拍写法A (ISS-244 G-1) + 落表批次改 note",
+      "blocked_by": "★**写法A 已拍 (★老板 2026-11-17 09:49★) + 网表 note 已落表 (★台账 §16.2 链头 L1353·12:30:23★) ⇒ 只剩板那一趟重画这 3 根线**★",
       "evidence": "[实测]+[官网]"
     },
     {
@@ -492,13 +520,13 @@ ISS-276
     {
       "id": "B30_LED_BRIGHTNESS",
       "source_iss": "ISS-271",
-      "title": "LED 亮度档 G-5 未拍 (改串阻 ⇒ 改网表 ⇒ 改 BOM ⇒ 改板面落位)",
-      "current_state": "[实测] 1kΩ + 3.3V ⇒ 1.10 mA ⇒ KP-2012SGC 仅 0.7~0.9 mcd ⇒ 白天看不见",
-      "action": "拍 G-5 亮度档 ⇒ 必须排在 S6 之前 (排在后面 = 板要改第二次)",
-      "criterion": "python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ rc=1 且条数不变 (档位落表在落表批次)",
+      "title": "LED 亮度档 G-5 **已拍 = 20mA 档** (R_LED_R 68Ω / R_LED_G 55Ω) ★**已落表 (★ISS-283·12:30:23★) ⇒ 板那一趟只须重出 BOM (footprint 不变 ⇒ 不构成额外板改)**★",
+      "current_state": "[实测] G-5 已拍「选项 ② = 改 R 到 20 mA 档」⇒ 已落表: R_LED_R = 68Ω ±1% / R_LED_G = 55Ω ±1% ⇒ 单颗 ~20 mA · 功耗 2.2 mW→66 mW (★两颗 ≈ 0.13 W 进电池账★) · 亮度 ×14 ⇒ IEC 62471 分级要重算 (★已登记 need·不代拍★); ★旧 1kΩ + 3.3V ⇒ 1.10 mA ⇒ KP-2012SGC 仅 0.7~0.9 mcd ⇒ 白天看不见 (★已被 20 mA 档取代★)★",
+      "action": "落表已完成 (★R 值写进 BOM ⇒ 台账 §16.2 链头 L1353★) ⇒ 板那一趟只须重出 BOM + 投产包 (★footprint 不变 ⇒ 不构成额外板改★) ⇒ 另: IEC 62471 分级重算登记给 main (★不代拍★)",
+      "criterion": "python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ rc=1 且条数不变 (★20mA 档已落表; 板侧项归 §③-1~§③-3★)",
       "step": "S6",
-      "blocked_by": "老板 (G-5 亮度档)",
-      "evidence": "[实测]"
+      "blocked_by": "★**已拍 (★老板 2026-11-17 09:49·A5 = 20mA★) ⇒ 剩【IEC 62471 分级重算】登记给 main (★不代拍★)**★",
+      "evidence": "[实测]+[官网]"
     },
     {
       "id": "B31_P7_TARGET",
@@ -519,3 +547,484 @@ ISS-276
 
 ★**★本表的每个数字都是本机实读 (★`bash state/pcbnew_py.sh` 读板 / 各闸原始输出 / 来源交卷单原文 ★), 没有一条是估的★★** ★
 ★**★本页由 `state/_iss277_build_preflight.py` 生成 (★页与 JSON 同源 ⇒ 不会写岔 ★)★** ★
+
+---
+
+## ★§附录 · ISS-289 追加式订正 (★现状值对回盘面★)
+
+> ★**本附录 = 追加式 (★本页上面每一行老字一字未删 ★)** ★
+> ★**本页的 items JSON 里那两句已过期的现状值 (★`B01_REF_SUFFIX` 的「零后缀」/ `B26_BASELINE` 的 `e06c1dd6…`★) 按追加式纪律原样留着, 订正写在这里** ★
+> ★**机器闸**: `python3 HW/check_workpack_state_values.py` (★V1~V7★) ⇒ ★**「本页 + 作业包里的现状值 == 盘面实测」当场判红 ★** ★
+
+| # | 本页条目 / 位置 | 老字 (★原样保留, 一字未删 ★) | ★**现行值 (★盘面实测★)** ★ |
+|---|---|---|---|
+| ① | ★**`B17_DNP_43`** ★ | ★**`B17_DNP_43`** ★ | ★**条目 id `B17_DNP_43` 保留 (★老字留痕 · 闸的探针键也用它 ★) ⇒ 现行值 = 40** ★ ⇒ ★**该条的 `current_state` 已是 `MAIN_PCB且DNP 51 颗 · 在板上 40 颗 · 零标记 40 颗` (★落表后已更新★); 本次只补「id 名字里的 43 是历史留痕, 不是现值」这句注解** ★ |
+| ② | ★**`B01_REF_SUFFIX`** ★ | `[实测] 板文件 186 个封装位号零后缀 ⇒ KiCad 判「未标注」⇒ 218 处问号` | ★**板文件 186 个封装位号里 30 个末字符是数字 (含 1 个已带 `_1` 的 `R_BAT_DET_1`) ⇒ 真正要加 `_1` 的是 156 个** ★ ⇒ ★**「零后缀」那句不成立 (★ISS-287 ②★); 186 是【原理图侧】口径 (★218 − 32★), 板侧是 156** ★ |
+| ③ | ★**`B31_P7_TARGET`** · ★**§1 帧声明** ★ | `186 封装` | ★**186 封装 (★现状·官方板★) / 185 封装 (★S2 把 `C_VBUS_GND` 拿掉之后★)** ★ ⇒ ★**官方板 186 / 沙盒生成板 185 ⇒ 差 1 = `C_VBUS_GND` (★网表 board 列 = CHG_BOARD·DNP, 但官方板上有实物封装@107.70,42.50★) ⇒ ★★动板那一趟按【官方板的数】走: 开工前 186 / 收工后 185★★ ★** |
+| ④ | ★**`B26_BASELINE`** ★ | `网表 e06c1dd6…` | ★**落表台账登记 = 37f62ac3f0b81d92ca7d48fdea717f07** ★ (★脚表 `a4270120454aedf7a23c92cd8985c8a6` / BOM `5d02bece9477ffce5fbe0193c7d5cce4`·★ISS-283 · 台账 L1353·§16.2★) ⇒ ★**基线走落表台账为准, 不写死** ★ |
+| ⑤ | ★**铜层 / 板框四数** ★ | `8 铜层 · 160.10×100.10` | ★**8 铜层 · 160.10×100.10** ★ (★现状=现役帧 B160x100★) |
+| ⑥ | ★**`B03_ULDO_S28_PAD3`** (脚表缺陷条数) ★ | ★`脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账` ★ | ★**脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账** ★ (★现状 = 18 · 本闸钉住★) |
+
+★**★本附录的现状值登记表 (★与作业包 §8.2.5 逐字相同★)** ★
+
+```json
+{
+  "schema": "board-onepass-state-baseline/v1",
+  "generated_by": "ISS-289 hw-lead (2026-11-17)",
+  "note": "★期望值写在文档里 (不写死在闸里) ⇒ 文档漂了当场红; md5 基线的取值来源 = 落表台账 (HW/landing_md5.py)★",
+  "state_baseline": {
+    "entries": [
+      {
+        "id": "W01_S7_HEADING",
+        "category": "dnp_zero_mark",
+        "doc": "workpacket",
+        "anchor": "### ★S7 · DNP 标记 (★43 个位号·★生成器侧改代码★) ★",
+        "correction_anchor": "### ★8.2.1 · 六处 S7 现状值 (43 → 40) 逐条订正",
+        "fresh": "S7 · DNP 标记 (★40 个位号·★生成器侧改代码★)",
+        "expect": "40",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "零标记 (\\d+) 颗",
+        "note": "§3-S7 段标题的老字是 43 ⇒ 现行值 40"
+      },
+      {
+        "id": "W02_S7_QUANT_ZERO",
+        "category": "dnp_zero_mark",
+        "doc": "workpacket",
+        "anchor": "★现状: **43 个全部零标记**★",
+        "correction_anchor": "### ★8.2.1 · 六处 S7 现状值 (43 → 40) 逐条订正",
+        "fresh": "现状: **40 个全部零标记**",
+        "expect": "40",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "零标记 (\\d+) 颗",
+        "note": "§3-S7 量化判据第一条"
+      },
+      {
+        "id": "W03_S7_QUANT_TOKEN",
+        "category": "dnp_token_count",
+        "doc": "workpacket",
+        "anchor": "板文件里 \"dnp\" 出现次数应从 3 涨到 3 + 43 = 46",
+        "correction_anchor": "### ★8.2.1 · 六处 S7 现状值 (43 → 40) 逐条订正",
+        "fresh": "板文件里 \"dnp\" 出现次数应从 3 涨到 3 + 40 = 43",
+        "expect": "3",
+        "probe": [
+          "python3",
+          "-c",
+          "print(open('HW/PCB/demo_mainboard.kicad_pcb',encoding='utf-8',errors='replace').read().lower().count('dnp'))"
+        ],
+        "probe_regex": "^(\\d+)$",
+        "note": "板文件 dnp 出现次数: 现状 3 (三个层设置) ⇒ S7 跑完 = 3 + 40 = 43"
+      },
+      {
+        "id": "W04_S3_TABLE_S7",
+        "category": "dnp_zero_mark",
+        "doc": "workpacket",
+        "anchor": "★R3-A4: MAIN_PCB且DNP 54 颗 · 在板上 43 颗 · ★**零标记 43 颗** ★",
+        "correction_anchor": "### ★8.2.1 · 六处 S7 现状值 (43 → 40) 逐条订正",
+        "fresh": "R3-A4: MAIN_PCB且DNP 51 颗 · 在板上 40 颗 · ★**零标记 40 颗** ★",
+        "expect": "40",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "零标记 (\\d+) 颗",
+        "note": "§3 表 S7 行的三个数一起订正 (54/43/43 → 51/40/40)"
+      },
+      {
+        "id": "W05_S4_ACCEPT_ROW",
+        "category": "dnp_zero_mark",
+        "doc": "workpacket",
+        "anchor": "★**R3-A4 零标记 DNP 数 = 0** ★ (★现状 43★)",
+        "correction_anchor": "### ★8.2.1 · 六处 S7 现状值 (43 → 40) 逐条订正",
+        "fresh": "R3-A4 零标记 DNP 数 = 0** ★ (★现状 40★)",
+        "expect": "40",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "零标记 (\\d+) 颗",
+        "note": "§4 验收表 S1~S7 行"
+      },
+      {
+        "id": "W06_S2_X2_PIT",
+        "category": "dnp_zero_mark",
+        "doc": "workpacket",
+        "anchor": "43 个 DNP 零标记不是「生成器漏刷」",
+        "correction_anchor": "### ★8.2.1 · 六处 S7 现状值 (43 → 40) 逐条订正",
+        "fresh": "40 个 DNP 零标记不是「生成器漏刷」",
+        "expect": "40",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "零标记 (\\d+) 颗",
+        "note": "§2 的 X-2 坑行"
+      },
+      {
+        "id": "W14_S6_1_S7_ROW",
+        "category": "dnp_zero_mark",
+        "doc": "workpacket",
+        "anchor": "DNP 标记 (43 个)",
+        "correction_anchor": "### ★8.2.1 · 六处 S7 现状值 (43 → 40) 逐条订正",
+        "fresh": "DNP 标记 (40 个)",
+        "expect": "40",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "零标记 (\\d+) 颗",
+        "note": "§6.1 表 S7 行 (同源第三处)"
+      },
+      {
+        "id": "W15_S8_1_3_X4",
+        "category": "dnp_zero_mark",
+        "doc": "workpacket",
+        "anchor": "★**X-4 修完 ⇒ 板上有 43 个 DNP 标记**",
+        "correction_anchor": "### ★8.2.1 · 六处 S7 现状值 (43 → 40) 逐条订正",
+        "fresh": "X-4 修完 ⇒ 板上有 40 个 DNP 标记",
+        "expect": "40",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "零标记 (\\d+) 颗",
+        "note": "§8.1.3-3 (同源第三处)"
+      },
+      {
+        "id": "W16_S1_1_F3",
+        "category": "dnp_zero_mark",
+        "doc": "workpacket",
+        "anchor": "MAIN_PCB 且 DNP 的位号数 54 · 其中在板文件里真实存在的 43 · 零标记的 43",
+        "correction_anchor": "### ★8.2.1 · 六处 S7 现状值 (43 → 40) 逐条订正",
+        "fresh": "MAIN_PCB 且 DNP 的位号数 51 · 其中在板文件里真实存在的 40 · 零标记的 40",
+        "expect": "40",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "零标记 (\\d+) 颗",
+        "note": "§1.1 第 1 行 F3 (同源第三处)"
+      },
+      {
+        "id": "W11_FOOTPRINT_COUNT",
+        "category": "footprint_count",
+        "doc": "workpacket",
+        "anchor": "160.10×100.10 mm / 8 铜层 / 186 封装",
+        "correction_anchor": "### ★8.2.2 · ISS-287 那两条差异对回作业包 / 清单页",
+        "fresh": "186 封装 (★现状·官方板★) / 185 封装 (★S2 把 `C_VBUS_GND` 拿掉之后★)",
+        "expect": "186",
+        "probe": [
+          "python3",
+          "HW/check_board_frame_caliber.py"
+        ],
+        "probe_regex": "封装 (\\d+)",
+        "note": "官方板 186 / 生成板 185 ⇒ 差 1 = C_VBUS_GND (板级归属差, 不是漏数)"
+      },
+      {
+        "id": "W12_S1_BOARD_156",
+        "category": "ref_suffix",
+        "doc": "workpacket",
+        "anchor": "★**③ 板侧 186 个封装位号 = 走 S6 重出自动带** ★",
+        "correction_anchor": "### ★8.2.2 · ISS-287 那两条差异对回作业包 / 清单页",
+        "fresh": "板侧真正要加 `_1` 的是 156 个 (★官方板 186 个封装里末字符是字母的只有 156 个, 另 30 个末字符是数字不动★)",
+        "expect": "156",
+        "probe": [
+          "bash",
+          "state/pcbnew_py.sh",
+          "-c",
+          "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');rs=[f.GetReference() for f in b.GetFootprints()];print('板侧末字符是字母(要加_1) = %d' % len([r for r in rs if not r[-1].isdigit()]));print('带 _1 后缀 = %d' % len([r for r in rs if r.endswith('_1')]))"
+        ],
+        "probe_regex": "要加_1\\) = (\\d+)",
+        "note": "§3-S1 的「板侧 186 个封装位号」会被读成「板上有 186 个要改名」⇒ 错"
+      },
+      {
+        "id": "W18_S1_SUFFIX_ONE",
+        "category": "ref_suffix",
+        "doc": "workpacket",
+        "anchor": "★**186 个 `X` → `X_1` (★`C_AC_CSI_D0_CK_N` → `C_AC_CSI_D0_CK_N_1`★) · ★**`RAIL_*` / `NET_*` 保留** (★单点汇流位, 改了 BOM 多假料号★) · ★**32 个本来就数字结尾的不动** ★",
+        "correction_anchor": "### ★8.2.2 · ISS-287 那两条差异对回作业包 / 清单页",
+        "fresh": "官方板带 `_1` 后缀的位号 = 1 个 (`R_BAT_DET_1`) ⇒ 改完 = 157 个",
+        "expect": "1",
+        "probe": [
+          "bash",
+          "state/pcbnew_py.sh",
+          "-c",
+          "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');rs=[f.GetReference() for f in b.GetFootprints()];print('板侧末字符是字母(要加_1) = %d' % len([r for r in rs if not r[-1].isdigit()]));print('带 _1 后缀 = %d' % len([r for r in rs if r.endswith('_1')]))"
+        ],
+        "probe_regex": "带 _1 后缀 = (\\d+)",
+        "note": "ISS-287 ②: 官方板带 _1 后缀的位号 = 1 个"
+      },
+      {
+        "id": "W19_S1_SCH_186",
+        "category": "ref_suffix",
+        "doc": "workpacket",
+        "anchor": "★**① 器件位号真源 = `HW/SCHEMATIC_V1_SPEC.json`** (★`devices` 段的 186 个 `ref` ★)",
+        "correction_anchor": "### ★8.2.2 · ISS-287 那两条差异对回作业包 / 清单页",
+        "fresh": "原理图 / 网表侧要加 `_1` 的位号 = 186 个 (★218 − 32★) ⇒ 板侧是 156 个, 不是 186 个",
+        "expect": "186",
+        "probe": [
+          "python3",
+          "-c",
+          "import csv;rs={r['ref'] for r in csv.DictReader(open('HW/BOM_v1.csv'))};print('BOM 位号末字符是字母 = %d' % len([r for r in rs if not r[-1].isdigit()]))"
+        ],
+        "probe_regex": "= (\\d+)$",
+        "note": "186 是原理图侧口径 (BOM 218 − 32); 该 JSON 里没有 devices 键 ⇒ 指针失效 (已登记 need)"
+      },
+      {
+        "id": "W13_COPPER_COUNT",
+        "category": "copper_and_frame",
+        "doc": "workpacket",
+        "anchor": "| ★**铜层数** ★ | ★**8** ★",
+        "correction_anchor": "### ★8.2.2 · ISS-287 那两条差异对回作业包 / 清单页",
+        "fresh": "铜层数 = 8",
+        "expect": "8",
+        "probe": [
+          "python3",
+          "HW/check_board_frame_caliber.py"
+        ],
+        "probe_regex": "铜层 (\\d+)",
+        "note": "铜层 / 板框四数之一"
+      },
+      {
+        "id": "W13B_FRAME_BOX",
+        "category": "copper_and_frame",
+        "doc": "workpacket",
+        "anchor": "| ★**板框 (Edge.Cuts)** ★ | ★**160.10 × 100.10 mm** ★ |",
+        "correction_anchor": "### ★8.2.2 · ISS-287 那两条差异对回作业包 / 清单页",
+        "fresh": "板框 = 160.10 × 100.10 mm",
+        "expect": "160.10 × 100.10 mm",
+        "probe": [
+          "python3",
+          "HW/check_board_frame_caliber.py"
+        ],
+        "probe_regex": "板框 \\(含线宽\\) = ([\\d.]+ × [\\d.]+ mm)",
+        "note": "铜层 / 板框四数之二 (宽 × 高)"
+      },
+      {
+        "id": "W13C_FRAME_ID",
+        "category": "copper_and_frame",
+        "doc": "workpacket",
+        "anchor": "帧 id `B160x100` · 板 160.00×100.00 / 8 铜层 / 1.60mm / 186 封装",
+        "correction_anchor": "### ★8.2.2 · ISS-287 那两条差异对回作业包 / 清单页",
+        "fresh": "现役帧 = B160x100",
+        "expect": "B160x100",
+        "probe": [
+          "python3",
+          "HW/check_board_frame_caliber.py"
+        ],
+        "probe_regex": "现役帧 (\\S+)",
+        "note": "铜层 / 板框四数之三 (现役帧 id)"
+      },
+      {
+        "id": "W07_FINDINGS_2",
+        "category": "defect_count",
+        "doc": "workpacket",
+        "anchor": "★**FINDINGS = 0** ★ (★现状 2 = F2+F3★)",
+        "correction_anchor": "### ★8.2.3 · 同批一起对回的其余现状值型判据",
+        "fresh": "FINDINGS = 0** ★ (★现状 2 = F2+F3★",
+        "expect": "2",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "FINDINGS: (\\d+)",
+        "note": "无漂 (仍 = 2 = F2+F3), 但登记进闸"
+      },
+      {
+        "id": "W08_PINS_DEFECT",
+        "category": "defect_count",
+        "doc": "workpacket",
+        "anchor": "★**15 条** (★14 串号 + 1 缺脚: `U_LDO_S28` 无 pin3★)",
+        "correction_anchor": "### ★8.2.3 · 同批一起对回的其余现状值型判据",
+        "fresh": "18 条 (★15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账★)",
+        "expect": "18",
+        "probe": [
+          "python3",
+          "HW/check_pin_function_labels.py"
+        ],
+        "probe_regex": "(\\d+) 条缺陷",
+        "note": "脚表语义缺陷 15 → 18 (落表后 md5 台账对账多 3 条)"
+      },
+      {
+        "id": "W09_SAME_PAD_NET",
+        "category": "defect_count",
+        "doc": "workpacket",
+        "anchor": "缺失 0 · 同号异网 0",
+        "correction_anchor": "### ★8.2.3 · 同批一起对回的其余现状值型判据",
+        "fresh": "缺失 0 · 同号异网 3",
+        "expect": "3",
+        "probe": [
+          "bash",
+          "state/pcbnew_py.sh",
+          "state/check_pcb_nets.py"
+        ],
+        "probe_regex": "同号异网 (\\d+)",
+        "note": "落表已改、板还没跟 ⇒ 同号异网 0 → 3 (Q_PG pad1/pad3 + D_ESD_USB_D pad1)"
+      },
+      {
+        "id": "W10_MD5_NETLIST",
+        "category": "md5_baseline",
+        "doc": "workpacket",
+        "anchor": "★**`HW/netlist_v1.csv`** ★ | ★`e06c1dd633566aa44732762c2ff99d1c` ★",
+        "correction_anchor": "### ★8.2.3 · 同批一起对回的其余现状值型判据",
+        "fresh": "落表台账登记 = 37f62ac3f0b81d92ca7d48fdea717f07",
+        "expect_mode": "ledger",
+        "expect_target": "HW/netlist_v1.csv",
+        "probe": [
+          "md5sum",
+          "HW/netlist_v1.csv"
+        ],
+        "probe_regex": "^([0-9a-f]{32})",
+        "note": "网表 md5 基线 ★走落表台账为准, 不写死★ (ISS-283 ⑩-b 的口径)"
+      },
+      {
+        "id": "W10B_MD5_PINS",
+        "category": "md5_baseline",
+        "doc": "workpacket",
+        "anchor": "★**`HW/netlist_v1_pins.csv`** ★ | ★`287e7861a0d1007748d92d9fbecdd490` ★",
+        "correction_anchor": "### ★8.2.3 · 同批一起对回的其余现状值型判据",
+        "fresh": "落表台账登记 = a4270120454aedf7a23c92cd8985c8a6",
+        "expect_mode": "ledger",
+        "expect_target": "HW/netlist_v1_pins.csv",
+        "probe": [
+          "md5sum",
+          "HW/netlist_v1_pins.csv"
+        ],
+        "probe_regex": "^([0-9a-f]{32})",
+        "note": "脚表 md5 基线 ★走落表台账为准★"
+      },
+      {
+        "id": "W10C_MD5_BOM",
+        "category": "md5_baseline",
+        "doc": "workpacket",
+        "anchor": "★**`HW/BOM_v1.csv`** ★ | ★`94642d07a69e8d60dd2af57f69b93607` ★",
+        "correction_anchor": "### ★8.2.3 · 同批一起对回的其余现状值型判据",
+        "fresh": "落表台账登记 = 5d02bece9477ffce5fbe0193c7d5cce4",
+        "expect_mode": "ledger",
+        "expect_target": "HW/BOM_v1.csv",
+        "probe": [
+          "md5sum",
+          "HW/BOM_v1.csv"
+        ],
+        "probe_regex": "^([0-9a-f]{32})",
+        "note": "BOM md5 基线 ★走落表台账为准★"
+      },
+      {
+        "id": "C01_B17_ZERO_MARK",
+        "category": "dnp_zero_mark",
+        "doc": "checklist",
+        "anchor": "[实测] R3-A4: MAIN_PCB且DNP 51 颗 · 在板上 40 颗 · 零标记 40 颗",
+        "correction_anchor": "## ★§附录 · ISS-289 追加式订正 (★现状值对回盘面★)",
+        "fresh": "MAIN_PCB且DNP 51 颗 · 在板上 40 颗 · 零标记 40 颗",
+        "expect": "40",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "零标记 (\\d+) 颗",
+        "note": "清单页这条的 current_state 已是 40 (老字保留), 本闸把它钉住"
+      },
+      {
+        "id": "C02_B17_ID_NAME",
+        "category": "dnp_zero_mark",
+        "doc": "checklist",
+        "anchor": "★**`B17_DNP_43`** ★",
+        "correction_anchor": "## ★§附录 · ISS-289 追加式订正 (★现状值对回盘面★)",
+        "fresh": "条目 id `B17_DNP_43` 保留 (★老字留痕 · 闸的探针键也用它 ★) ⇒ 现行值 = 40",
+        "expect": "40",
+        "probe": [
+          "python3",
+          "HW/check_netlist_contradiction_r3.py"
+        ],
+        "probe_regex": "零标记 (\\d+) 颗",
+        "note": "条目 id 名字含 43 ⇒ 改名会打断闸的探针键 ⇒ 只加注, 不改名"
+      },
+      {
+        "id": "C03_B01_REF_SUFFIX",
+        "category": "ref_suffix",
+        "doc": "checklist",
+        "anchor": "[实测] 板文件 186 个封装位号零后缀 ⇒ KiCad 判「未标注」⇒ 218 处问号",
+        "correction_anchor": "## ★§附录 · ISS-289 追加式订正 (★现状值对回盘面★)",
+        "fresh": "板文件 186 个封装位号里 30 个末字符是数字 (含 1 个已带 `_1` 的 `R_BAT_DET_1`) ⇒ 真正要加 `_1` 的是 156 个",
+        "expect": "156",
+        "probe": [
+          "bash",
+          "state/pcbnew_py.sh",
+          "-c",
+          "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');rs=[f.GetReference() for f in b.GetFootprints()];print('板侧末字符是字母(要加_1) = %d' % len([r for r in rs if not r[-1].isdigit()]));print('带 _1 后缀 = %d' % len([r for r in rs if r.endswith('_1')]))"
+        ],
+        "probe_regex": "要加_1\\) = (\\d+)",
+        "note": "「186 个封装位号零后缀」这句不成立 (ISS-287 ②)"
+      },
+      {
+        "id": "C04_B31_FOOTPRINT_COUNT",
+        "category": "footprint_count",
+        "doc": "checklist",
+        "anchor": "[实测] 现役板 = 160×100 台架板 (8 铜层 / 186 封装 / 160.10×100.10)",
+        "correction_anchor": "## ★§附录 · ISS-289 追加式订正 (★现状值对回盘面★)",
+        "fresh": "186 封装 (★现状·官方板★) / 185 封装 (★S2 把 `C_VBUS_GND` 拿掉之后★)",
+        "expect": "186",
+        "probe": [
+          "python3",
+          "HW/check_board_frame_caliber.py"
+        ],
+        "probe_regex": "封装 (\\d+)",
+        "note": "官方板 186 / 生成板 185"
+      },
+      {
+        "id": "C05_FRAME_B160X100",
+        "category": "copper_and_frame",
+        "doc": "checklist",
+        "anchor": "★**160×100 台架板 (现役板)** · 8 铜层 · 160.10×100.10 · 186 封装 ★",
+        "correction_anchor": "## ★§附录 · ISS-289 追加式订正 (★现状值对回盘面★)",
+        "fresh": "8 铜层 · 160.10×100.10",
+        "expect": "8",
+        "probe": [
+          "python3",
+          "HW/check_board_frame_caliber.py"
+        ],
+        "probe_regex": "铜层 (\\d+)",
+        "note": "铜层 / 板框四数"
+      },
+      {
+        "id": "C06_B03_DEFECT_COUNT",
+        "category": "defect_count",
+        "doc": "checklist",
+        "anchor": "脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账",
+        "correction_anchor": "## ★§附录 · ISS-289 追加式订正 (★现状值对回盘面★)",
+        "fresh": "脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账",
+        "expect": "18",
+        "probe": [
+          "python3",
+          "HW/check_pin_function_labels.py"
+        ],
+        "probe_regex": "(\\d+) 条缺陷",
+        "note": "脚表缺陷条数 (清单页已更新, 本闸钉住)"
+      },
+      {
+        "id": "C07_B26_MD5_LEDGER",
+        "category": "md5_baseline",
+        "doc": "checklist",
+        "anchor": "网表 e06c1dd6…",
+        "correction_anchor": "## ★§附录 · ISS-289 追加式订正 (★现状值对回盘面★)",
+        "fresh": "落表台账登记 = 37f62ac3f0b81d92ca7d48fdea717f07",
+        "expect_mode": "ledger",
+        "expect_target": "HW/netlist_v1.csv",
+        "probe": [
+          "md5sum",
+          "HW/netlist_v1.csv"
+        ],
+        "probe_regex": "^([0-9a-f]{32})",
+        "note": "B26 的 md5 基线 ★走落表台账为准, 不写死★"
+      }
+    ]
+  }
+}
+```
+
+★**★本页的每个数字都是本机实读, 没有一条是估的★★** ★

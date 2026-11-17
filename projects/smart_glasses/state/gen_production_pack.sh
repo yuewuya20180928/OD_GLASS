@@ -112,6 +112,16 @@ fi
 echo "  拷了 $((n_sch + n_pro)) 个原理图源文件 → doc/sch_src/ ($n_sch 个 .kicad_sch + $n_pro 个 .kicad_pro)"
 ls -1 "$SCH_SRC_DIR" | sed 's/^/    /'
 
+# ★★2026-11-17 (main, ISS-281 need `iss281_s10_generator_hook`) 把 S10 清单写进**产生点** ★★
+#   ★为什么: MANIFEST.md5 = 「这一包确实是这一版板出的」的自证 (闸 M1~M4)
+#     ⇒ 之前只能人工造 ⇒ 人工造的那一次就是漏的那一次
+#   ★为什么落在这一行之后: sch_src 归档是**最后一次创建文件**的步 ⇒ 落在这之后
+#     ⇒ 清单里的每个文件都已存在 ⇒ M4 的「文件集合双向相等」才成立
+#   ★为什么落在 `step "清单"` 之前: 清单本身也是包内一个文件 ⇒ 要先写出来, 后面的 find 才数得到
+#   ★不变量: 本脚本开头 rm -rf "$OUT" ⇒ 清单每次重建必被冲掉重写 ⇒ 不存在「僵尸清单」
+step "S10 清单 (MANIFEST.md5 —— 这一包是这一版板出的: 自证)"
+bash state/gen_production_manifest.sh "$OUT" "$PCB" || rc_all=1
+
 step "清单"
 find "$OUT" -type f | sort | sed "s|$OUT/||" | awk '{printf "  %s\n", $0}'
 echo "── 文件数: $(find "$OUT" -type f | wc -l) | 总大小: $(du -sh "$OUT" | cut -f1) ──"

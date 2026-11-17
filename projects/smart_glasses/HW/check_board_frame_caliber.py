@@ -833,43 +833,58 @@ def selftest(root, base):
         f = os.path.join(sb, LANDING_LEDGER_REL)
         return f, open(f, encoding="utf-8").read()
 
-    # ⑤b: 台账里删掉 BOM 的登记行 ⇒ 查不到 ⇒ C6 红
-    def m5b(sb):
+    # ★★ISS-283 · ⑪ (★cont2 修★): 台账里【每落一次表就多一条链】⇒ 同一张 §16.2 表会出现【多次】
+    #   ⇒ ★突变必须锚到【最新一条链】的那张表★ ⇒ 否则突变会打到【旧链】上 ⇒ 最新链完好 ⇒ C6 仍绿
+    #   ⇒ ★★cont2 实测到的 ⑤b / ⑤c 两条反向用例「没改到 / 没判红」的根因就是这里★★
+    #   (★实测: 旧写法按「整份台账里第一个匹配行」改 ⇒ 打到第 1 条链 (L1252) 上 ⇒ 最新链 (L1353) 完好
+    #     ⇒ ⑤b 的计数条件 (n==1) 永远不成立 ⇒ 突变根本没发生; ⑤c 改了旧链 ⇒ C6 仍绿★)
+    def _latest_162_row(sb, rel):
+        """★定位【最新一条链】的 §16.2 表里【某个文件】的那一行 ⇒ (文件, 行数组, 行号) ★"""
         f, txt = _ledger_lines(sb)
         lines = txt.split("\n")
-        out = []
-        n = 0
-        for ln in lines:
-            if (ln.startswith("|") and "`HW/BOM_v1.csv`**" in ln
-                    and "★**`HW/BOM_v1.csv`** ★ | `" in ln):
-                n += 1
-                continue
-            out.append(ln)
-        if n != 1:
-            return False
-        open(f, "w", encoding="utf-8").write("\n".join(out))
-        return True
-    case("⑤b ★★ISS-283·⑪: 落表台账里删掉 BOM 的登记行 ⇒ 【查不到】⇒ C6 红",
-         LANDING_LEDGER_REL, m5b, "C6", "HW/BOM_v1.csv")
+        heads = [i for i, ln in enumerate(lines) if ln.startswith("## ")]
+        if not heads:
+            return None
+        start = heads[-1]                       # ★最新一条链 = 台账里最后一个 `##` 段头★
+        secs = [i for i in range(start, len(lines))
+                if lines[i].startswith("### ") and "16.2" in lines[i] and "新旧 md5" in lines[i]]
+        if not secs:
+            return None
+        s = secs[-1]
+        for i in range(s + 1, len(lines)):
+            if lines[i].startswith("### ") or lines[i].startswith("## "):
+                break                          # ★表到下一个段头为止★
+            if lines[i].startswith("|") and ("`%s`" % rel) in lines[i]:
+                return f, lines, i
+        return None
 
-    # ⑤c: 台账里 BOM 那行的【新 md5】写成非 md5 串 ⇒ 四项不齐 ⇒ C6 红
-    def m5c(sb):
-        f, txt = _ledger_lines(sb)
-        lines = txt.split("\n")
-        n = 0
-        for i, ln in enumerate(lines):
-            if ln.startswith("|") and "`HW/BOM_v1.csv`** ★ | `" in ln:
-                parts = ln.split("|")
-                # | 文件 | 旧 md5 | 新 md5 | 变了? |
-                parts[3] = " `★(缺)★` "
-                lines[i] = "|".join(parts)
-                n += 1
-                break
-        if n != 1:
+    # ⑤b: 台账【最新一条链】的 §16.2 表里删掉 BOM 的登记行 ⇒ 查不到 ⇒ C6 红
+    def m5b(sb):
+        got = _latest_162_row(sb, "HW/BOM_v1.csv")
+        if not got:
             return False
+        f, lines, i = got
+        del lines[i]
         open(f, "w", encoding="utf-8").write("\n".join(lines))
         return True
-    case("⑤c ★★ISS-283·⑪: 落表台账里 BOM 的【新 md5】缺了 ⇒ 【四项不齐】⇒ C6 红",
+    case("⑤b ★★ISS-283·⑪: 落表台账【最新一条链】里删掉 BOM 的登记行 ⇒ 【查不到】⇒ C6 红",
+         LANDING_LEDGER_REL, m5b, "C6", "HW/BOM_v1.csv")
+
+    # ⑤c: 台账【最新一条链】的 §16.2 表里 BOM 那行的【新 md5】写成非 md5 串 ⇒ 四项不齐 ⇒ C6 红
+    def m5c(sb):
+        got = _latest_162_row(sb, "HW/BOM_v1.csv")
+        if not got:
+            return False
+        f, lines, i = got
+        parts = lines[i].split("|")
+        if len(parts) < 4:
+            return False
+        # | 文件 | 旧 md5 | 新 md5 | 变了? |
+        parts[3] = " `★(缺)★` "
+        lines[i] = "|".join(parts)
+        open(f, "w", encoding="utf-8").write("\n".join(lines))
+        return True
+    case("⑤c ★★ISS-283·⑪: 落表台账【最新一条链】里 BOM 的【新 md5】缺了 ⇒ 【四项不齐】⇒ C6 红",
          LANDING_LEDGER_REL, m5c, "C6", "HW/BOM_v1.csv")
 
     # ⑤d: 最新那条链的 §16.2 表整段改名 ⇒ 链断 ⇒ C6 红
@@ -906,6 +921,43 @@ def selftest(root, base):
         return True
     case("⑤e ★★ISS-283·⑪: 落表台账里最新那条链的【链头无单号】⇒ C6 红",
          LANDING_LEDGER_REL, m5e, "C6", "HW/BOM_v1.csv")
+
+    # ⑤f (★cont2 增★): 台账【最新一条链】里 BOM 那行的【旧 md5】写成非 md5 串 ⇒ 四项不齐 ⇒ C6 红
+    #   ★★反向用例只许增不许减★ ⇒ 这条补上「旧 md5 缺」那一路 (★旧写法的四项不齐只测了「新 md5 缺」★)
+    def m5f(sb):
+        got = _latest_162_row(sb, "HW/BOM_v1.csv")
+        if not got:
+            return False
+        f, lines, i = got
+        parts = lines[i].split("|")
+        if len(parts) < 4:
+            return False
+        # | 文件 | 旧 md5 | 新 md5 | 变了? |
+        parts[2] = " `★(缺)★` "
+        lines[i] = "|".join(parts)
+        open(f, "w", encoding="utf-8").write("\n".join(lines))
+        return True
+    case("⑤f ★★ISS-283·⑪·cont2: 落表台账【最新一条链】里 BOM 的【旧 md5】缺了 ⇒ 【四项不齐】⇒ C6 红",
+         LANDING_LEDGER_REL, m5f, "C6", "HW/BOM_v1.csv")
+
+    # ⑤g (★cont2 增★): 台账【最新一条链】里有【两张】§16.2 表 ⇒ 链头不唯一 ⇒ 取不准 ⇒ C6 红
+    def m5g(sb):
+        f, txt = _ledger_lines(sb)
+        lines = txt.split("\n")
+        heads = [i for i, ln in enumerate(lines) if ln.startswith("## ")]
+        if not heads:
+            return False
+        start = heads[-1]
+        secs = [i for i in range(start, len(lines))
+                if lines[i].startswith("### ") and "16.2" in lines[i] and "新旧 md5" in lines[i]]
+        if not secs:
+            return False
+        s = secs[-1]
+        lines.insert(s + 1, lines[s])          # ★复制一张 §16.2 表头 ⇒ 链头不唯一★
+        open(f, "w", encoding="utf-8").write("\n".join(lines))
+        return True
+    case("⑤g ★★ISS-283·⑪·cont2: 落表台账【最新一条链】的 §16.2 表【有两张】⇒ 【链头不唯一】⇒ C6 红",
+         LANDING_LEDGER_REL, m5g, "C6", "HW/BOM_v1.csv")
 
     # ★正向基线 (★ISS-283 · ⑪ 的 ①: 台账有登记且一致 ⇒ 绿★) ★
     sb0 = build_sandbox(root, base)

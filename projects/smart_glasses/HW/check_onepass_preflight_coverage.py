@@ -89,8 +89,10 @@ MARKERS = ["D_ESD_CAM", "Q_AND", "Q_PG", "D_ESD_TC", "U_LDO_S28", "J_CHG",
            "D_ESD_USB_D", "C_REGN", "C_VBUS_GND", "U_EN_SW", "R_BAT_DET_1"]
 
 # ★来源单全集 (★每条 source_iss 必须落在里面 ★)
+# ★★ISS-283 · cont2: 增 ISS-283 (★本单落表带来的板侧同步项 §③ 三条的来源单★
+#   ⇒ ★★只【增来源】不【放宽判据】: 来源不明 (不在这个全集里) 照样判红★★)
 SOURCES = {"ISS-239", "ISS-241", "ISS-244", "ISS-247", "ISS-266",
-           "ISS-269", "ISS-271", "ISS-274", "ISS-276"}
+           "ISS-269", "ISS-271", "ISS-274", "ISS-276", "ISS-283"}
 
 # ★P5 现状探针 (★item_id → (命令, 抽取正则, 必须在该条 current_state 里出现的串 ★)
 PROBES = {
@@ -407,12 +409,18 @@ def run_selftest(checklist_path):
         cases.append(("⑥b 网表被改一个字节 ⇒ P6 红 (★台账登记 ≠ 盘上★)", ok is False))
 
         # ⑥c ★★ISS-283 · ⑩-b: 落表台账里【查不到该文件的登记】⇒ P6 红 (★fail-closed·不许猜★) ★
+        #   ★★cont2 修: 旧写法的过滤条件是 `A not in l or B not in l` ⇒ 【逻辑取反】⇒
+        #      台账里没有任何一行同时含 A 和 B ⇒ 【一行都没删掉】⇒ 台账原样 ⇒ P6 仍绿 ⇒ 用例假失败★
+        #      ⇒ 现在改成【真的把网表的登记行删掉】(★台账里所有链都删 ⇒ 「查不到」无歧义★) ★
         led_src = os.path.join(PROJ, "HW", "SCHEMATIC_LANDING_V1_LANDED.md")
         led_bad = os.path.join(tmpd, "ledger_bad.md")
         lt = read_text(led_src)
-        lt2 = "\n".join(l for l in lt.split("\n")
-                        if "`HW/netlist_v1.csv`**" not in l or "netlist_v1_pins" not in l)
-        open(led_bad, "w", encoding="utf-8").write(lt2)
+        lt_lines = lt.split("\n")
+        lt2_lines = [l for l in lt_lines if "`HW/netlist_v1.csv`**" not in l]
+        n_removed = len(lt_lines) - len(lt2_lines)
+        if n_removed < 1:
+            print("  ⚠ ⑥c ★★突变没咬到台账里网表的登记行 ⇒ 用例自身没写完★")
+        open(led_bad, "w", encoding="utf-8").write("\n".join(lt2_lines))
         oldl = os.environ.get("LANDING_LEDGER")
         os.environ["LANDING_LEDGER"] = led_bad
         ok, _ = evaluate(checklist_path, only="P6")
@@ -420,7 +428,43 @@ def run_selftest(checklist_path):
             os.environ.pop("LANDING_LEDGER", None)
         else:
             os.environ["LANDING_LEDGER"] = oldl
-        cases.append(("⑥c 落表台账里查不到网表的登记 ⇒ P6 红 (★fail-closed★)", ok is False))
+        cases.append(("⑥c 落表台账里【所有链】都查不到网表的登记 ⇒ P6 红 (★fail-closed★)", ok is False,
+                      "★自证改动★: 台账删掉 %d 行网表登记 (md5 %s → %s)"
+                      % (n_removed, md5(led_src)[:8], md5(led_bad)[:8])))
+
+        # ⑥d (★cont2 增★): 落表台账里【最新一条链】的 BOM 登记【新 md5 缺了】⇒ 四项不齐 ⇒ P6 红
+        #   ★★反向用例只许增不许减★ ⇒ 这条把 C6 那边的「四项不齐」也搬到 P6 侧测一遍 ★
+        led_bad2 = os.path.join(tmpd, "ledger_bad2.md")
+        ll = read_text(led_src).split("\n")
+        heads = [i for i, l in enumerate(ll) if l.startswith("## ")]
+        n_fixed = 0
+        if heads:
+            s0 = heads[-1]
+            secs = [i for i in range(s0, len(ll))
+                    if ll[i].startswith("### ") and "16.2" in ll[i] and "新旧 md5" in ll[i]]
+            if secs:
+                s = secs[-1]
+                for i in range(s + 1, len(ll)):
+                    if ll[i].startswith("### ") or ll[i].startswith("## "):
+                        break
+                    if ll[i].startswith("|") and "`HW/BOM_v1.csv`" in ll[i]:
+                        parts = ll[i].split("|")
+                        if len(parts) >= 4:
+                            parts[3] = " `★(缺)★` "
+                            ll[i] = "|".join(parts)
+                            n_fixed += 1
+                        break
+        open(led_bad2, "w", encoding="utf-8").write("\n".join(ll))
+        oldl = os.environ.get("LANDING_LEDGER")
+        os.environ["LANDING_LEDGER"] = led_bad2
+        ok, _ = evaluate(checklist_path, only="P6")
+        if oldl is None:
+            os.environ.pop("LANDING_LEDGER", None)
+        else:
+            os.environ["LANDING_LEDGER"] = oldl
+        cases.append(("⑥d 落表台账【最新一条链】里 BOM 的【新 md5】缺了 ⇒ P6 红 (★四项不齐★)", ok is False,
+                      "★自证改动★: 台账改 %d 行 BOM 登记 (md5 %s → %s)"
+                      % (n_fixed, md5(led_src)[:8], md5(led_bad2)[:8])))
 
         # ⑦ 把 source_iss 改成来源不明的 ⇒ P4 红 (反向: 不许有来源不明的项)
         p = os.path.join(tmpd, "v7.md")
@@ -440,11 +484,15 @@ def run_selftest(checklist_path):
     print("  ISS-277 · 反向用例 (★每条都自证「真的改到了目标」 ★)")
     print("=" * 78)
     bad = 0
-    for name, caught in cases:
+    for item in cases:
+        name, caught = item[0], item[1]
+        proof = item[2] if len(item) > 2 else None
         mark = "✔" if caught else "✘"
         if not caught:
             bad += 1
         print("  %s  %s" % (mark, name))
+        if proof:
+            print("       %s" % proof)
     print("-" * 78)
     print("  反向用例 %d/%d 通过" % (len(cases) - bad, len(cases)))
     if bad:

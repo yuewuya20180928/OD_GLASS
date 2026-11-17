@@ -1276,6 +1276,25 @@ artifacts:
   updated_at: '2026-11-17'
   summary: '★ISS-285 沙盒反向用例自测器 (★5 条: 伪造 md5 / 台账四项不齐 / 链头不唯一 / BAT_DET 三颗改回 DNP / 正向对照★) ⇒ 每条从基线沙盒整份重铺
     · 沙盒 = 12 文件最小镜像 5.6MB · 真盘零改动 ⇒ 实测 期望红组 vs 实际红组 5/5 全一致★'
+- path: HANDOFF/2026-11-17_sw-lead_ISS288_timing_check补丁落地.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-288 交卷单 (B1~B6 · 落表台账链头口径落地 + 前缀比对 bugfix + F4 期望随落表更新 + 7 条沙盒反向用例全一致 + 前后 rc 对照 + 受保护件
+    md5 逐字节不变)★
+- path: SW/tools/timing_check.py
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-288 改动 (判决源同源化 → 落表台账链头 · 12 位前缀比对 bugfix · F4 期望随落表更新 · 新增 REV-11 反向用例)★ 修前 md5 4cba20b1d0249b671632878c964b4bd7
+    → 修后 68c4becffe6bcd708e388dba9d18a505 · 9 hunk · +157/-47 · 真盘 timing_check 由 rc=1 · 68/71 转 rc=0
+    · 72/72★
+- path: SW/patches/ISS-288_timing_check_land/verify_iss288_land.py
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-288 沙盒反向用例自测器 (7 条: 伪造 md5 / 落表行四项不齐 / 链头不唯一 / 链断 / 链头无单号 / BAT_DET 改回 DNP / 正向对照) ·
+    ★链头动态取 (不硬编码 md5 ⇒ 台账再落几跳都不用改夹具)★ 实测 7/7 一致 rc=0★'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -2496,6 +2515,16 @@ needs_from:
     (期望红组 vs 实际红组) 必须仍全一致★ ⇒ ★现状: 真盘 timing_check 仍是 rc=1 · 68/71 (3 条红) ★ 这是【应有状态】(交卷时必须保持), 不是本单造成的★
     ⇒ 方案页 = HANDOFF/2026-11-17_sw-lead_ISS285_落表后SW判据口径收口_方案页.md · 交卷单 = HANDOFF/2026-11-17_sw-lead_ISS285_落表后SW判据口径收口.md'
   since: '2026-11-17'
+- key: iss288_sw_timing_check_patch_landed
+  to: main
+  item: ★【ISS-288 · 2026-11-17 · sw-lead · ★ISS-285 的补丁已落地真盘★】★ 落表后 SW 侧三道判据口径收口补丁【已套用 · 已跑完回归】★ ⇒ SW/tools/timing_check.py
+    由 4cba20b1d0249b671632878c964b4bd7 → 68c4becffe6bcd708e388dba9d18a505 (9 hunk · +157/-47) ⇒ 真盘 timing_check.py
+    由 rc=1 · 68/71 (3 条红) 转 rc=0 · 72/72 (0 条红) ★ ★check_demo_panel_spec.py 读数与改前逐字相同 (日志 md5 1144d29b73cbdf3448a8f2ce5254f124)★
+    ★DPS --selftest 22/22 · check_onepass_preflight_coverage.py rc=0 · state/merge.py rc=0 · state/gate_check.py
+    rc=0 (Q1 18/18)★ ★受保护 5 件 md5 逐字节不变 (板 611b869e… / .kicad_pro 3e504d2b… / 网表 37f62ac3… / 脚表 a4270120…
+    / BOM 5d02bece…)★ ★SW 台账 §1 source_ledger.entries 一字未动 (md5 c5484ec6…)★ ⇒ ★**ISS-285 那条 need (iss285_sw_apply_after_iss283_verified)
+    已由本单履行完毕 ⇒ 请 main 把它标成 closed**★
+  since: 2026-11-17 14:36
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -4233,6 +4262,23 @@ interface_claims:
     本闸保证的是「锚点自己不能说了算」 (★「悄悄换台账」不在本闸能力范围内★) ⑧ 闸 = SW/tools/check_demo_panel_spec.py 的 check_r6_hard_protected();
     反向用例 REV-16~REV-21 六条 (含 1 条正向) ⇒ selftest 22/22 ⑨ 【真落那一行留给「出板那一趟」的 main】 (★本单落表台账零写入★)★'
   ref: ''
+- key: iss288_timing_check_patch_landed_chainhead_source
+  value: SW/tools/timing_check.py md5 4cba20b1d0249b671632878c964b4bd7 -> 68c4becffe6bcd708e388dba9d18a505
+    (= ISS-285 交卷单写死的期望值, 逐字一致) ; 网表锚点 x2 判决源同源化 = 落表台账链头 (直接 import check_demo_panel_spec.py 的 R6 实现,
+    不 import MECH) ; 盘上真源 md5 37f62ac3f0b8 == 台账链头 (ISS-283 §16 L1371) ; fail-closed 三条 (链头不唯一 / 链断 /
+    链头无单号) 一条没放宽
+  note: '[实测] 本机实跑 python3 SW/tools/timing_check.py => rc=0 / SELFTEST 72/72 ; 沙盒 7 条反向用例 7/7 一致 rc=0
+    (logs/iss288/21_sbx_verify_iss288_cont1.log) ; 零写板 (板 611b869e… mtime 2026-11-06 07:07:17 不变) 零落表
+    (网表 37f62ac3… / 脚表 a4270120… / BOM 5d02bece… 不变)'
+  ref: HANDOFF/2026-11-17_sw-lead_ISS288_timing_check补丁落地.md#§1
+- key: iss288_selftest_72_72_green_and_prefix_bugfix
+  value: 'SW/tools/timing_check.py 自测由 SELFTEST 68/71 (rc=1, 3 条红) 转 SELFTEST 72/72 (rc=0, 0 条红) ; 新增
+    REV-11 反向用例锁死 BAT_DET 三颗必装 ; B1-bugfix: netlist_md5_allowed() 由 32 位 md5 全等改成 12 位前缀比对 (台账登记的是 12
+    位前缀, 改前拿 32 位去比 12 位前缀 => 该条恒红 = 判据自毁) ; F4 期望随 V-3=E 落表由 BAT_DET 三颗全 DNP 翻成三颗必装 (网表 L182/L183/L184
+    dnp=必装)'
+  note: '[实测] 改前基线本趟自跑复现 (沙盒 logs/iss288/20_REPRO_BEFORE_timing_check.log, rc=1 / 68/71 / 3 条红) ; 改后真盘
+    rc=0 / 72/72 ; 12 位前缀 bugfix 只改口径不改判据方向 (盘上 md5 不在台账登记状态集合仍必红, 用例 ① 已证) ; 实测 [实测] 0 条 (本机无板端实测)'
+  ref: 'HANDOFF/2026-11-17_sw-lead_ISS288_timing_check补丁落地.md#§2 #§4 #§5'
 open_questions:
 - id: SW-Q1
   to: main

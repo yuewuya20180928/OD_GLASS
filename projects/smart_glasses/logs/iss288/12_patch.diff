@@ -1,0 +1,274 @@
+--- logs/iss288/timing_check.py.BEFORE	2026-11-17 14:36:16.050934351 +0800
++++ SW/tools/timing_check.py	2026-11-17 14:36:16.101396715 +0800
+@@ -193,8 +193,57 @@
+     return bool(value) and (value in text or value[:12] in text)
+ 
+ 
++# ★★【ISS-285 · 2026-11-17 · sw-lead】★★ 网表锚点判据的【判决源同源化】
++#   ★★【根因】同一个事实 («网表当前合法 md5 是多少») 原有两个判决源 ⇒ 授权落表后一个绿一个红:
++#     ① `SW/tools/check_demo_panel_spec.py` 的 R6 ⇒ 判决源 = 落表台账【链头】 ⇒ 绿 ✅
++#     ② 本文件的网表锚点判据 ⇒ 判决源 = SW 台账 §1 锚点块里【冻结的 md5】 ⇒ 红 ❌
++#   ★★【修法落在「让两个判据源同源」, 不落在「放宽判据」★★
++#   ★★【四条不许破】★★
++#     ① 判据方向不许变: 盘上真源 md5 ∉ 台账登记的合法状态集合 ⇒ 仍必须红 (这一条逐字保留)
++#     ② 不许把「取不准」放宽成「取最近一条」⇒ fail-closed 三条 (链头不唯一 / 链断 / 链头无单号) 一条都不许动
++#     ③ 不许把落表台账当「锚点可写集合」⇒ 落表台账 append-only + 链完整性防线不许松
++#     ④ 不许弱化 ISS-275 已跑通的那条链头逻辑 ⇒ 链头实现**直接 import R6 那份**
++#        (★同域 SW/tools, 不 import MECH —— 那是别人地界★) ⇒ 链头 / 链 / 产出单号 逐字一致,
++#        且 `check_demo_panel_spec.py` 一个字节没被本单碰过 ⇒ 第 ④ 条自动成立
++
++def _dps():
++    """→ (R6 那个文件的模块, 错误原因)。读不到 ⇒ (None, 原因) ⇒ 判红 (fail-closed)。"""
++    global _DPS
++    if _DPS is None:
++        import importlib.util
++        p = os.path.join(_HERE, "check_demo_panel_spec.py")
++        try:
++            spec = importlib.util.spec_from_file_location("_sw_dps_iss285", p)
++            mod = importlib.util.module_from_spec(spec)
++            spec.loader.exec_module(mod)
++            _DPS = mod
++        except Exception as exc:                  # ★fail-closed: 读不到判决源实现 ⇒ 红, 不许降级★
++            return None, "读不到 R6 判决源实现 %s: %s" % (p, exc)
++    return _DPS, ""
++
++
++_DPS = None
++
++
++def _device_dnp_rows(nl, ref: str) -> list:
++    """该位号的【器件本体行】(type ∉ {NET, TP}) 上的 dnp 列表。
++
++    ★为什么要单独一个读法: `Netlist.dnp_of()` 取的是【该位号第一条行】的 dnp
++      ⇒ 同一个位号有多行时可能拿错行 (ISS-190 的老教训) ⇒ 判据要判【器件本体行】。
++    ★空列表 = 该位号在网表里没有器件本体行 ⇒ 判据不许当「装上了」 (fail-closed)。
++    """
++    return [x.get("dnp", "") for x in nl.rows_of(ref) if x.get("type") not in ("NET", "TP")]
++
++
+ def _netlist_baseline_state():
+-    """→ (状态串, 允许的网表 md5 集合, 详情)。三方对账: 锚点 ↔ 落表台账 ↔ 盘上真源。"""
++    """→ (状态串, 允许的网表 md5 集合, 详情)。三方对账: 锚点 ↔ 落表台账 ↔ 盘上真源。
++
++    ★★【ISS-285】判决源 = 【落表台账链头】, 与 `check_demo_panel_spec.py` 的 R6 **同源** ★★
++      ① 盘上真源的 md5 必须 == 台账链头 (★判据方向不许变★)
++      ② 链头取不准 (不唯一 / 链断 / 有记录不在链上 / 链头没单号) ⇒ 一律判红 (★fail-closed 三条一条没动★)
++      ③ 域侧锚点副本降级为【历史留痕】: 允许停在历史值, 但不许胡说
++         (md5 必须在台账链上 + 落表单号必须与台账产出该 md5 的单号对得上 + 旧 md5 也必须在链上)
++    """
+     got = _sw_anchor_entries()
+     if not isinstance(got, tuple) or got[0] is None:
+         why = got[1] if isinstance(got, tuple) else "未知"
+@@ -205,48 +254,46 @@
+     by = str(entry.get("by") or "")
+     if not want:
+         return ("BAD", set(), "锚点里 %s 没登记 md5" % NETLIST_REL)
+-    # ① 落表台账对账: 单号 + 文件名 + 新旧 md5 必须在同一行
+-    recs = []
+-    for spec in ((anchors.get("source_ledger") or {}).get("landing_records")) or []:
+-        p = os.path.join(_PROJECT_ROOT, spec)
+-        if os.path.isfile(p):
+-            recs.append((spec, open(p, encoding="utf-8").read()))
+-            continue
+-        d = os.path.dirname(spec) or "."
+-        b = os.path.basename(spec)
+-        for hit in sorted(glob.glob(os.path.join(_PROJECT_ROOT, d, b))):
+-            recs.append((os.path.relpath(hit, _PROJECT_ROOT),
+-                         open(hit, encoding="utf-8").read()))
++    # ★★【ISS-285】判决源 = 落表台账【链头】(★与 R6 同一份实现 ⇒ 真同源★) ★★
++    dps, err = _dps()
++    if dps is None:
++        return ("BAD", set(), err)
++    led_text, led_spec = dps.sw_ledger_canonical_text(_PROJECT_ROOT, anchors)
++    if not led_text:
++        return ("BAD", set(), "判决源落表台账读不到 ⇒ 无从对账 (fail-closed)")
++    st = dps.sw_ledger_state(NETLIST_REL, led_text)
++    recs = st.get("records") or []
++    head = st.get("head")
++    known = set(st.get("known") or set())
+     if not recs:
+-        return ("BAD", {want}, "落表台账位置一个都不存在")
+-    hit = None
+-    for name, text in recs:
+-        if by and by not in text:
+-            continue
+-        ok = False
+-        for line in text.split("\n"):
+-            if NETLIST_REL not in line:
+-                continue
+-            if not _md5_seen(line, want):
+-                continue
+-            if prev and not _md5_seen(line, prev):
+-                continue
+-            ok = True
+-            break
+-        if ok:
+-            hit = name
+-            break
+-    if hit is None:
+-        return ("BAD", {want}, "落表台账里查不到 (单号 %s / 文件 %s / 新 md5 %s / 旧 md5 %s)"
+-                % (by or "无", NETLIST_REL, want[:12], prev[:12] if prev else "无"))
+-    # ② 盘上真源 vs 锚点
++        return ("BAD", set(), "落表台账 (%s) 里查不到 %s 的任何落表记录" % (led_spec, NETLIST_REL))
++    if not head:
++        return ("BAD", set(), "落表台账最新记录取不准 (%s) ⇒ 取错记录可能假绿 ⇒ 判红"
++                % (st.get("why")))
++    if not st.get("head_iss"):
++        return ("BAD", known, "落表台账最新记录 (%s) 缺落表单号 (字段缺失) ⇒ 判红" % head)
++    if not st.get("chain"):
++        return ("BAD", known, "落表台账链断了 / 不唯一 (%s)" % (st.get("why")))
++    orphan = sorted({r["new"] for r in recs} - set(st.get("chain") or []))
++    if orphan:
++        return ("BAD", known, "落表台账里有记录不在链上 = %s" % orphan)
++    # ★★【域侧锚点副本 = 历史留痕】允许停在历史值, 但不许胡说 ★★
++    am = want[:12]
++    if am not in known:
++        return ("BAD", known, "锚点副本 md5 %s 台账链里查不到 (锚点胡说?)" % (am or "(空)"))
++    if by and by not in (st.get("producer") or {}).get(am, set()):
++        return ("BAD", known, "锚点副本落表单号 %s 与台账对不上 (台账产出该 md5 的单号 = %s)"
++                % (by or "(空)", sorted((st.get("producer") or {}).get(am, []))))
++    if prev and prev[:12] not in known:
++        return ("BAD", known, "锚点副本旧 md5 %s 台账链里查不到 (历史留痕断了?)" % prev[:12])
++    # ★★【判据方向不许变】盘上真源 vs 台账链头 ★★
+     disk = os.path.join(_PROJECT_ROOT, NETLIST_REL)
+     got_md5 = hashlib.md5(open(disk, "rb").read()).hexdigest() if os.path.exists(disk) else ""
+-    if got_md5 != want:
+-        return ("BAD", {want}, "盘上真源 md5 %s ≠ 锚点登记 %s (真源被换了或锚点过期)"
+-                % (got_md5, want))
+-    allowed = {want} | ({prev} if prev else set())
+-    return ("OK", allowed, "落表台账 = %s (单号 %s) · 盘上 md5 = %s" % (hit, by, got_md5))
++    if got_md5[:12] != head:
++        return ("BAD", known, "盘上真源 md5 %s ≠ 台账链头 %s (真源被换了或台账没更新)"
++                % (got_md5[:12], head))
++    return ("OK", known, "判决源 = %s 链头 %s (单号 %s) · 盘上 md5 = %s"
++            % (led_spec, head, ",".join(st.get("head_iss") or []), got_md5))
+ 
+ 
+ def netlist_baseline_ok() -> bool:
+@@ -255,8 +302,17 @@
+ 
+ 
+ def netlist_md5_allowed(md5: str) -> bool:
+-    """这个网表 md5 是落表台账登记过的状态之一吗 (落表前 / 落表后)?"""
+-    return md5 in _netlist_baseline_state()[1]
++    """这个网表 md5 是落表台账登记过的状态之一吗 (落表前 / 落表后)?
++
++    ★★【ISS-285】落表台账里登记的 md5 是【12 位前缀】(★R6 也是按 12 位比★
++      ⇒ 这里也按 12 位前缀比, 口径与判决源 (R6) 完全一致
++      (★不然拿 32 位去比 12 位前缀 ⇒ 这条恒红 = 判据自毁★)。
++    ★**判据方向一个字没变**: 盘上 md5 ∉ 台账登记的状态集合 ⇒ 仍必须红。★
++    """
++    if not md5:
++        return False
++    allowed = _netlist_baseline_state()[1]
++    return str(md5).strip().lower()[:12] in {str(x).strip().lower()[:12] for x in allowed}
+ 
+ 
+ def netlist_baseline_detail() -> str:
+@@ -1055,6 +1111,7 @@
+     for top, bot, cap, tag in (("R_VBUS_DET_D1", "R_VBUS_DET_D2", "C_DET_VBUS_D", "VBUS_DET_D"),
+                                ("R_BAT_DET_1", "R_BAT_DET_2", "C_DET_BAT", "BAT_DET")):
+         rt, rb, cv = nl.ohm(top), nl.ohm(bot), nl.farad(cap)
++        dev_dnp = {r: _device_dnp_rows(nl, r) for r in (top, bot, cap)}
+         det_chains.append({
+             "tag": tag, "r_top_ohm": rt, "r_bot_ohm": rb, "c_f": cv,
+             "r_top_dnp": nl.dnp_of(top) or nl.rows_of(top)[0].get("dnp", "") if nl.rows_of(top) else "",
+@@ -1062,6 +1119,11 @@
+             "c_dnp": nl.rows_of(cap)[0].get("dnp", "") if nl.rows_of(cap) else "",
+             "populated": bool(nl.rows_of(top)) and nl.rows_of(top)[0].get("dnp") == "必装"
+                           and bool(nl.rows_of(bot)) and nl.rows_of(bot)[0].get("dnp") == "必装",
++            # ★★【ISS-285】逐颗【器件本体行】的 dnp (★不许拿该位号第一条行★)
++            "device_dnp": dev_dnp,
++            "device_populated": bool(dev_dnp.get(top)) and all(d == "必装" for d in dev_dnp.get(top))
++                                and bool(dev_dnp.get(bot)) and all(d == "必装" for d in dev_dnp.get(bot))
++                                and bool(dev_dnp.get(cap)) and all(d == "必装" for d in dev_dnp.get(cap)),
+         })
+     for ch in det_chains:
+         if ch["r_top_ohm"] and ch["r_bot_ohm"]:
+@@ -1088,10 +1150,10 @@
+         "standby_ua": r(DEVICE["V_DET_FS"] / (act[0]["r_top_ohm"] + act[0]["r_bot_ohm"]) * 1e6, 2),
+         "verdict": "★现网表装机的是 %s 链 (%s+%s+%s): 源阻抗 %sΩ / τ=%sms; 12bit 精度需 %.0fms 建立; "
+                    "1µA 漏电流 ⇒ %.2fV 偏移 (%.0f%% 满量程) ⇒ 该分压值对 ADC 不可用; "
+-                   "★BAT_DET 链 (R_BAT_DET_1/2 + C_DET_BAT) 三颗**全是 DNP** ⇒ **电量检测分压在现网表上不存在**"
++                   "%s"
+                    % (act[0]["tag"], act[0]["r_top_ohm"], act[0]["r_bot_ohm"], act[0]["c_f"],
+                       rth, r(tau_adc * 1e3), t_settle * 1e3, leak_err,
+-                      leak_err / DEVICE["V_DET_FS"] * 100),
++                      leak_err / DEVICE["V_DET_FS"] * 100, _bat_det_verdict(det_chains)),
+     }
+ 
+     # ---------------------------------------------------------------- F5 TMP117
+@@ -1455,6 +1517,46 @@
+     return o["F8_power_off"]["rail_switching_devices"] == n
+ 
+ 
++
++# ===================================================================== F4' / BAT_DET 口径 (ISS-285)
++# ★★【ISS-285 · 2026-11-17 · sw-lead】★★ BAT_DET 三颗的期望值随 V-3=E 落表翻了:
++#   ★旧期望 (落表前): 「BAT_DET 三颗全 DNP」⇒ 落表后【过期】⇒ 红 ★
++#   ★新期望 (落表后): 「BAT_DET 三颗必装」★ (证据 = HW/netlist_v1.csv L182/L183/L184 + 落表台账 §16 老板凭据)
++#   ★**判据强度不许比原来弱**: 原来判「三颗**没有**装机」(一个负面事实),
++#     现在判「三颗**逐颗**按【器件本体行】都是必装」(全集正面事实 + 三颗都必须在场) ⇒ **更强** ★
++#   ★**逐颗读【器件本体行】的 dnp**, 不读该位号第一条行 (ISS-190 的老教训: dnp 是行级, 拿错行 = 假绿) ★
++BAT_DET_REFS = ("R_BAT_DET_1", "R_BAT_DET_2", "C_DET_BAT")
++
++
++def _bat_det_all_populated(o: dict) -> bool:
++    """BAT_DET 三颗 (R_BAT_DET_1 / R_BAT_DET_2 / C_DET_BAT) 逐颗【器件本体行】必装?"""
++    chains = [c for c in (o.get("F4_adc_det") or {}).get("chains") or [] if c.get("tag") == "BAT_DET"]
++    if len(chains) != 1:
++        return False
++    dev = chains[0].get("device_dnp") or {}
++    if set(dev) != set(BAT_DET_REFS):
++        return False
++    for ref in BAT_DET_REFS:
++        rows = dev.get(ref) or []
++        if not rows or not all(d == "必装" for d in rows):
++            return False
++    return True
++
++
++def _bat_det_verdict(det_chains: list) -> str:
++    """BAT_DET 链的现状一句话 (★数据驱动 ⇒ 网表翻回 DNP 时老话自动回来★)。"""
++    bat = [c for c in det_chains or [] if c.get("tag") == "BAT_DET"]
++    if not bat:
++        return "★BAT_DET 链在网表里查不到"
++    c = bat[0]
++    if not c.get("device_populated"):
++        return ("★BAT_DET 链 (R_BAT_DET_1/2 + C_DET_BAT) 三颗**全是 DNP** ⇒ "
++                "**电量检测分压在现网表上不存在**")
++    return ("★BAT_DET 链 (R_BAT_DET_1/2 + C_DET_BAT) 三颗**已改成必装** (V-3=E 落表后) ⇒ "
++            "**电量检测分压在现网表上存在** (100k+60k+100nF ⇒ R_th=%sΩ / τ=%sms)"
++            % (c.get("rth_ohm"), c.get("tau_ms")))
++
++
+ NEW_TESTS = [
+     ("网表锚点: md5 与行数可复算 (data_rows = lines_total - 1)",
+      lambda o: o["NETLIST_ANCHOR"]["netlist_data_rows"] == o["NETLIST_ANCHOR"]["netlist_lines_total"] - 1),
+@@ -1545,9 +1647,9 @@
+     #   ⇒ ★**判据绑在【网表实读值】上** (反向用例 REV-3c 证明: 删掉 U_EN_SW 的器件本体行 ⇒ 这条立刻变红) ★
+     ("★F8 实读: 负载开关 U_PWR_SW / U_EN_SW **都必须有器件行** (BOM/装配单不许漏掉任何一颗负载开关)",
+      lambda o: _f8_all_load_switches_have_device_row(o)),
+-    ("F4' 实读: ADC 装机链是 VBUS_DET_D; BAT_DET 三颗全 DNP",
++    ("F4' 实读: ADC 装机链是 VBUS_DET_D; BAT_DET 三颗必装 (V-3=E 落表后)",
+      lambda o: o["F4_adc_det"]["active_chain"] == "VBUS_DET_D"
+-               and all(not c["populated"] for c in o["F4_adc_det"]["chains"] if c["tag"] == "BAT_DET")),
++               and _bat_det_all_populated(o)),
+ ]
+ 
+ # --- 反向用例 (★核心新增: 改坏网表 ⇒ 判据必须变红) ---
+@@ -1629,6 +1731,14 @@
+                           and o["F1_reset_rc"]["pg_and_state"]["pullup_row_dnp"] == "必装")),
+     ("REV-10 反向: 把 PG_AND 网上**任意一行**改成 DNP ⇒ 对应判据必须变红 (逐行试, 不跳行)",
+      _rev_pg_and_any_row),
++    # ★★【ISS-285】F4' 期望值随落表翻了 ⇒ 必须有反向用例锁死「改回 DNP ⇒ 变红」 ★★
++    _mk_reverse_dnp(
++        "REV-11 反向: 把 BAT_DET 三颗 (R_BAT_DET_1 / R_BAT_DET_2 / C_DET_BAT) 改回 DNP ⇒ "
++        "F4'『BAT_DET 三颗必装』必须变红",
++        targets=[("BAT", "R_BAT_DET_1"), ("BAT_DET", "R_BAT_DET_2"),
++                 ("BAT_DET", "C_DET_BAT"), ("GND", "C_DET_BAT")],
++        fn=lambda o, mo: (_bat_det_all_populated(o) is True
++                          and _bat_det_all_populated(mo) is False)),
+ ]
+ 
+ 

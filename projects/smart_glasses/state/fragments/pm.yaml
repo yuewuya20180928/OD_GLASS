@@ -1,12 +1,14 @@
 agent: main
 role: 项目总工
-updated_at: 2026-11-17 10:10
+updated_at: 2026-11-17 14:35
 updated_by: main
 status:
   phase: 原理图V1.2已交付待交叉评审
   progress_pct: 72
   health: amber
   summary: 9页+BOM+26条门禁,修3个真缺陷,电池位置裁决后跨铰链1.5A待结构核算
+  updated_at: 2026-11-17 13:2x
+  updated_by: main
 artifacts:
 - path: PROJECT_TRACKER.md
   kind: tracker
@@ -58,6 +60,16 @@ artifacts:
   version: v1.0
   updated_at: '2026-11-04'
   summary: '手机慢动作测端到端作业指引 (口径B): 240fps=4.17ms / 同步动作源 / 逐帧数法 / ≥10 次取中位数报 ±1 帧 / 建议判据 ≤60ms p95≤80ms'
+- path: state/gen_production_manifest.sh
+  summary: '★★2026-11-17 13:2x main 自办 (need `iss281_s10_generator_hook`)★★ —— ★S10 投产包 md5 清单的【生成器接线】补上:
+    新增 `state/gen_production_manifest.sh` (★按 ISS-281 格式契约造 MANIFEST.md5★) + `state/gen_production_pack.sh`
+    在【sch_src 归档之后 / step 清单之前】调用它 (★该脚本 rm -rf 重建 ⇒ 清单每次必被冲掉重写 ⇒ 不存在僵尸清单★) ⇒ ★S10 那一趟跑完 `HW/check_onepass_s10_manifest.py`
+    即 rc=0★ ⇒ ★板那一趟的 B 类步 (S10) 不再缺【自证】这一件★ · 沙盒实测: 造清单后闸 rc=0 (M1~M4 全绿) · 篡改包内文件⇒M3 红 · 偷渡文件⇒M4 红 ·
+    板 md5 变⇒M2 红 · 删文件⇒M3+M4 红 (4 条反向用例全对) · ★真盘: 板 611b869e… / .kicad_pro 3e504d2b… / 投产包 73 件 逐字节未动
+    (未跑生成器, 清单未落真盘)★★'
+  kind: script
+  version: '2026-11-17'
+  at: 2026-11-17 13:2x
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -655,6 +667,62 @@ needs_from:
     不给 = 型号轴原样保住, ★故型号归老板拍★) ② W-2 = D− 侧要不要补 ESD (★补 ⇒ 要换封装 + 板侧多两个焊盘 + 贴近 J_USB_C ≤3.0mm ⇒ 属板那一趟★) ⇒
     ★**D− 侧现状 (实测)**: `USB_D_N_SRC` / `NET_USB_D_N_TYPEC` 上没有任何 ESD 位号 ⇒ D− 裸奔★'
   since: '2026-11-17'
+- key: boss_dled_g_expose_decision_20261117
+  to: boss
+  waiting_on: boss
+  due: '2026-11-18'
+  since: '2026-11-17'
+  item: '★★【2026-11-17 13:2x main 从 `iss271_mech_ledg_g5_brightness_gate` 升级给老板 · ★这是【板那一趟】的第二个阻塞项★】★★
+
+    ★★题: `D_LED_G` 到底【外露不外露 / 看不看得见】? ★★
+
+    ★**背景 (ISS-278 实测)**: ① 结构侧对 `D_LED_G` 的位置【从来没有过规定】(逐条 grep 有出处: `D_LED_G` 全库仅 1 命中且是 ISS-267 自引作业包那一行
+    · 指示灯/状态灯/电源灯 0 命中 · 打印包 Rev B 零 LED/导光柱/窗口特征) ⇒ **要不要外露/看得见这条决策从来没被写下来** [0数据] ★
+
+    ★**G-5 亮度档那条已由老板 09:49 拍完 (选项② = R_LED_R 68Ω / R_LED_G 55Ω · 已进 ISS-283 落表) ⇒ 本条【只剩位置/外露】这一半★**
+
+    ★**两个假设 (ISS-278 §)**: **假设 A (有光孔)** ⇒ `D_LED_G` 必挪 (★现 (101.25, 56.80)★) ⇒ **板面落位要改** ⇒ 走线可压到 0.450~0.965
+    mm · **假设 B (无光孔)** ⇒ **板面落位不用改** ⇒ 现状 93.492727 mm 也合法 ⇒ **零板面动作** ★
+
+    ★★**为什么这条必须排在「板只改一次」之前拍**: 位置改不改 = 板 md5 变不变 ⇒ 若这一趟跑完才拍 ⇒ **板要改第二次** ⇒ ★Gerber/投产包/留证链/盖章/发布全部作废重做
+    (两批历史读数) ⇒ 「板只改一次」当场破功★ ★
+
+    ★★**main 的建议默认值 = 假设 B (无光孔 / 位置不动)**: ① 零板面动作 ⇒ 不触发第二次改板 ② 本机【物理上量不到】(无量具/无打印机/跨网段不可达 · 见 measurements.yaml
+    M-PRINT) ⇒ 假设 B 是唯一能在【本机】闭环的那个 ③ 亮度档已拍 ⇒ 指示灯功能本身不依赖外露 (只影响【看不看得见】) ⇒ ★**代价**: 若最终整机要求指示灯外露 ⇒ 那时挪 `D_LED_G`
+    = 板改第二次 ⇒ ★**⇒ 建议把这条挪到【整机阶段】一起拍 (那一趟本来就要画产品板)★** ⇒ **不代拍** ⇒ ★**只列事实 + 代价 + 默认值★** ★
+
+    ★**证据等级**: [实测] (ISS-278 的 MECH 侧实测 + 作业包坐标 + 网表值) · [0数据] (外露/可见性从无规定) ★'
+- key: boss_a4_v5_qpg_topology_20261117
+  to: boss
+  item: '★**A4 (★落表器机器映射 = V-5★) `Q_PG` 写法 A 落表** ★★⚠ 拍板码撞名: 决策页 §A-补8④ 的旧表里 A4 = 【关机语义】, 而落表器的 `A_ITEM`
+    里 A4 = **V-5 (Q_PG 写法 A)** ⇒ ★**两套含义并存, 已订正见决策页 r54★** ★'
+  since: '2026-11-17'
+  decision: '★**A4 = V-5 = A (写法 A: S=BAT_SW / D=ON / G=PG + pad1↔pad3 网互换 + 三行 note 改写)** ⇒ ★**已落表 (2026-11-17
+    12:30:23 · rc=0)** ★ ⇒ ★**台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16 有机器化凭据留痕 (`2026-11-17 A4 = A`)★**
+    ⇒ ★**板那一趟必须重画 Q_PG 的 land (pad1↔pad3 互换)★**'
+  decided_at: 2026-11-17 09:49
+  decided_by: boss (2026-11-17 09:49 原话「按照你的建议执行」· 项目总工代录)
+- key: boss_a5_v6_led_20261117
+  to: boss
+  item: '★**A5 (★落表器机器映射 = V-6★) LED 串阻 20mA 档落表** ★★⚠ 拍板码撞名: 决策页 §A-补8④ 的旧表里 A5 = 【负载开关选型优先级序】, 而落表器的
+    `A_ITEM` 里 A5 = **V-6 (LED 20mA 档)** ⇒ ★**两套含义并存, 已订正见决策页 r54★** ★'
+  since: '2026-11-17'
+  decision: '★**A5 = V-6 = 20mA (红 68Ω / 绿 55Ω)** ⇒ ★**已落表 (2026-11-17 12:30:23 · rc=0)** ★ ⇒ ★**台账 §16
+    凭据 `2026-11-17 A5 = 20mA`★** ⇒ ★**连带: 每颗 2.2mW→66mW (两颗 ≈0.13W 进电池账) + 亮度 ×14 ⇒ IEC 62471 分级要重算**
+    ★'
+  decided_at: 2026-11-17 09:49
+  decided_by: boss (2026-11-17 09:49 原话「按照你的建议执行」· 项目总工代录)
+- key: boss_shutdown_semantics_and_loadswitch_20261117
+  to: boss
+  item: ★★【决策页 §A-补8④ 旧表的 A4 / A5 = 【关机语义 (建议 C + A)】+ 【负载开关选型追认 (`TPS22991RAA` 已落, 只等一句追认)】★★】★★ ★★⚠
+    这两个 A 码与【落表器新映射 A4=V-5 / A5=V-6】不是一回事 ⇒ ★**这两条【仍未拍】, 且是 G1a-8 现在红的那两条** ★★
+  since: '2026-11-17'
+- key: boss_state_value_acceptance_drift_20261117
+  to: boss
+  item: '★★【⚠ 动板那趟的验收目标已被三次合法落表打漂 ⇒ 老板需要知道一件事: 作业包 §3-S7 的「DNP 43 全标」现已过期 (真值 40)★】★ ★★**这不是文档洁癖, 是「板只改一次」那趟的验收陷阱**:
+    S7 的验收目标是「零标记数 = 0」⇒ ★**若照 43 走, 要么验收假红, 要么为了凑 43 把 BAT_DET 三颗又标回 DNP ⇒ ★★等于把老板 09:49 拍板并已落表的三颗必装改回去★★**
+    ★ ⇒ ★**已开 ISS-289 (hw-lead) 把作业包六处现状值对回盘面 + 加一道「现状值 == 盘面实测」的闸 (★不许只加 DNP 一条, 否则下次落表又漂别的★)** ★'
+  since: '2026-11-17'
 answers:
 - key: reva_stl_regen
   to: mech-lead
@@ -904,6 +972,15 @@ answers:
     侧 C21 必须共用同一解析口径 (同一条链, 同一个链头) ⇒ 两边不得各写一套**★ ⇒ 少一项或换写法 ⇒ 两边都判红 (fail-closed) ⇒ ★**你的 R6 改造按此契约解析即可;
     落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 只读, 一个字节不许改**★'
   ref: main 2026-11-17 07:2x 裁决 (与 iss273_mech_ledger_format_contract 同源)
+- key: iss281_s10_generator_hook
+  to: boss
+  value: '★2026-11-17 13:2x main 已接线 (ISS-281 need `iss281_s10_generator_hook`)★ ⇒ 新增 `state/gen_production_manifest.sh`
+    + `state/gen_production_pack.sh` 调用点 (★落在【最后一次创建文件】之后 = sch_src 归档之后★) ⇒ ★S10 那一趟跑完 → `HW/check_onepass_s10_manifest.py`
+    rc=0 (M1~M4) ⇒ 本 need 关闭★ · ★口径: 本次【没有】跑生成器 ⇒ 真盘 MANIFEST.md5 仍未生成 ⇒ 主模式现在仍 rc=1 (★那是病灶本身, 不是闸坏了★)
+    ★ · ★ISS-281 的 B5-2 口径由 main 拍: 【不改期望值】+ 把本闸排进「S10 之后」的验收链 (⇒ S10 跑完才判)★ · ★ISS-260 那条原则沿用: 清单写在【产生点】,
+    不许人工造★'
+  ref: state/gen_production_manifest.sh + state/gen_production_pack.sh (★沙盒 4 条反向用例全对★)
+  at: 2026-11-17 13:2x
 interface_claims:
 - key: display_frame_rate
   value: 60fps
