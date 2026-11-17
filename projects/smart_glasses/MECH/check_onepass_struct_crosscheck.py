@@ -23,6 +23,10 @@
     N5  ★**座体三方对照表完整** —— §4 表里每个 `J_*` 行的四个字段 (BOM 规格 / 板读 land / 结构占位 / verdict) 都不许为空
           (★不许用「待定」糊过去★)
     N6  ★**受保护 5 件 md5 逐字节不变** (板 / `.kicad_pro` / 网表 / 脚表 / BOM)
+        ★★【ISS-303 · 2026-11-18】判决源 = 板 2 件 (板 / `.kicad_pro`) 走硬基线 (★ISS-296 合法改板通道一个字不许动★)
+        + 台账管理 3 件 (网表 / 脚表 / BOM) 走【硬基线 ∪ 落表台账登记值】★
+        (★合法落表 ⇒ 台账登记值前移 ⇒ 绿; 盘上 md5 ∉ 合法集合 ⇒ 仍然红;
+        台账找不到该文件 / 链头不唯一 / 链断 / 解析不出来 ⇒ 仍然红 = fail-closed★) ★★
 
   ★**只读 import MECH/check_board_frame_coords.py** ⇒ 阈值 (CRIT / EDGE_KEEPOUT / OPEN_X / PROTECTED) 零漂移,
     ★**本闸是【新建】文件, 一个字不改既有 MECH 判据脚本**★ ⇒ ★**板解析器自带 (自写 s-expr 解析, 不抄任何交卷单)**★
@@ -69,6 +73,14 @@ PROTECTED_LEDGER_MD5 = {
     os.path.join("HW", "netlist_v1_pins.csv"): "a4270120454aedf7a23c92cd8985c8a6",
     os.path.join("HW", "BOM_v1.csv"): "5d02bece9477ffce5fbe0193c7d5cce4",
 }
+
+# ★★【ISS-303 · 2026-11-18 · mech-lead】★★ 落表台账 (判决源) 的真源路径 ★
+#   ★台账管理 3 件的【合法 md5 集合】= 【上面的硬基线 ∪ 台账里该文件登记过的 md5】★
+#   ★★读台账, 不许把新 md5 写死成常量 (★硬基线常量一个字都没改★) ★★
+#   ★★台账解析器 = 只读调用 `MECH/check_board_frame_coords.py` 的现成解析器
+#     (`ledger_state` / `ledger_cover_rows` / `m12`, ★ISS-286 + ISS-296 口径★)
+#     ⇒ 不自己写第二套台账解析 ⇒ 两个闸对同一盘面永远给同一个答案 ⇒ 口径零漂移 ★★
+LEDGER_CANON_REL = os.path.join("HW", "SCHEMATIC_LANDING_V1_LANDED.md")
 
 # ★§4 三方对照表必须覆盖的位号 (★至少 J_DEBUG/J_UART/J_USB_C/J_CHG/J_SOM_P1..P4★) ★
 CONN_REFS = ["J_DEBUG", "J_UART", "J_USB_C", "J_CHG",
@@ -746,19 +758,117 @@ def check_n5(root, spec):
 # ==================================================================================================
 # N6 · 受保护 5 件 md5 逐字节不变
 # ==================================================================================================
+# ★★【ISS-303 · 2026-11-18 · mech-lead】★★ 判决源改造 (★病根 = 判决源选错了, 不是真源被改了★)
+#   ① 板 2 件 (板 / `.kicad_pro`) ⇒ 判据【逐字不变】(★ISS-296 的合法改板通道一个字不许动★)
+#   ② 台账管理 3 件 (网表 / 脚表 / BOM) ⇒ 判决源 = 【硬基线 ∪ 落表台账登记值】
+#      · 合法落表一次 ⇒ 台账登记值前移 ⇒ 绿 (★落表跳不再假红★)
+#      · 盘上 md5 ∉ 合法集合 ⇒ 仍然红 (★判据方向不许变★)
+#      · fail-closed: 台账读不到 / 台账里找不到该文件 / 链头不唯一 / 链断 /
+#        有记录不在链上 / 链头无落表单号 ⇒ 仍然红 (★一条不许弱化★)
+#   ③ 台账解析 = 只读调用 `MECH/check_board_frame_coords.py` 的现成解析器 ⇒ 口径零漂移 ★
+def _read_ledger_text(root):
+    """读落表台账 (判决源) ⇒ 读不到 ⇒ 返回 None (★fail-closed: 调用方必须判红★)"""
+    p = os.path.join(root, LEDGER_CANON_REL)
+    if not os.path.isfile(p):
+        return None
+    try:
+        with open(p, encoding="utf-8") as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def ledger_legal_md5s(root, rel):
+    """★台账管理件的【合法 md5 集合】= 硬基线 ∪ 落表台账里该文件登记过的 md5 (★读台账, 不写死★)。
+
+    ★返回 (legal12, info)★ —— legal12 = 12 位小写前缀集合; info = 判决过程明细 (★给红组用★)
+    ★fail-closed: 台账读不到 / 找不到该文件 / 链头不唯一 / 链断 / 记录不在链上 ⇒ info["ok"] = False★
+    """
+    info = {"ok": False, "why": [], "legal": [], "head": None, "iss": [],
+            "chain_len": 0, "records": 0, "registered": [],
+            "mode": "落表台账登记值", "ledger": LEDGER_CANON_REL}
+    led_text = _read_ledger_text(root)
+    if led_text is None:
+        info["why"].append(f"落表台账读不到 ({LEDGER_CANON_REL})")
+        return set(), info
+    base = PROTECTED_LEDGER_MD5.get(rel, "")
+    legal = set()
+    if base:
+        legal.add(CFC.m12(base))
+    # ---- 台账里【登记过】的 md5 (★覆盖行 = 提到该文件且带 md5 的表格行★) ----
+    covers = CFC.ledger_cover_rows(led_text, rel)
+    registered = sorted({m for r in covers for m in r["md5s"]})
+    legal |= set(registered)
+    # ---- 链 (★链头 = 不是任何记录的前驱的那个改后 md5 ⇒ 判最新靠图不靠行序★) ----
+    st = CFC.ledger_state(rel, led_text)
+    recs = st.get("records") or []
+    head = st.get("head")
+    why = st.get("why") or ""
+    chain = st.get("chain") or []
+    iss = st.get("head_iss") or []
+    info.update({"head": head, "iss": iss, "chain_len": len(chain),
+                 "records": len(recs), "registered": registered})
+    if not covers:
+        info["why"].append("落表台账里查不到该文件")
+    if not recs:
+        info["why"].append("落表台账里一条【改前⇒改后】记录都没有")
+    if not head:
+        info["why"].append(f"台账链头取不准 ({why or '没有链头 (每条记录都是别人的前驱 ⇒ 台账不成链)'})")
+    else:
+        if not iss:
+            info["why"].append(f"台账链头 ({head}) 无落表单号 (★单号/文件名/前后 md5 四项不齐★)")
+        if not chain:
+            info["why"].append(f"落表链断了 / 不唯一 ({why})")
+        orphan = sorted({r["new"] for r in recs} - set(chain))
+        if orphan:
+            info["why"].append(f"台账里有记录不在链上 = {orphan} (★前后 md5 不齐 ⇒ 链断了★)")
+    info["ok"] = not info["why"]
+    info["legal"] = sorted(legal)
+    return legal, info
+
+
 def check_n6(root):
     errs, rows = [], []
-    items = dict(CFC.PROTECTED)
-    items.update(PROTECTED_LEDGER_MD5)
-    for rel, base in items.items():
+    # ---- ① 板 2 件 (板 / `.kicad_pro`): 判据逐字不变 (★ISS-296 合法改板通道一个字不许动★) ----
+    for rel, base in CFC.PROTECTED.items():
         p = os.path.join(root, rel)
         if not os.path.exists(p):
             errs.append(f"N6 受保护件缺失: {rel}")
             continue
         got = md5_of(p)
-        rows.append({"path": rel, "baseline": base, "got": got, "same": got == base})
+        rows.append({"path": rel, "baseline": base, "got": got, "same": got == base,
+                     "mode": "硬基线",
+                     "verdict": ("✔ 硬基线命中" if got == base else "✘ 盘上 md5 ≠ 硬基线")})
         if got != base:
             errs.append(f"N6 受保护件被改: {rel} 基线 {base} ⇒ 现值 {got}")
+    # ---- ② 台账管理 3 件 (网表 / 脚表 / BOM): 判决源 = 硬基线 ∪ 落表台账登记值 ----
+    for rel, base in PROTECTED_LEDGER_MD5.items():
+        p = os.path.join(root, rel)
+        if not os.path.exists(p):
+            errs.append(f"N6 受保护件缺失: {rel}")
+            continue
+        got = md5_of(p)
+        legal, info = ledger_legal_md5s(root, rel)
+        hit = info["ok"] and (CFC.m12(got) in legal)
+        head_s = info["head"] or "-"
+        iss_s = "/".join(info["iss"]) or "-"
+        rows.append({"path": rel, "baseline": base, "got": got, "same": hit,
+                     "mode": "落表台账登记值",
+                     "legal": info["legal"], "head": info["head"], "iss": info["iss"],
+                     "n_registered": len(info["registered"]), "chain_len": info["chain_len"],
+                     "records": info["records"], "ledger": LEDGER_CANON_REL,
+                     "verdict": (f"✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 {len(info['legal'])} 条"
+                                 f" · 链头 {head_s} by {iss_s})" if hit else
+                                 f"✘ 盘上 md5 ∉ 合法集合 / 台账判决失败")})
+        # ---- fail-closed: 台账判决失败 ⇒ 红 (★不许 try/except 吞掉★) ----
+        for w in info["why"]:
+            errs.append(f"N6 台账判决失败: {rel} {w} ⇒ fail-closed 判红")
+        if not info["ok"]:
+            continue
+        if CFC.m12(got) not in legal:
+            errs.append(f"N6 受保护件被改: {rel} 盘上 md5 {got} ∉ 合法集合 "
+                        f"(硬基线 {base} ∪ 落表台账登记 {len(legal)} 条"
+                        f" · 链头 {head_s} by {iss_s} · 台账 {LEDGER_CANON_REL})")
     return {"ok": not errs, "errs": errs, "rows": rows}
 
 
@@ -859,7 +969,10 @@ def print_checks(res):
           f"(位号 {len(CONN_REFS)} 个 × 4 字段)")
     print(f"  N6 受保护 5 件 md5 ..... {'✅ 绿' if res['N6']['ok'] else '❌ 红'}")
     for r in res["N6"]["rows"]:
-        print(f"      · {r['path']:44s} {r['got']} {'==' if r['same'] else '!='} {r['baseline']}")
+        if r.get("mode") == "硬基线":
+            print(f"      · {r['path']:44s} {r['got']} {'==' if r['same'] else '!='} {r['baseline']}")
+        else:
+            print(f"      · {r['path']:44s} {r['got']} · {r['verdict']}")
     print()
     print(s6_table(res))
     errs = []
@@ -890,7 +1003,7 @@ def make_sandbox(root, tag):
         shutil.rmtree(dst)
     os.makedirs(dst, exist_ok=True)
     rels = [SPEC_REL, SPEC2_REL, CALIB_REL, PCB_REL] + list(CFC.PROTECTED.keys()) + \
-        list(PROTECTED_LEDGER_MD5)
+        list(PROTECTED_LEDGER_MD5) + [LEDGER_CANON_REL]
     for rel in rels:
         src = os.path.join(root, rel)
         if os.path.exists(src):
@@ -947,6 +1060,30 @@ def _edit_calib_json(sb, fn):
     new = "\n" + json.dumps(data, ensure_ascii=False, indent=1) + "\n"
     text2 = text.replace(seg, new, 1)
     open(p, "w", encoding="utf-8").write(text2)
+
+
+def _ledger_drop_rows(sb, rel, md5_sub):
+    """★在沙盒台账副本里删掉【提到 rel 且含 md5_sub】的表格行 ⇒ 返回删掉几行 (★真台账不许动★)"""
+    p = os.path.join(sb, LEDGER_CANON_REL)
+    text = open(p, encoding="utf-8").read()
+    base = os.path.basename(rel)
+    keep, dropped = [], 0
+    for ln in text.splitlines():
+        s = ln.strip()
+        if s.startswith("|") and (rel in s or base in s) and md5_sub in s:
+            dropped += 1
+            continue
+        keep.append(ln)
+    open(p, "w", encoding="utf-8").write("\n".join(keep) + "\n")
+    return dropped
+
+
+def _ledger_append_row(sb, rel, prev12, new12, iss="ISS-999"):
+    """★在沙盒台账副本末尾追一行登记 (★伪造 md5 用例★) ⇒ 真台账不许动★"""
+    p = os.path.join(sb, LEDGER_CANON_REL)
+    with open(p, "a", encoding="utf-8") as fh:
+        fh.write(f"\n| ★**{iss}** ★ | ★**`{rel}`** ★ | `{prev12}` | `{new12}` | ★**是**★ |\n")
+    return p
 
 
 def selftest(root):
@@ -1202,6 +1339,125 @@ def selftest(root):
           f"第三条逐档核 {v12.get('PORT_OPEN_USBC', {}).get('n_target_checks', 0)} 次")
     if not green12:
         errs.append("⑫ 正向对照 (三条齐全) 不绿")
+
+    # ================== ★★【ISS-303 · 2026-11-18】★★ N6 判决源 = 硬基线 ∪ 落表台账登记值 ==================
+    NET_REL = os.path.join("HW", "netlist_v1.csv")
+    PINS_REL = os.path.join("HW", "netlist_v1_pins.csv")
+    NET_BASE = PROTECTED_LEDGER_MD5[NET_REL]
+    NET_LEDGER_OLD = NET_BASE[:12]          # ★ISS-290 硬基线 (链上倒数第二位) ★
+    NET_LEDGER_NEW = "6aee500e60ba"         # ★ISS-302 落表后的现值 (链头) ★
+
+    # ---- ⑬ 网表盘上 md5 改成台账查不到的假值 ⇒ N6 红 (★判据方向不许变★) ----
+    sb = make_sandbox(root, "case13_fake_netlist_md5")
+    p = os.path.join(sb, NET_REL)
+    before = md5_of(p)
+    with open(p, "a", encoding="utf-8") as fh:
+        fh.write("\n★ISS-303 反向用例: 往网表里塞一行 ⇒ 把它 md5 改成台账里查不到的值★\n")
+    after = md5_of(p)
+    r13 = run_checks(sb)
+    red13 = not r13["N6"]["ok"]
+    hit13 = any("netlist_v1.csv" in e and "∉ 合法集合" in e for e in r13["N6"]["errs"])
+    print(f"  [{'OK ' if red13 and hit13 else 'NG '}] ⑬ 网表 md5 改成台账查不到的假值 ⇒ N6 红: "
+          f"{'是' if red13 else '否'} · 命中「∉ 合法集合」: {'是' if hit13 else '否'} · "
+          f"md5 {before[:8]} ⇒ {after[:8]} (确实改了: {before != after}) · "
+          f"N6 错误 {len(r13['N6']['errs'])} 条")
+    if not red13:
+        errs.append("⑬ 网表 md5 改成台账查不到的假值后 N6 没红")
+    if not hit13:
+        errs.append("⑬ 网表假 md5 没命中「∉ 合法集合」")
+    if before == after:
+        errs.append("⑬ 没能真改到目标文件")
+
+    # ---- ⑭ 脚表盘上 md5 改成台账查不到的假值 ⇒ N6 红 ----
+    sb = make_sandbox(root, "case14_fake_pins_md5")
+    p = os.path.join(sb, PINS_REL)
+    before = md5_of(p)
+    with open(p, "a", encoding="utf-8") as fh:
+        fh.write("\n★ISS-303 反向用例: 往脚表里塞一行 ⇒ 把它 md5 改成台账里查不到的值★\n")
+    after = md5_of(p)
+    r14 = run_checks(sb)
+    red14 = not r14["N6"]["ok"]
+    hit14 = any("netlist_v1_pins.csv" in e and "∉ 合法集合" in e for e in r14["N6"]["errs"])
+    print(f"  [{'OK ' if red14 and hit14 else 'NG '}] ⑭ 脚表 md5 改成台账查不到的假值 ⇒ N6 红: "
+          f"{'是' if red14 else '否'} · 命中「∉ 合法集合」: {'是' if hit14 else '否'} · "
+          f"md5 {before[:8]} ⇒ {after[:8]} (确实改了: {before != after}) · "
+          f"N6 错误 {len(r14['N6']['errs'])} 条")
+    if not red14:
+        errs.append("⑭ 脚表 md5 改成台账查不到的假值后 N6 没红")
+    if not hit14:
+        errs.append("⑭ 脚表假 md5 没命中「∉ 合法集合」")
+    if before == after:
+        errs.append("⑭ 没能真改到目标文件")
+
+    # ---- ⑮ 台账里把 ISS-302 那一行删掉 (链断) ⇒ 现值不在合法集合 ⇒ N6 红 ----
+    sb = make_sandbox(root, "case15_ledger_drop_iss302")
+    dropped = _ledger_drop_rows(sb, NET_REL, NET_LEDGER_NEW)
+    r15 = run_checks(sb)
+    red15 = not r15["N6"]["ok"]
+    hit15 = any("netlist_v1.csv" in e and "∉ 合法集合" in e for e in r15["N6"]["errs"])
+    print(f"  [{'OK ' if red15 and hit15 else 'NG '}] ⑮ 台账里删掉 ISS-302 那一行 (链断) ⇒ N6 红: "
+          f"{'是' if red15 else '否'} · 删掉 {dropped} 行 · 命中「∉ 合法集合」: {'是' if hit15 else '否'} · "
+          f"N6 错误 {len(r15['N6']['errs'])} 条")
+    if not red15:
+        errs.append("⑮ 台账删掉 ISS-302 那一行后 N6 没红")
+    if not hit15:
+        errs.append("⑮ 链断后没命中「∉ 合法集合」")
+    if dropped <= 0:
+        errs.append("⑮ 没能真从沙盒台账里删掉 ISS-302 那一行")
+
+    # ---- ⑯ 台账里出现两条指向同一文件的链头 (链头不唯一) ⇒ N6 红 ----
+    sb = make_sandbox(root, "case16_ledger_two_heads")
+    _ledger_append_row(sb, NET_REL, "aaaa11112222", "bbbb33334444")
+    r16 = run_checks(sb)
+    red16 = not r16["N6"]["ok"]
+    hit16 = any("链头" in e for e in r16["N6"]["errs"])
+    print(f"  [{'OK ' if red16 and hit16 else 'NG '}] ⑯ 台账里出现两条指向同一文件的链头 ⇒ N6 红: "
+          f"{'是' if red16 else '否'} · 命中「链头」: {'是' if hit16 else '否'} · "
+          f"N6 错误 {len(r16['N6']['errs'])} 条")
+    if not red16:
+        errs.append("⑯ 链头不唯一后 N6 没红")
+    if not hit16:
+        errs.append("⑯ 链头不唯一没被 N6 命中")
+
+    # ---- ⑰ 台账里伪造一个 md5 但盘上不符 ⇒ 仍红 (★合法集合不许被台账单方面放宽★) ----
+    sb = make_sandbox(root, "case17_ledger_forged_md5")
+    _ledger_drop_rows(sb, NET_REL, NET_LEDGER_NEW)
+    _ledger_append_row(sb, NET_REL, NET_LEDGER_OLD, "dddd55556666")
+    r17 = run_checks(sb)
+    red17 = not r17["N6"]["ok"]
+    hit17 = any("netlist_v1.csv" in e and "∉ 合法集合" in e for e in r17["N6"]["errs"])
+    print(f"  [{'OK ' if red17 and hit17 else 'NG '}] ⑰ 台账里伪造一个 md5 但盘上不符 ⇒ 仍红: "
+          f"{'是' if red17 else '否'} · 命中「∉ 合法集合」: {'是' if hit17 else '否'} · "
+          f"N6 错误 {len(r17['N6']['errs'])} 条")
+    if not red17:
+        errs.append("⑰ 台账伪造 md5 但盘上不符时 N6 没红")
+    if not hit17:
+        errs.append("⑰ 台账伪造 md5 没命中「∉ 合法集合」")
+
+    # ---- ⑱ 台账文件缺失 ⇒ N6 红 (★fail-closed: 判决源读不到 ⇒ 不许「找不到就当没改」★) ----
+    sb = make_sandbox(root, "case18_ledger_missing")
+    os.remove(os.path.join(sb, LEDGER_CANON_REL))
+    r18 = run_checks(sb)
+    red18 = not r18["N6"]["ok"]
+    hit18 = any("落表台账读不到" in e for e in r18["N6"]["errs"])
+    print(f"  [{'OK ' if red18 and hit18 else 'NG '}] ⑱ 台账文件缺失 ⇒ N6 红 (fail-closed): "
+          f"{'是' if red18 else '否'} · 命中「落表台账读不到」: {'是' if hit18 else '否'} · "
+          f"N6 错误 {len(r18['N6']['errs'])} 条")
+    if not red18:
+        errs.append("⑱ 台账缺失后 N6 没红")
+    if not hit18:
+        errs.append("⑱ 台账缺失没命中「落表台账读不到」")
+
+    # ---- ⑲ 正向对照: 一切如常 (现值 == 台账链头) ⇒ N6 绿 (★证明闸不是恒红★) ----
+    sb = make_sandbox(root, "case19_positive_ledger_head")
+    r19 = run_checks(sb)
+    green19 = r19["N6"]["ok"]
+    row19 = next((r for r in r19["N6"]["rows"] if r["path"] == NET_REL), {})
+    print(f"  [{'OK ' if green19 else 'NG '}] ⑲ 正向对照 (现值 == 台账链头) ⇒ N6 绿: "
+          f"{'是' if green19 else '否'} · 链头 {row19.get('head')} by {'/'.join(row19.get('iss') or [])} · "
+          f"合法集合 {len(row19.get('legal') or [])} 条")
+    if not green19:
+        errs.append("⑲ 正向对照 (现值 == 台账链头) 不绿")
 
     # ---- 收尾: 真件 md5 再核一遍 (★自检不许碰真件★) ----
     tail = check_n6(root)

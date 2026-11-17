@@ -705,9 +705,9 @@
 | BAT_CHG | U_CHG pin13 | C_BAT | C_BAT | 10µF X7R 6.3V | C | 必装 | CHG_BOARD | [官方] |  | ★datasheet 'Connect a 10uF closely to the BAT pin' (pin13/14); BAT 脚是跨铰链载流路径起点 |
 | PGND | C_BAT | U_CHG pin17+pin18 | C_BAT | 10µF X7R 6.3V | C | 必装 | CHG_BOARD | [官方] |  | BAT 去耦 地端 (PGND) |
 | BAT_CHG | U_CHG pin14 | J_CHG pin1 | J_CHG | 1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流) | CONN | 必装 | HINGE | [推算] |  | 充电电流跨铰链: J_CHG pin1/pin2 双 pin 并联 (★每 pin **额定 0.75A / 工作上限 0.50A** (ISS-099: FH12-10S-0.5 |
-| SYS_CHG | U_CHG pin15 | U_CHG pin16 | U_CHG | BQ25896 | IC | DNP | CHG_BOARD | [官方] |  | ★pin15/16 SYS: 本板不供电 (SYS 在镜脚由 BQ2970 + 2×MOS 产生); ⚠️ 待裁决: 网名用 SYS_CHG 而不是 SYS — 现行网表的 SYS |
-| SYS_CHG | U_CHG pin16 | C_SYS | C_SYS | 20µF 6.3V | C | DNP | CHG_BOARD | [官方] |  | ★C_SYS 留位不装 = 保留 '电池挪镜框' 可回退分支 (将来接 2 根线 + 贴这颗电容即可, 不用改板); 本板 SYS 无负载, 装 20µF 只占 25×10mm 板 |
-| PGND | C_SYS | U_CHG pin17+pin18 | C_SYS | 20µF 6.3V | C | DNP | CHG_BOARD | [官方] |  | SYS 电容 地端 (PGND); DNP 时不占板面 |
+| SYS_CHG | U_CHG pin15 | U_CHG pin16 | U_CHG | 20µF X7R 6.3V | IC | 必装 | CHG_BOARD | [官方] |  | ★pin15/16 SYS: 本板不供电 (SYS 在镜脚由 BQ2970 + 2×MOS 产生); ⚠️ 待裁决: 网名用 SYS_CHG 而不是 SYS — 现行网表的 SYS |
+| SYS_CHG | U_CHG pin16 | C_SYS | C_SYS | 20µF X7R 6.3V | C | 必装 | CHG_BOARD | [官方] |  | ★C_SYS 留位不装 = 保留 '电池挪镜框' 可回退分支 (将来接 2 根线 + 贴这颗电容即可, 不用改板); 本板 SYS 无负载, 装 20µF 只占 25×10mm 板 |
+| PGND | C_SYS | U_CHG pin17+pin18 | C_SYS | 20µF X7R 6.3V | C | 必装 | CHG_BOARD | [官方] |  | SYS 电容 地端 (PGND); DNP 时不占板面 ★★订正 (ISS-302 · 2026-11-18 · hw-lead · 追加式 · 老字留痕)★: 上句『DNP 时不 |
 | PGND | U_CHG pin17 | U_CHG pin18 | U_CHG | BQ25896 | IC | 必装 | CHG_BOARD | [官方] |  | ★pin17/18 PGND 功率地 (开关节点回流); 'connect directly to the PGND'; PowerPAD 同接 PGND + ≥6 过孔 (散热焊 |
 | PGND | R_STAR_PGND | U_CHG pin17+pin18 | R_STAR_PGND | 0Ω / 铜皮短接 (PGND 单点星接) | R | 必装 | CHG_BOARD | [官方] |  | ★PGND 与 GND 的单点汇流位 (datasheet: 'A single point connection is recommended between power PGN |
 | GND | R_STAR_PGND | J_TYPE_C A1 | R_STAR_PGND | 0Ω / 铜皮短接 (PGND 单点星接) | R | 必装 | CHG_BOARD | [官方] |  | 星接位的 GND 端 (充电板地 = Type-C GND 四脚 + J_CHG pin3/pin4 回流) ★裁决 (PM): **必装** (DNP 会让 PGND 整个悬空  |

@@ -1,0 +1,50 @@
+==============================================================================
+ISS-306 只读探针 · 板文件读数
+==============================================================================
+板文件: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb
+ESD_MAX_DIST_MM (R9 阈值常量) = 3.0
+
+★① 板上全部含 'ESD' 的位号 (R4 的扫描范围 = ref 含 ESD) ★
+  D_ESD_CAM        pads=2  value='ESD 阵列 [待选型]'
+       pad1 -> 'GND'
+       pad2 -> 'CSI_D0_CK_P'
+  D_ESD_DEMO       pads=2  value='ESD 阵列 [待选型] (USB 2.0)'
+       pad1 -> 'RAIL_DEMO_5V'
+       pad2 -> 'GND'
+  D_ESD_LIGHT      pads=2  value='ESD 阵列 [待选型]'
+       pad1 -> 'LIGHT_5V'
+       pad2 -> 'GND'
+  D_ESD_USB_D      pads=2  value='ESD 阵列 [待选型] (USB 2.0 双通道)'
+       pad1 -> 'USB_D_P_SRC'
+       pad2 -> 'GND'
+
+★② R4 判据复刻 (L1359~L1378) ★
+  dminus 集合 = ['NET_USB_D_N_TYPEC', 'USB_D_N_SRC']
+  hit (D− 上挂了 ESD 的位号) = []   ⇒ len=0
+  ⇒ 判据行1「没有任何 ESD 位号挂在 D− 那条网上」: 判红 (真)
+  D_ESD_USB_D pads=2 (<3 且 not hit ⇒ True) ⇒ 判据行2「仍然只有 2 个焊盘」: 判红 (真)
+  ★★ 关键耦合: 判据行2 的触发条件是 `info['pads'] < 3 and not hit`
+     ⇒ 它【不是】独立要求 D_ESD_USB_D 必须 3 脚 ⇒ 只要 D− 上出现【任何】ESD 位号, 行2 自动转绿
+     ⇒ 行2 是行1 的【派生句】, 不是第二条独立要求
+
+★③ R9 距离 (逐字复刻 L1446~L1460) ★
+  J_USB_C      原点 = (140.0, 5.25)
+  D_ESD_USB_D  原点 = (94.95, 21.8)
+  距离 = hypot(dx=45.05, dy=-16.55) = 47.99 mm
+  阈值 = 3.0 mm ⇒ 判红 (真)
+  ★ 要挪到 ≤3.0 mm ⇒ 至少要挪 44.99 mm
+  [推算] 沿 J_USB_C→D_ESD_USB_D 直线方向平移, 落位候选 ≈ (137.18, 6.28)  [★推算, 非实测★]
+
+★④ R3: 板封装 U_EN_SW 的 Value 属性 ★
+  U_EN_SW.value = 'EN 输入 (高=放行底板)'
+  _norm 后 = 'EN 输入 (高=放行底板)'
+  ∈ 脚级功能串黑名单 = True ⇒ 判据行: 判红 (真)
+  ★ 该属性写在【板文件 footprint 块】里 ⇒ 改它 = 改板 ⇒ 同趟消化
+
+★⑤ D− 两条网 (USB_D_N_SRC / NET_USB_D_N_TYPEC) 在板上的所有连接点 ★
+  NET_USB_D_N_TYPEC        -> ['TP_USB_D_N.pad1', 'J_USB_C.padA7', 'J_USB_C.padB7', 'R_SER_USB_D_N.pad2']
+  USB_D_N_SRC              -> ['R_SER_USB_D_N.pad1', 'J_SOM_P1.pad93', 'J_SOM_P1.pad94']
+
+==============================================================================
+探针结束 (只读; 本脚本未写任何文件)
+==============================================================================

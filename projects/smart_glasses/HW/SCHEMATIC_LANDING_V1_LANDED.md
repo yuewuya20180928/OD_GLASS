@@ -1433,3 +1433,39 @@ md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv
 
 ---
 
+
+## ★★19 · ★★ISS-302 落表链 (★C_SYS / SYS_CHG 必装 · 硬件总工 (hw-lead) · 2026-11-18 · ★TI bq25896 datasheet SLUSC76C §7 逐字『Connect a 20uF closely to the SYS pin.』★) ★★
+
+### ★★19.1 · 一句话结论 ★★
+
+★**`SYS_CHG` / `C_SYS` 由 DNP 改为必装 (★TI §7 明令 SYS 必挂 20 µF 到地★) · note 追加式订正 (★老字逐字留痕 + 过期 PM 裁决『VSYS 脚不接 (NC)』标为已作废 + 换成 ★SYS 必接 20 µF (TI §7); 不跨铰链引系统轨★ + 板面数 25×10mm 板面 → ≈8 mm² (0805/1206)★) · BOM CHG_BOARD 加 1 颗 20 µF 6.3 V X7R/X5R** ★
+
+★**真源** = `state/p10_rows.json` (★P10 充电板页器件级行数据 = `state/gen_netlist.py` 的唯一输入★) ★
+★**落表脚本** = `state/_apply_iss302_csys_landing.py` (★改真源, 不手改产物★) ★
+★**产物一律重生成** = `gen_netlist` → `gen_kicad_net` → `gen_netlist_pins` → `gen_bom` → `gen_schematic_pages` → `gen_kicad_sch` ★
+
+### ★★16.2 · 新旧 md5 前后对照 (★供 SW / MECH 两边走 H-1 重锚★) ★★
+
+| 文件 | 前 | 后 | 变了? |
+|---|---|---|---|
+| ★**`HW/netlist_v1.csv`** ★ | `37f62ac3f0b81d92ca7d48fdea717f07` | `6aee500e60ba0732f83a9cf557ba90ab` | ★**是**★ |
+| ★**`HW/netlist_v1_pins.csv`** ★ | `a4270120454aedf7a23c92cd8985c8a6` | `9174309df1ec9411ac8e8d9e80ee386a` | ★**是**★ |
+| ★**`HW/BOM_v1.csv`** ★ | `5d02bece9477ffce5fbe0193c7d5cce4` | `5b9993992405904a60ac96a020b375d8` | ★**是**★ |
+| ★**`HW/PCB/demo_mainboard.kicad_pcb`** ★ | `611b869e13518c3c023fb178f91a0075` | `611b869e13518c3c023fb178f91a0075` | 否 |
+| ★**`HW/PCB/demo_mainboard.kicad_pro`** ★ | `3e504d2be83152e337949723e909be1b` | `3e504d2be83152e337949723e909be1b` | 否 |
+
+★**受保护的两个必须逐字节不变**: `HW/PCB/demo_mainboard.kicad_pcb` = `611b869e13518c3c023fb178f91a0075` · `HW/PCB/demo_mainboard.kicad_pro` = `3e504d2be83152e337949723e909be1b` ★
+
+★**零写板自证 (★md5 + mtime 双重★)**: `HW/PCB/demo_mainboard.kicad_pcb` mtime 仍 `2026-11-06 07:07:17.362193413` (★自 11-06 07:07 未动★) ★
+
+### ★★19.3 · 逐条登记 (★单号 + 文件名 + 旧 md5 + 新 md5 + 落表时刻 + 台账行号★) ★★
+
+| 台账行号 | 文件名 | 旧 md5 | 新 md5 | 落表时刻 | 单号 |
+|---|---|---|---|---|---|
+<!--ISS302_ROWS:BEGIN-->
+| L1451 | HW/netlist_v1.csv | `37f62ac3f0b81d92ca7d48fdea717f07` | `6aee500e60ba0732f83a9cf557ba90ab` | ★**2026-11-18 00:3x** ★ | ★**ISS-302** ★ |
+| L1452 | HW/netlist_v1_pins.csv | `a4270120454aedf7a23c92cd8985c8a6` | `9174309df1ec9411ac8e8d9e80ee386a` | ★**2026-11-18 00:3x** ★ | ★**ISS-302** ★ |
+| L1453 | HW/BOM_v1.csv | `5d02bece9477ffce5fbe0193c7d5cce4` | `5b9993992405904a60ac96a020b375d8` | ★**2026-11-18 00:3x** ★ | ★**ISS-302** ★ |
+| L1454 | HW/PCB/demo_mainboard.kicad_pcb | `611b869e13518c3c023fb178f91a0075` | `611b869e13518c3c023fb178f91a0075` | ★**2026-11-18 00:3x** ★ | ★**ISS-302** ★ |
+| L1455 | HW/PCB/demo_mainboard.kicad_pro | `3e504d2be83152e337949723e909be1b` | `3e504d2be83152e337949723e909be1b` | ★**2026-11-18 00:3x** ★ | ★**ISS-302** ★ |
+<!--ISS302_ROWS:END-->

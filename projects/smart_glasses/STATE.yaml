@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-18T00:20:19+08:00'
+  generated_at: '2026-11-18T05:22:35+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,24 +9,24 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 443189
-      sha1: 302f6c4d3913
-      mtime_ns: 1794927767115490013
+      size: 466274
+      sha1: 69f54bc6be7b
+      mtime_ns: 1794943866104344537
     mech-lead:
       file: mech.yaml
-      size: 462490
-      sha1: 7fbd7faa8b5d
-      mtime_ns: 1794923725871410638
+      size: 469343
+      sha1: 9762a0b9f613
+      mtime_ns: 1794935175323414239
     main:
       file: pm.yaml
-      size: 113547
-      sha1: 71bec96f672b
-      mtime_ns: 1794928718044695288
+      size: 115931
+      sha1: 216b265d939f
+      mtime_ns: 1794936866732167264
     sw-lead:
       file: sw.yaml
-      size: 421628
-      sha1: 53506f775c96
-      mtime_ns: 1794915453405052611
+      size: 431474
+      sha1: 1d52e3beb2ec
+      mtime_ns: 1794940276354816902
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -106,6 +106,18 @@ domains:
       kind: script
       version: '2026-11-17'
       at: 2026-11-17 13:2x
+    - path: HW/RK3572_INQUIRY_CALIBER_V2.md
+      kind: doc
+      version: v2
+      updated_at: '2026-10-25'
+      summary: ISS-131 · RK3572 口径版 R-GEO 问询 · 自查版(不发信) · 6,007 B · ★球位号 11/11 + CSI 口径 + ISP 12M + MP/s
+        [0数据] + One channel ISP⇒只能 1 路(★唯一带推算成分的硬约束·待复验★)★
+    - path: state/_iss131_crosscheck_rk3572_caliber.py
+      kind: script
+      version: v1
+      updated_at: '2026-10-25'
+      summary: ISS-131 机器可复核交叉核对脚本 · rc=0 · ★只读·零写板·零落表★ · 读网表 + FET3572C_PIN_TABLE + 官方 datasheet txt
+        三方对拍
     blockers:
     - id: PM-B1
       desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -1481,6 +1493,20 @@ domains:
           (据此可以做什么) 必须分开复核 ⇒ 派生结论最危险, 最容易带出 P0 级误判** ★'
         ref: 老板决策 2026-11-17 23:20 (项目总工代录)
       foreign_answers: []
+    - key: iss131_mp_s_throughput_still_zero_data
+      to: main
+      item: '★ISS-131 遗留: RK3572 ISP 的 MP/s 吞吐上限仍是 [0数据] ⇒ 降级方案两条: ①官方 TRM (本机只留 datasheet V1.1·无 TRM·需联网查·标[官网])
+        ②板端实测 (ISS-210 已把 60ms 判据链+ISP 段打点备好) ⇒ ★在拿到其中之一前·任何 MP/s 数字只能标[推算]并写清推算链·不许拿经验值冒充实测★'
+      since: '2026-11-18'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: reva_stl_regen
       to: mech-lead
@@ -1831,6 +1857,16 @@ domains:
         ⇒ 与你的第 ① 条【合流】(★挂闸 + H-1 重锚第 2 跳 + `run_external_gate` 支持参数 = 同批★)★** ★ ⇒ ★**跨域 import 那条你做得对
         (★各写各的判决库·不许 import 对方★) ——— main 确认维持, 不改口径** ★'
       ref: HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md §B5-③
+    - key: iss131_rk3572_caliber_selfchecked
+      to: main
+      value: 'ISS-131 已按老板 2026-11-12 02:02「不再发信·全靠自己查资料」口径自办完 ★零写板·零落表·零外发★ ⇒ ★【球位号 11/11 与官方 datasheet
+        逐条对上】(★含 A22/B22/A23/B23 四条「同球双名」·官方 L1789 逐字 ⇒ 一个 4-lane 口可配 2×2 的物理证据★) ★【CSI】官方 §1.2.7 逐字 Support
+        2 MIPI CSI-2 interfaces · Two 4 data lanes of D-PHY v1.2 · Each interface may be configured as
+        2x2 data lanes port ⇒ ★我方网表只用 CSI_D0 一路 4 lane ⇒ 「2 接口 vs 4 口」对我方板无约束★ ★【ISP 12M】官方 §1.2.8 逐字
+        One channel ISP,12M pixels · Maximum input:4096x3072 ⇒ 4096×3072=12.58 Mpixel ⇒ 「12M」是【单帧分辨率上限】不是
+        MP/s ⇒ ★我方 1080p60 在分辨率维度不卡[官方] ★ ★【ISP MP/s = [0数据]】datasheet 全文检索不到 ⇒ ★换芯到 RK3572 后这条缺口没变好也没变坏
+        ⇒ 降级方案: ①官方 TRM (本机无·需联网·标[官网]) ②板端实测 (ISS-210 已把 60ms 判据链+ISP 段打点备好) ③在此之前任何 MP/s 数字只能标[推算]并写清推算链★'
+      ref: HW/RK3572_INQUIRY_CALIBER_V2.md + state/_iss131_crosscheck_rk3572_caliber.py (★rc=0★)
     open_questions:
     - id: PM-Q1
       to: sw-lead
@@ -1862,11 +1898,11 @@ domains:
     updated_at: '2026-11-17'
     updated_by: hw-lead
     status:
-      phase: delivered
+      phase: iss307 交卷完成
       progress_pct: 100
-      health: 绿
-      summary: 'ISS-299 交付: HW 第5道闸 check_pin_function_labels.py 的 H-1 重锚第2跳做完(基线常量重锚到 ISS-283 落表后真盘值
-        + 锚链逐跳补齐) ⇒ 默认 rc=1/恰好15条 · --expect-known rc=0 · --selftest rc=0(13+10) ⇒ 9道闸通道齐 · 零写板零落表零外发'
+      health: ok
+      summary: 'iss307: ESD 选型轴候选集 4 条 (官网逐字) + 落位可行性 (R9=原点距, 窗口 y 7.65..8.25, ISS-306 的 (137.18,6.28)=3.0022mm
+        不通过) + §1-B1-0 矛盾判决 (B+C 合并档) + 路径乙改法草案 A; ★等老板 W-2 + W-1c 两个字母; 本单零写板/零落表/零改闸/零外发★'
     artifacts:
     - path: HW/HARDWARE_BREAKDOWN.md
       kind: breakdown
@@ -3112,6 +3148,65 @@ domains:
         ④ 降级方案 108uA 含 50uA AON 算术不自洽) + B3 现场 rc 原样 + B4 边界自证 (板 md5 611b869e13518c3c023fb178f91a0075
         + mtime 2026-11-06 07:07:17:362193413 双自证零写板) + B5 给 main 的明确结论 4 问; 证据副本在 logs/iss301/ (TI 官网
         2 个件 + Forlinx 官网手册快照 + 399 行比对日志)'
+    - path: HANDOFF/2026-11-18_hw-lead_ISS302_CSYS落表.md
+      kind: handoff
+      version: v1.0
+      updated_at: '2026-11-18'
+      summary: ISS-302 cont1 交卷单 (B1~B6 + §⑦ 七块填实 · 占位符扫描命中数 0) · 闸复跑 21 道原样 rc 落 logs/iss302/gates_rerun.log
+        + 收尾 3 道落 logs/iss302/final_gates.log · 零写板零落表零外发不自签 issue_log · 红闸 4 道已分家 ISS-303/ISS-304
+    - path: HANDOFF/2026-11-18_hw-lead_ISS304_作业包现状值重锚.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-304 交卷单: B0~B6 六块齐 + 幂等对照 md5 (沙盒两次 + 真页两次, 三个 md5 跑前跑后逐字节相同) + 沙盒反向用例 5 条全过 (含台账链头前跳
+        ⇒ 4 条 fresh 跟着走 = 永不再漂; 台账链断 ⇒ 生成器拒写 rc=1 且页一个字节没动) + 边界自证 (零写板零落表 mtime+md5 双证)'
+    - path: state/_iss304_ledger_fresh.py
+      kind: tool
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-304 新解析器 (196 行): 把 state_baseline 里 expect_mode=ledger 那 4 条的 fresh 句里那一个 32 位 md5
+        换成落表台账最新链 §16.2 的现值 + 解析正文里的 «LEDGER_MD5:路径» 占位符; fail-closed (台账读不到/链断/链头无单号/登记不齐/fresh 里 md5
+        不是恰好 1 个 ⇒ 抛错 ⇒ 上层拒写页, 不许静默回退到硬基线)'
+    - path: state/_iss304_sync_state_baseline_md5.py
+      kind: tool
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-304 新同步脚本 (151 行): 作业包页不是清单页那个生成器写的 ⇒ 靠本脚本同步 (就地改那 4 个 32 位串 + 追加 ISS304:MD5_ANCHOR
+        块 + 自检 sidecar 与作业包页登记表 16607 字节逐字节一致); 幂等 (再跑一次 md5 不变); 沙盒跑法 WORKPACKET_PROJ=<沙盒根>'
+    - path: HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md
+      kind: handoff
+      version: v1.0
+      updated_at: '2026-11-18'
+      summary: ISS-305 交卷单 (B0~B6 七块齐全 · 真判据 grep -cE 「🔄 待填」= 0) · A~F 六条逐条判决(对/不对/有条件 + 依据 + datasheet
+        行号) · 判 B/C/D/E/F 五条的官方逐字摘录 + 判 A 的真判别式解析器口径与边界 · 读数三件套(交付时读数/现在读数/归属单) · 零写板双证 · 零外发零落表不自签 issue_log
+        · 8 条 need 全归 main
+    - path: state/_iss305_ball_truth_parser.py
+      kind: script
+      version: v1.0
+      updated_at: '2026-11-18'
+      summary: 'ISS-305 真判别式 (ball→pin 名集合) 解析器: 自动定位 §2.6 Pin Number List(L914..L2288) · 按「锚点间隔实测恒为 3」切表行
+        · 左列无分隔符拼接后按 / 拆(修 PDF 折行断词) · 输出 T1 归属/T2 排他 + counterfactual 判别力对照 + 与 rk3572_pins.csv 双向差异
+        · 只读零写板'
+    - path: logs/iss305/07_ball_truth_parse.log
+      kind: log
+      version: v1.0
+      updated_at: '2026-11-18'
+      summary: 'ISS-305 真判别式解析原样输出: 550 球位 · 锚点间隔实测 [3,3,3,3,3] · T1 归属 11/11 · T2 排他 11/11 · counterfactual
+        ±3 窗口 判绿 11/11 vs 真判别式 判绿 0/11 · 126 个 pin 名 ref 冲突清单 · 同球双名簇 A22/B22/A23/B23 · D-PHY 分组 CSI0~CSI3'
+    - path: HW/ESD_DUAL_CHANNEL_CANDIDATES.md
+      kind: spec
+      version: '1.0'
+      updated_at: '2026-11-18'
+      summary: 'iss307 交付页: ESD USB D+/D− 选型候选集 (C1 TPD2EUSB30DRTR / C2 TPD2E2U06DCKR / C3 ESD752DCKR
+        / C4 CM1218-02S7, 4 条官网逐字) + 落位可行性 (R9=封装原点距, 窗口 y 7.65..8.25, 推荐 (140.00,7.65)/(140.00,7.85))
+        + 路径乙代价与 R4 判据口径改法草案 A + 老板一页纸 (need key boss_esd_model_axis_pending_20261117 / W-2 / W-1c) +
+        §1-B1-0 矛盾判决 (B+C 合并档)'
+    - path: HANDOFF/2026-11-18_hw-lead_ISS307_ESD选型候选集.md
+      kind: note
+      version: '1.0'
+      updated_at: '2026-11-18'
+      summary: 'iss307 交卷单 (标准验收块 B1~B6 齐全): 结论摘要 / 验收标准自评 20 条 (18 通过 + 2 未验) / 证据分级 / 4 条 interface_claims
+        / 7 条卡点 / 自证复现命令 + 边界自证 + 反向用例 4 条'
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -6536,6 +6631,102 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss304_reanchor_flow_into_f1
+      to: main
+      item: 落表后的重锚流程现在是两条命令 (① python3 state/_iss277_build_preflight.py ② python3 state/_iss304_sync_state_baseline_md5.py)
+        —— 台账口径那 4 条不用手改了, 但作业包 §8.3.2 强制项 F-1 的文字还写着「同一次重锚两份文档的 state_baseline 写死期望值」这句手工活 ⇒ 建议 main
+        把 F-1 改成这两条命令 (本单没动 §8.3.2 的老字, 那是追加式纪律里的老字, hw-lead 不代拍)
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss304_25_hardcoded_entries
+      to: main
+      item: '29 条登记里只有 4 条走台账口径 (本单已自动化), 其余 25 条仍是写死的现状值 ⇒ 下次落表必有一批红 (这是设计意图: 现状值漂了当场看见, 不是板改坏了) ⇒ 要根治得把那
+        25 条也接进真源现读, 但它们各挂不同真源脚本 (DNP 颗数/脚表缺陷/板面封装数/铜层/板框/后缀数) ⇒ 工程量远大于本单 ⇒ 建议排在「板只改一次」那一趟之后单开一单 (那一趟会同时改掉其中一批数)'
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss305_n1_rk3572_pins_rowshift
+      to: main
+      item: 'HW/RK3572_PIN_TABLE/rk3572_pins.csv(+rk3572_pins.json) 在「左列跨行+锚点在行中」的 dense 区有系统性行归属错位 ⇒
+        126 个 pin 名被归到错球(典型: CAM_CLK0_OUT_M0→1AD23 真值 AM32/L1588; DSMC_RESETN→1AD23 真值 AM32; DSMC_CLKN→AM32
+        真值 AM33; CAM_CLK0_OUT_M1→1B6 真值 1A6; CAM_CLK1_OUT_M1→B8 真值 1B6)。根因 = parse_rk3572_datasheet.py
+        L76-92 的 pending_name 累积逻辑(断词+错行)。★本单只读, 没修。blast radius 已核: ① 对 ISS-131 判决影响=0 ② TI_POWER_FACTS.md
+        L50/L95 引的 1C18/B28 在简单区不受影响 ③ merge_pinctrl.py 产物 rk3572_pin_assign.csv 在盘上不存在未传播, 且它 FIXED 表的
+        CSI_D0_* 两套解析一致 ⇒ 将来跑也对 ④ TP_INT_REMAP_SPEC.md L421 引 rk3572_pins.json ⇒ 请核它引的具体球位。请派单修(★修解析器,
+        别改数据★)'
+      since: '2026-11-18'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss305_n2_window_criterion
+      to: main
+      item: '被审脚本 state/_iss131_crosscheck_rk3572_caliber.py 的球位判据(±3 行窗口)非排他 ⇒ counterfactual 实测 11/11
+        误放行 ⇒ 交付页 §1.1 的 11 个「✔」背书不足。两个选项请 main 选: ① 换排他归属判据(本单 state/_iss305_ball_truth_parser.py 可直接复用,
+        但那是新增文件不是对被审脚本的改写) ② 保留判据但交付页加一句口径说明。★hw-lead 未改被审脚本任何判据(它是本单复验对象), 也没有自改再报绿'
+      since: '2026-11-18'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss305_n3_c_overclaim_fix
+      to: main
+      item: '交付页 §1.2 L64「One channel ISP ⇒ 同一时刻只有 1 路传感器能进 ISP ⇒ 多摄像头方案在 RK3572 上不成立」★宽版 over-claim★
+        ⇒ 建议收窄为「RK3572 ISP 处理核单通道 ⇒ 同一时刻只有 1 路传感器能被 ISP 实时处理(多路需靠 VICAP 虚拟通道复用 + 降帧时分处理)」。反证(官方逐字): VICAP
+        是并列硬件(L458) / 收 4 组 CSI 每组 4 ID(L464+L465) / VICAP 可不经过 ISP 处理核直达 Encoder·3A(L484+L522-523) /
+        虚拟通道+降帧(L445+L468+L477)。★它将来会变 demo 选型硬判据 ⇒ 宽版会误杀可行多摄方案 ⇒ high。★ISP 能否多摄并发本身 = [0数据] ⇒ 要官方 TRM/产品页(自己查,
+        老板 11-12 02:02 口径「不再发信」)或板端实测(ISS-210) ⇒ hw-lead 不替老板拍板'
+      since: '2026-11-18'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: boss_esd_model_axis_pending_20261117
+      to: boss
+      item: 'iss307 交回 need key + 决策码 (★不回裸字母★): W-2 = D− 侧补不补 ESD (补|不补; 补⇒架构档 arch=2 3脚双通道, 不补⇒arch=1
+        + R4 判据口径必须显式改, 草案 A 已交); W-1c = D_ESD_USB_D 的真 OPN (C1 TPD2EUSB30DRTR | C2 TPD2E2U06DCKR | C3
+        ESD752DCKR | C4 CM1218-02S7); W-1b 由 W-2 唯一确定 (补⇒2/不补⇒1, 可不写). ★建议默认值 (建议非决定): W-2=补, W-1c=C1.
+        ★不拍 ⇒ S4/B-3 换不了封装 + G1a-4 (R4) 永远红 + 板 md5 变两次 ⇒ Gerber/投产包/留证链/盖章/发布全作废重做★'
+      since: '2026-11-18'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -7044,6 +7235,46 @@ domains:
       value: '★ISS-283 cont3 (2026-11-17 17:4x) 复验: SW 域的这条已由 sw-lead 落表收口 ⇒ SW/tools/timing_check.py
         现在 rc=0 (★17:4x 全闸扫描实测★) ⇒ 本条 need 已闭合·不必再回 hw-lead★ (★登记时的红 = ISS-283 12:30 落表后 SW 侧锚点过期·非本单造成·现已归位★)'
       ref: HANDOFF/2026-11-17_hw-lead_ISS283_V2解锁与W4G5落表.md §D-4
+    - key: iss302_red_gates_ownership
+      to: main
+      value: ① HW/check_workpack_state_values.py V4 红 4 条 (W10_MD5_NETLIST / W10B_MD5_PINS / W10C_MD5_BOM
+        / C07_B26_MD5_LEDGER) ⇒ 归 ISS-304 (需把作业包+清单页里的现值跟上盘面; hw-lead 不去改那两个文档的现值); ② MECH/check_onepass_struct_crosscheck.py
+        N6 红 3 条 (网表/脚表/BOM 的 md5 vs 硬基线) ⇒ 归 ISS-303 (这台闸只认硬基线不认合法落表跳, 口径须由 MECH/PM 定, 不许把基线常量改回旧值);
+        ③ 另提 = HW/check_netlist_selfconsistency.py --expect-resolved 也红 (R3/R4/R9 未落表, 闸自述等 整链重出 第1步 落表后才转绿)
+        ⇒ 属那一批的活, 建议 ISS-304 一并点名, 别当新问题重复提; ★本单对这三道红闸一个字都没改 (不许改判据/不许改基线常量)
+      ref: HANDOFF/2026-11-18_hw-lead_ISS302_CSYS落表.md B3-③ + §⑦ + logs/iss302/gates_rerun.log
+    - key: iss302_concurrent_reead_0101
+      to: main
+      value: 'hw-lead 收尾时的并发复读 (★01:01, 日志 logs/iss302/gates_rerun_0103_concurrent.log★): MECH/check_onepass_struct_crosscheck.py
+        的 mtime = 00:59:25 ⇒ 已被 ISS-303 那边的并发改动动过 (★不是 hw-lead 改的★) ⇒ 该闸 01:01 复读 rc=0 (N1~N6 全过), MECH/check_onepass_mech_release.py
+        同步 rc=0 (绿 6/红 0) ⇒ ★证明 ISS-302 的分家是对的★; 同刻 HW/check_workpack_state_values.py 仍 rc=1 (★ISS-304
+        还没做★) ⇒ state/gate_check.py 仍 rc=1 (Q1 18/18 · Q7 8/9, 红 = 钉板闸⑥) ⇒ ★板那一趟仍不许开工★; ★另提 = HW/check_netlist_selfconsistency.py
+        --expect-resolved 也红 (R3/R4/R9 未落表) ⇒ 属 整链重出 第1步 那一批, 建议 ISS-304 一并点名, 别当新问题重复提; ★本单对这三道红闸一个字都没改
+        (不许改判据/不许改基线常量)'
+      ref: HANDOFF/2026-11-18_hw-lead_ISS302_CSYS落表.md B4-④ + §⑦-1 + logs/iss302/gates_rerun_0103_concurrent.log
+    - key: iss304_gate6_green
+      to: main
+      value: '钉板闸⑥ 已转绿: python3 HW/check_workpack_state_values.py rc=0 (V1~V7 全 OK, V4 那 4 条台账口径 fresh
+        全跟上了) ⇒ Q7 钉板 md5 闸链 8/9 ⇒ 9/9 全绿 (state/gate_check.py rc=0) ⇒ 「板只改一次」那一趟的闸链不再被现状值漂移卡住; 修法=换来源不换取值
+        (那 4 条 fresh 的 md5 由生成器/同步脚本从落表台账最新链 §16.2 现读, 读不到就拒写页)'
+      ref: logs/iss304/04_gate_run1.log + logs/iss304/09_regression_d.log + HANDOFF/2026-11-18_hw-lead_ISS304_作业包现状值重锚.md
+    - key: iss304_zero_board_no_landing
+      to: main
+      value: '零写板零落表双证: 板 md5 611b869e13518c3c023fb178f91a0075 + mtime 1793920037 逐字节未变; .kicad_pro md5
+        3e504d2be83152e337949723e909be1b + mtime 1793807250 逐字节未变; 网表 6aee500e… / 脚表 9174309d… / BOM 5b999399…
+        三个 md5 与 mtime 1794932468 一字未动; 落表台账 d1a7765b… 与 state/p10_rows.json 2836846d… 一个字节没动; 判据 HW/check_workpack_state_values.py
+        (md5 22c8a6c0…) 与 HW/check_pin_function_labels.py (md5 e7b90a04…) 一字未改'
+      ref: logs/iss304/09_regression_d.log + logs/iss304/01_before_md5.txt
+    - key: iss305_verdict_and_ownership
+      to: main
+      value: 'ISS-305 独立复验完成。★A~F 六条逐条判决: A=有条件通过(结论「11/11」在真判别式下成立, 但交付页/脚本的 ±3 行窗口判据非排他 ⇒ counterfactual
+        11/11 误放行, 证明手段不足) B=对(三处互证) C=部分 over-claim(宽版「多摄方案不成立」无依据, 须收窄成「实时 ISP 路数=1」) D=对(12x2^20=4096x3072
+        精确相等) E=对(MP/s 确为[0数据]) F=对(无[实测]混入)。★须 main 处理的 3 条: ① 交付页 §1.2 L64 收窄 over-claim(★high★, 它会变
+        demo 选型硬判据, 会误杀可行多摄方案) ② 被审脚本 ±3 窗口判据非排他 ⇒ 改判据或在交付页补口径说明 ③ HW/RK3572_PIN_TABLE/rk3572_pins.csv(+json)
+        在 dense 多功能区有 126 个 pin 名行归属错位 ⇒ 典型 CAM_CLK0_OUT_M0 归到 1AD23(真值 AM32/L1588) ⇒ 本单只读只报错不修; blast
+        radius 已核: 对 ISS-131 判决影响=0(被审脚本不读它) / TI_POWER_FACTS 引的 1C18+B28 落在简单区两套解析一致不受影响 / merge_pinctrl.py
+        产物 rk3572_pin_assign.csv 在盘上不存在未传播 ⇒ 另 交付页登记字节数 6,007 B 已过期(现在 8,863 B) 归 main 更新'
+      ref: HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md (B2 读数三件套 + B3 六条判决 + B5 need 八条) + logs/iss305/07_ball_truth_parse.log
     open_questions:
     - id: HW-Q1
       to: main
@@ -7080,15 +7311,13 @@ domains:
       phase: delivered
       progress_pct: 100
       health: green
-      summary: ★ISS-293 (main 16:5x 派单 · cron fb67af40 · sw-lead · cont1 续做) = SW 侧复评文档 ADC 段口径收口 + 一道新闸★
-        ⇒ ① 文档 SW/SW_TIMING_REVIEW.md 按 ISS-291 现行闸追加式订正 26 行 (判决对象 VBUS_DET_D → BAT_DET pin38/SARADC_VIN5/1.8V
-        域 ⇒ 37500.0Ω · 33.791ms · 2.1%FS · LSB 0.439mV · 节点 1.575V ≤ 1.98V ⇒ 六判据全 ✔ ⇒ 老红 = 假红已作废; BAT_DET
-        三颗 100k+60k+100nF 已必装 ⇒ §7-4 那条 P0 解除) ⇒ ② 新闸 SW/tools/check_timing_review_adc_sync.py (29 项 +
-        --selftest 4/4 · 全部沙盒副本做 · 真件零触碰) ⇒ ③ 回归本趟自己实跑全 rc=0 (timing_check SELFTEST 85/85 · --only F4_adc_det
-        0 · --only F4D 0 · demo_panel_spec 0 + selftest 22/22 · merge 0 · gate Q1 18/18) ⇒ ④ 受保护 5 件 md5
-        逐字节不变 (板 611b869e / .kicad_pro 3e504d2b / 网表 37f62ac3 / 脚表 a4270120 / BOM 5d02bece) + 板 mtime
-        仍 2026-11-06 07:07:17 ⇒ 零写板零落表 ⇒ ⑤ 不自签 issue_log; need iss293_sw_m7r6_sync_to_main 已登记给 main;
-        交卷单 = HANDOFF/2026-11-17_sw-lead_ISS293_ADC复评文档口径同步.md (B0~B7) ★
+      summary: '★ISS-306 (main 2026-11-18 02:0x 派单 · cron fb67af40 · sw-lead) = G1a 剩下两条红 (G1a-4 / G1a-8)
+        逐条归类 + 板那一趟开工前置清单 ⇒① B1 判决 C: R4 半条 2焊盘 = 判据口径过期 (派生句, 随 W-2 自动转绿, 零修闸) + D− 裸奔 = 真缺口 ⇒② B2 D−
+        裸奔真缺口归老板 W-2 (need key boss_esd_model_axis_pending_20261117 第②问) ⇒③ B3 R9 47.99mm = 现状事实 (探针逐字复刻判据函数)
+        属改板落位 ⇒ 板那一趟 S4/B-4 同趟消化 零字母 ⇒④ B4 R3 = 板文件属性 ⇒ 板那一趟 S3 同趟消化 零字母 ⇒⑤ B5 G1a-8 = ISS-097 仍 fixed
+        是等老板验签 (真外部依赖 判据状态集没选错) 只能催拍 不许自代验 ⇒⑥ 板那一趟开工前老板还差 N = 4 个字母 (W-2 + W-1b/W-1c 型号轴 + A4老表关机语义 +
+        A5老表负载开关追认) 其中卡 G1a 转绿的只有 2 个 ⇒⑦ 零写板零落表零改闸零外发 (板 611b869e / 网表 6aee500e / 脚表 9174309d / BOM 5b999399
+        前后逐字节不变) ⇒交卷单 = HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md (B0 表 + B1 五段依据页) ★'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -8492,6 +8721,13 @@ domains:
       updated_at: '2026-10-25'
       summary: 'ISS-298 · SW 侧合法改板通道交卷单: B1~B8 填满 (判据源换源 / fail-closed 三条不降 / 反向用例 16 条 / 回归 rc 原样 / 边界自检
         / 分片 need / 证据分级 / 零外发)'
+    - path: HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md
+      kind: handoff
+      version: v1.0
+      updated_at: '2026-11-18'
+      summary: ★ISS-306 交卷单 = B0 板那一趟开工前置清单 (6 行 × 6 列 + 结论行 N=4) + B1 溯源依据页五段 (B1 判据过期+真缺口 / B2 D− 裸奔真缺口
+        / B3 R9 现状事实同趟 / B4 R3 同趟消化 / B5 G1a-8 真外部依赖只能催拍) + 交付时读数 / 现在读数 / 归属单八行 / 边界自证七条★ 性质 纯分析溯源 零写板零落表零改闸零外发
+        不替老板拍板 只给选项+代价+建议默认值
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -10976,6 +11212,23 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss306_sw_g1a_reds_rootcause_done
+      to: main
+      item: '★ISS-306 (sw-lead) 已交卷: G1a 两条红 (G1a-4 / G1a-8) 逐条归类完毕 ⇒ 板那一趟开工前老板还差 N = 4 个字母: ① W-2 (D−
+        侧补不补 ESD) ② W-1b/W-1c (D+ 那颗真 OPN 型号轴) ③ A4 老表 (关机语义 建议 C+A ⇒ HW/POWER_SHUTDOWN_V3.md 签收) ④ A5
+        老表 (追认负载开关 TPS22991RAA) ⇒ 卡 G1a 两条红转绿的只有 2 个 (①+③), R3 与 R9 同趟消化零字母 ⇒ ★催拍时必须回 need key 不能回裸字母
+        A4/A5 (落表器新映射 A4=V-5 / A5=V-6 ⇒ 错位标签 rc=2 零写盘 老板白回一次) ⇒ ★另请 main 决定: 落表台账 L166 与作业包 L199 的 R4
+        文字口径 (焊盘数 = 3) 比机器闸严一档 (代码 L1375 耦合 not hit) ⇒ 这属口径漂移, 本单零改闸, 修不修由 main 开单★'
+      since: '2026-11-18'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: debug_port_form
       to: hw-lead
@@ -11377,17 +11630,17 @@ domains:
       phase: delivered
       progress_pct: 100
       health: 绿
-      summary: 'ISS-300 交卷 (2026-11-17 21:5x) ⇒ 本单 = 纯门禁类 · 零写板活: ① 新建 MECH/check_onepass_mech_release.py
-        = MECH 侧「板只改一次」准出汇总闸, 聚合跑 6 道闸 (check_board_frame_coords / check_demo_struct_truth / check_onepass_mech_sync
-        / check_onepass_struct_crosscheck / board_port_opening_s6_check / check_mech_verdict_freshness),
-        逐条打印每道 rc + 汇总 rc + 点名红闸; fail-closed 语义照 state/gate_check.py 的 run_external_gate 逐条照抄 (脚本不存在
-        / 跑不起来 / 超时 ⇒ 一律算闸红, 绝无「没跑就当过」); 清单缺一道 ⇒ 汇总直接红; 主跑 rc=0 (6 道逐条 rc=0) + --selftest rc=0 (反向用例 6
-        条全抓到, 含真沙盒真篡改: 改 1 个开口坐标常量 ⇒ 汇总红 + 点名 check_board_frame_coords.py + 其余 5 道仍绿, 恢复 ⇒ 回绿, 真件 md5
-        不变) ② 零写板: 板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17.362193413 + .kicad_pro
-        3e504d2be83152e337949723e909be1b + 网表 37f62ac3f0b81d92ca7d48fdea717f07 + 脚表 a4270120454aedf7a23c92cd8985c8a6
-        + BOM 5d02bece9477ffce5fbe0193c7d5cce4 六件前后逐字节不变 (差集只有新增的那一个文件) ③ 零落表 (台账 md5/mtime 不变) · 零改既有
-        6 道闸 · 零改 state/gate_check.py (挂闸是 main 的活) · 零碰 HW/ SW/ · 零外发 · 不代拍 · 不自签 issue_log · 实物 [实测]
-        = 0 条'
+      summary: '★ISS-303 交卷 (2026-11-18 01:1x) · 本单 = 闸机制类 · 零写板 · 零落表 · 零外发 ★: ① MECH/check_onepass_struct_crosscheck.py
+        的 N6 判决源从【写死硬基线常量 PROTECTED_LEDGER_MD5】换成【硬基线 ∪ 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 里该文件登记过的
+        md5】(读台账 · 不把新 md5 写死 · 硬基线常量一个字没改) ⇒ 病根 = 判决源选错了 (不是真源被改了) ② 板 2 件 (demo_mainboard.kicad_pcb
+        / .kicad_pro) 的判据逐字不变 (ISS-296 合法改板通道一个字没动) ③ fail-closed 四条一条没弱化: 台账读不到 / 台账里找不到该文件 / 链头不唯一 /
+        链断或有记录不在链上 ⇒ 一律红 (另: 链头无落表单号 ⇒ 红) ④ 台账解析只读调用 MECH/check_board_frame_coords.py 的 ledger_state /
+        ledger_cover_rows / m12 (不自造第二套 · 同域 MECH/ 内 · 代码级耦合已登记 need 给 main) ⑤ 反向用例: --selftest 新增 ⑬~⑲
+        7 条 + 沙盒脚本 8 条 (网表假 md5 / 脚表假 md5 / 删 ISS-302 行链断 / 链头不唯一 / 伪造 md5 盘上不符 / 台账缺失 / 改板文件 / 正向对照绿)
+        ⇒ 真盘 5 件 md5 一个字节没动 ⑥ 回归: MECH 7 道闸全 rc=0 (含 check_onepass_mech_release 汇总 绿 6 / 红 0 ⇒ 结构侧可以出
+        Gerber) · 改前 rc=1 (绿 5 / 红 1 · 红的那道就是 N6) · state/gate_check.py 的红归 ISS-304 (HW/check_workpack_state_values.py)
+        不归本单 ⑦ 边界: 零写板 · 零落表 (台账/网表/脚表/BOM/state/p10_rows.json 一个字节没动) · 不许改 HW/ 与 SW/ 任何文件与分片 · 不自签 issue_log
+        · 实物 [实测] = 0 条'
     artifacts:
     - path: MECH/MECH_BUDGET.md
       kind: budget
@@ -12592,6 +12845,24 @@ domains:
       summary: ISS-300 日志目录 · boundary_before.txt / boundary_after.txt (六件 + MECH/*.py md5 前后对照) · main_run.log
         (汇总闸主跑 rc=0 逐条 rc) · selftest.log (反向用例 6 条全抓到) · reverse_case.log (沙盒真篡改 ⇒ 汇总红 + 点名 + 恢复回绿) ·
         6 闸本体各自 rc=0 读数
+    - path: MECH/check_onepass_struct_crosscheck.py
+      kind: gate
+      version: ISS-303
+      updated_at: '2026-11-18'
+      summary: '结构侧交叉核对闸 N6 判决源改造: 台账管理 3 件 (网表/脚表/BOM) 判决源 = 硬基线 ∪ 落表台账登记值 (读台账 · 只读调用 MECH/check_board_frame_coords.py
+        的 ledger_state/ledger_cover_rows/m12) · fail-closed 四条一条没弱化 · 板 2 件判据逐字不变 (ISS-296 通道没动) · --selftest
+        新增 ⑬~⑲ 7 条反向用例 (条数只增不减) · 主跑 rc=0 · --selftest rc=0'
+    - path: HANDOFF/2026-11-18_mech-lead_ISS303_N6合法落表跳.md
+      kind: handoff
+      version: v1.0
+      updated_at: '2026-11-18'
+      summary: ISS-303 交卷单 (B0~B6 六块 + 沙盒反向用例 8 条原样 rc + 期望红组 vs 实际红组 + 边界自证 + 证据分级)
+    - path: logs/iss303/
+      kind: log
+      version: ISS-303
+      updated_at: '2026-11-18'
+      summary: 改前读数 (00_*) / 改后读数 (01_* / 02_* selftest) / 沙盒反向用例 8 条 (03_*) / 全量回归 (04_*) / 台账解析探针 +
+        沙盒脚本 + 回归脚本
     blockers:
     - id: MECH-B1
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -16235,6 +16506,37 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss303_mech_n6_depends_on_cfc_ledger_api
+      to: main
+      item: 'ISS-303 · 代码级耦合登记 (任务书 B1 硬要求) ⇒ MECH/check_onepass_struct_crosscheck.py 的 N6 现在只读调用 MECH/check_board_frame_coords.py
+        的 5 个名字: ledger_state(rel,text) / ledger_cover_rows(text,rel) / m12(value) / PROTECTED / LEDGER_CANON
+        ⇒ 这 5 个名字不许改 (改名 = 我的闸 fail-closed 恒红) · 若要改口径请走同源改法 (ISS-296 同源探针 logs/iss296/probe_ledger_reading_same_source.py
+        继续跑) ⇒ 代价: 板帧坐标闸与结构交叉核对闸共用一套台账解析器 ⇒ 好处: 口径零漂移 · 边界: 同域 MECH/ 内 ⇒ 不碰 HW/ 与 SW/'
+      since: '2026-11-18'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss303_mech_n6_membership_vs_equality_caliber
+      to: main
+      item: 'ISS-303 · 一个待裁决口径 (不代拍) ⇒ 事实: N6 现在是【成员判定】(盘上 md5 ∈ 硬基线 ∪ 台账登记过的 md5) 而 MECH/check_board_frame_coords.py
+        的 C4 仍是【等值判定】(盘上 md5 必须 == 台账链头) ⇒ 若台账里出现链上历史值 (或盘上被回滚到硬基线) 则 C4 会红而 N6 会绿 ⇒ 代价: 两道闸口径不同源 (一道兜底合法落表跳
+        · 一道严格等值) ⇒ 建议: 保持现状 (严格等值仍由 C4 承担) 或把 N6 也改成等值 (更严但盘上回滚场景会红) ⇒ 本单按任务书 B1.2 的字面口径实现 (成员判定)'
+      since: '2026-11-18'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: hw-lead
@@ -16689,6 +16991,14 @@ domains:
         两行, L1~L2161 与备份逐字节相同) / 零外发 / 不代拍 / 不自签 issue_log / 实物 [实测] = 0 条★'
       ref: HANDOFF/2026-11-17_mech-lead_ISS295_结构输入认领与防漂闸.md §B6 · MECH/BOARD_ONEPASS_MECH_CLAIMS.md §6
         · MECH/check_mech_verdict_freshness.py
+    - key: iss303_mech_n6_ledger_jump_fix
+      to: main
+      value: '★ISS-303 交卷 (mech-lead)★: MECH/check_onepass_struct_crosscheck.py 的 N6 判决源已从【写死硬基线常量】换成【硬基线
+        ∪ 落表台账登记值】(读台账 HW/SCHEMATIC_LANDING_V1_LANDED.md · 不写死 md5) ⇒ ① 病根 = 判决源选错了 (不是真源被改了) ② 板 2 件判据逐字不变
+        (ISS-296 合法改板通道没动) ③ fail-closed 四条一条没弱化 ④ 反向用例 8 条沙盒实测全红 (含台账缺失 / 链头不唯一 / 链断 / 伪造 md5) + 正向对照绿
+        ⇒ 闸不是恒红 ⑤ 汇总闸 MECH/check_onepass_mech_release.py 回到 绿 6 / 红 0 ⇒ rc=0 ⇒ 落表跳那趟的结构侧假红消掉 ⇒ 零写板 · 零落表
+        · 零外发 · 实物 [实测] = 0 条'
+      ref: HANDOFF/2026-11-18_mech-lead_ISS303_N6合法落表跳.md · logs/iss303/ (00~04)
     open_questions:
     - id: MECH-Q1
       to: main
@@ -20379,6 +20689,157 @@ interface_claims:
     noncanonical_by:
     - hw-lead
     conflict: false
+  iss302_csys_landing:
+    values:
+      hw-lead: C_SYS / SYS_CHG 由 DNP 改为必装 + note 追加式订正 (老字逐字留痕, 一字未删) + BOM L48 加 1 颗 20µF 6.3V X7R 必装
+        (镜框充电板 P10)
+    notes:
+      hw-lead: 依据 = TI bq25896 datasheet SLUSC76C §7 逐字 Connect a 20uF closely to the SYS pin. [官网] (本机缓存
+        PDF pdftotext 逐字 + ti.com/lit/gpn/BQ25896 联网自查逐字, 两路互证) · 真源 = state/p10_rows.json · 落表脚本 = state/_apply_iss302_csys_landing.py
+        (11811 B) · 台账 = HW/SCHEMATIC_LANDING_V1_LANDED.md §19 (L1437 起) + ISS302_ROWS L1451~L1455 · 交卷单
+        = HANDOFF/2026-11-18_hw-lead_ISS302_CSYS落表.md
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss302_zero_board_change:
+    values:
+      hw-lead: '零写板双证: HW/PCB/demo_mainboard.kicad_pcb md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06
+        07:07:17.362193413 逐字节未变; HW/PCB/demo_mainboard.kicad_pro md5 3e504d2be83152e337949723e909be1b
+        + mtime 2026-11-04 23:47:30.279742515 逐字节未变; 本轮 cont1 三件产物 (网表 6aee500e60ba0732f83a9cf557ba90ab
+        / 脚表 9174309df1ec9411ac8e8d9e80ee386a / BOM 5b9993992405904a60ac96a020b375d8) 的 md5 与 mtime (2026-11-18
+        00:21:08) 一字未再动'
+    notes:
+      hw-lead: 台账 §16.2 与 §19.3 的登记值 = 盘面现值 三者一致; MECH/check_onepass_struct_crosscheck.py 的 N6 里板与 .kicad_pro
+        两条是 == (没变), 红的 3 条全是纸面产物 ⇒ 零写板成立; CHG_BOARD 无 PCB 文件 ⇒ 装不装都在同一次布局里落 ⇒ 不构成板改第二次
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss305_ball_truth_verdict:
+    values:
+      hw-lead: '【真判别式】(ball→pin 名集合, 排他归属) 重判 11 条 CSI/MCLK 落位 ⇒ T1 归属 11/11 ✔ + T2 排他 11/11 ✔ ⇒ 交付页「球位号
+        11/11 与官方逐条对上」这个【结论】成立。逐条: A20=CSI0_RX_CLKP(L1785) B20=CSI0_RX_CLKN(L1787) A19=CSI0_RX_D0P(L1777)
+        B19=CSI0_RX_D0N(L1779) 1B14=CSI0_RX_D1P(L1781) 1C14=CSI0_RX_D1N(L1783) A22=CSI1_RX_D0P(L1789)
+        B22=CSI1_RX_D0N(L1791) A23=CSI1_RX_D1P(L1793) B23=CSI1_RX_D1N(L1795) AM32=CAM_CLK0_OUT_M0(L1588
+        名在 L1589)。A22/B22/A23/B23 四条 = 同球双名 {CSI0_RX_D2P+CSI1_RX_D0P} 等 ⇒ 排他判定仍过'
+    notes:
+      hw-lead: '★但【证明手段】不够: 被审脚本 state/_iss131_crosscheck_rk3572_caliber.py 的判据是「ball 锚点 ±3 行窗口」⇒ 非排他
+        ⇒ 我做了 counterfactual 实验: 把 11 条信号名全换成属于别的球位的名字 ⇒ ±3 窗口 11/11 仍判绿 (每条窗口里躺着 2~8 个别球位的 pin 名) 而真判别式
+        0/11 ⇒ 交付页 §1.1 那 11 个「✔」目前是靠一个分不清相邻球位的判据背书的 ⇒ 归属 main。★解析口径 = §2.6 Pin Number List (L914..L2288)
+        + 表行几何 3 文本行 + 左列无分隔符拼接后按 / 拆 (★PDF 折行会断在 token 里: 实测 GP + IO1_A5_u = GPIO1_A5_u / SAI0_SDI2_M
+        + 0/ = SAI0_SDI2_M0★) ⇒ 上一趟 log 06「严格 token 级只过 1 条」是【假阴性】(判据 bug, 不是数据错)'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss305_c_overclaim:
+    values:
+      hw-lead: '【C 判据 · 部分 over-claim · 归属 main】交付页 §1.2 L64「One channel ISP ⇒ 同一时刻只有 1 路传感器能进 ISP ⇒ 多摄像头方案在
+        RK3572 上不成立」★前半句站得住 (官方 L488 One channel ISP,12M pixels), 后半句【超出 datasheet 能支撑的范围】★。四条反证(全部官方逐字):
+        ① L458 VICAP 是 §1.2.8 里与 ISP 处理核并列的另一块硬件 ⇒「1 路」只约束 ISP 处理核, 不约束 VICAP 收流; ② L464 Support receiving
+        four groups of MIPI CSI interfaces,up to four IDs for each group + L465 Support VC/DT configurable
+        for each ID ⇒ 硅明确支持同时收 4 组 CSI; ③ L484 Support sending RAW data directly to ISP + L522-523 Online
+        mode: ...data from VICAP to 3A ⇒ VICAP 数据可不经过 ISP 处理核直达 Encoder/3A; ④ L445 Each port supports
+        4 virtual channels + L468 virtual channel mode + L477 Support reducing frame rate ⇒ 虚拟通道复用+降帧是官方给的多摄机制。⇒
+        【窄版成立】实时 ISP 处理路数 = 1(多路须 VICAP 虚拟通道+降帧时分) 【推算】; 【宽版无依据】多摄方案不成立 ⇒ 若拿它当 demo 选型硬判据, 会误杀本来可行的多摄方案'
+    notes:
+      hw-lead: ★交付页 §3-3 自己已标 [官方+推算] 并建议进决策页给老板确认 ⇒ 属「正文比自己的边界声明更宽」, 改 §1.2 L64 一句即可, 不用推倒重写。★ISP 能否多摄并发
+        = [0数据] ⇒ 要官方 TRM/产品页(自己查, 老板 11-12 02:02 口径「不再发信」)或板端实测(ISS-210) ⇒ hw-lead 不替老板拍板
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss305_b_c_d_e_f_ok:
+    values:
+      hw-lead: '【B/D/E/F 四条 = 对】B: 「CSI 2 接口 vs VICAP 4 组」读法成立且 datasheet 内部三处互证 —— 特性表 L442 Support 2
+        MIPI CSI-2 interfaces / L443 Two 4 data lanes of D-PHY v1.2 / L444 Each interface may be configured
+        as 2x2 data lanes port / L445 Each port supports 4 virtual channels + VICAP L464 four groups;
+        ★球位表自己摆着 4 个 D-PHY 分组 CSI0(4-lane: A19/B19/1B14/1C14/A22/B22/A23/B23 + clk A20/B20) CSI1(2-lane:
+        A22/B22/A23/B23 + clk 1B16/1C16) CSI2(4-lane: A13/B13/1B10/1C10/A16/B16/A17/B17 + clk A14/B14)
+        CSI3(2-lane: A16/B16/A17/B17 + clk 1B12/1C12); ★电源球表 L1801 MIPI_DPHY_CSI0/1_RX_AVDD0V75(2B5) +
+        L1829 MIPI_DPHY_CSI2/3_RX_AVDD0V75(2B4) ⇒ CSI0/1 共用一个 D-PHY 模拟域, CSI2/3 共用另一个 ⇒ 物理 = 2 个 4-lane
+        D-PHY, 拆 2x2 后 = 4 个 2-lane 口组 ⇒「2」与「4」是同一颗硅的两层命名, 不是矛盾。D: 4096x3072 = 12,582,912 = 12x2^20 精确相等
+        ⇒「12M」= 12 Mibixel(二进制) 且 = Maximum input:4096x3072(L490) ⇒ 单帧分辨率上限成立; 全文未把 12M 写成十进制 12,000,000
+        ⇒ 不构成缺陷(建议补一句口径, 影响 0)。E: MP/s=[0数据] 成立 —— 我独立复核 10 个检索词: MP/s 0 / MPPS 0 / MPixel 0 / throughput
+        0 / pixel rate 0 / pixels per second 0 / megapixel 1(L162 12-Megapixel ISP = 档位) / bandwidth 1(L172
+        LPDDR5 内存带宽, 非 ISP) / fps 13(全是编解码器分辨率)。F: 全篇无 [实测] 混入 —— grep 实测 命中 7 处逐条核(L29 本机 md5 比对 / L85
+        纪律 / L87+L96+L97+L107 未来计划 / L106 明确声明 实物[实测]=0 条) ⇒ 无一处当作已完成的板级实测引用'
+    notes:
+      hw-lead: ★B/C/D/E/F 的逐条判决 + 依据行号 + 我建议改的那句话, 全部落 HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md
+        B3-B~B3-F ★★不写「全部通过」★★
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss305_zero_board_change:
+    values:
+      hw-lead: '零写板双证: HW/PCB/demo_mainboard.kicad_pcb md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06
+        07:07:17.362193413 逐字节未变; HW/netlist_v1.csv md5 6aee500e60ba0732f83a9cf557ba90ab + mtime 2026-11-18
+        00:21:08.701116490; HW/netlist_v1_pins.csv md5 9174309df1ec9411ac8e8d9e80ee386a + mtime 2026-11-18
+        00:21:08.806117786; HW/BOM_v1.csv md5 5b9993992405904a60ac96a020b375d8 + mtime 2026-11-18 00:21:08.953119601
+        ⇒ 跑前跑后 4 件全同。被审脚本 state/_iss131_crosscheck_rk3572_caliber.py md5 6fff079d946f07d7b3c279b292273cca
+        全程未碰(交卷前原样复跑 rc=0)。本单新增文件仅 3 个(全是复验工具/日志, 非工程文件): state/_iss305_ball_truth_parser.py + logs/iss305/07_ball_truth_parse.log
+        + logs/iss305/08_final_gates.log'
+    notes:
+      hw-lead: 本单只读复验 ⇒ 没改任何工程文件(网表/脚表/BOM/板/脚表 CSV/交付页/datasheet txt+PDF/rk3572_pins.csv 全部 md5+mtime
+        不变) ⇒ 板只改一次铁律不受影响; 零外发(连 web 搜索都没做); 未签 state/issue_log.yaml
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  esd_usb_d_dual_channel_opn_candidates:
+    values:
+      hw-lead: C1=TPD2EUSB30DRTR / C2=TPD2E2U06DCKR / C3=ESD752DCKR / C4=CM1218-02S7
+    notes:
+      hw-lead: iss307 4 条 3 脚双通道件候选 (官网 datasheet 逐字核过, 2 个厂商 TI+onsemi); 建议默认值 C1 (★建议非决定★); ★本单不设 claim
+        值, 型号归老板 need W-1c 拍★
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  esd_usb_d_r9_criterion_kind:
+    values:
+      hw-lead: 封装原点距 (footprint origin to origin), 阈值 3.0 mm
+    notes:
+      hw-lead: 'iss307 实测: R9 不是焊盘中心距, 是两个封装原点 (at x y) 的欧氏距; 判据原文 check_netlist_selfconsistency.py L1218-L1219
+        + L1448-L1452 + 常量 L128'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  esd_usb_d_placement_window:
+    values:
+      hw-lead: x 138.25..141.75 / y 7.65..8.25 (C1 DRT); x 138.55..141.45 / y 7.85..8.25 (SC70-3)
+    notes:
+      hw-lead: 'iss307 网格扫描: 唯一可落区 = J_USB_C 正下方 (courtyard 下沿 6.92 ⇒ y0>=6.92+hc/2; R9 ⇒ y0<=8.25 ⇒ courtyard
+        高 hc<=2.66mm); 推荐 (140.00,7.65)=2.400mm 或 (140.00,7.85)=2.600mm; ★ISS-306 与决策页给的 (137.18,6.28)
+        实测 3.0022mm ⇒ 不通过, 必须换掉★'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  esd_usb_d_arch_axis_state:
+    values:
+      hw-lead: 当前 single2 (2 脚单通道) + 台账 L166 与 L934 矛盾未承认
+    notes:
+      hw-lead: 'iss307 真源链: state/gen_netlist.py L1451+L1454 (2 行) + L122 (TPD1E05U06DPYR) + land_v_values.py
+        L888/L721-L743 (arch 2 = dual3, 已工具化未拍) + 决策页 L824 (老板 11-17 09:49 A3=V-2=1) + 台账 §16 LANDING_AUTH
+        ISS-283 行; 台账 grep 矛盾|冲突 3 条全不属 ESD ⇒ 台账从未承认; ★以哪行为准归 main/老板, 本单不代判★'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
   temple_thickness:
     values:
       mech-lead: 7.30mm
@@ -23526,6 +23987,76 @@ interface_claims:
     noncanonical_by:
     - mech-lead
     conflict: false
+  iss303_mech_n6_ledger_judgment_source:
+    values:
+      mech-lead: 'N6 判决源 (台账管理 3 件: 网表 / 脚表 / BOM) = 硬基线 ∪ 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 里该文件登记过的
+        md5 (读台账 · 不把新 md5 写死成常量 · 硬基线常量一个字没改)'
+    notes:
+      mech-lead: 合法落表一次 ⇒ 台账登记值前移 ⇒ 绿 (落表跳不再假红) · 盘上 md5 ∉ 合法集合 ⇒ 仍然红 (判据方向不许变) · 台账读不到 / 找不到该文件 / 链头不唯一
+        / 链断 ⇒ 仍然红 (fail-closed)
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  iss303_mech_n6_board_channel_untouched:
+    values:
+      mech-lead: 板 2 件 (demo_mainboard.kicad_pcb / .kicad_pro) 的 N6 行为逐字不变 (硬基线比较 · ISS-296 合法改板通道一个字没动)
+    notes:
+      mech-lead: '反向用例⑦ 回归实测: 沙盒里改板 ⇒ N6 仍红 (rc=1 · 命中 受保护件被改 · 沙盒板 md5 611b869e ⇒ ce6d32cf) ⇒ 假红通道没被打开'
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  iss303_mech_n6_ledger_parser_reuse:
+    values:
+      mech-lead: 台账解析 = 只读调用 MECH/check_board_frame_coords.py 的现成解析器 (ledger_state / ledger_cover_rows
+        / m12) ⇒ 不自造第二套台账解析
+    notes:
+      mech-lead: 口径零漂移 ⇒ 两个闸对同一盘面永远给同一个答案 · 同域 (都在 MECH/) ⇒ 不碰 HW/ 与 SW/ 地界 · 代码级耦合已登记 need 给 main
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  iss303_mech_n6_failclosed_four:
+    values:
+      mech-lead: 'fail-closed 四条全在: ① 台账读不到 ⇒ 红 ② 台账里找不到该文件 ⇒ 红 ③ 链头不唯一 ⇒ 红 ④ 链断 / 有记录不在链上 ⇒ 红 (另: 链头无落表单号
+        ⇒ 红)'
+    notes:
+      mech-lead: '沙盒实测 rc=1: 台账缺失 ⇒ 3 条红 · 链头不唯一 ⇒ 命中链头 · 删掉 ISS-302 行 ⇒ 盘上现值 ∉ 合法集合 ⇒ 红 · 台账伪造 md5 但盘上不符
+        ⇒ 仍红'
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  iss303_mech_release_green_again:
+    values:
+      mech-lead: MECH 侧准出汇总闸 MECH/check_onepass_mech_release.py ⇒ 绿 6 / 红 0 ⇒ 汇总 rc=0 ⇒ 结构侧可以出 Gerber
+        (改前 rc=1 · 绿 5 / 红 1 · 红的那道就是 N6)
+    notes:
+      mech-lead: 零写板 · 零落表 · 受保护 5 件 md5 前后逐字节不变 (板 611b869e / .kicad_pro 3e504d2b / 网表 6aee500e / 脚表
+        9174309d / BOM 5b999399)
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  iss303_mech_zero_landing_proof:
+    values:
+      mech-lead: '零落表自证: 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md md5 d1a7765bb151cc69bb794dc6b6158264 (mtime
+        2026-11-18 00:22:44) + state/p10_rows.json md5 2836846d8ff503f98cc6d258a832664d (mtime 00:21:04)
+        ⇒ 两个 mtime 都早于本单开工 (00:53) ⇒ 本单对台账只读 (只当判决源)'
+    notes:
+      mech-lead: 本单写盘动作全部落在 MECH/check_onepass_struct_crosscheck.py + HANDOFF/2026-11-18_mech-lead_ISS303_N6合法落表跳.md
+        + logs/iss303/ + state/fragments/mech.yaml 四处
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
   display_frame_rate:
     values:
       main: 60fps
@@ -26540,6 +27071,111 @@ interface_claims:
     noncanonical_by:
     - sw-lead
     conflict: false
+  iss306_b1_r4_two_pad_verdict:
+    values:
+      sw-lead: '★判决 C (两部分分开写)★ C-1 判据口径过期: 老板 11-17 09:49 A3=V-2=1 = 2脚单通道 (决策页 L502/L505/L659/L824 +
+        台账 L1308 §16.1 落表后期望 expect-resolved 条数变化 = 0 条) ⇒ 2焊盘(D+ + GND) 就是老板已拍口径本身 ⇒ 台账 L166 与作业包 L199
+        写的『焊盘数 = 3』比机器闸严一档 = 口径漂移实锤; C-2 真缺口: D− 裸奔是真的. ★机器闸实际只要求 D− 两条网上有 ESD (check_netlist_selfconsistency.py:1369)
+        ⇒ 行2 (L1375 条件 pads<3 and not hit) 是行1 的派生句 ⇒ W-2 一落两条 R4 红一起转绿 ⇒ 零修闸成本; 唯一例外 = 若 W-2 选不补 D− ⇒
+        决策页 L834 原文要求判据口径必须显式改 ⇒ 那时才需另开修闸单'
+    notes:
+      sw-lead: '★归属: 随 W-2 (老板) 同趟消化 (板那一趟 S4/B-3+B-4+B-5) · 本单不修闸不改判据★'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss306_b2_dminus_bare_verdict:
+    values:
+      sw-lead: '★真缺口 + 归老板 W-2★ 实测: 探针逐字复刻判据函数 (import check_netlist_selfconsistency 的 _read_board) ⇒
+        hit = [] ⇒ 板上 4 颗 ESD (D_ESD_CAM / D_ESD_DEMO / D_ESD_LIGHT / D_ESD_USB_D) 无一挂在 D−; D− 两条网真实连接点
+        = NET_USB_D_N_TYPEC → TP_USB_D_N.pad1 / J_USB_C.padA7 / J_USB_C.padB7 / R_SER_USB_D_N.pad2 与 USB_D_N_SRC
+        → R_SER_USB_D_N.pad1 / J_SOM_P1.pad93 / J_SOM_P1.pad94 ⇒ 从 Type-C 座到 SoM 整条 D− 零 ESD 器件 ⇒ USB
+        D− 确实没有保护 (不存在别的原因)'
+    notes:
+      sw-lead: '★具体卡在字母 W-2 (need key boss_esd_model_axis_pending_20261117 第②问 · pm.yaml L674-680 无 decided_at
+        仍 OPEN)★ 不拍后果 = D− 出货裸奔 (台账 L168: Type-C 是日常插拔口, 4条里唯一用了就可能坏的) + S4 定不了 ⇒ 板改第二次 ⇒ Gerber/投产包/留证链/盖章/发布全作废'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss306_b3_r9_distance_verdict:
+    values:
+      sw-lead: '★① 现状事实 (不是判据算错) ② 属改板落位 ⇒ 板那一趟 S4/B-4 同趟消化 ③ 与 B2 是两件不同的事但必须同趟★ 实测 (探针逐字复刻 _board_ref_xy):
+        J_USB_C @ (140.00, 5.25) vs D_ESD_USB_D @ (94.95, 21.80) ⇒ hypot(45.05, 16.55) = 47.99 mm > 阈值
+        3.0 (ESD_MAX_DIST_MM L128) ⇒ 判红是事实; 量化: 至少挪 44.99 mm, 落位候选 ≈ (137.18, 6.28) [推算]; 落点必须走 state/gen_pcb_netlist_board.py
+        的 PCB_PART_POS 钉位 不许手改板坐标 (作业包 L195)'
+    notes:
+      sw-lead: '★零老板字母 (≤3.0mm 是硬判据不是选项) ⇒ 不计入 N★ 但与 B-3 同趟: 换封装⇒挪位⇒布线重跑 = 原子操作 (台账 L167 + 作业包 L197) ⇒
+        拆开做 = 板改第二次'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss306_b4_r3_same_trip_verdict:
+    values:
+      sw-lead: ★天然属于板那一趟同趟解决 ⇒ 同趟消化 不构成开工前置 不计入 N★ 判据 check_netlist_selfconsistency.py:1351-1355 读的是 board[U_EN_SW][value]
+        而 board 来自 _read_board (L493-527) ⇒ 读的就是 .kicad_pcb 的 (property Value) ⇒ 改它 = 改板; 板面实测 Value =
+        EN 输入 (高=放行底板) @ (105.1, 11.5); 作业包 L141 已把它列为板那一趟 S3 步 (B05_U_EN_SW_VALUE) + L187 验收判据 = Value
+        变成器件身份描述 (含 TPS22991RAA 型号串)
+    notes:
+      sw-lead: '★附实测坑 (给 hw-lead 不增加老板字母): 作业包 L184 台账 §12 B-2 说网表加了本体行后重跑 gen_pcb_components.py 自动刷 不成立
+        —— U_EN_SW 本体行在网表 L442 而第一行是 L440 (value EN 输出) ⇒ S3 必须显式改; 若板那一趟之前单独改 ⇒ 板 md5 先变一次 ⇒ 破板只改一次铁律'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss306_b5_g1a8_external_verdict:
+    values:
+      sw-lead: '★判决: 等老板验签 (真外部依赖) ⇒ 不许自己代验; 不是判据状态集选错★ 判据 check_stage_g1a.py:23 = ISS-097 与 ISS-172 status
+        ∈ {verified, closed} ⇒ fixed 语义就是产物已交付未经验签 ⇒ 正确地不该在 {verified, closed} 里 ⇒ 判据没选错 ⇒ 不许改闸; 现状 issue_log
+        L3150 owner=boss · L3153 due=2026-11-18 (今天) · L3154 status=fixed · L3158 fix_ref=HW/POWER_SHUTDOWN_V3.md
+        · L3159 verify_by=boss · L3160-3161 verify_result / verify_date = null · note 逐字 等老板验 (verify_by=boss)
+        + 2026-11-16 06:50 main 自产的文档不许自己验 (铁律 自己产的必须别人验) ⇒ 转成待老板审阅 owner=boss / external=true; 产物实测 HW/POWER_SHUTDOWN_V3.md
+        20677 B mtime 2026-11-17 23:17 头部 L3 验证人 = boss; ISS-172 已 verified ⇒ G1a-8 两条里只剩 ISS-097 一条'
+    notes:
+      sw-lead: '★催拍技术陷阱: 老板要回的不能是裸字母 A4/A5 —— 落表器新映射已是 A4=V-5 / A5=V-6 (作业包 L37 白名单 fail-closed 错位标签 rc=2
+        零写盘) 而这里的 A4/A5 是老表的另一组码 ⇒ 必须回 need key boss_shutdown_semantics_and_loadswitch_20261117 (pm.yaml
+        L728-729 已明写这两个 A 码不是一回事) ⇒ 老板白回一次 = 代价★'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss306_boss_letters_count_n4:
+    values:
+      sw-lead: ★板那一趟开工前, 老板还差 N = 4 个字母★ ① W-2 = D− 侧补不补 ESD (need boss_esd_model_axis_pending_20261117
+        第②问) ⇒ 卡 G1a-4 转绿 (R4 行1+行2) ② W-1b/W-1c = D+ 那颗真 OPN 型号轴 (同 need 第①问) ⇒ 卡板那一趟落地 (S4/B-3 换封装)
+        不卡 G1a 转绿 (机器闸不读 OPN) ③ A4 老表 = 关机语义 建议 C+A + HW/POWER_SHUTDOWN_V3.md 签收 (need boss_shutdown_semantics_and_loadswitch_20261117
+        第①问) ⇒ 卡 G1a-8 转绿 (ISS-097 fixed→verified) ④ A5 老表 = 追认负载开关 TPS22991RAA (同 need 第②问) ⇒ 不卡 G1a-8
+        转绿 (ISS-172 已 verified) 卡板那一趟开工前把网表收干净 (网表 L50 + BOM L216 仍留 ⇒ 选型口径待 A5 追认); 严格分层 = 卡 G1a 两条红转绿的
+        2 个 (①+③) + 只卡板那一趟开工的 2 个 (②+④); R3 与 R9 两条红同趟消化 零老板字母
+    notes:
+      sw-lead: '★依据: state/fragments/pm.yaml L674-680 与 L726-730 两个 need 均无 decided_at ⇒ 仍 OPEN; issue_log
+        ISS-181 note L6707-6709 写死 仍卡 ① A4/A5 关机语义+负载开关选型追认 ② ESD 型号轴 + D− 侧 (W-1b/W-1c/W-2) 还没拍 ⇒ 与 N=4
+        逐条对齐★'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss306_zero_write_md5_proof:
+    values:
+      sw-lead: '★零写板零落表零改闸零外发 自证★ 交付时读数 (2026-11-18 02:06:46 本机实跑) 与 现在读数 逐字节一致: 板 HW/PCB/demo_mainboard.kicad_pcb
+        = 611b869e13518c3c023fb178f91a0075 · 网表 HW/netlist_v1.csv = 6aee500e60ba0732f83a9cf557ba90ab ·
+        脚表 HW/netlist_v1_pins.csv = 9174309df1ec9411ac8e8d9e80ee386a · BOM HW/BOM_v1.csv = 5b9993992405904a60ac96a020b375d8;
+        HW/check_netlist_selfconsistency.py 与 state/check_stage_g1a.py 只读未编辑; 只写 3 个路径: HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md
+        + logs/iss306/** + state/fragments/sw.yaml; 未碰 pm.yaml / hw.yaml / mech.yaml; 未自签 issue_log; 未外发'
+    notes:
+      sw-lead: '★证据分级: 全部 [实测] (本机实跑原样 rc + 探针复刻判据函数) · 唯一 [推算] 是 R9 落位候选坐标 (137.18, 6.28) · 无 [0数据]★'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
 needs_matrix:
   pending:
   - key: soc_cost_criterion
@@ -26691,6 +27327,13 @@ needs_matrix:
       这一单 = ① H-1 重锚第 2 跳 (★hw-lead·它自己的地界★) ② 给 `run_external_gate` 加 per-gate 参数支持 (★main 自己的活·state/gate_check.py★)
       ③ 把 8 道挂进 `EXTRA_GATES` (★main 自己的活★) ⇒ ★**顺序: ①②③ 一批做完 ⇒ 链当场绿 (★不是当场红★)★** ★'
     since: '2026-11-17T20:55:00+08:00'
+    _by: main
+    state: pending
+  - key: iss131_mp_s_throughput_still_zero_data
+    to: main
+    item: '★ISS-131 遗留: RK3572 ISP 的 MP/s 吞吐上限仍是 [0数据] ⇒ 降级方案两条: ①官方 TRM (本机只留 datasheet V1.1·无 TRM·需联网查·标[官网])
+      ②板端实测 (ISS-210 已把 60ms 判据链+ISP 段打点备好) ⇒ ★在拿到其中之一前·任何 MP/s 数字只能标[推算]并写清推算链·不许拿经验值冒充实测★'
+    since: '2026-11-18'
     _by: main
     state: pending
   - key: iss081_pm_decisions
@@ -27980,6 +28623,59 @@ needs_matrix:
     since: '2026-11-17'
     _by: hw-lead
     state: pending
+  - key: iss304_reanchor_flow_into_f1
+    to: main
+    item: 落表后的重锚流程现在是两条命令 (① python3 state/_iss277_build_preflight.py ② python3 state/_iss304_sync_state_baseline_md5.py)
+      —— 台账口径那 4 条不用手改了, 但作业包 §8.3.2 强制项 F-1 的文字还写着「同一次重锚两份文档的 state_baseline 写死期望值」这句手工活 ⇒ 建议 main 把
+      F-1 改成这两条命令 (本单没动 §8.3.2 的老字, 那是追加式纪律里的老字, hw-lead 不代拍)
+    since: '2026-10-25'
+    _by: hw-lead
+    state: pending
+  - key: iss304_25_hardcoded_entries
+    to: main
+    item: '29 条登记里只有 4 条走台账口径 (本单已自动化), 其余 25 条仍是写死的现状值 ⇒ 下次落表必有一批红 (这是设计意图: 现状值漂了当场看见, 不是板改坏了) ⇒ 要根治得把那
+      25 条也接进真源现读, 但它们各挂不同真源脚本 (DNP 颗数/脚表缺陷/板面封装数/铜层/板框/后缀数) ⇒ 工程量远大于本单 ⇒ 建议排在「板只改一次」那一趟之后单开一单 (那一趟会同时改掉其中一批数)'
+    since: '2026-10-25'
+    _by: hw-lead
+    state: pending
+  - key: iss305_n1_rk3572_pins_rowshift
+    to: main
+    item: 'HW/RK3572_PIN_TABLE/rk3572_pins.csv(+rk3572_pins.json) 在「左列跨行+锚点在行中」的 dense 区有系统性行归属错位 ⇒ 126
+      个 pin 名被归到错球(典型: CAM_CLK0_OUT_M0→1AD23 真值 AM32/L1588; DSMC_RESETN→1AD23 真值 AM32; DSMC_CLKN→AM32
+      真值 AM33; CAM_CLK0_OUT_M1→1B6 真值 1A6; CAM_CLK1_OUT_M1→B8 真值 1B6)。根因 = parse_rk3572_datasheet.py L76-92
+      的 pending_name 累积逻辑(断词+错行)。★本单只读, 没修。blast radius 已核: ① 对 ISS-131 判决影响=0 ② TI_POWER_FACTS.md L50/L95
+      引的 1C18/B28 在简单区不受影响 ③ merge_pinctrl.py 产物 rk3572_pin_assign.csv 在盘上不存在未传播, 且它 FIXED 表的 CSI_D0_*
+      两套解析一致 ⇒ 将来跑也对 ④ TP_INT_REMAP_SPEC.md L421 引 rk3572_pins.json ⇒ 请核它引的具体球位。请派单修(★修解析器, 别改数据★)'
+    since: '2026-11-18'
+    _by: hw-lead
+    state: pending
+  - key: iss305_n2_window_criterion
+    to: main
+    item: '被审脚本 state/_iss131_crosscheck_rk3572_caliber.py 的球位判据(±3 行窗口)非排他 ⇒ counterfactual 实测 11/11
+      误放行 ⇒ 交付页 §1.1 的 11 个「✔」背书不足。两个选项请 main 选: ① 换排他归属判据(本单 state/_iss305_ball_truth_parser.py 可直接复用,
+      但那是新增文件不是对被审脚本的改写) ② 保留判据但交付页加一句口径说明。★hw-lead 未改被审脚本任何判据(它是本单复验对象), 也没有自改再报绿'
+    since: '2026-11-18'
+    _by: hw-lead
+    state: pending
+  - key: iss305_n3_c_overclaim_fix
+    to: main
+    item: '交付页 §1.2 L64「One channel ISP ⇒ 同一时刻只有 1 路传感器能进 ISP ⇒ 多摄像头方案在 RK3572 上不成立」★宽版 over-claim★ ⇒
+      建议收窄为「RK3572 ISP 处理核单通道 ⇒ 同一时刻只有 1 路传感器能被 ISP 实时处理(多路需靠 VICAP 虚拟通道复用 + 降帧时分处理)」。反证(官方逐字): VICAP
+      是并列硬件(L458) / 收 4 组 CSI 每组 4 ID(L464+L465) / VICAP 可不经过 ISP 处理核直达 Encoder·3A(L484+L522-523) / 虚拟通道+降帧(L445+L468+L477)。★它将来会变
+      demo 选型硬判据 ⇒ 宽版会误杀可行多摄方案 ⇒ high。★ISP 能否多摄并发本身 = [0数据] ⇒ 要官方 TRM/产品页(自己查, 老板 11-12 02:02 口径「不再发信」)或板端实测(ISS-210)
+      ⇒ hw-lead 不替老板拍板'
+    since: '2026-11-18'
+    _by: hw-lead
+    state: pending
+  - key: boss_esd_model_axis_pending_20261117
+    to: boss
+    item: 'iss307 交回 need key + 决策码 (★不回裸字母★): W-2 = D− 侧补不补 ESD (补|不补; 补⇒架构档 arch=2 3脚双通道, 不补⇒arch=1
+      + R4 判据口径必须显式改, 草案 A 已交); W-1c = D_ESD_USB_D 的真 OPN (C1 TPD2EUSB30DRTR | C2 TPD2E2U06DCKR | C3 ESD752DCKR
+      | C4 CM1218-02S7); W-1b 由 W-2 唯一确定 (补⇒2/不补⇒1, 可不写). ★建议默认值 (建议非决定): W-2=补, W-1c=C1. ★不拍 ⇒ S4/B-3
+      换不了封装 + G1a-4 (R4) 永远红 + 板 md5 变两次 ⇒ Gerber/投产包/留证链/盖章/发布全作废重做★'
+    since: '2026-11-18'
+    _by: hw-lead
+    state: pending
   - key: fw_s2_test_gear
     to: main
     item: 'S2 无板先验 L2 层 (空板/半板) 的器材与排期 (走 main): ①逻辑分析仪 (>=8ch, >=100MS/s) 抓 BOOT/RESET 时序 ②USB 协议分析仪
@@ -28935,6 +29631,16 @@ needs_matrix:
       与常量 LEDGER_DOC / LEDGER_CANON ⇒ 这四个名字与签名不许改, 改了就地通知 sw-lead ⇒ 否则本闸 except Exception ⇒ fail-closed
       变红 (不是变松, 是恒红) ⇒ 这不是新功能, 是新耦合, 老实登记
     since: '2026-11-17'
+    _by: sw-lead
+    state: pending
+  - key: iss306_sw_g1a_reds_rootcause_done
+    to: main
+    item: '★ISS-306 (sw-lead) 已交卷: G1a 两条红 (G1a-4 / G1a-8) 逐条归类完毕 ⇒ 板那一趟开工前老板还差 N = 4 个字母: ① W-2 (D− 侧补不补
+      ESD) ② W-1b/W-1c (D+ 那颗真 OPN 型号轴) ③ A4 老表 (关机语义 建议 C+A ⇒ HW/POWER_SHUTDOWN_V3.md 签收) ④ A5 老表 (追认负载开关
+      TPS22991RAA) ⇒ 卡 G1a 两条红转绿的只有 2 个 (①+③), R3 与 R9 同趟消化零字母 ⇒ ★催拍时必须回 need key 不能回裸字母 A4/A5 (落表器新映射
+      A4=V-5 / A5=V-6 ⇒ 错位标签 rc=2 零写盘 老板白回一次) ⇒ ★另请 main 决定: 落表台账 L166 与作业包 L199 的 R4 文字口径 (焊盘数 = 3) 比机器闸严一档
+      (代码 L1375 耦合 not hit) ⇒ 这属口径漂移, 本单零改闸, 修不修由 main 开单★'
+    since: '2026-11-18'
     _by: sw-lead
     state: pending
   - key: soc_carrier_mainboard_site
@@ -30127,8 +30833,25 @@ needs_matrix:
     since: '2026-10-25'
     _by: mech-lead
     state: pending
+  - key: iss303_mech_n6_depends_on_cfc_ledger_api
+    to: main
+    item: 'ISS-303 · 代码级耦合登记 (任务书 B1 硬要求) ⇒ MECH/check_onepass_struct_crosscheck.py 的 N6 现在只读调用 MECH/check_board_frame_coords.py
+      的 5 个名字: ledger_state(rel,text) / ledger_cover_rows(text,rel) / m12(value) / PROTECTED / LEDGER_CANON
+      ⇒ 这 5 个名字不许改 (改名 = 我的闸 fail-closed 恒红) · 若要改口径请走同源改法 (ISS-296 同源探针 logs/iss296/probe_ledger_reading_same_source.py
+      继续跑) ⇒ 代价: 板帧坐标闸与结构交叉核对闸共用一套台账解析器 ⇒ 好处: 口径零漂移 · 边界: 同域 MECH/ 内 ⇒ 不碰 HW/ 与 SW/'
+    since: '2026-11-18'
+    _by: mech-lead
+    state: pending
+  - key: iss303_mech_n6_membership_vs_equality_caliber
+    to: main
+    item: 'ISS-303 · 一个待裁决口径 (不代拍) ⇒ 事实: N6 现在是【成员判定】(盘上 md5 ∈ 硬基线 ∪ 台账登记过的 md5) 而 MECH/check_board_frame_coords.py
+      的 C4 仍是【等值判定】(盘上 md5 必须 == 台账链头) ⇒ 若台账里出现链上历史值 (或盘上被回滚到硬基线) 则 C4 会红而 N6 会绿 ⇒ 代价: 两道闸口径不同源 (一道兜底合法落表跳
+      · 一道严格等值) ⇒ 建议: 保持现状 (严格等值仍由 C4 承担) 或把 N6 也改成等值 (更严但盘上回滚场景会红) ⇒ 本单按任务书 B1.2 的字面口径实现 (成员判定)'
+    since: '2026-11-18'
+    _by: mech-lead
+    state: pending
   answered_count: 213
-  total: 529
+  total: 539
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -30654,6 +31377,45 @@ lint:
     = 1 个 (R_BAT_DET_1) ⇒ 改完 157 个 (S2 后 156); 封装数官方板 186 / 生成板 185 差 1 = C_VBUS_GND (CHG_BOARD 归属 + DNP
     但官方板上有实物封装@107.70,42.50) ⇒ 动板那趟按官方板数走 开工前 186 收工后 185'
   hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: hw-lead
+  key: iss302_red_gates_ownership
+  value: ① HW/check_workpack_state_values.py V4 红 4 条 (W10_MD5_NETLIST / W10B_MD5_PINS / W10C_MD5_BOM
+    / C07_B26_MD5_LEDGER) ⇒ 归 ISS-304 (需把作业包+清单页里的现值跟上盘面; hw-lead 不去改那两个文档的现值); ② MECH/check_onepass_struct_crosscheck.py
+    N6 红 3 条 (网表/脚表/BOM 的 md5 vs 硬基线) ⇒ 归 ISS-303 (这台闸只认硬基线不认合法落表跳, 口径须由 MECH/PM 定, 不许把基线常量改回旧值); ③ 另提
+    = HW/check_netlist_selfconsistency.py --expect-resolved 也红 (R3/R4/R9 未落表, 闸自述等 整链重出 第1步 落表后才转绿) ⇒
+    属那一批的活, 建议 ISS-304 一并点名, 别当新问题重复提; ★本单对这三道红闸一个字都没改 (不许改判据/不许改基线常量)
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: hw-lead
+  key: iss302_concurrent_reead_0101
+  value: 'hw-lead 收尾时的并发复读 (★01:01, 日志 logs/iss302/gates_rerun_0103_concurrent.log★): MECH/check_onepass_struct_crosscheck.py
+    的 mtime = 00:59:25 ⇒ 已被 ISS-303 那边的并发改动动过 (★不是 hw-lead 改的★) ⇒ 该闸 01:01 复读 rc=0 (N1~N6 全过), MECH/check_onepass_mech_release.py
+    同步 rc=0 (绿 6/红 0) ⇒ ★证明 ISS-302 的分家是对的★; 同刻 HW/check_workpack_state_values.py 仍 rc=1 (★ISS-304 还没做★)
+    ⇒ state/gate_check.py 仍 rc=1 (Q1 18/18 · Q7 8/9, 红 = 钉板闸⑥) ⇒ ★板那一趟仍不许开工★; ★另提 = HW/check_netlist_selfconsistency.py
+    --expect-resolved 也红 (R3/R4/R9 未落表) ⇒ 属 整链重出 第1步 那一批, 建议 ISS-304 一并点名, 别当新问题重复提; ★本单对这三道红闸一个字都没改 (不许改判据/不许改基线常量)'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: hw-lead
+  key: iss304_gate6_green
+  value: '钉板闸⑥ 已转绿: python3 HW/check_workpack_state_values.py rc=0 (V1~V7 全 OK, V4 那 4 条台账口径 fresh 全跟上了)
+    ⇒ Q7 钉板 md5 闸链 8/9 ⇒ 9/9 全绿 (state/gate_check.py rc=0) ⇒ 「板只改一次」那一趟的闸链不再被现状值漂移卡住; 修法=换来源不换取值 (那 4
+    条 fresh 的 md5 由生成器/同步脚本从落表台账最新链 §16.2 现读, 读不到就拒写页)'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: hw-lead
+  key: iss304_zero_board_no_landing
+  value: '零写板零落表双证: 板 md5 611b869e13518c3c023fb178f91a0075 + mtime 1793920037 逐字节未变; .kicad_pro md5 3e504d2be83152e337949723e909be1b
+    + mtime 1793807250 逐字节未变; 网表 6aee500e… / 脚表 9174309d… / BOM 5b999399… 三个 md5 与 mtime 1794932468 一字未动;
+    落表台账 d1a7765b… 与 state/p10_rows.json 2836846d… 一个字节没动; 判据 HW/check_workpack_state_values.py (md5 22c8a6c0…)
+    与 HW/check_pin_function_labels.py (md5 e7b90a04…) 一字未改'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: hw-lead
+  key: iss305_verdict_and_ownership
+  value: 'ISS-305 独立复验完成。★A~F 六条逐条判决: A=有条件通过(结论「11/11」在真判别式下成立, 但交付页/脚本的 ±3 行窗口判据非排他 ⇒ counterfactual
+    11/11 误放行, 证明手段不足) B=对(三处互证) C=部分 over-claim(宽版「多摄方案不成立」无依据, 须收窄成「实时 ISP 路数=1」) D=对(12x2^20=4096x3072
+    精确相等) E=对(MP/s 确为[0数据]) F=对(无[实测]混入)。★须 main 处理的 3 条: ① 交付页 §1.2 L64 收窄 over-claim(★high★, 它会变 demo
+    选型硬判据, 会误杀可行多摄方案) ② 被审脚本 ±3 窗口判据非排他 ⇒ 改判据或在交付页补口径说明 ③ HW/RK3572_PIN_TABLE/rk3572_pins.csv(+json) 在
+    dense 多功能区有 126 个 pin 名行归属错位 ⇒ 典型 CAM_CLK0_OUT_M0 归到 1AD23(真值 AM32/L1588) ⇒ 本单只读只报错不修; blast radius
+    已核: 对 ISS-131 判决影响=0(被审脚本不读它) / TI_POWER_FACTS 引的 1C18+B28 落在简单区两套解析一致不受影响 / merge_pinctrl.py 产物 rk3572_pin_assign.csv
+    在盘上不存在未传播 ⇒ 另 交付页登记字节数 6,007 B 已过期(现在 8,863 B) 归 main 更新'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: mech-lead
   key: iss229_mech_v4_update_package_and_gate_reanchor
   value: '★**ISS-229 收口 (4 件交付物全齐)** ⇒ ① 系数改正 (0.822 倒数方向 → **1.216 @3.70V / 1.071 @4.20V**, 取最坏 1.216)
@@ -30709,6 +31471,14 @@ lint:
     板 611b869e · .kicad_pro 3e504d2b · 台账 1ae6242a · 网表 37f62ac3 前后一致; ⑥ 交卷单 = HANDOFF/2026-11-17_mech-lead_ISS286_坐标归一闸台账化.md
     (B0~B6) + 原始日志 = logs/iss286/acceptance_01..05.log'
   hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: mech-lead
+  key: iss303_mech_n6_ledger_jump_fix
+  value: '★ISS-303 交卷 (mech-lead)★: MECH/check_onepass_struct_crosscheck.py 的 N6 判决源已从【写死硬基线常量】换成【硬基线
+    ∪ 落表台账登记值】(读台账 HW/SCHEMATIC_LANDING_V1_LANDED.md · 不写死 md5) ⇒ ① 病根 = 判决源选错了 (不是真源被改了) ② 板 2 件判据逐字不变
+    (ISS-296 合法改板通道没动) ③ fail-closed 四条一条没弱化 ④ 反向用例 8 条沙盒实测全红 (含台账缺失 / 链头不唯一 / 链断 / 伪造 md5) + 正向对照绿 ⇒
+    闸不是恒红 ⑤ 汇总闸 MECH/check_onepass_mech_release.py 回到 绿 6 / 红 0 ⇒ rc=0 ⇒ 落表跳那趟的结构侧假红消掉 ⇒ 零写板 · 零落表 · 零外发
+    · 实物 [实测] = 0 条'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: main
   key: e01_som_balltable_selfcheck_202612
   value: '★**E-01 (`FET3572C_PIN_TABLE.csv` 的 P2 座缺 `num=40`) 已关闭 · 2026-11-12 02:2x 项目总工【自己网上查】解决 (★老板
@@ -30758,6 +31528,16 @@ lint:
     d6 (P9 页正文 CONN_LIGHT 21p→22p / CONN_CAM 18p@0.5→31p@0.3 / 跨铰链 4 组→1 组) 把 P9 与网表的 pin 数【真不一致】修成了【真一致】⇒
     是真修复 ③ G5b: 网表 `c78f9912…`→`13f59a43…` / 脚表 `4814617e…`→`a600afae…` ⇒ 锚点读旧数**★ ⇒ ★**因此本单: 重锚必须【留痕
     + 升级机制】(把「受保护 md5」改成「真源 md5 + 与落表台账对账」的新断言), 不许只是改个数让它变绿** ★'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: main
+  key: iss131_rk3572_caliber_selfchecked
+  value: 'ISS-131 已按老板 2026-11-12 02:02「不再发信·全靠自己查资料」口径自办完 ★零写板·零落表·零外发★ ⇒ ★【球位号 11/11 与官方 datasheet 逐条对上】(★含
+    A22/B22/A23/B23 四条「同球双名」·官方 L1789 逐字 ⇒ 一个 4-lane 口可配 2×2 的物理证据★) ★【CSI】官方 §1.2.7 逐字 Support 2 MIPI
+    CSI-2 interfaces · Two 4 data lanes of D-PHY v1.2 · Each interface may be configured as 2x2 data lanes
+    port ⇒ ★我方网表只用 CSI_D0 一路 4 lane ⇒ 「2 接口 vs 4 口」对我方板无约束★ ★【ISP 12M】官方 §1.2.8 逐字 One channel ISP,12M
+    pixels · Maximum input:4096x3072 ⇒ 4096×3072=12.58 Mpixel ⇒ 「12M」是【单帧分辨率上限】不是 MP/s ⇒ ★我方 1080p60 在分辨率维度不卡[官方]
+    ★ ★【ISP MP/s = [0数据]】datasheet 全文检索不到 ⇒ ★换芯到 RK3572 后这条缺口没变好也没变坏 ⇒ 降级方案: ①官方 TRM (本机无·需联网·标[官网]) ②板端实测
+    (ISS-210 已把 60ms 判据链+ISP 段打点备好) ③在此之前任何 MP/s 数字只能标[推算]并写清推算链★'
   hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: sw-lead
   key: iss124_isp_capability_and_power_selfresearch
@@ -31625,6 +32405,78 @@ lint:
     RK3572 datasheet V1.1 全文无 AON (成立: grep -c 实测 0 / rc=1); 但降级方案『沿用 108uA/0.40mW + AON 按 0 计』算术不自洽 ⇒
     应为 ~58uA/~0.21mW'
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss302_csys_landing
+  value: C_SYS / SYS_CHG 由 DNP 改为必装 + note 追加式订正 (老字逐字留痕, 一字未删) + BOM L48 加 1 颗 20µF 6.3V X7R 必装 (镜框充电板
+    P10)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss302_zero_board_change
+  value: '零写板双证: HW/PCB/demo_mainboard.kicad_pcb md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06
+    07:07:17.362193413 逐字节未变; HW/PCB/demo_mainboard.kicad_pro md5 3e504d2be83152e337949723e909be1b + mtime
+    2026-11-04 23:47:30.279742515 逐字节未变; 本轮 cont1 三件产物 (网表 6aee500e60ba0732f83a9cf557ba90ab / 脚表 9174309df1ec9411ac8e8d9e80ee386a
+    / BOM 5b9993992405904a60ac96a020b375d8) 的 md5 与 mtime (2026-11-18 00:21:08) 一字未再动'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss305_ball_truth_verdict
+  value: '【真判别式】(ball→pin 名集合, 排他归属) 重判 11 条 CSI/MCLK 落位 ⇒ T1 归属 11/11 ✔ + T2 排他 11/11 ✔ ⇒ 交付页「球位号 11/11
+    与官方逐条对上」这个【结论】成立。逐条: A20=CSI0_RX_CLKP(L1785) B20=CSI0_RX_CLKN(L1787) A19=CSI0_RX_D0P(L1777) B19=CSI0_RX_D0N(L1779)
+    1B14=CSI0_RX_D1P(L1781) 1C14=CSI0_RX_D1N(L1783) A22=CSI1_RX_D0P(L1789) B22=CSI1_RX_D0N(L1791) A23=CSI1_RX_D1P(L1793)
+    B23=CSI1_RX_D1N(L1795) AM32=CAM_CLK0_OUT_M0(L1588 名在 L1589)。A22/B22/A23/B23 四条 = 同球双名 {CSI0_RX_D2P+CSI1_RX_D0P}
+    等 ⇒ 排他判定仍过'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss305_c_overclaim
+  value: '【C 判据 · 部分 over-claim · 归属 main】交付页 §1.2 L64「One channel ISP ⇒ 同一时刻只有 1 路传感器能进 ISP ⇒ 多摄像头方案在
+    RK3572 上不成立」★前半句站得住 (官方 L488 One channel ISP,12M pixels), 后半句【超出 datasheet 能支撑的范围】★。四条反证(全部官方逐字):
+    ① L458 VICAP 是 §1.2.8 里与 ISP 处理核并列的另一块硬件 ⇒「1 路」只约束 ISP 处理核, 不约束 VICAP 收流; ② L464 Support receiving
+    four groups of MIPI CSI interfaces,up to four IDs for each group + L465 Support VC/DT configurable
+    for each ID ⇒ 硅明确支持同时收 4 组 CSI; ③ L484 Support sending RAW data directly to ISP + L522-523 Online
+    mode: ...data from VICAP to 3A ⇒ VICAP 数据可不经过 ISP 处理核直达 Encoder/3A; ④ L445 Each port supports 4 virtual
+    channels + L468 virtual channel mode + L477 Support reducing frame rate ⇒ 虚拟通道复用+降帧是官方给的多摄机制。⇒ 【窄版成立】实时
+    ISP 处理路数 = 1(多路须 VICAP 虚拟通道+降帧时分) 【推算】; 【宽版无依据】多摄方案不成立 ⇒ 若拿它当 demo 选型硬判据, 会误杀本来可行的多摄方案'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss305_b_c_d_e_f_ok
+  value: '【B/D/E/F 四条 = 对】B: 「CSI 2 接口 vs VICAP 4 组」读法成立且 datasheet 内部三处互证 —— 特性表 L442 Support 2 MIPI
+    CSI-2 interfaces / L443 Two 4 data lanes of D-PHY v1.2 / L444 Each interface may be configured as
+    2x2 data lanes port / L445 Each port supports 4 virtual channels + VICAP L464 four groups; ★球位表自己摆着
+    4 个 D-PHY 分组 CSI0(4-lane: A19/B19/1B14/1C14/A22/B22/A23/B23 + clk A20/B20) CSI1(2-lane: A22/B22/A23/B23
+    + clk 1B16/1C16) CSI2(4-lane: A13/B13/1B10/1C10/A16/B16/A17/B17 + clk A14/B14) CSI3(2-lane: A16/B16/A17/B17
+    + clk 1B12/1C12); ★电源球表 L1801 MIPI_DPHY_CSI0/1_RX_AVDD0V75(2B5) + L1829 MIPI_DPHY_CSI2/3_RX_AVDD0V75(2B4)
+    ⇒ CSI0/1 共用一个 D-PHY 模拟域, CSI2/3 共用另一个 ⇒ 物理 = 2 个 4-lane D-PHY, 拆 2x2 后 = 4 个 2-lane 口组 ⇒「2」与「4」是同一颗硅的两层命名,
+    不是矛盾。D: 4096x3072 = 12,582,912 = 12x2^20 精确相等 ⇒「12M」= 12 Mibixel(二进制) 且 = Maximum input:4096x3072(L490)
+    ⇒ 单帧分辨率上限成立; 全文未把 12M 写成十进制 12,000,000 ⇒ 不构成缺陷(建议补一句口径, 影响 0)。E: MP/s=[0数据] 成立 —— 我独立复核 10 个检索词: MP/s
+    0 / MPPS 0 / MPixel 0 / throughput 0 / pixel rate 0 / pixels per second 0 / megapixel 1(L162 12-Megapixel
+    ISP = 档位) / bandwidth 1(L172 LPDDR5 内存带宽, 非 ISP) / fps 13(全是编解码器分辨率)。F: 全篇无 [实测] 混入 —— grep 实测 命中
+    7 处逐条核(L29 本机 md5 比对 / L85 纪律 / L87+L96+L97+L107 未来计划 / L106 明确声明 实物[实测]=0 条) ⇒ 无一处当作已完成的板级实测引用'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss305_zero_board_change
+  value: '零写板双证: HW/PCB/demo_mainboard.kicad_pcb md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06
+    07:07:17.362193413 逐字节未变; HW/netlist_v1.csv md5 6aee500e60ba0732f83a9cf557ba90ab + mtime 2026-11-18
+    00:21:08.701116490; HW/netlist_v1_pins.csv md5 9174309df1ec9411ac8e8d9e80ee386a + mtime 2026-11-18
+    00:21:08.806117786; HW/BOM_v1.csv md5 5b9993992405904a60ac96a020b375d8 + mtime 2026-11-18 00:21:08.953119601
+    ⇒ 跑前跑后 4 件全同。被审脚本 state/_iss131_crosscheck_rk3572_caliber.py md5 6fff079d946f07d7b3c279b292273cca
+    全程未碰(交卷前原样复跑 rc=0)。本单新增文件仅 3 个(全是复验工具/日志, 非工程文件): state/_iss305_ball_truth_parser.py + logs/iss305/07_ball_truth_parse.log
+    + logs/iss305/08_final_gates.log'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: esd_usb_d_dual_channel_opn_candidates
+  value: C1=TPD2EUSB30DRTR / C2=TPD2E2U06DCKR / C3=ESD752DCKR / C4=CM1218-02S7
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: esd_usb_d_r9_criterion_kind
+  value: 封装原点距 (footprint origin to origin), 阈值 3.0 mm
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: esd_usb_d_placement_window
+  value: x 138.25..141.75 / y 7.65..8.25 (C1 DRT); x 138.55..141.45 / y 7.85..8.25 (SC70-3)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: esd_usb_d_arch_axis_state
+  value: 当前 single2 (2 脚单通道) + 台账 L166 与 L934 矛盾未承认
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: mech-lead
   key: mech_reltest_cases
   value: 12类(8必选+盐雾/温循/插拔FPC/振动)
@@ -32042,6 +32894,35 @@ lint:
 - agent: mech-lead
   key: iss300_mech_release_zero_write_board
   value: '零写板: 板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17.362193413 前后逐字节不变'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: iss303_mech_n6_ledger_judgment_source
+  value: 'N6 判决源 (台账管理 3 件: 网表 / 脚表 / BOM) = 硬基线 ∪ 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 里该文件登记过的 md5
+    (读台账 · 不把新 md5 写死成常量 · 硬基线常量一个字没改)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: iss303_mech_n6_board_channel_untouched
+  value: 板 2 件 (demo_mainboard.kicad_pcb / .kicad_pro) 的 N6 行为逐字不变 (硬基线比较 · ISS-296 合法改板通道一个字没动)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: iss303_mech_n6_ledger_parser_reuse
+  value: 台账解析 = 只读调用 MECH/check_board_frame_coords.py 的现成解析器 (ledger_state / ledger_cover_rows / m12)
+    ⇒ 不自造第二套台账解析
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: iss303_mech_n6_failclosed_four
+  value: 'fail-closed 四条全在: ① 台账读不到 ⇒ 红 ② 台账里找不到该文件 ⇒ 红 ③ 链头不唯一 ⇒ 红 ④ 链断 / 有记录不在链上 ⇒ 红 (另: 链头无落表单号 ⇒ 红)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: iss303_mech_release_green_again
+  value: MECH 侧准出汇总闸 MECH/check_onepass_mech_release.py ⇒ 绿 6 / 红 0 ⇒ 汇总 rc=0 ⇒ 结构侧可以出 Gerber (改前 rc=1
+    · 绿 5 / 红 1 · 红的那道就是 N6)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: iss303_mech_zero_landing_proof
+  value: '零落表自证: 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md md5 d1a7765bb151cc69bb794dc6b6158264 (mtime 2026-11-18
+    00:22:44) + state/p10_rows.json md5 2836846d8ff503f98cc6d258a832664d (mtime 00:21:04) ⇒ 两个 mtime 都早于本单开工
+    (00:53) ⇒ 本单对台账只读 (只当判决源)'
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: main
   key: battery_location
@@ -32712,6 +33593,61 @@ lint:
     ⇒ 板 mtime 仍 2026-11-06 07:07:17.362193413 ⇒ 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 与 SW 台账锚点块与权威闸
     check_demo_panel_spec.py 三个文件一个字节没改 (只读) ⇒ 闸自带的字面副本 ANCHOR_MD5 保留, 角色从判决源降为锚点本体防篡改报警'
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss306_b1_r4_two_pad_verdict
+  value: '★判决 C (两部分分开写)★ C-1 判据口径过期: 老板 11-17 09:49 A3=V-2=1 = 2脚单通道 (决策页 L502/L505/L659/L824 + 台账 L1308
+    §16.1 落表后期望 expect-resolved 条数变化 = 0 条) ⇒ 2焊盘(D+ + GND) 就是老板已拍口径本身 ⇒ 台账 L166 与作业包 L199 写的『焊盘数 = 3』比机器闸严一档
+    = 口径漂移实锤; C-2 真缺口: D− 裸奔是真的. ★机器闸实际只要求 D− 两条网上有 ESD (check_netlist_selfconsistency.py:1369) ⇒ 行2 (L1375
+    条件 pads<3 and not hit) 是行1 的派生句 ⇒ W-2 一落两条 R4 红一起转绿 ⇒ 零修闸成本; 唯一例外 = 若 W-2 选不补 D− ⇒ 决策页 L834 原文要求判据口径必须显式改
+    ⇒ 那时才需另开修闸单'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss306_b2_dminus_bare_verdict
+  value: '★真缺口 + 归老板 W-2★ 实测: 探针逐字复刻判据函数 (import check_netlist_selfconsistency 的 _read_board) ⇒ hit =
+    [] ⇒ 板上 4 颗 ESD (D_ESD_CAM / D_ESD_DEMO / D_ESD_LIGHT / D_ESD_USB_D) 无一挂在 D−; D− 两条网真实连接点 = NET_USB_D_N_TYPEC
+    → TP_USB_D_N.pad1 / J_USB_C.padA7 / J_USB_C.padB7 / R_SER_USB_D_N.pad2 与 USB_D_N_SRC → R_SER_USB_D_N.pad1
+    / J_SOM_P1.pad93 / J_SOM_P1.pad94 ⇒ 从 Type-C 座到 SoM 整条 D− 零 ESD 器件 ⇒ USB D− 确实没有保护 (不存在别的原因)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss306_b3_r9_distance_verdict
+  value: '★① 现状事实 (不是判据算错) ② 属改板落位 ⇒ 板那一趟 S4/B-4 同趟消化 ③ 与 B2 是两件不同的事但必须同趟★ 实测 (探针逐字复刻 _board_ref_xy):
+    J_USB_C @ (140.00, 5.25) vs D_ESD_USB_D @ (94.95, 21.80) ⇒ hypot(45.05, 16.55) = 47.99 mm > 阈值 3.0
+    (ESD_MAX_DIST_MM L128) ⇒ 判红是事实; 量化: 至少挪 44.99 mm, 落位候选 ≈ (137.18, 6.28) [推算]; 落点必须走 state/gen_pcb_netlist_board.py
+    的 PCB_PART_POS 钉位 不许手改板坐标 (作业包 L195)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss306_b4_r3_same_trip_verdict
+  value: ★天然属于板那一趟同趟解决 ⇒ 同趟消化 不构成开工前置 不计入 N★ 判据 check_netlist_selfconsistency.py:1351-1355 读的是 board[U_EN_SW][value]
+    而 board 来自 _read_board (L493-527) ⇒ 读的就是 .kicad_pcb 的 (property Value) ⇒ 改它 = 改板; 板面实测 Value = EN
+    输入 (高=放行底板) @ (105.1, 11.5); 作业包 L141 已把它列为板那一趟 S3 步 (B05_U_EN_SW_VALUE) + L187 验收判据 = Value 变成器件身份描述
+    (含 TPS22991RAA 型号串)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss306_b5_g1a8_external_verdict
+  value: '★判决: 等老板验签 (真外部依赖) ⇒ 不许自己代验; 不是判据状态集选错★ 判据 check_stage_g1a.py:23 = ISS-097 与 ISS-172 status
+    ∈ {verified, closed} ⇒ fixed 语义就是产物已交付未经验签 ⇒ 正确地不该在 {verified, closed} 里 ⇒ 判据没选错 ⇒ 不许改闸; 现状 issue_log
+    L3150 owner=boss · L3153 due=2026-11-18 (今天) · L3154 status=fixed · L3158 fix_ref=HW/POWER_SHUTDOWN_V3.md
+    · L3159 verify_by=boss · L3160-3161 verify_result / verify_date = null · note 逐字 等老板验 (verify_by=boss)
+    + 2026-11-16 06:50 main 自产的文档不许自己验 (铁律 自己产的必须别人验) ⇒ 转成待老板审阅 owner=boss / external=true; 产物实测 HW/POWER_SHUTDOWN_V3.md
+    20677 B mtime 2026-11-17 23:17 头部 L3 验证人 = boss; ISS-172 已 verified ⇒ G1a-8 两条里只剩 ISS-097 一条'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss306_boss_letters_count_n4
+  value: ★板那一趟开工前, 老板还差 N = 4 个字母★ ① W-2 = D− 侧补不补 ESD (need boss_esd_model_axis_pending_20261117 第②问)
+    ⇒ 卡 G1a-4 转绿 (R4 行1+行2) ② W-1b/W-1c = D+ 那颗真 OPN 型号轴 (同 need 第①问) ⇒ 卡板那一趟落地 (S4/B-3 换封装) 不卡 G1a 转绿
+    (机器闸不读 OPN) ③ A4 老表 = 关机语义 建议 C+A + HW/POWER_SHUTDOWN_V3.md 签收 (need boss_shutdown_semantics_and_loadswitch_20261117
+    第①问) ⇒ 卡 G1a-8 转绿 (ISS-097 fixed→verified) ④ A5 老表 = 追认负载开关 TPS22991RAA (同 need 第②问) ⇒ 不卡 G1a-8 转绿
+    (ISS-172 已 verified) 卡板那一趟开工前把网表收干净 (网表 L50 + BOM L216 仍留 ⇒ 选型口径待 A5 追认); 严格分层 = 卡 G1a 两条红转绿的 2 个
+    (①+③) + 只卡板那一趟开工的 2 个 (②+④); R3 与 R9 两条红同趟消化 零老板字母
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss306_zero_write_md5_proof
+  value: '★零写板零落表零改闸零外发 自证★ 交付时读数 (2026-11-18 02:06:46 本机实跑) 与 现在读数 逐字节一致: 板 HW/PCB/demo_mainboard.kicad_pcb
+    = 611b869e13518c3c023fb178f91a0075 · 网表 HW/netlist_v1.csv = 6aee500e60ba0732f83a9cf557ba90ab · 脚表
+    HW/netlist_v1_pins.csv = 9174309df1ec9411ac8e8d9e80ee386a · BOM HW/BOM_v1.csv = 5b9993992405904a60ac96a020b375d8;
+    HW/check_netlist_selfconsistency.py 与 state/check_stage_g1a.py 只读未编辑; 只写 3 个路径: HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md
+    + logs/iss306/** + state/fragments/sw.yaml; 未碰 pm.yaml / hw.yaml / mech.yaml; 未自签 issue_log; 未外发'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 risks:
 - id: R-dsi-unknown
   text: ARS45 显示 TX 接口未确认 (媒体二手证据) — 若既无 DSI TX 也无 DP TX, 则显示链不成立
@@ -32795,15 +33731,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 552
+  artifacts: 567
   blockers: 43
   high_blockers: 33
-  open_needs: 316
+  open_needs: 326
   waiting_external_needs: 70
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 370
+  lint: 400
   agents_reporting: 4
   incomplete_fragments: 0

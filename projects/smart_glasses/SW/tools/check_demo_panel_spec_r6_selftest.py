@@ -16,7 +16,7 @@ SW/tools/check_demo_panel_spec_r6_selftest.py — ISS-275 · R6 判决源同构�
   | **R1** | ★**红** ★ | 盘上真源被换掉 (≠ 链头) | ★★**悄悄换真源判据不许被删** ★★ (本单最容易走偏的地方) |
   | **R3** | ★**红** ★ | 台账记录**链断** (中间一跳被挖掉 ⇒ 链头不唯一) | 取不准 ⇒ fail-closed ⇒ 不许假绿 |
   | **R4** | ★**绿** ★ | 台账里同一条链的记录**顺序打乱** | ★★**判最新靠【有向链】不靠行序** ★★ (不许用"取最后一行") |
-  | **R5a** | ★**红** ★ | 台账最新记录的落表单号被改坏 | 单号改坏 = 挂错单 ⇒ 红 |
+  | **R5a** | ★**红** ★ | 台账最新记录的落表单号被改坏 | 单号改坏 = 挂错单 ⇒ 红 (★ISS-309 重构: 锚点副本【对齐到链头】后改坏 ⇒ 判红★) |
   | **R5b** | ★**红** ★ | 台账最新记录的落表单号**字段缺失** | 字段缺失 = 出处不明 ⇒ 红 |
   | **R6** | ★**红** ★ | 硬保护件 (板 / `.kicad_pro`) md5 变 | ★板变是板那一趟的事, 不许被台账机制吞掉★ |
 
@@ -24,6 +24,15 @@ SW/tools/check_demo_panel_spec_r6_selftest.py — ISS-275 · R6 判决源同构�
   主体 `check_demo_panel_spec.py` 的 `sw_ledger_records()` / `sw_ledger_state()`
   (★ISS-275 新增, SW 侧自己写的★) ⇒ 本文件只【调用】它们, ★**不复制一份** ★
   ⇒ 主体改了判据本文件立刻跟着变 (★不会出现"用例跟判据各说各话"★)
+
+★★**【ISS-309 · 2026-11-18 · sw-lead】本文件的两处改动 (★判据一个字节都没动★)** ★:
+  ① `synth_ledger()` 多带【板 / `.kicad_pro` 的保护基线登记行】⇒ ★R4 修前红在【R6 硬保护】
+     (★与它要测的「行序」完全无关★ ⇒ 夹具假伤) ⇒ 现在合成台账满足判据前提 ⇒ R4 绿★·
+  ② `_case_r5a()` 重构: ★★把【域侧锚点副本对齐到链头】(= 一次刚落完表的状态) 再改坏链头的
+     落表单号 ⇒ 判据的【锚点副本单号 ↔ 台账产出单号】交叉核对能咬住 ⇒ 判红★·
+     ★★**已知覆盖缺口 (已登记 need, 本单不改判据)** ★★: ★锚点副本【停在历史值】时 (★当前仓库
+     就是这个状态★), 改坏链头落表单号 ⇒ ★判据【绿】= 漏放★ ⇒ 缺口诊断在下面【覆盖缺口诊断】段
+     里自带实跑证据 ★
 
 ★★**沙盒纪律** ★:
   · 全部用例在 `/tmp` 临时树上跑, ★**真盘一个字节都不写** ★
@@ -145,7 +154,12 @@ def drop_mid_record(text: str, rel: str, target_prev: str, target_new: str) -> t
 
 
 def break_head_ticket(text: str, rel: str, bogus: str = "ISS-999") -> tuple:
-    """把台账【链头那一行】的落表单号改坏 ⇒ 单号与锚点对不上。返回 (新文本, 改了几行)。"""
+    """把台账【链头那一行】的落表单号改坏 ⇒ 单号与锚点对不上。返回 (新文本, 改了几行)。
+
+    ★★【ISS-309 · 已弃用】★★ ⇒ ★单号在【每一处】都要改 (★判据口径: 行内 `ISS-xxx` 优先,
+      行内没写就继承【最近一个带单号的小节标题】★) ⇒ 只改一处 ⇒ 链头产出单号里还留着原单号
+      ⇒ 判据看不见改坏 ⇒ ★改用 `break_head_ticket_all()`★。
+    """
     base = os.path.basename(rel)
     head = gate.sw_ledger_state(rel, text)["head"]
     if not head:
@@ -161,10 +175,70 @@ def break_head_ticket(text: str, rel: str, bogus: str = "ISS-999") -> tuple:
     return ("\n".join(out) + "\n", hit)
 
 
-def synth_ledger(pairs: list, tag: str = "合成") -> str:
+def break_head_ticket_all(text: str, rel: str, bogus: str = "ISS-999") -> tuple:
+    """★【ISS-309】★ 把【产出链头的那些记录】的落表单号, 在它【出现的每一处】都改坏。
+
+    ★口径必须与判据 (`sw_ledger_records`) 一字不差★:
+      · 行内写了 `ISS-xxx` ⇒ 单号 = 行内第一个 (⇒ 改行内那一个★)
+      · 行内没写单号 ⇒ 单号继承【最近一个【带单号】的小节标题】(⇒ 改那【标题】那一个★)
+    ★★只改一处 = 假改坏★ ⇒ 链头产出单号里还留着原单号 ⇒ 判据当然看不见 ⇒
+      ★★所以这条用例必须把【每一处】都改掉, 才算真的"把落表单号改坏了"★★
+    返回 (新文本, 改了几处)。
+    """
+    base = os.path.basename(rel)
+    head = gate.sw_ledger_state(rel, text)["head"]
+    if not head:
+        raise AssertionError("台账里 %s 取不到链头 ⇒ 用例本身坏了" % rel)
+    lines = text.splitlines()
+    ctx_idx = -1                 # ★最近一个【带单号】的小节标题★ (判据口径: 标题没单号就不更新 ctx)
+    todo: list = []
+    for i, ln in enumerate(lines):
+        s = ln.strip()
+        if s.startswith("#"):
+            if re.search(r"ISS-\d+", s):
+                ctx_idx = i
+            continue
+        if not (s.startswith("|") and (rel in s or base in s)):
+            continue
+        if rec_of_line(ln)[1] != head:
+            continue              # ★这条记录不产出链头 ⇒ 不动它★
+        if re.search(r"ISS-\d+", s):
+            todo.append(i)        # ★行内单号★
+        elif ctx_idx >= 0:
+            todo.append(ctx_idx)  # ★继承来的单号 ⇒ 改【小节标题】那一处★
+    out = list(lines)
+    seen: set = set()
+    for idx in todo:
+        if idx in seen:
+            continue
+        seen.add(idx)
+        out[idx] = re.sub(r"ISS-\d+", bogus, out[idx], count=1)
+    return ("\n".join(out) + "\n", len(seen))
+
+
+def hard_rows_of(anchors: dict) -> list:
+    """锚点里【硬保护件】的保护基线登记行 ⇒ [(文件, 保护基线 md5)]。
+
+    ★【ISS-309】R4/R5b 的合成台账必须带上这两行★ ⇒ 否则判据的①「保护基线自证」
+      (基线 md5 必须在落表台账里【同行】查得到) 必然判红 ⇒ ★那条红与「行序打乱 / 缺单号」
+      完全是两回事 ⇒ = 夹具假伤★。
+    ★写法照真台账的样子 (改前 md5 == 改后 md5 ⇒ 【逐字节不变】声明行 ⇒ 只算覆盖行, 不算变更行)★。
+    """
+    out = []
+    for e in (anchors.get("hard_protected") or []):
+        rel = str(e.get("file") or "")
+        base = str(e.get("md5") or "")
+        if rel and base:
+            out.append((rel, base))
+    return out
+
+
+def synth_ledger(pairs: list, tag: str = "合成", hard_rows: list = ()) -> str:
     """把抽出来的落表记录重排成一份【合成台账】(★反向用例专用: 专测「行序打乱仍取最新」★)。
 
     ★**标题里故意不带任何 `ISS-xxx`** ⇒ 行内没写单号的记录 ⇒ 单号真的缺失 (R5b 用) ★
+    ★**【ISS-309】`hard_rows` = 板 / `.kicad_pro` 的保护基线登记行 (★改前==改后 ⇒ 逐字节不变★)
+      ⇒ 合成台账因此满足判据的①「保护基线自证」前提 ⇒ ★R4 不再红在【R6 硬保护】(夹具假伤)★** ★
     """
     lines = ["# %s落表台账 (★仅供反向用例★)" % tag, ""]
     for rel, recs in pairs:
@@ -172,6 +246,9 @@ def synth_ledger(pairs: list, tag: str = "合成") -> str:
             iss = r.get("iss") or "★无单号★"
             lines.append("| %s %d | `%s` | `%s` | `%s` | %s | 说明 |"
                          % (tag, i, rel, r["prev"], r["new"], iss))
+    for rel, base in (hard_rows or ()):
+        lines.append("| %s h | `%s` | `%s` | `%s` | ★保护基线 (逐字节不变)★ | 说明 |"
+                     % (tag, rel, base, base))
     return "\n".join(lines) + "\n"
 
 
@@ -247,7 +324,7 @@ def run_cases(tmp: str, root: str) -> int:
 
         # ---- R5a (红): 台账最新记录的落表单号被改坏 ⇒ 必须红 -------------------------
         ("R5a: 台账最新记录的落表单号被改坏 ⇒ 必须红", "red:单号",
-         lambda: _case_r5a(tmp, root, head_net)),
+         lambda: _case_r5a(tmp, root, head_net, recs_net, recs_pins)),
 
         # ---- R5b (红): 台账最新记录的落表单号字段缺失 ⇒ 必须红 ------------------------
         ("R5b: 台账最新记录的落表单号字段缺失 ⇒ 必须红", "red:缺单号",
@@ -307,7 +384,40 @@ def run_cases(tmp: str, root: str) -> int:
             bad += 1
     print("-" * 100)
     print("反向用例: %d/%d 通过" % (ok, ok + bad))
+    # ---- ★【覆盖缺口诊断】★ (★ISS-309 · 不计入 7 条 · 只报事实·不遮红★) ------------------
+    print("-" * 100)
+    diag_gap(tmp, root, head_net)
     return 0 if bad == 0 else 1
+
+
+def diag_gap(tmp: str, root: str, head_net: str) -> None:
+    """★【ISS-309 · 覆盖缺口诊断】★ 锚点副本【停在历史值】时, 改坏链头落表单号 ⇒ 判据漏放。
+
+    ★★这不是一条用例 (★不计入 7/7★) ⇒ 它只【报事实】: 把判据现在的漏洞当场跑出来 ★★
+    ★★★ 本单【不许改判据】(`SW/tools/check_demo_panel_spec.py` 是权威判据) ⇒
+      ⇒ 修法 + 反向用例设计已写进 need (★交 main 拍板★) ⇒ 本段只负责【让漏洞自带证据】★★★
+    """
+    work, anchors = fresh_tree(tmp, root, "gap")
+    p = ledger_path(work)
+    base = rd(p)
+    broken, hit = break_head_ticket_all(base, NET, bogus="ISS-999")
+    if hit < 1:
+        print("  ★覆盖缺口诊断: 没命中链头的落表单号 ⇒ 诊断本身失效")
+        return
+    wr(p, broken)
+    st = gate.sw_ledger_state(NET, broken)
+    prods = sorted((st.get("producer") or {}).get(head_net) or [])
+    fails = gate.run_all(work, skip_md5=False, anchor=anchors)
+    print("  ★覆盖缺口诊断 (★ISS-309 · 已登记 need · 本单不改判据★):")
+    print("      场景: ★锚点副本停在历史值★ (★当前仓库就是这个状态: 锚点 %s/%s · 链头 %s/%s★)"
+          % (str(anchor_entry(anchors, NET).get("md5") or "")[:12],
+             anchor_entry(anchors, NET).get("by"), head_net, sorted(
+                 (gate.sw_ledger_state(NET, base).get("producer") or {}).get(head_net) or [])))
+    print("      改坏链头落表单号 %d 处 ⇒ 链头产出单号 = %s ⇒ 判据判定: %s"
+          % (hit, prods, ("★红★ %s" % fails[:1]) if fails else "★绿 (无红项) ⇒ ★漏放★"))
+    print("      ⇒ ★★判据只查【链头单号非空】, 不查【单号自相矛盾 / 与锚点副本一致】★★")
+    print("      ⇒ 修法 (★交 main 拍板, 本单不碰判据★): 链头产出单号【不唯一】⇒ 判红 "
+          "(★ISS-309 need·反向用例设计见交卷单 B3/B5★)")
 
 
 # ---------------------------------------------------------------- 单条用例实现
@@ -351,33 +461,83 @@ def _case_r4(tmp: str, root: str, recs_net: list, recs_pins: list,
     # ★自证 ①: 顺序确实被打乱了 (行序 ≠ 原始行序) ★
     assert [r["new"] for r in rev_net] != [r["new"] for r in recs_net], "行序没被打乱"
     assert [r["new"] for r in rev_pins] != [r["new"] for r in recs_pins], "脚表行序没被打乱"
-    synth = synth_ledger([(NET, rev_net), (PINS, rev_pins)], tag="乱序")
+    # ★【ISS-309】合成台账必须带上【板 / .kicad_pro 的保护基线登记】⇒ 判据前提合法 ★
+    synth = synth_ledger([(NET, rev_net), (PINS, rev_pins)], tag="乱序",
+                         hard_rows=hard_rows_of(anchors))
     wr(p, synth)
     st = gate.sw_ledger_state(NET, synth)
     stp = gate.sw_ledger_state(PINS, synth)
     # ★自证 ②: 打乱之后链头【不变】 ⇒ 判最新靠图不靠行序 ★
     assert st["head"] == head_net, "打乱后网表链头变了 (%s ≠ %s)" % (st["head"], head_net)
     assert stp["head"] == head_pins, "打乱后脚表链头变了 (%s ≠ %s)" % (stp["head"], head_pins)
+    # ★自证 ③ (★ISS-309 补★): ★【取最后一行】的实现错误必被本用例抓到★
+    #   ⇒ 合成台账里网表【最后一行】的改后 md5 ≠ 链头 ⇒ 若判据改成"取最后一行" ⇒ 必判红 ★
+    last_new = rev_net[-1]["new"]
+    assert last_new != head_net, ("合成台账最后一行恰好就是链头 (%s) ⇒ "
+                                  "本用例抓不到「取最后一行」的实现错误 ⇒ 用例本身坏了" % last_new)
     print("      ★自证: 记录行序已打乱, 链头不变 (网表 %s / 脚表 %s) ⇒ 判最新靠【有向链】"
           % (st["head"], stp["head"]))
+    print("      ★自证: 台账里【最后一行】的改后 md5 = %s ≠ 链头 %s ⇒ "
+          "⇒ 若判据改成「取最后一行」本用例必判红 ⇒ 本用例真的在测行序" % (last_new, head_net))
     return work, anchors
 
 
-def _case_r5a(tmp: str, root: str, head_net: str) -> tuple:
+def _case_r5a(tmp: str, root: str, head_net: str, recs_net: list, recs_pins: list) -> tuple:
+    """★【ISS-309 · 重构】★ 台账最新记录的落表单号被改坏 ⇒ 必须红。
+
+    ★★为什么必须把【域侧锚点副本】先对齐到链头★★
+      判据里能咬住"落表单号被改坏"的, 只有【锚点副本落表单号 ↔ 台账产出该 md5 的单号】
+      这一条交叉核对 (★`check_r6_three_way` ②-3★) ⇒ ★它咬的是【锚点副本登记的那个 md5】★
+      ⇒ 锚点副本若【停在历史值】(★当前仓库就是这个状态: 锚点 ISS-257/e06c1dd6·链头 ISS-302★
+      ★), 那条交叉核对压根碰不到链头 ⇒ 改坏链头单号 = 判据看不见 ⇒ ★漏放★。
+      ⇒ 本用例把锚点副本【对齐到链头】(= 一次刚落完表的状态: 锚点登记的就是最新那次落表)
+      ⇒ 交叉核对重新咬住链头 ⇒ ★改坏链头落表单号 ⇒ 必须红★。
+
+    ★★已知覆盖缺口 (★已登记 need · 本单不改判据★)★★: 锚点副本【停在历史值】时的那个洞
+      ⇒ 本文件末尾【覆盖缺口诊断】段自带实跑证据 ★
+    """
     work, anchors = fresh_tree(tmp, root, "r5a")
     p = ledger_path(work)
     base = rd(p)
-    broken, hit = break_head_ticket(base, NET, bogus="ISS-999")
-    assert hit == 1, "没精确命中链头那一行 (命中 %d 行) ⇒ 用例本身坏了" % hit
+    # ---- ① 取链头当前的落表单号 (判据口径: producer[链头]) ★
+    st0 = gate.sw_ledger_state(NET, base)
+    head = st0["head"]
+    assert head == head_net, "链头变了 (%s ≠ %s) ⇒ 用例本身坏了" % (head, head_net)
+    orig = sorted((st0.get("producer") or {}).get(head) or [])
+    assert len(orig) == 1, "链头产出单号不唯一 (%s) ⇒ 用例本身坏了" % orig
+    orig_iss = orig[0]
+    head_rec = next((r for r in recs_net if r["new"] == head), None)
+    assert head_rec, "找不到网表链头那一条记录 ⇒ 用例本身坏了"
+    # ---- ② 合成台账 (每条记录都带【显式】单号 ⇒ 改坏单号这件事看得见) ★
+    synth = synth_ledger([(NET, recs_net), (PINS, recs_pins)], tag="改单号",
+                         hard_rows=hard_rows_of(anchors))
+    wr(p, synth)
+    # ---- ③ ★把域侧锚点副本【对齐到链头】(= 一次刚落完表的状态) ★
+    e = anchor_entry(anchors, NET)
+    e["md5"] = gate.md5_of(work, NET)        # 盘上 md5 (其 12 位前缀 = 链头)
+    e["by"] = orig_iss                      # 锚点登记的单号 = 最新那次落表的单号
+    e["prev_md5"] = head_rec["prev"]        # 链头的上一跳
+    # ★自证 ①: 对齐之后判据【是绿的】⇒ 后面那条红一定是【改坏单号】造成的, 不是夹具本身坏 ★
+    pre = gate.run_all(work, skip_md5=False, anchor=copy.deepcopy(anchors))
+    assert not pre, "锚点副本对齐到链头后判据就不绿 (%s) ⇒ 用例本身坏了" % pre[:2]
+    # ---- ④ ★改坏链头的落表单号 (在它出现的【每一处】都改) ★
+    broken, hit = break_head_ticket_all(synth, NET, bogus="ISS-999")
+    assert hit >= 1, "没命中链头的落表单号 ⇒ 用例本身坏了"
     wr(p, broken)
     st = gate.sw_ledger_state(NET, broken)
-    # ★自证: 链头没变 (只是单号坏了), 且链头的产出单号已经不是原来的那个 ★
-    assert st["head"] == head_net, "改单号把链头也改了 ⇒ 用例本身坏了"
     prods = sorted((st.get("producer") or {}).get(head_net) or [])
-    assert prods == ["ISS-999"], "链头产出单号不是伪造单号 (=%s) ⇒ 用例本身坏了" % prods
+    # ★自证 ②: 链头没变 · 原单号【已经不在】链头产出单号里 · 只剩伪造单号 ★
+    assert st["head"] == head_net, "改单号把链头也改了 ⇒ 用例本身坏了"
+    assert orig_iss not in prods, "原单号 %s 还在链头产出单号里 (%s) ⇒ 改坏没生效" % (orig_iss, prods)
+    assert "ISS-999" in prods, "伪造单号不在链头产出单号里 (%s) ⇒ 用例本身坏了" % prods
+    # ★自证 ③: 锚点副本登记的单号与台账对不上 ⇒ ★判据必然红★ ★
     anchor_by = str(anchor_entry(anchors, NET).get("by") or "")
-    assert anchor_by and anchor_by not in prods, "锚点单号 %s 本来就对不上 ⇒ 用例本身坏了" % anchor_by
-    print("      ★自证: 链头那一行的单号改成了 ISS-999 (锚点登记的是 %s) ⇒ 单号对不上" % anchor_by)
+    assert anchor_by == orig_iss, "锚点副本单号 %s ≠ 链头原单号 %s ⇒ 用例本身坏了" % (anchor_by, orig_iss)
+    assert anchor_by not in prods, "锚点副本单号还在台账产出单号里 ⇒ 改坏没生效 ⇒ 用例本身坏了"
+    print("      ★自证: 锚点副本已【对齐到链头】(md5 %s / by %s / prev %s) ⇒ 对齐后判据绿"
+          % (str(e["md5"])[:12], anchor_by, head_rec["prev"]))
+    print("      ★自证: 链头 %s 的落表单号 %s → %s (改了 %d 处) ⇒ 锚点副本登记的 %s 与台账对不上"
+          % (head_net, orig_iss, prods, hit, anchor_by))
     return work, anchors
 
 
@@ -388,7 +548,8 @@ def _case_r5b(tmp: str, root: str, recs_net: list, recs_pins: list, head_net: st
     assert head_rec, "找不到网表链头那一条记录 ⇒ 用例本身坏了"
     # ★把链头那条记录的单号【整个抽掉】(合成台账里不写单号 ⇒ 单号真的缺失) ★
     noiss = [dict(r, iss=None) if r["new"] == head_net else dict(r) for r in recs_net]
-    synth = synth_ledger([(NET, noiss), (PINS, recs_pins)], tag="缺单号")
+    synth = synth_ledger([(NET, noiss), (PINS, recs_pins)], tag="缺单号",
+                         hard_rows=hard_rows_of(anchors))
     wr(p, synth)
     st = gate.sw_ledger_state(NET, synth)
     # ★自证: 链头还在, 但【没有产出单号】了 ⇒ 判红是"缺出处" ⇒ 不是链断了 ★

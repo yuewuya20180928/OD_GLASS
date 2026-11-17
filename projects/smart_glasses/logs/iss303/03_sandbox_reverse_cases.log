@@ -1,0 +1,132 @@
+================================================================================================
+★① 网表 md5 改成一个台账里查不到的假值 ⇒ N6 红
+  期望红组 = N6 红  ·  期望命中 = ∉ 合法集合
+  实际红组 = N6 红  (rc=1)  ·  实际命中 = 是
+  N6 错误 1 条:
+    ✗ N6 受保护件被改: HW/netlist_v1.csv 盘上 md5 eecaa3237d764a56e79e75993fbb1ee1 ∉ 合法集合 (硬基线 37f62ac3f0b81d92ca7d48fdea717f07 ∪ 落表台账登记 12 条 · 链头 6aee500e60ba by ISS-302 · 台账 HW/SCHEMATIC_LANDING_V1_LANDED.md)
+  注: 沙盒里网表 md5 6aee500e ⇒ eecaa323 (真盘没动)
+  ★判定 = PASS
+  ---- 闸原样输出 (N6 段) ----
+    N6 受保护 5 件 md5 ..... ❌ 红
+        · HW/netlist_v1.csv                            eecaa3237d764a56e79e75993fbb1ee1 · ✘ 盘上 md5 ∉ 合法集合 / 台账判决失败
+        · HW/netlist_v1_pins.csv                       9174309df1ec9411ac8e8d9e80ee386a · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 10 条 · 链头 9174309df1ec by ISS-302)
+        · HW/BOM_v1.csv                                5b9993992405904a60ac96a020b375d8 · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 9 条 · 链头 5b9993992405 by ISS-302)
+  【红】1 条
+    ✗ N6 受保护件被改: HW/netlist_v1.csv 盘上 md5 eecaa3237d764a56e79e75993fbb1ee1 ∉ 合法集合 (硬基线 37f62ac3f0b81d92ca7d48fdea717f07 ∪ 落表台账登记 12 条 · 链头 6aee500e60ba by ISS-302 · 台账 HW/SCHEMATIC_LANDING_V1_LANDED.md)
+================================================================================================
+★② 脚表 md5 改成一个台账里查不到的假值 ⇒ N6 红
+  期望红组 = N6 红  ·  期望命中 = ∉ 合法集合
+  实际红组 = N6 红  (rc=1)  ·  实际命中 = 是
+  N6 错误 1 条:
+    ✗ N6 受保护件被改: HW/netlist_v1_pins.csv 盘上 md5 e450d715bae00257d4318918c5b43cb2 ∉ 合法集合 (硬基线 a4270120454aedf7a23c92cd8985c8a6 ∪ 落表台账登记 10 条 · 链头 9174309df1ec by ISS-302 · 台账 HW/SCHEMATIC_LANDING_V1_LANDED.md)
+  注: 沙盒里脚表 md5 9174309d ⇒ e450d715 (真盘没动)
+  ★判定 = PASS
+  ---- 闸原样输出 (N6 段) ----
+    N6 受保护 5 件 md5 ..... ❌ 红
+        · HW/netlist_v1.csv                            6aee500e60ba0732f83a9cf557ba90ab · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 12 条 · 链头 6aee500e60ba by ISS-302)
+        · HW/netlist_v1_pins.csv                       e450d715bae00257d4318918c5b43cb2 · ✘ 盘上 md5 ∉ 合法集合 / 台账判决失败
+        · HW/BOM_v1.csv                                5b9993992405904a60ac96a020b375d8 · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 9 条 · 链头 5b9993992405 by ISS-302)
+  【红】1 条
+    ✗ N6 受保护件被改: HW/netlist_v1_pins.csv 盘上 md5 e450d715bae00257d4318918c5b43cb2 ∉ 合法集合 (硬基线 a4270120454aedf7a23c92cd8985c8a6 ∪ 落表台账登记 10 条 · 链头 9174309df1ec by ISS-302 · 台账 HW/SCHEMATIC_LANDING_V1_LANDED.md)
+================================================================================================
+★③ 台账里把 ISS-302 那一行删掉 (链断) ⇒ 现值变回「不在合法集合」⇒ N6 红
+  期望红组 = N6 红  ·  期望命中 = ∉ 合法集合
+  实际红组 = N6 红  (rc=1)  ·  实际命中 = 是
+  N6 错误 1 条:
+    ✗ N6 受保护件被改: HW/netlist_v1.csv 盘上 md5 6aee500e60ba0732f83a9cf557ba90ab ∉ 合法集合 (硬基线 37f62ac3f0b81d92ca7d48fdea717f07 ∪ 落表台账登记 11 条 · 链头 37f62ac3f0b8 by ISS-283 · 台账 HW/SCHEMATIC_LANDING_V1_LANDED.md)
+  注: 沙盒台账删掉 2 行 (§19 行 + ISS302_ROWS 行)
+  ★判定 = PASS
+  ---- 闸原样输出 (N6 段) ----
+    N6 受保护 5 件 md5 ..... ❌ 红
+        · HW/netlist_v1.csv                            6aee500e60ba0732f83a9cf557ba90ab · ✘ 盘上 md5 ∉ 合法集合 / 台账判决失败
+        · HW/netlist_v1_pins.csv                       9174309df1ec9411ac8e8d9e80ee386a · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 10 条 · 链头 9174309df1ec by ISS-302)
+        · HW/BOM_v1.csv                                5b9993992405904a60ac96a020b375d8 · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 9 条 · 链头 5b9993992405 by ISS-302)
+  【红】1 条
+    ✗ N6 受保护件被改: HW/netlist_v1.csv 盘上 md5 6aee500e60ba0732f83a9cf557ba90ab ∉ 合法集合 (硬基线 37f62ac3f0b81d92ca7d48fdea717f07 ∪ 落表台账登记 11 条 · 链头 37f62ac3f0b8 by ISS-283 · 台账 HW/SCHEMATIC_LANDING_V1_LANDED.md)
+================================================================================================
+★④ 台账里出现两条指向同一文件的链头 (链头不唯一) ⇒ N6 红
+  期望红组 = N6 红  ·  期望命中 = 链头
+  实际红组 = N6 红  (rc=1)  ·  实际命中 = 是
+  N6 错误 1 条:
+    ✗ N6 台账判决失败: HW/netlist_v1.csv 台账链头取不准 (链头不唯一 = ['6aee500e60ba', 'bbbb33334444'] (取不准 ⇒ 不许判绿)) ⇒ fail-closed 判红
+  注: 沙盒台账末尾追加一行伪造登记 (prev=aaaa11112222 → new=bbbb33334444)
+  ★判定 = PASS
+  ---- 闸原样输出 (N6 段) ----
+    N6 受保护 5 件 md5 ..... ❌ 红
+        · HW/netlist_v1.csv                            6aee500e60ba0732f83a9cf557ba90ab · ✘ 盘上 md5 ∉ 合法集合 / 台账判决失败
+        · HW/netlist_v1_pins.csv                       9174309df1ec9411ac8e8d9e80ee386a · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 10 条 · 链头 9174309df1ec by ISS-302)
+        · HW/BOM_v1.csv                                5b9993992405904a60ac96a020b375d8 · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 9 条 · 链头 5b9993992405 by ISS-302)
+  【红】1 条
+    ✗ N6 台账判决失败: HW/netlist_v1.csv 台账链头取不准 (链头不唯一 = ['6aee500e60ba', 'bbbb33334444'] (取不准 ⇒ 不许判绿)) ⇒ fail-closed 判红
+================================================================================================
+★⑤ 台账里伪造一个 md5 但盘上不符 ⇒ 仍红
+  期望红组 = N6 红  ·  期望命中 = ∉ 合法集合
+  实际红组 = N6 红  (rc=1)  ·  实际命中 = 是
+  N6 错误 1 条:
+    ✗ N6 受保护件被改: HW/netlist_v1.csv 盘上 md5 6aee500e60ba0732f83a9cf557ba90ab ∉ 合法集合 (硬基线 37f62ac3f0b81d92ca7d48fdea717f07 ∪ 落表台账登记 12 条 · 链头 dddd55556666 by ISS-999 · 台账 HW/SCHEMATIC_LANDING_V1_LANDED.md)
+  注: 沙盒台账: 删掉 ISS-302 行 + 伪造链头 dddd55556666 ⇒ 链仍合法, 但盘上值不符
+  ★判定 = PASS
+  ---- 闸原样输出 (N6 段) ----
+    N6 受保护 5 件 md5 ..... ❌ 红
+        · HW/netlist_v1.csv                            6aee500e60ba0732f83a9cf557ba90ab · ✘ 盘上 md5 ∉ 合法集合 / 台账判决失败
+        · HW/netlist_v1_pins.csv                       9174309df1ec9411ac8e8d9e80ee386a · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 10 条 · 链头 9174309df1ec by ISS-302)
+        · HW/BOM_v1.csv                                5b9993992405904a60ac96a020b375d8 · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 9 条 · 链头 5b9993992405 by ISS-302)
+  【红】1 条
+    ✗ N6 受保护件被改: HW/netlist_v1.csv 盘上 md5 6aee500e60ba0732f83a9cf557ba90ab ∉ 合法集合 (硬基线 37f62ac3f0b81d92ca7d48fdea717f07 ∪ 落表台账登记 12 条 · 链头 dddd55556666 by ISS-999 · 台账 HW/SCHEMATIC_LANDING_V1_LANDED.md)
+================================================================================================
+★⑥ 台账文件缺失 ⇒ N6 红 (fail-closed: 判决源读不到)
+  期望红组 = N6 红  ·  期望命中 = 落表台账读不到
+  实际红组 = N6 红  (rc=1)  ·  实际命中 = 是
+  N6 错误 3 条:
+    ✗ N6 台账判决失败: HW/netlist_v1.csv 落表台账读不到 (HW/SCHEMATIC_LANDING_V1_LANDED.md) ⇒ fail-closed 判红
+    ✗ N6 台账判决失败: HW/netlist_v1_pins.csv 落表台账读不到 (HW/SCHEMATIC_LANDING_V1_LANDED.md) ⇒ fail-closed 判红
+    ✗ N6 台账判决失败: HW/BOM_v1.csv 落表台账读不到 (HW/SCHEMATIC_LANDING_V1_LANDED.md) ⇒ fail-closed 判红
+  注: 沙盒里删掉落表台账副本
+  ★判定 = PASS
+  ---- 闸原样输出 (N6 段) ----
+    N6 受保护 5 件 md5 ..... ❌ 红
+        · HW/netlist_v1.csv                            6aee500e60ba0732f83a9cf557ba90ab · ✘ 盘上 md5 ∉ 合法集合 / 台账判决失败
+        · HW/netlist_v1_pins.csv                       9174309df1ec9411ac8e8d9e80ee386a · ✘ 盘上 md5 ∉ 合法集合 / 台账判决失败
+        · HW/BOM_v1.csv                                5b9993992405904a60ac96a020b375d8 · ✘ 盘上 md5 ∉ 合法集合 / 台账判决失败
+  【红】3 条
+    ✗ N6 台账判决失败: HW/netlist_v1.csv 落表台账读不到 (HW/SCHEMATIC_LANDING_V1_LANDED.md) ⇒ fail-closed 判红
+    ✗ N6 台账判决失败: HW/netlist_v1_pins.csv 落表台账读不到 (HW/SCHEMATIC_LANDING_V1_LANDED.md) ⇒ fail-closed 判红
+    ✗ N6 台账判决失败: HW/BOM_v1.csv 落表台账读不到 (HW/SCHEMATIC_LANDING_V1_LANDED.md) ⇒ fail-closed 判红
+================================================================================================
+★⑦ 沙盒里改板文件 ⇒ N6 仍红 (ISS-296 那条不许被放松)
+  期望红组 = N6 红  ·  期望命中 = 受保护件被改
+  实际红组 = N6 红  (rc=1)  ·  实际命中 = 是
+  N6 错误 1 条:
+    ✗ N6 受保护件被改: HW/PCB/demo_mainboard.kicad_pcb 基线 611b869e13518c3c023fb178f91a0075 ⇒ 现值 ce6d32cf0443a47e0ba14e5b554305ed
+  注: 沙盒里板 md5 611b869e ⇒ ce6d32cf (真盘没动)
+  ★判定 = PASS
+  ---- 闸原样输出 (N6 段) ----
+    N6 受保护 5 件 md5 ..... ❌ 红
+        · HW/netlist_v1.csv                            6aee500e60ba0732f83a9cf557ba90ab · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 12 条 · 链头 6aee500e60ba by ISS-302)
+        · HW/netlist_v1_pins.csv                       9174309df1ec9411ac8e8d9e80ee386a · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 10 条 · 链头 9174309df1ec by ISS-302)
+        · HW/BOM_v1.csv                                5b9993992405904a60ac96a020b375d8 · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 9 条 · 链头 5b9993992405 by ISS-302)
+  【红】1 条
+    ✗ N6 受保护件被改: HW/PCB/demo_mainboard.kicad_pcb 基线 611b869e13518c3c023fb178f91a0075 ⇒ 现值 ce6d32cf0443a47e0ba14e5b554305ed
+================================================================================================
+★⑧ 正向对照: 一切如常 (现值 == 台账链头) ⇒ N6 绿
+  期望红组 = N6 绿  ·  期望命中 = —
+  实际红组 = N6 绿  (rc=0)  ·  实际命中 = 是
+  N6 错误 0 条:
+  注: 证明闸不是恒红
+  ★判定 = PASS
+  ---- 闸原样输出 (N6 段) ----
+    N6 受保护 5 件 md5 ..... ✅ 绿
+        · HW/netlist_v1.csv                            6aee500e60ba0732f83a9cf557ba90ab · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 12 条 · 链头 6aee500e60ba by ISS-302)
+        · HW/netlist_v1_pins.csv                       9174309df1ec9411ac8e8d9e80ee386a · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 10 条 · 链头 9174309df1ec by ISS-302)
+        · HW/BOM_v1.csv                                5b9993992405904a60ac96a020b375d8 · ✔ 盘上 md5 ∈ 合法集合 (硬基线 ∪ 台账登记 9 条 · 链头 5b9993992405 by ISS-302)
+  【绿】N1~N6 全过
+================================================================================================
+★真盘 5 件 md5 (跑前 ⇒ 跑后):
+  ✔ HW/PCB/demo_mainboard.kicad_pcb        611b869e13518c3c023fb178f91a0075 ⇒ 611b869e13518c3c023fb178f91a0075
+  ✔ HW/PCB/demo_mainboard.kicad_pro        3e504d2be83152e337949723e909be1b ⇒ 3e504d2be83152e337949723e909be1b
+  ✔ HW/netlist_v1.csv                      6aee500e60ba0732f83a9cf557ba90ab ⇒ 6aee500e60ba0732f83a9cf557ba90ab
+  ✔ HW/netlist_v1_pins.csv                 9174309df1ec9411ac8e8d9e80ee386a ⇒ 9174309df1ec9411ac8e8d9e80ee386a
+  ✔ HW/BOM_v1.csv                          5b9993992405904a60ac96a020b375d8 ⇒ 5b9993992405904a60ac96a020b375d8
+  ⇒ 真盘 5 件 md5 一个字节未动 = 是
+★沙盒反向用例 8/8 条 PASS
+rc=0

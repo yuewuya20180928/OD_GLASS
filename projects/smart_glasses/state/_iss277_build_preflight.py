@@ -13,8 +13,13 @@
    ⇒ ★**下次落表 / 动板之后, 跑一次生成器就是新值, 不必人来改★ ★★
 
 ② ★**追加式订正块不许被重跑冲掉** ★★
-   ⇒ 两块追加式内容 (★ISS-283 的 §3-追加 §③-1~§③-3 / ISS-289 的 §附录 + `state_baseline` 登记表★)
+   ⇒ 三块追加式内容 (★ISS-283 的 §3-追加 §③-1~§③-3 / ISS-289 的 §附录 + `state_baseline` 登记表★
+     / ISS-304 的 §附录-2·md5 基线现值自动化★)
    存在 sidecar `state/_iss277_preflight_appendix.md` ⇒ ★**生成器只做搬运, 不改一个字★ ★★
+   ⇒ ★★**唯一的例外 (★ISS-304 · 2026-11-18 · hw-lead★)**: ★台账口径 (★`expect_mode=ledger★`)
+     那 4 条登记的 `fresh` 格里的 md5 **从落表台账现读** (★`HW/landing_md5.py` · 最新链 §16.2★)
+     ⇒ ★**落表一次不必人改 · 读不到 ⇒ 拒写页 (fail-closed) ⇒ 永不再漂**★★
+     ⇒ ★**其余 25 条写死现状值的登记 + 所有 `anchor` / `correction_anchor` / `probe` / `expect*` 一个字不动**★ ★
 
 ③ ★**页与 JSON 同源** ★★
    ⇒ §2 表格行与 §7 JSON 条目由同一份 `ITEMS` 生成 (★例外: 3 条 ISS-283 手工订正过的表格行
@@ -31,6 +36,10 @@ import os
 import re
 import subprocess
 import sys
+
+# ★★ISS-304 · 2026-11-18 (hw-lead): 台账口径 `fresh` 值解析器 (★落表台账现读·零落表·零写板★) ★★
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _iss304_ledger_fresh as iss304_lf          # noqa: E402
 
 # ★★项目根 = 真盘 ★★ · ★**可用 `PREFLIGHT_PROJ` 指向沙盒副本 (★反向用例要用★) ★★
 PROJ = os.environ.get("PREFLIGHT_PROJ") or \
@@ -133,10 +142,16 @@ def read_dnp_landing_event():
 
 
 def read_appendix_blocks():
-    """★读 sidecar 的两块追加式订正 ⇒ (s3_text, iss289_text, baseline_dict) ★
+    """★读 sidecar 的三块追加式订正 ⇒ (s3_text, iss289_text, iss304_text, baseline_dict) ★
 
     ★**sidecar 缺 ⇒ 拒写页 (★fail-closed★)**: 追加式订正块是「老字不许删」的载体,
     ★**丢了它 = 重跑一次就把 ISS-283 / ISS-289 的订正全冲掉** ⇒ 宁可报错也不许悄悄少一块★ ★★
+
+    ★**★ISS-304 · 2026-11-18 (hw-lead) · 台账口径现读 (★路 B·永不再漂★)★★ ★:
+        ★那 4 条 `expect_mode=ledger` 的登记 (★`W10_MD5_NETLIST` / `W10B_MD5_PINS` /
+        `W10C_MD5_BOM` / `C07_B26_MD5_LEDGER★`), 它们的 `fresh` 格里的 md5 **从落表台账现读**
+        (★`HW/landing_md5.py` · 最新链 §16.2★) ⇒ ★**落表一次不必人改·读不到 ⇒ 拒写页 (fail-closed)★**
+        ⇒ ★**其余 25 条写死现状值的登记一个字不动 (★闸 V3/V4 的其余判据不变★)★ ★★
     """
     if not os.path.exists(APPENDIX):
         raise SystemExit("★sidecar %s 不存在 ⇒ 拒写页 (★fail-closed·追加式订正块不许丢★)"
@@ -144,14 +159,19 @@ def read_appendix_blocks():
     txt = open(APPENDIX, encoding="utf-8").read()
 
     def block(tag):
-        m = re.search(r"<!-- ISS292:%s:BEGIN -->\n(.*?)<!-- ISS292:%s:END -->"
-                      % (tag, tag), txt, re.S)
+        m = re.search(r"<!-- %s:BEGIN -->\n(.*?)<!-- %s:END -->" % (tag, tag), txt, re.S)
         if not m:
             raise SystemExit("★sidecar 里读不到 %s 块 ⇒ 拒写页 (★fail-closed★)" % tag)
         return m.group(1).rstrip("\n").split("\n")
 
-    s3 = block("S3_APPENDIX")
-    app = block("ISS289_APPENDIX")
+    s3 = block("ISS292:S3_APPENDIX")
+    app = block("ISS292:ISS289_APPENDIX")
+    # ★ISS-304 的第三块 (★整块·含 BEGIN/END 标记·便于作业包页那边对齐·) ★
+    m304 = re.search(r"<!-- ISS304:MD5_ANCHOR:BEGIN -->\n(.*?)<!-- ISS304:MD5_ANCHOR:END -->",
+                     txt, re.S)
+    if not m304:
+        raise SystemExit("★sidecar 里读不到 ISS304:MD5_ANCHOR 块 ⇒ 拒写页 (★fail-closed★)")
+    iss304 = m304.group(0).rstrip("\n").split("\n")
     # ★批次基线 (★ISS-289 那批登记的脚表功能缺陷条数★) ⇒ 从附录的 state_baseline 里读
     baseline = {}
     for m in re.finditer(r"```json\s*\n(\{.*?\n\})\s*\n```", txt, re.S):
@@ -165,7 +185,21 @@ def read_appendix_blocks():
                     mm = re.search(r"脚表 \d+ 条缺陷 = (\d+) 条脚表功能缺陷", str(e.get("anchor", "")))
                     if mm:
                         baseline["pins_functional"] = int(mm.group(1))
-    return s3, app, baseline
+    # ★★ISS-304 · 台账口径 `fresh` 值现读 (★路 B·永不再漂·读不到 ⇒ 拒写页★)★★
+    try:
+        app_txt, ch = iss304_lf.resolve_state_block_text("\n".join(app), PROJ)
+    except iss304_lf.LedgerResolveError as e:
+        raise SystemExit("★%s★" % e)
+    for c in ch:
+        print("★ISS-304 · 台账口径 fresh 现读: %-20s %s ⇒ %s"
+              % (c["id"], c["old"].split("=")[-1].strip(), c["new"].split("=")[-1].strip()))
+    app = app_txt.split("\n")
+    try:
+        iss304_txt = iss304_lf.resolve_placeholders("\n".join(iss304), PROJ)
+    except iss304_lf.LedgerResolveError as e:
+        raise SystemExit("★%s★" % e)
+    iss304 = iss304_txt.split("\n")
+    return s3, app, iss304, baseline
 
 
 def build_tokens():
@@ -173,7 +207,7 @@ def build_tokens():
     t, o, z = read_r3_a4()
     pins = read_pins_defects()
     ev = read_dnp_landing_event()
-    _, _, baseline = read_appendix_blocks()
+    _, _, _, baseline = read_appendix_blocks()
 
     # ★R3-A4 的落表事件注记 (★三个数全部随落表变, 变的是颗数不是性质★) ★
     if ev:
@@ -426,7 +460,7 @@ ITEMS = [tuple(subst(x, TOKENS) if isinstance(x, str) else x for x in it) for it
 objs = [dict(zip(FIELDS, it)) for it in ITEMS]
 
 # ★★追加式订正块 (★sidecar 搬运·★老字一字不改·★缺 sidecar ⇒ fail-closed 拒写★) ★★
-S3_BLOCK, ISS289_BLOCK, _BASELINE = read_appendix_blocks()
+S3_BLOCK, ISS289_BLOCK, ISS304_BLOCK, _BASELINE = read_appendix_blocks()
 
 # ★★表格行的原样保留 (★ISS-283 手工订正的痕迹: 这 3 行的表格文字与 JSON 字段的 ★ 排版位置不同★)
 # ★★⇒ 表格行按盘上原样保留 (★老字一字未删★), JSON 块按字段生成 ★★
@@ -576,6 +610,10 @@ A("---")
 A("")
 # ★★ISS-289 的 §附录 块 (★sidecar 搬运·★老字一字不改·★含 state_baseline 登记表★) ★★
 for l in ISS289_BLOCK:
+    A(l)
+A("")
+# ★★ISS-304 的 §附录-2 块 (★md5 基线的现值来源已自动化·★台账现读·零落表★) ★★
+for l in ISS304_BLOCK:
     A(l)
 
 open(OUT, "w", encoding="utf-8").write("\n".join(L) + "\n")

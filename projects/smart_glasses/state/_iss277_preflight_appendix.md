@@ -3,7 +3,8 @@
 ★★ 生成器 `state/_iss277_build_preflight.py` 从这里读两块:
 ★★   ① ISS292:S3_APPENDIX    → 插到 §3 末尾 (★ISS-283 落表带来的板侧同步项 §③-1~§③-3★)
 ★★   ② ISS292:ISS289_APPENDIX→ 追加到页尾 (★ISS-289 现状值对回盘面·含 state_baseline 登记表★)
-★★ ★★规矩: ★这两块只许【往后追加】, 不许改老字 ⇒ 重跑生成器不许冲掉它们★ ★★
+★★   ③ ISS304:MD5_ANCHOR     → 追加到页尾 (★ISS-304·md5 基线的现值来源已自动化·含台账现值占位符★)
+★★ ★★规矩: ★这三块只许【往后追加】, 不许改老字 ⇒ 重跑生成器不许冲掉它们★ ★★
 ★★ ★★另一条规矩: ② 里的 `state_baseline.entries[].expect` 是【漂移闸的期望值】(★`HW/check_workpack_state_values.py`★)
 ★★    ⇒ ★它【故意】不随盘面自动更新 ⇒ 盘面一变闸当场红 ⇒ 那时【同一次重锚】它 (★不许生成器偷偷改·那等于把闸调没★)★
 -->
@@ -348,7 +349,7 @@
         "doc": "workpacket",
         "anchor": "★**`HW/netlist_v1.csv`** ★ | ★`e06c1dd633566aa44732762c2ff99d1c` ★",
         "correction_anchor": "### ★8.2.3 · 同批一起对回的其余现状值型判据",
-        "fresh": "落表台账登记 = 37f62ac3f0b81d92ca7d48fdea717f07",
+        "fresh": "落表台账登记 = 6aee500e60ba0732f83a9cf557ba90ab",
         "expect_mode": "ledger",
         "expect_target": "HW/netlist_v1.csv",
         "probe": [
@@ -364,7 +365,7 @@
         "doc": "workpacket",
         "anchor": "★**`HW/netlist_v1_pins.csv`** ★ | ★`287e7861a0d1007748d92d9fbecdd490` ★",
         "correction_anchor": "### ★8.2.3 · 同批一起对回的其余现状值型判据",
-        "fresh": "落表台账登记 = a4270120454aedf7a23c92cd8985c8a6",
+        "fresh": "落表台账登记 = 9174309df1ec9411ac8e8d9e80ee386a",
         "expect_mode": "ledger",
         "expect_target": "HW/netlist_v1_pins.csv",
         "probe": [
@@ -380,7 +381,7 @@
         "doc": "workpacket",
         "anchor": "★**`HW/BOM_v1.csv`** ★ | ★`94642d07a69e8d60dd2af57f69b93607` ★",
         "correction_anchor": "### ★8.2.3 · 同批一起对回的其余现状值型判据",
-        "fresh": "落表台账登记 = 5d02bece9477ffce5fbe0193c7d5cce4",
+        "fresh": "落表台账登记 = 5b9993992405904a60ac96a020b375d8",
         "expect_mode": "ledger",
         "expect_target": "HW/BOM_v1.csv",
         "probe": [
@@ -488,7 +489,7 @@
         "doc": "checklist",
         "anchor": "网表 e06c1dd6…",
         "correction_anchor": "## ★§附录 · ISS-289 追加式订正 (★现状值对回盘面★)",
-        "fresh": "落表台账登记 = 37f62ac3f0b81d92ca7d48fdea717f07",
+        "fresh": "落表台账登记 = 6aee500e60ba0732f83a9cf557ba90ab",
         "expect_mode": "ledger",
         "expect_target": "HW/netlist_v1.csv",
         "probe": [
@@ -505,3 +506,22 @@
 
 ★**★本页的每个数字都是本机实读, 没有一条是估的★★** ★
 <!-- ISS292:ISS289_APPENDIX:END -->
+
+<!-- ISS304:MD5_ANCHOR:BEGIN -->
+## ★ISS-304 追加式订正 (★md5 基线的现值来源已自动化 · 永不再漂★)
+
+★**一句话**: ★★那 4 条台账口径登记 (`W10_MD5_NETLIST` / `W10B_MD5_PINS` / `W10C_MD5_BOM` / `C07_B26_MD5_LEDGER`) 的 `fresh` 格, 现在由【生成器】(★清单页★) 与【同步脚本】(★作业包页★) 从落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 的最新链 §16.2 **现读** ⇒ ★落表一次不必人改 · 读不到就拒写页 (fail-closed) ⇒ 永不再漂★★ ★
+
+★**★现行值 (★台账现读 · ★这三个数由生成器/同步脚本从落表台账现读 · 不许手改★)** ★:
+
+| 文件 | ★**现行值 (★落表台账登记★)** ★ |
+|---|---|
+| `HW/netlist_v1.csv` | ★**落表台账登记 = «LEDGER_MD5:HW/netlist_v1.csv»** ★ |
+| `HW/netlist_v1_pins.csv` | ★**落表台账登记 = «LEDGER_MD5:HW/netlist_v1_pins.csv»** ★ |
+| `HW/BOM_v1.csv` | ★**落表台账登记 = «LEDGER_MD5:HW/BOM_v1.csv»** ★ |
+
+★**★老字保留 (★一字未删★)**: ★清单页 §附录 ④ 与作业包 §8.2.3 ⑬ 那三个数 = ★**ISS-283 那一跳** (★台账 L1353·§16.2★) 的**快照**★ ⇒ ★那是【历史留痕】, 不是现值★ ⇒ ★**现行值 = 上表三个数 + 登记表那 4 格的 `fresh`**★ ★
+
+★**★机器判据**: ★`python3 HW/check_workpack_state_values.py` ⇒ ★V4 拿台账现值对 `fresh` 格 ⇒ 漂了当场红★ ★
+★**★重锚流程 (★落表之后跑这两条 · 顺序不许换★)**: ① `python3 state/_iss277_build_preflight.py` (★刷清单页★) ⇒ ② `python3 state/_iss304_sync_state_baseline_md5.py` (★刷作业包页 + 生成器的输入 sidecar★) ⇒ ★★跑两次 md5 逐字节相同 = 幂等★★ ★
+<!-- ISS304:MD5_ANCHOR:END -->

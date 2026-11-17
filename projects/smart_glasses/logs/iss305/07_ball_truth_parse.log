@@ -1,0 +1,156 @@
+=== ISS-305 · 真判别式 (ball → pin 名集合) 解析 ===
+datasheet            : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.txt
+总行数(split '\n')   : 2921
+★§2.6 球位表行区间    : L914 .. L2288  (★自动定位: '2.6 Pin Number List' → 'Chapter 3'★)
+
+解析出的球位数        : 550
+★多锚点块(几何自洽)  : 5   (★锚点间隔实测: [3, 3, 3, 3, 3]★)
+
+=== 与项目自带解析器 `HW/RK3572_PIN_TABLE/rk3572_pins.csv` 交叉验证 ===
+  ref 球位数=550 · 本脚本球位数=550
+  ★ref 的 name 集合【完全被本脚本覆盖】的球位 = 459 / 550
+  ★未被覆盖的 (ball, 缺的名字) 前 10 条:
+      AT8 : ['GP', 'GPIO1_A4_u']
+      1AF5 : ['G']
+      1D8 : ['UART7_RX_']
+      1A10 : ['UART7_TX_']
+      B11 : ['DSM_AU']
+      1A8 : ['SDMMC']
+      1B8 : ['SAI3_SDO_']
+      1C8 : ['SAI3_SCLK_M']
+      AB33 : ['EDP_TX']
+      1P21 : ['GPIO0_']
+
+=== ★★关键分歧: 同一 pin 名在 ref 与本脚本里落在不同球位★★ ===
+  ★冲突 pin 名个数 = 126
+      CAM_CLK0_OUT_M0                  ref=['1AD23']    本脚本=['AM32']    
+      CAM_CLK0_OUT_M1                  ref=['1B6']      本脚本=['1A6']     
+      CAM_CLK1_OUT_M1                  ref=['B8']       本脚本=['1B6']     
+      DSMC_CLKN                        ref=['AM32']     本脚本=['AM33']    
+      DSMC_CLKP                        ref=['AM33']     本脚本=['1AB20']   
+      DSMC_CSN0                        ref=['AL32']     本脚本=['AF32']    
+      DSMC_CSN1                        ref=['AG32']     本脚本=['1AB21']   
+      DSMC_CSN3                        ref=['AF32']     本脚本=['AF33']    
+      DSMC_DATA0                       ref=['1AB20']    本脚本=['AL32']    
+      DSMC_DATA1                       ref=['1V20']     本脚本=['1AB22']   
+      DSMC_DATA12                      ref=['1Y22']     本脚本=['AG32']    
+      DSMC_DATA14                      ref=['1Y21']     本脚本=['1V23']    
+      DSMC_DATA15                      ref=['1V23']     本脚本=['1V22']    
+      DSMC_DATA5                       ref=['AJ32']     本脚本=['AH33']    
+      DSMC_DATA6                       ref=['AD32']     本脚本=['AL33']    
+      DSMC_DATA7                       ref=['AL33']     本脚本=['AH32']    
+      DSMC_DQS0                        ref=['AH32']     本脚本=['AK32']    
+      DSMC_INT1                        ref=['AE32']     本脚本=['AD32']    
+      DSMC_INT3                        ref=['AH33']     本脚本=['AE32']    
+      DSMC_RESETN                      ref=['1AD23']    本脚本=['AM32']    
+
+=== ★11 条落位: ref 与本脚本逐条一致? ===
+  AM32  一致=False  ref=['CDC_VSYNC', 'DSMC_CLKN', 'GPIO3_D6_d', 'PWM2_CH7_M2', 'SAI1_SDO1_M1', 'SATA1_MPSWIT_M1', 'UART5_RTSN_M0', 'V', 'VO_EBC_SDOE']
+        ★本脚本=['CAM_CLK0_OUT_M0', 'DSMC_RESETN', 'GPIO3_D7', 'GPIO3_D7_d', 'PWM2_CH7_M2', 'SAI1_SDO1_M1', 'SATA1_MPSWIT_M1', 'UART5_RTSN_M0', 'VO_EBC_SDOE', 'VO_LCDC_CLK']
+  A20   一致=True   ref=['MIPI_DPHY_CSI0_RX_CLKP']
+  B20   一致=True   ref=['MIPI_DPHY_CSI0_RX_CLKN']
+  A19   一致=True   ref=['MIPI_DPHY_CSI0_RX_D0P']
+  B19   一致=True   ref=['MIPI_DPHY_CSI0_RX_D0N']
+  1B14  一致=True   ref=['MIPI_DPHY_CSI0_RX_D1P']
+  1C14  一致=True   ref=['MIPI_DPHY_CSI0_RX_D1N']
+  A22   一致=True   ref=['MIPI_DPHY_CSI0_RX_D2P', 'MIPI_DPHY_CSI1_RX_D0P']
+  B22   一致=True   ref=['MIPI_DPHY_CSI0_RX_D2N', 'MIPI_DPHY_CSI1_RX_D0N']
+  A23   一致=True   ref=['MIPI_DPHY_CSI0_RX_D3P', 'MIPI_DPHY_CSI1_RX_D1P']
+  B23   一致=True   ref=['MIPI_DPHY_CSI0_RX_D3N', 'MIPI_DPHY_CSI1_RX_D1N']
+
+=== 11 条 CSI/MCLK 落位 · 真判别式重判 ===
+T1 归属 : ball ∈ 解析结果 且 该信号 ∈ names(ball)
+T2 排他 : 该信号的归属球位集合 == {ball} (★换相邻球位必须判红★)
+T3 同球双名 : names(ball) 允许含多个名字 (A22 = CSI0_D2P + CSI1_D0P)
+
+  P4 pin79  ball=A20   sig=MIPI_DPHY_CSI0_RX_CLKP         ⇒ T1 ✔ · T2 ✔ · 归属球位=['A20'] · 行号=[1785]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['MIPI_DPHY_CSI0_RX_CLKP']
+  P4 pin77  ball=B20   sig=MIPI_DPHY_CSI0_RX_CLKN         ⇒ T1 ✔ · T2 ✔ · 归属球位=['B20'] · 行号=[1787]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['MIPI_DPHY_CSI0_RX_CLKN']
+  P4 pin67  ball=A19   sig=MIPI_DPHY_CSI0_RX_D0P          ⇒ T1 ✔ · T2 ✔ · 归属球位=['A19'] · 行号=[1777]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['MIPI_DPHY_CSI0_RX_D0P']
+  P4 pin65  ball=B19   sig=MIPI_DPHY_CSI0_RX_D0N          ⇒ T1 ✔ · T2 ✔ · 归属球位=['B19'] · 行号=[1779]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['MIPI_DPHY_CSI0_RX_D0N']
+  P4 pin73  ball=1B14  sig=MIPI_DPHY_CSI0_RX_D1P          ⇒ T1 ✔ · T2 ✔ · 归属球位=['1B14'] · 行号=[1781]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['MIPI_DPHY_CSI0_RX_D1P']
+  P4 pin71  ball=1C14  sig=MIPI_DPHY_CSI0_RX_D1N          ⇒ T1 ✔ · T2 ✔ · 归属球位=['1C14'] · 行号=[1783]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['MIPI_DPHY_CSI0_RX_D1N']
+  P4 pin85  ball=A22   sig=MIPI_DPHY_CSI1_RX_D0P          ⇒ T1 ✔ · T2 ✔ · 归属球位=['A22'] · 行号=[1789]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['MIPI_DPHY_CSI0_RX_D2P', 'MIPI_DPHY_CSI1_RX_D0P']
+  P4 pin83  ball=B22   sig=MIPI_DPHY_CSI1_RX_D0N          ⇒ T1 ✔ · T2 ✔ · 归属球位=['B22'] · 行号=[1791]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['MIPI_DPHY_CSI0_RX_D2N', 'MIPI_DPHY_CSI1_RX_D0N']
+  P4 pin91  ball=A23   sig=MIPI_DPHY_CSI1_RX_D1P          ⇒ T1 ✔ · T2 ✔ · 归属球位=['A23'] · 行号=[1793]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['MIPI_DPHY_CSI0_RX_D3P', 'MIPI_DPHY_CSI1_RX_D1P']
+  P4 pin89  ball=B23   sig=MIPI_DPHY_CSI1_RX_D1N          ⇒ T1 ✔ · T2 ✔ · 归属球位=['B23'] · 行号=[1795]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['MIPI_DPHY_CSI0_RX_D3N', 'MIPI_DPHY_CSI1_RX_D1N']
+  P2 pin45  ball=AM32  sig=CAM_CLK0_OUT_M0                ⇒ T1 ✔ · T2 ✔ · 归属球位=['AM32'] · 行号=[1588]
+        ★该球位全部 MIPI_DPHY_CSI / CAM_CLK pin 名 = ['CAM_CLK0_OUT_M0']
+
+★T1 归属通过 = 11 / 11
+★T2 排他通过 = 11 / 11
+
+=== 判别力对照实验: 【真判别式】vs 【被审脚本的 ±3 行窗口】 ===
+做法(counterfactual): 把落位的信号名换成【同 D-PHY 组内相邻球位的信号名】
+      真判别式 ⇒ 必须判红 ; ±3 窗口 ⇒ 若仍判绿 ⇒ 判据非排他
+
+  P4 pin79  ball=A20   真信号=MIPI_DPHY_CSI0_RX_CLKP      
+        ★±3 窗口里【属于别的球位】的 pin 名 = 2 个 ⇒ ['MIPI_DPHY_CSI0_RX_CLKN', 'MIPI_DPHY_CSI0_RX_D1N']
+        ⇒ 显式冒名: 把本球位的信号说成 MIPI_DPHY_CSI0_RX_CLKN       (它真正属于 ['B20'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+  P4 pin77  ball=B20   真信号=MIPI_DPHY_CSI0_RX_CLKN      
+        ★±3 窗口里【属于别的球位】的 pin 名 = 3 个 ⇒ ['MIPI_DPHY_CSI0_RX_CLKP', 'MIPI_DPHY_CSI0_RX_D2P', 'MIPI_DPHY_CSI1_RX_D0P']
+        ⇒ 显式冒名: 把本球位的信号说成 MIPI_DPHY_CSI0_RX_CLKP       (它真正属于 ['A20'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+  P4 pin67  ball=A19   真信号=MIPI_DPHY_CSI0_RX_D0P       
+        ★±3 窗口里【属于别的球位】的 pin 名 = 2 个 ⇒ ['MIPI_DPHY_AVDD1V8', 'MIPI_DPHY_CSI0_RX_D0N']
+        ⇒ 显式冒名: 把本球位的信号说成 MIPI_DPHY_CSI0_RX_D0N        (它真正属于 ['B19'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+  P4 pin65  ball=B19   真信号=MIPI_DPHY_CSI0_RX_D0N       
+        ★±3 窗口里【属于别的球位】的 pin 名 = 2 个 ⇒ ['MIPI_DPHY_CSI0_RX_D0P', 'MIPI_DPHY_CSI0_RX_D1P']
+        ⇒ 显式冒名: 把本球位的信号说成 MIPI_DPHY_CSI0_RX_D0P        (它真正属于 ['A19'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+  P4 pin73  ball=1B14  真信号=MIPI_DPHY_CSI0_RX_D1P       
+        ★±3 窗口里【属于别的球位】的 pin 名 = 2 个 ⇒ ['MIPI_DPHY_CSI0_RX_D0N', 'MIPI_DPHY_CSI0_RX_D1N']
+        ⇒ 显式冒名: 把本球位的信号说成 MIPI_DPHY_CSI0_RX_D0N        (它真正属于 ['B19'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+  P4 pin71  ball=1C14  真信号=MIPI_DPHY_CSI0_RX_D1N       
+        ★±3 窗口里【属于别的球位】的 pin 名 = 2 个 ⇒ ['MIPI_DPHY_CSI0_RX_CLKP', 'MIPI_DPHY_CSI0_RX_D1P']
+        ⇒ 显式冒名: 把本球位的信号说成 MIPI_DPHY_CSI0_RX_CLKP       (它真正属于 ['A20'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+  P4 pin85  ball=A22   真信号=MIPI_DPHY_CSI1_RX_D0P       
+        ★±3 窗口里【属于别的球位】的 pin 名 = 3 个 ⇒ ['MIPI_DPHY_CSI0_RX_CLKN', 'MIPI_DPHY_CSI0_RX_D2N', 'MIPI_DPHY_CSI1_RX_D0N']
+        ⇒ 显式冒名: 把本球位的信号说成 MIPI_DPHY_CSI0_RX_CLKN       (它真正属于 ['B20'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+  P4 pin83  ball=B22   真信号=MIPI_DPHY_CSI1_RX_D0N       
+        ★±3 窗口里【属于别的球位】的 pin 名 = 4 个 ⇒ ['MIPI_DPHY_CSI0_RX_D2P', 'MIPI_DPHY_CSI0_RX_D3P', 'MIPI_DPHY_CSI1_RX_D0P', 'MIPI_DPHY_CSI1_RX_D1P']
+        ⇒ 显式冒名: 把本球位的信号说成 MIPI_DPHY_CSI0_RX_D2P        (它真正属于 ['A22'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+  P4 pin91  ball=A23   真信号=MIPI_DPHY_CSI1_RX_D1P       
+        ★±3 窗口里【属于别的球位】的 pin 名 = 4 个 ⇒ ['MIPI_DPHY_CSI0_RX_D2N', 'MIPI_DPHY_CSI0_RX_D3N', 'MIPI_DPHY_CSI1_RX_D0N', 'MIPI_DPHY_CSI1_RX_D1N']
+        ⇒ 显式冒名: 把本球位的信号说成 MIPI_DPHY_CSI0_RX_D2N        (它真正属于 ['B22'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+  P4 pin89  ball=B23   真信号=MIPI_DPHY_CSI1_RX_D1N       
+        ★±3 窗口里【属于别的球位】的 pin 名 = 3 个 ⇒ ['MIPI_DPHY_CSI0_RX_D3P', 'MIPI_DPHY_CSI1_RX_CLKP', 'MIPI_DPHY_CSI1_RX_D1P']
+        ⇒ 显式冒名: 把本球位的信号说成 MIPI_DPHY_CSI0_RX_D3P        (它真正属于 ['A23'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+  P2 pin45  ball=AM32  真信号=CAM_CLK0_OUT_M0             
+        ★±3 窗口里【属于别的球位】的 pin 名 = 8 个 ⇒ ['DSMC_CLKN', 'GPIO3_D6', 'GPIO4_A0', 'I2C7_SCL_M2', 'SATA1_CPPOD_M1', 'SPDIF_RX0_M4', 'SPI1_CSN1_M2', 'UART9_TX_M1']
+        ⇒ 显式冒名: 把本球位的信号说成 DSMC_CLKN                    (它真正属于 ['AM33'])
+           ±3 窗口判据: ★仍判绿(非排他)★         ★真判别式: 判红
+
+★counterfactual 条数 = 11
+★±3 行窗口 判绿 = 11 / 11  ⇒ ★**该判据非排他**★
+★真判别式   判绿 = 0 / 11  ⇒ ★**该判据排他**★
+
+=== 同球双名簇 (A22/B22/A23/B23) 逐球位名单 ===
+  ball=A22   行号=[1789]  CSI pin 名 = ['MIPI_DPHY_CSI0_RX_D2P', 'MIPI_DPHY_CSI1_RX_D0P']
+  ball=B22   行号=[1791]  CSI pin 名 = ['MIPI_DPHY_CSI0_RX_D2N', 'MIPI_DPHY_CSI1_RX_D0N']
+  ball=A23   行号=[1793]  CSI pin 名 = ['MIPI_DPHY_CSI0_RX_D3P', 'MIPI_DPHY_CSI1_RX_D1P']
+  ball=B23   行号=[1795]  CSI pin 名 = ['MIPI_DPHY_CSI0_RX_D3N', 'MIPI_DPHY_CSI1_RX_D1N']
+
+=== datasheet 球位表里的 D-PHY 分组 (★判 B 的佐证★) ===
+  CSI0 : [('1B14', 'MIPI_DPHY_CSI0_RX_D1P'), ('1C14', 'MIPI_DPHY_CSI0_RX_D1N'), ('A19', 'MIPI_DPHY_CSI0_RX_D0P'), ('A20', 'MIPI_DPHY_CSI0_RX_CLKP'), ('A22', 'MIPI_DPHY_CSI0_RX_D2P'), ('A23', 'MIPI_DPHY_CSI0_RX_D3P'), ('B19', 'MIPI_DPHY_CSI0_RX_D0N'), ('B20', 'MIPI_DPHY_CSI0_RX_CLKN'), ('B22', 'MIPI_DPHY_CSI0_RX_D2N'), ('B23', 'MIPI_DPHY_CSI0_RX_D3N')]
+  CSI1 : [('1B16', 'MIPI_DPHY_CSI1_RX_CLKP'), ('1C16', 'MIPI_DPHY_CSI1_RX_CLKN'), ('A22', 'MIPI_DPHY_CSI1_RX_D0P'), ('A23', 'MIPI_DPHY_CSI1_RX_D1P'), ('B22', 'MIPI_DPHY_CSI1_RX_D0N'), ('B23', 'MIPI_DPHY_CSI1_RX_D1N')]
+  CSI2 : [('1B10', 'MIPI_DPHY_CSI2_RX_D1P'), ('1C10', 'MIPI_DPHY_CSI2_RX_D1N'), ('A13', 'MIPI_DPHY_CSI2_RX_D0P'), ('A14', 'MIPI_DPHY_CSI2_RX_CLKP'), ('A16', 'MIPI_DPHY_CSI2_RX_D2P'), ('A17', 'MIPI_DPHY_CSI2_RX_D3P'), ('B13', 'MIPI_DPHY_CSI2_RX_D0N'), ('B14', 'MIPI_DPHY_CSI2_RX_CLKN'), ('B16', 'MIPI_DPHY_CSI2_RX_D2N'), ('B17', 'MIPI_DPHY_CSI2_RX_D3N')]
+  CSI3 : [('1B12', 'MIPI_DPHY_CSI3_RX_CLKP'), ('1C12', 'MIPI_DPHY_CSI3_RX_CLKN'), ('A16', 'MIPI_DPHY_CSI3_RX_D0P'), ('A17', 'MIPI_DPHY_CSI3_RX_D1P'), ('B16', 'MIPI_DPHY_CSI3_RX_D0N'), ('B17', 'MIPI_DPHY_CSI3_RX_D1N')]
+

@@ -2156,6 +2156,117 @@ dispatches:
     > ★**派活人**: 项目总工 (main / moli) · ★**派活时刻**: 2026-11-17 23:1x · ★**job**: cron `775d9893` (ARS45 继续执行后继计划)
 
     > ★**owner**: hw-lead · ★**verify_by**: main · ★**单号**: ISS'
+- issue: ISS-302
+  agent: hw-lead
+  at: '2026-11-18'
+  brief: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 01:1x · ★**僵尸 fixing 重派 = cont1 续做 (★不是从零重做★)** ★ · ★**依据 = main 00:4x~00:5x 本机实跑 (不抄任何 agent 报告)** ★ · ★**上一趟子会话被掐 (status=timeout / abortedLastRun=true)
+    ⇒ 主体已做完, 只差 paperwork** ★ · ★**status 全程 fixing ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派** ★ · ★**brief = issue_log 里 ISS-302 的 task_brief (★= 原任务书全文 + `state/dispatch_briefs/ISS-302_hw_c_sys_landing_cont1.md`
+    全文·已过命令存在性闸 `python3 state/check_brief_commands.py --brief-file` ⇒ rc=0★)** ★
+  note: '★**cont1 续做 (★2026-11-18 01:1x · cron fb67af40 重派僵尸 fixing★)** ★**依据 = main 00:4x~00:5x 本机实跑★** ⇒ ★**上一趟子会话 `agent:hw-lead:subagent:ae23ed17` (sessionId c3e684e9) 00:16:54 → 00:26:26 · runtime
+    568s · status=timeout / abortedLastRun=true ⇒ 死在「交卷单刚建 778 B 骨架、还没填」那一刻★** ⇒ ★**僵尸 fixing ⇒ hw-lead 被挡★** ⇒ ★**主体【已做完】(落表脚本 11,811 B · 网表 L498/L499/L500 DNP→必装 + 追加式订正 · BOM L48 C_SYS 必装 20µF · 三件产物
+    00:21:08 重生成 37f62ac3→6aee500e / a4270120→9174309d / 5d02bece→5b999399 · 台账 §19 + ISS302_ROWS L1451~L1455 · 板 611b869e… mtime 仍 2026-11-06 07:07:17) ⇒ 本轮只派【3 件 paperwork: ① 交卷单 7 个块填实 (grep -cE ''🔄|待填''
+    必须 = 0) ② 分片 hw.yaml 写 claim/answer/artifact (grep -c iss302 目标 ≥ 5) ③ 闸复跑原样 rc 落 logs/iss302/ 并贴进 B4】★** ⇒ ★**落表已完成 ⇒ 本单是收尾单: 网表/脚表/BOM/台账/p10_rows.json 一个字节不许再动 (★再跑生成器也不行★) · 板零变化 · 零外发** ★ ⇒ ★**另外
+    4 道红闸不许在本单里改判据去消红 (HW/check_pin_function_labels.py = 既有缺陷基线不许动 · HW/check_workpack_state_values.py = ISS-304 · MECH/check_onepass_struct_crosscheck.py + MECH/check_onepass_mech_release.py = ISS-303)★**
+    ★ ⇒ ★**真判据是 `grep -cE "🔄|待填"` 必须 = 0 (★`state/check_report_placeholders.py` 抓不到这种形态★)** ★'
+- issue: ISS-303
+  agent: mech-lead
+  at: '2026-11-18'
+  brief: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 01:1x · ★**新开单** ★ · ★**依据 = main 00:5x 本机实跑 18 道闸 (原样 rc 在 /tmp/gate_sweep_iss302.log)** ★ · ★**status 直接落 fixing ⇒ 兄弟 job 看不见 open 窗口** ★ · ★**brief = `state/dispatch_briefs/ISS-303_mech_n6_ledger_jump.md`
+    全文 · 已过命令存在性闸 ⇒ rc=0** ★
+  note: '★**2026-11-18 01:1x · cron fb67af40 (ARS45 队列自动派活) 新开并直接派出 (★status 直接落 fixing ⇒ 兄弟 job 775d9893 的 advance.py 看不见 open 窗口 ⇒ 不会重复派同一个 agent★)** ★ ⇒ ★**依据 = main 00:5x 本机实跑 18 道闸★** ⇒ `MECH/check_onepass_struct_crosscheck.py`
+    rc=1 · ★**N6 受保护件被改 3 条**★ (网表 37f62ac3→6aee500e / 脚表 a4270120→9174309d / BOM 5d02bece→5b999399 ★**全是 ISS-302 的合法落表★**) ⇒ `MECH/check_onepass_mech_release.py` rc=1 (★汇总 绿5/红1, 红的那道就是它★) ⇒ ★**板那一趟的结构侧准出被挡住**★
+    ⇒ ★**根因**: 该闸 `PROTECTED_LEDGER_MD5` (L66~L67) 是 ISS-290 任务书的硬基线常量 ⇒ 分不出「合法落表」与「有人手改」★ ⇒ ★**口径 = HW 侧已跑通的那套 (HW/check_workpack_state_values.py 的 V6 段: 盘上 md5 == 落表台账登记 ⇒ 未被绕过改动)** ★ ⇒ ★**本单不许放宽判据方向
+    / 不许动 fail-closed 三条 / 不许动 ISS-296 已接好的合法改板通道 / 不许改 HW·SW 任何文件** ★'
+- issue: ISS-304
+  agent: hw-lead
+  at: '2026-11-18'
+  brief: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 01:1x · ★**新开单 · status=open 排队 (★hw-lead 名额被 ISS-302 cont1 占着 ⇒ 下一轮空出来就派·advance.py 的 in_flight 规则会自动挡住, 不会重复派)** ★ · ★**brief = `state/dispatch_briefs/ISS-304_hw_workpack_state_values_reanchor.md`
+    全文 · 已过命令存在性闸 ⇒ rc=0** ★
+  note: ★**2026-11-18 01:1x · cron fb67af40 (ARS45 队列自动派活) 新开 · status=open 排队 (★hw-lead 名额被 ISS-302 cont1 占着 ⇒ 下一轮 hw-lead 空出来就派★)** ★ ⇒ ★**依据 = main 00:5x 本机实跑★** ⇒ `HW/check_workpack_state_values.py`
+    rc=1 · ★**V4 现状值==盘面实测 4 条红**★ (W10_MD5_NETLIST / W10B_MD5_PINS / W10C_MD5_BOM / C07_B26_MD5_LEDGER) ⇒ `state/gate_check.py` rc=1 · ★**Q7 钉板 md5 闸链 8/9 绿 ⇒ 板那一趟不许开工**★ ⇒ ★**根因 = 两份页面里那 4 条 `fresh` 原句
+    停在 ISS-283 那一跳 (37f62ac3 / a4270120 / 5d02bece) ⇒ 而 sidecar `state/_iss277_preflight_appendix.md` 里也是同一批旧值** ★ ⇒ ★**那 4 条自己的 note 就写着「基线走落表台账为准, 不写死」⇒ 口径早就定过, 只是链没跟上** ★ ⇒ ★**不许改闸的判定逻辑 (它是钉板闸⑥) · 不许手改生成器产物
+    (清单页是 `state/_iss277_build_preflight.py` 的产物) · 老字 29 条 anchor 逐字不许删 (V2 追加式自证)** ★
+- issue: ISS-300
+  agent: mech-lead
+  at: '2026-11-18'
+  brief: '★**main 验签 (verify_by=main) 于 01:1x** ★ ⇒ fixing → verified ⇒ ★**诚实 note: 交付时 (22:4x) 汇总闸 rc=0 全绿, 但 00:21 ISS-302 合法落表后 MECH 侧 N6 转红 ⇒ 汇总闸现在 rc=1 ⇒ ★**已另开 ISS-303 跟** ⇒ ★**验签 ≠ 结构侧现在就能出 Gerber**
+    ★'
+  note: '★main 验签 (本机实跑: 交卷单 25,996 B · 占位符 0 · 分片 12 条 · 交付时 rc=0/绿6)★'
+- issue: ISS-304
+  agent: hw-lead
+  at: '2026-11-18'
+  brief: '# ISS-304 · hw-lead 任务书 —— ★★【钉板闸⑥ 作业包现状值闸: 落表一次 ⇒ 页面里的现值就漂 ⇒ 「板只改一次」那一趟不许开工】★★
+
+
+    > ★**派活人**: 项目总工 (main / moli) · ★**owner**: hw-lead · ★**verify_by**: main · ★**单号**: ISS-304
+
+    > ★**job**: cron `fb67af40` (ARS45 队列自动派活) · ★**派活时刻**: ★**2026-11-18 01:0x** ★
+
+    > ★**性质**: ★**内部活 · 现状值重锚类 · 零写板 · 零落表** ★ ⇒'
+  job: cron 775d9893 (ARS45 继续执行后继计划) · 派出 (★先落 fixing 再 spawn·零写板·零落表·纯文档/闸侧重锚类★)
+- issue: ISS-305
+  agent: hw-lead
+  at: '2026-11-18'
+  brief: state/dispatch_briefs/ISS-305_hw_verify_iss131.md
+  job: cron 775d9893 (ARS45 继续执行后继计划) · 派出 (★独立复验类·纯读+记+签·零写板·零落表·零外发★)
+- issue: ISS-305
+  agent: hw-lead
+  at: '2026-11-18'
+  brief: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 02:0x · ★**僵尸 fixing 重派 = cont1 续做 (★不是从零重做★)** ★ · ★**依据 = main 02:0x 本机实跑盘面 + 读子会话 transcript (不抄任何 agent 报告)** ★ · ★**上一趟 status=failed ⇒ 主体已做一半 (logs/iss305/
+    01~06 全在) ⇒ 只差 3 件 paperwork + 「球位号 11/11」的真判别式重判** ★ · ★**status 全程 fixing ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派** ★ · ★**brief = issue_log 里 ISS-305 的 task_brief (★= 原任务书全文 + `state/dispatch_briefs/ISS-305_hw_verify_iss131_cont1.md`
+    全文·已过命令存在性闸 `python3 state/check_brief_commands.py --brief-file` ⇒ rc=0★)** ★
+  note: '★**cont1 续做 (★2026-11-18 02:0x · cron fb67af40 重派僵尸 fixing★)** ★**依据 = main 02:0x 本机实跑盘面 + 读子会话 transcript★** ⇒ ★**上一趟子会话 `agent:hw-lead:subagent:596715d6` (sessionId 76409e80) 01:34:40 → 01:57:20
+    · runtime 1360s · status=failed · abortedLastRun=false ⇒ 死在「A~F 判决写到一半、交卷单还没建」那一刻★** ⇒ ★**僵尸 fixing ⇒ hw-lead 被挡★** ⇒ ★**主体【已做一半】(logs/iss305/ 01~06 六份日志全在盘) ⇒ 本轮只派【3 件 paperwork: ① 交卷单 B0~B6 七块填实 (grep
+    -cE "🔄 待填" 必须 = 0) ② A~F 六条逐条判决 (★对/不对/有条件 + 依据 + 行号★) ③ 分片 hw.yaml (grep -c iss305 ≥ 5)】★** ⇒ ★**★但 §2 才是本单真正的价值: `logs/iss305/06_independent_strict_ball_check.log` 实测 ⇒ 复验脚本用的「±3 行窗口」判据【不排他】(同一窗口里躺着
+    3~7 个候选信号名 ⇒ 换成相邻球位的信号名也会被判通过) ⇒ 且 datasheet 球位表是多列+折行排版 ⇒ 「严格同行绑定」11/11=False、「严格 token 级绑定」只过 1/11 ⇒ ⇒ 「球位号 11/11 与官方逐条对上」这条【还没被真判别式证明过】★** ⇒ ★**本轮要求 hw-lead 建【真判别式 (ball → 该球位全部 pin 名集合) 解析】并用它把
+    11 条重判一遍 ⇒ 这是本单要挑的 over-claim★** ⇒ ★**零写板 · 零落表 · 零改闸 (★`state/_iss131_crosscheck_rk3572_caliber.py` 是被复验对象, 不许改★) · 零外发 · 不自签 issue_log** ★'
+- issue: ISS-306
+  agent: sw-lead
+  at: '2026-11-18'
+  brief: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 02:0x · ★**新开单 + 直接派出 (status 直接落 fixing ⇒ 兄弟 job 看不见 open 窗口)** ★ · ★**依据 = main 02:0x 本机实跑 (`state/check_stage_g1a.py` 2 条红 + `HW/check_netlist_selfconsistency.py
+    --expect-resolved` 4 条未落表 + `state/gate_check.py` rc=0 Q7 9/9 + `MECH/check_onepass_mech_release.py` rc=0)★** ★ · ★**brief = `state/dispatch_briefs/ISS-306_sw_g1a_reds_rootcause.md` 全文 · 已过命令存在性闸 ⇒
+    rc=0** ★
+  note: '★**2026-11-18 02:0x · cron fb67af40 (ARS45 队列自动派活) 新开并直接派出 (★status 直接落 fixing ⇒ 兄弟 job 775d9893 的 advance.py 看不见 open 窗口 ⇒ 不会重复派同一个 agent★)** ★ ⇒ ★**依据 = main 02:0x 本机实跑 (不抄任何 agent 报告)★** ⇒ `python3
+    state/check_stage_g1a.py` ⇒ ❌ **还差 2 条: G1a-4 (落表已清零·翻面口径) + G1a-8 (关机语义+负载开关已决)**** ⇒ `python3 HW/check_netlist_selfconsistency.py --expect-resolved` ⇒ rc=1 · ★**它自己列了 4 条未落表**★: ① **R3** 板封装 U_EN_SW
+    的 Value 属性还是脚级功能串 ⇒ 板文件也要同趟改 · ② **R4** 板上仍然没有任何 ESD 位号挂在 D− 那条网 (USB_D_N_SRC / NET_USB_D_N_TYPEC) ⇒ **D− 仍然裸奔** · ③ **R4** D_ESD_USB_D 仍然只有 2 个焊盘 (D+ + GND) ⇒ **仍不是双通道** · ④ **R9** D_ESD_USB_D → J_USB_C
+    板面距离 = 47.99 mm > 3.0 mm ⇒ ESD 还是不在接口旁边 ★ ⇒ ★**★第一问 (本单最要紧)**: 老板 11-17 09:49 已把 **A3 架构轴拍成 V-2 = 1 (2 脚单通道)** ⇒ ⇒ 判据里「仍不是双通道」那句**期望值**与老板已拍口径**可能冲突** ⇒ ★**是判据过期 还是 真缺口?** (★两者都有也要分开写清★) ★ ⇒ ★**第二问**:
+    G1a-8 的代理判据 = ISS-097/ISS-172 status ∈ {verified, closed}; 现状 **ISS-097 = `fixed`** (owner=boss · verify_by=boss · 产物 `HW/POWER_SHUTDOWN_V3.md` 20,677 B 在盘 · mtime 2026-11-17 23:17) ⇒ ★**是「等老板验签」(按
+    11-12 02:02 口径不许外发, 只能催拍) 还是「代理判据的状态集选错了」?** ★ ⇒ ★**★本单唯一目标 = 交出「板那一趟开工前, 老板还差 N 个字母 (N 必须是具体数字) + 每条卡在哪一步 + 不拍的后果」的清单** ★ ⇒ ★**盘面 (main 02:0x 实跑)**: `state/gate_check.py` rc=0 (★Q1 18/18 · Q7 钉板 md5
+    闸链 **9/9 全绿**★) · `MECH/check_onepass_mech_release.py` rc=0 (★绿 6/红 0★) ⇒ ★**板那一趟的机器前置已清, 剩下的红全压在这两条 G1a 上** ★ ⇒ ★**★若结论是「N = 0」⇒ 那是本单最有价值的结论, 不许为了凑数硬找卡点**★ ★'
+- issue: ISS-307
+  agent: hw-lead
+  at: '2026-11-18'
+  brief: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 03:2x · ★**新开单 + 直接派出 (status 直接落 fixing ⇒ 兄弟 job 775d9893 看不见 open 窗口)** ★ · ★**依据 = main 03:1x 本机实跑 (`state/advance.py --json` ⇒ internal 排空 + `subagents
+    list` ⇒ active 0 + `state/gate_check.py` 缺口清单原文「可直接转成下一轮派活项」+ 10 道闸全绿 + pcbnew/网表/台账 实读)** ★ · ★**brief = `state/dispatch_briefs/ISS-307_hw_esd_dual_channel_candidates.md` 全文 · 已过命令存在性闸 `python3 state/check_brief_commands.py
+    --brief-file` ⇒ rc=0** ★
+  note: '★**2026-11-18 03:2x · cron fb67af40 (ARS45 队列自动派活) 新开并直接派出 (★status 直接落 fixing ⇒ 兄弟 job 775d9893 的 advance.py 看不见 open 窗口 ⇒ 不会重复派同一个 agent★)** ★ ★**开单依据 (★main 03:1x 本机实跑, 不抄任何 agent 报告★)** ★ ⇒
+    ★**① 队列已排空**: `state/advance.py --json` ⇒ `internal: []` (三个总工 open=0 · fixing=0) + `subagents list` ⇒ active 0 ⇒ ★**所以本轮按「开新单」处理 (队列排空时让内部待办不断线 = 本 job 的存在意义)★** ★ ★**② 派活候选来自机器自己**: `state/gate_check.py`【缺口清单】原文写「★**(可直接转成下一轮派活项)**★」⇒
+    实测 7 条 ⇒ 其中 4 条是同一条债 (hw-lead 最新交卷单缺 B2/B3/B4/B5 ⇒ **Q1 = 14/18**) ⇒ ★**成因 = main 03:0x 刚修了 gate_check 的「回退不许掩盖真倒退」(新增 `_uses_b_blocks` 判定) ⇒ 它把真债露出来了★** ★ ★**③ 但本单不只做文档活 (★为什么值得一个总工的预算★)**: main 03:1x
+    逐道复扫 10 道闸 ⇒ netlist_selfconsistency / land_row_anchors / onepass_preflight_coverage / MECH struct_crosscheck / SW demo_panel_spec / workpack_state_values / onepass_commit_order / MECH mech_release
+    / bq25896_pinout 全 rc=0 ⇒ ★**板那一趟的机器前置全清 ⇒ 剩下的红只有两类: ①老板的 4 个字母 ②板那一趟本体 (unc 45→0)★** ⇒ ★**而那 4 个字母里有 2 个 (W-2 / W-1b·W-1c) 全落在 ESD 选型轴上 ⇒ 【选型候选 + 官网证据 + 落位可行性】谁都没交过 ⇒ ⇒ 老板现在拍不了这两个字母, 因为他手上没有候选集 ⇒ 这就是本单存在的理由★**
+    ★ ★**④ 本机实测的地基事实 (★pcbnew / 网表 / 台账 实读★)**: `D_ESD_USB_D` @ (94.95, 21.80) · 2 焊盘 · Value `ESD 阵列 [待选型] (USB 2.0 双通道)` · `J_USB_C` @ (140.00, 5.25) · 18 焊盘 · 板框 160×100 · ★**距 `J_USB_C` 8 mm 内除它自己外没有别的元件**★
+    · 网表里 D− 两条网 (`USB_D_N_SRC` / `NET_USB_D_N_TYPEC`) 上的 ESD 位号数 = **0** (D− 裸奔) · `D_ESD_TC` (SP0503BAHT 3 通道 SOT-143) 挂在 VBUS 三张网上 ⇒ **不碰 D+/D−** ★ ★**⑤ 台账内部的硬矛盾 (★本单第一问★)**: `HW/SCHEMATIC_LANDING_V1_LANDED.md`
+    L166 (B-3) 要求 `D_ESD_USB_D` 换 **3 脚封装 (pin1=D+/pin2=D−/pin3=GND)** ⇒ **一颗双通道件同时吃 D+ 与 D−** ★ ★**但同台账 L934 的落表真源型号 = `TPD1E05U06DPYR` = TI 单通道 X1SON-2 (2 脚) ⇒ 2 脚件物理上接不了 D− ⇒ ⇒ 台账自己打架 ⇒ 这就是「型号轴必须拍」的实物根据★**
+    ★ ★**⑥ 兄弟单 ISS-306 (sw-lead · 已 verified) 的结论被本单直接引用**: ① W-2 一落 ⇒ R4 两条红自动转绿 ⇒ 只有老板选「不补」才需另开一条修闸单 ⇒ ★**⇒ 路径乙的「判据口径改法草案 (★判据不许偷偷放宽★)」也是本单交卷物**★ ★ ★**⑦ 架构轴 ≠ 型号轴**: 老板 2026-11-17 09:49 已拍 A3 架构轴 = V-2
+    = 1 (2 脚单通道) ⇒ ★**「架构已定」推不出「型号已定」** (★同 ISS-260 的分法★) ★ ★**⑧ 交卷纪律**: 交卷单必须按【标准验收块 B1~B6】写 (★gate_check 的 `REQUIRED_BLOCKS` 口径★) ⇒ ★**Q1 必须 18/18** ★ · ★**加分项**: 可在 `HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md`
+    文末【追加】一节标准验收块 (★既有正文一个字不许改★) ⇒ 顺手清掉 Q1 那条口径债 ★ ★**零外发**: 本单不依赖任何外部回复 ⇒ 全部自己网上查 + 标证据等级 + 查不到写降级方案 ★'
+- issue: ISS-308
+  agent: hw-lead
+  at: '2026-11-18'
+  brief: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 04:3x · ★**新开单 + 直接派出 (status 直接落 fixing ⇒ 兄弟 job 775d9893 看不见 open 窗口)** ★ · ★**依据 = main 04:2x~04:3x 本机实跑 (`state/advance.py --json` ⇒ internal 排空 + `subagents
+    list` ⇒ active 0 + `state/gate_check.py` rc=0 (Q1 18/18 · Q7 9/9) + `state/issue_check.py` rc=0 + `bash state/pcbnew_py.sh state/check_pcb_drc.py HW/PCB/demo_mainboard.kicad_pcb` ⇒ rc=0 · C4 unconnected
+    = 45 + 作业包 §3-S8 / UNC_TARGET_MAP / 臂总账 实读)** ★ · ★**brief = `state/dispatch_briefs/ISS-308_hw_s8_reachability_verdict.md` 全文 · 已过命令存在性闸 `python3 state/check_brief_commands.py --brief-file` ⇒ rc=0**
+    ★
+  note: '★**2026-11-18 04:3x · cron fb67af40 (ARS45 队列自动派活) 新开并直接派出 (★status 直接落 fixing ⇒ 兄弟 job 775d9893 的 advance.py 看不见 open 窗口 ⇒ 不会重复派同一个 agent★)** ★ ★**开单依据 (★main 04:2x~04:3x 本机实跑, 不抄任何 agent 报告★)**
+    ★ ⇒ ★**① 队列已排空**: `state/advance.py --json` ⇒ `internal: []` (三个总工 open=0 · fixing=0) + `subagents list` ⇒ active 0 ⇒ ★**本轮按「开新单」处理 (队列排空时让内部待办不断线 = 本 job 的存在意义)★** ★ ★**② 机器前置全清**: `state/gate_check.py`
+    rc=0 (★Q1 18/18 · Q7 9/9 全绿★) · `state/issue_check.py` rc=0 ⇒ ★**板那一趟开工前机器能挡的都挡住了 ⇒ 剩下的红只有两类: ①老板的字母 ②S8 本体 (unc 45→0)★** ★ ★**③ 本单攻②**: ★**S8 能不能做完, 盘上没有任何一份文档给出答案** ⇒ 而 S8 是 G1 最后一关 ⇒ ★**答错 = 板改第二次
+    = Gerber/投产包/留证链/盖章/发布全作废** ⇒ ★**这就是本单存在的理由★** ★ ★**④ 本机实测的地基事实 (★原样★)** ★: · ★**现役板 unc = 45** (`bash state/pcbnew_py.sh state/check_pcb_drc.py HW/PCB/demo_mainboard.kicad_pcb` ⇒ rc=0 · C3 DRC=0 ·
+    C4 unconnected=45 · C7 同点重复过孔=0)★ · 板 md5 611b869e… mtime 2026-11-06 07:07:17 ★ · 作业包 §3-S8 原文: 「45 条里 23 条是高速 DSI/CSI 腿, 全部要跨 SoM 主体 (x 8..76, y 6..56)」+ 「官方板这 13 条 DSI 腿自己一根都没布通」+ 「其余 22 条死因登记 = ISS-265
+    §6 的 5 条 (A1/W-1/W-2/W-4/D_LED_G/FSIN_OUT)」+ 「这是本单唯一一个『可能整趟做完仍然投不了板』的步」★ · 最佳候选 candidate_v76mx1L_pour (★DRC 0 · unc 26 条 / 22 网名 · 名单制闸 rc=0★) 的残余 22 网名清单 (★`state/UNC_TARGET_MAP.md` §11-11 05:6x★)
+    ★ · ★**★本单第一问 = 一个没人写下来过的现象★**: 那 22 条残余里 ★**差分类绝大多数是 N 腿** ⇒ 「P 通 N 不通」是【层分配】症状 ⇒ 而路由器源码里【正好有】专门治它的 `PCB_PAIR_LAYERSEL` (★env 门控★) ⇒ ★**而 UNC_TARGET_MAP 原文只写「目前无效但有害」一句 ⇒ 谁写的/哪天的/有没有实测支撑 = 未知** ★ ·
+    臂总账: ★33+ 个臂全停在 unc 24~29 / DRC 0~1 ⇒ 参数调优已到平台期 ⇒ ⇒ 根因在布局/机制 ★ ★**⑤ 本单不造活**: sw-lead / mech-lead 名下 open=0 · fixing=0 · 各自的闸全绿 ⇒ 不给他们硬造活 ★ ★**⑥ 交卷纪律**: 交卷单按【标准验收块 B1~B6】写 ⇒ **Q1 必须 18/18** ★ · ★**交卷优先**
+    (★上批子会话 570~1360 s 被父 run 掐·timeout·abortedLastRun=true★) ⇒ 缺口写进 B5 ★ ★**交卷物 3 件 (全部新建)**: `HW/PCB/S8_REACHABILITY_VERDICT.md` · `HANDOFF/2026-11-18_hw-lead_ISS308_S8可达性判决书.md` · `state/_iss308_s8_reachability_check.py`
+    ★ ★**零外发**: 本单不依赖任何外部回复 ⇒ 查不到就写 [0数据] + 降级方案 ★'
 entries:
 - issue: ISS-282
   agent: hw-lead
@@ -2199,3 +2310,37 @@ entries:
     \ 建骨架 (★哪怕只写 3 行标题 + 交付物清单★)** ★ · ★**长任务一律 `nohup ... > logs/iss285/x.log 2>&1 &` + 短轮询 (★前台长 exec = 被掐的头号原因★)** ★ · ★**单条 `exec` ≤ ~120 秒** ★ · ★**每 10 分钟至少一次写盘** ★ · ★**每落一件交付物就把 rc 追加进交卷单** ★ ·\
     \ ★**分片写完 `grep` 校验** ★\n"
   job: cron 775d9893 (ARS45 继续执行后继计划) · 新开单 (★等 hw-lead 名额或 sw-lead 名额空出来再派★)
+- issue: ISS-308
+  agent: hw-lead
+  at: '2026-11-18'
+  brief: '★**ISS-308 cont1 续做 (★僵尸 fixing 重派·不是从零重做★)** ★ ★**上一趟 `agent:hw-lead:subagent:56d88b87` 04:26:27→04:33:39 死 (★父 run 结束时被连带 abort★) ⇒ 0/3 交付物落地 ⇒ 僵尸 fixing ⇒ hw-lead 被挡** ★ ★**在盘可用的成果**: `state/_iss308_s8_reachability_check.py`
+    的 `BUCKETS` = 22 网名 → 5 桶归属表【22 条齐】+ `logs/iss308/evidence/` 两份逐层 JSON (★main 04:46 从 /tmp 抢救★) ⇒ **不许重做分析** ★ ★**★main 04:5x 实跑复现的真判据缺陷**: `--selftest` rc=1 (★用例①「改了桶居然还判绿」★) ⇒ `check()` 不校验【某网名该落哪个桶】⇒
+    **必须给桶归属加独立权威源才算修绿** ★ ★**任务书全文**: `state/dispatch_briefs/ISS-308_hw_s8_reachability_verdict_cont1.md` (22,812 B · `check_brief_commands.py --brief-file` rc=0) ★ ★**边界**: 零写板 · 零落表 · 零改闸 · 零改既有文档正文
+    · 零外发 · 不替老板拍板 · 不自签 issue_log · 只写自己的分片★'
+  job: 'cron fb67af40 (ARS45 队列自动派活) · ★派活时刻 2026-11-18 04:5x · ★**僵尸 fixing 续做重派 (cont1)** ★ · ★**status 全程 fixing ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派** ★ · ★**★根因写进 dispatch_log: 上一趟死于「父 run 结束 ⇒ 子会话被连带
+    abort」(★externalAbort=false · timedOut=false · promptError=abort·promptErrorSource=prompt★)⇒ ⇒ **下一趟派活必须保证父 run 活到子会话交卷 (★用 sessions_yield 等·不许直接结束父 run★)** ★'
+- issue: ISS-309
+  agent: sw-lead
+  at: '2026-11-18'
+  brief: '★**ISS-309 新开 (★纯分析 / 作业包类★)**: SW 侧待答清单 + 谁能答 + 不答的后果 ★ ★**任务书全文**: `state/dispatch_briefs/ISS-309_sw_board_oneshot_manifest_gate.md` ★ ★**边界**: 零写板 · 零落表 · 零改闸 · 零改既有文档正文 · 零外发 · 不替老板拍板 · 不自签
+    issue_log ★'
+  job: 'cron fb67af40 (ARS45 队列自动派活) · ★派活时刻 2026-11-18 04:5x · ★**新开单 + 直接派出 (status 直接落 fixing)** ★ · ★**依据: sw-lead 名下 open=0 · fixing=0 · SW 侧 6 道闸全绿 · 机检缺口清单指 sw-lead 76 条需求没人答** ★'
+- issue: ISS-309
+  agent: sw-lead
+  at: '2026-11-18'
+  brief: '★**ISS-309 cont1 续做 (★僵尸 fixing 重派·不是从零重做★)** ★ ★**上一趟 `agent:sw-lead:subagent:4f1fbe6b` 04:55:25→05:05:48 死 (★status=timeout · abortedLastRun=true · runtimeMs=624507·父 run 结束连带 abort★) ⇒ 0 交付物落地
+    ⇒ 僵尸 fixing ⇒ sw-lead 被挡** ★ ★**在盘可用的成果**: `logs/iss309/01_before_r6_selftest.txt` + `02_md5_before.txt` + `03_probe_r5a_r4_scenarios.txt` (★5 场景 A~E 的 judge 判定★) ⇒ **不许重做基线/重想那 5 个场景** ★ ★**★main 05:3x
+    读 03_probe 的关键实测**: 场景 A/B ⇒ 链头单号被改坏 ⇒ **judge 判绿** ⇒ ⇒ **R5a 大概率是【真判据缺陷 (漏放)】而不是夹具假伤** ⇒ ★**这正是原 brief §1-② 点名的最要紧一问** ★ ★**任务书全文**: `state/dispatch_briefs/ISS-309_sw_r6_selftest_5of7_cont1.md` (5,919
+    B · `check_brief_commands.py --brief-file` rc=0) ★ ★**边界**: 零写板 · 零落表 · 零改权威判据 · 零改 `state/gate_check.py` · 零外发 · 不替老板拍板 · 不自签 issue_log · 只写自己的分片 + SW/ + HANDOFF/ + logs/iss309/ ★'
+  job: 'cron fb67af40 (ARS45 队列自动派活) · ★派活时刻 2026-11-18 05:3x · ★**僵尸 fixing 续做重派 (cont1)** ★ · ★**status 全程 fixing ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派** ★ · ★**★根因写进 dispatch_log: 子会话随父 run 结束被连带 abort
+    (★与 ISS-308 第一趟同一个死法★) ⇒ ⇒ **本趟用 sessions_yield 等子会话交卷, 不许直接结束父 run** ★'
+- issue: ISS-310
+  agent: mech-lead
+  at: '2026-11-18'
+  brief: '★**ISS-310 新开 (★纯分析 / 作业包类★): 板框口径「两套并存」的代价对照 + 机器可判的可行域表** ★ ★**病灶**: MECH 域自己两套框口径打架 (`BOARD_PORT_OPENING_S6_WORKPACKET.md` §3.2 判台架板三处判红 ⇒ 「推荐本趟对着产品板 60×30 画」 vs `BOARD_ONEPASS_MECH_CLAIMS.md`
+    §1~§3 全部坐标钉在 B160x100 ⇒ U-1「不许合并」待拍) ★ 而 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md` §7 排序依据第 3 条 **自己点名** 「C1/C2 的答案在 mech 手上 (镜腿宽度能容几层/多宽) ⇒ 建议先交给 mech」 ⇒ 且那一行引的「产品板 (60×15)」**已是作废板宽** (现行 60×30 · ISS-118)
+    ★ ★**交付**: `MECH/board_frame_feasibility.py` (三套框 × 板厚档 × 层数 · 带 --selftest 反向用例) + `MECH/BOARD_FRAME_DECISION_INPUT.md` (两套口径逐字并列 + 冲突点 + 两条路线代价 + 三句话建议·不代拍) + `HANDOFF/2026-11-18_mech-lead_ISS310_板框口径代价对照.md`
+    + `logs/iss310/` + mech 分片 ★ ★**任务书全文**: `state/dispatch_briefs/ISS-310_mech_board_frame_decision_input.md` (10,143 B · `check_brief_commands.py --brief-file` rc=0) ★ ★**边界**: 零写板 · 零落表 · 零改闸 · 零改既有文档正文
+    · 不碰 HW/ 与 SW/ · 零外发 · 不替老板拍板 · 不自签 issue_log · 只写自己的分片 ★'
+  job: 'cron fb67af40 (ARS45 队列自动派活) · ★派活时刻 2026-11-18 05:3x · ★**新开单 + 直接派出 (status 直接落 fixing)** ★ · ★**依据: 队列排空 (internal=[]) + mech-lead 名下 open=0/fixing=0 + MECH 侧 6 道闸全绿 + 机检缺口清单指 mech-lead 104 条需求没人答
+    + HW 作业包 §7 自己点名把「C1/C2 产品板口径」交给 mech** ★'

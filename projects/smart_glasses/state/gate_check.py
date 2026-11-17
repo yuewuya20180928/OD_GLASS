@@ -108,6 +108,19 @@ def pick_handoff(paths):
     miss = [c for c, b in lb.items() if not b.get("ok")]
     if not miss:
         return latest, latest, [], False
+    # ★★2026-11-18 03:0x (main): ★**回退不许掩盖【真倒退】**★★
+    #   ★**病灶 (★ISS-306 点名★)**: 最新那份是【标准 B1~B6 格式】但【少了块】⇒ 那就是【倒退】⇒
+    #     ★**不许回退到 7 天内那份齐备的老单来把齐备率顶住** ⇒ ★**倒退必须立刻可见** ★
+    #   ★**保留原意**: per-issue 单用 §1..§10 结构 (★根本不是 B1~B6 单★) ⇒ ★**允许回退** (★原设计如此★)
+    try:
+        _lt = open(latest, encoding="utf-8", errors="ignore").read()
+    except Exception:
+        _lt = ""
+    _heads = re.findall(r"^#{1,4}\s*(.+)$", _lt, re.M)
+    _uses_b_blocks = any(re.match(r"^\s*B[0-6]\b", h) for h in _heads)
+    if _uses_b_blocks:
+        # ★**它自称 B 块结构 ⇒ 缺块就是倒退 ⇒ 不回退** ★
+        return latest, latest, miss, False
     # 找 7 天内 B1-B6 齐全的一份
     try:
         newest_mtime = os.path.getmtime(latest)
@@ -481,6 +494,13 @@ def main() -> int:
     # ★ISS-136: 硬件闸红 ⇒ 进缺口清单 (不许只在正文里飘一行)
     if not hw_gate["ok"]:
         report["gaps"].append(f"★硬件闸红: {hw_gate['name']} — {hw_gate['detail']}")
+    # ★★2026-11-18 03:0x (main): ★**「用了回退」本身要是一条独立告警** (★不许把齐备率被顶住这件事埋在句子里★)
+    for _a in AGENTS:
+        _e = report["agents"].get(_a) or {}
+        if _e.get("handoff_fallback"):
+            report["gaps"].append(
+                f"★{_a}: Q1 齐备率用了【回退】⇒ 最新一份 {(_e.get('handoff_latest') or '?')} 缺块, 按老的 {(_e.get('handoff') or '?')} 计分 ⇒ "
+                f"★**齐备率被顶住, 不代表最新交付齐** ★")
 
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
