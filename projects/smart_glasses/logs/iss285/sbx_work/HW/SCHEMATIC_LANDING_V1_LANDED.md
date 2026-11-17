@@ -1294,3 +1294,142 @@ md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv
 
 ---
 
+## ★★16 · ★★V 值拍板即落 (★ISS-283 · 2026-11-16 · 硬件总工 (hw-lead) 执行 · ★`state/land_v_values.py` 一键落★) ★★
+
+> ★**单号**: ★**ISS-283** · ★**owner**: hw-lead · ★**verify_by**: main · ★**落表器**: ★**`state/land_v_values.py`** (★默认 dry-run · `--apply` 强制 `--boss-decision`★) ★
+> ★**老板拍板凭据 (★机器化留痕★)**: `2026-11-17 A3 = 1`
+> ★**落表时间**: ★**2026-11-17 12:16:09 (Asia/Shanghai)** ★
+> ★**性质**: ★**V 值拍板后落表** (★V-2 / V-3 / V-4 老板都拍了才落★) · ★**没碰板** (受保护 md5 逐字节不变)★ · ★**没碰 `SW/` / `MECH/` / `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / 别人的分片★** · ★**零外发 ⇒ 实物 [实测] = 0 条★ ★
+
+### ★★16.1 · 拍板了什么 + 逐条落点 ★★
+
+| V 值 | 取值 | 落表后期望 `--expect-resolved` 条数变化 | 本工具落的落点 | 板那一趟才转绿的 |
+|---|---|---|---|---|
+| ★**V-2** ★ | ★**1** ★ | ★**0 条**★ | `state/gen_netlist.py` (V2-1 D_ESD_USB_D 挪到 Type-C 侧 (★架构 single2 ⇒ 行数不变, 只动网名★)) | ★**3 条**★ |
+
+### ★★16.2 · 新旧 md5 前后对照 (★供 SW / MECH 两边走 H-1 重锚★) ★★
+
+| 文件 | 前 | 后 | 变了? |
+|---|---|---|---|
+| ★**`HW/netlist_v1.csv`** ★ | `2f17650cfbef48d5efd71821505c3343` | `87f2f792513584bee3d147883c8fb93b` | ★**是**★ |
+| ★**`HW/netlist_v1_pins.csv`** ★ | `6ea65fecdf95902e47330083d140d455` | `8ca46495ba0365a886068fa420b519ac` | ★**是**★ |
+| ★**`HW/BOM_v1.csv`** ★ | `ea5f4f58e3fb8bb7b6c3a2e0de8b1dfd` | `ea5f4f58e3fb8bb7b6c3a2e0de8b1dfd` | 否 |
+| ★**`HW/PCB/demo_mainboard.kicad_pcb`** ★ | `611b869e13518c3c023fb178f91a0075` | `611b869e13518c3c023fb178f91a0075` | 否 |
+| ★**`HW/PCB/demo_mainboard.kicad_pro`** ★ | `3e504d2be83152e337949723e909be1b` | `3e504d2be83152e337949723e909be1b` | 否 |
+
+★**受保护的两个必须逐字节不变**: `HW/PCB/demo_mainboard.kicad_pcb` = `611b869e13518c3c023fb178f91a0075` · `HW/PCB/demo_mainboard.kicad_pro` = `3e504d2be83152e337949723e909be1b` ★
+
+### ★★16.3 · 身份变更授权台账 (★ISS-283 · B1 · 行号锚点守卫的【合法落表】通道★) ★★
+
+> ★**这是「合法落表改 net 名」的唯一授权证据** ⇒ ★**守卫查不到下面这些记录 ⇒ 一律判红** ★
+> ★**判据 (★四项齐全才成立★)**: 落表单号 + 文件名 + 表 + 行号 + 旧身份 + 新身份 ★
+> ★**旧身份 / 新身份 = JSON 数组 (★身份列的值·按守卫 registry 的口径★)** ★
+
+<!-- LANDING_AUTH:BEGIN -->
+| 单号 | 文件 | 表 | 行号 | 旧身份 | 新身份 | 日期 | 凭据 |
+|---|---|---|---|---|---|---|---|
+| ISS-283 | HW/netlist_v1.csv | netlist | 417 | ["D_ESD_USB_D", "USB_D_P_SRC"] | ["D_ESD_USB_D", "NET_USB_D_P_TYPEC"] | 2026-11-17 | 2026-11-17 A3 = 1 |
+<!-- LANDING_AUTH:END -->
+
+### ★★16.4 · 复现命令 (★B6 自证★) ★★
+
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+python3 state/land_v_values.py --decision V-2=1   # ★dry-run: 逐字 diff, 零写盘★
+python3 state/gen_netlist.py && python3 state/gen_kicad_net.py && \
+python3 state/gen_netlist_pins.py && python3 state/gen_bom.py && \
+python3 state/gen_schematic_pages.py && python3 state/gen_kicad_sch.py
+python3 HW/check_netlist_selfconsistency.py                    # rc=0
+python3 HW/check_netlist_selfconsistency.py --selftest          # rc=0 (21/21)
+python3 HW/check_netlist_selfconsistency.py --expect-resolved   # rc=1 (★预期 18 条★)
+python3 state/check_netlist.py && python3 state/check_netlist_pins.py
+python3 state/check_sch_erc.py && python3 state/check_sch_pinfull.py
+python3 state/merge.py && python3 state/gate_check.py
+md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv
+```
+
+---
+
+## ★★16 · ★★V 值拍板即落 (★ISS-283 · 2026-11-16 · 硬件总工 (hw-lead) 执行 · ★`state/land_v_values.py` 一键落★) ★★
+
+> ★**单号**: ★**ISS-283** · ★**owner**: hw-lead · ★**verify_by**: main · ★**落表器**: ★**`state/land_v_values.py`** (★默认 dry-run · `--apply` 强制 `--boss-decision`★) ★
+> ★**老板拍板凭据 (★机器化留痕★)**: `2026-11-17 A4 = A` / `2026-11-17 A5 = 20mA`
+> ★**落表时间**: ★**2026-11-17 12:30:23 (Asia/Shanghai)** ★
+> ★**性质**: ★**V 值拍板后落表** (★V-2 / V-3 / V-4 老板都拍了才落★) · ★**没碰板** (受保护 md5 逐字节不变)★ · ★**没碰 `SW/` / `MECH/` / `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / 别人的分片★** · ★**零外发 ⇒ 实物 [实测] = 0 条★ ★
+
+### ★★16.1 · 拍板了什么 + 逐条落点 ★★
+
+| V 值 | 取值 | 落表后期望 `--expect-resolved` 条数变化 | 本工具落的落点 | 板那一趟才转绿的 |
+|---|---|---|---|---|
+| ★**V-5** ★ | ★**A** ★ | ★**0 条**★ | `state/gen_netlist.py` (V5-1 `Q_PG` 写法 A (★pad1↔pad3 网互换 + 三行 note 改写★)) | — |
+| ★**V-6** ★ | ★**20mA** ★ | ★**0 条**★ | `state/gen_netlist.py` (V6-1 LED 串阻改 20 mA 档 (★红 68Ω / 绿 55Ω★))<br>`HW/SCHEMATIC_V1_SPEC.json` (V6-2a SPEC.json B-12 (LED_R) 的 imp)<br>`HW/SCHEMATIC_V1_SPEC.json` (V6-2b SPEC.json B-13 (LED_G) 的 imp) | — |
+
+### ★★16.2 · 新旧 md5 前后对照 (★供 SW / MECH 两边走 H-1 重锚★) ★★
+
+| 文件 | 前 | 后 | 变了? |
+|---|---|---|---|
+| ★**`HW/netlist_v1.csv`** ★ | `87f2f792513584bee3d147883c8fb93b` | `37f62ac3f0b81d92ca7d48fdea717f07` | ★**是**★ |
+| ★**`HW/netlist_v1_pins.csv`** ★ | `8ca46495ba0365a886068fa420b519ac` | `a4270120454aedf7a23c92cd8985c8a6` | ★**是**★ |
+| ★**`HW/BOM_v1.csv`** ★ | `ea5f4f58e3fb8bb7b6c3a2e0de8b1dfd` | `5d02bece9477ffce5fbe0193c7d5cce4` | ★**是**★ |
+| ★**`HW/PCB/demo_mainboard.kicad_pcb`** ★ | `611b869e13518c3c023fb178f91a0075` | `611b869e13518c3c023fb178f91a0075` | 否 |
+| ★**`HW/PCB/demo_mainboard.kicad_pro`** ★ | `3e504d2be83152e337949723e909be1b` | `3e504d2be83152e337949723e909be1b` | 否 |
+
+★**受保护的两个必须逐字节不变**: `HW/PCB/demo_mainboard.kicad_pcb` = `611b869e13518c3c023fb178f91a0075` · `HW/PCB/demo_mainboard.kicad_pro` = `3e504d2be83152e337949723e909be1b` ★
+
+### ★★16.3 · 身份变更授权台账 (★ISS-283 · B1 · 行号锚点守卫的【合法落表】通道★) ★★
+
+> ★**这是「合法落表改 net 名」的唯一授权证据** ⇒ ★**守卫查不到下面这些记录 ⇒ 一律判红** ★
+> ★**判据 (★四项齐全才成立★)**: 落表单号 + 文件名 + 表 + 行号 + 旧身份 + 新身份 ★
+> ★**旧身份 / 新身份 = JSON 数组 (★身份列的值·按守卫 registry 的口径★)** ★
+
+<!-- LANDING_AUTH:BEGIN -->
+| 单号 | 文件 | 表 | 行号 | 旧身份 | 新身份 | 日期 | 凭据 |
+|---|---|---|---|---|---|---|---|
+| ISS-283 | HW/netlist_v1.csv | netlist | 59 | ["Q_PG", "PWR_ON"] | ["Q_PG", "PWR_GOOD"] | 2026-11-17 | 2026-11-17 A4 = A / 2026-11-17 A5 = 20mA |
+| ISS-283 | HW/netlist_v1.csv | netlist | 61 | ["Q_PG", "PWR_GOOD"] | ["Q_PG", "PWR_ON"] | 2026-11-17 | 2026-11-17 A4 = A / 2026-11-17 A5 = 20mA |
+<!-- LANDING_AUTH:END -->
+
+### ★★16.4 · 复现命令 (★B6 自证★) ★★
+
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+python3 state/land_v_values.py --decision V-5=A --decision V-6=20mA   # ★dry-run: 逐字 diff, 零写盘★
+python3 state/gen_netlist.py && python3 state/gen_kicad_net.py && \
+python3 state/gen_netlist_pins.py && python3 state/gen_bom.py && \
+python3 state/gen_schematic_pages.py && python3 state/gen_kicad_sch.py
+python3 HW/check_netlist_selfconsistency.py                    # rc=0
+python3 HW/check_netlist_selfconsistency.py --selftest          # rc=0 (21/21)
+python3 HW/check_netlist_selfconsistency.py --expect-resolved   # rc=1 (★预期 18 条★)
+python3 state/check_netlist.py && python3 state/check_netlist_pins.py
+python3 state/check_sch_erc.py && python3 state/check_sch_pinfull.py
+python3 state/merge.py && python3 state/gate_check.py
+# ★★ISS-283 · ⑪: 落表后【全闸扫描】 (★一次性跑完所有闸 + 列出红的 + 查有没有人认领★) ★★
+python3 state/land_v_values.py --selftest    # ★落表器自测 (★条数只许增不许减★) ★
+python3 HW/check_land_row_anchors.py
+python3 HW/check_land_row_anchors.py --selftest
+python3 HW/check_netlist_selfconsistency.py
+python3 HW/check_netlist_selfconsistency.py --selftest
+python3 HW/check_netlist_contradiction_r3.py
+python3 HW/check_part_selection_landed_crosscheck.py
+python3 HW/check_onepass_preflight_coverage.py
+python3 HW/check_onepass_preflight_coverage.py --selftest
+python3 HW/check_onepass_commit_order.py
+python3 HW/check_onepass_commit_order.py --selftest
+python3 HW/check_board_frame_caliber.py
+python3 HW/check_board_frame_caliber.py --selftest
+python3 state/check_netlist.py
+python3 state/check_netlist_pins.py
+python3 state/check_sch_erc.py
+python3 state/check_sch_pinfull.py
+python3 state/merge.py
+python3 state/gate_check.py
+python3 state/issue_check.py
+python3 state/check_chain_content_anchor.py
+python3 state/chain_gate.py
+python3 MECH/check_board_frame_coords.py
+python3 SW/tools/timing_check.py
+md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv
+```
+
+---
+

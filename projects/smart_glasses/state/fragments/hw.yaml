@@ -5,11 +5,16 @@ updated_by: hw-lead
 status:
   phase: P1
   progress_pct: 100
-  health: yellow
-  summary: 'ISS-289 交卷: 把「板只改一次」那一趟的作业包+清单页里全部现状值型判据对回盘面实测 —— S7 的「43 全标」已过期⇒实测 40 (三次合法落表把 BAT_DET 三颗
-    DNP→必装), 六处 + 同源三处已按追加式订正 (老字一字未删); ISS-287 两条差异对回 (封装数 官方板186/生成板185 差1=C_VBUS_GND ⇒ 动板那趟按官方板数走 开工前186/收工后185;
-    板侧改名 156 不是 186, 带 _1 后缀现状 1 个 ⇒ 改完 157); 新闸 HW/check_workpack_state_values.py (V1~V7 + 10 条反向用例)
-    把七类现状值全盯住; 零写板·零落表·零改生成器·零外发·不自签 issue_log'
+  health: green
+  summary: '★ISS-292 交卷完成 (2026-11-17 18:0x): 清单页生成器 state/_iss277_build_preflight.py 已与盘面页对齐 ⇒ ★重跑幂等
+    (页 md5 159bf20fe71c36e48292f39dafc46a35 跑前跑后逐字节相同·作业包也不变)★ ⇒ ★页回退这条路已堵死★; 现状值一律从真源读 (R3-A4 ← check_netlist_contradiction_r3.py
+    · 脚表缺陷条数 ← check_pin_function_labels.py · 落表事件 ← 落表台账) 不许写死; 补齐 B32_V2_NET_RENAME (31→32 条); 条目 id
+    B17_DNP_43 保留改名禁止 (id 里的 43 是历史命名); 追加式订正块搬进 sidecar state/_iss277_preflight_appendix.md (缺失即拒写页·fail-closed);
+    作业包追加式订正 §8.3 (S1 位号真源指针改指 netlist_v1_pins.csv 218 器件 + 收工清单强制项与最危险四条重锚值 + 不许为让闸绿把 C_VBUS_GND 装回板上);
+    4 条反向用例全过 (落表链头前跳⇒R3-A4 跟着变 / 写死旧值⇒页回退且闸 rc=1 / 正向对照⇒零变化且闸 rc=0 / sidecar 缺失⇒拒写); 回归 8 条 rc 全 0 (workpack_state_values
+    +selftest 10/10 · onepass_preflight_coverage +selftest 11/11 · board_frame_caliber · merge · gate_check
+    Q1 18/18 · issue_check); 零写板 (md5+mtime 双重自证 板 mtime 仍 2026-11-06 07:07:17) 零落表 零外发 不替老板拍板 不自签 issue_log;
+    给 main 5 条 need★'
   updated_at: '2026-11-17'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -1126,9 +1131,57 @@ artifacts:
   summary: '只读探针: 一次测清 封装数/唯一位号/_1 后缀数/末字符数字 vs 字母/DNP 口径/板框/铜层 + 网表与 BOM 口径交叉核对'
 - path: HANDOFF/2026-11-17_hw-lead_ISS289_作业包现状值对回盘面.md
   kind: handoff
-  version: v1.0
+  version: iss289-r2
   updated_at: '2026-11-17'
-  summary: 'ISS-289 交卷单 B1~B6: 六处 S7 订正 + ISS-287 两条差异对回 + 新闸 + 边界自证 + 给 main 的 5 条 need'
+  summary: 'ISS-289 交卷单 B0~B6 七段填满 (0 残留): B0 基线 md5+mtime / B1 九处订正+老字零删除逐字节偏移证明 / B2 ISS-287 两条差异结论
+    (C_VBUS_GND 差1; 156 vs 1 两个口径; 改完 _1=157) / B3 新闸 V1~V7 + 34 个实测值分类计数 + 追加式自证机制 + 两处已知弱点 / B4 13 条边界自证
+    + check_pcb_drc 重生成 4 辅助文件的事实申报 / B5 10 条命令 rc 原样 + selftest 10/10 原文 + md5 前后对照 + 6 条未决项 / B6 回答
+    main 三个问题 + 6 条 need + 4 条拍板项'
+- path: state/_iss277_build_preflight.py
+  kind: tool
+  version: iss292-r1
+  updated_at: '2026-11-17'
+  summary: '★清单页生成器 (★主改动★): 现状值一律从真源读 (R3-A4 ← check_netlist_contradiction_r3.py / 脚表缺陷条数 ← check_pin_function_labels.py
+    / 落表事件 ← 落表台账) ⇒ 不许写死; 补齐 B32_V2_NET_RENAME (32 条); 条目 id B17_DNP_43 保留; 追加式订正块从 sidecar 搬运; sidecar
+    缺失 ⇒ 拒写页 (fail-closed); PREFLIGHT_PROJ 可指向沙盒'
+- path: state/_iss277_preflight_appendix.md
+  kind: spec
+  version: iss292-r1
+  updated_at: '2026-11-17'
+  summary: '★追加式订正块 sidecar (★生成器的第二个输入★): ISS292:S3_APPENDIX = ISS-283 的 §③-1~§③-3 三条 (插在 §3 末尾); ISS292:ISS289_APPENDIX
+    = ISS-289 的 §附录 + state_baseline 登记表 (29 条) (追加在页尾) ⇒ 只许往后追加, 生成器只搬运不改一个字; 其 expect 是漂移闸的期望值, 故意不随盘面自动更新
+    ⇒ 盘面一变闸当场红 ⇒ 那时同一次重锚'
+- path: state/_iss277_preflight_README.md
+  kind: doc
+  version: iss292-r1
+  updated_at: '2026-11-17'
+  summary: '★生成器维护说明: 输入 / 输出 / 真源三件套 (★读什么从哪读干什么用读不到怎么办★) + 三条铁律 + 幂等自检命令 + 沙盒跑法 + 4 条反向用例在证明什么 + 维护时最容易踩的三个坑
+    + 收工重锚指向作业包 §8.3.2'
+- path: HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+  kind: spec
+  version: iss292-r1
+  updated_at: '2026-11-17'
+  summary: '★清单页 (★生成器重跑后逐字节不变★): md5 159bf20fe71c36e48292f39dafc46a35 与 ISS-289 交卷时相同 ⇒ 重跑幂等; 32 条 (含
+    B32_V2_NET_RENAME); B17_DNP_43 的三个数与脚表缺陷条数现在由真源读出'
+- path: HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+  kind: spec
+  version: iss292-r1
+  updated_at: '2026-11-17'
+  summary: '★作业包追加式订正 §8.3 (★老字一字未删★): §8.3.1 §3-S1 位号真源指针改指 HW/netlist_v1_pins.csv (218 器件) + 原指针失效原因;
+    §8.3.2 板那一趟的收工清单 (F-1 同一次重锚三步 / F-2 最危险四条重锚值 / F-3 不许为让闸绿把 C_VBUS_GND 装回板上 / F-4 其余 21 条); §8.3.3
+    生成器与盘面页同源的登记'
+- path: HANDOFF/2026-11-17_hw-lead_ISS292_清单页生成器对齐.md
+  kind: handoff
+  version: iss292-r1
+  updated_at: '2026-11-17'
+  summary: '★ISS-292 交卷单: B0 基线 / B1 病灶逐条带行号 / B2 生成器改动 (真源读数 + sidecar + B32 + id 不改名) / B3 重跑幂等硬判据实测
+    (页 md5 逐字节相同) / B4 作业包 §8.3 追加式订正 / B5 4 条反向用例原样 rc / B6 回归 8 条 rc + 板 md5+mtime 双重自证'
+- path: tmp/iss292/reverse_tests.py
+  kind: probe
+  version: iss292-r1
+  updated_at: '2026-11-17'
+  summary: '★反向用例: ① 沙盒模拟又一次合法落表 ⇒ R3-A4 跟着变 (50/39/39) ② 生成器写死旧值 ⇒ 页回退 + 新闸 rc=1 ③ 正向对照 ⇒ 页零变化 + 闸 rc=0
+    ④ sidecar 缺失 ⇒ 拒写页; 全过才 rc=0; 只动沙盒, 真盘零写'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2492,6 +2545,54 @@ needs_from:
     == 盘面实测」⇒ 现状值漂移当场红; 它守的正是本单的病灶 (S7 的 43 已过期) ⇒ 建议与 check_onepass_preflight_coverage.py / check_board_frame_caliber.py
     / check_onepass_commit_order.py 并列进那一趟的开工前清单'
   since: '2026-11-17'
+- key: iss289_state_baseline_reanchor_after_board_run
+  to: main
+  item: '★动板那一趟收工后, 必须【同一次】把两份文档 state_baseline 里那批写死的期望值重锚, 否则新闸会一堆红、而红会被误读成「板改坏了」⇒ 最危险的三条: W11/C04 (封装
+    186 ⇒ 185) · W09_SAME_PAD_NET (同号异网 3 ⇒ 0) · W12/C03 (156 ⇒ 155 或 156) + W18 (1 ⇒ 156 或 157); 正确重锚值见交卷单
+    §B2-1.3 与 §B2-2.2 ⇒ ★★尤其: 若有人为让闸绿而把 C_VBUS_GND 装回板上 ⇒ 直接毁掉 §3-S2 的「C1 多余 0」⇒ 那才是 2-4 周 + ¥4-8K 的返工★★'
+  since: '2026-11-17'
+- key: iss287_ref_underscore1_annotation
+  to: main
+  item: '★S1 动原理图注释 = 改位号名★: 实测原理图 sch export bom 的 218 个位号行里 187 个带 KiCad 自动追加的 _1 后缀 (CONN_CAM_1 等),
+    而网表/脚表/板三方的位号名是干净的 (板侧只有 R_BAT_DET_1 一个带 _1, 那是器件名本身) ⇒ S1 若重注释, 187 个位号名会变 (CONN_CAM_1 → CONN_CAM)
+    ⇒ 板上位号必须与 S1 同趟一起改, 否则生成器会把整板当新件重排 (板全变 + 布线全废) ⇒ 板只改一次当场破功 ⇒ 硬约束: S1 动注释前先定板上位号跟不跟, 要跟必须同趟改, 不许分两趟
+    (板 md5 变两次 = 2-4 周返工 + ¥4-8K)'
+  since: '2026-10-25'
+- key: iss292_generator_realigned
+  to: main
+  item: '★清单页生成器已与盘面页对齐 (★need iss289_preflight_generator_stale 闭合★): state/_iss277_build_preflight.py
+    改成 ★现状值一律从真源读★ (R3-A4 三个数 ← check_netlist_contradiction_r3.py 的实跑输出; 脚表缺陷条数 ← check_pin_function_labels.py
+    的实跑输出; 落表事件 ← 落表台账) ⇒ ★不许写死★; ★补齐 B32_V2_NET_RENAME (★清单页 31 → 32 条★)★; ★条目 id B17_DNP_43 保留不改名 (★id
+    里的 43 是历史命名 · 值已按落表链头前移★)★; ★追加式订正块 (ISS-283 §3-追加 + ISS-289 §附录 + state_baseline 登记表) 搬进 sidecar
+    state/_iss277_preflight_appendix.md ⇒ 重跑不许冲掉★ ⇒ ★★重跑后清单页 md5 逐字节相同 (159bf20fe71c36e48292f39dafc46a35)
+    ⇒ 作业包 md5 也不变★★ ⇒ ★★页回退这条路已经堵死★ ★'
+  since: '2026-11-17'
+- key: iss292_s1_ref_source_pointer_fixed
+  to: main
+  item: '★作业包 §3-S1 的位号真源指针已改对 (★need iss289_s1_specjson_devices_missing 闭合★): 老字 器件位号真源 = HW/SCHEMATIC_V1_SPEC.json
+    (devices 段的 186 个 ref) ★原样保留一字未删★, 追加式订正写进作业包 §8.3.1 ⇒ ★改指 HW/netlist_v1_pins.csv (★218 器件 / 584 脚
+    · 本机实读★)★; ★为什么原指针失效已写进订正句: 该 JSON 顶层只有 meta / counts / connections / power_rails / display_select
+    / testpoints / undrawable 七个键, 没有 devices 段 ⇒ 照字面实现会找不到真源★ ★'
+  since: '2026-11-17'
+- key: iss292_reanchor_written_into_closeout
+  to: main
+  item: '★动板那趟的收工清单已写成强制项 (★need iss289_state_baseline_reanchor_after_board_run 闭合★): 作业包新增 §8.3.2 收工清单
+    ⇒ ★F-1 收工后同一次做完三步 (重跑生成器 → 同一次重锚两份文档的 state_baseline 写死期望值 → 新闸 HW/check_workpack_state_values.py
+    跑绿)★; ★最危险四条的重锚值写全 (W11/C04 封装 186 ⇒ 185 · W09_SAME_PAD_NET 同号异网 3 ⇒ 0 · W12/C03 156 ⇒ 155 或 156 ·
+    W18 1 ⇒ 157 或 156)★; ★F-3 警告: 不许为了让闸绿而把 C_VBUS_GND 装回板上 ⇒ 那会直接毁掉 §3-S2 的 C1 多余 0 ⇒ 代价 2-4 周 + ¥4-8K★
+    ★'
+  since: '2026-11-17'
+- key: iss292_preflight_s6_sources_gap
+  to: main
+  item: ★清单页 §6 的来源单全集里还没有 ISS-283 (★但 §2 表里已经有 source_iss=ISS-283 的 B32_V2_NET_RENAME★) ⇒ 机器闸 check_onepass_preflight_coverage.py
+    自己的 SOURCES 已含 ISS-283 (★P4 绿★) ⇒ ★只是页面文案与实际来源集不一致★ ⇒ ★本单故意没改这一行 (★改了页 md5 就变 ⇒ 违反重跑幂等的硬判据★)★ ⇒ 登记给下一趟顺手带上
+    ★
+  since: '2026-11-17'
+- key: iss292_c_vbus_gnd_decision_still_open
+  to: main
+  item: '★C_VBUS_GND 留不留仍是老板 / PM 域★: 本单只交事实与代价 (★§3-S2 的判据是 C1 多余 0 ⇒ 它必须下板 ⇒ 官方板封装数 186 ⇒ 185★) ⇒ ★不替老板拍板
+    · 不自签 issue_log★ ⇒ ★★但请注意: 那一趟收工后若有人为让闸绿而把它装回去 ⇒ 直接毁掉 §3-S2 ⇒ 2-4 周 + ¥4-8K★★ ★'
+  since: '2026-11-17'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -2981,6 +3082,11 @@ answers:
     = 1 个 (R_BAT_DET_1) ⇒ 改完 157 个 (S2 后 156); 封装数官方板 186 / 生成板 185 差 1 = C_VBUS_GND (CHG_BOARD 归属 + DNP
     但官方板上有实物封装@107.70,42.50) ⇒ 动板那趟按官方板数走 开工前 186 收工后 185'
   ref: HANDOFF/2026-11-17_hw-lead_ISS289_作业包现状值对回盘面.md §B2
+- key: iss283_sw_anchor_reanchor_after_landing
+  to: sw-lead
+  value: '★ISS-283 cont3 (2026-11-17 17:4x) 复验: SW 域的这条已由 sw-lead 落表收口 ⇒ SW/tools/timing_check.py 现在 rc=0
+    (★17:4x 全闸扫描实测★) ⇒ 本条 need 已闭合·不必再回 hw-lead★ (★登记时的红 = ISS-283 12:30 落表后 SW 侧锚点过期·非本单造成·现已归位★)'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS283_V2解锁与W4G5落表.md §D-4
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -4755,6 +4861,25 @@ interface_claims:
 - key: iss283_board_side_sync_three
   value: §③-1 V-2 网改名 / §③-2 Q_PG land 重画 / §③-3 D− 侧 ESD 三件
   note: ★板那一趟必须同趟清掉的三条★ ⇒ 已写进 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md §3-追加 + 作业包 S4/S6 追加行 ⇒ 本单零写板
+  ref: ''
+- key: iss283_qpg_role_expect_filled
+  value: ''
+  note: ''
+  ref: ''
+- key: net_role_expect_q_pg
+  value: HW/check_part_selection_landed_crosscheck.py 的 NET_ROLE_EXPECT[Q_PG] = {PWR_GOOD:G, BAT_SW:S,
+    PWR_ON:D} (★原来三个 ? 已填★)
+  note: ''
+  ref: ''
+- key: g1_q_pg_land_writestyle_a
+  value: ''
+  note: ★G-1 已由老板 2026-11-17 09:49 拍板 (写法 A) 并真落表 ⇒ 继续留 ? = 闸对 Q_PG 静默不判 = 假绿风险★ ⇒ 填成写法A ⇒ C4 如实报出【板面
+    land 仍是旧接法】2 处 (板那一趟 §③-2 重画) ⇒ C4 缺陷数 4→6 是新增的真发现·不是回归★
+  ref: ''
+- key: iss292_generator_idempotent
+  value: '★清单页生成器重跑幂等: 跑前后 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md md5 逐字节相同 (159bf20fe71c36e48292f39dafc46a35)★'
+  note: ★现状值全部从真源读 (R3-A4 / 脚表缺陷条数 / 落表台账事件) + 追加式订正块走 sidecar 只搬运 ⇒ 谁跑生成器都不会再把 ISS-283 / ISS-289 的订正冲掉★
+    ref=logs/iss292/reverse_tests.log + logs/iss292/b6_gates1.log
   ref: ''
 open_questions:
 - id: HW-Q1

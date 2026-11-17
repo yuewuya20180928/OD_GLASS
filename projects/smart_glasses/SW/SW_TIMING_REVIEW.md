@@ -4,6 +4,7 @@
 > **★被评审对象 (本次复评锚点)★**: `HW/netlist_v1.csv` —— **513 数据行 / 514 物理行 (含 1 行表头)**, md5 **`c78f991283cc82d56c8e3dd31657c785`**, mtime **2026-11-05 10:57:26**, 表头 `page,net,node1,node2,ref,value,type,dnp,evidence,tbd,note,conn_id,board,footprint,opn` (V1.8/V1.9 变更后)
 > ★**【ISS-225 台账化注 (2026-11-16, sw-lead)】**: ★**上面这个 md5 `c78f9912…` = 本次复评 (ISS-190) 当时的事实, 是 ISS-220 落表 (2026-11-16 02:32) **之前**的网表指纹** ⇒ ★**不改它 (改它 = 改历史)★ ⇒ ★**网表现值 = `13f59a43dbd35dc6cb16e897c8c891ab`; 现值锚点 + 三方对账机制 (锚点 ↔ 落表台账 ↔ 盘上真源) 见 `SW/SW_MD5_BASELINE_LEDGER.md` §1 / §3 (R-01·R-03)** ★
 > ★**【ISS-235 残留订正 (2026-11-17, sw-lead)】**: ★**§7 的 7 条待修项里, 7-1 与 7-6 已被上游合法落表真修好 (7-1 = ISS-220 d6 · 2026-11-16 02:32; 7-6 = ISS-233 落表第 3 批 · 2026-11-16 06:48:38 · 网表 L442 给 `U_EN_SW` 补了器件本体行 type=IC)** ⇒ ★**本次把这两行按【追加式】订正成「已修复 (上游已修)」并把与之绑定的机读数字改成现值** (★**§7 原有的 7 行一条没删、另外 5 条 7-2/7-3/7-4/7-5/7-7 本次逐条回盘网表, 仍全部成立 ⇒ 一个字没改★)** ★ ⇒ ★**同款订正在代码侧已做完 (ISS-235 · 2026-11-16 08:4x): `SW/tools/timing_check.py` 的 F8 判据方向翻正 + REV-3 基线 1→2 + `SW/tools/check_demo_panel_spec.py` 的 REV-12 改成按锚点动态定位落表单号** ★ ⇒ ★**本条是 ISS-235 交卷后本单自己回扫时发现的【文档侧同款残留】(⇒ 断言写死了旧事实) ⇒ 属 sw-lead 自己的文档地界 (ISS-190 任务书明列 `SW/SW_TIMING_REVIEW.md` 可改)** ★
+> ★**【ISS-293 订正 (2026-11-17, sw-lead)】**: ★**本文的 ADC 段已按【盘面真值 + ISS-291 现行闸】整体订正**★ —— ISS-291 把【判决对象】(`VBUS_DET_D` → `BAT_DET`) 和【满量程口径】(3.3V → **1.8V 域**) 改对了, 但**本文是手工写的复评文档 ⇒ 闸变了文档没跟着变** ⇒ ★**本文原先记着一条「假红被当成结论」(「ADC 检测通道可用性 ❌ 不通过 (500kΩ / 451ms / 15.2%FS)」) + 一条已被推翻的 P0 (§7-4「电量分压整条 DNP」)** ⇒ ⇒ ★**本次按【追加式】订正: 老字一个字节没删, 每处行内追加「★【ISS-293 订正】★ + 新值 + 依据」**★ ⇒ ★**现行 ADC 现值 = `BAT_DET` 链 (网表 L186 ⇒ `J_SOM_P1 pin38` = `SARADC_VIN5`, 1.8V 域) ⇒ 37500.0Ω / τ=3.75ms / 12bit 建立 33.791ms / 漏电 0.0375V = 2.1%FS / LSB 0.439mV / @4.2V 节点 1.575V ≤ abs-max 1.98V (FS 利用率 87.5%) ⇒ 六条判据全 ✔ 通过**★ ⇒ ★**`VBUS_DET_D` 链改按【数字检测输入】口径单判 (见 `SW/tools/timing_check.py` F4D 段) —— 它的落点 `J_SOM_P1 pin100` = `USB_DRD1_VBUSDET` = 数字脚, 不是 ADC 脚**★ ⇒ ★**`BAT_DET` 三颗 (`R_BAT_DET_1` 100k / `R_BAT_DET_2` 60k / `C_DET_BAT` 100nF) 已于 2026-11-17 09:58:16 落表 (V-3=E) 改成必装 ⇒ §7-4 那条 P0 解除**★ ⇒ ★**本文的 ADC 现值已用新闸 `SW/tools/check_timing_review_adc_sync.py` 钉住 (文档里写的 == 闸的实跑读数 ⇒ 不等即红) ⇒ 以后再漂会当场被抓**★
 > · ★**上一版 (2026-10-27) 的被评审对象 = 476 行版本** —— 中间 37 行是 V1.7/V1.8/V1.9 变更, ★**上一版从未复评** ⇒ 本次复评把 F1~F8 逐条重跑。
 > **评审口径 (ERC §D2 的另一半)**: mech-lead 挑机械/热/装配刺, sw-lead 挑**时序 / 信号 / 电源时序**刺。本文只挑这三类, 不碰机械。
 > **本文边界**: ① **只读** `HW/` `MECH/` `state/issue_log.yaml` `PROJECT_TRACKER.md` —— ★**本单一行网表都没改** (网表侧矛盾只**报**, 见 §7) ② **不拍板**: 硬件改法一律写成"接口请求 / 改动请求"交项目总工裁决 ③ **未联系任何供应商或原厂** (外发一律经项目总工) ④ 本文里的每个"可算的数"都能用 `SW/tools/timing_check.py` 复算 —— ★**该脚本在 ISS-190 里已从"手抄常量"改成"实读网表"**, 自检 **55/55 通过 (既有 21 条全保留 + 新增 23 条 + 反向 11 条), rc=0**。
@@ -35,7 +36,7 @@
 | **F3** | I2C 上拉与上升沿 t_r | **★部分推翻 (一条结论翻转)★** —— 上一版"I2C_A 4.7k ⇒ 1195ns 超标 ⇒ 锁 100kHz"**对 I2C_A 不成立**: 现为 2.2k/1.8V ⇒ 186ns@100pF / 559ns@300pF ⇒ **标准模式通过**; ★**超标的是 I2C_B** (4.7k/3.3V ⇒ 1195ns@300pF) | `python3 SW/tools/timing_check.py --only F3_i2c_rise` | `I2C_A: pullup_ohm 2200 / rail RAIL_VDD_1V8_IO / 1.8V / 186.4ns / 300pF 559.2ns / std_mode_ok True` ; `I2C_B: 4700 / RAIL_VDD_3V3_IO / 3.3V / 398.2ns / 1194.7ns / False` ; `worst_bus : I2C_B` ; `netlist_annotation_ns : 2380.0` (网表自带的旧注记) | [实测] + [官方] |
 | **F4** | 供电器件控制脚 EN/SS/CT/MR | **★部分推翻★** —— 上一版"控制脚在网表里根本不存在"**对 EN 不成立**: 现网表 **EN 10 行 / SS 0 行 / CT 1 行 (属 DNP 器件) / MR 0 行**; ★**SS 仍 0 行 ⇒ 软启动仍未定义** | `python3 SW/tools/timing_check.py --only F4_ctrl_pins`; ★四信号合计的 grep 版见 §13 ⇒ **11** | `counts : {'EN': 10, 'SS': 0, 'CT': 1, 'MR': 0}` / `total_rows : 11` / `en_device_populated : ['U_LDO_IO18','U_LDO_IO33','U_LDO_L33']` | [实测] |
 | **F5** | 复位/启动上拉挂哪条轨 | **★仍成立 (且更强)★** —— `R_PU_RESET_N` / `R_PU_BOOT_N` 仍挂 `RAIL_VDD_1V8_IO` (1.8V); ★**更强**: SoC 核心轨/IO 轨的 IC 现在是 DNP ⇒ SoC 用 SoM 自带 PMIC 的轨 ⇒ 主板这条 1.8V 与 SoC IO 域**完全无关** | `python3 SW/tools/timing_check.py --only F5_pullup_rail` | `reset_pullup_rail : RAIL_VDD_1V8_IO` / `reset_pullup_rail_v : 1.8` / `boot_pullup_rail : RAIL_VDD_1V8_IO` / `same_rail : True` / `soc_io_rail_producer_dnp : ['DNP']` | [实测] + [推算] |
-| **F6** | ADC 检测通道 (源阻抗/建立时间) | **★仍成立 (数值不变) + 新增一条★** —— 装机的是 `VBUS_DET_D` 链 (1M+1M+100nF) ⇒ 500kΩ / 50ms / 451ms / 0.50V (15.2%FS) **不变**; ★**新增: `BAT_DET` 链三颗全 DNP ⇒ 电量检测分压在现网表上不存在** | `python3 SW/tools/timing_check.py --only F4_adc_det` | `active_chain : VBUS_DET_D` / `rth_ohm : 500000.0` / `tau_ms : 50.0` / `t_settle_to_half_lsb_ms : 450.546` / `leak_offset_v : 0.5` / `leak_offset_pct_fs : 15.2` ; BAT_DET 三颗 `dnp=DNP` | [实测] + [推算] + [0数据] |
+| **F6** | ADC 检测通道 (源阻抗/建立时间) | **★仍成立 (数值不变) + 新增一条★** —— 装机的是 `VBUS_DET_D` 链 (1M+1M+100nF) ⇒ 500kΩ / 50ms / 451ms / 0.50V (15.2%FS) **不变**; ★**新增: `BAT_DET` 链三颗全 DNP ⇒ 电量检测分压在现网表上不存在** ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ⇒ ★**判决对象已改 = `BAT_DET` 链** (网表 L186 ⇒ `J_SOM_P1 pin38` = `SARADC_VIN5`, 1.8V 域; 取链规则 `by_landing_pin`; 判决源 = 脚表 `HW/PCB/FET3572C_PIN_TABLE.csv` L39) ⇒ 源阻抗 **37500.0Ω** / τ=**3.75ms** / 12bit 建立 **33.791ms** (红线 300.0ms ⇒ ✔) / 漏电 0.0375V = **2.1%FS** (红线 0.4V ⇒ ✔) / LSB **0.439mV** (满量程 **1.8V**) / @4.2V 节点 **1.575V** ≤ abs-max **1.98V** (FS 利用率 87.5%) ⇒ 六条判据全 ✔ **通过**★ ⇒ ★上句「装机的是 `VBUS_DET_D` 链 ⇒ 500kΩ / 50ms / 451ms / 0.50V (15.2%FS)」= **老口径 (判错对象 + 满量程按 3.3V) 报出的红 = 假红 ⇒ 已作废**★; ★同句「`BAT_DET` 链三颗全 DNP ⇒ 电量检测分压在现网表上不存在」= **老网表口径 ⇒ 已作废** —— V-3=E 于 **2026-11-17 09:58:16** 落表后 `R_BAT_DET_1`/`R_BAT_DET_2`/`C_DET_BAT` 三颗**已改成必装** (网表 L182/L183/L184/L185 实读) ⇒ 电量检测分压在现网表上**存在** (100k+60k+100nF ⇒ 37500.0Ω / τ=3.75ms)★** | `python3 SW/tools/timing_check.py --only F4_adc_det` | `active_chain : VBUS_DET_D` / `rth_ohm : 500000.0` / `tau_ms : 50.0` / `t_settle_to_half_lsb_ms : 450.546` / `leak_offset_v : 0.5` / `leak_offset_pct_fs : 15.2` ; BAT_DET 三颗 `dnp=DNP` | [实测] + [推算] + [0数据] ★【ISS-293 订正】★ 本行引用的实跑输出 = **ISS-291 之前**的老口径快照 (判决对象 `VBUS_DET_D` + 满量程 3.3V) ⇒ **已作废**; ★**现行真值 (2026-11-17 实跑 `python3 SW/tools/timing_check.py --only F4_adc_det`) = `active_chain : BAT_DET` / `active_chain_pin : 38` / `active_chain_signal : SARADC_VIN5` / `active_chain_domain : 1.8V` / `full_scale_v : 1.8` / `adc_bits : 12` / `lsb_mv : 0.439` / `rth_ohm : 37500.0` / `tau_ms : 3.75` / `t_settle_to_half_lsb_ms : 33.791` / `leak_offset_v : 0.0375` / `leak_offset_pct_fs : 2.1` / `standby_ua : 26.25` / `supply_v : 4.2` / `node_v_at_supply : 1.575` / `node_max_abs_v : 1.98` / `fs_utilization_pct : 87.5` / `criteria : object_ok ✔ / fs_caliber_ok ✔ / settle_ok ✔ / leak_ok ✔ / node_ok ✔ / populated_ok ✔ ⇒ all_ok ✔**★ + [官网] (1.8V 域: 脚表 L39 `SARADC_VIN5`=1.8V + `HW/PCB/rk3572_datasheet_V1.1.txt` L2454 `SARADC_AVDD1V8=1.62/1.8/1.98V` + L2864 `Analog Input Range=AVSS18~AVDD18`)★ |
 | **F7** | TMP117 测点与温控档位 | **★部分推翻 (总线换了)★** —— TMP117 **现在挂 I2C_B** (`U_TEMP pin1` = `I2C_B_SCL`), camera 在 I2C_A ⇒ 上一版"TMP117 与 camera 同总线、camera 拉死 SDA 一起致盲温度保护"**对现网表不成立**; 测点定案 (贴皮肤侧) 与 4 档皮肤口径**不变** | `python3 SW/tools/timing_check.py --only F5_tmp117` | `i2c_bus : I2C_B` / `supply_rail : RAIL_VDD_3V3_IO` / `supply_v : 3.3` / `self_heat_uw : 16.5` / `first_read_after_reset_c : -256.0` | [官方] + [推算] |
 | **F8** | 关机 / 硬件断电通路 | **★已推翻 (彻底)★** —— 现网表**有**负载开关: `U_PWR_SW` (TPS22991RAA, VIN=`BAT_SW` → VOUT=`RAIL_SYS`) + `U_EN_SW` (IN=`RAIL_DEMO_5V` → OUT=`RAIL_BOARD_5V`, EN=`CARRIER_BOARD_EN`); `U_PWR_SW` ON pin2 配 `R_PD_ON` 10k **下拉 ⇒ 默认关** ⇒ **"关机只能靠软件深睡、轨全部带电"对现网表是错的** | `python3 SW/tools/timing_check.py --only F8_power_off`; ★`grep -n "U_PWR_SW" HW/netlist_v1.csv` ⇒ **10** (★2026-11-17 订正: 9 → 10 = ISS-233 加的 L442 那行 note 里出现了 "U_PWR_SW" 字样★) | `load_switch_in_netlist : True` / `load_switch_refs : ['U_PWR_SW','U_EN_SW']` / ★**`rail_switching_devices : 2`** (★2026-11-17 订正: 原记 1 = ISS-233 给 `U_EN_SW` 补器件本体行**之前**的事实; 现值 2 = 两颗都必装★) / `load_switch_without_device_row : []` / `on_pin_pulldown_ohm : 10000.0` / `default_state : 关` | [实测] + [推算] |
 
@@ -53,7 +54,7 @@
 | RESET_N RC 注记 100ms (实为 1.1ms) | 不变 | **仍成立** |
 | `R_SUPV_DIV1/2` 是 0Ω 位, 装 0Ω = V_SOC_IO 短路 | 不变 (两颗仍标必装) | **仍成立** |
 | RESET_N/BOOT_N 上拉挂在另一条 1.8V 轨上 | 不变, 且更强 (SoC 轨搬到 SoM) | **仍成立** |
-| ADC 检测通道 500kΩ / 451ms / 15.2%FS | 不变; ★新增 BAT_DET 链全 DNP | **仍成立 + 新增** |
+| ADC 检测通道 500kΩ / 451ms / 15.2%FS | 不变; ★新增 BAT_DET 链全 DNP | **仍成立 + 新增** ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ⇒ ★**判决对象 = `BAT_DET` (pin38 / `SARADC_VIN5` / 1.8V 域) ⇒ 37500.0Ω / τ=3.75ms / 建立 33.791ms / 漏电 2.1%FS / LSB 0.439mV / 节点 1.575V ≤ 1.98V (FS 利用率 87.5%) ⇒ 全部 ✔ 通过**★ ⇒ ★上句「500kΩ / 451ms / 15.2%FS」与「BAT_DET 链全 DNP」= **老口径 ⇒ 假红 ⇒ 已作废**; ★`BAT_DET` 三颗**已必装** (网表 L182~L186 实读, V-3=E 于 2026-11-17 09:58:16 落表) ⇒ 电量检测分压链存在★ [实测] (ISS-293 实跑 F4_adc_det) + [官网] (1.8V 域) |
 | CHG_STAT 上拉板级归属矛盾 (CHG_BOARD vs MAIN_PCB) | 不变 (`R_PU_CHG_STAT` 仍 CHG_BOARD, `R_PU_PG` 仍 MAIN_PCB) | **仍成立** |
 | TMP117 在 I2C_A, 与 camera 同总线 | TMP117 在 **I2C_B**, camera 在 I2C_A | **推翻** |
 | 跨铰链 USB 救砖 (CONN_USB 4pin, 只有 1 个 GND) | `CONN_USB` **已不在网表**; `J_CHG` 不带 D+/D− ⇒ 跨铰链 USB 链不成立; demo 板走**板内** `J_USB_C` | **推翻** (对象消失) |
@@ -63,7 +64,7 @@
 
 1. **"关机"语义**: 上一版登记的 `power_off_semantics = 无硬件断电-软件深睡-轨带电` **作废** ⇒ 改为 "SoC 把 `PWR_ON` GPIO 配高阻 ⇒ 10k 下拉 ⇒ `U_PWR_SW` 关 ⇒ 镜脚系统轨 SYS 断电 (充电链仍在电池侧带电 ⇒ 关机也能充电)"。⇒ 售后"长按 10s = 关机"与"待机 <0.05W"口径**可以按真断电重算** (★**§7-6 的 BOM 缺口已于 2026-11-16 06:48:38 由 ISS-233 修掉 ⇒ 前置已满足★)。
 2. **I2C 速率上限**: `i2ca_speed_max = 100kHz` 的**理由变了** (不再是 I2C_A 超标, 而是 **I2C_B** 超标) ⇒ 需求要改成"**所有 I2C 总线统一 ≤100kHz** (I2C_B 决定)", 且 I2C_A 可以跑标准模式 (快模式 400kHz 在 300pF 下仍超 300ns ⇒ **不行**)。
-3. **电量读数**: `BAT_DET` 分压链在现网表**整条 DNP** ⇒ `SW_REQUIREMENTS` M7-R6"软件侧确认电量读取正常"**当前无硬件支撑** ⇒ 判据要改成"待 hw-lead 补 DNP 决策"。
+3. **电量读数**: `BAT_DET` 分压链在现网表**整条 DNP** ⇒ `SW_REQUIREMENTS` M7-R6"软件侧确认电量读取正常"**当前无硬件支撑** ⇒ 判据要改成"待 hw-lead 补 DNP 决策"。 ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★上句 = 老网表口径 ⇒ **已作废**★ —— V-3=E 于 **2026-11-17 09:58:16** 落表后, `R_BAT_DET_1` (100k ±1%) / `R_BAT_DET_2` (60k ±1%) / `C_DET_BAT` (100nF ±10%) 三颗 dnp=**必装** (网表 L182/L183/L184/L185 实读) ⇒ **`BAT_DET` 分压链在现网表上存在** ⇒ M7-R6 "软件侧确认电量读取正常" **有硬件支撑** ⇒ 判据按 `BAT_DET` 现值 (37500.0Ω / 33.791ms 建立 / 2.1%FS / 节点 1.575V ≤ 1.98V)★ [实测]
 4. **上电自检**: 复位释放现在由 `Q_AND` 决定 ⇒ "电源没起来 vs SoC 没起来"的可读回能力**仍然没有** (PG 只到测试点 `TP_PG_VCORE`/`TP_PG_VIO`, SoC 读不到) ⇒ SS 缺失的后果没变。
 
 ---
@@ -193,8 +194,8 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
             BQ25896 PG  (开漏) ─CHG_BOARD─ J_CHG pin6 ─铰链─ R_PU_PG 10k → RAIL_VDD_3V3_IO ─→ SoC GPIO
             ★同一根 PG 还经 Q_PG (P-MOS 高边) 回到 PWR_ON ⇒ 插电即开机 (与开机键并联)★
 【模拟链】VBUS_DET_D: RAIL_DEMO_5V (板内 J_USB_C 的 5V) ─ R_VBUS_DET_D1 1M ─┬─ R_VBUS_DET_D2 1M ─ GND
-                      └─ C_DET_VBUS_D 100nF ─→ J_SOM_P1 pin100 (SoM USB_DRD1_VBUSDET)
-            BAT_DET:    RAIL_BAT ─ R_BAT_DET_1 1M ─┬─ R_BAT_DET_2 1M ─ GND   ★★三颗全是 DNP★★
+                      └─ C_DET_VBUS_D 100nF ─→ J_SOM_P1 pin100 (SoM USB_DRD1_VBUSDET) ★【ISS-293 订正】★ pin100 = `USB_DRD1_VBUSDET` = **USB OTG 插入检测数字脚** (脚表 signal 列) ⇒ 该链**不参与 ADC 判决** (改按【数字检测输入】口径单判, 见 `SW/tools/timing_check.py` F4D 段) ⇒ ★**ADC 判决对象 = `BAT_DET` (pin38 / `SARADC_VIN5` / 1.8V 域)** ⇒ 37500.0Ω / 建立 33.791ms / 2.1%FS ⇒ ✔★
+            BAT_DET:    RAIL_BAT ─ R_BAT_DET_1 1M ─┬─ R_BAT_DET_2 1M ─ GND   ★★三颗全是 DNP★★ ★【ISS-293 订正 2026-11-17 · sw-lead】★ ★上句 (1M+1M, 三颗全是 DNP) = 老网表口径 ⇒ **已作废**★ —— 现值 = `R_BAT_DET_1` **100k ±1%** + `R_BAT_DET_2` **60k ±1%** + `C_DET_BAT` **100nF ±10%**, 三颗 dnp=**必装** (网表 L182/L183/L184/L185 实读 · V-3=E 落表 2026-11-17 09:58:16) ⇒ R_th=**37500.0Ω** / τ=**3.75ms** / 建立 **33.791ms** / 漏电 **2.1%FS** ⇒ ✔★
                       └─ C_DET_BAT 100nF ─→ J_SOM_P1 pin38 (SoC ADC 输入)
 ```
 
@@ -204,9 +205,9 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 |---|---|---|---|
 | **CHG_STAT 上拉板级归属** | ❌ 不通过 (`R_PU_CHG_STAT` board=CHG_BOARD, 而 `RAIL_VDD_3V3_IO` 是 MAIN_PCB 的轨) | ❌ **仍不通过** (L188 `R_PU_CHG_STAT` board 仍写 CHG_BOARD; L191 `R_PU_PG` board=MAIN_PCB ⇒ 两条同类上拉归属不一致) | [实测] |
 | **要不要施密特** | ✅ 不需要 (接收端 RC 滤波) | ✅ **不变** | [推算] |
-| **ADC 检测通道可用性** | ❌ 不通过 (500kΩ / 451ms / 15.2%FS) | ❌ **仍不通过, 数值一字不差** (装机链 = `VBUS_DET_D`): 源阻抗 500kΩ, τ=50ms, 12bit 建立 450.5ms, 漏电偏移 0.50V = 15.2%FS, 静态 1.65µA | [实测]+[推算]+[0数据] |
-| ★**电量 (BAT_DET) 通道** | 上一版说 BAT_DET 是 SoC 的 ADC 通道 (1M+1M+100nF) | ★★**新**: `R_BAT_DET_1` (L182) / `R_BAT_DET_2` (L183) / `C_DET_BAT` (L184/185) **三颗全部 dnp=DNP** ⇒ **电量检测分压在现网表上根本不存在**; 而 `NET_BAT_DET` (L181/L186) 仍标必装并接到 `J_SOM_P1 pin38` ⇒ **网表自相矛盾** (网给 SoC 一个永远悬空的 ADC 脚) ⇒ 报 hw-lead (§7-4) | [实测] |
-| ★**VBUS_DET 跨铰链高阻节点** | 上一版 §6-15: 500kΩ 高阻节点跨铰链 ⇒ 需钳位 | ✅ **风险消失 (demo 板)**: `R_VBUS_DET_D1` 上臂接 `RAIL_DEMO_5V` (板内 `J_USB_C` 的 5V), **本地分压, 不跨铰链** (L434/439 note 明写 "demo 板: Type-C VBUS 在**主板本地**分压 (不再跨铰链)") ⇒ **但 500kΩ 源阻抗本身仍不可用** | [实测] |
+| **ADC 检测通道可用性** | ❌ 不通过 (500kΩ / 451ms / 15.2%FS) | ❌ **仍不通过, 数值一字不差** (装机链 = `VBUS_DET_D`): 源阻抗 500kΩ, τ=50ms, 12bit 建立 450.5ms, 漏电偏移 0.50V = 15.2%FS, 静态 1.65µA ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ⇒ ★**✔ 通过 (37500.0Ω / 33.791ms / 2.1%FS / 节点 1.575V ≤ 1.98V)**★ —— 判决对象 = `BAT_DET` 链 (网表 L186 ⇒ `J_SOM_P1 pin38` = `SARADC_VIN5`, 1.8V 域; 取链规则 `by_landing_pin`): 源阻抗 37500.0Ω, τ=3.75ms, 12bit (LSB 0.439mV, 满量程 1.8V) 建立 33.791ms (红线 300.0ms ⇒ ✔), 漏电 0.0375V = 2.1%FS (红线 0.4V ⇒ ✔), @4.2V 节点 1.575V ≤ abs-max 1.98V (FS 利用率 87.5%) ⇒ 六条判据全 ✔★ ⇒ ★**上句「❌ 仍不通过, 数值一字不差 (装机链 = `VBUS_DET_D`)」= 老口径 (判 `VBUS_DET_D` + 满量程 3.3V) 报出的红 = 假红 ⇒ 已作废**★; ★`VBUS_DET_D` 链改按【数字检测输入】口径单判 (见 `SW/tools/timing_check.py` F4D 段)★** | [实测]+[推算]+[0数据] ★【ISS-293 订正】★ 本行现值 = 2026-11-17 实跑 `python3 SW/tools/timing_check.py --only F4_adc_det` (criteria 六判据全 True) + [官网] (1.8V 域: 脚表 L39 / datasheet L2454·L2864)★ |
+| ★**电量 (BAT_DET) 通道** | 上一版说 BAT_DET 是 SoC 的 ADC 通道 (1M+1M+100nF) | ★★**新**: `R_BAT_DET_1` (L182) / `R_BAT_DET_2` (L183) / `C_DET_BAT` (L184/185) **三颗全部 dnp=DNP** ⇒ **电量检测分压在现网表上根本不存在**; 而 `NET_BAT_DET` (L181/L186) 仍标必装并接到 `J_SOM_P1 pin38` ⇒ **网表自相矛盾** (网给 SoC 一个永远悬空的 ADC 脚) ⇒ 报 hw-lead (§7-4) ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★上句「三颗全部 dnp=DNP ⇒ 电量检测分压在现网表上根本不存在 ⇒ 网表自相矛盾」= 老网表口径 ⇒ **已被 2026-11-17 09:58:16 落表 (V-3=E) 推翻**★ —— 现网表 L182/L183/L184/L185 三颗 dnp=**必装** (100k / 60k / 100nF) ⇒ 电量检测分压链**存在** ⇒ 网表自相矛盾这条**已消除** ⇒ §7-4 那条 P0 **解除** (见 §7-4 的 ISS-293 订正行) ⇒ 判决对象 = `BAT_DET` (37500.0Ω / 33.791ms / 2.1%FS ⇒ ✔)** | [实测] ★【ISS-293 订正】★ 网表 L182~L186 实读 + ISS-293 实跑 F4_adc_det★ |
+| ★**VBUS_DET 跨铰链高阻节点** | 上一版 §6-15: 500kΩ 高阻节点跨铰链 ⇒ 需钳位 | ✅ **风险消失 (demo 板)**: `R_VBUS_DET_D1` 上臂接 `RAIL_DEMO_5V` (板内 `J_USB_C` 的 5V), **本地分压, 不跨铰链** (L434/439 note 明写 "demo 板: Type-C VBUS 在**主板本地**分压 (不再跨铰链)") ⇒ **但 500kΩ 源阻抗本身仍不可用** ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★「500kΩ 源阻抗本身仍不可用」= 老 ADC 口径 ⇒ **已作废**★ —— `VBUS_DET_D` 链落点 = `J_SOM_P1 pin100` = `USB_DRD1_VBUSDET` = **数字检测输入脚** ⇒ 不参与 ADC 判决 (改按 F4D 数字口径单判) ⇒ 该源阻抗不再是 ADC 可用性判据; ★**真 ADC 链 = `BAT_DET` (37500.0Ω / 33.791ms / 2.1%FS ⇒ ✔ 通过)**★ | [实测] |
 | **充电 IC 的 I2C** | 不可读 (不过铰链) | ✅ 不变 (P10 页 `U_CHG` 的 I2C 在充电板本地) | [实测] |
 | **STAT 1Hz 闪烁 = 故障** | SW 充电状态机要解三态 + 闪烁 | ✅ **不变** (P10 页仍写明) | [实测] |
 | **同名不同义的三个 "PG"** | 必须按来源命名 | ✅ **不变**, ★**且新增第四个**: `PWR_GOOD` (充电板 PG, 低=源良好) 现在还驱动 `Q_PG` 去开机 ⇒ 它的语义再叠加一层 | [实测] |
@@ -218,8 +219,8 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 | 开漏跨铰链方案本身 | ⚠️ 未验 | ⚠️ **未验 (不变)** | [推算] |
 | CHG_STAT 上拉板级归属 | ❌ 不通过 | ❌ **仍不通过** | [实测] |
 | 要不要施密特 | ✅ 不需要 | ✅ **不变** | [推算] |
-| ADC 检测通道可用性 | ❌ 不通过 | ❌ **仍不通过** | [实测]+[推算] |
-| ★电量 (BAT_DET) 通道是否存在 | (上一版默认存在) | ❌ **不存在 (三颗全 DNP)** ⇒ M7-R6 无硬件支撑 | [实测] |
+| ADC 检测通道可用性 | ❌ 不通过 | ❌ **仍不通过** ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ⇒ ★**✔ 通过 (37500.0Ω / 33.791ms / 2.1%FS / 节点 1.575V ≤ 1.98V)**★ —— 判决对象 = `BAT_DET` 链 (网表 L186 ⇒ `J_SOM_P1 pin38` = `SARADC_VIN5`, 1.8V 域) ⇒ 六条判据全 ✔ ⇒ ★**本行「❌ 仍不通过」= 老口径 (判 `VBUS_DET_D` + 满量程 3.3V) 报出的红 = 假红 ⇒ 已作废**★ | [实测]+[推算] ★【ISS-293 订正】★ 2026-11-17 实跑 `python3 SW/tools/timing_check.py --only F4_adc_det` (criteria 六判据全 True) + [官网] (1.8V 域: 脚表 L39 / datasheet L2454·L2864)★ |
+| ★电量 (BAT_DET) 通道是否存在 | (上一版默认存在) | ❌ **不存在 (三颗全 DNP)** ⇒ M7-R6 无硬件支撑 ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ⇒ ★**✔ 存在 (100k + 60k + 100nF, 三颗必装, 网表 L182~L186 实读)**★ ⇒ ★**老结论「不存在 ⇒ M7-R6 无硬件支撑」已被 2026-11-17 09:58:16 落表 (V-3=E) 推翻 ⇒ M7-R6 有硬件支撑**★ ⇒ 电量判据按 `BAT_DET` 现值 (37500.0Ω / 33.791ms / 2.1%FS / 节点 1.575V ≤ 1.98V) | [实测] |
 | 充电 IC 寄存器可读 | ❌ 不可 | ❌ **不变** | [实测] |
 
 ---
@@ -309,7 +310,7 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 | **3** | 供电器件控制脚 | EN 10 行 / SS 0 / CT 1 (DNP) / MR 0 | "电源没起来 vs SoC 没起来"仍不可区分 | 高 | ★**部分推翻** (EN 已补, SS/MR 未补) |
 | **4** | `R_SUPV_DIV1/2` 是 0Ω 位 (装 0Ω = 电源短路) | L404-406 value "(0Ω 跳线位)", dnp=必装; 而 `U_SUPV` 已 DNP | 首台样机"装上就短路"的风险仍在 | 高 | **仍成立** ★**且监督器已 DNP ⇒ 更该 DNP** |
 | **5** | CHG_STAT 上拉板级归属矛盾 | L188 board=CHG_BOARD vs L191 board=MAIN_PCB | M-CHRG 门禁加"信号合理性自检" (`chg_stat_invalid`) | 高 | **仍成立** |
-| **6** | ADC 检测通道 1M+1M ⇒ 500kΩ / 451ms / 15.2%FS | L434-438 (`VBUS_DET_D`, 必装) | M7-R6 判据重写 + 采样策略 (长采样/丢弃/中位数/迟滞) | 高 | **仍成立** |
+| **6** | ADC 检测通道 1M+1M ⇒ 500kΩ / 451ms / 15.2%FS | L434-438 (`VBUS_DET_D`, 必装) | M7-R6 判据重写 + 采样策略 (长采样/丢弃/中位数/迟滞) | 高 | **仍成立** ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★本行 = 老口径 (判 `VBUS_DET_D` + 满量程 3.3V) ⇒ 报出的红 = **假红 ⇒ 已作废**★; ★现值 = `BAT_DET` 链 (网表 L186 ⇒ `J_SOM_P1 pin38` = `SARADC_VIN5`, 1.8V 域) ⇒ **37500.0Ω / 建立 33.791ms / 漏电 2.1%FS / 节点 1.575V ≤ 1.98V (FS 利用率 87.5%) ⇒ 全部 ✔ 通过** ⇒ 严重度「高」**降为「不适用 (已消解)」** (老字保留供追溯)★ |
 | **7** | SoC 没有 USB VBUS 连接 | 现网表 SoM 由 `RAIL_DEMO_5V` 直供 `VCC_DCIN` (J_SOM_P3 pin91-100) | 板内 USB 枚举**不需要** VBUS 检测脚 ⇒ 这条**消解** | — | ★**推翻/消解** |
 | **8** | BOOT 没有静态跳线位 | L384/385 + `SW_BOOT` + `TP_BOOT` | S2 救砖方式 A 没有硬件落脚点 | 中高 | **仍成立** |
 | **9** | ★"关机"没有硬件断电通路 | ★**推翻**: `U_PWR_SW` (L50) + `R_PD_ON` 10k 下拉 (L56/57) + `Q_PG` | ①"关机"= SoC 把 `PWR_ON` GPIO 配高阻 ⇒ 开关关 ⇒ **SYS 断电** ②"待机 <0.05W"口径**可按真断电重算** ③"关机时充电指示灯"仍做不到 (LED 由 SoC 驱动) —— ★**§7-6 的 BOM 缺口已于 2026-11-16 06:48:38 由 ISS-233 修掉 ⇒ 前置已满足** | 高 | ★**推翻** (语义**反转**) |
@@ -318,10 +319,10 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 | **12** | 网表 I2C t_r 注记与算术不符 | L167/168 仍写 "上拉 4.7k 到 3.3V … t_r=2.38µs@100pF"; 实值 L169/170 = 2.2k/1.8V (186ns) | 需修注记 (hw-lead) | 中 | ★**仍成立, 且差值从 6.0 倍变 12.8 倍** |
 | **13** | TMP117 复位后首读 = −256°C | [官方] TMP117 | 启动自检丢弃首读, 首次有效读数最坏 ~1s | 中 | **仍成立** |
 | **14** | 温控档位换源 (Tj 口径 → 皮肤口径) | `thermal_control_tiers` (mech-lead) + `thermal_tiers_skin` (SW) | SW 用皮肤口径档位 | 中 | **仍成立** |
-| **15** | VBUS_DET 高阻节点跨铰链 | ★demo 板**本地**分压 (L434 note) ⇒ 跨铰链风险消失 | (风险消失, 但 500kΩ 源阻抗仍在) | 中 | ★**部分消解** |
+| **15** | VBUS_DET 高阻节点跨铰链 | ★demo 板**本地**分压 (L434 note) ⇒ 跨铰链风险消失 | (风险消失, 但 500kΩ 源阻抗仍在) | 中 | ★**部分消解** ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★括号里「但 500kΩ 源阻抗仍在」= 老 ADC 口径 ⇒ 该链现按【数字检测输入】口径单判 (F4D 段) ⇒ 不再作为 ADC 阻塞项**★ ⇒ ★**真 ADC 链 = `BAT_DET` (37500.0Ω / 33.791ms / 2.1%FS ⇒ ✔)**★ |
 | **16** | 同名不同义的 "PG" + STAT 1Hz 闪烁 | P10 页极性仍写明; ★新增 `PWR_GOOD` 还驱动 `Q_PG` 开机 | 信号名按来源区分 + 三态 + 闪烁检测 | 高 | ★**仍成立 + 新增一路 PG** |
 | **17** | 充电与 SoC 无关 (CE 拉低 = 允许充电) | P10 页 `R_CE` 10k 拉低 | "充电状态未知 ⇒ 当作在充电 ⇒ 禁 OD" | 高 | **仍成立** |
-| **18** ★**新** | **电量 (BAT_DET) 分压整条 DNP** | L182/183/184/185 三颗 DNP, 而 `NET_BAT_DET` 仍标必装并接 `J_SOM_P1 pin38` | M7-R6"电量读数正常"**无硬件** ⇒ 判据改写为"待 hw-lead 决策 DNP" | 高 | ★**新增** |
+| **18** ★**新** | **电量 (BAT_DET) 分压整条 DNP** | L182/183/184/185 三颗 DNP, 而 `NET_BAT_DET` 仍标必装并接 `J_SOM_P1 pin38` | M7-R6"电量读数正常"**无硬件** ⇒ 判据改写为"待 hw-lead 决策 DNP" | 高 | ★**新增** ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★本行 = 老网表口径 ⇒ **已被 2026-11-17 09:58:16 落表 (V-3=E) 推翻**★ —— 三颗 dnp=**必装** (100k / 60k / 100nF, 网表 L182~L186 实读) ⇒ 「电量读数正常」**有硬件支撑** ⇒ 判据按 `BAT_DET` 现值 (37500.0Ω / 33.791ms / 2.1%FS) ⇒ 严重度「高」**降为「不适用 (已消解)」** (老字保留供追溯)★ |
 | **19** ★**新** | **`RESET_N` 可能恒低** (`Q_AND` + `PG_AND` 上 DNP 的 `Q_ENVC`) | L65-67 + L71 (`Q_ENVC` DNP) + L79/L86 (两颗 DC-DC 芯片本体 DNP) | 上电流程必须能报告"复位一直被拉住"这一状态 ⇒ 建议 EVT 必测 `RESET_N` 电平 | 高 | ★**新增** |
 | **20** ★**新** | **I2C_B 走光机 FPC, 4.7k/3.3V 超标** | L235/236 + `CONN_LIGHT` pin11/12 | 光机控制总线 ≤100kHz | 中 | ★**新增** |
 
@@ -340,7 +341,7 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 | **7-1** | ★**I2C_A 的两行注记互相打架** | **L167** (`NET_I2C_A_SCL`) 仍写 "上拉 **4.7k 到 3.3V** (灌 702µA, **t_r=2.38µs@100pF**)"; **L168** (`NET_I2C_A_SDA`) 写 "上拉 4.7k 到 3.3V"; 而 **L169/L170** 的电阻行是 **2.2k → `RAIL_VDD_1V8_IO`** (1.8V 域, ISS-153 11-04 已订正), L171/L172 (camera 侧) 也已是 "2.2k 到 1.8V" | 同一份网表里同一根总线有**两套阻值/电平/上升时间** ⇒ ①任何"照注记"的人会算出 398ns/2380ns 的错数 ②**注记里的 "灌 702µA" 也是按 4.7k@3.3V 算的, 2.2k@1.8V 的真实灌流是 0.64mA** | [实测] (脚本读出的 `annotation_error_ratio = 12.77`; 4.7k/3.3V 口径实算 398ns vs 2.2k/1.8V 实算 186ns) | ★**已修复 (上游已修 · ISS-220 d6 · 2026-11-16 02:32)** ★ 2026-11-17 回盘现网表: **L167/L168 的注记已改成 "上拉 2.2k 到 1.8V (灌 0.64mA @VOL=0.4V, t_r=186ns@100pF / 559ns@300pF)"** ⇒ 与 L169/L170 的 2.2k → `RAIL_VDD_1V8_IO` **已自洽** ⇒ ★**`annotation_error_ratio` = 1.0 (原记 12.77) ⇒ 本条已不成立, 关闭**★ (★**历史判据一字未删, 只在行内追加状态★**) |
 | **7-2** | ★**`RESET_N` 会被永久拉低** | **L65-L67** `Q_AND` (必装): 栅=`PG_AND`、漏=`RESET_N`、源=GND; **L62/L63** `R_PG_PULL` 10k 把 `PG_AND` 上拉到 1.8V; ★**行级口径 (13:5x 订正)**: `PG_AND` 网上提到两路 PG pin 的连接行 (L62/L64/L402/L403) dnp **全是必装** ⇒ ★**「PG 源器件 DNP」不成立**; ★**真正 DNP 的是 `Q_ENVC`** (它接在 `PG_AND` 上, L71) | 按现网表装板 ⇒ `PG_AND` 恒高 ⇒ `Q_AND` 恒导通 ⇒ **`RESET_N` 恒低 ⇒ SoC 起不来**。★这是复评新发现的 P0, 上一版完全看不到 (上一版网表里没有 `Q_AND`) | [实测] (脚本 F1: `q_and_in_netlist=True`, ★`pg_source_devices = {U_DCDC_VCORE: 必装, U_DCDC_VIO: 必装}` (★行级★)★, `pg_and_state.dnp_rows = ['Q_ENVC']`, `reset_n_state.u_supv_pin1_row_dnp = DNP`) + [推算] (MOS 栅高 ⇒ 导通) | **P0** |
 | **7-3** | ★**监督器已 DNP, 分压两颗却仍必装** | **L404** `R_SUPV_DIV1` "[待选型] 分压上臂 (**0Ω 跳线位**)" dnp=**必装**; **L405/L406** `R_SUPV_DIV2` 同; ★而 **L407-L409** `U_SUPV` 三行全是 **DNP** | 监督器不装了, 分压却还必装 ⇒ 按 BOM 装 0Ω ⇒ **`RAIL_V_SOC_IO` 对地短路** (进限流 → IO 域塌陷 → 整机不启动 + 器件发热)。★上一版的"装配级灾难"结论**原样成立**, 而且现在**更没有理由装** | [实测] (脚本 F2: `divider_zero_risk=True`, `divider_dnp=['必装','必装']`, `u_supv_populated=False`) | **P0** |
-| **7-4** | ★**电量分压整条 DNP, 但网还把 ADC 脚给了 SoC** | **L182/L183** `R_BAT_DET_1`/`R_BAT_DET_2` = 1M, **dnp=DNP**; **L184/L185** `C_DET_BAT` = 100nF, **dnp=DNP**; ★而 **L181** `NET_BAT_DET` 与 **L186** (`J_SOM_P1 pin38`) 仍标 **必装** | SoC 侧有一个**永远悬空**的 ADC 输入脚 ⇒ ①软件读电量会读到随机值 ②`SW_REQUIREMENTS` M7-R6"电量读取正常"**没有硬件支撑** ⇒ 要么补装 (R 值还需按 §3.2 改成 100k/47k), 要么把网改成 DNP 并把需求改成"电量读数不可用" | [实测] (脚本 F4: `chains[BAT_DET].populated = False`, 三颗 `dnp=DNP`) | **P0** (需求侧阻塞) |
+| **7-4** | ★**电量分压整条 DNP, 但网还把 ADC 脚给了 SoC** | **L182/L183** `R_BAT_DET_1`/`R_BAT_DET_2` = 1M, **dnp=DNP**; **L184/L185** `C_DET_BAT` = 100nF, **dnp=DNP**; ★而 **L181** `NET_BAT_DET` 与 **L186** (`J_SOM_P1 pin38`) 仍标 **必装** | SoC 侧有一个**永远悬空**的 ADC 输入脚 ⇒ ①软件读电量会读到随机值 ②`SW_REQUIREMENTS` M7-R6"电量读取正常"**没有硬件支撑** ⇒ 要么补装 (R 值还需按 §3.2 改成 100k/47k), 要么把网改成 DNP 并把需求改成"电量读数不可用" | [实测] (脚本 F4: `chains[BAT_DET].populated = False`, 三颗 `dnp=DNP`) | **P0** (需求侧阻塞) ★**【ISS-293 订正 2026-11-17 · sw-lead】★ 【已不成立 / 关闭】★ —— 上句「L182/L183 = **1M**, dnp=**DNP**」「L184/L185 = 100nF, dnp=**DNP**」= **老网表口径 ⇒ 已作废**; ★**现值 = `R_BAT_DET_1` 100k ±1% + `R_BAT_DET_2` 60k ±1% + `C_DET_BAT` 100nF ±10%, 三颗 dnp=**必装** (网表 L182/L183/L184/L185 实读) ⇒ 「网表自相矛盾 (网给 SoC 一个永远悬空的 ADC 脚)」这条**已被 2026-11-17 09:58:16 落表 (V-3=E) 消除** ⇒ ★**P0 (需求侧阻塞) 解除**★ ⇒ ★**M7-R6 现在有硬件支撑** ⇒ 本行老字保留 (一个字节没删) 供追溯★ |
 | **7-5** | ★**`Q_ENVC` 三行 dnp 自相矛盾** | **L71** `Q_ENVC` 的 `PG_AND` 行 dnp=**DNP**, 而 **L72** (GND) / **L73** (`EN_VCORE`) 两行 dnp=**必装** | 同一个位号两行必装一行 DNP ⇒ 装配表按"必装"就会装上 (栅极悬空 ⇒ `EN_VCORE` 不会被拉低 ⇒ V_CORE 使能时序失效) —— ★这正好把 V1.8 想要的**顺序链** (VIO 先起 → 再使能 VCORE) 打掉 | [实测] (★13:5x 订正★ 脚本 F1: `pg_and_state.q_envc_row_dnp = 'DNP'`, `pg_and_state.dnp_rows = ['Q_ENVC']`; ★**行级口径** —— 同一颗 `Q_ENVC` 在 `GND` / `EN_VCORE` 两行是必装 ⇒ **不能拿"位号第一条 IC/SW 行"的 dnp 当装机状态**; 直接读 dnp 列) | P1 |
 | **7-6** | ★**`U_EN_SW` 没有器件行** ★**已修复 (上游已修 · ISS-233 · 2026-11-16 06:48:38)** ★ | ★**原判据 (历史, 一字未删)**: **L441-L444** 只有 4 行引脚行 (EN/5V 输入/5V 输出/GND), **全网表没有 `U_EN_SW` 的 IC 行** (对比 `U_PWR_SW` 有 L50 的 IC 行: "[待选型] 负载开关 …", opn=TPS22991RAA) ★**2026-11-17 回盘现网表: `U_EN_SW` 现共 13 行 (L419 + L440-L451), 其中 ★**L442 = 器件本体行 (type=IC · dnp=必装 · value = TPS22991RAA (负载开关: 1=VIN/2=ON/3=VOUT/4=GND, UQFN-4 RAA 0.85 x 0.75 mm) · opn=TPS22991RAA)**★ ⇒ 原判据的"没有 IC 行"**已不成立**** | ★**原后果 (历史)**: BOM / 装配单**不会包含这颗开关** ⇒ ①底板 5V 门控 (`CARRIER_BOARD_EN`) 实际不会被实现 ②上一版"关机靠软件深睡"改判为"有硬件断电通路"的前提也打了折扣 ⇒ **F8 的结论虽然方向对, 但落地要靠补 IC 行** ★**2026-11-17: ①已落地 (L442 器件本体行 ⇒ BOM L208 同步出这颗开关) ②"前提打折扣"已不成立 ⇒ F8 现值 `load_switch_without_device_row = []` / `rail_switching_devices = 2` ⇒ **F8 的"硬件断电通路存在"结论现在没有 BOM 缺口折扣**** | [实测] ★**2026-11-17 现值 (脚本 F8): `load_switch_without_device_row = []`, `rail_switching_devices = 2`** ★ (★原记 `load_switch_without_device_row = ['U_EN_SW']` / `rail_switching_devices = 1` = ISS-233 **之前**的事实★) | ★**✅ 已修复 (留痕)** (★**上游修的, 不是本单改的网表★; ★代码侧同款订正见 ISS-235: F8 判据方向翻正 + REV-3 基线 1→2**) ★ |
 | **7-7** | ★**`J_USB_C` 的 D− 没有 ESD 保护** | **L417/418** `D_ESD_USB_D` = "ESD 阵列 (USB 2.0 **双通道**)", note 明写 "紧贴 `J_USB_C`, **跨 D+ 与地**" ⇒ 只护 D+ 与 GND; **L420/421** `D_ESD_DEMO` 护的是 `RAIL_DEMO_5V` (VBUS) 与地 | `J_USB_C` 是现网表上**唯一**的刷写口 (板内 Type-C → `J_SOM_P1 pin92/94`) ⇒ 一次 ESD 打到 D− 就没有第二张嘴 ⇒ **上一版 H3 仍然成立** ⇒ 需 hw-lead 补一颗跨 D+/D− 的阵列 (或把 `D_ESD_USB_D` 换成含 D+ 与 D− 的版本) | [实测] (网表 note 实读) + [推算] | **P1** (刷写口单点失效) |
@@ -360,14 +361,14 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 
 ## 8. 对 SW 现有文档的改动请求 (CR-1 ~ CR-9, 交项目总工派单; 本单未改任何既有 SW 文件)
 
-> ★**复评后 CR-4 / CR-6 的依据已变** (电量链 DNP / 关机语义反转) ⇒ 见 §1.3。
+> ★**复评后 CR-4 / CR-6 的依据已变** (电量链 DNP / 关机语义反转) ⇒ 见 §1.3。 ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★括号里「电量链 DNP」= 老网表口径 ⇒ **已作废** (V-3=E 于 2026-11-17 09:58:16 落表后 `R_BAT_DET_1`/`R_BAT_DET_2`/`C_DET_BAT` 三颗**必装**) ⇒ ★**CR-4 已决策 = 补装**, 判据按 `BAT_DET` 现值 (37500.0Ω / 33.791ms / 2.1%FS / 节点 1.575V ≤ 1.98V)★ (★「关机语义反转」那半句不受本单影响★)
 
 | CR | 目标文件 | 改动 | 依据 |
 |---|---|---|---|
 | CR-1 | `SW/FLASH_AND_VERSION.md` §4.5.2 | t1~t4 时序表按"复位释放不可预测"重写; 方式 A 改为 **BOOT 静态跳线 + 上电** | §2.3 F1 (τ 注记错误仍在) |
 | CR-2 | `SW/FLASH_AND_VERSION.md` §2.2 | ~~"USB VBUS 连接是否存在"支点~~ ⇒ ★**改为**: 刷写口 = **板内 `J_USB_C`**, 不是跨铰链 USB; §2.2 的图要改 | §5.1 (跨铰链 USB 链不存在) |
 | CR-3 | `SW/SW_REQUIREMENTS.md` §8 (M7) | 新增 M7-R7 "温度采集与降载" (4 档 + 迟滞 + 失效安全 + 首读丢弃); ★**失效安全理由改写** (TMP117 不再与 camera 同总线) | §4.1 / §4.2 |
-| CR-4 | `SW/SW_REQUIREMENTS.md` M7-R6 | "软件侧确认电量读取正常" 判据重写 ⇒ ★**现网表 `BAT_DET` 链三颗全 DNP ⇒ 无硬件** ⇒ 判据改为"待 hw-lead 决策 (补装 or DNP)" | §3.2 / §7-4 |
+| CR-4 | `SW/SW_REQUIREMENTS.md` M7-R6 | "软件侧确认电量读取正常" 判据重写 ⇒ ★**现网表 `BAT_DET` 链三颗全 DNP ⇒ 无硬件** ⇒ 判据改为"待 hw-lead 决策 (补装 or DNP)" ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★**已决策 = 补装** (V-3=E · **2026-11-17 09:58:16** 落表) ⇒ 判据按 §3.2 / §3.3 的 `BAT_DET` 现值 (37500.0Ω / 33.791ms / 2.1%FS / 节点 1.575V ≤ 1.98V)★ ⇒ ★**`SW/SW_REQUIREMENTS.md` M7-R6 的同步改动属需求真源 (PM 域) ⇒ sw-lead 不自改, 已登记 need 给 main**★ | §3.2 / §7-4 |
 | CR-5 | `SW/SW_REQUIREMENTS.md` §2 (M1) | I2C 速率写死 100kHz (★**理由改为由 I2C_B 决定**) + "I2C 总线恢复 + 温度传感器失效安全" | §3.3 / §6-10 / §6-11 |
 | CR-6 | `SW/SW_REQUIREMENTS.md` §9 (M8) | ~~"关机"语义改为"进入深睡 (硬件不断电)"~~ ⇒ ★**改为**: "关机" = SoC 把 `PWR_ON` GPIO 配高阻 ⇒ `U_PWR_SW` 关 ⇒ **SYS 断电** (充电链仍带电 ⇒ 关机也能充电); 与售后 `FRAMEWORK/AFTERSALES.md` 的"长按 10s = 关机"**重新对齐** | §6-9 / §7-6 |
 | CR-7 | `SW/EVT_TEMPLATE.md` | 上电段新增: ① `RESET_N` / `PG_AND` / 各轨 **四通道同时抓** (★`RESET_N` 恒低是本次新发现的 P0★) ② TMP117 首读丢弃验证 ③ `TP_TEMP` 热电偶对照标定 ④ USB 枚举成功率 (≥30 次) ⑤ **`U_EN_SW` 输出 `RAIL_BOARD_5V` 是否真的被门控** | §2.2 / §4.2 / §5.2 / §7-6 |
@@ -393,7 +394,7 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 | ★**机械复核器改成实读网表** | ✅ 通过 | `SW/tools/timing_check.py` 现用 `csv` 实读网表; 输出首段打印 **md5 + 514/513 行**; 自检 **55/55** (既有 21 全保留 + 新增 23 + 反向 11) |
 | ★**反向用例证明"真在读网表"** | ✅ 通过 | ★**11 条反向用例 (REV-1~REV-10)** + `--reverse-demo`; ★**外部复现**: 改坏副本里 `R_PU_I2CA_SCL` 一行 ⇒ `tr_ns_at_100pF` **398.2 → 847.3ns**、最差总线 **I2C_B → I2C_A**; ★**再复现 (行级 dnp)**: 把副本里 `PG_AND` 上 `NET_PG_AND` 那一行 dnp 改成 DNP ⇒ `pg_source_devices` 两路 PG 由**必装 → DNP**、`pg_sources_all_populated` 转红 |
 | 上电时序结论 (任务项 1) | ❌ 不通过 (但**比上一版改善**: PG 已进链; ★新 P0 = `PG_AND` 上 DNP 的 `Q_ENVC` ⇒ 没人拉低 `PG_AND` ⇒ RESET_N 恒低) | §2.6 |
-| 充电回读链结论 (任务项 2) | ❌ 不通过 (上拉归属 + ADC 通道 + ★电量链 DNP) | §3.3 |
+| 充电回读链结论 (任务项 2) | ❌ 不通过 (上拉归属 + ADC 通道 + ★电量链 DNP) ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★括号里「ADC 通道 + ★电量链 DNP」= 老口径 ⇒ **已作废 (假红)**★ —— ADC 判决对象 = `BAT_DET` (pin38 / `SARADC_VIN5` / 1.8V 域) ⇒ **37500.0Ω / 建立 33.791ms / 漏电 2.1%FS / 节点 1.575V ≤ 1.98V ⇒ ✔ 通过**; ★`BAT_DET` 三颗**已必装** ⇒ 电量检测分压链存在 ⇒ ★**本行只剩「上拉归属」这一条 ❌ 仍成立** (CHG_STAT 上拉 board 归属矛盾, 与 ADC 无关)★ | §3.3 |
 | TMP117 测点 (任务项 3) | ✅ 通过 (定案不变; ★总线改为 I2C_B ⇒ 失效安全理由改写) | §4.4 |
 | 跨铰链 USB 救砖 (任务项 4) | ★**不适用** (跨铰链 USB 链在现网表上不存在) ⇒ ★**板内 `J_USB_C` 通过** | §5.3 |
 | SW 返工点 (任务项 5) | ✅ 通过 (20 条, ★新增 3 条) | §6 |
@@ -404,7 +405,7 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 
 | 等级 | 本单条目数 | 代表条目 |
 |---|---|---|
-| **[实测]** | 21 项 (脚本自检 21/21) | 复位 RC 1.1ms/100µs/1.324ms · I2C t_r 398ns · ADC 500k/50ms/451ms/0.50V · TMP117 自热 16.5µW · FS 75s / HS 1.9s · 皮肤模型 0.05→37.5 / 0.16→43.0°C · 网表 grep (EN/SS/CT/MR/VBUS/负载开关 = 0 条) |
+| **[实测]** | 21 项 (脚本自检 21/21) | 复位 RC 1.1ms/100µs/1.324ms · I2C t_r 398ns · ADC 500k/50ms/451ms/0.50V · TMP117 自热 16.5µW · FS 75s / HS 1.9s · 皮肤模型 0.05→37.5 / 0.16→43.0°C · 网表 grep (EN/SS/CT/MR/VBUS/负载开关 = 0 条) ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★本行「ADC 500k/50ms/451ms/0.50V」= 老口径 (判 `VBUS_DET_D` + 满量程 3.3V) ⇒ **已作废 (假红)** ⇒ 现值 = **37500.0Ω / 3.75ms / 33.791ms / 0.0375V (2.1%FS)**; ★本行「21 项 (脚本自检 21/21)」= ISS-190 当时数 ⇒ 现行闸 = **SELFTEST 85/85** (ISS-291 复验) ★**+ 新闸 `SW/tools/check_timing_review_adc_sync.py` (ISS-293) ⇒ 本文档的 ADC 现值不许再漂**★ |
 | **[官方]** | 7 项 | TPS3808 分压公式 VIT=0.405×(1+R1/R2) + 延时档 (20ms/300ms/1.25ms~10s) · TPS3808 开漏 RESET + 10k~1M 上拉建议 · TMP117 (1 LSB=7.8125m°C, ±0.1°C, 8 averages/1Hz, 复位后首读 −256°C, 贴装热阻要求) · USB 2.0 (FS 12Mbit/s, 复位后 5ms 响应, HS 480Mbit/s, 90Ω±10%) · I2C 上升沿 (标准模式 1µs / 快模式 300ns) · ISO 13732-1 43°C · TI TPS3808 器件选型前提 |
 | **[推算]** | 19 项 | 复位释放总下限 21.3ms · 保守上界 100ms · 跨铰链 t_r (100~500pF) · 漏电偏移 33µV · 皮肤代理保守性 (T_PCB ≥ T_skin) · USB bulk 效率 80% · 量产节拍判断 |
 | **[0数据]** | 9 项 | SoC 内部上电时序与 RESET 释放要求 (TBD-12) · V_CORE/V_SOC_IO 电压 (TBD-02) · SoC USB VBUS 需求与 FS/HS 能力 (TBD-10) · SoC 是否带片上温度传感器 (TBD-12) · DC-DC 软启动时间 (SS 脚不在网表) · SoC ADC 分辨率与漏电流 · 光机温度遥测 (JBD) · SoC 球位图 (TBD-01) · BQ25896 STAT/PG 极性的原厂书面确认 |
@@ -413,7 +414,7 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 
 | 等级 | 本次复评条目数 | 代表条目 (全部由 `SW/tools/timing_check.py` 现读现算) |
 |---|---|---|
-| **[实测]** | **+38 项** (自检 55 条中 55 条) | 网表锚点 (md5 + 514 物理行 / 513 数据行) · `Q_AND`/`R_PG_PULL`/`PG_AND` 拓扑 · ★**PG 源按行级取 = 必装 (「PG 源 DNP」不成立), 真正 DNP 的是 `Q_ENVC`** · `U_SUPV` DNP + 分压 0Ω 必装 · **I2C_A 2.2k/1.8V → 186.4ns/559.2ns** · **I2C_B 4.7k/3.3V → 398.2ns/1194.7ns** · EN/SS/CT/MR = 10/0/1/0 · LDO EN 直连 `RAIL_BOARD_5V` · RESET/BOOT 上拉轨域 1.8V · TMP117 在 I2C_B · `J_CHG` 不带 D+/D− · `U_PWR_SW`/`U_EN_SW` + 10k 下拉 (默认关) · ★`U_EN_SW` 无器件行 **(已修 · ISS-233 · 2026-11-16 06:48:38)** · BAT_DET 三颗 DNP · 反向用例 REV-1~REV-10 |
+| **[实测]** | **+38 项** (自检 55 条中 55 条) | 网表锚点 (md5 + 514 物理行 / 513 数据行) · `Q_AND`/`R_PG_PULL`/`PG_AND` 拓扑 · ★**PG 源按行级取 = 必装 (「PG 源 DNP」不成立), 真正 DNP 的是 `Q_ENVC`** · `U_SUPV` DNP + 分压 0Ω 必装 · **I2C_A 2.2k/1.8V → 186.4ns/559.2ns** · **I2C_B 4.7k/3.3V → 398.2ns/1194.7ns** · EN/SS/CT/MR = 10/0/1/0 · LDO EN 直连 `RAIL_BOARD_5V` · RESET/BOOT 上拉轨域 1.8V · TMP117 在 I2C_B · `J_CHG` 不带 D+/D− · `U_PWR_SW`/`U_EN_SW` + 10k 下拉 (默认关) · ★`U_EN_SW` 无器件行 **(已修 · ISS-233 · 2026-11-16 06:48:38)** · BAT_DET 三颗 DNP · 反向用例 REV-1~REV-10 ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★本行「BAT_DET 三颗 DNP」= 老网表口径 ⇒ **已作废** (V-3=E 落表后三颗**必装**, 网表 L182~L186 实读)★; ★本行「自检 55 条中 55 条」= ISS-235 当时数 ⇒ **现行闸 = `python3 SW/tools/timing_check.py` ⇒ SELFTEST 85/85** (ISS-291 复验) ★**+ 新闸 `SW/tools/check_timing_review_adc_sync.py` (ISS-293) ⇒ 本文档的 ADC 现值不许再漂**★ ★ [实测]★ |
 | **[官方]** | **+4 项** | TPS3808 分压公式与延时档 (复核一遍, 结论随器件 DNP 改判"不适用") · I2C 标准/快模式上升沿上限 (1000ns / 300ns) · USB 2.0 FS/HS 与 5ms 响应预算 · TMP117 规格 |
 | **[推算]** | **+9 项** | `Q_AND` 栅高 ⇒ 导通 ⇒ `RESET_N` 恒低 (P0) · 0Ω 分压 ⇒ `RAIL_V_SOC_IO` 对地短路 · 2.2k@1.8V 真实灌流 0.64mA (注记里的 702µA 是 4.7k@3.3V 口径) · 板内 USB 枚举不需要 VBUS 检测脚 · 关机语义反转为"真断电"后的待机口径 |
 | **[0数据]** | **+6 项** | SoM 自带 PMIC 的 PG/RESET 输出球位与极性 (TBD-01/TBD-12) · SoM IO 域电压 (TBD-01) · I2C_B 上设备的灌流预算 (TBD-04) · `U_EN_SW` 的选型与 BOM 归属 · `D_ESD_DEMO` 通道归属 · SoC 侧 ADC 对悬空脚的读数行为 |
@@ -430,7 +431,7 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 |---|---|---|
 | ★`power_off_semantics` | `PWR_ON高阻→U_PWR_SW关→SYS断电(充电链仍带电)` | ★**上一版 `无硬件断电-软件深睡-轨带电` 作废** (现网表有 `U_PWR_SW` 负载开关, ON 脚 10k 下拉 ⇒ 默认关); ★前置: §7-6 的 `U_EN_SW` BOM 缺口 ★**已于 2026-11-16 06:48:38 由 ISS-233 修掉 ⇒ 前置已满足** ★ |
 | ★`i2ca_speed_max` | `100kHz (由 I2C_B 决定, 非 I2C_A)` | ★**理由改写**: I2C_A 2.2k/1.8V ⇒ 559ns@300pF **通过**; **I2C_B 4.7k/3.3V ⇒ 1194.7ns 超标** |
-| ★`adc_det_sampling` | `长采样+丢弃N+中位数+迟滞` + `BAT_DET链DNP-电量判据待定` | ★**新增**: 现网表 `R_BAT_DET_1/2` + `C_DET_BAT` 三颗全 DNP ⇒ 电量读数**无硬件** |
+| ★`adc_det_sampling` | `长采样+丢弃N+中位数+迟滞` + `BAT_DET链DNP-电量判据待定` | ★**新增**: 现网表 `R_BAT_DET_1/2` + `C_DET_BAT` 三颗全 DNP ⇒ 电量读数**无硬件** ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★上句 = 老网表口径 ⇒ **已作废**★ —— ★**`BAT_DET` 链已必装 ⇒ 电量判据按 `BAT_DET` 现值 (2.1%FS, 节点 1.575V, 建立 33.791ms, LSB 0.439mV / 满量程 1.8V)**★ |
 | ★`thermal_failsafe` | `读失败3周期→按T2降载+告警` (TMP117 在 I2C_B) | ★**理由改写**: 不再是"与 camera 同总线", 改为"通用 I2C 故障 + 传感器自身失效"; 动作不变 |
 | `reset_release_policy` | `Q_AND(PG_AND)+RC_1.1ms` ★`+Q_ENVC(DNP)待确认` | 复位释放由 `Q_AND` 硬件 AND 决定; ★**行级: PG 源是必装 (「PG 源 DNP」不成立), 真正 DNP 的是 `Q_ENVC` ⇒ 没人拉低 `PG_AND` ⇒ 现状恒拉低** (§7-2) |
 | `reset_tau_release` | `1.1ms` | 网表注记的 100ms 有误 (差 90.9×) —— 不变 |
@@ -454,14 +455,14 @@ BOOT_N: R_PU_BOOT_N 10k ← RAIL_VDD_1V8_IO; SW_BOOT 按键 → GND; TP_BOOT
 
 | # | 需要谁回答什么 | 期望时限 | 走谁 | 阻塞什么 |
 |---|---|---|---|---|
-| 1 | ★**hw-lead 修 §7 的 7 条网表侧待修项** (★P0 五条★: 7-1 I2C 注记矛盾 / 7-2 `RESET_N` 恒低 / 7-3 分压 0Ω 短路 / 7-4 电量链 DNP / 7-6 `U_EN_SW` 无器件行 ★(已修 · ISS-233 · 2026-11-16 06:48:38)★; P1 两条: 7-5 `Q_ENVC` dnp 矛盾 / 7-7 D− 无 ESD) | 2026-11-12 | 项目总工转达 (★我已用 `frag_write.py` 登记 `needs_from` 给 hw-lead★) | §2 / §3 / §6-1 / §6-9 / CR-4 / CR-6 |
+| 1 | ★**hw-lead 修 §7 的 7 条网表侧待修项** (★P0 五条★: 7-1 I2C 注记矛盾 / 7-2 `RESET_N` 恒低 / 7-3 分压 0Ω 短路 / 7-4 电量链 DNP / 7-6 `U_EN_SW` 无器件行 ★(已修 · ISS-233 · 2026-11-16 06:48:38)★; P1 两条: 7-5 `Q_ENVC` dnp 矛盾 / 7-7 D− 无 ESD) ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★「7-4 电量链 DNP」= 老网表口径 ⇒ **已关闭** (V-3=E 于 2026-11-17 09:58:16 落表后三颗**必装** ⇒ §7-4 那条 P0 解除) ⇒ ★**7-4 不用再问 hw-lead**★ (★其余 6 条不受本单影响★) | 2026-11-12 | 项目总工转达 (★我已用 `frag_write.py` 登记 `needs_from` 给 hw-lead★) | §2 / §3 / §6-1 / §6-9 / CR-4 / CR-6 |
 | 2 | **原厂 TBD-12 补充问**: ① RESET 释放要求 ② 内部上电顺序 ③ 是否提供 PG 输出 (球位 + 极性) ④ 是否带片上温度传感器 ⑤ BOOT 脚有效电平与所属电源域 ⑥ RESET/BOOT 脚的电源域是不是 SoM 的 IO 域 | 2026-11-14 | **项目总工外发** (我不外发) | §2 全部保守假设; §4.3 结温保护; §7-2 |
 | 3 | **原厂 TBD-10 追加问**: USB 设备控制器 FS 还是 HS; SoM 的 PG/RESET 输出脚位 (与 §7-2 相关) | 2026-11-14 | 项目总工外发 | §5.2; §7-2 |
 | 4 | **原厂 TBD-02**: V_CORE / V_SOC_IO 标称电压 —— ★**注意: 现网表这两颗 DC-DC 都 DNP, 所以该问题对主板已无意义, 应改问 SoM 侧的 IO 域电压 (TBD-01)** | 2026-11-14 | 项目总工外发 | §2.3 F5 |
 | 5 | **mech-lead 接口请求 (经项目总工)**: ① 镜脚贴皮肤面的确切位置 ② 骨架/石墨与镜脚 PCB 的热隔离边界 ③ 光机能否提供温度遥测 (JBD) | 2026-11-14 | 项目总工转达 | §4.2 贴装; §4.3 光机 |
 | 6 | **项目总工裁决**: ① "关机 = SYS 真断电"新语义是否接受 (连带售后文档 + 待机 0.05W 口径) ② 量产刷写口是否采纳"镜脚有线 pogo" ③ **SoM 到底在镜脚还是镜框 (ISS-014 文字 vs 现网表现状)** | 2026-11-14 | 项目总工 (③ 可能需老板) | §6-9 / §5 / §6 末 |
 | 7 | ★**hw-lead 修 §7-7**: `J_USB_C` 的 **D− 没有 ESD 保护** (`D_ESD_USB_D` 只跨 D+ 与地, `D_ESD_DEMO` 只跨 VBUS 与地) ⇒ 唯一的刷写口是单点失效 | 2026-11-12 | 项目总工转达 | §5.1 刷写口可靠性 |
-| 8 | ★**hw-lead 澄清 §7-4 的方向**: 电量链是"补装 (R 改 100k/47k)"还是"整条 DNP + 需求改成不可用" | 2026-11-12 | 项目总工转达 | CR-4 (M7-R6) |
+| 8 | ★**hw-lead 澄清 §7-4 的方向**: 电量链是"补装 (R 改 100k/47k)"还是"整条 DNP + 需求改成不可用" ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ★**已决策 = 补装 (V-3=E · 2026-11-17 09:58:16 落表)** —— 且实际落表值 = **`R_BAT_DET_1` 100k + `R_BAT_DET_2` 60k + `C_DET_BAT` 100nF** (★不是 100k/47k★) ⇒ 三颗 dnp=**必装** ⇒ ★**本条不必再问 hw-lead ⇒ 已关闭**★ ⇒ 判据按 `BAT_DET` 现值 (37500.0Ω / 33.791ms / 2.1%FS) | 2026-11-12 | 项目总工转达 | CR-4 (M7-R6) |
 
 ---
 
@@ -553,7 +554,7 @@ python3 SW/tools/timing_check.py --netlist /tmp/netlist_pg_mut.csv | grep -E "pg
 grep -n "U_SUPV" HW/netlist_v1.csv | grep ",IC,"
 grep -n "R_SUPV_DIV" HW/netlist_v1.csv
 
-# F6: 电量链 (期望 R_BAT_DET_1/2 + C_DET_BAT 全 DNP ⇒ §7-4)
+# F6: 电量链 (★【ISS-293 订正】★ BAT_DET 三颗已必装 ⇒ 判据按 BAT_DET 链 37500Ω / 1.8V 域 ⇒ 见 F4_adc_det; ★老口径「全 DNP ⇒ §7-4」= 已作废★)
 grep -nE "R_BAT_DET_|C_DET_BAT" HW/netlist_v1.csv
 
 # ★外部复现主会自己跑的那条反向用例 (改坏**副本**, 原网表只读不动) ★
@@ -563,5 +564,35 @@ python3 SW/tools/timing_check.py --netlist /tmp/netlist_mut.csv | grep -E "tr_ns
 #   ⇒ 期望: tr_ns_at_100pF 从 **398.2** 变成 **847.3**, worst_bus 从 **I2C_B** 变成 **I2C_A**
 #      (且该次运行有多条自检转红 ⇒ rc=1 ⇒ 证明它真在读网表, 不是在演常量)
 ```
+
+## 14. ★★【ISS-293】ADC 现值卡 (★机器校验锚点★ · 由 `SW/tools/check_timing_review_adc_sync.py` 逐键对账)
+
+> ★**这张卡是给机器看的** ★【ISS-293 订正】★: 本闸跑 `python3 SW/tools/timing_check.py --only F4_adc_det` 取真值, 再跟下面这张卡**逐键对账** ⇒ **卡里写的 ≠ 闸的实跑读数 ⇒ 闸红** ⇒ ★**本文的 ADC 现值从此不许再漂**★
+> ★**改卡的手续**: 网表/闸的 ADC 口径变了 ⇒ 先改 `SW/tools/timing_check.py` (定版闸) ⇒ 再改本卡 ⇒ 再跑本闸 ⇒ ★**不许只改卡不改闸, 也不许只改闸不改卡**★
+> ★**老字保留的约定** ★【ISS-293 订正】★: 文中凡是保留了老口径 (3.3V 满量程 / `VBUS_DET_D` 当 ADC 链 / BAT_DET 三颗全 DNP) 的行, **同一行必须带 `【ISS-293 订正】` 标记** (本闸据此判「那是留痕的历史判据, 不是活结论」) ⇒ ★**标记丢了 = 活结论里出现老口径 ⇒ 闸红**★
+
+<!-- ISS-293:ADC-CARD:BEGIN -->
+
+| 键 | 值 |
+|---|---|
+| `adc_decision_chain` | `BAT_DET` |
+| `adc_decision_chain_pin` | `38` |
+| `adc_decision_chain_signal` | `SARADC_VIN5` |
+| `adc_decision_chain_domain` | `1.8V` |
+| `adc_full_scale_v` | `1.8V` |
+| `adc_bits` | `12` |
+| `adc_lsb_mv` | `0.439mV` |
+| `adc_rth_ohm` | `37500.0Ω` |
+| `adc_tau_ms` | `3.75ms` |
+| `adc_t_settle_ms` | `33.791ms` |
+| `adc_leak_offset_v` | `0.0375V` |
+| `adc_leak_offset_pct_fs` | `2.1%FS` |
+| `adc_node_v_at_supply` | `1.575V` |
+| `adc_node_max_abs_v` | `1.98V` |
+| `adc_fs_utilization_pct` | `87.5%` |
+| `adc_populated` | `必装` |
+| `adc_criteria_all_ok` | `True` |
+
+<!-- ISS-293:ADC-CARD:END -->
 
 > ★**边界声明 (复评版)**: 本单**只读** `HW/netlist_v1.csv` (md5 复评前后均为 `c78f991283cc82d56c8e3dd31657c785` ⇒ ★**ISS-225 注: 该 md5 是 ISS-220 落表**前**的值; 现值 `13f59a43dbd35dc6cb16e897c8c891ab` 见 `SW/SW_MD5_BASELINE_LEDGER.md` §1**★); 反向用例与 `--reverse-demo` 写的都是 `/tmp` 下的**副本**; 网表侧矛盾一律只报 (§7) 并登记 `needs_from` 给 hw-lead; ★**未联系任何供应商/原厂**; ★**未改** `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / 别人的分片。

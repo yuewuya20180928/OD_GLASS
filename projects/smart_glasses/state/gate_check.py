@@ -190,6 +190,36 @@ def run_hw_pinout_gate() -> dict:
             "detail": detail}
 
 
+
+# ★★2026-11-17 20:0x (main): 新闸挂进门禁链 (★fail-closed 同款语义★)
+#   ★**为什么必须挂**: ISS-295 的「MECH 结构结论防漂闸」+ ISS-298 的「SW 侧合法改板通道闸」
+#   ★**以前谁都不跑 ⇒ 它们的判据形同虚设** ⇒ ★**门禁链缺它 = 判据漂移无人拦 (ISS-136 同款根因)** ★
+#   ★**语义与 HW pinout 闸完全一致**: 脚本不存在 / 跑不起来 / 超时 ⇒ 一律算【闸红】, 绝不「没跑就当过」★
+EXTRA_GATES = [
+    (os.path.join(PROJ, "MECH", "check_mech_verdict_freshness.py"), "MECH 结构结论防漂闸 (ISS-295)"),
+    (os.path.join(PROJ, "SW", "tools", "check_onepass_sw_sync.py"), "SW 侧板侧输入/合法改板闸 (ISS-298)"),
+]
+
+
+def run_external_gate(path: str, name: str) -> dict:
+    """通用 fail-closed 外部闸 (★抄 HW pinout 闸的语义, 不另发明★)"""
+    if not os.path.exists(path):
+        return {"ok": False, "rc": None, "name": name,
+                "detail": f"★闸脚本不存在: {path} ⇒ 视为闸红 (不许静默跳过)"}
+    try:
+        p = subprocess.run([sys.executable, path], cwd=PROJ, capture_output=True,
+                           text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "rc": None, "name": name, "detail": "★闸脚本超时 (300s) ⇒ 视为闸红"}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "rc": None, "name": name, "detail": f"★闸脚本跑不起来: {e} ⇒ 视为闸红"}
+    out = p.stdout or ""
+    fails = [ln.strip() for ln in out.splitlines() if ln.strip().startswith("[FAIL]")]
+    detail = ("; ".join(fails) if fails else "全部检查项通过")
+    if p.returncode != 0 and not fails:
+        detail = f"rc={p.returncode} 但未解析出 FAIL 行: " + (p.stderr or out).strip()[-300:]
+    return {"ok": p.returncode == 0, "rc": p.returncode, "name": name, "detail": detail}
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true")
@@ -376,6 +406,18 @@ def main() -> int:
     hw_gate = run_hw_pinout_gate()
     report["hw_pinout_gate"] = hw_gate
     report["summary"]["hw_pinout_gate_ok"] = hw_gate["ok"]
+    report["summary"]["extra_gates_ok"] = True
+
+    # ★★2026-11-17 20:0x (main): 新闸挂链 (★ISS-295 / ISS-298·★fail-closed 同款★)★★
+    report["extra_gates"] = []
+    extra_ok = True
+    for _p, _n in EXTRA_GATES:
+        _g = run_external_gate(_p, _n)
+        report["extra_gates"].append(_g)
+        report["summary"][f"extra_gate_ok::{_n}"] = _g["ok"]
+        if not _g["ok"]:
+            extra_ok = False
+            report["gaps"].append(f"★新闸红: {_g['name']} — {_g['detail']}")
 
     # ---- 缺口清单 (可直接转成派活项) ----
     for a in subs:
@@ -399,7 +441,7 @@ def main() -> int:
 
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
-        return 0 if hw_gate["ok"] else 1
+        return 0 if (hw_gate["ok"] and extra_ok) else 1
 
     s = report["summary"]
     print("=" * 74)
@@ -460,7 +502,7 @@ def main() -> int:
         print(f"   · {g}")
     print("\n" + "=" * 74)
     # ★闸红 ⇒ rc=1 (以前这个硬件闸是孤儿: rc=1 却没人跑 ⇒ 门禁链缺它)
-    return 0 if hw_gate["ok"] else 1
+    return 0 if (hw_gate["ok"] and extra_ok) else 1
 
 
 if __name__ == "__main__":

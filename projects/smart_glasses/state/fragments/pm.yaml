@@ -1,6 +1,6 @@
 agent: main
 role: 项目总工
-updated_at: 2026-11-17 14:35
+updated_at: 2026-11-17 20:05
 updated_by: main
 status:
   phase: 原理图V1.2已交付待交叉评审
@@ -723,6 +723,35 @@ needs_from:
     S7 的验收目标是「零标记数 = 0」⇒ ★**若照 43 走, 要么验收假红, 要么为了凑 43 把 BAT_DET 三颗又标回 DNP ⇒ ★★等于把老板 09:49 拍板并已落表的三颗必装改回去★★**
     ★ ⇒ ★**已开 ISS-289 (hw-lead) 把作业包六处现状值对回盘面 + 加一道「现状值 == 盘面实测」的闸 (★不许只加 DNP 一条, 否则下次落表又漂别的★)** ★'
   since: '2026-11-17'
+- key: boss_c_vbus_gnd_reserve_pad_20261117
+  to: boss
+  item: '★★【C_VBUS_GND 这个预留位: 留还是不留? ★老板/PM 域, main 不代拍】★★ ★**事实 (★main 2026-11-17 16:0x 本机实读, 不抄交卷报告★)**:
+    ① 网表 `HW/netlist_v1.csv:10` 与 `:12` 两行的 board 列 = **`CHG_BOARD`** ⇒ 生成器按 `BOARD_FILTER="MAIN_PCB"`
+    把它剔掉, 所以【重新生成的板里它会消失】★ ② 但【现役官方板上有它的实物封装 @ (107.70, 42.50)】⇒ 这就是 `check_pcb_nets.py` 报的「C1 多余 2」(它的
+    pad1/pad2)★ ③ BOM L51 自己写着「板上有位置但首版不贴」⇒ 它本来就是【预留位】★ ④ 作业包 §3-S2 的判据是「C1 多余 0」⇒ ★**⇒ 那一趟收工后它是 185 件
+    (下板) 还是 186 件 (留位)】★ ★**代价**: 下板 ⇒ 收工 185, S2 直接过, 代价 = 失去一个 π 滤波电容的预留焊盘 (★demo 板 Type-C 供电 · 不装电池
+    · 充电板不在本板 ⇒ 这颗电容在 demo 上本来就没用★) · 留位 ⇒ 收工 186, 但要【改网表 board 列 CHG_BOARD→MAIN_PCB + 重生成脚表/BOM】⇒ 落表再动一次
+    (★板只改一次之前多一次落表churn★) ⇒ 且要接受「C1 多余 2」怎么处理 ★**建议默认值 (★仅供参考·不代你拍★)**: ★**下板 (收工 185)** ★ ⇒ 理由 = S2 判据已经是「C1
+    多余 0」· 网表已把它划给 CHG_BOARD · demo 上无用途 · 留位反而多一次落表 ⇒ ★**若你要留位, 一句话「C_VBUS_GND 留位」即可, 我把它并进那一趟的落表清单**★
+    ★**不拍的代价**: 那一趟收工时 S2 必假红 (拿 185 卡 185 是绿, 拿 186 卡 186 也是绿, 但【任务书写哪个数】不定 ⇒ 两个数互卡 ⇒ 谁都会想「改板凑绿」⇒ 最坏
+    = 把 C_VBUS_GND 装回板上 = 2-4 周 + ¥4-8K 返工)'
+  since: '2026-11-17'
+- key: main_e1_e2_board_side_rulings_20261117
+  to: main
+  item: '★★【ISS-290 的 E-1 / E-2 两条板侧取舍 ⇒ main 已拍死 (★2026-11-17 18:4x·★归 main 不归老板★)】★★ ★**E-1 排针 pitch**:
+    BOM/网表写 1.27mm 排针, 板上 land 实测 0.50mm (Δ0.77) ⇒ 实物落不进; BOM 那两行自己写着「待结构与装配复核」([推算]) ⇒ ★**裁决 = 按 1.27mm
+    定 ⇒ 板 land 改成 1.27mm ⇒ 并进「板只改一次」那一趟同一次做** (★理由: 0.5mm 单排不是常规可手插排针, 探针/杜邦线插不上 ⇒ 「改料号到 0.5mm」等于把调试口做成摆设
+    ⇒ 否决; 且那 6 个焊盘的走线本来就要在那一趟重布 ⇒ 不额外增加板改次数★; 改完须用 `MECH/check_onepass_struct_crosscheck.py` N2/N3/N4
+    复验净距, 不许压 SoM 座★) ★ ★**E-2 corner_radius**: `HW/PCB/demo_mainboard_params.json` 的 `corner_radius_mm:
+    3.0` 是死参数 (板框实测 R=0.00, `gen_pcb_netlist_board.py` 的 `add_outline()` 根本不读) ⇒ ★**裁决 = 口径改板读 · 零板改:
+    把 params 那个值改成与实测一致 (R=0.00) 或删掉 + 页里注明「板框无圆角」; 3.0 圆角【不】并进那一趟** (★理由: 圆角对功能零影响, 而那一趟已装 5+ 项板改 ⇒ 再加只增风险;
+    哪天要圆角单独一次小改★; ★**但死参数必须清掉 — 留着 = 下一个人会以为板框有 3.0 圆角★)★'
+  since: '2026-11-17'
+  decision: ★**E-1 = 按 1.27mm 排针定 + 板 land 并进那一趟重画** ★ + ★**E-2 = 零板改, 清死参数, 圆角不并进那一趟** ★ ⇒ ★**⇒ 板那一趟的板改清单
+    = Q_PG 三根线重画 + D_ESD_USB_D 2→3 脚并挪到 ≤3.0mm + 位号 _1 后缀 + C_VBUS_GND 下板 + R4/R9 落表 + E-1 排针 land 重画
+    ⇒ 板 md5 只变一次** ★
+  decided_at: 2026-11-17 18:45
+  decided_by: main (项目总工 · ★几何/规格取舍归 main★)
 answers:
 - key: reva_stl_regen
   to: mech-lead
@@ -981,6 +1010,62 @@ answers:
     不许人工造★'
   ref: state/gen_production_manifest.sh + state/gen_production_pack.sh (★沙盒 4 条反向用例全对★)
   at: 2026-11-17 13:2x
+- key: iss285_sw_apply_after_iss283_verified
+  to: main
+  value: '★已由 ISS-288 履行完毕 (★本答案 = main 2026-11-17 15:3x~15:5x 本机独立实跑复验, 不抄交卷报告★)★ ⇒ 真盘 SW/tools/timing_check.py
+    md5 = 68c4becffe6bcd708e388dba9d18a505 (★与 ISS-285 交卷单写死的【改后期望 md5】逐字一致★) ⇒ `python3 SW/tools/timing_check.py`
+    rc=0 (★实跑末行逐字: SELFTEST 72/72 通过, rc=0★) ⇒ `python3 state/merge.py` rc=0 ⇒ `python3 state/gate_check.py`
+    rc=0 (★Q1 交付齐备率 18/18★) ⇒ 板 611b869e… / .kicad_pro 3e504d2b… / 网表 37f62ac3… / 脚表 a4270120… / BOM 5d02bece…
+    五个 md5 逐字节未变 ⇒ ★本 need 关闭★ ⇒ ★ISS-288 已落 verified (fix_ref = HANDOFF/2026-11-17_sw-lead_ISS288_timing_check补丁落地.md)★'
+  ref: ISS-288 交卷单 + main 2026-11-17 15:3x~15:5x 本机实跑复验
+- key: iss288_sw_timing_check_patch_landed
+  to: main
+  value: ★补丁已落盘, 且已由 main 验签★ ⇒ ISS-288 status = verified (verify_by = main · verify_date = 2026-11-17)
+    · fix_ref = HANDOFF/2026-11-17_sw-lead_ISS288_timing_check补丁落地.md ⇒ 真盘 timing_check.py md5 = 68c4becffe6bcd708e388dba9d18a505
+    + rc=0 (SELFTEST 72/72) ⇒ ★本 need 关闭★
+  ref: ISS-288 交卷单 + main 15:5x 验签
+- key: iss288_main_verify_sign_issue_log
+  to: main
+  value: '★已验签★ ⇒ ISS-288 已由 main 签 verified (★status fixing→verified · fix_ref 填交卷单路径 · verify_by = main
+    · verify_date = 2026-11-17★) ⇒ ★本 need 关闭★ ⇒ ★附: 同时把 `iss285_sw_apply_after_iss283_verified` 与 `iss288_sw_timing_check_patch_landed`
+    一并代录 (★这两条 need 的 to 也是 main ⇒ 答案只能由 main 写进自己的分片· sw-lead 在自己分片里写只会变成 foreign_answer, 闭合不了★)★'
+  ref: main 2026-11-17 15:5x 验签
+- key: iss290_onpass_must_change_list_to_hw
+  to: main
+  value: '★**main 2026-11-17 16:0x 处置: 已转 hw-lead 的 ISS-292 (★任务书已追加「⑬ 追加」节★) ⇒ E-1~E-6 六条并进 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md,
+    且生成器要【从真源读】不许写死★★ ⇒ ★**E-1 (排针 pitch 1.27 vs 板读 0.50 ⇒ 实物落不进) 与 E-2 (corner_radius 3.0 vs 0.0 且 add_outline()
+    不读) 是【真会改板】的 ⇒ 必须排在「板只改一次」那一趟之前定, 不许拖到投板后**★ ⇒ ★**E-3/E-4 会触落表 ⇒ 须 main 批准后与那一趟一起做 (★E-4 = J_SOM_P1/P3
+    的 BOM 规格串只有网络语义★)**★ ⇒ ★**E-5/E-6 是规格侧, 不改板**★ ⇒ 出处: HANDOFF/2026-11-17_mech-lead_ISS290_结构侧最后一道交叉核对.md
+    §5.6 (★文件名原写 ISS289, main 已改名 + 同步 live 引用★)'
+  ref: HANDOFF/2026-11-17_mech-lead_ISS290_结构侧最后一道交叉核对.md §5.6 · ISS-292 任务书「⑬ 追加」节
+- key: iss294_usbc_edge_opening_size_and_z_window
+  to: main
+  value: '★**main 裁决 (2026-11-17 17:4x, ★几何取舍归 main→老板, ★本次四条都不升级给老板★ —— 理由: 每条都有明确代价与判据, 且都带触发条件, 没有一条是产品取舍★)**:
+    ① ★**缺口 X 取【最小合法值】= 132.995..147.005 (宽 14.010)** ⇒ 代价 = 最坏单边净距 **0.600 = CRIT 刚好过 ⇒ 零余量** ⇒ ★**带触发条件**:
+    结构件开模前用 3D/实物复核, ★**若制造公差吃掉那 0.600 ⇒ 按 §B1-4 外扩一档 (D=2.60 / 3.00 / 3.80) 重走闸, 不许硬压** ★ ⇒ ★**不许为了省结构件而牺牲制造公差**
+    ★ ② ★**深度按【最坏假设】7.300 登记** (★内壁外移 t ⇒ 深度可缩到 t ⇒ 保守侧不动★) ⇒ 不改 ③ ★**Z 向窗口 `OPEN_Y_eff(h)` = 4.60 / 4.60
+    / 5.80 = 【只登记不能验】** ⇒ ★**本页与任何闸都不许据此判绿** ⇒ 随结构件外形一起定 ★ ④ ★**抄进作业包 §3-S6** ⇒ 零改板 ⇒ **不占「板只改一次」那一趟**,
+    但必须在结构件开模前定 ★ ⇒ ★**合计: 零阻塞, 不需要老板额外拍板** ★'
+  ref: HANDOFF/2026-11-17_mech-lead_ISS294_USBC边开口规格补缺.md §4 · §1·§2
+- key: iss294_iss290_page_verdict_divergence
+  to: main
+  value: '★**main 处置 (2026-11-17 17:4x)**: ★**口径分叉已解** ⇒ ISS-294 已把第三条开口 `PORT_OPEN_USBC` 补进 `MECH/BOARD_ONEPASS_MECH_SYNC.md`
+    (含固定孔清空区) ⇒ ★**ISS-290 页 (`MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md`) 里那句「结构侧缺一条边开口规格」已过期** ⇒ ★**main
+    已用【追加式】加「§E-6-订正」节订正 (★老字全部保留作历史留痕★) ⇒ 现状 = 三方一致 (3 个座体: J_SOM_P2 / J_SOM_P4 / J_USB_C)** ⇒ ★**引用该页的判据以订正节为准**
+    ★ ⇒ ★**同时记一条经验: 该页的机器块 JSON 里也留着同一句过期文字 ⇒ ⇒ 【文档的机器块与散文会一起过期】⇒ 订正必须【两处都点】, 不许只改散文** ★'
+  ref: HANDOFF/2026-11-17_mech-lead_ISS294_USBC边开口规格补缺.md §4 · MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md
+    §E-6-订正
+- key: iss295_mech_struct_input_claims_and_freshness_gate
+  to: main
+  value: '★**main 处置 (2026-11-17 20:0x)**: ① ★**CLAIMS 页 §1/§2/§3 已转抄进 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md`
+    §3-S6.1** (★追加式, §3-S6 老字一字未删★) ⇒ 那一趟开工时执行人只读作业包就看得见结构侧认领句 ⇒ ★**若两边打架, 以 MECH 那页为准 + 回报 main 订正**
+    ★ ② ★**新闸 `MECH/check_mech_verdict_freshness.py` 已挂进 `state/gate_check.py`** (★fail-closed 同款语义: 脚本不存在/跑不起来/超时
+    ⇒ 算闸红★) ⇒ MECH 页一改而转抄没跟 ⇒ 闸红 ⇒ ★**防漂闭环** ★ ③ ★**main 独立复验**: `check_mech_verdict_freshness.py` rc=0
+    + `--selftest` rc=0 (7/7) · `check_onepass_mech_sync.py` rc=0 · `check_onepass_struct_crosscheck.py`
+    rc=0 · `check_board_frame_coords.py` rc=0 · `check_demo_struct_truth.py` rc=0 · 受保护 5 件 md5 逐字节不变
+    (板 `611b869e…`) ★ ⇒ 落 verified ★'
+  ref: MECH/BOARD_ONEPASS_MECH_CLAIMS.md · HW/PCB/BOARD_ONEPASS_WORKPACKET.md §3-S6.1 · state/gate_check.py
+    (EXTRA_GATES)
 interface_claims:
 - key: display_frame_rate
   value: 60fps

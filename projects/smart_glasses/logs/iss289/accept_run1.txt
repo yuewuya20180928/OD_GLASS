@@ -1,0 +1,137 @@
+########## python3 HW/check_workpack_state_values.py
+RC=0
+     ✔ C05_FRAME_B160X100         实测 8                                  == 期望
+     ✔ C06_B03_DEFECT_COUNT       实测 18                                 == 期望
+     ✔ C07_B26_MD5_LEDGER         实测 37f62ac3f0b81d92ca7d48fdea717f07   == 期望
+  OK   V5
+     七个必备类别覆盖 (★两份文档各须齐全 · 不许只加一条 DNP 探针★): ✔
+     ✔ workpacket  七类齐全 (29 条登记)
+     ✔ checklist   七类齐全 (29 条登记)
+  OK   V6
+     受保护 5 件 md5 逐字节不变: ✔
+     ✔ 板 md5 未变 (611b869e13518c3c023fb178f91a0075) (★基线写死·不归落表链管★)
+     ✔ .kicad_pro md5 未变 (3e504d2be83152e337949723e909be1b) (★基线写死·不归落表链管★)
+     ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+  OK   V7
+     探针真实性 + 测量源多样性: ✔
+     ✔ copper_and_frame   探针源 1 个
+     ✔ defect_count       探针源 3 个
+     ✔ dnp_token_count    探针源 1 个
+     ✔ dnp_zero_mark      探针源 1 个
+     ✔ footprint_count    探针源 1 个
+     ✔ md5_baseline       探针源 3 个
+     ✔ ref_suffix         探针源 2 个
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★两份文档里的现状值 == 盘面实测, 且七类判据齐 ★★
+
+########## python3 HW/check_onepass_preflight_coverage.py
+RC=0
+==============================================================================
+  ISS-277 · 板侧漏项覆盖度闸 (★P1 清单 / P2 归属步 / P3 判据真命令 / P4 覆盖度 / P5 现状 / P6 受保护 ★)
+==============================================================================
+  OK   P1
+     条目 32 条 · 9 字段齐全且非空: ✔
+  OK   P2
+     步覆盖: S1=1 S2=3 S3=2 S4=4 S5=1 S6=9 S7=2 S8=1 S9=1 S10=5 S11=1 S12=1 S13=1
+  OK   P3
+     每条 criterion 的脚本文件都在盘上: ✔
+  OK   P4
+     覆盖度: 26 个标记全部在清单里: ✔
+  OK   P5
+     5 个现状探针: 清单里的现状值 == 盘面实测: ✔
+  OK   P6
+     受保护 5 件 md5 逐字节不变: ✔
+     ✔ 板 md5 未变 (611b869e13518c3c023fb178f91a0075) (★基线写死·不归落表链管★)
+     ✔ .kicad_pro md5 未变 (3e504d2be83152e337949723e909be1b) (★基线写死·不归落表链管★)
+     ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★板侧项全集与作业包对齐, 现状值与盘面一致 ★★
+
+########## python3 HW/check_board_frame_caliber.py
+RC=0
+    重叠阈值 = 1.5mm; 判据 = 目标位到既有封装原点的距离
+    ✓ 20 个目标位与既有封装零重叠 ⇒ 重叠数 = 0
+    ⇒ C4 PASS
+
+[C5] 异帧坐标误用检测 (60×30 帧矩形套到现役板上 ⇒ 报出压住哪些 SoM 焊盘)
+    D_LED_G_window (帧 F30A) → 压住 SoM 焊盘: J_SOM_P3×10 (合计 10)
+    ✓ D_LED_G_window 压焊盘数与基线一致 ⇒ 异帧危害已机器化留存
+    service_opening (帧 F30A) → 压住 SoM 焊盘: J_SOM_P1×56 (合计 56)
+    ✓ service_opening 压焊盘数与基线一致 ⇒ 异帧危害已机器化留存
+    ⇒ C5 PASS
+
+[C6] 受保护 5 件 md5 逐字节不变 (板 / .kicad_pro 写死基线 · 网表/脚表/BOM 走落表台账)
+    ✓ HW/BOM_v1.csv ⇒ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+    ✓ HW/PCB/demo_mainboard.kicad_pcb md5 未变 (611b869e13518c3c023fb178f91a0075)
+    ✓ HW/PCB/demo_mainboard.kicad_pro md5 未变 (3e504d2be83152e337949723e909be1b)
+    ✓ HW/netlist_v1.csv ⇒ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+    ✓ HW/netlist_v1_pins.csv ⇒ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+    [信息] HW/SCHEMATIC_V1_SPEC.json md5 = bf01f1e7426772acc1c881b62b3da584 (零落表边界自证, 不参与判红)
+    ⇒ C6 PASS
+
+------------------------------------------------------------------------------
+板框 (含线宽) = 160.10 × 100.10 mm · 铜层 8 · 封装 186 · 现役帧 B160x100
+S6: 已在目标位 19 / 不同 1 ['R_SEL_D3_P'] / 缺失 0
+总判: 全部通过 ✔
+------------------------------------------------------------------------------
+
+########## python3 HW/check_netlist_contradiction_r3.py
+RC=1
+        · A5_板级封装名空: {'count': 186, 'total': 186, 'refs': ['BT_432243', 'CHG_GND_STAR', 'CONN_CAM', 'CONN_LIGHT', 'C_AC_CSI_D0_CK_N', 'C_AC_CSI_D0_CK_P', 'C_AC_CSI_D0_D0_N', 'C_AC_CSI_D0_D0_P', '…']}
+        · A5_板级几何原语少于2条(真判据·全部fp_*): {'count': 0, 'refs': []}
+        · A5_板级fp_line少于2条(旧口径·只数fp_line·留痕): {'count': 1, 'refs': ['J_USB_C'], 'note': '★只数 (fp_line ⇒ 把用 (fp_rect 画丝印的正常封装 (J_USB_C: 0 fp_line + 2 fp_rect) 误判成『没有几何』⇒ 整板唯一一例 = 误报, 不作判据★'}
+  [F3] MAIN_PCB 上 DNP 位号在板文件里零标记 (贴片坐标会当必装)
+        规则 = R3-A4  ·  网表行 = [8063, 16052, 21195, 203, 17221, 6731, 16373, 19052, 11409, 16159, 12816, 754]
+        · MAIN_PCB且DNP的位号数: 51
+        · 其中在板文件里真实存在的: 40
+        · 零标记的: 40
+        · refs: 
+            - BT_432243
+            - C_BULK_LIGHT_1V8
+            - C_BULK_SENSOR_AVDD
+            - C_BULK_SENSOR_CORE
+            - C_BULK_SENSOR_VDD_IO
+            - C_BULK_V_CORE
+
+── 附加观察 (★不计入 findings 数, 不影响 rc★) ──────────────────────────────────
+  R3-A6 命中 1 条 (★归 V-7 / ISS-214 §4.C 补差C · 充电板整机阶段 P0★):
+    - C_VBUS_OUT 是 VBUS_5V_F1 ↔ VBUS_5V_CHG 之间**唯一**的连接件 (电容) ⇒ VBUS_5V_CHG 上的 IC ['U_CHG'] 的供电脚没有直流通路
+  ★⇒ 本门禁 rc=0 **不等于**充电板可投板 ★
+
+──────────────────────────────────────────────────────────────────────────────
+  FINDINGS: 2  (主线要求 = 恰 2 条 = F2 + F3)
+  结论: ✅ 恰 2 条 = 主线的 F2 + F3 (★F1 已于 ISS-249 落表 ⇒ 消失★)  ·  rc = 1
+──────────────────────────────────────────────────────────────────────────────
+
+########## python3 HW/check_pin_function_labels.py
+RC=1
+       - 脚表里缺少 pin3 ⇒ 官方 pinout 要求 EN 必须存在
+   · U_LDO_S28.pin4     [WRONG_FUNCTION] 官方应为 IN           脚表现值 'GND (pin2)'                
+       - 声明功能名 'GND' ≠ 官方 'IN'
+       - value 里的引脚号 pin2 ≠ 本脚 pin4 (★串号★)
+       - 同器件内功能名重复: 'GND' 与 ['pin2', 'pin5'] 共用 ⇒ 本脚官方应为 'IN'
+   · U_LDO_S28.pin5     [WRONG_FUNCTION] 官方应为 THERMAL_PAD  脚表现值 'GND (pin2)'                
+       - 声明功能名 'GND' ≠ 官方 'THERMAL_PAD'
+       - value 里的引脚号 pin2 ≠ 本脚 pin5 (★串号★)
+       - 同器件内功能名重复: 'GND' 与 ['pin2', 'pin4'] 共用 ⇒ 本脚官方应为 'THERMAL_PAD'
+
+  ── 【提示 (★不计入 rc★·共 7 条★)】 ──
+   · U_LDO_S28.pin1     [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-28'
+   · U_LDO_S18B.pin1    [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-18'
+   · U_LDO_S12.pin1     [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-12'
+   · U_LDO_L33.pin1     [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-33'
+   · U_LDO_L18.pin1     [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-18'
+   · U_LDO_IO33.pin1    [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-33'
+   · U_LDO_IO18.pin1    [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-18'
+
+  ── 【④/④b 受保护文件 md5 + 基线可追溯性 (★台账对账★)】 ──
+   · md5:HW/BOM_v1.csv                        [MD5_CHANGED] 期望 94642d07a69e8d60dd2af57f69b93607 实得 5d02bece9477ffce5fbe0193c7d5cce4
+   · md5:HW/netlist_v1.csv                    [MD5_CHANGED] 期望 e06c1dd633566aa44732762c2ff99d1c 实得 37f62ac3f0b81d92ca7d48fdea717f07
+   · md5:HW/netlist_v1_pins.csv               [MD5_CHANGED] 期望 287e7861a0d1007748d92d9fbecdd490 实得 a4270120454aedf7a23c92cd8985c8a6
+
+  判定: ❌ 不过 (18 条缺陷) ⇒ ★当前是已知缺陷基线, 落表批次里修★
+

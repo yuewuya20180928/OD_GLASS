@@ -1,9 +1,9 @@
 <!-- PROGRESS-BLOCK-START -->
 
-★**进展播报 2026-11-17 15:06:56** (机器读数 · 脚本自动生成)
+★**进展播报 2026-11-17 19:56:59** (机器读数 · 脚本自动生成)
 
 ```
-=== 进展播报 11-17 15:05:36 ===
+=== 进展播报 11-17 19:55:53 ===
 [板] 11-06 07:07:17 · 4.9MB · 18092 段走线 · 433 过孔
 [布线] 上次实测 unconnected=45 · DRC违规=0
 [留证] 自验时刻 2026-11-09T04:11:35 · verified_by main (verify_and_release.sh)
@@ -3708,3 +3708,55 @@ ExecStart=... /home/radxa/v31_v4l2_od_rtsp /dev/video0 640 480 2 86400 /etc/npu/
 - ★★★**★④ 「板只改一次」的 preflight 清单 = 【会让那一趟白跑的所有项】, 不只是【已知的板侧项】★★★ ★**
   ⇒ ★**本轮实测**: `HW/PCB/BOARD_ONEPASS_PREFLIGHT.md` 32 条里 ★**【没有】**「排针 pitch BOM/网表 1.27 mm vs 板上 land 0.50 mm ⇒ 实物排针落不进」与「`corner_radius` 3.0 vs Edge.Cuts 实读 0.0」两条 ⇒ ★**漏了 = 那一趟产出一块【装不上】的板 ⇒ 板 md5 变第二次** ★
   ⇒ ★★**★⇒ 铁律: 凡【会让那一趟产出不可装配 / 不可投产】的项, 必须【进清单】才算收口 ⇒ 清单的验收标准是「跑一遍清单能列全所有会让那趟白跑的项」** ★★
+
+
+### ★★★【2026-11-17 15:3x~16:0x · 队列自动派活 job fb67af40】★ 三条新铁律 (★本轮实测踩到★) ★★★
+- ★★★**★① 两个 cron job 共用同一队列 ⇒ 派活前必须查【另一路刚有没有派】, 不能只信 `advance.py --json` 的 `internal[]`★★ ★**
+  ⇒ ★**本轮实测**: 我 15:3x 起跑 (fb67af40 队列自动派活) ⇒ ★**并发 job `775d9893` (继续执行后继计划) 在 15:43 起草了 ISS-291 的 brief、15:45 把 ISS-291 开成 fixing 并 spawn 了 sw-lead 会话 (`b0a6d0ff`)、15:5x 又开了 ISS-292 给 hw-lead** ⇒ ★**我的 apply 脚本撞上「ISS-288 已 verified / ISS-291 已存在」⇒ 断言拦下 ⇒ 零重复派活 (★这才是对的: 同一 agent 两条写会话 = 分片互相覆盖, R18 实测 12%~38% 合并丢失★)** ★
+  ⇒ ★★★**★⇒ 铁律: 派活前四查 —— ① `sessions_list` 查该 agent 有无 running ② `issue_log` 查该 agent 名下有无 `fixing` ③ ★**查最近 5~10 分钟内 `issue_log.yaml` / `dispatch_log.yaml` 的变更 (并发 job 的动作在这里露馅)** ④ `advance.py --json` 的 internal[] 只当参考, 不当唯一依据★ ★★★**
+  ⇒ ★**⇒ 撞上并发已派 ⇒ 本 job 就【不派】, 改做【队列卫生】(答 need / 清僵尸), 不抢活** ★
+- ★★★**★② `state/merge.py` 的 need×answer 配对口径: ★need 只被【它问的那个 agent】的答案闭合★ ⇒ 谁都代答不了★ ★**
+  ⇒ ★**本轮实测**: 三条 to=main 的 need (`iss285_sw_apply_after_iss283_verified` / `iss288_sw_timing_check_patch_landed` / `iss288_main_verify_sign_issue_log`) 在 ISS-288 交卷后仍挂 pending ⇒ ★**查 merge.py 源码才发现: `ans = [a for a in answers_by_key.get(k, []) if a["_by"] == ask_to]` ⇒ `to=main` 的 need 只能由 main 写进 `state/fragments/pm.yaml`; sw-lead 在自己分片写 ⇒ 只会变成 foreign_answer, 闭合不了** ★ ⇒ ★**反向同理: `to=sw-lead` 的 need (如 `iss223_sw_vdet_fs_domain_fix`) 只能由 sw-lead 写进 `sw.yaml` ⇒ main 越界写也闭不了 ⇒ ★**只能靠【派活时点名"这条 need 的答案写在谁的分片里"】来闭合 (本轮用 `sessions_send` 给在飞的 sw-lead 会话追加了一句, 属正解路径)**** ★
+  ⇒ ★★★**★⇒ 铁律: 派活时凡提到某条 need, 必须同时写明【答案写进哪个 agent 的哪个分片 + 用 `state/frag_write.py` 原子写】⇒ 否则那条 need 会永远挂在「未闭合需求」里, 表面收口内部断线★ ★★★**
+- ★★★**★③ brief 里凡写「某文件在本仓不存在 / 某目录没有」⇒ 必须全仓 `find` 确认, 只查一个目录就会写出假事实★ ★**
+  ⇒ ★**本轮实测**: 我起草 ISS-291 brief 时断言「`FET3572C_PIN_TABLE.csv` 在本仓不存在」⇒ ★**理由是我只 `ls` 了 `HW/RK3572_PIN_TABLE/` ⇒ 实际它在 `HW/PCB/FET3572C_PIN_TABLE.csv` (L39 = P1,38,1AE17,SARADC_VIN5,——,1.8V) ⇒ 而且并发 job 的 live brief 还据此把域电压钉到 [官网] 级证据 (SARADC 模拟电源 1.8V)** ⇒ ★**⇒ 我那份 brief 已被标 SUPERSEDED 撤走 (★`state/ISS-291_sw_adc_fs_domain_caliber.SUPERSEDED.md`★), 执行中的是并发 job 那份** ★
+  ⇒ ★★★**★⇒ 铁律: 「不存在」这类断言 = 高风险事实 ⇒ 必须 `find . -name '<file>'` 全仓确认再写; 宁可写「我没找到」也不写「不存在」★ ★★★**
+
+### 【★★★★铁律 (★2026-11-17 17:4x~18:5x 实测·★「合法改板」通道 + 行级替换的教训★)★★★★】
+- ★★★**★① 「板只改一次」那一趟改板当天, 全仓有 9 道闸硬钉着板 md5 ⇒ 会一起红 ⇒ 而那些红的真实含义是「板被换了」不是「板改坏了」⇒ 现场极可能误读 ⇒ 去改板凑绿 ⇒ 板 md5 变第二次 ⇒ 整趟白跑 ★★★**
+  ⇒ ★**实测 (★main 18:3x 真扫全仓, 不是猜★)**: `HW/check_fsin_rootcause` · `HW/check_g1a7_selection_landed` · `HW/check_onepass_commit_order` · `HW/check_onepass_preflight_coverage` · `HW/check_pin_function_labels` · `HW/check_workpack_state_values` (6) + `MECH/check_board_frame_coords` · `MECH/check_demo_struct_truth` (2) + `SW/tools/check_onepass_sw_sync` (1) ⇒ ★**全 9 道都缺「合法改板」通道** ★
+  ⇒ ★**★口径已被证明可行 (★不是猜的★)**: `SW/tools/check_demo_panel_spec.py` 在 ISS-284 转成台账口径后 ★**不再硬钉板 md5 ⇒ 全仓清单里根本找不到它** ★ ⇒ ★**⇒ 「不硬钉」不是靠删断言, 是靠判决源换成【落表台账 + 合法改板记录】** ★
+  ⇒ ★**通道形状 (ISS-284 已跑通)**: `reboard` = ★**一个原子映射 {by, file, prev_md5, md5}** ★ ⇒ ★**四项缺一 ⇒ 整条记录无效 ⇒ 红** ★ ⇒ ★**判据方向不许变 (盘上 ≠ 链头 ⇒ 红; 合法改板只让链头前移)** ★ ⇒ ★**fail-closed 三条 (链头不唯一 / 链断 / 链头无单号 ⇒ 红) 一条不许动** ★
+  ⇒ ★**★落点**: ① 全仓清单 (机器生成) = `state/board_md5_pinned_gates.md` + `.json` (★生成脚本 `state/_gen_board_md5_pinned_gates.py`★) ② 三侧各一条: ★**ISS-296** (MECH 2 道 · 另一路先开了同题, main 补了清单 + 建议把「收工后同一次重锚」的对象从 MECH 2 道扩成全仓 9 道★) · ★**ISS-297** (HW 6 道) · ★**ISS-298** (SW 1 道) ★ ⇒ ★**★收工清单必须一次覆盖 9 道, 否则收工当天一半的闸照样红 ⇒ 现场照样会去改板凑绿★★** ★
+- ★★★**★② 行级替换 YAML 折行标量: 【只换首行】= 制造悬挂续行 = YAML 直接炸 ★★★**
+  ⇒ ★**本轮又踩了一次 (★18:5x★)**: 给 ISS-296 的 `task_brief` 追加内容时, 我只把 `  task_brief: "..."` 这一行换掉了, ★**旧折行的续行还留在下面** ⇒ yaml 报 `expected <block end>, but found '<block mapping start>'` ⇒ ★**靠「删掉悬挂续行 + yaml.safe_load 复核 + issue_check rc=0」救回** ★
+  ⇒ ★★★**★铁律: ★★改 issue_log 的多行标量, 一律走已经跑通的助手 (load → 改值 → 收集【整个标量跨度: 键行 + 全部续行, 含空行】→ 单行 json 写回 → 全量 safe_load 复核 + 「其余 issue 逐字相同」比对)★ ★★ ⇒ 【不许手写只换首行的行级替换】★★ ★ ★★**
+  ⇒ ★**另一个坑**: 收集续行时 ★**空行属于标量本身** (plain scalar 的折行里就有空行) ⇒ ★**拿空行当终止符会把 YAML 改坏** ★ ⇒ ★**而 `indent<=2 且含 ':' 的行` 才是真终止符** ★
+
+
+### 【★★★★铁律 (★2026-11-17 18:3x 实测·★派活侧的三个坑★)★★★★】
+- ★★★**★① `sessions_spawn` 返回报错 【≠】 那一趟没起来 ⇒ 必须 `subagents list` 核对, 不许拿返回值当判据 ★★★**
+  ⇒ ★**本轮真踩到 (★第一次★)**: 给 hw-lead 派 ISS-297 时 `sessions_spawn` 返回 ★**`file lock stale for /home/yuewuya/.openclaw/agents/main/sessions/<cron>.jsonl`** ★ ⇒ 我判成「没起来」⇒ **重派了第二趟** ⇒ ★**`subagents list` 一看 = 两个 hw-lead 写会话同时在飞 (★run `73d04a36` + `f969edda`·同一 taskName `advance_iss297`★)** ⇒ ⇒ ★**同一 agent 两个写会话 = 本项目 R18 已知风险 (分片互相覆盖·合并丢 12%~38%)★** ⇒ ⇒ ★**已 `subagents kill` 掉较新的那趟 (20 s·还没写盘), 保留跑得较久的那趟 ⇒ 冲突解除** ★
+  ⇒ ★★★**★⇒ 铁律: 派活五查 (★在既有「四查」上加这一条★): ① `sessions_list` 查该 agent 有无 running ② `issue_log` 查该 agent 名下有无 `fixing` ③ 查最近 5~10 分钟 `issue_log.yaml`/`dispatch_log.yaml` 变更 (并发 job 的动作在这里露馅) ④ `advance.py --json` 的 internal[] 只当参考 ⑤ ★★**spawn 之后 (哪怕它报错) 也要 `subagents list` 核对一遍: 看到同一 taskName 两条 ⇒ 立刻 kill 掉较新的那条★ ★★** ★★★**
+  ⇒ ★**另**: ★**spawn 报错时, 那个报错是【父会话 transcript 的锁】, 不是【子会话起没起】⇒ 两者无关** ★
+- ★★★**★② 任务书里写的分片路径必须核对真实文件名 (★`state/fragments/<agent>.yaml` ≠ `<agent>-lead.yaml`★)★**
+  ⇒ ★**本轮实测**: 兄弟 job fb67af40 18:2x 开的 ISS-297/298 任务书里写 ★`state/fragments/hw-lead.yaml` / `state/fragments/sw-lead.yaml` ★ ⇒ ★**盘上真实名是 `state/fragments/hw.yaml` / `state/fragments/sw.yaml` (★`state/check_brief_commands.py` 已把它报成「引用了不存在的路径」★)** ⇒ ★**⇒ 我下发时在任务书【顶部】加了一行更正 (★其余一字不改·遵守「不许自行改写任务书」★)** ★ ⇒ ★**⇒ 铁律: 下发前跑 `python3 state/check_brief_commands.py` (★它会扫所有待办单的 task_brief 找不存在的路径/命令·rc≠0 就是有坑★) ⇒ 发现笔误就在任务书顶部加一行更正, 不重写任务书★** ★
+- ★★★**★③ 兄弟 job 18:2x 开的单 (ISS-297/298) 属【PCB 线·门禁机制类】⇒ 符合老板 2026-11-17 00:43「PCB 类先派纯分析/作业包类」纪律 ⇒ 派它不需要再开新单★**
+  ⇒ ★**口径**: 零写板 · 零落表 · 不改网表真源 · 不改既有判据阈值 (★只把判决源从写死 md5 换成【落表台账链头 + 合法改板四项原子记录】· fail-closed 三条一条不许动★) ⇒ ★**不属「真动板那一趟」⇒ 板 md5 不变 ⇒ 「板只改一次」铁律不受影响** ★
+
+### 【★★★★铁律 (★2026-11-17 19:3x 实测·★cron 775d9893 「继续执行后继计划」的轮次纪律★)★★★★】
+- ★★★**★① `advance.py --json` 返回 **rc=1** = 【本轮无可自动派的活】, 不是错误 ⇒ 不许去查 stderr 找 bug ★★★**
+  ⇒ ★**本轮实测**: 第一次跑 `advance.py --json` 拿到 rc=1 ⇒ 白花一轮去查「为什么退出码 1」⇒ ★**翻源码 L234/L292 = `return 0 if (internal or approvals) else 1` ⇒ 语义就是「A 段和 B 段都空 ⇒ 没有可自动推进的东西」** ★ ⇒ ★**⇒ 以后看到 rc=1 直接读 JSON 四段即可 (internal / approvals / decisions / waiting), 不要排查★**
+- ★★★**★② 兄弟 job `fb67af40` (★队列自动派活·cron 7,37★) = 【僵尸 `fixing` 的唯一重派方】⇒ 本 job (775d9893) 遇「`fixing` 且会话已死」时【不抢派】 ★★★**
+  ⇒ ★**本轮实测**: hw-lead 的 ISS-297 会话 `66d81b9f` 19:28:57 起 · 19:37:08 status=timeout (末条 "Aborted") ⇒ ★**僵尸 `fixing`** ⇒ ★**本 job 按「已标 fixing 的不重复派」纪律跳过, 交给兄弟 job 20:07 那轮接管 (它上轮刚做过同样的 zombie 重派) ★**
+  ⇒ ★★★**★理由 (★别改★)**: ★**兄弟 job 每 30 分钟一轮 (7,37)· 抢派 ⇒ 两趟同 agent 写会话并存 ⇒ 本项目 R18 已知风险 (分片互相覆盖 · 合并丢 12%~38%)★** ⇒ ★**而 30 分钟的等待成本远小于分片被覆盖的代价★**
+  ⇒ ★**判「会话真死」的三个读数 (★别只看 `status` 字段★)**: ① `sessions_list` 的 `status` ∈ {timeout / failed} 且 `abortedLastRun=true` ② 该会话 transcript 的 **mtime 不再增长** (★隔 60 s 再看一次★) ③ 末条 assistant 消息 = "Aborted" / rate_limit_error
+  ⇒ ★**配套 (★兄弟 job 那条铁律的镜像★)**: ★**本 job 若自己抢派了僵尸单 ⇒ 必须 `subagents list` 核对有没有多出一条同 taskName 的会话, 有 ⇒ kill 掉较新的那条 + 把 `issue_log` 那条回滚 `open` + 删 `dispatch_log` 那条 (★否则又是僵尸 fixing 占名额·A 段恒空★)★**
+- ★★★**★③ `internal=[]` 还有第三种病因 (★本轮新增·前两种是「真在飞」和「假 fixing」★)**: ★**该 agent 名下 open 单存在, 但被同一 agent 的另一条 `fixing` 占着名额 ⇒ `advance.py` 的 in_flight 规则跳过 ⇒ 这条 open 单本轮【不派】但【状态不动】 ★★★**
+  ⇒ ★**本轮实测**: ISS-296 (open · owner=mech-lead) ⇒ ★**mech-lead 名额被 ISS-295 (fixing·会话在飞) 占着 ⇒ ISS-296 本轮不派, 且【不能先落 fixing】(★先落 fixing 再不派 = 僵尸 fixing 永久占名额·A 段从此恒空·MEMORY 里 2026-11-11 18:4x 那条就是这个病★)★**
+  ⇒ ★**⇒ 正确做法: 保持 `open` 不动 ⇒ 让 `advance.py` 下一轮自动把它认领 (★名额一空就自动进 `internal`·不用人工派★)★**
+  ⇒ ★★★**★④ 「新闸」不挂进门禁链 = 假闸 (★ISS-136 同款根因·第 N 次复现★)★★★★**
+  ⇒ ★**本轮 (★2026-11-17 20:0x★)**: ISS-295 的 `MECH/check_mech_verdict_freshness.py` + ISS-298 的 `SW/tools/check_onepass_sw_sync.py` 交卷后**都没人跑** ⇒ ⇒ ★**main 挂进 `state/gate_check.py`** (★用 `EXTRA_GATES` + `run_external_gate()`, fail-closed 同款语义: 脚本不存在 / 跑不起来 / 超时 ⇒ 一律算闸红, 绝不「没跑就当过」★) ⇒ ★**红 ⇒ rc=1 + 进缺口清单** ★
+  ⇒ ★**⇒ 以后任何新闸交卷, 第一件事不是「验收通过」, 是【挂进门禁链 + 让它真的跑一次】★** ★
+  ⇒ ★★★**★⑤ 「跨域规格转抄进作业包」要配一道【防漂闸】, 否则转抄本身会过期 ★★★**
+  ⇒ ★**本轮做法 (★可复用★)**: MECH 的 CLAIMS 页 (`MECH/BOARD_ONEPASS_MECH_CLAIMS.md`) §1/§2/§3 (15,064 字符) ⇒ ★**转抄进 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md` §3-S6.1** (★追加式, §3-S6 老字一字未删★) ⇒ ★**抄的理由 = 「板只改一次」那一趟开工时执行人只读作业包就看得见结构侧认领句, 不必跨域翻页** ★ ⇒ ★**打架时以 MECH 那页为准 + 回报 main 订正** ★ ⇒ ★**防漂 = `check_mech_verdict_freshness.py`: MECH 页一改而转抄没跟 ⇒ 闸红** ★

@@ -1,0 +1,26 @@
+33c33
+< | ★**`B03_ULDO_S28_PAD3`** ★ | ★ISS-239 ★ | U_LDO_S28 缺 pin3(EN) ⇒ 若走 A 案板须补 pad3 | ★**S2** ★ | 老板/PM 拍 A/B 案 (ISS-239 §4.2) | [实测] 脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账 (★落表后基线过期★); U_LDO_S28 无 pin3 行 ⇒ 板侧无 pad3 ⇒ 焊盘级恰 1 颗不等价 | `python3 HW/check_pin_function_labels.py --expect-known ⇒ rc=0 (★现状: 18 条缺陷 = 15 脚表功能 (14 串号 + 1 缺脚) + 3 md5 台账对账; ★脚表功能缺陷本批未变, 多出的 3 条是落表后基线过期 (KNOWN_DEFECTS 快照同步归 ISS-283)★)` |
+---
+> | ★**`B03_ULDO_S28_PAD3`** ★ | ★ISS-239 ★ | U_LDO_S28 缺 pin3(EN) ⇒ 若走 A 案板须补 pad3 | ★**S2** ★ | 老板/PM 拍 A/B 案 (ISS-239 §4.2) | [实测] 脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账 (★落表后基线过期★)); U_LDO_S28 无 pin3 行 ⇒ 板侧无 pad3 ⇒ 焊盘级恰 1 颗不等价 | `python3 HW/check_pin_function_labels.py --expect-known ⇒ rc=0 (★现状: 18 条缺陷 = 15 脚表功能 (14 串号 + 1 缺脚) + 3 md5 台账对账; ★脚表功能缺陷本批未变, 多出的 3 条是落表后基线过期 (KNOWN_DEFECTS 快照同步归 ISS-283)★)` |
+70,77c70,77
+< | ★**ISS-241** (sw-lead 11-16 22:2x) ★ | ★F-1 `D_ESD_CAM` 器件脚接反 · F-2 `Q_AND` pad 序 D/S/G vs 库 G/S/D · `D_ESD_TC` 3 通道件 ⇒ 充电板 footprint 得给 4 焊盘 · `C_REGN` 判据错 (1µF→4.7µF) · `Q_PG` 漏电档 vs 栅压耐压档 ★ | ★`B13_ESD_CAM_PAD` / `B10_Q_AND_LAND` / `B12_Q_ENVC_LAND` / `B23_ESD_TC_4PAD` / `B21_C_REGN_4U7` / `B24_Q_PG_PART` ★ | ★**作业包缺 → 本页补入** ★ |
+< | ★**ISS-244** (sw-lead 11-17 00:0x) ★ | ★三条实物级 P0: `Q_PG` 角色错 (开不了机) · `Q_AND` 栅漏对调 · `D_ESD_CAM` 接反 · 另: `R_SUPV_DIV1/2` 0Ω×必装 + `U_SUPV` DNP ⇒ 装 0Ω 短地 · 8 行落表残项 ★ | ★`B11_Q_PG_LAND` / `B10_Q_AND_LAND` / `B13_ESD_CAM_PAD` / `B04_R_SUPV_DIV_DNP` / `B20_LAND_8ROWS` ★ | ★**作业包缺 → 本页补入** ★ |
+< | ★**ISS-247** (hw-lead 11-17 00:2x) ★ | ★F2 `J_CHG` 位号消歧 · F3 板侧 43 颗 DNP 零标记 ★ | ★`B18_J_CHG_DISAMB` / `B17_DNP_43` ★ | ★F3 ≈ §3-S7 (★**只核对** ★) · ★F2 **作业包缺 → 本页补入** ★ |
+< | ★**ISS-274** (hw-lead 11-17 06:5x) ★ | ★S6 真实位移只有 `R_SEL_D3_P` 一处 (20 distinct 不是 21) · 坐标帧声明 ★ | ★`B14_S6_20_COORDS` / §1 坐标帧声明 ★ | ★**已并入 (追加式) → 本页只核对** ★ |
+< | ★**ISS-276** (mech-lead 11-17 07:0x) ★ | ★检修口/调试口开口**必须拆成两条** (合并不可行) · 座体真实高度 **[0数据]** · `D_LED_G` 光孔 **[0数据]** ★ | ★`B15_SVC_PORT_SPLIT` / `B16_LED_G_OPTO` ★ | ★**作业包缺 → 本页补入** ★ |
+< | ★**ISS-239** (hw-lead 11-16 2x) ★ | ★`U_LDO_S28.pin3` A/B 两案 ⇒ **若走 A 案, 板必须补 pad3** · 7 颗 TPS7A20 板封装 Value = 脚功能串 ★ | ★`B03_ULDO_S28_PAD3` / `B06_TPS7A20_VALUE` ★ | ★**作业包缺 → 本页补入** ★ |
+< | ★**ISS-269 / ISS-266 / ISS-271** (本轮窗口内) ★ | ★X-3/X-4/B-2 三坑 (生成器侧已修) · S1~S13 作业包本体 · LED 亮度档 G-5 未拍 ★ | ★`B05_U_EN_SW_VALUE` / `B17_DNP_43` / `B01`~`B31` 全表 / `B30_LED_BRIGHTNESS` ★ | ★**作业包已有 (只核对) + 生成器侧已修** ★ |
+< | ★**ISS-283** (hw-lead 2026-11-17 12:16~12:30 真落表后) ★ | ★**V-2 网改名 (A3) + W-4 写法A (A4) + G-5 20mA 档 (A5) 三次落表 ⇒ 板那一趟必须同趟吃掉 3 条板侧同步项 (★见下面 §3-追加 三条★)** ★ | ★`B32_V2_NET_RENAME` (§③-1) · `B11_Q_PG_LAND` (§③-2) · `B07_ESD_USB_D_3PIN` / `B08_ESD_USB_D_NEAR` / `B09_ESD_USB_D_MINUS` (§③-3) · `B30_LED_BRIGHTNESS` (G-5 已落) ★ | ★**本页补入 (追加式) · 板那一趟清掉** ★ |
+---
+> | ★**ISS-241** (sw-lead 11-16 22:2x) ★ | ★F-1 `D_ESD_CAM` 器件脚接反 · F-2 `Q_AND` pad 序 D/S/G vs 库 G/S/D · `D_ESD_TC` 3 通道件 ⇒ 充电板 footprint 得给 4 焊盘 · `C_REGN` 判据错 (1µF→4.7µF) · `Q_PG` 漏电档 vs 栅压耐压档 ★ | ★`B13_ESD_CAM_PAD` / `B10_Q_AND_LAND` / `B12_Q_ENVC_LAND` / `B23_ESD_TC_4PAD` / `B21_C_REGN_4U7` / `B24_Q_PG_PART` ★ | ★**作业包缺 → 本页补入** ★
+> | ★**ISS-244** (sw-lead 11-17 00:0x) ★ | ★三条实物级 P0: `Q_PG` 角色错 (开不了机) · `Q_AND` 栅漏对调 · `D_ESD_CAM` 接反 · 另: `R_SUPV_DIV1/2` 0Ω×必装 + `U_SUPV` DNP ⇒ 装 0Ω 短地 · 8 行落表残项 ★ | ★`B11_Q_PG_LAND` / `B10_Q_AND_LAND` / `B13_ESD_CAM_PAD` / `B04_R_SUPV_DIV_DNP` / `B20_LAND_8ROWS` ★ | ★**作业包缺 → 本页补入** ★
+> | ★**ISS-247** (hw-lead 11-17 00:2x) ★ | ★F2 `J_CHG` 位号消歧 · F3 板侧 43 颗 DNP 零标记 ★ | ★`B18_J_CHG_DISAMB` / `B17_DNP_43` ★ | ★F3 ≈ §3-S7 (★**只核对** ★) · ★F2 **作业包缺 → 本页补入** ★
+> | ★**ISS-274** (hw-lead 11-17 06:5x) ★ | ★S6 真实位移只有 `R_SEL_D3_P` 一处 (20 distinct 不是 21) · 坐标帧声明 ★ | ★`B14_S6_20_COORDS` / §1 坐标帧声明 ★ | ★**已并入 (追加式) → 本页只核对** ★
+> | ★**ISS-276** (mech-lead 11-17 07:0x) ★ | ★检修口/调试口开口**必须拆成两条** (合并不可行) · 座体真实高度 **[0数据]** · `D_LED_G` 光孔 **[0数据]** ★ | ★`B15_SVC_PORT_SPLIT` / `B16_LED_G_OPTO` ★ | ★**作业包缺 → 本页补入** ★
+> | ★**ISS-239** (hw-lead 11-16 2x) ★ | ★`U_LDO_S28.pin3` A/B 两案 ⇒ **若走 A 案, 板必须补 pad3** · 7 颗 TPS7A20 板封装 Value = 脚功能串 ★ | ★`B03_ULDO_S28_PAD3` / `B06_TPS7A20_VALUE` ★ | ★**作业包缺 → 本页补入** ★
+> | ★**ISS-269 / ISS-266 / ISS-271** (本轮窗口内) ★ | ★X-3/X-4/B-2 三坑 (生成器侧已修) · S1~S13 作业包本体 · LED 亮度档 G-5 未拍 ★ | ★`B05_U_EN_SW_VALUE` / `B17_DNP_43` / `B01`~`B31` 全表 / `B30_LED_BRIGHTNESS` ★ | ★**作业包已有 (只核对) + 生成器侧已修** ★
+> | ★**ISS-283** (hw-lead 2026-11-17 12:16~12:30 真落表后) ★ | ★**V-2 网改名 (A3) + W-4 写法A (A4) + G-5 20mA 档 (A5) 三次落表 ⇒ 板那一趟必须同趟吃掉 3 条板侧同步项 (★见下面 §3-追加 三条★)** ★ | ★`B32_V2_NET_RENAME` (§③-1) · `B11_Q_PG_LAND` (§③-2) · `B07_ESD_USB_D_3PIN` / `B08_ESD_USB_D_NEAR` / `B09_ESD_USB_D_MINUS` (§③-3) · `B30_LED_BRIGHTNESS` (G-5 已落) ★ | ★**本页补入 (追加式) · 板那一趟清掉** ★
+216c216
+<       "current_state": "[实测] 脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账 (★落表后基线过期★); U_LDO_S28 无 pin3 行 ⇒ 板侧无 pad3 ⇒ 焊盘级恰 1 颗不等价",
+---
+>       "current_state": "[实测] 脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账 (★落表后基线过期★)); U_LDO_S28 无 pin3 行 ⇒ 板侧无 pad3 ⇒ 焊盘级恰 1 颗不等价",

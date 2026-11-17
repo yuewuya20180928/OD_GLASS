@@ -104,3 +104,71 @@ END
 | ★**只许新建自己这一份** ★ | 本文件是 ISS-280 新建; ★**不是任何既有台账真源的替代** ★ |
 | ★**不代拍** ★ | 不代拍 P7 / W-1 / W-2 / W-4 / A1 / 座体高度 h / LED 亮度档 |
 | ★**不自签 verified** ★ | `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 一个字节不改 |
+
+---
+
+## ★5 · 「合法改板」通道锚点 (★ISS-297 · hw-lead · 2026-11-17 18:5x · ★零写板·零落表★) ★
+
+★**为什么要加这一节 (★main 18:3x 真扫全仓, 原样★)** ★★:
+> ★**全仓有 9 道闸硬钉着板 md5 `611b869e…`; 板那一趟 (S1~S13) 合法改板当天, 它们会一起红** ★
+> ⇒ ★**而这些红的真实含义是「板被换了」, 不是「板改坏了」** ⇒ ⇒ ★**现场极可能误读成后者
+> ⇒ 去改板凑绿 ⇒ 板 md5 变第二次 ⇒ 整趟白跑** ★
+> ⇒ ★**⇒ 所以给 HW 域那 6 道闸建一条【合法改板】通道 (★照 ISS-284 在 SW 侧已跑通的口径·一个字不自创★)** ★
+
+★**★三个真源, 各管一段 (★不许混★)★★**:
+| 段 | 真源 | 管什么 |
+|---|---|---|
+| ① 保护基线 (★append-only 的历史事实★) | ★**本节锚点块 `hard_protected[].md5`** ★ | ★**基线不许改来「让它绿」**: 基线必须在落表台账里与该文件【同行】查得到 ⇒ 查不到 ⇒ 红 ★ |
+| ② 判决源 (链头) | ★**落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 的变更行 (★只读·append-only 的信任边界★)** ★ | ★合法改板只让【链头前移】, 判据方向不许变: 盘上 ≠ 链头 ⇒ 红 ★ |
+| ③ 合法改板的背书 | ★**本节锚点块 `hard_protected[].reboard`** ★ | ★四项 (单号 by + 文件名 file + 改前 md5 prev_md5 + 改后 md5 md5) 缺一 ⇒ 整条记录无效 ⇒ 红 ★ |
+
+★**★锚点块 (★机器可读·由 `HW/board_reboard.py` 读★)★★**:
+
+```
+<!-- BEGIN HW_BOARD_REBOARD_ANCHORS
+hard_protected:
+- file: HW/PCB/demo_mainboard.kicad_pcb
+  md5: 611b869e13518c3c023fb178f91a0075
+  reboard: null
+- file: HW/PCB/demo_mainboard.kicad_pro
+  md5: 3e504d2be83152e337949723e909be1b
+  reboard: null
+<!-- END HW_BOARD_REBOARD_ANCHORS -->
+```
+
+★**★`reboard: null` 的含义 (★不许误解★)** ★★:
+> ★**还没发生过合法改板** ⇒ ⇒ 纯 md5 硬保护 (盘上 ≠ 基线 ⇒ 红) ★
+> ⇒ ★**不许为了「将来会改」就把基线放松** ★
+
+★**★将来真改板那一趟, 这一块怎么填 (★顺序不许颠倒★)** ★★:
+1. ★**先写板** (板 md5 从 `611b869e…` 变成新值) ★
+2. ★**落表台账追加一行** (`HW/SCHEMATIC_LANDING_V1_LANDED.md` · ★**四项必须在同一行★**):
+   `| ★**ISS-xxx** ★ | ★**`HW/PCB/demo_mainboard.kicad_pcb`** ★ | `611b869e13518c3c023fb178f91a0075` | `<改后 md5>` | ★**是 (★合法改板·板只改一次★)** ★ |`
+   ⇒ ★**`.kicad_pro` 那一趟没动的话, 同批追加一行「逐字节不变」 (`3e504d2b…` → `3e504d2b…`) ★** ⇒
+   ⇒ ★**同一次合法改板必须覆盖同组全部件 (★只来一条记录 ⇒ 红★)** ★
+3. ★**再把锚点里板那一项的 `reboard: null` 换成四项原子映射** (★不许拆成两个可各自独立编辑的字段★):
+   ```yaml
+   reboard:
+     by: ISS-xxx
+     file: HW/PCB/demo_mainboard.kicad_pcb
+     prev_md5: 611b869e13518c3c023fb178f91a0075
+     md5: <改后 md5>
+   ```
+4. ★**跑闸**: `python3 HW/check_fsin_rootcause.py` / `check_g1a7_selection_landed.py` /
+   `check_onepass_commit_order.py` / `check_onepass_preflight_coverage.py` /
+   `check_pin_function_labels.py` / `check_workpack_state_values.py` ⇒ ★**全绿 (而不是集体假红)** ★
+
+★**★判据强度不许减 (★ISS-297 任务书 §2-2 逐条对照★)★★**:
+| 原来 | 本通道改完必须仍然 | 不许 |
+|---|---|---|
+| 盘上 ≠ 基线 ⇒ 红 | ★**盘上 ≠ 链头且无合法记录 ⇒ 红** ★ | 不许改成「取最近一条就绿」 |
+| 基线写死 | ★**基线仍是 append-only 的历史事实** ★ | 不许改基线来「让它绿」 |
+| (无) | ★**新增 fail-closed 三条** ★ | 链头不唯一 / 链断 / 链头无单号 ⇒ ★**仍红** ★ |
+
+★**★本节的边界 (★本单逐条自查过★)★**:
+| 约束 | 自证 |
+|---|---|
+| ★**零写板** ★ | 板 md5 = `611b869e13518c3c023fb178f91a0075` (跑前跑后) · ★**`.kicad_pro` = `3e504d2be83152e337949723e909be1b`** ★ |
+| ★**零落表** ★ | 网表 / 脚表 / BOM 逐字节不变 · ★**落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 一个字节没碰 (只读)** ★ |
+| ★**只加通道, 不加板改** ★ | 本节只登记「合法改板」怎么记; ★**板那一趟的板改清单不在本节** ★ |
+| ★**不代拍** ★ | 不代拍 E-1 (排针 land) / E-2 (圆角) / 板那一趟的任何一项板改 |

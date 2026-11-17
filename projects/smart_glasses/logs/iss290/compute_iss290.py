@@ -269,6 +269,15 @@ def main():
         "MC_UART": {"id": "MC_UART", "type": "必清空",
                     "rect": openings["PORT_OPEN_UART"]["tiers"]["2.54"]["must_clear"],
                     "why": "检修口座体必须清空区 (座体宽 2.540 = MECH 模型 · 高 h=2.54)"},
+        "USB_C_BODY": {"id": "USB_C_BODY", "type": "禁入",
+                       "rect": [135.680, 0.000, 144.320, 6.400],
+                       "why": "J_USB_C 座体 F.Fab 外框 (Y 下沿 = 板边) - 结构件必须开边口"},
+        "USB_C_COPPER": {"id": "USB_C_COPPER", "type": "禁入",
+                         "rect": [133.895, 2.300, 146.105, 5.825],
+                         "why": "J_USB_C 16 信号焊盘 + 2 个 Ø0.65 NPTH 壳体固定孔"},
+        "J_CHG_COPPER": {"id": "J_CHG_COPPER", "type": "禁入",
+                         "rect": [133.0625, 56.150, 133.8375, 57.050],
+                         "why": "J_CHG 主板侧 2 脚跨铰链载流焊盘对"},
     }
 
     rows = []

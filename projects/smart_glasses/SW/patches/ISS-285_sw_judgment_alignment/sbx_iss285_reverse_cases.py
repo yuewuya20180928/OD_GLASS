@@ -42,12 +42,41 @@ LEDGER_REL = os.path.join("HW", "SCHEMATIC_LANDING_V1_LANDED.md")
 TIMING_REL = os.path.join("SW", "tools", "timing_check.py")
 DPS_REL = os.path.join("SW", "tools", "check_demo_panel_spec.py")
 
-# ★三条判据的短键 ⇄ 全文 (★判决源在 timing_check.py 的 NEW_TESTS 里★)
+# ★★【期望红组 = 「必须同时含这些子串」的一组】★★
+#   ★**不写死整句** ⇒ 后续单号 (ISS-288+ / ISS-29x) 改了判据名字也能对上 ★
+#   ★每组 = (必须全含的子串, 必须全不含的子串) ★
+EXPECT = {
+    "网表锚点∈": (["网表锚点: 现行网表 md5 ∈ 落表台账登记的状态"], []),
+    "三方对账": (["三方对账成立"], []),
+    "F4'": (["F4' 实读", "BAT_DET 三颗必装"], ["REV-11"]),
+    "REV-11": (["REV-11", "BAT_DET 三颗"], []),
+}
+# ★旧写法留档 (★ISS-285 交卷单 §3.3 引的就是这几句★) ★
 K_ALLOWED = "网表锚点: 现行网表 md5 ∈ 落表台账登记的状态 (落表前 / 落表后)"
 K_THREEWAY = "网表锚点: 锚点 ↔ 落表台账 ↔ 盘上真源 三方对账成立 (不许悄悄换真源)"
 K_F4 = "F4' 实读: ADC 装机链是 VBUS_DET_D; BAT_DET 三颗必装 (V-3=E 落表后)"
 K_REV11 = ("REV-11 反向: 把 BAT_DET 三颗 (R_BAT_DET_1 / R_BAT_DET_2 / C_DET_BAT) 改回 DNP ⇒ "
            "F4'『BAT_DET 三颗必装』必须变红")
+
+
+def match_expect(got_lines: list, expect_keys: set, exact: bool = True):
+    """→ (是否一致, 详情)。★按【子串组】匹配, 不按整句相等 ★
+
+    ★exact=True  ⇒ 条数必须相等 (★证明【没有多出来的噪声红】★)
+    ★exact=False ⇒ 只要求【期望的那些都在红组里】(★允许派生判据连带变红★)
+      ★**为什么用例 ④ 走 exact=False**: ISS-291 起 F4' 段重做过 (判决对象 = BAT_DET 链)
+        ⇒ 把三颗改回 DNP 会【连带】打红一串派生判据 (源阻抗 / tau / 漏电 / 过压 / REV-12~REV-15)
+        ⇒ 那不是噪声, 那是【判据更强】的证据 ⇒ 只钉住「F4' 与 REV-11 必须在红组里」 ★
+    """
+    if exact and len(got_lines) != len(expect_keys):
+        return False, ("条数对不上 (期望 %d 条 / 实际 %d 条)" % (len(expect_keys), len(got_lines)))
+    for key in expect_keys:
+        req, ban = EXPECT[key]
+        if not any(all(r in ln for r in req) and not any(b in ln for b in ban) for ln in got_lines):
+            return False, ("没找到含 %s 的红行 (实际红组 %s)" % (req, got_lines))
+    if not exact:
+        return True, "全中 (允许额外派生红 %d 条)" % (len(got_lines) - len(expect_keys))
+    return True, "全中"
 
 
 def md5_of(path: str) -> str:
@@ -60,6 +89,35 @@ def load_timing(sbx: str):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+def load_dps(sbx: str):
+    """★加载 R6 那个文件 (★只借它的链头实现, 不自己抄一遍★)。"""
+    p = os.path.join(sbx, DPS_REL)
+    spec = importlib.util.spec_from_file_location("_iss285_dps", p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def chain_state(sbx: str):
+    """→ (链头/链/记录, 台账原文)。★链头**现读**, 不写死任何一个 md5 ★"""
+    dps = load_dps(sbx)
+    anchors, _ = dps.load_sw_anchor(sbx)
+    text, _ = dps.sw_ledger_canonical_text(sbx, anchors)
+    return dps.sw_ledger_state(NETLIST_REL, text), text
+
+
+def full_md5_for(text: str, node12: str) -> str:
+    """从台账原文里把某跳的 32 位 md5 捞出来 (链上每跳只有 12 位前缀 ⇒ 取首个前缀匹配的)。"""
+    import re as _re
+    for ln in text.split("\n"):
+        if NETLIST_REL not in ln:
+            continue
+        for tok in _re.findall(r"\b[0-9a-f]{32}\b", ln):
+            if tok[:12] == node12:
+                return tok
+    return ""
 
 
 def run(cmd, cwd):
@@ -98,18 +156,20 @@ def mut_case1_fake_md5(sbx: str) -> str:
     lines[idx] = mod._join_csv_line(fields, quoted) + term
     open(p, "w", encoding="utf-8-sig", newline="").write("\n".join(lines))
     return ("最后一行 L%d 的 conn_id: %s → C-99 (★行数不变 · 结构不变 · 只有 md5 变★); "
-            "盘上网表 md5 = %s (台账链头 = 2f17650cfbef …)" % (idx + 1, before, md5_of(p)))
+            "盘上网表 md5 = %s (台账链头 = %s …)"
+            % (idx + 1, before, md5_of(p), (chain_state(sbx)[0].get("head") or "")))
 
 
 def mut_case2_ledger_row_incomplete(sbx: str) -> str:
     """② 落表台账那一行四项不齐 (缺『改后 md5』⇒ 该行不算落表记录 ⇒ 链头不前移)。"""
     p = os.path.join(sbx, LEDGER_REL)
     text = open(p, encoding="utf-8").read()
-    head_md5 = "2f17650cfbef48d5efd71821505c3343"
+    st, _ = chain_state(sbx)
+    head_md5 = full_md5_for(text, st.get("head") or "")      # ★现读链头, 不写死★
     lines = text.split("\n")
     hit = 0
     for i, ln in enumerate(lines):
-        if "HW/netlist_v1.csv" in ln and head_md5 in ln:
+        if "HW/netlist_v1.csv" in ln and head_md5 and head_md5 in ln:
             lines[i] = ln.replace(head_md5, "★缺改后md5★")
             hit += 1
     open(p, "w", encoding="utf-8").write("\n".join(lines))
@@ -119,18 +179,27 @@ def mut_case2_ledger_row_incomplete(sbx: str) -> str:
 def mut_case3_head_not_unique(sbx: str) -> str:
     """③ 链头不唯一 (台账里两条指向同一文件 ⇒ 两条都像链头 ⇒ 取不准 ⇒ 判红)。
 
-    ★手法: 追加一条落表行, 它的【改前 md5 = 同一个 e06c1dd6…】而【改后 md5 = 另一个】
-      ⇒ 台账里从同一前驱分出两条分支 ⇒ 链头 = {2f17650c…, deadbeef…} 两个 ⇒ 不唯一 ★
-      (★追加 prev=2f17650c 那种是【把链拉长】不是【分叉】⇒ 链头仍唯一 ⇒ 那不算本用例★)
+    ★手法: 从【链中段】分叉出一条新链 (★改前 = 链头的**前驱**那一跳, 改后 = 另一个值★)
+      ⇒ 台账里从同一前驱分出两条分支 ⇒ 链头 = {真链头…, deadbeef…} 两个 ⇒ 不唯一 ★
+      (★追加 prev=真链头 那种是【把链拉长】不是【分叉】⇒ 链头仍唯一 ⇒ 那不算本用例★)
     """
     p = os.path.join(sbx, LEDGER_REL)
+    text = open(p, encoding="utf-8").read()
+    st, _ = chain_state(sbx)
+    chain = st.get("chain") or []
+    if len(chain) < 2:
+        raise SystemExit("★链上不足两跳 ⇒ 造不出『分叉』用例")
+    fork_from = full_md5_for(text, chain[1])                 # ★链头的**前驱**那一跳★
+    if not fork_from:
+        raise SystemExit("★取不到链中段那一跳的 32 位 md5 (用例造不出来)")
     fake = "deadbeefdeadbeefdeadbeefdeadbeef"
-    row = ("| ★**ISS-285** ★ | ★**`HW/netlist_v1.csv`** ★ | "
-           "★**`e06c1dd633566aa44732762c2ff99d1c`** ★ | ★**`%s`** ★ | ★**是**★ |" % fake)
+    row = ("| ★**ISS-285** ★ | ★**`%s`** ★ | "
+           "★**`%s`** ★ | ★**`%s`** ★ | ★**是**★ |" % (NETLIST_REL, fork_from, fake))
     with open(p, "a", encoding="utf-8") as f:
         f.write("\n" + row + "\n")
-    return ("台账尾部追加第二条指向 HW/netlist_v1.csv 的落表行 (★改前同一个 e06c1dd6…, "
-            "改后 = %s…★ ⇒ 链头分叉 = 两个 ⇒ 取不准 ⇒ fail-closed 判红)" % fake[:12])
+    return ("台账尾部追加第二条指向 %s 的落表行 (★改前 = 链中段那一跳 %s…, "
+            "改后 = %s…★ ⇒ 链头分叉 = 两个 ⇒ 取不准 ⇒ fail-closed 判红)"
+            % (NETLIST_REL, fork_from[:12], fake[:12]))
 
 
 def mut_case4_bat_det_back_to_dnp(sbx: str) -> str:
@@ -155,8 +224,11 @@ def mut_case4_bat_det_back_to_dnp(sbx: str) -> str:
         shutil.rmtree(tmp, ignore_errors=True)
     new_md5 = md5_of(os.path.join(sbx, NETLIST_REL))
     lp = os.path.join(sbx, LEDGER_REL)
-    row = ("| ★**ISS-285** ★ | ★**`HW/netlist_v1.csv`** ★ | "
-           "★**`2f17650cfbef48d5efd71821505c3343`** ★ | ★**`%s`** ★ | ★**是**★ |" % new_md5)
+    text = open(lp, encoding="utf-8").read()
+    st, _ = chain_state(sbx)
+    prev_full = full_md5_for(text, st.get("head") or "")        # ★现读真链头, 不写死★
+    row = ("| ★**ISS-285** ★ | ★**`%s`** ★ | "
+           "★**`%s`** ★ | ★**`%s`** ★ | ★**是**★ |" % (NETLIST_REL, prev_full, new_md5))
     with open(lp, "a", encoding="utf-8") as f:
         f.write("\n" + row + "\n")
     return ("BAT_DET 三颗的器件本体行 L%s 改回 DNP ⇒ 盘上 md5 = %s ; "
@@ -173,13 +245,13 @@ CASES = [
     #   ⇒ 「允许状态集合」降级为空集 ⇒ 连「盘上 md5 ∈ 台账登记的状态」这一条也判红
     #   ⇒ fail-closed 贯穿两条网表锚点判据 (★比 R6 更保守: R6 只有一条★)★
     ("①", "盘上网表 md5 落在台账登记的任何状态之外 (伪造 md5)",
-     mut_case1_fake_md5, {K_ALLOWED, K_THREEWAY}),
+     mut_case1_fake_md5, {"网表锚点∈", "三方对账"}),
     ("②", "落表台账那一行四项不齐 (单号 / 文件名 / 前后 md5)",
-     mut_case2_ledger_row_incomplete, {K_ALLOWED, K_THREEWAY}),
+     mut_case2_ledger_row_incomplete, {"网表锚点∈", "三方对账"}),
     ("③", "链头不唯一 (台账里两条指向同一文件) ⇒ fail-closed 不许动",
-     mut_case3_head_not_unique, {K_ALLOWED, K_THREEWAY}),
+     mut_case3_head_not_unique, {"网表锚点∈", "三方对账"}),
     ("④", "把 BAT_DET 三颗改回 DNP (期望值被改坏)",
-     mut_case4_bat_det_back_to_dnp, {K_F4, K_REV11}),
+     mut_case4_bat_det_back_to_dnp, {"F4'", "REV-11"}, False),
     ("⑤", "正向对照: 一切如常 (证明闸不是恒红)",
      mut_none, set()),
 ]
@@ -193,6 +265,7 @@ MIN_FILES = [
     "HW/SCHEMATIC_LANDING_V1_LANDED.md",
     "HW/PCB/demo_mainboard.kicad_pcb",
     "HW/PCB/demo_mainboard.kicad_pro",
+    "HW/PCB/FET3572C_PIN_TABLE.csv",      # ★ISS-29x 起 timing_check 还要读 SoM 脚表 (读不到 ⇒ 判红)★
     "SW/tools/timing_check.py",
     "SW/tools/check_demo_panel_spec.py",
     "SW/SW_MD5_BASELINE_LEDGER.md",
@@ -242,7 +315,9 @@ def main() -> int:
         return 1
 
     allok = True
-    for tag, desc, mut, expect in CASES:
+    for case in CASES:
+        tag, desc, mut, expect = case[:4]
+        exact = case[4] if len(case) > 4 else True
         if os.path.isdir(args.work):
             shutil.rmtree(args.work)
         os.makedirs(args.work)
@@ -264,9 +339,9 @@ def main() -> int:
                 print("  " + ln)
         print("  ★期望红组 (%d 条): %s" % (len(expect), sorted(expect) or "(空 ⇒ 期望全绿)"))
         print("  ★实际红组 (%d 条): %s" % (len(got), sorted(got) or "(空 ⇒ 实际全绿)"))
-        ok = (got == expect)
-        print("  ★判定: %s" % ("✅ 一致" if ok else "❌ 不一致 (期望 %s / 实际 %s)"
-                               % (sorted(expect), sorted(got))))
+        ok, why = match_expect(got, expect, exact)
+        print("  ★判定: %s" % ("✅ 一致 (%s)" % why if ok else "❌ 不一致 (%s / 期望 %s / 实际 %s)"
+                               % (why, sorted(expect), sorted(got))))
         allok = allok and ok
 
     print("=" * 78)

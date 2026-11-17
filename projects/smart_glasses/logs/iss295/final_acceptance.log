@@ -1,0 +1,81 @@
+=== [1] python3 MECH/check_mech_verdict_freshness.py ===
+== ISS-295 · check_mech_verdict_freshness.py ==
+   门禁: MECH/BOARD_ONEPASS_MECH_SYNC.md
+   [F2/F3] MS-1  MSYNC  留痕在原位=True  被订正节逐字引用=True   §10.3
+   [F2/F3] MS-2  MSYNC  留痕在原位=True  被订正节逐字引用=True   ISS-294 追加段 · 来由
+   [F2/F3] MS-3  MSYNC  留痕在原位=True  被订正节逐字引用=True   §11.5 第 4 条 (口径分叉登记)
+   [F4]    MSYNC  第 579 行 过期字样 没有这条边开口 ⇒ 已被订正节逐字覆盖=True
+   [F4]    MSYNC  第 610 行 过期字样 缺一条结构边开口规格 / 缺一条结构边开口 ⇒ 已被订正节逐字覆盖=True
+   [F4]    MSYNC  第 670 行 过期字样 结构侧缺一条边开口 / 缺一条边开口规格 ⇒ 已被订正节逐字覆盖=True
+   [F5]    MSYNC  现状句逐字找到=True
+   [F2/F3] XC-1  XCHK   留痕在原位=True  被订正节逐字引用=True   §2 MECH 侧保留区全集 (`USB-C-BODY` 行)
+   [F2/F3] XC-2  XCHK   留痕在原位=True  被订正节逐字引用=True   §4 座体类器件三方对照表 (`J_USB_C` 行)
+   [F2/F3] XC-3  XCHK   留痕在原位=True  被订正节逐字引用=True   §4.1 §4 小结
+   [F2/F3] XC-4  XCHK   留痕在原位=True  被订正节逐字引用=True   §7 机器可读 JSON 块
+   [F2/F3] XC-5  XCHK   留痕在原位=True  被订正节逐字引用=True   §5.6 「必须在那一趟一起改」清单 (E-6)
+   [F2/F3] XC-6  XCHK   留痕在原位=True  被订正节逐字引用=True   §5.6 「必须在那一趟一起改」清单 (E-6 · 现状)
+   [F4]    XCHK   第 68 行 过期字样 登记为缺口 ⇒ 已被订正节逐字覆盖=True
+   [F4]    XCHK   第 175 行 过期字样 结构侧缺一条边开口 / 缺一条边开口规格 / 边开口规格 (缺 / 缺口, 待登记 ⇒ 已被订正节逐字覆盖=True
+   [F4]    XCHK   第 188 行 过期字样 结构侧缺一条边开口 / 缺一条边开口规格 ⇒ 已被订正节逐字覆盖=True
+   [F4]    XCHK   第 294 行 过期字样 缺一条结构边开口规格 / 边开口规格 (★缺 / 缺一条结构边开口 / 缺口, 不改板 ⇒ 已被订正节逐字覆盖=True
+   [F4]    XCHK   第 298 行 过期字样 没有】这条边开口 ⇒ 已被订正节逐字覆盖=True
+   [F4]    XCHK   第 1816 行 过期字样 结构侧缺一条边开口 / 缺一条边开口规格 ⇒ 已被订正节逐字覆盖=True
+   [F5]    XCHK   现状句逐字找到=True
+   [F6]    机器块 `PORT_OPEN_USBC` rect=(132.995, 147.005, 0.0, 7.3) 期望=(132.995, 147.005, 0.0, 7.3)
+   ⇒ 全绿 (F1~F6) rc=0
+rc=0
+=== [2] python3 MECH/check_mech_verdict_freshness.py --selftest ===
+== ISS-295 · check_mech_verdict_freshness.py --selftest ==
+   (★沙盒副本上跑, 真件一个字节不许碰★)
+  [OK ] ④ 正向对照: 现状原样 ⇒ 必须绿
+       期望 绿 · 实测 绿
+       红因样例: ['(无)']
+  [OK ] ① 删掉 CROSSCHECK 的 ISS-295 订正覆盖节 ⇒ 必须红
+       期望 红 · 实测 红
+  [OK ] ② 老行改成「已订正」+ 删掉订正节 ⇒ 必须红
+       期望 红 · 实测 红
+  [OK ] ③ 老结论改写成另一种过期说法 ⇒ 必须红
+       期望 红 · 实测 红
+  [OK ] ⑤ 新写一句漂移进 MECH_SYNC (非订正节) ⇒ 必须红
+       期望 红 · 实测 红
+  [OK ] ⑥ 只改 MECH_SYNC 的现状句 (两页口径分叉) ⇒ 必须红
+       期望 红 · 实测 红
+  [OK ] ⑦ 悄悄改机器块 `PORT_OPEN_USBC` 矩形 ⇒ 必须红
+       期望 红 · 实测 红
+-- 合计 7 条 · 通过 7 · 失败 0
+-- ★反向用例一条都不许改松★ ⇒ 本闸判据未被放松
+rc=0
+=== [3] python3 MECH/check_onepass_mech_sync.py ===
+rc=0
+=== [4] python3 MECH/check_onepass_struct_crosscheck.py ===
+rc=0
+=== [5] python3 state/merge.py ===
+✅ STATE.yaml 已刷新 (2026-11-17T19:38:31+08:00)
+   产出 534 | 阻塞 43 (高危 33) | 未闭合需求 306 | 冲突 0 | 健康度 red
+rc=0
+=== [6] python3 state/gate_check.py ===
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-17_hw-lead_ISS283_V2解锁与W4G5落表.md   ★按 2026-11-17_hw-lead_ISS283_V2解锁与W4G5落表.md 计分 (最新一份 2026-11-17_hw-lead_ISS297_合法改板通道.md 缺 ['B2', 'B3', 'B4'])
+   sw-lead    6/6  缺: 无   交接单: 2026-11-17_sw-lead_ISS298_合法改板通道.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-17_mech-lead_ISS295_结构输入认领与防漂闸.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+rc=0
+=== [7] grep -c iss295 state/fragments/mech.yaml ===
+11
+=== [8] md5sum 受保护 5 件 ===
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+37f62ac3f0b81d92ca7d48fdea717f07  HW/netlist_v1.csv
+a4270120454aedf7a23c92cd8985c8a6  HW/netlist_v1_pins.csv
+5d02bece9477ffce5fbe0193c7d5cce4  HW/BOM_v1.csv
+=== [9] 板 mtime ===
+2026-11-06 07:07:17.362193413 +0800 HW/PCB/demo_mainboard.kicad_pcb
+=== [10] 老行留痕自证 (XCHK L1~L2161 与备份逐字节相同) ===
+老行区未变 rc=0
+=== [11] 两页现状句逐字一致 ===
+MSYNC 含现状句: True | XCHK 含现状句: True | 两页逐字一致: True

@@ -75,10 +75,25 @@ DEVICE = {
     "USB_BULK_EFF": 0.8,         # -   [推算] bulk 有效效率按 80% 估
     # --- SW 侧 ---
     "FLASH_IMAGE_MB": 90,        # MB  SW/FLASH_AND_VERSION.md §4.1 分区表总量 (boot1+kern8+rootfs30+app16+model30+isp1)
-    # --- SoC ADC (型号未确认, 按量级) ---
-    "ADC_BITS": 12,              # bit [0数据] SoC ADC 分辨率未确认, 按 12bit 算
-    "I_ADC_LEAK_MAX": 1e-6,      # A   [0数据] 典型 SoC ADC 输入漏电流上限 (量级), 具体型号未确认
-    "V_DET_FS": 3.3,             # V   SoC ADC 满量程 (3.3V 域) [网表 P2 RAIL_VDD_3V3_IO]
+    # --- SoC ADC (★ISS-291: 满量程口径按官方 datasheet 钉死, 不再按量级猜★) ---
+    "ADC_BITS": 12,              # bit [官网] RK3572 datasheet L2863 "Resolution ... 12 Bit"
+    "I_ADC_LEAK_MAX": 1e-6,      # A   [0数据] SoC ADC 输入漏电流上限 (量级); ★与网表 L182 note 同源 (两侧同一 1µA 假设)★
+    "V_DET_FS": 1.8,             # V   ★ISS-291: SAR-ADC 满量程 = 1.8V 域 (★不是 3.3V★) [脚表 L39 SARADC_VIN5=1.8V + datasheet L2454/L2864]★
+    "ADC_SETTLE_MAX_MS": 300.0,  # ms  ★判据红线 (沿用 ISS-090 原阈值 300ms, ★阈值不许调松★) 12bit 建立时间上限
+    "ADC_LEAK_OFFSET_MAX_V": 0.4,# V   ★判据红线 (沿用 ISS-090 原阈值 0.4V, ★阈值不许调松★) ADC 输入漏电偏移上限
+    "ADC_NODE_MAX_V": 1.98,      # V   ★SARADC_AVDD1V8 abs-max [官网] datasheet L2454 (1.62 / 1.8 / 1.98)★
+    "ADC_NODE_NOM_MAX_V": 1.8,   # V   ★ADC 输入节点 ≤ 标称域 1.8V [官网] datasheet L2864 (AVSS18 ~ AVDD18)★
+    "BAT_FULL_V": 4.2,           # V   ★电池满电 [实测] 网表 L24 RAIL 行 "4.2V 满 / 3.0V 截止"★
+    "BAT_CUTOFF_V": 3.0,         # V   ★电池截止 [实测] 网表 L24 同上★
+    # --- USB2 OTG 插入检测 (VBUS_DET_D → USB_DRD1_VBUSDET, ★数字脚, 不是 SAR-ADC★) ---
+    "USB_VBUS_NOM_V": 5.0,       # V   ★USB VBUS 标称 [实测] 网表 L2 RAIL 行 "5.0V ±5%" (⇒ 4.75~5.25V)★
+    "USB_VBUS_MIN_V": 4.75,      # V   ★USB VBUS 下限 [官方] USB 2.0 / Type-C VBUS 4.75~5.25 V★
+    "USB_VBUS_MAX_V": 5.25,      # V   ★USB VBUS 上限 [官方] 同上★
+    "USB_VBUSDET_VIH_MIN_V": 2.3,# V   ★识别高电平阈值 [官方] Forlinx FET3572 手册 "VBUSDET must be high (> 2.3 V)"★
+    "USB_VBUSDET_HI_LO_V": 2.7,  # V   ★标称高电平带下沿 [官方] 手册 "A high level indicates DEVICE mode (2.7-3.3 V, typical: 3.0 V)"★
+    "USB_VBUSDET_HI_HI_V": 3.3,  # V   ★标称高电平带上沿 [官方] 同上 (⇒ 降级 abs-max 上界)★
+    "USB_VBUSDET_INTERNAL_PD_OHM": 40e3,  # Ω ★降级假设 [官方·仅 DRD0] 手册 "internal 40 kΩ pull-down"; ★本板是 DRD1 ⇒ 未记载 ⇒ [0数据]★
+    "DET_CHAIN_STATIC_MAX_UA": 26.25,  # µA ★单条检测链常开静态电流上限 [实测] 网表 L182 note "常开静态功耗 26.25µA / 110µW (V-3 裁决的代价)"★
     # --- 热模型 (MECH/MECH_BUDGET.md §2.3) ---
     "T_SKIN_A": 35.0,            # °C  T_skin = 35.0 + 50.13 x P
     "T_SKIN_B": 50.13,           # °C/W
@@ -104,8 +119,28 @@ SOURCES = {
     "USB_RESET_RESP_S": "[官方] USB 2.0 §7.1.7.3",
     "USB_BULK_EFF": "[推算] bulk 有效效率 80%",
     "FLASH_IMAGE_MB": "[实测] SW/FLASH_AND_VERSION.md §4.1 分区表总量",
-    "ADC_BITS": "[0数据] SoC ADC 分辨率未确认 (TBD-01)",
-    "I_ADC_LEAK_MAX": "[0数据] SoC ADC 漏电流按量级 1µA 估",
+    "ADC_BITS": "[官网] RK3572 datasheet V1.1 L2863: Resolution = 12 Bit (★ISS-291 升级: 原为 [0数据]★)",
+    "I_ADC_LEAK_MAX": "[0数据] SoC ADC 漏电流按量级 1µA 估 (★与网表 L182 note 同一假设★)",
+    "V_DET_FS": "[官网] SAR-ADC 满量程 = 1.8V 域: 脚表 FET3572C_PIN_TABLE.csv L39 (SARADC_VIN5 / 1.8V) + "
+                "rk3572_datasheet_V1.1.txt L2454 (SARADC_AVDD1V8 = 1.62/1.8/1.98V) + L2864 (Analog Input Range = AVSS18~AVDD18) "
+                "⇒ ★原 3.3V 写死值已按 ISS-291 订正★",
+    "ADC_SETTLE_MAX_MS": "[沿用] ISS-090 原判据阈值 300ms (★ISS-291 只改口径, 阈值不许调松★)",
+    "ADC_LEAK_OFFSET_MAX_V": "[沿用] ISS-090 原判据阈值 0.4V (★ISS-291 只改口径, 阈值不许调松★)",
+    "ADC_NODE_MAX_V": "[官网] rk3572_datasheet_V1.1.txt L2454: SARADC_AVDD1V8 = 1.62 / 1.8 / 1.98 V ⇒ abs-max 1.98V",
+    "ADC_NODE_NOM_MAX_V": "[官网] rk3572_datasheet_V1.1.txt L2864: Analog Input Range = AVSS18 ~ AVDD18 ⇒ ≤1.8V 标称",
+    "BAT_FULL_V": "[实测] HW/netlist_v1.csv L24 (RAIL BAT 行): '4.2V 满 / 3.0V 截止'",
+    "BAT_CUTOFF_V": "[实测] HW/netlist_v1.csv L24 (RAIL BAT 行): '4.2V 满 / 3.0V 截止'",
+    "USB_VBUS_NOM_V": "[实测] HW/netlist_v1.csv L2 (RAIL VBUS_5V 行): '5.0V ±5%'",
+    "USB_VBUS_MIN_V": "[官方] USB 2.0 / Type-C VBUS 4.75 ~ 5.25 V",
+    "USB_VBUS_MAX_V": "[官方] USB 2.0 / Type-C VBUS 4.75 ~ 5.25 V",
+    "USB_VBUSDET_VIH_MIN_V": "[官方] Forlinx FET3572 手册 (state/_os_snapshots/fx3572_manual.html): "
+                             "'In device mode, VBUSDET must be high (> 2.3 V)'",
+    "USB_VBUSDET_HI_LO_V": "[官方] Forlinx FET3572 手册: 'A high level indicates DEVICE mode (2.7-3.3 V, typical: 3.0 V)'",
+    "USB_VBUSDET_HI_HI_V": "[官方] Forlinx FET3572 手册: 同上 (⇒ 降级 abs-max 上界)",
+    "USB_VBUSDET_INTERNAL_PD_OHM": "[官方·降级] 手册只对 USB_DRD0_VBUSDET 明写 'internal 40 kΩ pull-down'; "
+                                   "★本板用的是 USB_DRD1_VBUSDET ⇒ 手册未记载 ⇒ [0数据] ⇒ 按'存在'降级处理并登记 need★",
+    "DET_CHAIN_STATIC_MAX_UA": "[实测] HW/netlist_v1.csv L182 note: '常开静态功耗 26.25µA / 110µW (V-3 裁决的代价)' "
+                                "⇒ 取作单条检测链常开静态电流上限 (同板同型链已裁决值)",
     "T_SKIN_A": "[实测] MECH/MECH_BUDGET.md §2.3 热模型",
     "T_SKIN_B": "[实测] MECH/MECH_BUDGET.md §2.3 热模型",
     "T_SKIN_REDLINE": "[官方] ISO 13732-1 43°C 红线",
@@ -919,6 +954,147 @@ def drop_refs_copy(nl: Netlist, dest: str, refs) -> str:
 
 
 # ----------------------------------------------------------------------------
+# ★★【ISS-291 · 2026-11-17 · sw-lead】★★ 判决源: SoM 脚表 (★"哪些脚是 SAR-ADC" 的真源★)
+#   ★**根因**: F4 原先按【元组顺序】取链 (第一条 populated 的链) ⇒ 判的是 VBUS_DET_D,
+#     而它的落点是 pin100 = USB_DRD1_VBUSDET = USB OTG 插入检测**数字**脚
+#     ⇒ ★【USB 数字脚被当 12bit SAR-ADC 在判】★, 而★【真 ADC 链 BAT_DET (pin38 = SARADC_VIN5,
+#     1.8V 域) 一条判据都没有】★
+#   ★**修法 (三条, 一条都不许省)**:
+#     ① 判决源 = `HW/PCB/FET3572C_PIN_TABLE.csv` (SoM 厂 IO 域表) 的 signal 列 + vol 列
+#        · signal 以 SARADC 开头 ⇒ 该脚是 SAR-ADC 输入
+#        · vol = 该脚 IO 域 (SARADC_VIN5 = 1.8V; USB_DRD1_VBUSDET = —— ⇒ 域未知 ⇒ [0数据])
+#     ② 落点 = 网表实读 (NET 行找中点网 → 找 J_SOM_P1 pinN)
+#     ③ 脚表读不到 / 落点不唯一 / 没有链落到 ADC 脚 ⇒ ★fail-closed 红★
+#        (★绝不许退回"元组第一条"★ —— 那正是本单要修的错)
+# ----------------------------------------------------------------------------
+PIN_TABLE_REL = os.path.join("HW", "PCB", "FET3572C_PIN_TABLE.csv")
+
+# ★取链规则开关: "by_landing_pin" = 新口径 (默认); "tuple_order" = ★老错规则★,
+#   **只给 ISS-291 反向用例用** (反向用例把它切过去 ⇒ active_chain 判据必须变红)。
+CHAIN_SELECT_MODE = "by_landing_pin"
+
+_SOM_PIN_RE = re.compile(r"^(J_SOM_P1)\s+pin(\d+)$")
+
+
+def load_som_pin_table(path=None):
+    """读 SoM 脚表 → ({(conn, num): {...}}, meta)。读不到 ⇒ (None, 原因) ⇒ 判红 (fail-closed)。"""
+    p = path or os.path.join(_PROJECT_ROOT, PIN_TABLE_REL)
+    if not os.path.exists(p):
+        return None, "SoM 脚表不存在: %s" % PIN_TABLE_REL
+    try:
+        with open(p, "rb") as fh:
+            raw = fh.read()
+        md5 = hashlib.md5(raw).hexdigest()
+        with open(p, "r", encoding="utf-8-sig", newline="") as fh:
+            rows = list(csv.DictReader(fh))
+    except Exception as exc:                                    # noqa: BLE001
+        return None, "SoM 脚表读失败: %s" % exc
+    table = {}
+    for row in rows:
+        conn = (row.get("conn") or "").strip()
+        num = (row.get("num") or "").strip()
+        sig = (row.get("signal") or "").strip()
+        if not conn or not num or not sig:
+            continue
+        vol_raw = (row.get("vol") or "").strip()
+        table[(conn, num)] = {
+            "ball": (row.get("ball") or "").strip(),
+            "signal": sig,
+            "gpio": (row.get("gpio") or "").strip(),
+            "vol_raw": vol_raw,
+            "vol": parse_volt(vol_raw),
+            "desc": (row.get("desc") or "").strip(),
+            "default_function": (row.get("default_function") or "").strip(),
+        }
+    meta = {"path": os.path.relpath(p, _PROJECT_ROOT), "md5": md5, "rows": len(table)}
+    return table, meta
+
+
+def resolve_chain_landing(nl: Netlist, r_top: str, r_bot: str) -> dict:
+    """★该分压链落到哪个 SoM 脚★ (网表实读, 不许手抄)。
+
+    ① 中点网 = 节点列同时出现上臂/下臂两个位号的那一行的 net 列
+       (BAT_DET ⇒ 网表 L183; VBUS_DET_D ⇒ 网表 L435)
+    ② 落点脚 = 中点网上 node1/node2 形如 "J_SOM_P1 pinN" 的行
+       (中点网与落点行不同名时 ⇒ 再按 node 列反查: VBUS_DET_D ⇒ 网表 L439)
+    """
+    out = {"mid_net": "", "som_conn": "", "som_pin": "", "landing_line": 0}
+    mid_net = ""
+    for x in nl.rows:
+        a = (x.get("node1") or "").strip()
+        b = (x.get("node2") or "").strip()
+        if {a, b} == {r_top, r_bot}:
+            net = (x.get("net") or "").strip()
+            if net and not net.startswith("RAIL_") and net != "GND":
+                mid_net = net
+                break
+    out["mid_net"] = mid_net
+    if not mid_net:
+        return out
+
+    def _pin_of(x):
+        for k in ("node1", "node2"):
+            m = _SOM_PIN_RE.match((x.get(k) or "").strip())
+            if m:
+                return m.group(1), m.group(2)
+        return None, None
+
+    for x in nl.rows_on_net(mid_net):
+        conn, pin = _pin_of(x)
+        if pin:
+            out.update({"som_conn": conn, "som_pin": pin, "landing_line": x.get("_line_no", 0)})
+            return out
+    # ★落点行的 net 与中点网不同名 (例: 网表 L439 net=VBUS_DET / node2=VBUS_DET_D) ⇒ 按 node 列反查
+    for x in nl.rows:
+        if mid_net not in ((x.get("node1") or "").strip(), (x.get("node2") or "").strip()):
+            continue
+        conn, pin = _pin_of(x)
+        if pin:
+            out.update({"som_conn": conn, "som_pin": pin, "landing_line": x.get("_line_no", 0)})
+            return out
+    return out
+
+
+def classify_landing(pin_table, landing: dict):
+    """★按【脚表】给落点分类★ → (类别, 脚表条目)。类别 ∈ {"ADC", "DIGITAL", "UNKNOWN"}。
+
+    ★**连接器名映射**: 网表里 SoM 连接器叫 `J_SOM_P1/P2/P3`, 脚表里叫 `P1/P2/P3`
+      ⇒ ★不许硬编一张映射表★ ⇒ 直接从连接器名尾部取 "P<n>" 即可 (J_SOM_P1 → P1)。
+    """
+    if not pin_table or not landing.get("som_pin"):
+        return "UNKNOWN", None
+    conn = (landing.get("som_conn") or "").strip()
+    candidates = [conn]
+    m = re.search(r"(P\d+)$", conn)
+    if m and m.group(1) not in candidates:
+        candidates.append(m.group(1))
+    ent = None
+    for c in candidates:
+        ent = pin_table.get((c, landing.get("som_pin")))
+        if ent:
+            break
+    if not ent or not isinstance(ent, dict):
+        return "UNKNOWN", None
+    if ent["signal"].upper().startswith("SARADC"):
+        return "ADC", ent
+    return "DIGITAL", ent
+
+
+def _det_supply(nl: Netlist, chain: dict):
+    """→ (该链上臂所在轨的标称电压, 来源说明)。读不到 ⇒ (None, 原因)。"""
+    rail = nl.rail_of(chain["r_top_ref"])
+    v = nl.rail_volts(rail) if rail else None
+    if v is not None:
+        return v, "网表 RAIL 行 %s = %gV" % (rail, v)
+    if chain["tag"] == "VBUS_DET_D":
+        v2 = nl.rail_volts("VBUS_5V")
+        if v2 is not None:
+            return v2, "网表 RAIL 行 VBUS_5V = %gV (上臂挂 %s)" % (v2, rail)
+        return DEVICE["USB_VBUS_NOM_V"], "DEVICE 常量 USB_VBUS_NOM_V (网表里 RAIL_DEMO_5V 无 RAIL 行)"
+    return DEVICE["BAT_FULL_V"], "DEVICE 常量 BAT_FULL_V (网表里 %s 无 RAIL 行)" % rail
+
+
+# ----------------------------------------------------------------------------
 # 2. 逐条结论的计算 —— 全部现读现算
 # ----------------------------------------------------------------------------
 def compute(nl: Netlist, isp_meas=None) -> dict:
@@ -1106,14 +1282,30 @@ def compute(nl: Netlist, isp_meas=None) -> dict:
     }
 
     # ---------------------------------------------------------------- F4 ADC 检测通道
-    # 分压链: 取**装机**的那一条 (dnp=必装)
+    # ★★【ISS-291 · 2026-11-17 · sw-lead】★★ 判决对象 + 满量程口径【双错】收口 ★★
+    #   ★**错在哪 (两条都错, 互不相关)**:
+    #     ① 判决对象错: 取链规则 = 「元组顺序第一条 populated 链」⇒ 判的是 VBUS_DET_D
+    #        (落点 = 网表 L439 ⇒ J_SOM_P1 pin100 = USB_DRD1_VBUSDET = USB OTG 插入检测**数字**脚)
+    #        ⇒ ★【USB 数字脚被当 12bit SAR-ADC 在判建立时间/漏电偏移/满量程】★
+    #        ⇒ ★【真 ADC 链 BAT_DET (落点 = 网表 L186 ⇒ J_SOM_P1 pin38 = SARADC_VIN5, 1.8V 域) 无判据】★
+    #     ② 满量程口径错: DEVICE["V_DET_FS"] 写死 3.3V ⇒ 官方是 1.8V 域
+    #        ⇒ 同一个 BAT_DET 分压链, 网表 L182 note 写 2.1% FS 而闸算 15% FS (差 7 倍)
+    #   ★**新口径 (判决源 = SoM 脚表, 不是元组顺序)**:
+    #     ① 判决源 = HW/PCB/FET3572C_PIN_TABLE.csv (signal 列 + vol 列) ⇒ 读不到 ⇒ fail-closed
+    #     ② 落点 = 网表实读 ⇒ 按【落点是不是 SAR-ADC 脚】取链 ⇒ ADC 链 = BAT_DET
+    #     ③ 满量程 = 1.8V (官方 datasheet) ⇒ 漏电偏移 %FS 必须与网表 L182 note 逐字对上 (2.1%)
+    #     ④ 数字链 (VBUS_DET_D) 从 ADC 判据里摘出去, 另按【数字检测输入】口径单判 (F4D 段)
+    pin_table, pin_meta = load_som_pin_table()
     det_chains = []
     for top, bot, cap, tag in (("R_VBUS_DET_D1", "R_VBUS_DET_D2", "C_DET_VBUS_D", "VBUS_DET_D"),
                                ("R_BAT_DET_1", "R_BAT_DET_2", "C_DET_BAT", "BAT_DET")):
         rt, rb, cv = nl.ohm(top), nl.ohm(bot), nl.farad(cap)
         dev_dnp = {r: _device_dnp_rows(nl, r) for r in (top, bot, cap)}
+        landing = resolve_chain_landing(nl, top, bot)
+        klass, pent = classify_landing(pin_table, landing)
         det_chains.append({
             "tag": tag, "r_top_ohm": rt, "r_bot_ohm": rb, "c_f": cv,
+            "r_top_ref": top, "r_bot_ref": bot, "cap_ref": cap,
             "r_top_dnp": nl.dnp_of(top) or nl.rows_of(top)[0].get("dnp", "") if nl.rows_of(top) else "",
             "r_bot_dnp": nl.rows_of(bot)[0].get("dnp", "") if nl.rows_of(bot) else "",
             "c_dnp": nl.rows_of(cap)[0].get("dnp", "") if nl.rows_of(cap) else "",
@@ -1124,6 +1316,16 @@ def compute(nl: Netlist, isp_meas=None) -> dict:
             "device_populated": bool(dev_dnp.get(top)) and all(d == "必装" for d in dev_dnp.get(top))
                                 and bool(dev_dnp.get(bot)) and all(d == "必装" for d in dev_dnp.get(bot))
                                 and bool(dev_dnp.get(cap)) and all(d == "必装" for d in dev_dnp.get(cap)),
+            # ★★【ISS-291】落点 + 落点分类 (判决源 = SoM 脚表 signal/vol 两列)
+            "landing_net": landing["mid_net"],
+            "landing_line": landing["landing_line"],
+            "som_conn": landing["som_conn"],
+            "som_pin": landing["som_pin"],
+            "pin_class": klass,
+            "pin_signal": (pent or {}).get("signal", ""),
+            "pin_vol_raw": (pent or {}).get("vol_raw", ""),
+            "pin_vol_v": (pent or {}).get("vol"),
+            "pin_desc": (pent or {}).get("desc", ""),
         })
     for ch in det_chains:
         if ch["r_top_ohm"] and ch["r_bot_ohm"]:
@@ -1132,29 +1334,138 @@ def compute(nl: Netlist, isp_meas=None) -> dict:
         else:
             ch["rth_ohm"] = None
             ch["tau_ms"] = None
-    act = [c for c in det_chains if c["populated"]] or det_chains
-    rth = act[0]["rth_ohm"]
-    tau_adc = rth * act[0]["c_f"]
-    lsb_v = DEVICE["V_DET_FS"] / (2 ** DEVICE["ADC_BITS"])
-    n_settle = math.log(1.0 / (0.5 * lsb_v / DEVICE["V_DET_FS"]))
-    t_settle = n_settle * tau_adc
-    leak_err = DEVICE["I_ADC_LEAK_MAX"] * rth
+
+    # ---- ★★【ISS-291】取链: 按【落点是不是 SAR-ADC 脚】★ (★不是元组顺序★) ----
+    adc_chains = [c for c in det_chains if c["pin_class"] == "ADC"]
+    adc_populated = [c for c in adc_chains if c["device_populated"]]
+    dig_chains = [c for c in det_chains if c["pin_class"] == "DIGITAL"]
+    if CHAIN_SELECT_MODE == "tuple_order":
+        # ★★【ISS-291 反向用例专用】★★ 老错规则 (元组顺序第一条 populated 链)
+        _old = [c for c in det_chains if c["populated"]] or det_chains
+        adc_act = _old[0]
+        select_reason = ("★tuple_order 模式 (★仅供 ISS-291 反向用例: 老错规则「元组第一条」★)")
+    elif len(adc_populated) == 1:
+        adc_act = adc_populated[0]
+        select_reason = ("★唯一一条装机链落在 SAR-ADC 脚上 (判决源 = SoM 脚表 signal 列: %s)★"
+                         % adc_act["pin_signal"])
+    elif len(adc_populated) > 1:
+        adc_act = None
+        select_reason = "★有多条链落到 SAR-ADC 脚 ⇒ 判决对象不唯一 ⇒ fail-closed★"
+    else:
+        adc_act = None
+        select_reason = ("★没有任何装机链落到 SAR-ADC 脚 ⇒ ADC 输入悬空 / 无判据 ⇒ fail-closed★")
+
+    # ---- ADC 链的量 (满量程 = 1.8V 域) ----
+    fs_v = DEVICE["V_DET_FS"]
+    lsb_v = fs_v / (2 ** DEVICE["ADC_BITS"])
+    n_settle = math.log(1.0 / (0.5 * lsb_v / fs_v))
+    if adc_act is not None:
+        rth = adc_act["rth_ohm"]
+        tau_adc = rth * adc_act["c_f"]
+        t_settle = n_settle * tau_adc
+        leak_err = DEVICE["I_ADC_LEAK_MAX"] * rth
+        v_supply, v_supply_src = _det_supply(nl, adc_act)
+        rt_a, rb_a = adc_act["r_top_ohm"], adc_act["r_bot_ohm"]
+        node_v = v_supply * (rb_a / (rt_a + rb_a)) if (rt_a and rb_a) else None
+        standby_ua = v_supply / (rt_a + rb_a) * 1e6 if (rt_a and rb_a) else None
+    else:
+        rth = tau_adc = t_settle = leak_err = node_v = standby_ua = None
+        v_supply, v_supply_src = None, "(无 ADC 链)"
+
+    # ---- ★★【ISS-291】口径同源自证: 三个数必须与网表 L182 note 逐字对上 ----
+    note_facts = _bat_det_note_facts(nl)
+    leak_pct_fs = (leak_err / fs_v * 100) if (leak_err is not None and fs_v) else None
+    fs_caliber_ok = bool(
+        note_facts.get("pct_fs") is not None
+        and abs(fs_v - 1.8) < 1e-9
+        and leak_pct_fs is not None
+        and abs(leak_pct_fs - note_facts["pct_fs"]) <= 0.06
+        and note_facts.get("mv") is not None and leak_err is not None
+        and abs(leak_err * 1e3 - note_facts["mv"]) <= 0.6
+        and note_facts.get("rth_k") is not None and rth is not None
+        and abs(rth / 1e3 - note_facts["rth_k"]) <= 0.6)
+
+    settle_ok = (t_settle is not None and t_settle * 1e3 <= DEVICE["ADC_SETTLE_MAX_MS"])
+    leak_ok = (leak_err is not None and leak_err <= DEVICE["ADC_LEAK_OFFSET_MAX_V"])
+    node_ok = (node_v is not None and node_v <= DEVICE["ADC_NODE_MAX_V"]
+               and node_v <= DEVICE["ADC_NODE_NOM_MAX_V"])
+    object_ok = (adc_act is not None and adc_act["tag"] == "BAT_DET"
+                 and adc_act["som_pin"] == "38" and adc_act["pin_signal"] == "SARADC_VIN5")
+    populated_ok = bool(adc_act is not None and adc_act["device_populated"])
+    fs_util_pct = (node_v / fs_v * 100) if (node_v is not None and fs_v) else None
+
     o["F4_adc_det"] = {
-        "active_chain": act[0]["tag"],
+        "active_chain": (adc_act["tag"] if adc_act else "(无: fail-closed)"),
+        "active_chain_pin": (adc_act["som_pin"] if adc_act else ""),
+        "active_chain_signal": (adc_act["pin_signal"] if adc_act else ""),
+        "active_chain_domain": (adc_act["pin_vol_raw"] if adc_act else ""),
+        "chain_select_mode": CHAIN_SELECT_MODE,
+        "chain_select_reason": select_reason,
+        "judgment_source": ("SoM 脚表 %s (md5 %s, %d 行) + 网表落点实读"
+                            % (pin_meta.get("path", "?"), (pin_meta.get("md5") or "?")[:12],
+                               pin_meta.get("rows", 0))) if pin_table else
+                           ("★脚表读不到 ⇒ fail-closed (%s)★" % (pin_meta or "")),
+        "pin_table_md5": (pin_meta or {}).get("md5", ""),
+        "full_scale_v": fs_v,
+        "full_scale_source": SOURCES.get("V_DET_FS", ""),
+        "adc_bits": DEVICE["ADC_BITS"],
+        "lsb_mv": r(lsb_v * 1e3, 3),
         "chains": det_chains,
         "rth_ohm": rth,
-        "tau_ms": r(tau_adc * 1e3),
-        "t_settle_to_half_lsb_ms": r(t_settle * 1e3),
-        "leak_offset_v": r(leak_err, 4),
-        "leak_offset_pct_fs": r(leak_err / DEVICE["V_DET_FS"] * 100, 1),
-        "standby_ua": r(DEVICE["V_DET_FS"] / (act[0]["r_top_ohm"] + act[0]["r_bot_ohm"]) * 1e6, 2),
-        "verdict": "★现网表装机的是 %s 链 (%s+%s+%s): 源阻抗 %sΩ / τ=%sms; 12bit 精度需 %.0fms 建立; "
-                   "1µA 漏电流 ⇒ %.2fV 偏移 (%.0f%% 满量程) ⇒ 该分压值对 ADC 不可用; "
-                   "%s"
-                   % (act[0]["tag"], act[0]["r_top_ohm"], act[0]["r_bot_ohm"], act[0]["c_f"],
-                      rth, r(tau_adc * 1e3), t_settle * 1e3, leak_err,
-                      leak_err / DEVICE["V_DET_FS"] * 100, _bat_det_verdict(det_chains)),
+        "tau_ms": r(tau_adc * 1e3) if tau_adc is not None else None,
+        "t_settle_to_half_lsb_ms": r(t_settle * 1e3) if t_settle is not None else None,
+        "leak_offset_v": r(leak_err, 4) if leak_err is not None else None,
+        "leak_offset_pct_fs": r(leak_pct_fs, 1) if leak_pct_fs is not None else None,
+        "standby_ua": r(standby_ua, 2) if standby_ua is not None else None,
+        "supply_v": v_supply,
+        "supply_source": v_supply_src,
+        "node_v_at_supply": r(node_v, 4) if node_v is not None else None,
+        "node_max_abs_v": DEVICE["ADC_NODE_MAX_V"],
+        "node_nominal_max_v": DEVICE["ADC_NODE_NOM_MAX_V"],
+        "fs_utilization_pct": r(fs_util_pct, 1) if fs_util_pct is not None else None,
+        "netlist_note_facts": note_facts,
+        "criteria": {
+            "object_ok": object_ok,
+            "fs_caliber_ok": fs_caliber_ok,
+            "settle_ok": settle_ok,
+            "leak_ok": leak_ok,
+            "node_ok": node_ok,
+            "populated_ok": populated_ok,
+            "all_ok": bool(object_ok and fs_caliber_ok and settle_ok and leak_ok
+                           and node_ok and populated_ok),
+        },
+        "verdict": (
+            "★判决对象 = %s 链 (网表 L%s ⇒ %s pin%s = %s, %s 域) ⇒ 源阻抗 %sΩ / τ=%sms; "
+            "12bit (LSB=%smV, 满量程 %sV) 需 %.1fms 建立 (红线 %sms ⇒ %s); "
+            "1µA 漏电 ⇒ %.4fV 偏移 = %s%% 满量程 (红线 %sV ⇒ %s; ★与网表 L182 note 写死的 %s%% FS 逐字对上 ⇒ %s★); "
+            "@%sV 节点 %sV ≤ abs-max %sV ⇒ %s (FS 利用率 %s%%); "
+            "★老口径 (判 VBUS_DET_D + FS=3.3V) 报的那条红 = **假红** ⇒ 已作废; "
+            "★VBUS_DET_D 链改按【数字检测输入】口径单判 (见 F4D 段)★; %s"
+            % (adc_act["tag"] if adc_act else "(无)",
+               adc_act["landing_line"] if adc_act else "-",
+               adc_act["som_conn"] if adc_act else "-",
+               adc_act["som_pin"] if adc_act else "-",
+               adc_act["pin_signal"] if adc_act else "-",
+               adc_act["pin_vol_raw"] if adc_act else "-",
+               rth, r(tau_adc * 1e3) if tau_adc is not None else "-",
+               r(lsb_v * 1e3, 3), fs_v,
+               t_settle * 1e3 if t_settle is not None else float("nan"),
+               DEVICE["ADC_SETTLE_MAX_MS"], "✔" if settle_ok else "❌",
+               leak_err if leak_err is not None else float("nan"),
+               r(leak_pct_fs, 1) if leak_pct_fs is not None else float("nan"),
+               DEVICE["ADC_LEAK_OFFSET_MAX_V"], "✔" if leak_ok else "❌",
+               note_facts.get("pct_fs", "?"),
+               "✔" if fs_caliber_ok else "❌",
+               v_supply if v_supply is not None else "-",
+               r(node_v, 4) if node_v is not None else "-",
+               DEVICE["ADC_NODE_MAX_V"], "✔" if node_ok else "❌",
+               r(fs_util_pct, 1) if fs_util_pct is not None else "-",
+               _bat_det_verdict(det_chains))),
     }
+
+    # ---------------------------------------------------------------- F4D 数字检测输入 (USB OTG 插入检测)
+    # ★★【ISS-291】VBUS_DET_D 链**不是** SAR-ADC 输入 ⇒ 从 ADC 判据里摘出来, 按数字脚口径单判 ★★
+    o["F4D_usb_vbus_det"] = _f4d_usb_det(nl, det_chains, dig_chains)
 
     # ---------------------------------------------------------------- F5 TMP117
     temp_supply_rail = nl.rail_of("U_TEMP")
@@ -1374,10 +1685,19 @@ SELF_TESTS_LEGACY = [
      lambda o: o["F3_i2c_rise"]["annotation_error_ratio"] is not None
                and o["F3_i2c_rise"]["annotation_error_ratio"] < 1.01),
     ("I2C 300pF 超标准模式上限", lambda o: o["F3_i2c_rise"]["tr_ns_vs_cable_cap"]["300pF"] > 1000.0),
-    ("ADC 源阻抗 500k", lambda o: abs(o["F4_adc_det"]["rth_ohm"] - 500000.0) < 1.0),
-    ("ADC tau = 50ms", lambda o: abs(o["F4_adc_det"]["tau_ms"] - 50.0) < 0.5),
-    ("ADC 12bit 建立 > 300ms", lambda o: o["F4_adc_det"]["t_settle_to_half_lsb_ms"] > 300.0),
-    ("ADC 漏电偏移 > 0.4V", lambda o: o["F4_adc_det"]["leak_offset_v"] > 0.4),
+    # ★★【ISS-291 · 2026-11-17 · sw-lead】★★ 下面这四条原断言 = 【老口径的缺陷事实】
+    #   (判的是 VBUS_DET_D 链 + FS=3.3V ⇒ 500kΩ / 50ms / 451ms / 0.50V)
+    #   ⇒ ★**判据对象与满量程口径双错**★ ⇒ ★按 ISS-225 同型订正: 断言按【正确口径】重写,
+    #   ★**阈值一条都不许调松**★ (建立时间红线仍是 300ms, 漏电偏移红线仍是 0.4V) ★
+    ("ADC 源阻抗 = 37.5k (★ISS-291: 判决对象 = BAT_DET 链 → pin38 SARADC_VIN5★)",
+     lambda o: _num_close(o["F4_adc_det"]["rth_ohm"], 37500.0, 1.0)),
+    ("ADC tau = 3.75ms (★ISS-291 口径★)", lambda o: _num_close(o["F4_adc_det"]["tau_ms"], 3.75, 0.05)),
+    ("ADC 12bit 建立 33.8ms ≤ 300ms 红线 (★ISS-291 口径: 老口径的 451ms 是**假红**★)",
+     lambda o: (o["F4_adc_det"]["t_settle_to_half_lsb_ms"] is not None
+                and 0 < o["F4_adc_det"]["t_settle_to_half_lsb_ms"] <= 300.0)),
+    ("ADC 漏电偏移 37.5mV ≤ 0.4V 红线 (★ISS-291 口径: 老口径的 0.50V 是**假红**★)",
+     lambda o: (o["F4_adc_det"]["leak_offset_v"] is not None
+                and 0 < o["F4_adc_det"]["leak_offset_v"] <= 0.4)),
     ("TMP117 首读 -256C", lambda o: o["F5_tmp117"]["first_read_after_reset_c"] == -256.0),
     ("TMP117 自热 < 0.1mW", lambda o: o["F5_tmp117"]["self_heat_uw"] < 100.0),
     ("CONN_USB 地脚数不合规", lambda o: o["F6_usb_hinge"]["gnd_rule_ok"] is False),
@@ -1456,6 +1776,59 @@ def _mk_reverse_dnp(name, targets, fn):
             return bool(fn(o, mo))
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
+    return (name, runner)
+
+
+def _mk_reverse_fs_3v3(name):
+    """★★【ISS-291】反向用例: 把满量程常量 `V_DET_FS` 改回 3.3 (老口径) ⇒ 口径判据必须变红。
+
+    ★**为什么要单独一种 runner**: 满量程不是网表里的量, 是脚本里的常量 ⇒
+      改它必须改**常量本身** (而不是改网表副本) ⇒ ⇒ 造一个「临时改常量 → 重算 → 改回」的 runner。
+    ★**自证「真改到了目标」**: mutant 的 `full_scale_v` 必须 = 3.3 (⇒ 真的改了),
+      且 mutant 的漏电偏移 %FS 必须从 2.1 变成 1.1 (⇒ 真的换了口径),
+      ★**同时**基线的那条判据必须是 True (⇒ 红的不是别的条)。
+    """
+    def runner(o, nl=None):
+        if nl is None:
+            return False
+        old = DEVICE["V_DET_FS"]
+        DEVICE["V_DET_FS"] = 3.3
+        try:
+            mo = compute(nl)
+        finally:
+            DEVICE["V_DET_FS"] = old
+        return bool(
+            _num_close(mo["F4_adc_det"]["full_scale_v"], 3.3, 1e-9)
+            and _num_close(mo["F4_adc_det"]["lsb_mv"], 0.8057, 0.002)
+            and _num_close(mo["F4_adc_det"]["leak_offset_pct_fs"], 1.1, 0.06)
+            and _f4_adc_fs_caliber_ok(o) is True
+            and _f4_adc_fs_caliber_ok(mo) is False)
+    return (name, runner)
+
+
+def _mk_reverse_chain_mode(name):
+    """★★【ISS-291】反向用例: 把取链规则切回「元组第一条」(老错规则) ⇒ 判决对象判据必须变红。
+
+    ★**为什么要单独一种 runner**: 取链规则是**代码里的分支**, 不是网表里的量 ⇒
+      必须真的把 `CHAIN_SELECT_MODE` 切回老规则再重算 ⇒ 切完立刻改回 (不许留在老规则上)。
+    ★**自证「真改到了目标」**: mutant 的 `active_chain` 必须 = VBUS_DET_D (⇒ 真的换回了错对象),
+      ★**同时**基线的判决对象判据必须是 True (⇒ 红的不是别的条)。
+    """
+    def runner(o, nl=None):
+        if nl is None:
+            return False
+        global CHAIN_SELECT_MODE
+        old = CHAIN_SELECT_MODE
+        CHAIN_SELECT_MODE = "tuple_order"
+        try:
+            mo = compute(nl)
+        finally:
+            CHAIN_SELECT_MODE = old
+        return bool(
+            mo["F4_adc_det"]["active_chain"] == "VBUS_DET_D"
+            and mo["F4_adc_det"]["chain_select_mode"] == "tuple_order"
+            and _f4_adc_object_ok(o) is True
+            and _f4_adc_object_ok(mo) is False)
     return (name, runner)
 
 
@@ -1557,6 +1930,210 @@ def _bat_det_verdict(det_chains: list) -> str:
             % (c.get("rth_ohm"), c.get("tau_ms")))
 
 
+# ----------------------------------------------------------------------------
+# ★★【ISS-291 · 2026-11-17 · sw-lead】★★ 口径同源自证 + 数字检测输入口径
+# ----------------------------------------------------------------------------
+def _bat_det_note_facts(nl) -> dict:
+    """★从网表 BAT_DET 链的 note 里抽【官方口径的三个数】⇒ 与闸算出来的数逐字对账。
+
+    ★网表 L182 note 逐字: 「[BAT_DET_RAW] 分压上臂 (100k); ★方案E (ISS-223 §11.4):
+      R_th=37.5kΩ ⇒ ADC 输入漏电 ~1µA 只造成 37.5mV 偏移 (2.1% FS, 可软件标定)★」
+    ⇒ ★这三个数 (37.5kΩ / 37.5mV / 2.1% FS) 是**网表侧写死的** ⇒ 闸算出来必须对上,
+      对上才叫「口径同源」 (★ISS-291: 老闸算的是 500kΩ / 0.50V / 15.2% ⇒ 差 7 倍 ⇒ 两源不一致★)。
+    """
+    out = {"pct_fs": None, "mv": None, "rth_k": None, "note": "", "line_no": 0}
+    for x in (nl.rows_of("R_BAT_DET_1") or []):
+        note = x.get("note", "") or ""
+        if "%FS" in note or "mV" in note:
+            out["note"] = note
+            out["line_no"] = x.get("_line_no", 0)
+            break
+    note = out["note"]
+    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*%\s*FS", note)
+    if m:
+        out["pct_fs"] = float(m.group(1))
+    m = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*mV", note)
+    if m:
+        out["mv"] = float(m.group(1))
+    m = re.search(r"R_th\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*k", note)
+    if m:
+        out["rth_k"] = float(m.group(1))
+    return out
+
+
+def _f4d_usb_det(nl, det_chains: list, dig_chains: list) -> dict:
+    """★★【ISS-291】数字检测输入口径 (USB2 OTG 插入检测) 的判据 ★★
+
+    ★**为什么必须另立口径**: VBUS_DET_D 链的落点是 pin100 = USB_DRD1_VBUSDET
+      = USB OTG 插入检测**数字**脚 (脚表 vol 栏 = —— ⇒ IO 域未知) ⇒ ★**不是 SAR-ADC**★
+      ⇒ 拿 SAR-ADC 的「建立时间 / 漏电偏移 / 满量程」去判它 = ★判错了对象★。
+    ★**判据三项 (任务书 §B1-3)**:
+      ① 常开静态电流 (代价项, 上限取同板 BAT_DET 链 V-3 已裁决的 26.25µA)
+      ② 节点电平 (识别高电平阈值 2.3V / 标称高电平带 2.7~3.3V, 官方 = Forlinx 手册)
+      ③ 该脚 abs-max (脚表域栏 = —— ⇒ [0数据] ⇒ 降级取手册高电平带上沿 3.3V)
+    ★**未决项不许藏**: 手册只对 USB_DRD0_VBUSDET 明写内部 40kΩ 下拉, 本板用的是 DRD1
+      ⇒ [0数据] ⇒ 两种情形都算出来报出 (理想 2.5V / 含内部下拉 0.185V) ⇒ 登记 need。
+    """
+    ch = (dig_chains or [c for c in (det_chains or []) if c.get("tag") == "VBUS_DET_D"])[0] \
+        if (dig_chains or [c for c in (det_chains or []) if c.get("tag") == "VBUS_DET_D"]) else None
+    if ch is None:
+        return {"chain": "(未找到)", "criteria": {"all_ok": False},
+                "verdict": "★网表里找不到 VBUS_DET_D 链 ⇒ fail-closed★"}
+    rt, rb = ch["r_top_ohm"], ch["r_bot_ohm"]
+    v_nom = DEVICE["USB_VBUS_NOM_V"]
+    v_min, v_max = DEVICE["USB_VBUS_MIN_V"], DEVICE["USB_VBUS_MAX_V"]
+    pd = DEVICE["USB_VBUSDET_INTERNAL_PD_OHM"]
+    r_gnd_pd = (rb * pd) / (rb + pd) if (rb and pd) else None
+    node_nom = v_nom * (rb / (rt + rb)) if (rt and rb) else None
+    node_min = v_min * (rb / (rt + rb)) if (rt and rb) else None
+    node_max = v_max * (rb / (rt + rb)) if (rt and rb) else None
+    node_pd = v_nom * (r_gnd_pd / (rt + r_gnd_pd)) if (r_gnd_pd and rt) else None
+    i_ideal = v_nom / (rt + rb) * 1e6 if (rt and rb) else None
+    i_worst = v_nom / (rt + r_gnd_pd) * 1e6 if (r_gnd_pd and rt) else None
+    vih = DEVICE["USB_VBUSDET_VIH_MIN_V"]
+    hi_lo, hi_hi = DEVICE["USB_VBUSDET_HI_LO_V"], DEVICE["USB_VBUSDET_HI_HI_V"]
+    # abs-max: 脚表域栏已知 ⇒ 域电压 +0.3V (datasheet L2489 "DVDD+0.3"); 未知 ⇒ 降级取手册高电平带上沿
+    domain_known = bool(ch.get("pin_vol_v"))
+    abs_max = (ch["pin_vol_v"] + 0.3) if domain_known else hi_hi
+    static_ok = bool(i_worst is not None and i_worst <= DEVICE["DET_CHAIN_STATIC_MAX_UA"])
+    level_ok = bool(node_min is not None and node_min > vih and node_max <= abs_max)
+    margin_v = (node_min - vih) if node_min is not None else None
+    unresolved = [
+        {"item": "该脚 (USB_DRD1_VBUSDET) 是否带内部 40kΩ 下拉",
+         "evidence": "[0数据] Forlinx FET3572 手册只对 USB_DRD0_VBUSDET 明写 'internal 40 kΩ pull-down'; "
+                     "本板落点是 DRD1 ⇒ 手册未记载",
+         "impact": ("若带 ⇒ 节点 = %.3fV (含 40kΩ 下拉) < %.1fV 识别阈值 ⇒ **USB 插入检测永不触发**"
+                    % (node_pd if node_pd is not None else float("nan"), vih)),
+         "degradation": "本闸按【无内部下拉】的理想分压值判定 (并把含下拉的情形一并算出报出); "
+                        "★该脚 abs-max / 域 / 内部下拉三件事一律登记 need, 不在本闸里编数★"},
+        {"item": "该脚 IO 域 / abs-max (脚表 vol 栏 = ——)",
+         "evidence": "[0数据] 脚表 FET3572C_PIN_TABLE.csv L101 vol 栏 = '——' ⇒ 域未知",
+         "impact": ("本闸降级取 Forlinx 手册标称高电平带上沿 %.1fV 作 abs-max 上界 ⇒ 节点 %.3fV ≤ %.1fV ⇒ 通过; "
+                    "★若该脚域实为 1.8V ⇒ abs-max = 2.1V ⇒ 节点 %.3fV 越限 ⇒ 必须改分压比★"
+                    % (hi_hi, node_max if node_max is not None else float("nan"), hi_hi,
+                       node_max if node_max is not None else float("nan"))),
+         "degradation": "降级上界取手册高电平带上沿; ★域一旦在脚表里填上, 本闸的 abs-max 判据自动按域+0.3V 生效★"},
+        {"item": "识别裕量 (VBUS 下限 4.75V 时)",
+         "evidence": "[官方] USB 2.0/Type-C VBUS 4.75~5.25V + 手册识别阈值 >2.3V",
+         "impact": ("节点 @4.75V = %.3fV, 距阈值 %.1fV 只剩 %.0fmV (%.1f%%) ⇒ 裕量极薄"
+                    % (node_min if node_min is not None else float("nan"), vih,
+                       (margin_v * 1e3) if margin_v is not None else float("nan"),
+                       (margin_v / vih * 100) if margin_v is not None else float("nan"))),
+         "degradation": "本闸按最坏 VBUS 下限 4.75V 判 (比标称 5V 更严)"},
+    ]
+    return {
+        "chain": ch["tag"],
+        "landing_net": ch["landing_net"],
+        "landing_line": ch["landing_line"],
+        "som_conn": ch["som_conn"],
+        "som_pin": ch["som_pin"],
+        "pin_signal": ch["pin_signal"],
+        "pin_vol_raw": ch["pin_vol_raw"],
+        "pin_class": ch["pin_class"],
+        "r_top_ohm": rt, "r_bot_ohm": rb, "c_f": ch["c_f"],
+        "rth_ohm": ch["rth_ohm"],
+        "v_supply_nom_v": v_nom, "v_supply_min_v": v_min, "v_supply_max_v": v_max,
+        "static_current_ua": r(i_worst, 2) if i_worst is not None else None,
+        "static_current_ua_ideal": r(i_ideal, 2) if i_ideal is not None else None,
+        "static_current_limit_ua": DEVICE["DET_CHAIN_STATIC_MAX_UA"],
+        "node_v_nom": r(node_nom, 3) if node_nom is not None else None,
+        "node_v_min": r(node_min, 3) if node_min is not None else None,
+        "node_v_max": r(node_max, 3) if node_max is not None else None,
+        "node_v_with_internal_pd": r(node_pd, 3) if node_pd is not None else None,
+        "vih_min_v": vih,
+        "high_band_lo_v": hi_lo, "high_band_hi_v": hi_hi,
+        "margin_to_vih_mv": r(margin_v * 1e3, 1) if margin_v is not None else None,
+        "abs_max_v": abs_max,
+        "abs_max_source": ("脚表域 %s +0.3V" % ch["pin_vol_raw"]) if domain_known else
+                          "★[0数据] 降级取 Forlinx 手册标称高电平带上沿 %.1fV★" % hi_hi,
+        "domain_known": domain_known,
+        "criteria": {
+            "static_current_ok": static_ok,
+            "level_ok": level_ok,
+            "all_ok": bool(static_ok and level_ok),
+        },
+        "unresolved": unresolved,
+        "verdict": (
+            "★%s 链落点 = %s pin%s = %s (脚表域栏 = %s ⇒ %s) ⇒ 按【数字检测输入】口径判 (★不是 SAR-ADC★): "
+            "① 常开静态电流 %sµA (理想分压 %sµA) ≤ 上限 %sµA (同板 BAT_DET 链 V-3 已裁决值) ⇒ %s; "
+            "② 节点电平 %sV @5V (VBUS 4.75~5.25V ⇒ %s~%sV) vs 识别阈值 >%sV ⇒ %s (裕量 %smV ⚠; 且低于手册标称高电平带下沿 %sV ⚠); "
+            "③ 该脚 abs-max %s ⇒ %s; "
+            "★★未决 (已登记 need, 不阻塞本闸但禁止据此判『安全』): 该脚是否带内部 40kΩ 下拉 [0数据] ⇒ 若带则节点 %sV ⇒ **USB 插入检测不工作**★★"
+            % (ch["tag"], ch["som_conn"], ch["som_pin"], ch["pin_signal"], ch["pin_vol_raw"] or "——",
+               "域已知" if domain_known else "域未知 [0数据]",
+               r(i_worst, 2) if i_worst is not None else "-",
+               r(i_ideal, 2) if i_ideal is not None else "-",
+               DEVICE["DET_CHAIN_STATIC_MAX_UA"], "✔" if static_ok else "❌",
+               r(node_nom, 3) if node_nom is not None else "-",
+               r(node_min, 3) if node_min is not None else "-",
+               r(node_max, 3) if node_max is not None else "-",
+               vih, "✔" if (node_min is not None and node_min > vih) else "❌",
+               r(margin_v * 1e3, 1) if margin_v is not None else "-",
+               hi_lo,
+               r(abs_max, 2), ("✔" if (node_max is not None and node_max <= abs_max) else "❌"),
+               r(node_pd, 3) if node_pd is not None else "-")),
+    }
+
+
+# ----------------------------------------------------------------------------
+# ★★【ISS-291】具名判据函数 (★正向用例与反向用例**共用同一个函数**⇒ 反向自证敢叫「真改到了目标」★)
+#   ★同 ISS-235/ISS-285 的写法: 判据不许写两套 (正向一套 / 反向另一套)
+#     ⇒ 那样「红」可能只是别的条红 (ISS-227 教训) ★
+# ----------------------------------------------------------------------------
+def _num_close(v, target, tol=1e-9):
+    """None-safe 数值比较 (★测点缺失 ⇒ 判红, 不许抛异常★)。"""
+    try:
+        if v is None:
+            return False
+        return abs(float(v) - float(target)) <= tol
+    except (TypeError, ValueError):
+        return False
+
+
+def _f4_adc_object_ok(o: dict) -> bool:
+    """F4 判决对象判据: active_chain 必须 = 唯一一条落在 SAR-ADC 脚上的装机链 (BAT_DET / pin38)。"""
+    f4 = (o.get("F4_adc_det") or {})
+    c = f4.get("criteria") or {}
+    return bool(c.get("object_ok")) and f4.get("active_chain") == "BAT_DET" \
+        and f4.get("active_chain_pin") == "38" \
+        and f4.get("active_chain_signal") == "SARADC_VIN5"
+
+
+def _f4_adc_fs_caliber_ok(o: dict) -> bool:
+    """F4 满量程口径判据: FS = 1.8V 且三个数与网表 L182 note 逐字对上 (37.5kΩ / 37.5mV / 2.1% FS)。"""
+    return bool(((o.get("F4_adc_det") or {}).get("criteria") or {}).get("fs_caliber_ok"))
+
+
+def _f4_adc_settle_ok(o: dict) -> bool:
+    """F4 建立时间判据: 12bit 到半 LSB 的建立时间 ≤ 300ms (★阈值沿用, 不许调松★)。"""
+    return bool(((o.get("F4_adc_det") or {}).get("criteria") or {}).get("settle_ok"))
+
+
+def _f4_adc_leak_ok(o: dict) -> bool:
+    """F4 漏电偏移判据: 输入漏电造成的偏移 ≤ 0.4V (★阈值沿用, 不许调松★)。"""
+    return bool(((o.get("F4_adc_det") or {}).get("criteria") or {}).get("leak_ok"))
+
+
+def _f4_adc_node_ok(o: dict) -> bool:
+    """F4 过压判据: ADC 节点 ≤ abs-max 1.98V 且 ≤ 标称域 1.8V (1.8V 域口径)。"""
+    return bool(((o.get("F4_adc_det") or {}).get("criteria") or {}).get("node_ok"))
+
+
+def _f4_adc_populated_ok(o: dict) -> bool:
+    """F4 输入不许悬空判据: ADC 链三颗必须装机 (否则 ADC 输入悬空 ⇒ 读数随机)。"""
+    return bool(((o.get("F4_adc_det") or {}).get("criteria") or {}).get("populated_ok"))
+
+
+def _f4d_static_ok(o: dict) -> bool:
+    """F4D 数字链静态电流判据: 常开静态电流 ≤ 同板 BAT_DET 链 V-3 已裁决的 26.25µA。"""
+    return bool(((o.get("F4D_usb_vbus_det") or {}).get("criteria") or {}).get("static_current_ok"))
+
+
+def _f4d_level_ok(o: dict) -> bool:
+    """F4D 数字链节点电平判据: @VBUS 下限 4.75V 仍 > 识别阈值 2.3V, 且 ≤ abs-max 上界。"""
+    return bool(((o.get("F4D_usb_vbus_det") or {}).get("criteria") or {}).get("level_ok"))
+
+
 NEW_TESTS = [
     ("网表锚点: md5 与行数可复算 (data_rows = lines_total - 1)",
      lambda o: o["NETLIST_ANCHOR"]["netlist_data_rows"] == o["NETLIST_ANCHOR"]["netlist_lines_total"] - 1),
@@ -1647,9 +2224,46 @@ NEW_TESTS = [
     #   ⇒ ★**判据绑在【网表实读值】上** (反向用例 REV-3c 证明: 删掉 U_EN_SW 的器件本体行 ⇒ 这条立刻变红) ★
     ("★F8 实读: 负载开关 U_PWR_SW / U_EN_SW **都必须有器件行** (BOM/装配单不许漏掉任何一颗负载开关)",
      lambda o: _f8_all_load_switches_have_device_row(o)),
-    ("F4' 实读: ADC 装机链是 VBUS_DET_D; BAT_DET 三颗必装 (V-3=E 落表后)",
-     lambda o: o["F4_adc_det"]["active_chain"] == "VBUS_DET_D"
-               and _bat_det_all_populated(o)),
+    # ★★【ISS-291 · 2026-11-17 · sw-lead】★★ 判决对象改对: ADC 链 = **落在 SAR-ADC 脚上的那条**
+    #   = BAT_DET (网表 L186 ⇒ J_SOM_P1 pin38 = SARADC_VIN5, 1.8V 域)
+    #   ★老断言「ADC 装机链是 VBUS_DET_D」= **判错了对象** (VBUS_DET_D 落点 pin100 = USB 数字脚) ⇒ 作废 ★
+    ("F4' 实读: ADC 判决对象 = BAT_DET 链 (落点 J_SOM_P1 pin38 = SARADC_VIN5, 1.8V 域); BAT_DET 三颗必装",
+     lambda o: _f4_adc_object_ok(o) and _bat_det_all_populated(o)),
+    # ★★【ISS-291】满量程口径: 1.8V 域 (官方 datasheet) ⇒ LSB = 0.439mV ★
+    ("F4 实读: 满量程 = 1.8V 域 (官方) ⇒ 12bit LSB = 0.439mV (★老口径 3.3V ⇒ 0.806mV 已作废★)",
+     lambda o: abs(o["F4_adc_det"]["full_scale_v"] - 1.8) < 1e-9
+               and abs(o["F4_adc_det"]["lsb_mv"] - 0.4395) < 0.002),
+    # ★★【ISS-291】口径同源自证: 三个数与网表 L182 note 逐字对上 (37.5kΩ / 37.5mV / 2.1% FS) ★
+    ("F4 实读: 漏电偏移 37.5mV = 2.1% FS ⇒ 与网表 L182 note 写死的数**逐字对上** (口径同源)",
+     lambda o: (_num_close(o["F4_adc_det"]["leak_offset_pct_fs"], 2.1, 0.06)
+                and _num_close(o["F4_adc_det"]["leak_offset_v"] * 1e3
+                                if o["F4_adc_det"]["leak_offset_v"] is not None else None, 37.5, 0.6)
+                and _num_close((o["F4_adc_det"]["rth_ohm"] or 0) / 1e3, 37.5, 0.6))),
+    # ★★【ISS-291】判决源必须是脚表 (signal 列), 不是元组顺序 ★
+    ("F4 实读: 判决源 = SoM 脚表 signal 列 (落点判 SAR-ADC), 取链模式 = by_landing_pin",
+     lambda o: o["F4_adc_det"]["judgment_source"].startswith("SoM 脚表")
+               and o["F4_adc_det"]["chain_select_mode"] == "by_landing_pin"
+               and o["F4_adc_det"]["active_chain_pin"] == "38"),
+    # ★★【ISS-291】ADC 链 @4.2V 节点 1.575V ≤ abs-max 1.98V (1.8V 域) ★
+    ("F4 实读: ADC 节点 @4.2V = 1.575V ≤ abs-max 1.98V (FS 利用率 87.5%)",
+     lambda o: (_num_close(o["F4_adc_det"]["node_v_at_supply"], 1.575, 0.01)
+                and o["F4_adc_det"]["node_max_abs_v"] == 1.98
+                and _num_close(o["F4_adc_det"]["fs_utilization_pct"], 87.5, 0.2))),
+    # ★★【ISS-291】数字链 (VBUS_DET_D) 落点 = pin100 USB_DRD1_VBUSDET = 数字脚 (不是 ADC) ★
+    ("F4D 实读: VBUS_DET_D 落点 = J_SOM_P1 pin100 = USB_DRD1_VBUSDET (数字脚 ⇒ 不进 ADC 判据)",
+     lambda o: o["F4D_usb_vbus_det"]["som_pin"] == "100"
+               and o["F4D_usb_vbus_det"]["pin_signal"] == "USB_DRD1_VBUSDET"
+               and o["F4D_usb_vbus_det"]["pin_class"] == "DIGITAL"),
+    # ★★【ISS-291】数字链静态电流判据 (上限 = 同板 BAT_DET 链 V-3 已裁决的 26.25µA) ★
+    ("F4D 实读: 数字链常开静态电流 4.81µA (含内部 40kΩ 降级) ≤ 26.25µA 上限",
+     lambda o: (_num_close(o["F4D_usb_vbus_det"]["static_current_ua"], 4.81, 0.05)
+                and _f4d_static_ok(o))),
+    # ★★【ISS-291】数字链节点电平判据 + 未决项必须报出来 (不许藏) ★
+    ("F4D 实读: 数字链节点 2.5V > 识别阈值 2.3V, 且内部下拉/域/裕量三条未决项都报出",
+     lambda o: (_num_close(o["F4D_usb_vbus_det"]["node_v_nom"], 2.5, 0.01)
+                and o["F4D_usb_vbus_det"]["vih_min_v"] == 2.3
+                and _f4d_level_ok(o)
+                and len(o["F4D_usb_vbus_det"]["unresolved"]) >= 3)),
 ]
 
 # --- 反向用例 (★核心新增: 改坏网表 ⇒ 判据必须变红) ---
@@ -1739,6 +2353,43 @@ REV_TESTS = [
                  ("BAT_DET", "C_DET_BAT"), ("GND", "C_DET_BAT")],
         fn=lambda o, mo: (_bat_det_all_populated(o) is True
                           and _bat_det_all_populated(mo) is False)),
+    # ★★★【ISS-291 · 2026-11-17 · sw-lead】反向用例组 ★★★
+    #   ★**背景**: F4 原先同时犯了两个错 (判决对象错 + 满量程口径错) ⇒ 这一组 6 条把两个错各锁死一次 ★
+    _mk_reverse_fs_3v3(
+        "REV-12 反向: 把满量程 V_DET_FS 改回 3.3 (老口径) ⇒ 满量程/口径同源判据必须变红",
+    ),
+    _mk_reverse_chain_mode(
+        "REV-13 反向: 把取链规则改回「元组第一条」⇒ 判决对象判据必须变红 (不许悄悄换回错对象)",
+    ),
+    _mk_reverse_dnp(
+        "REV-14 反向: 把 BAT_DET 三颗 (R_BAT_DET_1 / R_BAT_DET_2 / C_DET_BAT) 改回 DNP ⇒ "
+        "「ADC 输入悬空」判据必须变红",
+        targets=[("BAT", "R_BAT_DET_1"), ("BAT_DET", "R_BAT_DET_2"),
+                 ("BAT_DET", "C_DET_BAT"), ("GND", "C_DET_BAT")],
+        fn=lambda o, mo: (_f4_adc_populated_ok(o) is True
+                          and _f4_adc_populated_ok(mo) is False
+                          and mo["F4_adc_det"]["active_chain"] == "(无: fail-closed)")),
+    _mk_reverse(
+        "REV-15 反向: 把 BAT_DET 的下臂 60k 改成 100k ⇒ @4.2V 节点 2.1V > 1.98V abs-max ⇒ "
+        "过压判据必须变红",
+        edits=[("R_BAT_DET_2", "100k ±1%")],
+        fn=lambda o, mo: (_num_close(mo["F4_adc_det"]["node_v_at_supply"], 2.1, 0.01)
+                          and _f4_adc_node_ok(o) is True
+                          and _f4_adc_node_ok(mo) is False)),
+    _mk_reverse(
+        "REV-16 反向: 把 VBUS_DET_D 链的两颗电阻改成 10k/10k ⇒ 数字链静态电流判据必须变红 "
+        "(★数字脚口径也在判, 不是只判 ADC★)",
+        edits=[("R_VBUS_DET_D1", "10k ±1%"), ("R_VBUS_DET_D2", "10k ±1%")],
+        fn=lambda o, mo: (_f4d_static_ok(o) is True
+                          and _f4d_static_ok(mo) is False
+                          and mo["F4D_usb_vbus_det"]["static_current_ua"] > 250.0)),
+    _mk_reverse(
+        "REV-17 反向: 把 VBUS_DET_D 的上臂 1M 改成 10M ⇒ 节点 0.45V < 2.3V 识别阈值 ⇒ "
+        "数字链节点电平判据必须变红",
+        edits=[("R_VBUS_DET_D1", "10M ±1%")],
+        fn=lambda o, mo: (_f4d_level_ok(o) is True
+                          and _f4d_level_ok(mo) is False
+                          and mo["F4D_usb_vbus_det"]["node_v_nom"] < 1.0)),
 ]
 
 

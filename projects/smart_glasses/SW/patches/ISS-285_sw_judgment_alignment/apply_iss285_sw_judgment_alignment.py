@@ -41,7 +41,20 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))      # projects/smart_glasses
 TARGET = os.path.join("SW", "tools", "timing_check.py")
 LEDGER = os.path.join("SW", "SW_MD5_BASELINE_LEDGER.md")
-BAK_DIR = os.path.join("state", ".bak_iss285_sw_alignment")
+BAK_DIR_REL = os.path.join("state", ".bak_iss285_sw_alignment")
+
+# ★★【每条编辑的「已套用特征标记」】★★
+#   ★幂等判定必须用【标记】而不是【整段逐字相等】——
+#     后续单号 (★ISS-288 落地补丁 + 再往后的单号继续改同一段★) 会让整段逐字相等不再成立
+#     ⇒ 只认标记 ⇒ 本套用器在【已套过 / 又被后人改过】的树上都只报「已是最新」, 不崩、不瞎改 ★
+EDIT_MARKERS = {
+    "B1-1 判决源同源化 (头)": "def _dps():",
+    "B1-2 判决源同源化 (尾)": "判决源 = 落表台账【链头】",
+    "B2-1 逐颗读器件本体行": '"device_populated":',
+    "B2-2 verdict 不许说假话": "_bat_det_verdict(det_chains)",
+    "B2-3 F4' 判据": "; BAT_DET 三颗必装",
+    "B3 REV-11 反向用例": "REV-11 反向: 把 BAT_DET 三颗",
+}
 
 # ===================================================================== 补丁正文
 # ---------------------------------------------------------------- B1-1: 判决源同源化
@@ -361,16 +374,22 @@ HELPER_ANCHOR = "\nNEW_TESTS = [\n"
 # ===================================================================== 套用逻辑
 def apply_edits(text: str) -> str:
     for name, old, new in EDITS:
+        marker = EDIT_MARKERS.get(name)
+        if marker and marker in text:
+            print("★已套过 (特征标记命中: %s) ⇒ 跳过: %s" % (marker, name))
+            continue                                   # ★幂等: 已套过 ⇒ 跳过
         if new in text:
             continue                                   # ★幂等: 已套过 ⇒ 跳过
         cnt = text.count(old)
         if cnt != 1:
             raise SystemExit("★锚点没命中 (或命中 %d 次): %s" % (cnt, name))
         text = text.replace(old, new)
-    if HELPER_B2.strip() not in text:
+    if "_bat_det_all_populated" not in text:
         if text.count(HELPER_ANCHOR) != 1:
             raise SystemExit("★helper 锚点没命中: NEW_TESTS = [")
         text = text.replace(HELPER_ANCHOR, HELPER_B2 + HELPER_ANCHOR)
+    else:
+        print("★helper 已套过 (特征标记命中: _bat_det_all_populated) ⇒ 跳过")
     return text
 
 
@@ -481,8 +500,9 @@ def main() -> int:
         print("  修后 md5 = %s" % hashlib.md5(new_text.encode("utf-8")).hexdigest())
         print("  改动行数 = %d" % (len(new_text.split("\n")) - len(old_text.split("\n"))))
         if args.apply:
-            os.makedirs(BAK_DIR, exist_ok=True)
-            bak = os.path.join(BAK_DIR, "timing_check.py.bak_%s" % time.strftime("%Y%m%d-%H%M%S"))
+            bak_dir = os.path.join(root, BAK_DIR_REL)
+            os.makedirs(bak_dir, exist_ok=True)
+            bak = os.path.join(bak_dir, "timing_check.py.bak_%s" % time.strftime("%Y%m%d-%H%M%S"))
             shutil.copy2(tgt, bak)
             open(tgt, "w", encoding="utf-8").write(new_text)
             print("  ★已写盘 (备份 %s)" % bak)
@@ -493,8 +513,9 @@ def main() -> int:
         if new_led != open(led, encoding="utf-8").read():
             print("★待重锚 §1 锚点副本 (前移到台账链头)")
             if args.apply:
-                os.makedirs(BAK_DIR, exist_ok=True)
-                shutil.copy2(led, os.path.join(BAK_DIR, "SW_MD5_BASELINE_LEDGER.md.bak_%s"
+                bak_dir = os.path.join(root, BAK_DIR_REL)
+                os.makedirs(bak_dir, exist_ok=True)
+                shutil.copy2(led, os.path.join(bak_dir, "SW_MD5_BASELINE_LEDGER.md.bak_%s"
                                               % time.strftime("%Y%m%d-%H%M%S")))
                 open(led, "w", encoding="utf-8").write(new_led)
                 print("  ★已写盘")

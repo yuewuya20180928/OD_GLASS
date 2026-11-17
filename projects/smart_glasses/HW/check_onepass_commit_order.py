@@ -59,6 +59,8 @@ PROJ = os.path.dirname(HERE)
 # ★★ISS-283 · ⑩-b: 落表台账的 md5 注册表 (★D0 的网表/脚表/BOM 基线走「落表台账为准」★) ★★
 sys.path.insert(0, HERE)
 import landing_md5
+# ★★ISS-297 · 2026-11-17 20:2x (hw-lead): HW 侧「合法改板」通道 (★共用判决库·不许自己再写一份★)
+import board_reboard                                          # noqa: E402
 
 # ★默认相对路径 (★相对 --root★)
 REL = {
@@ -278,36 +280,55 @@ def judge_d3(lines: list[str]):
 
 
 def judge_d4(root: str, paths: dict, baseline: dict, changes: list):
-    """★D4: 盘上板 md5 == 台账最后一次登记的板 md5 (变更区 0 行时 == 基线 md5)★"""
+    """★D4: 盘上板 md5 == 判决源 (★落表台账链头 + 合法改板通道★)★
+
+    ★★ISS-297 · 2026-11-17 20:2x (hw-lead) · 照 ISS-284 已跑通的口径·一个字都不许自创★★
+      ★判据方向一字未变 (★盘上 ≠ 判决源 ⇒ 红★); ★变的只是【判决源】:
+        「硬钉常量 / 单台账取值」 → 「落表台账链头 + 锚点四项原子映射 (reboard)」★
+      ★`reboard: null` (还没发生过合法改板) ⇒ ★仍按纯 md5 硬保护判 (盘上 ≠ 基线 ⇒ 红)★ ★
+      ★fail-closed 三条一条不许动 (★链头不唯一 / 链断 / 链头无单号 ⇒ 仍红★) ★
+      ★★交叉对账 (★不许把判据放松成「取最近一条就绿」★): 本闸自己的板 md5 台账
+        (BOARD_ONEPASS_MD5_LEDGER.md · D5/D6 用的那本) 若已记了变更, ★它的改后 md5
+        必须 == 落表台账链头 ⇒ 两本台账对不上 ⇒ 红★★
+    """
     pcb = paths["pcb"]
     if not os.path.exists(pcb):
         return False, "找不到板文件 %s" % pcb
     cur = md5_of(pcb)
+    res = board_reboard.check_file(root, board_reboard.PCB_REL, pcb,
+                                   PROTECTED_5["板"], md5fn=md5_of)
+    if not res["ok"]:
+        return False, ("★盘上板 md5 %s ⇒ %s★" % (cur, res["msg"]))
+    head = res["head"]
     if changes:
-        registered = changes[-1]["after"]
-        where = "变更区最后一行 (★%s · 第 %s 次变更★) 的改后 md5" % (changes[-1]["issue"], changes[-1]["seq"])
+        local_after = changes[-1]["after"]
+        if local_after != head:
+            return False, ("★盘上板 md5 %s == 落表台账链头 %s, 但本闸的板 md5 台账变更区最后一行登记的是 %s "
+                           "⇒ 两本台账对不上 ⇒ 判红★" % (cur, head, local_after))
+        where = "落表台账链头 %s (★本闸板 md5 台账变更区登记一致★)" % head
     else:
-        registered = baseline.get("baseline_md5", "")
-        where = "台账基线 md5 (★变更区 0 行 = 板至今没变过★)"
-    if cur == registered:
-        return True, "盘上板 md5 %s == %s ⇒ 盘面与台账一致" % (cur, where)
-    return False, ("盘上板 md5 = %s ≠ %s = %s ⇒ 有人绕过本单改了板 (★未登记台账★)"
-                   % (cur, where, registered))
+        where = ("落表台账链头 %s (★合法改板·四项齐全★)" % head if res["reboarded"]
+                 else "保护基线 %s (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★)" % head)
+    return True, "盘上板 md5 %s == %s ⇒ 盘面与台账一致" % (cur, where)
 
 
 def judge_d4b(root: str, paths: dict, baseline: dict):
-    """★D4b: 盘上 .kicad_pro md5 == 台账基线登记的 .kicad_pro md5★"""
+    """★D4b: 盘上 .kicad_pro md5 == 判决源 (★落表台账链头 + 合法改板通道★)★
+
+    ★★ISS-297 · 2026-11-17 20:2x (hw-lead)★★: 与 D4 同一口径 ·
+      ★`reboard: null` ⇒ 仍按纯 md5 硬保护判 (盘上 ≠ 基线 3e504d2b… ⇒ 红) ★
+      ★fail-closed 三条一条不许动 ★
+    """
     pro = paths["pro"]
     if not os.path.exists(pro):
         return False, "找不到 .kicad_pro %s" % pro
     cur = md5_of(pro)
-    registered = baseline.get("baseline_pro_md5", "")
-    if not registered:
-        return False, "台账 BASELINE 区缺 baseline_pro_md5"
-    if cur == registered:
-        return True, "盘上 .kicad_pro md5 %s == 台账基线登记值 ⇒ 未被绕过改动" % cur
-    return False, ("盘上 .kicad_pro md5 = %s ≠ 台账基线 %s ⇒ .kicad_pro 被绕过本单改动"
-                   % (cur, registered))
+    res = board_reboard.check_file(root, board_reboard.PRO_REL, pro,
+                                   PROTECTED_5[".kicad_pro"], md5fn=md5_of)
+    if not res["ok"]:
+        return False, ("★盘上 .kicad_pro md5 %s ⇒ %s★" % (cur, res["msg"]))
+    return True, ("盘上 .kicad_pro md5 %s == %s ⇒ 未被绕过改动"
+                  % (cur, res["msg"]))
 
 
 def judge_d5(changes: list, baseline: dict, ledger_errors: list):
@@ -630,6 +651,29 @@ def run_selftest(root: str):
         else:
             cases.append(("⑪ ★历史对照: 跳过 (★找不到 logs/iss280/workpacket_BEFORE_iss280.md★)", True, ""))
 
+        # ── ★★ISS-297 · ⑯ 「合法改板」通道的反向用例 (★沙盒跑·真盘零写·判决源 = 落表台账链头★) ──
+        #   ★机制: `HW/board_reboard.py` 的 CASES (★照 ISS-284 已跑通的口径·不许自创★) ★
+        #   ★每条都【真跑本闸】(★--root 指向沙盒★) ⇒ 判据变红/变绿都必须是本闸自己的结论 ★
+        #   ★① 合法改板 ⇒ 绿 ② 只改基线没台账记录 ⇒ 红 ③ 四项缺一 ⇒ 红 ④ 盘上 ≠ 记录里的新 md5 ⇒ 红
+        #     ⑤ 链头不唯一 / 链断 / 链头无单号 ⇒ 红 (★fail-closed 三条一条不许动★) ★
+        ch_cases = []
+
+        def ch_prepare(sb):
+            """★把本闸要读的东西铺进沙盒 (★board_reboard 只拷通道那 4 件★) ★"""
+            for key in ("workpacket", "commit_order", "netlist", "pins", "bom"):
+                src = os.path.join(root, REL[key])
+                d = os.path.join(sb, REL[key])
+                os.makedirs(os.path.dirname(d), exist_ok=True)
+                shutil.copy2(src, d)
+
+        def ch_judge(sb):
+            rc, out = _run_gate(sb)
+            return rc == 0, ("★本闸 rc=%d★ · %s" % (rc, out))
+
+        for _name, _exp, _got, _note in board_reboard.run_cases(
+                root, os.path.join(tmpd, "iss297_channel"), ch_judge, prepare=ch_prepare):
+            ch_cases.append(("★ISS-297★ " + _name, _exp == _got, _note))
+
     finally:
         shutil.rmtree(tmpd, ignore_errors=True)
 
@@ -650,6 +694,25 @@ def run_selftest(root: str):
         print("  ❌ 有反向用例没抓到 ⇒ 闸不是判据 (或用例本身写错了)")
         return 1
     print("  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没★)")
+
+    # ★★ISS-297 · ⑯ 「合法改板」通道反向用例 (★10 条·判决源 = 落表台账链头 + 四项原子映射★) ★★
+    print("=" * 78)
+    print("  ★★ISS-297 · ⑯ 「合法改板」通道反向用例 (%d 条·判决源 = 落表台账链头 + 四项原子映射★)" % len(ch_cases))
+    print("=" * 78)
+    bad_ch = 0
+    for name, passed, info in ch_cases:
+        if not passed:
+            bad_ch += 1
+        print("  %s %s" % ("✔" if passed else "✘", name))
+        print("       %s" % info)
+    print("-" * 78)
+    print("  ⇒ 通道用例: %d/%d 通过 · 合计 %d/%d"
+          % (len(ch_cases) - bad_ch, len(ch_cases),
+             (len(reverse) - bad) + (len(ch_cases) - bad_ch), len(reverse) + len(ch_cases)))
+    if bad_ch:
+        print("  ❌ 有通道反向用例没抓到 ⇒ 通道判据是摆设 ⇒ 闸不算数")
+        return 1
+    print("  ✅ 通道反向用例全抓到 ⇒ 「合法改板」当天不会再集体假红, 且没背书照样红★")
     return 0
 
 

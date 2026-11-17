@@ -15,18 +15,48 @@ ISS-279 · 「板只改一次」那一趟的【SW 侧板侧输入收口闸】
   W4 覆盖度      : ★本闸核心★ —— ①~⑧ 八条一个不缺 (★漏一条即红★)
                     + 反向: 每条 `source_iss` 必须落在来源单全集里 (★不许有来源不明的项★)
   W5 现状一致    : ★标 [实测] 的现状值必须与盘面实测一致★ (★改了盘面没改清单 = 清单过期 = 当场红★)
-  W6 受保护 5 件 : 板 / .kicad_pro / 网表 / 脚表 / BOM 的 md5 逐字节不变
-                    + ★SW 台账 §1 锚点块里那两个 md5 一个字节没动★ (★「不许手改 md5 凑绿」由这条兜住★)
+  W6 受保护 5 件 : ★基线口径 = 【可追溯的真源】, 不是【字面量】★ ⇒ 合法落表自动前移 · 偷换照样红
+                    (a) ★★【ISS-298 · 2026-11-17 19:2x · sw-lead】★★ 硬保护两件 (板 / .kicad_pro)
+                        = 【合法改板通道】⇒ ★**判据本体逐字照搬权威闸**
+                          `SW/tools/check_demo_panel_spec.py` 的 `check_r6_hard_protected()`
+                          (★那个文件本单一个字都没改 · 本闸只【只读调用】★) ★
+                        ⇒ ① 保护基线自证: 锚点里的基线 md5 必须能在落表台账里与该文件【同行】查到
+                          (★只改锚点里的 md5 而台账没记 ⇒ 红★ · 挖坑那条路必须堵死★)
+                        ⇒ ② 台账里该文件没有变更行 ⇒ 不许有 reboard 记录; 且盘上 md5 必须 == 基线
+                          (★`reboard: null` = 还没发生过合法改板 ⇒ 纯 md5 硬保护, 一条不许松★)
+                        ⇒ ③ 台账里有变更行 ⇒ 链头唯一 / 链不断 / 链头有单号 (★fail-closed 三条★)
+                          ⇒ 锚点必须带 reboard 四项原子记录 (★缺一 ⇒ 红★) ⇒ 四项与台账链头逐字对上
+                          ⇒ 保护基线必须留在链尾 ⇒ 盘上 md5 必须 == 台账链头
+                          (★判据方向不许变: 盘上 ≠ 链头 ⇒ 红 · 合法改板只让【链头前移】★)
+                        ⇒ ④ 同组受保护件覆盖: 一次合法改板必须覆盖同组全部件 (★只来一条 ⇒ 红★)
+                    (b) 台账链头三件 (网表 / 脚表 / BOM): 基线 = 落表台账【链头】 (★口径不变★)
+                        ⇒ 合法落表自动前移 (★ISS-283 已落 ⇒ 绿★) · 盘上 ≠ 链头 ⇒ 红 (★偷换真源照样红★)
+                        ⇒ 链头取不准 (不唯一/断链/无单号) ⇒ 红 (★fail-closed, 一条都不许放宽★)
+                    (c) ★SW 台账 §1 锚点块里那两个 md5 一个字节没动★ (★「不许手改 md5 凑绿」由这条兜住★)
+                        (★★这条是【锚点本体的防篡改报警】, 不再是「盘上是否合法」的判决源★
+                          ⇒ (a) 的判决源 = 落表台账链头 + reboard 四项原子映射 ★)
+                    (d) ★5 件的盘上 md5 都必须在落表台账里查得到 (★第三方见证★) ⇒ 只改不落表 ⇒ 红 ★
 
 ★**★W4 是本单的核心判据**: ★**「那一趟改了板, SW 侧会漂的那几处」一条都不能漏** ★
 ★**★W6 的第二条 (锚点块两个 md5) 是 ISS-273 / ISS-275 花大力气堵掉的「悄悄换真源」漏洞的兜底** ★
+★★**W6 的【硬保护两件】换源 (★2026-11-17 19:2x · ISS-298 · sw-lead★)**: ★**判决源从「字面基线」
+换成【落表台账链头 + 合法改板四项原子映射】** ⇒ ★**判据方向一个字没变** (★盘上 ≠ 链头 ⇒ 红★
+⇒ ★合法改板只让【链头前移】, 不是把判据放松 ★) ⇒ ★**fail-closed 三条一条没动** ★
+★★**W6 的基线口径订正 (★2026-11-17 17:4x · ISS-279 收口轮★)**: ★**原实现把 5 件的 md5 写成【字面基线】
+⇒ 2026-11-17 12:30:23 ISS-283 合法落表后, 网表/脚表/BOM 三件依法前移 ⇒ W6 变成【假红机器】
+⇒ 而【假红机器】正是本单要治的病 (★ISS-275 就是把「锚点过期 = 假红」切断的那一单★)
+⇒ 改法 (★不是把判据放松, 是把基线从【字面量】换成【可追溯的真源】★):
+  ★合法落表/合法改板 只应让【链头自动前移】, 不许让判据变松 (★红线 2★)
+  ★「取不准」一律 fail-closed (★红线 3★) ★
+  ★⇒ 改完之后本闸仍是【偷换真源照样红】, 且不再对合法落表假红 ★** ★
 
 退出码: 0 = 全过 · 1 = 有不通过项 · 2 = 用法错
 用法:
   python3 SW/tools/check_onepass_sw_sync.py            # 主模式
-  python3 SW/tools/check_onepass_sw_sync.py --selftest  # 反向用例 (≥6 条, 每条自证改到了目标)
+  python3 SW/tools/check_onepass_sw_sync.py --selftest  # 反向用例 (≥16 条, 每条自证改到了目标)
   ★自检用 env 覆盖★: SW_SYNC_CHECKLIST / SW_SYNC_PCB / SW_SYNC_PRO /
-                     SW_SYNC_NETLIST / SW_SYNC_PINS / SW_SYNC_BOM / SW_SYNC_LEDGER
+                     SW_SYNC_NETLIST / SW_SYNC_PINS / SW_SYNC_BOM / SW_SYNC_LEDGER /
+SW_SYNC_LANDING (★落表台账路径 · 沙盒跑「合法落表 ⇒ 链头前移」/「合法改板」那一支用★)
 """
 from __future__ import annotations
 
@@ -46,6 +76,9 @@ CHECKLIST = (os.environ.get("SW_SYNC_CHECKLIST")
              or os.path.join(PROJ, "SW", "BOARD_ONEPASS_SW_SYNC.md"))
 LEDGER = (os.environ.get("SW_SYNC_LEDGER")
           or os.path.join(PROJ, "SW", "SW_MD5_BASELINE_LEDGER.md"))
+# ★落表台账 (★append-only 的信任边界 · ★W6 第三条用: 盘上必须是台账记过的状态★)
+LANDING_LEDGER = (os.environ.get("SW_SYNC_LANDING")
+                  or os.path.join(PROJ, "HW", "SCHEMATIC_LANDING_V1_LANDED.md"))
 
 FIELDS = ("id", "source_iss", "title", "current_state", "action",
           "criterion", "step", "blocked_by", "evidence")
@@ -63,25 +96,71 @@ SOURCES = {"ISS-225", "ISS-234", "ISS-241", "ISS-244", "ISS-266", "ISS-269",
            "ISS-278", "ISS-279"}
 
 # ★台账 §1 锚点块里那两个 md5 的基线 (★W6 第二条: 一个字节不许动 ★)
+# ★★【ISS-298 · 2026-11-17 · sw-lead】★★ ★**本闸自带的【锚点防篡改副本】**★
+#   ★**角色已改** (★它不再是「盘上是否合法」的判决源★):
+#     - 【判决源】= 落表台账链头 + 合法改板四项原子映射 (★见 W6 (a) 四条判据 ★)
+#     - 【本副本】= ★**只**盯住「锚点块里的保护基线 md5 有没有被手改」★
+#       ⇒ ★单改锚点里的 md5 (★挖坑 / 锚点被同步改成旧值 ★) ⇒ 照红 ★
+#   ★**为什么留这一份**: 合法改板只让【链头前移】, 锚点里的 `md5:` 字段【永远不许改】
+#     (★ISS-284 语义★) ⇒ 这份副本【永远不会过期】⇒ 留着它=判据强度只增不减 ★
 ANCHOR_MD5 = {
     "HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",
     "HW/PCB/demo_mainboard.kicad_pro": "3e504d2be83152e337949723e909be1b",
 }
 
+# ★★【ISS-298】★★ 硬保护两件在锚点块里登记的【文件名】→ 本闸用来定位盘上文件的 env 键
+#   (★判决源 = SW 台账 §1 锚点块 `hard_protected[]` · 本闸只按文件名找盘上文件 ★)
+HARD_REL_ENV = {
+    "HW/PCB/demo_mainboard.kicad_pcb": "SW_SYNC_PCB",
+    "HW/PCB/demo_mainboard.kicad_pro": "SW_SYNC_PRO",
+}
+
+# ★★【ISS-298】★★ 沙盒里用的两个相对路径 (★与权威闸常量一致 ★)
+SW_BOARD_REL = "HW/PCB/demo_mainboard.kicad_pcb"
+SW_PRO_REL = "HW/PCB/demo_mainboard.kicad_pro"
+# ★假单号 (★不许硬编码任何真单号 ★ —— 真单号只该出现在落表台账里 ★)
+SW_TICKET_A = "ISS-9901"
+SW_TICKET_B = "ISS-9902"
+
+
+def ledger_path():
+    """★SW 台账路径 (★每次重读 env ⇒ --selftest 能在运行中换路径 ★)"""
+    return os.environ.get("SW_SYNC_LEDGER") or LEDGER
+
+
+def landing_ledger_path():
+    """★落表台账路径 (★每次重读 env ⇒ --selftest 能在运行中换路径 ★)"""
+    return os.environ.get("SW_SYNC_LANDING") or LANDING_LEDGER
+
 
 def protected_map():
-    """★受保护 5 件 (★每次调用都重读 env ⇒ --selftest 能在运行中换路径 ★)"""
+    """★受保护 5 件 (★每次调用都重读 env ⇒ --selftest 能在运行中换路径 ★)
+
+    ★★【ISS-279 · 2026-11-17 17:4x · 追加式修订】★★ 网表 / 脚表 / BOM 三件的基线
+    **不再硬编码** ⇒ ★★改为「盘上 md5 必须在落表台账里查到」(★W6 第三条★) ⇒
+      ① ★**合法落表后自动跟随 (链头前移), 不必手工重锚本闸的基线** ★ (★这正是本单 §4.3
+         红线第 2 条要求的: 合法变更只应让【链头自动前移】, 不是让判据变松★)
+      ② ★**偷换真源 (改了但没落表记录) ⇒ 盘上 md5 查不到 ⇒ 照样红** ★ (★红线第 1 条不受影响★)
+      ③ ★**硬保护两件 (板 / `.kicad_pro`) 仍是纯 md5 硬保护, 基线一个字节不许动** ★
+    ⇒ ★**为什么改: 2026-11-17 12:30 ISS-283 合法落表 (V 值拍板即落) 把网表 / 脚表 / BOM 的
+      md5 合法前移了 ⇒ 本闸若继续钉死 07:4x 的旧基线, 就会【合法落表也红】⇒ 那才是把判据
+      变松的反面 (把门禁变成恒红的假红) ⇒ ★**判据方向不许变: 盘上 ≠ 台账记过的状态 ⇒ 红** ★
+    ⇒ ★**留痕**: 见 SW 台账 §3 **R-13** ★
+
+    ★★【ISS-298 · 2026-11-17 19:2x · sw-lead】★★ ★**硬保护两件 (板 / `.kicad_pro`) 的基线
+      也不再写死在本闸里** ⇒ ★**判决源 = 【落表台账链头 + 合法改板四项原子映射】** ★
+      (★口径逐字照搬权威闸 `check_demo_panel_spec.py` 的 `check_r6_hard_protected()` ★)
+      ⇒ ★**为什么改**: 「字面基线」写在两个地方 (闸 + 锚点) ⇒ 迟早漏一处 ⇒
+        ★ISS-284 已把合法改板做成【台账链头 + reboard 四项原子映射】★ ⇒ 判据跟着台账走 ★
+      ⇒ ★**本函数现在只给【盘上路径】** (★基线由锚点块 + 落表台账给 ★) ★
+    ⇒ ★**留痕**: 见交卷单 `HANDOFF/2026-11-17_sw-lead_ISS298_合法改板通道.md` §1 ★
+    """
     return {
-        "板": (os.environ.get("SW_SYNC_PCB") or os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb"),
-               "611b869e13518c3c023fb178f91a0075"),
-        ".kicad_pro": (os.environ.get("SW_SYNC_PRO") or os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pro"),
-                       "3e504d2be83152e337949723e909be1b"),
-        "网表": (os.environ.get("SW_SYNC_NETLIST") or os.path.join(PROJ, "HW", "netlist_v1.csv"),
-                 "e06c1dd633566aa44732762c2ff99d1c"),
-        "脚表": (os.environ.get("SW_SYNC_PINS") or os.path.join(PROJ, "HW", "netlist_v1_pins.csv"),
-                 "287e7861a0d1007748d92d9fbecdd490"),
-        "BOM": (os.environ.get("SW_SYNC_BOM") or os.path.join(PROJ, "HW", "BOM_v1.csv"),
-                "94642d07a69e8d60dd2af57f69b93607"),
+        "板": os.environ.get("SW_SYNC_PCB") or os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb"),
+        ".kicad_pro": os.environ.get("SW_SYNC_PRO") or os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pro"),
+        "网表": os.environ.get("SW_SYNC_NETLIST") or os.path.join(PROJ, "HW", "netlist_v1.csv"),
+        "脚表": os.environ.get("SW_SYNC_PINS") or os.path.join(PROJ, "HW", "netlist_v1_pins.csv"),
+        "BOM": os.environ.get("SW_SYNC_BOM") or os.path.join(PROJ, "HW", "BOM_v1.csv"),
     }
 
 
@@ -281,19 +360,184 @@ def check_W5(items):
                 % (len(PROBES), "✔" if ok else "❌")] + ["     ❌ %s" % b for b in bad]
 
 
+# ★★【ISS-279 · 2026-11-17 17:5x · 追加式收严】★★★ 台账链头三件的【链头判据】★★
+#   ★**为什么在「台账里查得到」之上再加一层**: ★**「在台账里查得到」只证明【这个 md5 曾经合法出现过】,
+#     不证明【它就是当前该在的那一个】** ⇒ ★**把网表回退到落表前的旧版本 (那个 md5 也在台账里) ⇒
+#     上面的判据会放行 ⇒ ★**那就是一个新的假绿** ★
+#   ★**所以加链头判据**: ★盘上 md5 必须 == 落表台账【链头】★ ⇒ ★回退 ⇒ 红★ ⇒ ★偷换 ⇒ 红★
+#     ⇒ ★合法落表 ⇒ 链头前移 ⇒ 绿★ (★判据方向一个字没变, 只是判得更准 ★)
+#   ★**fail-closed 一条都不许放宽**: 链头不唯一 / 链断 / 链头没有落表单号 ⇒ 一律红 ★
+#   ★**口径不复制**: 链头算法直接用权威闸 `SW/tools/check_demo_panel_spec.py` 的那一份 (★只读 import★)
+#     ⇒ ★**两个闸对同一个盘面不会给出不同答案** (★口径漂移 = 判据失效★) ★
+CHAIN_FILES = (
+    ("网表", "HW/netlist_v1.csv", "SW_SYNC_NETLIST"),
+    ("脚表", "HW/netlist_v1_pins.csv", "SW_SYNC_PINS"),
+    ("BOM", "HW/BOM_v1.csv", "SW_SYNC_BOM"),
+)
+
+_CDPS = None
+_CDPS_TRIED = False
+
+
+def cdps():
+    """★载入 `SW/tools/check_demo_panel_spec.py` (★只读 import · 本单一个字都没改那个文件★)。
+
+    ★读不到 ⇒ 返回 None ⇒ W6 判红 (★fail-closed, 不许静默跳过★)。
+    """
+    global _CDPS, _CDPS_TRIED
+    if _CDPS_TRIED:
+        return _CDPS
+    _CDPS_TRIED = True
+    try:
+        import importlib.util
+        path = os.path.join(HERE, "check_demo_panel_spec.py")
+        spec = importlib.util.spec_from_file_location("_cdps_iss279", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _CDPS = mod
+    except Exception:                       # ★读不到 ⇒ fail-closed ★
+        _CDPS = None
+    return _CDPS
+
+
+def _symlink_or_copy(src, dst):
+    """★符号链接优先 (★4.9 MB 的板不许拷 ★) · 链接不成 ⇒ 退回复制 ★"""
+    try:
+        os.symlink(os.path.abspath(src), dst)
+        return True
+    except OSError:
+        try:
+            shutil.copy2(src, dst)
+            return True
+        except OSError:
+            return False
+
+
+def build_virtual_root(mod):
+    """★搭一棵【虚拟根】给权威闸的 `check_r6_hard_protected(root, ...)` 用 ★
+
+    ★**为什么搭**: 权威闸那份判据按【项目根】找文件 (① `SW/SW_MD5_BASELINE_LEDGER.md`
+      ② `HW/PCB/demo_mainboard.kicad_pcb` / `.kicad_pro`) ⇒ 本闸在沙盒里跑反向用例时
+      盘上文件路径由 env 覆盖 ⇒ ★搭一棵【符号链接虚拟根】把权威闸的路径口径接上 ★
+    ★**为什么这么搭 (★不重写判据★)**: ★**判据本体一个字都不重写** ⇒ 直接调用权威闸那份
+      `check_r6_hard_protected()` ⇒ ★两个闸对同一个盘面永远给同一个答案 (★口径不漂移★) ★
+    ★**零写板**: 链接只指不写 ⇒ ★真盘那 5 件受保护文件一个字节都不会被动 ★
+    ★返回 (虚拟根路径, 锚点 dict 或 None, 原因) ★
+    """
+    tmp = tempfile.mkdtemp(prefix="iss298_vroot_")
+    try:
+        os.makedirs(os.path.join(tmp, "SW"), exist_ok=True)
+        os.makedirs(os.path.join(tmp, "HW", "PCB"), exist_ok=True)
+        _symlink_or_copy(ledger_path(), os.path.join(tmp, mod.LEDGER_DOC))
+        _symlink_or_copy(landing_ledger_path(), os.path.join(tmp, mod.LEDGER_CANON))
+        anchors, err = mod.load_sw_anchor(tmp)
+        if anchors is None:
+            return tmp, None, err
+        for e in (anchors.get("hard_protected") or []):
+            rel = str(e.get("file") or "")
+            if not rel:
+                continue
+            env_key = HARD_REL_ENV.get(rel)
+            src = (os.environ.get(env_key) if env_key else None) or os.path.join(PROJ, rel)
+            dst = os.path.join(tmp, rel)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            if os.path.exists(src):
+                _symlink_or_copy(src, dst)
+        return tmp, anchors, ""
+    except Exception:
+        shutil.rmtree(tmp, ignore_errors=True)
+        raise
+
+
 def check_W6():
     ok, bad = True, []
-    for name, (path, base) in protected_map().items():
+    pmap = protected_map()
+    # ---- 第三条 (★现在叫 (d)★): 落表台账文本 (★append-only 的信任边界★) ----
+    led_txt = ""
+    landing = landing_ledger_path()
+    if os.path.exists(landing):
+        led_txt = read_text(landing)
+    else:
+        ok = False
+        bad.append("落表台账读不到: %s ⇒ 无从对账 (fail-closed)" % landing)
+    for name, path in pmap.items():
         if not os.path.exists(path):
             ok = False
             bad.append("%s 不存在: %s" % (name, path))
             continue
         cur = md5(path)
-        if cur != base:
+        # ★★★【2026-11-17 17:4x · ISS-279 收口轮 · 追加式修订】★★★ ★基线口径 = 【可追溯的真源】,
+        #   不是【字面量】★★ ⇒ 5 件一律: ★**盘上 md5 必须在落表台账里查到** ★
+        #   ⇒ 合法落表 (如 2026-11-17 12:30:23 ISS-283) / 合法改板 ⇒ 自动跟随 (链头前移) ⇒ 绿
+        #   ⇒ 改了却没落表记录 (偷换真源) ⇒ 查不到 ⇒ 红
+        #   ⇒ ★**硬保护两件的合法性 (单号背书 / 同组覆盖 / fail-closed) 由权威闸
+        #      `SW/tools/check_demo_panel_spec.py` 的 R6 判 (★ISS-284 的 reboard 机制★)
+        #      ⇒ 本闸【不自造第二套合法改板判据】, 只保证「盘上必须是台账记过的状态」+「锚点没被手改」★
+        if led_txt and not (cur in led_txt or cur[:12] in led_txt):
             ok = False
-            bad.append("%s md5 %s ≠ 基线 %s" % (name, cur, base))
-    # ---- 第二条: SW 台账 §1 锚点块里那两个 md5 一个字节不许动 (★不许手改 md5 凑绿 ★) ----
-    led = os.environ.get("SW_SYNC_LEDGER") or LEDGER
+            bad.append("%s md5 %s 在落表台账 (%s) 里查不到 ⇒ 改了却没落表记录 "
+                       "(★悄悄换真源 = 红★ · 合法落表自动前移 ⇒ 绿★)"
+                       % (name, cur, os.path.basename(landing)))
+    # ---- ★★【ISS-298 · 2026-11-17 · sw-lead】★★ 硬保护两件 (板 / `.kicad_pro`)
+    #      = 【合法改板通道】⇒ ★**判据本体逐字照搬权威闸** (★只读调用, 一个字节都没重写 ★)
+    #      ① 保护基线自证 · ② 无变更行 ⇒ 纯 md5 硬保护 · ③ 有变更行 ⇒ 链头 + reboard 四项
+    #      ④ 同组受保护件覆盖 (★fail-closed 三条在权威闸里, 一条不许放宽 ★)
+    mod = cdps()
+    if mod is None:
+        ok = False
+        bad.append("读不到权威闸 SW/tools/check_demo_panel_spec.py "
+                   "(合法改板 / 链头判据的唯一真源) ⇒ fail-closed")
+    else:
+        vroot = None
+        try:
+            vroot, anchors, err = build_virtual_root(mod)
+            if anchors is None:
+                ok = False
+                bad.append("读不到 SW 台账 §1 锚点块 ⇒ fail-closed: %s" % err)
+            else:
+                spec = os.path.basename(landing)
+                for f in mod.check_r6_hard_protected(vroot, anchors, led_txt, spec):
+                    ok = False
+                    bad.append(f)
+        except Exception as exc:
+            ok = False
+            bad.append("合法改板判据算不出来 (%s) ⇒ fail-closed" % exc)
+        finally:
+            if vroot:
+                shutil.rmtree(vroot, ignore_errors=True)
+    # ---- ★★第四条 (★2026-11-17 17:5x 追加式收严★): 台账链头三件 (网表 / 脚表 / BOM)
+    #      盘上 md5 必须 == 落表台账【链头】⇒ 回退旧版本也红 ⇒ 合法落表链头前移 ⇒ 绿 ★
+    if mod is not None and led_txt:
+        for name, rel, env_key in CHAIN_FILES:
+            path = os.environ.get(env_key) or os.path.join(PROJ, rel)
+            if not os.path.exists(path):
+                ok = False
+                bad.append("%s 不存在: %s" % (name, path))
+                continue
+            cur = md5(path)
+            try:
+                state = mod.sw_ledger_state(rel, led_txt)
+            except Exception as exc:
+                ok = False
+                bad.append("%s 链头算不出来 (%s) ⇒ fail-closed" % (name, exc))
+                continue
+            head = state.get("head")
+            if not head:
+                ok = False
+                bad.append("%s 落表台账链头取不准 (%s) ⇒ fail-closed (★不许放宽成「取最近一条」★)"
+                           % (name, state.get("why") or "无链头"))
+                continue
+            if not state.get("head_iss"):
+                ok = False
+                bad.append("%s 链头没有落表单号 ⇒ fail-closed" % name)
+                continue
+            if cur[:12].lower() != str(head)[:12].lower():
+                ok = False
+                bad.append("%s 盘上 md5 = %s ≠ 落表台账链头 = %s (产出单号 %s) ⇒ 真源被换了 / 被回退了"
+                           % (name, cur[:12], str(head)[:12], ",".join(state.get("head_iss") or [])))
+    # ---- 第二条: SW 台账 §1 锚点块里那两个 md5 一个字节不许动 (★不许手改 md5 凑绿 ★)
+    #      (★★【ISS-298】这条的【角色】= 锚点本体的防篡改报警, 不再是「盘上是否合法」的判决源 ★)
+    led = ledger_path()
     if not os.path.exists(led):
         ok = False
         bad.append("SW 台账不存在: %s" % led)
@@ -317,7 +561,9 @@ def check_W6():
                     ok = False
                     bad.append("台账 §1 锚点块里 %s 的 md5 = %s ≠ 基线 %s ⇒ 有人手改 md5 凑绿"
                                % (rel, got, want))
-    return ok, ["     受保护 5 件 md5 逐字节不变 + 台账 §1 锚点块两个 md5 未被手改: %s"
+    return ok, ["     受保护 5 件: 盘上 md5 必须在落表台账里查到 (合法落表自动前移 · 偷换照红) "
+                "+ 硬保护两件走【合法改板通道】(★台账链头 + reboard 四项原子映射 · 判据逐字照搬权威闸★) "
+                "+ 台账 §1 锚点块两个 md5 未被手改 (★不许手改 md5 凑绿★): %s"
                 % ("✔" if ok else "❌")] + ["     ❌ %s" % b for b in bad]
 
 
@@ -359,6 +605,123 @@ def write_variant(src_path, dst_path, mutate):
     return dst_path
 
 
+# ==============================================================================
+# ★★【ISS-298 · 2026-11-17 · sw-lead】★★ 合法改板通道 · 沙盒工具
+#   (★形状照抄权威闸 `SW/tools/check_demo_panel_spec.py --selftest` 的 REV-16~REV-21 ★)
+#   (★★真盘零写: 板 / 两份台账 全是临时目录里的拷贝, 真盘那 5 件受保护文件一个字节都不动 ★★)
+# ==============================================================================
+def _sb_board_copy(src, dst):
+    """★把板拷进沙盒并改一个字节 (★真盘一个字节都不许动 ★) ⇒ 返回新 md5 ★"""
+    shutil.copy2(src, dst)
+    with open(dst, "ab") as f:
+        f.write(b"\n# ISS-298 selftest: sandbox legal reboard (temp only)\n")
+    return md5(dst)
+
+
+def _sb_anchor_block(path):
+    """★取沙盒台账 §1 锚点块的 YAML dict ★"""
+    import yaml
+    txt = read_text(path)
+    m = re.search(r"#\s*BEGIN\s+SW_MD5_ANCHORS(.*?)#\s*END\s+SW_MD5_ANCHORS", txt, re.S)
+    if not m:
+        raise AssertionError("沙盒台账里找不到锚点块")
+    return yaml.safe_load(m.group(1)) or {}
+
+
+def _sb_anchor_base(path, rel):
+    """★沙盒台账锚点块里某件的【保护基线】 md5 ★"""
+    data = _sb_anchor_block(path)
+    for e in ((data.get("anchors") or {}).get("hard_protected") or []):
+        if str(e.get("file") or "") == rel:
+            return str(e.get("md5") or "")
+    raise AssertionError("锚点里没有 %s 的保护基线" % rel)
+
+
+def _sb_rewrite_anchor(path, fn):
+    """★只用于 selftest 沙盒: 改 SW 台账 §1 锚点块 (★真盘的锚点块不许这样整块重写 ★)"""
+    import yaml
+    txt = read_text(path)
+    m = re.search(r"#\s*BEGIN\s+SW_MD5_ANCHORS(.*?)#\s*END\s+SW_MD5_ANCHORS", txt, re.S)
+    if not m:
+        raise AssertionError("沙盒台账里找不到锚点块")
+    data = yaml.safe_load(m.group(1)) or {}
+    fn(data)
+    block = ("# BEGIN SW_MD5_ANCHORS\n"
+             + yaml.safe_dump(data, allow_unicode=True, sort_keys=False,
+                              default_flow_style=False)
+             + "# END SW_MD5_ANCHORS")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(txt[:m.start()] + block + txt[m.end():])
+
+
+def _sb_row(ticket, rel, prev, new, note="★**是** ★"):
+    """★落表台账行 (★格式契约: 单号 | 文件名 | 改前 md5 | 改后 md5 四项同行 ★)"""
+    return "| %s | `%s` | `%s` | `%s` | %s |" % (ticket, rel, prev, new, note)
+
+
+def _sb_rows_full_legal(base, new, pro_base):
+    """★合法改板的样子: 板一行变更 + `.kicad_pro` 一行「逐字节不变」, 同一单号 ★"""
+    return [_sb_row(SW_TICKET_A, SW_BOARD_REL, base, new, "★**是 (★合法改板·板只改一次★)** ★"),
+            _sb_row(SW_TICKET_A, SW_PRO_REL, pro_base, pro_base, "★**否 (★逐字节不变★)** ★")]
+
+
+def _sb_rows_two_heads(base, new, pro_base):
+    """★两条合法改板记录指向同一个文件 ⇒ 链头不唯一 ★"""
+    return [_sb_row(SW_TICKET_A, SW_BOARD_REL, base, new, "★**是 (★合法改板★)** ★"),
+            _sb_row(SW_TICKET_B, SW_BOARD_REL, base, "deadbeefdeadbeefdeadbeefdeadbeef",
+                    "★**是 (★第二跳·另一个头★)** ★"),
+            _sb_row(SW_TICKET_A, SW_PRO_REL, pro_base, pro_base, "★**否 (★逐字节不变★)** ★")]
+
+
+def _sb_rows_broken_chain(base, new, pro_base):
+    """★链断: 台账记的是 (base→中间→链头), 而锚点写的改前 md5 是 base ★"""
+    mid = "0123456789abcdef0123456789abcdef"
+    return [_sb_row(SW_TICKET_A, SW_BOARD_REL, base, mid, "★**是 (★上一跳★)** ★"),
+            _sb_row(SW_TICKET_A, SW_BOARD_REL, mid, new, "★**是 (★本跳·链头★)** ★"),
+            _sb_row(SW_TICKET_A, SW_PRO_REL, pro_base, pro_base, "★**否 (★逐字节不变★)** ★")]
+
+
+def _sb_rows_board_only(base, new, pro_base):
+    """★只改板不动 `.kicad_pro` ⇒ 两件的记录只来一条 ★"""
+    return [_sb_row(SW_TICKET_A, SW_BOARD_REL, base, new, "★**是 (★合法改板★)** ★")]
+
+
+def _sb_reboard(tmpd, mode="reboard", rows_fn=None):
+    """★在沙盒里做一次「合法改板」⇒ 返回 (env 覆盖表, 新板 md5, 基线 md5) ★
+
+    ★`mode`:
+      "reboard"  ⇒ 锚点写原子 reboard 四项 (★合法那一支 ★)
+      "md5_only" ⇒ 只改锚点里的 md5, 单号字段不写 (★挖坑那一支 ★)
+    ★真盘一个字节都不动: 板 / 两份台账全是临时目录里的拷贝 ★
+    """
+    board_src = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
+    board_sb = os.path.join(tmpd, "sb_board.kicad_pcb")
+    newmd5 = _sb_board_copy(board_src, board_sb)
+    led_sb = os.path.join(tmpd, "sb_sw_ledger.md")
+    shutil.copy2(ledger_path(), led_sb)
+    land_sb = os.path.join(tmpd, "sb_landing.md")
+    shutil.copy2(landing_ledger_path(), land_sb)
+    base = _sb_anchor_base(led_sb, SW_BOARD_REL)
+    pro_base = _sb_anchor_base(led_sb, SW_PRO_REL)
+
+    def _fn(data):
+        for e in (data.get("anchors") or {}).get("hard_protected") or []:
+            if e.get("file") != SW_BOARD_REL:
+                continue
+            if mode == "md5_only":
+                e["md5"] = newmd5          # ★只改 md5, 不写单号 ⇒ 挖坑 ★
+            else:
+                e["reboard"] = {"by": SW_TICKET_A, "file": SW_BOARD_REL,
+                                "prev_md5": base, "md5": newmd5}
+    _sb_rewrite_anchor(led_sb, _fn)
+    rows = rows_fn(base, newmd5, pro_base) if rows_fn else []
+    if rows:
+        with open(land_sb, "a", encoding="utf-8") as f:
+            f.write("\n" + "\n".join(rows) + "\n")
+    return ({"SW_SYNC_PCB": board_sb, "SW_SYNC_LEDGER": led_sb, "SW_SYNC_LANDING": land_sb},
+            newmd5, base)
+
+
 def run_selftest(checklist_path):
     tmpd = tempfile.mkdtemp(prefix="iss279_selftest_")
     cases = []
@@ -398,7 +761,7 @@ def run_selftest(checklist_path):
         cases.append(("④ 把板 md5 改错一位 ⇒ W5 红 (清单过期当场被抓)", ok is False))
 
         # ⑤ 改受保护 5 件之一 (板) ⇒ W6 红
-        pcb_src = protected_map()["板"][0]
+        pcb_src = protected_map()["板"]
         pcb_bad = os.path.join(tmpd, "board_bad.kicad_pcb")
         with open(pcb_bad, "w", encoding="utf-8") as f:
             f.write(read_text(pcb_src) + "\n; ★selftest 注入的一行 ★\n")
@@ -443,6 +806,65 @@ def run_selftest(checklist_path):
         write_variant(checklist_path, p, mut8)
         ok, _ = evaluate(p, only="W4")
         cases.append(("⑧ source_iss 改成来源不明 (ISS-999) ⇒ W4 红", ok is False))
+
+        # ⑨ 把网表【回退到落表前的旧版本】(★那个 md5 在落表台账里查得到 ⇒ 「在台账里查得到」放行它 ★)
+        #    ⇒ 靠【链头判据】抓 ⇒ W6 红 (★防「回退真源」这类假绿 ★)
+        old_net = os.path.join(PROJ, "state", ".bak_iss220", "HW_netlist_v1.csv.bak_iss220")
+        if os.path.exists(old_net):
+            oldmd5 = md5(old_net)
+            old = os.environ.get("SW_SYNC_NETLIST")
+            os.environ["SW_SYNC_NETLIST"] = old_net
+            ok, _ = evaluate(checklist_path, only="W6")
+            if old is None:
+                os.environ.pop("SW_SYNC_NETLIST", None)
+            else:
+                os.environ["SW_SYNC_NETLIST"] = old
+            cases.append(("⑨ 网表被回退到旧版本 (md5 %s · 在台账里查得到但不是链头) ⇒ W6 红"
+                          % oldmd5[:12], ok is False))
+        else:
+            cases.append(("⑨ 网表回退用例 ★跳过 (旧版备份不在盘上)★", True))
+
+        # ================================================================
+        # ★★【ISS-298 · 2026-11-17 · sw-lead】★★ 合法改板通道 · 6 条
+        #   (★形状照抄权威闸 `--selftest` 的 REV-16~REV-21 ★· 沙盒跑 · 真盘零写 ★)
+        #   (★每条都【自证改到了目标】★ ⇒ 真抓到那条判据才算数 ★)
+        # ================================================================
+        reboard_cases = [
+            ("⑩ 只改锚点里的板 md5, 单号字段没写 (★挖坑★)", False, "md5_only", None),
+            ("⑪ 锚点写了 reboard 四项, 但落表台账里查不到那一行", False, "reboard", None),
+            ("⑫ 台账里两条合法改板记录指向同一个文件 (链头不唯一)", False, "reboard",
+             _sb_rows_two_heads),
+            ("⑬ 链断 (改前 md5 对不上台账记的上一次改后 md5)", False, "reboard",
+             _sb_rows_broken_chain),
+            ("⑭ 只改板不动 .kicad_pro (两件记录只来一条)", False, "reboard", _sb_rows_board_only),
+            ("⑮ 合法改板: 台账四项齐全 + 锚点原子记录 ⇒ 放行 (★正向★)", True, "reboard",
+             _sb_rows_full_legal),
+        ]
+        for name, expect_green, mode, rows_fn in reboard_cases:
+            sub = tempfile.mkdtemp(prefix="iss298_rb_", dir=tmpd)
+            try:
+                envov, newmd5, base = _sb_reboard(sub, mode, rows_fn)
+            except Exception as exc:
+                cases.append(("★ISS-298★ %s ★用例本身坏了 (%s)★" % (name, exc), False))
+                continue
+            saved = dict((k, os.environ.get(k)) for k in envov)
+            os.environ.update(envov)
+            try:
+                ok, lines = evaluate(checklist_path, only="W6")
+            finally:
+                for k, v in saved.items():
+                    if v is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = v
+            hit = [l for l in lines if "R6 硬保护" in l]
+            if expect_green:
+                caught = (ok is True) and not hit
+                why = "W6 仍绿 (★合法改板四项齐全 = 放行★ · 板 md5 %s → 台账链头)" % newmd5[:12]
+            else:
+                caught = (ok is False) and bool(hit)
+                why = "W6 红 (%s)" % (hit[0].strip()[:64] if hit else "★没看到 R6 硬保护字样★")
+            cases.append(("★ISS-298★ %s ⇒ %s" % (name, why), caught))
 
         # ★基线: 真盘必须全绿 (否则上面那些红没意义)
         ok0, _ = evaluate(checklist_path)

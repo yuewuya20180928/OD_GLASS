@@ -14,9 +14,11 @@
     N1  ★**帧标签** —— S6 的 20 个目标位逐个带帧标签, 且帧 = `B160x100` (漏标一条 / 错帧 ⇒ 红)
     N2  ★**SoM 承载区零冲突** —— 20 个目标位 (按目标原点 + 该 ref 的 footprint 外形) 与 SoM 承载区
           (焊盘实体 + 封装外形 + 保守包络) 零冲突; 且规格页里的 SoM 三个口径必须与板读一致 (防文档漂移)
-    N3  ★**两条开口** —— 20 个目标位不得落在检修口开口 / 调试口开口矩形内 —— ★**两条分别验, 不许合并验**★
-          (机器块里必须恰好两条开口; 合并成一条 ⇒ 红); 每条开口按 h 三档逐档验
-    N4  ★**必清空区净距** —— 20 个目标位到两条「座体必须清空区」的最小净距 ≥ ★**CRIT (0.60, 取自既有 MECH 判据, 不许新造)**★
+    N3  ★**三条开口** —— 20 个目标位不得落在检修口开口 / 调试口开口 / ★**USB-C 边开口**★ 矩形内 ——
+          ★**三条分别验, 不许合并验**★ (机器块里必须恰好三条: 检修口 + 调试口 + USB-C 边开口; 合并成一条 ⇒ 红);
+          每条开口按 h 三档逐档验; ★**任意两条开口的矩形不许完全相同**★ (合并禁令靠这一条守, 不靠条数)
+    N4  ★**必清空区净距** —— 20 个目标位到三条「座体必须清空区」(调试口 / 检修口 / ★**USB-C 边开口**★) 的最小净距 ≥
+          ★**CRIT (0.60, 取自既有 MECH 判据, 不许新造)**★
           + 规格页里的 `consts.crit` 必须与既有判据逐字相等 (改了 ⇒ 红)
     N5  ★**座体三方对照表完整** —— §4 表里每个 `J_*` 行的四个字段 (BOM 规格 / 板读 land / 结构占位 / verdict) 都不许为空
           (★不许用「待定」糊过去★)
@@ -45,6 +47,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.abspath(os.path.join(HERE, ".."))
 
 SPEC_REL = os.path.join("MECH", "BOARD_ONEPASS_STRUCT_CROSSCHECK.md")
+# ★ISS-294: 边开口规格页 (★USB-C 边开口 `PORT_OPEN_USBC` 登记在那一页的机器块里;
+#   本页 (ISS-290 的交卷物) 一个字节不许动 ⇒ N3/N4 额外读那一页的机器块★)
+SPEC2_REL = os.path.join("MECH", "BOARD_ONEPASS_MECH_SYNC.md")
 CALIB_REL = os.path.join("HW", "PCB", "BOARD_FRAME_CALIBER.md")
 PCB_REL = os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb")
 MACH_BEGIN = "<!-- MACHINE-BLOCK-BEGIN -->"
@@ -52,6 +57,11 @@ MACH_END = "<!-- MACHINE-BLOCK-END -->"
 
 FRAME = "B160x100"
 N_S6 = 20
+# ★ISS-294: 开口 id 【集合】 (★恰好三条, 一条不少一条不多★) ——
+#   ★★合并禁令不靠【条数】守 (★靠【期望 id 集合 + 任意两条矩形不许完全相同】双守★) ★★
+EXPECTED_OPENING_IDS = ("PORT_OPEN_DEBUG", "PORT_OPEN_UART", "PORT_OPEN_USBC")
+# ★h 参照档 (★与 MECH_SYNC 机器块 consts.body_h_ref 同值★)
+H_REF = "2.54"
 
 # ★受保护 5 件 (★板/.kicad_pro 取自既有闸 CFC.PROTECTED ⇒ 零漂移; 网表/脚表/BOM 取自 ISS-290 任务书基线★) ★
 PROTECTED_LEDGER_MD5 = {
@@ -247,6 +257,19 @@ class Board(object):
         return out
 
     @staticmethod
+    def abs_pad_boxes(fp):
+        """★绝对焊盘铜箔外框 (封装原点 + 封装旋转)★"""
+        out = []
+        for p in fp["pads"]:
+            w, h = p["sw"], p["sh"]
+            if abs((p["prot"] + fp["rot"]) % 180.0 - 90.0) < 1e-6:
+                w, h = h, w
+            dx, dy = _rot(p["px"], p["py"], fp["rot"])
+            cx, cy = fp["x"] + dx, fp["y"] + dy
+            out.append((p["num"], cx - w / 2.0, cy - h / 2.0, cx + w / 2.0, cy + h / 2.0))
+        return out
+
+    @staticmethod
     def local_envelope(fp):
         """★封装局部坐标下 (F.Fab 外形 ∪ 焊盘铜箔) 外框 = 落位后的外形包络★"""
         pts = []
@@ -313,7 +336,7 @@ class Board(object):
             fp = by.get(r)
             if fp is None:
                 continue
-            for (_, x0, y0, x1, y1) in Board.pad_boxes(fp):
+            for (_, x0, y0, x1, y1) in Board.abs_pad_boxes(fp):
                 copper.extend([(x0, y0), (x1, y1)])
             loc = Board.local_fab(fp)
             if loc is None:
@@ -373,6 +396,37 @@ def read_spec(root):
     return data
 
 
+def read_spec2(root):
+    """★ISS-294: 读边开口规格页 (MECH/BOARD_ONEPASS_MECH_SYNC.md) 的机器块 —— 只读★"""
+    path = os.path.join(root, SPEC2_REL)
+    if not os.path.exists(path):
+        raise SystemExit(f"[check_onepass_struct_crosscheck] 找不到边开口规格页: {path}")
+    text = open(path, "r", encoding="utf-8").read()
+    b, e = text.find(MACH_BEGIN), text.find(MACH_END)
+    if b < 0 or e < 0:
+        raise SystemExit("[check_onepass_struct_crosscheck] 边开口规格页缺机器块标记")
+    m = re.search(r"```json\n(.*?)\n```", text[b:e], re.S)
+    if not m:
+        raise SystemExit("[check_onepass_struct_crosscheck] 边开口规格页机器块不是 ```json 围栏")
+    data = json.loads(m.group(1))
+    data["_text"] = text
+    return data
+
+
+def _norm_rect(o, h_ref=H_REF):
+    """★取一条开口的 h_ref 档矩形 (x0, y0, x1, y1); 没有 tiers 时退回它自己的 rect★"""
+    t = (o.get("tiers") or {})
+    if t:
+        cand = t.get(h_ref) or t.get(sorted(t.keys())[0])
+        r = (cand or {}).get("open_rect")
+        if r:
+            return (float(r["x0"]), float(r["y0"]), float(r["x1"]), float(r["y1"]))
+    r = o.get("rect")
+    if r:
+        return (float(r["x0"]), float(r["y0"]), float(r["x1"]), float(r["y1"]))
+    return None
+
+
 def read_s6_targets(root):
     path = os.path.join(root, CALIB_REL)
     if not os.path.exists(path):
@@ -391,6 +445,11 @@ def md5_of(path):
         for chunk in iter(lambda: fh.read(1 << 16), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def _cell_ref(cell):
+    m = re.search(r"`([^`]+)`", cell or "")
+    return m.group(1) if m else (cell or "").strip()
 
 
 def _md_table_rows(text, header_needles):
@@ -434,7 +493,11 @@ def check_n1(root, spec, calib):
             errs.append(f"N1 S6 目标位 {t.get('ref')} 的帧标签 = {f!r} (期望 {FRAME!r})")
     # ★规格页 §3 表: 20 行逐个带帧标签 ★
     tbl = _md_table_rows(spec["_text"], ["`ref`", "`frame`", "`target_x`", "`verdict`"])
-    tmap = {r[0].strip("`"): r for r in tbl}
+    tmap = {}
+    for cells in tbl:
+        ref = _cell_ref(cells[0])
+        if ref:
+            tmap[ref] = cells
     for t in targets:
         ref = t.get("ref")
         if ref not in tmap:
@@ -471,11 +534,11 @@ def check_n2(root, spec, calib, board):
             errs.append(f"N2 机器块缺保留区 {zid}")
             continue
         g = z.get("geometry") or {}
-        doc = (float(g.get("x0", 1e9)), float(g.get("x1", -1e9)),
-               float(g.get("y0", 1e9)), float(g.get("y1", -1e9)))
+        doc = (float(g.get("x0", 1e9)), float(g.get("y0", 1e9)),
+               float(g.get("x1", -1e9)), float(g.get("y1", -1e9)))
         rd_ = read[key]
-        for a, b, nm in ((doc[0], rd_[0], "x0"), (doc[1], rd_[2], "x1"),
-                         (doc[2], rd_[1], "y0"), (doc[3], rd_[3], "y1")):
+        for a, b, nm in ((doc[0], rd_[0], "x0"), (doc[1], rd_[1], "y0"),
+                         (doc[2], rd_[2], "x1"), (doc[3], rd_[3], "y1")):
             if abs(a - b) > 0.002:
                 errs.append(f"N2 规格页 {zid}.{nm} = {a} 与板读 {b} 不一致 (文档漂移)")
     # --- 20 个目标位零冲突 ---
@@ -493,7 +556,7 @@ def check_n2(root, spec, calib, board):
             if z is None:
                 continue
             g = z.get("geometry") or {}
-            r = (float(g["x0"]), float(g["x1"]), float(g["y0"]), float(g["y1"]))
+            r = (float(g["x0"]), float(g["y0"]), float(g["x1"]), float(g["y1"]))
             if rect_overlap(env, r) > 1e-9:
                 hits.append(zid)
         rows.append({"ref": ref, "envelope": [round(v, 4) for v in env], "hits": hits})
@@ -514,25 +577,45 @@ def check_n2(root, spec, calib, board):
 # ==================================================================================================
 # N3 · 两条开口 (★两条分别验, 不许合并验★)
 # ==================================================================================================
-def check_n3(root, spec, calib, board):
+def check_n3(root, spec, calib, board, spec2=None):
     errs, rows = [], []
     by = board.by_ref()
-    openings = spec.get("openings") or []
+    # ★ISS-294: 开口集合 = 本页 (ISS-290 交卷物, ★一个字节不许动★) 的两条 + 边开口规格页新增的第三条 ★
+    base = list(spec.get("openings") or [])
+    spec2 = spec2 if spec2 is not None else read_spec2(root)
+    base_ids = {o.get("id") for o in base}
+    extra = [o for o in (spec2.get("openings") or []) if o.get("id") not in base_ids]
+    openings = base + extra
     ids = [o.get("id") for o in openings]
-    if len(openings) != 2:
-        errs.append(f"N3 机器块开口条数 = {len(openings)} (期望恰好 2 条: 检修口 + 调试口; "
-                    f"合并成一条 ⇒ 红)")
-    if sorted(ids) != ["PORT_OPEN_DEBUG", "PORT_OPEN_UART"]:
-        errs.append(f"N3 机器块开口 id = {ids} (期望 ['PORT_OPEN_DEBUG','PORT_OPEN_UART'] 两条分开)")
+    # ★★期望 id 集合断言 (★恰好三条, 一条不少一条不多★) ——
+    # ★★合并禁令不靠条数守 (★靠这条集合断言 + 下面「任意两条矩形不许完全相同」双守★) ★★
+    if sorted(ids) != sorted(EXPECTED_OPENING_IDS):
+        errs.append(f"N3 开口 id 集合 = {ids} (期望恰好 {sorted(EXPECTED_OPENING_IDS)}: "
+                    f"检修口 + 调试口 + USB-C 边开口; 少一条 / 改 id / 合并成一条 ⇒ 红)")
+    if len(set(ids)) != len(ids):
+        errs.append(f"N3 开口 id 有重复 = {ids} ⇒ 等于把两条合并成一条 ⇒ 红")
+    # ★★任意两条开口的矩形不许完全相同 (★合并成一条 / 把 USB-C 并进检修口·调试口 ⇒ 照样红★) ★★
+    norms = [(o.get("id"), _norm_rect(o)) for o in openings]
+    for i in range(len(norms)):
+        for j in range(i + 1, len(norms)):
+            a, b = norms[i][1], norms[j][1]
+            if a and b and all(abs(x - y) < 1e-9 for x, y in zip(a, b)):
+                errs.append(f"N3 开口 '{norms[i][0]}' 与 '{norms[j][0]}' 的矩形完全相同 ⇒ "
+                            f"等于合并 ⇒ 红")
     for o in openings:
         tiers = o.get("tiers") or {}
         if not tiers:
             errs.append(f"N3 开口 {o.get('id')} 没有 h 三档")
     # --- 20 个目标位 vs 每条开口 (逐档, 分别验) ---
+    verified = []
+    n_targets = len(calib.get("targets") or [])
     for o in openings:
+        tiers = o.get("tiers") or {}
+        n_tier_checks = 0
         for h, t in (o.get("tiers") or {}).items():
             r = t.get("open_rect") or {}
-            rect = (float(r["x0"]), float(r["x1"]), float(r["y0"]), float(r["y1"]))
+            rect = (float(r["x0"]), float(r["y0"]), float(r["x1"]), float(r["y1"]))
+            n_tier_checks += 1
             for tg in calib.get("targets") or []:
                 ref = tg.get("ref")
                 fp = by.get(ref)
@@ -542,14 +625,41 @@ def check_n3(root, spec, calib, board):
                 if rect_overlap(env, rect) > 1e-9:
                     errs.append(f"N3 S6 目标位 {ref} 落进 {o.get('id')} 的 h={h} 开口 {rect}")
                     rows.append({"opening": o.get("id"), "h": h, "ref": ref, "rect": rect})
+        verified.append({"id": o.get("id"), "h_tiers": sorted(tiers.keys()),
+                         "n_tiers": len(tiers), "n_target_checks": n_tier_checks * n_targets})
+    # --- N3b: 同一份开口规格在两页之间不许分叉 (★ISS-290 页 vs 边开口规格页★) ---
+    map2 = {o.get("id"): o for o in (spec2.get("openings") or [])}
+    for o in base:
+        oid = o.get("id")
+        o2 = map2.get(oid)
+        if o2 is None:
+            errs.append(f"N3b 边开口规格页缺开口 '{oid}' ⇒ 两页口径分叉 ⇒ 红")
+            continue
+        r1, r2 = _norm_rect(o), _norm_rect(o2)
+        if r1 and r2 and any(abs(a - b) > 0.01 for a, b in zip(r1, r2)):
+            errs.append(f"N3b 开口 '{oid}' 在 ISS-290 页与边开口规格页不一致: {r1} vs {r2} ⇒ 红")
+    # --- N3b2: 同一条开口自己的 rect 与 h_ref 档 open_rect 必须一致 (机器块内部不许分叉) ---
+    for o in openings:
+        r_raw = o.get("rect")
+        if not (r_raw and o.get("tiers")):
+            continue
+        raw = (float(r_raw["x0"]), float(r_raw["y0"]), float(r_raw["x1"]), float(r_raw["y1"]))
+        rr = ((o.get("tiers") or {}).get(H_REF) or {}).get("open_rect")
+        if not rr:
+            continue
+        tier = (float(rr["x0"]), float(rr["y0"]), float(rr["x1"]), float(rr["y1"]))
+        if any(abs(a - b) > 0.01 for a, b in zip(raw, tier)):
+            errs.append(f"N3b 开口 '{o.get('id')}' 自己的 rect {raw} 与 h_ref 档 open_rect "
+                        f"{tier} 不一致 ⇒ 机器块内部分叉 ⇒ 红")
     return {"ok": not errs, "errs": errs, "rows": rows,
-            "n_openings": len(openings), "ids": ids}
+            "n_openings": len(openings), "ids": ids, "verified": verified,
+            "expected_ids": list(EXPECTED_OPENING_IDS)}
 
 
 # ==================================================================================================
 # N4 · 必清空区净距 ≥ CRIT
 # ==================================================================================================
-def check_n4(root, spec, calib, board):
+def check_n4(root, spec, calib, board, spec2=None):
     errs, rows = [], []
     by = board.by_ref()
     crit = CFC.CRIT
@@ -557,12 +667,25 @@ def check_n4(root, spec, calib, board):
     if spec_crit is None or abs(float(spec_crit) - crit) > 1e-9:
         errs.append(f"N4 规格页 consts.crit = {spec_crit} 与既有 MECH 判据 CRIT = {crit} 不一致 "
                     f"(★CRIT 不许新造 / 不许改小★)")
-    mcs = spec.get("must_clear") or []
-    if len(mcs) != 2:
-        errs.append(f"N4 机器块 must_clear 条数 = {len(mcs)} (期望恰好 2 条)")
+    spec2 = spec2 if spec2 is not None else read_spec2(root)
+    mcs = list(spec.get("must_clear") or [])
+    # ★ISS-294: 必清空区 2 ⇒ 3 (加边开口规格页的 MC_USBC = 座体 F.Fab ∪ 两个壳体固定孔外缘) ★
+    for o in (spec2.get("openings") or []):
+        if o.get("id") != "PORT_OPEN_USBC":
+            continue
+        mc = ((o.get("tiers") or {}).get(H_REF) or {}).get("must_clear")
+        if not mc:
+            errs.append("N4 边开口规格页的 PORT_OPEN_USBC 没有 h_ref 档的 must_clear ⇒ 红")
+            continue
+        mcs.append({"id": "MC_USBC", "frame": o.get("frame"), "covers": o.get("covers"),
+                    "rect": mc, "body_w": o.get("body_w"),
+                    "body_w_source": o.get("body_w_source"), "evidence": o.get("evidence")})
+    if len(mcs) != 3:
+        errs.append(f"N4 必清空区条数 = {len(mcs)} (期望恰好 3 条: ISS-290 页 2 条 + "
+                    f"边开口规格页 MC_USBC 1 条)")
     for mc in mcs:
         r = mc.get("rect") or {}
-        rect = (float(r["x0"]), float(r["x1"]), float(r["y0"]), float(r["y1"]))
+        rect = (float(r["x0"]), float(r["y0"]), float(r["x1"]), float(r["y1"]))
         for tg in calib.get("targets") or []:
             ref = tg.get("ref")
             fp = by.get(ref)
@@ -585,7 +708,7 @@ def check_n5(root, spec):
     tbl = _md_table_rows(spec["_text"], ["BOM", "land pattern", "结构占位", "`verdict`"])
     tmap = {}
     for cells in tbl:
-        ref = cells[0].strip("`").strip()
+        ref = _cell_ref(cells[0])
         if ref:
             tmap[ref] = cells
     for ref in CONN_REFS:
@@ -644,16 +767,74 @@ def check_n6(root):
 # ==================================================================================================
 def run_checks(root):
     spec = read_spec(root)
+    spec2 = read_spec2(root)
     calib = read_s6_targets(root)
     board = Board(os.path.join(root, PCB_REL))
     return {
         "N1": check_n1(root, spec, calib),
         "N2": check_n2(root, spec, calib, board),
-        "N3": check_n3(root, spec, calib, board),
-        "N4": check_n4(root, spec, calib, board),
+        "N3": check_n3(root, spec, calib, board, spec2),
+        "N4": check_n4(root, spec, calib, board, spec2),
         "N5": check_n5(root, spec),
         "N6": check_n6(root),
+        "_calib": calib,
+        "_board": board,
+        "_spec": spec,
+        "_spec2": spec2,
     }
+
+
+def s6_table(res):
+    """★§3 的 20 行逐个核对表 (★机器输出, 交卷单 B3 直接贴这个★) ★"""
+    calib = res.get("_calib") or {}
+    board = res.get("_board")
+    spec = res.get("_spec") or {}
+    zones = spec.get("zones") or []
+    n2rows = {r["ref"]: r for r in res["N2"]["rows"]}
+    n4rows = res["N4"]["rows"]
+    lines = []
+    lines.append("  §3 · S6 的 20 个目标落位 × MECH 保留区 逐个核对表")
+    lines.append("  " + "-" * 126)
+    lines.append("  %-14s %-10s %-16s %-30s %-14s %-8s %-11s %s"
+                 % ("ref", "frame", "target(x,y)", "落位包络 (F.Fab ∪ 铜箔)",
+                    "hit_zones", "verdict", "min_clr(全)", "min_clr(必清空)"))
+    lines.append("  " + "-" * 126)
+    by = board.by_ref() if board else {}
+    for t in calib.get("targets") or []:
+        ref = t.get("ref")
+        tx, ty = float(t.get("x")), float(t.get("y"))
+        fp = by.get(ref)
+        env = Board.envelope_at(fp, tx, ty) if fp else None
+        hits = n2rows.get(ref, {}).get("hits", [])
+        mc = {}
+        for r in n4rows:
+            if r["ref"] == ref:
+                mc[r["mc"]] = r["dist"]
+        dmc = min(mc.values()) if mc else None
+        dall = None
+        for z in zones:
+            if z.get("type") not in ("禁入", "必清空"):
+                continue
+            g = z.get("geometry") or {}
+            try:
+                r4 = (float(g["x0"]), float(g["y0"]), float(g["x1"]), float(g["y1"]))
+            except (KeyError, TypeError, ValueError):
+                continue
+            d = rect_dist(env, r4)
+            dall = d if dall is None else min(dall, d)
+        verdict = "通过"
+        if hits:
+            verdict = "冲突"
+        elif dmc is not None and dmc < res["N4"]["crit"] - 1e-9:
+            verdict = "需净距"
+        env_s = ("X %.3f..%.3f × Y %.3f..%.3f" % (env[0], env[2], env[1], env[3])) if env else "-"
+        lines.append("  %-14s %-10s %-16s %-30s %-14s %-8s %-11s %s"
+                     % (ref, t.get("frame"), "(%.3f, %.3f)" % (tx, ty), env_s,
+                        (", ".join(hits) if hits else "— (空)"), verdict,
+                        ("%.4f" % dall) if dall is not None else "-",
+                        ("%.4f" % dmc) if dmc is not None else "-"))
+    lines.append("  " + "-" * 126)
+    return "\n".join(lines)
 
 
 def _hr(t):
@@ -668,8 +849,10 @@ def print_checks(res):
           f"(S6 目标位 {res['N1']['n_targets']} 条, 帧必须 = {FRAME})")
     print(f"  N2 SoM 承载区零冲突 ..... {'✅ 绿' if res['N2']['ok'] else '❌ 红'}  "
           f"(20 个落位 × 焊盘/座体/保守包络 三口径)")
-    print(f"  N3 两条开口 (分别验) ... {'✅ 绿' if res['N3']['ok'] else '❌ 红'}  "
+    print(f"  N3 三条开口 (分别验) ... {'✅ 绿' if res['N3']['ok'] else '❌ 红'}  "
           f"(开口 {res['N3']['n_openings']} 条: {res['N3']['ids']})")
+    for v in (res["N3"].get("verified") or []):
+        print(f"      · {v['id']:18s} h 三档 {v['h_tiers']} ⇒ 目标位逐档核 {v['n_target_checks']} 次")
     print(f"  N4 必清空区净距 ≥ CRIT . {'✅ 绿' if res['N4']['ok'] else '❌ 红'}  "
           f"(CRIT = {res['N4']['crit']} · 取自既有 MECH 判据)")
     print(f"  N5 座体三方对照表完整 .. {'✅ 绿' if res['N5']['ok'] else '❌ 红'}  "
@@ -677,6 +860,8 @@ def print_checks(res):
     print(f"  N6 受保护 5 件 md5 ..... {'✅ 绿' if res['N6']['ok'] else '❌ 红'}")
     for r in res["N6"]["rows"]:
         print(f"      · {r['path']:44s} {r['got']} {'==' if r['same'] else '!='} {r['baseline']}")
+    print()
+    print(s6_table(res))
     errs = []
     for k in ("N1", "N2", "N3", "N4", "N5", "N6"):
         errs += res[k]["errs"]
@@ -704,7 +889,8 @@ def make_sandbox(root, tag):
     if os.path.exists(dst):
         shutil.rmtree(dst)
     os.makedirs(dst, exist_ok=True)
-    rels = [SPEC_REL, CALIB_REL, PCB_REL] + list(CFC.PROTECTED.keys()) + list(PROTECTED_LEDGER_MD5)
+    rels = [SPEC_REL, SPEC2_REL, CALIB_REL, PCB_REL] + list(CFC.PROTECTED.keys()) + \
+        list(PROTECTED_LEDGER_MD5)
     for rel in rels:
         src = os.path.join(root, rel)
         if os.path.exists(src):
@@ -718,6 +904,21 @@ def _edit_spec_json(sb, fn):
     p = os.path.join(sb, SPEC_REL)
     text = open(p, encoding="utf-8").read()
     b, e = text.find(MACH_BEGIN), text.find(MACH_END)
+    seg = text[b:e]
+    m = re.search(r"```json\n(.*?)\n```", seg, re.S)
+    data = json.loads(m.group(1))
+    fn(data)
+    new = "```json\n" + json.dumps(data, ensure_ascii=False, indent=1) + "\n```"
+    text2 = text[:b] + text[b:e].replace(m.group(0), new) + text[e:]
+    open(p, "w", encoding="utf-8").write(text2)
+
+
+def _edit_spec2_json(sb, fn):
+    """★ISS-294: 在沙盒里改【边开口规格页】(MECH_SYNC) 的机器块 JSON (★只改副本★)"""
+    p = os.path.join(sb, SPEC2_REL)
+    text = open(p, encoding="utf-8").read()
+    b = text.find(MACH_BEGIN)
+    e = text.find(MACH_END)
     seg = text[b:e]
     m = re.search(r"```json\n(.*?)\n```", seg, re.S)
     data = json.loads(m.group(1))
@@ -743,7 +944,7 @@ def _edit_calib_json(sb, fn):
     seg = text.split(head, 1)[1].split("```", 1)[0]
     data = json.loads(seg[seg.index("{"):])
     fn(data)
-    new = "```json" + head + "\n" + json.dumps(data, ensure_ascii=False, indent=1) + "\n"
+    new = "\n" + json.dumps(data, ensure_ascii=False, indent=1) + "\n"
     text2 = text.replace(seg, new, 1)
     open(p, "w", encoding="utf-8").write(text2)
 
@@ -917,6 +1118,90 @@ def selftest(root):
         errs.append("⑦ 改受保护件后 N6 没红")
     if before == after:
         errs.append("⑦ 没能真改到目标文件")
+
+    # ---- ⑨ 删掉第三条开口 (USB-C 边开口) ⇒ N3 红 (★期望 id 集合不许少★) ----
+    sb = make_sandbox(root, "case9_drop_usbc")
+    p = os.path.join(sb, SPEC2_REL)
+    before = md5_of(p)
+
+    def _c9(d):
+        d["openings"] = [o for o in d["openings"] if o.get("id") != "PORT_OPEN_USBC"]
+    _edit_spec2_json(sb, _c9)
+    after = md5_of(p)
+    r9 = run_checks(sb)
+    red9 = not r9["N3"]["ok"]
+    print(f"  [{'OK ' if red9 else 'NG '}] ⑨ 把边开口规格页里的 PORT_OPEN_USBC 删掉 ⇒ N3 红: "
+          f"{'是' if red9 else '否'} · md5 {before[:8]} ⇒ {after[:8]} (确实改了: {before != after}) · "
+          f"开口集合 {r9['N3']['ids']} · N3 错误 {len(r9['N3']['errs'])} 条")
+    if not red9:
+        errs.append("⑨ 删掉第三条开口后 N3 没红")
+    if before == after:
+        errs.append("⑨ 没能真改到目标文件")
+
+    # ---- ⑩ 把第三条开口的 id 改掉 ⇒ N3 红 (★集合不匹配★) ----
+    sb = make_sandbox(root, "case10_rename_usbc")
+    p = os.path.join(sb, SPEC2_REL)
+    before = md5_of(p)
+
+    def _c10(d):
+        for o in d["openings"]:
+            if o.get("id") == "PORT_OPEN_USBC":
+                o["id"] = "PORT_OPEN_USB_C"
+    _edit_spec2_json(sb, _c10)
+    after = md5_of(p)
+    r10 = run_checks(sb)
+    red10 = not r10["N3"]["ok"]
+    print(f"  [{'OK ' if red10 else 'NG '}] ⑩ 把 PORT_OPEN_USBC 改名成 PORT_OPEN_USB_C ⇒ N3 红: "
+          f"{'是' if red10 else '否'} · md5 {before[:8]} ⇒ {after[:8]} (确实改了: {before != after}) · "
+          f"开口集合 {r10['N3']['ids']} · N3 错误 {len(r10['N3']['errs'])} 条")
+    if not red10:
+        errs.append("⑩ 改掉第三条开口的 id 后 N3 没红")
+    if before == after:
+        errs.append("⑩ 没能真改到目标文件")
+
+    # ---- ⑪ 把第三条开口的矩形改成跟调试口完全一样 ⇒ N3 红 (★合并禁令★) ----
+    sb = make_sandbox(root, "case11_usbc_same_rect_as_debug")
+    p = os.path.join(sb, SPEC2_REL)
+    before = md5_of(p)
+
+    def _c11(d):
+        dbg = None
+        for o in d["openings"]:
+            if o.get("id") == "PORT_OPEN_DEBUG":
+                dbg = o
+        for o in d["openings"]:
+            if o.get("id") == "PORT_OPEN_USBC":
+                o["rect"] = {"x0": 137.850, "y0": 54.300, "x1": 148.050, "y1": 58.900}
+                for h, t in (o.get("tiers") or {}).items():
+                    t["open_rect"] = {"x0": 137.850, "y0": 54.300, "x1": 148.050, "y1": 58.900}
+    _edit_spec2_json(sb, _c11)
+    after = md5_of(p)
+    r11 = run_checks(sb)
+    red11 = not r11["N3"]["ok"]
+    hit11 = any("完全相同" in e for e in r11["N3"]["errs"])
+    print(f"  [{'OK ' if red11 else 'NG '}] ⑪ 把边开口的矩形改成跟调试口完全一样 ⇒ N3 红 "
+          f"(合并禁令): {'是' if red11 else '否'} · 命中合并禁令: {'是' if hit11 else '否'} · "
+          f"md5 {before[:8]} ⇒ {after[:8]} (确实改了: {before != after}) · "
+          f"N3 错误 {len(r11['N3']['errs'])} 条")
+    if not red11:
+        errs.append("⑪ 把边开口并进调试口后 N3 没红")
+    if not hit11:
+        errs.append("⑪ 合并禁令 (任意两条矩形不许完全相同) 没触发")
+    if before == after:
+        errs.append("⑪ 没能真改到目标文件")
+
+    # ---- ⑫ 正向对照: 三条齐全且互不相同 ⇒ 绿 ----
+    sb = make_sandbox(root, "case12_positive_three_openings")
+    p = os.path.join(sb, SPEC2_REL)
+    r12 = run_checks(sb)
+    green12 = (r12["N3"]["ok"] and r12["N4"]["ok"]
+               and sorted(r12["N3"]["ids"]) == sorted(EXPECTED_OPENING_IDS))
+    v12 = {v["id"]: v for v in (r12["N3"].get("verified") or [])}
+    print(f"  [{'OK ' if green12 else 'NG '}] ⑫ 正向对照 (三条齐全且互不相同) ⇒ 绿: "
+          f"{'是' if green12 else '否'} · 开口集合 {r12['N3']['ids']} · "
+          f"第三条逐档核 {v12.get('PORT_OPEN_USBC', {}).get('n_target_checks', 0)} 次")
+    if not green12:
+        errs.append("⑫ 正向对照 (三条齐全) 不绿")
 
     # ---- 收尾: 真件 md5 再核一遍 (★自检不许碰真件★) ----
     tail = check_n6(root)

@@ -21,7 +21,13 @@ ISS-282 · `FSIN_OUT` 根因订正 + 【布线前置闸】机器闸 (D1~D5)
 ★**★D2 / D3 的数全是本闸自己从盘面【重算】的 (★不许抄订正页上的字★) ⇒ 订正页变成第二份过期文档时, 本闸当场红★**
 
 ★★**D5 的两层口径 (★为什么要两层★)★★:
-  · ★**D5a = 硬钉** ★: 板 md5 + 板 mtime + `.kicad_pro` md5 = 常量 ⇒ ★**「板只改一次」铁律本体, 任何人改了当场红** ★
+  · ★**D5a = 落表台账链头 + 合法改板通道 (★ISS-297 改★)** ★: 板 / `.kicad_pro` 两件 ⇒ ★**判据方向一字未变:
+    盘上 ≠ 判决源 ⇒ 红** ★ ⇒ ★**判决源 = 落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 的链头** ★
+    ⇒ ★**合法改板 (台账里有【单号 + 文件名 + 改前 md5 + 改后 md5】齐全的记录 + 锚点里有四项原子 `reboard` 记录)
+    ⇒ 盘上 == 链头 ⇒ 放行 (★合法改板只让链头前移, 不是把判据放松★)** ★
+    ⇒ ★**记录缺失 / 四项不齐 / 盘上 ≠ 链头 ⇒ 红 (★fail-closed: 链头不唯一 / 链断 / 链头无单号 ⇒ 仍红★)** ★
+    ⇒ ★**基线仍是 append-only 的历史事实 (★不许改基线来「让它绿」★)** ★
+    ⇒ ★**板 mtime 只在【没发生合法改板】时硬校验 (★合法改板那一趟 mtime 本来就会变★)** ★
   · ★**D5b = 变更感知** ★: 网表 / 脚表 / BOM 三件 ⇒ 盘面 md5 必须落在【权威基线台账的基线值】∪【落表台账 §16.2 登记的落表后值】这个集合里
     ⇒ ★**V 值落表是【已授权的、有留证的】盘面变更 (★`HW/SCHEMATIC_LANDING_V1_LANDED.md` §16.2 有前后 md5 对照★) ⇒ 不该把闸打红** ★
     ⇒ ★**但任何【没登记】的改动 (★偷改 CSV★) 都不在集合里 ⇒ 当场红** ★
@@ -48,6 +54,10 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
+# ★★ISS-297 · 2026-11-17 18:5x (hw-lead): 「合法改板」通道 (★判决源 = 落表台账链头★) ★★
+#   ★机制照抄 SW 侧 ISS-284 已跑通的口径; ★但本域【自己写】(★不 import 别人地界★) ★
+sys.path.insert(0, HERE)
+import board_reboard
 
 REL = {
     "page":       "HW/PCB/FSIN_OUT_ROOTCAUSE.md",
@@ -490,6 +500,33 @@ def landing_latest_md5s(landing_txt: str):
     return out
 
 
+def latest_landing_row(landing_txt: str, fname: str):
+    """★落表台账里【最后】提到 fname 的那一行 (★在「前后对照」段内·与 `landing_latest_md5s` 同口径★)
+       ⇒ (行号, 行文本) · 找不到 ⇒ None
+
+    ★★ISS-297 · 2026-11-17 19:3x (hw-lead) 新增 ★★
+      ★**为什么要有它**: 反向用例 ⑭/⑮ 的 fixture 原来把 md5 **写死** ⇒ ISS-283 合法落表后
+      那两个值就过期了 ⇒ fixture 变成空操作 ⇒ 用例假红 ⇒ ★**必须动态读台账当前链头** ★
+      ⇒ ★**这条 helper 是「动态 fixture」的唯一取值口** ★
+    """
+    in_sec = False
+    hit = None
+    if not landing_txt:
+        return None
+    for i, ln in enumerate(landing_txt.splitlines(), 1):
+        if ln.lstrip().startswith("#"):
+            in_sec = ("前后对照" in ln)
+            continue
+        if not in_sec:
+            continue
+        if fname not in ln:
+            continue
+        if not re.findall(r"\b[0-9a-f]{32}\b", ln):
+            continue
+        hit = (i, ln)
+    return hit
+
+
 # ── 判据 ──────────────────────────────────────────────────────────────────
 def check(root: str, only: str | None = None):
     results = []
@@ -671,22 +708,28 @@ def check(root: str, only: str | None = None):
     if only in (None, "D5"):
         probs = []
         msgs = []
-        pcb_md5 = md5_of(pcb_p) if os.path.isfile(pcb_p) else ""
-        pro_md5 = md5_of(pro_p) if os.path.isfile(pro_p) else ""
-        if pcb_md5 != HARD_BASELINE["pcb"]:
-            probs.append("★**板 md5 变了: %s ≠ %s** ★" % (pcb_md5, HARD_BASELINE["pcb"]))
+        # ★★ISS-297 · 2026-11-17 18:5x (hw-lead): 板 / `.kicad_pro` 两件改走【落表台账链头 + 合法改板通道】★★
+        #   ★判据方向一字未变 (盘上 ≠ 判决源 ⇒ 红); ★变的只是【判决源】: 硬钉常量 → 落表台账链头 ★
+        ch = board_reboard.check_pair(root, pcb_p, HARD_BASELINE["pcb"],
+                                      pro_p, HARD_BASELINE["pro"],
+                                      md5fn=md5_of, ledger=landing_txt)
+        if not ch["ok"]:
+            for e in ch["errs"]:
+                probs.append("★**%s** ★" % e)
         else:
+            msgs.append(ch["pcb"]["msg"])
+            msgs.append(ch["pro"]["msg"])
+        # ★板 mtime: ★**合法改板那一趟 mtime 本来就会变** ⇒ 只有【没发生合法改板】时才硬校验 ★
+        if ch["ok"] and not ch["reboarded"]:
             mtime = os.stat(pcb_p).st_mtime
             import time as _t
             ts = _t.strftime("%Y-%m-%d %H:%M:%S", _t.localtime(mtime))
             if not ts.startswith(HARD_MTIME_PREFIX):
                 probs.append("★**板 mtime 变了: %s ≠ %s…** ★" % (ts, HARD_MTIME_PREFIX))
             else:
-                msgs.append("板 md5/mtime 未变")
-        if pro_md5 != HARD_BASELINE["pro"]:
-            probs.append("★**`.kicad_pro` md5 变了: %s ≠ %s** ★" % (pro_md5, HARD_BASELINE["pro"]))
-        else:
-            msgs.append(".kicad_pro md5 未变")
+                msgs.append("板 mtime 未变 (★无合法改板 ⇒ mtime 仍硬校验★)")
+        elif ch["ok"] and ch["reboarded"]:
+            msgs.append("★已发生合法改板 ⇒ 板 mtime 不再硬校验 (★判据方向未变: 盘上仍须 == 链头★)★")
         # ★D5b: 网表 / 脚表 / BOM (变更感知: 基线 ∪ 最新一条落表记录)★
         base = ledger_baselines(ledger_txt)
         reg = landing_latest_md5s(landing_txt)
@@ -708,7 +751,7 @@ def check(root: str, only: str | None = None):
         if probs:
             results.append(("D5", False, " · ".join(probs)))
         else:
-            results.append(("D5", True, "★受保护 5 件逐字节未变 (板/`.kicad_pro` 硬钉 + 网表/脚表/BOM 有出处) ★ · " +
+            results.append(("D5", True, "★受保护 5 件逐字节未变 (板/`.kicad_pro` 走【落表台账链头 + 合法改板通道】 + 网表/脚表/BOM 有出处) ★ · " +
                             " · ".join(msgs)))
 
     return results
@@ -913,23 +956,63 @@ def selftest(root: str):
         run_case("⑬ 锚点把「位号.脚号」整串塞回 pad_a ⇒ D2 红 (★锚点契约破了★)", d, "D2", "契约")
 
         # ⑭ ★★落表台账里【最新一条】的后值被改 ⇒ D5 红 (★证明闸是【读台账】的, 不是把三个值写死★)★★
+        #   ★★ISS-297 · 2026-11-17 19:3x (hw-lead) ★**: 原 fixture 把 md5 写死 (`2f17650c…`)
+        #   ⇒ ISS-283 合法落表后网表 md5 已是 `37f62ac3…` ⇒ 那个 replace 是【空操作】
+        #   ⇒ 用例永远绿 ⇒ 假红 ★ ⇒ ★**改成动态: 从台账读【当前最新一条】那一行, 只把它的【后值】换成 deadbeef ★**
         d = sandbox("c14")
         p = os.path.join(d, REL["landing"])
-        t = read_text(p).replace("2f17650cfbef48d5efd71821505c3343",
-                                  "deadbeefdeadbeefdeadbeefdeadbeef")
+        t = read_text(p)
+        hit = latest_landing_row(t, REL["netlist"])
+        if hit is None:
+            raise AssertionError("★台账里找不到 %s 的最新一条落表记录 ⇒ fixture 没法动态构造★" % REL["netlist"])
+        row_no, row_txt = hit
+        hexes = re.findall(r"\b[0-9a-f]{32}\b", row_txt)
+        if not hexes:
+            raise AssertionError("★台账最新那一行里没有 32 位 md5 ⇒ fixture 没法动态构造★")
+        new_row = row_txt.replace(hexes[-1], "deadbeefdeadbeefdeadbeefdeadbeef")
+        lines = t.splitlines(keepends=True)
+        old_line = lines[row_no - 1]
+        lines[row_no - 1] = new_row + ("\n" if old_line.endswith("\n") else "")
         with open(p, "w", encoding="utf-8") as f:
-            f.write(t)
+            f.write("".join(lines))
         run_case("⑭ 落表台账最新一条的后值被改 ⇒ D5 红 (★闸是读台账的, 不是写死三个值★)", d, "D5")
 
         # ⑮ ★★台账末尾追加一条【更新的】落表记录 ⇒ D5 仍绿 (★取最新一条 ⇒ 下一轮落表自动跟上, 不假红★)★★
+        #   ★★ISS-297 · 2026-11-17 19:3x (hw-lead) ★**: 原 fixture 的前后值写死 (`2f17650c…`) ⇒ 已过期
+        #   ⇒ ★**改成动态: 沙盒里真做一次【下一轮落表】(网表改一个字节 ⇒ 新 md5) + 台账末尾追加新记录 ★★
+        #   ⇒ ★**判据方向不许变**: 盘上 md5 必须落在【最新一条落表记录】里 ⇒ 追加的是新值 ⇒ 盘上 == 新值 ⇒ 绿 ★
         d = sandbox("c15")
         p = os.path.join(d, REL["landing"])
+        np = os.path.join(d, REL["netlist"])
+        prev = md5_of(np)
+        with open(np, "a", encoding="utf-8") as f:
+            f.write("\n# ISS-297 selftest: 沙盒注入 (★模拟下一轮落表·只存在于沙盒★)\n")
+        nxt = md5_of(np)
         with open(p, "a", encoding="utf-8") as f:
             f.write("\n### ★★99 · 新旧 md5 前后对照 (★沙盒自检用 · 模拟下一轮落表★) ★★\n\n"
                     "| 文件 | 前 | 后 | 变了? |\n|---|---|---|---|\n"
-                    "| ★**`HW/netlist_v1.csv`** ★ | `2f17650cfbef48d5efd71821505c3343` | "
-                    "`11111111111111111111111111111111` | ★**是**★ |\n")
+                    "| ★**`%s`** ★ | `%s` | `%s` | ★**是**★ |\n"
+                    % (REL["netlist"], prev, nxt))
         run_case("⑮ 台账末尾追加更新的落表记录 ⇒ D5 仍绿 (★取最新一条 ⇒ 下一轮落表自动跟上★)", d, None)
+
+        # ── ★★ISS-297 · ⑯~㉕ 「合法改板」通道的反向用例 (★跑在沙盒副本上·真盘零写★) ──
+        #   ★机制: `HW/board_reboard.py` 的 CASES (★照 ISS-284 已跑通的口径★) ★
+        #   ★每条都【真跑本闸】(★--root 指向沙盒★) ⇒ 判据变红/变绿都必须是本闸自己的结论★
+        def ch_prepare(sb):
+            for rel in SANDBOX_FILES:
+                src = os.path.join(root, rel)
+                d = os.path.join(sb, rel)
+                os.makedirs(os.path.dirname(d), exist_ok=True)
+                shutil.copy2(src, d)
+
+        def ch_judge(sb):
+            rc, out = run_gate(sb)
+            return rc == 0, out
+
+        for _name, _exp, _got, _note in board_reboard.run_cases(
+                root, os.path.join(tmp, "iss297_channel"), ch_judge, prepare=ch_prepare):
+            cases.append(("⑯★ISS-297★ " + _name,
+                          (_exp == _got), _note))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

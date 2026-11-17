@@ -1923,6 +1923,169 @@ dispatches:
     > ★**owner**: mech-lead · ★**verify_by**: main · ★**单号**: ISS-290 · ★**零外发** ★
 
     > ★**本单性质**: ★**内部活 · MECH 侧'
+- issue: ISS-289
+  agent: hw-lead
+  at: '2026-11-17'
+  brief: '★**ISS-289 · hw-lead 续做 cont1 (★2026-11-17 15:12 原会话被网关掐断 `abortedLastRun=true` ⇒ 闸 + 订正块 + 分片全在盘, 缺的只是交卷单正文★)** ⇒ ★**只补交卷单 B0~B6 (★七段全是「施工中」骨架★) + 跑回归验收贴 rc + 回答两个差异结论★** ⇒ ★**不许重做闸 `HW/check_workpack_state_values.py`
+    (★已 rc=0 · selftest 10/10★) · 不许重改追加式订正块 (★已由闸 V2/V3 自证在位★) · 若认为有 bug ⇒ 写进 B5 未决项交 main 裁决★** ⇒ ★**两个必须给结论的问题**: ① 封装数 186 (真盘) vs 185 (ISS-287 沙盒) 差 1 件在哪 + 动板那趟按哪个数走 ② `_1` 后缀位号官方板 1 个 vs 登记 156
+    这两个数分别什么口径★** ⇒ ★**零写板 · 零落表 · 零改生成器代码 · 不碰 MECH/SW · 零外发 · 不替老板拍板 · 不自签 issue_log★** ⇒ ★**任务书全文 = `state/dispatch_briefs/ISS-289_hw_workpack_state_values_cont1.md` (★已过 `python3 state/check_brief_commands.py
+    --brief-file` ⇒ rc=0★)★** ⇒ ★**会话 = `agent:hw-lead:subagent:1e68b706` (★由 cron 775d9893 派出★)★**'
+  job: ★派活方 = cron 775d9893 (ARS45 继续执行后继计划) 于 15:2x 派出并在飞 (★session agent:hw-lead:subagent:1e68b706·72ab-4692-bba2-e51cbd5e319b·runId a1a924b8★)★ · ★**续做原因 = 原会话 15:12 超时被掐 (`abortedLastRun=true`), 半成品在盘★**
+    ★★**本 job 不重复派第二个 hw-lead 会话 (★同一 agent 只允许一个写会话★)★**
+- issue: ISS-291
+  agent: sw-lead
+  at: '2026-11-17'
+  brief: '# ISS-291 · sw-lead 任务书 —— ★★【SW 侧 ADC 判据: 判决对象 + 满量程口径双错】★★
+
+
+    > ★**派活人**: 项目总工 (main / moli) · ★**派活时刻**: ★**2026-11-17 15:5x** ★ · ★**job**: cron `775d9893` (ARS45 继续执行后继计划)
+
+    > ★**owner**: sw-lead · ★**verify_by**: main · ★**单号**: ISS-291 · ★**零外发** ★
+
+    > ★**本单性质**: ★**内部活 · SW 侧判据口径收口 + 机器闸类** ★ ⇒ ★*'
+- issue: ISS-292
+  agent: hw-lead
+  at: '2026-11-17'
+  brief: '# ISS-292 · hw-lead 任务书 —— ★★【清单页生成器与盘面页对齐 (★跑一次生成器 = 把订正全冲掉·卡动板那趟开工★)】★★
+
+
+    > ★**派活人**: 项目总工 (main / moli) · ★**派活时刻**: ★**2026-11-17 16:0x** ★ · ★**job**: cron `775d9893` (ARS45 继续执行后继计划)
+
+    > ★**owner**: hw-lead · ★**verify_by**: main · ★**单号**: ISS-292 · ★**零外发** ★
+
+    > ★**本单性质**: ★**内部活 · PCB 线·纯生成器对齐 '
+- issue: ISS-291
+  agent: sw-lead
+  at: '2026-11-17'
+  brief: ★main 17:0x 独立复验落 verified (★timing_check rc=0 SELFTEST 85/85 · rev_cases rc=0 · regress rc=0 · 交卷单 28306 B 九节齐 · 分片 6 条 · merge/gate_check rc=0 · 受保护 5 件未变★) ⇒ sw-lead 名额释放
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 17:0x 复验签 · ★**本 job 不派活·只签字** ⇒ 该名额随即由 ISS-293 占 (见下条)★
+- issue: ISS-292
+  agent: hw-lead
+  at: '2026-11-17'
+  brief: '★**僵尸 fixing 清理 + 【cont1 续做】重排 (★不是从零做★)★**: 会话 `agent:hw-lead:subagent:71c9e8bb` 16:08:07 timeout/aborted ⇒ 交卷单只剩 1341 B 骨架 ⇒ ★**但生成器那一大块已在盘上** (★main 16:2x 沙盒实跑: 重跑输出 md5 159bf20f… == 真页 md5
+    159bf20f… · diff rc=0 ⇒ 重跑零回退★) ⇒ ★**本趟只补 7 件**: 作业包 §3-S1 指针 / 收工重锚强制项 / 反向用例≥3 / 回归 8 条 / E-1~E-6 并清单页 / 沙盒 README / 交卷单 B0~B6 + 分片 ★'
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 17:0x 续做重派 · ★**brief = issue_log 里 ISS-292 的 task_brief (★已含本 job 追加的「⑭ 追加」节★) ⇒ ★完整续做任务书 = `state/dispatch_briefs/ISS-292_hw_preflight_generator_realign_cont1.md`
+    (★9880 B · check_brief_commands --brief-file ⇒ rc=0★)★ · ★**status 全程保持 fixing ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派**★
+- issue: ISS-293
+  agent: sw-lead
+  at: '2026-11-17'
+  brief: '# ISS-293 · sw-lead 任务书 —— ★★【SW_TIMING_REVIEW.md 的 ADC 段已过期: 满量程 3.3→1.8V + 判决对象 VBUS_DET_D→BAT_DET + BAT_DET 已从「全 DNP」变成「必装」⇒ 三处结论全部要订正】★★
+
+
+    > ★**派活人**: 项目总工 (main / moli) · ★**派活时刻**: ★**2026-11-17 16:5x** ★ · ★**job**: cron `fb67af40` (ARS45 队列自动派活)
+
+    > ★**owner**: sw-lead · ★**verify_by**: main · '
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 17:0x 新开并派出 · ★**brief = issue_log 里 ISS-293 的 task_brief 全文 (= state/dispatch_briefs/ISS-293_sw_adc_fullscale_caliber_review_sync.md)★ · ★**先落 fixing 再 spawn
+    ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派**★
+- issue: ISS-294
+  agent: mech-lead
+  at: '2026-11-17'
+  brief: '# ISS-294 · mech-lead 任务书 —— ★★【`J_USB_C` 缺一条结构边开口规格 (★座体贴板边 ⇒ 插头从板边进出, 但 MECH 规格里【没有】这条开口★)】★★
+
+
+    > ★**派活人**: 项目总工 (main / moli) · ★**派活时刻**: ★**2026-11-17 16:5x** ★ · ★**job**: cron `fb67af40` (ARS45 队列自动派活)
+
+    > ★**owner**: mech-lead · ★**verify_by**: main · ★**单号**: ISS-294 · ★**零外发** ★
+
+    > ★**本单性质**: '
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 17:0x 新开并派出 · ★**brief = issue_log 里 ISS-294 的 task_brief 全文 (= state/dispatch_briefs/ISS-294_mech_usbc_edge_opening_spec.md)★ · ★**先落 fixing 再 spawn ⇒ 无 open
+    窗口 ⇒ 兄弟 job 775d9893 不会重复派**★
+- issue: ISS-293
+  agent: sw-lead
+  at: '2026-11-17'
+  brief: '# ISS-293 · sw-lead 任务书 —— ★★【SW_TIMING_REVIEW.md 的 ADC 段已过期: 满量程 3.3→1.8V + 判决对象 VBUS_DET_D→BAT_DET + BAT_DET 已从「全 DNP」变成「必装」⇒ 三处结论全部要订正】★★
+
+
+    > ★**派活人**: 项目总工 (main / moli) · ★**派活时刻**: ★**2026-11-17 16:5x** ★ · ★**job**: cron `fb67af40` (ARS45 队列自动派活)
+
+    > ★**owner**: sw-lead · ★**verify_by**: main · '
+- issue: ISS-293
+  agent: sw-lead
+  at: '2026-11-17'
+  brief: '★**【cont1 续做】重派 (★不是从零做★)★**: 会话 `agent:sw-lead:subagent:d5e931dd` 17:05:53 → 17:18:06 · runtime 733s · status=failed ⇒ 交卷单只剩 935 B 骨架 + 分片只 1 条 ⇒ ★**但大块已在盘上** (★main 17:4x 本机实跑: 文档 90918 B +
+    新闸 20595 B · 闸 rc=0 29/29 · selftest rc=0 4/4★) ⇒ ★**本趟只补 4 件**: 交卷单 B0~B6 填满 · B1 逐条对账表 · 回归 6 条自己跑 · 分片补完 (grep -c iss293 ≥ 4) ★'
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 17:5x 续做重派 · ★**brief = issue_log 里 ISS-293 的 task_brief (★已含本 job 追加的 cont1 节★) ⇒ ★完整续做任务书 = `state/dispatch_briefs/ISS-293_sw_adc_review_sync_cont1.md` (★4433
+    B · check_brief_commands --brief-file ⇒ rc=0★)★ · ★**status 全程保持 fixing ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派**★
+- issue: ISS-295
+  agent: mech-lead
+  at: '2026-11-17'
+  brief: '★main 17:4x 复验 ISS-294 时挖出的后续缺口: ① MECH 两页对「USB-C 边开口」【两种说法】(STRUCT_CROSSCHECK L68/L175/L188/L1816 仍写「结构侧缺一条边开口规格 (缺口)」 · MECH_SYNC L550 已写「边开口规格已补」) ② 机器闸 N3b 只比两页 openings 矩形 ⇒ 叙事文字漂移 = 绿灯 (SW
+    侧 ISS-293 刚栽过同一种坑) ③ 结构侧输入散成 4 条 need ⇒ 「板只改一次」那一趟开工时结构件必然缺料 ⇒ ★**本单 = 一份可直接抄进作业包 §3-S6 的结构侧输入认领句全表 + 一道过期结论防漂闸 (零写板·零落表·不代拍)** ★'
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 17:5x 新开并派出 · ★**brief = issue_log 里 ISS-295 的 task_brief 全文 (= state/dispatch_briefs/ISS-295_mech_claims_and_verdict_freshness.md)★ · ★**先落 fixing 再 spawn ⇒
+    无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派**★
+- issue: ISS-293
+  agent: sw-lead
+  at: '2026-11-17'
+  brief: '★**撞车处置记录 (★cron fb67af40 17:5x★)★: 兄弟 job 775d9893 17:52:20 已派 ISS-293 给 sw-lead (会话 3145eb8b · 原任务书) ⇒ 与本 job 的 cont1 会话 347ae23f 撞车 ⇒ ★**保留 cont1 (原任务书 + 续做节)· 对兄弟会话下停手指令** (★该会话当时无 trajectory
+    ⇒ 未动手写文件★) ⇒ ★**未 kill: subagents kill 报 Unknown subagent session (★它属于兄弟 job 的 requester★) ⇒ 改用 sessions_send** ★ ⇒ ★**兄弟 job 另开 ISS-296 (mech-lead · open) · 主题 = MECH 两道闸板 md5 硬保护基线 ⇒ 合法改板后假红 ⇒ 与
+    ISS-295 不同题 ⇒ 保持 open 等名额** ★'
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) · 17:5x 撞车处置记录 (★本 job 不重复派同一 agent★)
+- issue: ISS-295
+  agent: mech-lead
+  at: '2026-11-17'
+  brief: '★**【cont1 续做】重派 (★不是从零做★)★**: 会话 `agent:mech-lead:subagent:885e9633` 17:48:57 → 18:04:18 · runtime 462s · status=timeout ⇒ 死在写闸那一刻 ⇒ 4 件交付物: ① CLAIMS.md 不存在 ② check_mech_verdict_freshness.py 不存在
+    ③ 交卷单 967 B 骨架 ④ 分片 grep iss295 = 0 ⇒ ★**在盘的只有 `logs/iss295/gen_coverage_windows.py` (2473 B) + 它跑出来的 7 行漂移清单** ⇒ ★**本趟只补 4 件**: 交卷单骨架改成有内容的骨架 · B1 CLAIMS.md · B2 新闸 (★按短语命中不许按行号★) · B3 交卷单填满 + 分片 (grep
+    -c iss295 ≥ 4) ★'
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 18:1x 续做重派 · ★**brief = issue_log 里 ISS-295 的 task_brief (★已含本 job 追加的 ⑭ cont1 节★) ⇒ ★完整续做任务书 = `state/dispatch_briefs/ISS-295_mech_claims_and_verdict_freshness_cont1.md`
+    (★3553 B · check_brief_commands --brief-file ⇒ rc=0★)★ · ★**status 全程保持 fixing ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派**★
+- issue: ISS-297
+  agent: hw-lead
+  at: '2026-11-17'
+  brief: '★**ISS-297 · hw-lead 任务书 —— ★★【HW 侧 6 道闸: 建「合法改板」通道 (★板那一趟改板当天不许集体假红★)】★★** ★ (main · 2026-11-17 18:4x)
+
+
+    > ★**派活人**: 项目总工 (main / moli) · ★**派活时刻**: 2026-11-17 18:4x · ★**job**: cron `775d9893` (ARS45 继续执行后继计划)
+
+    > ★**owner**: hw-lead · ★**verify_by**: main · ★**单号**: ISS-297 · ★**零外发** ★
+
+    > ★**本单性质**:'
+- issue: ISS-298
+  agent: sw-lead
+  at: '2026-11-17'
+  brief: '★**ISS-298 · sw-lead 任务书 —— ★★【SW 侧 1 道闸: 建「合法改板」通道 (★板那一趟改板当天不许集体假红★)】★★** ★ (main · 2026-11-17 18:4x)
+
+
+    > ★**派活人**: 项目总工 (main / moli) · ★**派活时刻**: 2026-11-17 18:4x · ★**job**: cron `775d9893` (ARS45 继续执行后继计划)
+
+    > ★**owner**: sw-lead · ★**verify_by**: main · ★**单号**: ISS-298 · ★**零外发** ★
+
+    > ★**本单性质**:'
+- issue: ISS-295
+  agent: mech-lead
+  at: '2026-11-17'
+  brief: '★**【cont2 续做】重派 (★不是从零做★)★**: 会话 4d2565ef 18:13:48 → 18:28:32 · runtime 881s · status=timeout ⇒ 死在「两页追加订正节」之后 ⇒ ★**盘上已有: CLAIMS 页 37114 B (完整) + 两页订正节 (mtime 18:25, 两页现状句逐字一致) + 新闸 21330 B (但主模式
+    L437 解包崩 + F2 锚点 XC-3/XC-6 长度 <14 判红 + selftest 6/7)** ★ ⇒ ★**本趟只做 4 件**: ① 修 L437 解包 ② 换 2 条 ≥14 字锚点 (★main 已量好候选: XC-3 → `1 个: `J_USB_C` (16p @0.50 + 2×Ø0.65 对上, ` 40 字 / XC-6 → `现有 MECH 规格 (检修口 /
+    调试口两条` 23 字★) ⇒ 闸 rc=0 + selftest 7/7 ③ 填满交卷单 B3-1/B4/B5/B6 ④ 写分片 (grep -c iss295 ≥ 4) ★'
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 19:0x 续做重派 ★ · ★**三个 agent 会话在 18:28~18:47 全部超时死掉 ⇒ 三个 `fixing` 全是僵尸 fixing ⇒ 不重派就永远卡死** ★ · ★**status 全程保持 fixing ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派** ★ ·
+    ★**brief = issue_log 里 ISS-295 的 task_brief (★已含本 job 追加的续做节★) ⇒ ★完整续做任务书 = `state/dispatch_briefs/ISS-295_mech_verdict_freshness_cont2.md` ★
+- issue: ISS-297
+  agent: hw-lead
+  at: '2026-11-17'
+  brief: '★**【cont1 续做】重派 (★不是从零做★)★**: 会话 64aaa9ad 18:30:18 → 18:47:28 · runtime 1026s · status=timeout ⇒ 死在「修 2 条过期 fixture」那一刻 ⇒ ★**盘上已有: `HW/board_reboard.py` 35661 B (共用判决库) + `HW/PCB/BOARD_ONEPASS_MD5_LEDGER.md`
+    9216 B (§5 锚点块) + `HW/check_fsin_rootcause.py` 已改完 rc=0** ★ ⇒ ★**本趟只做 4 件**: ① 修 2 条过期 fixture ⇒ selftest 25/25 ② 把 5 道闸接到通道上 (★判据方向不许变 + fail-closed 三条不许动 + reboard: null 仍纯 md5 硬保护★) ③ 每道闸补 ≥4 条沙盒反向用例
+    ④ 新建交卷单 + 写分片 (grep -c iss297 ≥ 4) ★'
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 19:0x 续做重派 ★ · ★**三个 agent 会话在 18:28~18:47 全部超时死掉 ⇒ 三个 `fixing` 全是僵尸 fixing ⇒ 不重派就永远卡死** ★ · ★**status 全程保持 fixing ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派** ★ ·
+    ★**brief = issue_log 里 ISS-297 的 task_brief (★已含本 job 追加的续做节★) ⇒ ★完整续做任务书 = `state/dispatch_briefs/ISS-297_hw_legal_reboard_channel_cont1.md` ★
+- issue: ISS-298
+  agent: sw-lead
+  at: '2026-11-17'
+  brief: '★**【cont1 续做】重派 (★不是从零做★)★**: 会话 68654eaf 18:30:17 → 18:47:28 · runtime 1026s · status=timeout ⇒ 死在「还没动手改闸」那一刻 ⇒ ★**盘上已有: 交卷单骨架 2306 B (B0 + 交付物清单已写)★ ⇒ ★**本趟只做 3 件**: ① 把 `SW/tools/check_onepass_sw_sync.py`
+    的「板 / `.kicad_pro` 两件」接到合法改板通道上 (★照 `check_r6_hard_protected()` 四条判据: ① 基线自证 ② 无变更行⇒纯 md5 硬保护 ③ 有变更行⇒链头唯一/链不断/链头有单号 + 四项原子记录逐字对上 + 基线留链尾 + 盘上==链头 ④ 同组覆盖★) ② 补 ≥4 条沙盒反向用例 ③ 填满交卷单 B1~B8 + 写分片 (grep -c
+    iss298 ≥ 4) ★'
+  job: ★派活方 = cron fb67af40 (ARS45 队列自动派活) 于 19:0x 续做重派 ★ · ★**三个 agent 会话在 18:28~18:47 全部超时死掉 ⇒ 三个 `fixing` 全是僵尸 fixing ⇒ 不重派就永远卡死** ★ · ★**status 全程保持 fixing ⇒ 无 open 窗口 ⇒ 兄弟 job 775d9893 不会重复派** ★ ·
+    ★**brief = issue_log 里 ISS-298 的 task_brief (★已含本 job 追加的续做节★) ⇒ ★完整续做任务书 = `state/dispatch_briefs/ISS-298_sw_legal_reboard_channel_cont1.md` ★
+- issue: ISS-296
+  agent: mech-lead
+  at: '2026-11-17'
+  brief: '# ISS-296 · mech-lead 任务书 —— ★★【MECH 两道闸把【板 md5】写死成「硬保护基线」⇒ 板那一趟合法改板一次后 ⇒ 这两道闸必假红 ⇒ 而收工验收时的假红会被误读成「板改坏了」⇒ 板白改第二遍】★★ ⇒ ★**本单 = 把 SW 侧 ISS-284 已验证的「合法改板」机制 (reboard 四项原子记录 + 落表台账链头 + fail-closed
+    四条) 接到 MECH 侧两道闸 + 把 MECH 侧「收工后同一次重锚」写成收工清单强制项 + ≥4 条反向用例** ★ (★纯 MECH 侧 · 零写板 · 零落表 · 零改网表★)
+
+
+    > ★**派活人**: '
+- issue: ISS-297
+  agent: hw-lead
+  at: '2026-11-17'
+  note: ★僵尸 fixing 重派 (cont1 会话 66d81b9f 19:37:08 timeout 死) ⇒ cron fb67af40 20:1x 重派为 cont2 · 续做说明 = state/dispatch_briefs/ISS-297_hw_legal_reboard_channel_cont2.md
 entries:
 - issue: ISS-282
   agent: hw-lead

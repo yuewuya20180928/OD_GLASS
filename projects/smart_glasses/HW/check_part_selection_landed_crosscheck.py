@@ -75,21 +75,28 @@ DEVICE_PIN_ORDER = {
 
 # ---------------------------------------------------- 每个网络应当接到器件的哪个角色
 # ★**来源 = 网表 note / ISS-241 矩阵 criteria** (逐件引用见 ISS-241 §3)。
-# "?" = 角色待裁决 (缺口 G-1: Q_PG 源漏措辞与 P-MOS 高边拓扑相反) ⇒ 不判, 只报。
+# "?" = 角色待裁决 ⇒ 不判, 只报 (★机制保留·将来有新缺口时还能用★)
+# ★★ISS-283 · B2 (2026-11-17 12:3x 真落表后): ★**`Q_PG` 的角色已由老板 2026-11-17 09:49 拍板
+#   「写法 A」(★pm.yaml `boss_w4_q_pg_topology_20261117`★) 并已落表 (★pad1=PWR_GOOD / pad2=BAT_SW / pad3=PWR_ON★)
+#   ⇒ ★**原来这里的三个 "?" 前提 (「角色待裁决」) 已经不成立 ⇒ 继续留 "?" = 闸对 Q_PG 【静默不判】= 假绿风险★★
+#   ⇒ ★**本单把它填成 写法A 的真值 (G=PG / S=BAT_SW / D=ON) ⇒ 闸开始判 Q_PG 的 pad 序 ⇒
+#      板上的 land 仍是旧接法 ⇒ 会如实报出 2 处「接错」⇒ ★**那正是板那一趟必须重画 Q_PG land 的证据**★★
+#   ⇒ ★**注意: `D_ESD_USB_D` 的键仍写 `USB_D_P_SRC`** (★那是【板面现有焊盘名】·★改成新网名会让闸对该 pad 直接不判·更瞎★) ★
 NET_ROLE_EXPECT = {
     "D_ESD_CAM": {"CSI_D0_CK_P": "I/O", "GND": "GND"},
     "D_ESD_DEMO": {"RAIL_DEMO_5V": "I/O", "GND": "GND"},
     "D_ESD_USB_D": {"USB_D_P_SRC": "I/O", "GND": "GND"},
     "Q_AND": {"RESET_N": "D", "GND": "S", "PG_AND": "G"},
     "Q_ENVC": {"PG_AND": "G", "GND": "S", "EN_VCORE": "D"},
-    "Q_PG": {"PWR_ON": "?", "BAT_SW": "?", "PWR_GOOD": "?"},
+    "Q_PG": {"PWR_GOOD": "G", "BAT_SW": "S", "PWR_ON": "D"},
 }
 
 # 已知「pad 序 ≠ 器件引脚序」但板文件还没重画 land 的件 (占位 pad 序 = 网表顺序)
 PAD_ORDER_EXPECT_NOTE = {
     "D_ESD_CAM": "占位 pad 序 = GND/信号, 器件 DPY 引脚序 = I/O/GND ⇒ 必须重画 land (或改用双向件 PESD5V0S1BA)",
     "Q_AND": "占位 pad 序 = D/S/G, SOT-23 库引脚序 = G/S/D ⇒ 必须重画 land",
-    "Q_PG": "占位 pad 序 = S/D/G, SOT-23 库引脚序 = G/S/D ⇒ 必须重画 land (且角色待 G-1 裁决)",
+    "Q_PG": "★**ISS-283 · G-1 已裁 (老板 2026-11-17 09:49「写法 A」)⇒ 角色 = G=PG / S=BAT_SW / D=ON**★; "
+            "★**占位 pad 序仍是旧接法 (pad1→PWR_ON / pad2→BAT_SW / pad3→PWR_GOOD = S/D/G)·SOT-23 库引脚序 = G/S/D ⇒ 必须重画 land (板那一趟·§③-2)★**",
 }
 
 
