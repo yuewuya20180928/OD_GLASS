@@ -5,10 +5,11 @@ updated_by: hw-lead
 status:
   phase: P1
   progress_pct: 100
-  health: green
-  summary: ★ISS-239 已交卷并经 main 实跑 verified (2026-11-16 12:2x); 2026-11-17 补记 = 本闸 H-1 重锚第 1 跳 (ISS-257
-    落表后 md5 过期) + ④b 台账对账 + 3 条新反向用例 (selftest 13/13); 15 条脚表缺陷未落表, 等 main 排期与 3 条裁决 (A/B 补 EN 脚 / pin1
-    改不改 / 落表 owner) [实测]
+  health: yellow
+  summary: 'ISS-282 交卷: 根因订正页 + 作业包追加式订正 (diff 删除行数=0) + 机器闸 (D1~D5 全绿, selftest 15/15) + 交卷单 (含 main
+    11:0x 补充实测逐条回应) + 分片; 零写板·零落表·零跑布线臂; 顺手收口 A3 preflight 闸 (P5 两条现状 + P6 三基线) ⇒ rc=0; 验收 9 条 6 绿 3 红
+    (A4/A5/A6 根因与本单无关: 落表后遗症 / S10 未跑 / MECH 域, 已登记 need)'
+  updated_at: '2026-11-17'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -1010,6 +1011,112 @@ artifacts:
   version: '1.0'
   updated_at: '2026-11-17'
   summary: ★ISS-257 交卷后复验日志 (14 条验收命令 rc + 五件受保护 md5 + G1a-7 现状 + 台账自指顺序瑕疵登记)
+- path: HW/PCB/BOARD_FRAME_CALIBER.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-274 板框/坐标系口径单一权威页: 三套基线对照 + 坐标帧声明 + SoM 承载区实测占位 + S6 20/19/1 订正 + 机器可读区(4 JSON 块)'
+- path: HW/check_board_frame_caliber.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-274 机器闸: C1 帧一致性 / C2 S6 坐标真值 / C3 越界 / C4 重叠 / C5 异帧误用 / C6 受保护 5 件 md5; --selftest 反向
+    8 条'
+- path: HANDOFF/2026-11-17_hw-lead_ISS274_板框坐标系口径收口.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-274 hw-lead 交卷单: B1 结论摘要 / B2 验收逐条自评 / B3 反向自证实跑原始输出 / B4 接口取值声明 / B5 未决项 / B6 复现命令'
+- path: HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-277 新建: 板只改一次那一趟的板侧项全集 (31 条 · 9 字段 · S1~S13 全覆盖 · §6 JSON 块 · 坐标帧声明 B160x100)'
+- path: HW/check_onepass_preflight_coverage.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-277 新建覆盖度闸: P1~P6 (含 P4 覆盖度 + P5 现状一致) · 主模式 rc=0 · --selftest 反向 8/8'
+- path: HANDOFF/2026-11-17_hw-lead_ISS277_板侧漏项覆盖度收口.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ★ISS-277 交卷单 (B1~B6 齐全) + 13 条验收 rc + P4/P5 漏项与过期的实跑输出 + 接口取值声明 + 7 条卡点 (不代拍)
+- path: HANDOFF/2026-11-17_hw-lead_ISS280_提交时序守卫.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: ★ISS-280 交卷单 (B1~B6 齐全 + 附 A/B/C) + 14 条验收 rc 原样 + 追加式订正 diff 摘要 (老字逐字还在) + 边界逐条自证 (★零写板 ·
+    零落表 · 零改既有判据 · 不代拍★)
+- path: HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-280 新建权威页: §1 三类步分类表 (A 改板 / B 留证产物 / C 只读闸, 每格带盘上原文出处) · §2 时序不变量 INV-1~INV-4 (机器可判形式)
+    · §3 现状事实 (本机实测) · §4 板 md5 变更台账格式 · §5 三类步 × 谁能拍 交叉表 (不新增任何拍板项, 不代拍)'
+- path: HW/PCB/BOARD_ONEPASS_MD5_LEDGER.md
+  kind: ledger
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-280 新建板 md5 变更台账: 变更区 0 行 (= 板 md5 至今没变过) + 基线区登记 5 件受保护 md5 + 留证绑定区 0 行; 格式定义见 BOARD_ONEPASS_COMMIT_ORDER.md
+    §4'
+- path: HW/check_onepass_commit_order.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-280 新建提交时序守卫机器闸: D0 权威页含 INV-1~INV-4 + 零落表 / D1 B类终段最后跑 / D2 只允许变一次+同趟 / D3 旧集合须被撤回 /
+    D4 盘面vs台账 / D5 变更次数≤1 / D6 变更须有留证绑定 ⇒ rc=0 · --selftest 反向 11/11 (端到端跑真盘沙盒副本)'
+- path: HW/PCB/BOARD_ONEPASS_S10_MANIFEST_SPEC.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-281 新建 S10 投产包 md5 清单格式契约 (权威页): 清单文件名+路径+为什么必须在投产包内 + 字段表 + 行型/解析规则 + 生成时机三条硬规矩 + 谁生成
+    (本单只出规格, 生成器归 S10 那一趟) + 判据 M1~M4 定义 + 与 §3-S10 量化判据的订正对照 + 生成器接线代码骨架 (给 main 的落点)★'
+- path: HW/check_onepass_s10_manifest.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-281 新建 S10 清单机器闸: M1 清单在盘+三头字段齐全+每行 md5/字节数格式合法 / M2 清单 BOARD_MD5 == 盘上板 md5 (★内容级, 抓「产物不是这一版板出的」★)
+    / M3 清单每个文件的 md5 与盘上逐字相同 (★内容级, 抓「产物被偷换/被改/缺件」★) / M4 文件数 == 盘上实际文件数 + 路径集合双向相等 (★抓「偷渡件/幽灵」★) ⇒ 主模式
+    rc=1 (★预期红: 盘上无清单★) · --selftest rc=0 (反向 9 条 + 正向对照 1 条, 含 ⑦ 历史对照: 用今天这个没有清单的投产包 ⇒ M1 红) · --demo-sandbox
+    rc=0 (M1~M4 全绿 ⇒ 证明不是恒绿摆设) · 沙盒全在 /tmp, 真盘零写★'
+- path: HANDOFF/2026-11-17_hw-lead_ISS281_S10投产包清单落地.md
+  kind: handoff
+  version: '1.1'
+  updated_at: '2026-11-17'
+  summary: '★ISS-281 交卷单 (完稿): B0 交付物清单(4 件全在盘) + B1 结论摘要 + B2 边界自证 11 条 & 验收标准自评 + B3 验收 rc(13 条命令原样贴)
+    & 证据分级 + B4 interface_claims x3 / artifact x3 / need x1 / status + B5 未决项与卡点 5 条 + B6 自证复现命令 + 附 A
+    回答 main 三问 + 附 B 沙盒路径 + 附 C 真生成清单样例 + B7 一句话自证; ★**主模式 rc=1 = 如实红 (盘上无清单=病灶本身, 与任务书 §③ 写的 rc=0 互斥,
+    已登记为未决项请 main 裁决)** · --selftest rc=0 (用例 10 条: 判红 9 + 正向 1) · --demo-sandbox rc=0 (M1~M4 全绿 = 绿路径证据)
+    · ISS-280 rc=0/selftest 11/11 · ISS-277 rc=0/selftest 8/8 · DRC rc=0 (unconnected 45/DRC 0/Gerber
+    32) · nets rc=1 (现状多余 2 = C_VBUS_GND, 未变差未修) · merge rc=0 · gate_check rc=0 (Q1 18/18, hw-lead 直接按本单计分)
+    · issue_check rc=0 · 受保护 5 件 md5 逐字节不变 · 零写板/零跑 gen_production_pack.sh/零写 production(-newermt = 0)/零落表/零改既有阈值/零外发/不自签
+    issue_log · 作业包逐字节复原法证明只追加 22 行老字零删除 (复原 md5 = ISS-280 落档基线 61566cfc7ee8ba5621e8cb28048337cd)★'
+- path: HW/PCB/FSIN_OUT_ROOTCAUSE.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-282 根因订正页: 逃逸方向 bug 不成立 ⇒ 订正为布线排队顺序 (第2步电源网 VDD_3V3_IO 先占走廊, 第4步 FSIN_OUT 后挑只剩窄缝); 八个必含项齐全
+    + 机器可读锚点块 11 项 (pad_a/pad_a_num 分开写; d_a=1.300000 / d_b=1.350000 口径 = 路由器 _nearest_other_pad() 那个量
+    / blocker=VDD_3V3_IO / blocker_d=0.438361 / esc_threshold=0.45 / need=0.395)'
+- path: HW/check_fsin_rootcause.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ISS-282 机器闸 D1~D5 + --selftest 15/15; D1 页双口径 / D2 escape_stub 判据实算 (锚点契约 pad_a+pad_a_num,
+    find_pad 严格匹配不猜) / D3 逐网忽略法实算 / D4 作业包追加式订正 (老 S8 行逐字未删) / D5 受保护5件 md5 (基线 ∪ 落表台账【最新一条】落表记录)
+- path: HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+  kind: workpacket-summary
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '§6.2 S8 行下面追加 ISS-282 订正行 (老字零删, diff 实测删除行数=0): FSIN_OUT 不是板侧项 / 不需要动板 / 挪到布线臂 env 配置 (PCB_PRIORITY_NETS);
+    划掉的是要改板不是布不通'
+- path: HANDOFF/2026-11-17_hw-lead_ISS282_FSIN_OUT根因订正.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ISS-282 交卷单 B0~B6 + 附 A/B/C 全填; 含【main 11:0x 补充实测逐条回应】段; 9 条验收命令逐条 rc (6 绿 / 3 红, A4·A5·A6
+    根因与本单无关已登记 need)
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2226,6 +2333,60 @@ needs_from:
     行带进脚表 (★不是让板去抄 BOM ★) ⇒ 属【落表批次】地界 (★BOM/脚表口径 ★) ⇒ 本单按边界一字没碰。★实测拆解 (板 vs BOM 共 20 件差: 15 件纯 40 字截断差=无害
     + 5 件口径真差) 见 HANDOFF/2026-11-17_hw-lead_ISS269_板那一趟生成器三坑.md B2-③ 附表。'
   since: '2026-11-17'
+- key: iss274_p7_board_frame_decision_pending
+  to: main
+  item: 'P7 板框拍板前, 本单只能保证坐标帧不混用 (闸 C1 判红漏标/混用), 「那一趟画哪一块」仍归老板: 若画现役 160x100 台架板则作业包 S1~S13 照现状可开工; 若画产品板
+    60x15/60x30 则现盘 186 封装 / 4 个 SoM 座 / 全部 PCB_PART_POS 坐标作废重排。另附两条同批登记: MECH/BOARD_GEOM_30MM.md 主控仍
+    RK3576 (14 次, RK3572 零次) 本单零改只登记; 受保护 5 件 md5 基线须在板只改一次那一趟跑完后由 main 批准 --update-baseline 重录, 否则 C6
+    会红'
+  since: '2026-10-25'
+- key: iss277_boss_decisions_list
+  to: main
+  item: '★ISS-277 交卷单 §5 的 7 条归老板/归 main 拍的清单, 请 main 排期 (★本单一条没代拍 ★): ①U_LDO_S28.pin3 A/B 案 (★A 案 ⇒ 板必须补
+    pad3, 与板只改一次直接冲突, 必须先拍★) ②LED 亮度档 G-5 (★改串阻⇒改网表⇒改BOM⇒改板面落位⇒必须排在 S6 之前★) ③P7 画哪一块 (160×100 台架板 vs 60×30
+    产品板; ★C4 是唯一不需动板的选项★) ④D_ESD_TC 4 焊盘 footprint 方案 (3 通道件只接 1 通道 ⇒ Type-C D+/D− 仍裸奔) ⑤ESD 架构 W-1/W-2
+    (一颗双通道 vs 两颗单通道; S4 是第一个真正卡在老板的步) ⑥Q_PG 写法A + 漏电档 vs 栅压耐压档 (★写法B = 开机路径彻底不通★) ⑦A1 (V-3) 分压最终阻值 ⇒ R_SUPV_DIV1/2
+    与 R_BAT_DET_1/2。★另两条设计缺口 (不属板侧项但会顶到那一趟): R_SUPV_DIV1/2 = 0Ω 且 dnp=必装 而 U_SUPV dnp=DNP ⇒ 装 0Ω 等于把 V_SOC_IO
+    短到地 (清单 B04) · D_ESD_TC 3 通道只接 1 通道 (清单 B23)。★依据: HANDOFF/2026-11-17_hw-lead_ISS277_板侧漏项覆盖度收口.md B5
+    + HW/PCB/BOARD_ONEPASS_PREFLIGHT.md §5。'
+  since: '2026-11-17'
+- key: iss280_boss_decisions_gate_b_steps
+  to: main
+  item: '★ISS-280 交卷单 §5 的时序依赖 (★本单一条没代拍, 只列卡点★): 按 INV-4, B 类步 (S9/S10/S11/S12/S13 = Gerber/投产包/留证链/盖章/发布)
+    在下列拍板项落地前【不许】跑, 否则板 md5 必变第二次 ⇒ 两批留证产物 ⇒ 破「板只改一次」铁律: ①W-1/W-2 (USB ESD 单双通道 + D- 侧 ⇒ 决定 S4 封装/位置/网表)
+    ②P7 (板形/层数/放行口径 C1/C2/C3/C4 ⇒ 决定 S8 布线能否归零 + 板框) ③A1/V-3 (BAT_DET 分压链 ⇒ 条件步 S5 是否触发) ④W-4 (Q_PG.3
+    极性 ⇒ 布不了) ⑤D_LED_G 物理位置 (mech+老板 ⇒ 决定 LED 位) ⑥FSIN_OUT 3.01 mm 逃逸方向 (hw + 路由器作者)。★请 main 排期: 这些必须【先拍完】,
+    然后 S1/S2/S3/S4/S6/S7/S8 同趟一次做完 (板 md5 变一次), 最后 S9~S13 一次跑完。★另: 现在【真的】能先做的只有 S1/S2/S3/S6/S7 (改板, 不产留证产物),
+    但它们一旦落盘就把板推到第二次变更的门槛上 ⇒ 要么现在整趟一起做, 要么先只做不落盘的准备工作。'
+  since: '2026-11-17'
+- key: iss281_s10_generator_hook
+  to: main
+  item: '★生成器接线归 main 排期 (★因为它动的是共享脚本 state/gen_production_pack.sh, 本单只出规格+判据+闸, 不改那个脚本★): 该脚本是 rm -rf
+    重建 ⇒ 清单必须在重建【之后】写 ⇒ 落点 = 第 113 行 (★原理图源文件归档块的末行, ls -1 那一行★) 之后 / 第 115 行 step 清单 之前 —— 那一行之后 OUT
+    里不再新增任何文件, 正是最后一次创建的位置; 顺序 = 先写清单 ⇒ 再 find 统计 ⇒ 再打印 (★FILE_COUNT = find 数 + 1, 因为写清单那一刻 find 还数不到它★);
+    代码骨架见 HW/PCB/BOARD_ONEPASS_S10_MANIFEST_SPEC.md §8。★接完之后 S10 那一趟的验收 = python3 HW/check_onepass_s10_manifest.py
+    ⇒ rc=0 (★现在必然 rc=1, 因为清单还没生成 —— 那是如实报告病灶, 不是闸坏了★)★'
+  since: '2026-10-25'
+- key: iss282_commit_order_d0_baseline_after_landing
+  to: main
+  item: HW/check_onepass_commit_order.py 的 HARD_BASELINE/PROTECTED_5 三个 CSV md5 挪到落表后真值 (2f17650c/6ea65fec/ea5f4f58)
+    并引 HW/SCHEMATIC_LANDING_V1_LANDED.md §16.2 L1270-L1272 ⇒ 现在 D0 红(零落表前提过期) ⇒ 本单未获授权故未动
+  since: '2026-11-17'
+- key: iss282_mech_sync_m5_baseline_after_landing
+  to: mech-lead
+  item: MECH/check_onepass_mech_sync.py 的 M5 三个 CSV 基线挪到落表后真值并引台账 §16.2 L1270-L1272 ⇒ 现在 M5 红 3 条 ⇒ 文件在
+    MECH/ 域, 本单只读未动
+  since: '2026-11-17'
+- key: iss282_unc_judgement_by_name_list
+  to: main
+  item: '那一趟的 unc→0 判据必须按名单制看 (哪些网通了/哪些网死了), 不许只看总数: 走廊零和 ⇒ 优先布给 FSIN_OUT 会挤掉差分主干 (实测 v76p1 臂 unc 46→47)
+    ⇒ 本单只登记, 不代拍'
+  since: '2026-11-17'
+- key: iss282_pin_labels_known_defects_snapshot
+  to: main
+  item: 'HW/check_pin_function_labels.py 的 KNOWN_DEFECTS 冻结快照过期: 实算 18 (14 串号+1 缺脚+3 md5 台账对账) vs 快照 15
+    ⇒ --expect-known rc=1 ⇒ 落表后同步快照 (归 ISS-283), 本单未改该脚本'
+  since: '2026-11-17'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -2678,6 +2839,17 @@ answers:
     而盘上真值=289189160259fd3f59ad91a08478026f (★根因=自指顺序: §18.4 21:42 写完后交卷单 21:43 又做了最后一次编辑★) ⇒ ★只影响该行可追溯性,
     不影响任何门禁与任何 H-1 重锚 (H-1 只认五件受保护) ⇒ ★本轮不擅自改已 verified 的台账, 请 main 落账时一并订正。'
   ref: HW/ISS257_reverify_20261117_0512.log
+- key: iss280_commit_order_guard
+  to: main
+  value: '★ISS-280 交卷 (2026-11-17 08:3x, 本机实跑): ① 新建 HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md (三类步分类 A改板/B留证产物/C只读闸
+    + 时序不变量 INV-1~INV-4 + 现状事实 + 板 md5 变更台账格式 + 与 §6.2 卡点交叉表) ② 新建 HW/PCB/BOARD_ONEPASS_MD5_LEDGER.md
+    (变更区 0 行 = 板 md5 至今没变过) ③ 作业包 HW/PCB/BOARD_ONEPASS_WORKPACKET.md 追加式订正 3 处 (§0 表追加一行 / §6.1 集合行+关键价值句追加订正
+    / §6.2 追加一行把「若在 S10 之后才拍 ⇒ 破功」从只对 P7 C1/C2 一般化到 S4/S8/A1/W-4/P7 全部) ⇒ diff 证明老字逐字还在 (0 deletions,
+    12 行纯新增) ④ 新建机器闸 HW/check_onepass_commit_order.py (D0~D6, rc=0; --selftest 反向 11/11 全抓到, 端到端跑真盘沙盒副本,
+    含 ⑪ 历史对照: 用 ISS-280 之前的作业包 ⇒ D1/D3 红 ⇒ 证明闸真能抓住原病灶)。★核心结论: 照 §6.1 字面集合执行 = 板 md5 变两次 + Gerber/留证链/盖章/发布全白跑
+    ⇒ 正确时序 = 拍板项落地 → S1/S2/S3/S4/S6/S7/S8 同趟做完 (板 md5 变一次) → S9~S13 最后跑一次。★本单零写板 (板 md5 仍 611b869e…) ·
+    零落表 (网表/脚表/BOM 逐字节不变) · 零改既有判据脚本 · 不代拍任何拍板项 · 不跑 S1~S13 任何一步。'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS280_提交时序守卫.md
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -4362,6 +4534,72 @@ interface_claims:
     / U_TEMP)。★其中 3 件 (CONN_CAM / U_DCDC_VCORE / U_DCDC_VIO) 的 BOM 侧拿到的是脚功能串 ⇒ 根因 = 脚表缺 type=IC 器件本体行
     (网表侧有) ⇒ 板侧现在比 BOM 侧准。★真修法 = 让 state/gen_netlist_pins.py 带本体行进脚表 ⇒ 落表批次地界 ⇒ 已登记 need iss269_pins_table_missing_body_rows。'
   ref: HANDOFF/2026-11-17_hw-lead_ISS269_板那一趟生成器三坑.md B2-③
+- key: iss274_board_frame_caliber_page
+  value: '板框/坐标系口径单一权威页已立: HW/PCB/BOARD_FRAME_CALIBER.md (单一真源, 机器可读区含 cal:FRAMES / cal:S6_TARGETS / cal:ISS271_RECTS
+    / cal:PROTECTED_MD5 四个 JSON 块)'
+  note: '★ISS-274 (2026-11-17): §1 三套基线对照 (现役 160x100/8L/1.6mm/RK3572-SOM = 唯一现役; MECH 60x30/6L/1.0mm/RK3576-SoC;
+    产品 60x15) + §2 坐标帧声明 (点名 ISS-271 的 D_LED_G 窗口 X33.00..47.71 x Y1.60..28.40 与检修口开口 X47.00..60.00 x
+    Y1.665..11.730 = F30A 帧, 不得当 160x100 帧用) + §3 SoM 承载区实测占位 56.70x46.78mm (焊盘实体 53.80x46.78), 高 46.78
+    > 30 且 > 15 ⇒ 装不进 ⇒ 两种物理产品坐标不可互相代入 + §4 S6 口径订正 + §5 给 boss 的现状 (不代拍 P7 的 D1~D4) + §7 边界 + §8 未决'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS274_板框坐标系口径收口.md §B1
+- key: iss274_s6_coordinate_truth_machine
+  value: 'S6 坐标真值 20/19/1 已机器化: HW/check_board_frame_caliber.py (C1 帧标 + C2 逐个 ±0.01mm + C3 越界 + C4 重叠
+    + C5 异帧误用 + C6 受保护 5 件 md5)'
+  note: '★ISS-274 (2026-11-17): 机器闸主模式 rc=0 (C1~C6 全绿); --selftest rc=0 (反向 8 条全被抓住: 改 S6 目标坐标⇒C2 红; R_SEL_D3_P
+    挪第三处⇒C2 红且差异集合=2 项; 抽帧标⇒C1 红; C5 矩形挪出 SoM 区⇒报不压任何焊盘; 改 BOM⇒C6 红; 目标位出板框⇒C3 红; 异帧矩形标成现役帧⇒C1 红; 抽作业包
+    S6 段帧标⇒C1 红)。★实测口径: S6 = 20 个 distinct ref (原文 21 个是重复计数, R_SEL_D3_P 本就在 10 个 R_SEL_* 里) / 19 个已在目标位
+    / 真实位移只有 R_SEL_D3_P 一处 (78.90,9.50 → 122.30,5.50) ⇒ 要钉 20 个 ≠ 要挪 20 个'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS274_板框坐标系口径收口.md §B2/§B3
+- key: iss277_board_side_item_universe
+  value: 板侧项全集 = HW/PCB/BOARD_ONEPASS_PREFLIGHT.md (31 条 / S1~S13 每步都有 / 固定 9 字段)
+  note: '★ISS-277 (2026-11-17 07:3x): 把板只改一次那一趟的板侧项收成一份机器可读全集 —— 31 条, 每条固定 9 字段 (id / source_iss / title
+    / current_state / action / criterion / step / blocked_by / evidence), §6 带 JSON 块 (schema=board-onepass-preflight/v1
+    · frame=B160x100)。★把 ISS-241/244/247/274/276/239 六个来源单的板侧发现逐条并进来: D_ESD_CAM pad 序接反 / Q_AND 与 Q_PG
+    的 land pad↔pin 错 / D_ESD_TC 3 通道只接 1 / U_LDO_S28 缺 pin3 / J_CHG 位号双义 / S6 真实位移只 R_SEL_D3_P 一处 / 检修口调试口必须拆两条
+    / 8 行落表残项。★作业包同步追加式订正: §1.5 今日实测基线 + §3-S0 板侧漏项并入表 (S2/S3/S4/S6/S7/S10) + §4 两行新闸。★零写板。'
+  ref: HW/PCB/BOARD_ONEPASS_PREFLIGHT.md + HW/PCB/BOARD_ONEPASS_WORKPACKET.md §1.5/§3-S0/§4
+- key: iss277_preflight_coverage_gate
+  value: HW/check_onepass_preflight_coverage.py (rc=0 · --selftest 反向 8/8)
+  note: '★ISS-277 新建覆盖度闸: P1 清单可解析+9 字段齐 · P2 step∈S1~S13 且每步有人管 · P3 每条判据命令的文件真实存在 · P4 覆盖度 (26 个板侧标记必须全在清单里
+    + source_iss 必须有来源, 双向) · P5 清单现状值必须等于盘面实测 (5 个探针: 多余2 / 零标记43颗 / unconnected=45 / 15条缺陷 / 落表残项8行)
+    ⇒ 清单过期当场红 · P6 受保护 5 件 md5。★反向用例 8/8: 删条目 / 改现状 / 抽字段 / 改步S99 / 假命令 / 改板 / 来源不明 / 基线全绿。★★P4 是本单核心:
+    只在交卷单里没进清单的漏项当场红 ⇒ 那一趟就不会漏做 ⇒ 板 md5 不会变第二次。'
+  ref: HW/check_onepass_preflight_coverage.py
+- key: iss280_commit_order_gate
+  value: 'HW/check_onepass_commit_order.py (rc=0 · --selftest 反向 11/11 全抓到: 10 条真改坏 + 1 条历史对照)'
+  note: '★ISS-280 新建提交时序守卫: D0 权威页含 INV-1~INV-4 + 受保护 3 件 (网表/脚表/BOM) 零落表 · D1 作业包必须写「B 类终段步 (S9/S10/S12/S13)
+    = 最后跑」 · D2 必须写「板 md5 只允许变一次 + S4/S8 与 S1/S2/S3/S6/S7 同趟」 · D3 作业包不得再把 S9/S10/S11/S12/S13 列进「现在就能做完」的集合
+    (机器形式 = 含 B 类步的集合断言行必须被后文一条显式撤回订正覆盖) · D4 盘上板 md5 == 台账最后一次登记值 (变更区 0 行时 == 基线 md5) ⇒ 专抓「绕过本单偷改板」
+    · D5 变更次数 ≤ 1 · D6 变更次数 = 1 ⇒ 那一版必须有留证绑定 (产物在盘 + 不比板旧)。★D4 口径细化留痕: 不死守「永远 == 基线」, 否则合法改一次就红 ⇒ 与任务书
+    ⑤-2「板改一次是合法的」一致。★反向用例端到端跑真盘沙盒副本, 含 ⑪ 历史对照 (用 ISS-280 之前的作业包 ⇒ D1/D3 红 ⇒ 证明闸真能抓住原病灶)'
+  ref: HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md §6
+- key: iss281_s10_manifest_spec
+  value: '★S10 投产包 md5 清单的格式契约已定死: 清单文件 = HW/PCB/production/MANIFEST.md5 (★必须在投产包【里面】, 放外面 ⇒ rm -rf 重建后不刷新
+    ⇒ 变成描述旧包的僵尸清单, 比没有清单更危险★); 字段 = 数据行 <相对路径> | <md5> | <字节数> (相对 HW/PCB/production/) + 末尾三行 BOARD_MD5
+    / GENERATED_AT / FILE_COUNT (★FILE_COUNT = 投产包文件总数, 含清单自身 = 数据行数+1★); 生成时机 = 必须在 rm -rf 重建【之后】写, 且是
+    OUT 里最后一次被创建的文件; 格式契约权威页 = HW/PCB/BOARD_ONEPASS_S10_MANIFEST_SPEC.md'
+  note: ''
+  ref: ''
+- key: iss281_s10_manifest_gate
+  value: HW/check_onepass_s10_manifest.py (主模式 rc=1 ★预期红★ 因为盘上还没有清单 = 这就是病灶本身; --selftest rc=0 反向 9 条
+    + 正向对照 1 条全抓到; --demo-sandbox rc=0 证明 M1~M4 不是恒红)
+  note: ''
+  ref: ''
+- key: iss281_s10_workpacket_correction
+  value: '★作业包 §3-S10 量化判据第三项订正: 「板统计里的 md5 == S6 重出后的板 md5」这句落不了地 (HW/PCB/production/doc/board-stats.txt
+    = KiCad 统计报告导出, 1435 B, grep -ci md5 = 0 ⇒ 盘上这个文件里一个 md5 字段都没有) ⇒ 正确判据 = 投产包清单里的 BOARD_MD5 == S6 重出后的板
+    md5; 连带: 文件数口径 73 ⇒ 74 (投产产物 73 + 清单 1), Gerber 32 不变'
+  note: ''
+  ref: ''
+- key: iss282_fsin_out_rootcause
+  value: 布线排队顺序
+  note: VDD_3V3_IO 是电源网(第2步布)先占走廊; escape_stub 不适用 (1.300000/1.350000 ≫ 0.45, 口径 = 路由器 _nearest_other_pad()
+    用的那个量); 唯一挡路者实测 D=0.438361 ≥ 0.395; 页与闸同口径
+  ref: ''
+- key: iss282_fsin_out_not_board_side
+  value: 不需要动板
+  note: 划掉的是要改板不是布不通; 挪到布线臂 env PCB_PRIORITY_NETS; 板只改一次铁律不受影响
+  ref: ''
 open_questions:
 - id: HW-Q1
   to: main

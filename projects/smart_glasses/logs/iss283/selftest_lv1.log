@@ -1,0 +1,43 @@
+╔══ 落表器自测 (★--selftest★ · ★全在临时副本里做 · 真盘零写入★) ══╗
+★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+
+   ✅ 用例1 ★【回归·本轮实测坏案例】真源退回 ISS-257 之前的占位串 ⇒ V-2 必须红 (rc≠0) ★
+        rc=3
+        ★★ rc=3: ★**落表前校验不过 ⇒ 拒绝落 (★零写盘★)** ★
+           ★★【状态漂移】D_ESD_USB_D 的 2 行 value 不一致 ⇒ ★**期望: 同一颗器件的同一串 value** ⇒ ★**实际: ['ESD 阵列 [待选型]', 'ESD 阵列 [待选型] (USB 2.0 双通道)']** ⇒ 拒绝落 ★
+           ★★【型号轴未落】state/gen_netlist.py 里 D_ESD_USB_D 的 value 还是【占位 / 判据串】★★
+           ★**期望**: 一条真 OPN (★第一个 token 必须含数字, 例 `TPD1E05U06DPYR ...`★)
+           ★**实际**: 'ESD 阵列 [待选型] (USB 2.0 双通道)'
+           ★**⇒ 型号归【选型级 / 老板】(ISS-241 矩阵 · ISS-257 已落的那条就是本工具要保住的那条)★**
+           ★**⇒ 本工具【不】写判据串, 也不替你选型号 ⇒ 拒绝落 (★零写盘★)**★
+           ★★【状态漂移】D_ESD_USB_D 的网表 value 与 PARTS 字典的 OPN 不是同一颗器件 ⇒ ★**期望: 两边第一个 token 相同** ⇒ ★**实际: 网表 'ESD' / PARTS 'TPD1E05U06DPYR'** ⇒ 拒绝落 ★
+   ✅ 用例2 ★【已落过】信号行已在 Type-C 侧 ⇒ 必须红 (rc≠0) 且文案写【已落过】★
+        rc=3
+        ★★ rc=3: ★**落表前校验不过 ⇒ 拒绝落 (★零写盘★)** ★
+           ★★【已落过】D_ESD_USB_D 的信号行已经在 Type-C 侧了 ⇒ ★**期望: 还在 SoM 侧 (USB_D_N_SRC / USB_D_P_SRC)** ⇒ ★**实际: L1451 net = NET_USB_D_P_TYPEC** ⇒ ★**不要重复落 (★零写盘★)**★
+Traceback (most recent call last):
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/land_v_values.py", line 2507, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/land_v_values.py", line 2221, in main
+    return run_selftest(root)
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/land_v_values.py", line 2001, in run_selftest
+    tmp, _ = new_case("drift")
+             ~~~~~~~~^^^^^^^^^
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/land_v_values.py", line 1962, in new_case
+    tmp = _sbx_copy(root, "c%d" % len(cases))
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/land_v_values.py", line 1826, in _sbx_copy
+    shutil.copy2(src, dst)
+    ~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/lib/python3.14/shutil.py", line 529, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/shutil.py", line 334, in copyfile
+    _fastcopy_sendfile(fsrc, fdst)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/lib/python3.14/shutil.py", line 223, in _fastcopy_sendfile
+    raise err
+  File "/usr/lib/python3.14/shutil.py", line 203, in _fastcopy_sendfile
+    sent = os.sendfile(outfd, infd, offset, blocksize)
+OSError: [Errno 122] Disk quota exceeded: '/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/netlist_v1_pins.csv' -> '/tmp/land_v_selftest_c2_0l9of5fv/HW/netlist_v1_pins.csv'
+rc=1

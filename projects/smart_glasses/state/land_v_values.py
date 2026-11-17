@@ -65,6 +65,7 @@ import argparse
 import csv
 import difflib
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -112,6 +113,11 @@ GEN_NETLIST = "state/gen_netlist.py"
 SPEC_JSON = "HW/SCHEMATIC_V1_SPEC.json"
 P10_ROWS = "state/p10_rows.json"
 CHG_SPEC = "HW/CHARGE_BOARD_SPEC.md"
+# ★★ISS-283 · B1: 落表授权通道要用的两个文件 (★身份列从 registry 取·值从网表行取★)★★
+NETLIST_CSV = "HW/netlist_v1.csv"
+REGISTRY_JSON = "HW/land_row_anchors_registry.json"
+# ★★ISS-283 · B1: 行号锚点守卫 (★落表前先让它把台账的 `id_str` 补齐·不然合法落表走不通★)★★
+ANCHOR_GUARD = "HW/check_land_row_anchors.py"
 
 BASELINE_EXPECT_RESOLVED = 18
 
@@ -167,6 +173,37 @@ class Decision:
     v2_src_arch: str = ""    # ★真源现状的架构档★
     v2_src_model: str = ""   # ★真源现状的型号串★
     line_shift_extra: list = field(default_factory=list)  # ★额外的行号漂移 (★只有架构 ② 用得到★)★
+    auth_changes: list = field(default_factory=list)  # ★ISS-283 · B1: 身份变更授权记录 (★落表台账里要登记★)★
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# 1-B · 「已落过」判定 (★ISS-283 · ⑩: V-3 / V-4 也要有·不然重复落会崩★)
+# ═════════════════════════════════════════════════════════════════════════════
+def _already_landed_evidence(root: str, patches: list) -> list[str]:
+    """★「已落过」的机器证据 (★旧串 0 次 + 新串在场 ⇒ 这一格已经落过了·不是漂移★) ★
+
+    ★**为什么要有它 (★今天的病灶★)**: 落表器自测的用例 12 硬套 V-3/V-4 的补丁,
+      而这两个值【已经落过表了】⇒ 真盘里旧值出现 0 次 ⇒ `replace_after` 抛 RuntimeError ⇒ **崩** ★
+    ⇒ ★**「合法落表」与「重复落表」是两件事, 不许混** ⇒ 这一格落过了 ⇒ 明确说【已落过】+ 拒绝重复落 ★
+    """
+    out: list[str] = []
+    cache: dict[str, str] = {}
+    for p in patches:
+        fp = os.path.join(root, p.path)
+        if not os.path.exists(fp):
+            continue
+        if p.path not in cache:
+            cache[p.path] = read_text(fp)
+        txt = cache[p.path]
+        _s, n_old = find_after(txt, p.ctx, p.old)
+        if n_old != 0:
+            continue                      # ★旧串还在 ⇒ 没落过 (★真漂移由 verify() 报★)
+        if not p.new:
+            continue                      # ★删除型补丁 ⇒ 单凭「旧串没了」不足为证 ★
+        _s2, n_new = find_after(txt, p.ctx, p.new)
+        if n_new >= 1:
+            out.append(f"{p.path} · {p.label} (★旧串 0 次 + 新串在场 {n_new} 次★)")
+    return out
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -376,6 +413,16 @@ def v3_recipe(value: str, root: str = "", arch_req: str = "", model_req: str = "
               f"分压后 {o['node_v']}V ≤ 1.8V) ⇒ ★**R2 组全绿**★ ★ |",
               "规格页 §2 表第 (2) 条 现状栏"),
     ]
+    # ── ★ISS-283 · ⑩: 「已落过」判定 (★V-3 也要有·不然重复落 ⇒ 旧串 0 次 ⇒ 崩★) ──
+    if root:
+        _ev = _already_landed_evidence(root, d.patches)
+        if _ev:
+            d.errors.append(
+                "★★【已落过】V-3=%s 这一格【已经落过表了】⇒ 拒绝重复落 (★零写盘★)★\n"
+                "   ★**证据 (★旧串 0 次 + 新串在场 ⇒ 是「落过了」不是「漂移了」★)**:\n%s"
+                % (value, "\n".join("     · " + e for e in _ev[:6])))
+            return d
+
     return d
 
 
@@ -627,6 +674,16 @@ def v4_recipe(value: str, root: str = "", arch_req: str = "", model_req: str = "
             ExpectPatch("d10_spec_0608", "text contains 单 pin **0.349A**",
                         "d10 CHARGE_BOARD_SPEC 的单 pin 现状值 (0.349A)"),
         ]
+    # ── ★ISS-283 · ⑩: 「已落过」判定 (★V-4 也要有·不然重复落 ⇒ 旧串 0 次 ⇒ 崩★) ──
+    if root:
+        _ev = _already_landed_evidence(root, d.patches)
+        if _ev:
+            d.errors.append(
+                "★★【已落过】V-4=%s 这一格【已经落过表了】⇒ 拒绝重复落 (★零写盘★)★\n"
+                "   ★**证据 (★旧串 0 次 + 新串在场 ⇒ 是「落过了」不是「漂移了」★)**:\n%s"
+                % (value, "\n".join("     · " + e for e in _ev[:6])))
+            return d
+
     return d
 
 
@@ -926,6 +983,49 @@ def v2_dual3_block(model: str, evidence: str) -> str:
     ) % (model, evidence, model, evidence, model, evidence)
 
 
+def v2_auth_records(root: str, csv_line: int, old_net: str, new_net: str) -> list[dict]:
+    """★V-2 的【身份变更授权记录】 (★身份列从 registry 取·值从网表行取★)
+
+    ★**为什么要机器生成 (★不许手抄★)**: 行号锚点守卫的【合法落表】通道判的是
+      「落表台账里能查到 (落表单号 + 文件名 + 旧身份 + 新身份)」⇒ ★手抄必然抄错★
+      ⇒ ★守卫判红 ⇒ 落表器自回滚 ⇒ 合法落表做不成** ★
+    ★**身份列不许硬编码**: 从 `HW/land_row_anchors_registry.json` 的 `d4_a417_net` 条目取
+      (★那是守卫自己的口径★ ⇒ 两边一致★) ⇒ 取不到 / 身份列里没有 `net` ⇒ 返回空
+      ⇒ ★**空 ⇒ 落表器拒绝落 (★fail-closed★)** ★
+    """
+    cols = ["ref", "net"]
+    reg_p = os.path.join(root, REGISTRY_JSON)
+    if os.path.exists(reg_p):
+        try:
+            with open(reg_p, encoding="utf-8") as fh:
+                reg = json.load(fh)
+            a = (reg.get("anchors") or {}).get("d4_a417_net") or {}
+            if a.get("idcols"):
+                cols = [str(c) for c in a["idcols"]]
+        except Exception:
+            pass
+    if "net" not in cols:
+        return []
+    row = None
+    try:
+        with open(os.path.join(root, NETLIST_CSV), encoding="utf-8") as fh:
+            for i, r in enumerate(csv.DictReader(fh), start=2):
+                if i == csv_line:
+                    row = r
+                    break
+    except Exception:
+        return []
+    if row is None:
+        return []
+    old_vals = [(row.get(c, "") or "").strip() for c in cols]
+    new_vals = list(old_vals)
+    ni = cols.index("net")
+    old_vals[ni] = old_net
+    new_vals[ni] = new_net
+    return [{"file": NETLIST_CSV, "table": "netlist", "line": csv_line,
+             "old": old_vals, "new": new_vals}]
+
+
 def v2_recipe(value: str, root: str = "", arch_req: str = "", model_req: str = "",
               ev_req: str = "") -> Decision:
     d = Decision(v="V-2", value=value)
@@ -1044,9 +1144,21 @@ def v2_recipe(value: str, root: str = "", arch_req: str = "", model_req: str = "
         d.expects.append(ExpectPatch(
             "d4_a417_net", f"net == {target_net}",
             f"d4 表A L{csv_line} ESD 信号行 net (★从 SoM 侧挪到 Type-C 侧★)"))
+        # ── ★ISS-283 · B1: 身份变更授权记录 (★守卫的【合法落表】通道靠它★) ──
+        d.auth_changes += v2_auth_records(root, csv_line, sig["net"], target_net)
+        if not d.auth_changes:
+            d.errors.append(
+                "★★★【落表授权】V-2 的身份变更授权记录生成不出来 "
+                "(★registry 的身份列里没有 `net`·或网表里找不到那一行★) ⇒ "
+                "★**不许硬落** (★守卫查不到授权 ⇒ 一定判红·落表器会自回滚★) ⇒ 拒绝落 (★零写盘★)★★")
+            return d
         d.v2_readout.append(
             f"★**落表动作**: 只动 1 行的 net (真源 L{sig['line']} → `{target_net}`) ⇒ "
             f"★**行数不变 ⇒ 门禁锚点行号不漂移** ★")
+        d.v2_readout.append(
+            f"★**身份变更授权 (★ISS-283 B1·行号锚点守卫的合法通道★)**: "
+            f"旧身份 `{d.auth_changes[0]['old']}` → 新身份 `{d.auth_changes[0]['new']}` "
+            f"(★网表 L{csv_line}·授权记录会写进落表台账★)")
 
     elif want_shape == "dual3" and src_shape == "single2":
         # ═══ ① → ②: 2 行变 3 行 (★D− 行新插 ⇒ 网表行号 ≥418 全部 +1★) ═══
@@ -1089,6 +1201,225 @@ def v2_recipe(value: str, root: str = "", arch_req: str = "", model_req: str = "
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# 4-B · V-5 (W-4 / G-1: `Q_PG` 写法 A) + V-6 (G-5 / W-6: LED 亮度档)
+#
+# ★★**为什么这两个也走落表器 (★而不是人手改 CSV·★2026-11-17 12:1x 实测★)** ★★:
+#   ① ★**落表 = 机器留痕** ⇒ 备份/回滚/台账 §16 新旧 md5/老板凭据/门禁实跑 全部自动 ★
+#   ② ★**人手改 CSV 会被下次生成覆盖** ⇒ 改的必须是【真源 `state/gen_netlist.py`】★★
+#   ③ ★**两条都改了【实体身份 / 器件阻值】** ⇒ 必须过【行号锚点守卫】与【落表后门禁】★ ★
+#
+# ★**老板凭据 (★机器转录·不代拍★)** ★:
+#   · V-5 / W-4 / G-1 = `boss_w4_q_pg_topology_20261117` (★pm.yaml ★2026-11-17 09:49★) ★
+#   · V-6 / G-5 / W-6 = `boss_g5_led_brightness_20261117` (★pm.yaml ★2026-11-17 09:49★) ★
+# ═══════════════════════════════════════════════════════════════════════════
+
+V5_BLOCK_OLD = '''    add("P1", "PWR_ON", "Q_PG", "U_PWR_SW ON", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
+        "[PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— "
+        "原 N-MOS 低边接法是**错的**: 栅极接 PG(LOW=电源良好) · 源极接 GND · 漏极接 ON ⇒ "
+        "PG 低时 MOS 关 ⇒ ON 只剩 10k 下拉 = 低 = **开关关** ⇒ ①插电反而开不了机 ②SoC 拉高 PWR_CTRL 会被 Q_PG 拉到 GND 拉不高 ⇒ **开机路径彻底不通**。"
+        "★**正解 (零新增 pin · 零新增轨)**: 源极接 ON · **漏极接 BAT_SW (电池轨, 关机后仍带电)** · 栅极接 PG ⇒ "
+        "PG 低(良好)→Vgs≈-4.2V→P-MOS 导通→ON=BAT_SW=高=**开机**; PG 高(无输入)→Vgs=+3.3V→P-MOS 关→ON 落下拉=低=**关** (关机态仍能充电)。"
+        "★选型硬判据: 低漏 P-MOS · Vgs(th) 明确 · 栅极最大耐压 ±20V · 关断漏电 nA 级",
+        "C-02")
+    add("P1", "BAT_SW", "Q_PG", "NET_BAT_SW", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
+        "[PWR_ON] ★V1.9: Q_PG **漏极**接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS 下 "
+        "(U_LDO_IO33 输入 = RAIL_SYS), 关机断电后即灭 ⇒ 漏极无电位 ⇒ 插电开不了机。BAT_SW 在关机态仍带电 ✔",
+        "C-02")
+    add("P1", "PWR_GOOD", "Q_PG", "J_CHG pin6", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
+        "[PWR_GOOD] Q_PG **栅极** = 充电板 PG (经 J_CHG pin6 跨铰链, 框侧开漏信号; 主板侧 R_PU_PG 10k 上拉 3.3V)。"
+        "★V1.9: PG 低(电源良好) → 栅极≈0 → P-MOS 导通 → ON 拉高 = 开机", "C-06")
+'''
+
+V5_BLOCK_NEW = '''    add("P1", "PWR_GOOD", "Q_PG", "J_CHG pin6", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
+        "[PWR_GOOD] ★★**ISS-283 · G-1 裁决 (2026-11-17 09:49 老板拍板「写法 A」)★**: DMP3098L 厂商引脚序 ★**1=G / 2=S / 3=D**★ ⇒ ★**pad1 = 栅极 G = PWR_GOOD (充电板 PG)★** · ★**pad2 = 源极 S = BAT_SW**★ · ★**pad3 = 漏极 D = PWR_ON (负载侧)**★ ⇒ ★**写法 A**★ (★**原落表把 pad1↔pad3 写反 ⇒ G/D 对调 ⇒ 写法 B ⇒ PG 高低都关 ⇒ 开机路径彻底不通**★; ★**ISS-244 实跑**: PG 低 ⇒ VGS≈−4.2V ⇒ 导通 ⇒ ON=BAT_SW=高=开机; PG 高 ⇒ VGS≈−0.9V ⇒ 关断 ⇒ ON 落下拉=低=关★) ★**板上 `Q_PG` land 仍按旧接法画 (pad1→PWR_ON / pad3→PWR_GOOD) ⇒ 板那一趟必须重画这 3 根线 (ISS-283 板侧清单 §③-2)★**", "C-06")
+    add("P1", "BAT_SW", "Q_PG", "NET_BAT_SW", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
+        "[PWR_ON] ★V1.9: Q_PG **源极 (pad2 = S)** 接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS 下 "
+        "(U_LDO_IO33 输入 = RAIL_SYS), 关机断电后即灭 ⇒ 源极无电位 ⇒ 插电开不了机。BAT_SW 在关机态仍带电 ✔ ★**ISS-283 · G-1 写法 A: pad2 = S = BAT_SW (★这一格本来就是对的·这次不动★)**★",
+        "C-02")
+    add("P1", "PWR_ON", "Q_PG", "U_PWR_SW ON", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
+        "[PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— "
+        "原 N-MOS 低边接法是**错的**: 栅极接 PG(LOW=电源良好) · 源极接 GND · 漏极接 ON ⇒ "
+        "PG 低时 MOS 关 ⇒ ON 只剩 10k 下拉 = 低 = **开关关** ⇒ ①插电反而开不了机 ②SoC 拉高 PWR_CTRL 会被 Q_PG 拉到 GND 拉不高 ⇒ **开机路径彻底不通**。"
+        "★**正解 (零新增 pin · 零新增轨)**: ★**ISS-283 · G-1 写法 A (2026-11-17 09:49 老板拍板)★** ★**栅极 (pad1, G) 接 PG** · "
+        "★**源极 (pad2, S) 接 BAT_SW (电池轨, 关机后仍带电)** · ★**漏极 (pad3, D) 接 ON** ⇒ "
+        "PG 低(良好)→Vgs≈-4.2V→P-MOS 导通→ON=BAT_SW=高=**开机**; PG 高(无输入)→Vgs≈-0.9V→P-MOS 关→ON 落下拉=低=**关** (关机态仍能充电)。"
+        "★选型硬判据: 低漏 P-MOS · Vgs(th) 明确 · 栅极最大耐压 ±20V · 关断漏电 nA 级",
+        "C-02")
+'''
+
+V6_BLOCK_OLD = '''        add("P7", f"LED_{col}_D", f"R_LED_{col}", f"D_LED_{col}", f"R_LED_{col}", "1k ±1%",
+            "R", dnp, "[推算]", "",
+            f"[LED_{col}_D] LED_{col} 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)")
+'''
+
+V6_BLOCK_NEW = '''        add("P7", f"LED_{col}_D", f"R_LED_{col}", f"D_LED_{col}", f"R_LED_{col}", "68Ω ±1%" if col == "R" else ("55Ω ±1%" if col == "G" else "1k ±1%"),
+            "R", dnp, "[推算]", "",
+            f"[LED_{col}_D] LED_{col} 串阻 = {('68Ω ±1%' if col == 'R' else ('55Ω ±1%' if col == 'G' else '1k ±1%'))} (★**ISS-283 · G-5 裁决 (2026-11-17 09:49 老板拍「选项 ② = 改 R 到 20 mA 档」)★**; ★**红 68Ω / 绿 55Ω = ISS-244 [官网] 级实测折算的 20 mA 档真值 (★150Ω 只有 ~5 mA·达不到 20 mA 档★)★**) ⇒ 单颗 ~20 mA · 功耗 2.2 mW→66 mW (★两颗 ≈ 0.13 W 进电池账★) · ★**亮度 ×14 ⇒ IEC 62471 分级要重算 (★ISS-283 登记 need·不代拍★)**★)" if col in ("R", "G") else f"[LED_{col}_D] LED_{col} 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)")
+'''
+
+
+def netlist_auth_records(root: str, specs: list[tuple[str, str, str]]) -> list[dict]:
+    '''★网表身份变更授权记录 (★通用版·身份列 = [ref, net]★) ★
+
+    ★**为什么要有它 (★ISS-283 · B1·V-5 落表改的是 pad↔net 的对调★)**:
+      落表改 net ⇒ 那一行的实体身份 (ref+net) 变了 ⇒ 行号锚点守卫会判红
+      ⇒ 必须在台账里登记【旧身份 → 新身份】⇒ 守卫查到授权记录才放行 ★
+    ★**旧行号按 (ref, old_net) 现读真源** ⇒ 不许手抄行号 ★
+    '''
+    out: list[dict] = []
+    cols = ["ref", "net"]
+    try:
+        with open(os.path.join(root, NETLIST_CSV), encoding="utf-8") as fh:
+            rows = list(csv.DictReader(fh))
+    except Exception:
+        return out
+    for ref_want, old_net, new_net in specs:
+        line = None
+        row = None
+        for i, r in enumerate(rows, start=2):
+            if ((r.get("ref") or "").strip() == ref_want
+                    and (r.get("net") or "").strip() == old_net):
+                line, row = i, r
+                break
+        if line is None or row is None:
+            continue
+        old_vals = [(row.get(c, "") or "").strip() for c in cols]
+        new_vals = list(old_vals)
+        ni = cols.index("net")
+        old_vals[ni] = old_net
+        new_vals[ni] = new_net
+        out.append({"file": NETLIST_CSV, "table": "netlist", "line": line,
+                    "old": old_vals, "new": new_vals})
+    return out
+
+
+def _q_pg_pad_nets(root: str) -> list[str]:
+    '''★读盘: `Q_PG` 的三条 `add()` 在网表里落成哪三个网 (★行序 = pad 序★)'''
+    out: list[str] = []
+    try:
+        with open(os.path.join(root, NETLIST_CSV), encoding="utf-8") as fh:
+            for r in csv.DictReader(fh):
+                if (r.get("ref") or "").strip() == "Q_PG":
+                    out.append((r.get("net") or "").strip())
+    except Exception:
+        return out
+    return out
+
+
+def v5_recipe(value: str, root: str = "", arch_req: str = "", model_req: str = "",
+              ev_req: str = "") -> Decision:
+    '''★V-5 (W-4 / G-1): `Q_PG` 写法 A = S=BAT_SW / D=ON / G=PG ★'''
+    d = Decision(v="V-5", value=value)
+    if value != "A":
+        d.rejected = ("★★**V-5=B (写法 B) 必须打回**★★ ⇒ ★**写法 B = note 首句直译 (源极接 ON · "
+                      "漏极接 BAT_SW · 栅极接 PG) ⇒ PG 低时 VGS=0V 不导通 · PG 高时 VGS=+3.3V 反向偏置 ⇒ "
+                      "【PG 高低都关 ⇒ 开机路径彻底不通】**★ (★ISS-244 实跑★) ⇒ ★**老板 2026-11-17 09:49 "
+                      "拍的是写法 A** (★pm.yaml `boss_w4_q_pg_topology_20261117`★) ⇒ 其它取值一律打回★")
+        return d
+    d.delta = 0          # ★网表侧 0 条转绿 (★pad 序要对 ⇒ 板那一趟重画 land 才转绿★)★
+    d.board_delta = 0
+    d.v2_readout.append(
+        "★★**落表动作 (W-4 / G-1 写法 A)**: `state/gen_netlist.py` 里 `Q_PG` 的三条 `add()` "
+        "★**整块重排 (★pad1↔pad3 的网互换★) + 三行 note 改写成写法A**★ ⇒ "
+        "★**pad1 = PWR_GOOD (G) · pad2 = BAT_SW (S) · pad3 = PWR_ON (D)**★")
+    d.v2_readout.append(
+        "★★**老板凭据**: 2026-11-17 09:49「按照你的建议执行」⇒ pm.yaml "
+        "`boss_w4_q_pg_topology_20261117` (★已录★) ⇒ ★**落表器只机器转录·不代拍**★")
+    if root:
+        _cur = _q_pg_pad_nets(root)
+        if _cur == ["PWR_GOOD", "BAT_SW", "PWR_ON"]:
+            d.errors.append("★★【已落过】`Q_PG` 的 pad 序已经是写法 A "
+                            "(PWR_GOOD / BAT_SW / PWR_ON) ⇒ ★**拒绝重复落 (★零写盘★)**★")
+            return d
+        if _cur != ["PWR_ON", "BAT_SW", "PWR_GOOD"]:
+            d.errors.append("★★【状态漂移】`Q_PG` 的 pad 序不是预期的那两档之一 ⇒ "
+                            f"★**期望: ['PWR_ON','BAT_SW','PWR_GOOD'] (旧) 或 "
+                            f"['PWR_GOOD','BAT_SW','PWR_ON'] (写法A·已落过)★** ⇒ "
+                            f"★**实际: {_cur}**★ ⇒ 拒绝落 (★零写盘★)")
+            return d
+    d.patches.append(Patch(GEN_NETLIST, V5_BLOCK_OLD, V5_BLOCK_NEW,
+                            "V5-1 `Q_PG` 写法 A (★pad1↔pad3 网互换 + 三行 note 改写★)"))
+    d.auth_changes += netlist_auth_records(root, [("Q_PG", "PWR_ON", "PWR_GOOD"),
+                                                   ("Q_PG", "PWR_GOOD", "PWR_ON")])
+    if root and not d.auth_changes:
+        d.errors.append("★★★【落表授权】V-5 的身份变更授权记录生成不出来 ⇒ "
+                        "★**不许硬落** (★守卫查不到授权 ⇒ 一定判红·落表器会自回滚★) ⇒ 拒绝落 (★零写盘★)★★")
+        return d
+    d.v2_readout.append(
+        "★**身份变更授权 (★ISS-283 B1 通道★)**: "
+        + "; ".join(f"L{a['line']} {a['old']} → {a['new']}" for a in d.auth_changes))
+    d.warnings.append("★★**V-5 的板那一趟本工具【不做】** (★板一个字节都不碰★) ⇒ "
+                      "★**板上的 `Q_PG` land 仍按旧接法画 (pad1→PWR_ON / pad3→PWR_GOOD) ⇒ "
+                      "板那一趟必须重画 `Q_PG` 的 3 根线**★")
+    d.warnings.append("★★**连带 (★如实登记·不瞒★)**: 板那一趟要么重画 land, 要么改选 D-S-G 序器件 "
+                      "(★那也是换封装 ⇒ 同样是板那一趟★) ⇒ ★**板只改一次那一趟的 S 步清单必须带上它**★")
+    return d
+
+
+def v6_recipe(value: str, root: str = "", arch_req: str = "", model_req: str = "",
+              ev_req: str = "") -> Decision:
+    '''★V-6 (G-5 / W-6): LED 亮度档 = `R_LED_R` 68Ω · `R_LED_G` 55Ω (★20 mA 档★) ★'''
+    d = Decision(v="V-6", value=value)
+    if value != "20mA":
+        d.rejected = ("★★**V-6=150R 必须打回**★★ ⇒ ★**150Ω 只有 ~5 mA (ISS-244 [官网] 级实测折算)★** ⇒ "
+                      "★**达不到老板批的「20 mA 档」**★ ⇒ ★**20 mA 档的真值 = 红 68Ω / 绿 55Ω**★ "
+                      "(★老板 2026-11-17 09:49 拍的是「选项 ② = 改 R 到 20 mA 档」·pm.yaml "
+                      "`boss_g5_led_brightness_20261117`★) ⇒ 其它取值一律打回★")
+        return d
+    d.delta = 0
+    d.board_delta = 0
+    d.v2_readout.append(
+        "★★**落表动作 (G-5 亮度档)**: `R_LED_R` = ★**68Ω ±1%**★ (红) · "
+        "`R_LED_G` = ★**55Ω ±1%**★ (绿) ⇒ ★**蓝 (`R_LED_B`, DNP) 不在老板拍板范围 ⇒ 保持 1k ±1%**★")
+    d.v2_readout.append(
+        "★★**老板凭据**: 2026-11-17 09:49「按照你的建议执行」⇒ pm.yaml "
+        "`boss_g5_led_brightness_20261117` (★已录★) ⇒ ★**落表器只机器转录·不代拍**★")
+    if root:
+        try:
+            with open(os.path.join(root, NETLIST_CSV), encoding="utf-8") as fh:
+                _v = {}
+                for r in csv.DictReader(fh):
+                    _rf = (r.get("ref") or "").strip()
+                    if _rf in ("R_LED_R", "R_LED_G"):
+                        _v[_rf] = (r.get("value") or "").strip()
+        except Exception:
+            _v = {}
+        if _v.get("R_LED_R") == "68Ω ±1%" and _v.get("R_LED_G") == "55Ω ±1%":
+            d.errors.append("★★【已落过】`R_LED_R` / `R_LED_G` 的阻值已经是 68Ω / 55Ω ⇒ "
+                            "★**拒绝重复落 (★零写盘★)**★")
+            return d
+    d.patches.append(Patch(GEN_NETLIST, V6_BLOCK_OLD, V6_BLOCK_NEW,
+                            "V6-1 LED 串阻改 20 mA 档 (★红 68Ω / 绿 55Ω★)"))
+    # ★★SPEC.json 的 `imp` 三个值一样 ("1k 串阻 → LED → GND") ⇒ ★**ctx 只定位·old 必须自带区分★
+    #   (★不然 find_after 会把 ctx 之后的 3 处全数出来 ⇒ 判「歧义」⇒ 拒绝落·这是对的 fail-closed★)★★
+    d.patches.append(Patch(SPEC_JSON,
+                            '"signal": "LED_R",\n      "dir": "SoC→LED",\n      "level": "3.3V",\n      "imp": "1k 串阻 → LED → GND",',
+                            '"signal": "LED_R",\n      "dir": "SoC→LED",\n      "level": "3.3V",\n      "imp": "68Ω 串阻 → LED → GND",',
+                            "V6-2a SPEC.json B-12 (LED_R) 的 imp"))
+    d.patches.append(Patch(SPEC_JSON,
+                            '"signal": "LED_G",\n      "dir": "SoC→LED",\n      "level": "3.3V",\n      "imp": "1k 串阻 → LED → GND",',
+                            '"signal": "LED_G",\n      "dir": "SoC→LED",\n      "level": "3.3V",\n      "imp": "55Ω 串阻 → LED → GND",',
+                            "V6-2b SPEC.json B-13 (LED_G) 的 imp"))
+    d.warnings.append("★★**连带 (★如实登记·不瞒★)**: 每颗功耗 2.2 mW → 66 mW (★两颗 ≈ 0.13 W 进电池账★) · "
+                      "★**亮度 ×14 ⇒ 眼旁光源的 IEC 62471 分级要重算 ⇒ 登记 need 给 main (★本工具不代拍★)**★")
+    d.warnings.append("★★**这两个阻值进 BOM ⇒ 板那一趟要重出 BOM + 投产包** (★但 footprint 不变 ⇒ "
+                      "不构成额外板改★)")
+    return d
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # 5 · 白名单
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -1096,12 +1427,19 @@ WHITELIST = {
     "V-2": {"1": v2_recipe, "2": v2_recipe},
     "V-3": {"E": v3_recipe, "A": v3_recipe, "D": v3_recipe, "DEG4": v3_recipe},
     "V-4": {"680": v4_recipe, "470": v4_recipe, "390": v4_recipe},
+    # ★★ISS-283 · B2/B3: W-4 (G-1 写法A) / G-5 (20mA 亮度档) 也走落表器 (★机器留痕·不许人手改 CSV★)★★
+    # ★★白名单里【写死老板拍的那一档】+ ★**把老板没拍的备选也列进来但一律打回**★★
+    #   (★V-2 的 "2" 就是这个先例: 进白名单但配方打回 ⇒ 「打回」这条路径才可被机器验★)★★
+    "V-5": {"A": v5_recipe, "B": v5_recipe},
+    "V-6": {"20mA": v6_recipe, "150R": v6_recipe},
 }
 
 WHITELIST_DOC = {
     "V-2": "V-2 ∈ {1, 2}  (1 = 网表侧+板侧两段走 · 2 = 只落网表侧 ⇒ ISS-230 实测是假绿 ⇒ 必须打回)",
     "V-3": "V-3 ∈ {E, A, D, DEG4}  (E = 100k+60k+100nF · A = 2.0M+1.2M · D = 2.0M+1.0M · DEG4 = 保持 DNP, 网表一格不改)",
     "V-4": "V-4 ∈ {680, 470, 390}  (Ω)",
+    "V-5": "V-5 ∈ {A, B}  (★W-4 / G-1 · `Q_PG` 写法 A = S=BAT_SW / D=ON / G=PG = 【唯一可落的那档】★ · ★**B 必须打回**: 写法 B ⇒ PG 高低都关 ⇒ 开机路径彻底不通 (ISS-244 实跑)★)",
+    "V-6": "V-6 ∈ {20mA, 150R}  (★G-5 / W-6 · `R_LED_R`=68Ω · `R_LED_G`=55Ω (★红/绿 20 mA 档 = 唯一可落的那档★) · ★**150R 必须打回**: 150Ω 只有 ~5 mA ⇒ 达不到老板批的 20 mA 档 (ISS-244 [官网] 级折算)★)",
 }
 
 
@@ -1410,7 +1748,8 @@ def md5_table(root: str) -> list[tuple[str, str, str, str]]:
     return out
 
 
-def append_ledger(root: str, decisions: list[Decision], boss: list[str], old_md5: dict) -> str:
+def append_ledger(root: str, decisions: list[Decision], boss: list[str], old_md5: dict,
+                  issue: str = "ISS-236") -> str:
     fpath = os.path.join(root, LANDED_LEDGER)
     if not fpath.endswith(LANDED_LEDGER):
         raise RuntimeError(f"★台账路径不对: {fpath}")
@@ -1418,11 +1757,11 @@ def append_ledger(root: str, decisions: list[Decision], boss: list[str], old_md5
     now = time.strftime("%Y-%m-%d %H:%M:%S (Asia/Shanghai)")
     lines = []
     lines.append("")
-    lines.append("## ★★16 · ★★V 值拍板即落 (★ISS-236 · 2026-11-16 · 硬件总工 (hw-lead) 执行 · "
-                 "★`state/land_v_values.py` 一键落★) ★★")
+    lines.append("## ★★16 · ★★V 值拍板即落 (★%s · 2026-11-16 · 硬件总工 (hw-lead) 执行 · "
+                 "★`state/land_v_values.py` 一键落★) ★★" % issue)
     lines.append("")
-    lines.append("> ★**单号**: ★**ISS-236** · ★**owner**: hw-lead · ★**verify_by**: main · "
-                 "★**落表器**: ★**`state/land_v_values.py`** (★默认 dry-run · `--apply` 强制 `--boss-decision`★) ★")
+    lines.append("> ★**单号**: ★**%s** · ★**owner**: hw-lead · ★**verify_by**: main · "
+                 "★**落表器**: ★**`state/land_v_values.py`** (★默认 dry-run · `--apply` 强制 `--boss-decision`★) ★" % issue)
     lines.append("> ★**老板拍板凭据 (★机器化留痕★)**: " + " / ".join(f"`{b}`" for b in boss))
     lines.append("> ★**落表时间**: ★**%s** ★" % now)
     lines.append("> ★**性质**: ★**V 值拍板后落表** (★V-2 / V-3 / V-4 老板都拍了才落★) · "
@@ -1458,7 +1797,29 @@ def append_ledger(root: str, decisions: list[Decision], boss: list[str], old_md5
                  % (md5(os.path.join(root, PROTECTED[0][0])),
                     md5(os.path.join(root, PROTECTED[1][0]))))
     lines.append("")
-    lines.append("### ★★16.3 · 复现命令 (★B6 自证★) ★★")
+    lines.append("### ★★16.3 · 身份变更授权台账 (★ISS-283 · B1 · 行号锚点守卫的【合法落表】通道★) ★★")
+    lines.append("")
+    lines.append("> ★**这是「合法落表改 net 名」的唯一授权证据** ⇒ ★**守卫查不到下面这些记录 ⇒ 一律判红** ★")
+    lines.append("> ★**判据 (★四项齐全才成立★)**: 落表单号 + 文件名 + 表 + 行号 + 旧身份 + 新身份 ★")
+    lines.append("> ★**旧身份 / 新身份 = JSON 数组 (★身份列的值·按守卫 registry 的口径★)** ★")
+    lines.append("")
+    _auths = [(d, a) for d in decisions for a in (d.auth_changes or [])]
+    if _auths:
+        lines.append("<!-- LANDING_AUTH:BEGIN -->")
+        lines.append("| 单号 | 文件 | 表 | 行号 | 旧身份 | 新身份 | 日期 | 凭据 |")
+        lines.append("|---|---|---|---|---|---|---|---|")
+        for _d, _a in _auths:
+            lines.append("| %s | %s | %s | %s | %s | %s | %s | %s |" % (
+                issue, _a["file"], _a["table"], _a["line"],
+                json.dumps(_a["old"], ensure_ascii=False),
+                json.dumps(_a["new"], ensure_ascii=False),
+                now[:10], " / ".join(boss) if boss else "★(无凭据)★"))
+        lines.append("<!-- LANDING_AUTH:END -->")
+        lines.append("")
+    else:
+        lines.append("★**本批没有身份变更** (★⇒ 不需要授权记录★) ★")
+        lines.append("")
+    lines.append("### ★★16.4 · 复现命令 (★B6 自证★) ★★")
     lines.append("")
     lines.append("```bash")
     lines.append("cd %s" % root)
@@ -1474,6 +1835,12 @@ def append_ledger(root: str, decisions: list[Decision], boss: list[str], old_md5
     lines.append("python3 state/check_netlist.py && python3 state/check_netlist_pins.py")
     lines.append("python3 state/check_sch_erc.py && python3 state/check_sch_pinfull.py")
     lines.append("python3 state/merge.py && python3 state/gate_check.py")
+    lines.append("# ★★ISS-283 · ⑪: 落表后【全闸扫描】 (★一次性跑完所有闸 + 列出红的 + 查有没有人认领★) ★★")
+    lines.append("python3 state/land_v_values.py --selftest    # ★落表器自测 (★条数只许增不许减★) ★")
+    for _g, _k in ALL_GATES:
+        if _g.startswith("state/land_v_values.py --selftest"):
+            continue
+        lines.append("python3 %s" % _g)
     lines.append("md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv")
     lines.append("```")
     lines.append("")
@@ -1634,6 +2001,124 @@ def do_rollback(root: str, bdir: str) -> int:
 
 # ═══════════════════════════════════════════════════════════════════════════
 # ═══════════════════════════════════════════════════════════════════════════
+# 10 · 落表后【全闸扫描】 (★ISS-283 · ⑪ 的机制化要求★)
+# ═══════════════════════════════════════════════════════════════════════════
+# ★★**为什么要有这一步 (★main 2026-11-17 11:2x 实跑抓出来的病灶·一字未改★)** ★★:
+#   ★**落表成功 ≠ 全链绿** ⇒ 落表完必须扫一遍【所有以真源 md5 / 现状值为基线的闸与自测】★★
+#   ★**今天的实例**: 落表前全绿 · 落表后 3 道红 · 其中 2 道【落表前谁都没料到】
+#     (★HW 板框口径 C6 / MECH 坐标归一 C4★) ⇒ ★**若不是 main 手工全扫, 这两道会一直红到下一轮★★
+#   ⇒ ★**手工扫 = 一定会漏** ⇒ 必须机器化 + 必须【列出红的】+ 必须【查有没有人认领】★★
+#
+# ★**口径 (★三条硬规矩★)** ★:
+#   ① ★**只读** ⇒ 只跑闸, 不碰任何闸的判据 / 阈值 / 台账 ★
+#   ② ★**不许 fatal** ⇒ 别的单的闸红 (★SW/MECH 侧在飞的单★) 不该回滚本单已完成的落表 ⇒
+#      ⇒ 本扫描【只报不判死】, 但必须【大声报】 ★
+#   ③ ★**认领从 `state/issue_log.yaml` 查** ⇒ 红了要能说出【谁认领】⇒ 没认领的才需要 main 派单 ★
+
+ALL_GATES = [
+    ("HW/check_land_row_anchors.py", "行号锚点守卫"),
+    ("HW/check_land_row_anchors.py --selftest", "行号锚点守卫 · 反向用例"),
+    ("HW/check_netlist_selfconsistency.py", "现状守卫 (表A↔表B↔BOM↔图)"),
+    ("HW/check_netlist_selfconsistency.py --selftest", "现状守卫 · 反向用例"),
+    ("HW/check_netlist_contradiction_r3.py", "网表矛盾 R3"),
+    ("HW/check_part_selection_landed_crosscheck.py", "选型落表交叉核对 (pad 序)"),
+    ("HW/check_onepass_preflight_coverage.py", "一遍过 · 预检覆盖度"),
+    ("HW/check_onepass_preflight_coverage.py --selftest", "一遍过 · 预检覆盖度 · 反向用例"),
+    ("HW/check_onepass_commit_order.py", "一遍过 · 提交顺序"),
+    ("HW/check_onepass_commit_order.py --selftest", "一遍过 · 提交顺序 · 反向用例"),
+    ("HW/check_board_frame_caliber.py", "板框口径 (C6 走落表台账)"),
+    ("HW/check_board_frame_caliber.py --selftest", "板框口径 · 反向用例"),
+    ("state/check_netlist.py", "尺子1 · 网表"),
+    ("state/check_netlist_pins.py", "尺子2 · 脚表"),
+    ("state/check_sch_erc.py", "尺子3 · ERC"),
+    ("state/check_sch_pinfull.py", "尺子4 · 图=表"),
+    ("state/land_v_values.py --selftest", "落表器自测"),
+    ("state/merge.py", "分片合并"),
+    ("state/gate_check.py", "总闸"),
+    ("state/issue_check.py", "issue 一致性"),
+    ("state/check_chain_content_anchor.py", "链内容锚点"),
+    ("state/chain_gate.py", "链闸"),
+    ("MECH/check_board_frame_coords.py", "MECH · 板框坐标归一 (★归 ISS-286·不是本单的活★)"),
+    ("SW/tools/timing_check.py", "SW · 时序 (★归 ISS-285·不是本单的活★)"),
+]
+
+
+def gate_owners(root: str, cmd: str) -> list[str]:
+    """★查这道闸红了【有没有人认领】 (★从 `state/issue_log.yaml` 查·不猜★)"""
+    p = os.path.join(root, "state", "issue_log.yaml")
+    if not os.path.exists(p):
+        return []
+    try:
+        import yaml
+        with open(p, encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or {}
+    except Exception:
+        return []
+    script = cmd.split()[0]
+    key = os.path.basename(script)
+    hits: list[str] = []
+    for it in (data.get("issues") or []):
+        if not isinstance(it, dict):
+            continue
+        st = str(it.get("status") or "").lower()
+        if st in ("closed", "done", "verified", "resolved"):
+            continue
+        blob = " ".join(str(it.get(k) or "") for k in
+                        ("title", "desc", "note", "task_brief", "fix_ref"))
+        if key not in blob and script not in blob:
+            continue
+        hits.append("%s (owner=%s · reporter=%s · status=%s)"
+                    % (it.get("id"), it.get("owner"), it.get("reporter"), st))
+    return hits
+
+
+def scan_all_gates(root: str, timeout: int = 300) -> tuple[int, list[str]]:
+    """★落表后【全闸扫描】 ⇒ (红的闸数, 报告文本) ★
+
+    ★**只读·只报·不判死** ⇒ 别的单的闸红不回滚本单已完成的落表 (★口径见上★) ★
+    """
+    out_lines: list[str] = []
+    reds: list[tuple[str, str, int]] = []
+    for cmd, kind in ALL_GATES:
+        argv = [sys.executable] + cmd.split()
+        try:
+            pr = subprocess.run(argv, cwd=root, capture_output=True, text=True,
+                                timeout=timeout)
+            rc = pr.returncode
+            tail = (pr.stdout or "").strip().split("\n")[-3:]
+        except subprocess.TimeoutExpired:
+            rc, tail = -1, ["★超时 (★%ds 没跑完★)" % timeout]
+        except Exception as exc:
+            rc, tail = -1, ["★跑不起来: %s" % exc]
+        mark = "✅" if rc == 0 else ("★红★" if rc != 1 else "★预期红★")
+        out_lines.append("   %s %-58s rc=%-3s (%s)" % (mark, cmd, rc, kind))
+        if rc != 0:
+            reds.append((cmd, kind, rc))
+            for t in tail:
+                if t.strip():
+                    out_lines.append("        · %s" % t.strip())
+            owners = gate_owners(root, cmd)
+            out_lines.append("        ⇒ 认领: %s"
+                             % (" / ".join(owners) if owners
+                                else "★**无人在认领 ⇒ 需要 main 派单★**"))
+    head = [
+        "",
+        "★★【★落表后全闸扫描 (★ISS-283 · ⑪·一次性跑完所有闸 + 列出红的 + 查有没有人认领★)】★★",
+    ]
+    tail = [
+        "★★【全闸扫描结论】★★: 共 %d 道 · 红 %d 道" % (len(ALL_GATES), len(reds)),
+    ]
+    if reds:
+        tail.append("★★**红的闸 (★不判死·但必须被看见★)**:")
+        for cmd, kind, rc in reds:
+            tail.append("   ★ %s  rc=%s  (%s)" % (cmd, rc, kind))
+        tail.append("★**本扫描【只报不判死】** ⇒ 别的单的闸红 (★SW/MECH 侧在飞的单★) 不回滚本单已完成的落表 ★")
+    else:
+        tail.append("✅ 全闸皆绿")
+    return len(reds), head + out_lines + tail
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # 9 · 落表器自测 (★--selftest★) —— ★★全在临时副本里做, 真盘零写入★★
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -1727,6 +2212,124 @@ def _sbx_replace_block(tmp: str, new_block: str) -> None:
     write_text(path, txt)
 
 
+def _sbx_unland(tmp: str, patches: list) -> None:
+    """★把沙盒里的源码【退回落表前】 (★替换型: new → old★ · 删除型: 把删掉的块放回去★)
+
+    ★★**为什么要它 (★ISS-283 · ⑩ 的直接后果★)** ★:
+      V-2 / V-3 / V-4 都【已经落过表了】⇒
+        · 「配方还认得当前真源吗」这个用例 ⇒ 必须在【退回落表前】的副本里跑 ★
+        · 「回滚往返回」⇒ 也必须在【退回落表前】的副本里跑 (★不然根本没有东西可落·一落就崩★) ★
+      ⇒ ★**不许把用例删掉** ⇒ ★**把副本退回落表前·让用例照样测得到** ★
+    """
+    cache: dict[str, str] = {}
+
+    def load(p):
+        if p.path not in cache:
+            fp = os.path.join(tmp, p.path)
+            cache[p.path] = read_text(fp) if os.path.exists(fp) else ""
+        return cache[p.path]
+
+    for p in patches:
+        txt = load(p)
+        if not txt:
+            continue
+        if p.new:
+            _s, n = find_after(txt, p.ctx, p.new)
+            if n == p.count:
+                txt = replace_after(txt, p.ctx, p.new, p.old, p.count)
+                cache[p.path] = txt
+        else:
+            if p.old in txt:
+                continue
+            m = re.search(r"^DEMO_DNP = \{\n", txt, re.M)
+            if m:
+                txt = txt[:m.end()] + p.old + txt[m.end():]
+                cache[p.path] = txt
+    for path, txt in cache.items():
+        write_text(os.path.join(tmp, path), txt)
+
+
+def _sbx_csv_set(tmp: str, rel: str, line: int, col: str, val: str) -> None:
+    """★沙盒里改某个物理行的某一列 (★按 CSV 解析后重写·不做字符串硬替换★)"""
+    fp = os.path.join(tmp, rel)
+    lines = read_text(fp).split("\n")
+    head = next(csv.reader([lines[0]]))
+    vals = next(csv.reader([lines[line - 1]]))
+    vals[head.index(col)] = val
+    lines[line - 1] = ",".join('"' + v.replace('"', '""') + '"' if ("," in v or '"' in v) else v
+                               for v in vals)
+    write_text(fp, "\n".join(lines))
+
+
+def _sbx_unland_v2(tmp: str) -> None:
+    """★把沙盒里的 V-2 真源【退回落表前】 (★网名还在 SoM 侧那一版·落地后这一格变成【已落过】★)"""
+    path = os.path.join(tmp, GEN_NETLIST)
+    txt = read_text(path)
+    new = 'add("P1", "NET_USB_D_P_TYPEC", "D_ESD_USB_D", "NET_USB_D_P_TYPEC", "D_ESD_USB_D",'
+    old = 'add("P1", "USB_D_P_SRC", "D_ESD_USB_D", "USB_D_P_SRC", "D_ESD_USB_D",'
+    if new in txt:
+        txt = txt.replace(new, old, 1)
+        write_text(path, txt)
+    # ★网表 CSV 也要退回 (★v2_netlist_line 按 (ref, net) 找行·不然找不到行 ⇒ 配方判【状态漂移】★) ★
+    fp = os.path.join(tmp, NETLIST_CSV)
+    if not os.path.exists(fp):
+        return
+    lines = read_text(fp).split("\n")
+    head = next(csv.reader([lines[0]]))
+    for i in range(1, len(lines)):
+        if not lines[i].strip():
+            continue
+        vals = next(csv.reader([lines[i]]))
+        d = dict(zip(head, vals))
+        if d.get("ref") == "D_ESD_USB_D" and d.get("net") == "NET_USB_D_P_TYPEC":
+            vals[head.index("net")] = "USB_D_P_SRC"
+            if "node2" in head and vals[head.index("node2")] == "NET_USB_D_P_TYPEC":
+                vals[head.index("node2")] = "USB_D_P_SRC"
+            lines[i] = ",".join('"' + v.replace('"', '""') + '"' if ("," in v or '"' in v) else v
+                                for v in vals)
+            write_text(fp, "\n".join(lines))
+            return
+
+
+def _sbx_unland_v5(tmp: str) -> None:
+    """★把沙盒里的 V-5 真源【退回落表前】 (★Q_PG 三条 add() 换回旧顺序 + 网表 CSV 换回旧 pad 序★)"""
+    path = os.path.join(tmp, GEN_NETLIST)
+    txt = read_text(path)
+    if V5_BLOCK_NEW in txt:
+        txt = txt.replace(V5_BLOCK_NEW, V5_BLOCK_OLD, 1)
+        write_text(path, txt)
+    fp = os.path.join(tmp, NETLIST_CSV)
+    if not os.path.exists(fp):
+        return
+    lines = read_text(fp).split("\n")
+    head = next(csv.reader([lines[0]]))
+    old_order = ["PWR_ON", "BAT_SW", "PWR_GOOD"]
+    hits = []
+    for i in range(1, len(lines)):
+        if not lines[i].strip():
+            continue
+        vals = next(csv.reader([lines[i]]))
+        d = dict(zip(head, vals))
+        if d.get("ref") == "Q_PG":
+            hits.append((i, vals))
+    if len(hits) != 3:
+        return
+    for (i, vals), want_net in zip(hits, old_order):
+        ni = head.index("net")
+        vals[ni] = want_net
+        if "node2" in head:
+            n2 = head.index("node2")
+            if vals[n2] == "J_CHG pin6":
+                vals[n2] = "U_PWR_SW ON"
+            elif vals[n2] == "U_PWR_SW pin2":
+                vals[n2] = "U_PWR_SW ON"
+            elif vals[n2] == "NET_BAT_SW":
+                pass
+        lines[i] = ",".join('"' + v.replace('"', '""') + '"' if ("," in v or '"' in v) else v
+                            for v in vals)
+    write_text(fp, "\n".join(lines))
+
+
 def run_selftest(root: str) -> int:
     """★落表器自测 (★≥6 条反向用例★) ⇒ ★rc=0 = 全过★。"""
     import shutil
@@ -1744,6 +2347,7 @@ def run_selftest(root: str) -> int:
 
     cases = []
     tmps = []
+    n_checks = [0]
 
     def new_case(name: str) -> tuple[str, str]:
         tmp = _sbx_copy(root, "c%d" % len(cases))
@@ -1757,9 +2361,15 @@ def run_selftest(root: str) -> int:
         if detail:
             for l in detail.strip().split("\n")[:12]:
                 print(f"        {l}")
+        n_checks[0] += 1
         return ok
 
     all_ok = True
+    # ★★ISS-283 · B2: 用例 6 / 用例 8 会在沙盒里【故意】把 V-2 退回落表前 ⇒
+    #   ⇒ 用例 10 (★每个用例跑完 5 个受保护 md5 逐字节不变★) 的比对基准要跟着改成
+    #   ★**沙盒自己在【故意改动之后】的快照** ⇒ ★**否则 = 把【故意的改动】当成【自测写盘】★
+    #   (★★这正是 2026-11-17 12:3x 实测撞到的: A3 落表后 V-2 真源已改 ⇒ 旧基准判红·假的★)★★
+    sbx_base: dict = {}
 
     # ── 用例 1: ★本轮实测的坏案例 (★ISS-257 之前的占位串★) ⇒ V-2 路径必须立刻红 ──
     tmp, _ = new_case("regress_placeholder")
@@ -1814,15 +2424,22 @@ def run_selftest(root: str) -> int:
         f"rc={rc}\n{out.strip()[-400:]}")
 
     # ── 用例 6: --apply 不带 --boss-decision 必须拒绝 ──
+    #   ★★ISS-283 · B2: V-2 【已经落过表了】⇒ 要在【退回落表前】的副本里跑
+    #   (★不然配方直接判【已落过】⇒ 压根走不到 boss-decision 那道闸·用例就失去意义·假的★) ★★
     tmp, _ = new_case("apply_no_boss")
+    _sbx_unland_v2(tmp)
+    sbx_base["apply_no_boss"] = _sbx_md5s(tmp)
     rc, out = _sbx_run(tmp, ["--decision", "V-2=1", "--apply"])
     all_ok &= check(
         "用例6 ★ `--apply` 不带 `--boss-decision` 必须拒绝 (rc≠0) ★",
         rc != 0 and "boss-decision" in out,
         f"rc={rc}\n{out.strip()[-400:]}")
 
-    # ── 用例 7: ★V-3 / V-4 的锚点必须仍然是【当前真源】 (★从「碰巧成立」变成「被断言住」★) ──
+    # ── 用例 7: ★V-3 / V-4 的锚点必须仍然是【当前真源】 (★从「碰巧成立」变成【被断言住】★) ──
+    #   ★★ISS-283 · ⑩: V-3 / V-4 【已经落过表了】⇒ 这个用例要在【退回落表前】的副本里跑 ★★
     tmp, _ = new_case("v3_v4_anchor")
+    _sbx_unland(tmp, WHITELIST["V-3"]["E"]("E", tmp).patches)
+    _sbx_unland(tmp, WHITELIST["V-4"]["680"]("680", tmp).patches)
     rc3, out3 = _sbx_run(tmp, ["--decision", "V-3=E"])
     rc4, out4 = _sbx_run(tmp, ["--decision", "V-4=680"])
     all_ok &= check(
@@ -1830,8 +2447,20 @@ def run_selftest(root: str) -> int:
         rc3 == 0 and rc4 == 0,
         f"V-3=E rc={rc3} / V-4=680 rc={rc4}\n{out3.strip()[-200:]}\n{out4.strip()[-200:]}")
 
+    # ── 用例 7b: ★★【已落过】(★V-3 / V-4 都落过了 ⇒ 必须【红】+ 文案写【已落过】·不许崩★)★★ ──
+    tmp, _ = new_case("v3_v4_already_landed")
+    rc7b, out7b = _sbx_run(tmp, ["--decision", "V-3=E"])
+    rc7c, out7c = _sbx_run(tmp, ["--decision", "V-4=680"])
+    all_ok &= check(
+        "用例7b ★★【已落过】V-3=E / V-4=680 在已落过的真源上 ⇒ 必须红 (rc≠0) 且文案写【已落过】★",
+        rc7b != 0 and rc7c != 0 and "已落过" in out7b and "已落过" in out7c,
+        f"V-3=E rc={rc7b}\n{out7b.strip()[-400:]}\nV-4=680 rc={rc7c}\n{out7c.strip()[-400:]}")
+
     # ── 用例 8: ★绝不许把真型号降级成判据串 (★ISS-257 的成果不许被 undo★) ──
+    #   ★★ISS-283 · ⑩: V-2 【已经落过表了】⇒ 要在【退回落表前】的副本里跑 (★不然配方直接判【已落过】★) ★★
     tmp, _ = new_case("no_downgrade")
+    _sbx_unland_v2(tmp)
+    sbx_base["no_downgrade"] = _sbx_md5s(tmp)
     rc, out = _sbx_run(tmp, ["--decision", "V-2=1"])
     new_lines = [l for l in out.split("\n") if l.strip().startswith("+ 新:")]
     # ★★降级判定 (★要精确: 旧 note 里本来就写着「ESD 阵列」, 那个不算降级★)★★
@@ -1852,15 +2481,48 @@ def run_selftest(root: str) -> int:
         rc != 0 and "型号轴必须同时拍" in out,
         f"rc={rc}\n{out.strip()[-700:]}")
 
+    # ── 用例 9b: ★V-5 / V-6 的白名单必须写死 (★只认老板拍的那一档★) ──
+    tmp, _ = new_case("v5_v6_whitelist")
+    rc5a, out5a = _sbx_run(tmp, ["--decision", "V-5=B"])
+    rc6a, out6a = _sbx_run(tmp, ["--decision", "V-6=150R"])
+    all_ok &= check(
+        "用例9b ★ V-5=B / V-6=150R 必须打回 (★白名单写死·只认老板拍的那一档★) ★",
+        rc5a != 0 and rc6a != 0 and "打回" in out5a and "打回" in out6a,
+        f"V-5=B rc={rc5a}\n{out5a.strip()[-300:]}\nV-6=150R rc={rc6a}\n{out6a.strip()[-300:]}")
+
+    # ── 用例 9c: ★V-5 / V-6 【已落过】⇒ 必须红 (★不许重复落·不许崩★) ──
+    tmp, _ = new_case("v5_v6_already_landed")
+    rc5b, out5b = _sbx_run(tmp, ["--decision", "V-5=A"])
+    rc6b, out6b = _sbx_run(tmp, ["--decision", "V-6=20mA"])
+    all_ok &= check(
+        "用例9c ★★【已落过】V-5=A / V-6=20mA 在已落过的真源上 ⇒ 必须红 (rc≠0) 且文案写【已落过】★",
+        rc5b != 0 and rc6b != 0 and "已落过" in out5b and "已落过" in out6b,
+        f"V-5=A rc={rc5b}\n{out5b.strip()[-300:]}\nV-6=20mA rc={rc6b}\n{out6b.strip()[-300:]}")
+
+    # ── 用例 9d: ★V-5 的落表动作必须是【写法A 的 pad 序】 (★在退回落表前的副本里跑★) ──
+    tmp, _ = new_case("v5_landing_shape")
+    _sbx_unland_v5(tmp)
+    sbx_base["v5_landing_shape"] = _sbx_md5s(tmp)
+    rc5c, out5c = _sbx_run(tmp, ["--decision", "V-5=A"])
+    _newl = [l for l in out5c.split("\n") if l.strip().startswith("+ 新:")]
+    all_ok &= check(
+        "用例9d ★ V-5 的 diff 必须含【pad1=PWR_GOOD / pad2=BAT_SW / pad3=PWR_ON】三行 ★",
+        rc5c == 0
+        and any('"PWR_GOOD", "Q_PG", "J_CHG pin6"' in l for l in _newl)
+        and any('"BAT_SW", "Q_PG", "NET_BAT_SW"' in l for l in _newl)
+        and any('"PWR_ON", "Q_PG", "U_PWR_SW ON"' in l for l in _newl),
+        f"rc={rc5c}\n" + "\n".join(_newl[:8]))
+
     # ── 用例 10: ★每个用例跑完, 5 个受保护 md5 必须逐字节不变 (★自测自己也不许写盘★) ──
     md5_ok = True
     detail = []
     for name, t in cases:
         now = _sbx_md5s(t)
+        base = sbx_base.get(name) or protected_before
         for rel, h in now.items():
-            if h != protected_before.get(rel):
+            if h != base.get(rel):
                 md5_ok = False
-                detail.append(f"{name}: {rel} 变了 ⇒ {h} (期望 {protected_before.get(rel)})")
+                detail.append(f"{name}: {rel} 变了 ⇒ {h} (期望 {base.get(rel)})")
     all_ok &= check(
         "用例10 ★ 每个用例跑完, 5 个受保护 md5 必须逐字节不变 (★自测自己也不许写盘★) ★",
         md5_ok, "\n".join(detail))
@@ -1882,31 +2544,59 @@ def run_selftest(root: str) -> int:
         "用例11 ★ 真盘的 5 个受保护 md5 (+ 真源) 自测前后必须逐字节不变 ★",
         real_ok, "\n".join(detail2))
 
-    # ── 用例 12: ★★【回滚往返回】★★ ★落表 ⇒ 产物变 ⇒ 回滚 ⇒ 产物必须逐字节回到落表前 + 现状守卫回绿★★
-    #   ★★2026-11-17 复验实测到的坑: 老版 `--rollback` 只还原真源, 派生产物(网表/脚表/BOM)停在落表后★★
-    #   ⇒ ★**半回滚** ⇒ 现状守卫 18 条 EXPECT 全红 (rc=1) ⇒ ⇒ 回滚后必须重生成派生产物★★
-    tmp, _ = new_case("rollback_roundtrip")
-    rt_artifacts = ("HW/netlist_v1.csv", "HW/netlist_v1_pins.csv", "HW/BOM_v1.csv")
-    pre = {rel: md5(os.path.join(tmp, rel)) for rel in rt_artifacts}
+    # ── 用例 12: ★★【已落过】状态 ⇒ 必须判红 (★不许硬套补丁·不许崩★)★★ ──
+    #   ★★2026-11-17 ISS-283 · ⑩ 实测的坑: V-3 / V-4 已经落过表 ⇒ 旧值出现 0 次
+    #      ⇒ 老版用例 12 硬套补丁 ⇒ `RuntimeError: 旧值出现 0 次` ⇒ **崩** ★
+    #   ⇒ ★**修法**: 配方先判【已落过】(⇒ 拒绝重复落 + 文案写【已落过】) ⇒ 用例 12 改成对【已落过】判红 ★
+    tmp, _ = new_case("v3_already_landed")
     d12 = WHITELIST["V-3"]["E"]("E", tmp, "", "", "")
     plan12 = Plan(tmp, [d12])
     errs12 = plan12.verify()
-    touched12 = sorted({p.path for p in plan12.patches} | {CHECK_SCRIPT, SPEC_PAGE, LANDED_LEDGER})
-    bdir12 = backup_files(tmp, touched12, "rt")
-    plan12.apply_patches()
-    regen12 = regen_all(tmp)
-    post = {rel: md5(os.path.join(tmp, rel)) for rel in rt_artifacts}
-    landed_changed = any(post[rel] != pre[rel] for rel in rt_artifacts)
-    rb_rc = do_rollback(tmp, bdir12)
-    back = {rel: md5(os.path.join(tmp, rel)) for rel in rt_artifacts}
-    roundtrip_ok = all(back[rel] == pre[rel] for rel in rt_artifacts)
-    grc12, _gout = run([sys.executable, os.path.join(tmp, CHECK_SCRIPT)], tmp)
+    txt12 = " ".join(errs12)
+    crash12 = None
+    if not errs12:                 # ★**没落过才允许真的去套补丁** (★落了 ⇒ 不许硬套·不许崩★) ★
+        try:
+            plan12.apply_patches()
+        except Exception as exc:
+            crash12 = str(exc)
     all_ok &= check(
-        "用例12 ★【回滚往返回】落表⇒产物变⇒回滚⇒产物逐字节回到落表前 且 现状守卫回绿 (rc=0) ★",
-        (not errs12) and landed_changed and roundtrip_ok and rb_rc == 0 and grc12 == 0,
-        f"verify_errs={errs12}\n落表后产物变了: {landed_changed}\n回滚后逐字节回去: {roundtrip_ok} "
-        f"(pre={pre} / back={back})\n回滚 rc={rb_rc} · 现状守卫 rc={grc12}\n"
-        f"重生成: {[(s, r) for s, r, _ in regen12]}")
+        "用例12 ★★【已落过】V-3=E 在已落过的真源上 ⇒ 必须判红 (文案写【已落过】) 且【不许崩】 ★",
+        bool(errs12) and ("已落过" in txt12) and crash12 is None,
+        f"verify 报错 {len(errs12)} 条:\n" + "\n".join(errs12[:6])
+        + (f"\n★崩了: {crash12}" if crash12 else "\n★没崩 (★判红靠的是 verify 的错误·不是 RuntimeError★)"))
+
+    # ── 用例 13: ★★【回滚往返回】(★与 V 值无关·合成补丁·不依赖任何一格「还没落」★)★★ ──
+    #   ★★2026-11-17 复验实测到的坑: 老版 `--rollback` 只还原真源, 派生产物(网表/脚表/BOM)停在落表后
+    #   ⇒ **半回滚** ⇒ 现状守卫 18 条 EXPECT 全红 (rc=1) ⇒ ⇒ 回滚后必须重生成派生产物
+    #   ★★ISS-283 · ⑩: V-3/V-4/V-2 都已落过 ⇒ 「拿真配方跑一遍」的版本测不到了 ⇒ 改成【合成补丁】★★
+    tmp, _ = new_case("rollback_roundtrip")
+    rt_artifacts = ("HW/netlist_v1.csv", "HW/netlist_v1_pins.csv", "HW/BOM_v1.csv")
+    pre = {rel: md5(os.path.join(tmp, rel)) for rel in rt_artifacts}
+    gp = os.path.join(tmp, GEN_NETLIST)
+    gtxt = read_text(gp)
+    needle = '"[SYS] 开关引脚端去耦 (紧贴 VOUT, 承 SoC 上电冲击; 另一端接地)"'
+    if needle not in gtxt:
+        needle = '"[SYS] 开关引脚端去耦'
+    idx = gtxt.find(needle)
+    if idx < 0:
+        all_ok &= check("用例13 ★【回滚往返回】★", False, "★沙盒里找不到用来合成补丁的 note 串★")
+    else:
+        bdir13 = backup_files(tmp, [GEN_NETLIST], "rt")     # ★**先备份** (★回滚要回到这一版★)★
+        gtxt2 = gtxt[:idx] + '"★ISS283-ROLLBACK-TEST★' + gtxt[idx + 1:]
+        write_text(gp, gtxt2)
+        regen13 = regen_all(tmp)
+        post = {rel: md5(os.path.join(tmp, rel)) for rel in rt_artifacts}
+        landed_changed = any(post[rel] != pre[rel] for rel in rt_artifacts)
+        rb_rc = do_rollback(tmp, bdir13)
+        back = {rel: md5(os.path.join(tmp, rel)) for rel in rt_artifacts}
+        roundtrip_ok = all(back[rel] == pre[rel] for rel in rt_artifacts)
+        grc13, _gout = run([sys.executable, os.path.join(tmp, CHECK_SCRIPT)], tmp)
+        all_ok &= check(
+            "用例13 ★【回滚往返回】(★合成补丁·与 V 值无关★)落表⇒产物变⇒回滚⇒产物逐字节回到落表前 且 现状守卫回绿 (rc=0) ★",
+            landed_changed and roundtrip_ok and rb_rc == 0 and grc13 == 0,
+            f"落表后产物变了: {landed_changed}\n回滚后逐字节回去: {roundtrip_ok} "
+            f"(pre={pre} / back={back})\n回滚 rc={rb_rc} · 现状守卫 rc={grc13}\n"
+            f"重生成: {[(s, r) for s, r, _ in regen13]}")
 
     # ── 清理临时副本 ──
     for t in tmps:
@@ -1921,7 +2611,7 @@ def run_selftest(root: str) -> int:
     print(f"   {n + 2}. ★真盘 5 个受保护 md5 自测前后不变★")
     print("")
     if all_ok:
-        print(f"✅ rc=0: ★**落表器自测全过 ({n + 2} 条) · 真盘零写入** ★")
+        print(f"✅ rc=0: ★**落表器自测全过 ({n_checks[0]} 条) · 真盘零写入** ★")
         return 0
     print("★★ rc=1: ★**落表器自测有红的** ★", file=sys.stderr)
     return 1
@@ -1955,6 +2645,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="★V-2 的【型号轴】(★选型级·老板拍★): 真 OPN 串 (★不给 = 真源现值原样保住★)")
     ap.add_argument("--v2-evidence", default="",
                     help="★配合 `--v2-model` 用的 evidence 等级 (★[官网] / [实测] / [推算]★)")
+    ap.add_argument("--issue", default="ISS-236",
+                    help="★落表单号 (★写进落表台账的 §16 抬头 + 身份变更授权记录·默认 = 落表器自己的单号★)")
     args = ap.parse_args(argv)
 
     root = os.path.abspath(args.root)
@@ -2076,10 +2768,11 @@ def main(argv: list[str] | None = None) -> int:
     # ── ⑤ --apply 的老板拍板凭据 (★机器化保证: 不许替老板拍板★) ──
     boss = []
     for b in args.boss_decision:
-        m = re.match(r"^\s*(\d{4}-\d{2}-\d{2})\s+(A1|A2|A3)\s*=\s*(\S+)\s*$", b)
+        m = re.match(r"^\s*(\d{4}-\d{2}-\d{2})\s+(A1|A2|A3|A4|A5)\s*=\s*(\S+)\s*$", b)
         if not m:
             print(f"★★ rc=2: ★**`--boss-decision` 写法不对: {b!r}** ⇒ "
-                  f"必须是 \"<日期> <A1|A2|A3> = <值>\" (★例: \"2026-11-16 A1 = E\"★) ★", file=sys.stderr)
+                  f"必须是 \"<日期> <A1|A2|A3|A4|A5> = <值>\" (★例: \"2026-11-16 A1 = E\"·"
+                  f"\"2026-11-17 A4 = A\"·\"2026-11-17 A5 = 20mA\"★) ★", file=sys.stderr)
             print("★★ ★**零写盘** ★", file=sys.stderr)
             return 2
         boss.append((m.group(1), m.group(2), m.group(3)))
@@ -2089,7 +2782,8 @@ def main(argv: list[str] | None = None) -> int:
         print("★★ ★**零写盘** ★", file=sys.stderr)
         return 2
     # ★★拍板码 → 拍板项 (★DECISION_PENDING_2026-11-16.md §A: A1=V-3 · A2=V-4 · A3=V-2★) ★★
-    A_ITEM = {"A1": "V-3", "A2": "V-4", "A3": "V-2"}
+    # ★★ISS-283 · B2/B3: A4 = V-5 (W-4 / G-1 写法A) · A5 = V-6 (G-5 / W-6 20mA 亮度档) ★★
+    A_ITEM = {"A1": "V-3", "A2": "V-4", "A3": "V-2", "A4": "V-5", "A5": "V-6"}
     # ★★A3 (V-2) 的凭据可以带【覆盖】(★架构 / 型号两轴★)★★
     A3_EXTRA = re.compile(r"^1(?:/arch=(?P<arch>[123]))?(?:/model=(?P<model>.+))?$")
     boss_map: dict[str, str] = {}
@@ -2151,7 +2845,8 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
     # ── ⑥ 备份 (★有回滚★) ──
-    touched = sorted({p.path for p in plan.patches} | {CHECK_SCRIPT, SPEC_PAGE, LANDED_LEDGER})
+    touched = sorted({p.path for p in plan.patches} | {CHECK_SCRIPT, SPEC_PAGE, LANDED_LEDGER,
+                                                       ANCHOR_GUARD, REGISTRY_JSON})
     old_md5 = {p: md5(os.path.join(root, p)) for p in touched if os.path.exists(os.path.join(root, p))}
     old_md5.update({p: md5(os.path.join(root, p)) for p, _ in MD5_TARGETS
                     if os.path.exists(os.path.join(root, p))})
@@ -2159,6 +2854,19 @@ def main(argv: list[str] | None = None) -> int:
     print(f"★★ 回滚副本: {os.path.relpath(bdir, root)} ★★")
 
     try:
+        # ── ★★ISS-283 · B1: 落表前先让行号锚点守卫把台账的 `id_str` 补齐 (★机器写★) ──
+        #   ★★**为什么必须先补 (★2026-11-17 12:12 实测·不是推测★★)**:
+        #     守卫判「实体身份变了 (ref+net)」时, 要拿【旧身份】去落表台账的授权记录里比对
+        #     ⇒ 【旧身份】的来源 = registry 的 `id_str` (★落表改完之后按行号回查必然查不到★)
+        #     ⇒ ★**不补 ⇒ 合法落表必判红 (NOOLD) ⇒ 落表器自回滚 ⇒ 合法落表这条路走不通★★
+        #   ★**这一段是【机制】不是【一次性补丁】** ⇒ 以后每次落表都自动走一遍 ⇒ 不会再踩同一个坑 ★★
+        _mg = [sys.executable, os.path.join(root, ANCHOR_GUARD), "--migrate-id-str"]
+        rc_mg, out_mg = run(_mg, root)
+        for l in out_mg.strip().split("\n")[-4:]:
+            if l.strip():
+                print(f"   ★ {l}")
+        if rc_mg != 0:
+            raise RuntimeError(f"★行号锚点守卫的台账 `id_str` 补齐失败: rc={rc_mg}\n{out_mg[-1500:]}")
         # ── ⑦ 落补丁 ──
         plan.apply_patches()
         # ── ⑧ 重生成 (★顺序是硬的★) ──
@@ -2172,7 +2880,8 @@ def main(argv: list[str] | None = None) -> int:
         print("   ★ 重生成 OK: 规格页 ANCHORS 块")
         # ── ⑩ 规格页 §5.5 + 台账 §16 (★带真实 md5★) ──
         append_spec_status(root, decisions, [f"{b[0]} {b[1]} = {b[2]}" for b in boss])
-        append_ledger(root, decisions, [f"{b[0]} {b[1]} = {b[2]}" for b in boss], old_md5)
+        append_ledger(root, decisions, [f"{b[0]} {b[1]} = {b[2]}" for b in boss], old_md5,
+                      issue=args.issue)
         print("   ★ 重生成 OK: 规格页 §5.5 + 落表台账 §16")
     except Exception as exc:
         print(f"★★ rc=1: 落表失败 ⇒ 自动回滚: {exc}", file=sys.stderr)
@@ -2216,6 +2925,15 @@ def main(argv: list[str] | None = None) -> int:
     if rc1 != 0 or rc2 != 0:
         failed.append(f"merge/gate_check: rc={rc1}/{rc2}")
 
+    # ── ★★ISS-283 · ⑪: 落表后【全闸扫描】 (★一次性跑完所有闸 + 列出红的 + 查有没有人认领★) ──
+    #   ★**为什么不能省 (★main 2026-11-17 11:2x 实跑抓出来的病灶★)**:
+    #     落表前全绿 · 落表后 3 道红 · 其中 2 道【落表前谁都没料到】⇒ 手工扫一定会漏 ⇒ 必须机制化 ★
+    #   ★**口径: 只报不判死** ⇒ 别的单的闸红 (★SW/MECH 侧在飞的单★) 不回滚本单已完成的落表 ★
+    n_red, scan_txt = scan_all_gates(root)
+    for l in scan_txt:
+        print(l)
+    print(f"   ★ 全闸扫描: 红 {n_red} 道 (★只报不判死·不回滚★)")
+
     # ── ⑫ 受保护 md5 ──
     print("")
     print("★★【受保护 md5 (★必须逐字节不变★)】★★")
@@ -2235,7 +2953,7 @@ def main(argv: list[str] | None = None) -> int:
         old = old_md5.get(path, "?")
         print(f"   {got}  {path}   ★{kind}★  (旧 {old})")
     print("")
-    print(f"★★ 落表单号: ★**ISS-236** ★ · 老板拍板凭据: {', '.join(f'{b[0]} {b[1]} = {b[2]}' for b in boss)}")
+    print(f"★★ 落表单号: ★**{args.issue}** ★ · 老板拍板凭据: {', '.join(f'{b[0]} {b[1]} = {b[2]}' for b in boss)}")
     print(f"★★ 落表台账: ★**`HW/SCHEMATIC_LANDING_V1_LANDED.md` §16** ★")
     print(f"★★ 回滚: ★**`python3 state/land_v_values.py --rollback {os.path.relpath(bdir, root)}`** ★")
 

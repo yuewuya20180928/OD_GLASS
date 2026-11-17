@@ -1,0 +1,179 @@
+### A1 check_onepass_commit_order
+$ python3 HW/check_onepass_commit_order.py
+  ISS-280 · 「板只改一次」提交时序守卫 (★主模式 · root=/home/yuewuya/.openclaw/workspace/projects/smart_glasses★)
+==============================================================================
+  ✅ D0   权威页存在且 INV-1~INV-4 齐全 · 网表 md5 未变 · 脚表 md5 未变 · BOM md5 未变
+  ✅ D1   找到 3 处「B 类终段步 = 最后跑」表述 (★第 21 行★)
+  ✅ D2   找到「只允许变一次 + 同趟 + S4 + S8」表述 (★第 21 行★)
+  ✅ D3   3 处集合断言全部被后文撤回订正覆盖 (★断言行 15, 16, 342 · 撤回行 21, 347★)
+  ✅ D4   盘上板 md5 611b869e13518c3c023fb178f91a0075 == 台账基线 md5 (★变更区 0 行 = 板至今没变过★) ⇒ 盘面与台账一致
+  ✅ D4b  盘上 .kicad_pro md5 3e504d2be83152e337949723e909be1b == 台账基线登记值 ⇒ 未被绕过改动
+  ✅ D5   变更区 0 行 (★≤ 1 ⇒ 板 md5 至多变一次★)
+  ✅ D6   变更区 0 行 ⇒ 板 md5 没变过 ⇒ 无需留证绑定 (★本单零写板★)
+------------------------------------------------------------------------------
+  ✅ 全部通过
+>>> RC=0
+
+### A2 check_onepass_commit_order selftest
+$ python3 HW/check_onepass_commit_order.py --selftest
+  ✔  ③ 把作业包的「撤回」订正抹掉 ⇒ 旧集合重新生效 ⇒ D3 红
+  ✔  ④ 沙盒里的板偷改一个字节 (不登记台账) ⇒ D4 红
+  ✔  ⑤ 台账登记 2 次变更 ⇒ D5 红
+  ✔  ⑥ 台账登记 1 次变更但无留证绑定 ⇒ D6 红 (悬空的改板)
+  ✔  ⑦ 正向对照: 登记 1 次变更 + 留证绑定齐全 + 产物不比板旧 ⇒ rc=0 (★证明 D6 不是恒红★)
+  ✔  ⑧ 沙盒里的网表偷改一行 ⇒ D0 红 (零落表守卫)
+  ✔  ⑨ 台账「第几次变更」断号 (第 1 行写成 2) ⇒ D5 红
+  ✔  ⑩ 沙盒里的 .kicad_pro 偷改一个字节 ⇒ D4b 红
+  ✔  ⑪ ★历史对照: 用 ISS-280 之前的作业包 (★原病灶★) ⇒ D1/D3 红 (★证明闸真能抓住原病灶★)
+------------------------------------------------------------------------------
+  反向用例 11 条 (★≥6★) · 抓到 11 / 11
+  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没★)
+>>> RC=0
+
+### A3 preflight_coverage
+$ python3 HW/check_onepass_preflight_coverage.py
+  OK   P2
+     步覆盖: S1=1 S2=3 S3=2 S4=3 S5=1 S6=9 S7=2 S8=1 S9=1 S10=5 S11=1 S12=1 S13=1
+  OK   P3
+     每条 criterion 的脚本文件都在盘上: ✔
+  OK   P4
+     覆盖度: 26 个标记全部在清单里: ✔
+  OK   P5
+     5 个现状探针: 清单里的现状值 == 盘面实测: ✔
+  OK   P6
+     受保护 5 件 md5 逐字节不变: ✔
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★板侧项全集与作业包对齐, 现状值与盘面一致 ★★
+>>> RC=0
+
+### A4 preflight_coverage selftest
+$ python3 HW/check_onepass_preflight_coverage.py --selftest
+==============================================================================
+  ✔  ① 删掉含 D_ESD_CAM 的那一条 ⇒ P4 红
+  ✔  ② 把 unconnected 现状值改成 40 ⇒ P5 红
+  ✔  ③ 抽掉一条的 step 字段 ⇒ P1 红
+  ✔  ④ 把归属步改成 S99 ⇒ P2 红
+  ✔  ⑤ 判据命令指向不存在的脚本 ⇒ P3 红
+  ✔  ⑥ 板文件被改一个字节 ⇒ P6 红
+  ✔  ⑦ source_iss 改成来源不明 (ISS-999) ⇒ P4 红
+  ✔  ★基线: 真盘 P1~P6 全绿
+------------------------------------------------------------------------------
+  反向用例 8/8 通过
+  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+>>> RC=0
+
+### A5 board_frame_caliber
+$ python3 HW/check_board_frame_caliber.py
+    ✓ HW/PCB/demo_mainboard.kicad_pcb md5 未变 (611b869e13518c3c023fb178f91a0075)
+    ✓ HW/PCB/demo_mainboard.kicad_pro md5 未变 (3e504d2be83152e337949723e909be1b)
+    ✓ HW/netlist_v1.csv md5 未变 (e06c1dd633566aa44732762c2ff99d1c)
+    ✓ HW/netlist_v1_pins.csv md5 未变 (287e7861a0d1007748d92d9fbecdd490)
+    [信息] HW/SCHEMATIC_V1_SPEC.json md5 = 7584f8b479194710621d175fa3168c1f (零落表边界自证, 不参与判红)
+    ⇒ C6 PASS
+
+------------------------------------------------------------------------------
+板框 (含线宽) = 160.10 × 100.10 mm · 铜层 8 · 封装 186 · 现役帧 B160x100
+S6: 已在目标位 19 / 不同 1 ['R_SEL_D3_P'] / 缺失 0
+总判: 全部通过 ✔
+------------------------------------------------------------------------------
+>>> RC=0
+
+### A6 board_frame_caliber selftest
+$ python3 HW/check_board_frame_caliber.py --selftest
+
+[8] ⑧ 抽掉作业包 S6 段的帧标签 ⇒ C1 红
+    改动目标 : HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+    自证改动 : md5 61566cfc… → 6a75659b…  (确实改到了目标那一处)
+    期望判红 : C1  实测: RED 
+    期望点名 : BOARD_ONEPASS_WORKPACKET.md  实测命中: 是
+    结论     : PASS
+      ✗ BOARD_ONEPASS_WORKPACKET.md 第 198 行的 PCB_PART_POS 串所在小节没有帧标签 (必须是 B160x100) ⇒ 坐标帧未声明
+
+==============================================================================
+反向用例: 8 条, 失败 0 条 ⇒ 全部被闸抓住 ✔
+==============================================================================
+>>> RC=0
+
+### A7 netlist_contradiction_r3
+$ python3 HW/check_netlist_contradiction_r3.py
+            - C_BULK_SENSOR_VDD_IO
+            - C_BULK_V_CORE
+
+── 附加观察 (★不计入 findings 数, 不影响 rc★) ──────────────────────────────────
+  R3-A6 命中 1 条 (★归 V-7 / ISS-214 §4.C 补差C · 充电板整机阶段 P0★):
+    - C_VBUS_OUT 是 VBUS_5V_F1 ↔ VBUS_5V_CHG 之间**唯一**的连接件 (电容) ⇒ VBUS_5V_CHG 上的 IC ['U_CHG'] 的供电脚没有直流通路
+  ★⇒ 本门禁 rc=0 **不等于**充电板可投板 ★
+
+──────────────────────────────────────────────────────────────────────────────
+  FINDINGS: 2  (主线要求 = 恰 2 条 = F2 + F3)
+  结论: ✅ 恰 2 条 = 主线的 F2 + F3 (★F1 已于 ISS-249 落表 ⇒ 消失★)  ·  rc = 1
+──────────────────────────────────────────────────────────────────────────────
+>>> RC=1
+
+### A8 check_pcb_drc
+$ python3 state/check_pcb_drc.py
+  PCB 图纸门禁 · check_pcb_drc (★自己画的图, 自己验)
+======================================================================
+  (查板: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb)
+  ✅ C1 KiCad 工具链可用 — 10.0.8
+  ✅ C2 图纸可被 KiCad 解析 (drill 导出 rc=0)
+  ✅ C3 DRC violations = 0 (要求 0)
+  ✅ C4 unconnected items = 45  ← 骨架阶段允许未布线 (布线完成后用 --strict 归零)
+  ✅ C7 同点重复过孔 = 0 (要求 0)
+  ✅ C5 生成器自检 (gen_kicad_project.py rc=0)
+  ✅ C6 生产文件齐 — Gerber 32 个
+----------------------------------------------------------------------
+✅ 全过 —— 图纸可下单 (★前提: ISS-158 的三件规格回来后重跑生成器再验一遍)
+>>> RC=0
+
+### A9 check_pcb_nets
+$ bash state/pcbnew_py.sh state/check_pcb_nets.py
+       · TP_PG_VIO (1 脚)
+       · TP_RESET (1 脚)
+       · TP_SYS (1 脚)
+       · TP_UART (1 脚)
+       · TP_USB_D_N (1 脚)
+       · TP_USB_D_P (1 脚)
+       · TP_VCORE (1 脚)
+       · TP_VIO (1 脚)
+       · X1 (3 脚)
+  ℹ️ C5 网表提示 0 条 (同名脚挂两个网 ⇒ 封装定脚号后才能收敛):
+------------------------------------------------------------------------
+❌ 不通过 —— 板子与网表**不等价** ⇒ 板子不能下单
+>>> RC=1
+
+### A10 issue_check
+$ python3 state/issue_check.py
+  🟡 ISS-037  verified  owner=sw-lead    due=2026-10-29  
+       模型资产与 INT8 量化管理缺失 (权重是资产, 现在散在 sw 需求里)
+  🟡 ISS-113  verified  owner=sw-lead    due=2026-11-05  
+       ★RKNN_BENCH 的 B6 复现缺陷: `acc` 步单独跑会崩 (依赖 calib 步的 dataset.txt)
+  🟡 ISS-066  deferred  owner=mech-lead  due=2026-11-16  
+       测量清单补 H14 (temple_cage 上的 ⌀2.4 PCB 定位间隙孔独立量测行) + measurements.yaml
+  🟡 ISS-076  deferred  owner=mech-lead  due=2026-11-16  
+       新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1
+  🟡 ISS-261  verified  owner=main       due=2026-11-22  
+       ★★[门禁侧·口径缺陷·内部活] ★★`state/delivery_health.py` 的【口径①】把 `delivery.mo
+
+✅ 问题闭环门全过 (字段/状态机/验证分离/逾期/双向覆盖)
+>>> RC=0
+
+### PROTECTED MD5 AFTER
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+e06c1dd633566aa44732762c2ff99d1c  HW/netlist_v1.csv
+287e7861a0d1007748d92d9fbecdd490  HW/netlist_v1_pins.csv
+94642d07a69e8d60dd2af57f69b93607  HW/BOM_v1.csv
+### OTHERS MD5 (must be untouched by me)
+205ac2e4c0e3aeceff42533c9b3a5ba1  HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+ba38f50e76fd9bc710cc9167d539d472  HW/check_onepass_preflight_coverage.py
+cb5c24394dd6922e01c803483db66b4f  HW/PCB/BOARD_FRAME_CALIBER.md
+7a9f8a4d21e1ec5932a13e171adb7c56  HW/check_board_frame_caliber.py
+ef7b9f50087217a43d96aae91a85a781  HW/check_netlist_contradiction_r3.py
+1088fa4f54633d6df366e7d9c8d65006  state/check_pcb_drc.py
+c9319f07646159799ff568f39247650d  state/check_pcb_nets.py
+1471bce6cd67c4b0f611541d4a4b0dfc  state/compare_arm_official.py
+### ISSUE LOG / TRACKER untouched?
+2026-11-17 08:25:23.562628932 +0800 state/issue_log.yaml
+2026-11-11 08:38:42.460261318 +0800 PROJECT_TRACKER.md
+### ACCEPT SUITE DONE

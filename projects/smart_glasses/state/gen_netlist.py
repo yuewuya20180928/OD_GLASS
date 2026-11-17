@@ -345,9 +345,6 @@ DEMO_DNP = {
     "U_BATPROT": "demo 主板用 Type-C 供电 ⇒ 不装电池 ⇒ 电池保护 IC 不装",
     "Q1": "同上 (电池保护的高边 MOS)",
     "BT_432243": "同上 (不装电池)",
-    "R_BAT_DET_1": "同上 (电池电压分压上臂)",
-    "R_BAT_DET_2": "同上 (电池电压分压下臂)",
-    "C_DET_BAT": "同上 (电池 ADC 滤波)",
     "TP_BAT": "同上 (电池测点)",
     "R_NTC_BAT": "同上 (NTC)",
     "R_TS_PULL": "同上 (NTC 分压下臂)",
@@ -554,17 +551,17 @@ def build_p1(by_id, spec):
     #   ★★2026-11-16 ISS-220 落表 (d10): 系数已由 0.822 修正为 **1.216** ⇒ 390Ω 档单 pin 0.608A > 0.50A 触点工作上限
     #   ⇒ 换料不换板: 档位重定待 **V-4 裁决** (老板待拍 · DECISION_PENDING_2026-11-16.md §3)
     #   ★V1.9 (2026-10-28) 产品语义仍有效 (老板 10-28 拍板『边戴边充不允许』⇒ 皮肤温度不再是充电时硬约束)
-    add("P1", "IINLIM", "U_CHG pin10", "R_ILIM", "R_ILIM", "390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)",
+    add("P1", "IINLIM", "U_CHG pin10", "R_ILIM", "R_ILIM", "680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16)",
         "R", "必装", "[官方]", "",
         "[IINLIM] ★★★**方向修正 (ISS-214 d10 · ISS-220 落表 2026-11-16)**: buck 功率守恒 ⇒ ICHG/IIN = η·Vbus/Vbat = **1.216 @3.70V** / **1.071 @4.20V** (η=0.90 取 BQ25896 官方 92.5%@2A 的保守值) ⇒ ★**旧口径写的 (VBAT/VBUS)/η = 0.822 是它的倒数** ⇒ 本 note 里 V1.7/V1.8/V1.9 三处的『ICHG 0.82A / 单 pin 0.411A / 余量 1.22×』**全部作废**★; "
-        "★★**V1.7 (470Ω) 已作废** (V1.8 起改 390Ω; ★**V1.9 终值待 V-4 裁决**)★ "
+        "★★**V1.7 (470Ω) 已作废** (V1.8 起改 390Ω; ★**V1.9 终值 = 680Ω (V-4 裁定 2026-11-16)**)★ "
         "BQ25896 的 IINLIM 复位默认 **2048mA** [官方] (不装 = 铰链吃 ~2.05A); "
-        "★★**390Ω 档真值**: IINMAX = KILIM_max/RILIM = 390/390 = 1.00A; ICHG@3.70V = **1.216A**; J_CHG pin1/pin2 双 pin 并联 ⇒ **单 pin 0.608A > 0.50A 触点工作上限 21.6%** ⇒ **390Ω 档不成立, 档位待 V-4 裁决** (老板待拍项 · DECISION_PENDING_2026-11-16.md §3); "
+        "★★**680Ω 档真值 (V-4 裁定 2026-11-16)**: IINMAX = KILIM_max/RILIM = 390/680 = 0.574A; ICHG@3.70V = **0.698A**; J_CHG pin1/pin2 双 pin 并联 ⇒ **单 pin 0.349A ≤ 0.50A 触点工作上限 (余量 1.43×)** ⇒ **680Ω 档成立**; "
         "300Ω 档单 pin **0.791A** / 260Ω 档单 pin **0.912A** ⇒ 均判死; "
         "★★**ISS-099 结构侧选型回执 (10-28) 的【器件选型】部分仍有效**: 首选 Hirose FH12-10S-0.5SH(55) (0.5A/触点 · 0.5mm pitch · 座高 2.0mm) · ③ **J_CHG 实物是一对** (框侧座 + 脚侧座), 备料别只算一只; ④ **FPC 固定段 2oz (0.24-0.25mm) 可能超 FH12 可插厚度上限 0.23mm** → 已进 RFQ 硬判据; ★**但其中『单触点额定 ≥0.5A ⇒ 0.411A/触点 余量 1.22×』的余量结论已作废** (真值 0.608A 超额 21.6%)★; "
         "★★**V1.8/V1.9 产品语义仍有效** (老板 10-28『**边戴边充不允许**』⇒ 充电时眼镜不在皮肤上 ⇒ 皮肤温度不再是充电时的硬约束); "
         "★**皮肤侧『42.14°C / 不能再抬电流』那条结论是在 0.822 系数下算的** ⇒ 按 1.216 系数, 电芯内阻发热从 114mW 升到 148mW (0.10Ω × 1.216²) ⇒ **该温度数不可信, 必须由结构总工用 MECH/HINGE_POWER_CALC.md 重算 (ISS-091 地界)**★", "C-01")
-    add("P1", "GND", "R_ILIM", "GND", "R_ILIM", "390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)", "R", "必装",
+    add("P1", "GND", "R_ILIM", "GND", "R_ILIM", "680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16)", "R", "必装",
         "[官方]", "",
         "[IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限)")
 
@@ -612,27 +609,27 @@ def build_p1(by_id, spec):
         "NET", "必装", "[官方]", "",
         "[PWR_ON] 负载开关 ON 节点 (高电平 = 开机); ★SoC 用这个 GPIO 保持开机 (推挽高) 或触发关机 (高阻), "
         "脚号与是否可配开漏**待原厂**", "C-02")
+    add("P1", "PWR_GOOD", "Q_PG", "J_CHG pin6", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
+        "[PWR_GOOD] ★★**ISS-283 · G-1 裁决 (2026-11-17 09:49 老板拍板「写法 A」)★**: DMP3098L 厂商引脚序 ★**1=G / 2=S / 3=D**★ ⇒ ★**pad1 = 栅极 G = PWR_GOOD (充电板 PG)★** · ★**pad2 = 源极 S = BAT_SW**★ · ★**pad3 = 漏极 D = PWR_ON (负载侧)**★ ⇒ ★**写法 A**★ (★**原落表把 pad1↔pad3 写反 ⇒ G/D 对调 ⇒ 写法 B ⇒ PG 高低都关 ⇒ 开机路径彻底不通**★; ★**ISS-244 实跑**: PG 低 ⇒ VGS≈−4.2V ⇒ 导通 ⇒ ON=BAT_SW=高=开机; PG 高 ⇒ VGS≈−0.9V ⇒ 关断 ⇒ ON 落下拉=低=关★) ★**板上 `Q_PG` land 仍按旧接法画 (pad1→PWR_ON / pad3→PWR_GOOD) ⇒ 板那一趟必须重画这 3 根线 (ISS-283 板侧清单 §③-2)★**", "C-06")
+    add("P1", "BAT_SW", "Q_PG", "NET_BAT_SW", "Q_PG",
+        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
+        "必装", "[官方]", "",
+        "[PWR_ON] ★V1.9: Q_PG **源极 (pad2 = S)** 接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS 下 "
+        "(U_LDO_IO33 输入 = RAIL_SYS), 关机断电后即灭 ⇒ 源极无电位 ⇒ 插电开不了机。BAT_SW 在关机态仍带电 ✔ ★**ISS-283 · G-1 写法 A: pad2 = S = BAT_SW (★这一格本来就是对的·这次不动★)**★",
+        "C-02")
     add("P1", "PWR_ON", "Q_PG", "U_PWR_SW ON", "Q_PG",
         "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
         "必装", "[官方]", "",
         "[PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— "
         "原 N-MOS 低边接法是**错的**: 栅极接 PG(LOW=电源良好) · 源极接 GND · 漏极接 ON ⇒ "
         "PG 低时 MOS 关 ⇒ ON 只剩 10k 下拉 = 低 = **开关关** ⇒ ①插电反而开不了机 ②SoC 拉高 PWR_CTRL 会被 Q_PG 拉到 GND 拉不高 ⇒ **开机路径彻底不通**。"
-        "★**正解 (零新增 pin · 零新增轨)**: 源极接 ON · **漏极接 BAT_SW (电池轨, 关机后仍带电)** · 栅极接 PG ⇒ "
-        "PG 低(良好)→Vgs≈-4.2V→P-MOS 导通→ON=BAT_SW=高=**开机**; PG 高(无输入)→Vgs=+3.3V→P-MOS 关→ON 落下拉=低=**关** (关机态仍能充电)。"
+        "★**正解 (零新增 pin · 零新增轨)**: ★**ISS-283 · G-1 写法 A (2026-11-17 09:49 老板拍板)★** ★**栅极 (pad1, G) 接 PG** · "
+        "★**源极 (pad2, S) 接 BAT_SW (电池轨, 关机后仍带电)** · ★**漏极 (pad3, D) 接 ON** ⇒ "
+        "PG 低(良好)→Vgs≈-4.2V→P-MOS 导通→ON=BAT_SW=高=**开机**; PG 高(无输入)→Vgs≈-0.9V→P-MOS 关→ON 落下拉=低=**关** (关机态仍能充电)。"
         "★选型硬判据: 低漏 P-MOS · Vgs(th) 明确 · 栅极最大耐压 ±20V · 关断漏电 nA 级",
         "C-02")
-    add("P1", "BAT_SW", "Q_PG", "NET_BAT_SW", "Q_PG",
-        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
-        "必装", "[官方]", "",
-        "[PWR_ON] ★V1.9: Q_PG **漏极**接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS 下 "
-        "(U_LDO_IO33 输入 = RAIL_SYS), 关机断电后即灭 ⇒ 漏极无电位 ⇒ 插电开不了机。BAT_SW 在关机态仍带电 ✔",
-        "C-02")
-    add("P1", "PWR_GOOD", "Q_PG", "J_CHG pin6", "Q_PG",
-        "DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA)", "SW",
-        "必装", "[官方]", "",
-        "[PWR_GOOD] Q_PG **栅极** = 充电板 PG (经 J_CHG pin6 跨铰链, 框侧开漏信号; 主板侧 R_PU_PG 10k 上拉 3.3V)。"
-        "★V1.9: PG 低(电源良好) → 栅极≈0 → P-MOS 导通 → ON 拉高 = 开机", "C-06")
 
     # ---- ★V1.8 复位链闭环 (ISS-096 接手: hw-lead 连续两轮 0 产出) ----
     #   ① 两路 DC-DC 的 PG 开漏并联 · PG_AND (任一路坏 · 高)
@@ -909,10 +906,10 @@ def build_p2(by_id, spec):
         r1 = f"R_{src}_1"
         r2 = f"R_{src}_2"
         conn_row(by_id, cid, "P2", src, r1, r2, f"NET_{src}")
-        add("P2", f"{src}_RAW", srcnode, r1, r1, "1M ±1%", "R", "必装", "[推算]", "",
-            f"[{src}_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V", cid)
-        add("P2", src, r2, "GND", r2, "1M ±1%", "R", "必装", "[推算]", "",
-            f"[{src}] 分压下臂 地端", cid)
+        add("P2", f"{src}_RAW", srcnode, r1, r1, "100k ±1%", "R", "必装", "[推算]", "",
+            f"[{src}_RAW] 分压上臂 (100k); ★方案E (ISS-223 §11.4): R_th=37.5kΩ ⇒ ADC 输入漏电 ~1µA 只造成 37.5mV 偏移 (2.1% FS, 可软件标定)★; ★常开静态功耗 26.25µA / 110µW (V-3 裁决的代价)★", cid)
+        add("P2", src, r2, "GND", r2, "60k ±1%", "R", "必装", "[推算]", "",
+            f"[{src}] 分压下臂 地端 (60k ±1%)", cid)
         add("P2", src, cap, "J_CHG pin7" if cid == "B-07" else "R_BAT_DET_2", cap, "100nF ±10%",
             "C", "必装", "[推算]", "",
             f"[{src}] ADC 滤波电容 ({'跨铰链侧 (充电板测 VBUS, 高阻分压)' if cid == 'B-07' else '★V1.2: 电池在镜脚, 本地检测, 不跨铰链'})",
@@ -1258,9 +1255,9 @@ def build_p7(by_id, spec):
     for col, cid, dnp in LEDS:
         conn_row(by_id, cid, "P7", f"LED_{col}", soc_pin(f"LED_{col}"), f"R_LED_{col}",
                  f"NET_LED_{col}")
-        add("P7", f"LED_{col}_D", f"R_LED_{col}", f"D_LED_{col}", f"R_LED_{col}", "1k ±1%",
+        add("P7", f"LED_{col}_D", f"R_LED_{col}", f"D_LED_{col}", f"R_LED_{col}", "68Ω ±1%" if col == "R" else ("55Ω ±1%" if col == "G" else "1k ±1%"),
             "R", dnp, "[推算]", "",
-            f"[LED_{col}_D] LED_{col} 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)")
+            f"[LED_{col}_D] LED_{col} 串阻 = {('68Ω ±1%' if col == 'R' else ('55Ω ±1%' if col == 'G' else '1k ±1%'))} (★**ISS-283 · G-5 裁决 (2026-11-17 09:49 老板拍「选项 ② = 改 R 到 20 mA 档」)★**; ★**红 68Ω / 绿 55Ω = ISS-244 [官网] 级实测折算的 20 mA 档真值 (★150Ω 只有 ~5 mA·达不到 20 mA 档★)★**) ⇒ 单颗 ~20 mA · 功耗 2.2 mW→66 mW (★两颗 ≈ 0.13 W 进电池账★) · ★**亮度 ×14 ⇒ IEC 62471 分级要重算 (★ISS-283 登记 need·不代拍★)**★)" if col in ("R", "G") else f"[LED_{col}_D] LED_{col} 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)")
         add("P7", "GND", f"D_LED_{col}", "GND", f"D_LED_{col}", "LED (待选型)", "LED", dnp,
             "[推算]", "", f"LED_{col} 阴极 -> GND")
     for sig, net, tag, cid, dnp, desc in KEYS:
@@ -1451,7 +1448,7 @@ def build_a2_som(by_id, spec):
     # ---- ★demo 板 USB-C 入口的 ESD 阵列 (Forlinx 载板指引: ESD 阵列紧贴接口) ----
     # ★2026-11-04 19:5x 改: ESD 阵列直接跨在 **SoM 侧 D+ 节点 (USB_D_P_SRC)** 与地之间
     #   (原来挂在独立的 NET_USB_D_P_ESD 网上 ⇒ 那根网是**幽灵分裂网**, 且串阻被拉进第三个网)
-    add("P1", "USB_D_P_SRC", "D_ESD_USB_D", "USB_D_P_SRC", "D_ESD_USB_D",
+    add("P1", "NET_USB_D_P_TYPEC", "D_ESD_USB_D", "NET_USB_D_P_TYPEC", "D_ESD_USB_D",
         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装", "[官方]", "",
         "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
     add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D",

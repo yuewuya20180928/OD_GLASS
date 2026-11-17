@@ -1,0 +1,46 @@
+### 5) python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-17T11:56:42+08:00)
+   产出 498 | 阻塞 43 (高危 33) | 未闭合需求 275 | 冲突 0 | 健康度 red
+rc=0
+### 6) python3 state/gate_check.py
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 79 条 | **全局 69 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 275 条**
+   ✅ 与 merge.py 自对账一致 (等外部 69 / 等总工 275)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 13 个
+      q1_latency_scope: 发起方 ['main', 'sw-lead']
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q17_display_fps: 发起方 ['main', 'sw-lead']
+      q18_highspeed_cam: 发起方 ['main', 'sw-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+
+【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    1/5 类: ['镜腿/镜脚厚度(mm)']
+   sw-lead    1/5 类: ['镜腿/镜脚厚度(mm)']
+   mech-lead  2/5 类: ['镜腿/镜脚厚度(mm)', 'FCCSP 球间距(pitch)']
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 110 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 67 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 91 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+rc=0
+### 7) md5sum 受保护件
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+2f17650cfbef48d5efd71821505c3343  HW/netlist_v1.csv
+6ea65fecdf95902e47330083d140d455  HW/netlist_v1_pins.csv
+ea5f4f58e3fb8bb7b6c3a2e0de8b1dfd  HW/BOM_v1.csv
+### 8) mtime
+2026-11-06 07:07:17.362193413 +0800  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-04 23:47:30.279742515 +0800  HW/PCB/demo_mainboard.kicad_pro
+2026-11-17 09:58:15.680854714 +0800  HW/netlist_v1.csv
+2026-11-17 09:58:15.783855948 +0800  HW/netlist_v1_pins.csv
+2026-11-17 09:58:15.902857373 +0800  HW/BOM_v1.csv
+2026-11-16 18:32:34.990932709 +0800  SW/tools/timing_check.py
+2026-11-17 10:27:34.263859806 +0800  SW/tools/check_demo_panel_spec.py
+2026-11-17 10:30:26.354823466 +0800  SW/SW_MD5_BASELINE_LEDGER.md

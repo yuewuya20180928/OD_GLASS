@@ -97,8 +97,8 @@ C_BULK_V_CORE.1,V_CORE,C_BULK_V_CORE,1,P1,10µF,C,DNP,MAIN_PCB,C-04,,,[推算],,
 C_BULK_V_CORE.2,GND,C_BULK_V_CORE,2,P1,10µF,C,DNP,MAIN_PCB,C-04,,,[推算],,[V_CORE] 体电容 地端
 C_BULK_V_SOC_IO.1,V_SOC_IO,C_BULK_V_SOC_IO,1,P1,10µF,C,DNP,MAIN_PCB,C-05,,,[推算],,"[V_SOC_IO] 体电容 (值随负载瞬态/原厂电源域表核, TBD-02)"
 C_BULK_V_SOC_IO.2,GND,C_BULK_V_SOC_IO,2,P1,10µF,C,DNP,MAIN_PCB,C-05,,,[推算],,[V_SOC_IO] 体电容 地端
-C_DET_BAT.1,BAT_DET,C_DET_BAT,1,P2,100nF ±10%,C,DNP,MAIN_PCB,B-08,,,[推算],,"[C_DET_BAT] ★DNP: 同上 (电池 ADC 滤波) | [BAT_DET] ADC 滤波电容 (★V1.2: 电池在镜脚, 本地检测, 不跨铰链)"
-C_DET_BAT.2,GND,C_DET_BAT,2,P2,100nF ±10%,C,DNP,MAIN_PCB,B-08,,,[推算],,[C_DET_BAT] ★DNP: 同上 (电池 ADC 滤波) | [BAT_DET] ADC 滤波电容 地端
+C_DET_BAT.1,BAT_DET,C_DET_BAT,1,P2,100nF ±10%,C,必装,MAIN_PCB,B-08,,,[推算],,"[BAT_DET] ADC 滤波电容 (★V1.2: 电池在镜脚, 本地检测, 不跨铰链)"
+C_DET_BAT.2,GND,C_DET_BAT,2,P2,100nF ±10%,C,必装,MAIN_PCB,B-08,,,[推算],,[BAT_DET] ADC 滤波电容 地端
 C_DET_VBUS_D.1,GND,C_DET_VBUS_D,1,P1,100nF ±10%,C,必装,MAIN_PCB,A-24,,,[推算],,[VBUS_DET_D] ADC 滤波电容 地端
 C_DET_VBUS_D.2,VBUS_DET_D,C_DET_VBUS_D,2,P1,100nF ±10%,C,必装,MAIN_PCB,A-24,,,[推算],,[VBUS_DET_D] ADC 滤波电容 中点侧 (★原来缺这一腿 ⇒ 器件只有 1 个脚)
 C_HF_LIGHT_1V8.1,LIGHT_1V8,C_HF_LIGHT_1V8,1,P1,100nF,C,DNP,MAIN_PCB,C-10,,,[推算],,[LIGHT_1V8] 高频去耦电容位 (紧贴 IC 引脚)
@@ -169,7 +169,7 @@ D_ESD_TC.1,VBUS_5V,D_ESD_TC,1,P1,SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 
 D_ESD_TC.2,USB_VBUS_RAW,D_ESD_TC,2,P1,SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚),D,必装,CHG_BOARD,C-01,,SP0503BAHT (Littelfuse · 订购码 SP0503BAHTG · 3 通道 TVS 阵列 · SOT-143-4 · 5.5VWM/8.5VC),[实测],,Type-C VBUS 入口 ESD 阵列 (规格 C-01 'Type-C 座 + ESD 阵列'); 通道数/钳位电压随 Type-C 座定
 D_ESD_TC.3,VBUS_5V_ESD,D_ESD_TC,3,P1,SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚),D,必装,CHG_BOARD,C-01,,SP0503BAHT (Littelfuse · 订购码 SP0503BAHTG · 3 通道 TVS 阵列 · SOT-143-4 · 5.5VWM/8.5VC),[实测],,Type-C VBUS 入口 ESD 阵列 (规格 C-01 'Type-C 座 + ESD 阵列'); 通道数/钳位电压随 Type-C 座定
 D_ESD_TC.4,GND,D_ESD_TC,4,P9,SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚),D,必装,CHG_BOARD,,,SP0503BAHT (Littelfuse · 订购码 SP0503BAHTG · 3 通道 TVS 阵列 · SOT-143-4 · 5.5VWM/8.5VC),[实测],,"[GND] ★V1.4 补: Type-C 入口 ESD 阵列 地脚 (原来只有 I/O 脚, 阵列没接地 · ESD 不工作)"
-D_ESD_USB_D.1,USB_D_P_SRC,D_ESD_USB_D,1,P1,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V),D,必装,MAIN_PCB,A-24,,TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4),[官方],,"[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**"
+D_ESD_USB_D.1,NET_USB_D_P_TYPEC,D_ESD_USB_D,1,P1,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V),D,必装,MAIN_PCB,A-24,,TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4),[官方],,"[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**"
 D_ESD_USB_D.2,GND,D_ESD_USB_D,2,P1,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V),D,必装,MAIN_PCB,A-24,,TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4),[官方],,[D_ESD_USB_D] ESD 地端
 D_LED_B.1,LED_B_D,D_LED_B,1,P7,LED (待选型),LED,DNP,MAIN_PCB,,,,[推算],,LED_B 阴极 -> GND
 D_LED_B.2,GND,D_LED_B,2,P7,LED (待选型),LED,DNP,MAIN_PCB,,,,[推算],,LED_B 阴极 -> GND
@@ -301,13 +301,13 @@ Q_CHG_LED.3,CHG_STAT,Q_CHG_LED,3,P10,2N7002 (onsemi N-MOS SOT-23 · VGS(th) max 
 Q_ENVC.1,PG_AND,Q_ENVC,1,P8,AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V),SW,DNP,MAIN_PCB,B-10,,AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V),[官方],TBD-12,[PG_VIO] ★V1.8: V_SOC_IO 的 PG 有效 (低) · Q_ENVC 关 · EN_VCORE 被上拉为高 · V_CORE 使能 ⇒ **顺序链**; PG 极性**待原厂核** (TPS62130A PG 为开漏信号)
 Q_ENVC.2,GND,Q_ENVC,2,P8,AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V),SW,必装,MAIN_PCB,B-10,,AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V),[官方],TBD-12,[PG_VIO] Q_ENVC 源极接地
 Q_ENVC.3,EN_VCORE,Q_ENVC,3,P8,AO3400A (AOS N-MOS SOT-23 · VGS(th) max 1.45V · RDS(on) 32mΩ@4.5V),SW,必装,MAIN_PCB,B-10,,AO3400A (Alpha & Omega SOT-23 3-pin G-S-D · 30V · RDS(on) 26.5mΩ@10V · VGS(th) max 1.45V),[官方],TBD-12,[EN_VCORE] Q_ENVC 漏极 = EN_VCORE (把 EN 拉低 = 不使能)
-Q_PG.1,PWR_ON,Q_PG,1,P1,DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA),SW,必装,MAIN_PCB,C-02,,DMP3098L (Diodes Inc SOT23 3-pin · −30V · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA),[官方],,[PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— 原 N-MOS 低边接法是**错的**: 栅极接 PG(LOW=电源良好) · 源极接 GND · 漏极接 ON ⇒ PG 低时 MOS 关 ⇒ ON 只剩 10k 下拉 = 低 = **开关关** ⇒ ①插电反而开不了机 ②SoC 拉高 PWR_CTR
-Q_PG.2,BAT_SW,Q_PG,2,P1,DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA),SW,必装,MAIN_PCB,C-02,,DMP3098L (Diodes Inc SOT23 3-pin · −30V · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA),[官方],,"[PWR_ON] ★V1.9: Q_PG **漏极**接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS 下 (U_LDO_IO33 输入 = RAIL_SYS), 关机断电后即灭 ⇒ 漏极无电位 ⇒ 插电开不了机。BAT_SW 在关机态仍带电 ✔"
-Q_PG.3,PWR_GOOD,Q_PG,3,P1,DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA),SW,必装,MAIN_PCB,C-06,,DMP3098L (Diodes Inc SOT23 3-pin · −30V · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA),[官方],,"[PWR_GOOD] Q_PG **栅极** = 充电板 PG (经 J_CHG pin6 跨铰链, 框侧开漏信号; 主板侧 R_PU_PG 10k 上拉 3.3V)。★V1.9: PG 低(电源良好) → 栅极≈0 → P-MOS 导通 → ON 拉高 = 开机"
-R_BAT_DET_1.1,BAT_DET,R_BAT_DET_1,1,P2,1M ±1%,R,DNP,MAIN_PCB,B-08,,,[推算],,[R_BAT_DET_1] ★DNP: 同上 (电池电压分压上臂) | [BAT_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 BAT 已归一到源节点]
-R_BAT_DET_1.2,BAT,R_BAT_DET_1,2,P2,1M ±1%,R,DNP,MAIN_PCB,B-08,,,[推算],,[R_BAT_DET_1] ★DNP: 同上 (电池电压分压上臂) | [BAT_DET_RAW] 分压上臂 (1M); 上臂阻值大 · 漏电流 ~1.65µA @5V [V1.6: 临时线名 BAT 已归一到源节点]
-R_BAT_DET_2.1,BAT_DET,R_BAT_DET_2,1,P2,1M ±1%,R,DNP,MAIN_PCB,B-08,,,[推算],,[R_BAT_DET_2] ★DNP: 同上 (电池电压分压下臂) | [BAT_DET] 分压下臂 地端
-R_BAT_DET_2.2,GND,R_BAT_DET_2,2,P2,1M ±1%,R,DNP,MAIN_PCB,B-08,,,[推算],,[R_BAT_DET_2] ★DNP: 同上 (电池电压分压下臂) | [BAT_DET] 分压下臂 地端
+Q_PG.1,PWR_GOOD,Q_PG,1,P1,DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA),SW,必装,MAIN_PCB,C-06,,DMP3098L (Diodes Inc SOT23 3-pin · −30V · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA),[官方],,[PWR_GOOD] ★★**ISS-283 · G-1 裁决 (2026-11-17 09:49 老板拍板「写法 A」)★**: DMP3098L 厂商引脚序 ★**1=G / 2=S / 3=D**★ ⇒ ★**pad1 = 栅极 G = PWR_GOOD (充电板 PG)★** · ★**pad2 = 源极 S = BAT_SW**★ · ★**pad3 = 漏极 D = PWR_ON (负
+Q_PG.2,BAT_SW,Q_PG,2,P1,DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA),SW,必装,MAIN_PCB,C-02,,DMP3098L (Diodes Inc SOT23 3-pin · −30V · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA),[官方],,"[PWR_ON] ★V1.9: Q_PG **源极 (pad2 = S)** 接 **BAT_SW (电池轨 3.0-4.2V)** —— ★**不能用 3.3V 轨**: 库内 3.3V 全挂在 SYS 下 (U_LDO_IO33 输入 = RAIL_SYS), 关机断电后即灭 ⇒ 源极无电位 ⇒ 插电开不了机。BAT_SW 在关机态仍带电 ✔ ★**ISS-283 · G-1 写法 A: pa"
+Q_PG.3,PWR_ON,Q_PG,3,P1,DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA),SW,必装,MAIN_PCB,C-02,,DMP3098L (Diodes Inc SOT23 3-pin · −30V · RDS(on) 98mΩ typ@-4.5V · IDSS ≤800nA),[官方],,[PWR_ON] ★★**V1.9 P0 修正 (2026-10-28)**: Q_PG 由 N-MOS 改 **P-MOS 高边开关** —— 原 N-MOS 低边接法是**错的**: 栅极接 PG(LOW=电源良好) · 源极接 GND · 漏极接 ON ⇒ PG 低时 MOS 关 ⇒ ON 只剩 10k 下拉 = 低 = **开关关** ⇒ ①插电反而开不了机 ②SoC 拉高 PWR_CTR
+R_BAT_DET_1.1,BAT_DET,R_BAT_DET_1,1,P2,100k ±1%,R,必装,MAIN_PCB,B-08,,,[推算],,"[BAT_DET_RAW] 分压上臂 (100k); ★方案E (ISS-223 §11.4): R_th=37.5kΩ ⇒ ADC 输入漏电 ~1µA 只造成 37.5mV 偏移 (2.1% FS, 可软件标定)★; ★常开静态功耗 26.25µA / 110µW (V-3 裁决的代价)★ [V1.6: 临时线名 BAT 已归一到源节点]"
+R_BAT_DET_1.2,BAT,R_BAT_DET_1,2,P2,100k ±1%,R,必装,MAIN_PCB,B-08,,,[推算],,"[BAT_DET_RAW] 分压上臂 (100k); ★方案E (ISS-223 §11.4): R_th=37.5kΩ ⇒ ADC 输入漏电 ~1µA 只造成 37.5mV 偏移 (2.1% FS, 可软件标定)★; ★常开静态功耗 26.25µA / 110µW (V-3 裁决的代价)★ [V1.6: 临时线名 BAT 已归一到源节点]"
+R_BAT_DET_2.1,BAT_DET,R_BAT_DET_2,1,P2,60k ±1%,R,必装,MAIN_PCB,B-08,,,[推算],,[BAT_DET] 分压下臂 地端 (60k ±1%)
+R_BAT_DET_2.2,GND,R_BAT_DET_2,2,P2,60k ±1%,R,必装,MAIN_PCB,B-08,,,[推算],,[BAT_DET] 分压下臂 地端 (60k ±1%)
 R_CC1.1,USB_CC1,R_CC1,1,P6,5.1k ±1%,R,必装,CHG_BOARD,,,,[推算],,Type-C Rd 下拉端
 R_CC1.2,GND,R_CC1,2,P6,5.1k ±1%,R,必装,CHG_BOARD,,,,[推算],,Type-C Rd 下拉端
 R_CC1_D.1,GND,R_CC1_D,1,P1,5.1k ±1% (CC1 下拉),R,必装,MAIN_PCB,A-24,,,[官方],,[R_CC1_D] USB-C CC1 5.1k 下拉 (⇒ UFP 受电端)
@@ -326,8 +326,8 @@ R_ID_JMP0.1,ID_DETECT_0,R_ID_JMP0,1,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[�
 R_ID_JMP0.2,GND,R_ID_JMP0,2,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[推算],,ID 跳线位 0 -> GND (装上 = 该位 0)
 R_ID_JMP1.1,ID_DETECT_1,R_ID_JMP1,1,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[推算],,[ID_DETECT_1] 板级 ID 位 1 跳线位 (焊盘跳线编码 2 位)
 R_ID_JMP1.2,GND,R_ID_JMP1,2,P7,0Ω (跳线位),R,DNP,MAIN_PCB,B-24,,,[推算],,ID 跳线位 1 -> GND (装上 = 该位 0)
-R_ILIM.1,IINLIM,R_ILIM,1,P1,390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决),R,必装,CHG_BOARD,C-01,,,[官方],,[IINLIM] ★★★**方向修正 (ISS-214 d10 · ISS-220 落表 2026-11-16)**: buck 功率守恒 ⇒ ICHG/IIN = η·Vbus/Vbat = **1.216 @3.70V** / **1.071 @4.20V** (η=0.90 取 BQ25896 官方 92.5%@2A 的保守值) ⇒ ★**旧口径写的 (VBAT/VBUS)/η = 0.82
-R_ILIM.2,GND,R_ILIM,2,P1,390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决),R,必装,CHG_BOARD,,,,[官方],,[IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限)
+R_ILIM.1,IINLIM,R_ILIM,1,P1,680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16),R,必装,CHG_BOARD,C-01,,,[官方],,[IINLIM] ★★★**方向修正 (ISS-214 d10 · ISS-220 落表 2026-11-16)**: buck 功率守恒 ⇒ ICHG/IIN = η·Vbus/Vbat = **1.216 @3.70V** / **1.071 @4.20V** (η=0.90 取 BQ25896 官方 92.5%@2A 的保守值) ⇒ ★**旧口径写的 (VBAT/VBUS)/η = 0.82
+R_ILIM.2,GND,R_ILIM,2,P1,680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16),R,必装,CHG_BOARD,,,,[官方],,[IINLIM] 限流电阻 另一端接地 (IINLIM 对地设定输入电流上限)
 R_JTAG_TCK.1,JTAG_TCK_SOC,R_JTAG_TCK,1,P8,100Ω ±1%,R,必装,MAIN_PCB,B-19,,,[推算],,[JTAG_TCK] JTAG TCK 串阻 (隔离 SoC 调试脚)
 R_JTAG_TCK.2,JTAG_TCK,R_JTAG_TCK,2,P8,100Ω ±1%,R,必装,MAIN_PCB,B-19,,,[推算],,[JTAG_TCK] JTAG TCK 串阻 (隔离 SoC 调试脚)
 R_JTAG_TDI.1,JTAG_TDI_SOC,R_JTAG_TDI,1,P8,100Ω ±1%,R,必装,MAIN_PCB,B-19,,,[推算],,[JTAG_TDI] JTAG TDI 串阻 (隔离 SoC 调试脚)
@@ -346,10 +346,10 @@ R_KEY_VP.1,KEY_VOL_P,R_KEY_VP,1,P7,10k ±1%,R,必装,MAIN_PCB,,,,[推算],,"[VDD
 R_KEY_VP.2,VDD_3V3_IO,R_KEY_VP,2,P7,10k ±1%,R,必装,MAIN_PCB,,,,[推算],,"[VDD_3V3_IO] 音量+ 键 上拉 (按下到 GND, 支持长按)"
 R_LED_B.1,LED_B,R_LED_B,1,P7,1k ±1%,R,DNP,MAIN_PCB,,,,[推算],,[LED_B_D] LED_B 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)
 R_LED_B.2,LED_B_D,R_LED_B,2,P7,1k ±1%,R,DNP,MAIN_PCB,,,,[推算],,[LED_B_D] LED_B 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)
-R_LED_G.1,LED_G,R_LED_G,1,P7,1k ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_G_D] LED_G 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)
-R_LED_G.2,LED_G_D,R_LED_G,2,P7,1k ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_G_D] LED_G 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)
-R_LED_R.1,LED_R,R_LED_R,1,P7,1k ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_R_D] LED_R 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)
-R_LED_R.2,LED_R_D,R_LED_R,2,P7,1k ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_R_D] LED_R 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定)
+R_LED_G.1,LED_G,R_LED_G,1,P7,55Ω ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_G_D] LED_G 串阻 = 55Ω ±1% (★**ISS-283 · G-5 裁决 (2026-11-17 09:49 老板拍「选项 ② = 改 R 到 20 mA 档」)★**; ★**红 68Ω / 绿 55Ω = ISS-244 [官网] 级实测折算的 20 mA 档真值 (★150Ω 只有 ~5 mA·达不到 20 mA 档★)★**) ⇒ 单颗 ~20 mA · 功耗 2
+R_LED_G.2,LED_G_D,R_LED_G,2,P7,55Ω ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_G_D] LED_G 串阻 = 55Ω ±1% (★**ISS-283 · G-5 裁决 (2026-11-17 09:49 老板拍「选项 ② = 改 R 到 20 mA 档」)★**; ★**红 68Ω / 绿 55Ω = ISS-244 [官网] 级实测折算的 20 mA 档真值 (★150Ω 只有 ~5 mA·达不到 20 mA 档★)★**) ⇒ 单颗 ~20 mA · 功耗 2
+R_LED_R.1,LED_R,R_LED_R,1,P7,68Ω ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_R_D] LED_R 串阻 = 68Ω ±1% (★**ISS-283 · G-5 裁决 (2026-11-17 09:49 老板拍「选项 ② = 改 R 到 20 mA 档」)★**; ★**红 68Ω / 绿 55Ω = ISS-244 [官网] 级实测折算的 20 mA 档真值 (★150Ω 只有 ~5 mA·达不到 20 mA 档★)★**) ⇒ 单颗 ~20 mA · 功耗 2
+R_LED_R.2,LED_R_D,R_LED_R,2,P7,68Ω ±1%,R,必装,MAIN_PCB,,,,[推算],,[LED_R_D] LED_R 串阻 = 68Ω ±1% (★**ISS-283 · G-5 裁决 (2026-11-17 09:49 老板拍「选项 ② = 改 R 到 20 mA 档」)★**; ★**红 68Ω / 绿 55Ω = ISS-244 [官网] 级实测折算的 20 mA 档真值 (★150Ω 只有 ~5 mA·达不到 20 mA 档★)★**) ⇒ 单颗 ~20 mA · 功耗 2
 R_NTC_BAT.1,TS_BAT,R_NTC_BAT,1,P1,"103AT NTC ±1% (贴电芯, 另一端接 TS 专用回流)",R,DNP,MAIN_PCB,C-01,,,[官方],,"[R_NTC_BAT] ★DNP: 同上 (NTC) | [TS_BAT] ★V1.8 修正 (ISS-091 结构核算): NTC 下端**不接系统地**, 接 **TS 专用回流** —— 1A 充电电流会把 TS 参考地抬高 14-32mV (= 0.44-0.99°C 温度偏差), 而 TS 是**停充安全门限**; 专用回流后偏差 <0.01°C"
 R_NTC_BAT.2,PGND,R_NTC_BAT,2,P1,"103AT NTC ±1% (贴电芯, 另一端接 TS 专用回流)",R,DNP,MAIN_PCB,C-01,,,[官方],,"[R_NTC_BAT] ★DNP: 同上 (NTC) | [TS_BAT] ★V1.8 修正 (ISS-091 结构核算): NTC 下端**不接系统地**, 接 **TS 专用回流** —— 1A 充电电流会把 TS 参考地抬高 14-32mV (= 0.44-0.99°C 温度偏差), 而 TS 是**停充安全门限**; 专用回流后偏差 <0.01°C"
 R_OTG.1,OTG_SET,R_OTG,1,P10,10k ±1%,R,必装,CHG_BOARD,C-01,,,[官方],,OTG 拉低 = 关 boost 模式 (本机不做 OTG): 'The boost mode is activated when OTG_CONFIG = 1'

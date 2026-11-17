@@ -5,13 +5,12 @@ updated_by: sw-lead
 status:
   phase: delivered
   progress_pct: 100
-  health: 绿
-  summary: '★ISS-250 第5轮 (独立复核侧) + 第6轮 (板可达性实测 + 模拟器掉点) 交卷 (2026-11-17 05:2x~06:0x, sw-lead) ★ 第6轮三条新事实:
-    ① 板端可达性实测 = 不通且根因定位 (无 enp4s0 + 两网段全段扫无第三方主机 + mDNS 无解析 + 无 adb/USB) ⇒ 板端接受性仍 [0数据], 其前置只有「板没做出来」「板没接网通电」两类需要别人,
-    板端 runtime 自己就能装 (官方公开仓库) ⇒ 不许挂等外部回复 ② 板不可达时「精度掉点」今天就有数: 两套 toolkit 自带 NPU 模拟器, 实测两路线量化掉点基本一致 (逐 head
-    余弦差 <0.0001) ⇒ 路线② 量化质量不劣于路线① (★模拟器口径, 非板端真值★) ③ 板端 runtime 官方公开仓库 ⇒ 零采购。★ 边界: 零外发 · 未碰 HW/ 与 MECH/
-    · 未改 PROJECT_TRACKER §0 · 未自签 issue_log · 未替老板拍板 (rk3572 vs rk3576 仍是老板级) · 本轮未追加共享查证表 (避免与并行会话互相覆盖,
-    12 行落在 SW/research/ISS250_r6_复核记录.md)★'
+  health: green
+  summary: '★ISS-279 (main 07:5x 派单 · cron 775d9893) = 「板只改一次」那一趟的 SW 侧板侧输入收口★ ⇒ 交出 SW/BOARD_ONEPASS_SW_SYNC.md
+    (①~⑧ 八条 · 9 字段 · 机器可读) + SW/tools/check_onepass_sw_sync.py (W1~W6 + 反向 9/9) + SW/SW_MD5_BASELINE_LEDGER.md
+    追加式订正 (§3 R-11 + §4 H-7) ⇒ 核心结论: 板 与 .kicad_pro 在 R6 走纯 md5 分支 (不在 ISS-275 的链头机制里) ⇒ 那一趟改板当天 SW 侧必红
+    而现在无合法重锚路径 ⇒ 出三方案 ①②③ (含代价与假绿风险) 归 main→老板拍 ⇒ 零写板 零落表 零改既有判据阈值 零改 §1 锚点块; 受保护 5 件 md5 逐字节不变 (611b869e
+    / 3e504d2b / e06c1dd6 / 287e7861 / 94642d07); 板端实物 [实测] = 0 条; 不自签 issue_log; 交卷单 = HANDOFF/2026-11-17_sw-lead_ISS279_SW侧板侧输入收口.md'
   updated_at: '2026-11-17'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
@@ -1171,6 +1170,112 @@ artifacts:
   version: '1.0'
   updated_at: '2026-10-25'
   summary: '第6轮交卷单 (B1~B6 齐全): 三条新增事实 + 12 行查证 + 板端清单 P0~P5 + 缺口 G-1~G-5; ★板端接受性仍 [0数据], 未替老板拍板★'
+- path: SW/tools/check_demo_panel_spec.py
+  kind: 门禁脚本
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-275: R6 判决源同构改造 (★只动 R6 那一段 + 新增 helper 段; R1~R5/R7 一个字节没动★) ⇒ 判决源 = 落表台账链头; 新增 sw_ledger_records()/sw_ledger_state()
+    helper (★自己写, 不 import MECH★)'
+- path: SW/tools/check_demo_panel_spec_r6_selftest.py
+  kind: 反向用例
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-275 新建: R6 专项反向用例 7 条 (R1 红/R2 绿/R3 红/R4 绿/R5a 红/R5b 红/R6 红) ⇒ 每条自证『真的改到了目标那一处』★'
+- path: HANDOFF/2026-11-17_sw-lead_ISS275_SW侧R6判决源同构收口.md
+  kind: 交卷单
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-275 (2026-11-17 06:4x, sw-lead) 交卷单: B1~B6 六块齐全 + 给 main 的三句话 + 附A 机制/附B 交卷物/附C 边界自审★'
+- path: SW/SW_MD5_BASELINE_LEDGER.md
+  kind: note
+  version: '1.3'
+  updated_at: '2026-10-25'
+  summary: '★ISS-275 (2026-11-17, sw-lead) 纯追加: §1 锚点块追加【角色声明】(YAML 注释块: entries[] 现在是历史留痕不再是判决源, 判决源
+    = 落表台账链头) + §1 人读角色声明 8 条 (允许停在历史值但不许胡说 / 判决源=链头 / 取不准一律判红 / 悄悄换真源判据仍在 / 硬保护件走纯 md5 / 6 跳历史一条不许删 /
+    留痕见 §3 R-10 / 落表台账格式契约) + §3 追加 R-10 留痕行 (下一个空号, 不覆盖已有 R-01~R-09) + §3 追加段落 (2026-11-17 07:3x ISS-275
+    判决源换源) ⇒ R-01~R-10 连续无缺口, §1 YAML 解析仍通过, 主闸 rc=0★'
+- path: SW/BOARD_ONEPASS_SW_SYNC.md
+  kind: checklist
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: ★ISS-279·2026-11-17·sw-lead★ SW 侧板侧输入清单 (机器可读 · schema board-onepass-sw-sync/v1 · 帧 B160x100)
+    ⇒ §1 口径 + 帧声明 (B160x100 / F30A / P60x15 不可混用) · §2 逐条表 ①~⑧ 八条 (9 字段) + 归属步分布 (S2/S4/S8/S9/S10, 其余
+    8 步 SW 侧零影响) · §3 SW→板 输入清单 9 条 (交 main 转 hw-lead) · §4 板改过一次 SW 侧怎么合法跟上 (三方案 ①②③ + 三条红线 + 判据口径 +
+    谁拍) · §5 证据分级 · §6 JSON 块 ⇒ 机器闸 SW/tools/check_onepass_sw_sync.py
+- path: SW/SW_MD5_BASELINE_LEDGER.md
+  kind: ledger
+  version: v1.2
+  updated_at: '2026-11-17'
+  summary: ★ISS-279·2026-11-17·sw-lead·追加式订正★ §3 追加 R-11 留痕行 (⚠️ 未修复 · 设计已出 · 机制取舍待拍 —— hard_protected
+    两件不走链头 ⇒ 那一趟改板当天 R6 必红 而现在无合法重锚路径; 老字一行未删, R-01~R-10 未动) + §4 新增一节 H-7 (三方案 + 三条红线 + 判据口径) ⇒ ★★§1
+    锚点块 (# BEGIN/END SW_MD5_ANCHORS) 一个字节未动 (hard_protected 两个 md5 仍是 611b869e… / 3e504d2b…)★★ · R6/R7
+    判据逻辑与阈值一字未改
+- path: SW/tools/check_onepass_sw_sync.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-279·2026-11-17·sw-lead·新建独立闸★ W1 清单 9 字段齐 / W2 归属步 ∈ S1~S13 / W3 判据命令真存在 / W4 覆盖度 (①~⑧
+    八条一条不缺 + source_iss 来源单全集) / W5 现状一致 (8 个现状探针: 板 与 .kicad_pro md5 + 落表残项 8 行 + 充电灯位号计数 + 5 键网名映射 +
+    TP_INT 命中数 + 多余 2 + 47.99 mm) / W6 受保护 5 件 md5 + 台账 §1 锚点块两个 md5 未被手改 ⇒ --selftest 反向 9/9 ⇒ ★既有 SW/tools/check_demo_panel_spec.py
+    一个字节没碰 (md5 d8248eca21a2d0cead8a4da4fce3c24f)★'
+- path: HANDOFF/2026-11-17_sw-lead_ISS284_hard_protected合法改板机制.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-284 (2026-11-17, sw-lead) 交卷单 (B1~B6 六块齐全) ★P10 = 方案 ② (老板 2026-11-17 09:49 拍板「按照你的建议执行」)
+    ⇒ SW 侧 hard_protected (板 / .kicad_pro) 的【合法改板】机制落地: 一条合法改板 = 【单号 + 文件名 + 改前 md5 + 改后 md5】四件捆在锚点【一个原子映射】里
+    + 同一份四项必须在落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 的同一行里查到; 判据方向一个字没变 (盘上 ≠ 链头 ⇒ 红); fail-closed 三条一条没动
+    (链头不唯一 / 链断 / 链头无单号 ⇒ 红); 另加两条 (保护基线必须留在链尾 / 同组两件必须成对覆盖) ★反向用例 REV-16~REV-21 六条 (含 1 条正向) 全抓到 ⇒ check_demo_panel_spec.py
+    --selftest 22/22 (原 16 条一条没删) ★零写板 · 零落表 · 落表台账零写入 · 不替老板拍板★'
+- path: SW/SW_MD5_BASELINE_LEDGER.md
+  kind: ledger
+  version: v1.4
+  updated_at: '2026-11-17'
+  summary: '★ISS-284 (2026-11-17, sw-lead) 纯追加: §1 锚点块 hard_protected[] 两条各加一个【reboard】原子字段 (★null = 还没发生过合法改板★
+    · ★md5 字段语义改为【保护基线】且永远不许改★) + §1 新增《硬保护两件的合法改板机制 (P10 = 方案 ②)》十条 (含落表台账那一行的接口格式) + §3 追加 R-12 留痕行
+    (下一个空号, R-01~R-11 一个字没删) ⇒ ★网表/脚表那条已跑通的链头逻辑 (ISS-275) 一个字没动 (读数前后逐字相同, IDENTICAL: True)★'
+- path: SW/tools/check_demo_panel_spec.py
+  kind: gate
+  version: v1.1
+  updated_at: '2026-11-17'
+  summary: '★ISS-284: R6 硬保护段升级成【合法改板机制】★ —— 新增 check_r6_hard_protected() + sw_ledger_cover_rows() / sw_ledger_change_rows()
+    / sw_ledger_change_state() / m12() 四个 helper (★自己写, 不 import MECH★); 硬保护件现在走【落表台账链头】判决 (与网表/脚表同源)
+    ⇒ 盘上 ≠ 链头 ⇒ 红 (判据方向没变) ★网表/脚表分支的读数一字未动 (IDENTICAL: True)★; --selftest 由 16 条增到 22 条 (REV-16~REV-21
+    六条新增) ⇒ 22/22 rc=0'
+- path: logs/iss284/
+  kind: log
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-284 本机实跑原始日志: gates_demo_panel.log (rc=0 + selftest 22/22) · gates_timing_check.log (★rc=1
+    · 68/71 —— 三条红全是 09:58 上游落表造成的 ★与本单无关, A/B 实测证明★) · gates_step1.log (rc=0 · 8/8) · gates_onepass_preflight.log
+    (★rc=1 · 上游落表造成★) · gates_onepass_sw_sync.log (★rc=1 · 上游落表造成★) · netlist_reading_before_after.log
+    (IDENTICAL: True) · ab_timing_check_pre_ledger.log (★A/B: 换回改动前的台账仍 68/71 ⇒ 证明不是本单弄坏的★) · probe_netlist_reading.py
+    (对比工具)★'
+- path: HANDOFF/2026-11-17_sw-lead_ISS285_落表后SW判据口径收口.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: ★ISS-285 交卷单 (B1~B6 六块 + 反向用例原样 rc) ★ 情形一 (ISS-283 未落 verified) ⇒ 只读分析 + 方案页 + 自测设计, 不改锚点 /
+    不改 timing_check.py 判据 / 不改期望值★
+- path: HANDOFF/2026-11-17_sw-lead_ISS285_落表后SW判据口径收口_方案页.md
+  kind: design
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: ★ISS-285 方案页 (待套用补丁说明 + 反向用例设计 + 落表台账四件同行接口格式 + 套用/回滚步骤 + 为什么现在不套的时序理由) ★ 套用时机 = ISS-283 落
+    verified 之后★
+- path: SW/patches/ISS-285_sw_judgment_alignment/apply_iss285_sw_judgment_alignment.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: ★ISS-285 补丁套用器 (★幂等 · 自带 --dry-run / --apply / --apply --reanchor 三档 + 自动备份到 state/.bak_iss285_sw_alignment/★)
+    ⇒ B1 判决源同源化 (改读落表台账链头 · 与 R6 同一份实现) + B2 F4 期望改成 BAT_DET 三颗必装 (按器件本体行逐颗读 dnp) + B3 追加 REV-11 反向用例
+    + 顺带修 md5 12 位前缀比较口径★ ⇒ ★情形一真盘一个字节没动 (只跑过 --dry-run)★ · 沙盒 --apply 实测 rc=0 ⇒ 72/72★
+- path: SW/patches/ISS-285_sw_judgment_alignment/sbx_iss285_reverse_cases.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★ISS-285 沙盒反向用例自测器 (★5 条: 伪造 md5 / 台账四项不齐 / 链头不唯一 / BAT_DET 三颗改回 DNP / 正向对照★) ⇒ 每条从基线沙盒整份重铺
+    · 沙盒 = 12 文件最小镜像 5.6MB · 真盘零改动 ⇒ 实测 期望红组 vs 实际红组 5/5 全一致★'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -2354,6 +2459,43 @@ needs_from:
     自己出了个没人认识的新错误跟推送开没开无关★** ⇒ ★**这是 2026-11-11 10:3x 引入的既有行为, 不是 ISS-261 引入的 (ISS-261 无责)★** ⇒ 请 main
     裁决要不要开单做'
   since: '2026-11-17'
+- key: iss275_sw_ledger_format_contract
+  to: main
+  item: '★【已闭合口径的复述 · 非新提问 · ISS-275 · 2026-11-17 · sw-lead】★ 落表台账格式契约 (★main 已于 07:14 代录闭合, 本条只做【从 SW
+    侧复述并登记】, 不再提问, 也不替 main 另立口径★) = ★★每受管文件一行: 「单号 | 文件名 | 改前 md5 | 改后 md5」四项同行; 落点 = HW 侧落表作业包模板; 少一项或换写法
+    ⇒ SW 侧 R6 与 MECH 侧 C21 两边都判红 (fail-closed)★★ ⇒ ★**SW 侧现值**: 判决源 = HW/SCHEMATIC_LANDING_V1_LANDED.md
+    里该受管真源的最新落表记录 (链头) ⇒ 合法落表不再红 (R2 绿); 而悄悄换真源 (盘上 ≠ 链头) 照样红 (R1 红); 取不准 (链头不唯一 / 链断 / 有记录不在链上 / 链头无单号)
+    一律判红 (R3 / R5a / R5b 红)★ ⇒ ★**请把这一行写进落表作业包模板 (hw-lead 每次落表, 每个受管文件必须留这一行)★** ⇒ ★**MECH 侧 ISS-273 交卷单
+    B5 第 ① 条已提过同一条 (两边口径要对上: 格式一样, 只是解析方不同)★** ★'
+  since: '2026-11-17'
+- key: iss279_sw_to_board_inputs
+  to: main
+  item: '★ISS-279·SW 侧板侧输入收口★ ① SW/BOARD_ONEPASS_SW_SYNC.md §3 = SW→板 输入清单 9 条 ⇒ 请 main 转 hw-lead (ISS-277
+    同批在做板侧清单, 板侧项全集在 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md) ⇒ 尤其: 板改完那一刻必须一次性给 SW 侧三样东西 (新板 md5 + 新 .kicad_pro
+    md5 + 落表单号/台账位置), 缺一样 SW 侧就没法合法重锚; ② §4 那条 板改过一次以后 hard_protected 怎么合法跟上 归 main 拍 (机制取舍, 不是我能定的) ⇒
+    三方案 ①②③ + 代价 + 假绿风险已写清, 请 main→老板裁决; ③ SW 侧对板只有 5 步有话说 (S2/S4/S8/S9/S10), 其余 8 步 SW 侧零影响 (实测结论, 不是漏了)'
+  since: '2026-11-17'
+- key: sw_legal_reboard_landing_row_on_board_trip
+  to: main
+  item: '★【出板那一趟】合法改板那一行必须落在落表台账里★ —— SW 侧 R6 硬保护段现在按【落表台账链头】判决 ⇒ 出板那一趟请在 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    里写两行 (★格式: 单号 | 文件名 | 改前 md5 | 改后 md5 四项同行★): ① 板那一行 = 「出板单号 | HW/PCB/demo_mainboard.kicad_pcb | 611b869e13518c3c023fb178f91a0075
+    | <新板 md5>」 ② .kicad_pro 那一行 = 「出板单号 | HW/PCB/demo_mainboard.kicad_pro | 3e504d2be83152e337949723e909be1b
+    | <新 .kicad_pro md5>」 (★若 .kicad_pro 真的逐字节没变, 改前=改后也要写一行「否 (逐字节不变)」★ ⇒ ★两件必须成对, 只来一条 = 红★) ★同时 SW
+    侧锚点 SW/SW_MD5_BASELINE_LEDGER.md §1 的 hard_protected[].reboard 要填上同一单号的四项 (★四件捆一个原子映射, 不许只填 md5★)
+    ⇒ 填完 SW 侧 R6 即绿 (★判据方向没变: 盘上 ≠ 链头照样红★)★ ⇒ ★本单 (ISS-284) 只出机制与闸, 落表台账一个字节没碰 (★真落那一行归出板那一趟★)★'
+  since: '2026-11-17'
+- key: iss285_sw_apply_after_iss283_verified
+  to: main
+  item: '★【ISS-285 · 2026-11-17 · sw-lead · ★等的是单号 = ISS-283★】★ 落表后 SW 侧三道判据的口径收口补丁【已做好 · 已在沙盒验过 · 等 ISS-283
+    落 verified 后一次性套用】★ ⇒ ★**等 ISS-283 (hw-lead · 三件落表 A3=V-2=1 + W-4 Q_PG pad1↔pad3 + G-5 亮度档) 落 verified
+    之后**★ ⇒ ★现在套会被 ISS-283 立刻打红一次 = 白干 (时序理由见方案页 §6)★ ⇒ 套用命令 = python3 SW/patches/ISS-285_sw_judgment_alignment/apply_iss285_sw_judgment_alignment.py
+    --apply ⇒ 期望 rc=0 · 修前 md5 4cba20b1d0249b671632878c964b4bd7 / 修后 68c4becffe6bcd708e388dba9d18a505
+    · 改动 110 行 ⇒ 套完 python3 SW/tools/timing_check.py 期望 rc=0 · 72/72 (★71 + 新增 REV-11★)★ ⇒ ★套用后【锚点前移到链头这一步是自动的】(★判决源
+    = 落表台账链头 ⇒ ISS-283 落表后链头自己前移 ⇒ 不用再追锚点★) ⇒ ★可选 --reanchor 只同步 SW 台账 §1 的历史留痕副本, 不是让闸变绿的手段★ ⇒ 回滚 = cp
+    state/.bak_iss285_sw_alignment/timing_check.py.bak_<ts> SW/tools/timing_check.py ⇒ 验收门 = 沙盒 5 条反向用例
+    (期望红组 vs 实际红组) 必须仍全一致★ ⇒ ★现状: 真盘 timing_check 仍是 rc=1 · 68/71 (3 条红) ★ 这是【应有状态】(交卷时必须保持), 不是本单造成的★
+    ⇒ 方案页 = HANDOFF/2026-11-17_sw-lead_ISS285_落表后SW判据口径收口_方案页.md · 交卷单 = HANDOFF/2026-11-17_sw-lead_ISS285_落表后SW判据口径收口.md'
+  since: '2026-11-17'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -2648,6 +2790,17 @@ answers:
     的量化质量不劣于 toolkit2/rk3576」有了板端之外的第一个数 (★模拟器口径, 非板端真值★) ③ 【板端 runtime 官方公开仓库】⇒ 零采购零外发。★★本轮刻意没把 12 行查证追加进共享查证表
     (并行会话正在写同一文件, 追加会互相覆盖) ⇒ 落在 SW/research/ISS250_r6_复核记录.md (R6-01~R6-12), 要并表请 main 或下一轮唯一写会话做★'
   ref: HANDOFF/2026-11-17_sw-lead_ISS250_第6轮_板可达性实测与模拟器掉点.md · SW/research/ISS250_r6_复核记录.md · logs/iss250_r6/
+- key: sw_hard_protected_reanchor_options
+  to: main
+  value: '★已闭合 (ISS-284, sw-lead, 2026-11-17)★ 老板 2026-11-17 09:49 拍板「按照你的建议执行」⇒ P10 = 方案 ② ⇒ SW 侧机制已落地:
+    ① 锚点 SW/SW_MD5_BASELINE_LEDGER.md §1 hard_protected[] 每条加一个 reboard 原子映射 (★单号 + 文件名 + 改前 md5 + 改后
+    md5 四件捆一起★; md5 字段语义改为【保护基线】且永远不许改★) ② 闸 SW/tools/check_demo_panel_spec.py 的 R6 硬保护段改成走【落表台账链头】判决
+    (与网表/脚表同源) ⇒ 盘上 ≠ 链头 ⇒ 红 (★判据方向一个字没变★) ③ fail-closed 三条 (链头不唯一 / 链断 / 链头无单号) 一条没动 ④ 另加两条: 基线必须留在链尾
+    / 同组两件必须成对覆盖 ⇒ 只改板不动 .kicad_pro = 红 ⑤ 落表台账那一行的接口格式 = 「单号 | 文件名 | 改前 md5 | 改后 md5」四项同行 ⇒ ★真落那一行留给「出板那一趟」的
+    main (★本单落表台账零写入★)★ ⇒ 反向用例 REV-16~REV-21 六条 (含 1 条正向) 全抓到 ⇒ selftest 22/22 (★原 16 条一条没删★) ⇒ 板 / .kicad_pro
+    / 网表 / 脚表 / BOM 五件逐字节不变 ⇒ 零写板 · 零落表 · 不替老板拍板★'
+  ref: HANDOFF/2026-11-17_sw-lead_ISS284_hard_protected合法改板机制.md ; SW/SW_MD5_BASELINE_LEDGER.md §1 + §3
+    R-12 ; SW/tools/check_demo_panel_spec.py check_r6_hard_protected()
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -4041,6 +4194,44 @@ interface_claims:
     → build → init_runtime(target=None) (本轮 build 48.579 s (rknn3/rk3572) / 34.780 s (toolkit2/rk3576),
     与 ISS-263 的 33.231/34.035/41.595 s 同量级 ⇒ 复现一致) ⇒ ★别再试「拿盘上归档的 .rknn 直接跑模拟器」★'
   note: logs/iss250_r6/sim_accuracy_*.log · SW/tools/iss250_r6_sim_accuracy.py
+  ref: ''
+- key: sw_r6_verdict_source
+  value: ★SW 侧 R6 判决源 = 落表台账 (HW/SCHEMATIC_LANDING_V1_LANDED.md) 里该受管真源的【最新落表记录 (链头)】, 不是域侧锚点副本★ (★镜像
+    MECH 侧 ISS-273 C21·自己写不 import MECH★) ⇒ 合法落表不再红
+  note: ★ISS-275·2026-11-17·sw-lead·零写板零落表★ 盘上 md5 == 台账链头 ⇒ 绿; 盘上 != 链头 ⇒ 红 (悄悄换真源仍红); 取不准 (链头不唯一/链断/有记录不在链上/链头无落表单号)
+    ⇒ 一律判红
+  ref: SW/tools/check_demo_panel_spec.py
+- key: sw_anchor_copy_role
+  value: '★SW 侧 md5 基线台账 (SW/SW_MD5_BASELINE_LEDGER.md §1 entries[]) 降级为【历史留痕】: 6 跳历史一条不许删, 但不再参与判决, 只做『不许胡说』自检
+    (副本 md5 必须在台账链上 + 副本落表单号必须与台账产出单号对得上)★'
+  note: ★ISS-275·2026-11-17·sw-lead★ 副本停在历史值 (旧值仍在台账链里) ⇒ 仍绿 (R2); 只许不许删, 不许改历史
+  ref: SW/SW_MD5_BASELINE_LEDGER.md
+- key: sw_onepass_sw_inputs
+  value: ★SW 侧板侧输入收口清单 = SW/BOARD_ONEPASS_SW_SYNC.md (schema board-onepass-sw-sync/v1 · 帧 B160x100 · ①~⑧
+    八条每条 9 字段)★ ⇒ 「板只改一次」那一趟会动的板面东西对 SW 侧意味着什么, 逐条写清 current_state / action / criterion / step / blocked_by
+    ⇒ 机器闸 SW/tools/check_onepass_sw_sync.py (W1~W6 + 反向 9/9) 保证它不漂
+  note: ★ISS-279·2026-11-17·sw-lead·零写板零落表零改既有判据★ ① SW01/SW02 = 板 与 .kicad_pro 的 md5 硬保护 (R6 纯 md5 分支,
+    不在 ISS-275 的链头机制里) ⇒ 那一趟改板当天必红 ⇒ §4 三方案 ①②③ 归 main→老板拍; ② SW03/SW05 = 8 行落表残项的 dnp 与 5 键网名 ⇒ timing_check
+    F1/F5 期望值随落表变; ③ SW04 = 充电灯位号口径 D_CHG_LED vs Q_CHG_LED; ④ SW06 = TP_INT 在网表/脚表/板全 0 ⇒ SW 侧按无触控中断写;
+    ⑤ SW07/SW08 = C_VBUS_GND 多余 2 焊盘 与 D_ESD_USB_D 距 J_USB_C 47.99 mm ⇒ SW 侧 USB 前提判据跟着变
+  ref: SW/BOARD_ONEPASS_SW_SYNC.md
+- key: sw_hard_protected_reanchor_options
+  value: ★hard_protected (板 / .kicad_pro) 合法跟上 = 三方案待选★ ① 给板也建链头 (盘上 md5 == 落表台账链头; 代价 = 那一趟多写一条落表记录 +
+    R6 硬保护段判据逻辑变更) ② 保留纯 md5 + 显式单号背书的合法改板动作 (半自动; 单号字段必须与 md5 同改且台账里查得到) ③ 拆两层 (板 md5 只判有没有变, 对不对交给板侧闸;
+    代价 = 跨域判据漂移风险最大) ⇒ ★谁拍 = main→老板★
+  note: '★ISS-279·2026-11-17·sw-lead★ 本单只出设计 + 代价 + 判据口径, 不改 §1 锚点块一个字节, 不改 R6 判据一个字, 不代拍 ⇒ 三条红线: 不许改
+    md5 就绿 (必须留谁在哪个单号下改的证据) / 不许为了不红而放宽盘上≠链头⇒红 / 不许把取不准放宽成取最近一条 (fail-closed 一条不动)'
+  ref: SW/SW_MD5_BASELINE_LEDGER.md
+- key: sw_hard_protected_legal_reboard_mechanism
+  value: '★P10 = 方案 ② (★老板 2026-11-17 09:49 拍板「按照你的建议执行」★): 一条合法改板 = 【单号 by + 文件名 file + 改前 md5 prev_md5
+    + 改后 md5 md5】四件捆在锚点 hard_protected[].reboard【一个原子映射】里 + 同一份四项必须在落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    的同一行里查到★'
+  note: '★ISS-284·2026-11-17·sw-lead·零写板零落表★ ① 【一个字段两个值】: 四项捆一个原子映射 (★不许拆成两个可各自独立编辑的字段 —— 那是 ISS-279 点名的缝★)
+    ② 【判据方向没变】: 盘上 ≠ 台账链头 ⇒ 红 (★合法改板只让链头前移, 不是把判据放松★) ③ 【fail-closed 三条一条没动】: 链头不唯一 / 链断 / 链头无单号 ⇒ 红 ④
+    【基线不许前移】: 锚点 md5 = 保护基线, 必须留在台账链尾且在台账里查得到 ⇒ 只改 md5 凑绿 = 红 ⑤ 【同组成对】: 板 + .kicad_pro 必须被同一单号覆盖 ⇒ 只来一条记录
+    = 红 ⑥ 【落表台账那一行的格式】: 「单号 | 文件名 | 改前 md5 | 改后 md5」四项同行 (★一行两件两值 = 歧义行 = 不算变更行★) ⑦ 【信任边界】: 落表台账 = append-only;
+    本闸保证的是「锚点自己不能说了算」 (★「悄悄换台账」不在本闸能力范围内★) ⑧ 闸 = SW/tools/check_demo_panel_spec.py 的 check_r6_hard_protected();
+    反向用例 REV-16~REV-21 六条 (含 1 条正向) ⇒ selftest 22/22 ⑨ 【真落那一行留给「出板那一趟」的 main】 (★本单落表台账零写入★)★'
   ref: ''
 open_questions:
 - id: SW-Q1

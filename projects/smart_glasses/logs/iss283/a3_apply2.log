@@ -1,0 +1,139 @@
+╔══ V 值落表器 (★默认 dry-run · 零写盘★) ══╗
+★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+★ 决定: V-2=1
+★ 模式: ★APPLY (真落)★
+
+★★【★V-2 两轴读数 (★架构 / 型号 分开列·不混成一句★)】★★
+   ★**真源现状 (★现读 `state/gen_netlist.py`, 不靠硬编码旧串★)**: 架构 = ★**single2** ★ · 型号 = ★**TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)** ★ · evidence = ★**[官方]** ★
+   ★**BOM 侧 OPN (PARTS 字典 L122)**: `TPD1E05U06DPYR (TI X1SON DPY 2-pin · 1=I/O 2=GND · Cd 0.42pF · IEC 61000-4-2 lvl4)` ★
+   ★**落表动作**: 只动 1 行的 net (真源 L1451 → `NET_USB_D_P_TYPEC`) ⇒ ★**行数不变 ⇒ 门禁锚点行号不漂移** ★
+   ★**身份变更授权 (★ISS-283 B1·行号锚点守卫的合法通道★)**: 旧身份 `['D_ESD_USB_D', 'USB_D_P_SRC']` → 新身份 `['D_ESD_USB_D', 'NET_USB_D_P_TYPEC']` (★网表 L417·授权记录会写进落表台账★)
+
+★★【逐字 diff (★文件 + 行号 + 旧值 + 新值★)】★★
+── [V2-1 D_ESD_USB_D 挪到 Type-C 侧 (★架构 single2 ⇒ 行数不变, 只动网名★)] state/gen_netlist.py:1451  (匹配 1 处)
+   - 旧:     add("P1", "USB_D_P_SRC", "D_ESD_USB_D", "USB_D_P_SRC", "D_ESD_USB_D",
+   - 旧:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装", "[官方]", "",
+   - 旧:         "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
+   - 旧:     add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D",
+   - 旧:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装",
+   - 旧:         "[官方]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
+   + 新:     add("P1", "NET_USB_D_P_TYPEC", "D_ESD_USB_D", "NET_USB_D_P_TYPEC", "D_ESD_USB_D",
+   + 新:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装", "[官方]", "",
+   + 新:         "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
+   + 新:     add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D",
+   + 新:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装",
+   + 新:         "[官方]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
+
+── [门禁现状断言] HW/check_netlist_selfconsistency.py: d4_a417_net  (d4 表A L417 ESD 信号行 net (★从 SoM 侧挪到 Type-C 侧★))
+   - 旧: net == USB_D_P_SRC
+   + 新: net == NET_USB_D_P_TYPEC
+
+★★【落表后期望 `--expect-resolved` 条数变化】★★
+   基线 (2026-11-16 ISS-233 交卷后): ★**18 条** ★
+   · V-2=1: ★**+0 条** ★ ⇒ ★**落完仍红 (按降级/判决不成立)**★
+   ⇒ 落表后期望: ★**18 条** ★
+   · ★**V-2=1 的板那一趟** ⇒ 再转绿 ★**3 条** ★ ⇒ ★**板那一趟落完 = 15 条** ★ (★本工具【不】做, 板一个字节都不碰★)
+
+★★【要连带改的台账 / 锚点】★★
+   · `HW/check_netlist_selfconsistency.py` 的 `EXPECT` 现状断言值: ★**1 条** ★
+       ★ d4_a417_net★ (d4 表A L417 ESD 信号行 net (★从 SoM 侧挪到 Type-C 侧★))
+   · `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` 的 `<!-- ANCHORS -->` 块: ★**整块重生成** ★
+   · `HW/NETLIST_SELF_CONSISTENCY_SPEC.md` §5.5: ★**新增落表状态段** ★
+   · `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16: ★**新增落表台账 (单号 + 文件名 + 新旧 md5)** ★
+
+★★【会要谁走 H-1 重锚】★★
+   · ★**sw-lead**★: `SW/SW_MD5_BASELINE_LEDGER.md` §1 `entries` 的 `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` 两条 (★+ BOM 那条若台账里有★)
+   · ★**mech-lead**★: `MECH/HW_CROSS_REVIEW_TRIAGE.md` §1 `source_ledger.entries` + §3.1 留痕新增一行
+   ★**两边的 H-1 都要填四项: 落表单号 + 文件名 + 新 md5 + 旧 md5 ★** (★四项在 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16.2 里必须可查★)
+
+★★【★落表前必须看一眼的警告★】★★
+   ★ V-2=1: ★★**V-2=1 的板那一趟本工具【不做】** (★`HW/PCB/demo_mainboard.kicad_pcb` 一个字节都不碰★) ⇒ ★**板侧 B-3 (换封装 / 改占位焊盘) / B-4 (挪到 J_USB_C 旁 ≤3.0mm) / B-5 (D− 补 ESD) 继续排队**★
+   ★ V-2=1: ★★**网名挪了 ⇒ 板上的 footprint 焊盘网名也必须同趟改** (★`D_ESD_USB_D` pad1: `USB_D_P_SRC` → `NET_USB_D_P_TYPEC`★) ⇒ ★**板那一趟漏改 ⇒ 网表与板对不上** ★
+
+★★ 回滚副本: state/.bak_land_v_values_v_20261117-121608 ★★
+   ★ ★台账 `id_str` 已是最新 (★无需补★)
+   ★ 重生成 OK: state/gen_netlist.py  (网表 (表A HW/netlist_v1.csv))
+   ★ 重生成 OK: state/gen_kicad_net.py  (KiCad 网表 (HW/netlist_v1.net))
+   ★ 重生成 OK: state/gen_netlist_pins.py  (脚表 (表B HW/netlist_v1_pins.csv))
+   ★ 重生成 OK: state/gen_bom.py  (BOM (HW/BOM_v1.csv))
+   ★ 重生成 OK: state/gen_schematic_pages.py  (原理图页面 (HW/SCHEMATIC_V1.md))
+   ★ 重生成 OK: state/gen_kicad_sch.py  (KiCad 原理图 (HW/PCB/demo_mainboard*.kicad_sch))
+   ★ 重生成 OK: 规格页 ANCHORS 块
+   ★ 重生成 OK: 规格页 §5.5 + 落表台账 §16
+
+★★【落表后门禁实跑】★★
+   ★ 现状守卫 (期望 rc=0): rc=0
+       [报告项] D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm (★规格页 §①(4) 引的就是这个数★)
+          [加强型断言·F-3] A 组 22 条 / 已迁移 20 条: `z_diff` 非空 且 `imp` 为空 ⇒ ✅ 全过 (★A-11/A-12 单端与 A-24 那 15 条【不在】断言范围内★)
+       ✅ rc=0: ★现状与 HW/NETLIST_SELF_CONSISTENCY_SPEC.md 一致★
+       ★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ ★**第 1 轮 4 条 + 第 2 轮 7 组缺陷★仍在★ ⇒ rc=0 是预期状态 ★
+       ★**落表作业包 (HW/SCHEMATIC_LANDING_WORKPACKET_V1.md) 完整性 + 三方对齐: 全过** (★28 条作业条目, 8 栏齐★)
+       ★**翻面条件见规格页 §⑤**; 落表后请改用 `--expect-resolved` ★
+   ★ 反向用例 (期望 rc=0, 21/21): rc=0
+         ✅ 用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处 (真实阈值 3.0 必须报 R9) ★4.0mm: 阈值 3.0 报红 / 阈值 5.0 不报 ⇒ 阈值真被读到 3.0 ✔
+         ✅ 用例19 [ISS-230/F-3] 清空 A-01 的 z_diff ⇒ 必须红 (字段分工断言)   rc=1 (期望 1) ✔
+         ✅ 用例20 [ISS-230/F-3] 把差分阻抗塞回 A-13 的 imp 字段 ⇒ 必须红       rc=1 (期望 1) ✔
+       
+       自检结果: 21/21 通过
+       翻面口径 (--expect-resolved) 现状 rc=1 (期望 1 = 缺陷尚未落表) ✔
+   ★ 翻面口径 (期望 rc=1): rc=1
+       ★★ rc=1: 翻面口径未通过 (4 条未落表) ★★
+          ★R3 未落表: 板封装 U_EN_SW 的 Value 属性还是脚级功能串 'EN 输入 (高=放行底板)' ⇒ 板文件也要同趟改
+          ★R4 未落表: 板上仍然没有任何 ESD 位号挂在 D− 那条网上 (USB_D_N_SRC / NET_USB_D_N_TYPEC) ⇒ D− 仍然裸奔
+          ★R4 未落表: D_ESD_USB_D 仍然只有 2 个焊盘 (D+ + GND) ⇒ 仍不是双通道
+          ★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm > 3.0 mm ⇒ ESD 还是不在接口旁边
+       ★**说明**: 现在缺陷仍在 ⇒ 本口径应当是红的; ★等它们随『整链重出 第 1 步』落表后本口径才转绿★
+   ★ 尺子1: rc=0
+              ★N/A (原 37.0mm 预算属整机跨铰链阶段; demo 板 camera/display 均为板内 FPC 座)
+         ✅ 跨铰链充电电流双 pin 并联 (pin1/pin2)
+              pin1/pin2 同网
+       
+         ✅ 全过 — 原理图 V1.1 可进交叉评审
+       ========================================================================
+   ★ 尺子2: rc=0
+         ✅ C8 4 组 SOM 座都用上了 — ['J_SOM_P1', 'J_SOM_P2', 'J_SOM_P3', 'J_SOM_P4']
+         ✅ C9 I2C_A 从设备地址与 HW/I2C_ADDR_TABLE.md 一致且唯一 — 1 个在挂: CONN_CAM=0x1a
+         ✅ C9 I2C_B 从设备地址与 HW/I2C_ADDR_TABLE.md 一致且唯一 — 2 个在挂: CONN_LIGHT=0x45, U_TEMP=0x48
+              (C9 判据: 表 ↔ 网表 双向一致 · 同总线地址唯一)
+       ------------------------------------------------------------------------
+       ✅ 全过 —— 每个针脚归属唯一, 连接器针数与针号齐, SoC 节点全部落到真实引脚
+   ★ 尺子3 (ERC=0): rc=0
+       ═══ 原理图 ERC 闸 (★sch_erc · HW/PCB/demo_mainboard.kicad_sch★)
+         ERC 违规数 = 0 (★报告自称 0★) · 分类 {}
+         判定: ✅ 过 (ERC=0)
+   ★ 尺子4 (图=表): rc=0
+         总数: 图上 584 脚 / 表里 584 脚 · 不一致器件数 K=0 (universe=218)
+         [口径还原·ISS-205] 图上位号带数字后缀 ⇒ 186 个位号 (457 个脚) 已按【精确映射】还原成表侧 ref
+         (图上: 218 个器件 · 153 个网 · 584 个 node | 表里: 584 行 · 218 个 ref · 其中 DNP 行 111)
+         逐个点名 (ref: 图= a 表= b):
+         [对照口径] 去掉 DNP 行 (★main 11:5x 口径★): 图上 584 脚 / 表里 473 脚 · 不一致 47
+         判定: ✅ 过 (逐器件脚数全相等)
+   ★ ★行号锚点守卫 (ISS-262 · 纯漂移自动重锚·期望 rc=0)★: rc=0
+       ★更新台账 `HW/land_row_anchors_registry.json` + 同步本脚本 `REGISTRY_SHA256`
+       ★ 重锚后自检:
+       ╔══ 落表行号锚点守卫 (ISS-262) ══╗
+       ★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+       ★ 锚点条数: 310  (PASS=310 · DRIFT=0 · RED=0)
+       ★ ✅ 全部锚点: 行号没变 + 实体没变 ⇒ 通过
+   ★ merge.py + gate_check.py: rc=0/0
+          · sw-lead: 67 条需求确实还没人答 (等另一个总工)
+          · mech-lead: 91 条需求确实还没人答 (等另一个总工)
+       
+       ==========================================================================
+
+★★【受保护 md5 (★必须逐字节不变★)】★★
+   ✅ HW/PCB/demo_mainboard.kicad_pcb: 611b869e13518c3c023fb178f91a0075 (期望 611b869e13518c3c023fb178f91a0075)
+   ✅ HW/PCB/demo_mainboard.kicad_pro: 3e504d2be83152e337949723e909be1b (期望 3e504d2be83152e337949723e909be1b)
+
+★★【★落表后新 md5 (★供 sw-lead / mech-lead 走 H-1 重锚★)★★】★★
+   87f2f792513584bee3d147883c8fb93b  HW/netlist_v1.csv   ★网表★  (旧 2f17650cfbef48d5efd71821505c3343)
+   8ca46495ba0365a886068fa420b519ac  HW/netlist_v1_pins.csv   ★脚表★  (旧 6ea65fecdf95902e47330083d140d455)
+   ea5f4f58e3fb8bb7b6c3a2e0de8b1dfd  HW/BOM_v1.csv   ★BOM★  (旧 ea5f4f58e3fb8bb7b6c3a2e0de8b1dfd)
+   611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb   ★板 (受保护)★  (旧 611b869e13518c3c023fb178f91a0075)
+   3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro   ★.kicad_pro (受保护)★  (旧 3e504d2be83152e337949723e909be1b)
+
+★★ 落表单号: ★**ISS-283** ★ · 老板拍板凭据: 2026-11-17 A3 = 1
+★★ 落表台账: ★**`HW/SCHEMATIC_LANDING_V1_LANDED.md` §16** ★
+★★ 回滚: ★**`python3 state/land_v_values.py --rollback state/.bak_land_v_values_v_20261117-121608`** ★
+
+✅ rc=0: ★**落表完成 · 全部门禁绿 · 受保护 md5 逐字节不变** ★

@@ -294,7 +294,7 @@
 | 条 | 机器可判的核心判据 | 现在应为 |
 |---|---|---|
 | ★(1) ★ | 表A L167/L168 的 value 仍含 "4.7k 到 3.3V" + L169/L170 是 2.2k/VDD_1V8_IO + L169 note 仍含 "已作废" + SPEC.json B-01/B-02 的 `level` 仍 = 3.3V | ★**成立 (缺陷在)** ★ |
-| ★(2) ★ | 表A L182/L183/L184/L185 与表B L100/L307/L309 的 `dnp` 仍 = DNP, 而 L181/L186/L210 是必装 | ★**成立 (缺陷在)** ★ |
+| ★(2) ★ | 表A L182/L183/L184/L185 与表B L100/L307/L309 的 `dnp` 仍 = DNP, 而 L181/L186/L210 是必装 | ★★**落表后 (2026-11-16 V-3=E): 已修 (三颗从 DEMO_DNP 拿出来 ⇒ 必装; 阻值 100k+60k; 分压后 1.575V ≤ 1.8V) ⇒ ★**R2 组全绿**★ ★ |
 | ★(3) ★ | 表A/表B 里 `ref==U_EN_SW` 的行数 = 4 且 `type!=NET` 的行数 = **0**; BOM L208 的 type = NET; 板封装 `U_EN_SW` 的 Value = 脚功能串 | ★**★落表后 (★2026-11-16 ISS-233★): 网表侧已修 (表A/表B 各 1 条 `type==IC` 的本体行 + BOM L208 type=IC/value=器件身份描述) ⇒ ★**只剩板封装 Value 一条仍红 (★归「板只改一次」那一趟★)** ★** |
 | ★(4) ★ | 板封装 `D_ESD_USB_D` 焊盘数 = 2 + Value 自称双通道 + 挂 D− 两张网的 ESD 位号数 = 0 | ★**成立 (缺陷在)** ★ |
 
@@ -323,21 +323,21 @@
 | d2_a181_ref | netlist | 181 | ref == NET_BAT_DET |
 | d2_a181_dnp | netlist | 181 | dnp == 必装 |
 | d2_a182_ref | netlist | 182 | ref == R_BAT_DET_1 |
-| d2_a182_dnp | netlist | 182 | dnp == DNP |
-| d2_a182_value | netlist | 182 | value == 1M ±1% |
-| d2_a182_note | netlist | 182 | note contains DNP: 同上 |
+| d2_a182_dnp | netlist | 182 | dnp == 必装 |
+| d2_a182_value | netlist | 182 | value == 100k ±1% |
+| d2_a182_note | netlist | 182 | note contains 分压上臂 (100k) |
 | d2_a183_ref | netlist | 183 | ref == R_BAT_DET_2 |
-| d2_a183_dnp | netlist | 183 | dnp == DNP |
+| d2_a183_dnp | netlist | 183 | dnp == 必装 |
 | d2_a184_ref | netlist | 184 | ref == C_DET_BAT |
-| d2_a184_dnp | netlist | 184 | dnp == DNP |
+| d2_a184_dnp | netlist | 184 | dnp == 必装 |
 | d2_a185_ref | netlist | 185 | ref == C_DET_BAT |
-| d2_a185_dnp | netlist | 185 | dnp == DNP |
+| d2_a185_dnp | netlist | 185 | dnp == 必装 |
 | d2_a186_node1 | netlist | 186 | node1 == J_SOM_P1 pin38 |
 | d2_a186_dnp | netlist | 186 | dnp == 必装 |
 | d2_a186_note | netlist | 186 | note contains [BAT_DET] SoC ADC 输入节点 |
-| d2_b307_dnp | pins | 307 | dnp == DNP |
-| d2_b309_dnp | pins | 309 | dnp == DNP |
-| d2_b100_dnp | pins | 100 | dnp == DNP |
+| d2_b307_dnp | pins | 307 | dnp == 必装 |
+| d2_b309_dnp | pins | 309 | dnp == 必装 |
+| d2_b100_dnp | pins | 100 | dnp == 必装 |
 | d2_b210_net | pins | 210 | net == BAT_DET |
 | d3_a441_type | netlist | 441 | type == NET |
 | d3_a441_value | netlist | 441 | value == EN 输入 (高=放行底板) |
@@ -354,7 +354,7 @@
 | d3_board_pads | board | ? | footprint.U_EN_SW.pads == 4 |
 | d3_ctrl_a50_type | netlist | 50 | type == IC |
 | d4_a417_value | netlist | 417 | value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) |
-| d4_a417_net | netlist | 417 | net == USB_D_P_SRC |
+| d4_a417_net | netlist | 417 | net == NET_USB_D_P_TYPEC |
 | d4_a417_dnp | netlist | 417 | dnp == 必装 |
 | d4_a417_note | netlist | 417 | note contains Forlinx 载板指引要求 ESD 紧贴接口 |
 | d4_a418_value | netlist | 418 | value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V) |
@@ -400,9 +400,9 @@
 | d6_net_no_conusb | netlist | ? | count(ref==CONN_USB) == 0 |
 | d6_bom5_value | bom | 5 | value contains 22p@0.5mm |
 | d6_bom5_fp | bom | 5 | footprint contains FH12-22S-0.5SH |
-| d7_a181_value | netlist | 181 | value == 1M+1M 分压 + 100nF |
-| d7_a182_value | netlist | 182 | value == 1M ±1% |
-| d7_a183_value | netlist | 183 | value == 1M ±1% |
+| d7_a181_value | netlist | 181 | value == 100k+60k 分压 + 100nF |
+| d7_a182_value | netlist | 182 | value == 100k ±1% |
+| d7_a183_value | netlist | 183 | value == 60k ±1% |
 | d7_a184_value | netlist | 184 | value == 100nF ±10% |
 | d7_a186_node1 | netlist | 186 | node1 == J_SOM_P1 pin38 |
 | d7_a186_dnp | netlist | 186 | dnp == 必装 |
@@ -412,16 +412,16 @@
 | d7_som_p138_signal | sompins | 39 | signal == SARADC_VIN5 |
 | d7_som_p138_vol | sompins | 39 | vol == 1.8V |
 | d7_som_p138_num | sompins | 39 | num == 38 |
-| d7_node_v | netlist | ? | calc(node_v@4.2) == 2.1 |
-| d7_node_over | netlist | ? | calc(node_v@4.2) > 1.8 |
-| d8_a182_note | netlist | 182 | note contains 漏电流 ~1.65µA @5V |
-| d8_bom86_value | bom | 86 | value == 1M ±1% |
-| d8_bom86_dnp | bom | 86 | dnp == DNP |
-| d8_bom87_value | bom | 87 | value == 1M ±1% |
-| d8_bom87_dnp | bom | 87 | dnp == DNP |
+| d7_node_v | netlist | ? | calc(node_v@4.2) == 1.575 |
+| d7_node_over | netlist | ? | calc(node_v@4.2) < 1.8 |
+| d8_a182_note | netlist | 182 | note contains ADC 输入漏电 ~1µA |
+| d8_bom86_value | bom | 86 | value == 100k ±1% |
+| d8_bom86_dnp | bom | 86 | dnp == 必装 |
+| d8_bom87_value | bom | 87 | value == 60k ±1% |
+| d8_bom87_dnp | bom | 87 | dnp == 必装 |
 | d8_bom27_value | bom | 27 | value == 100nF ±10% |
-| d8_leak_now | netlist | ? | calc(leak_ua@4.2) == 2.1 |
-| d8_leak_claim | netlist | ? | calc(leak_note_ua@5) == 1.65 |
+| d8_leak_now | netlist | ? | calc(leak_ua@4.2) == 26.25 |
+| d8_leak_claim | netlist | ? | calc(leak_note_ua@5) == 1 |
 | d9_pages_esd_3mm | pages | ? | text contains ESD 距连接器 ≤3.0mm |
 | d9_pages_two_ends | pages | ? | text contains 两端 ESD |
 | d9_emc_480 | emc | ? | text contains 480 Mbps |
@@ -436,15 +436,15 @@
 | d10_spec_script | chgspec | ? | text notcontains lo*0.822 |
 | d10_spec_script_1216 | chgspec | ? | text contains lo*1.216 |
 | d10_spec_0411 | chgspec | ? | text notcontains 单 pin 0.411A ≤ 0.5A 触点天花板 |
-| d10_spec_0608 | chgspec | ? | text contains 单 pin **0.608A** |
-| d10_a47_value | netlist | 47 | value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决) |
-| d10_a48_value | netlist | 48 | value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决) |
-| d10_bom97_value | bom | 97 | value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决) |
+| d10_spec_0608 | chgspec | ? | text contains 单 pin **0.349A** |
+| d10_a47_value | netlist | 47 | value == 680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16) |
+| d10_a48_value | netlist | 48 | value == 680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16) |
+| d10_bom97_value | bom | 97 | value == 680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16) |
 | d10_a497_note | netlist | 497 | note contains 工作上限 0.50A |
 | d10_ratio_370 | netlist | ? | calc(ichg_ratio@3.7) == 1.216 |
 | d10_ratio_420 | netlist | ? | calc(ichg_ratio@4.2) == 1.071 |
-| d10_pin_max_370 | netlist | ? | calc(ichg_pin_max@3.7) == 0.608 |
-| d10_pin_max_420 | netlist | ? | calc(ichg_pin_max@4.2) == 0.536 |
+| d10_pin_max_370 | netlist | ? | calc(ichg_pin_max@3.7) == 0.349 |
+| d10_pin_max_420 | netlist | ? | calc(ichg_pin_max@4.2) == 0.307 |
 | d11_a11_ref | netlist | 11 | ref == C_VBUS_OUT |
 | d11_a11_board | netlist | 11 | board == CHG_BOARD |
 | d11_a12_ref | netlist | 12 | ref == C_VBUS_GND |
@@ -633,6 +633,50 @@ $ python3 HW/check_netlist_selfconsistency.py --emit-anchors # 重新生成上�
 · ★**(7)** ★ = 390Ω 档位 (★卡 V-4 ⇒ 1 条红: R10★)
 · ★**d3 的板侧 1 条** ★ = 板封装 `U_EN_SW`.Value (★归「板只改一次」那一趟 ⇒ R3★)
 ⇒ ★**★已落: (1)(2)(8) 三条 + (6) 里的 d1 与 d3 网表侧 + (7) 的方向部分 ⇒ ★**8 条里【只剩 4 条半】没落, 全部卡在 3 个 V 值 (V-2/V-3/V-4) + 板那一趟** ⇒ ★**⇒ 与 ISS-233 交卷单 §3 的【拍板即落清单】完全对齐: 老板只要拍 V-2/V-3/V-4, 剩下这 4 条半一次落干净** ★ ★
+
+### ★5.11 ★★落表状态 (★ISS-236 · V 值拍板即落 · 2026-11-16 · 硬件总工执行 · ★`state/land_v_values.py`★)★★
+
+★★**一句话**: ★**老板拍完 V-3=E, V-4=680 ⇒ 落表器 `state/land_v_values.py` 一键落进网表/脚表/BOM + 落表台账 + 门禁锚点** ★
+
+| V 值 | 取值 | `--expect-resolved` 条数变化 | 板那一趟 |
+|---|---|---|---|
+| ★**V-3** ★ | ★**E** ★ | **-13 条** | — |
+| ★**V-4** ★ | ★**680** ★ | **-1 条** | — |
+
+★**老板拍板凭据**: `2026-11-17 A1 = E` / `2026-11-17 A2 = 680` ★
+
+★**门禁实测 (★本单实跑·见落表台账 §16★)★**: 现状守卫 `rc=0` · `--selftest` `rc=0` **21/21** · `--expect-resolved` `rc=1` **4 条** · 四道尺子全 `rc=0` · `merge.py` + `gate_check.py` `rc=0` ★
+
+---
+
+### ★5.17 ★★落表状态 (★ISS-236 · V 值拍板即落 · 2026-11-16 · 硬件总工执行 · ★`state/land_v_values.py`★)★★
+
+★★**一句话**: ★**老板拍完 V-2=1 ⇒ 落表器 `state/land_v_values.py` 一键落进网表/脚表/BOM + 落表台账 + 门禁锚点** ★
+
+| V 值 | 取值 | `--expect-resolved` 条数变化 | 板那一趟 |
+|---|---|---|---|
+| ★**V-2** ★ | ★**1** ★ | ★**0 条**★ | ★**3 条**★ |
+
+★**老板拍板凭据**: `2026-11-17 A3 = 1` ★
+
+★**门禁实测 (★本单实跑·见落表台账 §16★)★**: 现状守卫 `rc=0` · `--selftest` `rc=0` **21/21** · `--expect-resolved` `rc=1` **18 条** · 四道尺子全 `rc=0` · `merge.py` + `gate_check.py` `rc=0` ★
+
+---
+
+### ★5.23 ★★落表状态 (★ISS-236 · V 值拍板即落 · 2026-11-16 · 硬件总工执行 · ★`state/land_v_values.py`★)★★
+
+★★**一句话**: ★**老板拍完 V-5=A, V-6=20mA ⇒ 落表器 `state/land_v_values.py` 一键落进网表/脚表/BOM + 落表台账 + 门禁锚点** ★
+
+| V 值 | 取值 | `--expect-resolved` 条数变化 | 板那一趟 |
+|---|---|---|---|
+| ★**V-5** ★ | ★**A** ★ | ★**0 条**★ | — |
+| ★**V-6** ★ | ★**20mA** ★ | ★**0 条**★ | — |
+
+★**老板拍板凭据**: `2026-11-17 A4 = A` / `2026-11-17 A5 = 20mA` ★
+
+★**门禁实测 (★本单实跑·见落表台账 §16★)★**: 现状守卫 `rc=0` · `--selftest` `rc=0` **21/21** · `--expect-resolved` `rc=1` **18 条** · 四道尺子全 `rc=0` · `merge.py` + `gate_check.py` `rc=0` ★
+
+---
 
 ---
 

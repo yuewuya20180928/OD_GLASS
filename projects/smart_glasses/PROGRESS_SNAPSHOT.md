@@ -1,4 +1,4 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-17 06:07)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-17 13:07)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
@@ -8,12 +8,13 @@
 - 阶段门: 【总体】 阶段门 G1 ⏸️ | 健康度 red | 距通过 G1 还差 1 项 | 未闭环高危 10 条 | 逾期 66 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=0
-- 问题单: 共 269 条 · closed=97 · deferred=16 · fixed=5 · open=17 · verified=134
-- GitHub 上次推送: 2026-11-17T00:19:59+08:00
+- 问题单: 共 282 条 · closed=97 · deferred=15 · fixed=5 · fixing=2 · open=17 · verified=146
+- GitHub 上次推送: 2026-11-17T06:29:47+08:00
 
 ## 二、执行中 (谁在干什么)
 
-- (无)
+- **ISS-283** · hw-lead · ★★[主线内·HW/落表侧·内部活] ★★【三件落表 + 一个工具接口死锁】★★ ★**B1: V-2 (A3) 落表被行号锚点守卫拦死,  · 派出于 2026-11-17
+- **ISS-286** · mech-lead · ★★[主线内·MECH 侧·门禁机制收口·内部活] ★★【MECH 侧坐标归一闸 `MECH/check_board_frame_coord · 派出于 2026-11-17
 
 ## 三、待办
 

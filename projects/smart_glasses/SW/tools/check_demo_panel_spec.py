@@ -327,15 +327,346 @@ def check_r5_triage_table(root: str) -> list[str]:
     return fails
 
 
-# ---------------------------------------------------------------- R6 (ISS-225 三方对账)
-def check_r6_three_way(root: str, anchors=None) -> list[str]:
-    """R6: ★锚点 ↔ 落表台账 ↔ 盘上真源, 三方一致★ (不许悄悄换真源)。
+# ====================================================================== 落表台账判决源 (ISS-275)
+#  ★★【ISS-275 · 2026-11-17 · sw-lead】★★ R6 的【判决源】从「域侧锚点副本」换成
+#    「落表台账里该受管真源的最新落表记录 (链头)」:
+#      · 机制照抄 `MECH/check_demo_struct_truth.py` 的 C21 (★只读参照, MECH/ 一个字节没碰★
+#        ★但本文件【自己写】, 不许 import MECH 的脚本 —— 那是别人地界★)
+#      · 落表记录 = 落表台账里该文件的【改前 md5 → 改后 md5】表格行 (★行内第一个 md5 = 前驱,
+#        最后一个 = 改后★)
+#      · 链头 = 「不是任何记录的前驱」的那个改后 md5 ⇒ ★**判最新靠【图】不靠【行序】** ★
+#        ⇒ 台账行序被打乱 / 小节顺序变了, 都不影响取哪一条
+#      · ★判决源台账 = `HW/SCHEMATIC_LANDING_V1_LANDED.md` (★只读★; ★只读这一份 ——
+#        把交接单里的零散 md5 行混进来会把链打断 ⇒ 假红★)
+#      · ★域侧锚点副本 (`SW/SW_MD5_BASELINE_LEDGER.md` §1 `entries[]`) 降级为【历史留痕】:
+#        允许停在历史值, 但不许胡说 (md5 必须在台账链上 + 落表单号必须与台账对得上)
+LEDGER_CANON = os.path.join("HW", "SCHEMATIC_LANDING_V1_LANDED.md")
+LEDGER_MD_RE = re.compile(r"\b[0-9a-f]{32}\b|\b[0-9a-f]{12}\b")
+# ★受管真源的【文件名】(★不是 md5 值★ —— md5 值 100% 来自落表台账, 脚本里不许再写死一个 md5★)
+LEDGER_REQUIRED = ("HW/netlist_v1.csv", "HW/netlist_v1_pins.csv")
 
-    机制照抄 `MECH/check_demo_struct_truth.py` 的 C21 (★只读参照, MECH/ 一个字节没碰★):
-      ① 盘上真源的 md5 == 锚点 §1 `entries[].md5`
-      ② 锚点的 md5 / 旧 md5 / 落表单号 / 文件名 在落表台账里都能查到
-      ③ 落表台账登记的位置一个都不存在 ⇒ 红
-    ⇒ 只改锚点不落表 = 悄悄换真源 ⇒ 红; 改了真源不落表 = 悄悄换真源 ⇒ 红
+
+def sw_ledger_records(text: str, rel: str) -> list:
+    """从落表台账文本里抽出 rel 的落表记录 ⇒ [{'prev','new','iss','sec','row'}] (★行序无关★)。
+
+    ★口径 (照 MECH C21, 但本文件自己写)★: 只认表格行 (行首 `|`) · 一行里必须有
+      【文件名】+【至少两个 md5】(第一个 = 改前, 最后一个 = 改后) · 落表单号取行内 `ISS-xxx`,
+      行内没写就继承最近的带单号小节标题。
+    """
+    out: list = []
+    ctx_iss = None              # ★最近的带单号标题 ⇒ 批次单号 (行里没写单号时继承它)
+    sec = "(文首)"
+    base = os.path.basename(rel)
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("#"):
+            sec = s
+            hit = re.findall(r"ISS-\d+", s)
+            if hit:
+                ctx_iss = hit[0]
+            continue
+        if not s.startswith("|"):
+            continue
+        if rel not in s and base not in s:
+            continue
+        toks = LEDGER_MD_RE.findall(s)
+        if len(toks) < 2:
+            continue              # ★只有一个 md5 ⇒ 不是「改前→改后」记录行★
+        row_iss = re.findall(r"ISS-\d+", s)
+        out.append({"prev": toks[0][:12], "new": toks[-1][:12],
+                    "iss": row_iss[0] if row_iss else ctx_iss,
+                    "sec": sec, "row": s[:160]})
+    return out
+
+
+def sw_ledger_state(rel: str, text: str, recs=None) -> dict:
+    """算该受管真源在落表台账里的链头 / 链 / 产出单号表 (★取不准 ⇒ head=None ⇒ 判红★)。
+
+    ★【ISS-284】`recs` 可外传 ⇒ 硬保护段用【只含改前≠改后的变更行】算链 (★受管真源的读数一字未变★)。
+    """
+    if recs is None:
+        recs = sw_ledger_records(text, rel)
+    new_keys = {r["new"] for r in recs}
+    prev_keys = {r["prev"] for r in recs}
+    heads = sorted(new_keys - prev_keys)
+    producer: dict = {}
+    for r in recs:
+        producer.setdefault(r["new"], set())
+        if r["iss"]:
+            producer[r["new"]].add(r["iss"])
+    why = ""
+    head = None
+    if not recs:
+        why = "台账里一条记录都没有"
+    elif not heads:
+        why = "没有链头 (每条记录都是别人的前驱 ⇒ 台账不成链)"
+    elif len(heads) > 1:
+        why = "链头不唯一 = %s (取不准 ⇒ 不许判绿)" % (heads,)
+    else:
+        head = heads[0]
+    chain: list = []
+    if head:
+        by_new: dict = {}
+        for r in recs:
+            by_new.setdefault(r["new"], []).append(r)
+        cur, seen = head, {head}
+        chain = [head]
+        while True:
+            rs = by_new.get(cur) or []
+            if not rs:
+                break                 # 链尾 (起源值, 没有产出记录)
+            prevs = {r["prev"] for r in rs if r["prev"] != r["new"]}
+            if len(prevs) != 1:
+                why = why or "链上 %s 的前驱不唯一 = %s" % (cur, sorted(prevs))
+                chain = []
+                break
+            p = prevs.pop()
+            if p in seen:
+                why = why or "链成环 (%s)" % p
+                chain = []
+                break
+            cur = p
+            seen.add(cur)
+            chain.append(cur)
+    return {"records": recs, "head": head, "chain": chain, "producer": producer,
+            "why": why, "head_iss": sorted(producer.get(head, set())) if head else [],
+            "known": new_keys | prev_keys}
+
+
+def sw_ledger_canonical_text(root: str, anchors: dict) -> tuple:
+    """取判决源台账文本 + 它的 spec 名 (★默认 HW/SCHEMATIC_LANDING_V1_LANDED.md, ★只读★)。"""
+    if os.path.isfile(os.path.join(root, LEDGER_CANON)):
+        return read_text(root, LEDGER_CANON), LEDGER_CANON
+    for name, text in load_ledger_records(root, anchors):
+        return text, name
+    return "", LEDGER_CANON
+
+
+# ★★【ISS-284 · 2026-11-17 · sw-lead】★★ ★硬保护件 (板 / .kicad_pro) 的【合法改板】机制★
+#   ★ 老板 2026-11-17 09:49 拍板「按照你的建议执行」⇒ P10 = 方案 ②:
+#     保留纯 md5 硬保护, 但把「合法改板」做成一个【显式的、由单号背书的动作】★
+#   ★ 一条合法改板记录 = 【单号 by + 文件名 file + 改前 md5 prev_md5 + 改后 md5 md5】四件
+#     捆在锚点 `hard_protected[].reboard` 这**一个原子映射**里
+#     (★不许拆成两个可各自独立编辑的字段 —— 那就是 ISS-279 点名的缝★)
+#   ★ 同一份四项必须能在落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 的【同一行】里查到
+#     (★台账是 append-only 的信任边界; 锚点自己不能说了算★)
+#   ★ 判据方向不许变: 盘上 ≠ 台账链头 ⇒ 红 (★合法改板只是让【链头前移】, 不是把判据放松★)
+#   ★ fail-closed 三条一条不许动: 链头不唯一 / 链断 / 链头无单号 ⇒ 红
+REBOARD_FIELDS = ("by", "file", "prev_md5", "md5")
+
+
+def m12(value) -> str:
+    """md5 归一到 12 位小写前缀 (★落表台账里落表记录用的就是前缀★)。"""
+    return str(value or "").strip().lower()[:12]
+
+
+def sw_ledger_cover_rows(text: str, rel: str) -> list:
+    """落表台账里提到 rel 的【覆盖行】(表格行 + 至少一个 md5) ⇒ [{'md5s','iss','sec','row'}]。
+
+    ★口径与 `sw_ledger_records` 同源 (只认表格行 · 文件名同行 · 单号取行内 ISS-xxx 或最近带单号小节)★
+    ★与 `sw_ledger_records` 的差别: 允许【只有一个 md5】的行 (★「逐字节不变」声明行就是这么写的★)★
+    """
+    out: list = []
+    ctx_iss = None
+    sec = "(文首)"
+    base = os.path.basename(rel)
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("#"):
+            sec = s
+            hit = re.findall(r"ISS-\d+", s)
+            if hit:
+                ctx_iss = hit[0]
+            continue
+        if not s.startswith("|"):
+            continue
+        if rel not in s and base not in s:
+            continue
+        toks = LEDGER_MD_RE.findall(s)
+        if not toks:
+            continue
+        row_iss = re.findall(r"ISS-\d+", s)
+        out.append({"md5s": [m12(t) for t in toks],
+                    "iss": row_iss[0] if row_iss else ctx_iss,
+                    "sec": sec, "row": s[:160], "full": s})
+    return out
+
+
+def sw_ledger_change_rows(text: str, rel: str, exclude_aliases=()) -> list:
+    """落表台账里 rel 的【变更行】(★改前 md5 ≠ 改后 md5★) ⇒ 合法改板只认这种行。
+
+    ★`exclude_aliases` = 同组其它受保护件的名字别名 ⇒ ★一行两件两值 = 歧义行 ⇒ 不算变更行★
+      (★例: 落表台账里有一行同时写了板与 `.kicad_pro` 的两个 md5 ⇒ 那不是「板改过」的记录★)
+    """
+    out: list = []
+    for r in sw_ledger_cover_rows(text, rel):
+        toks = r["md5s"]
+        if len(toks) < 2:
+            continue
+        prev, new = toks[0], toks[-1]
+        if prev == new:
+            continue
+        if any(a and a in r["full"] for a in exclude_aliases):
+            continue
+        out.append({"prev": prev, "new": new, "iss": r["iss"],
+                    "sec": r["sec"], "row": r["row"]})
+    return out
+
+
+def sw_ledger_change_state(rel: str, text: str, exclude_aliases=()) -> dict:
+    """变更行上的链头 / 链 / 产出单号表 (★只认改前≠改后的行★; 取不准 ⇒ head=None ⇒ 判红★)。"""
+    return sw_ledger_state(rel, text,
+                            recs=sw_ledger_change_rows(text, rel, exclude_aliases))
+
+
+def check_r6_hard_protected(root: str, anchors: dict, led_text: str, led_spec: str) -> list[str]:
+    """R6 硬保护段 (板 / .kicad_pro): ★【ISS-284 · P10 = 方案 ②】合法改板机制★。
+
+    ★★判据 (逐条; ★fail-closed: 取不准一律判红★)★★
+      ① ★保护基线自证★: 锚点里的基线 md5 必须能在落表台账里与该文件【同行】查到
+         ⇒ ★只改锚点里的 md5 而台账没记 ⇒ 红★ (★这就是「挖坑」那条路, 必须堵死★)
+      ② ★台账里该文件没有变更行★ ⇒ 不许有 reboard 记录; 且 盘上 md5 必须 == 基线 (★纯 md5 硬保护★)
+      ③ ★台账里有变更行★ ⇒ 链头必须唯一 / 链不断 / 链头有单号 (★fail-closed 三条一条不许动★)
+         ⇒ 锚点必须带 reboard 原子记录 (★四项缺一 ⇒ 红★) ⇒ 且四项必须与台账链头逐字对上
+         ⇒ 保护基线必须留在链尾 (★不许把基线偷偷前移★)
+         ⇒ 盘上 md5 必须 == 台账链头 (★判据方向不许变: 合法改板只是让链头前移★)
+      ④ ★同组受保护件覆盖★: 一次合法改板必须覆盖同组全部件 (★只来一条记录 ⇒ 红★)
+    """
+    fails: list[str] = []
+    hard = list(anchors.get("hard_protected") or [])
+    if not hard:
+        return ["R6 硬保护: 锚点里没有 hard_protected 段 (板 / .kicad_pro 失保护)"]
+
+    group: list = []
+    # ★同组受保护件的名字别名 (★用于剔「一行两件两值」的歧义行★)
+    aliases: dict = {}
+    for e in hard:
+        r0 = str(e.get("file") or "")
+        if not r0:
+            continue
+        b0 = os.path.basename(r0)
+        aliases[r0] = {r0, b0, os.path.splitext(b0)[1]}
+    for e in hard:
+        rel = str(e.get("file") or "")
+        base = str(e.get("md5") or "")
+        rec = e.get("reboard")
+        if not rel or not base:
+            fails.append("R6 硬保护: hard_protected 条目缺 file/md5: %r" % (e,))
+            continue
+        if not os.path.exists(os.path.join(root, rel)):
+            fails.append("R6 硬保护: 受保护文件不存在: %s" % rel)
+            continue
+        got = md5_of(root, rel)
+        excl = set()
+        for other, al in aliases.items():
+            if other != rel:
+                excl |= al
+        covers = sw_ledger_cover_rows(led_text, rel) if led_text else []
+        chg = sw_ledger_change_rows(led_text, rel, excl) if led_text else []
+        group.append({"rel": rel, "base": base, "rec": rec, "got": got,
+                      "covers": covers, "chg": chg, "excl": excl})
+        # ① 保护基线自证 (★只改锚点里的 md5 而台账没记 ⇒ 红★)
+        if led_text and not any(m12(base) in r["md5s"] for r in covers):
+            fails.append("R6 硬保护: %s 的保护基线 md5 %s 在落表台账 (%s) 里查不到 ⇒ "
+                         "锚点被单独改了 (★只改 md5 不落表 = 悄悄换真源 = 红★)"
+                         % (rel, m12(base), led_spec))
+
+    if not led_text:
+        fails.append("R6 硬保护: 判决源落表台账读不到 (%s) ⇒ 无从对账 (fail-closed)" % led_spec)
+        return fails
+
+    heads: dict = {}
+    for g in group:
+        rel, base, rec, got = g["rel"], g["base"], g["rec"], g["got"]
+        chg = g["chg"]
+        if not chg:
+            # ② 台账里没有变更行 ⇒ 不许有 reboard 记录; 盘上必须还是基线
+            if rec not in (None, "", {}, []):
+                fails.append("R6 硬保护: %s 锚点里有合法改板记录 (reboard) 但落表台账里查不到任何变更行 "
+                             "⇒ 单号背书落不了地 = 红" % rel)
+            if got[:12] != m12(base):
+                fails.append("R6 硬保护: 受保护文件 md5 变了: %s (%s ≠ %s)" % (rel, got, base))
+            continue
+        # ③ 台账里有变更行 ⇒ 走【合法改板】路径
+        st = sw_ledger_change_state(rel, led_text, g["excl"])
+        head = st.get("head")
+        if not head:
+            fails.append("R6 硬保护: %s 台账最新记录取不准 (%s) ⇒ 取错记录可能假绿 ⇒ 判红"
+                         % (rel, st.get("why")))
+            continue
+        heads[rel] = head
+        if not st.get("head_iss"):
+            fails.append("R6 硬保护: %s 台账最新记录 (%s) 缺落表单号 (字段缺失)" % (rel, head))
+        if not st.get("chain"):
+            fails.append("R6 硬保护: %s 台账链断了 / 不唯一 (%s)" % (rel, st.get("why")))
+        else:
+            orphan = sorted({r["new"] for r in chg} - set(st.get("chain") or []))
+            if orphan:
+                fails.append("R6 硬保护: %s 台账里有记录不在链上 = %s" % (rel, orphan))
+        # ③-1 锚点必须带【原子 reboard 记录】(四项缺一 ⇒ 红)
+        if not isinstance(rec, dict):
+            fails.append("R6 硬保护: %s 台账里有合法改板记录, 但锚点没有 reboard 记录 "
+                         "(单号/文件名/改前 md5/改后 md5 四项不齐) ⇒ 判红" % rel)
+            continue
+        missing = [k for k in REBOARD_FIELDS if not str(rec.get(k) or "").strip()]
+        if missing:
+            fails.append("R6 硬保护: %s 的 reboard 记录四项不齐: 缺 %s ⇒ 判红"
+                         % (rel, ",".join(missing)))
+            continue
+        rfile = str(rec.get("file")).strip()
+        rprev = m12(rec.get("prev_md5"))
+        rmd5 = m12(rec.get("md5"))
+        rby = str(rec.get("by")).strip()
+        if rfile != rel:
+            fails.append("R6 硬保护: %s 的 reboard 记录写的是 %s (≠ 条目文件名) ⇒ 判红" % (rel, rfile))
+        if rmd5 != head:
+            fails.append("R6 硬保护: %s 的 reboard 改后 md5 %s 与台账链头 %s 不一致 ⇒ "
+                         "★单号与 md5 不许各自独立编辑 = 红★" % (rel, rmd5, head))
+        head_prevs = sorted({r["prev"] for r in chg if r["new"] == head})
+        if len(head_prevs) == 1 and rprev != head_prevs[0]:
+            fails.append("R6 硬保护: %s 的 reboard 改前 md5 %s 与台账链头那一行的改前 %s 不一致 "
+                         "(链断) ⇒ 判红" % (rel, rprev, head_prevs[0]))
+        if rby not in (st.get("producer") or {}).get(head, set()):
+            fails.append("R6 硬保护: %s 的 reboard 单号 %s 与台账产出该 md5 的单号对不上 "
+                         "(台账 = %s) ⇒ 判红" % (rel, rby or "(空)",
+                                                 sorted((st.get("producer") or {}).get(head, []))))
+        chain = st.get("chain") or []
+        if chain and m12(base) != chain[-1][:12]:
+            fails.append("R6 硬保护: %s 的保护基线 %s 不在台账链尾 (链尾 = %s) ⇒ "
+                         "★基线被偷偷前移 = 红★" % (rel, m12(base), chain[-1][:12]))
+        # ③-2 ★盘上必须 == 台账链头★ (★判据方向不许变★)
+        if got[:12] != head:
+            fails.append("R6 硬保护: %s 盘上 md5 %s ≠ 台账链头 %s (真源被换了或台账没更新)"
+                         % (rel, got[:12], head))
+
+    # ④ 同组受保护件: 一次合法改板必须覆盖同组全部件 (★只来一条记录 ⇒ 红★)
+    trip_iss = set()
+    for g in group:
+        for r in g["chg"]:
+            if r["iss"]:
+                trip_iss.add(r["iss"])
+    if trip_iss:
+        for g in group:
+            rel = g["rel"]
+            expect = heads.get(rel, m12(g["base"]))
+            covered = [r for r in g["covers"]
+                       if r["iss"] in trip_iss and expect in r["md5s"]]
+            if not covered:
+                fails.append("R6 硬保护: %s 没有被同一次合法改板 (%s) 覆盖 (记录只来一条 ⇒ 判红)"
+                             % (rel, "/".join(sorted(trip_iss))))
+    return fails
+
+
+# ---------------------------------------------------------------- R6 (ISS-225 三方对账 / ISS-275 判决源换源)
+def check_r6_three_way(root: str, anchors=None) -> list[str]:
+    """R6: ★落表台账最新记录 (链头) ↔ 盘上真源, 一致★ (不许悄悄换真源)。
+
+    ★★【ISS-275 · 2026-11-17】★★ 判决源 = 【落表台账链头】, 不是【域侧锚点副本】:
+      ① 盘上真源的 md5 == 落表台账里该文件的【链头】(改前 md5 → 改后 md5 有向链的链头)
+      ② 链头取不准 (不唯一 / 链断 / 有记录不在链上 / 链头没落表单号) ⇒ ★一律判红★
+      ③ 域侧锚点副本 (§1 `entries[]`) 降级为【历史留痕】: 允许停在历史值,
+         但不许胡说 (md5 必须在台账链上 + 落表单号必须与台账产出该 md5 的单号对得上)
+    ⇒ 合法落表不再红 (链头自动前移); 悄悄换真源照样红 (盘上 ≠ 链头)
     """
     fails: list[str] = []
     if anchors is None:
@@ -343,68 +674,76 @@ def check_r6_three_way(root: str, anchors=None) -> list[str]:
         if anchors is None:
             return ["R6 读不到 SW 侧 md5 基线台账锚点 ⇒ 门禁 fail-closed: %s" % err]
 
-    # ---- ① 硬保护 (板 / .kicad_pro): 落表明令不许碰 ⇒ 纯 md5 比对 ----
-    hard = list(anchors.get("hard_protected") or [])
-    if not hard:
-        fails.append("R6 锚点里没有 hard_protected 段 (板 / .kicad_pro 失保护)")
-    for e in hard:
-        rel = str(e.get("file") or "")
-        want = str(e.get("md5") or "")
-        if not rel or not want:
-            fails.append("R6 hard_protected 条目缺 file/md5: %r" % (e,))
-            continue
-        if not os.path.exists(os.path.join(root, rel)):
-            fails.append("R6 受保护文件不存在: %s" % rel)
-            continue
-        got = md5_of(root, rel)
-        if got != want:
-            fails.append("R6 受保护文件 md5 变了: %s (%s ≠ %s)" % (rel, got, want))
+    # ★判决源台账 (★ISS-275 起 = 落表台账链头★; ★ISS-284 起硬保护段也读它★)
+    led_text, led_spec = sw_ledger_canonical_text(root, anchors)
 
-    # ---- ② 台账管理的真源 (网表 / 脚表): 锚点 ↔ 落表台账 ↔ 盘上 ----
+    # ---- ① 硬保护 (板 / .kicad_pro): ★★【ISS-284 · P10 = 方案 ②】合法改板机制★★ ----
+    #   ★ 判据方向一字未变: 盘上 ≠ 判决源 ⇒ 红; 合法改板只让【链头前移】, 不放宽判据 ★
+    #   ★ fail-closed 三条 (链头不唯一 / 链断 / 链头无单号) 一条不许动 ★
+    fails += check_r6_hard_protected(root, anchors, led_text, led_spec)
+
+    # ---- ② 台账管理的真源 (网表 / 脚表): 落表台账链头 ↔ 盘上 (★ISS-275 判决源★) ----
     ledger = anchors.get("source_ledger") or {}
     entries = list(ledger.get("entries") or [])
     if not entries:
-        fails.append("R6 锚点里没有 source_ledger.entries (受管真源失台账对账)")
-    recs = load_ledger_records(root, anchors)
-    if not recs:
-        fails.append("R6 锚点 source_ledger.landing_records 里登记的位置一个都不存在 "
-                     "(落表台账查不到 ⇒ 无从对账)")
+        fails.append("R6 台账链: 锚点里没有 source_ledger.entries (受管真源失台账对账)")
+    if not led_text:
+        fails.append("R6 台账链: 判决源落表台账读不到 (%s) ⇒ 无从对账 (fail-closed)" % led_spec)
     for e in entries:
         rel = str(e.get("file") or "")
         by = str(e.get("by") or "")
         want = str(e.get("md5") or "")
         prev = str(e.get("prev_md5") or "")
         if not rel:
-            fails.append("R6 source_ledger.entries 里有空 file")
+            fails.append("R6 台账链: source_ledger.entries 里有空 file")
             continue
-        if not want:
-            fails.append("R6 锚点里 %s 没登记 md5 (查不到出处的基线不许当基线)" % rel)
-            continue
-        # ②-a 盘上真源 vs 锚点
+        # ②-0 盘上真源必须存在 (判决源换了也一样)
         if not os.path.exists(os.path.join(root, rel)):
-            fails.append("R6 盘上真源不存在: %s" % rel)
+            fails.append("R6 台账链: 盘上真源不存在: %s" % rel)
             continue
         got = md5_of(root, rel)
-        if got != want:
-            fails.append("R6 盘上真源 md5 %s = %s ≠ 锚点登记 %s (真源被换了或锚点过期)"
-                         % (rel, got, want))
-        # ②-b 落表台账对账: 单号 + 文件名 + 新旧 md5 必须都查得到
-        why: list[str] = []
-        hit = None
-        for name, text in recs:
-            if by and by not in text:
-                why.append("%s: 无落表单号 %s" % (name, by))
-                continue
-            if not ledger_row_has(text, rel, want, prev):
-                why.append("%s: 无【文件名 + 新 md5 + 旧 md5】同一行" % name)
-                continue
-            hit = name
-            break
-        if hit is None:
-            fails.append("R6 %s: 落表台账里查不到 (单号 %s / 文件 %s / 新 md5 %s / 旧 md5 %s) "
-                         "⇒ 悄悄换真源? 查过: %s"
-                         % (rel, by or "无", rel, want[:12], (prev[:12] if prev else "无"),
-                            "; ".join(why) or "无台账文件"))
+        # ②-1 台账链头 (★判决源★): 取不准 ⇒ 一律判红 (★不许放宽★)
+        st = sw_ledger_state(rel, led_text)
+        recs = st.get("records") or []
+        head = st.get("head")
+        if not recs:
+            fails.append("R6 台账链: %s 落表台账 (%s) 里查不到任何落表记录 ⇒ 台账没记这次落表?"
+                         % (rel, led_spec))
+            continue
+        if not head:
+            fails.append("R6 台账链: %s 台账最新记录取不准 (%s) ⇒ 取错记录可能假绿 ⇒ 判红"
+                         % (rel, st.get("why")))
+            continue
+        if not st.get("head_iss"):
+            fails.append("R6 台账链: %s 台账最新记录 (%s) 缺落表单号 (字段缺失)" % (rel, head))
+        if not st.get("chain"):
+            fails.append("R6 台账链: %s 台账链断了 / 不唯一 (%s)" % (rel, st.get("why")))
+        else:
+            orphan = sorted({r["new"] for r in recs} - set(st.get("chain") or []))
+            if orphan:
+                fails.append("R6 台账链: %s 台账里有记录不在链上 = %s" % (rel, orphan))
+        # ②-2 ★盘上真源 vs 台账链头★ (★悄悄换真源判据: 不许为了不红就删★)
+        if got[:12] != head:
+            fails.append("R6 台账链: 盘上真源 md5 %s = %s ≠ 台账最新记录 %s "
+                         "(真源被换了或台账没更新)" % (rel, got[:12], head))
+        # ②-3 域侧锚点副本 = 【历史留痕】: 允许停在历史值, 但不许胡说
+        if not want:
+            fails.append("R6 台账链: 锚点里 %s 没登记 md5 (查不到出处的基线不许当基线)" % rel)
+            continue
+        am = want[:12]
+        if am not in (st.get("known") or set()):
+            fails.append("R6 台账链: %s 锚点副本 md5 %s 台账链里查不到 (锚点胡说?)"
+                         % (rel, am or "(空)"))
+        elif by and by not in (st.get("producer") or {}).get(am, set()):
+            fails.append("R6 台账链: %s 锚点副本落表单号 %s 与台账对不上 (台账产出该 md5 的单号 = %s)"
+                         % (rel, by or "(空)",
+                            sorted((st.get("producer") or {}).get(am, []))))
+        # ②-4 锚点副本的旧 md5 也必须还在台账链上 (历史留痕不许断)
+        if prev:
+            pm = prev[:12]
+            if pm not in (st.get("known") or set()):
+                fails.append("R6 台账链: %s 锚点副本旧 md5 %s 台账链里查不到 (历史留痕断了?)"
+                             % (rel, pm))
     return fails
 
 
@@ -584,6 +923,160 @@ R6_SELFTEST_CASES = [
 ]
 
 
+# ★★【ISS-284 · 2026-11-17 · sw-lead】★★ 合法改板机制 (P10 = 方案 ②) 的用例
+#   ★ 机制: 一条合法改板 = 【单号 + 文件名 + 改前 md5 + 改后 md5】四件捆在锚点【一个原子映射】里
+#     + 同一份四项必须能在落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 的【同一行】里查到 ★
+BOARD_REL = os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb")
+PRO_REL = os.path.join("HW", "PCB", "demo_mainboard.kicad_pro")
+TICKET_A = "ISS-9901"        # ★假单号 (★不许硬编码任何真单号★)
+TICKET_B = "ISS-9902"
+
+
+def _tree_root(path: str) -> str:
+    """从临时树里任意文件路径反推树根 (★往上找到同时有 HW/ 与 SW/ 的那一层★)。"""
+    d = os.path.dirname(os.path.abspath(path))
+    for _ in range(8):
+        if os.path.isdir(os.path.join(d, "HW")) and os.path.isdir(os.path.join(d, "SW")):
+            return d
+        d = os.path.dirname(d)
+    raise AssertionError("临时树根找不到 (path=%s)" % path)
+
+
+def _bump_file_copy(path: str) -> str:
+    """★先把硬链接换成真拷贝再改 (★绝不许改到真盘上的板★) ⇒ 返回改后的 md5★。
+
+    ★`os.replace` 换的是 inode ⇒ 真盘上那份硬链接一个字节都不受影响★
+    """
+    tmp = path + ".iss284_tmp"
+    shutil.copy2(path, tmp)
+    os.replace(tmp, path)
+    with open(path, "a", encoding="utf-8") as f:
+        f.write("\n# ISS-284 selftest: 合法改板 (只存在于临时树)\n")
+    h = hashlib.md5()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _rewrite_anchor_block(root: str, fn) -> None:
+    """★只用于 selftest 临时树★: 改 §1 锚点块 (★真盘的锚点块不许这样整块重写★)。"""
+    import yaml as _yaml
+    path = os.path.join(root, LEDGER_DOC)
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    m = re.search(re.escape(ANCHOR_BEGIN) + r"(.*?)" + re.escape(ANCHOR_END), text, re.S)
+    if not m:
+        raise AssertionError("临时树里找不到锚点块")
+    data = _yaml.safe_load(m.group(1)) or {}
+    fn(data)
+    block = (ANCHOR_BEGIN + "\n"
+             + _yaml.safe_dump(data, allow_unicode=True, sort_keys=False, default_flow_style=False)
+             + ANCHOR_END)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text[:m.start()] + block + text[m.end():])
+
+
+def _anchor_base(root: str, rel: str) -> str:
+    anchors, err = load_sw_anchor(root)
+    if anchors is None:
+        raise AssertionError("临时树读不到锚点 (%s)" % err)
+    for e in (anchors.get("hard_protected") or []):
+        if str(e.get("file") or "") == rel:
+            return str(e.get("md5") or "")
+    raise AssertionError("锚点里没有 %s 的保护基线" % rel)
+
+
+def _append_ledger_rows(root: str, rows: list) -> None:
+    """★只用于 selftest 临时树★: 往落表台账末尾追加行 (★真盘的落表台账本单不许碰★)。"""
+    path = os.path.join(root, LEDGER_CANON)
+    with open(path, "a", encoding="utf-8") as f:
+        f.write("\n" + "\n".join(rows) + "\n")
+
+
+def _row(ticket, rel, prev, new, note="★**是** ★"):
+    """★落表台账行 (★格式契约: 单号 | 文件名 | 改前 md5 | 改后 md5 四项同行★)。"""
+    return "| %s | `%s` | `%s` | `%s` | %s |" % (ticket, rel, prev, new, note)
+
+
+def _reboard_in_tree(root: str, rows_fn=None, anchor_prev=None,
+                     ticket=TICKET_A, set_md5_only=False) -> str:
+    """临时树里做一次「合法改板」: ① 板文件改一个字节 ② 锚点写原子 reboard 记录 ③ 台账追加行。
+
+    ★`set_md5_only=True` ⇒ 模拟「只改了锚点里的板 md5, 单号字段没写」(★挖坑那条路★)★
+    """
+    board = os.path.join(root, BOARD_REL)
+    newmd5 = _bump_file_copy(board)
+    base = _anchor_base(root, BOARD_REL)
+    prev = base if anchor_prev is None else anchor_prev
+
+    def _fn(data):
+        for e in data["anchors"]["hard_protected"]:
+            if e.get("file") != BOARD_REL:
+                continue
+            if set_md5_only:
+                e["md5"] = newmd5                      # ★只改 md5, 不写单号 ⇒ 挖坑★
+            else:
+                e["reboard"] = {"by": ticket, "file": BOARD_REL,
+                                "prev_md5": prev, "md5": newmd5}
+    _rewrite_anchor_block(root, _fn)
+    if rows_fn is not None:
+        _append_ledger_rows(root, rows_fn(root, base, newmd5))
+    return newmd5
+
+
+def _rows_full_legal(root, base, new):
+    """★合法改板的样子: 板一行变更 + `.kicad_pro` 一行「逐字节不变」, 同一单号★。"""
+    pro = _anchor_base(root, PRO_REL)
+    return [
+        _row(TICKET_A, BOARD_REL, base, new, "★**是 (★合法改板·板只改一次★)** ★"),
+        _row(TICKET_A, PRO_REL, pro, pro, "★**否 (★逐字节不变★)** ★"),
+    ]
+
+
+def _rows_two_heads(root, base, new):
+    """★两条合法改板记录指向同一个文件 ⇒ 链头不唯一★。"""
+    pro = _anchor_base(root, PRO_REL)
+    return [
+        _row(TICKET_A, BOARD_REL, base, new, "★**是 (★合法改板★)** ★"),
+        _row(TICKET_B, BOARD_REL, base, "deadbeefdeadbeefdeadbeefdeadbeef", "★**是 (★第二跳·另一个头★)** ★"),
+        _row(TICKET_A, PRO_REL, pro, pro, "★**否 (★逐字节不变★)** ★"),
+    ]
+
+
+def _rows_broken_chain(root, base, new):
+    """★链断: 台账记的是 (base→中间→链头), 而锚点写的改前 md5 是 base (★对不上上一次改后★)。"""
+    pro = _anchor_base(root, PRO_REL)
+    mid = "0123456789abcdef0123456789abcdef"
+    return [
+        _row(TICKET_A, BOARD_REL, base, mid, "★**是 (★上一跳★)** ★"),
+        _row(TICKET_A, BOARD_REL, mid, new, "★**是 (★本跳·链头★)** ★"),
+        _row(TICKET_A, PRO_REL, pro, pro, "★**否 (★逐字节不变★)** ★"),
+    ]
+
+
+def _rows_board_only(root, base, new):
+    """★只改板不动 `.kicad_pro` ⇒ 两件的记录只来一条★。"""
+    return [_row(TICKET_A, BOARD_REL, base, new, "★**是 (★合法改板★)** ★")]
+
+
+# (用例名, 期望绿(True)/期望红(False), 破坏动作)
+R6_REBOARD_CASES = [
+    ("REV-16 只改锚点里的板 md5, 单号字段没写 (★挖坑★)", False,
+     lambda p: _reboard_in_tree(_tree_root(p), set_md5_only=True)),
+    ("REV-17 锚点写了单号, 但落表台账里查不到那一行", False,
+     lambda p: _reboard_in_tree(_tree_root(p))),
+    ("REV-18 台账里两条合法改板记录指向同一个文件 (链头不唯一)", False,
+     lambda p: _reboard_in_tree(_tree_root(p), rows_fn=_rows_two_heads)),
+    ("REV-19 链断 (改前 md5 对不上台账记的上一次改后 md5)", False,
+     lambda p: _reboard_in_tree(_tree_root(p), rows_fn=_rows_broken_chain)),
+    ("REV-20 只改板不动 .kicad_pro (两件记录只来一条)", False,
+     lambda p: _reboard_in_tree(_tree_root(p), rows_fn=_rows_board_only)),
+    ("REV-21 合法改板: 台账四项齐全 + 锚点原子记录 ⇒ 放行 (★正向★)", True,
+     lambda p: _reboard_in_tree(_tree_root(p), rows_fn=_rows_full_legal)),
+]
+
+
 # ---------------------------------------------------------------- selftest 文本改坏工具
 def _append_text(path: str, blob: str) -> None:
     with open(path, "a", encoding="utf-8") as f:
@@ -722,6 +1215,34 @@ def selftest(root: str) -> int:
                 print("  ❌ %-52s ⇒ %s 没变红 (期望它红) — 实得失败项: %s"
                       % (name, expect_rule, fails[:2]))
                 failed += 1
+
+        # ---------------- ISS-284 新增: 合法改板 (P10 = 方案 ②) 正向/反向用例 ----------------
+        print("--- ISS-284 合法改板机制用例 (P10 = 方案 ② · 硬保护两件) ---")
+        for idx, (name, expect_green, fmut) in enumerate(R6_REBOARD_CASES):
+            work = _build_r6_tree(tmp, root, "rb_%02d" % idx)
+            try:
+                fmut(os.path.join(work, BOARD_REL))
+            except AssertionError as exc:
+                print("  ❌ %-52s ⇒ %s" % (name, exc))
+                failed += 1
+                continue
+            fails = run_all(work, skip_md5=False)
+            hit = [f for f in fails if f.startswith("R6")]
+            if expect_green:
+                if not hit:
+                    print("  ✅ %-52s ⇒ R6 仍绿 (★合法改板四项齐全 = 放行★)" % name)
+                    passed += 1
+                else:
+                    print("  ❌ %-52s ⇒ 期望绿却红了: %s" % (name, hit[0][:70]))
+                    failed += 1
+            else:
+                if hit:
+                    print("  ✅ %-52s ⇒ %s 变红 (%s)" % (name, "R6", hit[0][:70]))
+                    passed += 1
+                else:
+                    print("  ❌ %-52s ⇒ R6 没变红 (期望它红) — 实得失败项: %s"
+                          % (name, fails[:2]))
+                    failed += 1
     print("--- SELFTEST %d/%d 通过 ---" % (passed, passed + failed))
     return 0 if failed == 0 else 1
 

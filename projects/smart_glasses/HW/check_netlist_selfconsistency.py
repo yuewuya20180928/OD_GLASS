@@ -151,21 +151,21 @@ EXPECT: list[tuple[str, str, str, str]] = [
     ("d2_a181_ref", "netlist", "181", "ref == NET_BAT_DET"),
     ("d2_a181_dnp", "netlist", "181", "dnp == 必装"),
     ("d2_a182_ref", "netlist", "182", "ref == R_BAT_DET_1"),
-    ("d2_a182_dnp", "netlist", "182", "dnp == DNP"),
-    ("d2_a182_value", "netlist", "182", "value == 1M ±1%"),
-    ("d2_a182_note", "netlist", "182", "note contains DNP: 同上"),
+    ("d2_a182_dnp", "netlist", "182", "dnp == 必装"),
+    ("d2_a182_value", "netlist", "182", "value == 100k ±1%"),
+    ("d2_a182_note", "netlist", "182", "note contains 分压上臂 (100k)"),
     ("d2_a183_ref", "netlist", "183", "ref == R_BAT_DET_2"),
-    ("d2_a183_dnp", "netlist", "183", "dnp == DNP"),
+    ("d2_a183_dnp", "netlist", "183", "dnp == 必装"),
     ("d2_a184_ref", "netlist", "184", "ref == C_DET_BAT"),
-    ("d2_a184_dnp", "netlist", "184", "dnp == DNP"),
+    ("d2_a184_dnp", "netlist", "184", "dnp == 必装"),
     ("d2_a185_ref", "netlist", "185", "ref == C_DET_BAT"),
-    ("d2_a185_dnp", "netlist", "185", "dnp == DNP"),
+    ("d2_a185_dnp", "netlist", "185", "dnp == 必装"),
     ("d2_a186_node1", "netlist", "186", "node1 == J_SOM_P1 pin38"),
     ("d2_a186_dnp", "netlist", "186", "dnp == 必装"),
     ("d2_a186_note", "netlist", "186", "note contains [BAT_DET] SoC ADC 输入节点"),
-    ("d2_b307_dnp", "pins", "307", "dnp == DNP"),
-    ("d2_b309_dnp", "pins", "309", "dnp == DNP"),
-    ("d2_b100_dnp", "pins", "100", "dnp == DNP"),
+    ("d2_b307_dnp", "pins", "307", "dnp == 必装"),
+    ("d2_b309_dnp", "pins", "309", "dnp == 必装"),
+    ("d2_b100_dnp", "pins", "100", "dnp == 必装"),
     ("d2_b210_net", "pins", "210", "net == BAT_DET"),
 
     # ── 第 (3) 条: U_EN_SW 没有器件本体行 ⇒ BOM 把它登记成 NET 行 ──
@@ -191,7 +191,7 @@ EXPECT: list[tuple[str, str, str, str]] = [
     #   等于板上那颗 ESD 的真型号) 一个字没改, 改的只是【断言的现状值】⇒ 锚点条数一条没减★
     #   ★★**板侧 (d4_esd_value) 一条都没动** ★ ⇒ 板封装 Value 属性仍停在旧串 ⇒ ★**PCB 类待办**★
     ("d4_a417_value", "netlist", "417", "value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)"),
-    ("d4_a417_net", "netlist", "417", "net == USB_D_P_SRC"),
+    ("d4_a417_net", "netlist", "417", "net == NET_USB_D_P_TYPEC"),
     ("d4_a417_dnp", "netlist", "417", "dnp == 必装"),
     ("d4_a417_note", "netlist", "417", "note contains Forlinx 载板指引要求 ESD 紧贴接口"),
     ("d4_a418_value", "netlist", "418", "value == TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)"),
@@ -255,9 +255,9 @@ EXPECT: list[tuple[str, str, str, str]] = [
     ('d6_bom5_fp', 'bom', '5', 'footprint contains FH12-22S-0.5SH'),
 
     # ── 第 (3) 条 · SARADC_VIN5 满量程 + BAT_DET 分压比 (ISS-211 U-2) ──
-    ('d7_a181_value', 'netlist', '181', 'value == 1M+1M 分压 + 100nF'),
-    ('d7_a182_value', 'netlist', '182', 'value == 1M ±1%'),
-    ('d7_a183_value', 'netlist', '183', 'value == 1M ±1%'),
+    ('d7_a181_value', 'netlist', '181', 'value == 100k+60k 分压 + 100nF'),
+    ('d7_a182_value', 'netlist', '182', 'value == 100k ±1%'),
+    ('d7_a183_value', 'netlist', '183', 'value == 60k ±1%'),
     ('d7_a184_value', 'netlist', '184', 'value == 100nF ±10%'),
     ('d7_a186_node1', 'netlist', '186', 'node1 == J_SOM_P1 pin38'),
     ('d7_a186_dnp', 'netlist', '186', 'dnp == 必装'),
@@ -267,18 +267,18 @@ EXPECT: list[tuple[str, str, str, str]] = [
     ('d7_som_p138_signal', 'sompins', '39', 'signal == SARADC_VIN5'),
     ('d7_som_p138_vol', 'sompins', '39', 'vol == 1.8V'),
     ('d7_som_p138_num', 'sompins', '39', 'num == 38'),
-    ('d7_node_v', 'netlist', '?', 'calc(node_v@4.2) == 2.1'),
-    ('d7_node_over', 'netlist', '?', 'calc(node_v@4.2) > 1.8'),
+    ('d7_node_v', 'netlist', '?', 'calc(node_v@4.2) == 1.575'),
+    ('d7_node_over', 'netlist', '?', 'calc(node_v@4.2) < 1.8'),
 
     # ── 第 (4) 条 · BAT_DET 分压链漏电预算 (ISS-211 U-4) ──
-    ('d8_a182_note', 'netlist', '182', 'note contains 漏电流 ~1.65µA @5V'),
-    ('d8_bom86_value', 'bom', '86', 'value == 1M ±1%'),
-    ('d8_bom86_dnp', 'bom', '86', 'dnp == DNP'),
-    ('d8_bom87_value', 'bom', '87', 'value == 1M ±1%'),
-    ('d8_bom87_dnp', 'bom', '87', 'dnp == DNP'),
+    ('d8_a182_note', 'netlist', '182', 'note contains ADC 输入漏电 ~1µA'),
+    ('d8_bom86_value', 'bom', '86', 'value == 100k ±1%'),
+    ('d8_bom86_dnp', 'bom', '86', 'dnp == 必装'),
+    ('d8_bom87_value', 'bom', '87', 'value == 60k ±1%'),
+    ('d8_bom87_dnp', 'bom', '87', 'dnp == 必装'),
     ('d8_bom27_value', 'bom', '27', 'value == 100nF ±10%'),
-    ('d8_leak_now', 'netlist', '?', 'calc(leak_ua@4.2) == 2.1'),
-    ('d8_leak_claim', 'netlist', '?', 'calc(leak_note_ua@5) == 1.65'),
+    ('d8_leak_now', 'netlist', '?', 'calc(leak_ua@4.2) == 26.25'),
+    ('d8_leak_claim', 'netlist', '?', 'calc(leak_note_ua@5) == 1'),
 
     # ── 第 (5) 条 · USB D− 的 ESD 方案 + 型号判据 (ISS-211 U-1) ──
     ('d9_pages_esd_3mm', 'pages', '?', 'text contains ESD 距连接器 ≤3.0mm'),
@@ -299,15 +299,15 @@ EXPECT: list[tuple[str, str, str, str]] = [
     ('d10_spec_script', 'chgspec', '?', 'text notcontains lo*0.822'),
     ('d10_spec_script_1216', 'chgspec', '?', 'text contains lo*1.216'),
     ('d10_spec_0411', 'chgspec', '?', 'text notcontains 单 pin 0.411A ≤ 0.5A 触点天花板'),
-    ('d10_spec_0608', 'chgspec', '?', 'text contains 单 pin **0.608A**'),
-    ('d10_a47_value', 'netlist', '47', 'value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)'),
-    ('d10_a48_value', 'netlist', '48', 'value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)'),
-    ('d10_bom97_value', 'bom', '97', 'value == 390Ω ±1% (IINMAX ≈1.00A · ICHG ≈1.22A · 单 pin 0.608A ⇒ 超 0.50A 工作上限 21.6% · 档位待 V-4 裁决)'),
+    ('d10_spec_0608', 'chgspec', '?', 'text contains 单 pin **0.349A**'),
+    ('d10_a47_value', 'netlist', '47', 'value == 680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16)'),
+    ('d10_a48_value', 'netlist', '48', 'value == 680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16)'),
+    ('d10_bom97_value', 'bom', '97', 'value == 680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16)'),
     ('d10_a497_note', 'netlist', '497', 'note contains 工作上限 0.50A'),
     ('d10_ratio_370', 'netlist', '?', 'calc(ichg_ratio@3.7) == 1.216'),
     ('d10_ratio_420', 'netlist', '?', 'calc(ichg_ratio@4.2) == 1.071'),
-    ('d10_pin_max_370', 'netlist', '?', 'calc(ichg_pin_max@3.7) == 0.608'),
-    ('d10_pin_max_420', 'netlist', '?', 'calc(ichg_pin_max@4.2) == 0.536'),
+    ('d10_pin_max_370', 'netlist', '?', 'calc(ichg_pin_max@3.7) == 0.349'),
+    ('d10_pin_max_420', 'netlist', '?', 'calc(ichg_pin_max@4.2) == 0.307'),
 
     # ── 第 (8) 条 · NET-LED / C_VBUS_GND 的 board 列 (ISS-213 NET-LED) ──
     ('d11_a11_ref', 'netlist', '11', 'ref == C_VBUS_OUT'),
@@ -1582,7 +1582,7 @@ def selftest(root: str) -> int:
         _mutate_line(os.path.join(tmp, REL["netlist"]), 167, "value", "上拉 4.7k 到 3.3V")
 
     def m_net_dnp(tmp):
-        _mutate_line(os.path.join(tmp, REL["netlist"]), 182, "dnp", "必装")
+        _mutate_line(os.path.join(tmp, REL["netlist"]), 182, "dnp", "DNP")
 
     def m_net_note(tmp):
         _mutate_line(os.path.join(tmp, REL["netlist"]), 169, "note", "[VDD_1V8_IO] I2C_A 上拉 (已订正)")
@@ -1616,8 +1616,8 @@ def selftest(root: str) -> int:
         p = os.path.join(tmp, REL["specpage"])
         with open(p, encoding="utf-8") as fh:
             s = fh.read()
-        s = s.replace("| d2_a182_dnp | netlist | 182 | dnp == DNP |",
-                      "| d2_a182_dnp | netlist | 182 | dnp == 必装 |", 1)
+        s = s.replace("| d2_a182_dnp | netlist | 182 | dnp == 必装 |",
+                      "| d2_a182_dnp | netlist | 182 | dnp == DNP |", 1)
         with open(p, "w", encoding="utf-8") as fh:
             fh.write(s)
 
@@ -1648,15 +1648,15 @@ def selftest(root: str) -> int:
             fh.write(s)
 
     def m_net_rbatdet2_2m(tmp):
-        # ★把下臂改成 2M ⇒ calc(node_v@4.2) 从 2.1 变成 2.8 ⇒ d7_node_v / d7_node_over 双双变红
+        # ★把下臂改成 2M ⇒ calc(node_v@4.2) 从 1.575V 变成 4.0V ⇒ d7_node_v / d7_node_over 双双变红
         _mutate_line(os.path.join(tmp, REL["netlist"]), 183, "value", "2M ±1%")
 
     def m_net_leak_note(tmp):
-        # ★把 note 里自称的漏电流从 1.65µA 改成 2.5µA (★与 1M+1M 真值一致了⇒ 缺陷消失⇒ 必须变红★)
+        # ★把 note 里自称的 ADC 输入漏电从 1µA 改成 2.5µA (★与本档 ~1µA 占位值不一致⇒ 必须变红★)
         p = os.path.join(tmp, REL["netlist"])
         with open(p, encoding="utf-8") as fh:
             raw = fh.read()
-        raw = raw.replace("漏电流 ~1.65µA @5V", "漏电流 ~2.5µA @5V", 1)
+        raw = raw.replace("ADC 输入漏电 ~1µA", "ADC 输入漏电 ~2.5µA", 1)
         with open(p, "w", encoding="utf-8", newline="") as fh:
             fh.write(raw)
 
@@ -1789,7 +1789,7 @@ def selftest(root: str) -> int:
             shutil.rmtree(tmp, ignore_errors=True)
 
     cases.append(_run_case("用例1 [d1] 改坏 L167 的 value (2.2k/1.8V→4.7k/3.3V) ⇒ 必须红", root, m_net_value))
-    cases.append(_run_case("用例2 改坏 L182 的 dnp (DNP→必装) ⇒ 必须红", root, m_net_dnp))
+    cases.append(_run_case("用例2 改坏 L182 的 dnp (必装→DNP, 退回旧缺陷) ⇒ 必须红", root, m_net_dnp))
     cases.append(_run_case("用例3 改坏 L169 note (删掉『已作废』) ⇒ 必须红", root, m_net_note))
     cases.append(_run_case("用例4 [d3] 改坏 BOM L208 的 type (IC→NET, 退回旧缺陷) ⇒ 必须红", root, m_bom_type))
     cases.append(_run_case("用例5 [d1] 改坏 SPEC.json B-01.level (1.8V→3.3V) ⇒ 必须红", root, m_spec_level))
@@ -1800,8 +1800,8 @@ def selftest(root: str) -> int:
     # ★★第 2 轮 (ISS-214) 追加的 7 个反向用例 (★d5..d11 每组 ≥1 个★) ★★
     cases.append(_run_case("用例9 [d5] 改坏 SPEC.json B-21.imp (22Ω→90Ω 退回旧缺陷) ⇒ 必须红", root, m_spec_b21_imp))
     cases.append(_run_case("用例10 [d6] 改坏 P9 页 (22p→21p) ⇒ 必须红", root, m_pages_21p_to_22p))
-    cases.append(_run_case("用例11 [d7] 改坏 L183 下臂 (1M→2M, 触发 calc) ⇒ 必须红", root, m_net_rbatdet2_2m))
-    cases.append(_run_case("用例12 [d8] 改坏 L182 note 的自称漏电流 (1.65→2.5µA) ⇒ 必须红", root, m_net_leak_note))
+    cases.append(_run_case("用例11 [d7] 改坏 L183 下臂 (60k→2M, 触发 calc) ⇒ 必须红", root, m_net_rbatdet2_2m))
+    cases.append(_run_case("用例12 [d8] 改坏 L182 note 的自称漏电流 (1→2.5µA) ⇒ 必须红", root, m_net_leak_note))
     cases.append(_run_case("用例13 [d9] 把板上 D_ESD_USB_D 挪到 J_USB_C 旁 (calc-only) ⇒ 必须红", root, m_board_move_esd))
     cases.append(_run_case("用例14 [d10] 改坏 CHARGE_BOARD_SPEC 的 1.216 ⇒ 必须红", root, m_chgspec_0822))
     cases.append(_run_case("用例15 [d11] 改坏 L12 的 board 列 (CHG_BOARD→MAIN_PCB) ⇒ 必须红", root, m_net_cvbgnd_board))

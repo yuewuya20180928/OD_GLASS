@@ -3,14 +3,15 @@ role: 结构总工(带散热)
 updated_at: '2026-11-01T21:40:00+08:00'
 updated_by: mech-lead
 status:
-  phase: 交卷完成_判决源改造
+  phase: delivered
   progress_pct: 100
-  health: green
-  summary: ★ISS-273 (main 05:18 派单, cron 尚未派发 ⇒ 我按 owner=mech-lead 自取) = 网表/脚表 md5 的判决源从【域侧锚点副本】换成【落表台账
-    HW/SCHEMATIC_LANDING_V1_LANDED.md 的最新落表记录 (链头)】⇒ 合法落表不再红 (R2 绿) 而悄悄换真源照样红 (R1 红, G5b+C21 双红) · 判最新靠有向链不靠行序
-    ⇒ R4 绿, 取不准一律判红 (R3/R5a/R5b) · R6 板 md5 变仍红且点名硬保护组 · 老 14 条反向用例一条没少 ⇒ selftest 21/21 · 门禁 23/23 rc=0
-    · 本单只动 2 件 (门禁脚本 + triage 纯追加 Q-14/source_ledger_role/§3.1 R-08) · 落表台账/网表/脚表/BOM/板/.kicad_pro 逐字节未动
-    · 零落表 · 零外发 · 未碰 HW/ 与 SW/ · 不替老板拍板 · 未自签 issue_log (verify 留给 main)★
+  health: 绿
+  summary: 'ISS-278 MECH 侧: 板侧输入收成【一份规格 + 一道闸】—— MECH/BOARD_ONEPASS_MECH_SYNC.md (逐条表 8 字段 + MECH→HW 输入清单
+    15 条 + S6 认领句 + 机器块 JSON) + MECH/check_onepass_mech_sync.py (M1 帧标签 / M2 两条开口各自不压 SoM 座 / M3 座体高度参数式三档自洽
+    / M4 判据命令真存在 / M5 受保护 5 件 md5; 主跑 rc=0, --selftest rc=0 8 条反向用例全抓到) + ISS-276 归一页追加式订正 §3b/§4b/§6b/§7b/§8
+    (前 25766 字节与原文件逐字节相同 ⇒ 老字未动) + 修了上一趟挂掉的 logs/iss278/compute_iss278.py TypeError 并重算出 13122 B 实算产物
+    — 四条悬着的板侧输入全部成规格; 零写板/零落表/零改既有 MECH 判据脚本/零改 HW/零外发/零实物; 待 main→老板拍 3 条 (亮度档 G-5 / 座体高 h 的确认途径 / 结构光孔有否),
+    其中前两条排在「板只改一次」之前'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -1005,6 +1006,63 @@ artifacts:
     纯追加 Q-14/source_ledger_role/R-08)★ ⇒ 门禁 23/23 rc=0 · --selftest 21/21 (老 14 条一条没少 + 新 R1~R6 七条) ·
     其它 5 个闸 + merge/gate rc=0 Q1 18/18 · 6 个硬保护文件 + 落表台账 + 网表/脚表/BOM/板/.kicad_pro 逐字节未动, 只有门禁脚本本体 md5
     4ae5827e…→6972b867… (H-1 重基线, §3.1 R-08 留痕) · 零落表 · 零外发 · 未碰 HW/ 与 SW/ · 未自签 issue_log'
+- path: MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-276 坐标系归一页: 一切坐标 = 帧: 160×100 台架板 (Edge.Cuts 中心线 0..160 × 0..100) ⇒ 与帧: 60×30 套A 不可互相代入★
+    · §2 SoM 承载区实测三口径 (铜箔 53.80×46.78 / 座体 56.60×46.20 / 保守 56.70×46.78) · §3 开口: 调试口 X 137.850..148.050
+    × Y 54.300..58.900 + UART 口 X 13.790..23.990 × Y 66.300..70.900 (压 SoM 焊盘全 0) + 合并开口不可行 (差 116.017mm)
+    + J_DEBUG↔J_UART ΔX 123.56 的影响 · §4 D_LED_G: LED_G_D 93.492727mm 根因 (排版器按功能排) + 可放行空间 (整高带 X 1.550..3.450
+    / 最近落位带 X 6.940..8.250 × Y 63.700..67.900) + 净距敏感度 (0.00~0.50 ⇒ 走线 0.450~0.965mm) + 只给空间不定坐标 · §5
+    给 hw-lead 的 S6 认领句 (现役板坐标版) · §6 边界与证据分级 · 全文含机器块 (帧登记表)'
+- path: MECH/check_board_frame_coords.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-276 坐标系机器闸 (新建, 不改任何既有 MECH 判据脚本): C1 帧标签 (漏标一条即红, 词表只收能指名道姓说出是哪一套坐标的词) / C2 归一后窗口压 J_SOM_P1..P4
+    焊盘数必须 = 0 / C3 两套坐标不可代入负向断言 (旧矩形喂进现役坐标必须报出 56 / 10 个焊盘) / C4 受保护 5 件 md5 逐字节不变 · --compute / --json
+    / --selftest (7 条反向用例: 改窗口角 / 抽帧标签 / 窗口挪进 SoM 区 / 旧矩形当新坐标喂 / 旧矩形挪开报 N=0 / 改受保护件 / 真件跑完自检仍不变) · 只读
+    import board_port_opening_s6_check.py 取 BASE/TOL/CRIT ⇒ 阈值零漂移'
+- path: HANDOFF/2026-11-17_mech-lead_ISS276_MECH侧坐标系归一与三条need收口.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-276 交卷单 (B1~B6 六块齐全): B1 结论摘要 (坐标系声明 / SoM 三口径 / 旧矩形 56+10 个焊盘 / 合并开口不可行 / 两个归一后的开口 /
+    LED_G_D 根因 / D_LED_G 可放行空间与净距敏感度 / 机器闸 / ISS-273 三条收口 / 两条台账口径建议 / 边界自证) + B2 逐条自评 (24 条) + B3 实跑原始输出
+    + B4 接口取值 + B5 未决 9 条 + B6 复现命令 + 附 A 交卷物 / 附 B 三处口径差异 / 附 C 施工日志'
+- path: MECH/BOARD_ONEPASS_MECH_SYNC.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-278 MECH 侧板侧输入清单 (机器可读 · 新建): §1 坐标系声明 (帧 B160x100, Edge.Cuts 中心线 0..160 × 0..100) +
+    §2 逐条表 (id/source_iss/title/current_state+证据级/spec/criterion+真命令/blocked_by/evidence 共 9 条) + §3 MECH→HW
+    输入清单 15 条 + §3.4 给 hw-lead 的 S6 认领句 + §4 归 main·老板拍 (亮度档 G-5 / 座体高 h 的降级路径 / 结构光孔有否 / 连接器参数) + §5
+    机器块 JSON (openings×2 + merged_opening + led 两假设 + connectors×19 + items×9) + §6 边界自证★'
+- path: MECH/check_onepass_mech_sync.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-278 MECH 侧板侧输入机器闸 (新建 · 只读 import check_board_frame_coords.py ⇒ 阈值零漂移): M1 帧标签 / M2 两条开口各自不压
+    SoM 座 / M3 座体高度参数式三档自洽 / M4 判据命令真存在 / M5 受保护 5 件 md5 逐字节不变 · --selftest 8 条反向用例全抓到 (含真件跑完自检后 5 件 md5
+    仍逐字节不变) · 零写板/零落表/零改既有 MECH 判据脚本/零改 HW★'
+- path: MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md
+  kind: caliber
+  version: '1.1'
+  updated_at: '2026-11-17'
+  summary: '★ISS-278 追加式订正 (★老字一字未删未改: 前 25766 字节与 ISS-276 原文件逐字节相同, 追加点 = 字节 25776★): 新增 §3b 检修口/调试口两条独立规格
+    (含合并缺口 116.0175 mm 留档) + §4b 座体高度参数化 (公式 + 三档 + 降级路径 + 三档代入表) + §6b D_LED_G 光孔两假设 + §7b 连接器占位参数对照表
+    (params 19 项 12 项对不上 + BOM/网表 1.27 vs 板读 0.50 出入) + §8 给 hw-lead 的 S6 认领句 (追加: 检修口与调试口是【两条】不许再合并 +
+    开口 Y 按公式取值不许写死 4.60) · 追加后 check_board_frame_coords.py 仍 rc=0 / --selftest 仍 rc=0★'
+- path: MECH/check_board_frame_coords.py
+  kind: gate
+  version: '1.1'
+  updated_at: '2026-11-17'
+  summary: '★ISS-286 坐标归一闸 C4 判决源台账化 (★只改这一件, HW/SW 零碰★): C4 对【网表 / 脚表 / BOM】三件的判决源从【写死 md5 基线】换成【落表台账
+    HW/SCHEMATIC_LANDING_V1_LANDED.md 的最新落表记录 (链头)】⇒ 合法落表 ⇒ 链头自动前移 ⇒ 绿 (★病根是判决源选错了, 不是真源被改了 ⇒ 修法落在取值来源上★);
+    板 / .kicad_pro 两行基线一字未动; fail-closed 五条全保留 (查不到登记 / 链头不唯一 / 链头无单号 / 链断或记录不在链上 / 盘上≠链头 ⇒ 全红); --selftest
+    12 条全抓到 (原有 5 条一条没少 + 新增 7 条台账用例) · 老闸 check_demo_struct_truth.py 23/23 rc=0 · 板与网表/脚表/BOM/台账 md5
+    一个字节没变'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -2560,6 +2618,34 @@ needs_from:
     锚 / 评审流程? ★**不加的代价** = 台账是单点 (谁改了台账谁说了算); ★**加的代价** = 又多一层要随落表重锚的东西 ⇒ 有可能绕回「一落表就红」 ⇒ ★**这个取舍请你拍; 另:
     SW 侧同构问题 (SW/tools/check_demo_panel_spec.py 的 R6) 按 brief 不在我地界, 我只把可复用口径写进交卷单附 A, 由你另派**★'
   since: '2026-11-17'
+- key: iss276_mech_s6_claim_frame_align
+  to: hw-lead
+  item: '★ISS-276 (mech-lead) 把 §3-S6 的认领句改成了【帧: 160×100 台架板 坐标版】⇒ ★**请与 `HW/PCB/BOARD_FRAME_CALIBER.md`
+    (ISS-274 同批产出) 的帧声明对齐后再收进 §3-S6**★ ⇒ ★**两边不得各用一套: 若 ISS-274 的帧声明与 `MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md`
+    §1 不一致 ⇒ 停手, 回报 main 裁决, 不许各写各的**★ ⇒ ★**具体三条**: ①调试口开口 (罩 J_DEBUG) = X 137.850..148.050 × Y 54.300..58.900,
+    左下角可放行 X0 ∈ [137.850, 142.063] · Y0 ∈ [54.300, 55.330] (帧: 160×100 台架板) ②UART 检修口开口 (罩 J_UART) = X
+    13.790..23.990 × Y 66.300..70.900, 左下角可放行 X0 ∈ [13.790, 17.620] · Y0 ∈ [66.300, 67.330] (帧: 160×100
+    台架板) ③★**S6 必须拆成两条**: J_DEBUG (144.30, 58.00) 与 J_UART (20.74, 70.00) 的 ΔX = 123.56 mm ⇒ 一个开口罩不住两个
+    ⇒ 「必须清空区 7.62 × 2.54」是帧: 60×30 套A 的并排模型, 在本帧不成立, 不得抄★ ⇒ ★**D_LED_G 窗口**: 整高自由带 X 1.550..3.450 / 最近落位带
+    X 6.940..8.250 × Y 63.700..67.900 (封装原点可放行窗口); LED_G_D 现状 93.492727mm ⇒ 搬到 R_LED_G 旁边 ⇒ < 1mm (净距
+    0.00~0.50 任一档)★ ⇒ ★**真源**: MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md (ISS-276) + 机器复算 python3 MECH/check_board_frame_coords.py
+    --compute; 机器闸 C2 会把「压住 SoM 焊盘 ≠ 0」的窗口直接判红★ ⇒ ★**本单零字节写 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md` (那是你的文件)
+    — 原文我写在 MECH 侧归一页 §5, 你按 §5 抄进 §3-S6 即可★**★'
+  since: '2026-11-17'
+- key: iss278_mech_to_hw_board_inputs
+  to: main
+  item: '★【转交 hw-lead · ISS-277 同批在做板侧清单】MECH/BOARD_ONEPASS_MECH_SYNC.md §3「MECH→HW 输入清单」15 条 + MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md
+    §7b「连接器占位参数对照表」⇒ 请 main 转 hw-lead: ① hw-lead 那一趟要按什么值画 (调试口开口 X 137.850..148.050 × Y 54.300..58.900
+    罩 J_DEBUG / 检修口开口 X 13.790..23.990 × Y 66.300..70.900 罩 J_UART / 开口 Y 按 OPEN_Y_eff(h) = max(4.60,
+    h + 1.80) 取值不许写死 4.60 / D_LED_G 整高带 X 1.550..3.450 + X 72.540..73.660 与最近落位带 X 6.940..8.250 × Y 63.700..67.900
+    / 连接器占位以落表板实读为真源); ② HW/PCB/demo_mainboard_params.json 的连接器/SoM 段与落表板对不上 (19 项里 12 项: usb_c_ref /
+    usb_c_position_mm / uart_pins / uart_pitch_mm / uart_position_mm / jtag_ref / jtag_pins / jtag_pitch_mm
+    / jtag_position_mm / som.ref / som.pins_x / som.pins_y / som.width_mm / som.height_mm / som.position_mm
+    / board.corner_radius_mm) + BOM 与网表写 1.27mm 排针而板读 land pattern 是 0.50mm ⇒ 请 hw-lead 改 (★我零改 HW/★);
+    ③ 收 §3.4 的 S6 认领句进 HW/PCB/BOARD_ONEPASS_WORKPACKET.md §3-S6 (★ISS-281 同批在做那个文件, 两边各写各的只交叉引用★)★ 另:
+    ★**§4 那三条归 main→老板拍, 其中亮度档 G-5 会连带改串阻 ⇒ 改网表 ⇒ 改 BOM ⇒ 改板面落位 ⇒ 必须排在「板只改一次」之前拍; 结构光孔有/无 同理 (有孔 ⇒ D_LED_G
+    必挪 ⇒ 板面落位要改); 座体高度 h 本机物理量不到 ⇒ 已给降级 (参数式 + 三档 + 按 h=4.00 保守上界画 ⇒ 型号定版不触发第二次改板), 不阻塞那一趟★'
+  since: '2026-11-17'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -2940,6 +3026,55 @@ answers:
     ③台账那条记录过期/取错了会不会假绿 ⇒ 不会 (判最新靠图不靠行序 ⇒ 取错只会假红不会假绿; 取不准一律判红)★'
   ref: HANDOFF/2026-11-17_mech-lead_ISS273_锚点台账化.md (B1~B6 + 附 A/B/C) · logs/iss273/acceptance_01_gate.log
     · logs/iss273/acceptance_02_md5_and_gates.log
+- key: iss273_h1_anchor_single_source
+  to: main
+  value: '★ISS-273 (owner=mech-lead) 已按 main 2026-11-17 05:2x 的 H-1 裁决落地: 判决源从【域侧锚点副本】换成【落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    里该文件的最新落表记录 (链头)】★ ⇒ ①合法落表后还红不红 ⇒ 不红 (链头自动前移, 域侧锚点副本降级为历史留痕) ②真源被偷偷换还红不红 ⇒ 红 (盘上 md5 ≠ 台账链头 ⇒ G5b
+    + C21 双红) ③台账那条记录过期或取错了会不会假绿 ⇒ 不会 (判最新靠有向链 不靠行序 ⇒ 取错只会假红不会假绿; 取不准一律判红) ★ ⇒ 现值: 网表链头 e06c1dd63356 ·
+    脚表链头 287e7861a0d1 (台账 7 条记录 ⇒ 有向链 ⇒ 唯一链头, by ISS-257) ★ ⇒ 机器闸 MECH/check_demo_struct_truth.py rc=0
+    23/23 · --selftest rc=0 21/21 (老 14 条反向用例一条没少、期望全不变) ★ ⇒ ★本条 answer 是补配对的: 之前 ISS-273 的答复写在 iss273_mech_h1_judge_source_change
+    这个 key 上, 与 main 开的 iss273_h1_anchor_single_source 不配对 ⇒ merge.py 配不上 ⇒ pm.yaml 那条 pending need 没闭合
+    ⇒ 现在用 main 开的原 key 补上 ★ ⇒ ★MECH 侧现状: 网表/脚表/BOM/板/.kicad_pro 五件 md5 与 ISS-273 交卷时逐字节一致; 本轮 ISS-276
+    零写板零落表 (机器闸 C4 逐字节核过) ★'
+  ref: HANDOFF/2026-11-17_mech-lead_ISS273_锚点台账化.md (B1~B6 + 附 A/B/C) · MECH/check_demo_struct_truth.py:326
+    ledger_records()
+- key: iss273_mech_ledger_format_contract
+  to: main
+  value: '★MECH 侧看到的格式契约现值 = 【单号 | 文件名 | 改前 md5 | 改后 md5】四项同行★ (HW/SCHEMATIC_LANDING_V1_LANDED.md 17.5
+    / 18.4 实读) ⇒ ★这四项就是 MECH 侧判据脚本靠它抽链的格式★ (MECH/check_demo_struct_truth.py:326 ledger_records() 实读: 行内第一个
+    md5 = 前驱, 最后一个 = 改后; 链头 = 不是任何记录改前 md5 的那个改后 md5) ⇒ ★改写法 ⇒ 解析不到 ⇒ 判红 ⇒ 又变成一落表就红的另一种形态★ ⇒ ★我的建议 (MECH
+    侧只读, 不代 main 拍落点): 写进【HW 侧落表作业包模板】★ ⇒ 理由: ①格式契约的生产者是落表动作的执行方 = hw-lead, 契约写在作业包模板里, 执行时不用去 MECH 目录翻
+    ②MECH 侧只是解析方; 契约文本若落在 MECH 目录, 下次改落表的人根本不会去看 ③台账住在 HW/, 由 hw-lead 写 ⇒ 契约跟着台账走最不容易漂 ★ ⇒ ★MECH 侧要什么:
+    ①契约定版后给我一份逐字样例 (一行) 即可, 我这边解析器已经按现值写好 (ISS-273 成果), 零改动即可对上 ②若 main 决定改写法, 请连同一行样例一起给 ⇒ 我按新格式重写解析器并重基线脚本
+    md5 (照 ISS-273 R-08 的老规矩留痕) ★ ⇒ ★MECH 侧不需要台账的写权限, 也不需要改任何既有判据脚本 (check_demo_struct_truth.py 现 md5
+    6972b867c8243bc971408f972dc7727e 一字未动) ★'
+  ref: HW/SCHEMATIC_LANDING_V1_LANDED.md 17.5 + 18.4 (实读) · MECH/check_demo_struct_truth.py:321 LEDGER_CANON
+    + :326 ledger_records()
+- key: iss273_mech_ledger_itself_anchor
+  to: main
+  value: '★MECH 侧的建议 + 代价 (★只给建议与代价, 不代 main 拍★): 【不要给台账本体再加一层 md5 锚; 要加就把锚放到【只读侧】, 别放在台账旁边】★ ⇒ ★理由 (从
+    MECH 判据角度): 判决源换成台账之后, 悄悄换真源的防线只剩一条 = 台账链头 vs 盘上 md5 比对 ⇒ 谁改了台账最后一条记录、谁把链头 md5 改成盘上现值, 门禁就绿 ⇒ ★给台账本体再加一个
+    md5 锚, 堵不住这个洞: 锚和台账在同一个可写集合里, 改台账的人顺手就能改锚; 真正要堵的是【链的完整性】(改前 md5 = 上一条改后 md5), 而这条链已经在判据里 (断链 ⇒ 判红
+    / 链头不唯一 ⇒ 判红 / 链头无单号 ⇒ 判红)★ ⇒ ★代价 (我看到的): ①台账每落一次表就得重锚一次 ⇒ 又多一层要随落表重锚的东西 ⇒ 正是 H-1 裁决里担心的绕回老循环 (一落表就红),
+    只是这次锚的是台账而不是网表 ②锚的存放点成了新的单点 ⇒ 谁改锚谁说了算, 跟现在台账的单点问题同构 ⇒ 没解决, 只是换了个文件 ③锚 md5 一变 ⇒ 门禁脚本自身要跟着改基线 ⇒ 每跳多一次脚本重基线
+    (ISS-273 已经改过一次: 4ae5827e986f1aebb108c5aa2a475074 → 6972b867c8243bc971408f972dc7727e) ★ ⇒ ★所以我的建议是:
+    台账本体不加 md5 锚; 改为把【每条落表记录必须链式相接 (本条改前 md5 = 上一条改后 md5)】写成落表作业包的硬规则, 并保留现有的断链/链头不唯一/取不准一律判红 ⇒ 悄悄换真源的洞由【链的完整性】堵,
+    而不是由【再加一层可写锚】堵★ ⇒ ★如果 main 仍决定加锚, MECH 侧能接的唯一形态是: 锚写在只读侧 (MECH 自己的只读副本, 或 issue_log 的受保护段), 不写在台账旁边
+    ⇒ 否则锚与台账同可写集合 = 白加★ ⇒ ★另: 台账格式契约的最终落点, 我在 iss273_mech_ledger_format_contract 那条里的建议是【HW 侧落表作业包模板】,
+    两条同口径★'
+  ref: MECH/check_demo_struct_truth.py:318-330 (链判据) · MECH/HW_CROSS_REVIEW_TRIAGE.md 3.1 R-08 (脚本重基线留痕)
+- key: iss286_mech_frame_gate_ledger_caliber
+  to: main
+  value: '★ISS-286 交卷 (mech-lead): MECH/check_board_frame_coords.py 的 C4 判决源已从【写死 md5 基线】换成【落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    里该文件的最新落表记录 (链头)】⇒ ① 病根 = 判决源选错了 (不是真源被改了) ⇒ 修法必须落在取值来源上, 不许只改取值 (★实测: 40 分钟内因上游落表红了三遍, 每次都是基线过期★);
+    ② 板 / .kicad_pro 两行写死基线一字未动 (真·不许变 ⇒ 落表链不管它们); ③ 网表 / 脚表 / BOM 三件的 fail-closed 五条全保留 (★一条没放宽★): 台账里查不到任何登记⇒红
+    / 链头不唯一⇒红 / 链头无落表单号⇒红 / 链断了或有记录不在链上⇒红 / 盘上 md5 ≠ 台账链头⇒红; ④ 反向用例 12 条全抓到 (★原有 5 条一条没少、期望全不变 + 新增 7
+    条★): 合法落表⇒绿 / 台账查不到登记⇒红 / 盘上≠台账⇒红 / 台账手改单号不齐⇒红 / 文件名不齐⇒红 / 前后 md5 不齐⇒红 / 链头不唯一⇒红; ⑤ 零写板 / 零落表 / 未改
+    check_demo_struct_truth.py (★md5 6972b867 不变 = ISS-273 交卷时的值★) / 未碰 HW 与 SW / 未签 issue_log / 零外发 ⇒
+    板 611b869e · .kicad_pro 3e504d2b · 台账 1ae6242a · 网表 37f62ac3 前后一致; ⑥ 交卷单 = HANDOFF/2026-11-17_mech-lead_ISS286_坐标归一闸台账化.md
+    (B0~B6) + 原始日志 = logs/iss286/acceptance_01..05.log'
+  ref: HANDOFF/2026-11-17_mech-lead_ISS286_坐标归一闸台账化.md · logs/iss286/acceptance_01_gate.log · acceptance_02_selftest.log
+    · acceptance_03_demo_struct_truth.log · acceptance_04_md5.log · acceptance_05_state_gates.log
 interface_claims:
 - key: battery_capacity_tier
   value: 315mAh无桥/387mAh有桥
@@ -4474,6 +4609,42 @@ interface_claims:
     §3.1 **R-08** (★brief 写的是 R-07, 但 R-07 已被 ISS-264 占用 ⇒ 本单用下一号, 不覆盖前 7 条★) + §0 Q-14 + §1 source_ledger_role
     块★'
   ref: ''
+- key: iss276_mech_bench_frame_caliber
+  value: '★现役 160×100 台架板坐标系归一页 (MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md) 已立: 一切坐标 = Edge.Cuts 中心线
+    0..160 × 0..100 (stroke 外缘 160.10 × 100.10) ⇒ 与 MECH/BOARD_GEOM_30MM.md 的 60×30 套A 坐标【不是同一套】, 两套数不可互相代入★'
+  note: ★ISS-276 (main 2026-11-17 06:1x 派单); 零写板/零落表/零改既有 MECH 判据脚本; 机器闸 = MECH/check_board_frame_coords.py
+    (新建, C1~C4)★
+  ref: HANDOFF/2026-11-17_mech-lead_ISS276_MECH侧坐标系归一与三条need收口.md
+- key: iss276_mech_iss273_three_needs_closed
+  value: '★ISS-273 留下的三条已收口: (1) 用 main 开的原 key iss273_h1_anchor_single_source 补 answer (to=main) ⇒ pm.yaml
+    那条 pending need 闭合; (2) iss273_mech_ledger_format_contract 给出 MECH 侧看到的格式契约现值 (单号|文件名|改前md5|改后md5
+    四项同行, HW/SCHEMATIC_LANDING_V1_LANDED.md 17.5/18.4) + 建议落点; (3) iss273_mech_ledger_itself_anchor 给出建议与代价
+    (只给建议, 不代 main 拍)★'
+  note: ★三条 answer 全部写在 state/fragments/mech.yaml, key 与 main 开的 key 逐字一致 ⇒ merge.py 按 key 配对★
+  ref: HANDOFF/2026-11-17_mech-lead_ISS276_MECH侧坐标系归一与三条need收口.md
+- key: iss278_mech_onepass_board_inputs_spec
+  value: '★MECH 侧板侧输入【规格】已立: MECH/BOARD_ONEPASS_MECH_SYNC.md (§1 坐标系声明 + §2 逐条表 8 字段共 9 条 + §3 MECH→HW
+    输入清单 15 条 + §3.4 可抄的 S6 认领句 + §4 归 main·老板拍 + §5 机器块 JSON) ⇒ ① 检修口/调试口【两条】独立规格 (罩 J_UART (20.74, 70.00)
+    / 罩 J_DEBUG (144.30, 58.00); ΔX 123.56 ⇒ 合并必须清空区并集宽 126.2175 vs 开口宽 10.20 ⇒ 缺口 116.0175 mm ⇒ 几何上不可能,
+    不许再合并); ② 座体真实高度 h = [0数据] ⇒ 降级 = 参数式 OPEN_Y_eff(h) = max(4.60, h + 1.80) + 三档 (0.90 / 2.54 / 4.00)
+    + 板那一趟按公式取值 (★按 h=4.00 保守上界画 ⇒ 三档全覆盖 ⇒ 座体型号定版不触发第二次改板★); ③ D_LED_G 出光侧结构光孔 = [0数据] ⇒ 有孔/无孔两假设各一份可放行空间
+    (有孔: X 6.940..8.250 × Y 63.700..67.900, 走线 0.450~0.965 mm, 板面落位要改 / 无孔: 整高带 X 1.550..3.450 + X 72.540..73.660
+    × Y 1.450..98.950, 现状 93.492727 mm 亦合法, 板面不用改); ④ 连接器占位参数对照表 (§7b: params 19 项里 12 项与落表板对不上 + BOM/网表
+    1.27mm vs 板读 0.50mm 出入 2 项)★'
+  note: ★ISS-278 (main 2026-11-17 07:3x 派单); 帧 id = B160x100 (与 HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES
+    逐字对齐); 零写板/零落表/零改既有 MECH 判据脚本/零改 HW/零外发/零实物; 事实登记见交卷单
+  ref: HANDOFF/2026-11-17_mech-lead_ISS278_MECH侧板侧输入收口.md
+- key: iss278_mech_onepass_machine_gate
+  value: '★MECH 侧板侧输入【机器闸】已立: MECH/check_onepass_mech_sync.py (★新建, 不改任何既有 MECH 判据脚本★) ⇒ M1 帧标签齐全 (坐标组/条目必须带
+    frame 且 frame id ∈ {B160x100, F30A, P60x15}, 不许造第四套) / M2 两条开口【分别】不压 SoM 座 (读板, 检修口与调试口各自压 J_SOM_P1..P4
+    焊盘数必须 = 0; 机器块 openings[] 必须恰好 2 条 ⇒ 合并即红) / M3 座体高度参数式自洽 (h 三档逐档代入 ⇒ 开口 Y 单调 + 落板框内 + 不压 SoM + 最坏单边间隙
+    ≥ CRIT 0.60 + 声明矩形与公式自洽) / M4 判据命令真存在 (清单每条 criterion 的命令必须本机真存在) / M5 受保护 5 件 md5 逐字节不变; ★主跑 rc=0
+    (M1~M5 全过) + --selftest rc=0 (8 条反向用例全抓到: ①改检修口矩形角 ⇒ M2 红 ②合并两条开口 ⇒ M2/M3 红 ③抽正文帧标签 ⇒ M1 红 ④抽机器块 frame
+    ⇒ M1 红 ⑤h 三档改坏 ⇒ M3 红 ⑥判据命令改假 ⇒ M4 红 ⑦改受保护件 ⇒ M5 红 ⑧真件跑完自检后 5 件 md5 仍逐字节不变)★'
+  note: ★只读 import MECH/check_board_frame_coords.py (阈值 CRIT/TOL/OPEN_X/OPEN_Y/EDGE_KEEPOUT/PROTECTED
+    零漂移) + MECH/board_port_opening_s6_check.py; 反向用例一律在沙盒副本上跑; 机器块改数必须同步改 MECH/BOARD_ONEPASS_MECH_SYNC.md
+    §2 表
+  ref: MECH/check_onepass_mech_sync.py
 open_questions:
 - id: MECH-Q1
   to: main
