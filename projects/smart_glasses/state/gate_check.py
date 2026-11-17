@@ -196,18 +196,49 @@ def run_hw_pinout_gate() -> dict:
 #   ★**以前谁都不跑 ⇒ 它们的判据形同虚设** ⇒ ★**门禁链缺它 = 判据漂移无人拦 (ISS-136 同款根因)** ★
 #   ★**语义与 HW pinout 闸完全一致**: 脚本不存在 / 跑不起来 / 超时 ⇒ 一律算【闸红】, 绝不「没跑就当过」★
 EXTRA_GATES = [
-    (os.path.join(PROJ, "MECH", "check_mech_verdict_freshness.py"), "MECH 结构结论防漂闸 (ISS-295)"),
-    (os.path.join(PROJ, "SW", "tools", "check_onepass_sw_sync.py"), "SW 侧板侧输入/合法改板闸 (ISS-298)"),
+    (os.path.join(PROJ, "MECH", "check_mech_verdict_freshness.py"), "MECH 结构结论防漂闸 (ISS-295)", ()),
+    (os.path.join(PROJ, "SW", "tools", "check_onepass_sw_sync.py"), "SW 侧板侧输入/合法改板闸 (ISS-298)", ()),
+]
+
+# ★★2026-11-17 22:1x (main): 9 道「钉板 md5 闸」挂进门禁链 (★ISS-136 同款根因的最后一处★)
+#   ★**为什么必须挂**: 这 9 道是「板 md5 钉死」判据的持有者 (★ISS-292/296/297/298 建好了【合法改板通道】★)
+#     ⇒ 「板只改一次」那一趟当天, 板 md5 一旦偏离, **只有它们能拦** ⇒ 它们在链外 = 判据形同虚设
+#     ⇒ ★**与 ISS-136 完全同款**: 「以前谁都不跑 ⇒ 漂移长期没人拦」★
+#   ★**为什么现在才挂**: 第 5 道 `HW/check_pin_function_labels.py` 此前 rc=1 (★基线常量停在 ISS-257 旧值★)
+#     ⇒ 挂上去链当场红 ⇒ ★**main 把它排进 ISS-299 (hw-lead 在飞) 重锚 ⇒ 交卷后再挂**★
+#     ⇒ ★**本清单里 9 道现在全绿 (2026-11-17 22:0x main 本机实跑) ⇒ 可以挂**★
+#   ★**per-gate 参数 (★为什么必须支持★)**: 不同闸的「绿」口径不一样 ——
+#     · `check_pin_function_labels.py` 的**已知缺陷基线**要靠 `--expect-known` 才是绿 (★裸跑必然 rc=1★
+#       ★因为它把「15 条脚表功能缺陷」当成失败 ⇒ 那是**冻结快照**, 不是回归★ ⇒ 不加参数挂上去 = 假红★)
+#     · 其余 8 道裸跑即绿 ⇒ 参数为空
+#   ★**fail-closed 语义不变**: 脚本不存在 / 跑不起来 / 超时 ⇒ 一律算【闸红】, 绝不「没跑就当过」★
+PINNED_MD5_GATES = [
+    (os.path.join(PROJ, "HW", "check_fsin_rootcause.py"), "钉板闸① FSIN 根因闸", ()),
+    (os.path.join(PROJ, "HW", "check_g1a7_selection_landed.py"), "钉板闸② G1a-7 选型落表闸", ()),
+    (os.path.join(PROJ, "HW", "check_onepass_commit_order.py"), "钉板闸③ 改板提交顺序闸", ()),
+    (os.path.join(PROJ, "HW", "check_onepass_preflight_coverage.py"), "钉板闸④ 作业包覆盖度闸", ()),
+    (os.path.join(PROJ, "HW", "check_pin_function_labels.py"), "钉板闸⑤ 脚表功能标签闸", ("--expect-known",)),
+    (os.path.join(PROJ, "HW", "check_workpack_state_values.py"), "钉板闸⑥ 作业包现状值闸", ()),
+    (os.path.join(PROJ, "MECH", "check_board_frame_coords.py"), "钉板闸⑦ 板框坐标闸", ()),
+    (os.path.join(PROJ, "MECH", "check_demo_struct_truth.py"), "钉板闸⑧ 结构真值闸", ()),
+    (os.path.join(PROJ, "SW", "tools", "check_onepass_sw_sync.py"), "钉板闸⑨ SW 侧合法改板通道闸", ()),
 ]
 
 
-def run_external_gate(path: str, name: str) -> dict:
-    """通用 fail-closed 外部闸 (★抄 HW pinout 闸的语义, 不另发明★)"""
+def run_external_gate(path: str, name: str, args=()) -> dict:
+    """通用 fail-closed 外部闸 (★抄 HW pinout 闸的语义, 不另发明★)
+
+    ★2026-11-17 22:1x (main): 加 per-gate 参数 `args` (★tuple★)
+      ⇒ ★**为什么**: 不同闸的「绿」口径不同 (★例: `check_pin_function_labels.py` 裸跑 rc=1 是因为
+        「15 条脚表功能缺陷」是**冻结快照**不是回归 ⇒ 必须 `--expect-known` 才绿★)
+      ⇒ ★**不许**为了挂上去绿而改闸本体 (★那是 agent 的地界★) ⇒ 参数是唯一正确的适配手段★
+    """
     if not os.path.exists(path):
         return {"ok": False, "rc": None, "name": name,
                 "detail": f"★闸脚本不存在: {path} ⇒ 视为闸红 (不许静默跳过)"}
+    cmd = [sys.executable, path] + list(args)
     try:
-        p = subprocess.run([sys.executable, path], cwd=PROJ, capture_output=True,
+        p = subprocess.run(cmd, cwd=PROJ, capture_output=True,
                            text=True, timeout=300)
     except subprocess.TimeoutExpired:
         return {"ok": False, "rc": None, "name": name, "detail": "★闸脚本超时 (300s) ⇒ 视为闸红"}
@@ -411,13 +442,25 @@ def main() -> int:
     # ★★2026-11-17 20:0x (main): 新闸挂链 (★ISS-295 / ISS-298·★fail-closed 同款★)★★
     report["extra_gates"] = []
     extra_ok = True
-    for _p, _n in EXTRA_GATES:
-        _g = run_external_gate(_p, _n)
+    for _p, _n, _a in EXTRA_GATES:
+        _g = run_external_gate(_p, _n, _a)
         report["extra_gates"].append(_g)
         report["summary"][f"extra_gate_ok::{_n}"] = _g["ok"]
         if not _g["ok"]:
             extra_ok = False
             report["gaps"].append(f"★新闸红: {_g['name']} — {_g['detail']}")
+
+    # ★★2026-11-17 22:1x (main): 9 道「钉板 md5 闸」挂链 (★ISS-136 同款根因的最后一处★)
+    #   ★**板只改一次那一趟的护栏**: 板 md5 偏离时, **只有这 9 道能拦** ⇒ 链外 = 判据形同虚设★
+    report["pinned_md5_gates"] = []
+    pinned_ok = True
+    for _p, _n, _a in PINNED_MD5_GATES:
+        _g = run_external_gate(_p, _n, _a)
+        report["pinned_md5_gates"].append(_g)
+        report["summary"][f"pinned_gate_ok::{_n}"] = _g["ok"]
+        if not _g["ok"]:
+            pinned_ok = False
+            report["gaps"].append(f"★钉板闸红: {_g['name']} — {_g['detail']}")
 
     # ---- 缺口清单 (可直接转成派活项) ----
     for a in subs:
@@ -441,7 +484,7 @@ def main() -> int:
 
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
-        return 0 if (hw_gate["ok"] and extra_ok) else 1
+        return 0 if (hw_gate["ok"] and extra_ok and pinned_ok) else 1
 
     s = report["summary"]
     print("=" * 74)
@@ -497,12 +540,20 @@ def main() -> int:
     print(f"   {hw_gate['detail']}")
     if not hw_gate["ok"]:
         print("   ★⇒ 规格 §5.2 与网表漂移 / 硬件 pinout 不合规 ⇒ 本闸红, 不许投板")
+    # ★★2026-11-17 22:1x (main): 9 道钉板 md5 闸的链上读数 (★板只改一次那一趟的护栏★)★★
+    _pg = report["pinned_md5_gates"]
+    _pg_ok = sum(1 for _x in _pg if _x["ok"])
+    print(f"\n【Q7 钉板 md5 闸链】 {_pg_ok}/{len(_pg)} 道绿 (★9 道全部 fail-closed 挂在门禁链里★)")
+    for _x in _pg:
+        print(f"   {'✅' if _x['ok'] else '❌'} {_x['name']}: rc={_x['rc']}")
+    if not pinned_ok:
+        print("   ★⇒ 板 md5 / 落表链 / 结构真值 出现漂移 ⇒ 板那一趟不许开工")
     print(f"\n【缺口清单】(可直接转成下一轮派活项) —— {len(report['gaps'])} 条")
     for g in report["gaps"]:
         print(f"   · {g}")
     print("\n" + "=" * 74)
     # ★闸红 ⇒ rc=1 (以前这个硬件闸是孤儿: rc=1 却没人跑 ⇒ 门禁链缺它)
-    return 0 if (hw_gate["ok"] and extra_ok) else 1
+    return 0 if (hw_gate["ok"] and extra_ok and pinned_ok) else 1
 
 
 if __name__ == "__main__":

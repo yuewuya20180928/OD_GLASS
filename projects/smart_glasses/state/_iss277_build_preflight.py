@@ -200,6 +200,12 @@ def build_tokens():
         "«P_T»": str(pins["total"]), "«P_F»": str(pins["functional"]),
         "«P_W»": str(pins["wrong"]), "«P_M»": str(pins["missing"]),
         "«P_MD5»": str(pins["md5"]), "«P_MD5_NOTE»": md5_note, "«P_F_NOTE»": f_note,
+        # ★★ISS-299 · 2026-11-17 21:5x (hw-lead): md5 台账对账条数可能为 0 ★★
+        #   ★**基线重锚后那 3 条 `MD5_CHANGED` 消失 ⇒ 「多出的 N 条是落表后基线过期」这句在 N=0 时是假话** ★
+        #   ⇒ 按真源读数分支 (★铁律 ①: 现状值一律从真源读·不许写死★)
+        "«P_MD5_TAIL»": ("多出的 %d 条是落表后基线过期 (KNOWN_DEFECTS 快照同步归 ISS-283)" % pins["md5"]
+                         if pins["md5"] else
+                         "★md5 台账对账 0 条 (★基线已重锚到最新落表·无过期基线·ISS-299·2026-11-17★)"),
     }
 
 
@@ -234,7 +240,7 @@ ITEMS_RAW = [
   "U_LDO_S28 缺 pin3(EN) ⇒ 若走 A 案板须补 pad3",
   "[实测] 脚表 «P_T» 条缺陷 = «P_F» 条脚表功能缺陷 («P_W» 串号 + «P_M» 缺脚) + «P_MD5» 条 md5 台账对账 «P_MD5_NOTE»; U_LDO_S28 无 pin3 行 ⇒ 板侧无 pad3 ⇒ 焊盘级恰 1 颗不等价",
   "A 案: 板侧给 U_LDO_S28 补 pad3 + 脚表补行; B 案: 不补 (本单不代拍)",
-  "python3 HW/check_pin_function_labels.py --expect-known ⇒ rc=0 (★现状: «P_T» 条缺陷 = «P_F» 脚表功能 («P_W» 串号 + «P_M» 缺脚) + «P_MD5» md5 台账对账; ★«P_F_NOTE»多出的 «P_MD5» 条是落表后基线过期 (KNOWN_DEFECTS 快照同步归 ISS-283)★)",
+  "python3 HW/check_pin_function_labels.py --expect-known ⇒ rc=0 (★现状: «P_T» 条缺陷 = «P_F» 脚表功能 («P_W» 串号 + «P_M» 缺脚) + «P_MD5» md5 台账对账; ★«P_F_NOTE»«P_MD5_TAIL»★)",
   "S2", "老板/PM 拍 A/B 案 (ISS-239 §4.2)", "[实测]"),
  ("B04_R_SUPV_DIV_DNP", "ISS-244",
   "R_SUPV_DIV1/2 = 0Ω 且 dnp=必装, 而 U_SUPV dnp=DNP ⇒ 装 0Ω 等于把 V_SOC_IO 短到地",

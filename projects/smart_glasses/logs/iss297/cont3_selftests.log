@@ -1,0 +1,91 @@
+===== SELFTEST: check_fsin_rootcause =====
+  ✅ ⑯★ISS-297★ ② 只改了基线里的 md5, 没有台账记录 ⇒ 红 (★这就是「挖坑」, 必须堵死★)
+  ✅ ⑯★ISS-297★ ③a 台账记录缺单号 (reboard 记录没有 by) ⇒ 红
+  ✅ ⑯★ISS-297★ ③b 台账记录缺改前 md5 (reboard 记录没有 prev_md5) ⇒ 红
+  ✅ ⑯★ISS-297★ ③c 台账记录文件名对不上 (reboard.file 写成 .kicad_pro) ⇒ 红
+  ✅ ⑯★ISS-297★ ③d 落表台账那一行与它所在段都没有单号 ⇒ 链头无单号 ⇒ 红 (★fail-closed★)
+  ✅ ⑯★ISS-297★ ④ 台账里有记录但盘上 md5 ≠ 记录里的新 md5 ⇒ 红 (★合法改板 ≠ 随便改★)
+  ✅ ⑯★ISS-297★ ⑤a 链头不唯一 (两条变更行指向同一个文件) ⇒ 红 (★fail-closed★)
+  ✅ ⑯★ISS-297★ ⑤b 链断 (链上一个节点有两个前驱) ⇒ 红 (★fail-closed★)
+  ✅ ⑯★ISS-297★ ⑤c 锚点 reboard 的改前 md5 与台账链头那一行的改前对不上 (链断) ⇒ 红 (★fail-closed★)
+------------------------------------------------------------------------------
+  ⇒ 25/25 条反向用例全部符合预期
+==============================================================================
+RC=0
+
+===== SELFTEST: check_g1a7_selection_landed =====
+       ★本闸 rc=1★ · FAIL C4  板 5307ecda / .kicad_pro 3e504d2b (★判决源 = 落表台账链头 + 合法改板通道; 保护基线 611b869e / 3e504d2b★) · ★C4 受保护文件: ★落表台账链头 (5307ecda8e91) 缺落表单号 ⇒ 判红★; ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 单号 ISS-9901 与落表台账产出该 md5 的单号对不上 (台账 = []) ⇒ 判红★; ★HW/PCB/demo_mainboard.kicad_pcb 的四项 (单号 / 文件名 / 改前 md5 / 改后 md5) 在落表台账里【同一行】查不到 ⇒ 判红★
+  ✅ ISS297 ④ 台账里有记录但盘上 md5 ≠ 记录里的新 md5 ⇒ 红 (★合法改板 ≠ 随便改★)
+       ★本闸 rc=1★ · FAIL C4  板 611b869e / .kicad_pro 3e504d2b (★判决源 = 落表台账链头 + 合法改板通道; 保护基线 611b869e / 3e504d2b★) · ★C4 受保护文件: ★盘上 md5 611b869e13518c3c023fb178f91a0075 ≠ 落表台账链头 5307ecda8e91 ⇒ 真源被换了或台账没更新 ⇒ 判红★
+  ✅ ISS297 ⑤a 链头不唯一 (两条变更行指向同一个文件) ⇒ 红 (★fail-closed★)
+       ★本闸 rc=1★ · FAIL C4  板 5307ecda / .kicad_pro 3e504d2b (★判决源 = 落表台账链头 + 合法改板通道; 保护基线 611b869e / 3e504d2b★) · ★C4 受保护文件: ★落表台账最新记录取不准 (链头不唯一 = ['5307ecda8e91', 'deadbeefdead'] (取不准 ⇒ 不许判绿)) ⇒ 取错记录可能假绿 ⇒ 判红★; ★HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9902) 的落表台账登记覆盖 (★记录只来一条 ⇒ 判红★)
+  ✅ ISS297 ⑤b 链断 (链上一个节点有两个前驱) ⇒ 红 (★fail-closed★)
+       ★本闸 rc=1★ · FAIL C4  板 5307ecda / .kicad_pro 3e504d2b (★判决源 = 落表台账链头 + 合法改板通道; 保护基线 611b869e / 3e504d2b★) · ★C4 受保护文件: ★落表台账链断了 / 不唯一 (链上 5307ecda8e91 的前驱不唯一 = ['0123456789ab', '611b869e1351']) ⇒ 判红★; ★HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9901) 的落表台账登记覆盖 (★记录只来一条 ⇒ 判红★); ★HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9903) 的落表台账登记覆盖 (★记录只来一条 ⇒ 判红★)
+  ✅ ISS297 ⑤c 锚点 reboard 的改前 md5 与台账链头那一行的改前对不上 (链断) ⇒ 红 (★fail-closed★)
+       ★本闸 rc=1★ · FAIL C4  板 5307ecda / .kicad_pro 3e504d2b (★判决源 = 落表台账链头 + 合法改板通道; 保护基线 611b869e / 3e504d2b★) · ★C4 受保护文件: ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 改前 md5 0123456789ab 与落表台账链头那一行的改前 611b869e1351 不一致 (链断) ⇒ 判红★; ★HW/PCB/demo_mainboard.kicad_pcb 的四项 (单号 / 文件名 / 改前 md5 / 改后 md5) 在落表台账里【同一行】查不到 ⇒ 判红★
+----------------------------------------------------------------------------
+  ⇒ 通道用例: 10/10 通过 · 合计 21/21
+  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没★)
+RC=0
+
+===== SELFTEST: check_onepass_commit_order =====
+  ✅ D2   找到「只允许变一次 + 同趟 + S4 + S8」表述 (★第 21 行★)
+  ✅ D3   3 处集合断言全部被后文撤回订正覆盖 (★断言行 15, 16, 607 · 撤回行 21, 612★)
+  ❌ D4   ★盘上板 md5 5307ecda8e91dfea3ae2085a105cd5f1 ⇒ ★HW/PCB/demo_mainboard.kicad_pcb: ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 改前 md5 0123456789ab 与落表台账链头那一行的改前 611b869e1351 不一致 (链断) ⇒ 判红★ · ★HW/PCB/demo_mainboard.kicad_pcb 的四项 (单号 / 文件名 / 改前 md5 / 改后 md5) 在落表台账里【同一行】查不到 ⇒ 判红★★★
+  ✅ D4b  盘上 .kicad_pro md5 3e504d2be83152e337949723e909be1b == ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ ⇒ 未被绕过改动
+  ✅ D5   变更区 0 行 (★≤ 1 ⇒ 板 md5 至多变一次★)
+  ✅ D6   变更区 0 行 ⇒ 板 md5 没变过 ⇒ 无需留证绑定 (★本单零写板★)
+------------------------------------------------------------------------------
+  ❌ 1 项不通过
+
+------------------------------------------------------------------------------
+  ⇒ 通道用例: 10/10 通过 · 合计 21/21
+  ✅ 通道反向用例全抓到 ⇒ 「合法改板」当天不会再集体假红, 且没背书照样红★
+RC=0
+
+===== SELFTEST: check_onepass_preflight_coverage =====
+       ★本闸 P1~P6 绿? 否★ ·   OK   P1 |      条目 32 条 · 9 字段齐全且非空: ✔ |   OK   P2 |      步覆盖: S1=1 S2=3 S3=2 S4=4 S5=1 S6=9 S7=2 S8=1 S9=1 S10=5 S11=1 S12=1 S13=1 |   OK   P3 |      每条 criterion 的脚本文件都在盘上: ✔ |   OK   P4 |      覆盖度: 26 个标记全部在清单里: ✔ |   OK   P5 |      5 个现状探针: 清单里的现状值 == 盘面实测: ✔ |   FAIL  P6 |      受保护 5 件 md5 逐字节不变: ❌ |      ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ |      ❌ 板: ★落表台账链头 (5307ecda8e91) 缺落表单号 ⇒ 判红★ |      ❌ 板: ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 单号 ISS-9901 与落表台账产出该 md5 的单号对不上 (台账 = []) ⇒ 判红★ |      ❌ 板: ★HW/PCB/demo_mainboard.kicad_pcb 的四项 (单号 / 文件名 / 改前 md5 / 改后 md5) 在落表台账里【同一行】查不到 ⇒ 判红★ |      ❌ 网表: ★链头 (台账 L1437) 【没有单号】⇒ 红 / ★链头 (台账 L1437 · ★无单号★) 【链断】: 缺 §16.2 新旧 md5 前后对照表 ⇒ 红 |      ❌ 脚表: ★链头 (台账 L1437) 【没有单号】⇒ 红 / ★链头 (台账 L1437 · ★无单号★) 【链断】: 缺 §16.2 新旧 md5 前后对照表 ⇒ 红 |      ❌ BOM: ★链头 (台账 L1437) 【没有单号】⇒ 红 / ★链头 (台账 L1437 · ★无单号★) 【链断】: 缺 §16.2 新旧 md5 前后对照表 ⇒ 红
+  ✔ ★ISS-297★ ④ 台账里有记录但盘上 md5 ≠ 记录里的新 md5 ⇒ 红 (★合法改板 ≠ 随便改★)
+       ★本闸 P1~P6 绿? 否★ ·   OK   P1 |      条目 32 条 · 9 字段齐全且非空: ✔ |   OK   P2 |      步覆盖: S1=1 S2=3 S3=2 S4=4 S5=1 S6=9 S7=2 S8=1 S9=1 S10=5 S11=1 S12=1 S13=1 |   OK   P3 |      每条 criterion 的脚本文件都在盘上: ✔ |   OK   P4 |      覆盖度: 26 个标记全部在清单里: ✔ |   OK   P5 |      5 个现状探针: 清单里的现状值 == 盘面实测: ✔ |   FAIL  P6 |      受保护 5 件 md5 逐字节不变: ❌ |      ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ |      ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ❌ 板: ★盘上 md5 611b869e13518c3c023fb178f91a0075 ≠ 落表台账链头 5307ecda8e91 ⇒ 真源被换了或台账没更新 ⇒ 判红★
+  ✔ ★ISS-297★ ⑤a 链头不唯一 (两条变更行指向同一个文件) ⇒ 红 (★fail-closed★)
+       ★本闸 P1~P6 绿? 否★ ·   OK   P1 |      条目 32 条 · 9 字段齐全且非空: ✔ |   OK   P2 |      步覆盖: S1=1 S2=3 S3=2 S4=4 S5=1 S6=9 S7=2 S8=1 S9=1 S10=5 S11=1 S12=1 S13=1 |   OK   P3 |      每条 criterion 的脚本文件都在盘上: ✔ |   OK   P4 |      覆盖度: 26 个标记全部在清单里: ✔ |   OK   P5 |      5 个现状探针: 清单里的现状值 == 盘面实测: ✔ |   FAIL  P6 |      受保护 5 件 md5 逐字节不变: ❌ |      ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ |      ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ❌ 板: ★落表台账最新记录取不准 (链头不唯一 = ['5307ecda8e91', 'deadbeefdead'] (取不准 ⇒ 不许判绿)) ⇒ 取错记录可能假绿 ⇒ 判红★
+  ✔ ★ISS-297★ ⑤b 链断 (链上一个节点有两个前驱) ⇒ 红 (★fail-closed★)
+       ★本闸 P1~P6 绿? 否★ ·   OK   P1 |      条目 32 条 · 9 字段齐全且非空: ✔ |   OK   P2 |      步覆盖: S1=1 S2=3 S3=2 S4=4 S5=1 S6=9 S7=2 S8=1 S9=1 S10=5 S11=1 S12=1 S13=1 |   OK   P3 |      每条 criterion 的脚本文件都在盘上: ✔ |   OK   P4 |      覆盖度: 26 个标记全部在清单里: ✔ |   OK   P5 |      5 个现状探针: 清单里的现状值 == 盘面实测: ✔ |   FAIL  P6 |      受保护 5 件 md5 逐字节不变: ❌ |      ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ |      ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ❌ 板: ★落表台账链断了 / 不唯一 (链上 5307ecda8e91 的前驱不唯一 = ['0123456789ab', '611b869e1351']) ⇒ 判红★
+  ✔ ★ISS-297★ ⑤c 锚点 reboard 的改前 md5 与台账链头那一行的改前对不上 (链断) ⇒ 红 (★fail-closed★)
+       ★本闸 P1~P6 绿? 否★ ·   OK   P1 |      条目 32 条 · 9 字段齐全且非空: ✔ |   OK   P2 |      步覆盖: S1=1 S2=3 S3=2 S4=4 S5=1 S6=9 S7=2 S8=1 S9=1 S10=5 S11=1 S12=1 S13=1 |   OK   P3 |      每条 criterion 的脚本文件都在盘上: ✔ |   OK   P4 |      覆盖度: 26 个标记全部在清单里: ✔ |   OK   P5 |      5 个现状探针: 清单里的现状值 == 盘面实测: ✔ |   FAIL  P6 |      受保护 5 件 md5 逐字节不变: ❌ |      ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ |      ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ❌ 板: ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 改前 md5 0123456789ab 与落表台账链头那一行的改前 611b869e1351 不一致 (链断) ⇒ 判红★ |      ❌ 板: ★HW/PCB/demo_mainboard.kicad_pcb 的四项 (单号 / 文件名 / 改前 md5 / 改后 md5) 在落表台账里【同一行】查不到 ⇒ 判红★
+------------------------------------------------------------------------------
+  ⇒ 通道用例: 10/10 通过 · 合计 21/21
+  ✅ 通道反向用例全抓到 ⇒ 「合法改板」当天不会再集体假红, 且没背书照样红★
+RC=0
+
+===== SELFTEST: check_pin_function_labels =====
+   [C7 ] ✔ ★ISS-297★ ④ 台账里有记录但盘上 md5 ≠ 记录里的新 md5 ⇒ 红 (★合法改板 ≠ 随便改★)
+         ★板 / `.kicad_pro` 的 md5 判定 = 红 ['md5:HW/PCB/demo_mainboard.kicad_pcb']★ · 全部 md5 findings = ['md5:HW/BOM_v1.csv', 'md5:HW/PCB/demo_mainboard.kicad_pcb', 'md5:HW/netlist_v1.csv', 'md5:HW/netlist_v1_pins.csv']
+   [C8 ] ✔ ★ISS-297★ ⑤a 链头不唯一 (两条变更行指向同一个文件) ⇒ 红 (★fail-closed★)
+         ★板 / `.kicad_pro` 的 md5 判定 = 红 ['md5:HW/PCB/demo_mainboard.kicad_pcb', 'md5:HW/PCB/demo_mainboard.kicad_pcb']★ · 全部 md5 findings = ['md5:HW/BOM_v1.csv', 'md5:HW/PCB/demo_mainboard.kicad_pcb', 'md5:HW/PCB/demo_mainboard.kicad_pcb', 'md5:HW/netlist_v1.csv', 'md5:HW/netlist_v1_pins.csv']
+   [C9 ] ✔ ★ISS-297★ ⑤b 链断 (链上一个节点有两个前驱) ⇒ 红 (★fail-closed★)
+         ★板 / `.kicad_pro` 的 md5 判定 = 红 ['md5:HW/PCB/demo_mainboard.kicad_pcb', 'md5:HW/PCB/demo_mainboard.kicad_pcb', 'md5:HW/PCB/demo_mainboard.kicad_pcb']★ · 全部 md5 findings = ['md5:HW/BOM_v1.csv', 'md5:HW/PCB/demo_mainboard.kicad_pcb', 'md5:HW/PCB/demo_mainboard.kicad_pcb', 'md5:HW/PCB/demo_mainboard.kicad_pcb', 'md5:HW/netlist_v1.csv', 'md5:HW/netlist_v1_pins.csv']
+   [C10] ✔ ★ISS-297★ ⑤c 锚点 reboard 的改前 md5 与台账链头那一行的改前对不上 (链断) ⇒ 红 (★fail-closed★)
+         ★板 / `.kicad_pro` 的 md5 判定 = 红 ['md5:HW/PCB/demo_mainboard.kicad_pcb']★ · 全部 md5 findings = ['md5:HW/BOM_v1.csv', 'md5:HW/PCB/demo_mainboard.kicad_pcb', 'md5:HW/netlist_v1.csv', 'md5:HW/netlist_v1_pins.csv']
+   ⇒ 通道用例: 10/10 通过
+   ❌ T5 前提不成立: 正常基线本应干净, 实得 ['md5:HW/BOM_v1.csv', 'md5:HW/netlist_v1.csv', 'md5:HW/netlist_v1_pins.csv']
+   ❌ T11 前提不成立: 正常基线本应干净
+SELFTEST FAILED (2 条既有失效 + 0 条通道失效)
+RC=1
+
+===== SELFTEST: check_workpack_state_values =====
+       ★本闸 V6 绿? 否★ ·   FAIL  V6 |      受保护 5 件 md5 逐字节不变: ❌ |      ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ |      ❌ 板: ★落表台账链头 (5307ecda8e91) 缺落表单号 ⇒ 判红★ |      ❌ 板: ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 单号 ISS-9901 与落表台账产出该 md5 的单号对不上 (台账 = []) ⇒ 判红★ |      ❌ 板: ★HW/PCB/demo_mainboard.kicad_pcb 的四项 (单号 / 文件名 / 改前 md5 / 改后 md5) 在落表台账里【同一行】查不到 ⇒ 判红★ |      ❌ 网表: ★链头 (台账 L1437) 【没有单号】⇒ 红 / ★链头 (台账 L1437 · ★无单号★) 【链断】: 缺 §16.2 新旧 md5 前后对照表 ⇒ 红 |      ❌ 脚表: ★链头 (台账 L1437) 【没有单号】⇒ 红 / ★链头 (台账 L1437 · ★无单号★) 【链断】: 缺 §16.2 新旧 md5 前后对照表 ⇒ 红 |      ❌ BOM: ★链头 (台账 L1437) 【没有单号】⇒ 红 / ★链头 (台账 L1437 · ★无单号★) 【链断】: 缺 §16.2 新旧 md5 前后对照表 ⇒ 红
+  ✔ ★ISS-297★ ④ 台账里有记录但盘上 md5 ≠ 记录里的新 md5 ⇒ 红 (★合法改板 ≠ 随便改★)
+       ★本闸 V6 绿? 否★ ·   FAIL  V6 |      受保护 5 件 md5 逐字节不变: ❌ |      ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ |      ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ❌ 板: ★盘上 md5 611b869e13518c3c023fb178f91a0075 ≠ 落表台账链头 5307ecda8e91 ⇒ 真源被换了或台账没更新 ⇒ 判红★
+  ✔ ★ISS-297★ ⑤a 链头不唯一 (两条变更行指向同一个文件) ⇒ 红 (★fail-closed★)
+       ★本闸 V6 绿? 否★ ·   FAIL  V6 |      受保护 5 件 md5 逐字节不变: ❌ |      ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ |      ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ❌ 板: ★落表台账最新记录取不准 (链头不唯一 = ['5307ecda8e91', 'deadbeefdead'] (取不准 ⇒ 不许判绿)) ⇒ 取错记录可能假绿 ⇒ 判红★ |      ❌ ★HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9902) 的落表台账登记覆盖 (★记录只来一条 ⇒ 判红★)
+  ✔ ★ISS-297★ ⑤b 链断 (链上一个节点有两个前驱) ⇒ 红 (★fail-closed★)
+       ★本闸 V6 绿? 否★ ·   FAIL  V6 |      受保护 5 件 md5 逐字节不变: ❌ |      ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ |      ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ❌ 板: ★落表台账链断了 / 不唯一 (链上 5307ecda8e91 的前驱不唯一 = ['0123456789ab', '611b869e1351']) ⇒ 判红★ |      ❌ ★HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9901) 的落表台账登记覆盖 (★记录只来一条 ⇒ 判红★) |      ❌ ★HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9903) 的落表台账登记覆盖 (★记录只来一条 ⇒ 判红★)
+  ✔ ★ISS-297★ ⑤c 锚点 reboard 的改前 md5 与台账链头那一行的改前对不上 (链断) ⇒ 红 (★fail-closed★)
+       ★本闸 V6 绿? 否★ ·   FAIL  V6 |      受保护 5 件 md5 逐字节不变: ❌ |      ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ |      ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 |      ❌ 板: ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 改前 md5 0123456789ab 与落表台账链头那一行的改前 611b869e1351 不一致 (链断) ⇒ 判红★ |      ❌ 板: ★HW/PCB/demo_mainboard.kicad_pcb 的四项 (单号 / 文件名 / 改前 md5 / 改后 md5) 在落表台账里【同一行】查不到 ⇒ 判红★
+------------------------------------------------------------------------------
+  ⇒ 通道用例: 10/10 通过 · 合计 20/20
+  ✅ 通道反向用例全抓到 ⇒ 「合法改板」当天不会再集体假红, 且没背书照样红★
+RC=0
+
+SELFTEST_DONE_MARKER

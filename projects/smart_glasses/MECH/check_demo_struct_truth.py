@@ -92,6 +92,19 @@ MD5_EXPECTED = {
     "MECH/display_biosafety_v2_check.py": "29c77fc3fc823048b1d96c9500d28dd7",
 }
 
+# ★★【ISS-296 · 2026-11-17 · mech-lead】★★ 板 / `.kicad_pro` 两件改走【合法改板】通道 ★★
+#   ★★这两件的**基线值一个字没改** (★基线永远不许改★) ★★ 改的是【判决源】:
+#   ★★不再是「盘上 md5 == 写死基线 一票否决」, 而是【落表台账链头 + 合法改板通道】★★
+#   ★★⇒ 「板只改一次」那一趟合法改板一次 ⇒ 台账落一行 ⇒ 链头前移 ⇒ 绿 ⇒
+#   ★★   ★**假红被消掉 ⇒ 「板白改第二遍」这条路被堵死**★ ★★
+#   ★★⇒ 而「只改闸里的基线而台账没记」仍然判红 (★基线自证★) ⇒ 悄悄换真源照样堵死 ★★
+HARD_PROTECTED_PAIR = {
+    "HW/PCB/demo_mainboard.kicad_pcb": MD5_EXPECTED["HW/PCB/demo_mainboard.kicad_pcb"],
+    "HW/PCB/demo_mainboard.kicad_pro": MD5_EXPECTED["HW/PCB/demo_mainboard.kicad_pro"],
+}
+# ★★仍走「写死基线一票否决」的 4 个 MECH 判据脚本 (★它们不是「板」· 不进合法改板通道★) ★★
+MD5_EXPECTED_SCRIPTS = {k: v for k, v in MD5_EXPECTED.items() if k not in HARD_PROTECTED_PAIR}
+
 # ★★【ISS-224】"不许悄悄换真源"机制管的两个真源 (网表/脚表) —— 锚点必须覆盖这两个
 LEDGER_REQUIRED = ("HW/netlist_v1.csv", "HW/netlist_v1_pins.csv")
 
@@ -350,9 +363,14 @@ def ledger_records(text: str, rel: str) -> list:
     return out
 
 
-def ledger_state(rel: str, text: str) -> dict:
-    """算该受管真源在台账里的链头 / 链 / 产出单号表 (★取不准就返回 head=None ⇒ 判红★)。"""
-    recs = ledger_records(text, rel)
+def ledger_state(rel: str, text: str, recs=None) -> dict:
+    """算该受管真源在台账里的链头 / 链 / 产出单号表 (★取不准就返回 head=None ⇒ 判红★)。
+
+    ★★【ISS-296】`recs` 可外传 ⇒ 合法改板通道用【只含改前≠改后的变更行】算链
+      (★受管真源那条链的读数一字未变★) ★
+    """
+    if recs is None:
+        recs = ledger_records(text, rel)
     new_keys = {r["new"] for r in recs}
     prev_keys = {r["prev"] for r in recs}
     heads = sorted(new_keys - prev_keys)
@@ -401,6 +419,222 @@ def ledger_state(rel: str, text: str) -> dict:
             "known": new_keys | prev_keys}
 
 
+# ==================================================================================================
+# ★★【ISS-296 · 2026-11-17 · mech-lead】★★ 合法改板通道 (★照 SW 侧 ISS-284 已 verified 的形状★)
+#   ★★口径来源: `SW/tools/check_demo_panel_spec.py` 的 `sw_ledger_cover_rows` /
+#     `sw_ledger_change_rows` / `sw_ledger_change_state` / `check_r6_hard_protected`
+#     (★那个脚本是 ISS-284 的定版闸 · 本单只【读它的形状】+ 在自己的探针里读它的解析器★
+#      · 一个字不许改它★) ★★
+#   ★★同源机器证明: `logs/iss296/probe_ledger_reading_same_source.py`
+#     (★MECH 解析器 vs SW 解析器 对同一份台账读出的链头/链/产出单号必须逐字相同★) ★★
+# ==================================================================================================
+# ★★一条合法改板记录 = 【单号 by + 文件名 file + 改前 md5 prev_md5 + 改后 md5 md5】★★
+#   ★★MECH 侧这四项**捆在落表台账的一行里** (追加一次 = 原子一次) ⇒
+#   ★★**不新造第二个可手改的 md5 字段** ⇒ 少一个可被挖的坑 = 更严 ★★
+REBOARD_FIELDS = ("by", "file", "prev_md5", "md5")
+
+
+def m12(value) -> str:
+    """md5 归一到 12 位小写前缀 (★落表台账里落表记录用的就是前缀★)。"""
+    return str(value or "").strip().lower()[:12]
+
+
+def ledger_cover_rows(text: str, rel: str) -> list:
+    """落表台账里提到 rel 的【覆盖行】(表格行 + 至少一个 md5) ⇒ [{'md5s','iss','sec','row','full'}]。
+
+    ★口径与 `ledger_records` 同源 (只认表格行 · 文件名同行 · 单号取行内 ISS-xxx 或最近带单号小节)★
+    ★与 `ledger_records` 的差别: 允许【只有一个 md5】的行 (★「逐字节不变」声明行就是这么写的★)★
+    """
+    out = []
+    ctx_iss = None
+    sec = "(文首)"
+    base = os.path.basename(rel)
+    for ln in text.splitlines():
+        s = ln.strip()
+        if s.startswith("#"):
+            sec = s
+            hit = re.findall(r"ISS-\d+", s)
+            if hit:
+                ctx_iss = hit[0]
+            continue
+        if not s.startswith("|"):
+            continue
+        if rel not in s and base not in s:
+            continue
+        tk = LEDGER_MD_RE.findall(s)
+        if not tk:
+            continue
+        row_iss = re.findall(r"ISS-\d+", s)
+        out.append({"md5s": [m12(t) for t in tk],
+                    "iss": row_iss[0] if row_iss else ctx_iss,
+                    "sec": sec, "row": s[:160], "full": s})
+    return out
+
+
+def ledger_change_rows(text: str, rel: str, exclude_aliases=()) -> list:
+    """落表台账里 rel 的【变更行】(★改前 md5 ≠ 改后 md5★) ⇒ 合法改板只认这种行。
+
+    ★`exclude_aliases` = 同组其它受保护件的名字别名 ⇒ ★一行两件两值 = 歧义行 ⇒ 不算变更行★
+      (★例: 台账 L114 那一行同时写了板与 `.kicad_pro` 的两个 md5 ⇒ 那不是「板改过」的记录★)
+    """
+    out = []
+    for r in ledger_cover_rows(text, rel):
+        tk = r["md5s"]
+        if len(tk) < 2:
+            continue
+        prev, new = tk[0], tk[-1]
+        if prev == new:
+            continue
+        if any(a and a in r["full"] for a in exclude_aliases):
+            continue
+        out.append({"prev": prev, "new": new, "iss": r["iss"],
+                    "sec": r["sec"], "row": r["row"], "full": r["full"]})
+    return out
+
+
+def ledger_change_state(rel: str, text: str, exclude_aliases=()) -> dict:
+    """变更行上的链头 / 链 / 产出单号表 (★只认改前≠改后的行★; 取不准 ⇒ head=None ⇒ 判红★)。"""
+    return ledger_state(rel, text,
+                        recs=ledger_change_rows(text, rel, exclude_aliases))
+
+
+def check_hard_protected_legal_reboard(root: str, group: dict, led_text: str,
+                                       led_spec: str, md5_map: dict = None) -> tuple:
+    """★【ISS-296】受保护件 (板 / `.kicad_pro`) 的【合法改板】通道 ★ (★判据只许变严★)。
+
+    ★★判据 (照 SW 侧 ISS-284 的四条, ★一条都不许放宽★)★★
+      ① ★保护基线自证★: 闸里写死的保护基线 md5 必须能在落表台账里与该文件【同行】查到
+         ⇒ ★**只改闸里的 md5 而台账没记 ⇒ 判红** ★ (★悄悄换真源这条路被堵死★)
+      ② ★台账里该文件没有变更行★ ⇒ 不许有合法改板记录; 且 **盘上 md5 必须 == 基线**
+         (★纯 md5 硬保护, 一条不许放松★)
+      ③ ★台账里有变更行★ ⇒ ★链头唯一 / 链不断 / 链头有单号★ (★fail-closed 三条一条不许动★)
+         + ★链头那一行的四项 (by / file / prev_md5 / md5) 必须齐全且与链头逐字对上★
+         + ★保护基线必须留在链尾★ (★不许把基线偷偷前移★)
+         + ★盘上 md5 必须 == 台账链头★ (★判据方向不许变: 合法改板只是让链头前移★)
+      ④ ★同组受保护件成对覆盖★: 一次合法改板必须覆盖同组全部件 (★只来一条 ⇒ 判红★)
+
+    ★★返回 (rows, errs) ★★
+    """
+    errs = []
+    rows = []
+    covers_of = {}
+    if not led_text:
+        return rows, ["G5b 合法改板: 判决源落表台账读不到 (%s) ⇒ 无从对账 (fail-closed 判红)" % led_spec]
+    # ---- 同组受保护件的「名字别名」⇒ 用于剔「一行两件两值」的歧义行 ----
+    aliases = {}
+    for rel in group:
+        b0 = os.path.basename(rel)
+        aliases[rel] = {rel, b0, os.path.splitext(b0)[1]}
+    heads = {}
+    trip_iss = set()
+    for rel, base in group.items():
+        base12 = m12(base)
+        p = os.path.join(root, rel)
+        if not os.path.exists(p):
+            errs.append("G5b 合法改板: 受保护文件不存在: %s" % rel)
+            continue
+        got = (md5_map or {}).get(rel) or md5(p)
+        excl = set()
+        for other, al in aliases.items():
+            if other != rel:
+                excl |= al
+        covers = ledger_cover_rows(led_text, rel)
+        covers_of[rel] = covers
+        chg = ledger_change_rows(led_text, rel, excl)
+        # ① 保护基线自证 (★只改闸里的基线而台账没记 ⇒ 判红★)
+        if not any(base12 in r["md5s"] for r in covers):
+            errs.append("G5b 合法改板: %s 的保护基线 md5 %s 在落表台账 (%s) 里与该文件同行查不到 ⇒ "
+                         "★闸里的基线被单独改了 (只改基线不落表 = 悄悄换真源 = 判红)★"
+                         % (rel, base12, led_spec))
+            continue
+        if not chg:
+            # ② 台账里没有变更行 ⇒ 不许有合法改板记录; 盘上必须还是基线 (★纯 md5 硬保护★)
+            rows.append({"path": rel, "baseline": base, "got": got,
+                         "same": got[:12] == base12, "mode": "纯 md5 硬保护 (台账无变更行)",
+                         "covers": len(covers)})
+            if got[:12] != base12:
+                errs.append("G5b 合法改板: 受保护文件 md5 变了: %s (%s ≠ 基线 %s) ★台账里没有变更行 ⇒ "
+                             "不是合法改板 ⇒ 判红★" % (rel, got[:12], base12))
+            continue
+        # ③ 台账里有变更行 ⇒ 走【合法改板】路径
+        st = ledger_change_state(rel, led_text, excl)
+        head = st.get("head")
+        chain = st.get("chain") or []
+        for r in chg:
+            if r["iss"]:
+                trip_iss.add(r["iss"])
+        rows.append({"path": rel, "baseline": base, "got": got,
+                     "same": bool(head) and got[:12] == head,
+                     "mode": "合法改板 (落表台账链头)",
+                     "head": head, "iss": st.get("head_iss") or [],
+                     "chain_len": len(chain), "covers": len(covers),
+                     "change_rows": len(chg)})
+        if not head:
+            errs.append("G5b 合法改板: %s 台账最新记录取不准 (%s) ⇒ 取错记录可能假绿 ⇒ 判红"
+                         % (rel, st.get("why")))
+            continue
+        heads[rel] = head
+        if not st.get("head_iss"):
+            errs.append("G5b 合法改板: %s 台账最新记录 (%s) 缺落表单号 (★四项不齐 ⇒ 判红★)"
+                         % (rel, head))
+        if not chain:
+            errs.append("G5b 合法改板: %s 台账链断了 / 不唯一 (%s) ⇒ 判红" % (rel, st.get("why")))
+        else:
+            orphan = sorted({r["new"] for r in chg} - set(chain))
+            if orphan:
+                errs.append("G5b 合法改板: %s 台账里有记录不在链上 = %s ⇒ 判红" % (rel, orphan))
+        # ③-1 链头那一行的【四项】必须齐全且与链头逐字对上
+        head_rows = [r for r in chg if r["new"] == head]
+        if not head_rows:
+            errs.append("G5b 合法改板: %s 台账链头 (%s) 找不到产出它的那一行 ⇒ 判红" % (rel, head))
+            continue
+        head_prevs = sorted({r["prev"] for r in head_rows})
+        if len(head_prevs) != 1:
+            errs.append("G5b 合法改板: %s 链头那一行的改前 md5 不唯一 = %s ⇒ 取不准 ⇒ 判红"
+                         % (rel, head_prevs))
+            continue
+        r_prev = head_prevs[0]
+        r_by = (head_rows[0]["iss"] or "").strip()
+        r_full = head_rows[0]["full"]
+        missing = []
+        if not r_by:
+            missing.append("by (落表单号)")
+        if not (rel in r_full or os.path.basename(rel) in r_full):
+            missing.append("file (文件名)")
+        if not r_prev:
+            missing.append("prev_md5 (改前 md5)")
+        if not head:
+            missing.append("md5 (改后 md5)")
+        if missing:
+            errs.append("G5b 合法改板: %s 台账链头那一行的四项不齐: 缺 %s ⇒ 判红"
+                         % (rel, ", ".join(missing)))
+            continue
+        # 链上该链头的前驱必须 == 那一行的改前 md5 (★链不断★)
+        if len(chain) >= 2 and chain[1] != r_prev:
+            errs.append("G5b 合法改板: %s 链头那一行的改前 md5 %s 与链上的 %s 对不上 (链断) ⇒ 判红"
+                         % (rel, r_prev, chain[1]))
+            continue
+        # 保护基线必须留在链尾 (★不许把基线偷偷前移★)
+        if chain and chain[-1] != base12:
+            errs.append("G5b 合法改板: %s 的保护基线 %s 不在台账链尾 (链尾 = %s) ⇒ "
+                         "★基线被偷偷前移 = 判红★" % (rel, base12, chain[-1]))
+            continue
+        # 盘上 md5 必须 == 台账链头 (★判据方向不许变★)
+        if got[:12] != head:
+            errs.append("G5b 合法改板: %s 盘上 md5 %s ≠ 台账链头 %s (真源被换了或台账没更新) ⇒ 判红"
+                         % (rel, got[:12], head))
+    # ④ 同组受保护件: 一次合法改板必须覆盖同组全部件 (★只来一条 ⇒ 判红★)
+    if trip_iss:
+        for rel, base in group.items():
+            expect = heads.get(rel, m12(base))
+            covered = [r for r in covers_of.get(rel) or []
+                       if r["iss"] in trip_iss and expect in r["md5s"]]
+            if not covered:
+                errs.append("G5b 合法改板: %s 没有被同一次合法改板 (%s) 覆盖 (记录只来一条 ⇒ 判红)"
+                             % (rel, "/".join(sorted(trip_iss))))
+    return rows, errs
+
+
 def ledger_canonical_text(root: str, anchors: dict, overrides: dict = None) -> tuple:
     """取判决源台账文本 (默认 HW/SCHEMATIC_LANDING_V1_LANDED.md, ★只读★) + 它的 spec 名。"""
     ov = overrides or {}
@@ -433,7 +667,8 @@ def synth_ledger(recs_by_file: dict, tag: str = "合成") -> str:
 # ====================================================================== 检查组
 def run_checks(root: str, anchors: dict, facts: dict, xrev: dict,
                doc: str = None, pin_truth: dict = None,
-               ledger_texts: dict = None, md5_override: dict = None) -> list:
+               ledger_texts: dict = None, md5_override: dict = None,
+               hard_base_override: dict = None) -> list:
     """返回 [(组号, 组名, ok, 明细)]。anchors/doc/pin_truth 可被 --selftest 篡改 ⇒ 反向用例。"""
     out = []
     A = anchors
@@ -604,10 +839,18 @@ def run_checks(root: str, anchors: dict, facts: dict, xrev: dict,
 
     led_text, led_spec = ledger_canonical_text(root, A, ledger_texts)
     badmd5 = []
-    for rel, want in MD5_EXPECTED.items():
+    # ---- 4 个 MECH 判据脚本: 写死基线一票否决 (★不是「板」· 不进合法改板通道★) ----
+    for rel, want in MD5_EXPECTED_SCRIPTS.items():
         got = fmd5(rel)
         if got != want:
             badmd5.append(f"{rel}: {got} != {want}")
+    # ---- 板 / `.kicad_pro`: ★★【ISS-296】合法改板通道★★ (★基线值一个字没改★) ----
+    hp_group = dict(HARD_PROTECTED_PAIR)
+    if hard_base_override:
+        hp_group.update({k: v for k, v in hard_base_override.items() if k in hp_group})
+    hp_rows, hp_errs = check_hard_protected_legal_reboard(
+        root, hp_group, led_text, led_spec, md5_map=md5_override)
+    badmd5.extend(hp_errs)
     led_state = {}
     for rel in LEDGER_REQUIRED:
         st = ledger_state(rel, led_text)
@@ -633,10 +876,14 @@ def run_checks(root: str, anchors: dict, facts: dict, xrev: dict,
             elif aby not in st["producer"].get(am, set()):
                 badmd5.append(f"{rel}: 锚点副本落表单号 {aby or '(空)'} 与台账对不上 "
                               f"(台账产出该 md5 的单号 = {sorted(st['producer'].get(am, []))})")
-    g("G5b", "受保护文件 md5 逐字节未变 (板/.kicad_pro + 4 个 check 脚本 + 网表/脚表)",
+    g("G5b", "受保护文件 md5 逐字节未变 (板/.kicad_pro 走【合法改板】通道 (ISS-296) + 4 个 check 脚本 + 网表/脚表)",
       not badmd5,
       "; ".join(badmd5) if badmd5 else
-      f"{len(MD5_EXPECTED)} 个硬保护文件 全部一致 + {len(LEDGER_REQUIRED)} 个台账管理真源 "
+      f"{len(MD5_EXPECTED_SCRIPTS)} 个硬保护 check 脚本 全部一致 + "
+      f"{len(hp_group)} 个受保护硬件件走合法改板通道 (板/.kicad_pro: "
+      + ", ".join(f"{r['path']}={r['mode']}" for r in hp_rows)
+      + ") + "
+      f"{len(LEDGER_REQUIRED)} 个台账管理真源 "
       f"= 台账最新记录 (链头: "
       + ", ".join(f"{r}={led_state[r]['head']}" for r in LEDGER_REQUIRED)
       + ") + 域侧锚点副本 = 历史留痕 (允许停在历史值)")
@@ -794,12 +1041,12 @@ def selftest(root: str, anchors: dict, facts: dict, xrev: dict,
     base_bad = [c for c in base if not c[2]]
     cases = []
 
-    def add(name, expect, a=None, d=None, p=None, lt=None, mo=None):
+    def add(name, expect, a=None, d=None, p=None, lt=None, mo=None, hbo=None):
         cases.append((name,
                       a if a is not None else copy.deepcopy(anchors),
                       d if d is not None else doc,
                       p if p is not None else pin_truth,
-                      lt, mo, expect))
+                      lt, mo, expect, hbo))
 
     # ---- 原 ISS-213 的 8 条反向用例 ----
     def m1(a): a["board_geom"].__setitem__("board_width_y", 15.00)
@@ -877,12 +1124,32 @@ def selftest(root: str, anchors: dict, facts: dict, xrev: dict,
             out.append(ln)
         return "\n".join(out) + "\n"
 
-    def break_head_ticket(text, rel, ticket="ISS-999"):
-        """把台账最新记录那一行的落表单号改坏 (⇒ 单号与台账/锚点对不上)。"""
+    def break_head_ticket(text, rel, ticket="ISS-999", anchor_md5=None):
+        """把台账里的落表单号改坏 (⇒ 单号与台账/锚点对不上 ⇒ 必须红)。
+
+        ★★【ISS-296 · 2026-11-17 · mech-lead】★★ 本函数是【测试夹具】, 不是判据 ★★
+          ★★修的是【命中条件 + 改坏对象】, ★★G5b / C21 / C22 一条判据都没动★★ ★★
+          ★★病因: 台账行格式在 ISS-283 (2026-11-16 12:30) 之后变了 ⇒ 【链头那一行不再自带
+            ISS-xxx】⇒ 单号继承自所属小节标题 ⇒ 老写法 (「同一行必须含 ISS-」) 命中不到
+            ⇒ 断言炸 ⇒ ★**整个 --selftest 跑不完** (★ISS-295 §12.3.2 已登记过这个病★) ★★
+          ★★修法 (★照 ISS-295 §12.3.2 的建议方向, 但那条建议本身不够: 光改命中条件 ⇒
+            改不动 ⇒ 用例会变【绿】⇒ 那不是一条能成立的反向用例★):
+            ① 命中条件放宽为【含 head[:12] + 以 `|` 开头】(★不再强求同一行含 ISS-★)
+            ② 该行【自带】ISS ⇒ 改它 (★老格式行为一字不变★)
+            ③ 该行【不带】ISS (★现役格式★) ⇒ ★改【产出【锚点那个 md5】的那一行】的 ISS★
+               ⇒ ★闸判的正是【锚点副本的单号 vs 台账产出该 md5 的单号】⇒ 必然红 ★
+               (★现役格式下「链头那一行的单号」在台账里【没有任何第二个来源能与它对账】⇒
+                 单改它闸看不出来 ⇒ ★**这条发现已登记 need 给 main**★) ★★
+        """
         head = ledger_state(rel, text)["head"]
         out, hit = [], 0
         for ln in text.splitlines():
-            if head and head[:12] in ln and ln.strip().startswith("|") and "ISS-" in ln:
+            is_row = ln.strip().startswith("|")
+            if head and head[:12] in ln and is_row and "ISS-" in ln:
+                ln = re.sub(r"ISS-\d+", ticket, ln, count=1)
+                hit += 1
+            elif (anchor_md5 and anchor_md5[:12] in ln and is_row and "ISS-" in ln
+                  and not (head and head[:12] in ln)):
                 ln = re.sub(r"ISS-\d+", ticket, ln, count=1)
                 hit += 1
             out.append(ln)
@@ -903,13 +1170,29 @@ def selftest(root: str, anchors: dict, facts: dict, xrev: dict,
     add("R3: 台账里查不到网表的任何落表记录", "C21",
         lt={LEDGER_CANON: drop_rel(base_led, "HW/netlist_v1.csv")})
     # R4 —— 台账里同一条链的多跳记录顺序打乱 ⇒ 仍取最新那条 ⇒ 必须绿 (不许假红也不许假绿)
+    #   ★★【ISS-296】合成台账现在【也带上板 / `.kicad_pro` 的「否 (逐字节不变)」两行】★
+    #   ★★ (★★G5b 的合法改板通道需要【基线在台账里与该文件同行可查】★★ ⇒ 合成台账少了这两行
+    #   ⇒ 判据①会红 ⇒ 那不是 R4 要测的东西 ⇒ ★只把夹具补齐, 期望一条没改★) ★★
     synth4 = synth_ledger({"HW/netlist_v1.csv": list(reversed(recs_net)),
-                            "HW/netlist_v1_pins.csv": list(reversed(recs_pins))})
+                            "HW/netlist_v1_pins.csv": list(reversed(recs_pins)),
+                            "HW/PCB/demo_mainboard.kicad_pcb":
+                                [{"prev": "611b869e1351", "new": "611b869e1351", "iss": "ISS-999"}],
+                            "HW/PCB/demo_mainboard.kicad_pro":
+                                [{"prev": "3e504d2be831", "new": "3e504d2be831", "iss": "ISS-999"}]})
     add("R4: 台账里同一条链的记录顺序打乱 ⇒ 仍取最新 ⇒ 必须绿", None,
         lt={LEDGER_CANON: synth4})
-    # R5a —— 台账最新记录的落表单号被改坏 (与台账/锚点对不上) ⇒ 必须红
+    # R5a —— 台账里的落表单号被改坏 (与台账/锚点对不上) ⇒ 必须红
+    #   ★★【ISS-296】现役台账格式下【链头那一行不再自带 ISS-】⇒ 单号继承自小节标题
+    #   ⇒ 老写法命中不到 (★断言炸 · 整个 --selftest 跑不完★) ⇒ 命中条件与改坏对象已修
+    #   (★期望不变: 仍须 C21 红; 一条判据都没动★) ⇒ 详见 `break_head_ticket` 的注释
+    _ent_net = (anchors.get("source_ledger") or {}).get("entries") or []
+    _ent_net_md5 = ""
+    for _e in _ent_net:
+        if str(_e.get("file")) == "HW/netlist_v1.csv":
+            _ent_net_md5 = str(_e.get("md5") or "")
     add("R5a: 台账最新记录的落表单号被改坏 (与台账对不上)", "C21",
-        lt={LEDGER_CANON: break_head_ticket(base_led, "HW/netlist_v1.csv")})
+        lt={LEDGER_CANON: break_head_ticket(base_led, "HW/netlist_v1.csv",
+                                            anchor_md5=_ent_net_md5)})
     # R5b —— 台账最新记录的落表单号字段缺失 ⇒ 必须红
     synth5 = synth_ledger({"HW/netlist_v1.csv": [dict(head_rec or {}, iss=None)],
                             "HW/netlist_v1_pins.csv": recs_pins})
@@ -919,6 +1202,53 @@ def selftest(root: str, anchors: dict, facts: dict, xrev: dict,
     add("R6: 板 md5 变 (硬保护) ⇒ 红, 且 C21 不红", ("G5b", ("C21",)),
         mo={"HW/PCB/demo_mainboard.kicad_pcb": "11111111111111111111111111111111"})
 
+    # ================== ★★【ISS-296 新增 · 合法改板通道】★★ ==================
+    #   ★★判据只许变严, 不许放松 ★★ · 全部在【台账文本副本 + md5 覆写】上做, 真件一个字节不许碰 ★★
+    #   ★★ISS-999 = 沙盒里的假单号 (真台账里不存在) ★★
+    BOARD_REL = "HW/PCB/demo_mainboard.kicad_pcb"
+    PRO_REL = "HW/PCB/demo_mainboard.kicad_pro"
+    BASE_BOARD12 = "611b869e1351"
+    BASE_PRO12 = "3e504d2be831"
+
+    def forged_row(rel, prev, new, ticket=None, note="★**手改**★"):
+        t = (f"| ★**{ticket}** ★ | " if ticket else "| ★**伪造** ★ | ")
+        return (f"{t}★**`{rel}`** ★ | `{prev}` | `{new}` | {note} |\n")
+
+    # R7 —— ① 把闸里的板基线 md5 改掉 (★悄悄换真源★) 而落表台账不动 ⇒ 必须红
+    add("R7: 闸里的板基线被单独改 (悄悄换真源) ⇒ 红", "G5b",
+        hbo={BOARD_REL: "deadbeefdeadbeefdeadbeefdeadbeef"})
+    # R8 —— ② 盘上 `.kicad_pro` 被手改 (★台账里没有变更行★) ⇒ 必须红 (纯 md5 硬保护)
+    add("R8: 盘上 `.kicad_pro` 被手改 (台账无变更行) ⇒ 红", ("G5b", ("C21",)),
+        mo={PRO_REL: "22222222222222222222222222222222"})
+    # R9 —— ③ 台账补一条【变更行】但四项不齐 (★无落表单号★) ⇒ 必须红
+    add("R9: 台账补了一条变更行但四项不齐 (无落表单号) ⇒ 红", "G5b",
+        lt={LEDGER_CANON: forged_row(BOARD_REL, BASE_BOARD12, "777777777777") + base_led})
+    # R10 —— ④ 只让板有变更行, `.kicad_pro` 没有 (★同组覆盖★) ⇒ 必须红
+    add("R10: 只让板有变更行 (`.kicad_pro` 没有同一次覆盖) ⇒ 红", "G5b",
+        lt={LEDGER_CANON: base_led + "\n"
+            + forged_row(BOARD_REL, BASE_BOARD12, "aaaaaaaaaaaa", ticket="ISS-999",
+                         note="★**是 (合法改板·板只改一次)**★")},
+        mo={BOARD_REL: "aaaaaaaaaaaa" + "0" * 20})
+    # R11a —— ⑤a 链头不唯一 (★fail-closed 一★) ⇒ 必须红
+    add("R11a: 台账里造出第二条链头 (链头不唯一) ⇒ 红", "G5b",
+        lt={LEDGER_CANON: base_led + "\n"
+            + forged_row(BOARD_REL, "111111111111", "222222222222", ticket="ISS-999")
+            + forged_row(BOARD_REL, "333333333333", "444444444444", ticket="ISS-999")},
+        mo={BOARD_REL: "222222222222" + "0" * 20})
+    # R11b —— ⑤b 链断 / 保护基线不在链尾 (★fail-closed 二★) ⇒ 必须红
+    add("R11b: 链断 (改前 md5 对不上保护基线 ⇒ 基线不在链尾) ⇒ 红", "G5b",
+        lt={LEDGER_CANON: base_led + "\n"
+            + forged_row(BOARD_REL, "555555555555", "666666666666", ticket="ISS-999")},
+        mo={BOARD_REL: "666666666666" + "0" * 20})
+    # R12 —— ⑥ 正向对照: 合法改板一次 (板 + `.kicad_pro` 成对登记) ⇒ 必须绿 (★证明闸不是恒红★)
+    add("R12: 正向对照: 合法改板一次 (板 + `.kicad_pro` 成对) ⇒ 绿", None,
+        lt={LEDGER_CANON: base_led + "\n"
+            + forged_row(BOARD_REL, BASE_BOARD12, "aaaaaaaaaaaa", ticket="ISS-999",
+                         note="★**是 (合法改板·板只改一次)**★")
+            + forged_row(PRO_REL, BASE_PRO12, BASE_PRO12, ticket="ISS-999",
+                         note="★**否 (逐字节不变)**★")},
+        mo={BOARD_REL: "aaaaaaaaaaaa" + "0" * 20})
+
     print("=" * 100)
     print("ISS-213/224 机器门禁 —— 反向用例 (改坏任一锚点必须变红)")
     print("=" * 100)
@@ -927,9 +1257,9 @@ def selftest(root: str, anchors: dict, facts: dict, xrev: dict,
         return 2
     print(f"  ✅ 基线全绿 ({len(base)}/{len(base)} 组检查)")
     ok = 0
-    for name, a, d, p, lt, mo, expect in cases:
+    for name, a, d, p, lt, mo, expect, hbo in cases:
         res = run_checks(root, a, facts, xrev, doc=d, pin_truth=p,
-                         ledger_texts=lt, md5_override=mo)
+                         ledger_texts=lt, md5_override=mo, hard_base_override=hbo)
         red = [c[0] for c in res if not c[2]]
         if expect is None:
             hit, exp_txt = (not red), "绿 (不许红)"

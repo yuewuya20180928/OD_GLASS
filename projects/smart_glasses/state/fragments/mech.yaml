@@ -1,16 +1,21 @@
 agent: mech-lead
 role: 结构总工(带散热)
-updated_at: '2026-11-17T17:32:00+08:00'
+updated_at: '2026-11-17T20:59:00+08:00'
 updated_by: mech-lead
 status:
   phase: delivered
   progress_pct: 100
   health: 绿
-  summary: '★ISS-295 cont2 交卷 (2026-11-17 19:4x) ⇒ 四件交付物全部落盘并实跑通过: CLAIMS 页 37114 B (§0~§8 齐全) / 新闸 MECH/check_mech_verdict_freshness.py
-    22628 B (主跑 rc=0, --selftest rc=0 七条反向用例全抓到) / 交卷单 B0~B6 齐全 / 本分片原子写 (iss295 汇总 need + answer key
-    逐字一致 = iss295_mech_struct_input_claims_and_freshness_gate) ⇒ 边界: 零写板 (板 md5 611b869e… + mtime 2026-11-06
-    07:07:17) / 零落表 / 未改 HW/ / 未改既有 MECH 判据脚本 / 未改 state/gate_check.py / 未改机器块 / 两页老行零删改 / 零外发 / 不代拍 /
-    不自签 issue_log / 实物 [实测] = 0 条★'
+  summary: 'ISS-300 交卷 (2026-11-17 21:5x) ⇒ 本单 = 纯门禁类 · 零写板活: ① 新建 MECH/check_onepass_mech_release.py
+    = MECH 侧「板只改一次」准出汇总闸, 聚合跑 6 道闸 (check_board_frame_coords / check_demo_struct_truth / check_onepass_mech_sync
+    / check_onepass_struct_crosscheck / board_port_opening_s6_check / check_mech_verdict_freshness), 逐条打印每道
+    rc + 汇总 rc + 点名红闸; fail-closed 语义照 state/gate_check.py 的 run_external_gate 逐条照抄 (脚本不存在 / 跑不起来 / 超时
+    ⇒ 一律算闸红, 绝无「没跑就当过」); 清单缺一道 ⇒ 汇总直接红; 主跑 rc=0 (6 道逐条 rc=0) + --selftest rc=0 (反向用例 6 条全抓到, 含真沙盒真篡改:
+    改 1 个开口坐标常量 ⇒ 汇总红 + 点名 check_board_frame_coords.py + 其余 5 道仍绿, 恢复 ⇒ 回绿, 真件 md5 不变) ② 零写板: 板 md5 611b869e13518c3c023fb178f91a0075
+    + mtime 2026-11-06 07:07:17.362193413 + .kicad_pro 3e504d2be83152e337949723e909be1b + 网表 37f62ac3f0b81d92ca7d48fdea717f07
+    + 脚表 a4270120454aedf7a23c92cd8985c8a6 + BOM 5d02bece9477ffce5fbe0193c7d5cce4 六件前后逐字节不变 (差集只有新增的那一个文件)
+    ③ 零落表 (台账 md5/mtime 不变) · 零改既有 6 道闸 · 零改 state/gate_check.py (挂闸是 main 的活) · 零碰 HW/ SW/ · 零外发 · 不代拍
+    · 不自签 issue_log · 实物 [实测] = 0 条'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -1133,6 +1138,65 @@ artifacts:
   version: iss295
   updated_at: '2026-11-17'
   summary: ★ISS-295 分叉扫描原始 grep 输出 (两页过期结论字样逐行命中, 共 19 行) —— B3-1 分叉全表的原始证据, 未删节★
+- path: HANDOFF/2026-11-17_mech-lead_ISS296_合法改板机制与收工重锚.md
+  kind: handoff
+  version: iss296-cont2
+  updated_at: '2026-11-17'
+  summary: ★ISS-296 cont2 交卷单 (26,949 B) · B1 结论摘要 (两道闸怎么接的合法改板通道 + 四条判据表 + 口径纪律自证) · B1-⑤ 同源机器证明 (IDENTICAL
+    True · 15 组读数逐字相同) · B2 验收标准自评 + 收工后同一次重锚清单 (M0/M1/M2-1~M2-6/M3 九道闸表/M4) · B3 证据分级 + 反向用例 7 条 (⑯a/⑯b/⑰
+    + R10/R11a/R11b/R12) · B4 接口取值声明 + 回归 10 条 rc=0 + 受保护 5 件 md5/mtime 双重自证 · B5 未决项与卡点 4 条 (归 main/老板)
+    · 复现清单一条一条贴 · 零写板零落表零改网表真源 · 不自签 issue_log · 零外发 · 实物 [实测] = 0 条★
+- path: MECH/check_board_frame_coords.py
+  kind: gate
+  version: iss296
+  updated_at: '2026-11-17'
+  summary: ★ISS-296 合法改板通道 (C4)★ · 86,674 B · mtime 2026-11-17 20:20:17 · PROTECTED (L109-112) 基线值一字未改
+    + LEDGER_CANON (L119) + PROTECTED_LEDGER (L121-125) + check_hard_protected_legal_reboard (L652-789)
+    四条判据 + 调用点 L819 · 主跑 rc=0 (末行 结论 四项全过) · --selftest rc=0 (末行 自检结论 一致) · 阈值零漂移 (CRIT 照抄 board_port_opening_s6_check)
+    · 本单 cont2 未动此文件★
+- path: MECH/check_demo_struct_truth.py
+  kind: gate
+  version: iss296
+  updated_at: '2026-11-17'
+  summary: ★ISS-296 合法改板通道 (G5b)★ · 72,428 B · mtime 2026-11-17 20:25:32 · HARD_PROTECTED_PAIR (L101)
+    + LEDGER_REQUIRED (L109) + LEDGER_CANON (L334) + check_hard_protected_legal_reboard (L501-640) + 调用点
+    L851 + G5b 标签 L879 · 主跑 rc=0 (G5b = OK) · --selftest rc=0 (末行 反向用例 28/28 抓到了) · 本单 cont2 未动此文件★
+- path: MECH/BOARD_ONEPASS_MECH_SYNC.md
+  kind: note
+  version: iss296
+  updated_at: '2026-11-17'
+  summary: ★ISS-296-收工清单 (追加式 · 老字一字没删)★ · 96,970 B · mtime 2026-11-17 20:57 · 一节含 M0 为什么先做 / M1 落表台账那一行的接口格式
+    (给 main) / M2 收工后同一次重锚强制项 M2-1~M2-6 / M3 收工那天全仓 9 道钉板 md5 的闸都要绿 (含 9/9 机器清单 state/board_md5_pinned_gates.json
+    复核) / M4 不代拍三条 / M5 边界自证 · 本趟 cont2 只订正 M3 表里 HW 6 道的 6 个单元格 (待建 ⇒ 已建 (ISS-297) · 已留痕 · 改前副本 logs/iss296/msync_before_iss296_cont2.md
+    96,970 B)★
+- path: logs/iss296/probe_ledger_reading_same_source.py
+  kind: script
+  version: iss296
+  updated_at: '2026-11-17'
+  summary: '★ISS-296 同源机器证明探针★ · 7,407 B · mtime 2026-11-17 20:27:02 · MECH 侧台账解析器 vs SW 侧 (ISS-284 定版闸)
+    解析器 · 比对 6 项 (链头/链/链头单号/取不准原因/链上出现过的 md5/记录集) · 5 文件 × 3 读法 = 15 组读数全部逐字相同 · 实跑 rc=0 末行 IDENTICAL:
+    True · 台账本体只读★'
+- path: MECH/check_onepass_mech_release.py
+  kind: script
+  version: iss300
+  updated_at: '2026-11-17'
+  summary: ISS-300 MECH 侧 板只改一次 准出汇总闸 · 聚合 6 道闸 (check_board_frame_coords / check_demo_struct_truth /
+    check_onepass_mech_sync / check_onepass_struct_crosscheck / board_port_opening_s6_check / check_mech_verdict_freshness)
+    · 逐条打印每道 rc + 汇总 rc + 点名红闸 · fail-closed (不存在/跑不起来/超时 ⇒ 算闸红) · 清单漏一道 ⇒ 汇总红 · --json + --selftest (6
+    条反向用例, 含真沙盒真篡改) · 零写板 · 零落表 · 零改既有 6 道闸
+- path: HANDOFF/2026-11-17_mech-lead_ISS300_结构侧准出汇总闸.md
+  kind: handoff
+  version: iss300
+  updated_at: '2026-11-17'
+  summary: ISS-300 交卷单 · B1~B6 六块齐全 (结论摘要 / 验收标准自评逐条 / 证据分级 / 接口取值声明 / 未决项与卡点 / 自证复现命令) + 反向用例原样 rc +
+    边界自证 (六件逐字节不变)
+- path: logs/iss300/
+  kind: log
+  version: iss300
+  updated_at: '2026-11-17'
+  summary: ISS-300 日志目录 · boundary_before.txt / boundary_after.txt (六件 + MECH/*.py md5 前后对照) · main_run.log
+    (汇总闸主跑 rc=0 逐条 rc) · selftest.log (反向用例 6 条全抓到) · reverse_case.log (沙盒真篡改 ⇒ 汇总红 + 点名 + 恢复回绿) · 6 闸本体各自
+    rc=0 读数
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -2805,6 +2869,48 @@ needs_from:
     h 与立柱外径 D (★[0数据]★) ⇒ 出处 MECH/BOARD_ONEPASS_MECH_CLAIMS.md §5 #1~#5 与 §6 · HANDOFF/2026-11-17_mech-lead_ISS295_结构输入认领与防漂闸.md
     §B6'
   since: '2026-11-17'
+- key: iss296_mech_m3_nine_gates_green_need
+  to: main
+  item: '★ISS-296 · M3 那张 9 道钉板 md5 的闸表里 HW 6 道的通道状态: 机器清单 state/board_md5_pinned_gates.json (mtime 2026-11-17
+    20:49) 实测 9/9 全是 已有 reboard 通道 ⇒ HW 6 道已由 ISS-297 建好 (本单已把 M3 表那 6 个单元格由 待建 订正为 已建 (ISS-297) · 已留痕)
+    ⇒ ★**但 收工那天 9 道要 同一次 全绿 这件事要 main 写进 板只改一次 那一趟的作业包**★ ⇒ 且第 5 道 HW/check_pin_function_labels.py 现在主模式仍
+    rc=1 (18 条 ISS-257 起的既有缺陷 · 改前也是 rc=1 · 属别单范畴) ⇒ 那一道的前置债在 hw-lead 那边, 不在 MECH 侧 · 本单只登记事实与代价, 不代 main
+    拍板'
+  since: '2026-11-17'
+- key: iss296_mech_m2_6_frame_id_need
+  to: main
+  item: '★ISS-296 · M2-6 帧标 id 统一: 现盘上并存 B160x100 (MECH 闸里的现役帧) / 160x100-bench (HW 侧) / 60x30-setA /
+    F30A (60×30 套A 旧帧) 四套写法 ⇒ id 不统一 = 后期坐标漂移 (M2-6 登记的后果) ⇒ ★**本单只登记 不代裁 一个 id 没改**★ ⇒ ★**归 main → 老板
+    (U-274-6)**★ · 依据 MECH/BOARD_ONEPASS_MECH_SYNC.md 的 ISS-296-收工清单 M2-6 + M4 第 1 条'
+  since: '2026-11-17'
+- key: iss296_mech_m1_ledger_row_need
+  to: main
+  item: '★ISS-296 · M1 落表台账那一行的接口格式 (★这是给 main 在 出板那一趟 落表用的格式, ★**台账本体不许 MECH 侧写**★): 每受管文件一行 = 单号 | 文件名
+    | 改前 md5 | 改后 md5 四项同行 ⇒ 板与 .kicad_pro 必须成对两行同一个单号 (只写一行 ⇒ 判红) ⇒ .kicad_pro 真没变时也要写 否 (逐字节不变) 那一行
+    ⇒ 一行不许同时写两件两值 (歧义行 ⇒ MECH 侧当它不算变更行 ⇒ 判红) ⇒ 单号必须出现在行内或该行所属小节标题里 (两处都没有 ⇒ 四项不齐 ⇒ 判红) · 板的前值 = 611b869e13518c3c023fb178f91a0075
+    · .kicad_pro 的前值 = 3e504d2be83152e337949723e909be1b (逐字节不变)'
+  since: '2026-11-17'
+- key: iss296_mech_iss294_opening_status_need
+  to: main
+  item: '★ISS-296 · 把 iss294_usbc_edge_opening_size_and_z_window 这条 need 的现状写清 (它仍在盘上, state/fragments/mech.yaml
+    L2729, to=main): J_USB_C 边开口几何与代价已算完 (帧 B160x100 · 边开口 X 132.995..147.005 × Y 0.000..7.300 · 必须清空区
+    X 133.895..146.105 × Y 0.000..6.400 · 单边净距 0.900 · 最坏 0.600 = CRIT 刚好过 · 座体真实高 h 仍 [0数据]) ⇒ ★**开口最终尺寸
+    + Z 向窗口 (OPEN_Y_eff = 4.60 / 4.60 / 5.80 不在板面坐标里, 必须跟结构件外形一起定) = main → 老板 拍板项 ⇒ 本单不许自己定尺寸 一个尺寸没定**★
+    · 另: 任务书 §④ 尾巴提的 iss282_mech_sync_m5_baseline_after_landing 这条 need 实查已不在盘上 (grep -c = 0 · 被后来的单子合并清掉)
+    ⇒ 本单不找它也不凭空造它'
+  since: '2026-11-17'
+- key: iss300_release_gate_hook_into_gate_chain
+  to: main
+  item: 'ISS-300 · 请 main 把 MECH/check_onepass_mech_release.py 挂进 state/gate_check.py 的 EXTRA_GATES (挂闸是
+    main 的活 · 本单不许改 gate_check.py) ⇒ 事实: 本闸 rc=0 实跑通过 (2026-11-17 21:5x) · fail-closed 语义与现有 run_external_gate
+    同款 ⇒ 代价: gate_check 每次跑会多一道外闸, 该闸内部再跑 6 道 ⇒ 门禁链单次耗时增加约 6 闸的量 (本机实测 6 闸合计 <60s) · 不写任何文件 · 不碰板'
+  since: '2026-10-25'
+- key: iss300_release_gate_hook_staging_vs_legal_reboard
+  to: main
+  item: 'ISS-300 · 请 main 裁决挂链口径 (本单不代拍) ⇒ 事实: 这 6 道里有 2 道是钉板 md5 闸 (check_board_frame_coords 的 C4 + check_onepass_mech_sync
+    的 M5) ⇒ 板只改一次那一趟板 md5 会合法变 ⇒ 那 2 道当天必然从绿转红 ⇒ 只有走合法改板通道 (ISS-296 已建好) 才回绿 ⇒ 代价: 挂链后, 板那一趟当天 gate_check
+    会红 ⇒ 若不分阶段, 当天会被误读成板改坏了 → 去改板凑绿 → 板 md5 变第二次 → 整趟白跑 ⇒ 本单已把这条话写死在汇总闸的失败输出里 (打印 板 md5 当天变更是合法的 · 绝不许改板凑绿)'
+  since: '2026-10-25'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -4874,6 +4980,65 @@ interface_claims:
     + rc 日志 12 行; 规格页追加式补 §12 (73035→83369 B, §1~§11 一个字没删没改); 零写板/零落表/零改既有 MECH 判据脚本 (5 个受保护脚本 md5 与
     08:26 基准逐位相同; check_board_frame_coords.py = 12fa5db0… 是 ISS-286 12:44 改的, 早于本趟本趟没碰)/零改 HW/零改 SW/零外发/零实物★
   ref: HANDOFF/2026-11-17_mech-lead_ISS278_MECH侧板侧输入收口.md
+- key: iss296_mech_two_gates_legal_reboard_channel
+  value: 闸1 C4 + 闸2 G5b 已接合法改板通道 (判决源 = 落表台账链头 + reboard 四项原子映射 by/file/prev_md5/md5; 判据方向没变; fail-closed
+    三条没动; 阈值 CRIT 0.60 / cavity_req 4.50 / cav_v 38.00 / duct_v 6.00 一个没动)
+  note: ISS-296 · 2026-11-17 · mech-lead · 照 SW 侧 ISS-284 已 verified 的四条判据一条不许放宽 (① 保护基线自证 ② 台账无变更行 ⇒
+    纯 md5 硬保护 ③ 有变更行 ⇒ 链头唯一/链不断/链头有单号 + 四项原子记录逐字对上 + 基线留链尾 + 盘上==链头 ④ 同组成对覆盖) · MECH 侧不新造第二个可手改的 md5 字段
+    (基线值保留在 PROTECTED 里只作锚点防篡改) ⇒ 比 SW 侧少一个可被挖的坑 = 更严 · 板与 .kicad_pro 在变更行读法下链头 = None ⇒ 今天走判据 ② (纯 md5
+    硬保护) ⇒ 硬保护一刻没松
+  ref: MECH/check_board_frame_coords.py L109-125 + L652-789 + L819 · MECH/check_demo_struct_truth.py L101-109
+    + L501-640 + L851 · HANDOFF/2026-11-17_mech-lead_ISS296_合法改板机制与收工重锚.md §B1
+- key: iss296_mech_reboard_reverse_cases_all_caught
+  value: 闸1 ⑯a/⑯b/⑰ + 闸2 R10/R11a/R11b/R12 全抓到 (7 条) · 闸2 合计 28/28 · 闸1 --selftest 末行 自检结论 一致
+  note: ISS-296 · 2026-11-17 · mech-lead · 沙盒跑真盘零写 (台账与板全是临时目录拷贝) · 红色用例必须抓到指定判据组才算通过 (C4 / G5b) · 正向用例必须整条绿才算通过
+    (证明通道真有路, 不是把灯调没了) · ⑯a 链头不唯一⇒红 / ⑯b 链断(基线不在链尾)⇒红 / ⑰ 正向对照⇒绿 (C1-C3 全绿 + C4 错误 0 条) · R10 同组只来一条⇒红
+    / R11a 链头不唯一⇒红 / R11b 链断⇒红 / R12 正向对照⇒绿 (实际红组 无)
+  ref: logs/iss296/cont2_frame_selftest.log · logs/iss296/cont2_struct_selftest.log · logs/iss296/frame_selftest.log
+    · logs/iss296/struct_truth_selftest.log · HANDOFF/2026-11-17_mech-lead_ISS296_合法改板机制与收工重锚.md §B3
+- key: iss296_mech_zero_board_write_zero_landing
+  value: '受保护 5 件 md5 逐字节不变 (板 611b869e13518c3c023fb178f91a0075 / .kicad_pro 3e504d2be83152e337949723e909be1b
+    / 网表 37f62ac3f0b81d92ca7d48fdea717f07 / 脚表 a4270120454aedf7a23c92cd8985c8a6 / BOM 5d02bece9477ffce5fbe0193c7d5cce4)
+    + 板 mtime 仍 2026-11-06 07:07:17.362193413 + 同源探针 IDENTICAL: True'
+  note: ISS-296 · 2026-11-17 · mech-lead · 零写板零落表双重自证 (md5 + mtime) · 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    mtime 仍 2026-11-17 12:30:23 (= ISS-283 那次落表, 本单零写入) · 闸 1 与闸 2 本趟 cont2 mtime 未变 (20:20:17 / 20:25:32)
+    ⇒ 闸本体本趟一个字没动 · 只写自己的分片 (hw.yaml / sw.yaml / pm.yaml 零碰) · 不自签 issue_log · 零外发 · 实物 [实测] = 0 条 (本机无板无量具)
+  ref: 'logs/iss296/cont2_probe.log (末行 IDENTICAL: True · 15 组读数逐字相同) · logs/iss296/cont2_frame_main.log
+    · logs/iss296/cont2_struct_main.log · HANDOFF/2026-11-17_mech-lead_ISS296_合法改板机制与收工重锚.md §B4'
+- key: iss296_mech_m1_ledger_row_interface
+  value: 单号 | 文件 | 前 md5 | 后 md5 (四项同行 · 板与 .kicad_pro 成对两行 · 一行两件两值 = 歧义行 ⇒ 判红)
+  note: ISS-296 · 2026-11-17 · mech-lead · 这是给 main 在 出板那一趟 落表用的接口格式 (main 立的口径 ISS-275 §1⑧) · 台账本体不许
+    MECH 侧写 · .kicad_pro 真没变时也要写 否 (逐字节不变) 那一行 · 单号必须出现在行内或该行所属小节标题里
+  ref: MECH/BOARD_ONEPASS_MECH_SYNC.md 的 ISS-296-收工清单 M1 节 · HANDOFF/2026-11-17_mech-lead_ISS296_合法改板机制与收工重锚.md
+    §B2
+- key: iss296_mech_frame_id_unified_pending_boss
+  value: '待拍 (main → 老板 U-274-6): B160x100 vs 160x100-bench vs 60x30-setA vs F30A 未统一'
+  note: ISS-296 · 2026-11-17 · mech-lead · 本单只登记不代裁 (M2-6) · 一个 id 没改 · 归 main → 老板
+  ref: MECH/BOARD_ONEPASS_MECH_SYNC.md 的 ISS-296-收工清单 M2-6 + M4 · HANDOFF/2026-11-17_mech-lead_ISS296_合法改板机制与收工重锚.md
+    §B5
+- key: iss300_mech_release_gate_path
+  value: MECH/check_onepass_mech_release.py
+  note: ISS-300 新建 · MECH 侧「板只改一次」准出汇总闸 · 只聚合 · 一个判据数字都没改
+  ref: HANDOFF/2026-11-17_mech-lead_ISS300_结构侧准出汇总闸.md
+- key: iss300_mech_release_gate_command
+  value: python3 MECH/check_onepass_mech_release.py
+  note: rc=0 ⇒ MECH 侧 6 道闸全绿 ⇒ 结构侧可出 Gerber · 只代表结构侧 · 不等于整条板链全绿 · HW/SW 侧闸另算
+  ref: MECH/check_onepass_mech_release.py
+- key: iss300_mech_release_manifest
+  value: 6 道闸清单 = check_board_frame_coords + check_demo_struct_truth + check_onepass_mech_sync + check_onepass_struct_crosscheck
+    + board_port_opening_s6_check + check_mech_verdict_freshness
+  note: 漏一道 ⇒ 汇总闸直接红 · 不许「没跑就当过」 · 清单里多出的闸照样跑、照样参与判决
+  ref: MECH/check_onepass_mech_release.py MANIFEST_REQUIRED
+- key: iss300_mech_release_failclosed_semantics
+  value: 脚本不存在 / 跑不起来 / 超时(300s) ⇒ 一律算闸红 (rc=None) · 绝无「没跑就当过」
+  note: 照 state/gate_check.py 的 run_external_gate 逐条照抄语义 · 不自创 · 任一道红 ⇒ 汇总红 + 点名是哪一道红了 · 不许只出一个总 rc
+  ref: state/gate_check.py run_external_gate + MECH/check_onepass_mech_release.py run_gate
+- key: iss300_mech_release_zero_write_board
+  value: '零写板: 板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17.362193413 前后逐字节不变'
+  note: 同批 .kicad_pro 3e504d2be83152e337949723e909be1b + 网表 37f62ac3f0b81d92ca7d48fdea717f07 + 脚表 a4270120454aedf7a23c92cd8985c8a6
+    + BOM 5d02bece9477ffce5fbe0193c7d5cce4 + 台账 1ae6242aa21a79de720d0fe5e17dfb12 六件全部逐字节不变 · 零落表 · 零改既有
+    6 道闸 · 零改 state/gate_check.py
+  ref: logs/iss300/boundary_before.txt + logs/iss300/boundary_after.txt
 open_questions:
 - id: MECH-Q1
   to: main

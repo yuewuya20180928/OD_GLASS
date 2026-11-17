@@ -60,8 +60,18 @@ for dirpath, dirnames, filenames in os.walk(PROJ):
                      "cls": cls, "note": DONE.get(rel, "")})
 
 rows.sort(key=lambda r: r["file"])
-n_hard = sum(1 for r in rows if not r["has_ledger_path"])
-n_done = sum(1 for r in rows if r["note"])
+# ★★计数口径修正 (main 2026-11-17 20:2x 实测修的)★★
+# ★旧写法把【纯硬钉】的条数当成了【仍缺通道】的条数 (n_hard = 无台账口径的文件数) ⇒
+#   ★表头印出「仍缺通道 2 处」, 而真实值是 8 处 ⇒ ★少报 6 道闸 ⇒ 老板/执行人会误以为
+#   ★「通道快齐了」⇒ 板那一趟提前开工 ⇒ 改板当天 8 道闸一起红 ⇒ 误读成「板改坏了」⇒ 板 md5 变第二次★
+# ⇒ 现在三个数各司其职, 不许再混:
+#   n_done    = 已有「合法改板」通道 (has_reboard 或 note 非空) ⇒ ★判据口径: 通道已建★
+#   n_missing = 仍缺「合法改板」通道 (= 总数 - 已建) ⇒ ★这才是开工前必须清零的数★
+#   n_pure    = 纯硬钉 (板 md5 写死, 连台账口径都没有) ⇒ ★这是最难的一种, 优先级最高★
+n_pure = sum(1 for r in rows if not r["has_ledger_path"])
+n_done = sum(1 for r in rows if r["has_reboard"] or r["note"])
+n_missing = len(rows) - n_done
+n_hard = n_pure  # ★老变量名保留, 但语义收窄为「纯硬钉条数」★
 
 lines = []
 lines.append("# ★全仓「钉着板 md5」的闸清单 ★ (★机器生成 · main 2026-11-17 18:3x·★数据来自真扫全仓, 不许手写★)")
@@ -71,7 +81,16 @@ lines.append("> ⇒ ★**而这些红的真实含义是「板被换了」, 不�
 lines.append("> ⇒ ★**所以: 板那一趟开工前, 每道钉板 md5 的闸都必须先有【合法改板】通道 (照 ISS-284 的 `reboard` 原子映射形状)** ★")
 lines.append("> ⇒ ★**判据不许松**: 通道只允许【有落表台账背书的合法改板】走绿; ★**盘上 ≠ 基线且无合法记录 ⇒ 仍红** ★")
 lines.append("")
-lines.append(f"## ★清单 (★共 {len(rows)} 处 · ★其中**已建通道** {n_done} 处 · **仍缺通道** {n_hard} 处★)")
+lines.append(f"## ★清单 (★共 {len(rows)} 处 · ★其中**已建通道 (代码级)** {n_done} 处 · **仍缺通道** {n_missing} 处 · (★其中**纯硬钉** {n_pure} 处 = 板 md5 写死·连台账口径都没有·优先级最高★)")
+lines.append("")
+lines.append("> ★★**「已建通道」是【代码级】判据 (★文件里能读到 reboard 通道实现★) ⇒ 【不等于】功能已绿★** ★")
+lines.append("> ⇒ ★**功能状态必须实跑出来看 rc** ★ (★★下面这 9 道 + `--selftest` 全跑一遍★ ★别看本表就以为齐了★★):")
+lines.append("> ```bash")
+for r in rows:
+    lines.append(f"> python3 {r['file']} ; echo \"rc=$?\"          # ★期望 rc=0★")
+lines.append("> ```")
+lines.append("> ★★**判据口径 (★不许松★)**: 「代码级已建通道」只说明【合法改板那天这道闸不会无脑红】 ⇒")
+lines.append("> ⇒ ★**真绿还要看两件事: ① 该闸主跑 rc=0 ② 该闸 `--selftest` rc=0 (★反向用例全抓到★)** ★")
 lines.append("")
 lines.append("| # | 闸文件 | 钉法 | 命中行 | 已有台账口径? | 状态 |")
 lines.append("|---|---|---|---|---|---|")
@@ -121,6 +140,6 @@ open(OUT, "w", encoding="utf-8").write(txt)
 json.dump(rows, open(os.path.join(HERE, "board_md5_pinned_gates.json"), "w", encoding="utf-8"),
           ensure_ascii=False, indent=1)
 print("✔ 清单已生成: state/board_md5_pinned_gates.md")
-print("  共 %d 个文件钉板 md5 | 已建通道 %d | 缺通道 %d" % (len(rows), n_done, n_hard))
+print("  共 %d 个文件钉板 md5 | 已建通道 %d | 仍缺通道 %d | (其中纯硬钉 %d)" % (len(rows), n_done, n_missing, n_pure))
 for r in rows:
     print("   -", r["file"], "| 台账口径:", "有" if r["has_ledger_path"] else "无")

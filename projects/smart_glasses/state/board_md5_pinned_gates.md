@@ -5,32 +5,48 @@
 > ⇒ ★**所以: 板那一趟开工前, 每道钉板 md5 的闸都必须先有【合法改板】通道 (照 ISS-284 的 `reboard` 原子映射形状)** ★
 > ⇒ ★**判据不许松**: 通道只允许【有落表台账背书的合法改板】走绿; ★**盘上 ≠ 基线且无合法记录 ⇒ 仍红** ★
 
-## ★清单 (★共 9 处 · ★其中**已建通道** 0 处 · **仍缺通道** 2 处★)
+## ★清单 (★共 9 处 · ★其中**已建通道 (代码级)** 9 处 · **仍缺通道** 0 处 · (★其中**纯硬钉** 1 处 = 板 md5 写死·连台账口径都没有·优先级最高★)
+
+> ★★**「已建通道」是【代码级】判据 (★文件里能读到 reboard 通道实现★) ⇒ 【不等于】功能已绿★** ★
+> ⇒ ★**功能状态必须实跑出来看 rc** ★ (★★下面这 9 道 + `--selftest` 全跑一遍★ ★别看本表就以为齐了★★):
+> ```bash
+> python3 HW/check_fsin_rootcause.py ; echo "rc=$?"          # ★期望 rc=0★
+> python3 HW/check_g1a7_selection_landed.py ; echo "rc=$?"          # ★期望 rc=0★
+> python3 HW/check_onepass_commit_order.py ; echo "rc=$?"          # ★期望 rc=0★
+> python3 HW/check_onepass_preflight_coverage.py ; echo "rc=$?"          # ★期望 rc=0★
+> python3 HW/check_pin_function_labels.py ; echo "rc=$?"          # ★期望 rc=0★
+> python3 HW/check_workpack_state_values.py ; echo "rc=$?"          # ★期望 rc=0★
+> python3 MECH/check_board_frame_coords.py ; echo "rc=$?"          # ★期望 rc=0★
+> python3 MECH/check_demo_struct_truth.py ; echo "rc=$?"          # ★期望 rc=0★
+> python3 SW/tools/check_onepass_sw_sync.py ; echo "rc=$?"          # ★期望 rc=0★
+> ```
+> ★★**判据口径 (★不许松★)**: 「代码级已建通道」只说明【合法改板那天这道闸不会无脑红】 ⇒
+> ⇒ ★**真绿还要看两件事: ① 该闸主跑 rc=0 ② 该闸 `--selftest` rc=0 (★反向用例全抓到★)** ★
 
 | # | 闸文件 | 钉法 | 命中行 | 已有台账口径? | 状态 |
 |---|---|---|---|---|---|
-| 1 | `HW/check_fsin_rootcause.py` | 1 处 | L68: `"pcb": "611b869e13518c3c023fb178f91a0075",` | ★部分台账口径 (★别的文件走台账, 但板仍硬钉★) | ★**缺「合法改板」通道** ★ |
-| 2 | `HW/check_g1a7_selection_landed.py` | 1 处 | L89: `BOARD_MD5 = "611b869e13518c3c023fb178f91a0075"` | ★纯硬钉 (★板 md5 写死, 无任何台账口径★) | ★**缺「合法改板」通道** ★ |
-| 3 | `HW/check_onepass_commit_order.py` | 6 处 | L101: `"板":       "611b869e13518c3c023fb178f91a0075",`<br>L484: `bl = ["baseline_md5: 611b869e13518c3c023fb178f91a0075",`<br>L563: `["| ISS-266 | 611b869e13518c3c023fb178f91a0075 | aaaabbbbccccddddeeeeffff00001111 | 1 | 2026-11-17 |",`<br>L574: `["| ISS-266 | 611b869e13518c3c023fb178f91a0075 | %s | 1 | 2026-11-17 |" % newmd5], []))` | ★部分台账口径 (★别的文件走台账, 但板仍硬钉★) | ★**缺「合法改板」通道** ★ |
-| 4 | `HW/check_onepass_preflight_coverage.py` | 1 处 | L60: `"611b869e13518c3c023fb178f91a0075",` | ★部分台账口径 (★别的文件走台账, 但板仍硬钉★) | ★**缺「合法改板」通道** ★ |
-| 5 | `HW/check_pin_function_labels.py` | 1 处 | L145: `"HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",` | ★部分台账口径 (★别的文件走台账, 但板仍硬钉★) | ★**缺「合法改板」通道** ★ |
-| 6 | `HW/check_workpack_state_values.py` | 1 处 | L62: `"611b869e13518c3c023fb178f91a0075"),` | ★纯硬钉 (★板 md5 写死, 无任何台账口径★) | ★**缺「合法改板」通道** ★ |
-| 7 | `MECH/check_board_frame_coords.py` | 1 处 | L79: `os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb"): "611b869e13518c3c023fb178f91a0075",` | ★部分台账口径 (★别的文件走台账, 但板仍硬钉★) | ★**缺「合法改板」通道** ★ |
-| 8 | `MECH/check_demo_struct_truth.py` | 1 处 | L81: `"HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",` | ★部分台账口径 (★别的文件走台账, 但板仍硬钉★) | ★**缺「合法改板」通道** ★ |
-| 9 | `SW/tools/check_onepass_sw_sync.py` | 5 处 | L84: `"HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",`<br>L105: `"611b869e13518c3c023fb178f91a0075"),`<br>L513: `"611b869e13518c3c023fb178f91a0075", "611b869e13518c3c023fb178f91a0076")`<br>L536: `assert "611b869e13518c3c023fb178f91a0075" in t` | ★已有 reboard 通道★ | ★**已建通道** ★ |
+| 1 | `HW/check_fsin_rootcause.py` | 1 处 | L78: `"pcb": "611b869e13518c3c023fb178f91a0075",` | ★已有 reboard 通道★ | ★**已建通道** ★ |
+| 2 | `HW/check_g1a7_selection_landed.py` | 1 处 | L97: `BOARD_MD5 = "611b869e13518c3c023fb178f91a0075"` | ★已有 reboard 通道★ | ★**已建通道** ★ |
+| 3 | `HW/check_onepass_commit_order.py` | 6 处 | L103: `"板":       "611b869e13518c3c023fb178f91a0075",`<br>L505: `bl = ["baseline_md5: 611b869e13518c3c023fb178f91a0075",`<br>L593: `["| ISS-266 | 611b869e13518c3c023fb178f91a0075 | aaaabbbbccccddddeeeeffff00001111 | 1 | 2026-11-17 |",`<br>L604: `["| ISS-266 | 611b869e13518c3c023fb178f91a0075 | %s | 1 | 2026-11-17 |" % newmd5], []))` | ★已有 reboard 通道★ | ★**已建通道** ★ |
+| 4 | `HW/check_onepass_preflight_coverage.py` | 1 处 | L62: `"611b869e13518c3c023fb178f91a0075",` | ★已有 reboard 通道★ | ★**已建通道** ★ |
+| 5 | `HW/check_pin_function_labels.py` | 1 处 | L148: `"HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",` | ★已有 reboard 通道★ | ★**已建通道** ★ |
+| 6 | `HW/check_workpack_state_values.py` | 1 处 | L64: `"611b869e13518c3c023fb178f91a0075"),` | ★已有 reboard 通道★ | ★**已建通道** ★ |
+| 7 | `MECH/check_board_frame_coords.py` | 1 处 | L110: `os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb"): "611b869e13518c3c023fb178f91a0075",` | ★已有 reboard 通道★ | ★**已建通道** ★ |
+| 8 | `MECH/check_demo_struct_truth.py` | 1 处 | L81: `"HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",` | ★已有 reboard 通道★ | ★**已建通道** ★ |
+| 9 | `SW/tools/check_onepass_sw_sync.py` | 4 处 | L107: `"HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",`<br>L758: `"611b869e13518c3c023fb178f91a0075", "611b869e13518c3c023fb178f91a0076")`<br>L781: `assert "611b869e13518c3c023fb178f91a0075" in t`<br>L783: `f.write(t.replace("md5: 611b869e13518c3c023fb178f91a0075",` | ★已有 reboard 通道★ | ★**已建通道** ★ |
 
 ## ★两侧的活怎么分 (★归口★)
 
 | 域 | 闸 | 单号 |
 |---|---|---|
-| `HW` | `HW/check_fsin_rootcause.py` | ★**hw-lead** ★ (★部分台账口径 (★别的文件走台账, 但板仍硬钉★)) |
-| `HW` | `HW/check_g1a7_selection_landed.py` | ★**hw-lead** ★ (★纯硬钉 (★板 md5 写死, 无任何台账口径★)) |
-| `HW` | `HW/check_onepass_commit_order.py` | ★**hw-lead** ★ (★部分台账口径 (★别的文件走台账, 但板仍硬钉★)) |
-| `HW` | `HW/check_onepass_preflight_coverage.py` | ★**hw-lead** ★ (★部分台账口径 (★别的文件走台账, 但板仍硬钉★)) |
-| `HW` | `HW/check_pin_function_labels.py` | ★**hw-lead** ★ (★部分台账口径 (★别的文件走台账, 但板仍硬钉★)) |
-| `HW` | `HW/check_workpack_state_values.py` | ★**hw-lead** ★ (★纯硬钉 (★板 md5 写死, 无任何台账口径★)) |
-| `MECH` | `MECH/check_board_frame_coords.py` | ★**mech-lead** ★ (★部分台账口径 (★别的文件走台账, 但板仍硬钉★)) |
-| `MECH` | `MECH/check_demo_struct_truth.py` | ★**mech-lead** ★ (★部分台账口径 (★别的文件走台账, 但板仍硬钉★)) |
+| `HW` | `HW/check_fsin_rootcause.py` | ★**hw-lead** ★ (★已有 reboard 通道★) |
+| `HW` | `HW/check_g1a7_selection_landed.py` | ★**hw-lead** ★ (★已有 reboard 通道★) |
+| `HW` | `HW/check_onepass_commit_order.py` | ★**hw-lead** ★ (★已有 reboard 通道★) |
+| `HW` | `HW/check_onepass_preflight_coverage.py` | ★**hw-lead** ★ (★已有 reboard 通道★) |
+| `HW` | `HW/check_pin_function_labels.py` | ★**hw-lead** ★ (★已有 reboard 通道★) |
+| `HW` | `HW/check_workpack_state_values.py` | ★**hw-lead** ★ (★已有 reboard 通道★) |
+| `MECH` | `MECH/check_board_frame_coords.py` | ★**mech-lead** ★ (★已有 reboard 通道★) |
+| `MECH` | `MECH/check_demo_struct_truth.py` | ★**mech-lead** ★ (★已有 reboard 通道★) |
 | `SW` | `SW/tools/check_onepass_sw_sync.py` | ★**sw-lead** ★ (★已有 reboard 通道★) |
 
 ## ★「合法改板」通道的形状 (★照 ISS-284 已跑通的口径, 不许自创★)

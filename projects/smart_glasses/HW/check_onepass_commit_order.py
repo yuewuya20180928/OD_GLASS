@@ -301,7 +301,7 @@ def judge_d4(root: str, paths: dict, baseline: dict, changes: list):
         return False, ("★盘上板 md5 %s ⇒ %s★" % (cur, res["msg"]))
     head = res["head"]
     if changes:
-        local_after = changes[-1]["after"]
+        local_after = board_reboard.m12(changes[-1]["after"])
         if local_after != head:
             return False, ("★盘上板 md5 %s == 落表台账链头 %s, 但本闸的板 md5 台账变更区最后一行登记的是 %s "
                            "⇒ 两本台账对不上 ⇒ 判红★" % (cur, head, local_after))
@@ -521,6 +521,15 @@ def _ledger_with(changes_rows, binding_rows, baseline_extra=None):
             % ("\n".join(bl), "\n".join(ch), "\n".join(bd)))
 
 
+def _set_block_body(text: str, name: str, body: str) -> str:
+    """★把台账里 <!-- ledger:NAME BEGIN ... END --> 的表体换成 body (★其余一字不动·锚点块保住★)"""
+    pat = re.compile(r"(<!--\s*ledger:%s\s*\nBEGIN\n)(.*?)(\n?END\s*-->)" % re.escape(name), re.S)
+    m = pat.search(text)
+    if not m:
+        raise AssertionError("★台账里找不到 ledger:%s 块★" % name)
+    return text[:m.start()] + m.group(1) + body + m.group(3) + text[m.end():]
+
+
 def run_selftest(root: str):
     tmpd = tempfile.mkdtemp(prefix="iss280_selftest_")
     sb = os.path.join(tmpd, "sandbox")
@@ -599,16 +608,44 @@ def run_selftest(root: str):
         restore()
 
         # ⑦ D6 正向对照: 登记 1 次变更 + 沙盒板真改成那个 md5 + 留证绑定齐全 ⇒ 全绿
+        #   ★★ISS-297 · 2026-11-17 20:3x (hw-lead)★★: 原 fixture 只在【本闸自己的板 md5 台账】里登记了变更,
+        #   ⇒ 【落表台账】里一个字都没记 ⇒ 走「合法改板通道」时判决源 (落表台账链头) 拿不到 ⇒ D4 判红 ★
+        #   ⇒ ★**改成真正的「合法改板」三件套** (★照锚点块 §「将来真改板那一趟怎么填」的顺序★):
+        #     ① 板真改字节  ② 落表台账追加一行 (单号/文件名/改前 md5/改后 md5 四项同行) + 锚点四项原子映射
+        #     ③ 本闸自己的板 md5 台账变更区登记 + 留证绑定齐全 ★
+        #   ⇒ ★**判据方向不许变**: 盘上 md5 必须 == 落表台账链头 == 锚点 reboard.md5 ★
         open(pcb_s, "a", encoding="utf-8").write("\n; ★selftest 合法变更注入的一行 ★\n")
         real_md5 = md5_of(pcb_s)
+        base_md5 = "611b869e13518c3c023fb178f91a0075"
+        pro_base_md5 = "3e504d2be83152e337949723e909be1b"
         art_rel = "HW/PCB/production/doc/board-stats.txt"
         art = os.path.join(sb, art_rel)
         os.makedirs(os.path.dirname(art), exist_ok=True)
         open(art, "w", encoding="utf-8").write("selftest 留证产物 (★绑 md5 %s★)\n" % real_md5)
         os.utime(art, (os.path.getmtime(pcb_s) + 60, os.path.getmtime(pcb_s) + 60))
-        open(lg_s, "w", encoding="utf-8").write(_ledger_with(
-            ["| ISS-266 | 611b869e13518c3c023fb178f91a0075 | %s | 1 | 2026-11-17 |" % real_md5],
-            ["| ISS-266 | %s | %s | 2026-11-17 09:00 | ★selftest 绑定★ |" % (real_md5, art_rel)]))
+        # ③ 本闸自己的板 md5 台账: 变更区 + 留证绑定 (★只换表体·锚点块原样保住★)
+        led_txt = read_text(lg_s)
+        led_txt = _set_block_body(
+            led_txt, "CHANGES",
+            "| 单号 | 改前 md5 | 改后 md5 | 第几次变更 | 日期 |\n"
+            "|---|---|---|---|---|\n"
+            "| ISS-266 | %s | %s | 1 | 2026-11-17 |" % (base_md5, real_md5))
+        led_txt = _set_block_body(
+            led_txt, "BINDING",
+            "| 单号 | 绑定 md5 | 留证产物 (相对路径) | 产物生成时间 | 备注 |\n"
+            "|---|---|---|---|---|\n"
+            "| ISS-266 | %s | %s | 2026-11-17 09:00 | ★selftest 绑定★ |" % (real_md5, art_rel))
+        open(lg_s, "w", encoding="utf-8").write(led_txt)
+        # ② 落表台账追加一行 (四项同行) + 锚点四项原子映射 (★只动沙盒★)
+        board_reboard._ledger_append(sb, [
+            board_reboard._row("ISS-266", board_reboard.PCB_REL, base_md5, real_md5,
+                                "★**是 (★selftest 合法改板·板只改一次★)** ★"),
+            board_reboard._row("ISS-266", board_reboard.PRO_REL, pro_base_md5, pro_base_md5,
+                                "★**否 (★逐字节不变★)** ★"),
+        ])
+        board_reboard._anchor_set(sb, board_reboard.PCB_REL,
+                                  reboard={"by": "ISS-266", "file": board_reboard.PCB_REL,
+                                           "prev_md5": base_md5, "md5": real_md5})
         rc, out = _run_gate(sb)
         cases.append(("⑦ 正向对照: 登记 1 次变更 + 留证绑定齐全 + 产物不比板旧 ⇒ rc=0 (★证明 D6 不是恒红★)",
                       rc == 0, out))

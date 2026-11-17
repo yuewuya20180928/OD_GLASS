@@ -51,6 +51,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import landing_md5                                          # noqa: E402
+# ★★ISS-297 · 2026-11-17 20:5x (hw-lead): HW 侧「合法改板」通道 (★共用判决库·不许自己再写一份★)
+import board_reboard                                          # noqa: E402
 
 DOC_FILES = {
     "workpacket": ("HW/PCB/BOARD_ONEPASS_WORKPACKET.md", "WP_WORKPACKET"),
@@ -346,7 +348,33 @@ def check_V5(ents_by_id, blocks):
 
 def check_V6():
     ok, bad, good = True, [], []
+    # ★★ISS-297 · 2026-11-17 20:5x (hw-lead): 板 / `.kicad_pro` 两件改走【落表台账链头 + 合法改板通道】★★
+    #   ★判据方向一字未变 (★盘上 ≠ 判决源 ⇒ 红★); ★变的只是【判决源】: 写死常量 → 落表台账链头 ★
+    #   ★`reboard: null` (还没发生过合法改板) ⇒ ★仍按纯 md5 硬保护判 (盘上 ≠ 基线 ⇒ 红)★ ★
+    #   ★fail-closed 三条一条不许动 (★链头不唯一 / 链断 / 链头无单号 ⇒ 仍红★) ★
+    heads = {}
+    for name, rel in (("板", board_reboard.PCB_REL), (".kicad_pro", board_reboard.PRO_REL)):
+        path = protected_path(name)
+        base = PROTECTED[name][2]
+        if not os.path.exists(path):
+            ok = False
+            bad.append("%s 不存在: %s" % (name, path))
+            continue
+        res = board_reboard.check_file(PROJ, rel, path, base, md5fn=md5)
+        heads[rel] = res.get("head")
+        if res["ok"]:
+            good.append("     ✔ %s" % res["msg"])
+        else:
+            ok = False
+            for e in res["errs"]:
+                bad.append("%s: %s" % (name, e))
+    # ★同组覆盖: 一次合法改板必须覆盖同组全部件 (★只来一条记录 ⇒ 红★) ★
+    for e in board_reboard.check_trip_coverage(board_reboard.ledger_text(PROJ), heads):
+        ok = False
+        bad.append(e)
     for name, (rel, _env, base) in PROTECTED.items():
+        if name in ("板", ".kicad_pro"):
+            continue
         path = protected_path(name)
         if not os.path.exists(path):
             ok = False
@@ -570,6 +598,40 @@ def run_selftest():
         # ⑩ 基线: 真盘必须全绿 (否则上面那些红没意义)
         ok0, _ = evaluate()
         cases.append(("★基线: 真盘 V1~V7 全绿", ok0 is True))
+
+        # ── ★★ISS-297 · ⑯ 「合法改板」通道的反向用例 (★沙盒跑·真盘零写·判决源 = 落表台账链头★) ──
+        #   ★机制: `HW/board_reboard.py` 的 CASES (★照 ISS-284 已跑通的口径·不许自创★) ★
+        #   ★每条都【真跑本闸的 V6】(★受保护 5 件指向沙盒副本★) ⇒ 判据变红/变绿都必须是本闸自己的结论 ★
+        ch_cases = []
+
+        def ch_prepare(sb):
+            for rel in ("HW/netlist_v1.csv", "HW/netlist_v1_pins.csv", "HW/BOM_v1.csv"):
+                src = os.path.join(PROJ, rel)
+                d = os.path.join(sb, rel)
+                os.makedirs(os.path.dirname(d), exist_ok=True)
+                shutil.copy2(src, d)
+
+        def ch_judge(sb):
+            old = {k: os.environ.get(k) for k in
+                   ("WP_PCB", "WP_PRO", "WP_NETLIST", "WP_PINS", "WP_BOM")}
+            try:
+                os.environ["WP_PCB"] = os.path.join(sb, board_reboard.PCB_REL)
+                os.environ["WP_PRO"] = os.path.join(sb, board_reboard.PRO_REL)
+                os.environ["WP_NETLIST"] = os.path.join(sb, "HW/netlist_v1.csv")
+                os.environ["WP_PINS"] = os.path.join(sb, "HW/netlist_v1_pins.csv")
+                os.environ["WP_BOM"] = os.path.join(sb, "HW/BOM_v1.csv")
+                ok, lines = evaluate_only(wp, cl, "V6")
+                return ok, ("★本闸 V6 绿? %s★ · %s" % ("是" if ok else "否", " | ".join(lines)))
+            finally:
+                for k, v in old.items():
+                    if v is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = v
+
+        for _name, _exp, _got, _note in board_reboard.run_cases(
+                PROJ, os.path.join(tmpd, "iss297_channel"), ch_judge, prepare=ch_prepare):
+            ch_cases.append(("★ISS-297★ " + _name, _exp == _got, _note))
     finally:
         shutil.rmtree(tmpd, ignore_errors=True)
 
@@ -589,6 +651,25 @@ def run_selftest():
         print("  ❌ 有反向用例没抓到 ⇒ 闸不是判据 (或用例本身写错了)")
         return 1
     print("  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)")
+
+    # ★★ISS-297 · ⑯ 「合法改板」通道反向用例 (★10 条·判决源 = 落表台账链头 + 四项原子映射★) ★★
+    print("=" * 78)
+    print("  ★★ISS-297 · ⑯ 「合法改板」通道反向用例 (%d 条·判决源 = 落表台账链头 + 四项原子映射★)" % len(ch_cases))
+    print("=" * 78)
+    bad_ch = 0
+    for name, passed, info in ch_cases:
+        if not passed:
+            bad_ch += 1
+        print("  %s %s" % ("✔" if passed else "✘", name))
+        print("       %s" % info)
+    print("-" * 78)
+    print("  ⇒ 通道用例: %d/%d 通过 · 合计 %d/%d"
+          % (len(ch_cases) - bad_ch, len(ch_cases),
+             (len(cases) - bad) + (len(ch_cases) - bad_ch), len(cases) + len(ch_cases)))
+    if bad_ch:
+        print("  ❌ 有通道反向用例没抓到 ⇒ 通道判据是摆设 ⇒ 闸不算数")
+        return 1
+    print("  ✅ 通道反向用例全抓到 ⇒ 「合法改板」当天不会再集体假红, 且没背书照样红★")
     return 0
 
 

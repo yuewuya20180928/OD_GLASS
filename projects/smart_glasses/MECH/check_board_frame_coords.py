@@ -61,7 +61,8 @@ check_board_frame_coords.py —— ISS-276 「板只改一次」那一趟的【�
   python3 MECH/check_board_frame_coords.py --compute    ⇒ 打印现役板坐标系下的全部实算数
   python3 MECH/check_board_frame_coords.py --json       ⇒ 机器可读
   python3 MECH/check_board_frame_coords.py --selftest   ⇒ 反向用例 (★原有 5 条一条不许少
-                                                  + ISS-286 新增 ⑦~⑪ 5 条台账口径用例★)
+                                                  + ISS-286 新增 ⑦~⑪ 5 条台账口径用例
+                                                  + ISS-296 新增 ⑫~⑰ 6 条合法改板用例★)
 
 退出码: 0 = 全部通过; 2 = 有检查项不通过 (与既有 MECH 闸脚本 rc 语义一致)
 """
@@ -1442,6 +1443,116 @@ def selftest(root: str) -> int:
           f"{'是' if c4_red11 else '否'} · 红件 {c4_red_files(r11)} · {c4_reason(r11)}")
     if not c4_red11:
         errs.append("⑪ 链头不唯一后 C4 没红")
+
+    # ================== ★★【ISS-296 新增 · 合法改板通道】★★ ==================
+    #   ★★判据只许变严, 不许放松 ★★ · 全部在【沙盒副本】上做, 真件一个字节不许碰 ★★
+    #   ★★ISS-999 = 沙盒里的假单号 (真台账里不存在) ⇒ 只在沙盒副本里出现 ★★
+    BOARD_REL = os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb")
+    PRO_REL = os.path.join("HW", "PCB", "demo_mainboard.kicad_pro")
+
+    def hp_reason(res):
+        """取 C4 第一条【合法改板】错误 (★反向用例要贴出「红在哪一条」, 不是只贴一个红★)"""
+        for e in res["C4"]["errs"]:
+            if "合法改板" in e:
+                return e
+        return res["C4"]["errs"][0] if res["C4"]["errs"] else ""
+
+    def sb_board_append_byte(sb):
+        """在沙盒里的板上追加 1 字节 (★模拟「手改板」/ 模拟「合法改板后的新板」★)"""
+        p = os.path.join(sb, BOARD_REL)
+        with open(p, "a", encoding="utf-8") as f:
+            f.write("\n")
+        return md5_of(p)
+
+    def sb_ledger_append(sb, rows):
+        lt = sb_ledger_read(sb)
+        sb_ledger_write(sb, lt + "\n" + rows)
+
+    # ---- ⑫ ① 把闸里的板基线 md5 改掉 (★悄悄换真源★) 而落表台账不动 ⇒ 必须红 ----
+    sb = make_sandbox(root, "case12_baseline_swapped")
+    r12 = run_checks(sb, baseline_override={BOARD_REL: "deadbeefdeadbeefdeadbeefdeadbeef"})
+    c4_red12 = not r12["C4"]["ok"]
+    print(f"  [{'OK ' if c4_red12 else 'NG '}] ⑫ 闸里的板基线被单独改 (611b869e… ⇒ deadbeef…) 而台账不动 "
+          f"⇒ C4 红: {'是' if c4_red12 else '否'} · {hp_reason(r12)}")
+    if not c4_red12:
+        errs.append("⑫ 闸里的基线被单独改后 C4 没红")
+
+    # ---- ⑬ ② 盘上板被手改 (★台账里没有变更行★) ⇒ 必须红 (纯 md5 硬保护不许被放松) ----
+    sb = make_sandbox(root, "case13_disk_handedit")
+    newmd5_13 = sb_board_append_byte(sb)
+    r13 = run_checks(sb)
+    c4_red13 = not r13["C4"]["ok"]
+    print(f"  [{'OK ' if c4_red13 else 'NG '}] ⑬ 盘上板被手改 (md5 ⇒ {newmd5_13[:8]}…) 而台账无变更行 "
+          f"⇒ C4 红: {'是' if c4_red13 else '否'} · {hp_reason(r13)}")
+    if not c4_red13:
+        errs.append("⑬ 盘上板被手改后 C4 没红")
+
+    # ---- ⑭ ③ 台账补一条【变更行】(改前→改后) 但四项不齐 (★无落表单号★) ⇒ 必须红 ----
+    sb = make_sandbox(root, "case14_forged_no_ticket")
+    forged14 = (f"| ★**伪造** ★ | ★**`{BOARD_REL}`** ★ | `611b869e1351` | `777777777777` | "
+                f"★**手改**★ |\n")
+    lt14 = sb_ledger_read(sb)
+    sb_ledger_write(sb, forged14 + lt14)   # ★伪造行插到台账最前面 (无所属章节 ⇒ 无单号) ★
+    r14 = run_checks(sb)
+    c4_red14 = not r14["C4"]["ok"]
+    print(f"  [{'OK ' if c4_red14 else 'NG '}] ⑭ 台账补了一条变更行但四项不齐 (无落表单号) ⇒ C4 红: "
+          f"{'是' if c4_red14 else '否'} · {hp_reason(r14)}")
+    if not c4_red14:
+        errs.append("⑭ 台账变更行四项不齐后 C4 没红")
+
+    # ---- ⑮ ④ 只让板有变更行, `.kicad_pro` 没有 (★同组覆盖★) ⇒ 必须红 ----
+    sb = make_sandbox(root, "case15_board_only")
+    newmd5_15 = sb_board_append_byte(sb)
+    sb_ledger_append(sb, f"| ★**ISS-999** ★ | ★**`{BOARD_REL}`** ★ | `611b869e1351` | "
+                         f"`{newmd5_15[:12]}` | ★**是 (合法改板·板只改一次)** ★ |\n")
+    r15 = run_checks(sb)
+    c4_red15 = not r15["C4"]["ok"]
+    print(f"  [{'OK ' if c4_red15 else 'NG '}] ⑮ 只让板有变更行 (`.kicad_pro` 没有同一次覆盖) ⇒ C4 红: "
+          f"{'是' if c4_red15 else '否'} · {hp_reason(r15)}")
+    if not c4_red15:
+        errs.append("⑮ 同组覆盖不成对后 C4 没红")
+
+    # ---- ⑯a 链头不唯一 (★fail-closed 一★) ⇒ 必须红 ----
+    sb = make_sandbox(root, "case16a_two_heads")
+    sb_ledger_append(sb,
+                     f"| ★**ISS-999** ★ | ★**`{BOARD_REL}`** ★ | `111111111111` | `222222222222` | ★**手改**★ |\n"
+                     f"| ★**ISS-999** ★ | ★**`{BOARD_REL}`** ★ | `333333333333` | `444444444444` | ★**手改**★ |\n")
+    r16a = run_checks(sb)
+    c4_red16a = not r16a["C4"]["ok"]
+    print(f"  [{'OK ' if c4_red16a else 'NG '}] ⑯a 台账里造出第二条链头 (链头不唯一) ⇒ C4 红: "
+          f"{'是' if c4_red16a else '否'} · {hp_reason(r16a)}")
+    if not c4_red16a:
+        errs.append("⑯a 链头不唯一后 C4 没红")
+
+    # ---- ⑯b 链断 / 保护基线不在链尾 (★fail-closed 二★) ⇒ 必须红 ----
+    sb = make_sandbox(root, "case16b_broken_chain")
+    sb_ledger_append(sb, f"| ★**ISS-999** ★ | ★**`{BOARD_REL}`** ★ | `555555555555` | `666666666666` | "
+                         f"★**手改**★ |\n")
+    r16b = run_checks(sb)
+    c4_red16b = not r16b["C4"]["ok"]
+    print(f"  [{'OK ' if c4_red16b else 'NG '}] ⑯b 链断 (改前 md5 对不上保护基线 ⇒ 基线不在链尾) ⇒ C4 红: "
+          f"{'是' if c4_red16b else '否'} · {hp_reason(r16b)}")
+    if not c4_red16b:
+        errs.append("⑯b 链断后 C4 没红")
+
+    # ---- ⑰ ⑥ 正向对照: 合法改板一次 (板 + `.kicad_pro` 成对) ⇒ 必须绿 (证明闸不是恒红) ----
+    sb = make_sandbox(root, "case17_legal_reboard")
+    newmd5_17 = sb_board_append_byte(sb)
+    sb_ledger_append(sb,
+                     f"| ★**ISS-999** ★ | ★**`{BOARD_REL}`** ★ | `611b869e1351` | `{newmd5_17[:12]}` | "
+                     f"★**是 (合法改板·板只改一次)** ★ |\n"
+                     f"| ★**ISS-999** ★ | ★**`{PRO_REL}`** ★ | `3e504d2be831` | `3e504d2be831` | "
+                     f"★**否 (逐字节不变)** ★ |\n")
+    r17 = run_checks(sb)
+    c4_green17 = r17["C4"]["ok"]
+    others17 = [k for k in ("C1", "C2", "C3") if not r17[k]["ok"]]
+    print(f"  [{'OK ' if (c4_green17 and not others17) else 'NG '}] ⑰ 正向对照: 合法改板一次 "
+          f"(板 611b869e… ⇒ {newmd5_17[:8]}… + `.kicad_pro` 同一次成对登记) ⇒ C4 绿: "
+          f"{'是' if c4_green17 else '否'} · C1/C2/C3 = "
+          f"{'全绿' if not others17 else others17} · C4 错误 {len(r17['C4']['errs'])} 条"
+          + (f" · {hp_reason(r17)}" if not c4_green17 else ""))
+    if not (c4_green17 and not others17):
+        errs.append("⑰ 合法改板后 C4 还是红 ⇒ 合法改板通道没走通")
 
     # ---- ⑥ 沙盒自证: 真件一个字节没动 ----
     same = all(md5_of(os.path.join(root, rel)) == base_md5 for rel, base_md5 in PROTECTED.items())

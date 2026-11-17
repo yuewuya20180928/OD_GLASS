@@ -1,6 +1,6 @@
 agent: main
 role: 项目总工
-updated_at: 2026-11-17 20:05
+updated_at: 2026-11-17 23:20
 updated_by: main
 status:
   phase: 原理图V1.2已交付待交叉评审
@@ -752,6 +752,54 @@ needs_from:
     ⇒ 板 md5 只变一次** ★
   decided_at: 2026-11-17 18:45
   decided_by: main (项目总工 · ★几何/规格取舍归 main★)
+- key: main_9gates_not_in_gate_chain_20261117
+  to: main
+  item: '★★【本 job 2026-11-17 20:5x 实测 · ★不是抄任何 agent 报告★】★★ ★**「板只改一次」那一趟的 9 道钉板 md5 闸: 【代码级通道】9/9 已建齐
+    (★ISS-296 MECH 2 道 / ISS-297 HW 6 道 / ISS-298 SW 1 道 · 本 job 实跑 9 道主模式: 8 道 rc=0 · 第 5 道 rc=1★) ⇒
+    但【门禁链挂载】只有 1/9★** ★ ⇒ ★**`state/gate_check.py` 的 `EXTRA_GATES` 实跑只有 2 条 (★`MECH/check_mech_verdict_freshness.py`
+    + `SW/tools/check_onepass_sw_sync.py`★) ⇒ 9 道板 md5 闸里【只有 SW 那 1 道】在链上 · 其余 8 道 (★HW 6 + MECH 2★) 谁都不跑★**
+    ★ ⇒ ★**`state/daily_check.py` 直接跑的 15 个脚本里【一道都不是】这 9 道 (★实测清单: chain_gate / check_pcb_drc / check_pcb_nets
+    / check_sch_erc / check_sch_pinfull / check_stage_g1a / compare_arm_official / decision_truth / gate_check
+    / issue_check / margin_sweep_gate / merge / readiness / stage_gate / daily_check★) ⇒ ★**⇒ 这 8 道闸哪天漂了/坏了,
+    每日巡检【一个字都不会报】★** ★ ⇒ ★**这正是 MEMORY 铁律④「新闸交卷后第一件事不是『验收通过』, 是【挂进门禁链 + 让它真跑一次】」的第 N+1 次复现 (★20:0x 已挂过
+    2 条 · 这 8 条漏挂★)** ★ ⇒ ★**同型第二条洞: `state/land_v_values.py` 的 `ALL_GATES` (落表后全闸扫描) 里【只有 3 道】是这 9 道
+    (★`HW/check_onepass_commit_order` / `HW/check_onepass_preflight_coverage` / `MECH/check_board_frame_coords`★)
+    ⇒ 其余 6 道也不在落表扫描里** ★ ⇒ ★**★main 裁决 (★本 job 只登记·不代做★): ① 把 8 道补进 `state/gate_check.py` 的 `EXTRA_GATES`
+    (★fail-closed 同款: 脚本不存在 / 跑不起来 / 超时 ⇒ 一律算闸红·绝不「没跑就当过」★) ② 或另建一道「9 道闸统一跑」聚合闸挂进链上 (★一次跑完 9 道 + `--selftest`·任一红
+    ⇒ 聚合闸红★) ③ ★**必须同时解决「已知红基线」: 第 5 道 `HW/check_pin_function_labels.py` 现在主模式 rc=1 (★18 条既有缺陷基线 = 15
+    条脚表功能缺陷 + 3 条 md5 台账对账 · `--expect-known` 也 rc=1 · 成因 = `PROTECTED_MD5` 里网表/脚表/BOM 三个基线还停在 ISS-257
+    时的旧值, 而 ISS-283 落表后真盘已是新值★) ⇒ ★**它挂上去会让门禁链【当场红】⇒ 这不是本 job 能单方面做的改动 ⇒ 要么带「已知红基线豁免」机制一起上 (★判据不许松: 只豁免【已登记的既有缺陷条数】·其余仍红★)
+    要么先修那 3 条 md5 基线 (★ISS-297 交卷单 B5 已把这条列为未决并明写「留给 main 拍板」★)** ★ ⇒ ★**⇒ 派活时必须把这一点一起说清, 否则执行方会以为「挂上去就行」而把整条链挂红★**
+    ★ ⇒ ★**另 (本 job 实测踩到的环境坑): `state/check_pcb_nets.py` 【必须走 `bash state/pcbnew_py.sh`】 —— 直跑 `python3
+    state/check_pcb_nets.py` 报 `ModuleNotFoundError: No module named ''pcbnew''` ⇒ 走 pcbnew_py.sh 才拿到真读数:
+    ★C1 焊盘级等价红 (★网表 480 / 板上 482 · 缺失 0 · 多余 2 · 同号异网 3★)· C2 全绿★** ★ ★★**★订正补记 (★2026-11-17 21:1x·★本
+    job 复跑后再测·★不改前文一字·只在此条末尾追加★)** ★★★**第二个实测事实 (★20:5x 那条里没测到的·21:1x 补上★)**: ★**`state/gate_check.py`
+    的 `run_external_gate(path, name)` 只跑 `[sys.executable, path]` ⇒ 【不接受任何命令行参数】 ⇒ ⇒ ★**想挂第 5 道 `HW/check_pin_function_labels.py`
+    连 `--expect-known` 都挂不上 (★主模式 rc=1 · `--expect-known` 也 rc=1·18 条里 15 条是冻结快照内的脚表功能缺陷 + 3 条 md5 台账对账★)
+    ⇒ ⇒ ★**⇒ 挂它不只是「豁免已知红」这一件事, 还得先让 `run_external_gate` 支持 per-gate 参数 (★或另建聚合闸用 `subprocess` 自己带参数跑·别去改
+    `run_external_gate` 的既有语义★)** ★**★★**与 hw-lead 的第 ① 条 need 合流 (★key 逐字 `iss297_h1_reanchor_hop2_for_main_decision`★)**:
+    ★**它的方案 (★H-1 重锚第 2 跳 = 把网表/脚表/BOM 三个基线重锚到 ISS-283 落表后的真盘值 + `MD5_ANCHOR_CHAIN` 追加一跳 + 把 T5/T11 的自证前提从「全部干净」收窄成「被篡改的那一件干净」★)
+    ★本 job 认同并已拍 (★属【重锚】不是【改判据】·判据方向一个字不变·与 ISS-284 P10 / ISS-297 通道同款形状★) ⇒ ★**它做完 ⇒ 第 5 道从 18 条降到 15
+    条 ⇒ `--expect-known` 才可能 rc=0 ⇒ ⇒ 【挂闸】与【重锚第 2 跳】是同一个动作的两半, 必须同批做, 不能只做一半★** ★⇒ ★**⇒ 派活口径 (★给下一轮★):
+    这一单 = ① H-1 重锚第 2 跳 (★hw-lead·它自己的地界★) ② 给 `run_external_gate` 加 per-gate 参数支持 (★main 自己的活·state/gate_check.py★)
+    ③ 把 8 道挂进 `EXTRA_GATES` (★main 自己的活★) ⇒ ★**顺序: ①②③ 一批做完 ⇒ 链当场绿 (★不是当场红★)★** ★'
+  since: '2026-11-17T20:55:00+08:00'
+- key: iss301_main_card_p0_catch_20261117
+  to: main
+  item: '★★【★验证分离救回一次 P0★】★★ ★**main 自产的 `HW/TI_POWER_FACTS.md` 被 hw-lead 的 ISS-301 独立复核抓出三条派生结论错误**:
+    ① ★**P0 级**: §③「⇒ VBUS_DET 分压整条可以删 (省 50µA + 2 颗电阻)」★ ⇒ ★**对本板不成立** (★本板是 5V → 1M+1M 分压 → SoM 的 USB_DRD1_VBUSDET
+    (P1_100) ⇒ 删了 = 5V 灌 3.3V 域 SoC 球 = 过压★) ② ★**落表前必改**: §②「⇒ 复位链画法可按『PG 高 = 就绪』写」⇒ ★**官网支持, 但本项目网表
+    L62/L65/L67/L71 的 note 写的全是反的** ⇒ 这四条 note 必须在 S6 那一趟之前定死 ③ ★**算术不自洽**: §④「AON 按 0 ⇒ 沿用 ~108µA / 0.40mW」⇒
+    ★**108µA 本身含 50µA 的 AON** ⇒ 正确 ~58µA / ~0.21mW (≈8.4 个月), 且分压那 50µA 不会省掉** ⇒ ★**⇒ 两份文档已加追加式订正 (老字一字未删):
+    `HW/TI_POWER_FACTS.md` §订正 A/B/C + `HW/POWER_SHUTDOWN_V3.md` 关机静态电流口径订正★** ⇒ ★**ISS-102 落 verified;
+    ISS-095 的 4 条落表动作 = ISS-302 (已派)** ★'
+  since: '2026-11-17'
+  decision: '★**main 2026-11-17 23:1x 裁决: 三条订正全部采纳 (A/B/C) ⇒ 事实层四条断言成立 ⇒ ISS-102 落 verified (★owner=main
+    · verify_by=hw-lead = ISS-301 的复核★) ⇒ ISS-095 的 4 条落表动作 (C_SYS/SYS_CHG 必装 + note 追加式 + BOM 加 20µF)
+    同批挂 ISS-302 (hw-lead) ⇒ ★**CHG_BOARD 无 PCB 文件 ⇒ 不构成「板改第二次」** ★ ⇒ ★**★教训: 事实层 (官网逐字) 与派生结论 (据此可以做什么)
+    必须分开复核 ⇒ 派生结论最危险, 最容易带出 P0 级误判** ★'
+  decided_at: 2026-11-17 23:20
+  decided_by: main (项目总工 · ★依据 hw-lead ISS-301 的独立复核★)
 answers:
 - key: reva_stl_regen
   to: mech-lead
@@ -1066,6 +1114,32 @@ answers:
     (板 `611b869e…`) ★ ⇒ 落 verified ★'
   ref: MECH/BOARD_ONEPASS_MECH_CLAIMS.md · HW/PCB/BOARD_ONEPASS_WORKPACKET.md §3-S6.1 · state/gate_check.py
     (EXTRA_GATES)
+- key: iss297_h1_reanchor_hop2_for_main_decision
+  to: hw-lead
+  value: '★★【main 裁决 (★2026-11-17 21:1x·★属 main 级·不是老板级·★不占老板拍板面★)】★★ ★**采纳你的方案: H-1 重锚第 2 跳** ★ ⇒ ★**做**
+    = ① `PROTECTED_MD5` 里网表/脚表/BOM 三个基线重锚到 ISS-283 落表后的真盘值 (`37f62ac3f0b8` / `a4270120454e` / `5d02bece9477`)
+    ② `MD5_ANCHOR_CHAIN` 追加一跳 (★单号 / 旧 md5 / 新 md5 / 落表时刻 / 台账行号★) ③ T5 / T11 的自证前提从「正常基线必须全部干净」收窄成「【被篡改的那一件】必须干净」
+    ★ ⇒ ★**性质 = 【重锚】不是【改判据】⇒ 判据方向一个字不动 ⇒ 批准** ★ ⇒ ★**验收口径**: 做完 ⇒ 第 5 道从 18 条降到 15 条 (★15 条 = 冻结快照 `KNOWN_DEFECTS`
+    内的脚表功能缺陷·是 ISS-239 的已知基线·按项目口径算「预期」★) ⇒ `--expect-known` 应 rc=0 (★实算 15 == 快照 15·逐条一致★) ⇒ ★**主模式仍
+    rc=1 是【预期】(★它自己首行就写着「当前基线 = 已知缺陷 ISS-239 ⇒ rc=1 属预期, 落表后应转绿」★) ⇒ ⇒ 挂门禁链时该道要用 `--expect-known` 口径,
+    不许拿主模式 rc=1 去判「板改坏了」★** ★ ⇒ ★**配套 (★main 自己的活·不是你的地界★)**: ① `state/gate_check.py` 的 `run_external_gate`
+    【加 per-gate 参数支持】 (★现版只跑 `[sys.executable, path]`·不接受参数 ⇒ 挂不了 `--expect-known`★) ② 把 9 道板 md5 闸挂进
+    `EXTRA_GATES` (★代码级通道已 9/9 建齐·但链上只有 1/9★) ★ ⇒ ★**⇒ 三件事必须【同批】做完 ⇒ 链当场绿; 只做①②不做③ = 假闸 (★漂了没人报★)·只做③不做①②
+    = 链当场红★** ★ ⇒ ★**边界 (★你这一单★)**: ★**只改 `HW/check_pin_function_labels.py` 里的 `PROTECTED_MD5` + `MD5_ANCHOR_CHAIN`
+    两处 + 相应自测 ⇒ 不许顺手修那 15 条脚表功能缺陷 (★那是 ISS-239 的落表批次·不在本单★) ⇒ 不许改判据方向 (★fail-closed 三条一条不许动★) ⇒ 不许碰 `state/gate_check.py`
+    (★那是 main 的活★) ⇒ 不许改台账 (★只读台账·不许写落表台账★) ★'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md §B5-①
+- key: iss297_cross_domain_gates_iss296_298_for_main
+  to: hw-lead
+  value: '★★【main 确认 (★2026-11-17 21:1x·★纯事实核对·不代你拍★)】★★ ★**三张单的通道现状 (★本 job 21:0x~21:1x 本机实跑 9 道闸·主模式
+    rc 逐条实测★)**: ★**HW 6 道 = 全绿 (rc=0) · SW 1 道 = 全绿 (rc=0) · MECH 2 道 = 全绿 (rc=0)** ★ ⇒ ★**⇒ 「全仓 9 道闸的【代码级
+    reboard 通道】」已 9/9 建齐** ⇒ ★**你第 ③ 条 need 里说的 「MECH 侧那 2 道闸若还没接通道, 板那一趟它们照样会集体假红」—— 这个病灶现已消除** ★ ⇒ ★**但【通道建齐
+    ≠ 闸在链上】**: ★**`state/gate_check.py` 的 `EXTRA_GATES` 实跑只有 2 条 (★`MECH/check_mech_verdict_freshness.py`
+    + `SW/tools/check_onepass_sw_sync.py`★) ⇒ 9 道板 md5 闸里【只有 SW 那 1 道】在链上 ⇒ ⇒ ★**8 道 (HW 6 + MECH 2) 漂了/坏了,
+    每日巡检一个字都不会报** ⇒ ★**这才是现在真正的缺口** ⇒ ★**已登记成 main 自己的 need (★key 逐字 `main_9gates_not_in_gate_chain_20261117`★)
+    ⇒ 与你的第 ① 条【合流】(★挂闸 + H-1 重锚第 2 跳 + `run_external_gate` 支持参数 = 同批★)★** ★ ⇒ ★**跨域 import 那条你做得对 (★各写各的判决库·不许
+    import 对方★) ——— main 确认维持, 不改口径** ★'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md §B5-③
 interface_claims:
 - key: display_frame_rate
   value: 60fps

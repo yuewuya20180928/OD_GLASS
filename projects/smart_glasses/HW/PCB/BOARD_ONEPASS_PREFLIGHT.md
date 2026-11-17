@@ -30,7 +30,7 @@
 |---|---|---|---|---|---|---|
 | ★**`B01_REF_SUFFIX`** ★ | ★ISS-266 ★ | 186 个封装位号加 _1 数字后缀 (KiCad 问号根因) | ★**S1** ★ | - | [实测] 板文件 186 个封装位号零后缀 ⇒ KiCad 判「未标注」⇒ 218 处问号 (HW/PCB/KICAD_REF_QUESTIONMARK_ROOTCAUSE.md §0/§2/§4) | `python3 HW/check_step1_parts_spec.py ⇒ rc=0 (问号行数=0 · 218 位号两两不重名)` |
 | ★**`B02_C_VBUS_GND`** ★ | ★ISS-266 ★ | C_VBUS_GND 从 demo 主 PCB 拿掉 (B-1) | ★**S2** ★ | - | [实测] 板上仍在, 且它当下两个带网焊盘挂的是: C_VBUS_GND pad1 = GND / C_VBUS_GND pad2 = VBUS_5V_CHG ⇒ 焊盘级多余 2 | `bash state/pcbnew_py.sh state/check_pcb_nets.py ⇒ C1 缺失 0 · 多余 0 (现状: 多余 2)` |
-| ★**`B03_ULDO_S28_PAD3`** ★ | ★ISS-239 ★ | U_LDO_S28 缺 pin3(EN) ⇒ 若走 A 案板须补 pad3 | ★**S2** ★ | 老板/PM 拍 A/B 案 (ISS-239 §4.2) | [实测] 脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账 (★落表后基线过期★); U_LDO_S28 无 pin3 行 ⇒ 板侧无 pad3 ⇒ 焊盘级恰 1 颗不等价 | `python3 HW/check_pin_function_labels.py --expect-known ⇒ rc=0 (★现状: 18 条缺陷 = 15 脚表功能 (14 串号 + 1 缺脚) + 3 md5 台账对账; ★脚表功能缺陷本批未变, 多出的 3 条是落表后基线过期 (KNOWN_DEFECTS 快照同步归 ISS-283)★)` |
+| ★**`B03_ULDO_S28_PAD3`** ★ | ★ISS-239 ★ | U_LDO_S28 缺 pin3(EN) ⇒ 若走 A 案板须补 pad3 | ★**S2** ★ | 老板/PM 拍 A/B 案 (ISS-239 §4.2) | [实测] 脚表 15 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 0 条 md5 台账对账 ; U_LDO_S28 无 pin3 行 ⇒ 板侧无 pad3 ⇒ 焊盘级恰 1 颗不等价 | `python3 HW/check_pin_function_labels.py --expect-known ⇒ rc=0 (★现状: 15 条缺陷 = 15 脚表功能 (14 串号 + 1 缺脚) + 0 md5 台账对账; ★脚表功能缺陷本批未变, ★md5 台账对账 0 条 (★基线已重锚到最新落表·无过期基线·ISS-299·2026-11-17★)★)` |
 | ★**`B04_R_SUPV_DIV_DNP`** ★ | ★ISS-244 ★ | R_SUPV_DIV1/2 = 0Ω 且 dnp=必装, 而 U_SUPV dnp=DNP ⇒ 装 0Ω 等于把 V_SOC_IO 短到地 | ★**S2** ★ | 落表批次 (V-3 归老板 A1) | [实测] 网表: R_SUPV_DIV1 / R_SUPV_DIV2 的 dnp=必装 且 value=0Ω 跳线; U_SUPV 三行 dnp=DNP | `python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ rc=1 且条数不增 (现状 18 条)` |
 | ★**`B05_U_EN_SW_VALUE`** ★ | ★ISS-269 ★ | 板封装 U_EN_SW 的 Value 属性陈旧 (B-2) | ★**S3** ★ | - | [实测] 板封装 Value = 'EN 输入 (高=放行底板)' (脚功能串, 不是器件身份) | `bash state/pcbnew_py.sh -c "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print([f.GetValue() for f in b.GetFootprints() if f.GetReference()=='U_EN_SW'])" ⇒ 值含 TPS22991RAA` |
 | ★**`B06_TPS7A20_VALUE`** ★ | ★ISS-239 ★ | 7 颗 TPS7A20 的板封装 Value 同为脚功能串 (与 B05 同根因) | ★**S3** ★ | - | [实测] 板上 7 颗 LDO 的 Value = 'EN (pin3)' / 'GND (pin2)' ⇒ 贴片程序里没有 TPS7A20-33 这个料号 | `bash state/pcbnew_py.sh -c "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print([f.GetValue() for f in b.GetFootprints() if f.GetReference().startswith('U_LDO_')])" ⇒ 7 颗都含 TPS7A20` |
@@ -213,9 +213,9 @@ ISS-276
       "id": "B03_ULDO_S28_PAD3",
       "source_iss": "ISS-239",
       "title": "U_LDO_S28 缺 pin3(EN) ⇒ 若走 A 案板须补 pad3",
-      "current_state": "[实测] 脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账 (★落表后基线过期★); U_LDO_S28 无 pin3 行 ⇒ 板侧无 pad3 ⇒ 焊盘级恰 1 颗不等价",
+      "current_state": "[实测] 脚表 15 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 0 条 md5 台账对账 ; U_LDO_S28 无 pin3 行 ⇒ 板侧无 pad3 ⇒ 焊盘级恰 1 颗不等价",
       "action": "A 案: 板侧给 U_LDO_S28 补 pad3 + 脚表补行; B 案: 不补 (本单不代拍)",
-      "criterion": "python3 HW/check_pin_function_labels.py --expect-known ⇒ rc=0 (★现状: 18 条缺陷 = 15 脚表功能 (14 串号 + 1 缺脚) + 3 md5 台账对账; ★脚表功能缺陷本批未变, 多出的 3 条是落表后基线过期 (KNOWN_DEFECTS 快照同步归 ISS-283)★)",
+      "criterion": "python3 HW/check_pin_function_labels.py --expect-known ⇒ rc=0 (★现状: 15 条缺陷 = 15 脚表功能 (14 串号 + 1 缺脚) + 0 md5 台账对账; ★脚表功能缺陷本批未变, ★md5 台账对账 0 条 (★基线已重锚到最新落表·无过期基线·ISS-299·2026-11-17★)★)",
       "step": "S2",
       "blocked_by": "老板/PM 拍 A/B 案 (ISS-239 §4.2)",
       "evidence": "[实测]"
@@ -563,7 +563,7 @@ ISS-276
 | ③ | ★**`B31_P7_TARGET`** · ★**§1 帧声明** ★ | `186 封装` | ★**186 封装 (★现状·官方板★) / 185 封装 (★S2 把 `C_VBUS_GND` 拿掉之后★)** ★ ⇒ ★**官方板 186 / 沙盒生成板 185 ⇒ 差 1 = `C_VBUS_GND` (★网表 board 列 = CHG_BOARD·DNP, 但官方板上有实物封装@107.70,42.50★) ⇒ ★★动板那一趟按【官方板的数】走: 开工前 186 / 收工后 185★★ ★** |
 | ④ | ★**`B26_BASELINE`** ★ | `网表 e06c1dd6…` | ★**落表台账登记 = 37f62ac3f0b81d92ca7d48fdea717f07** ★ (★脚表 `a4270120454aedf7a23c92cd8985c8a6` / BOM `5d02bece9477ffce5fbe0193c7d5cce4`·★ISS-283 · 台账 L1353·§16.2★) ⇒ ★**基线走落表台账为准, 不写死** ★ |
 | ⑤ | ★**铜层 / 板框四数** ★ | `8 铜层 · 160.10×100.10` | ★**8 铜层 · 160.10×100.10** ★ (★现状=现役帧 B160x100★) |
-| ⑥ | ★**`B03_ULDO_S28_PAD3`** (脚表缺陷条数) ★ | ★`脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账` ★ | ★**脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账** ★ (★现状 = 18 · 本闸钉住★) |
+| ⑥ | ★**`B03_ULDO_S28_PAD3`** (脚表缺陷条数) ★ | ★`脚表 15 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 0 条 md5 台账对账` ★ | ★**脚表 15 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 0 条 md5 台账对账** ★ (★现状 = 15 · 本闸钉住★) |
 
 ★**★本附录的现状值登记表 (★与作业包 §8.2.5 逐字相同★)** ★
 
@@ -841,14 +841,14 @@ ISS-276
         "doc": "workpacket",
         "anchor": "★**15 条** (★14 串号 + 1 缺脚: `U_LDO_S28` 无 pin3★)",
         "correction_anchor": "### ★8.2.3 · 同批一起对回的其余现状值型判据",
-        "fresh": "18 条 (★15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账★)",
-        "expect": "18",
+        "fresh": "15 条 (★15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 0 条 md5 台账对账 (★基线已于 ISS-299 重锚·那 3 条台账对账缺陷已消失★)★)",
+        "expect": "15",
         "probe": [
           "python3",
           "HW/check_pin_function_labels.py"
         ],
         "probe_regex": "(\\d+) 条缺陷",
-        "note": "脚表语义缺陷 15 → 18 (落表后 md5 台账对账多 3 条)"
+        "note": "脚表缺陷总条数 18 → 15 (★ISS-299 重锚基线后·md5 台账对账 3 条已消失·脚表功能缺陷 15 条未变★)"
       },
       {
         "id": "W09_SAME_PAD_NET",
@@ -995,16 +995,16 @@ ISS-276
         "id": "C06_B03_DEFECT_COUNT",
         "category": "defect_count",
         "doc": "checklist",
-        "anchor": "脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账",
+        "anchor": "脚表 15 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 0 条 md5 台账对账",
         "correction_anchor": "## ★§附录 · ISS-289 追加式订正 (★现状值对回盘面★)",
-        "fresh": "脚表 18 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 3 条 md5 台账对账",
-        "expect": "18",
+        "fresh": "脚表 15 条缺陷 = 15 条脚表功能缺陷 (14 串号 + 1 缺脚) + 0 条 md5 台账对账",
+        "expect": "15",
         "probe": [
           "python3",
           "HW/check_pin_function_labels.py"
         ],
         "probe_regex": "(\\d+) 条缺陷",
-        "note": "脚表缺陷条数 (清单页已更新, 本闸钉住)"
+        "note": "脚表缺陷条数 (★基线已于 ISS-299 重锚·md5 台账对账 3 条已消失 ⇒ 18 → 15·脚表功能缺陷 15 条未变·本闸钉住★)"
       },
       {
         "id": "C07_B26_MD5_LEDGER",

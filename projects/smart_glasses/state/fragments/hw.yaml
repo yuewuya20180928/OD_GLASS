@@ -3,18 +3,11 @@ role: 硬件总工
 updated_at: '2026-11-17'
 updated_by: hw-lead
 status:
-  phase: P1
+  phase: delivered
   progress_pct: 100
-  health: green
-  summary: '★ISS-292 交卷完成 (2026-11-17 18:0x): 清单页生成器 state/_iss277_build_preflight.py 已与盘面页对齐 ⇒ ★重跑幂等
-    (页 md5 159bf20fe71c36e48292f39dafc46a35 跑前跑后逐字节相同·作业包也不变)★ ⇒ ★页回退这条路已堵死★; 现状值一律从真源读 (R3-A4 ← check_netlist_contradiction_r3.py
-    · 脚表缺陷条数 ← check_pin_function_labels.py · 落表事件 ← 落表台账) 不许写死; 补齐 B32_V2_NET_RENAME (31→32 条); 条目 id
-    B17_DNP_43 保留改名禁止 (id 里的 43 是历史命名); 追加式订正块搬进 sidecar state/_iss277_preflight_appendix.md (缺失即拒写页·fail-closed);
-    作业包追加式订正 §8.3 (S1 位号真源指针改指 netlist_v1_pins.csv 218 器件 + 收工清单强制项与最危险四条重锚值 + 不许为让闸绿把 C_VBUS_GND 装回板上);
-    4 条反向用例全过 (落表链头前跳⇒R3-A4 跟着变 / 写死旧值⇒页回退且闸 rc=1 / 正向对照⇒零变化且闸 rc=0 / sidecar 缺失⇒拒写); 回归 8 条 rc 全 0 (workpack_state_values
-    +selftest 10/10 · onepass_preflight_coverage +selftest 11/11 · board_frame_caliber · merge · gate_check
-    Q1 18/18 · issue_check); 零写板 (md5+mtime 双重自证 板 mtime 仍 2026-11-06 07:07:17) 零落表 零外发 不替老板拍板 不自签 issue_log;
-    给 main 5 条 need★'
+  health: 绿
+  summary: 'ISS-299 交付: HW 第5道闸 check_pin_function_labels.py 的 H-1 重锚第2跳做完(基线常量重锚到 ISS-283 落表后真盘值 + 锚链逐跳补齐)
+    ⇒ 默认 rc=1/恰好15条 · --expect-known rc=0 · --selftest rc=0(13+10) ⇒ 9道闸通道齐 · 零写板零落表零外发'
   updated_at: '2026-11-17'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -1182,6 +1175,67 @@ artifacts:
   updated_at: '2026-11-17'
   summary: '★反向用例: ① 沙盒模拟又一次合法落表 ⇒ R3-A4 跟着变 (50/39/39) ② 生成器写死旧值 ⇒ 页回退 + 新闸 rc=1 ③ 正向对照 ⇒ 页零变化 + 闸 rc=0
     ④ sidecar 缺失 ⇒ 拒写页; 全过才 rc=0; 只动沙盒, 真盘零写'
+- path: HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★iss297 交卷: HW 侧 6 道闸全部接上「合法改板」通道 (判决源 写死常量 -> 落表台账链头 + 锚点 reboard 四项原子映射·照 ISS-284 已跑通的口径)
+    ⇒ 判据方向没变/fail-closed 三条没动/reboard:null 仍按纯 md5 硬保护判; 6 闸 x 10 条 ISS-297 反向用例 (沙盒跑·真盘零写) 60/60 全抓到;
+    零写板 (md5+mtime 双重自证) 零落表 零外发; 待 main 拍板 3 条见交卷单 B5'
+- path: HW/board_reboard.py
+  kind: tool
+  version: v1.0
+  updated_at: '2026-11-17'
+  summary: '★iss297 共用判决库 (cont1 落盘·本单只读一个字节没改): check_file/check_pair/chain_state/check_trip_coverage
+    + CASES 那 10 条反向用例沙盒; 自检 --selftest 10/10 rc=0; 6 道闸全部 import 它·不许各写一份 reboard 逻辑'
+- path: HW/check_onepass_commit_order.py
+  kind: tool
+  version: v1.1
+  updated_at: '2026-11-17'
+  summary: '★iss297 第3道闸接通道: D4/D4b 判决源 -> 落表台账链头 + 锚点四项原子映射; 加「本闸板 md5 台账变更区与落表台账链头对不上 => 红」交叉对账; 修了
+    ⑦ 号过期 fixture (原 fixture 只在本地台账登记·没落表背书); --selftest 21/21 rc=0'
+- path: HW/check_onepass_preflight_coverage.py
+  kind: tool
+  version: v1.1
+  updated_at: '2026-11-17'
+  summary: '★iss297 第4道闸接通道: P6 的板/.kicad_pro 两件 -> board_reboard.check_file + 同组覆盖; --selftest 21/21
+    rc=0'
+- path: HW/check_pin_function_labels.py
+  kind: tool
+  version: v1.1
+  updated_at: '2026-11-17'
+  summary: '★iss297 第5道闸接通道: ④ 的板/.kicad_pro 两件 -> board_reboard.check_file + 同组覆盖; 那 18 条既有缺陷一条没修 (改前
+    18 改后 18); --selftest 通道 10/10·整体仍 rc=1 (2 条既有失效 T5/T11·ISS-283 落表后基线过期的历史债·见交卷单 B5)'
+- path: HW/check_workpack_state_values.py
+  kind: tool
+  version: v1.1
+  updated_at: '2026-11-17'
+  summary: '★iss297 第6道闸接通道: V6 的板/.kicad_pro 两件 -> board_reboard.check_file + 同组覆盖; --selftest 20/20
+    rc=0'
+- path: HANDOFF/2026-11-17_hw-lead_ISS299_H1重锚第2跳_基线常量.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★ISS-299 交卷单: 第5道闸 H-1 重锚第2跳 · 零写板零落表 · B1~B6 六块齐全 + 反向用例 + 边界自证'
+- path: logs/iss299/selftest_after.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★本闸 --selftest 实跑日志: ALL TESTS PASS (13条既有 + 10条ISS-297通道反向用例) rc=0'
+- path: logs/iss299/regression.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: '★全套回归日志: 9道闸 + merge + gate_check(Q1 18/18) + issue_check 读数'
+- path: HANDOFF/2026-11-17_hw-lead_ISS301_TI电源事实卡复核.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-17'
+  summary: 'ISS-301 交卷单: B0 一句话结论 + B1 四条断言复核表 (断言原文逐字 / 证据出处 / 复核手段 / 结论 / 证据等级) + B2 交叉一致性三条 (ISS-095
+    ① vs C_SYS DNP 不自洽且代价算错 = 实占约 8mm² 非 25x10mm; ISS-102 ④ 交叉引用没写错, 但被引用的网表 note 极性反了 L62/L65/L67/L71;
+    ④ 降级方案 108uA 含 50uA AON 算术不自洽) + B3 现场 rc 原样 + B4 边界自证 (板 md5 611b869e13518c3c023fb178f91a0075 + mtime
+    2026-11-06 07:07:17:362193413 双自证零写板) + B5 给 main 的明确结论 4 问; 证据副本在 logs/iss301/ (TI 官网 2 个件 + Forlinx
+    官网手册快照 + 399 行比对日志)'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2592,6 +2646,63 @@ needs_from:
   to: main
   item: '★C_VBUS_GND 留不留仍是老板 / PM 域★: 本单只交事实与代价 (★§3-S2 的判据是 C1 多余 0 ⇒ 它必须下板 ⇒ 官方板封装数 186 ⇒ 185★) ⇒ ★不替老板拍板
     · 不自签 issue_log★ ⇒ ★★但请注意: 那一趟收工后若有人为让闸绿而把它装回去 ⇒ 直接毁掉 §3-S2 ⇒ 2-4 周 + ¥4-8K★★ ★'
+  since: '2026-11-17'
+- key: iss297_h1_reanchor_hop2_for_main_decision
+  to: main
+  item: '交卷单 B5 第 ① 条 —— 第 5 闸 (HW/check_pin_function_labels.py) 的 2 条既有失效 (T5/T11) 要不要在本单之外单独收? ★事实:
+    该闸 PROTECTED_MD5 里 网表/脚表/BOM 三个基线还是 ISS-257 时的旧值, 而 ISS-283 落表后真盘已是新值 ⇒ 这 3 件本来就报 MD5_CHANGED ⇒ T5/T11
+    的自证前提「正常基线必须是干净的」在 ISS-283 那天就过期了 (改前 rc=1 · 改后仍 rc=1 · 0 条新失效) ⇒ 本单按任务书明令没碰它 ⇒ ★建议 (仅供参考 · 不是决定 ·
+    请 main 拍): 单开一单做 H-1 重锚第 2 跳 = 把三个基线重锚到 ISS-283 落表后的真盘值 + 在 MD5_ANCHOR_CHAIN 追加一跳 + 把 T5/T11 的自证前提从「全部干净」收窄成「被篡改的那一件干净」
+    ⇒ 做完那 18 条会降到 15 条 · 闸就干净了 ⇒ ★代价: 要动第 5 闸的 PROTECTED_MD5 与 MD5_ANCHOR_CHAIN 两处 ⇒ 等于给锚点链再加一跳, 改这跳就得同步落表台账与锚点块
+    ⇒ 属于「重锚」不是「改判据」· 判据方向一个字不变'
+  since: '2026-11-17'
+- key: iss297_legal_reboard_day_three_steps_to_four_for_main_decision
+  to: main
+  item: '交卷单 B5 第 ② 条 —— 合法改板那天, 操作者除了「写板 + 落表台账追加一行 + 锚点填四项」, 还得同步在第 3 道闸自己的板 md5 台账 (HW/PCB/BOARD_ONEPASS_MD5_LEDGER.md)
+    的变更区 + 留证绑定区登记那一跳 ⇒ 否则 D5 会说「变更区 0 行 ⇒ 板 md5 没变过」、D6 会说「无需留证绑定」⇒ 第 3 闸的 D5/D6 会假绿 ⇒ 本单只加了「两本台账对不上
+    ⇒ 红」的交叉对账, 没有合并它们 (职责不同: 落表台账=授权 · 锚点四项=原子背书 · 板 md5 台账变更区=「板只改一次」+ 留证产物绑定) ⇒ ★建议 (仅供参考 · 不是决定 · 请
+    main 拍): 在「板只改一次」那一趟的作业包里把【三步】明确写成【四步】(加一步: 第 3 闸自己的板 md5 台账变更区 + 留证绑定也要登记) ⇒ ★代价: 作业包文本多一步 + 改板当天操作者要多填一处
+    ⇒ 另一条路是另派一单把两本台账合并 (那是另一个量级的活 · 本单不越界)'
+  since: '2026-11-17'
+- key: iss297_cross_domain_gates_iss296_298_for_main
+  to: main
+  item: '交卷单 B5 第 ③ 条 —— MECH 侧 2 道闸 (MECH/check_board_frame_coords.py / MECH/check_demo_struct_truth.py)
+    与 SW 侧 1 道 (SW/tools/check_onepass_sw_sync.py) 由 ISS-296 / ISS-298 同口径接通道 (SW 侧已完成 ✓ / MECH 侧进行中 ✓)
+    ⇒ 跨域不许 import 对方的判决库, 各自写自己的 ⇒ 本单只读提醒, 没碰 MECH/SW 任何文件和分片 (mech.yaml / sw.yaml / pm.yaml 一个字节没碰) ⇒
+    ★要 main 确认的是: 「全仓 9 道闸同一次全绿」这件事需要三张单都落齐 —— HW 6 道已建 (ISS-297) · SW 1 道已建 (ISS-298) · MECH 2 道由 ISS-296
+    补齐 ⇒ 三张单都落齐后, 板那一趟改板当天 9 道闸才谈得上同一次全绿 ⇒ ★代价: MECH 侧那 2 道闸若还没接通道, 板那一趟它们照样会集体假红 (与本单修掉的是同一个病灶)'
+  since: '2026-11-17'
+- key: iss299_hw_gate5_mount_into_extra_gates
+  to: main
+  item: '请把第5道闸 HW/check_pin_function_labels.py 挂进 state/gate_check.py 的 EXTRA_GATES(★那是 main 的活·本单没碰那个文件★):
+    本单已把它从『18条(含3条MD5_CHANGED)』修到『恰好15条脚表功能缺陷 + --expect-known rc=0 + --selftest rc=0』 ⇒ 挂上去链不会当场红。代价:
+    该闸默认模式恒 rc=1(15条已知缺陷基线·按设计如此) ⇒ 若门禁只看 rc 就必须配 --expect-known 口径'
+  since: '2026-11-17'
+- key: iss299_hw_remaining_15_pin_defects_still_open
+  to: main
+  item: 那15条脚表功能缺陷(14串号 + 1缺脚 · U_LDO_S28.pin3 缺脚)是【冻结的已知缺陷基线】· 本单任务书点名不许碰 ⇒ 仍需在板那一趟的落表批次里按 HW/PIN_FUNCTION_TABLE_CLOSEOUT.md
+    的根因改法修 state/gen_netlist_pins.py; 本单重锚后那三个基线常量会随那次落表再变一次 ⇒ 届时需再走一次 H-1 重锚(锚链已写成逐跳补齐的形状·追加即可)
+  since: '2026-11-17'
+- key: iss301_ti_power_facts_counterverify_result
+  to: main
+  item: '【ISS-301 复核结论 · 请 main 落表/签字】① ISS-095 可落 verified (TI bq25896 SLUSC76C §7 原文 Connect a 20uF
+    closely to the SYS pin 逐字坐实; 本仓 state/.cache_iss243/bq25896.pdf 与我今天从 ti.com 重下的原件 md5 同为 5f2c3958901c8841c7b698b71a16b927
+    且 cmp rc=0 逐字节一致) ⇒ 同批落表: HW/netlist_v1.csv L499 C_SYS dnp DNP→必装 + L498 SYS_CHG dnp DNP→必装 + 两条 note
+    追加式改写 + BOM 加 1 颗 20uF 6.3V X7R (零改板: CHG_BOARD 根本没有 PCB 文件) ② ISS-102 事实层 4 条全部成立, 但卡里两条派生结论必须先加追加式订正:
+    订正A (P0) 事实卡 §③ 的『VBUS_DET 分压整条可以删』对本板不成立 —— 本板是 5V→1M+1M→SoM USB_DRD1_VBUSDET(P1_100), 删分压 = 5V 灌
+    3.3V 域 SoC 球 = 过压 ⇒ 正确口径 = 分压不可删, dedicated 脚的价值是省掉跨铰链那根线 + 让 SoC 侧直接判 VBUS 在位, 不是省掉板上的分压 ③ 订正B (落表前必改,
+    关系板只改一次) 事实卡 §② 说复位链按『PG 高=就绪』, 而网表 L62/L65/L67/L71 的 note 全写反了 (两路 PG 都好时为低 / PG 有效(低) / 任一路不 ok
+    本网被上拉拉高) ⇒ 网表 note 必须在本趟 S6 之前定死; 我建议按 HW/PCB/RESET_P0_FIX_PLAN.md 改法② 把 Q_AND 改 DNP (两颗 DC-DC 本就
+    DNP ⇒ 该互锁实际损失 0, 且不带极性坑进本趟) ④ 订正C (算术) 事实卡 §④ 的『沿用 108uA/0.40mW + AON 按 0 计』不自洽 (108uA 本身含 50uA AON)
+    ⇒ 正确口径 ~58uA/~0.21mW 约 8.4 个月; 且 VBUS_DET 那 50uA 在本板不会省掉 ⇒ HW/POWER_SHUTDOWN_V3.md 需同口径 (那是 ISS-097
+    owner=boss 的活, 我没动) ⑤ 卡里另有两处转写差: §③ 引脚行写了 1C28/B28 (官网只有 B28, 1C28 全库零命中) · §② 的 requires pull-up
+    (官网逐字是 requires pullup resistor) · §② 括注『上拉电流≤10mA』出自 §9.3.2 放电接法, §8.3.3 + §6 VOL_PG 的证据灌能力只有 2mA
+    (本板 10k/1.8V = 0.18mA, 两边都满足) ⇒ 事实卡本体一个字我没改, 请 main 用追加式加订正行 (老字不删) ⑥ 卡里那个唯一的 [0数据] 残余我今天答掉了: Forlinx
+    OK3572-C / FET3572-C User Hardware Manual V1.0 (2026-06-15) §2.6.2 Table 2 (P1 Even) row NUM=100 BALL=B28
+    USB_DRD1_VBUSDET + Table 6 (P3 Even) row NUM=16 BALL=1C18 USB_DRD0_VBUSDET + 官方 Pin Multiplexing 表
+    P1_100 / P3_16 ⇒ SoM 两颗球都引出来了; 我自己重下官网手册 (默认 curl 被 Cloudflare 拦, 换浏览器 UA 成功) 并独立重跑了 399 行全量逐格比对 (官网
+    8 表 50/50/50/49/50/50/50/50 = 399 = 本地 399, 7 列多重集 diff 仅 9 行且逐条 spot check 全是官方空单元格写法差 ⇒ 实质差异 0)
+    ⇒ 网表 L439 那条 [官方] 断言成立 ⇒ S6 清单里 R_VBUS_DET_D1 / R_VBUS_DET_D2 / C_DET_VBUS_D 三件留不动, 板侧清单零变化'
   since: '2026-11-17'
 answers:
 - key: pcb_outline_confirm
@@ -4881,6 +4992,73 @@ interface_claims:
   note: ★现状值全部从真源读 (R3-A4 / 脚表缺陷条数 / 落表台账事件) + 追加式订正块走 sidecar 只搬运 ⇒ 谁跑生成器都不会再把 ISS-283 / ISS-289 的订正冲掉★
     ref=logs/iss292/reverse_tests.log + logs/iss292/b6_gates1.log
   ref: ''
+- key: iss297_hw_6_gates_reboard_channel_wired
+  value: 'HW 侧 6 道闸 (check_fsin_rootcause / check_g1a7_selection_landed / check_onepass_commit_order /
+    check_onepass_preflight_coverage / check_pin_function_labels / check_workpack_state_values) 已全部接上「合法改板」通道
+    ⇒ 判决源从写死常量换成「落表台账链头 + 锚点 reboard 四项原子映射 {by, file, prev_md5, md5}」 · 口径照 ISS-284 已跑通的那套 · 一个字没自创 ⇒
+    判据方向没变 (盘上 ≠ 基线且无合法记录 ⇒ 仍红) · fail-closed 三条 (链头不唯一 / 链断 / 链头无单号) 一条没动 · reboard: null 仍按纯 md5 硬保护判
+    ⇒ 一条没松'
+  note: ISS-297 · 2026-11-17 · hw-lead · 六道闸都 import 共用判决库 HW/board_reboard.py (35,661 B · 本单只读 · 一个字节没改)
+    ⇒ 六个闸对同一盘面给同一答案 · 口径零漂移 · 四项缺一⇒红 + 四项与台账链头逐字对上 + 保护基线必须留在链尾 + 同组受保护件一次合法改板必须全覆盖 (只来一条⇒红)
+  ref: 'HW/board_reboard.py + HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#B1 + #B2'
+- key: iss297_hw_zero_board_write_zero_landing
+  value: '本单零写板零落表: 受保护 5 件 md5 逐字节不变 (板 611b869e13518c3c023fb178f91a0075 / .kicad_pro 3e504d2be83152e337949723e909be1b
+    / 网表 37f62ac3f0b81d92ca7d48fdea717f07 / 脚表 a4270120454aedf7a23c92cd8985c8a6 / BOM 5d02bece9477ffce5fbe0193c7d5cce4)
+    ⇒ 板 mtime 仍 2026-11-06 07:07:17.362193413 ⇒ 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md mtime 仍 2026-11-17
+    12:30:23.078472154 ⇒ 一个字节没写'
+  note: ISS-297 · 2026-11-17 20:55 cont3 · hw-lead · md5 + mtime 双重自证 (本机实跑 · 不是抄交卷报告) ⇒ 反向用例全在沙盒跑 · 真件一个字节没碰
+    · 闸自带的字面副本 PROTECTED_MD5 保留 · 角色从判决源降为锚点本体防篡改报警
+  ref: logs/iss297/cont3_rerun.log + HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#B4
+- key: iss297_hw_reboard_60_negative_cases_all_caught
+  value: '反向用例全抓到: 6 道闸 × 10 条 ISS-297 通道用例 = 60 条, 全部在沙盒 (临时目录拷贝) 上跑, 真盘零写 ⇒ 60/60 全抓到 · 每条红色用例必须抓到带受保护字样的那条判据才算通过
+    · 正向用例必须整条全绿才算通过 (证明通道真有路, 不是把灯调没了)'
+  note: 'ISS-297 · 2026-11-17 20:55 cont3 · hw-lead · 逐闸现场计数 (本机实跑 · 不是抄交卷报告): fsin_rootcause 25/25 条反向用例全部符合预期
+    (含通道 10/10) · g1a7_selection_landed 通道 10/10 · 合计 21/21 · onepass_commit_order 通道 10/10 · 合计 21/21
+    · onepass_preflight_coverage 通道 10/10 · 合计 21/21 · pin_function_labels 通道 10/10 通过 + SELFTEST FAILED
+    (2 条既有失效 T5/T11 · 0 条通道失效) · workpack_state_values 通道 10/10 · 合计 20/20 ⇒ 通道用例合计 60 条 · 0 条通道失效'
+  ref: logs/iss297/cont3_selftests.log + logs/iss297/cont3_rerun.log + HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#B2
+- key: iss299_hw_gate5_h1_reanchor_hop2_done
+  value: '第5道闸 HW/check_pin_function_labels.py 已重锚(H-1 第2跳): 默认 rc=1 且恰好15条(14串号+1缺脚 · 3条 MD5_CHANGED
+    已消失) · --expect-known rc=0 · --selftest rc=0 (13条既有 + 10条ISS-297通道用例全过) ⇒ 9道闸通道齐 ⇒ 可挂门禁链'
+  note: '实测: logs/iss299/selftest_after.log + logs/iss299/regression.log · 判据方向一字未改 · T5/T11 前提没放宽(那是承重的)'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS299_H1重锚第2跳_基线常量.md#B2
+- key: iss299_hw_gate5_baseline_constants_reanchored
+  value: PROTECTED_MD5 网表=37f62ac3f0b81d92ca7d48fdea717f07 · 脚表=a4270120454aedf7a23c92cd8985c8a6 · BOM=5d02bece9477ffce5fbe0193c7d5cce4
+    (=ISS-283 合法落表 2026-11-17 12:30:23 后真盘实测值 · 台账 §16.2 L1371/L1372/L1373) · 板 611b869e… 与 .kicad_pro
+    3e504d2b… 两个基线一个字节没动
+  note: '实测: md5sum + stat 双证 · 重锚的是脚本里的常量 · 那三个数据文件本身逐字节不变'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS299_H1重锚第2跳_基线常量.md#B3
+- key: iss299_hw_anchor_chain_gapless_appended
+  value: 'MD5_ANCHOR_CHAIN 逐跳补齐(追加式 · 第1跳历史一字未抹): ISS-236 2026-11-17 09:58:16 (§16.2 L1270/L1271/L1272)
+    · ISS-283 12:16:09 (§16.2 L1314/L1315 · BOM 未变故不记) · ISS-283 12:30:23 (§16.2 L1371/L1372/L1373) ⇒
+    每跳旧md5==上一跳新md5 ⇒ 链无断 · 链尾==当前基线'
+  note: '实测: 补齐 3 次落表事件而不是只补最后 1 跳(否则旧md5字段会记成一次没发生过的跃迁) · 判据逻辑一个字没动'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS299_H1重锚第2跳_基线常量.md#B3
+- key: iss299_hw_zero_board_write_zero_landing
+  value: '零写板·零落表自证: 板 md5=611b869e13518c3c023fb178f91a0075 且 mtime 仍 2026-11-06 07:07:17.362193413 ·
+    .kicad_pro=3e504d2be83152e337949723e909be1b · 网表=37f62ac3… · 脚表=a4270120… · BOM=5d02bece… ⇒ 5件逐字节不变
+    · 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 一个字没改'
+  note: '实测: md5sum + stat · 实物[实测]=0条 · 零外发'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS299_H1重锚第2跳_基线常量.md#B6
+- key: iss299_hw_iss297_handoff_b2b3b4_appended
+  value: '附带小修完成: HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md 末尾【只追加】3 行标准标题行(B2 验收标准自评 / B3 证据分级 / B4
+    接口取值声明) ⇒ 该文件自身 6/6 ⇒ gate_check Q1 hw-lead 由『按 ISS-283 那份计分』变成最新一份自己 6/6'
+  note: '实测: state/gate_check.py 复跑 rc=0 · Q1 18/18 · 未改 B0~B6 老字'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS299_H1重锚第2跳_基线常量.md#B5
+- key: iss301_ti_power_facts_4_claims_verified
+  value: '四条断言的【事实层】全部复核成立: ① BQ25896 SYS 必接 20uF (成立: TI SLUSC76C §7 逐字 + 官网原件 md5 5f2c3958901c8841c7b698b71a16b927
+    与本仓缓存 cmp rc=0) · ② TPS62130A PG=高=好 / 开漏需上拉 / 关断拉低 (成立: TI Rev.F SLVSAG7F Pin Functions L176 + §8.3.3
+    + §9.3.2; 但逐字应为 requires pullup resistor, 且保证沉灌只有 2mA (§8.3.3 + VOL_PG IPG=-2mA) 不是 10mA) · ③ RK3572
+    有 2 颗 dedicated USB VBUS detect 球 (成立: RK3572 datasheet V1.1 引脚表 L1641/L1651; 卡里的 1C28/B28 多字, 官网只有
+    B28) + SoM 两颗都引出 (成立: Forlinx 手册 V1.0 §2.6.2 Table 2/Table 6 + Pin Multiplexing 表 P1_100/P3_16) ⇒
+    卡里唯一的 [0数据] 残余已答掉; 但派生结论『分压整条可以删』对本板不成立 (照做 = 5V 灌 3.3V 域 SoC 球 = P0 过压) · ④ ISS-102 ① AON 问法作废 +
+    RK3572 datasheet V1.1 全文无 AON (成立: grep -c 实测 0 / rc=1); 但降级方案『沿用 108uA/0.40mW + AON 按 0 计』算术不自洽 ⇒
+    应为 ~58uA/~0.21mW'
+  note: '证据等级: ① [官网] ② [官网] ③ [官网] (SoC+SoM 两侧) ④ [官网]+[推算]; 复核手段 = 本仓离线件与 TI 官网原件 md5+cmp 逐字节对拍 / 自己上
+    ti.com 与 docs.forlinx.net GET 官网件 / 自己写脚本做 Forlinx 官网 8 表 x 本地 399 行 7 列多重集全量比对; 实物 [实测] = 0 条; 零外发
+    (只 GET, 不发信/不询价/不问询/不采购); 零写板 零落表 零改网表/脚表/BOM/事实卡本体; 零改闸; 未自签 issue_log (ISS-095 / ISS-102 的签字是 main
+    的活)'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS301_TI电源事实卡复核.md#B1
 open_questions:
 - id: HW-Q1
   to: main

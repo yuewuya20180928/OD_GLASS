@@ -1,0 +1,29 @@
+rows compared: 399  official rows: 399
+=== SHIFT-ROBUST DIFF COUNT (7-col multiset per row) === 9
+   (('P1', 'Even', 66), 'CONTENT_SET_DIFF', ['', '66', '——'], ['66', '——'])
+   (('P1', 'Even', 82), 'CONTENT_SET_DIFF', ['', '82', '——'], ['82', '——'])
+   (('P3', 'Odd', 91), 'CONTENT_SET_DIFF', ['', '12V power input', '91', 'VCC_DCIN', '——'], ['12V power input', '91', 'VCC_DCIN', '——'])
+   (('P3', 'Odd', 93), 'CONTENT_SET_DIFF', ['', '12V power input', '93', 'VCC_DCIN', '——'], ['12V power input', '93', 'VCC_DCIN', '——'])
+   (('P3', 'Odd', 95), 'CONTENT_SET_DIFF', ['', '12V power input', '95', 'VCC_DCIN', '——'], ['12V power input', '95', 'VCC_DCIN', '——'])
+   (('P3', 'Odd', 97), 'CONTENT_SET_DIFF', ['', '12V power input', '97', 'VCC_DCIN', '——'], ['12V power input', '97', 'VCC_DCIN', '——'])
+   (('P3', 'Odd', 99), 'CONTENT_SET_DIFF', ['', '12V power input', '99', 'VCC_DCIN', '——'], ['12V power input', '99', 'VCC_DCIN', '——'])
+   (('P4', 'Even', 2), 'CONTENT_SET_DIFF', ['', '2', '——'], ['2', '——'])
+   (('P4', 'Odd', 25), 'CONTENT_SET_DIFF', ['', '25', '3.3V', 'WIFI _ PEN _ 3 V3 enable signal (3.3 V pull-up, no GPIO connected)', 'WIFI_PEN_3V3'], ['25', '3.3V', 'WIFI _ PEN _ 3 V3 enable signal (3.3 V pull-up, no GPIO connected)', 'WIFI_PEN_3V3'])
+
+=== SPOT CHECK: the 37 shift-artifact rows ===
+  ('P1', 'Even', 66)
+     LOCAL   : ['P1', '66', '——', '——', '', '——', '——', '——']
+     OFFICIAL: ['66', '——', '——', '——', '——', '——']
+  ('P3', 'Odd', 91)
+     LOCAL   : ['P3', '91', '', 'VCC_DCIN', '——', '——', '12V power input', 'VCC_DCIN']
+     OFFICIAL: ['91', 'VCC_DCIN', '——', '——', '12V power input', 'VCC_DCIN']
+  ('P3', 'Odd', 87)
+     LOCAL   : ['P3', '87', '——', 'CARRIER_BOARD_EN', '——', '3.3V', 'Carrier board enable signal (3.3V, 1K pull-up, not connected to GPIO)', 'CARRIER_BOARD_EN']
+     OFFICIAL: ['87', '——', 'CARRIER_BOARD_EN', '——', '3.3V', 'Carrier board enable signal (3.3V, 1K pull-up, not connected to GPIO)', 'CARRIER_BOARD_EN']
+  ('P2', 'Odd', 71)
+     LOCAL   : ['P2', '71', '1AE21', 'HDMI_TX_HPDIN|_M0', 'GPIO4_B1_d', '1.8V', 'HDMI send link detection', 'HDMI_TX_HPDIN_M0_1V8']
+     OFFICIAL: ['71', '1AE21', 'HDMI_TX_HPDIN|_M0', 'GPIO4_B1_d', '1.8V', 'HDMI send link detection', 'HDMI_TX_HPDIN_M0_1V8']
+
+=== 目标两行 7 字段逐字比对 ===
+  ('P1', 'Even', 100): MATCH_7COL = True   ['100', 'B28', 'USB_DRD1_VBUSDET', '——', '——', 'USB2_OTG1_VBUSDET insert detection', 'USB2_OTG1_VBUSDET']
+  ('P3', 'Even', 16): MATCH_7COL = True   ['16', '1C18', 'USB_DRD0_VBUSDET', '——', '——', 'USB2_OTG0_VBUSDET insert detection', 'USB2_OTG0_VBUSDET']

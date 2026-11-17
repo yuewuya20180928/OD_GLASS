@@ -44,6 +44,12 @@
        ⇒ 台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §18.4 L1069 / L1070 / L1071
        ⇒ **板 / `.kicad_pro` 两个基线逐字节不变 (硬保护)** ⇒ 旧值 (34132f7e… / b21b743a… / c195a117…)
        是【历史事实】, 留痕在 `MD5_ANCHOR_CHAIN` 里, **一个字没抹**
+     · ★**本闸第 2 跳 (2026-11-17 · ISS-299)**: ISS-283 合法落表 (2026-11-17 12:30:23) 后 网表/脚表/BOM 三个基线
+       已陈旧 ⇒ 本跳把它们重锚到【真盘实测值】 (台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16.2 L1371 / L1372 / L1373)
+       ⇒ ★**重锚的是【脚本里写的基线常量】, 那三个文件本身逐字节没动** ★
+       ⇒ ★**板 / `.kicad_pro` 两个基线依旧逐字节不变 (硬保护)** ★
+       ⇒ ★**ISS-257 之后到 ISS-283 12:30 之间还有两次合法落表 (ISS-236 09:58:16 / ISS-283 12:16:09)**
+         ⇒ 锚链【逐跳补齐】(追加式 · 历史一字未抹) ⇒ 链上每跳的「旧 md5」都等于上一跳的「新 md5」(★链无断★)
 
 ★★**官方 pinout 出处 (★[官网]·自己去 ti.com 查的★)**:
   TI **TPS7A20** datasheet **SBVS338H – MARCH 2020 – REVISED JULY 2024**,
@@ -104,6 +110,9 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.normpath(os.path.join(HERE, ".."))
+# ★★ISS-297 · 2026-11-17 20:4x (hw-lead): HW 侧「合法改板」通道 (★共用判决库·不许自己再写一份★)
+sys.path.insert(0, HERE)
+import board_reboard                                          # noqa: E402
 
 # ─────────────────────────── 官方 pinout (★内置真源★) ───────────────────────────
 # ★**出处**: TI TPS7A20 datasheet **SBVS338H (2020-03, rev 2024-07)** §4 *Pin Configuration and Functions*
@@ -137,11 +146,11 @@ TPS7A20_REFS = (
 )
 TPS7A20_PINS = ("pin1", "pin2", "pin3", "pin4", "pin5")
 
-# ★**受保护文件 md5 基线 (★写在脚本里·不许为了凑绿改这里★) ★** ★★H-1 重锚 (2026-11-17 · 本闸第 1 跳): 网表/脚表/BOM 三个基线 = ★**ISS-257 落表后真盘实测值** (台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §18.4 L1069/L1070/L1071 · 2026-11-16 21:22) ★** 旧值 (ISS-239 交卷时 = 34132f7e… / b21b743a… / c195a117…) 是历史事实, 逐跳留痕在 `MD5_ANCHOR_CHAIN`★** ★**板 / `.kicad_pro` 两个逐字节不变 (硬保护)★**
+# ★**受保护文件 md5 基线 (★写在脚本里·不许为了凑绿改这里★) ★** ★★H-1 重锚 (2026-11-17 · 本闸第 2 跳 · ISS-299): 网表/脚表/BOM 三个基线 = ★**ISS-283 合法落表后真盘实测值** (台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16.2 L1371/L1372/L1373 · 2026-11-17 12:30:23) ★** 旧值 (ISS-239 交卷时 = 34132f7e… / b21b743a… / c195a117… · 本闸第 1 跳 ISS-257 落表后 = e06c1dd6… / 287e7861… / 94642d07…) 是历史事实, 逐跳留痕在 `MD5_ANCHOR_CHAIN`★** ★**板 / `.kicad_pro` 两个逐字节不变 (硬保护)★** ★**重锚的是本文件里的【常量】, 那三个数据文件本身一个字节都没改 (★本单零落表★)★**
 PROTECTED_MD5 = {
-    "HW/netlist_v1.csv": "e06c1dd633566aa44732762c2ff99d1c",
-    "HW/netlist_v1_pins.csv": "287e7861a0d1007748d92d9fbecdd490",
-    "HW/BOM_v1.csv": "94642d07a69e8d60dd2af57f69b93607",
+    "HW/netlist_v1.csv": "37f62ac3f0b81d92ca7d48fdea717f07",
+    "HW/netlist_v1_pins.csv": "a4270120454aedf7a23c92cd8985c8a6",
+    "HW/BOM_v1.csv": "5d02bece9477ffce5fbe0193c7d5cce4",
     "HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",
     "HW/PCB/demo_mainboard.kicad_pro": "3e504d2be83152e337949723e909be1b",
 }
@@ -389,10 +398,47 @@ def check3_pinout_integrity(root: str, pinout: dict = None,
 
 
 def check4_protected_md5(root: str, baseline: dict = None) -> list:
-    """④ 受保护文件 md5 未变 ⇒ findings list"""
+    """④ 受保护文件 md5 未变 ⇒ findings list
+
+    ★★ISS-297 · 2026-11-17 20:4x (hw-lead): 板 / `.kicad_pro` 两件改走【落表台账链头 + 合法改板通道】★★
+      ★判据方向一字未变 (★盘上 ≠ 判决源 ⇒ 红★); ★变的只是【判决源】: 写死常量 → 落表台账链头 ★
+      ★`reboard: null` (还没发生过合法改板) ⇒ ★仍按纯 md5 硬保护判 (盘上 ≠ 基线 ⇒ 红)★ ★
+      ★fail-closed 三条一条不许动 (★链头不唯一 / 链断 / 链头无单号 ⇒ 仍红★) ★
+      ★★网表 / 脚表 / BOM 三件走纯 md5 硬保护 (★ISS-299 · 2026-11-17 21:4x 已把三个基线重锚到
+        ISS-283 合法落表 (2026-11-17 12:30:23) 后的真盘实测值 ⇒ 那 3 条 MD5_CHANGED 已消失★)★★
+    """
     baseline = baseline or PROTECTED_MD5
     out = []
+    # ★★ISS-297 · 板 / `.kicad_pro` 两件走通道 (★共用判决库·不许自己再写一份★) ★
+    heads = {}
+    for rel in (board_reboard.PCB_REL, board_reboard.PRO_REL):
+        want = baseline.get(rel)
+        path = os.path.join(root, rel)
+        if not os.path.exists(path):
+            out.append({
+                "key": "md5:%s" % rel, "kind": "MD5_FILE_MISSING",
+                "expected": want, "actual": "★文件不存在★",
+                "reasons": ["受保护文件缺失: %s" % rel],
+            })
+            continue
+        res = board_reboard.check_file(root, rel, path, want, md5fn=md5_of)
+        heads[rel] = res.get("head")
+        if not res["ok"]:
+            out.append({
+                "key": "md5:%s" % rel, "kind": "MD5_CHANGED",
+                "expected": want, "actual": md5_of(path),
+                "reasons": list(res["errs"] or [res.get("msg") or "★判决红★"]),
+            })
+    # ★同组覆盖: 一次合法改板必须覆盖同组全部件 (★只来一条记录 ⇒ 红★) ★
+    for e in board_reboard.check_trip_coverage(board_reboard.ledger_text(root), heads):
+        out.append({
+            "key": "md5:HW/PCB/demo_mainboard.kicad_pcb", "kind": "MD5_CHANGED",
+            "expected": "★同一次合法改板必须覆盖板 + `.kicad_pro` 两件★",
+            "actual": "★只来一条记录★", "reasons": [e],
+        })
     for rel, want in sorted(baseline.items()):
+        if rel in (board_reboard.PCB_REL, board_reboard.PRO_REL):
+            continue
         path = os.path.join(root, rel)
         if not os.path.exists(path):
             out.append({
@@ -837,15 +883,65 @@ def selftest() -> int:
         cases.append(("T13 砍掉 H-1 重锚链的链尾 ⇒ ④b 红",
                       "报=%s" % [x["kind"] for x in f]))
 
+    # ── ★★ISS-297 · ⑯ 「合法改板」通道的反向用例 (★沙盒跑·真盘零写·判决源 = 落表台账链头★) ──
+    #   ★机制: `HW/board_reboard.py` 的 CASES (★照 ISS-284 已跑通的口径·不许自创★) ★
+    #   ★每条都【真跑本闸】(★--root 指向沙盒★) ⇒ 判据变红/变绿都必须是本闸自己的结论 ★
+    #   ★★本闸的「绿」口径 = 【板 / `.kicad_pro` 两件没有 md5 finding】(★那 15 条引脚缺陷是冻结的已知缺陷基线★) ★
+    ch_cases = []
+    ch_fails = []
+    import shutil as _sh
+    import tempfile as _tf
+
+    def ch_prepare(sb):
+        for rel in ("HW/netlist_v1_pins.csv", "HW/netlist_v1.csv", "HW/BOM_v1.csv",
+                    "HW/CORE_MODULE_SELECTION.md", "HW/POWER_RAIL_SPEC.md"):
+            src = os.path.join(PROJ, rel)
+            d = os.path.join(sb, rel)
+            os.makedirs(os.path.dirname(d), exist_ok=True)
+            _sh.copy2(src, d)
+
+    def ch_judge(sb):
+        res = run(sb)
+        md5_f = res["md5_findings"]
+        board_f = [f for f in md5_f
+                   if f["key"].startswith("md5:HW/PCB/demo_mainboard")]
+        ok = not board_f
+        return ok, ("★板 / `.kicad_pro` 的 md5 判定 = %s★ · 全部 md5 findings = %s"
+                    % ("绿 (无 finding)" if ok else "红 " + str(sorted(f["key"] for f in board_f)),
+                       sorted(f["key"] for f in md5_f)))
+
+    tmp_iss297 = _tf.mkdtemp(prefix="g5_iss297_")
+    try:
+        for _name, _exp, _got, _note in board_reboard.run_cases(
+                PROJ, os.path.join(tmp_iss297, "iss297_channel"), ch_judge, prepare=ch_prepare):
+            ok = (_exp == _got)
+            if not ok:
+                ch_fails.append("★ISS-297★ %s" % _name)
+            ch_cases.append(("★ISS-297★ " + _name, _note))
+    finally:
+        _sh.rmtree(tmp_iss297, ignore_errors=True)
+
     print("═══ 引脚功能名闸 · ★--selftest★ 反向用例自测 ═══")
     for i, (name, detail) in enumerate(cases, start=1):
         print("   [T%-2d] ✔ %s  —— %s" % (i, name, detail))
+    print("── ★★ISS-297 · ⑯ 「合法改板」通道反向用例 (%d 条·判决源 = 落表台账链头 + 四项原子映射★) ──" % len(ch_cases))
+    for i, (name, detail) in enumerate(ch_cases, start=1):
+        print("   [C%-2d] %s" % (i, ("✔ " if not any(f in name for f in ch_fails) else "✘ ") + name))
+        print("         %s" % detail)
+    print("   ⇒ 通道用例: %d/%d 通过" % (len(ch_cases) - len(ch_fails), len(ch_cases)))
+    if ch_fails:
+        for f in ch_fails:
+            print("   ❌ %s" % f)
     if fails:
         for f in fails:
             print("   ❌ %s" % f)
-        print("SELFTEST FAILED (%d 条失效)" % len(fails))
+        print("SELFTEST FAILED (%d 条既有失效 + %d 条通道失效)" % (len(fails), len(ch_fails)))
         return 1
-    print("ALL TESTS PASS (%d/%d 条反向用例, 每条均自证改到了目标)" % (len(cases), len(cases)))
+    if ch_fails:
+        print("SELFTEST FAILED (%d 条通道失效)" % len(ch_fails))
+        return 1
+    print("ALL TESTS PASS (%d 条既有 + %d 条通道反向用例, 每条均自证改到了目标)"
+          % (len(cases), len(ch_cases)))
     return 0
 
 
@@ -865,9 +961,9 @@ MD5_LEDGER_FILE = "HW/SCHEMATIC_LANDING_V1_LANDED.md"
 
 # ★**哪些文件走台账对账 (★落表会变的 3 个★); 板 / `.kicad_pro` 是硬保护, 走纯 md5 比对 ★**
 MD5_LEDGER_REFS = {
-    "HW/netlist_v1.csv": "§18.4 L1069 (ISS-257 · 2026-11-16 21:22)",
-    "HW/netlist_v1_pins.csv": "§18.4 L1070 (ISS-257 · 2026-11-16 21:22)",
-    "HW/BOM_v1.csv": "§18.4 L1071 (ISS-257 · 2026-11-16 21:22)",
+    "HW/netlist_v1.csv": "§16.2 L1371 (ISS-283 · 2026-11-17 12:30:23)",
+    "HW/netlist_v1_pins.csv": "§16.2 L1372 (ISS-283 · 2026-11-17 12:30:23)",
+    "HW/BOM_v1.csv": "§16.2 L1373 (ISS-283 · 2026-11-17 12:30:23)",
 }
 
 # ★**H-1 重锚链 (★追加式留痕·历史不改·逐条可回台账核★)** ★
@@ -878,16 +974,30 @@ MD5_ANCHOR_CHAIN = {
         ("ISS-243", "34132f7e40a241e1fae1476be0eafbd5", "611c3ba3db3dc7de7213063375b96d01", "2026-11-16 15:45", "§16.4 L656"),
         ("ISS-249", "611c3ba3db3dc7de7213063375b96d01", "16ac89f77c25a3f61834cc7ebcd78a7f", "2026-11-16 19:3x", "§17.5 L852"),
         ("ISS-257", "16ac89f77c25a3f61834cc7ebcd78a7f", "e06c1dd633566aa44732762c2ff99d1c", "2026-11-16 21:22", "§18.4 L1069"),
+        # ★★ISS-299 · 2026-11-17 21:4x (hw-lead) · H-1 重锚第 2 跳 ★★
+        #   ★**ISS-257 (2026-11-16 21:22) 之后到 ISS-283 (2026-11-17 12:30:23) 之间还有两次合法落表** ★
+        #   ⇒ 锚链【逐跳补齐】(追加式 · 历史一字未抹 · 每跳「旧 md5」== 上一跳「新 md5」⇒ 链无断) ★
+        ("ISS-236", "e06c1dd633566aa44732762c2ff99d1c", "2f17650cfbef48d5efd71821505c3343", "2026-11-17 09:58:16", "§16.2 L1270"),
+        ("ISS-283", "2f17650cfbef48d5efd71821505c3343", "87f2f792513584bee3d147883c8fb93b", "2026-11-17 12:16:09", "§16.2 L1314"),
+        ("ISS-283", "87f2f792513584bee3d147883c8fb93b", "37f62ac3f0b81d92ca7d48fdea717f07", "2026-11-17 12:30:23", "§16.2 L1371"),
     ],
     "HW/netlist_v1_pins.csv": [
         ("ISS-233", "a600afae493f5a7a6c55f46ad35ac89c", "b21b743a7702d30729f0d653c15392df", "2026-11-16 06:48", "§15.4 L553"),
         ("ISS-243", "b21b743a7702d30729f0d653c15392df", "ef436a37412ac9b6eac3c9f41f1edca4", "2026-11-16 15:45", "§16.4 L657"),
         ("ISS-257", "ef436a37412ac9b6eac3c9f41f1edca4", "287e7861a0d1007748d92d9fbecdd490", "2026-11-16 21:22", "§18.4 L1070"),
+        # ★★ISS-299 · 2026-11-17 21:4x (hw-lead) · H-1 重锚第 2 跳 ★★ (逐跳补齐 · 历史一字未抹) ★
+        ("ISS-236", "287e7861a0d1007748d92d9fbecdd490", "6ea65fecdf95902e47330083d140d455", "2026-11-17 09:58:16", "§16.2 L1271"),
+        ("ISS-283", "6ea65fecdf95902e47330083d140d455", "8ca46495ba0365a886068fa420b519ac", "2026-11-17 12:16:09", "§16.2 L1315"),
+        ("ISS-283", "8ca46495ba0365a886068fa420b519ac", "a4270120454aedf7a23c92cd8985c8a6", "2026-11-17 12:30:23", "§16.2 L1372"),
     ],
     "HW/BOM_v1.csv": [
         ("ISS-233", "92b51580867deca9f8b04af88d925d96", "c195a117ff17490d4d1e1a5b8f1995a7", "2026-11-16 06:48", "§15.4 L554"),
         ("ISS-243", "c195a117ff17490d4d1e1a5b8f1995a7", "2a7305741134788dfee9f13f34c656b4", "2026-11-16 15:45", "§16.4 L658"),
         ("ISS-257", "2a7305741134788dfee9f13f34c656b4", "94642d07a69e8d60dd2af57f69b93607", "2026-11-16 21:22", "§18.4 L1071"),
+        # ★★ISS-299 · 2026-11-17 21:4x (hw-lead) · H-1 重锚第 2 跳 ★★
+        #   ★**ISS-283 12:16:09 那次落表 BOM 逐字节没变 (台账 §16.2 L1316 前后同值) ⇒ BOM 链上不记这一跳** ★
+        ("ISS-236", "94642d07a69e8d60dd2af57f69b93607", "ea5f4f58e3fb8bb7b6c3a2e0de8b1dfd", "2026-11-17 09:58:16", "§16.2 L1272"),
+        ("ISS-283", "ea5f4f58e3fb8bb7b6c3a2e0de8b1dfd", "5d02bece9477ffce5fbe0193c7d5cce4", "2026-11-17 12:30:23", "§16.2 L1373"),
     ],
 }
 
