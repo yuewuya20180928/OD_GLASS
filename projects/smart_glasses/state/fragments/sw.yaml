@@ -6,14 +6,19 @@ status:
   phase: delivered
   progress_pct: 100
   health: green
-  summary: '★ISS-306 (main 2026-11-18 02:0x 派单 · cron fb67af40 · sw-lead) = G1a 剩下两条红 (G1a-4 / G1a-8)
-    逐条归类 + 板那一趟开工前置清单 ⇒① B1 判决 C: R4 半条 2焊盘 = 判据口径过期 (派生句, 随 W-2 自动转绿, 零修闸) + D− 裸奔 = 真缺口 ⇒② B2 D− 裸奔真缺口归老板
-    W-2 (need key boss_esd_model_axis_pending_20261117 第②问) ⇒③ B3 R9 47.99mm = 现状事实 (探针逐字复刻判据函数) 属改板落位
-    ⇒ 板那一趟 S4/B-4 同趟消化 零字母 ⇒④ B4 R3 = 板文件属性 ⇒ 板那一趟 S3 同趟消化 零字母 ⇒⑤ B5 G1a-8 = ISS-097 仍 fixed 是等老板验签 (真外部依赖
-    判据状态集没选错) 只能催拍 不许自代验 ⇒⑥ 板那一趟开工前老板还差 N = 4 个字母 (W-2 + W-1b/W-1c 型号轴 + A4老表关机语义 + A5老表负载开关追认) 其中卡 G1a
-    转绿的只有 2 个 ⇒⑦ 零写板零落表零改闸零外发 (板 611b869e / 网表 6aee500e / 脚表 9174309d / BOM 5b999399 前后逐字节不变) ⇒交卷单 = HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md
-    (B0 表 + B1 五段依据页) ★'
-  updated_at: '2026-11-17'
+  updated_at: '2026-11-18'
+  summary: 'ISS-335 (2026-11-19 00:4x~00:5x) 交卷: SW 侧「板只改一次」准出汇总闸已落地 —— 一条命令 python3 SW/tools/check_onepass_sw_release.py
+    给出 SW 侧能不能出 Gerber 的结论 (主跑 rc=0, 绿 10 红 0, 逐条 rc 见 logs/iss335/01_main_run.log)。对标 MECH 侧 ISS-300
+    的 check_onepass_mech_release.py, 判定对象换成 SW 侧。清单基准 = ISS-321 实测表那 10 道 (含 4 道链外闸: check_demo_panel_spec
+    / check_shutdown_semantics / check_timing_review_adc_sync / timing_check —— 板那一趟当天它们会红而今天不在链上 ⇒ 没人会注意到),
+    少一道 ⇒ 汇总直接红。fail-closed 四条全部实测: 脚本不存在 / 跑不起来 / 超时 300s / rc 非 0 一律算闸红, 绝不没跑就当过。TMPDIR 一律指项目内 tmp/iss335_tmp
+    (本机系统临时目录配额到顶, 不指会 6 道一起假红)。三道 R6 闸必须裸跑 —— 传 --selftest 会 rc=2 usage 错误 ⇒ 汇总自己红, 自检 6b 现场实测三道都 rc=2
+    证明这条坑是真的。--selftest rc=0, 8 组反向用例全过, 真件真闸真篡改跑在沙盒副本 (SW/ 与 state/ 真拷贝), 真盘一个字节没碰。位号可达性闸列 v1 还是 v2:
+    建议默认 v1 判决 + v2 影子, 已登记 needs_from (iss335_ref_gate_v1_or_v2, to=main, waiting_on 留空) 等 main 拍, 本单不代拍也不改
+    state/gate_check.py 一个字节。交付: SW/tools/check_onepass_sw_release.py (新建) + SW/ONETRIP_SW_RELEASE_GATE_SPEC.md
+    (清单页 + 当天 SOP + 回滚三档) + HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md (B0~B6) + logs/iss335/ (机器原始输出)。零写板
+    (板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17.362193413 前后逐字节相同) 零落表 (网表 / 脚表
+    / BOM 三件 md5+mtime 不变) 零改既有 16 道 SW 闸 零改 gate_check.py 零改 issue_log.yaml 零改别人分片 零外发。'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -1396,6 +1401,315 @@ artifacts:
   summary: ★ISS-306 交卷单 = B0 板那一趟开工前置清单 (6 行 × 6 列 + 结论行 N=4) + B1 溯源依据页五段 (B1 判据过期+真缺口 / B2 D− 裸奔真缺口
     / B3 R9 现状事实同趟 / B4 R3 同趟消化 / B5 G1a-8 真外部依赖只能催拍) + 交付时读数 / 现在读数 / 归属单八行 / 边界自证七条★ 性质 纯分析溯源 零写板零落表零改闸零外发
     不替老板拍板 只给选项+代价+建议默认值
+- path: HANDOFF/2026-11-18_sw-lead_ISS309_R6反向用例5of7归因.md
+  kind: handoff
+  version: iss309
+  updated_at: '2026-11-18'
+  summary: 'ISS-309 交卷单 · B0~B6 齐全 (B0 三选一判决: R4=夹具假伤 / R5a=真判据缺陷(漏放·主因)+夹具断言过时(次因) · B1 §4 验收逐条 rc ·
+    B2 证据分级逐条标 · B3 接口取值(夹具改动点+判据不许改的名字+建议挂入写法+判据修法A/B1/B2+三条反向用例设计) · B4 闸复跑原始输出+10件md5双证 · B5 未决项5条(含本单自己没做完的4条)
+    · B6 边界逐行自证)'
+- path: SW/tools/check_demo_panel_spec_r6_selftest.py
+  kind: gate
+  version: iss309
+  updated_at: '2026-11-18'
+  summary: 'ISS-309 修好 ⇒ rc=0 · 反向用例 7/7 通过 (修前 rc=1 · 5/7) · 改动只在夹具/用例构造/断言层: ①synth_ledger 加 hard_rows
+    (补板/.kicad_pro 保护基线登记 ⇒ 修 R4 夹具假伤) ②break_head_ticket_all + hard_rows_of 新增 ③_case_r5a 重构 (锚点副本对齐到链头
+    + 改坏链头落表单号每一处 + 自证「故意再坏一次仍判红」) ④_case_r4 加自证「取最后一行必被抓」 ⑤新增覆盖缺口诊断段 diag_gap (不计入7/7·只报事实) ⑥临时树用完即删+三级临时目录退回(治
+    /tmp usrquota EDQUOT) ⑦每红一条用例打一行 [FAIL] (门禁链 run_external_gate 靠它抽失败原因) · 判据 check_demo_panel_spec.py
+    零改动 (md5 4e8f9aeaf45f95e120421d29bdaa333c 前后不变)'
+- path: logs/iss309/
+  kind: log
+  version: iss309
+  updated_at: '2026-11-18'
+  summary: ISS-309 日志目录 · 01_before_r6_selftest.txt (修前 5/7 基线·cont1 继承) · 02_md5_before.txt (10 件 md5
+    前值) · 03_probe_r5a_r4_scenarios.txt (场景 A~E 探针·cont1 继承) · 04_probe_design.py + 05_probe_design_out.txt
+    (设计验证探针 P0/P1/P2/P3) · 06_selftest_before.py.bak (修前原件) · 07_after_r6_selftest.txt (修后 7/7 + 覆盖缺口诊断)
+    · 08_gate_check_after.txt (门禁链 rc=0·Q1 18/18·Q7 9/9) · 09_md5_after.txt (10 件 md5 后值) · 10_other_gates_after.txt
+    · 11_tmpdir_workaround.txt (/tmp 配额对照) · 12_timing.txt (0.32s×3) · 13_battery_after.txt (§4 验收电池)
+    · 14_merge_after.txt · 15_issue_check_after.txt
+- path: HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md
+  kind: handoff
+  version: v1.1
+  updated_at: '2026-11-18'
+  summary: '★ISS-306 交卷单 v1.1 = v1.0 (B0 六行六列开工前置清单 + N=4 结论行 + B1 溯源五段 + 交付时读数/现在读数/归属单/边界自证/标准验收块 B1~B6)
+    + §9 追加复验 (05:35~06:05 网关 reload 后重跑: G1a-3 环境红根因与可恢复回收 + 现在读数六项 rc + N=4 复验 + 边界自证)★ 结论不变: 板那一趟开工前老板还差
+    N = 4 个字母 (W-2 + W-1b/W-1c + A4 老表 + A5 老表)★'
+- path: logs/iss298/
+  kind: log
+  version: iss298-r2
+  updated_at: '2026-11-18'
+  summary: 'ISS-298 复跑留痕 (2026-11-18 05:3x · gateway reload 后续做): r2_main_gate.log (主跑 rc=0 · W1~W6 全绿)
+    · r2_selftest.log (反向用例 16/16 rc=0 · 沙盒临时根修后) · r2_state_chain.log (merge rc=0 · gate_check rc=0 Q1
+    18/18 钉板 md5 闸链 9/9 道绿 · issue_check rc=0) · 另有 19:3x 那趟的 FINAL_ACCEPTANCE.log 与 final_sw_gate.log
+    / final_sw_selftest.log / after_cdps.log / after_cdps_selftest.log / after_timing.log / final_merge.log
+    / final_gate.log'
+- path: logs/iss309/16_verify_selftest.txt
+  kind: log
+  version: iss309-cont2
+  updated_at: '2026-11-18'
+  summary: ★ISS-309 cont2 独立复验原始输出 (本实例 06:05~06:06 实跑) · 16_verify_selftest.txt (r6_selftest rc=0·7/7·含覆盖缺口诊断段)
+    · 17_verify_battery.txt (判据 rc=0 · onepass rc=0 · timing rc=0·85/85 · shutdown rc=0 · load_switch
+    rc=0) · 18_verify_gate_chain.txt (--selftest 22/22 与 16/16 · merge rc=0 · gate_check rc=0·Q1 18/18·Q7
+    9/9 · issue_check rc=0) · 19_verify_md5_after.txt (10 件 md5 + mtime ⇒ 零写板/零落表/零改判据/零改门禁链) · 20_verify_timing.txt
+    (单跑 0.59/0.63/0.63 s) · 03_probe_r5a_r4_scenarios.txt (本实例 04:57 独立探针·场景 A~E·独立复现判据漏放)★
+- path: HANDOFF/2026-11-18_sw-lead_ISS312_R6判据漏放修复.md
+  kind: handoff
+  version: iss312
+  updated_at: '2026-11-18'
+  summary: ★ISS-312 交卷单 · B0~B6 齐全 · 占位符 0 · 判决1 病灶确认+修法 A+B 落地 · 判决2 两处判决点分工 (任务书说的 check_r6_hard_protected
+    与 ISS-309 实测的洞 check_r6_three_way ②-1) · 判决3 硬保护路径只加 A 的两条实测理由 · 判决4 挂闸建议 · 必含 补丁逐字 diff +130/-0 与
+    Q1/Q7 修前修后全绿证据与板 md5+mtime 双证★
+- path: SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py
+  kind: tool
+  version: iss312
+  updated_at: '2026-11-18'
+  summary: '★ISS-312 新增反向用例闸 · 4 条 (CJ-1 只改一处⇒修法A红 / CJ-2 不存在的单号⇒修法B①红 / CJ-3 真实存在但对不上⇒修法B②红 / CJ-4 原样不动⇒绿)
+    · 每条红用例带【不是巧合】自证: 同一棵被改坏的树 修前判据 .bak_iss312 判绿 ⇒ 这条红只可能来自新加的 A/B 交叉核对 · rc=0 4/4 · 单跑 0.38~0.44 s
+    · 沙盒跑 真盘零写★'
+- path: logs/iss312/
+  kind: log
+  version: iss312
+  updated_at: '2026-11-18'
+  summary: '★ISS-312 原始输出 12 件: 01 md5 修前基线 · 02 修前基线 (两个变体都绿=漏放) · 03 判据 --selftest 22/22 · 04 ISS-309
+    同段诊断修后 (两个变体都红=堵上) · 05 本单新闸 4/4 + 三条红用例的【不是巧合】自证 · 06/07 全链电池 · 08 补丁逐字 diff · 09 门禁链修后 Q1 18/18
+    Q7 9/9 · 10 md5 修后 (零写板双证) · 11 门禁链修前 (临时换回 .bak 跑的) · 12 计时★'
+- path: HANDOFF/2026-11-18_sw-lead_ISS315_判据链收口.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-18'
+  summary: '★ISS-315 交卷单 (B1~B6 齐全·占位符 0): ①先修 ISS-298 闸沙盒夹具 (假伤修夹具·判据本体一字不动) ②修法 B (链头落表单号 ↔ 独立信源 issue_log
+    交叉核对) 铺到 check_r6_hard_protected() 硬保护路径 ③立「落表留痕义务」机器可判新闸 (N-2 落地)·附 B3.3 给 main 的 EXTRA_GATES 挂链写法
+    (本单没挂) 与 B5 的 5 条 need (含 N-2 口径)·实测: 判据 rc=0 / --selftest 22-22·ISS-309 基线 7-7·ISS-312 基线 4-4·ISS-298
+    闸 16-16 (修夹具前 15-16·⑮ 假红)·本单新闸 4-4 + 落表留痕义务闸 rc=0·merge rc=0·gate_check rc=0 Q1 18-18 Q7 9-9·零写板 611b869e1351
+    + mtime 2026-11-06 07:07:17 逐字节不变·零落表·零改网表真源·零改 gate_check.py·零改三个回归基线·零外发·不自签 issue_log★'
+- path: SW/tools/check_landing_trace_obligation.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-11-18'
+  summary: '★ISS-315 新建【落表留痕义务闸】(N-2 落地): 凡落表台账里各受管真源的【链头产出单号】⇒ 必须在 state/issue_log.yaml 的真条目里留【文件名 +
+    新 md5】⇒ 缺文件名 / 缺新 md5 / 只写了改前的值 ⇒ 判红·主模式只读盘上两个文件 (落表台账 + issue_log)·当前盘面 rc=0 (网表/脚表/BOM 三条义务全部 ←
+    ISS-302)·自带 --selftest 4-4 (缺文件名⇒红 / 缺新 md5⇒红 / md5 写的是改前的值⇒红 / 原样不动⇒绿)·判据本体只 import check_demo_panel_spec.py
+    不复制一份·裸跑即绿 ⇒ 挂链不需要参数★'
+- path: SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-11-18'
+  summary: '★ISS-315 新建【硬保护路径修法 B 专项反向用例闸】4-4: HP-1 链头单号改成不存在的单号⇒必须红 / HP-2 换成真实存在但对不上的单号⇒必须红 / HP-3 原样不动⇒必须绿
+    / HP-4 合法改板 (真单号 + 真留痕)⇒必须绿 (B 不误伤合法改板)·每条红用例带「不是巧合」自证: 同一棵被改坏的树, 修前的判据 (check_demo_panel_spec.py.bak_iss315)
+    判绿 ⇒ 这条红只可能来自新加的 B + 红项数=1 且都含「落表单号」⇒ 红的原因唯一·全在临时树上跑·真盘零写★'
+- path: SW/tools/check_sw_ref_reachability.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-318 新建【SW 侧位号引用可达性闸】· 判据方向 = 引用的位号必须存在于板或网表 (★判据里不许写死位号改名这个具体方案★) · R1 引用可解析 (逐条报 文件:行号
+    + 出现次数 + 板/网表里现在叫什么) · R2 分类规则 C1~C14 写进闸里 (一条命令 --dump-classification 复现) · R3 现状基线 = 实测 3 条 (BASELINE_COUNT=3
+    · 收紧方向: 每修好一条减 1) · R4 反向用例 7 条 (RC-1~RC-7) 每条带破坏前绿/破坏后红的不是巧合自证 · R5 fail-closed 三条 (板读不到/网表读不到/文档列表拿不到
+    ⇒ rc=2) · 只读板文件文本解析 (不 import pcbnew · 不需要 root) · 裸跑 rc=0 · --selftest rc=0 7/7 ★'
+- path: HANDOFF/2026-11-18_sw-lead_ISS318_SW位号引用闸与挂链体检.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-318 交卷单 (B0~B6 齐全 · 30 条验收项全通过) · 必含: ① 新闸 R1~R5 逐条自评 + 7 条反向用例逐条读数 + R3 基线三条 (CONN_USB
+    / TP_INT / TP_TEMP) 的逐条处置建议 ② 四道闸挂链前体检总表 (rc / 耗时 / fail-closed / 会不会假红) ③ 挂闸的逐字写法 (可直接抄进 EXTRA_GATES
+    的 5 行 · 三道 selftest 必须裸跑 + TMPDIR 指项目内) + 挂上后 Q1/Q7 读数变化 + 1.75 s 增量 ④ 板那一趟留痕义务 E-0~E-5 的实测答案 ⑤ 给
+    main 的 3 条 need (key + 一句话问法 + 不拍的后果) ⑥ 零写板双证 (md5 + mtime) ★'
+- path: logs/iss318/
+  kind: logs
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-318 原始输出目录 · 11 件: ref_reachability_rerun_main.txt (裸跑 rc=0) + ref_reachability_selftest_7of7.txt
+    (7/7 · 未覆盖 ref_reachability_run.txt) + dump_classification_raw.txt (R2 107 行) + r3_baseline_table.md
+    (R3 基线清单) + healthcheck_with_tmpdir.txt + healthcheck_with_tmpdir_rerun.txt (挂链前体检 · 关键坑: 三道 selftest
+    闸必须裸跑) + gate_timing_5gates.txt (5 道合计 1.75 s) + probe_landing_trace_board_trip.py/.txt (留痕义务 E-0~E-5)
+    + md5_before.txt + md5_after.txt (零写板双证) + placeholder_scan.txt (=0) ★'
+- path: SW/ONETRIP_SW_RENAME_SAFETY.md
+  kind: analysis
+  version: v1
+  updated_at: '2026-10-25'
+  summary: '★ISS-321 · SW 侧 S1 位号改名安全性体检 (新建 · §0~§6): §0 一句话结论 · §1 真集 (218/186/32/CHG_BOARD 32) · §2
+    真位号全清单 (①211/②834/③177 三类) · §3 沙盒实跑 (8 场景 × 10 闸 · 逐条首条红逐字) · §4 逐条改法 (F-1 timing_check 25 处 / F-2
+    onepass 5 处 / F-3 registry 重建 · 每条带验收判据与归属步) + 执行顺序表 (9 条 · 7 件必须同批) · §5 边界自证 · §6 一条命令复现全部 ★'
+- path: HANDOFF/2026-11-18_sw-lead_ISS321_SW侧改名安全性体检.md
+  kind: handoff
+  version: v1
+  updated_at: '2026-10-25'
+  summary: '★ISS-321 · sw-lead 交卷单 (B0~B6 齐全 · 占位符 0): B0 一句话结论+13 项交付物清单 · B1 结论摘要 (真集/全清单/80 次实跑矩阵/R6
+    归因/timing_check 首条红逐字/改法沙盒验证) · B2 验收自评 12 条 · B3 证据分级 · B4 接口取值 (kicad_ref 口径 + actual_ref 逐字函数 +
+    真集机读路径 + 三道 selftest 挂链写法) · B5 三条 need (同批改动范围 / R6 夹具 / SW 文档批量改名) · B6 自证复现命令 · B7 边界自证 ★'
+- path: logs/iss321/rename_sets.txt
+  kind: log
+  version: v1
+  updated_at: '2026-10-25'
+  summary: ★ISS-321 · ①「哪些会改」的真集 (机器解析 · 218 行全量 + CHG_BOARD 单列 + 三条自检) ⇒ 与 ISS-317 §G 三数一致 ★
+- path: logs/iss321/sw_hardcoded_refs.tsv
+  kind: log
+  version: v1
+  updated_at: '2026-10-25'
+  summary: '★ISS-321 · ② SW 侧写死真位号全清单 (1222 行: ①判据里写死会炸 211 / ②本来就该随改名改 834 / ③假阳性 177) · 格式=文件:行|位号|改名后名|命中类别
+    ★'
+- path: logs/iss321/raw_rootS4_timing_check.txt
+  kind: log
+  version: v1
+  updated_at: '2026-10-25'
+  summary: '★ISS-321 · ③ 改名特有炸点的原始 traceback (崩在 timing_check.py L1113 · TypeError: NoneType + NoneType)
+    ★'
+- path: logs/iss321/04_fix_verify_raw.txt
+  kind: log
+  version: v1
+  updated_at: '2026-10-25'
+  summary: ★ISS-321 · ④ 改法沙盒验证 (F-1 改 25 处 ⇒ timing_check rc 1→0 · SELFTEST 65/85→85/85; F-2 v1; F-3 registry
+    重建) · 真闸零改 ★
+- path: logs/iss321/06_f2_rename_agnostic_raw.txt
+  kind: log
+  version: v1
+  updated_at: '2026-10-25'
+  summary: ★ISS-321 · F-2 改名无关版验证 (SW03/SW04/SW05 三条探针统一改成从网表实读 ⇒ 三条转绿 · 只剩 SW01 改数据 + SW08 HW 跨域) ★
+- path: logs/iss321/05_doc_gate_check_raw.txt
+  kind: log
+  version: v1
+  updated_at: '2026-10-25'
+  summary: ★ISS-321 · 本单自己的交卷文档 × ISS-318 漂移闸预演 (用闸自己的 classify()) ⇒ 零个新增真隐患 ⇒ 闸保持绿 ★
+- path: SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: 'ISS-323 主交卷页 · §0~§6 · 「板只改一次那一趟」的 SW 侧 7 件同批改动逐字可执行清单 (每件 9 字段: 改前逐字 / 改法 / 落点行号 / 验收命令+期望读数
+    / 归属 / 时序 / 依赖 / 风险 / 证据分级) · 关键读数: 改名宇宙 218 / 要改 186 / 不动 32 (三条自检全过) · 80 次沙盒 (8 场景×10 闸) 归因出「改名特有」炸点仅
+    3 道 (timing_check / adc_sync / chainjudge) · F-1 的 25 处可压成 17 处原子替换 (rc 1→0 · SELFTEST 65/85→85/85)
+    · 第 7 件机器实测 41 份 md / 10 份有命中 / 671 处 (纠正「24 份 / 834 处」的三元组口径差) · 跨域 16 位号 / 116 处 (hw-lead 的域·只给改法不碰)
+    · 第 5 件 = 合法改板后夹具失配 (S4=S8 对照) 不是改名特有 · 第 6 件板 md5 重锚归步 S9 · 证据全 [实测]/[推算] · 零写板/零落表/零改闸/零外发 · 占位符扫描
+    0'
+- path: HANDOFF/2026-11-18_sw-lead_ISS323_SW侧同批改动可执行清单.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: 'ISS-323 交卷单 · B0~B7 (一句话结论+交付物清单 / 7 件逐件一句 / 验收自评 18 条 / 证据分级 / 接口取值 6 条 / 未决 4 条 need + 本单口径建议
+    / 闸链原样输出 / 边界自证) · 4 条 need 交 main 拍 · 本单不代拍 · cont1 修订: §B2 第 4/5 行 + §B6 闸链原样输出 + §B7 边界行 已按分片落盘后的最新读数刷新
+    · 并登记「§4 标题 2 个乱码字节定点订正」这条例外 (边界 ④ 的唯一例外)'
+- path: logs/iss323/
+  kind: evidence
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: 'ISS-323 机器原始输出 106 件 (解析 01~04 / 沙盒 05~15 + 80 份 raw_rootS*.txt / 门禁 98 / 零写板 00+99) · 关键:
+    09_rc_matrix.txt (80 次 rc 矩阵 · 改名特有 3 道) · 13_verify_fix20.txt (17 处原子替换 rc=0 · SELFTEST 85/85) ·
+    10_verify_fix.txt (25 处原版对照) · 11_verify_f2.txt (SW03/SW04/SW05 三条转绿) · 12_f3_registry_after_rename.txt
+    (冻结表 78 条 = 60 改名组 + 18 不动组 · DRIFT 0) · 14_rename_sw_docs_dryrun.txt (41 份 / 10 份命中 / 671 处) · 15_sb_keep_evidence.txt
+    (场景 K · DRIFT 28 ⇒ 闸红) · 16_doc_gate_check.txt (交卷文档 × ISS-318 闸预演 · 零个新增真隐患) · 99_zerowrite_proof.txt
+    (板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17.362193413 逐字节不变)'
+- path: SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-327 (2026-11-18 cont1 · 事故后重做) 「板那一趟」当天 SW 侧改名后闸链 SOP (§0~§7 全填·占位符 0): 执行顺序照 ISS-323
+    §5-1 的 7 件同批顺序逐件给「命令 + 期望读数 + 失败时的下一步」· 每道闸改名后的期望读数表 (三列实测读数的固化版) · 「重建注册表」的时机与判据 (实测: 必须晚于 SW 文档同批改名·判据红灯不构成重建理由)
+    · 回滚三档 (触发条件机器可判·不许看情况) · 留证清单 10 项 (#1+#2 逐字相同 = 「板只改了一次」的机器证据) · 判据设计稿 + 6 条反向用例 (含「真隐患不许被 --freeze-registry
+    洗白」)'
+- path: logs/iss327/02_postrename_gate_table.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-327 cont1 三列读数表 (基线 / 改名后·重建注册表前 / 改名后·重建注册表后 · 每道闸 rc + 关键读数 + 逐闸差值判读) + 对照列 (sbR0/sbR1
+    「文档没同批改名」失败模式) + 反向用例 6 条 + 零写板双证 + 证据分级
+- path: logs/iss327/iss327_sb_make.py
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-327 cont1 零软链沙盒造场脚本 (★事故版原件留证 logs/iss327/iss327_sb_make.py.orig_accident_ver★): 整棵树用
+    tar 解包 ⇒ 天然真文件零软链 · 写前 assert not os.path.islink · 9 棵沙盒 find -type l 全 = 0 · 造对照组 sbCtl 验证沙盒本身不引入假红
+    (10 道闸 rc 与基线逐字相同)'
+- path: logs/iss327/iss327_reverse_cases.py
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-327 cont1 反向用例 6 条 (含核心的「真隐患不许被 --freeze-registry 洗白」): 3 条建闸日真隐患各改成【从来不存在过的新位号形状】⇒ 重建注册表后仍被
+    C14 抓住 (MISSING 4 > 上限 3 ⇒ 仍红) ⇒ 没被洗白; + 反向次序 (58 条漂移 → 56 条真隐患·假红被洗成真红) + 正向回归 + 判据跟盘面走'
+- path: HANDOFF/2026-11-18_sw-lead_ISS327_改名后SW闸链复活验证.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-327 cont1 交卷单 (B0~B7 齐全): 一句话结论 + 三列读数表 + 逐闸差值判读 + 与 ISS-321/ISS-323 的三处交叉一致性 + 26 条验收自评
+    + 证据分级 + 接口取值声明 + 3 条 need 交 main 拍 + 零写板双证 (含真件 SW/ 写入归属逐条说明)'
+- path: SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: '★ISS-327 (2026-11-18 16:2x~16:5x cont2 收口) 「板那一趟」当天 SW 侧闸链 SOP (§0~§9 全填·占位符 0): §1 顺序照 ISS-323
+    §5-1 的 7 件同批顺序逐字对齐·§2 步 0~步 8 每步给「命令 + 期望读数 + 失败时的下一步」·§3 改名后 10 道闸期望读数表 (六列固化版) · §4 「重建注册表」的时机/重建前必确认
+    4 项/重建后只重跑第 8 道闸/登记义务 (ISS-312 N-2 同款) · §5 回滚三档 (触发条件机器可判 + 逐字动作 + 不许做的事) · §6 留证清单 12 项 + 「板只改了一次」的机器判据
+    · §7 判据设计稿 (重建时机/DRIFT 语义是否退役/MISSING 上限三方案 + 9 条反向用例·只给设计不挂闸)'
+- path: logs/iss327/02_postrename_gate_table.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: '★ISS-327 六臂读数表 (A0 基线 / A1 对照臂 / A2 改名后·重建前 / A3 改名后·重建后 / A4 改名+文档同步·重建前 / A5 当天终态): 10 道闸
+    rc × 6 臂 + 第 8 道闸的分类读数 (DRIFT/MISSING/OK/上限) + 逐闸归因 (哪几道红是改名引起·哪几道归第 2/3/5/6 件) + 9 条反向用例的「期望 vs 实际」+
+    零写板/零落表/零改闸逐条 md5'
+- path: logs/iss327/
+  kind: evidence
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: '★ISS-327 机器原始输出 33 项: 01_baseline (真件 10 闸) · 12_sbCtl (对照臂) · 13_sbR0 / 16_sbR1 (改名后重建前/后)
+    · 14_sbR3 / 18_sbR2 (文档同步两臂) · 24_four_arm_measure (四臂机器化读数) · 25_control_validity (对照有效性四条断言) · 15/17
+    freeze stdout (18 条 / 78 条) · 26~28_rev_RT-* (9 条反向用例前后) · 29_rev_suite_run · 32_launder_run (RT-9
+    洗白通道演示) · 05_restore_main_report (main 的事故回退报告)'
+- path: HANDOFF/2026-11-18_sw-lead_ISS327_改名后SW闸链复活验证.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: '★ISS-327 交卷单 (B0~B7): 一句话结论 + 8 条带读数的结论 + 20 条验收自评 + 证据分级 + 4 条接口取值声明 + 6 条 need + 边界自证 (★含
+    2 处自曝: 14:25 软链写穿事故 (main 已回退·内容经 41/41 独立副本逐字节验证复原) + 本单 SOP 自己把闸带红 (按 ISS-321 纪律用反斜杠形状修掉)★)'
+- path: SW/tools/check_sw_ref_reachability_v2.py
+  kind: gate
+  version: v2.0
+  updated_at: '2026-11-18'
+  summary: ★ISS-332 收紧版 SW 位号引用可达性闸 (真件闸的逐字复制 + 只改白名单语义那一处)★ —— 执法点 A 登记制豁免 (EXEMPT_LEDGER 15 条) / B 真患台账对账
+    / C 台账口径自洽 / D 洗白替身点名 / E 假绿护栏 (9 项探针)。★真件 check_sw_ref_reachability.py 零改动★ · 真件树读数与真件闸逐字相同 (OK78/MISSING3/NET9/DOC23)
+    · 4 条洗白面全红 + 点名 · 3 条对照仍红 + 点名 · 自测 7/7 (内建) + 15/15 (配套自测脚本)。
+- path: SW/tools/check_sw_ref_reachability_v2_selftest.py
+  kind: selftest
+  version: v1.0
+  updated_at: '2026-11-18'
+  summary: '★ISS-332 收紧版 v2 的配套自测脚本 (带 --selftest 入口)★ —— 四组: ① 正向 (真件树 rc=0 + 读数与真件闸逐字相同 78/3/9/23) ②
+    4 条洗白面 RT-5~RT-8 每条 rc≠0 且点名 ③ 3 条对照 CTL-1~CTL-3 仍被抓住 ④ 假绿用例 (fail-closed / 未登记形状 token 必红 / 把登记制闸门静悄悄拆掉⇒②
+    组证据消失⇒自测不是假绿)。★15/15 通过·沙盒只写 tmp/iss332/selftest/·写前 assert not islink★。'
+- path: HANDOFF/2026-11-18_sw-lead_ISS332_SW位号可达性闸4条洗白面收紧.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-18'
+  summary: ★ISS-332 交卷页 (B0~B6 齐全)★ —— B0 边界声明 / B1 结论摘要 (4 条洗白面逐条 rc + 基线没动) / B2 验收自评 16 条逐条 通过·不通过·未验
+    / B3 证据分级 [实测]/[推算]/[0数据] / B4 接口取值声明 + 挂闸切换三问 (怎么切·怎么挂·旧闸要不要退役) / B5 未决项 (★两本台账的区别·残留洗白面·注册表漏登 4
+    条★) / B6 自证复现命令原样输出。
+- path: SW/tools/check_onepass_sw_release.py
+  kind: tooling
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: ISS-335 新建·SW 侧「板只改一次」准出汇总闸本体·对标 MECH/check_onepass_mech_release.py (ISS-300) 的 fail-closed
+    语义但判定对象是 SW 侧·聚合 ISS-321 实测表那 10 道闸 (含 4 道链外闸)·清单完备性基准 MANIFEST_BASE 少一道即红·fail-closed 四条 (脚本不存在 /
+    跑不起来 / 超时 300s / rc 非 0) 全部实测·TMPDIR 一律指项目内 tmp/iss335_tmp·三道 R6 闸必须裸跑 (传 --selftest 会 rc=2 usage
+    错误 ⇒ 汇总自己红)·影子道 v2 默认只跑只打印不参与判决 (--ref-gate v1|v2|both 可切)·零写板·零落表·零改既有 16 道 SW 闸·零改 state/gate_check.py·主跑
+    rc=0 (绿 10 红 0)·--selftest rc=0 (8 组反向用例全过)
+- path: SW/ONETRIP_SW_RELEASE_GATE_SPEC.md
+  kind: spec
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: ISS-335 SW 侧准出汇总闸的清单页·逐道闸的 [路径 / 怎么调 / 期望 rc / 链上与否]·清单完备性基准 (含 ISS-321 那 10 道)·fail-closed
+    四条语义表·TMPDIR 约定·为什么是这 10 道 (逐道说清当天红意味着什么)·链外 4 道的来源与后果·三道 R6 必须裸跑的坑·第 6 节是「板那一趟当天 SW 侧怎么跑」的逐字 SOP
+    (步 0~步 5 + 红了怎么办 A/B/C 三类分流 + 回滚三档 + 留证) + 第 7 节是本闸会不会假红的七条逐条处置
+- path: HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: ISS-335 交卷单 (B0~B6 齐全)·B1 结论摘要 + 诚实边界·B2 J-1~J-9 逐条自评 + 10 道闸逐条 rc 附表 + 3 条未验项·B3 证据分级 (全部本机实跑
+    [实测])·B4 interface_claims 6 条·B5 必答 4 问 (v1 还是 v2 给建议默认值与不选的后果 / 10 道是不是全集给三个集合的差集 / 红了怎么办 红=停下来不是去改板
+    / 会不会假红七条) + 给 main 的挂链写法 + 不许做而确实没做的两件事·B6 自证复现命令 + 反向用例原样 rc
+- path: logs/iss335/
+  kind: log
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: ISS-335 全部机器原始输出·00_boundary_before (板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06
+    07:07:17.362193413 + 网表 / 脚表 / BOM 三件 md5+mtime)·01_main_run (汇总闸主跑 10 道逐条 rc)·02_selftest (8 组反向用例原样)·03_json_run
+    (机器读)·04_boundary_after (交卷前边界复查)·05_ref_gate_v2 (换 v2 进判决的实测)·06_final_verify (交卷前必跑 9 条命令)·07_gate_chain_check
+    (Q1 18/18 段)
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -2732,6 +3046,175 @@ needs_from:
     / A5=V-6 ⇒ 错位标签 rc=2 零写盘 老板白回一次) ⇒ ★另请 main 决定: 落表台账 L166 与作业包 L199 的 R4 文字口径 (焊盘数 = 3) 比机器闸严一档 (代码
     L1375 耦合 not hit) ⇒ 这属口径漂移, 本单零改闸, 修不修由 main 开单★'
   since: '2026-11-18'
+- key: iss309_r6_head_ticket_judge_hole_fix
+  to: main
+  item: 'ISS-309 · 请 main 拍板判据的洞 (★本单不许改 check_demo_panel_spec.py·零改判据·已交卷★) ⇒ 实测: 改坏链头落表单号 ⇒ 判据【判绿】=
+    漏放 (两个变体: ①只改一处⇒producer={ISS-302,ISS-999}⇒台账自相矛盾; ②每一处都改⇒producer={ISS-999}⇒台账自洽但单号是假的) ⇒ 根因: check_r6_three_way
+    对链头落表单号只有「非空」一道检查, 没有任何交叉核对 ⇒ 修法 A: 加【链头产出单号不唯一⇒判红】(治变体①·治不了变体②) / B1: 每次落表锚点副本跟到链头 (零判据改动·治两态·但要定流程义务)
+    / B2: 链头单号查 state/issue_log.yaml 真单号 (治变体②·给SW闸加跨域依赖) ⇒ 三条反向用例设计 (REV-22 链头单号不唯一⇒红 / REV-23 链头单号=不存在的单号⇒红
+    / R5c 锚点停在历史值+改坏链头单号⇒红) 逐字写在 HANDOFF/2026-11-18_sw-lead_ISS309_R6反向用例5of7归因.md B3.4 ⇒ 不修的后果: 挂闸也堵不住「挂错单」这个洞,
+    下次有人改坏链头单号门禁链一声不响'
+  since: '2026-11-18'
+- key: iss309_r6_selftest_hook_into_gate_chain
+  to: main
+  item: 'ISS-309 · 请 main 把 SW/tools/check_demo_panel_spec_r6_selftest.py 挂进 state/gate_check.py 的 EXTRA_GATES
+    (★挂闸是 main 的活·本单没碰 gate_check.py·md5 0f0ff0fd6a9a6e51e0d7d717003aeb9b 交卷前后不变·先例=ISS-300 mech 出结论/main
+    挂★) ⇒ 事实: 该闸修后 rc=0·反向用例 7/7 通过 (修前 rc=1·5/7) · 单跑 0.32s (本机 3 次实跑) · 全在临时树上跑·零写板·零落表 · 失败语义与现有 run_external_gate
+    一致 (脚本不存在/跑不起来/超时300s⇒闸红) · 该闸每红一条用例会打一行 [FAIL] ⇒ 链上红时能直接看到是哪条 ⇒ 建议写法逐字写在交卷单 B3.3 (挂 EXTRA_GATES 列表尾部·紧跟
+    check_onepass_sw_sync.py 那条之后) ⇒ 挂链前请先看 needs iss309_r6_head_ticket_judge_hole_fix (挂闸不修那个洞) 与 iss309_tmp_quota_edu
+    (它自己已带 /tmp 配额退回·别的闸没有)'
+  since: '2026-11-18'
+- key: iss309_sw_anchor_copy_lag_to_head
+  to: main
+  item: 'ISS-309 · 请 main / 落表那一趟拍: 域侧锚点副本要不要每次落表都跟到台账链头 ⇒ 实测现状: SW/SW_MD5_BASELINE_LEDGER.md 的 entries[]
+    记的是 e06c1dd63356/ISS-257, 而台账链头已是 6aee500e60ba/ISS-302 (ISS-302 那次落表没让 SW 锚点副本跟到链头) ⇒ 后果: 判据里唯一能咬住「落表单号被改坏」的交叉核对
+    (锚点副本 by ↔ 台账产出该 md5 的单号) 只覆盖锚点副本自己登记的那一个 md5 ⇒ 链头单号落在保护面之外 ⇒ 实测漏放 ⇒ 本单零改 SW 台账锚点 (md5 83fafcf7d22d8fa999a1db74c781956d
+    前后不变·hard_protected 锚点块一个字没动) ⇒ 定义务这条只能 main 定'
+  since: '2026-11-18'
+- key: iss309_tmp_quota_edu
+  to: main
+  item: 'ISS-309 · 环境级卡点 (不是判据红): /tmp 是带 usrquota 的 tmpfs (mount 实测) ⇒ 配额满时拷 4.9MB 的板报 OSError Errno
+    122 Disk quota exceeded ⇒ 后果: 挂进门禁链后·链上现有的 check_demo_panel_spec.py --selftest 与 check_onepass_sw_sync.py
+    --selftest 会出现假红 (本机实测: 不设 TMPDIR 假红·换 TMPDIR 就 22/22 与 16/16 全过) ⇒ 建议: 要么统一给链上闸加临时目录退回 (本单已给自己的闸加:
+    --tmpdir / ISS_R6_SELFTEST_TMPDIR / ~/.cache/openclaw-tmp 三级退回+6MB 写探针) · 要么给跑门禁的任务固定 TMPDIR ⇒ 不治的后果:
+    挂闸那天门禁链可能因环境红 ⇒ 被误读成「判据坏了」⇒ 更坏: 为了让链绿去改判据'
+  since: '2026-11-18'
+- key: iss306_rerun_0535_main_actions
+  to: main
+  item: '★ISS-306 追加复验交卷 (sw-lead · 05:35~06:05)★ ① 结论不变: 板那一趟开工前老板还差 N = 4 个字母 (pm.yaml:674 与 pm.yaml:726
+    两个 need 均无 decided_at 仍 OPEN + ISS-097 仍 fixed) ⇒ 卡 G1a 转绿的仍只有 2 个 (W-2 + A4 老表) ★ ② ★★请 main 记一条机器侧的口径:
+    05:35 复验时 G1a-3 (KiCad 可加载/导出) 变红, 根因是 /tmp 用户配额耗尽 (KiCad 报 Disk quota exceeded) ⇒ 【环境红不是设计红】★ sw-lead
+    已把 8 个 ≥1 天前的遗留沙箱 (3.8GB) mv 进 .trash/tmp_quota_cleanup_20261118_0535 (可恢复非 rm) ⇒ G1a-3 已回 ✅ ⇒ 建议:
+    ① 凡跑 KiCad 类闸的 job 临时目录改用 /var/tmp (根分区不吃 tmpfs 配额) ② 加口径 /tmp 使用率 >80% 时机器闸结果不得直接当设计缺陷 ⇒ 否则任何沙箱撑满
+    /tmp 都会让 G1a-3/DRC/落表器集体假红 ★ ③ 本单全程零写板零落表零改闸零外发, 板/网表/脚表/BOM 四个 md5 与 02:06 基线逐字节不变★'
+  since: '2026-11-18'
+- key: iss312_need_hardprotected_crosscheck_B
+  to: main
+  item: '★ISS-312 · N-1 (交 main 拍) 把修法 B (独立信源 issue_log 对账) 也铺到【硬保护那条路径】 (check_r6_hard_protected ③)★
+    前置条件: 先给 SW/tools/check_onepass_sw_sync.py 的沙盒夹具 build_virtual_root() 补一份属于那棵虚拟根的独立信源 ⇒ 那个文件不在本单可写范围
+    ⇒ 本单只加了 A 没加 B ⇒ 不做的后果: 合法改板票仍只被【锚点 ↔ 台账】两个副本互证 (任务书明说那是自证) ⇒ 那条路径的票仍可两个副本一起改而无人拦 ⇒ 但板那一趟还没开工 眼下不紧急★'
+  since: '2026-11-18'
+- key: iss312_need_landing_iss_trace_duty
+  to: main
+  item: '★ISS-312 · N-2 (交 main 拍) 给【板那一趟】定一条义务: 任何落表 (含合法改板) 的单号 都必须在 state/issue_log.yaml 里留下【文件名 +
+    新 md5】的留痕★ 这条义务在【落表真源】那条路径上已经生效 (本单已加 ⇒ 假号与挂错单当场红) ⇒ 主线那一趟 网表/脚表/BOM 会重新落表 ⇒ 那一趟的单号必须留痕 ⇒ 不然板那一趟开工前
+    SW 侧 R6 闸会红 (红项很直白: 独立信源里没有 md5 的留痕) ⇒ 那是留痕红不是技术红 补一句留痕即可★'
+  since: '2026-11-18'
+- key: iss312_need_hook_gates
+  to: main
+  item: '★ISS-312 · N-3 (交 main 拍) 挂闸裁决: 本单没碰 state/gate_check.py (md5 0f0ff0fd6a9a6e51e0d7d717003aeb9b
+    逐字节不变)★ 建议把本单的新闸 SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py (4/4 · 0.38~0.44 s · 失败语义与现有闸一致)
+    与 ISS-309 建议但至今没挂的 check_demo_panel_spec_r6_selftest.py 一起挂进 EXTRA_GATES (写法逐字在交卷单 B3.3)★ 不做的后果: 判据哪天被改软
+    (A/B 被拿掉) 没人拦 ⇒ 这正是 ISS-309 的起因★'
+  since: '2026-11-18'
+- key: iss315_n2_scope
+  to: main
+  item: '★ISS-315 N-2 口径: 「落表单」本单取的口径 = 落表台账里各受管真源的【链头产出单号】(判决源口径·ISS-275/284 同款)⇒ 不用锚点副本里的历史单号 (当前锚点记
+    e06c1dd63356/ISS-257 而链头已是 6aee500e60ba/ISS-302 ⇒ 按锚点副本判义务会挂在旧单上⇒判据会漂)⇒ ★这条口径是本单自选的, 请 main 拍板认/不认★;
+    另: 这条义务只管【当前链头】还是也要管【更早的历史落表】(如 ISS-220 那一批)? ⇒ 不拍的后果 = 新闸按没人认的口径判 ⇒ 将来假红 ⇒ 大家去改闸而不是改口径 ⇒ 判据漂★'
+  since: '2026-10-25'
+- key: iss315_gate_wiring
+  to: main
+  item: '★ISS-315 N-3 挂闸裁决: 建议把三条一起挂进 state/gate_check.py 的 EXTRA_GATES (★本单只给写法·零改 gate_check.py★): check_landing_trace_obligation.py
+    (SW 侧落表留痕义务闸 ISS-315·N-2) + check_demo_panel_spec_r6_chainjudge_selftest.py (ISS-312 建议至今没挂) + check_demo_panel_spec_r6_hardprot_iss315_selftest.py
+    (本单新建) ⇒ 逐字写法见交卷单 B3.3 ⇒ ★代价: 0.36 s + 0.06 s + 0.06 s (本机 3 次取样)·裸跑即绿·不写任何文件·失败语义与现有 run_external_gate()
+    一致★ ⇒ 不挂的后果 = 判据哪天被改软了 (A/B 被拿掉) 没人拦 ⇒ 这正是 ISS-309 的起因★'
+  since: '2026-10-25'
+- key: iss315_board_trip_trace_duty
+  to: main
+  item: '★ISS-315 N-5: 「板那一趟」的单号留痕义务 ★现在已经生效★ (ISS-312 把它加在落表真源那条路径上, 本单又把它加到硬保护路径 + 做成新闸) ⇒ 主线重出网表/脚表/BOM
+    那一趟的单号 ★必须在 issue_log 里留【文件名 + 新 md5】★ ⇒ 否则开工前 SW 闸会红 (红项直白: 独立信源里没有 md5 的留痕) ⇒ ★这不是技术红·是留痕红·补一句留痕即可★
+    ⇒ 不做的后果 = 板那一趟开工前 SW 侧 R6 闸假红, 且这次是硬保护那条路径上的假红★'
+  since: '2026-10-25'
+- key: iss318_sw_gates_hook_decision
+  to: main
+  item: '★ISS-315 N-3 挂闸裁决 · 现在有逐字答案了★: ISS-315 新立的两道闸 + ISS-312/ISS-309 的两道 selftest + 本单新建的位号引用闸, 挂不挂
+    EXTRA_GATES? 本单已给出 5 行可直接抄的写法 (三道 selftest 必须裸跑 · 带 --selftest 会 rc=2 usage 错误 · TMPDIR 指项目内 tmp/iss318_gates)
+    + 实测耗时 1.75 s 每次 + 会不会假红的逐闸答案 + 挂上后 Q1/Q7 读数变化 · 挂不挂是 main 的机制地界 · 不拍的后果 = 判据哪天被改软了没人拦 (这正是 ISS-309
+    的起因) ⇒ 三轮 (ISS-309/ISS-312/ISS-315) 都只交写法没人挂 ⇒ 板那一趟 SW 侧没有护栏 ★'
+  since: '2026-11-18'
+- key: iss318_sw_ref_impact_gate
+  to: main
+  item: ★SW 侧位号引用闸 SW/tools/check_sw_ref_reachability.py (本单新建 · 裸跑 rc=0 · --selftest 7/7) 建好后挂不挂? 挂哪个位点
+    (EXTRA_GATES 还是 PINNED_MD5_GATES)? · 不拍的后果 = 板那一趟 S1 改名之后 SW 侧 95 处位号引用对不上板 ⇒ 没人拦 ⇒ SW 文档带着过期位号进投产
+    ⇒ 投产端才发现 (而 SW 侧 9 道闸全绿恰恰证明全绿不等于改完板之后还对) ★
+  since: '2026-11-18'
+- key: iss318_sw_ref_baseline3_disposition
+  to: main
+  item: '★R3 基线那 3 条对不上的位号引用怎么处置: CONN_USB (5 处 · 历史件遗留) / TP_INT (12 处 · 文档自己点名的空洞) / TP_TEMP (1 处 ·
+    EVT 测温校准依赖一个板上不存在的测试点) ⇒ 走改文档措辞 / 板那一趟补落表 / 还是加白名单? · 本单建议前两条路 · 不建议白名单 (白名单 = 把判据改软) · 不拍的后果 = BASELINE_COUNT
+    永远停在 3 ⇒ 基线变成谁都不去碰的黑洞 · 且 TP_TEMP 那条会炸在 EVT 测温段 ★'
+  since: '2026-11-18'
+- key: iss321_decide_rename_batch_scope
+  to: main
+  item: '★【ISS-323 口径·本单已把 7 件逐条做成照着就能干的清单, 每件的改法都在沙盒里真跑过·rc 都实测过】★板只改一次那一趟的 SW 侧同批改动清单是 7 件 (①冻结表按改名后盘面重建
+    ②timing_check 位号解析层 ③onepass SW03/04/05 三条现状探针 ④HW 跨域 16 位号/116 处 ⑤三道 R6 selftest 闸的夹具 ⑥清单 SW01 板
+    md5 重锚(归步 S9) ⑦SW/*.md 位号字面量) —— 批不批这 7 件? ★另: 改名特有炸点实测只有 3 道 (timing_check / adc_sync / chainjudge)
+    ⇒ 不做第 2 件这三道当天就红★; ★另: HW 侧 HW/check_netlist_selfconsistency.py 的 16 个位号 (116 处 · hw-lead 的域) 要不要连
+    hw-lead 的一起改?★ 不批的后果: 那一趟的门禁链 day-1 就红 (至少 4 道闸) ⇒ 那一趟被自己的护栏卡住 ⇒ 板只改一次变成板改两次 ★'
+  since: ISS-321
+- key: iss321_decide_r6_selftest_fixture_after_reboard
+  to: main
+  item: '★【ISS-323 口径·S4 vs S8 零改名对照组实测同红 ⇒ 已证明它不是改名特有, 是【合法改板后夹具失配】】★三道 R6 selftest 闸的夹具假设「硬保护件从没被合法改过
+    / 链头只有一个产出记录」⇒ 板那一趟做完一次合法改板后它们恒红 —— 夹具改成「在已有链上再追加一跳」(选项甲 · 本单建议), 还是把这一趟的期望值登记成已知基线 (选项乙 · 改闸 = 受保护资产)?
+    不批的后果: 三道闸在那一趟当天就红 ⇒ 门禁链挂着 3 条恒红 ⇒ 掩盖真红 ⇒ 违反 ISS-309 铁律「不许把闸修成永远红」 ★'
+  since: ISS-321
+- key: iss321_sw_docs_rename_bulk_24files
+  to: main
+  item: '★【ISS-323 口径·机器实测纠正数字: 41 份 md / 10 份有命中 / 671 处字面量; ISS-321 的「24 份 md / 834 处」是 (文件,行,位号) 三元组行数口径,
+    覆盖 30 份 (25 md + 5 tools) ⇒ 不是数字打架, 是口径差·本单以机器口径为准】★SW 侧 41 份 md 里 671 处位号字面量要随改名同步改 (类别 ②·不改不红·改了才准)
+    —— 这批文档改动跟板那一趟同批做 (本单建议同批做·「板只改一次」的前提就是所有前置一次查清), 还是板出之后单开一单做? 改法一律走机器脚本 (默认 dry-run) 不许裸 sed。不批的后果:
+    跟板同批做而文档没改 ⇒ 板出之后 check_sw_ref_reachability.py 判 58 条改名漂移 (S1 实测) ⇒ 闸红; 单开一单 ⇒ 板出之后有一段时间闸是红的 (但不是假红·是真漂移·符合
+    ISS-318 的设计意图) ★'
+  since: ISS-321
+- key: iss321_decide_rename_doc_notation
+  to: main
+  item: '★【ISS-323 口径·场景 K 实测: 留证文档不改 ⇒ 闸判 28 条改名漂移 + 2 条新增真隐患 ⇒ 闸红; 本单自己的交卷文档也已按「不写死改名后名」改过一遍 ⇒ 实测绿】★SW
+    侧任何要写「改名后名」或「形状像位号但不是位号」的文档 (★改名方案文档 / 作业包 / 交接页★) —— 是统一规定「写进 logs/ 不进 SW/」(选项丙 · 本单建议), 还是给 ISS-318
+    的闸加一条「改名方案文档」的显式豁免 (★改闸 = 受保护资产·由 main 拍★)? 不批的后果: 任何写这类文档的人都会踩同一个坑 (★ISS-321 与本单各实测踩到一次 rc=1★) ⇒
+    要么规定写法 (★本单已按「不写死改名后名」改过一遍·实测绿★), 要么闸加豁免 ★'
+  since: ISS-321
+- key: iss327_decide_registry_rebuild_trigger
+  to: main
+  item: '★ISS-327 cont1 实测: --freeze-registry 的触发条件应是【盘面改过位号】而不是【闸红了就重建】(重建不但救不回来, 还会把 58 条漂移/假红洗成 56
+    条真隐患/真红 ⇒ 真隐患基线被污染)。请拍: (甲) 固化进改名那一趟的固定清单 (它已是第 1 件·零新流程) + 重建前登记义务挂到落表单号上 (ISS-312 既有口径); 还是 (乙)
+    单独立一条重建义务并绑单号? 不拍的后果: 有人拿它当清红手段 ⇒ 闸红得没道理 ⇒ 违反 ISS-309。sw-lead 不代拍。'
+  since: '2026-10-25'
+- key: iss327_decide_missing_baseline_mechanism
+  to: main
+  item: '★ISS-327 cont1 实测: DESIGNATOR_MISSING 的上限是硬编码魔法数 3; 文档不同步时实测漂到 5, 重建次序错时漂到 56。请拍: (甲) 保持魔法数 3
+    (实测: 文档同批改名 ⇒ 基线稳在 3·一字不用改), 靠流程约定顶; 还是 (乙) 改成带单号的登记台账 (ISS-275/284 同款链头式)? sw-lead 建议默认值 = 甲, 等真出第
+    4 条真隐患再转乙。不拍的后果: 基线一漂 ⇒ 上限过期 ⇒ 闸红得没道理。'
+  since: '2026-10-25'
+- key: iss327_decide_drift_class_semantics
+  to: main
+  item: '★ISS-327 cont1 实测: DESIGNATOR_DRIFT (改名漂移) 在改名完成后是死代码 (老名一个都不在文档里 ⇒ C2 永不命中)。请拍: (甲) 保留但把语义写死成「文档与盘面不同步告警」+
+    把「重建次序」写进护栏 (零改闸); 还是 (乙) 显式退役 (改闸 = 受保护资产·要 main 拍)? 不拍的后果: 每次改名都要人肉判断「这次红到底是不是漂移」⇒ 判错一次就把假红当真红 (实测
+    58 vs 56 两种红的处置完全相反)。'
+  since: '2026-10-25'
+- key: iss327_report_c1_c7_c8_c13_launder_faces
+  to: main
+  since: '2026-11-18'
+  item: '★ISS-327 cont2 实测: 第 8 道闸 (check_sw_ref_reachability) 的 C1 / C7 / C8 / C13 四条规则各有一条洗白面 —— RT-5
+    把真隐患 TP_TEMP 改成一个【live 位号名】(U_TEMP_1) ⇒ 绿; RT-6 改成含小写 (TP_temp) ⇒ 绿; RT-7 改成 SW_ 前缀 ⇒ 绿; RT-8 改成以
+    _ 结尾 ⇒ 绿。 ★四条都在【重建注册表之前就已经绿】⇒ 与 freeze 无关 ⇒ 是既有判据缺陷 (★本单只报·不改闸·改闸归 main★)。 请拍: 要不要给这四条规则各补一条反向用例 +
+    收紧 (★收紧方向: 真隐患 token 必须在 BASELINE_TOKENS 里登记过才算白名单★)? 不拍的后果: 任何把真隐患改个形状的操作都能骗过闸 ⇒ 判据对「真隐患」只有形状检查没有语义检查
+    ⇒ 永远只能抓「拼写错」抓不到「指错对象」。 ★另附本单自踩的一条 (★同一类坑★): 方案类文档写进 SW/ 会把 ISS-318 闸带红 —— 本单 16:3x 实测「把大写注入名原样写进 SOP」⇒
+    闸判 5 条新增真隐患 (MISSING 8 > 上限 3) ⇒ 已按 ISS-321 的『方案文档不写死位号』纪律改成反斜杠形状 ⇒ ⇒ 这条本身也是 need iss321_decide_rename_doc_notation
+    的实测证据。'
+- key: iss335_ref_gate_v1_or_v2
+  to: main
+  item: '【等 main 拍·本单不代拍·不是等外部】SW 侧准出汇总闸的清单里, 位号引用可达性闸该列 v1 (ISS-318, 已挂链) 还是 v2 (ISS-332, 已 verified
+    未挂链, 本机 grep -c = 0)? 两个选项: 选项 A = 判决清单用 v1 + v2 走影子道 (只跑只打印, 默认不参与判决) —— 这是本单出厂默认值; 选项 B = 判决清单换
+    v2 (--ref-gate v2, 一条参数零改代码) + v1 退成影子; 另有选项 C = 两个都进判决 (--ref-gate both)。建议默认值 = A。依据: (1) 清单完备性基准必须含
+    ISS-321 实测表那 10 道, 该表第 2 道就是 v1 ⇒ 只列 v2 会与当天必跑闸的口径脱钩; (2) v2 已 verified 但还没挂链, 盘上无日常链背书, 而当天的判读基准是
+    ISS-321 实测表; (3) v2 比 v1 严 (ISS-332 收了 4 条洗白面), 板那一趟当天 v1 绿 v2 红是可能的, 若 v2 直接进判决, 当天会被一条没有链背书的更严判据拉红,
+    现场第一反应会去改板凑绿, 反而放大板 md5 变第二次的风险; (4) 影子口径下 v2 的读数每趟照样打印, main 想拍 v2 时手里已有 v1 与 v2 当天结论是否一致的实测对照, 不必当天临时重跑。不选的后果:
+    只列 v1 且不做影子 = v1 的 4 条洗白面当天敞开, 有可能 v1 绿其实有漂移, 假绿流到下一趟; 只列 v2 = 基准与 ISS-321 实测表脱钩 + v2 尚未挂链, 盘上无背书;
+    两者都进判决 = 最严, 但 v2 红当天会直接卡住整趟, 需 main 明确接受该风险。切换命令: python3 SW/tools/check_onepass_sw_release.py --ref-gate
+    v2 或 --ref-gate both 或 --shadow-strict。本单零改 state/gate_check.py 一个字节, 挂链与选版都是 main 的机制地界。详见交卷页 HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md
+    的 B5-1'
+  since: '2026-11-19'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -3084,6 +3567,45 @@ answers:
     iss293_sw_m7r6_sync_to_main; 建议改, 建议判据文本见交卷单 B5-1)★★ ★另: VBUS_DET_D 那三个硬件侧未决 (DRD1 有无内部 40kΩ 下拉 /
     IO 域与 abs-max / 识别裕量 75mV) 仍需 main 转 hw-lead, 不随本单闭合★'
   ref: HANDOFF/2026-11-17_sw-lead_ISS293_ADC复评文档口径同步.md
+- key: iss309_r6_selftest_hook_into_gate_chain
+  to: main
+  value: '结论: 该闸【该进】门禁链 (修后 rc=0 · 7/7 · 单跑 0.32s · 零写板 · 失败语义与现有 run_external_gate 同款) ⇒ 但建议 main 先拍两件事:
+    ①判据的洞 (链头单号被改坏⇒判绿·两个变体实测) ②/tmp 每用户配额 (链上 --selftest 类闸会假红) ⇒ 挂入写法与判据修法逐字写在交卷单 B3.3/B3.4 · 本单零改 gate_check.py'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS309_R6反向用例5of7归因.md B0 判决3
+- key: iss309_cont2_independent_reverify
+  to: main
+  value: '★ISS-309 cont2 (第二实例) 独立复验结论: ① 主目标 rc=0·7/7 通过 (修前 rc=1·5/7) ⇒ 该闸【修好了】; ② 判决两实例一致 ⇒ R4=夹具假伤
+    (合成台账漏了板/.kicad_pro 保护基线登记 ⇒ 判据①前提不合法) · R5a=真判据缺陷·漏放为主因 (链头落表单号只有「非空」一道检查·无任何交叉核对) + 夹具断言过时为次因 (链头有两个产出记录
+    ⇒ producer 是集合 ⇒ 旧断言必挂); ③ 挂闸建议不变 (该进 EXTRA_GATES·写法逐字在交卷单 B3.3) 但★挂闸前先拍 needs iss309_r6_head_ticket_judge_hole_fix
+    与 iss309_tmp_quota_edu★; ④ ★注意: 本单被同时派了两次 ⇒ 两个 sw-lead 实例并行 (第一实例 05:19~05:52 交卷 · 第二实例 06:0x 独立复验并补
+    B7 段) ⇒ 代码/交卷单/分片是同一份·无互相覆盖★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS309_R6反向用例5of7归因.md B7 · logs/iss309/16~20_verify_*.txt
+- key: iss312_chainhead_judge_fix
+  to: main
+  value: '★ISS-312 交卷 (main 拍板 修法 A+B 都要 已落地)★ ① 病灶确认: 判据对【链头落表单号】只查非空 ⇒ 变体①(台账自相矛盾) 与 变体②(台账自洽但单号是假的)
+    都判绿 = 漏放 ⇒ 修后同段诊断两个变体都红 (洞在产生点堵上 不是在产物上擦)★ ② 修法 A = 链头产出单号必须唯一 (同一个 md5 两个单号 ⇒ 红) 已加在两处判决点★ ③ 修法 B
+    = 链头单号必须与独立信源 state/issue_log.yaml 对上 (该单存在 + 留痕须含文件名与链头 md5) 已加在落表真源那条路径 (check_r6_three_way ②-1
+    = ISS-309 实测的洞)★ ④ ★硬保护那条路径 (check_r6_hard_protected ③) 本单只加 A 不加 B: 实测加了 B 会让链里那道 check_onepass_sw_sync.py
+    --selftest 的第 ⑮ 条 (合法改板正向放行) 假红 15/16 ⇒ 按假伤修夹具不许改判据的铁律把 B 收回 (A 留着) ⇒ 复跑 16/16 ⇒ 该条列 need N-1 交 main
+    拍★ ⑤ 新增闸 check_demo_panel_spec_r6_chainjudge_selftest.py rc=0 4/4 每条红用例带【不是巧合】自证 ⇒ 挂闸建议写在交卷单 B3.3
+    (本单没碰 state/gate_check.py)★ ⑥ 零写板: 板 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17
+    逐字节不变 + 11 件 md5 里只有本单允许改的那一个变了 + 零落表 + 零改网表真源 + 零外发 + 不自签 issue_log★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS312_R6判据漏放修复.md B0 · logs/iss312/01~12
+- key: iss332_sw_ref_reach_launder_v2
+  to: main
+  value: '★ISS-332 (2026-11-18 21:2x·cont1 续做) 交卷: ★4 条洗白面在收紧版 v2 下全红·3 条对照仍红·基线数没动★ —— 【实测判决表】RT-5(TP_TEMP→U_TEMP_1)
+    rc=0→rc=1+点名U_TEMP_1 / RT-6(→TP_temp) rc=0→rc=1+点名TP_temp / RT-7(→SW_TEMP_ISSX) rc=0→rc=1+点名SW_TEMP_ISSX
+    / RT-8(→TP_TEMP_) rc=0→rc=1+点名TP_TEMP_ / CTL-1~3 rc=1→rc=1+点名 (★闸没被调死★)·真件树读数逐字不变 (OK78/MISSING3/NET9/DOC23·113
+    个 token 的分类/规则/理由全同)·BASELINE_COUNT 仍是 3·BASELINE_TOKENS 一字没动·真件闸 check_sw_ref_reachability.py 零改动且
+    rc=0。★收紧的 5 个执法点: A 登记制豁免 (形状类豁免 C7/C8/C9/C10/C11/C12/C13 只有登记在【EXEMPT_LEDGER·15 条】里的 token 才放行·未登记⇒落
+    C14) B 真患台账对账 (BASELINE_TOKENS 里的真患要么仍被引用要么已解析得到·否则判红并点名) C 台账口径自洽 (BASELINE_COUNT==len(BASELINE_TOKENS))
+    D 洗白替身点名 (D-1 归一化同名 / D-2 新面孔且共享≥3字符段) E 假绿护栏 (9 项判据分支探针·live 每次都跑·失配⇒判红)。★两本台账【不是同一本·交集=0】: BASELINE_TOKENS
+    登记的是【允许它对不上】的 3 条真患·EXEMPT_LEDGER 登记的是【允许它不算位号】的 15 条形状豁免⇒main 切闸时两本都要认。★交付: SW/tools/check_sw_ref_reachability_v2.py
+    (改) + SW/tools/check_sw_ref_reachability_v2_selftest.py (新·15/15 四组全过) + HANDOFF/2026-11-18_sw-lead_ISS332_SW位号可达性闸4条洗白面收紧.md
+    (B0~B6) + logs/iss332/ (24 项 raw)。★挂闸写法 (main 的地界·我一行没动): state/gate_check.py 的 EXTRA_GATES 第 3 位
+    (L222-223) 把路径换成 check_sw_ref_reachability_v2.py·args 传 () 裸跑·旧闸建议【不删文件·退出链】(回滚=改回1行)。★零写板·零落表·零改真件闸·零改
+    gate_check.py·零外发·不自签 issue_log。'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS332_SW位号可达性闸4条洗白面收紧.md
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -4626,16 +5148,22 @@ interface_claims:
 - key: iss298_sw_reboard_16cases
   value: 'SW 侧闸反向用例 10 条 → 16 条 (原有 10 条一条没删 + 新增 6 条 ⑩~⑮, 形状照抄权威闸 REV-16~REV-21) ⇒ 16/16 通过 ⇒ 新增 6 条实测:
     ⑩ 只改锚点里的板 md5 不写单号 (挖坑) ⇒ 红 (保护基线自证) ⑪ 锚点写了 reboard 四项但落表台账里查不到那一行 ⇒ 红 (单号背书落不了地) ⑫ 台账两条记录同指一文件 (链头不唯一)
-    ⇒ 红 (fail-closed) ⑬ 链断 ⇒ 红 ⑭ 只改板不动 .kicad_pro (同组只来一条) ⇒ 红 ⑮ 合法改板 台账四项齐全 + 锚点原子记录 ⇒ 绿 (正向)'
+    ⇒ 红 (fail-closed) ⑬ 链断 ⇒ 红 ⑭ 只改板不动 .kicad_pro (同组只来一条) ⇒ 红 ⑮ 合法改板 台账四项齐全 + 锚点原子记录 ⇒ 绿 (正向) ⇒ ★2026-11-18
+    05:3x 复跑 16/16 rc=0 (沙盒临时根修后 · 红/绿分布与 19:3x 那趟一字不变)★'
   note: 'ISS-298 · 2026-11-17 · sw-lead · 沙盒跑真盘零写 (板与两份台账全是临时目录拷贝) · 每条红色用例必须抓到带 R6 硬保护 字样的那条判据才算通过, 正向用例必须整条
     W6 全绿才算通过 (证明通道真有路, 不是把灯调没了) · 权威闸同口径交叉核对: REV-16~21 与本闸 ⑩~⑮ 判的是同一份函数 ⇒ 结论逐条一致'
-  ref: SW/tools/check_onepass_sw_sync.py L613-723 + L828-866 · logs/iss298/final_sw_selftest.log · HANDOFF/2026-11-17_sw-lead_ISS298_合法改板通道.md
-    §3
+  ref: SW/tools/check_onepass_sw_sync.py L613-723 + L828-866 · logs/iss298/final_sw_selftest.log + logs/iss298/r2_selftest.log
+    · HANDOFF/2026-11-17_sw-lead_ISS298_合法改板通道.md §3 + §4.4
 - key: iss298_sw_reboard_no_board_write
-  value: '本单零写板零落表: 受保护 5 件 md5 逐字节不变 (板 611b869e13518c3c023fb178f91a0075 / .kicad_pro 3e504d2be83152e337949723e909be1b
-    / 网表 37f62ac3f0b81d92ca7d48fdea717f07 / 脚表 a4270120454aedf7a23c92cd8985c8a6 / BOM 5d02bece9477ffce5fbe0193c7d5cce4)
-    ⇒ 板 mtime 仍 2026-11-06 07:07:17.362193413 ⇒ 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 与 SW 台账锚点块与权威闸
-    check_demo_panel_spec.py 三个文件一个字节没改 (只读) ⇒ 闸自带的字面副本 ANCHOR_MD5 保留, 角色从判决源降为锚点本体防篡改报警'
+  value: '本单零写板零落表 ★校订版 2026-11-18 05:5x★: 板 611b869e13518c3c023fb178f91a0075 / .kicad_pro 3e504d2be83152e337949723e909be1b
+    md5 与 mtime 逐字节不变 (实测 stat: 板 mtime 2026-11-06 07:07:17.362193413 · .kicad_pro mtime 2026-11-04 23:47:30.279742515)
+    ⇒ 零写板成立; 网表/脚表/BOM 三件已于 2026-11-18 00:3x 被 ISS-302 (hw-lead) 合法落表前移 (网表 6aee500e60ba0732f83a9cf557ba90ab
+    / 脚表 9174309df1ec9411ac8e8d9e80ee386a / BOM 5b9993992405904a60ac96a020b375d8 · mtime 恒 2026-11-18
+    00:21:08 · 落表台账 L1466~L1470 有旧→新对照行 · 板与 .kicad_pro 在那三行里逐字节不变) ⇒ 不是本单写的 ⇒ 本单零落表成立; 落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    本单只读 (现 md5 d1a7765bb151cc69bb794dc6b6158264 · mtime 2026-11-18 00:22:44 = ISS-302 追加的) · SW 台账 SW/SW_MD5_BASELINE_LEDGER.md
+    md5 83fafcf7d22d8fa999a1db74c781956d mtime 2026-11-17 17:52:39 锚点块一字未动 · 权威闸 SW/tools/check_demo_panel_spec.py
+    md5 4e8f9aeaf45f95e120421d29bdaa333c mtime 2026-11-17 10:27:34 一个字节没改 (只读调用) ⇒ 闸自带的字面副本 ANCHOR_MD5
+    保留, 角色从判决源降为锚点本体防篡改报警'
   note: 'ISS-298 · 2026-11-17 · sw-lead · 为什么那份副本留着: 合法改板只让链头前移 ⇒ 锚点里的 md5 字段永远不许改 ⇒ 这份副本永远不会过期 ⇒ 留着它
     = 判据强度只增不减 ⇒ 它堵的是 改锚点 + 回退盘 这个组合 (光靠四条判据覆盖不完整) · HW 侧 (ISS-297) 与 MECH 侧 (ISS-296) 若也有同款形状 ⇒ 同样存在
     板被回退到台账里查得到的旧版本 ⇒ 放行 这个洞, 本单不越界去动别人的闸, 只留一句观察'
@@ -4707,6 +5235,308 @@ interface_claims:
     + logs/iss306/** + state/fragments/sw.yaml; 未碰 pm.yaml / hw.yaml / mech.yaml; 未自签 issue_log; 未外发'
   note: '★证据分级: 全部 [实测] (本机实跑原样 rc + 探针复刻判据函数) · 唯一 [推算] 是 R9 落位候选坐标 (137.18, 6.28) · 无 [0数据]★'
   ref: HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md §3 §4 §6 §7 · logs/iss306/baseline_runs.log · logs/iss306/final_runs.log
+- key: iss309_r6_selftest_fixture_contract
+  value: 'SW/tools/check_demo_panel_spec_r6_selftest.py 的反向用例夹具契约: ①synth_ledger(pairs, tag, hard_rows)
+    必须带 hard_rows (锚点 hard_protected 的 文件+保护基线md5, 写成 改前md5==改后md5 的「逐字节不变」行 ⇒ 判据口径下只算覆盖行不算变更行) ⇒ 否则合成台账不满足
+    check_r6_hard_protected 的①保护基线自证 ⇒ R4 会红在硬保护 (夹具假伤); ②break_head_ticket_all(text, rel, bogus, limit)
+    必须与判据 sw_ledger_records 口径一字不差 (行内 ISS 优先·否则继承最近一个【带单号】的小节标题) ⇒ 只改一处=假改坏 ⇒ 链头产出单号里还留着原单号 ⇒ 判据看不见;
+    ③R5a 要测「链头单号被改坏⇒必红」必须先把域侧锚点副本【对齐到链头】(=md5=盘上md5, by=链头原单号, prev_md5=链头上游跳) ⇒ 判据的②-3交叉核对才咬得住链头'
+  note: 'ISS-309 · 判据耦合的名字不许被改: check_r6_hard_protected / check_r6_three_way / sw_ledger_records / sw_ledger_state
+    / sw_ledger_cover_rows / sw_ledger_change_rows / sw_ledger_change_state / LEDGER_MD_RE / LEDGER_CANON
+    / REBOARD_FIELDS / m12'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS309_R6反向用例5of7归因.md B3
+- key: iss309_r6_selftest_gate_hook
+  value: 建议 main 把 SW/tools/check_demo_panel_spec_r6_selftest.py 挂进 state/gate_check.py 的 EXTRA_GATES
+    列表尾部 (紧跟 check_onepass_sw_sync.py 那条之后), 建议那行 = (os.path.join(PROJ, SW, tools, check_demo_panel_spec_r6_selftest.py),
+    SW 侧 R6 判决源反向用例闸 (ISS-275/ISS-309), ()) ⇒ 实测 rc=0·7/7·单跑 0.32s·零写板·失败语义与 run_external_gate 同款
+  note: ★挂闸是 main 的活·本单零改 gate_check.py (md5 0f0ff0fd6a9a6e51e0d7d717003aeb9b 前后不变)★ · 先例 ISS-300 mech
+    出结论/main 挂
+  ref: HANDOFF/2026-11-18_sw-lead_ISS309_R6反向用例5of7归因.md B3.3
+- key: iss309_r6_head_ticket_check_gap
+  value: '★已知覆盖缺口 (待 main 修判据)★: check_r6_three_way 对【链头落表单号】只有「非空」一道检查 (if not st.get(head_iss)) ⇒ 没有任何交叉核对
+    ⇒ 改坏链头落表单号 ⇒ 判绿 (漏放) ⇒ 两个变体实测都绿: ①只改一处⇒producer={ISS-302,ISS-999}(台账自相矛盾) ②每一处都改⇒producer={ISS-999}(台账自洽但单号是假的)
+    ⇒ 修法 A 加【链头产出单号不唯一⇒判红】(治变体①) / B1 锚点副本每次落表跟到链头 (治两态·零判据改动·流程义务) / B2 链头单号查 state/issue_log.yaml 真单号
+    (治变体②·跨域依赖)'
+  note: '★反向用例脚本里已自带覆盖缺口诊断段 (diag_gap): 每跑一次就把两个变体的实跑读数打出来 ⇒ 洞不靠文字声明·自带证据★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS309_R6反向用例5of7归因.md B3.4
+- key: iss293_cont2_indep_reverify_20261118_0545
+  value: '★ISS-293 cont2 (2026-11-18 05:4x · sw-lead) 独立复跑: 新闸 rc=0 (29/29) · --selftest rc=0 (4/4) ·
+    timing_check 全量 rc=0 (SELFTEST 85/85) · --only F4_adc_det rc=0 · --only F4D_usb_vbus_det rc=0 · check_demo_panel_spec
+    rc=0 · --selftest rc=0 (22/22) · merge rc=0 · gate_check rc=0 (Q1 18/18) · issue_check rc=0 ⇒ 10/10
+    全绿; ★F2 八条对账本机逐条 grep 复核全中 (BAT_DET 25 处 / 1.8V 33 处 / 0.439 6 处 / 2.1%FS 21 处 / 37500 21 处 / 33.791
+    21 处 / 必装 52 处); 活结论里残留 3.3V 口径旧数的行 = 0 (唯一命中 L141 = LDO EN 内部 500kΩ 下拉, 与 ADC 链无关, 闸的 ADC_CLAIM_RE
+    前置过滤排除, 非人工豁免)★'
+  note: '★[实测] 本趟自己实跑 (脚本 logs/iss293/cont2_verify.sh, 日志 logs/iss293/cont2_verify.log, 2026-11-18 05:4x),
+    不抄 main 的读数。★★重要: 受保护 5 件的 md5 与 ISS-293 交卷时刻 (2026-11-17 18:00) 相比, 网表/脚表/BOM 三件已被 ★★hw-lead 的 ISS-302
+    合法落表 (C_SYS / SYS_CHG 由 DNP 改必装 + note 追加式订正 + BOM 加 20µF) 于 2026-11-18 00:21:08 改掉★ (网表 37f62ac3→6aee500e
+    / 脚表 a4270120→9174309d / BOM 5d02bece→5b999399) ⇒ 与本单 (sw-lead) 无关, 本单一个字节都没碰这三件 ⇒ ★板两件 md5 + mtime
+    仍逐字节不变 (611b869e / 3e504d2b / mtime 2026-11-06 07:07:17) ⇒ 零写板双重自证仍成立★ ⇒ ★另: check_demo_panel_spec.py
+    --selftest 在本机 /tmp (tmpfs 7.5G 已 80% 满) 上会撞 [Disk quota exceeded] ⇒ 跑该自检必须带 TMPDIR 指向大盘, 否则 rc=1
+    是环境问题不是判据红 (本趟已带 TMPDIR ⇒ rc=0 · SELFTEST 22/22)★'
+  ref: logs/iss293/cont2_verify.log + logs/iss293/verify_run.log + logs/iss293/verify_full.log + logs/iss293/verify_state_gates.log
+    + HANDOFF/2026-11-17_sw-lead_ISS293_ADC复评文档口径同步.md §C4
+- key: iss293_cont2_placeholder_selfcheck_correction_20261118_0555
+  value: '★ISS-293 cont2b (2026-11-18 05:5x · sw-lead) 交卷单占位符自检口径订正: 本单交卷单 HANDOFF/2026-11-17_sw-lead_ISS293_ADC复评文档口径同步.md
+    的 §B6.5 上一版 (2026-11-17 17:5x) 记录「占位符残留 = 0」是【不准确的】⇒ 原判据把 13 个占位符形态的字面量直接写进 grep -nE 的参数里 ⇒ 该命令行自己命中自己
+    (自匹配) ⇒ 按项目口径 (旋转箭头图案 | 待+填两字 两型) 实跑上一版是 2 处, 不是 0 ⇒ ★本版按 ISS-306 / ISS-300 同款做法改成 UTF-8 字节转义写 PAT
+    ⇒ 本趟实跑 = 0 (真零, 不是假零) ⇒ 交叉验 python3 state/check_report_placeholders.py <本交卷单> ⇒ 「✔ 无占位符 (★可发)」 rc=0
+    ⇒ 两个独立口径都判 0 ⇒ ★任务书 §⑮ F1 要的「B0~B6 七块的占位符残留 grep = 0」= 0★ ⇒ ★教训 (留给本项目所有交卷单): 自检命令里不许出现被检形态的字面量 ⇒
+    一律用字节转义★'
+  note: ★[实测] 本趟自己实跑 (2026-11-18 05:5x) ⇒ 项目口径 PAT 用 printf 字节转义 (\360\237\224\204 = 旋转箭头图案, \345\276\205\345\241\253
+    = 待+填两字) ⇒ grep -cE "$PAT" 交卷单 ⇒ 原样输出 0; 共享闸 state/check_report_placeholders.py 同一文件 ⇒ 原样输出「✔ 无占位符
+    (★可发)」 rc=0; ★交卷单已按追加式订正 (§B6.5 内加【ISS-293 cont2 订正】行 + 新增 §C4-6 / §C4-7), 老字一个字节没删★ ⇒ ★交卷后本单又重跑了一遍
+    8 条闸 (logs/iss293/cont2_final_gates2.log) ⇒ 8/8 全 rc=0 ⇒ 改交卷单没把别的闸带红★
+  ref: HANDOFF/2026-11-17_sw-lead_ISS293_ADC复评文档口径同步.md §B6.5 (订正行) + §C4-6 + §C4-7 · logs/iss293/cont2_final_gates2.log
+- key: iss306_rerun_0535_env_red_g1a3
+  value: '★追加复验的核心发现: 05:35 重跑时 G1a 多出第 3 条红 G1a-3 (KiCad 可加载/导出) ⇒ 【环境红, 不是设计红】★ 根因 [实测]: check_sch_loadable.py
+    C2 报 Write failed to /tmp/_sch_loadable.net.kicad-save-940044-0: Disk quota exceeded (rc=2) ⇒ df -h
+    /tmp 显示 tmpfs 7.5G 已用 6.0G (80%) 但用户配额已满 ⇒ dd 写 20MB 报 IO error: Disk quota exceeded 而写 64KB 通过 ⇒
+    配额只剩几百KB余量 ⇒ KiCad 要落的 380,283B 网表正好卡死 ⇒ 占用者 = /tmp 下 8 个 ≥1 天前 (11-10~11-17) 的遗留沙箱合计 3.8GB (od_glass_publish
+    1.5G / sbxtest 403M / iss239_rehearsal 391M / iss279_sandbox 372M / iss279_sandbox2 372M / holechk
+    310M / iss242_fix 294M / sg_sandbox 273M) ⇒ /proc/*/cwd 与 /proc/*/fd 全量扫描零引用 (在跑 job 都在 /var/tmp 如
+    /var/tmp/iss282_selftest_*) ⇒ 全部 mv 进 .trash/tmp_quota_cleanup_20261118_0535 (可恢复非 rm) ⇒ /tmp 6.0G→2.3G
+    (80%→30%) ⇒ dd 20MB 通过 ⇒ check_sch_loadable rc=0 (C2 380283B / C3 690186B) ⇒ G1a-3 回 ✅'
+  note: '★归属: 归 main/运维侧【机器与 /tmp 卫生】· 不是原理图/网表/板缺陷 ⇒ 不进 N ⇒ 不许当板那一趟开工前置; 但真实代价 = 机器闸假红 ⇒ 建议凡跑 KiCad 类闸的
+    job 临时目录用 /var/tmp (根分区不吃 tmpfs 配额), 并加口径 /tmp 使用率 >80% 时机器闸结果不得直接当设计缺陷★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md §9.2 · logs/iss306/verify_rerun_20261118_0535.log
+    · logs/iss306/tmp_quota_cleanup.log · logs/iss306/tmp_quota_cleanup.sh
+- key: iss306_rerun_0535_gates_now
+  value: '★现在读数 (2026-11-18 05:35~06:05 本机实跑 · 原样 rc)★ ① check_stage_g1a.py rc=1 ⇒ G1a-4 + G1a-8 两条红 与交付时逐字一致
+    (G1a-3 已回 ✅) ② check_netlist_selfconsistency.py --expect-resolved rc=1 ⇒ 4 条未落表 (R3 / R4×2 / R9) 与交付时逐字一致
+    ③ state/merge.py rc=0 (STATE.yaml 已刷新 2026-11-18T06:01:24+08:00) ④ state/gate_check.py rc=0 ⇒ Q1 18/18
+    个必填验收块齐全 + Q7 钉板 md5 闸链 9/9 全绿 ⑤ state/issue_check.py rc=0 ⇒ 问题闭环门全过 ⑥ md5 逐字节不变: 板 611b869e13518c3c023fb178f91a0075
+    / 网表 6aee500e60ba0732f83a9cf557ba90ab / 脚表 9174309df1ec9411ac8e8d9e80ee386a / BOM 5b9993992405904a60ac96a020b375d8
+    (与 02:06:46 基线完全一致)'
+  note: ★本节期间唯一写操作 = logs/iss306/** + HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md + state/fragments/sw.yaml
+    + /tmp 遗留沙箱 mv 进 .trash (可恢复) ⇒ 零写板零落表零改闸零外发 不替老板拍板 未碰 pm.yaml/hw.yaml/mech.yaml 未自签 issue_log★
+  ref: HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md §9.3 · logs/iss306/final_gates_rerun.log
+- key: iss306_rerun_0535_n4_reconfirmed
+  value: ★N = 4 复验 (05:40 实读 不是抄 §1) ⇒ 不变★ ① state/fragments/pm.yaml:674 boss_esd_model_axis_pending_20261117
+    无 decided_at 无 decision ⇒ 仍 OPEN ⇒ W-2 (D− 侧补不补 ESD) + W-1b/W-1c (D+ 那颗真 OPN 型号轴) 仍未拍 ② state/fragments/pm.yaml:726
+    boss_shutdown_semantics_and_loadswitch_20261117 无 decided_at 无 decision ⇒ 仍 OPEN ⇒ A4 老表 (关机语义 建议
+    C+A ⇒ HW/POWER_SHUTDOWN_V3.md 签收) + A5 老表 (追认 TPS22991RAA) 仍未拍 ③ state/issue_log.yaml:3154 ISS-097.status
+    = fixed (owner=boss L3150 · verify_by=boss L3159 · due=2026-11-18 L3153) ⇒ G1a-8 的红 = 等老板验签 (B5 判决不变
+    判据状态集没选错 不许改闸) ④ ISS-172.status = verified ⇒ G1a-8 只剩 ISS-097 一条
+  note: '★严格分层不变: 卡 G1a 两条红转绿的只有 2 个 (W-2 + A4 老表); 只卡板那一趟开工的 2 个 (W-1b/W-1c + A5 老表); R3 与 R9 同趟消化 零老板字母
+    ⇒ ★★板那一趟开工前, 老板还差 N = 4 个字母★★ 无新增无减少; 催拍仍必须回 need key 不能回裸字母 A4/A5 (落表器新映射 A4=V-5 / A5=V-6 错位标签 rc=2
+    零写盘)★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md §9.4 · state/fragments/pm.yaml:674,726 · state/issue_log.yaml:3150-3159
+- key: iss298_sw_selftest_sandbox_tmpdir
+  value: 'SW 侧闸 SW/tools/check_onepass_sw_sync.py 的反向用例沙盒临时根已从 /tmp 挪到项目内 tmp/ (新增 _sandbox_root() · 可用
+    SW_SYNC_TMPDIR 覆盖) ⇒ 理由: /tmp 是共享 tmpfs (7.5G) · 别的单同时跑沙盒就把它塞满 ⇒ 2026-11-18 05:3x 实跑吃到 EDQUOT (Errno
+    122) ⇒ 5 条合法改板用例因 4.9MB 板拷不进沙盒而用例本身坏掉 ⇒ 整组挂 rc=1 ⇒ 门禁不许看运气 ⇒ 修后复跑 16/16 rc=0 且 ⑩~⑮ 红绿分布一字不变 (修的是环境不是判据)
+    ⇒ 同一根因 ISS-309 (check_demo_panel_spec_r6_selftest.py) 也治过'
+  note: 判据一行没动 (check_r6_hard_protected 仍只读调用) · 零写板 (沙盒里是 4.9MB 板的拷贝 · 真盘 5 件受保护文件一个字节不动) · 唯一落点 SW/tools/check_onepass_sw_sync.py
+    一份
+  ref: HANDOFF/2026-11-17_sw-lead_ISS298_合法改板通道.md §4.4 · logs/iss298/r2_selftest.log
+- key: iss309_cont2_independent_reverify
+  value: '★ISS-309 cont2 (第二个实例 · 2026-11-18 06:0x) 独立复跑全部验收项: check_demo_panel_spec_r6_selftest.py rc=0·反向用例
+    7/7 通过 · check_demo_panel_spec.py rc=0 · --selftest rc=0·22/22 · check_onepass_sw_sync.py rc=0 · --selftest
+    rc=0·16/16 · timing_check.py rc=0·85/85 · check_shutdown_semantics.py rc=0 · check_load_switch_selection.py
+    rc=0 · state/merge.py rc=0 · state/gate_check.py rc=0·Q1 18/18·Q7 9/9 · state/issue_check.py rc=0
+    ⇒ 与第一实例判决一致 (R4=夹具假伤 / R5a=真判据缺陷·漏放) ⇒ 判决不是单一实例孤证★'
+  note: '★零写板/零落表/零改判据/零改门禁链双证: 10 件 md5 与 04:55 开跑基线逐字节相同 (板 611b869e1351… mtime 仍 2026-11-06 07:07:17
+    · 判据 check_demo_panel_spec.py 4e8f9aeaf45f… · state/gate_check.py 0f0ff0fd6a9a…) · 单跑计时 0.59/0.63/0.63
+    s ⇒ 挂链每次多花 <1 s · 独立探针 (logs/iss309/03_probe_r5a_r4_scenarios.txt 场景 A~E) 独立复现同一个洞 (链头单号改坏 ⇒ 判据绿)★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS309_R6反向用例5of7归因.md B7
+- key: iss312_chainhead_judge_fix
+  value: '★ISS-312 判据口径变更 (本单改的判据接口)★ 权威判据 SW/tools/check_demo_panel_spec.py 新增三个只读接口: sw_issue_log_path(root)
+    独立信源路径 (树里的 state/issue_log.yaml · 没有则退回本仓那份 · 真盘跑时两者同一个文件) · sw_issue_log_entries(root) 返回 {ISS-xxx:
+    该条原文} (按文本切 不用 yaml 解析 · 3MB 几十毫秒) · sw_chain_head_iss_check(root rel head head_iss tag cross_check_source=True)
+    返回红项列表 (修法A 唯一性 + 修法B 独立信源对账)★ 改后 md5 b870898079cb3f0d8bbfe158458e957e (修前 4e8f9aeaf45f95e120421d29bdaa333c
+    · 备份 SW/tools/check_demo_panel_spec.py.bak_iss312) · 新增闸 SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py
+    (4/4 · 0.38~0.44 s)★'
+  note: '★一字不改的部分: 链头取法 sw_ledger_state · 锚点读取 load_sw_anchor · 硬保护基线自证 · 合法改板四项 · 盘上必须等于链头 (判据方向没变) ⇒
+    diff = +130 行 / -0 行 ⇒ 判据自带的 22 条 selftest 夹具一个字没动 (没为了让闸变绿而改夹具)★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS312_R6判据漏放修复.md B3.1
+- key: iss318_sw_ref_reachability_gate_interface
+  value: '★SW 侧位号引用可达性闸的对外接口 (★别人照抄用★): 脚本路径 SW/tools/check_sw_ref_reachability.py · 主模式 rc=0 = 引用全部可达
+    · R2 复现命令 --dump-classification · 自测 --selftest (7/7) · R3 基线上限 BASELINE_COUNT=3 (BASELINE_TOKENS
+    = TP_INT / TP_TEMP / CONN_USB) · token 前缀宇宙 16 个 (R_ C_ U_ J_ D_ L_ Q_ TP_ LED_ SW_ VBUS_ PWR_ + FB_
+    BT_ CONN_ CHG_) 只许加不许减 · 分类规则 C1~C14 按顺序命中第一条命中即停 · 判红两类 DESIGNATOR_DRIFT 与 DESIGNATOR_MISSING · fail-closed
+    三条 ⇒ rc=2 ★'
+  note: '★判据方向 (不可改): 只问引用的位号现在存不存在 ⇒ 不写死位号改名这个方案 ⇒ S1 走 1 还是走 3 都不用改闸 (正向用例 RC-6 证明) · 只读输入面: 板文件文本解析
+    + 三张网表 CSV + SW/*.md · 不 import pcbnew · 不需要 root ★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS318_SW位号引用闸与挂链体检.md B4-4
+- key: iss318_sw_gates_hook_audit_interface
+  value: '★挂链前体检的四道闸 + 逐字写法 (★main 挂闸时照抄★): 闸1 SW/tools/check_landing_trace_obligation.py (ISS-315) 裸跑
+    rc=0 · 0.10 s · args 空 · 支持 --selftest · 它没有 --tmpdir 参数 (给了会 rc=2) 且自己写死用 PROJ/tmp ⇒ 本来就不碰 /tmp ·
+    闸2 check_demo_panel_spec_r6_hardprot_iss315_selftest.py (ISS-315) 裸跑 rc=0 · 0.67 s · args = (--tmpdir,
+    PROJ/tmp/iss318_gates) · 带 --selftest ⇒ rc=2 usage 错误 · 闸3 check_demo_panel_spec_r6_chainjudge_selftest.py
+    (ISS-312) 裸跑 rc=0 · 0.36 s · args 同上 · 带 --selftest ⇒ rc=2 · 闸4 check_demo_panel_spec_r6_selftest.py
+    (ISS-309 · 7/7) 裸跑 rc=0 · 0.36 s · args 同上 · 带 --selftest ⇒ rc=2 · 新闸 check_sw_ref_reachability.py
+    (ISS-318) 裸跑 rc=0 · 0.26 s · args 空 · 5 道合计 1.75 s 每次 ★'
+  note: '★三个必须照抄的坑: ① 三道 selftest 闸必须裸跑 (它们本来就是 selftest 脚本 · argparse 里没有 --selftest 这个参数 ⇒ 带了 rc=2 usage
+    错误) ② TMPDIR 必须指到项目内 (本机 /tmp 是带 usrquota 的 tmpfs 且配额已满 ⇒ 不指会 EDQUOT 假红 · 红的方向是安全的但会被误读成判据坏了) ③ 板那一趟开工前
+    单号+新 md5 必须落进 state/issue_log.yaml 否则留痕义务闸红 (留痕红 · 不是技术红) ★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS318_SW位号引用闸与挂链体检.md B4-1 / B1-2-2 / B1-2-3 / B1-2-4
+- key: iss318_sw_ref_baseline3
+  value: '★R3 现状基线 = 3 条 (实测 · 2026-11-18 09:17 本机实跑) ⇒ 这是闸的允许上限 · 逐条: CONN_USB (5 处 · SW/SW_TIMING_REVIEW.md:60
+    · 历史件遗留 · 文档 L60/L272 自己写明它已不在网表) / TP_INT (12 处 · SW/BOARD_ONEPASS_SW_SYNC.md:43 · 文档 §SW06 自己点名的空洞
+    · 板侧相似名是 TP_FSIN) / TP_TEMP (1 处 · SW/SW_TIMING_REVIEW.md:374 · EVT 上电段要求 TP_TEMP 热电偶对照标定 · 但板上 42
+    个 TP_* 里没有它 · 板/网表里是 C_TEMP 与 U_TEMP) ★'
+  note: '★口径说明: main 08:1x 的 95 处 (7 份文档 · 12 前缀) 与本闸的 107 个 token (40 份 SW/*.md · 16 前缀) 是两个口径 ⇒ 闸覆盖面只增不减
+    · main 口径那 95 个里 93 个现在可达 · 2 个对不上 (TP_INT / TP_TEMP) · 闸口径多出的一条是 CONN_USB (CONN_ 前缀不在 main 那 12 个里)
+    · 处置方向 = 收紧 (每修好一条把 BASELINE_TOKENS 里那一条删掉 + BASELINE_COUNT 减 1) · 不建议加白名单 ★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS318_SW位号引用闸与挂链体检.md B1-1-3 / B1-1-4
+- key: iss321_sw_rename_affected_gates
+  value: '3'
+  note: ★S1 位号改名 (186 个) 会炸掉的 SW 侧闸 = 3 道 (timing_check.py / check_timing_review_adc_sync.py / check_demo_panel_spec_r6_chainjudge_selftest.py)
+    · 其余 7 道在 S4 (板那一趟全做对) 实跑全绿 · 归因靠 S4-vs-S8 对照组 (只差「位号改名」一项) ★
+  ref: ''
+- key: iss321_sw_rename_same_batch_items
+  value: '7'
+  note: ★板那一趟必须与 SW 侧同批做的 7 件事 (①registry 重建 ②timing_check 位号解析 ③onepass 探针 ④HW 跨域 16 个位号 ⑤三道 R6 selftest
+    夹具 ⑥清单 SW01 md5 重锚 ⑦24 份 md 834 处同步改) ⇒ 缺任一件 ⇒ 门禁链当天就红 ⇒ 板改两次 · 只有 3 条基线隐患可板后补 ★
+  ref: ''
+- key: iss321_rename_doc_notation_gotcha
+  value: '1'
+  note: ★「改名方案文档」本身会把 ISS-318 漂移闸带红 (裸写「改名后名」/「形状像位号但不是位号」⇒ 闸判【新增真隐患】⇒ gate_check rc=1) ⇒ 本单第一版交卷文档实测踩到
+    (报新增真隐患 18 条) ⇒ 改法=逐个清单放 logs/ (闸不扫 logs/) + 文档里不写死改名后名 ⇒ 复跑 rc=0 · MISSING=3(=基线) · Q1 18/18 ★
+  ref: ''
+- key: iss323_f1_alias_resolution_layer
+  value: "def actual_ref(self, ref: str) -> str:\n    \"\"\"★逻辑位号 → 盘上真实位号 (★ISS-321 · SW 侧 · S1 位号改名适配★)\n\
+    \n    ★原名优先; 盘上只有 `<X>_1` 而 `<X>` 自己不在网表里 ⇒ 返回 `<X>_1`★\n    ★**不是把判据改软**: 查不到就返回原名 ⇒ 调用方拿到的仍是空/None★\n\
+    \    \"\"\"\n    if ref in self._by_ref:\n        return ref\n    return self._ref_alias.get(ref,\
+    \ ref)\n\ndef logical_ref(self, ref: str) -> str:\n    \"\"\"★盘上真实位号 → 逻辑位号 (★ISS-321 · SW 侧 · S1\
+    \ 位号改名适配★)\n\n    ★用于【输出层归一化】: 判据报出来的位号名保持逻辑名\n    ★⇒ 判据输出格式一条没变 ⇒ 断言与文档不用跟着改★\n    \"\"\"\n    return\
+    \ self._ref_alias_rev.get(ref, ref)\n\n--- 别名表的建法 (★随 Netlist.__init__ 末尾一起插·★真件 L704 之后★) ---\nself._ref_alias\
+    \ = {}\nfor _r in self._by_ref:\n    if _r.endswith(\"_1\") and len(_r) > 2:\n        _base = _r[:-2]\n\
+    \        if _base and _base not in self._by_ref:\n            self._ref_alias.setdefault(_base, _r)\n\
+    self._ref_alias_rev = {v: k for k, v in self._ref_alias.items()}"
+  note: ★第 2 件 · SW/tools/timing_check.py 的 Netlist 位号解析层 (actual_ref / logical_ref) + 别名表建法 · ★照抄这一份·不许自己另发明★
+    · 沙盒实测 rc 1→0 · SELFTEST 65/85→85/85 (logs/iss323/13_verify_fix20.txt)★
+  ref: SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md#§1-2 + HANDOFF/2026-11-18_sw-lead_ISS323_SW侧同批改动可执行清单.md#B4-1
+- key: iss323_f2_rename_agnostic_probe_triple
+  value: '"bs=lambda x:x[:-2] if x.endswith(''_''+chr(49)) else x;"
+
+    "import csv;inv={bs(r[''ref'']):r[''ref''] for r in csv.DictReader(open(''HW/netlist_v1.csv'')) if
+    r.get(''ref'');}"
+
+
+    ★★注意: 用 chr(49) 拼后缀而不是直接写死「改名后名」⇒ 源码里不出现任何「改名后名」字面量 ⇒ 顺带把 ISS-318 漂移闸撞红的风险清零 (实测)'
+  note: ★第 3 件 · SW/tools/check_onepass_sw_sync.py 的 SW03/SW04/SW05 三条现状探针改成「从网表实读」的改名无关版 · ★照抄这一份★ ·
+    沙盒实测三条从红转绿 (logs/iss323/11_verify_f2.txt)★
+  ref: SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md#§1-3 + HANDOFF/2026-11-18_sw-lead_ISS323_SW侧同批改动可执行清单.md#B4-2
+- key: iss323_hw_crossdomain_alias_layer
+  value: '改法 = 在 HW/check_netlist_selfconsistency.py 加一层「位号别名解析」, 把 6 个解析点走它 ⇒ 116 处字面量一条都不用改
+
+    6 个解析点 (行号 = 本单实读): _ref_value() L591 · _ref_note() L599 · _eval_check() 的 count(...) 谓词 L734/L739
+    · footprint.<REF>.<attr> L758~L771 · count_footprint(<REF>) L812~L818 · check_resolved() 里按 ref 直接查字典
+    L636 / L1188 / L1191~L1195 / L1351~L1352 / L1373~L1376 / L1449~L1454
+
+    逐行 TSV (机器产物 · 136 行): logs/iss323/04_hw_crossdomain_refs.tsv (格式: 文件:行 | 位号 | 类别 | 原文逐字)'
+  note: ★第 4 件 · ★跨域·hw-lead 的域·SW 侧无权碰那个文件★ · 本单只给改法不落地 · hw-lead 照抄这一份即可 (116 处字面量一条都不用改)
+  ref: SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md#§1-4 + HANDOFF/2026-11-18_sw-lead_ISS323_SW侧同批改动可执行清单.md#B4-3
+    + logs/iss323/04_hw_crossdomain_refs.tsv
+- key: iss323_sw_docs_bulk_rename_method
+  value: 'python3 logs/iss323/iss323_rename_sw_docs.py                      # ★默认 dry-run·一个字节都不写★
+
+    python3 logs/iss323/iss323_rename_sw_docs.py --apply --out /tmp/iss323_swdocs   # ★只出副本★
+
+    python3 logs/iss323/iss323_rename_sw_docs.py --exclude A.md,B.md   # ★留证排除★
+
+    真集: logs/iss321/rename_sets.json 的 map 字段 (218 条 · k != v 的子集 = 186 条)
+
+    替换算法: 词边界精确字面量 + 长名优先 (裸 sed 会替串)'
+  note: ★第 7 件 · SW/*.md 位号字面量的机器化改法 · ★口径唯一·不许手抄·不许裸 sed★ · 机器实测 41 份 md / 10 份有命中 / 671 处 (logs/iss323/14_rename_sw_docs_dryrun.txt)
+  ref: SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md#§5 + HANDOFF/2026-11-18_sw-lead_ISS323_SW侧同批改动可执行清单.md#B4-4
+- key: iss318_main_hook_day1_green
+  value: '★main 已于 2026-11-18 10:18:53 按 ISS-318 交卷页 §B4-1 的逐字写法把五道闸挂进 state/gate_check.py 的 EXTRA_GATES
+    (★路径/名称/args 三项逐字一致★) ⇒ 交卷后复核 (15:53) merge rc=0 + gate_check rc=0 + 缺口清单 11 条里【没有一条是新闸红】⇒ ★五道闸 day-1
+    全绿★ ⇒ 板那一趟现在有护栏: 第 1 位 check_sw_ref_reachability.py = S1 位号改名漂移的唯一拦截器 · 第 2 位 check_landing_trace_obligation.py
+    = 板改了但单号/md5 没留痕就立刻红 ★'
+  note: ★本单 §B1-2-1 预测的最大坑 (三道 selftest 闸必须裸跑 · 带 --selftest 会 rc=2 usage 错误) 在 main 的实际挂法里被规避了 (args
+    = 裸跑 + --tmpdir PROJ/tmp/iss318_gates) ⇒ ★闸没有假红★ · 原始输出 logs/iss318/gate_chain_after_main_hook.txt
+    · main 自己的记录 logs/iss318/main_hook_gate_check.txt ★
+  ref: HANDOFF/2026-11-18_sw-lead_ISS318_SW位号引用闸与挂链体检.md 附录 A-1
+- key: iss318_boundary_zero_breach
+  value: '★ISS-318 本单零越界机器判定: 受保护文件 14 件 (板 + .kicad_pro + 网表 + 脚表 + BOM + 落表台账 + SW_MD5_BASELINE_LEDGER
+    + 五个既有判据脚本 + state/gate_check.py) ⇒ 与 09:17:42 快照逐字节相同 13 件 · 交卷后被别人改 1 件 (state/gate_check.py · mtime
+    10:18:53 = main 挂闸) · ★★落在本单工作窗口 (09:17:42~09:21) 内被本单改过的 = 0 件★★ ⇒ 板 md5 611b869e13518c3c023fb178f91a0075
+    + mtime 2026-11-06 07:07:17.362193413 逐字节不变 ★'
+  note: ★判定用 mtime 而不是只比 md5 ⇒ 因为本单交卷之后 main 挂闸改了 gate_check.py ⇒ 只比 md5 会误判成本单越界 ⇒ ★mtime 落窗口外 = 不是本单碰的★
+    · 机器判定脚本在 logs/iss318/md5_after.txt 内 (前后对照判定段) ★
+  ref: HANDOFF/2026-11-18_sw-lead_ISS318_SW位号引用闸与挂链体检.md 附录 A-2 · logs/iss318/md5_after.txt
+- key: iss318_rc6_fixture_completion
+  value: '★ISS-318 新闸 check_sw_ref_reachability.py 的 RC-6 反向用例夹具已补全 (2026-11-18 16:2x): 旧夹具只把 C_DET_BAT
+    改成新名写在两份硬编码文档 (SW_TIMING_REVIEW.md + ADC_CALIBER_TABLE.md) ⇒ ISS-323 于 14:39/16:17 新增的两份含该位号的文档 (ONETRIP_SW_RENAME_SAFETY.md
+    + ONETRIP_SW_SAMEBATCH_RENAME_LIST.md) 仍引用旧名 ⇒ 闸正确地判改名漂移 ⇒ RC-6 假红 (6/7) ⇒ 修法 = 只把夹具改成按 token 驱动扫全部
+    SW/*.md ⇒ 判据 R1~R5 的判红口径一个字没动 (diff +20/-5·全部落在 run_selftest 的 RC-6 分支内·logs/iss318/gate_rc6_fixture_fix.diff)
+    ⇒ 修完 --selftest rc=0 7/7 + 主模式 rc=0 判决绿 ★'
+  note: '★这是【夹具缺陷】不是【判据缺陷】: RC-6 要测的是板改名 + 文档同步改新名 ⇒ 必须绿 ⇒ 文档同步的定义就是所有引用该位号的文档都改了 ⇒ 夹具只改两份 = 没实现被测场景 ·
+    通用教训: 任何按文件清单改内容的夹具都会在新增文档那天假红 ⇒ 凡要验证所有引用都同步更新了的用例·夹具必须按 token 驱动扫全部文档 · 零写盘自证: 跑完 --selftest 后 板
+    md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17.362193413 与真盘四份 SW/*.md 逐字节不变 (夹具只在沙盒副本里做·真拷贝非
+    hardlink) ★'
+  ref: HANDOFF/2026-11-18_sw-lead_ISS318_SW位号引用闸与挂链体检.md 附录 A-5 · logs/iss318/rc6_fixture_fix_verification.txt
+- key: SW-ISS327-1
+  value: '「重建注册表」的时机判据: 必须晚于 SW 文档同批改名; 只当盘面位号变更时做; 判据红灯不构成重建理由。重建前登记义务 = 单号 + 文件名 + 新 md5 (ISS-312 口径)
+    + 动了位号这件事 + 重建后条数 (74→78)。'
+  note: ''
+  ref: logs/iss327/02_postrename_gate_table.md §2/§3/§4
+- key: SW-ISS327-2
+  value: '改名后 10 道 SW 闸的期望读数表 (实测三列): 改名后仍红 7 道 = 1 demo_panel(板 md5/台账链·归第 6 件) + 2 r6_selftest(夹具·非改名特有·归第
+    5 件) + 1 onepass(探针 + 板 md5·归第 3+6 件) + 1 adc_sync(连带) + 1 timing_check(崩 L1113 TypeError·归第 2 件)。landing
+    与 shutdown 两道对改名免疫 (前者不读位号·后者只比网表 vs 文档 ⇒ 两面同批改名就自动绿)。'
+  note: ''
+  ref: SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md §3-1 / §3-2
+- key: SW-ISS327-3
+  value: '零软链沙盒纪律 (本单吃过一次亏的机器化做法): 整棵树用 tar 解包进沙盒 (天然真文件·零软链·排除表只排与被测闸读数无关的体积大户) + 写前 assert not os.path.islink
+    + 造完立刻 find <root> -type l 必须为空 + 必须造对照组 (整树真拷贝零改动) 且对照组的 10 道闸 rc 必须与基线逐字相同 (这一步不绿则后面读数全作废) + 跑完必查真件
+    mtime 漂移 = 0。'
+  note: ''
+  ref: logs/iss327/22_post_realfile_snapshot.txt [B][E]
+- key: SW-ISS327-4
+  value: '★「--freeze-registry 会不会把真隐患一起洗白」的逐字答案: ★对『板/网表里从来没有过的真隐患』不会★ —— RT-1~RT-4 (TP_TEMP / TP_INT
+    / CONN_USB 各改成自己的新形状) 实测: 重建前红 · 重建后【还是红】· 且重建出来的表【不含】它们; 结构性证明 = 8 条用例每一次重建出来的表里【非 live 的 token】都
+    = 0 条 ⇒ 重建表 ⊆ live(板∪网表) ⇒ 「盘上从来没有过的 token」在物理上不可能进表。★但闸另有 4 条洗白面 (C1 / C7 / C8 / C13)★ ⇒ 那 4 条与 freeze
+    无关 (重建前就绿)。★最危险的一条: --freeze-registry 会制造「让人去抬 MISSING 上限」的假红灯 —— 实测把 58 条改名漂移重分类成 56 条真隐患后, 只要把 BASELINE_COUNT
+    抬到 59 并登记那 56 个老名 ⇒ 闸就绿 ⇒ 58 条真漂移被一次性洗成「已登记基线」 (RT-9 · 只在沙盒演示·真件闸零改)。★'
+  note: '★⇒ SOP 的红线: 重建之后 MISSING 必须仍然 = 3; 一旦 > 3 ⇒ 第一反应是「文档没同步」, 不是「上限要抬」。★'
+  ref: SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md §7-4 · logs/iss327/29_rev_suite_run.log · logs/iss327/32_launder_run.log
+- key: SW-ISS327-5
+  value: '★「重建注册表能不能让 10 道闸全绿」的逐字答案: ★不能★。★实测六臂 × 10 道闸 (60 次): 重建注册表【一道闸的 rc 都没改变】; 它只改第 8 道闸 (check_sw_ref_reachability)
+    的内部读数 —— A2 (改名后·文档未同步·旧表) DRIFT=58 / MISSING=5 / OK=18 / rc=1 ⇒ A3 (同前 + 重建) DRIFT=0 / MISSING=56
+    / OK=18 / rc=1 (★红得更狠·且冻结表只收得到 18 条★); 而 A4 (改名后·文档已同步·【旧表】) 已经是 DRIFT=0 / MISSING=3 / OK=78 / rc=0
+    ⇒ ★「重建注册表」对这道闸【不是必需的】, 真正决定它绿不绿的是【SW 文档有没有同步改名】★。 ★其余 3 道红跟注册表完全无关: timing_check 改名特有崩 L1113 (TypeError)
+    · check_timing_review_adc_sync 是它的 fail-closed 连带 · check_demo_panel_spec + check_onepass_sw_sync
+    是板/表 md5 没落台账链头 + SW01_PCB_MD5 清单过期 (归 S9 重锚)。★'
+  note: ★⇒ 「板那一趟」当天要全绿, 路径 = ISS-323 §5-1 的 7 件同批 (第 7 件文档同步排在第 1 件重建之前) + 第 6 件 md5 重锚。★
+  ref: logs/iss327/02_postrename_gate_table.md §2/§3/§5 · SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md §2/§3
+- key: iss332_exempt_ledger_vs_baseline_tokens
+  value: '两本台账·交集=0: BASELINE_TOKENS(3 条)=允许它【对不上】的已登记真患; EXEMPT_LEDGER(15 条)=允许它【不算位号】的形状类豁免 token'
+  note: ★main 拍切不切的依据★ · 切闸时两本都要认 · EXEMPT_LEDGER 是快照台账⇒新增形状 token 必须显式登记否则闸红 (收紧的代价也是收紧的本体)
+  ref: HANDOFF/2026-11-18_sw-lead_ISS332_SW位号可达性闸4条洗白面收紧.md
+- key: iss335_sw_release_gate_entry
+  value: 'SW 侧准出入口 = python3 SW/tools/check_onepass_sw_release.py (相对项目根) ⇒ rc=0 = SW 侧这 10 道闸全绿 ⇒ SW
+    侧可以出 Gerber; rc=1 ⇒ 不准出 Gerber 且输出里点名红的那道。诚实边界: 只代表 SW 域, 不等于整条板链全绿 (HW / MECH 域的闸另算)。只在板那一趟当天跑, 不是日常门禁。'
+  note: logs/iss335/01_main_run.log
+  ref: ''
+- key: iss335_sw_release_manifest_10
+  value: '清单完备性基准 MANIFEST_BASE = ISS-321 实测表那 10 道路径 (含 4 道链外闸: check_demo_panel_spec / check_shutdown_semantics
+    / check_timing_review_adc_sync / timing_check) ⇒ 清单少一道 ⇒ 汇总直接红 ⇒ 漏跑没人知道这条路被堵死。'
+  note: 自检 1b / 1c 实测 (logs/iss335/02_selftest.log)
+  ref: ''
+- key: iss335_sw_release_ref_gate_default
+  value: 建议默认值 = 判决清单用 v1 (ISS-318, 已挂链) + v2 (ISS-332, 已 verified 未挂链) 走影子道只跑只打印默认不参与判决; 切换 = --ref-gate
+    v2 / --ref-gate both / --shadow-strict (一条参数零改代码)。这是建议不是拍板, 已登记 needs_from 等 main。
+  note: 交卷页 B5-1
+  ref: ''
+- key: iss335_sw_release_r6_bare_run
+  value: 三道 R6 selftest 闸在汇总闸里必须裸跑 (只传 --tmpdir 指向项目内) ⇒ 它们 argparse 没有 --selftest 参数 ⇒ 传了 rc=2 usage
+    错误 ⇒ 汇总自己红 (假红)。自检 6b 现场实测三道加 --selftest 全部 rc=2。
+  note: logs/iss335/02_selftest.log 第 6b 段
+  ref: ''
+- key: iss335_sw_release_tmpdir_local
+  value: 汇总闸给每个子进程设 TMPDIR = TMP = TEMP = 项目根/tmp/iss335_tmp; 3 道 R6 闸额外 --tmpdir 项目根/tmp/iss335_gates。本机系统临时目录带配额且本用户配额已到顶
+    ⇒ 不指会 Errno 122 让 6 道一起假红 (ISS-297 / ISS-299 两单都踩过)。
+  note: 自检 7 断言 + 主跑 10 道 rc 全 0
+  ref: ''
+- key: iss335_sw_release_failclosed
+  value: 'fail-closed 四条语义: 脚本不存在 / 跑不起来 / 超时 300s ⇒ 一律算闸红 (rc=None, 不许静默跳过); 跑完 rc 非 0 ⇒ 算闸红并解析 stdout
+    的 [FAIL] 与 ❌ 行当详情; 跑完 rc=0 ⇒ 闸绿。清单本身也参与判决 (少一道 ⇒ 汇总直接红)。'
+  note: 自检 2 / 3 / 4 / 5 实测 (沙盒桩闸)
+  ref: ''
 open_questions:
 - id: SW-Q1
   to: main

@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/_apply_20261117_0215_zombie3_rollback.py

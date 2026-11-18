@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/SCHEMATIC_LANDING_F1_WORKPACKET_V1.md

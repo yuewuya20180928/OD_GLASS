@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md

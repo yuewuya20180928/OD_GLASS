@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/S2_BOARD_TEST_CHECKLIST.md

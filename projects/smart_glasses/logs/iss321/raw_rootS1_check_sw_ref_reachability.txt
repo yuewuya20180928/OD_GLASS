@@ -1,0 +1,576 @@
+==========================================================================
+ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
+==========================================================================
+项目根        : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss321_sandbox/rootS1
+板位号        : 186 个 (★板文件文本解析, 未 import pcbnew★)
+网表位号      : 293 个 (★三张 CSV 的 ref 列★)
+网名索引      : 657 个
+扫描文档      : 41 份 `SW/*.md` (★其中 26 份含至少一个 token★)
+抽出 token    : 112 个唯一标识符
+
+【分类统计】 (★R2★)
+   DESIGNATOR_OK            18
+   DESIGNATOR_DRIFT         58
+   DESIGNATOR_MISSING        5
+   NET_NAME                  9
+   DOC_INTERNAL             22
+
+【R3 现状基线】 `DESIGNATOR_MISSING` 实测 = 5 条 · 允许上限 = 3 条
+   ⇒ ✘ 超基线 (见下方 FAIL 行)
+
+【★真位号·改名漂移 (C2)★】 —— ★这就是「板只改一次那一趟」要抓的东西★
+   ★CONN_CAM★  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: CONN_CAM_1
+        另外还出现在: SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md:248
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:113
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:147
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★CONN_LIGHT★  (SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:65)  ← 引用的位号现在解析不到
+        板/网表里现在叫: CONN_LIGHT_1
+        另外还出现在: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:122
+        另外还出现在: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:227
+        另外还出现在: SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:281
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★C_DET_BAT★  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_DET_BAT_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:7
+        另外还出现在: SW/SW_TIMING_REVIEW.md:39
+        另外还出现在: SW/SW_TIMING_REVIEW.md:67
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★C_DET_VBUS_D★  (SW/SW_TIMING_REVIEW.md:197)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_DET_VBUS_D_1
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★C_REGN★  (SW/SW_MD5_BASELINE_LEDGER.md:88)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_REGN_1
+        另外还出现在: SW/SW_MD5_BASELINE_LEDGER.md:163
+        另外还出现在: SW/SW_MD5_BASELINE_LEDGER.md:163
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★C_RST★  (SW/ONETRIP_SW_RENAME_SAFETY.md:143)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_RST_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:93
+        另外还出现在: SW/SW_TIMING_REVIEW.md:309
+        另外还出现在: SW/SW_TIMING_REVIEW.md:353
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★C_SW_IN★  (SW/SHUTDOWN_SEMANTICS_SPEC.md:94)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_SW_IN_1
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:314
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:314
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:314
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★C_SW_OUT★  (SW/SHUTDOWN_SEMANTICS_SPEC.md:94)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_SW_OUT_1
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★C_VBUS_DEMO★  (SW/SHUTDOWN_SEMANTICS_SPEC.md:141)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_VBUS_DEMO_1
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★C_VBUS_GND★  (SW/BOARD_ONEPASS_SW_SYNC.md:44)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_VBUS_GND_1
+        板/网表里现在叫: C_VBUS_IN_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:44
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:44
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:79
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★C_VBUS_OUT★  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_VBUS_OUT_1
+        另外还出现在: SW/ONETRIP_SW_RENAME_SAFETY.md:368
+        另外还出现在: SW/ONETRIP_SW_RENAME_SAFETY.md:368
+        另外还出现在: SW/SW_MD5_BASELINE_LEDGER.md:87
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★D_CHG_LED★  (SW/BOARD_ONEPASS_SW_SYNC.md:40)  ← 引用的位号现在解析不到
+        板/网表里现在叫: D_CHG_LED_1
+        板/网表里现在叫: Q_CHG_LED_1
+        板/网表里现在叫: R_CHG_LED_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:41
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:41
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:41
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★D_ESD_DEMO★  (SW/SHUTDOWN_SEMANTICS_SPEC.md:141)  ← 引用的位号现在解析不到
+        板/网表里现在叫: D_ESD_DEMO_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:277
+        另外还出现在: SW/SW_TIMING_REVIEW.md:347
+        另外还出现在: SW/SW_TIMING_REVIEW.md:420
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★D_ESD_USB_D★  (SW/BOARD_ONEPASS_SW_SYNC.md:45)  ← 引用的位号现在解析不到
+        板/网表里现在叫: D_ESD_USB_D_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:45
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:45
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:45
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★D_LED_B★  (SW/BOARD_ONEPASS_SW_SYNC.md:41)  ← 引用的位号现在解析不到
+        板/网表里现在叫: D_LED_B_1
+        板/网表里现在叫: D_LED_G_1
+        板/网表里现在叫: D_LED_R_1
+        板/网表里现在叫: NET_LED_B
+        板/网表里现在叫: R_LED_B_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:200
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★D_LED_G★  (SW/BOARD_ONEPASS_SW_SYNC.md:26)  ← 引用的位号现在解析不到
+        板/网表里现在叫: D_LED_B_1
+        板/网表里现在叫: D_LED_G_1
+        板/网表里现在叫: D_LED_R_1
+        板/网表里现在叫: NET_LED_G
+        板/网表里现在叫: R_LED_G_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:40
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:41
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:75
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★D_LED_R★  (SW/BOARD_ONEPASS_SW_SYNC.md:40)  ← 引用的位号现在解析不到
+        板/网表里现在叫: D_LED_B_1
+        板/网表里现在叫: D_LED_G_1
+        板/网表里现在叫: D_LED_R_1
+        板/网表里现在叫: NET_LED_R
+        板/网表里现在叫: R_LED_R_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:41
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:75
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:189
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★FB_DEMO★  (SW/SHUTDOWN_SEMANTICS_SPEC.md:141)  ← 引用的位号现在解析不到
+        板/网表里现在叫: FB_DEMO_1
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★J_CHG★  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: J_CHG_1
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:93
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:96
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:125
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★J_TYPE_C★  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: J_TYPE_C_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:274
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★J_USB_C★  (SW/BOARD_ONEPASS_SW_SYNC.md:45)  ← 引用的位号现在解析不到
+        板/网表里现在叫: J_USB_C_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:45
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:45
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:80
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★Q_AND★  (SW/BOARD_ONEPASS_SW_SYNC.md:40)  ← 引用的位号现在解析不到
+        板/网表里现在叫: Q_AND_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:189
+        另外还出现在: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:51
+        另外还出现在: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:51
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★Q_CHG_LED★  (SW/BOARD_ONEPASS_SW_SYNC.md:41)  ← 引用的位号现在解析不到
+        板/网表里现在叫: D_CHG_LED_1
+        板/网表里现在叫: Q_CHG_LED_1
+        板/网表里现在叫: R_CHG_LED_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:41
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:41
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:77
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★Q_ENVC★  (SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:51)  ← 引用的位号现在解析不到
+        板/网表里现在叫: Q_ENVC_1
+        另外还出现在: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:214
+        另外还出现在: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:379
+        另外还出现在: SW/ONETRIP_SW_RENAME_SAFETY.md:156
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★Q_PG★  (SW/LOAD_SWITCH_SELECTION_FACTS.md:195)  ← 引用的位号现在解析不到
+        板/网表里现在叫: Q_PG_1
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:259
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:261
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:263
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_CE★  (SW/SW_TIMING_REVIEW.md:324)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_CE_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:443
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_EN_VCORE★  (SW/SW_TIMING_REVIEW.md:82)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_EN_VCORE_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:139
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_ILIM★  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_ILIM_1
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:245
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_PD_ON★  (SW/LOAD_SWITCH_SELECTION_FACTS.md:97)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_PD_ON_1
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:291
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:498
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:499
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_PG_PULL★  (SW/SW_TIMING_REVIEW.md:23)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_PG_PULL_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:23
+        另外还出现在: SW/SW_TIMING_REVIEW.md:49
+        另外还出现在: SW/SW_TIMING_REVIEW.md:84
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_PU_BOOT_N★  (SW/BOARD_ONEPASS_SW_SYNC.md:42)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_PU_BOOT_N_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:76
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:211
+        另外还出现在: SW/SW_TIMING_REVIEW.md:38
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_PU_CHG_STAT★  (SW/SW_TIMING_REVIEW.md:58)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_PU_CHG_STAT_1
+        板/网表里现在叫: TP_CHG_STAT_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:193
+        另外还出现在: SW/SW_TIMING_REVIEW.md:206
+        另外还出现在: SW/SW_TIMING_REVIEW.md:206
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_PU_I2CA_SCL★  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_PU_I2CA_SCL_1
+        板/网表里现在叫: R_PU_I2CA_SDA_1
+        板/网表里现在叫: R_PU_I2CB_SCL_1
+        板/网表里现在叫: TP_I2CA_SCL_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:130
+        另外还出现在: SW/SW_TIMING_REVIEW.md:395
+        另外还出现在: SW/SW_TIMING_REVIEW.md:517
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_PU_I2CB_SCL★  (SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:121)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_PU_I2CA_SCL_1
+        板/网表里现在叫: R_PU_I2CB_SCL_1
+        板/网表里现在叫: R_PU_I2CB_SDA_1
+        板/网表里现在叫: TP_I2CB_SCL_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:131
+        另外还出现在: SW/SW_TIMING_REVIEW.md:518
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_PU_PG★  (SW/SW_TIMING_REVIEW.md:58)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_PU_PG_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:194
+        另外还出现在: SW/SW_TIMING_REVIEW.md:206
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_PU_RESET_N★  (SW/BOARD_ONEPASS_SW_SYNC.md:76)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_PU_RESET_N_1
+        另外还出现在: SW/ONETRIP_SW_RENAME_SAFETY.md:141
+        另外还出现在: SW/SW_TIMING_REVIEW.md:38
+        另外还出现在: SW/SW_TIMING_REVIEW.md:92
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_SER_RESET_N★  (SW/ONETRIP_SW_RENAME_SAFETY.md:142)  ← 引用的位号现在解析不到
+        板/网表里现在叫: NET_RESET_N
+        板/网表里现在叫: R_SER_RESET_N_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:92
+        另外还出现在: SW/SW_TIMING_REVIEW.md:353
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★R_SER_USB_D_P★  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: R_SER_USB_D_N_1
+        板/网表里现在叫: R_SER_USB_D_P_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:275
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★SW_BOOT★  (SW/BOARD_ONEPASS_SW_SYNC.md:40)  ← 引用的位号现在解析不到
+        板/网表里现在叫: SW_BOOT_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:42
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:75
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:189
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★SW_KEY_PWR★  (SW/BOARD_ONEPASS_SW_SYNC.md:40)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_KEY_PWR_1
+        板/网表里现在叫: NET_KEY_PWR
+        板/网表里现在叫: R_KEY_PWR_1
+        板/网表里现在叫: SW_KEY_PWR_1
+        板/网表里现在叫: SW_KEY_VP_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:42
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:75
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:189
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★SW_KEY_VM★  (SW/BOARD_ONEPASS_SW_SYNC.md:40)  ← 引用的位号现在解析不到
+        板/网表里现在叫: SW_KEY_CAM_1
+        板/网表里现在叫: SW_KEY_VM_1
+        板/网表里现在叫: SW_KEY_VP_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:42
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:75
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:189
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★SW_KEY_VP★  (SW/BOARD_ONEPASS_SW_SYNC.md:40)  ← 引用的位号现在解析不到
+        板/网表里现在叫: SW_KEY_PWR_1
+        板/网表里现在叫: SW_KEY_VM_1
+        板/网表里现在叫: SW_KEY_VP_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:42
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:75
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:189
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★SW_RST★  (SW/BOARD_ONEPASS_SW_SYNC.md:40)  ← 引用的位号现在解析不到
+        板/网表里现在叫: SW_RST_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:40
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:40
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:42
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★TP_BOOT★  (SW/SW_TIMING_REVIEW.md:97)  ← 引用的位号现在解析不到
+        板/网表里现在叫: TP_BOOT_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:298
+        另外还出现在: SW/SW_TIMING_REVIEW.md:315
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★TP_KEY_PWR★  (SW/BOARD_ONEPASS_SW_SYNC.md:43)  ← 引用的位号现在解析不到
+        板/网表里现在叫: C_KEY_PWR_1
+        板/网表里现在叫: NET_KEY_PWR
+        板/网表里现在叫: R_KEY_PWR_1
+        板/网表里现在叫: TP_KEY_PWR_1
+        板/网表里现在叫: TP_KEY_VP_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:222
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★TP_PG_VCORE★  (SW/SW_TIMING_REVIEW.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: TP_PG_VCORE_1
+        板/网表里现在叫: TP_VCORE_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:86
+        另外还出现在: SW/SW_TIMING_REVIEW.md:117
+        另外还出现在: SW/SW_TIMING_REVIEW.md:537
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★TP_PG_VIO★  (SW/SW_TIMING_REVIEW.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: TP_PG_1
+        板/网表里现在叫: TP_PG_VIO_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:86
+        另外还出现在: SW/SW_TIMING_REVIEW.md:117
+        另外还出现在: SW/SW_TIMING_REVIEW.md:537
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★TP_RESET★  (SW/BOARD_ONEPASS_SW_SYNC.md:43)  ← 引用的位号现在解析不到
+        板/网表里现在叫: TP_RESET_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:222
+        另外还出现在: SW/SW_TIMING_REVIEW.md:535
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★TP_USB_D_N★  (SW/BOARD_ONEPASS_SW_SYNC.md:43)  ← 引用的位号现在解析不到
+        板/网表里现在叫: TP_USB_D_N_1
+        板/网表里现在叫: TP_USB_D_P_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:222
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★U_BATPROT★  (SW/SHUTDOWN_SEMANTICS_SPEC.md:75)  ← 引用的位号现在解析不到
+        板/网表里现在叫: NET_BAT_PROT
+        板/网表里现在叫: U_BATPROT_1
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:92
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:140
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:259
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★U_CHG★  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  ← 引用的位号现在解析不到
+        板/网表里现在叫: U_CHG_1
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:60
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:80
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:96
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★U_DCDC_VCORE★  (SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:51)  ← 引用的位号现在解析不到
+        板/网表里现在叫: U_DCDC_VCORE_1
+        板/网表里现在叫: U_DCDC_VIO_1
+        另外还出现在: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:51
+        另外还出现在: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:211
+        另外还出现在: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:379
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★U_DCDC_VIO★  (SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:51)  ← 引用的位号现在解析不到
+        板/网表里现在叫: U_DCDC_VCORE_1
+        板/网表里现在叫: U_DCDC_VIO_1
+        另外还出现在: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:51
+        另外还出现在: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:212
+        另外还出现在: SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:379
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★U_EN_SW★  (SW/LOAD_SWITCH_SELECTION_FACTS.md:1)  ← 引用的位号现在解析不到
+        板/网表里现在叫: U_EN_SW_1
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:197
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:197
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:291
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★U_LDO_S18B★  (SW/SHUTDOWN_SEMANTICS_SPEC.md:56)  ← 引用的位号现在解析不到
+        板/网表里现在叫: U_LDO_IO18
+        板/网表里现在叫: U_LDO_L18
+        板/网表里现在叫: U_LDO_S12
+        板/网表里现在叫: U_LDO_S18B_1
+        板/网表里现在叫: U_LDO_S28
+        另外还出现在: SW/SHUTDOWN_SEMANTICS_SPEC.md:264
+        另外还出现在: SW/SW_TIMING_REVIEW.md:141
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★U_PWR_SW★  (SW/LOAD_SWITCH_SELECTION_FACTS.md:1)  ← 引用的位号现在解析不到
+        板/网表里现在叫: U_PWR_SW_1
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:258
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:267
+        另外还出现在: SW/LOAD_SWITCH_SELECTION_FACTS.md:291
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★U_SUPV★  (SW/BOARD_ONEPASS_SW_SYNC.md:40)  ← 引用的位号现在解析不到
+        板/网表里现在叫: U_SUPV_1
+        另外还出现在: SW/BOARD_ONEPASS_SW_SYNC.md:189
+        另外还出现在: SW/SW_TIMING_REVIEW.md:35
+        另外还出现在: SW/SW_TIMING_REVIEW.md:35
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   ★U_TEMP★  (SW/SW_TIMING_REVIEW.md:40)  ← 引用的位号现在解析不到
+        板/网表里现在叫: U_TEMP_1
+        另外还出现在: SW/SW_TIMING_REVIEW.md:233
+        判红理由: ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+
+【★真隐患 (C14)·现在就对不上的位号引用★】
+   ★基线内·已登记★ CONN_USB  (SW/ONETRIP_SW_RENAME_SAFETY.md:63)  出现 7 次
+        理由: ★真隐患·已登记★: SW/SW_TIMING_REVIEW.md L60/L272 明写「CONN_USB 已不在网表 ⇒ 对象消失 ⇒ 推翻」 ⇒ ★它是【历史件】的遗留引用·文档自己已经知道它没了·但引用还留在文档里★
+   ★★超基线★★ R_CHG_LED  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  出现 1 次
+        理由: ★不在建闸日基线里 ⇒ 这是新增的真隐患★
+        板/网表里现在叫: D_CHG_LED_1
+        板/网表里现在叫: Q_CHG_LED_1
+        板/网表里现在叫: R_CHG_LED_1
+   ★★超基线★★ R_SER_USB_D_N  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  出现 1 次
+        理由: ★不在建闸日基线里 ⇒ 这是新增的真隐患★
+        板/网表里现在叫: R_SER_USB_D_N_1
+        板/网表里现在叫: R_SER_USB_D_P_1
+   ★基线内·已登记★ TP_INT  (SW/BOARD_ONEPASS_SW_SYNC.md:43)  出现 14 次
+        理由: ★真隐患·但已登记★: SW/BOARD_ONEPASS_SW_SYNC.md §SW06 明写「TP_INT (触控中断) 在网表和板上都不存在 ⇒ SW 侧不许按『有触控中断』写代码」⇒ ★它是一个【被文档自己点名的空洞】★ ⇒ 板那一趟若决定接触控, 必须同批落表 + 落位 + 布线, 否则 SW 侧引用永远是空的★
+   ★基线内·已登记★ TP_TEMP  (SW/ONETRIP_SW_RENAME_SAFETY.md:63)  出现 3 次
+        理由: ★真隐患·未登记★: SW/SW_TIMING_REVIEW.md §CR-7 (EVT 上电段) 要求「TP_TEMP 热电偶对照标定」 ⇒ ★板上 42 个 TP_* 里没有 TP_TEMP (只有 TP_USB_D_N / TP_KEY_PWR / TP_RESET 等)★ ⇒ ★EVT 测温校准步骤依赖一个不存在的测试点 ⇒ 这就是本闸今天就抓得到的真隐患★
+
+[FAIL] 位号引用解析不到 (改名漂移): CONN_CAM @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: CONN_CAM_1
+[FAIL] 位号引用解析不到 (改名漂移): CONN_LIGHT @ SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:65 ⇒ 板与网表里现在叫: CONN_LIGHT_1
+[FAIL] 位号引用解析不到 (改名漂移): C_DET_BAT @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: C_DET_BAT_1
+[FAIL] 位号引用解析不到 (改名漂移): C_DET_VBUS_D @ SW/SW_TIMING_REVIEW.md:197 ⇒ 板与网表里现在叫: C_DET_VBUS_D_1
+[FAIL] 位号引用解析不到 (改名漂移): C_REGN @ SW/SW_MD5_BASELINE_LEDGER.md:88 ⇒ 板与网表里现在叫: C_REGN_1
+[FAIL] 位号引用解析不到 (改名漂移): C_RST @ SW/ONETRIP_SW_RENAME_SAFETY.md:143 ⇒ 板与网表里现在叫: C_RST_1
+[FAIL] 位号引用解析不到 (改名漂移): C_SW_IN @ SW/SHUTDOWN_SEMANTICS_SPEC.md:94 ⇒ 板与网表里现在叫: C_SW_IN_1
+[FAIL] 位号引用解析不到 (改名漂移): C_SW_OUT @ SW/SHUTDOWN_SEMANTICS_SPEC.md:94 ⇒ 板与网表里现在叫: C_SW_OUT_1
+[FAIL] 位号引用解析不到 (改名漂移): C_VBUS_DEMO @ SW/SHUTDOWN_SEMANTICS_SPEC.md:141 ⇒ 板与网表里现在叫: C_VBUS_DEMO_1
+[FAIL] 位号引用解析不到 (改名漂移): C_VBUS_GND @ SW/BOARD_ONEPASS_SW_SYNC.md:44 ⇒ 板与网表里现在叫: C_VBUS_GND_1, C_VBUS_IN_1
+[FAIL] 位号引用解析不到 (改名漂移): C_VBUS_OUT @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: C_VBUS_OUT_1
+[FAIL] 位号引用解析不到 (改名漂移): D_CHG_LED @ SW/BOARD_ONEPASS_SW_SYNC.md:40 ⇒ 板与网表里现在叫: D_CHG_LED_1, Q_CHG_LED_1, R_CHG_LED_1
+[FAIL] 位号引用解析不到 (改名漂移): D_ESD_DEMO @ SW/SHUTDOWN_SEMANTICS_SPEC.md:141 ⇒ 板与网表里现在叫: D_ESD_DEMO_1
+[FAIL] 位号引用解析不到 (改名漂移): D_ESD_USB_D @ SW/BOARD_ONEPASS_SW_SYNC.md:45 ⇒ 板与网表里现在叫: D_ESD_USB_D_1
+[FAIL] 位号引用解析不到 (改名漂移): D_LED_B @ SW/BOARD_ONEPASS_SW_SYNC.md:41 ⇒ 板与网表里现在叫: D_LED_B_1, D_LED_G_1, D_LED_R_1, NET_LED_B, R_LED_B_1
+[FAIL] 位号引用解析不到 (改名漂移): D_LED_G @ SW/BOARD_ONEPASS_SW_SYNC.md:26 ⇒ 板与网表里现在叫: D_LED_B_1, D_LED_G_1, D_LED_R_1, NET_LED_G, R_LED_G_1
+[FAIL] 位号引用解析不到 (改名漂移): D_LED_R @ SW/BOARD_ONEPASS_SW_SYNC.md:40 ⇒ 板与网表里现在叫: D_LED_B_1, D_LED_G_1, D_LED_R_1, NET_LED_R, R_LED_R_1
+[FAIL] 位号引用解析不到 (改名漂移): FB_DEMO @ SW/SHUTDOWN_SEMANTICS_SPEC.md:141 ⇒ 板与网表里现在叫: FB_DEMO_1
+[FAIL] 位号引用解析不到 (改名漂移): J_CHG @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: J_CHG_1
+[FAIL] 位号引用解析不到 (改名漂移): J_TYPE_C @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: J_TYPE_C_1
+[FAIL] 位号引用解析不到 (改名漂移): J_USB_C @ SW/BOARD_ONEPASS_SW_SYNC.md:45 ⇒ 板与网表里现在叫: J_USB_C_1
+[FAIL] 位号引用解析不到 (改名漂移): Q_AND @ SW/BOARD_ONEPASS_SW_SYNC.md:40 ⇒ 板与网表里现在叫: Q_AND_1
+[FAIL] 位号引用解析不到 (改名漂移): Q_CHG_LED @ SW/BOARD_ONEPASS_SW_SYNC.md:41 ⇒ 板与网表里现在叫: D_CHG_LED_1, Q_CHG_LED_1, R_CHG_LED_1
+[FAIL] 位号引用解析不到 (改名漂移): Q_ENVC @ SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:51 ⇒ 板与网表里现在叫: Q_ENVC_1
+[FAIL] 位号引用解析不到 (改名漂移): Q_PG @ SW/LOAD_SWITCH_SELECTION_FACTS.md:195 ⇒ 板与网表里现在叫: Q_PG_1
+[FAIL] 位号引用解析不到 (改名漂移): R_CE @ SW/SW_TIMING_REVIEW.md:324 ⇒ 板与网表里现在叫: R_CE_1
+[FAIL] 位号引用解析不到 (改名漂移): R_EN_VCORE @ SW/SW_TIMING_REVIEW.md:82 ⇒ 板与网表里现在叫: R_EN_VCORE_1
+[FAIL] 位号引用解析不到 (改名漂移): R_ILIM @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: R_ILIM_1
+[FAIL] 位号引用解析不到 (改名漂移): R_PD_ON @ SW/LOAD_SWITCH_SELECTION_FACTS.md:97 ⇒ 板与网表里现在叫: R_PD_ON_1
+[FAIL] 位号引用解析不到 (改名漂移): R_PG_PULL @ SW/SW_TIMING_REVIEW.md:23 ⇒ 板与网表里现在叫: R_PG_PULL_1
+[FAIL] 位号引用解析不到 (改名漂移): R_PU_BOOT_N @ SW/BOARD_ONEPASS_SW_SYNC.md:42 ⇒ 板与网表里现在叫: R_PU_BOOT_N_1
+[FAIL] 位号引用解析不到 (改名漂移): R_PU_CHG_STAT @ SW/SW_TIMING_REVIEW.md:58 ⇒ 板与网表里现在叫: R_PU_CHG_STAT_1, TP_CHG_STAT_1
+[FAIL] 位号引用解析不到 (改名漂移): R_PU_I2CA_SCL @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: R_PU_I2CA_SCL_1, R_PU_I2CA_SDA_1, R_PU_I2CB_SCL_1, TP_I2CA_SCL_1
+[FAIL] 位号引用解析不到 (改名漂移): R_PU_I2CB_SCL @ SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:121 ⇒ 板与网表里现在叫: R_PU_I2CA_SCL_1, R_PU_I2CB_SCL_1, R_PU_I2CB_SDA_1, TP_I2CB_SCL_1
+[FAIL] 位号引用解析不到 (改名漂移): R_PU_PG @ SW/SW_TIMING_REVIEW.md:58 ⇒ 板与网表里现在叫: R_PU_PG_1
+[FAIL] 位号引用解析不到 (改名漂移): R_PU_RESET_N @ SW/BOARD_ONEPASS_SW_SYNC.md:76 ⇒ 板与网表里现在叫: R_PU_RESET_N_1
+[FAIL] 位号引用解析不到 (改名漂移): R_SER_RESET_N @ SW/ONETRIP_SW_RENAME_SAFETY.md:142 ⇒ 板与网表里现在叫: NET_RESET_N, R_SER_RESET_N_1
+[FAIL] 位号引用解析不到 (改名漂移): R_SER_USB_D_P @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: R_SER_USB_D_N_1, R_SER_USB_D_P_1
+[FAIL] 位号引用解析不到 (改名漂移): SW_BOOT @ SW/BOARD_ONEPASS_SW_SYNC.md:40 ⇒ 板与网表里现在叫: SW_BOOT_1
+[FAIL] 位号引用解析不到 (改名漂移): SW_KEY_PWR @ SW/BOARD_ONEPASS_SW_SYNC.md:40 ⇒ 板与网表里现在叫: C_KEY_PWR_1, NET_KEY_PWR, R_KEY_PWR_1, SW_KEY_PWR_1, SW_KEY_VP_1
+[FAIL] 位号引用解析不到 (改名漂移): SW_KEY_VM @ SW/BOARD_ONEPASS_SW_SYNC.md:40 ⇒ 板与网表里现在叫: SW_KEY_CAM_1, SW_KEY_VM_1, SW_KEY_VP_1
+[FAIL] 位号引用解析不到 (改名漂移): SW_KEY_VP @ SW/BOARD_ONEPASS_SW_SYNC.md:40 ⇒ 板与网表里现在叫: SW_KEY_PWR_1, SW_KEY_VM_1, SW_KEY_VP_1
+[FAIL] 位号引用解析不到 (改名漂移): SW_RST @ SW/BOARD_ONEPASS_SW_SYNC.md:40 ⇒ 板与网表里现在叫: SW_RST_1
+[FAIL] 位号引用解析不到 (改名漂移): TP_BOOT @ SW/SW_TIMING_REVIEW.md:97 ⇒ 板与网表里现在叫: TP_BOOT_1
+[FAIL] 位号引用解析不到 (改名漂移): TP_KEY_PWR @ SW/BOARD_ONEPASS_SW_SYNC.md:43 ⇒ 板与网表里现在叫: C_KEY_PWR_1, NET_KEY_PWR, R_KEY_PWR_1, TP_KEY_PWR_1, TP_KEY_VP_1
+[FAIL] 位号引用解析不到 (改名漂移): TP_PG_VCORE @ SW/SW_TIMING_REVIEW.md:68 ⇒ 板与网表里现在叫: TP_PG_VCORE_1, TP_VCORE_1
+[FAIL] 位号引用解析不到 (改名漂移): TP_PG_VIO @ SW/SW_TIMING_REVIEW.md:68 ⇒ 板与网表里现在叫: TP_PG_1, TP_PG_VIO_1
+[FAIL] 位号引用解析不到 (改名漂移): TP_RESET @ SW/BOARD_ONEPASS_SW_SYNC.md:43 ⇒ 板与网表里现在叫: TP_RESET_1
+[FAIL] 位号引用解析不到 (改名漂移): TP_USB_D_N @ SW/BOARD_ONEPASS_SW_SYNC.md:43 ⇒ 板与网表里现在叫: TP_USB_D_N_1, TP_USB_D_P_1
+[FAIL] 位号引用解析不到 (改名漂移): U_BATPROT @ SW/SHUTDOWN_SEMANTICS_SPEC.md:75 ⇒ 板与网表里现在叫: NET_BAT_PROT, U_BATPROT_1
+[FAIL] 位号引用解析不到 (改名漂移): U_CHG @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: U_CHG_1
+[FAIL] 位号引用解析不到 (改名漂移): U_DCDC_VCORE @ SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:51 ⇒ 板与网表里现在叫: U_DCDC_VCORE_1, U_DCDC_VIO_1
+[FAIL] 位号引用解析不到 (改名漂移): U_DCDC_VIO @ SW/EXTERNAL_DEPENDENCY_SELFCHECK.md:51 ⇒ 板与网表里现在叫: U_DCDC_VCORE_1, U_DCDC_VIO_1
+[FAIL] 位号引用解析不到 (改名漂移): U_EN_SW @ SW/LOAD_SWITCH_SELECTION_FACTS.md:1 ⇒ 板与网表里现在叫: U_EN_SW_1
+[FAIL] 位号引用解析不到 (改名漂移): U_LDO_S18B @ SW/SHUTDOWN_SEMANTICS_SPEC.md:56 ⇒ 板与网表里现在叫: U_LDO_IO18, U_LDO_L18, U_LDO_S12, U_LDO_S18B_1, U_LDO_S28
+[FAIL] 位号引用解析不到 (改名漂移): U_PWR_SW @ SW/LOAD_SWITCH_SELECTION_FACTS.md:1 ⇒ 板与网表里现在叫: U_PWR_SW_1
+[FAIL] 位号引用解析不到 (改名漂移): U_SUPV @ SW/BOARD_ONEPASS_SW_SYNC.md:40 ⇒ 板与网表里现在叫: U_SUPV_1
+[FAIL] 位号引用解析不到 (改名漂移): U_TEMP @ SW/SW_TIMING_REVIEW.md:40 ⇒ 板与网表里现在叫: U_TEMP_1
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): R_CHG_LED @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: D_CHG_LED_1, Q_CHG_LED_1, R_CHG_LED_1
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): R_SER_USB_D_N @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: R_SER_USB_D_N_1, R_SER_USB_D_P_1
+[FAIL] 真隐患条数 5 > 基线上限 3 (★基线只许收紧不许放宽★)
+
+【R2 分类全表】 (★`--dump-classification` 同源★)
+   DESIGNATOR_OK        C1   BT_432243                                    现在在【板文件+网表】里能找到
+   NET_NAME             C3   CHG_BOARD                                    它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   CHG_STAT                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DESIGNATOR_DRIFT     C2   CONN_CAM                                     ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   CONN_LIGHT                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_MISSING   C14  CONN_USB                                     形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_DRIFT     C2   C_DET_BAT                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   C_DET_VBUS_D                                 ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   C_REGN                                       ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   C_RST                                        ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   C_SW_IN                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   C_SW_OUT                                     ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DOC_INTERNAL         C7   C_User_Hardware_Manual                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DESIGNATOR_DRIFT     C2   C_VBUS_DEMO                                  ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   C_VBUS_GND                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   C_VBUS_OUT                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   D_CHG_LED                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   D_ESD_DEMO                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   D_ESD_USB_D                                  ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   D_LED_B                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   D_LED_G                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   D_LED_R                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   FB_DEMO                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   J_CHG                                        ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_OK        C1   J_SOM_P1                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P2                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P3                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_DRIFT     C2   J_TYPE_C                                     ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   J_USB_C                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DOC_INTERNAL         C10  L_B                                          前缀 `L_` ∈ 物理量命名空间 (本项目板上无该前缀位号)
+   DOC_INTERNAL         C7   L_eye                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   NET_NAME             C11  PWR_CTRL                                     前缀 `PWR_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C3   PWR_GOOD                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   PWR_ON                                       它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DESIGNATOR_DRIFT     C2   Q_AND                                        ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   Q_CHG_LED                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   Q_ENVC                                       ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   Q_PG                                         ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DOC_INTERNAL         C8   R_BAT_DET_                                   以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   R_BAT_DET_1                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_BAT_DET_2                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_CC1                                        现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_CC2                                        现在在【网表】里能找到
+   DESIGNATOR_DRIFT     C2   R_CE                                         ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_MISSING   C14  R_CHG_LED                                    形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_DRIFT     C2   R_EN_VCORE                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DOC_INTERNAL         C4   R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION        盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_DRIFT     C2   R_ILIM                                       ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   R_PD_ON                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   R_PG_PULL                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DOC_INTERNAL         C8   R_PU_                                        以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_DRIFT     C2   R_PU_BOOT_N                                  ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   R_PU_CHG_STAT                                ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   R_PU_I2CA_SCL                                ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   R_PU_I2CB_SCL                                ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   R_PU_PG                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   R_PU_RESET_N                                 ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   R_SER_RESET_N                                ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_MISSING   C14  R_SER_USB_D_N                                形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_DRIFT     C2   R_SER_USB_D_P                                ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DOC_INTERNAL         C12  R_SUPV_DIV                                   是 ≥2 个 live 位号的严格前缀 (R_SUPV_DIV1, R_SUPV_DIV2) ⇒ 文档对一组件的统称
+   DESIGNATOR_OK        C1   R_SUPV_DIV1                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SUPV_DIV2                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_VBUS_DET_D1                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_VBUS_DET_D2                                现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C7   R_conv                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_on                                         后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_skin_path                                  后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_th                                         后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DESIGNATOR_DRIFT     C2   SW_BOOT                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DOC_INTERNAL         C5   SW_BRIGHTNESS_API_ANCHORS                    盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
+   DOC_INTERNAL         C4   SW_BRIGHTNESS_CONTROL_POLICY                 盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DOC_INTERNAL         C5   SW_BRIGHTNESS_POLICY_ANCHORS                 盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
+   DESIGNATOR_DRIFT     C2   SW_KEY_PWR                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   SW_KEY_VM                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   SW_KEY_VP                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DOC_INTERNAL         C5   SW_MD5_ANCHORS                               盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
+   DOC_INTERNAL         C4   SW_MD5_BASELINE_LEDGER                       盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DOC_INTERNAL         C4   SW_REQUIREMENTS                              盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_DRIFT     C2   SW_RST                                       ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DOC_INTERNAL         C6   SW_SYNC_NETLIST                              盘上某 .py 把它当环境变量键用 ⇒ 判据/夹具的键名
+   DOC_INTERNAL         C4   SW_TIMING_REVIEW                             盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_DRIFT     C2   TP_BOOT                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_MISSING   C14  TP_INT                                       形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_DRIFT     C2   TP_KEY_PWR                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   TP_PG_VCORE                                  ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   TP_PG_VIO                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   TP_RESET                                     ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_MISSING   C14  TP_TEMP                                      形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_DRIFT     C2   TP_USB_D_N                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   U_BATPROT                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   U_CHG                                        ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DOC_INTERNAL         C12  U_DCDC                                       是 ≥2 个 live 位号的严格前缀 (U_DCDC_VCORE_1, U_DCDC_VIO_1) ⇒ 文档对一组件的统称
+   DESIGNATOR_DRIFT     C2   U_DCDC_VCORE                                 ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   U_DCDC_VIO                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   U_EN_SW                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_OK        C1   U_LDO_IO18                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_IO33                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_L18                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_L33                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_S12                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_DRIFT     C2   U_LDO_S18B                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_OK        C1   U_LDO_S28                                    现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C9   U_LS                                         每次出现都紧跟在 `|` 之后 ⇒ 判据正文里的 grep pattern
+   DESIGNATOR_DRIFT     C2   U_PWR_SW                                     ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   U_SUPV                                       ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   DESIGNATOR_DRIFT     C2   U_TEMP                                       ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+   NET_NAME             C3   VBUS_5V_CHG                                  它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   VBUS_5V_F1                                   它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   VBUS_DET                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   VBUS_DET_D                                   它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DOC_INTERNAL         C7   VBUS_DET_uA                                  后缀含小写字母 ⇒ 物理量符号 (不是位号)
+
+【判决】 ✘ 红 (rc≠0)
+rc=1

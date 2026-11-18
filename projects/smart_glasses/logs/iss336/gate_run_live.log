@@ -1,0 +1,56 @@
+========================================================================================================
+BOARD FRAME FREEZE GATE — ISS-336 「板只改一次」那一趟的【板框冻结闸 U-1】 | mech-lead 2026-11-19
+========================================================================================================
+★只读: service_port_check.py / board_frame_feasibility.py / HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES /
+  state/fragments/{mech,pm}.yaml ⇒ **本脚本零写盘** (板 md5 / 网表 / 脚表 / BOM 一个字节没动)
+★证据级: 全部几何读数 = 设计态几何 + 公差栈 ⇒ [推算]; 盘上板读数 = [实测]
+★本闸不代老板拍 U-1: 板框三选一只「列档 + 判红原因 + 谁拍」
+
+【判定对象】L2 现行几何口径 (need 未闭合 ⇒ U-1 还没拍)
+   帧 id = F30A  (service_port_check BASE['pcb_l'×'pcb_w'] = 60.0×30.0 ⇒ cal:FRAMES 尺寸反查)
+   板厚   = 1.0  (service_port_check BASE['pcb_thk'])
+   层数   = 6  (cal:FRAMES[F30A].layers)
+   孔位   = 套A  (board_frame_feasibility.PIN_SET_A (PIN-SET-2 套 A))
+
+【表 0】判据来源表 (★每个阈值都能追到一行出处; 本脚本阈值零自造 = 只读 import★)
+--------------------------------------------------------------------------------------------------------
+  允许板厚集 (C3)                 = {0.80, 1.00}                   ← board_frame_feasibility 36 档的 `cavity_ok` 现推 (盖板内腔 ≥ BASE['cavity_req']) ⇒ 不是抄的阈值表
+  层数档集 (C4)                  = {4, 6, 8}                      ← MECH/board_frame_feasibility.py LAYER_TIERS (只读 import)
+  板厚档全集 (36 档枚举)             = {0.80, 1.00, 1.22, 1.60}       ← MECH/board_frame_feasibility.py THICKNESS_TIERS (只读 import)
+  盖板内腔判据                     = 4.50 mm                        ← MECH/service_port_check.py BASE['cavity_req'] (经 board_frame_feasibility 转手)
+  余量判据 CRIT                  = 0.60 mm                        ← MECH/service_port_check.py CRIT = 2 × TOL['fdm_part'] (经 board_frame_feasibility 转手)
+  镜脚内腔 cav_h / cav_v / cav_l = 7.3 / 38.0 / 130.0 mm          ← MECH/service_port_check.py BASE['cav_h'/'cav_v'/'cav_l']
+  帧 id 唯一权威表                 = B160x100、F30A、P60x15           ← HW/PCB/BOARD_FRAME_CALIBER.md §2 `cal:FRAMES` (只读)
+  现役帧 current_frame          = B160x100                       ← HW/PCB/BOARD_FRAME_CALIBER.md §2 `cal:FRAMES.current_frame` (只读)
+  零漂移对拍 (BASE/TOL/CRIT)      = 逐项相等                           ← board_frame_feasibility 转手的值 vs service_port_check.py 原件 (独立只读 import 两次)
+
+【C1~C7】七条判据逐条 (★ISS-316 §2-4 设计稿的逐字实现★)
+--------------------------------------------------------------------------------------------------------
+  C1 ✅ 通过  帧 id ∈ cal:FRAMES 三套之内 且非空
+       理由: 帧 id = `F30A` ∈ {B160x100, F30A, P60x15}
+       依据: service_port_check BASE['pcb_l'×'pcb_w'] = 60.0×30.0 ⇒ cal:FRAMES 尺寸反查
+  C2 ✅ 通过  帧 id == cal:FRAMES.current_frame
+       理由: ★尚无 U-1 认领句 ⇒ 本条无对照文档 ⇒ 不判红 (ISS-316 §2-4 C2 的判红条件是以「认领句写 X 但 current_frame 仍是 Y」措辞写的; U-1 落表后本条立即生效)
+       依据: cal:FRAMES.current_frame = `B160x100`
+  C3 ✅ 通过  板厚 ∈ 允许板厚集
+       理由: 板厚 = 1.00 mm ∈ {0.80, 1.00}
+       依据: service_port_check BASE['pcb_thk']
+  C4 ✅ 通过  层数 ∈ 层数档集
+       理由: 层数 = 6 ∈ {4, 6, 8}
+       依据: cal:FRAMES[F30A].layers
+  C5 ✅ 通过  孔位 = PIN-SET-2 套 A 四孔 且该帧上四孔全部成立
+       理由: 孔位口径 = PIN-SET-2 套 A; 该帧 (`F30A`) 四孔全部成立 (holes.all_fit == true)
+       依据: board_frame_feasibility.PIN_SET_A (PIN-SET-2 套 A)
+  C6 ✅ 通过  (帧, 板厚, 层数) 组合在 36 档里 can_open == true
+       理由: 组合 (帧=F30A, 层=6, 板厚=1.00) can_open == true 且 red_reasons == []
+       依据: 36 档矩阵 row['can_open']
+  C7 ❌ 判红  need `proto_pcb_freeze_gate` 已闭合 且答案逐字含帧 id + 板厚 + 层数
+       理由: need `proto_pcb_freeze_gate` 未闭合 (mech.yaml needs_closed 里零条 + pm.yaml answers 里零条 ⇒ 闸还没满足); 板框三选一 (B160x100 / F30A / P60x15) 仍待老板拍 ⇒ ★今天红 = U-1 还没拍, 正确★
+       依据: (无答案正文)
+
+★结论: 1 条判红 ⇒ C7
+  ★本闸只报「哪条红 + 为什么红」, 不代拍 (★板框三选一 = 老板级★)
+  ★真源提醒: C7 读的是**分片侧** (`state/fragments/mech.yaml` 的 needs_closed + answers, 以及
+    `state/fragments/pm.yaml` 的 answers 配对闭合) —— `state/issue_log.yaml` 顶层只有
+    _schema / _owners_legal / issues 三项 ⇒ **零条 need 闭合记录** ⇒ 读它 = 引用盘上不存在的字段。
+========================================================================================================

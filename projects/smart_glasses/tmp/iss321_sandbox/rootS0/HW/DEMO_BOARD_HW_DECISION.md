@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/DEMO_BOARD_HW_DECISION.md

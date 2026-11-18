@@ -1,0 +1,35 @@
+═══ 臂板 vs 官方板 (名单制判据) ═══
+  候选板: /tmp/_clrfix_iss325_s8lu_final.kicad_pcb
+  基线板: HW/PCB/demo_mainboard.kicad_pcb
+  指标                               候选          官方板
+  DRC违规                             1            0
+  unconnected                      29           45
+  零铜网(≥2焊盘)                        12           24
+  差分单边零铜                            5           11
+  差分Δ超差                             1            3
+  走线段                            3666        18092
+  过孔                              505          433
+  parity通过                       True        False
+  ── ★退铜名单 (官方板有铜⇒候选零铜): 4
+       ★ CSI_MCLK_SRC
+       ★ DSI_D0_CK_N_SRC
+       ★ LED_B
+       ★ USB_CC1
+  ── ★差分对死腿: 1
+       ★ DSI_D0_CK_P_SRC/DSI_D0_CK_N_SRC
+  ── ★逐网孤岛变多: 9
+       ★ CSI_D0_CK_N  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_MCLK  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_MCLK_SRC  (官方 0 项 ⇒ 候选 1 项)
+       ★ DSI_D0_CK_N_SRC  (官方 0 项 ⇒ 候选 1 项)
+       ★ DSI_D0_D3_N  (官方 0 项 ⇒ 候选 1 项)
+       ★ DSI_D0_D3_P  (官方 0 项 ⇒ 候选 1 项)
+       ★ KEY_VOL_P  (官方 0 项 ⇒ 候选 1 项)
+       ★ LED_B  (官方 0 项 ⇒ 候选 2 项)
+       ★ USB_CC1  (官方 0 项 ⇒ 候选 1 项)
+  ── (参考) 救回零铜的网: 16
+  ── 判定: REJECT
+     · ★**DRC=1 (必须 0)**
+     · DRC 变差 0→1
+     · ★**差分对死腿 1 对 (官方双边有铜⇒候选单边零铜): DSI_D0_CK_P_SRC/DSI_D0_CK_N_SRC**
+     · ★**逐网孤岛变多 9 个网 (官方项数⇒候选更多 ⇒ 网被拆碎): CSI_D0_CK_N, CSI_MCLK, CSI_MCLK_SRC, DSI_D0_CK_N_SRC, DSI_D0_D3_N, DSI_D0_D3_P, KEY_VOL_P, LED_B, USB_CC1**

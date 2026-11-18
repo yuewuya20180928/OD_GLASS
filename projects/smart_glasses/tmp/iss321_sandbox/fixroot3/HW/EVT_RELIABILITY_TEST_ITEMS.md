@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/EVT_RELIABILITY_TEST_ITEMS.md

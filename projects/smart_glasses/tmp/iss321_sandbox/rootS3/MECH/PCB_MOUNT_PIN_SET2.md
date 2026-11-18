@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/PCB_MOUNT_PIN_SET2.md

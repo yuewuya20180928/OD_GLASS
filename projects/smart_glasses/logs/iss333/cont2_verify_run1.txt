@@ -1,0 +1,35 @@
+===== ISS-333 cont2 交卷前必跑 (★2026-11-18 21:2x·mech-lead·cont2★) =====
+2026-11-18 21:27:06 +0800
+
+--- ① python3 MECH/tools/check_mech_ref_reachability.py --selftest (★期望 rc=0 · 14/14★) ---
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 ⇒ 破坏后 rc=0 (红项: 无) ⇒ ★判据没被「改坏的那一处」弄红★
+  ✅ MC-8 期望=red   破坏前 rc=0  破坏后 rc=1  ★G1 假位号新增★ MECH 文档里写一个盘上没有的位号 ⇒ 【必须红】
+      ★做法★ · MECH/README.md 里写一个盘上没有的位号
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 新增真隐患:R_ZZ_ISS333_FAKE_999, 真隐患 11 > 基线 10) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-9 期望=red   破坏前 rc=0  破坏后 rc=2  ★F3 扫描面半残★ MECH/**/*.py 全删 ⇒ 【必须红】(★fail-closed★)
+      ★做法★ · 删掉 MECH/**/*.py 全部
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=2 (红项: fail-closed: ★MECH 侧 py 扫描面拿不到 (glob `MECH/**/*.py` 空, 或全被闸自身排除规则滤掉): /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss333_gates/iss333_refreach_hd9udcpg/MC-9) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-10 期望=red   破坏前 rc=0  破坏后 rc=2  ★F1 板读不到★ 板文件删掉 ⇒ 【必须红】(★fail-closed★)
+      ★做法★ · 删掉板文件
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=2 (红项: fail-closed: ★输入文件不存在: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss333_gates/iss333_refreach_hd9udcpg/MC-10/HW/PCB/demo_mainboard.kicad_pcb) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-11 期望=red   破坏前 rc=0  破坏后 rc=2  ★F2 网表读不到★ 网表 CSV 删掉 ⇒ 【必须红】(★fail-closed★)
+      ★做法★ · 删掉 HW/netlist_v1.csv
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=2 (红项: fail-closed: ★网表真源不存在: HW/netlist_v1.csv) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-12 期望=red   破坏前 rc=0  破坏后 rc=1  ★G7 基线不许被放宽★ BASELINE_COUNT 被改大 ⇒ 【必须红】
+      ★做法★ · BASELINE_COUNT 10 → 11
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 基线自洽:BASELINE_COUNT=11 但 BASELINE_TOKENS 只有 10 条 (★必须相等★), 基线自洽:BASELINE_COUNT=11 > 建闸日冻结值 10 (★基线只许收紧不许放宽★)) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-13 期望=green 破坏前 rc=0  破坏后 rc=0  ★正向对照★ 原样不动 ⇒ 【必须绿】(★不许把闸修成永远红★)
+      ★做法★ · 不做任何改动 (正向对照)
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 ⇒ 破坏后 rc=0 (红项: 无) ⇒ ★判据没被「改坏的那一处」弄红★
+  ✅ MC-14 期望=red   破坏前 rc=0  破坏后 rc=1  ★★判据分支匹配不上 ⇒ 必须红★ (★不许静悄悄不查了★) ⇒ 故意改坏一条分支探针
+      ★做法★ · 故意把【C1 这一条】分支探针的期望类改成 DESIGNATOR_MISSING (★只改一条·其余 16 条仍须全对★)
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 判据分支失配:R_PROBE_LIVE) ⇒ 这条红【只可能】来自被改坏的那一处
+------------------------------------------------------------------------------
+反向用例: 14/14 通过
+✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+SELFTEST_RC=0
+
+--- ② python3 state/merge.py (★期望 rc=0★) ---
+✅ STATE.yaml 已刷新 (2026-11-18T21:27:27+08:00)
+   产出 680 | 阻塞 43 (高危 33) | 未闭合需求 335 | 冲突 0 | 健康度 red
+MERGE_RC=0

@@ -1,0 +1,39 @@
+=== ISS-293 · SW_TIMING_REVIEW.md ADC 口径同步闸 ===
+--- 上游实跑真值 (SW/tools/timing_check.py --only F4_adc_det) ---
+   active_chain=BAT_DET pin=38 signal=SARADC_VIN5 domain=1.8V
+   full_scale=1.8 V  bits=12.0  lsb=0.439 mV  rth=37500.0 ohm  tau=3.75 ms  settle=33.791 ms
+   leak=0.0375 V = 2.1 %FS  node@4.2V = 1.575 V (abs-max 1.98 V)  fs_util=87.5 %
+   criteria_all_ok = True
+--- 对账 (SW/SW_TIMING_REVIEW.md) ---
+   [✔] CARD-MISSING                 §14 ADC 现值卡在位 (17 键)
+   [✔] CARD:adc_decision_chain      adc_decision_chain = BAT_DET (与上游一致)
+   [✔] CARD:adc_decision_chain_pin  adc_decision_chain_pin = 38 (与上游一致)
+   [✔] CARD:adc_decision_chain_signal adc_decision_chain_signal = SARADC_VIN5 (与上游一致)
+   [✔] CARD:adc_decision_chain_domain adc_decision_chain_domain = 1.8V (与上游一致)
+   [✔] CARD:adc_full_scale_v        adc_full_scale_v = 1.8V (与上游一致)
+   [✔] CARD:adc_bits                adc_bits = 12 (与上游一致)
+   [✔] CARD:adc_lsb_mv              adc_lsb_mv = 0.439mV (与上游一致)
+   [✔] CARD:adc_rth_ohm             adc_rth_ohm = 37500.0Ω (与上游一致)
+   [✔] CARD:adc_tau_ms              adc_tau_ms = 3.75ms (与上游一致)
+   [✔] CARD:adc_t_settle_ms         adc_t_settle_ms = 33.791ms (与上游一致)
+   [✔] CARD:adc_leak_offset_v       adc_leak_offset_v = 0.0375V (与上游一致)
+   [✔] CARD:adc_leak_offset_pct_fs  adc_leak_offset_pct_fs = 2.1%FS (与上游一致)
+   [✔] CARD:adc_node_v_at_supply    adc_node_v_at_supply = 1.575V (与上游一致)
+   [✔] CARD:adc_node_max_abs_v      adc_node_max_abs_v = 1.98V (与上游一致)
+   [✔] CARD:adc_fs_utilization_pct  adc_fs_utilization_pct = 87.5% (与上游一致)
+   [✔] CARD:adc_populated           adc_populated = 必装 (与上游一致)
+   [✔] CARD:adc_criteria_all_ok     adc_criteria_all_ok = True (与上游一致)
+   [✔] P1-DECISION                  活结论里把 VBUS_DET_D 说成 ADC 判决对象的行: 无
+   [✔] P1-DECISION-PRESENT          文档里有「判决对象/装机链 = BAT_DET」的明文 (带订正标记)
+   [✔] P2-FS                        活结论里残留 3.3V 口径旧数的行: 无
+   [✔] P2-FS-LSB                    文档含现值 `0.439`
+   [✔] P2-FS-PCT                    文档含现值 `2.1%FS`
+   [✔] P2-FS-RTH                    文档含现值 `37500`
+   [✔] P2-FS-SETTLE                 文档含现值 `33.791`
+   [✔] P2-FS-VOLTAGE                文档含现值 `1.8`
+   [✔] P3-POP                       活结论里还在说 BAT_DET/电量链 DNP 的行: 无
+   [✔] P3-POP-PRESENT               文档含「必装」
+   [✔] P4-VERDICT                   活结论里残留 ADC ❌/无硬件支撑 的行: 无
+
+OK: 29/29 项通过, rc=0
+rc=0

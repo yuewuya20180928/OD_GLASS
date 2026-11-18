@@ -1,0 +1,23 @@
+#!/bin/bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+export TMPDIR=/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss293_tmp
+echo "### [1] check_timing_review_adc_sync.py"
+python3 SW/tools/check_timing_review_adc_sync.py >/dev/null 2>&1; echo "rc=$?"
+echo "### [2] check_timing_review_adc_sync.py --selftest"
+python3 SW/tools/check_timing_review_adc_sync.py --selftest >/dev/null 2>&1; echo "rc=$?"
+echo "### [3] timing_check.py (全量)"
+python3 SW/tools/timing_check.py >/dev/null 2>&1; echo "rc=$?"
+echo "### [4] timing_check.py --only F4_adc_det"
+python3 SW/tools/timing_check.py --only F4_adc_det >/dev/null 2>&1; echo "rc=$?"
+echo "### [5] timing_check.py --only F4D_usb_vbus_det"
+python3 SW/tools/timing_check.py --only F4D_usb_vbus_det >/dev/null 2>&1; echo "rc=$?"
+echo "### [6] check_demo_panel_spec.py"
+python3 SW/tools/check_demo_panel_spec.py >/dev/null 2>&1; echo "rc=$?"
+echo "### [7] check_demo_panel_spec.py --selftest"
+python3 SW/tools/check_demo_panel_spec.py --selftest >/dev/null 2>&1; echo "rc=$?"
+echo "### [8] state/merge.py"
+python3 state/merge.py >/dev/null 2>&1; echo "rc=$?"
+echo "### [9] state/gate_check.py"
+python3 state/gate_check.py >/dev/null 2>&1; echo "rc=$?"
+echo "### [10] state/issue_check.py"
+python3 state/issue_check.py >/dev/null 2>&1; echo "rc=$?"

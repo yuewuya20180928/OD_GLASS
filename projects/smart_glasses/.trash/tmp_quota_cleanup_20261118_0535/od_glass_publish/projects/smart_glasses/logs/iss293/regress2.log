@@ -1,0 +1,44 @@
+=== timing_check (full) ===
+rc=0
+  [PASS] ★反向: 采样帧数 n=120 < 300 ⇒ 不作结论 (INDET)
+  [PASS] ISP p95 = 18.00 ms ⇒ 模式B 上限 (17.33) FAIL
+  [PASS] T2 交叉核对: 纯 NPU 21.00 ms ⇒ 命中老板翻案条款 (20.33 ms)
+
+SELFTEST 85/85 通过, rc=0
+=== timing_check F4D ===
+rc=0
+   criteria                           : {'static_current_ok': True, 'level_ok': True, 'all_ok': True}
+   verdict                            : ★VBUS_DET_D 链落点 = J_SOM_P1 pin100 = USB_DRD1_VBUSDET (脚表域栏 = —— ⇒ 域未知 [0数据]) ⇒ 按【数字检测输入】口径判 (★不是 SAR-ADC★): ① 常开静态电流 4.81µA (理想分压 2.5µA) ≤ 上限 26.25µA (同板 BAT_DET 链 V-3 已裁决值) ⇒ ✔; ② 节点电平 2.5V @5V (VBUS 4.75~5.25V ⇒ 2.375~2.625V) vs 识别阈值 >2.3V ⇒ ✔ (裕量 75.0mV ⚠; 且低于手册标称高电平带下沿 2.7V ⚠); ③ 该脚 abs-max 3.3 ⇒ ✔; ★★未决 (已登记 need, 不阻塞本闸但禁止据此判『安全』): 该脚是否带内部 40kΩ 下拉 [0数据] ⇒ 若带则节点 0.185V ⇒ **USB 插入检测不工作**★★
+=== demo_panel_spec ===
+rc=0
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+=== demo_panel_spec --selftest ===
+rc=0
+  ✅ REV-20 只改板不动 .kicad_pro (两件记录只来一条)                   ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9901) 覆盖 (记录只来)
+  ✅ REV-21 合法改板: 台账四项齐全 + 锚点原子记录 ⇒ 放行 (★正向★)             ⇒ R6 仍绿 (★合法改板四项齐全 = 放行★)
+--- SELFTEST 22/22 通过 ---
+=== merge ===
+rc=0
+✅ STATE.yaml 已刷新 (2026-11-17T17:55:31+08:00)
+   产出 519 | 阻塞 43 (高危 33) | 未闭合需求 298 | 冲突 0 | 健康度 red
+=== gate_check ===
+rc=0
+   · mech-lead: 95 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+=== issue_check ===
+rc=0
+       ★★[门禁侧·口径缺陷·内部活] ★★`state/delivery_health.py` 的【口径①】把 `delivery.mo
+
+✅ 问题闭环门全过 (字段/状态机/验证分离/逾期/双向覆盖)
+=== md5 ===
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+37f62ac3f0b81d92ca7d48fdea717f07  HW/netlist_v1.csv
+a4270120454aedf7a23c92cd8985c8a6  HW/netlist_v1_pins.csv
+5d02bece9477ffce5fbe0193c7d5cce4  HW/BOM_v1.csv
+=== mtime ===
+2026-11-06 07:07:17.362193413 +0800 HW/PCB/demo_mainboard.kicad_pcb
+ALLDONE

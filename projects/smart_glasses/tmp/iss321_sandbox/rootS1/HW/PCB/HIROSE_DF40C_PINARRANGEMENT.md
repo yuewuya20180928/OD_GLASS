@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/HIROSE_DF40C_PINARRANGEMENT.md

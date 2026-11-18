@@ -1,0 +1,153 @@
+--- SW/tools/check_demo_panel_spec.py.bak_iss312	2026-11-17 10:27:34.263859806 +0800
++++ SW/tools/check_demo_panel_spec.py	2026-11-18 06:38:00.798490761 +0800
+@@ -519,6 +519,128 @@
+                             recs=sw_ledger_change_rows(text, rel, exclude_aliases))
+ 
+ 
++# ★★【ISS-312 · 2026-11-18 · sw-lead】★★ 链头落表单号的【交叉核对】(★修法 A + B★)
++#   ★**病灶 (ISS-309 已 verified · main 05:4x 本机复跑)**: 判据对【链头落表单号】**只有「非空」一道检查**
++#     ⇒ 单号被改坏 (假号 / 多个号 / 与真源不一致) **一律判绿** ⇒ ★那是漏放 (假绿)★
++#   ★**修法 A (治「台账自相矛盾」)**: 链头产出单号必须【唯一】⇒ 同一个 md5 被两个不同单号声称产出
++#     ⇒ 台账自相矛盾 ⇒ fail-closed 判红 (★与已有的「链头不唯一 ⇒ 红」同款语义★)
++#   ★**修法 B (治「台账自洽但单号是假的」)**: 链头单号必须与【独立信源】对上
++#     ⇒ ★**独立信源 = `state/issue_log.yaml`** (★main 维护 · 只读 · 与被测对象无关 ⇒ 不是自证★)
++#        ① 该单号在 issue_log 里【存在】 ⇒ 假单号 (ISS-9900 之类) 当场露馅
++#        ② 该单在 issue_log 里的留痕必须提到【这个文件】+【这个链头 md5】
++#           ⇒ 真实存在但对不上的单号 (★换了另一个真 ISS 号★) 也露馅
++#   ★**纪律**: ★不许拿「桶名拼写」当反向用例 · 不许拿判据自己判自己 · 不许拿同一份台账的两个副本互证★
++ISSUE_LOG_REL = os.path.join("state", "issue_log.yaml")
++_ISSUE_LOG_CACHE: dict = {}
++
++
++def sw_issue_log_path(root: str) -> str:
++    """独立信源 issue_log 的路径 (★树里有自己的就用自己的; 没有就退回本仓的 (★只读★)★)。
++
++    ★为什么要这个退回★: 反向用例在临时树上跑 (★临时树只拷被测的那几个文件★)
++      ⇒ 树里没有 `state/issue_log.yaml` ⇒ 退回本仓那份 ⇒ ★信源仍然是【真 issue_log】(★独立于被测对象★)
++      ⇒ ★真盘跑的时候 root == PROJ ⇒ 两条路径指向同一个文件, 口径一致★ ★[实测]
++    """
++    p = os.path.join(root, ISSUE_LOG_REL)
++    if os.path.isfile(p):
++        return p
++    return os.path.join(PROJ, ISSUE_LOG_REL)
++
++
++def sw_issue_log_entries(root: str) -> dict:
++    """把独立信源 issue_log 切成 {ISS-xxx: 那一整条的原文} (★按文本切, 不用 yaml 解析★)。
++
++    ★为什么按文本切★: `state/issue_log.yaml` 有 3 MB / 309 条 ⇒ yaml.safe_load 要 1 秒多
++      ⇒ ★本判据每次跑都要读它 ⇒ 按文本切只按行扫, 几十毫秒★ ★[实测]
++    ★切法★: `issues:` 之后、列 0 的 `- ` 开头的行 = 一条 issue 的开始
++      (★注意: 有些条的 `id:` 写在条目的【末尾】(★例 ISS-081★) ⇒ 不能拿 `id:` 行切, 要拿 `- ` 行切★)
++    """
++    path = sw_issue_log_path(root)
++    key = os.path.abspath(path)
++    hit = _ISSUE_LOG_CACHE.get(key)
++    if hit is not None:
++        return hit
++    out: dict = {}
++    try:
++        with open(path, encoding="utf-8") as f:
++            text = f.read()
++    except OSError:
++        _ISSUE_LOG_CACHE[key] = out
++        return out
++    i = text.find("\nissues:")
++    if i >= 0:
++        chunks: list = []
++        cur: list = []
++        for line in text[i:].splitlines():
++            if line.startswith("- "):
++                if cur:
++                    chunks.append("\n".join(cur))
++                cur = [line]
++            elif cur:
++                cur.append(line)
++        if cur:
++            chunks.append("\n".join(cur))
++        for ch in chunks:
++            # ★`id:` 行有两种写法: 条目首行的 `- id: ISS-xxx` (★多数★) 与条目末尾的 `  id: ISS-xxx` (★例 ISS-081★)
++            m = re.search(r"^\s*(?:-\s*)?id:\s*['\"]?(ISS-\d+)['\"]?\s*$", ch, re.M)
++            if m:
++                out[m.group(1)] = ch
++    _ISSUE_LOG_CACHE[key] = out
++    return out
++
++
++def sw_chain_head_iss_check(root: str, rel: str, head: str, head_iss, tag: str,
++                            cross_check_source: bool = True) -> list[str]:
++    """★【ISS-312】链头落表单号的【交叉核对】(★修法 A + B★) ⇒ 红项列表 (★绿 = 空列表★)。
++
++    ★`tag` = 报错前缀 (★"R6 台账链" / "R6 硬保护"★) ⇒ 两处判决点用同一套口径 ★
++    ★`cross_check_source` = 做不做【修法 B】(★与独立信源 issue_log 对账★):
++      · True  ⇒ ★落表真源那条路径 (★`check_r6_three_way`★) ★★ISS-309 实测的洞在这儿★★
++      · False ⇒ ★硬保护那条路径 (★`check_r6_hard_protected`★) ⇒ ★只判 A★
++        ★★为什么它只判 A (★交 main 拍·本单不代拍★)★★:
++          ① 那个判决点【被别的闸用【虚拟根】调用】(★`SW/tools/check_onepass_sw_sync.py` 的
++             `build_virtual_root()`★ ⇒ 那个虚拟根里【没有】独立信源 ⇒ 在那里硬判 B
++             ⇒ 别的闸的【合法改板正向用例 (⑮)】会【假红】⇒ ★ISS-309 的教训: 假伤要修夹具,
++             不许改判据★ ⇒ 而那个夹具文件【不在本单可写范围】★
++          ② 硬保护那条路径的票 = 【合法改板票】(★与「落表票」不是一回事★) ⇒ 给它加 B
++             等于给【板那一趟】加一条新义务 (★落表单必须在 issue_log 里留痕【文件名 + 新 md5】★)
++             ⇒ ★这条义务归 main / 板那一趟拍 (★本单只出 need·不代拍★)★
++    ★「缺单号」不归本函数管 (★由原有的「缺落表单号」红项负责★) ⇒ 本函数只管【有单号但单号不对】★
++    """
++    fails: list[str] = []
++    head_iss = list(head_iss or [])
++    # ---- 修法 A: 链头产出单号必须唯一 (⇒ 治「台账自相矛盾」) ----
++    if len(head_iss) > 1:
++        fails.append("%s: %s 台账最新记录 (%s) 的落表单号不唯一 = %s ⇒ 同一条落表记了 %d 个单号 "
++                     "(★台账自相矛盾 ⇒ 判红★)" % (tag, rel, head, head_iss, len(head_iss)))
++        return fails            # ★单号本身都不可信了 ⇒ 下面那个独立信源对账没有意义 (★不多报噪声红★)
++    if not head_iss:
++        return fails            # ★没单号 ⇒ 走原有的「缺落表单号」红项★
++    if not cross_check_source:
++        return fails            # ★这条路径只判 A (★理由见上面的 docstring★)★
++    iss = head_iss[0]
++    # ---- 修法 B: 链头单号必须与【独立信源 issue_log】对上 ----
++    entries = sw_issue_log_entries(root)
++    if not entries:
++        fails.append("%s: %s 台账最新记录 (%s) 的落表单号 %s 在独立信源 (%s) 里查不到任何条目 "
++                     "⇒ 无从对账 (fail-closed ⇒ 判红)" % (tag, rel, head, iss, ISSUE_LOG_REL))
++        return fails
++    ch = entries.get(iss)
++    if not ch:
++        fails.append("%s: %s 台账最新记录 (%s) 的落表单号 %s 在独立信源 (%s) 里查不到 "
++                     "⇒ 单号是假的 (★判红★)" % (tag, rel, head, iss, ISSUE_LOG_REL))
++        return fails
++    base = os.path.basename(rel)
++    if base not in ch:
++        fails.append("%s: %s 台账最新记录 (%s) 的落表单号 %s 在独立信源里没有 %s 的落表留痕 "
++                     "⇒ 单号与真源对不上 (★判红★)" % (tag, rel, head, iss, base))
++        return fails
++    if not (head[:12] in ch or head[:8] in ch):
++        fails.append("%s: %s 台账最新记录 (%s) 的落表单号 %s 在独立信源里没有 %s 的留痕 "
++                     "(独立信源只认得旧 md5 ⇒ 挂错单 ⇒ 判红★)" % (tag, rel, head, iss, head[:12]))
++    return fails
++
++
+ def check_r6_hard_protected(root: str, anchors: dict, led_text: str, led_spec: str) -> list[str]:
+     """R6 硬保护段 (板 / .kicad_pro): ★【ISS-284 · P10 = 方案 ②】合法改板机制★。
+ 
+@@ -597,6 +719,11 @@
+         heads[rel] = head
+         if not st.get("head_iss"):
+             fails.append("R6 硬保护: %s 台账最新记录 (%s) 缺落表单号 (字段缺失)" % (rel, head))
++        # ★★【ISS-312】链头落表单号的【交叉核对 · 修法 A】⇒ 治「同一个 md5 被两个单号抢」★
++        #   ★★修法 B (与独立信源 issue_log 对账) 【不在这条路径上做】⇒ 理由见
++        #   `sw_chain_head_iss_check()` 的 docstring ⇒ 交 main 拍 ★★
++        fails += sw_chain_head_iss_check(root, rel, head, st.get("head_iss"),
++                                          "R6 硬保护", cross_check_source=False)
+         if not st.get("chain"):
+             fails.append("R6 硬保护: %s 台账链断了 / 不唯一 (%s)" % (rel, st.get("why")))
+         else:
+@@ -716,6 +843,9 @@
+             continue
+         if not st.get("head_iss"):
+             fails.append("R6 台账链: %s 台账最新记录 (%s) 缺落表单号 (字段缺失)" % (rel, head))
++        # ★★【ISS-312】链头落表单号的【交叉核对 · 修法 A + B】⇒ 治「单号被改坏 ⇒ 判绿」★★
++        #   ★★ ISS-309 实测的洞就在这条路径上 (★落表真源 = 网表 / 脚表★) ★★
++        fails += sw_chain_head_iss_check(root, rel, head, st.get("head_iss"), "R6 台账链")
+         if not st.get("chain"):
+             fails.append("R6 台账链: %s 台账链断了 / 不唯一 (%s)" % (rel, st.get("why")))
+         else:

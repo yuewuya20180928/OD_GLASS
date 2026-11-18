@@ -1,0 +1,35 @@
+★★ISS-325 cont2 · §9-4-2 · 4 个生成器产物的边界自证 (★实测·零手抄★)★★
+  生成时刻: 2026-11-18 15:01:33 CST
+
+══ ① 现象: mtime 在动 (★本单的臂经 replay_patch_chain.sh → check_pcb_drc.py → gen_kicad_project.py 重写★)══
+HW/PCB/STACKUP.md  mtime=2026-11-18 15:00:01.612931975 +0800  size=1175
+HW/PCB/LAYOUT_RULES.md  mtime=2026-11-18 15:00:01.613049711 +0800  size=1259
+HW/PCB/GEN_SELF_CHECK.txt  mtime=2026-11-18 15:00:01.614572862 +0800  size=612
+HW/PCB/_frame_reference.kicad_pcb  mtime=2026-11-18 15:00:01.611404356 +0800  size=37592
+
+══ ② 内容实情: 与 2026-11-17 08:34 的旧副本逐字比对 (★旧副本 = .trash/tmp_quota_cleanup_20261118_0535/iss279_sandbox/HW/PCB/★)══
+  --- STACKUP.md (★剥掉首行时间戳后 diff★) ---
+    ✅ tail -n +2 完全相同 ⇒ 只有首行时间戳变
+  --- LAYOUT_RULES.md (★剥掉首行时间戳后 diff★) ---
+    ✅ tail -n +2 完全相同 ⇒ 只有首行时间戳变
+  --- GEN_SELF_CHECK.txt (★剥掉首行时间戳后 diff★) ---
+    ✅ tail -n +2 完全相同 ⇒ 只有首行时间戳变
+  --- _frame_reference.kicad_pcb (★剥掉全部 (uuid "…") 后 diff★) ---
+    uuid 行数: 236
+    ✅ 剥掉 236 处 uuid 后逐字节相同 ⇒ 几何/网络零变化, 只有随机 UUID 重采样
+    (未剥 uuid 的原始 diff 行数 = 472 = 236×2 行 uuid)
+
+══ ③ 板面/网表/脚表/BOM 一个字节未动 (★零写板 + 零落表双证★)══
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+HW/PCB/demo_mainboard.kicad_pcb  mtime=2026-11-06 07:07:17.362193413 +0800
+
+══ ④ 根因链 (★源码行号·只读·零改★)══
+  state/check_pcb_drc.py L156~L159  →  run([sys.executable, 'state/gen_kicad_project.py'])   ← 无条件
+  state/gen_kicad_project.py L255/L286/L303/L369  →  open(...,'w').write(...)                    ← 无条件 (无 if-not-exists / 无内容比对 / 无 mtime 守卫)
+  ⇒ ★**任何跑 check_pcb_drc.py 的动作都会改这 4 个文件的 mtime + (STACKUP/LAYOUT_RULES/GEN_SELF_CHECK 的首行时间戳) + (_frame_reference 的 236 个随机 uuid)★★
+  ⇒ ★**state/daily_check.py L321 直接跑 check_pcb_drc.py ⇒ 每天的巡检都在动这 4 个文件 ⇒ 【复发型缺陷】★★
+  ⇒ ★**同型复发已在 ISS-280 (2026-11-17 08:50) 被披露过一次 (state/_apply_20261117_0850_main_verify279_280.py L68) ⇒ 至今未修★★
+  ⇒ ★**本单处置: 只如实登记, 不许手改恢复 (擦产物), 不许改生成器代码 (零改生成器代码) ⇒ 修不修归 main 判断★★

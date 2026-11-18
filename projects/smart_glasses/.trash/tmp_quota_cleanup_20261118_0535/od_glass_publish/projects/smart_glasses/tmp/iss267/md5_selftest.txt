@@ -1,0 +1,24 @@
+$ md5sum MECH/check_demo_struct_truth.py MECH/cavity_recalc_check.py MECH/service_port_check.py
+4ae5827e986f1aebb108c5aa2a475074  MECH/check_demo_struct_truth.py
+c4bf9151dd59826fb2320c34e8afbd0f  MECH/cavity_recalc_check.py
+db58ff6a2afc28b8bf517e3c57c56bc1  MECH/service_port_check.py
+
+$ md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv HW/PCB/demo_mainboard.kicad_pcb HW/PCB/demo_mainboard.kicad_pro
+e06c1dd633566aa44732762c2ff99d1c  HW/netlist_v1.csv
+287e7861a0d1007748d92d9fbecdd490  HW/netlist_v1_pins.csv
+94642d07a69e8d60dd2af57f69b93607  HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+
+$ python3 MECH/jd_y0_feasibility.py --selftest  (本单新脚本)
+========================================================================================================
+JD-Y0 FEASIBILITY — 自检 (ISS-267)
+========================================================================================================
+  [OK ] ① 现值复算一致: 开口 Y 7.835..12.435 · P-5 3.23/8.53
+  [OK ] ② 旧 15mm 板口径回代 ⇒ P-5 1.00/1.03 (判据 0.60 未松)
+  [OK ] ③ jd_y0=24.50 ⇒ 闸脚本判据判红 (2.5: 焊盘上沿 25.77 > 13.00, 余 -12.77) ⇒ 「按相对位置迁」在【脚本现值口径】下走不通
+  [OK ] ④ 口径矛盾留痕: jd_y0=24.50 时 7.4 两分支 = [-11.77 | 8.50] ⇒ 通用式取 max = 8.50 ⇒ ISS-264 §0.1 的「−11.77 重叠」在脚本自己公式下复现不出来
+========================================================================================================
+[自检] ✅ 一致 —— ① 现值复算一致 ② 旧 15mm 板口径回代一致 ③ 反向用例 (24.50) 判红 ④ 口径矛盾留痕 (24.50 通用式 = +8.50)
+========================================================================================================
+rc=0

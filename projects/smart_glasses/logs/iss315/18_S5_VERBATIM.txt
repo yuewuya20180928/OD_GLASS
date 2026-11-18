@@ -1,0 +1,57 @@
+$ cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+$ export TMPDIR=$PWD/tmp/iss315_tmp
+$ python3 SW/tools/check_demo_panel_spec.py                      # rc 必须 0
+✅ ISS-212 demo 显示侧口径门禁: 全过
+   R1 demo 屏规格真源 (480×640 / 2-lane / 无 DCS / I2C_B ≤100kHz + 附属必填项) ✅
+   R2 demo 规格里整机口径只在「整机路线占位区」内 ✅
+   R3 pipeline spec 的 demo 活动口径已重锚 ✅
+   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+rc=0
+
+$ python3 SW/tools/check_demo_panel_spec.py --selftest           # rc 必须 0 · 22/22
+--- SELFTEST 22/22 通过 ---
+rc=0
+
+$ python3 SW/tools/check_demo_panel_spec_r6_selftest.py          # rc 必须 0 · 7/7  (回归基线·不许动)
+反向用例: 7/7 通过
+rc=0
+
+$ python3 SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py  # rc 必须 0 · 4/4  (ISS-312 刚立的·不许动)
+反向用例: 4/4 通过
+rc=0
+
+$ python3 SW/tools/check_onepass_sw_sync.py --selftest           # rc 必须 0 · 16/16
+  反向用例 16/16 通过
+  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+rc=0
+
+$ python3 SW/tools/check_landing_trace_obligation.py --selftest   # ★本单新建的落表留痕新闸★
+反向用例: 4/4 通过
+✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+rc=0
+
+$ python3 SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py   # ★本单新建的硬保护路径反向用例闸★
+----------------------------------------------------------------------------------------------------
+反向用例: 4/4 通过
+rc=0
+
+$ python3 state/merge.py && python3 state/gate_check.py          # rc 必须 0 · Q1 必须 18/18
+✅ STATE.yaml 已刷新 (2026-11-18T07:54:24+08:00)
+   产出 624 | 阻塞 43 (高危 33) | 未闭合需求 313 | 冲突 0 | 健康度 red
+merge rc=0
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+gate_check rc=0
+
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb SW/tools/check_demo_panel_spec.py SW/tools/check_demo_panel_spec_r6_selftest.py SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+4d9c21dd0125b3b0e1a7e567852287b8  SW/tools/check_demo_panel_spec.py
+2cbb211b1106aac5f3a39a09fce54519  SW/tools/check_demo_panel_spec_r6_selftest.py
+4181202cdb8757e7a3680a6769406267  SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py
+
+$ stat -c "%y" HW/PCB/demo_mainboard.kicad_pcb                   # 零写板第二证 (mtime 必须还是 2026-11-06 07:07)
+2026-11-06 07:07:17.362193413 +0800

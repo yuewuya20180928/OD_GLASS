@@ -52,7 +52,7 @@ SRC = {
     "pcb_thk_6L":    (1.00,  "HW/PCB_FORM_FACTOR_RECHECK §6.4 6 层 → 1.0mm", "[推算]"),
     "pad_soc":       (0.30,  "MECH_BUDGET §5.1 SoC 下方导热垫", "[推算]"),
     "skeleton":      (1.00,  "MECH_BUDGET §5.1 铝/铜骨架厚 (v1.1 未给厚 → 假设 1.0)", "[推算]"),
-    "cell_l":       (40.50,  "Renata ICP582035PR-01 340mAh 长", "[官网]"),
+    "cell_l":       (40.50,  "Renata ICP422339PR 340mAh 长", "[官网]"),
     "cell_thk":      (4.60,  "同电芯 厚", "[官网]"),
     "conn_margin":  (15.00,  "MECH_BUDGET §1.4.2 连接器/弯折/插拔余量", "[推算]"),
     # ---------- 镜框侧 (MECH_BUDGET §1.4.5 / CLEARANCE_FIX) ----------

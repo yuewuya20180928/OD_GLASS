@@ -1,0 +1,54 @@
+===== ISS-309 §4 验收电池 (TMPDIR=/home/yuewuya/.cache/iss309_tmp ⇒ 绕开 /tmp 每用户配额) =====
+
+$ python3 SW/tools/check_demo_panel_spec_r6_selftest.py ; echo "rc=$?"
+      ⇒ 修法 (★交 main 拍板, 本单不碰判据★):
+         A 判据加【链头产出单号不唯一 ⇒ 判红】(⇒ 治变体 ①; 治不了 ②)
+         B 链头单号必须与【独立信源】对上 (⇒ 锚点副本每次落表都跟到链头 / 或查 issue_log 真单号)
+         (★ISS-309 need · 反向用例设计见交卷单 B3/B5★)
+rc=0
+
+$ python3 SW/tools/check_demo_panel_spec.py ; echo "rc=$?"
+   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+rc=0
+
+$ python3 SW/tools/check_demo_panel_spec.py --selftest ; echo "rc=$?"
+  ✅ REV-19 链断 (改前 md5 对不上台账记的上一次改后 md5)                  ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 的 reboard 改前 md5 611b869e1351 )
+  ✅ REV-20 只改板不动 .kicad_pro (两件记录只来一条)                   ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9901) 覆盖 (记录只来)
+  ✅ REV-21 合法改板: 台账四项齐全 + 锚点原子记录 ⇒ 放行 (★正向★)             ⇒ R6 仍绿 (★合法改板四项齐全 = 放行★)
+--- SELFTEST 22/22 通过 ---
+rc=0
+
+$ python3 SW/tools/check_onepass_sw_sync.py ; echo "rc=$?"
+  OK   W6
+     受保护 5 件: 盘上 md5 必须在落表台账里查到 (合法落表自动前移 · 偷换照红) + 硬保护两件走【合法改板通道】(★台账链头 + reboard 四项原子映射 · 判据逐字照搬权威闸★) + 台账 §1 锚点块两个 md5 未被手改 (★不许手改 md5 凑绿★): ✔
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★SW 侧板侧输入清单齐全 (①~⑧ 八条一条不缺) 且现状值与盘面一致 ★★
+rc=0
+
+$ python3 SW/tools/check_onepass_sw_sync.py --selftest ; echo "rc=$?"
+  ✔  ★基线: 真盘 W1~W6 全绿
+------------------------------------------------------------------------------
+  反向用例 16/16 通过
+  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+rc=0
+
+$ python3 SW/tools/timing_check.py ; echo "rc=$?"
+  [PASS] ISP p95 = 18.00 ms ⇒ 模式B 上限 (17.33) FAIL
+  [PASS] T2 交叉核对: 纯 NPU 21.00 ms ⇒ 命中老板翻案条款 (20.33 ms)
+
+SELFTEST 85/85 通过, rc=0
+rc=0
+
+$ python3 SW/tools/check_shutdown_semantics.py ; echo "rc=$?"
+    开关候选: ['Q1', 'Q2', 'Q_AND', 'Q_CHG_LED', 'Q_ENVC', 'Q_PG', 'SW_BOOT', 'SW_KEY_CAM', 'SW_KEY_PWR', 'SW_KEY_VM', 'SW_KEY_VP', 'SW_RST', 'U_EN_SW', 'U_PWR_SW']
+    作用域 demo: 关机语义=深睡 · 拓扑割边器件=(无)
+    作用域 整机: 关机语义=真断电 · 拓扑割边器件=['U_PWR_SW']
+✅ R1~R7 全过 (口径页 / HW 文档 / SW 镜像 / 网表 四方一致)
+rc=0
+
+$ python3 SW/tools/check_load_switch_selection.py ; echo "rc=$?"
+[check_load_switch_selection] PASS — 负载开关选型证据矩阵门禁全过
+rc=0

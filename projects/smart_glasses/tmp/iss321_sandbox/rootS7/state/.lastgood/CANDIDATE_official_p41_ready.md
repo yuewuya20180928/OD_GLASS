@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/.lastgood/CANDIDATE_official_p41_ready.md

@@ -1,0 +1,23 @@
+
+================================================================================================
+【自检】check_onepass_mech_sync.py 反向用例 (★沙盒副本上跑, 真件一个字节不碰★)
+================================================================================================
+  [基线] M1=OK M2=OK M3=OK M4=OK M5=OK
+  [OK ] ① 改检修口矩形一个角 (y0 66.300 ⇒ 52.000) ⇒ M2 红: 是 · md5 f30531bd ⇒ 576a44cc (确实改了: True) · M2 命中=[('PORT_OPEN_DEBUG', 0), ('PORT_OPEN_UART', 23), ('PORT_OPEN_USBC', 0)]
+  [OK ] ② 把两条开口合并成一个 ⇒ M2/M3 红: 是 · md5 f30531bd ⇒ 57fe8d1d (确实改了: True) · M2 错误 4 条 / M3 错误 1 条
+  [OK ] ③ 抽掉正文表头的帧标签 ⇒ M1 红: 是 · 命中模式: True · md5 f30531bd ⇒ e114de79 (确实改了: True) · M1 错误 5 条
+  [OK ] ④ 抽掉机器块里的 frame 字段 ⇒ M1 红: 是 · md5 f30531bd ⇒ 77e1c86c (确实改了: True) · M1 错误 1 条
+  [OK ] ⑤ 把 h 三档之一改到不合理 (4.00 ⇒ 40.00) ⇒ M3 红: 是 · md5 f30531bd ⇒ a55685db (确实改了: True) · M3 错误 5 条
+  [OK ] ⑥ 把判据命令改成不存在的脚本 ⇒ M4 红: 是 · md5 f30531bd ⇒ 124f9b3a (确实改了: True) · M4 错误 13 条
+Traceback (most recent call last):
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/check_onepass_mech_sync.py", line 984, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/check_onepass_mech_sync.py", line 969, in main
+    return selftest(root)
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/check_onepass_mech_sync.py", line 847, in selftest
+    before = CFC.md5_of(bom)
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/check_board_frame_coords.py", line 542, in md5_of
+    with open(path, "rb") as f:
+         ~~~~^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/yuewuya/.openclaw/workspace/tmp/iss278_sync_selftest/case7_touch_protected/HW/BOM_v1.csv'

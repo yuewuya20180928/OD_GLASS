@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/dispatch_briefs/ISS-309_sw_r6_selftest_5of7_cont1.md

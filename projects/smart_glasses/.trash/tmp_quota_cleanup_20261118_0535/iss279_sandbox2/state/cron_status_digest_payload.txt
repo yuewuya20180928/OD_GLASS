@@ -1,0 +1,16 @@
+【ARS45 智能眼镜 · 状态速报】执行下面这一条命令, 然后只报一行状态, 不要展开分析、不要给建议、不要改任何文件:
+
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses && python3 state/daily_check.py
+
+输出格式 (单行, 微信里要能一眼看完):
+状态: 巡检 rc=<rc> | 阶段门 <X> | 问题单 <总数>(内部<内>/外部<外>) | 逾期 <N> | 未闭环 blocker <N> | 内部未闭合需求 <N> | 距上次 GitHub 推送 <N> 分钟
+
+★取数: 巡检 rc 与各数字从 daily_check.py 输出里取; 距上次推送从 `cat /home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/.last_github_push` 的时间戳算 (★文件可能不存在 ⇒ 写 "未知")。
+★纪律: 只读 + 报一行; 不写分片 / 不派活 / 不发邮件 / 不改项目文件。
+
+★★★★★★★【★★投递纪律 (★2026-11-11 07:5x 实测写死的★★)】★★★★★★
+★**为什么必须自己发**: cron 的 announce 兜底直发通道 (direct fallback) 到 openclaw-weixin **实测是坏的** ⇒ ★**小时速报最后一次成功送达是 11-03 09:09 (已全灭 8 天), 错误恒为 `OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed` (★gateway 日志 /tmp/openclaw/openclaw-2026-11-11.log 有原文★)** ⇒ ⇒ **光把这一行当"最终回复"输出 = 老板手机收不到**。
+★**怎么发 (★只调一次★)**: 用 message 工具, ★**只传 `action="send"` + `message=<那一行状态>` 两个参数** ⇒ ★**不要传 channel / target / accountId** ⇒ ★**让工具用【本会话的默认投递目标】** (★这是 10 分钟进展播报实测能送达的形状: 它的 message 调用也只带 action+message, 2026-11-11 06:26 实测送达成功★)。
+★**为什么强调"只传两个参数" (★2026-11-11 07:2x 实测踩过★)**: ★**显式传 target/accountId 的调用一律报 `prepare failed` (实测 4 种形状全灭: target / targets / target+text / target+accountId+message)** ⇒ ★**别换形状重试** ⇒ ★**失败就立刻放弃, 直接出结论**。
+★**无论发没发出去, 最后都把那一行状态原样作为本轮最终回复输出**; 若发送失败 ⇒ 在那行后面追加 `推送失败: <错误串>` ⇒ ★**不许假装已送达**。
+★**这一轮只做这三件事** (跑命令 + 发一行 + 收工) ⇒ 不派活 / 不改项目文件 / 不发邮件 / 不跑任何自验。

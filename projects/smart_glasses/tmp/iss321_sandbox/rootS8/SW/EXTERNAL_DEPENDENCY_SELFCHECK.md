@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/EXTERNAL_DEPENDENCY_SELFCHECK.md

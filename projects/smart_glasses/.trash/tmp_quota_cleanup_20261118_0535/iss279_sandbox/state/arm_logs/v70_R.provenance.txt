@@ -1,0 +1,21 @@
+★★**v70 臂溯源 (★2026-11-08 21:5x 建)****
+★**这是什么臂**: ★**不是整板重布 (★那要 6 小时) ⇒ 是"在官方板上做更细网格的 A* 补段"** (★照抄 `state/run_grid_ladder.sh` 的阶梯配置)
+★**为什么起这个臂 (★实测链, 不是猜)**:
+  · ★**官方板**: unc 45 · DRC 0 · 18092 段 / 433 孔 · md5 611b869e (★唯一真源)
+  · ★**2026-11-06 07:0x 网格阶梯实测**: grid=**0.0625mm** · margin=**0.03125mm** (★网格半格)
+    ⇒ ★**unc 42 (比官方板好 3 条)** · 走线 18469 · 过孔 445 · 差分单边零铜 11 (与官方板平) · 差分Δ超差 3 (平) · 零铜网 23 (比官方 24 少 1) · 退铜名单 0 · 差分死腿 0
+    ⇒ ★**⇒ 但 fresh DRC = 12 条违规 ⇒ 闸 REJECT**
+  · ★**那 12 条的根因 (★11-08 已定位并修好)**: ★**全是"过孔 vs 走线"** ⇒ `_via_ok` 只查 `halo[2]` ⇒ 看不见 `halo[1]` 里 0.25mm 走线 ⇒ **过孔净距检查有盲区**
+    ⇒ ★**修法**: `state/patch_astar_gated.py` 的**换层点真实几何闸** (★逐路径检查换层点到最近异网铜的真实距离, 不合格 ⇒ 回退该路径 ⇒ **不落这条铜** ⇒ 不产生悬空端)
+  · ★**⇒ 本臂 = 同一条阶梯配置 + 把补段器换成带闸的那一版 ⇒ 期望 unc 42 且 DRC 0 ⇒ 那就是【比官方板更好】的第一块候选板**
+★**命令 (可逐位复现)**:
+  `env PCB_HALO_MARGIN=0.03125 bash state/pcbnew_py.sh state/patch_astar_gated.py HW/PCB/demo_mainboard.kicad_pcb /tmp/_drc45.json --out /tmp/v70_R.kicad_pcb --grid 0.0625 --width 0.25 --budget 900000 --gate-via 1`
+  · ★**输入**: 官方板 (只读) + `/tmp/_drc45.json` (★官方板的 fresh DRC, 2026-11-06 07:10:23 · 45 unconnected · 0 violations)
+  · ★**输出**: `/tmp/v70_R.kicad_pcb` (★**后缀 .kicad_pcb ⇒ LoadBoard 能读回来 ⇒ 不用再踩 v69 的坑**)
+  · ★**stdout**: `/tmp/_v70_launch.log`
+★**官方板本臂期间只读** (★md5 611b869e 不变)
+★**验收 (★跑完必做, 四项)**:
+  ① fresh DRC: `bash state/pcbnew_py.sh state/check_pcb_drc.py /tmp/v70_R.kicad_pcb` ⇒ ★**C3 DRC=0 且 C4 unconnected<45**
+  ② 名单制闸: `python3 state/compare_arm_official.py /tmp/v70_R.kicad_pcb HW/PCB/demo_mainboard.kicad_pcb` ⇒ ★**必须 ACCEPT** (★退铜名单空 · 差分死腿空 · 逐网孤岛不变多 · 至少一项变好)
+  ③ 闸自测: `python3 state/compare_arm_official.py --self-test` ⇒ ALL TESTS PASS
+  ④ 真几何复核: `python3 state/geom_clear.py ...` (★闸过了再用它当第二把尺子)

@@ -1,0 +1,37 @@
+【项目总工派活 · 队列自动推进 · 闭环 ISS-221】你是 软件总工。
+★★**目标 (★内部活·不是 PCB 布线/布局类·不是老板级拍板★)**: 给 demo 屏 (★2-lane @ 480×640★) 建 ★**它自己的 60 ms 预算真源脚本**★, 并把 demo 判据链引用的数字 ★**从「整机脚本减出来的」换成「demo 真源算出来的」**★ ⇒ 出 ★**(1) 一份 demo 预算脚本 (含反向自检) · (2) 两份规格文件里的 demo 数字换成脚本输出 · (3) 一个机器断言「demo 判据链不许再引用整机 4-lane 常量」 · (4) 一份交接单**★ ⇒ ★**本单不许改 `HW/` 下任何文件**★ ⇒ ★**零外发** ★
+
+★★**为什么是现在 (★main 2026-11-16 02:2x 实测, 不是推测★)** ★★
+· ★**ISS-215 (11-16 01:5x 交卷, 本 job 02:2x 已落 verified) 交卷里明写: 「demo 口径 (2-lane @480×640) 目前没有对应的预算脚本 —— 整机那本 `HW/e2e_budget_rk3572.py` 的 DSI 带宽常量是 4-lane@2.0Gbps×80%, 对 2-lane demo 屏不适用」⇒ ★**已登记 need 给 main** ★
+· ★**ISS-215 同时查清**: 10.09 ms 是「输出侧总额上限」(与分辨率无关), 根因是「用整机 TX 下限 7.776 去扣 demo 预算」(倍率 3.36×) ⇒ ★**现在 demo 的账是从整机账减出来的** ★
+· ⇒ ★**换屏 / 改分辨率 / 改 lane 数时, 没有人拦得住「又拿整机常量扣 demo 预算」** ⇒ ★**所以这一步是补真源, 不是补文档** ★
+· ⇒ ★**本单是三个总工名额里唯一能推进 demo 板 60ms 生死判定链的软件侧一条** ★
+
+★★**交付物 (4 件, 少一件即无效) ★★
+① ★**`SW/tools/demo_e2e_budget.py`** (★新建★) ⇒ 输入 demo 屏参数 (宽/高/通道数/lane 数/lane 速率/每帧 payload/post 固定开销) ⇒ 输出 ★**TX 下限 / compose 上限 / 显示输出侧上限 / 全链路 60ms 预算余量**★ ⇒ ★**口径必须写清: 哪些是整机同源常量 (★如 `T_FIXED_OTHER`★), 哪些是 demo 专属 (★lane 数 / 分辨率 / payload★)★ ⇒ ★**必须带 `--selftest` 反向用例 (改坏必红)★** ⇒ ★**不许把整机的 4-lane 常量写死进本脚本冒充 demo 真源** ★
+② ★**`SW/DEMO_OD_TIMING_SPEC.md` + `SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` 里的 demo 数字换成脚本输出** ⇒ ★**不许硬抄数字, 必须能追到脚本** ⇒ ★**整机路线占位区的数一个不许删 (ISS-212 L-08/L-16 的规矩: 行级豁免标记 + 块级分区标记, 两套机制不变)★ ★
+③ ★**机器门禁扩项**: `SW/tools/demo_timing_check.py` 加断言 (★demo 判据链引用的数字 == demo 预算脚本输出, 且不许出现「整机 4-lane DSI 带宽常量」这类引用★) + 反向用例 ⇒ ★**改坏必红** ★
+④ ★**交接单 `HANDOFF/2026-11-16_sw-lead_ISS221_demo预算真源.md`** (★B1~B6 六块齐全★) + ★**分片 `state/fragments/sw.yaml` (★必须走 `python3 state/frag_write.py` 原子写★)** ★
+⑤ ★**收口 ISS-215 的遗留分叉**: `SW/RKNN_BENCH.md` §4.1 L273 的 S9 注记 (★本单允许改这个文件, 但★**★只许改那一行注记, S9 = 3.0 这个数值和周边所有数字一个不许动**★) ⇒ ★**改完 md5 前后对照贴出来** ★
+
+★★**边界 (★违反一条即本单无效★) ★★
+· ★**不许改** `HW/` 下任何文件 (★`HW/e2e_budget_rk3572.py` 只许只读引用, 一个字节不许动★) ★
+· ★**不许改** `SW/DEMO_OD_PIPELINE_SPEC.md` / `SW/RKNN_BENCH.md` 里除 §4.1 L273 那一行注记以外的任何内容 / `SW/tools/rknn_bench.py` 除必要的注记外不许改 (★S9 = 3.0 逐字节不许动★) ★
+· ★**不许改** `MECH/` 下任何文件 / `state/issue_log.yaml` / `PROJECT_TRACKER.md` §0 / `state/outbox/` / 别人的分片 ★
+· ★**板端 [实测] = 0 条** (★板与屏不在本机 ⇒ 全部预算数一律标 `[推算]`★) ⇒ 标 [实测] 的只允许是「本机脚本 / 本机文件实读」 ★
+· ★**不许编造板端时延数字** ⇒ ★**不许把整机 1080p 的数当 demo 的数写进任何文件** ★
+· ★**零外发** (★不发邮件 / 询价 / 问询 / 采购★) ⇒ 缺口一律【自己网上查】+ 标证据等级 + ★**查不到必须写降级方案** ★
+· ★**不许自签 issue_log** (★status 留给 main 落 verified★) ★
+
+★★**交卷前必须实跑并把输出原样贴进回复 (★命令都已实测存在★) ★★
+```
+python3 SW/tools/demo_e2e_budget.py                # rc=0 (新建★)
+python3 SW/tools/demo_e2e_budget.py --selftest     # rc=0 (反向用例全抓到)
+python3 SW/tools/demo_timing_check.py               # rc=0 (含本单新增断言)
+python3 SW/tools/demo_timing_check.py --selftest    # rc=0 (ISS-215 那 5 条反向用例不许被改红)
+python3 SW/tools/check_demo_panel_spec.py          # rc=0 (ISS-212 门禁不许被改红)
+python3 SW/tools/check_demo_panel_spec.py --selftest # rc=0
+python3 state/merge.py && python3 state/gate_check.py # rc=0 且 【Q1 交付齐备率】 18/18
+```
+
+★额外纪律: ① 写分片必须用 state/frag_write.py (禁止 open(p,"w")) ② 只写本任务允许的文件, 不碰别人的 ③ 证据分级 [官网]/[实测]/[媒体]/[推算]/[0数据] 必须标 ④ ★**不许外发任何邮件/询价/问询/采购 (老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料) ⇒ 缺口一律【自己网上查】+ 标证据等级 + 查不到就写降级方案 ⇒ 没有"批一句可以发"这个选项** ⑤ 交卷前跑 python3 state/merge.py (rc 必须 0) && python3 state/gate_check.py (Q1 必须 18/18) 并把输出贴进回复

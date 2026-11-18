@@ -1,0 +1,39 @@
+### CMD1: python3 SW/tools/check_demo_panel_spec.py
+✅ ISS-212 demo 显示侧口径门禁: 全过
+   R1 demo 屏规格真源 (480×640 / 2-lane / 无 DCS / I2C_B ≤100kHz + 附属必填项) ✅
+   R2 demo 规格里整机口径只在「整机路线占位区」内 ✅
+   R3 pipeline spec 的 demo 活动口径已重锚 ✅
+   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+rc=0
+
+### CMD2: python3 SW/tools/check_demo_panel_spec.py --selftest
+=== SELFTEST (反向用例: 每条都必须在被破坏后变红) ===
+  ✅ REV-1 把 pipeline 的 demo 口径塞回 1920×1080               ⇒ R3 变红 (R3 pipeline spec 仍留旧 demo 口径: 'CRTC:  1920×1080@60' (定性表已判为 demo 活动口径,)
+  ✅ REV-2 把 pipeline 的 480×640 buffer 塞回 1920×1080 buffer ⇒ R3 变红 (R3 pipeline spec 缺新口径: '480×640 buffer' (定性表要求的现行写法))
+  ✅ REV-3 把 demo 规格的 480×640 删掉                          ⇒ R1 变红 (R1 demo 屏规格缺 分辨率 480×640 (期望其中之一: 480×640 / 480x640))
+  ✅ REV-4 把 demo 规格的 2-lane 删掉                           ⇒ R1 变红 (R1 demo 屏规格缺 DSI 2-lane (期望其中之一: 2-lane / dsi,lanes = <2>))
+  ✅ REV-5 把 demo 规格的「无 DCS」结论删掉                          ⇒ R1 变红 (R1 demo 屏规格缺 无 DCS init 序列 (期望其中之一: 不需要任何 DCS init 序列 / 零 DSI 写 / 不需要任)
+  ✅ REV-6 把 demo 规格的 I2C ≤100kHz 上限删掉                    ⇒ R1 变红 (R1 demo 屏规格缺 I2C_B ≤100kHz 硬上限 (期望其中之一: 100 kHz / 100kHz))
+  ✅ REV-7 把整机口径塞到 demo 规格的占位区块外                          ⇒ R2 变红 (R2 demo 屏规格第 304 行把整机口径当 demo 活动口径: ★demo 活动口径: 面板 = 视涯 0.49" 1920×108)
+  ✅ REV-8 把定性表的 L-22 行删掉                                 ⇒ R5 变红 (R5 逐处定性表缺条目: L-22)
+--- ISS-225 台账对账反向用例 (R6/R7) ---
+  ✅ 基线全绿 (R1~R7 在临时树上全过)
+  ✅ REV-9 盘上真源被换掉而锚点没换                                   ⇒ R6 变红 (R6 台账链: 盘上真源 md5 HW/netlist_v1.csv = f1ae9ad181b1 ≠ 台账最新记录 2f17650cfbe)
+  ✅ REV-10 锚点改成台账里查不到的哈希                                 ⇒ R6 变红 (R6 台账链: HW/netlist_v1.csv 锚点副本 md5 deadbeefdead 台账链里查不到 (锚点胡说?))
+  ✅ REV-11 锚点里的落表单号被改坏 (⇒ 当前值 → ISS-999)                 ⇒ R6 变红 (R6 台账链: HW/netlist_v1.csv 锚点副本落表单号 ISS-999 与台账对不上 (台账产出该 md5 的单号 = ['I)
+  ✅ REV-12 落表台账里的【当前】落表单号被改坏 (★动态取自 §1 锚点块 ⇒ 不许硬编码任何单号★) ⇒ R6 变红 (R6 台账链: HW/netlist_v1.csv 锚点副本落表单号 ISS-257 与台账对不上 (台账产出该 md5 的单号 = ['I)
+  ✅ REV-13 把落表台账里那两行删掉                                   ⇒ R6 变红 (R6 台账链: HW/netlist_v1.csv 落表台账 (HW/SCHEMATIC_LANDING_V1_LANDED.md) 里查不)
+  ✅ REV-14 把锚点块整个删掉 (fail-closed)                        ⇒ R6 变红 (R6 读不到 SW 侧 md5 基线台账锚点 ⇒ 门禁 fail-closed: 台账里找不到锚点块 (# BEGIN SW_MD5_ANC)
+  ✅ REV-15 把「已修复 (留痕)」那一节删掉                              ⇒ R7 变红 (R7 留痕账里没有「已修复 (留痕)」那一节 (删了 ⇒ 一次真变更被从账上抹了))
+--- ISS-284 合法改板机制用例 (P10 = 方案 ② · 硬保护两件) ---
+  ✅ REV-16 只改锚点里的板 md5, 单号字段没写 (★挖坑★)                    ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 的保护基线 md5 391f56805c70 在落表台账 ()
+  ✅ REV-17 锚点写了单号, 但落表台账里查不到那一行                          ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 锚点里有合法改板记录 (reboard) 但落表台账里查不到)
+  ✅ REV-18 台账里两条合法改板记录指向同一个文件 (链头不唯一)                    ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 台账最新记录取不准 (链头不唯一 = ['391f56805)
+  ✅ REV-19 链断 (改前 md5 对不上台账记的上一次改后 md5)                  ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 的 reboard 改前 md5 611b869e1351 )
+  ✅ REV-20 只改板不动 .kicad_pro (两件记录只来一条)                   ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9901) 覆盖 (记录只来)
+  ✅ REV-21 合法改板: 台账四项齐全 + 锚点原子记录 ⇒ 放行 (★正向★)             ⇒ R6 仍绿 (★合法改板四项齐全 = 放行★)
+--- SELFTEST 22/22 通过 ---
+rc=0

@@ -1,0 +1,24 @@
+==============================================================================
+生产链准入/准出门禁 · chain_gate (快检: 内容锚点 + 齐全性)
+==============================================================================
+
+环节                          准入    准出    
+------------------------------------------------------------------------------
+① 网表 (HW/netlist_v1.csv)    ✅     ✅     
+    准入: 内容锚点: 网表 md5 `6aee500e60ba…` == 落表台账最新登记 (L1466) · 11-18 00:21
+    准出: 快检跳过 (全检才跑)
+② 原理图 (.kicad_sch)          ✅     ✅     
+    准入: 内容锚点: 位号 218 == 脚表 218 · 标签 584 == 脚 584 · 归一化指纹 dcd0c05aa0fa… · 11 个 .kicad_sch 归一化后一致 (★uuid 抖动不影响本判据★) · 11-18 00:21
+    准出: 快检跳过
+③ PCB (.kicad_pcb)          ❌     ✅     
+    准入: 内容锚点: ★**板与网表不等价** (C1/C2 红 ⇒ 板是旧网表的板) · ❌ C1 焊盘级等价 (ref,焊盘号)→网络 — 网表 480 / 板上(带网) 482 · 11-06 07:07
+    准出: 快检跳过 | 布线已完成 (unconnected=45 · DRC=0)
+④ BOM (HW/BOM_v1.csv)       ✅     ✅     
+    准入: 内容锚点: 逐行一致: 218 行 (位号,value,dnp) == 脚表聚合 · 11-18 00:21
+    准出: 位号 218 个全对 (★脚级真源口径★) · DNP 42 个一致 · 伪器件 0 个
+⑤ 投产资料包 (HW/PCB/production/)❌     ✅     
+    准入: 30/30 必备产物齐全 · ★**投产包比 原理图 旧 ⇒ 投板用的是旧板的 Gerber** · ★原理图源文件: 原理图源文件与 HW/PCB/ **没有一一对应**: 内容与源不一致 11 个 (例 ['demo_mainboard.kicad_sch', 'demo_mainboard_p1.kicad_sch', 'demo_mainboard_p10.kicad_sch']) ⇒ 修法: 把 doc/sch_src/ 同步成 HW/PCB/ 下全部 .kicad_sch + demo_mainboard.kicad_pro
+    准出: 快检跳过
+------------------------------------------------------------------------------
+❌ 生产链有 2 个环节没过 ⇒ ★**下游产物不许用** (先修上游, 再重生成下游)
+   修法: ① 网表/原理图/PCB/BOM 任一**内容**与上游不一致 (★看每行「准入:」栏的口径★) ⇒ 重跑对应生成器 (`python3 state/gen_netlist.py` / `python3 state/gen_kicad_sch.py` / `python3 state/gen_bom.py` / `bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py`) ② 投产包缺件 ⇒ `bash state/gen_production_pack.sh` ③ 投产包缺/多/旧**原理图源文件** ⇒ `cp -p HW/PCB/demo_mainboard*.kicad_sch HW/PCB/demo_mainboard.kicad_pro HW/PCB/production/doc/sch_src/`

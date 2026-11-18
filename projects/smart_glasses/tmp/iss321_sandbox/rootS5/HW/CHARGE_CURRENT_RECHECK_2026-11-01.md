@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/CHARGE_CURRENT_RECHECK_2026-11-01.md

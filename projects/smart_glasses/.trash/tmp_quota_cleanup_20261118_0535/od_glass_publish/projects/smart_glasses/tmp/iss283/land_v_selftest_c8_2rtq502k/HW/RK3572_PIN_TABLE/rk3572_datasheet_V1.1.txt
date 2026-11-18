@@ -1,0 +1,2921 @@
+RK3572 Datasheet                                  Rev 1.1
+
+
+
+
+                          Rockchip
+                           RK3572
+                          Datasheet
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.         1
+RK3572 Datasheet                                                                     Rev 1.1
+
+                                    Revision History
+       Date           Revision                        Description
+                                    1. Add remark of the description of external off-chip
+                                       memory in 1.2.2
+   2026-04-13            1.1
+                                    2. Update resolution of video Port1 in 1.2.10
+                                    3. Update Vulkan 1.2 to Vulkan 1.4
+
+   2026-03-24            1.0        Initial Release
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                             2
+RK3572 Datasheet                                                                                          Rev 1.1
+
+Table of Content
+Table of Content ...................................................................................................... 3
+Figure Index ........................................................................................................... 4
+Table Index............................................................................................................. 5
+Warranty Disclaimer ................................................................................................. 6
+  Chapter 1 Introduction ..................................................................................... 7
+       1.1 Overview ............................................................................................... 7
+       1.2 Features ................................................................................................ 7
+       1.3 Block Diagram ...................................................................................... 18
+  Chapter 2 Package Information.........................................................................19
+       2.1 Order Information ................................................................................. 19
+       2.2 Top Marking ......................................................................................... 19
+       2.3 Package Dimension ............................................................................... 19
+       2.4 MSL Information ................................................................................... 21
+       2.5 Lead Finish/ Ball Material Information ...................................................... 21
+       2.6 Pin Number List .................................................................................... 22
+  Chapter 3 Electrical Specification ......................................................................39
+       3.1 Absolute Ratings ................................................................................... 39
+       3.2 Recommended Operating Conditions ........................................................ 39
+       3.3 DC Characteristics ................................................................................. 41
+       3.4 Electrical Characteristics for General IO .................................................... 41
+       3.5 Electrical Characteristics for LPDDR .......................................................... 42
+       3.6 Electrical Characteristics for PLL .............................................................. 43
+       3.7 Electrical Characteristics for PCIe2/SATA/USB Interface .............................. 43
+       3.8 Electrical Characteristics for MIPI DPHY TX interface ................................... 44
+       3.9 Electrical Characteristics for MIPI DPHY RX interface .................................. 45
+       3.10 Electrical Characteristics for SARADC ...................................................... 45
+       3.11 Electrical Characteristics for TSADC ........................................................ 46
+  Chapter 4 Thermal Management .......................................................................47
+          4.1 Overview ............................................................................................. 47
+          4.2 Package Thermal Characteristics ............................................................. 47
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                                     3
+RK3572 Datasheet                                                                                      Rev 1.1
+
+Figure Index
+Fig. 1-1 Block Diagram ........................................................................................... 18
+Fig. 2-1 Package Definition ..................................................................................... 19
+Fig. 2-2 Package Top View ...................................................................................... 19
+Fig. 2-3 Package Bottom View ................................................................................. 20
+Fig. 2-4 Package Side View ..................................................................................... 20
+Fig. 2-5 Package Dimension .................................................................................... 21
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                                4
+RK3572 Datasheet                                                                                     Rev 1.1
+
+Table Index
+Table 2-1 Pin Number Order Information ................................................................... 22
+Table 3-1 Absolute Ratings ...................................................................................... 39
+Table 3-2 Recommended operating conditions ............................................................ 39
+Table 3-3 DC Characteristics.................................................................................... 41
+Table 3-4 Electrical Characteristics for Digital General IO ............................................. 41
+Table 3-5 AC/ DC Parameters for LPDDR4(X) ............................................................. 42
+Table 3-6 AC/ DC Parameters for LPDDR5(X) ............................................................. 42
+Table 3-7 Electrical Characteristics for INT PLL ........................................................... 43
+Table 3-8 Electrical Characteristics for FRAC PLL ......................................................... 43
+Table 3-9 Electrical Characteristics for DDR PLL .......................................................... 43
+Table 3-10 Electrical Characteristics for PCIe2/SATA Interface ...................................... 43
+Table 3-11 MIPI DPHY TX DC Specifications ............................................................... 44
+Table 3-12 MIPI DPHY TX LP transmitter DC Specifications........................................... 44
+Table 3-13 MIPI DPHY TX HS transmitter AC Specifications .......................................... 44
+Table 3-14 MIPI DPHY TX LP transmitter AC Specifications ........................................... 44
+Table 3-15 Electrical Characteristics for MIPI DPHY RX interface ................................... 45
+Table 3-16 Electrical Characteristics for SARADC ........................................................ 45
+Table 3-17 Electrical Characteristics for TSADC .......................................................... 46
+Table 4-1 Thermal Resistance Characteristics ............................................................. 47
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                                5
+RK3572 Datasheet                                                                Rev 1.1
+
+Warranty Disclaimer
+No part of this document may be reproduced, transmitted or used in any form or by
+any means without the written prior consent of Rockchip Electronics Co.,Ltd.
+
+Trademark
+Rockchip is a registered trademark of Rockchip Electronics Co.,Ltd. in the People’s
+Republic of China and other countries/areas. Other brands, product names mentioned
+in this document are the property of their respective owners.
+
+Disclaimer
+Rockchip Electronics Co.,Ltd. (“Rockchip”) may make changes to any information in this
+document at any time without any prior notice.
+Information in this document is provided just as a reference or typical applications. All
+or part of product features described in this document may not be within the purchase
+scope or the usage scope, and may be subject to the third party licensing
+requirements. All statements, information in this document is provided "AS IS" without
+warranties of any kind, either express or implied. Actual performance of Rockchip
+products may vary in different applications. Third party licenses maybe required to use
+some features supported by Rockchip products. Customers shall be solely and
+exclusively responsible to obtain all appropriately required third party licenses prior to
+its such use. Should customers use the features supported by Rockchip products
+without any required third party license, customers shall indemnify and hold Rockchip
+and its subsidiaries, affiliates as well as distributors harmless against all claims, costs,
+damages, and expenses, and reasonable attorney fees arising out of any claim
+associated with such unauthorized use.
+Rockchip products are not intended for use in military, airplane, medical devices,
+lifesaving or life sustaining applications (“Unintended Uses”). Customers shall take any
+and all actions to ensure using Rockchip products in a lawful manner and shall be liable
+for Unintended Uses.
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                         6
+RK3572 Datasheet                                                                  Rev 1.1
+
+Chapter 1 Introduction
+
+1.1 Overview
+RK3572 is a low power, high performance processor for edge computing device, personal
+mobile internet device and other AIoT applications, and integrates dual-core Cortex-A73
+and hexa-core Cortex-A53 with separately NEON coprocessor.
+
+RK3572 video decoder supports H.265, VP9, AV1 and AVS2 etc., up to 8K@30fps or
+4K@120fps, and supports H.264 up to 4K@60fps. Video encoder supports H.264 and H.265
+up to 4K@40fps, and high-quality JPEG encoder/decoder supports up to 4K@60fps.
+
+Embedded 3D GPU makes RK3572 completely compatible with OpenGL ES 1.1,2.0, and 3.2,
+OpenCL up to 3.0 and Vulkan 1.4. Dedicated 2D hardware engine with MMU will maximize
+display performance and provide very smoothly operation.
+
+RK3572 introduces a new generation 12-Megapixel ISP (Image Signal Processor). It
+implements a lot of algorithm accelerators, such as HDR,3A, CAC,3DNR,2DNR, Sharpening,
+Dehaze, Enhance, Debayer, Small Angle Lens-Distortion Correction and so on.
+
+The build-in NPU supports INT4/INT8/INT16/FP4/FP8/FP16/BF16 hybrid operations,
+supports for asymmetric MAC operations with W4A16. In addition, with its strong
+compatibility, network models based on a series of frameworks such as
+TensorFlow/MXNet/Pytorch/Caffe can be easily converted.
+
+RK3572 supports high-performance external memory interface (LPDDR4/LPDDR4X/
+LPDDR5/LPDDR5X) capable of sustaining demanding memory bandwidths, and also
+provides a complete set of peripheral interface to support very flexible applications.
+
+1.2 Features
+1.2.1 Microprocessor
+   Cortex A73 cluster
+     Dual Cortex A73 MPCore processor
+     64kB L1 instruction cache and 32kB L1 data cache for each core
+     512kB unified L2 cache
+   Cortex A53 cluster 0
+     Quad Cortex A53 MPCore processor
+     32kB L1 instruction cache and 32kB L1 data cache for each core
+     512kB unified L2 cache
+   Cortex A53 cluster 1
+     Dual Cortex A53 MPCore processor
+     32kB L1 instruction cache and 32kB L1 data cache for each core
+     256kB unified L2 cache
+   TrustZone technology
+   ARMv8 Cryptography Extensions
+   Full implementation of the ARM architecture v8-A instruction set, ARM Neon Advanced
+    SIMD (single instruction, multiple data) support for accelerating media and signal
+    processing
+   Two isolated voltage domains to support DVFS, one is for A73 cluster and the other is
+    for A53 clusters.
+   Independent power domain for each CPU core system (CPU+Neon+FPU+L1 cache).
+
+1.2.2 Memory Organization
+   Internal on-chip memory
+     BootRom
+         Supports system boot from the following devices:
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                          7
+RK3572 Datasheet                                                                 Rev 1.1
+            FSPI interface
+            eMMC interface
+            UFS interface
+            SD card interface
+         Supports system code download by the following interface:
+            USB DRD interface
+     PMU_SRAM(16kB) is for low power application
+     SYS_SRAM(512kB) may be shared by any on-chip components
+   External off-chip memory
+     Dynamic Memory interface
+         JEDEC standards LPDDR4/LPDDR4X-4266 and LPDDR5/LPDDR5X-5500.
+         Single channel has 32bits data width.
+         Up to 4 ranks (chip select) for each channel.
+         Up to 16GB addressing space totally(1).
+         Low power mode including power-down and self-refresh with power-down.
+    Note (1): Not support LPDDR4/ LPDDR4X R17 when rank number is 2
+
+
+
+       eMMC interface
+         Compliance to JEDEC eMMC v5.1 specification
+         Compatible to eMMC 4.51 and earlier versions specification.
+         Supports HS400, HS200, DDR50 and legacy operating modes
+         Supports data bus width:4-bit or 8-bit
+       SD/MMC interface
+         Compliance to SD v3.0, MMC v4.51
+         Supports 1-bit and 4-bit data bus
+       UFS interface
+         Compatible to UFS v2.0 specification
+         Supports 2 data lanes
+         Up to High-Speed Gear 3(HS-G3)
+       Flexible Serial Peripheral Interface(FSPI)
+         Supports serial NOR, NAND and other SPI memory devices
+         Supports 1-bit,2-bit,4-bit and 8-bit data width
+         Supports 2 chip selects for 1-bit,2-bit,4-bit,8-bit FSPI
+
+1.2.3 System Component
+   BUS RISCV MCU
+     One Nuclei N320 processor core
+     Supports 24kB ILM which can be accessed by instruction and data access
+     8kB I-Cache and 8kB D-Cache
+     JTAG interface for debug
+   CRU (clock & reset unit)
+     Supports 10 PLLs to generate all clocks totally
+     Supports one 24MHz oscillator as input
+     Supports clock gating control for individual components
+     Supports global soft-reset control for whole chip, also individual soft-reset for each
+       component
+   PMU (power management unit)
+     Supports multiple configurable work modes to save power consumption with
+       different frequency or automatic clock gating control or power domain control
+     Supports many wakeup sources in different working state
+     Supports 7 separate voltage domains
+     Supports 23 separate power domains, which can be power up/down by software
+       based on different application scenes
+   Timer
+     Supports 6 secure timers with 64bits counter and interrupt-based operation
+     Supports 18 non-secure timers with 64bits counter and interrupt-based operation
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                          8
+RK3572 Datasheet                                                                  Rev 1.1
+     Supports 1 high-performance timer
+     Supports two operation modes: free-running and user-defined count for each timer
+   PWM
+     Supports 16 on-chip PWMs (PWM0_CH0~PWM0_CH1, PWM1_CH0~PWM1_CH5,
+        PWM2_CH0~PWM2_CH7) with interrupt-based operation
+     Supports input capture mode
+     PWM0 support IR power key capture mode
+     Supports continuous mode and one-shot output mode
+     PWM1 supports generates waveform through lookup table
+     PMW2 supports IR transmission in NEC with full repeat, NEC with simple repeat,
+        TC9012 or SONY mode
+     PWM1 supports clock frequency meter
+     PWM1 supports clock counter
+     PWM1 and PWM2 support biphasic counter
+     Supports two-stage frequency division of working clock
+   Watchdog
+     Supports 5 non-secure watchdog and 1 secure watchdog
+     32-bit watchdog counter
+     Counter counts down from a preset value to 0 to indicate the occurrence of a
+        timeout
+     WDT can perform two types of operations when timeout occurs:
+         Generate a system reset
+         First generate an interrupt and if this is not cleared by the service routine by
+            the time a second timeout occurs then generate a system reset
+   Interrupt Controller
+     Supports 4 PPI interrupt source and 448 SPI interrupt sources input from different
+        components inside SoC
+     Supports 16 software-generated interrupts
+     Input interrupt level is fixed, high-level sensitive for SPI and low-level sensitive for
+        PPI
+     Supports different interrupt priority for each interrupt source, and they are always
+        software-programmable
+   DMAC
+     Supports 4 DMA controllers for peripheral system
+     Supports Linked list DMA mode to complete scatter-gather transfer
+     Supports data transfer types including memory-to-memory, memory-to-peripherals
+        and peripherals-to-memory
+     Each DMAC features:
+         Supports 64 logic channels
+         Supports 2 physical channels
+         Supports 64 hardware request from peripherals
+   Secure System
+     Supports one cipher engine
+         system feature
+             Support 3 AHB slave interfaces KLCE (CE for key-ladder), SCE (CE for
+                secure world) and NSCE (CE for non-secure world) each
+             Support DMA controller to transfer data between CE (Crypto Engine) and
+                memory
+             Supports task descriptor(TD)chain mode for each world request.TD or TD
+                chain are executed at request order
+         Symmetrical algorithms
+             Support lockstep error monitoring
+             Support anti side channel attack
+             Support AES, DES,3DES, SM4
+             Support AES-128, AES-192, AES-256
+             Support ECB/CBC/OFB/CFB/CTR/CTS/XTS/CCM/GCM/CBC-MAC/CMAC mode
+                for AES and SM4
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                           9
+RK3572 Datasheet                                                               Rev 1.1
+              Support ECB/CBC/OFB/CFB mode for DES/TDES
+            Hash algorithm
+              Supports lockstep error monitoring
+              Supports SHA-1, SHA-256, SHA-224, SHA-512, SHA-384, SHA-512/256,
+                SHA-512/224, MD5, SM3 with hardware padding
+              Supports HMAC of SHA-1, SHA-256, SHA-512, MD5, SM3 with hardware
+                padding
+            Asymmetrical algorithms
+              Support RSA, ECC, SM2
+              RSA512/1024/2048/3072/4096-bit
+              ECC192/224/256-bit
+            Support key-ladder(KL)
+              Supports obtaining the root key from OTP or RKRNG
+              Supports writing out root key or the key which calculated by key-ladder to
+                some specific modules by using APB master
+              Number of stages can be configured
+              Supports AES-128, AES-192, AES-256, DES, TDES, SM4
+              Supports ECB/CBC/OFB/CFB mode
+
+       Supports data scrambling for all DDR types
+       Supports secure OTP
+       Supports secure debug
+       Supports secure DFT test
+       Supports secure OS
+       Except CPU, the other masters in the SoC can also support security and non-
+        security mode by software-programmable
+     Some slave components in SoC can only be addressed by security master and the
+        other slave components can be addressed by security master or non-security
+        master by software-programmable
+     System SRAM can be divided into 4 parts; each part can be software-
+        programmable to be enabled by each master
+     External DDR space can be divided into 16 parts; each part can be software-
+        programmable to be enabled by each master
+   Mailbox
+     Supports one Mailbox with 14 channels in SoC to provide communication service
+        between CPU and MCU
+     Supports independent interrupt in each Mailbox channel
+
+1.2.4 Video Codec
+   Video Decoder
+     Supports video decoder of H.264, H.265, VP9, AV1 and AVS2
+     Supports MMU
+     Supports multi-stream decoding in parallel
+         Decoder           Profile         Level      Resolution
+         H.264/AVC         Main10          5.2        up to 4K@60fps
+         H.265/HEVC        Main10          6.0        up to 8K@30fps or 4K@120fps
+         VP9               Profile 0/2     6.0        up to 8K@30fps or 4K@120fps
+         AVS2              Profile 0/2     8.2.120    up to 8K@30fps or 4K@120fps
+         AV1               Main10          6.0        up to 8K@30fps or 4K@120fps
+     H264 MVC is up to 4K@60fps
+   Video Encoder
+         Encoder           Profile         Level      Resolution
+         H.264/AVC         High            5.0        up to 4K@40fps
+         H.265/HEVC        Main            5.0        up to 4K@40fps
+     Supports multi-stream encoding
+   JPEG Encoder
+     Supports Baseline (DCT sequential)
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                       10
+RK3572 Datasheet                                                             Rev 1.1
+     Supports image size is from 16x16 to 65520x65520
+     Supports MJPG up to 4K@60fps
+     Supports YUV400/YUV420/YUV422/YUV444
+   JPEG Decoder
+     Supports image size is from 48x48 to 65520x65520
+     Supports MJPG up to 4K@60fps
+     Supports YUV400/YUV411/YUV420/YUV422/YUV440/YUV444
+
+1.2.5 Neural Process Unit
+   Rockchip NPU engine:
+     4 TOPS(1) for INT8
+     Supports INT4, INT8, INT16, FP4, FP8, FP16 and BF16 operation
+     Supports for asymmetric MAC operations with W4A16
+     Supports deep learning frameworks: TensorFlow, Caffe, Tflite, Pytorch, Onnx NN,
+       Android NN, MXNet etc.
+    Note (1): Sparsity
+
+1.2.6 Graphics Engine
+   3D Graphics Engine
+     ARM Mali G310V2 MC1 GPU
+     OpenGL ES 1.1, 2.0 and 3.2
+     Vulkan 1.4
+     OpenCL 3.0 Full Profile
+     AFBC (ARM Frame Buffer Compression)
+   2D Graphics Engine(RGA)
+     Rockchip RGA v2.5 engine
+     Max resolution:8192x8192 source,4096x4096 destination
+     Block transfer and Transparency mode
+     Color fill with gradient fill, and pattern fill
+     Alpha blending including global alpha, per pixel alpha and fading
+     Arbitrary non-integer scaling ratio from 1/16 to 16
+     0,90,180,270-degree rotation, x-mirror, y-mirror & rotation operation
+     RKCFA (Color Filter Array) V1.0 for E-ink screen
+   VDPP (Video & Display Post Process)
+     Deinterlace
+        Input data format: YUV420/YUV422 P/SP
+        Output data format: YUV420/YUV422 SP
+        Supports algorithms including I5O2, I5O1T, I5O1B, I2O2, I1O1T, I1O1B and so
+           on
+        Resolution is up to 1920x1080
+     Post Process
+      Input data format: YUV420SP
+      Output data format: YUV420/YUV444 SP
+      DMSR: De-Mosquito noise, De-Ringing effect and De-Shooting effect
+      ZME: Zoom Manage Engine (Video resize based Multi-Phase Algorithm)
+      DCI-HIST: Histogram of Dynamic Contrast improvement
+      SHARP: Sharpness
+      ES: Edge Smoothing
+      PYRAMID：Down sample to 1/4,1/16,1/64 resolution
+      BLCK：Measures black border width for image cropping
+
+1.2.7 Video Input Interface
+   Support 2 MIPI CSI-2 interfaces
+     Two 4 data lanes of D-PHY v1.2
+        Each interface may be configured as 2x2 data lanes port.
+     Each port supports 4 virtual channels
+   DVP interface
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                     11
+RK3572 Datasheet                                                              Rev 1.1
+        8/10/12/16-bit, up to 150MHz I/O frequency
+        BT.601/BT.656 and BT.1120 VI interface
+        Supports the polarity of pixel_clk, hsync, vsync configurable
+        Supports 2/4 mux byte interleave format for BT.656/BT.1120
+        Supports dual-edge sampling for BT.656/BT.1120
+
+1.2.8 Image Signal Processor
+   Video Capture(VICAP)
+     Support BT.601 RAW8/10/12 YCbCr 422 8-bit input
+     Support BT.656 YCbCr 422 8-bit progressive/interlaced input
+     Support BT.1120 YCbCr 422 16-bit progressive/interlaced input
+     Support 2/4 mixed BT.656/BT.1120 YCbCr 422 input
+     Support dual-edge sampling for BT.656/BT.1120
+     Support receiving four groups of MIPI CSI interfaces,up to four IDs for each group
+     Support VC/DT configurable for each ID
+     Support ten MIPI CSI data formats: RAW8/10/12/14/16,RGB888,YUV422
+        8bit,YUV422 8bit interlaced,YUV420 8bit,Legacy YUV420 8bit
+     Support three modes of MIPI CSI HDR: virtual channel mode, identification code
+        mode, line counter mode
+     Support RAW rounding
+     Support window cropping
+     Support 4/8/16/32 times down-sampling for RAW data
+     Support RAW 2x2 binning
+     Support pixel extraction from 2x2 pattern
+     Support UV mean down sampling for YUV422
+     Support reducing frame rate
+     Support compact/non-compact output format for RAW data
+     Support NV16/NV12/YUV400/YUYV output format for YUV data
+     Support virtual stride when write to DDR
+     Support DMA wrap mode
+     Support DMA burst gather 2/4/8
+     Support MMU
+     Support QOS(hurry/press)
+     Support sending RAW data directly to ISP
+     Support soft reset, auto-reset when DMA error
+     Support debug mode
+   Image Signal Processor V3.5
+     One channel ISP,12M pixels
+     VICAP input: RX raw8/raw10/raw12/raw14/raw16
+     Maximum input:4096x3072
+     Minimum input:264x264
+     3A: include Auto Enhance(AE)/Histogram, Auto Focus(AF)and Auto White
+        Balance(AWB)statistics output
+     FPN: Fixed Pattern Noise removal
+     BLC: Black Level Correction
+     DPCC: Static/Dynamic defect pixel cluster correction
+     PDAF: Phase Detection Auto Focus
+     LSC: Lens Shading Correction
+     Bayer-3DNR: Temporal Bayer-raw Noise Reduction
+     CAC: Chromatic Aberration Correction
+     HDR-Merge: 2-Frame Merge into High-Dynamic Range
+     Expander: Sensor Expander
+     GIC: Green Imbalance Correction
+     HDR-DRC: HDR Dynamic Range Compression, tone mapping in RGB filed
+     DeBayer: Advanced adaptive demosaic
+     CCM/CSM: Color Correction Matrix, RGB2YUV
+     Gamma: Gamma out correction
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                      12
+RK3572 Datasheet                                                              Rev 1.1
+        Dehaze/Enhance: Automatic dehaze and effect enhancement
+        LocalHist: local histogram to enhance local contrast
+        HSV: Hue,Saturation,Value color palette for customer
+        LDCH: Lens Distortion Correction in the Horizontal direction
+        LDCV: Lens Distortion Correction in the Vertical direction
+        YNR: Spatial luma(Y)Noise Reduction in YUV domain
+        CNR: Spatial chroma(C)Noise Reduction in YUV domain
+        Sharp: Image sharpening and boundary filtering
+        CGC: Color Gamut Compression,YUV full range/limit range convert
+        MI 2 paths output,MP stepless scaling,SP 1080p(width no more than 1920)scaling
+        Online mode: support data from VICAP and data to Encoder,data from ISP to
+         VPSS,data from VICAP to 3A
+
+1.2.9 VPSS
+   VPSS
+     Offline DMA input:
+      Line RGB888/ARGB888/RGB565/UYVY/YUV422/420sp 8bits
+      Tile4x4 YUV422/420 8bits(Rotate 0/90/180/270)
+      RKFBCD64x4 YUV444/422/420 8bits
+      Line-Rot90 UYVY/YUV422/420sp 8bits(Rotate 90)
+     Online ISP input
+     Both DMA and ISP input
+     Four output channels
+     Maximum image resolution:4096x3072(width no more than 4096)
+     Minimum image resolution:32x32
+     YUV422 processing
+     MIRROR: Horizontal Mirror
+     CMSC: Cover or Mosaic in 8 areas
+     CROP: Cropping on 4 channels
+     Channel0 output:
+      Scale: Polyphase filter
+      ASPT_RATIO: Aspect Ratio for image boundary extension
+      Output scan order: Line YUV422/420/400sp 8bits
+      Flip: Vertical Flip
+     Channel1 output:
+      Scale: Bilinear filter
+      ASPT_RATIO: Aspect Ratio for image boundary extension
+      Output scan order: Line RGB888/ARGB888/RGB565/YUV422/420sp 8bits
+      Flip: Vertical Flip for YUV mode
+     Channel2 output:
+      Scale: Bilinear or average filter(output width no more than 1920)
+      ASPT_RATIO: Aspect Ratio for image boundary extension
+      Output scan order: Line YUV422/420sp 8bits
+      Flip: Vertical Flip
+     Channel3 output:
+      Scale: Bilinear filter(output width no more than 1920)
+      ASPT_RATIO: Aspect Ratio for image boundary extension
+      Output scan order: Line YUV422/420sp 8bits
+      Flip: Vertical Flip
+     Sharpen: Image sharpening, input-data from the scale’s output of channel0 or
+       channel1 or channel2
+     BUS interface:32 bit AHB slave;AXI-128 RW;MMU table
+     Registers configuration: AHB or AXI
+     Low power, auto-gating for each block
+
+1.2.10 Video Output Processor
+   Video output interface
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                      13
+RK3572 Datasheet                                                                Rev 1.1
+       One PARA interface, support RGB/BT656/BT1120
+        Maximum resolution of PARA interface is 1920*1080@60Hz.
+     One MIPI DSI1.2 interface，up to 4lane*2.5Gbps
+     One EDP 1.3 interface，up to 4lane*5.4Gbps,with HDCP1.3
+     One HDMI 2.1 interface，up to 4lane*6Gbps,with HDCP2.3
+   Video Port
+     Video Port0 supports up to 4096x2160@60Hz with 10-bit data
+     Video Port1 supports up to 2048x1080@60Hz with 8-bit data
+     Each Video Port may connect to any of HDMI/eDP/DSI/PARA interface
+   Data format
+     Raster:
+         RGBA8888/RGB888/RGB565/RGB1010102
+         YUV444/YUV422/YUV420/YUV400,8/10-bit
+     Tile 4x4
+         YUV420/YUV422/YUV444,8/10-bit
+     AFBCD
+         RGBA8888/RGB888/RGBA1010102
+         YUV420/YUV422/YUV444,8/10-bit
+     RFBCD
+         RGBA8888/RGB888/RGBA1010102
+         YUV420/YUV422/YUV444,8/10-bit
+   Layer
+     Support 2 cluster layers,2 esmart layers,2 msmart layers,2 cursor layers
+     FBCD data is only supported in cluster layer
+     Layer split is only supported in cluster layer
+     Multi-region is only supported in esmart layer
+     Up to 8x8 regions in 4k multi-grid layer,6x6 regions in 2k multi-grid layer
+     Support Data swap,replication,offset,virtual display
+     Support CSC(color domain and color range convert)
+     Support Scaler up/down(ratio 8~1/8)except for multi-grid layers.
+   Overlay
+     Support Layer position exchange
+     Support transparency color key and 8bit alpha blending
+     Support per-pixel alpha, pre-multiplied alpha, global alpha
+     Support RGB or YUV domain overlay
+   Post process
+     Support Post scale Algorithm: bilinear(ratio 0.5~1)
+     Support Dither down Algorithm:2d
+     Support CSC, color domain and color range convert.
+     Support Gamma/3D-LUT
+     Support ACM, auto color management
+     Support DCI, dynamic contrast improvement
+     Support SHARPNESS
+     Support HDR10, HDR vivid
+   Write Back
+     Format: ARGB8888/RGB888/RGB565/YUV420
+     Max resolution:1920x1080
+     Support automatic write back and one frame write back model
+     Support horizontal scaled and gt2
+     Support virtual stride
+
+1.2.11 Display interface
+   HDMI/eDP TX interface
+     One HDMI/eDP TX combo PHY
+     HDMI interface
+        HDMI v2.1
+        Supports up to 4K@60Hz
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                       14
+RK3572 Datasheet                                                                    Rev 1.1
+         Output data format: RGB/YUV444/YUV422/YUV420 8/10-bit
+         Supports CEC (Consumer Electronic Control) and ARC (Audio Return Channel)
+         HDCP v2.3 and HDCP v1.4
+     eDP interface
+         eDP v1.3 and compliant with DisplayPort v1.2
+         Main link containing 4 physical lanes
+         Each lane supports RBR(1.62Gbps), HBR(2.7Gbps) and HBR2(5.4Gbps)
+         Supports up to 4K@60Hz
+         Output data format: RGB/YUV444/YUV422 8/10-bit
+         Supports HDCP v1.3
+         Supports PSR (Panel Self Refresh)
+         Supports I2S (up to 8 channels) and S/PDIF audio interface
+         Supports AUX and reading of the display EDID
+   MIPI DSI-1.2 TX interface
+     One MIPI DSI V1.2 interface with D-PHY
+     Supports 4 data lanes on D-PHY with up to 2.5Gbps per lane
+   Parallel output interface
+     Supports RGB/BT.656/BT.1120
+     Supports up to 1920x1080@60Hz
+     Supports RGB (up to 8bit) format
+   EBC output interface
+     Supports E-ink EPD (Electronic Paper Display)
+     Supports up to 1872x1404 with hardware decoding
+     Supports data bus with 16-bit width
+     Supports up to 32 level gray scale
+     Supports Direct mode、LUT mode and 3-window mode
+     Supports window display mod
+
+1.2.12 Serial Audio Interface (SAI)
+   Supports six SAI interfaces
+     SAI 0/1 support 4 TX lanes and 4 RX lanes
+     SAI 2/3 support 1 TX lane and 1 RX lane
+     SAI 4 support 4 TX lanes and 4 RX lanes, can be connected to HDPTXPHY or IO
+     SAI 5 support 4 RX lanes,it is connected to HDPTXPHY
+     Supports I2S/TDM/PCM mode
+     Supports 3 I2S formats(normal,left-justified,right-justified)
+     Supports master and slave work mode,software configurable
+     Supports 4 PCM formats (early, late1, late2, late3)
+     Supports TDM normal,1/2 cycle left shift,1 cycle left shift,2 cycle left shift,right shift
+        mode serial audio data transfer
+     Supports sample rate is up to 192KHz
+     Supports audio resolution is from 16bits to 32bits
+   SPDIF TX
+     SPDIF TX 0/1 are connected to IO
+     SPDIF TX 2 is connected to HDPTXPHY
+     Supports two 16-bit audio data store together in one 32-bit wide location
+     Supports bi-phase format stereo audio data output
+     Supports 16 to 31-bit audio data left or right justified in 32-bit wide sample data
+        buffer
+     Supports 16,20,24 bits audio data transfer in linear PCM mode
+     Supports non-linear PCM transfer
+   SPDIF RX
+     SPDIF RX 0 is connected to IO
+     SPDIF RX 1 is connected to HDPTXPHY
+     Supports one internal 30-bit wide and 32-location deep FIFO for receiving audio
+    data
+     Supports combined interrupt output
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                             15
+RK3572 Datasheet                                                              Rev 1.1
+       Supports DMA handshaking interface and configurable DMA water level
+       Supports liner PCM(IEC60958) and non-liner PCM(IEC61937)
+       Supports 16~24 bits audio sample length for liner PCM application
+       Supports 16 bits audio sample length for non-liner PCM application
+       SPDIF RX 0 supports up to 192kHz sample rate
+        SPDIF RX 1 supports up to 384kHz sample rate
+     Supports recovering clock and audio data from input bit-stream
+   PDM
+     Supports up to 8 channels
+     Supports resolution is from 16bits to 24bits
+     Supports sample rate is up to 192KHz
+     Supports PDM master receive mode
+     Supports gain control
+   ASRC
+     Support 2 2-channel ASRCs,which combine into 4-channel ASRC
+     Support typical THD+N-130dB
+     Support real-
+        time transmission mode,which transmits or receives audio data from either audio c
+        omponent or memory with ratio tracking
+     Support memory fetch mode,which transmits or receives audio data from memory
+        with manual ratio without tracking
+   Digital Audio Codec
+     Support 2 channels digital DAC
+     Support I2S/PCM interface, master and slave mode
+     Support 16-bit sample resolution
+     Support three modes of mixing for every digital DAC channel
+     Support volume control
+
+1.2.13 Connectivity
+   SDIO interface
+     SDIO v3.0
+     4-bit data bus widths
+   GMAC 10/100/1000M Ethernet controller
+     Supports two Ethernet controllers
+     Supports IEEE 802.3 10/100/1000 Mbps Ethernet MAC with RGMII or RMII
+     Supports both full-duplex and half-duplex operation
+   Combo high speed interface
+     Supports two combo PCIe2.1/SATA3.1/USB3.0 interface with one data lane
+     Supports one combo PCIe2.1/SATA3.1 interface with one data lane
+     PCIe interface
+         Supports PCIe v2.1
+         Supports Root Complex(RC)only
+         Supports up to 5GT/s data rate
+     SATA interface
+         Supports SATA v3.1 and AHCI revision v1.3.1
+         Supports eSATA
+         Supports up to 6GT/s data rate
+     USB interface
+         Supports USB3.0 with USB v2.0
+         Supports DRD (host and device)
+         Supports up to 5Gbps data rate
+         Supports xHCI Host with up to 64 devices
+   SPI interface
+     5 SPI ports
+     Supports two chip-select in each interface
+     Supports serial-master and serial-slave mode, software-configurable
+   I2C interface
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                       16
+RK3572 Datasheet                                                             Rev 1.1
+       10 I2C ports in Master mode
+       Supports 7-bit and 10-bit address mode
+       Software programmable clock frequency
+       Supports data rate is up to 100kbps in the Standard-mode and si up to 400kbps in
+        the Fast-mode
+   I3C interface
+     One I3C master ports
+     Compliance with I2C
+     Supports SDR mode
+     Supports In-Band interrupt（IBI）
+     Supports hot-join onto I3C bus
+     Supports dynamical and static slave address assigned
+     Supports up to 11 devices
+     Supports error detection(CE0~CE2)
+   UART interface
+     12 UART ports
+     Embedded two 64-byte FIFO for TX and RX operation respectively
+     Supports 5bit,6bit,7bit,8bit serial data transmit or receive
+     Standard asynchronous communication bits such as start,stop and parity
+     Supports different input clock for UART operation to get up to 8Mbps baud rate
+     UART1~UART11 support auto flow control mode
+     UART1-UART11 support RS485 function
+   CAN interface
+     4 CAN ports
+     Compatible with ISO 11898-1-2003 specification
+     Supports CAN standard and extended frame
+     Supports data frame, remote frame, overload frame, error frame and frame interval
+     Supports 8192-bit receive FIFO
+   DSMC interface
+     Supports up to select 4 chips and the selecting signals could be configured to be
+        valid simultaneously in the write transaction
+     Supports 8-wire and 16-wire serial transfer mode
+     Supports configurable write/read contiguous address merging transaction
+     Supports configurable write/read boundary address splitting transaction
+     Supports to transform WRAP transfer to INCR transfer
+     Supports configurable serial address width:16 bits or 32 bits
+     Supports to request DMAC to transfer data when receiving an interrupt
+
+1.2.14 Others
+   Multiple group of GPIO
+     All of GPIOs can be used to generate interrupt
+     Supports level trigger and edge trigger interrupt
+     Supports configurable polarity of level trigger interrupt
+     Supports configurable rising edge,falling edge and both edge trigger interrupt
+     Supports configurable pull direction(a weak pull-up and a weak pull-down)
+     Supports configurable drive strength
+   Temperature Sensor(TS-ADC)
+     Supports User-Defined Mode and Automatic Mode
+     In User-Defined Mode, start_of_conversion can be controlled completely by
+        software, and also can be generated by hardware.
+     In Automatic Mode, the temperature of alarm(high/low temperature)interrupt can
+        be configurable
+     In Automatic Mode, the temperature of system reset can be configurable
+     Supports 5-channel TS-ADC with the temperature criteria can be configurable
+     -40~125°C temperature range and 1°C temperature resolution
+   Successive approximation ADC(SARADC)
+     Supports 12-bit resolution
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                     17
+RK3572 Datasheet                                                               Rev 1.1
+      Supports up to 1MS/s sampling rate
+      Supports 8 single-ended input channels
+    OTP
+      Supports 16-kbit space and higher 4kbit address space is non-secure part.
+      Supports read and program word mask in secure model
+      Supports maximum 32 bit OTP program operation
+      Supports maximum 16 word OTP read operation
+      Program and Read state can be read
+      Program fail address record
+    Package Type
+      FCCSP550L (body:14.3mmx15.5mm; ball size:0.25mm;
+         ball pitch:0.42mm&0.52mm&0.65mm mixed)
+
+1.3 Block Diagram
+    The following figure shows the basic block diagram.
+
+
+
+
+                                                                        PCIe2.1 x2
+
+
+
+
+                                         Fig. 1-1 Block Diagram
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                      18
+RK3572 Datasheet                                                                  Rev 1.1
+
+Chapter 2 Package Information
+
+2.1 Order Information
+   Orderable        RoHS
+                                   Package          Package QTY        Device Feature
+    Device          status
+     RK3572          RoHS        FCCSP550L          98 PCS by Tray   Application Processor
+
+
+
+2.2 Top Marking
+
+
+
+
+                                       Fig. 2-1 Package Definition
+
+2.3 Package Dimension
+
+
+
+
+                                       Fig. 2-2 Package Top View
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                              19
+RK3572 Datasheet                                                     Rev 1.1
+
+
+
+
+                                      Fig. 2-3 Package Bottom View
+
+
+
+
+                                       Fig. 2-4 Package Side View
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                            20
+RK3572 Datasheet                                                    Rev 1.1
+
+
+
+
+                                       Fig. 2-5 Package Dimension
+
+
+2.4 MSL Information
+Moisture sensitivity Level: 3
+
+
+2.5 Lead Finish/ Ball Material Information
+Lead finish/ball material：SnAgCu
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                           21
+RK3572 Datasheet                                                                Rev 1.1
+
+2.6 Pin Number List
+                                Table 2-1 Pin Number Order Information
+                                  Pin Name                               Pin       Abbr
+
+LP4_DQ0_A/LP4X_DQ0_A/LP5_DQ0_A/LP5X_DQ0_A                                AN1        -
+
+LP4_DQ1_A/LP4X_DQ1_A/LP5_DQ1_A/LP5X_DQ1_A                                AM2        -
+
+LP4_DQ2_A/LP4X_DQ2_A/LP5_DQ2_A/LP5X_DQ2_A                                AK2        -
+
+LP4_DQ3_A/LP4X_DQ3_A/LP5_DQ3_A/LP5X_DQ3_A                                AK1        -
+
+LP4_DQ4_A/LP4X_DQ4_A/LP5_DQ4_A/LP5X_DQ4_A                                AM1        -
+
+LP4_DQ5_A/LP4X_DQ5_A/LP5_DQ5_A/LP5X_DQ5_A                                AR1        -
+
+LP4_DQ6_A/LP4X_DQ6_A/LP5_DQ6_A/LP5X_DQ6_A                                AR2        -
+
+LP4_DQ7_A/LP4X_DQ7_A/LP5_DQ7_A/LP5X_DQ7_A                                AP2        -
+
+LP4_DM0_A/LP4X_DM0_A/LP5_DM0_A/LP5X_DM0_A                                AN2        -
+
+LP4_DQS0P_A/LP4X_DQS0P_A/LP5_RDQS0P_A/LP5X_RDQS0P_A                      1Y2        -
+
+LP4_DQS0N_A/LP4X_DQS0N_A/LP5_RDQS0N_A/LP5X_RDQS0N_A                      1Y3        -
+
+LP5_WCK0P_A/LP5X_WCK0P_A                                                 1V2        -
+
+LP5_WCK0N_A/LP5X_WCK0N_A                                                 1V3        -
+
+LP4_DQ8_A/LP4X_DQ8_A/LP5_DQ8_A/LP5X_DQ8_A                                AR4        -
+
+LP4_DQ9_A/LP4X_DQ9_A/LP5_DQ9_A/LP5X_DQ9_A                                AT6        -
+
+LP4_DQ10_A/LP4X_DQ10_A/LP5_DQ10_A/LP5X_DQ10_A                            AR6        -
+
+LP4_DQ11_A/LP4X_DQ11_A/LP5_DQ11_A/LP5X_DQ11_A                            AR5        -
+
+LP4_DQ12_A/LP4X_DQ12_A/LP5_DQ12_A/LP5X_DQ12_A                            AT2        -
+
+LP4_DQ13_A/LP4X_DQ13_A/LP5_DQ13_A/LP5X_DQ13_A                            1AE3       -
+
+LP4_DQ14_A/LP4X_DQ14_A/LP5_DQ14_A/LP5X_DQ14_A                            AT5        -
+
+LP4_DQ15_A/LP4X_DQ15_A/LP5_DQ15_A/LP5X_DQ15_A                            AT3        -
+
+LP4_DM1_A/LP4X_DM1_A/LP5_DM1_A/LP5X_DM1_A                                AR3        -
+
+LP4_DQS1P_A/LP4X_DQS1P_A/LP5_RDQS1P_A/LP5X_RDQS1P_A                      1AD3       -
+
+LP4_DQS1N_A/LP4X_DQS1N_A/LP5_RDQS1N_A/LP5X_RDQS1N_A                      1AD2       -
+
+LP5_WCK1P_A/LP5X_WCK1P_A                                                 1AB2       -
+
+LP5_WCK1N_A/LP5X_WCK1N_A                                                 1AB3       -
+
+LP4_A0_A/LP4X_A0_A/LP5_A0_A/LP5X_A0_A                                    AD1        -
+
+LP4_A1_A/LP4X_A1_A/LP5_A1_A/LP5X_A1_A                                    AD2        -
+
+LP4_A2_A/LP4X_A2_A/LP5_A2_A/LP5X_A2_A                                    AG1        -
+
+LP4_A3_A/LP4X_A3_A/LP5_A3_A/LP5X_A3_A                                    AJ2        -
+
+LP4_A4_A/LP4X_A4_A/LP5_A4_A/LP5X_A4_A                                    AE2        -
+
+LP4_A5_A/LP4X_A5_A/LP5_A5_A/LP5X_A5_A                                    AF1        -
+
+LP4_CLKP_A/LP4X_CLKP_A/LP5_CLKP_A/LP5X_CLKP_A                            AC2        -
+
+LP4_CLKN_A/LP4X_CLKN_A/LP5_CLKN_A/LP5X_CLKN_A                            AB2        -
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                         22
+RK3572 Datasheet                                            Rev 1.1
+
+                                  Pin Name            Pin      Abbr
+
+LP4_CKE0_A/LP4X_CKE0_A/LP5_CSN0_A/LP5X_CSN0_A         AF2       -
+
+LP4_CKE1_A/LP4X_CKE1_A/LP5_CSN1_A/LP5X_CSN1_A         1T2       -
+
+LP4_CSN0_A/LP4X_CSN0_A/LP5_A6_A/LP5X_A6_A             AH2       -
+
+LP4_CSN1_A/LP4X_CSN1_A                                AJ1       -
+
+RFU3                                                  2K1       -
+
+DDR_ZQ                                                1T4       -
+
+DDRPHY_PLL_DVDD                                       2M3       -
+
+DDRPHY_PLL_AVDD1V8                                    2K3       -
+
+DDRPHY_DVDD_0                                         2E4       -
+
+DDRPHY_DVDD_1                                         2F4       -
+
+DDRPHY_DVDD_2                                         2G3       -
+
+DDRPHY_DVDD_3                                         2J4       -
+
+DDRPHY_DVDD_5                                         2G4       -
+
+DDRPHY_DVDD_6                                         2H4       -
+
+LP4_DQ0_B/LP4X_DQ0_B/LP5_DQ0_B/LP5X_DQ0_B             M2        -
+
+LP4_DQ1_B/LP4X_DQ1_B/LP5_DQ1_B/LP5X_DQ1_B             L1        -
+
+LP4_DQ2_B/LP4X_DQ2_B/LP5_DQ2_B/LP5X_DQ2_B             M1        -
+
+LP4_DQ3_B/LP4X_DQ3_B/LP5_DQ3_B/LP5X_DQ3_B             N2        -
+
+LP4_DQ4_B/LP4X_DQ4_B/LP5_DQ4_B/LP5X_DQ4_B             P2        -
+
+LP4_DQ5_B/LP4X_DQ5_B/LP5_DQ5_B/LP5X_DQ5_B             K2        -
+
+LP4_DQ6_B/LP4X_DQ6_B/LP5_DQ6_B/LP5X_DQ6_B             H1        -
+
+LP4_DQ7_B/LP4X_DQ7_B/LP5_DQ7_B/LP5X_DQ7_B             J2        -
+
+LP4_DM0_B/LP4X_DM0_B/LP5_DM0_B/LP5X_DM0_B             J1        -
+
+LP4_DQS0P_B/LP4X_DQS0P_B/LP5_RDQS0P_B/LP5X_RDQS0P_B   1M3       -
+
+LP4_DQS0N_B/LP4X_DQS0N_B/LP5_RDQS0N_B/LP5X_RDQS0N_B   1M2       -
+
+LP5_WCK0P_B/LP5X_WCK0P_B                              1K3       -
+
+LP5_WCK0N_B/LP5X_WCK0N_B                              1K2       -
+
+LP4_DQ8_B/LP4X_DQ8_B/LP5_DQ8_B/LP5X_DQ8_B             D2        -
+
+LP4_DQ9_B/LP4X_DQ9_B/LP5_DQ9_B/LP5X_DQ9_B             C1        -
+
+LP4_DQ10_B/LP4X_DQ10_B/LP5_DQ10_B/LP5X_DQ10_B         B1        -
+
+LP4_DQ11_B/LP4X_DQ11_B/LP5_DQ11_B/LP5X_DQ11_B         A2        -
+
+LP4_DQ12_B/LP4X_DQ12_B/LP5_DQ12_B/LP5X_DQ12_B         H2        -
+
+LP4_DQ13_B/LP4X_DQ13_B/LP5_DQ13_B/LP5X_DQ13_B         G2        -
+
+LP4_DQ14_B/LP4X_DQ14_B/LP5_DQ14_B/LP5X_DQ14_B         F1        -
+
+LP4_DQ15_B/LP4X_DQ15_B/LP5_DQ15_B/LP5X_DQ15_B         E1        -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                     23
+RK3572 Datasheet                                             Rev 1.1
+
+                                  Pin Name            Pin       Abbr
+
+LP4_DM1_B/LP4X_DM1_B/LP5_DM1_B/LP5X_DM1_B              E2        -
+
+LP4_DQS1P_B/LP4X_DQS1P_B/LP5_RDQS1P_B/LP5X_RDQS1P_B   1F2        -
+
+LP4_DQS1N_B/LP4X_DQS1N_B/LP5_RDQS1N_B/LP5X_RDQS1N_B   1F3        -
+
+LP5_WCK1P_B/LP5X_WCK1P_B                              1H2        -
+
+LP5_WCK1N_B/LP5X_WCK1N_B                              1H3        -
+
+LP4_A0_B/LP4X_A0_B/LP5_A0_B/LP5X_A0_B                  P1        -
+
+LP4_A1_B/LP4X_A1_B/LP5_A1_B/LP5X_A1_B                 R1         -
+
+LP4_A2_B/LP4X_A2_B/LP5_A2_B/LP5X_A2_B                 W2         -
+
+LP4_A3_B/LP4X_A3_B/LP5_A3_B/LP5X_A3_B                 V2         -
+
+LP4_A4_B/LP4X_A4_B/LP5_A4_B/LP5X_A4_B                  T2        -
+
+LP4_A5_B/LP4X_A5_B/LP5_A5_B/LP5X_A5_B                 1P1        -
+
+LP4_CLKP_B/LP4X_CLKP_B/LP5_CLKP_B/LP5X_CLKP_B          Y1        -
+
+LP4_CLKN_B/LP4X_CLKN_B/LP5_CLKN_B/LP5X_CLKN_B         AA1        -
+
+LP4_CKE0_B/LP4X_CKE0_B/LP5_CSN0_B/LP5X_CSN0_B         1P3        -
+
+LP4_CKE1_B/LP4X_CKE1_B/LP5_CSN1_B/LP5X_CSN1_B         1T1        -
+
+LP4_CSN0_B/LP4X_CSN0_B/LP5_A6_B/LP5X_A6_B             U2         -
+
+LP4_CSN1_B/LP4X_CSN1_B                                1P2        -
+
+LP4_RESETN/LP4X_RESETN/LP5_RESETN/LP5X_RESETN         1T3        -
+
+DDRPHY_VDDQH                                          2H3        -
+
+DDRPHY_CK_VDDQ                                        2H2        -
+
+DDRPHY_VDDQ_0                                         2E3        -
+
+DDRPHY_VDDQ_1                                         2F3        -
+
+DDRPHY_VDDQ_2                                         2G2        -
+
+DDRPHY_VDDQ_4                                         2J2        -
+
+DDRPHY_VDDQ_5                                         2J3        -
+
+UFS_TX_D0P                                            1B22       -
+
+UFS_TX_D0N                                            1A22       -
+
+UFS_TX_D1P                                            1A20       -
+
+UFS_TX_D1N                                            1B20       -
+
+UFS_RX_D0P                                            B31        -
+
+UFS_RX_D0N                                            B30        -
+
+UFS_RX_D1P                                            A32        -
+
+UFS_RX_D1N                                            A31        -
+
+UFS_TX_REXT                                           A29        -
+
+UFS_AVDD0V85                                          2B8        -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                      24
+RK3572 Datasheet                                                                 Rev 1.1
+
+                                  Pin Name                                Pin       Abbr
+
+UFS_AVDD1V8                                                               2A9        -
+
+UFS_RSTN/GPIO4_C0_D                                                       1C20       -
+
+UFS_REFCLK/GPIO4_C1_D                                                     B33        -
+
+VCCIO7_VCC                                                                2A10       -
+
+I2C2_SCL_M1/UART7_RTSN_M1/SAI4_SCLK_M0/FSPI0_D0/EMMC_D0/GPIO1_A0_u        AR10    GPIO1_A0
+
+I2C2_SDA_M1/UART7_CTSN_M1/SAI4_LRCK_M0/FSPI0_D1/EMMC_D1/GPIO1_A1_u        AR11    GPIO1_A1
+
+UART7_TX_M1/SAI4_SDO1_M0/SAI4_SDI3_M0/FSPI0_D2/EMMC_D2/GPIO1_A2_u         AT11    GPIO1_A2
+
+UART7_RX_M1/SAI4_SDO2_M0/SAI4_SDI2_M0/FSPI0_D3/EMMC_D3/GPIO1_A3_u         AT9     GPIO1_A3
+
+SPI0_CSN0_M2/UART6_RTSN_M2/SAI4_MCLK_M0/SAI3_MCLK_M0/FSPI0_D4/EMMC_D4/
+                                                                          AR9     GPIO1_A4
+GPIO1_A4_u
+I2C9_SCL_M0/SPI0_MOSI_M2/UART6_CTSN_M2/SAI3_SCLK_M0/FSPI0_D5/EMMC_D5/GP
+                                                                          AT8     GPIO1_A5
+IO1_A5_u
+
+I2C9_SDA_M0/SPI0_MISO_M2/SAI3_LRCK_M0/FSPI0_D6/EMMC_D6/GPIO1_A6_u         AT12    GPIO1_A6
+
+SPI0_CLK_M2/SAI4_SDO0_M0/SAI3_SDI_M0/FSPI0_D7/EMMC_D7/GPIO1_A7_u          AR12    GPIO1_A7
+
+I2C7_SCL_M0/UART6_TX_M2/FSPI0_RST/FSPI0_CSN1/EMMC_CMD/GPIO1_B0_u          1AE5    GPIO1_B0
+
+PWM2_CH7_M1/SAI4_SDO3_M0/SAI4_SDI1_M0/FSPI0_CLK/EMMC_CLK/GPIO1_B1_d       AR8     GPIO1_B1
+
+SPI0_CSN1_M2/SAI4_SDI0_M0/SAI3_SDO_M0/FSPI0_DQS/EMMC_STRB/GPIO1_B2_d      1AD5    GPIO1_B2
+
+I2C7_SDA_M0/PWM2_CH1_M0/UART6_RX_M2/MIPI_TE_M3/FSPI0_CSN0/EMMC_RSTN/G
+                                                                          1AF5    GPIO1_B3
+PIO1_B3_u
+
+VCCIO0_VCC1V8                                                             2P2        -
+
+CAN1_RX_M0/PWM2_CH2_M0/I2C8_SCL_M0/SPI0_MOSI_M1/UART0_RX_M1/UART7_RX_
+                                                                          1D8     GPIO2_A0
+M2/DSM_AUD_LP_M0/SDMMC0_D0_M0/FSPI1_D0_M0/GPIO2_A0_d
+
+CAN1_TX_M0/PWM2_CH3_M0/I2C8_SDA_M0/SPI0_MISO_M1/UART0_TX_M1/UART7_TX_
+                                                                          1A10    GPIO2_A1
+M2/SAI3_MCLK_M1/DSM_AUD_LN_M0/SDMMC0_D1_M0/FSPI1_D1_M0/GPIO2_A1_d
+
+
+CAN0_RX_M0/JTAG_TCK_M0/SPI0_CSN1_M1/UART5_RTSN_M2/SAI3_LRCK_M1/DSM_AU
+                                                                          B11     GPIO2_A2
+D_RP_M0/SDMMC0_D2_M0/FSPI1_D2_M0/GPIO2_A2_d
+
+
+CAN0_TX_M0/JTAG_TMS_M0/UART5_CTSN_M2/SAI3_SDI_M1/DSM_AUD_RN_M0/SDMMC
+                                                                          1A8     GPIO2_A3
+0_D3_M0/FSPI1_D3_M0/GPIO2_A3_d
+
+
+CAN2_RX_M0/PWM2_CH4_M0/I2C5_SDA_M0/SPI0_CSN0_M1/UART5_RX_M2/SAI3_SDO_
+                                                                          1B8     GPIO2_A4
+M1/SDMMC0_CMD_M0/FSPI1_CSN0_M0/GPIO2_A4_z
+
+
+CAN2_TX_M0/I2C5_SCL_M0/SPI0_CLK_M1/UART5_TX_M2/TEST_CLK_OUT/SAI3_SCLK_M
+                                                                          1C8     GPIO2_A5
+1/SDMMC0_CLK_M0/FSPI1_CLK_M0/GPIO2_A5_d
+
+VCCIO1_VCC                                                                2B2        -
+
+OSC_XOUT                                                                  N33        -
+
+OSC_XIN                                                                   N32        -
+
+OSC_AVDD1V8                                                               2F12       -
+
+PLL_DVDD0V75                                                              2B11       -
+
+PLL_AVDD1V8                                                               2B12       -
+
+PLL_AVSS                                                                  2A12       -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                          25
+RK3572 Datasheet                                                                Rev 1.1
+
+                                  Pin Name                               Pin       Abbr
+
+NPOR_u                                                                   P32        -
+
+TVSS_d                                                                   2F10       -
+
+AUPLL_CLK_IN/REF_CLK0_OUT/GPIO0_A0_d                                     1K20    GPIO0_A0
+
+RST_OUT_M0/GPIO0_A1_z                                                    R32     GPIO0_A1
+
+I2C6_SCL_M0/CLK0_32K_OUT/CLK_32K_IN/GPIO0_A2_d                           1K22    GPIO0_A2
+
+RST_OUT_M1/PWR_CTRL1/GPIO0_A3_d                                          1M22    GPIO0_A3
+
+PWR_CTRL2/GPIO0_A4_z                                                     1M21    GPIO0_A4
+
+I2C6_SDA_M0/PWR_CTRL3/GPIO0_A5_z                                         1M20    GPIO0_A5
+
+PMIC_INT/GPIO0_A6_u                                                      1K23    GPIO0_A6
+
+SPI2_CSN1_M0/SDMMC0_DETN_M0/GPIO0_A7_u                                   T33     GPIO0_A7
+
+I2C0_SCL_M0/SPI2_CSN0_M0/GPIO0_B0_z                                      1K21    GPIO0_B0
+
+I2C0_SDA_M0/SPI2_MISO_M0/GPIO0_B1_z                                      U32     GPIO0_B1
+
+I2C1_SCL_M0/SPI2_CLK_M0/GPIO0_B2_z                                       T32     GPIO0_B2
+
+I2C1_SDA_M0/SPI2_MOSI_M0/GPIO0_B3_z                                      1M23    GPIO0_B3
+
+PMUIO0_VCC1V8                                                            2G11       -
+
+PWM1_CH0_M0/I2C1_SCL_M1/UART4_TX_M2/REF_CLK1_OUT/GPIO0_B4_d              AC33    GPIO0_B4
+
+PWM1_CH1_M0/I2C1_SDA_M1/UART4_RX_M2/REF_CLK2_OUT/GPIO0_B5_d              AB32    GPIO0_B5
+
+PWM1_CH2_M0/SDMMC1_DETN_M1/SDMMC0_PWREN_M0/HDMI_TX_HPDIN_M1/EDP_TX
+                                                                         AB33    GPIO0_B6
+_HPDIN_M1/GPIO0_B6_d
+
+PWM1_CH4_M0/I2C2_SCL_M0/UART1_TX_M0/NPU_AVS/GPIO0_B7_d                   AA32    GPIO0_B7
+
+PWM1_CH3_M0/I2C2_SDA_M0/UART1_RX_M0/CPULIT_AVS/GPIO0_C0_d                Y32     GPIO0_C0
+
+I3C_SCL_M0/I2C0_SCL_M1/UART8_TX_M1/GPIO0_C1_d                            Y33     GPIO0_C1
+
+I3C_SDA_M0/I2C0_SDA_M1/UART8_RX_M1/GPIO0_C2_d                            W32     GPIO0_C2
+
+PWM0_CH1_M0/PDM_CLK1_M0/HDMI_TX_CEC_M1/SPI0_CSN1_M0/GPIO0_C3_d           W33     GPIO0_C3
+
+PWM0_CH0_M0/UART10_TX_M2/PDM_CLK0_M0/SAI0_MCLK_M1/GPIO0_C4_d             1T20    GPIO0_C4
+
+I3C_SDA_PU_M0/UART10_RX_M2/SAI0_SDO0_M1/GPIO0_C5_d                       1T21    GPIO0_C5
+
+I2C3_SCL_M1/UART8_RTSN_M1/SAI0_SCLK_M1/SPI0_CSN0_M0/GPIO0_C6_d           1T22    GPIO0_C6
+
+I2C3_SDA_M1/UART8_CTSN_M1/SAI0_LRCK_M1/SPI0_CLK_M0/GPIO0_C7_d            1T23    GPIO0_C7
+
+UART11_TX_M0/PDM_SDI0_M0/SAI0_SDI0_M1/SPI0_MOSI_M0/GPIO0_D0_d            1P20    GPIO0_D0
+
+UART11_RX_M0/PDM_SDI1_M0/SAI0_SDO3_M1/SAI0_SDI1_M1/SPI0_MISO_M0/GPIO0_
+                                                                         1P21    GPIO0_D1
+D1_d
+
+PWM1_CH5_M0/I2C4_SCL_M0/UART1_CTSN_M0/PDM_SDI2_M0/SAI0_SDO2_M1/SAI0_S
+                                                                         1P22    GPIO0_D2
+DI2_M1/CPUBIG_AVS/GPIO0_D2_d
+
+PWM2_CH0_M0/I2C4_SDA_M0/UART1_RTSN_M0/PDM_SDI3_M0/SAI0_SDO1_M1/SAI0_S
+                                                                         1P23    GPIO0_D3
+DI3_M1/GPU_AVS/GPIO0_D3_d
+
+JTAG_TCK_M1/UART0_TX_M0/GPIO0_D4_u                                       U33     GPIO0_D4
+
+JTAG_TMS_M1/UART0_RX_M0/GPIO0_D5_u                                       V32     GPIO0_D5
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                         26
+RK3572 Datasheet                                                                  Rev 1.1
+
+                                  Pin Name                                 Pin       Abbr
+
+PMUIO1_VCC                                                                2G10        -
+
+PMU_LOGIC_DVDD0V75_0                                                      2J11        -
+
+PMU_LOGIC_DVDD0V75_1                                                      2J12        -
+
+PWM2_CH5_M0/UART6_RX_M0/SAI0_MCLK_M2/SAI1_MCLK_M0/GPIO2_B0_d              1D1      GPIO2_B0
+
+CAN0_TX_M2/PWM2_CH4_M1/I2C2_SCL_M2/SPI3_CSN0_M2/UART6_TX_M0/SAI0_SDI1_
+                                                                          1A2      GPIO2_B1
+M2/SAI1_SCLK_M0/GPIO2_B1_d
+
+
+I2C4_SCL_M1/SPI3_MOSI_M2/UART9_TX_M2/PDM_CLK0_M1/SAI0_SCLK_M2/VI_CIF_D1
+                                                                           B3      GPIO2_B2
+5/UART6_RTSN_M0/GPIO2_B2_d
+
+
+CAN0_RX_M2/PCIE1_CLKREQN_M2/I2C2_SDA_M2/SPI4_CSN1_M2/UART9_RX_M2/SAI0_
+                                                                          1D2      GPIO2_B3
+SDI2_M2/SAI1_LRCK_M0/VI_CIF_D14/UART6_CTSN_M0/GPIO2_B3_d
+
+
+I2C4_SDA_M1/SPI3_MISO_M2/UART2_RX_M1/PDM_CLK1_M1/SAI0_LRCK_M2/SPDIF_TX
+                                                                          1B2      GPIO2_B4
+1_M0/VI_CIF_D13/GPIO2_B4_d
+
+
+PWM2_CH6_M0/SPI3_CLK_M2/UART2_TX_M1/SAI0_SDI0_M2/SAI1_SDO0_M0/VI_CIF_D
+                                                                           B4      GPIO2_B5
+12/ETH0_PTP_REFCLK/GPIO2_B5_d
+
+
+UART2_RTSN_M1/SPI4_CLK_M2/UART11_TX_M1/PDM_SDI3_M1/SAI1_SDI3_M0/SAI1_S
+                                                                          1D3      GPIO2_B6
+DO1_M0/VI_CIF_D11/ETH0_PPSCLK/GPIO2_B6_d
+
+UART2_CTSN_M1/SPI4_MOSI_M2/UART11_RX_M1/PDM_SDI2_M1/SAI1_SDI2_M0/SAI1_
+                                                                           A4      GPIO2_B7
+SDO2_M0/VI_CIF_D10/ETH0_PPSTRIG/GPIO2_B7_d
+
+
+SPI4_MISO_M2/UART5_RTSN_M1/PDM_SDI1_M1/SAI1_SDI1_M0/SAI1_SDO3_M0/VI_CIF
+                                                                          1C4      GPIO2_C0
+_D9/ETH0_RXD3/GPIO2_C0_d
+
+PWM2_CH7_M0/SPI3_CSN1_M2/SPI4_CSN0_M2/UART5_CTSN_M1/PDM_SDI0_M1/SAI0_
+                                                                          1B4      GPIO2_C1
+SDO0_M2/SAI1_SDI0_M0/VI_CIF_D8/ETH0_RXD2/GPIO2_C1_d
+
+CAN1_RX_M2/MIPI_TE_M0/I2C3_SDA_M0/UART5_RX_M1/SAI0_SDI3_M2/SPDIF_RX0_M0
+                                                                           A5      GPIO2_C2
+/ETH0_TXD2/GPIO2_C2_d
+
+CAN1_TX_M2/PCIE0_CLKREQN_M2/I2C3_SCL_M0/UART5_TX_M1/SPDIF_TX0_M0/ETH0_
+                                                                           B5      GPIO2_C3
+TXD3/GPIO2_C3_d
+
+VCCIO2_VCC                                                                2D2         -
+
+PCIE1_CLKREQN_M1/PWM1_CH0_M1/I2C9_SDA_M1/SPI1_CLK_M0/SAI4_MCLK_M1/SDM
+                                                                          AR14     GPIO1_B4
+MC1_D0/ETH1_RXD2_M1/GPIO1_B4_d
+
+
+PWM1_CH1_M1/I2C9_SCL_M1/SPI1_MOSI_M0/SAI4_LRCK_M1/SDMMC1_D1/ETH1_RXD3
+                                                                          AR13     GPIO1_B5
+_M1/GPIO1_B5_d
+
+
+PCIE0_CLKREQN_M1/SPI1_MISO_M0/UART3_CTSN_M2/SAI4_SDI_M1/SDMMC1_D2/ETH1
+                                                                          AT14     GPIO1_B6
+_RXCLK_M1/GPIO1_B6_d
+
+
+SPI1_CSN0_M0/UART3_RTSN_M2/SAI4_SDO_M1/SDMMC1_D3/ETH1_TXD2_M1/GPIO1_B
+                                                                          AT15     GPIO1_B7
+7_d
+
+
+PWM0_CH0_M1/SPI1_CSN1_M0/UART3_TX_M2/PDM_SDI2_M2/SAI4_SCLK_M1/SDMMC1
+                                                                          AR16     GPIO1_C0
+_CMD/ETH1_TXD3_M1/GPIO1_C0_d
+
+UART3_RX_M2/PDM_CLK0_M2/SDMMC1_CLK/ETH1_TXCLK_M1/GPIO1_C1_d               AR15     GPIO1_C1
+
+SATA0_CPPOD_M0/CAN2_RX_M1/I2C6_SCL_M1/UART4_RTSN_M1/SDMMC1_PWREN/ETH
+                                                                          1AE11    GPIO1_C2
+1_PPSCLK_M1/GPIO1_C2_d
+
+SATA0_CPDET_M0/CAN2_TX_M1/I2C6_SDA_M1/UART4_CTSN_M1/SDMMC1_DETN_M0/E
+                                                                          AR17     GPIO1_C3
+TH1_PPSTRIG_M1/GPIO1_C3_d
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                           27
+RK3572 Datasheet                                                                  Rev 1.1
+
+                                  Pin Name                                 Pin       Abbr
+
+SPI2_MOSI_M1/UART4_TX_M1/UART2_RTSN_M0/ETH1_TXD0_M1/GPIO1_C4_d            AT17     GPIO1_C4
+
+SPI2_MISO_M1/UART4_RX_M1/UART2_CTSN_M0/ETH1_TXD1_M1/GPIO1_C5_d            AT18     GPIO1_C5
+
+HDMI_TX_SCL_M1/I2C8_SCL_M1/SPI2_CSN0_M1/UART2_TX_M0/PDM_SDI0_M2/ETH1_T
+                                                                          1AE7     GPIO1_C6
+XCTL_M1/GPIO1_C6_d
+
+HDMI_TX_SDA_M1/I2C8_SDA_M1/SPI2_CSN1_M1/UART2_RX_M0/PDM_SDI1_M2/ETH1_
+                                                                          1AF11    GPIO1_C7
+RXD0_M1/GPIO1_C7_d
+
+UART7_TX_M0/SAI2_SDO_M0/ETH1_RXD1_M1/GPIO1_D0_d                           1AF9     GPIO1_D0
+
+SATA1_CPPOD_M0/I3C_SDA_PU_M1/UART7_RX_M0/SAI2_SCLK_M0/ETH1_RXCTL_M1/GP
+                                                                          1AD11    GPIO1_D1
+IO1_D1_d
+SATA1_CPDET_M0/PWM1_CH3_M1/I3C_SCL_M1/SAI2_LRCK_M0/ETH1_MDC_M1/GPIO1_
+                                                                          1AD9     GPIO1_D2
+D2_d
+SATA1_MPSWIT_M0/PWM1_CH4_M1/I3C_SDA_M1/SAI2_SDI_M0/ETH1_MDIO_M1/GPIO1
+                                                                          1AE9     GPIO1_D3
+_D3_d
+
+PWM1_CH5_M3/I2C5_SCL_M1/UART7_RTSN_M0/PDM_SDI3_M2/SAI2_MCLK_M0/SPDIF_
+                                                                          1AD7     GPIO1_D4
+RX0_M1/ETH1_MCLK_M1/GPIO1_D4_d
+
+CLK1_32K_OUT/CAN3_TX_M0/I2C5_SDA_M1/SPI2_CLK_M1/UART7_CTSN_M0/PDM_CLK1
+                                                                          AR18     GPIO1_D5
+_M2/SPDIF_TX0_M1/ETH_CLK1_25M_OUT_M1/GPIO1_D5_d
+
+SATA0_MPSWIT_M0/CAN3_RX_M0/PWM1_CH2_M1/SPDIF_TX1_M1/ETH1_PTP_REFCLK_M
+                                                                          1AF7     GPIO1_D6
+1/GPIO1_D6_d
+
+VCCIO3_VCC                                                                 2P5        -
+
+PWM2_CH4_M2/I2C8_SCL_M2/UART10_TX_M1/VI_CIF_D7/PDM_SDI0_M3/SAI0_SDI2_M
+                                                                           A11     GPIO2_C4
+0/SDMMC0_D0_M1/FSPI1_D7_M1/ETH_CLK0_25M_OUT/GPIO2_C4_d
+PWM2_CH5_M2/I2C8_SDA_M2/UART10_RX_M1/VI_CIF_D6/PDM_CLK0_M3/SAI0_SDI1_M
+                                                                           B10     GPIO2_C5
+0/SDMMC0_D1_M1/FSPI1_D6_M1/ETH0_MDIO/GPIO2_C5_d
+UART11_TX_M2/I2C9_SDA_M2/SPI3_CSN1_M0/UART10_CTSN_M1/VI_CIF_D5/PDM_SDI
+                                                                           B9      GPIO2_C6
+1_M3/SAI0_SDO1_M0/SDMMC0_D2_M1/FSPI1_D5_M1/ETH0_MDC/GPIO2_C6_d
+ISP_PRELIGHT_TRIG_M0/UART11_RX_M2/I2C9_SCL_M2/SPI1_CSN1_M1/UART10_RTSN_
+M1/VI_CIF_D4/PDM_CLK1_M3/SAI0_MCLK_M0/SDMMC0_D3_M1/FSPI1_D4_M1/ETH0_RX     A10     GPIO2_C7
+CTL/GPIO2_C7_d
+PCIE0_CLKREQN_M0/ISP_FLASH_TRIGOUT_M0/PWM1_CH2_M2/I2C7_SCL_M1/SPI1_MOS
+I_M1/UART1_CTSN_M1/VI_CIF_D3/PDM_SDI2_M3/SAI0_SCLK_M0/SDMMC0_CMD_M1/FS     A8      GPIO2_D0
+PI1_D3_M1/ETH0_MCLK/GPIO2_D0_d
+PCIE1_CLKREQN_M0/SATA30_PORT1_ACTLED_M0/PWM0_CH0_M2/I2C7_SDA_M1/SPI1_
+MISO_M1/UART1_RTSN_M1/VI_CIF_D2/PDM_SDI3_M3/SAI0_LRCK_M0/SDMMC0_CLK_M      A7      GPIO2_D1
+1/FSPI1_D2_M1/ETH0_RXD1/GPIO2_D1_d
+SATA30_PORT0_ACTLED_M0/PWM1_CH3_M2/I2C6_SCL_M2/SPI1_CSN0_M1/UART1_TX_
+M1/VI_CIF_D1/SAI0_SDO0_M0/SDMMC0_PWREN_M1/FSPI1_D1_M1/ETH0_RXD0/GPIO2_    1D6      GPIO2_D2
+D2_d
+PWM1_CH4_M2/I2C6_SDA_M2/SPI1_CLK_M1/UART1_RX_M1/VI_CIF_D0/SAI0_SDI0_M0/
+                                                                           1C6     GPIO2_D3
+SDMMC0_DETN_M1/FSPI1_D0_M1/ETH0_TXCTL/GPIO2_D3_d
+CAN3_TX_M1/I2C5_SCL_M2/SPI3_CLK_M0/UART3_TX_M0/VI_CIF_HREF/SAI0_SDO2_M0
+                                                                           1A6     GPIO2_D4
+/CAM_CLK0_OUT_M1/FSPI1_DQS_M1/ETH0_TXD0/GPIO2_D4_d
+CAN3_RX_M1/I2C5_SDA_M2/SPI3_MOSI_M0/UART3_RX_M0/VI_CIF_VSYNC/SPDIF_TX1_
+                                                                           1B6     GPIO2_D5
+M2/SAI0_SDO3_M0/CAM_CLK1_OUT_M1/FSPI1_CLK_M1/ETH0_TXD1/GPIO2_D5_d
+MIPI_TE_M1/CAN1_TX_M3/PWM2_CH2_M2/I2C4_SCL_M2/SPI3_MISO_M0/UART3_CTSN_
+M0/VI_CIF_CLKO/SPDIF_RX0_M2/SAI0_SDI3_M0/CAM_CLK2_OUT_M1/FSPI1_CSN0_M1/    B8      GPIO2_D6
+ETH0_TXCLK/GPIO2_D6_z
+CAN1_RX_M3/PWM2_CH3_M2/I2C4_SDA_M2/SPI3_CSN0_M0/UART3_RTSN_M0/VI_CIF_
+                                                                           B7      GPIO2_D7
+CLKI/SPDIF_TX0_M2/FSPI1_RST/FSPI1_CSN1_M1/ETH0_RXCLK/GPIO2_D7_z
+
+VCCIO4_VCC                                                                 2C2        -
+
+PWM1_CH0_M2/SPI2_CLK_M2/UART1_CTSN_M2/SAI1_SCLK_M1/VO_EBC_SDSHR/VO_LC
+                                                                          1AB23    GPIO3_A4
+DC_D23/DSMC_RDYN/ETH_CLK1_25M_OUT_M0/GPIO3_A4_d
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                           28
+RK3572 Datasheet                                                                  Rev 1.1
+
+                                  Pin Name                                 Pin       Abbr
+PWM1_CH1_M2/SPI2_CSN1_M2/UART1_RTSN_M2/PDM_SDI3_M4/VO_EBC_GDSP/VO_LC
+                                                                          1V22     GPIO3_A5
+DC_D22/DSMC_DATA15/ETH1_MDIO_M0/GPIO3_A5_d
+PWM1_CH2_M3/UART10_CTSN_M0/UART1_RX_M2/PDM_SDI2_M4/VO_EBC_GDOE/VO_LC
+                                                                          1V23     GPIO3_A6
+DC_D21/DSMC_DATA14/ETH1_MDC_M0/GPIO3_A6_d
+UART10_RTSN_M0/UART1_TX_M2/PDM_CLK1_M4/VO_EBC_VCOM/VO_LCDC_D20/DSMC_
+                                                                          1Y21     GPIO3_A7
+DATA13/ETH1_RXCTL_M0/GPIO3_A7_d
+PWM0_CH0_M3/SPI2_MOSI_M2/UART10_RX_M0/SAI1_MCLK_M1/VO_EBC_SDCE3/VO_LC
+                                                                          1AB21    GPIO3_B0
+DC_D19/DSMC_CSN1/ETH1_MCLK_M0/GPIO3_B0_z
+PWM1_CH3_M3/SPI4_CSN0_M1/UART10_TX_M0/PDM_CLK0_M4/VO_EBC_SDCE2/VO_LC
+                                                                          AG32     GPIO3_B1
+DC_D18/DSMC_DATA12/ETH1_RXD1_M0/GPIO3_B1_d
+I2C8_SDA_M3/UART3_RX_M1/PDM_SDI1_M4/VO_EBC_SDCE1/VO_LCDC_D17/DSMC_DA
+                                                                          1Y22     GPIO3_B2
+TA11/ETH1_RXD0_M0/GPIO3_B2_d
+I2C8_SCL_M3/UART3_TX_M1/PDM_SDI0_M4/VO_EBC_SDCE0/VO_LCDC_D16/DSMC_DAT
+                                                                          1Y20     GPIO3_B3
+A10/ETH1_TXCTL_M0/GPIO3_B3_d
+PWM1_CH4_M3/UART3_RTSN_M1/SPDIF_RX0_M3/VO_EBC_SDDO15/VO_LCDC_D15/DSM
+                                                                          AE33     GPIO3_B4
+C_DATA9/ETH1_TXD1_M0/GPIO3_B4_d
+PWM1_CH5_M2/UART3_CTSN_M1/SPDIF_TX0_M3/VO_EBC_SDDO14/VO_LCDC_D14/DSM
+                                                                          1V21     GPIO3_B5
+C_DATA8/ETH1_TXD0_M0/GPIO3_B5_d
+PWM0_CH1_M2/SPI3_CSN0_M1/SPDIF_TX1_M3/VO_EBC_SDDO13/VO_LCDC_D13/DSMC
+                                                                          1Y23     GPIO3_B6
+_DQS1/ETH1_TXCLK_M0/GPIO3_B6_d
+CAN2_RX_M2/I2C4_SDA_M3/UART9_CTSN_M1/UART2_RX_M2/SAI1_SDI0_M1/VO_EBC_
+                                                                          AK32     GPIO3_B7
+SDDO12/VO_LCDC_D12/DSMC_DQS0/ETH1_PPSTRIG_M0/GPIO3_B7_d
+CAN2_TX_M2/I2C4_SCL_M3/UART9_RTSN_M1/UART2_TX_M2/SAI1_SDO3_M1/VO_EBC_
+                                                                          AH32     GPIO3_C0
+SDDO11/VO_LCDC_D11/DSMC_DATA7/ETH1_PPSCLK_M0/GPIO3_C0_d
+CAN0_RX_M3/I2C5_SDA_M3/SPI2_MISO_M2/UART4_RX_M0/SAI1_SDO2_M1/VO_EBC_S
+                                                                          AL33     GPIO3_C1
+DDO10/VO_LCDC_D10/DSMC_DATA6/ETH1_PTP_REFCLK_M0/GPIO3_C1_d
+CAN3_RX_M2/PWM2_CH0_M2/I2C9_SCL_M3/SPI4_MISO_M1/UART4_RTSN_M0/SAI2_SC
+                                                                          AD32     GPIO3_C2
+LK_M1/VO_EBC_SDDO9/VO_LCDC_D9/DSMC_INT1/ETH1_TXD3_M0/GPIO3_C2_d
+CAN3_TX_M2/PWM2_CH1_M2/I2C9_SDA_M3/SPI4_MOSI_M1/UART4_CTSN_M0/SAI2_LR
+                                                                          AE32     GPIO3_C3
+CK_M1/VO_EBC_SDDO8/VO_LCDC_D8/DSMC_INT3/ETH1_TXD2_M0/GPIO3_C3_d
+SATA0_MPSWIT_M1/CAN0_TX_M3/I2C5_SCL_M3/SPI2_CSN0_M2/UART4_TX_M0/SAI2_M
+                                                                          AH33     GPIO3_C4
+CLK_M1/VO_EBC_SDDO7/VO_LCDC_D7/DSMC_DATA5/GPIO3_C4_d
+PWM2_CH2_M3/SPI1_MISO_M2/UART8_RX_M0/VO_EBC_SDDO6/VO_LCDC_D6/DSMC_D
+                                                                          AJ32     GPIO3_C5
+ATA4/GPIO3_C5_d
+SPI1_MOSI_M2/UART8_TX_M0/VO_EBC_SDDO5/VO_LCDC_D5/DSMC_DATA3/GPIO3_C6_
+                                                                          AJ33     GPIO3_C6
+d
+SATA0_CPPOD_M1/SPI1_CLK_M2/UART8_RTSN_M0/VO_EBC_SDDO4/VO_LCDC_D4/DSM
+                                                                          AC32     GPIO3_C7
+C_DATA2/GPIO3_C7_d
+SATA0_CPDET_M1/PWM2_CH3_M3/SPI1_CSN0_M2/UART8_CTSN_M0/VO_EBC_SDDO3/V
+                                                                          1AB22    GPIO3_D0
+O_LCDC_D3/DSMC_DATA1/GPIO3_D0_d
+SPI4_CLK_M1/VO_EBC_SDDO2/VO_LCDC_D2/DSMC_CSN2/ETH1_RXCLK_M0/GPIO3_D1_
+                                                                          1V20     GPIO3_D1
+z
+PWM2_CH4_M3/SPI4_CSN1_M1/UART2_RTSN_M2/SAI2_SDI_M1/VO_EBC_SDDO1/VO_LC
+                                                                          AF33     GPIO3_D2
+DC_D1/DSMC_CSN3/ETH1_RXD3_M0/GPIO3_D2_z
+PWM2_CH5_M3/SPI3_CSN1_M1/UART2_CTSN_M2/SAI2_SDO_M1/VO_EBC_SDDO0/VO_L
+                                                                          AF32     GPIO3_D3
+CDC_D0/DSMC_CSN0/ETH1_RXD2_M0/GPIO3_D3_z
+I2C3_SCL_M2/SPI3_CLK_M1/UART5_RX_M0/SAI1_SDI1_M1/VO_EBC_SDLE/VO_LCDC_D
+                                                                          AL32     GPIO3_D4
+EN/DSMC_DATA0/GPIO3_D4_d
+I2C3_SDA_M2/SPI3_MISO_M1/UART5_TX_M0/SAI1_SDI2_M1/VO_EBC_GDCLK/VO_LCDC
+                                                                          1AB20    GPIO3_D5
+_HSYNC/DSMC_CLKP/GPIO3_D5_d
+PWM2_CH6_M2/SPI3_MOSI_M1/UART5_CTSN_M0/SAI1_SDI3_M1/VO_EBC_SDCLK/VO_L
+                                                                          AM33     GPIO3_D6
+CDC_VSYNC/DSMC_CLKN/GPIO3_D6_d
+SATA1_MPSWIT_M1/PWM2_CH7_M2/UART5_RTSN_M0/SAI1_SDO1_M1/VO_EBC_SDOE/V
+                                                                          AM32     GPIO3_D7
+O_LCDC_CLK/DSMC_RESETN/CAM_CLK0_OUT_M0/GPIO3_D7_d
+SATA1_CPPOD_M1/SPDIF_RX0_M4/I2C7_SCL_M2/SPI1_CSN1_M2/UART9_TX_M1/SAI1_S
+                                                                          1AD23    GPIO4_A0
+DO0_M1/VO_EBC_BORDER0/MIPI_TE_M2/DSMC_INT0/CAM_CLK1_OUT_M0/GPIO4_A0_d
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                         29
+RK3572 Datasheet                                                                 Rev 1.1
+
+                                  Pin Name                                Pin       Abbr
+SATA1_CPDET_M1/SPDIF_TX0_M4/I2C7_SDA_M2/UART9_RX_M1/SAI1_LRCK_M1/VO_EB
+                                                                         1AD22    GPIO4_A1
+C_BORDER1/VO_POST_EMPTY/DSMC_INT2/CAM_CLK2_OUT_M0/GPIO4_A1_d
+
+VCCIO5_VCC_0                                                             2K11        -
+
+VCCIO5_VCC_1                                                             2K12        -
+
+HDMI_TX_CEC_M0/PWM1_CH5_M1/I2C3_SCL_M3/SPI4_CSN1_M0/UART6_TX_M1/VO_EB
+                                                                         1AD21    GPIO4_B0
+C_SDDO16/DSM_AUD_LP_M1/SAI3_MCLK_M2/GPIO4_B0_d
+PCIE0_CLKREQN_M3/HDMI_TX_HPDIN_M0/PWM0_CH1_M1/I2C3_SDA_M3/EDP_TX_HPDI
+                                                                         1AE21    GPIO4_B1
+N_M0/UART6_RX_M1/VO_EBC_SDDO17/DSM_AUD_LN_M1/SAI3_SDI_M2/GPIO4_B1_d
+CAN0_TX_M1/HDMI_TX_SCL_M0/PWM2_CH0_M1/I2C2_SCL_M3/UART6_RTSN_M1/VO_E
+                                                                         AT32     GPIO4_B2
+BC_SDDO18/DSM_AUD_RP_M1/SAI3_LRCK_M2/GPIO4_B2_d
+CAN0_RX_M1/HDMI_TX_SDA_M0/PWM2_CH1_M1/I2C2_SDA_M3/UART6_CTSN_M1/VO_E
+                                                                         AR32     GPIO4_B3
+BC_SDDO19/DSM_AUD_RN_M1/SAI3_SCLK_M2/GPIO4_B3_d
+ISP_PRELIGHT_TRIG_M1/PWM2_CH6_M1/I2C7_SCL_M3/SPI4_CSN0_M0/UART9_TX_M0/
+                                                                         AR33     GPIO4_B4
+VO_EBC_SDDO20/SAI3_SDO_M2/GPIO4_B4_d
+ISP_FLASH_TRIGOUT_M1/PWM2_CH5_M1/I2C7_SDA_M3/SPI4_MOSI_M0/UART9_RX_M0
+                                                                         AP32     GPIO4_B5
+/VO_EBC_SDDO21/VP0_SYNC_OUT/SATA30_PORT0_ACTLED_M1/GPIO4_B5_d
+PCIE1_CLKREQN_M3/CAN1_TX_M1/PWM2_CH2_M1/I2C6_SCL_M3/SPI4_MISO_M0/UART
+9_CTSN_M0/VO_EBC_SDDO22/VP1_SYNC_OUT/SATA30_PORT1_ACTLED_M1/GPIO4_B6_    AP33     GPIO4_B6
+d
+CAN1_RX_M1/PWM2_CH3_M1/I2C6_SDA_M3/SPI4_CLK_M0/UART9_RTSN_M0/VO_EBC_S
+                                                                         AN32     GPIO4_B7
+DDO23/GPIO4_B7_d
+
+VCCIO6_VCC                                                               2L12        -
+
+USB_DRD0_DP                                                               B25        -
+
+USB_DRD0_DM                                                               A25        -
+
+USB_DRD0_ID                                                              1B18        -
+
+USB_DRD0_VBUSDET                                                         1C18        -
+
+USB_DRD0_REXT                                                            1A18        -
+
+USB_DRD1_DP                                                               B26        -
+
+USB_DRD1_DM                                                               A26        -
+
+USB_DRD1_ID                                                               A28        -
+
+USB_DRD1_VBUSDET                                                          B28        -
+
+USB_DRD1_REXT                                                            1D18        -
+
+USB_DRD_DVDD0V75                                                          2A7        -
+
+USB_DRD_AVDD1V8                                                           2A6        -
+
+USB_DRD_AVDD3V3                                                           2A8        -
+
+PCIE0_REFCLKP_M0                                                         1D21        -
+
+PCIE0_REFCLKN_M0                                                         1D22        -
+
+PCIE0_TXP_M0/SATA0_TXP_M0/USB_DRD0_SSTXP                                  E32        -
+
+PCIE0_TXN_M0/SATA0_TXN_M0/USB_DRD0_SSTXN                                  E33        -
+
+PCIE0_RXP_M0/SATA0_RXP_M0/USB_DRD0_SSRXP                                 D33         -
+
+PCIE0_RXN_M0/SATA0_RXN_M0/USB_DRD0_SSRXN                                 D32         -
+
+PCIE0_SATA0_USB_DRD0_AVDD0V85                                            2C10        -
+
+PCIE0_SATA0_USB_DRD0_AVDD1V8                                             2C11        -
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                          30
+RK3572 Datasheet                                          Rev 1.1
+
+                                  Pin Name         Pin       Abbr
+
+PCIE0_REFCLKP_M1                                  1F21        -
+
+PCIE0_REFCLKN_M1                                  1F22        -
+
+PCIE0_TXP_M1/SATA0_TXP_M1/USB_DRD1_SSTXP          G32         -
+
+PCIE0_TXN_M1/SATA0_TXN_M1/USB_DRD1_SSTXN          G33         -
+
+PCIE0_RXP_M1/SATA0_RXP_M1/USB_DRD1_SSRXP           H32        -
+
+PCIE0_RXN_M1/SATA0_RXN_M1/USB_DRD1_SSRXN           H33        -
+
+PCIE0_SATA0_USB_DRD1_AVDD0V85                     2D10        -
+
+PCIE0_SATA0_USB_DRD1_AVDD1V8                      2D11        -
+
+PCIE1_REFCLKP                                     1H21        -
+
+PCIE1_REFCLKN                                     1H22        -
+
+PCIE1_TXP/SATA1_TXP                                L33        -
+
+PCIE1_TXN/SATA1_TXN                                L32        -
+
+PCIE1_RXP/SATA1_RXP                                K33        -
+
+PCIE1_RXN/SATA1_RXN                                K32        -
+
+PCIE1_SATA1_AVDD0V85                              2E11        -
+
+PCIE1_SATA1_AVDD1V8                               2E12        -
+
+HDMI_TX_SBDP/EDP_TX_AUXP                          1AE13       -
+
+HDMI_TX_SBDN/EDP_TX_AUXN                          1AD13       -
+
+HDMI_TX_D0P/EDP_TX_D0P                            AR21        -
+
+HDMI_TX_D0N/EDP_TX_D0N                            AT21        -
+
+HDMI_TX_D1P/EDP_TX_D1P                            AT23        -
+
+HDMI_TX_D1N/EDP_TX_D1N                            AR23        -
+
+HDMI_TX_D2P/EDP_TX_D2P                            AR24        -
+
+HDMI_TX_D2N/EDP_TX_D2N                            AT24        -
+
+HDMI_TX_D3P/EDP_TX_D3P                            AT20        -
+
+HDMI_TX_D3N/EDP_TX_D3N                            AR20        -
+
+HDMI_TX_REXT/EDP_TX_REXT                           2N7        -
+
+HDMI_TX_EDP_TX_AVDDD0V75                           2P6        -
+
+HDMI_TX_EDP_TX_AVDDC0V75                           2N6        -
+
+HDMI_TX_EDP_TX_AVDDIO1V8                           2P8        -
+
+HDMI_TX_EDP_TX_AVDDCMN1V8                          2P7        -
+
+MIPI_DPHY_DSI_TX_CLKP                             AT27        -
+
+MIPI_DPHY_DSI_TX_CLKN                             AR27        -
+
+MIPI_DPHY_DSI_TX_D0P                              1AE15       -
+
+MIPI_DPHY_DSI_TX_D0N                              1AD15       -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                   31
+RK3572 Datasheet                                         Rev 1.1
+
+                                  Pin Name        Pin       Abbr
+
+MIPI_DPHY_DSI_TX_D1P                              AT26       -
+
+MIPI_DPHY_DSI_TX_D1N                              AR26       -
+
+MIPI_DPHY_DSI_TX_D2P                              AT29       -
+
+MIPI_DPHY_DSI_TX_D2N                              AR29       -
+
+MIPI_DPHY_DSI_TX_D3P                              AT30       -
+
+MIPI_DPHY_DSI_TX_D3N                              AR30       -
+
+MIPI_DPHY_AVDD0V75                                2P9        -
+
+MIPI_DPHY_AVDD1V8                                 2N8        -
+
+MIPI_DPHY_CSI0_RX_D0P                             A19        -
+
+MIPI_DPHY_CSI0_RX_D0N                             B19        -
+
+MIPI_DPHY_CSI0_RX_D1P                             1B14       -
+
+MIPI_DPHY_CSI0_RX_D1N                             1C14       -
+
+MIPI_DPHY_CSI0_RX_CLKP                            A20        -
+
+MIPI_DPHY_CSI0_RX_CLKN                            B20        -
+
+MIPI_DPHY_CSI0_RX_D2P/MIPI_DPHY_CSI1_RX_D0P       A22        -
+
+MIPI_DPHY_CSI0_RX_D2N/MIPI_DPHY_CSI1_RX_D0N       B22        -
+
+MIPI_DPHY_CSI0_RX_D3P/MIPI_DPHY_CSI1_RX_D1P       A23        -
+
+MIPI_DPHY_CSI0_RX_D3N/MIPI_DPHY_CSI1_RX_D1N       B23        -
+
+MIPI_DPHY_CSI1_RX_CLKP                            1B16       -
+
+MIPI_DPHY_CSI1_RX_CLKN                            1C16       -
+
+MIPI_DPHY_CSI0/1_RX_AVDD0V75                      2B5        -
+
+MIPI_DPHY_CSI0/1_RX_AVDD1V8                       2C5        -
+
+MIPI_DPHY_CSI2_RX_D0P                             A13        -
+
+MIPI_DPHY_CSI2_RX_D0N                             B13        -
+
+MIPI_DPHY_CSI2_RX_D1P                             1B10       -
+
+MIPI_DPHY_CSI2_RX_D1N                             1C10       -
+
+MIPI_DPHY_CSI2_RX_CLKP                            A14        -
+
+MIPI_DPHY_CSI2_RX_CLKN                            B14        -
+
+MIPI_DPHY_CSI2_RX_D2P/MIPI_DPHY_CSI3_RX_D0P       A16        -
+
+MIPI_DPHY_CSI2_RX_D2N/MIPI_DPHY_CSI3_RX_D0N       B16        -
+
+MIPI_DPHY_CSI2_RX_D3P/MIPI_DPHY_CSI3_RX_D1P       A17        -
+
+MIPI_DPHY_CSI2_RX_D3N/MIPI_DPHY_CSI3_RX_D1N       B17        -
+
+MIPI_DPHY_CSI3_RX_CLKP                            1B12       -
+
+MIPI_DPHY_CSI3_RX_CLKN                            1C12       -
+
+MIPI_DPHY_CSI2/3_RX_AVDD0V75                      2B4        -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                  32
+RK3572 Datasheet                                          Rev 1.1
+
+                                  Pin Name         Pin       Abbr
+
+MIPI_DPHY_CSI2/3_RX_AVDD1V8                        2C4        -
+
+SARADC_IN0_BOOT                                   1AF21       -
+
+SARADC_IN1                                        1AD19       -
+
+SARADC_IN2                                        1AE19       -
+
+SARADC_IN3                                        1AC19       -
+
+SARADC_IN4                                        1AD17       -
+
+SARADC_IN5                                        1AE17       -
+
+SARADC_IN6                                        1AC15       -
+
+SARADC_IN7                                        2P11        -
+
+SARADC_AVDD1V8                                    2N12        -
+
+RFU1                                              2G12        -
+
+RFU2                                              2H12        -
+
+OTP_DVDD0V75                                      2F11        -
+
+CPU_BIG_DVDD_0                                     2L8        -
+
+CPU_BIG_DVDD_1                                     2L9        -
+
+CPU_BIG_DVDD_2                                     2K9        -
+
+CPU_BIG_DVDD_3                                     2K8        -
+
+CPU_BIG_DVDD_4                                     2K7        -
+
+CPU_LIT_DVDD_0                                     2J5        -
+
+CPU_LIT_DVDD_1                                     2K5        -
+
+CPU_LIT_DVDD_2                                     2L5        -
+
+CPU_LIT_DVDD_3                                    2M5         -
+
+CPU_LIT_DVDD_4                                     2L6        -
+
+CPU_LIT_DVDD_5                                     2K6        -
+
+LOGIC_DVDD_0                                      2G6         -
+
+LOGIC_DVDD_1                                       2H7        -
+
+LOGIC_DVDD_2                                      2G8         -
+
+LOGIC_DVDD_3                                       2H8        -
+
+LOGIC_DVDD_4                                       2H9        -
+
+GPU_DVDD_0                                         2E5        -
+
+GPU_DVDD_1                                         2F5        -
+
+GPU_DVDD_2                                         2E6        -
+
+GPU_DVDD_3                                         2F6        -
+
+NPU_DVDD_0                                        2D7         -
+
+NPU_DVDD_1                                        2D8         -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                   33
+RK3572 Datasheet                                         Rev 1.1
+
+                                  Pin Name        Pin       Abbr
+
+NPU_DVDD_2                                        2E7        -
+
+NPU_DVDD_3                                        2E8        -
+
+NPU_DVDD_4                                        2E9        -
+
+NPU_DVDD_5                                        2F7        -
+
+AVSS_0                                            A33        -
+
+AVSS_1                                            B12        -
+
+AVSS_2                                            B15        -
+
+AVSS_3                                            B18        -
+
+AVSS_4                                            B21        -
+
+AVSS_5                                            B24        -
+
+AVSS_6                                            B27        -
+
+AVSS_7                                            B29        -
+
+AVSS_8                                            B32        -
+
+AVSS_9                                            C32        -
+
+AVSS_10                                           F32        -
+
+AVSS_11                                           J32        -
+
+AVSS_12                                           M32        -
+
+AVSS_13                                           1A12       -
+
+AVSS_14                                           1A14       -
+
+AVSS_15                                           1A16       -
+
+AVSS_16                                           1B23       -
+
+AVSS_17                                           1D10       -
+
+AVSS_18                                           1D12       -
+
+AVSS_19                                           1D14       -
+
+AVSS_20                                           1D16       -
+
+AVSS_21                                           1D20       -
+
+AVSS_22                                           1D23       -
+
+AVSS_23                                           1F20       -
+
+AVSS_24                                           1F23       -
+
+AVSS_25                                           1H20       -
+
+AVSS_26                                           1H23       -
+
+AVSS_27                                           2A4        -
+
+AVSS_28                                           2A5        -
+
+AVSS_29                                           2A11       -
+
+AVSS_30                                           2B6        -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                  34
+RK3572 Datasheet                                          Rev 1.1
+
+                                  Pin Name         Pin       Abbr
+
+AVSS_31                                            2B7        -
+
+AVSS_32                                            2B9        -
+
+AVSS_33                                           2B10        -
+
+AVSS_34                                            2C6        -
+
+AVSS_35                                            2C7        -
+
+AVSS_36                                            2C8        -
+
+AVSS_37                                            2C9        -
+
+AVSS_38                                           2C12        -
+
+AVSS_39                                           2D9         -
+
+AVSS_40                                           2D12        -
+
+AVSS_41                                           2E10        -
+
+AVSS1_0                                           AR22        -
+
+AVSS1_1                                           AR25        -
+
+AVSS1_2                                           AR28        -
+
+AVSS1_3                                           1AC11       -
+
+AVSS1_4                                           1AC13       -
+
+AVSS1_5                                           1AC17       -
+
+AVSS1_6                                           1AF13       -
+
+AVSS1_7                                           1AF15       -
+
+AVSS1_8                                           1AF17       -
+
+AVSS1_9                                           1AF19       -
+
+AVSS1_10                                          2M6         -
+
+AVSS1_11                                          2M7         -
+
+AVSS1_12                                          2M8         -
+
+VSS_0                                              A1         -
+
+VSS_1                                              B2         -
+
+VSS_2                                              B6         -
+
+VSS_3                                              C2         -
+
+VSS_4                                              F2         -
+
+VSS_5                                              L2         -
+
+VSS_6                                              P33        -
+
+VSS_7                                              R2         -
+
+VSS_8                                              U1         -
+
+VSS_9                                              V1         -
+
+VSS_10                                             Y2         -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                   35
+RK3572 Datasheet                                          Rev 1.1
+
+                                  Pin Name         Pin       Abbr
+
+VSS_11                                            AA2         -
+
+VSS_12                                            AC1         -
+
+VSS_13                                            AG2         -
+
+VSS_14                                             AL2        -
+
+VSS_15                                            AR7         -
+
+VSS_16                                            AR19        -
+
+VSS_17                                            AR31        -
+
+VSS_18                                            AT1         -
+
+VSS_19                                            AT33        -
+
+VSS_20                                            1A4         -
+
+VSS_21                                            1B1         -
+
+VSS_22                                            1D4         -
+
+VSS_23                                             1F1        -
+
+VSS_24                                             1F4        -
+
+VSS_25                                            1H1         -
+
+VSS_26                                            1H4         -
+
+VSS_27                                            1K1         -
+
+VSS_28                                            1K4         -
+
+VSS_29                                            1M1         -
+
+VSS_30                                            1M4         -
+
+VSS_31                                             1P4        -
+
+VSS_32                                            1V1         -
+
+VSS_33                                            1V4         -
+
+VSS_34                                            1Y1         -
+
+VSS_35                                            1Y4         -
+
+VSS_36                                            1AB1        -
+
+VSS_37                                            1AB4        -
+
+VSS_38                                            1AC5        -
+
+VSS_39                                            1AC7        -
+
+VSS_40                                            1AC9        -
+
+VSS_41                                            1AD1        -
+
+VSS_42                                            1AF1        -
+
+VSS_43                                            1AF3        -
+
+VSS_44                                            1AF23       -
+
+VSS_45                                            2A1         -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                   36
+RK3572 Datasheet                                         Rev 1.1
+
+                                  Pin Name        Pin       Abbr
+
+VSS_46                                            2A2        -
+
+VSS_47                                            2A3        -
+
+VSS_48                                            2B1        -
+
+VSS_49                                            2B3        -
+
+VSS_50                                            2C1        -
+
+VSS_51                                            2C3        -
+
+VSS_52                                            2D1        -
+
+VSS_53                                            2D3        -
+
+VSS_54                                            2D4        -
+
+VSS_55                                            2D5        -
+
+VSS_56                                            2D6        -
+
+VSS_57                                            2E1        -
+
+VSS_58                                            2E2        -
+
+VSS_59                                            2F1        -
+
+VSS_60                                            2F2        -
+
+VSS_61                                            2F8        -
+
+VSS_62                                            2F9        -
+
+VSS_63                                            2G1        -
+
+VSS_64                                            2G5        -
+
+VSS_65                                            2G7        -
+
+VSS_66                                            2G9        -
+
+VSS_67                                            2H1        -
+
+VSS_68                                            2H5        -
+
+VSS_69                                            2H6        -
+
+VSS_70                                            2H10       -
+
+VSS_71                                            2H11       -
+
+VSS_72                                            2J1        -
+
+VSS_73                                            2J6        -
+
+VSS_74                                            2J7        -
+
+VSS_75                                            2J8        -
+
+VSS_76                                            2J9        -
+
+VSS_77                                            2J10       -
+
+VSS_78                                            2K2        -
+
+VSS_79                                            2K4        -
+
+VSS_80                                            2K10       -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                  37
+RK3572 Datasheet                                         Rev 1.1
+
+                                  Pin Name        Pin       Abbr
+
+VSS_81                                            2L1        -
+
+VSS_82                                            2L2        -
+
+VSS_83                                            2L3        -
+
+VSS_84                                            2L4        -
+
+VSS_85                                            2L7        -
+
+VSS_86                                            2L10       -
+
+VSS_87                                            2L11       -
+
+VSS_88                                            2M1        -
+
+VSS_89                                            2M2        -
+
+VSS_90                                            2M4        -
+
+VSS_91                                            2M9        -
+
+VSS_92                                            2M10       -
+
+VSS_93                                            2M11       -
+
+VSS_94                                            2M12       -
+
+VSS_95                                            2N1        -
+
+VSS_96                                            2N2        -
+
+VSS_97                                            2N3        -
+
+VSS_98                                            2N4        -
+
+VSS_99                                            2N5        -
+
+VSS_100                                           2N9        -
+
+VSS_101                                           2N10       -
+
+VSS_102                                           2N11       -
+
+VSS_103                                           2P1        -
+
+VSS_104                                           2P3        -
+
+VSS_105                                           2P4        -
+
+VSS_106                                           2P10       -
+
+VSS_107                                           2P12       -
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                  38
+RK3572 Datasheet                                                                 Rev 1.1
+
+Chapter 3 Electrical Specification
+3.1 Absolute Ratings
+The table below provides the absolute ratings.
+Absolute maximum or minimum ratings specify the values beyond which the device may be
+damaged permanently. Long-term exposure to absolute maximum ratings conditions may
+affect device reliability.
+                                  Table 3-1 Absolute Ratings
+         Parameters                               Related Power Group     Min     Max      Unit
+                                                    CPU_BIG_DVDD
+    Supply voltage for CPU                                                -0.3    1.1         V
+                                                    CPU_LIT_DVDD
+    Supply voltage for GPU                            GPU_DVDD            -0.3    1.1         V
+    Supply voltage for NPU                            NPU_DVDD            -0.3    1.1         V
+                                                PMU_LOGIC_DVDD0V75
+                                                     LOGIC_DVDD
+                                                    PLL_DVDD0V75
+                                                 USB2_DRD_DVDD0V75
+                                             HDMI_TX_EDP_TX_AVDDD0V75
+     0.75V supply voltage                                                 -0.3    0.95        V
+                                             HDMI_TX_EDP_TX_AVDDC0V75
+                                           MIPI_DPHY_CSI1/2_RX_AVDD0V75
+                                           MIPI_DPHY_CSI3/4_RX_AVDD0V75
+                                                 MIPI_DPHY_AVDD0V75
+                                                    OTP_DVDD0V75
+                                                    DDRPHY_DVDD
+                                                  DDRPHY_PLL_DVDD
+                                         PCIE0_SATA0_USB_DRD0_AVDD0V85
+     0.85V supply voltage                                                 -0.3    1.00        V
+                                         PCIE0_SATA0_USB_DRD1_AVDD0V85
+                                               PCIE1_SATA1_AVDD0V85
+                                                    UFS_AVDD0V85
+                                                    OSC_AVDD1V8
+                                                DDRPHY_PLL_AVDD1V8
+                                           MIPI_DPHY_CSI1/2_RX_AVDD1V8
+                                           MIPI_DPHY_CSI3/4_RX_AVDD1V8
+                                                 MIPI_DPHY_AVDD1V8
+                                            HDMI_TX_EDP_TX_AVDDCMN1V8
+                                             HDMI_TX_EDP_TX_AVDDIO1V8
+      1.8V supply voltage                                                 -0.5    1.98        V
+                                                 USB2_DRD_AVDD1V8
+                                          PCIE0_SATA0_USB_DRD0_AVDD1V8
+                                          PCIE0_SATA0_USB_DRD1_AVDD1V8
+                                                PCIE1_SATA1_AVDD1V8
+                                                  SARADC_AVDD1V8
+                                                     PLL_AVDD1V8
+                                                     UFS_AVDD1V8
+      3.3V supply voltage                          USB_DRD_AVDD3V3        -0.5    3.63        V
+                                                    PMUIO0_VCC1V8
+ 1.8V only GPIO supply voltage                                            -0.5    1.98        V
+                                                    VCCIO0_VCC1V8
+                                                     PMUIO1_VCC
+                                                     VCCIO1_VCC
+                                                     VCCIO2_VCC
+ 1.8V/3.3V GPIO supply voltage                       VCCIO3_VCC           -0.5    3.63        V
+                                                     VCCIO4_VCC
+                                                     VCCIO5_VCC
+                                                     VCCIO6_VCC
+   1.2V/1.8V supply voltage                           VCCIO7_VCC          -0.5    1.98        V
+    Supply voltage for DDR
+                                                    DDRPHY_VDDQ
+        IO(LPDDR4/4X                                                      -0.3    0.95        V
+                                                   DDRPHY_VDDQ_CK
+0.75/0.6V;LPDDR5/5X 0.5/0.3V)
+    Supply voltage for DDR
+IO(LPDDR4/4X 1.1V;LPDDR5/5X                         DDRPHY_VDDQH          -0.3    1.25        V
+            1.05V)
+     Storage Temperature                                 Tstg             -40     125         ℃
+ Max Conjunction Temperature                              Tj              NA      125         ℃
+
+
+3.2 Recommended Operating Conditions
+The following table describes the recommended operating conditions.
+                           Table 3-2 Recommended operating conditions
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                          39
+RK3572 Datasheet                                                                      Rev 1.1
+
+           Parameters                          Symbol                Min(1)   Typ    Max(1)   Unit
+     Voltage for CPU BigCore                CPU_BIG_DVDD             0.675    0.75    1.0      V
+
+  Voltage for CPU LitCore and CCI           CPU_LIT_DVDD             0.675    0.75    1.0      V
+
+         Voltage for GPU                      GPU_DVDD               0.675    0.75   0.918     V
+
+         Voltage for NPU                      NPU_DVDD               0.675    0.75   0.918     V
+
+         Voltage for Logic                   LOGIC_DVDD              0.675    0.75   0.825     V
+
+         Voltage for PMU                 PMU_LOGIC_DVDD0V75          0.675    0.75   0.825     V
+                                            PMUIO0_VCC1V8
+   Digital GPIO Power(1.8V only)                                      1.65    1.8     1.95     V
+                                            VCCIO0_VCC1V8
+                                             PMUIO1_VCC
+                                              VCCIO1_VCC
+                                              VCCIO2_VCC
+                                                                      2.7     3.3     3.6
+  Digital GPIO Power(3.3V/1.8V)               VCCIO3_VCC                                       V
+                                                                      1.65    1.8     1.95
+                                              VCCIO4_VCC
+                                              VCCIO5_VCC
+                                              VCCIO6_VCC
+                                                                      1.08    1.2     1.32
+  Digital GPIO Power(1.8V/1.2V)              VCCIO7_VCC                                        V
+                                                                      1.65    1.8     1.95
+  DDR Logic power(0.75V/0.85V)              DDRPHY_DVDD              0.675    0.75    0.9      V
+
+   DDR PLL power(0.75V/0.85V)              DDRPHY_PLL_DVDD           0.675    0.75   0.8925    V
+
+       DDR PLL power(1.8V)               DDRPHY_PLL_AVDD1V8           1.62    1.8     1.98     V
+                                            DDRPHY_VDDQ              0.675    0.75   0.825
+     LPDDR4 IO VDDQ power                                                                      V
+                                           DDRPHY_VDDQ_CK            0.54     0.6    0.66
+    LPDDR4 CKE VDDQ Power                   DDRPHY_VDDQH              1.06    1.1     1.17     V
+                                            DDRPHY_VDDQ               0.47    0.5     0.57
+     LPDDR5 IO VDDQ power                                                                      V
+                                           DDRPHY_VDDQ_CK             0.27    0.3     0.33
+    LPDDR5 CKE VDDQ Power                   DDRPHY_VDDQH              1.01    1.05    1.12     V
+
+     PLL Analog Power(0.75V)                PLL_DVDD0V75             0.675    0.75   0.8925    V
+
+     PLL Analog Power(1.8V)                  PLL_AVDD1V8              1.62    1.8     1.98     V
+
+   USB 2.0 Analog Power(0.75V)           USB2_DRD_DVDD0V75           0.6975   0.75   0.825     V
+
+   USB 2.0 Analog Power(1.8V)             USB2_DRD_AVDD1V8           1.674    1.8     1.98     V
+
+   USB 2.0 Analog Power(3.3V)             USB2_DRD_AVDD3V3           3.069    3.3     3.63     V
+                                    PCIE0_SATA0_USB_DRD0_AVDD0V85
+     Combo PIPE PHY Analog
+                                    PCIE0_SATA0_USB_DRD1_AVDD0V85     0.8     0.85   0.935     V
+         Power(0.85V)
+                                          PCIE1_SATA1_AVDD0V85
+                                     PCIE0_SATA0_USB_DRD0_AVDD1V8
+     Combo PIPE PHY Analog
+                                     PCIE0_SATA0_USB_DRD1_AVDD1V8     1.62    1.8     1.98     V
+         Power(1.8V)
+                                           PCIE1_SATA1_AVDD1V8
+       MIPI DPHY RX Analog            MIPI_DPHY_CSI1/2_RX_AVDD0V75
+                                                                     0.675    0.75   0.825     V
+          Power(0.75V)                MIPI_DPHY_CSI3/4_RX_AVDD0V75
+       MIPI DPHY RX Analog            MIPI_DPHY_CSI1/2_RX_AVDD1V8
+                                                                      1.62    1.8     1.98     V
+           Power(1.8V)                MIPI_DPHY_CSI3/4_RX_AVDD1V8
+       MIPI DPHY TX Analog
+                                         MIPI_DPHY_AVDD0V75          0.7125   0.75   0.7875    V
+          Power(0.75V)
+  MIPI DPHY Analog Power(1.8V)            MIPI_DPHY_AVDD1V8           1.71    1.8     1.89     V
+       HDMI/eDP TX Digital
+                                      HDMI_TX_EDP_TX_AVDDD0V75       0.7125   0.75    0.85     V
+         Power(0.75V)
+       HDMI/eDP TX Analog
+                                      HDMI_TX_EDP_TX_AVDDC0V75       0.7125   0.75    0.85     V
+         Power(0.75V)
+       HDMI/eDP TX Analog
+                                     HDMI_TX_EDP_TX_AVDDCMN1V8        1.71    1.8     1.89     V
+          Power(1.8V)
+       HDMI/eDP TX Analog
+                                      HDMI_TX_EDP_TX_AVDDIO1V8        1.71    1.8     1.89     V
+          Power(1.8V)
+  UFS MPHY Analog Power(0.85V)              UFS_AVDD0V85             0.8075   0.85   0.8925    V
+
+  UFS MPHY Analog Power(1.8V)                UFS_AVDD1V8              1.71    1.8     1.89     V
+
+   SARADC Analog Power(1.8V)               SARADC_AVDD1V8             1.62    1.8     1.98     V
+
+     OTP Analog Power(0.75V)                OTP_DVDD0V75             0.675    0.75   0.825     V
+
+     OSC Analog Power(1.8V)                  OSC_AVDD1V8              1.65    1.8     1.95     V
+
+    OSC input clock frequency                                         NA      24      NA      MHz
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                40
+RK3572 Datasheet                                                                                       Rev 1.1
+
+           Parameters                               Symbol                     Min(1)      Typ        Max(1)     Unit
+     Max A73 CPU frequency                                                      NA         NA          TBD       GHz
+
+     Max A53 CPU frequency                                                      NA         NA          TBD       GHz
+
+        Max GPU frequency                                                       NA         NA          TBD       MHz
+
+        Max NPU frequency                                                       NA         NA          TBD       MHz
+
+  Ambient Operating Temperature                       TA                         0         NA          80           ℃
+
+
+Note: (1) For all power supply inputs, the min and max voltage requirement includes dynamic voltage
+events such as AC ripple, voltage transients, voltage dips, and so forth.
+
+3.3 DC Characteristics
+                                            Table 3-3 DC Characteristics
+                     Parameters                      Symbol         Min          Typ         Max               Unit
+                      Input Low Voltage for CMOS
+                                                       VIL        VSS-0.3        NA             0.8             V
+                      operation
+                      Input High Voltage for CMOS
+                                                       VIH           2.0         NA        DVDD+0.3             V
+                      operation
+                      Input Low Voltage for
+                                                       VIL        VSS-0.3        NA             0.7             V
+ Digital              Schmitt Trigger operation
+ 3.3V/1.8V GPIO       Input High Voltage for
+                                                       VIH           2.1         NA        DVDD+0.3             V
+ @3.3V                Schmitt Trigger operation
+                      Output Low Voltage               VOL          VSS          NA        0.25*DVDD            V
+                      Output High Voltage              VOH       0.75*DVDD       NA          DVDD               V
+                      Pullup Resistor                  RRPU          10          NA           100              Kohm
+                      Pulldown Resistor                RRPD          10          NA           100              Kohm
+                      Input Low Voltage                VIL        VSS-0.3        NA        0.3*DVDD             V
+                      Input High Voltage               VIH       0.7*DVDD        NA        DVDD+0.3             V
+ Digital              Output Low Voltage               VOL          VSS          NA        0.25*DVDD            V
+ 3.3V/1.8V GPIO
+ @1.8V                Output High Voltage              VOH       0.75*DVDD       NA          DVDD               V
+                      Pullup Resistor                  RRPU          10          NA             50             Kohm
+                      Pulldown Resistor                RRPD          10          NA             50             Kohm
+                      Input Low Voltage                VIL        VSS-0.3        NA        0.3*DVDD             V
+                      Input High Voltage               VIH       0.7*DVDD        NA        DVDD+0.3             V
+ Digital 1.8V only
+ and Digital          Output Low Voltage               VOL          VSS          NA        0.25*DVDD            V
+ 1.8V/1.2V GPIO       Output High Voltage              VOH       0.75*DVDD       NA          DVDD               V
+ @1.8V
+                      Pullup Resistor                  RRPU          10          NA             50             Kohm
+                      Pulldown Resistor                RRPD          10          NA             50             Kohm
+                      Input Low Voltage                VIL        VSS-0.3        NA        0.3*DVDD             V
+                      Input High Voltage               VIH       0.7*DVDD        NA        DVDD+0.3             V
+ Digital
+                      Output Low Voltage               VOL        VSS-0.3        NA        0.25*DVDD            V
+ 1.8V/1.2V GPIO
+ @1.2V                Output High Voltage              VOH       0.75*DVDD       NA        DVDD+0.3             V
+                      Pullup Resistor                  RRPU          10          NA           100              Kohm
+                      Pulldown Resistor                RRPD          10          NA           100              Kohm
+                      Input Low Voltage                VIL          VSS          NA        0.35*DVDD            V
+                      Input High Voltage               VIH       0.65*DVDD       NA          DVDD               V
+
+ VCCIO0               Output Low Voltage               VOL          VSS          NA          0.45               V
+ @1.8V                Output High Voltage              VOH       DVDD-0.45       NA          DVDD               V
+                      Pullup Resistor                  RRPU          10          NA             50             Kohm
+                      Pulldown Resistor                RRPD          10          NA             50             Kohm
+
+Note: VDDO and DVDD are both IO power supply
+
+3.4 Electrical Characteristics for General IO
+                             Table 3-4 Electrical Characteristics for Digital General IO
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                                     41
+RK3572 Datasheet                                                                                                 Rev 1.1
+               Parameters                           Symbol              Test condition         Min         Typ   Max    Unit
+                                                                   DVDD=Max,VPAD=0V
+                Input leakage current                    IPAD                                  -10         NA    10     uA
+                                                                   or DVDD
+Digital         Input Hysteresis for Schmitt
+                                                         VH                                    0.2         NA    NA      V
+3.3V/1.8V       Trigger Operation
+GPIO
+@3.3V           Input pullup resistor current            IRPU      VPAD=0V                     -20         NA    -180   uA
+                Input pulldown resistor
+                                                         IRPD      VPAD=DVDD                     20        NA    180    uA
+                current
+                                                                   DVDD=Max,VPAD=0V
+                Input leakage current                    IPAD                                  -10         NA    10     uA
+                                                                   or DVDD
+Digital         Input Hysteresis for Schmitt                                                   0.1*
+3.3V/1.8V                                                VH                                                NA    NA      V
+                Trigger Operation                                                              DVDD
+GPIO
+                Input pullup resistor current            IRPU      VPAD=0V                     -20         NA    -180   uA
+@1.8V
+                Input pulldown resistor
+                                                         IRPD      VPAD=DVDD                     20        NA    180    uA
+                current
+                                                                   DVDD=Max,VPAD=0V
+                Input leakage current                    IPAD                                  -10         NA    10     uA
+Digital 1.8V                                                       or DVDD
+only and        Input Hysteresis for Schmitt                                                   0.1*
+                                                         VH                                                NA    NA      V
+Digital         Trigger Operation                                                              DVDD
+1.8V/1.2V
+                Input pullup resistor current            IRPU      VPAD=0V                     -20         NA    -170   uA
+GPIO
+@1.8V           Input pulldown resistor
+                                                         IRPD      VPAD=DVDD                     20        NA    170    uA
+                current
+                                                                   DVDD=Max, VPAD=0V
+                Input leakage current                    IPAD                                  -10         NA    10     uA
+                                                                   or DVDD
+Digital         Input Hysteresis for Schmitt                                                   0.1*
+1.8V/1.2V                                                VH                                                NA    NA      V
+                Trigger Operation                                                              DVDD
+GPIO
+                Input pullup resistor current            IRPU      VPAD=0V                     -10         NA    -100   uA
+@1.2V
+                Input pulldown resistor
+                                                         IRPD      VPAD=DVDD                     10        NA    100    uA
+                current
+                                                                   DVDD=Max,VPAD=0V
+                Input leakage current                    IPAD                                  -10         NA    10     uA
+                                                                   or DVDD
+                Input Hysteresis for Schmitt                                                   0.1*
+VCCIO0 IO                                                VH                                                NA    NA      V
+                Trigger Operation                                                              DVDD
+@1.8V
+                Input pullup resistor current            IRPU      VPAD=0V                     -20         NA    -170   uA
+                Input pulldown resistor
+                                                         IRPD      VPAD=DVDD                     20        NA    170    uA
+                current
+
+Note: VDDO and DVDD are both IO power supply
+
+
+3.5 Electrical Characteristics for LPDDR
+                                  Table 3-5 AC/ DC Parameters for LPDDR4(X)
+                        Parameters              Symbol            Min         Typ        Max          Unit
+                   DC output high                 Voh           0.80*VDDQ      -          -            V
+                   DC output low                   Vol              -          -    0.20*VDDQ          V
+                   60, 40 ohms                    ODT              -10        Typ        +10           -
+                   34.0/40.0/48.0 ohms            Ron              -12        Typ        +12           %
+                   Output leakage
+                                                   Ioz             -5          -         +5           uA
+                   current
+                   AC input high                Vihdq(AC)       Vref+0.07           VDDQ+0.15          V
+                   AC input low                 Vildq(AC)         -0.15              Vref-0.07         V
+                   DC input high            Vihdq(DC)           Vref+0.02      -          -            V
+                   DC input low                 Vildq(DC)           -          -     Vref-0.02         V
+
+
+                                  Table 3-6 AC/ DC Parameters for LPDDR5(X)
+                        Parameters              Symbol            Min         Typ        Max          Unit
+                   DC output high                 Voh           0.80*VDDQ      -          -            V
+                   DC output low                   Vol              -          -    0.20*VDDQ          V
+                   60, 40 ohms                    ODT              -10        Typ        +10           -
+                   34.0/40.0/48.0 ohms            Ron              -12        Typ        +12           %
+                   Output leakage
+                                                   Ioz             -5          -         +5           uA
+                   current
+                   AC input high                Vihdq(AC)       Vref+0.07           VDDQ+0.15          V
+                   AC input low                 Vildq(AC)         -0.15              Vref-0.07         V
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                                          42
+RK3572 Datasheet                                                                                                          Rev 1.1
+                           Parameters          Symbol           Min       Typ             Max                Unit
+                      DC input high            Vihdq(DC)      Vref+0.02        -            -                 V
+                      DC input low             Vildq(DC)          -            -        Vref-0.02             V
+
+
+3.6 Electrical Characteristics for PLL
+                                   Table 3-7 Electrical Characteristics for INT PLL
+          Parameters                  Symbol                 Test condition                         Min           Typ     Max     Unit
+Input clock frequency                  FFIN                                                         4.5             -     300      MHz
+Reference frequency(FFIN/p(1))         FFREE                                                        4.5             7     12       MHz
+Frequency of PLL’s output              FFOUT                                                    35.2                -     4500     MHz
+Frequency of VCO’s output              FFVCO                                                    2250                -     4500     MHz
+                                               Measured at all FFIN and FFOUT range.
+Lock time                               TLT                                                          -              -     150     Cycles
+                                               RESETB=High
+
+
+                                   Table 3-8 Electrical Characteristics for FRAC PLL
+          Parameters                  Symbol                 Test condition                         Min           Typ     Max     Unit
+Input clock frequency                  FFIN                                                         4.5             -     300      MHz
+Reference frequency(FFIN/p(1))         FFREE                                                        4.5           20      30       MHz
+Frequency of PLL’s output              FFOUT                                                    35.2                -     4500     MHz
+Frequency of VCO’s output              FFVCO                                                    2250                -     4500     MHz
+                                               Measured at all FFIN and FFOUT range.
+Lock time                               TLT                                                          -              -     500     Cycles
+                                               RESETB=High
+
+
+                                   Table 3-9 Electrical Characteristics for DDR PLL
+          Parameters                  Symbol                 Test condition                         Min           Typ     Max     Unit
+Input clock frequency                  FFIN                                                          6              -     300      MHz
+Reference frequency(FFIN/p(1))         FFREE                                                         6            20      30       MHz
+Frequency of PLL’s output              FFOUT                                                    51.6                -     6600     MHz
+Frequency of VCO’s output              FFVCO                                                    3300                -     6600     MHz
+                                               Measured at all FFIN and FFOUT range.
+Lock time                               TLT                                                          -              -     500     Cycles
+                                               RESETB=High
+Note: (1) p is the input divider value
+
+
+3.7 Electrical Characteristics for PCIe2/SATA/USB Interface
+                           Table 3-10 Electrical Characteristics for PCIe2/SATA Interface
+                             Parameters                                            Symbol            Min            Typ    Max     Unit
+                                                       Transmitter
+Differential Peak-Peak
+                                                                          VTX_DIFF_PP                800          1000     1200     mV
+TX Output Voltage Swing
+Differential Peak-Peak Low Power
+                                                                          VTX_DIFF_PP_LOW            400            NA     1200     mV
+TX Output Voltage Swing
+The output impedance                                                      RTX_DIFF_DC                80             100    120     ohm
+Single Ended Output Resistance Matching                                   RTX_DC_OFFSET              NA             NA      5       %
+Transmitter output common mode voltage                                    VTX_DC_CM                  400            NA     800      mV
+Maximum mismatch between TXP and TXM for both time and amp                VTX_CM_AC_PP_ACTIVE        NA             NA      50      mV
+The amount of voltage change allowed during Receiver Detection            VTX_RCV_DETECT             NA             NA     600      mV
+TX de-emphasis                                                            VTX_DE_RATIO               3.0            3.5    4.0      dB
+AC Coupling Capacitor(USB3.0/PCIe)                                                                   75             NA     200      nF
+                                                                          CAC_COUPLING
+AC Coupling Capacitor(SATA)                                                                              6          NA      12      nF
+Output rising time for 20%to 80%                                          Tr                         25             NA      NA      ps
+Output falling time for 20%to 80%                                         Tf                         25             NA      NA      ps
+Transmitter short circuit limit                                           ITX_SHORT                  NA             NA      20      mA
+Output differential skew                                                  TSKEW_DIFF                 -15            NA      15      ps
+                                                           Receiver
+Input Voltage Swing                                                       VRXDPP_C                   250            NA     1200    mVpp
+The input differential impedance                                          RRXD_C                     80             100    120     Ohm
+Single Ended input Resistance Matching                                    RRXD_C_MS                  NA             NA      5       %
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                                                     43
+RK3572 Datasheet                                                                                        Rev 1.1
+
+3.8 Electrical Characteristics for MIPI DPHY TX interface
+                                     Table 3-11 MIPI DPHY TX DC Specifications
+Parameters                                         Symbol                Min         Typ        Max         Units
+HS transmit static common-mode voltage(2)          VCMTX                 150         200        250         mV
+HS transmit static common-mode voltage in Half
+                                                   VCMTX_HalfSwing       75          100        250         mV
+Swing mode(2,4)
+Vcmtx mismatch when output is Differential-l or
+                                                   |ΔVcmtx(1,0)|         -           -          5           mV
+Differential-0(3)
+HS transmit differential voltage(2)                |VOD|                 140         200        270         mV
+HS transmit differential voltage in Half Swing     |VOD_HalfSwing|
+                                                                         70          100        135         mV
+Mode(2,4)
+VOD mismatch when output is Differential-1 or
+                                                   |ΔVOD|                -           -          14          mV
+Differential-0(3)
+HS output high voltage(2)                          VOHHS                 -           -          360         mV
+Single ended output impedance                      ZOS                   40          50         62.5        Ω
+Single ended output impedance mismatch             ΔZOS                  -           -          20          %
+Notes:
+(1) When the supported data rate is > 2.5 Gbps. Conformance requirements for the transmitter are
+defined through the eye diagram. The values for equalization in this table are informative.
+(2) Value when driving into load impedance anywhere in the ZID range.
+(3) A transmitter should minimize ∆VOD and ∆VCMTX(1,0) in order to minimize radiation and optimize
+signal integrity.
+(4) Half Swing Mode is optional. It is an additional capability a transmitter can support for better system
+power optimization
+
+                             Table 3-12 MIPI DPHY TX LP transmitter DC Specifications
+Parameters                                         Symbol                 Min        Typ        Max         Units
+                                                                          1.1        1.2        1.3         V(1)
+The venin output high level                        VOH
+                                                                          0.95       -          1.3         V(2)
+The venin output low level                         VOL                    -50        -          50          mV
+Output impedance of LP transmitter   (3)
+                                                   ZOLP                   110        -          -           Ω
+Notes:
+(1) Applicable when the supported data rate ≤1.5 Gbps.
+(2) Applicable when the supported data rate > 1.5 Gbps.
+(3) Though no maximum value for ZOLP is specified, the LP transmitter output impedance shall ensure the
+TRLP/TFLP specification is met.
+
+                             Table 3-13 MIPI DPHY TX HS transmitter AC Specifications
+Parameters                                         Symbol                Min         Typ        Max         Units
+                                                   ΔVCMTX(HF)
+Common-mode variations above 450MHz                                      -           -          15          mVRMS
+
+Common-mode variations between 50MHz ~             ΔVCMTX(LF)
+                                                                         -           -          25          mVPEAK
+450MHz
+                                                                         -           -          0.3         UI(1,2)
+20%~80% rise time and fall time                    TR and TF             -           -          0.35        UI(1,3)
+                                                                         100         -          -           ps(4)
+Notes:
+(1) UI is equal to 1/(2*fh).
+(2) Applicable when supporting maximum HS bit rates ≤ 1Gbps (UI ≥ 1ns).
+(3) Applicable when supporting maximum HS bit rates > 1Gbps (UI<=1ns) but less than 1.5Gbps (UI =>
+0.667ns).
+(4) Applicable when supporting maximum HS bit rates <= 1.5 Gbps. However, to avoid excessive
+radiation, bit rates < 1Gbps (UI ≥ 1ns), should not use values below 150ps
+
+                              Table 3-14 MIPI DPHY TX LP transmitter AC Specifications
+Parameters                                        Symbol             Min         Typ       Max         Units
+
+15%~85% rise time and fall time(1)                TRLP/TFLP          -           -         25          ns
+
+30%~85% rise time and fall time(5,6)              TREOT              -           -         35          ns
+                     First LP
+Pulse width
+                     exclusive-OR
+of the LP
+                     clock pulse after            TLP-PULSE-TX       40          -         -           ns
+exclusive-OR
+                     Stop state or last
+clock(4)
+                     pulse before Stop
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                                       44
+RK3572 Datasheet                                                                                      Rev 1.1
+Parameters                                       Symbol             Min        Typ       Max        Units
+                         state
+                         All other pulses                           20         -         -          ns
+Period of the LP exclusive-OR
+                                                 TLP-PER-TX         90         -         -          ns
+clock
+Slew rate @ CLOAD = 0pF(1,3,7,8)                                    -          -         500        mV/ns
+Slew rate @ CLOAD = 5pF(1,3,7,8)                                    -          -         300        mV/ns
+Slew rate @ CLOAD = 20pF(1,3,7,8)                                   -          -         250        mV/ns
+Slew rate @ CLOAD = 70pF(1,3,7,8)                                   -          -         150        mV/ns
+Slew rate @ CLOAD = 0 to 70pF                                       30         -         -          mV/ns(1,2,3,12)
+(Falling Edge Only)                                                 25         -         -          mV/ns(1,3,13,16)
+Slew rate @ CLOAD = 0 to 70pF                                       30         -         -          mV/ns(1,3,9,12)
+(Rising Edge Only)                                                  25         -         -          mV/ns(1,3,13,15)
+                                                 δV/δtSR
+                                                                    30 –
+                                                                    0.075 *
+                                                                    (VO,INST   -         -          mV/ns(1,3,10,11,12)
+                                                                    –
+Slew rate @ CLOAD = 0 to 70pF                                       700)
+(Rising Edge Only)                                                  25 –
+                                                                    0.0625 *
+                                                                    (VO,INST   -         -          mV/ns(1,3,10,13,14)
+                                                                    –
+                                                                    550)
+Load capacitance(1)                              CLOAD              0          -         70         pF
+Notes:
+(1) CLOAD includes the low-frequency equivalent transmission line capacitance. The capacitance of TX and
+RX are assumed to always be <10pF. The distributed line capacitance can be up to 50pF for a transmission
+line with 2ns delay.
+(2) When the output voltage is between 400mV and 930mV.
+(3) Measured as average across any 50mV segment of the output signal transition.
+(4) This parameter value can be lower than TLPX due to differences in rise vs. fall signal slopes and trip
+levels and mismatches between Dp and Dn LP transmitters.
+(5) The rise-time of TREOT starts from the HS common-level at the moment the differential amplitude
+drops below 70mV, due to stopping the differential drive.
+(6) With an additional load capacitance CCM between 0 and 60pF on the termination center tap at RX side
+of the Lane.
+(7) This value represents a corner point in a piecewise linear curve.
+(8) When the output voltage is in the range specified by VPIN (absmax).
+(9) When the output voltage is between 400mV and 700mV.
+(10) Where VO,INST is the instantaneous output voltage, VDP or VDN, in millivolts.
+(11) When the output voltage is between 700mV and 930mV.
+(12) Applicable when the supported data rate <= 1.5Gbps.
+(13) Applicable when the supported data rate > 1.5Gbps.
+(14) When the output voltage is between 550mV and 790mV.
+(15) When the output voltage is between 400mV and 550mV.
+(16) When the output voltage is between 400mV and 790mV
+
+
+3.9 Electrical Characteristics for MIPI DPHY RX interface
+                         Table 3-15 Electrical Characteristics for MIPI DPHY RX interface
+Parameters                                        Symbol                Min        Typ        Max        Units
+                                                                        NA         NA         100        mV
+Common-mode interference beyond 450 MHz           ΔVCMRX(HF)
+                                                                        NA         NA         50         mV
+                                                                        -50        NA         50         mV
+Common-mode interference 50MHz-450MHz             ΔVCMRX(LF)
+                                                                        -25        NA         25         mV
+Common-mode termination                           CCM                   NA         NA         60         pF
+Input pulse rejection                             eSPIKE                NA         NA         300        V.ps
+Minimum pulse width response                      TMIN-RX               20         NA         NA         ns
+Peak interference amplitude                       VINT                  NA         NA         200        mV
+Interference frequency                            fINT                  450        NA         NA         MHz
+
+
+3.10 Electrical Characteristics for SARADC
+                                   Table 3-16 Electrical Characteristics for SARADC
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                                  45
+RK3572 Datasheet                                                                                    Rev 1.1
+          Parameters            Symbol             Test condition          Min         Typ         Max     Unit
+Resolution                                                                 NA           12         NA       Bit
+Anglog Input Range             AIN                                        AVSS18       NA         AVDD18    V
+Differential Non-Linearity     DNL            PD=Low                       NA          ±1.0        ±3.0    LSB
+Integral Non-Linearity         INL            Fs=1MS/s                     NA          ±2.0        ±6.0    LSB
+                                              FCLK=20MHz
+Top Offset Voltage Error       EOT            FSOC=1MHz                    NA          ±10         ±20     LSB
+Bottom Offset Voltage Error    EOB            FAIN=10kHz ramp wave         NA          ±10         ±20     LSB
+
+
+3.11 Electrical Characteristics for TSADC
+                              Table 3-17 Electrical Characteristics for TSADC
+             Parameters               Symbol             Test condition          Min     Typ        Max    Unit
+                                                   Temp: -40~125℃
+Accuracy from-40℃ to 125℃            TJACC                                       NA          ±3     ±5      ℃
+                                                   Supply:1.62V~1.98V
+Sensing Temperature Range            TRANGE                                      -40         NA     125     ℃
+Resolution                           TLSB                                        NA           1     NA      ℃
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                             46
+RK3572 Datasheet                                                                            Rev 1.1
+
+Chapter 4 Thermal Management
+4.1 Overview
+For reliability and operability concerns, the absolute maximum junction temperature has to
+be below 125℃.
+4.2 Package Thermal Characteristics
+Table 4-1 provides the thermal resistance characteristics for the package used on the SoC.
+The resulting simulation data for reference only, please prevail in kind test.
+                        Table 4-1 Thermal Resistance Characteristics
+                                                                                                Note
+                 Parameter                        Symbol         Typical          Unit
+                                                                                                 (1)
+ Junction-to-ambient thermal resistance             𝜽𝑱𝑨            TBD           (℃/𝑾)
+                                                                                                 (2)
+ Junction-to-board thermal resistance               𝜽𝑱𝑩            TBD           (℃/𝑾)
+                                                                                                 (3)
+ Junction-to-case thermal resistance                𝜽𝑱𝑪            TBD           (℃/𝑾)
+                                                                                                 (4)
+ Thermal characterization parameter                 ψJT            TBD           (℃/𝑾)
+
+Notes:
+(1): The package-board system is placed in the natural convection(JEDEC JESD51-2 standard),and the
+2S2P test-board is designed in accordance with JESD 51-7/JESD 51-9.The actual system design and
+environment may be different.
+(2): θJB is measured in the special environment(JEDEC JESD51-8 standard),and the printed circuit board
+used to mount the devices is specified in JESD51-7.
+(3): The thermal resistanceθJC is provided in compliance with the JEDEC JESD51-14.
+(4): The thermal characterization parameterψJT is to report the difference between junction temperature
+and the temperature at the top center of the outside surface of the component package, ψJT is measured in
+the test environment ofθJA(JEDEC JESD51-2 standard).
+
+
+
+
+Copyright © 2026 Rockchip Electronics Co., Ltd.                                                        47
+

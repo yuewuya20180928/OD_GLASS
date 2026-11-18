@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/tools/check_iss250_rknn_target_gate.py

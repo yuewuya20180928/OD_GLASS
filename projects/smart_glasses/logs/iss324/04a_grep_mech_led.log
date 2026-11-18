@@ -1,0 +1,119 @@
+### 查证 1: MECH/ 全域 grep D_LED_G / D_LED_R / D_LED_B
+$ grep -rn 'D_LED_G' MECH/ --include='*.md' --include='*.py' | grep -v '\.bak'
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:1:# MECH · 检修口/调试口开口 + `D_LED_G` 位置 —— ★坐标系归一页 (现役 160×100 台架板)★
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:32:| `D_LED_G` 首选窗口 | X 33.00..47.71 × Y 1.60..28.40 (宽 14.71) | ★**见 §4 (整高自由带 X 1.550..3.450 · 最近落位带 X 6.940..8.250)** ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:81:    covers: "D_LED_G"                       # 帧: B160x100
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:86:    covers: "D_LED_G"                       # 帧: B160x100
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:99:    covers: "D_LED_G (60×30 首选窗口)"       # 帧: F30A
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:138:| `D_LED_G` 首选窗口 X 33.000..47.710 × Y 1.600..28.400 | ★**10 个** ★ | 全在 `J_SOM_P3` (X 15.100..34.900 × Y 7.610..11.390) ⇒ 压 5 列 × 2 行 (X 33.200..34.800) |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:215:## ★§4 `D_LED_G` 位置 —— 帧: **160×100 台架板** 的可放行空间
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:223:| `D_LED_G` 封装原点 | (101.25, 56.80) | `[实测]` |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:224:| `D_LED_G` 焊盘铜箔 | X 100.500..103.400 × Y 56.150..57.050 (2.900 × 0.900) | `[实测]` |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:225:| `D_LED_G` 相对封装原点的铜箔外框 | X −0.75..+2.15 / Y −0.65..+0.25 | `[实测]` |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:228:| ★**`LED_G_D` 走线两端** | ★**`R_LED_G`.2 (7.50, 62.60) ↔ `D_LED_G`.1 (100.80, 56.60)** ★ | ★`[实测]` ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:230:| 网定义 | `LED_G_D` = `R_LED_G`.2 ↔ `D_LED_G`.1; `LED_G` = `J_SOM_P4`.19 ↔ `R_LED_G`.1 (另有测试点 `TP_LED_G`) | `[实测]` (`HW/netlist_v1_pins.csv`) |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:234:- ★**`D_LED_G` 被放进 Y = 56.80 的「LED 行」** (同排还有 `D_LED_B` @ (95.55, 56.80) · `D_ESD_LIGHT` @ (89.85, 56.80) · `D_LED_R` @ (106.95, 56.80) · `BT_432243` @ (112.80, 57.50) · `SW_RST` @ (118.80, 57.50) · `J_BOOT1` @ (126.30, 58.00) · `J_CHG` @ (135.30, 58.00)) ★
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:248:★**★ 净距敏感度表 (★给 hw-lead 的取舍依据; 「LED_G_D 长」= 把 `D_LED_G` 放到 `R_LED_G` 旁边后该网的直线长★)** ★
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:256:★**⇒ 净距 0.00..0.50 任一档, `LED_G_D` 都能压到 1 mm 以内 ⇒ ★**把 `D_LED_G` 搬到 `R_LED_G` 旁边这一件事, 就把 93.49 mm 的跨板走线变成 <1 mm** ★
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:259:### ★§4.3 `D_LED_G` 落位的约束条件 (★只列条件, 不定坐标★ · 帧: **160×100 台架板**)
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:267:| 5 | `D_LED_G` 宜与 `R_LED_G` 相邻 ⇒ `LED_G_D` 网长 < 1 mm | 本页 §4.1 `[实测]` + §4.2 `[推算]` |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:268:| 6 | ★**光出射面**: `D_LED_G` 是指示灯, 其出光方向/开窗位置是**结构口径** (镜脚外皮或导光柱), 板侧坐标必须与结构侧光孔对齐 ⇒ ★**结构侧该光孔位置目前 = [0数据]** ★ | ★`[0数据]` ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:270:★**⇒ ★**最终 `D_LED_G` 坐标 = hw-lead 的活 (PCB 布局); 本页给的是空间与条件, 不是坐标** ★**
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:287:| ★**ISS-271 警语 (★与 `HW/PCB/BOARD_FRAME_CALIBER.md` §2.1 同口径★)** | ★**ISS-271 交的那两个矩形 (检修口开口 X 47.00..60.00 × Y 1.665..11.730 · `D_LED_G` 首选窗口 X 33.00..47.71 × Y 1.60..28.40) 属帧: `F30A` (60×30 套A) ⇒ 【不可当 S6 坐标用】; 若要在 §3-S6 里提到它们 ⇒ 必须整段带 `F30A` 帧标 + 这句警语, 不许只抄数字** ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:289:| `D_LED_G` 窗口 | 整高自由带 X 1.550..3.450; 最近落位带 X 6.940..8.250 × Y 63.700..67.900 (封装原点可放行窗口); ★**`LED_G_D` 现状 93.492727 mm, 搬到 `R_LED_G` 旁边 ⇒ < 1 mm (净距 0.00..0.50 任一档)** ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:306:| 不代拍 | 开口最终坐标 / `D_LED_G` 最终坐标 / S6 怎么拆条 / 台账格式契约落点 = ★**main / hw-lead / boss** ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:419:## ★§6b `D_LED_G` 出光侧结构光孔 —— 有孔 / 无孔 两假设 (★帧: 160×100 台架板★)
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:427:| `D_LED_G` 封装原点 | (101.25, 56.80) | ★`[实测]` ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:429:| ★**`LED_G_D` 走线 (`R_LED_G`.2 (7.50, 62.60) ↔ `D_LED_G`.1 (100.80, 56.60))** ★ | ★**93.492727 mm** (Δx 93.30 / Δy −6.00) ★ | ★`[实测]` ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:430:| 根因 | ★**排版器按「功能排」落位: `R_LED_G` 在 X = 5.90 的左侧上拉列, `D_LED_G` 在 Y = 56.80 的 LED 行 ⇒ 两件分居板子两端** ★ | ★`[实测]` ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:436:| 假设 | ★**结构件上开一个光孔让 LED 可见 ⇒ 光孔位置把 `D_LED_G` 钉死** ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:440:| ★**板面落位** ★ | ★**要改** (`D_LED_G` 从 (101.25, 56.80) 挪到光孔正下方) ⇒ ★**这一挪必须赶在「板只改一次」之前** ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:446:| 假设 | ★**LED 不需要被看见 (或光经其它路径导出) ⇒ `D_LED_G` 位置只受电气 + 机械约束** ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:456:| 差别 | ★**只差一件事: `D_LED_G` 要不要从 (101.25, 56.80) 挪走** ★ |
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:535:| `D_LED_G` 窗口 | ★**整高自由带 X 1.550..3.450 + X 72.540..73.660 (Y 1.450..98.950); 最近落位带 X 6.940..8.250 × Y 63.700..67.900; ★**`LED_G_D` 现状 93.492727 mm, 搬到 `R_LED_G` 旁边 ⇒ < 1 mm (净距 0.00~0.50 任一档)** ★; ★**结构光孔有/无 = 待 main→boss 拍 (假设见 §6b)** ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:64:| ★`MECH-LED-G` ★ | ISS-278 | ★**`D_LED_G` 落位空间 + 有/无结构光孔两假设** ★ | ★**`D_LED_G` @ (101.25, 56.80) · `R_LED_G` @ (5.90, 62.50) · `LED_G_D` 走线 93.492727 mm (Δx 93.30 / Δy −6.00)** ★ · ★**结构光孔位置 = `[0数据]`** ★ | ★**假设 A (有结构光孔)**: 光孔把 LED 钉死 ⇒ 可放行空间 = 最近落位带 **X 6.940..8.250 × Y 63.700..67.900** (且 LED 中心 X 必须 = 光孔中心 X) ⇒ `LED_G_D` **0.450~0.965 mm** (净距 0.00/0.10/0.20/0.50 四档); ★**板面落位要改** ★ · ★**假设 B (无结构光孔)**: LED 位置只受电气+机械约束 ⇒ 可放行空间 = 整高自由带 **X 1.550..3.450 (宽 1.900)** + **X 72.540..73.660 (宽 1.120)**, Y 1.450..98.950, 可落位块 1992/2016/2031/2075 (净距 0.00/0.10/0.20/0.50) ⇒ `LED_G_D` 可压到 0.450~0.965, 但**现状 93.492727 也合法** ⇒ ★**板面落位不用改** ★ | ★**`python3 MECH/check_onepass_mech_sync.py` ⇒ rc=0; §5 机器块 `led.hypothesis_hole` / `led.hypothesis_nohole` 两份空间齐全** ★ | ★**结构光孔有/无 = 归 main→boss 拍 (★只列事实与代价, 本单不代拍★)** ★ | ★`[实测]` (板读坐标/走线) + ★`[推算]` (两假设空间) + ★`[0数据]` (光孔位置/有无) ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:65:| ★`MECH-LED-GD-NET` ★ | ISS-278 | ★**`LED_G_D` 走线长度 (根因 = 排版规则, 不是单个坐标)** ★ | ★**93.492727 mm (现状, 实测)** ★ · 根因 = `R_LED_G` 被放进 X = 5.90 的「左侧 I2C 上拉列」, `D_LED_G` 被放进 Y = 56.80 的「LED 行」 ⇒ 两件分居板子两端 | ★**目标: `LED_G_D` < 1 mm** ⇒ 净距 0.00 ⇒ 0.450 / 0.10 ⇒ 0.559 / 0.20 ⇒ 0.680 / 0.50 ⇒ 0.965 (★四档都能压进 1 mm★) ⇒ 省 92.53~93.04 mm ★ | ★**`python3 MECH/board_port_opening_s6_check.py --json` ⇒ rc=0 (★现值别改★) + `python3 MECH/check_onepass_mech_sync.py` ⇒ rc=0** ★ | ★**最终 `D_LED_G` 坐标 = 归 hw-lead (PCB 布局); 本单只给空间与条件** ★ | ★`[实测]` + `[推算]` ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:67:| ★`MECH-LED-BRIGHT-G5` ★ | ISS-278 | ★**亮度档 G-5 (★改了 ⇒ 板要改第二次★)** ★ | ★**绿灯亮度档 = `[0数据]`** ★ · 现状 `R_LED_G` 与 `D_LED_G` 已在板上 (★`[实测]`★) | ★**不改 ⇒ 零板面动作** ★ · ★**改 ⇒ 改串阻值 ⇒ 改网表 ⇒ 改 BOM ⇒ 改板面落位 ⇒ 【板要改第二次】** ★ | ★**`python3 MECH/check_onepass_mech_sync.py` ⇒ rc=0 (登记在案即可, 本单不代拍)** ★ | ★**归 main→boss 拍** ★ | ★`[0数据]` (亮度档) + ★`[实测]` (现状器件在板) ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:68:| ★`MECH-LED-HOLE` ★ | ISS-278 | ★**结构光孔有/无 (板面落位的前置条件)** ★ | ★**结构光孔 = `[0数据]`** ★ | ★**两种假设的可放行空间见 `MECH-LED-G` 条 (假设 A / 假设 B)** ★ ⇒ ★**在拍板之前, 板那一趟只能按假设 B 落位 (不挪 `D_LED_G`), 假设 A 一旦成立就要挪 ⇒ 所以这条必须排在「板只改一次」之前拍** ★ | ★**`python3 MECH/check_onepass_mech_sync.py` ⇒ rc=0** ★ | ★**归 main→boss 拍** ★ | ★`[0数据]` ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:93:| ★7 ★ | ★**`D_LED_G` 落位窗口 = 整高自由带 X 1.550..3.450 (宽 1.900) + X 72.540..73.660 (宽 1.120), Y 1.450..98.950** ★ | ★**板读 + 净距 0 口径实算 (`MECH/check_board_frame_coords.py` 的 `led_space`)** ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:94:| ★8 ★ | ★**`D_LED_G` 若要与 `R_LED_G` 相邻 ⇒ 最近落位带 X 6.940..8.250 × Y 63.700..67.900 (封装原点窗口)** ★ | ★**同上班读; 走线 0.450~0.965 mm (净距 0.00~0.50)** ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:95:| ★9 ★ | ★**`LED_G_D` 网两端 = `R_LED_G`.2 (7.50, 62.60) ↔ `D_LED_G`.1 (100.80, 56.60)** ★ | ★**板读 (现状 93.492727 mm)** ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:96:| ★10 ★ | ★**若结构光孔成立 ⇒ `D_LED_G` 中心 X 必须 = 光孔中心 X (★光孔 = `[0数据]` ⇒ 板那一趟按「不挪」画, 挪要等拍板★)** ★ | ★**`[0数据]`** ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:120:| ★**ISS-271 警语 (★与 `HW/PCB/BOARD_FRAME_CALIBER.md` §2.1 同口径★)** ★ | ★**ISS-271 交的那两个矩形 (检修口开口 X 47.00..60.00 × Y 1.665..11.730 · `D_LED_G` 首选窗口 X 33.00..47.71 × Y 1.60..28.40) 属帧: `F30A` (60×30 套A) ⇒ 【不可当 S6 坐标用】; 若要在 §3-S6 里提到它们 ⇒ 必须整段带 `F30A` 帧标 + 这句警语, 不许只抄数字** ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:122:| `D_LED_G` 窗口 | ★**整高自由带 X 1.550..3.450 + X 72.540..73.660 (Y 1.450..98.950); 最近落位带 X 6.940..8.250 × Y 63.700..67.900; ★**`LED_G_D` 现状 93.492727 mm, 搬到 `R_LED_G` 旁边 ⇒ < 1 mm (净距 0.00~0.50 任一档)** ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:136:| 事实 | ★**绿灯亮度档 = `[0数据]`** ★; 现状 `R_LED_G` + `D_LED_G` 已在板上 (★`[实测]`★) |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:153:### ★§4.3 结构光孔有 / 无 (★决定了 `D_LED_G` 板面落位要不要动★)
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:157:| 事实 | ★**`D_LED_G` 出光侧结构光孔位置 = `[0数据]`** ★; 板读 `D_LED_G` @ (101.25, 56.80), `R_LED_G` @ (5.90, 62.50) ⇒ `LED_G_D` 走线 **93.492727 mm** (★`[实测]`★) |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:158:| 代价 A (有光孔) | ★**`D_LED_G` 必须挪到光孔正下方 ⇒ 板面落位要改** ★; 挪到最近落位带 ⇒ 走线 0.450~0.965 mm (净距 0.00~0.50) ⇒ ★**这一挪要赶在「板只改一次」之前** ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:159:| 代价 B (无光孔) | ★**`D_LED_G` 不用挪** ⇒ 板面落位零改动; 走线 93.492727 mm 保留, 或主动挪到最近落位带 (≤ 0.965 mm) ⇒ ★**挪不挪是 hw-lead 的布局活, 不强制** ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:295:    "ref": "D_LED_G",
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:313:      "board_change": "要改 (D_LED_G 必须挪到光孔正下方)",
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:414:      "title": "D_LED_G 落位空间 + 有/无结构光孔两假设",
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:415:      "current_state": "D_LED_G @ (101.25, 56.80); R_LED_G @ (5.90, 62.50); LED_G_D 走线 93.492727 mm; 结构光孔位置 = [0数据]",
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:426:      "current_state": "93.492727 mm (实测); 根因 = R_LED_G 被放进 X=5.90 左侧上拉列, D_LED_G 被放进 Y=56.80 LED 行",
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:429:      "blocked_by": "最终 D_LED_G 坐标 = 归 hw-lead (PCB 布局)",
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:448:      "current_state": "绿灯亮度档 = [0数据]; 现状 R_LED_G + D_LED_G 已在板上 [实测]",
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:460:      "spec": "两种假设的可放行空间见 MECH-LED-G 条 (假设 A / 假设 B); 拍板之前板那一趟只能按假设 B 落位 (不挪 D_LED_G)",
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:520:| ★**冲突条数** ★ | ★**0 条 (20/20 全部「通过」)** ★ —— 禁入区命中 0 (SoM 三口径 + 两条开口, h 三档逐档) · 必清空区净距不足 0 · 占位冲突 0 (186 封装逐个查) · `D_LED_G` 可放行带侵占 0 | ★`[实测]` 板读 + `[推算]` 复算 ★ |
+  MECH/BOARD_ONEPASS_MECH_SYNC.md:535:| ★**S6 落位约束 (20 条)** ★ | ★**S6 的 20 个目标落位 (封装原点) 必须同时满足: ① 落位包络 (F.Fab 外形 ∪ 焊盘铜箔) 不压 SoM 承载区 (焊盘铜箔并集 X 15.100..68.900 × Y 7.610..54.390 · 座体 `F.Fab` 并集 X 13.700..70.300 × Y 7.900..54.100 · 保守包络 X 13.650..70.350 × Y 7.610..54.390); ② 不落进调试口开口 (X 137.850..148.050 × Y 54.300..58.900) 与检修口开口 (X 13.790..23.990 × Y 66.300..70.900) —— ★**两条分别验, 不许合并验**★; ③ 到两条座体必须清空区 (调试口 X 142.0625..143.8375 × Y 55.330..57.870 · 检修口 X 17.620..20.160 × Y 67.330..69.870) 的净距 ≥ 0.60; ④ 不侵占 `D_LED_G` 可放行带 (X 1.550..3.450 / X 72.540..73.660 × Y 1.450..98.950); ⑤ 器件距板边 ≥ 0.80** ★ |
+  MECH/MECH_NEEDS_TRIAGE.md:260:| 42 | `iss271_mech_s6_ledg_window` | hw-lead (板那一趟坐标空间) | 板侧落位坐标已算好, 等 hw-lead 在板那一趟用; 但脚数与 J_UART 相对位置还没定 | hw-lead: 板侧坐标空间可直接用 —— (1) 检修口/调试口: Y 向 jd_y0 ∈ [1.665, 11.730] (现状 9.50), X 向 jd_x0 ∈ [48.290, 51.090] (2×5) 或 [48.925, 51.725] (落表 1×4), 开口 X 可放行区间 [47.00, 60.00], 必须清空区 X 50.50..58.12 × Y jd_y0±1.27, 开口 10.20×4.60, 单边间隙 X 1.29 / Y 1.03; ★脚数与 jd_x0 必须一起定 (差 0.635mm) (2) D_LED_G 落位窗口 (60×30 套A 板坐标): 可放行矩形 18 块, 全高可用 X 带 3 条 (X 3.00..6.40 / X 9.60..14.20 / ★X 33.00..47.71 宽 14.71 = 首选窗口★) × Y 1.60..28.40 | ★是★ |
+  MECH/check_board_frame_coords.py:55:  ISS-271 交的两个窗口 (`D_LED_G` 首选窗口 X 33.00..47.71 · 检修口开口 X 47.00..60.00) 是
+  MECH/check_board_frame_coords.py:137:LED_REF = "D_LED_G"
+  MECH/check_board_frame_coords.py:979:    # ---- D_LED_G 可放行空间 (现役板坐标) ----
+  MECH/check_board_frame_coords.py:1709:              f"D_LED_G.1 ({g['d_pad1'][0]:.2f},{g['d_pad1'][1]:.2f}) ⇒ Δx {g['dx']:.2f} / Δy {g['dy']:.2f} "
+  MECH/check_board_frame_coords.py:1712:    print(f"\n   ★D_LED_G 可放行空间 (现役板坐标系 · 零重叠判据 · 边距带 {EDGE_KEEPOUT:.2f}):")
+  MECH/BOARD_ONEPASS_MECH_CLAIMS.md:231:> ★**【S6 落位约束 (MECH 交叉核对认领 · 帧 `B160x100` · 160×100 台架板)】S6 的 20 个目标落位 (封装原点) 必须同时满足: ① 落位包络 (封装 `F.Fab` 外形 ∪ 焊盘铜箔) 不压 SoM 承载区 (焊盘铜箔并集 X 15.100..68.900 × Y 7.610..54.390 · 座体 `F.Fab` 并集 X 13.700..70.300 × Y 7.900..54.100 · 保守包络 X 13.650..70.350 × Y 7.610..54.390); ② 不落进调试口开口 (X 137.850..148.050 × Y 54.300..58.900) 与检修口开口 (X 13.790..23.990 × Y 66.300..70.900) —— ★**两条分别验, 不许合并验**★; ③ 到两条座体必须清空区 (调试口 X 142.0625..143.8375 × Y 55.330..57.870 · 检修口 X 17.620..20.160 × Y 67.330..69.870) 的净距 ≥ 0.60; ④ 不侵占 `D_LED_G` 可放行带 (X 1.550..3.450 / X 72.540..73.660 × Y 1.450..98.950); ⑤ 器件距板边 ≥ 0.80; ⑥ ★**不落进 USB-C 边开口 (X 132.995..147.005 × Y 0.000..7.300) 与其座体必须清空区 (X 133.895..146.105 × Y 0.000..6.400) —— 第三条开口同样分别验, 净距 ≥ 0.60**★。** ★
+  MECH/BOARD_ONEPASS_MECH_CLAIMS.md:232:> ★**【S6 现状 (MECH 侧已算)】20 条落位对上述 6 条全部满足 —— 禁入区命中 0 · 必清空区净距不足 0 · 占位冲突 0 · LED 可放行带侵占 0; 最小净距 4.6500 mm (两个 `TP_DSI_*` 到 SoM 保守包络的 X 向距离: `TP_DSI_D0_N` / `TP_DSI_D3_P`); 对 USB-C 边开口压 0 条、最小净距 8.795 mm (`R_SEL_D3_P`); 真实位移只有 1 条: `R_SEL_D3_P` 板上 (78.900, 9.500) ⇒ 目标 (122.300, 5.500) (Δx +43.400 / Δy −4.000), 其余 19 条板上已在目标位; `D_LED_G` 两条可放行带零侵占 ⇒ `led_space` 可落位块数 (1992 / 2016 / 2031 / 2075) 不变 ⇒ LED 那条也不触发第二次改板。** ★
+  MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md:64:| ★`LED-BAND-A` ★ | ISS-278 | ★**可放行** ★ | ★**X 1.550..3.450 × Y 1.450..98.950 (宽 1.900)** ★ | ★**假设 B (无结构光孔) 下 `D_LED_G` 的整高自由带之一 —— 落进去合法, 但会吃掉这块可放行面积** ★ | ★`[实测]` + `[推算]` ★ |
+  MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md:66:| ★`LED-NEAR-BAND` ★ | ISS-278 | ★**可放行** ★ | ★**X 6.940..8.250 × Y 63.700..67.900** ★ (封装原点窗口) | ★**假设 A (有结构光孔) 下 `D_LED_G` 的最近落位带 (LED 中心 X 必须 = 光孔中心 X)** ★ | ★`[实测]` + `[推算]` + `[0数据]` (光孔位置) ★ |
+  MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md:91:> ★**判据**: ① 禁入区 (SoM 三口径 / 两条开口) 零命中; ② 必清空区 (两条) 净距 ≥ `CRIT` 0.60; ③ 落位处无别的件占位; ④ 落位不侵占 `D_LED_G` 可放行带 ★
+  MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md:149:| ★**LED 影响** ★ | ★**S6 落位对 `D_LED_G` 两条可放行带 (X 1.550..3.450 / X 72.540..73.660) 零侵占 ⇒ `led_space` 的可落位块数 (1992 / 2016 / 2031 / 2075) 不变 ⇒ LED 那条也不触发第二次改板** ★ |
+  MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md:158:| ★**S6 落位约束 (20 条)** ★ | ★**S6 的 20 个目标落位 (封装原点) 必须同时满足: ① 落位包络 (F.Fab 外形 ∪ 焊盘铜箔) 不压 SoM 承载区 (焊盘铜箔并集 X 15.100..68.900 × Y 7.610..54.390 · 座体 F.Fab 并集 X 13.700..70.300 × Y 7.900..54.100 · 保守包络 X 13.650..70.350 × Y 7.610..54.390); ② 不落进调试口开口 (X 137.850..148.050 × Y 54.300..58.900) 与检修口开口 (X 13.790..23.990 × Y 66.300..70.900) —— ★两条分别验, 不许合并验★; ③ 到两条座体必须清空区 (调试口 X 142.0625..143.8375 × Y 55.330..57.870 · 检修口 X 17.620..20.160 × Y 67.330..69.870) 的净距 ≥ 0.60; ④ 不侵占 `D_LED_G` 可放行带 (X 1.550..3.450 / X 72.540..73.660 × Y 1.450..98.950); ⑤ 器件距板边 ≥ 0.80** ★ |
+  MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md:690:   "physical_reason": "假设 B (无结构光孔) 下 D_LED_G 的整高自由带之一 - 落进去合法, 但会吃掉这块可放行面积",
+  MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md:705:   "physical_reason": "假设 B 下 D_LED_G 的第二条整高自由带",
+  MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md:720:   "physical_reason": "假设 A (有结构光孔) 下 D_LED_G 的最近落位带 (LED 中心 X 必须 = 光孔中心 X)",
+  MECH/DEBUG_PORT_LAYOUT_CONSTRAINTS.md:177:| ★**3**★ | ★`HW/PCB/BOARD_ONEPASS_WORKPACKET.md:164` + `:289`★ | S8 卡在「★**mech (`D_LED_G` 位置)**★」⇒ **MECH 侧只认领了 LED 位置** | ★**检修口/调试口开口 (X 向 + Y 向 + 必须清空区) 在「板只改一次」那一趟里【无人认领】**★ | ★★**建议 main 把本文件 §1/§3 作为 S6 (布局) 的板侧约束清单挂进去, 并把 F-6/F-7/F-8 三条列为 S6 的前置 (真实型号/位置定版) ★**★ |
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:1:# MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md —— 板那一趟 (S1~S13) 的 MECH 侧开口认领规格页 + `D_LED_G` 位置口径查证 (ISS-271)
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:22:★**② `D_LED_G` 位置** ⇒ **结构侧查证结果 = 没有任何既定规定 (`[0数据]`)** ⇒ ⇒ **本单改交「板侧候选位置必须满足的机械约束条件 + 可放行坐标空间」** ★ (§6)
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:27:3. ★**93.49mm 这条数本单独立复算过, 对得上**: ★**实算 = 93.492727mm (差 +0.002727 ⇒ 四舍五入到两位就是 93.49)** ⇒ ★**数没错, 但根因是【排版器把 LED 与它的限流电阻分到板子两端】(R_LED_G 在 x=5.90 最左下角, D_LED_G 在 x=101.25 右上区) ⇒ 结构侧给不出「不许挪」的理由 ⇒ 这是纯布局问题 ⇒ 归 hw-lead** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:372:## 6. ★§6 · `D_LED_G` 位置口径查证 + 板侧候选的机械约束条件 ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:374:> ★**S8 卡点原文** (`HW/PCB/LAYOUT_FIX_SPEC.md:244`): ★**`D_LED_G` 物理位置 (结构侧有没有规定 LED 位置?)** ★ | `LED_G_D` 走线 **93.49mm** (`R_LED_G.2`@7.5,62.6 ↔ `D_LED_G.1`@100.8,56.6) ⇒ ★**要么挪 LED, 要么改网表** ★ | 归谁 = **mech + 老板** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:375:> ★**作业包** (`HW/PCB/BOARD_ONEPASS_WORKPACKET.md:307`): ★**S8 卡点 · `D_LED_G` 物理位置 · 归谁 = mech + 老板** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:379:★**答: ★对 `D_LED_G` / `D_LED_R` / `D_LED_B` (主 PCB 指示灯) 的位置 —— ★没有, 一条都没有 ⇒ `[0数据]`★** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:385:| L-1 | `grep -rn "D_LED_G" MECH/` | ★**1 命中, 且是 ISS-267 文件自己引述作业包的那一行** (`MECH/DEBUG_PORT_LAYOUT_CONSTRAINTS.md:177`) ⇒ **不是规定**★ | `[实测]` (grep) |
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:393:★**⇒ 结论 (逐条有出处, 不许用「应该是没有」糊过去)**: ★**结构侧对 `D_LED_G` 的位置没有任何既定规定 ⇒ `[0数据]`** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:402:| ★**S-3**★ | ★**PCB 末端 X 50.0..60.0 段不得布 2.54mm 以上的器件/凸起** (走线槽/过孔/铜皮除外) ★ | ★**`MECH/SERVICE_PORT_ISS092.md:335`**★ | ★**★这条直接管 `D_LED_G` 落点★** ★ 0805 占位 fab bbox 高 **1.60mm** ⇒ **天然满足** (脚本 §6 表 D 已复核) ★ |
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:406:★**另两条与 `D_CHG_LED` (充电灯) 有关的既有条款 (用于区分, 不是 `D_LED_G` 的位置规定)★**
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:422:| **MC-6** | ★**颜色/功能区分**: `D_LED_G` = `KP-2012SGC` (GaP 绿) / `D_CHG_LED` = `APT1608SURCK` (红橙) ⇒ ★**颜色本身就是区分判据; 结构侧建议两个导光孔做成不同直径/形状, 不靠位置区分** ★ | ★**建议 (不是既有规定)**★ | `HW/PART_SELECTION_GAPS_CLOSEOUT.md:76` / `:28` |
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:425:| **MC-9** | ★**热不构成约束**: `D_LED_G` 1 kΩ + 3.3 V ⇒ I ≈ **1.10 mA** ⇒ P ≈ **3.6 mW** ⇒ ★**不构成热源 ⇒ 位置决策只剩「可见性 + 窗口避让 + 布线长度」三条** ★ | ★**天然满足**★ | `HW/PART_SELECTION_GAPS_CLOSEOUT.md:28` (G-5 亮度账) |
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:426:| **MC-10** | ★**布线长度 (这才是 93.49mm 的真约束)**: `LED_G_D` 网 = `R_LED_G.2` → `D_LED_G.1` ⇒ ★**限流电阻必须贴 LED** ⇒ ★**板侧候选位置必须允许「`R_LED_G` + `D_LED_G` 同区」, 而不是只给一个 LED 点** ★ | ★**强约束 (可机算)**★ | `HW/netlist_v1.csv:304` (网 `LED_G_D` = `R_LED_G` → `D_LED_G`) |
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:471:★**给 hw-lead 的一句话**: ★**`D_LED_G` (+ `R_LED_G`) 的落位窗口 = 板坐标 X 33.00..47.71 (宽 14.71mm) × Y 1.60..28.40 (全高) —— 这一块在 SoC 逃线带之后、检修口窗口之前、离 P2/S2 夹具孔远, 是唯一「整块」的大窗口** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:480:   R_LED_G 封装原点 = (5.9, 62.5) · D_LED_G 封装原点 = (101.25, 56.8)
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:482:   D_LED_G.1 (焊盘1) 绝对坐标 = (100.80, 56.60)
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:488:   盘上 LED 行: D_LED_G @ (101.25, 56.8)
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:496:★**但根因要说清**: ★**93.49 里 99.9% 是 X 向 (93.30) ⇒ 这不是「板太长放不下」, 是【排版器把 `D_LED_G` 分到了 x=101 的右上区 (和 `D_LED_B`/`D_LED_R` 一排), 而 `R_LED_G` 落在 x=5.90 的最左下角】⇒ ★**限流电阻和 LED 分居板子两端** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:497:★**⇒ 结构侧结论 (本单能给的最有用的一条)**: ★**① 结构侧【没有】任何要求 LED 必须落某个位置的既有规定 (§6.1) ⇒ 「挪 LED」在机械上【不违反任何既有条款】; ② 结构侧【也不需要】给 LED 定点 —— 只需给条件 (MC-1~MC-10, 已给全) + 可放行空间 (§6.4, 已算); ③ ⇒ S8 这个卡点在机械侧【不是卡点】⇒ 板侧直接把 `R_LED_G` 挪到 `D_LED_G` 旁边 (纯布局, 不改网表、不改封装、不改板框) 即可 ⇒ 归 hw-lead** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:502:★**`D_LED_G` 的亮度档 G-5 还没拍** (`HW/PART_SELECTION_GAPS_CLOSEOUT.md:28`): ★**1 kΩ + 3.3 V ⇒ 1.10 mA ⇒ 绿光 `KP-2012SGC` 只有 0.7~0.9 mcd typ (20 mA 标称 12 mcd 的约 5%~7%) ⇒ ★**白天/强光下基本看不见** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:520:| ★**U-8**★ | ★**`D_LED_G` / `D_LED_R` 是否要求外露 (开窗/导光柱) —— 结构侧要不要出结构件**★ | ★**老板 + main**★ | ★**结构侧从未有过 LED 位置规定 (§6.1 = `[0数据]`) ⇒ 这条决策从来没被写下来**★ | ★**LED 位置最终坐标 + 打印包是否改版** ★ |
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:579:- ★**§4/§5 里那个 `D_LED_G` 首选窗口 (帧: `F30A` = 60×30 套A 帧 · ★不可当 S6 坐标用★): X 33.00..47.71 × Y 1.60..28.40** ⇒ ★**喂进帧: `B160x100` (160×100 台架板) 后压住 `J_SOM_P3` 的 10 个焊盘** ★
+  MECH/board_port_opening_s6_check.py:4:board_port_opening_s6_check.py —— ISS-271 板侧开口 (S6 认领用) + `D_LED_G` 位置约束 复算器 (mech-lead)
+  MECH/board_port_opening_s6_check.py:10:  ④ **主 PCB 指示灯 (`D_LED_G`) 候选位置的可放行坐标空间** (60×30 套 A 板坐标)
+  MECH/board_port_opening_s6_check.py:244:    """`LED_G_D` 走线长度独立复算: R_LED_G.2 → D_LED_G.1"""
+  MECH/board_port_opening_s6_check.py:246:    d = fps.get("D_LED_G")
+  MECH/board_port_opening_s6_check.py:248:        return {"ok": False, "reason": "盘上板读不到 R_LED_G / D_LED_G"}
+  MECH/board_port_opening_s6_check.py:252:        return {"ok": False, "reason": "读不到 R_LED_G.2 / D_LED_G.1"}
+  MECH/board_port_opening_s6_check.py:449:    hr("【表 C】`D_LED_G` / `LED_G_D` 走线独立复算 (★读盘上板文件, 不抄作业包的数★)")
+  MECH/board_port_opening_s6_check.py:454:    print(f"   R_LED_G 封装原点 = {d['r_led_g_origin']} · D_LED_G 封装原点 = {d['d_led_g_origin']}")
+  MECH/board_port_opening_s6_check.py:456:    print(f"   D_LED_G.1 (焊盘1) 绝对坐标 = ({d['d_led_g_p1'][0]:.2f}, {d['d_led_g_p1'][1]:.2f})")
+  MECH/board_port_opening_s6_check.py:461:    for ref in ("D_LED_B", "D_LED_G", "D_LED_R"):
+  MECH/board_port_opening_s6_check.py:468:    hr("【表 D】主 PCB 指示灯 (`D_LED_G`) 候选位置的可放行坐标空间 (★只给空间, 不定坐标★)")
+  MECH/board_port_opening_s6_check.py:609:    print("BOARD PORT OPENING (S6) + D_LED_G CONSTRAINT CHECK —— ISS-271 (mech-lead)")
+
+$ grep -rn 'D_LED_R\|D_LED_B' MECH/ --include='*.md' --include='*.py' | grep -v '\.bak'
+  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md:234:- ★**`D_LED_G` 被放进 Y = 56.80 的「LED 行」** (同排还有 `D_LED_B` @ (95.55, 56.80) · `D_ESD_LIGHT` @ (89.85, 56.80) · `D_LED_R` @ (106.95, 56.80) · `BT_432243` @ (112.80, 57.50) · `SW_RST` @ (118.80, 57.50) · `J_BOOT1` @ (126.30, 58.00) · `J_CHG` @ (135.30, 58.00)) ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:379:★**答: ★对 `D_LED_G` / `D_LED_R` / `D_LED_B` (主 PCB 指示灯) 的位置 —— ★没有, 一条都没有 ⇒ `[0数据]`★** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:487:   盘上 LED 行: D_LED_B @ (95.55, 56.8)
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:489:   盘上 LED 行: D_LED_R @ (106.95, 56.8)
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:496:★**但根因要说清**: ★**93.49 里 99.9% 是 X 向 (93.30) ⇒ 这不是「板太长放不下」, 是【排版器把 `D_LED_G` 分到了 x=101 的右上区 (和 `D_LED_B`/`D_LED_R` 一排), 而 `R_LED_G` 落在 x=5.90 的最左下角】⇒ ★**限流电阻和 LED 分居板子两端** ★
+  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md:520:| ★**U-8**★ | ★**`D_LED_G` / `D_LED_R` 是否要求外露 (开窗/导光柱) —— 结构侧要不要出结构件**★ | ★**老板 + main**★ | ★**结构侧从未有过 LED 位置规定 (§6.1 = `[0数据]`) ⇒ 这条决策从来没被写下来**★ | ★**LED 位置最终坐标 + 打印包是否改版** ★ |
+  MECH/board_port_opening_s6_check.py:461:    for ref in ("D_LED_B", "D_LED_G", "D_LED_R"):

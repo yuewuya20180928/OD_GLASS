@@ -1,0 +1,73 @@
+==============================================================================
+ISS-326 · MECH 侧位号硬编码全量扫描 (★机器扫·非手抄★)
+==============================================================================
+口径单源      : HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md §1-2 (218 行表)
+口径复刻      : state/gen_kicad_sch.py::kicad_ref() (末字符是数字⇒不动·否则⇒加 _1)
+改名宇宙      : 218
+  要改        : 186
+  不动        : 32
+kicad_ref 口径逐条相符 : True (自证通过)
+改名后撞名             : 无 (自证通过)
+
+── 扫描面 (递归 · 不许只扫顶层) ──
+  MECH/**/*.py 递归 : 65 个文件 (顶层 59 + 子目录 6)
+  MECH/**/*.md 递归 : 47 个文件 (顶层 42 + 子目录 5)
+  子目录命中        : MECH/print, MECH/print, MECH/print, MECH/print, MECH/print, MECH/print, MECH/print, MECH/print, MECH/print, MECH/print, MECH/print
+
+── 命中统计 (全量 · 精确字面量 + 词边界) ──
+  总命中数          : 1934
+  按扩展名          : {'.md': 1356, '.py': 578}
+  按文件类别        :
+      判据脚本           414
+      历史脚本           164
+      文档             1356
+  按命中性质        :
+      md-正文          1356
+      py-代码          543
+      py-注释          35
+  命中文件数        : 63 / 112
+
+── 命中 TOP 20 文件 ──
+     189  MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md                    [文档]
+     151  MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md                  [文档]
+     134  MECH/BOARD_ONEPASS_MECH_SYNC.md                            [文档]
+     130  MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md                [文档]
+     120  MECH/USB_HINGE_STRUCTURE.md                                [文档]
+      81  MECH/BOARD_ONEPASS_MECH_CLAIMS.md                          [文档]
+      68  MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md                   [文档]
+      64  MECH/HINGE_FPC_GEOMETRY_TRUTH.md                           [文档]
+      57  MECH/hinge_usb_check.py                                    [判据脚本]
+      46  MECH/STRUCT_REVIEW_ISS065.md                               [文档]
+      42  MECH/MECH_NEEDS_TRIAGE.md                                  [文档]
+      39  MECH/HW_CROSS_REVIEW.md                                    [文档]
+      39  MECH/hinge_power_calc.py                                   [判据脚本]
+      36  MECH/BOARD_FRAME_DECISION_INPUT.md                         [文档]
+      36  MECH/hw_cross_review_check.py                              [判据脚本]
+      35  MECH/HINGE_POWER_CALC.md                                   [文档]
+      34  MECH/check_board_frame_coords.py                           [判据脚本]
+      34  MECH/cross_review_check.py                                 [判据脚本]
+      33  MECH/SERVICE_PORT_ISS092.md                                [文档]
+      31  MECH/iss065_check.py                                       [判据脚本]
+
+── 改名 / 不动 命中分布 ──
+      不动     187
+      改名     1747
+
+── 唯一 ref 数 (MECH 侧命中的) ──
+  唯一 ref: 76 个
+      BT_432243           CONN_CAM            CONN_LIGHT          C_AC_CSI_D0_D3_P    C_BAT               C_BST             
+      C_KEY_CAM           C_PMID              C_REGN              C_SYS               C_VBUS_GND          C_VBUS_IC         
+      C_VBUS_IN           C_VBUS_OUT          D_CHG_LED           D_ESD_LIGHT         D_ESD_TC            D_LED_B           
+      D_LED_G             D_LED_R             FB_VBUS             J_BOOT1             J_CHG               J_DEBUG           
+      J_SOM_P1            J_SOM_P2            J_SOM_P3            J_SOM_P4            J_TYPE_C            J_UART            
+      J_USB_C             L_CHG               Q1                  Q2                  Q_CHG_LED           R_CHG_LED         
+      R_ILIM              R_LED_B             R_LED_G             R_LED_R             R_NTC_BAT           R_PU_I2CB_SCL     
+      R_PU_INT            R_PU_SCL            R_PU_SDA            R_SEL_CK_N          R_SEL_CK_P          R_SEL_D0_N        
+      R_SEL_D0_P          R_SEL_D1_N          R_SEL_D1_P          R_SEL_D2_N          R_SEL_D2_P          R_SEL_D3_N        
+      R_SEL_D3_P          R_STAR_PGND         R_TS_PULL           R_VBUS_DET_D1       SW_RST              TP_BAT_CHG        
+      TP_DSI_CK_N         TP_DSI_CK_P         TP_DSI_D0_N         TP_DSI_D0_P         TP_DSI_D1_N         TP_DSI_D1_P       
+      TP_DSI_D2_N         TP_DSI_D2_P         TP_DSI_D3_N         TP_DSI_D3_P         TP_LED_G            TP_TS             
+      TP_VBUS             U_CHG               U_TEMP              X1                
+
+TSV 写出: logs/iss326/mech_ref_hits.tsv (1934 行 + 表头)
+JSON 写出: logs/iss326/mech_ref_universe.json

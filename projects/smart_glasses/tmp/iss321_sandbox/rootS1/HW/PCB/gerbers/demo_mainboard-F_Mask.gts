@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/gerbers/demo_mainboard-F_Mask.gts

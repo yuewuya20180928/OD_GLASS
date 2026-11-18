@@ -1,0 +1,86 @@
+================================================================================================
+【SW 侧「板只改一次」准出汇总闸】 (ISS-335)
+================================================================================================
+  汇总根 (root) = /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+  闸数 = 10  ·  ★清单缺一道 ⇒ 汇总直接红 (不许「没跑就当过」)★
+
+  [1/10] SW/tools/check_onepass_sw_sync.py
+        名称: SW 侧板侧输入 / 合法改板闸 (ISS-279/298/321)
+        调用: check_onepass_sw_sync.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [2/10] SW/tools/check_sw_ref_reachability_v2.py
+        名称: SW 侧位号引用可达性闸 v1 (ISS-318)
+        调用: check_sw_ref_reachability_v2.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [3/10] SW/tools/check_landing_trace_obligation.py
+        名称: SW 侧落表留痕义务闸 (ISS-315)
+        调用: check_landing_trace_obligation.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [4/10] SW/tools/check_demo_panel_spec.py
+        名称: SW 侧面板规格 / 三方对账闸 (ISS-275/315) ★链外★
+        调用: check_demo_panel_spec.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [5/10] SW/tools/check_demo_panel_spec_r6_selftest.py
+        名称: SW 侧 R6 判决源反向用例 (ISS-309) ★裸跑★
+        调用: check_demo_panel_spec_r6_selftest.py --tmpdir /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss335_gates
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [6/10] SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py
+        名称: SW 侧 R6 链头落表单号交叉核对反向用例 (ISS-312) ★裸跑★
+        调用: check_demo_panel_spec_r6_chainjudge_selftest.py --tmpdir /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss335_gates
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [7/10] SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py
+        名称: SW 侧 R6 硬保护路径反向用例 (ISS-315) ★裸跑★
+        调用: check_demo_panel_spec_r6_hardprot_iss315_selftest.py --tmpdir /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss335_gates
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [8/10] SW/tools/check_shutdown_semantics.py
+        名称: SW 侧关机语义闸 (SW/SHUTDOWN_SEMANTICS_SPEC.md) ★链外★
+        调用: check_shutdown_semantics.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [9/10] SW/tools/check_timing_review_adc_sync.py
+        名称: SW 侧时序评审 ADC 同步闸 (SW/SW_TIMING_REVIEW.md) ★链外★
+        调用: check_timing_review_adc_sync.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: [✔] P4-VERDICT                   活结论里残留 ADC ❌/无硬件支撑 的行: 无
+
+  [10/10] SW/tools/timing_check.py
+        名称: SW 侧上电 / 复位时序预算闸 (网表 → 时序) ★链外★
+        调用: timing_check.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: verdict                            : ★按网名分别读: I2C_A = 2.2k → RAIL_VDD_1V8_IO (1.8V 域): t_r@100pF=186ns, @300pF=559ns ⇒ 标准模式(≤1000ns) ✅; I2C_B = 4.7k → RAIL_VDD_3V3_IO (3.3V 域): t_r@100pF=398ns, @300pF=1195ns ⇒ 标准模式(≤1000ns) ❌ ⇒ 最差总线 = I2C_B ⇒ I2C 速率上限按 I2C_B 定; ★旧文档写的『4.7k@I2C_A ⇒ 398ns / 1195ns 超标』**对 I2C_A 已不成立** (现为 2.2k/1.8V), 现在超标的是 I2C_B
+
+================================================================================================
+【影子道 (★默认【不参与判决】· 只跑 + 只打印读数★)】
+================================================================================================
+  [影子 1/1] SW/tools/check_sw_ref_reachability.py
+        名称: SW 侧位号引用可达性闸 v1 (ISS-318) ★影子道·默认不参与判决★
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  ★影子道红了怎么办: ★**不等于板坏了**★ ⇒ ★**先看它点名的是哪条判据**★
+    · v2 比 v1 严 (ISS-332 收了 4 条洗白面) ⇒ v1 绿 / v2 红 ⇒ 通常是【v2 抓到了 v1 放过的东西】
+    · ★**默认口径下影子道不把汇总闸拉红**★ (★--shadow-strict 才参与判决★)
+    · ★**绝不许因为影子道红就去改板凑绿**★ ⇒ ★停了 · 回 main · 板 md5 只许变一次★
+
+================================================================================================
+【汇总】
+================================================================================================
+  10 道闸: 绿 10 / 红 0
+  ★汇总 rc = 0 ⇒ ★SW 侧软件可以出 Gerber★
+    (★只代表 SW 侧这 10 道闸全绿; ★不等于整条板链全绿·HW/MECH 侧的闸另算★)
+V2_RC=0

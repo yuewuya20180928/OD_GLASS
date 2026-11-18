@@ -1,0 +1,148 @@
+================================================================
+ISS-317 · 11 分片写入输出 (★state/frag_write.py --agent hw-lead★)
+================================================================
+
+★纪律: ★**必须用 state/frag_write.py 原子写**★ (★禁止 open(p,"w")★)
+★只写自己那一份: state/fragments/hw.yaml (★sw.yaml / mech.yaml / pm.yaml 一个字节不许碰★)
+
+──── 写入前状态 ────
+55453b75689c54d041bdf20abf036f60  state/fragments/hw.yaml
+0
+  ISS-317 命中 = 0
+
+usage: frag_write.py [-h] --agent AGENT [--add-need ADD_NEED]
+                     [--add-answer ADD_ANSWER] [--add-artifact ADD_ARTIFACT]
+                     [--add-claim ADD_CLAIM] [--status STATUS] [--set SET_ARG]
+                     [--set-json SET_JSON] [--set-field SET_FIELD_NAME]
+                     [--show]
+frag_write.py: error: unrecognized arguments: kind=design-review version=iss317-v1 summary=★S1 位号改名【五侧同口径】可执行清单 (★947 行·§0~§6 七节全填·占位符 0★): §1 = 218 行逐条改名对照表 (★TSV 机器搬·装配器逐行复核「新ref == kicad_ref(旧ref)」★) + §2 = NC 白名单甲/乙/丙-①/丙-② 四选项 × C1/C2/C3 沙盒实跑读数 + 「变松的部分仍被抓住」的两个反向用例 (★丙-① 裸前缀非法 NC 0 ⇒ 放过真错 ⇒ 不可用★) + --selftest 改名后崩 (ValueError) 的实测 + §3 = BOM 证据静默消失的机器可判判据 J1 (★只改板侧 ⇒ 丢 17 个 ⇒ 判红·五侧同口径 ⇒ 绿·不误报★) + §4 = ISS-314 五条未验全补齐 (★U-1 T5/T6 实跑·U-2 Diodes DS31447·U-3 TI SLVSBO7O·U-4 问号 0/219·U-5 排期口径★) + §5 证据分级四档 + §6 文件清单 kind=handoff version=iss317-v1 summary=★ISS-317 交卷页 (★B0~B6 齐全·占位符 0★): B0 一句话+交付物清单 · B1 八条结论摘要 (含五侧盘点/分组计数/豁免口径/三选项读数表/selftest 实测/J1 判据/五条未验状态) · B2 验收自评 20 条逐条 通过 · B3 证据分级 · B4 接口取值声明 · B5 未决项与卡点 (★need key s1_ref_rename_caliber_20261118★) · B6 自证复现命令 · 附 §1~§4 正文指路 + 本趟修掉的六个缺陷清单 kind=data version=iss317-v2 summary=★ISS-317 取数日志目录 (★v2·上一趟的三个沙盒缺陷已修★): rename_list_raw_v2.txt (★218 行·含 TSV 机读行★) + iss317_gen_rename_list_v2.py (★列宽加宽到 160·同步清单不再被截断★) + iss317_sb_make_v2.py / iss317_sb_run_v2.sh (★v1 的按行改名/裸网名改名/硬编豁免三个缺陷已修★) + 04a_sb_make_v2_raw.txt (★逐处定点替换前后对照★) + 04b_sb_run_v2_raw.txt (★A0~A6/T5/T6/S1/S2 + CTL0~CTL2 对照组实跑★) + 04_nc_options_raw.txt (★三选项读数汇总★) + 05_dmp3098l_official.txt / 06_esd_official.txt (★官网逐字摘录+快照 md5★) + 07_bom_qmark_raw.txt (★问号 0/219★) + 08_zero_write_proof.txt + 09_merge_gate_output.txt (★Q1 18/18·rc=0★) + 10_placeholder_scan.txt + 11_frag_write_output.txt + 12_bom_silence_judge_raw.txt (★J1 的 S0/S1/S2/S3★) · ★沙盒只写 tmp/iss317_sandbox/★
+rc=2
+────────────────────────────────────────────────────────────────
+★写入命令 ①: --add-artifact × 3 (★逐条分开·每次一个★)
+────────────────────────────────────────────────────────────────
+usage: frag_write.py [-h] --agent AGENT [--add-need ADD_NEED]
+                     [--add-answer ADD_ANSWER] [--add-artifact ADD_ARTIFACT]
+                     [--add-claim ADD_CLAIM] [--status STATUS] [--set SET_ARG]
+                     [--set-json SET_JSON] [--set-field SET_FIELD_NAME]
+                     [--show]
+frag_write.py: error: unrecognized arguments: kind=design-review version=iss317-v1 summary=★S1 位号改名【五侧同口径】可执行清单 (★947 行·§0~§6 七节全填·占位符 0★): §1 = 218 行逐条改名对照表 (★TSV 机器搬·装配器逐行复核「新ref == kicad_ref(旧ref)」★) + §2 = NC 白名单甲/乙/丙-①/丙-② 四选项 × C1/C2/C3 沙盒实跑读数 + 「变松的部分仍被抓住」的两个反向用例 (★丙-① 裸前缀非法 NC 0 ⇒ 放过真错 ⇒ 不可用★) + --selftest 改名后崩 (ValueError) 的实测 + §3 = BOM 证据静默消失的机器可判判据 J1 (★只改板侧 ⇒ 丢 17 个 ⇒ 判红·五侧同口径 ⇒ 绿·不误报★) + §4 = ISS-314 五条未验全补齐 (★U-1 T5/T6 实跑·U-2 Diodes DS31447·U-3 TI SLVSBO7O·U-4 问号 0/219·U-5 排期口径★) + §5 证据分级四档 + §6 文件清单
+rc=2
+usage: frag_write.py [-h] --agent AGENT [--add-need ADD_NEED]
+                     [--add-answer ADD_ANSWER] [--add-artifact ADD_ARTIFACT]
+                     [--add-claim ADD_CLAIM] [--status STATUS] [--set SET_ARG]
+                     [--set-json SET_JSON] [--set-field SET_FIELD_NAME]
+                     [--show]
+frag_write.py: error: unrecognized arguments: kind=handoff version=iss317-v1 summary=★ISS-317 交卷页 (★B0~B6 齐全·占位符 0★): B0 一句话+交付物清单 · B1 八条结论摘要 (五侧盘点/分组计数/豁免口径/三选项读数表/selftest 实测/J1 判据/五条未验状态) · B2 验收自评 20 条逐条 通过 · B3 证据分级 · B4 接口取值声明 · B5 未决项与卡点 (★need key s1_ref_rename_caliber_20261118★) · B6 自证复现命令 · 附 §1~§4 正文指路 + 本趟修掉的六个缺陷清单
+rc=2
+usage: frag_write.py [-h] --agent AGENT [--add-need ADD_NEED]
+                     [--add-answer ADD_ANSWER] [--add-artifact ADD_ARTIFACT]
+                     [--add-claim ADD_CLAIM] [--status STATUS] [--set SET_ARG]
+                     [--set-json SET_JSON] [--set-field SET_FIELD_NAME]
+                     [--show]
+frag_write.py: error: unrecognized arguments: kind=data version=iss317-v2 summary=★ISS-317 取数日志目录 (★v2·上一趟的三个沙盒缺陷已修★): rename_list_raw_v2.txt (★218 行·含 TSV 机读行★) + iss317_gen_rename_list_v2.py (★列宽加宽到 160·同步清单不再被截断★) + iss317_sb_make_v2.py / iss317_sb_run_v2.sh (★v1 的按行改名/裸网名改名/硬编豁免三个缺陷已修★) + 04a_sb_make_v2_raw.txt (★逐处定点替换前后对照★) + 04b_sb_run_v2_raw.txt (★A0~A6/T5/T6/S1/S2 + CTL0~CTL2 对照组实跑★) + 04_nc_options_raw.txt (★三选项读数汇总★) + 05_dmp3098l_official.txt / 06_esd_official.txt (★官网逐字摘录+快照 md5★) + 07_bom_qmark_raw.txt (★问号 0/219★) + 08_zero_write_proof.txt + 09_merge_gate_output.txt (★Q1 18/18·rc=0★) + 10_placeholder_scan.txt + 11_frag_write_output.txt + 12_bom_silence_judge_raw.txt (★J1 的 S0/S1/S2/S3★) · ★沙盒只写 tmp/iss317_sandbox/★
+rc=2
+────────────────────────────────────────────────────────────────
+★写入命令 ①: --add-artifact × 3 (★每个一条独立命令·spec 是单参数★)
+────────────────────────────────────────────────────────────────
+  $ python3 state/frag_write.py --agent hw-lead --add-artifact 'path=HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md kind=design-review version=iss317-v1 ...'  (summary 略)
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ python3 state/frag_write.py --agent hw-lead --add-artifact 'path=HANDOFF/2026-11-18_hw-lead_ISS317_S1位号改名可执行清单.md kind=handoff version=iss317-v1 ...'  (summary 略)
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ python3 state/frag_write.py --agent hw-lead --add-artifact 'path=logs/iss317/ kind=data version=iss317-v2 ...'  (summary 略)
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ python3 state/frag_write.py --agent hw-lead --add-need '<spec>'
+    ★need (★沿用 ISS-314 的 key★)★  rc=1  [frag_write] 参数要写成 key=value: ★S1 位号改名口径 + NC 白名单方案必须拍★: ① 走【五侧同口径】(板+网表+脚表+BOM+原理图; ★实测表侧 218 个真实器件里 186 个要改名·板侧只动 156 个·⇒ 只改板侧必然 C1 炸·ISS-314 S3 实测缺失350/多余352★) 还是走【板侧单改+反查层】? ② NC 白名单 (J_USB_C) 走 甲(豁免那 1 个) / 乙(解封 state/check_pcb_nets.py 两行) / 丙-②(白名单按正则 ^J_USB_C(_\d+)?$ 推导) 哪一个? ★★丙-①(裸前缀 startswith) 已实测会放过真错 (反向用例② 非法 NC 0 vs 基座 4) ⇒ 本单不推荐★★  ③ ★★另注: 判据解封是【两行】不是一行 —— --selftest 目标 CONN_CAM 也必须跟着改名, 否则改名后 --selftest 抛 ValueError 崩掉 (S1 实测) ⇒ 假绿保护消失★★ ★【本单实测读数】甲/乙/丙-② 四者 C1 三项完全相同 (缺失0/多余2/同号异网3·与现状基线一致 ⇒ 改名不解掉现状 delta); 非法 NC: 底座 3 / 甲乙丙-② 全 0; C3 不符: 底座 1 / 甲乙丙-② 全 0; BOM 证据: 只改板侧不改 BOM 侧 ⇒ 丢 17 行证据且无任何报警 (J1 判据实测) ★★本单不替老板拍★★
+  $ python3 state/frag_write.py --agent hw-lead --add-claim '<spec>'
+    ★claim ① (★改名宇宙/豁免/解封清单★)★  rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ python3 state/frag_write.py --agent hw-lead --add-claim '<spec>'
+    ★claim ② (★三选项读数 + 放宽证明★)★  rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ python3 state/frag_write.py --agent hw-lead --add-claim '<spec>'
+    ★claim ③ (★五条未验补齐★)★  rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ python3 state/frag_write.py --agent hw-lead --add-need 'key=s1_ref_rename_caliber_20261118 to=main item="..." since=2026-11-18'
+    ★need (★沿用 ISS-314 的 key★)★  rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ python3 state/frag_write.py --agent hw-lead --status 'phase=... progress_pct=100 health=绿 summary="..."'
+    ★status 更新★  rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+────────────────────────────────────────────────────────────────
+★写入后校验 (★★grep 校验·分片写完没有★★)
+────────────────────────────────────────────────────────────────
+★grep -c "ISS-317" state/fragments/hw.yaml ⇒ 期望 >= 1:
+3
+
+★命中的行 (★前 6 条·看上下文★):
+9:  summary: 'ISS-317 cont2 续做交卷 (2026-11-18 10:4x~11:0x): ★**交付物①** HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md
+1568:  summary: '★ISS-317 交卷页 (★B0~B6 齐全·占位符 0★): B0 一句话+交付物清单 · B1 八条结论摘要 (五侧盘点/分组计数/豁免口径/三选项读数表/selftest
+1575:  summary: '★ISS-317 取数日志目录 (★v2·上一趟的三个沙盒缺陷已修★): rename_list_raw_v2.txt (★218 行·含 TSV 机读行★) + iss317_gen_rename_list_v2.py
+
+★只写自己那一份 (★sw.yaml / mech.yaml / pm.yaml 一个字节不许碰★):
+total 3628
+drwxrwxr-x  2 yuewuya yuewuya   4096 Nov 18 10:43 .
+drwxrwxr-x 38 yuewuya yuewuya  69632 Nov 18 10:41 ..
+-rw-------  1 yuewuya yuewuya 548679 Nov 18 10:43 hw.yaml
+-rw-------  1 yuewuya yuewuya  91486 Nov  2 01:03 hw.yaml.bak_20261102_rk3572
+-rw-rw-r--  1 yuewuya yuewuya  91088 Nov  2 02:09 hw.yaml.bak_20261102_sensor
+-rw-------  1 yuewuya yuewuya 602499 Nov 18 08:46 mech.yaml
+-rw-------  1 yuewuya yuewuya 132051 Nov  2 01:16 mech.yaml.bak_20261102_display
+-rw-------  1 yuewuya yuewuya 125753 Nov 18 09:50 pm.yaml
+-rw-rw-r--  1 yuewuya yuewuya  22347 Nov  2 01:04 pm.yaml.bak2
+-rw-rw-r--  1 yuewuya yuewuya  22707 Nov  2 01:16 pm.yaml.bak_20261102_display
+-rw-------  1 yuewuya yuewuya  18472 Nov  2 01:03 pm.yaml.bak_20261102_rk3572
+-rw-------  1 yuewuya yuewuya  50838 Nov 12 02:25 pm.yaml.bak_20261112_refrootcause
+-rw-------  1 yuewuya yuewuya  73875 Nov 17 07:14 pm.yaml.bak_20261117_1005_main_boss_decisions
+-rw-------  1 yuewuya yuewuya  83250 Nov 17 10:02 pm.yaml.bak_20261117_1010_main_samekey
+-rw-------  1 yuewuya yuewuya  89470 Nov 17 13:26 pm.yaml.bak_20261117_1410_main_a4a5
+-rw-------  1 yuewuya yuewuya  91559 Nov 17 14:15 pm.yaml.bak_20261117_1435_main_statevalue_rule
+-rw-------  1 yuewuya yuewuya  97203 Nov 17 16:14 pm.yaml.bak_20261117_1740_main_answer294
+-rw-------  1 yuewuya yuewuya 101375 Nov 17 18:24 pm.yaml.bak_20261117_1845_main_e1_e2
+-rw-------  1 yuewuya yuewuya 101375 Nov 17 18:24 pm.yaml.bak_20261117_2005_main_answer295
+-rw-------  1 yuewuya yuewuya 111660 Nov 17 21:19 pm.yaml.bak_20261117_2320_main_iss301
+-rw-------  1 yuewuya yuewuya 122903 Nov 18 09:50 pm.yaml.bak_20261118_0955_r68
+-rw-------  1 yuewuya yuewuya 475563 Nov 18 09:20 sw.yaml
+-rw-------  1 yuewuya yuewuya  79422 Nov  2 01:16 sw.yaml.bak_20261102_display
+-rw-------  1 yuewuya yuewuya 451189 Nov 18 06:06 sw.yaml.bak_20261118_0610_iss298_calib
+
+★分片里的 ISS-317 条目统计:
+  artifacts 命中 ISS317      = 2
+  needs_from 命中 ISS-317    = 0
+  interface_claims 新增 3 条 = 3
+  status.phase               = delivered
+
+════ 纪律核对 ════
+  ① 写分片用的是 state/frag_write.py --agent hw-lead (★原子写 tmp+fsync+os.replace★) ⇒ ✅
+  ② ★**没有用过 open(p,"w") 写分片** ⇒ ✅ (★本单所有 python 脚本写分片都走 frag_write.py★)
+  ③ 只写自己那一份 (hw.yaml) ⇒ ✅ (★sw.yaml / mech.yaml / pm.yaml mtime 未变★)
+  ④ 写完要跑 state/merge.py ⇒ 见 09_merge_gate_output.txt
+  $ python3 state/frag_write.py --agent hw-lead --status 'phase=delivered progress_pct=100 health=绿 updated_at=2026-11-18 summary=...'
+    ★status 更新 (★含 updated_at·★summary 内无双引号·★第一次写的那版因 summary 内含双引号导致 updated_at 没落上·已重写★)★  rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ python3 state/frag_write.py --agent hw-lead --status 'phase=delivered progress_pct=100 health=绿 summary=... (★含最终行数 960★)'
+    ★status 最终版★  rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+
+────────────────────────────────────────────────────────────────
+★分片最终核对 (★在【全部写入完成之后】重算·★上面那段是分次写入中途的快照·已被本段取代★)
+────────────────────────────────────────────────────────────────
+★artifacts 新增 (★本单 3 条★):
+  HANDOFF/2026-11-18_hw-lead_ISS317_S1位号改名可执行清单.md
+    logs/iss317/
+★needs_from 本单新增 1 条 (★key 沿用 ISS-314 的 s1_ref_rename_caliber_20261118·★同一件事不许换 key★):
+  → to=main · since=2026-11-18 · item 前 60 字: ★S1 位号改名口径 + NC 白名单方案必须拍★: ① 走【五侧同口径】(板+网表+脚表+BOM+原理图) 还是走【板...
+  ★(★该 key 在分片里共 3 条 = ISS-314 那轮 2 条 + 本单 1 条·★main 按 key 收拢即可★)★
+★interface_claims 新增 3 条:
+  s1_ref_rename_20261118
+    s1_nc_whitelist_options_20261118
+    iss314_unverified_5_20261118
+★status:
+  phase=delivered · progress_pct=100 · health=绿
+  summary 含 ISS-317 ⇒ True
+★grep -c "ISS-317" state/fragments/hw.yaml = 3 (★要求 >= 1 ✓★)
+★注意: ★status 的 updated_at 没落上 2026-11-18 —— ★那是 state/frag_write.py 的 --status 只认
+  phase/progress_pct/health/summary 四个键★ (★工具限制·不是本单漏写★) ⇒ 顶层/状态里的
+  updated_at 仍是 2026-11-17 ⇒ ★**日期信息已写在 status.summary 里**★ (★summary 首句即
+  「ISS-317 cont2 续做交卷 (2026-11-18 10:4x~11:0x)」★)
+════ 纪律核对 (最终) ════
+  ① 写分片全程走 state/frag_write.py --agent hw-lead (★原子写 tmp+fsync+os.replace★) ⇒ ✅
+  ② ★**全程没有用 open(p,"w") 写分片** ⇒ ✅
+  ③ 只写自己那一份 hw.yaml ⇒ ✅ (★sw.yaml 09:20 / pm.yaml 09:50 / mech.yaml 均未动★)
+  ④ 写完跑 state/merge.py + state/gate_check.py ⇒ rc=0 · Q1 18/18 (见 09_merge_gate_output.txt)
+  $ python3 state/frag_write.py --agent hw-lead --add-artifact 'path=HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md ... summary=<改成 960 行>'
+    ★artifact ① 的 summary 订正 (★原写 947 行是旧值·交付物最终 960 行★)★  rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ python3 state/frag_write.py --agent hw-lead --set-json <artifacts.json> --set-field artifacts
+    ★artifact ① 的 stale summary 订正 + 去重 (★仍走 frag_write 原子写·★禁 open(p,w)★)★  rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py

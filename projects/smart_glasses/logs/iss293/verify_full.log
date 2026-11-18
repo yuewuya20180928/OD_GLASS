@@ -1,0 +1,130 @@
+=== [A] timing_check.py --only F4_adc_det ===
+=== F4_adc_det ===
+   active_chain                       : BAT_DET
+   active_chain_pin                   : 38
+   active_chain_signal                : SARADC_VIN5
+   active_chain_domain                : 1.8V
+   chain_select_mode                  : by_landing_pin
+   chain_select_reason                : ★唯一一条装机链落在 SAR-ADC 脚上 (判决源 = SoM 脚表 signal 列: SARADC_VIN5)★
+   judgment_source                    : SoM 脚表 HW/PCB/FET3572C_PIN_TABLE.csv (md5 67340a0b7070, 399 行) + 网表落点实读
+   pin_table_md5                      : 67340a0b707095fc4c0755a4c79ea8b6
+   full_scale_v                       : 1.8
+   full_scale_source                  : [官网] SAR-ADC 满量程 = 1.8V 域: 脚表 FET3572C_PIN_TABLE.csv L39 (SARADC_VIN5 / 1.8V) + rk3572_datasheet_V1.1.txt L2454 (SARADC_AVDD1V8 = 1.62/1.8/1.98V) + L2864 (Analog Input Range = AVSS18~AVDD18) ⇒ ★原 3.3V 写死值已按 ISS-291 订正★
+   adc_bits                           : 12
+   lsb_mv                             : 0.439
+   chains                             : [{'tag': 'VBUS_DET_D', 'r_top_ohm': 1000000.0, 'r_bot_ohm': 1000000.0, 'c_f': 1.0000000000000001e-07, 'r_top_ref': 'R_VBUS_DET_D1', 'r_bot_ref': 'R_VBUS_DET_D2', 'cap_ref': 'C_DET_VBUS_D', 'r_top_dnp': '必装', 'r_bot_dnp': '必装', 'c_dnp': '必装', 'populated': True, 'device_dnp': {'R_VBUS_DET_D1': ['必装'], 'R_VBUS_DET_D2': ['必装'], 'C_DET_VBUS_D': ['必装', '必装']}, 'device_populated': True, 'landing_net': 'VBUS_DET_D', 'landing_line': 439, 'som_conn': 'J_SOM_P1', 'som_pin': '100', 'pin_class': 'DIGITAL', 'pin_signal': 'USB_DRD1_VBUSDET', 'pin_vol_raw': '——', 'pin_vol_v': None, 'pin_desc': 'USB2_OTG1_VBUSDET insert detection', 'rth_ohm': 500000.0, 'tau_ms': 50.0}, {'tag': 'BAT_DET', 'r_top_ohm': 100000.0, 'r_bot_ohm': 60000.0, 'c_f': 1.0000000000000001e-07, 'r_top_ref': 'R_BAT_DET_1', 'r_bot_ref': 'R_BAT_DET_2', 'cap_ref': 'C_DET_BAT', 'r_top_dnp': '必装', 'r_bot_dnp': '必装', 'c_dnp': '必装', 'populated': True, 'device_dnp': {'R_BAT_DET_1': ['必装'], 'R_BAT_DET_2': ['必装'], 'C_DET_BAT': ['必装', '必装']}, 'device_populated': True, 'landing_net': 'BAT_DET', 'landing_line': 186, 'som_conn': 'J_SOM_P1', 'som_pin': '38', 'pin_class': 'ADC', 'pin_signal': 'SARADC_VIN5', 'pin_vol_raw': '1.8V', 'pin_vol_v': 1.8, 'pin_desc': 'General ADC5', 'rth_ohm': 37500.0, 'tau_ms': 3.75}]
+   rth_ohm                            : 37500.0
+   tau_ms                             : 3.75
+   t_settle_to_half_lsb_ms            : 33.791
+   leak_offset_v                      : 0.0375
+   leak_offset_pct_fs                 : 2.1
+   standby_ua                         : 26.25
+   supply_v                           : 4.2
+   supply_source                      : 网表 RAIL 行 RAIL_BAT = 4.2V
+   node_v_at_supply                   : 1.575
+   node_max_abs_v                     : 1.98
+   node_nominal_max_v                 : 1.8
+   fs_utilization_pct                 : 87.5
+   netlist_note_facts                 : {'pct_fs': 2.1, 'mv': 37.5, 'rth_k': 37.5, 'note': '[BAT_DET_RAW] 分压上臂 (100k); ★方案E (ISS-223 §11.4): R_th=37.5kΩ ⇒ ADC 输入漏电 ~1µA 只造成 37.5mV 偏移 (2.1% FS, 可软件标定)★; ★常开静态功耗 26.25µA / 110µW (V-3 裁决的代价)★ [V1.6: 临时线名 BAT 已归一到源节点]', 'line_no': 182}
+   criteria                           : {'object_ok': True, 'fs_caliber_ok': True, 'settle_ok': True, 'leak_ok': True, 'node_ok': True, 'populated_ok': True, 'all_ok': True}
+   verdict                            : ★判决对象 = BAT_DET 链 (网表 L186 ⇒ J_SOM_P1 pin38 = SARADC_VIN5, 1.8V 域) ⇒ 源阻抗 37500.0Ω / τ=3.75ms; 12bit (LSB=0.439mV, 满量程 1.8V) 需 33.8ms 建立 (红线 300.0ms ⇒ ✔); 1µA 漏电 ⇒ 0.0375V 偏移 = 2.1% 满量程 (红线 0.4V ⇒ ✔; ★与网表 L182 note 写死的 2.1% FS 逐字对上 ⇒ ✔★); @4.2V 节点 1.575V ≤ abs-max 1.98V ⇒ ✔ (FS 利用率 87.5%); ★老口径 (判 VBUS_DET_D + FS=3.3V) 报的那条红 = **假红** ⇒ 已作废; ★VBUS_DET_D 链改按【数字检测输入】口径单判 (见 F4D 段)★; ★BAT_DET 链 (R_BAT_DET_1/2 + C_DET_BAT) 三颗**已改成必装** (V-3=E 落表后) ⇒ **电量检测分压在现网表上存在** (100k+60k+100nF ⇒ R_th=37500.0Ω / τ=3.75ms)
+
+=== NETLIST_ANCHOR ===
+   netlist_path                       : HW/netlist_v1.csv
+   netlist_md5                        : 6aee500e60ba0732f83a9cf557ba90ab
+   netlist_lines_total                : 514
+   netlist_data_rows                  : 513
+   netlist_bytes                      : 143198
+   netlist_mtime                      : 2026-11-18 00:21:08
+   netlist_header                     : page,net,node1,node2,ref,value,type,dnp,evidence,tbd,note,conn_id,board,footprint,opn
+rc=0
+=== [B] timing_check.py --only F4D_usb_vbus_det ===
+=== F4D_usb_vbus_det ===
+   chain                              : VBUS_DET_D
+   landing_net                        : VBUS_DET_D
+   landing_line                       : 439
+   som_conn                           : J_SOM_P1
+   som_pin                            : 100
+   pin_signal                         : USB_DRD1_VBUSDET
+   pin_vol_raw                        : ——
+   pin_class                          : DIGITAL
+   r_top_ohm                          : 1000000.0
+   r_bot_ohm                          : 1000000.0
+   c_f                                : 1.0000000000000001e-07
+   rth_ohm                            : 500000.0
+   v_supply_nom_v                     : 5.0
+   v_supply_min_v                     : 4.75
+   v_supply_max_v                     : 5.25
+   static_current_ua                  : 4.81
+   static_current_ua_ideal            : 2.5
+   static_current_limit_ua            : 26.25
+   node_v_nom                         : 2.5
+   node_v_min                         : 2.375
+   node_v_max                         : 2.625
+   node_v_with_internal_pd            : 0.185
+   vih_min_v                          : 2.3
+   high_band_lo_v                     : 2.7
+   high_band_hi_v                     : 3.3
+   margin_to_vih_mv                   : 75.0
+   abs_max_v                          : 3.3
+   abs_max_source                     : ★[0数据] 降级取 Forlinx 手册标称高电平带上沿 3.3V★
+   domain_known                       : False
+   criteria                           : {'static_current_ok': True, 'level_ok': True, 'all_ok': True}
+   unresolved                         : [{'item': '该脚 (USB_DRD1_VBUSDET) 是否带内部 40kΩ 下拉', 'evidence': "[0数据] Forlinx FET3572 手册只对 USB_DRD0_VBUSDET 明写 'internal 40 kΩ pull-down'; 本板落点是 DRD1 ⇒ 手册未记载", 'impact': '若带 ⇒ 节点 = 0.185V (含 40kΩ 下拉) < 2.3V 识别阈值 ⇒ **USB 插入检测永不触发**', 'degradation': '本闸按【无内部下拉】的理想分压值判定 (并把含下拉的情形一并算出报出); ★该脚 abs-max / 域 / 内部下拉三件事一律登记 need, 不在本闸里编数★'}, {'item': '该脚 IO 域 / abs-max (脚表 vol 栏 = ——)', 'evidence': "[0数据] 脚表 FET3572C_PIN_TABLE.csv L101 vol 栏 = '——' ⇒ 域未知", 'impact': '本闸降级取 Forlinx 手册标称高电平带上沿 3.3V 作 abs-max 上界 ⇒ 节点 2.625V ≤ 3.3V ⇒ 通过; ★若该脚域实为 1.8V ⇒ abs-max = 2.1V ⇒ 节点 2.625V 越限 ⇒ 必须改分压比★', 'degradation': '降级上界取手册高电平带上沿; ★域一旦在脚表里填上, 本闸的 abs-max 判据自动按域+0.3V 生效★'}, {'item': '识别裕量 (VBUS 下限 4.75V 时)', 'evidence': '[官方] USB 2.0/Type-C VBUS 4.75~5.25V + 手册识别阈值 >2.3V', 'impact': '节点 @4.75V = 2.375V, 距阈值 2.3V 只剩 75mV (3.3%) ⇒ 裕量极薄', 'degradation': '本闸按最坏 VBUS 下限 4.75V 判 (比标称 5V 更严)'}]
+   verdict                            : ★VBUS_DET_D 链落点 = J_SOM_P1 pin100 = USB_DRD1_VBUSDET (脚表域栏 = —— ⇒ 域未知 [0数据]) ⇒ 按【数字检测输入】口径判 (★不是 SAR-ADC★): ① 常开静态电流 4.81µA (理想分压 2.5µA) ≤ 上限 26.25µA (同板 BAT_DET 链 V-3 已裁决值) ⇒ ✔; ② 节点电平 2.5V @5V (VBUS 4.75~5.25V ⇒ 2.375~2.625V) vs 识别阈值 >2.3V ⇒ ✔ (裕量 75.0mV ⚠; 且低于手册标称高电平带下沿 2.7V ⚠); ③ 该脚 abs-max 3.3 ⇒ ✔; ★★未决 (已登记 need, 不阻塞本闸但禁止据此判『安全』): 该脚是否带内部 40kΩ 下拉 [0数据] ⇒ 若带则节点 0.185V ⇒ **USB 插入检测不工作**★★
+
+=== NETLIST_ANCHOR ===
+   netlist_path                       : HW/netlist_v1.csv
+   netlist_md5                        : 6aee500e60ba0732f83a9cf557ba90ab
+   netlist_lines_total                : 514
+   netlist_data_rows                  : 513
+   netlist_bytes                      : 143198
+   netlist_mtime                      : 2026-11-18 00:21:08
+   netlist_header                     : page,net,node1,node2,ref,value,type,dnp,evidence,tbd,note,conn_id,board,footprint,opn
+rc=0
+=== [C] check_demo_panel_spec.py ===
+✅ ISS-212 demo 显示侧口径门禁: 全过
+   R1 demo 屏规格真源 (480×640 / 2-lane / 无 DCS / I2C_B ≤100kHz + 附属必填项) ✅
+   R2 demo 规格里整机口径只在「整机路线占位区」内 ✅
+   R3 pipeline spec 的 demo 活动口径已重锚 ✅
+   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+rc=0
+=== [D] check_demo_panel_spec.py --selftest ===
+=== SELFTEST (反向用例: 每条都必须在被破坏后变红) ===
+  ✅ REV-1 把 pipeline 的 demo 口径塞回 1920×1080               ⇒ R3 变红 (R3 pipeline spec 仍留旧 demo 口径: 'CRTC:  1920×1080@60' (定性表已判为 demo 活动口径,)
+  ✅ REV-2 把 pipeline 的 480×640 buffer 塞回 1920×1080 buffer ⇒ R3 变红 (R3 pipeline spec 缺新口径: '480×640 buffer' (定性表要求的现行写法))
+  ✅ REV-3 把 demo 规格的 480×640 删掉                          ⇒ R1 变红 (R1 demo 屏规格缺 分辨率 480×640 (期望其中之一: 480×640 / 480x640))
+  ✅ REV-4 把 demo 规格的 2-lane 删掉                           ⇒ R1 变红 (R1 demo 屏规格缺 DSI 2-lane (期望其中之一: 2-lane / dsi,lanes = <2>))
+  ✅ REV-5 把 demo 规格的「无 DCS」结论删掉                          ⇒ R1 变红 (R1 demo 屏规格缺 无 DCS init 序列 (期望其中之一: 不需要任何 DCS init 序列 / 零 DSI 写 / 不需要任)
+  ✅ REV-6 把 demo 规格的 I2C ≤100kHz 上限删掉                    ⇒ R1 变红 (R1 demo 屏规格缺 I2C_B ≤100kHz 硬上限 (期望其中之一: 100 kHz / 100kHz))
+  ✅ REV-7 把整机口径塞到 demo 规格的占位区块外                          ⇒ R2 变红 (R2 demo 屏规格第 304 行把整机口径当 demo 活动口径: ★demo 活动口径: 面板 = 视涯 0.49" 1920×108)
+  ✅ REV-8 把定性表的 L-22 行删掉                                 ⇒ R5 变红 (R5 逐处定性表缺条目: L-22)
+--- ISS-225 台账对账反向用例 (R6/R7) ---
+  ✅ 基线全绿 (R1~R7 在临时树上全过)
+  ✅ REV-9 盘上真源被换掉而锚点没换                                   ⇒ R6 变红 (R6 台账链: 盘上真源 md5 HW/netlist_v1.csv = 5b61eb075be0 ≠ 台账最新记录 6aee500e60b)
+Traceback (most recent call last):
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/tools/check_demo_panel_spec.py", line 1288, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/tools/check_demo_panel_spec.py", line 1261, in main
+    return selftest(root)
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/tools/check_demo_panel_spec.py", line 1192, in selftest
+    work = _build_r6_tree(tmp, root, "r6_%02d" % idx)
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/tools/check_demo_panel_spec.py", line 1140, in _build_r6_tree
+    shutil.copy2(src, dst)
+    ~~~~~~~~~~~~^^^^^^^^^^
+  File "/usr/lib/python3.14/shutil.py", line 529, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/shutil.py", line 334, in copyfile
+    _fastcopy_sendfile(fsrc, fdst)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/usr/lib/python3.14/shutil.py", line 223, in _fastcopy_sendfile
+    raise err
+  File "/usr/lib/python3.14/shutil.py", line 203, in _fastcopy_sendfile
+    sent = os.sendfile(outfd, infd, offset, blocksize)
+OSError: [Errno 122] Disk quota exceeded: '/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb' -> '/tmp/iss212_gate_s0c_ohsc/r6_01/HW/PCB/demo_mainboard.kicad_pcb'
+rc=1

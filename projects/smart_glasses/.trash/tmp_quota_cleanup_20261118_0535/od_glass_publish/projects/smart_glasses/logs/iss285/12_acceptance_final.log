@@ -1,0 +1,49 @@
+★ISS-285 交卷验收 (真盘) ★ 2026-11-17 11:59:19 CST
+★环境注记: /tmp 已满 (6.0G/7.5G) ⇒ --selftest 的临时树用 TMPDIR 指到项目盘★
+### 1) python3 SW/tools/check_demo_panel_spec.py
+✅ ISS-212 demo 显示侧口径门禁: 全过
+   R1 demo 屏规格真源 (480×640 / 2-lane / 无 DCS / I2C_B ≤100kHz + 附属必填项) ✅
+   R2 demo 规格里整机口径只在「整机路线占位区」内 ✅
+   R3 pipeline spec 的 demo 活动口径已重锚 ✅
+   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+rc=0
+### 2) python3 SW/tools/check_demo_panel_spec.py --selftest
+  ✅ REV-21 合法改板: 台账四项齐全 + 锚点原子记录 ⇒ 放行 (★正向★)             ⇒ R6 仍绿 (★合法改板四项齐全 = 放行★)
+--- SELFTEST 22/22 通过 ---
+rc=0
+### 3) python3 SW/tools/timing_check.py   (★真盘期望 rc=1 · 68/71★)
+  [FAIL] 网表锚点: 现行网表 md5 ∈ 落表台账登记的状态 (落表前 / 落表后)
+  [FAIL] 网表锚点: 锚点 ↔ 落表台账 ↔ 盘上真源 三方对账成立 (不许悄悄换真源)
+  [FAIL] F4' 实读: ADC 装机链是 VBUS_DET_D; BAT_DET 三颗全 DNP
+SELFTEST 68/71 通过, rc=1
+rc=1
+### 4) python3 HW/check_step1_parts_spec.py
+[PASS] C8  §6 S1 存在且经 ISS-237 确认
+---- 8/8 通过 ⇒ rc=0 ----
+rc=0
+### 5) python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-17T11:59:23+08:00)
+   产出 498 | 阻塞 43 (高危 33) | 未闭合需求 275 | 冲突 0 | 健康度 red
+rc=0
+### 6) python3 state/gate_check.py
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+rc=0
+### 7) md5sum 受保护件 (交卷读数)
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+2f17650cfbef48d5efd71821505c3343  HW/netlist_v1.csv
+6ea65fecdf95902e47330083d140d455  HW/netlist_v1_pins.csv
+ea5f4f58e3fb8bb7b6c3a2e0de8b1dfd  HW/BOM_v1.csv
+### 8) mtime 受保护件 + SW 三个门禁文件
+2026-11-06 07:07:17.362193413 +0800  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-04 23:47:30.279742515 +0800  HW/PCB/demo_mainboard.kicad_pro
+2026-11-17 09:58:15.680854714 +0800  HW/netlist_v1.csv
+2026-11-17 09:58:15.783855948 +0800  HW/netlist_v1_pins.csv
+2026-11-17 09:58:15.902857373 +0800  HW/BOM_v1.csv
+2026-11-16 18:32:34.990932709 +0800  SW/tools/timing_check.py
+2026-11-17 10:27:34.263859806 +0800  SW/tools/check_demo_panel_spec.py
+2026-11-17 10:30:26.354823466 +0800  SW/SW_MD5_BASELINE_LEDGER.md

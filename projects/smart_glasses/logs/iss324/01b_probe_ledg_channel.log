@@ -1,0 +1,42 @@
+================================================================================
+ISS-324 probe_ledg_channel · READ-ONLY
+================================================================================
+
+[1] 焦点器件
+  R_LED_G    origin=(5.90, 62.50)  nets=LED_G,LED_G_D  copper X 5.600..7.800 Y 62.150..63.050
+  TP_LED_G   origin=(5.90, 65.70)  nets=LED_G  copper X 6.010..6.190 Y 65.150..66.050
+  D_LED_G    origin=(101.25, 56.80)  nets=GND,LED_G_D  copper X 100.500..103.400 Y 56.150..57.050
+  D_LED_B    origin=(95.55, 56.80)  nets=GND,LED_B_D  copper X 94.800..97.700 Y 56.150..57.050
+  R_LED_B    origin=(68.30, 58.50)  nets=LED_B,LED_B_D  copper X 68.000..70.200 Y 58.150..59.050
+  TP_LED_B   origin=(71.50, 58.50)  nets=LED_B  copper X 71.610..71.790 Y 57.950..58.850
+
+[2] R_LED_G / TP_LED_G 邻域 (铜箔外框间净距 ≤ 3.00 mm) —— 谁在掐谁
+  --- R_LED_G 邻域 ---
+      TP_LED_G     净距  2.100 mm  net=LED_G
+      C_KEY_CAM    净距  2.600 mm  net=KEY_CAM
+  --- TP_LED_G 邻域 ---
+      R_LED_G      净距  2.100 mm  net=LED_G,LED_G_D
+      R_PU_I2CB_SCL 净距  2.100 mm  net=I2C_B_SCL,VDD_3V3_IO
+
+[3] `LED_G` 网在盘上的全部成员 (网名精确匹配)
+      TP_LED_G   pad1   (6.10, 65.60)  type=1
+      R_LED_G    pad1   (5.90, 62.60)  type=1
+      J_SOM_P4   pad19  (31.20, 50.96)  type=1
+
+[4] `LED_B` 网在盘上的全部成员
+      R_LED_B    pad1   (68.30, 58.60)
+      J_SOM_P4   pad21  (30.80, 50.96)
+      TP_LED_B   pad1   (71.70, 58.40)
+
+[5] `LED_G_D` 网在盘上的全部成员
+      R_LED_G    pad2   (7.50, 62.60)
+      D_LED_G    pad1   (100.80, 56.60)
+
+[6] 铜皮 (zone) 清单: 网名 + 外框 —— 看 R_LED_G 逃线方向有没有铜皮挡路
+      zone net=RAIL_DEMO_5V X 12.400..144.900  Y 0.200..13.390
+      zone net=GND        X -0.050..160.050  Y -0.050..100.050
+      zone net=GND        X -0.050..160.050  Y -0.050..100.050
+      zone net=GND        X -0.050..160.050  Y -0.050..100.050
+      zone net=GND        X -0.050..160.050  Y -0.050..100.050
+
+[END] 只读探针跑完

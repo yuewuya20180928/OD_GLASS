@@ -1,0 +1,238 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+ISS-319 · mech-lead · §4 26 条差集 → 逐条 owner + 落表批次 + 验收判据 (★脚本自算, 非手抄★)
+
+做三件事:
+  ① 从 MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md §4 的四张表里**逐行解析**出 26 条差集
+     (D-1 7 条 · D-2 9 条 · D-3 6 条 · D-4 4 条) ⇒ 证明「一条都不漏」是机器判的, 不是人说的
+  ② 把 ISS-316 的分类注 (D-1-2 / D-1-4 归【过期行】不归【两边打架】) 原样带过来
+  ③ 逐条挂上 owner / 落表批次 / 验收判据 ⇒ 出 §1 的 26 行表
+
+纪律: 本脚本**只读** BOARD_FRAME_FREEZE_DECISION_PACK.md, 不改任何既有文档。
+"""
+from __future__ import annotations
+
+import os
+import re
+import sys
+
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PACK = os.path.join(ROOT, "MECH", "BOARD_FRAME_FREEZE_DECISION_PACK.md")
+
+# ── 逐条归属表 (★本单的分析结论; 解析是机器做的, 归属是人工判断★) ─────────────
+# key = 差集编号; value = (分类注, owner, 落表批次, 验收判据)
+OWN = {
+    "D-1-1": ("两边口径打架", "main",
+              "单独批 (★必须早于板那一趟 S1 开工★)",
+              "`grep -n 'mech' HW/PCB/ONETRIP_REISSUE_MANIFEST.md` §4-4 归属表 ⇒ 期望 mech 行不再写「不占本趟产物」, 且能点到 M-06/M-07/M-08 是 S6 的输入; `python3 MECH/check_onepass_mech_release.py` ⇒ rc=0"),
+    "D-1-2": ("★过期行 (待订正)★", "hw-lead",
+              "单独批 (★必须早于板那一趟作业包重发行★)",
+              "`grep -n '板宽' HW/PCB/BOARD_ONEPASS_WORKPACKET.md` ⇒ 期望 L659/L668 两行的 15 已改成 30 并带「老板 2026-10-29 19:16, ISS-118/130」出处; 尾巴 `grep -n ':301\\|:310' MECH/DEBUG_PORT_LAYOUT_CONSTRAINTS.md` ⇒ 期望已改成 L659/L668 (MECH 域, owner 仍 mech-lead)"),
+    "D-1-3": ("两边口径打架", "mech-lead",
+              "必须同批 (★板框一改板重就变 ⇒ 不然 verify_budget.py 门禁红★)",
+              "`grep -n 'ARS45 主控 PCB' MECH/MECH_BUDGET.md` §3 W5 ⇒ 期望板框 60×30×1.00 与板重 3.330 g; `python3 MECH/verify_budget.py` ⇒ rc=0 且 DOC_WEIGHT 与 §3 合计行逐位一致"),
+    "D-1-4": ("★过期行 (待订正)★", "mech-lead",
+              "必须同批 (★空间预算主表吃板框 + 板重★)",
+              "`grep -n 'ARS45 主控 PCB' MECH/MECH_BUDGET.md` §1.3 主表 M1 行 ⇒ 期望「60 × 15 × 1.0」改成「60 × 30 × 1.0」且体积/板重同步; `python3 MECH/check_budget_caliber.py` ⇒ rc=0"),
+    "D-1-5": ("两边口径打架", "main (裁口径) → mech-lead 改 MECH 三页 + hw-lead 改 HW 抄件",
+              "必须同批 (★开口坐标吃板框★)",
+              "`python3 MECH/check_board_frame_coords.py` ⇒ rc=0 (C1 帧标签 + C5 异帧坐标误用检测); `python3 MECH/check_onepass_mech_sync.py` ⇒ rc=0; `grep -n 'C-OPEN-1\\|C-OPEN-2' HW/PCB/BOARD_ONEPASS_WORKPACKET.md` ⇒ 期望与 MECH 三页同帧同数"),
+    "D-1-6": ("两边口径打架", "main (迁 BASE 还是迁 §3 = 口径变更流程)",
+              "单独批 (★挂 U-1 之后 ⇒ 与 ISS-316 §5-2 的 +0.73 g 一次写对★)",
+              "`grep -n 'mass_total_lo\\|mass_total_hi' MECH/service_port_check.py` ⇒ 期望与 `MECH/MECH_BUDGET.md` §3 合计行逐位一致; `python3 MECH/service_port_check.py` ⇒ rc=0 · 57/57"),
+    "D-1-7": ("两边口径打架", "boss",
+              "单独批 (拍板页文字, 不动板)",
+              "`grep -n '板只改一次' MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md` §1 ⇒ 期望拍板页上写死这句话约束的是现役板 B160x100 还是产品板 F30A; `grep -n 'U-1' state/fragments/mech.yaml` ⇒ 期望有该条 decision 记录"),
+    "D-2-1": ("只在 MECH 侧出现", "main (落 U-1 冻结记录) + mech-lead (出值)",
+              "单独批 (★必须早于板那一趟 S1 开工 ⇒ 它是板那一趟的第一前置★)",
+              "`python3 MECH/check_board_frame_freeze_gate.py` ⇒ rc=0 且七条判据全绿 (★若 main 建闸★); 否则 `grep -n 'U-1' state/fragments/mech.yaml` ⇒ 期望有 帧 id/板厚/层数/孔位口径 四项齐全的记录行"),
+    "D-2-2": ("只在 MECH 侧出现", "mech-lead",
+              "必须同批 (★三条开口几何吃板框★)",
+              "`python3 MECH/check_onepass_mech_sync.py` ⇒ rc=0; `python3 MECH/board_port_opening_s6_check.py` ⇒ rc=0"),
+    "D-2-3": ("只在 MECH 侧出现", "mech-lead (★上游是 D-3-1 网表位号★)",
+              "必须同批 (★座体落位吃板框 + 网表位号★)",
+              "`python3 MECH/check_onepass_struct_crosscheck.py` ⇒ rc=0 (N1 逐个带帧标 + N3 三条开口分别验)"),
+    "D-2-4": ("只在 MECH 侧出现", "main (裁 jd 判据上限) + mech-lead (落)",
+              "必须同批 (★jd 合法区间吃板宽★)",
+              "`python3 MECH/jd_y0_feasibility.py` ⇒ rc=0; `grep -n '13.00\\|28.00' MECH/jd_y0_feasibility.py` ⇒ 期望 30mm 板口径的上限; `python3 MECH/board_port_opening_s6_check.py` ⇒ rc=0"),
+    "D-2-5": ("只在 MECH 侧出现", "mech-lead (走口径变更流程, 本单零改闸)",
+              "必须同批 (★闸常量吃板框★)",
+              "7 道闸全 rc=0: `python3 MECH/board_frame_feasibility.py` / `check_onepass_mech_sync.py` / `check_onepass_struct_crosscheck.py` / `check_onepass_mech_release.py` / `check_board_frame_coords.py` / `check_mech_verdict_freshness.py` / `service_port_check.py`"),
+    "D-2-6": ("只在 MECH 侧出现", "mech-lead (出方案) + main (裁 W11 预算)",
+              "必须同批 (★骨架/石墨吃板宽与孔位★)",
+              "`python3 MECH/skeleton_section_check.py` ⇒ 期望 30mm 口径下全部候选不超预算 且 石墨 ≤2 g/对"),
+    "D-2-7": ("只在 MECH 侧出现", "mech-lead",
+              "必须同批 (★五件几何吃开口坐标 + 套 A 孔位★)",
+              "`python3 MECH/print/verify_pack_revb.py` ⇒ rc=0 · 41/41; `python3 MECH/pinset2_mech_check.py` ⇒ rc=0"),
+    "D-2-8": ("只在 MECH 侧出现", "mech-lead",
+              "必须同批 (★与 D-1-3 同一条的落地★)",
+              "`python3 MECH/verify_budget.py` ⇒ rc=0 (重量对表项全绿)"),
+    "D-2-9": ("只在 MECH 侧出现", "boss (★采购型号是 boss 的桶★) + main (落 47 行)",
+              "单独批 (★与 U-1 无关 ⇒ 越早改越省钱; 不吃板框★)",
+              "`grep -rn 'ICP582035PR-01' MECH/ HW/ SW/ --include='*.py' --include='*.md' | grep -v '/tmp/\\|\\.trash/\\|\\.bak_'` ⇒ 期望剩下的每一行都属【留证/对照行】(不允许有口径行残留); 采购单口径 = ICP422339PR (4.6mm) ⇒ 到货厚度实测 ≤4.60"),
+    "D-3-1": ("只在 HW 侧出现", "hw-lead",
+              "必须同批 (★网表是板 md5 的上游 ①条件步★)",
+              "`python3 state/check_netlist.py` ⇒ rc=0; `python3 state/check_netlist_pins.py` ⇒ rc=0; MECH 侧同步: `python3 MECH/check_onepass_struct_crosscheck.py` ⇒ rc=0 (座体认领句与网表位号一致)"),
+    "D-3-2": ("只在 HW 侧出现", "hw-lead",
+              "必须同批 (★原理图脚数定开口 X/Y★)",
+              "`python3 state/check_sch_loadable.py` ⇒ rc=0; `python3 state/check_sch_erc.py` ⇒ rc=0; `python3 state/check_sch_pinfull.py` ⇒ rc=0; MECH 侧: `python3 MECH/board_port_opening_s6_check.py` ⇒ rc=0"),
+    "D-3-3": ("只在 HW 侧出现", "hw-lead",
+              "必须同批 (★板侧 ref 改名 ⇒ gen_bom.py 静默失效★)",
+              "`python3 state/gen_bom.py` ⇒ 板侧 ref 未命中数 = 0; `grep -c '' HW/BOM_v1.csv` ⇒ 器件行数与改前一致; `python3 state/check_netlist.py` ⇒ rc=0"),
+    "D-3-4": ("只在 HW 侧出现", "hw-lead",
+              "必须同批 (★投产包吃板 + BOM★)",
+              "`python3 state/gate_check.py` ⇒ rc=0 (Q1 18/18); 投产包 MANIFEST 件数 = 74"),
+    "D-3-5": ("只在 HW 侧出现", "main",
+              "单独批 (★必须早于 S1; 与 D-2-1 同一次落, 不许两本账不一致★)",
+              "`grep -n 'U-1\\|板框冻结' HW/SCHEMATIC_LANDING_V1_LANDED.md` ⇒ 期望有一行含 单号/文件名/改前 md5/改后 md5 四项; 与 `grep -n 'U-1' state/fragments/mech.yaml` 的记录逐项一致"),
+    "D-3-6": ("只在 HW 侧出现", "main (主表 #25) + hw-lead",
+              "必须同批 (★改板 ⇒ 旧 md5 引用必须同批清★)",
+              "`grep -rn '611b869e13518c3c023fb178f91a0075' . --include='*.md' --include='*.py' | grep -v '/tmp/\\|\\.trash/\\|\\.bak_\\|/logs/'` ⇒ 命中数 = 0; `python3 MECH/check_board_frame_coords.py` ⇒ rc=0 (C4 受保护 5 件 md5); `python3 MECH/check_demo_struct_truth.py` ⇒ rc=0"),
+    "D-4-1": ("依赖顺序打架", "main (★HW 硬顺序 = chain_gate 五环, 是 main 的排期地界★)",
+              "单独批 (★必须早于 S1 开工★)",
+              "`grep -n 'U-1\\|板框冻结' HW/PCB/BOARD_ONEPASS_WORKPACKET.md` §3-0 硬顺序 ⇒ 期望首行是 U-1 冻结而不是网表; `python3 state/chain_gate.py` ⇒ rc=0"),
+    "D-4-2": ("依赖顺序打架", "main (归属表 = main 的机制地界)",
+              "单独批 (★必须早于 S1 开工★)",
+              "`grep -n 'mech' HW/PCB/ONETRIP_REISSUE_MANIFEST.md` §4-4 ⇒ 期望 mech 行不再写「不占本趟产物」, 且 M-06/M-07/M-08 标为 S6 的输入 (顺序位 ② 在 S6 之前)"),
+    "D-4-3": ("依赖顺序打架", "mech-lead (出几何) + main (排批)",
+              "必须同批 (★打印包五件几何吃开口坐标 + 套 A 孔位★)",
+              "`python3 MECH/print/verify_pack_revb.py` ⇒ rc=0; `md5sum MECH/print/*_revb.stl` ⇒ 若拍 F30A 则四个 STL 逐字节不变 (★打印包本来就是 60×30 套 A ⇒ 不用重生成, 反而是对齐★)"),
+    "D-4-4": ("依赖顺序打架", "mech-lead",
+              "必须同批 (★§3 合计是 verify_budget.py 的门禁锚点 DOC_WEIGHT★)",
+              "`python3 MECH/verify_budget.py` ⇒ rc=0 (只改文档不改脚本 ⇒ 重量对表红; 只改脚本不改文档 ⇒ 同样红 ⇒ 6 处必须同批)"),
+}
+
+# 归 boss 的那几条: 要回答的那一句话 + 不回答的后果 (★不许写建议答案★)
+BOSS_Q = {
+    "D-1-7": ("「『板只改一次』这句话约束的是现役板 `B160x100` 的文件 md5, 还是产品板 `F30A` 这条线的 md5? (换框 ≠ 板改第二次; 换框 = 多画一块板)」",
+              "★拍完两边都不满意 ⇒ 下一轮又吵一遍 ⇒ 拍板页上必须写死这句话约束哪块板 (C-6)"),
+    "D-2-9": ("「315 mAh 档的采购单按哪颗电芯下? (`ICP422339PR` 340mAh / 4.6mm / 23.5×40.5 vs `ICP582035PR-01` 340mAh / **6.4**mm / 20.5×37)」",
+              "★照现型号买 ⇒ 到货厚 6.40mm (不是 4.60) ⇒ 装不进 7.30mm 镜脚 ⇒ 电芯段 H 链最坏 −1.10mm ⇒ 这笔比文档订正本身更贵"),
+}
+
+ORDER = ["D-1-%d" % i for i in range(1, 8)] + ["D-2-%d" % i for i in range(1, 10)] + \
+        ["D-3-%d" % i for i in range(1, 7)] + ["D-4-%d" % i for i in range(1, 5)]
+
+# 差集条目的短名 (照抄 ISS-316 §4 的「件」列)
+DIFF_ITEM_NAME = {
+    "D-1-1": "mech 在这一趟的归属",
+    "D-1-2": "HW 作业包里的两处过期板宽 (60×15)",
+    "D-1-3": "板重 (50×12×0.8 / 5-7 g 两处过期)",
+    "D-1-4": "MECH 域自己的板框真源 (§1.3 主表 M1 行)",
+    "D-1-5": "开口坐标 (三套数)",
+    "D-1-6": "「板重占整机质量预算的比例」的分母",
+    "D-1-7": "「板只改一次」这句话的作用对象",
+    "D-2-1": "M-01 · U-1 冻结判据本身",
+    "D-2-2": "M-06 / M-09 · 三条开口几何真源 (MECH 侧 3 页)",
+    "D-2-3": "M-07 · 座体 6 组落位认领句",
+    "D-2-4": "M-15 · `jd_y0`/`jd_x0` 合法区间 + `jd_y0_feasibility.py`",
+    "D-2-5": "M-11~M-15 · MECH 6 道几何闸的常量锚点",
+    "D-2-6": "M-03 / M-04 · 骨架截面 + 石墨覆盖",
+    "D-2-7": "M-16 / M-17 · 打印包改版五件 + 治具",
+    "D-2-8": "M-05 · 板重账落进 `MECH_BUDGET.md` §3 W5 + `verify_budget.py`",
+    "D-2-9": "电芯采购口径 (`ICP422339PR` vs `ICP582035PR-01`)",
+    "D-3-1": "网表 + 脚表 (①条件步)",
+    "D-3-2": "原理图 11 页 + `.kicad_pro` (③)",
+    "D-3-3": "BOM `HW/BOM_v1.csv` (⑤)",
+    "D-3-4": "投产包 74 件 (⑥)",
+    "D-3-5": "落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` (⑦)",
+    "D-3-6": "旧 md5 引用点清理 (HW 主表 #25)",
+    "D-4-1": "U-1 在不在硬顺序的第一位",
+    "D-4-2": "MECH 侧 18 件在归属表里的位置",
+    "D-4-3": "打印包与板框的关系",
+    "D-4-4": "板重账与板的下游",
+}
+
+
+def main():
+    with open(PACK, encoding="utf-8") as f:
+        txt = f.read()
+    # 只取 §4 那一段
+    seg = txt.split("## ★4 ·")[1].split("## ★5 ·")[0]
+    found = {}
+    for m in re.finditer(r"D-([1-4])-(\d+)", seg):
+        found.setdefault("D-%s-%s" % (m.group(1), m.group(2)), 0)
+        found["D-%s-%s" % (m.group(1), m.group(2))] += 1
+
+    out = []
+    P = out.append
+    P("=" * 110)
+    P("ISS-319 · mech-lead · §4 26 条差集 → 逐条 owner + 落表批次 + 验收判据")
+    P("数据源 = MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md §4 (ISS-316 交卷页 · 只读)")
+    P("=" * 110)
+    P("")
+    P("§0 · 解析出的差集条目 (★机器判的「一条都不漏」★)")
+    P("-" * 110)
+    P("§4 段落里出现的差集编号去重后共 %d 个: %s" % (len(found), " ".join(sorted(found))))
+    P("期望 26 条 ⇒ %s" % ("✔ 一致" if len(found) == 26 else "✘ 不一致!"))
+    P("")
+    P("§1 · 26 行归属表")
+    P("-" * 110)
+    P("%-7s %-22s %-40s %-30s %s" % ("#", "分类注 (ISS-316 原注)", "owner", "落表批次", "验收判据"))
+    P("")
+    n_same = n_sep = n_keep = 0
+    for k in ORDER:
+        if k not in found:
+            P("!! 缺条 %s" % k)
+            continue
+        cls, owner, batch, acc = OWN[k]
+        if batch.startswith("必须同批"):
+            n_same += 1
+        elif batch.startswith("单独批"):
+            n_sep += 1
+        else:
+            n_keep += 1
+        P("★%-6s %-22s %-40s %-30s %s" % (k, cls, owner, batch, acc))
+        if k in BOSS_Q:
+            q, cons = BOSS_Q[k]
+            P("       └─ ★归 boss ⇒ 它要回答的那一句话: %s" % q)
+            P("       └─ ★不回答的后果: %s" % cons)
+        P("")
+    P("落表批次合计: 必须同批 %d 条 / 单独批 %d 条 / 已作废·留证不改 %d 条  = %d 条"
+      % (n_same, n_sep, n_keep, n_same + n_sep + n_keep))
+    P("")
+    P("归 boss 的条数 = %d 条 (D-1-7 / D-2-9) ⇒ 只写「要回答的那一句话 + 不回答的后果」, 未写建议答案"
+      % len(BOSS_Q))
+    P("")
+    P("§2 · owner 分布")
+    P("-" * 110)
+    from collections import Counter
+    c = Counter()
+    for k in ORDER:
+        o = OWN[k][1].split(" (")[0].split(" +")[0].strip()
+        c[o] += 1
+    for o, n in c.most_common():
+        P("  %-12s %d 条" % (o, n))
+
+    s = "\n".join(out)
+    sys.stdout.write(s + "\n")
+    with open(os.path.join(ROOT, "logs/iss319/diff_ownership_raw.txt"), "w", encoding="utf-8") as f:
+        f.write(s + "\n")
+
+    # ---- markdown 版 (§1 的 26 行表) ----
+    md = []
+    Q = md.append
+    Q("> ★**下表由 `logs/iss319/iss319_diff_ownership.py` 机器生成 (2026-11-18 本机实读) ⇒ 26 行一条不少, 逐条挂在 ISS-316 §4 的原始差集编号上★**")
+    Q("> ★**「分类注」列照抄 ISS-316 §4-1 的分类纪律: `D-1-2` / `D-1-4` 归【过期行 (待订正)】不归【两边口径打架】, 但过期行照样在账上 (否则下一轮没人去改它)★**")
+    Q("> ★**「落表批次」列的判据只有一条: 改它会不会动板 md5? 动 ⇒ 必须同批; 不动 ⇒ 可以单独批★**")
+    Q("")
+    Q("| # | 件 | 分类注 (ISS-316 原注) | owner | 落表批次 | 改完的验收判据 (命令 ⇒ 期望值) |")
+    Q("|---|---|---|---|---|---|")
+    for k in ORDER:
+        cls, owner, batch, acc = OWN[k]
+        Q("| **%s** | %s | %s | **%s** | %s | %s |" % (k, DIFF_ITEM_NAME[k], cls, owner, batch, acc))
+        if k in BOSS_Q:
+            q, cons = BOSS_Q[k]
+            Q("| | | | | | ★**归 boss ⇒ 它要回答的那一句话**: %s<br>★**不回答的后果**: %s |" % (q, cons))
+    Q("")
+    Q("**落表批次合计**: 必须同批 **%d** 条 / 单独批 **%d** 条 / 已作废·留证不改 **%d** 条 = **26** 条" % (n_same, n_sep, n_keep))
+    Q("")
+    Q("**归 boss 的 2 条 (D-1-7 / D-2-9)**: 本单**只写「它要回答的那一句话 + 不回答的后果」, 没写建议答案** ⇒ 不替老板拍板。")
+    with open(os.path.join(ROOT, "logs/iss319/diff_ownership_table.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(md) + "\n")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

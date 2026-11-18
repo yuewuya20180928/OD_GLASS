@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/dispatch_briefs/ISS-281_hw_s10_manifest_spec.md

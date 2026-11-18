@@ -1,0 +1,40 @@
+=== BASELINE md5 (run at 2026-11-18 02:06:46) ===
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+
+=== check_stage_g1a.py ===
+==============================================================================
+  G1a · 原理图定稿 (★与 PCB 定稿分开判 · 老板 11-16「原理图和 PCB 不是同一个概念」★)
+==============================================================================
+  ✅ G1a-1  ERC = 0 (KiCad 自己跑 ERC)
+         rc=0 (python3 state/check_sch_erc.py)
+  ✅ G1a-2  图上脚数 == 表里脚数 (K=0)
+         rc=0 (python3 state/check_sch_pinfull.py)
+  ✅ G1a-3  KiCad 真能打开/导出 (loadable)
+         rc=0 (python3 state/check_sch_loadable.py)
+  ❌ G1a-4  落表已清零 (翻面口径)
+         rc=1 (python3 HW/check_netlist_selfconsistency.py --expect-resolved) ⇒ ★R4 未落表: D_ESD_USB_D 仍然只有 2 个焊盘 (D+ + GND) ⇒ 仍不是双通道 | ★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离
+  ✅ G1a-5  网表尺子 (含表↔网表双向一致)
+         rc=0 (python3 state/check_netlist.py)
+  ✅ G1a-6  网表脚表尺子 (针脚归属唯一)
+         rc=0 (python3 state/check_netlist_pins.py)
+  ✅ G1a-7  选型已落表 (必装件无「[待选型]」)
+         必装且仍写「[待选型]」= 0 件
+  ❌ G1a-8  关机语义 + 负载开关选型已决
+         ISS-097=fixed · ISS-172=verified
+------------------------------------------------------------------------------
+❌ G1a 还差 2 条 ⇒ ★**原理图【画】已经画完, 差的是「值」与「拍板」** ★
+     · G1a-4 落表已清零 (翻面口径)
+     · G1a-8 关机语义 + 负载开关选型已决
+rc=1
+
+=== check_netlist_selfconsistency.py --expect-resolved ===
+★★ rc=1: 翻面口径未通过 (4 条未落表) ★★
+   ★R3 未落表: 板封装 U_EN_SW 的 Value 属性还是脚级功能串 'EN 输入 (高=放行底板)' ⇒ 板文件也要同趟改
+   ★R4 未落表: 板上仍然没有任何 ESD 位号挂在 D− 那条网上 (USB_D_N_SRC / NET_USB_D_N_TYPEC) ⇒ D− 仍然裸奔
+   ★R4 未落表: D_ESD_USB_D 仍然只有 2 个焊盘 (D+ + GND) ⇒ 仍不是双通道
+   ★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm > 3.0 mm ⇒ ESD 还是不在接口旁边
+★**说明**: 现在缺陷仍在 ⇒ 本口径应当是红的; ★等它们随『整链重出 第 1 步』落表后本口径才转绿★
+rc=1

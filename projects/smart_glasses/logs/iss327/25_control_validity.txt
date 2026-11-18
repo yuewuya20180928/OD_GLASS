@@ -1,0 +1,147 @@
+========================================================================================================
+# ISS-327 · ★对照有效性自检★ (★本单自己踩过的坑·不是脚注·不是过程说明★)
+# 生成 2026-11-18 15:48:05
+========================================================================================================
+
+★为什么这一节是【独立的一节】: 上一趟 (14:5x) 自己抓到 ——
+  「sbCtl got the HW rename applied, so it wasn't a true control」
+  ⇒ 那份总表 `19_run_all_cont1.log` 里 sbCtl 那一列是【坏对照臂】的读数 (几乎全红)
+  ⇒ ⇒ 交卷页里的 sbCtl 那一列【必须】取自修 bug 后的重跑版 `19b_ctl_rerun.log`
+  ⇒ ⇒ 本节把「对照臂到底有没有被施加变量」变成【机器可判】的四条断言
+
+★改名映射: 全表 218 条 · 真改名 186 条 (★口径 = 旧名末字符非数字 ⇒ 加 `_1`★)
+
+========================================================================================================
+★断言 ① · 对照臂的【板 md5】必须 = 真件板 md5 (★不等 ⇒ 这个臂不是对照臂★)
+========================================================================================================
+  臂          板 md5                                真件板 md5                              断言        
+  REAL       611b869e13518c3c023fb178f91a0075     611b869e13518c3c023fb178f91a0075     ★通过★      
+  sbCtl      611b869e13518c3c023fb178f91a0075     611b869e13518c3c023fb178f91a0075     ★通过★      
+  sbR0       fadf2c2f6f4985ed291b87c3f856a98c     611b869e13518c3c023fb178f91a0075     ★不通过★     
+  sbR3       fadf2c2f6f4985ed291b87c3f856a98c     611b869e13518c3c023fb178f91a0075     ★不通过★     
+  sbR4       fadf2c2f6f4985ed291b87c3f856a98c     611b869e13518c3c023fb178f91a0075     ★不通过★     
+
+  ⇒ 对照臂 sbCtl: 板 md5 = ★通过★ (★与真件逐字相同 ⇒ 它【确实】没被施加改名这个变量★)
+  ⇒ 试验臂 sbR0/sbR3: 板 md5 与真件【不同】⇒ 它们【确实】被施加了改名 ⇒ 是试验臂不是对照臂
+
+========================================================================================================
+★断言 ② · 对照臂的【改名后位号命中数】必须 = 0 (★>0 ⇒ 它被施加了变量★)
+========================================================================================================
+  ★计数口径: 改名后的【新名】(旧名 + `_1`·共 186 个) 在【HW 五侧 + SW/*.md】里的字面量命中
+  臂          HW 五侧命中                    SW/*.md 命中                 新名总数         断言          
+  REAL       0 处 / 0 份                  0 处 / 0 份                  186          ★参照★        
+  sbCtl      0 处 / 0 份                  0 处 / 0 份                  186          ★通过★        
+  sbR0       2211 处 / 4 份               0 处 / 0 份                  186          ★试验臂·应有 >0★ 
+  sbR3       2211 处 / 4 份               781 处 / 11 份               186          ★试验臂·应有 >0★ 
+  sbR4       2211 处 / 4 份               781 处 / 11 份               186          ★试验臂·应有 >0★ 
+
+  ⇒ 对照臂 sbCtl 的改名后位号命中: HW 五侧 0 处 · SW/*.md 0 处 (★必须双 0★)
+  ⇒ ★注意★: 真件 REAL 那一行的非 0 命中 = SW 文档里【本来就有】的新名字面量
+    (★ISS-321/ISS-323 的清单里写了改名后名·这属于既有事实·不是 sbCtl 被改了★)
+    ⇒ ⇒ 所以断言 ② 的判据是【sbCtl 相对 REAL 的增量 = 0】, 不是【绝对值 = 0】
+    ⇒ sbCtl 相对真件的增量: SW/*.md +0 处 · HW 五侧 +0 处 (★必须 0/0★)
+
+========================================================================================================
+★断言 ③ · 逐文件 md5 对照 (★沙盒臂 vs 真件·★只看【哪些文件不同】·不问自报★)
+========================================================================================================
+
+  【sbCtl】 vs 真件 ⇒ 不同文件 0 份 (★总文件 46 份·HW 五侧 4 + SW/*.md 42★)
+
+  【sbR0】 vs 真件 ⇒ 不同文件 4 份 (★总文件 46 份·HW 五侧 4 + SW/*.md 42★)
+      HW/BOM_v1.csv                                              5b9993992405 → b32251b8ed47
+      HW/PCB/demo_mainboard.kicad_pcb                            611b869e1351 → fadf2c2f6f49
+      HW/netlist_v1.csv                                          6aee500e60ba → c9c40b9a0d84
+      HW/netlist_v1_pins.csv                                     9174309df1ec → aa802ef62f5c
+
+  【sbR3】 vs 真件 ⇒ 不同文件 15 份 (★总文件 46 份·HW 五侧 4 + SW/*.md 42★)
+      HW/BOM_v1.csv                                              5b9993992405 → b32251b8ed47
+      HW/PCB/demo_mainboard.kicad_pcb                            611b869e1351 → fadf2c2f6f49
+      HW/netlist_v1.csv                                          6aee500e60ba → c9c40b9a0d84
+      HW/netlist_v1_pins.csv                                     9174309df1ec → aa802ef62f5c
+      SW/BOARD_ONEPASS_SW_SYNC.md                                b8f935db333c → 56ddb1a061c2
+      SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md                        7f680532830e → f8590585c40f
+      SW/EXTERNAL_DEPENDENCY_SELFCHECK.md                        ac4713e23149 → b6f6e1127bf6
+      SW/LOAD_SWITCH_SELECTION_FACTS.md                          b8f5296a0261 → 8f5c8226b126
+      SW/ONETRIP_SW_RENAME_SAFETY.md                             8a07a07ce588 → 775e4e15b316
+      SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md                     483eb9276a0b → 6df67bcc880e
+      SW/POWER_STATE_SEMANTICS.md                                45754b1a4226 → 632b28ec6fe1
+      SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md                      1b742ed31b43 → 55adfab1748f
+      SW/SHUTDOWN_SEMANTICS_SPEC.md                              e1284529e3d7 → 39cba5e39c2f
+      SW/SW_MD5_BASELINE_LEDGER.md                               83fafcf7d22d → 1f5a5f259946
+      SW/SW_TIMING_REVIEW.md                                     89bd3ed5f21a → 6e24c127f8e7
+
+  【sbR4】 vs 真件 ⇒ 不同文件 15 份 (★总文件 46 份·HW 五侧 4 + SW/*.md 42★)
+      HW/BOM_v1.csv                                              5b9993992405 → b32251b8ed47
+      HW/PCB/demo_mainboard.kicad_pcb                            611b869e1351 → fadf2c2f6f49
+      HW/netlist_v1.csv                                          6aee500e60ba → c9c40b9a0d84
+      HW/netlist_v1_pins.csv                                     9174309df1ec → aa802ef62f5c
+      SW/BOARD_ONEPASS_SW_SYNC.md                                b8f935db333c → 56ddb1a061c2
+      SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md                        7f680532830e → f8590585c40f
+      SW/EXTERNAL_DEPENDENCY_SELFCHECK.md                        ac4713e23149 → b6f6e1127bf6
+      SW/LOAD_SWITCH_SELECTION_FACTS.md                          b8f5296a0261 → 8f5c8226b126
+      SW/ONETRIP_SW_RENAME_SAFETY.md                             8a07a07ce588 → f19138bc0a68
+      SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md                     483eb9276a0b → 6df67bcc880e
+      SW/POWER_STATE_SEMANTICS.md                                45754b1a4226 → 632b28ec6fe1
+      SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md                      1b742ed31b43 → 55adfab1748f
+      SW/SHUTDOWN_SEMANTICS_SPEC.md                              e1284529e3d7 → 39cba5e39c2f
+      SW/SW_MD5_BASELINE_LEDGER.md                               83fafcf7d22d → 1f5a5f259946
+      SW/SW_TIMING_REVIEW.md                                     89bd3ed5f21a → 12b1a1470883
+
+========================================================================================================
+★断言 ④ · 三个臂【两两之间】的差异是什么 (★这才是对照实验的设计★)
+========================================================================================================
+
+  【sbCtl】 vs 【sbR0】 ⇒ 不同文件 4 份
+      HW/BOM_v1.csv                                              5b9993992405 → b32251b8ed47
+      HW/PCB/demo_mainboard.kicad_pcb                            611b869e1351 → fadf2c2f6f49
+      HW/netlist_v1.csv                                          6aee500e60ba → c9c40b9a0d84
+      HW/netlist_v1_pins.csv                                     9174309df1ec → aa802ef62f5c
+
+  【sbR0】 vs 【sbR3】 ⇒ 不同文件 11 份
+      SW/BOARD_ONEPASS_SW_SYNC.md                                b8f935db333c → 56ddb1a061c2
+      SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md                        7f680532830e → f8590585c40f
+      SW/EXTERNAL_DEPENDENCY_SELFCHECK.md                        ac4713e23149 → b6f6e1127bf6
+      SW/LOAD_SWITCH_SELECTION_FACTS.md                          b8f5296a0261 → 8f5c8226b126
+      SW/ONETRIP_SW_RENAME_SAFETY.md                             8a07a07ce588 → 775e4e15b316
+      SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md                     483eb9276a0b → 6df67bcc880e
+      SW/POWER_STATE_SEMANTICS.md                                45754b1a4226 → 632b28ec6fe1
+      SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md                      1b742ed31b43 → 55adfab1748f
+      SW/SHUTDOWN_SEMANTICS_SPEC.md                              e1284529e3d7 → 39cba5e39c2f
+      SW/SW_MD5_BASELINE_LEDGER.md                               83fafcf7d22d → 1f5a5f259946
+      SW/SW_TIMING_REVIEW.md                                     89bd3ed5f21a → 6e24c127f8e7
+
+  【sbCtl】 vs 【sbR3】 ⇒ 不同文件 15 份
+      HW/BOM_v1.csv                                              5b9993992405 → b32251b8ed47
+      HW/PCB/demo_mainboard.kicad_pcb                            611b869e1351 → fadf2c2f6f49
+      HW/netlist_v1.csv                                          6aee500e60ba → c9c40b9a0d84
+      HW/netlist_v1_pins.csv                                     9174309df1ec → aa802ef62f5c
+      SW/BOARD_ONEPASS_SW_SYNC.md                                b8f935db333c → 56ddb1a061c2
+      SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md                        7f680532830e → f8590585c40f
+      SW/EXTERNAL_DEPENDENCY_SELFCHECK.md                        ac4713e23149 → b6f6e1127bf6
+      SW/LOAD_SWITCH_SELECTION_FACTS.md                          b8f5296a0261 → 8f5c8226b126
+      SW/ONETRIP_SW_RENAME_SAFETY.md                             8a07a07ce588 → 775e4e15b316
+      SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md                     483eb9276a0b → 6df67bcc880e
+      SW/POWER_STATE_SEMANTICS.md                                45754b1a4226 → 632b28ec6fe1
+      SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md                      1b742ed31b43 → 55adfab1748f
+      SW/SHUTDOWN_SEMANTICS_SPEC.md                              e1284529e3d7 → 39cba5e39c2f
+      SW/SW_MD5_BASELINE_LEDGER.md                               83fafcf7d22d → 1f5a5f259946
+      SW/SW_TIMING_REVIEW.md                                     89bd3ed5f21a → 6e24c127f8e7
+
+  【sbR3】 vs 【sbR4】 ⇒ 不同文件 2 份
+      SW/ONETRIP_SW_RENAME_SAFETY.md                             775e4e15b316 → f19138bc0a68
+      SW/SW_TIMING_REVIEW.md                                     6e24c127f8e7 → 12b1a1470883
+
+  ⇒ ★逐臂的【唯一变量】★:
+     sbCtl = 整树真拷贝 · 零改名            (★对照组·唯一变量 = 【无】★)
+     sbR0  = sbCtl + 【HW 五侧改名】        (★只加了 HW 侧改名·SW 文档未同步·旧注册表★)
+     sbR3  = sbR0 + 【SW 文档同步改名】     (★只加了 SW 文档同步·旧注册表★)
+     sbR4  = sbR3 + 【注入新真隐患 TP_TEMP_ISSX】(★反向用例专用臂★)
+
+========================================================================================================
+★断言 ⑤ · 沙盒里不许有软链 (★证明事故根因已修★)
+========================================================================================================
+  `find tmp/iss327 -type l | wc -l` = 0  (★期望 0★)
+  ⇒ ★事故根因已修的代码级证据★: `logs/iss327/iss327_sb_make.py`
+     · L126 原 `os.symlink(...)` → 已改成【真拷贝】(★上一趟改的·本趟【不许再改】·只验证★)
+     · L67 `assert_no_symlink_in(root)` ⇒ 造场结束自检软链数为 0 · 不为 0 直接 return None
+

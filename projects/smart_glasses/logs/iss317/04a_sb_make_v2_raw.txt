@@ -1,0 +1,71 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/logs/iss317/iss317_sb_make_v2.py:29: SyntaxWarning: "\d" is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\d"? A raw string is also an option.
+  chk_optC2.py  丙方案-②(正则锚定): 白名单按 ^J_USB_C(_\d+)?$ 推导     ★★不放宽★
+================================================================================================
+ISS-317 · 沙盒造场 v2 (★只写 tmp/iss317_sandbox/★ · v1 三个缺陷已修★)
+================================================================================================
+
+---- 口径 ----
+  ★真·器件宇宙 U (★只有 U 里的 token 才改名★) : 218 个
+  ★裸网名判定样例: 'GND' 在 U 里吗 ⇒ False
+
+---- 板副本 ----
+  ★板副本 board_ref1.kicad_pcb           改名 156 个 · 复制 0 份 · → tmp/iss317_sandbox/board_ref1.kicad_pcb
+  ★板副本 board_ref1_exJUSBC.kicad_pcb   改名 155 个 · 复制 0 份 · → tmp/iss317_sandbox/board_ref1_exJUSBC.kicad_pcb
+  ★板副本 board_ref1_negNC.kicad_pcb     改名 156 个 · 复制 0 份 · → tmp/iss317_sandbox/board_ref1_negNC.kicad_pcb
+  ★板副本 board_ref1_prefixtrap.kicad_pcb 改名 156 个 · 复制 0 份 · → tmp/iss317_sandbox/board_ref1_prefixtrap.kicad_pcb
+  ★板副本 board_t5b_dup.kicad_pcb        改名 156 个 · 复制 1 份 · → tmp/iss317_sandbox/board_t5b_dup.kicad_pcb
+  ★板副本 board_t6a_x2.kicad_pcb         改名 156 个 · 复制 0 份 · → tmp/iss317_sandbox/board_t6a_x2.kicad_pcb
+  ★板副本 board_t6b_xz1.kicad_pcb        改名 156 个 · 复制 0 份 · → tmp/iss317_sandbox/board_t6b_xz1.kicad_pcb
+
+---- 网表副本 (★v2: 按 token 改名★) ----
+  ★网表副本 netlist_ref1.csv               行数 513 (★ref 列改名 351 个★) · → tmp/iss317_sandbox/netlist_ref1.csv
+  ★网表副本 netlist_ref1_exJUSBC.csv       行数 513 (★ref 列改名 347 个★) · → tmp/iss317_sandbox/netlist_ref1_exJUSBC.csv
+  ★网表副本 netlist_ref1_prefixtrap.csv    行数 513 (★ref 列改名 351 个★) · → tmp/iss317_sandbox/netlist_ref1_prefixtrap.csv
+
+---- 判据副本 ----
+  ★判据副本 chk_base.py              (3 处定点替换) · → tmp/iss317_sandbox/chk_base.py
+      替换:     # ★ISS-314 沙盒: --net=<path> ⇒ 换网表 (★只读★)\n    for a in sys.argv[1:]:\n        if a.start
+      成  :     # ★ISS-317 沙盒 harness: --net=/--pcb= 的解析已【上移到 selftest 分支之前】(★见上★)
+      替换:     selftest = "--selftest" in sys.argv
+      成  :     # ★ISS-317 沙盒 harness: --net=/--pcb= 先解析 (★这样 --selftest 也能换板/换网表★)\n    for a in sys.ar
+      替换:     tmp = "/tmp/_pcb_swap_test.kicad_pcb"
+      成  :     tmp = os.path.join(os.path.dirname(os.path.abspath(__file__)),\n                        
+  ★判据副本 chk_optB.py              (5 处定点替换) · → tmp/iss317_sandbox/chk_optB.py
+      替换:     # ★ISS-314 沙盒: --net=<path> ⇒ 换网表 (★只读★)\n    for a in sys.argv[1:]:\n        if a.start
+      成  :     # ★ISS-317 沙盒 harness: --net=/--pcb= 的解析已【上移到 selftest 分支之前】(★见上★)
+      替换:     selftest = "--selftest" in sys.argv
+      成  :     # ★ISS-317 沙盒 harness: --net=/--pcb= 先解析 (★这样 --selftest 也能换板/换网表★)\n    for a in sys.ar
+      替换:     tmp = "/tmp/_pcb_swap_test.kicad_pcb"
+      成  :     tmp = os.path.join(os.path.dirname(os.path.abspath(__file__)),\n                        
+      替换:     NC_ALLOWED.add("J_USB_C")
+      成  :     NC_ALLOWED.add("J_USB_C_1")   # ★ISS-317 乙方案: 白名单跟着改名走★
+      替换:         if len(pads) >= 2 and fp.GetReference() == "CONN_CAM":
+      成  :         if len(pads) >= 2 and fp.GetReference() == "CONN_CAM_1":  # ★ISS-317 乙方案: --selftest
+  ★判据副本 chk_optC1.py             (6 处定点替换) · → tmp/iss317_sandbox/chk_optC1.py
+      替换:     # ★ISS-314 沙盒: --net=<path> ⇒ 换网表 (★只读★)\n    for a in sys.argv[1:]:\n        if a.start
+      成  :     # ★ISS-317 沙盒 harness: --net=/--pcb= 的解析已【上移到 selftest 分支之前】(★见上★)
+      替换:     selftest = "--selftest" in sys.argv
+      成  :     # ★ISS-317 沙盒 harness: --net=/--pcb= 先解析 (★这样 --selftest 也能换板/换网表★)\n    for a in sys.ar
+      替换:     tmp = "/tmp/_pcb_swap_test.kicad_pcb"
+      成  :     tmp = os.path.join(os.path.dirname(os.path.abspath(__file__)),\n                        
+      替换:     NC_ALLOWED.add("J_USB_C")
+      成  :     NC_ALLOWED_PREFIX = ("J_USB_C",)   # ★ISS-317 丙方案-①: 裸前缀匹配★\n\n    def _nc_allowed(ref):
+      替换:     bad_nc = sorted(k for k in nc_pads if k[0] not in NC_ALLOWED)
+      成  :     bad_nc = sorted(k for k in nc_pads if not _nc_allowed(k[0]))
+      替换:     def _nc_ok(ref):\n        """该器件的 NC 脚是否都是允许的 (USB-C 屏蔽/A8/B8)"""\n        return ref in
+      成  :     def _nc_ok(ref):\n        """该器件的 NC 脚是否都是允许的 (USB-C 屏蔽/A8/B8)"""\n        return _nc_al
+  ★判据副本 chk_optC2.py             (6 处定点替换) · → tmp/iss317_sandbox/chk_optC2.py
+      替换:     # ★ISS-314 沙盒: --net=<path> ⇒ 换网表 (★只读★)\n    for a in sys.argv[1:]:\n        if a.start
+      成  :     # ★ISS-317 沙盒 harness: --net=/--pcb= 的解析已【上移到 selftest 分支之前】(★见上★)
+      替换:     selftest = "--selftest" in sys.argv
+      成  :     # ★ISS-317 沙盒 harness: --net=/--pcb= 先解析 (★这样 --selftest 也能换板/换网表★)\n    for a in sys.ar
+      替换:     tmp = "/tmp/_pcb_swap_test.kicad_pcb"
+      成  :     tmp = os.path.join(os.path.dirname(os.path.abspath(__file__)),\n                        
+      替换:     NC_ALLOWED.add("J_USB_C")
+      成  :     NC_ALLOWED_RE = re.compile(r"^J_USB_C(_\d+)?$")   # ★ISS-317 丙方案-②: 正则锚定★\n\n    def _nc
+      替换:     bad_nc = sorted(k for k in nc_pads if k[0] not in NC_ALLOWED)
+      成  :     bad_nc = sorted(k for k in nc_pads if not _nc_allowed(k[0]))
+      替换:     def _nc_ok(ref):\n        """该器件的 NC 脚是否都是允许的 (USB-C 屏蔽/A8/B8)"""\n        return ref in
+      成  :     def _nc_ok(ref):\n        """该器件的 NC 脚是否都是允许的 (USB-C 屏蔽/A8/B8)"""\n        return _nc_al
+
+★沙盒造场完成 (v2) · 只写 tmp/iss317_sandbox/

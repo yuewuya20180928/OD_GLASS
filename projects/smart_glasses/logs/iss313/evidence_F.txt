@@ -1,0 +1,14 @@
+=== q4 / q16 决策状态 ===
+150:- key: q4_battery_scope
+176:- key: q16_aspect_ratio
+--- pm.yaml needs to boss (waiting_on boss) ---
+- test_equipment_budget | ★**2026-11-04 19:10 老板指示后重写 (19:18 订正: 老板并未买 RK3572 主板)**: **不许再提采购 RK3572 主板/开发板** ⇒ ★**本单里所有"买板"字样一律删除**; ★**当前只剩老板自己点过名的那一项**: 逻辑分析仪 (8ch/≥24MHz/带 
+- iss206_mech_claim_mainboard_len_carrier_direct_scheme_choice | ★**【2026-11-15 21:3x main 升级给老板 · 方案取舍 = 老板级, main 不代决】** ★
+★**题**: SoM 载板形态取哪一套? —— `MECH/SOC_CARRIER_EVAL.md` §3/§5/§7 明确 **A = SoM 直接焊 (76mm)** 与 *
+- boss_dled_g_expose_decision_20261117 | ★★【2026-11-17 13:2x main 从 `iss271_mech_ledg_g5_brightness_gate` 升级给老板 · ★这是【板那一趟】的第二个阻塞项★】★★
+★★题: `D_LED_G` 到底【外露不外露 / 看不看得见】? ★★
+★**背景 (ISS-278 实测)*
+
+=== pm.yaml answers 涉及 key (boss 决策回写) ===
+NEED q4_battery_scope -> boss | decision= 按需触发。老板 10-25 19:16 拍板。续航口径写成『按需触发场景下 ≥1h』, 不写『持续满载 ≥1h』(持续满载 1.22W → 皮肤 96.1°C, 热学上不成立)。 | decided_by= boss (项目总工代录)
+NEED q16_aspect_ratio -> boss | decision= 宽高比无所谓。老板 10-25 19:16 拍板: 宽高比无所谓的, sensor 只要能够输出 1920×1080@60fps 或以上即可。★ 原 A/B/C 三选一作废, 选型判据改为『≥1080p60 出图能力』; sensor 选型 | decided_by= boss (19:33 不裁剪/接受畸变) + 项目总工推导 (19:33 对角120°/俯角≤25°) → 19:42 经 hw-lead 核算修正为鱼眼口径

@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/ONETRIP_CELL_MODEL_RENAME_APPLY.md

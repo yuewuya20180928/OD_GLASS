@@ -1,0 +1,34 @@
+═══ 臂板 vs 官方板 (名单制判据) ═══
+  候选板: state/.lastgood/best_unc23_clrfix.kicad_pcb
+  基线板: HW/PCB/demo_mainboard.kicad_pcb
+  指标                               候选          官方板
+  DRC违规                             0            0
+  unconnected                      23           45
+  零铜网(≥2焊盘)                         7           24
+  差分单边零铜                            3           11
+  差分Δ超差                             2            3
+  走线段                            3364        18092
+  过孔                              475          433
+  parity通过                      False        False
+  ── ★退铜名单 (官方板有铜⇒候选零铜): 4
+       ★ CARRIER_BOARD_EN
+       ★ CSI_MCLK_SRC
+       ★ SPI_CSn_BOOT
+       ★ USB_CC1
+  ── ★差分对死腿: 0
+  ── ★逐网孤岛变多: 11
+       ★ CARRIER_BOARD_EN  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_D0_CK_N  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_MCLK  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_MCLK_SRC  (官方 0 项 ⇒ 候选 1 项)
+       ★ DSI_D0_D3_N  (官方 0 项 ⇒ 候选 1 项)
+       ★ GND  (官方 0 项 ⇒ 候选 1 项)
+       ★ I2C_A_SCL  (官方 1 项 ⇒ 候选 2 项)
+       ★ KEY_VOL_M  (官方 0 项 ⇒ 候选 2 项)
+       ★ SPI_CSn_BOOT  (官方 0 项 ⇒ 候选 1 项)
+       ★ USB_CC1  (官方 0 项 ⇒ 候选 1 项)
+       ★ VDD_1V8_IO  (官方 0 项 ⇒ 候选 1 项)
+  ── (参考) 救回零铜的网: 21
+  ── 判定: REJECT
+     · ★**板↔网表 parity 不过**
+     · ★**逐网孤岛变多 11 个网 (官方项数⇒候选更多 ⇒ 网被拆碎): CARRIER_BOARD_EN, CSI_D0_CK_N, CSI_MCLK, CSI_MCLK_SRC, DSI_D0_D3_N, GND, I2C_A_SCL, KEY_VOL_M, SPI_CSn_BOOT, USB_CC1, VDD_1V8_IO**

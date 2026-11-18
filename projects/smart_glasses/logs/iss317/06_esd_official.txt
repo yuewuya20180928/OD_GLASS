@@ -1,0 +1,72 @@
+================================================================
+ISS-317 · U-3 ESD「必须紧贴连接器」官方出处 (★[官网]·自查·零外发★)
+================================================================
+
+★本项目实际用的 ESD 器件 (脚表侧现值):
+    D_ESD_CAM,1,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)
+    D_ESD_CAM,2,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)
+    D_ESD_DEMO,1,PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA)
+    D_ESD_DEMO,2,PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA)
+    D_ESD_LIGHT,1,ESD 阵列 [待选型]
+    D_ESD_LIGHT,2,ESD 阵列 [待选型]
+    D_ESD_TC,1,SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚)
+    D_ESD_TC,2,SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚)
+    D_ESD_TC,3,SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚)
+    D_ESD_TC,4,SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚)
+    D_ESD_USB_D,1,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)
+    D_ESD_USB_D,2,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)
+
+──── ① TPD1E05U06DPYR (TI · USB-C D+ 用) ────
+★官方出处 URL : https://www.ti.com/lit/ds/symlink/tpd4e05u06.pdf
+★文档号      : SLVSBO7O – DECEMBER 2012 – REVISED AUGUST 2024 (★Copyright © 2024 Texas Instruments Incorporated★)
+★快照        : tmp/iss317_tmp/web/TPD1E05U06_ti_official.pdf (2,801,483 B · PDF 10 页)
+
+★原文摘录 ① (§5 Pin Configuration and Functions · DPY 2-Pin X1SON):
+                                              Table 4-1. Pin Functions TPD1E05U06 DPY and DYA
+                   PIN
+                                          TYPE(1)                                      DESCRIPTION
+           NAME            NO.
+     GND                     2            Ground       Ground; Connect to ground
+     I/O                     1                 I/O     ESD protected channel(2)
+    
+    (1)    I = input, O = output
+    (2)    Place as close to the connector as possible.
+    
+    
+    
+    
+
+★原文摘录 ② (§7.4.1 Layout Guidelines · ★逐字★):
+    7.4 Layout
+    7.4.1 Layout Guidelines
+    •    The optimum placement is as close to the connector as possible.
+         – EMI during an ESD event can couple from the trace being struck to other nearby unprotected traces,
+            resulting in early system failures.
+         – The PCB designer needs to minimize the possibility of EMI coupling by keeping any unprotected traces
+            away from the protected traces which are between the TVS and the connector.
+    •    Route the protected traces as straight as possible.
+    •    Eliminate any sharp corners on the protected traces between the TVS and the connector by using rounded
+         corners with the largest radii possible.
+         – Electric fields tend to build up on corners, increasing EMI coupling.
+    7.4.2 Layout Example
+
+──── ② PESD5V0S1BA (Nexperia · VBUS 用) ────
+★官方出处 URL : https://assets.nexperia.com/documents/data-sheet/PESD5V0S1BA.pdf
+★(★本条未下载快照 ⇒ 标 [媒体/官方转述]·降级方案见下★)
+
+──── 判读 + 与本项目的对应 ────
+  TI 官方 §7.4.1 逐字: ★「The optimum placement is as close to the connector as possible.」★
+  TI 官方 Pin Functions 脚注 (2) 逐字: ★「Place as close to the connector as possible.」★
+  ⇒ ★**「ESD 必须紧贴连接器」有厂商官方出处** ★
+  ⇒ ★**本项目现状与之相悖**: 网表脚表侧 D_ESD_USB_D 的 note 写「紧贴 J_USB_C」★
+    ⇒ ★那是【设计意图】; ★**「是否真的紧贴」只能上板实测 (★本单无法判定·不写实测值★)★
+  ⇒ ★**板侧硬约束落法**: ★该要求写成【可机判的几何判据】而不是靠 note 自由文本★
+    (★见交付物 §3 §4 U-3 行的判据写法★)
+
+════ 结论: [官网] ★U-3 已补齐 (TI 官方 §7.4.1 + Pin Functions 脚注 (2))★ ════
+════ 降级方案 (★不挂外部依赖★): ★若日后无 TI 账号/离线环境, 则以本文件留档的
+     逐字摘录 + 快照 md5 作为证据锚点; ★判据本身不依赖 TI 网站在线★ ★════
+
+──── 快照 md5 (★证据锚点★) ────
+0b780fceb449cb1b27895e3c08847c9f  tmp/iss317_tmp/web/DMP3098L_diodes_official.pdf
+99335157e63e3b47cd8560867e7fa3be  tmp/iss317_tmp/web/TPD1E05U06_ti_official.pdf

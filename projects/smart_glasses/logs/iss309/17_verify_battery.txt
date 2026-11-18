@@ -1,0 +1,42 @@
+### ISS-309 · 独立复验电池 (本实例) · 2026-11-18 06:05:11
+
+--- python3 SW/tools/check_demo_panel_spec.py
+   R2 demo 规格里整机口径只在「整机路线占位区」内 ✅
+   R3 pipeline spec 的 demo 活动口径已重锚 ✅
+   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+rc=0
+
+--- python3 SW/tools/check_onepass_sw_sync.py
+  OK   W5
+     8 个现状探针: 清单里的现状值 == 盘面实测: ✔
+  OK   W6
+     受保护 5 件: 盘上 md5 必须在落表台账里查到 (合法落表自动前移 · 偷换照红) + 硬保护两件走【合法改板通道】(★台账链头 + reboard 四项原子映射 · 判据逐字照搬权威闸★) + 台账 §1 锚点块两个 md5 未被手改 (★不许手改 md5 凑绿★): ✔
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★SW 侧板侧输入清单齐全 (①~⑧ 八条一条不缺) 且现状值与盘面一致 ★★
+rc=0
+
+--- python3 SW/tools/timing_check.py
+  [PASS] ★反向: 只报 SDK 总耗时、缺纯硬件耗时 ⇒ 不许静默 PASS (⇒ INDET + 理由)
+  [PASS] ★反向: 采样帧数 n=120 < 300 ⇒ 不作结论 (INDET)
+  [PASS] ISP p95 = 18.00 ms ⇒ 模式B 上限 (17.33) FAIL
+  [PASS] T2 交叉核对: 纯 NPU 21.00 ms ⇒ 命中老板翻案条款 (20.33 ms)
+
+SELFTEST 85/85 通过, rc=0
+rc=0
+
+--- python3 SW/tools/check_shutdown_semantics.py
+    根目录: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+    网表:   /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/netlist_v1.csv (513 行)
+    开关候选: ['Q1', 'Q2', 'Q_AND', 'Q_CHG_LED', 'Q_ENVC', 'Q_PG', 'SW_BOOT', 'SW_KEY_CAM', 'SW_KEY_PWR', 'SW_KEY_VM', 'SW_KEY_VP', 'SW_RST', 'U_EN_SW', 'U_PWR_SW']
+    作用域 demo: 关机语义=深睡 · 拓扑割边器件=(无)
+    作用域 整机: 关机语义=真断电 · 拓扑割边器件=['U_PWR_SW']
+✅ R1~R7 全过 (口径页 / HW 文档 / SW 镜像 / 网表 四方一致)
+rc=0
+
+--- python3 SW/tools/check_load_switch_selection.py
+[check_load_switch_selection] PASS — 负载开关选型证据矩阵门禁全过
+rc=0
+

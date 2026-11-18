@@ -347,12 +347,14 @@ rc=0
 ```bash
 cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
 F="HANDOFF/2026-11-17_sw-lead_ISS293_ADC复评文档口径同步.md"
-grep -nE "待填|待补|待写|TODO|TBD|FIXME|XXX|PLACEHOLDER|____|\{\{|\}\}|<待填" "$F" | wc -l
+# ★**PAT 用 UTF-8 字节转义写 (★项目口径: 「旋转箭头图案」| 「待」+「填」两字 两型★) ⇒ 免得本文档自己命中自己★**
+PAT="$(printf '\360\237\224\204')|$(printf '\345\276\205\345\241\253')"
+grep -cE "$PAT" "$F"
 ```
 
-★**本趟实跑原样输出**: ★**0** ★ ⇒ ★**占位符残留 = 0** ★
+★**★【ISS-293 cont2 订正 2026-11-18 05:5x · sw-lead】★**: ★**本块的上一版 (★2026-11-17 17:5x 那趟写的★) 记录「原样输出 = 0」是【不准确的】★** ⇒ ★**原判据把 13 个占位符形态的字面量直接写进了 `grep -nE "…"` 的参数里 ⇒ ★**该命令行自己命中自己 (★自匹配★) ⇒ 而且正文里那句「没有一处是【待】+【填】两字连写的空位」本身也带该字面量 ⇒ ★★真正按项目口径 (★「旋转箭头图案」| 「待」+「填」两字 两型★) 实跑, 上一版是 2 处, 不是 0★** ⇒ ★**本版按 ISS-306 / ISS-300 的同款做法: PAT 改用 UTF-8 字节转义写 (★`printf '\345\276\205\345\241\253'` = 那三个字节 = 「待」+「填」两字, 文档里就不出现它的字面量了★) ⇒ ★**本趟实跑原样输出 = 0 ★ ⇒ 项目口径的占位符残留 = 0 (★真零, 不是自匹配出来的假零★)★** ⇒ ★★上一版的「0」是什么? ★= 用了一条会命中自己的判据跑出来的 ★⇒ ★**教训 (★留给本项目所有交卷单★): 自检命令里不许出现被检形态的字面量 ⇒ 一律用字节转义★****
 
-★**★宽口径复核 (★再加 `…` / `...` / `占位` 三个词★)**: ★**4 行命中, 逐行都有正当出处, 没有一处是待填的空位** ★ ⇒ ★① L262 / L264 = `check_demo_panel_spec.py` 的**原样输出**里的「整机路线占位区」 (★demo 规格里的真实区块名★) ⇒ ★② L271 = ★**我自己写的说明行**, 明写「那两行里的『占位区』是脚本原样输出用词, 不是本交卷单的占位符」★ ⇒ ★③ L388 = ★**shell 命令里的 `nohup ... > logs/…` 的省略号 (★真实命令行语法★)★**
+★**★宽口径复核 (★再加 `…` / `...` / `占位` 三个词★)**: ★**命中行逐行都有正当出处, 没有一处是未填的空位** ★ ⇒ ★① `check_demo_panel_spec.py` 的**原样输出**里的「整机路线占位区」 (★demo 规格里的真实区块名★) ⇒ ★② ★**我自己写的说明行**, 明写「那两行里的『占位区』是脚本原样输出用词, 不是本交卷单的占位符」★ ⇒ ★③ ★**shell 命令里的 `nohup ... > logs/…` 的省略号 (★真实命令行语法★)★ ⇒ ★④ ★**本块的 PAT 字节转义写法本身 (★`printf '\345\276\205\345\241\253'`★)****
 
 ---
 
@@ -404,6 +406,172 @@ a4270120454aedf7a23c92cd8985c8a6  HW/netlist_v1_pins.csv
 | ★文档订正追加式, 老字不许删 ★ | ★26 行带 `【ISS-293 订正】` 标记; 老字逐字保留 (★L39 / L57 / L208 / L222 / L223 / L344 / L371 / L434 的老句都还在★)★ |
 | ★不许为了让闸绿而改闸 / 放宽判据 ★ | ★**本趟没碰那个闸一个字节**; ★判据方向与阈值一条没动 ★ |
 | ★不许自签 issue_log ★ | ★没签 ★ |
+
+---
+
+## ★C4 · ★★cont2 独立复跑补记 (2026-11-18 05:4x · 本会话自己实跑)★★
+
+> ★**本节是【追加式】补记, 前面 B0~B7 / C1~C3 一个字节没删没改★** ⇒ ★**C2 那段 md5 是 2026-11-17 18:00 交卷时刻的快照, C4 是本趟 (2026-11-18 05:4x) 的现值 ⇒ 两段都留着, 差额由 C4-2 说清 (★不是本单改的★)★**
+
+### ★C4-1 · ★本趟自己实跑的 10 条回归 (★原样 rc·不抄 main 的读数★)★
+
+★**脚本**: `logs/iss293/cont2_verify.sh` (★本趟新写★) · ★**日志**: `logs/iss293/cont2_verify.log` ★
+★**本机**: `/home/yuewuya/.openclaw/workspace/projects/smart_glasses` · ★**时刻**: 2026-11-18 05:4x ★
+
+```
+### [1] check_timing_review_adc_sync.py
+rc=0
+### [2] check_timing_review_adc_sync.py --selftest
+rc=0
+### [3] timing_check.py (全量)
+rc=0
+### [4] timing_check.py --only F4_adc_det
+rc=0
+### [5] timing_check.py --only F4D_usb_vbus_det
+rc=0
+### [6] check_demo_panel_spec.py
+rc=0
+### [7] check_demo_panel_spec.py --selftest
+rc=0
+### [8] state/merge.py
+rc=0
+### [9] state/gate_check.py
+rc=0
+### [10] state/issue_check.py
+rc=0
+```
+
+★**⇒ 10/10 全 rc=0** ★ · ★**其中 `timing_check.py` 全量 = `SELFTEST 85/85 通过, rc=0`** (★原样摘录见 `logs/iss293/verify_timing_full.log` 末行★) · ★**`check_demo_panel_spec.py --selftest` = `--- SELFTEST 22/22 通过 ---`** (★原样摘录见 `logs/iss293/verify_demo_selftest.log` 末行★) · ★**`gate_check.py` = `【Q1 交付齐备率】 18/18 个必填验收块齐全` + `✅ 问题闭环门全过`** (★原样摘录见 `logs/iss293/verify_state_gates.log`★) ★
+
+★**★新闸本趟原样输出 (★`logs/iss293/verify_run.log`★)**:
+```
+OK: 29/29 项通过, rc=0
+SELFTEST 4/4 通过, rc=0
+  ✔ case1_revert_fs_pct: 期望红组 ['CARD:adc_leak_offset_pct_fs'] ⇒ 实际红组 ['CARD:adc_leak_offset_pct_fs', 'P2-FS-PCT'] ⇒ 红 ✔
+  ✔ case2_revert_chain: 期望红组 ['CARD:adc_decision_chain'] ⇒ 实际红组 ['CARD:adc_decision_chain', 'P1-DECISION-PRESENT'] ⇒ 红 ✔
+  ✔ case3_revert_populated: 期望红组 ['CARD:adc_populated'] ⇒ 实际红组 ['CARD:adc_populated', 'P3-POP-PRESENT'] ⇒ 红 ✔
+  ✔ case4_baseline: 正向对照 ⇒ 期望绿 ⇒ 实际红组 [] ⇒ 绿 ✔
+  [真件] SW/SW_TIMING_REVIEW.md 读回 90918 B (自检全程只写沙盒副本)
+```
+
+### ★C4-2 · ★★★【必须给 main 看的】受保护 5 件 md5 现值 vs C2 快照的差额 = ★hw-lead 的 ISS-302 合法落表, 与本单无关★★★★
+
+★**本趟 (2026-11-18 05:4x) 本机 `md5sum` 原样**:
+```
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+
+2026-11-06 07:07:17.362193413 +0800  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-18 00:21:08.701116490 +0800  HW/netlist_v1.csv
+2026-11-18 00:21:08.806117786 +0800  HW/netlist_v1_pins.csv
+2026-11-18 00:21:08.953119015 +0800  HW/BOM_v1.csv
+```
+
+★**★与 §C2 快照 (2026-11-17 18:00) 逐件对照★★**:
+
+| 件 | §C2 快照 md5 (11-17 18:00) | ★C4 现值 md5 (11-18 05:4x)★ | 变了? | ★谁改的★ |
+|---|---|---|---|---|
+| ★板 `demo_mainboard.kicad_pcb` ★ | `611b869e13518c3c023fb178f91a0075` | ★`611b869e13518c3c023fb178f91a0075` ★ | ★**否** ★ | ★**没变** ★ |
+| ★`.kicad_pro` ★ | `3e504d2be83152e337949723e909be1b` | ★`3e504d2be83152e337949723e909be1b` ★ | ★**否** ★ | ★**没变** ★ |
+| ★网表 `netlist_v1.csv` ★ | `37f62ac3f0b81d92ca7d48fdea717f07` | ★`6aee500e60ba0732f83a9cf557ba90ab` ★ | ★**是** ★ | ★**hw-lead · ISS-302** ★ |
+| ★脚表 `netlist_v1_pins.csv` ★ | `a4270120454aedf7a23c92cd8985c8a6` | ★`9174309df1ec9411ac8e8d9e80ee386a` ★ | ★**是** ★ | ★**hw-lead · ISS-302** ★ |
+| ★BOM `BOM_v1.csv` ★ | `5d02bece9477ffce5fbe0193c7d5cce4` | ★`5b9993992405904a60ac96a020b375d8` ★ | ★**是** ★ | ★**hw-lead · ISS-302** ★ |
+
+★**★归因依据 (★本机实读, 不是猜★)★**:
+- ★**mtime = `2026-11-18 00:21:08`** ⇒ ★**晚于本单交卷时刻 (2026-11-17 18:00) 近 6 小时 ⇒ 不可能是本单 (sw-lead) 干的★**
+- ★**落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §19 (§19.3) 逐条登记了这三件的旧 md5 → 新 md5 + 落表时刻 + 单号 = ISS-302** (★台账 L1451 网表 / L1452 脚表 / L1453 BOM / L1454 板 / L1455 `.kicad_pro`★)
+- ★**落表真源 = `state/p10_rows.json` (mtime 00:21:04) + 落表脚本 = `state/_apply_iss302_csys_landing.py` (mtime 00:21:02)** ⇒ ★**走的是「改真源 → 重生成」的正路, 不是手改产物★**
+- ★**hw-lead 交卷单 = `HANDOFF/2026-11-18_hw-lead_ISS302_CSYS落表.md` §B2-③「落表前后 md5 对照表」逐字对得上** (★旧 37f62ac3… → 新 6aee500e…· mtime 2026-11-18 00:21:08★)
+- ★**落表内容 = `C_SYS` / `SYS_CHG` 由 DNP 改必装 + note 追加式订正 + BOM 加 1 颗 20 µF** ⇒ ★**与 ADC 链 / `BAT_DET` / `VBUS_DET_D` 毫无关系** ★
+- ★**H-1 重锚链同跳记录在 `HW/check_pin_function_labels.py` 的 `MD5_ANCHOR_CHAIN` 里** (★本机实读, diff 见 `logs/iss302/h1_reanchor_diff.log`★)
+
+★**★⇒ 结论: ★零写板双重自证【依然成立】(板两件 md5 + mtime 逐字节不变 = 2026-11-06 07:07:17)★; ★网表/脚表/BOM 的变动是【别的单的合法落表】, 本单 (sw-lead) 对这三件一个字节都没碰 (★本单全程只写: `SW/SW_TIMING_REVIEW.md` · `SW/tools/check_timing_review_adc_sync.py` · 本交卷单 · `state/fragments/sw.yaml` + `logs/iss293/`★)★ ★ ⇒ ★★main 验签时若拿任务书里那组旧 md5 (37f62ac3… / a4270120… / 5d02bece…) 来对, 对不上是【正常的】, 因为那是 ISS-293 交卷时刻的快照, 盘面已被 ISS-302 合法推进★ ⇒ ★**真正的零写板判据 = 官方板那两件的 md5 + mtime** (★ISS-289 交卷单自己发现的副作用: `HW/check_onepass_preflight_coverage.py` 每次跑都会重生成 `HW/PCB/` 下 4 个辅助文件 ⇒ 不看目录★)★ ★★**
+
+### ★C4-3 · ★本趟自己跑的 F2 八条对账 (★本机逐条 grep 实读, 不抄任何 agent 报告★)★
+
+| # | 必须有的现值 | ★本趟 grep 命中数 (本机实读)★ | 判定 |
+|---|---|---|---|
+| 1 | ★判决对象 = `BAT_DET` 的明文 ★ | ★`BAT_DET` = 25 处 (含 L39 / L57 / L208 / L223 / L344 / L371 / L434 / §14 卡 L575~L596)★ | ✔ |
+| 2 | ★满量程 `1.8` (V) ★ | ★`1.8V` = 33 处 ★ | ✔ |
+| 3 | ★LSB `0.439` (mV) ★ | ★`0.439` = 6 处 ★ | ✔ |
+| 4 | ★漏电偏移 `2.1%FS` ★ | ★`2.1%FS` = 21 处 ★ | ✔ |
+| 5 | ★`R_th` = `37500` (Ω) ★ | ★`37500` = 21 处 ★ | ✔ |
+| 6 | ★建立时间 `33.791` (ms) ★ | ★`33.791` = 21 处 ★ | ✔ |
+| 7 | ★BAT_DET 三颗**必装** 的明文 ★ | ★`必装` = 52 处 ★ | ✔ |
+| 8 | ★**活结论里不再残留 3.3V 口径旧数 / ADC ❌ 行 / 「三颗全 DNP」** ★ | ★**本机实跑 `grep -nE "15\.2%FS\|0\.8057\|500kΩ\|三颗全 DNP\|三颗全部 dnp=DNP" SW/SW_TIMING_REVIEW.md \| grep -v "ISS-293 订正"` ⇒ 唯一命中 L141 = `U_LDO_S28` 的「EN 内部 500kΩ 下拉」 (★LDO 使能脚内部下拉, 与 ADC 链毫无关系 ⇒ 闸的 `ADC_CLAIM_RE` 前置过滤自动排除, 不是人工豁免★) ⇒ ★**活结论残留 = 0** ★; ★另新闸 4 项判据全绿 (`P1-DECISION` / `P2-FS` / `P3-POP` / `P4-VERDICT` 全部「无」)★ ★ | ✔ |
+
+★**★八条全中 ⇒ 本趟【一个字节都没改文档】(★遵守 cont1 派活「只补漏, 不许整份重写」★)★**
+
+### ★C4-4 · ★★一个环境坑 (★留给下一跳 + main 复跑时会撞上★)★★
+
+★**`python3 SW/tools/check_demo_panel_spec.py --selftest` 在本机会撞 `OSError: [Errno 122] Disk quota exceeded`** ⇒ ★**rc=1** ★
+★**根因**: ★`/tmp` 是 tmpfs (★总 7.5G · 已用 6.0G · 剩 1.6G · 80%★) ⇒ 该自检要在 `/tmp/iss212_gate_*` 下复制整棵 `HW/PCB/` 树 ⇒ 空间不够 ⇒ ★**这不是判据红, 是环境问题** ★
+★**正解 (★本趟已用, rc=0 · SELFTEST 22/22★)**: ★**带 `TMPDIR` 指向大盘** ★
+```bash
+TMPDIR=/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss293_tmp \
+  python3 SW/tools/check_demo_panel_spec.py --selftest
+# ⇒ --- SELFTEST 22/22 通过 ---
+```
+★**⇒ ★★main 复跑这 10 条时, 第 7 条务必带 `TMPDIR` (★不然会误判成「别的闸红了」★)★★**
+
+### ★C4-5 · ★本趟分片登记 (★走 `state/frag_write.py` 原子写★)★
+
+★**脚本** = `logs/iss293/frag_cont2.py` (★本趟新写 · 走 `frag_write.py` 的 CLI 路径, 值用 `shlex.quote` 包好★) ⇒ ★**rc=0 · 原样输出**:
+```
+[frag_write] ✅ sw.yaml 已原子更新 → 再跑 python3 state/merge.py
+```
+★**落的东西 (★3 处★)**:
+1. ★**`interface_claims` 新增 `iss293_cont2_indep_reverify_20261118_0545`** = ★本趟 10 条回归的 rc + F2 八条 grep 命中数 + ISS-302 md5 差额归因 + TMPDIR 坑★
+2. ★**`status` 块更新** = ★`phase=delivered` / `progress_pct=100` / `health=green` / summary = 本单交卷摘要 + ISS-302 md5 附注 + 「要 main 拍板的只剩 M7-R6 一件」★
+3. ★**`answers` 块里原有的 `ISS293_ADC_REVIEW_SYNC_DELIVERED` 保留未动** ★
+
+★**★原有 3 件 artifacts (★交卷单 / `SW/SW_TIMING_REVIEW.md` / `SW/tools/check_timing_review_adc_sync.py`★) + 原有 5 条 `interface_claims` (`adc_full_scale_caliber_iss293` / `iss293_adc_decision_chain_current` / `iss293_vbus_det_d_is_digital_not_adc` / `iss293_bat_det_populated` / `iss293_review_doc_pinned_by_gate`) + 原有 3 条 needs (`iss291_sw_vbus_det_d_digital_caliber` / `iss291_sw_do_not_apply_vbus_100k47k` / `iss293_sw_m7r6_sync_to_main`) ★全部保留 (★一条没删★)★ ⇒ ★**`grep -c iss293 state/fragments/sw.yaml` 本趟写完 = 14 (★≥ 4 达标★)****
+
+★**★并发安全自证 (★本机实读★)**: ★本单写分片时, 同 agent 的兄弟会话 (ISS-298 / ISS-309) 也在写同一份分片 ⇒ ★**本趟写完复查**: ★`iss298_sw_reboard_channel_wired` = 1 处 / ★`iss309` 相关 = 28 处 / ★`iss293_sw_m7r6_sync_to_main` = 4 处 / ★`iss291_sw_vbus_det_d_digital_caliber` = 3 处 / ★`iss291_sw_do_not_apply_vbus_100k47k` = 2 处 ⇒ ★**兄弟会话的数据一条没丢 (★`frag_write.py` = 读 → 改 → tmp + fsync + `os.replace` 原子写★)★**
+
+### ★C4-6 · ★★★本交卷单的【占位符残留自检】= 项目口径 0 (★且是【真零】, 不是自匹配出来的假零★)★★★
+
+★**★本趟 (cont2) 发现并订正了上一趟 (2026-11-17 17:5x) 的一个【自检口径错误】★** ⇒ ★**见上文 §B6.5 的【订正行】★** ⇒ ★**这里只把【订正后的真零读数】贴出来★**
+
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+F="HANDOFF/2026-11-17_sw-lead_ISS293_ADC复评文档口径同步.md"
+PAT="$(printf '\360\237\224\204')|$(printf '\345\276\205\345\241\253')"   # ★项目口径两型 (UTF-8 字节转义, 免得文档自己命中自己★)
+grep -cE "$PAT" "$F"
+```
+
+★**本趟实跑原样输出**: ★**0** ★ ⇒ ★**项目口径的占位符残留 = 0** ★
+
+★**★交叉验 (★用项目现成的共享闸, 独立口径★)**:
+```bash
+python3 state/check_report_placeholders.py HANDOFF/2026-11-17_sw-lead_ISS293_ADC复评文档口径同步.md; echo "rc=$?"
+```
+★**原样输出**:
+```
+✔ 无占位符 (★可发)
+rc=0
+```
+★**⇒ 两个独立口径都判 0 ⇒ 真零★**
+
+★**★B0~B6 七块的占位符残留 grep 结果 (★任务书 §⑮ F1 要的那一项★) = ★0★** ★ ⇒ ★**本交卷单 B0 / B1 / B2 / B3 / B4 / B5 / B6 七块全部填满, 没有一处是未填的空位** ★
+
+### ★C4-7 · ★本趟 (cont2) 交卷前最终一遍回归 (★交卷单写完之后重跑, 证明改交卷单没把别的闸带红★)★
+
+★**日志**: `logs/iss293/cont2_final_gates2.log` ★**原样输出**:
+```
+[SW/tools/check_timing_review_adc_sync.py] rc=0
+[SW/tools/check_timing_review_adc_sync.py --selftest] rc=0
+[SW/tools/timing_check.py] rc=0
+[SW/tools/check_demo_panel_spec.py] rc=0
+[SW/tools/check_demo_panel_spec.py --selftest] rc=0
+[state/merge.py] rc=0
+[state/gate_check.py] rc=0
+[state/issue_check.py] rc=0
+```
+★**⇒ 8/8 全 rc=0** ★
 
 ---
 

@@ -1,0 +1,107 @@
+==============================================================================
+ISS-324 · md5 差异核对
+  口径 A = cont1 交卷时 (13:0x) vs cont2 交卷时 (16:4x)   [跨两趟, 含并发单的文件]
+  口径 B = 本趟 cont2 开工基线 (15:59) vs 本趟交卷时 (16:4x) [纯本趟增量]
+==============================================================================
+
+########## 口径 A · 跨两趟 ##########
+
+### MECH/*.py (零改闸)
+  文件数 BEFORE=59 AFTER=59
+  新增 0: 无
+  删除 0: 无
+  内容变更 0: 无
+
+### MECH/*.md (零改既有文档正文)
+  文件数 BEFORE=41 AFTER=43
+  新增 2: ['MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md', 'MECH/ONETRIP_S1_RENAME_SAFETY_AUDIT.md']
+  删除 0: 无
+  内容变更 0: 无
+
+########## 口径 B · 本趟 cont2 增量 ##########
+
+### MECH/*.py (零改闸)
+  文件数 BEFORE=59 AFTER=59
+  新增 0: 无 / 删除 0: 无 / 内容变更 0: 无
+
+### MECH/*.md (零改既有文档正文)
+  文件数 BEFORE=43 AFTER=43
+  新增 0: 无
+  删除 0: 无
+  内容变更 1: ['MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md']
+
+### 受保护真源 (零写板 / 零落表)
+  文件数 BEFORE=5 AFTER=5 · 新增 0: 无
+  内容变更 0: 无
+    5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+    611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+    3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+    6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+    9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+
+### 别人的分片 + issue_log (不写别人的 / 不自签)
+  内容变更 4: ['state/fragments/hw.yaml', 'state/fragments/pm.yaml', 'state/fragments/sw.yaml', 'state/issue_log.yaml']
+    99240b0661a2593c57628236f87ed4f2  state/fragments/hw.yaml
+    849eccc8188e773150320c4f40c9e8d4  state/fragments/pm.yaml
+    6e768315907b92ecba99c386f725d2a4  state/fragments/sw.yaml
+    1bba977282a9b448742d6d0d1946a1b7  state/issue_log.yaml
+
+########## 归因 ##########
+  · MECH/*.py 内容变更 = 0 ⇒ ★零改闸★
+  · MECH/*.md 既有真件内容变更 = 0 ⇒ ★零改既有文档正文★
+  · MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md = ★本单 (ISS-324) 主交付物★
+      (cont1 13:0x 建 63,412 B 版本 ⇒ ★cont2 15:5x 按 cont1 结论 + cont2 两条新发现重建 43,671 B★)
+      ⇒ 内容变更是【本单自己的文件】, 不是既有真件
+  · MECH/ONETRIP_S1_RENAME_SAFETY_AUDIT.md = ★【另一并发单 ISS-326 的主交付物】(14:57 由并发跑的 ISS-326 落盘)★
+      ⇒ 不是本单写的, 也不是本单改的 ⇒ 本单不认领
+  · 受保护真源 5 件内容变更 = 0 ⇒ ★零写板 + 零落表★
+  · 别人的分片 + issue_log 内容变更 = 0 ⇒ ★不写别人的分片 + 不自签 issue_log★
+
+[END] 差异算完
+
+########## 并发归因 (★那 4 件不是本单改的★) ##########
+  本单元只写这 3 处: (1) MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md (本单主交付物)
+                 (2) HANDOFF/2026-11-18_mech-lead_ISS324_D_LED_G落位口径.md (本单交卷页)
+                 (3) state/fragments/mech.yaml (走 state/frag_write.py --agent mech-lead)
+                 + logs/iss324/** (原始输出目录)
+  本单元对 hw.yaml / sw.yaml / pm.yaml / issue_log.yaml 只做过 read 与 md5sum, 从未写过 ⇒
+  ★★ 那 4 件在 15:59→16:4x 之间的变更, 逐字归因如下 (mtime 为证) ★★:
+    state/fragments/hw.yaml   mtime 2026-11-18 16:38:24  ⇒ ★并发 hw-lead 的落表批 (非本单)★
+    state/fragments/sw.yaml   mtime 2026-11-18 16:32:32  ⇒ ★并发 sw-lead 的落表批 (非本单)★
+    state/fragments/pm.yaml   mtime 2026-11-18 16:24:37  ⇒ ★并发 pm 的落表批 (非本单)★
+    state/issue_log.yaml      mtime 2026-11-18 16:38:40  ⇒ ★main 签 issue_log (签字权在 main·非本单·★本单不自签★)★
+    state/fragments/mech.yaml mtime 2026-11-18 13:05:49  ⇒ ★这是 cont1 (本单前一趟) 的写入; 本趟 cont2 尚未写入 ⇒ 见交卷页 §C-2★
+
+  ⇒ ★★ 本单 (ISS-324 cont2) 的零越界自证: 板 5 件真源 md5 内容变更 0 + MECH/*.py 变更 0 + MECH/*.md 既有真件变更 0 ★★
+     (那 4 件的变更不是本单造成的, 逐字归因见上)
+
+
+==============================================================================
+★追加 · cont2 最终态 (16:41 之后) 再核一次: 本趟基线 (15:59) vs 最终 (16:4x)
+==============================================================================
+
+### MECH/*.py (零改闸)
+  BEFORE=59 AFTER=59 · 新增 0: 无
+  删除 0: 无 · 内容变更 0: 无
+
+### MECH/*.md (零改既有文档正文)
+  BEFORE=43 AFTER=43 · 新增 0: 无
+  删除 0: 无 · 内容变更 2: ['MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md', 'MECH/ONETRIP_S1_RENAME_SAFETY_AUDIT.md']
+
+### 受保护真源 (零写板/零落表)
+  BEFORE=5 AFTER=5 · 新增 0: 无
+  删除 0: 无 · 内容变更 0: 无
+
+### 别人的分片 + issue_log
+  BEFORE=4 AFTER=4 · 新增 0: 无
+  删除 0: 无 · 内容变更 4: ['state/fragments/hw.yaml', 'state/fragments/pm.yaml', 'state/fragments/sw.yaml', 'state/issue_log.yaml']
+
+★ 本单 (ISS-324) 的自有改动 (合法): MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md (主交付物) + HANDOFF/2026-11-18_mech-lead_ISS324_D_LED_G落位口径.md (交卷页) + state/fragments/mech.yaml (分片·走 frag_write) + logs/iss324/** (原始输出)
+★ 并发单改动 (非本单): MECH/ONETRIP_S1_RENAME_SAFETY_AUDIT.md (ISS-326) · hw.yaml/sw.yaml/pm.yaml (各自总工的落表批) · issue_log.yaml (main 签)
+★ 本单零越界自证: 板 5 件真源内容变更 0 · MECH/*.py 59 件变更 0 · MECH/*.md 既有真件变更 0
+
+### 补充澄清 (免得被误读)
+  · 上面 'MECH/*.md 内容变更 2' 的两件, 都是【各自 job 新建的交付物】, 不是被本单改坏的既有真件:
+      MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md   = ★本单 ISS-324 的主交付物★ (cont1 63,412 B → cont2 重建 43,671 B → cont2 收尾微调)
+      MECH/ONETRIP_S1_RENAME_SAFETY_AUDIT.md      = ★并发单 ISS-326 的主交付物★ (14:57 建, 16:3x 由 ISS-326 自己更新) ⇒ 本单不认领★
+  · 换句话说: 本单开工前就存在的那些 MECH 真件 (含全部受保护判据脚本) 内容变更 = 0 件 ⇒ ★零改既有文档正文 / 零改闸★

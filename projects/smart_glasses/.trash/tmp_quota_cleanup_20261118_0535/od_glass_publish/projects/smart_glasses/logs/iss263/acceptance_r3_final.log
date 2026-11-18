@@ -1,0 +1,25 @@
+### A0  import (包真名 = rknn, 不是 rknn3) ###
+dist version = 1.2.0
+IMPORT_OK
+A0_RC=0
+### A1  config(target_platform='rk3572') + 反向 rk3576 ###
+ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572
+IMPORT_OK  from rknn.api import RKNN
+VERSION file = rknn3-toolkit 1.2.0
+dist version  = 1.2.0
+CONFIG_RETURN type=int repr=0
+CONFIG_OK target=rk3572 elapsed=0.021s
+CONFIG_EXC target=rk3576 elapsed=0.017s
+A1_RC=0
+### A2  转换耗时 3 次读数 (干净口径, 引用用这个) ###
+>>> CONVERT_TOTAL_S min=44.050 avg=49.383 max=54.950  (target_platform=rk3572, n=3)
+>>> RUN1 bytes=249360 md5=97a34fff0b855b92681f26627dba5354 t_total=49.148 (cfg=0.014 load=0.110 build=49.007 export=0.017)
+>>> RUN2 bytes=249360 md5=97a34fff0b855b92681f26627dba5354 t_total=54.950 (cfg=0.015 load=0.071 build=54.847 export=0.017)
+>>> RUN3 bytes=249360 md5=97a34fff0b855b92681f26627dba5354 t_total=44.050 (cfg=0.011 load=0.047 build=43.977 export=0.015)
+### A3  产出 .rknn ###
+249360 /var/tmp/iss263_rknn3/work/out/yolov5n_heads_int8_rk3572_run1.rknn
+249360 /var/tmp/iss263_rknn3/work/out/yolov5n_heads_int8_rk3572_run2.rknn
+249360 /var/tmp/iss263_rknn3/work/out/yolov5n_heads_int8_rk3572_run3.rknn
+97a34fff0b855b92681f26627dba5354  /var/tmp/iss263_rknn3/work/out/yolov5n_heads_int8_rk3572_run1.rknn
+97a34fff0b855b92681f26627dba5354  /var/tmp/iss263_rknn3/work/out/yolov5n_heads_int8_rk3572_run2.rknn
+97a34fff0b855b92681f26627dba5354  /var/tmp/iss263_rknn3/work/out/yolov5n_heads_int8_rk3572_run3.rknn

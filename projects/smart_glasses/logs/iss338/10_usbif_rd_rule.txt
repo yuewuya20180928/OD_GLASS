@@ -1,0 +1,16 @@
+=== V6. USB-IF Rd 规则原文 (项目内已引) ===
+567-P10,HINGE_RSV,J_CHG pin10,J_CHG pin10,J_CHG,预留 (不装),NET,DNP,[实测],,"[INVENTORY] ★**`J_CHG` pin10 归 `HINGE_RSV` 预留不接** (网表 P1 第 21 行; ★**跨铰链 `TS_RTN` 已于 2026-11-03 撤除**, 现行网表 0 处) —— ★**BQ25896 的 I2
+568-P10,I2C_CHG_SCL,U_CHG pin5,R_PU_SCL,R_PU_SCL,10k ±1%,R,DNP,[官方],,BQ25896 SCL 上拉位 (留位): **跨铰链版本不装** (上拉在主板侧); 不跨版本也不装,B-08,CHG_BOARD
+569-P10,I2C_CHG_SDA,U_CHG pin6,R_PU_SDA,R_PU_SDA,10k ±1%,R,DNP,[官方],,BQ25896 SDA 上拉位 (留位): 同上,B-08,CHG_BOARD
+570-P10,INT_CHG,U_CHG pin7,R_PU_INT,R_PU_INT,10k ±1%,R,DNP,[官方],,"INT 开漏 256µs 脉冲; **本版不跨铰链** (J_CHG 无余量), 留位不装; 若将来要跨, 上拉必须移到主板侧 3.3V 并顶掉 J_CHG pin9/pin10",B-07,CHG_BOARD
+571:P10,USB_CC1,J_TYPE_C A5,R_CC1,USB_CC1,5.1k ±1% (Rd 到 GND),NET,必装,[官方],,★Type-C Rd: 'Pin A5 (CC) ... shall be connected to GND through a resistor Rd (5.1 kΩ ± 20%)' (USB-IF Spec R2.0); 本板只做 Rd 不上 P
+572-P10,GND,R_CC1,GND,R_CC1,5.1k ±1%,R,必装,[官方],,CC1 Rd 地端,B-23,CHG_BOARD
+573-P10,USB_CC2,J_TYPE_C B5,R_CC2,USB_CC2,5.1k ±1% (Rd 到 GND),NET,必装,[官方],,CC2 Rd (USB-IF: 5.1kΩ ±20%),B-23,CHG_BOARD
+574-P10,GND,R_CC2,GND,R_CC2,5.1k ±1%,R,必装,[官方],,CC2 Rd 地端,B-23,CHG_BOARD
+575-P10,USB_D_P_CHG,CONN_USB pin1,J_TYPE_C A6+B6,USB_D_P_CHG,板内走线 90Ω 差分,NET,必装,[官方],,★充电板侧 USB D+ 从跨铰链连接器到 Type-C (A6+B6 双份并联); 规范: 'The maximum shorting trace length should not exceed 3.5 mm',B-23,C
+576-P10,USB_D_N_CHG,CONN_USB pin2,J_TYPE_C A7+B7,USB_D_N_CHG,板内走线 90Ω 差分,NET,必装,[官方],,"同 D- (A7+B7 双份并联, ≤3.5mm); ★不装共模扼流圈",B-23,CHG_BOARD
+577-P10,GND,J_TYPE_C A1+A12+B1+B12,GND,J_TYPE_C,Type-C 16p 母座 (物理 A/B 脚位),CONN,必装,[官方],,"★USB-IF Table 3-5: GND = A1/A12/B1/B12 (4 脚全并联); ★现行网表只写了 A1+A12 → B1/B12 悬空 (回流减半), 必须补",C-01,CHG_BOARD
+578-P10,GND,J_TYPE_C shield,GND,J_TYPE_C,Type-C 16p 母座 (物理 A/B 脚位),CONN,必装,[官方],,"屏蔽壳 → GND **单点接** (短粗铜皮, 不用细线); 与机壳地的接法待结构定 (ISS-065)",C-01,CHG_BOARD
+579-P10,NC_SBU1,J_TYPE_C A8,NC_SBU1,NC,SBU1 不接 (规范要求),NET,DNP,[官方],,"★USB-IF Table 3-5 Note 3: 'Contacts A8 and B8 (SBU1 and SBU2) shall be not connected unless required for a specified purpose'; 本机不做
+580-P10,NC_SBU2,J_TYPE_C B8,NC_SBU2,NC,SBU2 不接 (规范要求),NET,DNP,[官方],,SBU2 同上,B-23,CHG_BOARD
+581-P10,VBUS_DET,USB_VBUS_RAW,R_VDET_TOP,R_VDET_TOP,1M ±1%,R,必装,[推算],,VBUS 检测分压 上臂 (充电板侧): 1M+1M → 源阻抗 500kΩ; ★**主板本地**走线必须被 GND 夹持 (每根至少一侧相邻 GND) 且与 USB 差分对 ≥3mm (MECH §5.2 第5条) —— ★**`VBUS_DET` 已于 2

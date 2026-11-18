@@ -1,0 +1,21 @@
+=== F11. 逐条功能等价引用的精确 file:line ===
+--- CAM_RESET_N 功能等价 (相机 sensor 驱动/复位) ---
+SW/SW_REQUIREMENTS.md:29:- #6 单路 MIPI-CSI, ≥1920×1080@60
+SW/SW_REQUIREMENTS.md:87:- 驱动适配: MIPI-CSI sensor 驱动, ISP 驱动与参数下发, NPU 驱动 (devfreq/dvfs), 显示 TX 驱动
+SW/SW_REQUIREMENTS.md:96:| M1-R2 | sensor 驱动能出图 全幅 2688×1520@60 (或 sensor 支持的全幅输出模式) — *裸 "1080p" 对 OV04C10 等于 ROI 读出模式 (对角 FOV 120.00°→85.6
+SW/SW_REQUIREMENTS.md:97:| M1-R3 | ISP 驱动能下发参数 | AE/AWB/曝光/增益 可读写并生效 (拍白墙看曝光收敛) | ISP programming guide |
+SW/SW_REQUIREMENTS.md:135:| **M2-R8** | **ISP 缩放模式必须可读回** (软件能确认"当前到底是整幅 scale 还是 ROI") | ① ISP 驱动提供**读回接口**: 能读出实际生效的输入尺寸 / 输出尺寸 / 缩放模式 / c
+SW/SW_REQUIREMENTS.md:139:`PROJECT_TRACKER.md` §3.1 用"4K@30fps 单路 ≈ 250 MP/s"反推 ISP 吞吐, 得出**全幅 2688×1520@60** 关 EIS 占 49.8% — *旧链路命名 "1080p@
+--- FSIN_OUT 功能等价 (帧同步引出到测试点) ---
+SW/INTEGRATION_PLAN.md:37:| hw-lead | 电源域标称值、测流点/测温点位置、充电状态读取接口、VSYNC/帧同步信号引出可行性 |
+SW/INTEGRATION_PLAN.md:428:- **步骤**: 1) CH1 接帧同步/曝光起始信号, CH2 接光机出光光电二极管; 2) 触发模式单次, 抓 ≥30 个连续帧; 3) 逐帧读 Δt
+SW/INTEGRATION_PLAN.md:451:- **需要什么设备 (明确列出)**: ① 示波器 ≥100MHz ≥2 通道 (CH1 帧同步, CH2 光电); ② 光电二极管探头 (响应 ≤1µs, 可见光); ③ 遮光工装 (消除环境光干扰); ④ 帧同步信号引出
+SW/INTEGRATION_PLAN.md:690:| **M-E2E** | 端到端 (<60ms) | IT-P4-02 (口径A 高速摄影), IT-P4-03 (口径A 示波器), IT-P4-04 (口径C), IT-P4-06, IT-P4-07 | ①高速摄影机 
+SW/INTEGRATION_PLAN.md:695:| **M-OPTIC** | 光机逐帧延迟 | IT-P4-05, IT-P4-02/03 (交叉) | **软件打不了点**, 需外部设备: ①示波器 ≥100MHz ≥2ch; ②光电二极管探头 (响应 ≤1µs, 可见
+SW/INTEGRATION_PLAN.md:717:| IR-03 | hw-lead | 帧同步/曝光起始信号能否引出到测试点 (供 IT-P4-03 / IT-P4-05 示波器法) | 若不可引出, 端到端口径 A 只能靠高速摄影 (精度 ±4.2ms), 光机逐帧延迟只
+--- JTAG_TDI 功能等价 (救砖 S3) ---
+SW/FLASH_AND_VERSION.md:44:| **5** | **救砖 4 级**: S1 看门狗+systemd 自恢复 (已在 M8-R4/R5) → S2 BOOT 模式强制重刷 → S3 JTAG → S4 返厂换板。**S2/S3 均依赖原厂未确认的工具链*
+SW/FLASH_AND_VERSION.md:564:> 🔴 **硬规则 (与 §5.1 "失败即停"同源)**: **S2 连续失败 2 次 → 必须升级 S3 (JTAG), 不得"多刷几次试试"**。
+SW/FLASH_AND_VERSION.md:565:> 半写状态反复覆盖会制造更复杂的问题 (F2 已说明)。升级 S3 由**项目总工**裁决, sw-lead 不自行升级。
+SW/EVT_TEMPLATE.md:477:| **裁决 (A)** | **项目总工 (main)** | S2 失败后的升级裁决 (S2 → S3 JTAG → S4 返厂) | sw-lead **不自行升级** S3 |
+SW/EVT_TEMPLATE.md:499:| **刷完起不来** (CB-02/04/05 挂) | bootloader 校验失败 / 分区表错 / 版本块 magic 缺失 | 跑回读校验判定"是否未生效"; 是 → 重刷; 否 → 升级 S3 | ≤2 次 |

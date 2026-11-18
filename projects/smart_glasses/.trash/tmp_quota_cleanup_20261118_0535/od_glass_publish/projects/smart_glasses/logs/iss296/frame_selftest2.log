@@ -1,0 +1,27 @@
+================================================================================================
+【自检】check_board_frame_coords.py 反向用例 (★沙盒副本上跑, 真件一个字节不碰★)
+================================================================================================
+  [基线] C1=OK C2=OK C3=OK C4=OK
+  [OK ] ① 改窗口一个角 (x0 137.850 ⇒ 13.650) ⇒ C2 红: 是 · md5 d7b33ed7 ⇒ 278b1f8e · C2 命中数=[('port_open_debug_bench', 100), ('port_open_uart_bench', 0), ('led_window_g_bench_hard', 0), ('led_window_g_bench_recommended', 0)]
+  [OK ] ② 抽掉一张表的表头帧标签 ⇒ C1 红: 是 · md5 d7b33ed7 ⇒ 12c29004 · C1 错误 1 条
+  [OK ] ③ 把窗口挪进 SoM 区 (x0 20.000 / y0 8.000) ⇒ C2 红: 是 · md5 d7b33ed7 ⇒ 6e95ca30 · C2 命中数=[('port_open_debug_bench', 352), ('port_open_uart_bench', 0), ('led_window_g_bench_hard', 0), ('led_window_g_bench_recommended', 0)]
+  [OK ] ④a 把旧 60×30 矩形当现役板坐标喂 ⇒ C3 报出压住焊盘数 [('legacy_led_window_60x30', 10)] · C2 抓到旧矩形压住 SoM **56** 个 (C2 红=True) · 改动生效=True · md5 d7b33ed7 ⇒ 10c59576
+  [OK ] ④b 把旧矩形挪到不压 SoM 处 ⇒ C3 红=True · 报出 [('legacy_port_open_60x30', 0), ('legacy_led_window_60x30', 10)] · 改动生效=True · md5 d7b33ed7 ⇒ d2520a83
+  [OK ] ⑤ 改受保护件 (.kicad_pro 追加 1 字节) ⇒ C4 红: 是 · md5 3e504d2b ⇒ 5d7e7c4a · C4 错误 1 条
+  [OK ] ⑦ 合法落表 (台账链头 37f62ac3f0b8 ⇒ e68d7f7112f0) ⇒ C4 绿: 是 · 盘上 md5 37f62ac3 ⇒ e68d7f71 · C4 错误 0 条
+  [OK ] ⑧ 台账里查不到网表的任何登记 ⇒ C4 红: 是 · 红件 ['HW/netlist_v1.csv'] · C4 台账管理件判决失败: HW/netlist_v1.csv 落表台账里查不到任何登记 (★台账查不到 ⇒ 判红★)
+  [OK ] ⑨ 台账没更新而盘上网表被改 ⇒ C4 红: 是 · 盘上 md5 e68d7f71 · 红件 ['HW/netlist_v1.csv'] · C4 台账管理件判决失败: HW/netlist_v1.csv 盘上 md5 e68d7f7112f0… ≠ 台账链头 37f62ac3f0b8… (★真源被换了? 或台账没更新★)
+  [OK ] ⑩a 台账被手改 (登记值凑成与盘上一致, 但单号不齐) ⇒ C4 红: 是 · 盘上 e68d7f7112f0 / 台账登记 e68d7f7112f0 (值一样!) · 红件 ['HW/netlist_v1.csv'] · C4 台账管理件判决失败: HW/netlist_v1.csv 台账链头 (e68d7f7112f0) 无落表单号 (★单号/文件名/前后 md5 四项不齐 ⇒ 判红★)
+  [OK ] ⑩b 台账被手改 (登记值凑成与盘上一致, 但文件名不对) ⇒ C4 红: 是 · 红件 ['HW/netlist_v1.csv'] · C4 台账管理件判决失败: HW/netlist_v1.csv 盘上 md5 e68d7f7112f0… ≠ 台账链头 37f62ac3f0b8… (★真源被换了? 或台账没更新★)
+  [OK ] ⑩c 台账被手改 (登记值凑成与盘上一致, 但前 md5 是假值 ⇒ 链断) ⇒ C4 红: 是 · 改坏行 1 / 改自环行 1 · 红件 ['HW/netlist_v1.csv'] · C4 台账管理件判决失败: HW/netlist_v1.csv 台账里有记录不在链上 = ['13f59a43dbd3', '16ac89f77c25', '2f17650cfbef', '3215020b6d41', '34132f7e40a2', '611c3ba3db3d', 'e06c1dd63356'] (★前后 md5 不齐 ⇒ 链断了 ⇒ 判红★)
+  [OK ] ⑪ 台账里造出第二条链头 (链头不唯一) ⇒ C4 红: 是 · 红件 ['HW/netlist_v1.csv'] · C4 台账管理件判决失败: HW/netlist_v1.csv 台账链头取不准 (链头不唯一 = ['37f62ac3f0b8', 'deadbeefdead'] (取不准 ⇒ 不许判绿)) ⇒ 取不准不许判绿
+  [OK ] ⑫ 闸里的板基线被单独改 (611b869e… ⇒ deadbeef…) 而台账不动 ⇒ C4 红: 是 · C4 合法改板: HW/PCB/demo_mainboard.kicad_pcb 的保护基线 md5 deadbeefdead 在落表台账 (HW/SCHEMATIC_LANDING_V1_LANDED.md) 里与该文件同行查不到 ⇒ ★闸里的基线被单独改了 (只改基线不落表 = 悄悄换真源 = 判红)★
+  [OK ] ⑬ 盘上板被手改 (md5 ⇒ 3071a9b1…) 而台账无变更行 ⇒ C4 红: 是 · C4 合法改板: 受保护文件 md5 变了: HW/PCB/demo_mainboard.kicad_pcb (3071a9b13ef5 ≠ 基线 611b869e1351) ★台账里没有变更行 ⇒ 不是合法改板 ⇒ 判红★
+  [OK ] ⑭ 台账补了一条变更行但四项不齐 (无落表单号) ⇒ C4 红: 是 · C4 合法改板: HW/PCB/demo_mainboard.kicad_pcb 台账最新记录 (777777777777) 缺落表单号 (★四项不齐 ⇒ 判红★)
+  [OK ] ⑮ 只让板有变更行 (`.kicad_pro` 没有同一次覆盖) ⇒ C4 红: 是 · C4 合法改板: HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-999) 覆盖 (记录只来一条 ⇒ 判红)
+  [OK ] ⑯a 台账里造出第二条链头 (链头不唯一) ⇒ C4 红: 是 · C4 合法改板: HW/PCB/demo_mainboard.kicad_pcb 台账最新记录取不准 (链头不唯一 = ['222222222222', '444444444444'] (取不准 ⇒ 不许判绿)) ⇒ 取错记录可能假绿 ⇒ 判红
+  [OK ] ⑯b 链断 (改前 md5 对不上保护基线 ⇒ 基线不在链尾) ⇒ C4 红: 是 · C4 合法改板: HW/PCB/demo_mainboard.kicad_pcb 的保护基线 611b869e1351 不在台账链尾 (链尾 = 555555555555) ⇒ ★基线被偷偷前移 = 判红★
+  [OK ] ⑰ 正向对照: 合法改板一次 (板 611b869e… ⇒ 3071a9b1… + `.kicad_pro` 同一次成对登记) ⇒ C4 绿: 是 · C1/C2/C3 = 全绿 · C4 错误 0 条
+  [OK ] ⑥ 真件 6 件 (板 / `.kicad_pro` 写死基线 2 件 + 台账管理 3 件 + 落表台账本体 1 件) md5 跑完自检后仍逐字节不变: 是
+================================================================================================
+【自检结论】✅ 一致

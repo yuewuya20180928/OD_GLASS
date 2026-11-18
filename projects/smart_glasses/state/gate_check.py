@@ -211,6 +211,40 @@ def run_hw_pinout_gate() -> dict:
 EXTRA_GATES = [
     (os.path.join(PROJ, "MECH", "check_mech_verdict_freshness.py"), "MECH 结构结论防漂闸 (ISS-295)", ()),
     (os.path.join(PROJ, "SW", "tools", "check_onepass_sw_sync.py"), "SW 侧板侧输入/合法改板闸 (ISS-298)", ()),
+    # ★★2026-11-18 10:5x (main): 把 ISS-318 的 SW 侧五道闸挂进门禁链 (★sw-lead 交卷页 §B4-1 逐字写法★
+    #   ★**为什么必须挂**: 「板只改一次」那一趟, 板面动作一旦落地, SW 侧的护栏只有这几道
+    #     ⇒ 第 1 位是【S1 位号改名漂移的唯一拦截器】(板改了但 SW 文档/代码里的位号没跟上 ⇒ 它立刻红)
+    #     ⇒ 第 2 位是【落表留痕义务】(板改了但单号/md5 没留痕 ⇒ 它立刻红)
+    #   ★**为什么之前没人挂**: ISS-318 交卷页 §B5-2 第 1 条自己写明「闸【没挂链】· 卡在 main (机制地界)」★**
+    #   ★**三道 selftest 闸【必须裸跑】**: 它们本来就是 selftest 脚本 ⇒ 带 --selftest 会 rc=2 usage 错误
+    #   ★**TMPDIR 指到项目内**: 本机 /tmp 带 usrquota 且配额已满 ⇒ 不指会 EDQUOT 假红
+    #   ★**fail-closed 语义不变**: 脚本不存在 / 跑不起来 / 超时 ⇒ 一律算【闸红】(run_external_gate 原语义)
+    (os.path.join(PROJ, "SW", "tools", "check_sw_ref_reachability.py"),
+     "SW 侧位号引用可达性闸 (ISS-318)", ()),
+    (os.path.join(PROJ, "SW", "tools", "check_landing_trace_obligation.py"),
+     "SW 侧落表留痕义务闸 (ISS-315)", ()),
+    (os.path.join(PROJ, "SW", "tools", "check_demo_panel_spec_r6_hardprot_iss315_selftest.py"),
+     "SW 侧 R6 硬保护路径反向用例 (ISS-315)", ("--tmpdir", os.path.join(PROJ, "tmp", "iss318_gates"))),
+    (os.path.join(PROJ, "SW", "tools", "check_demo_panel_spec_r6_chainjudge_selftest.py"),
+     "SW 侧 R6 链头落表单号交叉核对反向用例 (ISS-312)", ("--tmpdir", os.path.join(PROJ, "tmp", "iss318_gates"))),
+    (os.path.join(PROJ, "SW", "tools", "check_demo_panel_spec_r6_selftest.py"),
+     "SW 侧 R6 判决源反向用例 (ISS-309 · 7/7)", ("--tmpdir", os.path.join(PROJ, "tmp", "iss318_gates"))),
+    # ★★2026-11-18 20:2x (main): 把 ISS-333 的「MECH 侧位号引用可达性闸」挂进门禁链 (★ISS-330 owner=main★)
+    #   ★**为什么必须挂 (★ISS-326 的实测·不是设计稿的自嗨★)**: 「板只改一次」那一趟 (S1 位号改名) 会给
+    #     ★**186 个板位号改名** ⇒ ★**MECH 域引用到的改名位号有 68 个** ⇒ 改完板, MECH 侧文档/判据脚本里的
+    #     位号就【对不上板了】⇒ ★**而 ISS-326 自己的沙盒实测出了「假绿」**: 判据脚本里的精确等值分支失配后,
+    #     ★**那条判据静悄悄不查了, 但脚本整体照样全绿** ⇒ ★缺陷对闸隐形★ ⇒ ★**这道闸就是 MECH 域的护栏** ★
+    #   ★**为什么是 main 挂 (★不是 agent 挂★)**: ★**改闸脚本 = main 的机制地界** ⇒ ★agent 一个字节不许动★ ★
+    #   ★**裸跑即绿 (★2026-11-18 20:1x main 本机实跑·0.67s★)**: 实测 48 md + 65 py = 113 份 (★与 ISS-330
+    #     要求逐字一致★) · 抽出 246 个唯一标识符 · 真隐患 10 条 (= 基线上限 10) · 17/17 判据分支自检全命中
+    #     ⇒ ★**故不需要 per-gate 参数** (★与上面几道同款·不加参数才不会假红★) ★
+    #   ★**fail-closed 语义与上面几道完全一致**: 脚本不存在 / 跑不起来 / 超时 ⇒ 一律算【闸红】
+    #     (★闸自身 fail-closed 三条: 板读不到 / 网表读不到 / 扫描面半残 ⇒ 全部判红 rc=2★)
+    #   ★**为什么【不】把它的 --selftest 也挂进来**: ★**live 模式里已经内建了 17/17 判据分支探针** ⇒
+    #     「判据分支匹配不上 ⇒ 判红」这条【假绿护栏】在 live 路径上就已经生效 (★判据分支失配 ⇒ probe_failures
+    #     ⇒ rc≠0★) ⇒ ★再挂一遍 selftest 只是把链的耗时白翻一倍 (★selftest 单跑 21s★)·不增判据覆盖★ ★
+    (os.path.join(PROJ, "MECH", "tools", "check_mech_ref_reachability.py"),
+     "MECH 侧位号引用可达性闸 (ISS-326 设计稿 / ISS-333 实现)", ()),
 ]
 
 # ★★2026-11-17 22:1x (main): 9 道「钉板 md5 闸」挂进门禁链 (★ISS-136 同款根因的最后一处★)

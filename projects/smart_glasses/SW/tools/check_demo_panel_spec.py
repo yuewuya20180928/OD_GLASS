@@ -519,6 +519,232 @@ def sw_ledger_change_state(rel: str, text: str, exclude_aliases=()) -> dict:
                             recs=sw_ledger_change_rows(text, rel, exclude_aliases))
 
 
+# ★★【ISS-312 · 2026-11-18 · sw-lead】★★ 链头落表单号的【交叉核对】(★修法 A + B★)
+#   ★**病灶 (ISS-309 已 verified · main 05:4x 本机复跑)**: 判据对【链头落表单号】**只有「非空」一道检查**
+#     ⇒ 单号被改坏 (假号 / 多个号 / 与真源不一致) **一律判绿** ⇒ ★那是漏放 (假绿)★
+#   ★**修法 A (治「台账自相矛盾」)**: 链头产出单号必须【唯一】⇒ 同一个 md5 被两个不同单号声称产出
+#     ⇒ 台账自相矛盾 ⇒ fail-closed 判红 (★与已有的「链头不唯一 ⇒ 红」同款语义★)
+#   ★**修法 B (治「台账自洽但单号是假的」)**: 链头单号必须与【独立信源】对上
+#     ⇒ ★**独立信源 = `state/issue_log.yaml`** (★main 维护 · 只读 · 与被测对象无关 ⇒ 不是自证★)
+#        ① 该单号在 issue_log 里【存在】 ⇒ 假单号 (ISS-9900 之类) 当场露馅
+#        ② 该单在 issue_log 里的留痕必须提到【这个文件】+【这个链头 md5】
+#           ⇒ 真实存在但对不上的单号 (★换了另一个真 ISS 号★) 也露馅
+#   ★**纪律**: ★不许拿「桶名拼写」当反向用例 · 不许拿判据自己判自己 · 不许拿同一份台账的两个副本互证★
+ISSUE_LOG_REL = os.path.join("state", "issue_log.yaml")
+_ISSUE_LOG_CACHE: dict = {}
+
+
+def sw_issue_log_path(root: str) -> str:
+    """独立信源 issue_log 的路径 (★树里有自己的就用自己的; 没有就退回本仓的 (★只读★)★)。
+
+    ★为什么要这个退回★: 反向用例在临时树上跑 (★临时树只拷被测的那几个文件★)
+      ⇒ 树里没有 `state/issue_log.yaml` ⇒ 退回本仓那份 ⇒ ★信源仍然是【真 issue_log】(★独立于被测对象★)
+      ⇒ ★真盘跑的时候 root == PROJ ⇒ 两条路径指向同一个文件, 口径一致★ ★[实测]
+    """
+    p = os.path.join(root, ISSUE_LOG_REL)
+    if os.path.isfile(p):
+        return p
+    return os.path.join(PROJ, ISSUE_LOG_REL)
+
+
+def sw_issue_log_entries(root: str) -> dict:
+    """把独立信源 issue_log 切成 {ISS-xxx: 那一整条的原文} (★按文本切, 不用 yaml 解析★)。
+
+    ★为什么按文本切★: `state/issue_log.yaml` 有 3 MB / 309 条 ⇒ yaml.safe_load 要 1 秒多
+      ⇒ ★本判据每次跑都要读它 ⇒ 按文本切只按行扫, 几十毫秒★ ★[实测]
+    ★切法★: `issues:` 之后、列 0 的 `- ` 开头的行 = 一条 issue 的开始
+      (★注意: 有些条的 `id:` 写在条目的【末尾】(★例 ISS-081★) ⇒ 不能拿 `id:` 行切, 要拿 `- ` 行切★)
+    """
+    path = sw_issue_log_path(root)
+    key = os.path.abspath(path)
+    hit = _ISSUE_LOG_CACHE.get(key)
+    if hit is not None:
+        return hit
+    out: dict = {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+    except OSError:
+        _ISSUE_LOG_CACHE[key] = out
+        return out
+    i = text.find("\nissues:")
+    if i >= 0:
+        chunks: list = []
+        cur: list = []
+        for line in text[i:].splitlines():
+            if line.startswith("- "):
+                if cur:
+                    chunks.append("\n".join(cur))
+                cur = [line]
+            elif cur:
+                cur.append(line)
+        if cur:
+            chunks.append("\n".join(cur))
+        for ch in chunks:
+            # ★`id:` 行有两种写法: 条目首行的 `- id: ISS-xxx` (★多数★) 与条目末尾的 `  id: ISS-xxx` (★例 ISS-081★)
+            m = re.search(r"^\s*(?:-\s*)?id:\s*['\"]?(ISS-\d+)['\"]?\s*$", ch, re.M)
+            if m:
+                out[m.group(1)] = ch
+    _ISSUE_LOG_CACHE[key] = out
+    return out
+
+
+def sw_chain_head_iss_check(root: str, rel: str, head: str, head_iss, tag: str,
+                            cross_check_source: bool = True) -> list[str]:
+    """★【ISS-312】链头落表单号的【交叉核对】(★修法 A + B★) ⇒ 红项列表 (★绿 = 空列表★)。
+
+    ★`tag` = 报错前缀 (★"R6 台账链" / "R6 硬保护"★) ⇒ 两处判决点用同一套口径 ★
+    ★`cross_check_source` = 做不做【修法 B】(★与独立信源 issue_log 对账★):
+      · True  ⇒ ★两条路径都做 (★落表真源 `check_r6_three_way` + 硬保护 `check_r6_hard_protected`★)
+      · False ⇒ ★只判 A (★保留这个开关: 判据方向一条不许改, 只是 ISS-315 起没人用它了★)
+        ★★【ISS-315 · 2026-11-18 · sw-lead】★★ 硬保护那条路径【原来只判 A】⇒ ★ISS-312 收回了 B★
+          ⇒ ★ISS-315 先【修夹具】(★`SW/tools/check_onepass_sw_sync.py` 的 ⑮ 与本文件自己的 REV-21
+            两个合法改板正向用例都补上了【独立信源】输入★)⇒ ★然后把 B 铺到硬保护路径★
+          ⇒ ★ISS-312 当时写的两条理由, 现在这样收口★:
+            ① 「夹具不在可写范围」⇒ ★已解★ (夹具本单可写 ⇒ 假伤修在夹具上, 判据本体只【加】不【改】★)
+            ② 「硬保护那条路径的票 = 合法改板票 ⇒ 加 B 等于给板那一趟加一条新义务」⇒ ★已解★
+              (★那条义务 = 【落表单必须在 issue_log 里留【文件名 + 新 md5】】★ ⇒ ★ISS-315 同单
+               把它做成了机器可判的新闸 `SW/tools/check_landing_trace_obligation.py`★ ⇒ ★义务落地, 不再是口号★)
+    ★「缺单号」不归本函数管 (★由原有的「缺落表单号」红项负责★) ⇒ 本函数只管【有单号但单号不对】★
+    """
+    fails: list[str] = []
+    head_iss = list(head_iss or [])
+    # ---- 修法 A: 链头产出单号必须唯一 (⇒ 治「台账自相矛盾」) ----
+    if len(head_iss) > 1:
+        fails.append("%s: %s 台账最新记录 (%s) 的落表单号不唯一 = %s ⇒ 同一条落表记了 %d 个单号 "
+                     "(★台账自相矛盾 ⇒ 判红★)" % (tag, rel, head, head_iss, len(head_iss)))
+        return fails            # ★单号本身都不可信了 ⇒ 下面那个独立信源对账没有意义 (★不多报噪声红★)
+    if not head_iss:
+        return fails            # ★没单号 ⇒ 走原有的「缺落表单号」红项★
+    if not cross_check_source:
+        return fails            # ★这条路径只判 A (★理由见上面的 docstring★)★
+    iss = head_iss[0]
+    # ---- 修法 B: 链头单号必须与【独立信源 issue_log】对上 ----
+    entries = sw_issue_log_entries(root)
+    if not entries:
+        fails.append("%s: %s 台账最新记录 (%s) 的落表单号 %s 在独立信源 (%s) 里查不到任何条目 "
+                     "⇒ 无从对账 (fail-closed ⇒ 判红)" % (tag, rel, head, iss, ISSUE_LOG_REL))
+        return fails
+    ch = entries.get(iss)
+    if not ch:
+        fails.append("%s: %s 台账最新记录 (%s) 的落表单号 %s 在独立信源 (%s) 里查不到 "
+                     "⇒ 单号是假的 (★判红★)" % (tag, rel, head, iss, ISSUE_LOG_REL))
+        return fails
+    base = os.path.basename(rel)
+    if base not in ch:
+        fails.append("%s: %s 台账最新记录 (%s) 的落表单号 %s 在独立信源里没有 %s 的落表留痕 "
+                     "⇒ 单号与真源对不上 (★判红★)" % (tag, rel, head, iss, base))
+        return fails
+    if not (head[:12] in ch or head[:8] in ch):
+        fails.append("%s: %s 台账最新记录 (%s) 的落表单号 %s 在独立信源里没有 %s 的留痕 "
+                     "(独立信源只认得旧 md5 ⇒ 挂错单 ⇒ 判红★)" % (tag, rel, head, iss, head[:12]))
+    return fails
+
+
+# ★★【ISS-315 · 2026-11-18 · sw-lead】★★ 沙盒夹具的【独立信源】输入 (★假伤修夹具 · 判据本体不动★)
+def sw_current_landing_ticket(root: str) -> str:
+    """★当前【真】落表单号 (★动态取自落表台账链头 ⇒ 一个单号都不许硬编码★)。
+
+    ★口径 (★判决源口径 · ISS-275★)★: 落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 里
+      【网表】的链头产出单号 ⇒ ★**不是**锚点副本里的历史单号 (★那是历史留痕, 不是当前落表单★)
+    ★取不到 ⇒ 返回 "" (★调用方自己判: 夹具坏了 ⇒ 断言失败, 不许猜一个单号★)
+    """
+    try:
+        led = read_text(root, LEDGER_CANON)
+    except OSError:
+        return ""
+    st = sw_ledger_state(LEDGER_REQUIRED[0], led)
+    iss = sorted(st.get("head_iss") or [])
+    return iss[0] if iss else ""
+
+
+def sw_fresh_hard_ticket(root: str) -> str:
+    """★一个【真单号】(★在 issue_log 真条目里查得到★) 且【从没落过任何硬保护件】的单号 ★
+
+    ★★为什么要「从没落过硬保护件」★★: 硬保护段第 ④ 条 = 【同一次合法改板必须覆盖同组全部件】
+      ⇒ ★落表台账里 ISS-220 / 233 / 243 / 249 / 257 / 236 / 283 / 302 都落过 .kicad_pro★
+      ⇒ ★拿这其中任何一个当夹具单号 ⇒ 「只改板不动 .kicad_pro」那条用例 (REV-20 / ⑭)
+        会被判绿 (★因为那个单号在旧台账里已经落过 .kicad_pro 了★) ⇒ ★用例自己就废了★
+      ⇒ ★夹具必须用一个【对硬保护件来说是新的】真单号★
+    ★挑法★: 真 issue_log 里【编号最大】且【没落过硬保护件】的那个单号
+      (★动态取 ⇒ 一个单号都不许硬编码★ · ★口径会自己跟着盘面走: 哪天它落了硬保护件, 就换下一个★)
+    ★取不到 ⇒ 返回 "" (★调用方自己判: 夹具坏了 ⇒ 断言失败, 不许猜一个单号★)
+    """
+    try:
+        led = read_text(root, LEDGER_CANON)
+    except OSError:
+        led = ""
+    issuers = set()
+    for rel in (BOARD_REL, PRO_REL):
+        for r in sw_ledger_cover_rows(led, rel):
+            if r["iss"]:
+                issuers.add(r["iss"])
+    for iss in sorted(sw_issue_log_entries(root).keys(), reverse=True):
+        if iss not in issuers:
+            return iss
+    return ""
+
+
+def sw_sandbox_issue_log(dst_path: str, ticket: str, traces) -> str:
+    """把【真 issue_log】拷成沙盒件, 并在【真单号 ticket】的条目里补上【落表留痕行】。
+
+    ★★为什么必须有这个 (★ISS-315 病灶①★)★★:
+      ISS-315 把【修法 B】(链头单号 ↔ 独立信源交叉核对) 铺到【硬保护路径】之后
+      ⇒ 「合法改板 ⇒ 放行」的正向用例 (★ISS-298 闸的第 ⑮ 条 + 本文件自己的 REV-21★)
+        少了【独立信源】这一份输入 ⇒ 假红 (★红在【夹具缺输入】, 不在【判据方向】★)
+      ⇒ ★按 ISS-309 铁律: 假伤修夹具, 不许改判据★ ⇒ ★这里【只补输入】★
+    ★补的是什么★: ★**真** issue_log 的拷件 + 【真单号】条目里的一行【落表留痕】
+      (★文件名 + 改前 md5 + 改后 md5★) ★⇒ ★这正是 main 落表时会写的那一行★
+    ★真盘一个字节都不动★: 写的是沙盒路径 (dst_path) ⇒ ★`state/issue_log.yaml` 真身只读★
+    ★`traces` = [(相对路径, 改前 md5, 改后 md5), ...] ★
+    """
+    src = sw_issue_log_path(PROJ)
+    with open(src, encoding="utf-8") as f:
+        text = f.read()
+    marker = "\nissues:"
+    i = text.find(marker)
+    if i < 0:
+        raise AssertionError("真 issue_log %s 里找不到 issues: 段" % src)
+    rest = text[i + len(marker):]
+    lines = rest.splitlines(keepends=True)
+    pre: list = []
+    pos = 0
+    for line in lines:
+        if line.startswith("- "):
+            break
+        pre.append(line)
+        pos += 1
+    blocks: list = []
+    cur: list = []
+    for line in lines[pos:]:
+        if line.startswith("- "):
+            if cur:
+                blocks.append("".join(cur))
+            cur = [line]
+        elif cur:
+            cur.append(line)
+    if cur:
+        blocks.append("".join(cur))
+    payload = "ISS-315 夹具补输入: 落表留痕 " + " ; ".join(
+        "%s prev=%s new=%s" % (rel, str(prev)[:12], str(new)[:12]) for rel, prev, new in traces)
+    trace_line = "  landing_trace_iss315: '%s'\n" % payload
+    hit = 0
+    for idx, ch in enumerate(blocks):
+        m = re.search(r"^\s*(?:-\s*)?id:\s*['\"]?(ISS-\d+)['\"]?\s*$", ch, re.M)
+        if not (m and m.group(1) == ticket):
+            continue
+        lines2 = ch.splitlines(keepends=True)
+        blocks[idx] = "".join(lines2[:1]) + trace_line + "".join(lines2[1:])
+        hit += 1
+        break
+    if not hit:
+        raise AssertionError("真单号 %s 在真 issue_log (%s) 里查不到 ⇒ 夹具自己坏了" % (ticket, src))
+    os.makedirs(os.path.dirname(os.path.abspath(dst_path)), exist_ok=True)
+    with open(dst_path, "w", encoding="utf-8") as f:
+        f.write(text[:i] + marker + "".join(pre) + "".join(blocks))
+    return dst_path
+
+
 def check_r6_hard_protected(root: str, anchors: dict, led_text: str, led_spec: str) -> list[str]:
     """R6 硬保护段 (板 / .kicad_pro): ★【ISS-284 · P10 = 方案 ②】合法改板机制★。
 
@@ -597,6 +823,15 @@ def check_r6_hard_protected(root: str, anchors: dict, led_text: str, led_spec: s
         heads[rel] = head
         if not st.get("head_iss"):
             fails.append("R6 硬保护: %s 台账最新记录 (%s) 缺落表单号 (字段缺失)" % (rel, head))
+        # ★★【ISS-312】链头落表单号的【交叉核对 · 修法 A】⇒ 治「同一个 md5 被两个单号抢」★
+        # ★★【ISS-315 · 2026-11-18 · sw-lead】★★ 修法 B (与独立信源 issue_log 对账) 【铺到这条路径】★
+        #   ⇒ ★硬保护路径上的链头单号也必须是【真单号 + 真留痕 (文件名 + 链头 md5)】★
+        #   ⇒ ★否则【板 md5 合法变更时, 这条路径会漏放假单号】★ (★那正是「板只改一次」那一趟★
+        #     要用的判据 ⇒ ★ISS-315 的来由★)
+        #   ★夹具已先修好 (★`check_onepass_sw_sync.py` 的 ⑮ 与本文件的 REV-21 都补了【独立信源】输入★)
+        #     ⇒ ★判据方向一条没改 · fail-closed 三条一条没动 ★ (★只【加】不【改】★)
+        fails += sw_chain_head_iss_check(root, rel, head, st.get("head_iss"),
+                                          "R6 硬保护", cross_check_source=True)
         if not st.get("chain"):
             fails.append("R6 硬保护: %s 台账链断了 / 不唯一 (%s)" % (rel, st.get("why")))
         else:
@@ -716,6 +951,9 @@ def check_r6_three_way(root: str, anchors=None) -> list[str]:
             continue
         if not st.get("head_iss"):
             fails.append("R6 台账链: %s 台账最新记录 (%s) 缺落表单号 (字段缺失)" % (rel, head))
+        # ★★【ISS-312】链头落表单号的【交叉核对 · 修法 A + B】⇒ 治「单号被改坏 ⇒ 判绿」★★
+        #   ★★ ISS-309 实测的洞就在这条路径上 (★落表真源 = 网表 / 脚表★) ★★
+        fails += sw_chain_head_iss_check(root, rel, head, st.get("head_iss"), "R6 台账链")
         if not st.get("chain"):
             fails.append("R6 台账链: %s 台账链断了 / 不唯一 (%s)" % (rel, st.get("why")))
         else:
@@ -928,8 +1166,17 @@ R6_SELFTEST_CASES = [
 #     + 同一份四项必须能在落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 的【同一行】里查到 ★
 BOARD_REL = os.path.join("HW", "PCB", "demo_mainboard.kicad_pcb")
 PRO_REL = os.path.join("HW", "PCB", "demo_mainboard.kicad_pro")
-TICKET_A = "ISS-9901"        # ★假单号 (★不许硬编码任何真单号★)
-TICKET_B = "ISS-9902"
+# ★★【ISS-315 · 2026-11-18 · sw-lead】★★ ★**夹具的单号改成【真单号】** (★动态取·不许硬编码★)
+#   ★原来这里写的是假单号 `ISS-9901` (★"不许硬编码任何真单号"那句是说【不许把真单号写死在这】★)
+#   ★**为什么必须换**★: 修法 B (链头单号 ↔ 独立信源 `state/issue_log.yaml` 交叉核对) 铺到
+#     【硬保护路径】之后 ⇒ 「合法改板 ⇒ 放行」的正向用例 (REV-21) 必须拿得出【真单号 + 真留痕】
+#     ⇒ 用假单号 ⇒ 【独立信源里查不到】⇒ 假红 (★红在夹具缺输入, 不在判据方向★)
+#   ★**修法** (★ISS-309 铁律: 假伤修夹具, 不许改判据★)★: 夹具改用【真单号】
+#     (★`sw_fresh_hard_ticket()` 动态取: 真单号 + 对硬保护件来说是新的★) ⇒ ★判据本体一个字没动★
+#   ★注意★: ★**不许**拿落表台账里那八个已经落过 .kicad_pro 的老单号 (ISS-220/233/243/249/
+#     257/236/283/302) 来当夹具单号 ⇒ 那样 REV-20「只改板不动 .kicad_pro」会被判绿 ⇒ 用例废了★
+TICKET_FALLBACK = "ISS-9901"   # ★取不到真单号时的兼底 (★正常路径永远走不到★)
+TICKET_B = "ISS-9902"      # ★「第二个头」用的对照单号 (★那个场景链头不唯一 ⇒ 不触发修法 B★)
 
 
 def _tree_root(path: str) -> str:
@@ -1000,15 +1247,18 @@ def _row(ticket, rel, prev, new, note="★**是** ★"):
 
 
 def _reboard_in_tree(root: str, rows_fn=None, anchor_prev=None,
-                     ticket=TICKET_A, set_md5_only=False) -> str:
+                     ticket=None, set_md5_only=False) -> str:
     """临时树里做一次「合法改板」: ① 板文件改一个字节 ② 锚点写原子 reboard 记录 ③ 台账追加行。
 
     ★`set_md5_only=True` ⇒ 模拟「只改了锚点里的板 md5, 单号字段没写」(★挖坑那条路★)★
+    ★★【ISS-315】`ticket` 缺省 ⇒ 取【真单号】(★`sw_fresh_hard_ticket()`★) ⇒ ★不许硬编码★
     """
     board = os.path.join(root, BOARD_REL)
     newmd5 = _bump_file_copy(board)
     base = _anchor_base(root, BOARD_REL)
     prev = base if anchor_prev is None else anchor_prev
+    if not ticket:
+        ticket = sw_fresh_hard_ticket(PROJ) or TICKET_FALLBACK
 
     def _fn(data):
         for e in data["anchors"]["hard_protected"]:
@@ -1021,43 +1271,43 @@ def _reboard_in_tree(root: str, rows_fn=None, anchor_prev=None,
                                 "prev_md5": prev, "md5": newmd5}
     _rewrite_anchor_block(root, _fn)
     if rows_fn is not None:
-        _append_ledger_rows(root, rows_fn(root, base, newmd5))
+        _append_ledger_rows(root, rows_fn(root, base, newmd5, ticket))
     return newmd5
 
 
-def _rows_full_legal(root, base, new):
+def _rows_full_legal(root, base, new, ticket):
     """★合法改板的样子: 板一行变更 + `.kicad_pro` 一行「逐字节不变」, 同一单号★。"""
     pro = _anchor_base(root, PRO_REL)
     return [
-        _row(TICKET_A, BOARD_REL, base, new, "★**是 (★合法改板·板只改一次★)** ★"),
-        _row(TICKET_A, PRO_REL, pro, pro, "★**否 (★逐字节不变★)** ★"),
+        _row(ticket, BOARD_REL, base, new, "★**是 (★合法改板·板只改一次★)** ★"),
+        _row(ticket, PRO_REL, pro, pro, "★**否 (★逐字节不变★)** ★"),
     ]
 
 
-def _rows_two_heads(root, base, new):
+def _rows_two_heads(root, base, new, ticket):
     """★两条合法改板记录指向同一个文件 ⇒ 链头不唯一★。"""
     pro = _anchor_base(root, PRO_REL)
     return [
-        _row(TICKET_A, BOARD_REL, base, new, "★**是 (★合法改板★)** ★"),
+        _row(ticket, BOARD_REL, base, new, "★**是 (★合法改板★)** ★"),
         _row(TICKET_B, BOARD_REL, base, "deadbeefdeadbeefdeadbeefdeadbeef", "★**是 (★第二跳·另一个头★)** ★"),
-        _row(TICKET_A, PRO_REL, pro, pro, "★**否 (★逐字节不变★)** ★"),
+        _row(ticket, PRO_REL, pro, pro, "★**否 (★逐字节不变★)** ★"),
     ]
 
 
-def _rows_broken_chain(root, base, new):
+def _rows_broken_chain(root, base, new, ticket):
     """★链断: 台账记的是 (base→中间→链头), 而锚点写的改前 md5 是 base (★对不上上一次改后★)。"""
     pro = _anchor_base(root, PRO_REL)
     mid = "0123456789abcdef0123456789abcdef"
     return [
-        _row(TICKET_A, BOARD_REL, base, mid, "★**是 (★上一跳★)** ★"),
-        _row(TICKET_A, BOARD_REL, mid, new, "★**是 (★本跳·链头★)** ★"),
-        _row(TICKET_A, PRO_REL, pro, pro, "★**否 (★逐字节不变★)** ★"),
+        _row(ticket, BOARD_REL, base, mid, "★**是 (★上一跳★)** ★"),
+        _row(ticket, BOARD_REL, mid, new, "★**是 (★本跳·链头★)** ★"),
+        _row(ticket, PRO_REL, pro, pro, "★**否 (★逐字节不变★)** ★"),
     ]
 
 
-def _rows_board_only(root, base, new):
+def _rows_board_only(root, base, new, ticket):
     """★只改板不动 `.kicad_pro` ⇒ 两件的记录只来一条★。"""
-    return [_row(TICKET_A, BOARD_REL, base, new, "★**是 (★合法改板★)** ★")]
+    return [_row(ticket, BOARD_REL, base, new, "★**是 (★合法改板★)** ★")]
 
 
 # (用例名, 期望绿(True)/期望红(False), 破坏动作)
@@ -1221,7 +1471,28 @@ def selftest(root: str) -> int:
         for idx, (name, expect_green, fmut) in enumerate(R6_REBOARD_CASES):
             work = _build_r6_tree(tmp, root, "rb_%02d" % idx)
             try:
+                # ★★【ISS-315】改坏之前先把【保护基线】读出来 (★REV-16 会改锚点里的 md5★)
+                base = _anchor_base(work, BOARD_REL)
+                pro_base = _anchor_base(work, PRO_REL)
                 fmut(os.path.join(work, BOARD_REL))
+            except AssertionError as exc:
+                print("  ❌ %-52s ⇒ %s" % (name, exc))
+                failed += 1
+                continue
+            # ★★【ISS-315 · 2026-11-18 · sw-lead】★★ 给夹具补上【独立信源】的输入 ★
+            #   ★病灶: 修法 B (链头单号 ↔ 独立信源交叉核对) 铺到【硬保护路径】后 ★
+            #     「合法改板 ⇒ 放行」这个正向用例 (REV-21) 少了【独立信源】⇒ 假红 ★
+            #   ★修法: ★假伤修夹具, 不许改判据★ ⇒ 这里只【补输入】: 把真 issue_log 拷进临时树,
+            #     并在【真单号】的条目里写上【文件名 + 改后 md5】的留痕行 ★
+            #   ★真盘一个字节都不动★ (★写的是临时树里的 state/issue_log.yaml★)
+            try:
+                newmd5 = md5_of(work, BOARD_REL)
+                ticket = sw_fresh_hard_ticket(root)
+                if not ticket:
+                    raise AssertionError("取不到真单号 ⇒ 夹具自己坏了")
+                sw_sandbox_issue_log(os.path.join(work, ISSUE_LOG_REL), ticket,
+                                     [(BOARD_REL, base, newmd5),
+                                      (PRO_REL, pro_base, pro_base)])
             except AssertionError as exc:
                 print("  ❌ %-52s ⇒ %s" % (name, exc))
                 failed += 1

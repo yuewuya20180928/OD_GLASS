@@ -1,0 +1,114 @@
+════════ ① 零写板双证 ════════
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800
+════════ ② 三方 fresh DRC ════════
+official     md5=611b869e13518c3c023fb178f91a0075  viol=0  unc=45  unc网名=43  段数=18092  {}
+best23       md5=52ccbd207e0796c92426ba7e81863c5a  viol=0  unc=23  unc网名=21  段数=3364  {}
+cand_chain   md5=27b51bd5039a4f4b1d108cc1355b4463  viol=6  unc=29  unc网名=27  段数=3666  {'clearance': 5, 'copper_sliver': 1}
+cand_clrfix  md5=bbc5174139d7e699192a40152f6b9093  viol=1  unc=29  unc网名=27  段数=3666  {'copper_sliver': 1}
+ctl_chain    md5=cc13d3ce5539ab714ee320c8cbb62e6b  viol=6  unc=29  unc网名=27  段数=3666  {'clearance': 5, 'copper_sliver': 1}
+ctl_clrfix   md5=f73786f2101e005e755955ca76ec39c8  viol=1  unc=29  unc网名=27  段数=3666  {'copper_sliver': 1}
+════════ ③ 名单制闸 (compare_arm_official) ════════
+  self-test rc=0 (★必须 0·ALL TESTS PASS★)
+✔ '补好一条+拆碎一条'(总数持平) ⇒ 拒 (★逐网孤岛名单抓到)
+✔ 实测坏板 _reroute2 (★RESET_N 被拆成 5 块 + 差分腿 USB_D_N_SRC 断) ⇒ 名单制闸拒: I2C_A_SCL, I2C_A_SDA, ID_DETECT_1, RESET_N, USB_D_N_SRC
+ALL TESTS PASS
+  ★候选板 vs 官方板 rc=1
+  ★对照臂 vs 官方板 rc=1
+  ★对照臂 vs 左上限臂 rc=1
+════════ ④ 网名集合三层口径 (cmp_unc_sets) ════════
+  cand vs official rc=0
+  best23 vs official rc=0
+  cand vs best23 rc=0
+  ctl vs official rc=0
+  cand vs ctl rc=0
+════════ ⑤ 段内 P/N 顺序翻转 ════════
+★同段比较总数 = 47 · 其中【N在左 ⇒ 段内需交叉】 = 5
+★★ISS-325 读数 (★板 = cand★): 同段总数 = 47 · 翻转 = 5
+★同段比较总数 = 47 · 其中【N在左 ⇒ 段内需交叉】 = 5
+★★ISS-325 读数 (★板 = ctl★): 同段总数 = 47 · 翻转 = 5
+════════ ⑥ 图纸门禁 (候选板) ════════
+  rc=1
+  (查板: /tmp/_clrfix_iss325_s8lu_final.kicad_pcb)
+  ❌ C3 DRC violations = 1 (要求 0)
+  ✅ C4 unconnected items = 29  ← 骨架阶段允许未布线 (布线完成后用 --strict 归零)
+  ✅ C7 同点重复过孔 = 0 (要求 0)
+❌ 不通过 1 项: C3 DRC 1 项违规
+════════ ⑦ 目标坐标复核 (候选板上 20 个器件真落位了吗) ════════
+# board=/tmp/_clrfix_iss325_s8lu_final.kicad_pcb
+# board_md5 (见同名 .md5 文件)
+# fields: ref	x	y	rot
+R_SEL_CK_N	23.15	3.00	0.0
+R_SEL_CK_P	20.70	3.00	0.0
+R_SEL_D0_N	38.35	3.00	0.0
+R_SEL_D0_P	35.90	3.00	0.0
+R_SEL_D1_N	30.75	3.00	0.0
+R_SEL_D1_P	28.30	3.00	0.0
+R_SEL_D2_N	15.55	3.00	0.0
+R_SEL_D2_P	13.10	3.00	0.0
+R_SEL_D3_N	7.95	3.00	0.0
+R_SEL_D3_P	5.50	3.00	0.0
+TP_DSI_CK_N	23.15	6.20	0.0
+TP_DSI_CK_P	20.70	6.20	0.0
+TP_DSI_D0_N	41.55	3.00	0.0
+TP_DSI_D0_P	35.90	6.20	0.0
+TP_DSI_D1_N	30.75	6.20	0.0
+TP_DSI_D1_P	28.30	6.20	0.0
+TP_DSI_D2_N	15.55	6.20	0.0
+TP_DSI_D2_P	13.10	6.20	0.0
+TP_DSI_D3_N	7.95	6.20	0.0
+TP_DSI_D3_P	5.50	6.20	0.0
+# PCB_PART_POS = R_SEL_CK_N:23.15,3.00;R_SEL_CK_P:20.70,3.00;R_SEL_D0_N:38.35,3.00;R_SEL_D0_P:35.90,3.00;R_SEL_D1_N:30.75,3.00;R_SEL_D1_P:28.30,3.00;R_SEL_D2_N:15.55,3.00;R_SEL_D2_P:13.10,3.00;R_SEL_D3_N:7.95,3.00;R_SEL_D3_P:5.50,3.00;TP_DSI_CK_N:23.15,6.20;TP_DSI_CK_P:20.70,6.20;TP_DSI_D0_N:41.55,3.00;TP_DSI_D0_P:35.90,6.20;TP_DSI_D1_N:30.75,6.20;TP_DSI_D1_P:28.30,6.20;TP_DSI_D2_N:15.55,6.20;TP_DSI_D2_P:13.10,6.20;TP_DSI_D3_N:7.95,6.20;TP_DSI_D3_P:5.50,6.20
+__PCBNEW_OK__ footprints_selected=20
+════════ ⑧ 高速网机制级读数 (零铜 vs 长了一半) ════════
+DSI_D0_CK_P            63.41     28     4  F.Cu:25 In2.Cu:1 In4.Cu:2
+DSI_D0_CK_P_SRC         7.31      5     2  F.Cu:4 In2.Cu:1
+DSI_D0_D0_N            59.62     39     0  F.Cu:39
+DSI_D0_D0_N_SRC        20.52     21     2  F.Cu:4 In2.Cu:17
+DSI_D0_D0_P            59.62     18     3  F.Cu:13 In2.Cu:1 In4.Cu:4
+DSI_D0_D0_P_SRC        20.52     12     2  F.Cu:8 In2.Cu:4
+DSI_D0_D1_N            63.85     56     0  F.Cu:56
+DSI_D0_D1_N_SRC        12.13     28     2  F.Cu:10 In2.Cu:18
+DSI_D0_D1_P            63.85     28     8  F.Cu:13 In2.Cu:13 In4.Cu:2
+DSI_D0_D1_P_SRC        12.13     20     2  F.Cu:12 In2.Cu:8
+DSI_D0_D2_N            75.38     54     6  F.Cu:8 In2.Cu:39 In6.Cu:7
+DSI_D0_D2_N_SRC         9.66     14     2  F.Cu:6 In2.Cu:8
+DSI_D0_D2_P            75.38     32     5  F.Cu:26 In2.Cu:4 In6.Cu:2
+DSI_D0_D2_P_SRC         9.66     11     0  F.Cu:11
+DSI_D0_D3_N             5.86     16     2  F.Cu:5 In2.Cu:11
+DSI_D0_D3_N_SRC        17.57     35     3  F.Cu:18 In2.Cu:3 In4.Cu:14
+DSI_D0_D3_P             4.12      5     2  F.Cu:4 In2.Cu:1
+DSI_D0_D3_P_SRC        17.57     23     2  F.Cu:12 In2.Cu:11
+
+── 差分族 P/N 铜量对照 (★N 为 0 ⇒ 单边零铜★)
+  CSI_D0_CK     _SRC  P=CSI_D0_CK_P_SRC       31.90mm   N=CSI_D0_CK_N_SRC       31.90mm
+  CSI_D0_CK     (远端)  P=CSI_D0_CK_P           56.91mm   N=CSI_D0_CK_N           56.91mm
+  CSI_D0_D0     _SRC  P=CSI_D0_D0_P_SRC       43.76mm   N=-                      0.00mm
+  CSI_D0_D0     (远端)  P=CSI_D0_D0_P           36.04mm   N=CSI_D0_D0_N           36.04mm
+  CSI_D0_D1     _SRC  P=CSI_D0_D1_P_SRC       33.14mm   N=-                      0.00mm
+  CSI_D0_D1     (远端)  P=CSI_D0_D1_P           37.41mm   N=-                      0.00mm
+  CSI_D0_D2     _SRC  P=CSI_D0_D2_P_SRC       12.05mm   N=CSI_D0_D2_N_SRC       12.05mm
+  CSI_D0_D2     (远端)  P=-                      0.00mm   N=-                      0.00mm
+  CSI_D0_D3     _SRC  P=CSI_D0_D3_P_SRC       17.06mm   N=CSI_D0_D3_N_SRC       17.06mm
+  CSI_D0_D3     (远端)  P=CSI_D0_D3_P           79.82mm   N=CSI_D0_D3_N           79.82mm
+  DSI_D0_CK     _SRC  P=DSI_D0_CK_P_SRC        7.31mm   N=-                      0.00mm
+  DSI_D0_CK     (远端)  P=DSI_D0_CK_P           63.41mm   N=DSI_D0_CK_N           63.41mm
+  DSI_D0_D0     _SRC  P=DSI_D0_D0_P_SRC       20.52mm   N=DSI_D0_D0_N_SRC       20.52mm
+  DSI_D0_D0     (远端)  P=DSI_D0_D0_P           59.62mm   N=DSI_D0_D0_N           59.62mm
+  DSI_D0_D1     _SRC  P=DSI_D0_D1_P_SRC       12.13mm   N=DSI_D0_D1_N_SRC       12.13mm
+  DSI_D0_D1     (远端)  P=DSI_D0_D1_P           63.85mm   N=DSI_D0_D1_N           63.85mm
+  DSI_D0_D2     _SRC  P=DSI_D0_D2_P_SRC        9.66mm   N=DSI_D0_D2_N_SRC        9.66mm
+  DSI_D0_D2     (远端)  P=DSI_D0_D2_P           75.38mm   N=DSI_D0_D2_N           75.38mm
+  DSI_D0_D3     _SRC  P=DSI_D0_D3_P_SRC       17.57mm   N=DSI_D0_D3_N_SRC       17.57mm
+  DSI_D0_D3     (远端)  P=DSI_D0_D3_P            4.12mm   N=DSI_D0_D3_N            5.86mm
+════════ ⑨ SoM 主体区逐层占布 ════════
+Traceback (most recent call last):
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/logs/iss325/scripts/probe_som_body_cand.py", line 14, in <module>
+    BOARD = sys.argv[1] if len(sys.argv) > 1 else "HW/PCB/demo_mainboard.kicad_pcb"
+                               ^^^
+NameError: name 'sys' is not defined
+════════ ⑩ 门禁链 ════════
+  merge rc=0
+  gate_check rc=0
+  issue_check rc=0
+=== ISS-325 测量总驱动结束 2026-11-18 15:00:13 ===

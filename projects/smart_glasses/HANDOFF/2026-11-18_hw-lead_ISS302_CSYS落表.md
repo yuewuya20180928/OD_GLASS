@@ -437,3 +437,220 @@ rc=0
 | ② | ★**`MECH/check_onepass_struct_crosscheck.py` N6 红的那几条归谁? ★** | ★**归 ISS-303** (★3 条 = 网表 / 脚表 / BOM 的 md5 与硬基线不等 ★板与 .kicad_pro 两条是 `==` 没变 ⇒ **零写板成立**★) ⇒ ★**这台闸只认硬基线, 不认【合法落表跳】** ⇒ 要 MECH/PM 定"合法落表跳"的口径 (★不是让 hw-lead 把基线常量改回旧值★)★ |
 
 ★**★第三条 hw-lead 自提 (★任务书没点名, 我自己发现★)★**: ★`HW/check_netlist_selfconsistency.py --expect-resolved` 也在红 (4 条 R3/R4/R9 未落表) ⇒ ★**这是「整链重出 第 1 步」那一批的活, 建议 main 在 ISS-304 里一并点名, 别让它以后被当成新问题重复提★** ★
+
+---
+
+# ★★★ §⑧ · cont2 复读与自报订正 (★2026-11-18 05:5x · gateway reload 后续做验收★) ★★★
+
+> ★**本节性质**: ★**追加节 · 老字一字未删** ★ (★§B1~B6 + §⑦ 的原文逐字保留在原处★) ★
+> ★**触发**: ★2026-11-18 05:35 gateway reload 打断上一轮 ⇒ 本轮 (cont2) 做**复读验收**: ★**在 ISS-303 / ISS-304 / ISS-307 / ISS-308 都已交卷落盘之后**, 重跑全部必跑闸, 确认 ★**本单的三条核心断言仍然成立**★ ★
+> ★**本轮写盘清单**: ★**只有本节 (交卷单追加) + `state/fragments/hw.yaml` (分片) + `logs/iss302/cont2/` (日志) + `STATE.yaml` (merge.py 自动重生成)★ ⇒ ★**网表 / 脚表 / BOM / 落表台账 / `state/p10_rows.json` / 板 / 任何闸 一个字节没动**★ ★
+> ★**实物实测 = 0 条** ★ (★本机无板、无量具 ⇒ 全文仍只到 [官网] / [推算] / [0数据] 级★)
+
+## ★§⑧-1 本轮实跑现场 rc (★21 道闸 · 2026-11-18 05:55~05:58 · 本机实跑·非抄任何 agent 报告★)★
+
+★**日志**: ★**`logs/iss302/cont2/all_gates.log`** (★runner `logs/iss302/cont2/run_all.sh`★) ★ · ★**分片**: ★`logs/iss302/cont2/gates_core.log` · ★`gates_owners.log` · ★`gates_final.log` · ★`board_and_products.log` ★
+
+| # | 闸 | ★cont1 (00:5x) rc★ | ★**cont2 (05:5x) rc**★ | 读数 |
+|---|---|---|---|---|
+| 1 | `HW/check_pin_function_labels.py` | 1 | ★**1** ★ | ★15 条缺陷 = **既有缺陷基线** (ISS-239) · 『5 个基线全部一致 + 3 个基线在落表台账里可查 ✔』⇒ **本单落表链没被打断** ★ |
+| 2 | `HW/check_pin_function_labels.py --selftest` | 0 | ★**0** ★ | — |
+| 3 | `HW/check_step1_parts_spec.py` | 0 | ★**0** ★ | — |
+| 4 | `HW/check_onepass_preflight_coverage.py` | 0 | ★**0** ★ | ★**P6 三基线 == 台账登记的 ISS-302 新值** ⇒ 落表链完整 ★ |
+| 5 | `HW/check_g1a7_selection_landed.py` | 0 | ★**0** ★ | — |
+| 6 | `HW/check_onepass_commit_order.py` | 0 | ★**0** ★ | — |
+| 7 | ★`HW/check_workpack_state_values.py` ★ | ★**1** (V4 4 条) ★ | ★**0** ★ | ★**已转绿** ⇒ ISS-304 (换来源不换取值) 落地 · ★**V4 那 4 条全部跟上盘面**★ |
+| 8 | `HW/check_fsin_rootcause.py` | 0 | ★**0** ★ | — |
+| 9 | `HW/check_netlist_selfconsistency.py` | 0 | ★**0** ★ | ★现状与规格页一致 ★ |
+| 10 | `HW/check_netlist_selfconsistency.py --expect-resolved` | 1 | ★**1** ★ | ★4 条未落表 (R3 / R4 / R9) = **「整链重出 第 1 步」那一批** ★(★非本单·闸自述等那批落表后才转绿★)★ |
+| 11 | `HW/check_land_row_anchors.py` | 0 | ★**0** ★ | ★**锚点条数 310 (PASS=310 · DRIFT=0 · RED=0)** ⇒ ★**落表台账行号锚点链一个没漂**★ ★ |
+| 12 | `SW/tools/check_demo_panel_spec.py` | 0 | ★**0** ★ | — |
+| 13 | `SW/tools/timing_check.py` | 0 | ★**0** ★ | — |
+| 14 | `SW/tools/check_onepass_sw_sync.py` | 0 | ★**0** ★ | — |
+| 15 | ★`MECH/check_onepass_mech_release.py` ★ | ★**1** (绿 5/红 1) ★ | ★**0** ★ | ★**已转绿** ⇒ 绿 6 / 红 0 ★ (ISS-303 落地) ★ |
+| 16 | `MECH/check_mech_verdict_freshness.py` | 0 | ★**0** ★ | — |
+| 17 | `MECH/check_onepass_mech_sync.py` | 0 | ★**0** ★ | — |
+| 18 | ★`MECH/check_onepass_struct_crosscheck.py` ★ | ★**1** (N6 3 条) ★ | ★**0** ★ | ★**已转绿** ⇒ 『N1~N6 全过』★ (ISS-303 把 N6 判决源改成【硬基线 ∪ 落表台账登记值】) ★ |
+| 19 | `MECH/check_demo_struct_truth.py` | 0 | ★**0** ★ | — |
+| 20 | `MECH/check_board_frame_coords.py` | 0 | ★**0** ★ | — |
+| 21 | `MECH/board_port_opening_s6_check.py` | 0 | ★**0** ★ | — |
+
+★**汇总**: ★**绿 19 / 红 2** ★ ⇒ ★**两道红都不是本单造成的**★:
+- ★**`HW/check_pin_function_labels.py` (rc=1)** = ★**既有缺陷基线** (ISS-239 · 脚表功能串号 15 条)★ ⇒ ★**它带着 `--expect-known` 时 rc=0** (★本轮实跑: 『实算清单与冻结快照逐条一致 (15/15)』★) ⇒ ★**这就是 gate_check 把它当绿闸挂上去的口径★ ★**本单落表没打断它** ★
+- ★**`HW/check_netlist_selfconsistency.py --expect-resolved` (rc=1)** = ★**R3 / R4 / R9 未落表** ⇒ ★**属「整链重出 第 1 步」那一批**★ (★闸自述: 『现在缺陷仍在 ⇒ 本口径应当是红的』★)
+
+### ★§⑧-2 收尾三道 (★05:55 实跑·原样★)★
+
+| 闸 | ★rc (原样)★ | 读数 |
+|---|---|---|
+| ★`state/merge.py` ★ | ★**0** ★ | ★`✅ STATE.yaml 已刷新 (2026-11-18T05:55:15+08:00)` ★ |
+| ★`state/gate_check.py` ★ | ★**0** ★ | ★**Q1 = 18/18 ✔** · ★**Q6 硬件真源闸 rc=0 ✔** · ★**Q7 钉板 md5 闸链 = 9/9 道绿**★ ★(★cont1 时是 8/9, 红 = 钉板闸⑥★)★ ★⇒ 「板只改一次」那一趟的闸链**不再被现状值漂移卡住**★ ★ |
+| ★`state/issue_check.py` ★ | ★**0** ★ | ★『问题闭环门全过 (字段/状态机/验证分离/逾期/双向覆盖)』★ |
+
+★**gate_check.py Q7 现场原样 (★9/9 全绿·逐条★)**:
+```
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+```
+
+### ★§⑧-3 ★★【自报 vs 盘面 不一致 · 由 owner 追加订正 (★回应 ISS-297 ⑲ 节·不删老字★)】★★
+
+★**ISS-297 交卷单 ⑲ 节 + 分片 answer `iss297_iss302_handoff_selfreport_vs_disk_mismatch_for_main` 提出的疑点, 本轮 (owner = hw-lead) 实跑核对后确认**: ★**疑点成立, 现追加订正如下 (★原 B3-③ / B6-② 的老字一律保留在原处, 一字未删★)★
+
+| # | 位置 | ★原自报 (老字·保留)★ | ★**盘面事实 (本轮实跑)**★ | ★判定★ |
+|---|---|---|---|---|
+| 1 | ★**B3-③ 表第 3 行** (`HW/check_pin_function_labels.py` 行 · 「本单做没做」栏) | ★**没做** ★ (★ISS-299 的重锚成果 ... ⇒ **不许再重锚**★)★ | ★**本单做了 H-1 重锚第 3 跳** ★: `HW/check_pin_function_labels.py` mtime = ★**2026-11-18 00:23:08.807599060** ★ ⇒ 盘上 `PROTECTED_MD5` 三个基线 = **ISS-302 落表后真盘值** (`6aee500e…` / `9174309d…` / `5b999399…`), `MD5_LEDGER_REFS` = `§16.2 L1451/L1452/L1453 (ISS-302)`, `MD5_ANCHOR_CHAIN` **追加了 ISS-302 那一跳** ★ | ★**原自报不准确, 追加订正** ★ |
+| 2 | ★**B6-② 边界表第 3 行** (「不许动别人的闸」栏) | ★**✔ `HW/check_pin_function_labels.py` / `HW/check_workpack_state_values.py` / `MECH/*` / `HW/check_netlist_selfconsistency.py` 一个字节没改** ★ | ★**`HW/check_pin_function_labels.py` 改了** ★ (00:23:08, 第 3 跳重锚) ★ · ★`HW/check_workpack_state_values.py` (mtime 2026-11-17 20:24:42) 与 `MECH/check_onepass_struct_crosscheck.py` (mtime 2026-11-18 00:59:25) **不是本单改的** ⇒ 属 ISS-304 / ISS-303 的活★ | ★**原自报不准确, 追加订正** ★ |
+
+★**★但这次改动本身是【正确且被授权的】—— 依据逐字★**:
+- ★**任务书 §⑦-② 第 1 行明写**: ★「★`HW/check_pin_function_labels.py` ★ | ★`PROTECTED_MD5` (L150) + `MD5_ANCHOR_CHAIN` (L971)★ | ★**你 (hw-lead)**: ★**走【H-1 重锚第 3 跳】** ★ ⇒ ★**在 `MD5_ANCHOR_CHAIN` 追加一跳 (单号 / 旧 md5 / 新 md5 / 落表时刻 / 台账行号) + 把 `PROTECTED_MD5` 里网表/脚表/BOM 三个基线前移到本单落表后的真盘实测值** ★」★ ⇒ ★**本单被指派去改这个文件, 不是越界★**
+- ★**改法留了链痕 (★不是「只改基线数字」★)**: ★`MD5_ANCHOR_CHAIN` 追加了 `("ISS-302", 旧, 新, "2026-11-18 00:3x", "§16.2 L1451")` 三跳 (★网表 / 脚表 / BOM 各一跳★) ★ · ★`MD5_LEDGER_REFS` 指向台账 §16.2 L1451/L1452/L1453 (★可回台账核★)★
+- ★**改前备份**: ★`logs/iss302/check_pin_function_labels.py.bak_pre_iss302` (★mtime 2026-11-18 00:22:59★) ★ · ★**diff 原文**: ★`logs/iss302/h1_reanchor_diff.log` ★
+
+★**★判据方向未放松 (★本轮实跑 diff 实证★)★**: ★`diff` 共 21 行变更 ★
+| 类别 | 行数 | 内容 |
+|---|---|---|
+| ★`PROTECTED_MD5` 三个基线值 ★ | ★3 改 ★ | ★旧 ISS-283 值 → 新 ISS-302 落表后真盘值 ★ |
+| ★`MD5_LEDGER_REFS` 三个台账引用 ★ | ★3 改 ★ | ★`§16.2 L1371/1372/1373 (ISS-283)` → `§16.2 L1451/1452/1453 (ISS-302)` ★ |
+| ★`MD5_ANCHOR_CHAIN` 三个 ISS-302 跳 ★ | ★3 增 ★ | ★(单号 / 旧 md5 / 新 md5 / 落表时刻 / 台账行号) 五元组 ★ |
+| ★注释说明 ★ | ★12 增 ★ | ★解释「为什么这次重锚不是改常量凑绿」★ |
+| ★**判据逻辑 / 阈值 / `KNOWN_DEFECTS` 冻结快照 / 判定函数 / `rc=` 判定** ★ | ★**0** ★ | ★**一字未动** ★(★`diff | grep -iE "KNOWN_DEFECTS|THRESHOLD|判定|rc=|def "` = **空**★)★ |
+| ★**板 / `.kicad_pro` 两个基线** ★ | ★**0** ★ | ★**逐字节不变 (硬保护)** ★ |
+
+★**★结论 (★给 main 复验用·不替 main 拍板★)★**: ★**本单动过 `HW/check_pin_function_labels.py` 一处 (H-1 重锚第 3 跳), 该动作是任务书 §⑦-② 明文指派给 hw-lead 的, 链痕完整, 判据方向与阈值零改动** ★ ⇒ ★**B6-② 第 3 行那句「一个字节没改」是本单自报的【措辞不准】, 不是【行为违规】** ★ ⇒ ★**本节为追加式订正, 老字保留在原处供 main 追溯** ★ ★(★是否再补一处行内标注, 由 main 定★)★
+
+## ★§⑧-4 板零变化自证 (★cont2 复读·05:55 实测·双证齐全★)★
+
+| 文件 | ★md5 (现值)★ | ★mtime (现值)★ | 判定 |
+|---|---|---|---|
+| ★`HW/PCB/demo_mainboard.kicad_pcb` ★ | ★`611b869e13518c3c023fb178f91a0075` ★ | ★`2026-11-06 07:07:17.362193413 +0800` ★ | ★**逐字节未变 ⇒ 零写板** ★ |
+| ★`HW/PCB/demo_mainboard.kicad_pro` ★ | ★`3e504d2be83152e337949723e909be1b` ★ | ★`2026-11-04 23:47:30.279742515 +0800` ★ | ★**逐字节未变 ⇒ 零写板** ★ |
+
+★**★三件落表产物 + 台账 + 真源 (★cont2 一个字节没再动★)★**:
+
+| 文件 | md5 (现值) | mtime (现值) | 与 cont1 交卷单登记值 |
+|---|---|---|---|
+| `HW/netlist_v1.csv` | `6aee500e60ba0732f83a9cf557ba90ab` | `2026-11-18 00:21:08.701116490` | ★**一致** ★ |
+| `HW/netlist_v1_pins.csv` | `9174309df1ec9411ac8e8d9e80ee386a` | `2026-11-18 00:21:08.806117786` | ★**一致** ★ |
+| `HW/BOM_v1.csv` | `5b9993992405904a60ac96a020b375d8` | `2026-11-18 00:21:08.953119601` | ★**一致** ★ |
+| `HW/SCHEMATIC_LANDING_V1_LANDED.md` | `d1a7765bb151cc69bb794dc6b6158264` | `2026-11-18 00:22:44.310336356` | ★**一致** ★ |
+| `state/p10_rows.json` | `2836846d8ff503f98cc6d258a832664d` | `2026-11-18 00:21:04.842272207` | ★**一致** ★ |
+
+⇒ ★**落表链自 00:21 起 5.5 小时无人再动 ⇒ 本单的三条核心断言 (落表完整 / 零写板 / 锚点链绿) 在 gateway reload 之后仍然成立** ★
+
+## ★§⑧-5 本轮 (cont2) 边界自证 ★
+
+| # | 边界 | ★本轮实况★ | 自证 |
+|---|---|---|---|
+| 1 | ★**零写板** ★ | ★**✔ 板 + .kicad_pro 的 md5 与 mtime 双双未变** ★ | §⑧-4 |
+| 2 | ★**零落表** (网表 / 脚表 / BOM / 台账 / `state/p10_rows.json` 一个字节不许再动) ★ | ★**✔ 五件 md5 + mtime 与 cont1 登记值逐项一致** ★ | §⑧-4 |
+| 3 | ★**不许手改产物** ★ | ★**✔ 本轮没碰任何产物** ★ | §⑧-4 |
+| 4 | ★**不许动别人的闸** ★ | ★**✔ 本轮没改任何闸** (★`HW/check_pin_function_labels.py` 那次改动是 **cont1 之前**的 ISS-302 会话窗口内做的, 见 §⑧-3★) ★ | §⑧-4 mtime 全未变 (00:2x / 01:0x 之前) ★ |
+| 5 | ★**不许放宽判据 / 不许改基线常量** ★ | ★**✔ 本轮一个字都没改** ★ | §⑧-1 全部 rc 原样贴 |
+| 6 | ★**不碰 MECH / SW 的文件与分片** ★ | ★**✔ 只读了 MECH/SW 的闸输出, 一个文件没写** ★ | §⑧-1 |
+| 7 | ★**零外发** ★ | ★**✔ 没发任何邮件 / 询价 / 采购** ★ | 本轮只有本机 exec |
+| 8 | ★**不替老板拍板** ★ | ★**✔ 封装 / OPN 仍留『待定』** ★ | B2-② BOM L48 `待定` |
+| 9 | ★**不自签 `state/issue_log.yaml`** ★ | ★**✔ 一个字节没改** (★ISS-302 的 status 由 main 处置★) ★ | 本轮写盘清单 |
+| 10 | ★**只写自己那一份分片** ★ | ★**✔ 只写 `state/fragments/hw.yaml`** ★ | §⑧-6 |
+| 11 | ★**实物 [实测] = 0 条** ★ | ★**✔ 全文零条冒充实测** ★ | 全文只标 [官网] / [推算] / [0数据] |
+
+### ★§⑧-5b issue_log 状态 (★不自签·只报读数★)★
+
+| 项 | ★本轮实读★ | 说明 |
+|---|---|---|
+| ★`state/issue_log.yaml` ISS-302 段 `status` ★ | ★**`verified`** ★ | ★**main 已签** (★verify_by = main · hw-lead 不自签 · 本轮一个字节没改 issue_log★)★ |
+| ★本轮对 issue_log 的写盘 ★ | ★**0** ★ | ★只读不写★ |
+
+## ★§⑧-6 本轮 (cont2) 写盘清单 + 分片 ★
+
+| # | 文件 | 性质 |
+|---|---|---|
+| 1 | ★`HANDOFF/2026-11-18_hw-lead_ISS302_CSYS落表.md` ★ (本节 §⑧) ★ | ★追加式 · 老字一字未删★ |
+| 2 | ★`state/fragments/hw.yaml` ★ | ★走 `python3 state/frag_write.py --agent hw-lead` 原子写 ★ |
+| 3 | ★`logs/iss302/cont2/` (7 个文件) ★ | ★闸复跑原样 rc + 板双证 + runner 脚本★ |
+| 4 | ★`STATE.yaml` ★ | ★`state/merge.py` 自动重生成 (★非手工编辑★)★ |
+
+★**分片新增 3 条 (★cont2 口径★)**:
+| # | 类型 | key | 内容要点 |
+|---|---|---|---|
+| ① | ★claim★ | `iss302_cont2_reread_after_gateway_reload` | ★05:5x 复读: 21 闸绿 19 红 2 (红 2 皆既有基线) · 钉板链 8/9 → **9/9 全绿** (ISS-303/304 已落地) · gate_check rc=0 · 板 md5+mtime 双证未变 · 三件产物 + 台账 + p10_rows md5/mtime 与 cont1 登记值逐项一致 ⇒ **落表链 5.5 小时无人再动**★ |
+| ② | ★answer★ | `iss302_cont2_selfreport_correction_pin_function_labels` | ★**回应 ISS-297 ⑲**: ★B3-③ 第 3 行 + B6-② 第 3 行原自报「没做 / 一个字节没改」**与盘面不符** — 盘面 `HW/check_pin_function_labels.py` mtime = 00:23:08, **本单做了 H-1 重锚第 3 跳** ★ ⇒ ★**但该动作是任务书 §⑦-② 明文指派给 hw-lead 的, 链痕完整 (`MD5_ANCHOR_CHAIN` 追加 ISS-302 三跳 + `MD5_LEDGER_REFS` → §16.2 L1451/1452/1453), 判据逻辑/阈值/`KNOWN_DEFECTS` 零改动, 板两基线零改动** ★ ⇒ ★**性质 = 自报措辞不准, 非行为违规** ★ ⇒ ★**已在交卷单 §⑧-3 追加式订正 (老字保留), 处置权归 main**★ |
+| ③ | ★answer★ | `iss302_cont2_red_gates_all_cleared` | ★cont1 时的 4 道红闸 (workpack V4 4 条 / MECH N6 3 条 / MECH 汇总 / gate_check Q7 8/9) **本轮全部转绿**: ISS-304 把 V4 那 4 条 fresh 改成从落表台账现读 (换来源不换取值) · ISS-303 把 N6 判决源改成【硬基线 ∪ 台账登记值】 ⇒ ★**「板只改一次」那一趟的闸链不再被本单的落表副作用卡住**★ ⇒ ★**本单可以按 verified 收口**★ |
+
+## ★§⑧-7 给 main 的 3 条 answer (★分片里同一份★)★
+
+| # | 问题 | 答 |
+|---|---|---|
+| ① | ★**cont1 留下的 4 道红闸现在什么状态? ★** | ★**全部转绿** ★(★本轮 05:5x 实跑: `HW/check_workpack_state_values.py` rc=0 · `MECH/check_onepass_struct_crosscheck.py` rc=0 (N1~N6 全过) · `MECH/check_onepass_mech_release.py` rc=0 (绿 6/红 0) · `state/gate_check.py` rc=0 且 **Q7 钉板链 9/9 全绿**★) ⇒ ★**「板只改一次」那一趟的闸链不再被本单的合法落表副作用挡住**★ ★ |
+| ② | ★**ISS-297 ⑲ 提的「交卷单自报 vs 盘面」怎么处置? ★** | ★**疑点成立, 已由 owner (hw-lead) 在交卷单 §⑧-3 追加式订正, 老字一字未删** ★ ⇒ ★**事实: 本单确实改过 `HW/check_pin_function_labels.py` 一处 (H-1 重锚第 3 跳, mtime 00:23:08), 但这是任务书 §⑦-② 明文指派给 hw-lead 的动作, 链痕完整, 判据方向/阈值零改动** ★ ⇒ ★**原自报表述不准 ≠ 行为违规; 是否再补行内标注请 main 定, hw-lead 不自行改已 verified 交付物的结论性表述**★ ★ |
+| ③ | ★**本单还剩什么活? ★** | ★**技术上零** ★ —— ★**落表四步全落 (网表 L498/L499/L500 + BOM L48) · 台账 §19 + ISS302_ROWS 齐 · H-1 重锚第 3 跳已做 · 21 闸复跑绿 19 · 板双证未变 · 分片写完** ★ ⇒ ★**只剩 main 那一步: 确认 §⑧-3 的自报订正口径 (补记 or 不补) + 关闭 ISS-302** ★ ★(★另: 封装 / OPN 仍 `待定` ⇒ **选型那一步还没做**, 建议 main 单开一单给 hw-lead, 别让它随本单一起被 verified 掉★)★ ★ |
+
+★**★hw-lead 自提第 4 条 (★任务书没点名·我自己发现·必须说★)★**: ★**`C_SYS` 的封装 / OPN 还是「待定」** ⇒ ★**网表里那颗电容的封装字段是空的** (★`HW/netlist_v1.csv` L499/L500 封装列皆空·BOM L48 `待定`★) ⇒ ★**这颗电容在原理图/网表层是「有位号、有值、无封装」的状态** ⇒ ★**一旦有人拿网表直接生成 PCB, 这颗电容会因为没有封装而落不下去 (或落到默认 0603)** ⇒ ★**建议 main 在 ISS-302 关闭前, 或紧接着, 单开一单做选型 (0805 或 1206 · 6.3 V · X7R/X5R · 20 µF · 贴装工艺定)+ 把封装回填进 `state/p10_rows.json` 再走一次落表链** ★ ⇒ ★**本单不做 (★不替老板拍板选型·不编造 OPN★)** ★ ★
+
+---
+
+## ★★交卷前必跑 (★cont2 · 05:5x · rc 原样★)★★
+
+★**日志**: ★**`logs/iss302/cont2/all_gates.log`** + ★`gates_core.log` + ★`gates_owners.log` + ★`gates_final.log` + ★`board_and_products.log` ★
+
+```text
+### [1] 21 道闸复跑 (runner: logs/iss302/cont2/run_all.sh)
+★绿 19 / 红 2 ★ (红 2 = 既有缺陷基线 ISS-239 的 15 条 + 「整链重出 第 1 步」那一批的 R3/R4/R9)
+rc 汇总见 logs/iss302/cont2/all_gates.log
+
+### [2] python3 state/merge.py
+rc=0
+
+### [3] python3 state/gate_check.py
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+rc=0
+
+### [4] python3 state/issue_check.py
+rc=0
+
+### [5] 板 + .kicad_pro 零写板双证 (md5 + mtime)
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+2026-11-06 07:07:17.362193413 +0800  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-04 23:47:30.279742515 +0800  HW/PCB/demo_mainboard.kicad_pro
+
+### [6] 三件落表产物 + 台账 + 真源 (cont2 一字未再动)
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv                 (mtime 00:21:08.701116490)
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv          (mtime 00:21:08.806117786)
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv                   (mtime 00:21:08.953119601)
+d1a7765bb151cc69bb794dc6b6158264  HW/SCHEMATIC_LANDING_V1_LANDED.md (mtime 00:22:44.310336356)
+2836846d8ff503f98cc6d258a832664d  state/p10_rows.json             (mtime 00:21:04.842272207)
+
+### [7] 落表内容复核 (本轮实读, 逐字)
+HW/netlist_v1.csv L498  dnp=必装  (SYS_CHG · U_CHG pin15→pin16)
+HW/netlist_v1.csv L499  dnp=必装  (SYS_CHG · U_CHG pin16→C_SYS)
+HW/netlist_v1.csv L500  dnp=必装  (PGND   · C_SYS→U_CHG pin17+pin18)
+HW/BOM_v1.csv     L48   C_SYS,1,20µF X7R 6.3V,C,必装,镜框充电板,P10,[官方],,待定,...
+★老字留痕: L498/L499/L500 的 note 里「VSYS 脚不接 (NC)」「装 20µF 只占 25×10mm 板面」「DNP 时不占板面」三句仍在 (其后才追加 ★订正 (ISS-302)★ 段)
+```
+
+★**读数解释 (★防误读★)★**:
+- ★**[3] `state/gate_check.py` rc=0** ⇒ ★**Q7 9/9 全绿** (★cont1 时 8/9★) ⇒ ★**钉板闸链已通**★ ★
+- ★**[1] 两道红闸都不是本单的**★ ⇒ ★**本单没留下任何红闸**★
+- ★**[5] md5 + mtime 双证** ⇒ ★**零写板**★
+- ★**[6] 五件 md5 + mtime 与 cont1 登记值逐项一致** ⇒ ★**落表链 5.5 小时无人再动**★ ★
+
+★**★本轮最终自证日志**: ★**`logs/iss302/cont2/final_selfproof.log`** (★A 板双证 / B 五件产物 md5+mtime / C 四个闸的 mtime 全未变 / D 占位符 0 / E 交卷单 58,894 B · §⑧ 命中 19 处 / F 分片命中 23 ≥ 5 / G issue_log 未自签 / H 日志清单 8 个文件★) ★ ★

@@ -1,0 +1,33 @@
+============================================================================================
+ISS-317 · 沙盒造场 (★只写 tmp/iss317_sandbox/★)
+============================================================================================
+
+---- 板副本 ----
+  ★板副本 board_ref1.kicad_pcb         改名 156 个 · 复制 0 份 · → tmp/iss317_sandbox/board_ref1.kicad_pcb
+  ★板副本 board_ref1_exJUSBC.kicad_pcb 改名 155 个 · 复制 0 份 · → tmp/iss317_sandbox/board_ref1_exJUSBC.kicad_pcb
+  ★板副本 board_ref1_negNC.kicad_pcb   改名 156 个 · 复制 0 份 · → tmp/iss317_sandbox/board_ref1_negNC.kicad_pcb
+  ★板副本 board_t5b_dup.kicad_pcb      改名 156 个 · 复制 1 份 · → tmp/iss317_sandbox/board_t5b_dup.kicad_pcb
+  ★板副本 board_t6a_x2.kicad_pcb       改名 156 个 · 复制 0 份 · → tmp/iss317_sandbox/board_t6a_x2.kicad_pcb
+  ★板副本 board_t6b_xz1.kicad_pcb      改名 156 个 · 复制 0 份 · → tmp/iss317_sandbox/board_t6b_xz1.kicad_pcb
+
+---- 网表副本 ----
+  ★网表副本 netlist_ref1.csv           行数 513 · → tmp/iss317_sandbox/netlist_ref1.csv
+  ★网表副本 netlist_ref1_exJUSBC.csv   行数 513 · → tmp/iss317_sandbox/netlist_ref1_exJUSBC.csv
+  ★网表副本 netlist_t5a.csv            行数 514 (★表侧 X=C_AC_CSI_D0_CK_N 与 X_1=C_AC_CSI_D0_CK_N_1 共存★) · → tmp/iss317_sandbox/netlist_t5a.csv
+
+---- 判据副本 ----
+  ★判据副本 chk_base.py            (★ISS-314 原样拷贝·项目闸脚本未动★)
+  ★判据副本 chk_optB.py            (2 处定点替换) · → tmp/iss317_sandbox/chk_optB.py
+      替换:     NC_ALLOWED.add("J_USB_C")
+      成  :     NC_ALLOWED.add("J_USB_C_1")   # ★ISS-317 乙方案: 白名单跟着改名走★
+      替换: fp.GetReference() == "CONN_CAM"
+      成  : fp.GetReference() == "CONN_CAM_1"  # ★ISS-317 乙方案: --selftest 目标跟着改名走★
+  ★判据副本 chk_optC.py            (3 处定点替换) · → tmp/iss317_sandbox/chk_optC.py
+      替换:     NC_ALLOWED.add("J_USB_C")
+      成  :     # ★ISS-317 丙方案: 白名单按【位号形状】推导 (★前缀匹配·改名后自动跟着走★)\n    NC_ALLOWED_PREFIX = ("J_USB_C",)\n
+      替换:     bad_nc = sorted(k for k in nc_pads if k[0] not in NC_ALLOWED)
+      成  :     bad_nc = sorted(k for k in nc_pads if not _nc_allowed(k[0]))
+      替换:         return ref in NC_ALLOWED
+      成  :         return _nc_allowed(ref)
+
+★沙盒造场完成 · 只写 tmp/iss317_sandbox/

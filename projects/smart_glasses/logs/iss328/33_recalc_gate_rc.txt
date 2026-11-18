@@ -1,0 +1,66 @@
+★★ISS-328 cont3 收割件 · 名单制闸 rc 复算 (★2026-11-18 22:1x 本机实跑·只读·零写板·零改闸★)★★
+
+── 复算 ①: 右上臂链终板 vs 官方板 ──
+═══ 臂板 vs 官方板 (名单制判据) ═══
+  候选板: tmp/iss328/chain_iss328_s8ru/final_chain.kicad_pcb
+  基线板: HW/PCB/demo_mainboard.kicad_pcb
+  指标                               候选          官方板
+  DRC违规                            12            0
+  unconnected                      29           45
+  零铜网(≥2焊盘)                        13           24
+  差分单边零铜                            7           11
+  差分Δ超差                             2            3
+  走线段                            3986        18092
+  过孔                              593          433
+  parity通过                       True        False
+  ── ★退铜名单 (官方板有铜⇒候选零铜): 2
+       ★ CSI_MCLK_SRC
+       ★ USB_CC1
+  ── ★差分对死腿: 0
+  ── ★逐网孤岛变多: 7
+       ★ BOOT_N  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_D0_CK_N  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_MCLK  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_MCLK_SRC  (官方 0 项 ⇒ 候选 1 项)
+       ★ KEY_VOL_P  (官方 0 项 ⇒ 候选 1 项)
+       ★ LED_B  (官方 0 项 ⇒ 候选 1 项)
+       ★ USB_CC1  (官方 0 项 ⇒ 候选 1 项)
+  ── (参考) 救回零铜的网: 13
+  ── 判定: REJECT
+     · ★**DRC=12 (必须 0)**
+     · DRC 变差 0→12
+     · ★**逐网孤岛变多 7 个网 (官方项数⇒候选更多 ⇒ 网被拆碎): BOOT_N, CSI_D0_CK_N, CSI_MCLK, CSI_MCLK_SRC, KEY_VOL_P, LED_B, USB_CC1**
+RC_FINAL_OFFICIAL=1
+
+── 复算 ②: clrfix 终板 vs 官方板 ──
+═══ 臂板 vs 官方板 (名单制判据) ═══
+  候选板: tmp/iss328/_clrfix_iss328_s8ru_final.kicad_pcb
+  基线板: HW/PCB/demo_mainboard.kicad_pcb
+  指标                               候选          官方板
+  DRC违规                             0            0
+  unconnected                      29           45
+  零铜网(≥2焊盘)                        13           24
+  差分单边零铜                            7           11
+  差分Δ超差                             2            3
+  走线段                            3986        18092
+  过孔                              593          433
+  parity通过                       True        False
+  ── ★退铜名单 (官方板有铜⇒候选零铜): 2
+       ★ CSI_MCLK_SRC
+       ★ USB_CC1
+  ── ★差分对死腿: 0
+  ── ★逐网孤岛变多: 7
+       ★ BOOT_N  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_D0_CK_N  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_MCLK  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_MCLK_SRC  (官方 0 项 ⇒ 候选 1 项)
+       ★ KEY_VOL_P  (官方 0 项 ⇒ 候选 1 项)
+       ★ LED_B  (官方 0 项 ⇒ 候选 1 项)
+       ★ USB_CC1  (官方 0 项 ⇒ 候选 1 项)
+  ── (参考) 救回零铜的网: 13
+  ── 判定: REJECT
+     · ★**逐网孤岛变多 7 个网 (官方项数⇒候选更多 ⇒ 网被拆碎): BOOT_N, CSI_D0_CK_N, CSI_MCLK, CSI_MCLK_SRC, KEY_VOL_P, LED_B, USB_CC1**
+RC_CLRFIX_OFFICIAL=1
+
+── 附: 臂间对照闸 rc=1 (来自 logs/iss328/08_rightupper_arm.log L198 · 臂 vs 基线臂) ──
+  ★★闸 rc=1★★

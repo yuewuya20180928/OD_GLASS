@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HANDOFF/2026-10-28_mech-lead_镜脚板宽15mm与J_CHG选型.md

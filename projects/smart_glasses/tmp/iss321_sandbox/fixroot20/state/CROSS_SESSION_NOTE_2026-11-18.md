@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/CROSS_SESSION_NOTE_2026-11-18.md

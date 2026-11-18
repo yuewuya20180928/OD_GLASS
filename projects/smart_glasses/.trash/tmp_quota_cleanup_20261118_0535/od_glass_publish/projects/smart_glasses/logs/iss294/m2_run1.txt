@@ -1,0 +1,44 @@
+
+================================================================================================
+【ISS-278 · 「板只改一次」那一趟 · MECH 侧板侧输入闸】
+================================================================================================
+  规格页: MECH/BOARD_ONEPASS_MECH_SYNC.md
+  帧白名单: ['B160x100', 'F30A', 'P60x15']
+  M1 帧标签 ........ ✅ 绿  (坐标组 5 个 / 条目 10 条)
+  M2 两条开口不压 SoM  ✅ 绿
+      · PORT_OPEN_DEBUG    调试口    罩 J_DEBUG                rect=(137.85, 148.05, 54.3, 58.9) ⇒ 压 SoM 焊盘 0
+      · PORT_OPEN_UART     检修口    罩 J_UART                 rect=(13.79, 23.99, 66.3, 70.9) ⇒ 压 SoM 焊盘 0
+      · PORT_OPEN_USBC     USB-C 边开口 罩 J_USB_C                rect=(132.995, 147.005, 0.0, 7.3) ⇒ 压 SoM 焊盘 0
+  M3 座体高度参数式 . ✅ 绿  (公式 OPEN_Y_eff(h) = max(4.60, h + 2*(0.60+0.30)) = max(4.60, h + 1.80))
+      · PORT_OPEN_DEBUG    h=0.90  eff=4.60  rect=(137.85, 148.05, 54.3, 58.9) 落框=True 压SoM=0 最坏间隙Y=1.550
+      · PORT_OPEN_DEBUG    h=2.54  eff=4.60  rect=(137.85, 148.05, 54.3, 58.9) 落框=True 压SoM=0 最坏间隙Y=0.730
+      · PORT_OPEN_DEBUG    h=4.00  eff=5.80  rect=(137.85, 148.05, 53.7, 59.5) 落框=True 压SoM=0 最坏间隙Y=0.600
+      · PORT_OPEN_UART     h=0.90  eff=4.60  rect=(13.79, 23.99, 66.3, 70.9) 落框=True 压SoM=0 最坏间隙Y=1.550
+      · PORT_OPEN_UART     h=2.54  eff=4.60  rect=(13.79, 23.99, 66.3, 70.9) 落框=True 压SoM=0 最坏间隙Y=0.730
+      · PORT_OPEN_UART     h=4.00  eff=5.80  rect=(13.79, 23.99, 65.7, 71.5) 落框=True 压SoM=0 最坏间隙Y=0.600
+      · PORT_OPEN_USBC     h=0.90  eff=4.60  rect=(132.995, 147.005, 0.0, 7.3) 落框=True 压SoM=0 最坏间隙Y=0.600
+      · PORT_OPEN_USBC     h=2.54  eff=4.60  rect=(132.995, 147.005, 0.0, 7.3) 落框=True 压SoM=0 最坏间隙Y=0.600
+      · PORT_OPEN_USBC     h=4.00  eff=5.80  rect=(132.995, 147.005, 0.0, 7.3) 落框=True 压SoM=0 最坏间隙Y=0.600
+  M4 判据命令真存在 .. ✅ 绿  (命令 13 条)
+      · MECH-PORT-DEBUG        MECH/check_onepass_mech_sync.py                      存在
+      · MECH-PORT-UART         MECH/check_onepass_mech_sync.py                      存在
+      · MECH-PORT-USBC         MECH/check_onepass_mech_sync.py                      存在
+      · MECH-PORT-USBC         MECH/check_onepass_struct_crosscheck.py              存在
+      · MECH-PORT-NOMERGE      MECH/check_onepass_mech_sync.py                      存在
+      · MECH-BODY-H            MECH/check_onepass_mech_sync.py                      存在
+      · MECH-LED-G             MECH/check_onepass_mech_sync.py                      存在
+      · MECH-LED-GD-NET        MECH/board_port_opening_s6_check.py                  存在
+      · MECH-LED-GD-NET        MECH/check_onepass_mech_sync.py                      存在
+      · MECH-CONN-PARAMS       MECH/check_onepass_mech_sync.py                      存在
+      · MECH-CONN-PARAMS       state/check_brief_commands.py                        存在
+      · MECH-LED-BRIGHT-G5     MECH/check_onepass_mech_sync.py                      存在
+      · MECH-LED-HOLE          MECH/check_onepass_mech_sync.py                      存在
+  M5 受保护 5 件 md5 . ✅ 绿
+      · HW/PCB/demo_mainboard.kicad_pcb            611b869e13518c3c023fb178f91a0075 == 611b869e13518c3c023fb178f91a0075
+      · HW/PCB/demo_mainboard.kicad_pro            3e504d2be83152e337949723e909be1b == 3e504d2be83152e337949723e909be1b
+
+================================================================================================
+【绿】M1~M5 全过
+================================================================================================
+
+口径提醒: 本闸一切「实测」= 文件实读 + 脚本实跑; **实物 [实测] = 0 条**; 座体真实高度 = [0数据] ⇒ 开口 Y 一切数按公式取值。

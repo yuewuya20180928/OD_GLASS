@@ -1,0 +1,46 @@
+================================================================================================
+ISS-323 · 改法锚点 → 真件行号 (★2026-11-18 本机实读·★只读★)
+================================================================================================
+
+── F-1 · SW/tools/timing_check.py (★25 处★) ──
+  F1-01 建别名表 (Netlist.__init__ 末尾)                     L704                self._by_ref.setdefault(row.get("ref", ""), []).append(row
+  F1-02 actual_ref() + rows_of/has_ref 走它              L706        # ---- 基本查询 ----
+  F1-03 反向表 _ref_alias_rev (★随 F1-01 新增块一起插入★)         L★没找到★                      self._ref_alias.setdefault(_base, _r)
+  F1-04 logical_ref() 方法                               L707        def rows_of(self, ref: str):
+  F1-05 dnp_of_row 候选行匹配 _aref                         L772                        or self._node_is_ref(x.get("node1", ""), ref)
+  F1-06 dnp_of_row prio 用 _aref                        L779                if x.get("ref") == ref:
+  F1-07 输出层 dnp_rows (PG_AND) 归一化                      L1136           "dnp_rows": sorted({x.get("ref", "") for x in pg_and_rows if x
+  F1-08 输出层 members + dnp_rows (RESET_N) 归一化           L1151           "members": sorted({x.get("ref", "") for x in reset_n_rows}),
+  F1-09 row_states_on_net 的 ref 归一化                    L793            return [{"ref": x.get("ref", ""), "type": x.get("type", ""),
+  F1-10 mutated_copy 的 edits 走 actual_ref              L866            by_ref.setdefault(ref, []).append((val, mode))
+  F1-11 drop_refs_copy 的 refs 走 actual_ref             L939        refs = set(refs)
+  F1-12 drop_device_rows_copy 候选行匹配走 actual_ref        L929            if fref == ref and ftype in ("IC", "SW"):
+  F1-13 行级 dnp 夹具 targets 走 actual_ref                 L1767           tset = set(targets)
+  F1-14 F8 load_switch_refs 报逻辑名 (LOAD_SWITCH_REFS 段)  L1559               "ref": ref,
+  F1-15 REV-10 逐行比对两边都归一化                              L1855               changed = [q for q in mo["F1_reset_rc"]["pg_and_state"]["r
+  F1-16 F8 seen 按盘上真实名去重 (LOAD_SWITCH_REFS 段)          L1572               seen.add(ref)
+  F1-17 F8 语义兜底循环 seen 归一化                             L1573               load_refs.append({"ref": ref, "value": x.get("value", ""),
+  F1-18 正则扫 I2C 上拉 (网表行)                               L1225   if re.match(r"^R_PU_(I2C[AB])_(SCL|SDA)$", x.get("ref", "") or "")})
+  F1-19 正则扫 I2C 上拉 (取值处)                               L1227           m = re.match(r"^R_PU_(I2C[AB])_(SCL|SDA)$", ref)
+  F1-20 断言 U_PWR_SW ∈ load_switch_refs (o)             L1713   and "U_PWR_SW" in o["F8_power_off"]["load_switch_refs"]),
+  F1-21 断言 U_PWR_SW ∈ load_switch_refs (f8)            L1880   and "U_PWR_SW" in f8["load_switch_refs"]
+  F1-22 断言 U_EN_SW ∈ load_switch_refs (f8)             L1881   and "U_EN_SW" in f8["load_switch_refs"])
+  F1-23 lambda 断言 (两个 load_switch_refs)                L2213   lambda o: "U_PWR_SW" in o["F8_power_off"]["load_switch_refs"]
+  F1-24 lambda 断言 (mo 不含 U_PWR_SW)                     L2291   fn=lambda o, mo: "U_PWR_SW" not in mo["F8_power_off"]["load_switch_ref
+  F1-25 lambda 断言 (load_switch_without_device_row)     L2305   fn=lambda o, mo: (mo["F8_power_off"]["load_switch_without_device_row"]
+  ★25 处锚点全部定位到 = 是 (★没找到 1 处★·F1-03 属【随 F1-01 新增】·不计入★)
+
+  ★F1-03 的说明: 它的锚点字符串在【真件里不存在】⇒ 因为它是 F1-01 补丁【新增出来的那一块】★
+    ⇒ 真件落点 = F1-01 锚点行 (L704) 之后 ⇒ 补丁后为 L705 ⇒ ★它随 F1-01 一次插入★
+
+── F-2 · SW/tools/check_onepass_sw_sync.py (★3 处·最终采用版★) ──
+  F2-01 SW03 探针 (位号集合生成)                               L181             "t={'D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+  F2-02 SW04 探针 (标签从网表实读)                              L188             "d=sum(1 for l in t if 'D_CHG_LED' in l);q=sum(1 for l in t i
+  F2-03 SW05 探针 (标签从网表实读 + 正则允许可选后缀)                   L194             "m={r['ref']:r['net'] for r in rs if r['pin']=='1' and r['ref
+  ★3 处锚点全部定位到 = 是 (★没找到 0 处★)
+
+── 自检 (★两条·不符就 abort★) ──
+  ★F-1 25 处全部命中: OK (★F1-03 是随 F1-01 新增的块·真件里本就不存在·不计入★)
+  ★F-2 3 处全部命中 : OK
+  ★★本脚本只读真件·没改它★
+================================================================================================

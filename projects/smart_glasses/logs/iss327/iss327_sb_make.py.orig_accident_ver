@@ -1,0 +1,410 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+iss327_sb_make.py —— ISS-327 · 「改名后 SW 侧闸链」沙盒造场
+
+★★边界 (★硬★★) ★★:
+  · ★零写板★: 项目板 `HW/PCB/demo_mainboard.kicad_pcb` 一个字节不许动 (只读 + 出副本)
+  · ★零落表★: 网表 / 脚表 / BOM 一个字节不许动 (只读 + 出副本)
+  · ★零改闸★: `SW/tools/*.py` 一个字节不许改 (真件) ⇒ 沙盒里是【真副本】, 副本里可改注册表
+  · ★沙盒只写 tmp/iss327/★ + 日志落 logs/iss327/★
+
+★改名真集 = ★**两路独立解析后必须逐条相等**★:
+  路 A: 从 `HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md` §1-2 的 218 行表里逐行解析 (机器解析·非手抄)
+  路 B: 从盘面真源独立推导 (板 186 个封装 ref + 网表/脚表/BOM 的 218 个真器件宇宙)
+        ⇒ 逐条套 `state/gen_kicad_sch.py::kicad_ref()` 口径 (★源码正则逐字比对·不符就 abort★)
+  ⇒ 两路相等才造场 (★否则 abort★)
+
+★造四棵沙盒根 (★每棵 = 整棵树的镜像·★只有【要改的那几件】是副本·其余是软链到真件★)★:
+  sbR0  = 五侧改名 + SW 文档【未】同步 + 旧注册表   ⇒ 【列2 改名后·重建注册表前】
+  sbR1  = sbR0 + 重建注册表 (粘贴回沙盒闸副本)      ⇒ 【列3 改名后·重建注册表后】
+  sbR2  = 五侧改名 + SW 文档【已】同步 + 重建注册表  ⇒ 【列4 附加 · 当天终态】
+  sbR3  = 五侧改名 + SW 文档【已】同步 + 旧注册表    ⇒ 【列4b 对照 · 证明"只同步文档不重建"仍红】
+"""
+import csv
+import json
+import os
+import re
+import shutil
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))          # logs/iss327/
+PROJ = os.path.dirname(os.path.dirname(HERE))              # 项目根
+SB = os.path.join(PROJ, "tmp", "iss327")
+RENAMELIST = os.path.join(PROJ, "HW", "PCB", "ONETRIP_S1_THREE_SIDE_RENAME_LIST.md")
+GENSRC = os.path.join(PROJ, "state", "gen_kicad_sch.py")
+
+PSEUDO = ("RAIL_", "NET_")
+REF_RE = re.compile(r'\(property\s+"Reference"\s+"([^"]*)"')
+NODE_RE = re.compile(r"^([A-Za-z_0-9]+)(\s+.*)?$")
+
+
+# ════════════════════════════════════════════════════════════════════
+# 口径单源 (★逐字复刻 state/gen_kicad_sch.py::kicad_ref★)
+# ════════════════════════════════════════════════════════════════════
+def kicad_ref(ref):
+    r = (ref or "").strip()
+    if r and r[-1].isdigit():
+        return r
+    return r + "_1"
+
+
+# ════════════════════════════════════════════════════════════════════
+# 路 A · 从 §1-2 的 218 行表里机器解析
+# ════════════════════════════════════════════════════════════════════
+def parse_table():
+    rows = []
+    txt = open(RENAMELIST, encoding="utf-8").read()
+    for line in txt.splitlines():
+        if not line.startswith("| "):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 8:
+            continue
+        if not cells[0].isdigit():
+            continue
+        rows.append({"idx": int(cells[0]), "old_pins": cells[1], "old_board": cells[2],
+                     "old_sch": cells[3], "new": cells[4], "onside": cells[6],
+                     "motion": cells[7]})
+    return rows
+
+
+# ════════════════════════════════════════════════════════════════════
+# 路 B · 从盘面真源独立推导
+# ════════════════════════════════════════════════════════════════════
+def derive_from_disk():
+    board_refs = []
+    txt = open(os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb"),
+               encoding="utf-8", errors="replace").read()
+    for m in REF_RE.finditer(txt):
+        board_refs.append(m.group(1))
+    universe = set()
+    # 脚表 ref 列 (★真器件宇宙的权威侧★)
+    with open(os.path.join(PROJ, "HW", "netlist_v1_pins.csv"), encoding="utf-8") as fh:
+        for r in csv.DictReader(fh):
+            ref = (r.get("ref") or "").strip()
+            if ref and not ref.startswith(PSEUDO):
+                universe.add(ref)
+    pins_universe = set(universe)
+    # BOM ref 列 (★必须与脚表逐名相同★)
+    bom_universe = set()
+    with open(os.path.join(PROJ, "HW", "BOM_v1.csv"), encoding="utf-8") as fh:
+        for r in csv.DictReader(fh):
+            ref = (r.get("ref") or "").strip()
+            if ref and not ref.startswith(PSEUDO):
+                bom_universe.add(ref)
+    # 网表 ref 列 + node 串里的器件 token (★网名不算器件·只作交叉核对★)
+    net_tokens = set()
+    with open(os.path.join(PROJ, "HW", "netlist_v1.csv"), encoding="utf-8") as fh:
+        for r in csv.DictReader(fh):
+            ref = (r.get("ref") or "").strip()
+            if ref and not ref.startswith(PSEUDO):
+                net_tokens.add(ref)
+            for col in ("node1", "node2"):
+                node = (r.get(col) or "").strip()
+                if not node:
+                    continue
+                m = NODE_RE.match(node)
+                if not m:
+                    continue
+                comp = m.group(1)
+                if comp.startswith(PSEUDO):
+                    continue
+                net_tokens.add(comp)
+    net_only = sorted(net_tokens - universe)     # ★这些是网名·不是器件★
+    mapping = {u: kicad_ref(u) for u in universe}
+    return board_refs, mapping, pins_universe, bom_universe, net_only
+
+
+# ════════════════════════════════════════════════════════════════════
+# 沙盒树构造
+# ════════════════════════════════════════════════════════════════════
+def link(src, dst):
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    if os.path.lexists(dst):
+        os.remove(dst)
+    os.symlink(src, dst)
+
+
+def mirror(src_dir, dst_dir, skip_names=()):
+    os.makedirs(dst_dir, exist_ok=True)
+    for name in sorted(os.listdir(src_dir)):
+        if name in skip_names:
+            continue
+        s = os.path.join(src_dir, name)
+        d = os.path.join(dst_dir, name)
+        if os.path.isdir(s) and not os.path.islink(s):
+            mirror(s, d, skip_names)
+        else:
+            link(s, d)
+
+
+def copy_file(src, dst):
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.copyfile(src, dst)
+    return dst
+
+
+def copy_tree(src_dir, dst_dir, skip_names=()):
+    """★真拷贝 (★闸脚本必须是副本·不然改注册表会改到真件★)★"""
+    os.makedirs(dst_dir, exist_ok=True)
+    for name in sorted(os.listdir(src_dir)):
+        if name in skip_names:
+            continue
+        s = os.path.join(src_dir, name)
+        d = os.path.join(dst_dir, name)
+        if os.path.isdir(s) and not os.path.islink(s):
+            copy_tree(s, d, skip_names)
+        else:
+            copy_file(s, d)
+
+
+def rename_ref(tok, mapping):
+    tok = (tok or "").strip()
+    if not tok or tok.startswith(PSEUDO):
+        return tok
+    return mapping.get(tok, tok)
+
+
+def rename_node(node, mapping):
+    node = (node or "").strip()
+    if not node:
+        return node
+    m = NODE_RE.match(node)
+    if not m:
+        return node
+    comp = m.group(1)
+    tail = m.group(2) or ""
+    if comp.startswith(PSEUDO):
+        return node
+    return rename_ref(comp, mapping) + tail
+
+
+def build_board(out_path, mapping):
+    src = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
+    txt = open(src, encoding="utf-8", errors="replace").read()
+    n = 0
+    out, last = [], 0
+    for m in REF_RE.finditer(txt):
+        old = m.group(1)
+        new = rename_ref(old, mapping)
+        if new != old:
+            n += 1
+        out.append(txt[last:m.start(1)])
+        out.append(new)
+        last = m.end(1)
+    out.append(txt[last:])
+    open(out_path, "w", encoding="utf-8", errors="replace").write("".join(out))
+    return n
+
+
+def _csv_side(src_rel, out_path, mapping):
+    src = os.path.join(PROJ, src_rel)
+    rows = list(csv.DictReader(open(src, encoding="utf-8")))
+    flds = list(rows[0].keys())
+    n = 0
+    out = []
+    for r in rows:
+        r2 = dict(r)
+        ref = (r2.get("ref") or "").strip()
+        if ref and not ref.startswith(PSEUDO):
+            new = rename_ref(ref, mapping)
+            if new != ref:
+                n += 1
+            r2["ref"] = new
+        if "node1" in r2:
+            r2["node1"] = rename_node(r2.get("node1") or "", mapping)
+        if "node2" in r2:
+            r2["node2"] = rename_node(r2.get("node2") or "", mapping)
+        if "pin_id" in r2:
+            pid = r2.get("pin_id") or ""
+            if ref and pid.startswith(ref + "."):
+                r2["pin_id"] = rename_ref(ref, mapping) + pid[len(ref):]
+        out.append(r2)
+    with open(out_path, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=flds)
+        w.writeheader()
+        for r in out:
+            w.writerow(r)
+    return n
+
+
+def build_netlist(p, mapping):
+    return _csv_side("HW/netlist_v1.csv", p, mapping)
+
+
+def build_pins(p, mapping):
+    return _csv_side("HW/netlist_v1_pins.csv", p, mapping)
+
+
+def build_bom(p, mapping):
+    return _csv_side("HW/BOM_v1.csv", p, mapping)
+
+
+def build_sw_docs(root, mapping, rename_docs):
+    """★SW/*.md 出真副本 (★不软链 ⇒ 沙盒里改文档不会碰真件★)★"""
+    sd = os.path.join(PROJ, "SW")
+    dst_dir = os.path.join(root, "SW")
+    os.makedirs(dst_dir, exist_ok=True)
+    n_files = n_hits = 0
+    keys = sorted(mapping.keys(), key=len, reverse=True)
+    for name in sorted(os.listdir(sd)):
+        if not name.endswith(".md"):
+            continue
+        txt = open(os.path.join(sd, name), encoding="utf-8", errors="replace").read()
+        if rename_docs:
+            for old in keys:
+                new = mapping[old]
+                if old == new:
+                    continue
+                pat = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(old) + r"(?![A-Za-z0-9_])")
+                txt, c = pat.subn(new, txt)
+                n_hits += c
+        open(os.path.join(dst_dir, name), "w", encoding="utf-8", errors="replace").write(txt)
+        n_files += 1
+    return n_files, n_hits
+
+
+def build_root(root, mapping, rename_docs, tag):
+    if os.path.isdir(root):
+        shutil.rmtree(root)
+    os.makedirs(root)
+    # ① 递归软链镜像 (除 SW 之外全部)
+    for d in ("HW", "state", "MECH", "REF", "REQ", "PRINT", "config", "docs",
+              "deploy", "HANDOFF"):
+        p = os.path.join(PROJ, d)
+        if os.path.isdir(p):
+            mirror(p, os.path.join(root, d), skip_names=("tmp", "__pycache__"))
+    # ② SW: 文档真副本 + 闸脚本真副本 (★★闸脚本必须是副本★★)
+    sw_real = os.path.join(PROJ, "SW")
+    sw_dst = os.path.join(root, "SW")
+    os.makedirs(sw_dst, exist_ok=True)
+    for name in sorted(os.listdir(sw_real)):
+        s = os.path.join(sw_real, name)
+        if os.path.isdir(s):
+            if name == "tools":
+                copy_tree(s, os.path.join(sw_dst, name), skip_names=("__pycache__",))
+            else:
+                mirror(s, os.path.join(sw_dst, name))
+        else:
+            link(s, os.path.join(sw_dst, name))
+    # ③ tmp (沙盒临时树)
+    os.makedirs(os.path.join(root, "tmp"), exist_ok=True)
+
+    # ④ 要改的四侧: 换成副本
+    def replace(rel, builder):
+        dst = os.path.join(root, rel)
+        if os.path.lexists(dst):
+            os.remove(dst)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        return builder(dst)
+
+    nb = replace("HW/netlist_v1.csv", lambda p: build_netlist(p, mapping))
+    npn = replace("HW/netlist_v1_pins.csv", lambda p: build_pins(p, mapping))
+    nbo = replace("HW/BOM_v1.csv", lambda p: build_bom(p, mapping))
+    npcb = replace("HW/PCB/demo_mainboard.kicad_pcb", lambda p: build_board(p, mapping))
+
+    # ⑤ SW 文档副本 (未同步 / 已同步)
+    ndocs, nhits = build_sw_docs(root, mapping, rename_docs)
+
+    print("  ★沙盒根 %-10s 网表改 %3d · 脚表改 %3d · BOM改 %3d · 板改 %3d · SW文档 %d 份/替换 %d 处"
+          % (tag, nb, npn, nbo, npcb, ndocs, nhits))
+    return root
+
+
+def main():
+    os.makedirs(SB, exist_ok=True)
+
+    # ── 口径自证: gen_kicad_sch.py 源码逐字比对 ──
+    gsrc = open(GENSRC, encoding="utf-8").read()
+    m = re.search(r"def kicad_ref\(ref\):(.*?)\n\ndef ", gsrc, re.S)
+    if not m:
+        print("[FAIL] 在 state/gen_kicad_sch.py 里找不到 kicad_ref()")
+        return 2
+    body = m.group(1)
+    must = ["r[-1].isdigit()", 'return r + "_1"']
+    for s in must:
+        if s not in body:
+            print("[FAIL] 口径单源不一致: state/gen_kicad_sch.py::kicad_ref() 里没有 %r" % s)
+            return 2
+    print("★口径单源自证: state/gen_kicad_sch.py::kicad_ref() 逐字含 %s ⇒ 一致" % must)
+
+    # ── 路 A: §1 表 ──
+    rows = parse_table()
+    print("★路A §1 表解析: %d 行 (期望 218)" % len(rows))
+    if len(rows) != 218:
+        print("[FAIL] §1 表行数 %d ≠ 218 ⇒ abort" % len(rows))
+        return 2
+    mapA = {}
+    for r in rows:
+        mapA[r["old_pins"]] = r["new"]
+    # 表内自洽: 脚表侧现值 == 板侧现值 (ISS-317 §1-2 读表须知)
+    #   ★例外: 32 个 CHG_BOARD 件的「板侧现值」列写的是「—(不在本板·CHG_BOARD)」⇒ 允许不等★
+    diff = [r for r in rows if r["old_pins"] != r["old_board"]]
+    diff_ok = [r for r in diff if r["old_board"].startswith("—") and r["onside"] == "不在"]
+    diff_bad = [r for r in diff if r not in diff_ok]
+    print("★路A 自洽: 脚表侧现值 ≠ 板侧现值 的行 = %d (期望 32 · 全部是 CHG_BOARD 的「—」占位) "
+          "· 其中非 CHG_BOARD 占位的 = %d (期望 0)" % (len(diff), len(diff_bad)))
+    # 动/不动 列 与 新旧名一致性
+    bad = []
+    for r in rows:
+        moved = (r["motion"] == "改名")
+        same = (r["old_pins"] == r["new"])
+        if moved != (not same):
+            bad.append(r["idx"])
+    print("★路A 自洽: 「动/不动」列与新旧名不一致的行 = %d (期望 0)" % len(bad))
+    if len(diff) != 32 or diff_bad or bad:
+        print("[FAIL] §1 表自洽失败 ⇒ abort")
+        return 2
+
+    # ── 路 B: 盘面推导 ──
+    board_refs, mapB, pins_universe, bom_universe, net_only = derive_from_disk()
+    print("★路B 盘面推导: 板封装 %d 个 (期望 186) · 脚表真器件 %d 个 (期望 218) · BOM真器件 %d 个 (期望 218)"
+          % (len(board_refs), len(pins_universe), len(bom_universe)))
+    print("★路B 交叉核对: 脚表宇宙 == BOM宇宙 ? %s (期望 True) · 网表里的非器件 token %d 个 (★全是网名·不算器件★)"
+          % (pins_universe == bom_universe, len(net_only)))
+    if len(board_refs) != 186 or len(pins_universe) != 218 or len(bom_universe) != 218 \
+            or pins_universe != bom_universe:
+        print("[FAIL] 路B 计数不符 ⇒ abort")
+        return 2
+
+    # ── 两路逐条比对 ──
+    onlyA = sorted(set(mapA) - set(mapB))
+    onlyB = sorted(set(mapB) - set(mapA))
+    valdiff = sorted(k for k in set(mapA) & set(mapB) if mapA[k] != mapB[k])
+    print("★两路比对: 只在A %d 条 · 只在B %d 条 · 值不同 %d 条 (期望 0/0/0)" %
+          (len(onlyA), len(onlyB), len(valdiff)))
+    if onlyA or onlyB or valdiff:
+        print("[FAIL] 两路不等 ⇒ abort: onlyA=%s onlyB=%s valdiff=%s"
+              % (onlyA[:10], onlyB[:10], valdiff[:10]))
+        return 2
+
+    mapping = {k: v for k, v in mapA.items() if k != v}
+    nrename = len(mapping)
+    print("★改名映射 = %d 条 (期望 186) · 不动 = %d 条 (期望 32)"
+          % (nrename, len(mapA) - nrename))
+    if nrename != 186:
+        print("[FAIL] 改名条数 %d ≠ 186 ⇒ abort" % nrename)
+        return 2
+
+    # 板侧落在改名集里的条数 (期望 156)
+    nb = len([r for r in board_refs if r in mapping])
+    print("★板侧要改 = %d 个 (期望 156) · 板侧不动 = %d 个 (期望 30)" % (nb, len(board_refs) - nb))
+
+    # ── 造场 ──
+    print("")
+    build_root(os.path.join(SB, "sbR0"), mapping, False, "sbR0")
+    build_root(os.path.join(SB, "sbR3"), mapping, True, "sbR3")
+    # sbR1 / sbR2 由 sb 脚本在建完之后从 sbR0 / sbR3 复制 (带闸脚本副本)
+    print("")
+    print("★沙盒造场完成 (只写 tmp/iss327/) · 映射已存 tmp/iss327/rename_map_iss327.json")
+    json.dump({"map": mapA, "rename": mapping,
+               "counts": {"rows": len(rows), "rename": nrename, "keep": len(mapA) - nrename,
+                          "board_refs": len(board_refs), "board_rename": nb}},
+              open(os.path.join(SB, "rename_map_iss327.json"), "w", encoding="utf-8"),
+              ensure_ascii=False, indent=1)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

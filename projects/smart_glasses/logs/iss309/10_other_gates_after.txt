@@ -1,0 +1,33 @@
+### python3 SW/tools/check_demo_panel_spec.py ; echo rc=0  ⇒ 实际 rc=0
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+
+### python3 SW/tools/check_demo_panel_spec.py --selftest ; echo rc=0  ⇒ 实际 rc=1
+  File "/usr/lib/python3.14/shutil.py", line 203, in _fastcopy_sendfile
+    sent = os.sendfile(outfd, infd, offset, blocksize)
+OSError: [Errno 122] Disk quota exceeded: '/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb' -> '/tmp/iss212_gate_e7b5u0q_/r6_05/HW/PCB/demo_mainboard.kicad_pcb'
+
+### python3 SW/tools/check_onepass_sw_sync.py ; echo rc=0  ⇒ 实际 rc=0
+     受保护 5 件: 盘上 md5 必须在落表台账里查到 (合法落表自动前移 · 偷换照红) + 硬保护两件走【合法改板通道】(★台账链头 + reboard 四项原子映射 · 判据逐字照搬权威闸★) + 台账 §1 锚点块两个 md5 未被手改 (★不许手改 md5 凑绿★): ✔
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★SW 侧板侧输入清单齐全 (①~⑧ 八条一条不缺) 且现状值与盘面一致 ★★
+
+### python3 SW/tools/check_onepass_sw_sync.py --selftest ; echo rc=0  ⇒ 实际 rc=1
+------------------------------------------------------------------------------
+  反向用例 15/16 通过
+  ❌ 有反向用例没抓到 ⇒ 闸不是判据 (或用例本身写错了)
+
+### python3 SW/tools/timing_check.py ; echo rc=0  ⇒ 实际 rc=0
+  [PASS] T2 交叉核对: 纯 NPU 21.00 ms ⇒ 命中老板翻案条款 (20.33 ms)
+
+SELFTEST 85/85 通过, rc=0
+
+### python3 SW/tools/check_shutdown_semantics.py ; echo rc=0  ⇒ 实际 rc=0
+    作用域 demo: 关机语义=深睡 · 拓扑割边器件=(无)
+    作用域 整机: 关机语义=真断电 · 拓扑割边器件=['U_PWR_SW']
+✅ R1~R7 全过 (口径页 / HW 文档 / SW 镜像 / 网表 四方一致)
+
+### python3 SW/tools/check_load_switch_selection.py ; echo rc=0  ⇒ 实际 rc=0
+[check_load_switch_selection] PASS — 负载开关选型证据矩阵门禁全过
+

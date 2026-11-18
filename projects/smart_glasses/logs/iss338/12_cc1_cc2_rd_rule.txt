@@ -1,0 +1,41 @@
+=== V8. CC1/CC2 是否都要 Rd (项目内 USB-IF 原文) ===
+HW/SCHEMATIC_V1.md-43-| net | 节点1 | 节点2 | 位号 | 值 | 类型 | DNP | 板 | 证据 | TBD | 说明 |
+HW/SCHEMATIC_V1.md-44-|---|---|---|---|---|---|---|---|---|---|---|
+HW/SCHEMATIC_V1.md-45-| VBUS_5V | J_TYPE_C A4+A9+B4+B9 | D_ESD_TC | RAIL_VBUS_5V | 5.0V ±5% | RAIL | 必装 | CHG_BOARD | [推算] |  | 电源域: 目标 5.0V ±5% / 最大电流 2.0A (PD 5V/2A); **充电链整条在充电板**, SYS 经 J_CHG 回主 PCB; SoC 侧球位号 TBD-0 |
+HW/SCHEMATIC_V1.md:46:| VBUS_5V | J_TYPE_C | USB_VBUS_RAW | J_TYPE_C | Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号) | CONN | 必装 | CHG_BOARD | [官方] |  | Type-C 入口连接器 (充电板侧, 在镜框); 本表 pin 编号为**逻辑编号** (pin1=VBUS, pin2=CC1, pin3=CC2, pin4=D+, pin5
+HW/SCHEMATIC_V1.md-47-| USB_VBUS_RAW | USB_VBUS_RAW | D_ESD_TC | D_ESD_TC | SP0503BAHT (Littelfuse 3 通道 TVS/ESD 阵列 · 5.5V standoff · SOT-143 4 脚) | D | 必装 | CHG_BOARD | [实测] |  | Type-C VBUS 入口 ESD 阵列 (规格 C-01 'Type-C 座 + ESD 阵列')
+HW/SCHEMATIC_V1.md-48-| VBUS_5V_ESD | D_ESD_TC | FB_VBUS | FB_VBUS | BLM31PG121SN1 (Murata 1206 · 120Ω@100MHz · 3A · DCR 25mΩ) | L | 必装 | CHG_BOARD | [官方] |  | [VBUS_5V_ESD] VBUS 入口 π 滤波磁珠位 (阻抗/电流随充电 IC 环路稳定性定) |
+HW/SCHEMATIC_V1.md-49-| VBUS_5V_ESD | VBUS_5V_ESD | C_VBUS_IN | C_VBUS_IN | [待选型] 10µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波输入电容位 (值待充电 IC 定; 内置则改 DNP) |
+HW/SCHEMATIC_V1.md-50-| GND | C_VBUS_IN | GND | C_VBUS_IN | [待选型] 10µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波输入电容 地端 |
+HW/SCHEMATIC_V1.md-51-| VBUS_5V_F1 | FB_VBUS | VBUS_5V_F1 | FB_VBUS | BLM31PG121SN1 (Murata 1206 · 120Ω@100MHz · 3A · DCR 25mΩ) | L | 必装 | CHG_BOARD | [官方] |  | [VBUS_5V_F1] π 滤波磁珠 后级侧 (与 FB_VBUS 同一颗) |
+HW/SCHEMATIC_V1.md-52-| VBUS_5V_F1 | VBUS_5V_F1 | C_VBUS_OUT | C_VBUS_OUT | [待选型] 100µF | C | DNP | CHG_BOARD | [推算] |  | π 滤波后级电容位 (BQ25896 建议 ≥100µF) |
+--
+HW/SCHEMATIC_V1.md-420-  - 两条出路: **(a) 把 Type-C 挪到主 PCB (镜脚) 侧**, 充电 IC 留在充电板, 让**电池大电流线**跨铰链 (低频大电流比高速差分好过得多); **(b) 保持 Type-C 在充电板**, 但调试通道改走板上 `J_DEBUG` (1×4) / `J_UART` (1×2) 排针, Type-C 只做充电不做调试。
+HW/SCHEMATIC_V1.md-421-  - ★**2026-11-16 ISS-220 落表订正**: `CONN_USB` (4p USB 跨铰链连接器) 已于 **2026-11-04 取消** (网表 `count(ref==CONN_USB) == 0`) ⇒ **USB 2.0 差分不再跨铰链**, 改走主板自带 Type-C (demo 板形态); 整机阶段若要 Type-C 只做充电、调试走 `J_DEBUG`/`J_UART`, 
+HW/SCHEMATIC_V1.md-422-- `A-21` DP_TX 4 lane: 主 PCB 内部走线 + `U_BRIDGE` 位 (0402 串阻 **8 颗** = 4 lane × P/N, 规格写的"×4"是按 lane 算的) + 对地电容位 ×4 —— 走线是 8×10mm 芯片**逃线**的主要出口, 也是"宽度≤8mm 硬约束"最吃紧的地方。
+HW/SCHEMATIC_V1.md:423:- `USB_D+/D-` 走 Type-C (跨铰链, 见上) + `USB_CC1/CC2` (Rd 5.1k 下拉, 接 PD 控制器时由控制器接管) —— 我们**第一版不上无线**, USB 只做充电/调试通道。
+HW/SCHEMATIC_V1.md-424-- ★**USB 差分阻抗 90Ω 是对的, 不要改成 100Ω**: USB 2.0 D+/D- 的差分阻抗规范就是 **90Ω ±10%**, 和 MIPI/DSI 的 100Ω ±10% **不是同一个模板**; 规格 B-21/B-22 写的就是 90Ω。统一成 100Ω = 规格被改坏。
+HW/SCHEMATIC_V1.md-425-- ★**本轮网上查证标红的一条**: 官网说"封装尺寸须压缩至**宽度≤8mm**" + 8×10mm FCCSP **集成 DRAM** 的球间距通常 0.4-0.5mm [推算] → **我们 12mm 板宽 + 4-6 层叠层假设可能过于乐观** ⇒ **ISS-078 (blocker) 要按 pitch 0.3/0.4/0.5mm 三档重算**。这页的走线密度在 pitch 变大时会先崩。
+HW/SCHEMATIC_V1.md-426-- **[待原厂]**: FCCSP pitch + 完整球位图 + 逃线参考布局 (TBD-05) + AR9481 同 Die 代理资料 · USB PHY 版本与引脚数 (TBD-10) · `U_BRIDGE` 到底是 redriver 还是 DP→DSI 桥接 (TBD-04)。
+HW/SCHEMATIC_V1.md-427-- ★**V1.1 已把 `U_BRIDGE` 定位统一**: 之前 P4 写"DSI→光机桥接芯片"、P6 写"DP→DSI 桥接芯片" —— **同一颗芯片两种说法 = BOM 会对不上**。现在统一为 **DP1.4 TX → MIPI DSI TX 桥接芯片 (方案B 专用)**, `redriver` 作为候选兼列 (若原厂给的是 DP TX 而光机吃 DSI, 那就得靠它转)。
+HW/SCHEMATIC_V1.md-428-- ★**V1.1 显示 TX 公开渠道穷举结论 (ISS-083)**: ① 官网产品页对 ARS45 **只字未提显示接口**; ② 官网「智能可穿戴」应用页写"集成 **Display Port 1.4** 与 **USB 3.0**" [官网·方案级, 未说 TX/RX 方向]; ③ 百度百科写"**DP1.4 RX**" [媒体级]; ④ **没有任何官方渠道出现 "DSI" 字样** → ⇒ **"
+HW/SCHEMATIC_V1.md-429-
+--
+HW/SCHEMATIC_V1.md-650-**这一页是 V1.5 新加的 —— 充电板 (镜框) 之前只作为子集散在 P1/P6, 没有自己的完整页。**
+HW/SCHEMATIC_V1.md-651-
+HW/SCHEMATIC_V1.md-652-- 规格: `HW/CHARGE_BOARD_SPEC.md` (691 行, USB-IF Type-C Spec 2.0 + TI BQ25896 datasheet 一手核对)。
+HW/SCHEMATIC_V1.md:653:- ★**Type-C 16p 母座按 USB-IF 物理脚位** (A/B 编号): VBUS = A4+A9+B4+B9 · **D+ = A6+B6 双份并联** · **D− = A7+B7** · CC1 = A5 · CC2 = B5 · **GND = A1+A12+B1+B12** · SBU 不接。★**双份并联是必须的** —— 只接 A6/A7 的话插头一翻面就不通; GND 四个脚都要接
+HW/SCHEMATIC_V1.md-654-- ★**不上 PD 控制器 (TPS25730)**: 充电板没有 3.3V 轨 (TPS25730 VIN_3V3 绝对最大 4V), 我们只要 5V, 25×10mm 板也放不下 QFN-38 + 10 个无源件 → **保留 Rd 5.1k×2**。★而且 **PD 5V/2A 不会把 2A 灌进铰链** —— 铰链走的是充电电流 ICHG ≈ 0.822×IIN。
+HW/SCHEMATIC_V1.md-655-- ★**R_ILIM 300Ω 必装 (硬件限流)**: BQ25896 的 IINLIM **复位默认 2048mA** → 不装这颗电阻, 铰链段可能被灌 ~1.68A (发热/压降失控)。装 300Ω → ICHG ≈ 0.88-1.07A; 若结构核算 (ISS-091) 判定铰链只吃 1.0A → **换 390Ω** (0.67-0.82A), **换料不换板**。
+HW/SCHEMATIC_V1.md-656-- ★**温度检测是三件式, 不是两件式**: RT1 5.24k (REGN→TS) + RT2 30.31k (TS→GND) + **103AT NTC ∥ RT2** (datasheet: 0°C→73.25%, 60°C→34.375%)。★并且 **TS 必须跨铰链** —— NTC 贴电芯在镜脚, 而 BQ25896 在镜框充电板 → 走 `J_CHG pin8` (高阻, 无电流)。
+HW/SCHEMATIC_V1.md-657-- 电池位置**锁镜脚** (V1.2 裁决) → 电池的过充/过放/过温保护 (BQ2970 + 2×MOS) 也在镜脚, 充电板这边不重复画。
+HW/SCHEMATIC_V1.md-658-
+HW/SCHEMATIC_V1.md-659-### 器件表 (63 行 netlist 记录)
+--
+HW/CHARGE_BOARD_SPEC.md-14-| 充电板位置 | **镜框** (ISS-014 决策 5 + V1.2 裁决) | `HW/SCHEMATIC_V1.md` P1 §V1.2 |
+HW/CHARGE_BOARD_SPEC.md-15-| 充电板尺寸 | **25 × 10 × 0.8 mm** | [推算] `MECH/MECH_BUDGET.md` §1.3 M3 |
+HW/CHARGE_BOARD_SPEC.md-16-| 充电板固定 | 1×M1.2 螺钉 + 铝屏蔽罩贴合 Type-C | [推算] 同上 |
+HW/CHARGE_BOARD_SPEC.md:17:| **本板装的件** | Type-C 16p 母座 · ESD 阵列 · π 滤波 (磁珠+10µF+100µF) · BQ25896 + 全部外围 · CC Rd ×2 · VBUS_DET 分压 · 跨铰链连接器 (`J_CHG`) 一侧 | 本规格 §1-§5 |
+HW/CHARGE_BOARD_SPEC.md-18-| **不在本板的件 (明确排除)** | 电池 · 电池保护 IC **BQ2970** · 2× 外置 N-MOS · 电池 NTC + TS 下臂 · SoC · 全部 DC-DC / LDO · 电池保护与 MOS 走线 | `HW/SCHEMATIC_V1.md` P1 §V1.2 (电池 + 保护在镜脚) |
+HW/CHARGE_BOARD_SPEC.md-19-| 充电板上的逻辑电源 | **无 3.3V 轨** —— 只有 VBUS (5V) 和 BQ25896 内部 REGN (5V)。任何需要 3.3V 的器件 (如 TPS25730 的 VIN_3V3) 必须额外造 3.3V | [官方] BQ25896 datasheet §8.5 (REGN = 5V) |
+HW/CHARGE_BOARD_SPEC.md-20-

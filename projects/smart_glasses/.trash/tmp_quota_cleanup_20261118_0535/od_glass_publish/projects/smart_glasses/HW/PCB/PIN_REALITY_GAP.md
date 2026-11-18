@@ -1,0 +1,343 @@
+# 原理图脚数 vs 真实器件脚数 —— 逐器件对账 (PIN_REALITY_GAP)
+
+> ★**生成器**: `python3 state/gen_kicad_sch.py --pin-gap` (★重跑即刷新★)  
+> ★**生成时间**: 2026-11-12  · ★**对应原理图**: `HW/PCB/demo_mainboard*.kicad_sch` (★按表全量画, 584 脚★)
+> ★**2026-11-11 15:4x 更新 (主线 6c)**: ★**本文加了一节 §5「需裁决 / 外部依赖」(★★已关闭 (★2026-11-12 02:2x 自己查官方手册★): `FET3572C_PIN_TABLE.csv` 的 %s 座缺 `num=%s` ⇒ ★**官方手册同样缺这一行·不是抄漏·本板也不用它**★)★**  
+> ★**2026-11-11 19:4x 订正 (main)**: ★**§5 原本是【手写进产物】的 ⇒ 任何一次 `--pin-gap` 重跑都会把它冲掉 (★实测 19:1x 就被冲掉过一次★) ⇒ ★**已搬进生成器 ⇒ 重跑不再丢★**; ★**并修掉三处交叉引用 + 一个指向不存在脚本的假命令 (`state/gen_pin_reality_gap.py` → `python3 state/gen_kicad_sch.py --pin-gap`)★**  
+> ★**2026-11-11 23:5x 补表 (ISS-198 · hw-lead)**: ★**`state/gen_kicad_sch.py` 的 `OPN_KICAD` / `PREFIX_KICAD` 两张查找表已补全 (★26 个 ref 从 `[0数据]` 落到★**本机 KiCad 官方库实测 pins 数**★ ⇒ 符号文件里 `(pin … (at` > 0 且★**该文件没有 `(extends`★ (★不踩『继承父符号 ⇒ 自己文件 0 个 pin 行 ⇒ 数出来 0 = 假数』的坑★)) ★ ⇒ ★**`[0数据]` 从 29 → 3 (★剩下的 3 个是【非器件】: `BT_432243` / `CHG_GND_STAR` / `X1` ⇒ 不需要问原厂脚数★)★**
+
+## 0. 口径 (★凡给出统计数必带口径★)
+
+| 口径项 | 值 | 含义 |
+|---|---|---|
+| ★**表侧脚数**★ | 584 | `HW/netlist_v1_pins.csv` 行数 (★每行=一脚, **含 DNP 行**★) |
+| ★**表侧器件数**★ | 218 | 同表不同 ref 的个数 |
+| ★**真实器件脚数**★ | 215 有 / 3 无 | 只在**本机可查到的权威源**查到才填; ★**查不到写 `[0数据]`, 不猜**★ |
+| ★**脚数一致**★ | 203 | 表侧脚数 == 真实器件脚数 |
+| ★**真实多脚**★ | 12 | 真实器件脚数 > 表侧脚数 (★表里只画用到的脚★) |
+| ★**表里多脚**★ | 0 | ★**表侧脚数 > 真实器件脚数 ⇒ 物理上不该存在的脚, 需核**★ |
+| ★**DNP 脚数**★ | 117 | 表侧 `dnp=DNP` 的行数 (★口径: 含 DNP★) |
+
+★★**数据源 (★全部本机可复核; 不联网 / 不问供应商 / 不猜★)**★★
+
+1. ★**KiCad 10.0.8 官方符号库**★ `/home/yuewuya/kicad/squashfs-root/usr/share/kicad/symbols/`
+2. ★**项目自有真值表**★ `state/check_netlist_pins.py` 的 `SPEC_PINS` / `PARTIAL_PINS`
+3. ★**RK3572 SOM 球位表**★ `HW/PCB/FET3572C_PIN_TABLE.csv` (★P1=100/P2=99/P3=100/P4=100 球位/座★ ⇒ ★**P2 那缺的 1 个球位 (`num=40`) 是本文件唯一没解的问题 ⇒ 见 §5★**)
+4. ★**BOM 型号**★ `HW/BOM_v1.csv` 的 `opn` / `footprint` 列 (★型号已定型 ⇒ 可回查官方库★)
+5. ★**板文件封装**★ `HW/PCB/demo_mainboard.kicad_pcb` 每器件的**焊盘数 / 焊盘编号** (★[实测]·用来互校『符号脚数』与『封装焊盘数』是否自洽★ ⇒ 不自洽的写进依据里, ★**不改板**★)
+
+---
+
+## 1. ★**表里脚数 > 真实器件脚数 (★物理上不该存在的脚 —— 本轮唯一需核的一类★)**
+
+★无 (表侧脚数没有超过真实器件脚数的情形)★
+
+---
+
+## 2. ★**真实器件脚数 > 表里脚数 (★表里只画了用到的脚 —— 正常, 不是漏画★)**
+
+| 器件 | 表里脚数 | 真实脚数 | 差 | DNP脚 | 型号/依据 | 说明 |
+|---|---|---|---|---|---|---|
+| `J_SOM_P1` | 10 | 100 | +90 | 0 | state/check_netlist_pins.py:PARTIAL_PINS (项目自有真值表) + HW/PCB/FET3572C_PIN_TABLE.csv (RK3572 SOM 100 球位/座) | 真实器件比表多 90 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+| `J_SOM_P2` | 9 | 100 | +91 | 0 | state/check_netlist_pins.py:PARTIAL_PINS (项目自有真值表) + HW/PCB/FET3572C_PIN_TABLE.csv (RK3572 SOM 100 球位/座) | 真实器件比表多 91 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 ★**⚠ 球位表本身只有 99 行 (缺 num=40) ⇒ ★**【2026-11-12 02:2x 已自查: Forlinx 官方手册同表也只 49 行 ⇒ 不是抄漏; 且本板不用这号脚 ⇒ 零影响 ⇒ 见 §5.1 E-01 已关闭】**★** |
+| `J_SOM_P3` | 19 | 100 | +81 | 0 | state/check_netlist_pins.py:PARTIAL_PINS (项目自有真值表) + HW/PCB/FET3572C_PIN_TABLE.csv (RK3572 SOM 100 球位/座) | 真实器件比表多 81 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+| `J_SOM_P4` | 14 | 100 | +86 | 0 | state/check_netlist_pins.py:PARTIAL_PINS (项目自有真值表) + HW/PCB/FET3572C_PIN_TABLE.csv (RK3572 SOM 100 球位/座) | 真实器件比表多 86 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+| `J_USB_C` | 14 | 17 | +3 | 0 | BOM opn=GCT USB4105-16P (USB2.0 16P) ⇒ KiCad 官方库 Connector:USB_C_Receptacle_USB2.0_16P (★实测 17 脚★ = 16 信号 + SH; 板文件自绘 = 16 信号焊盘 + 2 个 np_thru_hole 壳体孔 ⇒ 电气脚数一致) | 真实器件比表多 3 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+| `Q1` | 1 | 8 | +7 | 1 | BOM footprint=SON-8 Q3 3.3x3.3mm ⇒ 本机无 CSD16406Q3 符号 ⇒ 取同厂牌同封装代理 Transistor_FET:CSD16301Q2 (Package_SON:Texas_DQK, ★实测 8 脚★) ★★板文件封装只画了 5 焊盘 (2,3,4,5,6) 且外形 4.94x5.0mm ≠ SON-8 3x3 ⇒ 封装与器件不自洽 (DNP 未装掩盖) ⇒ 见交卷报告★ | 真实器件比表多 7 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+| `Q2` | 1 | 8 | +7 | 1 | BOM footprint=SON-8 Q3 3.3x3.3mm (同 Q1) ⇒ 本机无 CSD16406Q3 符号 ⇒ 同封装代理 Transistor_FET:CSD16301Q2 (Package_SON:Texas_DQK, ★实测 8 脚★) ★★板文件封装 5 焊盘 ≠ SON-8 ⇒ 见交卷报告★ | 真实器件比表多 7 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+| `U_BATPROT` | 3 | 6 | +3 | 3 | BOM opn=BQ2970 (SOT-23-6) ⇒ KiCad 官方库 Battery_Management:BQ297xy (★实测 6 脚★; 板文件封装 6 焊盘 2..7 ⇒ 数量一致, ★但焊盘编号 2..7 与符号 1..6 不对齐★ ⇒ 见交卷报告) | 真实器件比表多 3 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+| `U_DCDC_VCORE` | 3 | 17 | +14 | 0 | BOM opn=TPS62130ARGTR ⇒ KiCad 官方库 Regulator_Switching:TPS62130 (16 脚 + 散热焊盘) | 真实器件比表多 14 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+| `U_DCDC_VIO` | 3 | 17 | +14 | 0 | BOM opn=TPS62130ARGTR ⇒ KiCad 官方库 Regulator_Switching:TPS62130 (16 脚 + 散热焊盘) | 真实器件比表多 14 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+| `U_LDO_S28` | 4 | 5 | +1 | 4 | 与已填 U_LDO_L18/L33 同族 (TPS7A20-28) ⇒ KiCad 官方库 Regulator_Linear:TPS7A20xxxDQN (★实测 5 脚★: 1=OUT,2=GND,3=EN,4=IN,5=Pad) ★★板文件封装只落 4 焊盘 (1,2,4,5) ⇒ ★缺 EN(3)★ ⇒ 见交卷报告★ | 真实器件比表多 1 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+| `U_SUPV` | 4 | 6 | +2 | 4 | 网表 value=TPS3808G01 类 (SOT-23-6) ⇒ KiCad 官方库 Power_Supervisor:TPS3808DBV (★实测 6 脚★: 1=RESET,2=GND,3=MR,4=CT,5=SENSE,6=VDD) ★★板文件封装只落 4 焊盘 (1,4,5,6) ⇒ ★缺 GND(2) 与 MR(3)★ ⇒ 装上也跑不起来 (DNP 未装掩盖) ⇒ 见交卷报告★ | 真实器件比表多 2 脚 ⇒ **表里只画了"用到的脚"**, 余下是空脚/NC/散热焊盘 |
+
+---
+
+## 3. ★**逐器件全表 (218 个器件)**★
+
+| 器件 | 类型 | 表里脚数 | 真实脚数 | 差 | DNP脚 | 型号 / 数据来源 |
+|---|---|---|---|---|---|---|
+| `BT_432243` | CONN | 2 | [0数据] | [0数据] | 2 | ★非器件★ ⇒ 电池座 (★本机 KiCad 官方库无对应符号 + BOM opn 仍是 [0数据] ⇒ 待选型★) ⇒ 脚数待型号 |
+| `CHG_GND_STAR` | CONN | 1 | [0数据] | [0数据] | 0 | ★非器件★ ⇒ 单点汇流位 (★net 汇流点, 不是器件★) ⇒ 脚数口径不适用 |
+| `CONN_CAM` | NET | 31 | 31 | +0 | 0 | state/check_netlist_pins.py:SPEC_PINS (项目自有真值表) |
+| `CONN_LIGHT` | CONN | 22 | 22 | +0 | 0 | FH12-22S-0.5SH(55) · state/check_netlist_pins.py:SPEC_PINS (项目自有真值表) |
+| `C_AC_CSI_D0_CK_N` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_AC_CSI_D0_CK_P` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_AC_CSI_D0_D0_N` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_AC_CSI_D0_D0_P` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_AC_CSI_D0_D1_N` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_AC_CSI_D0_D1_P` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_AC_CSI_D0_D2_N` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_AC_CSI_D0_D2_P` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_AC_CSI_D0_D3_N` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_AC_CSI_D0_D3_P` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_BAT` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_BST` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_BULK_LIGHT_1V8` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_BULK_LIGHT_3V3` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_BULK_SENSOR_AVDD` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_BULK_SENSOR_CORE` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_BULK_SENSOR_VDD_IO` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_BULK_VDD_1V8_IO` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_BULK_VDD_3V3_IO` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_BULK_V_CORE` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_BULK_V_SOC_IO` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_DET_BAT` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_DET_VBUS_D` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_HF_LIGHT_1V8` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_HF_LIGHT_3V3` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_HF_SENSOR_AVDD` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_HF_SENSOR_CORE` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_HF_SENSOR_VDD_IO` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_HF_VDD_1V8_IO` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_HF_VDD_3V3_IO` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_HF_V_CORE` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_HF_V_SOC_IO` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_KEY_CAM` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_KEY_PWR` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_KEY_VM` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_KEY_VP` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_PMID` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_REGN` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_RST` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_SUPV` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_SW_IN` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_SW_OUT` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_SYS` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_TEMP` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_VBUS_DEMO` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_VBUS_GND` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_VBUS_IC` | C | 2 | 2 | +0 | 0 | KiCad 官方库 Device:C |
+| `C_VBUS_IN` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_VBUS_OUT` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_XTAL_IN` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `C_XTAL_OUT` | C | 2 | 2 | +0 | 2 | KiCad 官方库 Device:C |
+| `D_CHG_LED` | LED | 2 | 2 | +0 | 0 | KiCad 官方库 Device:LED |
+| `D_ESD_CAM` | D | 2 | 2 | +0 | 0 | BOM 型号未定 · 板文件封装 2 焊盘 (1=信号, 2=GND) ⇒ KiCad 官方库 Power_Protection:TPD1E05U06DPY (X1SON-2 单通道 ESD: 1=I/O, 2=GND, ★实测 2 脚★) ★型号待选型★ |
+| `D_ESD_DEMO` | D | 2 | 2 | +0 | 0 | BOM 型号未定 · 板文件封装 2 焊盘 (1=信号, 2=GND) ⇒ KiCad 官方库 Power_Protection:TPD1E05U06DPY (X1SON-2 单通道 ESD, ★实测 2 脚★) ★型号待选型★ |
+| `D_ESD_LIGHT` | D | 2 | 2 | +0 | 2 | BOM 型号未定 · 板文件封装 2 焊盘 (1=信号, 2=GND) ⇒ KiCad 官方库 Power_Protection:TPD1E05U06DPY (X1SON-2 单通道 ESD, ★实测 2 脚★) ★型号待选型★ |
+| `D_ESD_TC` | D | 4 | 4 | +0 | 0 | BOM 型号未定 · 网表 4 脚 (3 信号 + GND; 镜框充电板, 不在本 PCB) ⇒ KiCad 官方库 Power_Protection:SP0503BAHT (SOT-143, 3 通道 TVS 阵列: 1=A, 2/3/4=K, ★实测 4 脚★) ★型号待选型★ |
+| `D_ESD_USB_D` | D | 2 | 2 | +0 | 0 | BOM 型号未定 · 板文件封装 2 焊盘 (1=USB_D_P_SRC, 2=GND) ⇒ KiCad 官方库 Power_Protection:TPD1E05U06DPY (X1SON-2 单通道 ESD, ★实测 2 脚★) ★★BOM value 写『USB 2.0 双通道』但板上只有 1 根 I/O + GND ⇒ 双通道阵列 (SOT-23-3) 装不下 ⇒ 见交卷报告★ |
+| `D_LED_B` | LED | 2 | 2 | +0 | 2 | KiCad 官方库 Device:LED |
+| `D_LED_G` | LED | 2 | 2 | +0 | 0 | KiCad 官方库 Device:LED |
+| `D_LED_R` | LED | 2 | 2 | +0 | 0 | KiCad 官方库 Device:LED |
+| `D_TVS_VBUS` | D | 2 | 2 | +0 | 0 | BOM 型号未定 · BOM value=5V 级单向 TVS [待选型] (镜框充电板, 不在本 PCB) ⇒ KiCad 官方库 Diode:1.5KExxA (1500W 单向 TVS 族, ★实测 2 脚★) ★型号待选型; 任何 SMD 单向 TVS 都是 2 脚★ |
+| `FB_DEMO` | L | 2 | 2 | +0 | 0 | BOM 型号未定 · 板文件封装 2 焊盘 (1,2) ⇒ KiCad 官方库 Device:FerriteBead (★实测 2 脚★) ★磁珠通用件; ★新增非 2 脚磁珠须另立条目★ |
+| `FB_VBUS` | L | 2 | 2 | +0 | 0 | BOM 型号未定 · 板文件封装 2 焊盘 (1,2) ⇒ KiCad 官方库 Device:FerriteBead (★实测 2 脚★) ★磁珠通用件; ★新增非 2 脚磁珠须另立条目★ |
+| `J_BOOT1` | CONN | 6 | 6 | +0 | 6 | state/check_netlist_pins.py:SPEC_PINS (项目自有真值表) |
+| `J_CHG` | NET | 10 | 10 | +0 | 3 | state/check_netlist_pins.py:SPEC_PINS (项目自有真值表) |
+| `J_DEBUG` | CONN | 4 | 4 | +0 | 0 | state/check_netlist_pins.py:SPEC_PINS (项目自有真值表) |
+| `J_SOM_P1` | NET | 10 | 100 | +90 | 0 | state/check_netlist_pins.py:PARTIAL_PINS (项目自有真值表) + HW/PCB/FET3572C_PIN_TABLE.csv (RK3572 SOM 100 球位/座) |
+| `J_SOM_P2` | NET | 9 | 100 | +91 | 0 | DF40C-100DS-0.4V(51) · state/check_netlist_pins.py:PARTIAL_PINS (项目自有真值表) + HW/PCB/FET3572C_PIN_TABLE.csv (RK3572 SOM 100 球位/座) |
+| `J_SOM_P3` | NET | 19 | 100 | +81 | 0 | state/check_netlist_pins.py:PARTIAL_PINS (项目自有真值表) + HW/PCB/FET3572C_PIN_TABLE.csv (RK3572 SOM 100 球位/座) |
+| `J_SOM_P4` | NET | 14 | 100 | +86 | 0 | DF40C-100DS-0.4V(51) · state/check_netlist_pins.py:PARTIAL_PINS (项目自有真值表) + HW/PCB/FET3572C_PIN_TABLE.csv (RK3572 SOM 100 球位/座) |
+| `J_TYPE_C` | CONN | 17 | 17 | +0 | 2 | GCT USB4105 (USB Type C Receptacle for USB 2.0, SMT Type, PCB Top Mount) · BOM opn=GCT USB4105 (USB2.0 16P) ⇒ KiCad 官方库 Connector:USB_C_Receptacle_USB2.0_16P (16 脚 + shield) |
+| `J_UART` | CONN | 2 | 2 | +0 | 0 | state/check_netlist_pins.py:SPEC_PINS (项目自有真值表) |
+| `J_USB_C` | CONN | 14 | 17 | +3 | 0 | GCT USB4105-16P (USB Type-C 母座 16P, SMT 顶装) —— ★**焊盘宽度按原厂 0.30mm** (登记曾误写 0.20mm) · BOM opn=GCT USB4105-16P (USB2.0 16P) ⇒ KiCad 官方库 Connector:USB_C_Receptacle_USB2.0_16P (★实测 17 脚★ = 16 信号 + SH; 板文件自绘 = 16 信号焊盘 + 2 个 np_thru_hole 壳体孔 ⇒ 电气脚数一致) |
+| `L_CHG` | L | 2 | 2 | +0 | 0 | KiCad 官方库 Device:L |
+| `Q1` | SW | 1 | 8 | +7 | 1 | CSD16406Q3 · BOM footprint=SON-8 Q3 3.3x3.3mm ⇒ 本机无 CSD16406Q3 符号 ⇒ 取同厂牌同封装代理 Transistor_FET:CSD16301Q2 (Package_SON:Texas_DQK, ★实测 8 脚★) ★★板文件封装只画了 5 焊盘 (2,3,4,5,6) 且外形 4.94x5.0mm ≠ SON-8 3x3 ⇒ 封装与器件不自洽 (DNP 未装掩盖) ⇒ 见交卷报告★ |
+| `Q2` | SW | 1 | 8 | +7 | 1 | CSD16406Q3 (同 Q1) · BOM footprint=SON-8 Q3 3.3x3.3mm (同 Q1) ⇒ 本机无 CSD16406Q3 符号 ⇒ 同封装代理 Transistor_FET:CSD16301Q2 (Package_SON:Texas_DQK, ★实测 8 脚★) ★★板文件封装 5 焊盘 ≠ SON-8 ⇒ 见交卷报告★ |
+| `Q_AND` | SW | 3 | 3 | +0 | 0 | BOM 型号未定 · 板文件封装 3 焊盘 (1,2,3) ⇒ KiCad 官方库 Transistor_FET:Q_NMOS_GDS (G/D/S, ★实测 3 脚★) ★型号待选型, 脚数按封装/通用符号★ |
+| `Q_CHG_LED` | SW | 3 | 3 | +0 | 0 | BOM 型号未定 · 网表 3 脚 (镜框充电板, 不在本 PCB) ⇒ KiCad 官方库 Transistor_FET:Q_NMOS_GDS (★实测 3 脚★) ★型号待选型★ |
+| `Q_ENVC` | SW | 3 | 3 | +0 | 1 | BOM 型号未定 · 板文件封装 3 焊盘 (1,2,3) ⇒ KiCad 官方库 Transistor_FET:Q_NMOS_GDS (G/D/S, ★实测 3 脚★) ★型号待选型★ |
+| `Q_PG` | SW | 3 | 3 | +0 | 0 | BOM 型号未定 · 板文件封装 3 焊盘 (1,2,3) + value=P-MOS 高边开关 ⇒ KiCad 官方库 Transistor_FET:Q_PMOS_GDS (G/D/S, ★实测 3 脚★) ★型号待选型★ |
+| `R_BAT_DET_1` | R | 2 | 2 | +0 | 2 | KiCad 官方库 Device:R |
+| `R_BAT_DET_2` | R | 2 | 2 | +0 | 2 | KiCad 官方库 Device:R |
+| `R_CC1` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_CC1_D` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_CC2` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_CC2_D` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_CE` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_CHG_LED` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_EN_VCORE` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_ID_JMP0` | R | 2 | 2 | +0 | 2 | KiCad 官方库 Device:R |
+| `R_ID_JMP1` | R | 2 | 2 | +0 | 2 | KiCad 官方库 Device:R |
+| `R_ILIM` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_JTAG_TCK` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_JTAG_TDI` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_JTAG_TDO` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_JTAG_TMS` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_KEY_CAM` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_KEY_PWR` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_KEY_VM` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_KEY_VP` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_LED_B` | R | 2 | 2 | +0 | 2 | KiCad 官方库 Device:R |
+| `R_LED_G` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_LED_R` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_NTC_BAT` | R | 2 | 2 | +0 | 2 | KiCad 官方库 Device:R |
+| `R_OTG` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PD_ON` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PG_PULL` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PSEL` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_BOOT_N` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_CHG_STAT` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_I2CA_SCL` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_I2CA_SDA` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_I2CB_SCL` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_I2CB_SDA` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_ID0` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_ID1` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_INT` | R | 2 | 2 | +0 | 2 | KiCad 官方库 Device:R |
+| `R_PU_PG` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_RESET_N` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_SCL` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_PU_SDA` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SEL_CK_N` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SEL_CK_P` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SEL_D0_N` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SEL_D0_P` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SEL_D1_N` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SEL_D1_P` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SEL_D2_N` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SEL_D2_P` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SEL_D3_N` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SEL_D3_P` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SER_CSI_MCLK` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SER_FSIN` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SER_RESET_N` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SER_SPI_CSn` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SER_SPI_MISO` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SER_SPI_MOSI` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SER_SPI_SCLK` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SER_USB_D_N` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SER_USB_D_P` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_STAR_PGND` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SUPV_DIV1` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_SUPV_DIV2` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_TS_PULL` | R | 2 | 2 | +0 | 2 | KiCad 官方库 Device:R |
+| `R_TS_TOP` | R | 2 | 2 | +0 | 2 | KiCad 官方库 Device:R |
+| `R_VBUS_DET_D1` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `R_VBUS_DET_D2` | R | 2 | 2 | +0 | 0 | KiCad 官方库 Device:R |
+| `SW_BOOT` | SW | 2 | 2 | +0 | 0 | BOM 型号未定 · 板文件封装 2 焊盘 (1,2) ⇒ KiCad 官方库 Switch:SW_Push (★实测 2 脚★) ★按键类通用件; ★新增非按键类 SW_* 须另立条目★ |
+| `SW_KEY_CAM` | SW | 2 | 2 | +0 | 2 | BOM 型号未定 · 板文件封装 2 焊盘 (1,2) ⇒ KiCad 官方库 Switch:SW_Push (★实测 2 脚★) ★按键类通用件; ★新增非按键类 SW_* 须另立条目★ |
+| `SW_KEY_PWR` | SW | 2 | 2 | +0 | 0 | BOM 型号未定 · 板文件封装 2 焊盘 (1,2) ⇒ KiCad 官方库 Switch:SW_Push (★实测 2 脚★) ★按键类通用件; ★新增非按键类 SW_* 须另立条目★ |
+| `SW_KEY_VM` | SW | 2 | 2 | +0 | 0 | BOM 型号未定 · 板文件封装 2 焊盘 (1,2) ⇒ KiCad 官方库 Switch:SW_Push (★实测 2 脚★) ★按键类通用件; ★新增非按键类 SW_* 须另立条目★ |
+| `SW_KEY_VP` | SW | 2 | 2 | +0 | 0 | BOM 型号未定 · 板文件封装 2 焊盘 (1,2) ⇒ KiCad 官方库 Switch:SW_Push (★实测 2 脚★) ★按键类通用件; ★新增非按键类 SW_* 须另立条目★ |
+| `SW_RST` | SW | 2 | 2 | +0 | 0 | BOM 型号未定 · 板文件封装 2 焊盘 (1,2) ⇒ KiCad 官方库 Switch:SW_Push (★实测 2 脚★) ★按键类通用件; ★新增非按键类 SW_* 须另立条目★ |
+| `TP_BAT` | TP | 1 | 1 | +0 | 1 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_BAT_CHG` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_BOOT` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_CHG_STAT` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_CSI_CK_N` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_CSI_CK_P` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_CSI_D0_N` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_CSI_D0_P` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_DSI_CK_N` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_DSI_CK_P` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_DSI_D0_N` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_DSI_D0_P` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_DSI_D1_N` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_DSI_D1_P` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_DSI_D2_N` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_DSI_D2_P` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_DSI_D3_N` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_DSI_D3_P` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_FSIN` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_I2CA_SCL` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_I2CA_SDA` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_I2CB_SCL` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_I2CB_SDA` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_ID` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_JTAG` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_KEY_PWR` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_KEY_VM` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_KEY_VP` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_LED_B` | TP | 1 | 1 | +0 | 1 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_LED_G` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_LED_R` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_LIGHT_3V3` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_MCLK` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_PG` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_PG_VCORE` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_PG_VIO` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_RESET` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_SYS` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_TS` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_UART` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_USB_D_N` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_USB_D_P` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_VBUS` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_VCORE` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `TP_VIO` | TP | 1 | 1 | +0 | 0 | KiCad 官方库 Connector:TestPoint (单脚测试点) |
+| `U_BATPROT` | IC | 3 | 6 | +3 | 3 | BQ2970 · BOM opn=BQ2970 (SOT-23-6) ⇒ KiCad 官方库 Battery_Management:BQ297xy (★实测 6 脚★; 板文件封装 6 焊盘 2..7 ⇒ 数量一致, ★但焊盘编号 2..7 与符号 1..6 不对齐★ ⇒ 见交卷报告) |
+| `U_CHG` | IC | 24 | 24 | +0 | 4 | BQ25896RTWR · state/check_netlist_pins.py:SPEC_PINS (项目自有真值表) |
+| `U_DCDC_VCORE` | NET | 3 | 17 | +14 | 0 | TPS62130ARGTR · BOM opn=TPS62130ARGTR ⇒ KiCad 官方库 Regulator_Switching:TPS62130 (16 脚 + 散热焊盘) |
+| `U_DCDC_VIO` | NET | 3 | 17 | +14 | 0 | TPS62130ARGTR · BOM opn=TPS62130ARGTR ⇒ KiCad 官方库 Regulator_Switching:TPS62130 (16 脚 + 散热焊盘) |
+| `U_EN_SW` | NET | 4 | 4 | +0 | 0 | TPS22991RAA · BOM opn=TPS22991RAA (UQFN-4) ⇒ 本机无 TPS22991 符号 ⇒ 取同脚数负载开关代理 Power_Management:AP22913CN4 (WLCSP-4, ★实测 4 脚★; 板文件封装 4 焊盘 1..4 ⇒ 一致) |
+| `U_LDO_IO18` | IC | 5 | 5 | +0 | 0 | TPS7A2018DQNR · BOM opn=TPS7A2018DQNR ⇒ KiCad 官方库 Regulator_Linear:TPS7A20xxxDQN |
+| `U_LDO_IO33` | IC | 5 | 5 | +0 | 0 | TPS7A2033DQNR · BOM opn=TPS7A2033DQNR ⇒ KiCad 官方库 Regulator_Linear:TPS7A20xxxDQN |
+| `U_LDO_L18` | IC | 5 | 5 | +0 | 5 | TPS7A2018DQNR · BOM opn=TPS7A2018DQNR ⇒ KiCad 官方库 Regulator_Linear:TPS7A20xxxDQN |
+| `U_LDO_L33` | IC | 5 | 5 | +0 | 0 | TPS7A2033DQNR · BOM opn=TPS7A2033DQNR ⇒ KiCad 官方库 Regulator_Linear:TPS7A20xxxDQN |
+| `U_LDO_S12` | IC | 5 | 5 | +0 | 5 | TPS7A2012DQNR · BOM opn=TPS7A2012DQNR ⇒ KiCad 官方库 Regulator_Linear:TPS7A20xxxDQN |
+| `U_LDO_S18B` | IC | 5 | 5 | +0 | 5 | TPS7A2018DQNR · BOM opn=TPS7A2018DQNR ⇒ KiCad 官方库 Regulator_Linear:TPS7A20xxxDQN |
+| `U_LDO_S28` | IC | 4 | 5 | +1 | 4 | BOM 型号未定 · 与已填 U_LDO_L18/L33 同族 (TPS7A20-28) ⇒ KiCad 官方库 Regulator_Linear:TPS7A20xxxDQN (★实测 5 脚★: 1=OUT,2=GND,3=EN,4=IN,5=Pad) ★★板文件封装只落 4 焊盘 (1,2,4,5) ⇒ ★缺 EN(3)★ ⇒ 见交卷报告★ |
+| `U_PWR_SW` | IC | 4 | 4 | +0 | 0 | TPS22991RAA · BOM opn=TPS22991RAA (UQFN-4) ⇒ 本机无 TPS22991 符号 ⇒ 同脚数代理 Power_Management:AP22913CN4 (★实测 4 脚★; 板文件封装 4 焊盘 1..4 ⇒ 一致) |
+| `U_SUPV` | IC | 4 | 6 | +2 | 4 | BOM 型号未定 · 网表 value=TPS3808G01 类 (SOT-23-6) ⇒ KiCad 官方库 Power_Supervisor:TPS3808DBV (★实测 6 脚★: 1=RESET,2=GND,3=MR,4=CT,5=SENSE,6=VDD) ★★板文件封装只落 4 焊盘 (1,4,5,6) ⇒ ★缺 GND(2) 与 MR(3)★ ⇒ 装上也跑不起来 (DNP 未装掩盖) ⇒ 见交卷报告★ |
+| `U_TEMP` | IC | 6 | 6 | +0 | 0 | TI TMP117 (DRV0006B, I2C 温度计 ±0.1°C, 地址 0x48) · state/check_netlist_pins.py:SPEC_PINS (项目自有真值表) |
+| `X1` | CONN | 3 | [0数据] | [0数据] | 3 | ★非器件★ ⇒ 晶振焊盘位 (★本版不装, 不是器件★) ⇒ 脚数口径不适用 |
+
+---
+
+## 4. ★**怎么读这张表 (★评审口径★)**
+
+- ★**本轮原理图按 `HW/netlist_v1_pins.csv` 全量画 (584 脚, 含 DNP 行)** ⇒ 图上脚数 = 表侧脚数 = 584, 逐器件相等 (★`state/check_sch_pinfull.py` 实测 K=0★)。
+- ★**『表里脚数』是【这个设计实际用到的脚】, 不是【器件出厂总脚数】**★
+  ⇒ 第 2 节那些『真实多脚』是正常的 (★空脚/NC/散热焊盘本来就不接★), ★**不是漏画**★
+- ★**第 1 节那些『表里多脚』才是真问题** ★ ⇒ 逐个核: 是表里脚号写错了, 还是选型/脚数口径不一致
+- ★**`[0数据]` = 本机查不到真实脚数** ★ ⇒ ★**型号定了回查厂商官方库后, 重跑 `python3 state/gen_kicad_sch.py --pin-gap` 即可自动补齐** ★ (★**旧版本这里写的是 `state/gen_pin_reality_gap.py` —— 那个脚本【不存在】, 照着跑必然失败 ⇒ ★**2026-11-11 19:4x 已订正★**) ★
+- ★**`[0数据]` 里现在只剩 3 个 (★`BT_432243` / `CHG_GND_STAR` / `X1`★) ⇒ ★**它们是【非器件】(汇流位 / 焊盘位 / 待选型电池座) ⇒ 【不编脚数】, 也不需要问原厂脚数** ★
+- ★**没有改任何表** ★: `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` 一个字节都没动 (★md5 不变, 见交卷实测★)
+
+---
+
+---
+
+## 5. ★★需裁决 / 外部依赖 (★2026-11-11 15:4x 新增·★本轮卡住的唯一一条★★)
+
+> ★★**这一节的规矩 (★铁律·写在这里是为了防止下一个 agent 乱来★)**: ★★
+> ★**① 本轮【不猜】、不【改表】** ⇒ ★**没查清的事实原样留着, 不许用"看起来像"填空★** ★★
+> ★**② 【★老板 2026-11-12 02:02 新口径★: 不再发信, 全靠自己查资料】** ⇒ ★**不外发任何邮件 / 询价 / 问 datasheet** (★`state/outbox/` 草稿一律不发, 只留档★) ⇒ ★**缺口一律【自己网上查】+ 标证据等级 [官网]/[实测]/[媒体]/[推算]/[0数据]**, ★**查不到就如实标 [0数据] + 记为已知缺口 + 给降级方案** ⇒ ★**不许拿「等回信」挂着当阻塞项** ★★
+> ★**③ 本轮【没改任何表】**: ★**`HW/netlist_v1_pins.csv` md5 `4814617e22b567d76164e56bc5e39dc8` · `HW/netlist_v1.csv` md5 `c78f991283cc82d56c8e3dd31657c785` · `HW/PCB/FET3572C_PIN_TABLE.csv` md5 `67340a0b707095fc4c0755a4c79ea8b6`** ★★
+
+### 5.1 ★★E-01 (`FET3572C_PIN_TABLE.csv` 的 **`P2` 座缺 `num=40`**) ★★【★2026-11-12 02:2x 已自查关闭★】★★
+
+| 座 | 表里行数 | 缺 `num` | 判定 |
+|---|---|---|---|
+| `P1` | 100 | — | ✔ 完整 |
+| `P2` | 99 | **40** | ★**缺一整行 ⇒ ★官方手册同样缺这一行 (★[官网]★) ⇒ 非抄漏★** ★ |
+| `P3` | 100 | — | ✔ 完整 |
+| `P4` | 100 | — | ✔ 完整 |
+
+| 项 | 内容 |
+|---|---|
+| ★**事实 (★实测·口径见 §0★)**★ | [实测] ★**`HW/PCB/FET3572C_PIN_TABLE.csv` 逐座行数: `P1` = 100 行 · `P2` = 99 行 · `P3` = 100 行 · `P4` = 100 行** ⇒ ★**四座都是 100 球位/座 (★这正是 §2 里"真实器件 4×100 = 400 球位"的依据★), `P2` 少的那一行 = `num=40`** ★★
+| ★**★① [官网] 官方手册【自己也没有这一行】★**★ | ★**Forlinx 官方文档站 `docs.forlinx.net/rockchip/ok3572-c/OK3572-C_User_Hardware_Manual.html` §2.6.2 **Table 4 (P2 Connector Interface (Even) Pin Definition)** ⇒ ★**实测该表 49 个数据行 ⇒ 从 `num=38` 直接跳到 `num=42`, 中间没有 40** ⇒ ★**⇒ 【这不是我们抄漏, 是官方公开文档原样如此】** ★★
+| ★**★② [实测] 我们项目表 vs 官方手册 = 逐格零差异★**★ | [实测] ★**399 行 × 4 列 (`Signal Name` / `BALL` / `GPIO` / `VOL`) 全部 0 差异, 行数 399 = 399** ⇒ ★**⇒ 本表就是【官方手册的逐格转录】** ⇒ ★**⇒ 证据等级从【模组厂口径】升到【[官网]】** ⇒ ★**⇒ §2 里那句"其中 1 行的佐证待原厂确认"★****【作废】—— 它从来不是【待确认】, 是【官方没有这一行】** ★★
+| ★**★③ [实测] 对本板零影响★**★ | [实测] ★**`netlist_v1_pins.csv` 里 `J_SOM_P2` 只用了 9 个球位 (`1 / 7 / 9 / 11 / 13 / 31 / 33 / 45 / 100`) ⇒ 不含 `pin40`** ⇒ ★**⇒ 图=表 (K=0) 不受影响; 【选项③】那 348 个未画球位里也【没有一个是 40】⇒ ★**⇒ 本条已不是任何人的阻塞项** ★★
+| ★**★④ [官网] 顺带查到的 2 条★**★ | ★**(A) 升级路径: 官方 Product Brief 原文 "Compatible with the pin design of the FET3576-C SoM" ⇒ ★**换 FET3576-C 不用改载板** ★; ★**(B) 待核: `P2_7` 官方默认功能是 `PWM0_CH1_M0`, 我们拿它当 `UART_TX` 用 ⇒ ★**这是【引脚复用】, 需用官方 pinmux 表交叉核** ⇒ ★**已登记 need, 不在本单范围** ★★
+| ★**★⇒ 结论 (★2026-11-12 02:2x·main 实测★)**★ | ★**★★E-01 关闭★★** ⇒ ★**不外发、也不需要任何人回信** ⇒ ★**【老板 2026-11-12 02:02 指令『不再发信, 全靠自己查资料』的第一个真成果】** ⇒ ★**完整证据: `HW/PCB/RK3572_SOM_BALLTABLE_CROSSCHECK.md`** ★★
+| ★**降级方案 (★万一将来官方出了 V2 手册且第 40 行有信号★)**★ | ★**① 本板不用它 ⇒ 直接不受影响; ★**② 换 FET3576-C 时按官方 V2 表重新核一遍 (针脚兼容 ⇒ 不用改板, 只改分配表)** ⇒ ★**③ 本表【保持 399 行不动】** ⇒ ★**改表要同时改 `PARTIAL_PINS` 与 §2 的"真实 100 脚"口径, 且必须重跑 `check_sch_pinfull.py` (K=0) 与 `check_netlist_pins.py` 两条闸** ★★
+
+### 5.2 ★★外部依赖 E-02: 3 个器件的真实脚数还是 `[0数据]` ★★
+
+| 项 | 内容 |
+|---|---|
+| ★**事实 (★实测·口径见 §0★)**★ | [实测] ★**218 个器件里, 真实脚数可查 = 215 个 · 查不到 = 3 个 (`[0数据]`)** ⇒ ★**这 3 个里 3 个已判定为【非器件】(★`BT_432243` / `CHG_GND_STAR` / `X1`★) ⇒ ★**真正还需要问原厂脚数的只剩 0 个** ★★
+| ★**为什么查不到**★ | ★**不是"查得不够仔细", 是"没有源"** ⇒ ★**§0 列的三个本机权威源 (KiCad 官方库 / `state/check_netlist_pins.py` 的 SPEC_PINS·PARTIAL_PINS / BOM 的 opn·footprint) 都答不上这 3 个** ⇒ ★**⇒ 只能靠型号定下来之后回查官方库, 或直接问原厂** ★★ (★**但这 3 个里有 3 个本来就不是器件 ⇒ 【没脚数可查】, 不是"查不到"★)**
+| ★**本轮怎么做的**★ | ★**标 `[0数据]`, 不猜、不估、不用"同类器件一般多少脚"去填** ⇒ ★**§1 (表里多脚) 与 §2 (真实多脚) 的结论只基于那 215 个有权威源的器件** ★★
+| ★**ISS-198 补表后 (★实测★)**★ | ★**`state/gen_kicad_sch.py` 的 `OPN_KICAD` / `PREFIX_KICAD` 两张查找表已补全 ⇒ ★**`[0数据]` 从 29 → 3** ⇒ ★**其中 3 个是【非器件】(★`BT_432243` / `CHG_GND_STAR` / `X1`★) ⇒ ★**不用问原厂脚数**★; ★**真正还需要问原厂脚数的 = 0 个** ⇒ ★**⇒ E-02 这条外部依赖实际已关闭 (★不需要进那封问原厂的信★)★** ★★
+| ★**需谁做什么**★ | ★**★自己网上查★ (★不外发★) ⇒ 型号定下来后回查厂商官方库 / datasheet ⇒ 查完重跑 `python3 state/gen_kicad_sch.py --pin-gap` 自动补齐** ★★
+
+### 5.3 ★★本节与老板【选项③】的关系 (★一句话给老板★)★★
+
+★**"选项③ = 真实器件全貌" 的输入, 就是本文 §2 + §5.1**: ★**SoM 真实器件 = 4 座 × 100 球位 = 400 球位 (★口径: 球位表里 P1/P3/P4 各 100 行 + `P2` 缺 1 行 (★官方手册同样缺, 非抄漏·本板也不用·2026-11-12 已自查关闭★)★) ⇒ 表里只用了 52 个 (J_SOM_P1 10 / P2 9 / P3 19 / P4 14) ⇒ 未画的 348 个球位, 每一格都要靠【完整球位表】才能填** ★★
+
+★**⇒ ★★所以顺序改了 (★2026-11-12 02:2x 实测★): ① 自己网上查官方手册 (★已完成 ⇒ E-01 已关闭★) ② 型号定了回查厂商官方库 ③ 才能谈"400 球全画" ⇒ ★**在 ② 回来之前, 任何"全貌"都只是猜的★★** ★★
+
+---
+
+## 6. ★**本轮未做/待下一轮 (★不硬凑★)**
+
+- ★**表里多脚的那几项** ★: 需要**型号定了回查厂商官方库**才能定论 ⇒ ★**本轮不猜、不改表** ★
+- ★**`[0数据]` 的 3 个** ★: 3 个是【非器件】(★`BT_432243` / `CHG_GND_STAR` / `X1`★) ⇒ 无脚数可查, ★**不编、不问原厂**★; ★**剩下 0 个 (★★) 是待选型器件 ⇒ 型号定下来后回查官方库即可** ★
+

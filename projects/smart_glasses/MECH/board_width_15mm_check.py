@@ -44,7 +44,7 @@ BASE = {
     "pad_soc":      0.30,   # SoC 下方导热垫
     "frame_thk":    1.00,   # 铝/铜骨架厚 (MECH_BUDGET §5.1)
     "pcb_thk":      0.80,   # PCB 厚 (4 层); 6 层 = 1.00
-    # 电芯 (解 A: Renata ICP582035PR-01 340mAh 4.60 厚)
+    # 电芯 (解 A: Renata ICP422339PR 340mAh 4.60 厚)
     "cell_thk":     4.60,
     "cell_v":      23.50,
     "cell_l":      40.50,

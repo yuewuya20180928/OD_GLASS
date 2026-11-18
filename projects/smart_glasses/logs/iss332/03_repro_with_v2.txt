@@ -1,0 +1,49 @@
+================================================================================================
+# ISS-332 · 第 8 道闸 4 条【洗白面】复现 (★期望 / 实际 / 判决 三列★)
+# 真件闸只读 (只 import + 用它自带的沙盒工具) · 沙盒在 tmp/iss332/ · 证据在 logs/iss332/
+================================================================================================
+
+【基树自检】/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss332/sb_base
+           真件闸 rc=0 · 分类统计={'DESIGNATOR_OK': 78, 'DESIGNATOR_DRIFT': 0, 'DESIGNATOR_MISSING': 3, 'NET_NAME': 9, 'DOC_INTERNAL': 23}
+           基线读数=(3, 3) · 真隐患清单=['CONN_USB', 'TP_INT', 'TP_TEMP']
+
+================================================================================================
+# ★核心证据表: 4 条洗白面 + 3 条对照 (期望 / 实际 / 判决)★
+================================================================================================
+用例     旧 token      -> 新 token        | 期望[真件]    | 实际[真件]    | 判决       | 真件闸真隐患清单
+------------------------------------------------------------------------------------------------
+RT-5   TP_TEMP      -> U_TEMP_1       | rc=0      | rc=0      | ✔ 符合     | CONN_USB,TP_INT
+RT-6   TP_TEMP      -> TP_temp        | rc=0      | rc=0      | ✔ 符合     | CONN_USB,TP_INT
+RT-7   TP_TEMP      -> SW_TEMP_ISSX   | rc=0      | rc=0      | ✔ 符合     | CONN_USB,TP_INT
+RT-8   TP_TEMP      -> TP_TEMP_       | rc=0      | rc=0      | ✔ 符合     | CONN_USB,TP_INT
+CTL-1  TP_TEMP      -> TP_TEMP_ISSX   | rc=1      | rc=1      | ✔ 符合     | CONN_USB,TP_INT,TP_TEMP_ISSX
+CTL-2  TP_INT       -> TP_INT_ISSX    | rc=1      | rc=1      | ✔ 符合     | CONN_USB,TP_TEMP,TP_INT_ISSX
+CTL-3  CONN_USB     -> CONN_USB_ISSX  | rc=1      | rc=1      | ✔ 符合     | TP_INT,TP_TEMP,CONN_USB_ISSX
+------------------------------------------------------------------------------------------------
+★4 条洗白面 (RT-5~RT-8) 现在绿 = 4 条 / 3 条对照 (CTL-1~CTL-3) 现在红 = 3 条
+
+================================================================================================
+# ★收紧版 v2 判决表★
+================================================================================================
+用例     旧 token      -> 新 token        | 期望[v2]    | 实际[v2]    | 判决       | v2 是否点名该 token
+------------------------------------------------------------------------------------------------
+RT-5   TP_TEMP      -> U_TEMP_1       | rc=1      | rc=1      | ✔ 抓住+点名  | 是
+        [FAIL] 真患台账对不上账 (洗白嫌疑): TP_TEMP ⇒ 建闸日登记在 BASELINE_TOKENS 里的这条真患, 现在既不被任何 SW 文档引用、也不在板/网表上 ⇒ 它被改名/替身洗白了 ⇒ 疑似替身: TP_TEMP→U_TEMP_1 (D-2 新面孔且与旧真患共享 ≥3 字符段)
+RT-6   TP_TEMP      -> TP_temp        | rc=1      | rc=1      | ✔ 抓住+点名  | 是
+        [FAIL] 位号引用解析不到 (新增真隐患·超基线): TP_temp @ SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:518 ⇒ 板与网表里现在叫: (无近似名)
+        [FAIL] 真患台账对不上账 (洗白嫌疑): TP_TEMP ⇒ 建闸日登记在 BASELINE_TOKENS 里的这条真患, 现在既不被任何 SW 文档引用、也不在板/网表上 ⇒ 它被改名/替身洗白了 ⇒ 疑似替身: TP_TEMP→TP_temp (D-1 归一化后与旧真患同名), TP_TEMP→U_TEMP_
+RT-7   TP_TEMP      -> SW_TEMP_ISSX   | rc=1      | rc=1      | ✔ 抓住+点名  | 是
+        [FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_TEMP_ISSX @ SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:518 ⇒ 板与网表里现在叫: (无近似名)
+        [FAIL] 真患台账对不上账 (洗白嫌疑): TP_TEMP ⇒ 建闸日登记在 BASELINE_TOKENS 里的这条真患, 现在既不被任何 SW 文档引用、也不在板/网表上 ⇒ 它被改名/替身洗白了 ⇒ 疑似替身: TP_TEMP→SW_TEMP_ISSX (D-2 新面孔且与旧真患共享 ≥3 字符段), TP_
+RT-8   TP_TEMP      -> TP_TEMP_       | rc=1      | rc=1      | ✔ 抓住+点名  | 是
+        [FAIL] 位号引用解析不到 (新增真隐患·超基线): TP_TEMP_ @ SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:518 ⇒ 板与网表里现在叫: U_TEMP_1
+        [FAIL] 真患台账对不上账 (洗白嫌疑): TP_TEMP ⇒ 建闸日登记在 BASELINE_TOKENS 里的这条真患, 现在既不被任何 SW 文档引用、也不在板/网表上 ⇒ 它被改名/替身洗白了 ⇒ 疑似替身: TP_TEMP→TP_TEMP_ (D-1 归一化后与旧真患同名), TP_TEMP→U_TEMP
+CTL-1  TP_TEMP      -> TP_TEMP_ISSX   | rc=1      | rc=1      | ✔ 抓住+点名  | 是
+        [FAIL] 位号引用解析不到 (新增真隐患·超基线): TP_TEMP_ISSX @ SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:518 ⇒ 板与网表里现在叫: (无近似名)
+        [FAIL] 真患台账对不上账 (洗白嫌疑): TP_TEMP ⇒ 建闸日登记在 BASELINE_TOKENS 里的这条真患, 现在既不被任何 SW 文档引用、也不在板/网表上 ⇒ 它被改名/替身洗白了 ⇒ 疑似替身: TP_TEMP→TP_TEMP_ISSX (D-2 新面孔且与旧真患共享 ≥3 字符段), TP_
+CTL-2  TP_INT       -> TP_INT_ISSX    | rc=1      | rc=1      | ✔ 抓住+点名  | 是
+        [FAIL] 位号引用解析不到 (新增真隐患·超基线): TP_INT_ISSX @ SW/BOARD_ONEPASS_SW_SYNC.md:43 ⇒ 板与网表里现在叫: (无近似名)
+        [FAIL] 真患台账对不上账 (洗白嫌疑): TP_INT ⇒ 建闸日登记在 BASELINE_TOKENS 里的这条真患, 现在既不被任何 SW 文档引用、也不在板/网表上 ⇒ 它被改名/替身洗白了 ⇒ 疑似替身: TP_INT→TP_INT_ISSX (D-2 新面孔且与旧真患共享 ≥3 字符段)
+CTL-3  CONN_USB     -> CONN_USB_ISSX  | rc=1      | rc=1      | ✔ 抓住+点名  | 是
+        [FAIL] 位号引用解析不到 (新增真隐患·超基线): CONN_USB_ISSX @ SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:518 ⇒ 板与网表里现在叫: (无近似名)
+        [FAIL] 真患台账对不上账 (洗白嫌疑): CONN_USB ⇒ 建闸日登记在 BASELINE_TOKENS 里的这条真患, 现在既不被任何 SW 文档引用、也不在板/网表上 ⇒ 它被改名/替身洗白了 ⇒ 疑似替身: CONN_USB→CONN_USB_ISSX (D-2 新面孔且与旧真患共享 ≥3 字符段), 

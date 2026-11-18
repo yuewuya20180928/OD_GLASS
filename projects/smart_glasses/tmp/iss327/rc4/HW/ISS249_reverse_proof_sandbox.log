@@ -1,0 +1,128 @@
+################################################################
+# ISS-249 · 反向自证 (★沙盒执行 · 真盘一个字节不许动★)
+# 沙盒: /tmp/iss249_sbx   真盘: /home/yuewuya/.openclaw/workspace/projects/smart_glasses (只读, 全程不写)
+# 执行时间: 2026-11-16 19:42:03 CST
+################################################################
+
+=== [前置] 真盘 md5 基线 (跑完后逐条比对) ===
+16ac89f77c25a3f61834cc7ebcd78a7f  HW/netlist_v1.csv
+ef436a37412ac9b6eac3c9f41f1edca4  HW/netlist_v1_pins.csv
+2a7305741134788dfee9f13f34c656b4  HW/BOM_v1.csv
+564fed05c1f5f9dab09efce51eebae74  HW/netlist_v1.net
+d37bbd0d8fb0754f038c734adb11316d  HW/SCHEMATIC_V1.md
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+519b14ff71d15722183f848e6adba5dc  state/gen_netlist.py
+
+=== [STEP 1] 沙盒里把那 2 行 node2 改回旧值 (装 state/.bak_iss249/gen_netlist.py) ===
+ed12961ef619d04b90bb6d28b2a727ac  /tmp/iss249_sbx/state/gen_netlist.py
+381:    add("P1", "VBUS_5V_F1", "FB_VBUS", "C_VBUS_OUT", "FB_VBUS", "π 滤波磁珠 [待选型]", "L",
+393:    add("P1", "VBUS_5V_CHG", "C_VBUS_GND", "C_VBUS_OUT", "C_VBUS_GND", "[待选型] 100µF", "C",
+
+=== [STEP 2] 沙盒里重生成网表 ===
+  [脚号改写] 29 处 · 仍无脚号的命名脚 5 处
+✅ 已生成 /tmp/iss249_sbx/HW/netlist_v1.csv: 513 行, 覆盖 58 条连接 (含 P10 充电板页 63 行)
+   P1 电源树 (13 电源域 + 充电链)                          183 行
+   P2 SoC 主控 (低速控制 / ADC / I2C / FSIN)             26 行
+   P3 启动存储 (焊盘位 + 串阻位, 不画存储芯片)                     10 行
+   P4 显示双出口 (DSI 原生 / 桥接 互斥 0Ω 位)                  39 行
+   P5 MIPI-CSI 传感器 (CONN_CAM 40p **板内 FPC 座**, demo 阶段 2-lane)   41 行
+   P6 高速差分与连接器 (DP_TX / USB / Type-C)               9 行
+   P7 板级接口与测试点 (TP + 按键 + LED + ID 跳线)             78 行
+   P8 时钟 · 复位 · 调试 (XTAL / RESET / BOOT / JTAG / UART)   56 行
+   P9 跨铰链界面 (★demo 阶段仅充电链 USB+充电; camera/display 已改板内 FPC)    8 行
+   P10 充电板 (镜框) 整页: Type-C 16p 物理脚位 + BQ25896 24 脚 + 温度检测三件式 + R_ILIM 硬件限流   63 行
+>>> gen_netlist.py rc=0
+611c3ba3db3dc7de7213063375b96d01  /tmp/iss249_sbx/HW/netlist_v1.csv
+
+=== [STEP 3] 沙盒里跑判定门禁 (★必须 rc=1 = 改回旧值后必须重新红★) ===
+==============================================================================
+  ISS-247 · F1 落表判定门禁 (★语义判据 · 一个 md5 都不碰★)
+==============================================================================
+  网表: /tmp/iss249_sbx/HW/netlist_v1.csv
+  脚表: /tmp/iss249_sbx/HW/netlist_v1_pins.csv
+
+  ❌ S1  C_VBUS_GND 信号端行的 node2 == 它自己的网名
+        · L12: C_VBUS_GND 在 VBUS_5V_CHG 上的行, node2='C_VBUS_OUT' ⇒ 必须等于它自己的网名 'VBUS_5V_CHG' (借了别的器件的裸位号)
+  ✅ S2  C_VBUS_OUT 串联端行的 node2 是物理脚或自己的网名
+  ❌ S3  FB_VBUS 后级行的 node2 == 它自己的网名
+        · L8: FB_VBUS 在 VBUS_5V_F1 上的行, node2='C_VBUS_OUT' ⇒ 必须等于它自己的网名 'VBUS_5V_F1' (借了别的器件的裸位号)
+  ❌ S4  通用: 每颗 2 脚 C 的端子登记次数 ≤ 脚表脚数 (等价 R3-A1)
+        · L8: net=VBUS_5V_F1 node2=C_VBUS_OUT (本行 ref=FB_VBUS) ⇒ C_VBUS_OUT 的端子被登记 4 次 > 脚数 2
+        · L9: net=VBUS_5V_F1 node2=C_VBUS_OUT (本行 ref=C_VBUS_OUT) ⇒ C_VBUS_OUT 的端子被登记 4 次 > 脚数 2
+        · L11: net=VBUS_5V_CHG node1=C_VBUS_OUT (本行 ref=C_VBUS_OUT) ⇒ C_VBUS_OUT 的端子被登记 4 次 > 脚数 2
+        · L12: net=VBUS_5V_CHG node2=C_VBUS_OUT (本行 ref=C_VBUS_GND) ⇒ C_VBUS_OUT 的端子被登记 4 次 > 脚数 2
+  ❌ S5  通用: 2 脚 C 之间的裸位号对端撞车 (等价 R3-A2)
+        · L12: net=VBUS_5V_CHG ref=C_VBUS_GND 的对端裸位号=C_VBUS_OUT ⇒ C_VBUS_OUT 与 C_VBUS_GND 在脚表里同在 VBUS_5V_CHG 上 ⇒ 端子标签撞车
+  ✅ S6  反误报护栏: 2 脚 R/L/D 直连不判红
+        · (合法直连 1 处, 不得判红)
+
+──────────────────────────────────────────────────────────────────────────────
+  判定: ❌ F1 未落表 (★网表里 node2 槽仍借用了别的器件裸位号★)
+  rc   = 1
+──────────────────────────────────────────────────────────────────────────────
+>>> check_iss247_f1_landed.py rc=1
+
+=== [STEP 4] 沙盒里装回落表后版本 (★真盘一个字节没动★) ===
+519b14ff71d15722183f848e6adba5dc  /tmp/iss249_sbx/state/gen_netlist.py
+381:    add("P1", "VBUS_5V_F1", "FB_VBUS", "VBUS_5V_F1", "FB_VBUS", "π 滤波磁珠 [待选型]", "L",
+393:    add("P1", "VBUS_5V_CHG", "C_VBUS_GND", "VBUS_5V_CHG", "C_VBUS_GND", "[待选型] 100µF", "C",
+
+=== [STEP 5] 沙盒里重生成网表 ===
+  [脚号改写] 29 处 · 仍无脚号的命名脚 5 处
+✅ 已生成 /tmp/iss249_sbx/HW/netlist_v1.csv: 513 行, 覆盖 58 条连接 (含 P10 充电板页 63 行)
+   P1 电源树 (13 电源域 + 充电链)                          183 行
+   P2 SoC 主控 (低速控制 / ADC / I2C / FSIN)             26 行
+   P3 启动存储 (焊盘位 + 串阻位, 不画存储芯片)                     10 行
+   P4 显示双出口 (DSI 原生 / 桥接 互斥 0Ω 位)                  39 行
+   P5 MIPI-CSI 传感器 (CONN_CAM 40p **板内 FPC 座**, demo 阶段 2-lane)   41 行
+   P6 高速差分与连接器 (DP_TX / USB / Type-C)               9 行
+   P7 板级接口与测试点 (TP + 按键 + LED + ID 跳线)             78 行
+   P8 时钟 · 复位 · 调试 (XTAL / RESET / BOOT / JTAG / UART)   56 行
+   P9 跨铰链界面 (★demo 阶段仅充电链 USB+充电; camera/display 已改板内 FPC)    8 行
+   P10 充电板 (镜框) 整页: Type-C 16p 物理脚位 + BQ25896 24 脚 + 温度检测三件式 + R_ILIM 硬件限流   63 行
+>>> gen_netlist.py rc=0
+16ac89f77c25a3f61834cc7ebcd78a7f  /tmp/iss249_sbx/HW/netlist_v1.csv
+
+=== [STEP 6] 沙盒里再跑判定门禁 (★必须 rc=0 = 装回后必须重新绿★) ===
+==============================================================================
+  ISS-247 · F1 落表判定门禁 (★语义判据 · 一个 md5 都不碰★)
+==============================================================================
+  网表: /tmp/iss249_sbx/HW/netlist_v1.csv
+  脚表: /tmp/iss249_sbx/HW/netlist_v1_pins.csv
+
+  ✅ S1  C_VBUS_GND 信号端行的 node2 == 它自己的网名
+  ✅ S2  C_VBUS_OUT 串联端行的 node2 是物理脚或自己的网名
+  ✅ S3  FB_VBUS 后级行的 node2 == 它自己的网名
+  ✅ S4  通用: 每颗 2 脚 C 的端子登记次数 ≤ 脚表脚数 (等价 R3-A1)
+  ✅ S5  通用: 2 脚 C 之间的裸位号对端撞车 (等价 R3-A2)
+  ✅ S6  反误报护栏: 2 脚 R/L/D 直连不判红
+        · (合法直连 1 处, 不得判红)
+
+──────────────────────────────────────────────────────────────────────────────
+  判定: ✅ F1 已落表 (两颗 2 脚电容的端子标签不再撞车)
+  rc   = 0
+──────────────────────────────────────────────────────────────────────────────
+>>> check_iss247_f1_landed.py rc=0
+
+=== [STEP 7] 沙盒 selftest (★与活文件状态无关的 11 条用例★) ===
+------------------------------------------------------------------------------
+  用例 11 条 · 通过 11 条 · 失败 0 条
+  ★其中反向用例 (必须抓到红) 9 条 ★ 正向用例 2 条 (改对 ⇒ 绿 + 反误报 ⇒ 绿)
+  ★**fixture 与活文件状态无关** (T0/T4/T5 先显式回退成落表前) ⇒ 落表前跑 / 落表后跑 = 同一套断言 ★
+  结论: ✅ 全抓到  ·  rc = 0
+==============================================================================
+>>> check_iss247_f1_landed.py --selftest rc=0
+
+=== [STEP 8] ★真盘复核: 整个反向自证期间真盘一个字节不许动★ ===
+16ac89f77c25a3f61834cc7ebcd78a7f  HW/netlist_v1.csv
+ef436a37412ac9b6eac3c9f41f1edca4  HW/netlist_v1_pins.csv
+2a7305741134788dfee9f13f34c656b4  HW/BOM_v1.csv
+564fed05c1f5f9dab09efce51eebae74  HW/netlist_v1.net
+d37bbd0d8fb0754f038c734adb11316d  HW/SCHEMATIC_V1.md
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+519b14ff71d15722183f848e6adba5dc  state/gen_netlist.py
+
+=== [STEP 9] 真盘 md5 与跑前基线逐条 diff (★必须零差异★) ===
+>>> diff 零差异 (真盘逐字节未动) rc=0

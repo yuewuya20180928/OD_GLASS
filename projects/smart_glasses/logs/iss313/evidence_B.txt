@@ -1,0 +1,36 @@
+=== hw.yaml claims ===
+pcb_outline | 60x30mm | ★2026-11-01 订正: 旧值 60x15mm → 新值 60x30mm。依据 老板 10-29 19:16 拍板『板宽可以放到 30mm 以内』 (PROJECT_TRACKER §0 板宽行, 11-01 20:5x 台账订正) ⇒ 60x30=1800mm²。★ISS-118 机械判定: RK3588 在 
+chg_input_limit | 0.82-1.00A | ★2026-11-01 二次订正: 旧值 1.00A/0.82A/0.411A (300Ω→390Ω 换算时用了**反向**公式) → 新值 **0.82-1.00A** (R_ILIM=390Ω 的 IINMAX, 三档 KILIM=320/355/390 AΩ)。★**ICHG 不是 IIN**: buck 功率守
+battery_capacity_tier | 315mAh无桥/387mAh有桥 | 2026-10-29 23:4x 项目总工代为订正: hw-lead 侧旧串 (无桥接340-575mAh/有桥接575-675mAh) 是新容量口径落地前的过期值, 与 mech-lead 侧 (315/387) 冲突 ⇒ 按 ISS-072 新口径统一为 315/387 (mech-lead ISS-065 文档 
+j_chg_pin_map | 1x10p: 1/2=BAT_CHG, 3/4=GND, 5=CHG_STAT, 6=PWR_GOOD, 7=NC, 8=TS_BAT, 9/10=HINGE_RSV | ★真源 = HW/netlist_v1.csv (投板真源), 逐脚实读 [实测]; 与 state/p10_rows.json + HW/netlist_v1_pins.csv 三方互证。★ISS-136 已定版 CHARGE_BOARD_SPEC.md §5.2 表; ★ISS-199 已把 HW 侧其余 4 处第
+
+=== hw netlist J_CHG rows ===
+2:P1,VBUS_5V,J_TYPE_C A4+A9+B4+B9,D_ESD_TC,RAIL_VBUS_5V,5.0V ±5%,RAIL,必装,[推算],,"电源域: 目标 5.0V ±5% / 最大电流 2.0A (PD 5V/2A); **充电链整条在充电板**, SYS 经 J_CHG 回主 PCB; SoC 侧球位号 TBD-01",C-01,CHG_BOARD,,
+15:P1,BAT_CHG,RAIL_BAT_CHG,J_CHG pin1,RAIL_BAT_CHG,跨铰链 1.5A (双 pin 并联),NET,必装,[推算],,[BAT_CHG] 充电电流跨铰链 (J_CHG pin1/pin2 并联); 载流/压降/发热核算见 P9 页,C-02,HINGE,,
+16:P1,BAT_CHG,J_CHG pin1,J_CHG pin2,J_CHG,跨铰链 1.5A (双 pin 并联),NET,必装,[推算],,"[BAT_CHG] 双 pin 并联 (★每 pin 额定 0.75A / 工作上限 0.50A (ISS-099: FH12-10S-0.5SH(55) · 0.5mm pitch); ★按 ICHG/IIN=1.216 真值, 390Ω 档单 pin = 0.608A > 0.50A ⇒ 档位待 V-4 裁决★); 铰链段压降与发热按结构实际长度核算 (★结构侧须按 1.216 系数重算·ISS-091★)",C-02,HINGE,,
+17:P1,BAT_CHG,J_CHG pin2,U_BATPROT,NET_BAT_PROT,单端,NET,必装,[官方],,[BAT_CHG] 充电电流进镜脚侧电池保护 IC (BQ2970) —— **保护 IC 与电池同板 (镜脚)**,C-03,HINGE,,
+20:P1,HINGE_RSV,J_CHG pin9,J_CHG pin9,J_CHG,预留 (不装),NET,DNP,[推算],,"[INVENTORY] [HINGE_RSV] J_CHG pin9 预留位 (★V1.8: pin10 已改作 **TS 专用回流**, pin9 仍预留; 充电 IC 的 I2C 本板自闭环不跨铰链, 用不上这脚)",C-02,HINGE,,
+21:P1,HINGE_RSV,J_CHG pin10,J_CHG pin10,J_CHG,预留 (不装),NET,DNP,[推算],,"[INVENTORY] [HINGE_RSV] J_CHG pin10 预留位 (★V1.8: pin10 已改作 **TS 专用回流**, pin9 仍预留; 充电 IC 的 I2C 本板自闭环不跨铰链, 用不上这脚)",C-02,HINGE,,
+22:P1,GND,J_CHG pin3,J_CHG pin4,J_CHG,回流 (双 pin),NET,必装,[推算],,[GND_CHG] 充电电流回流双 pin (与电源 pin 相邻 · 环路面积最小),C-02,HINGE,,
+23:P1,GND,J_CHG pin4,GND,J_CHG,回流 (双 pin),NET,必装,[推算],,[GND_CHG] 回流进镜脚侧数字地,C-02,HINGE,,
+38:P1,BAT_CHG,J_CHG,J_CHG,J_CHG,"1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",CONN,必装,[推算],,"★V1.9 结构侧回执: **J_CHG 实物是一对** (框侧座 + 脚侧座), 采购/备料别只算一只; 单触点额定判据收紧到 **≥0.5A**; 首选 Hirose FH12-10S-0.5SH(55) (未询价, 外发经项目总工)。[SYS] ★V1.5 定稿 pin map (1×10p@0.5mm): pin1/pin2=BAT_CHG (充电电流**双 pin 并联**), pin3/pin4=GND (回流双 pin), pin5=CHG_STAT, pin6=PWR_GOOD, pin7=VBUS_DET, pin8=**TS** (电池 NTC 在镜脚, TS 跨铰链), pin9/10=预留 (充电 IC I2C 不跨铰链); ★BAT_DET 不跨铰链 (电池在镜脚本地检测); 型号/载流待结构复核 (ISS-091 算压降发热); ★pin 编号为**本版自拟**",C-02,HINGE,,
+40:P1,TS_BAT,R_NTC_BAT,R_TS_PULL,R_NTC_BAT,103AT NTC ±1% (贴电芯),R,DNP,[官方],,"[R_NTC_BAT] ★DNP: 同上 (NTC) | [TS_BAT] ★V1.5 修正: NTC **贴电芯 ⇒ 在镜脚** (V1.2 电池搬镜脚后), 而 BQ25896 的 TS 脚在镜框充电板 · **TS 必须跨铰链** (J_CHG pin8, 高阻无电流); NTC 按 BQ25896 datasheet 取 **103AT** (与 30.31k 并联构成温度检测网络); ★V1.6 修正: NTC 另一端按 datasheet 三件式接 **GND** (电芯负极侧), 原来接电芯正极 = 与分压公式不符",C-01,MAIN_PCB,,
+42:P1,TS_BAT,J_CHG pin8,R_NTC_BAT,J_CHG,跨铰链 (高阻),NET,必装,[推算],,[TS_BAT] ★V1.5 补画: **TS 跨铰链这一段** (V1.2 把电池/NTC 搬镜脚时漏了) · 走 J_CHG pin8,C-01,HINGE,,
+47:P1,IINLIM,U_CHG pin10,R_ILIM,R_ILIM,680Ω ±1% (IINMAX ≈0.57A · ICHG ≈0.70A · 单 pin 0.349A ⇒ 余量 1.43× 对 0.50A 触点 · V-4 裁定 2026-11-16),R,必装,[官方],,"[IINLIM] ★★★**方向修正 (ISS-214 d10 · ISS-220 落表 2026-11-16)**: buck 功率守恒 ⇒ ICHG/IIN = η·Vbus/Vbat = **1.216 @3.70V** / **1.071 @4.20V** (η=0.90 取 BQ25896 官方 92.5%@2A 的保守值) ⇒ ★**旧口径写的 (VBAT/VBUS)/η = 0.822 是它的倒数** ⇒ 本 note 里 V1.7/V1.8/V1.9 三处的『ICHG 0.82A / 单 pin 0.411A / 余量 1.22×』**全部作废**★; ★★**V1.7 (470Ω) 已作废** (V1.8 起改 390Ω; ★**V1.9 终值 = 680Ω (V-4 裁定 2026-11-16)**)★ BQ25896 的 IINLIM 复位默认 **2048mA** [官方] (不装 = 铰链吃 ~2.05A); ★★**680Ω 档真值 (V-4 裁定 2026-11-16)**: IINMAX = KILIM_max/RILIM = 390/680 = 0.574A; ICHG@3.70V = **0.698A**; J_CHG pin1/pin2 双 pin 并联 ⇒ **单 pin 0.349A ≤ 0.50A 触点工作上限 (余量 1.43×)** ⇒ **680Ω 档成立**; 300Ω 档单 pin **0.791A** / 260Ω 档单 pin **0.912A** ⇒ 均判死; ★★**ISS-099 结构侧选型回执 (10-28) 的【器件选型】部分仍有效**: 首选 Hirose FH12-10S-0.5SH(55) (0.5A/触点 · 0.5mm pitch · 座高 2.0mm) · ③ **J_CHG 实物是一对** (框侧座 + 脚侧座), 备料别只算一只; ④ **FPC 固定段 2oz (0.24-0.25mm) 可能超 FH12 可插厚度上限 0.23mm** → 已进 RFQ 硬判据; ★**但其中『单触点额定 ≥0.5A ⇒ 0.411A/触点 余量 1.22×』的余量结论已作废** (真值 0.608A 超额 21.6%)★; ★★**V1.8/V1.9 产品语义仍有效** (老板 10-28『**边戴边充不允许**』⇒ 充电时眼镜不在皮肤上 ⇒ 皮肤温度不再是充电时的硬约束); ★**皮肤侧『42.14°C / 不能再抬电流』那条结论是在 0.822 系数下算的** ⇒ 按 1.216 系数, 电芯内阻发热从 114mW 升到 148mW (0.10Ω × 1.216²) ⇒ **该温度数不可信, 必须由结构总工用 MECH/HINGE_POWER_CALC.md 重算 (ISS-091 地界)**★",C-01,CHG_BOARD,,
+
+=== BOM J_CHG / J_DEBUG ===
+70:J_CHG,1,跨铰链 1.5A (双 pin 并联),NET,必装,跨铰链界面,P1,[推算],,待定,,待定,待定,连接器,"★**实物一对 (框侧座 + 脚侧座), 备料按 2 只** (★qty 列恒为 1 = 逻辑器件口径★) · ★R_ILIM 订正提示: 见 `HW/CHARGE_CURRENT_RECHECK_2026-11-01.md` §2.2/§2.4 (CHARGE_CURRENT_RECHECK: R_ILIM 选 680Ω)★ | 型号/间距/引脚编号待结构与装配复核 (★本版 pin 编号自拟) ★该器件有 3 脚标 DNP (pin10,pin7,pin9) 但整器按必装 (★有一脚必装 ⇒ 实物装上, 该脚留空/NC★)"
+71:J_DEBUG,1,1×4 1.27mm 排针 (JTAG),CONN,必装,镜脚主 PCB,P8,[推算],,待定,,待定,待定,连接器,型号/间距/引脚编号待结构与装配复核 (★本版 pin 编号自拟)
+
+=== PCB_FORM_FACTOR_RECHECK stale lines ===
+4:> ① "15mm ⇒ 镜腿根部净高 37→40mm / 打印件要改版" **错**: 串行排布下净高 **38mm 一毫米不用动, 打印件不改版**
+342:| ST-1 | 板宽 15mm | 镜腿截面净高 37→40mm → **镜框 U 形卡槽、镜框/镜腿壁厚与加强筋要重算** | 🔴 |
+377:| **15mm 板宽** | ✅ **几何/面积/热都最舒服** → 代价是镜腿根部净高 37→40mm (顶区间上限) + 0.12g + 3D 打印件改版 |
+425:| M3 | 问 mech-lead: **镜腿根部净高 37→40mm (板宽 15) 能不能接受?** 以及 **充电板挪出镜腿 + 电池缩短** 能不能腾出 10mm 给 PCB 加长 |
+
+=== PCB_OUTLINE_60x15 old numbers ===
+149:> ★ ICHG 与充电时间取自 `MECH/hinge_power_calc.json` 的 `rilim_table` (可跑 `python3 MECH/hinge_power_calc.py`): 390Ω **max 档充电 ~29.20min / 典型 32.08min**; 充电时皮肤温度 (保守口径) 390Ω max = **42.14°C** (< 43°C 红线 ✅), 300Ω max = **47.07°C** (❌ 超红线)。
+151:> ★★★**【作废 · 2026-11-16 · ISS-230 · hw-lead】★★★**: ★**上面这一句里的皮肤温度结论 (★42.14°C / 47.07°C 两个数 + 「< 43°C 红线 ✅」这个判定★) 全部作废** ★ ⇒ ★**原因: 它是用【倒方向的 0.822 系数】算的 (★ICHG/IIN 的真值是 η·Vbus/Vbat = 1.216 @3.70V, 0.822 是它的倒数★ ⇒ 同段的 `MECH/hinge_power_calc.json` / `rilim_table` 也建立在同一个错系数上★) ⇒ 【这个数不是「还有 0.86°C 余量」, 它是【无有效数字】】** ★ ⇒ ★**新数归结构总工按改正后的系数重算 (★ISS-229 · mech-lead★) ⇒ 口径与出处见 `MECH/HINGE_POWER_CALC.md` (★可跑 `python3 MECH/hinge_power_calc.py`★)** ★ ⇒ ★**★本单只标作废 + 指向来源, 【不写任何新温度数】 (★那是 ISS-229 的地界★)★** ★ ★**注: 同句的充电时间 (~29.20min / 32.08min) 不在作废范围内, 但它同样取自那个 `rilim_table` ⇒ 引用时以 ISS-229 重算后的表为准★** ★
+193:| ★**F-3-作废标记 (★2026-11-16 · ISS-230 · hw-lead★)** ★ | ★**★★【作废】上面 F-3 那一行里的皮肤温度结论 (★42.14°C / 47.07°C + 「刚好压在 43°C 红线之下」+ 「只剩 0.86°C 余量 ⇒ 不能同时再抬电流」★) 全部作废** ★ ⇒ ★**它用的是【倒方向的 0.822 系数】(★真值 = η·Vbus/Vbat = 1.216 @3.70V★) ⇒ 【无有效数字】, 不是「还有余量」** ★ · ★**电芯发热 45.5-67.6mW 那两个数同样取自那个错系数 ⇒ 一并作废** ★ | ★**新数一律以 `MECH/HINGE_POWER_CALC.md` (★ISS-229 · mech-lead 重算后★) 为准** ★ | ★**★本单只标作废 + 指向来源, 【不写任何新温度数】 (★那是 ISS-229 的地界★)★; ★**本单【没有】改 `MECH/` 下任何文件** ★ |
+234:    iin = (320/r, 355/r, 390/r); ichg = tuple(v*0.822 for v in iin)
+276:| R_ILIM 390Ω → IINMAX 0.82/0.91/1.00A, ICHG 0.82A, 单 pin 0.411A | [官方] (KILIM=320/355/390 AΩ 公式) + [推算] (×0.822 换算) | `HW/CHARGE_BOARD_SPEC.md` §2.4/§3.4 |

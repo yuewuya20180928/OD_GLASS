@@ -1,0 +1,28 @@
+### ISS-288 交卷前最终复核 (★本趟重跑·原样★)
+### date: 2026-11-17 17:53:30 CST
+
+$ python3 SW/tools/timing_check.py
+  [PASS] T2 交叉核对: 纯 NPU 21.00 ms ⇒ 命中老板翻案条款 (20.33 ms)
+
+SELFTEST 85/85 通过, rc=0
+rc=0
+
+$ python3 SW/patches/ISS-288_timing_check_land/verify_iss288_land.py
+★7 条用例总判定: ✅ 全符合
+rc=0
+
+$ python3 SW/tools/check_demo_panel_spec.py
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+rc=0
+
+$ python3 SW/tools/check_demo_panel_spec.py --selftest
+  ✅ REV-21 合法改板: 台账四项齐全 + 锚点原子记录 ⇒ 放行 (★正向★)             ⇒ R6 仍绿 (★合法改板四项齐全 = 放行★)
+--- SELFTEST 22/22 通过 ---
+rc=0
+
+$ python3 HW/check_onepass_preflight_coverage.py
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★板侧项全集与作业包对齐, 现状值与盘面一致 ★★
+rc=0

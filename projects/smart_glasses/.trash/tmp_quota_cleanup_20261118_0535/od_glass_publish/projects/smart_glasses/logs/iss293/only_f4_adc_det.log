@@ -1,0 +1,40 @@
+### timing_check.py --only F4_adc_det
+=== F4_adc_det ===
+   active_chain                       : BAT_DET
+   active_chain_pin                   : 38
+   active_chain_signal                : SARADC_VIN5
+   active_chain_domain                : 1.8V
+   chain_select_mode                  : by_landing_pin
+   chain_select_reason                : ★唯一一条装机链落在 SAR-ADC 脚上 (判决源 = SoM 脚表 signal 列: SARADC_VIN5)★
+   judgment_source                    : SoM 脚表 HW/PCB/FET3572C_PIN_TABLE.csv (md5 67340a0b7070, 399 行) + 网表落点实读
+   pin_table_md5                      : 67340a0b707095fc4c0755a4c79ea8b6
+   full_scale_v                       : 1.8
+   full_scale_source                  : [官网] SAR-ADC 满量程 = 1.8V 域: 脚表 FET3572C_PIN_TABLE.csv L39 (SARADC_VIN5 / 1.8V) + rk3572_datasheet_V1.1.txt L2454 (SARADC_AVDD1V8 = 1.62/1.8/1.98V) + L2864 (Analog Input Range = AVSS18~AVDD18) ⇒ ★原 3.3V 写死值已按 ISS-291 订正★
+   adc_bits                           : 12
+   lsb_mv                             : 0.439
+   chains                             : [{'tag': 'VBUS_DET_D', 'r_top_ohm': 1000000.0, 'r_bot_ohm': 1000000.0, 'c_f': 1.0000000000000001e-07, 'r_top_ref': 'R_VBUS_DET_D1', 'r_bot_ref': 'R_VBUS_DET_D2', 'cap_ref': 'C_DET_VBUS_D', 'r_top_dnp': '必装', 'r_bot_dnp': '必装', 'c_dnp': '必装', 'populated': True, 'device_dnp': {'R_VBUS_DET_D1': ['必装'], 'R_VBUS_DET_D2': ['必装'], 'C_DET_VBUS_D': ['必装', '必装']}, 'device_populated': True, 'landing_net': 'VBUS_DET_D', 'landing_line': 439, 'som_conn': 'J_SOM_P1', 'som_pin': '100', 'pin_class': 'DIGITAL', 'pin_signal': 'USB_DRD1_VBUSDET', 'pin_vol_raw': '——', 'pin_vol_v': None, 'pin_desc': 'USB2_OTG1_VBUSDET insert detection', 'rth_ohm': 500000.0, 'tau_ms': 50.0}, {'tag': 'BAT_DET', 'r_top_ohm': 100000.0, 'r_bot_ohm': 60000.0, 'c_f': 1.0000000000000001e-07, 'r_top_ref': 'R_BAT_DET_1', 'r_bot_ref': 'R_BAT_DET_2', 'cap_ref': 'C_DET_BAT', 'r_top_dnp': '必装', 'r_bot_dnp': '必装', 'c_dnp': '必装', 'populated': True, 'device_dnp': {'R_BAT_DET_1': ['必装'], 'R_BAT_DET_2': ['必装'], 'C_DET_BAT': ['必装', '必装']}, 'device_populated': True, 'landing_net': 'BAT_DET', 'landing_line': 186, 'som_conn': 'J_SOM_P1', 'som_pin': '38', 'pin_class': 'ADC', 'pin_signal': 'SARADC_VIN5', 'pin_vol_raw': '1.8V', 'pin_vol_v': 1.8, 'pin_desc': 'General ADC5', 'rth_ohm': 37500.0, 'tau_ms': 3.75}]
+   rth_ohm                            : 37500.0
+   tau_ms                             : 3.75
+   t_settle_to_half_lsb_ms            : 33.791
+   leak_offset_v                      : 0.0375
+   leak_offset_pct_fs                 : 2.1
+   standby_ua                         : 26.25
+   supply_v                           : 4.2
+   supply_source                      : 网表 RAIL 行 RAIL_BAT = 4.2V
+   node_v_at_supply                   : 1.575
+   node_max_abs_v                     : 1.98
+   node_nominal_max_v                 : 1.8
+   fs_utilization_pct                 : 87.5
+   netlist_note_facts                 : {'pct_fs': 2.1, 'mv': 37.5, 'rth_k': 37.5, 'note': '[BAT_DET_RAW] 分压上臂 (100k); ★方案E (ISS-223 §11.4): R_th=37.5kΩ ⇒ ADC 输入漏电 ~1µA 只造成 37.5mV 偏移 (2.1% FS, 可软件标定)★; ★常开静态功耗 26.25µA / 110µW (V-3 裁决的代价)★ [V1.6: 临时线名 BAT 已归一到源节点]', 'line_no': 182}
+   criteria                           : {'object_ok': True, 'fs_caliber_ok': True, 'settle_ok': True, 'leak_ok': True, 'node_ok': True, 'populated_ok': True, 'all_ok': True}
+   verdict                            : ★判决对象 = BAT_DET 链 (网表 L186 ⇒ J_SOM_P1 pin38 = SARADC_VIN5, 1.8V 域) ⇒ 源阻抗 37500.0Ω / τ=3.75ms; 12bit (LSB=0.439mV, 满量程 1.8V) 需 33.8ms 建立 (红线 300.0ms ⇒ ✔); 1µA 漏电 ⇒ 0.0375V 偏移 = 2.1% 满量程 (红线 0.4V ⇒ ✔; ★与网表 L182 note 写死的 2.1% FS 逐字对上 ⇒ ✔★); @4.2V 节点 1.575V ≤ abs-max 1.98V ⇒ ✔ (FS 利用率 87.5%); ★老口径 (判 VBUS_DET_D + FS=3.3V) 报的那条红 = **假红** ⇒ 已作废; ★VBUS_DET_D 链改按【数字检测输入】口径单判 (见 F4D 段)★; ★BAT_DET 链 (R_BAT_DET_1/2 + C_DET_BAT) 三颗**已改成必装** (V-3=E 落表后) ⇒ **电量检测分压在现网表上存在** (100k+60k+100nF ⇒ R_th=37500.0Ω / τ=3.75ms)
+
+=== NETLIST_ANCHOR ===
+   netlist_path                       : HW/netlist_v1.csv
+   netlist_md5                        : 37f62ac3f0b81d92ca7d48fdea717f07
+   netlist_lines_total                : 514
+   netlist_data_rows                  : 513
+   netlist_bytes                      : 139958
+   netlist_mtime                      : 2026-11-17 12:30:22
+   netlist_header                     : page,net,node1,node2,ref,value,type,dnp,evidence,tbd,note,conn_id,board,footprint,opn
+rc=0

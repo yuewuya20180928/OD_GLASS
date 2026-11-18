@@ -1,0 +1,47 @@
+=== ISS-304 交卷后复验·第二段 (2026-11-18 05:5x · gateway reload 后) ===
+--- 跑前 md5
+9f9743c81b977be802322b0966997ee2  HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+0b6fc2f876fca67e1ce98ca472331e41  HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+1684c0b039e7eddc05438d0ce1b567fd  state/_iss277_preflight_appendix.md
+--- 重跑真生成器 + 真同步脚本 (幂等)
+★真源读数: {'«R3_T»': '51', '«R3_O»': '40', '«R3_Z»': '40', '«R3_NOTE»': '2026-11-17 09:58:16 落表 V-3=E 删了 3 行 DNP ⇒ 54/43/43 → 51/40/40, ★本条 3 个数全部随落表变, 变的是颗数不是性质★', '«P_T»': '15', '«P_F»': '15', '«P_W»': '14', '«P_M»': '1', '«P_MD5»': '0', '«P_MD5_NOTE»': '', '«P_F_NOTE»': '脚表功能缺陷本批未变, ', '«P_MD5_TAIL»': '★md5 台账对账 0 条 (★基线已重锚到最新落表·无过期基线·ISS-299·2026-11-17★)'}
+★已写 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/BOARD_ONEPASS_PREFLIGHT.md (32 条, 73960 字节)
+★步分布: {'S1': 1, 'S2': 3, 'S3': 2, 'S4': 4, 'S5': 1, 'S6': 9, 'S7': 2, 'S8': 1, 'S9': 1, 'S10': 5, 'S11': 1, 'S12': 1, 'S13': 1}
+★缺覆盖的步: []
+gen rc=0
+★① sidecar state/_iss277_preflight_appendix.md: 0 处台账口径 fresh 改了 (★md5 1684c0b039e7eddc05438d0ce1b567fd ⇒ 1684c0b039e7eddc05438d0ce1b567fd★)
+★③ 作业包页: ISS-304 订正块已在位且与 sidecar 一致 (★不重复追加★)
+★② 作业包页 HW/PCB/BOARD_ONEPASS_WORKPACKET.md: 0 处台账口径 fresh 改了 (★md5 0b6fc2f876fca67e1ce98ca472331e41 ⇒ 0b6fc2f876fca67e1ce98ca472331e41★)
+★✔ 自检: sidecar 与作业包页的 `state_baseline` 登记表逐字节一致 (16607 字节)
+★★落表后重锚流程: ① python3 state/_iss277_build_preflight.py ② python3 state/_iss304_sync_state_baseline_md5.py
+sync rc=0
+--- 跑后 md5
+9f9743c81b977be802322b0966997ee2  HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+0b6fc2f876fca67e1ce98ca472331e41  HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+1684c0b039e7eddc05438d0ce1b567fd  state/_iss277_preflight_appendix.md
+--- 沙盒反向用例 5 条
+=== ISS-304 · 沙盒反向用例 (★真盘零写★) ===
+  ✔ ① 生成器连跑两次 ⇒ 清单页 md5 逐字节相同 — 9f9743c81b97 / 9f9743c81b97 (rc 0/0)
+  ✔ ② 同步脚本连跑两次 ⇒ 作业包页 + sidecar md5 逐字节相同 — wp 0b6fc2f876fc/0b6fc2f876fc · sc 1684c0b039e7/1684c0b039e7
+  ✔ ③ 台账链头前跳 ⇒ 4 条 fresh 跟着新链走 (★永不再漂★) — 清单页 有 · 作业包页 有
+  ✔ ④ 台账链断 ⇒ 生成器拒写 (rc≠0) + 页一个字节没动 — rc=1 · md5 3020a3620efe ⇒ 3020a3620efe
+     拒写原文: ★★id=W10_MD5_NETLIST: 落表台账里取不到 HW/netlist_v1.csv 的登记 ⇒ 拒改 (★fail-closed★): ★链头 (台账 L1473 · ISS-999) 【链断】: 缺 §16.2 新旧 md5 前后对照表 ⇒ 红★
+  ✔ ⑤ 沙盒闸 V1~V7 全绿 (rc=0) — rc=0 · V3 绿 · V4 绿
+---
+  通过 ① 生成器连跑两次 ⇒ 清单页 md5 逐字节相同
+  通过 ② 同步脚本连跑两次 ⇒ 作业包页 + sidecar md5 逐字节相同
+  通过 ③ 台账链头前跳 ⇒ 4 条 fresh 跟着新链走 (★永不再漂★)
+  通过 ④ 台账链断 ⇒ 生成器拒写 (rc≠0) + 页一个字节没动
+  通过 ⑤ 沙盒闸 V1~V7 全绿 (rc=0)
+=== 汇总: 5 条全过才 rc=0 ⇒ 全过 ===
+sbx rc=0
+--- 闸再跑一次
+gate6 rc=0
+gate_check rc=0
+--- 受保护 5 件再确认
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+DONE

@@ -1,0 +1,26 @@
+### ISS-288 交卷前最终验收 (2026-11-17 17:56 · 本趟实跑)
+
+$ python3 SW/tools/timing_check.py
+
+SELFTEST 85/85 通过, rc=0
+rc=0
+$ python3 SW/tools/check_demo_panel_spec.py
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+rc=0
+$ python3 SW/tools/check_demo_panel_spec.py --selftest
+--- SELFTEST 22/22 通过 ---
+rc=0
+$ python3 HW/check_onepass_preflight_coverage.py
+  ✅ rc=0: ★★板侧项全集与作业包对齐, 现状值与盘面一致 ★★
+rc=0
+$ python3 SW/patches/ISS-288_timing_check_land/verify_iss288_land.py
+★7 条用例总判定: ✅ 全符合
+rc=0
+
+$ md5sum (受保护 5 件)
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+37f62ac3f0b81d92ca7d48fdea717f07  HW/netlist_v1.csv
+a4270120454aedf7a23c92cd8985c8a6  HW/netlist_v1_pins.csv
+5d02bece9477ffce5fbe0193c7d5cce4  HW/BOM_v1.csv

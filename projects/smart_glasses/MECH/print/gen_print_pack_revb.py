@@ -96,7 +96,7 @@ P = {
     "clr_hole":      (2.40, "mm", "打印件 PCB 销孔让过 ⌀2.4 (取代 ⌀2.0 H7 销孔)", "[推算]"),
     "screw_clr":     (1.60, "mm", "打印件 M1.2/M1.4 螺钉让过孔 ⌀1.6", "[推算]"),
     # --- 电芯 (315mAh 档 = Renata 340mAh) ---
-    "batt_thk":      (4.60, "mm", "MECH_BUDGET §1.6.1 Renata ICP582035PR-01 厚", "[官网]"),
+    "batt_thk":      (4.60, "mm", "MECH_BUDGET §1.6.1 Renata ICP422339PR 厚", "[官网]"),
     "batt_v":       (23.50, "mm", "MECH_BUDGET §1.6.1 同上 高", "[官网]"),
     "batt_l":       (40.50, "mm", "MECH_BUDGET §1.6.1 同上 长", "[官网]"),
     "batt_seat":     (4.75, "mm", "RevA §特征表 F1 电池座净厚(非对称)", "[推算]"),

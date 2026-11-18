@@ -1,0 +1,45 @@
+====================================================================================================
+ISS-327 cont1 · 「真隐患不许被 --freeze-registry 洗白」反向用例 (★每条都是实跑读数★)
+====================================================================================================
+
+── RC-1 · 真隐患 `TP_TEMP` 改成新形状 `TP_GHOST_X9` (★文档里替换 1 处★) ──
+   重建前 : rc=1 · OK=78 DRIFT=0 MISSING=4 (上限 3) · MISSING名单=['CONN_USB', 'TP_GHOST_X9', 'TP_INT', 'TP_TEMP']
+   重建后 : rc=1 · OK=78 DRIFT=0 MISSING=4 (上限 3) · MISSING名单=['CONN_USB', 'TP_GHOST_X9', 'TP_INT', 'TP_TEMP']
+   ⇒ 期望: 【红】(重建后 `TP_GHOST_X9` 仍必须被 C14 抓住 · MISSING 4 > 上限 3) · 实际: 【红】✓ 没被洗白
+
+── RC-2 · 真隐患 `TP_INT` 改成新形状 `TP_PHANTOM_Q1` (★文档里替换 15 处★) ──
+   重建前 : rc=1 · OK=78 DRIFT=0 MISSING=4 (上限 3) · MISSING名单=['CONN_USB', 'TP_INT', 'TP_PHANTOM_Q1', 'TP_TEMP']
+   重建后 : rc=1 · OK=78 DRIFT=0 MISSING=4 (上限 3) · MISSING名单=['CONN_USB', 'TP_INT', 'TP_PHANTOM_Q1', 'TP_TEMP']
+   ⇒ 期望: 【红】(重建后 `TP_PHANTOM_Q1` 仍必须被 C14 抓住 · MISSING 4 > 上限 3) · 实际: 【红】✓ 没被洗白
+
+── RC-3 · 真隐患 `CONN_USB` 改成新形状 `CONN_PHANTOM_7` (★文档里替换 5 处★) ──
+   重建前 : rc=1 · OK=78 DRIFT=0 MISSING=4 (上限 3) · MISSING名单=['CONN_PHANTOM_7', 'CONN_USB', 'TP_INT', 'TP_TEMP']
+   重建后 : rc=1 · OK=78 DRIFT=0 MISSING=4 (上限 3) · MISSING名单=['CONN_PHANTOM_7', 'CONN_USB', 'TP_INT', 'TP_TEMP']
+   ⇒ 期望: 【红】(重建后 `CONN_PHANTOM_7` 仍必须被 C14 抓住 · MISSING 4 > 上限 3) · 实际: 【红】✓ 没被洗白
+
+── RC-4 · 反向次序: SW 文档【没同批改名】时重建注册表 ──
+   重建前 : rc=1 · OK=18 DRIFT=58 MISSING=5 (上限 3)
+   重建后 : rc=1 · OK=18 DRIFT=0 MISSING=56 (上限 3)
+   ⇒ 期望: 【红】(漂移 58 → MISSING 56 ⇒ 假红变真红) · 实际: 【红】✓ 实测 DRIFT 58→0 · MISSING 5→56
+
+── RC-5 · 正向回归: 文档同批改名 + 重建注册表 ──
+   重建前 : rc=0 · OK=78 DRIFT=0 MISSING=3 (上限 3)
+   重建后 : rc=0 · OK=78 DRIFT=0 MISSING=3 (上限 3)
+   ⇒ 期望: 【绿】(rc=0 · DRIFT 0 · MISSING 3) · 实际: 【绿】✓
+
+── RC-6 · 判据跟盘面走: 把 `TP_GHOST_X9` 补进板文件 ⇒ 它必须从 MISSING 变 OK ──
+   重建后 : rc=0 · OK=78 DRIFT=0 MISSING=3 (上限 3) · MISSING名单=['CONN_USB', 'TP_INT', 'TP_TEMP']
+   ⇒ 期望: 【绿】(它变成板上的真位号 ⇒ OK · MISSING 回到 3) · 实际: 【绿】✓ 判据跟盘面走 (不是写死名单)
+
+====================================================================================================
+★反向用例汇总表 (★每条都有期望 + 实跑读数★)
+====================================================================================================
+用例       场景                                           期望                         实际       判定      
+RC-1     真隐患 `TP_TEMP`→新形状 `TP_GHOST_X9`              红 (MISSING 4 > 3)          红        PASS    
+RC-2     真隐患 `TP_INT`→新形状 `TP_PHANTOM_Q1`             红 (MISSING 4 > 3)          红        PASS    
+RC-3     真隐患 `CONN_USB`→新形状 `CONN_PHANTOM_7`          红 (MISSING 4 > 3)          红        PASS    
+RC-4     反向次序 (文档未同批改名) 重建注册表                         红 (且 58→56 更凶)             红        PASS    
+RC-5     正向回归 (文档同批改名 + 重建注册表)                        绿 (rc=0 · DRIFT 0 · MISSING 3) 绿        PASS    
+RC-6     真位号补进板 ⇒ 从 MISSING 变 OK                      绿 (MISSING 回 3)            绿        PASS    
+
+★总判定: 6 条 · PASS 6 · FAIL 0

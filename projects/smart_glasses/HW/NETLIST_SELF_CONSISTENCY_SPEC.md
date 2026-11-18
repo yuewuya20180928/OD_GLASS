@@ -1043,7 +1043,7 @@ Bottom Offset Voltage Error    EOB            FAIN=10kHz ramp wave         NA   
 |---|---|---|
 | ★**待机功耗 (全下电深睡)** ★ | ★**0.03 ~ 0.06 W (地板 0.05 W)** ★ | ★`HW/POWER_BUDGET_V3.md` §5 "B: 全下电深睡 … 这才是 MECH §2.3.1 第 1 条『待机 <0.05W』的口径" ★ |
 | ★**电池 1h 容量换算** ★ | ★**`mAh = P[W] × 1h ÷ 3.7V ÷ 0.83 (充电效率) ÷ 0.9 (DoD) × 1000` = `P × 361.81`** ★ | ★`HW/POWER_BUDGET_V3.md` §5.1 ★ |
-| ★**电池 (有桥 = 充电板在镜框)** ★ | ★**丰江 432243 3.7V ≥420mAh** ★ (无桥 = Renata ICP582035PR-01 340mAh) ★ | ★`HW/INTERFACE_TABLE.md` C-02 / `POWER_BUDGET_V3.md` §7 ★ |
+| ★**电池 (有桥 = 充电板在镜框)** ★ | ★**丰江 432243 3.7V ≥420mAh** ★ (无桥 = Renata ICP422339PR 340mAh) ★ | ★`HW/INTERFACE_TABLE.md` C-02 / `POWER_BUDGET_V3.md` §7 ★ |
 
 ★**分压链的功耗与占比 (本单自己算)**:
 | 分压比 | 漏电@4.2V | 功耗@4.2V | 占待机地板 0.05W | 判定 |

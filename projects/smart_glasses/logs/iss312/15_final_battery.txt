@@ -1,0 +1,28 @@
+########## ISS-312 · §5 交卷前必跑 (★原样★) ##########
+$ python3 SW/tools/check_demo_panel_spec_r6_selftest.py        # ★回归基线: 必须 rc=0 · 7/7 (★不许动它★)
+         A 判据加【链头产出单号不唯一 ⇒ 判红】(⇒ 治变体 ①; 治不了 ②)
+         B 链头单号必须与【独立信源】对上 (⇒ 锚点副本每次落表都跟到链头 / 或查 issue_log 真单号)
+         (★ISS-309 need · 反向用例设计见交卷单 B3/B5★)
+rc=0
+
+$ python3 SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py   # ★本单新增: 必须 rc=0
+----------------------------------------------------------------------------------------------------
+反向用例: 4/4 通过
+rc=0
+
+$ python3 state/merge.py && python3 state/gate_check.py         # rc 必须 0 · Q1 必须 18/18
+==========================================================================
+==========================================================================
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+==========================================================================
+rc=0
+
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb SW/tools/check_demo_panel_spec.py SW/tools/check_demo_panel_spec_r6_selftest.py
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+b870898079cb3f0d8bbfe158458e957e  SW/tools/check_demo_panel_spec.py
+2cbb211b1106aac5f3a39a09fce54519  SW/tools/check_demo_panel_spec_r6_selftest.py
+2026-11-06 07:07:17.362193413 +0800  HW/PCB/demo_mainboard.kicad_pcb
+
+占位符检查 (grep -cE) = 0
+分片 iss312 计数 = 13

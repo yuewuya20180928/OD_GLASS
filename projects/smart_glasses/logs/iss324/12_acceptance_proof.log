@@ -1,0 +1,36 @@
+
+=== ④ 零写板双证 ===
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+$ stat -c "%y" HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800
+
+=== ④b 零落表 (网表/脚表/BOM/.kicad_pro) ===
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+
+=== ④c 零改闸 + 零改既有文档正文 (MECH 域 BEFORE/AFTER 逐行对比) ===
+MECH/*.py  BEFORE vs AFTER 差异行数 = 0
+MECH/*.md  BEFORE vs AFTER 差异行数 = 1
+  (★差异只应出现在新增的 ONETRIP_D_LED_G_PLACEMENT_CALIBER.md★)
+    32a33
+    > 4a8c0c573255f2b7874fe45a73cbf374  MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md
+
+=== ④d 不写别人的分片 + 不自签 issue_log ===
+ed7a53817ea8d0ca07b4578f6319b662  state/fragments/hw.yaml
+df17627cd3d4e40f51d627cc229b4491  state/fragments/sw.yaml
+483047e542784d0be7537f4ad49d9188  state/fragments/pm.yaml
+74569b7b433b8daa5b7ea73585f39ee7  state/issue_log.yaml
+  (BEFORE: hw=ed7a53817ea8d0ca07b4578f6319b662 sw=df17627cd3d4e40f51d627cc229b4491 pm=483047e542784d0be7537f4ad49d9188)
+
+=== ⑤ 占位符扫描 (两份交付文档都必须 0) ===
+$ grep -cE "🔄|待填|PLACEHOLDER|施工中" MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md  ⇒  0
+$ grep -cE "🔄|待填|PLACEHOLDER|施工中" HANDOFF/2026-11-18_mech-lead_ISS324_D_LED_G落位口径.md  ⇒  (文件尚未建·交卷时为 0)
+
+=== ⑥ 分片已写 (必须 ≥1) ===
+$ grep -c "iss324" state/fragments/mech.yaml  ⇒  5
+
+=== ⑦ 交付物在盘 ===
+-rw-rw-r-- 1 yuewuya yuewuya 63412 Nov 18 13:04 MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md

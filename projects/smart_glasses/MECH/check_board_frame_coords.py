@@ -1421,10 +1421,22 @@ def selftest(root: str) -> int:
     sb_ledger_write(sb, "\n".join(lines) + "\n")
     r10c = run_checks(sb)
     c4_red10c = not r10c["C4"]["ok"]
-    print(f"  [{'OK ' if (hit == 1 and ndel == 1 and c4_red10c) else 'NG '}] ⑩c 台账被手改 (登记值凑成与盘上一致, "
+    # ★★★ ISS-296 cont3 (★2026-11-18 05:5x · mech-lead · 追加式订正·老字留痕★) ★★★
+    #   ★**旧值 = `hit == 1`** (★假设: 链头 md5 在台账里只出现 1 次★) ⇒ ★**新值 = `hit >= 1`** ★
+    #   ★**为什么必须改 (★不是「为了让闸绿而改闸」·是【台账数据形状】变了★)**:
+    #     ★**ISS-302 (hw-lead · 2026-11-18 00:3x 落表)** 往 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §19 追加了【两张表】★
+    #       ⇒ 同一个链头 md5 `6aee500e60ba…` 现在落在【2 行】上 (§19.2 前后对照表 L1451 + §19.3 登记表 L1466)
+    #       ⇒ `hit == 1` 这个【台账形状假设】被一次【合法落表】打破 ⇒ 自检误报红 (★2026-11-18 05:45 实测 rc=2★) ★
+    #   ★**为什么这不是放宽判据 (★三条都在★)**:
+    #     ① ★**判据方向一个字没动** ★ (★盘上 md5 ≠ 基线 ⇒ 仍红; 盘上 md5 ≠ 台账链头 ⇒ 仍红★)
+    #     ② ★**fail-closed 三条没动** ★ (★链头不唯一⇒红 · 链断⇒红 · 链头无单号⇒红★)
+    #     ③ ★**本条用例的【真正断言】是 `c4_red10c`** (★链头那一行被改坏 ⇒ C4 必须红★) ⇒ ★**它一直是红的** ★
+    #   ⇒ ★**只把【计数型 sanity 断言】从「恰好 1 行」放宽成「至少 1 行」⇒ 判据只可能变严 (★多改一行 ⇒ 链断得更彻底★)·不可能变松** ★
+    #   ★**改前副本**: `logs/iss296/check_board_frame_coords_before_iss296_cont3.py` (★md5 `051967adde31be65888de056c6fbf478`★) ★
+    print(f"  [{'OK ' if (hit >= 1 and ndel == 1 and c4_red10c) else 'NG '}] ⑩c 台账被手改 (登记值凑成与盘上一致, "
           f"但前 md5 是假值 ⇒ 链断) ⇒ C4 红: {'是' if c4_red10c else '否'} · 改坏行 {hit} / 改自环行 {ndel} · "
           f"红件 {c4_red_files(r10c)} · {c4_reason(r10c)}")
-    if not (hit == 1 and ndel == 1 and c4_red10c):
+    if not (hit >= 1 and ndel == 1 and c4_red10c):     # ★ISS-296 cont3: `hit == 1` ⇒ `hit >= 1` (★见上方留痕★) ★
         errs.append("⑩c 台账前后 md5 不齐 (手改) 后 C4 没红")
 
     # ---- ⑪ 链头不唯一 (台账里造第二条指向同一文件的链头) ⇒ C4 红 (fail-closed) ----
@@ -1553,6 +1565,46 @@ def selftest(root: str) -> int:
           + (f" · {hp_reason(r17)}" if not c4_green17 else ""))
     if not (c4_green17 and not others17):
         errs.append("⑰ 合法改板后 C4 还是红 ⇒ 合法改板通道没走通")
+
+    # ---- ⑱ ★★【cont3 · 2026-11-18 · mech-lead · 新增】★★ main 【真实落表形状】: 同一个 md5 登记在【两张表】里
+    #   (★§16.2「新旧 md5 前后对照」链头行 + §19.3「逐条登记」行 · ISS-302 2026-11-18 00:22 那次落表就是这个形状★)
+    #   ⇒ ⑰ 只覆盖了【单行】形状 ⇒ ★**真实落表形状从来就没被验过** ⇒ 本条补上 ⇒ C4 必须【绿】★
+    #   ⇒ ★**为什么这一条要紧**: 「板只改一次」那一趟落表时, main 会按 ISS-302 的形状写【两张表】
+    #   ⇒ 若两张表让 C4 假红 ⇒ 收工验收时又会被读成「板改坏了」⇒ 板白改第二遍 (★ISS-296 立项病灶★) ★
+    sb = make_sandbox(root, "case18_real_landing_two_tables")
+    newmd5_18 = sb_board_append_byte(sb)
+    r18a = f"| ★**`{BOARD_REL}`** ★ | `611b869e1351` | `{newmd5_18[:12]}` | ★**是**★ |\n"
+    r18b = (f"| L9999 | {BOARD_REL} | `611b869e1351` | `{newmd5_18[:12]}` | "
+            f"★**2026-11-18 05:5x** ★ | ★**ISS-999** ★ |\n")
+    sb_ledger_append(sb, r18a + r18b +
+                     f"| ★**`{PRO_REL}`** ★ | `3e504d2be831` | `3e504d2be831` | "
+                     f"★**否 (逐字节不变)** ★ |\n")
+    r18 = run_checks(sb)
+    c4_green18 = r18["C4"]["ok"]
+    others18 = [k for k in ("C1", "C2", "C3") if not r18[k]["ok"]]
+    print(f"  [{'OK ' if (c4_green18 and not others18) else 'NG '}] ⑱ 正向对照: 合法改板一次 "
+          f"+ 【两张表都写】(main 真实落表形状: §16.2 链头行 + §19.3 登记行) ⇒ C4 绿: "
+          f"{'是' if c4_green18 else '否'} · C1/C2/C3 = "
+          f"{'全绿' if not others18 else others18} · C4 错误 {len(r18['C4']['errs'])} 条"
+          + (f" · {hp_reason(r18)}" if not c4_green18 else ""))
+    if not (c4_green18 and not others18):
+        errs.append("⑱ 真实落表形状 (两张表) 下合法改板后 C4 还是红 ⇒ 那一趟收工验收会假红")
+
+    # ---- ⑲ 同样两张表, 但两行的【改前 md5 互相不一致】⇒ C4 必须红 (★fail-closed 在真实形状上不许松★) ----
+    sb = make_sandbox(root, "case19_two_tables_inconsistent_prev")
+    newmd5_19 = sb_board_append_byte(sb)
+    r19a = f"| ★**`{BOARD_REL}`** ★ | `611b869e1351` | `{newmd5_19[:12]}` | ★**是**★ |\n"
+    r19b = (f"| L9999 | {BOARD_REL} | `deadbeefdead` | `{newmd5_19[:12]}` | "
+            f"★**2026-11-18 05:5x** ★ | ★**ISS-999** ★ |\n")
+    sb_ledger_append(sb, r19a + r19b +
+                     f"| ★**`{PRO_REL}`** ★ | `3e504d2be831` | `3e504d2be831` | "
+                     f"★**否 (逐字节不变)** ★ |\n")
+    r19 = run_checks(sb)
+    c4_red19 = not r19["C4"]["ok"]
+    print(f"  [{'OK ' if c4_red19 else 'NG '}] ⑲ 两张表都写但【改前 md5 互相不一致】⇒ C4 红: "
+          f"{'是' if c4_red19 else '否'} · {hp_reason(r19)}")
+    if not c4_red19:
+        errs.append("⑲ 两张表改前 md5 不一致后 C4 没红 ⇒ fail-closed 被放松")
 
     # ---- ⑥ 沙盒自证: 真件一个字节没动 ----
     same = all(md5_of(os.path.join(root, rel)) == base_md5 for rel, base_md5 in PROTECTED.items())

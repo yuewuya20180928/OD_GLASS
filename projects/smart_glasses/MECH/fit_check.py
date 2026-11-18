@@ -66,7 +66,7 @@ BASE = {
     "air_gap":    0.30,     # §2.4 对策 C 空气隙
     "seam":       0.20,     # 上下分壳合缝 (v1.1 未给 → 本脚本假设, 标 [推算])
     # 电芯
-    "cell_thk":   4.60,     # §1.6.1 Renata ICP582035PR-01 340mAh 厚  [官网]
+    "cell_thk":   4.60,     # §1.6.1 Renata ICP422339PR 340mAh 厚  [官网]
     "cell_v":    23.50,     # §1.6.1 同上 高
     "cell_l":    40.50,     # §1.6.1 同上 长
     "cell2_thk":  4.30,     # §1.6.1 丰江 432243 420mAh 厚 (解B 用)  [官网]
@@ -253,7 +253,7 @@ def candidates():
     w_cell340 = 3.7 * 340 / 1000 / 260 * 1000
     w_cell420 = 3.7 * 420 / 1000 / 260 * 1000
     print(f"\n  ── 解 B 【解 A + 换薄电芯: 丰江 432243, 4.30mm 厚 / 420mAh】")
-    print(f"     改: 电芯 Renata ICP582035PR-01 (4.60 厚) → 丰江 432243 (4.30 厚, 420mAh ≥ 340 需求)")
+    print(f"     改: 电芯 Renata ICP422339PR (4.60 厚) → 丰江 432243 (4.30 厚, 420mAh ≥ 340 需求)")
     print(f"     前后: 需求 {h_B:.2f} → 名义余量 **{BASE['cav_h']-h_B:.2f}mm** (最坏 {h_B_worst:.2f} → 余量 {BASE['cav_h']-h_B_worst:.2f}mm) ✅")
     print(f"     垂直: {vB:.2f} → 余量 **{BASE['cav_v']-vB:.2f}mm**   长度: {lB:.2f} → 余量 **{BASE['cav_l']-lB:.2f}mm**")
     print(f"     代价: **整机 +{2*(w_cell420-w_cell340):.2f}g** (420mAh 5.98g vs 340mAh 4.84g @260Wh/kg, §3 W7 同口径) —— "

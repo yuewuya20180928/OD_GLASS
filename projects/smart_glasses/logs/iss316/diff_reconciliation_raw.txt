@@ -1,0 +1,234 @@
+====================================================================================================
+[1] 36 档表的现读数 (来源: MECH/board_frame_feasibility.py --json, 阈值只读 service_port_check.py BASE/TOL/CRIT)
+====================================================================================================
+  帧 B160x100   ① 台架板 160×100 (盘上现役)               160.0×100.0 · native 8层/1.6mm · pinset_applicable=False
+  帧 F30A       ② 产品板 60×30 套 A (MECH 现行)          60.0×30.0 · native 6层/1.0mm · pinset_applicable=True
+  帧 P60x15     ③ 产品板 60×15 (原始定版 · 板宽已作废)         60.0×15.0 · native 6层/1.0mm · pinset_applicable=True
+
+  关键: 三个选项的【现役档】(native) 逐项读数 ——
+  frame      thk    cavity cav_marg v_margin  v_worst   l_margin holes    p2_gap   weight_g  can_open
+  B160x100   1.6    4.10   -0.40    -68.00    -68.60    -85.50   OK       3.23     47.360    NO      
+      判红原因: ['盖板内腔 4.10 < 4.50 (余 -0.40)', 'V 链 余 -68.00 / 最坏 -68.60 < 0.60', 'L 链 余 -85.50 < 0.60']
+  F30A       1.0    4.70   0.20     2.00      1.40      14.50    OK       3.23     3.330     YES     
+      判红原因: ['(无)']
+  P60x15     1.0    4.70   0.20     17.00     16.40     14.50    NG       3.23     1.665     NO      
+      判红原因: ['套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准']
+
+  板重占比 (分母 = MECH/service_port_check.py BASE mass_total_lo/hi):
+      分母: 48.9 ~ 72.8 g
+      B160x100   47.360 g => 占整机 65.1% ~ 96.9%
+      F30A       3.330 g => 占整机 4.6% ~ 6.8%
+      P60x15     1.665 g => 占整机 2.3% ~ 3.4%
+
+  ★开口坐标在 36 档里是【帧无关】的 (三套框每一行都贴同一组) ⇒ 它是套A(F30A)帧的数:
+      open_x 49.21..59.41 × open_y 7.835..12.435   (共 1 组)
+      B160x100: 开口落点距板端 100.59 mm · open_at_board_end=False
+      F30A: 开口落点距板端 0.59 mm · open_at_board_end=True
+      P60x15: 开口落点距板端 0.59 mm · open_at_board_end=True
+
+====================================================================================================
+[2] HW 侧清单 (只读解析 HW/PCB/ONETRIP_REISSUE_MANIFEST.md)
+====================================================================================================
+  §3-1 主表行数 = 36
+    #1   网表 `HW/netlist_v1.csv`
+    #2   脚级真值表 `HW/netlist_v1_pins.csv`
+    #4   ★板 `HW/PCB/demo_mainboard.kicad_pcb` (★全表唯一会改 md5 的件★)
+    #5   BOM `HW/BOM_v1.csv`
+    #6   Gerber (canonical `HW/PCB/gerbers/` 32 件)
+    #7   投产包 Gerber `production/gerbers/` (★32 件 + `job.gbrjob` 在内★)
+    #8   钻孔 `production/drill/` (★4 件: PTH.drl / NPTH.drl / PTH 钻孔图 PDF / NPTH 
+    #9   坐标 / 贴片 CPL `production/pos/demo_mainboard-pos.csv`
+    #10  装配 `production/assembly/` (★3 件: `ipc2581.xml` + `assembly-top.pdf` + 
+    #11  3D 模型 `production/3d/demo_mainboard.step`
+    #12  PCB 图 PDF `production/doc/demo_mainboard-pcb-{all,top,bottom}.pdf`
+    #13  外形 DXF `production/doc/demo_mainboard-Edge_Cuts.dxf`
+    #14  裸板测试网表 D356 `production/doc/demo_mainboard.d356`
+    #15  板统计 `production/doc/board-stats.txt`
+    #16  原理图 PDF `production/doc/demo_mainboard-sch.pdf`
+    #17  原理图 SVG `production/doc/sch_svg/` (★11 件: 根页 + P1..P10★)
+    #18  KiCad 原理图网表 `production/doc/demo_mainboard-kicad.net`
+    #19  KiCad BOM `production/doc/demo_mainboard-kicad-bom.xml`
+    #20  原理图源文件归档 `production/doc/sch_src/` (★12 件 = 11 个 `.kicad_sch` + 1 个 `.
+    #21  投产包清单 `HW/PCB/production/MANIFEST.md5`
+    #22  ★投产包全量 (★74 件 = 上表 6~21 全部 + 目录骨架★)
+    #23  落表台账 `HW/SCHEMATIC_LANDING_V1_LANDED.md`
+    #24  分片 `state/fragments/hw.yaml`
+    #25  旧 md5 引用点 (★`611b869e…` 全仓★)
+    #1   板 `HW/PCB/demo_mainboard.kicad_pcb`
+    #2   Gerber 32 件 (★canonical `HW/PCB/gerbers/` + 投产包副本★)
+    #3   钻孔 4 件
+    #4   坐标 CPL 1 件
+    #5   装配 3 件 (IPC-2581 + 顶/底装配图 PDF)
+    #6   3D STEP 1 件
+    #7   doc 9 件 (PCB PDF×3 / DXF / D356 / board-stats / sch.pdf / kicad.net / 
+    #8   sch_src 12 件 (★11 个 `.kicad_sch` + `.kicad_pro`★)
+    #9   sch_svg 11 件
+    #10  `MANIFEST.md5`
+    #11  BOM `HW/BOM_v1.csv`
+    #12  (条件) 网表 / 脚表 / 落表台账
+  §4-4 归属表里 mech 那几行 (逐字):
+    | ★**hw** ★ | ★**① 网表 · ② 脚表 · ③ 原理图 11 页 + `.kicad_pro` · ④ 板 · ⑤ BOM · ⑥ 投产包 74 件 (含 Gerber/钻孔/CPL/装配/3D/doc/sch_src/sch_svg/MANIFEST) · ⑦ 分片** ★ | ★**板那一趟的执行面全在 hw** ★ |
+    | ★**sw** ★ | ★**不占本趟产物** ★ | ★**只关心一件事: 那一趟不许改网表语义 (★若真要落表, 须 sw-lead 复核 USB D+/D− 两侧网名拆分 (★`USB_D_P_SRC` / `NET_USB_D_P_TYPEC`★) 没被合并回去★)** ★ |
+    | ★**mech** ★ | ★**不占本趟产物** ★ | ★**只关心: 板 md5 一变, MECH 侧「读板」的判据全部要重锚 (★作业包 §3-S9 + `MECH/board_port_opening_s6_check.py`★)** ★ |
+    | ★**main** ★ | ★**落表台账追加 · 决策页刷新 · issue_log 签字 · 对外放行** ★ | ★**★C_VBUS_GND 留不留 = 老板/PM 域 (`boss_c_vbus_gnd_reserve_pad_20261117`) ⇒ main 拍, hw 不拍** ★ |
+  §4-3 「同趟出」清单条数 = 12
+
+====================================================================================================
+[3] MECH 侧同批件清单 (本单 §3 · 逐件: 必须出 / 可后置 + 顺序位)
+====================================================================================================
+  必须同批出 = 18 件 · 可后置 = 7 件 · 合计 25 件
+    [必须] M-01    U-1 冻结记录 (帧 id + 板厚 + 层数 + 孔位口径)                           依赖=老板拍板           序=⓪
+    [必须] M-02    板框几何真源 BOARD_GEOM_30MM §1/§3                               依赖=U-1            序=①
+    [必须] M-03    骨架截面重做 (BOARD_GEOM_30MM §5 第2条)                            依赖=U-1            序=①
+    [必须] M-04    石墨片覆盖方案 (§5 第3条)                                           依赖=U-1            序=①
+    [必须] M-05    板重账落 MECH_BUDGET §3 W5                                     依赖=U-1            序=①
+    [必须] M-05b   W5 拆 FR4 行 + 元器件行 (口径由 main/hw 裁)                          依赖=U-1+BOM        序=①
+    [必须] M-06    三条开口认领句 MECHAIMS §1                                        依赖=U-1            序=②
+    [必须] M-07    座体 6 组落位认领句 MECHAIMS §2                                    依赖=U-1+原理图        序=②
+    [必须] M-08    S6 20 落位 × MECH 保留区 MECHAIMS §3                            依赖=U-1            序=②
+    [必须] M-09    开口几何真源 S6_WORKPACKET §1~§5                                 依赖=U-1            序=②
+    [必须] M-10    帧口径机器块 S6_FRAME_CALIBER §1.2                               依赖=U-1            序=②
+    [必须] M-11    service_port_check.py 6 个帧相关常量                             依赖=U-1            序=③
+    [必须] M-12    check_onepass_struct_crosscheck.py FRAME 硬编码               依赖=U-1            序=③
+    [必须] M-13    check_onepass_mech_sync.py 每条认领句帧标                         依赖=U-1            序=③
+    [必须] M-14    check_mech_verdict_freshness.py CANON 句                    依赖=U-1            序=③
+    [必须] M-15    jd_y0_feasibility + board_port_opening_s6_check 基准         依赖=U-1            序=③
+    [必须] M-16    打印包改版五件几何                                                  依赖=U-1            序=④
+    [必须] M-17    治具/夹具几何 (套A)                                               依赖=U-1            序=④
+    [可后置] M-18  打印件实物 B1~B4                                                依赖=U-1+ISS-040    序=⑤
+    [可后置] M-19  骨架实物 / 石墨片裁切                                               依赖=M-03/M-04      序=⑤
+    [可后置] M-20  治具实物                                                       依赖=M-17           序=⑤
+    [可后置] M-21  MEASURE_CHECKLIST §J 实测回填                                  依赖=M-18           序=⑤
+    [可后置] M-22  Type-C 第三档试样实测                                             依赖=M-18           序=⑤
+    [可后置] M-23  measurements.yaml M-PRINT/M-FIT/M-WEIGHT                   依赖=M-18           序=⑤
+    [可后置] M-24  石墨/隔热垫/导热垫实测厚度回填                                           依赖=M-19           序=⑤
+
+====================================================================================================
+[4] 交叉对账差集 (★这就是「板改第二次」的风险清单★)
+====================================================================================================
+  --- D-1 两边都提到但口径不一样 (7 条) ---
+    D-1-1    mech 在这一趟的归属
+             · ONETRIP §4-4: mech = 不占本趟产物, 只关心 board_port_opening_s6_check.py 一个脚本
+             · MECH 侧实际 18 件要同批出 (含 6 道几何闸锚点 + 三条开口 + 座体6组 + S6 20落位 + 骨架 + 板重 + 打印包五件)
+             · HW 侧漏记约 17 件 ⇒ MECH 工作量被低估
+    D-1-2    HW 侧作业包里的【两处过期板宽】 (★不是两套口径并存★)
+             · HW 作业包 §7 P7 C1 行内 L659: 「板宽 15mm 是结构约束 (镜腿宽度)」 + §7 排序依据第 3 条 L668: 「C1/C2 的真实战场是【产品板 (60×15)】」 ⇒ ★这两行是 ISS-118/130 (老板 2026-10-29 19:16) 之前的旧板宽★
+             · MECH 现行口径 = 板宽 30.00 / 板长 60.00 / 板厚 1.00 (6 层) (MECH/BOARD_GEOM_30MM.md §1) ⇒ 15 是作废板宽
+             · ★归类: 过期行 (待订正), 不是两边口径打架★ ⇒ 订正动作 = main 在 HW 域改那两行 (ISS-310 §D-4 已给逐字改法) ⇒ 老板照那两行拍会拍错 (把 30 缩回 15 = 推翻老板 10-29)
+             · ★附: MECH/DEBUG_PORT_LAYOUT_CONSTRAINTS.md §4.1 第 1/2 行引的旧行号 :301/:310 已漂为 L659/L668 ⇒ 一并订正 (MECH 域文件, 本单零改, 只回报)★
+    D-1-3    板重
+             · HW 侧无板重这个数
+             · MECH_BUDGET §3 W5 = 50×12×0.8 / 5-7 g (板框与重量两个数都过期); verify_budget.WEIGHT_ITEMS 同为 5.0-7.0
+             · 现行 F30A FR4 净重 3.33 g ⇒ 差 1.67~3.67 g
+    D-1-4    MECH 域自己的【同一处过期字】 (★不是两边对立★)
+             · BOARD_FRAME_CALIBER §1.1 已登记「MECH 权威表主控没跟着换」(RK3576×14 / RK3572×0)
+             · MECH_BUDGET §1.3 主表 M1 行 = 60 × 15 × 1.0 / 1.67 cc ⇒ MECH 自己这边也挂着作废板宽 15
+             · ★归类: 过期行 (待订正), 与 D-1-2 同一个病在自己这边★ ⇒ 交 need 给 main, 本单零改
+    D-1-5    开口坐标 (三套数)
+             · HW 作业包 §1 C-OPEN-1/2: 调试口 137.850..148.050 × 54.300..58.900 (帧 B160x100); UART 13.790..23.990 × 66.300..70.900 (帧 B160x100)
+             · 36 档表 open_x/open_y = 49.21..59.41 × 7.835..12.435 (三框共用 ⇒ 是 F30A 帧的数); ISS-271/313 jd 区间 [1.665,11.730]/[48.290,51.090]/X[47.00,60.00] (F30A)
+             · 同一组开口 3 套数 ⇒ 照任何一套开都会开错
+    D-1-6    板重占比的分母
+             · HW 侧不产这个数
+             · 两套分母并存: service_port_check BASE mass_total_lo/hi = 48.90/72.80 vs MECH_BUDGET §3 合计 49.58-74.16 (315档) ⇒ 差 0.68/1.36 g
+             · 同一占比在两个文件里算出两个数 ⇒ 受保护闸与被校核文档不同步 ⇒ 交 need
+    D-1-7    「板只改一次」的作用对象
+             · HW 侧: 板 md5 只允许变一次 ⇒ 约束现役板 B160x100 的文件
+             · MECH 侧 (ISS-310 §C-2 B3): 换框 ≠ 板改第二次 ⇒ 约束产品板这条线上板 md5 只出一次
+             · 同一句老板的话两边约束对象不同 ⇒ 拍板页必须写死
+  --- D-2 只在 MECH 侧出现 (9 条) ---
+    D-2-1    M-01 U-1 冻结判据本身
+             · HW 只把它排在「老板 P7」, 没有判据
+             · 拍完没法机器判「冻结了没有」⇒ 板 md5 第二次变
+    D-2-2    M-06/M-09 三条开口几何真源 (MECH 侧 3 页)
+             · HW 只把坐标【抄】进作业包 §3-S6 ⇒ 抄件不是真源
+             · 帧一改 ⇒ HW 抄件与 MECH 真源分叉 ⇒ 防漂闸红
+    D-2-3    M-07 座体 6 组落位认领句
+             · HW 只写了罩子, 没有 6 组落位认领
+             · 座体占位与板上落位对不上 ⇒ 探针/连接器够不着
+    D-2-4    M-15 jd_y0/jd_x0 合法区间 + jd_y0_feasibility.py
+             · HW 清单没有这个判据
+             · 焊盘阵列 Y 起点没人判 ⇒ 开口 Y 无基准
+    D-2-5    M-11~M-15 MECH 6 道几何闸的常量锚点
+             · HW 的 9 道钉板 md5 闸只钉板 md5, 不钉 MECH 几何常量 ⇒ 两套基线
+             · 板一改 MECH 侧 6 道闸可能红, 而 HW 清单里没这一项 ⇒ 收尾清单不完整
+    D-2-6    M-03/M-04 骨架截面 + 石墨覆盖
+             · HW 清单没有「骨架」这个件 (它不是板的产物)
+             · 30mm 下全部候选超预算 4.08 g/对 vs 3 g + 石墨 2.16 g/对 > W11 2 g ⇒ 板画出来装不进骨架 ⇒ 板改第二次
+    D-2-7    M-16/M-17 打印包改版五件 + 治具
+             · HW 清单完全没有「打印包/治具」
+             · 开口几何定了但没实物 ⇒ 产线装前压针跑不通; 治具基准不同批 ⇒ 板装不进笼
+    D-2-8    M-05 板重账 (MECH_BUDGET §3 W5 + verify_budget)
+             · HW 不产 MECH 的重量表
+             · 整机质量预算按旧板算 ⇒ 重量账不平
+    D-2-9    电芯采购口径 (ICP422339PR vs ICP582035PR-01)
+             · 不在任何板那一趟清单里 (采购侧的事)
+             · 照现型号买 ⇒ 厚 6.40 而非 4.60 ⇒ 装不进 7.30mm 镜脚 ⇒ H 链最坏 −1.10mm ⇒ 比任何文档订正都贵
+  --- D-3 只在 HW 侧出现 (6 条) ---
+    D-3-1    网表 + 脚表 (①条件步)
+             · 网表/脚表是 hw 地界, 本单零落表
+             · M-07 座体落位依赖网表位号 ⇒ 改名 (_1 后缀) 时 MECH 认领句要同步改
+    D-3-2    原理图 11 页 + .kicad_pro (③)
+             · 原理图是 hw 地界
+             · J_DEBUG 脚数 (1×4 vs 模型 2×5) 来自原理图 ⇒ 脚数不定 ⇒ 开口 X/Y 全不定
+    D-3-3    BOM (⑤ 板之后)
+             · BOM 是 hw 地界
+             · M-05 重量账要与 BOM 对表; ISS-311 地雷2: 板侧 ref 改名 ⇒ gen_bom.py 按精确 ref 读板静默失效 ⇒ MECH 的器件重量来源链断
+    D-3-4    投产包 74 件 (⑥)
+             · MECH 不产
+             · M-16/M-17 的打印件与治具【不在 74 件里】⇒ 投产包齐了不等于装配能跑
+    D-3-5    落表台账 (⑦ main)
+             · main 地界
+             · U-1 冻结记录与落表台账是两本账 ⇒ 必须写清 U-1 记录落在哪本
+    D-3-6    旧 md5 引用点清理 (主表 #25 全仓 grep)
+             · MECH 不产
+             · 9 道钉板闸里有 2 道在 MECH 域 ⇒ #25 归属口径打架 (小)
+  --- D-4 依赖顺序打架 (4 条) ---
+    D-4-1    U-1 在不在硬顺序第一位
+             · HW 硬顺序 = 网表→原理图→板→BOM→投产包; 主表第 1 行是网表, 没有「板框冻结」
+             · MECH 顺序 = U-1→认领句/开口几何/座体/jd区间→板S6→MECH 6闸重锚→打印包五件→实物
+             · ★最贵的一条★: 按 HW 顺序 S1~S8 可在 U-1 未拍时开工 ⇒ 板 md5 先变一次 ⇒ 拍完框再变一次 ⇒ 破功
+    D-4-2    MECH 侧 17 件在归属表里的位置
+             · 归属表写 mech = 不占本趟产物 ⇒ 全部排在板那一趟之后
+             · M-06/M-07/M-08 是 S6 的【输入】⇒ 顺序倒置
+             · 要么板先按旧坐标画 (拍完框要重画 = 板改第二次), 要么认领句先改 (与 HW 抄件分叉) ⇒ 二选一, 不能各留一半
+    D-4-3    打印包与板框的关系
+             · HW 清单里没有打印包 ⇒ 无冲突记录
+             · M-16/M-17 吃开口坐标 + 套A孔位 ⇒ 吃 U-1
+             · 选 F30A ⇒ 打印包本来就是 60×30 套A ⇒ 不用重生成 (反而对齐); 选 B160x100 ⇒ 整包作废 ⇒ U-1 一拍, 工作量差一个量级
+    D-4-4    板重账与板的下游
+             · HW: 板→BOM→投产包
+             · MECH: U-1→板重→MECH_BUDGET §3 合计→verify_budget.py (门禁锚点 DOC_WEIGHT)
+             · 板重一改脚本必须同批改否则门禁红 ⇒ 与 §5-2 的 +0.73g 订正是同一类结构
+
+  ★差集合计 = 7 + 9 + 6 + 4 = 26 条
+  ★分类说明: D-1 里 D-1-2 与 D-1-4 严格说是【过期行 (待订正)】, 不是【两边口径打架】
+  ★⇒ 真正的「两边口径不一致」= 5 条 + 2 条过期行 = 7 条
+  ★★读差集的一条纪律 (ISS-310 点名过): HW 作业包 L659/L668 的「板宽 15mm / 产品板 (60×15)」是
+     【作废板宽】, 不是「HW 侧在用 P60x15 那一套框」⇒ ★别把它当成真的口径打架★
+
+====================================================================================================
+[5] 依赖排序的依据出处 (逐条, 只读实读)
+====================================================================================================
+    HW 硬顺序                                               ← HW/PCB/ONETRIP_REISSUE_MANIFEST.md §4-2
+    HW 依赖图                                               ← HW/PCB/ONETRIP_REISSUE_MANIFEST.md §4-1
+    HW 同趟出清单                                             ← HW/PCB/ONETRIP_REISSUE_MANIFEST.md §4-3
+    HW 归属表                                               ← HW/PCB/ONETRIP_REISSUE_MANIFEST.md §4-4
+    板 md5 只允许变一次 (变更次数 ≤ 1)                              ← HW/PCB/BOARD_ONEPASS_WORKPACKET.md §6.2 / BOARD_ONEPASS_COMMIT_ORDER.md
+    若在 S10 之后才拍 ⇒ 板 md5 第二次变 ⇒ 只改一次破功                    ← HW/PCB/BOARD_ONEPASS_WORKPACKET.md §7 排序依据
+    板框三选一与两套口径的并列                                        ← MECH/BOARD_FRAME_DECISION_INPUT.md §A / §D-3
+    MECH 6 道几何闸的常量锚点                                     ← MECH/BOARD_FRAME_DECISION_INPUT.md §B-4 + MECH/BOARD_GEOM_30MM.md §6b
+    8 项结构侧在册值 (板长/宽/厚/孔位/净空/开口/三链/md5)                   ← MECH/MECH_NEEDS_TRIAGE.md §7.1
+    33 条与板那一趟直接相关的待答输入                                   ← MECH/MECH_NEEDS_TRIAGE.md §7
+    冻结闸 need key proto_pcb_freeze_gate                   ← MECH/MECH_NEEDS_TRIAGE.md §7.2 第 3 行 + state/fragments/mech.yaml needs_from
+    ISS-027 四批 + P-2 冻结点                                 ← HANDOFF/2026-10-29_mech-lead_原型制作计划_ISS027.md B1 结论摘要 + §B5 P-2 + MECH/PROTOTYPE_PLAN.md §1.1/§5.3
+    检修口打印包改版五件排 B2                                       ← DECISIONS.md 2026-10-30 项目总工条目 (引 ISS-092 I-7)
+    帧 id 唯一权威表 + SoM 承载区占位                               ← HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES + §3
+
+====================================================================================================
+[6] 零写板双证 (md5 + mtime)
+====================================================================================================
+    611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+    db58ff6a2afc28b8bf517e3c57c56bc1  MECH/service_port_check.py
+    048345b060834a270409f4da542de86d  MECH/board_frame_feasibility.py
+    2026-11-06 07:07:17.362193413 +0800 HW/PCB/demo_mainboard.kicad_pcb

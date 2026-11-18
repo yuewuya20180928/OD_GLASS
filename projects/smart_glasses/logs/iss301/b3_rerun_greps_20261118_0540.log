@@ -1,0 +1,31 @@
+$ grep -nE "VBUSDET" HW/PCB/FET3572C_PIN_TABLE.csv ; echo "rc=$?"
+101:P1,100,B28,USB_DRD1_VBUSDET,——,——,USB2_OTG1_VBUSDET insert detection,USB2_OTG1_VBUSDET
+216:P3,16,1C18,USB_DRD0_VBUSDET,——,——,USB2_OTG0_VBUSDET insert detection,USB2_OTG0_VBUSDET
+rc=0
+
+$ grep -nE "USB_DRD0_VBUSDET|USB_DRD1_VBUSDET" HW/RK3572_PIN_TABLE/rk3572_pins.csv ; echo "rc=$?"
+262:1C18,-,USB,USB_DRD0_VBUSDET
+267:B28,-,USB,USB_DRD1_VBUSDET
+rc=0
+
+$ grep -c "AON" HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.txt ; echo "rc=$?"
+0
+rc=1
+
+$ grep -n "VBUS_DET" HW/netlist_v1.csv ; echo "rc=$?"
+38:P1,BAT_CHG,J_CHG,J_CHG,J_CHG,"1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",CONN,必装,[推算],,"★V1.9 结构侧回执: **J_CHG 实物是一对** (框侧座 + 脚侧座), 采购/备料别只算一只; 单触点额定判据收紧到 **≥0.5A**; 首选 Hirose FH12-10S-0.5SH(55) (未询价, 外发经项目总工)。[SYS] ★V1.5 定稿 pin map (1×10p@0.5mm): pin1/pin2=BAT_CHG (充电电流**双 pin 并联**), pin3/pin4=GND (回流双 pin), pin5=CHG_STAT, pin6=PWR_GOOD, pin7=VBUS_DET, pin8=**TS** (电池 NTC 在镜脚, TS 跨铰链), pin9/10=预留 (充电 IC I2C 不跨铰链); ★BAT_DET 不跨铰链 (电池在镜脚本地检测); 型号/载流待结构复核 (ISS-091 算压降发热); ★pin 编号为**本版自拟**",C-02,HINGE,,
+412:P9,HINGE_CHG,J_CHG,J_CHG,J_CHG,"1×10p@0.5mm 排线座 (充电板↔主 PCB, 跨铰链载流)",CONN,必装,[推算],,"[INVENTORY] [HINGE_CHG] 通道 1/4 **充电电流 + 状态回读** (★V1.2 改: 电池在镜脚 ⇒ 跨铰链的是**充电电流 1.0-1.5A**, **SYS 0.55A 不过铰链**): pin1/pin2=BAT_CHG (双 pin 并联载流), pin3/pin4=GND (回流双 pin), pin5=CHG_STAT, pin6=PWR_GOOD, pin7=VBUS_DET, pin8-10=预留; ★pin 编号为本版自拟 (型号/间距/载流待结构确认, ISS-085)",,HINGE,,
+433:P9,NC,J_CHG pin7,NC,J_CHG,预留 (NC),NET,DNP,[推算],,[NC] ★2026-11-04: J_CHG pin7 原走跨铰链 VBUS_DET ⇒ demo 板改本地分压 ⇒ 本脚预留不接,,HINGE,,
+434:P1,RAIL_DEMO_5V,R_VBUS_DET_D1,RAIL_DEMO_5V,R_VBUS_DET_D1,1M ±1% (上臂),R,必装,[推算],,[VBUS_DET_D] ★demo 板: Type-C VBUS 在**主板本地**分压 (不再跨铰链) ⇒ 上臂 5V 侧,A-24,MAIN_PCB,,
+435:P1,VBUS_DET_D,R_VBUS_DET_D1,R_VBUS_DET_D2,NET_VBUS_DET_D,1M ±1% (上臂/下臂中点),R,必装,[推算],,[VBUS_DET_D] ★分压中点 (上臂下臂相连 + 滤波电容 + SoM 检测脚),A-24,MAIN_PCB,,
+436:P1,GND,R_VBUS_DET_D2,GND,R_VBUS_DET_D2,1M ±1% (下臂),R,必装,[推算],,[VBUS_DET_D] 分压下臂 地端,A-24,MAIN_PCB,,
+437:P1,GND,C_DET_VBUS_D,GND,C_DET_VBUS_D,100nF ±10%,C,必装,[推算],,[VBUS_DET_D] ADC 滤波电容 地端,A-24,MAIN_PCB,,
+438:P1,VBUS_DET_D,C_DET_VBUS_D,VBUS_DET_D,C_DET_VBUS_D,100nF ±10%,C,必装,[推算],,[VBUS_DET_D] ADC 滤波电容 中点侧 (★原来缺这一腿 ⇒ 器件只有 1 个脚),A-24,MAIN_PCB,,
+439:P1,VBUS_DET,J_SOM_P1 pin100,VBUS_DET_D,J_SOM_P1,1M+1M 分压 + 100nF,NET,必装,[官方],,"[VBUS_DET] ★SoM 的 USB_DRD1_VBUSDET (P1_100) ← 板载 Type-C VBUS 分压 (demo 版: 检测在主板本地, 不跨铰链)",B-07,MAIN_PCB,,
+rc=0
+
+$ grep -n "C_SYS" HW/netlist_v1.csv ; echo "rc=$?"
+498:P10,SYS_CHG,U_CHG pin15,U_CHG pin16,U_CHG,20µF X7R 6.3V,IC,必装,[官方],,"★pin15/16 SYS: 本板不供电 (SYS 在镜脚由 BQ2970 + 2×MOS 产生); ⚠️ 待裁决: 网名用 SYS_CHG 而不是 SYS — 现行网表的 SYS 是镜脚系统轨 (RAIL_SYS 3.0-4.2V), 若沿用 SYS 
+499:P10,SYS_CHG,U_CHG pin16,C_SYS,C_SYS,20µF X7R 6.3V,C,必装,[官方],,"★C_SYS 留位不装 = 保留 '电池挪镜框' 可回退分支 (将来接 2 根线 + 贴这颗电容即可, 不用改板); 本板 SYS 无负载, 装 20µF 只占 25×10mm 板面 ★裁决 (PM): 电池与负载**都在镜脚** ⇒ 充电板没有系统侧负载 · **V
+500:P10,PGND,C_SYS,U_CHG pin17+pin18,C_SYS,20µF X7R 6.3V,C,必装,[官方],,SYS 电容 地端 (PGND); DNP 时不占板面 ★★订正 (ISS-302 · 2026-11-18 · hw-lead · 追加式 · 老字留痕)★: 上句『DNP 时不占板面』★**已作废**★ (★**错**: DNP 也照样占 land patte
+rc=0

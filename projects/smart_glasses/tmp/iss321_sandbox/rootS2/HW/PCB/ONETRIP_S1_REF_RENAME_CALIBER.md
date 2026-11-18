@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/ONETRIP_S1_REF_RENAME_CALIBER.md

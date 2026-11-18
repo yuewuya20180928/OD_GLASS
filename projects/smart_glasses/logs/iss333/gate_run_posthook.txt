@@ -1,0 +1,358 @@
+===== ISS-333 挂闸后闸复跑 (★2026-11-18 21:0x·main 已于 20:2x 挂进 EXTRA_GATES 之后★) =====
+--- 机 ---
+yuewuya-RedmiBook-14
+2026-11-18 20:49:03 +0800
+
+===== ① 裸跑 (主模式) =====
+==============================================================================
+ISS-333 · MECH 侧位号引用可达性闸 · check_mech_ref_reachability.py
+==============================================================================
+项目根        : /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+板位号        : 186 个 (★板文件文本解析, 未 import pcbnew★)
+网表位号      : 293 个 (★三张 CSV 的 ref 列★)
+网名索引      : 654 个
+扫描面        : 48 份 `MECH/**/*.md` (递归) + 65 份 `MECH/**/*.py` (递归)
+                (★闸自身已排除: MECH/tools/check_mech_ref_reachability.py★)
+抽出 token    : 246 个唯一标识符
+
+【分类统计】 (★SW 的 14 条 + MECH 侧的 C15/C16/C17★)
+   DESIGNATOR_OK            78
+   DESIGNATOR_DRIFT          0
+   DESIGNATOR_MISSING       10
+   NET_NAME                 23
+   DOC_INTERNAL            135
+
+【R3 建闸日基线】 `DESIGNATOR_MISSING` 实测 = 10 条 · 允许上限 = 10 条
+   ⇒ ✔ 在基线内
+
+【★真隐患 (C14)·现在就对不上的位号引用★】
+   ★基线内·已登记★ CONN_USB  (MECH/FPC_FAB_NOTES.md:6)  出现 77 次
+        理由: ★真隐患·已登记★: MECH 域 77 处引用 CONN_USB (FPC_FAB_NOTES / HINGE_FPC_GEOMETRY_TRUTH / HW_CROSS_REVIEW …) ⇒ ★板上是 J_USB_C, 网表里只有 CONN_CAM / CONN_LIGHT ⇒ 「USB 连接器」这个对象在盘上已经换名/消失, MECH 侧的引用还留着 ⇒ 板那一趟若改这些位号, MECH 侧会一起漂移★
+   ★基线内·已登记★ C_VBUS_BULK  (MECH/STRUCT_REVIEW_ISS065.md:337)  出现 4 次
+        理由: ★真隐患·已登记★: MECH/STRUCT_REVIEW_ISS065.md §I-6 明写「`C_BULK`/`C_VBUS_BULK` 与 `C_VBUS_IN` 的位号在 netlist 里对不上 (脚本按 `C_VBUS_BULK` 算 1206, 但 netlist 里只有 `C_VBUS_IN`/`C_VBUS_OUT`/`C_SYS`)」⇒ ★判据脚本引用了一个盘上没有的位号★
+   ★基线内·已登记★ D_ESD_CHG  (MECH/cross_review_check.py:103)  出现 1 次
+        理由: ★真隐患·已登记★: MECH/cross_review_check.py:103 的 ESD 假设 dict 里写死 "D_ESD_CHG": 1.6 * 0.8 ⇒ ★板上/网表里的 D_ESD_* 只有 D_ESD_CAM / D_ESD_DEMO / D_ESD_LIGHT / D_ESD_TC / D_ESD_USB_D ⇒ ★判据脚本假设了一个不存在的 ESD 位号★ (★它只出现在 .py 里, ISS-326 的「py-only 粗口径」把它一起扫掉了 ⇒ 本闸口径把它捡回来★)
+   ★基线内·已登记★ J_CHG_A  (MECH/HW_CROSS_REVIEW.md:227)  出现 1 次
+        理由: ★真隐患·已登记★: MECH/HW_CROSS_REVIEW.md §R-10「`J_CHG` 实物是一对, 网表只有一行」⇒ 处置写明「拆 `J_CHG_A`/`J_CHG_B` 两个 ref」⇒ ★文档里已经写了这两个位号, 但它们还没落表 ⇒ 落表之前它们就是解析不到的★
+   ★基线内·已登记★ J_CHG_B  (MECH/HW_CROSS_REVIEW.md:227)  出现 1 次
+        理由: ★真隐患·已登记★: 同 §R-10 ⇒ ★待与 `J_CHG_A` 同批落表 (★hw-lead owner★)
+   ★基线内·已登记★ J_CHG_PWR  (MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md:272)  出现 1 次
+        理由: ★真隐患·已登记★: MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md 的位号不符表里写明「主板侧改名 (如 `J_CHG_PWR`) 并同步 BOM/网表 (触落表, 须 main 批准)」⇒ ★它是【拟用名】, 还没落表 ⇒ 现在解析不到是对的, 落表后才解析得到★
+   ★基线内·已登记★ J_JTAG  (MECH/BOARD_ONEPASS_MECH_SYNC.md:340)  出现 2 次
+        理由: ★真隐患·已登记★: MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md §位号不符表: 脚本用 `J_JTAG`, 盘上是 `J_DEBUG` ⇒ ★位号名不符 ⇒ 按 params 生成的 land pattern 找不到器件 ⇒ hw-lead owner★
+   ★基线内·已登记★ J_USB  (MECH/BOARD_ONEPASS_MECH_SYNC.md:334)  出现 2 次
+        理由: ★真隐患·已登记★: 同表: 脚本用 `J_USB`, 盘上是 `J_USB_C` ⇒ ★位号名不符 ⇒ 同上★
+   ★基线内·已登记★ R_PU_STAT_L  (MECH/STRUCT_REVIEW_ISS065.md:251)  出现 4 次
+        理由: ★真隐患·已登记★: MECH/STRUCT_REVIEW_ISS065.md §R1「充电灯的驱动 `Q_CHG_LED` 栅极 = `U_CHG pin4` (本地 STAT, 开漏) + `R_PU_STAT_L` (本地上拉到 REGN 5V)」⇒ ★MECH/iss065_check.py:374 的 T-3c 面积账也把它算进去了 ⇒ 板/网表里没有这个位号 ⇒ 真隐患★
+   ★基线内·已登记★ U_SOM_RK3572  (MECH/BOARD_ONEPASS_MECH_SYNC.md:344)  出现 2 次
+        理由: ★真隐患·已登记★: MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md 的位号不符表明写「★**板上没有这个位号; 板上是 `J_SOM_P1..P4` (4 组 × 100 焊盘 = 400)★」⇒ ★位号 + 拓扑都不符 ⇒ hw-lead owner★
+
+【★R5-④ 判据分支自检★】 17/17 条分支全部命中 (★判据没被改岔★)
+
+
+【R2 分类全表】 (★`--dump-classification` 同源★)
+   DESIGNATOR_OK        C1   BT_432243                                    现在在【板文件+网表】里能找到
+   NET_NAME             C3   CHG_BOARD                                    它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C11  CHG_ETA                                      前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C11  CHG_FOOTPRINT                                前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C11  CHG_IC                                       前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C11  CHG_K_ILIM                                   前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C11  CHG_LED                                      前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C11  CHG_R_DCR                                    前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C11  CHG_R_ILIM                                   前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C3   CHG_STAT                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C11  CHG_STAT_L                                   前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C11  CHG_TOPOLOGY                                 前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C11  CHG_VBAT                                     前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C11  CHG_VBAT_CV                                  前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C11  CHG_VBUS                                     前缀 `CHG_` ∈ 电源轨名/逻辑信号名命名空间
+   DOC_INTERNAL         C8   CONN_                                        以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   CONN_CAM                                     现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C17  CONN_CAM_1                                   ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   DOC_INTERNAL         C15  CONN_CC                                      ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_OK        C1   CONN_LIGHT                                   现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C15  CONN_MARGIN                                  ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  CONN_REFS                                    ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_MISSING   C14  CONN_USB                                     形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DOC_INTERNAL         C17  CONN_USB_ISSX                                ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   DOC_INTERNAL         C8   C_                                           以 `_` 结尾 ⇒ 文本被截断的前缀
+   DOC_INTERNAL         C8   C_AC_CSI_                                    以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   C_AC_CSI_D0_D3_P                             现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C15  C_ADD                                        ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_OK        C1   C_BAT                                        现在在【网表】里能找到
+   DESIGNATOR_OK        C1   C_BST                                        现在在【网表】里能找到
+   DOC_INTERNAL         C12  C_BULK                                       是 ≥2 个 live 位号的严格前缀 (C_BULK_LIGHT_1V8, C_BULK_LIGHT_3V3, C_BULK_SENSOR_AVDD, C_BULK_SENSOR_CORE) ⇒ 文档对一组件的统称
+   DOC_INTERNAL         C15  C_CASES                                      ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C12  C_H                                          是 ≥2 个 live 位号的严格前缀 (C_HF_LIGHT_1V8, C_HF_LIGHT_3V3, C_HF_SENSOR_AVDD, C_HF_SENSOR_CORE) ⇒ 文档对一组件的统称
+   DOC_INTERNAL         C7   C_J_DEBUG_pitch_2                            后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   C_J_UART_pitch_2                             后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DESIGNATOR_OK        C1   C_KEY_CAM                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_PMID                                       现在在【网表】里能找到
+   DESIGNATOR_OK        C1   C_REGN                                       现在在【网表】里能找到
+   DOC_INTERNAL         C15  C_RESULTS                                    ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_OK        C1   C_SYS                                        现在在【网表】里能找到
+   DESIGNATOR_MISSING   C14  C_VBUS_BULK                                  形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   C_VBUS_GND                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_VBUS_IC                                    现在在【网表】里能找到
+   DESIGNATOR_OK        C1   C_VBUS_IN                                    现在在【网表】里能找到
+   DESIGNATOR_OK        C1   C_VBUS_OUT                                   现在在【网表】里能找到
+   DOC_INTERNAL         C8   D_                                           以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   D_CHG_LED                                    现在在【网表】里能找到
+   DESIGNATOR_MISSING   C14  D_ESD_CHG                                    形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   D_ESD_LIGHT                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   D_ESD_TC                                     现在在【网表】里能找到
+   DOC_INTERNAL         C15  D_EYE                                        ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C7   D_J_DEBUG_no_body                            后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   D_J_UART_no_body                             后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C12  D_LED                                        是 ≥2 个 live 位号的严格前缀 (D_LED_B, D_LED_G, D_LED_R) ⇒ 文档对一组件的统称
+   DESIGNATOR_OK        C1   D_LED_B                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   D_LED_G                                      现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C17  D_LED_G_1                                    ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   DESIGNATOR_OK        C1   D_LED_R                                      现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C15  D_LIST_MM                                    ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  D_OCCLUDE                                    ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C7   D_e                                          后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   D_p                                          后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DESIGNATOR_OK        C1   FB_VBUS                                      现在在【网表】里能找到
+   DOC_INTERNAL         C8   J_                                           以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   J_BOOT1                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_CHG                                        现在在【板文件+网表】里能找到
+   DESIGNATOR_MISSING   C14  J_CHG_A                                      形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DOC_INTERNAL         C15  J_CHG_AREA                                   ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_MISSING   C14  J_CHG_B                                      形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_MISSING   C14  J_CHG_PWR                                    形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DOC_INTERNAL         C4   J_CHG_SELECTION                              盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_OK        C1   J_DEBUG                                      现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C7   J_DEBUG_bom_row                              后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   J_DEBUG_pins                                 后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DESIGNATOR_MISSING   C14  J_JTAG                                       形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DOC_INTERNAL         C12  J_SOM                                        是 ≥2 个 live 位号的严格前缀 (J_SOM_P1, J_SOM_P2, J_SOM_P3, J_SOM_P4) ⇒ 文档对一组件的统称
+   DOC_INTERNAL         C8   J_SOM_                                       以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   J_SOM_P1                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P2                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P3                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P4                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_TYPE_C                                     现在在【网表】里能找到
+   DESIGNATOR_OK        C1   J_UART                                       现在在【板文件+网表】里能找到
+   DESIGNATOR_MISSING   C14  J_USB                                        形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   J_USB_C                                      现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C8   LED_                                         以 `_` 结尾 ⇒ 文本被截断的前缀
+   NET_NAME             C3   LED_B                                        它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DOC_INTERNAL         C15  LED_BBOX_X                                   ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  LED_BBOX_Y                                   ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  LED_BODY_X                                   ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  LED_BODY_Y                                   ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   NET_NAME             C3   LED_B_D                                      它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   LED_G                                        它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   LED_G_D                                      它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DOC_INTERNAL         C17  LED_G_HOLE_A                                 ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   DOC_INTERNAL         C17  LED_G_NOHOLE_B                               ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   DOC_INTERNAL         C17  LED_G_WINDOW                                 ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   NET_NAME             C3   LED_R                                        它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DOC_INTERNAL         C15  LED_REF                                      ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   NET_NAME             C3   LED_R_D                                      它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DOC_INTERNAL         C8   L_                                           以 `_` 结尾 ⇒ 文本被截断的前缀
+   DOC_INTERNAL         C10  L_B                                          前缀 `L_` ∈ 物理量命名空间 (本项目板上无该前缀位号)
+   DOC_INTERNAL         C10  L_BRIDGE                                     前缀 `L_` ∈ 物理量命名空间 (本项目板上无该前缀位号)
+   DESIGNATOR_OK        C1   L_CHG                                        现在在【网表】里能找到
+   DOC_INTERNAL         C10  L_R                                          前缀 `L_` ∈ 物理量命名空间 (本项目板上无该前缀位号)
+   DOC_INTERNAL         C7   L_axis                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   L_bridge                                     后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   L_extra                                      后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   L_eye                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   L_len                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   L_p                                          后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   L_white                                      后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   NET_NAME             C3   PWR_GOOD                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DESIGNATOR_OK        C1   Q1                                           现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C16  Q13                                          ★裸编号 (`Q\d+`/`X\d+`)·既不 live 也不在注册表 ⇒ MECH 域用它表示【文档自己的编号】或【坐标轴变量】⇒ 不是位号★
+   DESIGNATOR_OK        C1   Q2                                           现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C16  Q3                                           ★裸编号 (`Q\d+`/`X\d+`)·既不 live 也不在注册表 ⇒ MECH 域用它表示【文档自己的编号】或【坐标轴变量】⇒ 不是位号★
+   DOC_INTERNAL         C16  Q4                                           ★裸编号 (`Q\d+`/`X\d+`)·既不 live 也不在注册表 ⇒ MECH 域用它表示【文档自己的编号】或【坐标轴变量】⇒ 不是位号★
+   DOC_INTERNAL         C16  Q7                                           ★裸编号 (`Q\d+`/`X\d+`)·既不 live 也不在注册表 ⇒ MECH 域用它表示【文档自己的编号】或【坐标轴变量】⇒ 不是位号★
+   DOC_INTERNAL         C16  Q9                                           ★裸编号 (`Q\d+`/`X\d+`)·既不 live 也不在注册表 ⇒ MECH 域用它表示【文档自己的编号】或【坐标轴变量】⇒ 不是位号★
+   DOC_INTERNAL         C8   Q_                                           以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   Q_CHG_LED                                    现在在【网表】里能找到
+   DOC_INTERNAL         C7   Q_skin                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C8   R_                                           以 `_` 结尾 ⇒ 文本被截断的前缀
+   DOC_INTERNAL         C15  R_AL_201                                     ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_AL_237                                     ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_AL_LONG                                    ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_AMB_METAL                                  ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_AMB_PRINT                                  ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_ARM_PRINT                                  ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_BREAK_KW                                   ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_BREAK_MIN_KW                               ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_CELL_INTERNAL                              ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_CELL_RANGE                                 ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_OK        C1   R_CHG_LED                                    现在在【网表】里能找到
+   DOC_INTERNAL         C15  R_COL_KW_NUM                                 ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_CONTACT_PER_PIN_PER_INTERFACE              ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_CONV                                       ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C17  R_DCR                                        ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   DOC_INTERNAL         C15  R_FRAME_TO_SURF                              ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_OK        C1   R_ILIM                                       现在在【网表】里能找到
+   DOC_INTERNAL         C17  R_ILIM_VALUES                                ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   DOC_INTERNAL         C15  R_INT                                        ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_OK        C1   R_LED_B                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_LED_G                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_LED_R                                      现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C15  R_METAL                                      ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_OK        C1   R_NTC_BAT                                    现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C15  R_PATH_MAX_KW                                ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_PRINT                                      ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_PRINT_6063                                 ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_PRINT_LONG                                 ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_OK        C1   R_PU_I2CB_SCL                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_INT                                     现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_SCL                                     现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_SDA                                     现在在【网表】里能找到
+   DESIGNATOR_MISSING   C14  R_PU_STAT_L                                  形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DOC_INTERNAL         C12  R_SEL                                        是 ≥2 个 live 位号的严格前缀 (R_SEL_CK_N, R_SEL_CK_P, R_SEL_D0_N, R_SEL_D0_P) ⇒ 文档对一组件的统称
+   DOC_INTERNAL         C8   R_SEL_                                       以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   R_SEL_CK_N                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_CK_P                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D0_N                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D0_P                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D1_N                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D1_P                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D2_N                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D2_P                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D3_N                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D3_P                                   现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C15  R_SKIN_IF                                    ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C15  R_SKIN_PATH                                  ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DESIGNATOR_OK        C1   R_STAR_PGND                                  现在在【网表】里能找到
+   DOC_INTERNAL         C15  R_SURF_CONV                                  ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C17  R_TIM                                        ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   DESIGNATOR_OK        C1   R_TS_PULL                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_VBUS_DET_D1                                现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C15  R_WALL                                       ★判据脚本里的【代码常量/变量名】(Python 标识符)⇒ 不是位号★
+   DOC_INTERNAL         C7   R_al                                         后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_al_long_K_W                                后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_amb                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_amb_cav                                    后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_assumed_mm                                 后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_axial                                      后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_branch                                     后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_bridge                                     后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_bridge_min                                 后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_c                                          后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_cell                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_conn                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_cons                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_cons_mohm                                  后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_conv                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_conv_K_W                                   后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_eff                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_int                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_interface                                  后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_min                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_mohm                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_opt                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_opt_mohm                                   后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_path                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_print                                      后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_print_long_K_W                             后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_skin                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_skin_branch                                后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_skin_path                                  后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_skin_path_K_W                              后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_spread                                     后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_tot                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_trace                                      后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_wall                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DESIGNATOR_OK        C1   SW_RST                                       现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C8   TP_                                          以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   TP_BAT_CHG                                   现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C8   TP_DSI_                                      以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   TP_DSI_CK_N                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_DSI_CK_P                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_DSI_D0_N                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_DSI_D0_P                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_DSI_D1_N                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_DSI_D1_P                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_DSI_D2_N                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_DSI_D2_P                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_DSI_D3_N                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_DSI_D3_P                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_LED_B                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_LED_G                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_LED_R                                     现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C17  TP_TEMP_ISSX                                 ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   DOC_INTERNAL         C17  TP_TEMP_ISSX2                                ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   DESIGNATOR_OK        C1   TP_TS                                        现在在【网表】里能找到
+   DESIGNATOR_OK        C1   TP_VBUS                                      现在在【网表】里能找到
+   DOC_INTERNAL         C8   U_                                           以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   U_CHG                                        现在在【网表】里能找到
+   DOC_INTERNAL         C12  U_LDO                                        是 ≥2 个 live 位号的严格前缀 (U_LDO_IO18, U_LDO_IO33, U_LDO_L18, U_LDO_L33) ⇒ 文档对一组件的统称
+   DESIGNATOR_MISSING   C14  U_SOM_RK3572                                 形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   U_TEMP                                       现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C17  U_TEMP_1                                     ★已登记的「不是位号引用」⇒ 不计入真隐患★
+   NET_NAME             C3   VBUS_5V_CHG                                  它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   VBUS_DET                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DOC_INTERNAL         C16  X0                                           ★裸编号 (`Q\d+`/`X\d+`)·既不 live 也不在注册表 ⇒ MECH 域用它表示【文档自己的编号】或【坐标轴变量】⇒ 不是位号★
+   DESIGNATOR_OK        C1   X1                                           现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C16  X11                                          ★裸编号 (`Q\d+`/`X\d+`)·既不 live 也不在注册表 ⇒ MECH 域用它表示【文档自己的编号】或【坐标轴变量】⇒ 不是位号★
+   DOC_INTERNAL         C16  X15                                          ★裸编号 (`Q\d+`/`X\d+`)·既不 live 也不在注册表 ⇒ MECH 域用它表示【文档自己的编号】或【坐标轴变量】⇒ 不是位号★
+   DOC_INTERNAL         C16  X19                                          ★裸编号 (`Q\d+`/`X\d+`)·既不 live 也不在注册表 ⇒ MECH 域用它表示【文档自己的编号】或【坐标轴变量】⇒ 不是位号★
+   DOC_INTERNAL         C16  X52                                          ★裸编号 (`Q\d+`/`X\d+`)·既不 live 也不在注册表 ⇒ MECH 域用它表示【文档自己的编号】或【坐标轴变量】⇒ 不是位号★
+
+【判决】 ✔ 绿 (rc=0): MECH 侧引用的位号全部可达, 真隐患在基线内
+MECH_GATE_RC=0
+
+===== ② --selftest (反向用例 14 条) =====
+2026-11-18 20:49:11 +0800
+==============================================================================
+ISS-333 · MECH 侧位号引用可达性闸 · 反向用例 (★R4★)
+==============================================================================
+沙盒根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss333_gates   (★真拷贝·绝不 hardlink·真盘一个字节都不写★)
+------------------------------------------------------------------------------
+  ✅ MC-1 期望=red   破坏前 rc=0  破坏后 rc=1  ★case1B 假绿★ 判据脚本里 `== "R_SEL_D0_N"` 失配 (世界已改名, 脚本没改) ⇒ 【必须红】
+      ★做法★ · 判据脚本字面量替换 1 处 (板不动)
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 新增真隐患:R_SEL_D0_N_1, 真隐患 11 > 基线 10) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-2 期望=green 破坏前 rc=0  破坏后 rc=0  ★case1C 对照/修复配方★ 板改名 + MECH 同步改 ⇒ 【必须绿】(★证明判据没写死「改名方案」★)
+      ★做法★ · 板+网表改名 5 处 · MECH 同步改 15 处
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 ⇒ 破坏后 rc=0 (红项: 无) ⇒ ★判据没被「改坏的那一处」弄红★
+  ✅ MC-3 期望=red   破坏前 rc=0  破坏后 rc=1  ★case1D 反证★ 只改 MECH 文档里的位号 (板不改) ⇒ 【必须红】(★改名漂移★)
+      ★做法★ · 只改 MECH 文档 13 处 (板不动)
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 新增真隐患:R_SEL_D0_N_X, 真隐患 11 > 基线 10) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-4 期望=red   破坏前 rc=0  破坏后 rc=1  ★case2 崩★ 板上 D_LED_G 改名 (MECH 不动) ⇒ 【必须红】
+      ★做法★ · 板+网表把 D_LED_G 改名 5 处 (MECH 不动)
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 改名漂移:D_LED_G) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-5 期望=red   破坏前 rc=0  破坏后 rc=1  ★case3A 不动集★ 只改改名集位号, 不动集 J_SOM_P1 一律不动 ⇒ 【必须红】且 【J_SOM_P1 不得出现在红项里】
+      ★做法★ · 只改改名集 10 个 (J_SOM_P1 不动)
+      ★附加断言★ ★不动集 J_SOM_P1 未被误伤 (红项里没有它)★
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 改名漂移:R_SEL_CK_N, 改名漂移:R_SEL_CK_P, 改名漂移:R_SEL_D0_N, 改名漂移:R_SEL_D0_P, 改名漂移:R_SEL_D1_N, 改名漂移:R_SEL_D1_P, 改名漂移:R_SEL_D2_N, 改名漂移:R_SEL_D2_P, 改名漂移:R_SEL_D3_N, 改名漂移:R_SEL_D3_P) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-6 期望=red   破坏前 rc=0  破坏后 rc=1  ★case3B 反证★ 连不动集里的 J_SOM_P1 也改 ⇒ 【必须红】且 【必须点名 J_SOM_P1】
+      ★做法★ · 改名集 10 个 + 连 J_SOM_P1 也改
+      ★附加断言★ ★J_SOM_P1 已被点名 (证明它确实在不动集里·该改就会红)★
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 改名漂移:J_SOM_P1, 改名漂移:R_SEL_CK_N, 改名漂移:R_SEL_CK_P, 改名漂移:R_SEL_D0_N, 改名漂移:R_SEL_D0_P, 改名漂移:R_SEL_D1_N, 改名漂移:R_SEL_D1_P, 改名漂移:R_SEL_D2_N, 改名漂移:R_SEL_D2_P, 改名漂移:R_SEL_D3_N, 改名漂移:R_SEL_D3_P) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-7 期望=green 破坏前 rc=0  破坏后 rc=0  ★case4 注释里的 ref★ 改判据脚本【注释/文档串】里的位号名 ⇒ 【必须绿】
+      ★做法★ · 改注释/文档串里的位号名 4 处
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 ⇒ 破坏后 rc=0 (红项: 无) ⇒ ★判据没被「改坏的那一处」弄红★
+  ✅ MC-8 期望=red   破坏前 rc=0  破坏后 rc=1  ★G1 假位号新增★ MECH 文档里写一个盘上没有的位号 ⇒ 【必须红】
+      ★做法★ · MECH/README.md 里写一个盘上没有的位号
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 新增真隐患:R_ZZ_ISS333_FAKE_999, 真隐患 11 > 基线 10) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-9 期望=red   破坏前 rc=0  破坏后 rc=2  ★F3 扫描面半残★ MECH/**/*.py 全删 ⇒ 【必须红】(★fail-closed★)
+      ★做法★ · 删掉 MECH/**/*.py 全部
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=2 (红项: fail-closed: ★MECH 侧 py 扫描面拿不到 (glob `MECH/**/*.py` 空, 或全被闸自身排除规则滤掉): /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss333_gates/iss333_refreach_vqpf8w01/MC-9) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-10 期望=red   破坏前 rc=0  破坏后 rc=2  ★F1 板读不到★ 板文件删掉 ⇒ 【必须红】(★fail-closed★)
+      ★做法★ · 删掉板文件
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=2 (红项: fail-closed: ★输入文件不存在: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss333_gates/iss333_refreach_vqpf8w01/MC-10/HW/PCB/demo_mainboard.kicad_pcb) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-11 期望=red   破坏前 rc=0  破坏后 rc=2  ★F2 网表读不到★ 网表 CSV 删掉 ⇒ 【必须红】(★fail-closed★)
+      ★做法★ · 删掉 HW/netlist_v1.csv
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=2 (红项: fail-closed: ★网表真源不存在: HW/netlist_v1.csv) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-12 期望=red   破坏前 rc=0  破坏后 rc=1  ★G7 基线不许被放宽★ BASELINE_COUNT 被改大 ⇒ 【必须红】
+      ★做法★ · BASELINE_COUNT 10 → 11
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 基线自洽:BASELINE_COUNT=11 但 BASELINE_TOKENS 只有 10 条 (★必须相等★), 基线自洽:BASELINE_COUNT=11 > 建闸日冻结值 10 (★基线只许收紧不许放宽★)) ⇒ 这条红【只可能】来自被改坏的那一处
+  ✅ MC-13 期望=green 破坏前 rc=0  破坏后 rc=0  ★正向对照★ 原样不动 ⇒ 【必须绿】(★不许把闸修成永远红★)
+      ★做法★ · 不做任何改动 (正向对照)
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 ⇒ 破坏后 rc=0 (红项: 无) ⇒ ★判据没被「改坏的那一处」弄红★
+  ✅ MC-14 期望=red   破坏前 rc=0  破坏后 rc=1  ★★判据分支匹配不上 ⇒ 必须红★ (★不许静悄悄不查了★) ⇒ 故意改坏一条分支探针
+      ★做法★ · 故意把【C1 这一条】分支探针的期望类改成 DESIGNATOR_MISSING (★只改一条·其余 16 条仍须全对★)
+      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc=0 (红项: 无) ⇒ 破坏后 rc=1 (红项: 判据分支失配:R_PROBE_LIVE) ⇒ 这条红【只可能】来自被改坏的那一处
+------------------------------------------------------------------------------
+反向用例: 14/14 通过
+✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+MECH_GATE_SELFTEST_RC=0

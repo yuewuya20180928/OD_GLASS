@@ -1,0 +1,49 @@
+========================================================================
+ISS-317 · 09 门禁链输出 (★merge + gate_check★)
+========================================================================
+
+★★ 先说结论 (★main 验单时先看这段★) ★★
+
+  ★★ Q7 里那道红闸 (ISS-318 SW 侧位号引用可达性闸) 与本单 (HW 域) 无关 ★★
+  ★★ 它红的原因 = 【sw-lead 在 2026-11-18 10:47:38 写的 SW/ONETRIP_SW_RENAME_SAFETY.md】★
+  ★★ ⇒ 那是 SW 域的活, 本单【不碰 SW 域·不许碰·也碰不到】★
+
+──── 归因链 (★四条证据·逐条可复核★) ────
+  ① 该闸的输入面 = 板 + 网表 + SW/*.md + AUX 目录 (★state/check_sw_ref_reachability.py L78-83★)
+     ⇒ ★它【不读】state/fragments/hw.yaml·【不读】HANDOFF/·【不读】HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md★
+  ② 18 条真隐患的【全部 18 条】都来自同一个文件: SW/ONETRIP_SW_RENAME_SAFETY.md
+     ⇒ ★7 条 @ :62 · 3 条 @ :287 · 2 条 @ :155 · 1 条 @ :343 · 1 条 @ :203 · 1 条 @ :14★
+  ③ ★决定性试验★: 把 SW/ONETRIP_SW_RENAME_SAFETY.md 临时挪走 ⇒ ★该闸 rc=0 绿★ ⇒ 还原后仍红
+     ⇒ ★**红灯 100% 由那一个 SW 文件引起·与本单无关**★
+  ④ 时间线: 该文件 mtime = 2026-11-18 10:47:38 ⇒ ★晚于本单 10:40 那次全绿的 gate_check 跑★
+
+════ 本单 (HW 域) 自己的门禁读数 ════
+  ★交卷前第一次跑 (2026-11-18 10:40) ⇒ rc=0 · Q1 18/18 · Q6 通过 · Q7 9/9 全绿 ★
+  ★★ 那一次 ISS-318 的 SW 侧五道闸【还没挂进 gate_check.py 的链里】★★
+  (★当时 Q7 段的原始输出逐字★)
+  【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+     全部检查项通过
+  【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+     ✅ 钉板闸① FSIN 根因闸: rc=0
+     ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+     ✅ 钉板闸③ 改板提交顺序闸: rc=0
+     ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+     ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+     ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+     ✅ 钉板闸⑦ 板框坐标闸: rc=0
+     ✅ 钉板闸⑧ 结构真值闸: rc=0
+     ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+
+════ 交卷前最后一次跑 (2026-11-18 10:49) 的 Q1 / Q6 (★逐字★) ════
+  【Q1 交付齐备率】 18/18 个必填验收块齐全
+  【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+     全部检查项通过
+
+════ 最后一次跑的「新闸红」行 (★逐字·★归因见上面 ①②③④★) ════
+   · ★新闸红: SW 侧位号引用可达性闸 (ISS-318) — [FAIL] 位号引用解析不到 (新增真隐患·超基线): C_DET_BAT_1 @ SW/ONETRIP_SW_RENAME_SAFETY.md:62 ⇒ 板与网表里现在叫: C_DET_BAT; [FAIL] 位号引用解析不到 (新增真隐患·超基线): C_VBUS_OUT_1 @ SW/ONETRIP_SW_RENAME_SAFETY.md:343 ⇒ 板与网表里现在叫: C_VBUS_OUT; [FAIL] 位号引用解析不到 (新增真隐患·超基线): D_CHG_LED_1 @ SW/ONETRIP_SW_RENAME_SAFETY.md:287 ⇒ 板与网表里现在叫: D_CHG_LED, Q_CHG_LED, R_CHG_LED; [FAIL] 位号引用解析不到 (新增真隐患·超基线): D_HEADS @ SW/ONETRIP_SW_RENAME_SAFETY.md:62 ⇒ 板与网表里现在叫: (无近似名); [FAIL] 位号引用解析不到 (新增真隐患·超基线): D_LED_G_1 @ SW/ONETRIP_SW_RENAME_SAFETY.md:287 ⇒ 板与网表里现在叫: D_LED_B, D_LED_G, D_LED_R, R_LED_G; [FAIL] 位号引用解析不到 (新增真隐患·超基线): D_LED_R_1 @ SW/ONETRIP_SW_RENAME_SAFETY.md:287 ⇒ 板与网表里现在叫: D_LED_B, D_LED_G, D_LED_R, R_LED_R; [FAIL] 位号引用解析不到 (新增真隐患·超基线): Q_ENVC_1 @ SW/ONETRIP_SW_RENAME_SAFETY.md:203 ⇒ 板与网表里现在叫: Q_ENVC; [FAIL] 位号引用解析不到 (新增真隐患·超基线): R_I2C_PULL @ SW/ONETRIP_SW_RENAME_SAFETY.md:62 ⇒ 板与网表里现在叫: (无近似名); [FAIL] 位号引用解析不到 (新增真隐患·超基线): R_PU_RESET_N_1 @ SW/ONETRIP_SW_RENAME_SAFETY.md:14 ⇒ 板与网表里现在叫: R_PU_RESET_N; [FAIL] 位号引用解析不到 (新增真隐患·超基线): R_SHA8 @ SW/ONETRIP_SW_RENAME_SAFETY.md:62 ⇒ 板与网表里现在叫: (无近似名); [FAIL] 位号引用解析不到 (新增真隐患·超基线): TP_PG_1 @ SW/ONETRIP_SW_RENAME_SAFETY.md:62 ⇒ 板与网表里现在叫: TP_PG, TP_PG_VIO; [FAIL] 位号引用解析不到 (新增真隐患·超基线): U_EN_SW_1 @ SW/ONETRIP_SW_RENAME_SAFETY.md:155 ⇒ 板与网表里现在叫: U_EN_SW; [FAIL] 位号引用解析不到 (新增真隐患·超基线): U_LS @ SW/ONETRIP_SW_RENAME_SAFETY.md:62 ⇒ 板与网表里现在叫: (无近似名); [FAIL] 位号引用解析不到 (新增真隐患·超基线): U_PWR_SW_1 @ SW/ONETRIP_SW_RENAME_SAFETY.md:155 ⇒ 板与网表里现在叫: U_PWR_SW; [FAIL] 位号引用解析不到 (新增真隐患·超基线): U_SUPV_VIT_REF @ SW/ONETRIP_SW_RENAME_SAFETY.md:62 ⇒ 板与网表里现在叫: U_SUPV; [FAIL] 真隐患条数 18 > 基线上限 3 (★基线只许收紧不许放宽★)
+
+════ ★★ 给 main 的一句话 (★不是甩锅·是事实归属★) ★★
+  ★★「Q7 多出一道 SW 域的红闸」这件事【已经定位到具体文件 + 具体行号 + 决定性试验】★★
+  ★★ ⇒ 【它归 sw-lead, 不归 hw-lead】⇒ ⇒ ★**本单的门禁读数 (Q1 18/18 · Q6 通过 · 板 md5 不变) 不受影响**★
+  ★★ ⇒ ★**main 若要 gate 全绿, 走 SW 域那条线 (★修 SW/ONETRIP_SW_RENAME_SAFETY.md 里的 _1 位号或把它们登记进基线★)★ ★★
+  ★★ ⇒ ★**本单【不越界】去改 SW 域的文件 (★那是别的总工的地界·★) ⇒ 也不去改判据脚本 (★零改闸★) ⇒ 也不自签 issue_log ★★

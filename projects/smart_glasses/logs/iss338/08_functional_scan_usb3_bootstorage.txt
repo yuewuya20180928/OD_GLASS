@@ -1,0 +1,19 @@
+=== V1. USB3/SS lanes? (decides whether dual-Rd on CC1/CC2 is mandatory) ===
+
+=== V2. J_USB_C board + main-board role ===
+P7,NET_USB_D_P_TYPEC,TP_USB_D_P,J_USB_C A6+B6,TP_USB_D_P,测试点,TP,必装,[推算],,测什么: USB 2.0 差分; 位置: ★板载 Type-C 出口 (串阻的 Type-C 侧; 规格合并名 TP_USB_D+ / D-),,MAIN_PCB,,
+P7,NET_USB_D_N_TYPEC,TP_USB_D_N,J_USB_C A7+B7,TP_USB_D_N,测试点,TP,必装,[推算],,测什么: USB 2.0 差分 (规格合并名 TP_USB_D+ / D-); 位置: ★板载 Type-C 出口 (串阻的 Type-C 侧),,MAIN_PCB,,
+P1,NET_USB_D_P_TYPEC,D_ESD_USB_D,NET_USB_D_P_TYPEC,D_ESD_USB_D,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V),D,必装,[官方],,"[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧
+P1,RAIL_DEMO_5V,J_USB_C A4+A9+B4+B9,RAIL_DEMO_5V,J_USB_C,Type-C 16p 座 (demo 板 5V 输入 + USB 数据),CONN,必装,[官方],,[RAIL_DEMO_5V] ★demo 板自己的 USB-C 5V 输入 ⇒ 同时供 SoM 的 VCC_DCIN (5~
+P1,RAIL_DEMO_5V,D_ESD_DEMO,RAIL_DEMO_5V,D_ESD_DEMO,PESD5V0S1BA (Nexperia 单通道双向 ESD · SOD-323 · VRWM 5V · IRM 5nA),D,必装,[官方],,[RAIL_DEMO_5V] USB-C VBUS 入口 ESD 阵列 (紧贴 J_USB
+P1,GND,J_USB_C A1+A12+B1+B12,GND,J_USB_C,GND (4 脚 + shell),NET,必装,[官方],,[J_USB_C] USB-C 的 4 个 GND 脚 + 外壳 ⇒ 主板地,A-24,MAIN_PCB,"GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev B3
+
+=== V3. ISS-080 boot storage lock ===
+SW/EVT_TEMPLATE.md:447:> 方案与判据详见 `SW/FLASH_AND_VERSION.md` §4.5 (ISS-080)。
+SW/EVT_TEMPLATE.md:478:| **验证 (V)** | **项目总工 (main)** | 判 BR-01 是否真过 (fixed ≠ verified 的铁律: 修复人不能自验) | `state/issue_log.yaml` ISS-080 `verify_by=main` |
+SW/S2_BOARD_TEST_CHECKLIST.md:4:> **上游**: `SW/FLASH_AND_VERSION.md` §4.5 (S2 可执行实测方案, ISS-080) + `SW/EVT_TEMPLATE.md` §11 (EVT-8 / BR-01)
+SW/S2_BOARD_TEST_CHECKLIST.md:7:> **一句话**: **本清单把 ISS-080 的"方案"变成"投板那天照着勾的东西"** —— 每一条都写死「执行前置 / 判定口径 / 记录字段 / 谁判过」, 勾完就出 BR-01 结论。
+SW/S2_BOARD_TEST_CHECKLIST.md:22:### 0.1 ★ 三条不可绕过的纪律 (沿用 ISS-080 口径)
+SW/S2_BOARD_TEST_CHECKLIST.md:355:| **判定口径** | 写到一半拔电 ×3 (分别断在 bootloader / rootfs / 版本块 payload) → 上电后**不启动** **且** 回读 verify 判**未生效** ⇒ 通过 (说明"先内容后标志"在板端也成立); 若半写状态被误判成已生效 ⇒ ❌ (★ 这是批量刷砖风险,
+SW/S2_BOARD_TEST_CHECKLIST.md:462:| `SW/FLASH_AND_VERSION.md` §4.5 | S2 救砖链路方案 (ISS-080) —— 本清单的判据来源 |
+SW/S2_BOARD_TEST_CHECKLIST.md:469:| `SW/tools/s2_selftest.sh` | 无板先验 (L0/L1) —— ISS-080 交付, 仍应保持 rc=0 |

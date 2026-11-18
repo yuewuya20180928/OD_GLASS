@@ -1,0 +1,40 @@
+================================================================================================
+【自检】check_onepass_sw_release.py 反向用例 (★沙盒副本上跑, 真件一个字节不许碰★)
+================================================================================================
+  汇总根 = /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+
+  [OK ] ① 10 道闸都在清单里 (漏一道 ⇒ 红)
+        清单 = 10 道 · 基准 = 10 道 · 漏 = 无 · 重复 = 无
+  [OK ] ①b 抽掉《check_shutdown_semantics.py》⇒ 清单判红 (漏=['SW/tools/check_shutdown_semantics.py'])
+  [OK ] ①c 清单完备性基准 ⊇ ISS-321 实测表那 10 道 (差集 = 无)
+
+  [OK ] ② 任一道红 ⇒ 汇总红 + 点名那道红 + 解析 [FAIL] 行当详情
+        红的 = ['stub_red.py'] · 详情含标记 = True
+  [OK ] ③ 脚本不存在 ⇒ 算闸红 (rc=None), 不是跳过
+        ok=False rc=None 详情=★闸脚本不存在: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss335_release_selft
+  [OK ] ④ 闸脚本抛异常 ⇒ 算闸红 (rc≠None·不是 0)
+        ok=False rc=1 详情=rc=1 但未解析出失败行: Traceback (most recent call last):
+  File "/home/yuewuya/.openclaw/workspac
+  [OK ] ⑤ 闸脚本超时 ⇒ 算闸红 (rc=None)
+        ok=False rc=None 详情=★闸脚本超时 (3s) ⇒ 视为闸红
+
+  ★★ ⑥ 三道 R6 selftest 闸【必须裸跑】(★ISS-318 §B4-2 实测: 它们没有 --selftest 参数★)
+        [OK ] ⑥a 判决清单里没有任何一道带 --selftest 参数
+        [OK ] ⑥b 手动加 --selftest ⇒ rc=2 ⇒ ★证明「传 --selftest 会假红」这条坑是真的★
+        [OK ] ⑥b 手动加 --selftest ⇒ rc=2 ⇒ ★证明「传 --selftest 会假红」这条坑是真的★
+        [OK ] ⑥b 手动加 --selftest ⇒ rc=2 ⇒ ★证明「传 --selftest 会假红」这条坑是真的★
+
+  [OK ] ⑦ 子进程 TMPDIR 指项目内 (TMPDIR=/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss335_tmp)
+
+  ★★ ⑧ 真件真闸真篡改 (★沙盒副本: SW/ 与 state/ 真拷贝, 真盘一个字节不许动★) ★★
+        ⑧-0 沙盒基线: 绿 10 / 红 0 
+        [OK ] ⑧ 篡改 1 份 SW 文档 (加 1 条位号引用) ⇒ 汇总红 + 点名到位号可达性闸
+              真改了 = True (md5 8a07a07c ⇒ 00662a5c)
+              汇总 = 红 1 道: ['SW/tools/check_sw_ref_reachability.py']
+              点名到 = ['SW/tools/check_sw_ref_reachability.py']
+              详情: [FAIL] 位号引用解析不到 (新增真隐患·超基线): U_ISS335_PROBE @ SW/ONETRIP_SW_RENAME_SAFETY.md:449 ⇒ 板与网表里现在叫: (无近似名); [FAIL] 真隐患条数 4 > 基线上限 3 (★基线只许收紧不许放宽★)
+        [OK ] ⑧b 恢复 ⇒ 回绿 (红 0 道) · ★真件 md5 不变 = True (8a07a07ce588 ⇒ 8a07a07ce588)
+
+================================================================================================
+【自检结论】✅ 一致 (反向用例全抓到 · 真盘一个字节不许动)
+================================================================================================

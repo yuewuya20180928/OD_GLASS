@@ -882,15 +882,21 @@
 
 | # | 闸文件 | 归口 | 「合法改板」通道状态 (2026-11-17 20:1x) |
 |---|---|---|---|
-| 1 | `HW/check_fsin_rootcause.py` | ★**hw-lead** ★ (ISS-297) | ★**待建** ★ |
-| 2 | `HW/check_g1a7_selection_landed.py` | ★**hw-lead** ★ (ISS-297) | ★**待建** ★ |
-| 3 | `HW/check_onepass_commit_order.py` | ★**hw-lead** ★ (ISS-297) | ★**待建** ★ |
-| 4 | `HW/check_onepass_preflight_coverage.py` | ★**hw-lead** ★ (ISS-297) | ★**待建** ★ |
-| 5 | `HW/check_pin_function_labels.py` | ★**hw-lead** ★ (ISS-297) | ★**待建** ★ |
-| 6 | `HW/check_workpack_state_values.py` | ★**hw-lead** ★ (ISS-297) | ★**待建** ★ |
+| 1 | `HW/check_fsin_rootcause.py` | ★**hw-lead** ★ (ISS-297) | ★**已建 (ISS-297)★** ★ |
+| 2 | `HW/check_g1a7_selection_landed.py` | ★**hw-lead** ★ (ISS-297) | ★**已建 (ISS-297)★** ★ |
+| 3 | `HW/check_onepass_commit_order.py` | ★**hw-lead** ★ (ISS-297) | ★**已建 (ISS-297)★** ★ |
+| 4 | `HW/check_onepass_preflight_coverage.py` | ★**hw-lead** ★ (ISS-297) | ★**已建 (ISS-297)★** ★ |
+| 5 | `HW/check_pin_function_labels.py` | ★**hw-lead** ★ (ISS-297) | ★**已建 (ISS-297)★** ★ |
+| 6 | `HW/check_workpack_state_values.py` | ★**hw-lead** ★ (ISS-297) | ★**已建 (ISS-297)★** ★ |
 | 7 | ★**`MECH/check_board_frame_coords.py`** ★ | ★**mech-lead** ★ (★**ISS-296 本单**★) | ★**★已建 (C4)★** ★ |
 | 8 | ★**`MECH/check_demo_struct_truth.py`** ★ | ★**mech-lead** ★ (★**ISS-296 本单**★) | ★**★已建 (G5b)★** ★ |
 | 9 | `SW/tools/check_onepass_sw_sync.py` | ★**sw-lead** ★ (ISS-298) | ★**已建 (★ISS-284 口径★)** ★ |
+
+★★**【ISS-296 cont2 · 2026-11-17 20:5x · mech-lead · 改数留痕】** ★★上面 M3 表里 ★**第 1~6 行 (HW 6 道) 的「合法改板」通道状态单元格**: ★**旧值 「待建」 ⇒ 新值 「已建 (ISS-297)」** ★ ★
+★★**依据**: ★**`HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md` §2 (★hw-lead 20:1x 交卷·6 道 HW 闸全部接上通道★) ⇒ 6 道各自 `--selftest` 通道用例 10/10 通过 (★`check_fsin_rootcause.py` 25/25 · `check_g1a7_selection_landed.py` 21/21 · `check_onepass_commit_order.py` 21/21 · `check_onepass_preflight_coverage.py` 21/21 · `check_pin_function_labels.py` 通道 10/10 ★★(该闸另有 18 条 ISS-257 起的既有失效, 属别单范畴, 本页不代裁)★★ · `check_workpack_state_values.py` 20/20★)★ ★
+★★**本单只改这 6 个单元格的文字, M3 表其余 3 行 (§7/§8 MECH 两道 + §9 SW 那道) 一个字节没动, 本节其余段落 (M0/M1/M2/M4/M5) 一个字节没动** ★
+★★**改前副本留证**: ★**`logs/iss296/msync_before_iss296_cont2.md` (96,970 B · 20:57)** ★ ⇒ ★**老字逐字可对 ★**
+★★**注意 (★给 main 的语义★)**: ★**「已建」= 通道已接上, ≠ 收工那天 9 道一定同时绿** ⇒ ★**第 5 道 `HW/check_pin_function_labels.py` 现在主模式仍 rc=1 (18 条既有缺陷·改前也是 rc=1) ⇒ 收工那天那 9 道要【同一次】全绿, 这一道的前置债在 hw-lead 那边, 不在 MECH 侧★** ★
 
 ★★**⇒ 收工那天: 9 道闸必须【同一次】全绿; 只绿 MECH 两道 = 一半收工清单等于没写** ★
 ★★**口径已被证明可行 (★不是猜的★)**: ★**`SW/tools/check_demo_panel_spec.py` 在 ISS-284 转成台账口径后【已不再硬钉板 md5】⇒ 全仓清单里根本找不到它** ★

@@ -1,0 +1,123 @@
+{
+  "artifacts": [
+    {
+      "path": "HW/PCB/ONETRIP_REISSUE_MANIFEST.md",
+      "kind": "doc",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "ISS-311 「板那一趟」重出清单正文 (新建) · §1 C1 差 2 逐条证据 (板上有网表没有 2 条 = C_VBUS_GND pad1=L8259/pad2=L8267 · 网表有板没有 0 条 · 同号异网 3 条 = Q_PG pad1/pad3 对调 + D_ESD_USB_D pad1 挂 SoM 侧网) · §2 原理图 11 个不一致逐条表 (2 个真旧 p1/p10 + 9 个 uuid 抖动 · 缺页 0 · 改名 0 · 方向判定锚点=网表真源 C_SYS 必装) · §3 重出清单主表 25 行 (网表/脚表/11 页原理图+.kicad_pro/板/Gerber/钻孔/CPL/装配/3D/BOM/投产包 74 件/MANIFEST/落表台账/分片/旧 md5 引用点; 命令全部本机实测存在) + 投产包子目录 74 件逐件 · §4 依赖图 + 硬顺序(网表→原理图→板→BOM→投产包) + 同趟出 12 项 + 归属 + ★★2 颗开工前必须拍的地雷 (S1 板侧加 _1 ⇒ C1 从 0/2/3 变 350/352 · 板侧改名 ⇒ BOM 板文件回填静默失效) · §5 证据分级 + 自证命令"
+    },
+    {
+      "path": "HANDOFF/2026-11-18_hw-lead_ISS311_板那一趟重出清单.md",
+      "kind": "doc",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "ISS-311 hw-lead 交卷单 (新建) · B0 交卷物清单 4 件 + logs/iss311 逐件索引 · B1 任务书 §2 四件事逐条交付对照 + 额外挖出的 3 件 · B2 读数三件套 + 零写板双证 (板 611b869e… / mtime 2026-11-06 07:07:17 交卷前后逐字节相同) + 归属单 · B3 核心判决 (C1 差 2 性质=板侧旧件 ⇒ 只改板不改网表 / 原理图 11 个分类两个数 / 25 行重出清单 / 顺序与同趟出 / 两颗地雷) · B4 边界自证 13 条 · B5 need 8 条 (全归 main) · B6 风险 5 条 + 拿不到的数据 5 条 (含 [推算] 与 [0数据]) + 本单没做的事 · 占位符 0"
+    },
+    {
+      "path": "logs/iss311/01_check_pcb_nets_raw.txt",
+      "kind": "log",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "原始输出 · bash state/pcbnew_py.sh state/check_pcb_nets.py (rc=1) · C1 焊盘级等价 网表 480 / 板上带网 482 · 缺失 0 · 多余 2 (C_VBUS_GND pad1=GND / pad2=VBUS_5V_CHG) · 同号异网 3 (Q_PG pad1 应为 PWR_GOOD 实际 PWR_ON / Q_PG pad3 应为 PWR_ON 实际 PWR_GOOD / D_ESD_USB_D pad1 应为 NET_USB_D_P_TYPEC 实际 USB_D_P_SRC) · NC 焊盘 351 · 非法 NC 0"
+    },
+    {
+      "path": "logs/iss311/02_probe_c1_diff_raw.txt",
+      "kind": "log",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "原始输出 · bash state/pcbnew_py.sh logs/iss311/probe_c1_diff.py (rc=0) · C1 差集逐条证据: 【A】板上有网表没有 2 条 (C_VBUS_GND pad1 板 L8259 封装原点 107.7,42.5 / pad2 板 L8267) + 【B】网表有板没有 0 条 + 【C】同号异网 3 条 (Q_PG pad1 板 L2068 / pad3 板 L2084 / D_ESD_USB_D pad1 板 L13012) + 【D】涉及器件板上全部焊盘一览 + 网表行号 (C_VBUS_GND L10/L12 · Q_PG L59/L60/L61 · D_ESD_USB_D L417/L418)"
+    },
+    {
+      "path": "logs/iss311/03_probe_sch_src_diff_raw.txt",
+      "kind": "log",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "原始输出 · python3 logs/iss311/probe_sch_src_diff.py (rc=0) · 12 个文件逐个 md5 + 归一化指纹 sha256 + 原文/归一化差异行数 + 分类计数 (真旧 2 = p1 归一化差 14 行 / p10 归一化差 28 行 · uuid 抖动 9 · 缺页 0 · 改名 0) + 真差异逐行明细 (C_SYS 的 dnp no/yes · Value 20µF X7R 6.3V vs 20µF 6.3V · lib_symbols pin 名 DNP · SYS_CHG/PGND 标签染红 255 0 0 1) + 源与包 mtime 对照 (源 11-18 00:21:18 / 包 11-17 12:30:22)"
+    },
+    {
+      "path": "logs/iss311/04_chain_gate_baseline.txt",
+      "kind": "log",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "原始输出 · python3 state/chain_gate.py (rc=1) · 现状基线: ① 网表 ✅ ② 原理图 ✅ ③ PCB ❌ (板与网表不等价 · C1 网表 480 / 板上 482) ④ BOM ✅ ⑤ 投产资料包 ❌ (30/30 齐全 · 投产包比原理图旧 · 原理图源文件内容与源不一致 11 个) ⇒ 生产链有 2 个环节没过 ⇒ 下游产物不许用"
+    },
+    {
+      "path": "logs/iss311/05_current_values.txt",
+      "kind": "log",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "原始输出 · 五环真源 + 11 页原理图 + .kicad_pro + 投产包 sch_src 12 件 的 md5 与 mtime + 投产包子目录件数 (gerbers 32 / drill 4 / pos 1 / assembly 3 / 3d 1 / doc 9 / sch_src 12 / sch_svg 11 / 合计 74 / canonical HW/PCB/gerbers 32) · 取数时间 2026-11-18 06:29:00 +0800"
+    },
+    {
+      "path": "logs/iss311/06_probe_s1_refsuffix_c1_collision.txt",
+      "kind": "log",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "原始输出 · bash state/pcbnew_py.sh logs/iss311/probe_s1_refsuffix_c1_collision.py (rc=0) · ★★沙盒相撞实验: 现役板 186 位号 (末字符是字母 156 · 带 _1 的 1) ⇒ 基线 C1 缺失 0 / 多余 2 / 同号异网 3; ★★沙盒按 ISS-205 规则给 156 个加 _1 ⇒ C1 缺失 350 / 多余 352 / 同号异网 0 (非法 NC 3); ★★反证: 网表侧 ref 同规则改口径 ⇒ 回到 0/2/3 ⇒ 证明 C1 的红是口径没同步, 不是改名本身错 · 沙盒只写 tmp/iss311_tmp/ 且跑完已删"
+    },
+    {
+      "path": "logs/iss311/probe_c1_diff.py",
+      "kind": "script",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "自证探针 (只读) · import state/check_pcb_nets.py 的 netlist_pads/board_pads/compare ⇒ 与门禁同口径零漂移 · 板侧行号与坐标由 .kicad_pcb 原文逐行扫出 · 网表行号取 CSV 原文行号 · 用法 bash state/pcbnew_py.sh logs/iss311/probe_c1_diff.py"
+    },
+    {
+      "path": "logs/iss311/probe_sch_src_diff.py",
+      "kind": "script",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "自证探针 (只读) · import state/check_chain_content_anchor.py::normalize_sch_text ⇒ 与 chain_gate ② 原理图准入逐字同口径 (ISS-256) · 逐文件 md5 + 归一化指纹 + difflib 差异行数 + 分类计数 + 真差异逐行明细 · 用法 python3 logs/iss311/probe_sch_src_diff.py"
+    },
+    {
+      "path": "logs/iss311/probe_s1_refsuffix_c1_collision.py",
+      "kind": "script",
+      "version": "iss311-v1",
+      "updated_at": "2026-11-18",
+      "summary": "自证探针 (只读项目 · 沙盒只写 tmp/iss311_tmp/) · 复制板到沙盒后按 ISS-205 规则给 156 个板上位号加 _1 ⇒ 再跑 state/check_pcb_nets.py 的 run_checks ⇒ 量化 C1 三项变化; 反证分支把网表侧 ref 同规则改口径再算一遍; 跑完删除沙盒"
+    }
+  ],
+  "needs": [
+    {
+      "key": "iss311_n1_s1_refsuffix_scope_decision",
+      "to": "main",
+      "item": "★★【high · 板那一趟开工前必须拍】S1 板侧位号加 _1 的口径必须先定, 否则那一趟白跑★★ 沙盒实测 (logs/iss311/06_probe_s1_refsuffix_c1_collision.txt): 作业包 §3-S1 要把板侧 156 个位号加 _1 (末字符是字母的), 而 §5 写网表/脚表/BOM 逐字节不变 ⇒ 两边矛盾。沙盒只改名不换网 ⇒ 环③ C1 从【缺失 0 / 多余 2 / 同号异网 3】变成【缺失 350 / 多余 352 / 同号异网 0】; 反证分支把网表侧 ref 同规则改口径 ⇒ 回到 0/2/3 ⇒ 证明这是【口径没同步】不是改名本身错。根因: state/check_pcb_nets.py 的 board_pads() 与 netlist_pads() 都取原样 ref, 没有图上位号→表侧 ref 的反查; 而 state/gen_kicad_sch.py::kicad_ref() (ISS-205) 原理图侧已全用 X_1 (实测 218 位号里 187 个带 _1, 其中 186 个是改名来的 + 1 个原生 R_BAT_DET_1), state/gen_pcb_netlist_board.py 里零处映射 ⇒ 板生成器现在写表侧原名 (板上 186 位号, 带 _1 的只有 1 个)。两个选项我不替 main 选: ① 三侧同口径改名 (网表+脚表+板+BOM 一起落表 + 板生成器加 kicad_ref 映射) —— 代价 = 要落表, 工作量与风险上一个台阶; ② 板侧暂不加 _1 (S1 只做原理图侧) —— 代价 = 板侧位号仍是 KiCad 未标注态, KiCad 导出 BOM 仍带问号, S1 那条问号行数=0 在板侧达不到。★check_pcb_nets.py / check_pcb_drc.py 是受保护脚本不许改 ⇒ 口径只能在数据侧统一。"
+    },
+    {
+      "key": "iss311_n2_workpacket_self_contradiction",
+      "to": "main",
+      "item": "★★【high · 文档口径自相矛盾】HW/PCB/BOARD_ONEPASS_WORKPACKET.md §5 受保护件表写『HW/netlist_v1.csv / netlist_v1_pins.csv / BOM_v1.csv 逐字节不变』, 而 §3-S1 写『板侧 186 个封装位号要加 _1 (ISS-289 订正为 156 个)』⇒ ★这两条不能同时成立 (⇒ 就是 iss311_n1 那颗地雷的文档面)★。本单零改既有文档正文 ⇒ 只登记不代改。请 main 拍: 要么 §5 改成允许落表, 要么 §3-S1 改成板侧暂缓。同源的第二处: §3-S1 写的位号真源指针 HW/SCHEMATIC_V1_SPEC.json 的 devices 段 (W19 已登记该 JSON 里没有 devices 键 ⇒ 指针失效) —— 实际改名规则的现行真源是 state/gen_kicad_sch.py::kicad_ref()。"
+    },
+    {
+      "key": "iss311_n3_bom_board_ref_lookup_break",
+      "to": "main",
+      "item": "★★【medium · 与 iss311_n1 同根】板侧改名 ⇒ BOM 的板文件权威源回填会静默失效★★ state/gen_bom.py 按精确 ref 读板: L277-303 用 board.get(ref) 读 J_SOM_P2 / J_SOM_P4 (读不到 ⇒ 板级归属/页位/封装/opn 回填整段丢失); L307-330 的 GAP29 (29 个器件, 其中约 24 个位号末字符是字母 ⇒ 会改名) 用 board.get(ref) 读板封装 Value 与焊盘数 (读不到 ⇒ 封装/型号来源那些证据行整段消失, opn 退回 待定 / [0数据]); L143-175 的 _pick_value() 里板文件 Value 只作兜底 (兜底也读不到 ⇒ value 变 待定)。★且没有任何报警 ⇒ BOM 质量静默降级。★若 n1 选 ① 三侧同口径, 这条自动消失; 若选 ② 板侧不加 _1, 这条也不触发 ⇒ 两条一起处置即可。"
+    },
+    {
+      "key": "iss311_n4_c_vbus_gnd_keep_or_drop",
+      "to": "main",
+      "item": "★★【medium · 老板/PM 域 · hw-lead 不替老板拍】C_VBUS_GND 留不留 (boss_c_vbus_gnd_reserve_pad_20261117)★★ 本单只交事实: 网表 HW/netlist_v1.csv L10/L12 的 board 列已经是 CHG_BOARD (脚表 L148-149 同源, dnp=DNP) ⇒ 按现行网表它不在 demo 主 PCB 上; 而板 611b869e (11-06 07:07:17 生成) 上仍有这个封装 (原点 107.7,42.5, pad1=L8259=GND, pad2=L8267=VBUS_5V_CHG) ⇒ 它就是环③ 多余 2 的成因。两条路的代价: 不留 = 板那一趟重跑 state/gen_pcb_netlist_board.py 即自动消失 (封装数 186→185, 板 md5 变, Gerber 与投产包同趟重出); 留 = 要把这两行的 board 列改回 MAIN_PCB (★那是落表★, 且会让板级再背一颗 100µF DNP 电容的板面)。★作业包 §3-S2 已按不留写 ⇒ 本单把事实与代价摆齐, 请 main 确认口径。"
+    },
+    {
+      "key": "iss311_n5_c1_same_pad_net_extra3",
+      "to": "main",
+      "item": "★★【medium · 只交事实不代改】环③ C1 的红不止『差 2』, 还有 3 条同号异网, 只解决那 2 条 ⇒ C1 仍然红 ⇒ 那一趟跑完还是投不了板★★ 3 条逐条 (日志 logs/iss311/02_probe_c1_diff_raw.txt): ① Q_PG pad1 网表应为 PWR_GOOD (网表 L59) / 板上是 PWR_ON (板 L2068); ② Q_PG pad3 网表应为 PWR_ON (网表 L61) / 板上是 PWR_GOOD (板 L2084) ⇒ ① ② 是同一处脚位对调 (板封装原点 84.8,29.5) ⇒ 作业包 B11_Q_PG_LAND / ISS-283 §③-2 已登记, 那一趟要重画这 3 根线; ③ D_ESD_USB_D pad1 网表应为 NET_USB_D_P_TYPEC (网表 L417, Type-C 侧 / 串阻后) / 板上是 USB_D_P_SRC (板 L13012, SoM 侧 / 串阻前) ⇒ ESD 挂在 22Ω 串阻的错误一侧 ⇒ 与作业包 B32_V2_NET_RENAME / B07·B08·B09 (ISS-283 §③-1) 同批 ⇒ 那一趟必须换 3 脚封装 + 挪位 + 重挂网。★⇒ 那一趟的 C1 验收判据必须写成 缺失 0 / 多余 0 / 同号异网 0 三件同时满足。"
+    },
+    {
+      "key": "iss311_n6_sch_src_11_actual_breakdown",
+      "to": "main",
+      "item": "★【low · 交卷即知】投产包 doc/sch_src/ 与 HW/PCB/ 的 11 个 md5 不一致, 已实测拆开: 真正内容旧的只有 2 个 (demo_mainboard_p1.kicad_sch 归一化差 14 行 / demo_mainboard_p10.kicad_sch 归一化差 28 行, 方向是投产包旧 —— 判据锚点 = 网表真源: 源里 C_SYS 是 (dnp no) + Value 20µF X7R 6.3V 与脚表 L142-143 的 必装 一致, 包里是 (dnp yes) + 20µF 6.3V 且标签染红 255 0 0 1 = ISS-302 落表之前的版本), 另外 9 个只是 uuid 抖动 (归一化后一致 ⇒ 不是真缺件), 缺页 0 / 改名 0, .kicad_pro md5 一致不在那 11 个里。★注意 chain_gate ⑤ 判的是 md5 一致不是归一化一致 ⇒ 那 9 个也必须同趟同步才绿; ★同步的正确做法是 bash state/gen_production_pack.sh (★脚本自带 cp -p 归档 sch_src, L95 还自带一次清空⇒ 人工塞的东西下次重出必被冲掉★), 不是手 cp。"
+    },
+    {
+      "key": "iss311_n7_manifest_current_values_expire",
+      "to": "main",
+      "item": "★【low】HW/PCB/ONETRIP_REISSUE_MANIFEST.md 的【现值】列是 2026-11-18 06:2x 的实测快照 (日志 logs/iss311/05_current_values.txt)。板那一趟跑完后这列就过期 ⇒ 建议那一趟收工时用同款命令重刷一次现值列, 或把该文件归档为『那一趟的输入快照』。★另: 那本清单只交『改完要重出哪些』, 不替代 BOARD_ONEPASS_WORKPACKET.md (『怎么改板』) 与 BOARD_ONEPASS_PREFLIGHT.md (板侧项全集) ⇒ 两份老文件本单一个字没改。"
+    },
+    {
+      "key": "iss311_n8_probe_scripts_location",
+      "to": "main",
+      "item": "★【low · 归属请 main 定】ISS-311 的 3 个自证探针脚本落在 logs/iss311/ (probe_c1_diff.py / probe_sch_src_diff.py / probe_s1_refsuffix_c1_collision.py), 用途是让『同一份数据可复现』。它们全部只读项目文件 (★第三个的沙盒只写 tmp/iss311_tmp/ 且跑完自删★)。若 main 认为 logs/ 只放日志不放脚本, 可移到 state/ 下的只读工具位 —— ★那要 main 拍, 本单没自行搬★。"
+    }
+  ]
+}

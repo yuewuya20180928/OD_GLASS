@@ -1,0 +1,466 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""check_mech_verdict_freshness.py —— ★★【ISS-295 · MECH 两页「过期结论」防漂闸】★★
+
+★★★**★这个闸守的是什么★**★★
+  ISS-294 (mech-lead) 补齐第三条开口 `PORT_OPEN_USBC` 之后, MECH 两页对【同一件事】出现了两种说法:
+    · `MECH/BOARD_ONEPASS_MECH_SYNC.md` §10.1 已改成「可装 / ★边开口规格已补 (X 132.995..147.005 @ 板边 Y=0 …)★」
+    · `MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md` §2 (L68) / §4 (L175) / §4.1 (L188) / §5.6 (L294/L298)
+      / 机器块 JSON (L1816) 里仍是 ISS-290 的老口径「结构侧缺一条边开口规格」/「登记为缺口」/「缺口, 待登记」
+  ⇒ ★**只 grep 老行的人, 拿到的还是错结论** ★
+  ⇒ ★**SW 侧 ISS-293 刚治过同一个病** (旧口径页 ⇒ 照它判「不合格 ⇒ 改板」⇒ ★**板白改第二遍**★)
+  ⇒ ★**MECH 侧此前没有对应的那道闸** ★
+
+★★★**★本闸的判据 (★只许变严·不许放松★)**★★
+  ★**F1 · 订正节在位** —— 两页各至少一个【显式订正/覆盖节】(标题含 订正/覆盖/过期), 且该节带新鲜度标记
+  ★**F2 · 留痕留存** —— 老结论的【逐字锚点】必须在页内【订正节之外】逐字还在
+      (★不许被改写成另一种说法; 改写/删除 ⇒ 红★)
+  ★**F3 · 逐条覆盖** —— 老结论每一处都必须被【同一页】的某个订正节【逐字】引用 (★不许「见别处」★)
+  ★**F4 · 新写不许漂** —— 两页里任何新出现的过期结论字样, 都必须落在订正节里 (★动态扫描★)
+  ★**F5 · 同一结论不许两种说法** —— 【现状句】必须在两页逐字一致 (★两页口径分叉 ⇒ 红★)
+  ★**F6 · 机器块不许偷偷改** —— `PORT_OPEN_USBC` 的板面矩形必须逐字等于 ISS-294 登记值
+
+★★★**★为什么按【逐字短语】命中而不按行号★**★★
+  ★**行号会漂** (老字保留 + 追加式 ⇒ 每加一节, 后面所有行号全变) ⇒ ★**把行号写死 = 一落表就假红的老坑**
+  (ISS-273 / ISS-286 同款) ⇒ ★**本闸一律按逐字短语 / 逐字锚点命中, 零行号依赖** ★
+
+★★★**★为什么【老字不许消失】也是判据 (★与「老字保留留痕」不矛盾★)**★★
+  ★**ISS-290 的机器块不许动 ⇒ 老字必须保留作历史留痕** ★ ⇒ ★**本闸不要求老字被删** ★
+  ★**本闸要求的是: 老字【逐字】还在 (留痕) + 每一处老字都有【显式订正节】逐字覆盖 (引用) + 新写的结论不许再漂** ★
+  ★**⇒ 只 grep 老行的人拿到的还是错结论 ⇒ 这正是本闸要防的漂移方向; 老字被改写成另一种过期说法 ⇒ 更红** ★
+
+用法:
+    python3 MECH/check_mech_verdict_freshness.py            # rc=0 = 全绿
+    python3 MECH/check_mech_verdict_freshness.py --json     # 机器读
+    python3 MECH/check_mech_verdict_freshness.py --selftest # rc=0 = 反向用例全抓到 (★沙盒副本上跑, 真件一个字节不碰★)
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PROJ = os.path.abspath(os.path.join(HERE, ".."))
+
+PAGE_MSYNC = os.path.join("MECH", "BOARD_ONEPASS_MECH_SYNC.md")
+PAGE_XCHK = os.path.join("MECH", "BOARD_ONEPASS_STRUCT_CROSSCHECK.md")
+PAGES = (("MSYNC", PAGE_MSYNC), ("XCHK", PAGE_XCHK))
+
+MACH_BEGIN = "<!-- MACHINE-BLOCK-BEGIN -->"
+MACH_END = "<!-- MACHINE-BLOCK-END -->"
+
+# --------------------------------------------------------------------------------------------------
+# ★【过期结论字样】家族 —— ★判据只许变严, 不许放松; 新增一条 = 更严★
+# ★命中一律按【逐字短语】, 零行号依赖★
+# --------------------------------------------------------------------------------------------------
+STALE_PATTERNS = (
+    ("结构侧缺一条边开口规格", r"缺[^。；;、)\n]{0,12}边开口规格"),
+    ("登记为缺口", r"登记为缺口"),
+    ("缺口待登记", r"缺口[^。；;、)\n]{0,10}待登记"),
+    ("没有这条边开口", r"没有[^。；;、)\n]{0,18}边开口"),
+    ("未补没补未登记仍缺边开口",
+     r"(?:未补|没补|尚未补|未登记|没登记|尚缺|仍缺|仍未登记|缺一条结构)[^。；;、)\n]{0,14}边开口"),
+    ("边开口规格缺", r"边开口规格[^。；;、)\n]{0,14}缺"),
+    ("结构侧缺没有边开口",
+     r"结构侧[^。；;、)\n]{0,16}(?:缺|没有|未有|未|没|尚)[^。；;、)\n]{0,14}边开口"),
+    ("缺口不改板", r"缺口[^。；;、)\n]{0,10}不改板"),
+)
+
+# ★【新鲜度标记】—— 订正节必须带其中之一, 否则「订正节」是空壳★
+FRESHNESS_MARKERS = ("已过期", "过期", "已订正", "订正", "不再作数",
+                     "历史留痕", "留痕", "现状", "已被推翻")
+
+# ★【订正节标题识别】—— 标题含这三样之一即算「显式订正/覆盖节」★
+CORRECTION_HEADING_RE = re.compile(r"(订正|覆盖|过期|已作数)")
+
+HEADING_RE = re.compile(r"^(#{1,6})\s*(.*)$")
+
+# ★【现状句】—— ★两页必须逐字一致★ (F5)
+#   (★同一条结论在两页不许出现两种说法★)
+CANON = ("【现状句 · ISS-295 · 帧 `B160x100`】USB-C 边开口规格已补: 开口 `PORT_OPEN_USBC` = "
+         "X 132.995..147.005 @ 板边 Y = 0 · 必须清空区 X 133.895..146.105 · "
+         "h 三档 0.90/2.54/4.00 · Z 向窗口 `OPEN_Y_eff(h)` = 4.60 / 4.60 / 5.80")
+
+# ★【逐字锚点清单 (留痕基线)】—— 每条 = (id, 页, 逐字锚点, 命中短语, 老结论所在小节)
+#   ★锚点必须是页内【唯一】的逐字串, 且长度 ≥ 14 ★
+#   ★锚点用于: ① 老字被改写/删除 ⇒ F2 红  ② 老字没被订正节引用 ⇒ F3 红★
+MANIFEST = (
+    ("MS-1", "MSYNC",
+     "现有 MECH 规格 (检修口 / 调试口两条) 里没有这条边开口",
+     "没有这条边开口", "§10.3"),
+    ("MS-2", "MSYNC",
+     "`J_USB_C` 缺一条结构边开口规格 (ISS-290 做不了、也没做)",
+     "缺一条结构边开口规格", "ISS-294 追加段 · 来由"),
+    ("MS-3", "MSYNC",
+     "verdict 仍写「可装 / 结构侧缺一条边开口规格」",
+     "结构侧缺一条边开口规格", "§11.5 第 4 条 (口径分叉登记)"),
+    ("XC-1", "XCHK",
+     "现有 MECH 规格里【没有】这一条 ⇒ 本单登记为缺口",
+     "登记为缺口", "§2 MECH 侧保留区全集 (`USB-C-BODY` 行)"),
+    ("XC-2", "XCHK",
+     "可装 (三方一致) / ★结构侧缺一条边开口规格 (缺口)",
+     "结构侧缺一条边开口规格", "§4 座体类器件三方对照表 (`J_USB_C` 行)"),
+    # ★★ISS-295 cont2 修: XC-3 原锚点只有 12 字 (< 14 ⇒ 闸自己判自己红) ⇒ 换成同一条老行里
+    #   的【更长的逐字串】`1 个: \`J_USB_C\` (16p @0.50 + 2×Ø0.65 对上, ` (40 字)
+    #   ⇒ 仍同时满足: ① 逐字在订正节【之外】的老行里 ② 逐字在同页订正节覆盖表里 ③ 长度 ≥ 14
+    ("XC-3", "XCHK",
+     "1 个: `J_USB_C` (16p @0.50 + 2×Ø0.65 对上, ",
+     "结构侧缺一条边开口规格", "§4.1 §4 小结"),
+    ("XC-4", "XCHK",
+     '"verdict": "可装 (三方一致) / 结构侧缺一条边开口规格",',
+     "结构侧缺一条边开口规格", "§7 机器可读 JSON 块"),
+    ("XC-5", "XCHK",
+     "缺一条结构边开口规格 (★缺口, 不改板★)",
+     "缺一条结构边开口规格", "§5.6 「必须在那一趟一起改」清单 (E-6)"),
+    # ★★ISS-295 cont2 修: XC-6 原锚点只有 10 字 (< 14) ⇒ 换成同一条老行里
+    #   `现有 MECH 规格 (检修口 / 调试口两条` (23 字) ⇒ 三条同样满足
+    ("XC-6", "XCHK",
+     "现有 MECH 规格 (检修口 / 调试口两条",
+     "没有】这条边开口", "§5.6 「必须在那一趟一起改」清单 (E-6 · 现状)"),
+)
+
+# ★【F6 机器块基线】—— `PORT_OPEN_USBC` 的板面矩形 (ISS-294 登记值, 逐字不许改)★
+USBC_RECT = (132.995, 147.005, 0.000, 7.300)
+
+
+# --------------------------------------------------------------------------------------------------
+# 基础工具
+# --------------------------------------------------------------------------------------------------
+def _read(path: str) -> str:
+    with open(path, "r", encoding="utf-8") as fh:
+        return fh.read()
+
+
+def _sections(lines):
+    """★把页切成小节: [{level, title, start, end, body}]★"""
+    secs, cur = [], None
+    for i, ln in enumerate(lines):
+        m = HEADING_RE.match(ln)
+        if m:
+            if cur is not None:
+                cur["end"] = i
+                secs.append(cur)
+            cur = {"level": len(m.group(1)), "title": m.group(2), "start": i, "end": len(lines)}
+    if cur is not None:
+        cur["end"] = len(lines)
+        secs.append(cur)
+    if secs and secs[0]["start"] > 0:
+        secs.insert(0, {"level": 0, "title": "", "start": 0, "end": secs[0]["start"]})
+    for s in secs:
+        s["body"] = "\n".join(lines[s["start"]:s["end"]])
+    return secs
+
+
+def _is_correction(sec) -> bool:
+    return sec["level"] > 0 and bool(CORRECTION_HEADING_RE.search(sec["title"]))
+
+
+def _stale_matches(line: str):
+    """★返回本行命中的全部过期字样 (去重, 保长优先)★"""
+    out = set()
+    for _name, pat in STALE_PATTERNS:
+        for m in re.finditer(pat, line):
+            s = m.group(0).strip()
+            if len(s) >= 4:
+                out.add(s)
+    return sorted(out, key=lambda s: (-len(s), s))
+
+
+def _machine_block(text: str):
+    b, e = text.find(MACH_BEGIN), text.find(MACH_END)
+    if b < 0 or e < 0:
+        return None
+    m = re.search(r"```json\n(.*?)\n```", text[b:e], re.S)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(1))
+    except Exception:
+        return None
+
+
+# --------------------------------------------------------------------------------------------------
+# 主体检查
+# --------------------------------------------------------------------------------------------------
+def check(root: str) -> dict:
+    errs, warns, detail = [], [], []
+
+    texts = {}
+    for key, rel in PAGES:
+        path = os.path.join(root, rel)
+        if not os.path.exists(path):
+            errs.append("F1 页 '%s' 不存在 ⇒ 红" % rel)
+            continue
+        texts[key] = _read(path)
+    if len(texts) != len(PAGES):
+        return {"ok": False, "errs": errs, "warns": warns, "detail": detail}
+
+    for key, text in texts.items():
+        lines = text.split("\n")
+        secs = _sections(lines)
+        corr = [s for s in secs if _is_correction(s)]
+
+        # ---- F1 · 订正节在位 ----
+        if not corr:
+            errs.append("F1 [%s] 全页没有任何【显式订正/覆盖节】⇒ 老结论无处覆盖 ⇒ 红" % key)
+        for s in corr:
+            if not any(mk in s["body"] for mk in FRESHNESS_MARKERS):
+                errs.append("F1 [%s] 订正节「%s」不带任何新鲜度标记 (已过期/已订正/不再作数/现状…) "
+                            "⇒ 空壳订正节 ⇒ 红" % (key, s["title"][:50]))
+
+        # ---- F2 / F3 · 留痕留存 + 逐条覆盖 ----
+        for hid, pkey, anchor, phrase, where in MANIFEST:
+            if pkey != key:
+                continue
+            if len(anchor) < 14:
+                errs.append("F2 锚点 %s 长度 %d < 14 ⇒ 清单自身不合规 ⇒ 红" % (hid, len(anchor)))
+            if text.count(anchor) == 0:
+                errs.append("F2 锚点 %s 在页内已不存在 ⇒ 老留痕被删/被改写 ⇒ 红 (锚点: %r)"
+                            % (hid, anchor))
+                continue
+            outside = [s for s in secs if not _is_correction(s) and anchor in s["body"]]
+            inside = [s for s in corr if anchor in s["body"]]
+            if not outside:
+                errs.append("F2 锚点 %s 只在订正节里出现 ⇒ 老留痕 (原行) 已被改写/删除 ⇒ 红 "
+                            "(锚点: %r · 原位置: %s)" % (hid, anchor, where))
+            if not inside:
+                errs.append("F3 锚点 %s 没有被同页任何【显式订正节】逐字覆盖 ⇒ 红 "
+                            "(锚点: %r · 原位置: %s)" % (hid, anchor, where))
+            detail.append({"check": "F2/F3", "id": hid, "page": key,
+                           "anchor": anchor, "where": where,
+                           "kept_outside": bool(outside), "quoted_in_corr": bool(inside)})
+
+        # ---- F4 · 动态扫描: 新写的过期结论字样不许落在订正节之外 ----
+        for i, ln in enumerate(lines):
+            if not ln.strip():
+                continue
+            sec = None
+            for s in secs:
+                if s["start"] <= i < s["end"]:
+                    sec = s
+                    break
+            if sec is not None and _is_correction(sec):
+                continue                     # ★订正节内部 = 引用老字, 允许★
+            hits = _stale_matches(ln)
+            if not hits:
+                continue
+            covered = False
+            for s in corr:
+                if any(h in s["body"] for h in hits) and \
+                        any(mk in s["body"] for mk in FRESHNESS_MARKERS):
+                    covered = True
+                    break
+            if not covered:
+                errs.append("F4 [%s] 第 %d 行出现过期结论字样 %s 且未被任何【显式订正节】"
+                            "逐字覆盖 ⇒ 红" % (key, i + 1, hits))
+            detail.append({"check": "F4", "page": key, "line": i + 1,
+                           "hits": hits, "covered": covered})
+
+        # ---- F5 · 现状句逐字一致 ----
+        canon_sections = [s for s in corr if CANON in s["body"]]
+        if not canon_sections:
+            errs.append("F5 [%s] 缺【现状句】逐字文本 ⇒ 两页可能口径分叉 ⇒ 红" % key)
+        detail.append({"check": "F5", "page": key, "canon_found": bool(canon_sections)})
+
+    # ---- F6 · 机器块里 `PORT_OPEN_USBC` 的矩形不许偷偷改 ----
+    mb = _machine_block(texts.get("MSYNC", ""))
+    if mb is None:
+        errs.append("F6 [MSYNC] 机器块缺失或不是 ```json 围栏 ⇒ 红")
+    else:
+        found = None
+        for o in (mb.get("openings") or []):
+            if o.get("id") == "PORT_OPEN_USBC":
+                found = o
+                break
+        if found is None:
+            errs.append("F6 [MSYNC] 机器块里没有 `PORT_OPEN_USBC` ⇒ 第三条开口被删 ⇒ 红")
+        else:
+            r = found.get("rect") or {}
+            try:
+                got = (float(r["x0"]), float(r["x1"]), float(r["y0"]), float(r["y1"]))
+            except Exception:
+                got = None
+            if got is None or any(abs(a - b) > 1e-6 for a, b in zip(got, USBC_RECT)):
+                errs.append("F6 [MSYNC] 机器块 `PORT_OPEN_USBC` 矩形 = %s ⇒ 与 ISS-294 登记值 %s "
+                            "不符 ⇒ 边开口规格漂移 ⇒ 红" % (got, USBC_RECT))
+            detail.append({"check": "F6", "rect": got, "expect": USBC_RECT})
+
+    return {"ok": not errs, "errs": errs, "warns": warns, "detail": detail}
+
+
+# --------------------------------------------------------------------------------------------------
+# --selftest (★沙盒副本上跑, 真件一个字节不许碰★)
+# --------------------------------------------------------------------------------------------------
+def _sandbox(root: str, name: str) -> str:
+    sb = os.path.join(root, "tmp", "iss295_freshness_selftest", name)
+    if os.path.isdir(sb):
+        shutil.rmtree(sb)
+    os.makedirs(os.path.join(sb, "MECH"), exist_ok=True)
+    for _key, rel in PAGES:
+        shutil.copy2(os.path.join(root, rel), os.path.join(sb, rel))
+    return sb
+
+
+def _drop_section(text: str, marker: str) -> str:
+    """★把标题里含 marker 的那一节整节删掉 (★反向用例 ①② 用★)"""
+    lines = text.split("\n")
+    out, skipping, level = [], False, 0
+    for ln in lines:
+        m = HEADING_RE.match(ln)
+        if m and marker in m.group(2):
+            skipping, level = True, len(m.group(1))
+            continue
+        if skipping and m and len(m.group(1)) <= level:
+            skipping = False
+        if not skipping:
+            out.append(ln)
+    return "\n".join(out)
+
+
+def _patch(sb: str, rel: str, old: str, new: str) -> bool:
+    p = os.path.join(sb, rel)
+    t = _read(p)
+    if old not in t:
+        return False
+    with open(p, "w", encoding="utf-8") as fh:
+        fh.write(t.replace(old, new))
+    return True
+
+
+def selftest(root: str) -> int:
+    print("== ISS-295 · check_mech_verdict_freshness.py --selftest ==")
+    print("   (★沙盒副本上跑, 真件一个字节不许碰★)")
+    cases = []
+
+    def case(name, fn, expect_red=True):
+        sb = _sandbox(root, name)
+        mutated = fn(sb)
+        res = check(sb)
+        red = not res["ok"]
+        ok = (mutated is not False) and (red == expect_red)
+        print("  [%s] %s" % ("OK " if ok else "NG ", name))
+        print("       期望 %s · 实测 %s" % ("红" if expect_red else "绿", "红" if red else "绿"))
+        if not red:
+            print("       红因样例: %s" % (res["errs"][:1] or ["(无)"]))
+        cases.append((name, ok))
+        return ok
+
+    # ④ 正向对照 (放在最前跑, 证明闸不是恒红)
+    def c4(sb):
+        return True
+    case("④ 正向对照: 现状原样 ⇒ 必须绿", c4, expect_red=False)
+
+    # ① 删掉那条订正节 ⇒ 必须红
+    def c1(sb):
+        p = os.path.join(sb, PAGE_XCHK)
+        t = _read(p)
+        t2 = _drop_section(t, "ISS-295-订正覆盖表")
+        if t2 == t:
+            return False
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(t2)
+        return True
+    case("① 删掉 CROSSCHECK 的 ISS-295 订正覆盖节 ⇒ 必须红", c1)
+
+    # ② 把老行改成「已订正」但删掉订正节 ⇒ 必须红
+    def c2(sb):
+        ok = _patch(sb, PAGE_XCHK,
+                    "现有 MECH 规格里【没有】这一条 ⇒ 本单登记为缺口",
+                    "已订正 (ISS-295) ⇒ 缺口已补")
+        if not ok:
+            return False
+        p = os.path.join(sb, PAGE_XCHK)
+        t = _read(p)
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(_drop_section(t, "ISS-295-订正覆盖表"))
+        return True
+    case("② 老行改成「已订正」+ 删掉订正节 ⇒ 必须红", c2)
+
+    # ③ 把老结论改写成另一种过期说法 ⇒ 必须红
+    def c3(sb):
+        return _patch(sb, PAGE_XCHK,
+                      "可装 (三方一致) / ★结构侧缺一条边开口规格 (缺口)",
+                      "可装 (三方一致) / ★结构侧尚未补一条边开口规格 (缺口)")
+    case("③ 老结论改写成另一种过期说法 ⇒ 必须红", c3)
+
+    # ⑤ 新写一句漂移进两页 (非订正节) ⇒ 必须红
+    def c5(sb):
+        p = os.path.join(sb, PAGE_MSYNC)
+        t = _read(p)
+        drift = ("| ★9 ★ | ★**`J_USB_C` 边开口** ★ | ★**结构侧仍未登记这条边开口** ★ | "
+                 "★**必须补一条结构边开口** ★ | ★**不改板** ★ |\n")
+        idx = t.find("### ★§10.4")
+        if idx < 0:
+            return False
+        with open(p, "w", encoding="utf-8") as fh:
+            fh.write(t[:idx] + drift + t[idx:])
+        return True
+    case("⑤ 新写一句漂移进 MECH_SYNC (非订正节) ⇒ 必须红", c5)
+
+    # ⑥ 只改一页的现状句 ⇒ 两页口径分叉 ⇒ 必须红
+    def c6(sb):
+        return _patch(sb, PAGE_MSYNC,
+                      "Z 向窗口 `OPEN_Y_eff(h)` = 4.60 / 4.60 / 5.80",
+                      "Z 向窗口 `OPEN_Y_eff(h)` = 4.60 / 4.60 / 5.90")
+    case("⑥ 只改 MECH_SYNC 的现状句 (两页口径分叉) ⇒ 必须红", c6)
+
+    # ⑦ 悄悄改机器块里 `PORT_OPEN_USBC` 的矩形 ⇒ 必须红
+    def c7(sb):
+        return _patch(sb, PAGE_MSYNC,
+                      '"rect": {"x0": 132.995, "x1": 147.005, "y0": 0.000, "y1": 7.300}',
+                      '"rect": {"x0": 133.000, "x1": 147.005, "y0": 0.000, "y1": 7.300}')
+    case("⑦ 悄悄改机器块 `PORT_OPEN_USBC` 矩形 ⇒ 必须红", c7)
+
+    bad = [n for n, ok in cases if not ok]
+    print("-- 合计 %d 条 · 通过 %d · 失败 %d" % (len(cases), len(cases) - len(bad), len(bad)))
+    if bad:
+        print("-- 失败用例: %s" % bad)
+        return 1
+    print("-- ★反向用例一条都不许改松★ ⇒ 本闸判据未被放松")
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="ISS-295 · MECH 两页过期结论防漂闸")
+    ap.add_argument("--json", action="store_true", help="机器读输出")
+    ap.add_argument("--selftest", action="store_true", help="反向用例 (沙盒副本, 真件不碰)")
+    args = ap.parse_args()
+
+    if args.selftest:
+        return selftest(PROJ)
+
+    res = check(PROJ)
+    if args.json:
+        print(json.dumps(res, ensure_ascii=False, indent=2))
+    else:
+        print("== ISS-295 · check_mech_verdict_freshness.py ==")
+        print("   门禁: %s" % os.path.relpath(os.path.join(PROJ, PAGES[0][1]), PROJ))
+        # ★★ISS-295 cont2 修: `res["detail"]` 里装的是【dict】(不是 2-元组) ⇒ 按 `r["check"]` 分派
+        #   (F2/F3 / F4 / F5 / F6 四种 check 的键各不相同 ⇒ 不许假设只有一种形状)
+        for r in res["detail"]:
+            ck = r.get("check")
+            if ck == "F2/F3":
+                print("   [F2/F3] %-5s %-6s 留痕在原位=%-5s 被订正节逐字引用=%-5s  %s"
+                      % (r["id"], r["page"], r["kept_outside"], r["quoted_in_corr"], r["where"]))
+            elif ck == "F4":
+                print("   [F4]    %-6s 第 %d 行 过期字样 %s ⇒ 已被订正节逐字覆盖=%s"
+                      % (r["page"], r["line"], " / ".join(r["hits"]), r["covered"]))
+            elif ck == "F5":
+                print("   [F5]    %-6s 现状句逐字找到=%s" % (r["page"], r["canon_found"]))
+            elif ck == "F6":
+                print("   [F6]    机器块 `PORT_OPEN_USBC` rect=%s 期望=%s" % (r["rect"], r["expect"]))
+        if res["ok"]:
+            print("   ⇒ 全绿 (F1~F6) rc=0")
+        else:
+            print("   ⇒ ★红★ (%d 条)" % len(res["errs"]))
+            for e in res["errs"]:
+                print("   [红] %s" % e)
+    return 0 if res["ok"] else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

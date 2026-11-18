@@ -1,0 +1,80 @@
+### CMD: python3 logs/iss321/iss321_verify_fix.py
+============================================================================================
+ISS-321 · ④ 逐条改法验证 (★沙盒副本改闸·真闸零改★)
+============================================================================================
+
+── F-1 · timing_check.py (★沙盒副本★) ──
+   ★改 25 处 (★actual_ref() + rows_of/has_ref + 三个改坏夹具 + 行级 dnp 夹具 + 字面量比对★)
+   ★沙盒实跑 `timing_check.py --only F1_reset_rc` ⇒ rc=0 (★改前 rc=1·崩在 L1113★)
+      === F1_reset_rc ===
+         r_pull_ohm                         : 10000.0
+         r_pull_rail                        : RAIL_VDD_1V8_IO
+         r_pull_rail_v                      : 1.8
+         r_ser_ohm                          : 1000.0
+         c_rst_f                            : 1e-07
+         tau_release_ms                     : 1.1
+         tau_assert_us                      : 100.0
+         t_reach_0p7vdd_ms                  : 1.324
+         netlist_annotation_ms              : 100.0
+   ★沙盒实跑 `timing_check.py` (全量) ⇒ rc=0 (★改前 rc=1★)
+        [PASS] ISP 现占位 8.00 ms 的余量 = +7.09 ms (精确 7.095) / +9.33 ms
+        [PASS] 模型复现: X=8.00 ms 时模式A e2e = 52.91 ms (与 HW/e2e_budget_rk3572.py 同源)
+        [PASS] ★反向: ISP avg = 15.11 ms ⇒ 必须 FAIL (超 15.10 必被抓) 且给出差值
+        [PASS] ISP avg = 15.10 ms ⇒ PASS (恰好在生死线上)
+        [PASS] ISP avg = 8.00 ms (现占位) ⇒ PASS + 余量 +7.09 ms
+        [PASS] ★反向: 无实测输入 ⇒ INDET + [0数据] (不许假装测过)
+        [PASS] ★反向: 只报 SDK 总耗时、缺纯硬件耗时 ⇒ 不许静默 PASS (⇒ INDET + 理由)
+        [PASS] ★反向: 采样帧数 n=120 < 300 ⇒ 不作结论 (INDET)
+        [PASS] ISP p95 = 18.00 ms ⇒ 模式B 上限 (17.33) FAIL
+        [PASS] T2 交叉核对: 纯 NPU 21.00 ms ⇒ 命中老板翻案条款 (20.33 ms)
+      
+      SELFTEST 85/85 通过, rc=0
+
+── F-2 · check_onepass_sw_sync.py (★沙盒副本★) ──
+   ★SW03/SW05 两条探针的位号清单改成「旧名或新名都认」⇒ 改 5 处
+   ★沙盒实跑 `check_onepass_sw_sync.py` ⇒ rc=1 (★改前 rc=1★)
+        FAIL  W5
+           8 个现状探针: 清单里的现状值 == 盘面实测: ❌
+           ❌ SW01_PCB_MD5: 盘面实测 = 'fadf2c2f6f4985ed291b87c3f856a98c', 但清单 current_state 里没有这个值 ⇒ 清单过期
+           ❌ SW04_CHG_LED_REF: 盘面实测 = 'D_CHG_LED 0 次 · Q_CHG_LED 6 次', 但清单 current_state 里没有这个值 ⇒ 清单过期
+           ❌ SW08_ESD_USB_D 的探针没抽到值 (rc=1): (板面距离 = [\d.]+ mm)
+        ❌ rc=1: ★★SW 侧清单有漏项, 或现状值已过期 ⇒ 那一趟改完 SW 侧会漂一处 ★★
+
+── F-3 · check_sw_ref_reachability.py (★沙盒副本★) ──
+   ★沙盒实跑 `check_sw_ref_reachability.py --freeze-registry` ⇒ rc=0
+      DESIGNATOR_REGISTRY = (
+          "BT_432243",
+          "CONN_CAM_1",
+          "CONN_LIGHT_1",
+          "C_DET_BAT_1",
+          "C_DET_VBUS_D_1",
+          "C_REGN_1",
+          "C_RST_1",
+   ★重跑主模式 ⇒ rc=0 (★改前 rc=0★)
+      ==========================================================================
+      ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
+      ==========================================================================
+      项目根        : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss321_sandbox/fixroot
+      板位号        : 186 个 (★板文件文本解析, 未 import pcbnew★)
+      网表位号      : 293 个 (★三张 CSV 的 ref 列★)
+      网名索引      : 657 个
+      扫描文档      : 41 份 `SW/*.md` (★其中 26 份含至少一个 token★)
+      抽出 token    : 112 个唯一标识符
+      
+      【分类统计】 (★R2★)
+         DESIGNATOR_OK            78
+         DESIGNATOR_DRIFT          0
+         DESIGNATOR_MISSING        3
+         NET_NAME                  9
+         DOC_INTERNAL             22
+
+── 汇总 (★沙盒实跑读数·非推算★) ──
+   F-1 timing_check.py (全量)                       : rc=0 (改前 rc=1 · 崩在 L1113)
+   F-2 check_onepass_sw_sync.py                    : rc=1 (改前 rc=1)
+   F-3 check_sw_ref_reachability.py (重建注册表后) : rc=0 (改前 rc=0)
+
+★★真闸 `SW/tools/*.py` 一个字节都没改 (★本单只出改法·改闸是 main / 下一单的活★)★★
+============================================================================================
+
+★写出: logs/iss321/04_fix_verify_raw.txt
+rc=0

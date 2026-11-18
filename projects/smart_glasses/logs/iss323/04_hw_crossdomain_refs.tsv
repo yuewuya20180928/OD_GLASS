@@ -1,0 +1,137 @@
+文件:行	位号	类别	原文逐字
+HW/check_netlist_selfconsistency.py:7	U_EN_SW	COMM	· 第 1 轮 (ISS-211): d1 I2C_A 上拉 / d2 BAT_DET 全 DNP / d3 U_EN_SW 无本体行 / d4 USB D− 无 ESD
+HW/check_netlist_selfconsistency.py:8	CONN_LIGHT	COMM	· 第 2 轮 (ISS-214): d5 USB 串阻双值 / d6 CONN_LIGHT 21p vs 22p + P9 堆叠账 /
+HW/check_netlist_selfconsistency.py:30	U_EN_SW	CODE	  ② **判据 b (BOM 现状断言)**: `HW/BOM_v1.csv` 里 `U_EN_SW` 行的 `type` 仍是 `NET`
+HW/check_netlist_selfconsistency.py:34	U_EN_SW	CODE	     `U_EN_SW` 在表A/表B 仍然 0 条 `type!=NET` 的器件本体行 / ★
+HW/check_netlist_selfconsistency.py:35	D_ESD_USB_D	CODE	     `D_ESD_USB_D` 仍然只有 2 个焊盘且 D− 那条路仍然 0 个 ESD 位号★)
+HW/check_netlist_selfconsistency.py:112	R_BAT_DET_1	COMM	#   leak_note_ua@<V>  R_BAT_DET_1 的 note 里**自称**的漏电流 (µA)  (★缺陷: 与上面那个对不上★)
+HW/check_netlist_selfconsistency.py:113	D_ESD_USB_D	COMM	#   esd_dist_usb      板面 D_ESD_USB_D → J_USB_C 距离 (mm)
+HW/check_netlist_selfconsistency.py:113	J_USB_C	COMM	#   esd_dist_usb      板面 D_ESD_USB_D → J_USB_C 距离 (mm)
+HW/check_netlist_selfconsistency.py:114	R_ILIM	COMM	#   r_ilim            R_ILIM 的阻值 (Ω, 从网表 value 解析)
+HW/check_netlist_selfconsistency.py:115	R_ILIM	COMM	#   iinmax_max        IINMAX = KILIM_max / R_ILIM (A, KILIM_max = 390 AΩ [官方 BQ25896])
+HW/check_netlist_selfconsistency.py:118	J_CHG	COMM	#   ichg_pin_max@<Vbat> 铰链段**单 pin** 载流上限 (A) = ichg_max / 2 (J_CHG pin1/pin2 双 pin 并联)
+HW/check_netlist_selfconsistency.py:122	J_USB_C	COMM	# ★★ISS-217: ESD 距 J_USB_C 的【翻面】阈值 ★★
+HW/check_netlist_selfconsistency.py:138	R_PU_I2CA_SCL	DSL	    ("d1_a169_ref", "netlist", "169", "ref == R_PU_I2CA_SCL"),
+HW/check_netlist_selfconsistency.py:153	R_BAT_DET_1	DSL	    ("d2_a182_ref", "netlist", "182", "ref == R_BAT_DET_1"),
+HW/check_netlist_selfconsistency.py:157	R_BAT_DET_2	DSL	    ("d2_a183_ref", "netlist", "183", "ref == R_BAT_DET_2"),
+HW/check_netlist_selfconsistency.py:159	C_DET_BAT	DSL	    ("d2_a184_ref", "netlist", "184", "ref == C_DET_BAT"),
+HW/check_netlist_selfconsistency.py:161	C_DET_BAT	DSL	    ("d2_a185_ref", "netlist", "185", "ref == C_DET_BAT"),
+HW/check_netlist_selfconsistency.py:163	J_SOM_P1	DSL	    ("d2_a186_node1", "netlist", "186", "node1 == J_SOM_P1 pin38"),
+HW/check_netlist_selfconsistency.py:171	U_EN_SW	COMM	    # ── 第 (3) 条: U_EN_SW 没有器件本体行 ⇒ BOM 把它登记成 NET 行 ──
+HW/check_netlist_selfconsistency.py:177	U_EN_SW	DSL	    ("d3_a_rows", "netlist", "?", "count(ref==U_EN_SW) == 4"),
+HW/check_netlist_selfconsistency.py:178	U_EN_SW	DSL	    ("d3_a_body", "netlist", "?", "count(ref==U_EN_SW&type!=NET) == 1"),
+HW/check_netlist_selfconsistency.py:179	U_EN_SW	DSL	    ("d3_b_rows", "pins", "?", "count(ref==U_EN_SW) == 4"),
+HW/check_netlist_selfconsistency.py:180	U_EN_SW	DSL	    ("d3_b_body", "pins", "?", "count(ref==U_EN_SW&type!=NET) == 1"),
+HW/check_netlist_selfconsistency.py:183	U_EN_SW	DSL	    ("d3_board_value", "board", "?", "footprint.U_EN_SW.value == EN 输入 (高=放行底板)"),
+HW/check_netlist_selfconsistency.py:184	U_EN_SW	DSL	    ("d3_board_pads", "board", "?", "footprint.U_EN_SW.pads == 4"),
+HW/check_netlist_selfconsistency.py:187	D_ESD_USB_D	COMM	    # ── 第 (4) 条: USB D− 全程无 ESD, 而 D_ESD_USB_D 自称"双通道" ──
+HW/check_netlist_selfconsistency.py:188	D_ESD_USB_D	COMM	    # ★★2026-11-16 ISS-257 落表 (★hw-lead·续做第 1 轮★): D_ESD_USB_D 的 value 已随 G1a-7
+HW/check_netlist_selfconsistency.py:199	R_SER_USB_D_N	DSL	    ("d4_a432_ref", "netlist", "432", "ref == R_SER_USB_D_N"),
+HW/check_netlist_selfconsistency.py:200	D_ESD_USB_D	DSL	    ("d4_esd_pads", "board", "?", "footprint.D_ESD_USB_D.pads == 2"),
+HW/check_netlist_selfconsistency.py:201	D_ESD_USB_D	DSL	    ("d4_esd_value", "board", "?", "footprint.D_ESD_USB_D.value == ESD 阵列 [待选型] (USB 2.0 双通道)"),
+HW/check_netlist_selfconsistency.py:202	D_ESD_USB_D	DSL	    ("d4_esd_pad1_net", "board", "?", "footprint.D_ESD_USB_D.pad1.net == USB_D_P_SRC"),
+HW/check_netlist_selfconsistency.py:203	D_ESD_USB_D	DSL	    ("d4_esd_pad2_net", "board", "?", "footprint.D_ESD_USB_D.pad2.net == GND"),
+HW/check_netlist_selfconsistency.py:226	R_SER_USB_D_P	DSL	    ('d5_a431_ref', 'netlist', '431', 'ref == R_SER_USB_D_P'),
+HW/check_netlist_selfconsistency.py:228	R_SER_USB_D_N	DSL	    ('d5_a432_ref', 'netlist', '432', 'ref == R_SER_USB_D_N'),
+HW/check_netlist_selfconsistency.py:238	CONN_LIGHT	COMM	    # ── 第 (2) 条 · CONN_LIGHT 21p vs 22p + P9 堆叠账 (ISS-213 STK-P9) ──
+HW/check_netlist_selfconsistency.py:239	CONN_LIGHT	DSL	    ('d6_pages_light_21p', 'pages', '?', 'text notcontains `CONN_LIGHT` (**1×21p@0.5mm**)'),
+HW/check_netlist_selfconsistency.py:241	CONN_CAM	DSL	    ('d6_pages_cam_18p', 'pages', '?', 'text notcontains `CONN_CAM` (**18p@0.5mm**)'),
+HW/check_netlist_selfconsistency.py:242	CONN_CAM	DSL	    ('d6_pages_cam_31p', 'pages', '?', 'text contains `CONN_CAM` (**31p@0.3mm'),
+HW/check_netlist_selfconsistency.py:251	CONN_LIGHT	DSL	    ('d6_b_light_pins', 'pins', '?', 'count(ref==CONN_LIGHT) == 22'),
+HW/check_netlist_selfconsistency.py:252	CONN_CAM	DSL	    ('d6_b_cam_pins', 'pins', '?', 'count(ref==CONN_CAM) == 31'),
+HW/check_netlist_selfconsistency.py:262	J_SOM_P1	DSL	    ('d7_a186_node1', 'netlist', '186', 'node1 == J_SOM_P1 pin38'),
+HW/check_netlist_selfconsistency.py:288	D_ESD_USB_D	DSL	    ('d9_esd_pads2', 'board', '?', 'footprint.D_ESD_USB_D.pads == 2'),
+HW/check_netlist_selfconsistency.py:312	C_VBUS_GND	COMM	    # ── 第 (8) 条 · NET-LED / C_VBUS_GND 的 board 列 (ISS-213 NET-LED) ──
+HW/check_netlist_selfconsistency.py:313	C_VBUS_OUT	DSL	    ('d11_a11_ref', 'netlist', '11', 'ref == C_VBUS_OUT'),
+HW/check_netlist_selfconsistency.py:315	C_VBUS_GND	DSL	    ('d11_a12_ref', 'netlist', '12', 'ref == C_VBUS_GND'),
+HW/check_netlist_selfconsistency.py:317	U_CHG	DSL	    ('d11_a13_ref', 'netlist', '13', 'ref == U_CHG'),
+HW/check_netlist_selfconsistency.py:319	C_VBUS_GND	DSL	    ('d11_a10_ref', 'netlist', '10', 'ref == C_VBUS_GND'),
+HW/check_netlist_selfconsistency.py:327	R_CHG_LED	DSL	    ('d11_led_refs', 'netlist', '?', 'count(ref==R_CHG_LED) == 2'),
+HW/check_netlist_selfconsistency.py:328	C_VBUS_GND	DSL	    ('d11_board_cvbgnd_pads', 'board', '?', 'footprint.C_VBUS_GND.pads == 2'),
+HW/check_netlist_selfconsistency.py:329	C_VBUS_GND	DSL	    ('d11_board_cvbgnd_pad2', 'board', '?', 'footprint.C_VBUS_GND.pad2.net == VBUS_5V_CHG'),
+HW/check_netlist_selfconsistency.py:330	C_VBUS_OUT	DSL	    ('d11_board_no_cvbout', 'board', '?', 'count_footprint(C_VBUS_OUT) == 0'),
+HW/check_netlist_selfconsistency.py:613	R_BAT_DET_1	CODE	        top = _res_ohm(_ref_value(ctx, "R_BAT_DET_1"))
+HW/check_netlist_selfconsistency.py:614	R_BAT_DET_2	CODE	        bot = _res_ohm(_ref_value(ctx, "R_BAT_DET_2"))
+HW/check_netlist_selfconsistency.py:621	R_BAT_DET_1	CODE	        top = _res_ohm(_ref_value(ctx, "R_BAT_DET_1"))
+HW/check_netlist_selfconsistency.py:622	R_BAT_DET_2	CODE	        bot = _res_ohm(_ref_value(ctx, "R_BAT_DET_2"))
+HW/check_netlist_selfconsistency.py:628	R_BAT_DET_1	CODE	        note = _ref_note(ctx, "R_BAT_DET_1")
+HW/check_netlist_selfconsistency.py:636	D_ESD_USB_D	CODE	        a, b = xy.get("J_USB_C"), xy.get("D_ESD_USB_D")
+HW/check_netlist_selfconsistency.py:636	J_USB_C	CODE	        a, b = xy.get("J_USB_C"), xy.get("D_ESD_USB_D")
+HW/check_netlist_selfconsistency.py:642	R_ILIM	CODE	        return _res_ohm(_ref_value(ctx, "R_ILIM"))
+HW/check_netlist_selfconsistency.py:645	R_ILIM	CODE	        r = _res_ohm(_ref_value(ctx, "R_ILIM"))
+HW/check_netlist_selfconsistency.py:658	R_ILIM	CODE	        r = _res_ohm(_ref_value(ctx, "R_ILIM"))
+HW/check_netlist_selfconsistency.py:665	R_ILIM	CODE	        r = _res_ohm(_ref_value(ctx, "R_ILIM"))
+HW/check_netlist_selfconsistency.py:1060	J_TYPE_C	COMM	#      `J_TYPE_C` 16p 母座的功能串 (GND / USB_CC1 / USB_CC2 / CARRIER_BOARD_EN /
+HW/check_netlist_selfconsistency.py:1184	J_USB_C	COMM	    # ---- ③ 报告项 (不判红, 只打印): ESD 到 J_USB_C 的几何距离 ----
+HW/check_netlist_selfconsistency.py:1188	D_ESD_USB_D	CODE	        if "J_USB_C" in fps and "D_ESD_USB_D" in fps:
+HW/check_netlist_selfconsistency.py:1188	J_USB_C	CODE	        if "J_USB_C" in fps and "D_ESD_USB_D" in fps:
+HW/check_netlist_selfconsistency.py:1191	D_ESD_USB_D	CODE	            if "J_USB_C" in coords and "D_ESD_USB_D" in coords:
+HW/check_netlist_selfconsistency.py:1191	J_USB_C	CODE	            if "J_USB_C" in coords and "D_ESD_USB_D" in coords:
+HW/check_netlist_selfconsistency.py:1192	J_USB_C	CODE	                a = coords["J_USB_C"]
+HW/check_netlist_selfconsistency.py:1193	D_ESD_USB_D	CODE	                b = coords["D_ESD_USB_D"]
+HW/check_netlist_selfconsistency.py:1195	D_ESD_USB_D	CODE	                report.append(f"   [报告项] D_ESD_USB_D → J_USB_C 板面距离 = {d:.2f} mm "
+HW/check_netlist_selfconsistency.py:1195	J_USB_C	CODE	                report.append(f"   [报告项] D_ESD_USB_D → J_USB_C 板面距离 = {d:.2f} mm "
+HW/check_netlist_selfconsistency.py:1201	U_EN_SW	CODE	        report.append("── 判据 b: BOM 里 U_EN_SW 的 type 仍是 NET (现状断言) ──")
+HW/check_netlist_selfconsistency.py:1308	C_DET_BAT	CODE	    for ref in ("R_BAT_DET_1", "R_BAT_DET_2", "C_DET_BAT"):
+HW/check_netlist_selfconsistency.py:1308	R_BAT_DET_1	CODE	    for ref in ("R_BAT_DET_1", "R_BAT_DET_2", "C_DET_BAT"):
+HW/check_netlist_selfconsistency.py:1308	R_BAT_DET_2	CODE	    for ref in ("R_BAT_DET_1", "R_BAT_DET_2", "C_DET_BAT"):
+HW/check_netlist_selfconsistency.py:1321	R_BAT_DET_1	CODE	                           if _norm(r.get("ref")) == "R_BAT_DET_1"), ""))
+HW/check_netlist_selfconsistency.py:1323	R_BAT_DET_2	CODE	                           if _norm(r.get("ref")) == "R_BAT_DET_2"), ""))
+HW/check_netlist_selfconsistency.py:1330	J_SOM_P1	CODE	                f"> 1.8V 域 ADC 上限 (J_SOM_P1 pin38 = SARADC_VIN5, 1.8V 域) ⇒ 贴上去就是过压")
+HW/check_netlist_selfconsistency.py:1334	R_BAT_DET_1	CODE	        errors.append("★R2 未落表: 解析不出 R_BAT_DET_1/2 的阻值 ⇒ 无法判定分压后电压, 人工判")
+HW/check_netlist_selfconsistency.py:1338	U_EN_SW	COMM	    # ---- R3: U_EN_SW 必须有器件本体行 (type=IC) ----
+HW/check_netlist_selfconsistency.py:1339	U_EN_SW	CODE	    body_a = [r for r in net if _norm(r.get("ref")) == "U_EN_SW" and _norm(r.get("type")) != "NET"]
+HW/check_netlist_selfconsistency.py:1341	U_EN_SW	CODE	        errors.append("★R3 未落表: 表A 里 U_EN_SW 仍然 0 条 type!=NET 的器件本体行")
+HW/check_netlist_selfconsistency.py:1342	U_EN_SW	CODE	    body_b = [r for r in pins if _norm(r.get("ref")) == "U_EN_SW" and _norm(r.get("type")) != "NET"]
+HW/check_netlist_selfconsistency.py:1344	U_EN_SW	CODE	        errors.append("★R3 未落表: 脚表里 U_EN_SW 仍然 0 条 type!=NET 的器件本体行")
+HW/check_netlist_selfconsistency.py:1345	U_EN_SW	CODE	    bom_u = [r for r in bom if _norm(r.get("ref")) == "U_EN_SW"]
+HW/check_netlist_selfconsistency.py:1347	U_EN_SW	CODE	        errors.append("★R3 未落表: BOM 里没有 U_EN_SW")
+HW/check_netlist_selfconsistency.py:1350	U_EN_SW	CODE	            errors.append(f"★R3 未落表: BOM 里 U_EN_SW 的 type 仍是 NET (行 {r['_line']})")
+HW/check_netlist_selfconsistency.py:1351	U_EN_SW	CODE	    if "U_EN_SW" in board:
+HW/check_netlist_selfconsistency.py:1352	U_EN_SW	CODE	        bv = _norm(board["U_EN_SW"].get("value"))
+HW/check_netlist_selfconsistency.py:1355	U_EN_SW	CODE	                f"★R3 未落表: 板封装 U_EN_SW 的 Value 属性还是脚级功能串 {bv!r} ⇒ 板文件也要同趟改")
+HW/check_netlist_selfconsistency.py:1357	U_EN_SW	CODE	        report.append("   R3 (U_EN_SW 器件本体行) 检查完毕")
+HW/check_netlist_selfconsistency.py:1373	D_ESD_USB_D	CODE	    if "D_ESD_USB_D" in board:
+HW/check_netlist_selfconsistency.py:1374	D_ESD_USB_D	CODE	        info = board["D_ESD_USB_D"]
+HW/check_netlist_selfconsistency.py:1376	D_ESD_USB_D	CODE	            errors.append("★R4 未落表: D_ESD_USB_D 仍然只有 2 个焊盘 (D+ + GND) ⇒ 仍不是双通道")
+HW/check_netlist_selfconsistency.py:1407	CONN_LIGHT	COMM	    # ---- R6: P9 页的 CONN_LIGHT 必须写 22p, 且堆叠算式不能再用 21 ----
+HW/check_netlist_selfconsistency.py:1411	CONN_LIGHT	CODE	        errors.append("★R6 未落表: P9 页正文里还有『CONN_LIGHT 1×21p@0.5mm』")
+HW/check_netlist_selfconsistency.py:1413	CONN_LIGHT	CODE	        errors.append("★R6 未落表: P9 页正文里没有『CONN_LIGHT 1×22p@0.5mm』")
+HW/check_netlist_selfconsistency.py:1415	CONN_LIGHT	CODE	        errors.append("★R6 未落表: P9 页的堆叠算式还在用 CONN_LIGHT=21p")
+HW/check_netlist_selfconsistency.py:1416	CONN_LIGHT	CODE	    n_light = sum(1 for r in pins if _norm(r.get("ref")) == "CONN_LIGHT")
+HW/check_netlist_selfconsistency.py:1418	CONN_LIGHT	CODE	        errors.append(f"★R6 未落表: 脚表里 CONN_LIGHT 的脚行数 = {n_light} (应为 22)")
+HW/check_netlist_selfconsistency.py:1420	CONN_LIGHT	CODE	        report.append(f"   R6 (P9 页 CONN_LIGHT 22p) 检查完毕, 脚表脚行数 = {n_light}")
+HW/check_netlist_selfconsistency.py:1424	R_BAT_DET_1	CODE	                           if _norm(r.get("ref")) == "R_BAT_DET_1"), ""))
+HW/check_netlist_selfconsistency.py:1426	R_BAT_DET_2	CODE	                           if _norm(r.get("ref")) == "R_BAT_DET_2"), ""))
+HW/check_netlist_selfconsistency.py:1440	R_BAT_DET_1	CODE	                      if _norm(r.get("ref")) == "R_BAT_DET_1"), "")
+HW/check_netlist_selfconsistency.py:1442	R_BAT_DET_1	CODE	        errors.append("★R8 未落表: R_BAT_DET_1 的 note 仍写『漏电流 ~1.65µA @5V』(与 1M+1M 对不上)")
+HW/check_netlist_selfconsistency.py:1446	J_USB_C	COMM	    # ---- R9: ESD 必须真的贴到 J_USB_C (★≤3.0mm, 按 ISS-085 规矩; 原 5.0mm 作废★) ----
+HW/check_netlist_selfconsistency.py:1449	D_ESD_USB_D	CODE	    if "J_USB_C" in xy and "D_ESD_USB_D" in xy:
+HW/check_netlist_selfconsistency.py:1449	J_USB_C	CODE	    if "J_USB_C" in xy and "D_ESD_USB_D" in xy:
+HW/check_netlist_selfconsistency.py:1450	D_ESD_USB_D	CODE	        a, b = xy["J_USB_C"], xy["D_ESD_USB_D"]
+HW/check_netlist_selfconsistency.py:1450	J_USB_C	CODE	        a, b = xy["J_USB_C"], xy["D_ESD_USB_D"]
+HW/check_netlist_selfconsistency.py:1454	D_ESD_USB_D	CODE	                f"★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = {d:.2f} mm > {ESD_MAX_DIST_MM} mm "
+HW/check_netlist_selfconsistency.py:1454	J_USB_C	CODE	                f"★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = {d:.2f} mm > {ESD_MAX_DIST_MM} mm "
+HW/check_netlist_selfconsistency.py:1460	D_ESD_USB_D	CODE	        errors.append("★R9 未落表: 板文件里找不到 D_ESD_USB_D 或 J_USB_C 的坐标")
+HW/check_netlist_selfconsistency.py:1460	J_USB_C	CODE	        errors.append("★R9 未落表: 板文件里找不到 D_ESD_USB_D 或 J_USB_C 的坐标")
+HW/check_netlist_selfconsistency.py:1470	R_ILIM	CODE	        if _norm(r.get("ref")) == "R_ILIM":
+HW/check_netlist_selfconsistency.py:1473	R_ILIM	CODE	                errors.append(f"★R10 未落表: 表A 行 {r['_line']} 的 R_ILIM value 还写着单 pin 0.411A (错值)")
+HW/check_netlist_selfconsistency.py:1478	R_ILIM	CODE	            f"⇒ R_ILIM 档位没重新定")
+HW/check_netlist_selfconsistency.py:1491	C_VBUS_GND	CODE	        if _norm(r.get("ref")) == "C_VBUS_GND" and _norm(r.get("board")) != "CHG_BOARD":
+HW/check_netlist_selfconsistency.py:1493	C_VBUS_GND	CODE	                f"★R11 未落表: C_VBUS_GND 的 board 列仍是 {r.get('board')!r} "
+HW/check_netlist_selfconsistency.py:1591	U_EN_SW	COMM	        # ★★2026-11-16 ISS-233 落表后: BOM L208 的 U_EN_SW type 已是 IC ⇒ 反向用例改成【退回 NET 的旧缺陷】
+HW/check_netlist_selfconsistency.py:1625	D_ESD_USB_D	CODE	        _mutate_line(os.path.join(tmp, REL["netlist"]), 417, "note", "[D_ESD_USB_D] ESD")
+HW/check_netlist_selfconsistency.py:1664	D_ESD_USB_D	COMM	        # ★★calc-only 用例: 把板上的 D_ESD_USB_D 挪到 J_USB_C (140, 5.25) 旁边 ⇒
+HW/check_netlist_selfconsistency.py:1664	J_USB_C	COMM	        # ★★calc-only 用例: 把板上的 D_ESD_USB_D 挪到 J_USB_C (140, 5.25) 旁边 ⇒
+HW/check_netlist_selfconsistency.py:1741	D_ESD_USB_D	CODE	        做法: 把板上的 D_ESD_USB_D 挪到距 J_USB_C **4.0 mm** 处 (★4.0 落在 3.0 与 5.0 之间,
+HW/check_netlist_selfconsistency.py:1741	J_USB_C	CODE	        做法: 把板上的 D_ESD_USB_D 挪到距 J_USB_C **4.0 mm** 处 (★4.0 落在 3.0 与 5.0 之间,
+HW/check_netlist_selfconsistency.py:1751	J_USB_C	COMM	            # ---- 把 ESD 挪到 4.0mm 处 (J_USB_C 在 (140.0, 5.25)) ----
+HW/check_netlist_selfconsistency.py:1757	D_ESD_USB_D	CODE	                return "用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处", False, "★板文件里找不到 D_ESD_USB_D 的坐标"
+HW/check_netlist_selfconsistency.py:1757	D_ESD_USB_D	CODE	                return "用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处", False, "★板文件里找不到 D_ESD_USB_D 的坐标"
+HW/check_netlist_selfconsistency.py:1764	D_ESD_USB_D	CODE	                return ("用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处 (真实阈值 3.0 必须报 R9)",
+HW/check_netlist_selfconsistency.py:1771	D_ESD_USB_D	CODE	                return ("用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处 (真实阈值 3.0 必须报 R9)",
+HW/check_netlist_selfconsistency.py:1782	D_ESD_USB_D	CODE	                return ("用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处 (真实阈值 3.0 必须报 R9)",
+HW/check_netlist_selfconsistency.py:1784	D_ESD_USB_D	CODE	            return ("用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处 (真实阈值 3.0 必须报 R9)",
+HW/check_netlist_selfconsistency.py:1796	U_EN_SW	CODE	    cases.append(_run_case("用例6 改坏板封装 U_EN_SW 的 Value ⇒ 必须红", root, m_board_value))
+HW/check_netlist_selfconsistency.py:1805	D_ESD_USB_D	CODE	    cases.append(_run_case("用例13 [d9] 把板上 D_ESD_USB_D 挪到 J_USB_C 旁 (calc-only) ⇒ 必须红", root, m_board_move_esd))
+HW/check_netlist_selfconsistency.py:1805	J_USB_C	CODE	    cases.append(_run_case("用例13 [d9] 把板上 D_ESD_USB_D 挪到 J_USB_C 旁 (calc-only) ⇒ 必须红", root, m_board_move_esd))

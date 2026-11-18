@@ -1,0 +1,47 @@
+### CMD: python3 HW/check_netlist_selfconsistency.py
+   [报告项] D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm (★规格页 §①(4) 引的就是这个数★)
+   [加强型断言·F-3] A 组 22 条 / 已迁移 20 条: `z_diff` 非空 且 `imp` 为空 ⇒ ✅ 全过 (★A-11/A-12 单端与 A-24 那 15 条【不在】断言范围内★)
+✅ rc=0: ★现状与 HW/NETLIST_SELF_CONSISTENCY_SPEC.md 一致★
+★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ ★**第 1 轮 4 条 + 第 2 轮 7 组缺陷★仍在★ ⇒ rc=0 是预期状态 ★
+★**落表作业包 (HW/SCHEMATIC_LANDING_WORKPACKET_V1.md) 完整性 + 三方对齐: 全过** (★28 条作业条目, 8 栏齐★)
+★**翻面条件见规格页 §⑤**; 落表后请改用 `--expect-resolved` ★
+### RC=0
+
+### CMD: python3 HW/check_netlist_selfconsistency.py --expect-resolved
+★★ rc=1: 翻面口径未通过 (4 条未落表) ★★
+   ★R3 未落表: 板封装 U_EN_SW 的 Value 属性还是脚级功能串 'EN 输入 (高=放行底板)' ⇒ 板文件也要同趟改
+   ★R4 未落表: 板上仍然没有任何 ESD 位号挂在 D− 那条网上 (USB_D_N_SRC / NET_USB_D_N_TYPEC) ⇒ D− 仍然裸奔
+   ★R4 未落表: D_ESD_USB_D 仍然只有 2 个焊盘 (D+ + GND) ⇒ 仍不是双通道
+   ★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm > 3.0 mm ⇒ ESD 还是不在接口旁边
+★**说明**: 现在缺陷仍在 ⇒ 本口径应当是红的; ★等它们随『整链重出 第 1 步』落表后本口径才转绿★
+### RC=1
+
+### CMD: python3 HW/check_land_row_anchors.py
+╔══ 落表行号锚点守卫 (ISS-262) ══╗
+★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+★ 锚点条数: 310  (PASS=310 · DRIFT=0 · RED=0)
+★ ✅ 全部锚点: 行号没变 + 实体没变 ⇒ 通过
+### RC=0
+
+### CMD: python3 HW/check_onepass_preflight_coverage.py
+==============================================================================
+  OK   P1
+     条目 32 条 · 9 字段齐全且非空: ✔
+  OK   P2
+     步覆盖: S1=1 S2=3 S3=2 S4=4 S5=1 S6=9 S7=2 S8=1 S9=1 S10=5 S11=1 S12=1 S13=1
+  OK   P3
+     每条 criterion 的脚本文件都在盘上: ✔
+  OK   P4
+     覆盖度: 26 个标记全部在清单里: ✔
+  OK   P5
+     5 个现状探针: 清单里的现状值 == 盘面实测: ✔
+  OK   P6
+     受保护 5 件 md5 逐字节不变: ✔
+     ✔ ★HW/PCB/demo_mainboard.kicad_pcb: 盘上 md5 611b869e1351 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★
+     ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★
+     ✔ HW/netlist_v1.csv md5 == 落表台账登记 6aee500e60ba0732f83a9cf557ba90ab (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 9174309df1ec9411ac8e8d9e80ee386a (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/BOM_v1.csv md5 == 落表台账登记 5b9993992405904a60ac96a020b375d8 (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★板侧项全集与作业包对齐, 现状值与盘面一致 ★★
+### RC=0

@@ -1,0 +1,33 @@
+==========================================================================
+ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
+==========================================================================
+项目根        : /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+板位号        : 186 个 (★板文件文本解析, 未 import pcbnew★)
+网表位号      : 293 个 (★三张 CSV 的 ref 列★)
+网名索引      : 654 个
+扫描文档      : 43 份 `SW/*.md` (★其中 28 份含至少一个 token★)
+抽出 token    : 113 个唯一标识符
+
+【分类统计】 (★R2★)
+   DESIGNATOR_OK            78
+   DESIGNATOR_DRIFT          0
+   DESIGNATOR_MISSING        3
+   NET_NAME                  9
+   DOC_INTERNAL             23
+
+【R3 现状基线】 `DESIGNATOR_MISSING` 实测 = 3 条 · 允许上限 = 3 条
+   ⇒ ✔ 在基线内
+
+【★真隐患 (C14)·现在就对不上的位号引用★】
+   ★基线内·已登记★ CONN_USB  (SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:518)  出现 9 次
+        理由: ★真隐患·已登记★: SW/SW_TIMING_REVIEW.md L60/L272 明写「CONN_USB 已不在网表 ⇒ 对象消失 ⇒ 推翻」 ⇒ ★它是【历史件】的遗留引用·文档自己已经知道它没了·但引用还留在文档里★
+   ★基线内·已登记★ TP_INT  (SW/BOARD_ONEPASS_SW_SYNC.md:43)  出现 16 次
+        理由: ★真隐患·但已登记★: SW/BOARD_ONEPASS_SW_SYNC.md §SW06 明写「TP_INT (触控中断) 在网表和板上都不存在 ⇒ SW 侧不许按『有触控中断』写代码」⇒ ★它是一个【被文档自己点名的空洞】★ ⇒ 板那一趟若决定接触控, 必须同批落表 + 落位 + 布线, 否则 SW 侧引用永远是空的★
+        板/网表里现在叫: TP_FSIN
+   ★基线内·已登记★ TP_TEMP  (SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:518)  出现 10 次
+        理由: ★真隐患·未登记★: SW/SW_TIMING_REVIEW.md §CR-7 (EVT 上电段) 要求「TP_TEMP 热电偶对照标定」 ⇒ ★板上 42 个 TP_* 里没有 TP_TEMP (只有 TP_USB_D_N / TP_KEY_PWR / TP_RESET 等)★ ⇒ ★EVT 测温校准步骤依赖一个不存在的测试点 ⇒ 这就是本闸今天就抓得到的真隐患★
+        板/网表里现在叫: C_TEMP
+        板/网表里现在叫: U_TEMP
+
+
+【判决】 ✔ 绿 (rc=0): SW 侧引用的位号全部可达, 真隐患在基线内

@@ -1,0 +1,26 @@
+=== F1. camera reset (CAM_RESET_N 的功能等价物) ===
+SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md:55:| ★**VCCIO0_VCC1V8** ★ | ★**GPIO1_A0 … GPIO1_B3** ★ | ★**1.8V only** ★ | ★**max 1.98 V** ★ |
+SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md:58:| ★**VCCIO3_VCC** ★ | ★**GPIO1_B4 … GPIO1_D6** ★ | ★**1.8V/3.3V** ★ | ★**max 3.63 V** |
+SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md:305:      gpio_groups: ["GPIO1_A0..GPIO1_B3"]
+
+=== F2. FSIN / 帧同步 ===
+SW/EVT_TEMPLATE.md:250:| E2E-05 | 光机逐帧延迟 (M-OPTIC) | 示波器法 (CH1=VSYNC/帧同步, CH2=光电二极管) 测得 Δt 记录在案; ≤5.0ms 判预算内, >5.0ms 必须回改预算表 S10 并注明 | | | | |
+SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:51:| vdisplay / vsync_start / vsync_end / vtotal | **640 / 790 / 840 / 990** | `[官网]` 同上 (`640+150` / `640+150+50` / `640+150+50+150`)
+SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:158:> ★**时序/格式/模式标志逐字抄官方驱动**; ★**属性名用 Rockchip 自家绑定** (`drivers/video/of_display_timing.c`: `clock-frequency` / `hactive` / `hfront-po
+SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:197:		 *   vdisplay=640 / vsync_start=790 / vsync_end=840 / vtotal=990
+SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:207:			vfront-porch = <150>;   /* vsync_start 790 - vdisplay 640 */
+SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:208:			vsync-len   = <50>;    /* vsync_end 840 - vsync_start 790 */
+SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md:209:			vback-porch = <150>;   /* vtotal 990 - vsync_end 840 */
+SW/SW_REQUIREMENTS.md:684:| **M-2 示波器** | LED 驱动电流 + 帧同步信号双通道示波器 | ±1ms | 一台示波器 + 探头 | ⭐ 推荐做交叉验证 |
+SW/INTEGRATION_PLAN.md:37:| hw-lead | 电源域标称值、测流点/测温点位置、充电状态读取接口、VSYNC/帧同步信号引出可行性 |
+SW/INTEGRATION_PLAN.md:97:| 逻辑分析仪 (可选) | 抓帧同步/中断 | ≥100MSa/s | IT-P4-04 (口径 C 起点) |
+SW/INTEGRATION_PLAN.md:427:- **前置条件**: IT-P4-02 通过; 示波器 ≥2 通道; hw-lead 已引出曝光/帧同步信号 (接口请求 IR-03)
+SW/INTEGRATION_PLAN.md:428:- **步骤**: 1) CH1 接帧同步/曝光起始信号, CH2 接光机出光光电二极管; 2) 触发模式单次, 抓 ≥30 个连续帧; 3) 逐帧读 Δt
+SW/INTEGRATION_PLAN.md:448:- **步骤**: 1) 光电二极管固定在光机出光面 1-2mm, 加遮光筒排除环境光; 2) 送交替黑/白图案帧 (强制出光有明确边沿); 3) CH1 = SoC 侧帧同步信号 (VSYNC / DSI 提交脉冲 / 同步 GPIO), CH2 = 光电输出; 4) 读 CH2 相
+SW/INTEGRATION_PLAN.md:450:- **通过标准**: 样本 ≥30; 测得值与 5.0ms 预算比对并判定: **≤5.0ms 预算内 ✅**; 5.0~8.0ms ⚠️ 需回改端到端预算表 S10 并重算 (S10 每 +1ms 直接吃端到端余量); >8.0ms ❌ 端到端 60ms 在口径 A 下必超, 必须
+SW/INTEGRATION_PLAN.md:451:- **需要什么设备 (明确列出)**: ① 示波器 ≥100MHz ≥2 通道 (CH1 帧同步, CH2 光电); ② 光电二极管探头 (响应 ≤1µs, 可见光); ③ 遮光工装 (消除环境光干扰); ④ 帧同步信号引出 (硬件侧, 需 hw-lead 确认可行性); ⑤ 可选高
+SW/INTEGRATION_PLAN.md:452:- **记录格式**: `EVT_<日期>/optic_latency.csv` — 列: `run_id, sample_idx, vsync_ts_us, photo_ts_us, delta_ms, method(scope|highspeed), note`
+SW/INTEGRATION_PLAN.md:690:| **M-E2E** | 端到端 (<60ms) | IT-P4-02 (口径A 高速摄影), IT-P4-03 (口径A 示波器), IT-P4-04 (口径C), IT-P4-06, IT-P4-07 | ①高速摄影机 ≥240fps + LED 闪烁板; ②示波器 ≥100MH
+SW/INTEGRATION_PLAN.md:695:| **M-OPTIC** | 光机逐帧延迟 | IT-P4-05, IT-P4-02/03 (交叉) | **软件打不了点**, 需外部设备: ①示波器 ≥100MHz ≥2ch; ②光电二极管探头 (响应 ≤1µs, 可见光); ③遮光工装 (排除环境光); ④帧同步信号引出 (硬
+SW/INTEGRATION_PLAN.md:717:| IR-03 | hw-lead | 帧同步/曝光起始信号能否引出到测试点 (供 IT-P4-03 / IT-P4-05 示波器法) | 若不可引出, 端到端口径 A 只能靠高速摄影 (精度 ±4.2ms), 光机逐帧延迟只能靠高速摄影法 (精度降级), 两项均标 [实测] 但精度注
+SW/INTEGRATION_PLAN.md:844:| B-5 | 帧同步信号能否引出未定 | 示波器法不可用 → 端到端与光机延迟精度降级到 ±4.2ms | hw-lead (IR-03) | 2026-10-28 |

@@ -3,11 +3,15 @@ role: 硬件总工
 updated_at: '2026-11-17'
 updated_by: hw-lead
 status:
-  phase: iss307 交卷完成
-  progress_pct: 100
-  health: ok
-  summary: 'iss307: ESD 选型轴候选集 4 条 (官网逐字) + 落位可行性 (R9=原点距, 窗口 y 7.65..8.25, ISS-306 的 (137.18,6.28)=3.0022mm
-    不通过) + §1-B1-0 矛盾判决 (B+C 合并档) + 路径乙改法草案 A; ★等老板 W-2 + W-1c 两个字母; 本单零写板/零落表/零改闸/零外发★'
+  phase: delivering
+  progress_pct: 80
+  health: green
+  summary: 'ISS-334 机制级换机制路线: (1) 官方板零铜网=24个 (pad>=2且segment=0, 与闸定义逐字一致), 24/24落在45条未连接里; 其中15条高速差分腿+9条单端低速脚
+    => 布局级处方最多碰6个 => 18个原理上覆盖不到; (2) 死因三桶: A成对走廊7 / B出脚几何16 / C路由器本体1 => 几何卡死这个前提是假的 (88/88端点物理可行 + 出脚方向CSP可行);
+    (3) 决定性读数: A* 在官方stage-1(17,022段)上补0条/未成54条且产物md5与输入逐字节相同 => 病根在路由器本体不在后处理顺序 => 只有修在产生点才有戏; (4) 官方板可完整复现
+    (chain_offverify终板 与 官方板 几何等价 rc=0) => 臂有同工艺起跑线; 但生成器已漂移 (2,492 vs 17,022段) => env级臂不可比 => ISS-328右上臂3,986段的死因同机制;
+    (5) 桶A机制实测撞墙: pair_corridor.py 打印落铜成功但零新增铜(几何等价rc=0) => 1格退化路径假阳性; (6) 候选臂3条+同配方对照臂3条已设计(含对照有效性自检与可比性自检),
+    沙盒预演4条已跑, 官方补丁链未跑(任务书禁止); (7) 6条need交main/boss, 一条都没自己拍; (8) 判据=名单制闸rc=0+DRC0, 禁拿unc变少当成功, 板md5只变一次'
   updated_at: '2026-11-17'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -1294,6 +1298,371 @@ artifacts:
   updated_at: '2026-11-18'
   summary: 'iss307 交卷单 (标准验收块 B1~B6 齐全): 结论摘要 / 验收标准自评 20 条 (18 通过 + 2 未验) / 证据分级 / 4 条 interface_claims
     / 7 条卡点 / 自证复现命令 + 边界自证 + 反向用例 4 条'
+- path: HW/PCB/S8_REACHABILITY_VERDICT.md
+  kind: verdict
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-308 S8 可达性判决书: §0 口径声明 + 3 差异注记 / §1-④ PCB_PAIR_LAYERSEL 查清 / §2-A 22 网名 5 桶落桶表 (每条带实测出处)
+    + 桶归属三重锁 / §2-B N=2 / §2-C T1 到 T7'
+- path: HANDOFF/2026-11-18_hw-lead_ISS308_S8可达性判决书.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-308 交卷单: B0 到 B7 齐全 (含 §B6 闸复跑原始输出 + 板 md5/mtime 双证 + 落表四件 md5 + 占位符 0 + 分片自检)'
+- path: state/_iss308_s8_reachability_check.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '只读复跑脚本 (本单修): 三重锁 (BUCKET_AUTHORITY 独立副本 + 实读判决书落桶表 + selftest 用例① B3 到 B5 形状) ⇒ 修掉『改了桶居然还判绿』;
+    现有四条判据一条没放宽'
+- path: logs/iss308/evidence/iss308_official_census.json
+  kind: evidence
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 官方板 611b869e 逐网逐层铜量普查 (本单新跑的只读探针) ⇒ 用来判『22 条里哪 10 条官方板是连通的』
+- path: logs/iss297/cont4_gates_full.log
+  kind: log
+  version: v1
+  updated_at: '2026-10-25'
+  summary: ★iss297 cont4 6 道闸主模式 + 仓库级回归 (merge/gate_check/issue_check) + 受保护 5 件 md5 + mtime 双重自证 (2026-11-18
+    05:4x~05:5x 本机实跑)★
+- path: logs/iss299/verify_0535.log
+  kind: gate-log
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '2026-11-18 05:45~05:48 本机实跑: 闸本体三种模式 + 其余8道闸 + state链(merge/gate_check/issue_check rc=0) +
+    受保护5件md5 + 分片计数; 其中3个 --selftest 因 /tmp 用户配额 EDQUOT 假红'
+- path: logs/iss299/verify_0535b.log
+  kind: gate-log
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '2026-11-18 05:48~05:51 本机实跑(TMPDIR 指向项目 tmp/iss299_tmp 绕开 /tmp 配额): 5个selftest + 闸本体 --selftest
+    + board_reboard --selftest 全部 rc=0, merge/gate_check/issue_check rc=0, 受保护5件md5 与板mtime 终检'
+- path: logs/iss297/cont4_selftests_tmpdir_vartmp.log
+  kind: log
+  version: v1
+  updated_at: '2026-10-25'
+  summary: '★iss297 cont4-3 权威复跑: 7 个 --selftest (沙盒 TMPDIR=/var/tmp/iss297_selftest_tmp·绕开 /tmp 用户配额爆掉)
+    全 rc=0 · 通道 6x10=60 条全抓到 (2026-11-18 05:5x 本机实跑)★'
+- path: logs/iss297/cont4_final.log
+  kind: log
+  version: v1
+  updated_at: '2026-10-25'
+  summary: '★iss297 cont4-3 最终回归: 6 闸主模式 (5×rc=0 + 第5闸 rc=1 既有 15 条缺陷基线) + 7 个 --selftest (TMPDIR 大盘)
+    全 rc=0 + merge/gate_check/issue_check 全 rc=0 + 受保护 5 件 md5 + mtime (板 611b869e / mtime 2026-11-06
+    07:07:17 逐字节未变) (2026-11-18 06:0x 本机实跑)★'
+- path: HW/PCB/S8_REACHABILITY_VERDICT.md
+  kind: doc
+  version: iss308
+  updated_at: '2026-10-25'
+  summary: 'ISS-308 S8 可达性判决书正文: §0 口径声明 / §1-④ PCB_PAIR_LAYERSEL 查清结论 / §2-A 22网名->5桶落桶表 / §2-B N=2 /
+    §2-C T1~T7 技术活清单 / §2-D S6 落位增补表草案 / §3 未做的事 / §4 证据分级 / §5 边界自证'
+- path: logs/iss305/09_downstream_propagation_check.log
+  kind: log
+  version: v2.0
+  updated_at: '2026-11-18'
+  summary: 'ISS-305 v2 下游传播闭环核对原样输出: 交付页三代读数 + diff 计数(删 1 增 50) + B5-2 口径说明未补(grep rc=1) + 宽版 over-claim
+    盘面残留逐处 + §A-补29/§D 命中数=0 的反证 + 台账查无「另开单」+ B5-7 决策页仍写 6,007 B + 交付页现版 [实测] 逐行复检(7 处·标签只 L29/L110)'
+- path: logs/iss305/10_final_gates_v2.log
+  kind: log
+  version: v2.0
+  updated_at: '2026-11-18'
+  summary: 'ISS-305 v2 交卷前全闸回归原样 rc: merge rc=0 / gate_check rc=0 (Q1 18/18·Q7 9/9) / issue_check rc=0
+    / _iss131_crosscheck rc=0 (md5 6fff079d… 未变) / _iss305_ball_truth_parser rc=0 (T1 11/11·T2 11/11·窗口
+    11/11 vs 真判别式 0/11) / 板 md5 跑前跑后 611b869e… 逐字节不变 / 占位符 0 / 分片 iss305 计数 ≥5'
+- path: logs/iss305/10_final_gates_v2.sh
+  kind: script
+  version: v2.0
+  updated_at: '2026-11-18'
+  summary: ISS-305 v2 交卷前全闸回归跑批脚本(nohup 后台跑·原样落 logs/iss305/10_final_gates_v2.log)
+- path: logs/iss297/run_iss297_selftests.sh
+  kind: script
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: '★iss297 cont4-4 新增的一键复跑脚本: 只做两件事 ① 把 TMPDIR 指到配额宽裕的家目录盘 (绕开 /tmp 的 usrquota 打挂沙盒) ② 逐条跑 6
+    道 HW 闸的 --selftest 并打印原样 rc ⇒ 零改动闸本体·零写板·零落表; 实测 bash logs/iss297/run_iss297_selftests.sh ⇒ 6+1 道自检总判定
+    全绿 ✅ (日志 logs/iss297/cont4_selftests_with_tmpdir.log)'
+- path: logs/iss297/cont4_rerun.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: ★iss297 cont4-4 (2026-11-18 06:13 重写) 6 道闸主模式 + 仓库级回归 (merge/gate_check/issue_check rc=0/0/0)
+    + 受保护 5 件 md5 + 板 mtime 双重自证 (板 611b869e… mtime 2026-11-06 07:07:17 逐字不变)★
+- path: logs/iss297/cont4_selftests.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: '★iss297 cont4-4 (2026-11-18 06:11 重写) 7 个 --selftest 全量原样日志: 6 道闸通道用例各 10/10 (合计 60 条) + board_reboard
+    10/10 ⇒ 全 rc=0; ★同���旧副本原件仍在 cont4_selftests_full.log / cont4_gates_full.log / cont4_reverify_20261118.log
+    (交卷单 ㉑-4 有登记)★'
+- path: logs/iss305/11_final_verify_v2.log
+  kind: log
+  version: v2.0
+  updated_at: '2026-11-18'
+  summary: 'ISS-305 v2 终检原样 rc (分片写完后复跑): merge rc=0 (产出 597·未闭合需求 341=+3 三条 new need 已登记) / gate_check
+    rc=0 (Q1 18/18·Q7 9/9 零告警) / issue_check rc=0 / crosscheck rc=0 (md5 6fff079d… 未变) / ball_truth_parser
+    rc=0 (T1 11/11·T2 11/11·窗口 11/11 vs 真判别式 0/11) / 板 611b869e… 跑前跑后逐字节不变 / 占位符 0 / 分片 iss305=35·iss305_v2=6'
+- path: logs/iss305/11_final_verify_v2.sh
+  kind: script
+  version: v2.0
+  updated_at: '2026-11-18'
+  summary: ISS-305 v2 终检跑批脚本 (nohup 后台跑·原样落 logs/iss305/11_final_verify_v2.log)
+- path: HW/PCB/ONETRIP_REISSUE_MANIFEST.md
+  kind: doc
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: ISS-311 「板那一趟」重出清单正文 (新建) · §1 C1 差 2 逐条证据 (板上有网表没有 2 条 = C_VBUS_GND pad1=L8259/pad2=L8267
+    · 网表有板没有 0 条 · 同号异网 3 条 = Q_PG pad1/pad3 对调 + D_ESD_USB_D pad1 挂 SoM 侧网) · §2 原理图 11 个不一致逐条表 (2 个真旧
+    p1/p10 + 9 个 uuid 抖动 · 缺页 0 · 改名 0 · 方向判定锚点=网表真源 C_SYS 必装) · §3 重出清单主表 25 行 (网表/脚表/11 页原理图+.kicad_pro/板/Gerber/钻孔/CPL/装配/3D/BOM/投产包
+    74 件/MANIFEST/落表台账/分片/旧 md5 引用点; 命令全部本机实测存在) + 投产包子目录 74 件逐件 · §4 依赖图 + 硬顺序(网表→原理图→板→BOM→投产包) + 同趟出
+    12 项 + 归属 + ★★2 颗开工前必须拍的地雷 (S1 板侧加 _1 ⇒ C1 从 0/2/3 变 350/352 · 板侧改名 ⇒ BOM 板文件回填静默失效) · §5 证据分级 + 自证命令
+- path: HANDOFF/2026-11-18_hw-lead_ISS311_板那一趟重出清单.md
+  kind: doc
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: ISS-311 hw-lead 交卷单 (新建) · B0 交卷物清单 4 件 + logs/iss311 逐件索引 · B1 任务书 §2 四件事逐条交付对照 + 额外挖出的 3
+    件 · B2 读数三件套 + 零写板双证 (板 611b869e… / mtime 2026-11-06 07:07:17 交卷前后逐字节相同) + 归属单 · B3 核心判决 (C1 差 2 性质=板侧旧件
+    ⇒ 只改板不改网表 / 原理图 11 个分类两个数 / 25 行重出清单 / 顺序与同趟出 / 两颗地雷) · B4 边界自证 13 条 · B5 need 8 条 (全归 main) · B6
+    风险 5 条 + 拿不到的数据 5 条 (含 [推算] 与 [0数据]) + 本单没做的事 · 占位符 0
+- path: logs/iss311/01_check_pcb_nets_raw.txt
+  kind: log
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: 原始输出 · bash state/pcbnew_py.sh state/check_pcb_nets.py (rc=1) · C1 焊盘级等价 网表 480 / 板上带网 482
+    · 缺失 0 · 多余 2 (C_VBUS_GND pad1=GND / pad2=VBUS_5V_CHG) · 同号异网 3 (Q_PG pad1 应为 PWR_GOOD 实际 PWR_ON /
+    Q_PG pad3 应为 PWR_ON 实际 PWR_GOOD / D_ESD_USB_D pad1 应为 NET_USB_D_P_TYPEC 实际 USB_D_P_SRC) · NC 焊盘 351
+    · 非法 NC 0
+- path: logs/iss311/02_probe_c1_diff_raw.txt
+  kind: log
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: '原始输出 · bash state/pcbnew_py.sh logs/iss311/probe_c1_diff.py (rc=0) · C1 差集逐条证据: 【A】板上有网表没有
+    2 条 (C_VBUS_GND pad1 板 L8259 封装原点 107.7,42.5 / pad2 板 L8267) + 【B】网表有板没有 0 条 + 【C】同号异网 3 条 (Q_PG pad1
+    板 L2068 / pad3 板 L2084 / D_ESD_USB_D pad1 板 L13012) + 【D】涉及器件板上全部焊盘一览 + 网表行号 (C_VBUS_GND L10/L12 ·
+    Q_PG L59/L60/L61 · D_ESD_USB_D L417/L418)'
+- path: logs/iss311/03_probe_sch_src_diff_raw.txt
+  kind: log
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: 原始输出 · python3 logs/iss311/probe_sch_src_diff.py (rc=0) · 12 个文件逐个 md5 + 归一化指纹 sha256 + 原文/归一化差异行数
+    + 分类计数 (真旧 2 = p1 归一化差 14 行 / p10 归一化差 28 行 · uuid 抖动 9 · 缺页 0 · 改名 0) + 真差异逐行明细 (C_SYS 的 dnp no/yes
+    · Value 20µF X7R 6.3V vs 20µF 6.3V · lib_symbols pin 名 DNP · SYS_CHG/PGND 标签染红 255 0 0 1) + 源与包 mtime
+    对照 (源 11-18 00:21:18 / 包 11-17 12:30:22)
+- path: logs/iss311/04_chain_gate_baseline.txt
+  kind: log
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: '原始输出 · python3 state/chain_gate.py (rc=1) · 现状基线: ① 网表 ✅ ② 原理图 ✅ ③ PCB ❌ (板与网表不等价 · C1 网表
+    480 / 板上 482) ④ BOM ✅ ⑤ 投产资料包 ❌ (30/30 齐全 · 投产包比原理图旧 · 原理图源文件内容与源不一致 11 个) ⇒ 生产链有 2 个环节没过 ⇒ 下游产物不许用'
+- path: logs/iss311/05_current_values.txt
+  kind: log
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: 原始输出 · 五环真源 + 11 页原理图 + .kicad_pro + 投产包 sch_src 12 件 的 md5 与 mtime + 投产包子目录件数 (gerbers 32
+    / drill 4 / pos 1 / assembly 3 / 3d 1 / doc 9 / sch_src 12 / sch_svg 11 / 合计 74 / canonical HW/PCB/gerbers
+    32) · 取数时间 2026-11-18 06:29:00 +0800
+- path: logs/iss311/06_probe_s1_refsuffix_c1_collision.txt
+  kind: log
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: '原始输出 · bash state/pcbnew_py.sh logs/iss311/probe_s1_refsuffix_c1_collision.py (rc=0) · ★★沙盒相撞实验:
+    现役板 186 位号 (末字符是字母 156 · 带 _1 的 1) ⇒ 基线 C1 缺失 0 / 多余 2 / 同号异网 3; ★★沙盒按 ISS-205 规则给 156 个加 _1 ⇒ C1
+    缺失 350 / 多余 352 / 同号异网 0 (非法 NC 3); ★★反证: 网表侧 ref 同规则改口径 ⇒ 回到 0/2/3 ⇒ 证明 C1 的红是口径没同步, 不是改名本身错 · 沙盒只写
+    tmp/iss311_tmp/ 且跑完已删'
+- path: logs/iss311/probe_c1_diff.py
+  kind: script
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: 自证探针 (只读) · import state/check_pcb_nets.py 的 netlist_pads/board_pads/compare ⇒ 与门禁同口径零漂移 ·
+    板侧行号与坐标由 .kicad_pcb 原文逐行扫出 · 网表行号取 CSV 原文行号 · 用法 bash state/pcbnew_py.sh logs/iss311/probe_c1_diff.py
+- path: logs/iss311/probe_sch_src_diff.py
+  kind: script
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: 自证探针 (只读) · import state/check_chain_content_anchor.py::normalize_sch_text ⇒ 与 chain_gate ②
+    原理图准入逐字同口径 (ISS-256) · 逐文件 md5 + 归一化指纹 + difflib 差异行数 + 分类计数 + 真差异逐行明细 · 用法 python3 logs/iss311/probe_sch_src_diff.py
+- path: logs/iss311/probe_s1_refsuffix_c1_collision.py
+  kind: script
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: 自证探针 (只读项目 · 沙盒只写 tmp/iss311_tmp/) · 复制板到沙盒后按 ISS-205 规则给 156 个板上位号加 _1 ⇒ 再跑 state/check_pcb_nets.py
+    的 run_checks ⇒ 量化 C1 三项变化; 反证分支把网表侧 ref 同规则改口径再算一遍; 跑完删除沙盒
+- path: logs/iss311/iss311_frag_write.py
+  kind: script
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: 分片写入驱动 (★只负责把 spec 组装成 argv, 真正的落盘由 state/frag_write.py 的原子写做★) · 内含 sanitize() 把双引号/反斜杠替换成「」/／
+    以避开 shlex 的语法 · 走 subprocess 调 CLI ⇒ 与『用 frag_write.py 原子写』同一口径
+- path: logs/iss311/iss311_frag_spec.json
+  kind: data
+  version: iss311-v1
+  updated_at: '2026-11-18'
+  summary: 分片写入的 spec (★11 条 artifact + 8 条 need 的完整原文★) · ★这是分片内容的单一来源 ⇒ 想复核『分片里到底写了什么』直接读这个 json★
+- path: HW/PCB/ONETRIP_S1_REF_RENAME_CALIBER.md
+  kind: analysis
+  version: iss314-v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-314 交卷正文: S1 位号改名口径收口。§1 病灶 (作业包 §3-S1 板侧加 _1 与 §5 网表逐字节不变 自相矛盾 · 三侧 ref 口径现状实测) · §2
+    三选项代价矩阵 (①三侧同口径 / ②板侧不加_1 / ③加反查层 · 每格给: 额外要动的件 / 落表批次怎么排 / BOM 证据回填 / 失败长什么样) · §3 反查层补丁设计 (加在 board_pads()
+    而非 compare() · 口径单源 = gen_kicad_sch.py::kicad_ref() · 映射表不落盘 · 判红文案三行结构 · fail-closed F1~F5 · 7 条反向用例)
+    · §4 沙盒 8 场景原始读数 · §5 BOM 兜底三选项 (甲映射 / 乙报警 / 丙改标注口径) + 同号异网 3 条改法 · §6 证据分级 + 建议默认值 (建议选① + 解封 check_pcb_nets.py
+    两行 · 不代拍)'
+- path: HANDOFF/2026-11-18_hw-lead_ISS314_S1位号改名口径收口.md
+  kind: handoff
+  version: iss314-v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-314 交卷单: B0~B6 标准验收块 + 附-A~附-D。必含沙盒 8 场景 C1 读数对照 (原始输出位置逐条给) + 给 main 的 1 条建议 (选①三侧同口径落表
+    · 理由三条) + 零写板双证。占位符 0'
+- path: logs/iss314/12_scenario_matrix.txt
+  kind: data
+  version: iss314-v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-314 沙盒 8 场景矩阵 (★脚本从原始输出自算 · 非手抄★): S0 现状 0/2/3/0 · S1 只改板侧 350/352/0/非法NC3 + C2红14 + C3红155
+    · S2 只改板侧+反查层 0/2/3/0 + C2红0 + C3红0 (反查命中155 · 未同步1) · S3 只改网表 与 S1 同型 · S4 三侧同口径 0/2/3/非法NC3 + C3红1
+    · S5 同 S4 · S6/S7 映射表被改坏 0/13/1/3 + 未同步4 ⇒ 三条硬结论: 只改一侧必炸 / 改名与受保护判据禁改不可兼得 / 反查层是诊断层不掩盖真错'
+- path: logs/iss314/
+  kind: data
+  version: iss314-v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-314 取数日志目录 (19 个文件): 现状 C1/C2/C3 读数 + chain_gate 两条红 + 8 场景原始输出 + 反查层补丁 diff + 两版沙盒判据副本
+    + 8 个沙盒脚本 + 场景矩阵生成器 + 交卷前核验 + 分片写回执。★沙盒只写 tmp/iss314_sandbox/ 与 tmp/iss314_tmp/ · 跑完即删 · 项目文件零改动★'
+- path: HW/PCB/ONETRIP_S1_REF_RENAME_CALIBER.md
+  kind: analysis
+  version: iss314-v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-314 交卷正文: S1 位号改名口径收口。§1 病灶 (作业包 §3-S1 板侧加 _1 与 §5 网表逐字节不变 自相矛盾 · 三侧 ref 口径现状实测) · §2
+    三选项代价矩阵 (①三侧同口径 / ②板侧不加_1 / ③加反查层 · 每格给: 额外要动的件 / 落表批次怎么排 / BOM 证据回填 / 失败长什么样) · §3 反查层补丁设计 (加在 board_pads()
+    而非 compare() · 口径单源 = gen_kicad_sch.py::kicad_ref() · 映射表不落盘 · 判红文案三行结构 · fail-closed F1~F5 · 7 条反向用例)
+    · §4 沙盒 8 场景原始读数 · §5 BOM 兜底三选项 (甲映射 / 乙报警 / 丙改标注口径) + 同号异网 3 条改法 · §6 证据分级 + 建议默认值 (建议选① + 解封 check_pcb_nets.py
+    两行 · 不代拍)'
+- path: HANDOFF/2026-11-18_hw-lead_ISS314_S1位号改名口径收口.md
+  kind: handoff
+  version: iss314-v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-314 交卷单: B0~B6 标准验收块 + 附-A~附-D。必含沙盒 8 场景 C1 读数对照 (原始输出位置逐条给) + 给 main 的 1 条建议 (选①三侧同口径落表
+    · 理由三条) + 零写板双证。占位符 0'
+- path: logs/iss314/12_scenario_matrix.txt
+  kind: data
+  version: iss314-v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-314 沙盒 8 场景矩阵 (★脚本从原始输出自算 · 非手抄★): S0 现状 0/2/3/0 · S1 只改板侧 350/352/0/非法NC3 + C2红14 + C3红155
+    · S2 只改板侧+反查层 0/2/3/0 + C2红0 + C3红0 (反查命中155 · 未同步1) · S3 只改网表 与 S1 同型 · S4 三侧同口径 0/2/3/非法NC3 + C3红1
+    · S5 同 S4 · S6/S7 映射表被改坏 0/13/1/3 + 未同步4 ⇒ 三条硬结论: 只改一侧必炸 / 改名与受保护判据禁改不可兼得 / 反查层是诊断层不掩盖真错'
+- path: logs/iss314/
+  kind: data
+  version: iss314-v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-314 取数日志目录 (19 个文件): 现状 C1/C2/C3 读数 + chain_gate 两条红 + 8 场景原始输出 + 反查层补丁 diff + 两版沙盒判据副本
+    + 8 个沙盒脚本 + 场景矩阵生成器 + 交卷前核验 + 分片写回执。★沙盒只写 tmp/iss314_sandbox/ 与 tmp/iss314_tmp/ · 跑完即删 · 项目文件零改动★'
+- path: HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md
+  kind: design-review
+  version: iss317-v1
+  updated_at: '2026-11-18'
+  summary: '★S1 位号改名【五侧同口径】可执行清单 (★960 行·§0~§6 七节全填·占位符 0★): §1 = 218 行逐条改名对照表 (★TSV 机器搬·装配器逐行复核「新ref
+    == kicad_ref(旧ref)」★) + §2 = NC 白名单甲/乙/丙-①/丙-② 四选项 × C1/C2/C3 沙盒实跑读数 + 「变松的部分仍被抓住」的两个反向用例 (★丙-① 裸前缀非法
+    NC 0 ⇒ 放过真错 ⇒ 不可用★) + --selftest 改名后崩 (ValueError) 的实测 + §3 = BOM 证据静默消失的机器可判判据 J1 (★只改板侧 ⇒ 丢 17 个
+    ⇒ 判红·五侧同口径 ⇒ 绿·不误报★) + §4 = ISS-314 五条未验全补齐 (★U-1 T5/T6 实跑·U-2 Diodes DS31447·U-3 TI SLVSBO7O·U-4
+    问号 0/219·U-5 排期口径★) + §5 证据分级四档 + §6 文件清单'
+- path: HANDOFF/2026-11-18_hw-lead_ISS317_S1位号改名可执行清单.md
+  kind: handoff
+  version: iss317-v1
+  updated_at: '2026-11-18'
+  summary: '★ISS-317 交卷页 (★B0~B6 齐全·占位符 0★): B0 一句话+交付物清单 · B1 八条结论摘要 (五侧盘点/分组计数/豁免口径/三选项读数表/selftest
+    实测/J1 判据/五条未验状态) · B2 验收自评 20 条逐条 通过 · B3 证据分级 · B4 接口取值声明 · B5 未决项与卡点 (★need key s1_ref_rename_caliber_20261118★)
+    · B6 自证复现命令 · 附 §1~§4 正文指路 + 本趟修掉的六个缺陷清单'
+- path: logs/iss317/
+  kind: data
+  version: iss317-v2
+  updated_at: '2026-11-18'
+  summary: '★ISS-317 取数日志目录 (★v2·上一趟的三个沙盒缺陷已修★): rename_list_raw_v2.txt (★218 行·含 TSV 机读行★) + iss317_gen_rename_list_v2.py
+    (★列宽加宽到 160·同步清单不再被截断★) + iss317_sb_make_v2.py / iss317_sb_run_v2.sh (★v1 的按行改名/裸网名改名/硬编豁免三个缺陷已修★)
+    + 04a_sb_make_v2_raw.txt (★逐处定点替换前后对照★) + 04b_sb_run_v2_raw.txt (★A0~A6/T5/T6/S1/S2 + CTL0~CTL2 对照组实跑★)
+    + 04_nc_options_raw.txt (★三选项读数汇总★) + 05_dmp3098l_official.txt / 06_esd_official.txt (★官网逐字摘录+快照 md5★)
+    + 07_bom_qmark_raw.txt (★问号 0/219★) + 08_zero_write_proof.txt + 09_merge_gate_output.txt (★Q1 18/18·rc=0★)
+    + 10_placeholder_scan.txt + 11_frag_write_output.txt + 12_bom_silence_judge_raw.txt (★J1 的 S0/S1/S2/S3★)
+    · ★沙盒只写 tmp/iss317_sandbox/★'
+- path: HW/PCB/BOARD_ONEPASS_S8_ROUTING_WORKPACKET.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: 'ISS-322 · S8 布线归零作业包: 45 条 unconnected 逐条清单(机器搬·条数=45 与 check_pcb_drc 的 C4 逐字一致) + 逐条死因登记(桶:
+    几何不可布(布局级) 22 / 算法可解 18 / 口径未定 5) + 高速腿几何可布性判定(结论 (a) 几何可布: 端点 88/88 可出 · SoM 主体区 In1/In3/In5/In6/B.Cu
+    各占 0.38% ⇒ 板框与层数都不用改 · 真瓶颈是段内 P/N 顺序翻转 17/47 处) + 逐条修法/BATCH-1-2-3/逐条验收命令 + 7 条待拍死结 + 证据分级'
+- path: HANDOFF/2026-11-18_hw-lead_ISS322_S8布线归零作业包.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: ISS-322 交卷页 (B0~B6 齐全) · 零写板双证 · gate_check rc=1 的 SW 域红项逐字归因
+- path: logs/iss322/
+  kind: evidence
+  version: '1.0'
+  updated_at: '2026-11-18'
+  summary: ISS-322 全部原始读数 (01~29 号 raw) + 11 个只读探针与分析脚本 · 交卷页引用的每个读数都有对应 raw 文件
+- path: HW/PCB/ONETRIP_S8_LEFTUPPER_REHEARSAL.md
+  kind: workpacket
+  version: v1.0
+  updated_at: '2026-11-18'
+  summary: 'ISS-325 主交付物: S8 左上布局 (21 器件 R_SEL_*+TP_DSI_* 钉左上 x 5.50..38.35) 沙盒预演作业包. §0 口径边界自证 / §1 目标坐标机器读取表
+    / §2 臂 env 唯一变量 / §3 三方 fresh DRC 对照表 / §4 网名集合三层口径差集 / §5 名单制闸三条判定 / §6 段内 P/N 顺序翻转复算 / §7 归零可达不可达
+    / §8 给板那一趟的逐字改法 / §9 证据分级+零写板双证+文件清单. 官方板 md5 611b869e13518c3c023fb178f91a0075 与 mtime 2026-11-06
+    07:07:17.362193413 交卷前后不变'
+- path: HANDOFF/2026-11-18_hw-lead_ISS325_左上布局沙盒预演.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-18'
+  summary: 'ISS-325 交卷单: B0 一句话+交付物清单 / B1 结论摘要 / B2 验收标准自评(逐条 通过-不通过-未验) / B3 证据分级 / B4 接口取值声明 / B5 未决项与卡点
+    / B6 自证复现命令. 门禁链 merge+gate_check+issue_check rc=0 且 Q1 18/18'
+- path: logs/iss325/
+  kind: raw-output
+  version: v1.0
+  updated_at: '2026-11-18'
+  summary: 'ISS-325 原始输出目录: 目标坐标机器读取 TSV / 臂 env 快照(左上臂+同日对照臂) / 每块板 fresh DRC JSON / 三方对照表 09_threeway_fresh_drc.txt
+    / cmp_unc_sets 三层口径差集 / 名单制闸 compare_arm_official 三条判定 / probe_pn_order 段内 P-N 翻转复算 / 零铜-有铜未连通机制表
+    / 零写板双证 / 门禁链输出'
+- path: logs/iss325/scripts/
+  kind: script
+  version: v1.0
+  updated_at: '2026-11-18'
+  summary: 'ISS-325 本单自建的测量/审计脚本 (★全部只读沙盒·只写 logs/iss325/ 与 /tmp/★): build_part_pos.py (PCB_PART_POS 串机器生成·零手抄)
+    · read_part_pos_pcbnew.py (目标坐标机器读) · read_all_footprint_pos.py (全板 185 封装落位读) · probe_pn_order_cand.py
+    (ISS-322 归档脚本的候选板版·原件一个字没改) · probe_som_body_cand.py · hs_copper_amount_cand.py · unc_mech_table.py
+    · iss325_fresh_hist.sh (8 块历史板逐块 fresh 重测) · iss325_measure.sh (交卷前测量总驱动) · gen_sec9.py (交付页 §9 生成器·文件清单逐字等于磁盘真实内容)
+    · iss325_scan.sh (★占位符自查: 标准 4 词 + 本单新增的【双下划线包裹】那一类★)'
+- path: logs/iss328/
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-328 右上对照臂原始输出目录: ①官方板R_SEL/TP落位TSV ②官方链封装落位diff(diff=0) ③排版阶段落位清单×3 ④TP no-op落位diff(diff=16)
+    ⑤右上臂PCB_PART_POS+出处登记 ⑥起链日志 ⑦裸板fresh DRC ⑧链终板fresh DRC ⑨封装落位diff ⑩链终几何 ⑪段内P/N翻转 ⑫名单制闸 ⑬零写板双证'
+- path: HW/PCB/ONETRIP_S8_RIGHTUPPER_CONTROL_ARM.md
+  kind: delivery
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-328 右上对照臂交付页: §0口径与边界自证 §1唯一变量与落位自检(diff=102硬前置) §2六条读数表(裸板/链终分开) §3名单制闸判决 §4TP no-op复测(diff=16)
+    §5给main的结论 §6证据分级 §7文件清单'
+- path: HANDOFF/2026-11-18_hw-lead_ISS328_右上对照臂与TP_noop复测.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-18'
+  summary: 'ISS-328 交卷页 (cont5 填实): B0~B6 齐全 (B2 逐条自评=REJECT · B3 证据分级 · B4 逐字取值 · B5 未决项 · B6 只读自证);
+    结论=右上臂名单制闸 REJECT (rc=1) ⇒ 「挪器件位置」这条处方已被 ISS-325 左上臂 + ISS-328 右上臂两个臂证伪; P-1 维持20条PCB_PART_POS一条不删;
+    归零只剩三条路=机制级/老板口径(W-2 W-1b W-1c A4 A5 W-3 U-1 P7)/路由器本体; 零写板 (md5 611b869e13518c3c023fb178f91a0075
+    + mtime 2026-11-06 07:07:17.362193413 未变); 原始读数=logs/iss328/33_recalc_gate_rc.txt + logs/iss328/34_cont3_readonly_recalc.txt'
+- path: HW/PCB/ONETRIP_S8_MECHANISM_PATH.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-334 主交付页: 零铜网0号清单(24条 fresh) + 三桶死因归类 + 候选臂设计(含对照有效性自检与可比性自检) + 沙盒预演读数 + 6条need + 复现命令'
+- path: HW/PCB/BOARD_ONEPASS_S8_MECHANISM_ACTIONS.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-334 板那一趟逐字作业包: S8-1复现官方 / S8-2桶A臂 / S8-3桶B臂 / S8-4桶C臂 / S8-5收口(板md5只变一次); 每步=命令+验收读数+不过怎么办'
+- path: HANDOFF/2026-11-18_hw-lead_ISS334_机制级换机制路线.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-334 交卷单: B0~B7 齐全, 6条need交main/boss, 零写板零落表零改闸零外发'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2803,6 +3172,401 @@ needs_from:
     | C4 CM1218-02S7); W-1b 由 W-2 唯一确定 (补⇒2/不补⇒1, 可不写). ★建议默认值 (建议非决定): W-2=补, W-1c=C1. ★不拍 ⇒ S4/B-3 换不了封装
     + G1a-4 (R4) 永远红 + 板 md5 变两次 ⇒ Gerber/投产包/留证链/盖章/发布全作废重做★'
   since: '2026-11-18'
+- key: iss297_board_reboard_day_must_verify_6_gates_sources
+  to: main
+  item: '交卷单 B5 第 ② 条 + ⑱-1 结论 ③ 合并报 —— 板那条路径到今天只由沙盒证明 (落表台账 11 处前后对照登记, 板的 md5 全是 611b869e→611b869e,
+    锚点 reboard 仍 null, 台账里从来没有过一次真板改), 而数据文件那一侧已被 ISS-302 真落表实战验过一轮 ⇒ ★建议 (仅供参考, 不是决定, 请 main 拍): 在「板只改一次」那一趟的作业包里把【三步】明确写成【四步】(第
+    4 步 = 第 3 道闸自己的板 md5 台账 HW/PCB/BOARD_ONEPASS_MD5_LEDGER.md 变更区 + 留证绑定区也要登记那一跳), 并且那一趟收工后必须回头看这 6 道闸打印的出处行
+    —— 出处没跟着走到新单号 = 通道失效 = 立刻报 main, 别让现场去改板凑绿 (这正是 ISS-297 立单时那条命门) ⇒ ★代价: 作业包文本多一步 + 改板当天操作者多填一处 + 收工后多看
+    6 行出处 ⇒ 另一条路是另派一单把落表台账与板 md5 台账合并 (另一个量级的活, 本单不越界)★'
+  since: '2026-11-18'
+- key: iss299_tmp_user_quota_decision_for_main
+  to: main
+  item: '★/tmp 用户配额打满导致所有用 /tmp 沙盒的 --selftest 假红(非闸缺陷·已实测可绕开·同一时刻 sw-lead 也在绕) ⇒ 请 main 三选一拍板: ①给 /tmp
+    提额 ②授权清理陈旧沙盒(约2.7G可回收·清单与回收量见 HANDOFF/2026-11-17_hw-lead_ISS299_H1重锚第2跳_基线常量.md §⑰-6-3·本次一个字节都没删)
+    ③立规矩: 所有 --selftest 一律 export TMPDIR=项目/tmp/单号_tmp(零成本·只改跑法不改闸)★'
+  since: '2026-10-25'
+- key: iss297_tmp_quota_exhausted_sandbox_selftest_false_red
+  to: main
+  item: '★【环境 · 会让 9 道闸的 --selftest 集体假红 · 不是判据回归】/tmp 这个 tmpfs 的用户配额已打满 ⇒ 走沙盒的反向用例拷不动 4.9MB 的板 ⇒ OSError
+    [Errno 122] Disk quota exceeded ⇒ check_onepass_commit_order.py / check_onepass_preflight_coverage.py
+    / check_workpack_state_values.py 三个 --selftest 回 rc=1 (假红)★ ★实证 (★2026-11-18 05:46~05:5x 本机实跑★): dd
+    if=/dev/zero of=/tmp/_probe.bin bs=1M count=20 ⇒ dd: IO error: Disk quota exceeded ★而同一条命令写 /var/tmp
+    成功 (★/var/tmp 在 /dev/sda2 · 392G 可用★) ★⇒ 同一批 --selftest 只要 TMPDIR=/var/tmp/xxx 就 6/6 全 rc=0 (★日志 logs/iss297/cont4_reverify_selftest_tmpdir.log★)
+    ★ ★影响面: 主模式 9 道闸全绿不受影响 (★gate_check Q7 钉板 md5 闸链 9/9 绿★) ⇒ 只影响各闸自己的 --selftest 与反向用例跑批 ★ ★建议 (★仅供参考
+    · 拍板权在 main · 不代拍★): ① 给 9 道闸的沙盒统一指定 TMPDIR 落到大盘 (/var/tmp 或项目 tmp/) —— ★一行环境变量 · 不改任何判据 · 最省事★ ②
+    或派一单清 /tmp 陈旧沙盒 (★占量前几名: od_glass_publish 1.5G · sbxtest 403M · iss239_rehearsal 391M · iss279_sandbox2
+    372M · iss279_sandbox 372M · holechk 310M · iss242_fix 294M · sg_sandbox 273M · iss260_sbx 259M ·
+    df 读数 7.5G 总 / 6.0G 已用 / 1.6G 剩★) ⇒ ★★注意: 05:47~05:48 另有 agent 正在建沙盒 ⇒ 不许无脑 rm -rf /tmp/*★ ★★本单没删任何
+    /tmp 目录 (★不是我的东西 · 也不替 main 拍★)'
+  since: '2026-11-18'
+- key: iss297_iss302_handoff_selfreport_vs_disk_mismatch_for_main
+  to: main
+  item: '★交卷单 ⑲ 一条【自报 vs 盘面】不一致, 请 main 核对 (本单只报事实, 不代裁)★ —— HW/check_pin_function_labels.py 的 mtime =
+    2026-11-18 00:23:08, 且该文件自己的 L150 注释与 MD5_ANCHOR_CHAIN 里都记着「H-1 重锚第 3 跳 · ISS-302 · 2026-11-18 00:3x」(第
+    3 跳基线 = ISS-302 落表后真盘值 6aee500e/9174309d/5b999399) ⇒ 而 ISS-302 的交卷单 HANDOFF/2026-11-18_hw-lead_ISS302_CSYS落表.md
+    B4 边界第 3 行自报「check_pin_function_labels.py / check_workpack_state_values.py / MECH/* 一个字节没改」, 其 B3-③
+    那张表还写「本单做没做 = 没做 ... 不许再重锚」⇒ 两边对不上 ⇒ ★排除法: ISS-299 是 11-17 21:51 (第 2 跳) · ISS-304 01:08 才开单且任务书明写不许动这个文件
+    · ISS-302 cont1 会话窗口覆盖 00:21~00:58 ⇒ 00:23:08 这个写入只可能出自 ISS-302 cont1★ ⇒ ★影响评估: 判据本身没被放松 (第 3 跳是判决源前移,
+    方向一字没动, 属 ISS-299 定的口径), 但【交卷单自报没碰而盘面被碰了】这类不一致, 放到真板改板那一趟就会变成「谁动过板」说不清 ⇒ ★建议 (仅供参考, 不是决定, 请 main 拍):
+    让 ISS-302 的交付复签时把这条一并对账 (是补记还是改正交卷单, 由 main 定)★ ⇒ ★附: 本交卷单 ⑱-3 那节把这次归因写成 ISS-304 的说法【不成立】(ISS-304
+    任务书明写不许动这个文件, 且它 01:08 才开单, 晚于 00:23:08 那次写入) — 准确时间线见 ⑲ 节★'
+  since: '2026-11-18'
+- key: iss297_concurrent_same_issue_sessions_wrote_same_handoff_and_fragment
+  to: main
+  item: '★【流程 · 会让复验读错】2026-11-18 05:4x~05:58 有两个 hw-lead 会话同时在跑 ISS-297 cont4 · 同一份交卷单与同一份分片都被并发追加★ ⇒
+    出现两处撞车: ① 交卷单里出现【两个顶级标题都叫 ⑲】(★另一个会话的「⑲ 归因订正…」与本会话的「⑲ 交卷后追记…」★) ⇒ 已在本会话 §⑲-9 追加编号对照表一次性说明 (★append-only
+    · 一个字没删没改★) ② 分片里双方都登记了同名 claim key iss297_hw_cont4_reverify_20261118_green (★内容不同★) ⇒ state/merge.py
+    rc=0 · 冲突 0 (★实测: 产出 588 · 阻塞 43 · 冲突 0★) ⇒ 不影响门禁 · 但 main 复验时请按 key 去重别当成两件事 ★ ★建议 (★仅供参考 · 不代拍★):
+    同一单别同时派两个实例 (★铁律: 一个 agent 同时只允许一个写会话★) · 或者让后一个实例只读不复写 ★'
+  since: '2026-11-18'
+- key: iss297_tmp_quota_preflight_tmpdir_mitigation_and_hardening
+  to: main
+  item: '★交卷单 ⑳ 节的【板那一趟开工前置】, 请 main 写进「板只改一次」那一趟的作业包 (★与同单另一实例已登记的 iss297_tmp_quota_exhausted_sandbox_selftest_false_red
+    互补·不重复★)★ —— 现象: 06:0x 本机实跑, 6 道 HW 闸里有 2 道 --selftest 回 rc=1 (g1a7 / commit_order), Traceback 原文
+    OSError [Errno 122] Disk quota exceeded ⇒ 根因 = /tmp 这个 tmpfs 的【用户配额】到顶 (findmnt /tmp 实测 usrquota;
+    dd 探针实测 Disk quota exceeded) ⇒ ★★df 是错的仪表: 故障时 df 显示 80% · 剩 1.5G 看着还有空间, 但配额先到顶 ⇒ 用 df 预检会漏判★★ ⇒
+    ★★★ 建议 (仅供参考, 不是决定, 请 main 拍): ① 板那一趟开工前先清本用户在 /tmp 的残留, 预检看 du -sm /tmp/* | sort -rn | head (别只看
+    df); ② 跑 9 道闸的 --selftest 时把沙盒 TMPDIR 指到大盘 (同单另一实例已实测: 换 TMPDIR 后 7 个 --selftest 全 rc=0 · 通道 60/60);
+    ③ 现场口令: 6 道闸一起红时先判是不是 /tmp 配额, 再判板是不是真被改了 — 顺序反了就会有人去改板凑绿; 反过来, 板真被改了而这 6 道还绿, 那才是通道失效要立刻报 main ⇒
+    ★代价: 作业包多一条前置 + 跑闸命令加一个 TMPDIR 前缀; 我们这边不用改任何代码 (6 道闸都把 run_cases 包在 try/finally rmtree 里 ⇒ 配额爆时整批中止但沙盒不残留
+    ⇒ 配额一放开就自愈)★ ⇒ ★另建议 main 单开一单做一处硬化: HW/board_reboard.py 的 build_sandbox() 现在在 run_cases() 的 try 之外
+    (L679 在 L681 的 try 之前) ⇒ 配额错时整批 selftest 抛栈中止 (21 条全灭), 挪进 try + 一个 except 就能优雅退化 (★量很小★); ★但 board_reboard.py
+    是 6 道闸共用的判决库, ISS-297 按任务书只读, 本单一个字节没动它★'
+  since: '2026-11-18'
+- key: iss305_v2_n1_downstream_not_closed
+  to: main
+  item: '【v2 · high · 交付页 §5-3 声称的「下游两处决策页已一并订正」本机实测一处都没落地】交付页 §5-3 表格第 3 行(L160)逐字写「已在 DECISION_INDEX_2026-11-18.md
+    §D / DECISION_PENDING_2026-11-16.md §A-补29 一并订正(append-only)」。实测: ① DECISION_PENDING_2026-11-16.md
+    §A-补29(L1603 起)命中「ISP/多摄/收窄」= 0 行 ⇒ 那是 ISS-307 的 ESD 落位坐标节, 跟 ISP 无关; ② DECISION_INDEX_2026-11-18.md
+    §D(L89 起)命中「ISP 处理/多摄/One channel」= 0 行 ⇒ 也是 ESD 节; ③ ★**真正写着宽版 over-claim 的 DECISION_PENDING_2026-11-16.md
+    L1573 一字未改 ⇒ 逐字仍是「RK3572 的 ISP 是 One channel ⇒ 同一时刻只有 1 路传感器能进 ISP ⇒ 多摄像头方案在 RK3572 上不成立 (无论 CSI 物理上有几个口)」,
+    而这一行就在 §A-补28 的 §④「一条新事实·给老板看一眼」里**★。已收窄的只有: 交付页 §5-2(L150-152) + TASK_BOARD.md L178 + config/agents/main/memory/2026-11-18.md
+    L91; 没收窄的: DECISION_PENDING L1573 + state/CROSS_SESSION_NOTE_2026-11-18.md L88。⇒ 后果 = ★**老板翻决策页仍读到宽版
+    ⇒ 它会以【事实项】口吻进下一步 demo 选型 ⇒ ISS-305 判 severity=high 的理由被坐实 ⇒ 收窄只生效在交付页内部, 没出交付页**★。建议最小改动(append-only):
+    在 DECISION_PENDING_2026-11-16.md §A-补29 之后追加一节, 或在 L1573 后加一行箭头注记, 指向「实时 ISP 处理路数 = 1 / 多摄并发 = [0数据]」。★hw-lead
+    只读只报错, 不替 main 改决策页(非本单授权文件)★'
+  since: '2026-11-18'
+- key: iss305_v2_n2_needs_no_ticket
+  to: main
+  item: 【v2 · medium · main 口头说「另开单」的 2 条 need 台账里查无对应新单 ⇒ 无主可追】main 在 ISS-131 的 verify_result(issue_log
+    L4842-4846)逐条对账写「n1(rk3572_pins.csv 126 行 pin 名归属错位)未修 ⇒ 另开单修解析器」+「n2(被审脚本 ±3 行窗口判据非排他)⇒ 另开单换判据」。实测
+    grep -nE 「parse_rk3572_datasheet|排他归属|ball_truth|_iss131_crosscheck.*换判据」 state/issue_log.yaml ⇒ 零命中对应新单;
+    台账最新 id 到 ISS-313, 其中 ISS-311=产出链重出清单 / ISS-312=SW 判据修复 / ISS-313=MECH 域 needs 处置, 三条标题都不是这两件事。⇒ 这
+    2 条 need 只登记在 hw.yaml 分片里(grep -c iss305 ≥16), 台账侧无承接单 ⇒ 下一个人只查台账会误以为已闭环。★请 main 真开单(修解析器 / 换排他判据两件),
+    或明确写「暂不修 + 谁负责 + 何时」
+  since: '2026-11-18'
+- key: iss305_v2_n3_b5_7_stale
+  to: main
+  item: '【v2 · low · B5-7「字节数登记过期」main 说已修, 实测决策页那一处仍写 6,007 B】main 的 ISS-131 verify_result 写「同批修掉 B5-5
+    + B5-6 + B5-7(字节数登记过期)」。实测: B5-5 ✓ 已修(L29 已改「本机校验 (md5 逐字节比对)」); B5-6 ✓ 已修(L77-78 已补 12M=12x2^20);
+    ★**B5-7 ✗ 未修**★ ⇒ DECISION_PENDING_2026-11-16.md L1545 仍写「交付页 HW/RK3572_INQUIRY_CALIBER_V2.md (6,007
+    B)」而真值 14,860 B, 且 state/issue_log.yaml L4850 的登记值也仍是 6,007 B(⇒ 已过期两代: 6,007 → 8,863 → 14,860)。★hw-lead
+    不自签 issue_log, 请 main 更新台账 + 决策页两处登记读数★'
+  since: '2026-11-18'
+- key: iss311_n1_s1_refsuffix_scope_decision
+  to: main
+  item: '★★【high · 板那一趟开工前必须拍】S1 板侧位号加 _1 的口径必须先定, 否则那一趟白跑★★ 沙盒实测 (logs/iss311/06_probe_s1_refsuffix_c1_collision.txt):
+    作业包 §3-S1 要把板侧 156 个位号加 _1 (末字符是字母的), 而 §5 写网表/脚表/BOM 逐字节不变 ⇒ 两边矛盾。沙盒只改名不换网 ⇒ 环③ C1 从【缺失 0 / 多余 2
+    / 同号异网 3】变成【缺失 350 / 多余 352 / 同号异网 0】; 反证分支把网表侧 ref 同规则改口径 ⇒ 回到 0/2/3 ⇒ 证明这是【口径没同步】不是改名本身错。根因: state/check_pcb_nets.py
+    的 board_pads() 与 netlist_pads() 都取原样 ref, 没有图上位号→表侧 ref 的反查; 而 state/gen_kicad_sch.py::kicad_ref()
+    (ISS-205) 原理图侧已全用 X_1 (实测 218 位号里 187 个带 _1, 其中 186 个是改名来的 + 1 个原生 R_BAT_DET_1), state/gen_pcb_netlist_board.py
+    里零处映射 ⇒ 板生成器现在写表侧原名 (板上 186 位号, 带 _1 的只有 1 个)。两个选项我不替 main 选: ① 三侧同口径改名 (网表+脚表+板+BOM 一起落表 + 板生成器加
+    kicad_ref 映射) —— 代价 = 要落表, 工作量与风险上一个台阶; ② 板侧暂不加 _1 (S1 只做原理图侧) —— 代价 = 板侧位号仍是 KiCad 未标注态, KiCad 导出
+    BOM 仍带问号, S1 那条问号行数=0 在板侧达不到。★check_pcb_nets.py / check_pcb_drc.py 是受保护脚本不许改 ⇒ 口径只能在数据侧统一。'
+  since: '2026-11-18'
+- key: iss311_n2_workpacket_self_contradiction
+  to: main
+  item: '★★【high · 文档口径自相矛盾】HW/PCB/BOARD_ONEPASS_WORKPACKET.md §5 受保护件表写『HW/netlist_v1.csv / netlist_v1_pins.csv
+    / BOM_v1.csv 逐字节不变』, 而 §3-S1 写『板侧 186 个封装位号要加 _1 (ISS-289 订正为 156 个)』⇒ ★这两条不能同时成立 (⇒ 就是 iss311_n1
+    那颗地雷的文档面)★。本单零改既有文档正文 ⇒ 只登记不代改。请 main 拍: 要么 §5 改成允许落表, 要么 §3-S1 改成板侧暂缓。同源的第二处: §3-S1 写的位号真源指针 HW/SCHEMATIC_V1_SPEC.json
+    的 devices 段 (W19 已登记该 JSON 里没有 devices 键 ⇒ 指针失效) —— 实际改名规则的现行真源是 state/gen_kicad_sch.py::kicad_ref()。'
+  since: '2026-11-18'
+- key: iss311_n3_bom_board_ref_lookup_break
+  to: main
+  item: '★★【medium · 与 iss311_n1 同根】板侧改名 ⇒ BOM 的板文件权威源回填会静默失效★★ state/gen_bom.py 按精确 ref 读板: L277-303
+    用 board.get(ref) 读 J_SOM_P2 / J_SOM_P4 (读不到 ⇒ 板级归属/页位/封装/opn 回填整段丢失); L307-330 的 GAP29 (29 个器件, 其中约
+    24 个位号末字符是字母 ⇒ 会改名) 用 board.get(ref) 读板封装 Value 与焊盘数 (读不到 ⇒ 封装/型号来源那些证据行整段消失, opn 退回 待定 / [0数据]);
+    L143-175 的 _pick_value() 里板文件 Value 只作兜底 (兜底也读不到 ⇒ value 变 待定)。★且没有任何报警 ⇒ BOM 质量静默降级。★若 n1 选 ① 三侧同口径,
+    这条自动消失; 若选 ② 板侧不加 _1, 这条也不触发 ⇒ 两条一起处置即可。'
+  since: '2026-11-18'
+- key: iss311_n4_c_vbus_gnd_keep_or_drop
+  to: main
+  item: '★★【medium · 老板/PM 域 · hw-lead 不替老板拍】C_VBUS_GND 留不留 (boss_c_vbus_gnd_reserve_pad_20261117)★★ 本单只交事实:
+    网表 HW/netlist_v1.csv L10/L12 的 board 列已经是 CHG_BOARD (脚表 L148-149 同源, dnp=DNP) ⇒ 按现行网表它不在 demo 主 PCB
+    上; 而板 611b869e (11-06 07:07:17 生成) 上仍有这个封装 (原点 107.7,42.5, pad1=L8259=GND, pad2=L8267=VBUS_5V_CHG)
+    ⇒ 它就是环③ 多余 2 的成因。两条路的代价: 不留 = 板那一趟重跑 state/gen_pcb_netlist_board.py 即自动消失 (封装数 186→185, 板 md5 变, Gerber
+    与投产包同趟重出); 留 = 要把这两行的 board 列改回 MAIN_PCB (★那是落表★, 且会让板级再背一颗 100µF DNP 电容的板面)。★作业包 §3-S2 已按不留写 ⇒ 本单把事实与代价摆齐,
+    请 main 确认口径。'
+  since: '2026-11-18'
+- key: iss311_n5_c1_same_pad_net_extra3
+  to: main
+  item: '★★【medium · 只交事实不代改】环③ C1 的红不止『差 2』, 还有 3 条同号异网, 只解决那 2 条 ⇒ C1 仍然红 ⇒ 那一趟跑完还是投不了板★★ 3 条逐条 (日志
+    logs/iss311/02_probe_c1_diff_raw.txt): ① Q_PG pad1 网表应为 PWR_GOOD (网表 L59) / 板上是 PWR_ON (板 L2068);
+    ② Q_PG pad3 网表应为 PWR_ON (网表 L61) / 板上是 PWR_GOOD (板 L2084) ⇒ ① ② 是同一处脚位对调 (板封装原点 84.8,29.5) ⇒ 作业包 B11_Q_PG_LAND
+    / ISS-283 §③-2 已登记, 那一趟要重画这 3 根线; ③ D_ESD_USB_D pad1 网表应为 NET_USB_D_P_TYPEC (网表 L417, Type-C 侧 / 串阻后)
+    / 板上是 USB_D_P_SRC (板 L13012, SoM 侧 / 串阻前) ⇒ ESD 挂在 22Ω 串阻的错误一侧 ⇒ 与作业包 B32_V2_NET_RENAME / B07·B08·B09
+    (ISS-283 §③-1) 同批 ⇒ 那一趟必须换 3 脚封装 + 挪位 + 重挂网。★⇒ 那一趟的 C1 验收判据必须写成 缺失 0 / 多余 0 / 同号异网 0 三件同时满足。'
+  since: '2026-11-18'
+- key: iss311_n6_sch_src_11_actual_breakdown
+  to: main
+  item: '★【low · 交卷即知】投产包 doc/sch_src/ 与 HW/PCB/ 的 11 个 md5 不一致, 已实测拆开: 真正内容旧的只有 2 个 (demo_mainboard_p1.kicad_sch
+    归一化差 14 行 / demo_mainboard_p10.kicad_sch 归一化差 28 行, 方向是投产包旧 —— 判据锚点 = 网表真源: 源里 C_SYS 是 (dnp no) +
+    Value 20µF X7R 6.3V 与脚表 L142-143 的 必装 一致, 包里是 (dnp yes) + 20µF 6.3V 且标签染红 255 0 0 1 = ISS-302 落表之前的版本),
+    另外 9 个只是 uuid 抖动 (归一化后一致 ⇒ 不是真缺件), 缺页 0 / 改名 0, .kicad_pro md5 一致不在那 11 个里。★注意 chain_gate ⑤ 判的是 md5
+    一致不是归一化一致 ⇒ 那 9 个也必须同趟同步才绿; ★同步的正确做法是 bash state/gen_production_pack.sh (★脚本自带 cp -p 归档 sch_src, L95
+    还自带一次清空⇒ 人工塞的东西下次重出必被冲掉★), 不是手 cp。'
+  since: '2026-11-18'
+- key: iss311_n7_manifest_current_values_expire
+  to: main
+  item: '★【low】HW/PCB/ONETRIP_REISSUE_MANIFEST.md 的【现值】列是 2026-11-18 06:2x 的实测快照 (日志 logs/iss311/05_current_values.txt)。板那一趟跑完后这列就过期
+    ⇒ 建议那一趟收工时用同款命令重刷一次现值列, 或把该文件归档为『那一趟的输入快照』。★另: 那本清单只交『改完要重出哪些』, 不替代 BOARD_ONEPASS_WORKPACKET.md (『怎么改板』)
+    与 BOARD_ONEPASS_PREFLIGHT.md (板侧项全集) ⇒ 两份老文件本单一个字没改。'
+  since: '2026-11-18'
+- key: iss311_n8_probe_scripts_location
+  to: main
+  item: ★【low · 归属请 main 定】ISS-311 的 3 个自证探针脚本落在 logs/iss311/ (probe_c1_diff.py / probe_sch_src_diff.py
+    / probe_s1_refsuffix_c1_collision.py), 用途是让『同一份数据可复现』。它们全部只读项目文件 (★第三个的沙盒只写 tmp/iss311_tmp/ 且跑完自删★)。若
+    main 认为 logs/ 只放日志不放脚本, 可移到 state/ 下的只读工具位 —— ★那要 main 拍, 本单没自行搬★。
+  since: '2026-11-18'
+- key: s1_ref_rename_caliber_20261118
+  to: main
+  item: '★S1 位号改名口径必须开工前拍★: 作业包 §3-S1 (板侧 156 个封装位号加 _1) 与 §5 (网表/脚表/BOM 逐字节不变) 自相矛盾 ⇒ 沙盒 8 场景实测: 只改一侧
+    ⇒ C1 缺失350/多余352/同号异网0/非法NC3 + C2红14 + C3红155; 三侧同口径 ⇒ 0/2/3 但仍 非法NC3 + C3红1 (J_USB_C→J_USB_C_1 撞死
+    check_pcb_nets.py:265 的 NC 白名单) ⇒ ★「位号改名」与「受保护判据脚本一个字不许改」不可兼得★。 请拍两件: ① 选 ①三侧同口径落表 (本单建议) 还是 ③板侧改名+判据反查层?
+    ② 能不能解封 state/check_pcb_nets.py 两行 (L265 NC 白名单 + L402 --selftest 目标 CONN_CAM · 改名后自检会抛 ValueError
+    崩掉)? 不拍的后果: 那一趟跑完 C1 炸成 702 条 ⇒ 板 md5 第二次变 (2-4 周 + ¥4-8K) + BOM 9 行证据消失并换成假话「不在本 PCB」(看着还是绿的 · 没人拦)
+    + CPL 与 BOM 位号分叉 (贴片那天才炸) + 判据自检自崩 (假绿风险回来)。 依据: HW/PCB/ONETRIP_S1_REF_RENAME_CALIBER.md §2/§3/§4/§6
+    + logs/iss314/12_scenario_matrix.txt'
+  since: '2026-11-18'
+- key: s1_ref_rename_caliber_20261118
+  to: main
+  item: '★S1 位号改名口径必须开工前拍★: 作业包 §3-S1 (板侧 156 个封装位号加 _1) 与 §5 (网表/脚表/BOM 逐字节不变) 自相矛盾 ⇒ 沙盒 8 场景实测: 只改一侧
+    ⇒ C1 缺失350/多余352/同号异网0/非法NC3 + C2红14 + C3红155; 三侧同口径 ⇒ 0/2/3 但仍 非法NC3 + C3红1 (J_USB_C→J_USB_C_1 撞死
+    check_pcb_nets.py:265 的 NC 白名单) ⇒ ★「位号改名」与「受保护判据脚本一个字不许改」不可兼得★。 请拍两件: ① 选 ①三侧同口径落表 (本单建议) 还是 ③板侧改名+判据反查层?
+    ② 能不能解封 state/check_pcb_nets.py 两行 (L265 NC 白名单 + L402 --selftest 目标 CONN_CAM · 改名后自检会抛 ValueError
+    崩掉)? 不拍的后果: 那一趟跑完 C1 炸成 702 条 ⇒ 板 md5 第二次变 (2-4 周 + ¥4-8K) + BOM 9 行证据消失并换成假话「不在本 PCB」(看着还是绿的 · 没人拦)
+    + CPL 与 BOM 位号分叉 (贴片那天才炸) + 判据自检自崩 (假绿风险回来)。 依据: HW/PCB/ONETRIP_S1_REF_RENAME_CALIBER.md §2/§3/§4/§6
+    + logs/iss314/12_scenario_matrix.txt'
+  since: '2026-11-18'
+- key: s1_ref_rename_caliber_20261118
+  to: main
+  item: '★S1 位号改名口径 + NC 白名单方案必须拍★: ① 走【五侧同口径】(板+网表+脚表+BOM+原理图) 还是走【板侧单改+反查层】? ★实测: 表侧 218 个真实器件里 186
+    个要改名 (板侧只动 156 个) ⇒ 只改板侧必然 C1 炸 (ISS-314 S3 实测 缺失350/多余352)★ ② NC 白名单 (J_USB_C) 走 甲(豁免那 1 个) / 乙(解封
+    state/check_pcb_nets.py 两行) / 丙-②(白名单按正则 ^J_USB_C(_\d+)?$ 推导) 哪一个? ★★丙-①(裸前缀 startswith) 已实测会放过真错
+    (反向用例② 非法 NC 0 vs 基座 4) ⇒ 本单不推荐★★ ③ ★★另注: 判据解封是【两行】不是一行 —— --selftest 目标 CONN_CAM 也必须跟着改名, 否则改名后 --selftest
+    抛 ValueError 崩掉 (S1 实测) ⇒ 假绿保护消失★★ 【本单实测读数】甲/乙/丙-② 四者 C1 三项完全相同 (缺失0/多余2/同号异网3·与现状基线一致 ⇒ 改名不解掉现状 delta);
+    非法 NC: 底座 3 / 甲乙丙-② 全 0; C3 不符: 底座 1 / 甲乙丙-② 全 0; BOM 证据: 只改板侧不改 BOM 侧 ⇒ 丢 17 行证据且无任何报警 (J1 判据实测)
+    ★★本单不替老板拍★★'
+  since: '2026-11-18'
+- key: iss322_s8_p7_zero_scope
+  to: main
+  item: '问法: S8 归零到底要不要动板框/层数? 本单实测: 不要 —— SoM 主体区 x8..76 y6..56 内 In1/In3/In5/In6/B.Cu 各只占 0.38%, J_SOM_P1..P4
+    全是 F.Cu 上的 SMD(通孔 0), 且同框同层数的 best_unc23 板做到 unc 23 ⇒ 是不是把 P7 口径从「C1/C2/C3 改板 / C4 不归零」改成「同框归零」? |
+    谁答: main (转老板) | 不答的后果: 沿用 ISS-308 判「现役帧上 45→0 不可达」⇒ S8 不以归零收口 ⇒ G1 开不了 ⇒ 投不了板; 或走 C4 分级放行 ⇒ 带着 11
+    条「两块板都没布通」的硬骨头 (高速 8 + 非高速 3) 投板 ⇒ 投板后才发现 = 2-4 周 + ¥4-8K | 建议默认值: 「同框归零」(依据 §3-4 + §3-7 实测) ⇒ P7
+    只需选板形, 不必选「改不改板」 | 建议排期: BATCH-1 开工前'
+  since: '2026-11-18'
+- key: iss322_s8_rsel_lane_order
+  to: main
+  item: '问法: R_SEL_* + TP_DSI_* 这 21 个 DSI lane 器件, 挪到【左上 x 5.50..38.35】还是【右上 (ISS-265 方案 A)】? 本单实测: 左上那
+    7 块同代板 unc = 23/26/28/29/29/35/35, 右上现役板 = 45 (全盘最差) ⇒ 建议【左上】 | 谁答: main + 老板 (要动布局 ⇒ 动板 md5) | 不答的后果:
+    按 ISS-265 方案 A 布 ⇒ 段内 P/N 顺序翻转 17/47 处 ⇒ 高速 23 条必然要交叉 ⇒ 归不了零 ⇒ 板 md5 变两次 (S6 布局一次 + S8 再布一次) = 2-4
+    周 + ¥4-8K | 建议默认值: 左上 x 5.50..38.35 (R_SEL_* y=3.00 · TP_DSI_* y=6.20) | 建议排期: BATCH-1 开工前'
+  since: '2026-11-18'
+- key: iss322_s8_csi_cap_side
+  to: main
+  item: '问法: CSI 5 族在 CONN_CAM 连接器侧的 P/N 顺序与 AC 电容侧相反 (Δx=0.50mm) ⇒ 是【把 AC 电容挪到连接器同侧】还是【成对换层绕开】? | 谁答:
+    main | 不答的后果: CSI 10 条走不进「改布局」批 ⇒ 落到「算法可解」⇒ 实测这类在 v44/v46/v47/v48 四条臂上都没布出来 ⇒ 45 归不了零 ⇒ G1 开不了 | 建议默认值:
+    成对换层绕开 (不动器件、不动板框、风险最低) ⇒ 万一失败再退到「挪 AC 电容」 | 建议排期: BATCH-1 开工前'
+  since: '2026-11-18'
+- key: iss322_s8_a1_batdet
+  to: main
+  item: '问法: BAT_DET 的终点是哪个点? (ISS-265 §6-1 登记的 A1 · 作业包 §3-S8 的 5 条死因之一) | 谁答: 老板 (经 main 转达 · 技术选项由
+    hw-lead 给) | 不答的后果: BAT_DET (J_SOM_P1.38 ↔ C_DET_BAT.1 · 直线 37.08mm) 布不了 ⇒ 45 归不了零 ⇒ G1 开不了 ⇒ 投不了板
+    | 建议默认值: 终点 = C_DET_BAT.1 (现状网表已这么连 · 只需确认不是要改成分压链中点) | 建议排期: BATCH-1 开工前'
+  since: '2026-11-18'
+- key: iss322_s8_w1w2_esd
+  to: main
+  item: '问法: ESD 架构定了没? 定了才能定 D_ESD_USB_D / D_ESD_LIGHT 的封装与钉位 (W-1 / W-2) | 谁答: 老板 (ISS-307 已给候选集) |
+    不答的后果: LIGHT_5V (6.56mm) 与 USB_D 侧的钉位定不下来 ⇒ 那一趟开工后还得再改一次板 ⇒ 板 md5 变第 2 次 = 2-4 周 + ¥4-8K | 建议默认值:
+    ISS-307 候选集里封装最小的一个, 并把钉位写进 PCB_PART_POS | 建议排期: BATCH-1 开工前'
+  since: '2026-11-18'
+- key: iss322_s8_w4_qpg
+  to: main
+  item: '问法: PWR_GOOD 从 Q_PG.3 出来还是进去? (极性) | 谁答: 老板 | 不答的后果: Q_PG.3 是不是终点都没定 ⇒ PWR_GOOD (R_PU_PG.2 ↔
+    Q_PG.3 · 15.13mm) 布不了 ⇒ 45 归不了零 | 建议默认值: Q_PG.3 = 输出脚 (PWR_GOOD 从 Q_PG 出来到 R_PU_PG) | 建议排期: BATCH-1
+    开工前'
+  since: '2026-11-18'
+- key: iss322_s8_d_led_g_pos
+  to: main
+  item: '问法: D_LED_G 落在板上的哪个点? (现状 LED_G_D 直线 93.49mm) | 谁答: mech-lead + 老板 (依赖 MECH 侧落位 · ISS-320 在飞)
+    | 不答的后果: LED_G_D 93.49mm + LED_G 被 LED_B 掐 0.200mm ⇒ 这 2 条布不了 ⇒ 45 归不了零 | 建议默认值: 把 D_LED_G 挪到 R_LED_G
+    同侧 (直线 < 20mm) | 建议排期: BATCH-1 开工前 (与 MECH 落位同批)'
+  since: '2026-11-18'
+- key: iss325_s8_zero_reachability
+  to: main
+  item: '问法: S8 归零到底可达不可达? 左上布局臂跑完 unc = ? 离 0 还差几条 / 每条卡在什么上? 本单实测(2026-11-18, 两条臂同一天同一份生成器 sha256 fe131779e12cf3c6
+    / 同一份路由器 sha256 5a5ce4b4cdd94155 / 同一个预留串 md5 1950683f8f2981eb6e1141c3559c02a6): ★★**① 臂间差 = 0 (★不是「效果小」,
+    是【零】★)** —— 左上臂 (钉 20 个) 与同日对照臂 (只钉 10 个 R_SEL_*) 的【全板 185 个封装落位逐个完全相同 (差异行数 = 0)】+【链终板几何完全等价 (走线
+    3544 / 过孔 505 / 铜皮 4 区)】+ 【unc 网名集合完全相同 (裸板 31 == 31 · 链终 27 == 27)】+【段内 P/N 翻转都是 5 / 47】⇒ ⇒ 【唯一变量
+    = 显式钉那 10 个 TP_DSI_* ⇒ 它是 no-op ⇒ 被实跑证伪】 (根因 = gen_pcb_netlist_board.py L1042~L1060 『测试点 TP_* 贴着它的伙伴件放』)
+    ⇒ ★★**因此「左上布局」这一条处方对 unc 的净效应【至今没有任何实测】—— 两臂都做了左上, 变量没被变动 ⇒ 本单只提供【单臂绝对读数】(链终 unc 29 / unc 网名 27 /
+    viol 1 / 段内翻转 5 / 47 / 名单制闸 REJECT: 退铜 4 + 差分死腿 1 对 + 逐网孤岛变多 9), 【不提供臂间差值】★★**; ★★**② 绝对读数**★★: 左上布局臂链终板
+    unc = 29 (★裸板 unc 37 / unc 网名 31★) ⇒ 离 0 还差 29 条 = 零铜 12 网 (路由器根本没布出来) + 有铜未连通 15 网 (布歪了) ⇒ 这两桶都不是「布局」能吃掉的;
+    而且这条臂【过不了名单制闸】(DRC=1 · 退铜 4 · 差分死腿 1 · 逐网孤岛变多 9) ⇒ ⇒ 不能按原样落板; 段内翻转停在 5 (★不是 0★), 剩的 5 处全是 CSI 5 族在
+    CONN_CAM 连接器侧 (Δx=-0.50mm), 跟 R_SEL_*/TP_DSI_* 挪位零作用; 且 unc 变少 != 板变好 (盘上 unc 最少的 best23 板 unc 23
+    自己过不了名单制闸); ★★**③ 归因限定 (★本轮新增·不许再写「左上布局 ⇒ 翻转 17 → 5」★)**: 「左上臂 5 vs 现役板 17」这个差里混着【生成器代码漂移 + 官方历史链累积】(现役板
+    stage-1 = 17022 段 / 今天的臂 = 3088 段) ⇒ 【不是左上布局的净效应】★★ | 谁答: main + 老板 (依 G7 iss322_s8_rsel_lane_order
+    的落板) | 不答的后果: S8 归零仍是推算 => 板那一趟可能白做 (板 md5 变第一次但归不了零 => 还得再改一次 => 2-4 周 + ¥4-8K); 而且如果 G7 把「29 vs
+    45」当「左上布局的功劳」拍板, 那一趟做完还是 29 条 (零净效应) ⇒ 板 md5 白变一次 | 建议默认值: 归零拆成三问 - (a) 这条布局能不能直接落板 = 不能 (已实测: 名单制闸
+    REJECT); (b) 这条布局对 unc 的净效应 = 本单没测到 (臂间差 = 0) ⇒ 要拿到净效应必须重跑一对【真能构成对照】的臂 (变体必须落在生成器【真会读】的量上, 例如换 R_SEL_*
+    的坐标本身 / 换 PCB_KEEPOUT / 换 PCB_AREA_* 分区); (c) 机制(成对走廊/换层绕/让路闸)+口径(A1/W-1/W-2/W-4/D_LED_G/CSI电容侧)+CSI
+    侧一起上能不能归零 = 本单不判, 留给 G7 + ISS-308 | 建议排期: BATCH-1 开工前'
+  since: '2026-11-18'
+- key: iss325_s8_csi_side_zero_effect
+  to: main
+  item: '问法: CSI 5 族 (CSI_D0_CK/D0/D1/D2/D3) 在 CONN_CAM 连接器侧的段内 P/N 顺序翻转 (Δx=-0.50mm) 能不能靠【挪 R_SEL_*/TP_DSI_*
+    到左上】消掉? 本单实测: 不能 - 这 5 族的两个端点都在连接器侧 (x 79.40..87.40), 与左上目标坐标 (x 5.50..41.55) 一个都不沾 => 挪位对它们的段内序零作用
+    (翻转停在 5, 不是 0). ★★**本轮实测补充 (2026-11-18 cont2)**: ① 本单两条臂 (左上臂 / 同日对照臂) 的这 5 族读数【逐条相同】(都是 47 段 / 5
+    翻转, 翻转明细也逐条相同: CSI_D0_CK / CSI_D0_D0 / CSI_D0_D1 / CSI_D0_D2 / CSI_D0_D3 全部在连接器侧 Δx=-0.50mm) ⇒ ⇒ 【这条【归因】不依赖对照臂】(★即使没有有效对照,
+    「这 5 族的两端都不在左上 ⇒ 挪位治不了」这个几何事实也成立★) ⇒ ⇒ 它是本单【唯一一条不因「臂间差 = 0」而失效】的结论; ② 落盘 = logs/iss325/34_pn_order_lu_bare.txt
+    / 35_pn_order_ctl_bare.txt / 36_pn_order_lu_chain.txt / 37_pn_order_ctl_chain.txt (★四块板逐条相同★) | 谁答:
+    main (依 iss322_s8_csi_cap_side: 挪 AC 电容 vs 成对换层绕开) | 不答的后果: 板那一趟若只做 21 器件挪位, BOARD_ONEPASS_WORKPACKET.md
+    §4-3-⑥ 的『翻转=0』判据必然红 => 那一趟自己过不了自己的验收门 => 要么拖成两趟 (板 md5 变两次 = 2-4 周 + ¥4-8K), 要么带着红项硬落板 | 建议默认值: 成对换层绕开
+    (不动器件·不动板框·风险最低), 且必须与 21 器件挪位【同趟】做掉 | 建议排期: BATCH-1 开工前'
+  since: '2026-11-18'
+- key: iss325_s8_iss322_table_unc_stale
+  to: main
+  item: '问法: ISS-322 §3-6 那张 8 块板的 unc 列要不要正式作废? 本单逐块 fresh 重测 (不抄表): baseline_v76mg0_chain = fresh 25
+    (表里写 35, 差 10) 且它带着 29 条 DRC 违规; baseline_v76mx0_chain = fresh 29 (表里写 26, 差 3). => 那张表是【历史记录】不是【fresh
+    读数】, 只能当历史, 不许当可复现先验. | 谁答: main (是否要发一条订正给 ISS-322 的归档) | 不答的后果: 后续任何引用该表做『unc 与 lane 序单调相关』论证的地方都会带着
+    2 处错值 => G7 拿错证据拍板 | 建议默认值: 正式标注该表为历史记录, 一切引用改用 logs/iss325/09b_hist_boards_fresh_drc.txt | 建议排期:
+    下一轮 S8 作业包打包前'
+  since: '2026-11-18'
+- key: iss325_s8_tp_pin_noop_proven
+  to: main
+  item: '问法: 显式钉那 10 个 TP_DSI_* 到底有没有用? 本单实测(2026-11-18, 两条臂同一天同一份生成器 sha256 fe131779e12cf3c6 / 同一份路由器
+    sha256 5a5ce4b4cdd94155 / 同一个预留串 md5 1950683f8f2981eb6e1141c3559c02a6): ★答案是【没用 —— 是个 no-op】★ ⇒ 左上臂
+    (钉 20 个) 与同日对照臂 (只钉 10 个 R_SEL_*) 的【全板 185 个封装落位逐个完全相同 (差异行数 = 0 · 裸板与链终板各测一遍)】+【链终板几何完全等价 (走线 3544
+    / 过孔 505 / 铜皮 4 区, 逐条相同)】+【unc 网名集合完全相同 (裸板 31 == 31, 链终 27 == 27, 差集两边都为空)】+【段内 P/N 翻转都是 5 / 47】;
+    根因 = state/gen_pcb_netlist_board.py L1042~L1060 的『测试点 TP_* 贴着它的伙伴件放』规则 ⇒ 只要 R_SEL_* 钉到左上, TP_DSI_*
+    自动跟过去. ★★cont3 补测: TP_DSI_D0_N = (41.55, 3.00) 【也不是例外】—— 对照臂 (不钉 TP) 的它同样落在 (41.55, 3.00), 与左上臂【显式钉】的坐标一字不差
+    ⇒ ⇒ 【那 10 条 PCB_PART_POS 全部是冗余的, 含 TP_DSI_D0_N】★★ | 谁答: main + 老板 (依 G7 iss322_s8_rsel_lane_order
+    的落板) | 不答的后果: ① ISS-265 / LAYOUT_FIX_SPEC §1.2 那句『只钉 R_SEL 的另一半 = 给路由器埋雷』对今天的生成器【是错的】(TP 会自动跟过去, 不需要显式钉)
+    ⇒ 按它开工 = 白钉 10 个坐标; ② 更要紧: 本单【这两条臂没有构成对照】(唯一变量在落位上完全没生效) ⇒ ⇒ 『左上臂 29 条 vs 现役 45 条』这个差【不能当成『左上布局的功劳』】——
+    那是【左上臂 vs 现役板】的差, 里面混了别的变量 ⇒ ⇒ G7 拿它拍板会拍错; ③ 后果量级: 板 md5 多变一次 = 2-4 周 + ¥4-8K | 建议默认值: ★★改写处方 —— 从
+    ISS-322 §3-8 里【删掉「必须显式钉 TP_DSI_*」这一整条】(★它已被实跑证明是冗余的, 含 TP_DSI_D0_N★), 只保留「钉 10 个 R_SEL_* 到左上 x 5.50..38.35」⇒
+    代价 = ISS-322 作业包 §3-S6 的 PCB_PART_POS 串要改 (从 20 条改成 10 条) | 建议排期: BATCH-1 开工前 ★(本 need key 已按 ISS-325
+    cont2/cont3 任务书逐字对齐★)'
+  since: '2026-11-18'
+- key: iss325_s8_gen_products_mtime
+  to: main
+  item: '问法: 4 个生成器产物 (HW/PCB/STACKUP.md / LAYOUT_RULES.md / GEN_SELF_CHECK.txt / _frame_reference.kicad_pcb)
+    每次跑 check_pcb_drc.py 就被重写一遍 —— 修不修? 本单实测: ★是, 无条件重写★ —— 根因链 = state/check_pcb_drc.py L156~L159 (C5
+    生成器自检) 无条件 run(gen_kicad_project.py) → gen_kicad_project.py L255/L286/L303/L369 无条件 open(...,''w'').write(...)
+    (无 if-not-exists / 无内容比对 / 无 mtime 守卫) ⇒ ⇒ 任何跑 check_pcb_drc.py 的动作都改这 4 个文件的 mtime ⇒ state/daily_check.py
+    L321 + state/chain_gate.py L296 都跑它 ⇒ 【每天的巡检都在动这 4 个文件】. ★内容实情: 前 3 个只差首行时间戳 (diff 只报 1c1 一处) ⇒ 逐字节相同;
+    _frame_reference.kicad_pcb 剥掉 236 处随机 uuid 后逐字节相同 ⇒ 几何/网络零变化 ⇒ 【不是语义改动】. ★同型缺陷已在 ISS-280 (2026-11-17
+    08:50, state/_apply_20261117_0850_main_verify279_280.py L68) 被披露过一次, 至今未修 ⇒ 属【复发型缺陷】. | 谁答: main |
+    不答的后果: 这 4 个文件的 mtime 每天都在动 ⇒ 任何用 mtime 做『有没有被改过』的判据【永久失效】; 且它们每次都变 ⇒ 谁想说『盘面没动』得每次重新自证一遍, 成本持续累积 |
+    建议默认值: 给 gen_kicad_project.py 加【内容相同就不写】守卫 (★比对时把首行时间戳与 uuid 占位归一化★) ⇒ 一次改, 永久静默 | 建议排期: 不阻塞 BATCH-1
+    (板面/网表/脚表/BOM 一个字节未动·已双证), 任意一次例行维护窗口'
+  since: '2026-11-18'
+- key: iss325_s8_no_valid_control
+  to: main
+  item: '问法: 这两条臂【没构成对照】(唯一变量在落位上完全没生效) —— 本单的实测读数还能不能用来给 G7 拍板? 本单实测: ★能, 但必须【降级用法】★ —— 左上臂 (钉 20) 与同日对照臂
+    (钉 10) 的【全板 185 个封装落位 / unc 网名集合 / 链终板几何 / 段内翻转】全部逐条相同 ⇒ ⇒ 【唯一变量 = 显式钉 TP_DSI_* ⇒ 零净效应 (已实测证伪)】; 而『左上布局』这一条处方本身对
+    unc 的净效应【至今没有任何实测】—— 因为【两臂都做了左上, 变量没被变动】⇒ ⇒ 真正可用的结论只有两条: ① 左上臂 / 同日对照臂 / 现役板 / best23 四块板的逐条读数本身 (板
+    md5 + viol + unc + unc 网名 + 段数 + 翻转数 + 名单制闸三条) 是【实测】, 可引用; ② 任何『左上布局带来了多少』的因果归因【本单给不了】(⇒ 需重跑一对【真能构成对照】的臂:
+    变体必须落在生成器【真会读】的量上). ★★cont3 补测 (★为什么连同链基线也救不了★): 按臂自己写在 chain.json 里的判据警告跑了 state/compare_arm_baseline.sh
+    ⇒ 判定 REJECT (DRC 0→6 · 逐网孤岛变多 4 网: CSI_D0_CK_N / CSI_MCLK / LED_B / SPI_MISO_BOOT) ⇒ 但【这个 REJECT 是不可比的
+    REJECT, 不是『臂变差』】—— 因为基线 state/.lastgood/baseline_v76_chain.kicad_pcb 是 14023 段的【全板已布线】产物, 而本单两臂是【3088
+    段裸板 → 3666 段链终】的【网表板 + 链】产物, 段数差 4 倍 ⇒ 脚本自己最后一行就写『两板【不等价】⇒ 复现未成功』; 且盘上 53 个 v76 系臂脚本【全部都钉 R_SEL 到左上】⇒
+    【盘上不存在『右上布局』对照臂】⇒ ⇒ ⇒ 【所以: 本单连『净效应是负的』都没有测到】★★ | 谁答: main | 不答的后果: G7 若拿『29 vs 45』当『左上布局的功劳』去拍『那一趟做左上布局』⇒
+    那一趟做完还是 29 条 ⇒ 板 md5 变了一次但 unc 没降 ⇒ 归不了零 ⇒ 还得再改一次 ⇒ 2-4 周 + ¥4-8K | 建议默认值: G7 只用【本单的逐条读数 +『显式钉 TP_DSI_*
+    零净效应』这条实测结论 +『左上布局净效应至今无实测』这个口径】, 不采任何因果归因; 那一趟若还要做布局修正, 先定【一个生成器真会读的变量】再开工 | 建议排期: BATCH-1 开工前 ★(本
+    need key 已按 ISS-325 cont2/cont3 任务书逐字对齐★)'
+  since: '2026-11-18'
+- key: iss325_sw_ref_gate_red_from_sw_sop
+  to: main
+  item: '问法: 本单交卷最后一刻 gate_check.py 从 rc=0 变成 rc=1, 红在『SW 侧位号引用可达性闸 (ISS-318)』—— [FAIL] 位号引用解析不到: CONN_USB_ISSX
+    @ SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:537 · TP_INT_ISSX @ 同文件:536 · TP_TEMP_ISSX @ 同文件:535 ... ★本单实测归因
+    (三条独立证据)★: ① 该闸扫描范围 = SW/*.md 独家 (SW/tools/check_sw_ref_reachability.py L80 DOC_GLOB + L337 glob)
+    ⇒ 本单的 3 个产物 (交付页 HW/PCB/… · 交卷页 HANDOFF/… · 分片 state/fragments/hw.yaml) 一个都不在这个 glob 里 ⇒ 物理上不可能是本单弄红的;
+    ② 全部失败引用的来源文件穷举 = 只有 SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md 一个 ⇒ 本单产物里零个失败引用; ③ 该 SW 文件 mtime = 2026-11-18
+    16:28:18 (在本单 16:2x 那次 rc=0 的闸跑之后) ⇒ 是 sw-lead 在本单交卷窗口内改的. ★成因推测 (标 [推算])★: 该文档把 TP_INT_ISSX / CONN_USB_ISSX
+    这类【改名后已不存在的新名字】当成【板与网表里应该存在的位号】来查 ⇒ 属【文档写法】问题, 不是板面问题. | 谁答: sw-lead (★经 main 转达★) | 不答的后果: 全项目 gate_check
+    长期 rc=1 ⇒ 交卷闸变成常亮红灯 ⇒ 每次有人交卷都要重新归因一遍 (本单已归因 3 次) ⇒ 闸的信噪比被拖垮 | 建议默认值: 把那张表里的 ISSX 后缀名字用【反引号包住且改写成『改名后的名字
+    (不再存在)』的措辞】或改成【非位号形态的记号】, 使闸的位号提取器抓不到 ⇒ 文档表意不变但闸恢复绿 | 建议排期: 下一个 SW 单开工前'
+  since: '2026-11-18'
+- key: iss325_s8_bare_level_crosscheck
+  to: main
+  item: '问法: 【裸板级】(链终之前那一级) 的对照复核能不能独立地把『这两条臂没构成对照』这条结论钉死, 让 G7 不必等到链终板那一级才有证据? 本单实测 (cont5, 2026-11-18):
+    ★**能·且更硬**★★ —— 落 logs/iss325/91_bare_fresh_drc.txt (★两臂裸板 md5 = 3bfb30edfd7c64aafb9e908bc9dc0d57
+    / 902ea02ac5f8e10310aa528687eaaad7·★viol 6 = clearance 5 + copper_sliver 1·★unc 37·★unc 网名 31·★段数
+    3088·★两臂【逐条完全相同】★) + logs/iss325/97_all_fp_pos_diff_bare_lu_vs_ctl.txt (★全板 185 个封装落位逐个比对 ⇒ 差异行数 =
+    1 ⇒ 【逐个完全相同】★) + logs/iss325/98_cmp_unc_bare_lu_vs_ctl.txt (★unc 网名集合 交集 31 · 仅A 0 · 仅B 0 ⇒ 完全相同 =
+    True★) + logs/iss325/92_cont3_verify.log (★裸板段内 P/N 翻转 lu_bare 5/47 · ctl_bare 5/47 · ISS-322 基线现役板
+    17/47★) ⇒ ⇒ ⇒ 【『显式钉那 10 个 TP_DSI_* 是 no-op』在【裸板级】与【链终板级】两级都相等 ⇒ ⇒ 这不是单点结论 ⇒ ⇒ 【本单全部结论都不依赖链终板那一级】】★
+    ★★+ ★**★ 同链基线口径的口径警告 (★本单最容易被误读成『左上布局有效』的地方★)★★**: ★**候选臂 3666 段 vs 基线 14023 段 (落 logs/iss325/99_compare_arm_baseline_lu.txt
+    / 99_compare_arm_baseline_ctl.txt) ⇒ 两边段数差一个量级 ⇒ 不在同一条工艺线上 ⇒ 差值里混着工艺差 ⇒ ⇒ 【不许把 unc 46 → 29 / 网名 42
+    → 27 直接算成『左上布局的功劳』】⇒ ⇒ 『unc 变少 ≠ 板更好』这条在同链基线口径下【同样成立】(候选 unc 确实变少 42 → 27·但名单制闸仍判 REJECT: DRC=6 +
+    逐网孤岛变多 4 网 CSI_D0_CK_N / CSI_MCLK / LED_B / SPI_MISO_BOOT)⇒ ⇒ ⇒ 【G7 的判据必须是【名单制闸 rc=0】而不是【unc 条数】】★★
+    | 谁答: main | 不答的后果: G7 若拿『裸板 37 → 链终 29』或『同链基线 46 → 29』当『左上布局的功劳』去拍板 ⇒ 那一趟做完还是 29 条 ⇒ 板 md5 变了一次但归不了零
+    ⇒ 还得再改一次 ⇒ 2-4 周 + ¥4-8K; 且若有人拿『裸板级两臂读数相同』反推『左上布局无效』⇒ 也是错的 (那只能证伪『显式钉 TP』这条处方, 不能证伪『左上布局』本身) | 建议默认值:
+    G7 只用三样东西 = (a) 本单的逐条读数本身 (板 md5 + viol + unc + unc 网名 + 段数 + 翻转数 + 名单制闸三条) · (b) 『显式钉 TP_DSI_* 零净效应』这条【裸板级
+    + 链终板级两级都成立】的实测结论 · (c)『左上布局的净效应至今没有任何实测』这个口径; 不采任何因果归因; 那一趟若还要做布局修正, 先定【一个生成器真会读的变量】再开工 | 建议排期: BATCH-1
+    开工前'
+  since: '2026-11-18'
+- key: iss328_ru_arm_gate_verdict
+  to: main
+  item: '右上臂名单制闸判决 = REJECT (rc = 1) (退铜名单 2 条: CSI_MCLK_SRC / USB_CC1; 逐网孤岛变多 7 条; 差分死腿 0; 链终板 DRC 12
+    · clrfix 终板 DRC 0; 段数 3,986 vs 官方链 18,092 ⇒ 同工艺才可比 ⇒ unc 45→29 不算数); 六条读数 (裸板/链终分开) 已交卷; 成功判据=名单制闸rc=0(退铜名单空+差分死腿空+逐网孤岛空)+DRC
+    viol=0; 禁拿unc变少当成功; 出处=logs/iss328/33_recalc_gate_rc.txt + logs/iss328/08_rightupper_arm.log'
+  since: '2026-10-25'
+- key: iss334_need1_generator_drift
+  to: main
+  item: 'ISS-334 need-1: 生成器已漂移 (现生成器只出 2,492 段 vs 官方 stage-1 17,022 段; 链自校准闸 L120~L122 已明写) => env 级臂与官方板不同工艺
+    => 不可比. 问: 恢复官方产出口径, 还是用现生成器另立新基线? 不答后果: 桶B 16 条零铜网没有可比臂, 板那一趟再踩一次 ISS-328 的不可比坑. 建议默认值: 先立新基线并在新基线上重读
+    24 个零铜网. 建议排期: 板那一趟 A 步之前'
+  since: '2026-10-25'
+- key: iss334_need2_production_point_auth
+  to: main
+  item: 'ISS-334 need-2: 是否授权改产生点 state/gen_pcb_routing.py 的 A*, 让它对整网无铜的网 (segment=0 且 pad>=2) 做整网重布,
+    四条护栏=只加铜不删铜 + 孤岛数不得变多 + 差分腿不得打死 + 改完先跑 compare_arm_official.py --self-test. 不答后果: 桶C 只能擦在产物上, 而本单实测已被证伪
+    (A* 在官方 stage-1 补 0 条 / 未成 54 条). 建议默认值: 授权. 建议排期: 板那一趟 D 步'
+  since: '2026-10-25'
+- key: iss334_need3_pair_corridor_false_positive
+  to: main
+  item: 'ISS-334 need-3: state/pair_corridor.py 在官方板上跑完打印 落铜成功 P 1段/N 1段, 但段数 18,092->18,092 且两板几何等价 rc=0
+    且 CSI_D0_D0_N 仍 0.000mm => 1格退化路径的假阳性. 问: 授权不授权修这个工具 (至少把 1 格路径判成失败, 再谈续段)? 不答后果: 桶A 7 条零铜差分腿空转. 建议默认值:
+    授权先修假阳性判定; 修完在 tmp 复跑单对, 段数必须 >= 17,024 才算好. 建议排期: A1 臂开跑前'
+  since: '2026-10-25'
+- key: iss334_need4a_single_end_net_usage
+  to: sw-lead
+  item: 'ISS-334 need-4a: 官方板 24 个零铜网里有 9 条单端低速脚 (CAM_RESET_N, FSIN_OUT, JTAG_TDI, LED_G_D, SPI_MISO_BOOT,
+    SPI_MOSI_BOOT, SPI_SCLK_BOOT, UART_RX, USB_CC2). 问: 固件里这 9 条到底用不用? 特别是 JTAG_TDI / SPI_*_BOOT / LED_G_D
+    / FSIN_OUT / CAM_RESET_N 这 5 条. 不答后果: 为救一条调试脚去动高速差分走廊, 风险不对称. 建议默认值: sw-lead 按固件引用逐条给 用 或 不用. 建议排期:
+    板那一趟之前'
+  since: '2026-10-25'
+- key: iss334_need4b_zero_copper_net_triage
+  to: main
+  item: 'ISS-334 need-4b: 请汇总并拍 24 个零铜网按必需性分级 (必须救回 / 可悬空). 输入: sw-lead 的固件引用 (need-4a) + 本单清单 (HW/PCB/ONETRIP_S8_MECHANISM_PATH.md
+    第一节第3小节). 不答后果: 板那一趟会为 9 条单端脚去改差分走廊. 建议默认值: 必需=15条差分腿+USB_CC2+UART_RX, 其余以固件引用为准. 建议排期: 板那一趟之前'
+  since: '2026-10-25'
+- key: iss334_need5_gate_reference_board
+  to: main
+  item: 'ISS-334 need-5: 名单制闸 compare_arm_official.py 只能配官方板 (18,092 段) 才有意义, 而现生成器链终板是 3,304 段. 问: 板那一趟的臂一律要求先满足段数
+    16,283~19,901 再进闸, 还是允许与同工艺基线 3,304 段比? 不答后果: 拿不可比的板去过闸, 闸的结论无效 (ISS-328 就这么死的). 建议默认值: 采纳本单建议 = 一律与官方板比但必须先过区间自检.
+    建议排期: 板那一趟 A 步'
+  since: '2026-10-25'
+- key: iss334_need6_boss_letter_scope
+  to: main
+  item: 'ISS-334 need-6: 老板口径那 8 个字母 (W-2 / W-1c / A4 / W-3 / U-1 / P7 等) 要不要并进机制级路线? 问法: 机制级三桶 (A成对走廊
+    / B出脚几何 / C路由器本体) 全是布线层机制, 不动器件选型与拓扑 => 与口径并行不冲突, 是否按此推进? 不答后果: 机制级做出来的板可能与老板口径打架. 建议默认值: 并行推进, 口径落定后再合并出最终板.
+    建议排期: 板那一趟之前'
+  since: '2026-10-25'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -3336,6 +4100,73 @@ answers:
     已核: 对 ISS-131 判决影响=0(被审脚本不读它) / TI_POWER_FACTS 引的 1C18+B28 落在简单区两套解析一致不受影响 / merge_pinctrl.py 产物 rk3572_pin_assign.csv
     在盘上不存在未传播 ⇒ 另 交付页登记字节数 6,007 B 已过期(现在 8,863 B) 归 main 更新'
   ref: HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md (B2 读数三件套 + B3 六条判决 + B5 need 八条) + logs/iss305/07_ball_truth_parse.log
+- key: iss308_hw_s8_reachability_verdict_done
+  to: main
+  value: 'S8 归零技术上不是不可达: B2/B3/B4 共 20 条各有实测 env 配方 + 1 处路由器源码改动路径; 老板 S8 侧还差 N=2 (P7 §7 四选项 + D_LED_G
+    外露/位置), 加 ISS-306 的 4 个 = 开工前共 6 个; §1-④ 查清 PCB_PAIR_LAYERSEL 无效但无害 = main 2026-11-11 03:0x 判定, 仅
+    v76ms-vs-v76ml 单变量臂支撑, 且对 LED_B 有害 (27 段到 0 段) ⇒ 主力走 T4 不是 T3'
+  ref: HW/PCB/S8_REACHABILITY_VERDICT.md
+- key: iss304_post_reload_recheck_0556
+  to: main
+  value: '交卷后复验 (2026-11-18 05:56, gateway reload 之后; 别的总工在此期间又落了 ISS-305/307/308/310): ① HW/check_workpack_state_values.py
+    rc=0 (V1~V7 全 OK, V4 那 4 条台账口径 fresh 全「实测 == 期望」); ② state/gate_check.py rc=0 (Q7 钉板 md5 闸链 9/9 道绿,
+    钉板闸⑥ rc=0) ⇒ 板那一趟的闸链在交卷后依旧全绿; ③ 幂等复跑: 真生成器 + 真同步脚本各再跑一次, 三个 md5 跑前跑后逐字节相同 (清单页 9f9743c8… / 作业包页 0b6fc2f8…
+    / sidecar 1684c0b0…), 同步脚本自报 0 处 fresh 改了 + sidecar 与作业包页的 state_baseline 登记表逐字节一致 (16607 B); ④ 沙盒反向用例
+    5 条全过 rc=0 (含「台账链头前跳 ⇒ 4 条 fresh 跟上新链」与「链断 ⇒ 生成器拒写 rc=1 且页一个字节没动」); ⑤ 受保护 5 件 md5 逐字不变 (板 611b869e…
+    / .kicad_pro 3e504d2b… / 网表 6aee500e… / 脚表 9174309d… / BOM 5b999399…) ⇒ 零写板零落表依旧成立; HW/check_pin_function_labels.py
+    仍 rc=1 = 15 条既有缺陷基线 (ISS-239, 落表批次里修), 原样记录, 不是本单的锅'
+  ref: logs/iss304/14_post_reload_recheck.log + logs/iss304/15_post_reload_idempotent.log + HANDOFF/2026-11-18_hw-lead_ISS304_作业包现状值重锚.md
+    §附-2
+- key: iss302_cont2_selfreport_correction_pin_function_labels
+  to: main
+  value: '★回应 ISS-297 ⑲ 节 + 分片 answer iss297_iss302_handoff_selfreport_vs_disk_mismatch_for_main: 疑点成立,
+    已由 owner (hw-lead) 在交卷单 HANDOFF/2026-11-18_hw-lead_ISS302_CSYS落表.md §⑧-3 追加式订正 (老字一字未删, 原 B3-③/B6-②
+    表述保留在原处供追溯)★ ⇒ 盘面事实: HW/check_pin_function_labels.py mtime = 2026-11-18 00:23:08.807599060, 本单确实做了
+    H-1 重锚第 3 跳 (PROTECTED_MD5 三基线 → ISS-302 落表后真盘值 6aee500e/9174309d/5b999399 + MD5_LEDGER_REFS → §16.2
+    L1451/L1452/L1453 + MD5_ANCHOR_CHAIN 追加 ISS-302 三跳五元组), 改前备份 logs/iss302/check_pin_function_labels.py.bak_pre_iss302
+    (mtime 00:22:59), diff 原文 logs/iss302/h1_reanchor_diff.log ⇒ ★所以 B3-③ 第 3 行「本单做没做=没做」与 B6-② 边界表第 3
+    行「一个字节没改」两处自报表述与盘面不符, 属措辞不准★ ⇒ ★但该动作是任务书 §⑦-② 第 1 行明文指派给 hw-lead 的 (不许手改基线 md5 而必须走【H-1 重锚第 3 跳】留链痕),
+    链痕完整且判据方向/阈值/KNOWN_DEFECTS 冻结快照/判定函数 diff 实证 0 改动 (diff 共 21 行: 基线值 3 改 + 台账引用 3 改 + 锚链 3 增 + 注释 12
+    增), 板与 .kicad_pro 两基线 0 改动 ⇒ ★性质 = 自报表述不准, 非行为违规; 是否再补行内标注由 main 定, hw-lead 不自行改动已 verified 交付物的结论性表述★'
+  ref: ''
+- key: iss302_cont2_red_gates_all_cleared
+  to: main
+  value: ★cont1 留下的 4 道红闸本轮全部转绿 (05:5x 实跑)★ ⇒ HW/check_workpack_state_values.py rc=0 (V4 那 4 条 W10_MD5_NETLIST/W10B_MD5_PINS/W10C_MD5_BOM/C07_B26_MD5_LEDGER
+    全部跟上盘面, ISS-304 改成从落表台账现读 = 换来源不换取值); MECH/check_onepass_struct_crosscheck.py rc=0 (N1~N6 全过, ISS-303
+    把 N6 判决源改成【硬基线 ∪ 落表台账登记值】); MECH/check_onepass_mech_release.py rc=0 (绿 6/红 0); state/gate_check.py
+    rc=0 且 Q7 钉板 md5 闸链 8/9 ⇒ 9/9 全绿 ⇒ ★「板只改一次」那一趟的闸链不再被本单的合法落表副作用卡住★ ⇒ 本单可以按 verified 收口; ★另 = C_SYS
+    的封装/OPN 仍「待定」 (网表 L499/L500 封装列空 + BOM L48 待定) ⇒ 该电容在网表层是「有位号有值无封装」状态, 谁拿网表直接生成 PCB 它会因无封装落不下去或落默认
+    0603 ⇒ 建议 main 单开一单做选型 (0805/1206 · 6.3V · X7R/X5R · 20µF) 并回填 state/p10_rows.json 再走一次落表链; 本单不做 (不替老板拍板选型·不编造
+    OPN)★
+  ref: ''
+- key: iss308_s8_s6_landing_supplement_draft
+  to: main
+  value: S6 落位增补 = 20 个 distinct ref (10x R_SEL_* + 10x TP_DSI_*) 显式钉回官方锚点 + R_SEL_D3_P 由 (78.90,9.50)
+    换到 (122.30,5.50) => lane 交叉 8->0; 返工量 = 1 个真实位移 + 19 个固化钉位 (不是 21); 权威源 = HW/PCB/BOARD_FRAME_CALIBER.md
+    §6 cal:S6_TARGETS; 机器闸 = python3 HW/check_board_frame_caliber.py; LAYOUT_FIX_SPEC §3 方案 A 逐字 谁拍=总工(main)
+    就能拍 => 零等老板, 不进 N
+  ref: HW/PCB/S8_REACHABILITY_VERDICT.md#§2-D
+- key: iss305_v2_verdict
+  to: main
+  value: 'ISS-305 v2 复核(2026-11-18 06:0x, gw-lead 追加节 B7~B12)完成。★**结论 = 上一版 A~F 六条判决全部维持, 无一条翻转 ⇒ main
+    04:2x 的 ISS-305 verified/pass 成立**★。A=有条件通过(结论 11/11 在真判别式下成立·但 ±3 窗口判据非排他 counterfactual 11/11 误放行·v2
+    复跑同值) B=对 C=★**交付页本体已收窄✓(§5-2 逐条符合我的窄版)但下游传播仍红✗**★ D=对(且已按 B5-6 加固) E=对 F=对。★**v2 新挑出 3 条 + 1 附注,
+    全归 main, 全是文档/台账层, 零工程文件影响, 零板那一趟阻塞**: ① n1(high) 交付页 §5-3 声称「下游两处决策页已一并订正」实测一处都没落地(§A-补29 与 §D 都是
+    ESD 节·命中 0 行), 而 DECISION_PENDING_2026-11-16.md L1573(老板会看的 §④ 一条新事实)逐字仍写着「多摄像头方案在 RK3572 上不成立」⇒ 收窄没出交付页
+    ② n2(medium) n1/n2 两条 need main 说「另开单」但台账查无对应新单 ⇒ 无主可追 ③ n3(low) B5-7 字节数登记: 决策页 L1545 + issue_log
+    L4850 仍写 6,007 B, 真值 14,860 B ⇒ main 说「同批修掉」与盘面不符 ④ n4(low 附) 交付页 §5-4 的「网表 843e4065…」= HW/netlist_v1.net,
+    与 ISS-305 口径的 HW/netlist_v1.csv(6aee500e…)不是同一个文件 ⇒ 标注不精确(不算错·两个都没被改)。★全闸 v2 复跑: merge rc=0 · gate_check
+    rc=0(Q1 18/18·Q7 9/9) · issue_check rc=0 · crosscheck rc=0 · ball_truth_parser rc=0 · 板 611b869e…
+    跑前跑后逐字节不变 · 占位符 0 · 零写板零落表零外发未自签 issue_log★'
+  ref: HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md 追加节 B7~B12 + logs/iss305/09_downstream_propagation_check.log
+    + logs/iss305/10_final_gates_v2.log
+- key: iss297_hw_cont4d_onekey_selftest_script_for_main
+  to: main
+  value: '★iss297 cont4-4 给 main 的一件可直接执行的东西: `bash logs/iss297/run_iss297_selftests.sh` (★在项目根跑★) ⇒ 它把
+    TMPDIR 指到配额宽裕的家目录盘并逐条跑 6 道 HW 闸的 --selftest ⇒ 实测 6+1 道全 rc=0 ⇒ 「板那一趟」开工前先跑它, 就不会撞上 /tmp usrquota 把
+    6 道闸一起打红 (★那正是 ISS-297 立单要杀的那类集体假红★)★ ⇒ ★采不采、要不要写进「板只改一次」那一趟的作业包 = main 拍板, 本单不代拍★; ★另: 交卷单已被 4 个并发实例追加到
+    109 KB 且顶级编号撞车 (⑱×2/⑲×2/⑳×2/㉑×1) ⇒ 复签时建议按【尾部索引那张表】+【㉑ 节】读★'
+  ref: HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#㉑ + logs/iss297/run_iss297_selftests.sh
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -5287,6 +6118,415 @@ interface_claims:
     L888/L721-L743 (arch 2 = dual3, 已工具化未拍) + 决策页 L824 (老板 11-17 09:49 A3=V-2=1) + 台账 §16 LANDING_AUTH
     ISS-283 行; 台账 grep 矛盾|冲突 3 条全不属 ESD ⇒ 台账从未承认; ★以哪行为准归 main/老板, 本单不代判★'
   ref: HW/SCHEMATIC_LANDING_V1_LANDED.md#L166
+- key: iss308_s8_residual_bucket_authority
+  value: B1={CARRIER_BOARD_EN,SPI_CSn_BOOT}; B2={CSI_MCLK}; B3={CSI_D0_CK_N,CSI_D0_D0_N,CSI_D0_D0_N_SRC,CSI_D0_D2_N,CSI_D0_D3_N,DSI_D0_CK_N_SRC,DSI_D0_D0_N,DSI_D0_D0_P,DSI_D0_D1_N,DSI_D0_D1_N_SRC,DSI_D0_D3_N,KEY_VOL_M};
+    B4={USB_CC1,ID_DETECT_1,I2C_A_SCL,I2C_B_SCL,I2C_B_SDA,LED_B,KEY_VOL_P}; B5={}
+  note: '★三方锁: 脚本 BUCKETS + 判决书 §2-A-2 落桶表 + 脚本 BUCKET_AUTHORITY 独立副本 ⇒ 改任一处即判红★'
+  ref: ''
+- key: iss308_s8_copper_evidence_anchor
+  value: 所有逐网铜量一律取自 logs/iss308/evidence/iss308_cand_layers.json (candidate 板 state/.lastgood/candidate_v76mx1L_pour.kicad_pcb);
+    字段 seg/seg_total/pad/pad_total/vias; iss308_ms_layers.json 只作差异对照
+  note: '★3 条差异注记: DSI_D0_D3_N 52 vs 53 / KEY_VOL_M 98 vs 99 / LED_B 27 vs 0 (后者是开机制的臂把它弄没了) ⇒ 统一取 candidate★'
+  ref: ''
+- key: iss308_s8_boss_letters_pending_n2
+  value: 'S8 侧 N=2: ① P7 (作业包 §7 四选项 C1/C2/C3/C4) ② D_LED_G 外露/位置 (need key boss_dled_g_expose_decision_20261117);
+    连同 ISS-306 已 verified 的 4 个 S4/G1a 侧 = 板那一趟开工前共 6 个'
+  note: '★已拍的不计: A1 (2026-11-17 09:49) + W-4 (2026-11-17 09:49)★ 不给决策码, 只给 N+卡点+后果'
+  ref: ''
+- key: iss308_s8_tech_env_keys
+  value: T1 PCB_YIELD_STRAIGHT=1 + PCB_YIELD_VICTIMS; T2 PCB_PRIORITY_NETS=FSIN_OUT;...; T3 PCB_PAIR_LAYERSEL=1;
+    T4 PCB_ROUTE_RESERVE=NET_A+NET_B:li0,x0,y0,x1,y1 + PCB_HALO_MARGIN + PCB_PAIR_ESCAPE_EXEMPT=1 + PCB_SKIP_PAD_CELLS=1
+    + PCB_PAIR_EXEMPT_R; T5 无 env 键可用 (PCB_KEEPOUT 挡不了走线, 须改 _fill_zones 之前); T6 PCB_ESC_CLR_FIX=1; T7
+    PCB_HALO_MARGIN=0.015625 + state/clrfix_iter.sh
+  note: ★env 键逐字给, 是别人要照抄的东西★
+  ref: ''
+- key: iss308_s8_target_set_caliber
+  value: S8 真实靶集 = 官方板 43 网名 (unc 45 条); 候选臂那 22 网名靶表只交 12 条, 其中 10 条官方板是连通的 (候选臂自伤) ⇒ 本单落桶表 ≠ 完整靶集
+  note: ★候选臂 candidate_v76mx1L 已被官方对照闸 rc=1 REJECT (盘上 CURRENT_TASK_ARCHIVE_2026-11-11.md L4 逐字)★
+  ref: ''
+- key: iss297_hw_channel_survived_iss302_real_landing
+  value: 'ISS-297 通道的第一次野外实战通过: 6 道闸本体是 2026-11-17 19:31~20:24 照着 ISS-283 那一版落表台账写的, 而 ISS-302 在 11-18
+    00:21 真落表后往台账追加了 3 行新链头 (L1451/L1452/L1453) ⇒ 11-18 05:3x 复跑, 6 道闸打印的出处全部指向 ISS-302 那 3 行, 判定全绿 ⇒
+    判决源确实是活的链头, 不是拍死在代码里的快照 ⇒ 反面推算: 若仍是写死常量, 11-18 00:22 那一刻这 6 道闸会一起红 (写死值 37f62ac3/a4270120/5d02bece
+    vs 落表后真盘 6aee500e/9174309d/5b999399) ⇒ 这正是 ISS-297 要防的集体假红, 在数据文件这一侧真实发生了一次, 通道把它接住了'
+  note: 'ISS-297 · 2026-11-18 05:3x cont4 · hw-lead · 事实与推算分开标: 链头跟随=实测 (6 道闸出处行原文指向 ISS-302) · 写死常量会红=推算
+    (两个 md5 都是本机实读, 但老代码形态无 git 历史可回放) · 板那条路径尚未在真板验过: 落表台账 11 处前后对照登记板的 md5 全是 611b869e→611b869e, 锚点
+    reboard 仍 null ⇒ 该性质目前只由沙盒 60 条通道反向用例证明 (make_legal 真改板一个字节 + 写四项原子映射 + 台账追加行, 全在临时目录, 真盘零写)'
+  ref: logs/iss297/cont4_gates_main.log + logs/iss297/cont4_selftests.log + HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#⑱-1
+- key: iss297_hw_gate5_18_to_15_attributed_to_iss302_not_this_ticket
+  value: 第 5 道闸 HW/check_pin_function_labels.py 主模式仍 rc=1 但缺陷数 18 → 15, --selftest 从 rc=1 变 rc=0 ⇒ 归因
+    ISS-302 (该文件 mtime 2026-11-18 00:23:08, 注释自写 H-1 重锚第 3 跳 · ISS-302) ⇒ 本单一个字节没碰它 ⇒ 掉的正好是那 3 条 MD5_CHANGED,
+    数字与 ISS-297 B5 第 ① 条的预测逐字对上 ⇒ ISS-297 B5 第 ① 条 (H-1 重锚第 2 跳) 已被 ISS-299 (第 2 跳) + ISS-302 (第 3 跳)
+    关掉, main 那条待决自动作废 ⇒ 现存 15 条 = 1 条 MISSING_PIN + 14 条 WRONG_FUNCTION = 真缺陷, 归落表批次里修那一类, 本单不许顺手修也没修
+  note: ISS-297 · 2026-11-18 05:3x cont4 · hw-lead · 证据等级 [实测] (cont3 20:55 日志 = 18 条 + SELFTEST FAILED
+    2 条既有失效 T5/T11 · 本趟 = 15 条 + selftest rc=0) · 本单零写板不受影响 (板 611b869e13518c3c023fb178f91a0075 · mtime
+    仍 2026-11-06 07:07:17.362193413)
+  ref: logs/iss297/cont3_selftests.log + logs/iss297/cont4_selftests.log + HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#⑱-2
+- key: iss297_hw_cont4_reverify_20261118_green_r1
+  value: '★iss297 cont4 (网关 reload 后续做, 2026-11-18 05:4x~05:5x 本机实跑): 6 道闸主模式 5 rc=0 + 第5闸 rc=1 (15 条引脚缺陷既有基线·非本单)
+    · 7 个 --selftest 全 rc=0 (通道用例 6x10=60 条全抓到·0 条失效) · merge/gate_check/issue_check 全 rc=0 · 板 2 件 md5
+    (611b869e / 3e504d2b) + mtime 双重自证逐字节不变'
+  note: ★本趟没动闸本体/锚点台账/落表台账一个字节·只复跑 + 交卷单追加 ⑱ 段 + 本条登记★ · 证据等级 [实测]·现场日志 logs/iss297/cont4_gates_full.log
+    + cont4_selftests_full.log · ★★本条 2026-11-18 06:0x 由同单另一并行实例的同 key 撞名 ⇒ 本条 key 改名加 _r1 后缀以免两实例登记被当成两件事
+    (★内容一个字没改·只改 key·append-only 精神★)★
+  ref: logs/iss297/cont4_gates_full.log + logs/iss297/cont4_selftests_full.log + HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#⑳
+- key: iss299_hw_gate5_reverify_20261118_0545
+  value: '第5道闸(H-1重锚)复核: 默认模式 rc=1 且缺陷恰好15条(14串号+1缺脚) 且 MD5_CHANGED=0 / MD5_BASELINE_UNTRACED=0 / MD5_CHAIN_INCONSISTENT=0
+    ⇒ --expect-known rc=0 (快照15=实算15 逐条一致) ⇒ --selftest rc=0 (13条既有+10条通道反向用例) ⇒ ISS-299目标态仍成立, 可挂进门禁链'
+  note: ''
+  ref: ''
+- key: iss299_hw_baseline_not_reverted_reason_20261118
+  value: '★本次未把 PROTECTED_MD5 改回 ISS-299 的 37f62ac3/a4270120/5d02bece: 自 2026-11-18 00:3x ISS-302 合法落表(C_SYS/SYS_CHG
+    DNP→必装 + BOM加20uF)起 真盘已前移到 6aee500e/9174309d/5b999399 (台账 HW/SCHEMATIC_LANDING_V1_LANDED.md §16.2
+    L1451/L1452/L1453) ⇒ 锚链第3跳链尾==基线==真盘实测 ⇒ 照旧任务书改回旧值=让闸对真盘再报3条MD5_CHANGED(把唯一红闸改回红)+抹掉合法落表的重锚留痕 ⇒ 故只复核+留痕,
+    闸本体一个字未动 (md5 e7b90a04 / mtime 2026-11-18 00:23:08)'
+  note: ''
+  ref: ''
+- key: iss299_hw_tmp_quota_selftest_false_red_20261118
+  value: '★环境级发现 [实测·非闸缺陷]: /tmp 是 tmpfs+usrquota, 本机用户配额已打满 (du /tmp=6.0G, 头号是历次 agent 沙盒 od_glass_publish
+    1.5G/sbxtest 403M/iss239_rehearsal 391M/iss279_sandbox 372Mx2/holechk 310M/iss242_fix 294M/sg_sandbox
+    273M/iss260_sbx 259M) ⇒ HW/check_onepass_commit_order.py --selftest 与 HW/check_onepass_preflight_coverage.py
+    --selftest 与 HW/check_workpack_state_values.py --selftest 假红 (OSError Errno 122 Disk quota exceeded,
+    炸在写沙盒副本) ⇒ 同命令 export TMPDIR=项目/tmp/单号_tmp 即 rc=0 (本单实测) ⇒ 同一时刻 sw-lead 的 ISS-293 复核脚本也是这么绕开的 ⇒ SW/MECH
+    侧同中招; 本次零删除(只报清单)'
+  note: ''
+  ref: ''
+- key: iss297_hw_cont4_reverify_20261118_green
+  value: '★ISS-297 已闭环 (★main 已验签: state/issue_log.yaml 里 ISS-297 = status verified / verify_by main /
+    verify_result pass / verify_date 2026-11-17 · 本单无权改★) ⇒ 2026-11-18 05:4x 这次队列重派 (cont2 名义) 只做【只读复核
+    · 零新交付】★: 6 道闸主模式 5×rc=0 + 第 5 闸 rc=1 (★15 条既有引脚缺陷基线 · 非本单造成 · 本单没碰★) · 6 闸 --selftest 全 rc=0 (通道
+    10/10 × 6 = 60 条全抓到 · 判决库自带 10/10 + 闸 1 自带 25/25) · state/merge.py rc=0 + state/gate_check.py rc=0
+    (Q1 18/18 · Q7 钉板 md5 闸链 9/9 全绿) + state/issue_check.py rc=0 · 受保护 2 件 (板 611b869e13518c3c023fb178f91a0075
+    + .kicad_pro 3e504d2be83152e337949723e909be1b) md5 + 板 mtime 2026-11-06 07:07:17.362193413 双重自证未变
+    ⇒ 零写板 · 零落表★'
+  note: 交卷单 HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md §⑲ 交卷后追记 (2026-11-18 05:4x) · 日志 logs/iss297/cont4_reverify_20261118.log
+    + logs/iss297/cont4_reverify_selftest_tmpdir.log
+  ref: ''
+- key: iss297_hw_selftest_tmpdir_workaround_verified
+  value: '★/tmp 配额打满时的现场处置已实测可用: 把 TMPDIR 指到大盘 (★TMPDIR=/var/tmp/iss297_selftest_tmp★) ⇒ 6 道 HW 闸的 --selftest
+    全部 rc=0 (★通道用例 6×10 = 60 条全抓到 · 判决库自带 10/10 · 闸 1 自带 25/25★) ⇒ 【不用改任何判据 · 不用删任何人的 /tmp 目录 · 沙盒里跑 ·
+    真盘零写】★ ★注意: 这是环境处置, 不是判据放宽 —— 判据方向没变 · fail-closed 三条没动 · 通道用例一条没减★'
+  note: 日志 logs/iss297/cont4_reverify_selftest_tmpdir.log · 交卷单 §⑲-4
+  ref: ''
+- key: iss297_hw_gate5_18to15_precise_timeline_supersedes_earlier_attribution
+  value: ★订正前一条 (iss297_hw_gate5_18_to_15_attributed_to_iss302_not_this_ticket) 的归因 ★ 第 5 闸 HW/check_pin_function_labels.py
+    的 18 → 15 不是 ISS-302 干的 ★ 精确时间线 = ① 11-17 20:55 cont3 实测 18 条 (15 条引脚 + 3 条 MD5_CHANGED) 且 --selftest
+    rc=1 (T5/T11 前提不成立) ② 11-17 21:51 ISS-299 做 H-1 重锚第 2 跳 (基线改成 ISS-283 落表后真盘值) ⇒ 3 条 MD5_CHANGED 消失
+    ⇒ 15 条 ⇒ logs/iss299/cont1_acceptance_final.log 22:35 实跑打印「不过 (15 条缺陷)」+ logs/iss299/selftest_after.log
+    21:51 打印 RC=0 ③ 11-18 00:21:08 ISS-302 真落表把 3 个数据文件又改一次 (37f62ac3→6aee500e / a4270120→9174309d / 5d02bece→5b999399)
+    ⇒ 第 2 跳基线又过期 ④ 11-18 00:23:08 该文件被写入 H-1 重锚第 3 跳 (文件内 L150 注释 + MD5_ANCHOR_CHAIN 的 ISS-302 那一跳自记 2026-11-18
+    00:3x) ⇒ 回到 15 条 + --selftest rc=0 ⇒ ★⇒ 所以 18→15 是 ISS-299 第 2 跳干的 (11-17 21:51); ISS-302 在 00:23
+    做的是【因为自己落表又改了一次而必须做的第 3 跳重锚】★ ★本单 ISS-297 与 ISS-304 都没碰过它★ ★⇒ 【实测·本单不代裁】★ ISS-302 的交卷单 B4 边界第 3 行自报「check_pin_function_labels.py
+    ... 一个字节没改」, 与盘面 mtime 00:23:08 + 文件内第 3 跳记录对不上 ⇒ 已另立 need 报 main 核对★
+  note: '★ISS-297 · 2026-11-18 05:5x cont4 · hw-lead · 证据等级 [实测] (5 个读数全部本机实读: cont3 20:55 日志 18 条 + ISS-299
+    22:35 日志 15 条 + ISS-299 21:51 selftest RC=0 + 本文件 mtime 00:23:08 + 文件内 L150 与 MD5_ANCHOR_CHAIN) ·
+    ★不采信任何 agent 自述 (含 ISS-302 自报, 也含本交卷单 ⑱-3 那节把归因写成 ISS-304 的说法 — 那一条不成立: ISS-304 任务书明写不许动这个文件, 且它 01:08
+    才开单, 晚于 00:23:08 那次写入)★ · ★append-only 追加·不覆盖前一条 (并发写盘时不吃掉别人的条目)★'
+  ref: logs/iss297/cont3_rerun.log + logs/iss299/cont1_acceptance_final.log + logs/iss299/selftest_after.log
+    + HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#⑲
+- key: iss297_hw_tmpdir_quota_rootcause_proved
+  value: '★iss297 cont4-3 (2026-11-18 05:5x~06:0x): 走沙盒的 --selftest 假红的根因 = /tmp 这个 tmpfs 的【用户配额】到顶 (不是代码·不是判据)
+    —— 4 组对照实验: 输出重定向到 /tmp ⇒ rc=120 (Errno 122 Disk quota exceeded) / 输出到 /var/tmp 或项目 logs ⇒ rc=0 /
+    沙盒 TMPDIR=/var/tmp ⇒ 7 个 --selftest 恒绿 (通道 6x10=60 条全抓到·0 条失效) ⇒ 失效方向安全 (红·不是假绿) ⇒ 建议 main: 9 道闸沙盒统一
+    TMPDIR 落到大盘 + 复验日志别写 /tmp + /tmp 残留 6.0G 需另派清理单 (不许 rm -rf /tmp/*·有 agent 正在建沙盒)'
+  note: ★本机实测 (dd 探针 + df + du + 4 组对照实验 rc)·独立印证本文件 ⑲-4 那节·本趟没动任何闸/台账/分片别人的部分·零写板 (板 md5 611b869e + mtime
+    2026-11-06 07:07:17)·零落表·零外发★
+  ref: HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#⑳ + logs/iss297/cont4_selftests_tmpdir_vartmp.log
+- key: iss302_cont2_reread_after_gateway_reload
+  value: '2026-11-18 05:5x gateway reload 后续做复读验收 (本机实跑, 非抄任何 agent 报告): 21 道闸绿 19 红 2 (红 2 皆既有基线 = ISS-239
+    脚表功能串号 15 条 + 「整链重出 第 1 步」那一批的 R3/R4/R9); state/merge.py rc=0 + state/gate_check.py rc=0 (Q1 18/18,
+    Q6 rc=0, ★Q7 钉板 md5 闸链 8/9 ⇒ 9/9 全绿★) + state/issue_check.py rc=0; 板 md5 611b869e13518c3c023fb178f91a0075
+    + mtime 2026-11-06 07:07:17.362193413 与 .kicad_pro md5 3e504d2be83152e337949723e909be1b + mtime 2026-11-04
+    23:47:30.279742515 双证未变 (零写板); 三件产物 (网表 6aee500e60ba0732f83a9cf557ba90ab / 脚表 9174309df1ec9411ac8e8d9e80ee386a
+    / BOM 5b9993992405904a60ac96a020b375d8) + 落表台账 d1a7765bb151cc69bb794dc6b6158264 + 真源 state/p10_rows.json
+    2836846d8ff503f98cc6d258a832664d 的 md5 与 mtime 与 cont1 登记值逐项一致 ⇒ ★落表链自 00:21 起 5.5 小时无人再动★; 锚点闸 HW/check_land_row_anchors.py
+    310 锚 (PASS=310 DRIFT=0 RED=0); 覆盖度闸 P6 三基线 == 台账登记的 ISS-302 新值'
+  note: cont2 只写交卷单 §⑧ 追加节 + 本分片 + logs/iss302/cont2/ + STATE.yaml (merge.py 自动重生成) ⇒ 零落表零写板零外发不自签 issue_log;
+    日志 logs/iss302/cont2/ (7 个文件)
+  ref: ''
+- key: iss308_s8_reachability_verdict_b0_pick
+  value: '本单选第三档(任务书三档里的档位名, 不是本单替老板做决定): 需老板 P7 选 C4。S8 本体技术上不是不可达 (B2 1条 + B3 12条 + B4 7条 = 20条各有实测配方);
+    但真靶集是官方板 43 网名 (与候选臂 22 条只交 12 条, 其中 10 条官方板是连通的=候选臂自伤), 且 ISS-265 §0 已判 归零要板形/层数一起动 => S8 的收口权在老板。'
+  note: 判决书 HW/PCB/S8_REACHABILITY_VERDICT.md §2-A (22网名->5桶) / §2-B (N=2) / §2-C (T1~T7) / §2-D (S6落位增补表草案);
+    交卷单 B0 结论摘要
+  ref: ''
+- key: iss305_v2_readings
+  value: '【v2 读数三件套 · 06:0x 实测】交付页 HW/RK3572_INQUIRY_CALIBER_V2.md: 登记值 6,007 B (issue_log L4850·至今未更新)
+    → 我 02:0x 复验时 8,863 B (md5 2574738152eca6cc50675c58aeac641e·= main 改前备份 .bak_20261118_0410_overclaim_narrow
+    逐字节一致) → 现在 14,860 B (md5 60483e81eedb283a55d914edcdcfcde8, mtime 2026-11-18 03:41:54) ⇒ ★**main 04:1x
+    追加了 §5 订正节, 交付物在交卷后被扩写 ⇒ 上一版交卷单的「现在读数」当场过期**★。diff 实测 = 删 1 行 + 增 50 行 4 个改动块: L29 措辞订正(实测→本机校验 md5
+    逐字节比对) / L66-67 §1.2 箭头注记 / L77-78 §1.3 补 12M=12x2^20 精确换算 / L128-172 追加 §5; ★**§1.1 球位号 11 条表逐字未变
+    ⇒ A 判据的被验对象没被动过**★。被审脚本 state/_iss131_crosscheck_rk3572_caliber.py md5 6fff079d946f07d7b3c279b292273cca
+    与 02:0x 逐字一致(全程未碰)。datasheet txt 143,755 B / PDF 2,414,580 B md5 未变。板 611b869e13518c3c023fb178f91a0075
+    mtime 2026-11-06 07:07:17 逐字节不变'
+  note: ★v2 的存在理由 = main 04:2x 已签 ISS-305 verified/pass, 但同轮 04:1x 又改了交付页 ⇒ 必须对现版重判一遍 A~F★ ⇒ 本条是 MEMORY
+    铁律② 的读数三件套落地
+  ref: HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md 追加节 B7 + logs/iss305/09_downstream_propagation_check.log
+    + logs/iss305/10_final_gates_v2.log
+- key: iss305_v2_af_reverdict
+  value: '【v2 对现版 14,860 B 重判 A~F · 六条全部维持·无一条翻转】A=【有条件通过】不变(v2 复跑 state/_iss305_ball_truth_parser.py
+    rc=0: T1 归属 11/11 · T2 排他 11/11 · ±3 行窗口 判绿 11/11 vs 真判别式 判绿 0/11 ⇒ 结论「11/11」在真判别式下成立, 但交付页/被审脚本的证明手段仍非排他)
+    · B=【对】不变(§1.2 未动, 三处互证: 特性表 L442/L443/L444/L445 + VICAP L464 + 球位表 CSI0~CSI3 四组 + 电源球表 L1801/L1829
+    两两配对) · C=【交付页本体已收窄✓ / 下游传播仍红✗】(main 04:1x 追加的 §5-2 逐条符合我 B3-C 判的窄版: 「实时 ISP 处理路数 = 1」[官方] / 「多路须
+    VICAP 虚拟通道 + 降帧时分」[推算] / 「多摄不成立」[0数据] 不许当硬判据 ⇒ 交付页这一条已闭环; ★**但 §5-3 声称的下游订正 + ISS-156 单口径改动本机实测一处都没落地
+    ⇒ 见 v2 的 n4_downstream_not_closed**★) · D=【对】不变且已加固(main 已按 B5-6 把「12M = 12 x 2^20 = 12,582,912 =
+    4096x3072 精确相等(二进制口径)」补进 §1.3) · E=【对】不变(MP/s 仍 [0数据]) · F=【对】不变(v2 复检「实测」仍 7 处, 其中 B5-5 指定的 L29 已改成「本机校验
+    (md5 逐字节比对)」; 真·标签 [实测] 仍只在 L29 引述 + L110「实物 [实测] = 0 条」零声明 ⇒ 无一处当已完成的板级实测引用)'
+  note: ★⇒ 上一版 A~F 判决的有效性没有被 main 的 §5 推翻 ⇒ main 04:2x 的 verified/pass 判定成立, 我这一趟没有推翻它的依据★。★但 C 的「下游传播」是新暴露的一环,
+    归 main
+  ref: HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md 追加节 B8 + logs/iss305/10_final_gates_v2.log
+- key: iss297_hw_cont4d_0611_reverify_green_and_onekey_script
+  value: '★iss297 cont4-4 (2026-11-18 06:1x~06:2x 本机实跑): 6 道 HW 闸主模式 5×rc=0 + 第5闸 rc=1 (★15 条既有引脚缺陷基线·与
+    md5 通道无关·④/④b 受保护 md5 段全绿★); 7 个 --selftest 全 rc=0 (★通道 6×10=60 条全与期望一致: 绿 6 / 红 54★); 仓库级 merge/gate_check/issue_check
+    rc=0/0/0; 板 611b869e… 与 .kicad_pro 3e504d2b… 逐字节不变 + 板 mtime 仍 2026-11-06 07:07:17.362193413 ⇒ 零写板·零落表★;
+    ★本趟闸本体一个字没碰 (★只读复跑★) ⇒ 判据方向/fail-closed 三条/reboard 口径逐字未变★'
+  note: ★与同单另 3 个并发实例 (⑱/⑲/⑳ 三节) 结论一致·不打架; 本趟唯一新增件 = logs/iss297/run_iss297_selftests.sh (★把 ⑳-3 的 TMPDIR
+    建议变成一条能直接敲的命令★); 落表台账 md5 d1a7765b… 与网表/脚表/BOM 的新值归上游 ISS-302 (00:21~00:22)·不是本单写的★ · 证据等级 [实测]·零外发·不自签
+    issue_log★
+  ref: logs/iss297/cont4_rerun.log + logs/iss297/cont4_selftests.log + logs/iss297/run_iss297_selftests.sh
+    + HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#㉑
+- key: iss305_v2_final_deliverables
+  value: '【v2 交卷物 4 件·全部齐】① 交卷单 HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md = 754 行 / 69,720 B (追加前
+    561 行 / 48,054 B ⇒ append-only 成立·既有正文逐字未变) · B0~B6(02:0x) + 标准验收块(03:5x) + v2 追加节 B7~B12(06:0x) +
+    终检节 · 占位符扫描 = 0 · ② 日志 logs/iss305/ = 01~08(02:0x) + 09 下游传播闭环核对 / 10 v2 全闸回归 / 11 v2 终检(06:0x) +
+    3 个跑批脚本 ⇒ 旧日志一份没删 ③ 分片 state/fragments/hw.yaml = 走 state/frag_write.py --agent hw-lead 原子写, grep -c
+    iss305 = 35 (v2 新增 8 处: 3 need + 1 answer + 2 claim + 2 artifact, 另 status 已更新) ⇒ 期望 ≥5 满足, pm/mech/sw
+    三个分片一个字节没碰 ④ 判决 = B3(02:0x A~F 六条逐条对/不对/有条件+依据+行号) + B8(06:0x 对现版 14,860 B 重判·六条逐条标【02:0x 判决 vs 06:0x
+    重判 vs 变化 vs 归属】四列) ⇒ 不写「全部通过」'
+  note: ★v2 的增量 = main 04:1x 改了交付页(8,863→14,860 B)且 04:2x 签了 verified/pass ⇒ 本轮对现版重判 A~F(全部维持·无一条翻转) +
+    挑出 3 条新问题(n1 high 下游传播未闭环 / n2 medium 两条 need 无台账单 / n3 low 字节数登记未更新)+ N4 附注, 全归 main★
+  ref: HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md 追加节 B7~B12 + logs/iss305/09,10,11
+- key: iss311_c1_diff_verdict
+  value: ★环③ C1 差 2 的性质 = 【板侧多出来的旧件】(★C_VBUS_GND pad1=GND @ 板 L8259 / pad2=VBUS_5V_CHG @ 板 L8267 · 封装原点
+    107.7,42.5 · 差集网表侧 = 0 条⇒单边★) ⇒ ★**结论落在【改板】一侧, 网表一个字都不用改**; ★网表 L10/L12 的 board 列已是 CHG_BOARD (脚表
+    L148-149 同源) ⇒ ★**重跑 bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py 即自动消失 (板生成器按 board 列过滤,
+    不许手改板)** ⇒ ★**板上封装数 186→185, 板 md5 变 ⇒ Gerber/钻孔/CPL/装配/3D/doc/BOM/投产包必须同趟重出**
+  note: ★[实测] · 日志 logs/iss311/01_check_pcb_nets_raw.txt + 02_probe_c1_diff_raw.txt + 探针 logs/iss311/probe_c1_diff.py
+    (★import state/check_pcb_nets.py 同口径, 零漂移★) · 证据等级 [实测] · 零写板 · 零落表 · 零外发
+  ref: HANDOFF/2026-11-18_hw-lead_ISS311_板那一趟重出清单.md#附-A-1 + HW/PCB/ONETRIP_REISSUE_MANIFEST.md#§1
+- key: iss311_c1_same_pad_net_3
+  value: '★C1 另有 3 条【同号异网】必须同趟修 (★C1 判据是 缺失/多余/同号异网 三者任一⇒红★): ① Q_PG pad1 网表应为 PWR_GOOD (网表 L59) / 板上
+    PWR_ON (板 L2068, 封装原点 84.8,29.5) ② Q_PG pad3 网表应为 PWR_ON (网表 L61) / 板上 PWR_GOOD (板 L2084) ⇒ ①② 同一处脚位对调
+    (DMP3098L 1=G/2=S/3=D ⇒ Vgs 接错 ⇒ 3 根线必须重画, 对应作业包 B11_Q_PG_LAND + ISS-283 §③-2) ③ D_ESD_USB_D pad1
+    网表应为 NET_USB_D_P_TYPEC (网表 L417, Type-C 侧/串阻后) / 板上 USB_D_P_SRC (板 L13012, 封装原点 94.95,21.8, SoM 侧/串阻前)
+    ⇒ ESD 挂在 22Ω 串阻的错误一侧 ⇒ 对应作业包 B32_V2_NET_RENAME + B07/B08/B09 (换 3 脚封装/挪位 ≤3.0mm/D− 侧补 ESD, 三条必须同趟)
+    ⇒ ★**那一趟的 C1 验收判据必须是 缺失 0 / 多余 0 / 同号异网 0 三件同时满足**'
+  note: ★[实测] · 日志 logs/iss311/02_probe_c1_diff_raw.txt · Q_PG 引脚序本身标 [推算] (依据作业包转述, 未查 DMP3098L 官方 datasheet)
+    · 证据等级 [实测]
+  ref: HANDOFF/2026-11-18_hw-lead_ISS311_板那一趟重出清单.md#附-A-1 + HW/PCB/ONETRIP_REISSUE_MANIFEST.md#§1-5
+- key: iss311_sch_src_11_breakdown
+  value: '★投产包 doc/sch_src/ 与 HW/PCB/ 的 11 个 md5 不一致 = 【真旧 2 个: demo_mainboard_p1.kicad_sch (归一化差 14 行)
+    + demo_mainboard_p10.kicad_sch (归一化差 28 行, 方向 = 投产包旧★)] + 【uuid 抖动 9 个: 根页 + p2..p9 (归一化后一致, 不是真缺件★)】;
+    缺页 0 / 改名 0; .kicad_pro md5 一致不在那 11 个里 ⇒ ★**11 = 2 真旧 + 9 抖动**; ★方向判定的锚点 = 网表真源 (源里 C_SYS = (dnp
+    no) + Value 20µF X7R 6.3V 与脚表 L142-143 的 必装 一致; 包里 = (dnp yes) + 20µF 6.3V + 标签染红 255 0 0 1 ⇒ 包是 ISS-302
+    落表【之前】的版本★) ⇒ ★**同趟 bash state/gen_production_pack.sh 即绿 (★脚本自带 cp -p 归档 sch_src + 自带一次清空⇒人工塞的必被冲掉★),
+    不是手 cp; ★注意 chain_gate ⑤ 判 md5 一致不是归一化一致 ⇒ 那 9 个也必须同步**'
+  note: ★[实测] · 日志 logs/iss311/03_probe_sch_src_diff_raw.txt · 归一化口径 = import state/check_chain_content_anchor.py::normalize_sch_text
+    (与 chain_gate ② 原理图准入逐字同口径, ISS-256) · 证据等级 [实测]
+  ref: HANDOFF/2026-11-18_hw-lead_ISS311_板那一趟重出清单.md#附-A-3 + HW/PCB/ONETRIP_REISSUE_MANIFEST.md#§2
+- key: iss311_s1_refsuffix_c1_collision
+  value: '★★沙盒实测: 板侧按 ISS-205 规则给 156 个位号加 _1 (末字符是字母的), 而网表/脚表不变 ⇒ 环③ C1 从【缺失 0 / 多余 2 / 同号异网 3】变成【缺失
+    350 / 多余 352 / 同号异网 0】; 反证分支把网表侧 ref 同规则改口径再算 ⇒ 回到 0/2/3 ⇒ ★**证明 C1 的红是【口径没同步】不是改名本身错★★ ⇒ ★**开工前必须拍:
+    ① 三侧同口径改名 (网表+脚表+板+BOM 一起落表 + 板生成器加 kicad_ref 映射) 还是 ② 板侧暂不加 _1 (S1 只做原理图侧)★★ ⇒ 根因: state/check_pcb_nets.py
+    的 board_pads()/netlist_pads() 都取原样 ref, 没有图上位号→表侧 ref 反查; 而 state/gen_kicad_sch.py::kicad_ref() 原理图侧已全用
+    X_1 (实测 218 位号里 187 个带 _1, 其中 186 个是改名来的 + 1 个原生 R_BAT_DET_1), state/gen_pcb_netlist_board.py 里零处映射
+    ⇒ 板生成器现在写表侧原名 (板上 186 位号, 带 _1 的只有 1 个); ★同根第二颗地雷: 板侧改名 ⇒ state/gen_bom.py L277-303 / L307-330 / L143-175
+    按精确 ref 读板失效 ⇒ BOM 的 opn/封装/证据回填静默丢失 ⇒ ★**受保护判据脚本不许改 ⇒ 口径必须在数据侧统一**'
+  note: ★[实测] · 日志 logs/iss311/06_probe_s1_refsuffix_c1_collision.txt (★沙盒只写 tmp/iss311_tmp/ 且跑完已删, 项目文件零改动★)
+    · ★本单不替 main 选, 只列两个选项与代价 (分片 need iss311_n1 / n2 / n3)★ · 证据等级 [实测]
+  ref: HANDOFF/2026-11-18_hw-lead_ISS311_板那一趟重出清单.md#附-A-4 + HW/PCB/ONETRIP_REISSUE_MANIFEST.md#§4-5
+- key: iss311_onetrip_reissue_manifest
+  value: ★★「板那一趟」重出清单已交 ★★ ① HW/PCB/ONETRIP_REISSUE_MANIFEST.md (★§1 C1 差 2 逐条证据 · §2 原理图 11 个逐条表 (2 真旧
+    + 9 抖动) · §3 重出清单主表 25 行 (网表/脚表/11 页原理图+.kicad_pro/板/Gerber/钻孔/坐标CPL/贴片/装配/3D/BOM/投产包 6 子目录/MANIFEST/落表台账/分片/旧
+    md5 引用点) + 投产包 74 件逐目录 · §4 依赖图 + 硬顺序 (网表→原理图→板→BOM→投产包) + 同趟出 12 项 + 归属 + 2 颗开工前必须拍的地雷 · §5 证据分级
+    + 自证命令★) + ② HANDOFF/2026-11-18_hw-lead_ISS311_板那一趟重出清单.md (B0 + B1~B6 + 附-A~附-F, 占位符 0) + ③ logs/iss311/
+    (7 日志 + 3 探针) + ④ 本分片 (artifacts +11 / needs_from +8 / interface_claims +5) ⇒ ★**零写板 (板 611b869e…
+    / mtime 2026-11-06 07:07:17 前后逐字节不变) · 零落表 (网表 6aee500e…/脚表 9174309d…/BOM 5b999399…/台账 未变) · 零重生成
+    (HW/PCB/production/ 74 件零变化) · 零改闸 · 零改既有文档正文 · 零外发 · 不替老板拍板 · 不自签 issue_log**★
+  note: ★[实测] · 交卷前 python3 state/merge.py rc=0 + python3 state/gate_check.py rc=0 (Q1 18/18) + md5sum
+    双证 (日志 logs/iss311/08_final_verify.txt) · ★本清单只交【改完要重出哪些】, 不替代 BOARD_ONEPASS_WORKPACKET.md (【怎么改板】)
+    与 BOARD_ONEPASS_PREFLIGHT.md (板侧项全集) ⇒ 那两份老文件本单一个字没改★
+  ref: HW/PCB/ONETRIP_REISSUE_MANIFEST.md + HANDOFF/2026-11-18_hw-lead_ISS311_板那一趟重出清单.md + logs/iss311/
+- key: s1_ref_caliber
+  value: sch=X_1 / table=X
+  note: '现状分叉未收敛 (★事实登记·不是方案主张★): 原理图侧已全用 _1 (218 个里 187 个带 _1) 而 脚表/网表/板侧 仍是原名 (脚表 218 个里只有 1 个带 _1)
+    ⇒ 反查口径单源 = state/gen_kicad_sch.py::kicad_ref() (末字符数字⇒不动; 否则加 _1) ⇒ 方案 (①三侧同口径 / ③加反查层) 已交 main 拍
+    (need key = s1_ref_rename_caliber_20261118)'
+  ref: HW/PCB/ONETRIP_S1_REF_RENAME_CALIBER.md#§1-2
+- key: s1_ref_rename_20261118
+  value: ''
+  note: '★[实测]·沙盒 v2 实跑 (★v1 的乙/丙两场是崩的·已修后重跑★): logs/iss317/04b_sb_run_v2_raw.txt + 04_nc_options_raw.txt
+    · 口径单源 = state/gen_kicad_sch.py::kicad_ref() (逐字比对不一致即 abort) · 装配器逐行复核「新ref == kicad_ref(旧ref)」'
+  ref: HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md §1 + §2-3 + §2-6 + logs/iss317/04_nc_options_raw.txt
+- key: s1_nc_whitelist_options_20261118
+  value: ''
+  note: '★[实测]·★反向用例 = 破坏前绿·破坏后红·不是巧合自证★: 反向用例① (非白名单器件 C_BULK_SENSOR_CORE 造 NC 焊盘) ⇒ 丙-①/丙-②/基座 非法NC
+    各 1/1/4 ⇒ 三者都没在这一类真错上放宽 · ★另测出: 改名后 --selftest 抛 ValueError 崩掉 (S1) ⇒ 判据解封第二行是必需的 (S2 绿)★ · ★BOM 证据静默消失
+    = 17 行 (★不是「约 24 个」★)·J1 判据 S0 绿 / S1 判红(丢17) / S2 绿 / S3 绿(不误报)★'
+  ref: HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md §2-3 + §2-4 + §2-6 + §3-3 + logs/iss317/04_nc_options_raw.txt
+    + logs/iss317/12_bom_silence_judge_raw.txt
+- key: iss314_unverified_5_20261118
+  value: ''
+  note: '★U-1/U-4 = [实测] · U-2/U-3 = [官网] (★自己 curl 下载·零外发·未发任何邮件/询价/问询/采购★·快照 md5 留档) · U-5 日期 = [0数据]
+    (★不替老板拍★) · ★「ESD 距连接器多少 mm 才算够」= [0数据] + 降级方案 (★官方只说 as close as possible·无数值 ⇒ 不编数字★)★ · ★「甲方案会让问号不再为
+    0」= [推算] (★机制依据: J_USB_C 原理图侧叫 J_USB_C_1·甲方案下表/板侧仍叫 J_USB_C ⇒ 导出查不到 Value·未实跑·零重生成★)★'
+  ref: HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md §4-1 ~ §4-5 + logs/iss317/05_dmp3098l_official.txt
+    + logs/iss317/06_esd_official.txt + logs/iss317/07_bom_qmark_raw.txt
+- key: iss322_s8_45_unc_itemized
+  value: '45 条 unconnected 逐条清单 (8 列: #/网名/起点(ref+pad+x,y)/终点/长度mm/类型/死因桶/修法) · 机器搬 · 条数与 check_pcb_drc
+    的 C4 行逐字一致 = 45'
+  note: '[实测] logs/iss322/01_check_pcb_drc_baseline.txt + tmp/iss322/build_table45.py (带 assert len==45
+    的 abort 校验)'
+  ref: ''
+- key: iss322_s8_23_vs_13
+  value: '不打架: 23 = DSI_+CSI_ 未连接条目数 / 22 = 高速网名总数 / 13 = DSI_ 单方向网名数 / 9 = CSI_ 单方向网名数 · 13+9=22 网名 =
+    23 条 (CSI_D0_D0_N 3 焊盘断成 2 段)'
+  note: '[实测] logs/iss322/02_extract_unc_summary.txt'
+  ref: ''
+- key: iss322_s8_hs_geometric_verdict
+  value: '(a) 几何可布 —— 但必须带一次布局修正: 端点 88/88 物理可出 (W=0.20 与 W=0.15 均 0 个不可能) · SoM 主体区 x8..76 y6..56 逐层占布
+    F.Cu 5.73% / In2.Cu 1.52% / In4.Cu 0.81% / In1·In3·In5·In6·B.Cu 各 0.38% · J_SOM_P1..P4 各 100 个 SMD
+    焊盘且通孔 0 ⇒ 板框 160x100 与 8L 都不用改 ⇒ 板 md5 不会因几何而第二次变 · 真瓶颈是段内 P/N 顺序翻转 17/47 处 (DSI 4 族在 R_SEL/TP_DSI
+    侧 Δx=4.80mm · CSI 5 族在连接器侧 Δx=0.50mm)'
+  note: '[实测] logs/iss322/06_probe_escape_feasibility.txt + 19_probe_som_body.txt + 20_probe_pn_order.txt'
+  ref: ''
+- key: iss322_s8_lane_order_evidence
+  value: '8 块同代板对照: R_SEL_* 集群 x 序与 SoM 端序一致的 7 块 (v76me0/mg0/mj0/mv0/mw0/mx0 + best_unc23) 的 unc = 35/35/28/29/29/26/23,
+    唯独 lane 序反向的现役板 = 45 (全盘最差) ⇒ 修法是把 21 个 R_SEL_*/TP_DSI_* 挪到左上 x 5.50..38.35, 不是挪到右上 (ISS-265 方案 A
+    的方向需复议)'
+  note: '[实测] logs/iss322/22_lane_order_vs_unc.txt · 因果性部分标 [推算] (7/1 对照未严格控制路由器/seed)'
+  ref: ''
+- key: iss322_s8_zero_copper_mechanism
+  value: '22 个高速未连通网名里 15 个在板上零铜 (一根线都没长出来) ⇒ 路由器是没布出来不是布歪了 ⇒ 换层/让路闸等增量手段对它们无效 ⇒ 必须换机制 (成对走廊 + 布局修正 +
+    布线顺序) · 同时: 走线 18092 段这个指标对 S8 零信息量 (假绿来源)'
+  note: '[实测] logs/iss322/18_hs_copper_amount.txt'
+  ref: ''
+- key: iss322_s8_official_board_not_independent
+  value: 「官方板 18092」= 现役板本身 (official_18092_unc.drc.json 的 source=demo_mainboard.kicad_pcb; 现役板实测走线 18092
+    段/过孔 433) ⇒ 与现役板网名签名 43/43 完全相同、差集 0 ⇒ 「官方板同病」对 45/45 全真、零区分度 ⇒ 本单把它从桶降级成标记列; 几何级的真正旁证是 17/47 段内翻转
+    + SoM 主体区逐层占布 + 8 块板对照
+  note: '[实测] logs/iss322/07_cmp_unc_sets_cur_vs_official.txt + 24_unc_diff_vs_unc_target_map_baseline.txt'
+  ref: ''
+- key: iss322_s8_unc_target_map_diff
+  value: UNC_TARGET_MAP.md 的基线 (baseline_v76mw0_chain, 本机重跑 unc 29 条/24 签名) 与现役板 (45 条/43 签名) 的差集 = 只有现役板有
+    31 条 + 只有基线板有 12 条 + 交集 12 条 ⇒ 那份三桶表只覆盖现役板 43 网名中的 12 个 (28%) ⇒ 不许拿它的 22 网名当现役板靶集
+  note: '[实测] logs/iss322/24_unc_diff_vs_unc_target_map_baseline.txt'
+  ref: ''
+- key: iss322_s8_fail_history_correction
+  value: v44/v46/v47/v48 四臂共同失败 = 39 个网名 / 45 个 (net,pad) 对 / 16 条高速腿; 任务书点名的 DSI_D0_CK / DSI_D0_CK_SRC
+    / DSI_D0_D1 三个网名在四个 fail_detail 文件里一个都不存在, 真实的是 DSI_D0_CK_N / DSI_D0_CK_N_SRC / DSI_D0_D1_N; 且四臂同代
+    ⇒ 有算法同源混淆 ⇒ 证明得了「调参数调不出来」, 证明不了「布局是唯一因」
+  note: '[实测] logs/iss322/08_fail_history_intersection.txt'
+  ref: ''
+- key: iss322_s8_zero_proven_on_disk
+  value: 归零是否可达 = [0数据] —— 盘上 9 份 DRC JSON 最低 unc = 23 (best_unc23_clrfix, 2026-11-11 04:43), 无一份 = 0
+    ⇒ 本单只判「几何不构成障碍」, 不判「零可达」⇒ 归零与否仍要 iss322_s8_p7_zero_scope 拍
+  note: '[0数据] logs/iss322/14_min_unc_scan.txt'
+  ref: HW/PCB/BOARD_ONEPASS_S8_ROUTING_WORKPACKET.md
+- key: iss322_s8_zero_proven_on_disk_v2
+  value: 归零是否可达 = [0数据] —— 盘上 11 份 DRC JSON (★含本单 2026-11-18 11:38 的 fresh 那份★) 最低 unc = 23 (best_unc23_clrfix,
+    2026-11-11 04:43), 无一份 = 0 ⇒ 本单只判「几何不构成障碍」, 不判「零可达」⇒ 归零与否仍要 iss322_s8_p7_zero_scope 拍
+  note: '[0数据] logs/iss322/14_min_unc_scan.txt'
+  ref: HW/PCB/BOARD_ONEPASS_S8_ROUTING_WORKPACKET.md §3-8 + §6-1 ⑮
+- key: iss325_pcb_part_pos_leftupper_21
+  value: R_SEL_D3_P:5.50,3.0;R_SEL_D3_N:7.95,3.0;R_SEL_D2_P:13.10,3.0;R_SEL_D2_N:15.55,3.0;R_SEL_CK_P:20.70,3.0;R_SEL_CK_N:23.15,3.0;R_SEL_D1_P:28.30,3.0;R_SEL_D1_N:30.75,3.0;R_SEL_D0_P:35.90,3.0;R_SEL_D0_N:38.35,3.0;TP_DSI_CK_N:23.15,6.20;TP_DSI_CK_P:20.70,6.20;TP_DSI_D0_N:41.55,3.00;TP_DSI_D0_P:35.90,6.20;TP_DSI_D1_N:30.75,6.20;TP_DSI_D1_P:28.30,6.20;TP_DSI_D2_N:15.55,6.20;TP_DSI_D2_P:13.10,6.20;TP_DSI_D3_N:7.95,6.20;TP_DSI_D3_P:5.50,6.20
+  note: ★左上布局臂 (iss325_s8lu) 的最终 PCB_PART_POS 串 (21 个器件 = 10 个 R_SEL_* + 10 个 TP_DSI_* + R_SEL_D3_P 换位)
+    ⇒ 别人要跑同一处方就逐字抄这一串★ · 机器读自 state/.lastgood/best_unc23_clrfix.kicad_pcb (零手抄) · 落盘 logs/iss325/03_PCB_PART_POS_final.txt
+    · 唯一变量 = 相对 state/v76mz_arms.sh 多 10 个 TP_DSI_* · TP_DSI_D0_N=41.55,3.00 是唯一 y=3.00 的那个 (不许改成 6.20)
+  ref: HW/PCB/ONETRIP_S8_LEFTUPPER_REHEARSAL.md §1 + logs/iss325/03_PCB_PART_POS_final.txt
+- key: iss325_s8_pn_flip_metric
+  value: '段内 P/N 顺序翻转 (同段内比较总数 / 翻转数): 现役板 47/17 (ISS-322 §3-5 基线, 本单复现) · best_unc23_clrfix 47/5 · 左上布局臂与同日对照臂的读数见交付页
+    §3-3 与 §6-2'
+  note: '★判据来源 = logs/iss322/scripts/probe_pn_order.py 的算法, 逐行照抄成 logs/iss325/scripts/probe_pn_order_cand.py
+    (只把板路径改成 argv[1], 算法一行没改, ISS-322 归档原件一个字没动)★ ⇒ 结论: 21 器件挪位把翻转从 17 降到 5 (不是 0), 消不掉的是 CSI 5 族在 CONN_CAM
+    连接器侧的 5 处 (Δx=-0.50mm), 那 5 族跟左上目标坐标零作用 ⇒ 板那一趟的『翻转=0』判据必须改成『翻转 ≤ 5 且 CSI 5 族另有处置』'
+  ref: HW/PCB/ONETRIP_S8_LEFTUPPER_REHEARSAL.md §6 + logs/iss325/12_pn_order_candidate.txt
+- key: iss325_s8_unc_mechanism_split
+  value: '离 0 还差几条按机制分桶: 板上零铜 (路由器没布出来 ⇒ 换层/让路无效) vs 有铜未连通 (布歪了 ⇒ 增量手段有效). 现役板 fresh 复算 = 零铜 15 条 + 有铜未连通
+    7 条 (长了一半)'
+  note: '★机制口径照 ISS-322 §2-6★ · 脚本 logs/iss325/scripts/unc_mech_table.py (用法: bash state/pcbnew_py.sh
+    <脚本> <板> <板.drc.json> [板2 <板2.drc.json> ...]) · 现役板落盘 logs/iss325/20_unc_mech_official.txt · ⇒ 左上臂/对照臂的同口径读数见交付页
+    §3-3 与 §7-3'
+  ref: HW/PCB/ONETRIP_S8_LEFTUPPER_REHEARSAL.md §7-3 + logs/iss325/20_unc_mech_official.txt
+- key: iss325_s8_threeway_fresh_drc_table
+  value: '三方对照锚点 (fresh DRC): 现役板 = viol 0 / unc 45 / unc网名 43 / 段数 18092 · best_unc23_clrfix = viol 0
+    / unc 23 / unc网名 21 / 段数 3364 · 左上臂与同日对照臂读数见交付页 §3-3'
+  note: '★三方/四方 fresh DRC 对照锚点 (★每格都 fresh DRC 出来的, 不是抄表★): 现役板 HW/PCB/demo_mainboard.kicad_pcb md5 611b869e13518c3c023fb178f91a0075
+    = viol 0 / unc 45 / unc 网名 43 / 段数 18092 · 盘上最好板 state/.lastgood/best_unc23_clrfix.kicad_pcb md5 52ccbd207e0796c92426ba7e81863c5a
+    = viol 0 / unc 23 / unc 网名 21 / 段数 3364 · 左上布局臂 (iss325_s8lu) 与同日对照臂 (iss325_s8ctl, v76mz env 同代码同日)
+    的读数见交付页 §3-3 与 logs/iss325/09_threeway_fresh_drc.txt'
+  ref: HW/PCB/ONETRIP_S8_LEFTUPPER_REHEARSAL.md §3 + logs/iss325/09_threeway_fresh_drc.txt
+- key: iss325_s8_name_list_gate_three_rules
+  value: '名单制闸三条 (退铜名单 / 差分死腿 / 逐网孤岛): 判定以 rc=0 为准, 逐条抄在交付页 §5'
+  note: '★判据 = state/compare_arm_official.py 的三条 (退铜名单必须为空 / 差分死腿必须为空 / 逐网孤岛不许变多), 闸本体自测 rc=0 · ALL TESTS
+    PASS · 逐条抄在交付页 §5 与 logs/iss325/10*_compare_arm_official*.txt · ★实测已登记: 盘上 unc 最少的 best23 板 (unc 23)
+    自己过不了名单制闸 (退铜 4 / 差分死腿 0 / 逐网孤岛变多 11 ⇒ REJECT) ⇒ 『unc 变少』与『板变好』不是一回事 ⇒ 归零的验收必须是 unc=0 且 名单制闸 rc=0
+    两个都要★'
+  ref: HW/PCB/ONETRIP_S8_LEFTUPPER_REHEARSAL.md §5 + logs/iss325/10_compare_arm_official_selftest.txt
+- key: iss325_s8_evidence_and_zero_write_proof
+  value: 证据分级三档 [实测]/[推算]/[0数据]; 零写板双证 = 板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17.362193413
+    交卷前后各一次
+  note: '★证据分级 [实测]/[推算]/[0数据] 三档 (本单没查外部资料 ⇒ 不许出现 [官网]/[媒体])★ · 零写板双证 (板 md5 611b869e13518c3c023fb178f91a0075
+    + mtime 2026-11-06 07:07:17.362193413 交卷前后各一次) · ★边界自证: 本单的臂经 replay_patch_chain.sh → check_pcb_drc.py
+    → gen_kicad_project.py 重写了 HW/PCB/ 下 4 个生成器产物 (STACKUP.md / LAYOUT_RULES.md / GEN_SELF_CHECK.txt /
+    _frame_reference.kicad_pcb); 除时间戳外内容逐字相同 ⇒ 板面/网表/脚表/BOM 一个字节未动; ★这 4 个文件是生成器产物, 不许手动『恢复』 (那叫擦产物)★'
+  ref: HW/PCB/ONETRIP_S8_LEFTUPPER_REHEARSAL.md §9 + logs/iss325/08_zero_write_proof.txt
+- key: iss325_s8_leftupper_headline_reading
+  value: 左上臂 (iss325_s8lu, 钉 20 个) 链终板+clrfix = md5 bbc5174139d7e699192a40152f6b9093 · viol 1 (copper_sliver)
+    · unc 29 条 / 27 个网名 · 走线 3666 段 / 505 孔 · 段内 P/N 翻转 5/47 · 名单制闸 vs 现役板 = 退铜 4 (CSI_MCLK_SRC DSI_D0_CK_N_SRC
+    LED_B USB_CC1) + 差分死腿 1 (DSI_D0_CK_P_SRC/DSI_D0_CK_N_SRC) + 逐网孤岛变多 9 => REJECT ; 同日对照臂 (iss325_s8ctl,
+    v76mz env 同代码同日) = md5 f73786f2101e005e755955ca76ec39c8 · viol 1 · unc 29 · 3666 段 / 505 孔 · 翻转 5/47
+    ; 两臂链终板几何等价 (3544 走线 / 505 过孔 / 4 铜皮区全同) ; 裸路由器板 unc 37 (md5 3bfb30edfd7c64aafb9e908bc9dc0d57)
+  note: ''
+  ref: ''
+- key: iss325_s8_zero_reachability_verdict
+  value: '归零可达 = 单靠左上布局这一条处方 = 不可达 (实测). 读数: unc 45 -> 29 (不是 0) ; 段内 P/N 翻转 17 -> 5 (不是 0) ; 名单制闸 REJECT
+    ; 离 0 还差 29 条 = 零铜 12 网 + 长了一半 15 网 ; 另有 11 个网在现役板与左上板上【两边都没通】(高速 8 + 非高速 3). 裁决权归 main + 老板 (G7 iss322_s8_rsel_lane_order)
+    — 本单只给读数 不给决定'
+  note: ''
+  ref: ''
+- key: iss328_p1_partpos_20_must_keep
+  value: 'P-1 维持: §3-S6 那条 20 条 PCB_PART_POS 串 (10×R_SEL_* + 10×TP_DSI_*) 一条都不许删回 10 条; 依据 = 排版阶段 diff=16
+    (钉 vs 不钉 TP_DSI_* ⇒ 落位差 16 行 / 8 个 ref 挪位 ⇒ 显式钉不是 no-op); 官方链同配方复跑 = 未验 (盘上无该读数)'
+  note: '[实测] 依据=排版阶段落位 diff=16 (钉 vs 不钉 TP_DSI_* 在排版阶段落位不一样, 8个ref挪位); 旧依据(ISS-325链上no-op)已升级为排版阶段实测;
+    官方链补丁链不动落位(diff=0)这一问也已答完'
+  ref: logs/iss328/06_tp_noop_placement_diff.txt
+- key: iss328_ru_arm_vs_ctl_arm_diff
+  value: 右上臂 vs 基线臂(ISS-325同日同代码对照臂) 全板封装落位 diff=102 行 / 51 个 ref ⇒ 对照有效 (≠ISS-325的diff=0); 口径=全板185封装
+    ref/x/y/rot 逐行比; 出处=logs/iss328/08_rightupper_arm.log + tmp/iss328/diff1_ru_vs_base.tsv
+  note: '[实测] 口径: 全板185封装 ref/x/y/rot 逐行比, pcbnew GetPosition 绝对板坐标mm'
+  ref: tmp/iss328/diff1_ru_vs_base.tsv
+- key: iss334_zero_copper_net_count
+  value: '24'
+  note: '实测: 官方板 pad>=2 且 segment=0 的网数, 定义与 compare_arm_official.py 的 zero_copper 指标逐字一致; 24/24 全部落在
+    DRC 未连接网里'
+  ref: ''
+- key: iss334_bucket_split
+  value: A=7/B=16/C=1
+  note: '实测+推算: A=差分腿且伙伴腿官方有铜; B=最紧端点最优出脚余量<=+0.30mm; C=余量>=+0.30mm 而 A* 仍找不到路. 判据见 HW/PCB/ONETRIP_S8_MECHANISM_PATH.md
+    第二节'
+  ref: ''
+- key: iss334_official_stage1_segments
+  value: '17022'
+  note: '实测: /tmp/chain_offverify/s1_straight.kicad_pcb = 官方链的 stage-1; 官方板可由它完整复现 (cmp_pcb_geom rc=0,
+    走线 17980 + 过孔 433 + 铜皮 5 区全同)'
+  ref: ''
+- key: iss334_current_router_segments
+  value: '2492'
+  note: '实测: /tmp/chain_v76mg1/s1_straight.kicad_pcb; 生成器已漂移 => env 级臂不可比 (链自校准闸 L120~L122)'
+  ref: ''
+- key: iss334_comparable_segment_band
+  value: 16283-19901
+  note: '推算: 官方 18092 段 正负10%; 过孔区间 390-476; 越界即判不可比'
+  ref: ''
+- key: iss334_astar_on_official_s1
+  value: 补上0条/未成54条
+  note: '实测: grid 0.125 + margin 0.0625 跑在官方 stage-1 上, 产物 md5 与输入逐字节相同 => 病根在路由器本体, 不在后处理顺序'
+  ref: ''
+- key: iss334_pair_corridor_zero_copper
+  value: 零新增铜
+  note: '实测: 官方板上跑 pair_corridor.py 打印 落铜成功 P1段/N1段, 但段数 18,092->18,092 且几何等价 rc=0 => 1格退化路径假阳性'
+  ref: ''
 open_questions:
 - id: HW-Q1
   to: main

@@ -1,0 +1,45 @@
+{
+  "issue": "ISS-109 / 问 03",
+  "demand_mps": 245.1,
+  "uhd60_mps": 497.7,
+  "uhd30_mps": 248.8,
+  "isp_cap_ars45_mps": 250.0,
+  "rk3576_isp_pixel_cap": 16000000,
+  "demand_pixels": 4085760,
+  "rk3576_pixel_fraction": 0.2554,
+  "rk3576_mps_throughput": null,
+  "checks": [
+    {
+      "check": "需求吞吐复算",
+      "status": "PASS",
+      "detail": "2688×1520@60 = 245.1 MP/s",
+      "note": "与库内 245.1 一致"
+    },
+    {
+      "check": "497.7 的来源确认",
+      "status": "PASS",
+      "detail": "3840×2160×60 = 497.7 MP/s",
+      "note": "497.7 = 4K@60 像素率, 不是第二个 ISP 口径"
+    },
+    {
+      "check": "250 口径自洽 (4K@30 能过 / 4K@60 不能过)",
+      "status": "PASS",
+      "detail": "4K@30 248.8 ≤ 250 < 4K@60 497.7",
+      "note": "⇒ 250 MP/s 就是**单流 4K@30 级别**的能力, 单口径自洽 ⇒ 可信"
+    },
+    {
+      "check": "RK3576 分辨率口径余量充裕",
+      "status": "PASS",
+      "detail": "4.09M / 16M = 25.5% ⇒ 余量 74.5%",
+      "note": "★与旧 250 MP/s 口径的 1.9% 完全相反 ⇒ 换芯顺手解掉了『一票否决级』"
+    },
+    {
+      "check": "497.7 不得被当作第二个 ISP 吞吐上限",
+      "status": "PASS",
+      "detail": "497.7 与 250 相差 1.99 倍, 但**描述的是不同物理量**",
+      "note": "★比较对象错配 ⇒ 不存在『选哪个口径』的问题"
+    }
+  ],
+  "fail": 0,
+  "total": 5
+}

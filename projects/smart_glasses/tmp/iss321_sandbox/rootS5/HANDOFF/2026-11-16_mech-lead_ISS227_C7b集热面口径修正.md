@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HANDOFF/2026-11-16_mech-lead_ISS227_C7b集热面口径修正.md

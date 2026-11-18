@@ -1,0 +1,847 @@
+[
+ {
+  "key": "q1_latency_scope",
+  "to": "main",
+  "item": "Q1 60ms 口径 — 口径A vs C 差 24.67ms, 模式B 在口径A下 67ms 不达标 / 口径C下 42.3ms 达标 (走 main 转老板拍板)",
+  "since": "2026-10-25",
+  "waiting_on": "boss",
+  "due": "2026-10-25"
+ },
+ {
+  "key": "q17_display_fps",
+  "to": "main",
+  "item": "Q17 显示帧率 — 若放宽到 25-30fps, 显示等 OD 模式端到端 55.7ms 达标 (最省事的解法; 走 main 转老板拍板)",
+  "since": "2026-10-25",
+  "waiting_on": "boss",
+  "due": "2026-10-25"
+ },
+ {
+  "key": "q18_highspeed_cam",
+  "to": "main",
+  "item": "Q18 能不能借高速摄影/示波器实测光机逐帧延迟 (设备资源类, 走 main 转老板)",
+  "since": "2026-10-25",
+  "waiting_on": "boss",
+  "due": "2026-10-28"
+ },
+ {
+  "key": "debug_port_form",
+  "to": "hw-lead",
+  "item": "调试口形态确认 (Type-C 复用) + 我出 OD 负载曲线供 DC-DC 瞬态设计 (hw-lead 已于 10-25 09:32 正式答复: Type-C 复用 USB, ADB+CDC-ACM 双模式)",
+  "since": "2026-10-25"
+ },
+ {
+  "key": "ntc_placement",
+  "to": "mech-lead",
+  "item": "NTC 位置 (配合软件做温度策略) + 实测功耗需求 (按需触发 vs 持续满载的 DVFS 策略) — 我已先答, 待 mech-lead 正式回复",
+  "since": "2026-10-25"
+ },
+ {
+  "key": "vendor_q8_q9_scope",
+  "to": "vendor",
+  "item": "Q8 口径写死 (纯NPU 耗时 vs SDK 总耗时) + Q9 追加4问 (INT8输出直通/分阶段profiling/连续推理降频与首帧预热/输出DMA直连) — 走 main 发第二轮邮件, 我不单独对外",
+  "since": "2026-10-25",
+  "waiting_on": "vendor",
+  "due": "2026-10-28"
+ },
+ {
+  "key": "fw_vendor_toolchain",
+  "to": "vendor",
+  "item": "原厂烧录工具链 (经 main 转达, 我不单独对外): ①下载工具名称/版本/支持平台(Win?Linux?)/支持的 flash 类型/能否脚本化批量 ②bootloader 类型与版本命名规则 ③是否提供 fastboot 或等效切槽机制 ④官方分区表参考设计(rootfs/app/model/版本块 划分与对齐) ⑤官方'烧录+版本回读'流程文档 -> 卡 SW/FLASH_AND_VERSION.md §2.3/§3.2/§4.1 分区方案",
+  "since": "2026-10-26",
+  "waiting_on": "vendor",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "fw_usb_boot_phy",
+  "to": "vendor",
+  "item": "USB 下载能力 (经 main 转达): ①ARS45 USB2.0 Device 控制器是否支持 ADB 协议 ②是否支持 fastboot ③是否支持 USB DFU/UF2 类下载模式 ④USB 枚举是否需 BOOT 引脚拉高 -> 烧录链路 §2.2 的唯一支点; 若答'无 USB PHY' 则 Type-C 母座引脚定义要改(原理图级返工), 烧录/回滚方案需整体重写",
+  "since": "2026-10-26",
+  "waiting_on": "vendor",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "fw_boot_entry_cond",
+  "to": "vendor",
+  "item": "BOOT 模式与校验机制 (经 main 转达): ①进入下载/BOOT 模式的硬件条件(BOOT 引脚电平/是否需按键组合/超时自动进) ②bootloader 启动是否校验分区 CRC/SHA256, 不通过如何处理 ③A/B 槽自动回滚是否可配(尝试次数阈值) ④secure boot/镜像签名是否启用, 密钥如何管理 -> 卡救砖 S2 + 断电原子性 §2.5.2 + 自动回滚 N=3 假设",
+  "since": "2026-10-26",
+  "waiting_on": "vendor",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "fw_boot_storage_bom",
+  "to": "hw-lead",
+  "item": "启动存储选型 (接口请求, 经 main 转达): SPI-NOR 容量型号 vs eMMC, 以及 rootfs 体积上限约束 (多少 MB 以内必须用 NOR) → 这是回滚方案的总分叉点: rootfs>64MB 则 SPI-NOR 出局必须 eMMC → 板宽 12→15mm → 结构返工; tracker 已标'投板前必须 close'。★10-27 追加**容量下限**: 按 §4.1 推荐C 的分区表 (boot1+kernel8+rootfs30+app8x2+model15x2+isp1 = 90MB) → **64MB SPI-NOR 装不下**, 启动存储容量需 **>=128MB** (证据: SW/tools/flash_layout_check.py --device-size 64MB → FAIL)",
+  "since": "2026-10-26",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "fw_boot_mode_hw",
+  "to": "hw-lead",
+  "item": "HW-21 BOOT/RESET 硬件通路定稿 (接口请求, 经 main 转达): BOOT 引脚电平/上下拉/是否配按键 + HW-22 预留按键位数够不够 (烧录用 BOOT 组合 + 客户用侧键显示版本号)。★10-27 追加: 建议 BOOT 走**独立通路 (测试点/跳线) 或独立按键, 不要复用侧键** —— 售后已占 长按3s=版本号 / 长按10s=关机 (FRAMEWORK/AFTERSALES §2), 复用会造成用户误触进 BOOT 变砖; 另需预留 BOOT/RESET 测试点供半板抓波形 (§4.5.5 L2)",
+  "since": "2026-10-26",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "fw_q3_scope",
+  "to": "main",
+  "item": "Q3 (不联网怎么更新模型) 的答案 — 本方案假设'只允许 ADB push'(与锁死#11不冲突, Type-C已有) -> Q3至今⬜待答; 若答'必须无线' 则本方案'无OTA'前提失效, 回滚策略要重做 (走 main 转老板)",
+  "since": "2026-10-26",
+  "waiting_on": "boss",
+  "due": "2026-10-28"
+ },
+ {
+  "key": "fw_sample_ota",
+  "to": "main",
+  "item": "样机阶段是否允许保留'USB 侧 OTA 代理'(PC 上跑 agent, 通过 ADB 下发脚本做升级) — 这不是无线, 不违反锁死#11 -> 允许则 L1 回滚可半自动; 不允许则维持纯手工 (走 main 转老板, 低优先不卡主线)",
+  "since": "2026-10-26",
+  "waiting_on": "boss",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "fw_s2_test_gear",
+  "to": "main",
+  "item": "S2 无板先验 L2 层 (空板/半板) 的器材与排期 (走 main): ①逻辑分析仪 (>=8ch, >=100MS/s) 抓 BOOT/RESET 时序 ②USB 协议分析仪 (可与逻辑分析仪合并) 抓 BOOT 态 VID:PID ③SPI-NOR 空板 (128MB) + 焊台 + Type-C 数据线 x2。→ 这三样能把 P1 (BOOT 电平/时序) 和 P3 (枚举特征) 从'完全空白'变成'知道一半'; 没有它们, P1/P3 只能等原厂 〔★2026-11-17 ISS-270 自查订正★\n★本条【不再是外部依赖】, 且【与 `SW-FW-B4` 合并成一条结论】。\n★自己查了什么: 同 `SW-FW-B4` 的 ①②③④ + 读 `state/fragments/pm.yaml:231` 预算清单原文 + `grep -n \"U_DCDC_VCORE\\|U_DCDC_VIO\\|Q_AND\" HW/netlist_v1.csv` (只读)。\n★结论: 三样器材里**只有 1 样真的不可替代** —— ①**USB 协议分析仪 = 不必要** (P3 只要 VID:PID, sysfs/lsusb 已够; 要协议层用 usbmon+tshark) ②**SPI-NOR 空板 = 不必要** (P4 启动存储/分区表 ⇒ 板端 `/proc/mtd` + `/sys/class/mtd` + `dmesg` 的 JEDEC ID 就够, **不需要第二块空板**) ③**逻辑分析仪 = 只覆盖 P1 的亚毫秒窗口这一格** ⇒ ⇒ **撤掉『没有它们, P1/P3 就没数据』这个挂账形态**。\n★证据等级: 采集机制与工具链 **[实测]** / 板端真值 **[推算]** (本机无板)。\n★降级方案 (必须项): ①三样器材里 2 样各有零采购等价物 (usbmon+tshark 顶协议分析仪; `/proc/mtd` 顶 SPI-NOR 空板) ②P1 电平用万用表 + 时序用打时间戳 / GPIO 紧循环采样 ③只剩亚毫秒一格 ⇒ **先拆 P1 三格再谈器材** (电平 [A 已够] + 边沿次序 [C 已够] + 亚毫秒窗口 [唯一真缺口])。\n★什么时候真的绕不过去: 只有当 P1 判据要求 <1ms 分辨率 **且** A/B/C 都只能给 ms 级 ⇒ 才需要老板已点名的逻辑分析仪 ⇒ **这是内部器材决策, 不是外部依赖**。\n★还需要谁做什么: sw-lead 板到手即跑; 老板 仅剩逻辑分析仪一项 (已在 `test_equipment_budget`)。\n★本条是否还挂在老板清单上: **是** ⇒ key `test_equipment_budget` (`state/fragments/pm.yaml:231`); ★**本单只交\"不花钱能不能拿到 P1/P3\"的结论, 不替老板决定买不买**★。\n★老字一个字节没删。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md` §1 / §2 / §4.3。\n★订正结束★〕 ",
+  "since": "2026-10-27",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "model_toolchain_q9_addendum",
+  "to": "main",
+  "item": "Q9 追加 10 条 (模型转换专项, 经 main 转达, 我不单独对外): ①Art.Galaxy 支持的输入格式与 opset 范围 ②yolov5s 12 类算子 (Conv/Sigmoid/Mul/Concat/Slice/Resize/Pow/Sub/MaxPool/Reshape/Transpose/Add) 覆盖情况 ③支持的量化方案 + 输出能否直通量化整数而不强制 FP32 (A733 上反量化占 SDK 总 25~29%) ④校准集最少张数与推荐分布 ⑤板端模型文件头布局 + ARS45 的 chip ID 是多少 (错则板端加载后报 SRAM size 错) ⑥Art.Galaxy 是否与 VeriSilicon ACUITY/VIPLite 同源 (假设 H1, 决定 A733 的 p1/p2 脚本能否复用) ⑦官方是否提供预编译的 yolov5 板端模型及其许可与类别映射是否正确 (A733 官方 .nb 实测类别映射错→422 false positive) ⑧转换产物体积上限 (板端槽位 15MiB) ⑨冷启动加载耗时 ⑩工具链运行平台与是否需要授权/NDA -> 卡 SW/MODEL_ASSETS.md §2.9 转换骨架 B0~B9 全部九步 〔★2026-11-17 ISS-270 自查订正★\n★本条 10 问全部围绕 **Art.Galaxy** (①~⑥⑨⑩) + ⑦ 官方预编译模型 ⇒ ★与 `ars45_art_galaxy_sdk` / `model_license_stack_decision` 第 ③ 路同源 ⇒ **【已退休 · 不再是路径】**。\n★自己查了什么: GitHub 仓库搜索 `q=Art.Galaxy` (total=115, 命中全是同名无关项目) / `q=artgalaxy` (4, 全无关) / `q=Art+Galaxy+NPU` (**0**) / GitHub 代码搜索 `\"Art.Galaxy\"` (**0 结果**) / Gitee `search/repositories?q=artgalaxy` (**[] 0 条**) / Docker Hub `?query=artgalaxy` (★本机不可达 http=000 rc=28★) / web_search「Art.Galaxy 酷芯微 工具链 SDK 公开 下载」(8 条, **0 条相关**) / 本机 `SW/tools/int8_chain.py` 的 `ART_GALAXY_HINTS` 8 个候选路径**全不存在** ⇒ 公开渠道 **[0数据]** (真的没有, 不是没查); ★**决定性一条 (不用查)**: 主控基线 2026-11-02 01:00 已翻到**瑞芯微 RK3572** ⇒ **Art.Galaxy 是酷芯微 (A733 线) 的工具链, 与现在的芯片不同厂、不同 NPU 架构** ⇒ 即便明天原厂给了也不该用。\n★结论: 本条不再是外部依赖 ⇒ **不挂账**。\n★降级方案 (必须项): ①Art.Galaxy 永远不来 ⇒ **零影响** (转换链走 rknn3-toolkit 1.2.0 官方 RK3572 路线: ISS-263 实测 `config('rk3572')` rc=0 + 反向自证 `rk3576` 必报错 + 产物 md5 `97a34fff0b855b92681f26627dba5354` 三次一致; 板端 `init_runtime` rc=-1 = 板端 [0数据]) ②要复用 A733 ⇒ **只复用方法论** (p1/p2/p5 五步流程), **不复用产物** (`.nb` 头 + chip ID `0x1000003B` 对 RK3572 **无效**, `SW/MODEL_ASSETS.md` §1.6 已实测踩坑) ③板端 runtime 与 `.rknn` 不匹配 ⇒ 走 `SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` §5 三条出路表。\n★还需要谁做什么: **无** —— 本条不需要任何人做任何事; 请 main 收口 (关闭或降级为\"已退休\")。\n★本条是否还挂在老板清单上: **否**。\n★本单动作: `waiting_on` vendor ⇒ agent (挂账形态撤掉, 收口动作归 main); **老字一个字节没删**。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md` §1 / §2 E-4。\n★订正结束★〕",
+  "since": "2026-10-27",
+  "waiting_on": "agent",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "model_license_yolov5sim",
+  "to": "vendor",
+  "item": "★ISS-087 本地已判定: yolov5s-sim 系 = ultralytics/yolov5 v6.0 release 导出物 → 许可 = AGPL-3.0 (证据链 7 环, 见 SW/MODEL_LICENSE.md §1.2; 一条命令 python3 SW/tools/license_probe.py 可复现) ⇒ L1 已闭合。仍需原厂/来源方书面确认以闭环 (尤其: 是否允许随闭源固件分发 / 是否有原厂自有 model zoo 许可) (经 main 转达, 我不单独对外)",
+  "since": "2026-10-27",
+  "waiting_on": "vendor",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "model_license_agpl_ultralytics",
+  "to": "main",
+  "item": "★ISS-087 已给完整采购/法务路径与成本区间 (SW/MODEL_LICENSE.md §3): 官方无公开价 [0数据], 报价制 [官方·定性]; 立项预算量级 10^4-10^5 USD [推算], 一次性授权 US$5k-50k + 年费 US$2k-20k/型号, 周期 4-12 周 [推算]; 官网明写 嵌入式硬件/商用/自训练模型 均需 Enterprise License [官方]; **不采购 = 商用受阻** (AGPL §6 要求随硬件分发即提供完整对应源码, 与闭源固件冲突) → 老板二选一: 采购 Enterprise (走 main 向 Ultralytics 询价) 或换 Apache-2.0 栈 (YOLOX-s / PP-YOLOE / TF OD API)",
+  "since": "2026-10-27",
+  "waiting_on": "boss",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "model_od_input_size",
+  "to": "main",
+  "item": "ARS45 OD 输入尺寸裁决 (走 main): 决定 ONNX 静态化 shape + 转换产物体积 + 端到端预算 (我给的约束: 端到端 <60ms, 纯 NPU 跨 16.67ms 会让框龄 age 从 2 跳 3 直接 +16.67ms; 板端 model 槽位 15MiB) -> 我的默认假设是 640x480 (与锁定的 ISP 缩放链一致), 若裁决不同我按新值重算并重出静态 shape",
+  "since": "2026-10-27",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "sw_reset_timing_spec",
+  "to": "vendor",
+  "item": "★TBD-12 追加问 (请项目总工并进第二轮邮件, 我不外发): ① RESET 释放要求 (拉低最少多久/释放前各轨须稳定多久) ② 内部上电顺序与内部 DCDC 同步机制 ③ 是否提供 PG 输入 ④ 是否带片上温度传感器 (能否读, 是 Tj 还是近似) ⑤ BOOT 脚有效电平与所属电源域 ⑥ RESET/BOOT 脚电源域是否 = V_SOC_IO",
+  "since": "2026-10-27",
+  "waiting_on": "vendor",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "sw_usb_phy_spec",
+  "to": "vendor",
+  "item": "★TBD-10 追加问 (请项目总工并进第二轮邮件): ① USB 设备控制器是 FS(12Mbit/s) 还是 HS(480Mbit/s) ② ★是否需要 USB VBUS 连接 (网表里 SoC 侧无任何 VBUS 线 ⇒ 枚举前提缺失, 直接决定 S2 救砖链路成不成立) ③ BOOT 态枚举特征 VID:PID (S2 证据 E1)",
+  "since": "2026-10-27",
+  "waiting_on": "vendor",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "sw_reset_hw_changes",
+  "to": "hw-lead",
+  "item": "★9 项硬件改动请求 (经项目总工转达): P0-1 两路 DC-DC 的 PG 并联进复位链 (开漏可线与 + 上拉 + 1 颗 N-MOS 做 AND, 零新增 IC 级别, 不依赖 TBD-12 也能定住时序; 先核 TPS62130A PG 极性) P0-2 U_SUPV 分压改实值 + 装配规则写死 (两颗 0Ω 位同时装 = V_SOC_IO 对地短路) P0-3 补 EN/SS/CT/MR (现全网表 0 条) P1-4 CONN_USB pin4 改 GND (现在只有 1 个地脚, 违反 ISS-085 自定规则) P1-5 Type-C 侧 D+/D− 补 ESD P1-6 镜脚加 USB pogo 4 点 (可 DNP) P1-7 BOOT 加 0Ω 跳线位 P1-8 ADC 分压 1M→100k/47k (现 500kΩ 源阻抗/451ms 建立/漏电 15.2%FS) P1-9 U_TEMP note 补物理测点 (镜脚 PCB 贴皮肤面, SoC 投影 ≤10mm)",
+  "since": "2026-10-27",
+  "due": "2026-10-28"
+ },
+ {
+  "key": "sw_temp_mount_point",
+  "to": "mech-lead",
+  "item": "TMP117 测点我已定 (镜脚主 PCB 贴皮肤面, SoC 投影 ≤10mm) ⇒ 需要结构给: ① 镜脚贴皮肤面的确切位置 (TMP117 贴装落点) ② 金属骨架/石墨与镜脚 PCB 的热隔离边界 (别让传感器被烤热) ③ 光机 (镜框正中, 鼻梁上方) 能否给温度遥测 —— 没有它则镜框侧 43°C 无任何监控手段 (需 JBD 接口)",
+  "since": "2026-10-27",
+  "due": "2026-10-28"
+ },
+ {
+  "key": "sw_poweroff_semantics",
+  "to": "main",
+  "item": "★请项目总工裁决 3 项: ① '关机' 语义 = 软件深睡 (硬件无断电通路) 是否接受 —— 连带 FRAMEWORK/AFTERSALES.md 的 '长按10s=关机' 与老板锁死的 '待机<0.05W' ② 量产刷写口是否采纳 '镜脚 USB pogo' (与 ISS-092 检修口建议合并裁决, 免得两单各开一条路) ③ ★统一 'SoC 在镜脚还是镜框' 的口径 (ISS-014 决策文字写挪镜框, 而 SCHEMATIC_V1 P1/P9 与 MECH_BUDGET §1.1 都是镜脚; 本单按图上现状=镜脚执行 TMP117 测点)",
+  "since": "2026-10-27",
+  "due": "2026-10-28"
+ },
+ {
+  "key": "sw_charge_page_full",
+  "to": "main",
+  "item": "ISS-093 充电板整页未画 ⇒ 我对 CHG_STAT/PWR_GOOD 的评审只覆盖网表现状不是最终电路: 需要 BQ25896 的 STAT/PG 极性书面确认 (开漏拉低=充电中?) + CE/OTG/PSEL/INT 的接法 + Type-C 完整页",
+  "since": "2026-10-27",
+  "due": "2026-10-29"
+ },
+ {
+  "key": "model_license_stack_decision",
+  "to": "main",
+  "since": "2026-10-28",
+  "waiting_on": "boss",
+  "due": "2026-10-29",
+  "item": "★ISS-087 请项目总工并进老板拍板 (不采购路线的可执行起点): ① 交付集主模型改用 Apache-2.0 栈 (首选 YOLOX-s: 80 类 + 许可干净 + Rockchip 官方 model zoo 已有同族 NPU 完整转换配方 examples/yolox/; 本机权重下载卡在 3.48MB 停滞 → 需内网镜像/公司代理) ② 或维持 Ultralytics 路线并采购 Enterprise License ③ 或等原厂提供'许可由原厂承担'的预编译模型 〔★2026-11-17 ISS-270 自查订正★\n★三条路的客观裁决 (★**不代拍**★)。\n★自己查了什么: ①`api.github.com/repos/Megvii-BaseDetection/YOLOX` ⇒ `license.spdx_id = Apache-2.0` (stars 10711) [官网] ②`repos/PaddlePaddle/PaddleDetection` ⇒ Apache-2.0 [官网] ③`repos/airockchip/YOLOX` ⇒ Apache-2.0 (Rockchip 官方 fork) [官网] ④`repos/airockchip/rknn_model_zoo` (Apache-2.0, stars 2907) `contents/examples` ⇒ **有 `yolox` 和 `ppyoloe` 两个官方 NPU 转换配方目录** [官网] ⑤★**权重实测下载成功**: `curl -L https://ftrg.zbox.filez.com/v2/delivery/data/95f00b0fc900458ba134f8b180b3f7a1/examples/yolox/yolox_s.onnx` ⇒ **http=200, size=35891401 B, speed=8620318 B/s (4 s 下完 35.9 MB)** ⇒ sha256 `a39c8476d10c242298d6a8654cb29937a9cc3c062358f4d96367689df23d1796` / md5 `9f29ae623a0d9b0263b24cdba02e98d5` [实测] ⑥onnx 探针 ⇒ opset 11 / **273 节点** / 算子集 `{Concat,Mul,Constant,Add,Sigmoid,Resize,Conv,MaxPool}` ⇒ **无 NMS / TopK / NonZero** (后处理已外置) / 输入 `images`[1,3,640,640] / 输出 3 路 head [1,85,80,80] [1,85,40,40] [1,85,20,20] [实测] ⑦★**对照**: GitHub Releases CDN 在本机**不通** (`curl -L --max-time 55 .../0.1.1rc0/yolox_s.onnx` ⇒ **rc=28, 55 s 下载 0 B**) [实测] ⇒ **\"卡在 3.48MB / 需内网镜像或公司代理\"这个阻塞前提已不存在**。\n★结论: **第 ① 路 (YOLOX-s Apache-2.0 栈) 技术门槛已清零** (许可 [官网] + 权重 **[实测]** 本机可下载 + 官方 NPU 配方 [官网]); **第 ② 路** (采购 Ultralytics Enterprise) 的必要性因 ① 门槛清零而下降, 仍由老板拍; **第 ③ 路【已退休 · 不再是路径】** —— 三条独立理由: (a) 主控基线 2026-11-02 01:00 老板直接拍板 = **瑞芯微 RK3572** (`HW/CHIP_SELECTION_DECISION.md` §0') ⇒ 酷芯微 / Art.Galaxy 那条线**没有承载体** (b) A733 官方 `.nb` 已实测\"类别映射错 → 422 false positive\" (`SW/MODEL_ASSETS.md` §1.6) ⇒ 官方资产**也不省事** (c) 老板 2026-11-12 02:02 已定\"不再发信, 全靠自己查资料\" ⇒ 这一路的**形式**本身被取消。\n★证据等级: 许可 [官网] / 权重可得 + 指纹 + 图结构 **[实测]** / GitHub CDN 不通 **[实测]** / \"第 ③ 路已退休\" [实测·本机文档·基线翻案记录]。\n★降级方案 (必须项): ①权重源不通 ⇒ 退化到本机**已实测可用**的 Apache-2.0 候选 `SW/artifacts/models/ssd_mbv2_fpnlite_320_fp32_head_npu.onnx` (F1@IoU0.5 = **0.4346**, 299 张实测, `SW/MODEL_RELEASE_GATE.md` §4.5) ⇒ **商用不受阻**, 只是输入分辨率 640→320 / 精度换档 ②**双源**: `airockchip/YOLOX` fork + zoo CDN ⇒ 任一通即可 ③**换栈兜底**: PaddleDetection PP-YOLOE (Apache-2.0) → ONNX → 同一套 rknn3-toolkit 1.2.0 链 (zoo `examples/ppyoloe` 有 `python/` + `cpp/` + `patch_for_model_export/`) ⇒ 仍零采购。\n★还需要谁做什么: **老板给一句话结论** (本条 `waiting_on` 仍保持 `boss`, **sw-lead 不代拍**); 老板点头后 sw-lead 立刻用 rknn3-toolkit 1.2.0 + zoo 配方把 YOLOX-s 转成 rk3572 `.rknn`; main 关掉或改口径 `model_yolox_weight_download` (技术前提已消失)。\n★本条是否还挂在老板清单上: **是** ⇒ key `model_license_stack_decision` (waiting_on=boss) ★—— **这一条本单只交客观结论, 一句话结论仍由老板给**★。\n★老字一个字节没删。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md` §1 / §2 E-3。\n★订正结束★〕  (已并进 Q9 追加第 7 条) —— 三条路都请给一句话结论, 我按结论推进转换链"
+ },
+ {
+  "key": "ars45_art_galaxy_sdk",
+  "to": "main",
+  "since": "2026-10-28",
+  "waiting_on": "agent",
+  "due": "2026-10-29",
+  "item": "★ISS-087 转换链 B0 阻塞项 (经 main 转达, 我不单独对外): Art.Galaxy 工具链包 + 手册 —— ①提供形式 (docker 镜像? SDK? 需授权/NDA?) ②跑在 Linux x86 还是 Windows ③导入/量化/导出三条命令的完整参数 ④支持的输入格式与 opset 范围 ⑤量化方案名 + 校准集张数/分布要求 + 输出能否直通量化整数⑥产物体积上限 ⑦板端文件头布局 (是否同 VPMN) + **ARS45 真实 chip ID** (⚠️ A733 的 0x1000003B 不可套用, 套错 → 板端加载报 SRAM size 错) → 工具链落地后设 ART_GALAXY_HOME, 我这边 B0/B4/B5 一条命令自动转 READY 〔★2026-11-17 ISS-270 自查订正★\n★**【已退休 · 不再是前置】Art.Galaxy 不是本项目的工具链。**\n★自己查了什么: ①GitHub 仓库搜索 `q=Art.Galaxy` (total=115, 命中全是同名无关项目: 艺术/星系主题) / `q=artgalaxy` (4, 全无关) / `q=Art+Galaxy+NPU` (**0**) ②GitHub 代码搜索 `\"Art.Galaxy\"` (**0 结果**) ③Gitee `search/repositories?q=artgalaxy` (**[] 0 条**) ④Docker Hub `?query=artgalaxy` (★本机不可达 http=000 rc=28★) ⑤web_search「Art.Galaxy 酷芯微 工具链 SDK 公开 下载」(8 条, **0 条相关**) ⑥本机 `ART_GALAXY_HINTS` 8 个候选路径**全不存在** [实测] ⑦★**替代已实测可用**: `python -c \"from rknn.api import RKNN; print('IMPORT_OK')\"` (env `/home/yuewuya/miniconda3/envs/rknn3`) ⇒ **IMPORT_OK**; `pip list` ⇒ rknn3-toolkit **1.2.0** / onnx 1.23.2 / onnxruntime 1.23.2 / torch 2.4.0+cpu; ISS-263 实测 `config('rk3572')` rc=0 / 反向自证 `rk3576` 必报错 (`ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572`) / 产物 md5 `97a34fff0b855b92681f26627dba5354` 三次一致 / 板端 `init_runtime` rc=-1 = 板端 [0数据] ⑧★**官方口径**: `airockchip/rknn3-toolkit` README「Supported Platforms: RK1820 / RK1828 / **RK3572**」+「Non-coprocessor mode (RK3572): The NPU is integrated inside the SoC」; `airockchip/rknn3-model-zoo` README §3 ⇒ **| RK3572 Series | - | Linux / Android |** [官网]。\n★结论: 公开渠道**确实找不到** [0数据] (不是没查); ★**更根本**: 它是**已作废芯片线** (酷芯微 / A733) 的工具链, 现在的主控是瑞芯微 RK3572 ⇒ **即便明天原厂给了也不该用** ⇒ ⇒ **Art.Galaxy 不是前置 ⇒ 本条不挂账**。\n★证据等级: 公开渠道查不到 **[0数据]** / rknn3-toolkit 1.2.0 可用 **[实测]** (ISS-263 可复核 + 本单复跑 IMPORT_OK) / 官方支持 RK3572 [官网]。\n★降级方案 (必须项): ①Art.Galaxy 永远不来 ⇒ **不影响任何东西** (转换链已通) ②要复用 A733 资产 ⇒ **只复用方法论不复用产物** (见上) ③板端 runtime 与 `.rknn` 不匹配 ⇒ 已有出路表 (`SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` §5: ①rk3576-target ②rknn3 ③换 SoC)。\n★还需要谁做什么: **无** —— ★本条**不需要任何人做任何事** ⇒ 主干上把它从\"前置阻塞\"降为\"已退休\"。\n★本条是否还挂在老板清单上: **否** (pm.yaml 的 `test_equipment_budget` 只涉及器材, 与本条无关)。\n★本单动作: `waiting_on` vendor ⇒ agent (挂账形态撤掉, 收口动作归 main); **老字一个字节没删**。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md` §1 / §2 E-4。\n★订正结束★〕"
+ },
+ {
+  "key": "model_yolox_weight_download",
+  "to": "main",
+  "since": "2026-10-28",
+  "waiting_on": "agent",
+  "due": "2026-10-29",
+  "item": "ISS-087 换栈路线的唯一阻塞: YOLOX-s 官方权重 (Apache-2.0) 在本机下载卡在 3.48MB 停滞 (github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.onnx) → ①能否走公司代理/内网镜像? ②或由项目总工下载后放到共享目录? 权重入库后我登记台账 (sha256 + Apache-2.0 + NPU 转换可行性待验) 〔★2026-11-17 ISS-270 自查订正★\n★本条【不再是外部依赖】★ —— ★**\"本机下载卡在 3.48MB ⇒ 需内网镜像 / 公司代理\"这个阻塞前提已消失**★。\n★自己查了什么: ①★**对照 (原阻塞点复现)**: `curl -L --max-time 55 -o /dev/null -w \"http=%{http_code} size=%{size_download}\" https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.onnx` ⇒ **http=000, size=0, rc=28 (55 s 超时)** ⇒ GitHub Releases CDN 在本机确实不通 [实测] ②★**替代 CDN 实测通**: `curl -L https://ftrg.zbox.filez.com/v2/delivery/data/95f00b0fc900458ba134f8b180b3f7a1/examples/yolox/yolox_s.onnx` ⇒ **http=200, size=35891401 B, speed=8620318 B/s (4 s 下完 35.9 MB)** ⇒ sha256 `a39c8476d10c242298d6a8654cb29937a9cc3c062358f4d96367689df23d1796` / md5 `9f29ae623a0d9b0263b24cdba02e98d5` [实测] ⇒ **该文件即 Rockchip 官方 model zoo `examples/yolox/model/` 里那份 `yolox_s.onnx`** (来源: `airockchip/rknn_model_zoo` 的 `examples/yolox/README.md` \"Pretrained Model\" 段) ⇒ **不需要公司代理 / 内网镜像 / 任何人帮忙下载**。\n★结论: 本条的技术阻塞**已解除** ⇒ 权重**已在本机可取得** ⇒ ⇒ **这条 need 的技术理由已不成立** ⇒ 建议 main 关闭或改口径 (★关闭动作归 main, sw-lead 不自行改 main 的分片★)。\n★证据等级: **[实测]** (两个 CDN 的对照下载 + sha256/md5 指纹)。\n★降级方案 (必须项): ①权重下载仍不通 ⇒ 退化到本机**已实测可用**的 Apache-2.0 候选 `SW/artifacts/models/ssd_mbv2_fpnlite_320_fp32_head_npu.onnx` (F1@IoU0.5 = 0.4346, 299 张实测) ⇒ **商用不受阻**, 只是输入分辨率 640→320 / 精度换档 ②**双源**: `airockchip/YOLOX` fork + zoo CDN ⇒ 任一通即可 ③**换栈兜底**: PaddleDetection PP-YOLOE (Apache-2.0) → ONNX → 同一套 rknn3-toolkit 1.2.0 链 (zoo `examples/ppyoloe` 有 `python/` + `cpp/` + `patch_for_model_export/`) ⇒ 仍零采购。\n★还需要谁做什么: main (关闭或改口径本条); 老板 (模型栈那一句话结论仍在 `model_license_stack_decision`, **sw-lead 不代拍**); sw-lead (老板点头后立刻用 rknn3-toolkit 1.2.0 + zoo 配方把 YOLOX-s 转成 rk3572 `.rknn` 并登记台账 sha256 + Apache-2.0 + NPU 转换可行性)。\n★本条是否还挂在老板清单上: **否** (本条 `to: main`; 老板那条在 `model_license_stack_decision`)。\n★本单动作: `waiting_on` boss ⇒ agent (技术前提已消失, 挂账形态撤掉, 收口归 main); **老字一个字节没删**。详见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md` §1 / §2 E-3。\n★订正结束★〕"
+ },
+ {
+  "key": "SW-MODEL-B2-ISS101-RU1",
+  "to": "main",
+  "item": "【ISS-101·R-U1·需 boss 拍板】采购 Ultralytics Enterprise License 还是走 Apache-2.0 栈? sw-lead 已给 3 路径对比 (SW/MODEL_RELEASE_GATE.md §2.2) + 建议 (路径1与路径2并行准备), sw-lead 不拍板。★时限=投板前: 晚于投板则第3段工具链调试白跑一轮 (换模型=换图=重跑裁图+量化)。外发一律经你, sw-lead 不接触任何供应商。",
+  "since": "2026-10-28"
+ },
+ {
+  "key": "SW-MODEL-B2-ISS101-RU5",
+  "to": "main",
+  "item": "【ISS-101·Q9 追加 4 条·请并入 Q9 一起发原厂】M3: 该 OD 模型输入是 uint8 且图内无 pre-process 节点 → 板端是否需挂 pre-process 节点? M4: head 裁图版里仅剩 Resize(1)/Shape(1)/Cast(1) 三个非主流算子 → Art.Galaxy 是否支持? M9: Expand 算子支持结论 (换 YOLOX 路线会再遇到, 对两条路线都适用); M10: 320x320 输入对检出小目标的影响 (实测 person R=0.532, 小目标漏检是真实的)。另重申 M1 Art.Galaxy 工具链 / M2 ARS45 chip ID / M5 导出格式 / M6 量化方案 / M7 一个官方可跑通的参考 ONNX。",
+  "since": "2026-10-28"
+ },
+ {
+  "key": "SW-MODEL-B2-ISS101-RU6",
+  "to": "main",
+  "item": "【ISS-101·R-U6·建议 boss 同意】是否同意 sw-lead 下一步用本机 ACUITY 工具链试跑转换链第3段? 目的: 把第3段风险从 [0数据] 降到一个具体错误信息 (先看编译器在哪一步报错)。只花 PC 侧时间, 不占板子, 不影响其他路线。⚠️ 边界: ACUITY ≠ Art.Galaxy (MODEL_ASSETS §2.2 假设H1未验证), 结论不得当作 ARS45 实测。不回=默认做。",
+  "since": "2026-10-28"
+ },
+ {
+  "key": "sw_power_state_naming",
+  "to": "main",
+  "item": "★ISS-104 SW 侧电源状态命名请项目总工确认并落进 §0 锁死表/INTERFACES.md: 关机=poweroff(真断电,SoC无电), 待机=standby(原深度休眠,SoC低功耗运行); ★禁用别名 suspend (Linux 里 suspend 常被当关机用, 本项目对外只允许 poweroff/standby); 旧称 深度休眠 标 [旧称·已作废]; 旧口径 待机<0.05W 标 [旧口径·已作废] (现锁死项为 关机(断电)<0.05W)。SW 侧取值已登记 interface_claims: sw_power_state_names=poweroff/standby",
+  "since": "2026-10-28",
+  "due": "2026-10-30"
+ },
+ {
+  "key": "sw_runtime_recalc",
+  "to": "main",
+  "item": "★ISS-104 续航列算式自检不一致, 请项目总工裁决对外口径: HW/POWER_SHUTDOWN_V3.md §6 四行里, 待机2.8h/满载20min/按需1.8h 三行是按 mAh÷(把W当mA) 直算 (漏除电池电压 3.7V), 按 I=P/V@3.7V + DoD0.9 应为 待机~9.3h/满载~1.15h/按需~6.1h (差~3.3倍); 关机行用真电流108µA 算得对 ⇒ 老板锁死的 关机(断电)<0.05W 与 5-11个月 两项不受影响。请裁: 对外续航话术用 2.8h 还是 ~9h? ★不改变热学结论(皮肤温度算的是功耗侧) 也不改变 §0 #38 按需触发场景下≥1h (真值~6.1h 更宽裕)。我已把算式拆解写进 SW/POWER_STATE_SEMANTICS.md §6.1",
+  "since": "2026-10-28",
+  "due": "2026-10-30"
+ },
+ {
+  "key": "sw_poweroff_gpio_pin",
+  "to": "hw-lead",
+  "item": "★ISS-104 接口请求 (经项目总工转达): ①SoC PWR_CTRL GPIO 的确切脚号 (网表现写 TBD-01) 与该脚在关机瞬间的确切动作 (SW 写高阻→负载开关 ON 脚掉回10k下拉→SYS断电) —— SW 关机序列最后一步要精确到这个粒度才能验收 ②关机前是否有通知充电板的通路 (现无 ⇒ SW 不做该动作, 充电灯是充电板本地硬件行为)。参考 HW/POWER_SHUTDOWN_V3.md §3",
+  "since": "2026-10-28",
+  "due": "2026-10-30"
+ },
+ {
+  "key": "sw_aon_deepsleep_spec",
+  "to": "vendor",
+  "item": "★ISS-104 原厂追加问 (经项目总工并进第二轮邮件, 我不单独对外): ①ARS45 有没有 AON 域/常开唤醒脚? 脚号? AON 静态电流多少 µA? (关机态 0.40mW 里最大单项 ~50µA; 也决定 关机态长按按键唤醒 是否成立) ②深睡/低功耗态下 DDR 内容是否保留 (决定 SW 进 standby 前是否必须落盘, 现按不可保留设计) ③进低功耗态时 sensor/光机 rail 能否真断 (决定 0.15W 口径成立与否)。见 SW/POWER_STATE_SEMANTICS.md §7 U1/U5",
+  "since": "2026-10-28",
+  "due": "2026-10-31",
+  "waiting_on": "vendor"
+ },
+ {
+  "key": "s2_chip_swap_scope",
+  "to": "main",
+  "item": "★ISS-120 换芯口径裁决 (投板前必须定, 否则 S2 全套判据对着错误的板): ISS-119 已把 SoC 基线从 ARS45 换成 RK3588 (RK3576 为可机械触发的翻转后手; HW/CHIP_SELECTION_DECISION.md, verify_by=boss 待老板点头), 但 S2 救砖链路文档与工具链仍按 ARS45 写。三个子问题: ①版本块 magic (flash_writer.py 写死 AR45) 与版本串行首 (写死 ARS45-SW ) 要不要沿用 ②分区表按 RK3588 parameter.txt 重排 (★原厂按 512B 扇区计, 我方按字节, 差 512 倍), 由谁改换算 ③原厂问询走哪条线 (线路A 模组厂/板级设计方 vs 线路B ARS45 供应商) —— 问错对象白等一轮。详见 SW/S2_BOARD_TEST_CHECKLIST.md §0.2 与 SW/S2_VENDOR_QUESTION_LIST.md §0.2/§5。",
+  "since": "2026-10-30",
+  "decision": "基线已翻案: RK3588 → RK3576 (ISS-118 机械判定 54/58 通过/FAIL 4, 硬否决项 = RK3588 在 60×30mm 板框内摆不下 ⇒ T4 翻案条件命中); 依据 PROJECT_TRACKER.md §(1.46)/(1.47) + HW/CHIP_SELECTION_DECISION.md §0。★ARS45/AR9481/酷芯微 全部作废 (老板 10-29 19:20)。⇒ 三个子问题的答案: ①magic/前缀 **抽成可配置** (ISS-123 已改, 默认 RK35 / ARS45-SW , 取值待 P4 裁决) ②分区表按 **RK3576 模组厂 parameter.txt** 重排, 单位差 512 倍已做成**显式参数 + 机械守卫** (ISS-123 已改) ③问询对象 = **RK3576 模组厂** (ISS-123 已把问询清单整版重写为 v2.0)。",
+  "decided_at": "2026-11-01",
+  "closed_ref": "SW/S2_VENDOR_QUESTION_LIST.md v2.0 + SW/tools/s2_rescue_config.json#identity"
+ },
+ {
+  "key": "s2_vendor_inquiry_draft",
+  "to": "main",
+  "item": "★ISS-123 (2026-11-01) 问询清单已按 **RK3576 模组厂** 口径整版重写为 v2.0, 请项目总工外发 (sw-lead 不直接联系模组厂): SW/S2_VENDOR_QUESTION_LIST.md (P1 进 Maskrom/Loader 条件 / P2 下载工具与固件包 / P3 USB 下载通路与枚举特征 / P4 启动存储与分区表, 每节仍是「问什么 / 什么格式回(可填表格) / 拿到后填进 s2_rescue_config 的哪个字段」)。★v2.0 相对 v1.0 的三处实质变化: ①对象/术语改成瑞芯微口径 (Maskrom/Loader/Rockusb, SARADC_VIN0_BOOT 电压档位) ②★新增必答项: **parameter.txt 的单位与方言** (扇区 512B? 后缀 K/M/G?) + **专用 MaskROM USB 口** + **三个态各自的 VID:PID** ③§4.3 给了「扇区→字节」四步换算法 (禁止手抄, 一条命令 s2_partition_convert.py --parse)。★既有 fw_vendor_toolchain / fw_usb_boot_phy / fw_boot_entry_cond / sw_usb_phy_spec 四条 vendor 需求 due 2026-10-29 已逾期, 本清单是它们的具体化, 不重复问。回填后跑该文 §7 的 7 条自检命令 + preflight。",
+  "since": "2026-10-30"
+ },
+ {
+  "key": "s2_param_fill_backfill",
+  "to": "main",
+  "item": "★ISS-120 板端回读通道与标定台账 (投板前必须定, 否则 CB-02/CB-06/CB-07 永远判未验): ①板端回读通道怎么走 (board_test.verify.readback_cmd + readback_target) —— 靠原厂工具回读还是自研? ②工厂标定台账何时建 (board_test.checks.calib_ledger = 该 SN 的标定 ID), 台账是标定工位出还是返修工位出? F6 标定丢失是返修最大的坑, CB-07 判不过等于 BR-01 判不过。",
+  "since": "2026-10-30"
+ },
+ {
+  "key": "s2_product_codename",
+  "to": "main",
+  "waiting_on": "boss",
+  "due": "2026-11-08",
+  "since": "2026-11-01",
+  "item": "★ISS-123: 眼镜**产品代号**是否随『ARS45/AR9481/酷芯微 作废』(老板 10-29 19:20) 一起改名? —— 现状: 版本串前缀 `ARS45-SW ` 已从代码硬编码抽成**可配置** (`identity.version_str_prefix`), 但**默认值仍保持 `ARS45-SW ` 未擅自改**, 依据是: 该前缀取自**产品代号** (PROJECT_TRACKER 标题 'ARS45 Smart Glasses'), **不是** SoC 型号 ⇒ 换芯 (ARS45 芯片 → RK3576) **不构成**改它的理由; 而『ARS45 作废』指的是**芯片与方案商**, 产品代号是否同步改名**未见拍板** ⇒ sw-lead **不脑补**。★请项目总工请老板明确: ①产品代号保持 ARS45 ②改名 (请给新代号)。裁决后**只改配置一个字段** + 板端 /etc/version 生成模板, 代码零改动。"
+ },
+ {
+  "key": "s2_version_block_magic_decision",
+  "to": "main",
+  "waiting_on": "boss",
+  "due": "2026-11-08",
+  "since": "2026-11-01",
+  "item": "★ISS-123: 版本块 magic 的**最终取值**待裁决 —— 现状已从代码写死 b'AR45' 抽成可配置 (`identity.version_block_magic`), 现默认 **\"RK35\"**, 依据: ①版本块 magic 是**项目自有**的 4 字节标签 (SW/FLASH_AND_VERSION.md §3.2), 原值 'AR45' 取自**已作废**的酷芯微 ARS45 ②基线翻到 RK3576 ⇒ 家族短标签取 'RK35' (瑞芯微 RK35xx 系列短标签写法; RK3528/RK3566/RK3568/RK3576/RK3588 同族前缀) ③**宽度仍 4 字节** ⇒ §3.2 版本块二进制布局零改动 ④★本项目**尚无板、无已刷镜像** ⇒ 改 magic 的兼容成本 = 0。★待裁决点: 最终取值应等模组厂给出版本/元数据分区格式后定 (P4); 若老板另有指定, 改配置一个字段即可。"
+ },
+ {
+  "key": "s2_boot_entry_hw_rk3576",
+  "to": "main",
+  "waiting_on": "agent",
+  "due": "2026-11-08",
+  "since": "2026-11-01",
+  "item": "★ISS-123 连带: 载板上的下载态入口需按 **RK3576** 重核 —— RK3576 的 boot 选择脚是 **SARADC_VIN0_BOOT** (一个 **ADC 引脚, 用电压档位选启动优先级**), 不是普通 BOOT GPIO; 且官方 MaskROM 模式**只走专用 MaskROM USB 口**。⇒ 我方现有接口声明 `boot_entry_hw = BOOT-static-strap+上电` (SW/SW_TIMING_REVIEW.md, 按旧 SoC 写的) **需按 RK3576 重核**: ①SARADC_VIN0_BOOT 的电压门限要谁来定 (模组厂给, 还是 hw-lead 按我们选定的档位设计跳线/治具) ②专用 MaskROM USB 口在载板上引不引、走哪个 SoC 引脚 (跨铰链救援通道那侧能否进 Maskrom)。★已并入问询清单 §1 Q1.1c / §3 Q3.1a, 请项目总工在外发模组厂的同时**并行**转 hw-lead, 两条**不互相等**。"
+ },
+ {
+  "key": "display_recompose_1920x1080",
+  "to": "main",
+  "item": "显示分辨率 800×600 → **1920×1080** (11-02 01:12 老板拍板) ⇒ ★**SW 侧要重做的**: ①画框/检测结果的分辨率映射与最小线宽判据 (★PPD 从 26.7 降到 16 PPD/° ⇒ 1px 细线在 120° FOV 下会被光波导 MTF 吃掉 ⇒ 线宽判据要重定) ②检测框密度与文字字号策略 ③合成/缩放负载 (×4.3 像素) 与 60ms 预算的分配 ④ISS-063「120°→30° 映射」前提作废 ⇒ 映射规则要重定义。",
+  "decision": "",
+  "decided_at": "",
+  "decided_by": "",
+  "since": "2026-11-02"
+ },
+ {
+  "key": "demo_od_p0_1_rk3572_target",
+  "to": "main",
+  "item": "★P0: rknn-toolkit2 2.3.2 的 target_platform 是否含 rk3572 —— RKNN_BENCH.md §5 只证过含 rk3576 (rknn/api/rknn.py:89)。若不含 ⇒ '直接复用 A7S 的 .rknn 产物' 不成立, M1(yolov5s) 的零转换优势归零, 必须改选 M2(yolov5n) 或升级工具链。核法: 构建机上 python -c \"from rknn.api import RKNN; print(RKNN.RKNN_TARGET_PLATFORM)\" + grep rknn/api/rknn.py",
+  "since": "2026-11-02",
+  "due": "2026-11-05",
+  "waiting_on": "sw-lead"
+ },
+ {
+  "key": "demo_od_p0_3_build_env",
+  "to": "main",
+  "item": "★P0: 本机缺 RKNN 工具链/源 ONNX/100 张校准集/.rknn 产物 (实测: ~/Public/radxa_yolo 不存在, conda envs 空, 无 *.onnx/*.rknn)。RKNN_BENCH.md 的复现命令是在有该环境的机器上实测的。下一步第 0 步 = 找回 ~/Public/radxa_yolo/ 或重建 conda env rknn-toolkit2==2.3.2, 否则转换链跑不了, 谈不上写 demo 代码",
+  "since": "2026-11-02",
+  "due": "2026-11-05",
+  "waiting_on": "sw-lead"
+ },
+ {
+  "key": "demo_od_p0_4_panel_init_code",
+  "to": "main",
+  "item": "★**已结 (ISS-212, 2026-11-15 sw-lead)**: 本条 (视涯 0.49\" 的 DCS init code / 时序 / DSC / 单色全彩) **不再是任何前置条件**; 原问的「请放行外发问询函」**作废** (老板 2026-11-11 19:31 + 2026-11-12 02:02: 一律不发, 全靠自己查资料)。 ★**demo 半 = 自己查完, 已闭环 [官网]**: demo 屏 = Waveshare 2.8inch DSI LCD (SKU 22028 / 480×640 / 2-lane), **不需要任何 DCS init 序列** —— 树莓派官方内核 `panel-waveshare-dsi.c` (commit d8e5eb49991de6b8fa9231532a11036e24aa84de) **零 DSI 写**, 面板与背光全走 I2C (模组内 MCU @0x45: probe 0xC0/0xC2/0xAC · enable 0xAD=0x01 · disable 0xAD=0x00 · 背光 0xAB+0xAA), 触摸 GT911 @0x14 可选, I2C_B 速率 ≤100kHz (t_r@300pF=1194.7ns) ⇒ **demo 阶段 1 直接上真面板**。 ⇒ 规格 `SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md` (含板端 30 分钟验证清单 V0~V9) + 逐处定性表 `SW/DEMO_PANEL_SPEC_TRIAGE.md` (22 grep 命中 + 16 关联 = 38 处) + 机器门禁 `SW/tools/check_demo_panel_spec.py` (rc=0 / selftest 8/8)。 ★**整机视涯半 = [0数据] + 降级方案 (不许留成外部依赖)**: 视涯侧 DCS init 序列 / 时序 / 单色全彩 / 逐帧延迟 全部未拿到且**一律不外发** ⇒ ① demo 不依赖视涯 (显示侧全部走 Waveshare 2.8\") ⇒ 整机选型未决**不阻塞 demo**; ② 整机屏若仍是视涯 ⇒ 采购硬判据加「**必须支持非 DSC 的 1920×1080@60 RGB888**」 (RK3572 **没有 DSC 编码器** ⇒ VESA DSC 3:1 出不来); ③ 面板厂坚持只给 DSC ⇒ 整机路线换 SoC 到 RK3588; ④ 逐帧延迟 S10=5.0ms 占位 ⇒ 整机阶段实测, 不猜。 ★**整机屏路线 / 最终选型 / FOV = 老板拍板 (sw-lead 不代拍)**。",
+  "since": "2026-11-02",
+  "due": "2026-11-04",
+  "waiting_on": "boss"
+ },
+ {
+  "key": "demo_od_model_route_m1_vs_m2",
+  "to": "main",
+  "item": "★待裁决: demo 阶段模型路线 M1(直接用 A7S 的 yolov5s@640 INT8, 零转换, 但 RK3572 推算 模式A 62.67~64.18ms 超 60ms) vs M2(yolov5n@640, 需新拿 ONNX + 重转 + 精度重评, 推算 模式A 52.91ms ✅ 但模式B age=2 仍 ❌)。sw-lead 建议 M1 (demo 验收判据里没有 60ms 这一条, 60ms 是整机阶段硬指标) + 写死三个换模型触发条件。若 boss 要求 demo 阶段就挂 60ms 门限 ⇒ 只能走 M2 或改锁死变量 'OD 640x480' (需 boss 拍板)",
+  "since": "2026-11-02",
+  "due": "2026-11-04",
+  "waiting_on": "boss"
+ },
+ {
+  "key": "demo_od_path_a_vs_b",
+  "to": "main",
+  "item": "★待裁决: 路径A(AR0234CS 单线, 驱动移植 5~8 人天 + ISP tuning 自写 5~10 人天, 因 rkaiq 公开 iqfiles 无 ar0234) vs 路径B(先用有现成 BSP 驱动+现成 IQ 的 IMX415/OV02B10 跑通链路, 再换 AR0234CS)。sw-lead 判断: 软件 75% 与 sensor 无关但 sensor 承担 ~70% 阻塞风险; 路径B 省 10~14 人天≈2~3 周, 但'最短出画面'的真瓶颈是面板 init code ⇒ 建议 面板问询外发 + 路径B + AR0234CS 驱动/tuning 三线并行 (不是二选一)",
+  "since": "2026-11-02",
+  "due": "2026-11-04",
+  "waiting_on": "boss"
+ },
+ {
+  "key": "iss137_r1_r6_fixback",
+  "to": "main",
+  "item": "★ISS-137 验证退回 6 条 (我只出报告, 不自己改交付物; 详细见 HANDOFF/2026-11-10_sw-lead_ISS137_验证.md §3)。R1【必改】SW/DEMO_OD_TIMING_SPEC.md:179 判据 17.65 → **16.65** (脚本 compose_max_for(6.75)=16.65), ★并同步 state/issue_log.yaml ISS-137 note 里的 '17.65ms'。R2【必改·口径】S9 一名两义: 预算脚本把 S9 叫『显示合成』, RKNN_BENCH.md:273/:319/:321 三处仍叫『显示 TX』⇒ 建议采纳报告方案 A: 槽位统一改称 T_DISPLAY_OUT (显示输出=合成+TX), 板端打段7 t_compose + 段8 t_tx (CSV 已有 ts_compose/ts_display 两列, 零新增打点), 判据写成 t_compose + t_tx ≤ X, 并同步 RKNN_BENCH 三处标签 (唯一真源)。R3【必改】SW/DEMO_OD_TIMING_SPEC.md:173-189 把判据从**充分条件**改成**必要条件** + 加列 'TX 未计入 ⇒ 真实上限更严 ≈7.78ms' (用脚本 §⑥ 自己的链路参数 4-lane@2.0Gbps/80% 反算: 2985.98Mbps/6400Mbps×16.67=7.78ms/帧), 并把段8 边界从 commit 返回改成 vblank/TE。R4【改】HW/e2e_budget_rk3572.py:286 §⑤ 读法里 '显示段只要占 T_FIXED 的 15%' 是盲扫旧口径残留 ⇒ 明写 '★已作废, 现判据 = t_compose 测出 ≤ 10.09ms'。R5【改】同上两文件: '板端实测 ⇒ 一行命令出结论' 只闭合合成段 (板端 11 段表本来就没有 TX 段) ⇒ 明写 '本判据只闭合合成段, 显示 TX 与光机 S10 仍 [0数据]'。R6【可选】SW/DEMO_OD_TIMING_SPEC.md:3 版本头补 v1.1 (2026-11-10)。★另: ISS-137 的 '★不制造新的口径分叉' 自我评价不成立 (它恰恰造了一个 S9 名称分叉) ⇒ 建议在 note 里订正。",
+  "since": "2026-11-10"
+ },
+ {
+  "key": "iss137_rev1_fixback",
+  "to": "main",
+  "item": "★**【已消化 2026-11-11 01:5x (sw-lead rev2 复验) — 本条 5 处订正全部落地并逐条命中我 rev1 点名的原文, R1 唯一阻塞已真闭合; ★**但 rev2 又抓到第 6 处同类残留 (F5), 已另开 needs_from.iss137_rev2_f5_fixback; 原文照留】**★\n  ★ISS-137 **rev1 复验**: 技术内容全过, ★**只差 1 处必改** (5 分钟) ⇒ ★**补完我立即签**。详细见 HANDOFF/2026-11-10_sw-lead_ISS137_验证.md **§7** (rev1 结论独立于 rev0 的 §0~§6)。\n  ★**必改 (1 处)**: `state/issue_log.yaml` ISS-137 note 的【交付】/【口径纪律】/【自证】三段 (`:4701`~`:4706`) **就地订正 5 处**: ①槽位名 `T_COMPOSE 3.00 (S9 显示合成/缩放...)` → `T_DISPLAY_OUT 3.00 (S9 显示输出侧 = TX/桥接+合成+缩放...)`; ②`RK3572+yolov5s@320: 上限 **17.65ms**` → **16.65ms** (★脚本实算 16.65, 我实跑复核过); ③`★**板端打一个点 ⇒ 一行命令出结论**` → **板端打两个点 (第7段合成 + 第8段上屏)**; ④`★**本单按 ... (t_compose ↔ S9) 对齐** ... ★**不制造新的口径分叉**` → **订正为 'rev0 这句自我评价已被 R2 判为不成立 (它恰恰造了一个 S9 名称分叉); rev1 已改为: t_compose 只是 S9 的一部分, 须另测 t_display 或用物理下限 7.776ms'**; ⑤`★**新增 6 条拆分护栏**` → **7 条**。★**注意: note 里现在已经同时写着 '已修' 和 '本来就对' (第④处), 自相矛盾, 这条比数字更要紧。**\n  ★**建议 (不阻塞签字, 报告 §7.4 有全部 9 条)**: (a) `HW/e2e_budget_rk3572.py` 补 3 条护栏: ⑧ TX 已发布值钉死 (7.776/1.800) + ⑨ 链路参数钉死 (4 lane @2.0Gbps × 0.8) + ⑩ 默认路径带 TX ⇒ ★**我实测: 正确版 9 条全绿 / M2(默认参数踢 TX) 红 / M3(改 lane 速率) 红**; ★**别写成'用同一组常量重算期望值' —— 我第一版就是这么写的, 实测是同义反复, 拦不住任何东西**; (b) `PROJECT_TRACKER.md:2098` 加一句 '⇒ ★**已被 ISS-137 rev1 取代**: 现判据 = 输出侧合计 ≤ X ms (绝对值, 不是百分比)' (★**别删历史, 加标记即可**; ★**注意: 这不在 §0 锁死表里 (§0 从 :28 起), 我没碰 §0**); (c) `SW/DEMO_OD_PIPELINE_SPEC.md:447` 的 §⑤ 悬空引用改成指向判据表; (d) `SW/DEMO_OD_TIMING_SPEC.md:194` '显示 TX ... 仍是 [0数据]' → '显示输出侧的**实测值**仍 [0数据] (TX 只有物理下限 7.776ms)'; (e) `SW/tools/rknn_bench.py:257/:261` 的 S9 标签 '显示 TX' → '显示输出侧' (数字不动)。\n  ★**已发布数字我复核过: 零改动** (RKNN_BENCH.md 全文件 diff = 3 行只动标签; 脚本 stdout §①~④⑥⑦ 与 11-02 原版逐字节相同) ⇒ ★**签字风险只剩 note 那一处文字**。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss137_dsi_payload_caliber",
+  "to": "hw-lead",
+  "item": "★ISS-137 rev1 复验时发现: **项目里有两个『DSI 带宽』口径, 差 8 倍**, 而 ISS-137 的 TX 物理下限正压在这个口径上 ⇒ 建议顺手修 (★**不是 ISS-137 造成的, 是 11-02 就有的**)。\n  ★**证据 (我实算)**: 1920×1080@60 RGB888 = 1920×1080×24×60 = **2985.98 Mbps**; 800×1280@60 RGB888 = **1474.56 Mbps**。\n  ⇒ `HW/DISPLAY_MODULE_DECISION.md:53` 写 '1920×1080@60 RGB888 ≈ **373 Mbps**' ⇒ **偏小 8.0×** (反推 bpp = 2.998, 既不是 RGB888 也不是整数口径); `HW/STEP1_PARTS_SPEC.md:375` 写 '800×1280@60 ≈ **246 Mbps**; 1920×1080@60 ≈ **373 Mbps**' ⇒ 分别偏小 **6.0× / 8.0×** (246 反推 bpp = 4.004 ⇒ **两处彼此也不是一个口径**)。\n  ⇒ ★**对照 (这两处是对的)**: `PROJECT_TRACKER.md:2099` 写 '1920×1080@60 RGB888 = **2986 Mbps**, 4-lane@2.0Gbps 够' ✔; `HW/e2e_budget_rk3572.py` §⑥ 实打印 'RGB888 payload = **2986.0 Mbps**' ✔。\n  ★**为什么要紧**: TX 物理下限 = 一帧比特 / 链路有效带宽 ⇒ ★**一旦有人把 2986 换成 373, TX 下限会从 7.776ms 塌到 ~0.97ms ⇒ ISS-137 rev0 那个『显示 TX 从账上消失』的坑会原样回来, 而且更隐蔽** (我已经把 TX 显式扣进判据并加了护栏, 但**护栏钉不住 payload 口径本身**, 因为 payload 根本不在脚本里)。\n  ★**建议**: 两处改成 **2986 / 1475 Mbps** (或直接引 PROJECT_TRACKER.md:2099 的口径), 并在 ISS-137 脚本 §⑥ 旁注明 '以 §⑥ 为准'。★**另**: `HW/DISPLAY_MODULE_DECISION.md:102` 那条未闭合的未知项 '0.49\" 1920×1080 是**单色还是全彩**?' ⇒ ★**它决定 TX 下限用的 bpp (24 vs 更低) ⇒ 直接决定 yolov5n 那 2.32ms 还剩多少** ⇒ 建议挂进面板问询单 (ISS-134/135)。\n  ★★**rev2 复验补充: 落点实为 6 处 (比 rev1 数的 2 处多 4 处)** ⇒ ★**派 hw-lead 时请把这 6 处一起带上, 否则改完还漏** ★:\n    ① `HW/DISPLAY_MODULE_DECISION.md:53` (373 Mbps / @90Hz ≈ 560) → **2986 / 4480**\n    ② `HW/STEP1_PARTS_SPEC.md:375` (246 / 373) → **1475 / 2986**\n    ③ ★**`HW/DEMO_BOARD_HW_DECISION.md:65`** (373 Mbps ⇒ 'demo 不需要 DSC') → **2986** ★**这处最要紧: 它是 demo 板'不用 DSC'的决策依据**\n    ④ ★**`HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md:398`** (373 Mbps ⇒ '4-lane 完全够') → **2986**\n    ⑤ ★**`SW/DEMO_OD_PIPELINE_SPEC.md:322`** (373 Mbps / @90Hz ≈ 560) → **2986 / 4480** ★**这处在 SW 分片 (我的), 但它是 ISS-145 (owner=sw-lead / verify_by=main) 的上游文件且已 fixed ⇒ 我不擅自动 ⇒ 走 main 裁决**\n    ⑥ ★**`state/outbox/visionox_display_inquiry.md:29`** (373 Mbps ⇒ 拿去问面板厂'不用 DSC 能否跑满 60fps') → **2986** ★**★这处是对供应商的询价函草稿 ⇒ 数字错了会误导对方一个工程判断**\n  ★**★但请老板别被吓到: 我实算复核过结论方向不变** —— 4-lane@2.5Gbps raw = 10 Gbps ⇒ @60Hz payload 2986 Mbps 只占 **29.9%** ⇒ ★**'不需要 DSC' 仍然成立** ⇒ 这 6 处是'**数字错 + 依据虚**', 不是'结论错' ★ ⇒ ★**但依据虚到 8 倍, 下次有人拿它反推 TX 下限, 7.776ms 会塌成 ~0.97ms (我实算 7.776×3/24 = 0.972ms) ⇒ rev0 那个'显示 TX 从账上消失'的坑会原样回来, 而且更隐蔽** ⇒ ★**这仍不阻塞 ISS-137 签字 (payload 口径根本不在脚本里, 脚本 §⑥ 实打印 2986.0 Mbps 是对的)**。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss137_rev2_f5_fixback",
+  "to": "main",
+  "item": "★**【已消化 2026-11-11 03:3x (sw-lead rev3 复验) — F5 已真闭合, 本条已签掉: 旧断言整句 count=0 / 新断言整句 count=1 (逐字节, main 一字未改写我 rev2 §8.2 ⑥ 的串) / 四个数全在位且归属正确 / note 里 compose_max_for 7 处全带 TX 语义 (真歧义行=0) / 4 个交付物 md5 与 rev2 逐字节相同 / 181 条逐字段比对只有 ISS-137.note 变了 ⇒ ★**ISS-137 判 pass, 建议 main 落账 verified (verify_result=pass, verify_by=sw-lead, verify_date=2026-11-11); 原文照留】**★\n★ISS-137 **rev2 复验**: 技术内容全过, ★**5 处订正 5/5 命中我 rev1 点名的原文** (R1 唯一阻塞真闭合), ★**但我又抓到第 6 处同类残留 (F5) ⇒ 改这一行, 我立刻签, 不再有第三次**。详见 HANDOFF/2026-11-11_sw-lead_ISS137_rev2_验证.md **§8**。\n  ★**必改 (1 处)**: `state/issue_log.yaml:4702` (note【交付】② 段, 逻辑行 L6+L7) —— ★**现在写的是 '② 新增 compose_max_for(S5) ⇒ **可测判据**: 模式A ≤ 60ms ⇒ t_compose 测出 ≤ 多少才算过。' + 三个数 −2.69 / 10.09 / 16.65** ⇒ ★**但这三个数是 `display_out_max_for()` 的输出, 不是 `compose_max_for()` 的** (★**我实跑脚本**: `compose_max_for(13.305) = 2.319`, `display_out_max_for(13.305) = 10.095`` ⇒ ★**同一份 note 里 compose_max_for 有两个数 (L6 的 10.09 vs L22 的 2.32) ⇒ note 自相矛盾, 差的就是 TX 那 7.776ms ⇒ 这正是 R2 当初判'不成立'的那个口径分叉, 换了个位置复活**。\n  ★**精确 OLD/NEW (OLD 在 note 里恰好出现 1 次 ⇒ 可安全替换; ★**main 直接照抄进 `_fix_iss137_note_rev2_20261111.py` 的 REPLACEMENTS 即可★**)**:\n    OLD = '② 新增 compose_max_for(S5) ⇒ **可测判据**: 模式A ≤ 60ms ⇒ t_compose 测出 ≤ 多少才算过。\\n   RK3572+yolov5s@640: 上限 **−2.69ms** (负数 ⇒ 不用测, 必不过) · RK3572+yolov5n@640: 上限 **10.09ms** · RK3572+yolov5s@320: 上限 **16.65ms**。'\n    NEW = '② 新增 **display_out_max_for(S5)** (输出侧总额上限) + **compose_max_for(S5)** (= 输出侧总额上限 − TX 物理下限) ⇒ **可测判据**: 模式A ≤ 60ms ⇒ 板端第7段+第8段合计测出 ≤ 多少才算过。\\n   【输出侧总额上限】RK3572+yolov5s@640: **−2.69ms** (负数 ⇒ 不用测, 必不过) · RK3572+yolov5n@640: **10.09ms** · RK3572+yolov5s@320: **16.65ms**; ★**【减 TX 后·合成上限 (仅第7段 t_compose)】: −10.46ms / **2.32ms** / 8.87ms** (★TX 物理下限 @1080p = 7.776ms★)。'\n  ★**★我已模拟过这次替换 (7 项自检全过)**: OLD 整句消失 ✓ 三个数一个不动 ✓ 合成上限 2.32ms 写入 ✓ 不再有裸 't_compose 测出 ≤ 多少' ✓ **note 其余内容一字未动** (`fixed.replace(NEW, OLD) == note` ⇒ True) ✓ ⇒ ★**零附带风险, 一个字符串的活**。\n  ★**★另外: 这条是 rev0 遗留, rev1/rev2 都没扫到 (我 rev1 也漏了 ⇒ 我认, 不赖 main) ⇒ ★**改完跟我说一声, 我复跑一次 grep + --selftest 就签** ★。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss188_dsi_payload_nospace_sweep",
+  "to": "hw-lead",
+  "item": "★ISS-188 副产物 (★全仓扫出, 不在我分片, ★只报, 不顺手改★): **hw-lead 分片里还有 2 处活的旧 DSI payload 数字, ISS-186 那 5 处枚举没扫到 ⇒ 因为它们写的是『无空格』写法 (373Mbps), 而任务书的验收 grep 只查『373 Mbps』(带空格) ⇒ 机械验收抓不到 ⇒ 活的口径还在。★**具体 (OLD → NEW)**:\n  ① `HW/STEP1_LANDING_LIST.md:42` ⇒ OLD `1920×1080@60 RGB888 ≈ 373Mbps ⇒ 4-lane 绰绰有余，**不需 DSC**` ⇒ NEW `1920×1080@60 RGB888 ≈ 2986Mbps ⇒ 4-lane 绰绰有余，**不需 DSC**` (★结论措辞一个字不动, 只改数字)\n  ② `HW/PART_ALTERNATIVES_REGISTRY.md:24` ⇒ OLD `DSI 4-lane 够 1920×1080 RGB888 (373Mbps)` ⇒ NEW `DSI 4-lane 够 1920×1080 RGB888 (2986Mbps)` (★同: 只改数字)\n★**依据 (与 ISS-186 那 5 处同源)**: payload = 1920×1080×24×60 = 2985.98 Mbps ⇒ 与 `HW/e2e_budget_rk3572.py` §⑥ 实打印 2986.0 Mbps 同口径 ⇒ TX 物理下限 7.776ms = 2986 ÷ 60 ÷ 6400 就是按这个 payload 算的 ⇒ ★**结论方向不变** (2986 占 4-lane@2.5Gbps raw 10Gbps 的 29.9%, 占脚本保守口径 6400Mbps 的 46.7% ⇒ 两口径都远低于 100% ⇒『不需 DSC』仍成立) ⇒ ★**是数字错+依据虚, 不是结论错**。★**建议**: hw-lead 各补 1 行即可 ⇒ 我不代改别人的分片。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss188_dsi_payload_main_side_grep_dirty",
+  "to": "main",
+  "item": "★ISS-188 副产物 (★全仓扫出, 不在我分片, ★只报, 不顺手改★): **main 侧还有 3 处活的旧 DSI payload 数字 / 逐字串 ⇒ 机械验收命令 ① 会一直不为 0 ⇒ 请 main 收尾时一并处理**。★**具体**:\n  ① `state/_demo_hw_scheme_landing.py:11` ★★**这条最要紧** ⇒ main 新加的『ISS-186 口径钉死』注释里留着**逐字串『373 Mbps』** ⇒ ★**验收命令 ① `grep -rn '373 Mbps|246 Mbps' ...` 因此永远命中 ⇒ ★**修法: 把注释里的『原来写 373 Mbps (偏小 8.0×)』改成『原来写的 373 (偏小 8.0×)』即可** ⇒ ⇒ 改完验收 ① 就能真正 0 命中。★**这条坑 hw-lead 在 ISS-186 踩过一次** (其报告 §6 ① 第一遍输出: 他自己写的内部备注里留了逐字串, 把机械验收弄脏了 ⇒ 改完才清零) ⇒ ★**同样的坑别踩第二次**。\n  ② `config/agents/main/MEMORY.md:1979` ⇒ `≈ 373 Mbps payload` ⇒ 应为 `≈ 2986 Mbps payload` (★main 08:4x 说这两处 main 在做 ⇒ 我只报, 没碰; ★**08:4x 实测: main 已把它改成 2986 Mbps ✔ ⇒ 这条已闭合, 只剩 ①③ 两条**)\n  ③ `config/agents/main/memory/2026-11-02.md:26` ⇒ `4-lane DSI, 373Mbps ⇒ 不需 DSC` ⇒ 应改为 `4-lane DSI, 2986Mbps ⇒ 不需 DSC` (★08:4x 实测: 仍是 373Mbps ⇒ **这条还没改** ⇒ main 侧收尾时顺手改掉)\n★**另外两个不是 main 的活, 我已另开 needs_from 交回 hw-lead** (F1/F2: `HW/STEP1_LANDING_LIST.md:42` + `HW/PART_ALTERNATIVES_REGISTRY.md:24`, 无空格写法 `373Mbps` ⇒ 机械验收抓不到 ⇒ ★**活的口径还在**)。\n★**sw-lead 侧已闭合**: `SW/DEMO_OD_PIPELINE_SPEC.md` 322 + 379 两处 ⇒ 全 SW/ 零残留 ⇒ ★**ISS-188 的『第 6 处』已真闭合 (含 main 08:4x 追加授权的第 7 处)**。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss190_netlist_i2ca_note_contradiction",
+  "to": "hw-lead",
+  "item": "★ISS-190 (sw-lead 时序复评) 副产物 1 —— ★只报, 不改网表★: **HW/netlist_v1.csv L167/L168 与 L169/L170 自相矛盾**。L167 (NET_I2C_A_SCL) 仍写 '上拉 4.7k 到 3.3V (灌 702µA, t_r=2.38µs@100pF)', L168 (NET_I2C_A_SDA) 写 '上拉 4.7k 到 3.3V'; 而 L169/L170 的电阻行是 **2.2k ±1% → RAIL_VDD_1V8_IO (1.8V 域)** (ISS-153 11-04 订正), L171/L172 (camera 侧) 也已是 '2.2k 到 1.8V'。 ⇒ 同一根总线有两套阻值/电平/上升时间。★实算 (脚本 F3 实读): 2.2k@1.8V ⇒ t_r@100pF = 186.4ns (@300pF = 559.2ns, 标准模式通过); 注记里的 2380ns 差 **12.8 倍**; 且注记里的 '灌 702µA' 是 4.7k@3.3V 口径, 2.2k@1.8V 的真实灌流是 0.64mA。★请把 L167/L168 的 value+note 改成 '上拉 2.2k 到 1.8V (RAIL_VDD_1V8_IO, 灌 0.64mA, t_r=186ns@100pF)'。★机械判据: python3 SW/tools/timing_check.py 的 F3_i2c_rise.netlist_annotation_ns 应与 I2C_A 的实算 t_r 一致 (现 2380 vs 186)。★同源文件: SW/SW_TIMING_REVIEW.md §7-1。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss190_netlist_reset_n_held_low",
+  "to": "hw-lead",
+  "item": "★ISS-190 (sw-lead 时序复评) 副产物 2 —— ★只报, 不改网表★: **按现网表装板, RESET_N 会被永久拉低**。证据链: L65/L66/L67 **Q_AND (N-MOS 硬件 AND, dnp=必装)**: 栅=PG_AND · 漏=RESET_N · 源=GND; L62/L63 **R_PG_PULL 10k ±1% (必装)** 把 PG_AND 上拉到 RAIL_VDD_1V8_IO; ★而 PG_AND 的两个来源 **U_DCDC_VCORE (L79, IC 行 dnp=DNP)** 与 **U_DCDC_VIO (L86, IC 行 dnp=DNP)** 都是不装的 (note: SoM 自带 PMIC ⇒ 主板不产 SoC 核心轨/IO 轨)。⇒ 按现网表装板: PG_AND 恒高 ⇒ Q_AND 栅高导通 ⇒ **RESET_N 恒为低 ⇒ SoC 起不来**。★三选一 (都不新增 IC): ① Q_AND 改 DNP (复位回到纯 RC+按键, 与 SoM 内部复位并存) ② PG_AND 改指 SoM 真实存在的 PG 输出 (需原厂球位/极性, TBD-01/TBD-12) ③ 两路 PG 改由 SoM 提供并落到网表。★机械判据: python3 SW/tools/timing_check.py 的 F1_reset_rc.pg_source_devices 应显示两个 PG 源 populated=True。★同源文件: SW/SW_TIMING_REVIEW.md §7-2 (本单新发现的 P0, 上一版评审看不到, 因为上一版网表里没有 Q_AND)。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss190_netlist_supv_divider_0R_short",
+  "to": "hw-lead",
+  "item": "★ISS-190 (sw-lead 时序复评) 副产物 3 —— ★只报, 不改网表★: **监督器已 DNP, 分压两颗却仍标必装**。L404 **R_SUPV_DIV1** value='[待选型] 分压上臂 (0Ω 跳线位)' dnp=**必装**; L405/L406 **R_SUPV_DIV2** 同; 而 L407/L408/L409 **U_SUPV 三行全是 dnp=DNP** (note: SoM 内部 PMIC 已做上电复位 ⇒ 主板不装监督器)。⇒ **按 BOM 装 0Ω ⇒ RAIL_V_SOC_IO → R_SUPV_DIV1 → R_SUPV_DIV2 → GND = 电源短路** (进限流 → IO 域塌陷 → 整机不启动 + 器件发热); 而监督器已经不装了 ⇒ 这两颗**没有任何理由装**。★建议: R_SUPV_DIV1/DIV2 随 U_SUPV 一起改 dnp=DNP (零成本)。★机械判据: python3 SW/tools/timing_check.py 的 F2_supervisor.divider_dnp 应为 ['DNP','DNP'] 且 divider_zero_risk=False。★同源文件: SW/SW_TIMING_REVIEW.md §7-3 (上一版的装配级灾难结论原样成立)。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss190_netlist_bat_det_all_dnp",
+  "to": "hw-lead",
+  "item": "★ISS-190 (sw-lead 时序复评) 副产物 4 —— ★只报, 不改网表★: **电量检测分压整条 DNP, 但网表仍把 ADC 脚给了 SoC**。L182 **R_BAT_DET_1** (1M) dnp=**DNP**; L183 **R_BAT_DET_2** (1M) dnp=**DNP**; L184/L185 **C_DET_BAT** (100nF) dnp=**DNP**; ★而 L181 (**NET_BAT_DET**, 必装) 与 L186 (**J_SOM_P1 pin38**, 必装) 仍在 ⇒ SoC 侧有一个**永远悬空**的 ADC 输入脚。⇒ SW 侧 SW_REQUIREMENTS M7-R6 '软件侧确认电量读取正常' **当前没有硬件支撑** (读数随机)。★建议二选一 (SW 侧等 hw-lead 裁决): ① 补装并把 R 改成 100k+100k 或 47k+47k (1M+1M 的源阻抗 500kΩ 对 ADC 不可用: τ=50ms, 12bit 建立 451ms, 1µA 漏电 ⇒ 0.50V 偏移 = 满量程 15.2%); ② 整条 DNP 并把需求改成 '电量读数不可用'。★机械判据: python3 SW/tools/timing_check.py 的 F4_adc_det.chains 里 BAT_DET 的 populated 应为 True (若选①)。★同源文件: SW/SW_TIMING_REVIEW.md §7-4。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss190_netlist_q_envc_dnp_mismatch",
+  "to": "hw-lead",
+  "item": "★ISS-190 (sw-lead 时序复评) 副产物 5 —— ★只报, 不改网表★: **Q_ENVC 三行的 dnp 自相矛盾**。L71 (Q_ENVC → PG_AND) dnp=**DNP**, 而 L72 (Q_ENVC → GND) 与 L73 (Q_ENVC → EN_VCORE) dnp=**必装**。⇒ 同一个位号两行必装一行 DNP: 装配表按 '必装' 就会装上, 但栅极那一行不装 ⇒ 装配出来的板子与网表意图不一致; 若两颗都不装 ⇒ EN_VCORE 只剩 R_EN_VCORE 10k 上拉 ⇒ 恒高 ⇒ V_CORE 永远使能 ⇒ **V1.8 想要的顺序链 (VIO 先起 → PG 有效 → 再使能 VCORE) 被打掉**。★建议: 三行统一 (要么全必装 + 补 V1.8 顺序链, 要么全 DNP 并在 note 里写清 '顺序链在 SoM 内部完成')。★机械判据: python3 SW/tools/timing_check.py 的 F4_ctrl_pins.rows 里同一 ref 的 row_dnp 应一致。★同源文件: SW/SW_TIMING_REVIEW.md §7-5。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss190_netlist_u_en_sw_no_device_row",
+  "to": "hw-lead",
+  "item": "★ISS-190 (sw-lead 时序复评) 副产物 6 —— ★只报, 不改网表★: **U_EN_SW 在网表里没有器件行 ⇒ BOM/装配单会漏掉这颗开关**。L441/L442/L443/L444 只有 4 行引脚行 (EN / 5V 输入 / 5V 输出 / GND), 全网表 **0 行** U_EN_SW 的 IC 行 (对比 U_PWR_SW 有 L50 的 IC 行: '[待选型] 负载开关 (≥2A, R_on ≤40mΩ@3.7V, IQ ≤5µA, 带反向阻断)', opn=TPS22991RAA)。⇒ ① 底板 5V 门控 (CARRIER_BOARD_EN → RAIL_BOARD_5V) 实际不会被实现; ② SW 侧本单把 F8 判成 '有硬件断电通路' 的结论, 落地要靠补 IC 行 ⇒ **关机语义 (PWR_ON 高阻 → U_PWR_SW 关 → SYS 断电) 在装配层面还差这一颗**。★建议: 补一行 IC 行 (value 写明 [待选型] 负载开关/电源开关, footprint+opn=TPS22991RAA, dnp=必装)。★机械判据: grep -n 'U_EN_SW' HW/netlist_v1.csv | grep -c ',IC,' ⇒ 现为 0, 应为 ≥1。★同源文件: SW/SW_TIMING_REVIEW.md §7-6。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss190_netlist_usb_dminus_no_esd",
+  "to": "hw-lead",
+  "item": "★ISS-190 (sw-lead 时序复评) 副产物 7 —— ★只报, 不改网表★: **J_USB_C 的 D− 没有 ESD 保护**。L417/L418 **D_ESD_USB_D** value='ESD 阵列 [待选型] (USB 2.0 双通道)', note 明写 '紧贴 J_USB_C, **跨 D+ 与地**' ⇒ 它只护 **D+ 与 GND**; L420/L421 **D_ESD_DEMO** 护的是 **RAIL_DEMO_5V (VBUS) 与地**。⇒ **J_USB_C 的 D− 全网表没有任何 ESD 器件**。★为什么要紧: 现网表上 J_USB_C (板内 Type-C → 22Ω → J_SOM_P1 pin92/94) 是**唯一的刷写口** (跨铰链 USB 链已不存在: J_CHG 10pin 不带 D+/D−) ⇒ 一次 ESD 打到 D− 就没有第二张嘴 ⇒ 变砖 = 只能拆机 JTAG。★建议: 把 D_ESD_USB_D 换成跨 D+ 与 D− 的阵列 (或加一颗), 并在 note 里写明通道归属。★机械判据: 网表里应有一行 ESD 器件跨在 NET_USB_D_P_TYPEC 与 NET_USB_D_N_TYPEC 上。★同源文件: SW/SW_TIMING_REVIEW.md §7-7 (上一版 H3 'Type-C 侧 D+/D− 没有独立 ESD' 仍然成立)。",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss191_boss_pick_fix_option",
+  "to": "main",
+  "item": "★ISS-191 拍板 1 (等老板, 项目总工转达; 我不外发)★ ⇒ 复位 P0 走哪条: ② 把 Q_AND 整颗改 DNP (★sw-lead 推荐★) / ① Q_ENVC 摘掉或必装 (★已用 RC1 反向用例实测否掉: 切不断故障链, 且 Q_ENVC 必装会把 EN_VCORE 拉低换成另一个 P0★) / ③ 等 SoM 球位 TBD-01 (首台板等不起)。 ★机械判据: 落表后 python3 SW/tools/timing_check.py --only F1_reset_rc ⇒ q_and_in_netlist False / q_and_gate_row_dnp DNP / reset_n.q_and_drain_row_dnp DNP / reset_n.dnp_rows 含 Q_AND / tau_release_ms 仍 1.1★。 ★同源文件: HW/PCB/RESET_P0_FIX_PLAN.md (B1/B5)。 due 2026-11-12",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss191_boss_q_envc_unify",
+  "to": "main",
+  "item": "★ISS-191 拍板 2 (等老板, 项目总工转达)★ ⇒ Q_ENVC 三行 (表A L71/L72/L73 + 表B Q_ENVC.1/.2/.3) 是否同批统一为 DNP。 ★理由: 现在 L71 是 DNP 而 L72/L73 是必装 ⇒ BOM 按 ref 级口径 (任一行必装 ⇒ 整颗记必装) 记 Q_ENVC 必装 (要买) ⇒ **网表口径与 BOM 口径打架**; 统一 DNP 后 BOM 记 DNP, 与 'SoM 自带 PMIC, 顺序链在 SoM 内部完成' 的既有结论自洽。 ★机械判据: grep -n '^Q_ENVC' HW/BOM_v1.csv ⇒ dnp 列应为 DNP (现在 必装); DNP 位号数 (ref 级, universe 291) 56 ⇒ 57。 due 2026-11-12",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss191_boss_r_pg_pull_dnp",
+  "to": "main",
+  "item": "★ISS-191 拍板 3 (等老板, 项目总工转达)★ ⇒ R_PG_PULL 两行 (表A L62/L63) 是否也改 DNP。 ★收益: PG_AND 上只剩两个测试点时, 10k 上拉挂 1.8V 常流 180µA ⇒ 1.8V 侧 0.324mW / 电池 3.7V 侧 0.666mW ⇒ 420mAh 电池 ÷ 180µA = 2333h ≈ 97 天。 ★代价: 将来若按 ③ 接真实 PG, 这个上拉要回来 ⇒ **建议 ③ 落地前不要动**。 ★机械判据: python3 SW/tools/timing_check.py --only F1_reset_rc ⇒ pullup_row_dnp 应为 DNP (现在 必装)。 due 2026-11-12",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss191_orig_som_pg_reset_spec",
+  "to": "main",
+  "item": "★ISS-191 外部依赖 (★项目总工外发原厂, 我不外发★)★ ⇒ SoM 侧三件事: ① 是否提供 PG 输出 (球位 + 极性, TBD-01/TBD-12) ② RESET 释放要求 (SoC 要多久才认复位释放, 内部上电顺序) ③ 内部复位电路构成。 ★本单推荐 ② 不依赖这三项 ⇒ 不阻塞首台板; 但 ③ 落地需要。 ★现状仍是 [0数据]: 网表 L62/L64/L71 note 只写 'PG 极性待原厂核 (TPS62130A PG 为开漏信号)'; Q_AND 型号/Vgs(th)/封装 也仍是 [0数据] (BOM value = 待选型, footprint/opn = 待定) ⇒ **正因为没有官方数据, 才不能赌阈值, 必须做 ②**。 due 2026-11-14",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss191_u_en_sw_device_row_recheck",
+  "to": "hw-lead",
+  "item": "★ISS-190 §7-6 的复查 (不重复立项, 只是确认它还开着)★ ⇒ U_EN_SW 在网表里**没有器件行** (L441/L442/L443/L444 只有 4 行 NET 引脚行, 全网表 0 行 U_EN_SW 的 IC 行) ⇒ 按器件口径 BOM/装配单会漏这颗开关。 ★它不在复位链上 ⇒ **与 ISS-191 本单零交集** (不影响 ② 的推荐)。 ★但它影响关机/负载开关那一支 ⇒ **建议与位号改名同批、但排在 dnp 改动之前单独做**, 因为它改行数 (513→514) ⇒ 会撞掉 '网表锚点行数' 这类断言。 ★机械判据: grep -n 'U_EN_SW' HW/netlist_v1.csv | grep -c ',IC,' ⇒ 现为 0, 应为 >=1。 原始登记见 sw.yaml 的 iss190_netlist_u_en_sw_no_device_row。 due 2026-11-12",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss139_f9_sample_window",
+  "to": "main",
+  "item": "请把 HW/STEP1_LANDING_LIST.md F9 (ISP tuning 1080p档缺mesh, 现=待清) 的状态 + 样机/设备窗口 (灰卡暗室 半天~1天) + 责任人 写进落地清单与项目计划表; 本单不碰 HW/**, 且标定窗口占的是板回板后的调试档期 (卡出图不卡板) => 档期被占会让 demo 段 1~2 人日 滑成整机段 1~2 人周",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss139_pipeline_spec_effort_alignment",
+  "to": "main",
+  "item": "裁决口径差: SW/DEMO_OD_PIPELINE_SPEC.md 7.2 第9行写 路径B ISP tuning = 0~1 人天(微调), 而本机既有实测记录 (HW/IMX415_DEMO_SENSOR_FACTS.md 3.3) 给的是 1~2 人日(补 1920x1080 mesh + AE 曝光表换算, 含一次灰卡/暗室标定); 建议取 1~2 人日; 本单未改该文件 (DSI payload 口径 11-11 刚统一, 不许碰), 请 main 裁决后另派",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss139_tisp_timing_point",
+  "to": "main",
+  "item": "建议 SW/DEMO_OD_TIMING_SPEC.md 增补一个 ISP 算法耗时打点 t_isp: 现有 11 段接力表把 t_capture 定义为 曝光结束->帧落用户态, 不含 ISP 处理 => 调降噪/tonemap 强度会改这段耗时而我们看不见; 不改现有 9 个打点名与 CSV 表头 (ISS-137/ISS-190 已统一); 本单未改该文件",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss139_od_input_dist_script",
+  "to": "main",
+  "item": "立项书 4.2 B 组的 OD 输入分布统计脚本还没写 (要板端 ISP 帧: 采样>=200帧 -> 与板端逐字一致预处理 -> 与 calib_yolov5_100 同口径 mean/std/分位/饱和率 -> 自采有标注实拍集 F1); 板端不可达期间全部为 [0数据], 请在板可达后另派或授权本单下轮补",
+  "since": "2026-11-11"
+ },
+ {
+  "key": "iss201_rebuild_model_license",
+  "to": "main",
+  "item": "ISS-201 (2026-11-12) 实测: 两个重建件的许可 未判定 —— license_probe.py --onnx 实测 metadata_props 的 license/author/version 全为 None ⇒ verdict = unknown [0数据]; 台账 §1.2 按 R-3 登记为 unknown (脚本 MANIFEST: expected_license=None ⇒ 日后若进交付集即触发阻断项 L1)。★原件的 AGPL-3.0 结论 不自动适用于 重建件 (重建件 = 2026-11-02 另一次构建, 血缘需重新判定)。请项目总工决定: (a) 向来源方/原厂取得重建件的许可结论 (外发一律经项目总工), 或 (b) 改走 Apache-2.0 栈。两个重建件 sha16: 1e2c716bd16ed9d3 (s) / dfb5d060ca36fc27 (n), 均 state=licensing-hold 禁入交付物; 转换链第 3 段与板端精度仍 [0数据]。",
+  "since": "2026-11-12"
+ },
+ {
+  "key": "iss215_rknn_bench_s9_note_sync",
+  "to": "main",
+  "item": "ISS-215 遗留分叉: SW/tools/rknn_bench.py L258 的 S9 注记已按 demo 口径扩写 (加 TX 2.304ms + 整机 7.776ms 标整机路线暂缓), 但 SW/RKNN_BENCH.md §4.1 L273 的同名注记仍是整机 1080p 原文 —— 它不在本单允许改的 4 个文件清单里, 本单未改。两边 S9 数值 3.0 都没动 ⇒ 已发布的 21/21 + 9/9 锚点不受影响。请裁: 是否授权下一轮同步 RKNN_BENCH.md L273 的注记 (只改措辞, 不动数字)。",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss215_demo_budget_script",
+  "to": "main",
+  "item": "ISS-215 后续项: demo 口径 (2-lane @480×640) 目前没有对应的预算脚本 —— 整机那本 HW/e2e_budget_rk3572.py 的 DSI 带宽常量是 4-lane@2.0Gbps×80%, 对 2-lane demo 屏不适用, 而 SW/DEMO_OD_TIMING_SPEC.md §3.3.1 的板端动作仍指向它 (已加注不许拿脚本常量当真值)。请裁: 是否立项一个 demo 口径的预算/判据脚本 (或授权我下一轮做)。",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss215_verdict_direction_flip",
+  "to": "main",
+  "item": "ISS-215 方向变更知会: 60ms 判据链第 3 条 (显示输出侧) 的判定方向变了 —— SW/DEMO_OD_TIMING_SPEC.md §3.3.1 表 A 的 yolov5n@640 行由整机口径的「❌ 最坏情况不过 ⇒ 必须实测」翻成 demo 480×640 口径的「✅ 推算 最坏情况也过 ⇒ 显示侧不再是 60ms 账本的瓶颈」(根因: 整机 TX 下限 7.776 被拿去扣 demo 的预算, 判据被算严 3.36 倍)。本单未改 PROJECT_TRACKER.md (那是项目总工的权限), 请决定是否在判据视图同步一版。",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss221_verify_and_close_iss215_needs",
+  "to": "main",
+  "item": "ISS-221 交付完成, 请落 verified (本单不自签, state/issue_log.yaml 零写入)。同时请回写 ISS-215 的两条 need 为 answered: iss215_demo_budget_script (demo 口径预算脚本 ⇒ 已交付 SW/tools/demo_e2e_budget.py, 门禁已把 demo 判据链换到它) 与 iss215_rknn_bench_s9_note_sync (L273 同步 ⇒ 已授权并执行, 只改那一行注记, S9=3.0 与周边数字逐字节未动, md5 ed080fa0 → 46ac25e1)。另: check_demo_panel_spec.py 的 R6 md5 基线过期 (HW/netlist_v1.csv 与 _pins.csv 在 2026-11-16 02:32 被 hw-lead ISS-220 落表第 1 批改掉 ⇒ ISS-212 时期钉的 c78f9912 与 4814617e 过期 ⇒ 该门禁现在恒红; 同根因也影响 timing_check.py 的 3 项 FAIL) ⇒ 该脚本不在 sw-lead 允许清单内, 本单只报不改, 请裁定刷新基线。",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss225_reanchor_sw_md5_after_iss223",
+  "to": "main",
+  "item": "ISS-225 已交付, 请落 verified (本单不自签, state/issue_log.yaml 零写入)。同时: ★**ISS-223 (hw-lead 落表第 2 批) 一旦改了 HW/netlist_v1.csv / _pins.csv, SW 侧 R6 会自动红 (『盘上 md5 ≠ 锚点登记』) —— 这是设计, 不是故障**★ ⇒ 请在 ISS-223 落表后派 sw-lead 走台账 §4 H-1 流程 (改 SW/SW_MD5_BASELINE_LEDGER.md §1 的 entries[].md5 + prev_md5 + by 三项, 把新落表台账位置加进 landing_records, §3 加一行留痕)。★**本单不预判 ISS-223 会改成什么 md5, 也没有硬写任何『查不到出处』的数当基线**★。另: 同一次落表也会让 MECH 闸的 G5b + C21 按设计变红 ⇒ 需 mech-lead 重锚 MECH 锚点 + hw-lead 更新落表台账 ⇒ 本单没改 MECH/ 一个字节, 也不许为了让 MECH 闸变绿去改 MECH/。",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss226_land_verified_and_reanchor",
+  "to": "main",
+  "item": "ISS-226 已交付, 请落 verified (本单不自签, state/issue_log.yaml 零写入)。★证据 = 4 条命令全 rc=0 + Q1 交付齐备率 18/18★: ① python3 SW/tools/check_brightness_biosafety.py ⇒ rc=0 (C1..C6 全过) ② 同脚本 --selftest ⇒ rc=0 (13 条反向用例 13/13 全抓到: 改小上限/删后果链/删API量/改名义值 等) ③ python3 SW/tools/check_demo_panel_spec.py ⇒ rc=0 (ISS-225 的门禁没被本单改红, md5 fbb1c6ae.../db61c4d7... 未变) ④ python3 state/merge.py && python3 state/gate_check.py ⇒ rc=0 且 Q1 18/18。另: ★ISS-134 的 need iss134_sw_blue_drive_ratio_cap 本单已答 (SW 侧四件交付齐), 请合并后确认它变 answered; 若仍 pending 请指出 key/to 对不上的地方★。★若你将来改结构侧判据口径 ⇒ SW 侧门禁 C4 会按设计变红 (SW 侧的数在 MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md 里查不到) ⇒ 那是锚点过期的红, 不是故障 ⇒ 请派 sw-lead 走 SW/SW_BRIGHTNESS_CONTROL_POLICY.md §6 H-1 流程 (锚点 + 正文 + 脚本冻结值 + API 文档 四处同改)★。★板端 [实测] = 0 条 (板与屏不在本机) ⇒ 亮度 API 的蓝通道占比标定值 = null/uncalibrated/[0数据], 一个实测值都没编; EVT 时需实验室出出瞳光谱辐亮度实测再灌标定通路★。",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss228_verify_l",
+  "to": "main",
+  "item": "ISS-228 已交卷 零外发, 板端实测 0 条, HW/ 与 MECH/ 一个字节没动, issue_log 未自签. 证据: SW/tools/check_rk3572_vccio_domain.py rc=0 C1~C8 + --selftest 16/16 全红 + check_brightness_biosafety.py rc=0 + state/gate_check.py rc=0 且 Q1 18/18. 要点: ①【勘误】原 need 的 I2C0/GPIO0_B0/B1 前提对本板不成立: 本板 I2C_A 走 I2C5_M3 即 GPIO3_C4/C1, 官方 VOL=1.8V; 球 1K21/U32 本板 SoM 未引出; ②【勘误】VCCIO1_VCC 属 1.8V only 是错的, 1.8V only 档只有 PMUIO0_VCC1V8 与 VCCIO0_VCC1V8; ③ GPIO0 被劈成 PMUIO0_VCC1V8 与 PMUIO1_VCC 两组; ④ B-01/B-02 = 2.2k/1.8V, 与 ISS-220 已落表值一致, 不需改值, 只需换依据; ⑤【请 main】落 ISS-228 verified + 确认 need iss148_rk3572_gpio0_vccio_domain_check 变 answered; ⑥【请派 hw-lead】两处勘误 即 HW/AR0234CS_OPEN_SOURCE_FACTS.md L241/L474 的 I2C0 提法 与 全文 VCCIO1_VCC 1.8V only 提法 + AR0234CS 若上则 VDD_IO 走 1.8V 即 Note 19.2, 顺带解掉 VDDIO_PHY 缺轨; ⑦【已知不归本单】check_demo_panel_spec.py 的 R6 红 + MECH G5b/C21 红 = ISS-223 锚点过期, 本单不许改锚点. 残留 0数据: SoM 侧 VCCIO rail 网名 ⇒ 降级方案 D-3 已锁死 即不许自己编网名, 本单不写等原厂回信. 〔★2026-11-17 ISS-270 自查订正★\n★**2026-11-17 ISS-270 自查订正 (紧邻上一句)**: 上一句里的『原厂回信』是 ISS-228 当时的【**否定式自述**】(『本单不写原厂回信』), **不是挂账形态** ⇒ 与 ISS-270 §0 口径 (外部依赖 = 只有外部方能回答的; 本仓库 / 公开资料 / 本机实跑能回答的, 一律不是) 完全一致 ⇒ ★SoM 侧 VCCIO rail 网名这一项的正确形态是【**待落表 / 待 hw-lead 网表真源**】, 不是外部回复形态★ ⇒ ISS-270 已把 SW 侧 5 条外部依赖挂账逐条换成【自己查的结果 + 证据等级 + 降级方案】(见 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`) ⇒ 本条不构成外部依赖。\n★订正结束★〕 ",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss234_boss_pick_5q",
+  "to": "main",
+  "item": "ISS-234 给老板的 5 条待拍 (Q1 demo 板要不要关机态 / Q2 负载开关选型 ISS-172 / Q3 关机电流账 108µA 口径 / Q4 demo 关机时充电灯 / Q5 长按10s话术) — 每条带推荐默认值但不代拍, 等老板拍",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss234_hw_doc_conflicts",
+  "to": "main",
+  "item": "ISS-234 发现两处 HW 口径冲突需裁: (1) 待机 0.15W 的皮肤温度 POWER_SHUTDOWN_V3 §6 写 41.6-42.6°C 而 POWER_BUDGET_V3/SW 镜像写 45.9-46.9°C, 我取保守侧; (2) 关机账 VBUS_DET 50µA 与文中 100k+100k 算式对不上 (5V/200k=25µA) 且现行网表是 1M+1M — 我不改 HW/ 请项目总工裁",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss234_sw_stale_assertions",
+  "to": "main",
+  "item": "ISS-234 交卷时刻 3 条 SW 侧断言过期 (源头=ISS-233 落表第3批 06:48:38 + 按设计做的 H-1 重锚, 与本单无关): (1) SW/tools/timing_check.py 断言 U_EN_SW 在网表里没有器件行 (现在有了, 该条要反向); (2) 同脚本 REV-3 期望装机开关数 1->0 (现在基线 2->1); (3) SW/tools/check_demo_panel_spec.py REV-12 硬编码 ISS-220 (现锚点单号 ISS-233) — 这两个脚本本单被冻结不许动, 请派单授权更新",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss234_battery_chain_dnp",
+  "to": "hw-lead",
+  "item": "ISS-234 实读网表: 整机电池链 BT_432243/U_BATPROT/Q1/Q2 全部 DNP => U_PWR_SW 的 VIN(BAT_SW) 在 demo 装机态无源, 整机真断电通路要成立必须把这条链落装 — 落装时点/落表单号请回我 (我这边要按 H-1 重锚 md5)",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss221_redispatch_reverify_0730",
+  "to": "main",
+  "item": "ISS-221 重复派活复验 (2026-11-16 07:3x, gateway reload 后队列重投同一单): ★**本单零重做** ★ —— ① 5 件交付物逐字节在盘 (md5 见交卷单 §7.2: demo_e2e_budget.py=ee64b86a… / demo_timing_check.py=a6e891f1… / DEMO_OD_TIMING_SPEC.md=576d2391… / DEMO_BOARD_60MS_VERDICT_PLAN.md=6cfaf725… / RKNN_BENCH.md=46ac25e1… = 与 04:07 记录一致, S9=3.0 逐字节未动) ② 7 条门禁本机实跑: demo_e2e_budget rc=0 / --selftest rc=0 (31/31) / demo_timing_check rc=0 (51/51) / --selftest rc=0 (18/18) / check_demo_panel_spec rc=0 (R1~R7 全过, ISS-225 已把 R6 收口) / merge+gate_check rc=0 且 Q1 18/18 ⇒ ★**ISS-221 自身门禁全绿** ★ ③ ★**唯一红项 = check_demo_panel_spec.py --selftest 的 REV-12 (15/16) ⇒ 根因 = ISS-233 合法落表把 SW 侧锚点 by 从 ISS-220 重锚到 ISS-233 ⇒ REV-12 写死改 ISS-220 已不在 R6 依赖路径上 ⇒ 【有断言 ≠ 断言有效】, 门禁本身没坏 ⇒ 已归 ISS-235 (main 07:2x 开单, owner=sw-lead, status=fixing) ⇒ ★**本单只报不改: 有并行 sw-lead 会话 31d009e7 正在改 timing_check.py / check_demo_panel_spec.py, 碰了就撞** ★ ⇒ ★**给 ISS-235 的一手提示: REV-12 必须改「锚点当前真正依赖的那个单号」(从锚点读 by 再改), 别写死 ISS-220** ★ ④ 本轮我只写了交卷单 §7 (追加) + 本条分片; state/issue_log.yaml 零写入 (不自签); HW/ MECH/ 零写入; 板端 [实测] = 0 条 ⇒ ★**请勿再把 ISS-221 派给 sw-lead (已完, 第二次重复派活)** ★",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss245_reverse_demo_stale_agg",
+  "to": "main",
+  "item": "ISS-245 交卷时顺带实测到: SW/tools/timing_check.py 的 --reverse-demo 演示聚合行 L1762 仍判 mut2[rail_switching_devices] == 0, 但 ISS-235 (台账 §3 R-06) 已把 REV-3 基线从 1→0 翻正成 2→1 ⇒ 该演示 rc=1 (反向演示: 没变红 ⇒ 有问题)。★权威判据没坏: 71 条 selftest 里的 REV-3 / REV-3b 已经是对的 (从 2 掉到 1, 实测 PASS)。★与锚点无关: 把锚点改回旧 md5 再跑 --reverse-demo 仍是 rc=1 (隔离实测)。★本单不修的理由: 改了会改门禁脚本 mtime, 正好毁掉本单『脚本 mtime 早于落表 ⇒ 是锚点过期不是红灯被调没』这条判别证据; 且不在任务书验收清单内。★要 main 授权: 允许 SW 把 L1762 改成跟 REV-3 一致 (== 1), 或明确 --reverse-demo 不再作为门禁口径。另附一条事实纠正: timing_check.py 没有 --selftest flag (argparse rc=2), 它的 71 条 selftest 是默认路径 ⇒ 裸跑即 71/71, 请订正派活口径",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss248_verify_close_reverse_demo",
+  "to": "main",
+  "item": "ISS-248 (sw-lead) 已交卷: --reverse-demo 演示段口径对齐到权威判据 REV-3 (删掉 U_PWR_SW 后 rail_switching_devices 从 2 掉到 1, 不是 0) ⇒ --reverse-demo 恢复 rc=0 (末行「反向演示: ✅ 变红 ⇒ 它真在读网表 (不是演常量)」) · timing_check.py 仍 rc=0 (SELFTEST 71/71) · check_demo_panel_spec.py rc=0 · --selftest rc=0 (16/16) · merge+gate_check rc=0 (Q1 18/18) · 受保护 5 件 md5 逐字节不变; ★请 main 做两件事: ① verify 后把 state/issue_log.yaml 的 ISS-248 落 verified (★本单不自签 issue_log, 零自改★) ② 顺带把 ISS-245 登记的 need「iss245_reverse_demo_stale_agg」(to=main) 闭掉 —— ★它描述的问题已被本单实际修掉 (L1742 + L1762 已 == 1), 但答复必须由 main 以 main 身份登记, SW 侧代签会做成自闭合, 本单只补了一条 answers 记录不代签★; ★另附一条派活口径订正: timing_check.py 没有 --selftest flag (argparse rc=2), 71 条 selftest 就是默认路径 ⇒ 裸跑即 71/71",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss250_pick_downgrade_route",
+  "to": "main",
+  "since": "2026-11-16",
+  "item": "★ISS-250 降级方案选哪条 (B8 路线①/②/③): ① rk3576-target 维持现状 (新增下载 0 B, 板端接受性 [0数据], 失败则整条作废) ② rknn3-toolkit 1.2.0 独立 conda env (需 98 MB wheel + numpy>=2.0/torch>=2.2 与 toolkit2 2.3.2 冲突 + RK3572 仍 Beta) ③ 降 OD 负载 / 回 RK3576 换 SoC (板级改版+重打样, 周级); 三条共用同一套 N1~N5 判据 ⇒ 换路线不换判据; 路线①/③ 涉 60ms 生死与换芯片 = 商务决策 ⇒ 老板拍"
+ },
+ {
+  "key": "iss250_e11_e12_pending_install_test",
+  "to": "main",
+  "since": "2026-11-16",
+  "item": "★ISS-250 待办 (不属本轮): rknn3-toolkit 1.2.0 本机安装实测 + config(target_platform='rk3572') 实跑 —— 需 ① 下 wheel 102,657,410 B 并校验官方 md5 a972e03af94fd18e21f026558735b28d ② 建【独立 conda env (python3.10)】③ 装依赖 numpy>=2.0/torch>=2.2 ④ 实跑 config 并记 min/avg/max; 本机下载实测单路 ≈6.2 KB/s (7 路并发合计 ≈43.5 KB/s) ⇒ 单路 ≈4.6 h / 并发 ≈0.47 h ⇒ 需单独开下载窗口, 本轮已停掉残留后台下载"
+ },
+ {
+  "key": "iss255_ledger_registration_required",
+  "to": "main",
+  "item": "★ISS-255 新判据①要求: hw-lead 每落一次网表, 必须同时在 HW/SCHEMATIC_LANDING_V1_LANDED.md 的 md5 台账里补一行 (单号 | 文件 | 旧 md5 | 新 md5), 否则 ① 必红 (★这是设计不是故障★)。★交卷时刻 20:58 实测: hw-lead 20:50 的 ISS-257 落表改了网表 (7dcf251a…) 但台账还登记 16ac89f7… ⇒ ① 红。★请 main 转 hw-lead 补登记, 登记完 ① 即绿, 本单不用再改代码★",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss255_pcb_exit_vs_full_green",
+  "to": "main",
+  "item": "★ISS-255 验收口径请示: 任务书 §⑤ 的「chain_gate --full 准出段也要绿」与硬规矩①「③ 必须保持红」在板侧那趟 (PCB 类) 没排上之前互斥 (③ 的准出 = check_pcb_nets rc=1, ★改前改后同色, 本单没动那一行★)。★我按硬规矩①选 (③ 红) 并如实报, 未为「准出段好看」去调它★。★请 main 明确: 以「③ 红 + ②④ 准出绿」为准★",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss255_pcb_anchor_needs_kicad_python",
+  "to": "main",
+  "item": "★ISS-255 的③判据复用 state/check_pcb_nets.py (走 state/pcbnew_py.sh ⇒ 需要 KiCad AppImage 的 python, ★本机有, 实测 0.63s 一次★)。★若将来在没有 KiCad 的机器上跑快检, ③ 会走「保守判红」分支 (★不许假绿★) ⇒ 那台机器上③恒红。★请 main 拍板是否要一个「纯文本解析 .kicad_pcb」的无 KiCad 兜底实现 (★本单没做: 那是另一份工作量且会引入两套解析口径的风险★)",
+  "since": "2026-11-16"
+ },
+ {
+  "key": "iss263_board_acceptance_rk3572",
+  "to": "main",
+  "item": "ISS-263 板端接受性仍 [0数据]: 转换链已通 (rknn3-toolkit 1.2.0 + target_platform=rk3572, 3 次 rc=0, 产物 249360 B md5 97a34fff0b855b92681f26627dba5354, t_total 33.389/34.108/41.672 s), 但本机 list_devices()=[] => 板端推理起不起得来/精度/板端 e2e 延迟一个数都没有。板到手后请按 SW/tools/iss263_roundtrip_probe.py 的 init_runtime(target=rk3572, core_mask=RKNN3_NPU_CORE_0) 口径补测; 路线①/②/③ 选哪条请老板拍, sw-lead 只交路线②实测结论。",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss270_extdep_selfcheck_closeout",
+  "to": "main",
+  "item": "\n★ISS-270 (SW 侧外部依赖全量自查) 交卷 ⇒ 请项目总工**收口**下列 4 条 (技术依据 = `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md`, 本单零外发/零落表/零采购):\n①**`ars45_art_galaxy_sdk`** (原 waiting_on=vendor) ⇒ **【已退休】**: Art.Galaxy 是酷芯微 (A733 线) 的工具链, 而主控基线 2026-11-02 01:00 已翻到瑞芯微 RK3572 (`HW/CHIP_SELECTION_DECISION.md` §0') ⇒ 即便原厂给了也不该用; 公开渠道全查无 (GitHub/Gitee/Docker/web_search) ⇒ 转换链走 **rknn3-toolkit 1.2.0** (官方 RK3572 路线, ISS-263 实测) ⇒ 建议关闭或降级为\"已退休\"。\n②**`model_toolchain_q9_addendum`** (原 waiting_on=vendor) ⇒ 同 ①, 10 问全围绕 Art.Galaxy + ⑦官方预编译模型 ⇒ 建议一并关闭。\n③**`model_yolox_weight_download`** (原 waiting_on=boss) ⇒ **技术前提已消失**: GitHub Releases CDN 本机不通 (rc=28, 55 s 下载 0 B), 但 **Rockchip 官方 model zoo 的 CDN 可通** (`ftrg.zbox.filez.com/.../yolox_s.onnx` ⇒ http=200, 35,891,401 B, 8.62 MB/s, 4 s 下完, sha256 `a39c8476d10c242298d6a8654cb29937a9cc3c062358f4d96367689df23d1796`) ⇒ 不需要内网镜像/公司代理 ⇒ 建议关闭或改口径。\n④**`reset_release_policy` 的 \"PG 源 DNP 待确认\"** ⇒ **不是外部依赖, 是【待落表批次】**: 网表真源 `HW/netlist_v1.csv` row79/row86 已写死 `dnp=DNP` (原因 \"SoM 自带 PMIC\") ⇒ 处置办法 = ISS-191 选项② (`Q_AND` 整颗改 DNP, 表A L65/L66/L67 + 表B Q_AND.1/.2/.3) ⇒ **本单一次都没跑 `land_v_values.py --apply`, 网表/脚表/BOM 一个字节没动** ⇒ 请 main 排落表批次。\n★附: ★**`SW/tools/s2_rescue_config.json` 的基线描述过期** (仍写 RK3576, 实际 11-02 已翻 RK3572) ⇒ `version_block_magic = \"RK35\"` **不受影响** (RK3572 同属 RK35xx 系列) ⇒ 只需订正描述文字 ⇒ ★**本单不改既有结论**, 请 main 裁决。\n★另: ★**老板那条一句话结论仍在 `model_license_stack_decision` (waiting_on=boss)**, 本单只交客观结论 (第①路技术门槛已清零 + 第③路已退休), **不代拍**。\n",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss270_s2_test_gear_zero_cost",
+  "to": "main",
+  "item": "\n★ISS-270 (SW 侧外部依赖全量自查) ⇒ 关于 `fw_s2_test_gear` 这三样器材的**零采购结论** (技术依据 `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md` §2 E-1/E-2 + §4, 本单**零采购**):\n①**USB 协议分析仪 = 不必要** ⇒ P3 (BOOT 态 VID:PID) 用 `lsusb` + `/sys/bus/usb/devices` + `dmesg` 就够 ⇒ **采集机制本机已实跑通** (`SW/tools/boot_rescue_probe.py` 真跑 ⇒ 本机枚举出 8 个设备真实 VID:PID, 判 NOT_IDENTIFIED rc=1, 逻辑正确) ⇒ 要协议层则用内核 usbmon + tshark (仍零采购, 需 root+debugfs)。\n②**SPI-NOR 空板 = 不必要** ⇒ P4 (启动存储/分区表) 用板端 `/proc/mtd` + `/sys/class/mtd` + `dmesg` 的 JEDEC ID 就够 ⇒ **不需要第二块空板**。\n③**逻辑分析仪 = 只覆盖 P1 的亚毫秒窗口这一格** ⇒ P1 拆三格: 电平 [**万用表**已够, 仓库既有结论 `SW/FLASH_AND_VERSION.md:525`] + 边沿次序 [GPIO 紧循环采样 ~ms] + 亚毫秒窗口 [**唯一真缺口**]。\n★⇒ **结论: 不花钱能拿到 P1/P3 (P4 同理); 三样器材里只剩 1 样且只覆盖 1 格** ⇒ ★**本单不替老板决定买不买**, 老板那条 `test_equipment_budget` 已收窄成\"只剩逻辑分析仪一项\" ⇒ **本单落在该口径内, 不新增任何采购建议**。\n★请 main: 把 `fw_s2_test_gear` 从\"器材/排期挂账\"降级为\"**板到手即跑的命令清单已备好**\" (清单 = `SW/EXTERNAL_DEPENDENCY_SELFCHECK.md` §4, 全部标 [推算] 未实测, 本机无板) ⇒ 何时跑 = 板到手的时刻, 不是外部回复形态。\n",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss241_f1_f2_land_redraw_needed",
+  "to": "hw-lead",
+  "item": "★ISS-241 落表后两条 pad 序缺陷需在板那一趟一起修: ① D_ESD_CAM 板文件 pad1=GND/pad2=CSI_D0_CK_P, 落表器件 TPD1E05U06DPYR pin1=I/O/pin2=GND ⇒ 器件脚接错 (ESD 不工作); 修法: 重画 land 对调 pad1/pad2, 或改用双向件 PESD5V0S1BA (代价 Cd 35pF vs 0.42pF), 或改板 ② Q_AND 占位 pad 序 D/S/G 而 AO3400A 引脚序 G/S/D ⇒ RESET_N 落 G 脚 ⇒ 硬件 AND 变 OR; 重画 land 时必须把 pad↔pin 显式改成 RESET_N→D / GND→S / PG_AND→G; Q_ENVC 恰好对上不用改, Q_PG 待缺口 G-1 裁决后再定 land ③ 5 件按键 (KMR2/B3U gullwing land 外扩 4.6×3.2mm > 占位 bbox 3.0×3.0) 建议 5 个键 land 一次画齐。机检只读: python3 HW/check_part_selection_landed_crosscheck.py --strict (rc=1 即含缺陷)。本单不落表/不改板, 只给依据与代价",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss250_n3_threshold_recheck",
+  "to": "main",
+  "item": "★ISS-250 新证据 ⇒ N3 的通过线 t_npu ≤ 13.30 ms 必须重估, 不可当既定门槛★: 该线的基数是『RK3572 ≈ RK3576 的纯 NPU 13.305 ms』[推算], 而本轮查到 RK3576 官方 datasheet = 6 TOPS@INT8 [官网] 而 RK3572 = 4 TOPS [媒体] ⇒ 算力差 −33% ⇒ 同产物在 RK3572 上的纯 NPU 耗时可能 ×1.5 ⇒ 52.91 ms 那条模式A e2e 也要打折。★请 main 决定: ① 现在就把 N3/60 ms 降级为观察项 ② 还是等板端实测后按实测重定线 (sw-lead 只列, 不拍, 这是老板级)★。★同时给出板端取数口径: 纯 NPU 耗时须 C API RKNN_QUERY_PERF_DETAIL 取, 拿不到就判 INDET, 不许拿 SDK 总耗时顶 (N4 铁律)★",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss250_rknn3_board_toolchain",
+  "to": "main",
+  "item": "★ISS-250 路线② 的板端工具链问题 (★不构成阻塞, 板到手时 sw-lead 可自解★): 板端 BSP 是否自带 RKNN3 runtime (librknn3_api.so + librknn3_api_native.so, RK3572 专用 native 库; RK3576/RK3588 用的是 rkcp 库, 不通用) ⇒ 本机 0 台设备 [0数据] 无法查。★官方已给可自带路径: rknn3-toolkit 仓的 rknn3-runtime/examples/rknn3_model_test_demo ⇒ ./build-linux.sh -t rk3572 -a aarch64 -b Release → adb push install/rknn3_model_test_Linux /userdata/ → ./rknn3_model_test <rknn> <weight> 0x1 ⇒ 返回 0 即 N1 PASS★。★请 main 在板可达时把『adb/ssh 通路 + 可写的 /userdata』准备好 (这是硬件/板侧的事) ⇒ 另: 路线② 的板端精度评测器 (lite3 acc) 与 C API perf 采集尚未有现成脚本, 板到后由 sw-lead 补 (已列进本单 B5 O-4)★",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss250_sync_compat_v2",
+  "to": "main",
+  "item": "★台账同步请求 (★不阻塞任何判据★): 本轮 ISS-250 新查到的 5 条官方证据 (E-13 v2.5.0 仍无 rk3572 / E-15 RK3576=host SoC vs RK3572=SoC 内 NPU / E-16 板端库分叉 rkcp vs native + 官方板端命令 / E-19 RK3576 6 TOPS 官方 vs RK3572 4 TOPS / E-20 RK3572 不在 RKNPU2 名单) 目前只写在本单查证表 SW/research/ISS250_rknn_toolkit2_target_查证表.md 里。★SW/RK3572_TARGET_COMPAT_V2.md (ISS-207/ISS-263 的受保护产出) 本轮【一个字没改】(边界内) ⇒ 请 main 裁决是否回写进去 (或另开单给 sw-lead 做) ⇒ ★另: ISS-263 交卷单里那句『ISS-250 已落 verified; 路线选哪条 = need iss250_pick_downgrade_route』与本单结论一致 (转换链已通/板端待板), 本单不替 main 落 issue_log status★",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss272_need_mode_watermark",
+  "to": "main",
+  "item": "★[ISS-272 复核发现的缺口 2 · 待 main 拍]★ state/delivery_truth.py 的 collect() 用 jobs.json 的**当前** delivery.mode 套到全部 12 轮历史 run 上, 而 run 记录里 delivery.mode 字段 3796/3796 全缺 ⇒ 无法按轮还原当时那个 job 是不是开着推送 ⇒ 两个方向都出事: ①「ARS45 10 分钟进展播报」announce 时代 (11-05 12:36~11-11 10:21, 该时段 216 轮真送到作证) 的 **10 轮 status=ok + delivered=false = 真投递失败** 被追溯洗成「本来就不投」 (★今天不在 12 轮窗口内, 不影响输出★) ②[推算] 老板一旦把推送改回 announce, 同一批 run 记录立刻变「没送到 12」⇒ 假故障复现 (★实测同一批数据两个数★) ⇒ ★**sw-lead 建议: 在 delivery_truth.py 里记一条 mode 变更水位线, 只对水位线之后的 run 套用 mode=none, 之前的一律按 announce 判 (宁可多报不可漏报)★** ★**为什么不用「run 记录补 delivery.mode 字段」: 那要动 OpenClaw cron 上游, 周期长得多★** ★**sw-lead 不代拍, 请 main 裁决要不要开单★**",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss272_need_status_blacklist",
+  "to": "main",
+  "item": "★[ISS-272 复核发现的缺口 3 · 待 main 拍]★ state/delivery_truth.py 的 classify_run 只认**精确** status == error ⇒ 实测 classify_run(timeout, False, none) = no_delivery, classify_run(cancelled, False, none) = no_delivery ⇒ **真故障被吞成「本来就不投」** ⇒ ★**当前风险等级 = 低**: 盘上 run 记录 status 取值全集 = {ok: 1669, error: 2127}, 非 ok/error 的 finished run = 0 ⇒ 今天不触发 ⇒ ★**sw-lead 建议: 把 status == error 改成黑名单成功态 (status not in (ok, success, completed, None) ⇒ run_error), fail-closed 方向, 与本项目宁可吵不可漏铁律一致★** ★**代价: 改之前必须先确认上游状态取值全集, 否则 skipped/cancelled-by-user 之类会被误报成 run_error★** ★**sw-lead 不代拍 (判据一个字没改), 请 main 裁决是在 ISS-261 落 verified 之后另开单, 还是并进本单★**",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss272_need_a_class_unknown",
+  "to": "main",
+  "item": "★[ISS-272 复核发现的缺口 4 · 待 main 拍 · ★注意: 这条要改的是 state/delivery_health.py, 那是 A/B/D 三类的地界, 本单只报不改★]★ 沙盒实测 E3: 一个 mode=none 的 job 连挂 5 次、错误是「认不出来的错误」⇒ **A 类 0 条 / B 类 0 条 ⇒ 一条告警都不出** ⇒ ★**与 delivery_health.py 里 classify() 自己写的兜底「认不出来 ⇒ 按真故障处理 (宁可吵, 不可漏)」直接矛盾** (★A 类的 mode=none 排除把这条兜底整个吃掉了★) ⇒ ★**sw-lead 建议: classify() 从 A/B 两分改成 A/B/U 三分 (U = unknown), 让 unknown 不受 mode=none 过滤; 推送关着 ⇒ 投递通道坏了跟我无关, 但 job 自己出了个没人认识的新错误跟推送开没开无关★** ⇒ ★**这是 2026-11-11 10:3x 引入的既有行为, 不是 ISS-261 引入的 (ISS-261 无责)★** ⇒ 请 main 裁决要不要开单做",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss275_sw_ledger_format_contract",
+  "to": "main",
+  "item": "★【已闭合口径的复述 · 非新提问 · ISS-275 · 2026-11-17 · sw-lead】★ 落表台账格式契约 (★main 已于 07:14 代录闭合, 本条只做【从 SW 侧复述并登记】, 不再提问, 也不替 main 另立口径★) = ★★每受管文件一行: 「单号 | 文件名 | 改前 md5 | 改后 md5」四项同行; 落点 = HW 侧落表作业包模板; 少一项或换写法 ⇒ SW 侧 R6 与 MECH 侧 C21 两边都判红 (fail-closed)★★ ⇒ ★**SW 侧现值**: 判决源 = HW/SCHEMATIC_LANDING_V1_LANDED.md 里该受管真源的最新落表记录 (链头) ⇒ 合法落表不再红 (R2 绿); 而悄悄换真源 (盘上 ≠ 链头) 照样红 (R1 红); 取不准 (链头不唯一 / 链断 / 有记录不在链上 / 链头无单号) 一律判红 (R3 / R5a / R5b 红)★ ⇒ ★**请把这一行写进落表作业包模板 (hw-lead 每次落表, 每个受管文件必须留这一行)★** ⇒ ★**MECH 侧 ISS-273 交卷单 B5 第 ① 条已提过同一条 (两边口径要对上: 格式一样, 只是解析方不同)★** ★",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss279_sw_to_board_inputs",
+  "to": "main",
+  "item": "★ISS-279·SW 侧板侧输入收口★ ① SW/BOARD_ONEPASS_SW_SYNC.md §3 = SW→板 输入清单 9 条 ⇒ 请 main 转 hw-lead (ISS-277 同批在做板侧清单, 板侧项全集在 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md) ⇒ 尤其: 板改完那一刻必须一次性给 SW 侧三样东西 (新板 md5 + 新 .kicad_pro md5 + 落表单号/台账位置), 缺一样 SW 侧就没法合法重锚; ② §4 那条 板改过一次以后 hard_protected 怎么合法跟上 归 main 拍 (机制取舍, 不是我能定的) ⇒ 三方案 ①②③ + 代价 + 假绿风险已写清, 请 main→老板裁决; ③ SW 侧对板只有 5 步有话说 (S2/S4/S8/S9/S10), 其余 8 步 SW 侧零影响 (实测结论, 不是漏了)",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "sw_legal_reboard_landing_row_on_board_trip",
+  "to": "main",
+  "item": "★【出板那一趟】合法改板那一行必须落在落表台账里★ —— SW 侧 R6 硬保护段现在按【落表台账链头】判决 ⇒ 出板那一趟请在 HW/SCHEMATIC_LANDING_V1_LANDED.md 里写两行 (★格式: 单号 | 文件名 | 改前 md5 | 改后 md5 四项同行★): ① 板那一行 = 「出板单号 | HW/PCB/demo_mainboard.kicad_pcb | 611b869e13518c3c023fb178f91a0075 | <新板 md5>」 ② .kicad_pro 那一行 = 「出板单号 | HW/PCB/demo_mainboard.kicad_pro | 3e504d2be83152e337949723e909be1b | <新 .kicad_pro md5>」 (★若 .kicad_pro 真的逐字节没变, 改前=改后也要写一行「否 (逐字节不变)」★ ⇒ ★两件必须成对, 只来一条 = 红★) ★同时 SW 侧锚点 SW/SW_MD5_BASELINE_LEDGER.md §1 的 hard_protected[].reboard 要填上同一单号的四项 (★四件捆一个原子映射, 不许只填 md5★) ⇒ 填完 SW 侧 R6 即绿 (★判据方向没变: 盘上 ≠ 链头照样红★)★ ⇒ ★本单 (ISS-284) 只出机制与闸, 落表台账一个字节没碰 (★真落那一行归出板那一趟★)★",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss285_sw_apply_after_iss283_verified",
+  "to": "main",
+  "item": "★【ISS-285 · 2026-11-17 · sw-lead · ★等的是单号 = ISS-283★】★ 落表后 SW 侧三道判据的口径收口补丁【已做好 · 已在沙盒验过 · 等 ISS-283 落 verified 后一次性套用】★ ⇒ ★**等 ISS-283 (hw-lead · 三件落表 A3=V-2=1 + W-4 Q_PG pad1↔pad3 + G-5 亮度档) 落 verified 之后**★ ⇒ ★现在套会被 ISS-283 立刻打红一次 = 白干 (时序理由见方案页 §6)★ ⇒ 套用命令 = python3 SW/patches/ISS-285_sw_judgment_alignment/apply_iss285_sw_judgment_alignment.py --apply ⇒ 期望 rc=0 · 修前 md5 4cba20b1d0249b671632878c964b4bd7 / 修后 68c4becffe6bcd708e388dba9d18a505 · 改动 110 行 ⇒ 套完 python3 SW/tools/timing_check.py 期望 rc=0 · 72/72 (★71 + 新增 REV-11★)★ ⇒ ★套用后【锚点前移到链头这一步是自动的】(★判决源 = 落表台账链头 ⇒ ISS-283 落表后链头自己前移 ⇒ 不用再追锚点★) ⇒ ★可选 --reanchor 只同步 SW 台账 §1 的历史留痕副本, 不是让闸变绿的手段★ ⇒ 回滚 = cp state/.bak_iss285_sw_alignment/timing_check.py.bak_<ts> SW/tools/timing_check.py ⇒ 验收门 = 沙盒 5 条反向用例 (期望红组 vs 实际红组) 必须仍全一致★ ⇒ ★现状: 真盘 timing_check 仍是 rc=1 · 68/71 (3 条红) ★ 这是【应有状态】(交卷时必须保持), 不是本单造成的★ ⇒ 方案页 = HANDOFF/2026-11-17_sw-lead_ISS285_落表后SW判据口径收口_方案页.md · 交卷单 = HANDOFF/2026-11-17_sw-lead_ISS285_落表后SW判据口径收口.md",
+  "since": "2026-11-17",
+  "resolved_by": "ISS-288",
+  "resolved_note": "★【ISS-291 · 2026-11-17 · sw-lead】已解决: 前提已满足 (ISS-283 已 verified + ISS-285 补丁已落盘, 落盘后 timing_check.py md5 = 68c4becffe6bcd708e388dba9d18a505 = ISS-285 交卷单写死的期望值, 且 python3 SW/tools/timing_check.py ⇒ rc=0 · 72/72) ⇒ 本条 need 的「等 ISS-283 落 verified 后一次性套用」已被 ISS-288 履行完毕 ⇒ 标 closed (★签字/关闭动作归 main★)★"
+ },
+ {
+  "key": "iss288_sw_timing_check_patch_landed",
+  "to": "main",
+  "item": "★【ISS-288 · 2026-11-17 · sw-lead · ★ISS-285 的补丁已落地真盘★】★ 落表后 SW 侧三道判据口径收口补丁【已套用 · 已跑完回归】★ ⇒ SW/tools/timing_check.py 由 4cba20b1d0249b671632878c964b4bd7 → 68c4becffe6bcd708e388dba9d18a505 (9 hunk · +157/-47) ⇒ 真盘 timing_check.py 由 rc=1 · 68/71 (3 条红) 转 rc=0 · 72/72 (0 条红) ★ ★check_demo_panel_spec.py 读数与改前逐字相同 (日志 md5 1144d29b73cbdf3448a8f2ce5254f124)★ ★DPS --selftest 22/22 · check_onepass_preflight_coverage.py rc=0 · state/merge.py rc=0 · state/gate_check.py rc=0 (Q1 18/18)★ ★受保护 5 件 md5 逐字节不变 (板 611b869e… / .kicad_pro 3e504d2b… / 网表 37f62ac3… / 脚表 a4270120… / BOM 5d02bece…)★ ★SW 台账 §1 source_ledger.entries 一字未动 (md5 c5484ec6…)★ ⇒ ★**ISS-285 那条 need (iss285_sw_apply_after_iss283_verified) 已由本单履行完毕 ⇒ 请 main 把它标成 closed**★",
+  "since": "2026-11-17 14:36"
+ },
+ {
+  "key": "iss288_main_verify_sign_issue_log",
+  "to": "main",
+  "item": "★【ISS-288 · 2026-11-17 · sw-lead · 请 main 验签】★ 交卷单 HANDOFF/2026-11-17_sw-lead_ISS288_timing_check补丁落地.md §1~§8 已填满 (0 处待写) ⇒ 请 main ① 把 state/issue_log.yaml 的 ISS-288 由 status=fixing 改成 verified 且 fix_ref 填本交卷单路径 (★verify_by = main, ★sw-lead 不自签 issue_log★) ② 把 needs_from 里的 iss285_sw_apply_after_iss283_verified 标 closed (★本单已履行完毕: 真盘 timing_check.py = 68c4becffe6bcd708e388dba9d18a505, 与 ISS-285 交卷单写死的套用后期望 md5 逐字一致, 且 python3 SW/tools/timing_check.py ⇒ rc=0 · SELFTEST 72/72★) ★边界: 零写板 (板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17 双重自证不变) 零落表 (网表 37f62ac3f0b8 / 脚表 a4270120 / BOM 5d02bece 三个 md5 不变) 零外发 (没发邮件/没询价/没问供应商/没下采购单) 零改既有 SW 判据脚本 (check_demo_panel_spec.py 4e8f9aea… 与改前快照逐字节相同) · 实物 [实测] = 0 条 (本机无板端实测) ★并发提示: hw-lead ISS-289 与 mech-lead ISS-290 此刻在飞 ⇒ 本单只读 HW/ 与 MECH/, 只写 HANDOFF/ 与 sw-lead 自己的分片★",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss291_sw_vbus_det_d_digital_caliber",
+  "to": "main",
+  "item": "★【ISS-291 · 2026-11-17 · sw-lead · USB 插入检测链 (数字脚) 的三条未决 + 三个改法, 请 main 拍板★】★ 判决对象收口后暴露的硬件侧后果 (★本单零落表, 只登记★): ★本板唯一那条【真正的 ADC 链】是 BAT_DET (网表 L186 ⇒ J_SOM_P1 pin38 = SARADC_VIN5, 1.8V 域), 而 VBUS_DET_D 链 (网表 L434/435/439 ⇒ J_SOM_P1 pin100 = USB_DRD1_VBUSDET) 是【USB OTG 插入检测数字脚】(脚表 L101 vol 栏 = —— ⇒ 域未知)⇒ ★老闸把它当 12bit SAR-ADC 判 (假红), 现在已按【数字检测输入】口径单判★ ⇒ 三件事查不到 ⇒ **[0数据]** ⇒ 登记给硬件侧: ① 【内部 40kΩ 下拉】Forlinx FET3572 手册 (state/_os_snapshots/fx3572_manual.html §USB Design Note) 只对 **USB_DRD0_VBUSDET** 明写 'the chip contains an internal 40 kΩ pull-down' + 'A high level indicates DEVICE mode (2.7-3.3 V, typical: 3.0 V)' + 'In device mode, VBUSDET must be high (> 2.3 V)' ⇒ ★本板是 DRD1 ⇒ 手册未记载★ ⇒ ★若 DRD1 同样带 40kΩ 内部下拉: 节点 = 5V×(1M‖40k)/(1M+1M‖40k) = **0.185V** ≪ 2.3V ⇒ **USB 插入检测永不触发**★ ⇒ 【IO 域 / abs-max】脚表 L101 vol 栏 = —— ⇒ 域未知 ⇒ 闸按降级上界 3.3V (手册高电平带上沿) 判 ⇒ ★若域实为 1.8V ⇒ abs-max = 2.1V ⇒ 节点 2.625V **越限** ⇒ 必须改分压比★ ⇒ 【识别裕量】VBUS 取 USB 规范下限 4.75V 时节点 2.375V, 距识别阈值 2.3V 只剩 **75mV (3.3%)** ⇒ ★很薄★ ⇒ ★★三个改法 (★我不拍, 由 main/老板定★): (A 换料不换板, 推荐) 上臂 1M→22k + 下臂 1M 不动 ⇒ 节点 = 3.18V (落在手册 2.7-3.3V 高电平带内) ⇒ 静态电流 5V/(22k+38.5k) = 82.6µA / 413µW (代价: 常开功耗 2.5µA→~83µA); (B 按手册推荐) 该脚 3.3V 上拉 4.7k ⇒ 静态电流 702µA (代价最大, 只在功能优先于功耗时选); (C 不动硬件) 接受 75mV 裕量 + 把『插拔 USB 时读 USB_DRD1_VBUSDET 状态位』列为 EVT 必测项 (功能风险留在板上)★ ⇒ ★★降级方案 (★这一趟来不及改板时★): 保留 1M/1M, EVT 必测项加『插/不插 USB 时能区分状态位』; 若实测读不到高电平 ⇒ 说明内部 40kΩ 下拉存在 ⇒ 立刻按 (A) 改料 (换料不换板)★ ⇒ ★决定点: 「板只改一次」那一趟之前★ ⇒ ★SW 侧闸已把两种情形都算出来报出 (理想 2.5V / 含下拉 0.185V), 判据见 SW/ADC_CALIBER_TABLE.md §1 行 15~18 与 §3★ ★**【ISS-293 闭环注 (2026-11-17, sw-lead)】状态 = 已随本单实质闭合 (★机器层 closed 仍由 main 签, sw-lead 不自签★)**: 本条 need 的内容 = 「把 `VBUS_DET_D` 改按【数字检测输入】口径单判」⇒ ★**已在 ISS-291 落进 `SW/tools/timing_check.py` 的 F4D 段 (定版闸, md5 cf09c921002937920bfa40701d523b33, 实跑 rc=0 · SELFTEST 85/85)★ ⇒ ★**并在 ISS-293 (本单) 同步到 `SW/SW_TIMING_REVIEW.md`**: 该文档原先 还把 `VBUS_DET_D` 写成 ADC 装机链 (500kΩ / 451ms / 15.2%FS) ⇒ ★**已按追加式订正**★ (判决对象 = `BAT_DET` pin38 / `SARADC_VIN5` / 1.8V 域 ⇒ 37500.0Ω / 33.791ms / 2.1%FS ⇒ 六判据全 ✔) ⇒ ★**并加新闸 `SW/tools/check_timing_review_adc_sync.py` 把它钉住 (文档现值 == 闸的实跑读数 ⇒ 不等即红; --selftest 4/4)★ ⇒ ★★依据: ISS-291 交卷单 §B1-3 + 本单 `SW/SW_TIMING_REVIEW.md` §14 ADC 现值卡 (17 键逐键对账)★★ ⇒ ★**但本条 need 里的三个硬件侧未决 (① DRD1 有无内部 40kΩ 下拉 ② IO 域/abs-max ③ 识别裕量) 仍未被硬件回答** ⇒ ★**那部分不随本单闭合, 仍需 main 转 hw-lead 继续问★**★",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss291_sw_do_not_apply_vbus_100k47k",
+  "to": "main",
+  "item": "★【ISS-291 · 2026-11-17 · sw-lead · ★「板只改一次」那一趟不许套 VBUS_DET 100k/47k 那条★】★ ★**这条建议基于错误前提, 照做 = 把一个假红换成真死功能**★: HW/CHARGE_STATUS_READBACK.md:101 逐字建议『是否同意把 `VBUS_DET` 的分压从 1M+1M 改为 **100k/47k** (换料不换板, 修 P1-8 的 451ms 建立 + 15.2%FS 漏电); 改动会让 5V→1.60V』 ⇒ ★那条建议是按「VBUS_DET 是 SAR-ADC 输入」提的★ ⇒ ★而它其实是 USB 插入检测【数字】脚 (网表 L439 ⇒ J_SOM_P1 pin100 = USB_DRD1_VBUSDET)⇒ ★100k/47k ⇒ 节点 = 5V×47/147 = **1.60V < 2.3V 识别阈值** ⇒ **USB 插入检测直接死**★ ⇒ ★另注: 真 ADC 链是 BAT_DET (pin38), 它的 451ms/15.2%FS 同样是假红 (判决对象错 + FS 口径错), 现已按 1.8V 域收口 (R_th=37.5kΩ ⇒ τ=3.75ms ⇒ 12bit 建立 33.8ms ⇒ 漏电 37.5mV = 2.1% FS, 与网表 L182 note 逐字对上)★ ⇒ ★★正确动作: 先按 iss291_sw_vbus_det_d_digital_caliber 把域/abs-max/内部下拉确认掉, 再决定 VBUS_DET_D 怎么改; 若那一趟已经把 100k/47k 写进网表 ⇒ 立刻回退成 1M/1M 或按方案 A 改值★ ⇒ ★本单零落表: 网表 37f62ac3… / 脚表 a4270120… / BOM 5d02bece… / 板 611b869e… 四个 md5 逐字节不变★ ★**【ISS-293 闭环注 (2026-11-17, sw-lead)】状态 = 已随本单实质闭合 (★机器层 closed 仍由 main 签, sw-lead 不自签★)**: 本条 need 的内容 = 「★不许把 `VBUS_DET_D` 链改成 100k/47k★」⇒ ★**本单 (ISS-293) 没有碰 `VBUS_DET_D` 链的任何器件值★** ⇒ ★**该禁令依然有效且被新闸钉着**★: `SW/tools/check_timing_review_adc_sync.py` 的 P1-DECISION 判据明写「活结论里不许再把 `VBUS_DET_D` 说成 ADC 判决对象」⇒ ★**万一有人把 `VBUS_DET_D` 当 ADC 链改料, 本闸当场红★** ⇒ ★★依据: 本单 B3 回归 (受保护 5 件 md5 逐字节不变: 网表 37f62ac3… / 脚表 a4270120… / BOM 5d02bece… / 板 611b869e… / .kicad_pro 3e504d2b…) + 新闸 --selftest 4/4★ ⇒ ★**注: 那三个硬件侧未决 (DRD1 内部 40kΩ 下拉 / IO 域 / 识别裕量) 仍需 main 转 hw-lead, 不随本单闭合**★**★",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss293_sw_m7r6_sync_to_main",
+  "to": "main",
+  "item": "★★【ISS-293 · 2026-11-17 · sw-lead · 请 main 拍板: `SW/SW_REQUIREMENTS.md` 的 M7-R6 要不要同步改★】★ ★**本单只改了复评文档 `SW/SW_TIMING_REVIEW.md` + 新建一道闸, 需求真源 (PM 域) 我不碰**★ ⇒ M7-R6 的现状描述仍是旧口径 ⇒ ★**建议同步改: 把「电量读取正常」的判据从「待 hw-lead 决策 (补装 or DNP)」改成「按 `BAT_DET` 现值判 (100k+60k+100nF 必装 ⇒ R_th=37500.0Ω · 12bit LSB=0.439mV 满量程 1.8V · 建立 33.791ms ⇒ 采样前丢弃 ≥34ms 的转换 · 漏电偏移 0.0375V = 2.1%FS 可软件标定 · @4.2V 节点 1.575V ≤ abs-max 1.98V)」**★ ⇒ ★**但改需求是 PM 域的动作 ⇒ 我只登记, 不自改**★ ⇒ ★**改不改、谁改，请 main 派单 (PM 域)**★ ⇒ ★**依据**: ISS-291 交卷单 §B1~§B2 + 本单 `SW/SW_TIMING_REVIEW.md` §14 ADC 现值卡 (17 键逐键对账) + `SW/tools/timing_check.py --only F4_adc_det` 实跑 (rc=0, 六判据全 True) + 新闸 `SW/tools/check_timing_review_adc_sync.py` (rc=0, --selftest 4/4)★ ⇒ ★**附: 另一处会影响 M7-R6 的硬件侧事实 = `VBUS_DET_D` 链 (pin100 = USB 数字检测脚) 的三个未决 (DRD1 内部 40kΩ 下拉 / IO 域与 abs-max / 识别裕量 75mV) 仍未被硬件回答 ⇒ 见 `iss291_sw_vbus_det_d_digital_caliber`★",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "ISS279_R6_SELFTEST_RED_20261117",
+  "to": "main",
+  "item": "★ISS-279 收口轮 (2026-11-17 17:4x)★ ① ISS-279 §4 三方案已被老板 09:49 拍板成 P10 = 方案 ② 并由 ISS-284 落地 (台账 §1 ISS-284 段 + §3 R-12 + check_demo_panel_spec.py 的 REV-16~REV-21) ⇒ 本单三条红线已全部进机器判据 ⇒ §4 那条 need 已闭环; ② 本轮只把 ISS-279 新建闸 SW/tools/check_onepass_sw_sync.py 的 W6 基线口径从【字面量】换成【可追溯的真源】(盘上 md5 必须在落表台账里查到 ⇒ 合法落表自动前移 · 偷换照样红; 台账 §1 锚点块两个 md5 仍不许动) ⇒ 留痕 SW/SW_MD5_BASELINE_LEDGER.md §3 R-13 ⇒ 判据方向与阈值一条没动; ③ ★★报一条别的单的红给 main★★: python3 SW/tools/check_demo_panel_spec_r6_selftest.py 现在 rc=1 (5/7 · R4/R5a/R5b 红) ⇒ 成因 = ISS-284 新加的硬保护机制要求保护基线在落表台账【同行】查到, 而 R6 selftest 的临时树里查不到 ⇒ 归 ISS-284 地界, 请 main 排一条收口单 (真盘 check_demo_panel_spec.py 本身是绿的 rc=0)",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "SW-N-ISS279-R6SELFTEST",
+  "to": "main",
+  "item": "★ISS-279 收口轮实测报一条【别的单的红】: `python3 SW/tools/check_demo_panel_spec_r6_selftest.py` 现在 rc=1 (5/7), 红的是 R4 与 R5a。★根因本机精确定位到行: (a) R4 = ISS-284 给 check_demo_panel_spec.py 加的新规则 (L570~L571: 硬保护件的保护基线 md5 必须在落表台账里查到) 与 ISS-275 的夹具不兼容 —— r6_selftest 的 synth_ledger() (L164) 造的合成台账只放网表/脚表行、不放板的行 ⇒ 查不到 611b869e… ⇒ 夹具上误伤; (b) R5a = ISS-283 的链头行把单号写在【小节标题】里而不是行内 (★行内无 ISS- ⇒ break_head_ticket() 命中 0 行 ⇒ 用例自报『本身坏了』★)。★本单 brief ⑤ 明写 check_demo_panel_spec.py / check_demo_panel_spec_r6_selftest.py 一字不许动 ⇒ 本单不越界改 ⇒ 请 main 排一条收口单 (★让 ISS-284 把 synth_ledger 的合成台账也带上板的基线行, 或让硬保护规则识别合成夹具★)。★同时提醒: §B1.2/§B3.2 那句『手改 md5 ⇒ rc=0 ⇒ 缝开着』是 08:3x 的实测, 现在已被 ISS-284 堵上 (STEP3 rc=1), 请按当前读。",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss298_sw_gate_depends_on_cdps_api",
+  "to": "main",
+  "item": "SW 侧闸 SW/tools/check_onepass_sw_sync.py 现在与权威闸 SW/tools/check_demo_panel_spec.py 之间有一条代码级依赖 ⇒ 本闸会 import + 调用它的 check_r6_hard_protected(root, anchors, led_text, led_spec) 与 load_sw_anchor(root) 与常量 LEDGER_DOC / LEDGER_CANON ⇒ 这四个名字与签名不许改, 改了就地通知 sw-lead ⇒ 否则本闸 except Exception ⇒ fail-closed 变红 (不是变松, 是恒红) ⇒ 这不是新功能, 是新耦合, 老实登记",
+  "since": "2026-11-17"
+ },
+ {
+  "key": "iss306_sw_g1a_reds_rootcause_done",
+  "to": "main",
+  "item": "★ISS-306 (sw-lead) 已交卷: G1a 两条红 (G1a-4 / G1a-8) 逐条归类完毕 ⇒ 板那一趟开工前老板还差 N = 4 个字母: ① W-2 (D− 侧补不补 ESD) ② W-1b/W-1c (D+ 那颗真 OPN 型号轴) ③ A4 老表 (关机语义 建议 C+A ⇒ HW/POWER_SHUTDOWN_V3.md 签收) ④ A5 老表 (追认负载开关 TPS22991RAA) ⇒ 卡 G1a 两条红转绿的只有 2 个 (①+③), R3 与 R9 同趟消化零字母 ⇒ ★催拍时必须回 need key 不能回裸字母 A4/A5 (落表器新映射 A4=V-5 / A5=V-6 ⇒ 错位标签 rc=2 零写盘 老板白回一次) ⇒ ★另请 main 决定: 落表台账 L166 与作业包 L199 的 R4 文字口径 (焊盘数 = 3) 比机器闸严一档 (代码 L1375 耦合 not hit) ⇒ 这属口径漂移, 本单零改闸, 修不修由 main 开单★",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss309_r6_head_ticket_judge_hole_fix",
+  "to": "main",
+  "item": "ISS-309 · 请 main 拍板判据的洞 (★本单不许改 check_demo_panel_spec.py·零改判据·已交卷★) ⇒ 实测: 改坏链头落表单号 ⇒ 判据【判绿】= 漏放 (两个变体: ①只改一处⇒producer={ISS-302,ISS-999}⇒台账自相矛盾; ②每一处都改⇒producer={ISS-999}⇒台账自洽但单号是假的) ⇒ 根因: check_r6_three_way 对链头落表单号只有「非空」一道检查, 没有任何交叉核对 ⇒ 修法 A: 加【链头产出单号不唯一⇒判红】(治变体①·治不了变体②) / B1: 每次落表锚点副本跟到链头 (零判据改动·治两态·但要定流程义务) / B2: 链头单号查 state/issue_log.yaml 真单号 (治变体②·给SW闸加跨域依赖) ⇒ 三条反向用例设计 (REV-22 链头单号不唯一⇒红 / REV-23 链头单号=不存在的单号⇒红 / R5c 锚点停在历史值+改坏链头单号⇒红) 逐字写在 HANDOFF/2026-11-18_sw-lead_ISS309_R6反向用例5of7归因.md B3.4 ⇒ 不修的后果: 挂闸也堵不住「挂错单」这个洞, 下次有人改坏链头单号门禁链一声不响",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss309_r6_selftest_hook_into_gate_chain",
+  "to": "main",
+  "item": "ISS-309 · 请 main 把 SW/tools/check_demo_panel_spec_r6_selftest.py 挂进 state/gate_check.py 的 EXTRA_GATES (★挂闸是 main 的活·本单没碰 gate_check.py·md5 0f0ff0fd6a9a6e51e0d7d717003aeb9b 交卷前后不变·先例=ISS-300 mech 出结论/main 挂★) ⇒ 事实: 该闸修后 rc=0·反向用例 7/7 通过 (修前 rc=1·5/7) · 单跑 0.32s (本机 3 次实跑) · 全在临时树上跑·零写板·零落表 · 失败语义与现有 run_external_gate 一致 (脚本不存在/跑不起来/超时300s⇒闸红) · 该闸每红一条用例会打一行 [FAIL] ⇒ 链上红时能直接看到是哪条 ⇒ 建议写法逐字写在交卷单 B3.3 (挂 EXTRA_GATES 列表尾部·紧跟 check_onepass_sw_sync.py 那条之后) ⇒ 挂链前请先看 needs iss309_r6_head_ticket_judge_hole_fix (挂闸不修那个洞) 与 iss309_tmp_quota_edu (它自己已带 /tmp 配额退回·别的闸没有)",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss309_sw_anchor_copy_lag_to_head",
+  "to": "main",
+  "item": "ISS-309 · 请 main / 落表那一趟拍: 域侧锚点副本要不要每次落表都跟到台账链头 ⇒ 实测现状: SW/SW_MD5_BASELINE_LEDGER.md 的 entries[] 记的是 e06c1dd63356/ISS-257, 而台账链头已是 6aee500e60ba/ISS-302 (ISS-302 那次落表没让 SW 锚点副本跟到链头) ⇒ 后果: 判据里唯一能咬住「落表单号被改坏」的交叉核对 (锚点副本 by ↔ 台账产出该 md5 的单号) 只覆盖锚点副本自己登记的那一个 md5 ⇒ 链头单号落在保护面之外 ⇒ 实测漏放 ⇒ 本单零改 SW 台账锚点 (md5 83fafcf7d22d8fa999a1db74c781956d 前后不变·hard_protected 锚点块一个字没动) ⇒ 定义务这条只能 main 定",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss309_tmp_quota_edu",
+  "to": "main",
+  "item": "ISS-309 · 环境级卡点 (不是判据红): /tmp 是带 usrquota 的 tmpfs (mount 实测) ⇒ 配额满时拷 4.9MB 的板报 OSError Errno 122 Disk quota exceeded ⇒ 后果: 挂进门禁链后·链上现有的 check_demo_panel_spec.py --selftest 与 check_onepass_sw_sync.py --selftest 会出现假红 (本机实测: 不设 TMPDIR 假红·换 TMPDIR 就 22/22 与 16/16 全过) ⇒ 建议: 要么统一给链上闸加临时目录退回 (本单已给自己的闸加: --tmpdir / ISS_R6_SELFTEST_TMPDIR / ~/.cache/openclaw-tmp 三级退回+6MB 写探针) · 要么给跑门禁的任务固定 TMPDIR ⇒ 不治的后果: 挂闸那天门禁链可能因环境红 ⇒ 被误读成「判据坏了」⇒ 更坏: 为了让链绿去改判据",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss306_rerun_0535_main_actions",
+  "to": "main",
+  "item": "★ISS-306 追加复验交卷 (sw-lead · 05:35~06:05)★ ① 结论不变: 板那一趟开工前老板还差 N = 4 个字母 (pm.yaml:674 与 pm.yaml:726 两个 need 均无 decided_at 仍 OPEN + ISS-097 仍 fixed) ⇒ 卡 G1a 转绿的仍只有 2 个 (W-2 + A4 老表) ★ ② ★★请 main 记一条机器侧的口径: 05:35 复验时 G1a-3 (KiCad 可加载/导出) 变红, 根因是 /tmp 用户配额耗尽 (KiCad 报 Disk quota exceeded) ⇒ 【环境红不是设计红】★ sw-lead 已把 8 个 ≥1 天前的遗留沙箱 (3.8GB) mv 进 .trash/tmp_quota_cleanup_20261118_0535 (可恢复非 rm) ⇒ G1a-3 已回 ✅ ⇒ 建议: ① 凡跑 KiCad 类闸的 job 临时目录改用 /var/tmp (根分区不吃 tmpfs 配额) ② 加口径 /tmp 使用率 >80% 时机器闸结果不得直接当设计缺陷 ⇒ 否则任何沙箱撑满 /tmp 都会让 G1a-3/DRC/落表器集体假红 ★ ③ 本单全程零写板零落表零改闸零外发, 板/网表/脚表/BOM 四个 md5 与 02:06 基线逐字节不变★",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss312_need_hardprotected_crosscheck_B",
+  "to": "main",
+  "item": "★ISS-312 · N-1 (交 main 拍) 把修法 B (独立信源 issue_log 对账) 也铺到【硬保护那条路径】 (check_r6_hard_protected ③)★ 前置条件: 先给 SW/tools/check_onepass_sw_sync.py 的沙盒夹具 build_virtual_root() 补一份属于那棵虚拟根的独立信源 ⇒ 那个文件不在本单可写范围 ⇒ 本单只加了 A 没加 B ⇒ 不做的后果: 合法改板票仍只被【锚点 ↔ 台账】两个副本互证 (任务书明说那是自证) ⇒ 那条路径的票仍可两个副本一起改而无人拦 ⇒ 但板那一趟还没开工 眼下不紧急★",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss312_need_landing_iss_trace_duty",
+  "to": "main",
+  "item": "★ISS-312 · N-2 (交 main 拍) 给【板那一趟】定一条义务: 任何落表 (含合法改板) 的单号 都必须在 state/issue_log.yaml 里留下【文件名 + 新 md5】的留痕★ 这条义务在【落表真源】那条路径上已经生效 (本单已加 ⇒ 假号与挂错单当场红) ⇒ 主线那一趟 网表/脚表/BOM 会重新落表 ⇒ 那一趟的单号必须留痕 ⇒ 不然板那一趟开工前 SW 侧 R6 闸会红 (红项很直白: 独立信源里没有 md5 的留痕) ⇒ 那是留痕红不是技术红 补一句留痕即可★",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss312_need_hook_gates",
+  "to": "main",
+  "item": "★ISS-312 · N-3 (交 main 拍) 挂闸裁决: 本单没碰 state/gate_check.py (md5 0f0ff0fd6a9a6e51e0d7d717003aeb9b 逐字节不变)★ 建议把本单的新闸 SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py (4/4 · 0.38~0.44 s · 失败语义与现有闸一致) 与 ISS-309 建议但至今没挂的 check_demo_panel_spec_r6_selftest.py 一起挂进 EXTRA_GATES (写法逐字在交卷单 B3.3)★ 不做的后果: 判据哪天被改软 (A/B 被拿掉) 没人拦 ⇒ 这正是 ISS-309 的起因★",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss315_n2_scope",
+  "to": "main",
+  "item": "★ISS-315 N-2 口径: 「落表单」本单取的口径 = 落表台账里各受管真源的【链头产出单号】(判决源口径·ISS-275/284 同款)⇒ 不用锚点副本里的历史单号 (当前锚点记 e06c1dd63356/ISS-257 而链头已是 6aee500e60ba/ISS-302 ⇒ 按锚点副本判义务会挂在旧单上⇒判据会漂)⇒ ★这条口径是本单自选的, 请 main 拍板认/不认★; 另: 这条义务只管【当前链头】还是也要管【更早的历史落表】(如 ISS-220 那一批)? ⇒ 不拍的后果 = 新闸按没人认的口径判 ⇒ 将来假红 ⇒ 大家去改闸而不是改口径 ⇒ 判据漂★",
+  "since": "2026-10-25"
+ },
+ {
+  "key": "iss315_gate_wiring",
+  "to": "main",
+  "item": "★ISS-315 N-3 挂闸裁决: 建议把三条一起挂进 state/gate_check.py 的 EXTRA_GATES (★本单只给写法·零改 gate_check.py★): check_landing_trace_obligation.py (SW 侧落表留痕义务闸 ISS-315·N-2) + check_demo_panel_spec_r6_chainjudge_selftest.py (ISS-312 建议至今没挂) + check_demo_panel_spec_r6_hardprot_iss315_selftest.py (本单新建) ⇒ 逐字写法见交卷单 B3.3 ⇒ ★代价: 0.36 s + 0.06 s + 0.06 s (本机 3 次取样)·裸跑即绿·不写任何文件·失败语义与现有 run_external_gate() 一致★ ⇒ 不挂的后果 = 判据哪天被改软了 (A/B 被拿掉) 没人拦 ⇒ 这正是 ISS-309 的起因★",
+  "since": "2026-10-25"
+ },
+ {
+  "key": "iss315_board_trip_trace_duty",
+  "to": "main",
+  "item": "★ISS-315 N-5: 「板那一趟」的单号留痕义务 ★现在已经生效★ (ISS-312 把它加在落表真源那条路径上, 本单又把它加到硬保护路径 + 做成新闸) ⇒ 主线重出网表/脚表/BOM 那一趟的单号 ★必须在 issue_log 里留【文件名 + 新 md5】★ ⇒ 否则开工前 SW 闸会红 (红项直白: 独立信源里没有 md5 的留痕) ⇒ ★这不是技术红·是留痕红·补一句留痕即可★ ⇒ 不做的后果 = 板那一趟开工前 SW 侧 R6 闸假红, 且这次是硬保护那条路径上的假红★",
+  "since": "2026-10-25"
+ },
+ {
+  "key": "iss318_sw_gates_hook_decision",
+  "to": "main",
+  "item": "★ISS-315 N-3 挂闸裁决 · 现在有逐字答案了★: ISS-315 新立的两道闸 + ISS-312/ISS-309 的两道 selftest + 本单新建的位号引用闸, 挂不挂 EXTRA_GATES? 本单已给出 5 行可直接抄的写法 (三道 selftest 必须裸跑 · 带 --selftest 会 rc=2 usage 错误 · TMPDIR 指项目内 tmp/iss318_gates) + 实测耗时 1.75 s 每次 + 会不会假红的逐闸答案 + 挂上后 Q1/Q7 读数变化 · 挂不挂是 main 的机制地界 · 不拍的后果 = 判据哪天被改软了没人拦 (这正是 ISS-309 的起因) ⇒ 三轮 (ISS-309/ISS-312/ISS-315) 都只交写法没人挂 ⇒ 板那一趟 SW 侧没有护栏 ★",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss318_sw_ref_impact_gate",
+  "to": "main",
+  "item": "★SW 侧位号引用闸 SW/tools/check_sw_ref_reachability.py (本单新建 · 裸跑 rc=0 · --selftest 7/7) 建好后挂不挂? 挂哪个位点 (EXTRA_GATES 还是 PINNED_MD5_GATES)? · 不拍的后果 = 板那一趟 S1 改名之后 SW 侧 95 处位号引用对不上板 ⇒ 没人拦 ⇒ SW 文档带着过期位号进投产 ⇒ 投产端才发现 (而 SW 侧 9 道闸全绿恰恰证明全绿不等于改完板之后还对) ★",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss318_sw_ref_baseline3_disposition",
+  "to": "main",
+  "item": "★R3 基线那 3 条对不上的位号引用怎么处置: CONN_USB (5 处 · 历史件遗留) / TP_INT (12 处 · 文档自己点名的空洞) / TP_TEMP (1 处 · EVT 测温校准依赖一个板上不存在的测试点) ⇒ 走改文档措辞 / 板那一趟补落表 / 还是加白名单? · 本单建议前两条路 · 不建议白名单 (白名单 = 把判据改软) · 不拍的后果 = BASELINE_COUNT 永远停在 3 ⇒ 基线变成谁都不去碰的黑洞 · 且 TP_TEMP 那条会炸在 EVT 测温段 ★",
+  "since": "2026-11-18"
+ },
+ {
+  "key": "iss321_decide_rename_batch_scope",
+  "to": "main",
+  "item": "★【ISS-323 口径·本单已把 7 件逐条做成照着就能干的清单, 每件的改法都在沙盒里真跑过·rc 都实测过】★板只改一次那一趟的 SW 侧同批改动清单是 7 件 (①冻结表按改名后盘面重建 ②timing_check 位号解析层 ③onepass SW03/04/05 三条现状探针 ④HW 跨域 16 位号/116 处 ⑤三道 R6 selftest 闸的夹具 ⑥清单 SW01 板 md5 重锚(归步 S9) ⑦SW/*.md 位号字面量) —— 批不批这 7 件? ★另: 改名特有炸点实测只有 3 道 (timing_check / adc_sync / chainjudge) ⇒ 不做第 2 件这三道当天就红★; ★另: HW 侧 HW/check_netlist_selfconsistency.py 的 16 个位号 (116 处 · hw-lead 的域) 要不要连 hw-lead 的一起改?★ 不批的后果: 那一趟的门禁链 day-1 就红 (至少 4 道闸) ⇒ 那一趟被自己的护栏卡住 ⇒ 板只改一次变成板改两次 ★",
+  "since": "ISS-321"
+ },
+ {
+  "key": "iss321_decide_r6_selftest_fixture_after_reboard",
+  "to": "main",
+  "item": "★【ISS-323 口径·S4 vs S8 零改名对照组实测同红 ⇒ 已证明它不是改名特有, 是【合法改板后夹具失配】】★三道 R6 selftest 闸的夹具假设「硬保护件从没被合法改过 / 链头只有一个产出记录」⇒ 板那一趟做完一次合法改板后它们恒红 —— 夹具改成「在已有链上再追加一跳」(选项甲 · 本单建议), 还是把这一趟的期望值登记成已知基线 (选项乙 · 改闸 = 受保护资产)? 不批的后果: 三道闸在那一趟当天就红 ⇒ 门禁链挂着 3 条恒红 ⇒ 掩盖真红 ⇒ 违反 ISS-309 铁律「不许把闸修成永远红」 ★",
+  "since": "ISS-321"
+ },
+ {
+  "key": "iss321_sw_docs_rename_bulk_24files",
+  "to": "main",
+  "item": "★【ISS-323 口径·机器实测纠正数字: 41 份 md / 10 份有命中 / 671 处字面量; ISS-321 的「24 份 md / 834 处」是 (文件,行,位号) 三元组行数口径, 覆盖 30 份 (25 md + 5 tools) ⇒ 不是数字打架, 是口径差·本单以机器口径为准】★SW 侧 41 份 md 里 671 处位号字面量要随改名同步改 (类别 ②·不改不红·改了才准) —— 这批文档改动跟板那一趟同批做 (本单建议同批做·「板只改一次」的前提就是所有前置一次查清), 还是板出之后单开一单做? 改法一律走机器脚本 (默认 dry-run) 不许裸 sed。不批的后果: 跟板同批做而文档没改 ⇒ 板出之后 check_sw_ref_reachability.py 判 58 条改名漂移 (S1 实测) ⇒ 闸红; 单开一单 ⇒ 板出之后有一段时间闸是红的 (但不是假红·是真漂移·符合 ISS-318 的设计意图) ★",
+  "since": "ISS-321"
+ },
+ {
+  "key": "iss321_decide_rename_doc_notation",
+  "to": "main",
+  "item": "★【ISS-323 口径·场景 K 实测: 留证文档不改 ⇒ 闸判 28 条改名漂移 + 2 条新增真隐患 ⇒ 闸红; 本单自己的交卷文档也已按「不写死改名后名」改过一遍 ⇒ 实测绿】★SW 侧任何要写「改名后名」或「形状像位号但不是位号」的文档 (★改名方案文档 / 作业包 / 交接页★) —— 是统一规定「写进 logs/ 不进 SW/」(选项丙 · 本单建议), 还是给 ISS-318 的闸加一条「改名方案文档」的显式豁免 (★改闸 = 受保护资产·由 main 拍★)? 不批的后果: 任何写这类文档的人都会踩同一个坑 (★ISS-321 与本单各实测踩到一次 rc=1★) ⇒ 要么规定写法 (★本单已按「不写死改名后名」改过一遍·实测绿★), 要么闸加豁免 ★",
+  "since": "ISS-321"
+ }
+]

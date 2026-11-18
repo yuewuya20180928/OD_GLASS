@@ -1,0 +1,426 @@
+#!/usr/bin/env python3
+"""
+STATE 合并器 — 共享状态源 (老板 2026-10-25 指示)
+
+读 state/fragments/*.yaml  →  原子写 ../STATE.yaml
+
+设计要点:
+  * 纯函数, 无锁, 任何 agent 任何时候都能跑
+  * 原子写 (tmp + os.replace) → 读者永远看到完整快照
+  * needs_from × answers 按 key 配对 → 自动标 answered/pending
+  * interface_claims 同 key 不同 value → 自动检出 conflict
+  * --for <agentId> 输出"我被点名了什么 / 我欠谁什么 / 当前冲突"
+
+用法:
+    python3 state/merge.py                # 刷新 STATE.yaml
+    python3 state/merge.py --for hw-lead  # 我的切片
+    python3 state/merge.py --json         # 机器可读
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+from datetime import datetime, timezone, timedelta
+
+import yaml
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PROJ = os.path.dirname(HERE)
+FRAG_DIR = os.path.join(HERE, "fragments")
+STATE_PATH = os.path.join(PROJ, "STATE.yaml")
+TZ = timezone(timedelta(hours=8))
+
+AGENT_ORDER = ["main", "hw-lead", "sw-lead", "mech-lead"]
+AGENT_NAMES = {
+    "main": "项目总工",
+    "hw-lead": "硬件总工",
+    "sw-lead": "软件总工",
+    "mech-lead": "结构总工(带散热)",
+}
+SEV_RANK = {"high": 0, "medium": 1, "low": 2}
+
+
+def now_iso() -> str:
+    return datetime.now(TZ).isoformat(timespec="seconds")
+
+
+def load_fragments() -> dict:
+    frags = {}
+    if not os.path.isdir(FRAG_DIR):
+        return frags
+    for fn in sorted(os.listdir(FRAG_DIR)):
+        if not fn.endswith((".yaml", ".yml")):
+            continue
+        path = os.path.join(FRAG_DIR, fn)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+        except Exception as e:  # noqa: BLE001
+            print(f"[merge] ⚠️ 跳过 {fn}: 解析失败 {e}", file=sys.stderr)
+            continue
+        if not isinstance(data, dict):
+            continue
+        aid = data.get("agent") or os.path.splitext(fn)[0]
+        data["_file"] = fn
+        frags[aid] = data
+    return frags
+
+
+def atomic_write(path: str, text: str) -> None:
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(text)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
+
+
+def canon_of(v) -> str:
+    """把 interface_claims 的值规范化, 用于机器比较。
+
+    规则: 去掉圆括号内的注释、去掉中英文标点空白、lower、去掉单位后缀差异。
+    目的: 避免 "50x12mm" vs "50x12mm (待确认)" 这种**假冲突**。
+    """
+    if v is None:
+        return ""
+    s = str(v)
+    s = re.sub(r"[（(][^）)]*[）)]", " ", s)   # 去括号注释
+    s = re.sub(r"[\s,，;；、/|]+", "", s)          # 去空白与分隔符
+    s = s.lower()
+    s = s.replace("×", "x").replace("＊", "*")
+    return s
+
+
+PROSE_MARKERS = ("。", "！", "？", "；", "建议", "根据", "如果", "需要", "现按", "应该")
+CJK_RE = re.compile(r"[\u4e00-\u9fff]")
+# 中文占比阈值: 规范值以 ASCII (数字/字母/符号) 为主, 散文以中文为主
+# 实测: 合法规范值 CJK 占比 0.00~0.27; 真散文 0.41~1.00 → 0.35 是干净的分割线
+CJK_RATIO_PROSE = 0.35
+
+
+def is_prose(v) -> bool:
+    """判断一个 claim 的 value 是不是散文 (而非短规范值)。
+
+    ⚠️ 2026-10-25 修正史:
+      v1 用"含 >=3 个中文字"判 → **误伤大量合法规范值**
+         ("无桥接340-575mAh/有桥接575-675mAh"、"口径A:55.7/...ms" 全被误报)
+      v2 用"长度>40 或 含句读词"判 → 短中文散文漏判
+      v3 (现在) = 长度超限 OR 含中文句读/散文词 OR **中文占比 > 0.35**
+    宁可漏判 (最多报个 conflict 让人看见并修), 也不可误判 (会漏掉真冲突)。
+    """
+    if v is None:
+        return False
+    s = str(v)
+    if not s:
+        return False
+    if len(s) > 40:
+        return True
+    if any(m in s for m in PROSE_MARKERS):
+        return True
+    cjk = len(CJK_RE.findall(s))
+    return (cjk / len(s)) > CJK_RATIO_PROSE
+
+
+def build_state(frags: dict) -> dict:
+    # ---------- 1. needs_from × answers 配对 ----------
+    answers_by_key = {}
+    for aid, fr in frags.items():
+        for a in fr.get("answers") or []:
+            k = a.get("key")
+            if not k:
+                continue
+            answers_by_key.setdefault(k, []).append({**a, "_by": aid})
+
+    domains = {}
+    all_needs = []
+    # 所有被声明过的 needs_from key (用于校验 answers 的 key 有没有被引用)
+    referenced_keys = set()
+    for _aid, _fr in frags.items():
+        for _n in _fr.get("needs_from") or []:
+            if _n.get("key"):
+                referenced_keys.add(_n["key"])
+    for aid in AGENT_ORDER + [a for a in frags if a not in AGENT_ORDER]:
+        fr = frags.get(aid)
+        if not fr:
+            continue
+        st = fr.get("status") or {}
+        needs = []
+        for n in fr.get("needs_from") or []:
+            k = n.get("key")
+            ask_to = n.get("to")
+            # ⚠️ 只有**被问的那个 agent** 的回答才能闭合这个需求
+            ans = [a for a in answers_by_key.get(k, []) if a["_by"] == ask_to]
+            needs.append({
+                "key": k,
+                "to": ask_to,
+                "item": n.get("item"),
+                "since": n.get("since"),
+                "state": "answered" if ans else "pending",
+                "answers": [
+                    {"by": a["_by"], "value": a.get("value"), "ref": a.get("ref")}
+                    for a in ans
+                ],
+                "foreign_answers": [
+                    {"by": a["_by"], "value": a.get("value")}
+                    for a in answers_by_key.get(k, []) if a["_by"] != ask_to
+                ],
+            })
+            all_needs.append({**n, "_by": aid, "state": "answered" if ans else "pending"})
+
+        blockers = fr.get("blockers") or []
+        domains[aid] = {
+            "agent": aid,
+            "role": fr.get("role") or AGENT_NAMES.get(aid, aid),
+            "updated_at": fr.get("updated_at"),
+            "updated_by": fr.get("updated_by", aid),
+            "status": {
+                "phase": st.get("phase"),
+                "progress_pct": st.get("progress_pct"),
+                "health": st.get("health"),
+                "summary": st.get("summary"),
+            },
+            "artifacts": fr.get("artifacts") or [],
+            "blockers": sorted(blockers, key=lambda b: SEV_RANK.get(b.get("severity"), 9)),
+            "needs_from": needs,
+            "answers": fr.get("answers") or [],
+            "open_questions": fr.get("open_questions") or [],
+            "risks": fr.get("risks") or [],
+        }
+
+    # ---------- 2. interface_claims 冲突检测 ----------
+    claims = {}
+    lint = []
+    needs_norm = []
+    # answers 的 key 必须有对应的 needs_from, 否则说明 key 写错了 → 静默不闭合的风险
+    for _aid, _fr in frags.items():
+        for _a in _fr.get("answers") or []:
+            _k = _a.get("key")
+            if _k and _k not in referenced_keys:
+                lint.append({
+                    "agent": _aid, "key": _k, "value": _a.get("value"),
+                    "hint": "这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了",
+                })
+    for aid, fr in frags.items():
+        for c in fr.get("interface_claims") or []:
+            k = c.get("key")
+            if not k:
+                continue
+            prose = is_prose(c.get("value"))
+            if prose:
+                lint.append({
+                    "agent": aid, "key": k, "value": c.get("value"),
+                    "hint": "value 必须是短规范值 (用于机器比较), 说明请写到 note",
+                })
+            claims.setdefault(k, {})[aid] = {
+                "value": c.get("value"),
+                "note": c.get("note"),
+                "ref": c.get("ref"),
+                "canon": c.get("canon") or canon_of(c.get("value")),
+                "noncanonical": prose,
+            }
+    interface_claims = {}
+    conflicts = []
+    for k, by_agent in claims.items():
+        vals = {a: v.get("value") for a, v in by_agent.items()}
+        canons = {a: v.get("canon") for a, v in by_agent.items()}
+        # 只用**规范值**参与比较; 散文值不参与 (否则假冲突)
+        comparable = {a: c for a, c in canons.items() if not by_agent[a].get("noncanonical")}
+        uniq = set(comparable.values())
+        raw_uniq = set(canons.values())      # 含散文侧的原始规范串
+        is_conflict = len(uniq) > 1
+        entry = {
+            "values": vals,
+            "notes": {a: v.get("note") for a, v in by_agent.items()},
+            "by": sorted(by_agent.keys()),
+            "noncanonical_by": [a for a, v in by_agent.items() if v.get("noncanonical")],
+            "conflict": is_conflict,
+        }
+        interface_claims[k] = entry
+        if is_conflict:
+            conflicts.append({
+                "key": k,
+                "values": {a: vals[a] for a in comparable},
+                "canon_values": comparable,
+                "refs": {a: by_agent[a].get("ref") for a in comparable},
+                "status": "open",
+            })
+        elif len(raw_uniq) > 1:
+            # 两边值不同, 但有一边是散文 → 不能直接判冲突, 提示规范化
+            needs_norm.append({
+                "key": k,
+                "values": vals,
+                "canon_values": canons,
+                "hint": "有一方写成散文, 没法机器比较; 请统一成短规范值后重新比较",
+            })
+
+    # ---------- 3. 风险汇总 ----------
+    all_risks = []
+    for aid, d in domains.items():
+        for r in d.get("risks") or []:
+            all_risks.append({**r, "owner": aid})
+    all_risks.sort(key=lambda r: SEV_RANK.get(r.get("severity"), 9))
+
+    # ---------- 4. 全局汇总 ----------
+    art_count = sum(len(d.get("artifacts") or []) for d in domains.values())
+    blockers = [
+        {**b, "owner": aid}
+        for aid, d in domains.items()
+        for b in (d.get("blockers") or [])
+    ]
+    blockers.sort(key=lambda b: SEV_RANK.get(b.get("severity"), 9))
+    pending = [n for n in all_needs if n.get("state") == "pending"]
+    # 健康度: 有 high 阻塞或冲突 → red; 有 medium → yellow
+    if any(b.get("severity") == "high" for b in blockers) or conflicts:
+        health = "red"
+    elif any(b.get("severity") == "medium" for b in blockers):
+        health = "yellow"
+    else:
+        health = "green"
+
+    state = {
+        "meta": {
+            "version": 1,
+            "generated_at": now_iso(),
+            "generator": "state/merge.py",
+            "source_of_truth": "PROJECT_TRACKER.md",
+            "note": (
+                "STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, "
+                "**不要手改** (会被下次合并覆盖)。决策理由 / 证据链 / 锁死变量在 PROJECT_TRACKER.md; "
+                "本文件每项都带 ref 指过去。"
+            ),
+            "write_rule": "每个总工只写 state/fragments/<自己的id>.yaml; STATE.yaml 由合并器唯一写",
+        },
+        "project": {
+            "name": "ARS45 智能眼镜",
+            "phase": (domains.get("main") or {}).get("status", {}).get("phase"),
+            "health": health,
+            "tracked_by": "main",
+            "locked_variables_ref": "PROJECT_TRACKER.md#0 已锁死的变量",
+        },
+        "domains": domains,
+        "interface_claims": interface_claims,
+        "needs_matrix": {
+            "pending": pending,
+            "answered_count": len(all_needs) - len(pending),
+            "total": len(all_needs),
+        },
+        "blockers": blockers,
+        "conflicts": conflicts,
+        "needs_normalization": needs_norm,
+        "lint": lint,
+        "risks": all_risks,
+        "summary": {
+            "artifacts": art_count,
+            "blockers": len(blockers),
+            "high_blockers": sum(1 for b in blockers if b.get("severity") == "high"),
+            "open_needs": len(pending),
+            "conflicts": len(conflicts),
+            "needs_normalization": len(needs_norm),
+            "lint": len(lint),
+            "agents_reporting": len(domains),
+        },
+    }
+    return state
+
+
+def digest_for(state: dict, agent: str) -> str:
+    d = state["domains"].get(agent)
+    L = []
+    L.append(f"═══ STATE 切片 · {agent} ({d['role'] if d else '?'}) ═══")
+    if not d:
+        L.append("⚠️ 你还没有分片, 去写 state/fragments/%s.yaml" % agent)
+        return "\n".join(L)
+    st = d["status"]
+    L.append(f"状态: {st.get('summary') or '-'}  | phase={st.get('phase')} progress={st.get('progress_pct')}% health={st.get('health')}")
+    L.append(f"更新: {d.get('updated_at')} by {d.get('updated_by')}")
+
+    waiting_me = []
+    for aid, dd in state["domains"].items():
+        for n in dd.get("needs_from") or []:
+            if n.get("to") == agent and n.get("state") == "pending":
+                waiting_me.append((aid, n))
+    L.append("")
+    L.append(f"【别人在等我】{len(waiting_me)} 项")
+    for aid, n in waiting_me:
+        L.append(f"  ← {aid}: {n.get('item')}   (key={n.get('key')}, since {n.get('since')})")
+
+    L.append("")
+    L.append("【我欠别人的】")
+    mine = [n for n in d.get("needs_from") or [] if n.get("state") == "pending"]
+    if not mine:
+        L.append("  (无)")
+    for n in mine:
+        L.append(f"  → {n.get('to')}: {n.get('item')}  (key={n.get('key')})")
+
+    L.append("")
+    L.append(f"【全局冲突】{len(state['conflicts'])} 项")
+    if not state["conflicts"]:
+        L.append("  (无)")
+    for c in state["conflicts"]:
+        L.append(f"  ⚠️ {c['key']}: {c['values']}")
+
+    if state.get("needs_normalization"):
+        L.append("")
+        L.append(f"【待规范化】{len(state['needs_normalization'])} 项 (值不同但有一方是散文, 未判冲突)")
+        for c in state["needs_normalization"]:
+            L.append(f"  ✏️ {c['key']}: {c['values']}  → {c['hint']}")
+
+    if state.get("lint"):
+        L.append("")
+        L.append(f"【规范值 lint】{len(state['lint'])} 项 (value 写成了散文, 没法机器比较)")
+        for l in state["lint"]:
+            L.append(f"  ✏️ [{l['agent']}] {l['key']}: {l['value']}  → {l['hint']}")
+
+    hb = [b for b in state["blockers"] if b.get("severity") == "high"]
+    L.append("")
+    L.append(f"【高危阻塞】{len(hb)} 项")
+    for b in hb:
+        L.append(f"  🔴 [{b.get('owner')}] {b.get('desc')}")
+
+    L.append("")
+    L.append(f"【项目健康度】{state['project']['health']}  | 产出 {state['summary']['artifacts']} | "
+             f"未闭合需求 {state['summary']['open_needs']} | 冲突 {state['summary']['conflicts']}")
+    L.append(f"下次刷新: python3 state/merge.py  (纯函数, 随时可跑)")
+    return "\n".join(L)
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--for", dest="agent", help="输出某个 agent 的切片")
+    ap.add_argument("--json", action="store_true", help="输出 JSON")
+    args = ap.parse_args()
+
+    frags = load_fragments()
+    if not frags:
+        print("[merge] ⚠️ 没有找到任何分片", file=sys.stderr)
+    state = build_state(frags)
+
+    if args.json:
+        print(json.dumps(state, ensure_ascii=False, indent=2, default=str))
+        return 0
+
+    header = yaml.safe_dump(
+        {"__merged_at__": state["meta"]["generated_at"], "note": "完整内容见下方 auto-generated 段"},
+        allow_unicode=True,
+    )
+    body = yaml.safe_dump(state, allow_unicode=True, sort_keys=False, width=100)
+    atomic_write(STATE_PATH, body)
+
+    if args.agent:
+        print(digest_for(state, args.agent))
+    else:
+        s = state["summary"]
+        print(f"✅ STATE.yaml 已刷新 ({state['meta']['generated_at']})")
+        print(f"   产出 {s['artifacts']} | 阻塞 {s['blockers']} (高危 {s['high_blockers']}) | "
+              f"未闭合需求 {s['open_needs']} | 冲突 {s['conflicts']} | 健康度 {state['project']['health']}")
+        if state["conflicts"]:
+            for c in state["conflicts"]:
+                print(f"   ⚠️ 冲突 {c['key']}: {c['values']}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

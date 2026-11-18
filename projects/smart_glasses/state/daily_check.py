@@ -21,7 +21,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
 import os
+import re
 import subprocess
 import sys
 
@@ -151,6 +153,7 @@ GUARD_TESTS = (
     ("_test_yield2.py", "窄版预测性让路守卫 (★PCB_YIELD_VICTIMS + 真实2D净距★)"),
     ("_test_clrfix.py", "边际净距修复守卫 (★收窄走线 + 差分腿/过孔护栏★)"),
     ("_lint_arm_env.py", "臂脚本 env 变量名守卫 (★★防【注释写进 env 块⇒变量根本没生效】★★)"),
+    ("_test_gen_writeback_guard.py", "生成器副产物写盘守卫 (★内容等价就不写★ · ★自带反向用例★)"),
 )
 
 
@@ -318,8 +321,47 @@ def main() -> int:
     rc_s, stage = jrun("stage_gate.py")
     rc_r, ready = jrun("readiness.py")
     # ★2026-11-02 22:5x: PCB 图纸门禁进门禁链 (自己画的图自己验; EN 那个 P0 的教训)
+    # ★★2026-11-18 17:1x (★main·ISS-280 同型复发修复·配套活闸★): ★**跑 DRC 前后快照 4 个生成器副产物** ★★
+    #   ★**为什么**: C5 生成器自检曾无条件重写这 4 个文件 ⇒ 每天巡检都改它们的 mtime+md5
+    #   ★           ⇒ 任何用 mtime 判"有没有被改过"的判据【永久失效】⇒ ★**这条不变量就是防复发的活闸** ★★
+    #   ★**判据**: 跑 DRC【之后】这 4 个文件的 (md5, mtime_ns) 逐个未变 ⇒ 变了 = 写盘守卫被改坏/被绕过 ⇒ 报红 ★★
+    _wb_files = ("STACKUP.md", "LAYOUT_RULES.md", "GEN_SELF_CHECK.txt", "_frame_reference.kicad_pcb")
+    _wb_dir = os.path.join(PROJ, "HW", "PCB")
+
+    def _wb_snap(_n):
+        """★快照 (★mtime + 归一化内容指纹★) ⇒ 【mtime 变了但内容等价】才是缺陷"""
+        _p = os.path.join(_wb_dir, _n)
+        try:
+            _st = os.stat(_p)
+            _txt = open(_p, encoding="utf-8", errors="replace").read()
+        except OSError:
+            return None
+        _norm = re.sub(r"\(uuid \"[0-9a-fA-F-]{36}\"\)", "uuid \"X\"",
+                       re.sub(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", "<TS>", _txt))
+        return (_st.st_mtime_ns, hashlib.md5(_norm.encode("utf-8", "replace")).hexdigest())
+
+    _wb_before = {n: _wb_snap(n) for n in _wb_files}
     rc_pcb_rc, out_p, err_p = run("check_pcb_drc.py")
     pcb_ok = (rc_pcb_rc == 0)
+    # ★★跑完之后逐个比对 ⇒ 报红 ONLY 当【mtime 变了但归一化内容没变】= 守卫失效 ★★
+    #   ★**为什么不能只看 mtime**: ★板那一趟开工时板真的变了 ⇒ 生成器【应该】重写这 4 件
+    #   ★   ⇒ 那时 mtime 变是【正常】的 ⇒ 只看 mtime 会【假红】⇒ ⇒ 判据必须是【mtime 变 + 内容等价】★★
+    _wb_moved = []      # ★内容等价却被动 = 守卫失效 (⇒ 报红)
+    _wb_legit = []      # ★内容真变了 = 板/参数变了 (⇒ 正常, 只记账)
+    for _n in _wb_files:
+        _b, _a = _wb_before.get(_n), _wb_snap(_n)
+        if _b == _a:
+            continue
+        if _b is not None and _a is not None and _b[1] == _a[1]:
+            _wb_moved.append(_n)          # ★mtime 变了但内容指纹相同 ⇒ 守卫没生效★
+        else:
+            _wb_legit.append(_n)         # ★内容真变了 ⇒ 合法重写★
+    if _wb_moved:
+        problems.append("★跑 check_pcb_drc 之后 HW/PCB/ 下这 4 个生成器副产物【内容等价却被改写】: %s "
+                        "⇒ 『内容等价就不写』守卫失效或被绕过 (★ISS-280 同型缺陷·复发★) ⇒ "
+                        "⇒ mtime 判据【已废】, 请查 state/gen_kicad_project.py" % _wb_moved)
+    print("%s 生成器副产物零改写不变量 (★内容等价却被动 = %s★ · ★内容真变了(合法) = %s★)"
+          % ("✅" if not _wb_moved else "❌", _wb_moved or "无", _wb_legit or "无"))
     # ★PCB ↔ 网表 等价性 (板子由网表生成 ⇒ 必须逐点相等)
     # ★2026-11-04 19:4x 修: 原来用系统 python 跑 (pcbnew 不存在 ⇒ rc 必失败),
     #   而且算出来的 pcb_ok / pcb_net_ok **是死变量, 从没进过 problems** ⇒ 门禁形同虚设

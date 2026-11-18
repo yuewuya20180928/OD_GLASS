@@ -1,0 +1,42 @@
+=== A. MECH/hinge_usb_check.py RECOMMENDED_PINS ===
+76:RECOMMENDED_PINS = {
+77-    # ★ISS-206 (2026-11-12): J_CHG 由 8 → 10, 对齐网表真源 1×10p@0.5mm
+78-    #   逐脚 map (HW/netlist_v1.csv 逐脚 net 行 + HW/CHARGE_BOARD_SPEC.md §5.2):
+79-    #     pin1/pin2 = BAT_CHG (充电电流双 pin 并联, 跨铰链载流)
+80-    #     pin3/pin4 = GND    (回流双 pin)
+81-    #     pin5 = CHG_STAT · pin6 = PWR_GOOD (两个开漏状态信号, 跨铰链)
+82-    #     pin7 = NC (★原走跨铰链的 VBUS_DET 已改主板本地分压 ⇒ 该脚不接)
+--
+302:    rec_stack = sum(fpc_width_mm(RECOMMENDED_PINS[c], g["ffc_pitch_mm"])
+303-                    for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB"))
+304:    rec_stack += fpc_width_mm(RECOMMENDED_PINS["J_CHG"], g["ffc_pitch_mm"])
+305-    # ★标签由数据动态生成 (不再手写脚数) ⇒ 脚数变了标签不会变成旧口径 (ISS-206)
+306-    decl_comp = "/".join(f"{rep['connectors'][c]['declared'] or 0}p"
+307-                          for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_CHG"))
+308:    rec_comp = "/".join(f"{RECOMMENDED_PINS[c]}p"
+309-                        for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_CHG"))
+310-    print(f"    垂直(高度)占位 声明版     = {decl_stack} mm  "
+311-          f"(网表声明 {decl_comp} 全 0.5mm) vs 镜脚净高 {g['temple_h_mm']} mm")
+312-    print(f"    垂直(高度)占位 收敛版     = {rec_stack} mm  "
+313-          f"({rec_comp} 全 0.5mm) vs 镜脚净高 {g['temple_h_mm']} mm")
+
+=== B. j_chg_pitch_mm ===
+67:    "j_chg_pitch_mm":   (0.50,  "J_CHG 定稿 0.5mm pitch (网表 V1.5 起; ISS-085 已定 0.5mm —— 原来这里写 1.27 是过期口径, 导致 [FAIL] 假警报)"),
+252:        pitch = g["j_chg_pitch_mm"] if ref == "J_CHG" else (
+301:    decl_stack += fpc_width_mm(rep["connectors"]["J_CHG"]["declared"] or 0, g["j_chg_pitch_mm"])
+
+=== C. USB_HINGE_STRUCTURE.md old J_CHG strings ===
+123:> ★ **上游规划口径 (历史沿革, 不是现网表声明)**: 上游 `HW/RELIABILITY_DESIGN.md` §(11) 按 CONN_CAM 40p / CONN_LIGHT 40p 规划, 且当时 J_CHG 还是旧 6 脚 @1.27 ⇒ 触点区 40p+40p+4p+旧 6 脚@1.27 = **49.62 mm, 超净高 12.62 mm** —— 那时"缩 pin 是必须的, 不是优化项"。★**该数已不是现网表声明** (网表 J_CHG 已定 1×10p@0.5, CONN_CAM/CONN_LIGHT 已落到 31p/22p) ⇒ 按 ISS-206 裁决, **几何数字一律以 `python3 MECH/hinge_usb_check.py` 的输出为准** (机器可查), 故现声明版 = **31.50 mm**。 【已作废 (依据 ISS-237 / 老板 2026-11-11 19:31 以实际接插件针数为准)】 【已作废 (依据 老板 2026-11-02 19:25 指示② · demo 硬件形态: 跨铰链取消)】 ★**现行 (整机口径, 每颗座用自己的 pitch) = 31×0.3 + 22×0.5 + 10×0.5 = 25.30 mm (余 12.70); demo 现行 = 5.00 mm (只有 J_CHG)**★
+286:> ★**J_CHG 行已按网表真源订正 (ISS-202 · 2026-11-12)** —— 原值 `6 (1×6 @1.27) / 5 必装 / 0 DNP / 6.35 mm (@1.27) / 8.35 mm` = **老 6 脚口径, 已作废**。
+346:| **F-3** | **按上游 40p 规划口径, 铰链区高度方向堆叠 49.62 mm > 镜脚净高 37.0 mm** (★现网表声明已落到 31.50 mm ⇒ 触点区放得下, 但带宽口径 35.50 只余 1.50 mm) | 缩 pin (16p/20p/**10p** → 25.0 mm) | `[推算]` | **hw-lead (pin 数) + mech (结构)** | 【已作废 (依据 ISS-237 / 老板 2026-11-11 19:31 以实际接插件针数为准)】 【已作废 (依据 老板 2026-11-02 19:25 指示② · demo 硬件形态: 跨铰链取消)】 ★**现行 (整机) = 25.30 mm (余 12.70); demo 现行 = 5.00 mm (只有 J_CHG)**★
+
+=== D. mech.yaml claim mech_j_chg_pins ===
+battery_capacity_tier | 315mAh无桥/387mAh有桥 | 新口径 (ISS-072/ISS-055): 持续满载 1h → 315 mAh 无桥 / 387 mAh 有桥。**旧值 '无桥接340-575mAh/有桥接575-675mAh' 含已作废的 575/675 档**, 且 675mAh 档的形态否决结论 (镜腿 11.2mm) 也已随之作废
+mainboard_len_carrier | 69mm | 载板化后主板长12mm宽6层双面贴面积模型 | ★ISS-206 (2026-11-15) 复核后【value 维持 69mm 不改】+ 补注来源: 本值是 MECH/SOC_CARRIER_EVAL.md 的 B 档 (BTB 载板化) **互斥方案** 的板长, 不是现行板板长 —— 同文件 §3/§5/§7 (A 直接焊 76 / B 载板 69, 且 A 超镜脚 1.3mm / B 余 5
+mainboard_len_direct | 76mm | 直接焊时主板长_与hw-lead_ISS-078一致76x12=912mm2 | ★ISS-206 (2026-11-15) 复核后【value 维持 76mm 不改】+ 补注来源: 本值是 MECH/SOC_CARRIER_EVAL.md 的 A 档 (SoC 直接焊) **互斥方案** 的板长, 不是现行板板长 —— 同文件 §3/§5/§7 (A 直接焊 76 / B 载板 69) 明确把两
+mech_hinge_stack_declared_mm | 49.62 | 声明版 4 条链路高度方向堆叠 > 镜脚净高 37.0 → 放不下 | ★2026-11-06 标注: 本值是 **40p 声明版**的堆叠 (10-28 那轮的 P9 页口径), 随 demo 跨铰链取消 (11-02) **已不适用于任何现行板** ⇒ **仅供追溯, 不代表现行基线**; 现行 demo 无跨铰链, 整机阶段重算见 MECH/rebase_20261106.py。
+mech_hinge_stack_fixed_mm | 25.00 | 收敛版 (16p/20p/4p/**10p** @0.5mm) 堆叠, 余 12.00 | ★ISS-209 (2026-11-15) 按 ISS-206 裁 2 订正: 原值 24.00 + note 的 8p 口径 (16p/20p/4p/8p, 余 13.00) 与 MECH/USB_HINGE_STRUCTURE.md §9 不一致 (文档已写 25.00), 本单按 U-3 把它改成 2
+mech_j_chg_pins | 10p@0.5mm | ★**已按网表真源订正 (ISS-202 · 2026-11-12)** —— 本 note 现与同域另一条 claim `j_chg_pin_map` (ISS-200 已订正) **逐脚完全一致**, ★**分片内不一致已消除**。★**value 不动** (`10p@0.5mm` —— [实测] `HW/netlist_v1.csv` J_CHG CONN 行 = “1×10p@0.5mm
+pcb_mounting | 2x⌀2.0H7+2x⌀1.4 | ★PIN-SET-2 定版 (结构侧 60x30 现行口径, ISS-192 仲裁): 2x⌀2.0H7 定位销孔 + 2x⌀1.4 压紧孔 —— 板坐标 (原点左下角, X=板长 0→60 铰链端在 X=0, Y=板宽 0→30): P1(8.00,15.00) 配骨架压装 ⌀2.0 h6 圆销=全基准(X+Y+θz) / P2(52.00,15.00) 配 ⌀2.0 菱形销(对边1.94)=只
+j_chg_pin_map | 1x10p:1/2=BAT_CHG,3/4=GND,5=CHG_STAT,6=PWR_GOOD,7=NC,8=TS_BAT,9/10=HINGE_RSV | ★ISS-200 (2026-11-12) 按**网表真源**逐脚订正 (★[实测] `HW/netlist_v1.csv` 逐脚 net 名独立复算, 与 `HW/CHARGE_BOARD_SPEC.md` §5.2 (ISS-136 定版) 逐脚一致★)。pin1/2 = BAT_CHG (充电电流跨铰链, **双 pin 并联**, 390Ω 档 ICHG 0.82A ⇒ **单 pin 0
+pcb_outline | 60x30mm | ★板宽 15 → **30mm** (老板 10-29 19:16 拍板, §0 台账 11-01 20:5x 订正) + 板长 60 (ISS-100); 60x30=1800mm² ⇒ RK3576 装得下 (余 122.3mm², ISS-118); 板宽是 **V 向** 尺寸 ⇒ 镜脚 V 余量 17.00 → 2.00 (最坏 1.40), 板宽硬顶 31.40mm; PCB 板重 1

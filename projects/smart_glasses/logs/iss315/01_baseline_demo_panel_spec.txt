@@ -1,0 +1,21 @@
+### check_demo_panel_spec.py (main)
+✅ ISS-212 demo 显示侧口径门禁: 全过
+   R1 demo 屏规格真源 (480×640 / 2-lane / 无 DCS / I2C_B ≤100kHz + 附属必填项) ✅
+   R2 demo 规格里整机口径只在「整机路线占位区」内 ✅
+   R3 pipeline spec 的 demo 活动口径已重锚 ✅
+   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+rc=0
+
+### check_demo_panel_spec.py --selftest
+--- ISS-284 合法改板机制用例 (P10 = 方案 ② · 硬保护两件) ---
+  ✅ REV-16 只改锚点里的板 md5, 单号字段没写 (★挖坑★)                    ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 的保护基线 md5 391f56805c70 在落表台账 ()
+  ✅ REV-17 锚点写了单号, 但落表台账里查不到那一行                          ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 锚点里有合法改板记录 (reboard) 但落表台账里查不到)
+  ✅ REV-18 台账里两条合法改板记录指向同一个文件 (链头不唯一)                    ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 台账最新记录取不准 (链头不唯一 = ['391f56805)
+  ✅ REV-19 链断 (改前 md5 对不上台账记的上一次改后 md5)                  ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 的 reboard 改前 md5 611b869e1351 )
+  ✅ REV-20 只改板不动 .kicad_pro (两件记录只来一条)                   ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9901) 覆盖 (记录只来)
+  ✅ REV-21 合法改板: 台账四项齐全 + 锚点原子记录 ⇒ 放行 (★正向★)             ⇒ R6 仍绿 (★合法改板四项齐全 = 放行★)
+--- SELFTEST 22/22 通过 ---
+rc=0

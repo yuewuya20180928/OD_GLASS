@@ -1,0 +1,36 @@
+######## ISS-318 挂链前体检 (★修正: 三道 selftest 闸【不带 --selftest】裸跑★) · TMPDIR=/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss318_tmp · 2026-11-18 08:43:44
+
+===== [1] check_landing_trace_obligation.py  (★支持 --selftest★)
+landing_trace_obligation (裸跑/主模式)                    rc=0  0.14s  44148kB
+landing_trace_obligation --selftest                            rc=0  0.55s  106728kB
+
+===== [selftest 闸] SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py
+裸跑 (★闸的正常入口★)                              rc=0  1.28s  102744kB
+★带 --selftest (★任务书 §3 原样写法★)           rc=2  0.09s
+    (stderr:) usage: check_demo_panel_spec_r6_hardprot_iss315_selftest.py        [-h] [--root ROOT] [--tmpdir TMPDIR] 
+★不设 TMPDIR (★裸跑★)                                rc=0  1.09s
+--- 不设 TMPDIR 时的输出尾部 ---
+  ✅ HP-4: 合法改板 (真单号 + 真留痕) ⇒ 必须绿 (★B 不误伤合法改板★)                     期望 绿 (不许红)                            实际红项 无
+----------------------------------------------------------------------------------------------------
+反向用例: 4/4 通过
+
+===== [selftest 闸] SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py
+裸跑 (★闸的正常入口★)                              rc=0  0.66s  62688kB
+★带 --selftest (★任务书 §3 原样写法★)           rc=2  0.09s
+    (stderr:) usage: check_demo_panel_spec_r6_chainjudge_selftest.py [-h] [--root ROOT]                                                        [--tmpdir TMPDIR] 
+★不设 TMPDIR (★裸跑★)                                rc=0  0.67s
+--- 不设 TMPDIR 时的输出尾部 ---
+      ★自证: 原样不动 ⇒ 链头单号 ISS-302 在独立信源里有据可查 ⇒ 绿是挣来的
+----------------------------------------------------------------------------------------------------
+反向用例: 4/4 通过
+
+===== [selftest 闸] SW/tools/check_demo_panel_spec_r6_selftest.py
+裸跑 (★闸的正常入口★)                              rc=0  0.92s  47300kB
+★带 --selftest (★任务书 §3 原样写法★)           rc=2  0.13s
+    (stderr:) usage: check_demo_panel_spec_r6_selftest.py [-h] [--root ROOT]                                             [--tmpdir TMPDIR] 
+★不设 TMPDIR (★裸跑★)                                rc=0  0.68s
+--- 不设 TMPDIR 时的输出尾部 ---
+         A 判据加【链头产出单号不唯一 ⇒ 判红】(⇒ 治变体 ①; 治不了 ②)
+         B 链头单号必须与【独立信源】对上 (⇒ 锚点副本每次落表都跟到链头 / 或查 issue_log 真单号)
+         (★ISS-309 need · 反向用例设计见交卷单 B3/B5★)
+DONE

@@ -25,8 +25,44 @@ gen_kicad_project.py —— demo 主板图纸生成器 (★"硬件自己画图"�
 """
 import json
 import os
+import re
 import sys
 from datetime import datetime
+
+# ★★2026-11-18 17:0x (★main·ISS-280 同型复发修复★) ★★ **产物输出目录可重定向** ★★
+#   ★**为什么**: 守卫脚本要在【沙盒】里真跑生成器两次 (验证"内容等价就不写") ⇒ 必须能重定向输出目录
+#   ★**默认 = PCB_DIR ⇒ 行为逐字不变** (不设这个变量时与改前完全一致)
+DOC_OUT = os.environ.get("PCB_DOC_OUT") or None   # ★None = 用 PCB_DIR
+
+# ★★2026-11-18 17:0x (★main·ISS-280 同型复发修复★) ★★ **写盘前内容比对: 等价就不写** ★★
+#   ★**病根**: 之前 4 处 `open(...,'w').write(...)` 是【无条件】的 ⇒ 任何跑 check_pcb_drc.py 的动作
+#   ★           (臂跑链 / daily_check / chain_gate) 都改这 4 个文件的 mtime+md5
+#   ★           ⇒ ① 任何用 mtime 判"有没有被改过"的判据【永久失效】 ② 每次生成器自检都制造一次假变更
+#   ★**修法 (★修在产生点, 不是擦产物★)**: 写盘前把【易变部分】归一化 (随机 uuid + 生成时刻) 再比
+#   ★           ⇒ 内容等价 ⇒ **不写** (mtime/md5 不动) ⇒ 语义改动时**照写** (不漏更新)
+#   ★**归一化只吃两样东西 (★都是【天生每次都变】的★)**: `(uuid "...")` + `YYYY-MM-DDTHH:MM:SS`
+#   ★           ⇒ 真实内容变化 (层数/阻抗/自检结论) 一定不归一化 ⇒ 不会被误判成"等价"
+_VOLATILE_RE = re.compile(
+    r"\(uuid \"[0-9a-fA-F-]{36}\"\)|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
+
+
+def _norm(text: str) -> str:
+    """★把【每次生成必变】的部分归一化 ⇒ 只比真实内容★"""
+    return _VOLATILE_RE.sub("<VOLATILE>", text)
+
+
+def _write_if_changed(path: str, content: str) -> bool:
+    """★内容等价 ⇒ 不写 (★返回 False★); 真变了 ⇒ 照写 (★返回 True★)"""
+    try:
+        with open(path, encoding="utf-8") as f:
+            old = f.read()
+    except Exception:
+        old = None
+    if old is not None and _norm(old) == _norm(content):
+        return False
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+    return True
 
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PCB_DIR = os.path.join(PROJ, "HW", "PCB")
@@ -247,12 +283,14 @@ def build_pcb(P):
 
 def main():
     os.makedirs(PCB_DIR, exist_ok=True)
+    out_dir = DOC_OUT or PCB_DIR
+    os.makedirs(out_dir, exist_ok=True)
     P = json.load(open(PARAMS, encoding="utf-8"))
     pcb, fps = build_pcb(P)
     # ★2026-11-02 23:2x: ★**板文件的所有权交给 state/gen_pcb_netlist_board.py (pcbnew 出的真板子, 带真实网络)**
     #   ⇒ 本脚本只负责 **叠层/阻抗规则文档 + 参数自检**, 不再覆盖 .kicad_pcb (两个生成器抢同一个文件 = 必然打架)
-    out_pcb = os.path.join(PCB_DIR, "_frame_reference.kicad_pcb")
-    open(out_pcb, "w", encoding="utf-8").write(pcb + "\n")
+    out_pcb = os.path.join(out_dir, "_frame_reference.kicad_pcb")
+    _write_if_changed(out_pcb, pcb + "\n")
 
     # --- 叠层/规则文档 ---
     st = P["stackup"]
@@ -283,7 +321,7 @@ def main():
 | 介质 | prepreg {P['stackup']['prepreg_thickness_mm']} mm / core {P['stackup']['core_thickness_mm']} mm, FR4 εr=4.5 |
 """
 
-    open(os.path.join(PCB_DIR, "STACKUP.md"), "w", encoding="utf-8").write(stackup_md)
+    _write_if_changed(os.path.join(out_dir, "STACKUP.md"), stackup_md)
 
     rules_md = f"""# HW/PCB/LAYOUT_RULES.md —— 布线与阻抗规则（★生成于 {ts()}）
 
@@ -300,7 +338,7 @@ def main():
 2. ★**每个电源 IC 的 EN 必须在图上有明确网络** (已进网表: 9 路全补, AVDD 走 RC 延时) ⇒ ★**PCB 上对应 RC 位置紧贴 LDO 的 EN 脚**。
 3. ★**AC 耦合电容的位置**: 优先**模组内置**; 主板侧位保留 ⇒ ★**若模组不内置, 主板侧的 AC 耦合必须紧贴 FPC 座** (≤5mm), 不要放在 SOM 侧。
 """
-    open(os.path.join(PCB_DIR, "LAYOUT_RULES.md"), "w", encoding="utf-8").write(rules_md)
+    _write_if_changed(os.path.join(out_dir, "LAYOUT_RULES.md"), rules_md)
 
     # --- 自检 ---
     checks = []
@@ -350,8 +388,9 @@ def main():
         if _hs3 not in _sys3.path:
             _sys3.path.insert(0, _hs3)
         from read_board_stackup import check_docs as _cd
+        # ★★STACKUP.md = 本次生成的产物 (取自 out_dir) · STACKUP_IMPEDANCE.md = 只读输入 (留在 PCB_DIR)★★
         _ok3, _bad3 = _cd(os.path.join(PCB_DIR, "demo_mainboard.kicad_pcb"),
-                          [os.path.join(PCB_DIR, "STACKUP.md"),
+                          [os.path.join(out_dir, "STACKUP.md"),
                            os.path.join(PCB_DIR, "STACKUP_IMPEDANCE.md")])
         chk("C7 叠层文档与板文件交叉校验", not _bad3,
             ("%d 份文档一致" % _ok3) if not _bad3 else "; ".join(_bad3[:2]))
@@ -366,7 +405,7 @@ def main():
     for (n, c, d) in checks:
         rep.append(f"  {'✅' if c else '❌'} {n}" + (f" — {d}" if d else ""))
     rep.append(f"\n判定: {'全过' if ok else '有不通过项'} (FAIL {sum(1 for (_, c, _) in checks if not c)})")
-    open(os.path.join(PCB_DIR, "GEN_SELF_CHECK.txt"), "w", encoding="utf-8").write("\n".join(rep) + "\n")
+    _write_if_changed(os.path.join(out_dir, "GEN_SELF_CHECK.txt"), "\n".join(rep) + "\n")
     print("\n".join(rep))
     print(f"\n产出: {out_pcb}")
     return 0 if ok else 1

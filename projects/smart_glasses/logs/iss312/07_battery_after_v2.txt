@@ -1,0 +1,28 @@
+=== ISS-312 · 修法 A+B (B 只在落表真源那条路径) · 复跑全闸 ===
+$ python3 SW/tools/check_demo_panel_spec.py
+       R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+    rc=0
+$ python3 SW/tools/check_demo_panel_spec.py --selftest
+    --- SELFTEST 22/22 通过 ---
+    rc=0
+$ python3 SW/tools/check_demo_panel_spec_r6_selftest.py
+             (★ISS-309 need · 反向用例设计见交卷单 B3/B5★)
+    rc=0
+$ python3 SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py
+    反向用例: 4/4 通过
+    rc=0
+$ python3 SW/tools/check_onepass_sw_sync.py
+      ✅ rc=0: ★★SW 侧板侧输入清单齐全 (①~⑧ 八条一条不缺) 且现状值与盘面一致 ★★
+    rc=0
+$ python3 SW/tools/check_onepass_sw_sync.py --selftest
+      ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+    rc=0
+$ python3 SW/tools/timing_check.py
+    SELFTEST 85/85 通过, rc=0
+    rc=0
+$ python3 SW/tools/check_shutdown_semantics.py
+    ✅ R1~R7 全过 (口径页 / HW 文档 / SW 镜像 / 网表 四方一致)
+    rc=0
+$ python3 SW/tools/check_load_switch_selection.py
+    [check_load_switch_selection] PASS — 负载开关选型证据矩阵门禁全过
+    rc=0

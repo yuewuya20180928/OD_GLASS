@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/.lastgood/MARGIN_SWEEP_GATE_2026-11-11.md

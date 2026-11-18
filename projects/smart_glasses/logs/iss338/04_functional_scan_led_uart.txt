@@ -1,0 +1,42 @@
+=== F3. LED 绿 (D_LED_G / LED_G) 真代码路径 ===
+SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md:336:    #          "t={'D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md:340:         "t={r for n in ('D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+SW/tools/check_sw_ref_reachability.py:178:    "D_LED_G",
+SW/tools/check_onepass_sw_sync.py:181:         "t={'D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+SW/tools/check_sw_ref_reachability_v2.py:237:    "D_LED_G",
+SW/tools/check_onepass_sw_sync.py.bak_iss315:181:         "t={'D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+SW/BOARD_ONEPASS_SW_SYNC.md:26:★**⇒ 本页与 `F30A` / `P60x15` 不可混用** ★ (★实测教训: ISS-271 的 `D_LED_G` 窗口与检修口开口是 60×30 帧, 照字面抄进 160×100 帧 = 开工即撞 SoM 座★)
+SW/BOARD_ONEPASS_SW_SYNC.md:40:| ★**`SW03_LAND8_DNP`** ★ | ★ISS-244+ISS-266 ★ | ★**8 个落表残项位号的 value/dnp 一变, SW 侧 `timing_check.py` F1 断言的期望值就得跟着定** ★ | ★**S10** ★ | ★**落表批次** (★8 行的选型/footprint 归 ISS-
+SW/BOARD_ONEPASS_SW_SYNC.md:41:| ★**`SW04_CHG_LED_REF`** ★ | ★ISS-234+ISS-244 ★ | ★**充电灯位号口径有两套 (网表 `D_CHG_LED` vs SW 关机语义页 `Q_CHG_LED`) ⇒ 那一趟落表前必须对齐** ★ | ★**S10** ★ | ★**落表批次** (★SW 侧镜像页改动随落表同批; 零落表
+SW/BOARD_ONEPASS_SW_SYNC.md:75:| ★**2** ★ | ★**8 个落表残项位号 (`D_CHG_LED`/`D_LED_G`/`D_LED_R`/`SW_BOOT`/`SW_KEY_PWR`/`SW_KEY_VM`/`SW_KEY_VP`/`SW_RST`) 的 value + dnp 状态一次定死, 落表单号必须同时给 SW 侧** ★ | ★**`timing
+SW/BOARD_ONEPASS_SW_SYNC.md:189:      "current_state": "[实测] 落表残项 8 行 (D_CHG_LED / D_LED_G / D_LED_R / SW_BOOT / SW_KEY_PWR / SW_KEY_VM / SW_KEY_VP / SW_RST) 在脚表里都有 2 行 ⇒ 不是缺脚, 是 value 仍写「待选型」+ land 要
+SW/BOARD_ONEPASS_SW_SYNC.md:200:      "current_state": "[实测] 网表/脚表里充电灯本体位号 = D_CHG_LED, 其 board 列 = CHG_BOARD ⇒ 不在 demo 主 PCB 装机范围 (板上没有 D_CHG_LED 这个封装; 板上有 D_LED_G / D_LED_R / D_LED_B 三颗) · 而 SW/SHUT
+SW/ONETRIP_SW_RENAME_SAFETY.md:293:    # ★改前: "t={'D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+SW/ONETRIP_SW_RENAME_SAFETY.md:297:         "t={r for n in ('D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+
+=== F4. UART 调试 / 串口 console ===
+SW/EVT_TEMPLATE.md:127:| PWR-01 | 冷启动上电时序 | 3 次冷启动, 3/3 出现 bootloader 提示; 上电→串口首行 ≤ 8s (3 次最大值计入) | | | | |
+SW/EVT_TEMPLATE.md:469:| CB-09 | 日志无错误码 | 串口 / `adb logcat` 全量扫 | **不出现** `E_MODEL_MISMATCH` / `E_CALIB_MISSING` / `E_VER_*` / `E_SN_MISMATCH` | | | |
+SW/S2_BOARD_TEST_CHECKLIST.md:68:# ④ ★ 出了故障, 先抓现场 (串口日志 / 下载工具版本 / 电流表读数)
+SW/S2_BOARD_TEST_CHECKLIST.md:81:> ★ **失败现场自动抓**: 任一步失败 → 自动采串口日志 + 下载工具版本 + 电流表读数, 落 `s2_forensics.json` + `s2_forensics_serial.log`。
+SW/S2_BOARD_TEST_CHECKLIST.md:94:| ☐ | USB-TTL 串口线 + 笔记本 | 能看 U-Boot / kernel 串口输出 | 执行人 | `board_test.serial.device` + `baud` |
+SW/S2_BOARD_TEST_CHECKLIST.md:161:| **E2** 日志特征 | 串口出现 `bootloader` / `u-boot` / `fastboot` / `dfu` / `download mode` | 串口 / `dmesg` | ⭐⭐ | 辅助 |
+SW/S2_BOARD_TEST_CHECKLIST.md:213:| **执行前置** | ① 刷回成功 ② `board_test.reboot.cmd` 已配 (默认 `adb reboot`) ③ `board_test.reboot.wait_cmd` 已配 (否则只能判"命令已发出", 进系统与否靠串口首行人工确认) |
+SW/S2_BOARD_TEST_CHECKLIST.md:356:| **记录字段** | 3 份 verify JSON (`s2_step3_verify_<断点>.json`) + 每次上电的串口首行日志 |
+SW/S2_BOARD_TEST_CHECKLIST.md:414:| 10 | `s2_forensics.json` | 失败现场: 下载工具版本 + 电流表读数 + 串口日志索引 | sw-lead (自动) | | |
+SW/S2_BOARD_TEST_CHECKLIST.md:415:| 11 | `s2_forensics_serial.log` | 失败现场: 串口原始日志 | sw-lead (自动) | | |
+SW/tools/s2_board_selftest.sh:23:#   方式 B (串口):         把本脚本喂进串口 (需板端有可用的 shell)
+SW/tools/s2_board_run.sh:15:#   ④ ★ 任何一步失败 → 自动抓"失败现场": 串口日志 / 下载工具版本 / 电流表读数
+SW/tools/s2_board_run.sh:132:  say "[S5] 取证子命令可用 (失败现场: 串口/工具版本/电流表)"
+SW/tools/s2_board_run.sh:243:  step "★ 失败现场取证 (串口日志 / 下载工具版本 / 电流表读数)"
+SW/tools/s2_board_run.sh:247:  # --- 串口日志
+SW/tools/s2_board_run.sh:254:    say "抓串口 $SERDEV @ ${SERBAUD} (${SECS}s) ..."
+SW/tools/s2_board_run.sh:261:    if [ "$SZ" -gt 0 ]; then ok "串口日志已落盘 $SER ($SZ B)"; else warn "串口没抓到数据 ($SER 为空) —— 检查波特率/线序"; fi
+SW/tools/s2_board_run.sh:263:    warn "串口设备不可用 (device=${SERDEV:-未配} 或不存在) → 串口日志记 [0数据]"
+SW/tools/s2_board_run.sh:560:       "note": "★ 未配 wait_cmd 时只判'命令已发出', 进系统与否靠串口首行人工确认 (见 checklist)"}
+SW/tools/boot_rescue_probe.py:14:    E2  串口 log 出现 bootloader / download / fastboot / dfu 字样
+SW/tools/s2_board_judge.py:48:    s2_forensics.json       失败现场取证 (串口/工具版本/电流表)
+SW/tools/s2_rescue_config.json:230:      "_readme": "板端串口 (取日志用)。device 常见 /dev/ttyUSB0 (USB-TTL) 或 /dev/ttyACM0 (CDC-ACM)。",
+SW/FLASH_AND_VERSION.md:77:        │ 日志: CDC-ACM 串口 (同口复用)   │                     │ 日志: CDC-ACM 串口 (同口复用)    │
+SW/FLASH_AND_VERSION.md:86:> - **若无 USB PHY**: L-A 与 L-B 两条路径**同时不成立**, 全部烧录退化为 JTAG 或 UART → 本方案 §4/§5 需整体重写。
+SW/FLASH_AND_VERSION.md:99:| 日志 | **CDC-ACM 串口** (与 ADB 共用口) | 🟡 同上 | 已登记 `interface_claims.debug_port_iface` |

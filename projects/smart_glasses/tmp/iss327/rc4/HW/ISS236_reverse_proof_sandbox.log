@@ -1,0 +1,96 @@
+╔══ 反向自证③ · 沙盒真落 V-3=E ⇒ 回滚 (★全程在 /tmp 副本里, 真盘一个字节都没碰★) ══╗
+沙盒根: /tmp/iss236_sbx  ·  时间: 2026-11-17 04:57:49
+
+── 步骤 0 · 沙盒落表前基线 ──
+e06c1dd633566aa44732762c2ff99d1c  HW/netlist_v1.csv
+287e7861a0d1007748d92d9fbecdd490  HW/netlist_v1_pins.csv
+94642d07a69e8d60dd2af57f69b93607  HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+--expect-resolved 条数 = 18
+
+── 步骤 1 · 沙盒真落 V-3=E (--apply + 拍板凭据; ★凭据只存在于沙盒, 不是真盘拍板★) ──
+★★ 回滚副本: state/.bak_land_v_values_v_20261117-045749 ★★
+   ★ 重生成 OK: state/gen_netlist.py  (网表 (表A HW/netlist_v1.csv))
+   ★ 重生成 OK: state/gen_kicad_net.py  (KiCad 网表 (HW/netlist_v1.net))
+   ★ 重生成 OK: state/gen_netlist_pins.py  (脚表 (表B HW/netlist_v1_pins.csv))
+   ★ 重生成 OK: state/gen_bom.py  (BOM (HW/BOM_v1.csv))
+   ★ 重生成 OK: state/gen_schematic_pages.py  (原理图页面 (HW/SCHEMATIC_V1.md))
+   ★ 重生成 OK: state/gen_kicad_sch.py  (KiCad 原理图 (HW/PCB/demo_mainboard*.kicad_sch))
+   ★ 重生成 OK: 规格页 ANCHORS 块
+   ★ 重生成 OK: 规格页 §5.5 + 落表台账 §16
+   ★ 现状守卫 (期望 rc=0): rc=0
+          [加强型断言·F-3] A 组 22 条 / 已迁移 20 条: `z_diff` 非空 且 `imp` 为空 ⇒ ✅ 全过 (★A-11/A-12 单端与 A-24 那 15 条【不在】断言范围内★)
+       ✅ rc=0: ★现状与 HW/NETLIST_SELF_CONSISTENCY_SPEC.md 一致★
+       ★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ ★**第 1 轮 4 条 + 第 2 轮 7 组缺陷★仍在★ ⇒ rc=0 是预期状态 ★
+   ★ 反向用例 (期望 rc=0, 21/21): rc=0
+         ✅ 用例18 [R9阈值] 把板上 D_ESD_USB_D 挪到 4.0mm 处 (真实阈值 3.0 必须报 R9) ★4.0mm: 阈值 3.0 报红 / 阈值 5.0 不报 ⇒ 阈值真被读到 3.0 ✔
+         ✅ 用例19 [ISS-230/F-3] 清空 A-01 的 z_diff ⇒ 必须红 (字段分工断言)   rc=1 (期望 1) ✔
+         ✅ 用例20 [ISS-230/F-3] 把差分阻抗塞回 A-13 的 imp 字段 ⇒ 必须红       rc=1 (期望 1) ✔
+       翻面口径 (--expect-resolved) 现状 rc=1 (期望 1 = 缺陷尚未落表) ✔
+   ★ 翻面口径 (期望 rc=1): rc=1
+   ★ 尺子1: rc=0
+         ✅ 跨铰链充电电流双 pin 并联 (pin1/pin2)
+         ✅ 全过 — 原理图 V1.1 可进交叉评审
+   ★ 尺子2: rc=0
+         ✅ C8 4 组 SOM 座都用上了 — ['J_SOM_P1', 'J_SOM_P2', 'J_SOM_P3', 'J_SOM_P4']
+         ✅ C9 I2C_A 从设备地址与 HW/I2C_ADDR_TABLE.md 一致且唯一 — 1 个在挂: CONN_CAM=0x1a
+         ✅ C9 I2C_B 从设备地址与 HW/I2C_ADDR_TABLE.md 一致且唯一 — 2 个在挂: CONN_LIGHT=0x45, U_TEMP=0x48
+       ✅ 全过 —— 每个针脚归属唯一, 连接器针数与针号齐, SoC 节点全部落到真实引脚
+   ★ 尺子3 (ERC=0): rc=0
+         判定: ✅ 过 (ERC=0)
+   ★ 尺子4 (图=表): rc=0
+         判定: ✅ 过 (逐器件脚数全相等)
+   ★ ★行号锚点守卫 (ISS-262 · 纯漂移自动重锚·期望 rc=0)★: rc=0
+       ★ ✅ 全部锚点: 行号没变 + 实体没变 ⇒ 通过
+   ★ merge.py + gate_check.py: rc=0/0
+★★【受保护 md5 (★必须逐字节不变★)】★★
+   ✅ HW/PCB/demo_mainboard.kicad_pcb: 611b869e13518c3c023fb178f91a0075 (期望 611b869e13518c3c023fb178f91a0075)
+   ✅ HW/PCB/demo_mainboard.kicad_pro: 3e504d2be83152e337949723e909be1b (期望 3e504d2be83152e337949723e909be1b)
+✅ rc=0: ★**落表完成 · 全部门禁绿 · 受保护 md5 逐字节不变** ★
+
+── 步骤 2 · 落表后 --expect-resolved (★期望 5 条 = 18 - 13★) ──
+★★ rc=1: 翻面口径未通过 (5 条未落表) ★★
+   ★R3 未落表: 板封装 U_EN_SW 的 Value 属性还是脚级功能串 'EN 输入 (高=放行底板)' ⇒ 板文件也要同趟改
+   ★R4 未落表: 板上仍然没有任何 ESD 位号挂在 D− 那条网上 (USB_D_N_SRC / NET_USB_D_N_TYPEC) ⇒ D− 仍然裸奔
+   ★R4 未落表: D_ESD_USB_D 仍然只有 2 个焊盘 (D+ + GND) ⇒ 仍不是双通道
+   ★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm > 3.0 mm ⇒ ESD 还是不在接口旁边
+   ★R10 未落表: 390Ω 档单 pin 载流上限 = 0.608 A > 0.5 A 触点额定 ⇒ R_ILIM 档位没重新定
+条数 = 5
+
+── 步骤 3 · 落表后 md5 (★供 SW/MECH 重锚的样例值★) ──
+f617ffc1fd60e5b4a04ab911999dda17  HW/netlist_v1.csv
+9effa57cb827713cd6d645390ac65d72  HW/netlist_v1_pins.csv
+cb830fbae560948bd10fd5780a10700a  HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+
+
+── 步骤 4 · 沙盒回滚 (★用修好后的 --rollback: 还原真源 + 重生成派生产物★) ──
+✅ rc=0: 已从 /tmp/iss236_sbx/state/.bak_land_v_values_v_20261117-045749 还原 5 个文件
+★★ 回滚后重生成派生产物 (★不然 = 半回滚: 真源回去了, 产物没回去★)★★
+   ★ 重生成 OK: state/gen_netlist.py
+   ★ 重生成 OK: state/gen_kicad_net.py
+   ★ 重生成 OK: state/gen_netlist_pins.py
+   ★ 重生成 OK: state/gen_bom.py
+   ★ 重生成 OK: state/gen_schematic_pages.py
+   ★ 重生成 OK: state/gen_kicad_sch.py
+★ 回滚后现状守卫: rc=0 (★期望 0 = 真源与产物重新一致★)
+     ★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ ★**第 1 轮 4 条 + 第 2 轮 7 组缺陷★仍在★ ⇒ rc=0 是预期状态 ★
+★还原命令:
+
+── 步骤 5 · 回滚后 md5 (★必须与步骤 0 逐字节一致★) ──
+e06c1dd633566aa44732762c2ff99d1c  HW/netlist_v1.csv
+287e7861a0d1007748d92d9fbecdd490  HW/netlist_v1_pins.csv
+94642d07a69e8d60dd2af57f69b93607  HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+
+── 步骤 6 · 回滚后 --expect-resolved (★必须回到 18 条★) ──
+★★ rc=1: 翻面口径未通过 (18 条未落表) ★★
+条数 = 18
+
+── 步骤 7 · 回滚后 现状守卫 (★必须 rc=0 = 真源与产物重新一致★) ──
+现状守卫 rc=0
+
+★★ 真盘 (/home/yuewuya/.openclaw/workspace/projects/smart_glasses) 全程未被本沙盒操作触碰 ★★

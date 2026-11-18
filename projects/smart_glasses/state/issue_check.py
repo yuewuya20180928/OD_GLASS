@@ -204,11 +204,18 @@ def main() -> int:
     open_blk = [p for p in per_issue if p["severity"] == "blocker" and p["status"] not in ("closed", "deferred", "wontfix")]
 
     if args.json:
+        # ★★2026-11-18 06:3x main 修 (★修在产生点, 不许在产物上擦★):
+        #   yaml 把 `due: 2026-11-18` 解析成 datetime.date ⇒ 本分支 json.dumps 抛
+        #   TypeError: Object of type date is not JSON serializable ⇒ **stdout 0 字节 + rc=1**
+        #   ⇒ daily_check.py 的 jrun("issue_check.py", "--json") 永远 json.loads 失败
+        #   ⇒ **问题闭环门那一段在每日巡检里恒为 None (盲区·闸形同虚设)**
+        #   修法: default=str (★与下面人类可读分支的 str(p['due']) 逐字同形★)
+        #   ★**只影响 --json 分支的序列化; 判据/阈值/状态机/字段要求一个字没改★**
         print(json.dumps({
             "total": len(per_issue), "by_status": by_status, "overdue": overdue_n,
             "external": ext_n, "internal": int_n, "uncovered_blockers": uncovered,
             "errors": errs, "warnings": warns, "issues": per_issue,
-        }, ensure_ascii=False, indent=2))
+        }, ensure_ascii=False, indent=2, default=str))
         return 1 if errs else 0
 
     print("=" * 74)

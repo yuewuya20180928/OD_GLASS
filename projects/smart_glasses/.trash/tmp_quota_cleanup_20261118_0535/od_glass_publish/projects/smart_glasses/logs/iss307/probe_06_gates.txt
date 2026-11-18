@@ -1,0 +1,76 @@
+### ISS-307 · 交卷前全闸回归 (最终轮 · 2026-11-18 03:35) ###
+
+$ python3 state/merge.py ; echo rc=$?
+✅ STATE.yaml 已刷新 (2026-11-18T03:35:08+08:00)
+   产出 567 | 阻塞 43 (高危 33) | 未闭合需求 326 | 冲突 0 | 健康度 red
+rc=0
+
+$ python3 state/gate_check.py ; echo rc=$?
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-18_hw-lead_ISS307_ESD选型候选集.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-18_sw-lead_ISS306_G1a两条红溯源.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-18_mech-lead_ISS303_N6合法落表跳.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '官方', '推算', '0数据']
+   sw-lead    标签: ['实测', '推算', '0数据']
+   mech-lead  标签: ['实测', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 878 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    321 条
+   sw-lead    263 条
+   mech-lead  294 条
+
+【Q4 需求闭环率】
+   sw-lead    2/5 类: ['功耗(W)', '镜腿/镜脚厚度(mm)']
+   mech-lead  0/5 类: []
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 143 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 76 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 104 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+rc=0
+
+$ python3 state/issue_check.py ; echo rc=$?
+       ★★[门禁侧·口径缺陷·内部活] ★★`state/delivery_health.py` 的【口径①】把 `delivery.mo
+
+✅ 问题闭环门全过 (字段/状态机/验证分离/逾期/双向覆盖)
+rc=0
+
+### 占位符 / 分片 / 别人分片 md5 ###
+HW/ESD_DUAL_CHANNEL_CANDIDATES.md : 0
+HANDOFF/2026-11-18_hw-lead_ISS307_ESD选型候选集.md : 0
+grep -c iss307 state/fragments/hw.yaml : 9
+d0ffbc731565b63fa13a5a0251274094  state/fragments/mech.yaml
+39ad6a3ca660687fd9b0c7fac95f5e5a  state/fragments/sw.yaml
+7f3d2672870aa7ca5f4b0e11a7eb23a1  state/fragments/pm.yaml
+
+### 零写板终证 ###
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+843e406546518de3ae960540d8295c53  HW/netlist_v1.net
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+HW/PCB/demo_mainboard.kicad_pcb mtime=2026-11-06 07:07:17.362193413 +0800
+HW/netlist_v1.net mtime=2026-11-18 00:21:08.762401321 +0800
+HW/netlist_v1_pins.csv mtime=2026-11-18 00:21:08.806117786 +0800
+HW/BOM_v1.csv mtime=2026-11-18 00:21:08.953119601 +0800

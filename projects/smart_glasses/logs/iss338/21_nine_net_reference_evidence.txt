@@ -1,0 +1,103 @@
+★ ISS-338 · 9 条零铜单端网 · 固件引用实测汇总 (生成于 2026-11-19 01:39:33 CST)
+★ 扫描范围: SW/** 全树 (126 个文件, 含 .py/.sh/.md/.json; 跳过 __pycache__)
+
+───── net = CAM_RESET_N ─────
+  [V1] 精确全名 (grep -rn -w, 大小写敏感):  命中 0 行
+  [V2] 全名不区分大小写 (grep -rniw):        命中 0 行
+  [V3] 去分隔符词干 (CAMRESETN, 分隔符任意):   命中 0 行
+  ⇒ 网名级判定: 零引用 (含变体)
+  [功能等价锚点 · 位号级命中 (file:line)]:
+      SW/SW_TIMING_REVIEW.md:7:> ★**【ISS-293 订正 (2026-11-17, sw-lead)】**: ★**本文的 ADC 段已按【盘面真值 + ISS-291 现行闸】整体订正**★ —— ISS-291 把【判决对象】(`VBUS_DET_D` → `BAT_DET`) 和【满量
+      SW/SW_TIMING_REVIEW.md:39:| **F6** | ADC 检测通道 (源阻抗/建立时间) | **★仍成立 (数值不变) + 新增一条★** —— 装机的是 `VBUS_DET_D` 链 (1M+1M+100nF) ⇒ 500kΩ / 50ms / 451ms / 0.50V (15.2%FS
+      SW/SW_TIMING_REVIEW.md:197:                      └─ C_DET_VBUS_D 100nF ─→ J_SOM_P1 pin100 (SoM USB_DRD1_VBUSDET) ★【ISS-293 订正】★ pin100 = `USB_DRD1_VBUSDET` = *
+      SW/SW_TIMING_REVIEW.md:199:                      └─ C_DET_BAT 100nF ─→ J_SOM_P1 pin38 (SoC ADC 输入)
+      SW/SW_TIMING_REVIEW.md:208:| **ADC 检测通道可用性** | ❌ 不通过 (500kΩ / 451ms / 15.2%FS) | ❌ **仍不通过, 数值一字不差** (装机链 = `VBUS_DET_D`): 源阻抗 500kΩ, τ=50ms, 12bit 建立 450.5ms, 
+      SW/SW_TIMING_REVIEW.md:209:| ★**电量 (BAT_DET) 通道** | 上一版说 BAT_DET 是 SoC 的 ADC 通道 (1M+1M+100nF) | ★★**新**: `R_BAT_DET_1` (L182) / `R_BAT_DET_2` (L183) / `C_DET_B
+      SW/SW_TIMING_REVIEW.md:210:| ★**VBUS_DET 跨铰链高阻节点** | 上一版 §6-15: 500kΩ 高阻节点跨铰链 ⇒ 需钳位 | ✅ **风险消失 (demo 板)**: `R_VBUS_DET_D1` 上臂接 `RAIL_DEMO_5V` (板内 `J_USB_C` 的 5
+      SW/SW_TIMING_REVIEW.md:222:| ADC 检测通道可用性 | ❌ 不通过 | ❌ **仍不通过** ★**【ISS-293 订正 2026-11-17 · sw-lead】★ ⇒ ★**✔ 通过 (37500.0Ω / 33.791ms / 2.1%FS / 节点 1.575V ≤ 1.98V
+      (锚点命中行数合计: 57)
+
+───── net = FSIN_OUT ─────
+  [V1] 精确全名 (grep -rn -w, 大小写敏感):  命中 0 行
+  [V2] 全名不区分大小写 (grep -rniw):        命中 0 行
+  [V3] 去分隔符词干 (FSINOUT, 分隔符任意):   命中 0 行
+  ⇒ 网名级判定: 零引用 (含变体)
+  [功能等价锚点 · 位号级命中 (file:line)]:
+      (锚点命中行数合计: 0)
+
+───── net = JTAG_TDI ─────
+  [V1] 精确全名 (grep -rn -w, 大小写敏感):  命中 0 行
+  [V2] 全名不区分大小写 (grep -rniw):        命中 0 行
+  [V3] 去分隔符词干 (JTAGTDI, 分隔符任意):   命中 0 行
+  ⇒ 网名级判定: 零引用 (含变体)
+  [功能等价锚点 · 位号级命中 (file:line)]:
+      (锚点命中行数合计: 0)
+
+───── net = LED_G_D ─────
+  [V1] 精确全名 (grep -rn -w, 大小写敏感):  命中 0 行
+  [V2] 全名不区分大小写 (grep -rniw):        命中 0 行
+  [V3] 去分隔符词干 (LEDGD, 分隔符任意):   命中 0 行
+  ⇒ 网名级判定: 零引用 (含变体)
+  [功能等价锚点 · 位号级命中 (file:line)]:
+      SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md:336:    #          "t={'D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+      SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md:340:         "t={r for n in ('D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+      SW/tools/check_sw_ref_reachability.py:178:    "D_LED_G",
+      SW/tools/check_onepass_sw_sync.py:181:         "t={'D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+      SW/tools/check_sw_ref_reachability_v2.py:237:    "D_LED_G",
+      SW/tools/check_onepass_sw_sync.py.bak_iss315:181:         "t={'D_CHG_LED','D_LED_G','D_LED_R','SW_BOOT','SW_KEY_PWR',"
+      SW/BOARD_ONEPASS_SW_SYNC.md:26:★**⇒ 本页与 `F30A` / `P60x15` 不可混用** ★ (★实测教训: ISS-271 的 `D_LED_G` 窗口与检修口开口是 60×30 帧, 照字面抄进 160×100 帧 = 开工即撞 SoM 座★)
+      SW/BOARD_ONEPASS_SW_SYNC.md:40:| ★**`SW03_LAND8_DNP`** ★ | ★ISS-244+ISS-266 ★ | ★**8 个落表残项位号的 value/dnp 一变, SW 侧 `timing_check.py` F1 断言的期望值就得跟着定** ★ | ★**S10*
+      (锚点命中行数合计: 14)
+
+───── net = SPI_MISO_BOOT ─────
+  [V1] 精确全名 (grep -rn -w, 大小写敏感):  命中 0 行
+  [V2] 全名不区分大小写 (grep -rniw):        命中 0 行
+  [V3] 去分隔符词干 (SPIMISOBOOT, 分隔符任意):   命中 0 行
+  ⇒ 网名级判定: 零引用 (含变体)
+  [功能等价锚点 · 位号级命中 (file:line)]:
+      (锚点命中行数合计: 0)
+
+───── net = SPI_MOSI_BOOT ─────
+  [V1] 精确全名 (grep -rn -w, 大小写敏感):  命中 0 行
+  [V2] 全名不区分大小写 (grep -rniw):        命中 0 行
+  [V3] 去分隔符词干 (SPIMOSIBOOT, 分隔符任意):   命中 0 行
+  ⇒ 网名级判定: 零引用 (含变体)
+  [功能等价锚点 · 位号级命中 (file:line)]:
+      (锚点命中行数合计: 0)
+
+───── net = SPI_SCLK_BOOT ─────
+  [V1] 精确全名 (grep -rn -w, 大小写敏感):  命中 0 行
+  [V2] 全名不区分大小写 (grep -rniw):        命中 0 行
+  [V3] 去分隔符词干 (SPISCLKBOOT, 分隔符任意):   命中 0 行
+  ⇒ 网名级判定: 零引用 (含变体)
+  [功能等价锚点 · 位号级命中 (file:line)]:
+      (锚点命中行数合计: 0)
+
+───── net = UART_RX ─────
+  [V1] 精确全名 (grep -rn -w, 大小写敏感):  命中 0 行
+  [V2] 全名不区分大小写 (grep -rniw):        命中 0 行
+  [V3] 去分隔符词干 (UARTRX, 分隔符任意):   命中 0 行
+  ⇒ 网名级判定: 零引用 (含变体)
+  [功能等价锚点 · 位号级命中 (file:line)]:
+      SW/SW_TIMING_REVIEW.md:92:复位链: RAIL_VDD_1V8_IO ─ R_PU_RESET_N 10k ─┬─ R_SER_RESET_N 1k ─→ J_SOM_P2 pin100 (SoC RESET_N)
+      SW/SW_TIMING_REVIEW.md:329:> 另有一条**跨域口径冲突** (不算 SW 返工): `ISS-014` 的决策文字写 "SoC+充电板挪镜框", 而现网表 (`J_SOM_P2/P3` + `U_EN_SW` + `RAIL_DEMO_5V`) 是 **SoM + demo 主板在镜脚**
+      SW/tools/check_sw_ref_reachability.py:183:    "J_SOM_P2",
+      SW/tools/check_sw_ref_reachability_v2.py:242:    "J_SOM_P2",
+      (锚点命中行数合计: 4)
+
+───── net = USB_CC2 ─────
+  [V1] 精确全名 (grep -rn -w, 大小写敏感):  命中 0 行
+  [V2] 全名不区分大小写 (grep -rniw):        命中 0 行
+  [V3] 去分隔符词干 (USBCC2, 分隔符任意):   命中 0 行
+  ⇒ 网名级判定: 零引用 (含变体)
+  [功能等价锚点 · 位号级命中 (file:line)]:
+      SW/SW_TIMING_REVIEW.md:60:| 跨铰链 USB 救砖 (CONN_USB 4pin, 只有 1 个 GND) | `CONN_USB` **已不在网表**; `J_CHG` 不带 D+/D− ⇒ 跨铰链 USB 链不成立; demo 板走**板内** `J_USB_C` | **推翻** (对
+      SW/SW_TIMING_REVIEW.md:89:RAIL_BOARD_5V ← U_EN_SW (TPS22991RAA, EN=CARRIER_BOARD_EN 来自 J_SOM_P3 pin87) ← RAIL_DEMO_5V (板内 J_USB_C)
+      SW/SW_TIMING_REVIEW.md:196:【模拟链】VBUS_DET_D: RAIL_DEMO_5V (板内 J_USB_C 的 5V) ─ R_VBUS_DET_D1 1M ─┬─ R_VBUS_DET_D2 1M ─ GND
+      SW/SW_TIMING_REVIEW.md:210:| ★**VBUS_DET 跨铰链高阻节点** | 上一版 §6-15: 500kΩ 高阻节点跨铰链 ⇒ 需钳位 | ✅ **风险消失 (demo 板)**: `R_VBUS_DET_D1` 上臂接 `RAIL_DEMO_5V` (板内 `J_USB_C` 的 5
+      SW/SW_TIMING_REVIEW.md:275:| SoC 侧没有 USB VBUS 连接 ⇒ 枚举前提缺失 | ★demo 板改成**板内**: `J_USB_C` (Type-C, MAIN_PCB) → `R_SER_USB_D_P/N` 22Ω → `J_SOM_P1 pin92/94`; 供电走 `R
+      SW/SW_TIMING_REVIEW.md:277:⇒ **S2 救砖链在 demo 板上 = 板内 Type-C 直连 SoM** ⇒ 上一版 §5.6 的建议"量产改用镜脚有线 pogo 板"**依然成立且更强** (既然 demo 板上就已经是板内 Type-C, 量产镜脚板建议直接采用同一形态, 不要跨铰链
+      SW/SW_TIMING_REVIEW.md:294:| 板内 USB (J_USB_C) 作为刷写口 | (上一版无此选项) | ✅ **通过** (路径完整: J_USB_C → 22Ω → J_SOM_P1 pin92/94) | [实测] |
+      SW/SW_TIMING_REVIEW.md:347:| **7-7** | ★**`J_USB_C` 的 D− 没有 ESD 保护** | **L417/418** `D_ESD_USB_D` = "ESD 阵列 (USB 2.0 **双通道**)", note 明写 "紧贴 `J_USB_C`, **跨 D+ 与
+      (锚点命中行数合计: 35)
+

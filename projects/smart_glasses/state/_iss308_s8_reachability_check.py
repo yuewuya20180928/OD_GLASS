@@ -18,7 +18,17 @@
   python3 state/_iss308_s8_reachability_check.py --selftest   # ⇒ rc=0 (★反向用例自证: 改一条网名的桶 ⇒ 脚本必须红★)
 
 ★**反向用例 (--selftest) 的含义**: ★**把 `CSI_D0_D2_N` 的桶从 B3 改成 B5 之后, 校验必须判红 (rc≠0)** ★
-  ⇒ ⇒ ★**证明这个脚本【真的在查桶归属】, 不是摆设★** ★
+  ⇒ ⇒ ★**证明这个脚本【真的在查桶归属】, 不是摆设** ★
+
+★★★【★2026-11-18 (ISS-308 cont1) 修的判据缺陷★】★★★ ★**改桶判绿的那处漏网已补★**
+  ★**上一版 `check()` 只校验「桶 ∈ VALID_BUCKETS」+「字段非空」+「网名集合 == 靶表」+「板 md5/mtime 未变」**
+  ★**⇒ 它【从不校验某条网名【应该落在哪个桶】】⇒ ⇒ 把 `CSI_D0_D2_N` 的桶从 B3 改成 B5 (B5 也是合法桶) ⇒ 判绿**
+  ★**⇒ ⇒ 本版加了三重锁 (★铁律: 判据必须有【独立于被测对象的第二来源】, 否则就是摆设★)**:
+    ★**锁 1** = `BUCKET_AUTHORITY` (★下面那份【独立的】22 网名 → 桶字面量副本★) ⇒ `check()` 逐条比对 ★
+    ★**锁 2** = ★**实读判决书** `HW/PCB/S8_REACHABILITY_VERDICT.md` 的 §2-A-2 落桶表 (★`<!-- ISS308_BUCKET_TABLE_BEGIN/END -->` 之间的行★)
+                   ⇒ ★**三方 (脚本 BUCKETS / 判决书表格 / BUCKET_AUTHORITY) 必须逐条一致** ★
+    ★**锁 3** = `--selftest` 用例① 保持 ★「B3 → B5 这种【另一个合法桶】」★ 的形状 (★**不许拿「桶名拼写非法」当反向用例**★) ⇒ 必须判红 ★
+  ★**不许放宽任何现有判据** (`VALID_BUCKETS` / 字段非空 / 网名集合比对 / 板 md5+mtime 四条一个都没动) ★
 """
 from __future__ import annotations
 
@@ -28,6 +38,8 @@ import sys
 
 PROJ = "/home/yuewuya/.openclaw/workspace/projects/smart_glasses"
 UNC_MAP = os.path.join(PROJ, "state/UNC_TARGET_MAP.md")
+# ★**判决书 (★锁 2 的来源: §2-A-2 落桶表★)**
+VERDICT = os.path.join(PROJ, "HW/PCB/S8_REACHABILITY_VERDICT.md")
 BOARD = os.path.join(PROJ, "HW/PCB/demo_mainboard.kicad_pcb")
 BOARD_MD5 = "611b869e13518c3c023fb178f91a0075"
 BOARD_MTIME = "2026-11-06 07:07:17"
@@ -170,6 +182,64 @@ BUCKETS: dict[str, tuple[str, str, str, str]] = {
 }
 
 VALID_BUCKETS = ("B1", "B2", "B3", "B4", "B5")
+
+# ★★★★★★【★BUCKET_AUTHORITY —— 桶归属的【独立权威副本】★】★★★★★★
+# ★**为什么要有它 (★ISS-308 cont1 实测到的判据缺陷★)**:
+#   ★**上一版 `check()` 只校验「桶 ∈ VALID_BUCKETS」+「字段非空」+「网名集合 == 靶表」+「板 md5/mtime 未变」**
+#   ★**⇒ 它【从不校验某条网名【应该落在哪个桶】】⇒ ⇒ 把 `CSI_D0_D2_N` 的桶从 B3 改成 B5 (B5 也是合法桶) ⇒ 判绿**
+#   ★**⇒ ⇒ 这份【与 BUCKETS 完全分开写的】字面量副本 = 桶归属的第二来源 ⇒ 改任一条必红**
+# ★**铁律 (★本项目的老教训★)**: ★**判据必须有【独立于被测对象的第二来源】, 否则就是摆设** ★
+# ★**这份副本是【手抄的权威口径】, 不是从 BUCKETS 派生的 ⇒ 两者不一致 = 有人抄错了 ⇒ 必须红**
+BUCKET_AUTHORITY: dict[str, str] = {
+    # ---------------- B1 · 差老板字母 ----------------
+    "CARRIER_BOARD_EN": "B1",
+    "SPI_CSn_BOOT": "B1",
+    # ---------------- B2 · GND 卡死 ----------------
+    "CSI_MCLK": "B2",
+    # ---------------- B3 · 差分 N 腿互掐 (层分配) ----------------
+    "CSI_D0_CK_N": "B3",
+    "CSI_D0_D0_N": "B3",
+    "CSI_D0_D0_N_SRC": "B3",
+    "CSI_D0_D2_N": "B3",
+    "CSI_D0_D3_N": "B3",
+    "DSI_D0_CK_N_SRC": "B3",
+    "DSI_D0_D0_N": "B3",
+    "DSI_D0_D0_P": "B3",
+    "DSI_D0_D1_N": "B3",
+    "DSI_D0_D1_N_SRC": "B3",
+    "DSI_D0_D3_N": "B3",
+    "KEY_VOL_M": "B3",
+    # ---------------- B4 · 让路闸靶子 (普通信号网互掐) ----------------
+    "USB_CC1": "B4",
+    "ID_DETECT_1": "B4",
+    "I2C_A_SCL": "B4",
+    "I2C_B_SCL": "B4",
+    "I2C_B_SDA": "B4",
+    "LED_B": "B4",
+    "KEY_VOL_P": "B4",
+    # ---------------- B5 · 其它 (★本单为空: 22 条全部能归进 B1~B4★) ----------------
+}
+
+
+def _read_verdict_buckets() -> tuple[dict[str, str], str]:
+    """★**实读判决书 `HW/PCB/S8_REACHABILITY_VERDICT.md` 的 §2-A-2 落桶表 (★只读★)**
+    ★⇒ 返回 (网名 → 桶) + 错误串 (★空串 = 读到了★)"""
+    if not os.path.exists(VERDICT):
+        return {}, "★找不到判决书 (★锁 2 的来源★): %s" % VERDICT
+    txt = open(VERDICT, encoding="utf-8").read()
+    if "<!-- ISS308_BUCKET_TABLE_BEGIN -->" not in txt or "<!-- ISS308_BUCKET_TABLE_END -->" not in txt:
+        return {}, "★判决书里没有 ISS308_BUCKET_TABLE_BEGIN/END 标记 (★锁 2 读不到落桶表★)"
+    seg = txt.split("<!-- ISS308_BUCKET_TABLE_BEGIN -->", 1)[1].split("<!-- ISS308_BUCKET_TABLE_END -->", 1)[0]
+    out: dict[str, str] = {}
+    for line in seg.split("\n"):
+        # ★表行形状: | `网名` | **B3** | … |  ⇒ 只认第二格是合法桶的行
+        m = re.match(r"^\|\s*`([A-Za-z0-9_]+)`\s*\|\s*\**\s*(B[1-5])\s*\**\s*\|", line)
+        if m:
+            out[m.group(1)] = m.group(2)
+    if not out:
+        return {}, "★判决书落桶表里一行都没解析出来 (★锁 2 失效★)"
+    return out, ""
+
 # ★【★B5 桶 (其它) 在本单为空★】★ —— ★★实测: 22 条里没有一条能归进「其它」★
 #   ⇒ ★不是偷懒, 是 22 条【全部】能归进 B1/B2/B3/B4 四桶 ⇒ ★故 B5 计数 = 0★ ★
 
@@ -223,6 +293,31 @@ def check(buckets: dict[str, tuple[str, str, str, str]]) -> list[str]:
             errs.append(f"★网名 {n} 的「能不能在板那一趟解」取值 {solvable!r} 非法 (★只许「能」/「不能」★)")
         if not fix.strip():
             errs.append(f"★网名 {n} 没有解法/卡点★")
+    # ★★★【★锁 1: 桶归属的独立权威副本 (BUCKET_AUTHORITY)★】★★★
+    # ★**这是本单修的「改了桶居然还判绿」那处漏网 ⇒ 改任一条网名的桶 ⇒ 必须红** ★
+    for n, auth_b in BUCKET_AUTHORITY.items():
+        mine = buckets.get(n)
+        if mine is None:
+            errs.append(f"★网名 {n} 在权威副本里有桶 {auth_b!r}, 但被测表里没有这一条★")
+        elif mine[0] != auth_b:
+            errs.append(f"★网名 {n} 的桶被改成 {mine[0]!r}, 权威副本说它必须是 {auth_b!r} ★")
+    for n in buckets:
+        if n not in BUCKET_AUTHORITY:
+            errs.append(f"★网名 {n} 不在权威副本 (BUCKET_AUTHORITY) 里 ★")
+    # ★★★【★锁 2: 实读判决书的落桶表 (★第三个来源★)★】★★★
+    vb, verr = _read_verdict_buckets()
+    if verr:
+        errs.append(verr)
+    else:
+        for n, vbucket in vb.items():
+            mine = buckets.get(n)
+            if mine is None:
+                errs.append(f"★判决书落桶表里有网名 {n}, 但被测表里没有这一条 ★")
+            elif mine[0] != vbucket:
+                errs.append(f"★网名 {n} 的桶 {mine[0]!r} 与判决书落桶表 {vbucket!r} 不一致 ★")
+        for n in buckets:
+            if n not in vb:
+                errs.append(f"★网名 {n} 不在判决书落桶表里 ★")
     # ★★板零写板自证★★
     import hashlib
     if os.path.exists(BOARD):
@@ -243,11 +338,12 @@ def selftest() -> int:
     print("=== ISS-308 selftest (★反向用例★) ===")
     bad = 0
     # ★用例 ①: 改 CSI_D0_D2_N 的桶 (B3 → B5) ⇒ 必须红
+    # ★★**B5 也是合法桶** ⇒ 这一条测的是【桶归属对不对】, 不是【桶名拼写对不对】★★ ★
     mutated = dict(BUCKETS)
     mutated["CSI_D0_D2_N"] = ("B5",) + tuple(BUCKETS["CSI_D0_D2_N"][1:])
     e = check(mutated)
     if e:
-        print(f"  ✔ 用例① 「CSI_D0_D2_N 的桶被改成 B5」 ⇒ 脚本判红 (★{len(e)} 条错★) ⇒ ★脚本真的在查桶归属★")
+        print(f"  ✔ 用例① 「CSI_D0_D2_N 的桶被改成 B5 (★B5 也是合法桶★)」 ⇒ 脚本判红 (★{len(e)} 条错★) ⇒ ★脚本真的在查桶归属★")
         print(f"      首条错: {e[0]}")
     else:
         print("  ✘ 用例① 失败: ★改了桶居然还判绿 ⇒ 脚本是摆设★")

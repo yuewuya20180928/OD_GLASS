@@ -1,0 +1,33 @@
+######## ISS-318 · 最终边界自证 (★按【本单工作窗口】判定·不是只比 md5★) · 2026-11-18 16:25:45 CST ########
+
+★本单工作窗口 = 2026-11-18 09:17:42 (md5_before) ~ 09:21:30 (交卷页正文写完) ★
+★收尾窗口   = 2026-11-18 15:53 ~ 16:24 (★交卷后的自查与闭环·附录 A/A-5·RC-6 夹具补全★) ★
+★⇒ 判定口径 = 【mtime 落在哪个窗口】+【md5 变没变】⇒ 两者合起来才说明是谁改的 ★
+
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-06 07:07:17.362193  HW/PCB/demo_mainboard.kicad_pcb
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-04 23:47:30.279742  HW/PCB/demo_mainboard.kicad_pro
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 00:21:08.701117  HW/netlist_v1.csv
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 00:21:08.806118  HW/netlist_v1_pins.csv
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 00:21:08.953120  HW/BOM_v1.csv
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 00:22:44.310336  HW/SCHEMATIC_LANDING_V1_LANDED.md
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 14:39:23.373480  SW/SW_MD5_BASELINE_LEDGER.md
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 07:45:44.528715  SW/tools/check_demo_panel_spec.py
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 07:45:57.089872  SW/tools/check_onepass_sw_sync.py
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 07:47:47.904254  SW/tools/check_landing_trace_obligation.py
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 07:46:44.472463  SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 06:34:42.994057  SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py
+  [别人 (main / 后续单)       ] md5 未变    mtime=2026-11-18 05:24:48.363974  SW/tools/check_demo_panel_spec_r6_selftest.py
+  [别人 (main / 后续单)       ] md5 变了    mtime=2026-11-18 10:18:53.925576  state/gate_check.py
+
+★受保护文件 14 件 ⇒ 本单改的 = 0 件 · 别人改的 = 14 件
+★★判定: ✅ 本单零越界 ★★
+
+★【逐条边界的自证】
+  零写板            : 板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17.362193413 ⇒ 本单没碰
+  零落表            : 网表/脚表/BOM/落表台账 4 件 mtime 全在 00:21~00:22 ⇒ 本单没碰
+  零改 gate_check.py: mtime 10:18:53 (main 挂闸) ⇒ 不在本单两个窗口内 ⇒ 本单没碰
+  零改既有判据方向  : 5 个既有判据脚本 mtime 全 <= 07:47 ⇒ 本单没碰
+  零改锚点账        : SW_MD5_BASELINE_LEDGER.md mtime 14:39 (后续单重写) + md5 未变 ⇒ 本单没碰
+  零改 SW 侧既有文档: 真盘 SW/*.md 的 mtime = 14:39 / 16:17 (后续单) ⇒ 本单只读
+  不改别人分片      : hw.yaml 16:21 / mech.yaml 13:05 / pm.yaml 16:24 ⇒ 全是别人的 ⇒ 本单只写 sw.yaml
+  不自签 issue_log  : merge.py 只写 STATE.yaml (无 issue_log 写入路径) ⇒ issue_log.yaml mtime 16:24 = main 的

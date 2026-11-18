@@ -1,0 +1,91 @@
+=== ISS-293 回归 (开始 2026-11-17 17:12:06) ===
+--- [timing_check_full] rc=0
+  [PASS] ★反向: 只报 SDK 总耗时、缺纯硬件耗时 ⇒ 不许静默 PASS (⇒ INDET + 理由)
+  [PASS] ★反向: 采样帧数 n=120 < 300 ⇒ 不作结论 (INDET)
+  [PASS] ISP p95 = 18.00 ms ⇒ 模式B 上限 (17.33) FAIL
+  [PASS] T2 交叉核对: 纯 NPU 21.00 ms ⇒ 命中老板翻案条款 (20.33 ms)
+
+SELFTEST 85/85 通过, rc=0
+###RC timing_check_full 0
+--- [F4_adc_det] rc=0
+   netlist_md5                        : 37f62ac3f0b81d92ca7d48fdea717f07
+   netlist_lines_total                : 514
+   netlist_data_rows                  : 513
+   netlist_bytes                      : 139958
+   netlist_mtime                      : 2026-11-17 12:30:22
+   netlist_header                     : page,net,node1,node2,ref,value,type,dnp,evidence,tbd,note,conn_id,board,footprint,opn
+###RC F4_adc_det 0
+--- [F4D_usb_vbus_det] rc=0
+   netlist_md5                        : 37f62ac3f0b81d92ca7d48fdea717f07
+   netlist_lines_total                : 514
+   netlist_data_rows                  : 513
+   netlist_bytes                      : 139958
+   netlist_mtime                      : 2026-11-17 12:30:22
+   netlist_header                     : page,net,node1,node2,ref,value,type,dnp,evidence,tbd,note,conn_id,board,footprint,opn
+###RC F4D_usb_vbus_det 0
+--- [adc_sync_gate] rc=0
+   [✔] P2-FS-VOLTAGE                文档含现值 `1.8`
+   [✔] P3-POP                       活结论里还在说 BAT_DET/电量链 DNP 的行: 无
+   [✔] P3-POP-PRESENT               文档含「必装」
+   [✔] P4-VERDICT                   活结论里残留 ADC ❌/无硬件支撑 的行: 无
+
+OK: 29/29 项通过, rc=0
+###RC adc_sync_gate 0
+--- [adc_sync_gate_selftest] rc=0
+  ✔ case2_revert_chain: 期望红组 ['CARD:adc_decision_chain'] ⇒ 实际红组 ['CARD:adc_decision_chain', 'P1-DECISION-PRESENT'] ⇒ 红 ✔
+  ✔ case3_revert_populated: 期望红组 ['CARD:adc_populated'] ⇒ 实际红组 ['CARD:adc_populated', 'P3-POP-PRESENT'] ⇒ 红 ✔
+  ✔ case4_baseline: 正向对照 ⇒ 期望绿 ⇒ 实际红组 [] ⇒ 绿 ✔
+  [真件] SW/SW_TIMING_REVIEW.md 读回 90918 B (自检全程只写沙盒副本)
+
+SELFTEST 4/4 通过, rc=0
+###RC adc_sync_gate_selftest 0
+--- [demo_panel_spec] rc=0
+   R2 demo 规格里整机口径只在「整机路线占位区」内 ✅
+   R3 pipeline spec 的 demo 活动口径已重锚 ✅
+   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+###RC demo_panel_spec 0
+--- [demo_panel_selftest] rc=0
+  ✅ REV-17 锚点写了单号, 但落表台账里查不到那一行                          ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 锚点里有合法改板记录 (reboard) 但落表台账里查不到)
+  ✅ REV-18 台账里两条合法改板记录指向同一个文件 (链头不唯一)                    ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 台账最新记录取不准 (链头不唯一 = ['391f56805)
+  ✅ REV-19 链断 (改前 md5 对不上台账记的上一次改后 md5)                  ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 的 reboard 改前 md5 611b869e1351 )
+  ✅ REV-20 只改板不动 .kicad_pro (两件记录只来一条)                   ⇒ R6 变红 (R6 硬保护: HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9901) 覆盖 (记录只来)
+  ✅ REV-21 合法改板: 台账四项齐全 + 锚点原子记录 ⇒ 放行 (★正向★)             ⇒ R6 仍绿 (★合法改板四项齐全 = 放行★)
+--- SELFTEST 22/22 通过 ---
+###RC demo_panel_selftest 0
+--- [state_merge] rc=0
+✅ STATE.yaml 已刷新 (2026-11-17T17:12:10+08:00)
+   产出 511 | 阻塞 43 (高危 33) | 未闭合需求 294 | 冲突 0 | 健康度 red
+###RC state_merge 0
+--- [state_gate_check] rc=0
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 127 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 71 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 92 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+###RC state_gate_check 0
+--- [state_issue_check] rc=0
+  🟡 ISS-076  deferred  owner=mech-lead  due=2026-11-16  
+       新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1
+  🟡 ISS-261  verified  owner=main       due=2026-11-22  
+       ★★[门禁侧·口径缺陷·内部活] ★★`state/delivery_health.py` 的【口径①】把 `delivery.mo
+
+✅ 问题闭环门全过 (字段/状态机/验证分离/逾期/双向覆盖)
+###RC state_issue_check 0
+--- 受保护 5 件 md5 + 板 mtime ---
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+37f62ac3f0b81d92ca7d48fdea717f07  HW/netlist_v1.csv
+a4270120454aedf7a23c92cd8985c8a6  HW/netlist_v1_pins.csv
+5d02bece9477ffce5fbe0193c7d5cce4  HW/BOM_v1.csv
+2026-11-06 07:07:17.362193413 +0800 HW/PCB/demo_mainboard.kicad_pcb
+2026-11-04 23:47:30.279742515 +0800 HW/PCB/demo_mainboard.kicad_pro
+--- SW 侧本次动过的两个文件 ---
+89bd3ed5f21ae2b08e2e3ef8c33fe4aa  SW/SW_TIMING_REVIEW.md
+866f8e0b70a2fd6362ca84b7c9ef76cd  SW/tools/check_timing_review_adc_sync.py
+cf09c921002937920bfa40701d523b33  SW/tools/timing_check.py
+3a933706bf2446e8ed60cef61c408abc  SW/SW_REQUIREMENTS.md
+=== ISS-293 回归 (结束 2026-11-17 17:12:20) ===

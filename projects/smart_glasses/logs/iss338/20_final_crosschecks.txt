@@ -1,0 +1,31 @@
+=== V17. LED_R_D / LED_B_D 也是阴极段 (对照 LED_G_D) ===
+P7,LED_R,J_SOM_P1 pin80,R_LED_R,NET_LED_R,68Ω 串阻 → LED → GND,NET,必装,[推算],,方向 SoC→LED; 电平 3.3V; 阻抗 68Ω 串阻 → LED → GND; 连接 主 PCB; 测试点 TP_LED_R,B-12,MAIN
+P7,LED_R_D,R_LED_R,D_LED_R,R_LED_R,68Ω ±1%,R,必装,[推算],,[LED_R_D] LED_R 串阻 = 68Ω ±1% (★**ISS-283 · G-5 裁决 (2026-11-17 09:49 老板拍「选项 ② = 改 R 到 20 mA 档」)★*
+P7,GND,D_LED_R,GND,D_LED_R,LED (待选型),LED,必装,[推算],,LED_R 阴极 -> GND,,MAIN_PCB,,
+P7,LED_B,J_SOM_P4 pin21,R_LED_B,NET_LED_B,1k 串阻 → LED → GND,NET,DNP,[推算],,方向 SoC→LED; 电平 3.3V; 阻抗 1k 串阻 → LED → GND; 连接 主 PCB; 测试点 TP_LED_B,B-14,MAIN_
+P7,LED_B_D,R_LED_B,D_LED_B,R_LED_B,1k ±1%,R,DNP,[推算],,[LED_B_D] LED_B 串阻 (3.3V 驱动; 实际值随 LED Vf 与目标亮度定),,MAIN_PCB,,
+P7,GND,D_LED_B,GND,D_LED_B,LED (待选型),LED,DNP,[推算],,LED_B 阴极 -> GND,,MAIN_PCB,,
+P7,LED_R,TP_LED_R,R_LED_R,TP_LED_R,测试点,TP,必装,[推算],,测什么: LED 红; 位置: 主 PCB,,MAIN_PCB,,
+P7,LED_B,TP_LED_B,R_LED_B,TP_LED_B,测试点,TP,DNP,[推算],,测什么: LED 蓝 (无无线 -> DNP); 位置: 主 PCB,,MAIN_PCB,,
+
+=== V18. 板载 Type-C: J_USB_C (MAIN) 在板, J_TYPE_C (CHG) 不在板 ===
+  J_USB_C      on official board: YES
+  J_TYPE_C     on official board: NO
+  R_CC1_D      on official board: YES
+  R_CC2_D      on official board: YES
+  R_CC1        on official board: NO
+  R_CC2        on official board: NO
+  J_BOOT1      on official board: YES
+  J_DEBUG      on official board: YES
+  J_UART       on official board: YES
+  D_LED_G      on official board: YES
+  CONN_CAM     on official board: YES
+  TP_FSIN      on official board: YES
+
+=== V19. deploy/ scripts_tmp/ panel dtsi 是否含 9 条网 (固件真源补充扫) ===
+  deploy/: 0 files
+  scripts_tmp/: 0 files
+  REF/: 0 files
+  docs/: 2 files
+  PRINT/: 0 files
+  HW/PCB/panel_simple_dsi_template.dtsi: 0

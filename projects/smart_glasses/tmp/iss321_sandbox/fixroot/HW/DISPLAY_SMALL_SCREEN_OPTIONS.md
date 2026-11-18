@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/DISPLAY_SMALL_SCREEN_OPTIONS.md

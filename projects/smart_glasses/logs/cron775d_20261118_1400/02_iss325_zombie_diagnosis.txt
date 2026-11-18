@@ -1,0 +1,68 @@
+★ ISS-325 僵尸态诊断 (★cron 775d9893 · 2026-11-18 14:0x · main 本机实读, 不抄任何 agent 报告★) ★
+
+=== [1] 会话状态: hw-lead ISS-325 ===
+  agent:hw-lead:subagent:6e4da9de-6304-4702-abde-08e17b2aa930
+  status = timeout · abortedLastRun = true · endedAt = 13:35
+  ⇒ 交卷页写到 B6 就断了 (B0/B3/B6 在, B1/B2/B4/B5 缺)
+
+=== [2] 交卷页块检查 (grep -cE '^#+.*\bB[0-9]\b') ===
+  B0 = 3
+  B1 = 0
+  B2 = 0
+  B3 = 1
+  B4 = 0
+  B5 = 0
+  B6 = 1
+
+=== [3] 主交付物章节 ===
+  § 段数 = 9
+42815 HW/PCB/ONETRIP_S8_LEFTUPPER_REHEARSAL.md
+ 9135 HANDOFF/2026-11-18_hw-lead_ISS325_左上布局沙盒预演.md
+
+=== [4] ★未交完的实证: 数据格是待填占位★ ===
+35:| ★**零写板** ★ | `PCB_OUT=/tmp/iss325_s8lu_R.kicad_pcb` (★生成器 L56~L70 强制 `.kicad_pcb` 后缀, L75~L82 拒绝覆盖官方板除非 `PCB_ALLOW_OFFICIAL=1`★) · ★**本单从头到尾没设过 `PCB_ALLOW_OFFICIAL`** ★ | ★**§9-2 交卷前后 md5 + mtime
+36:| ★**零落表** ★ | 网表 / 脚表 / BOM / 原理图源 **一个字节都没碰** | ★**§9-2 md5 表** ★ |
+39:| ★**零写 `.layout_done.json`** ★ | ★**生成器只在 `PCB_OUT` == 官方板路径时才写它 (L520~L526 显式守卫) ⇒ 沙盒板 ⇒ 阶段门 G1 的判据源 `HW/PCB/.layout_done.json` 一个字节都不会动** ★ | ★**§9-2** ★ |
+44:| ★**不许覆盖历史链 / 预留串** ★ | ★**TAG = `iss325_s8lu` ⇒ 链产物落 `/tmp/chain_iss325_s8lu/`** ★ · ★**预留串只读复用 `state/.lastgood/v76mg_reserve.txt` (md5 `1950683f8f2981eb6e1141c3559c02a6`)·未覆盖** ★ | ★**§2 + §9-2
+217:| ★**左上臂** (★本单跑·裸路由器产物★) ★ | §9-2 表 | §3-3 | §3-3 | §3-3 | §3-3 | §3-3 | §6-2 | ★**正 (左上)** ★ |
+  --- 测量脚本已写好, 但从未跑过 (产物不存在) ---
+  -rw-rw-r-- 1 yuewuya yuewuya 6764 Nov 18 13:08 logs/iss325/scripts/iss325_measure.sh
+  ls: cannot access 'logs/iss325/09_threeway_fresh_drc.txt': No such file or directory
+
+=== [5] ★两条沙盒臂还在跑 (未出板) ★ ===
+  1043781    3499 /bin/bash --noprofile --norc -c cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses && nohup bash state/iss325_s8_leftupper_arms.sh > /tmp/iss325_s8lu_arm_wrapper.log 2>&1 & echo "LAUNCHED pid=$!" && sleep 20 && echo "--- wrapper ---" && cat /tmp/iss325_s8lu_arm_wrapper.log && echo "--- router log head ---" && head -30 /tmp/iss325_s8lu_R.log 2>/dev/null
+  1043783    3499 bash state/iss325_s8_leftupper_arms.sh
+  1043797    3499 timeout 21600 bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py
+  1043798    3499 /home/yuewuya/kicad/squashfs-root/usr/bin/python3.11 -u state/gen_pcb_netlist_board.py
+  1044611    3163 /bin/bash --noprofile --norc -c cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses && nohup bash state/iss325_s8_control_v76mz_arms.sh > /tmp/iss325_s8ctl_arm_wrapper.log 2>&1 & sleep 15; echo "=== ctl wrapper ==="; cat /tmp/iss325_s8ctl_arm_wrapper.log; echo "=== ctl router head ==="; head -12 /tmp/iss325_s8ctl_R.log 2>/dev/null; echo "=== main arm status ==="; tail -2 /tmp/iss325_s8lu_R.log; date '+%F %T'
+  1044613    3163 bash state/iss325_s8_control_v76mz_arms.sh
+  1044627    3163 timeout 21600 bash state/pcbnew_py.sh state/gen_pcb_netlist_board.py
+  1044628    3163 /home/yuewuya/kicad/squashfs-root/usr/bin/python3.11 -u state/gen_pcb_netlist_board.py
+  --- 臂产物 (应落 /tmp) ---
+  ls: cannot access '/tmp/iss325_s8lu_R.kicad_pcb': No such file or directory
+  ls: cannot access '/tmp/iss325_s8ctl_R.kicad_pcb': No such file or directory
+
+=== [6] ★臂在改 HW/PCB/ 的既有生成器副产物 (已披露的已知副作用) ===
+  2026-11-18 13:58:53.784423302 +0800 1175  HW/PCB/STACKUP.md
+  2026-11-18 13:58:53.784521492 +0800 1259  HW/PCB/LAYOUT_RULES.md
+  2026-11-18 13:58:53.785710791 +0800 612  HW/PCB/GEN_SELF_CHECK.txt
+  2026-11-18 13:58:53.783194585 +0800 37592  HW/PCB/_frame_reference.kicad_pcb
+  --- 板本体未动 ---
+  611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+  2026-11-06 07:07:17.362193413 +0800
+
+=== [7] 分片未写 (hw.yaml grep iss325 = 0) ===
+  hits = 0
+
+=== [8] ★结论: §6-2 的 '17→5' 实际复算自盘上已有的 best_unc23_clrfix, 不是本次左上臂实测 ★ ===
+71:★**源板**: `state/.lastgood/best_unc23_clrfix.kicad_pcb` · md5 `52ccbd207e0796c92426ba7e81863c5a` · mtime `2026-11-11 04:43`
+206:| `best_unc23_clrfix` | `52ccbd207e0796c92426ba7e81863c5a` | 0 | **23** | 21 | 23 | ★**是** ★ |
+219:| ★**盘上最好板** `state/.lastgood/best_unc23_clrfix.kicad_pcb` ★ | `52ccbd207e0796c92426ba7e81863c5a` | **0** | **23** | 21 | 3364 | 475 | ★**5 / 47** ★ | ★**正 (左上·21 器件全在)** ★ |
+221:★**注**: ★**`best_unc23_clrfix` 板【本身就是 21 器件全在左上】的板 (★§1-2 机器读它的 20 个封装原点 ⇒ 与本单的左上目标坐标【20/20 逐条相等】★) ⇒ ⇒ 它是「左上布局」在 2026-11-11 的一个【已存在的实现】★**
+
+=== [9] 后果: Q1 齐备率 18/18 → 15/18 (hw-lead 3/6 缺 B2/B4/B5) ===
+  【Q1 交付齐备率】 15/18 个必填验收块齐全
+     hw-lead    3/6  缺: ['B2', 'B4', 'B5']   交接单: 2026-11-18_hw-lead_ISS325_左上布局沙盒预演.md
+     sw-lead    6/6  缺: 无   交接单: 2026-11-18_sw-lead_ISS323_SW侧同批改动可执行清单.md
+     mech-lead  6/6  缺: 无   交接单: 2026-11-18_mech-lead_ISS324_D_LED_G落位口径.md
+  

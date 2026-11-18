@@ -1,0 +1,71 @@
+########## python3 state/merge.py
+RC=0
+✅ STATE.yaml 已刷新 (2026-11-17T15:25:54+08:00)
+   产出 506 | 阻塞 43 (高危 33) | 未闭合需求 294 | 冲突 0 | 健康度 red
+
+########## python3 state/gate_check.py
+RC=0
+   答方视角 (我登记的答复): 137 条, 其中 63 条真对上了别人的需求 key
+   hw-lead    被答 27/173 | 我答 55 条(有效 31) | 产出 167 | 阻塞 7
+   sw-lead    被答 13/104 | 我答 32 条(有效 5) | 产出 182 | 阻塞 15
+   mech-lead  被答 39/167 | 我答 50 条(有效 27) | 产出 146 | 阻塞 12
+   ├─ ⚠️ **疑似漏登记 (答案在对方文档正文里, 但没进 answers)**: 0 条  ← 需人工判定, 也有可能是 waiting_on 标错
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 79 条 | **全局 70 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 294 条**
+   ✅ 与 merge.py 自对账一致 (等外部 70 / 等总工 294)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 13 个
+      q1_latency_scope: 发起方 ['main', 'sw-lead']
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q17_display_fps: 发起方 ['main', 'sw-lead']
+      q18_highspeed_cam: 发起方 ['main', 'sw-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+
+【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    2/5 类: ['功耗(W)', '镜腿/镜脚厚度(mm)']
+   sw-lead    1/5 类: ['镜腿/镜脚厚度(mm)']
+   mech-lead  2/5 类: ['镜腿/镜脚厚度(mm)', 'FCCSP 球间距(pitch)']
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 126 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 69 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 91 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+
+########## python3 state/issue_check.py
+RC=0
+  🟡 ISS-272  verified  owner=sw-lead    due=2026-11-20  
+       ★★[门禁/运维侧·独立复核·内部活] ★★**独立复核 main 亲手改的 `state/delivery_truth.py` 口
+  🟡 ISS-267  verified  owner=mech-lead  due=2026-11-21  
+       ★★[主线内·结构侧·板侧开口约束·纯分析·内部活] ★★检修口/调试口 `jd_y0` 的合法区间只剩 [3.57, 12.13]
+  🟡 ISS-273  verified  owner=mech-lead  due=2026-11-21  
+       ★★[主线内·MECH 侧·门禁机制收口·内部活] ★★**网表/脚表 md5 锚点已跳 6 跳 ⇒ 「一落表就红, 必人工重锚」*
+  🟡 ISS-059  closed    owner=mech-lead  due=2026-10-28  
+       打印包 P 表口径漂移 + verify_pack 文案过时 + 测量清单要区分两类孔 (mech-lead 交卷自查发现的 3 个
+  🟡 ISS-069  closed    owner=sw-lead    due=2026-10-28  
+       需求条目旧链路命名对齐 (SW_REQUIREMENTS 3.1 职责行 + M2-R1/M2-R3 + DISPLAY_MODE 
+  🟡 ISS-073  closed    owner=sw-lead    due=2026-10-28  
+       显示帧 buffer 与合成帧两行加注 (800x600 = 老板锁死的显示分辨率, 不是旧链路) —— 不许按 640x480 重
+  🟡 ISS-033  closed    owner=main       due=2026-10-29  
+       需求→设计→验证 追溯矩阵 (RTM) 缺失
+  🟡 ISS-035  closed    owner=main       due=2026-10-29  
+       来料检验 + 整机测试项 (QCP) 缺失
+  🟡 ISS-036  closed    owner=main       due=2026-10-29  
+       售后支持/故障诊断缺失
+  🟡 ISS-037  verified  owner=sw-lead    due=2026-10-29  
+       模型资产与 INT8 量化管理缺失 (权重是资产, 现在散在 sw 需求里)
+  🟡 ISS-113  verified  owner=sw-lead    due=2026-11-05  
+       ★RKNN_BENCH 的 B6 复现缺陷: `acc` 步单独跑会崩 (依赖 calib 步的 dataset.txt)
+  🟡 ISS-066  deferred  owner=mech-lead  due=2026-11-16  
+       测量清单补 H14 (temple_cage 上的 ⌀2.4 PCB 定位间隙孔独立量测行) + measurements.yaml
+  🟡 ISS-076  deferred  owner=mech-lead  due=2026-11-16  
+       新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1
+  🟡 ISS-261  verified  owner=main       due=2026-11-22  
+       ★★[门禁侧·口径缺陷·内部活] ★★`state/delivery_health.py` 的【口径①】把 `delivery.mo
+
+✅ 问题闭环门全过 (字段/状态机/验证分离/逾期/双向覆盖)
+

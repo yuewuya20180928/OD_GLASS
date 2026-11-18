@@ -1,0 +1,20 @@
+ISS-323 · 沙盒 rc 矩阵 (★8 场景 × 10 道闸 = 80 次·本机实跑·2026-11-18 11:5x★)
+(★输出源: logs/iss323/raw_<场景>_<闸>.txt·每份末尾一行是 rc=★)
+
+闸                                                         S0      S1      S2      S3      S4      S5      S7      S8   ★归因★
+---------------------------------------------------------------------------------------------------------------------------
+check_onepass_sw_sync                                      0       1       1       1       1       1       1       1   ★板改了就会红★ (S4=S8 · 不是改名特有)
+check_sw_ref_reachability                                  0       1       0       0       0       0       0       0   全程绿
+check_landing_trace_obligation                             0       0       0       0       0       1       1       0   全程绿
+check_demo_panel_spec                                      0       1       1       1       0       1       1       0   全程绿
+check_demo_panel_spec_r6_selftest                          0       2       2       2       1       2       2       1   ★板改了就会红★ (S4=S8 · 不是改名特有)
+check_demo_panel_spec_r6_chainjudge_selftest               0       1       1       1       1       1       1       0   ★★改名特有★ (S4 红 / S8 绿)
+check_demo_panel_spec_r6_hardprot_iss315_selftest          0       1       1       1       1       1       1       1   ★板改了就会红★ (S4=S8 · 不是改名特有)
+check_shutdown_semantics                                   0       1       0       0       0       0       0       0   全程绿
+check_timing_review_adc_sync                               0       2       2       2       2       0       0       0   ★★改名特有★ (S4 红 / S8 绿)
+timing_check                                               0       1       1       1       1       0       0       0   ★★改名特有★ (S4 红 / S8 绿)
+
+★改名特有 (S4 红 + S8 绿) 的道数 = 3
+   ★ check_demo_panel_spec_r6_chainjudge_selftest  S4=1 S8=0
+   ★ check_timing_review_adc_sync  S4=2 S8=0
+   ★ timing_check  S4=1 S8=0

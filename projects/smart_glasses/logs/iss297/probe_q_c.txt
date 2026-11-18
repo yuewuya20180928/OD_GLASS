@@ -1,0 +1,22 @@
+  ✅ ① 台账里有合法改板记录 (四项齐全) 且盘上 == 新 md5 ⇒ 绿 (★这就是「合法改板」的样子★)
+      ⇒ 实得: 绿 · ★HW/PCB/demo_mainboard.kicad_pcb: 盘上 md5 5307ecda8e91 == 落表台账链头 (★合法改板·四项齐全·单号 ISS-9901★) ⇒ 放行★ · ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be83
+  ✅ ② 只改了基线里的 md5, 没有台账记录 ⇒ 红 (★这就是「挖坑」, 必须堵死★)
+      ⇒ 实得: 红 · ★基线 md5 5307ecda8e91 在落表台账里与 HW/PCB/demo_mainboard.kicad_pcb 【同行】查不到 ⇒ 疑似【改基线凑绿】⇒ 判红★
+  ✅ ③a 台账记录缺单号 (reboard 记录没有 by) ⇒ 红
+      ⇒ 实得: 红 · ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 记录四项不齐: 缺 by ⇒ 判红★
+  ✅ ③b 台账记录缺改前 md5 (reboard 记录没有 prev_md5) ⇒ 红
+      ⇒ 实得: 红 · ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 记录四项不齐: 缺 prev_md5 ⇒ 判红★
+  ✅ ③c 台账记录文件名对不上 (reboard.file 写成 .kicad_pro) ⇒ 红
+      ⇒ 实得: 红 · ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 记录写的是 HW/PCB/demo_mainboard.kicad_pro (≠ 条目文件名) ⇒ 判红★
+  ✅ ③d 落表台账那一行与它所在段都没有单号 ⇒ 链头无单号 ⇒ 红 (★fail-closed★)
+      ⇒ 实得: 红 · ★落表台账链头 (5307ecda8e91) 缺落表单号 ⇒ 判红★ · ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 单号 ISS-9901 与落表台账产出该 md5 的单号对不上 (台账 = []) ⇒ 判红★ · ★HW/PCB/demo_mainboa
+  ✅ ④ 台账里有记录但盘上 md5 ≠ 记录里的新 md5 ⇒ 红 (★合法改板 ≠ 随便改★)
+      ⇒ 实得: 红 · ★盘上 md5 611b869e13518c3c023fb178f91a0075 ≠ 落表台账链头 5307ecda8e91 ⇒ 真源被换了或台账没更新 ⇒ 判红★
+  ✅ ⑤a 链头不唯一 (两条变更行指向同一个文件) ⇒ 红 (★fail-closed★)
+      ⇒ 实得: 红 · ★落表台账最新记录取不准 (链头不唯一 = ['5307ecda8e91', 'deadbeefdead'] (取不准 ⇒ 不许判绿)) ⇒ 取错记录可能假绿 ⇒ 判红★ · ★HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9902) 的落表台账登记
+  ✅ ⑤b 链断 (链上一个节点有两个前驱) ⇒ 红 (★fail-closed★)
+      ⇒ 实得: 红 · ★落表台账链断了 / 不唯一 (链上 5307ecda8e91 的前驱不唯一 = ['0123456789ab', '611b869e1351']) ⇒ 判红★ · ★HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9901) 的落表台账登记覆盖 (★
+  ✅ ⑤c 锚点 reboard 的改前 md5 与台账链头那一行的改前对不上 (链断) ⇒ 红 (★fail-closed★)
+      ⇒ 实得: 红 · ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 改前 md5 0123456789ab 与落表台账链头那一行的改前 611b869e1351 不一致 (链断) ⇒ 判红★ · ★HW/PCB/demo_mainboard.kicad_pcb 的四项 (单号 / 
+──────────────────────────────────────────────────────────────────────────────
+  ⇒ 10/10 条符合预期

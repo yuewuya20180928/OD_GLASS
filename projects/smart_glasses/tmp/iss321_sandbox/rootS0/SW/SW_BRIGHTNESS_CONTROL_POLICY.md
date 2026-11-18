@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/SW_BRIGHTNESS_CONTROL_POLICY.md

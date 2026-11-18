@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# ISS-281 分片写入 (★只走 frag_write.py 原子写, 只写自己的 hw.yaml★)
+# ★注意: frag_write.py 内部用 shlex.split 解析 ⇒ 带空格的 value/summary/item 必须自带双引号★
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses || exit 1
+
+python3 state/frag_write.py --agent hw-lead \
+ --add-claim 'key=iss281_s10_manifest_spec value="★S10 投产包 md5 清单的格式契约已定死: 清单文件 = HW/PCB/production/MANIFEST.md5 (★必须在投产包【里面】, 放外面 ⇒ rm -rf 重建后不刷新 ⇒ 变成描述旧包的僵尸清单, 比没有清单更危险★); 字段 = 数据行 <相对路径> | <md5> | <字节数> (相对 HW/PCB/production/) + 末尾三行 BOARD_MD5 / GENERATED_AT / FILE_COUNT (★FILE_COUNT = 投产包文件总数, 含清单自身 = 数据行数+1★); 生成时机 = 必须在 rm -rf 重建【之后】写, 且是 OUT 里最后一次被创建的文件; 格式契约权威页 = HW/PCB/BOARD_ONEPASS_S10_MANIFEST_SPEC.md"' \
+ --add-claim 'key=iss281_s10_manifest_gate value="HW/check_onepass_s10_manifest.py (主模式 rc=1 ★预期红★ 因为盘上还没有清单 = 这就是病灶本身; --selftest rc=0 反向 9 条 + 正向对照 1 条全抓到; --demo-sandbox rc=0 证明 M1~M4 不是恒红)"' \
+ --add-claim 'key=iss281_s10_workpacket_correction value="★作业包 §3-S10 量化判据第三项订正: 「板统计里的 md5 == S6 重出后的板 md5」这句落不了地 (HW/PCB/production/doc/board-stats.txt = KiCad 统计报告导出, 1435 B, grep -ci md5 = 0 ⇒ 盘上这个文件里一个 md5 字段都没有) ⇒ 正确判据 = 投产包清单里的 BOARD_MD5 == S6 重出后的板 md5; 连带: 文件数口径 73 ⇒ 74 (投产产物 73 + 清单 1), Gerber 32 不变"' \
+ --add-artifact 'path=HW/PCB/BOARD_ONEPASS_S10_MANIFEST_SPEC.md kind=spec version=1.0 updated_at=2026-11-17 summary="★ISS-281 新建 S10 投产包 md5 清单格式契约 (权威页): 清单文件名+路径+为什么必须在投产包内 + 字段表 + 行型/解析规则 + 生成时机三条硬规矩 + 谁生成 (本单只出规格, 生成器归 S10 那一趟) + 判据 M1~M4 定义 + 与 §3-S10 量化判据的订正对照 + 生成器接线代码骨架 (给 main 的落点)★"' \
+ --add-artifact 'path=HW/check_onepass_s10_manifest.py kind=gate version=1.0 updated_at=2026-11-17 summary="★ISS-281 新建 S10 清单机器闸: M1 清单在盘+三头字段齐全+每行 md5/字节数格式合法 / M2 清单 BOARD_MD5 == 盘上板 md5 (★内容级, 抓「产物不是这一版板出的」★) / M3 清单每个文件的 md5 与盘上逐字相同 (★内容级, 抓「产物被偷换/被改/缺件」★) / M4 文件数 == 盘上实际文件数 + 路径集合双向相等 (★抓「偷渡件/幽灵」★) ⇒ 主模式 rc=1 (★预期红: 盘上无清单★) · --selftest rc=0 (反向 9 条 + 正向对照 1 条, 含 ⑦ 历史对照: 用今天这个没有清单的投产包 ⇒ M1 红) · --demo-sandbox rc=0 (M1~M4 全绿 ⇒ 证明不是恒绿摆设) · 沙盒全在 /tmp, 真盘零写★"' \
+ --add-artifact 'path=HANDOFF/2026-11-17_hw-lead_ISS281_S10投产包清单落地.md kind=handoff version=1.0 updated_at=2026-11-17 summary="★ISS-281 交卷单: 病灶复述 + 交付物 4 件 + 边界逐条自证 (零写板 / 零跑 gen_production_pack.sh / 零写 production / 零落表 / 零改既有判据阈值 / 不改 ISS-280+ISS-277 交付物) + 验收 rc 原样 + 回答 main 的三句话 + 沙盒路径 + 清单格式样例★"' \
+ --add-need 'key=iss281_s10_generator_hook to=main item="★生成器接线归 main 排期 (★因为它动的是共享脚本 state/gen_production_pack.sh, 本单只出规格+判据+闸, 不改那个脚本★): 该脚本是 rm -rf 重建 ⇒ 清单必须在重建【之后】写 ⇒ 落点 = 第 113 行 (★原理图源文件归档块的末行, ls -1 那一行★) 之后 / 第 115 行 step 清单 之前 —— 那一行之后 OUT 里不再新增任何文件, 正是最后一次创建的位置; 顺序 = 先写清单 ⇒ 再 find 统计 ⇒ 再打印 (★FILE_COUNT = find 数 + 1, 因为写清单那一刻 find 还数不到它★); 代码骨架见 HW/PCB/BOARD_ONEPASS_S10_MANIFEST_SPEC.md §8。★接完之后 S10 那一趟的验收 = python3 HW/check_onepass_s10_manifest.py ⇒ rc=0 (★现在必然 rc=1, 因为清单还没生成 —— 那是如实报告病灶, 不是闸坏了★)★"' \
+ --status 'phase=delivered progress_pct=100 health=green summary="★ISS-281 交卷: S10 投产包 md5 清单的格式契约 + 机器闸 (M1~M4 内容级) + 作业包 §3-S10 追加式订正 (老字 0 删除); 主模式 rc=1 预期红 (盘上无清单=病灶本身), --selftest rc=0 (反向 9+正向 1), --demo-sandbox rc=0; 零写板, 零跑 gen_production_pack.sh, 零写 production, 五件受保护 md5 逐字节不变; 生成器接线已登记 need 给 main★"'
+echo "frag_write rc=$?"

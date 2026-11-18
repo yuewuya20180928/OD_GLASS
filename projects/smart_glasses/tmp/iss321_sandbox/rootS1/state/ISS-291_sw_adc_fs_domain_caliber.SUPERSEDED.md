@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/ISS-291_sw_adc_fs_domain_caliber.SUPERSEDED.md

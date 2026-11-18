@@ -57,6 +57,8 @@ ISS-279 · 「板只改一次」那一趟的【SW 侧板侧输入收口闸】
   ★自检用 env 覆盖★: SW_SYNC_CHECKLIST / SW_SYNC_PCB / SW_SYNC_PRO /
                      SW_SYNC_NETLIST / SW_SYNC_PINS / SW_SYNC_BOM / SW_SYNC_LEDGER /
 SW_SYNC_LANDING (★落表台账路径 · 沙盒跑「合法落表 ⇒ 链头前移」/「合法改板」那一支用★)
+                     SW_SYNC_TMPDIR (★沙盒临时根 · ★默认项目内 tmp/ · 不放 /tmp★ ⇒ /tmp 被别的单塞满时
+                     本闸照样能跑完 ★)
 """
 from __future__ import annotations
 
@@ -413,6 +415,26 @@ def _symlink_or_copy(src, dst):
             return False
 
 
+def _sandbox_root():
+    """★沙盒临时根 (★默认放【项目内 tmp/】, 不放 /tmp★) ⇒ 返回目录名或 None (★None = 用系统默认 ★)
+
+    ★★【ISS-298 · 2026-11-18 05:4x · sw-lead】★★ ★**为什么改**:
+      ★`/tmp` 是共享 tmpfs (7.5 G) ⇒ 别的单 (hw-lead / mech-lead) 同时跑沙盒就把它塞满 ★
+      ⇒ 2026-11-18 05:3x 实跑吃到 **EDQUOT (Errno 122 Disk quota exceeded)** ⇒
+        ★本闸 5 条合法改板用例【用例本身坏掉】(拷不进沙盒) ⇒ 整组挂 ⇒ **rc=1** ★
+      ⇒ ★**那不是判据坏了, 是门禁在看运气** ★ ⇒ 门禁不许看运气 ⇒ 沙盒挪到项目内 `tmp/` (392 G 可用) ★
+    ★**不影响判据**: ★只改「沙盒临时目录放哪」, 一行判据都没动 ★
+    ★**可覆盖**: `SW_SYNC_TMPDIR` ⇒ 想放哪放哪 ★
+    ★**零写板**: ★沙盒里是 4.9 MB 板的拷贝, 真盘那 5 件受保护文件一个字节都不动 ★
+    """
+    d = os.environ.get("SW_SYNC_TMPDIR") or os.path.join(PROJ, "tmp")
+    try:
+        os.makedirs(d, exist_ok=True)
+        return d
+    except Exception:
+        return None
+
+
 def build_virtual_root(mod):
     """★搭一棵【虚拟根】给权威闸的 `check_r6_hard_protected(root, ...)` 用 ★
 
@@ -424,12 +446,22 @@ def build_virtual_root(mod):
     ★**零写板**: 链接只指不写 ⇒ ★真盘那 5 件受保护文件一个字节都不会被动 ★
     ★返回 (虚拟根路径, 锚点 dict 或 None, 原因) ★
     """
-    tmp = tempfile.mkdtemp(prefix="iss298_vroot_")
+    tmp = tempfile.mkdtemp(prefix="iss298_vroot_", dir=_sandbox_root())
     try:
         os.makedirs(os.path.join(tmp, "SW"), exist_ok=True)
         os.makedirs(os.path.join(tmp, "HW", "PCB"), exist_ok=True)
         _symlink_or_copy(ledger_path(), os.path.join(tmp, mod.LEDGER_DOC))
         _symlink_or_copy(landing_ledger_path(), os.path.join(tmp, mod.LEDGER_CANON))
+        # ★★【ISS-315 · 2026-11-18 · sw-lead】★★ ★**独立信源也进虚拟根**★
+        #   ★权威闸的【修法 B】(链头单号 ↔ 独立信源 `state/issue_log.yaml` 交叉核对) 现在也在
+        #     【硬保护路径】上 ⇒ 虚拟根里必须有这份信源可查 ⇒ ★否则合法改板正向用例 (⑮) 假红★
+        #   ★取哪一份★: `SW_SYNC_ISSUE_LOG` (★沙盒里是【真 issue_log 的拷件 + 落表留痕行】★)
+        #     ⇒ 缺省 = 本仓真 issue_log (★真盘那条路径上用的就是它★)
+        issue_log = os.environ.get("SW_SYNC_ISSUE_LOG") or os.path.join(PROJ, mod.ISSUE_LOG_REL)
+        dst_issue_log = os.path.join(tmp, mod.ISSUE_LOG_REL)
+        os.makedirs(os.path.dirname(dst_issue_log), exist_ok=True)
+        if os.path.exists(issue_log):
+            _symlink_or_copy(issue_log, dst_issue_log)
         anchors, err = mod.load_sw_anchor(tmp)
         if anchors is None:
             return tmp, None, err
@@ -659,31 +691,31 @@ def _sb_row(ticket, rel, prev, new, note="★**是** ★"):
     return "| %s | `%s` | `%s` | `%s` | %s |" % (ticket, rel, prev, new, note)
 
 
-def _sb_rows_full_legal(base, new, pro_base):
+def _sb_rows_full_legal(base, new, pro_base, ticket):
     """★合法改板的样子: 板一行变更 + `.kicad_pro` 一行「逐字节不变」, 同一单号 ★"""
-    return [_sb_row(SW_TICKET_A, SW_BOARD_REL, base, new, "★**是 (★合法改板·板只改一次★)** ★"),
-            _sb_row(SW_TICKET_A, SW_PRO_REL, pro_base, pro_base, "★**否 (★逐字节不变★)** ★")]
+    return [_sb_row(ticket, SW_BOARD_REL, base, new, "★**是 (★合法改板·板只改一次★)** ★"),
+            _sb_row(ticket, SW_PRO_REL, pro_base, pro_base, "★**否 (★逐字节不变★)** ★")]
 
 
-def _sb_rows_two_heads(base, new, pro_base):
+def _sb_rows_two_heads(base, new, pro_base, ticket):
     """★两条合法改板记录指向同一个文件 ⇒ 链头不唯一 ★"""
-    return [_sb_row(SW_TICKET_A, SW_BOARD_REL, base, new, "★**是 (★合法改板★)** ★"),
+    return [_sb_row(ticket, SW_BOARD_REL, base, new, "★**是 (★合法改板★)** ★"),
             _sb_row(SW_TICKET_B, SW_BOARD_REL, base, "deadbeefdeadbeefdeadbeefdeadbeef",
                     "★**是 (★第二跳·另一个头★)** ★"),
-            _sb_row(SW_TICKET_A, SW_PRO_REL, pro_base, pro_base, "★**否 (★逐字节不变★)** ★")]
+            _sb_row(ticket, SW_PRO_REL, pro_base, pro_base, "★**否 (★逐字节不变★)** ★")]
 
 
-def _sb_rows_broken_chain(base, new, pro_base):
+def _sb_rows_broken_chain(base, new, pro_base, ticket):
     """★链断: 台账记的是 (base→中间→链头), 而锚点写的改前 md5 是 base ★"""
     mid = "0123456789abcdef0123456789abcdef"
-    return [_sb_row(SW_TICKET_A, SW_BOARD_REL, base, mid, "★**是 (★上一跳★)** ★"),
-            _sb_row(SW_TICKET_A, SW_BOARD_REL, mid, new, "★**是 (★本跳·链头★)** ★"),
-            _sb_row(SW_TICKET_A, SW_PRO_REL, pro_base, pro_base, "★**否 (★逐字节不变★)** ★")]
+    return [_sb_row(ticket, SW_BOARD_REL, base, mid, "★**是 (★上一跳★)** ★"),
+            _sb_row(ticket, SW_BOARD_REL, mid, new, "★**是 (★本跳·链头★)** ★"),
+            _sb_row(ticket, SW_PRO_REL, pro_base, pro_base, "★**否 (★逐字节不变★)** ★")]
 
 
-def _sb_rows_board_only(base, new, pro_base):
+def _sb_rows_board_only(base, new, pro_base, ticket):
     """★只改板不动 `.kicad_pro` ⇒ 两件的记录只来一条 ★"""
-    return [_sb_row(SW_TICKET_A, SW_BOARD_REL, base, new, "★**是 (★合法改板★)** ★")]
+    return [_sb_row(ticket, SW_BOARD_REL, base, new, "★**是 (★合法改板★)** ★")]
 
 
 def _sb_reboard(tmpd, mode="reboard", rows_fn=None):
@@ -703,6 +735,13 @@ def _sb_reboard(tmpd, mode="reboard", rows_fn=None):
     shutil.copy2(landing_ledger_path(), land_sb)
     base = _sb_anchor_base(led_sb, SW_BOARD_REL)
     pro_base = _sb_anchor_base(led_sb, SW_PRO_REL)
+    # ★★【ISS-315 · 2026-11-18 · sw-lead】★★ ★**夹具单号改成【真单号】** (★动态取·不许硬编码★)
+    #   ★为什么必须换★: 权威闸把【修法 B】(链头单号 ↔ 独立信源交叉核对) 铺到【硬保护路径】后
+    #     ⇒ 第 ⑮ 条 (合法改板正向放行) 必须拿得出【真单号 + 真留痕】⇒ 用假单号 ⇒ 假红
+    #   ★为什么不能拿落表台账里那八个老单号 (ISS-220/233/243/249/257/236/283/302)★
+    #     ⇒ 它们都落过 .kicad_pro ⇒ 第 ⑭ 条 (只改板不动 .kicad_pro) 会被判绿 ⇒ 用例自己就废了
+    mod = cdps()
+    ticket = (mod.sw_fresh_hard_ticket(mod.PROJ) if mod is not None else "") or SW_TICKET_A
 
     def _fn(data):
         for e in (data.get("anchors") or {}).get("hard_protected") or []:
@@ -711,19 +750,28 @@ def _sb_reboard(tmpd, mode="reboard", rows_fn=None):
             if mode == "md5_only":
                 e["md5"] = newmd5          # ★只改 md5, 不写单号 ⇒ 挖坑 ★
             else:
-                e["reboard"] = {"by": SW_TICKET_A, "file": SW_BOARD_REL,
+                e["reboard"] = {"by": ticket, "file": SW_BOARD_REL,
                                 "prev_md5": base, "md5": newmd5}
     _sb_rewrite_anchor(led_sb, _fn)
-    rows = rows_fn(base, newmd5, pro_base) if rows_fn else []
+    rows = rows_fn(base, newmd5, pro_base, ticket) if rows_fn else []
     if rows:
         with open(land_sb, "a", encoding="utf-8") as f:
             f.write("\n" + "\n".join(rows) + "\n")
-    return ({"SW_SYNC_PCB": board_sb, "SW_SYNC_LEDGER": led_sb, "SW_SYNC_LANDING": land_sb},
+    # ★★【ISS-315】★**给夹具补上【独立信源】的输入**★ (★假伤修夹具 · 判据本体一个字不动★)
+    #   ★独立信源 = `state/issue_log.yaml` (★真 issue_log 的拷件 + 真单号条目里的落表留痕行★)
+    #   ★这是第 ⑮ 条 (合法改板正向放行) 缺的那份输入 ⇒ ★没有它, 修法 B 在虚拟根里无从对账★
+    issue_log_sb = os.path.join(tmpd, "sb_issue_log.yaml")
+    if mod is not None:
+        mod.sw_sandbox_issue_log(issue_log_sb, ticket,
+                                 [(SW_BOARD_REL, base, newmd5),
+                                  (SW_PRO_REL, pro_base, pro_base)])
+    return ({"SW_SYNC_PCB": board_sb, "SW_SYNC_LEDGER": led_sb, "SW_SYNC_LANDING": land_sb,
+             "SW_SYNC_ISSUE_LOG": issue_log_sb},
             newmd5, base)
 
 
 def run_selftest(checklist_path):
-    tmpd = tempfile.mkdtemp(prefix="iss279_selftest_")
+    tmpd = tempfile.mkdtemp(prefix="iss279_selftest_", dir=_sandbox_root())
     cases = []
     try:
         # ① 删掉 ①~⑧ 里的一条 ⇒ W4 红

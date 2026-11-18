@@ -1,0 +1,37 @@
+=== F5. SPI boot storage / SPI-NOR / eMMC (SPI_*_BOOT 的功能等价物) ===
+SW/S2_VENDOR_QUESTION_LIST.md:45:| **P0** | §4 P4 (启动存储 + 分区表 + ★**单位**) + §2 P2 (下载工具) | 这两项不定, **板子回来了也刷不回去** ⇒ 量产一票否决项直接卡死 |
+SW/S2_VENDOR_QUESTION_LIST.md:66:| c | ★★ **`SARADC_VIN0_BOOT` 的电压门限** | 各档位对应的**电压范围 (mV)** 与对应的**启动优先级/行为** (哪档 = 只读 SPI-NOR / 哪档 = eMMC 优先 / 哪档 = 强制 Maskrom) —— ★
+SW/S2_VENDOR_QUESTION_LIST.md:72:| i | ★★ **bootROM 的兜底行为**: 所有存储上都没有合法 bootloader 签名时, RK3576 会**自动进入 Maskrom** 吗? | 是 / 否 —— ★ 我们理解瑞芯微的通用行为是"是" (MaskROM 代码烧在芯片内部 R
+SW/S2_VENDOR_QUESTION_LIST.md:87:| a | bootloader 启动时是否校验分区 CRC / SHA256? 不通过时**具体行为** (停住 / 回滚 / 停在下载态)? |
+SW/S2_VENDOR_QUESTION_LIST.md:116:bootloader 分区校验        CRC / SHA256 / 无
+SW/S2_VENDOR_QUESTION_LIST.md:154:| e | 支持的**存储类型** | eMMC / SPI-NOR / SPI-NAND / SD, 各自分区大小限制 |
+SW/S2_VENDOR_QUESTION_LIST.md:170:**Q2.3** bootloader 与固件命名 (供追溯):
+SW/S2_VENDOR_QUESTION_LIST.md:188:支持存储             eMMC / SPI-NOR / SPI-NAND / SD (各容量上限: ____________)
+SW/S2_VENDOR_QUESTION_LIST.md:315:## 4. P4 · `BOOT_STORE` — 启动存储类型/容量 + 官方分区表 (★★ 单位是本项核心)
+SW/S2_VENDOR_QUESTION_LIST.md:328:| a | 启动存储**类型** | eMMC / SPI-NOR / SPI-NAND / SD / UFS |
+SW/S2_VENDOR_QUESTION_LIST.md:330:| c | 若是 eMMC | **颗粒型号**、**HS200/HS400** 速率档位 |
+SW/S2_VENDOR_QUESTION_LIST.md:331:| d | 若是 SPI-NOR | **型号 + 容量** (我们 [推算] 这套分区表需要 **≥128MB**, 64MB 装不下 —— 请确认能不能给到 128MB) |
+SW/S2_VENDOR_QUESTION_LIST.md:334:| g | ★ **启动顺序 (boot priority)** | SPI-NOR / eMMC / SD 的优先级顺序, 以及 `SARADC_VIN0_BOOT` 电压档位怎么改这个顺序 |
+SW/S2_VENDOR_QUESTION_LIST.md:344:| e | bootloader / loader / u-boot / boot / recovery / rootfs / userdata 各对应哪个分区 | 对照表 |
+SW/S2_VENDOR_QUESTION_LIST.md:393:类型                  eMMC / SPI-NOR / SPI-NAND / SD / UFS
+SW/S2_VENDOR_QUESTION_LIST.md:395:eMMC 颗粒/速率         ____________ (若非 eMMC 可空)
+SW/S2_VENDOR_QUESTION_LIST.md:396:SPI-NOR 型号+容量       ____________
+SW/S2_VENDOR_QUESTION_LIST.md:399:启动优先级             SPI-NOR→eMMC→SD? 或 ____________ ; 由 SARADC_VIN0_BOOT 电压档位决定?
+SW/S2_VENDOR_QUESTION_LIST.md:414:是否走 eMMC              是 / 否; 若是, 能否给 eMMC 官方分区表: 能 / 不能
+SW/S2_VENDOR_QUESTION_LIST.md:429:| Q4.3 容量结论 | 转项目总工裁决 (若结论是"必须 eMMC", 则**板宽 / 结构 / BOM 要连带重算** —— 这是 hw-lead 的活, 由项目总工转) | — |
+SW/S2_VENDOR_QUESTION_LIST.md:442:| ★★ RK3576 的 MaskROM 代码**烧在芯片内部 ROM, 不可擦除**; 所有存储上都没有合法 bootloader 签名时, **自动进 Maskrom** 等 PC 下发指令 | 同上 | ★★ 回答了 Q1.1i (bootROM 兜底)
+SW/S2_VENDOR_QUESTION_LIST.md:462:| A-2 | 核心板的 **SPI-NOR / eMMC** 配置与容量, 以及**预烧**了什么 (loader? uboot? parameter.txt?) | 决定"拿到板子时能不能直接进下载态" |
+
+=== F6. JTAG 调试器需求 ===
+SW/EVT_TEMPLATE.md:477:| **裁决 (A)** | **项目总工 (main)** | S2 失败后的升级裁决 (S2 → S3 JTAG → S4 返厂) | sw-lead **不自行升级** S3 |
+SW/EVT_TEMPLATE.md:503:> 🔴 **硬规则**: **S2 连续失败 2 次 → 必须升级 S3 (JTAG), 不得"多刷几次试试"**。半写状态反复覆盖会制造更复杂的问题。
+SW/S2_BOARD_TEST_CHECKLIST.md:385:> **S2 连续失败 2 次 → 必须升级 S3 (JTAG), 不得"多刷几次试试"。**
+SW/S2_BOARD_TEST_CHECKLIST.md:393:| ☐ | S2 失败第 2 次 → **申请升级 S3 (JTAG)** | **项目总工** | 申请理由 + 前 2 次的失败记录 |
+SW/FLASH_AND_VERSION.md:44:| **5** | **救砖 4 级**: S1 看门狗+systemd 自恢复 (已在 M8-R4/R5) → S2 BOOT 模式强制重刷 → S3 JTAG → S4 返厂换板。**S2/S3 均依赖原厂未确认的工具链** → 标"待原厂确认" | 4 级 | `[实测
+SW/FLASH_AND_VERSION.md:85:> - `PROJECT_TRACKER.md` §4 台账第 4 行原文: "调试链路: USB / JTAG / RESET / BOOT — 依据 datasheet (有无 USB PHY) — ❌ 卡原厂"
+SW/FLASH_AND_VERSION.md:86:> - **若无 USB PHY**: L-A 与 L-B 两条路径**同时不成立**, 全部烧录退化为 JTAG 或 UART → 本方案 §4/§5 需整体重写。
+SW/FLASH_AND_VERSION.md:122:> ⚠️ **权限位写错 = 量产眼镜变砖**: 若 prod 模式写错成"关 USB PHY"级别的误伤, 返修只能拆机 JTAG。→ 故 §5.1 第 9 步必须做**出厂后回读验证** (插线确认无 adb 设备 + 确认 service 模式可进)。
+SW/FLASH_AND_VERSION.md:136:| **F7** | bootloader 损坏 | 任何模式都不启动 | 下载工具报校验错 | JTAG / 返厂 (§4.4 S3/S4) |
+SW/FLASH_AND_VERSION.md:336:| **S3** | **JTAG 调试器接 SoC** | bootloader 损坏 (S2 进不去) | **原厂是否提供 JTAG 引出 + 调试器 + 转接板 → 全 `[0数据]`** | `[0数据]` |
+SW/FLASH_AND_VERSION.md:564:> 🔴 **硬规则 (与 §5.1 "失败即停"同源)**: **S2 连续失败 2 次 → 必须升级 S3 (JTAG), 不得"多刷几次试试"**。
+SW/FLASH_AND_VERSION.md:667:| **C3** | **③ 救砖流程** | ⚠️ **未验 (S2/S3 待原厂确认)** | §4.4 | 4 级链路已定义; **S2 (BOOT + 原厂工具) 与 S3 (JTAG) 依赖原厂未确认的工具链与 BOOT 进入条件** → 标"待原厂确认"; **

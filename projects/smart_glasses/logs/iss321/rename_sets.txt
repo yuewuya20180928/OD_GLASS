@@ -1,0 +1,505 @@
+================================================================================================
+ISS-321 · ①「哪些会改」的真集 (★机器解析自 logs/iss317/rename_list_raw.txt·非手抄★)
+================================================================================================
+
+★解析口径: 按表头列位 fixed-width 切列 · 逐行核对 kicad_ref() 口径
+
+── §A 计数 (★[实测]·本机本单实跑★) ──────────────────────────────────────────
+  改名宇宙 (表侧真实器件)                : 218
+  ★要改 (末字符是字母 ⇒ 加 _1)          : 186
+  ★不动 (末字符是数字 ⇒ 一律不动)       : 32
+    · 其中在板侧 (MAIN_PCB)              : 156 要改 / 30 不动
+    · 其中不在板侧 (CHG_BOARD)           : 30 要改 / 2 不动
+  板侧总数 (在)                          : 186
+  非板侧总数 (CHG_BOARD)                 : 32
+
+── §B 自检 (★口径一致性·不符就 abort★) ───────────────────────────────────
+  ★新ref == kicad_ref(旧ref) 不符行数    : 0  (必须 = 0)
+  ★改名后撞名 (单射校验)                 : 无  (必须 = 无)
+  ★「板侧」列 vs 板文件实测封装集合一致  : True  (必须 = True)
+  ★板文件实测封装个数                    : 186
+
+── §C 要改的 186 个 (★旧ref → 新ref★) ──────────────────────────────────────
+  旧ref(脚表侧现值)                  新ref(kicad_ref口径)            板侧/CHG_BOARD
+  CHG_GND_STAR                 CHG_GND_STAR_1               在板侧
+  CONN_CAM                     CONN_CAM_1                   在板侧
+  CONN_LIGHT                   CONN_LIGHT_1                 在板侧
+  C_AC_CSI_D0_CK_N             C_AC_CSI_D0_CK_N_1           在板侧
+  C_AC_CSI_D0_CK_P             C_AC_CSI_D0_CK_P_1           在板侧
+  C_AC_CSI_D0_D0_N             C_AC_CSI_D0_D0_N_1           在板侧
+  C_AC_CSI_D0_D0_P             C_AC_CSI_D0_D0_P_1           在板侧
+  C_AC_CSI_D0_D1_N             C_AC_CSI_D0_D1_N_1           在板侧
+  C_AC_CSI_D0_D1_P             C_AC_CSI_D0_D1_P_1           在板侧
+  C_AC_CSI_D0_D2_N             C_AC_CSI_D0_D2_N_1           在板侧
+  C_AC_CSI_D0_D2_P             C_AC_CSI_D0_D2_P_1           在板侧
+  C_AC_CSI_D0_D3_N             C_AC_CSI_D0_D3_N_1           在板侧
+  C_AC_CSI_D0_D3_P             C_AC_CSI_D0_D3_P_1           在板侧
+  C_BAT                        C_BAT_1                      CHG_BOARD(板侧无)
+  C_BST                        C_BST_1                      CHG_BOARD(板侧无)
+  C_BULK_SENSOR_AVDD           C_BULK_SENSOR_AVDD_1         在板侧
+  C_BULK_SENSOR_CORE           C_BULK_SENSOR_CORE_1         在板侧
+  C_BULK_SENSOR_VDD_IO         C_BULK_SENSOR_VDD_IO_1       在板侧
+  C_BULK_VDD_1V8_IO            C_BULK_VDD_1V8_IO_1          在板侧
+  C_BULK_VDD_3V3_IO            C_BULK_VDD_3V3_IO_1          在板侧
+  C_BULK_V_CORE                C_BULK_V_CORE_1              在板侧
+  C_BULK_V_SOC_IO              C_BULK_V_SOC_IO_1            在板侧
+  C_DET_BAT                    C_DET_BAT_1                  在板侧
+  C_DET_VBUS_D                 C_DET_VBUS_D_1               在板侧
+  C_HF_SENSOR_AVDD             C_HF_SENSOR_AVDD_1           在板侧
+  C_HF_SENSOR_CORE             C_HF_SENSOR_CORE_1           在板侧
+  C_HF_SENSOR_VDD_IO           C_HF_SENSOR_VDD_IO_1         在板侧
+  C_HF_VDD_1V8_IO              C_HF_VDD_1V8_IO_1            在板侧
+  C_HF_VDD_3V3_IO              C_HF_VDD_3V3_IO_1            在板侧
+  C_HF_V_CORE                  C_HF_V_CORE_1                在板侧
+  C_HF_V_SOC_IO                C_HF_V_SOC_IO_1              在板侧
+  C_KEY_CAM                    C_KEY_CAM_1                  在板侧
+  C_KEY_PWR                    C_KEY_PWR_1                  在板侧
+  C_KEY_VM                     C_KEY_VM_1                   在板侧
+  C_KEY_VP                     C_KEY_VP_1                   在板侧
+  C_PMID                       C_PMID_1                     CHG_BOARD(板侧无)
+  C_REGN                       C_REGN_1                     CHG_BOARD(板侧无)
+  C_RST                        C_RST_1                      在板侧
+  C_SUPV                       C_SUPV_1                     在板侧
+  C_SW_IN                      C_SW_IN_1                    在板侧
+  C_SW_OUT                     C_SW_OUT_1                   在板侧
+  C_SYS                        C_SYS_1                      CHG_BOARD(板侧无)
+  C_TEMP                       C_TEMP_1                     在板侧
+  C_VBUS_DEMO                  C_VBUS_DEMO_1                在板侧
+  C_VBUS_GND                   C_VBUS_GND_1                 在板侧
+  C_VBUS_IC                    C_VBUS_IC_1                  CHG_BOARD(板侧无)
+  C_VBUS_IN                    C_VBUS_IN_1                  CHG_BOARD(板侧无)
+  C_VBUS_OUT                   C_VBUS_OUT_1                 CHG_BOARD(板侧无)
+  C_XTAL_IN                    C_XTAL_IN_1                  在板侧
+  C_XTAL_OUT                   C_XTAL_OUT_1                 在板侧
+  D_CHG_LED                    D_CHG_LED_1                  CHG_BOARD(板侧无)
+  D_ESD_CAM                    D_ESD_CAM_1                  在板侧
+  D_ESD_DEMO                   D_ESD_DEMO_1                 在板侧
+  D_ESD_LIGHT                  D_ESD_LIGHT_1                在板侧
+  D_ESD_TC                     D_ESD_TC_1                   CHG_BOARD(板侧无)
+  D_ESD_USB_D                  D_ESD_USB_D_1                在板侧
+  D_LED_B                      D_LED_B_1                    在板侧
+  D_LED_G                      D_LED_G_1                    在板侧
+  D_LED_R                      D_LED_R_1                    在板侧
+  D_TVS_VBUS                   D_TVS_VBUS_1                 CHG_BOARD(板侧无)
+  FB_DEMO                      FB_DEMO_1                    在板侧
+  FB_VBUS                      FB_VBUS_1                    CHG_BOARD(板侧无)
+  J_CHG                        J_CHG_1                      在板侧
+  J_DEBUG                      J_DEBUG_1                    在板侧
+  J_TYPE_C                     J_TYPE_C_1                   CHG_BOARD(板侧无)
+  J_UART                       J_UART_1                     在板侧
+  J_USB_C                      J_USB_C_1                    在板侧
+  L_CHG                        L_CHG_1                      CHG_BOARD(板侧无)
+  Q_AND                        Q_AND_1                      在板侧
+  Q_CHG_LED                    Q_CHG_LED_1                  CHG_BOARD(板侧无)
+  Q_ENVC                       Q_ENVC_1                     在板侧
+  Q_PG                         Q_PG_1                       在板侧
+  R_CC1_D                      R_CC1_D_1                    在板侧
+  R_CC2_D                      R_CC2_D_1                    在板侧
+  R_CE                         R_CE_1                       CHG_BOARD(板侧无)
+  R_CHG_LED                    R_CHG_LED_1                  CHG_BOARD(板侧无)
+  R_EN_VCORE                   R_EN_VCORE_1                 在板侧
+  R_ILIM                       R_ILIM_1                     CHG_BOARD(板侧无)
+  R_JTAG_TCK                   R_JTAG_TCK_1                 在板侧
+  R_JTAG_TDI                   R_JTAG_TDI_1                 在板侧
+  R_JTAG_TDO                   R_JTAG_TDO_1                 在板侧
+  R_JTAG_TMS                   R_JTAG_TMS_1                 在板侧
+  R_KEY_CAM                    R_KEY_CAM_1                  在板侧
+  R_KEY_PWR                    R_KEY_PWR_1                  在板侧
+  R_KEY_VM                     R_KEY_VM_1                   在板侧
+  R_KEY_VP                     R_KEY_VP_1                   在板侧
+  R_LED_B                      R_LED_B_1                    在板侧
+  R_LED_G                      R_LED_G_1                    在板侧
+  R_LED_R                      R_LED_R_1                    在板侧
+  R_NTC_BAT                    R_NTC_BAT_1                  在板侧
+  R_OTG                        R_OTG_1                      CHG_BOARD(板侧无)
+  R_PD_ON                      R_PD_ON_1                    在板侧
+  R_PG_PULL                    R_PG_PULL_1                  在板侧
+  R_PSEL                       R_PSEL_1                     CHG_BOARD(板侧无)
+  R_PU_BOOT_N                  R_PU_BOOT_N_1                在板侧
+  R_PU_CHG_STAT                R_PU_CHG_STAT_1              CHG_BOARD(板侧无)
+  R_PU_I2CA_SCL                R_PU_I2CA_SCL_1              在板侧
+  R_PU_I2CA_SDA                R_PU_I2CA_SDA_1              在板侧
+  R_PU_I2CB_SCL                R_PU_I2CB_SCL_1              在板侧
+  R_PU_I2CB_SDA                R_PU_I2CB_SDA_1              在板侧
+  R_PU_INT                     R_PU_INT_1                   CHG_BOARD(板侧无)
+  R_PU_PG                      R_PU_PG_1                    在板侧
+  R_PU_RESET_N                 R_PU_RESET_N_1               在板侧
+  R_PU_SCL                     R_PU_SCL_1                   CHG_BOARD(板侧无)
+  R_PU_SDA                     R_PU_SDA_1                   CHG_BOARD(板侧无)
+  R_SEL_CK_N                   R_SEL_CK_N_1                 在板侧
+  R_SEL_CK_P                   R_SEL_CK_P_1                 在板侧
+  R_SEL_D0_N                   R_SEL_D0_N_1                 在板侧
+  R_SEL_D0_P                   R_SEL_D0_P_1                 在板侧
+  R_SEL_D1_N                   R_SEL_D1_N_1                 在板侧
+  R_SEL_D1_P                   R_SEL_D1_P_1                 在板侧
+  R_SEL_D2_N                   R_SEL_D2_N_1                 在板侧
+  R_SEL_D2_P                   R_SEL_D2_P_1                 在板侧
+  R_SEL_D3_N                   R_SEL_D3_N_1                 在板侧
+  R_SEL_D3_P                   R_SEL_D3_P_1                 在板侧
+  R_SER_CSI_MCLK               R_SER_CSI_MCLK_1             在板侧
+  R_SER_FSIN                   R_SER_FSIN_1                 在板侧
+  R_SER_RESET_N                R_SER_RESET_N_1              在板侧
+  R_SER_SPI_CSn                R_SER_SPI_CSn_1              在板侧
+  R_SER_SPI_MISO               R_SER_SPI_MISO_1             在板侧
+  R_SER_SPI_MOSI               R_SER_SPI_MOSI_1             在板侧
+  R_SER_SPI_SCLK               R_SER_SPI_SCLK_1             在板侧
+  R_SER_USB_D_N                R_SER_USB_D_N_1              在板侧
+  R_SER_USB_D_P                R_SER_USB_D_P_1              在板侧
+  R_STAR_PGND                  R_STAR_PGND_1                CHG_BOARD(板侧无)
+  R_TS_PULL                    R_TS_PULL_1                  在板侧
+  R_TS_TOP                     R_TS_TOP_1                   CHG_BOARD(板侧无)
+  SW_BOOT                      SW_BOOT_1                    在板侧
+  SW_KEY_CAM                   SW_KEY_CAM_1                 在板侧
+  SW_KEY_PWR                   SW_KEY_PWR_1                 在板侧
+  SW_KEY_VM                    SW_KEY_VM_1                  在板侧
+  SW_KEY_VP                    SW_KEY_VP_1                  在板侧
+  SW_RST                       SW_RST_1                     在板侧
+  TP_BAT                       TP_BAT_1                     在板侧
+  TP_BAT_CHG                   TP_BAT_CHG_1                 在板侧
+  TP_BOOT                      TP_BOOT_1                    在板侧
+  TP_CHG_STAT                  TP_CHG_STAT_1                CHG_BOARD(板侧无)
+  TP_CSI_CK_N                  TP_CSI_CK_N_1                在板侧
+  TP_CSI_CK_P                  TP_CSI_CK_P_1                在板侧
+  TP_CSI_D0_N                  TP_CSI_D0_N_1                在板侧
+  TP_CSI_D0_P                  TP_CSI_D0_P_1                在板侧
+  TP_DSI_CK_N                  TP_DSI_CK_N_1                在板侧
+  TP_DSI_CK_P                  TP_DSI_CK_P_1                在板侧
+  TP_DSI_D0_N                  TP_DSI_D0_N_1                在板侧
+  TP_DSI_D0_P                  TP_DSI_D0_P_1                在板侧
+  TP_DSI_D1_N                  TP_DSI_D1_N_1                在板侧
+  TP_DSI_D1_P                  TP_DSI_D1_P_1                在板侧
+  TP_DSI_D2_N                  TP_DSI_D2_N_1                在板侧
+  TP_DSI_D2_P                  TP_DSI_D2_P_1                在板侧
+  TP_DSI_D3_N                  TP_DSI_D3_N_1                在板侧
+  TP_DSI_D3_P                  TP_DSI_D3_P_1                在板侧
+  TP_FSIN                      TP_FSIN_1                    在板侧
+  TP_I2CA_SCL                  TP_I2CA_SCL_1                在板侧
+  TP_I2CA_SDA                  TP_I2CA_SDA_1                在板侧
+  TP_I2CB_SCL                  TP_I2CB_SCL_1                在板侧
+  TP_I2CB_SDA                  TP_I2CB_SDA_1                在板侧
+  TP_ID                        TP_ID_1                      在板侧
+  TP_JTAG                      TP_JTAG_1                    在板侧
+  TP_KEY_PWR                   TP_KEY_PWR_1                 在板侧
+  TP_KEY_VM                    TP_KEY_VM_1                  在板侧
+  TP_KEY_VP                    TP_KEY_VP_1                  在板侧
+  TP_LED_B                     TP_LED_B_1                   在板侧
+  TP_LED_G                     TP_LED_G_1                   在板侧
+  TP_LED_R                     TP_LED_R_1                   在板侧
+  TP_MCLK                      TP_MCLK_1                    在板侧
+  TP_PG                        TP_PG_1                      在板侧
+  TP_PG_VCORE                  TP_PG_VCORE_1                在板侧
+  TP_PG_VIO                    TP_PG_VIO_1                  在板侧
+  TP_RESET                     TP_RESET_1                   在板侧
+  TP_SYS                       TP_SYS_1                     在板侧
+  TP_TS                        TP_TS_1                      CHG_BOARD(板侧无)
+  TP_UART                      TP_UART_1                    在板侧
+  TP_USB_D_N                   TP_USB_D_N_1                 在板侧
+  TP_USB_D_P                   TP_USB_D_P_1                 在板侧
+  TP_VBUS                      TP_VBUS_1                    CHG_BOARD(板侧无)
+  TP_VCORE                     TP_VCORE_1                   在板侧
+  TP_VIO                       TP_VIO_1                     在板侧
+  U_BATPROT                    U_BATPROT_1                  在板侧
+  U_CHG                        U_CHG_1                      CHG_BOARD(板侧无)
+  U_DCDC_VCORE                 U_DCDC_VCORE_1               在板侧
+  U_DCDC_VIO                   U_DCDC_VIO_1                 在板侧
+  U_EN_SW                      U_EN_SW_1                    在板侧
+  U_LDO_S18B                   U_LDO_S18B_1                 在板侧
+  U_PWR_SW                     U_PWR_SW_1                   在板侧
+  U_SUPV                       U_SUPV_1                     在板侧
+  U_TEMP                       U_TEMP_1                     在板侧
+
+── §D 不动的 32 个 (★末字符是数字★) ───────────────────────────────────────
+  旧ref(脚表侧现值)                  新ref(=旧ref)                  板侧/CHG_BOARD
+  BT_432243                    BT_432243                    在板侧
+  C_BULK_LIGHT_1V8             C_BULK_LIGHT_1V8             在板侧
+  C_BULK_LIGHT_3V3             C_BULK_LIGHT_3V3             在板侧
+  C_HF_LIGHT_1V8               C_HF_LIGHT_1V8               在板侧
+  C_HF_LIGHT_3V3               C_HF_LIGHT_3V3               在板侧
+  J_BOOT1                      J_BOOT1                      在板侧
+  J_SOM_P1                     J_SOM_P1                     在板侧
+  J_SOM_P2                     J_SOM_P2                     在板侧
+  J_SOM_P3                     J_SOM_P3                     在板侧
+  J_SOM_P4                     J_SOM_P4                     在板侧
+  Q1                           Q1                           在板侧
+  Q2                           Q2                           在板侧
+  R_BAT_DET_1                  R_BAT_DET_1                  在板侧
+  R_BAT_DET_2                  R_BAT_DET_2                  在板侧
+  R_CC1                        R_CC1                        CHG_BOARD(板侧无)
+  R_CC2                        R_CC2                        CHG_BOARD(板侧无)
+  R_ID_JMP0                    R_ID_JMP0                    在板侧
+  R_ID_JMP1                    R_ID_JMP1                    在板侧
+  R_PU_ID0                     R_PU_ID0                     在板侧
+  R_PU_ID1                     R_PU_ID1                     在板侧
+  R_SUPV_DIV1                  R_SUPV_DIV1                  在板侧
+  R_SUPV_DIV2                  R_SUPV_DIV2                  在板侧
+  R_VBUS_DET_D1                R_VBUS_DET_D1                在板侧
+  R_VBUS_DET_D2                R_VBUS_DET_D2                在板侧
+  TP_LIGHT_3V3                 TP_LIGHT_3V3                 在板侧
+  U_LDO_IO18                   U_LDO_IO18                   在板侧
+  U_LDO_IO33                   U_LDO_IO33                   在板侧
+  U_LDO_L18                    U_LDO_L18                    在板侧
+  U_LDO_L33                    U_LDO_L33                    在板侧
+  U_LDO_S12                    U_LDO_S12                    在板侧
+  U_LDO_S28                    U_LDO_S28                    在板侧
+  X1                           X1                           在板侧
+
+── §E ★单列: CHG_BOARD 件 (★板侧有?否 ⇒ 表侧有板侧无★) 32 个 ─────────────
+  ★这 32 个【板侧没有封装】⇒ 改名只影响表侧四件产物 + 充电板那一趟★
+    C_BAT                        → C_BAT_1                       [改名]
+    C_BST                        → C_BST_1                       [改名]
+    C_PMID                       → C_PMID_1                      [改名]
+    C_REGN                       → C_REGN_1                      [改名]
+    C_SYS                        → C_SYS_1                       [改名]
+    C_VBUS_IC                    → C_VBUS_IC_1                   [改名]
+    C_VBUS_IN                    → C_VBUS_IN_1                   [改名]
+    C_VBUS_OUT                   → C_VBUS_OUT_1                  [改名]
+    D_CHG_LED                    → D_CHG_LED_1                   [改名]
+    D_ESD_TC                     → D_ESD_TC_1                    [改名]
+    D_TVS_VBUS                   → D_TVS_VBUS_1                  [改名]
+    FB_VBUS                      → FB_VBUS_1                     [改名]
+    J_TYPE_C                     → J_TYPE_C_1                    [改名]
+    L_CHG                        → L_CHG_1                       [改名]
+    Q_CHG_LED                    → Q_CHG_LED_1                   [改名]
+    R_CC1                        → R_CC1                         [不动]
+    R_CC2                        → R_CC2                         [不动]
+    R_CE                         → R_CE_1                        [改名]
+    R_CHG_LED                    → R_CHG_LED_1                   [改名]
+    R_ILIM                       → R_ILIM_1                      [改名]
+    R_OTG                        → R_OTG_1                       [改名]
+    R_PSEL                       → R_PSEL_1                      [改名]
+    R_PU_CHG_STAT                → R_PU_CHG_STAT_1               [改名]
+    R_PU_INT                     → R_PU_INT_1                    [改名]
+    R_PU_SCL                     → R_PU_SCL_1                    [改名]
+    R_PU_SDA                     → R_PU_SDA_1                    [改名]
+    R_STAR_PGND                  → R_STAR_PGND_1                 [改名]
+    R_TS_TOP                     → R_TS_TOP_1                    [改名]
+    TP_CHG_STAT                  → TP_CHG_STAT_1                 [改名]
+    TP_TS                        → TP_TS_1                       [改名]
+    TP_VBUS                      → TP_VBUS_1                     [改名]
+    U_CHG                        → U_CHG_1                       [改名]
+
+── §F 「改名后名字」全表 (★给 §2② 逐个对表用·机器读这份★) ──────────────────
+  BT_432243	BT_432243	不动	在
+  CHG_GND_STAR	CHG_GND_STAR_1	改名	在
+  CONN_CAM	CONN_CAM_1	改名	在
+  CONN_LIGHT	CONN_LIGHT_1	改名	在
+  C_AC_CSI_D0_CK_N	C_AC_CSI_D0_CK_N_1	改名	在
+  C_AC_CSI_D0_CK_P	C_AC_CSI_D0_CK_P_1	改名	在
+  C_AC_CSI_D0_D0_N	C_AC_CSI_D0_D0_N_1	改名	在
+  C_AC_CSI_D0_D0_P	C_AC_CSI_D0_D0_P_1	改名	在
+  C_AC_CSI_D0_D1_N	C_AC_CSI_D0_D1_N_1	改名	在
+  C_AC_CSI_D0_D1_P	C_AC_CSI_D0_D1_P_1	改名	在
+  C_AC_CSI_D0_D2_N	C_AC_CSI_D0_D2_N_1	改名	在
+  C_AC_CSI_D0_D2_P	C_AC_CSI_D0_D2_P_1	改名	在
+  C_AC_CSI_D0_D3_N	C_AC_CSI_D0_D3_N_1	改名	在
+  C_AC_CSI_D0_D3_P	C_AC_CSI_D0_D3_P_1	改名	在
+  C_BAT	C_BAT_1	改名	不在
+  C_BST	C_BST_1	改名	不在
+  C_BULK_LIGHT_1V8	C_BULK_LIGHT_1V8	不动	在
+  C_BULK_LIGHT_3V3	C_BULK_LIGHT_3V3	不动	在
+  C_BULK_SENSOR_AVDD	C_BULK_SENSOR_AVDD_1	改名	在
+  C_BULK_SENSOR_CORE	C_BULK_SENSOR_CORE_1	改名	在
+  C_BULK_SENSOR_VDD_IO	C_BULK_SENSOR_VDD_IO_1	改名	在
+  C_BULK_VDD_1V8_IO	C_BULK_VDD_1V8_IO_1	改名	在
+  C_BULK_VDD_3V3_IO	C_BULK_VDD_3V3_IO_1	改名	在
+  C_BULK_V_CORE	C_BULK_V_CORE_1	改名	在
+  C_BULK_V_SOC_IO	C_BULK_V_SOC_IO_1	改名	在
+  C_DET_BAT	C_DET_BAT_1	改名	在
+  C_DET_VBUS_D	C_DET_VBUS_D_1	改名	在
+  C_HF_LIGHT_1V8	C_HF_LIGHT_1V8	不动	在
+  C_HF_LIGHT_3V3	C_HF_LIGHT_3V3	不动	在
+  C_HF_SENSOR_AVDD	C_HF_SENSOR_AVDD_1	改名	在
+  C_HF_SENSOR_CORE	C_HF_SENSOR_CORE_1	改名	在
+  C_HF_SENSOR_VDD_IO	C_HF_SENSOR_VDD_IO_1	改名	在
+  C_HF_VDD_1V8_IO	C_HF_VDD_1V8_IO_1	改名	在
+  C_HF_VDD_3V3_IO	C_HF_VDD_3V3_IO_1	改名	在
+  C_HF_V_CORE	C_HF_V_CORE_1	改名	在
+  C_HF_V_SOC_IO	C_HF_V_SOC_IO_1	改名	在
+  C_KEY_CAM	C_KEY_CAM_1	改名	在
+  C_KEY_PWR	C_KEY_PWR_1	改名	在
+  C_KEY_VM	C_KEY_VM_1	改名	在
+  C_KEY_VP	C_KEY_VP_1	改名	在
+  C_PMID	C_PMID_1	改名	不在
+  C_REGN	C_REGN_1	改名	不在
+  C_RST	C_RST_1	改名	在
+  C_SUPV	C_SUPV_1	改名	在
+  C_SW_IN	C_SW_IN_1	改名	在
+  C_SW_OUT	C_SW_OUT_1	改名	在
+  C_SYS	C_SYS_1	改名	不在
+  C_TEMP	C_TEMP_1	改名	在
+  C_VBUS_DEMO	C_VBUS_DEMO_1	改名	在
+  C_VBUS_GND	C_VBUS_GND_1	改名	在
+  C_VBUS_IC	C_VBUS_IC_1	改名	不在
+  C_VBUS_IN	C_VBUS_IN_1	改名	不在
+  C_VBUS_OUT	C_VBUS_OUT_1	改名	不在
+  C_XTAL_IN	C_XTAL_IN_1	改名	在
+  C_XTAL_OUT	C_XTAL_OUT_1	改名	在
+  D_CHG_LED	D_CHG_LED_1	改名	不在
+  D_ESD_CAM	D_ESD_CAM_1	改名	在
+  D_ESD_DEMO	D_ESD_DEMO_1	改名	在
+  D_ESD_LIGHT	D_ESD_LIGHT_1	改名	在
+  D_ESD_TC	D_ESD_TC_1	改名	不在
+  D_ESD_USB_D	D_ESD_USB_D_1	改名	在
+  D_LED_B	D_LED_B_1	改名	在
+  D_LED_G	D_LED_G_1	改名	在
+  D_LED_R	D_LED_R_1	改名	在
+  D_TVS_VBUS	D_TVS_VBUS_1	改名	不在
+  FB_DEMO	FB_DEMO_1	改名	在
+  FB_VBUS	FB_VBUS_1	改名	不在
+  J_BOOT1	J_BOOT1	不动	在
+  J_CHG	J_CHG_1	改名	在
+  J_DEBUG	J_DEBUG_1	改名	在
+  J_SOM_P1	J_SOM_P1	不动	在
+  J_SOM_P2	J_SOM_P2	不动	在
+  J_SOM_P3	J_SOM_P3	不动	在
+  J_SOM_P4	J_SOM_P4	不动	在
+  J_TYPE_C	J_TYPE_C_1	改名	不在
+  J_UART	J_UART_1	改名	在
+  J_USB_C	J_USB_C_1	改名	在
+  L_CHG	L_CHG_1	改名	不在
+  Q1	Q1	不动	在
+  Q2	Q2	不动	在
+  Q_AND	Q_AND_1	改名	在
+  Q_CHG_LED	Q_CHG_LED_1	改名	不在
+  Q_ENVC	Q_ENVC_1	改名	在
+  Q_PG	Q_PG_1	改名	在
+  R_BAT_DET_1	R_BAT_DET_1	不动	在
+  R_BAT_DET_2	R_BAT_DET_2	不动	在
+  R_CC1	R_CC1	不动	不在
+  R_CC1_D	R_CC1_D_1	改名	在
+  R_CC2	R_CC2	不动	不在
+  R_CC2_D	R_CC2_D_1	改名	在
+  R_CE	R_CE_1	改名	不在
+  R_CHG_LED	R_CHG_LED_1	改名	不在
+  R_EN_VCORE	R_EN_VCORE_1	改名	在
+  R_ID_JMP0	R_ID_JMP0	不动	在
+  R_ID_JMP1	R_ID_JMP1	不动	在
+  R_ILIM	R_ILIM_1	改名	不在
+  R_JTAG_TCK	R_JTAG_TCK_1	改名	在
+  R_JTAG_TDI	R_JTAG_TDI_1	改名	在
+  R_JTAG_TDO	R_JTAG_TDO_1	改名	在
+  R_JTAG_TMS	R_JTAG_TMS_1	改名	在
+  R_KEY_CAM	R_KEY_CAM_1	改名	在
+  R_KEY_PWR	R_KEY_PWR_1	改名	在
+  R_KEY_VM	R_KEY_VM_1	改名	在
+  R_KEY_VP	R_KEY_VP_1	改名	在
+  R_LED_B	R_LED_B_1	改名	在
+  R_LED_G	R_LED_G_1	改名	在
+  R_LED_R	R_LED_R_1	改名	在
+  R_NTC_BAT	R_NTC_BAT_1	改名	在
+  R_OTG	R_OTG_1	改名	不在
+  R_PD_ON	R_PD_ON_1	改名	在
+  R_PG_PULL	R_PG_PULL_1	改名	在
+  R_PSEL	R_PSEL_1	改名	不在
+  R_PU_BOOT_N	R_PU_BOOT_N_1	改名	在
+  R_PU_CHG_STAT	R_PU_CHG_STAT_1	改名	不在
+  R_PU_I2CA_SCL	R_PU_I2CA_SCL_1	改名	在
+  R_PU_I2CA_SDA	R_PU_I2CA_SDA_1	改名	在
+  R_PU_I2CB_SCL	R_PU_I2CB_SCL_1	改名	在
+  R_PU_I2CB_SDA	R_PU_I2CB_SDA_1	改名	在
+  R_PU_ID0	R_PU_ID0	不动	在
+  R_PU_ID1	R_PU_ID1	不动	在
+  R_PU_INT	R_PU_INT_1	改名	不在
+  R_PU_PG	R_PU_PG_1	改名	在
+  R_PU_RESET_N	R_PU_RESET_N_1	改名	在
+  R_PU_SCL	R_PU_SCL_1	改名	不在
+  R_PU_SDA	R_PU_SDA_1	改名	不在
+  R_SEL_CK_N	R_SEL_CK_N_1	改名	在
+  R_SEL_CK_P	R_SEL_CK_P_1	改名	在
+  R_SEL_D0_N	R_SEL_D0_N_1	改名	在
+  R_SEL_D0_P	R_SEL_D0_P_1	改名	在
+  R_SEL_D1_N	R_SEL_D1_N_1	改名	在
+  R_SEL_D1_P	R_SEL_D1_P_1	改名	在
+  R_SEL_D2_N	R_SEL_D2_N_1	改名	在
+  R_SEL_D2_P	R_SEL_D2_P_1	改名	在
+  R_SEL_D3_N	R_SEL_D3_N_1	改名	在
+  R_SEL_D3_P	R_SEL_D3_P_1	改名	在
+  R_SER_CSI_MCLK	R_SER_CSI_MCLK_1	改名	在
+  R_SER_FSIN	R_SER_FSIN_1	改名	在
+  R_SER_RESET_N	R_SER_RESET_N_1	改名	在
+  R_SER_SPI_CSn	R_SER_SPI_CSn_1	改名	在
+  R_SER_SPI_MISO	R_SER_SPI_MISO_1	改名	在
+  R_SER_SPI_MOSI	R_SER_SPI_MOSI_1	改名	在
+  R_SER_SPI_SCLK	R_SER_SPI_SCLK_1	改名	在
+  R_SER_USB_D_N	R_SER_USB_D_N_1	改名	在
+  R_SER_USB_D_P	R_SER_USB_D_P_1	改名	在
+  R_STAR_PGND	R_STAR_PGND_1	改名	不在
+  R_SUPV_DIV1	R_SUPV_DIV1	不动	在
+  R_SUPV_DIV2	R_SUPV_DIV2	不动	在
+  R_TS_PULL	R_TS_PULL_1	改名	在
+  R_TS_TOP	R_TS_TOP_1	改名	不在
+  R_VBUS_DET_D1	R_VBUS_DET_D1	不动	在
+  R_VBUS_DET_D2	R_VBUS_DET_D2	不动	在
+  SW_BOOT	SW_BOOT_1	改名	在
+  SW_KEY_CAM	SW_KEY_CAM_1	改名	在
+  SW_KEY_PWR	SW_KEY_PWR_1	改名	在
+  SW_KEY_VM	SW_KEY_VM_1	改名	在
+  SW_KEY_VP	SW_KEY_VP_1	改名	在
+  SW_RST	SW_RST_1	改名	在
+  TP_BAT	TP_BAT_1	改名	在
+  TP_BAT_CHG	TP_BAT_CHG_1	改名	在
+  TP_BOOT	TP_BOOT_1	改名	在
+  TP_CHG_STAT	TP_CHG_STAT_1	改名	不在
+  TP_CSI_CK_N	TP_CSI_CK_N_1	改名	在
+  TP_CSI_CK_P	TP_CSI_CK_P_1	改名	在
+  TP_CSI_D0_N	TP_CSI_D0_N_1	改名	在
+  TP_CSI_D0_P	TP_CSI_D0_P_1	改名	在
+  TP_DSI_CK_N	TP_DSI_CK_N_1	改名	在
+  TP_DSI_CK_P	TP_DSI_CK_P_1	改名	在
+  TP_DSI_D0_N	TP_DSI_D0_N_1	改名	在
+  TP_DSI_D0_P	TP_DSI_D0_P_1	改名	在
+  TP_DSI_D1_N	TP_DSI_D1_N_1	改名	在
+  TP_DSI_D1_P	TP_DSI_D1_P_1	改名	在
+  TP_DSI_D2_N	TP_DSI_D2_N_1	改名	在
+  TP_DSI_D2_P	TP_DSI_D2_P_1	改名	在
+  TP_DSI_D3_N	TP_DSI_D3_N_1	改名	在
+  TP_DSI_D3_P	TP_DSI_D3_P_1	改名	在
+  TP_FSIN	TP_FSIN_1	改名	在
+  TP_I2CA_SCL	TP_I2CA_SCL_1	改名	在
+  TP_I2CA_SDA	TP_I2CA_SDA_1	改名	在
+  TP_I2CB_SCL	TP_I2CB_SCL_1	改名	在
+  TP_I2CB_SDA	TP_I2CB_SDA_1	改名	在
+  TP_ID	TP_ID_1	改名	在
+  TP_JTAG	TP_JTAG_1	改名	在
+  TP_KEY_PWR	TP_KEY_PWR_1	改名	在
+  TP_KEY_VM	TP_KEY_VM_1	改名	在
+  TP_KEY_VP	TP_KEY_VP_1	改名	在
+  TP_LED_B	TP_LED_B_1	改名	在
+  TP_LED_G	TP_LED_G_1	改名	在
+  TP_LED_R	TP_LED_R_1	改名	在
+  TP_LIGHT_3V3	TP_LIGHT_3V3	不动	在
+  TP_MCLK	TP_MCLK_1	改名	在
+  TP_PG	TP_PG_1	改名	在
+  TP_PG_VCORE	TP_PG_VCORE_1	改名	在
+  TP_PG_VIO	TP_PG_VIO_1	改名	在
+  TP_RESET	TP_RESET_1	改名	在
+  TP_SYS	TP_SYS_1	改名	在
+  TP_TS	TP_TS_1	改名	不在
+  TP_UART	TP_UART_1	改名	在
+  TP_USB_D_N	TP_USB_D_N_1	改名	在
+  TP_USB_D_P	TP_USB_D_P_1	改名	在
+  TP_VBUS	TP_VBUS_1	改名	不在
+  TP_VCORE	TP_VCORE_1	改名	在
+  TP_VIO	TP_VIO_1	改名	在
+  U_BATPROT	U_BATPROT_1	改名	在
+  U_CHG	U_CHG_1	改名	不在
+  U_DCDC_VCORE	U_DCDC_VCORE_1	改名	在
+  U_DCDC_VIO	U_DCDC_VIO_1	改名	在
+  U_EN_SW	U_EN_SW_1	改名	在
+  U_LDO_IO18	U_LDO_IO18	不动	在
+  U_LDO_IO33	U_LDO_IO33	不动	在
+  U_LDO_L18	U_LDO_L18	不动	在
+  U_LDO_L33	U_LDO_L33	不动	在
+  U_LDO_S12	U_LDO_S12	不动	在
+  U_LDO_S18B	U_LDO_S18B_1	改名	在
+  U_LDO_S28	U_LDO_S28	不动	在
+  U_PWR_SW	U_PWR_SW_1	改名	在
+  U_SUPV	U_SUPV_1	改名	在
+  U_TEMP	U_TEMP_1	改名	在
+  X1	X1	不动	在
+
+── §G 结论 ─────────────────────────────────────────────────────────────────
+  ★要改 186 / 不动 32 ⇒ 与 ISS-317 §G 三数逐字一致 (218 / 32 / 186)★
+  ★CHG_BOARD 32 个 = 表侧有板侧无 ⇒ 与 ISS-317 §A「脚表有板无 32 个」一致★
+  ★板侧口径「不动」30 个 (ISS-314 的 30) vs 表侧口径「不动」32 个 (差 = CHG_BOARD 不动 2 个)★
+================================================================================================

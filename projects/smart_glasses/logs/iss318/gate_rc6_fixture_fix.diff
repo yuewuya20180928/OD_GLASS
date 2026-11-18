@@ -1,0 +1,33 @@
+--- /tmp/iss318_gate_old.py	2026-11-18 16:21:47.479165969 +0800
++++ /tmp/iss318_gate_new.py	2026-11-18 16:21:47.462741311 +0800
+@@ -743,11 +743,26 @@
+             open(p, "w", encoding="utf-8").write(txt)
+             for rel in NETLIST_CSVS:
+                 _rewrite_ref(os.path.join(sandbox, rel), "C_DET_BAT", "C_DET_BAT_1")
+-            for rel in ("SW/SW_TIMING_REVIEW.md", "SW/ADC_CALIBER_TABLE.md"):
+-                d = os.path.join(sandbox, rel)
++            # ★★2026-11-18 16:1x (sw-lead · ISS-318 cont1 收尾) · 【夹具补全·不是放宽判据】★★
++            #   ★**病灶 (实测)**: 旧夹具只把 `C_DET_BAT` 改成新名写在【两份硬编码文档】里
++            #     (`SW/SW_TIMING_REVIEW.md` + `SW/ADC_CALIBER_TABLE.md`)
++            #     ⇒ ★**IS-323 (2026-11-18 14:39 / 16:17) 又新增了两份含 `C_DET_BAT` 的文档**
++            #       (`SW/ONETRIP_SW_RENAME_SAFETY.md` + `SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md`)
++            #       ⇒ 那两份文档仍引用旧名 ⇒ 板/网表里已无此位号 ⇒ 闸【正确地】判「改名漂移:C_DET_BAT」红
++            #       ⇒ ★⇒ RC-6 假红 (6/7)★
++            #   ★**为什么这是【夹具缺陷】不是【判据缺陷】**: RC-6 要测的是「板改名 + **文档同步**改新名 ⇒ 必须绿」
++            #     ⇒ ★**「文档同步」的定义就是【所有引用该位号的文档都改了】** ⇒ 夹具只改两份 = 没实现被测场景★
++            #     ⇒ ★**修法 = 把夹具改成【按 token 驱动·扫全部文档】** ⇒ 判据 (R1~R5 的判红口径) 一个字没动★
++            #     ⇒ ★**这正是项目铁律「修夹具 ≠ 放宽判据」的正面用法: 修在夹具, 不碰判据★**
++            #   ★**零写板**: 这一段全部在沙盒副本里做 (真拷贝·绝不 hardlink) ⇒ 真盘一个字节都不写★
++            import glob as _glob
++            _old, _new = "C_DET_BAT", "C_DET_BAT_1"
++            for d in sorted(_glob.glob(os.path.join(sandbox, DOC_GLOB))):
+                 txt = open(d, "r", encoding="utf-8", errors="replace").read()
+-                txt = txt.replace("C_DET_BAT", "C_DET_BAT_1")
+-                open(d, "w", encoding="utf-8").write(txt)
++                if _old not in txt:
++                    continue
++                open(d, "w", encoding="utf-8").write(txt.replace(_old, _new))
++
+         # —— 破坏之后 ——
+         rc_after, det_after = _gate_rc(sandbox)
+         if expect == "red":

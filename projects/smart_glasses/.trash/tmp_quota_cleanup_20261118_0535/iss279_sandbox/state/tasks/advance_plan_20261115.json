@@ -1,0 +1,388 @@
+{
+  "internal": [
+    {
+      "issue": "ISS-205",
+      "title": "★★[主线内·原理图侧·内部活] ★★KiCad 导出 BOM 里 186 个位号带 `?` (★板厂看到的位号与丝印对不上★) ⇒ ★★真根因已实测钉死 = 【KiCad 判「已标注」的条件是位号末字符为数字】⇒ ★★解法 = 给位号加 `_1` 数字后缀 (★★不是去掉下划线 —— 实测去下划线无效且会让位号不可读★★) ⇒ 改在生成器里★★",
+      "agent": "sw-lead",
+      "role": "软件总工",
+      "due": "2026-11-14",
+      "days_left": -1,
+      "severity": "high",
+      "brief": "★**【owner 已于 2026-11-12 03:2x 由 main (项目总工) 改派: `hw-lead` → `sw-lead`】**\n  · ★**原因**: hw-lead 名额被 ISS-195 (★真在飞, 会话 `dc510f7c`, 03:17 仍在写★) 占住 ⇒ 铁律「一个 agent 同时只能\n    一个写会话」⇒ 本单不能给 hw-lead; ★**而本单是 high + due 11-14 + 卡整链重出第 3 步** ⇒ 干等会把最高优先级\n    压在 medium 队列后面 ⇒ sw-lead 实测无在跑写会话 ⇒ 改派 sw-lead;\n  · ★**冲突已核**: 与在飞的 ISS-195 文件交集 = 0;\n  · ★**随之唯一的一处改动**: 分片写入目标从 `state/fragments/hw.yaml` 改成 `state/fragments/sw.yaml`\n    (★**不许写别人的分片**★) ⇒ ★**其余判据 / 边界 / 验收一条都没动** ★\n\n★**目标 (★内部活·不是原厂的事·不是 PCB 布线/布局类★)**: ★**在 `state/gen_kicad_sch.py` 里给位号加 `_1` 数字后缀** ⇒ ★**让 KiCad 导出的 BOM 不再带 `?`** ⇒ ★**★只改原理图生成器, 不碰板/网表/BOM台账★★**\n\n★**★① 根因 (★main 已实测坐实·你不用重查·零例外★)★**:\n  · ★**KiCad 判「已标注」的条件 = 【位号最后一个字符是数字】** ⇒ ★**末字符是字母 ⇒ 判未标注 ⇒ BOM 里打 `?`**\n  · ★**实测: 带 `?` 的 186 个位号末字符 100% 是字母; 不带 `?` 的 32 个末字符 100% 是数字**\n  · ★**★旧记录说的「根因是下划线命名」是错的 ⇒ 不要去动下划线★★**\n  · ★**★解法: 加 `_1` 后缀 (★已在本机副本上跑通: 问号行数 0 + annotation errors 警告消失 + 零撞名★★)**\n  · ★**完整证据: `HW/PCB/KICAD_REF_QUESTIONMARK_ROOTCAUSE.md` (★建议先读这一份, 里面有全部对照实验★)**\n\n★**★② 要改哪三处 (★必须同步, 少改一处 KiCad 就报 annotation errors★)★**:\n  1. ★**子页的 `(property \"Reference\" \"X\" …)`** ⇒ `X` → `X_1`\n  2. ★**子页的 `(instances … (reference \"X\") (unit 1))`** ⇒ `X` → `X_1` (★KiCad 导出 BOM 实际读这里★)\n  3. ★**`lib_symbols` 里的 `(symbol \"SYM_X\" …)` + 两个子符号 `SYM_X_0_1` / `SYM_X_1_1`** ⇒ 同步改\n  ⇒ ★**落点 = `state/gen_kicad_sch.py` 的符号生成处 (★★改在产生点★★) ⇒ ★★不许手改 `HW/PCB/demo_mainboard*.kicad_sch` (★那是产物, 重跑就被冲掉★)★★**\n\n★**★③ 顺带补 (★同一趟做完★)★**: ★**10 个子页都缺 `(sheet_instances (path \"/<根页uuid>\" (page \"N\")))`** ⇒ ★**根页有 `(sheet_instances (path \"/\" (page \"1\")))` 而子页一个都没有 ⇒ KiCad 官方模板的子页是有的** ⇒ ⇒ ★**在生成器里给每个子页补上 (★page 号 = 根页里那个 sheet 的 `(instances … (path \"/<root>\" (page \"N\")))` 的 N★)**\n\n★**★④ 判据 (★六条, 缺一条不算交卷★)★★**:\n  ① ★**`bash state/kicad.sh sch export bom -o /tmp/x.csv --fields Reference HW/PCB/demo_mainboard.kicad_sch` ⇒ 输出里带 `?` 的行数 = 0** (★当前实测 **186**★)\n  ② ★**导出时 stderr 【不许出现】`schematic has annotation errors`** (★当前实测出现★)\n  ③ ★**`python3 state/check_sch_erc.py` rc=0** · ★**`python3 state/check_sch_pinfull.py` rc=0 (★K=0★)** · ★**`python3 state/check_sch_loadable.py` rc=0**\n  ④ ★**位号唯一性: 218 个位号无重复** (★实测加 `_1` 后缀零撞名, 你落完再核一遍★)\n  ⑤ ★**受保护文件 md5 全未变**: 板 `611b869e13518c3c023fb178f91a0075` · 网表 `c78f991283cc82d56c8e3dd31657c785` · 脚表 `4814617e22b567d76164e56bc5e39dc8` · `.kicad_pro` `3e504d2be83152e337949723e909be1b`\n  ⑥ ★**板里 186 个封装位号 【本单不许动】** ⇒ 原理图位号与板位号此刻【会不一致】⇒ ★**这是【预期的中间态】** (★板侧改动属整链重出第 1 步★) ⇒ ★★**不许因此去改板★★**\n\n★**★★⑤ 交卷 (★≤8 行·别写长篇★)**: ① 问号行数 (前→后) ② annotation errors 警告 (前→后) ③ 三条闸 rc ④ 位号唯一性实测 ⑤ 板/网表/脚表/.kicad_pro md5 未变的实测 ⑥ 改了哪个文件 + 【原理图与板位号暂时不一致】的说明 ★★\n\n★**★★⑥ 边界 (★再强调一次★)**: ★**不许碰**: `HW/PCB/demo_mainboard.kicad_pcb` · `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` · `HW/PCB/demo_mainboard.kicad_pro` · `HW/BOM_v1.csv` · `HW/PCB/FET3572C_PIN_TABLE.csv` · `state/issue_log.yaml` · `PROJECT_TRACKER.md` §0 · 别人的分片 ⇒ ★**只许写**: `state/gen_kicad_sch.py` · `HW/PCB/demo_mainboard*.kicad_sch` (★产物·由生成器重跑产生★) · `HW/PCB/PIN_REALITY_GAP.md` (★若生成器会重跑它★) · `HANDOFF/` 交卷报告 · ★**必要时** `state/fragments/sw.yaml` (走 `frag_write.py`·只许新增本单相关条目★)\n★**★不许发任何邮件 / 询价 / 问询 (★老板 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ⇒ 所有资料一律【自己网上查】+ 标证据等级 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` ⇒ ★**查不到就写 `[0数据]` + 已知缺口 + 降级方案 ⇒ 没有「批一句可以发」这个选项★★**\n\n★**★★⑦ ★★本单交卷时【投产包一定会变旧】⇒ 这是【预期中间态】, 不是你没做完★★** ★★\n★**实测依据**: `state/chain_gate.py` 的 `check_sch_src_pack()` 校【投产包 `doc/sch_src/` 里每个文件的 md5 == 源文件 md5】⇒ ★**你一改原理图 ⇒ 源变新 · 投产包还是旧 ⇒ `chain_gate.py` rc=1** ★★\n★**★所以交卷时照下面二选一 (★别自己去纠结 rc★)** ★★:\n  ★**(A)【推荐】本单一并重出投产包**: 跑 `bash state/gen_production_pack.sh` ⇒ ★**然后 `chain_gate.py` 必须 rc=0** (★**注意**: 这个脚本会 `rm -rf` 整个 `HW/PCB/production/` ⇒ ★**跑之前确认没人在飞别的单碰投产包★)**\n  ★**(B) 或者: 不跑, 但在交卷报告里明写【投产包已变旧, 待 main 重出】** ⇒ ★**main 验收时会替你重出** ★★\n★**★★无论 (A) 还是 (B), 交卷报告都必须写一句: 「投产包 sch_src 与新原理图的 md5 是否已同步」★★**\n\n★**★★⑧ ★★地界提醒 (★你是软件总工, 但这单改的是硬件生成器★)★★** ★★\n★**`state/gen_kicad_sch.py` 历史上一直是 hw-lead 在改 (★`state/fragments/hw.yaml` 里 440 行提到它★)** ⇒ ★**本单改派给你是因为【hw-lead 名额被 ISS-195 占着 + 文件交集实测 = 0 + 你空闲】⇒ 改派是对的** ★★\n★**★但你只许【按本 brief 的字面指令改】**: ★**答案(main 03:0x 实测)已经全算好塞在上面的判据里了** ⇒ ★**不许自己重新设计位号规则** (★别去改 `RAIL_*`/`NET_*` 的保留口径★) · ★**不许顺手改别的生成器逻辑** (★`gen_bom.py` / `gen_netlist.py` / `gen_pcb_netlist_board.py` 一律不许碰★) · ★**不许把\"顺手改一下\"当改进** (★本单只求【问号清零 + 三条闸绿 + md5 不变】三个判据, 别的都不许动★) ★★",
+      "source": "SW-TIM-B1",
+      "_raw": {
+        "id": "ISS-205",
+        "title": "★★[主线内·原理图侧·内部活] ★★KiCad 导出 BOM 里 186 个位号带 `?` (★板厂看到的位号与丝印对不上★) ⇒ ★★真根因已实测钉死 = 【KiCad 判「已标注」的条件是位号末字符为数字】⇒ ★★解法 = 给位号加 `_1` 数字后缀 (★★不是去掉下划线 —— 实测去下划线无效且会让位号不可读★★) ⇒ 改在生成器里★★",
+        "severity": "high",
+        "source_blocker": "SW-TIM-B1",
+        "source_agent": "main",
+        "desc": "★2026-11-12 03:0x 项目总工开单 (★依据 = `HW/PCB/KICAD_REF_QUESTIONMARK_ROOTCAUSE.md` 的实测证据链★)。\n★**现象 [实测]**: ★**KiCad 从原理图导出的 BOM (`HW/PCB/production/doc/demo_mainboard-kicad-bom.xml`) 里 218 个位号有 186 个带 `?` 后缀** ⇒ ★**板厂拿这份 BOM 去对丝印位号会对不上** ⇒ ★**而我们自己的 `HW/BOM_v1.csv` (0/218)、板文件 (0/186)、原理图子页 (0/218) 三处位号字符串都是干净的** ⇒ ⇒ ★**真问题不是「位号字符串对不上」, 是【KiCad 导出的那份多了个 `?`】** ★★\n★**★真根因 [实测·零例外]★**: ★**KiCad 判定一个符号「已标注 (annotated)」的条件 = 【它的位号最后一个字符是数字】** ⇒ ★**位号末字符是字母 ⇒ 判未标注 ⇒ 导出 BOM 时打 `?`** ⇒ ★**实测: 带 `?` 的 186 个末字符 100% 是字母; 不带 `?` 的 32 个末字符 100% 是数字 (零例外)** ⇒ ★**并在 /tmp 造了最小对照工程逐个换位号复现 (★如 `C_KEY_CAM_A1` 不带? 而 `C_KEY_CAM_1A` 带? ⇒ 【是最后一个字符, 不是最后一段】★)** ⇒ ⇒ ★**★★旧记录说的「根因是下划线命名」是错的 ⇒ 已订正★★** ★★\n★**★解法 [实测·已在副本上跑通]★**: ★**给 186 个位号统一加 `_1` 数字后缀 (★32 个本来就数字结尾的不动★)** ⇒ ★**实测: 改完导出 BOM, 带 `?` 行数 = 0, 且 KiCad 的 \"schematic has annotation errors\" 警告一并消失** ⇒ ★**且实测【零撞名】(186 个 ref 加 `_1` 后与现有 218 个位号无冲突)** ⇒ ⇒ ★**★★这个方案比原设想的「去掉下划线」好得多 (★去下划线实测【无效】+ 会把 `C_AC_CSI_D0_CK_N` 变成 `CACSICSID0CKN` 这种不可读的东西; 加后缀可读性只多一个尾巴, 且不用设计命名规则★)⇒ ★★B 项实现方案据此改写★★** ★★\n★**★必须三处同步改 (★我实验时只改一处就被 KiCad 报 annotation errors★)★★**: ① 子页 `(property \"Reference\" \"X\" …)` ② 子页 `(instances … (reference \"X\") (unit 1))` ③ `lib_symbols` 里的 `(symbol \"SYM_X\" …)` + 两个子符号 `SYM_X_0_1` / `SYM_X_1_1` ⇒ ⇒ ★**落点 = `state/gen_kicad_sch.py` 的符号生成处 (★改在产生点★)** ⇒ ⇒ ★**★不许手改 `HW/PCB/demo_mainboard*.kicad_sch` (★那是产物, 重跑就冲掉★)★★** ★★\n★**顺带修的结构缺件**: ★**实测我们的 10 个子页都缺 `(sheet_instances (path \"/<根页uuid>\" (page \"N\")))`** ⇒ 根页有 `(sheet_instances (path \"/\" (page \"1\")))` 而子页一个都没有 ⇒ ★**KiCad 官方模板的子页是有的** ⇒ ⇒ ★**这是我们自己生成器造出来的层级工程结构缺件 (★与问号不是同一个因: 补上后问号数没变, 但它本来就该有★)** ⇒ ⇒ ★**随本单一趟补 (★也在生成器里加★)** ★★\n★**★★注意: 本单会让【原理图位号】与【板上位号】暂时不一致 (★186 个封装位号不动★) ⇒ ★这是【预期的中间态】(★板侧改动属整链重出第 1 步, 与 C/D/E 合并落表★) ⇒ ★★**不许因此去改板**★★**",
+        "owner": "sw-lead",
+        "reporter": "main",
+        "raised": "2026-11-12",
+        "due": "2026-11-14",
+        "status": "open",
+        "external": false,
+        "need_keys": [],
+        "fix_ref": "",
+        "verify_by": "main",
+        "verify_result": null,
+        "task_brief": "★**【owner 已于 2026-11-12 03:2x 由 main (项目总工) 改派: `hw-lead` → `sw-lead`】**\n  · ★**原因**: hw-lead 名额被 ISS-195 (★真在飞, 会话 `dc510f7c`, 03:17 仍在写★) 占住 ⇒ 铁律「一个 agent 同时只能\n    一个写会话」⇒ 本单不能给 hw-lead; ★**而本单是 high + due 11-14 + 卡整链重出第 3 步** ⇒ 干等会把最高优先级\n    压在 medium 队列后面 ⇒ sw-lead 实测无在跑写会话 ⇒ 改派 sw-lead;\n  · ★**冲突已核**: 与在飞的 ISS-195 文件交集 = 0;\n  · ★**随之唯一的一处改动**: 分片写入目标从 `state/fragments/hw.yaml` 改成 `state/fragments/sw.yaml`\n    (★**不许写别人的分片**★) ⇒ ★**其余判据 / 边界 / 验收一条都没动** ★\n\n★**目标 (★内部活·不是原厂的事·不是 PCB 布线/布局类★)**: ★**在 `state/gen_kicad_sch.py` 里给位号加 `_1` 数字后缀** ⇒ ★**让 KiCad 导出的 BOM 不再带 `?`** ⇒ ★**★只改原理图生成器, 不碰板/网表/BOM台账★★**\n\n★**★① 根因 (★main 已实测坐实·你不用重查·零例外★)★**:\n  · ★**KiCad 判「已标注」的条件 = 【位号最后一个字符是数字】** ⇒ ★**末字符是字母 ⇒ 判未标注 ⇒ BOM 里打 `?`**\n  · ★**实测: 带 `?` 的 186 个位号末字符 100% 是字母; 不带 `?` 的 32 个末字符 100% 是数字**\n  · ★**★旧记录说的「根因是下划线命名」是错的 ⇒ 不要去动下划线★★**\n  · ★**★解法: 加 `_1` 后缀 (★已在本机副本上跑通: 问号行数 0 + annotation errors 警告消失 + 零撞名★★)**\n  · ★**完整证据: `HW/PCB/KICAD_REF_QUESTIONMARK_ROOTCAUSE.md` (★建议先读这一份, 里面有全部对照实验★)**\n\n★**★② 要改哪三处 (★必须同步, 少改一处 KiCad 就报 annotation errors★)★**:\n  1. ★**子页的 `(property \"Reference\" \"X\" …)`** ⇒ `X` → `X_1`\n  2. ★**子页的 `(instances … (reference \"X\") (unit 1))`** ⇒ `X` → `X_1` (★KiCad 导出 BOM 实际读这里★)\n  3. ★**`lib_symbols` 里的 `(symbol \"SYM_X\" …)` + 两个子符号 `SYM_X_0_1` / `SYM_X_1_1`** ⇒ 同步改\n  ⇒ ★**落点 = `state/gen_kicad_sch.py` 的符号生成处 (★★改在产生点★★) ⇒ ★★不许手改 `HW/PCB/demo_mainboard*.kicad_sch` (★那是产物, 重跑就被冲掉★)★★**\n\n★**★③ 顺带补 (★同一趟做完★)★**: ★**10 个子页都缺 `(sheet_instances (path \"/<根页uuid>\" (page \"N\")))`** ⇒ ★**根页有 `(sheet_instances (path \"/\" (page \"1\")))` 而子页一个都没有 ⇒ KiCad 官方模板的子页是有的** ⇒ ⇒ ★**在生成器里给每个子页补上 (★page 号 = 根页里那个 sheet 的 `(instances … (path \"/<root>\" (page \"N\")))` 的 N★)**\n\n★**★④ 判据 (★六条, 缺一条不算交卷★)★★**:\n  ① ★**`bash state/kicad.sh sch export bom -o /tmp/x.csv --fields Reference HW/PCB/demo_mainboard.kicad_sch` ⇒ 输出里带 `?` 的行数 = 0** (★当前实测 **186**★)\n  ② ★**导出时 stderr 【不许出现】`schematic has annotation errors`** (★当前实测出现★)\n  ③ ★**`python3 state/check_sch_erc.py` rc=0** · ★**`python3 state/check_sch_pinfull.py` rc=0 (★K=0★)** · ★**`python3 state/check_sch_loadable.py` rc=0**\n  ④ ★**位号唯一性: 218 个位号无重复** (★实测加 `_1` 后缀零撞名, 你落完再核一遍★)\n  ⑤ ★**受保护文件 md5 全未变**: 板 `611b869e13518c3c023fb178f91a0075` · 网表 `c78f991283cc82d56c8e3dd31657c785` · 脚表 `4814617e22b567d76164e56bc5e39dc8` · `.kicad_pro` `3e504d2be83152e337949723e909be1b`\n  ⑥ ★**板里 186 个封装位号 【本单不许动】** ⇒ 原理图位号与板位号此刻【会不一致】⇒ ★**这是【预期的中间态】** (★板侧改动属整链重出第 1 步★) ⇒ ★★**不许因此去改板★★**\n\n★**★★⑤ 交卷 (★≤8 行·别写长篇★)**: ① 问号行数 (前→后) ② annotation errors 警告 (前→后) ③ 三条闸 rc ④ 位号唯一性实测 ⑤ 板/网表/脚表/.kicad_pro md5 未变的实测 ⑥ 改了哪个文件 + 【原理图与板位号暂时不一致】的说明 ★★\n\n★**★★⑥ 边界 (★再强调一次★)**: ★**不许碰**: `HW/PCB/demo_mainboard.kicad_pcb` · `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` · `HW/PCB/demo_mainboard.kicad_pro` · `HW/BOM_v1.csv` · `HW/PCB/FET3572C_PIN_TABLE.csv` · `state/issue_log.yaml` · `PROJECT_TRACKER.md` §0 · 别人的分片 ⇒ ★**只许写**: `state/gen_kicad_sch.py` · `HW/PCB/demo_mainboard*.kicad_sch` (★产物·由生成器重跑产生★) · `HW/PCB/PIN_REALITY_GAP.md` (★若生成器会重跑它★) · `HANDOFF/` 交卷报告 · ★**必要时** `state/fragments/sw.yaml` (走 `frag_write.py`·只许新增本单相关条目★)\n★**★不许发任何邮件 / 询价 / 问询 (★老板 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ⇒ 所有资料一律【自己网上查】+ 标证据等级 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` ⇒ ★**查不到就写 `[0数据]` + 已知缺口 + 降级方案 ⇒ 没有「批一句可以发」这个选项★★**\n\n★**★★⑦ ★★本单交卷时【投产包一定会变旧】⇒ 这是【预期中间态】, 不是你没做完★★** ★★\n★**实测依据**: `state/chain_gate.py` 的 `check_sch_src_pack()` 校【投产包 `doc/sch_src/` 里每个文件的 md5 == 源文件 md5】⇒ ★**你一改原理图 ⇒ 源变新 · 投产包还是旧 ⇒ `chain_gate.py` rc=1** ★★\n★**★所以交卷时照下面二选一 (★别自己去纠结 rc★)** ★★:\n  ★**(A)【推荐】本单一并重出投产包**: 跑 `bash state/gen_production_pack.sh` ⇒ ★**然后 `chain_gate.py` 必须 rc=0** (★**注意**: 这个脚本会 `rm -rf` 整个 `HW/PCB/production/` ⇒ ★**跑之前确认没人在飞别的单碰投产包★)**\n  ★**(B) 或者: 不跑, 但在交卷报告里明写【投产包已变旧, 待 main 重出】** ⇒ ★**main 验收时会替你重出** ★★\n★**★★无论 (A) 还是 (B), 交卷报告都必须写一句: 「投产包 sch_src 与新原理图的 md5 是否已同步」★★**\n\n★**★★⑧ ★★地界提醒 (★你是软件总工, 但这单改的是硬件生成器★)★★** ★★\n★**`state/gen_kicad_sch.py` 历史上一直是 hw-lead 在改 (★`state/fragments/hw.yaml` 里 440 行提到它★)** ⇒ ★**本单改派给你是因为【hw-lead 名额被 ISS-195 占着 + 文件交集实测 = 0 + 你空闲】⇒ 改派是对的** ★★\n★**★但你只许【按本 brief 的字面指令改】**: ★**答案(main 03:0x 实测)已经全算好塞在上面的判据里了** ⇒ ★**不许自己重新设计位号规则** (★别去改 `RAIL_*`/`NET_*` 的保留口径★) · ★**不许顺手改别的生成器逻辑** (★`gen_bom.py` / `gen_netlist.py` / `gen_pcb_netlist_board.py` 一律不许碰★) · ★**不许把\"顺手改一下\"当改进** (★本单只求【问号清零 + 三条闸绿 + md5 不变】三个判据, 别的都不许动★) ★★",
+        "dispatched_at": "",
+        "fixed_at": "",
+        "note": "★**【2026-11-12 03:2x 项目总工改派: owner `hw-lead` → `sw-lead`】**\n★**依据 (★三条全查过, 不是推测★)**:\n  ① ★**hw-lead 名额被 ISS-195 占着** —— 会话 `dc510f7c` 于 03:17:37 仍在写 (transcript mtime 03:17:37,\n    `HW/iss121_mic_magnet_check.py` mtime 03:17:37) ⇒ ★**真在飞, 不是僵尸** ⇒ 铁律「一个 agent 同时只能\n    一个写会话」⇒ 本单不能给 hw-lead ★\n  ② ★**本单是 high severity + due 11-14 + 卡整链重出第 3 步 (重出原理图)** ⇒ 干等 hw-lead = 把最高优先级\n    压在它自己队列的 medium 单 (ISS-199 / ISS-204) 后面 ⇒ ★**是排队逻辑自己把主线堵住了** ★\n  ③ ★**sw-lead 实测无在跑写会话** (`sessions_list`: sw-lead 最后一条子会话 02:30 done) ⇒ ★**零撞车** ★\n★**文件交集实测 = 0**: 本单写 `state/gen_kicad_sch.py` + `HW/PCB/demo_mainboard*.kicad_sch` +\n`HW/PCB/PIN_REALITY_GAP.md` + `HANDOFF/` + 本分片; ISS-195 只写 `HW/iss121_mic_magnet_check.py/.json` +\n`HW/ISS121_MIC_MAGNET_POSITION.md` + `state/fragments/hw.yaml` ⇒ ★**交集为空** ★\n★**随之唯一的一处改动**: 分片写入目标从 `state/fragments/hw.yaml` 改成 `state/fragments/sw.yaml`\n(★**不许写别人的分片**★) ⇒ ★**其余判据 / 边界 / 验收一条都没动** ★\n★**2026-11-15 20:5x 项目总工 (main) 清僵尸 fixing (★同病第 11~13 次复发★)**:\n★**实测**: 子会话 agent:sw-lead:subagent:0795c93a (sessionId `660e4fce`) 2026-11-12 08:24 结束, status=**failed** ⇒ ★**交卷事件投给了已死的会话 ⇒ 没人落账 ⇒ status 停在 `fixing` ⇒ `advance.py` 的 in_flight 规则永久占住 sw-lead 的名额 ⇒ A 段恒空** ★\n★**实测代价**: 2026-11-12 03:44 之后项目里**零文件改动** ⇒ ★**队列停摆 3.5 天, 零产出** ★\n★**半交卷 (★核心产出在盘, 差自证与交卷★)**:\n  ✅ `state/gen_kicad_sch.py` mtime **2026-11-12 03:36:22** (★第 280~287 行 = 位号加 `_1` 后缀的生成逻辑★ · 第 553 行 = ISS-205 的图↔表 ref 精确映射★)\n  ✅ `HW/PCB/demo_mainboard.kicad_sch` + `demo_mainboard_p1..p10.kicad_sch` 全部 mtime **2026-11-12 03:36**\n  ✅ ★**实测图上位号**: `(property \"Reference\" ...)` 共 **218** 个, 其中带 `_1` 后缀 **187** 个\n  ✅ ★**实测 sheet_instances**: 根页 + 10 个子页 **11/11 都有** (★原缺件已补上★)\n  ❌ 问号归零**未实测** (投产包 BOM `HW/PCB/production/doc/demo_mainboard-kicad-bom.xml` 仍是 11-11 17:25 的旧件, 带 `?` 的行 **186** ⇒ ★**这是 brief ⑦ 说的\"投产包变旧 = 预期中间态\", 不是没做完★**)\n  ❌ 无交卷报告 ⇒ ❌ `state/fragments/sw.yaml` 未登记本单\n⇒ ★**处置 = 退回 open 重派【收尾 + 自证】** ★\n"
+      }
+    },
+    {
+      "issue": "ISS-195",
+      "title": "★【ISS-194 的连带账·真影响】麦 M1 到 S1 压紧螺钉孔的孔壁净空随套A 从 ≈8.14mm 掉到 ≈1.26mm ⇒ `HW/iss121_mic_magnet_check.*` 三处仍引 15mm 老口径 ⇒ 要按现行孔位重算",
+      "agent": "hw-lead",
+      "role": "硬件总工",
+      "due": "2026-11-13",
+      "days_left": -2,
+      "severity": "medium",
+      "brief": "★**目标**: 把 `HW/iss121_mic_magnet_check.py` / `.json` / `HW/ISS121_MIC_MAGNET_POSITION.md` 里★**引 15mm 老口径孔位**的三处, ★**按现行 60×30 板 + 套A 孔位重算** ⇒ 给出麦克风磁体/麦克风的孔壁净空与最小间距的 PASS/FAIL 与余量数字。\n\n★**为什么现在做 (★main 2026-11-11 20:2x 独立复算, 不是推测★)**:\n· ISS-194 (孔位表 套B ⇒ 套A) 交卷后, 扫出三处仍引 15mm 老口径: `HW/iss121_mic_magnet_check.py`:171 · `HW/iss121_mic_magnet_check.json`:189 · `HW/ISS121_MIC_MAGNET_POSITION.md`:161\n· ★**main 独立复算**: 麦 M1 封装 **2.90 × 1.60mm**, 中心 **(5.00, 12.00)** ⇒ 到 S1 压紧螺钉孔的孔壁净空:\n  套B (S1 y=2.50) ⇒ dy=9.50 ⇒ **≈8.14mm** · 套A (S1 y=10.00) ⇒ dy=2.00 ⇒ **≈1.26mm**\n  ⇒ ★**余量掉了一大截, 但仍不重叠、结论方向不变** ⇒ ★**结论要按现行孔位重算, 不能沿用 15mm 老口径** ★\n· ★**为什么不在 ISS-194 里顺手改**: ★**那三个文件是 ISS-121 的地界** ⇒ ISS-194 的 brief 明确只写 `HW/pcb60x30_check.py` + `.json` ⇒ 越界 ⇒ ★**另开本单** ★\n\n★**做法**: ① ★**先读 `MECH/BOARD_GEOM_30MM.md` §4 (结构侧定版孔位, main 已验收签字)** + `HW/pcb60x30_check.py` 的 HOLES 表 (★套A: S1 (8.00,10.00) ⌀1.40 / S2 (52.00,20.00) ⌀1.40 / P1 (8.00,15.00) ⌀2.00 / P2 (52.00,15.00) ⌀2.00★) ⇒ ★**别用 15mm 老口径** ★② ★**按那个脚本自己的公式** 重算麦 M1 封装与孔的孔壁净空 + 与其它件的最小间距 ③ ★**改这三处** (★只改引用/数字, 不许改判据阈值★) ④ 重跑该脚本, 给出 PASS/FAIL 与余量数字\n\n★**验收自证 (交卷前跑, 把输出贴进回复)**\n```\npython3 HW/iss121_mic_magnet_check.py     # rc 与输出贴出来 (★新旧净空两个数都要给★)\npython3 state/merge.py                     # rc 必须 0 (冲突 0)\npython3 state/gate_check.py                # Q1 必须 18/18\nmd5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv   # 必须一字未变 (611b869e…)\n```\n★**交卷 ≤ 15 行** (结论先行; ★**明确写 PASS 还是 FAIL + 余量多少 mm★; ★**若 FAIL ⇒ 只报给 main 裁决, 不许自行改孔位或改判据** ★)\n\n★**边界 (不许越)**\n· ★**只写**: `HW/iss121_mic_magnet_check.py` + `HW/iss121_mic_magnet_check.json` + `HW/ISS121_MIC_MAGNET_POSITION.md` + `HANDOFF/` 下交卷报告 + ★**必要时** `state/fragments/hw.yaml` (走 `state/frag_write.py`; ★**只许新增/订正本单相关条目★)\n· ★**不许碰**: `HW/pcb60x30_check.py` / `HW/pcb60x30_check.json` (★那是 ISS-194 的地界, 已定版★) · `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` · `HW/PCB/demo_mainboard.kicad_pcb` · `HW/PCB/demo_mainboard*.kicad_sch` · 任何 `state/gen_*.py` · `PROJECT_TRACKER.md` §0 · **别人的分片** · `state/issue_log.yaml` (★**改 issue 状态是 main 的活**)\n· ★**不许联系供应商/原厂** (外发一律经项目总工) · ★**证据分级** [实测]/[官方]/[推算]/[0数据] 必标\n· ★**不许改判据阈值来让自己变绿** (★降级等于伪造验收★)",
+      "source": null,
+      "_raw": {
+        "id": "ISS-195",
+        "title": "★【ISS-194 的连带账·真影响】麦 M1 到 S1 压紧螺钉孔的孔壁净空随套A 从 ≈8.14mm 掉到 ≈1.26mm ⇒ `HW/iss121_mic_magnet_check.*` 三处仍引 15mm 老口径 ⇒ 要按现行孔位重算",
+        "severity": "medium",
+        "owner": "hw-lead",
+        "verify_by": "main",
+        "reporter": "main",
+        "raised": "2026-11-11",
+        "due": "2026-11-13",
+        "status": "open",
+        "task_brief": "★**目标**: 把 `HW/iss121_mic_magnet_check.py` / `.json` / `HW/ISS121_MIC_MAGNET_POSITION.md` 里★**引 15mm 老口径孔位**的三处, ★**按现行 60×30 板 + 套A 孔位重算** ⇒ 给出麦克风磁体/麦克风的孔壁净空与最小间距的 PASS/FAIL 与余量数字。\n\n★**为什么现在做 (★main 2026-11-11 20:2x 独立复算, 不是推测★)**:\n· ISS-194 (孔位表 套B ⇒ 套A) 交卷后, 扫出三处仍引 15mm 老口径: `HW/iss121_mic_magnet_check.py`:171 · `HW/iss121_mic_magnet_check.json`:189 · `HW/ISS121_MIC_MAGNET_POSITION.md`:161\n· ★**main 独立复算**: 麦 M1 封装 **2.90 × 1.60mm**, 中心 **(5.00, 12.00)** ⇒ 到 S1 压紧螺钉孔的孔壁净空:\n  套B (S1 y=2.50) ⇒ dy=9.50 ⇒ **≈8.14mm** · 套A (S1 y=10.00) ⇒ dy=2.00 ⇒ **≈1.26mm**\n  ⇒ ★**余量掉了一大截, 但仍不重叠、结论方向不变** ⇒ ★**结论要按现行孔位重算, 不能沿用 15mm 老口径** ★\n· ★**为什么不在 ISS-194 里顺手改**: ★**那三个文件是 ISS-121 的地界** ⇒ ISS-194 的 brief 明确只写 `HW/pcb60x30_check.py` + `.json` ⇒ 越界 ⇒ ★**另开本单** ★\n\n★**做法**: ① ★**先读 `MECH/BOARD_GEOM_30MM.md` §4 (结构侧定版孔位, main 已验收签字)** + `HW/pcb60x30_check.py` 的 HOLES 表 (★套A: S1 (8.00,10.00) ⌀1.40 / S2 (52.00,20.00) ⌀1.40 / P1 (8.00,15.00) ⌀2.00 / P2 (52.00,15.00) ⌀2.00★) ⇒ ★**别用 15mm 老口径** ★② ★**按那个脚本自己的公式** 重算麦 M1 封装与孔的孔壁净空 + 与其它件的最小间距 ③ ★**改这三处** (★只改引用/数字, 不许改判据阈值★) ④ 重跑该脚本, 给出 PASS/FAIL 与余量数字\n\n★**验收自证 (交卷前跑, 把输出贴进回复)**\n```\npython3 HW/iss121_mic_magnet_check.py     # rc 与输出贴出来 (★新旧净空两个数都要给★)\npython3 state/merge.py                     # rc 必须 0 (冲突 0)\npython3 state/gate_check.py                # Q1 必须 18/18\nmd5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv   # 必须一字未变 (611b869e…)\n```\n★**交卷 ≤ 15 行** (结论先行; ★**明确写 PASS 还是 FAIL + 余量多少 mm★; ★**若 FAIL ⇒ 只报给 main 裁决, 不许自行改孔位或改判据** ★)\n\n★**边界 (不许越)**\n· ★**只写**: `HW/iss121_mic_magnet_check.py` + `HW/iss121_mic_magnet_check.json` + `HW/ISS121_MIC_MAGNET_POSITION.md` + `HANDOFF/` 下交卷报告 + ★**必要时** `state/fragments/hw.yaml` (走 `state/frag_write.py`; ★**只许新增/订正本单相关条目★)\n· ★**不许碰**: `HW/pcb60x30_check.py` / `HW/pcb60x30_check.json` (★那是 ISS-194 的地界, 已定版★) · `HW/netlist_v1.csv` · `HW/netlist_v1_pins.csv` · `HW/PCB/demo_mainboard.kicad_pcb` · `HW/PCB/demo_mainboard*.kicad_sch` · 任何 `state/gen_*.py` · `PROJECT_TRACKER.md` §0 · **别人的分片** · `state/issue_log.yaml` (★**改 issue 状态是 main 的活**)\n· ★**不许联系供应商/原厂** (外发一律经项目总工) · ★**证据分级** [实测]/[官方]/[推算]/[0数据] 必标\n· ★**不许改判据阈值来让自己变绿** (★降级等于伪造验收★)",
+        "dispatched_at": "",
+        "note": "★**2026-11-15 20:5x 项目总工 (main) 清僵尸 fixing (★同病第 11~13 次复发★)**:\n★**实测**: 子会话 agent:hw-lead:subagent:eba704c3 (sessionId `dc510f7c`) 2026-11-12 08:10 结束, status=**failed** ⇒ ★**交卷事件投给了已死的会话 ⇒ 没人落账 ⇒ status 停在 `fixing` ⇒ `advance.py` 的 in_flight 规则永久占住 hw-lead 的名额 ⇒ A 段恒空** ★\n★**实测代价**: 2026-11-12 03:44 之后项目里**零文件改动** ⇒ ★**队列停摆 3.5 天, 零产出** ★\n★**半交卷 (★产物在盘, 收尾没做★)**:\n  ✅ `HW/iss121_mic_magnet_check.py` mtime **2026-11-12 03:43:43** (★第 171~173 行已写\"PIN-SET-2 孔位 = 现行 60×30 板 / 套 A (ISS-194 仲裁定版)\"★ · 第 189 行 \"J_CHG 座体 keep-out (现行 60×30 板)\"★)\n  ✅ `HW/iss121_mic_magnet_check.json` mtime **2026-11-12 03:43:07**\n  ❌ `HW/ISS121_MIC_MAGNET_POSITION.md` mtime **2026-11-01 23:50** (★一字未动 ⇒ 三处 15mm 老口径还在★)\n  ❌ `HANDOFF/` 无 ISS-195 交卷报告 ⇒ ❌ `state/fragments/hw.yaml` 未登记本单\n⇒ ★**处置 = 退回 open 重派【收尾】** (★新 brief 追加【已落盘文件 + 真正缺口清单】★)\n"
+      }
+    },
+    {
+      "issue": "ISS-206",
+      "title": "★★[主线内·接口契约侧·内部活] ★★结构侧 J_CHG 旧口径一次性收口 (★第 3 套 pin map `8p@0.5` +\n11 处文档旧口径 + 3 份文档 + 板长 claim 69/76 + SERVICE_PORT 15mm 口径 + pcb_thk 0.80 +\n脚本 `RECOMMENDED_PINS[\"J_CHG\"]=8`★) ⇒ 按「网表/脚本 = 唯一真源, 文档 = 镜像」一次做完 ★★",
+      "agent": "mech-lead",
+      "role": "结构总工",
+      "due": "2026-11-13",
+      "days_left": -2,
+      "severity": "medium",
+      "brief": "★**目标**: ★**把结构侧剩下的 J_CHG 旧口径一次性收口到真源** ⇒ ★**同一个接口不许再有第 3 套 pin map** ★\n\n★**为什么现在做 (★main 2026-11-12 03:2x 实测, 不是推测★)**\n· ★**ISS-202 (你 02:34 交卷) 与 ISS-203 (你 02:46 交卷) 各登记了 7 条 need 给 main** ⇒ ★**它们全卡在\n  「等 main 裁」** ⇒ ★**main 已逐条裁完 (★下面的【main 裁决】段就是裁完的结果★) ⇒ ★**本单 = 裁完之后\n  的一次性执行单** ⇒ ★**你不用再等下一轮★** ★\n· ★**真源 (★main 已逐脚对拍过; ★**你自己也要再复算一遍并写清依据★, 不要照抄题单★)**:\n  ★**`pin1/2=BAT_CHG` · `pin3/4=GND` · `pin5=CHG_STAT` · `pin6=PWR_GOOD` · `pin7=NC` · `pin8=TS_BAT`\n  · `pin9/10=HINGE_RSV`** ★\n  ★**依据**: `HW/netlist_v1.csv` 逐脚 net 名 + `HW/CHARGE_BOARD_SPEC.md` §5.2 (★ISS-136 已定版★)\n· ★**一条容易踩的坑 (★别删错★)**: ★**`VBUS_DET` 这个网没废** (网表里还有 9 处, 主板本地分压)\n  ⇒ ★**废的是「VBUS_DET 跨铰链走 J_CHG pin7/pin8」这句话** ⇒ ★**订正时只改「走哪一脚 / 是否跨铰链」,\n  不许把 VBUS_DET 本地分压的描述一起删掉** ★\n\n★**★★【main 裁决】(★8 条 need 逐条裁完 ⇒ 6 条要做 + 2 条明令不许动★)★★**\n★**裁 1 (要改)**: `MECH/hinge_usb_check.py` 第 77 行 `RECOMMENDED_PINS[\"J_CHG\"] = 8` ⇒ ★**改成 10**,\n  ★**注释里的老 6 脚期拆脚说法 (「SYS×2(载流) + VBUS_DET + BAT_DET + CHG_STAT + PWR_GOOD + GND×2」)\n  一并改掉** ⇒ ★**注释里不许再出现 SYS 跨铰链 / VBUS_DET 跨铰链 / BAT_DET 跨铰链**\n  (★**SYS 根本不跨铰链, VBUS_DET 是主板本地分压, BAT_DET 镜脚本地**★)\n  ★**判据**: ★**改前 / 改后两套跑法输出都要贴** (`python3 MECH/hinge_usb_check.py`) ⇒ ★**若改后有\n  PASS→FAIL ⇒ 那是几何事实 (10 脚比 8 脚宽), 如实贴, ★不许调阈值/判据掩盖★** ⇒ ★**若 FAIL→PASS ⇒\n  必须说清根因是不是 pin 数本身** ★\n★**裁 2 (要改)**: `MECH/USB_HINGE_STRUCTURE.md` 里那 ★**11 处 + §5.2 F-3 的 8p**\n  (★完整清单见你登记的 need `iss202_mech_doc_residual_jchg_old_6pin`★) ⇒ ★**文字口径全部按 10p 真源改**\n  (★脚数 6p/8p → 10p · pin map · 跨铰链归属 · 防呆措辞 · 反插风险描述★)\n  ★**★但几何数字不许手算★** ⇒ ★**`49.62 mm` / `24.00 mm` / `25.62 mm` 这三个数一律以\n  `python3 MECH/hinge_usb_check.py` 跑出来的输出为准** (★它是机器可查的那一份, 文档只做镜像★) ⇒\n  ★**§3.2b 声明版行 / 收敛版行 / §7 占位行 / §9 claim 注 / §5.3 C-4 算式行, 五处引用同一组数 ⇒ 必须一致**\n  (★C-4 行现在自相矛盾: 上格已写 1×10p, 算式还是 8+20+4+8=40脚/24.0mm★)\n  ★**★两套算式的差异, main 已裁 (照这个写, 别自己另发明一套★)★**: ★**【收敛版堆叠占位】以脚本算式为准;\n  【触点区】以行内算式为准** ⇒ ★**文档里按【触点区 21.0 mm / 堆叠 25.0 mm】写, 并加一句注记说明两套算式的\n  connectors 组成不同 (脚本 16+20+4+10=50脚@0.5=25.0mm; 行内 8+20+4+10=42脚@0.5=21.0mm 触点区 +\n  4×1.0mm 间隙 = 25.0mm 堆叠) ⇒ ★**两套算式最终都落在 25.0 mm 堆叠, 差的只是【触点区】那一格** ★ ★\n★**裁 3 (要改)**: `MECH/FPC_FAB_NOTES.md` (★N-6 · I-5★) + `MECH/RELIABILITY_TEST_PLAN.md`\n  (★R10 · §T-14 失效模式 · T-14 判据 · K-11 · K-12★) + `MECH/STRUCT_REVIEW_ISS065.md` (★R3★)\n  ⇒ ★**只改 pin map / 跨铰链归属 / 防呆措辞, 不改任何几何数字** ★\n  ★**★T-14 的判据本身必须改 (★本单最要紧的一处★)★**: ★**现行 10p 下反插 (pin i ↔ pin 11-i) 的真实风险\n  = `GND(pin3) ↔ TS_BAT(pin8)` 短 + `CHG_STAT(pin5) ↔ PWR_GOOD(pin6)` 短; 而 `BAT_CHG(pin1/2)` 落到\n  `HINGE_RSV` 预留脚 = 【断路】, 不是短接** ⇒ ★**旧文写的「反插 = SYS 短接 GND = MOS 直通」已作废**\n  ⇒ ★**新判据写成: 反插位型下 BAT_CHG 对 HINGE_RSV 为断路 (不得导通); GND↔TS_BAT 与 CHG_STAT↔PWR_GOOD\n  各自成短 (必须由防呆阻断)** ⇒ ★**防呆仍必需, 但理由换了** ★\n★**裁 4 (要改)**: `MECH/SERVICE_PORT_ISS092.md` 正文 15mm 口径 → 现行 60×30 口径\n  (★V PCB 段: 需求 `21.00` → `36.00`, 余 `+17.00` → `+2.00` (最坏 `+1.40`, 单边口径 `+1.70`);\n  §1.6.2 三条余量 `0.95/17.00/14.50` → 按现行重算★) ⇒ ★**数字以 `python3 MECH/service_port_check.py`\n  的输出为准, 不许手算** ★ (★**顺序: 先做裁 5 (板厚 0.80→1.00), 再跑脚本取数填裁 4★)\n★**裁 5 (要改)**: `MECH/service_port_check.py` 的 `pcb_thk = 0.80` (★4 层口径★) → ★**`1.00`**\n  (★6 层现行, `MECH/BOARD_GEOM_30MM.md` §1★) ⇒ ★**H 链需求 `4.20` → `4.40`, 余 `+3.10` → `+2.90`\n  (仍 > 判据 0.60)★ ★\n★**裁 6 (要改·但有一道闸)**: 本分片 `interface_claims` 的 `mainboard_len_carrier = 69mm` /\n  `mainboard_len_direct = 76mm` ⇒ ★**板长现行值 = `60.00mm`** (★`MECH/BOARD_GEOM_30MM.md` §1 +\n  打印包 `MECH/print/gen_print_pack_revb.py:85` 的 `pcb_len = 60.00` + 该文件 §7 的【作废值】表明确含\n  「板长 76」「板长 50」★) ⇒ ★**授权把这两条 claim 的板长取值订正到 60.00mm + 注明来源** ★\n  ★**★但有一个例外, 不许擅自改 (★main 特意留的闸★)★**: ★**若这两条 claim 描述的是【两种互斥方案】的板长\n  (载板化方案 vs 直接焊方案), 而不是【同一块板的两个口径】 ⇒ 那不是数值订正, 是【方案取舍】, 属老板级\n  ⇒ ★**这种情况下: 只报不改 + 登记 need 给 main** ⇒ ★**怎么判? 看 claim 语义 + 同一文件里是否还有别的\n  60.00 板长取值 ⇒ 你自己复算后写清依据, 别猜★** ★\n★**裁 7 (★明令不许动·只许加注记★)**: `MECH/service_port_check.py` 的夹具基准 `p2_y = 7.50` /\n  `s2_y = 12.50` / `jd_y0 = 9.50` ⇒ ★**不许改数字★** ⇒ ★**理由 (★main 踩过的坑★)**: 现行套 A =\n  `P2(52.00,15.00)` / `S2(52.00,20.00)`, ★**但脚本 7.4 式的符号/系数是按旧基准写的 ⇒ 只换数字会让\n  公式反过来 ⇒ 造出【假红】★** ⇒ ★**本单只许加一行注记, 标明【这套夹具基准已作废, 现行基准见\n  BOARD_GEOM_30MM.md §1】⇒ 真正的迁移留到整链重出 (公式与基准一起迁)★** ★\n★**裁 8 (★明令不许动·只报★)**: `MECH/hw_cross_review_check.py` 的 `soc_escape_x = (20.20, 31.80)` /\n  `hole_x = (5.00, 15.00, 55.00)` ⇒ ★**不许改★** ⇒ ★**理由**: ★**① 老板 2026-11-11 10:07 口径:\n  PCB 布线/布局类一律排队等原理图定稿; ② 主控已从 RK3576 换成 RK3572 ⇒ 逃线带本身要重算 ⇒ 属整链重出的\n  一步★** ⇒ ★**只报不改 (★登记 need 给 main★) ★\n\n★**★★验收自证 (交卷前跑, 把输出贴进回复)★★**\n```\npython3 MECH/hinge_usb_check.py        # ★改前/改后两套输出都要贴★\npython3 MECH/service_port_check.py     # rc=0\npython3 MECH/hw_cross_review_check.py  # ★不许因本单变红 (裁 8 不许动它的理由之一)★\npython3 state/merge.py                 # rc=0\npython3 state/gate_check.py            # rc=0, 【Q1】必须 18/18\ngrep -rn '8p@0.5\\|8p @0.5\\|1×6@1.27\\|1×6 1.27' MECH/ | head -40\nmd5sum HW/netlist_v1.csv HW/PCB/demo_mainboard.kicad_pcb\n```\n★**md5 期望**: 网表 `c78f991283cc82d56c8e3dd31657c785` · 板 `611b869e13518c3c023fb178f91a0075`\n  ⇒ ★**两者必须一字未变** ★\n★**`grep` 的期望**: ★**允许剩下【历史沿革】与【已作废注记】里的提及, 但不许有【当前口径断言】里的\n  8p / 1×6@1.27 ⇒ 逐行看, 说不清哪一行属于哪一类 = 没做完** ★\n\n★**交卷 (≤10 行)**: ① 逐条列出 6 个「要改」改了哪些处 (改前 → 改后) ② `hinge_usb_check.py` 改前/改后两套\n  输出 ③ 两个脚本的汇总 (PASS/FAIL/条件 各多少) ④ md5 未变实测 ⑤ 裁 6 你最后改没改 (依据是什么)\n  ⑥ 裁 7 / 裁 8 你怎么处理的 + 还剩哪些 need ★\n\n★**边界 (不许越)**\n· ★**只写**: `MECH/hinge_usb_check.py` (★只许动第 77 行 `RECOMMENDED_PINS[\"J_CHG\"]` + 它的注释★) ·\n  `MECH/USB_HINGE_STRUCTURE.md` (★只许动 J_CHG 相关的 pin 口径 + §3.2b/§5.3 C-4/§7/§9 的堆叠数★) ·\n  `MECH/FPC_FAB_NOTES.md` (★只许动 N-6/I-5★) · `MECH/RELIABILITY_TEST_PLAN.md` (★只许动\n  R10/§T-14/K-11/K-12★) · `MECH/STRUCT_REVIEW_ISS065.md` (★只许动 R3★) ·\n  `MECH/SERVICE_PORT_ISS092.md` (★只许动 §1.6.2 + §5.1 表 V PCB 段★) · `MECH/service_port_check.py`\n  (★只许动 `pcb_thk` + 加一行基准作废注记★) · ★**只许新增/改写** 本分片 `state/fragments/mech.yaml` 里\n  ★**裁 6 那两条 claim** 与 ★**本单相关的 need/artifact 条目** (走 `state/frag_write.py`·**不许删改别人的 key**★) ·\n  `HANDOFF/` 交卷报告\n· ★**不许碰**: `HW/**` (★那是 hw-lead 的地界★) · `state/gen_*.py` · `state/issue_log.yaml`\n  (★**改 issue 状态是 main 的活**★) · `PROJECT_TRACKER.md` §0 · **别人的分片**\n  (★`state/fragments/{hw,sw,pm}.yaml` 一律不许写★) · `MECH/print/**` · `MECH/BOARD_GEOM_30MM.md`\n  (★现行几何真源, 只读★)\n· ★**不许发任何邮件 / 询价 / 问询 (★老板 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ⇒ 所有资料一律\n  【自己网上查】+ 标证据等级 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` ⇒ ★**查不到就写 `[0数据]` +\n  已知缺口 + 降级方案 ⇒ 没有「批一句可以发」这个选项** ★\n· ★**不许改判据阈值 (★`judge/CRIT 0.60` / `cav_v 38.00` / `duct_v 6.00` 一律不动★) ⇒ 放宽判据 = 负收益 ★\n\n★**★最后一条纪律 (★今天学的, 别踩★)★**: ★**「改完还是 FAIL」不许靠调阈值变绿** ⇒ ★**本单的\nPASS/FAIL 分布只允许因为【真源变了 (8p→10p / 板厚 0.80→1.00 / 板宽 15→30)】而变, 不许因为【判据松了】\n而变** ⇒ ★**交卷时要写清每个数字变化属于哪一类** ★",
+      "source": "MECH-JCHG-PINMAP-3SET",
+      "_raw": {
+        "id": "ISS-206",
+        "title": "★★[主线内·接口契约侧·内部活] ★★结构侧 J_CHG 旧口径一次性收口 (★第 3 套 pin map `8p@0.5` +\n11 处文档旧口径 + 3 份文档 + 板长 claim 69/76 + SERVICE_PORT 15mm 口径 + pcb_thk 0.80 +\n脚本 `RECOMMENDED_PINS[\"J_CHG\"]=8`★) ⇒ 按「网表/脚本 = 唯一真源, 文档 = 镜像」一次做完 ★★",
+        "severity": "medium",
+        "source_blocker": "MECH-JCHG-PINMAP-3SET",
+        "source_agent": "main",
+        "desc": "★2026-11-12 03:2x 项目总工开单 (★依据 = ISS-202 (02:34 交卷) + ISS-203 (02:46 交卷) 各登记给\nmain 的 need, **main 已逐条裁完**★)。\n★**为什么现在做 (★实测, 不是推测★)**:\n  · ★**ISS-202 与 ISS-203 各登记了 7 条 need 给 main** ⇒ ★**它们都卡在「等 main 裁」这一步**\n    ⇒ 本单 = ★**裁完之后的一次性执行单** ⇒ ★**结构侧不用再等下一轮才能收口** ★\n  · ★**问题的性质 = 【同一个接口不许再有第 3 套 pin map】** ⇒ ★**这正是主线要求的\n    「网表 = 唯一真源, 文档是它的镜像」在结构侧的最后一截** ⇒ ★**不是 PCB 布线/布局类** ★\n  · ★**真源 (★main 已逐脚对拍过, 你自己也要再复算一遍★)**:\n    ★**`pin1/2=BAT_CHG` · `pin3/4=GND` · `pin5=CHG_STAT` · `pin6=PWR_GOOD` · `pin7=NC`\n    · `pin8=TS_BAT` · `pin9/10=HINGE_RSV`** ★\n    ★**依据**: `HW/netlist_v1.csv` 逐脚 net 名 + `HW/CHARGE_BOARD_SPEC.md` §5.2 (★ISS-136 已定版★)\n  · ★**结构侧现在还藏着第 3 套 pin map**: `MECH/USB_HINGE_STRUCTURE.md` §9 的 `mech_j_chg_pins`\n    仍写 `8p@0.5mm` ⇒ ★**与本分片 claim `mech_j_chg_pins` 的 value `10p@0.5mm` 直接矛盾** ⇒\n    ⇒ ★**同一个接口, 结构侧文档里有两套, 分片里还有一套** ★\n  · ★**注意一条容易踩的坑**: ★**`VBUS_DET` 这个网没废** (网表里还有 9 处, 主板本地分压),\n    废的是「VBUS_DET 跨铰链走 J_CHG pin7/pin8」这句话 ⇒ ★**订正时只改「走哪一脚 / 是否跨铰链」,\n    不许把 VBUS_DET 本地分压的描述一起删掉** ★",
+        "owner": "mech-lead",
+        "reporter": "main",
+        "raised": "2026-11-12",
+        "due": "2026-11-13",
+        "status": "open",
+        "external": false,
+        "need_keys": [],
+        "fix_ref": "",
+        "verify_by": "main",
+        "verify_result": null,
+        "note": "★**2026-11-15 20:5x 项目总工 (main) 清僵尸 fixing (★同病第 11~13 次复发★)**:\n★**实测**: 子会话 agent:mech-lead:subagent:00f7c6d7 (sessionId `d5a63589`) 2026-11-12 08:23 结束, status=**failed** ⇒ ★**交卷事件投给了已死的会话 ⇒ 没人落账 ⇒ status 停在 `fixing` ⇒ `advance.py` 的 in_flight 规则永久占住 mech-lead 的名额 ⇒ A 段恒空** ★\n★**实测代价**: 2026-11-12 03:44 之后项目里**零文件改动** ⇒ ★**队列停摆 3.5 天, 零产出** ★\n★**骨架级 0 产出**:\n  ❌ `state/fragments/mech.yaml` mtime **2026-11-12 02:46:55** (★**早于**它 03:2x 的派活时间 ⇒ 本单没写过它★)\n  ❌ ★**实测第 3 套 pin map 还在**: `state/fragments/mech.yaml` 第 1362 行仍写着 \"§9 `mech_j_chg_pins` 行仍写 value = `8p@0.5mm`\" ⇒ ★**本单一个字都没动**★\n  ❌ 无交卷报告\n⇒ ★**处置 = 退回 open 重派 (★brief 已含 main 逐条裁完的裁决, 照做即可★)** ★\n",
+        "task_brief": "★**目标**: ★**把结构侧剩下的 J_CHG 旧口径一次性收口到真源** ⇒ ★**同一个接口不许再有第 3 套 pin map** ★\n\n★**为什么现在做 (★main 2026-11-12 03:2x 实测, 不是推测★)**\n· ★**ISS-202 (你 02:34 交卷) 与 ISS-203 (你 02:46 交卷) 各登记了 7 条 need 给 main** ⇒ ★**它们全卡在\n  「等 main 裁」** ⇒ ★**main 已逐条裁完 (★下面的【main 裁决】段就是裁完的结果★) ⇒ ★**本单 = 裁完之后\n  的一次性执行单** ⇒ ★**你不用再等下一轮★** ★\n· ★**真源 (★main 已逐脚对拍过; ★**你自己也要再复算一遍并写清依据★, 不要照抄题单★)**:\n  ★**`pin1/2=BAT_CHG` · `pin3/4=GND` · `pin5=CHG_STAT` · `pin6=PWR_GOOD` · `pin7=NC` · `pin8=TS_BAT`\n  · `pin9/10=HINGE_RSV`** ★\n  ★**依据**: `HW/netlist_v1.csv` 逐脚 net 名 + `HW/CHARGE_BOARD_SPEC.md` §5.2 (★ISS-136 已定版★)\n· ★**一条容易踩的坑 (★别删错★)**: ★**`VBUS_DET` 这个网没废** (网表里还有 9 处, 主板本地分压)\n  ⇒ ★**废的是「VBUS_DET 跨铰链走 J_CHG pin7/pin8」这句话** ⇒ ★**订正时只改「走哪一脚 / 是否跨铰链」,\n  不许把 VBUS_DET 本地分压的描述一起删掉** ★\n\n★**★★【main 裁决】(★8 条 need 逐条裁完 ⇒ 6 条要做 + 2 条明令不许动★)★★**\n★**裁 1 (要改)**: `MECH/hinge_usb_check.py` 第 77 行 `RECOMMENDED_PINS[\"J_CHG\"] = 8` ⇒ ★**改成 10**,\n  ★**注释里的老 6 脚期拆脚说法 (「SYS×2(载流) + VBUS_DET + BAT_DET + CHG_STAT + PWR_GOOD + GND×2」)\n  一并改掉** ⇒ ★**注释里不许再出现 SYS 跨铰链 / VBUS_DET 跨铰链 / BAT_DET 跨铰链**\n  (★**SYS 根本不跨铰链, VBUS_DET 是主板本地分压, BAT_DET 镜脚本地**★)\n  ★**判据**: ★**改前 / 改后两套跑法输出都要贴** (`python3 MECH/hinge_usb_check.py`) ⇒ ★**若改后有\n  PASS→FAIL ⇒ 那是几何事实 (10 脚比 8 脚宽), 如实贴, ★不许调阈值/判据掩盖★** ⇒ ★**若 FAIL→PASS ⇒\n  必须说清根因是不是 pin 数本身** ★\n★**裁 2 (要改)**: `MECH/USB_HINGE_STRUCTURE.md` 里那 ★**11 处 + §5.2 F-3 的 8p**\n  (★完整清单见你登记的 need `iss202_mech_doc_residual_jchg_old_6pin`★) ⇒ ★**文字口径全部按 10p 真源改**\n  (★脚数 6p/8p → 10p · pin map · 跨铰链归属 · 防呆措辞 · 反插风险描述★)\n  ★**★但几何数字不许手算★** ⇒ ★**`49.62 mm` / `24.00 mm` / `25.62 mm` 这三个数一律以\n  `python3 MECH/hinge_usb_check.py` 跑出来的输出为准** (★它是机器可查的那一份, 文档只做镜像★) ⇒\n  ★**§3.2b 声明版行 / 收敛版行 / §7 占位行 / §9 claim 注 / §5.3 C-4 算式行, 五处引用同一组数 ⇒ 必须一致**\n  (★C-4 行现在自相矛盾: 上格已写 1×10p, 算式还是 8+20+4+8=40脚/24.0mm★)\n  ★**★两套算式的差异, main 已裁 (照这个写, 别自己另发明一套★)★**: ★**【收敛版堆叠占位】以脚本算式为准;\n  【触点区】以行内算式为准** ⇒ ★**文档里按【触点区 21.0 mm / 堆叠 25.0 mm】写, 并加一句注记说明两套算式的\n  connectors 组成不同 (脚本 16+20+4+10=50脚@0.5=25.0mm; 行内 8+20+4+10=42脚@0.5=21.0mm 触点区 +\n  4×1.0mm 间隙 = 25.0mm 堆叠) ⇒ ★**两套算式最终都落在 25.0 mm 堆叠, 差的只是【触点区】那一格** ★ ★\n★**裁 3 (要改)**: `MECH/FPC_FAB_NOTES.md` (★N-6 · I-5★) + `MECH/RELIABILITY_TEST_PLAN.md`\n  (★R10 · §T-14 失效模式 · T-14 判据 · K-11 · K-12★) + `MECH/STRUCT_REVIEW_ISS065.md` (★R3★)\n  ⇒ ★**只改 pin map / 跨铰链归属 / 防呆措辞, 不改任何几何数字** ★\n  ★**★T-14 的判据本身必须改 (★本单最要紧的一处★)★**: ★**现行 10p 下反插 (pin i ↔ pin 11-i) 的真实风险\n  = `GND(pin3) ↔ TS_BAT(pin8)` 短 + `CHG_STAT(pin5) ↔ PWR_GOOD(pin6)` 短; 而 `BAT_CHG(pin1/2)` 落到\n  `HINGE_RSV` 预留脚 = 【断路】, 不是短接** ⇒ ★**旧文写的「反插 = SYS 短接 GND = MOS 直通」已作废**\n  ⇒ ★**新判据写成: 反插位型下 BAT_CHG 对 HINGE_RSV 为断路 (不得导通); GND↔TS_BAT 与 CHG_STAT↔PWR_GOOD\n  各自成短 (必须由防呆阻断)** ⇒ ★**防呆仍必需, 但理由换了** ★\n★**裁 4 (要改)**: `MECH/SERVICE_PORT_ISS092.md` 正文 15mm 口径 → 现行 60×30 口径\n  (★V PCB 段: 需求 `21.00` → `36.00`, 余 `+17.00` → `+2.00` (最坏 `+1.40`, 单边口径 `+1.70`);\n  §1.6.2 三条余量 `0.95/17.00/14.50` → 按现行重算★) ⇒ ★**数字以 `python3 MECH/service_port_check.py`\n  的输出为准, 不许手算** ★ (★**顺序: 先做裁 5 (板厚 0.80→1.00), 再跑脚本取数填裁 4★)\n★**裁 5 (要改)**: `MECH/service_port_check.py` 的 `pcb_thk = 0.80` (★4 层口径★) → ★**`1.00`**\n  (★6 层现行, `MECH/BOARD_GEOM_30MM.md` §1★) ⇒ ★**H 链需求 `4.20` → `4.40`, 余 `+3.10` → `+2.90`\n  (仍 > 判据 0.60)★ ★\n★**裁 6 (要改·但有一道闸)**: 本分片 `interface_claims` 的 `mainboard_len_carrier = 69mm` /\n  `mainboard_len_direct = 76mm` ⇒ ★**板长现行值 = `60.00mm`** (★`MECH/BOARD_GEOM_30MM.md` §1 +\n  打印包 `MECH/print/gen_print_pack_revb.py:85` 的 `pcb_len = 60.00` + 该文件 §7 的【作废值】表明确含\n  「板长 76」「板长 50」★) ⇒ ★**授权把这两条 claim 的板长取值订正到 60.00mm + 注明来源** ★\n  ★**★但有一个例外, 不许擅自改 (★main 特意留的闸★)★**: ★**若这两条 claim 描述的是【两种互斥方案】的板长\n  (载板化方案 vs 直接焊方案), 而不是【同一块板的两个口径】 ⇒ 那不是数值订正, 是【方案取舍】, 属老板级\n  ⇒ ★**这种情况下: 只报不改 + 登记 need 给 main** ⇒ ★**怎么判? 看 claim 语义 + 同一文件里是否还有别的\n  60.00 板长取值 ⇒ 你自己复算后写清依据, 别猜★** ★\n★**裁 7 (★明令不许动·只许加注记★)**: `MECH/service_port_check.py` 的夹具基准 `p2_y = 7.50` /\n  `s2_y = 12.50` / `jd_y0 = 9.50` ⇒ ★**不许改数字★** ⇒ ★**理由 (★main 踩过的坑★)**: 现行套 A =\n  `P2(52.00,15.00)` / `S2(52.00,20.00)`, ★**但脚本 7.4 式的符号/系数是按旧基准写的 ⇒ 只换数字会让\n  公式反过来 ⇒ 造出【假红】★** ⇒ ★**本单只许加一行注记, 标明【这套夹具基准已作废, 现行基准见\n  BOARD_GEOM_30MM.md §1】⇒ 真正的迁移留到整链重出 (公式与基准一起迁)★** ★\n★**裁 8 (★明令不许动·只报★)**: `MECH/hw_cross_review_check.py` 的 `soc_escape_x = (20.20, 31.80)` /\n  `hole_x = (5.00, 15.00, 55.00)` ⇒ ★**不许改★** ⇒ ★**理由**: ★**① 老板 2026-11-11 10:07 口径:\n  PCB 布线/布局类一律排队等原理图定稿; ② 主控已从 RK3576 换成 RK3572 ⇒ 逃线带本身要重算 ⇒ 属整链重出的\n  一步★** ⇒ ★**只报不改 (★登记 need 给 main★) ★\n\n★**★★验收自证 (交卷前跑, 把输出贴进回复)★★**\n```\npython3 MECH/hinge_usb_check.py        # ★改前/改后两套输出都要贴★\npython3 MECH/service_port_check.py     # rc=0\npython3 MECH/hw_cross_review_check.py  # ★不许因本单变红 (裁 8 不许动它的理由之一)★\npython3 state/merge.py                 # rc=0\npython3 state/gate_check.py            # rc=0, 【Q1】必须 18/18\ngrep -rn '8p@0.5\\|8p @0.5\\|1×6@1.27\\|1×6 1.27' MECH/ | head -40\nmd5sum HW/netlist_v1.csv HW/PCB/demo_mainboard.kicad_pcb\n```\n★**md5 期望**: 网表 `c78f991283cc82d56c8e3dd31657c785` · 板 `611b869e13518c3c023fb178f91a0075`\n  ⇒ ★**两者必须一字未变** ★\n★**`grep` 的期望**: ★**允许剩下【历史沿革】与【已作废注记】里的提及, 但不许有【当前口径断言】里的\n  8p / 1×6@1.27 ⇒ 逐行看, 说不清哪一行属于哪一类 = 没做完** ★\n\n★**交卷 (≤10 行)**: ① 逐条列出 6 个「要改」改了哪些处 (改前 → 改后) ② `hinge_usb_check.py` 改前/改后两套\n  输出 ③ 两个脚本的汇总 (PASS/FAIL/条件 各多少) ④ md5 未变实测 ⑤ 裁 6 你最后改没改 (依据是什么)\n  ⑥ 裁 7 / 裁 8 你怎么处理的 + 还剩哪些 need ★\n\n★**边界 (不许越)**\n· ★**只写**: `MECH/hinge_usb_check.py` (★只许动第 77 行 `RECOMMENDED_PINS[\"J_CHG\"]` + 它的注释★) ·\n  `MECH/USB_HINGE_STRUCTURE.md` (★只许动 J_CHG 相关的 pin 口径 + §3.2b/§5.3 C-4/§7/§9 的堆叠数★) ·\n  `MECH/FPC_FAB_NOTES.md` (★只许动 N-6/I-5★) · `MECH/RELIABILITY_TEST_PLAN.md` (★只许动\n  R10/§T-14/K-11/K-12★) · `MECH/STRUCT_REVIEW_ISS065.md` (★只许动 R3★) ·\n  `MECH/SERVICE_PORT_ISS092.md` (★只许动 §1.6.2 + §5.1 表 V PCB 段★) · `MECH/service_port_check.py`\n  (★只许动 `pcb_thk` + 加一行基准作废注记★) · ★**只许新增/改写** 本分片 `state/fragments/mech.yaml` 里\n  ★**裁 6 那两条 claim** 与 ★**本单相关的 need/artifact 条目** (走 `state/frag_write.py`·**不许删改别人的 key**★) ·\n  `HANDOFF/` 交卷报告\n· ★**不许碰**: `HW/**` (★那是 hw-lead 的地界★) · `state/gen_*.py` · `state/issue_log.yaml`\n  (★**改 issue 状态是 main 的活**★) · `PROJECT_TRACKER.md` §0 · **别人的分片**\n  (★`state/fragments/{hw,sw,pm}.yaml` 一律不许写★) · `MECH/print/**` · `MECH/BOARD_GEOM_30MM.md`\n  (★现行几何真源, 只读★)\n· ★**不许发任何邮件 / 询价 / 问询 (★老板 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ⇒ 所有资料一律\n  【自己网上查】+ 标证据等级 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` ⇒ ★**查不到就写 `[0数据]` +\n  已知缺口 + 降级方案 ⇒ 没有「批一句可以发」这个选项** ★\n· ★**不许改判据阈值 (★`judge/CRIT 0.60` / `cav_v 38.00` / `duct_v 6.00` 一律不动★) ⇒ 放宽判据 = 负收益 ★\n\n★**★最后一条纪律 (★今天学的, 别踩★)★**: ★**「改完还是 FAIL」不许靠调阈值变绿** ⇒ ★**本单的\nPASS/FAIL 分布只允许因为【真源变了 (8p→10p / 板厚 0.80→1.00 / 板宽 15→30)】而变, 不许因为【判据松了】\n而变** ⇒ ★**交卷时要写清每个数字变化属于哪一类** ★",
+        "dispatched_at": "",
+        "fixed_at": ""
+      }
+    }
+  ],
+  "approvals": [],
+  "decisions": [
+    {
+      "key": "q3_storage_and_audio",
+      "item": "Q3 模型/rootfs 怎么存(只ADB push是否接受外挂 SPI-NOR 16-64MB, 板宽12->15mm) + 音频到底做不做(tracker全文无音频条目, 我不",
+      "due": "2026-10-27",
+      "days_left": -19,
+      "urgency": "已逾期",
+      "_from": "hw.yaml"
+    },
+    {
+      "key": "rel_drop_target_level",
+      "item": "跌落目标等级未拍板: 本文按 1.0m 自由跌落 x (6面各1次+4角各1次=10次/台) x 3台 假设. 消费1.0m/工业1.2m/军规1.5m 判据不同, 直接影响 R-",
+      "due": "2026-10-29",
+      "days_left": -17,
+      "urgency": "已逾期",
+      "_from": "hw.yaml"
+    },
+    {
+      "key": "iss067_decide_lowbat_insert",
+      "item": "ISS-067 待老板裁决: UVP 抬到 3.35V (方案A') + 充电板 VSYS=NC (PM 10-26 裁决) => 电池低于 3.35V 时 3.3V 轨起不来, ",
+      "due": "2026-10-31",
+      "days_left": -15,
+      "urgency": "已逾期",
+      "_from": "hw.yaml"
+    },
+    {
+      "key": "iss121_audio_scope",
+      "item": "ISS-121 U-5 (经项目总工): **音频要不要做** —— 麦至今 [0数据] (型号未选型; HW/HARDWARE_BREAKDOWN N7 'tracker全文未提",
+      "due": "2026-11-04",
+      "days_left": -11,
+      "urgency": "已逾期",
+      "_from": "hw.yaml"
+    },
+    {
+      "key": "iss105_rilim_decision",
+      "item": "★ISS-105 衍生 (本周新发现, 请老板拍板): R_ILIM 390Ω 档的**充电电流换算方向反了** —— buck 降压 ICHG=η·Vbus/Vbat·IIN=*",
+      "due": "2026-11-03",
+      "days_left": -12,
+      "urgency": "已逾期",
+      "_from": "hw.yaml"
+    },
+    {
+      "key": "iss079_phip_manual_fetch",
+      "item": "ISS-079 遗留 (需人工一步): 酷芯微**港交所申请版本招股书 (PHIP) 直链检索不到** —— hkexnews 的 AP&PHIP 入口 (www1.hkexnew",
+      "due": "2026-11-05",
+      "days_left": -10,
+      "urgency": "已逾期",
+      "_from": "hw.yaml"
+    },
+    {
+      "key": "boss_local_print_measure",
+      "item": "本机物理上无法打印/量测 (打印机 192.168.1.68 与本机 192.168.2.4/24 不同网段不可达: ping 无响应 + TCP 990/8883/6000/40",
+      "due": "2026-10-28",
+      "days_left": -18,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "reva_cell_thickness_tol",
+      "item": "电芯厚度公差要写进采购要求: ≤±0.10 (Renata ICP582035PR-01 现按 4.60±0.15 算)。理由: 解 A 的 0.40 硅胶压垫在名义状态已被压 0",
+      "due": "2026-10-28",
+      "days_left": -18,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "mech_reltest_kit_site",
+      "item": "可靠性测试的场地与工装预算: 本机物理上无法做任何实测 (无量具/无打印机/无恒温箱/无老化箱/无振动台/无X-ray, 见 measurements.yaml M-PRINT 实",
+      "due": "2026-10-30",
+      "days_left": -16,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "mech_reltest_usb_mon_kit",
+      "item": "ISS-085 T-13 监测设备 (与 mech_reltest_kit_site 同一笔预算, 不重复申请): 跨铰链 USB 链路连续性是挂测式, 不占额外样机, 但要这几样",
+      "due": "2026-10-30",
+      "days_left": -16,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "iss091_rilim_decision",
+      "item": "R_ILIM 档位裁决: 我建议 300->470Ω (换料不换板, 皮肤 47.1C->39.9C, 充电 22->35min)。300Ω 档在'边戴边充'下贴皮肤侧 47.1C",
+      "due": "2026-10-30",
+      "days_left": -16,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "iss091_worn_while_charging",
+      "item": "'边戴边充'产品行为是否保留: 这直接等价于 'R_ILIM <= 470Ω' (因为充电发热主项是电芯内阻 I^2R 而非铰链段, 电芯 3M背胶直接贴镜脚皮肤侧, 300Ω档 ",
+      "due": "2026-10-30",
+      "days_left": -16,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "iss100_board_length",
+      "item": "板长 50 还是 60 (板宽 15 已由老板拍板)? 我建议 60: 60x15=900mm² → 双面贴面积缺口 310→10mm² 基本闭合, 长度余量 24.50→14.5",
+      "due": "2026-10-30",
+      "days_left": -16,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "iss099_poka_yoke_decision",
+      "item": "J_CHG 的机械防呆是否升级为硬判据? ISS-085 F-6: 反插 = BAT_CHG 短接 GND = 充电板 MOS 直通 + 电芯侧短路风险。FH12 只有 'pola",
+      "due": "2026-10-30",
+      "days_left": -16,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "iss099_rilim_300_dead",
+      "item": "R_ILIM 300Ω 建议正式判死: 单 pin 0.534A > 0.5mm pitch FPC ZIF 的额定天花板 0.5A (FH12/Amphenol 0.5A, GC",
+      "due": "2026-10-30",
+      "days_left": -16,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "proto_wear_criteria",
+      "item": "ISS-027 P-4: **B4 佩戴体验的可测项定义** (夹持力 / 配重分布 / 鼻梁压感, 各测什么、判据多少、用什么器具). 现状: 这三项全标 [0数据] **且没有",
+      "due": "2026-11-05",
+      "days_left": -10,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "proto_b4_reliability_kit",
+      "item": "ISS-027 附带: B4 整机装配当天要做 **T-14 无损段** (弯折区结构审查 + **J_CHG 反插 20 次**) 与 **T-13 挂测位就位**, 两者都需要",
+      "due": "2026-11-05",
+      "days_left": -10,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "iss017_local_print_measure_unblock",
+      "item": "ISS-017 实物实测 0 件的解锁条件 (本机物理上做不到, 证据 MECH/print/ENV_PROBE_20261101.md): 打印机 192.168.1.68 与本",
+      "due": "2026-11-08",
+      "days_left": -7,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "mech_mat_skin_coating_decision",
+      "item": "ISS-024 皮肤侧PU封闭涂层是否列为必须工序 + 整机是否要做 ISO 10993 生物相容性评价(贴肤消耗品) + 增加的工序/周期/成本。经项目总工走老板。我的假设: 按",
+      "due": "2026-11-10",
+      "days_left": -5,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "mech_mat_sweat_test_spec",
+      "item": "ISS-024 T-05~T-08 材料试样送检执行方: R6-1(PA6-CF无涂层) + R6-2(PA6-CF+PU封闭涂层) + R6-3(VMQ-A50硅胶垫0.2mm)",
+      "due": "2026-11-08",
+      "days_left": -7,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "mech_mat_nose_pad_criteria",
+      "item": "ISS-024 鼻托压力/镜腿压力分布/佩戴稳定/可佩戴时长 4 项判据 (ISS-038 已划给 mech-lead, 但本单只交材料, 压力侧无判据)。经项目总工走老板。我的假",
+      "due": "2026-11-12",
+      "days_left": -3,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "mech_dfm_draft_texture",
+      "item": "ISS-025 镜腿皮肤侧(贴肤, 面积最大)是否接受皮纹面/喷砂面(而非光面), 经项目总工走老板。接受 => 脱模斜度可放宽到0.5deg (深腔截面差1.327=>0.663",
+      "due": "2026-11-10",
+      "days_left": -5,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "iss047_margin_criterion_decision",
+      "item": "ISS-047 卡点1 (需 PM/老板一句话): 俯角余量口径取 **B' 有效余量>=4deg** (推荐, 含边框遮挡1.91deg ⇒ 俯角<=25.89deg, h_ma",
+      "due": "2026-11-05",
+      "days_left": -10,
+      "urgency": "已逾期",
+      "_from": "mech.yaml"
+    },
+    {
+      "key": "test_equipment_budget",
+      "item": "★**2026-11-04 19:10 老板指示后重写 (19:18 订正: 老板并未买 RK3572 主板)**: **不许再提采购 RK3572 主板/开发板** ⇒ ★**本",
+      "due": "2026-10-26",
+      "days_left": -20,
+      "urgency": "已逾期",
+      "_from": "pm.yaml"
+    },
+    {
+      "key": "soc_cost_criterion",
+      "item": "★**按老板 10-29 自己定的『总分 = 唯一排序依据』, RK3572 (60 分) 低于 RK3576 (74 分) 14 分, 在 13 款里排第 9** ⇒ 所以选它的",
+      "due": null,
+      "days_left": null,
+      "urgency": "",
+      "_from": "pm.yaml"
+    },
+    {
+      "key": "board_p41_promote",
+      "item": "★**官方板是否换成 `candidate_official_p41`** (md5 d0f3d75f) ⇒ ★官方板血脉【只加不删】增量: unc 45→41 条 / 43→39",
+      "due": null,
+      "days_left": null,
+      "urgency": "",
+      "_from": "pm.yaml"
+    },
+    {
+      "key": "self_research_policy_202612",
+      "item": "★★【老板 2026-11-12 02:02 新口径】**不再发信, 全靠自己查资料** ★★\n★**替代 19:31 那条「不再做任何邮件咨询」** ⇒ ★**19:31 只说了",
+      "due": "2026-11-14",
+      "days_left": -1,
+      "urgency": "已逾期",
+      "_from": "pm.yaml"
+    },
+    {
+      "key": "fw_q3_scope",
+      "item": "Q3 (不联网怎么更新模型) 的答案 — 本方案假设'只允许 ADB push'(与锁死#11不冲突, Type-C已有) -> Q3至今⬜待答; 若答'必须无线' 则本方案'无O",
+      "due": "2026-10-28",
+      "days_left": -18,
+      "urgency": "已逾期",
+      "_from": "sw.yaml"
+    },
+    {
+      "key": "fw_sample_ota",
+      "item": "样机阶段是否允许保留'USB 侧 OTA 代理'(PC 上跑 agent, 通过 ADB 下发脚本做升级) — 这不是无线, 不违反锁死#11 -> 允许则 L1 回滚可半自动; ",
+      "due": "2026-10-29",
+      "days_left": -17,
+      "urgency": "已逾期",
+      "_from": "sw.yaml"
+    },
+    {
+      "key": "model_license_agpl_ultralytics",
+      "item": "★ISS-087 已给完整采购/法务路径与成本区间 (SW/MODEL_LICENSE.md §3): 官方无公开价 [0数据], 报价制 [官方·定性]; 立项预算量级 10^4",
+      "due": "2026-10-29",
+      "days_left": -17,
+      "urgency": "已逾期",
+      "_from": "sw.yaml"
+    },
+    {
+      "key": "model_license_stack_decision",
+      "item": "★ISS-087 请项目总工并进老板拍板 (不采购路线的可执行起点): ① 交付集主模型改用 Apache-2.0 栈 (首选 YOLOX-s: 80 类 + 许可干净 + Roc",
+      "due": "2026-10-29",
+      "days_left": -17,
+      "urgency": "已逾期",
+      "_from": "sw.yaml"
+    },
+    {
+      "key": "model_yolox_weight_download",
+      "item": "ISS-087 换栈路线的唯一阻塞: YOLOX-s 官方权重 (Apache-2.0) 在本机下载卡在 3.48MB 停滞 (github.com/Megvii-BaseDete",
+      "due": "2026-10-29",
+      "days_left": -17,
+      "urgency": "已逾期",
+      "_from": "sw.yaml"
+    },
+    {
+      "key": "s2_product_codename",
+      "item": "★ISS-123: 眼镜**产品代号**是否随『ARS45/AR9481/酷芯微 作废』(老板 10-29 19:20) 一起改名? —— 现状: 版本串前缀 `ARS45-SW ",
+      "due": "2026-11-08",
+      "days_left": -7,
+      "urgency": "已逾期",
+      "_from": "sw.yaml"
+    },
+    {
+      "key": "s2_version_block_magic_decision",
+      "item": "★ISS-123: 版本块 magic 的**最终取值**待裁决 —— 现状已从代码写死 b'AR45' 抽成可配置 (`identity.version_block_magic`",
+      "due": "2026-11-08",
+      "days_left": -7,
+      "urgency": "已逾期",
+      "_from": "sw.yaml"
+    },
+    {
+      "key": "demo_od_model_route_m1_vs_m2",
+      "item": "★待裁决: demo 阶段模型路线 M1(直接用 A7S 的 yolov5s@640 INT8, 零转换, 但 RK3572 推算 模式A 62.67~64.18ms 超 60ms",
+      "due": "2026-11-04",
+      "days_left": -11,
+      "urgency": "已逾期",
+      "_from": "sw.yaml"
+    },
+    {
+      "key": "demo_od_path_a_vs_b",
+      "item": "★待裁决: 路径A(AR0234CS 单线, 驱动移植 5~8 人天 + ISP tuning 自写 5~10 人天, 因 rkaiq 公开 iqfiles 无 ar0234) v",
+      "due": "2026-11-04",
+      "days_left": -11,
+      "urgency": "已逾期",
+      "_from": "sw.yaml"
+    }
+  ],
+  "waiting": [],
+  "applied": []
+}

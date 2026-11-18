@@ -1,0 +1,66 @@
+=== [09-1] 交付页 三代读数 (登记 / 我复验时 / 现在) ===
+-- 登记值 (issue_log ISS-131 note) --
+4840:  fix_ref: HW/RK3572_INQUIRY_CALIBER_V2.md (§5 追加式订正) · state/_iss131_crosscheck_rk3572_caliber.py
+4843:    ⇒ 交付页 HW/RK3572_INQUIRY_CALIBER_V2.md append-only 收窄 (★老字一字未删·§1.2 加箭头注记·末尾追加 §5 订正节·备份 .bak_20261118_0410_overclaim_narrow★) ⇒ ★**「多摄像头方案在 RK3572 上不成立」收窄为「实时 ISP 处理路数 = 1 (多路需 VICAP 虚拟通道 + 降
+4850:    \ · cron 775d9893 · 项目总工 (main) 自办完 (★老板 2026-11-12 02:02「不再发信, 全靠自己查资料」口径★)** ★\n⇒ ★**本单不是「等回信」的单, 是「自查口径」的单 ⇒ 已用项目内【官方 datasheet】自查完** ★\n⇒ ★**交付物 2 件**:\n  ① `HW/RK3572_INQUIRY_CALIBER_V2.
+-- 我复验时 (8,863 B 版 = main 改前备份) --
+8863 B  2026-11-18 01:33:12.322251493 +0800  HW/RK3572_INQUIRY_CALIBER_V2.md.bak_20261118_0410_overclaim_narrow
+2574738152eca6cc50675c58aeac641e  HW/RK3572_INQUIRY_CALIBER_V2.md.bak_20261118_0410_overclaim_narrow
+-- 现在 (main 追加 §5 后) --
+14860 B  2026-11-18 03:41:54.229883370 +0800  HW/RK3572_INQUIRY_CALIBER_V2.md
+60483e81eedb283a55d914edcdcfcde8  HW/RK3572_INQUIRY_CALIBER_V2.md
+-- diff 摘要 (改前备份 vs 现版) --
+51
+   ↑ 改动行数 (删除 3 行 + 新增 48 行 ⇒ append-only + 3 处指向注记 + 1 处措辞订正)
+
+=== [09-2] 交付页现版: B5-2 (判据非排他) 有没有补口径说明? ===
+grep rc=1 (1=零命中 ⇒ 未补口径说明)
+
+=== [09-3] 宽版 over-claim 原文 在盘上还剩几处 (排除 .trash/.bak/issue_log/frag/handoff) ===
+./config/agents/main/memory/2026-11-18.md:90:★ISS-305 判 ISS-131 交付页 §1.2 的「多摄像头方案在 RK3572 上不成立」= severity=high ⇒ ★**理由: 它将来会变成 demo 选型硬判据 ⇒ 会拿它去筛掉本来可行的多摄方案** ★
+./HW/RK3572_INQUIRY_CALIBER_V2.md:64:★**ISP 是 `One channel` ⇒ 同一时刻只有 1 路传感器能进 ISP** ⇒ ★**多摄像头方案在 RK3572 上不成立（无论 CSI 物理上有几个口）** ⇒ ⇒ **这一条要写进 demo 选型硬判据**（ISS-156 的 camera 模组选型：只能 1 路）。 [官方 + 推算]
+./HW/RK3572_INQUIRY_CALIBER_V2.md:66:> ★★★【★★**本条已被 §5 收窄 —— 上句「多摄像头方案在 RK3572 上不成立」是比官方字面更宽的推算, ISS-305 (hw-lead 独立复验) 判 severity=high: 它将来会变成 demo 选型硬判据 ⇒ 会拿它去筛掉本来可行的多摄方案★★ ⇒ ★**官方字面只说「ISP 处理核 = 1 路 (One channel ISP) /
+./HW/RK3572_INQUIRY_CALIBER_V2.md:142:| ★**老字 (§1.2 L64)** ★ | ★**「ISP 是 `One channel` ⇒ 同一时刻只有 1 路传感器能进 ISP ⇒ 多摄像头方案在 RK3572 上不成立（无论 CSI 物理上有几个口）⇒ 这一条要写进 demo 选型硬判据（ISS-156 的 camera 模组选型：只能 1 路）」** ★ `[官方 + 推算]` |
+./HW/RK3572_INQUIRY_CALIBER_V2.md:152:| ★**不能说 (★[0数据]★)** ★ | ★**「多摄像头方案在 RK3572 上不成立」/「只能 1 路」⇒ 官方没写 ⇒ 不许当硬判据用★** ⇒ ★**ISS-156 的 camera 模组选型【不许】拿它去筛掉本来可行的多摄方案★** |
+./DECISION_PENDING_2026-11-16.md:1573:★**RK3572 的 ISP 是 `One channel` (★官方 datasheet Rev 1.1 §1.2.8 逐字★) ⇒ ★同一时刻只有 1 路传感器能进 ISP ⇒ ★多摄像头方案在 RK3572 上不成立 (无论 CSI 物理上有几个口) ★**
+
+=== [09-4] 交付页 §5-3 声称的两处下游订正 (DECISION_INDEX §D / DECISION_PENDING §A-补29) 实况 ===
+-- DECISION_PENDING_2026-11-16.md §A-补29 起 (L1603..EOF) 命中 ISP/多摄/收窄 的行数 --
+0
+   ↑ 0 ⇒ §A-补29 是 ESD 节, 没有 ISP 收窄内容
+-- DECISION_INDEX_2026-11-18.md §D 起 (L89..EOF) 命中 ISP/多摄/One channel 的行数 --
+0
+   ↑ 0 ⇒ §D 是 ESD 节, 没有 ISP 收窄内容
+-- DECISION_PENDING_2026-11-16.md L1573 (★§A-补28 里那条老字★) 原文 --
+★**RK3572 的 ISP 是 `One channel` (★官方 datasheet Rev 1.1 §1.2.8 逐字★) ⇒ ★同一时刻只有 1 路传感器能进 ISP ⇒ ★多摄像头方案在 RK3572 上不成立 (无论 CSI 物理上有几个口) ★**
+-- TASK_BOARD.md 是否已记收窄 --
+178:>   · ★**② ISS-131 交付页的 over-claim (★ISS-305 判 severity=high·理由: 它将来会变成 demo 选型硬判据 ⇒ 会拿它去筛掉本来可行的多摄方案★)** ⇒ ★**已收窄为「实时 ISP 处理路数 = 1 (多路需 VICAP 虚拟通道 + 降帧时分)」;
+
+=== [09-5] main 的 ISS-131 verify_result 说 n1/n2「另开单」⇒ 台账里有没有对应单? ===
+19130:  fix_ref: 'HANDOFF/2026-11-18_hw-lead_ISS305_独立复验ISS131.md (43,228 B) · state/_iss305_ball_truth_parser.py (★新真判别式: ball→pin 名集合·归属 11/11 + 排他 11/11★) · state/_iss131_crosscheck_rk3572_caliber.
+19554:  verify_note: '★**main 2026-11-18 03:0x 独立复验 (★自己实跑, 不抄交卷报告★)**: ★**① 自证脚本全绿**: `state/_iss305_ball_truth_parser.py` **rc=0** (★新写的真判别式: ball→pin 名集合重判, 归属 11/11 + 排他 11/11★) · `state/_iss131_c
+grep rc=0 (1=零命中 ⇒ 台账里没有对应的新单)
+
+=== [09-6] B5-7 (字节数登记过期) 修没修? ===
+-- issue_log ISS-131 note 里 交付页 字节数 --
+19136:    rc=0 + 板/网表 md5+mtime 双证** ★ ⇒ ★**待复验物 3 件**: ① `HW/RK3572_INQUIRY_CALIBER_V2.md` (6,007 B) ② `state/_iss131_crosscheck_rk3572_caliber.py` (★**它是本单要复验
+19175:    | ① | 交付页 | `HW/RK3572_INQUIRY_CALIBER_V2.md` | 6,007 B · ★**真判据 `grep -cE "🔄 待填"` = 0** ★ |
+19136:    rc=0 + 板/网表 md5+mtime 双证** ★ ⇒ ★**待复验物 3 件**: ① `HW/RK3572_INQUIRY_CALIBER_V2.md` (6,007 B) ② `state/_iss131_crosscheck_rk3572_caliber.py` (★**它是本单要复验
+19175:    | ① | 交付页 | `HW/RK3572_INQUIRY_CALIBER_V2.md` | 6,007 B · ★**真判据 `grep -cE "🔄 待填"` = 0** ★ |
+19383:    1. ★**交付页实测 8,863 B** (★任务书原文写的 6,007 B 已过期 ⇒ 交付页在任务书之后被扩写过一次 ⇒ ★**不是缺陷, 但交卷单里要如实写「交付时读数 = 8,863 B」**★) ★
+-- DECISION_PENDING 里 ISS-131 行的字节数 --
+(6,007 B)
+
+=== [09-7] 交付页现版 F 判据复检: 全篇 [实测] / 实测 逐行 ===
+29:★**脚本只读·零写板**：读 `HW/netlist_v1.csv` + `HW/PCB/FET3572C_PIN_TABLE.csv` + `HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.txt` ⇒ ★**板 md5 / 网表 md5 / 脚表 md5 / BOM md5 一个字节都不动**（★**本机校验 (md5 逐字节比对) 一致**★ · 
+89:- ★⇒ **降级方案（不许拿经验值冒充实测）**：
+91:  2. ★**板端实测**（★ISS-210 已把 60ms 判据链 + ISP 段打点备好 ⇒ 板那一趟一到就能判★）
+100:| ISP MP/s 吞吐上限 + 动态功耗曲线 | 瑞芯微/RK3576 模组厂 | ★**RK3572 口径**（12M 单通道 ISP · 4096×3072 上限） | ★**MP/s = [0数据]** ⇒ TRM 或板端实测（ISS-210）★ |
+101:| ISP 动态功耗 vs 吞吐曲线 | 同上 | ★同左 | ★**[0数据]** ⇒ 同上；★与 ISS-130（670mW vs 43°C 红线）同源 ⇒ **必须在同一次实测里同时判** ★ |
+110:1. ★**实物 [实测] = 0 条**（★本机无板·无量具★）—— 本单全部结论来自 **官方 datasheet Rev 1.1（项目内留存 PDF + txt）** + **项目内 `FET3572C_PIN_TABLE.csv`** + **本机网表**。
+111:2. ★**MP/s 吞吐 = [0数据]** —— 本单**没有**解决它，只把它准确地标成「官方没给 · 只能 TRM 或实测」，并指到 ISS-210。
+-- 命中行数 --
+7
+-- 真·证据等级标签 [实测] 出现处 (应只有: L29 订正注记 + L110 零声明) --
+29:★**脚本只读·零写板**：读 `HW/netlist_v1.csv` + `HW/PCB/FET3572C_PIN_TABLE.csv` + `HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.txt` ⇒ ★**板 md5 / 网表 md5 / 脚表 md5 / BOM md
+110:1. ★**实物 [实测] = 0 条**（★本机无板·无量具★）—— 本单全部结论来自 **官方 datasheet Rev 1.1（项目内留存 PDF + txt）** + **项目内 `FET3572C_PIN_TABLE.csv`** + **本机网表**。

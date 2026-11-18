@@ -1,0 +1,176 @@
+=== ISS263 GATE start 2026-11-17T05:21:20+08:00 ===
+
+########## G1: python3 SW/tools/check_demo_panel_spec.py ##########
+✅ ISS-212 demo 显示侧口径门禁: 全过
+   R1 demo 屏规格真源 (480×640 / 2-lane / 无 DCS / I2C_B ≤100kHz + 附属必填项) ✅
+   R2 demo 规格里整机口径只在「整机路线占位区」内 ✅
+   R3 pipeline spec 的 demo 活动口径已重锚 ✅
+   R4 整机路线占位仍在且带「整机路线·暂缓」 ✅
+   R5 逐处定性表 (22 + 16 = 38 处) 完整 ✅
+   R6 受保护真源三方对账 (锚点 ↔ 落表台账 ↔ 盘上真源) 一致 ✅
+   R7 已修复 (留痕) 在场 (ISS-220 落表锚点过期, 不是红灯被调没) ✅
+G1_RC=0
+
+########## G2: python3 SW/tools/timing_check.py ##########
+  [PASS] REV-3 反向: 从网表里删掉 U_PWR_SW ⇒ 装机开关数必须从 2 掉到 1 (★不是 0★ · 断电主开关没了)
+  [PASS] REV-3c 反向: 把 U_EN_SW 的**器件本体行**删掉 (只留引脚行) ⇒ F8『不许漏掉任何一颗负载开关』必须变红
+  [PASS] REV-3b 反向: 把 U_PWR_SW 与 U_EN_SW 都删掉 ⇒ F8『硬件断电通路存在』必须变红
+  [PASS] REV-4 反向: 把 R_PU_RESET_N 改成 20k ⇒ 复位释放 tau 必须变成 2.1ms
+  [PASS] REV-5 反向: 把 C_RST 改成 10nF ⇒ 复位释放 tau 必须变成 0.11ms
+  [PASS] REV-6 反向: 把 R_PU_I2CB_SCL 改成 1k ⇒ I2C_B 必须变成最差总线之外的合格总线 (t_r 掉到 85ns)
+  [PASS] REV-7 反向: 把 PG_AND 上的 NET_PG_AND 汇总行改成 DNP ⇒ PG 源判据必须变红 (★锁死'别再拿错行的 dnp'★)
+  [PASS] REV-8 反向: 把 PG_AND 上 Q_AND 那行改成 DNP ⇒ 栅极接在 PG_AND 上的 Q_AND 判据必须变红
+  [PASS] REV-9 反向: 把 PG_AND 上 R_PG_PULL 那行改成 DNP ⇒ 10k 上拉判据必须变红
+  [PASS] REV-10 反向: 把 PG_AND 网上**任意一行**改成 DNP ⇒ 对应判据必须变红 (逐行试, 不跳行)
+  [PASS] ISP 模式A 生死线 = 15.10 ms (ISS-124 发布值, 不许调松)
+  [PASS] ISP 模式B 上限 = 17.33 ms (ISS-124 发布值)
+  [PASS] ISP 精确反解线 = 15.095 ms (json 口径, 与发布线差 0.005 ms)
+  [PASS] ISP 现占位 8.00 ms 的余量 = +7.09 ms (精确 7.095) / +9.33 ms
+  [PASS] 模型复现: X=8.00 ms 时模式A e2e = 52.91 ms (与 HW/e2e_budget_rk3572.py 同源)
+  [PASS] ★反向: ISP avg = 15.11 ms ⇒ 必须 FAIL (超 15.10 必被抓) 且给出差值
+  [PASS] ISP avg = 15.10 ms ⇒ PASS (恰好在生死线上)
+  [PASS] ISP avg = 8.00 ms (现占位) ⇒ PASS + 余量 +7.09 ms
+  [PASS] ★反向: 无实测输入 ⇒ INDET + [0数据] (不许假装测过)
+  [PASS] ★反向: 只报 SDK 总耗时、缺纯硬件耗时 ⇒ 不许静默 PASS (⇒ INDET + 理由)
+  [PASS] ★反向: 采样帧数 n=120 < 300 ⇒ 不作结论 (INDET)
+  [PASS] ISP p95 = 18.00 ms ⇒ 模式B 上限 (17.33) FAIL
+  [PASS] T2 交叉核对: 纯 NPU 21.00 ms ⇒ 命中老板翻案条款 (20.33 ms)
+
+SELFTEST 71/71 通过, rc=0
+G2_RC=0
+
+########## G3: state/merge.py && state/gate_check.py ##########
+✅ STATE.yaml 已刷新 (2026-11-17T05:21:24+08:00)
+   产出 447 | 阻塞 43 (高危 33) | 未闭合需求 254 | 冲突 0 | 健康度 red
+G3_MERGE_RC=0
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 79 条 | **全局 70 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 254 条**
+   ✅ 与 merge.py 自对账一致 (等外部 70 / 等总工 254)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 11 个
+      q1_latency_scope: 发起方 ['main', 'sw-lead']
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q17_display_fps: 发起方 ['main', 'sw-lead']
+      q18_highspeed_cam: 发起方 ['main', 'sw-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+
+【Q5 硬指标覆盖】 1/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    5/5 类: ['功耗(W)', '皮肤温度(°C)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)', 'FCCSP 球间距(pitch)']
+   sw-lead    1/5 类: ['端到端延迟(ms)']
+   mech-lead  0/5 类: []
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 99 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 61 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 89 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+G3_GATE_RC=0
+
+########## G4: 受保护 5 件 md5 (交卷后) ##########
+e06c1dd633566aa44732762c2ff99d1c  HW/netlist_v1.csv
+287e7861a0d1007748d92d9fbecdd490  HW/netlist_v1_pins.csv
+94642d07a69e8d60dd2af57f69b93607  HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+
+########## G5: toolkit2 旧环境 rknn env pip list (交卷后 · 不许变) ##########
+Package                Version
+---------------------- ----------
+coloredlogs            15.0.1
+fast-histogram         0.14
+filelock               4.1.0
+flatbuffers            25.12.19
+fsspec                 2026.9.0
+humanfriendly          10.0
+Jinja2                 3.1.6
+markdown-it-py         4.2.0
+MarkupSafe             3.0.4
+mdurl                  0.1.2
+mpmath                 1.3.0
+networkx               3.4.2
+numpy                  1.26.4
+onnx                   1.16.1
+onnxruntime            1.23.2
+onnxsim                0.7.3
+opencv-python-headless 4.11.0.86
+packaging              26.3
+pip                    26.2.2
+protobuf               4.25.4
+psutil                 7.2.2
+Pygments               2.21.0
+rich                   15.0.0
+rknn-toolkit2          2.3.2
+ruamel.yaml            0.19.1
+scipy                  1.15.3
+setuptools             80.10.2
+sympy                  1.14.0
+torch                  2.4.0+cpu
+torchvision            0.19.0+cpu
+tqdm                   4.70.1
+typing_extensions      4.16.0
+wheel                  0.48.0
+
+########## G6: rknn3 新环境 pip list (交卷后) ##########
+Package           Version
+----------------- ---------
+anyio             4.16.0
+click             8.5.1
+coloredlogs       15.0.1
+datasets          5.2.0
+dill              0.4.1
+exceptiongroup    1.3.1
+fast-histogram    0.14
+filelock          4.1.0
+flatbuffers       25.12.19
+fsspec            2026.9.0
+h11               0.16.0
+hf-xet            1.8.0
+httpcore2         2.14.0
+httpx2            2.14.0
+huggingface_hub   2.4.0
+humanfriendly     10.0
+idna              3.20
+Jinja2            3.1.6
+MarkupSafe        3.0.3
+ml_dtypes         0.7.0
+mpmath            1.3.0
+multiprocess      0.70.19
+networkx          3.4.2
+numpy             2.2.6
+onnx              1.23.2
+onnxruntime       1.23.2
+opencv-python     5.0.0.93
+packaging         26.3
+pandas            2.3.3
+pillow            12.3.0
+pip               26.3
+prettytable       3.18.0
+protobuf          6.33.6
+psutil            7.2.2
+pyarrow           25.0.1
+python-dateutil   3.0.0
+pytz              2026.6
+PyYAML            6.0.3
+rknn3-toolkit     1.2.0
+ruamel.yaml       0.19.1
+safetensors       0.8.0
+scipy             1.15.3
+sentencepiece     0.2.3
+setuptools        84.2.1
+six               1.17.0
+sympy             1.14.0
+tabulate          0.10.0
+tomli             2.5.0
+torch             2.4.0+cpu
+tqdm              4.70.1
+truststore        0.10.5
+typing_extensions 4.16.0
+tzdata            2026.6
+wcwidth           0.9.4
+wheel             0.48.0
+xxhash            4.1.0
+=== ISS263 GATE end 2026-11-17T05:21:34+08:00 ===

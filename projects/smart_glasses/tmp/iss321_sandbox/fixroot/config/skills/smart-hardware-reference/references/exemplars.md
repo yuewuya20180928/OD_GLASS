@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/config/skills/smart-hardware-reference/references/exemplars.md

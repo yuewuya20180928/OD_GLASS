@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/RK3572_PIN_TABLE/parse_rk3572_datasheet.py

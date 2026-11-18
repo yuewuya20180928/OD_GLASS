@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/RK3572_SOM_BALLTABLE_CROSSCHECK.md

@@ -1,0 +1,41 @@
+######## ISS-315 · sw-lead · 交卷前必跑 (§5 逐条) · 2026-11-18 08:0x ########
+### cwd=/home/yuewuya/.openclaw/workspace/projects/smart_glasses  TMPDIR=/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss315_tmp
+
+### ① python3 SW/tools/check_demo_panel_spec.py           → rc 必须 0
+rc=0
+### ② python3 SW/tools/check_demo_panel_spec.py --selftest → rc 必须 0 · 22/22
+--- SELFTEST 22/22 通过 ---
+rc=0
+### ③ python3 SW/tools/check_demo_panel_spec_r6_selftest.py → rc 必须 0 · 7/7  (ISS-309 基线·不许动)
+         (★ISS-309 need · 反向用例设计见交卷单 B3/B5★)
+rc=0
+### ④ python3 SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py → rc 必须 0 · 4/4 (ISS-312 基线·不许动)
+反向用例: 4/4 通过
+rc=0
+### ⑤ python3 SW/tools/check_onepass_sw_sync.py --selftest → rc 必须 0 · 16/16
+  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+rc=0
+### ⑥ python3 SW/tools/check_landing_trace_obligation.py → rc 必须 0 (本单新建·落表留痕义务闸)
+  ✅ rc=0: ★★每一条落表义务都在 issue_log 里留了【文件名 + 新 md5】★★
+rc=0
+### ⑥b python3 SW/tools/check_landing_trace_obligation.py --selftest → rc 必须 0 · 4/4
+✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+rc=0
+### ⑦ python3 SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py → rc 必须 0 · 4/4 (本单新建)
+反向用例: 4/4 通过
+rc=0
+### ⑧ python3 state/merge.py && python3 state/gate_check.py → rc 必须 0 · Q1 必须 18/18
+merge rc=0
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+gate_check rc=0
+### ⑨ python3 state/issue_check.py → rc 必须 0
+rc=0
+
+### ⑩ 零写板第二证 + md5 前后值
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+4d9c21dd0125b3b0e1a7e567852287b8  SW/tools/check_demo_panel_spec.py
+2cbb211b1106aac5f3a39a09fce54519  SW/tools/check_demo_panel_spec_r6_selftest.py
+4181202cdb8757e7a3680a6769406267  SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py
+2026-11-06 07:07:17.362193413 +0800

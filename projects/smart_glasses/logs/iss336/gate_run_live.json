@@ -1,0 +1,83 @@
+{
+  "gate": "check_board_frame_freeze_gate",
+  "iss": "ISS-336",
+  "root": "/home/yuewuya/.openclaw/workspace/projects/smart_glasses",
+  "mode": "L2-standing",
+  "subject": {
+    "frame_id": "F30A",
+    "frame_src": "service_port_check BASE['pcb_l'×'pcb_w'] = 60.0×30.0 ⇒ cal:FRAMES 尺寸反查",
+    "thk": 1.0,
+    "thk_src": "service_port_check BASE['pcb_thk']",
+    "layers": 6,
+    "layers_src": "cal:FRAMES[F30A].layers",
+    "hole_set": "套A",
+    "hole_src": "board_frame_feasibility.PIN_SET_A (PIN-SET-2 套 A)",
+    "origin": "L2 现行几何口径 (need 未闭合 ⇒ U-1 还没拍)"
+  },
+  "allowed_thk": [
+    0.8,
+    1.0
+  ],
+  "allowed_layers": [
+    4,
+    6,
+    8
+  ],
+  "current_frame": "B160x100",
+  "rows_n": 36,
+  "claim_src": "(无答案正文)",
+  "claim_closed_in_ledger": false,
+  "claim_closed_by_merge": false,
+  "criteria": [
+    {
+      "code": "C1",
+      "ok": true,
+      "title": "帧 id ∈ cal:FRAMES 三套之内 且非空",
+      "reason": "帧 id = `F30A` ∈ {B160x100, F30A, P60x15}",
+      "source": "service_port_check BASE['pcb_l'×'pcb_w'] = 60.0×30.0 ⇒ cal:FRAMES 尺寸反查"
+    },
+    {
+      "code": "C2",
+      "ok": true,
+      "title": "帧 id == cal:FRAMES.current_frame",
+      "reason": "★尚无 U-1 认领句 ⇒ 本条无对照文档 ⇒ 不判红 (ISS-316 §2-4 C2 的判红条件是以「认领句写 X 但 current_frame 仍是 Y」措辞写的; U-1 落表后本条立即生效)",
+      "source": "cal:FRAMES.current_frame = `B160x100`"
+    },
+    {
+      "code": "C3",
+      "ok": true,
+      "title": "板厚 ∈ 允许板厚集",
+      "reason": "板厚 = 1.00 mm ∈ {0.80, 1.00}",
+      "source": "service_port_check BASE['pcb_thk']"
+    },
+    {
+      "code": "C4",
+      "ok": true,
+      "title": "层数 ∈ 层数档集",
+      "reason": "层数 = 6 ∈ {4, 6, 8}",
+      "source": "cal:FRAMES[F30A].layers"
+    },
+    {
+      "code": "C5",
+      "ok": true,
+      "title": "孔位 = PIN-SET-2 套 A 四孔 且该帧上四孔全部成立",
+      "reason": "孔位口径 = PIN-SET-2 套 A; 该帧 (`F30A`) 四孔全部成立 (holes.all_fit == true)",
+      "source": "board_frame_feasibility.PIN_SET_A (PIN-SET-2 套 A)"
+    },
+    {
+      "code": "C6",
+      "ok": true,
+      "title": "(帧, 板厚, 层数) 组合在 36 档里 can_open == true",
+      "reason": "组合 (帧=F30A, 层=6, 板厚=1.00) can_open == true 且 red_reasons == []",
+      "source": "36 档矩阵 row['can_open']"
+    },
+    {
+      "code": "C7",
+      "ok": false,
+      "title": "need `proto_pcb_freeze_gate` 已闭合 且答案逐字含帧 id + 板厚 + 层数",
+      "reason": "need `proto_pcb_freeze_gate` 未闭合 (mech.yaml needs_closed 里零条 + pm.yaml answers 里零条 ⇒ 闸还没满足); 板框三选一 (B160x100 / F30A / P60x15) 仍待老板拍 ⇒ ★今天红 = U-1 还没拍, 正确★",
+      "source": "(无答案正文)"
+    }
+  ],
+  "rc": 2
+}

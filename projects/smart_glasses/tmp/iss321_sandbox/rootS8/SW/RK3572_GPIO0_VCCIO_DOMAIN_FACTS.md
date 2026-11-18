@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md

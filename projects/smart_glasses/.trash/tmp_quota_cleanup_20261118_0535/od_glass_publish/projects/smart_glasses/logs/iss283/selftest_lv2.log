@@ -1,0 +1,99 @@
+╔══ 落表器自测 (★--selftest★ · ★全在临时副本里做 · 真盘零写入★) ══╗
+★ 工程根: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+
+   ✅ 用例1 ★【回归·本轮实测坏案例】真源退回 ISS-257 之前的占位串 ⇒ V-2 必须红 (rc≠0) ★
+        rc=3
+        ★★ rc=3: ★**落表前校验不过 ⇒ 拒绝落 (★零写盘★)** ★
+           ★★【状态漂移】D_ESD_USB_D 的 2 行 value 不一致 ⇒ ★**期望: 同一颗器件的同一串 value** ⇒ ★**实际: ['ESD 阵列 [待选型]', 'ESD 阵列 [待选型] (USB 2.0 双通道)']** ⇒ 拒绝落 ★
+           ★★【型号轴未落】state/gen_netlist.py 里 D_ESD_USB_D 的 value 还是【占位 / 判据串】★★
+           ★**期望**: 一条真 OPN (★第一个 token 必须含数字, 例 `TPD1E05U06DPYR ...`★)
+           ★**实际**: 'ESD 阵列 [待选型] (USB 2.0 双通道)'
+           ★**⇒ 型号归【选型级 / 老板】(ISS-241 矩阵 · ISS-257 已落的那条就是本工具要保住的那条)★**
+           ★**⇒ 本工具【不】写判据串, 也不替你选型号 ⇒ 拒绝落 (★零写盘★)**★
+           ★★【状态漂移】D_ESD_USB_D 的网表 value 与 PARTS 字典的 OPN 不是同一颗器件 ⇒ ★**期望: 两边第一个 token 相同** ⇒ ★**实际: 网表 'ESD' / PARTS 'TPD1E05U06DPYR'** ⇒ 拒绝落 ★
+   ✅ 用例2 ★【已落过】信号行已在 Type-C 侧 ⇒ 必须红 (rc≠0) 且文案写【已落过】★
+        rc=3
+        ★★ rc=3: ★**落表前校验不过 ⇒ 拒绝落 (★零写盘★)** ★
+           ★★【已落过】D_ESD_USB_D 的信号行已经在 Type-C 侧了 ⇒ ★**期望: 还在 SoM 侧 (USB_D_N_SRC / USB_D_P_SRC)** ⇒ ★**实际: L1451 net = NET_USB_D_P_TYPEC** ⇒ ★**不要重复落 (★零写盘★)**★
+   ✅ 用例3 ★【状态漂移】真源少了一行 ⇒ 必须红 (rc≠0) 且文案写【状态漂移】★
+        rc=3
+        ★★ rc=3: ★**落表前校验不过 ⇒ 拒绝落 (★零写盘★)** ★
+           ★★【状态漂移】D_ESD_USB_D 在 state/gen_netlist.py 里的行数 / 网名不是已知形态 ⇒ ★**期望: 2 行 (1 信号 + 1 GND) 或 3 行 (2 信号 + 1 GND)** ⇒ ★**实际: 1 行 (GND 0 行 / 信号 1 行) ⇒ 行号 [1451]** ⇒ 拒绝落 ★
+   ✅ 用例4 ★ V-2=2 (只落网表侧 = 假绿) 必须打回 (rc≠0) ★
+        rc=2
+        ★★ rc=2: ★**V-2=2 必须打回** ★
+        ★★**V-2=2 (只落网表侧) 必须打回**★★ ⇒ ★**ISS-230 实测 (2026-11-16 06:2x, main 已核): V-2 网表侧全落完, `--expect-resolved` 仍是 7 条 ⇒ 一条都转不绿 = 假绿**★ ⇒ ★**不许当正路**★ ⇒ ★**要落 V-2 就必须写成【网表侧 + 板那一趟】两段 (V-2=1)★**
+        ★★ ★**零写盘** ★
+   ✅ 用例5 ★ 非法取值 V-2=E2 必须打回 (rc≠0) ★
+        rc=2
+        ★★ rc=2: ★**非法取值 V-2=E2** ⇒ 白名单里只有 {1, 2} ★
+           ★V-2★: V-2 ∈ {1, 2}  (1 = 网表侧+板侧两段走 · 2 = 只落网表侧 ⇒ ISS-230 实测是假绿 ⇒ 必须打回)
+        ★★ ★**零写盘** ★ (★本工具在解析阶段就退了, 一个字节都没碰★)
+   ✅ 用例6 ★ `--apply` 不带 `--boss-decision` 必须拒绝 (rc≠0) ★
+        rc=2
+        板那一趟本工具【不做】** (★`HW/PCB/demo_mainboard.kicad_pcb` 一个字节都不碰★) ⇒ ★**板侧 B-3 (换封装 / 改占位焊盘) / B-4 (挪到 J_USB_C 旁 ≤3.0mm) / B-5 (D− 补 ESD) 继续排队**★
+           ★ V-2=1: ★★**网名挪了 ⇒ 板上的 footprint 焊盘网名也必须同趟改** (★`D_ESD_USB_D` pad1: `USB_D_P_SRC` → `NET_USB_D_P_TYPEC`★) ⇒ ★**板那一趟漏改 ⇒ 网表与板对不上** ★
+        
+        ★★ rc=2: ★**`--apply` 必须带 `--boss-decision "<日期> <A1|A2|A3> = <值>"`** ★
+           ★**这是「不许替老板拍板」的机器化保证 ⇒ 缺这条就拒绝执行** ★
+        ★★ ★**零写盘** ★
+   ★★ 用例7 ★ V-3=E 与 V-4=680 的锚点必须仍然是【当前真源】 (各 rc=0) ★
+        V-3=E rc=3 / V-4=680 rc=0
+          ★★【状态漂移 or 已落过】★★ 补丁对不上: HW/NETLIST_SELF_CONSISTENCY_SPEC.md · 规格页 §2 表第 (2) 条 现状栏 ⇒ ★**旧串在真源里出现 0 次 (期望 1 次)** ⇒ ★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ 本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★
+         文件名 + 新 md5 + 旧 md5 ★** (★四项在 `HW/SCHEMATIC_LANDING_V1_LANDED.md` §16.2 里必须可查★)
+        
+        ✅ rc=0: ★**DRY-RUN 完成 · 零写盘** ★ (★盘上 5 个 md5 逐字节不变★)
+           ★**要真落就加 `--apply --boss-decision "<日期> <A1|A2|A3> = <值>"` ★**
+   ✅ 用例7b ★★【已落过】V-3=E / V-4=680 在已落过的真源上 ⇒ 必须红 (rc≠0) 且文案写【已落过】★
+        V-3=E rc=3
+        (★零写盘★) ⇒ 请对一眼真源那一段**★
+           ★★【状态漂移 or 已落过】★★ 补丁对不上: state/gen_netlist.py · E-4/E-5 上臂 value+note ⇒ ★**旧串在真源里出现 0 次 (期望 1 次)** ⇒ ★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ 本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★
+           ★★【状态漂移 or 已落过】★★ 补丁对不上: state/gen_netlist.py · E-6/E-7 下臂 value+note ⇒ ★**旧串在真源里出现 0 次 (期望 1 次)** ⇒ ★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ 本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★
+        V-4=680 rc=3
+         补丁对不上: HW/CHARGE_BOARD_SPEC.md · V4-9 CHARGE_BOARD_SPEC §7 CSV R_ILIM 行 note ⇒ ★**旧串在真源里出现 0 次 (期望 1 次)** ⇒ ★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ 本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★
+           ★★【状态漂移 or 已落过】★★ 补丁对不上: HW/CHARGE_BOARD_SPEC.md · V4-10 CHARGE_BOARD_SPEC §10 自检脚本档位列表 ⇒ ★**旧串在真源里出现 0 次 (期望 1 次)** ⇒ ★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ 本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★
+   ✅ 用例8 ★ V-2 的 diff 新值行里【不许】出现判据串 / [推算] / [待选型] (★不许把真型号降级★) ★
+        rc=0
+           + 新:     add("P1", "NET_USB_D_P_TYPEC", "D_ESD_USB_D", "NET_USB_D_P_TYPEC", "D_ESD_USB_D",
+           + 新:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装", "[官方]", "",
+           + 新:         "[D_ESD_USB_D] ★USB-C 入口 ESD 阵列 (紧贴 J_USB_C, 跨 D+ 与地) —— ★**Forlinx 载板指引要求 ESD 紧贴接口**", "A-24")
+           + 新:     add("P1", "GND", "D_ESD_USB_D", "GND", "D_ESD_USB_D",
+           + 新:         "TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V)", "D", "必装",
+           + 新:         "[官方]", "", "[D_ESD_USB_D] ESD 地端", "A-24")
+           + 新: net == NET_USB_D_P_TYPEC
+   ✅ 用例9 ★ `--v2-arch=2` 不给 `--v2-model` ⇒ 必须红 (★不许自己挑架构 / 自己写判据串★) ★
+        rc=3
+        ★★ rc=3: ★**落表前校验不过 ⇒ 拒绝落 (★零写盘★)** ★
+           ★★【型号轴必须同时拍】架构换成 ② (3脚双通道) ⇒ ★**必须同时给 `--v2-model <真 OPN>`** ★
+           ★**理由: 换架构必然改 value ⇒ 本工具【不许】写判据串代替型号 (★那会把 ISS-257 的成果 undo 掉★)** ★
+           ★**⇒ 型号归【选型级 / 老板】(A3 / W-1 一起拍) ⇒ 拒绝落 (★零写盘★)**★
+   ✅ 用例10 ★ 每个用例跑完, 5 个受保护 md5 必须逐字节不变 (★自测自己也不许写盘★) ★
+   ✅ 用例11 ★ 真盘的 5 个受保护 md5 (+ 真源) 自测前后必须逐字节不变 ★
+   ★★ 用例12 ★★【已落过】V-3=E 在已落过的真源上 ⇒ 必须判红 (文案写【已落过】) 且【不许崩】 ★
+        verify 报错 6 条:
+        ★★【已落过】V-3=E 这一格【已经落过表了】⇒ 拒绝重复落 (★零写盘★)★
+           ★**证据 (★旧串 0 次 + 新串在场 ⇒ 是「落过了」不是「漂移了」★)**:
+             · HW/SCHEMATIC_V1_SPEC.json · E-1 规格页 B-08.level (★旧串 0 次 + 新串在场 1 次★)
+             · HW/SCHEMATIC_V1_SPEC.json · E-2 规格页 B-08.imp (★旧串 0 次 + 新串在场 1 次★)
+             · state/gen_netlist.py · E-4/E-5 上臂 value+note (★旧串 0 次 + 新串在场 1 次★)
+             · state/gen_netlist.py · E-6/E-7 下臂 value+note (★旧串 0 次 + 新串在场 1 次★)
+        ★★【状态漂移 or 已落过】★★ 补丁对不上: HW/SCHEMATIC_V1_SPEC.json · E-1 规格页 B-08.level ⇒ ★**旧串在真源里出现 0 次 (期望 1 次)** ⇒ ★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ 本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★
+        ★★【状态漂移 or 已落过】★★ 补丁对不上: HW/SCHEMATIC_V1_SPEC.json · E-2 规格页 B-08.imp ⇒ ★**旧串在真源里出现 0 次 (期望 1 次)** ⇒ ★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ 本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★
+        ★★【状态漂移 or 已落过】★★ 补丁对不上: state/gen_netlist.py · E-3 删 DEMO_DNP 三行 (R_BAT_DET_1 / R_BAT_DET_2 / C_DET_BAT) ⇒ ★**旧串在真源里出现 0 次 (期望 1 次)** ⇒ ★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ 本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★
+        ★★【状态漂移 or 已落过】★★ 补丁对不上: state/gen_netlist.py · E-4/E-5 上臂 value+note ⇒ ★**旧串在真源里出现 0 次 (期望 1 次)** ⇒ ★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ 本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★
+        ★★【状态漂移 or 已落过】★★ 补丁对不上: state/gen_netlist.py · E-6/E-7 下臂 value+note ⇒ ★**旧串在真源里出现 0 次 (期望 1 次)** ⇒ ★**⇒ 要么真源那一段被改过了 (漂移), 要么这一格已经落过了 (旧串已被换掉) ⇒ 本工具【分不清这两者】⇒ 拒绝落 (★零写盘★) ⇒ 请对一眼真源那一段**★
+Traceback (most recent call last):
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/land_v_values.py", line 2507, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/land_v_values.py", line 2221, in main
+    return run_selftest(root)
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/land_v_values.py", line 2146, in run_selftest
+    plan13.apply_patches()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/land_v_values.py", line 1500, in apply_patches
+    txt = replace_after(txt, p.ctx, p.old, p.new, p.count)
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/land_v_values.py", line 1280, in replace_after
+    raise RuntimeError(f"★旧值出现 {n} 次 (期望 {count} 次)")
+RuntimeError: ★旧值出现 0 次 (期望 1 次)
+rc=1

@@ -1,0 +1,577 @@
+====================================================================================================
+FILE: MECH/_append_handoff_iss240_r2.py  class= 历史脚本
+  L45    CONN_CAM         改名   | FPC 座 CONN_CAM   = 31p @ 0.3 mm  board=MAIN_PCB  (网表行 L290…) 逐脚行数=31
+  L46    CONN_LIGHT       改名   | FPC 座 CONN_LIGHT = 22p @ 0.5 mm  board=MAIN_PCB  (网表行 L237…) 逐脚行数=22
+  L47    J_CHG            改名   | FPC 座 J_CHG      = 10p @ 0.5 mm  board=HINGE     (网表行 L38…)  逐脚行数=10
+  L87    CONN_CAM         改名   | | **第 44 行** (文件 L75) | ★**demo 硬件形态 (已定, 不是待拍板)** ★ —— 2026-11-02 19:25 老板指示②: 主板 = 一块板; sensor/屏幕各画成模组; FPC 软排短距连到主板 ⇒ ★**跨铰链取消** ★ ⇒ 连带: CONN_CAM/CONN_LIGHT 
+  L87    CONN_LIGHT       改名   | | **第 44 行** (文件 L75) | ★**demo 硬件形态 (已定, 不是待拍板)** ★ —— 2026-11-02 19:25 老板指示②: 主板 = 一块板; sensor/屏幕各画成模组; FPC 软排短距连到主板 ⇒ ★**跨铰链取消** ★ ⇒ 连带: CONN_CAM/CONN_LIGHT 
+  L87    J_CHG            改名   | | **第 44 行** (文件 L75) | ★**demo 硬件形态 (已定, 不是待拍板)** ★ —— 2026-11-02 19:25 老板指示②: 主板 = 一块板; sensor/屏幕各画成模组; FPC 软排短距连到主板 ⇒ ★**跨铰链取消** ★ ⇒ 连带: CONN_CAM/CONN_LIGHT 
+  L89    J_CHG            改名   | ★**⇒ 收口页 §0 的核心结论 4 小时后仍然成立: 25.00 与 31.50 都不是 demo 板的现行值; demo 板现行口径 = J_CHG 单链 (高度 5.00 / 径向 3.35 ⇒ 余 33.00 / 2.05)** ★
+  L90    J_CHG            改名   | ★**⇒ 网表 board 栏实测仍 = MAIN_PCB 404 / CHG_BOARD 94 / HINGE 15, board==HINGE 的座只有 J_CHG** ★
+====================================================================================================
+FILE: MECH/_apply_pinset2_docs.py  class= 历史脚本
+  L131   J_CHG            改名   |         """| N4 | **15×60 的板长会不会撞 J_CHG 座体在铰链区的位置?** (座体在板长哪一端) | hw-lead | 2026-10-30 | 项目总工 | 假设 J_CHG 在**铰链端 X=0 侧**, 与 §5.3 的 M1.2 孔 (X=5.0) 不冲突 |""",
+  L132   J_CHG            改名   |         """| N4 | **15×60 的板长会不会撞 J_CHG 座体在铰链区的位置?** (座体在板长哪一端) | hw-lead | 2026-10-30 | 项目总工 | 假设 J_CHG 在**铰链端 X=0 侧** —— ★ PIN-SET-2 最靠前的孔是 **P1 (X=8.00)**, 距
+====================================================================================================
+FILE: MECH/_close_iss065.py  class= 历史脚本
+  L73    D_CHG_LED        改名   |     "`D_CHG_LED` 的 netlist board 列写 `MAIN_PCB`, 但 P10 注记明写它装在充电板靠 Type-C 座 ⇒ "
+  L92    U_CHG            改名   |     "② T-2 双面贴: **单用 100.6% 仍超装 0.70mm²; 热收益 ≈ 0** (U_CHG 必须留正面, 它的 0.45-0.57W 一瓦没少), "
+  L94    J_CHG            改名   |     "③ T-3c 移灯链: 跨铰链线 (可复用 J_CHG pin5 CHG_STAT, 不新增针) + 镜脚上壳导光孔 + 打印包改版 + "
+  L96    R_STAR_PGND      改名   |     "④ **推荐 T-1 + T-3a (只删真 DNP + R_STAR_PGND 改铜皮短接) = 72.8%, 布线余量 27.8%**, "
+  L100   Q1               不动   |     "实跑 python3 state/merge.py → rc=0, 冲突 0; 实跑 python3 state/gate_check.py → **Q1 18/18** "
+  L103   J_CHG            改名   |     "(未定义, 敏感性 80-300mm²); 镜框正中段外露对流面积 [0数据] (依赖 u8b); J_CHG 10p 座体厂商尺寸 [0数据] "
+====================================================================================================
+FILE: MECH/_frag_rebase_20261106.py  class= 历史脚本
+  L16    CONN_CAM         改名   |       CONN_CAM 31p@0.3 / CONN_LIGHT 22p@0.5)
+  L16    CONN_LIGHT       改名   |       CONN_CAM 31p@0.3 / CONN_LIGHT 22p@0.5)
+  L81    CONN_CAM         改名   |         "★ISS-107 同型更正 (2026-11-06): 原值 '4' (J_CHG/CONN_USB/CONN_CAM/CONN_LIGHT) 是 10-28 那轮; "
+  L81    CONN_LIGHT       改名   |         "★ISS-107 同型更正 (2026-11-06): 原值 '4' (J_CHG/CONN_USB/CONN_CAM/CONN_LIGHT) 是 10-28 那轮; "
+  L81    J_CHG            改名   |         "★ISS-107 同型更正 (2026-11-06): 原值 '4' (J_CHG/CONN_USB/CONN_CAM/CONN_LIGHT) 是 10-28 那轮; "
+  L83    CONN_CAM         改名   |         "CONN_CAM/CONN_LIGHT 去 HINGE 板级归属, CONN_USB 整条从网表删除 ⇒ **demo 跨铰链链路数 = 0**。"
+  L83    CONN_LIGHT       改名   |         "CONN_CAM/CONN_LIGHT 去 HINGE 板级归属, CONN_USB 整条从网表删除 ⇒ **demo 跨铰链链路数 = 0**。"
+  L107   R_ILIM           改名   |         "网表 R_ILIM 行已是 390Ω。⇒ 本条 '建议' 已被拍板取代, 现行值 = 390。"
+  L169   J_CHG            改名   |         "**该数与跨铰链在不在 demo 无关** (它算的是 J_CHG 这条链路本身的载流特性), "
+  L208   J_CHG            改名   |      "1(J_CHG)",
+  L209   J_CHG            改名   |      "★demo 形态下**唯一还挂 HINGE 板级**的连接器 = J_CHG (1×10p@0.5mm, 网表实测 15 行 HINGE 板级); "
+  L210   CONN_CAM         改名   |      "CONN_CAM (31p@0.3mm) 与 CONN_LIGHT (22p@0.5mm) 已改为**板内** (board=MAIN_PCB), "
+  L210   CONN_LIGHT       改名   |      "CONN_CAM (31p@0.3mm) 与 CONN_LIGHT (22p@0.5mm) 已改为**板内** (board=MAIN_PCB), "
+  L212   J_CHG            改名   |      "★但 J_CHG 这条**不代表 demo 要保留跨铰链** (11-02 决策 N5: 充电板并板 / demo 直接 USB 供电) ⇒ "
+  L234   CONN_CAM         改名   |      "DEMO_BOARD_HW_DECISION §5-N1/N5 写「CONN_CAM/CONN_LIGHT 去掉 HINGE 板级归属」+"
+  L234   CONN_LIGHT       改名   |      "DEMO_BOARD_HW_DECISION §5-N1/N5 写「CONN_CAM/CONN_LIGHT 去掉 HINGE 板级归属」+"
+  L235   J_CHG            改名   |      "「J_CHG 不再跨铰链, 充电 IC 与电池位改 DNP 占位」, "
+  L236   CONN_CAM         改名   |      "但 HW/netlist_v1.csv (11-05 10:57) 现状 = **CONN_CAM/CONN_LIGHT 已是 board=MAIN_PCB ✅ (N1 已落)** "
+  L236   CONN_LIGHT       改名   |      "但 HW/netlist_v1.csv (11-05 10:57) 现状 = **CONN_CAM/CONN_LIGHT 已是 board=MAIN_PCB ✅ (N1 已落)** "
+  L237   J_CHG            改名   |      "而 **J_CHG 仍是 board=HINGE ❌ (N5 未落) + CHG_BOARD 仍有 92 行 (76 必装) 未转 DNP**。"
+  L238   J_CHG            改名   |      "★结构侧的影响: J_CHG 这条跨铰链链路若保留 ⇒ 铰链区那整套结构结论 (V 向堆叠/径向/铰链端 X 缺口) "
+  L240   J_CHG            改名   |      "★我的假设 (不回应我就按这个走): **demo 阶段按 N5 取消 J_CHG 跨铰链** ⇒ "
+  L242   J_CHG            改名   |      "但**J_CHG 1×10p 的选型/载流/机械结论保留** (整机阶段直接复用)。",
+  L254   CONN_LIGHT       改名   |      "★另: 你的 NETLIST_REV2_SPEC §1.2 写 CONN_LIGHT = 40p/0.5mm, 而网表实际落地 = **22p** "
+====================================================================================================
+FILE: MECH/_frag_update_iss027.py  class= 历史脚本
+  L34    J_CHG            改名   |                 "0.10塞尺进不去) -> B2 镜脚装配验证 (打3件 = temple_cage×1 + 新增 R11 J_CHG防呆试样×2, 15项 H段, "
+  L116   J_CHG            改名   |          item="ISS-027 附带: B4 整机装配当天要做 **T-14 无损段** (弯折区结构审查 + **J_CHG 反插 20 次**) 与 **T-13 挂测位就位**, "
+  L117   J_CHG            改名   |               "两者都需要零星器具: 反插只需 J_CHG 实物一对(打印的 R11 防呆件 B2 出) + 计数; T-13 需要协议分析器/示波器差分探头 + "
+  L173   J_CHG            改名   |             "拉脱>=15N/0.10塞尺进不去) -> B2镜脚装配验证(打3件 = temple_cage×1 + **新增R11 J_CHG防呆试样×2**, 15项H段, "
+====================================================================================================
+FILE: MECH/_frag_update_iss091.py  class= 历史脚本
+  L17    R_ILIM           改名   |                 "★R_ILIM 档位表 300/390/470/680Ω ↔ IINMAX ↔ ICHG ↔ 压降 ↔ 发热 (12行 min/typ/max, 皮肤 47.1/42.1/39.9/37.3C); "
+  L18    J_CHG            改名   |                 "机械: J_CHG 1x10p@0.5 触点区5.0mm/FPC宽>=6.0mm, 承力余量22-75x, 加宽高度影响0.00mm; 自发现8条问题 (M-1 加厚铜箔救不了热/M-2 铜厚与弯折寿命冲突/M-3 电芯内阻是主项且贴皮/M-4 TS参考地被1A回流抬高0.44-0.9
+  L21    R_ILIM           改名   |                 "R_ILIM 4档 x min-typ-max 全表 / '加厚铜箔能否替代降R_ILIM档' 对比表 / 机械 (EI 弯折力矩 触点电流密度 堆叠高度影响) / "
+  L48    J_CHG            改名   |      "J_CHG 单触点最小额定电流 (A) = 选型硬判据; 0.5mm pitch FPC ZIF 座典型 0.3-0.5A [0数据 型号未选]; 若只有0.3A型号则 R_ILIM 只能选680Ω",
+  L48    R_ILIM           改名   |      "J_CHG 单触点最小额定电流 (A) = 选型硬判据; 0.5mm pitch FPC ZIF 座典型 0.3-0.5A [0数据 型号未选]; 若只有0.3A型号则 R_ILIM 只能选680Ω",
+  L60    J_CHG            改名   |      "铰链区垂直堆叠 (mm); 本轮全部建议对其影响 = 0.00mm (J_CHG是既有FPC链路端头不是新增层). 注意 DECISIONS.md 记的是26.5, 两值待PM统一",
+  L69    J_CHG            改名   |      "SoC的BAT_DET在镜脚本地(不在J_CHG 10p pin map) -> 读到真实电芯电压, 不会被铰链压降虚高 [推算]",
+  L75    R_ILIM           改名   |          item="R_ILIM 档位裁决: 我建议 300->470Ω (换料不换板, 皮肤 47.1C->39.9C, 充电 22->35min)。300Ω 档在'边戴边充'下贴皮肤侧 47.1C "
+  L78    R_ILIM           改名   |          item="'边戴边充'产品行为是否保留: 这直接等价于 'R_ILIM <= 470Ω' (因为充电发热主项是电芯内阻 I^2R 而非铰链段, "
+  L84    J_CHG            改名   |          item="J_CHG 1x10p@0.5mm 具体型号 + 【单触点额定电流]: 0.5mm pitch FPC ZIF 座典型0.3-0.5A [0数据]。300Ω档 ICHG max 1.069A -> "
+  L85    R_ILIM           改名   |               "单pin 0.534A 已超0.5A; 若只能拿到0.3A型号, 双pin并联仍不够, R_ILIM 只能选680Ω。请在选型时给出单触点额定 >=0.5A 的型号"),
+  L97    J_CHG            改名   |          item="裁决: J_CHG 的 pin9/pin10 (预留) 是否改一个作【NTC 专用回流】? TS (pin8) 跨铰链, 而NTC在镜脚、其回流必须经铰链GND(pin3/pin4), "
+  L109   J_CHG            改名   |               "(1) J_CHG 单触点额定电流未知 [0数据] -> 直接锁死 R_ILIM 档位 (若只有0.3A型号则只能选680Ω); "
+  L109   R_ILIM           改名   |               "(1) J_CHG 单触点额定电流未知 [0数据] -> 直接锁死 R_ILIM 档位 (若只有0.3A型号则只能选680Ω); "
+  L111   R_ILIM           改名   |               "影响压降 111->65mV 区间。未裁之前: R_ILIM 最终档位定不了、FPC 加工图定不了、铰链段 FPC 不能下单。",
+  L116   J_CHG            改名   |     phase="P2(ISS-091 第2轮 跨铰链充电电流 1.0A 载流/压降/发热核算已交; 待 R_ILIM 档位裁决 + J_CHG 型号 + FPC 厂商能力)",
+  L116   R_ILIM           改名   |     phase="P2(ISS-091 第2轮 跨铰链充电电流 1.0A 载流/压降/发热核算已交; 待 R_ILIM 档位裁决 + J_CHG 型号 + FPC 厂商能力)",
+  L123   R_ILIM           改名   |             "建议不补偿; (3) ★R_ILIM档位表 300/390/470/680Ω -> 皮肤 47.1/42.1/39.9/37.3C, 300Ω档超43C红线, 建议470Ω(换料不换板); "
+  L126   J_CHG            改名   |             "触点额定0.5A才是真瓶颈/压降方向不要补偿/BQ25896会提前判满; (5) 机械: J_CHG 触点区5.0mm, FPC宽>=6.0mm, "
+====================================================================================================
+FILE: MECH/_frag_update_iss092.py  class= 历史脚本
+  L118   J_DEBUG          改名   |         "note": ("J_DEBUG 改标准 2x5@1.27 Cortex-10 **焊盘阵列** (D-1: 默认不装座体, 产线 pogo 压接); "
+  L119   J_UART           改名   |                  "J_UART 保持 1x2@1.27 但 **座体 DNP 只留焊盘** (座体下沿会掉到开口下沿之外); "
+  L120   J_DEBUG          改名   |                  "阵列坐标 J_DEBUG X 50.50..55.58 / Y 9.50..10.77, J_UART X 56.85..58.12 / Y 9.50"),
+  L120   J_UART           改名   |                  "阵列坐标 J_DEBUG X 50.50..55.58 / Y 9.50..10.77, J_UART X 56.85..58.12 / Y 9.50"),
+  L144   J_DEBUG          改名   |         "item": "ISS-092: J_DEBUG 改 2x5@1.27 Cortex-10 焊盘阵列 (座体 DNP) 的网表与 footprint (焊盘尺寸/间距/引脚序) + J_UART 1x2 是否并入同一阵列",
+  L144   J_UART           改名   |         "item": "ISS-092: J_DEBUG 改 2x5@1.27 Cortex-10 焊盘阵列 (座体 DNP) 的网表与 footprint (焊盘尺寸/间距/引脚序) + J_UART 1x2 是否并入同一阵列",
+  L246   J_DEBUG          改名   |         "(6) ★**产线: J_DEBUG 改 2x5@1.27 Cortex-10 焊盘阵列 (D-1 不装座体) + 装前压针** => 市售 ARM CoreSight 10-pin "
+====================================================================================================
+FILE: MECH/_frag_update_iss200.py  class= 历史脚本
+  L48    J_SOM_P1         不动   |         "★**pin7 = NC** (2026-11-04 起 VBUS_DET 改**主板本地**分压 `R_VBUS_DET_D1`/`_D2` → `J_SOM_P1` pin100 "
+  L48    R_VBUS_DET_D1    不动   |         "★**pin7 = NC** (2026-11-04 起 VBUS_DET 改**主板本地**分压 `R_VBUS_DET_D1`/`_D2` → `J_SOM_P1` pin100 "
+  L49    J_CHG            改名   |         "⇒ 本脚不接; ★**过期的是『VBUS_DET 跨铰链走 J_CHG pin7/pin8』这句话, 不是 VBUS_DET 这个网** —— "
+  L77    J_CHG            改名   |         "summary": ("ISS-200 交卷单: 结构侧 J_CHG 接口契约收敛到网表真源 —— "
+  L80    J_CHG            改名   |                     "J_CHG 块整块改写 (5 条结论全部按现行 10p map 重推: 防呆 / 载流 / 电池脚 / 检测线 / pitch) "
+  L90    J_CHG            改名   |         "item": ("★ISS-200 只报不改 (①**MECH/USB_HINGE_STRUCTURE.md §5.1 表** J_CHG 行仍写 "
+  L92    J_CHG            改名   |                  "②**同文件 §5.3 C-4** 仍写『J_CHG → 8p @0.5』 (现行是 1×10p@0.5mm); "
+  L95    J_CHG            改名   |                  "★**这 4 处都在本单地界外** (本单只许动 §5.2 的 J_CHG 块) ⇒ **只报不改**。"
+  L104   J_CHG            改名   |         "item": ("★ISS-200 只报不改 (★**HW/ 是 ISS-199 的地界, 我不许代改**★), 结构侧扫出 4 处仍带旧 J_CHG 口径: "
+  L105   J_CHG            改名   |                  "①`HW/netlist_v1.csv` **第 38 行 (J_CHG CONN 行) 与第 412 行 (P9 HINGE_CHG 行) 的 note 列** 仍写 "
+  L106   J_CHG            改名   |                  "『pin7=VBUS_DET / pin8=TS / pin9-10=预留』『SYS 经 J_CHG 回主 PCB』 = V1.5 期旧文字 "
+  L108   J_CHG            改名   |                  "②`HW/POWER_SHUTDOWN_V3.md` 第 129 行 『TS 专用回流 (J_CHG pin10 + R_TS_PULL/R_NTC_BAT 下端改接 TS_RTN)』 "
+  L108   R_NTC_BAT        改名   |                  "②`HW/POWER_SHUTDOWN_V3.md` 第 129 行 『TS 专用回流 (J_CHG pin10 + R_TS_PULL/R_NTC_BAT 下端改接 TS_RTN)』 "
+  L108   R_TS_PULL        改名   |                  "②`HW/POWER_SHUTDOWN_V3.md` 第 129 行 『TS 专用回流 (J_CHG pin10 + R_TS_PULL/R_NTC_BAT 下端改接 TS_RTN)』 "
+====================================================================================================
+FILE: MECH/_frag_update_iss202.py  class= 历史脚本
+  L49    J_CHG            改名   |         "★**value 不动** (`10p@0.5mm` —— [实测] `HW/netlist_v1.csv` J_CHG CONN 行 = “1×10p@0.5mm 排线座”, "
+  L54    J_SOM_P1         不动   |         "★**pin7=NC** (2026-11-04 起 VBUS_DET 改**主板本地**分压 `R_VBUS_DET_D1`/`_D2` → `J_SOM_P1` pin100 ⇒ 本脚不接; "
+  L54    R_VBUS_DET_D1    不动   |         "★**pin7=NC** (2026-11-04 起 VBUS_DET 改**主板本地**分压 `R_VBUS_DET_D1`/`_D2` → `J_SOM_P1` pin100 ⇒ 本脚不接; "
+  L55    J_CHG            改名   |         "★**过期的是『VBUS_DET 跨铰链走 J_CHG pin7/pin8』这句话, 不是 VBUS_DET 这个网** —— 该网在网表里仍有 9 处, 仍是主板本地检测网) · "
+  L63    R_ILIM           改名   |         "★**跨铰链载流是 BAT_CHG** (pin1/pin2 双 pin 并联; 现行 `R_ILIM=390Ω` ⇒ ICHG 0.82 A ⇒ 单 pin 0.411 A ≤ 0.5 A 触点额定, 余量 1.22×), "
+  L64    J_CHG            改名   |         "★**SYS 根本不跨铰链** (网表 J_CHG 无 SYS 脚)。"
+  L86    J_CHG            改名   |         "summary": ("ISS-202 交卷单: 结构侧 J_CHG 旧口径收尾 —— "
+  L87    J_CHG            改名   |                     "①MECH/USB_HINGE_STRUCTURE.md §5.1 表 J_CHG 行 (6 (1×6 @1.27) / 6.35 / 8.35 → 10 (1×10 @0.5) / 3.5 / 5.5, 按 hinge_usb_check.py 复算) "
+  L88    J_CHG            改名   |                     "②§5.3 C-4 (J_CHG → 8p @0.5 → 1×10p @0.5; 堆叠算式属几何数字 ⇒ 只报不改) "
+  L101   J_CHG            改名   |         "item": ("★ISS-202 只报不改 (★**本单地界只含 §5.1 表 J_CHG 行 / §5.3 C-4 / §5.3 C-1 / §5.2 F-5·F-6 四处**★): "
+  L102   J_CHG            改名   |                  "`MECH/USB_HINGE_STRUCTURE.md` 里 J_CHG **仍带老 6 脚 / 8p 口径** 共 11 处 —— "
+  L103   J_CHG            改名   |                  "①§0 C-3 『J_CHG 1×6@1.27→8p@0.5 后, 堆叠降到 24.0 mm』 ②§0 C-5 『J_CHG 的 pin 定义里没有电池脚』+『0.55 A (SYS 口径) vs 1.5 A』 "
+  L105   J_CHG            改名   |                  "④§3.1 链路表 L-1 『J_CHG (1×6 1.27 mm 排线座) | 6 | 5 | 0』 ⑤§3.2b 声明版行 『40p + 40p + 4p + 1×6@1.27 | 49.62 mm』 "
+  L120   J_CHG            改名   |                  "`MECH/USB_HINGE_STRUCTURE.md` §5.3 **C-4** 行, 本单已把 `J_CHG` 的 pin 规格从 **8p @0.5** 订正为 **1×10p @0.5** (ISS-202 · 2026-11-12), "
+  L126   J_CHG            改名   |                  "★**另**: 该表 `MECH/hinge_usb_check.py` 的 `RECOMMENDED_PINS['J_CHG']=8` (及其注释『SYS×2(载流) + VBUS_DET + BAT_DET + …』= 老 6 脚期 map) 同源 ⇒ 见下一条 need。"
+  L136   J_CHG            改名   |                  "该脚本第 77 行 `RECOMMENDED_PINS = {… \"J_CHG\": 8,   # SYS×2(载流) + VBUS_DET + BAT_DET + CHG_STAT + PWR_GOOD + GND×2 …}` "
+  L137   J_CHG            改名   |                  "⇒ ★**\"J_CHG 收敛成 8p\" 仍是脚本里的活口径**, 且**注释还在用老 6 脚期的拆脚说法 (SYS 载流 / VBUS_DET / BAT_DET 跨铰链)** —— "
+  L140   J_CHG            改名   |                  "★[实测] 脚本里 `j_chg_pitch_mm` 已是 0.5 (对), `decl` 解析出的 J_CHG 声明也是 10 (对) ⇒ **只有 `RECOMMENDED_PINS` 与它的注释是旧口径**。"
+  L141   J_CHG            改名   |                  "⇒ ★**请裁**: 是否授权把 `RECOMMENDED_PINS['J_CHG']` 改成 10 并重算 24.0 mm 那条链 (连带 §3.2b / §7 / §9 的 24.00 / 25.62 引用)。"),
+  L150   J_CHG            改名   |                  "结构侧**其它文档**仍带 J_CHG 旧口径 (登记给项目总工裁, 建议下一轮一并收): "
+  L151   J_CHG            改名   |                  "①`MECH/FPC_FAB_NOTES.md` **N-6** 『J_CHG 的 pin10 必须走成 TS 专用回流, 与 pin8 (TS 信号) 成对相邻』+ I-5 『反插 = BAT_CHG 短接 GND』 "
+  L152   J_CHG            改名   |                  "(⇒ 现 pin10 = HINGE_RSV, 且现行反插是**断路**不是短接) ②`MECH/RELIABILITY_TEST_PLAN.md` **R10**『J_CHG 用 0.5mm pitch, SYS 双脚并联』+ "
+  L153   J_CHG            改名   |                  "**§T-14 失效模式**『J_CHG 反插导致 SYS 短接 GND』+ **T-14 判据**『SYS 与 GND 在反插位型下不得导通』+ **K-11**『J_CHG 8p @0.5mm』+ **K-12**『J_CHG 脚数 8p 还是 10p』 "
+  L155   J_CHG            改名   |                  "③`MECH/STRUCT_REVIEW_ISS065.md` **R3**『V 方向只有 VBUS_DET 分压信号过铰链』+『占用 J_CHG pin9/pin10 中的一个 ⇒ 与 ISS-091 的 pin9/10 用途申请撞车』 "
+  L167   J_CHG            改名   |                  "①`iss091_pin9_10_ntc_return` (2026-10-28) 还在问『**裁决: J_CHG 的 pin9/pin10 (预留) 是否改一个作 NTC 专用回流**』, "
+====================================================================================================
+FILE: MECH/_frag_update_iss213.py  class= 历史脚本
+  L112   C_BST            改名   |             "★ISS-213 端件外表面温升**现行口径 = buck** (P10 网表有 SW/L_CHG/C_BST/PMID ⇒ 开关型 "
+  L112   L_CHG            改名   |             "★ISS-213 端件外表面温升**现行口径 = buck** (P10 网表有 SW/L_CHG/C_BST/PMID ⇒ 开关型 "
+  L179   D_CHG_LED        改名   |             "(D_CHG_LED/Q_CHG_LED/R_CHG_LED) 的网表 board 列标错 —— 网表 `['CHG_BOARD']` 但同页注记写"
+  L179   Q_CHG_LED        改名   |             "(D_CHG_LED/Q_CHG_LED/R_CHG_LED) 的网表 board 列标错 —— 网表 `['CHG_BOARD']` 但同页注记写"
+  L179   R_CHG_LED        改名   |             "(D_CHG_LED/Q_CHG_LED/R_CHG_LED) 的网表 board 列标错 —— 网表 `['CHG_BOARD']` 但同页注记写"
+  L180   R_CHG_LED        改名   |             "「装在充电板 (镜框) 靠近 Type-C 座」, 且 `R_CHG_LED` 两端分别标 CHG_BOARD (net VBUS_5V_CHG) "
+  L279   C_BST            改名   |             "是**开关型 buck** (网表有 SW/L_CHG/C_BST/PMID) ⇒ 耗散应按 **Pin − Pout + DCR = 0.45–0.57W** ⇒ "
+  L279   L_CHG            改名   |             "是**开关型 buck** (网表有 SW/L_CHG/C_BST/PMID) ⇒ 耗散应按 **Pin − Pout + DCR = 0.45–0.57W** ⇒ "
+====================================================================================================
+FILE: MECH/_frag_update_iss216.py  class= 历史脚本
+  L37    C_BST            改名   |     "★ISS-213 端件外表面温升**现行口径 = buck** (P10 网表有 SW/L_CHG/C_BST/PMID ⇒ 开关型 buck, "
+  L37    L_CHG            改名   |     "★ISS-213 端件外表面温升**现行口径 = buck** (P10 网表有 SW/L_CHG/C_BST/PMID ⇒ 开关型 buck, "
+  L58    C_BST            改名   |     "器件 BQ25896 (开关型 buck, 网表实读 SW/L_CHG/C_BST/PMID)**; §2.1 结构硬结论 / §2.3.1 充电峰值场景 / "
+  L58    L_CHG            改名   |     "器件 BQ25896 (开关型 buck, 网表实读 SW/L_CHG/C_BST/PMID)**; §2.1 结构硬结论 / §2.3.1 充电峰值场景 / "
+  L66    C_BST            改名   |     "P10拓扑是开关型buck(网表有SW/L_CHG/C_BST/PMID)故耗散=Pin-Pout+DCR; MECH_BUDGET §2.1的0.8W是线性稳压器公式"
+  L66    L_CHG            改名   |     "P10拓扑是开关型buck(网表有SW/L_CHG/C_BST/PMID)故耗散=Pin-Pout+DCR; MECH_BUDGET §2.1的0.8W是线性稳压器公式"
+  L70    R_ILIM           改名   |     "★**本单独立复算三档 IIN** (公式 Pin−Pout+P_DCR; VBUS 5.0V · eta 0.90 · R_ILIM 390Ω · K_ILIM 320/355/390 A·Ω "
+  L83    C_BST            改名   |         "① 器件/拓扑 = **BQ25896 开关型 buck** ([实测] 网表 P10: SW/L_CHG/C_BST/PMID) ⇒ **耗散 = Pin − Pout + P_DCR**, "
+  L83    L_CHG            改名   |         "① 器件/拓扑 = **BQ25896 开关型 buck** ([实测] 网表 P10: SW/L_CHG/C_BST/PMID) ⇒ **耗散 = Pin − Pout + P_DCR**, "
+  L186   C_BST            改名   |         "真实拓扑的算法: 器件 **BQ25896** (开关型 buck, [实测] 网表 P10: SW/L_CHG/C_BST/PMID) ⇒ 耗散 = "
+  L186   L_CHG            改名   |         "真实拓扑的算法: 器件 **BQ25896** (开关型 buck, [实测] 网表 P10: SW/L_CHG/C_BST/PMID) ⇒ 耗散 = "
+  L188   R_ILIM           改名   |         "(公式 Pin−Pout+DCR; VBUS 5.0V · η 0.90 [官方 TI: 充电效率 92.5%@2A/90.5%@3A] · R_ILIM 390Ω [实测网表] · "
+====================================================================================================
+FILE: MECH/_frag_update_iss229.py  class= 历史脚本
+  L14    R_ILIM           改名   |   * 老板拍板值 (R_ILIM 现行 390Ω / 网表现值) 一字未动, 只补 note 订正
+  L83    R_ILIM           改名   |             "在改正系数下**更强**: 300Ω 档 2oz 仍超红线 14.4 °C ⇒ 唯一有效杠杆仍是 R_ILIM 换料不换板。"
+  L331   R_ILIM           改名   |             "ISS-229 重算后, `SW/EVT_TEMPLATE.md` **PWR-05**「充电电流 ≥ 1.5A @5V/2A 适配器」与现行 R_ILIM 体系不相容 "
+====================================================================================================
+FILE: MECH/_handoff_b7_iss229.py  class= 历史脚本
+  L180   R_ILIM           改名   | IINMAX = KILIM_max / R_ILIM = 390 AΩ / 390 Ω = 1.000000 A
+====================================================================================================
+FILE: MECH/board_port_opening_s6_check.py  class= 判据脚本
+  L4     D_LED_G          改名   | board_port_opening_s6_check.py —— ISS-271 板侧开口 (S6 认领用) + `D_LED_G` 位置约束 复算器 (mech-lead)
+  L10    D_LED_G          改名   |   ④ **主 PCB 指示灯 (`D_LED_G`) 候选位置的可放行坐标空间** (60×30 套 A 板坐标)
+  L69    X1               不动   | SOC_POS = (15.00, 32.20, 6.95, 23.05)        # SoC 封装体占位 X0 X1 Y0 Y1
+  L71    J_CHG            改名   | JCHG_KEEPOUT = (0.00, 3.00, 11.75, 18.25)    # J_CHG 座体 keep-out
+  L86    J_DEBUG          改名   |     jd_x1 = jd_x0 + (cols - 1) * pitch                 # J_DEBUG 阵列末列 X
+  L87    J_DEBUG          改名   |     jd_y1 = jd_y0 + (rows - 1) * pitch                 # J_DEBUG 阵列上沿 Y
+  L89    J_UART           改名   |     ju_x1 = ju_x0 + (ju_cols - 1) * pitch               # J_UART 末脚 X
+  L244   D_LED_G          改名   |     """`LED_G_D` 走线长度独立复算: R_LED_G.2 → D_LED_G.1"""
+  L244   R_LED_G          改名   |     """`LED_G_D` 走线长度独立复算: R_LED_G.2 → D_LED_G.1"""
+  L245   R_LED_G          改名   |     r = fps.get("R_LED_G")
+  L246   D_LED_G          改名   |     d = fps.get("D_LED_G")
+  L248   D_LED_G          改名   |         return {"ok": False, "reason": "盘上板读不到 R_LED_G / D_LED_G"}
+  L248   R_LED_G          改名   |         return {"ok": False, "reason": "盘上板读不到 R_LED_G / D_LED_G"}
+  L252   D_LED_G          改名   |         return {"ok": False, "reason": "读不到 R_LED_G.2 / D_LED_G.1"}
+  L252   R_LED_G          改名   |         return {"ok": False, "reason": "读不到 R_LED_G.2 / D_LED_G.1"}
+  L281   J_CHG            改名   |         ("J_CHG 座体 keep-out", JCHG_KEEPOUT),
+  L449   D_LED_G          改名   |     hr("【表 C】`D_LED_G` / `LED_G_D` 走线独立复算 (★读盘上板文件, 不抄作业包的数★)")
+  L454   D_LED_G          改名   |     print(f"   R_LED_G 封装原点 = {d['r_led_g_origin']} · D_LED_G 封装原点 = {d['d_led_g_origin']}")
+  L454   R_LED_G          改名   |     print(f"   R_LED_G 封装原点 = {d['r_led_g_origin']} · D_LED_G 封装原点 = {d['d_led_g_origin']}")
+  L455   R_LED_G          改名   |     print(f"   R_LED_G.2 (焊盘2) 绝对坐标 = ({d['r_led_g_p2'][0]:.2f}, {d['r_led_g_p2'][1]:.2f})")
+  L456   D_LED_G          改名   |     print(f"   D_LED_G.1 (焊盘1) 绝对坐标 = ({d['d_led_g_p1'][0]:.2f}, {d['d_led_g_p1'][1]:.2f})")
+  L461   D_LED_B          改名   |     for ref in ("D_LED_B", "D_LED_G", "D_LED_R"):
+  L461   D_LED_G          改名   |     for ref in ("D_LED_B", "D_LED_G", "D_LED_R"):
+  L461   D_LED_R          改名   |     for ref in ("D_LED_B", "D_LED_G", "D_LED_R"):
+  L464   R_LED_B          改名   |     for ref in ("R_LED_B", "R_LED_G", "R_LED_R"):
+  L464   R_LED_G          改名   |     for ref in ("R_LED_B", "R_LED_G", "R_LED_R"):
+  L464   R_LED_R          改名   |     for ref in ("R_LED_B", "R_LED_G", "R_LED_R"):
+  L468   D_LED_G          改名   |     hr("【表 D】主 PCB 指示灯 (`D_LED_G`) 候选位置的可放行坐标空间 (★只给空间, 不定坐标★)")
+  L609   D_LED_G          改名   |     print("BOARD PORT OPENING (S6) + D_LED_G CONSTRAINT CHECK —— ISS-271 (mech-lead)")
+====================================================================================================
+FILE: MECH/board_width_15mm_check.py  class= 判据脚本
+  L9     Q1               不动   |     Q1 镜脚腔体 (H 前后 / V 垂直 / L 长度) 在 15mm 板宽下还过不过?
+  L10    J_CHG            改名   |     Q2 J_CHG 座体能不能装进 15mm 板宽? (ISS-085/ISS-091 遗留的 [FAIL])
+  L10    Q2               不动   |     Q2 J_CHG 座体能不能装进 15mm 板宽? (ISS-085/ISS-091 遗留的 [FAIL])
+  L75    CONN_CAM         改名   | LINKS = [("CONN_CAM", 18, 0.50), ("CONN_LIGHT", 22, 0.50),
+  L75    CONN_LIGHT       改名   | LINKS = [("CONN_CAM", 18, 0.50), ("CONN_LIGHT", 22, 0.50),
+  L76    J_CHG            改名   |          ("CONN_USB", 4, 0.50), ("J_CHG", 10, 0.50)]
+  L79    J_CHG            改名   | JCHG_MUST = 9          # V1.8 网表: J_CHG 必装 9 pin (pin9 预留 DNP)
+  L121   Q1               不动   |     section("【1】Q1 镜脚腔体复核 (H 前后 / V 垂直 / L 长度)")
+  L147   J_CHG            改名   |         emit(f"      H 前后 : 需求 {h_need:.2f} (电芯段 {h_cell:.2f} / PCB 段 {h_pcb:.2f} / 铰链端+J_CHG座 {h_hinge:.2f})  vs {BASE['cav_h']:.2f} → 余 {h_margin:+.2f} mm (最坏
+  L161   J_CHG            改名   |     section("【2】Q2 J_CHG 座体 vs 板宽 (ISS-085 hinge_usb_check.py 的 [FAIL] 复核)")
+  L161   Q2               不动   |     section("【2】Q2 J_CHG 座体 vs 板宽 (ISS-085 hinge_usb_check.py 的 [FAIL] 复核)")
+  L239   Q1               不动   |     emit(f"  Q1 镜脚腔体: 15mm 板宽下 H/V/L 三方向余量 = "
+  L243   J_CHG            改名   |     emit(f"  Q2 J_CHG: pitch 0.5mm 口径下座体 {res['j_chg']['seat_050']:.2f} mm → 15mm 板余 {15-res['j_chg']['seat_050']:.2f} mm ✅")
+  L243   Q2               不动   |     emit(f"  Q2 J_CHG: pitch 0.5mm 口径下座体 {res['j_chg']['seat_050']:.2f} mm → 15mm 板余 {15-res['j_chg']['seat_050']:.2f} mm ✅")
+  L251   J_CHG            改名   |     emit("        **J_CHG 装不下的根因是 pitch 口径 (1.27 vs 0.5), 不是板宽** —— 修脚本比改板宽更直接。")
+====================================================================================================
+FILE: MECH/check_board_frame_coords.py  class= 判据脚本
+  L9     J_SOM_P1         不动   |      `J_SOM_P1..P4` 焊盘数必须 = 0**
+  L22    C_VBUS_GND       改名   |      「板改坏了」⇒ ⇒ 有人去「改板凑绿」⇒ ⇒ **板白改第二遍** (最坏 = 把 `C_VBUS_GND`
+  L55    D_LED_G          改名   |   ISS-271 交的两个窗口 (`D_LED_G` 首选窗口 X 33.00..47.71 · 检修口开口 X 47.00..60.00) 是
+  L56    J_SOM_P1         不动   |   **60×30 套A 坐标**; 现役板是 **160×100 台架板** ⇒ 照字面抄进 §3-S6 = 开口压住 `J_SOM_P1`
+  L57    J_SOM_P3         不动   |   56 个焊盘 / LED 窗口压住 `J_SOM_P3` 10 个焊盘 ⇒ 本闸把这两种坐标**机器化隔开** ★
+  L93    J_SOM_P1         不动   | SOM_REFS = ("J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4")
+  L93    J_SOM_P2         不动   | SOM_REFS = ("J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4")
+  L93    J_SOM_P3         不动   | SOM_REFS = ("J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4")
+  L93    J_SOM_P4         不动   | SOM_REFS = ("J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4")
+  L137   D_LED_G          改名   | LED_REF = "D_LED_G"
+  L138   R_LED_G          改名   | RES_REF = "R_LED_G"
+  L908   J_DEBUG          改名   |     for ref in ("J_DEBUG", "J_UART", LED_REF, RES_REF):
+  L908   J_UART           改名   |     for ref in ("J_DEBUG", "J_UART", LED_REF, RES_REF):
+  L916   J_DEBUG          改名   |     jd, ju = conns.get("J_DEBUG"), conns.get("J_UART")
+  L916   J_UART           改名   |     jd, ju = conns.get("J_DEBUG"), conns.get("J_UART")
+  L947   J_DEBUG          改名   |     o_jd = opening("J_DEBUG", jd_body_w)
+  L948   J_UART           改名   |     o_ju = opening("J_UART", 2.54)
+  L949   J_DEBUG          改名   |     out["openings"] = {"J_DEBUG": o_jd, "J_UART": o_ju}
+  L949   J_UART           改名   |     out["openings"] = {"J_DEBUG": o_jd, "J_UART": o_ju}
+  L959   J_DEBUG          改名   |         "note": "★合并开口 = 一个 10.20mm 开口同时罩 J_DEBUG + J_UART (MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md §5.1 现行模型)★",
+  L959   J_UART           改名   |         "note": "★合并开口 = 一个 10.20mm 开口同时罩 J_DEBUG + J_UART (MECH/BOARD_PORT_OPENING_S6_WORKPACKET.md §5.1 现行模型)★",
+  L1010  J_DEBUG          改名   |     for nm, o in (("OPEN_DEBUG", comp["openings"]["J_DEBUG"]),
+  L1011  J_UART           改名   |                   ("OPEN_UART", comp["openings"]["J_UART"])):
+  L1677  J_SOM_P1         不动   |     print(f"\n   SoM 承载区 (J_SOM_P1..P4, 各 100 焊盘 = 400 焊盘):")
+  L1695  J_DEBUG          改名   |         print(f"      ★J_DEBUG ↔ J_UART: ΔX {d['dx']:.2f} · ΔY {d['dy']:.2f} · 直线 {d['straight']:.3f} mm")
+  L1695  J_UART           改名   |         print(f"      ★J_DEBUG ↔ J_UART: ΔX {d['dx']:.2f} · ΔY {d['dy']:.2f} · 直线 {d['straight']:.3f} mm")
+  L1704  J_DEBUG          改名   |     print(f"\n   ★合并开口 (一个 10.20 开口同时罩 J_DEBUG + J_UART): 必须清空宽 {m['content_w']:.3f} "
+  L1704  J_UART           改名   |     print(f"\n   ★合并开口 (一个 10.20 开口同时罩 J_DEBUG + J_UART): 必须清空宽 {m['content_w']:.3f} "
+  L1708  R_LED_G          改名   |         print(f"\n   ★LED_G_D 走线独立复算: R_LED_G.2 ({g['r_pad2'][0]:.2f},{g['r_pad2'][1]:.2f}) ↔ "
+  L1709  D_LED_G          改名   |               f"D_LED_G.1 ({g['d_pad1'][0]:.2f},{g['d_pad1'][1]:.2f}) ⇒ Δx {g['dx']:.2f} / Δy {g['dy']:.2f} "
+  L1712  D_LED_G          改名   |     print(f"\n   ★D_LED_G 可放行空间 (现役板坐标系 · 零重叠判据 · 边距带 {EDGE_KEEPOUT:.2f}):")
+  L1722  R_LED_G          改名   |     print(f"      距 R_LED_G.2 ({ls['r_led_g_pad2'][0]:.2f},{ls['r_led_g_pad2'][1]:.2f}) 最近的落位原点:")
+====================================================================================================
+FILE: MECH/check_budget_caliber.py  class= 判据脚本
+  L193   C_BST            改名   |                 f"CHG_IC={ic!r} (实读网表 P10: U_CHG/SW/L_CHG/C_BST/PMID ⇒ 开关型)"))
+  L193   L_CHG            改名   |                 f"CHG_IC={ic!r} (实读网表 P10: U_CHG/SW/L_CHG/C_BST/PMID ⇒ 开关型)"))
+  L193   U_CHG            改名   |                 f"CHG_IC={ic!r} (实读网表 P10: U_CHG/SW/L_CHG/C_BST/PMID ⇒ 开关型)"))
+====================================================================================================
+FILE: MECH/check_demo_struct_truth.py  class= 判据脚本
+  L286   CONN_CAM         改名   |     for conn in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+  L286   CONN_LIGHT       改名   |     for conn in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+  L286   J_CHG            改名   |     for conn in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+  L946   CONN_CAM         改名   |     for conn in ("J_CHG", "CONN_LIGHT", "CONN_CAM"):
+  L946   CONN_LIGHT       改名   |     for conn in ("J_CHG", "CONN_LIGHT", "CONN_CAM"):
+  L946   J_CHG            改名   |     for conn in ("J_CHG", "CONN_LIGHT", "CONN_CAM"):
+  L953   CONN_CAM         改名   |     for conn in ("J_CHG", "CONN_LIGHT", "CONN_CAM"):
+  L953   CONN_LIGHT       改名   |     for conn in ("J_CHG", "CONN_LIGHT", "CONN_CAM"):
+  L953   J_CHG            改名   |     for conn in ("J_CHG", "CONN_LIGHT", "CONN_CAM"):
+  L968   CONN_CAM         改名   |       f"网表实读 CONN_LIGHT {net.get('CONN_LIGHT')}p / CONN_CAM {net.get('CONN_CAM')}p / "
+  L968   CONN_LIGHT       改名   |       f"网表实读 CONN_LIGHT {net.get('CONN_LIGHT')}p / CONN_CAM {net.get('CONN_CAM')}p / "
+  L969   CONN_LIGHT       改名   |       f"J_CHG {net.get('J_CHG')}p; P9 声明 CONN_LIGHT {decl.get('CONN_LIGHT')} / "
+  L969   J_CHG            改名   |       f"J_CHG {net.get('J_CHG')}p; P9 声明 CONN_LIGHT {decl.get('CONN_LIGHT')} / "
+  L970   CONN_CAM         改名   |       f"CONN_CAM {decl.get('CONN_CAM')} / J_CHG {decl.get('J_CHG')}; 旧口径 0 处 / 新口径 3 处")
+  L970   J_CHG            改名   |       f"CONN_CAM {decl.get('CONN_CAM')} / J_CHG {decl.get('J_CHG')}; 旧口径 0 处 / 新口径 3 处")
+  L1086  CONN_LIGHT       改名   |     def m10(p): p["net"]["CONN_LIGHT"] = 21
+  L1087  CONN_LIGHT       改名   |     add("反向10: 网表 CONN_LIGHT 改回 21p (网表被回退)", "C22",
+====================================================================================================
+FILE: MECH/check_hinge_fpc_truth.py  class= 判据脚本
+  L14    CONN_CAM         改名   |      —— ★不是"ref 在网表里存在" (CONN_CAM/CONN_LIGHT 在网表里存在, 但 board=MAIN_PCB ⇒ 不跨铰链)★
+  L14    CONN_LIGHT       改名   |      —— ★不是"ref 在网表里存在" (CONN_CAM/CONN_LIGHT 在网表里存在, 但 board=MAIN_PCB ⇒ 不跨铰链)★
+  L15    J_CHG            改名   |   G2 每颗 FPC 座必须用它【自己的 pitch】 (camera 0.3 / display 0.5 / J_CHG 0.5) —— 禁止"全 0.5mm"一刀切
+  L21    J_CHG            改名   |   G7 正文里必须存在【demo 板真跨铰链口径行】(J_CHG 单链 5.00 / 3.35 ⇒ 余 33.00 / 2.05)
+  L93    CONN_CAM         改名   |     conn_pat = re.compile(r"^(J_CHG|CONN_CAM|CONN_LIGHT|CONN_USB|J_TYPE_C|J_DEBUG|J_UART)(?:\s+pin(\d+))?$")
+  L93    CONN_LIGHT       改名   |     conn_pat = re.compile(r"^(J_CHG|CONN_CAM|CONN_LIGHT|CONN_USB|J_TYPE_C|J_DEBUG|J_UART)(?:\s+pin(\d+))?$")
+  L93    J_CHG            改名   |     conn_pat = re.compile(r"^(J_CHG|CONN_CAM|CONN_LIGHT|CONN_USB|J_TYPE_C|J_DEBUG|J_UART)(?:\s+pin(\d+))?$")
+  L93    J_DEBUG          改名   |     conn_pat = re.compile(r"^(J_CHG|CONN_CAM|CONN_LIGHT|CONN_USB|J_TYPE_C|J_DEBUG|J_UART)(?:\s+pin(\d+))?$")
+  L93    J_TYPE_C         改名   |     conn_pat = re.compile(r"^(J_CHG|CONN_CAM|CONN_LIGHT|CONN_USB|J_TYPE_C|J_DEBUG|J_UART)(?:\s+pin(\d+))?$")
+  L93    J_UART           改名   |     conn_pat = re.compile(r"^(J_CHG|CONN_CAM|CONN_LIGHT|CONN_USB|J_TYPE_C|J_DEBUG|J_UART)(?:\s+pin(\d+))?$")
+  L169   J_TYPE_C         改名   |     return any(k in s for k in ("Type-C", "J_TYPE_C", "USB 2.0", "USB2.0", "USB-C", "USB-C 座"))
+  L183   CONN_CAM         改名   |         cam_ctx = ("CONN_CAM" in both) or ("mech_conn_cam_pins" in both)
+  L188   CONN_LIGHT       改名   |         light_ctx = ("CONN_LIGHT" in both) or ("mech_conn_light_pins" in both)
+  L367   J_CHG            改名   |     add("G7", "正文里必须存在 demo 板真跨铰链口径行 (J_CHG 单链 5.00 / 3.35 ⇒ 余 33.00 / 2.05)",
+  L469   CONN_CAM         改名   |             if "CONN_CAM` (40p)" in ln and any(m in ln for m in MARKERS):
+  L489   CONN_CAM         改名   |         return t.replace(anchor, anchor + "  - ref: CONN_CAM\n    pins: 31\n    pitch_mm: 0.3\n"
+  L514   CONN_CAM         改名   |         ("T2", "把正文 CONN_CAM(40p) 那行的作废标记删掉", "G4", None,
+  L515   CONN_CAM         改名   |          m_drop_marker, "doc", "CONN_CAM` (40p)", MARK_PIN),
+  L522   CONN_CAM         改名   |         ("T6", "把 CONN_CAM 塞进 canonical 跨铰链清单 (它 board=MAIN_PCB)", "G1", None,
+  L523   CONN_CAM         改名   |          m_add_canon_link, "truth", "canonical_cross_hinge_links:", "ref: CONN_CAM"),
+====================================================================================================
+FILE: MECH/check_mech_verdict_freshness.py  class= 判据脚本
+  L96    J_USB_C          改名   |      "`J_USB_C` 缺一条结构边开口规格 (ISS-290 做不了、也没做)",
+  L106   J_USB_C          改名   |      "结构侧缺一条边开口规格", "§4 座体类器件三方对照表 (`J_USB_C` 行)"),
+  L111   J_USB_C          改名   |      "1 个: `J_USB_C` (16p @0.50 + 2×Ø0.65 对上, ",
+  L394   J_USB_C          改名   |         drift = ("| ★9 ★ | ★**`J_USB_C` 边开口** ★ | ★**结构侧仍未登记这条边开口** ★ | "
+====================================================================================================
+FILE: MECH/check_onepass_mech_sync.py  class= 判据脚本
+  L10    J_SOM_P1         不动   |     M2  ★**两条开口各自不压 SoM 座** —— 读板 ⇒ 检修口矩形压 J_SOM_P1..P4 焊盘数 = 0, 调试口矩形同样 = 0 (两条分别验, 不许合并验)
+  L840   J_DEBUG          改名   |         merged = {"id": "PORT_OPEN_MERGED", "role": "合并", "covers": "J_DEBUG+J_UART",
+  L840   J_UART           改名   |         merged = {"id": "PORT_OPEN_MERGED", "role": "合并", "covers": "J_DEBUG+J_UART",
+====================================================================================================
+FILE: MECH/check_onepass_struct_crosscheck.py  class= 判据脚本
+  L86    J_CHG            改名   | CONN_REFS = ["J_DEBUG", "J_UART", "J_USB_C", "J_CHG",
+  L86    J_DEBUG          改名   | CONN_REFS = ["J_DEBUG", "J_UART", "J_USB_C", "J_CHG",
+  L86    J_UART           改名   | CONN_REFS = ["J_DEBUG", "J_UART", "J_USB_C", "J_CHG",
+  L86    J_USB_C          改名   | CONN_REFS = ["J_DEBUG", "J_UART", "J_USB_C", "J_CHG",
+  L87    J_SOM_P1         不动   |              "J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4"]
+  L87    J_SOM_P2         不动   |              "J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4"]
+  L87    J_SOM_P3         不动   |              "J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4"]
+  L87    J_SOM_P4         不动   |              "J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4"]
+  L342   J_SOM_P1         不动   |     def som_zones(self, refs=("J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4"),
+  L342   J_SOM_P2         不动   |     def som_zones(self, refs=("J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4"),
+  L342   J_SOM_P3         不动   |     def som_zones(self, refs=("J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4"),
+  L342   J_SOM_P4         不动   |     def som_zones(self, refs=("J_SOM_P1", "J_SOM_P2", "J_SOM_P3", "J_SOM_P4"),
+  L1107  R_SEL_D0_N       改名   |             if t["ref"] == "R_SEL_D0_N":
+  L1109  J_SOM_P3         不动   |                 t["y"] = 9.5          # ★SoM 承载区 J_SOM_P3 的地盘★
+  L1114  R_SEL_D0_N       改名   |     print(f"  [{'OK ' if red else 'NG '}] ① 把 S6 目标位 R_SEL_D0_N 挪进 SoM 承载区 ⇒ N2 红: "
+  L1129  R_SEL_D1_N       改名   |             if t["ref"] == "R_SEL_D1_N":
+  L1131  J_DEBUG          改名   |                 t["y"] = 56.60        # ★调试口开口 (罩 J_DEBUG) 正中★
+  L1136  R_SEL_D1_N       改名   |     print(f"  [{'OK ' if red else 'NG '}] ② 把 S6 目标位 R_SEL_D1_N 挪进调试口开口 ⇒ N3 红: "
+  L1148  TP_DSI_CK_P      改名   |     hit = _edit_spec_text(sb, "| `TP_DSI_CK_P` | `B160x100` |",
+  L1149  TP_DSI_CK_P      改名   |                            "| `TP_DSI_CK_P` |  |")
+  L1153  TP_DSI_CK_P      改名   |     print(f"  [{'OK ' if red else 'NG '}] ③ 抽掉 §3 表里 TP_DSI_CK_P 的帧标签 ⇒ N1 红: "
+  L1228  J_DEBUG          改名   |             if c["ref"] == "J_DEBUG":
+  L1234  J_DEBUG          改名   |     print(f"  [{'OK ' if red else 'NG '}] ⑥ 清空 §4 里 J_DEBUG 行的【结构占位要求】⇒ N5 红: "
+====================================================================================================
+FILE: MECH/cross_review_check.py  class= 判据脚本
+  L78    J_DEBUG          改名   |     "header_body_h": 2.54,      # 1.27mm 直插排针塑料体高 (J_DEBUG 1×4 / J_UART 1×2)
+  L78    J_UART           改名   |     "header_body_h": 2.54,      # 1.27mm 直插排针塑料体高 (J_DEBUG 1×4 / J_UART 1×2)
+  L98    J_TYPE_C         改名   |     "J_TYPE_C": 8.9 * 7.4,          # 座体
+  L99    U_CHG            改名   |     "U_CHG": 3.0 * 3.0,             # VQFN-16 3×3 [官方 CHARGE_BOARD_SPEC]
+  L100   L_CHG            改名   |     "L_CHG": 3.5 * 3.5,             # 2.2µH 电感 [推算]
+  L101   FB_VBUS          改名   |     "FB_VBUS": 1.6 * 0.8,           # 磁珠 0805
+  L102   D_ESD_TC         改名   |     "D_ESD_TC": 1.6 * 0.8,          # ESD 阵列
+  L104   R_ILIM           改名   |     "R_ILIM": 1.0 * 0.5,
+  L106   C_PMID           改名   |     "C_PMID": 2.0 * 1.25,           # 10µF 0805
+  L107   C_VBUS_IN        改名   |     "C_VBUS_IN": 1.6 * 0.8,
+  L108   C_VBUS_IC        改名   |     "C_VBUS_IC": 1.0 * 0.5,
+  L109   C_REGN           改名   |     "C_REGN": 1.0 * 0.5,
+  L110   C_BST            改名   |     "C_BST": 1.0 * 0.5,
+  L111   TP_TS            改名   |     "TP_TS": 1.3,
+  L112   TP_VBUS          改名   |     "TP_VBUS": 1.3,
+  L172   CONN_CAM         改名   |     HINGE_CONN = ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT")
+  L172   CONN_LIGHT       改名   |     HINGE_CONN = ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT")
+  L172   J_CHG            改名   |     HINGE_CONN = ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT")
+  L211   BT_432243        不动   |     cell_board = {r.get("board") for r in rows if r["ref"] == "BT_432243"}
+  L215   J_CHG            改名   |         ("✓ 通过 (V1.5 已补 J_CHG pin8)" if ok3 else "★不通过: NTC 在镜脚但 TS 未跨铰链 → 过温保护失效"))
+  L239   J_CHG            改名   |     rec(not conflict, "C-4", "J_CHG pin map: 网表 vs CHARGE_BOARD_SPEC §5.2 一致",
+  L276   CONN_CAM         改名   |     conn_pins = {"J_CHG": 10, "CONN_USB": 4, "CONN_CAM": 18, "CONN_LIGHT": 21}
+  L276   CONN_LIGHT       改名   |     conn_pins = {"J_CHG": 10, "CONN_USB": 4, "CONN_CAM": 18, "CONN_LIGHT": 21}
+  L276   J_CHG            改名   |     conn_pins = {"J_CHG": 10, "CONN_USB": 4, "CONN_CAM": 18, "CONN_LIGHT": 21}
+  L291   CONN_LIGHT       改名   |         f"最宽 = CONN_LIGHT 1×21p@0.5 → 接触跨度 10.5mm + 两侧边 {A['conn_side_margin']*2:.1f}mm = {worst[1]:.1f}mm; "
+  L299   J_DEBUG          改名   |     rec(ok8, "C-8", "J_DEBUG/J_UART 直插排针高度 ≤ 镜脚 H 余量",
+  L299   J_UART           改名   |     rec(ok8, "C-8", "J_DEBUG/J_UART 直插排针高度 ≤ 镜脚 H 余量",
+  L302   J_DEBUG          改名   |         ("✓" if ok8 else f"★超 {A['header_body_h']-margin:.2f}mm (J_DEBUG 1×4 必装) → 改贴片/开槽/挪检修口")
+  L332   CONN_CAM         改名   |         ("✓" if not missing else "★CONN_CAM 的对端装哪块板没有口径 (装配/备料/开孔三件事无唯一口径)"))
+  L378   TP_BAT_CHG       改名   |     tp_bat = [r for r in rows if r["ref"] == "TP_BAT_CHG"]
+  L381   TP_BAT_CHG       改名   |         f"BAT_CHG 网涉及板 = {sorted(bat_chg_boards)}; TP_BAT_CHG 行 = {len(tp_bat)} → " +
+  L392   CONN_LIGHT       改名   |         f"Δ板重 {w30_4l-w15_old:+.2f}g; CONN_LIGHT 体宽 {worst[1]:.1f}mm ≤ 板宽 {A['board_w']:.1f}mm "
+====================================================================================================
+FILE: MECH/hinge_power_calc.py  class= 判据脚本
+  L11    J_CHG            改名   |   - 铰链段柔性材料/接口定义: 项目总工 ISS-091 第2轮派活锚点 + DECISIONS 2026-10-27 (J_CHG 1x10p@0.5)
+  L13    R_ILIM           改名   |   - R_ILIM 公式: HW/CHARGE_BOARD_SPEC.md §2.4 (IINMAX = KILIM/RILIM, KILIM=320/355/390 AΩ)
+  L193   R_ILIM           改名   |     print("[3] ★ R_ILIM 档位表   IINMAX = KILIM/R_ILIM  [官方: KILIM=320/355/390 AΩ]")
+  L201   R_ILIM           改名   |     for R_ILIM in RILIM_VALUES:
+  L202   R_ILIM           改名   |         iin = [KILIM_MIN / R_ILIM, KILIM_TYP / R_ILIM, KILIM_MAX / R_ILIM]
+  L220   R_ILIM           改名   |                 R_ILIM=R_ILIM, tag=tag,
+  L242   R_ILIM           改名   |             print(f"R_ILIM={R_ILIM:>4}ohm {tag:>3} | IINMAX={iin[idx]:.3f}A | ICHG={I:.3f}A "
+  L256   R_ILIM           改名   |     for R_ILIM in RILIM_VALUES:
+  L257   R_ILIM           改名   |         row = [r for r in rilim_tab if r["R_ILIM"] == R_ILIM and r["tag"] == "max"][0]
+  L263   R_ILIM           改名   |         print(f"  R_ILIM={R_ILIM:>4}ohm: C1[{c1}] C2[{c2}] C3[{c3}] C4[{c4}] C5[{c5}]  "
+  L273   R_ILIM           改名   |     print("[3b] 能否用加宽/加厚铜箔代替降 R_ILIM 档?  (口径A保守, ICHG=max 档)")
+  L275   R_ILIM           改名   |     print(f"{'R_ILIM':>8} {'FPC 工艺':<24} {'ICHG(A)':>8} {'dV(mV)':>8} {'P铰链(mW)':>11} "
+  L278   R_ILIM           改名   |     for R_ILIM in RILIM_VALUES:
+  L279   R_ILIM           改名   |         I = [r for r in rilim_tab if r["R_ILIM"] == R_ILIM and r["tag"] == "max"][0]["ICHG_A"]
+  L288   R_ILIM           改名   |             print(f"{R_ILIM:>7}ohm {bname:<24} {I:>8.3f} {dv*1000:>8.1f} {p*1000:>11.1f} "
+  L290   R_ILIM           改名   |             cmp_rows.append(dict(R_ILIM=R_ILIM, tag="max", build=bname, ICHG=I,
+  L306   R_ILIM           改名   |     print(f"{'R_ILIM':>8} {'档':>4} {'铜厚':>10} {'ICHG(A)':>8} {'单pin(A)':>9} {'dV(mV)':>8} "
+  L309   R_ILIM           改名   |     for R_ILIM in RILIM_VALUES:
+  L311   R_ILIM           改名   |             base = [r for r in rilim_tab if r["R_ILIM"] == R_ILIM and r["tag"] == tag][0]
+  L324   R_ILIM           改名   |                 print(f"{R_ILIM:>7}ohm {tag:>4} {bname:>10} {I:>8.3f} {I/2:>9.3f} "
+  L328   R_ILIM           改名   |                     R_ILIM=R_ILIM, tag=tag, build=bname,
+  L394   R_ILIM           改名   |     for R_ILIM in RILIM_VALUES:
+  L395   R_ILIM           改名   |         row = [r for r in rilim_tab if r["R_ILIM"] == R_ILIM and r["tag"] == "max"][0]
+  L397   R_ILIM           改名   |         print(f"  R_ILIM={R_ILIM}ohm ICHG={I:.3f}A: dV(A)={I*R_cons*1000:.1f}mV (B) {I*R_opt*1000:.1f}mV")
+====================================================================================================
+FILE: MECH/hinge_usb_check.py  class= 判据脚本
+  L10    CONN_CAM         改名   |    (旧口径下 CONN_CAM 座体 17.5mm 与 CONN_LIGHT 座体 13.0mm 被判「> 12mm 板宽 ⇒ 放不下」
+  L10    CONN_LIGHT       改名   |    (旧口径下 CONN_CAM 座体 17.5mm 与 CONN_LIGHT 座体 13.0mm 被判「> 12mm 板宽 ⇒ 放不下」
+  L67    J_CHG            改名   |     "j_chg_pitch_mm":   (0.50,  "J_CHG 定稿 0.5mm pitch (网表 V1.5 起; ISS-085 已定 0.5mm —— 原来这里写 1.27 是过期口径, 导致 [FAIL] 假警报)"),
+  L73    CONN_CAM         改名   | CROSS_LINKS = ["J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"]
+  L73    CONN_LIGHT       改名   | CROSS_LINKS = ["J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"]
+  L73    J_CHG            改名   | CROSS_LINKS = ["J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"]
+  L87    J_CHG            改名   |     "J_CHG":     10,   # BAT_CHG×2 (载流) + GND×2 + CHG_STAT + PWR_GOOD + NC + TS_BAT + HINGE_RSV×2
+  L89    CONN_CAM         改名   |     "CONN_CAM":  16,   # 2-lane CSI 13 + 3 备用
+  L90    CONN_LIGHT       改名   |     "CONN_LIGHT":20,   # 原生 DSI 15 + 5 备用
+  L95    CONN_LIGHT       改名   |     "CONN_LIGHT": (40, "HW/RELIABILITY_DESIGN.md §(11) 按 40pin 预留; 网表值列只写 "
+  L107   CONN_CAM         改名   |            ("J_CHG", "J_TYPE_C", "CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_DEBUG", "J_UART")}
+  L107   CONN_LIGHT       改名   |            ("J_CHG", "J_TYPE_C", "CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_DEBUG", "J_UART")}
+  L107   J_CHG            改名   |            ("J_CHG", "J_TYPE_C", "CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_DEBUG", "J_UART")}
+  L107   J_DEBUG          改名   |            ("J_CHG", "J_TYPE_C", "CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_DEBUG", "J_UART")}
+  L107   J_TYPE_C         改名   |            ("J_CHG", "J_TYPE_C", "CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_DEBUG", "J_UART")}
+  L107   J_UART           改名   |            ("J_CHG", "J_TYPE_C", "CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_DEBUG", "J_UART")}
+  L108   CONN_CAM         改名   |     pat = re.compile(r"^(J_CHG|J_TYPE_C|CONN_CAM|CONN_LIGHT|CONN_USB|J_DEBUG|J_UART)"
+  L108   CONN_LIGHT       改名   |     pat = re.compile(r"^(J_CHG|J_TYPE_C|CONN_CAM|CONN_LIGHT|CONN_USB|J_DEBUG|J_UART)"
+  L108   J_CHG            改名   |     pat = re.compile(r"^(J_CHG|J_TYPE_C|CONN_CAM|CONN_LIGHT|CONN_USB|J_DEBUG|J_UART)"
+  L108   J_DEBUG          改名   |     pat = re.compile(r"^(J_CHG|J_TYPE_C|CONN_CAM|CONN_LIGHT|CONN_USB|J_DEBUG|J_UART)"
+  L108   J_TYPE_C         改名   |     pat = re.compile(r"^(J_CHG|J_TYPE_C|CONN_CAM|CONN_LIGHT|CONN_USB|J_DEBUG|J_UART)"
+  L108   J_UART           改名   |     pat = re.compile(r"^(J_CHG|J_TYPE_C|CONN_CAM|CONN_LIGHT|CONN_USB|J_DEBUG|J_UART)"
+  L137   CONN_CAM         改名   |             if ref not in ("J_CHG", "J_TYPE_C", "CONN_CAM", "CONN_LIGHT",
+  L137   CONN_LIGHT       改名   |             if ref not in ("J_CHG", "J_TYPE_C", "CONN_CAM", "CONN_LIGHT",
+  L137   J_CHG            改名   |             if ref not in ("J_CHG", "J_TYPE_C", "CONN_CAM", "CONN_LIGHT",
+  L137   J_TYPE_C         改名   |             if ref not in ("J_CHG", "J_TYPE_C", "CONN_CAM", "CONN_LIGHT",
+  L138   J_DEBUG          改名   |                            "CONN_USB", "J_DEBUG", "J_UART"):
+  L138   J_UART           改名   |                            "CONN_USB", "J_DEBUG", "J_UART"):
+  L180   CONN_CAM         改名   |     "CSI (CONN_CAM)": ((70, 80), (7, 9), (25, 55),
+  L182   CONN_LIGHT       改名   |     "DSI (CONN_LIGHT)": ((55, 65), (7, 9), (25, 55),
+  L186   J_CHG            改名   |     "PWR (J_CHG)": ((10, 25), (7, 9), (10, 25),
+  L247   CONN_CAM         改名   |     for ref in ("J_CHG", "J_TYPE_C", "CONN_USB", "CONN_CAM", "CONN_LIGHT", "J_DEBUG", "J_UART"):
+  L247   CONN_LIGHT       改名   |     for ref in ("J_CHG", "J_TYPE_C", "CONN_USB", "CONN_CAM", "CONN_LIGHT", "J_DEBUG", "J_UART"):
+  L247   J_CHG            改名   |     for ref in ("J_CHG", "J_TYPE_C", "CONN_USB", "CONN_CAM", "CONN_LIGHT", "J_DEBUG", "J_UART"):
+  L247   J_DEBUG          改名   |     for ref in ("J_CHG", "J_TYPE_C", "CONN_USB", "CONN_CAM", "CONN_LIGHT", "J_DEBUG", "J_UART"):
+  L247   J_TYPE_C         改名   |     for ref in ("J_CHG", "J_TYPE_C", "CONN_USB", "CONN_CAM", "CONN_LIGHT", "J_DEBUG", "J_UART"):
+  L247   J_UART           改名   |     for ref in ("J_CHG", "J_TYPE_C", "CONN_USB", "CONN_CAM", "CONN_LIGHT", "J_DEBUG", "J_UART"):
+  L252   J_CHG            改名   |         pitch = g["j_chg_pitch_mm"] if ref == "J_CHG" else (
+  L253   CONN_CAM         改名   |             g["ffc_pitch_mm"] if ref in ("CONN_CAM", "CONN_LIGHT", "CONN_USB") else None)
+  L253   CONN_LIGHT       改名   |             g["ffc_pitch_mm"] if ref in ("CONN_CAM", "CONN_LIGHT", "CONN_USB") else None)
+  L272   J_CHG            改名   |         if ref == "J_CHG" and 6 not in d["conn"]:
+  L273   J_CHG            改名   |             findings.append("J_CHG: 器件行声明 pin6=GND, 但网表里 J_CHG pin6 没有任何网表行 "
+  L300   CONN_CAM         改名   |                      for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB"))
+  L300   CONN_LIGHT       改名   |                      for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB"))
+  L301   J_CHG            改名   |     decl_stack += fpc_width_mm(rep["connectors"]["J_CHG"]["declared"] or 0, g["j_chg_pitch_mm"])
+  L303   CONN_CAM         改名   |                     for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB"))
+  L303   CONN_LIGHT       改名   |                     for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB"))
+  L304   J_CHG            改名   |     rec_stack += fpc_width_mm(RECOMMENDED_PINS["J_CHG"], g["ffc_pitch_mm"])
+  L307   CONN_CAM         改名   |                           for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_CHG"))
+  L307   CONN_LIGHT       改名   |                           for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_CHG"))
+  L307   J_CHG            改名   |                           for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_CHG"))
+  L309   CONN_CAM         改名   |                         for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_CHG"))
+  L309   CONN_LIGHT       改名   |                         for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_CHG"))
+  L309   J_CHG            改名   |                         for c in ("CONN_CAM", "CONN_LIGHT", "CONN_USB", "J_CHG"))
+====================================================================================================
+FILE: MECH/hw_cross_review_check.py  class= 判据脚本
+  L117   CONN_CAM         改名   |     for m in re.finditer(r"\|\s*(J_CHG|CONN_USB|CONN_CAM|CONN_LIGHT)\s*\|.*?(\d+)\s*×\s*(\d+)\s*p", txt):
+  L117   CONN_LIGHT       改名   |     for m in re.finditer(r"\|\s*(J_CHG|CONN_USB|CONN_CAM|CONN_LIGHT)\s*\|.*?(\d+)\s*×\s*(\d+)\s*p", txt):
+  L117   J_CHG            改名   |     for m in re.finditer(r"\|\s*(J_CHG|CONN_USB|CONN_CAM|CONN_LIGHT)\s*\|.*?(\d+)\s*×\s*(\d+)\s*p", txt):
+  L122   CONN_CAM         改名   |     for conn in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+  L122   CONN_LIGHT       改名   |     for conn in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+  L122   J_CHG            改名   |     for conn in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+  L152   CONN_CAM         改名   |     conns = ["J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"]
+  L152   CONN_LIGHT       改名   |     conns = ["J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"]
+  L152   J_CHG            改名   |     conns = ["J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"]
+  L195   CONN_LIGHT       改名   |         "P9 正文 §功能块写 CONN_LIGHT '1×21p', 但同一页器件表与网表都是 22p (V1.6 补的 pin22=GND)")
+  L246   CONN_LIGHT       改名   |         f"最宽 CONN_LIGHT 触点区 {22 * BASE['pitch']:.2f} + 壳体边 ~1.5 = {22 * BASE['pitch'] + 1.5:.2f} mm "
+  L266   CONN_CAM         改名   |         f"★ pin 数 = 网表实读 {total_pins}p (CONN_CAM 31 + CONN_LIGHT 22 + J_CHG 10 + CONN_USB 0; "
+  L266   CONN_LIGHT       改名   |         f"★ pin 数 = 网表实读 {total_pins}p (CONN_CAM 31 + CONN_LIGHT 22 + J_CHG 10 + CONN_USB 0; "
+  L266   J_CHG            改名   |         f"★ pin 数 = 网表实读 {total_pins}p (CONN_CAM 31 + CONN_LIGHT 22 + J_CHG 10 + CONN_USB 0; "
+  L275   J_CHG            改名   |     rec("MRG-14P", "★部分合并: J_CHG(10p) + CONN_USB(4p) → 1×14p@0.5mm",
+  L283   J_CHG            改名   |                            ("3 座 (J_CHG+USB 合并)", [6.40, 6.40, 6.40]),
+  L318   J_CHG            改名   |     frame_dests = {"J_CHG → 充电板 (镜框端件)": 6.00, "CONN_USB → 充电板 (镜框端件)": 3.00,
+  L319   CONN_CAM         改名   |                    "CONN_CAM → sensor 板 (镜框上沿)": 10.00, "CONN_LIGHT → 光机 (镜框正中)": 12.00}
+  L319   CONN_LIGHT       改名   |                    "CONN_CAM → sensor 板 (镜框上沿)": 10.00, "CONN_LIGHT → 光机 (镜框正中)": 12.00}
+  L341   J_CHG            改名   |     lands = {"Type-C 座 (16p 沉板)": 9.0 * 7.4, "J_CHG 座 (10p ZIF)": 6.5 * 6.4,
+  L342   L_CHG            改名   |              "U_CHG BQ25896 (QFN-16 3×3)": 3.0 * 3.0, "L_CHG 2.2µH": 4.0 * 4.0,
+  L342   U_CHG            改名   |              "U_CHG BQ25896 (QFN-16 3×3)": 3.0 * 3.0, "L_CHG 2.2µH": 4.0 * 4.0,
+  L381   C_BST            改名   |             "P10 网表有 SW/L_CHG/C_BST/PMID ⇒ 开关型 buck → 耗散应为 Pin-Pout")
+  L381   L_CHG            改名   |             "P10 网表有 SW/L_CHG/C_BST/PMID ⇒ 开关型 buck → 耗散应为 Pin-Pout")
+  L403   C_BST            改名   |             "SW/L_CHG/C_BST/PMID ⇒ 开关型 buck ⇒ 耗散应按 Pin-Pout + DCR 算, 约 0.35-0.55W "
+  L403   L_CHG            改名   |             "SW/L_CHG/C_BST/PMID ⇒ 开关型 buck ⇒ 耗散应按 Pin-Pout + DCR 算, 约 0.35-0.55W "
+  L430   J_CHG            改名   |     rec("ASM-1", "框侧 J_CHG 实物是一对 (框侧座 + 脚侧座)",
+  L432   J_CHG            改名   |         "netlist 只有一行 J_CHG 器件声明 ⇒ BOM 会少买一半 (已登记 needs_from iss099_hw_jchg_qty)")
+  L468   D_CHG_LED        改名   |     led_rows = [r for r in rows[1:] if r and r[ri] in ("D_CHG_LED", "Q_CHG_LED", "R_CHG_LED")]
+  L468   Q_CHG_LED        改名   |     led_rows = [r for r in rows[1:] if r and r[ri] in ("D_CHG_LED", "Q_CHG_LED", "R_CHG_LED")]
+  L468   R_CHG_LED        改名   |     led_rows = [r for r in rows[1:] if r and r[ri] in ("D_CHG_LED", "Q_CHG_LED", "R_CHG_LED")]
+  L470   D_CHG_LED        改名   |     rec("NET-LED", "★充电灯电路 (D_CHG_LED/Q_CHG_LED/R_CHG_LED) 的 board 列",
+  L470   Q_CHG_LED        改名   |     rec("NET-LED", "★充电灯电路 (D_CHG_LED/Q_CHG_LED/R_CHG_LED) 的 board 列",
+  L470   R_CHG_LED        改名   |     rec("NET-LED", "★充电灯电路 (D_CHG_LED/Q_CHG_LED/R_CHG_LED) 的 board 列",
+  L472   R_CHG_LED        改名   |         "R_CHG_LED 的两端分别标 CHG_BOARD (net VBUS_5V_CHG) 与 MAIN_PCB; "
+====================================================================================================
+FILE: MECH/iss065_check.py  class= 判据脚本
+  L328   U_CHG            改名   | new = cba.area_model(parts, cba.FP["U_CHG"])
+  L341   U_CHG            改名   | print(f"  器件占位 {used:.2f} mm² (逐颗封装, U_CHG 用官方 4x4=16mm²)")
+  L342   J_CHG            改名   | print(f"  可用 = 板250 - TypeC65.86 - J_CHG座58.24 = {phys_free:.2f} mm² (物理口径)")
+  L372   C_SYS            改名   | t3a = sum(amap.get(r, 0.0) for r in ["C_SYS", "C_VBUS_OUT", "R_PU_INT", "R_STAR_PGND"])
+  L372   C_VBUS_OUT       改名   | t3a = sum(amap.get(r, 0.0) for r in ["C_SYS", "C_VBUS_OUT", "R_PU_INT", "R_STAR_PGND"])
+  L372   R_PU_INT         改名   | t3a = sum(amap.get(r, 0.0) for r in ["C_SYS", "C_VBUS_OUT", "R_PU_INT", "R_STAR_PGND"])
+  L372   R_STAR_PGND      改名   | t3a = sum(amap.get(r, 0.0) for r in ["C_SYS", "C_VBUS_OUT", "R_PU_INT", "R_STAR_PGND"])
+  L373   R_PU_SCL         改名   | t3b = sum(amap.get(r, 0.0) for r in ["R_PU_SCL", "R_PU_SDA"])
+  L373   R_PU_SDA         改名   | t3b = sum(amap.get(r, 0.0) for r in ["R_PU_SCL", "R_PU_SDA"])
+  L374   D_CHG_LED        改名   | t3c = sum(amap.get(r, 0.0) for r in ["D_CHG_LED", "Q_CHG_LED", "R_CHG_LED", "R_PU_STAT_L"])
+  L374   Q_CHG_LED        改名   | t3c = sum(amap.get(r, 0.0) for r in ["D_CHG_LED", "Q_CHG_LED", "R_CHG_LED", "R_PU_STAT_L"])
+  L374   R_CHG_LED        改名   | t3c = sum(amap.get(r, 0.0) for r in ["D_CHG_LED", "Q_CHG_LED", "R_CHG_LED", "R_PU_STAT_L"])
+  L376   C_SYS            改名   |     ("T-3a 删真 DNP + 铜皮短接 (C_SYS/C_VBUS_OUT/R_PU_INT/R_STAR_PGND)", t3a,
+  L376   C_VBUS_OUT       改名   |     ("T-3a 删真 DNP + 铜皮短接 (C_SYS/C_VBUS_OUT/R_PU_INT/R_STAR_PGND)", t3a,
+  L376   R_PU_INT         改名   |     ("T-3a 删真 DNP + 铜皮短接 (C_SYS/C_VBUS_OUT/R_PU_INT/R_STAR_PGND)", t3a,
+  L376   R_STAR_PGND      改名   |     ("T-3a 删真 DNP + 铜皮短接 (C_SYS/C_VBUS_OUT/R_PU_INT/R_STAR_PGND)", t3a,
+  L377   R_STAR_PGND      改名   |      "零结构代价; 但 R_STAR_PGND 改铜皮短接 ⇒ PGND/GND 单点汇流要写进 PCB 规则"),
+  L378   R_PU_SCL         改名   |     ("T-3b 删 I2C 上拉 (R_PU_SCL/R_PU_SDA)", t3b,
+  L378   R_PU_SDA         改名   |     ("T-3b 删 I2C 上拉 (R_PU_SCL/R_PU_SDA)", t3b,
+  L380   D_CHG_LED        改名   |     ("T-3c 充电灯链移镜脚 (D_CHG_LED/Q_CHG_LED/R_CHG_LED/R_PU_STAT_L)", t3c,
+  L380   Q_CHG_LED        改名   |     ("T-3c 充电灯链移镜脚 (D_CHG_LED/Q_CHG_LED/R_CHG_LED/R_PU_STAT_L)", t3c,
+  L380   R_CHG_LED        改名   |     ("T-3c 充电灯链移镜脚 (D_CHG_LED/Q_CHG_LED/R_CHG_LED/R_PU_STAT_L)", t3c,
+  L404   D_CHG_LED        改名   | _led_rows = [r for r in _rows if (r.get("ref") or "").strip() == "D_CHG_LED"]
+  L406   D_CHG_LED        改名   | _led_fp = cba.FP.get("D_CHG_LED", (0.0, 0.0))
+  L409   D_CHG_LED        改名   | print("  ── C1c: 充电灯 D_CHG_LED 的 netlist board 列 (⇒ 139.22 这个数字本身偏小) ──")
+  L410   D_CHG_LED        改名   | print(f"      D_CHG_LED 在 netlist 里的 board 列 = {_led_boards} (共 {len(_led_rows)} 行)")
+  L421   D_CHG_LED        改名   |     f"D_CHG_LED netlist board={_led_boards} 但物理在充电板 ⇒ 真实占位 {_real_used:.2f} mm², "
+  L433   C_SYS            改名   | print(f"      ⇒ 两颗电容里 **{_missing} 在 netlist_v1.csv 里不存在** (网表只有 C_VBUS_IN / C_VBUS_OUT / C_SYS)")
+  L433   C_VBUS_IN        改名   | print(f"      ⇒ 两颗电容里 **{_missing} 在 netlist_v1.csv 里不存在** (网表只有 C_VBUS_IN / C_VBUS_OUT / C_SYS)")
+  L433   C_VBUS_OUT       改名   | print(f"      ⇒ 两颗电容里 **{_missing} 在 netlist_v1.csv 里不存在** (网表只有 C_VBUS_IN / C_VBUS_OUT / C_SYS)")
+  L488   J_CHG            改名   |      "端件要装 充电板 + Type-C沉板 + 铝罩 + J_CHG框侧座 + 铰链件 + 4条FPC固定段 ⇒ 缺一行"),
+====================================================================================================
+FILE: MECH/jd_y0_feasibility.py  class= 判据脚本
+  L7     J_DEBUG          改名   |   给「板只改一次」那一趟准备一份**板侧开口约束表**: 检修口/调试口 (J_DEBUG 焊盘阵列 + 开口 `jd_y0`)
+  L256   J_DEBUG          改名   |         ("jd_y0 (J_DEBUG 焊盘阵列 Y 起点)", "9.50",
+  L259   J_DEBUG          改名   |          "★盘上板读不到★ (板文件无 J_DEBUG 焊盘 ⇒ 该板不是产品板)", "★冲突★", "[实测·脚本]"),
+  L367   J_DEBUG          改名   |     """★[实测] 只读盘上板 (HW/PCB/demo_mainboard.kicad_pcb) + 落表 (netlist/BOM/pins) 的 J_DEBUG / J_UART ★"""
+  L367   J_UART           改名   |     """★[实测] 只读盘上板 (HW/PCB/demo_mainboard.kicad_pcb) + 落表 (netlist/BOM/pins) 的 J_DEBUG / J_UART ★"""
+  L375   J_DEBUG          改名   |         for ref in ("J_DEBUG", "J_UART"):
+  L375   J_UART           改名   |         for ref in ("J_DEBUG", "J_UART"):
+  L402   J_DEBUG          改名   |             pins = sorted({int(m) for m in re.findall(r"J_DEBUG\.pin(\d+)", txt)})
+  L404   J_DEBUG          改名   |             m = re.search(r"^J_DEBUG,(.*)$", txt, re.M)
+  L418   J_DEBUG          改名   |     for ref in ("J_DEBUG", "J_UART"):
+  L418   J_UART           改名   |     for ref in ("J_DEBUG", "J_UART"):
+  L427   J_DEBUG          改名   |         print(f"  落表 {name}: J_DEBUG 脚号 {info.get('J_DEBUG_pins')}")
+  L430   J_DEBUG          改名   |     print("   ① ★脚本按 J_DEBUG = 2×5 (10 脚, Cortex-10) 算★ (BASE['jd_cols']=5 / ['jd_rows']=2), "
+  L432   J_DEBUG          改名   |     print("   ② ★盘上板 J_DEBUG 与 J_UART 相距很远★ (见上表坐标) ⇒ MECH 模型里「J_UART 紧邻 J_DEBUG 末列 (X+1.27)」"
+  L432   J_UART           改名   |     print("   ② ★盘上板 J_DEBUG 与 J_UART 相距很远★ (见上表坐标) ⇒ MECH 模型里「J_UART 紧邻 J_DEBUG 末列 (X+1.27)」"
+  L464   J_DEBUG          改名   |         ("F-6", "★★落表的 J_DEBUG 是 1×4, 脚本按 2×5 算★★",
+  L469   J_DEBUG          改名   |         ("F-7", "★★盘上板 J_DEBUG 与 J_UART 的相对位置与 MECH 模型不符★★",
+  L469   J_UART           改名   |         ("F-7", "★★盘上板 J_DEBUG 与 J_UART 的相对位置与 MECH 模型不符★★",
+  L470   J_DEBUG          改名   |          "盘上板实读: J_DEBUG @ (144.30, 58.00) · J_UART @ (20.74, 70.00) ⇒ 相距 123.6mm; "
+  L470   J_UART           改名   |          "盘上板实读: J_DEBUG @ (144.30, 58.00) · J_UART @ (20.74, 70.00) ⇒ 相距 123.6mm; "
+  L471   J_DEBUG          改名   |          "MECH 模型 = J_UART 紧邻 J_DEBUG 末列 (X = jd_x1 + 1.27) ⇒ 开口 X 49.21..59.41 在盘上板不成立",
+  L471   J_UART           改名   |          "MECH 模型 = J_UART 紧邻 J_DEBUG 末列 (X = jd_x1 + 1.27) ⇒ 开口 X 49.21..59.41 在盘上板不成立",
+  L513   J_DEBUG          改名   |         "C1": "需 hw-lead 给 30mm 板上 J_DEBUG 真实起点 [0数据]; 余量最宽",
+  L530   J_DEBUG          改名   |     print("\n【D 方案 (改 X 排布)】 ★不代拍★ —— J_DEBUG 阵列 X 50.50..55.58 与 P-2 (X=52.00) 重叠是 P-2 约束的根因;")
+====================================================================================================
+FILE: MECH/pinset2_mech_check.py  class= 判据脚本
+  L211   J_CHG            改名   |         chk(f"{k} vs J_CHG 座体 keep-out 重叠", ov3 < 1e-6, f"2D 重叠面积 = {ov3:.4f} mm²",
+  L212   J_CHG            改名   |             "J_CHG 座体 A/B/C 尺寸页未核 [0数据] ⇒ 座体 X 向进深按 3.00 推算 (HW/pcb60x30_check.py JCHG_RECT)")
+====================================================================================================
+FILE: MECH/rebase_20261106.py  class= 历史脚本
+  L18    CONN_CAM         改名   |      ⇒ CONN_CAM / CONN_LIGHT 去掉铰链属性 (板内 FPC 座) · CONN_USB 整条删除
+  L18    CONN_LIGHT       改名   |      ⇒ CONN_CAM / CONN_LIGHT 去掉铰链属性 (板内 FPC 座) · CONN_USB 整条删除
+  L20    CONN_CAM         改名   |   ⑤ 11-03 09:3x + 11-04: CONN_CAM 改 **31p@0.3mm** (Radxa Camera 4K 模组, 板内)
+  L21    CONN_LIGHT       改名   |      · CONN_LIGHT 定稿 **22p@0.5mm** (FH12-22S-0.5SH(55), 针序照 RPi5 J4)
+  L22    J_CHG            改名   |      · J_CHG pin7 改 **NC** (demo 版 VBUS_DET 改主板本地分压)
+  L35    J_CHG            改名   |   · 所有 [0数据] 明确标出 (J_CHG 座体厂商尺寸 / 板厚档位 / 波导 / 镜头模组外形)
+  L107   J_CHG            改名   |     ("J_CHG 旧建议 8p",        r"^8p@"),
+  L112   R_ILIM           改名   |     ("R_ILIM 470 旧建议",       r"^470$"),
+  L147   J_CHG            改名   |                 if m and m.group(1) == "J_CHG":
+  L152   J_CHG            改名   |             if n1 == "J_CHG pin7" and n2.upper() == "NC":
+  L154   J_CHG            改名   |             if ref.startswith("CONN_") or ref == "J_CHG":
+  L259   CONN_CAM         改名   |     for name in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+  L259   CONN_LIGHT       改名   |     for name in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+  L259   J_CHG            改名   |     for name in ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT"):
+  L269   J_CHG            改名   |             if L["name"] == "J_CHG":
+  L332   CONN_CAM         改名   |         "mech_conn_cam_pins": ("31p@0.3mm", "netlist CONN_CAM 2026-11-03 订正 (Radxa Camera 4K 板内)"),
+  L333   CONN_LIGHT       改名   |         "mech_conn_light_pins": ("22p@0.5mm", "netlist CONN_LIGHT 2026-11-04 定稿 (FH12-22S-0.5SH)"),
+  L392   J_CHG            改名   |     hr(f"  ★1.5A 档 (J_CHG 双 pin 各 0.75A) ⇒ 保守口径皮肤ΔT {hinge_i['1.5A']['A_cons']['dT_skin_C']:.1f}°C "
+  L421   J_CHG            改名   |     chk("J_CHG 10p", max(nl["j_chg_pins"]) == 10, f"{sorted(nl['j_chg_pins'])}")
+  L422   J_CHG            改名   |     chk("J_CHG pin7 引用但接 NC", nl.get("j_chg_pin7_nc") is True, f"pin7_nc={nl.get('j_chg_pin7_nc')}")
+====================================================================================================
+FILE: MECH/service_port_check.py  class= 判据脚本
+  L75    J_UART           改名   |     "ju_body_h":     2.54,   # J_UART 座体宽 (Y) —— 本单定 DNP (只留焊盘), 见 §3.2
+  L78    J_DEBUG          改名   |     "ju_gap":        1.27,   # J_UART 距 J_DEBUG 末列的 X 间距
+  L78    J_UART           改名   |     "ju_gap":        1.27,   # J_UART 距 J_DEBUG 末列的 X 间距
+  L198   J_UART           改名   |     content_x0, content_x1 = pad_x0, pad_x1          # X 向: 焊盘并集 (J_UART 更靠外)
+  L201   J_DEBUG          改名   |     chk("2.1 J_DEBUG 2×5 **焊盘** 包络 = 5.08 × 1.27",
+  L204   J_UART           改名   |     chk("2.2 J_UART 1×2 末脚 X = 58.12 (距 PCB 板端 1.88mm ≥0.8)",
+  L217   J_UART           改名   |     chk("2.6 J_UART 座体若装 (DNP) 需开口 Y 放大到 5.24 —— 本文取 4.60 ⇒ J_UART 座体一律 DNP",
+  L218   J_UART           改名   |         True, f"J_UART 座体下沿 Y={ju_body_y0:.2f} < 开口下沿 {BASE['jd_y0'] - 1.03:.2f} ⇒ 装不下")
+====================================================================================================
+FILE: MECH/verify_budget.py  class= 判据脚本
+  L82    R_ILIM           改名   | CHG_R_ILIM = 390.0               # Ω  [实测] 网表 R_ILIM = 390Ω
+  L502   C_BST            改名   |     print(f"  器件 = {CHG_IC} [实测 网表 P10: SW/L_CHG/C_BST/PMID] · 拓扑 = {CHG_TOPOLOGY} "
+  L502   L_CHG            改名   |     print(f"  器件 = {CHG_IC} [实测 网表 P10: SW/L_CHG/C_BST/PMID] · 拓扑 = {CHG_TOPOLOGY} "
+  L505   R_ILIM           改名   |           f"R_ILIM={CHG_R_ILIM:.0f}Ω)")

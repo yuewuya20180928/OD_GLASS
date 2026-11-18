@@ -1,0 +1,164 @@
+##### ISS-297 cont3 交卷前必跑 · 现场 rc · 2026-11-17 20:55:41 CST #####
+===== CMD: python3 HW/board_reboard.py --selftest =====
+  ✅ ① 台账里有合法改板记录 (四项齐全) 且盘上 == 新 md5 ⇒ 绿 (★这就是「合法改板」的样子★)
+      ⇒ 实得: 绿 · ★HW/PCB/demo_mainboard.kicad_pcb: 盘上 md5 5307ecda8e91 == 落表台账链头 (★合法改板·四项齐全·单号 ISS-9901★) ⇒ 放行★ · ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be83
+  ✅ ② 只改了基线里的 md5, 没有台账记录 ⇒ 红 (★这就是「挖坑」, 必须堵死★)
+      ⇒ 实得: 红 · ★基线 md5 5307ecda8e91 在落表台账里与 HW/PCB/demo_mainboard.kicad_pcb 【同行】查不到 ⇒ 疑似【改基线凑绿】⇒ 判红★
+  ✅ ③a 台账记录缺单号 (reboard 记录没有 by) ⇒ 红
+      ⇒ 实得: 红 · ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 记录四项不齐: 缺 by ⇒ 判红★
+  ✅ ③b 台账记录缺改前 md5 (reboard 记录没有 prev_md5) ⇒ 红
+      ⇒ 实得: 红 · ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 记录四项不齐: 缺 prev_md5 ⇒ 判红★
+  ✅ ③c 台账记录文件名对不上 (reboard.file 写成 .kicad_pro) ⇒ 红
+      ⇒ 实得: 红 · ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 记录写的是 HW/PCB/demo_mainboard.kicad_pro (≠ 条目文件名) ⇒ 判红★
+  ✅ ③d 落表台账那一行与它所在段都没有单号 ⇒ 链头无单号 ⇒ 红 (★fail-closed★)
+      ⇒ 实得: 红 · ★落表台账链头 (5307ecda8e91) 缺落表单号 ⇒ 判红★ · ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 单号 ISS-9901 与落表台账产出该 md5 的单号对不上 (台账 = []) ⇒ 判红★ · ★HW/PCB/demo_mainboa
+  ✅ ④ 台账里有记录但盘上 md5 ≠ 记录里的新 md5 ⇒ 红 (★合法改板 ≠ 随便改★)
+      ⇒ 实得: 红 · ★盘上 md5 611b869e13518c3c023fb178f91a0075 ≠ 落表台账链头 5307ecda8e91 ⇒ 真源被换了或台账没更新 ⇒ 判红★
+  ✅ ⑤a 链头不唯一 (两条变更行指向同一个文件) ⇒ 红 (★fail-closed★)
+      ⇒ 实得: 红 · ★落表台账最新记录取不准 (链头不唯一 = ['5307ecda8e91', 'deadbeefdead'] (取不准 ⇒ 不许判绿)) ⇒ 取错记录可能假绿 ⇒ 判红★ · ★HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9902) 的落表台账登记
+  ✅ ⑤b 链断 (链上一个节点有两个前驱) ⇒ 红 (★fail-closed★)
+      ⇒ 实得: 红 · ★落表台账链断了 / 不唯一 (链上 5307ecda8e91 的前驱不唯一 = ['0123456789ab', '611b869e1351']) ⇒ 判红★ · ★HW/PCB/demo_mainboard.kicad_pro 没有被同一次合法改板 (ISS-9901) 的落表台账登记覆盖 (★
+  ✅ ⑤c 锚点 reboard 的改前 md5 与台账链头那一行的改前对不上 (链断) ⇒ 红 (★fail-closed★)
+      ⇒ 实得: 红 · ★HW/PCB/demo_mainboard.kicad_pcb 的 reboard 改前 md5 0123456789ab 与落表台账链头那一行的改前 611b869e1351 不一致 (链断) ⇒ 判红★ · ★HW/PCB/demo_mainboard.kicad_pcb 的四项 (单号 / 
+──────────────────────────────────────────────────────────────────────────────
+  ⇒ 10/10 条符合预期
+RC=0
+
+===== CMD: python3 HW/check_fsin_rootcause.py =====
+==============================================================================
+  ISS-282 · `FSIN_OUT` 根因订正 + 布线前置闸 (★主模式 · root=/home/yuewuya/.openclaw/workspace/projects/smart_glasses★)
+==============================================================================
+  ✅ D1   ★订正页在盘 · 「逃逸方向」+「不成立」+「布线排队顺序」三个口径齐全 · 锚点块可解析 (11 项)★
+  ✅ D2   ★重算: R_SER_FSIN→最近异网焊盘 1.300000 (R_SER_FSIN.2/FSIN) · TP_FSIN→最近异网焊盘 1.350000 (CONN_CAM.30/LIGHT_5V) · 两者 ≥ 源码阈值 0.45 ⇒ escape_stub 不适用 · 页上三个数与重算逐字一致★
+  ✅ D3   ★重算: A→B 直线 L=3.0067 · 唯一挡路者=VDD_3V3_IO (seg (93.450,47.950)->(93.200,47.700) w=0.250) · 忽略它之后净距 0.4384 ≥ 判据 0.3950 · 忽略任何别的网都还是 FAIL ⇒ 页上结论可复现★
+  ✅ D4   ★老 S8 行逐字仍在 (L630) · 订正行在其下 (L631) · 「不是板侧项 / 不需要动板 / 布线臂 env 配置 / 布线排队顺序 / VDD_3V3_IO / 划掉」六个口径齐全★
+  ✅ D5   ★受保护 5 件逐字节未变 (板/`.kicad_pro` 走【落表台账链头 + 合法改板通道】 + 网表/脚表/BOM 有出处) ★ · ★HW/PCB/demo_mainboard.kicad_pcb: 盘上 md5 611b869e1351 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ · ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ · 板 mtime 未变 (★无合法改板 ⇒ mtime 仍硬校验★) · netlist_v1.csv = 37f62ac3 (出处: 落表台账「前后对照」L1371 (★最新一条落表记录★)) · netlist_v1_pins.csv = a4270120 (出处: 落表台账「前后对照」L1372 (★最新一条落表记录★)) · BOM_v1.csv = 5d02bece (出处: 落表台账「前后对照」L1373 (★最新一条落表记录★))
+------------------------------------------------------------------------------
+  ⇒ 0 项不通过
+==============================================================================
+RC=0
+
+===== CMD: python3 HW/check_g1a7_selection_landed.py =====
+============================================================================
+  G1a-7 选型落表门禁 (★ISS-257 · 守住「必装件无「[待选型]」」这条绿★)
+============================================================================
+   OK   C1  必装 ∩ 「[待选型]」 = 0 件 (期望 0)
+   OK   C2  14 个落表位号逐个点名 (value/opn/占位词/三方在表) — 0 条不合格
+   OK   C3  表 584 脚 / 218 器件 · 图 584 脚 / 218 符号 · K=0 (期望 584/218/K=0)
+   OK   C4  板 611b869e / .kicad_pro 3e504d2b (★判决源 = 落表台账链头 + 合法改板通道; 保护基线 611b869e / 3e504d2b★)
+   OK   C5  evidence 列全在落表链八档白名单里 (★`[官网]` ⇒ 红★) — 0 条非法
+   OK   C6  14 个位号: dnp=必装 / evidence 合法 / 无 [待选型] / opn 三方一致 — 0 条不合格
+----------------------------------------------------------------------------
+✅ rc=0: ★★G1a-7 落表还在 (★14 件全落 + 脚数 584/218/K=0 + 板逐字节不变 + evidence 合白名单★)
+RC=0
+
+===== CMD: python3 HW/check_onepass_commit_order.py =====
+==============================================================================
+  ISS-280 · 「板只改一次」提交时序守卫 (★主模式 · root=/home/yuewuya/.openclaw/workspace/projects/smart_glasses★)
+==============================================================================
+  ✅ D0   权威页存在且 INV-1~INV-4 齐全 · 网表 HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 · 脚表 HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动 · BOM HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+  ✅ D1   找到 3 处「B 类终段步 = 最后跑」表述 (★第 21 行★)
+  ✅ D2   找到「只允许变一次 + 同趟 + S4 + S8」表述 (★第 21 行★)
+  ✅ D3   3 处集合断言全部被后文撤回订正覆盖 (★断言行 15, 16, 607 · 撤回行 21, 612★)
+  ✅ D4   盘上板 md5 611b869e13518c3c023fb178f91a0075 == 保护基线 611b869e1351 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 盘面与台账一致
+  ✅ D4b  盘上 .kicad_pro md5 3e504d2be83152e337949723e909be1b == ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★ ⇒ 未被绕过改动
+  ✅ D5   变更区 0 行 (★≤ 1 ⇒ 板 md5 至多变一次★)
+  ✅ D6   变更区 0 行 ⇒ 板 md5 没变过 ⇒ 无需留证绑定 (★本单零写板★)
+------------------------------------------------------------------------------
+  ✅ 全部通过
+RC=0
+
+===== CMD: python3 HW/check_onepass_preflight_coverage.py =====
+==============================================================================
+  ISS-277 · 板侧漏项覆盖度闸 (★P1 清单 / P2 归属步 / P3 判据真命令 / P4 覆盖度 / P5 现状 / P6 受保护 ★)
+==============================================================================
+  OK   P1
+     条目 32 条 · 9 字段齐全且非空: ✔
+  OK   P2
+     步覆盖: S1=1 S2=3 S3=2 S4=4 S5=1 S6=9 S7=2 S8=1 S9=1 S10=5 S11=1 S12=1 S13=1
+  OK   P3
+     每条 criterion 的脚本文件都在盘上: ✔
+  OK   P4
+     覆盖度: 26 个标记全部在清单里: ✔
+  OK   P5
+     5 个现状探针: 清单里的现状值 == 盘面实测: ✔
+  OK   P6
+     受保护 5 件 md5 逐字节不变: ✔
+     ✔ ★HW/PCB/demo_mainboard.kicad_pcb: 盘上 md5 611b869e1351 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★
+     ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★
+     ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★板侧项全集与作业包对齐, 现状值与盘面一致 ★★
+RC=0
+
+===== CMD: python3 HW/check_pin_function_labels.py =====
+       - 脚表里缺少 pin3 ⇒ 官方 pinout 要求 EN 必须存在
+   · U_LDO_S28.pin4     [WRONG_FUNCTION] 官方应为 IN           脚表现值 'GND (pin2)'                
+       - 声明功能名 'GND' ≠ 官方 'IN'
+       - value 里的引脚号 pin2 ≠ 本脚 pin4 (★串号★)
+       - 同器件内功能名重复: 'GND' 与 ['pin2', 'pin5'] 共用 ⇒ 本脚官方应为 'IN'
+   · U_LDO_S28.pin5     [WRONG_FUNCTION] 官方应为 THERMAL_PAD  脚表现值 'GND (pin2)'                
+       - 声明功能名 'GND' ≠ 官方 'THERMAL_PAD'
+       - value 里的引脚号 pin2 ≠ 本脚 pin5 (★串号★)
+       - 同器件内功能名重复: 'GND' 与 ['pin2', 'pin4'] 共用 ⇒ 本脚官方应为 'THERMAL_PAD'
+
+  ── 【提示 (★不计入 rc★·共 7 条★)】 ──
+   · U_LDO_S28.pin1     [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-28'
+   · U_LDO_S18B.pin1    [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-18'
+   · U_LDO_S12.pin1     [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-12'
+   · U_LDO_L33.pin1     [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-33'
+   · U_LDO_L18.pin1     [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-18'
+   · U_LDO_IO33.pin1    [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-33'
+   · U_LDO_IO18.pin1    [NO_FUNCTION] 官方应为 OUT          现值 'TPS7A20-18'
+
+  ── 【④/④b 受保护文件 md5 + 基线可追溯性 (★台账对账★)】 ──
+   · md5:HW/BOM_v1.csv                        [MD5_CHANGED] 期望 94642d07a69e8d60dd2af57f69b93607 实得 5d02bece9477ffce5fbe0193c7d5cce4
+   · md5:HW/netlist_v1.csv                    [MD5_CHANGED] 期望 e06c1dd633566aa44732762c2ff99d1c 实得 37f62ac3f0b81d92ca7d48fdea717f07
+   · md5:HW/netlist_v1_pins.csv               [MD5_CHANGED] 期望 287e7861a0d1007748d92d9fbecdd490 实得 a4270120454aedf7a23c92cd8985c8a6
+
+  判定: ❌ 不过 (18 条缺陷) ⇒ ★当前是已知缺陷基线, 落表批次里修★
+RC=1
+
+===== CMD: python3 HW/check_workpack_state_values.py =====
+     ✔ C05_FRAME_B160X100         实测 8                                  == 期望
+     ✔ C06_B03_DEFECT_COUNT       实测 18                                 == 期望
+     ✔ C07_B26_MD5_LEDGER         实测 37f62ac3f0b81d92ca7d48fdea717f07   == 期望
+  OK   V5
+     七个必备类别覆盖 (★两份文档各须齐全 · 不许只加一条 DNP 探针★): ✔
+     ✔ workpacket  七类齐全 (29 条登记)
+     ✔ checklist   七类齐全 (29 条登记)
+  OK   V6
+     受保护 5 件 md5 逐字节不变: ✔
+     ✔ ★HW/PCB/demo_mainboard.kicad_pcb: 盘上 md5 611b869e1351 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★
+     ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★
+     ✔ HW/netlist_v1.csv md5 == 落表台账登记 37f62ac3f0b81d92ca7d48fdea717f07 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 a4270120454aedf7a23c92cd8985c8a6 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/BOM_v1.csv md5 == 落表台账登记 5d02bece9477ffce5fbe0193c7d5cce4 (★落表单号 ISS-283·台账 L1353·§16.2★) ⇒ 未被绕过改动
+  OK   V7
+     探针真实性 + 测量源多样性: ✔
+     ✔ copper_and_frame   探针源 1 个
+     ✔ defect_count       探针源 3 个
+     ✔ dnp_token_count    探针源 1 个
+     ✔ dnp_zero_mark      探针源 1 个
+     ✔ footprint_count    探针源 1 个
+     ✔ md5_baseline       探针源 3 个
+     ✔ ref_suffix         探针源 2 个
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★两份文档里的现状值 == 盘面实测, 且七类判据齐 ★★
+RC=0
+
+===== PROTECTED 5 md5 =====
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+37f62ac3f0b81d92ca7d48fdea717f07  HW/netlist_v1.csv
+a4270120454aedf7a23c92cd8985c8a6  HW/netlist_v1_pins.csv
+5d02bece9477ffce5fbe0193c7d5cce4  HW/BOM_v1.csv
+===== board mtime =====
+-rw-rw-r-- 1 yuewuya yuewuya 4940213 2026-11-06 07:07:17.362193413 +0800 HW/PCB/demo_mainboard.kicad_pcb
+===== landing ledger mtime =====
+-rw-rw-r-- 1 yuewuya yuewuya 173704 2026-11-17 12:30:23.078472154 +0800 HW/SCHEMATIC_LANDING_V1_LANDED.md
+===== frag count iss297 =====
+6
+DONE_MARKER

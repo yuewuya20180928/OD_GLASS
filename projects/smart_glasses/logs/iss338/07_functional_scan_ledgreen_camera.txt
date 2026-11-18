@@ -1,0 +1,27 @@
+=== F9. 绿光 D_LED_G 的产品功能 (SW 侧要求) ===
+SW/SW_TIMING_REVIEW.md:316:| **9** | ★"关机"没有硬件断电通路 | ★**推翻**: `U_PWR_SW` (L50) + `R_PD_ON` 10k 下拉 (L56/57) + `Q_PG` | ①"关机"= SoC 把 `PWR_ON` GPIO 配高阻 ⇒ 开关关 ⇒ **SYS 断电** ②"
+SW/SHUTDOWN_SEMANTICS_SPEC.md:220:| **A. demo 板不适用** (推荐默认值) | demo 装机态**没有充电板** (`J_CHG` 跨铰链座 DNP) ⇒ 无充电灯 ⇒ 售后文档里 demo 章节删掉"充电时指示灯状态"这句 | 0 硬件成本 |
+SW/tools/rknn_bench.py:145:#         而且 ★**不报任何错** —— 门禁显示绿灯, 数字是错的 ("绿灯假数据",
+SW/tools/rknn_bench.py:940:    ★ 这是防"绿灯假数据"的关键: 数字好看, 但你得能证明它是**这次这份权重**跑出来的。
+SW/tools/rknn_bench.py:1074:        # ★ ISS-157: 本次用的权重 + 缓存命中/未命中 (防"绿灯假数据")
+SW/RKNN_BENCH.md:594:★ **这是"绿灯假数据"型缺陷** —— 门禁显示绿, 数字是错的 ⇒ ★**比报错危险**。
+SW/RKNN_BENCH.md:602:⇒ ★**"yolov5s_heads.onnx" 里装的是 yolov5n 的图** (逐字节相同) —— 这就是"绿灯假数据"的物证。
+SW/MODEL_RELEASE_LIST.md:144:| ★**为什么要紧** | ★**校准集少 1 张不会报错** ⇒ 量化结果照常产出 ⇒ **门禁显示绿灯, 但量化少了 1 张的代表性** ⇒ 与 ISS-157 (cut 模型缓存不失效) 是**同一类病**: "**静默出错的绿灯**" |
+SW/MODEL_RELEASE_LIST.md:152:| ⇒ 结论 | ★**C9 必须加一条: graph input 的 `elem_type` 必须是 float32 (1)** —— 不然门禁会给出"这个模型好着呢"的假绿灯 |
+SW/DEMO_OD_PIPELINE_SPEC.md:87:> ★**换权重重测会静默跑出上一个模型的数字, 而且不报错** ("绿灯假数据") ⇒ ISS-157 首测 (2026-11-02 20:3x) 实测到
+
+=== F10. 相机复位 / camera 需求 (SW ISP 侧) ===
+SW/SW_REQUIREMENTS.md:87:- 驱动适配: MIPI-CSI sensor 驱动, ISP 驱动与参数下发, NPU 驱动 (devfreq/dvfs), 显示 TX 驱动
+SW/SW_REQUIREMENTS.md:523:| **S2** | sensor 读出 + MIPI-CSI 传输 | 8.3 | 推算 (剩余半帧) | `推算` | ⚠️ 取决于 sensor 的 MIPI lane 数与时钟; **全幅 2688×1520 下 readout 是否仍 ≈ 半帧, 需原厂确认
+SW/SW_REQUIREMENTS.md:683:| **M-1 高速摄影** | 屏幕放一个 LED 闪烁板 (LED 在曝光瞬间亮), 高速相机 (≥240fps) 拍到 LED 亮 → 光机出光 | ±4ms | 一台高速相机 | ⭐ **推荐**, 唯一能端到端闭环的方法 |
+SW/SW_REQUIREMENTS.md:700:| CSI capture queue (全幅 2688×1520 NV12, 若与 ISP buffer 不共享) | 6.13 MB | 4 | 24.5 MB | `推算` (同上行: 2688×1520×1.5 = 6.13MB) |
+SW/SW_REQUIREMENTS.md:715:> ⚠️ **ISS-071 重算 (sw-lead 2026-10-26)**: 本表原按裸 "1080p" = 1920×1080 算 ISP/CSI buffer —— 那是 **ROI 读出**, **不是锁定链路的全幅** (对 OV04C10 见 §3.4
+SW/SW_REQUIREMENTS.md:727:| CSI capture queue | 4 | 同上; 若 ISP 与 CSI 共享 buffer 则可省 | `推算` |
+SW/SW_REQUIREMENTS.md:769:| 整体 main loop 结构 | 采集/合成/提交保留, V4L2 UVC 调用换成 MIPI-CSI + vendor ISP API, `bgr.clone()` 换成共享 buffer |
+SW/SW_REQUIREMENTS.md:778:| V4L2 UVC 采集链路 (VIDIOC_REQBUFS/DQBUF/QBUF/MMAP) | 新平台走 MIPI-CSI + vendor ISP, 无 UVC |
+SW/SW_REQUIREMENTS.md:793:| **分段 fps 统计** | 区分 camera ceiling / OD-bound / 显示瓶颈 | §11.2 三个 fps 分开 |
+SW/ISP_CAPABILITY_RESEARCH.md:130:| **板** | 任意一块 RK3572 (如 FET3572-C SoM + 载板) 或 RK3576 EVB, 能 SSH 上去; 相机链路走 4-lane MIPI CSI-2 接 OV04C10 (全幅 2688×1520@60) |
+SW/ISP_CAPABILITY_RESEARCH.md:131:| **软件前置 (★现在是缺口★)** | ★**`SW/DEMO_OD_TIMING_SPEC.md` §2 的 11 段接力表里【没有 ISP 段】** (段 2 `t_capture` = 读出+CSI 传输+帧拷贝; 段 3 `t_pre` 
+SW/DEMO_OD_PIPELINE_SPEC.md:516:> ★**③-2 的机检版本 (建议下一步实现)**: 往相机前放一张 A4 打印的 **9 点网格标定板**, OD 不认识它 ⇒ 改用"人在标定板前"的间接法, 或**用纯几何自检**: 在 CPU 侧注入已知框 (不走 OD), 走完整的反变换→画框
+SW/DEMO_OD_PIPELINE_SPEC.md:576:| **⑧ capture 接入: sensor 驱动 + 模式配置 + CSI 拓扑** | **5~8** | **1~2** | ★**A 独有** (移植 42KB 驱动 + RK3588→RK3572 rkisp3 适配) |
+SW/DEMO_OD_PIPELINE_SPEC.md:597:| 8 | **capture 接入 (V4L2 / rkisp / CSI / 曝光增益)** | ~15% | **100%** | ★驱动 + mode + 拓扑全换 |

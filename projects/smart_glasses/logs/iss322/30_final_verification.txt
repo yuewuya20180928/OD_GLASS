@@ -1,0 +1,42 @@
+########## ISS-322 · 交卷前必跑 (★最终版·输出原样★) ##########
+
+$ python3 state/compare_arm_official.py --self-test
+✔ 实测坏板 _reroute2 (★RESET_N 被拆成 5 块 + 差分腿 USB_D_N_SRC 断) ⇒ 名单制闸拒: I2C_A_SCL, I2C_A_SDA, ID_DETECT_1, RESET_N, USB_D_N_SRC
+ALL TESTS PASS
+rc=0
+
+$ python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-18T11:40:53+08:00)
+   产出 655 | 阻塞 43 (高危 33) | 未闭合需求 330 | 冲突 0 | 健康度 red
+rc=0
+
+$ python3 state/gate_check.py
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-18_hw-lead_ISS322_S8布线归零作业包.md
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+gate rc=0
+
+$ python3 state/issue_check.py
+
+✅ 问题闭环门全过 (字段/状态机/验证分离/逾期/双向覆盖)
+rc=0
+
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+$ stat -c "%y" HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800
+
+$ grep -cE "🔄|待填|PLACEHOLDER|施工中" HW/PCB/BOARD_ONEPASS_S8_ROUTING_WORKPACKET.md
+0
+$ grep -c "ISS-322" state/fragments/hw.yaml
+4
+
+########## 零写板双证 (交卷前 vs 交卷后) ##########
+交卷前 11:08 : 611b869e13518c3c023fb178f91a0075  /  2026-11-06 07:07:17.362193413 +0800
+交卷后 11:41 : 611b869e13518c3c023fb178f91a0075
+                    2026-11-06 07:07:17.362193413 +0800
+
+$ ls tmp/iss322
+ls: cannot access 'tmp/iss322': No such file or directory

@@ -1,0 +1,22 @@
+=== F7. SW 脚本是否【写】串口 (TX 到板) vs 只【读】日志 ===
+SW/tools/s2_board_run.sh:220:           board_test.serial.device board_test.checks.calib_ledger \
+SW/tools/s2_board_run.sh:248:  SERDEV=$(cfg_get "board_test.serial.device")
+SW/tools/s2_board_run.sh:253:  if [ -n "$SERDEV" ] && [ -c "$SERDEV" ]; then
+SW/tools/s2_board_run.sh:254:    say "抓串口 $SERDEV @ ${SERBAUD} (${SECS}s) ..."
+SW/tools/s2_board_run.sh:256:      timeout "${SECS}" cat "$SERDEV" > "$SER" 2>/dev/null || true
+SW/tools/s2_board_run.sh:258:      ( cat "$SERDEV" > "$SER" & CPID=$!; sleep "${SECS}"; kill $CPID 2>/dev/null ) || true
+SW/tools/s2_board_run.sh:263:    warn "串口设备不可用 (device=${SERDEV:-未配} 或不存在) → 串口日志记 [0数据]"
+SW/tools/s2_rescue_config.json:230:      "_readme": "板端串口 (取日志用)。device 常见 /dev/ttyUSB0 (USB-TTL) 或 /dev/ttyACM0 (CDC-ACM)。",
+
+=== F8. 串口用法方向判定 ===
+SW/tools/s2_board_run.sh:220:           board_test.serial.device board_test.checks.calib_ledger \
+SW/tools/s2_board_run.sh:245:  SER="$EVDIR/s2_forensics_serial.log"
+SW/tools/s2_board_run.sh:248:  SERDEV=$(cfg_get "board_test.serial.device")
+SW/tools/s2_board_run.sh:249:  SERBAUD=$(cfg_get "board_test.serial.baud")
+SW/tools/s2_board_run.sh:250:  SERBAUD=${SERBAUD:-115200}
+SW/tools/s2_board_run.sh:251:  SECS=$(cfg_get "board_test.serial.capture_seconds")
+SW/tools/s2_board_run.sh:253:  if [ -n "$SERDEV" ] && [ -c "$SERDEV" ]; then
+SW/tools/s2_board_run.sh:254:    say "抓串口 $SERDEV @ ${SERBAUD} (${SECS}s) ..."
+SW/tools/s2_board_run.sh:256:      timeout "${SECS}" cat "$SERDEV" > "$SER" 2>/dev/null || true
+SW/tools/s2_board_run.sh:258:      ( cat "$SERDEV" > "$SER" & CPID=$!; sleep "${SECS}"; kill $CPID 2>/dev/null ) || true
+SW/tools/s2_board_run.sh:263:    warn "串口设备不可用 (device=${SERDEV:-未配} 或不存在) → 串口日志记 [0数据]"

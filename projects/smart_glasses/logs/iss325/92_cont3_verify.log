@@ -1,0 +1,146 @@
+════════ ① 裸板 fresh DRC (★两臂裸板·不是链终板★) ════════
+bare_lu    md5=3bfb30edfd7c64aafb9e908bc9dc0d57  viol=6  unc=37  unc网名=31  段数=3088  {'clearance': 5, 'copper_sliver': 1}
+bare_ctl   md5=902ea02ac5f8e10310aa528687eaaad7  viol=6  unc=37  unc网名=31  段数=3088  {'clearance': 5, 'copper_sliver': 1}
+════════ ② 裸板段内 P/N 顺序翻转 (★两臂都要★) ════════
+★同段比较总数 = 47 · 其中【N在左 ⇒ 段内需交叉】 = 5
+★★ISS-325 读数 (★板 = lu_bare★): 同段总数 = 47 · 翻转 = 5
+★★ISS-322 基线 (现役板): 同段总数 = 47 · 翻转 = 17
+★翻转明细 (族 / 段 / 侧 / P.x / N.x / Δx=N.x-P.x):
+★同段比较总数 = 47 · 其中【N在左 ⇒ 段内需交叉】 = 5
+★★ISS-325 读数 (★板 = ctl_bare★): 同段总数 = 47 · 翻转 = 5
+★★ISS-322 基线 (现役板): 同段总数 = 47 · 翻转 = 17
+★翻转明细 (族 / 段 / 侧 / P.x / N.x / Δx=N.x-P.x):
+════════ ③ 两臂【全板封装落位】逐个比对 (★不是只 20 个★) ════════
+  ★★差异行数 = 1 ⇒ 两臂【全板 185 个封装】落位【逐个完全相同】★★
+
+  ⇒ ★**两臂的唯一变量 (显式钉 10 个 TP_DSI_*) 在落位上【完全没生效】★★
+  ⇒ ★**⇒ 「左上臂 vs 同日对照臂」这个对照【没有构成对照】★★
+════════ ④ 裸板 unc 网名集合三层口径 (lu vs ctl) ════════
+  rc=0
+板A: 37 条 unc · 31 个网名签名 · 37 个端点归属
+板B: 37 条 unc · 31 个网名签名 · 37 个端点归属
+  交集 31 · 仅A 0 · 仅B 0
+  ★完全相同 = True
+  交集 35 · 仅A 2 · 仅B 2
+  ★完全相同 = False
+★判据: ① 网名集合完全相同 ⇒ 两板【同一批未连接】⇒ 同工艺 (★②③ 有出入是正常的, ★别当失败)
+════════ ⑤ 同链基线对照 (★不是 vs 官方板!★) ════════
+  ★lu 同链基线 rc=1
+  ── 判定: REJECT
+     · ★**DRC=6 (必须 0)**
+     · DRC 变差 0→6
+     · ★**逐网孤岛变多 4 个网 (官方项数⇒候选更多 ⇒ 网被拆碎): CSI_D0_CK_N, CSI_MCLK, LED_B, SPI_MISO_BOOT**
+  闸 rc=1
+── ③ 几何差异定位 (★供排查) ──
+     仅B: ('10.2', '53.7', '10.45', '53.45', '0.25', 'In2.Cu', 'CSI_D0_D3_P')
+     仅B: ('10.2', '54.45', '10.45', '54.45', '0.25', 'F.Cu', 'CSI_D0_D3_P_SRC')
+     仅B: ('10.2', '61.2', '10.45', '61.2', '0.25', 'F.Cu', 'LED_G_D')
+     仅B: ('10.2', '65.95', '10.45', '65.7', '0.25', 'F.Cu', 'VDD_3V3_IO')
+
+★★★ 结论: 两板【不等价】⇒ ★**复现未成功** ⇒ ★别拿去跟官方板比
+  ★ctl 同链基线 rc=1
+  ── 判定: REJECT
+     · ★**DRC=6 (必须 0)**
+     · DRC 变差 0→6
+     · ★**逐网孤岛变多 4 个网 (官方项数⇒候选更多 ⇒ 网被拆碎): CSI_D0_CK_N, CSI_MCLK, LED_B, SPI_MISO_BOOT**
+  闸 rc=1
+── ③ 几何差异定位 (★供排查) ──
+     仅B: ('10.2', '53.7', '10.45', '53.45', '0.25', 'In2.Cu', 'CSI_D0_D3_P')
+     仅B: ('10.2', '54.45', '10.45', '54.45', '0.25', 'F.Cu', 'CSI_D0_D3_P_SRC')
+     仅B: ('10.2', '61.2', '10.45', '61.2', '0.25', 'F.Cu', 'LED_G_D')
+     仅B: ('10.2', '65.95', '10.45', '65.7', '0.25', 'F.Cu', 'VDD_3V3_IO')
+
+★★★ 结论: 两板【不等价】⇒ ★**复现未成功** ⇒ ★别拿去跟官方板比
+════════ ⑥ 链终板 unc 机制表 (lu / ctl) ════════
+  --- 40_unc_mech_lu_chain ---
+★板 /tmp/chain_iss325_s8lu/final_chain.kicad_pcb (09_cand_chain.drc.json): 未连接网名 27 个 · 未连接条目 29 条
+═══ 逐网机制表 (★零铜 = 路由器没布出来 / 有铜 = 布歪了★) ═══
+CSI_D0_D0_N_SRC          | 未连:★零铜★                             
+CSI_D0_D1_N              | 未连:★零铜★                             
+CSI_D0_D1_N_SRC          | 未连:★零铜★                             
+  --- 41_unc_mech_ctl_chain ---
+★板 /tmp/chain_iss325_s8ctl/final_chain.kicad_pcb (09_ctl_chain.drc.json): 未连接网名 27 个 · 未连接条目 29 条
+═══ 逐网机制表 (★零铜 = 路由器没布出来 / 有铜 = 布歪了★) ═══
+CSI_D0_D0_N_SRC          | 未连:★零铜★                             
+CSI_D0_D1_N              | 未连:★零铜★                             
+CSI_D0_D1_N_SRC          | 未连:★零铜★                             
+  --- 42_unc_mech_lu_bare ---
+★板 /tmp/iss325_s8lu_R.kicad_pcb (91_bare_lu.drc.json): 未连接网名 31 个 · 未连接条目 37 条
+═══ 逐网机制表 (★零铜 = 路由器没布出来 / 有铜 = 布歪了★) ═══
+CSI_D0_D0_N_SRC          | 未连:★零铜★                             
+CSI_D0_D1_N              | 未连:★零铜★                             
+CSI_D0_D1_N_SRC          | 未连:★零铜★                             
+  --- 43_unc_mech_ctl_bare ---
+★板 /tmp/iss325_s8ctl_R.kicad_pcb (91_bare_ctl.drc.json): 未连接网名 31 个 · 未连接条目 37 条
+═══ 逐网机制表 (★零铜 = 路由器没布出来 / 有铜 = 布歪了★) ═══
+CSI_D0_D0_N_SRC          | 未连:★零铜★                             
+CSI_D0_D1_N              | 未连:★零铜★                             
+CSI_D0_D1_N_SRC          | 未连:★零铜★                             
+════════ ⑦ chain.json 判据警告逐字 ════════
+  --- /tmp/chain_iss325_s8lu/final_chain.kicad_pcb.chain.json ---
+{
+  "tag": "iss325_s8lu",
+  "input": "/tmp/iss325_s8lu_R.kicad_pcb",
+  "input_md5": "3bfb30edfd7c64aafb9e908bc9dc0d57",
+  "output": "/tmp/chain_iss325_s8lu/final_chain.kicad_pcb",
+  "output_md5": "27b51bd5039a4f4b1d108cc1355b4463",
+  "output_segments": 3666,
+  "chain": [
+    "straight(skip-if-mid)",
+    "nostub margin=0.20 grid=0.125",
+    "nostub margin=0.03125 grid=0.125"
+  ],
+  "loose_margin": "0.03125",
+  "router_src_sha256": "gen_pcb_routing.py:5a5ce4b4cdd94155",
+  "router_env": {},
+  "router_arm": "",
+  "key_env": {
+    "PCB_CHAIN_LOOSE_MARGIN": "0.03125"
+  },
+  "note": "★**这块板是【官方补丁链的产物】⇒ ★★**不是独立候选臂**; ★★**要当候选臂比, 必须与【同链基线】比 (★state/compare_arm_baseline.sh) ★★"
+}
+  --- /tmp/chain_iss325_s8ctl/final_chain.kicad_pcb.chain.json ---
+{
+  "tag": "iss325_s8ctl",
+  "input": "/tmp/iss325_s8ctl_R.kicad_pcb",
+  "input_md5": "902ea02ac5f8e10310aa528687eaaad7",
+  "output": "/tmp/chain_iss325_s8ctl/final_chain.kicad_pcb",
+  "output_md5": "cc13d3ce5539ab714ee320c8cbb62e6b",
+  "output_segments": 3666,
+  "chain": [
+    "straight(skip-if-mid)",
+    "nostub margin=0.20 grid=0.125",
+    "nostub margin=0.03125 grid=0.125"
+  ],
+  "loose_margin": "0.03125",
+  "router_src_sha256": "gen_pcb_routing.py:5a5ce4b4cdd94155",
+  "router_env": {},
+  "router_arm": "",
+  "key_env": {
+    "PCB_CHAIN_LOOSE_MARGIN": "0.03125"
+  },
+  "note": "★**这块板是【官方补丁链的产物】⇒ ★★**不是独立候选臂**; ★★**要当候选臂比, 必须与【同链基线】比 (★state/compare_arm_baseline.sh) ★★"
+}
+════════ ⑧ 生成器 TP-贴伙伴件 规则 (★机制源码逐字★) ════════
+                break
+        done_tp = False
+        # ★★v43: TP 也支持 PCB_PART_POS 钉位 (★默认关 => PART_POS 为空时行为不变)
+        #   ★**为什么需要**: TP_CSI_* 走 "贴伙伴件" 逻辑 ⇒ 伙伴件被钉到别处时 TP 会自动跟过去
+        #   ⇒ ★**TP 的 x 序直接决定 POST 段会不会交叉** ⇒ 必须能单独钉
+        if ref in PART_POS:
+            _px, _py, _rot = PART_POS[ref]
+            _fp = make_footprint(board, ref, value_of.get(ref, ""), kind, pins, netmap,
+                                 _px, _py, rot=_rot)
+            try:
+                _bb = _fp.GetBoundingBox()
+                _RES_OVR.append((_bb.GetLeft() / 1e6 - PLACE_OVERRIDE_GUARD,
+                                 _bb.GetTop() / 1e6 - PLACE_OVERRIDE_GUARD,
+                                 _bb.GetRight() / 1e6 + PLACE_OVERRIDE_GUARD,
+                                 _bb.GetBottom() / 1e6 + PLACE_OVERRIDE_GUARD))
+            except Exception:
+                _RES_OVR.append((_px - w / 2.0 - PLACE_OVERRIDE_GUARD,
+                                 _py - h / 2.0 - PLACE_OVERRIDE_GUARD,
+                                 _px + w / 2.0 + PLACE_OVERRIDE_GUARD,
+                                 _py + h / 2.0 + PLACE_OVERRIDE_GUARD))
+            PLACE_INFO[ref] = (_px, _py, w, h)
+=== ISS-325 cont3 fresh 复核结束 2026-11-18 16:19:36 ===

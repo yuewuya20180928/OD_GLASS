@@ -1,0 +1,84 @@
+==============================================================================
+ISS-311 · S1 板侧位号加 `_1` 与环③ C1 判据的【相撞实验】(沙盒 · 不碰项目文件)
+==============================================================================
+
+现役板位号数 = 186
+  末字符是字母 (= 要加 `_1`) = 156
+  已带 `_1` 后缀 = 1 (★['R_BAT_DET_1']★)
+06:29:54: Debug: Adding duplicate image handler for 'PNG file'
+06:29:54: Debug: Adding duplicate image handler for 'JPEG file'
+06:29:54: Debug: Adding duplicate image handler for 'TIFF file'
+06:29:54: Debug: Adding duplicate image handler for 'GIF file'
+06:29:54: Debug: Adding duplicate image handler for 'PNM file'
+06:29:54: Debug: Adding duplicate image handler for 'PCX file'
+06:29:54: Debug: Adding duplicate image handler for 'IFF file'
+06:29:54: Debug: Adding duplicate image handler for 'Windows icon file'
+06:29:54: Debug: Adding duplicate image handler for 'Windows cursor file'
+06:29:54: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+06:29:54: Debug: Adding duplicate image handler for 'TGA file'
+06:29:54: Debug: Adding duplicate image handler for 'XPM file'
+06:29:54: Debug: Adding duplicate image handler for 'WebP file'
+
+【基线】现役板 C1: rc=1
+   ❌ C1 焊盘级等价 (ref,焊盘号)→网络 — 网表 480 / 板上(带网) 482
+   缺失 0 · 多余 2 · 同号异网 3 · ★NC 焊盘 351 个 (允许的: SOM 的 4 组 100 脚座未用脚) · 非法 NC 0
+   ★多: C_VBUS_GND pad1 = GND
+   ★多: C_VBUS_GND pad2 = VBUS_5V_CHG
+   ★错: Q_PG pad1 应为 PWR_GOOD, 实际 PWR_ON
+   ★错: Q_PG pad3 应为 PWR_ON, 实际 PWR_GOOD
+   ★错: D_ESD_USB_D pad1 应为 NET_USB_D_P_TYPEC, 实际 USB_D_P_SRC
+06:29:54: Debug: Adding duplicate image handler for 'PNG file'
+06:29:54: Debug: Adding duplicate image handler for 'JPEG file'
+06:29:54: Debug: Adding duplicate image handler for 'TIFF file'
+06:29:54: Debug: Adding duplicate image handler for 'GIF file'
+06:29:54: Debug: Adding duplicate image handler for 'PNM file'
+06:29:54: Debug: Adding duplicate image handler for 'PCX file'
+06:29:54: Debug: Adding duplicate image handler for 'IFF file'
+06:29:54: Debug: Adding duplicate image handler for 'Windows icon file'
+06:29:54: Debug: Adding duplicate image handler for 'Windows cursor file'
+06:29:54: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+06:29:54: Debug: Adding duplicate image handler for 'TGA file'
+06:29:54: Debug: Adding duplicate image handler for 'XPM file'
+06:29:54: Debug: Adding duplicate image handler for 'WebP file'
+
+★沙盒改名: 156 个位号按 ISS-205 规则加了 `_1` 后缀
+★沙盒文件: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss311_tmp/iss311_s1_refsuffix_sandbox.kicad_pcb  (★项目 HW/ 下文件一个字节没动★)
+06:29:55: Debug: Adding duplicate image handler for 'PNG file'
+06:29:55: Debug: Adding duplicate image handler for 'JPEG file'
+06:29:55: Debug: Adding duplicate image handler for 'TIFF file'
+06:29:55: Debug: Adding duplicate image handler for 'GIF file'
+06:29:55: Debug: Adding duplicate image handler for 'PNM file'
+06:29:55: Debug: Adding duplicate image handler for 'PCX file'
+06:29:55: Debug: Adding duplicate image handler for 'IFF file'
+06:29:55: Debug: Adding duplicate image handler for 'Windows icon file'
+06:29:55: Debug: Adding duplicate image handler for 'Windows cursor file'
+06:29:55: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+06:29:55: Debug: Adding duplicate image handler for 'TGA file'
+06:29:55: Debug: Adding duplicate image handler for 'XPM file'
+06:29:55: Debug: Adding duplicate image handler for 'WebP file'
+
+【沙盒】改名后 C1: rc=1
+   ❌ C1 焊盘级等价 (ref,焊盘号)→网络 — 网表 480 / 板上(带网) 482
+   缺失 350 · 多余 352 · 同号异网 0 · ★NC 焊盘 351 个 (允许的: SOM 的 4 组 100 脚座未用脚) · 非法 NC 3
+   明细条数: 缺 8 (脚本只打前 8 条) · 多 8 (前 8) · 错 0 (前 8)
+   ★缺: R_NTC_BAT pad1 应为 TS_BAT
+   ★缺: R_TS_PULL pad1 应为 TS_BAT
+   ★缺: R_TS_PULL pad2 应为 PGND
+   ★缺: U_BATPROT pad2 应为 BAT_COUT
+   ★缺: U_BATPROT pad3 应为 BAT_DOUT
+   ★缺: U_BATPROT pad4 应为 BAT
+   ★多: C_BULK_SENSOR_CORE_1 pad1 = SENSOR_CORE
+   ★多: C_BULK_SENSOR_CORE_1 pad2 = GND
+   ★多: FB_DEMO_1 pad1 = RAIL_DEMO_5V
+   ★多: FB_DEMO_1 pad2 = GND
+   ★多: U_SUPV_1 pad1 = RESET_N
+   ★多: U_SUPV_1 pad4 = SUPV_CT
+
+【量化】改名后 C1 三项: 缺失 350 · 多余 352 · 同号异网 0
+  ⇒ 对比基线: 缺失 0 · 多余 2 · 同号异网 3
+  ⇒ ★**板侧改名会把环③从「多余 2」变成「缺失 350 · 多余 352」**★
+
+【反证】把【网表侧 ref】也按同规则改口径后重算 (★只算, 不落表★):
+  缺失 0 · 多余 2 · 同号异网 3  ⇒ ★**同口径后回到基线的 0/2/3**★ (★证明 C1 的红不是改名的错, 是口径没同步★)
+
+★沙盒已删: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss311_tmp/iss311_s1_refsuffix_sandbox.kicad_pcb

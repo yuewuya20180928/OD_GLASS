@@ -1,0 +1,111 @@
+====================================================================================================
+# ISS-327 · 四臂对照表 · 机器化读数 (★生成于 2026-11-18 15:46:40★)
+====================================================================================================
+改名映射: 全表 218 条 · 真改名 186 条 (★旧名末字符非数字 ⇒ 加 _1★)
+
+====================================================================================================
+① 板 / 网表 / 脚表 / BOM 四 md5 (★对照有效性自检的第一道·必须逐臂列★)
+====================================================================================================
+  臂                           demo_mainboard.k  netlist_v1.csv    netlist_v1_pins.  BOM_v1.csv        
+  BASELINE                    611b869e13518c3c  6aee500e60ba0732  9174309df1ec9411  5b9993992405904a  
+  sbCtl                       611b869e13518c3c  6aee500e60ba0732  9174309df1ec9411  5b9993992405904a  
+  sbR0                        fadf2c2f6f4985ed  c9c40b9a0d840a2f  aa802ef62f5c6f6b  b32251b8ed47d9b3  
+  sbR1(sbR0+重建注册表)            fadf2c2f6f4985ed  c9c40b9a0d840a2f  aa802ef62f5c6f6b  b32251b8ed47d9b3  
+  sbR3                        fadf2c2f6f4985ed  c9c40b9a0d840a2f  aa802ef62f5c6f6b  b32251b8ed47d9b3  
+  sbR2(sbR3+重建注册表)            fadf2c2f6f4985ed  c9c40b9a0d840a2f  aa802ef62f5c6f6b  b32251b8ed47d9b3  
+
+★真件 (基线) md5 = 611b869e13518c3c023fb178f91a0075
+★⇒ sbCtl 四 md5 与真件逐字相同 = ★是★
+★⇒ sbR0 / sbR3 四 md5 与真件【不同】 = ★是 (·五侧确实被改名了·所以它不是对照组·)★
+
+====================================================================================================
+② 改名后位号命中数 (★核心自检: 对照臂必须是 0·试验臂必须 > 0★)
+====================================================================================================
+  臂                            SW/*.md 命中     HW 五侧命中          改名后位号总数          软链数             
+  BASELINE                     797 处 / 12 份   2648 处 / 4 份     186              0               
+  sbCtl                        797 处 / 12 份   2648 处 / 4 份     186              0               
+  sbR0                         797 处 / 12 份   2648 处 / 4 份     186              0               
+  sbR1(sbR0+重建注册表)             797 处 / 12 份   2648 处 / 4 份     186              0               
+  sbR3                         797 处 / 12 份   2648 处 / 4 份     186              0               
+  sbR2(sbR3+重建注册表)             797 处 / 12 份   2648 处 / 4 份     186              0               
+
+★⇒ 对照臂 sbCtl 的【改名后位号命中】= 797 处 (★必须 0★)
+★⇒ sbR0 的 SW/*.md 命中 = 797 处 (★SW 文档未同步 ⇒ 应 0·但板已改名⇒网表里全是新名·)★
+★⇒ sbR3 的 SW/*.md 命中 = 797 处 (★SW 文档已同步⇒应 > 0★)
+
+====================================================================================================
+③ 10 道闸 rc (★逐闸一行·★主表 rc·不含 --selftest 副跑★)
+====================================================================================================
+  闸                                                       BASELINE      sbCtl         sbR0          sbR1
+(sbR0+重  sbR3          sbR2
+(sbR3+重  
+  check_demo_panel_spec                                   rc=0          rc=0          rc=1          rc=1          rc=1          rc=1          
+  check_demo_panel_spec_r6_chainjudge_selftest            rc=0          rc=2          rc=2          rc=2          rc=2          rc=2          
+  check_demo_panel_spec_r6_hardprot_iss315_selftest       rc=0          rc=2          rc=2          rc=2          rc=2          rc=2          
+  check_demo_panel_spec_r6_selftest                       rc=0          rc=0          rc=2          rc=2          rc=2          rc=2          
+  check_landing_trace_obligation                          rc=0          rc=0          rc=0          rc=0          rc=0          rc=0          
+  check_onepass_sw_sync                                   rc=0          rc=0          rc=1          rc=1          rc=1          rc=1          
+  check_shutdown_semantics                                rc=0          rc=0          rc=1          rc=1          rc=0          rc=0          
+  check_sw_ref_reachability                               rc=0          rc=0          rc=1          rc=1          rc=0          rc=0          
+  check_timing_review_adc_sync                            rc=0          rc=0          rc=2          rc=2          rc=2          rc=2          
+  timing_check                                            rc=0          rc=0          rc=1          rc=1          rc=1          rc=1          
+
+★绿/红合计 (★rc=0 绿 · rc=1 红 · rc=2 = 【脚本报错/前置不成立·见 §⑤ 语义定案】★):
+  BASELINE                     绿 10 / 红(rc=1)  0 / rc=2  0
+  sbCtl                        绿  8 / 红(rc=1)  0 / rc=2  2
+  sbR0                         绿  1 / 红(rc=1)  5 / rc=2  4
+  sbR1(sbR0+重建注册表)             绿  1 / 红(rc=1)  5 / rc=2  4
+  sbR3                         绿  3 / 红(rc=1)  3 / rc=2  4
+  sbR2(sbR3+重建注册表)             绿  3 / 红(rc=1)  3 / rc=2  4
+
+====================================================================================================
+④ check_sw_ref_reachability 分类统计 (★DRIFT / MISSING / 上限★)
+====================================================================================================
+  臂                            DRIFT        MISSING        上限            
+  BASELINE                     0            3              3             
+  sbCtl                        0            3              3             
+  sbR0                         58           5              3             
+  sbR1(sbR0+重建注册表)             0            56             3             
+  sbR3                         0            3              3             
+  sbR2(sbR3+重建注册表)             0            3              3             
+
+====================================================================================================
+⑤ rc=2 的【逐闸语义归类】 (★不许当红灯·也不许当绿灯放过★)
+====================================================================================================
+  [sbCtl] check_demo_panel_spec_r6_chainjudge_selftest
+      rc=2 · 最后一条 ❌ = 找不到修前的判据备份 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbCtl/SW/tools/check_demo_panel_spec.py.bak_iss312 ⇒ 「不是巧合」自证做不了
+  [sbCtl] check_demo_panel_spec_r6_hardprot_iss315_selftest
+      rc=2 · 最后一条 ❌ = 找不到修前的判据备份 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbCtl/SW/tools/check_demo_panel_spec.py.bak_iss315 ⇒ 「不是巧合」自证做不了
+  [sbR0] check_demo_panel_spec_r6_chainjudge_selftest
+      rc=2 · 最后一条 ❌ = 找不到修前的判据备份 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbR0/SW/tools/check_demo_panel_spec.py.bak_iss312 ⇒ 「不是巧合」自证做不了
+  [sbR0] check_demo_panel_spec_r6_hardprot_iss315_selftest
+      rc=2 · 最后一条 ❌ = 找不到修前的判据备份 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbR0/SW/tools/check_demo_panel_spec.py.bak_iss315 ⇒ 「不是巧合」自证做不了
+  [sbR0] check_demo_panel_spec_r6_selftest
+      rc=2 · 最后一条 ❌ = 基线就不绿: ['R6 硬保护: 受保护文件 md5 变了: HW/PCB/demo_mainboard.kicad_pcb (fadf2c2f6f4985ed291b87c3f856a98c ≠ 611b869e13518c3c023fb178f91a0075)', 'R6 台账链: 盘上真源 md5 HW/netlist_v1.csv = c9c40b9a0d84 ≠ 台账最新记录 6aee500e60ba (真源被换了或台账没更新)', 'R6 台账链: 盘上真源 md5 HW/netlist_v1_pins.csv = aa802ef62f5c ≠ 台账最新记录 9174309df1ec (真源被换了或台账没更新)'] ⇒ 反向自测不成立
+  [sbR0] check_timing_review_adc_sync
+      rc=2 · 最后一条 ❌ = 
+  [sbR1(sbR0+重建注册表)] check_demo_panel_spec_r6_chainjudge_selftest
+      rc=2 · 最后一条 ❌ = 找不到修前的判据备份 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbR0/SW/tools/check_demo_panel_spec.py.bak_iss312 ⇒ 「不是巧合」自证做不了
+  [sbR1(sbR0+重建注册表)] check_demo_panel_spec_r6_hardprot_iss315_selftest
+      rc=2 · 最后一条 ❌ = 找不到修前的判据备份 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbR0/SW/tools/check_demo_panel_spec.py.bak_iss315 ⇒ 「不是巧合」自证做不了
+  [sbR1(sbR0+重建注册表)] check_demo_panel_spec_r6_selftest
+      rc=2 · 最后一条 ❌ = 基线就不绿: ['R6 硬保护: 受保护文件 md5 变了: HW/PCB/demo_mainboard.kicad_pcb (fadf2c2f6f4985ed291b87c3f856a98c ≠ 611b869e13518c3c023fb178f91a0075)', 'R6 台账链: 盘上真源 md5 HW/netlist_v1.csv = c9c40b9a0d84 ≠ 台账最新记录 6aee500e60ba (真源被换了或台账没更新)', 'R6 台账链: 盘上真源 md5 HW/netlist_v1_pins.csv = aa802ef62f5c ≠ 台账最新记录 9174309df1ec (真源被换了或台账没更新)'] ⇒ 反向自测不成立
+  [sbR1(sbR0+重建注册表)] check_timing_review_adc_sync
+      rc=2 · 最后一条 ❌ = 
+  [sbR3] check_demo_panel_spec_r6_chainjudge_selftest
+      rc=2 · 最后一条 ❌ = 找不到修前的判据备份 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbR3/SW/tools/check_demo_panel_spec.py.bak_iss312 ⇒ 「不是巧合」自证做不了
+  [sbR3] check_demo_panel_spec_r6_hardprot_iss315_selftest
+      rc=2 · 最后一条 ❌ = 找不到修前的判据备份 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbR3/SW/tools/check_demo_panel_spec.py.bak_iss315 ⇒ 「不是巧合」自证做不了
+  [sbR3] check_demo_panel_spec_r6_selftest
+      rc=2 · 最后一条 ❌ = 基线就不绿: ['R6 硬保护: 受保护文件 md5 变了: HW/PCB/demo_mainboard.kicad_pcb (fadf2c2f6f4985ed291b87c3f856a98c ≠ 611b869e13518c3c023fb178f91a0075)', 'R6 台账链: 盘上真源 md5 HW/netlist_v1.csv = c9c40b9a0d84 ≠ 台账最新记录 6aee500e60ba (真源被换了或台账没更新)', 'R6 台账链: 盘上真源 md5 HW/netlist_v1_pins.csv = aa802ef62f5c ≠ 台账最新记录 9174309df1ec (真源被换了或台账没更新)'] ⇒ 反向自测不成立
+  [sbR3] check_timing_review_adc_sync
+      rc=2 · 最后一条 ❌ = 
+  [sbR2(sbR3+重建注册表)] check_demo_panel_spec_r6_chainjudge_selftest
+      rc=2 · 最后一条 ❌ = 找不到修前的判据备份 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbR3/SW/tools/check_demo_panel_spec.py.bak_iss312 ⇒ 「不是巧合」自证做不了
+  [sbR2(sbR3+重建注册表)] check_demo_panel_spec_r6_hardprot_iss315_selftest
+      rc=2 · 最后一条 ❌ = 找不到修前的判据备份 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbR3/SW/tools/check_demo_panel_spec.py.bak_iss315 ⇒ 「不是巧合」自证做不了
+  [sbR2(sbR3+重建注册表)] check_demo_panel_spec_r6_selftest
+      rc=2 · 最后一条 ❌ = 基线就不绿: ['R6 硬保护: 受保护文件 md5 变了: HW/PCB/demo_mainboard.kicad_pcb (fadf2c2f6f4985ed291b87c3f856a98c ≠ 611b869e13518c3c023fb178f91a0075)', 'R6 台账链: 盘上真源 md5 HW/netlist_v1.csv = c9c40b9a0d84 ≠ 台账最新记录 6aee500e60ba (真源被换了或台账没更新)', 'R6 台账链: 盘上真源 md5 HW/netlist_v1_pins.csv = aa802ef62f5c ≠ 台账最新记录 9174309df1ec (真源被换了或台账没更新)'] ⇒ 反向自测不成立
+  [sbR2(sbR3+重建注册表)] check_timing_review_adc_sync
+      rc=2 · 最后一条 ❌ = 
+

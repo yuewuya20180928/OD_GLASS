@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/BOARD_ONEPASS_SW_SYNC.md

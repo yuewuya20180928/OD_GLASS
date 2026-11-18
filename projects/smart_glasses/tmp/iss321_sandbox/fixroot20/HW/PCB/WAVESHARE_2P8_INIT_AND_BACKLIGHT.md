@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/WAVESHARE_2P8_INIT_AND_BACKLIGHT.md

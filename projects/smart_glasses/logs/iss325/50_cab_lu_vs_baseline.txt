@@ -1,0 +1,97 @@
+══════ 候选臂 vs 同工艺基线 ══════
+  候选臂: /tmp/chain_iss325_s8lu/final_chain.kicad_pcb  (3666 段)
+  基线  : state/.lastgood/baseline_v76_chain.kicad_pcb  (14023 段)
+  ✅ 链凭据: 输入=/tmp/iss325_s8lu_R.kicad_pcb 步数=?
+  ★临时文件 (★按【整条路径】唯一 ⇒ 同名不同目录不会撞★):
+    候选: /tmp/_cab__tmp_chain_iss325_s8lu_final_chain.kicad_pcb.cand.json
+    基线: /tmp/_cab_state_.lastgood_baseline_v76_chain.kicad_pcb.base.json
+  候选: DRC违规=6 · unconnected=29
+  基线: DRC违规=0 · unconnected=46
+── ① 未连接网名集合 (★强判据) ──
+板A: 46 条 unc · 42 个网名签名 · 46 个端点归属
+板B: 29 条 unc · 27 个网名签名 · 29 个端点归属
+
+── ① 网名集合 (★强判据) ──
+  交集 24 · 仅A 18 · 仅B 3
+  ★完全相同 = False
+
+── ② 端点归属集合 (★辅助: 会有少量出入, ★因为同一条未连接的铜侧落点可不同) ──
+  交集 15 · 仅A 31 · 仅B 14
+  ★完全相同 = False
+    仅A: (('OTHER', '', ''), ('PAD', 'DSI_D0_CK_P', 'CONN_LIGHT'))
+    仅A: (('PAD', 'BAT_DET', 'C_DET_BAT'), ('PAD', 'BAT_DET', 'J_SOM_P1'))
+  ★注: ★**旧判据① 用的是 『cmp_unc_sets.py --strict』 ⇒ ★★它的语义是【网名集合必须【完全相同】】★★ (★那是【链复现一致性】的用法, ★见 『replay_patch_chain.sh』★) ⇒ ★★**⇒ 它对【任何有变化的臂】都判不过** ★★ ⇒ ★**下面这行才是按文档口径【不许变大/不变】的读数** ★★
+  ★★判据① (★文档口径: 【不许变大/不变】★): 基线网名 42 个 → 候选网名 27 个
+  ✅ ★★网名集合【变小】(★42 → 27★) ★★
+── ①b 名单差集 (★谁被救回 / 谁被打断) ──
+基线: unc 条目 46 · 网名签名 42
+候选: unc 条目 29 · 网名签名 27
+
+★仅基线有 (★候选救回) 18:
+    ✔ BAT_DET
+    ✔ CAM_RESET_N
+    ✔ CARRIER_BOARD_EN
+    ✔ CSI_D0_D1_P
+    ✔ CSI_D0_D3_N
+    ✔ CSI_D0_D3_N_SRC
+    ✔ DSI_D0_CK_P
+    ✔ DSI_D0_D0_P
+    ✔ DSI_D0_D1_N_SRC
+    ✔ DSI_D0_D1_P
+    ✔ DSI_D0_D2_N
+    ✔ DSI_D0_D3_N_SRC
+    ✔ FSIN_OUT
+    ✔ ID_DETECT_0
+    ✔ JTAG_TDI
+    ✔ LIGHT_3V3
+    ✔ SPI_SCLK_BOOT
+    ✔ VBUS_DET_D
+
+★仅候选有 (★候选打断) 3:
+    ✘ CSI_D0_CK_N
+    ✘ CSI_MCLK
+    ✘ SPI_MISO_BOOT
+
+★交集 24 · 净账: 救回 18 / 新断 3 ⇒ ★净 -15
+★★**判据① (网名集合必须变小 ★按【大小】★) ⇒ 通过 ✔ (★42 → 27★)**
+   ★(附: ★**是不是基线的严格子集** = 否 ✘ (★候选有 3 个网名基线里没有★) ★★⇒ ★【子集】是【更严】的口径, ★【变小】是文档口径 ★★)
+── ①c GND 专项 (★信号变好但地变差 ⇒ 不算赢★) ──
+  GND 相关未连接条目: 基线 0 → 候选 0
+  ➖ ★★GND 持平 (0) ★★
+── ② 名单制闸 (★臂 vs 基线) ──
+  ★注: ★**该脚本内部把第二个参数叫"官方板" ⇒ ★★**这里的"官方"实际指本基线** ★★ (★读数时注意) ★
+═══ 臂板 vs 官方板 (名单制判据) ═══
+  候选板: /tmp/chain_iss325_s8lu/final_chain.kicad_pcb
+  基线板: state/.lastgood/baseline_v76_chain.kicad_pcb
+  指标                               候选          官方板
+  DRC违规                             6            0
+  unconnected                      29           46
+  零铜网(≥2焊盘)                        12           22
+  差分单边零铜                            5           11
+  差分Δ超差                             1            2
+  走线段                            3666        14023
+  过孔                              505          392
+  parity通过                       True        False
+  ── ★退铜名单 (官方板有铜⇒候选零铜): 2
+       ★ LED_B
+       ★ SPI_MISO_BOOT
+  ── ★差分对死腿: 0
+  ── ★逐网孤岛变多: 4
+       ★ CSI_D0_CK_N  (官方 0 项 ⇒ 候选 1 项)
+       ★ CSI_MCLK  (官方 0 项 ⇒ 候选 1 项)
+       ★ LED_B  (官方 1 项 ⇒ 候选 2 项)
+       ★ SPI_MISO_BOOT  (官方 0 项 ⇒ 候选 1 项)
+  ── (参考) 救回零铜的网: 12
+  ── 判定: REJECT
+     · ★**DRC=6 (必须 0)**
+     · DRC 变差 0→6
+     · ★**逐网孤岛变多 4 个网 (官方项数⇒候选更多 ⇒ 网被拆碎): CSI_D0_CK_N, CSI_MCLK, LED_B, SPI_MISO_BOOT**
+  闸 rc=1
+── ③ 几何差异定位 (★供排查) ──
+     仅B: ('10.2', '53.7', '10.45', '53.45', '0.25', 'In2.Cu', 'CSI_D0_D3_P')
+     仅B: ('10.2', '54.45', '10.45', '54.45', '0.25', 'F.Cu', 'CSI_D0_D3_P_SRC')
+     仅B: ('10.2', '61.2', '10.45', '61.2', '0.25', 'F.Cu', 'LED_G_D')
+     仅B: ('10.2', '65.95', '10.45', '65.7', '0.25', 'F.Cu', 'VDD_3V3_IO')
+
+★★★ 结论: 两板【不等价】⇒ ★**复现未成功** ⇒ ★别拿去跟官方板比
+lu rc=1

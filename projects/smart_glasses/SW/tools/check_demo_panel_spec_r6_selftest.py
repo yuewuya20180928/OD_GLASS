@@ -42,6 +42,9 @@ SW/tools/check_demo_panel_spec_r6_selftest.py — ISS-275 · R6 判决源同构�
 用法:
     python3 SW/tools/check_demo_panel_spec_r6_selftest.py           # rc=0 = 7 条全过
     python3 SW/tools/check_demo_panel_spec_r6_selftest.py --root .  # 指定项目根
+    python3 SW/tools/check_demo_panel_spec_r6_selftest.py --tmpdir /data/tmp  # 指定临时树根目录
+    ★ISS-309 实测坑★: 系统临时目录 (/tmp) 有【每用户配额】⇒ 配额满时拷贝 4.9MB 的板会
+      EDQUOT 失败 ⇒ 本脚本自动退回 `~/.cache/openclaw-tmp` (或 `ISS_R6_SELFTEST_TMPDIR`) ★
 """
 from __future__ import annotations
 
@@ -105,6 +108,40 @@ def fresh_tree(tmp: str, root: str, name: str) -> tuple:
     anchors, err = gate.load_sw_anchor(work)
     assert anchors is not None, "临时树读不到锚点 (%s)" % err
     return work, copy.deepcopy(anchors)
+
+
+def _make_tmpdir(explicit: str = "") -> str:
+    """★【ISS-309】建临时树根目录 ⇒ 系统临时目录配额满了就退回用户缓存目录。
+
+    ★实测坑★: `/tmp` 是带【每用户配额】的 tmpfs ⇒ 配额满时拷 4.9MB 的板会 EDQUOT
+      ⇒ 本函数先用探针 (写一个 6MB 的空文件) 试一遍, 写不动就换下一个候选根目录 ★
+    """
+    cands = []
+    if explicit:
+        cands.append(explicit)
+    else:
+        env = os.environ.get("ISS_R6_SELFTEST_TMPDIR") or ""
+        if env:
+            cands.append(env)
+        cands.append(tempfile.gettempdir())
+        cands.append(os.path.join(os.path.expanduser("~"), ".cache", "openclaw-tmp"))
+    last = ""
+    for root in cands:
+        d = ""
+        try:
+            os.makedirs(root, exist_ok=True)
+            d = tempfile.mkdtemp(prefix="iss275_r6_", dir=root)
+            probe = os.path.join(d, "_probe.bin")
+            with open(probe, "wb") as f:
+                f.truncate(6 * 1024 * 1024)      # ★tmpfs 不支持稀疏 ⇒ 这一步真占配额★
+            os.remove(probe)
+        except OSError as exc:
+            last = "%s: %s" % (root, exc)
+            if d:
+                shutil.rmtree(d, ignore_errors=True)
+            continue
+        return d
+    raise SystemExit("❌ 临时树根目录建不起来 (系统临时目录配额满?): %s" % last)
 
 
 def rd(path: str) -> str:
@@ -175,7 +212,7 @@ def break_head_ticket(text: str, rel: str, bogus: str = "ISS-999") -> tuple:
     return ("\n".join(out) + "\n", hit)
 
 
-def break_head_ticket_all(text: str, rel: str, bogus: str = "ISS-999") -> tuple:
+def break_head_ticket_all(text: str, rel: str, bogus: str = "ISS-999", limit: int = 0) -> tuple:
     """★【ISS-309】★ 把【产出链头的那些记录】的落表单号, 在它【出现的每一处】都改坏。
 
     ★口径必须与判据 (`sw_ledger_records`) 一字不差★:
@@ -183,6 +220,7 @@ def break_head_ticket_all(text: str, rel: str, bogus: str = "ISS-999") -> tuple:
       · 行内没写单号 ⇒ 单号继承【最近一个【带单号】的小节标题】(⇒ 改那【标题】那一个★)
     ★★只改一处 = 假改坏★ ⇒ 链头产出单号里还留着原单号 ⇒ 判据当然看不见 ⇒
       ★★所以这条用例必须把【每一处】都改掉, 才算真的"把落表单号改坏了"★★
+    ★`limit` = 最多改几处 (0 = 全改) ⇒ ★诊断段用它造【只改一处】的【自相矛盾】场景★。
     返回 (新文本, 改了几处)。
     """
     base = os.path.basename(rel)
@@ -211,6 +249,8 @@ def break_head_ticket_all(text: str, rel: str, bogus: str = "ISS-999") -> tuple:
     for idx in todo:
         if idx in seen:
             continue
+        if limit and len(seen) >= limit:
+            break
         seen.add(idx)
         out[idx] = re.sub(r"ISS-\d+", bogus, out[idx], count=1)
     return ("\n".join(out) + "\n", len(seen))
@@ -338,6 +378,7 @@ def run_cases(tmp: str, root: str) -> int:
     # ---- 基线前置条件 --------------------------------------------------------------
     base_work = build_tree(tmp, root, "base")
     base_fails = gate.run_all(base_work, skip_md5=False)
+    shutil.rmtree(base_work, ignore_errors=True)     # ★ISS-309 · 用完就删 (省配额) ★
     if base_fails:
         print("  ❌ 基线就不绿: %s ⇒ 反向自测不成立" % base_fails[:3])
         return 2
@@ -382,8 +423,15 @@ def run_cases(tmp: str, root: str) -> int:
             ok += 1
         else:
             bad += 1
+            # ★【ISS-309】★ 挂进门禁链后, `run_external_gate()` 靠 stdout 里的 [FAIL] 行抽失败原因
+            #   ⇒ ⇒ 本脚本每红一条用例就打一行 [FAIL] ⇒ 链上红时能直接看到是哪条、为什么 ★
+            print("[FAIL] %s ⇒ 期望 %s · 实际红项 %s" % (name, exp_txt, red_txt))
+        # ★【ISS-309】用完就删这棵临时树 ⇒ 峰值只占一棵树 (~6MB) 而不是全部叠着 ★
+        shutil.rmtree(work, ignore_errors=True)
     print("-" * 100)
     print("反向用例: %d/%d 通过" % (ok, ok + bad))
+    if bad:
+        print("[FAIL] 反向用例: %d/%d 通过 (★红项见上面各条 [FAIL] 行★)" % (ok, ok + bad))
     # ---- ★【覆盖缺口诊断】★ (★ISS-309 · 不计入 7 条 · 只报事实·不遮红★) ------------------
     print("-" * 100)
     diag_gap(tmp, root, head_net)
@@ -394,30 +442,46 @@ def diag_gap(tmp: str, root: str, head_net: str) -> None:
     """★【ISS-309 · 覆盖缺口诊断】★ 锚点副本【停在历史值】时, 改坏链头落表单号 ⇒ 判据漏放。
 
     ★★这不是一条用例 (★不计入 7/7★) ⇒ 它只【报事实】: 把判据现在的漏洞当场跑出来 ★★
+    ★★两个变体 (★两种漏洞, 修法不同★)★★:
+      · 变体 ①【只改一处】⇒ 链头产出单号 = {原单号, 伪造单号} ⇒ ★台账自相矛盾★ ⇒ 判据仍绿
+        ⇒ 修法 A: 判据加【链头产出单号不唯一 ⇒ 判红】(★治不了变体 ②★)
+      · 变体 ②【每一处都改】⇒ 链头产出单号 = {伪造单号} ⇒ ★台账自洽但单号是假的★ ⇒ 判据仍绿
+        ⇒ 修法 B: ★链头单号必须与【独立信源】对上 (★锚点副本跟到链头★ / 或查 issue_log 里的真单号★)
     ★★★ 本单【不许改判据】(`SW/tools/check_demo_panel_spec.py` 是权威判据) ⇒
-      ⇒ 修法 + 反向用例设计已写进 need (★交 main 拍板★) ⇒ 本段只负责【让漏洞自带证据】★★★
+      ⇒ 修法 + 反向用例设计已写进交卷单 B3/B5 + 分片 need ⇒ 本段只负责【让漏洞自带证据】★★★
     """
+    base = gate.read_text(root, gate.LEDGER_CANON)
+    anchor_note = ""
     work, anchors = fresh_tree(tmp, root, "gap")
     p = ledger_path(work)
-    base = rd(p)
-    broken, hit = break_head_ticket_all(base, NET, bogus="ISS-999")
-    if hit < 1:
-        print("  ★覆盖缺口诊断: 没命中链头的落表单号 ⇒ 诊断本身失效")
-        return
-    wr(p, broken)
-    st = gate.sw_ledger_state(NET, broken)
-    prods = sorted((st.get("producer") or {}).get(head_net) or [])
-    fails = gate.run_all(work, skip_md5=False, anchor=anchors)
+    for lbl, limit in (("① 只改一处 (⇒ 台账自相矛盾)", 1),
+                       ("② 每一处都改 (⇒ 台账自洽但单号是假的)", 0)):
+        broken, hit = break_head_ticket_all(base, NET, bogus="ISS-999", limit=limit)
+        if hit < 1:
+            print("  ★覆盖缺口诊断: 没命中链头的落表单号 ⇒ 诊断本身失效")
+            shutil.rmtree(work, ignore_errors=True)
+            return
+        wr(p, broken)
+        st = gate.sw_ledger_state(NET, broken)
+        prods = sorted((st.get("producer") or {}).get(head_net) or [])
+        fails = gate.run_all(work, skip_md5=False, anchor=copy.deepcopy(anchors))
+        e = anchor_entry(anchors, NET)
+        if not anchor_note:
+            anchor_note = ("锚点副本 %s/%s (★停在历史值★) · 链头 %s/%s"
+                           % (str(e.get("md5") or "")[:12], e.get("by"), head_net,
+                              sorted((gate.sw_ledger_state(NET, base).get("producer") or {})
+                                     .get(head_net) or [])))
+        print("      变体 %s: 改了 %d 处 ⇒ 链头产出单号 = %s ⇒ 判据: %s"
+              % (lbl, hit, prods,
+                 ("★红★ %s" % fails[:1]) if fails else "★绿 (无红项) ⇒ ★漏放★"))
+    shutil.rmtree(work, ignore_errors=True)
     print("  ★覆盖缺口诊断 (★ISS-309 · 已登记 need · 本单不改判据★):")
-    print("      场景: ★锚点副本停在历史值★ (★当前仓库就是这个状态: 锚点 %s/%s · 链头 %s/%s★)"
-          % (str(anchor_entry(anchors, NET).get("md5") or "")[:12],
-             anchor_entry(anchors, NET).get("by"), head_net, sorted(
-                 (gate.sw_ledger_state(NET, base).get("producer") or {}).get(head_net) or [])))
-    print("      改坏链头落表单号 %d 处 ⇒ 链头产出单号 = %s ⇒ 判据判定: %s"
-          % (hit, prods, ("★红★ %s" % fails[:1]) if fails else "★绿 (无红项) ⇒ ★漏放★"))
-    print("      ⇒ ★★判据只查【链头单号非空】, 不查【单号自相矛盾 / 与锚点副本一致】★★")
-    print("      ⇒ 修法 (★交 main 拍板, 本单不碰判据★): 链头产出单号【不唯一】⇒ 判红 "
-          "(★ISS-309 need·反向用例设计见交卷单 B3/B5★)")
+    print("      场景: %s" % anchor_note)
+    print("      ⇒ ★★判据对【链头落表单号】只有「非空」这一道检查 ⇒ 没有任何交叉核对 ★★")
+    print("      ⇒ 修法 (★交 main 拍板, 本单不碰判据★):")
+    print("         A 判据加【链头产出单号不唯一 ⇒ 判红】(⇒ 治变体 ①; 治不了 ②)")
+    print("         B 链头单号必须与【独立信源】对上 (⇒ 锚点副本每次落表都跟到链头 / 或查 issue_log 真单号)")
+    print("         (★ISS-309 need · 反向用例设计见交卷单 B3/B5★)")
 
 
 # ---------------------------------------------------------------- 单条用例实现
@@ -534,10 +598,15 @@ def _case_r5a(tmp: str, root: str, head_net: str, recs_net: list, recs_pins: lis
     anchor_by = str(anchor_entry(anchors, NET).get("by") or "")
     assert anchor_by == orig_iss, "锚点副本单号 %s ≠ 链头原单号 %s ⇒ 用例本身坏了" % (anchor_by, orig_iss)
     assert anchor_by not in prods, "锚点副本单号还在台账产出单号里 ⇒ 改坏没生效 ⇒ 用例本身坏了"
+    # ★自证 ④ (★ISS-309 · 「修完之后它还能不能抓」的自证★): ★故意再坏一次单号 ⇒ 仍然判红★
+    reds = gate.run_all(work, skip_md5=False, anchor=copy.deepcopy(anchors))
+    hit_red = [f for f in reds if f.startswith("R6") and "落表单号" in f]
+    assert hit_red, "改坏链头落表单号后判据【没红】(%s) ⇒ 「单号被改坏 ⇒ 必须红」这个能力没了" % reds[:2]
     print("      ★自证: 锚点副本已【对齐到链头】(md5 %s / by %s / prev %s) ⇒ 对齐后判据绿"
           % (str(e["md5"])[:12], anchor_by, head_rec["prev"]))
     print("      ★自证: 链头 %s 的落表单号 %s → %s (改了 %d 处) ⇒ 锚点副本登记的 %s 与台账对不上"
           % (head_net, orig_iss, prods, hit, anchor_by))
+    print("      ★自证: ★故意再坏一次单号 ⇒ 仍然判红★ ⇒ %s" % hit_red[0])
     return work, anchors
 
 
@@ -583,13 +652,17 @@ def _case_r6(tmp: str, root: str) -> tuple:
 def main() -> int:
     ap = argparse.ArgumentParser(description="ISS-275 SW 侧 R6 判决源 (落表台账链头) 专项反向用例")
     ap.add_argument("--root", default=PROJ, help="项目根目录 (默认: 脚本所在项目根)")
+    ap.add_argument("--tmpdir", default="", help="★临时树根目录 (默认: 系统临时目录 ⇒ 配额满时退回 ~/.cache/openclaw-tmp)")
     args = ap.parse_args()
     root = os.path.abspath(args.root)
     if not os.path.isfile(os.path.join(root, gate.LEDGER_CANON)):
         print("❌ 找不到判决源落表台账 %s (root=%s)" % (gate.LEDGER_CANON, root))
         return 2
-    with tempfile.TemporaryDirectory(prefix="iss275_r6_") as tmp:
+    tmp = _make_tmpdir(args.tmpdir)
+    try:
         return run_cases(tmp, root)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 if __name__ == "__main__":

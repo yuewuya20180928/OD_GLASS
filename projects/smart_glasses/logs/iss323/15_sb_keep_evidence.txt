@@ -1,0 +1,144 @@
+================================================================================================
+ISS-323 · 第 7 件 · 「留证文档不改」选项的闸读数实测 (★场景 K★)
+================================================================================================
+  ★场景 K = S2 (板/表已改名 + SW 文档已同步改名) 的副本
+  ★但把【留证文档】恢复成【改名前的原文】 ⇒ 模拟「历史体检记录保真」
+
+  ★恢复成改名前原文: SW/ONETRIP_SW_RENAME_SAFETY.md
+  ★跳过 (真件里还没有): SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md
+
+── 跑 ISS-318 闸 (★场景 K★) ──
+  rc=1
+    扫描文档      : 41 份 `SW/*.md` (★其中 26 份含至少一个 token★)
+    抽出 token    : 140 个唯一标识符
+       DESIGNATOR_OK            76
+       DESIGNATOR_DRIFT         28
+       DESIGNATOR_MISSING        5
+    【R3 现状基线】 `DESIGNATOR_MISSING` 实测 = 5 条 · 允许上限 = 3 条
+       ⇒ ✘ 超基线 (见下方 FAIL 行)
+       ★基线内·已登记★ CONN_USB  (SW/ONETRIP_SW_RENAME_SAFETY.md:63)  出现 7 次
+       ★★超基线★★ R_CHG_LED  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  出现 1 次
+            理由: ★不在建闸日基线里 ⇒ 这是新增的真隐患★
+       ★★超基线★★ R_SER_USB_D_N  (SW/ONETRIP_SW_RENAME_SAFETY.md:68)  出现 1 次
+            理由: ★不在建闸日基线里 ⇒ 这是新增的真隐患★
+       ★基线内·已登记★ TP_INT  (SW/BOARD_ONEPASS_SW_SYNC.md:43)  出现 14 次
+       ★基线内·已登记★ TP_TEMP  (SW/ONETRIP_SW_RENAME_SAFETY.md:63)  出现 3 次
+    [FAIL] 位号引用解析不到 (新增真隐患·超基线): R_CHG_LED @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: D_CHG_LED_1, Q_CHG_LED_1, R_CHG_LED_1
+    [FAIL] 位号引用解析不到 (新增真隐患·超基线): R_SER_USB_D_N @ SW/ONETRIP_SW_RENAME_SAFETY.md:68 ⇒ 板与网表里现在叫: R_SER_USB_D_N_1, R_SER_USB_D_P_1
+    [FAIL] 真隐患条数 5 > 基线上限 3 (★基线只许收紧不许放宽★)
+       DESIGNATOR_OK        C1   BT_432243                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   CONN_CAM                                     ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   CONN_CAM_1                                   现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   CONN_LIGHT                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   CONN_LIGHT_1                                 现在在【板文件+网表】里能找到
+       DESIGNATOR_MISSING   C14  CONN_USB                                     形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+       DESIGNATOR_DRIFT     C2   C_DET_BAT                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   C_DET_BAT_1                                  现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   C_DET_VBUS_D_1                               现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   C_REGN_1                                     现在在【网表】里能找到
+       DESIGNATOR_DRIFT     C2   C_RST                                        ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   C_RST_1                                      现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   C_SW_IN_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   C_SW_OUT_1                                   现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   C_VBUS_DEMO_1                                现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   C_VBUS_GND                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   C_VBUS_GND_1                                 现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   C_VBUS_OUT                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   C_VBUS_OUT_1                                 现在在【网表】里能找到
+       DESIGNATOR_DRIFT     C2   D_CHG_LED                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   D_CHG_LED_1                                  现在在【网表】里能找到
+       DESIGNATOR_OK        C1   D_ESD_DEMO_1                                 现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   D_ESD_USB_D                                  ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   D_ESD_USB_D_1                                现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   D_LED_B_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   D_LED_G                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   D_LED_G_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   D_LED_R                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   D_LED_R_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   FB_DEMO_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   J_CHG                                        ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   J_CHG_1                                      现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   J_SOM_P1                                     现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   J_SOM_P2                                     现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   J_SOM_P3                                     现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   J_TYPE_C                                     ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   J_TYPE_C_1                                   现在在【网表】里能找到
+       DESIGNATOR_DRIFT     C2   J_USB_C                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   J_USB_C_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   Q_AND_1                                      现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   Q_CHG_LED                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   Q_CHG_LED_1                                  现在在【网表】里能找到
+       DESIGNATOR_DRIFT     C2   Q_ENVC                                       ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   Q_ENVC_1                                     现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   Q_PG_1                                       现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_BAT_DET_1                                  现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_BAT_DET_2                                  现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_CC1                                        现在在【网表】里能找到
+       DESIGNATOR_OK        C1   R_CC2                                        现在在【网表】里能找到
+       DESIGNATOR_OK        C1   R_CE_1                                       现在在【网表】里能找到
+       DESIGNATOR_MISSING   C14  R_CHG_LED                                    形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+       DESIGNATOR_OK        C1   R_EN_VCORE_1                                 现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   R_ILIM                                       ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   R_ILIM_1                                     现在在【网表】里能找到
+       DESIGNATOR_OK        C1   R_PD_ON_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_PG_PULL_1                                  现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_PU_BOOT_N_1                                现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_PU_CHG_STAT_1                              现在在【网表】里能找到
+       DESIGNATOR_DRIFT     C2   R_PU_I2CA_SCL                                ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   R_PU_I2CA_SCL_1                              现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_PU_I2CB_SCL_1                              现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_PU_PG_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   R_PU_RESET_N                                 ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   R_PU_RESET_N_1                               现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   R_SER_RESET_N                                ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   R_SER_RESET_N_1                              现在在【板文件+网表】里能找到
+       DESIGNATOR_MISSING   C14  R_SER_USB_D_N                                形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+       DESIGNATOR_DRIFT     C2   R_SER_USB_D_P                                ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   R_SER_USB_D_P_1                              现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_SUPV_DIV1                                  现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_SUPV_DIV2                                  现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_VBUS_DET_D1                                现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   R_VBUS_DET_D2                                现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   SW_BOOT                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   SW_BOOT_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   SW_KEY_PWR                                   ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   SW_KEY_PWR_1                                 现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   SW_KEY_VM                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   SW_KEY_VM_1                                  现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   SW_KEY_VP                                    ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   SW_KEY_VP_1                                  现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   SW_RST                                       ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   SW_RST_1                                     现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   TP_BOOT_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_MISSING   C14  TP_INT                                       形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+       DESIGNATOR_OK        C1   TP_KEY_PWR_1                                 现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   TP_PG_VCORE_1                                现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   TP_PG_VIO_1                                  现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   TP_RESET_1                                   现在在【板文件+网表】里能找到
+       DESIGNATOR_MISSING   C14  TP_TEMP                                      形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+       DESIGNATOR_OK        C1   TP_USB_D_N_1                                 现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_BATPROT_1                                  现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   U_CHG                                        ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   U_CHG_1                                      现在在【网表】里能找到
+       DESIGNATOR_OK        C1   U_DCDC_VCORE_1                               现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_DCDC_VIO_1                                 现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   U_EN_SW                                      ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   U_EN_SW_1                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_LDO_IO18                                   现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_LDO_IO33                                   现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_LDO_L18                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_LDO_L33                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_LDO_S12                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_LDO_S18B_1                                 现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_LDO_S28                                    现在在【板文件+网表】里能找到
+       DESIGNATOR_DRIFT     C2   U_PWR_SW                                     ★建闸日它在板/网表里是真位号, 现在找不到了 ⇒ 【改名漂移】★
+       DESIGNATOR_OK        C1   U_PWR_SW_1                                   现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_SUPV_1                                     现在在【板文件+网表】里能找到
+       DESIGNATOR_OK        C1   U_TEMP_1                                     现在在【板文件+网表】里能找到
+
+  ★★场景 K 读数: DESIGNATOR_DRIFT = 28 · DESIGNATOR_MISSING = 5 (★基线上限 = 3★)
+  ★★对照 S2 (全改): DESIGNATOR_DRIFT = 0 · DESIGNATOR_MISSING = 3 (★= 基线·绿★)
+  ★⇒ 若 MISSING > 3 ⇒ ★留证文档不改 ⇒ 闸红 (新增真隐患) ★
+
+★★真闸 SW/tools/*.py 一个字节都没改 ★★
+================================================================================================

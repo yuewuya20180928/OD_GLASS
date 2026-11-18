@@ -1,0 +1,28 @@
+========================================================================================================
+C7 真源口径 (★2026-11-19 本机实读确认★)
+========================================================================================================
+【读哪份文件】
+  ① state/fragments/mech.yaml  ← need `proto_pcb_freeze_gate` 的登记所在分片 (owner=mech-lead)
+  ② state/fragments/pm.yaml    ← main 的分片 (merge 口径的配对闭合落在这里)
+  ✗ state/issue_log.yaml       ← 顶层只有 _schema / _owners_legal / issues 三项 ⇒ 零条 need 闭合记录
+                                ⇒ **不读它** (引用盘上不存在的字段 = ISS-281 §3-S10 那一类病)
+【读哪个字段】
+  ① 闭合台账: needs_closed[] 里 key == `proto_pcb_freeze_gate` 的那条
+     (字段 key/iss/closed_at/closed_by/cls/action/reason/evidence/evidence_level/answer_key/answer_ref)
+  ② 答案正文: answers[] 里 key == `proto_pcb_freeze_gate` 的那条的 value 字段
+     (回落顺序: mech answers[NEED_KEY].value → needs_closed.answer_key 对应的 answers.value →
+      pm.yaml 同 key 的 answers.value → needs_closed.evidence + .reason)
+【怎么匹配】
+  · 闭合 = ① 或 ② 任一命中 (merge.py 口径: needs_from × answers 按 key 配对, 作者 = need 的 to)
+  · 内容 = 答案正文逐字含【帧 id + 板厚 + 层数】三个数
+     (帧 id = cal:FRAMES 三套 id 的字面串; 板厚 = 0.80/1.00/1.22/1.60 的字面串;
+      层数 = `层数` 后的数字或 `N 层`) ⇒ 「板框已定」这种空话 ⇒ 一个都没有 ⇒ 判红
+
+【本机实测读数】
+  闭合台账命中 (mech.yaml needs_closed) = False
+  merge 配对闭合 (pm.yaml answers)      = False
+  仍在 mech.yaml needs_from (未退休)      = True
+  答案正文来源                            = (无答案正文)
+  答案正文 (前 300 字)                     = (空)
+  needs_open_ledger 的 why               = 板框/厚度/层数/孔位冻结闸: 板厚与层数已定 (1.00mm / 6 层), 板框仍在拍 (U-1) ⇒ 闸还没满足; 老板 11-17 00:43『接下来的目标是绘制 PCB 图』⇒ 板只改一次 ⇒ 冻结闸是这一趟的第一前置
+========================================================================================================

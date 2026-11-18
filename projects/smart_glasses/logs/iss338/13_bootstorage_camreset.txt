@@ -1,0 +1,20 @@
+=== V9. 启动存储决策 (SW 侧) ===
+SW/FLASH_AND_VERSION.md:7:> **上游依赖**: `HW/HARDWARE_BREAKDOWN.md` HW-03 (启动存储/固件分区) / HW-09 (Type-C) / HW-21 (RESET·BOOT) / HW-22 (按键·测试点预留)
+SW/FLASH_AND_VERSION.md:46:| **7** | **本方案有 3 个决定性 0 数据**: ①启动存储容量与 rootfs 体积 ②ARS45 有无 USB Device PHY ③原厂下载工具/bootloader/fastboot 是否存在。**第 ①项是分区策略的总分叉点** —— rootfs 若 >64MB, SPI-NOR 方案直接出局必须 eMMC, 板宽 
+SW/FLASH_AND_VERSION.md:49:| **10** | **★ 新增约束: 64MB SPI-NOR 装不下 §4.1 推荐 C 的分区表** —— 该分区表总量 **90MB** (bootloader 1 + kernel 8 + rootfs 30 + app 8×2 + model 15×2 + isp 1), 即使 rootfs 压到 30MB 以内也装不下 ⇒ 推荐
+SW/FLASH_AND_VERSION.md:96:| 量产烧录 | **原厂下载工具** | 🔴 `[0数据]` 工具名/版本/支持平台(Win?Linux?)/支持的 flash 类型(SPI-NOR?eMMC?)/是否支持多设备并发/是否支持脚本化 | 已并入原厂邮件问题 3 + 问题 8 |
+SW/FLASH_AND_VERSION.md:228:| 位置 | **独立分区** 或 SPI-NOR 尾部 sector | `[0数据]` 取决于原厂分区表 |
+SW/FLASH_AND_VERSION.md:295:| 需要的存储类型 | **必须 eMMC** (rootfs 若 64-256MB) | SPI-NOR 可行 | SPI-NOR 可行 |
+SW/FLASH_AND_VERSION.md:303:> - rootfs ≤ ~30MB → **方案 C 用 64MB SPI-NOR 可行**, 推荐 C
+SW/FLASH_AND_VERSION.md:304:> - 30-45MB → 降级 **方案 B** (回滚只能重刷) 或 64MB→128MB SPI-NOR (面积代价小)
+SW/FLASH_AND_VERSION.md:305:> - \> 64MB → **SPI-NOR 方案直接出局**, 必须 eMMC → 板宽 12→15mm → **方案 A 被动成为唯一选项, 且结构要返工**
+SW/FLASH_AND_VERSION.md:323:**推荐: 方案 C (轻量 A/B)**, 条件 `rootfs ≤ ~30MB`; 条件不满足则降级 **方案 B + 128MB SPI-NOR**, 或接受 eMMC 走方案 A。
+SW/FLASH_AND_VERSION.md:359:| **P4** `BOOT_STORE` | 启动存储类型/容量/**官方分区表参考设计** | `[0数据]` | `fw_vendor_toolchain` (vendor) + `fw_boot_storage_bom` (hw-lead) | §4.5.4 校验步 + 整个 §4 分区方案 | **不能自测** —— 必须原厂给 |
+SW/FLASH_AND_VERSION.md:367:> **64MB SPI-NOR 装不下**, 哪怕 rootfs 压到 30MB 以内也一样装不下。
+SW/FLASH_AND_VERSION.md:527:| **L2-4** | 半板 flash 通路 | SPI-NOR 空板 (焊 1 片 128MB NOR + 电源 + Type-C) + 烧录器 | 空板当"假 flash", 用 `flash_writer.py` 对它跑一遍写入+回读 | 15/15 通过, 且能读到写进去的 magic | **P4 的容量/分区落地验证** (需
+SW/FLASH_AND_VERSION.md:530:> **L2 的器材需求 (需项目总工支持采购/借调)**: 逻辑分析仪 ×1、USB 协议分析仪 ×1 (可与逻辑分析仪合并)、SPI-NOR 空板 ×1、Type-C 数据线 ×2、焊台。
+SW/FLASH_AND_VERSION.md:576:| P4 启动存储 + 分区表 | hw-lead + 项目总工 (经 vendor) | — | `fw_boot_storage_bom` / `fw_vendor_toolchain` | 2026-10-29 |
+SW/FLASH_AND_VERSION.md:620:| **2** | 存储初始化: 擦除 SPI-NOR / eMMC 全片 | 擦除后读回全 `0xFF` | `[推算]` |
+
+=== V10. camera reset 在 SW 侧 ===
+SW/SW_TIMING_REVIEW.md:40:| **F7** | TMP117 测点与温控档位 | **★部分推翻 (总线换了)★** —— TMP117 **现在挂 I2C_B** (`U_TEMP pin1` = `I2C_B_SCL`), camera 在 I2C_A ⇒ 上一版"TMP117 与 camera 同总线、camera 拉死 SDA 一起致盲温度保护"**对现网表不成立

@@ -1,0 +1,77 @@
+### ISS-324 交卷前门禁链 · 采集时刻 2026-11-18 16:04:22 CST
+
+$ python3 MECH/board_frame_feasibility.py --json  (前 40 行摘要)
+{
+  "sources": {
+    "cav_h": "MECH/service_port_check.py BASE['cav_h'] = 7.30 (镜脚内腔厚, 老板锁死; ISS-092 §1.6.2)",
+    "cav_v": "MECH/service_port_check.py BASE['cav_v'] = 38.00 (根部净高; ISS-092 §1.6.2)",
+    "cav_l": "MECH/service_port_check.py BASE['cav_l'] = 130.00 (内腔长; ISS-092 §1.6.2)",
+    "wall": "MECH/service_port_check.py BASE['wall'] = 0.80 (FDM 最小可靠单壁; §5.4)",
+    "frame_thk": "MECH/service_port_check.py BASE['frame_thk'] = 1.00 (铝/铜骨架; §5.1)",
+    "air_gap": "MECH/service_port_check.py BASE['air_gap'] = 0.30 (皮肤侧空气隙; §2.4)",
+    "pad_thermal": "MECH/service_port_check.py BASE['pad_thermal'] = 0.50 (皮肤侧隔热垫; §2.4)",
+    "duct_v": "MECH/service_port_check.py BASE['duct_v'] = 6.00 (垂直走线槽占位; §5.6.2)",
+    "cell_l": "MECH/service_port_check.py BASE['cell_l'] = 40.50 (电芯长; §1.6.1)",
+    "conn_margin": "MECH/service_port_check.py BASE['conn_margin'] = 15.00 (连接器弯折/插拔余量; §1.4.2)",
+    "cavity_req": "MECH/service_port_check.py BASE['cavity_req'] = 4.50 (ISS-085 §6.1 硬要求)",
+    "CRIT": "MECH/service_port_check.py CRIT = 2 × TOL['fdm_part'] = 0.60 (FDM 外形 ±0.30 ⇒ 2×0.30)",
+    "h_pcb_face": "MECH/service_port_check.py BASE['h_pcb_face'] = 壁0.8+隔热0.5+空隙0.3+PCB厚 (脚本 §1.2)",
+    "h_chain": "MECH/BOARD_GEOM_30MM.md §5.4 第 4 条 (= 3.40 + t; 本脚本同式) + MECH/iss127_h_chain_check.py:168",
+    "v_chain": "MECH/service_port_check.py §5.4 (V PCB 段 = pcb_w + duct_v vs cav_v)",
+    "l_chain": "MECH/service_port_check.py §5.5 (L 需求 = cell_l + pcb_l + conn_margin vs cav_l)",
+    "cover_cavity": "MECH/service_port_check.py §4.2 (盖板内腔 = h_outer_out − h_pcb_face)",
+    "pinset_a": "MECH/BOARD_GEOM_30MM.md §3 (PIN-SET-2 套 A: P1(8,15) P2(52,15) S1(8,10) S2(52,20))",
+    "hole_fit": "MECH/board_port_opening_s6_check.py holes_fit_frame() (孔壁 vs 板边, 板 Y 区间 [0, pcb_w])",
+    "p5_gap": "MECH/service_port_check.py 检查项 7.4 / 7.5 (孔壁→焊盘阵列 最近距离, 判据 ≥ CRIT)",
+    "jd_geom": "MECH/service_port_check.py §2/§3 (jd_x0=50.50 / jd_y0=9.50 / 2×5 @1.27 / 开口 10.20×4.60)",
+    "weight": "MECH/BOARD_GEOM_30MM.md §1 (板重 = 面积 × 板厚 × 1.85 g/cc; 60×30×1.0 ⇒ 3.33g)",
+    "mass_tot": "MECH/service_port_check.py BASE['mass_total_lo'/'mass_total_hi'] = 48.90 / 72.80 (整机)",
+    "frames": "HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES (帧 id 唯一权威: B160x100 / F30A / P60x15)",
+    "board_read": "HW/PCB/demo_mainboard.kicad_pcb Edge.Cuts + general/thickness (本脚本只读实读)"
+  },
+  "frames": [
+    {
+      "fid": "B160x100",
+      "name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "native_layers": 8,
+      "native_thk": 1.6,
+      "pinset_applicable": false,
+      "src": "HW/PCB/demo_mainboard.kicad_pcb Edge.Cuts 实读 + HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES"
+    },
+    {
+  ... (全文见 logs/iss324/03a_board_frame_feasibility_json.log)
+
+$ python3 MECH/board_frame_feasibility.py --selftest
+  [OK ] ③c 台架板 t=1.00 内腔 = 4.70
+  [OK ] ③d t=1.00 内腔判定 = ✅ (❌ → ✅ 翻转)
+  [OK ] ③e 判红原因里的内腔条目随板厚消失
+      ★注: 台架板 t=1.00 的【整档】仍判红 (V 链 -68.00 / L 链 -85.50 是板长板宽带来的, 换板厚救不了) ⇒ 这是本表最重要的一条结论之一
+
+>>> ④ 把 F30A 的板宽从 30 改到 100 ⇒ V 链必须判红
+  [OK ] ④a V 需求 = 106.00 (100 + 6)
+  [OK ] ④b V 余 = -68.00 (台架板口径)
+  [OK ] ④c V 链判红 ⇒ 整档判红
+  [OK ] ④d 判红原因点名 V 链
+
+>>> ⑤ 把 F30A 的板长从 60 改到 160 ⇒ L 链必须判红
+  [OK ] ⑤a L 需求 = 215.50
+  [OK ] ⑤b L 余 = -85.50
+  [OK ] ⑤c L 链判红 ⇒ 整档判红
+
+>>> ⑥ t=1.22 ⇒ 内腔 4.48 (离 4.50 只差 0.02) ⇒ 必须判红 (证明 4.50 阈值真被用到 0.01 级)
+  [OK ] ⑥a F30A t=1.22 内腔 = 4.48
+  [OK ] ⑥b 内腔判红 ⇒ 整档判红
+
+>>> ⑦ 板重必须随 (板框, 板厚) 变 (改参数 ⇒ 重量必须跟着变)
+  [OK ] ⑦a 60×30×1.00 = 3.330g (MECH/BOARD_GEOM_30MM.md §1 = 3.33g)
+  [OK ] ⑦b 60×15×1.00 = 1.665g (MECH/DEBUG_PORT_LAYOUT_CONSTRAINTS.md 表 2 = 1.67g)
+  [OK ] ⑦c 四档板厚 ⇒ 四个不同板重
+  [OK ] ⑦d 台架板 160×100×1.60 = 47.360g
+
+============================================================================================================
+[反向用例] ✅ 一致 —— ① 内腔改 4.00 ⇒ 判红 · ② 孔位搬到 15mm 板 ⇒ 不成立 · ③ 板厚 1.60→1.00 ⇒ 内腔 4.10→4.70 且 ❌→✅ · ④ V 链对板宽敏感 · ⑤ L 链对板长敏感 · ⑥ 4.50 阈值 0.01 分辨率 (t=1.22 ⇒ 4.48 判红) · ⑦ 板重随参数变
+[反向用例] ★⇒ 没有任何一档是「改了参数还判绿」的假闸★
+============================================================================================================
+  rc=0

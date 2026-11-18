@@ -1,0 +1,4770 @@
+### ISS-324 交卷前门禁链 · 采集时刻 2026-11-18 16:41:13 CST
+
+================================================================
+$ python3 MECH/board_frame_feasibility.py --json
+----------------------------------------------------------------
+{
+  "sources": {
+    "cav_h": "MECH/service_port_check.py BASE['cav_h'] = 7.30 (镜脚内腔厚, 老板锁死; ISS-092 §1.6.2)",
+    "cav_v": "MECH/service_port_check.py BASE['cav_v'] = 38.00 (根部净高; ISS-092 §1.6.2)",
+    "cav_l": "MECH/service_port_check.py BASE['cav_l'] = 130.00 (内腔长; ISS-092 §1.6.2)",
+    "wall": "MECH/service_port_check.py BASE['wall'] = 0.80 (FDM 最小可靠单壁; §5.4)",
+    "frame_thk": "MECH/service_port_check.py BASE['frame_thk'] = 1.00 (铝/铜骨架; §5.1)",
+    "air_gap": "MECH/service_port_check.py BASE['air_gap'] = 0.30 (皮肤侧空气隙; §2.4)",
+    "pad_thermal": "MECH/service_port_check.py BASE['pad_thermal'] = 0.50 (皮肤侧隔热垫; §2.4)",
+    "duct_v": "MECH/service_port_check.py BASE['duct_v'] = 6.00 (垂直走线槽占位; §5.6.2)",
+    "cell_l": "MECH/service_port_check.py BASE['cell_l'] = 40.50 (电芯长; §1.6.1)",
+    "conn_margin": "MECH/service_port_check.py BASE['conn_margin'] = 15.00 (连接器弯折/插拔余量; §1.4.2)",
+    "cavity_req": "MECH/service_port_check.py BASE['cavity_req'] = 4.50 (ISS-085 §6.1 硬要求)",
+    "CRIT": "MECH/service_port_check.py CRIT = 2 × TOL['fdm_part'] = 0.60 (FDM 外形 ±0.30 ⇒ 2×0.30)",
+    "h_pcb_face": "MECH/service_port_check.py BASE['h_pcb_face'] = 壁0.8+隔热0.5+空隙0.3+PCB厚 (脚本 §1.2)",
+    "h_chain": "MECH/BOARD_GEOM_30MM.md §5.4 第 4 条 (= 3.40 + t; 本脚本同式) + MECH/iss127_h_chain_check.py:168",
+    "v_chain": "MECH/service_port_check.py §5.4 (V PCB 段 = pcb_w + duct_v vs cav_v)",
+    "l_chain": "MECH/service_port_check.py §5.5 (L 需求 = cell_l + pcb_l + conn_margin vs cav_l)",
+    "cover_cavity": "MECH/service_port_check.py §4.2 (盖板内腔 = h_outer_out − h_pcb_face)",
+    "pinset_a": "MECH/BOARD_GEOM_30MM.md §3 (PIN-SET-2 套 A: P1(8,15) P2(52,15) S1(8,10) S2(52,20))",
+    "hole_fit": "MECH/board_port_opening_s6_check.py holes_fit_frame() (孔壁 vs 板边, 板 Y 区间 [0, pcb_w])",
+    "p5_gap": "MECH/service_port_check.py 检查项 7.4 / 7.5 (孔壁→焊盘阵列 最近距离, 判据 ≥ CRIT)",
+    "jd_geom": "MECH/service_port_check.py §2/§3 (jd_x0=50.50 / jd_y0=9.50 / 2×5 @1.27 / 开口 10.20×4.60)",
+    "weight": "MECH/BOARD_GEOM_30MM.md §1 (板重 = 面积 × 板厚 × 1.85 g/cc; 60×30×1.0 ⇒ 3.33g)",
+    "mass_tot": "MECH/service_port_check.py BASE['mass_total_lo'/'mass_total_hi'] = 48.90 / 72.80 (整机)",
+    "frames": "HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES (帧 id 唯一权威: B160x100 / F30A / P60x15)",
+    "board_read": "HW/PCB/demo_mainboard.kicad_pcb Edge.Cuts + general/thickness (本脚本只读实读)"
+  },
+  "frames": [
+    {
+      "fid": "B160x100",
+      "name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "native_layers": 8,
+      "native_thk": 1.6,
+      "pinset_applicable": false,
+      "src": "HW/PCB/demo_mainboard.kicad_pcb Edge.Cuts 实读 + HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES"
+    },
+    {
+      "fid": "F30A",
+      "name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "native_layers": 6,
+      "native_thk": 1.0,
+      "pinset_applicable": true,
+      "src": "MECH/BOARD_GEOM_30MM.md §0/§1/§3 (ISS-118/130, 老板 10-29 19:16 板宽 30)"
+    },
+    {
+      "fid": "P60x15",
+      "name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "native_layers": 6,
+      "native_thk": 1.0,
+      "pinset_applicable": true,
+      "src": "HW/PCB_OUTLINE_60x15.md §1.1 (ISS-105/118; 板宽 15 已于 ISS-118 放宽为 30 ⇒ 现为作废口径)"
+    }
+  ],
+  "thickness_tiers": [
+    [
+      0.8,
+      "4 层旧口径 (ISS-206 依 MECH/BOARD_GEOM_30MM.md §1 已标作废)"
+    ],
+    [
+      1.0,
+      "6 层现行 (MECH/BOARD_GEOM_30MM.md §1 · service_port_check BASE['pcb_thk'])"
+    ],
+    [
+      1.22,
+      "ISS-122/ISS-126 板厚四档之一 (MECH/iss127_h_chain_check.py:521) — ★项目内无现役板用此档★"
+    ],
+    [
+      1.6,
+      "盘上台架板实测 (HW/PCB/demo_mainboard.kicad_pcb general/thickness 1.6, 8 铜层)"
+    ]
+  ],
+  "layer_tiers": [
+    4,
+    6,
+    8
+  ],
+  "rows": [
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 4,
+      "thk": 0.8,
+      "native": false,
+      "h_need": 4.2,
+      "h_margin": 3.0999999999999996,
+      "h_margin_graphite": 3.0999999999999996,
+      "cavity": 4.8999999999999995,
+      "cavity_margin": 0.39999999999999947,
+      "cavity_ok": true,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 23.680000000000003,
+      "weight_pct_lo": 32.52747252747253,
+      "weight_pct_hi": 48.425357873210636,
+      "can_open": false,
+      "red_reasons": [
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 4,
+      "thk": 1.0,
+      "native": false,
+      "h_need": 4.3999999999999995,
+      "h_margin": 2.9000000000000004,
+      "h_margin_graphite": 2.9000000000000004,
+      "cavity": 4.699999999999999,
+      "cavity_margin": 0.1999999999999993,
+      "cavity_ok": true,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 29.6,
+      "weight_pct_lo": 40.659340659340664,
+      "weight_pct_hi": 60.5316973415133,
+      "can_open": false,
+      "red_reasons": [
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 4,
+      "thk": 1.22,
+      "native": false,
+      "h_need": 4.62,
+      "h_margin": 2.6799999999999997,
+      "h_margin_graphite": 2.6799999999999997,
+      "cavity": 4.4799999999999995,
+      "cavity_margin": -0.020000000000000462,
+      "cavity_ok": false,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 36.112,
+      "weight_pct_lo": 49.604395604395606,
+      "weight_pct_hi": 73.84867075664621,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.48 < 4.50 (余 -0.02)",
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 4,
+      "thk": 1.6,
+      "native": false,
+      "h_need": 5.0,
+      "h_margin": 2.3,
+      "h_margin_graphite": 2.3,
+      "cavity": 4.1,
+      "cavity_margin": -0.40000000000000036,
+      "cavity_ok": false,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 47.36000000000001,
+      "weight_pct_lo": 65.05494505494507,
+      "weight_pct_hi": 96.85071574642127,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.10 < 4.50 (余 -0.40)",
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 6,
+      "thk": 0.8,
+      "native": false,
+      "h_need": 4.2,
+      "h_margin": 3.0999999999999996,
+      "h_margin_graphite": 3.0999999999999996,
+      "cavity": 4.8999999999999995,
+      "cavity_margin": 0.39999999999999947,
+      "cavity_ok": true,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 23.680000000000003,
+      "weight_pct_lo": 32.52747252747253,
+      "weight_pct_hi": 48.425357873210636,
+      "can_open": false,
+      "red_reasons": [
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 6,
+      "thk": 1.0,
+      "native": false,
+      "h_need": 4.3999999999999995,
+      "h_margin": 2.9000000000000004,
+      "h_margin_graphite": 2.9000000000000004,
+      "cavity": 4.699999999999999,
+      "cavity_margin": 0.1999999999999993,
+      "cavity_ok": true,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 29.6,
+      "weight_pct_lo": 40.659340659340664,
+      "weight_pct_hi": 60.5316973415133,
+      "can_open": false,
+      "red_reasons": [
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 6,
+      "thk": 1.22,
+      "native": false,
+      "h_need": 4.62,
+      "h_margin": 2.6799999999999997,
+      "h_margin_graphite": 2.6799999999999997,
+      "cavity": 4.4799999999999995,
+      "cavity_margin": -0.020000000000000462,
+      "cavity_ok": false,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 36.112,
+      "weight_pct_lo": 49.604395604395606,
+      "weight_pct_hi": 73.84867075664621,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.48 < 4.50 (余 -0.02)",
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 6,
+      "thk": 1.6,
+      "native": false,
+      "h_need": 5.0,
+      "h_margin": 2.3,
+      "h_margin_graphite": 2.3,
+      "cavity": 4.1,
+      "cavity_margin": -0.40000000000000036,
+      "cavity_ok": false,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 47.36000000000001,
+      "weight_pct_lo": 65.05494505494507,
+      "weight_pct_hi": 96.85071574642127,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.10 < 4.50 (余 -0.40)",
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 8,
+      "thk": 0.8,
+      "native": false,
+      "h_need": 4.2,
+      "h_margin": 3.0999999999999996,
+      "h_margin_graphite": 3.0999999999999996,
+      "cavity": 4.8999999999999995,
+      "cavity_margin": 0.39999999999999947,
+      "cavity_ok": true,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 23.680000000000003,
+      "weight_pct_lo": 32.52747252747253,
+      "weight_pct_hi": 48.425357873210636,
+      "can_open": false,
+      "red_reasons": [
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 8,
+      "thk": 1.0,
+      "native": false,
+      "h_need": 4.3999999999999995,
+      "h_margin": 2.9000000000000004,
+      "h_margin_graphite": 2.9000000000000004,
+      "cavity": 4.699999999999999,
+      "cavity_margin": 0.1999999999999993,
+      "cavity_ok": true,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 29.6,
+      "weight_pct_lo": 40.659340659340664,
+      "weight_pct_hi": 60.5316973415133,
+      "can_open": false,
+      "red_reasons": [
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 8,
+      "thk": 1.22,
+      "native": false,
+      "h_need": 4.62,
+      "h_margin": 2.6799999999999997,
+      "h_margin_graphite": 2.6799999999999997,
+      "cavity": 4.4799999999999995,
+      "cavity_margin": -0.020000000000000462,
+      "cavity_ok": false,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 36.112,
+      "weight_pct_lo": 49.604395604395606,
+      "weight_pct_hi": 73.84867075664621,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.48 < 4.50 (余 -0.02)",
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "B160x100",
+      "frame_name": "① 台架板 160×100 (盘上现役)",
+      "pcb_l": 160.0,
+      "pcb_w": 100.0,
+      "layers": 8,
+      "thk": 1.6,
+      "native": true,
+      "h_need": 5.0,
+      "h_margin": 2.3,
+      "h_margin_graphite": 2.3,
+      "cavity": 4.1,
+      "cavity_margin": -0.40000000000000036,
+      "cavity_ok": false,
+      "v_need": 106.0,
+      "v_margin": -68.0,
+      "v_worst": -68.6,
+      "v_ok": false,
+      "l_need": 215.5,
+      "l_margin": -85.5,
+      "l_ok": false,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 100.59,
+      "open_at_board_end": false,
+      "weight_g": 47.36000000000001,
+      "weight_pct_lo": 65.05494505494507,
+      "weight_pct_hi": 96.85071574642127,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.10 < 4.50 (余 -0.40)",
+        "V 链 余 -68.00 / 最坏 -68.60 < 0.60",
+        "L 链 余 -85.50 < 0.60"
+      ]
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 4,
+      "thk": 0.8,
+      "native": false,
+      "h_need": 4.2,
+      "h_margin": 3.0999999999999996,
+      "h_margin_graphite": 3.0999999999999996,
+      "cavity": 4.8999999999999995,
+      "cavity_margin": 0.39999999999999947,
+      "cavity_ok": true,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 2.664,
+      "weight_pct_lo": 3.6593406593406597,
+      "weight_pct_hi": 5.447852760736197,
+      "can_open": true,
+      "red_reasons": []
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 4,
+      "thk": 1.0,
+      "native": false,
+      "h_need": 4.3999999999999995,
+      "h_margin": 2.9000000000000004,
+      "h_margin_graphite": 2.9000000000000004,
+      "cavity": 4.699999999999999,
+      "cavity_margin": 0.1999999999999993,
+      "cavity_ok": true,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 3.33,
+      "weight_pct_lo": 4.574175824175825,
+      "weight_pct_hi": 6.809815950920246,
+      "can_open": true,
+      "red_reasons": []
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 4,
+      "thk": 1.22,
+      "native": false,
+      "h_need": 4.62,
+      "h_margin": 2.6799999999999997,
+      "h_margin_graphite": 2.6799999999999997,
+      "cavity": 4.4799999999999995,
+      "cavity_margin": -0.020000000000000462,
+      "cavity_ok": false,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 4.062600000000001,
+      "weight_pct_lo": 5.5804945054945065,
+      "weight_pct_hi": 8.3079754601227,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.48 < 4.50 (余 -0.02)"
+      ]
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 4,
+      "thk": 1.6,
+      "native": false,
+      "h_need": 5.0,
+      "h_margin": 2.3,
+      "h_margin_graphite": 2.3,
+      "cavity": 4.1,
+      "cavity_margin": -0.40000000000000036,
+      "cavity_ok": false,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 5.328,
+      "weight_pct_lo": 7.318681318681319,
+      "weight_pct_hi": 10.895705521472394,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.10 < 4.50 (余 -0.40)"
+      ]
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 6,
+      "thk": 0.8,
+      "native": false,
+      "h_need": 4.2,
+      "h_margin": 3.0999999999999996,
+      "h_margin_graphite": 3.0999999999999996,
+      "cavity": 4.8999999999999995,
+      "cavity_margin": 0.39999999999999947,
+      "cavity_ok": true,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 2.664,
+      "weight_pct_lo": 3.6593406593406597,
+      "weight_pct_hi": 5.447852760736197,
+      "can_open": true,
+      "red_reasons": []
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 6,
+      "thk": 1.0,
+      "native": true,
+      "h_need": 4.3999999999999995,
+      "h_margin": 2.9000000000000004,
+      "h_margin_graphite": 2.9000000000000004,
+      "cavity": 4.699999999999999,
+      "cavity_margin": 0.1999999999999993,
+      "cavity_ok": true,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 3.33,
+      "weight_pct_lo": 4.574175824175825,
+      "weight_pct_hi": 6.809815950920246,
+      "can_open": true,
+      "red_reasons": []
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 6,
+      "thk": 1.22,
+      "native": false,
+      "h_need": 4.62,
+      "h_margin": 2.6799999999999997,
+      "h_margin_graphite": 2.6799999999999997,
+      "cavity": 4.4799999999999995,
+      "cavity_margin": -0.020000000000000462,
+      "cavity_ok": false,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 4.062600000000001,
+      "weight_pct_lo": 5.5804945054945065,
+      "weight_pct_hi": 8.3079754601227,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.48 < 4.50 (余 -0.02)"
+      ]
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 6,
+      "thk": 1.6,
+      "native": false,
+      "h_need": 5.0,
+      "h_margin": 2.3,
+      "h_margin_graphite": 2.3,
+      "cavity": 4.1,
+      "cavity_margin": -0.40000000000000036,
+      "cavity_ok": false,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 5.328,
+      "weight_pct_lo": 7.318681318681319,
+      "weight_pct_hi": 10.895705521472394,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.10 < 4.50 (余 -0.40)"
+      ]
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 8,
+      "thk": 0.8,
+      "native": false,
+      "h_need": 4.2,
+      "h_margin": 3.0999999999999996,
+      "h_margin_graphite": 3.0999999999999996,
+      "cavity": 4.8999999999999995,
+      "cavity_margin": 0.39999999999999947,
+      "cavity_ok": true,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 2.664,
+      "weight_pct_lo": 3.6593406593406597,
+      "weight_pct_hi": 5.447852760736197,
+      "can_open": true,
+      "red_reasons": []
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 8,
+      "thk": 1.0,
+      "native": false,
+      "h_need": 4.3999999999999995,
+      "h_margin": 2.9000000000000004,
+      "h_margin_graphite": 2.9000000000000004,
+      "cavity": 4.699999999999999,
+      "cavity_margin": 0.1999999999999993,
+      "cavity_ok": true,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 3.33,
+      "weight_pct_lo": 4.574175824175825,
+      "weight_pct_hi": 6.809815950920246,
+      "can_open": true,
+      "red_reasons": []
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 8,
+      "thk": 1.22,
+      "native": false,
+      "h_need": 4.62,
+      "h_margin": 2.6799999999999997,
+      "h_margin_graphite": 2.6799999999999997,
+      "cavity": 4.4799999999999995,
+      "cavity_margin": -0.020000000000000462,
+      "cavity_ok": false,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 4.062600000000001,
+      "weight_pct_lo": 5.5804945054945065,
+      "weight_pct_hi": 8.3079754601227,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.48 < 4.50 (余 -0.02)"
+      ]
+    },
+    {
+      "frame_id": "F30A",
+      "frame_name": "② 产品板 60×30 套 A (MECH 现行)",
+      "pcb_l": 60.0,
+      "pcb_w": 30.0,
+      "layers": 8,
+      "thk": 1.6,
+      "native": false,
+      "h_need": 5.0,
+      "h_margin": 2.3,
+      "h_margin_graphite": 2.3,
+      "cavity": 4.1,
+      "cavity_margin": -0.40000000000000036,
+      "cavity_ok": false,
+      "v_need": 36.0,
+      "v_margin": 2.0,
+      "v_worst": 1.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          }
+        ],
+        "all_fit": true
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 5.328,
+      "weight_pct_lo": 7.318681318681319,
+      "weight_pct_hi": 10.895705521472394,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.10 < 4.50 (余 -0.40)"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 4,
+      "thk": 0.8,
+      "native": false,
+      "h_need": 4.2,
+      "h_margin": 3.0999999999999996,
+      "h_margin_graphite": 3.0999999999999996,
+      "cavity": 4.8999999999999995,
+      "cavity_margin": 0.39999999999999947,
+      "cavity_ok": true,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 1.332,
+      "weight_pct_lo": 1.8296703296703298,
+      "weight_pct_hi": 2.7239263803680984,
+      "can_open": false,
+      "red_reasons": [
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 4,
+      "thk": 1.0,
+      "native": false,
+      "h_need": 4.3999999999999995,
+      "h_margin": 2.9000000000000004,
+      "h_margin_graphite": 2.9000000000000004,
+      "cavity": 4.699999999999999,
+      "cavity_margin": 0.1999999999999993,
+      "cavity_ok": true,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 1.665,
+      "weight_pct_lo": 2.2870879120879124,
+      "weight_pct_hi": 3.404907975460123,
+      "can_open": false,
+      "red_reasons": [
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 4,
+      "thk": 1.22,
+      "native": false,
+      "h_need": 4.62,
+      "h_margin": 2.6799999999999997,
+      "h_margin_graphite": 2.6799999999999997,
+      "cavity": 4.4799999999999995,
+      "cavity_margin": -0.020000000000000462,
+      "cavity_ok": false,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 2.0313000000000003,
+      "weight_pct_lo": 2.7902472527472533,
+      "weight_pct_hi": 4.15398773006135,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.48 < 4.50 (余 -0.02)",
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 4,
+      "thk": 1.6,
+      "native": false,
+      "h_need": 5.0,
+      "h_margin": 2.3,
+      "h_margin_graphite": 2.3,
+      "cavity": 4.1,
+      "cavity_margin": -0.40000000000000036,
+      "cavity_ok": false,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 2.664,
+      "weight_pct_lo": 3.6593406593406597,
+      "weight_pct_hi": 5.447852760736197,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.10 < 4.50 (余 -0.40)",
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 6,
+      "thk": 0.8,
+      "native": false,
+      "h_need": 4.2,
+      "h_margin": 3.0999999999999996,
+      "h_margin_graphite": 3.0999999999999996,
+      "cavity": 4.8999999999999995,
+      "cavity_margin": 0.39999999999999947,
+      "cavity_ok": true,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 1.332,
+      "weight_pct_lo": 1.8296703296703298,
+      "weight_pct_hi": 2.7239263803680984,
+      "can_open": false,
+      "red_reasons": [
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 6,
+      "thk": 1.0,
+      "native": true,
+      "h_need": 4.3999999999999995,
+      "h_margin": 2.9000000000000004,
+      "h_margin_graphite": 2.9000000000000004,
+      "cavity": 4.699999999999999,
+      "cavity_margin": 0.1999999999999993,
+      "cavity_ok": true,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 1.665,
+      "weight_pct_lo": 2.2870879120879124,
+      "weight_pct_hi": 3.404907975460123,
+      "can_open": false,
+      "red_reasons": [
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 6,
+      "thk": 1.22,
+      "native": false,
+      "h_need": 4.62,
+      "h_margin": 2.6799999999999997,
+      "h_margin_graphite": 2.6799999999999997,
+      "cavity": 4.4799999999999995,
+      "cavity_margin": -0.020000000000000462,
+      "cavity_ok": false,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 2.0313000000000003,
+      "weight_pct_lo": 2.7902472527472533,
+      "weight_pct_hi": 4.15398773006135,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.48 < 4.50 (余 -0.02)",
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 6,
+      "thk": 1.6,
+      "native": false,
+      "h_need": 5.0,
+      "h_margin": 2.3,
+      "h_margin_graphite": 2.3,
+      "cavity": 4.1,
+      "cavity_margin": -0.40000000000000036,
+      "cavity_ok": false,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 2.664,
+      "weight_pct_lo": 3.6593406593406597,
+      "weight_pct_hi": 5.447852760736197,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.10 < 4.50 (余 -0.40)",
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 8,
+      "thk": 0.8,
+      "native": false,
+      "h_need": 4.2,
+      "h_margin": 3.0999999999999996,
+      "h_margin_graphite": 3.0999999999999996,
+      "cavity": 4.8999999999999995,
+      "cavity_margin": 0.39999999999999947,
+      "cavity_ok": true,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 1.332,
+      "weight_pct_lo": 1.8296703296703298,
+      "weight_pct_hi": 2.7239263803680984,
+      "can_open": false,
+      "red_reasons": [
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 8,
+      "thk": 1.0,
+      "native": false,
+      "h_need": 4.3999999999999995,
+      "h_margin": 2.9000000000000004,
+      "h_margin_graphite": 2.9000000000000004,
+      "cavity": 4.699999999999999,
+      "cavity_margin": 0.1999999999999993,
+      "cavity_ok": true,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 1.665,
+      "weight_pct_lo": 2.2870879120879124,
+      "weight_pct_hi": 3.404907975460123,
+      "can_open": false,
+      "red_reasons": [
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 8,
+      "thk": 1.22,
+      "native": false,
+      "h_need": 4.62,
+      "h_margin": 2.6799999999999997,
+      "h_margin_graphite": 2.6799999999999997,
+      "cavity": 4.4799999999999995,
+      "cavity_margin": -0.020000000000000462,
+      "cavity_ok": false,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 2.0313000000000003,
+      "weight_pct_lo": 2.7902472527472533,
+      "weight_pct_hi": 4.15398773006135,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.48 < 4.50 (余 -0.02)",
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    },
+    {
+      "frame_id": "P60x15",
+      "frame_name": "③ 产品板 60×15 (原始定版 · 板宽已作废)",
+      "pcb_l": 60.0,
+      "pcb_w": 15.0,
+      "layers": 8,
+      "thk": 1.6,
+      "native": false,
+      "h_need": 5.0,
+      "h_margin": 2.3,
+      "h_margin_graphite": 2.3,
+      "cavity": 4.1,
+      "cavity_margin": -0.40000000000000036,
+      "cavity_ok": false,
+      "v_need": 21.0,
+      "v_margin": 17.0,
+      "v_worst": 16.4,
+      "v_ok": true,
+      "l_need": 115.5,
+      "l_margin": 14.5,
+      "l_ok": true,
+      "holes": {
+        "holes": [
+          {
+            "hole": "P1",
+            "center": [
+              8.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              7.0,
+              9.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "P2",
+            "center": [
+              52.0,
+              15.0
+            ],
+            "d": 2.0,
+            "wall_y": [
+              14.0,
+              16.0
+            ],
+            "wall_x": [
+              51.0,
+              53.0
+            ],
+            "outside_mm": 1.0,
+            "fit": false
+          },
+          {
+            "hole": "S1",
+            "center": [
+              8.0,
+              10.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              9.3,
+              10.7
+            ],
+            "wall_x": [
+              7.3,
+              8.7
+            ],
+            "outside_mm": 0.0,
+            "fit": true
+          },
+          {
+            "hole": "S2",
+            "center": [
+              52.0,
+              20.0
+            ],
+            "d": 1.4,
+            "wall_y": [
+              19.3,
+              20.7
+            ],
+            "wall_x": [
+              51.3,
+              52.7
+            ],
+            "outside_mm": 5.7,
+            "fit": false
+          }
+        ],
+        "all_fit": false
+      },
+      "p5": {
+        "p2_gap": 3.23,
+        "p2_ok": true,
+        "s2_gap": 8.53,
+        "s2_ok": true
+      },
+      "open_x": [
+        49.21,
+        59.410000000000004
+      ],
+      "open_y": [
+        7.835,
+        12.434999999999999
+      ],
+      "open_end_margin_x": 0.5899999999999963,
+      "open_at_board_end": true,
+      "weight_g": 2.664,
+      "weight_pct_lo": 3.6593406593406597,
+      "weight_pct_hi": 5.447852760736197,
+      "can_open": false,
+      "red_reasons": [
+        "盖板内腔 4.10 < 4.50 (余 -0.40)",
+        "套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准"
+      ]
+    }
+  ]
+}
+[rc=0] 板框可行域 --json
+
+================================================================
+$ python3 MECH/board_frame_feasibility.py --selftest
+----------------------------------------------------------------
+============================================================================================================
+[反向用例] ISS-310 board_frame_feasibility.py —— ★目标: 抓住「改了参数还判绿」的假闸★
+============================================================================================================
+
+>>> ① 盖板内腔人为改到 4.00 (F30A / 6 层 / 1.00mm) ⇒ 必须判红
+  [OK ] ①a 基线 F30A/6层/1.00mm = 能开 (内腔 4.70)
+  [OK ] ①b 内腔改 4.00 ⇒ 整档判红
+  [OK ] ①c 判红原因点名盖板内腔: ['盖板内腔 4.00 < 4.50 (余 -0.50)']
+
+>>> ② 套 A 孔位搬到 15mm 板 (P2 孔心 Y=15.00) ⇒ 必须判「孔位不成立」
+  [OK ] ②a P2 (52.00,15.00) ⌀2.0 在 15mm 板上孔壁 Y 14.00..16.00 ⇒ 板外 1.00mm ⇒ 不成立
+  [OK ] ②b 60×15 整档判红
+  [OK ] ②c 判红原因点名孔位: ['套 A 孔位不成立 (P1 板外 1.00 · P2 板外 1.00 · S2 板外 5.70) ⇒ 开口 Y 的 P-5 判据无基准']
+  [OK ] ②d 对照: 同一套孔位在 30mm 板上全部成立 (⇒ 孔位判据对板宽敏感)
+
+>>> ③ 台架板 pcb_thk 1.60 → 1.00 ⇒ 盖板内腔必须 4.10 → 4.70, 内腔判定 ❌ → ✅
+  [OK ] ③a 台架板 t=1.60 内腔 = 4.10 (判红)
+  [OK ] ③b t=1.60 内腔判定 = ❌
+  [OK ] ③c 台架板 t=1.00 内腔 = 4.70
+  [OK ] ③d t=1.00 内腔判定 = ✅ (❌ → ✅ 翻转)
+  [OK ] ③e 判红原因里的内腔条目随板厚消失
+      ★注: 台架板 t=1.00 的【整档】仍判红 (V 链 -68.00 / L 链 -85.50 是板长板宽带来的, 换板厚救不了) ⇒ 这是本表最重要的一条结论之一
+
+>>> ④ 把 F30A 的板宽从 30 改到 100 ⇒ V 链必须判红
+  [OK ] ④a V 需求 = 106.00 (100 + 6)
+  [OK ] ④b V 余 = -68.00 (台架板口径)
+  [OK ] ④c V 链判红 ⇒ 整档判红
+  [OK ] ④d 判红原因点名 V 链
+
+>>> ⑤ 把 F30A 的板长从 60 改到 160 ⇒ L 链必须判红
+  [OK ] ⑤a L 需求 = 215.50
+  [OK ] ⑤b L 余 = -85.50
+  [OK ] ⑤c L 链判红 ⇒ 整档判红
+
+>>> ⑥ t=1.22 ⇒ 内腔 4.48 (离 4.50 只差 0.02) ⇒ 必须判红 (证明 4.50 阈值真被用到 0.01 级)
+  [OK ] ⑥a F30A t=1.22 内腔 = 4.48
+  [OK ] ⑥b 内腔判红 ⇒ 整档判红
+
+>>> ⑦ 板重必须随 (板框, 板厚) 变 (改参数 ⇒ 重量必须跟着变)
+  [OK ] ⑦a 60×30×1.00 = 3.330g (MECH/BOARD_GEOM_30MM.md §1 = 3.33g)
+  [OK ] ⑦b 60×15×1.00 = 1.665g (MECH/DEBUG_PORT_LAYOUT_CONSTRAINTS.md 表 2 = 1.67g)
+  [OK ] ⑦c 四档板厚 ⇒ 四个不同板重
+  [OK ] ⑦d 台架板 160×100×1.60 = 47.360g
+
+============================================================================================================
+[反向用例] ✅ 一致 —— ① 内腔改 4.00 ⇒ 判红 · ② 孔位搬到 15mm 板 ⇒ 不成立 · ③ 板厚 1.60→1.00 ⇒ 内腔 4.10→4.70 且 ❌→✅ · ④ V 链对板宽敏感 · ⑤ L 链对板长敏感 · ⑥ 4.50 阈值 0.01 分辨率 (t=1.22 ⇒ 4.48 判红) · ⑦ 板重随参数变
+[反向用例] ★⇒ 没有任何一档是「改了参数还判绿」的假闸★
+============================================================================================================
+[rc=0] 板框可行域 --selftest
+
+================================================================
+$ python3 MECH/check_onepass_mech_sync.py --selftest
+----------------------------------------------------------------
+
+================================================================================================
+【自检】check_onepass_mech_sync.py 反向用例 (★沙盒副本上跑, 真件一个字节不碰★)
+================================================================================================
+  [基线] M1=OK M2=OK M3=OK M4=OK M5=OK
+  [OK ] ① 改检修口矩形一个角 (y0 66.300 ⇒ 52.000) ⇒ M2 红: 是 · md5 c7945f59 ⇒ 029497ac (确实改了: True) · M2 命中=[('PORT_OPEN_DEBUG', 0), ('PORT_OPEN_UART', 23), ('PORT_OPEN_USBC', 0)]
+  [OK ] ② 把两条开口合并成一个 ⇒ M2/M3 红: 是 · md5 c7945f59 ⇒ 49b2577e (确实改了: True) · M2 错误 4 条 / M3 错误 1 条
+  [OK ] ③ 抽掉正文表头的帧标签 ⇒ M1 红: 是 · 命中模式: True · md5 c7945f59 ⇒ 1ca0f8f5 (确实改了: True) · M1 错误 5 条
+  [OK ] ④ 抽掉机器块里的 frame 字段 ⇒ M1 红: 是 · md5 c7945f59 ⇒ 6ade2b8a (确实改了: True) · M1 错误 1 条
+  [OK ] ⑤ 把 h 三档之一改到不合理 (4.00 ⇒ 40.00) ⇒ M3 红: 是 · md5 c7945f59 ⇒ 3fdf1a49 (确实改了: True) · M3 错误 5 条
+  [OK ] ⑥ 把判据命令改成不存在的脚本 ⇒ M4 红: 是 · md5 c7945f59 ⇒ 4b3e4504 (确实改了: True) · M4 错误 13 条
+  [OK ] ⑦ 改受保护件 (HW/PCB/demo_mainboard.kicad_pcb) ⇒ M5 红: 是 · md5 611b869e ⇒ 9ca97cf9 (确实改了: True) · M5 错误 1 条
+  [OK ] ⑦b 偷改台账管理件 (HW/netlist_v1.csv) 而台账不更新 ⇒ M5b 红: 是 · 命中 M5b 断言: 是 · md5 6aee500e ⇒ 93782011 (确实改了: True) · M5 错误 1 条
+  [OK ] ⑨ 把机器块里的 PORT_OPEN_USBC 删掉 ⇒ M2 红: 是 · 命中集合断言: 是 · md5 c7945f59 ⇒ 50c55df0 (确实改了: True) · M2 错误 1 条
+  [OK ] ⑩ 把 PORT_OPEN_USBC 改名成 PORT_OPEN_USB_C ⇒ M2 红: 是 · 命中集合断言: 是 · md5 c7945f59 ⇒ a222d1ab (确实改了: True) · M2 错误 1 条
+  [OK ] ⑪ 把边开口的矩形改成跟调试口完全一样 ⇒ M2b 红 (合并禁令): 是 · 命中合并禁令: 是 · md5 c7945f59 ⇒ 7d7c1e28 (确实改了: True) · M2 错误 1 条
+  [OK ] ⑫ 正向对照 (三条齐全且互不相同) ⇒ 绿: 是 · 开口集合 ['PORT_OPEN_DEBUG', 'PORT_OPEN_UART', 'PORT_OPEN_USBC']
+  [OK ] ⑧ 自检跑完, 真件 5 件 md5 仍逐字节不变: 是 · demo_mainboard.kicad_pcb=611b869e · demo_mainboard.kicad_pro=3e504d2b · netlist_v1.csv=6aee500e · netlist_v1_pins.csv=9174309d · BOM_v1.csv=5b999399
+
+================================================================================================
+【自检结论】✅ 全抓到
+================================================================================================
+[rc=0] MECH 侧既有闸 --selftest
+
+================================================================
+$ python3 MECH/check_board_frame_coords.py
+----------------------------------------------------------------
+================================================================================================
+BOARD FRAME COORDS CHECK —— ISS-276 (mech-lead)
+================================================================================================
+★口径: 现役台架板 160×100 (Edge.Cuts 实读) ★
+
+================================================================================================
+【闸】ISS-276 坐标系闸 (C1 帧标签 / C2 不压 SoM / C3 负向断言 / C4 受保护件: 2 件合法改板通道 (ISS-296) + 3 件台账链头)
+================================================================================================
+
+--- C1 --- ✅ 过
+   已声明帧: ['B160x100', 'F30A']
+   窗口→帧: [('port_open_debug_bench', 'B160x100'), ('port_open_uart_bench', 'B160x100'), ('led_window_g_bench_hard', 'B160x100'), ('led_window_g_bench_recommended', 'B160x100'), ('legacy_port_open_60x30', 'F30A'), ('legacy_led_window_60x30', 'F30A')]
+
+--- C2 --- ✅ 过
+   SoM 焊盘总数 (P1..P4): 400
+   窗口 'port_open_debug_bench' (opening) X 137.850..148.050 × Y 54.300..58.900 ⇒ 压住 SoM 焊盘 = **0** {'J_SOM_P1': 0, 'J_SOM_P2': 0, 'J_SOM_P3': 0, 'J_SOM_P4': 0}
+   窗口 'port_open_uart_bench' (opening) X 13.790..23.990 × Y 66.300..70.900 ⇒ 压住 SoM 焊盘 = **0** {'J_SOM_P1': 0, 'J_SOM_P2': 0, 'J_SOM_P3': 0, 'J_SOM_P4': 0}
+   窗口 'led_window_g_bench_hard' (centre-window) X 1.550..3.450 × Y 1.450..98.950 ⇒ 压住 SoM 焊盘 = **0** {'J_SOM_P1': 0, 'J_SOM_P2': 0, 'J_SOM_P3': 0, 'J_SOM_P4': 0}
+   窗口 'led_window_g_bench_recommended' (centre-window) X 6.940..8.250 × Y 63.700..67.900 ⇒ 压住 SoM 焊盘 = **0** {'J_SOM_P1': 0, 'J_SOM_P2': 0, 'J_SOM_P3': 0, 'J_SOM_P4': 0}
+
+--- C3 --- ✅ 过
+   旧矩形 'legacy_port_open_60x30' (帧 F30A) 喂进现役板坐标 ⇒ 压住 SoM 焊盘 = **56** {'J_SOM_P1': 56, 'J_SOM_P2': 0, 'J_SOM_P3': 0, 'J_SOM_P4': 0}
+   旧矩形 'legacy_led_window_60x30' (帧 F30A) 喂进现役板坐标 ⇒ 压住 SoM 焊盘 = **10** {'J_SOM_P1': 0, 'J_SOM_P2': 0, 'J_SOM_P3': 10, 'J_SOM_P4': 0}
+   ⇒ ★两套坐标不可代入: 已机器化证明 (旧矩形一旦被当现役坐标用 ⇒ 立刻压 SoM 座)★
+
+--- C4 --- ✅ 过
+   ✅ HW/PCB/demo_mainboard.kicad_pcb ★纯 md5 硬保护★ (台账无变更行) 基线 611b869e13518c3c023fb178f91a0075 ⇒ 现值 611b869e13518c3c023fb178f91a0075
+   ✅ HW/PCB/demo_mainboard.kicad_pro ★纯 md5 硬保护★ (台账无变更行) 基线 3e504d2be83152e337949723e909be1b ⇒ 现值 3e504d2be83152e337949723e909be1b
+   ✅ HW/netlist_v1.csv 判决源 = 落表台账链头 6aee500e60ba (by ISS-302) ⇒ 盘上 6aee500e60ba… (台账记录 12 条 · 链长 11)
+   ✅ HW/netlist_v1_pins.csv 判决源 = 落表台账链头 9174309df1ec (by ISS-302) ⇒ 盘上 9174309df1ec… (台账记录 12 条 · 链长 9)
+   ✅ HW/BOM_v1.csv 判决源 = 落表台账链头 5b9993992405 (by ISS-302) ⇒ 盘上 5b9993992405… (台账记录 12 条 · 链长 8)
+
+================================================================================================
+【结论】✅ 四项全过
+口径提醒: 盘上板读数 = [实测] (读得到才写) · 设计态几何 = [推算] · 实物 [实测] = 0 条
+[rc=0] MECH 板框坐标闸
+
+================================================================
+$ python3 MECH/check_demo_struct_truth.py
+----------------------------------------------------------------
+====================================================================================================
+ISS-213/224 结构侧真值门禁 (demo 板当前成立的条目 + 板框/阈值/红灯保护 + 真源台账对账)
+====================================================================================================
+定性表: MECH/HW_CROSS_REVIEW_TRIAGE.md  |  源: MECH/service_port_check.py + MECH/hw_cross_review_check.py + MECH/BOARD_GEOM_30MM.md + HW/netlist_v1.csv + HW/SCHEMATIC_V1.md
+----------------------------------------------------------------------------------------------------
+  [OK ] G1    不许把红灯调没 (FAIL 名单仍是 16 条)
+         实测汇总 PASS 15 / FAIL 16 / 条件通过 8 / 说明 15 (共 54)
+  [OK ] G1b   FAIL 名单逐条对齐 (一条不许少/一条不许多)
+         实测 16 条 vs 锚点 16 条; 差集 实测多=[] 锚点多=[]
+  [OK ] G2.1  检修口盖板内腔 ≥ cavity_req (ISS-126 现口径)
+         内腔 = 7.3 − 2.6 = 4.70mm vs 硬要求 4.50 (余 +0.20); 锚点写 4.7
+  [OK ] G2.2  Type-C 新开孔口径最坏单边间隙 ≥ 判据 (FDM 直成型档)
+         10.5×4.8 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.3  Type-C 金属/CNC 档最坏单边间隙 ≥ 判据 (±0.05)
+         10.25×4.55 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.4  两档现候选 (打印包现试样) 判不合格 —— 证明'二选一'是假选择
+         现口径: 最坏 X 0.13 / Y 0.02; ISS-089 建议: 最坏 X 0.38 / Y 0.32
+  [OK ] G2.5  端件温升按 buck 口径 (Pin−Pout+DCR), 不用 MECH_BUDGET 的 0.8W 线性口径
+         P=0.50W × R=166.67 K/W ⇒ ΔT 83.3K ⇒ 表面 108.3°C (线性口径 0.80W ⇒ ΔT 133K ⇒ 158°C)
+  [OK ] G2.6  60°C 判据 ⇒ 端件表面能吃下的最大耗散 P_max (现值必须超它 ⇒ 强制金属热路)
+         P_max = (60−25)/166.67 = 0.210W; 现耗散 0.50W ⇒ 超 2.38× ⇒ 必须金属热路
+  [OK ] G2.7  散热路径必须是金属 (打印件 R 远大于铝)
+         打印件 1944 K/W vs 铝 1.641 K/W (差 1185×) ⇒ 0.5W 打进去 +972K (打印件) vs +0.82K (铝)
+  [OK ] G2.8  buck 功率守恒 ICHG/IIN = η·Vbus/Vbat (规格书的 0.822/0.933 是倒数)
+         3.70V ⇒ 1.216 (锚点 1.216) · 4.20V ⇒ 1.071 (锚点 1.071); 规格书倒数 = 0.822 / 0.933
+  [OK ] G2.9  demo 当前成立的 PASS 项 (公差链 C1~C5 / 径向 / 堆叠余量 / 合并 14P / 拓扑 B) 全过
+         共 12 项, 不再 PASS 的 = 无
+  [OK ] G3    6 个 PCB 类 id 已登记排队且恢复条件非空 (不许静默丢弃)
+         排队表缺恢复条件的 = 无; 锚点 pcb_class_queued 缺的 = 无
+  [OK ] G3b   排队的 PCB 类 id 在 hw_cross_review_check.py 里仍然是 FAIL (不许修绿)
+         不再是 FAIL 的 = 无
+  [OK ] G4    MECH/BOARD_GEOM_30MM.md §1 四数 (60.00/30.00/1.00/3.33g) 一个没被改
+         §1 缺失项 = 无; 锚点与文档不一致 = 无
+  [OK ] G4b   板框四数与两个 check 脚本的现行口径一致 (pcb_len/pcb_w/pcb_thk)
+         脚本 pcb_len=60.0 / pcb_w=30.0 / pcb_thk=1.0 vs 锚点 60.0/30.0/1.0
+  [OK ] G5    判据阈值未松: cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00
+         service_port: cavity_req=4.5 cav_v=38.0 duct_v=6.0 CRIT=0.60; hw_cross_review: judge=0.6 cav_v_now=38.0
+  [OK ] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro 走【合法改板】通道 (ISS-296) + 4 个 check 脚本 + 网表/脚表)
+         4 个硬保护 check 脚本 全部一致 + 2 个受保护硬件件走合法改板通道 (板/.kicad_pro: HW/PCB/demo_mainboard.kicad_pcb=纯 md5 硬保护 (台账无变更行), HW/PCB/demo_mainboard.kicad_pro=纯 md5 硬保护 (台账无变更行)) + 2 个台账管理真源 = 台账最新记录 (链头: HW/netlist_v1.csv=6aee500e60ba, HW/netlist_v1_pins.csv=9174309df1ec) + 域侧锚点副本 = 历史留痕 (允许停在历史值)
+  [OK ] C21   真源变更台账对账 (盘上真源 ↔ 落表台账最新记录 (链头) ↔ 域侧锚点历史副本)
+         台账最新记录 (链头) = HW/netlist_v1.csv 6aee500e60ba (by ['ISS-302']), HW/netlist_v1_pins.csv 9174309df1ec (by ['ISS-302']); 锚点副本 = 历史留痕 (允许停在历史值, 但不许与台账对不上)
+  [OK ] C22   PIN-MISMATCH 独立复核 (P9 页声明 vs 网表实际 + d6 新旧口径)
+         网表实读 CONN_LIGHT 22p / CONN_CAM 31p / J_CHG 10p; P9 声明 CONN_LIGHT [22] / CONN_CAM [31] / J_CHG [10]; 旧口径 0 处 / 新口径 3 处
+  [OK ] G6    定性表 54 项全覆盖 (项号一个不缺) 且处置栏不留空/不写'待定'
+         表内 54 行 / 应 54; 缺项号 = 无; 多余项号 = 无; 处置留空或待定 = 无
+  [OK ] G6b   16 条 FAIL 每条都有明确去处 (修掉/出规格/登记 need 给 main/排队等原理图定稿)
+         FAIL 行 16 条; 去处不在受控词表里的 = 无
+  [OK ] G7    分片 claim `mech_hinge_stack_fixed_mm` = 25.00 (ISS-206 裁 2 的 16p/20p/4p/10p)
+         实测 value = 25.00
+  [OK ] G8    已修复的留痕必须在场 (PIN-MISMATCH 行 + §3.1「已修复 (留痕)」节)
+         §2 行在位 (判定 = ✅ PASS, 备注带 ISS-220/落表) + §3.1 已修复节在位 (列着 ['PIN-MISMATCH', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'MECH/service_port_check.py` 的 md5 锚点 (门禁 **G5b**)', 'MECH/check_demo_struct_truth.py` 的 md5 (门禁脚本【本体】) + ★**判决源机制本身**★'])
+----------------------------------------------------------------------------------------------------
+【结论】23/23 组检查通过 | FAIL 0 组
+口径提醒: 全部为 **设计态几何 + 公差栈** ([推算]); **实物 [实测] = 0 条**。
+          本闸守的是 **demo 板当前成立的条目**, 不是'54 项全绿'。
+          ★ 6 个 PCB 类 id 仍是 FAIL 是**正确状态** (排队等原理图定稿), 不是缺陷。
+          ★ ISS-224: `PIN-MISMATCH` 是**被 ISS-220 真修好了**, 不是被调没 ⇒ 留痕在 §2 第 05 行 + §3.1。
+====================================================================================================
+[rc=0] MECH 结构真值闸
+
+================================================================
+$ python3 state/merge.py
+----------------------------------------------------------------
+✅ STATE.yaml 已刷新 (2026-11-18T16:41:18+08:00)
+   产出 670 | 阻塞 43 (高危 33) | 未闭合需求 336 | 冲突 0 | 健康度 red
+[rc=0] 分片合并
+
+================================================================
+$ python3 state/gate_check.py
+----------------------------------------------------------------
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-18_z_hw-lead_ISS308_S8可达性判决书_门禁索引.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-18_sw-lead_ISS327_改名后SW闸链复活验证.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-18_mech-lead_ISS326_S1改名MECH侧安全性体检.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '官方', '推算', '0数据']
+   sw-lead    标签: ['实测', '官方', '推算', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 977 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    369 条
+   sw-lead    290 条
+   mech-lead  318 条
+
+【Q4 需求闭环率】
+   问方视角 (我的需求被别人答了): 95/486  ← 与 merge.py 口径一致
+   答方视角 (我登记的答复): 184 条, 其中 63 条真对上了别人的需求 key
+   hw-lead    被答 35/226 | 我答 68 条(有效 31) | 产出 242 | 阻塞 7
+   sw-lead    被答 16/132 | 我答 37 条(有效 5) | 产出 225 | 阻塞 15
+   mech-lead  被答 44/128 | 我答 79 条(有效 27) | 产出 189 | 阻塞 12
+   ├─ ⚠️ **疑似漏登记 (答案在对方文档正文里, 但没进 answers)**: 0 条  ← 需人工判定, 也有可能是 waiting_on 标错
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 59 条 | **全局 50 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 336 条**
+   ✅ 与 merge.py 自对账一致 (等外部 50 / 等总工 336)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 14 个
+      q1_latency_scope: 发起方 ['main', 'sw-lead']
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q17_display_fps: 发起方 ['main', 'sw-lead']
+      q18_highspeed_cam: 发起方 ['main', 'sw-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+
+【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    2/5 类: ['镜腿/镜脚厚度(mm)', '端到端延迟(ms)']
+   sw-lead    0/5 类: []
+   mech-lead  0/5 类: []
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 171 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 94 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 67 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+[rc=0] 门禁链 (Q1 必须 18/18)
+
+================================================================
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb   # 期望 611b869e13518c3c023fb178f91a0075
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+$ stat -c "%y" HW/PCB/demo_mainboard.kicad_pcb   # 期望 2026-11-06 07:07:17.362193413
+2026-11-06 07:07:17.362193413 +0800
+
+================================================================
+$ 占位符扫描 (两份交付文档都必须 0)
+$ grep -cE "🔄|待填|PLACEHOLDER|施工中" MECH/ONETRIP_D_LED_G_PLACEMENT_CALIBER.md
+0
+$ grep -cE "🔄|待填|PLACEHOLDER|施工中" HANDOFF/2026-11-18_mech-lead_ISS324_D_LED_G落位口径.md
+0
+$ grep -c "iss324" state/fragments/mech.yaml
+8
+
+### 门禁链跑完 · 采集时刻 2026-11-18 16:41:38 CST

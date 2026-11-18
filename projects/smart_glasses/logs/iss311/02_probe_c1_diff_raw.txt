@@ -1,0 +1,72 @@
+==============================================================================
+ISS-311 · C1 焊盘级差异探针 (只读)
+==============================================================================
+
+网表推出的 (ref,pad)→网络: 480 条
+板上带网络的 (ref,pad)→网络: 482 条
+板上 NC 焊盘: 351 个
+★差集: 缺失(网表有板没有) 0 · 多余(板有网表没有) 2 · 同号异网 3
+
+------------------------------------------------------------------------------
+【A】★板上有、网表里没有★ (⇒ 板侧多出来的旧件 / 网表删掉的件)
+------------------------------------------------------------------------------
+★ C_VBUS_GND pad1 = GND
+    .kicad_pcb 行号: 8259
+    .kicad_pcb 原行: (pad "1" smd rect
+    板上位号行: 8174
+    网表里有没有这个位号: ★没有 ⇒ 板侧多出来的旧件
+    ★网表里同前缀(`C_VBUS_`)的器件: ['C_VBUS_DEMO']
+★ C_VBUS_GND pad2 = VBUS_5V_CHG
+    .kicad_pcb 行号: 8267
+    .kicad_pcb 原行: (pad "2" smd rect
+    板上位号行: 8174
+    网表里有没有这个位号: ★没有 ⇒ 板侧多出来的旧件
+    ★网表里同前缀(`C_VBUS_`)的器件: ['C_VBUS_DEMO']
+
+------------------------------------------------------------------------------
+【B】★网表有、板上没有★ (⇒ 网表新加的脚 / 板侧漏画)
+------------------------------------------------------------------------------
+(无)
+
+------------------------------------------------------------------------------
+【C】★同号异网★ (⇒ 脚位对调 / 网名改过 · 板上挂错网)
+------------------------------------------------------------------------------
+★ Q_PG pad1: 网表应为 PWR_GOOD / 板上实际 PWR_ON
+    .kicad_pcb 行号: 2068
+    .kicad_pcb 原行: (pad "1" smd rect
+    网表行 L59: net=PWR_GOOD node1='Q_PG' node2='J_CHG pin6' type=SW
+    网表行 L60: net=BAT_SW node1='Q_PG' node2='NET_BAT_SW' type=SW
+    网表行 L61: net=PWR_ON node1='Q_PG' node2='U_PWR_SW pin2' type=SW
+★ Q_PG pad3: 网表应为 PWR_ON / 板上实际 PWR_GOOD
+    .kicad_pcb 行号: 2084
+    .kicad_pcb 原行: (pad "3" smd rect
+    网表行 L59: net=PWR_GOOD node1='Q_PG' node2='J_CHG pin6' type=SW
+    网表行 L60: net=BAT_SW node1='Q_PG' node2='NET_BAT_SW' type=SW
+    网表行 L61: net=PWR_ON node1='Q_PG' node2='U_PWR_SW pin2' type=SW
+★ D_ESD_USB_D pad1: 网表应为 NET_USB_D_P_TYPEC / 板上实际 USB_D_P_SRC
+    .kicad_pcb 行号: 13012
+    .kicad_pcb 原行: (pad "1" smd rect
+    网表行 L417: net=NET_USB_D_P_TYPEC node1='D_ESD_USB_D' node2='NET_USB_D_P_TYPEC' type=D
+    网表行 L418: net=GND node1='D_ESD_USB_D' node2='GND' type=D
+
+------------------------------------------------------------------------------
+【D】涉及器件的板上全部焊盘一览 (便于人工核)
+------------------------------------------------------------------------------
+· C_VBUS_GND  (板上带网焊盘 2 个)
+    pad1    net='GND'                        L8259      ★网表要求=None
+    pad2    net='VBUS_5V_CHG'                L8267      ★网表要求=None
+    ★★网表里**完全没有** C_VBUS_GND 这个位号 ★★
+· D_ESD_USB_D  (板上带网焊盘 2 个)
+    pad1    net='USB_D_P_SRC'                L13012     ★网表要求='NET_USB_D_P_TYPEC'
+    pad2    net='GND'                        L13020  
+    网表里 D_ESD_USB_D 的行:
+      L417: net='NET_USB_D_P_TYPEC' node1='D_ESD_USB_D' node2='NET_USB_D_P_TYPEC' type='D'
+      L418: net='GND' node1='D_ESD_USB_D' node2='GND' type='D'
+· Q_PG  (板上带网焊盘 3 个)
+    pad1    net='PWR_ON'                     L2068      ★网表要求='PWR_GOOD'
+    pad2    net='BAT_SW'                     L2076   
+    pad3    net='PWR_GOOD'                   L2084      ★网表要求='PWR_ON'
+    网表里 Q_PG 的行:
+      L59: net='PWR_GOOD' node1='Q_PG' node2='J_CHG pin6' type='SW'
+      L60: net='BAT_SW' node1='Q_PG' node2='NET_BAT_SW' type='SW'
+      L61: net='PWR_ON' node1='Q_PG' node2='U_PWR_SW pin2' type='SW'

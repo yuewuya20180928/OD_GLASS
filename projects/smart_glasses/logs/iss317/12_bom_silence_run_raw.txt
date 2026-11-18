@@ -1,0 +1,63 @@
+================================================================================================
+ISS-317 · §3 BOM 证据静默消失判据 (★只读·不跑 gen_bom.py·只写沙盒★)
+================================================================================================
+
+---- 造场 (★只写 tmp/iss317_sandbox/★) ----
+  ★沙盒改名板 board_bomsilence_renamed.kicad_pcb 改名 156 个 · → tmp/iss317_sandbox/board_bomsilence_renamed.kicad_pcb
+  ★沙盒改名 BOM BOM_renamed.csv              行数 218 · → tmp/iss317_sandbox/BOM_renamed.csv
+
+---- S0 基线 (板原样 + BOM 原样) ⇒ 期望绿 ----
+  场景 S0 基线
+    板文件封装数            : 186
+    BOM「板文件证据」行数   : 23  (ref: BT_432243, CHG_GND_STAR, D_ESD_CAM, D_ESD_DEMO, D_ESD_LIGHT, D_ESD_USB_D, FB_DEMO, J_SOM_P2, J_SOM_P4, Q1, Q_AND, Q_ENVC, Q_PG, SW_BOOT, SW_KEY_CAM, SW_KEY_PWR, SW_KEY_VM, SW_KEY_VP, SW_RST, U_BATPROT, U_LDO_S28, U_SUPV, X1)
+    ★J1 逐条命中 (★ref 在改名后的板里还能查到吗★): 丢 0 个
+    ⇒ J1 判定: ✅ 绿
+
+---- S1 事故场 (★只改板侧 · BOM 侧没改★) ⇒ 期望判红 ----
+  场景 S1 只改板侧不改 BOM 侧
+    板文件封装数            : 186
+    BOM「板文件证据」行数   : 23  (ref: BT_432243, CHG_GND_STAR, D_ESD_CAM, D_ESD_DEMO, D_ESD_LIGHT, D_ESD_USB_D, FB_DEMO, J_SOM_P2, J_SOM_P4, Q1, Q_AND, Q_ENVC, Q_PG, SW_BOOT, SW_KEY_CAM, SW_KEY_PWR, SW_KEY_VM, SW_KEY_VP, SW_RST, U_BATPROT, U_LDO_S28, U_SUPV, X1)
+    ★J1 逐条命中 (★ref 在改名后的板里还能查到吗★): 丢 17 个
+       ★丢: CHG_GND_STAR (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: D_ESD_CAM (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: D_ESD_DEMO (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: D_ESD_LIGHT (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: D_ESD_USB_D (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: FB_DEMO (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: Q_AND (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: Q_ENVC (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: Q_PG (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: SW_BOOT (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: SW_KEY_CAM (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: SW_KEY_PWR (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: SW_KEY_VM (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: SW_KEY_VP (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: SW_RST (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: U_BATPROT (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+       ★丢: U_SUPV (★板文件里已没有这个 ref ⇒ 证据行会静默消失★)
+    ⇒ J1 判定: ❌ 判红 (★证据静默消失★)
+
+---- S2 对照场 (板原样 + BOM 原样) ⇒ 期望绿 (★与 S0 同★) ----
+  场景 S2 对照
+    板文件封装数            : 186
+    BOM「板文件证据」行数   : 23  (ref: BT_432243, CHG_GND_STAR, D_ESD_CAM, D_ESD_DEMO, D_ESD_LIGHT, D_ESD_USB_D, FB_DEMO, J_SOM_P2, J_SOM_P4, Q1, Q_AND, Q_ENVC, Q_PG, SW_BOOT, SW_KEY_CAM, SW_KEY_PWR, SW_KEY_VM, SW_KEY_VP, SW_RST, U_BATPROT, U_LDO_S28, U_SUPV, X1)
+    ★J1 逐条命中 (★ref 在改名后的板里还能查到吗★): 丢 0 个
+    ⇒ J1 判定: ✅ 绿
+
+---- S3 五侧同口径场 (板改名 + BOM 也改名) ⇒ 期望绿 (★两边同步就不丢★) ----
+  场景 S3 板+BOM 同步改名
+    板文件封装数            : 186
+    BOM「板文件证据」行数   : 23  (ref: BT_432243, CHG_GND_STAR_1, D_ESD_CAM_1, D_ESD_DEMO_1, D_ESD_LIGHT_1, D_ESD_USB_D_1, FB_DEMO_1, J_SOM_P2, J_SOM_P4, Q1, Q_AND_1, Q_ENVC_1, Q_PG_1, SW_BOOT_1, SW_KEY_CAM_1, SW_KEY_PWR_1, SW_KEY_VM_1, SW_KEY_VP_1, SW_RST_1, U_BATPROT_1, U_LDO_S28, U_SUPV_1, X1)
+    ★J1 逐条命中 (★ref 在改名后的板里还能查到吗★): 丢 0 个
+    ⇒ J1 判定: ✅ 绿
+
+---- 判定汇总 ----
+  ✅ S0_baseline      实测=绿     期望=绿    
+  ✅ S1_boardonly     实测=判红    期望=判红   
+  ✅ S2_control       实测=绿     期望=绿    
+  ✅ S3_synced        实测=绿     期望=绿    
+
+  ★J1 反向用例成立性: 破坏前(S0)=绿 · 破坏后(S1)=判红 ⇒ ✅ 判据能抓住「BOM 证据静默消失」
+  ★结论: ★**J1 判据可用**★ (★破坏前绿·破坏后红·不是巧合自证★)
+
+★原始读数落盘 → logs/iss317/12_bom_silence_judge_raw.txt

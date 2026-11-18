@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/.lastgood/CANDIDATE_v76mx1L_ready.md

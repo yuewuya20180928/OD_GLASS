@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HANDOFF/2026-10-29_hw-lead_ISS112_BQ25896_footprint.md

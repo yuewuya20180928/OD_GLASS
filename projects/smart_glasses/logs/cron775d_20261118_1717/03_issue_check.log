@@ -1,0 +1,663 @@
+==========================================================================
+问题闭环门 · Issue Gate
+==========================================================================
+登记问题 325 条 | 状态: closed=97 deferred=15 verified=190 open=17 fixed=3 fixing=3
+  ├─ 内部可自行推进: 294 条 | 外部依赖 (等老板/原厂/JBD): 31 条
+  ├─ 逾期未闭环: 0 条
+  └─ 未闭环 blocker 级: 10 条
+
+【问题清单】(按 severity + 逾期排)
+  🔴 ISS-002  closed    owner=boss       due=2026-10-26   [外部]
+       Q1 端到端口径 + Q4 续航口径 待拍板
+  🔴 ISS-012  closed    owner=boss       due=2026-10-26   [外部]
+       Q1 60ms 口径 + Q17 显示帧率 待拍板 → 达标结论定不下来
+  🔴 ISS-014  closed    owner=boss       due=2026-10-26   [外部]
+       散热 43°C 红线不达标 (0.23W→46.5°C) → 需 SoC/充电板挪出镜脚
+  🔴 ISS-018  closed    owner=boss       due=2026-10-27   [外部]
+       Q16 sensor 宽高比 A/B/C 拍板 (卡 sensor 选型 + 镜头畸变预算)
+  🔴 ISS-010  closed    owner=boss       due=2026-10-28   [外部]
+       光机逐帧延迟 0 数据 (软件打不了点, 需高速摄影/示波器)
+  🔴 ISS-078  closed    owner=hw-lead    due=2026-10-28  
+       ★板宽/逃线/叠层复核 (官网 宽度≤8mm 硬约束 + FCCSP pitch 推断 0.4-0.5mm) —— 可能推翻 12m
+  🔴 ISS-081  closed    owner=hw-lead    due=2026-10-28  
+       球数预算 + 最小引脚集分析 (证明封装/球数不是风险, 只剩映射问题) + 8x10 FCCSP 在 pitch 0.3/0.4/
+  🔴 ISS-001  closed    owner=vendor     due=2026-10-29   [外部]
+       原厂纸面资料 7 天未回 (第一轮 10-21 发出; 显示接口/电源域/FCCSP pinout/启动存储)
+  🔴 ISS-003  closed    owner=vendor     due=2026-10-29   [外部]
+       Q16 显示 TX 接口未确认 → 是否要加桥接芯片
+  🔴 ISS-005  closed    owner=vendor     due=2026-10-29   [外部]
+       ARS45 显示输出接口未确认 → 原理图只能留双出口
+  🔴 ISS-006  closed    owner=vendor     due=2026-10-29   [外部]
+       FCCSP 球间距未知 → 逃线/叠层给不出 (已升级为选型一票否决)
+  🔴 ISS-007  closed    owner=vendor     due=2026-10-29   [外部]
+       电源域电压/电流上限未知 → 电压域清单写不出
+  🔴 ISS-008  closed    owner=vendor     due=2026-10-29   [外部]
+       HW-03 启动存储/固件分区方案未定 (tracker 漏项)
+  🔴 ISS-009  closed    owner=vendor     due=2026-10-29   [外部]
+       NPU 纯硬件耗时未知 → 框龄 age 算不准 (±16.67ms 台阶)
+  🔴 ISS-011  closed    owner=vendor     due=2026-10-29   [外部]
+       NPU 输出是否强制 FP32 未知 → 端到端多 7.3ms 风险
+  🔴 ISS-015  closed    owner=vendor     due=2026-10-29   [外部]
+       PCB 板宽跟 FCCSP pitch 走 + 启动存储未知 → 板宽定不下来
+  🔴 ISS-074  verified  owner=main       due=2026-10-29  
+       ★开始画硬件原理图 V1 (8 页图页 + 完整 netlist + KiCad 可导入 .net) —— 球位号统一用 TBD 占
+  🔴 ISS-083  closed    owner=main       due=2026-10-29  
+       ★显示 TX 公开渠道穷举 (AR9481 模组厂/模组规格书/公开板卡 + 酷芯模组供应商) —— 不等原厂也能判 DSI TX 
+  🔴 ISS-147  verified  owner=main       due=2026-11-04  
+       ★★★[demo P0] 恢复 RKNN 构建环境 + 证明 rk3572 是 rknn-toolkit2 2.3.2 的合法 ta
+  🔴 ISS-148  closed    owner=main       due=2026-11-04  
+       ★★[硬件] AR0234CS 硬件数据 (U2 VDD_IO abs max / U4 有无独立模拟轨) + ★demo sens
+  🔴 ISS-158  closed    owner=main       due=2026-11-04  
+       ★★★[demo 头号硬件阻塞] 三件前置选型 (camera 模组 / 屏模组 / RK3572 核心板) ⇒ 主板照它们画 (★
+  🔴 ISS-182  closed    owner=main       due=2026-11-04  
+       ★★★[投板级 · 已修] 网表 4 处致命缺陷 + 导出器"幽灵分裂网" bug + VBUS 分压失效
+  🔴 ISS-013  deferred  owner=jbd        due=2026-11-05   [外部]
+       波导未选型 → 缺 2D 外形图/容差角/彩虹纹 → 镜框不能开工
+  🔴 ISS-119  verified  owner=main       due=2026-11-05  
+       ★★换芯定案 + 迁移方案 (A7/A8): 选哪颗 + 网表/原理图/BOM 重做清单 + 为 RK3588 预留的可执行后手
+  🔴 ISS-139  verified  owner=sw-lead    due=2026-11-05  
+       ★★[内部, 与选谁无关] ISP tuning 立项: 两个候选 sensor 都没有现成 IQ 文件 ⇒ 这笔账必须自己排
+  🔴 ISS-144  deferred  owner=main       due=2026-11-05  
+       ★★★★[demo 关键路径 #1] AR0234CS → RK3572 rkisp3 驱动移植 (★先出规格, 不出代码)
+  🔴 ISS-145  verified  owner=sw-lead    due=2026-11-05  
+       ★★★★[demo 关键路径 #2] demo 板 OD 管线打通规格: yolov5n INT8 → RKNN → 画框 → 视涯
+  🔴 ISS-149  closed    owner=main       due=2026-11-05  
+       ★★★[硬件优先] demo 硬件形态落地: 一块主板 + **IMX415 sensor 模组** + 屏幕驱动板模组 + FPC
+  🔴 ISS-165  closed    owner=main       due=2026-11-05  
+       ★★★[硬件 A2 段 · 最后一块] SOM 座 (4×100pin/0.4mm BTB) + SoC 节点改挂 + ★CARRI
+  🔴 ISS-166  closed    owner=main       due=2026-11-05  
+       ★★★[P0 · 短路级] 网表连接器脚位: 一个脚挂多个网 (CONN_CAM 12 处 / CONN_LIGHT 9 处) ⇒ 
+  🔴 ISS-167  closed    owner=main       due=2026-11-05  
+       ★★★[P0 · 假绿] 板生成器按 CSV 行序给焊盘编号 ⇒ 连接器脚位全错; 等价性门禁比集合 ⇒ 报绿
+  🔴 ISS-168  closed    owner=main       due=2026-11-05  
+       ★★★[P0] RK3572 与 RK3576 引脚功能不同 ⇒ 上一版 SoM 引脚分配表作废 (226/398 脚球号不同)
+  🔴 ISS-170  closed    owner=main       due=2026-11-05  
+       ★★★[demo 板可制造性] 显示器 FPC 座: 屏侧 40p/0.5mm 与原厂排线主板侧 39p/0.3mm 矛盾 ⇒ 画 
+  🔴 ISS-175  closed    owner=main       due=2026-11-05  
+       ★★★[选型变更 · 老板拍板] demo 屏换 ≤3 寸 (原 Radxa Display 8HD = 8.0" 太��) ⇒ 背
+  🔴 ISS-183  closed    owner=main       due=2026-11-06  
+       ★★★[投板级 P0 · 已修待验] SoM 的 7 个 DCIN 脚落在孤岛网 `RAIL_SOM_DCIN` ⇒ 板上**没有到
+  🔴 ISS-184  closed    owner=main       due=2026-11-07  
+       ★★★[网表级 P0 · 已修待验] `.net` 导出器把「只在 node 串里出现、ref 列里没有」的器件(J_SOM_P2 
+  🔴 ISS-162  verified  owner=main       due=2026-11-13  
+       ★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400
+  🔴 ISS-207  verified  owner=sw-lead    due=2026-11-18  
+       ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+  🔴 ISS-155  open      owner=main       due=2026-11-19  
+       ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+  🔴 ISS-160  open      owner=main       due=2026-11-20  
+       ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC
+  🔴 ISS-181  deferred  owner=hw-lead    due=2026-11-20  
+       ★★★[最高优先级 · 老板 11-04 19:10 指示] 自研 demo 主板: 从骨架布到**可下单** (unconnect
+  🔴 ISS-263  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+  🟠 ISS-039  closed    owner=boss       due=2026-10-27   [外部]
+       【缺清单】认证与合规要求未梳理 (含光生物安全) —— 需老板定销售区域
+  🟠 ISS-046  closed    owner=boss       due=2026-10-27   [外部]
+       ★FOV 与俯角正面冲突: 对角 100° → 垂直半视场仅 30.3°, 俯角 32° 时正前方掉出画面
+  🟠 ISS-019  closed    owner=main       due=2026-10-28  
+       桥接芯片并行询价 (不等原厂回信, 抢 4-8 周采购周期)
+  🟠 ISS-026  closed    owner=mech-lead  due=2026-10-28  
+       可靠性测试方案缺失 (跌落/扭转/弯折/汗液/盐雾/UV 全 0)
+  🟠 ISS-058  closed    owner=mech-lead  due=2026-10-28  
+       ★打印包按 Rev A 参考实现重生成 (verify_pack 38/46 → 46/46) —— 否则量出来的尺寸对不上解 A 
+  🟠 ISS-077  closed    owner=hw-lead    due=2026-10-28  
+       功耗预算 V3: 按官网 250mW 口径重算 (媒体 300mW → 官网 250mW, 差 20%) + V_CORE 上界按 
+  🟠 ISS-075  closed    owner=hw-lead    due=2026-10-28  
+       审 8 页图页 + 补器件级细节 (P1 充电链 ESD/π滤波/MOSFET, P7 LED 限流/按键消抖) —— 上一版 27
+  🟠 ISS-088  closed    owner=hw-lead    due=2026-10-28  
+       ★审原理图 V1.1 (9 页 + 24 条门禁 + BOM 295 位号) —— V1.1 增量由项目总工自产, 验证人必须是 h
+  🟠 ISS-021  closed    owner=main       due=2026-10-29  
+       缺系统架构图 / 尺寸堆叠图 / 电源拓扑图 (现在全是文字表)
+  🟠 ISS-022  closed    owner=hw-lead    due=2026-10-29  
+       EMC 预评估缺失 (只有 HW-25 一条 ESD 器件)
+  🟠 ISS-023  closed    owner=hw-lead    due=2026-10-29  
+       可靠性设计评审缺失 (降额/应力/MTBF 全空)
+  🟠 ISS-028  closed    owner=sw-lead    due=2026-10-29  
+       缺 EVT 报告模板 + 软硬件联调计划 (G3 无载体)
+  🟠 ISS-042  closed    owner=mech-lead  due=2026-10-29  
+       镜脚侧装配余量临界 (前后余 0.30mm vs FDM 公差 ±0.2-0.3mm) → 叠放模型实际不通过
+  🟠 ISS-044  closed    owner=sw-lead    due=2026-10-29  
+       Q17=60fps 的达标判定条件已写死: M-NPU ≤16.67ms (age=1) 才成立, 否则自动切 30fps
+  🟠 ISS-045  closed    owner=hw-lead    due=2026-10-29  
+       sensor 选型解冻 (Q16 已拍板: 只需 ≥1920×1080@60fps) —— 立即启动
+  🟠 ISS-050  closed    owner=mech-lead  due=2026-10-29  
+       打印包需按解 A 修订几何 (电池座 4.90→4.75 非对称 + 0.8 顶板 + 配作孔 ⌀2.0→⌀2.4)
+  🟠 ISS-051  closed    owner=hw-lead    due=2026-10-29  
+       镜头选型目标改为 对角 FOV 120° (垂直半视场 40.3°) + 俯角 ≤25°
+  🟠 ISS-054  closed    owner=hw-lead    due=2026-10-29  
+       原理图可画部分落地: 顶层接口定义 + 低速接口 + 外围 IC 选型 (全部不等原厂)
+  🟠 ISS-055  closed    owner=hw-lead    due=2026-10-29  
+       ★用官方口径 <300mW 重算整机功耗预算 —— 可能翻案 46.5°C 的散热结论
+  🟠 ISS-056  closed    owner=sw-lead    due=2026-10-29  
+       ★ISP 缩放必须整幅 scale, 禁用 ROI 裁剪 (ROI 会把对角 FOV 从 120° 砍到 85.61°)
+  🟠 ISS-057  closed    owner=hw-lead    due=2026-10-29  
+       ★先画 AR9481 同 Die 参考版原理图 (每脚标证据等级) —— 出图周期从 1-2 周压到 2-3 天
+  🟠 ISS-067  closed    owner=hw-lead    due=2026-10-29  
+       R-F1 3.3V 轨拓扑裁决落地 (UVP 抬 3.5V + 3.3V 改供 + 评估不牺牲容量的替代方案)
+  🟠 ISS-068  closed    owner=hw-lead    due=2026-10-29  
+       可靠性证据缺口收口 (15/15 器件 Absolute Maximum Ratings 逐个核 + 实测项挂样机 + FIT 数据
+  🟠 ISS-084  closed    owner=mech-lead  due=2026-10-29  
+       SoC 载板化/模组化的结构与代价评估 (把 引脚映射 风险从项目级压到载板级) + 兜底 SoC 路线 (用现成模组做 EVT 验
+  🟠 ISS-087  verified  owner=sw-lead    due=2026-10-29  
+       模型许可未清 (L1 许可[0数据] + L4 AGPL-3.0 商用受限) + ARS45 板端模型 0 个 → 量产评审放行门禁
+  🟠 ISS-090  verified  owner=sw-lead    due=2026-10-29  
+       ★软件侧交叉评审 (时序/信号/电源时序) + TMP117 测点物理位置 + 跨铰链 USB 烧录可行性
+  🟠 ISS-101  verified  owner=sw-lead    due=2026-10-29  
+       ★模型许可: 唯一许可干净候选 (Apache-2.0) 的 NPU 可转换性 = 0 数据 → 量产可用模型清单为空
+  🟠 ISS-110  verified  owner=sw-lead    due=2026-10-29  
+       ★RKNN 转换链实测 (RK3576 资料维度实测 + 端到端 ≤60ms 判定) —— 已交付并验收
+  🟠 ISS-053  closed    owner=sw-lead    due=2026-10-30  
+       ★鱼眼 + 不裁剪 的副作用: 检测框在图像上是弯的, SW 必须做'检测框反投影到真实方位角'
+  🟠 ISS-115  closed    owner=hw-lead    due=2026-10-31  
+       ★选型情报检索: TOP10 国内厂商名单 + 每家 TOP1~5 候选 + 逐项证据 (只交证据, 不打分)
+  🟠 ISS-146  verified  owner=boss       due=2026-11-03   [外部]
+       ★★[等老板一句] demo 板形态: 模组+转接板 (我的建议) 还是 自制整板? —— 决定 PCB 与周期
+  🟠 ISS-142  deferred  owner=boss       due=2026-11-04   [外部]
+       ★[外发待放行] onsemi AR0234CS 问询草稿已写好 (pinout/电源域/CRA/lane 速率/功耗/驱动) ⇒ 
+  🟠 ISS-151  verified  owner=main       due=2026-11-04  
+       ★★[硬件优先] 替代料候选清单: 每类物料 ≥3 个公开在售替代品 + 来源/规格/数据来源评分 ⇒ 让「都试过了」可核查
+  🟠 ISS-040  deferred  owner=boss       due=2026-11-05   [外部]
+       打印与量测条件不具备 (打印机跨网段不可达 + 无切片器/量具) → M-PRINT 卡死
+  🟠 ISS-049  closed    owner=hw-lead    due=2026-11-05  
+       PCB 定位方式变更 + 骨架长度上限 (来自 ISS-042 解 A) —— 需 hw-lead 改孔位
+  🟠 ISS-080  verified  owner=sw-lead    due=2026-11-05  
+       S2 救砖链路 (进 BOOT 模式 → 厂商下载工具识别 → 刷回来) 必须实测 —— 量产一票否决项
+  🟠 ISS-082  closed    owner=main       due=2026-11-05  
+       ★电源域不确定性吸收进选件 (6 路 LDO 改用可编程 TPS7A20 一颗覆盖 1.2-5.5V + DC-DC 大裕量 + P
+  🟠 ISS-094  closed    owner=main       due=2026-11-05  
+       ★投板前网表要做 pin-centric 重整 (现在 CSV 是『连接清单』模型, KiCad 网表要的是『每引脚一行』)
+  🟠 ISS-112  closed    owner=hw-lead    due=2026-11-05  
+       ★BQ25896 封装 footprint 落库 (WQFN RTW 24pin 4×4mm) + 充电板面积重算 (+7mm²)
+  🟠 ISS-114  verified  owner=main       due=2026-11-05  
+       ★★换芯片选型总单: 国内 TOP10 厂商 × TOP1~5 芯片 × 9 项打分 (老板 10-29 09:59 改令) —— 
+  🟠 ISS-122  deferred  owner=main       due=2026-11-05  
+       ★★BGA 逃线层数: ★两套模型结论相反 (9 层 vs 3 层) ⇒ 破没破 4-6 层锁是 [0数据] 不是结论 —— 必须问
+  🟠 ISS-124  verified  owner=sw-lead    due=2026-11-05  
+       ★★[待瑞芯微/RK3576 模组厂] ISP MP/s 吞吐上限 + ISP 动态功耗 vs 吞吐曲线 (2 问, 一票否决级的剩
+  🟠 ISS-127  verified  owner=mech-lead  due=2026-11-05  
+       ★★★脱模斜度致镜脚 H 链最坏 −0.577mm ⇒ 几何上做不出来 (不是余量紧张, 是不可行) —— 量产架构必须改
+  🟠 ISS-138  verified  owner=boss       due=2026-11-05   [外部]
+       ★★★[要老板一句拍板] sensor 模式选路: OV04C10 @1080p60 ⇒ 镜头/FOV/角分辨率/快门 四个代价要选
+  🟠 ISS-150  closed    owner=main       due=2026-11-05  
+       ★★★[硬件优先 #3] demo sensor 换 IMX415 ⇒ 网表三条电源轨要重核 + 1080p60 输出模式定案
+  🟠 ISS-157  closed    owner=main       due=2026-11-05  
+       ★★[软件] rknn_bench.py 的 cut 模型缓存不失效 ⇒ 换模型重测会静默跑出上一个模型的数字 (实测两次结果逐字节
+  🟠 ISS-159  closed    owner=hw-lead    due=2026-11-05  
+       ★★[demo] 画板前致命项清零 F4~F12 (★照 EN 那个 P0 的教训: 漏到投板后 = 2~4 周返工)
+  🟠 ISS-164  verified  owner=main       due=2026-11-05  
+       ★★[等老板一句] demo 精度验收线: yolov5n F1 0.2927 差 0.0073 不达 0.30 门槛, 换 yol
+  🟠 ISS-132  verified  owner=main       due=2026-11-06  
+       ★★★[决定性] 视涯 0.49" 1920×1080 是单色还是全彩? —— 这题决定产品定义 (检测框能不能上色)
+  🟠 ISS-137  verified  owner=main       due=2026-11-06  
+       ★★[可执行, 一行代码的活] 把「显示合成段」从 T_FIXED 里单独打点 —— 它是 RK3572 + 1920×1080 下
+  🟠 ISS-140  closed    owner=main       due=2026-11-06  
+       ★★[老板已拍板 D 的直接后果] sensor 换 AR0234CS ⇒ 网表电源域改造 (VDD_IO 1.8→2.8V) + 
+  🟠 ISS-176  closed    owner=main       due=2026-11-06  
+       ★★[显示接口重画] 显示器座换 Pi5 同规 22 位/0.5mm (吃 Waveshare 15→22 线) + 屏的控制 I2
+  🟠 ISS-179  verified  owner=sw-lead    due=2026-11-06  
+       ★★[手机测端到端] 显示画面烧帧计数器/时间码 + 手机慢动作测端到端延时作业指引
+  🟠 ISS-141  deferred  owner=hw-lead    due=2026-11-07  
+       ★★整机功耗账重算: OV04C10 155mW → AR0234CS (裸片功耗 [0数据]) ⇒ 皮肤温度 43°C 结论要重判
+  🟠 ISS-178  closed    owner=main       due=2026-11-07  
+       ★★[自查抓到] TMP117 被当成 4 脚器件画的 ⇒ **脚号与原厂完全对不上** (已改成官方 WSON-6)
+  🟠 ISS-062  verified  owner=hw-lead    due=2026-11-09  
+       R-GEO-2 四问转原厂/镜头厂 (边缘畸变区是检测价值最高处 / 4-lane MIPI / ISP 吞吐余量 98.1% / 
+  🟠 ISS-099  verified  owner=hw-lead    due=2026-11-09  
+       ★J_CHG 选型与 FPC 加工图要求 (触点额定 ≥0.35A / 分段铜厚 固定段2oz·弯折段1oz / 内层地 keep-
+  🟠 ISS-118  verified  owner=hw-lead    due=2026-11-09  
+       ★板宽 15mm → 30mm 的硬件连带重算 (板框/网表/面积/逃线/跨铰链排布) —— 老板 10-29 19:16 放宽
+  🟠 ISS-108  closed    owner=hw-lead    due=2026-11-12  
+       ★备选 SoC 选型: 老板 10-29 00:49 改令 (跳过酷芯微选型) ⇒ 扩到 TOP5 厂家 × TOP3 = 15 候
+  🟠 ISS-154  deferred  owner=hw-lead    due=2026-11-12  
+       ★★[整机阶段] AR0234CS 的 VDDIO_PHY 1.8V 轨缺失 + CONN_CAM 18p 占满 ⇒ 不供电就出不了
+  🟠 ISS-187  verified  owner=main       due=2026-11-12  
+       ★ISS-137 护栏两个洞 (M2 默认参数踢 TX / M3 无护栏钉 TX 绝对值) ⇒ 加护栏⑧⑨⑩ ⇒ ★已做完, 待 s
+  🟠 ISS-052  closed    owner=mech-lead  due=2026-11-13  
+       结构侧: 镜头镜筒/窗口/高度需求 (可不等镜头定档就开模) + 俯角收窄到 ≤25-28°
+  🟠 ISS-085  verified  owner=mech-lead  due=2026-11-13  
+       ★USB 跨铰链方案落地 (Type-C 留镜框充电板 + USB 差分跨铰链到镜脚主 PCB) + 跨铰链 USB 可靠性要求 +
+  🟠 ISS-089  closed    owner=mech-lead  due=2026-11-13  
+       ★硬件交叉评审 (机械/热/装配) —— 以 V1.1 的 9 页为输入, 挑出会打回来重画的点
+  🟠 ISS-091  verified  owner=mech-lead  due=2026-11-13  
+       ★跨铰链充电电流 1.0-1.5A 的载流/压降/发热核算 + J_CHG (1×10) 机械可行性 (MECH-B7 的后续)
+  🟠 ISS-096  verified  owner=main       due=2026-11-13  
+       ★复位释放时刻不由已画器件决定: 监督器只监督 V_SOC_IO 不监督 V_CORE, DC-DC 的 PG 只到测试点不参与复位
+  🟠 ISS-098  verified  owner=main       due=2026-11-13  
+       ★SoC 侧没有 USB VBUS 连接 (网表只有 D+/D−) ⇒ USB 枚举前提缺失, S2 救砖链路成立性未验; 且 CO
+  🟠 ISS-100  verified  owner=mech-lead  due=2026-11-13  
+       ★板宽 12mm → 15mm 的结构侧连带 (镜脚腔体/骨架长度/PCB 定位孔位/面积缺口 300mm² 复核)
+  🟠 ISS-107  closed    owner=mech-lead  due=2026-11-13  
+       ★更正 mech-lead 分片 pcb_mounting 旧取值 (2xM1.2+1x⌀2.0H7 → PIN-SET-2: 2x
+  🟠 ISS-171  verified  owner=main       due=2026-11-13  
+       ★★[IC 规格落定] 三个"我的假设"被原厂 datasheet 推翻 (已改网表) + 5 条仍未查到
+  🟠 ISS-185  verified  owner=mech-lead  due=2026-11-13  
+       ★ISS-107 同型问题 (第二面): 没有对手方的过期值 —— 本域 8 条 claim 的值停留在 10-28 基线, 合并器
+  🟠 ISS-186  verified  owner=hw-lead    due=2026-11-13  
+       ★DSI payload 8× 口径差: 6 处「373/246 Mbps」实为 2986/1475 Mbps ⇒ 依据虚到 8 倍
+  🟠 ISS-190  verified  owner=sw-lead    due=2026-11-13  
+       ★SW 侧时序/电源评审与机械复核器口径漂移 ⇒ SW_TIMING_REVIEW 锚在 476 行旧网表 (现行 513 行) ⇒
+  🟠 ISS-191  verified  owner=sw-lead    due=2026-11-13  
+       ★P0 (来自 ISS-190 复评): 首台板可能因 RESET_N 恒低而无法启动 —— PG_AND 只剩 10k 上拉, 无
+  🟠 ISS-192  verified  owner=mech-lead  due=2026-11-13  
+       ★★结构侧(MECH)机械复核器全线仍钉在已作废的 12/15mm 板宽 ⇒ 现在的绿灯不是关于现行板子说的(pinset2_mec
+  🟠 ISS-194  verified  owner=hw-lead    due=2026-11-13  
+       ★★PIN-SET-2 孔位表【套B ⇒ 套A】: hw-lead 自己 5 个产物里 4 个写套A, 只有 pcb60x30_ch
+  🟠 ISS-198  verified  owner=hw-lead    due=2026-11-13  
+       ★★[主线内·原理图侧·内部活] `PIN_REALITY_GAP.md` 里 29 个 `[0数据]` 的真实脚数 ⇒ 根因 = 
+  🟠 ISS-205  verified  owner=sw-lead    due=2026-11-14  
+       ★★[主线内·原理图侧·内部活] ★★KiCad 导出 BOM 里 186 个位号带 `?` (★板厂看到的位号与丝印对不上★) ⇒
+  🟠 ISS-143  closed    owner=mech-lead  due=2026-11-16  
+       ★★结构侧新口径: 边框遮挡角必须进 FOV 余量账 (凹进 1.0mm = 1.91° 遮挡, 吃掉"正前方那一侧") ⇒ 镜框上
+  🟠 ISS-038  open      owner=boss       due=2026-11-18   [外部]
+       【缺角色】工业设计 (ID/CMF/佩戴舒适度) 无人负责 —— 需老板拍板是否加第 4 个总工
+  🟠 ISS-041  open      owner=boss       due=2026-11-18   [外部]
+       ★★[当前 demo 板] 测试条件缺失 ⇒ G3 那一关不可判通过 (★2026-11-04 09:57 起: 不含热电偶/假皮肤
+  🟠 ISS-060  open      owner=boss       due=2026-11-18   [外部]
+       产品件三条几何待老板裁决 (压垫吸收量零余量 / 非对称方向 / 压垫槽区板厚小于 FDM 最小壁) —— 打印包转绿不等于解 A 
+  🟠 ISS-063  open      owner=boss       due=2026-11-18   [外部]
+       显示端 120 度到 30 度的映射方式 (看得广但糊 vs 看得清但窄) —— 120 度这个卖点对用户可见吗
+  🟠 ISS-097  fixed     owner=boss       due=2026-11-18   [外部]
+       ★"关机"语义: 硬件断电通路 (负载开关) + 真关机拓扑 + 功耗预算 V3
+  🟠 ISS-106  open      owner=boss       due=2026-11-18   [外部]
+       ★新增渠道: 经酷芯微代理转达 (老板 10-28 找到代理) —— 代理信 + 3 份可转发附件已就绪
+  🟠 ISS-116  fixed     owner=boss       due=2026-11-18   [外部]
+       ★★工作方式改造: 老板任务先落 GitHub 总表 + token 守护 (老板 10-29 09:59 亲自要求)
+  🟠 ISS-211  verified  owner=hw-lead    due=2026-11-18  
+       ★★[主线内·原理图/网表侧·内部活] 现行网表自身 4 处自相矛盾 (I2C_A 上拉行 vs 器件行 / BAT_DET 分压链
+  🟠 ISS-212  verified  owner=sw-lead    due=2026-11-18  
+       ★★★[demo 头号路径·自己查版·软件/显示侧] demo 显示侧口径重锚到 Waveshare 2.8" (480×640 ·
+  🟠 ISS-307  verified  owner=hw-lead    due=2026-11-18  
+       ★★[主线内·选型研究类·内部活] ★★【板那一趟的 ESD 选型轴: 老板 ①② 两个字母 (W-2 补不补 D− / W-1b·
+  🟠 ISS-308  verified  owner=hw-lead    due=2026-11-18  
+       ★★[主线内·分析/作业包类·内部活] ★★【「板那一趟 S8 (unconnected 45 → 0)」的可达性判决书: 残余 2
+  🟠 ISS-102  verified  owner=main       due=2026-11-19  
+       ★[待原厂] 追加问 4 条: AON 域静态电流 / USB VBUS detect 脚 / TPS62130A PG 极性 / 
+  🟠 ISS-156  open      owner=main       due=2026-11-19  
+       ★★[demo 供应链] 自研主板的三件前置选型: camera 模组 / 屏模组 / RK3572 核心板 (★主板的 FPC 座
+  🟠 ISS-172  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·硬件选型/官方口径侧·内部活] ★**负载开关 U_PWR_SW / U_EN_SW 选型证据矩阵** (★网表 L5
+  🟠 ISS-209  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构侧·内部活] 正中区光学腔体按眼盒 A_e ≤ 62 mm² + d=15–20mm 重排 (★ISS-208 §
+  🟠 ISS-210  verified  owner=sw-lead    due=2026-11-19  
+       ★★★[demo 头号卡点·自己查版·续] ISS-129/155 收口: 端到端 60ms 生死判定链 (补 ISP 段打点 + 
+  🟠 ISS-213  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构侧·内部活] 结构侧 54 项交叉复核逐条定性 (17 条 FAIL 挂在 rc=0 且不在每日巡检链上 ⇒ 隐形
+  🟠 ISS-214  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/网表侧·内部活] 网表/规格自身矛盾第 2 轮 (USB 串阻双值 / P9 页 21p vs 22p / S
+  🟠 ISS-215  verified  owner=sw-lead    due=2026-11-19  
+       ★★★[demo 头号路径·自己查版·软件/时序侧] demo 板 60ms 生死判定链的显示侧口径重锚: 从退役的整机 1920×
+  🟠 ISS-216  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构侧·内部活] MECH_BUDGET 充电耗散口径统一: 线性充电 IC 0.8W → 板上真实 buck (BQ
+  🟠 ISS-217  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/网表侧·内部活] 12 组网表/规格自相矛盾 (ISS-211 四条 + ISS-214 八条) ⇒ 汇成【整
+  🟠 ISS-218  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构侧·内部活] 打印包第三档试样落地 (10.50×4.80 FDM 直成型 + 10.25×4.55 金属·CNC
+  🟠 ISS-219  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构侧·内部活] 镜框正中区第 2 轮重排: C-6 分光件按 A_e≤62mm² 放大 (光束 8.885 ⇒ 平板
+  🟠 ISS-220  verified  owner=hw-lead    due=2026-11-19  
+       ★★★[主线内·原理图/网表侧·内部活] 【整链重出 第 2 步 · 原理图侧落表执行】把 ISS-217 作业包 28 条里「不依
+  🟠 ISS-221  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·软件/时序侧·内部活] demo 屏 (2-lane@480×640) 自己的 60ms 预算真源脚本 `SW/too
+  🟠 ISS-222  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构侧·内部活] ISS-219 的 C-6 / C-7 / C-8 三条「只报不改」落进结构真源: C-6 分光件 
+  🟠 ISS-223  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/网表侧·内部活] ISS-220 收尾 (补落 3 条分片声明) + 落表第 2 批 (★V-1 已由项目总工
+  🟠 ISS-224  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构侧·内部活] `MECH/check_demo_struct_truth.py` 三组失配的再基线化: ISS-2
+  🟠 ISS-225  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·软件/工具链侧·内部活] SW 侧 md5 基线过期 (`SW/tools/check_demo_panel_spec
+  🟠 ISS-226  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·软件/光生物安全判据侧·内部活] 光生物安全的「出瞳白场辐亮度最大值」在 SW 侧亮度控制策略里可判化: 蓝光通道占比
+  🟠 ISS-227  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构/热路口径侧·内部活] ISS-222 产物的 C-7b 物理口径错修正: P3 把「镜框上沿 120×30 打印
+  🟠 ISS-228  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·硬件选型/官方口径侧·内部活] RK3572 GPIO0 (I2C0_SCL=GPIO0_B0 球 1K21 / I2
+  🟠 ISS-229  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构/热路侧·内部活] 充电时皮肤侧温度【按改正后的系数】重算 (★0.822 是倒方向的旧值 ⇒ 「390Ω 档 4
+  🟠 ISS-230  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/网表侧·内部活] 落表第 3 批【逐字改法映射 v2】(★把 21 条未落表从「等老板拍板」变成「拍完就落」★
+  🟠 ISS-231  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·软件/门禁侧·内部活] SW 侧 R6 锚点重锚 (★ISS-223 落表后【按设计】变红的一盏灯, 走 ISS-22
+  🟠 ISS-232  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/网表侧·内部活] 板↔网表【焊盘级等价】门禁红的 2 处「多余」(C_VBUS_GND pad1=GND / 
+  🟠 ISS-233  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/网表侧·内部活] `--expect-resolved` 21 条未落表 ⇒ 逐条归因 + 【不依赖老板拍板的
+  🟠 ISS-234  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·软件/接口侧·内部活] 【关机 / 待机 / 关机充电指示灯】三条口径 ⇒ 出【真断电 vs 深睡关机 × demo 
+  🟠 ISS-235  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·软件/接口侧·内部活] ★**ISS-233 落表把 SW 侧 3 条断言打成过期红** ⇒ 订正 `timing_c
+  🟠 ISS-236  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/网表侧·内部活] ★**把 ISS-233 的【拍板即落清单】做成参数化【一键落表器】(V-2 / V-3 /
+  🟠 ISS-237  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/网表侧·内部活] ★**P2 屏口径自相矛盾** (STEP1_PARTS_SPEC.md §0/§3 = 4
+  🟠 ISS-238  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构/判据侧·内部活] ★★`MECH/display_biosafety_v2_check.py` C1 红灯 (走
+  🟠 ISS-239  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/网表侧·内部活] ★**TPS7A20 族 7 颗 LDO 的引脚功能名在脚表里串号** (★pin4 的 I
+  🟠 ISS-240  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·结构/判据侧·内部活] ★★跨铰链 FPC 几何账【三套口径】互相打架 (★脚本「收敛版」= 硬编码 16p/20p 
+  🟠 ISS-257  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/选型侧·落表执行·内部活] ★★G1a-7「选型已落表」: ★**BOM 里 14 件必装器件 value 至
+  🟠 ISS-260  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·原理图/网表/选型侧·工具自测·内部活] ★★★**`state/land_v_values.py` 的 V-2 落表
+  🟠 ISS-265  verified  owner=hw-lead    due=2026-11-19  
+       ★★★[★新主线·PCB 侧·布线死因·内部活] ★★★**7 条布线臂全打死同样 3 条差分腿 ⇒ 布局级线索 ⇒ 出【根因对照表
+  🟠 ISS-283  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·HW/落表侧·内部活] ★★【三件落表 + 一个工具接口死锁】★★ ★**B1: V-2 (A3) 落表被行号锚点守卫
+  🟠 ISS-284  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·门禁/台账机制·内部活] ★★【P10 落地: SW 台账 `hard_protected` 怎么合法跟上「
+  🟠 ISS-288  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·门禁口径收口·内部活] ★★【把 ISS-285 设计好的补丁真正落进 `SW/tools/timing_c
+  🟠 ISS-310  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·MECH 侧·板框口径对照类·内部活] ★★【板框口径「两套并存」的代价对照 + 机器可判的可行域表 ⇒ 交 main
+  🟠 ISS-311  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·HW 侧·产出链重出清单类·内部活] ★★【「板只改一次」那一趟要重出哪些件: C1 焊盘级等价差 2 个 (网表 4
+  🟠 ISS-312  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·判据修复类·内部活] ★★【ISS-309 的 need 落地 (★main 已拍板: 修法 A+B 都要★
+  🟠 ISS-313  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·MECH 侧·需求闭环类·内部活] ★★【MECH 域 needs 184 条四分类处置 (waiting_on 空 
+  🟠 ISS-314  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·HW 侧·口径收口 + 沙盒预演类·内部活] ★★【「板只改一次」那一趟的 S1 位号改名口径收口: 作业包 §5「网
+  🟠 ISS-315  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·判据修复 + 新闸新建类·内部活] ★★【判据链收口: 把 ISS-312 收回去的「修法 B (链头落表单
+  🟠 ISS-316  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·MECH 侧·输入包 + 决策一页类·内部活] ★★【「板只改一次」那一趟的结构侧输入包: ①板框冻结闸 U-1 的【
+  🟠 ISS-317  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·HW 侧·可执行清单 + 判据设计类·内部活] ★★【「板只改一次」那一趟的 S1 位号改名: 把 ISS-314 的
+  🟠 ISS-318  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·判据新建 + 挂链体检类·内部活] ★★【「板只改一次」那一趟的 SW 侧: ①把那 95 处位号引用做成【
+  🟠 ISS-319  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·MECH 侧·对账 + 影响面类·内部活] ★★【「板只改一次」那一趟的 MECH 侧: ①把 ISS-316 的 2
+  🟠 ISS-320  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·MECH 侧·受限文本订正类·内部活] ★★【电芯型号订正【实做】: 把 ISS-319 查清的那 47 行里的 33
+  🟠 ISS-321  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·纯分析 / 作业包 / 判据设计类·内部活] ★★【「板只改一次」那一趟的 SW 侧: S1 位号改名 (五
+  🟠 ISS-322  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·HW 侧·布线归零作业包 + 死因逐条登记类·内部活] ★★【「板只改一次」那一趟的 S8 (布线归零 unconne
+  🟠 ISS-323  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·逐字可执行清单类·内部活] ★★【「板只改一次」那一趟的 SW 侧: 7 件必须同批改的活 (ISS-321
+  🟠 ISS-324  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·MECH 侧·落位口径 + 候选坐标类·内部活] ★★【`D_LED_G` 落位口径一页 (G12 的前置): 93.
+  🟠 ISS-325  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·PCB 线·沙盒预演 / 作业包类·内部活] ★★【「板只改一次」那一趟的 S8 前置: 「左上布局」21 器件 (1
+  🟠 ISS-326  fixing    owner=mech-lead  due=2026-11-19  
+       ★★[主线内·MECH 侧·判据安全性体检类·内部活] ★★【S1 位号改名「MECH 侧」安全性体检: MECH 域 10+ 个判
+  🟠 ISS-327  fixing    owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·沙盒验证 + 当天 SOP 类·内部活] ★★【S1 位号改名「SW 侧」改名后【闸链复活】验证: 在沙盒里
+  🟠 ISS-126  open      owner=main       due=2026-11-20  
+       ★★板厚档位未定 ⇒ 检修口净空只有 4.90 那一档过 (1.22mm 档净空 4.48 破 4.50 硬要求)
+  🟠 ISS-128  open      owner=main       due=2026-11-20  
+       ★★主控换 RK3572 ⇒ 板面积账 + 逃线层数全部重算 (封装 FCCSP550L 14.3×15.5mm / 550 球, 
+  🟠 ISS-129  open      owner=main       due=2026-11-20  
+       ★★★RK3572 (4 TOPS) 板端纯 NPU 实测 ⇒ 端到端 60ms 硬指标生死判定 (★T2 翻案条件推算已命中)
+  🟠 ISS-130  open      owner=main       due=2026-11-20  
+       ★★★RK3572 功耗 670mW (原厂口径) vs 贴皮肤 43°C 红线 —— 从「待定」变「可判」
+  🟠 ISS-133  open      owner=main       due=2026-11-20  
+       ★★★显示架构变更: '屏' ≠ '光机' ⇒ 必须新增一级耦合光学 ⇒ 镜框光学腔体/分光器/整机空间全部重算
+  🟠 ISS-169  open      owner=main       due=2026-11-20  
+       ★★[demo 板可制造性] demo 主板的边界已定 (Type-C 供电 · 不装电池 · 板上只有这一块) + SoM 座的 
+  🟠 ISS-241  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·硬件选型/官方口径侧·内部活·排队] ★★BOM 里 value 仍写「待选型」的必装器件 = **21 件** (★
+  🟠 ISS-242  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·原理图/网表侧·内部活] ★★网表/板 第 3 轮自相矛盾 3 条 (★main 2026-11-16 13:4x 本
+  🟠 ISS-243  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·原理图/网表侧·内部活] ★★ISS-241 交卷的 4 条落表前置 (L1~L4) 收口: ① **L1/G-6 `
+  🟠 ISS-244  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·硬件选型/官方口径侧·内部活] ★★ISS-241 缺口登记 G-1~G-10 的**自查补全** (★老板 2026
+  🟠 ISS-245  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·SW 侧·跨域重锚·内部活] ★★ISS-243 落表把网表/脚表 md5 换掉 ⇒ **SW 侧 §1 锚点当场过期
+  🟠 ISS-246  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·MECH 侧·跨域重锚·内部活] ★★ISS-243 落表把网表/脚表 md5 换掉 ⇒ **MECH 侧 §3.1 
+  🟠 ISS-247  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·原理图/网表侧·内部活] ★★ISS-242 F1 落表作业包 v1 (★**只出作业包 + 沙盒实跑, 真盘零写入*
+  🟠 ISS-249  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·原理图/网表侧·落表执行·内部活] ★★ISS-247 的 F1 落表作业包 → 真落进真源 (★`state/gen
+  🟠 ISS-250  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法 
+  🟠 ISS-262  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·原理图/网表侧·落表防假绿·内部活] ★★★**落表链没有「行号漂移」判据 ⇒ V-3 落表 (删 3 行 DNP) 
+  🟠 ISS-266  verified  owner=hw-lead    due=2026-11-20  
+       ★★★[★新主线·PCB 侧·作业包·内部活] ★★★**出「板只改一次」作业包 v3 (★位号改名 + 板侧同步 B-1~B-8 
+  🟠 ISS-268  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·PCB 侧·口径订正·内部活] ★★「板只改一次」作业包 v3 (`HW/PCB/BOARD_ONEPASS_WORK
+  🟠 ISS-269  verified  owner=hw-lead    due=2026-11-20  
+       ★★★[★新主线·PCB 侧·生成器侧·内部活] ★★★**「板只改一次」那三个会让那一趟白做的生成器坑** (★X-3: `gen
+  🟠 ISS-271  verified  owner=mech-lead  due=2026-11-20  
+       ★★[★主线内·MECH 侧·板侧认领·内部活] ★★**板那一趟 (S1~S13) 的 MECH 侧两个「无人认领」** ★ ① 
+  🟠 ISS-274  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·PCB 线·纯分析+作业包订正类] ★★**「板只改一次」那一趟的【板框/坐标系口径】收口** ★★ ⇒ 现役板实测 
+  🟠 ISS-275  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·SW 侧·门禁机制类] ★★**SW 侧 R6 判决源同构收口 (镜像 MECH 侧 ISS-273 已证机制)** 
+  🟠 ISS-276  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·MECH 侧·纯分析+规格页订正类] ★★**「板只改一次」那一趟的 MECH 侧【坐标系归一 + 收掉 ISS-27
+  🟠 ISS-277  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·PCB 线·纯分析+作业包订正+机器闸类] ★★「板只改一次」那一趟的【板侧漏项覆盖度收口】★★ ⇒ ★**作业包 v
+  🟠 ISS-278  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·MECH 侧·纯分析+规格页订正+机器闸类] ★★「板只改一次」那一趟的【MECH 侧板侧输入收口】★★ ⇒ ★**I
+  🟠 ISS-279  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·SW 侧·纯分析+作业包订正+机器闸类] ★★「板只改一次」那一趟的【SW 侧板侧输入收口】★★ ⇒ ★**ISS-2
+  🟠 ISS-280  verified  owner=hw-lead    due=2026-11-20  
+       ★★[★新主线·PCB 线·纯分析+作业包订正+机器闸类] ★★「板只改一次」的【提交时序守卫】★★ ⇒ ★**作业包 v3 §0/
+  🟠 ISS-281  verified  owner=hw-lead    due=2026-11-20  
+       ★★[★主线·PCB 线·纯规格+作业包追加式订正+机器闸类] ★★「板只改一次」的【S10 投产包 md5 清单落地】★★ ⇒ ★
+  🟠 ISS-282  verified  owner=hw-lead    due=2026-11-20  
+       ★★[★主线·PCB 线·纯规格+作业包追加式订正+机器闸类] ★★「板只改一次」的【`FSIN_OUT` 根因订正 + 布线前置闸
+  🟠 ISS-287  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·PCB 线·板那一趟·前置准备·内部活] ★★【「板只改一次」那一趟的 A 类步【沙盒干跑可行性探针】】★★ ⇒ ★*
+  🟠 ISS-289  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·PCB 线·纯规格订正+机器闸类·内部活] ★★【动板前: 把作业包 §3 里【全部现状值型判据】对回盘面实测】★★ 
+  🟠 ISS-290  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·MECH 侧·板那一趟·结构侧交叉核对·内部活] ★★【「板只改一次」那一趟: ① S6 的 20 个目标落位 × M
+  🟠 ISS-291  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·SW 侧·ADC 判据口径收口+机器闸类·内部活] ★★【SW 侧 ADC 判据的【判决对象 + 满量程口径】双错】★
+  🟠 ISS-292  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·PCB 线·纯生成器对齐+作业包指针订正类·内部活] ★★【清单页生成器 `state/_iss277_build_p
+  🟠 ISS-293  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·SW 侧·复评文档口径收口 + 机器闸类·内部活] ★★【`SW/SW_TIMING_REVIEW.md` 停在 IS
+  🟠 ISS-294  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·MECH 侧·规格补缺 + 机器闸类·内部活] ★★【`J_USB_C` 缺一条结构边开口规格 (★座体 `F.Fab
+  🟠 ISS-295  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·MECH 侧·结构输入一次性收口 + 过期结论防漂闸·内部活] ★★【① MECH 两页对同一件事【两种说法】: `B
+  🟠 ISS-296  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·MECH 侧·闸机制类·内部活] ★★【MECH 两道闸把【板 md5】写死成「硬保护基线」⇒ 板那一趟合法改板一次后
+  🟠 ISS-297  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·HW 侧·门禁机制收口·内部活] ★★【HW 侧 6 道闸: 建「合法改板」通道】★★ ⇒ ★**全仓 9 道闸硬钉板
+  🟠 ISS-298  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·SW 侧·门禁机制收口·内部活] ★★【SW 侧 1 道闸: 建「合法改板」通道】★★ ⇒ ★**全仓 9 道闸硬钉板
+  🟠 ISS-299  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·HW 侧·重锚类·零写板] ★★【H-1 重锚第 2 跳: 让 9 道「钉板 md5 闸」里唯一红的那一道能挂进门禁链
+  🟠 ISS-300  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·MECH 侧·准出闸类·零写板] ★★【「板只改一次」那一趟的 MECH 侧【准出汇总闸】: 一条命令出「S6 重出板
+  🟠 ISS-302  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·落表链侧·内部活] ★★【落表: `C_SYS` / `SYS_CHG` 必装 + note 追加式订正 + BOM 
+  🟠 ISS-303  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·MECH 侧·闸机制类·内部活] ★★【MECH 侧 N6 只认【硬基线】不认【合法落表跳】⇒ 00:21 ISS-3
+  🟠 ISS-304  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·HW 侧·现状值重锚类·内部活] ★★【钉板闸⑥ 作业包现状值闸: 00:21 ISS-302 合法落表一次 ⇒ 页面
+  🟠 ISS-306  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·开工前置·溯源类·内部活] ★★【板那一趟开工前置: G1a 剩下两条红 (G1a-4 落表未清零 + G1a-8 关
+  🟠 ISS-328  fixing    owner=hw-lead    due=2026-11-20  
+       ★补一条【真能构成对照】的右上臂 (R_SEL_* 挪右上) + 在官方链同配方下复测 TP no-op (⇒ 给 ISS-325 
+  🟠 ISS-120  verified  owner=sw-lead    due=2026-11-30  
+       ★S2 救砖链路板端实测 (量产一票否决项) —— 方案+自检已闭环 (ISS-080), 待 EVT 有板后真跑 (EVT-8/B
+  🟡 ISS-020  closed    owner=main       due=2026-10-28  
+       PRD 补完: REQ/REQUIREMENTS.md 还是草稿 (子模块需求待填/验收标准待填)
+  🟡 ISS-031  closed    owner=main       due=2026-10-28  
+       规格变更追踪表缺失 (作废结论散在正文, 追溯不到谁改的)
+  🟡 ISS-032  closed    owner=main       due=2026-10-28  
+       风险登记册缺失 (tracker §5 是清单, 不是矩阵)
+  🟡 ISS-061  closed    owner=sw-lead    due=2026-10-28  
+       ISP 整幅 scale 收口后的三处文档同步 (CR-1 网格链 / CR-2 标定表加 f_out+(ox,oy) / CR-3
+  🟡 ISS-064  closed    owner=mech-lead  due=2026-10-28  
+       MECH_BUDGET §2.3/§2.3.1 数字同步 (46.5°C → 41.6-42.6°C 口径 + 镜腿内发热量口径 +
+  🟡 ISS-070  closed    owner=sw-lead    due=2026-10-28  
+       两处旧命名 + M1-R2 裸 1080p 语义张力 (sensor 必须支持全幅输出模式 → 升为 Q24 选型硬约束)
+  🟡 ISS-071  closed    owner=sw-lead    due=2026-10-28  
+       全幅口径的尾巴清理 (3 处): 内存规划表按全幅重算 + Q10 原厂问法改全幅 + §3.3 吞吐段与 S1 依据表述
+  🟡 ISS-029  closed    owner=sw-lead    due=2026-10-29  
+       USB 固件烧录 + 版本管理 + 回滚 缺失 (无线 OTA 不做, 但返修必需)
+  🟡 ISS-030  closed    owner=main       due=2026-10-29  
+       接口定义文档不完整 (41 条 claims 是'取值', 不是'接口规格')
+  🟡 ISS-034  closed    owner=main       due=2026-10-29  
+       外部方管理域缺失 (原厂/JBD/PCB厂 是关键路径, 但没框架)
+  🟡 ISS-072  closed    owner=mech-lead  due=2026-10-29  
+       新电池容量口径的落地 (厚度映射表加 315/387 两行 + 旧 8.7-11.2mm 作废 + 2.6 散热口径 + 3 重量表
+  🟡 ISS-093  verified  owner=main       due=2026-10-29  
+       ★充电板 (镜框) 的完整原理图页未画全 —— 现在主网表里只有 Type-C + BQ25896 的子集
+  🟡 ISS-104  verified  owner=sw-lead    due=2026-10-29  
+       ★术语统一: 关机(真断电) / 待机(深度休眠 0.15W, ~9.3h) —— SW 侧 API 与省电策略语义要跟上
+  🟡 ISS-117  verified  owner=sw-lead    due=2026-10-31  
+       ★RKNN_BENCH §3.3.1/§3.3.2 的数字在干净机上复算不出来 (383.26ms vs 实测 354.51ms) 
+  🟡 ISS-004  deferred  owner=jbd        due=2026-11-05   [外部]
+       波导未选型 (等 JBD) → 卡镜框打印开工
+  🟡 ISS-016  deferred  owner=jbd        due=2026-11-05   [外部]
+       走鹃Ⅱ 长宽高未知 → 光机位姿/干涉检查做不了
+  🟡 ISS-043  closed    owner=hw-lead    due=2026-11-05  
+       充电状态读取接口未确认 → 充电时禁 OD 门禁可能无法实现
+  🟡 ISS-048  deferred  owner=jbd        due=2026-11-05   [外部]
+       光生物安全所需的光机参数缺失 (LED 波长/亮度/光通量/辐亮度) —— 已并入 JBD 问询草稿
+  🟡 ISS-065  closed    owner=mech-lead  due=2026-11-05  
+       结构侧 5 条书面建议的落地评估 (镜腿内发热量口径 / 鼻梁也适用 43°C / 上下分壳后镜腿 35.1-35.3°C / 新容
+  🟡 ISS-079  closed    owner=hw-lead    due=2026-11-05  
+       情报检索: 采用 ARS45 的 AI 翻译眼镜拆解 + 港交所招股书直链 (封装/走线/供应链/交付)
+  🟡 ISS-086  closed    owner=main       due=2026-11-05  
+       netlist 收尾: NTC 改数字温度计 (I2C_A 第 4 个从设备) + USB 跨铰链保护件 (ESD/共模扼流/端接)
+  🟡 ISS-105  closed    owner=hw-lead    due=2026-11-05  
+       ★更正 hw-lead 分片过期值 (pcb_outline 仍 50×12 / chg_input_limit 仍 1.07-1.
+  🟡 ISS-111  closed    owner=hw-lead    due=2026-11-05  
+       ★[ISS-068 拆出] EVT 可靠性实测项清单 (跌落/振动/弯折/热) —— 文件缺失, 补交
+  🟡 ISS-123  verified  owner=sw-lead    due=2026-11-05  
+       ★S2 救砖链路全套装按 ARS45 写死 (magic AR45 / 版本串 ARS45-SW / parameter.txt 扇
+  🟡 ISS-173  closed    owner=main       due=2026-11-05  
+       ★★★[demo 能不能看见屏幕] 显示器背光需 12.8V@200mA ⇒ 5V 输入必须加 12V BOOST (且会撑爆 US
+  🟡 ISS-134  verified  owner=mech-lead  due=2026-11-06  
+       ★★JBD 角色收窄为波导 + ISS-016 作废 + ISS-048 光生物安全口径整个变了 (LED 点光源 → OLED 面
+  🟡 ISS-136  verified  owner=hw-lead    due=2026-11-06  
+       ★★J_CHG 跨铰链 pin map 与 CHARGE_BOARD_SPEC.md §5 漂移 (spec 是旧的, 网表是对的)
+  🟡 ISS-153  closed    owner=hw-lead    due=2026-11-06  
+       ★★订正: AR0234CS 的 I2C 地址是 0x10 (不是 0x36) + IMX415 是 0x1a ⇒ 网表注释已改, 
+  🟡 ISS-121  verified  owner=hw-lead    due=2026-11-09  
+       ★MEMS 麦克风与检修口磁铁的磁场/位置复核 (ISS-092 I-5/I-6) —— 磁铁 N35 ⌀4×1 在 40mm 外对
+  🟡 ISS-152  closed    owner=hw-lead    due=2026-11-12  
+       ★★[硬件] IMX415 上电顺序 (DVDD→OVDD→AVDD) 与 AVDD typ 2.9V: 现网表三轨同起 + LDO
+  🟡 ISS-177  deferred  owner=main       due=2026-11-12  
+       ★★[整机屏 · 已暂缓] 问视崖 SY049 有无非 DSC 模式版本 —— ★**视崖已不用 ⇒ 本单降级 deferred**
+  🟡 ISS-017  verified  owner=mech-lead  due=2026-11-13  
+       P2S 打印件实测尺寸 0 件 (AGENTS.md 要求未满足) + 彩虹纹指标缺失
+  🟡 ISS-024  verified  owner=mech-lead  due=2026-11-13  
+       材料选型与表面耐受缺失 (汗液/化妆品/酒精/UV 全未考虑)
+  🟡 ISS-025  verified  owner=mech-lead  due=2026-11-13  
+       结构 DFM 评审缺失 (P2S 打印件 → 量产开模件的可制造性差异)
+  🟡 ISS-027  closed    owner=mech-lead  due=2026-11-13  
+       原型制作计划缺失 (几批打样/每批验证什么/不通过怎么回滚)
+  🟡 ISS-047  verified  owner=mech-lead  due=2026-11-13  
+       结构侧需复核: 『对角半角』与『垂直半视场』两个口径混用 (MECH §1.5 那张 ≤40° 的表)
+  🟡 ISS-092  verified  owner=mech-lead  due=2026-11-13  
+       ★镜脚末端检修口 (J_DEBUG/J_UART 够不着 → 排针装上也用不了) 的开孔/盖板方案落到 MECH 尺寸链
+  🟡 ISS-188  verified  owner=sw-lead    due=2026-11-13  
+       ★★DSI payload 8× 口径差 【第 6 处·收尾】: `SW/DEMO_OD_PIPELINE_SPEC.md:322`
+  🟡 ISS-189  verified  owner=hw-lead    due=2026-11-13  
+       ★★DSI payload 8× 口径差 【第 8/9 处·收尾】: `HW/STEP1_LANDING_LIST.md:42` +
+  🟡 ISS-193  verified  owner=hw-lead    due=2026-11-13  
+       ★【内部活·不是原厂的事】29 个器件真实脚数查不到 ⇒ 根因是 BOM 没定 opn/封装 ⇒ 定封装 ⇒ 脚数自动补齐 ⇒ 选项
+  🟡 ISS-195  verified  owner=hw-lead    due=2026-11-13  
+       ★【ISS-194 的连带账·真影响】麦 M1 到 S1 压紧螺钉孔的孔壁净空随套A 从 ≈8.14mm 掉到 ≈1.26mm ⇒ 
+  🟡 ISS-196  verified  owner=sw-lead    due=2026-11-13  
+       ★【内部活·不是原厂的事】两条逾期 6 天的 P0 needs_from 前提已被实测推翻 ⇒ rknn 工具链/构建环境/模型 s
+  🟡 ISS-197  verified  owner=mech-lead  due=2026-11-13  
+       ★【内部活·不是原厂的事】套A 孔位已落地 ⇒ 结构侧 5 处记录还停在「套B 仍是活口径」⇒ 口径收敛 + 3 条未决项(骨架超重
+  🟡 ISS-200  verified  owner=mech-lead  due=2026-11-13  
+       ★★J_CHG pin map 在结构侧还有 2 处第二口径 ⇒ `state/fragments/mech.yaml` 的 `in
+  🟡 ISS-201  verified  owner=sw-lead    due=2026-11-13  
+       ★★★[demo OD 关键路径·台账治理] 模型资产台账登的是【原件】, 磁盘上是【重建件】 ⇒ `probe` 永远打「台账一致
+  🟡 ISS-206  verified  owner=mech-lead  due=2026-11-13  
+       ★★[主线内·接口契约侧·内部活] ★★结构侧 J_CHG 旧口径一次性收口 (★第 3 套 pin map `8p@0.5` +
+
+  🟡 ISS-199  verified  owner=hw-lead    due=2026-11-14  
+       ★★J_CHG pin map 在 HW 侧还有 4 处第二口径 (ISS-136 只改了 §5.2 一张表) ⇒ §5.1 过铰链
+  🟡 ISS-202  verified  owner=mech-lead  due=2026-11-14  
+       ★★J_CHG pin map 在结构侧还有 5 处第二口径 (ISS-200 只改了 §5.2 + `j_chg_pin_map`
+  🟡 ISS-203  verified  owner=mech-lead  due=2026-11-14  
+       ★★★[假判据·ISS-197 遗留 L1/L5/L6] 结构侧两个机械复核器还钉在 15mm 板宽 ⇒ `MECH/hw_cros
+  🟡 ISS-204  verified  owner=hw-lead    due=2026-11-14  
+       ★★[主线内·原理图侧·内部活] `J_SOM_P2.pin7` 官方默认功能 = `PWM0_CH1_M0`, 我们拿它当 `UA
+  🟡 ISS-103  deferred  owner=mech-lead  due=2026-11-16  
+       ★镜框开导光孔/导光柱 (充电灯装充电板靠 Type-C 座, 老板拍板关机时充电灯要亮)
+  🟡 ISS-174  verified  owner=hw-lead    due=2026-11-18  
+       ★★[demo 触控收不到中断] display 触控的 TP_INT (pin26) 没接到 SoM 任何脚 ⇒ 触控中断收不到
+  🟡 ISS-208  verified  owner=mech-lead  due=2026-11-18  
+       ★★[主线内·显示侧·内部活] ISS-134 遗留: 旧 MECH 文档 33 处「走鹃」活动口径收口 + 光生物安全 V2 的眼
+  🟡 ISS-252  fixed     owner=main       due=2026-11-18  
+       ★★[主线内·原理图侧·阶段门口径·内部活] ★★**G1「原理图定稿 / PCB 定稿」拆关** ⇒ 新闸 `state/chec
+  🟡 ISS-095  verified  owner=main       due=2026-11-19  
+       ★[待 TI 确认] BQ25896 的 VSYS 脚是否必须接 —— 决定'电池挪镜框'回退分支要不要多两根电源 pin
+  🟡 ISS-109  open      owner=main       due=2026-11-19  
+       ★R-GEO 六问全 0 答复: ISP 吞吐余量 1.9% vs 50.7% 完全相反 (一票否决级) + 采集链/散热结论都不能
+  🟡 ISS-125  open      owner=main       due=2026-11-19  
+       ★R-GEO 六问的其余五问要按 RK3576 口径重写问询 (问 01/02/04/05/06 仍是 0 答复)
+  🟡 ISS-131  verified  owner=main       due=2026-11-19  
+       ★★ISS-124/125 问询口径改 RK3572 (ISP 16M→12M, CSI 3×→2×) + 球位号问询对象改瑞芯微/
+  🟡 ISS-253  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·MECH 侧·H-1 重锚·内部活] ★★`MECH/check_demo_struct_truth.py` 因 IS
+  🟡 ISS-254  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·H-1 重锚·内部活] ★★`SW/tools/check_demo_panel_spec.py` rc=1
+  🟡 ISS-255  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·门禁侧·口径缺陷·内部活] ★★`state/chain_gate.py` 的【新鲜度】判据用 mtime ⇒ ★**
+  🟡 ISS-256  verified  owner=main       due=2026-11-19  
+       ★★[主线内·门禁侧·口径缺陷·内部活] ★★★**`.kicad_sch` 的 md5 永久不可当锚点** ★ ⇒ ★**任何以「
+  🟡 ISS-258  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·H-1 重锚·内部活] ★★`SW/tools/check_demo_panel_spec.py` rc=1
+  🟡 ISS-259  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·MECH 侧·H-1 重锚·内部活] ★★`MECH/check_demo_struct_truth.py` rc=2
+  🟡 ISS-285  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·判据口径收口·内部活] ★★【落表之后: SW 侧三道判据过期】★★ ★**`SW/tools/timing
+  🟡 ISS-286  verified  owner=mech-lead  due=2026-11-19  
+       ★★[主线内·MECH 侧·门禁机制收口·内部活] ★★【MECH 侧坐标归一闸 `MECH/check_board_frame_c
+  🟡 ISS-301  verified  owner=hw-lead    due=2026-11-19  
+       ★★[主线内·HW 侧·复核类+残余事实类·零写板] ★★【复核 main 自产的 `HW/TI_POWER_FACTS.md` 四
+  🟡 ISS-309  verified  owner=sw-lead    due=2026-11-19  
+       ★★[主线内·SW 侧·闸缺陷归因类·内部活] ★★【SW 侧 R6 判决源专项反向用例「5/7」红 ⇒ 查清 R4 与 R5a 各
+  🟡 ISS-248  verified  owner=sw-lead    due=2026-11-20  
+       ★★[主线内·SW 侧·判据口径收口·内部活] ★★`SW/tools/timing_check.py --reverse-demo
+  🟡 ISS-251  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·MECH 侧·口径收口·内部活] ★★mech-lead 自己登记给 main 的 3 条「只报不改 ⇒ 现在授权改」
+  🟡 ISS-264  verified  owner=mech-lead  due=2026-11-20  
+       ★★[主线内·结构侧·口径收口·内部活] ★★`MECH/service_port_check.py` 三处常量还停在旧 15mm 
+  🟡 ISS-270  verified  owner=sw-lead    due=2026-11-20  
+       ★★[★主线内·SW 侧·政策落地·内部活] ★★**老板 2026-11-12 02:02「不再发信, 全靠自己查资料」的第 ② 
+  🟡 ISS-272  verified  owner=sw-lead    due=2026-11-20  
+       ★★[门禁/运维侧·独立复核·内部活] ★★**独立复核 main 亲手改的 `state/delivery_truth.py` 口
+  🟡 ISS-305  verified  owner=hw-lead    due=2026-11-20  
+       ★★[主线内·HW 侧·独立复验类·内部活] ★★【ISS-131「问询口径改 RK3572 (ISP 16M→12M / CSI 
+  🟡 ISS-267  verified  owner=mech-lead  due=2026-11-21  
+       ★★[主线内·结构侧·板侧开口约束·纯分析·内部活] ★★检修口/调试口 `jd_y0` 的合法区间只剩 [3.57, 12.13]
+  🟡 ISS-273  verified  owner=mech-lead  due=2026-11-21  
+       ★★[主线内·MECH 侧·门禁机制收口·内部活] ★★**网表/脚表 md5 锚点已跳 6 跳 ⇒ 「一落表就红, 必人工重锚」*
+  🟡 ISS-059  closed    owner=mech-lead  due=2026-10-28  
+       打印包 P 表口径漂移 + verify_pack 文案过时 + 测量清单要区分两类孔 (mech-lead 交卷自查发现的 3 个
+  🟡 ISS-069  closed    owner=sw-lead    due=2026-10-28  
+       需求条目旧链路命名对齐 (SW_REQUIREMENTS 3.1 职责行 + M2-R1/M2-R3 + DISPLAY_MODE 
+  🟡 ISS-073  closed    owner=sw-lead    due=2026-10-28  
+       显示帧 buffer 与合成帧两行加注 (800x600 = 老板锁死的显示分辨率, 不是旧链路) —— 不许按 640x480 重
+  🟡 ISS-033  closed    owner=main       due=2026-10-29  
+       需求→设计→验证 追溯矩阵 (RTM) 缺失
+  🟡 ISS-035  closed    owner=main       due=2026-10-29  
+       来料检验 + 整机测试项 (QCP) 缺失
+  🟡 ISS-036  closed    owner=main       due=2026-10-29  
+       售后支持/故障诊断缺失
+  🟡 ISS-037  verified  owner=sw-lead    due=2026-10-29  
+       模型资产与 INT8 量化管理缺失 (权重是资产, 现在散在 sw 需求里)
+  🟡 ISS-113  verified  owner=sw-lead    due=2026-11-05  
+       ★RKNN_BENCH 的 B6 复现缺陷: `acc` 步单独跑会崩 (依赖 calib 步的 dataset.txt)
+  🟡 ISS-066  deferred  owner=mech-lead  due=2026-11-16  
+       测量清单补 H14 (temple_cage 上的 ⌀2.4 PCB 定位间隙孔独立量测行) + measurements.yaml
+  🟡 ISS-076  deferred  owner=mech-lead  due=2026-11-16  
+       新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1
+  🟡 ISS-329  open      owner=main       due=2026-11-21  
+       ★4 个生成器产物被闸脚本无条件重写 ⇒ mtime 证据链被污染 (★复发型·ISS-280 之后第二次★)·★定终局方案★
+  🟡 ISS-261  verified  owner=main       due=2026-11-22  
+       ★★[门禁侧·口径缺陷·内部活] ★★`state/delivery_health.py` 的【口径①】把 `delivery.mo
+
+✅ 问题闭环门全过 (字段/状态机/验证分离/逾期/双向覆盖)
+ISSUE_RC=0

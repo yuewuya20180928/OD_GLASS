@@ -1,0 +1,1 @@
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/SCHEMATIC_V1_2_REVIEW.md

@@ -1,0 +1,47 @@
+--- ③ python3 state/gate_check.py (★期望 rc=0★) ---
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q17_display_fps: 发起方 ['main', 'sw-lead']
+      q18_highspeed_cam: 发起方 ['main', 'sw-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+
+【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    2/5 类: ['镜腿/镜脚厚度(mm)', '端到端延迟(ms)']
+   sw-lead    0/5 类: []
+   mech-lead  2/5 类: ['镜腿/镜脚厚度(mm)', '端到端延迟(ms)']
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 173 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 91 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 67 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+GATE_RC=0
+
+--- ④ python3 state/issue_check.py (★期望 rc=0★) ---
+  🟡 ISS-113  verified  owner=sw-lead    due=2026-11-05  
+       ★RKNN_BENCH 的 B6 复现缺陷: `acc` 步单独跑会崩 (依赖 calib 步的 dataset.txt)
+  🟡 ISS-066  deferred  owner=mech-lead  due=2026-11-16  
+       测量清单补 H14 (temple_cage 上的 ⌀2.4 PCB 定位间隙孔独立量测行) + measurements.yaml
+  🟡 ISS-076  deferred  owner=mech-lead  due=2026-11-16  
+       新容量口径的尾巴 3 处 (3.1 对标表重量分两配置 / verify_budget.py 的 DOC_WEIGHT 同步 / 1
+  🟡 ISS-329  verified  owner=main       due=2026-11-21  
+       ★4 个生成器产物被闸脚本无条件重写 ⇒ mtime 证据链被污染 (★复发型·ISS-280 之后第二次★)·★定终局方案★
+  🟡 ISS-261  verified  owner=main       due=2026-11-22  
+       ★★[门禁侧·口径缺陷·内部活] ★★`state/delivery_health.py` 的【口径①】把 `delivery.mo
+
+✅ 问题闭环门全过 (字段/状态机/验证分离/逾期/双向覆盖)
+ISSUE_RC=0
