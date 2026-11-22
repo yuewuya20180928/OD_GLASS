@@ -1,5 +1,5 @@
 # 项目状态快照 (自动生成)
-> 生成时间: **2026-11-23 05:20** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
+> 生成时间: **2026-11-23 05:30** | 数据源: `projects/smart_glasses/STATE.yaml` + `state/issue_log.yaml` + 各门禁实时输出
 > 本文件由脚本生成, **数字与真源一致** (不是手写)。
 ## 1. 一屏总览
 ```
@@ -52,7 +52,7 @@
 【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
    全部检查项通过
 
-【Q7 钉板 md5 闸链】 9/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
    ✅ 钉板闸① FSIN 根因闸: rc=0
    ✅ 钉板闸② G1a-7 选型落表闸: rc=0
    ✅ 钉板闸③ 改板提交顺序闸: rc=0
@@ -62,15 +62,9 @@
    ✅ 钉板闸⑦ 板框坐标闸: rc=0
    ✅ 钉板闸⑧ 结构真值闸: rc=0
    ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
-   ❌ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=1
-   ★⇒ 板 md5 / 落表链 / 结构真值 出现漂移 ⇒ 板那一趟不许开工
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
 
-【缺口清单】(可直接转成下一轮派活项) —— 4 条
-   · ★钉板闸红: 钉板闸⑩ 板侧项全集重跑幂等闸 — rc=1 但未解析出 FAIL 行: ^^^^^^^^^^^^
-  File "/usr/lib/python3.14/shutil.py", line 315, in copyfile
-    with open(dst, 'wb') as fdst:
-         ~~~~^^^^^^^^^^^
-FileNotFoundError: [Errno 2] No such file or directory: '/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss349/regen_gate/regen/state/fragments/pm.yaml'
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
    · hw-lead: 179 条需求确实还没人答 (等另一个总工)
    · sw-lead: 96 条需求确实还没人答 (等另一个总工)
    · mech-lead: 72 条需求确实还没人答 (等另一个总工)
@@ -82,7 +76,7 @@ FileNotFoundError: [Errno 2] No such file or directory: '/home/yuewuya/.openclaw
 ==========================================================================
 问题闭环门 · Issue Gate
 ==========================================================================
-登记问题 349 条 | 状态: closed=97 deferred=15 verified=213 open=16 fixed=6 fixing=2
+登记问题 349 条 | 状态: closed=97 deferred=15 verified=214 open=16 fixed=6 fixing=1
   ├─ 内部可自行推进: 318 条 | 外部依赖 (等老板/原厂/JBD): 31 条
   ├─ 逾期未闭环: 20 条
   └─ 未闭环 blocker 级: 11 条
@@ -168,7 +162,7 @@ FileNotFoundError: [Errno 2] No such file or directory: '/home/yuewuya/.openclaw
        ★★★[最高优先级 · 老板 11-04 19:10 指示] 自研 demo 主板: 从骨架布到**可下单** (unconnect
   🔴 ISS-263  verified  owner=sw-lead    due=2026-11-20  
        ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
-  🔴 ISS-353  fixing    owner=sw-lead    due=2026-11-24  
+  🔴 ISS-353  verified  owner=sw-lead    due=2026-11-24  
        ★★[★新主线·PCB 线·模型链·rk3572 目标口径清账·纯口径·零写板] ★★【ISS-263 (2026-11-17) 已
   🔴 ISS-155  open      owner=main       due=2026-11-19   ⏰逾期
        ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
@@ -850,9 +844,9 @@ FileNotFoundError: [Errno 2] No such file or directory: '/home/yuewuya/.openclaw
       ▸ 本关内已延后的实测项 (1):
           - M-BATT 续航实测 (按 Q4 拍板的口径) → 延后: 整机阶段 (demo 板没有电池)
 
-【G4】体验验收 (DoD 全过)  —  ⏳ 未到   缺 39 项
+【G4】体验验收 (DoD 全过)  —  ⏳ 未到   缺 38 项
       为什么要这一关: 所有问题单关闭 + 质量门全绿 + DoD 清单逐条签
-      ▸ 问题单未闭环 (39):
+      ▸ 问题单未闭环 (38):
           - ISS-004 [deferred] 波导未选型 (等 JBD) → 卡镜框打印开工
           - ISS-013 [deferred] 波导未选型 → 缺 2D 外形图/容差角/彩虹纹 → 镜框不能开工
           - ISS-016 [deferred] 走鹃Ⅱ 长宽高未知 → 光机位姿/干涉检查做不了
@@ -861,7 +855,7 @@ FileNotFoundError: [Errno 2] No such file or directory: '/home/yuewuya/.openclaw
           - ISS-041 [open] ★★[当前 demo 板] 测试条件缺失 ⇒ G3 那一关不可判通过 (★202
           - ISS-048 [deferred] 光生物安全所需的光机参数缺失 (LED 波长/亮度/光通量/辐亮度) —— 已并
           - ISS-060 [open] 产品件三条几何待老板裁决 (压垫吸收量零余量 / 非对称方向 / 压垫槽区板厚小
-          ... 另 31 条
+          ... 另 30 条
 
 ⏸  延后到整机/量产阶段的实测项 (**没删, 只是不在当期验收范围**):
     - M-SKIN: 整机/量产阶段做贴皮肤稳态温度 (43°C 是 ISO 13732-1 烧伤红线) —— 触发: 整机样机贴皮肤测试
