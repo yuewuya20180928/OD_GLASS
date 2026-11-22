@@ -1,0 +1,34 @@
+=== ISS-341 · 机器原始输出 · 04 六条事实独立复算 ===
+--- cmd: python3 tmp/iss341/recompute_facts.py (只读 · 行级正则法 · 与闸的 s-expr 解析法互为独立) ---
+2026-11-22 22:28:26 CST
+
+====================================================================================================
+ISS-341 · 六条事实独立复算 (行级正则法 · 与闸的 s-expr 解析法互为独立)
+====================================================================================================
+
+--- 事实 1: 现役板板框 = 4 条 Edge.Cuts gr_line ---
+  gr_line (0.00,0.00) -> (160.00,0.00)  width=0.10
+  gr_line (0.00,100.00) -> (0.00,0.00)  width=0.10
+  gr_line (160.00,0.00) -> (160.00,100.00)  width=0.10
+  gr_line (160.00,100.00) -> (0.00,100.00)  width=0.10
+  ⇒ 名义板框 = 160.00 × 100.00 mm  (含线宽包围盒 160.10 × 100.10)
+
+--- 事实 2: 铜层数 / 板厚 / 封装数 ---
+  铜层 8 层: F.Cu In1.Cu In2.Cu In3.Cu In4.Cu In5.Cu In6.Cu B.Cu
+  板厚 (general (thickness ...)) = 1.6 mm
+  footprint 块数 = 186
+  distinct Reference = 186  (重复: 无)
+
+--- 事实 3: 现役帧 (cal:FRAMES) ---
+  cal:FRAMES.current_frame = B160x100
+  B160x100   160.0x100.0 mm · 8 层 · 1.6 mm · current=True
+  F30A       60.0x30.0 mm · 6 层 · 1.0 mm · current=False
+  P60x15     60.0x15.0 mm · 6 层 · 1.0 mm · current=False
+
+--- 事实 4: J_SOM 承载区 bbox (逐封装作用域 · 不跨块) ---
+  J_SOM_P4  at=(25,52.5) pads=100  外形并集 x 15.10..34.90 / y 50.61..54.39  中心并集 x 15.20..34.80 / y 50.96..54.04
+Traceback (most recent call last):
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss341/recompute_facts.py", line 135, in <module>
+    som_all = box if som_all is None else (min(som_all[0], box[0]), min(som_all[1], box[1]),
+                                                                    ~~~^^^^^^^^^^^^^^^^^^^^
+TypeError: '<' not supported between instances of 'float' and 'tuple'

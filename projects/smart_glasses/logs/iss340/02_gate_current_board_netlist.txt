@@ -1,0 +1,87 @@
+### cmd: python3 HW/check_board_netlist_divergence_gate.py HW/PCB/demo_mainboard.kicad_pcb --netlist HW/netlist_v1.csv   [2026-11-22 22:5x]
+==============================================================================
+  ISS-340 · 板 ↔ 网表 差异归属判别闸 (★自己跑出 C1 三类差异 + 逐条归桶★)
+==============================================================================
+  板     : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb
+  网表   : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/netlist_v1.csv
+  登记表 : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/fragments/pm.yaml (★只读★)
+  规模   : 网表推出焊盘 480 / 板上焊盘 833 (带网 482, NC 351)
+  C1 差异: 缺失 0 · 多余 2 · 同号异网 3 ⇒ 合计 5
+
+──────────────────────────────────────────────────────────────────────────────
+  [1] 多余 C_VBUS_GND pad1   归桶 = C   规则 = R0 DECIDE
+      网表应 = (无此焊盘)   板实 = GND
+      网表证据[实测]: HW/netlist_v1.csv:10  net=GND
+                   原文: P1,GND,C_VBUS_GND,GND,C_VBUS_GND,[待选型] 100µF,C,DNP,[推算],,"π 滤波后级**对地**电容 (★V1.6 修正: 原来 C_VBUS_OUT 一颗当两个用 —— 既是 FB·U_CHG 的串联电容, 又是对地电容 · 一颗 2 脚件落进 3...
+      板上证据[实测·板文件解析]: C_VBUS_GND pad1 实际网 = GND
+                   焊盘有铜 = 是 · 直连铜(走线段)长 = 1.069 mm · 该网总走线 = 197.966 mm · 直连段数 = 3 · 焊盘内过孔 = 0 · 该网有铜区 = 是
+      归桶理由: 该器件命中未拍板的 boss need key ⇒ 留/删本身就是待拍事项 ⇒ 本闸不代拍
+      need key = boss_c_vbus_gnd_reserve_pad_20261117  (state/fragments/pm.yaml:744)
+      待拍题  : ★★【C_VBUS_GND 这个预留位: 留还是不留? ★老板/PM 域, main 不代拍】★★ ★**事实 (★main 2026-11-17 16:0x 本机实读, 不抄交卷报告★)**: ① 网表 `HW/netlist_v1.csv:10` 与 `:12` 两行的 board 列 = **`CHG_BOARD`** ⇒ 生成器按 `BOARD_FILTER="MAIN_PCB"` ...
+
+──────────────────────────────────────────────────────────────────────────────
+  [2] 多余 C_VBUS_GND pad2   归桶 = C   规则 = R0 DECIDE
+      网表应 = (无此焊盘)   板实 = VBUS_5V_CHG
+      网表证据[实测]: HW/netlist_v1.csv:12  net=VBUS_5V_CHG
+                   原文: P1,VBUS_5V_CHG,C_VBUS_GND,VBUS_5V_CHG,C_VBUS_GND,[待选型] 100µF,C,DNP,[推算],,π 滤波后级对地电容的信号端 (与 C_VBUS_OUT 同一节点),C-01,CHG_BOARD,,
+      板上证据[实测·板文件解析]: C_VBUS_GND pad2 实际网 = VBUS_5V_CHG
+                   焊盘有铜 = 是 · 直连铜(走线段)长 = 0.000 mm · 该网总走线 = 0.000 mm · 直连段数 = 0 · 焊盘内过孔 = 0 · 该网有铜区 = 否
+      归桶理由: 该器件命中未拍板的 boss need key ⇒ 留/删本身就是待拍事项 ⇒ 本闸不代拍
+      need key = boss_c_vbus_gnd_reserve_pad_20261117  (state/fragments/pm.yaml:744)
+      待拍题  : ★★【C_VBUS_GND 这个预留位: 留还是不留? ★老板/PM 域, main 不代拍】★★ ★**事实 (★main 2026-11-17 16:0x 本机实读, 不抄交卷报告★)**: ① 网表 `HW/netlist_v1.csv:10` 与 `:12` 两行的 board 列 = **`CHG_BOARD`** ⇒ 生成器按 `BOARD_FILTER="MAIN_PCB"` ...
+
+──────────────────────────────────────────────────────────────────────────────
+  [3] 同号异网 D_ESD_USB_D pad1   归桶 = B   规则 = R3 AUTH
+      网表应 = NET_USB_D_P_TYPEC   板实 = USB_D_P_SRC
+      网表证据[实测]: HW/netlist_v1.csv:417  net=NET_USB_D_P_TYPEC
+                   原文: P1,NET_USB_D_P_TYPEC,D_ESD_USB_D,NET_USB_D_P_TYPEC,D_ESD_USB_D,TPD1E05U06DPYR (TI 单通道 ESD · X1SON-2 · Cd 0.42pF · VRWM 5.5V),D,必装,[官方],,"[D_ESD_USB...
+      板上证据[实测·板文件解析]: D_ESD_USB_D pad1 实际网 = USB_D_P_SRC
+                   焊盘有铜 = 是 · 直连铜(走线段)长 = 0.566 mm · 该网总走线 = 65.088 mm · 直连段数 = 2 · 焊盘内过孔 = 0 · 该网有铜区 = 否
+      阻抗/速率[实测·网表原文]: 差分阻抗 (netlist HW/netlist_v1.csv 行 291: 方向 SoC↔Type-C; 电平 3.3V [待原厂]; 阻抗 22Ω ±1%; 差分阻抗 90Ω ±15% 受...) ; 差分 (netlist HW/netlist_v1.csv 行 354: 测什么: USB 2.0 差分; 位置: ★板载 Type-C 出口 (串阻的 Type-C 侧; 规格合并名 T...)
+      归桶理由: 网表侧带权威标记 ⇒ 已拍的一侧是网表 ⇒ 板是旧接法 ⇒ 板那一趟重画/挪线
+      B 桶修法: HW/PCB/demo_mainboard.kicad_pcb ⇒ 把 D_ESD_USB_D pad1 的网从 USB_D_P_SRC 改到 NET_USB_D_P_TYPEC ⇒ 重画该焊盘的 stub 铜
+                 权威依据: 官方规格标记『载板指引』 (evidence [官方])
+                 目标网被其它焊盘佐证: R_SER_USB_D_P pad2, TP_USB_D_P pad1, J_USB_C padA6, J_USB_C padB6
+
+──────────────────────────────────────────────────────────────────────────────
+  [4] 同号异网 Q_PG pad1   归桶 = B   规则 = R3 AUTH
+      网表应 = PWR_GOOD   板实 = PWR_ON
+      网表证据[实测]: HW/netlist_v1.csv:59  net=PWR_GOOD
+                   原文: P1,PWR_GOOD,Q_PG,J_CHG pin6,Q_PG,DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA),SW,必装,[官方],,[PWR_GOOD] ★★**ISS-283 · G...
+      板上证据[实测·板文件解析]: Q_PG pad1 实际网 = PWR_ON
+                   焊盘有铜 = 是 · 直连铜(走线段)长 = 1.010 mm · 该网总走线 = 84.224 mm · 直连段数 = 4 · 焊盘内过孔 = 0 · 该网有铜区 = 否
+      归桶理由: 网表侧带权威标记 ⇒ 已拍的一侧是网表 ⇒ 板是旧接法 ⇒ 板那一趟重画/挪线
+      B 桶修法: HW/PCB/demo_mainboard.kicad_pcb ⇒ 把 Q_PG pad1 的网从 PWR_ON 改到 PWR_GOOD ⇒ 重画该焊盘的 stub 铜
+                 权威依据: 老板拍板/裁决标记『拍板』 (evidence [官方])
+                 目标网被其它焊盘佐证: J_CHG pad6, R_PU_PG pad2, TP_PG pad1
+
+──────────────────────────────────────────────────────────────────────────────
+  [5] 同号异网 Q_PG pad3   归桶 = B   规则 = R3 AUTH
+      网表应 = PWR_ON   板实 = PWR_GOOD
+      网表证据[实测]: HW/netlist_v1.csv:61  net=PWR_ON
+                   原文: P1,PWR_ON,Q_PG,U_PWR_SW pin2,Q_PG,DMP3098L (Diodes Inc P-MOS SOT-23 · −30V · VGS(th) typ −1.8V · IDSS ≤800nA),SW,必装,[官方],,"[PWR_ON] ★★**V1.9 P0 修正 ...
+      板上证据[实测·板文件解析]: Q_PG pad3 实际网 = PWR_GOOD
+                   焊盘有铜 = 是 · 直连铜(走线段)长 = 0.567 mm · 该网总走线 = 62.772 mm · 直连段数 = 2 · 焊盘内过孔 = 0 · 该网有铜区 = 否
+      归桶理由: 网表侧带权威标记 ⇒ 已拍的一侧是网表 ⇒ 板是旧接法 ⇒ 板那一趟重画/挪线
+      B 桶修法: HW/PCB/demo_mainboard.kicad_pcb ⇒ 把 Q_PG pad3 的网从 PWR_GOOD 改到 PWR_ON ⇒ 重画该焊盘的 stub 铜
+                 权威依据: 老板拍板/裁决标记『拍板』 (evidence [官方])
+                 目标网被其它焊盘佐证: U_PWR_SW pad2, R_PD_ON pad1, J_SOM_P3 pad88
+
+① A 桶(网表侧错 ⇒ 改网表就够, ★板 md5 不用动★) = 0 条
+   · (无)
+② B 桶(板侧错 ⇒ 必须动板, 进板那一趟一次做完) = 3 条
+   · D_ESD_USB_D pad1 ⇒ 把 D_ESD_USB_D pad1 的网从 USB_D_P_SRC 改到 NET_USB_D_P_TYPEC ⇒ 重画该焊盘的 stub 铜 (当前直连铜长 0.566 mm)
+       铜/速率: 受控阻抗/差分对成员网 ⇒ 动铜时不许破坏对内匹配 ; 要不要重跑 DRC + 重出 Gerber: ★要★
+   · Q_PG pad1 ⇒ 把 Q_PG pad1 的网从 PWR_ON 改到 PWR_GOOD ⇒ 重画该焊盘的 stub 铜 (当前直连铜长 1.010 mm)
+       铜/速率: 单端低速/电源域 ⇒ 不触及高速/差分铜 (网表原文写明「单端」) ; 要不要重跑 DRC + 重出 Gerber: ★要★
+   · Q_PG pad3 ⇒ 把 Q_PG pad3 的网从 PWR_GOOD 改到 PWR_ON ⇒ 重画该焊盘的 stub 铜 (当前直连铜长 0.567 mm)
+       铜/速率: 单端低速/电源域 ⇒ 不触及高速/差分铜 (网表原文写明「单端」) ; 要不要重跑 DRC + 重出 Gerber: ★要★
+③ C 桶(等老板拍板 ⇒ 本闸只列 need key + 题, 不代拍) = 2 条
+   · C_VBUS_GND pad1 ⇒ need key = boss_c_vbus_gnd_reserve_pad_20261117 (state/fragments/pm.yaml:744)
+       题: ★★【C_VBUS_GND 这个预留位: 留还是不留? ★老板/PM 域, main 不代拍】★★ ★**事实 (★main 2026-11-17 16:0x 本机实读, 不抄交卷报告★)**: ① 网表 `HW/netlist_v1.csv:10` 与 `:12` 两行的 board 列 = **`CHG_BOARD`** ⇒ 生成器按 `BOARD_FILTER="MAIN_PCB"` ...
+   · C_VBUS_GND pad2 ⇒ need key = boss_c_vbus_gnd_reserve_pad_20261117 (state/fragments/pm.yaml:744)
+       题: ★★【C_VBUS_GND 这个预留位: 留还是不留? ★老板/PM 域, main 不代拍】★★ ★**事实 (★main 2026-11-17 16:0x 本机实读, 不抄交卷报告★)**: ① 网表 `HW/netlist_v1.csv:10` 与 `:12` 两行的 board 列 = **`CHG_BOARD`** ⇒ 生成器按 `BOARD_FILTER="MAIN_PCB"` ...
+④ 板那一趟开工前必须先落: boss_c_vbus_gnd_reserve_pad_20261117 (★C 桶没拍板之前不许开工: 拍「留位」= 改网表 + 重生成脚表/BOM, 拍「下板」= 板那一趟新增一条板侧动作★)
+------------------------------------------------------------------------------
+✅ 全部 5 条差异均已归桶 (A=0 / B=3 / C=2) ⇒ 无未解释差异
+### exit=0

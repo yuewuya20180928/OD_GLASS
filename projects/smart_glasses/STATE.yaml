@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-22T21:44:04+08:00'
+  generated_at: '2026-11-22T22:28:38+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 604933
-      sha1: 4f0a606a1e97
-      mtime_ns: 1795354350848873990
+      size: 607637
+      sha1: c50b8653369e
+      mtime_ns: 1795357370457887508
     mech-lead:
       file: mech.yaml
       size: 632696
@@ -2343,14 +2343,11 @@ domains:
     updated_at: '2026-11-17'
     updated_by: hw-lead
     status:
-      phase: delivering
+      phase: iss340-cont1-delivered
       progress_pct: 100
       health: green
-      summary: 'ISS-339 交卷: 两把尺子已落盘 (可比性前置闸 HW/check_board_comparable_gate.py + S8 目标名单重读器 HW/check_s8_target_list.py)
-        + 权威口径页 HW/PCB/S8_TARGET_LIST_AND_COMPARABILITY.md + 交卷页; 零写板 (官方板 md5 611b869e13518c3c023fb178f91a0075
-        / mtime 2026-11-06 07:07:17.362193413 交卷前后不变); 闸自测 ALL TESTS PASS; 官方板 2649/433/5726.9 放行, v44
-        2280/371/4568.5 三项越界被拦; 目标名单 24 条逐条对上 (必需 23 + 可悬空 1 + 待定 0), N-prime 45, 两口径 21/24, 两边都零铜 3 条;
-        两条挂链/锁基线未决已交 main 裁'
+      summary: 'ISS-340 cont1 交付: D1 判定表 + D2 判别闸(自跑+归桶+selftest ALL TESTS PASS) + D3 一页口径 + D4 logs/分片;
+        零写板; 交卷页延后 cont2'
     artifacts:
     - path: HW/HARDWARE_BREAKDOWN.md
       kind: breakdown
@@ -4079,6 +4076,40 @@ domains:
       version: iss339
       updated_at: '2026-11-22'
       summary: '目标名单重读器实跑原文: 官方板 24 条零铜网逐条分级 + N-prime 45 + 两口径 21/24 + 两边都零铜 3 条'
+    - path: logs/iss340/01_c1_verdict_table.md
+      kind: report
+      version: '1.0'
+      updated_at: '2026-11-22'
+      summary: ISS-340 · C1 五条网表-板差异逐条归桶判定表 (A0/B3/C2) · 判定表含每条证据 (网表行号+原文 / 板上pad+网名+直连铜长mm) · 末尾写明板那一趟开工前必须先落哪几条
+    - path: HW/check_board_netlist_divergence_gate.py
+      kind: tool
+      version: '1.0'
+      updated_at: '2026-11-22'
+      summary: ISS-340 · 板↔网表差异归属判别闸 (只读) · 自己跑出 C1 三类差异 (独立实现, 不复用 check_pcb_nets.py) + 逐条按 R0~R6 规则归
+        A/B/C 桶 + 末尾 4 行汇总 · --selftest 4+ 用例 (含反向消一条 ⇒ 总数减1 与板文件零改证明) · 末行 ALL TESTS PASS
+    - path: HW/PCB/BOARD_TRIP_NETLIST_DIVERGENCE.md
+      kind: spec
+      version: '1.0'
+      updated_at: '2026-11-22'
+      summary: 'ISS-340 · 板那一趟前的一页权威口径 (4 段: 5 条差异总表 / A桶逐条写死改哪文件哪一行 / B桶写死板那一趟动什么+触及不触及高速差分铜+与位号改名及B-1~B-8及布局修正及布线45→0及Gerber重出的关系
+        / C桶只列need key不代拍) + 页尾铁律'
+    - path: logs/iss340/
+      kind: log
+      version: '1.0'
+      updated_at: '2026-11-22'
+      summary: ISS-340 · 机器原始输出目录 (selftest 全文 / 判别闸对当前板+当前网表的全文 / check_pcb_nets.py 的 C1 段原文 / 板 md5+mtime
+        前后对照 / merge 与 gate_check 输出)
+    - path: logs/iss340/01_selftest_out.txt
+      kind: log
+      version: '1.0'
+      updated_at: '2026-11-22'
+      summary: ISS-340 · 判别闸 --selftest 完整输出 (T1 正向 5 条 / T2 反向消一条总数减1 / T5 合成缺失类 / T3 三桶逻辑 / T4 板文件零改)
+        · 末行 ALL TESTS PASS · rc=0
+    - path: logs/iss340/02_gate_current_board_netlist.txt
+      kind: log
+      version: '1.0'
+      updated_at: '2026-11-22'
+      summary: ISS-340 · 判别闸跑当前板+当前网表的完整输出 (逐条证据 + 末尾 4 行 A/B/C 汇总) · 差异 5 条全部归桶 ⇒ rc=0
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -9253,6 +9284,20 @@ domains:
         (官方 21) 与 pad≥2 焊盘网口径 (官方 24) ⇒ 官方那 24 条里 21 条在现役 v76mg1 上已有铜 ⇒ 两边都零铜只剩 3 条 (CSI_D0_D0_N_SRC /
         CSI_D0_D2_N / CSI_D0_D3_N) ⇒ 分母必须在板那一趟的真实基线板上重读。★零写板·零落表·零改既有闸·零重生成。'
       ref: HW/check_s8_target_list.py
+    - key: iss340_c1_attribution_result
+      to: main
+      value: 'ISS-340 收口: C1 焊盘级差异 5 条 = 多余 2 (C_VBUS_GND pad1/pad2) + 同号异网 3 (Q_PG pad1 / Q_PG pad3 /
+        D_ESD_USB_D pad1); 归桶 A0 / B3 / C2 (C2 同属一个 need key); 判别闸自跑读数与 state/check_pcb_nets.py 独立复现一致
+        (缺失0/多余2/同号异网3); 板 md5 611b869e13518c3c023fb178f91a0075 与 mtime 2026-11-06 07:07:17.362193413
+        全程未变; 本单零写板/零改网表/零落表/零改既有闸; 交卷页(B0~B7)本轮未写, 延后 cont2 (怕半页把 gate_check Q1 打成 17/18)'
+      ref: ISS-340
+    - key: iss340_c1_c_bucket_pending
+      to: main
+      value: 'ISS-340 · C 桶待拍 (不代拍): C_VBUS_GND pad1/pad2 归 C, need key = boss_c_vbus_gnd_reserve_pad_20261117
+        (state/fragments/pm.yaml:744, 无 decision/decided_at = 未拍板); 口径冲突: 板那一趟 S2/B-1 与 main 2026-11-17
+        18:45 板改清单已写死 C_VBUS_GND 下板 (186→185), 而该 need key 未拍 ⇒ 两个数互卡; 另列关联待拍项 W-4 (Q_PG.3 极性) 与 W-1b/W-1c+W-2
+        (ESD 型号轴/D-侧补不补) 供 main 裁'
+      ref: ISS-340
     open_questions:
     - id: HW-Q1
       to: main
@@ -35959,6 +36004,20 @@ lint:
     6 道闸一起打红 (★那正是 ISS-297 立单要杀的那类集体假红★)★ ⇒ ★采不采、要不要写进「板只改一次」那一趟的作业包 = main 拍板, 本单不代拍★; ★另: 交卷单已被 4 个并发实例追加到
     109 KB 且顶级编号撞车 (⑱×2/⑲×2/⑳×2/㉑×1) ⇒ 复签时建议按【尾部索引那张表】+【㉑ 节】读★'
   hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: hw-lead
+  key: iss340_c1_attribution_result
+  value: 'ISS-340 收口: C1 焊盘级差异 5 条 = 多余 2 (C_VBUS_GND pad1/pad2) + 同号异网 3 (Q_PG pad1 / Q_PG pad3 / D_ESD_USB_D
+    pad1); 归桶 A0 / B3 / C2 (C2 同属一个 need key); 判别闸自跑读数与 state/check_pcb_nets.py 独立复现一致 (缺失0/多余2/同号异网3);
+    板 md5 611b869e13518c3c023fb178f91a0075 与 mtime 2026-11-06 07:07:17.362193413 全程未变; 本单零写板/零改网表/零落表/零改既有闸;
+    交卷页(B0~B7)本轮未写, 延后 cont2 (怕半页把 gate_check Q1 打成 17/18)'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: hw-lead
+  key: iss340_c1_c_bucket_pending
+  value: 'ISS-340 · C 桶待拍 (不代拍): C_VBUS_GND pad1/pad2 归 C, need key = boss_c_vbus_gnd_reserve_pad_20261117
+    (state/fragments/pm.yaml:744, 无 decision/decided_at = 未拍板); 口径冲突: 板那一趟 S2/B-1 与 main 2026-11-17 18:45
+    板改清单已写死 C_VBUS_GND 下板 (186→185), 而该 need key 未拍 ⇒ 两个数互卡; 另列关联待拍项 W-4 (Q_PG.3 极性) 与 W-1b/W-1c+W-2 (ESD
+    型号轴/D-侧补不补) 供 main 裁'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: mech-lead
   key: mech_numpy_dep_for_print_check
   value: '★★ISS-197 结构侧闭环 (口径收敛) + 未决项选项表交付。★[实测 2026-11-11 21:1x] 孔位口径**已收敛成一套 (套A)**: HW/pcb60x30_check.py
@@ -39354,7 +39413,7 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 712
+  artifacts: 718
   blockers: 43
   high_blockers: 33
   open_needs: 340
@@ -39363,6 +39422,6 @@ summary:
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 565
+  lint: 567
   agents_reporting: 4
   incomplete_fragments: 0
