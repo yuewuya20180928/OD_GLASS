@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/I2C_ADDR_TABLE.md

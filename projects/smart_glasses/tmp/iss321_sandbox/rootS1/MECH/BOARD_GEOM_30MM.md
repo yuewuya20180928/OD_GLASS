@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/BOARD_GEOM_30MM.md

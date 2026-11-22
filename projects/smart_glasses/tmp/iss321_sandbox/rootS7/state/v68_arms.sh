@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/v68_arms.sh

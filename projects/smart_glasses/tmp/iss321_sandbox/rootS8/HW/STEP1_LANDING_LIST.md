@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/STEP1_LANDING_LIST.md

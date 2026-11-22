@@ -1,6 +1,6 @@
 # SW/RK3572_TARGET_COMPAT_V2.md — RK3572 目标兼容性 v2.0 (官方口径 + 可执行验证包)
 
-> 版本: **v2.0** (2026-11-15) · owner: sw-lead · 对应 issue: **ISS-207** / ISS-155 (demo 头号卡点) / ISS-147 (P0-1)
+> 版本: **v2.0** (2026-11-15) · ★**v2.1 追加 (2026-11-23 · ISS-353) ⇒ 见 §8**★ · owner: sw-lead · 对应 issue: **ISS-207** / ISS-155 (demo 头号卡点 · ★该定位是否降级 = 交 main 裁★) / ISS-147 (P0-1)
 > 上游 (**只读引用, 本单未改一字**): `SW/RK3572_TARGET_BOARD_VERIFY.md` (v1.0, 2026-11-06) · `SW/RKNN_BUILD_ENV_RECOVERY.md` (2026-11-02)
 > 本单配套交付: `SW/tools/rk3572_target_smoke.sh` (板端验证包 = 降级 A+C) · `SW/tools/rk3572_model_rebuild.sh` (PC 侧重建 = 降级 B)
 >
@@ -17,8 +17,8 @@
 |---|---|---|---|
 | 1 | ★**最新 rknn-toolkit2 版本号** | **v2.5.0** (发布 2026-10-20) —— **没有比它更新的版本** | **[官网]** |
 | 2 | ★**v2.5.0 的合法 `target_platform` 列表含 `rk3572` 吗** | **不含**。官方 README 的 Support Platform 8 个系列里没有 RK3572; release notes 全文无 rk3572; 本机 2.3.2 官方库自打印的 11 项合法 target 里也没有 | **[官网] + [实测]** |
-| 3 | ⇒ **"升级 toolkit 就有 rk3572 target" 这条路** | **不存在**。⇒ 只能 `target_platform='rk3576'` 转 | **[官网] + [实测]** |
-| 4 | ★**RK3572 BSP runtime 认不认 rk3576-target 产物** | ★**官方无此口径** ⇒ 命题判 **(b)** ⇒ 只能标 **[0数据]**, 走降级 A/B/C | **[0数据]** (检索范围见 §3) |
+| 3 | ⇒ **"升级 toolkit 就有 rk3572 target" 这条路** | ★**v2.1 订正 (2026-11-23 · ISS-353): 「不存在 ⇒ 只能 `target_platform='rk3576'` 转」已被取代** —— ★**toolkit2 (2.3.2 / 2.5.0) 不支持 rk3572 target [官网]+[实测] ⇒ 转换链要用 rknn3-toolkit 1.2.0 (其 `config(target_platform='rk3572')` rc=0 [实测])**★ · ★**已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★** | **[官网] + [实测]** |
+| 4 | ★**RK3572 BSP runtime 认不认 rk3572-target / rk3576-target 产物** | ★**官方无此口径** ⇒ 命题判 **(b)** ⇒ 只能标 **[0数据]**, 走降级 A/B/C (★v2.1 订正: 主路线已改为 rknn3-toolkit 1.2.0 的 rk3572-target ⇒ 板端要验的是 rk3572-target 产物; rk3576-target 已降为次要路线①★) · ★**已被 ISS-353 (2026-11-23) 订正·本条 [0数据] 判定不变·原句保留作历史留档**★ | **[0数据]** (检索范围见 §3) |
 | 5 | ★**本机转换链是死是活** | ★**活的** —— 修正 2026-11-15 21:4x 的判断: `conda` 不在 PATH ≠ 环境没了; `/home/yuewuya/miniconda3/envs/rknn/bin/python` 在, **rknn-toolkit2 2.3.2** 在 ⇒ 本单**已实跑出产物并落盘项目库** | **[实测]** |
 | 6 | ★**v1.0 §2 产物清单** | **在本机已失效** (产物写在 `/tmp/rknn_bench/`, 会被清) ⇒ 本单已重建并落盘 `SW/artifacts/models/` + `.sha256` sidecar | **[实测]** |
 | 7 | ★**卡点还剩什么** | 只剩一个**物理事实**: 板子不在本机 (板端结论 [0数据]); **"怎么验、怎么重建、怎么判 PASS/FAIL" 本单已全部固化成脚本** | **[实测]** |
@@ -93,7 +93,8 @@ curl -sS "https://raw.githubusercontent.com/airockchip/rknn-toolkit2/master/READ
 
 ### 3.2 为什么这个命题**在官方层不可能**被正面回答 (⇒ 只能实测)
 
-> 官方**根本没有 `rk3572` 这个编译目标** ⇒ **不存在"官方为 RK3572 编译出来的 .rknn"**可以拿来对比
+> 官方 rknn-toolkit2 侧**根本没有 `rk3572` 这个编译目标** ⇒ **不存在"官方用 toolkit2 为 RK3572 编译出来的 .rknn"**可以拿来对比 · ★**已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用**★
+> ★**v2.1 订正 (2026-11-23 · ISS-353)**: ★官方 **rknn3-toolkit 1.2.0 侧有** `rk3572` 编译目标 (README「Supported Platforms: RK1820 / RK1828 / RK3572」[官网] · CHANGELOG V1.0.4「Added RK3572 platform support (Beta)」[官网]) ⇒ 「官方没有 RK3572 的编译目标」这句**只对 toolkit2 家族成立**★ (★官方 model zoo 仍无现成 .rknn 可对比, 这条不变 [0数据]★) · ★**已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用**★
 > ⇒ "rk3576-target 的产物能不能被 RK3572 的 runtime 接受" **在官方文档里没有对应条目**,
 > **只可能由板端 `load_rknn` 的返回值回答** (= 判据 N1)。
 
@@ -339,3 +340,73 @@ python3 state/merge.py && python3 state/gate_check.py
 ```
 
 ★**交卷单**: `HANDOFF/2026-11-17_sw-lead_ISS263_rknn3_toolkit安装实测与rk3572转换.md` (★§4 是第4趟的独立复验记录, 含 3 会话 × 9 读数的耗时口径订正★)
+
+
+---
+
+## 8. ★v2.1 (2026-11-23 · ISS-353)★ — 目标口径清账 (★追加段, §0~§7 一个字没删没改★; ★本段即 sw-lead 分片 refs 里说的「§7」, 因老文件本身已有一节「§7 ⑦ 边界」⇒ 追加段顺延为 §8★)
+
+> ★**本段是追加** ★: §0~§6 (含 ISS-263 的 §5.4 / §6.5 追加段) **零删除**;
+> 本单只**改写 §0 摘要表第 3/4 行与 §3.2 一行** (★这三行被闸点名, 原文保留 + 追加订正标记★),
+> 其余一个字没动。★**闸**: `SW/tools/check_rk3572_target_caliber.py` (只读, 带 `--selftest` 反向用例)。
+
+### 8.1 ★当前真值三句 (★机器读分片时不会去看上下文 ⇒ 这三句必须自足★)★
+
+| # | 命题 | 当前真值 | 证据等级 |
+|---|---|---|---|
+| ① | **toolkit2 (2.3.2 / 2.5.0) 支不支持 rk3572 target** | ★**不支持** —— 官方 rknn-toolkit2 README「Support Platform」8 个系列 (RK3588 / RK3576 / RK3566-68 / RK3562 / RV1103-06 / RV1103B-06B / RV1126B / RK2118) **无 RK3572**; 本机 2.3.2 库自打印 11 项合法 target **无 rk3572**; `config(target_platform='rk3572')` 抛 `ValueError` ⇒ ★**所以转换链要用 rknn3-toolkit 1.2.0**★ | ★**[官网] + [实测]**★ |
+| ② | **rknn3-toolkit 1.2.0 支不支持 `target_platform='rk3572'`** | ★**支持** —— 官方 rknn3-toolkit README「Supported Platforms: RK1820 / RK1828 / RK3572」+「Non-coprocessor mode (RK3572): The NPU is integrated inside the SoC」; CHANGELOG V1.0.4「Added RK3572 platform support (Beta)」; 本机 `config(target_platform='rk3572')` **rc=0**, 反向 `rk3576` 抛 `ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572` ⇒ ★**转换链这一环已通** (不是"应该行": 实测 rc=0 + 产物逐字节可复现)★ | ★**[官网] + [实测]**★ |
+| ③ | **板端 (RK3572) 接受性** | ★**仍 [0数据]** —— 本机 0 台 RK3572 设备 (`list_devices()=[]` · `init_runtime` rc=**-1**); 目标板 192.168.2.5 ping 100% 丢包 + ARP `INCOMPLETE` ⇒ ★**降级方案 = 板到手一条命令出 PASS/FAIL** (`SW/tools/rk3572_rknn3_board_smoke.sh`) ⇒ ★**板不来 ⇒ demo 路线【不被这条卡住】, 卡的是"验收何时做", 不是"能不能做"**★ | ★**[0数据]**★ |
+
+★**一句话口径 (给搜索/给机器)**:
+`rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0 + target_platform='rk3572' [实测]; 板端接受性 [0数据] ⇒ 板到手一条命令出 PASS/FAIL`
+
+### 8.2 本单复跑读数 (★2026-11-23 04:5x · 自跑 · 原始日志见 logs/iss353/★)
+
+| 项 | 读数 | 落盘 |
+|---|---|---|
+| `config(target_platform='rk3572')` (rknn3-toolkit 1.2.0) | ★**rc=0** · elapsed 0.015 s★ | `logs/iss353/config_probe_rknn3_rerun.log` |
+| `config(target_platform='rk3576')` (反向自证) | ★**抛 `ValueError: Unsupported target_platform 'rk3576'`** (报错串里**含 rk3572** ⇒ target 参数真被读了)★ | 同上 |
+| 转换 1 次 (`target_platform='rk3572'`) | ★**rc_config=0 / rc_load_onnx=0 / rc_build=0 / rc_export=0** · `t_total=51.445 s` (cfg 0.014 / load 0.238 / build 51.174 / export 0.019) · 产物 **249,360 B** · md5 **`97a34fff0b855b92681f26627dba5354`** (与 ISS-263 三次逐字节一致)★ | `logs/iss353/convert_rk3572_rerun.log` |
+| 板端不可达复证 | ★`list_devices()=[]` · `init_runtime` rc=**-1** · 192.168.2.5 ping 100% 丢包 · ARP `INCOMPLETE` ⇒ 板端接受性仍 **[0数据]**★ | `logs/iss353/board_unreachable_rerun.log` |
+| 官方口径复证 (自跑 curl, 只 GET 官方 raw, 零外发) | ★rknn-toolkit2 README「Support Platform」无 RK3572 · rknn3-toolkit README「Supported Platforms」含 RK3572 · CHANGELOG V1.0.4「Added RK3572 platform support (Beta)」· rknn3_model_test_demo README: **RK3572 = `librknn3_api.so` + `librknn3_api_native.so`**, RK3576/RK3588 = `librknn3_api.so` + `librknn3_api_rkcp.so` ⇒ ★官方把两者分成两条 runtime, 无互换表述**★ | `logs/iss353/official/` + `logs/iss353/official_lookup_rerun.log` |
+
+### 8.3 ★官方层: RK3572 与 RK3576 的关系 (★官方无互换表述 ⇒ 跨芯片接受性只能标 [0数据]★)★
+
+| 面 | 官方原文 (★2026-11-23 本单实抓, 见 `logs/iss353/official/`★) | 等级 |
+|---|---|---|
+| rknn3-toolkit README · Supported Platforms | `RK1820` / `RK1828` / **`RK3572`** | **[官网]** |
+| rknn3-toolkit README · Deployment Modes | `Non-coprocessor mode (RK3572): The NPU is integrated inside the SoC; models run directly on the board.` | **[官网]** |
+| rknn3-toolkit README · Note | `For RK3588/RK3576/... series ... please refer to: https://github.com/airockchip/rknn-toolkit2` ⇒ ★RK3576 归 toolkit2 家族, RK3572 归 RKNN3 家族★ | **[官网]** |
+| rknn3_model_test_demo README · Libraries | `RK3576 / RK3588: librknn3_api.so + librknn3_api_rkcp.so` / `RK3572: librknn3_api.so + librknn3_api_native.so` ⇒ ★**两条 runtime, 官方无互换表述**★ | **[官网]** |
+| rknn-toolkit2 README · Support Platform | 8 系列, **无 RK3572** ⇒ ★「toolkit2 不支持 rk3572」在官方层成立★ | **[官网]** |
+| rknn3-toolkit CHANGELOG | V1.0.4 `Added RK3572 platform support (Beta)` · V1.2.0 `Added MatMul APIs for RK3572` / `Improved LLM support on RK3572` | **[官网]** |
+
+⇒ ★**结论**: 跨芯片接受性 (「rk3576-target 的 .rknn 能不能在 RK3572 上跑」) 官方层 **[0数据]**,
+★**唯一能回答它的是板端 N1** (`load_rknn` + `init_runtime` 返回值) ⇒ 走 §8.4 降级 A/B/C。
+
+### 8.4 ★板端依赖降级 A / B / C (★不许只写"等板子"★)★
+
+| 档 | 触发条件 | 动作 | 判据 | 代价 |
+|---|---|---|---|---|
+| ★**降级 A (主)** ★ | 板到手 | ★**一条命令**: `bash SW/tools/rk3572_rknn3_board_smoke.sh --rknn <x.rknn> --weight <x.weight> --expect-sha256 <sha> --expect-weight-sha256 <sha> --power-note "<供电>" --out ./evidence/`★ (★本机 `--dry-run` rc=0 已验★) | ★**N1** `load_rknn`+`init_runtime` 都 =0 · ★**N2** 精度不塌 (对照 `SW/RKNN_BENCH.md` §3.2.2 的 PC 基线) · ★**N3** NPU 耗时对得上 `HW/e2e_budget_rk3572.py` 的预算 (★纯硬件耗时与 SDK 总耗时**分开报**, SOUL.md 铁律★) · ★**N4** 纯 NPU 耗时用 C API `RKNN_QUERY_PERF_DETAIL` 取, 取不到判 INDET 不许顶替 · ★**N5** 散热/频率/供电已记录 | 板到手 + 一次板端作业 (★**0 采购: 不买板, 用手上板 / demo 板 / 借板★**) |
+| ★**降级 B** ★ | 板不来 (★当前状态★) | ★**demo 阶段不停** —— 用 rknn3-toolkit 产物继续推 PC 侧链路 (转换 rc=0 / 产物 249,360 B / md5 逐字节可复现 已在本单坐实); ★**板端验收登记为「待板」, 不是「待外部回复」** (★零外发, 不许发信/询价/问询★) | 转换链本机可复现 (已过) | ★**残留**: 板端 N1~N5 一个数都没有 ⇒ 该项在台账里**只能是 [0数据]**, 不许写成"应该没问题" |
+| ★**降级 C** ★ | 板端拒收 (假设, N1 = FAIL) | ★**三档 (只列代价与启用条件, 不替老板拍)** ★**C1** 查板端 runtime / rkaiq 有无 rk3572 专用编译 (官方 README 已把 RK3572 单列为 `librknn3_api_native.so` ⇒ 优先查这条) → 代价 **板端软件作业, 0 元** · ★**C2** 换 SoC (RK3576 载板) → 代价 **改板 + 改固件 + 重转 + 重验 (人天级)** · ★**C3** CPU 推理兜底 (ONNXRuntime) → 代价 **性能不达标 (端到端 <60 ms 硬指标大概率破)**, 只保功能 | 按 §5.3 的 N1~N5 | ★**排序理由**: C1 代价最小且有官方依据 ⇒ 先查 C1; C2/C3 都要老板拍, sw-lead 不代拍 |
+
+### 8.5 ★本单处置台账 (★闸点名的条目逐条落定★)★
+
+| 文件:行 | 判定 | 处置 | 通道 |
+|---|---|---|---|
+| `SW/RK3572_TARGET_COMPAT_V2.md` L3 | 结论待裁 (ISS-155 定位) | ★**ISS-155 是否从「demo 头号卡点」降为「转换链已通 / 板端待板」= 交 main 裁** (本单不代拍) ⇒ 本行标签**原样保留** | 本单可处置 |
+| `SW/RK3572_TARGET_COMPAT_V2.md` L20 | 结论矛盾 | ★**改写成当前真值** (§0 摘要表第 3 行, 原文保留 + 订正 + 取代标记) | 本单可处置 |
+| `SW/RK3572_TARGET_COMPAT_V2.md` L21 | 结论矛盾 | ★**改写** (§0 摘要表第 4 行, 补 rk3572-target 分支; [0数据] 判定不变) | 本单可处置 |
+| `SW/RK3572_TARGET_COMPAT_V2.md` L96 | 结论矛盾 | ★**改写** (§3.2: 「没有 rk3572 编译目标」限定在 toolkit2 家族内) | 本单可处置 |
+| `state/fragments/sw.yaml` (旧条目) | 结论矛盾 | ★**台账追加式** ⇒ 本单新增分片条自带取代标记 ⇒ 后条取代前条 (闸规则 F5) | 本单可处置 |
+| 其余 15 条 (HW/STEP1_LANDING_LIST.md · SW/DEMO_BOARD_60MS_VERDICT_PLAN.md · SW/DEMO_OD_PIPELINE_SPEC.md · SW/MODEL_RELEASE_LIST.md · SW/RK3572_TARGET_BOARD_VERIFY.md · SW/RKNN_BUILD_ENV_RECOVERY.md) | 结论矛盾 | ★**越权 (不在 ISS-353 允许写范围) ⇒ 交 main 裁**; 逐字替换文本见交卷页 §B1.2, 一键补丁 `logs/iss353/apply_caliber_dispositions.py` | 越权·交 main 裁 |
+
+### 8.6 ★残留项 (★口径清了 ≠ 实现改了 ★)★
+
+- ★**转换脚本仍是 toolkit2 + rk3576** ★: `SW/tools/rk3572_model_rebuild.sh` (L13/L86/L136) 与 `SW/RKNN_BENCH.md` §5 仍在用 `target_platform='rk3576'`。
+  ⇒ 那是**脚本现状陈述** (闸判「历史叙述(可留)」), 但★**它意味着"主路线 = rk3572-target"还没落到脚本上**★
+  ⇒ **后续单 (sw-lead) 应给重建/bench 脚本加 rknn3-toolkit + rk3572 分支** ⇒ **交 main 裁排期**, 本单不代拍、不改脚本。
+- ★**板端接受性 [0数据]** ★: 降级 A 未触发前, N1~N5 一个数都没有 ⇒ 台账里只能写 [0数据]。

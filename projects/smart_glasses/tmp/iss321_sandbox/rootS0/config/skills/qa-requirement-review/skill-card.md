@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/config/skills/qa-requirement-review/skill-card.md

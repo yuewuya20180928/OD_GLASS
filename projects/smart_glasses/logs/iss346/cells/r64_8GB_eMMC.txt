@@ -1,0 +1,30 @@
+# ISS-346 cell r64_8GB_eMMC
+# rootfs=64MB storage=8GB eMMC model_slot=15MiB
+# cmd: python3 SW/tools/flash_layout_check.py --config tmp/iss346/cell_r64_8GB_eMMC.json --device-size 8GB
+# checker rc=0
+
+[覆盖] device_total_size = 8589934592 B (8192MB)
+
+==============================================================================
+ARS45 分区表 / 版本块布局静态检查 (SW/tools/flash_layout_check.py)
+==============================================================================
+✅ LAY-01   分区起始偏移对齐
+        PASS 全部 9 个分区偏移按 4096 对齐
+✅ LAY-02   分区互不重叠
+        PASS 按序排列 9 个分区无重叠
+✅ LAY-03   分区不越界
+        PASS 占用 125861888 / 8589934592 字节 (1.5%), 未越界
+✅ LAY-04   版本块存在 / 对齐 / 容量
+        PASS 版本块 offset=125829120 size=32768 (>= 32768)
+✅ LAY-05   CRC 槽位覆盖
+        PASS 6 个 CRC 槽位全部有分区覆盖: ['bootloader', 'kernel', 'rootfs', 'app', 'model', 'isp']
+✅ LAY-06   A/B 槽对称
+        PASS 2 组 A/B 槽对称 (活动槽=a)
+✅ LAY-07   版本块字段容量
+        PASS 版本串/SN/calib/tool_ver 均在字段容量内 (版本块字段表共 14 项)
+✅ LAY-08   rootfs 体积回报 (§4.1 总分叉点)
+        PASS rootfs = 64.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR
+------------------------------------------------------------------------------
+设备容量 8589934592 B | rootfs 64.0 MB | 活动槽 a
+结论: PASS (8/8 通过)
+证据: [实测] PC 侧静态检查; partition_layout 本身为 [推算] 占位值

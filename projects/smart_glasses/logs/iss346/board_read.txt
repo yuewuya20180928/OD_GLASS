@@ -1,0 +1,81 @@
+# ISS-346 · 板面 J_BOOT1 只读读板结果 (2026-11-23, 零写板)
+
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+$ stat -c '%y %s' HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800 4940213
+
+$ grep -n 'Reference" "J_BOOT1' HW/PCB/demo_mainboard.kicad_pcb
+3144:		(property "Reference" "J_BOOT1"
+
+$ J_BOOT1 封装读数 (footprint 起点 + pad 数 + pad 位置)
+  footprint 起点 (at) = 126.3, 58
+  pad 数 = 6
+    pad  1  smd  rect  at (-2.1, -1.4)  size 0.275×0.9
+    pad  2  smd  rect  at (-1.6, -1.4)  size 0.275×0.9
+    pad  3  smd  rect  at (-1.1, -1.4)  size 0.275×0.9
+    pad  4  smd  rect  at (-0.6, -1.4)  size 0.275×0.9
+    pad  5  smd  rect  at (-0.1, -1.4)  size 0.275×0.9
+    pad  6  smd  rect  at (0.4, -1.4)  size 0.275×0.9
+  外框 fp_line = (-3,-2)..(3,2)  ⇒ 6.0 × 4.0 mm
+
+$ 板面上是否存在存储芯片封装 (flash/nor/emmc 位号) ⇒ 0 个 = 网表 note『不画存储芯片』自证
+14
+Reference" "BT_432243"
+Reference" "C_AC_CSI_D0_CK_N"
+Reference" "C_AC_CSI_D0_CK_P"
+Reference" "C_AC_CSI_D0_D0_N"
+Reference" "C_AC_CSI_D0_D0_P"
+Reference" "C_AC_CSI_D0_D1_N"
+Reference" "C_AC_CSI_D0_D1_P"
+Reference" "C_AC_CSI_D0_D2_N"
+Reference" "C_AC_CSI_D0_D2_P"
+Reference" "C_AC_CSI_D0_D3_N"
+Reference" "C_AC_CSI_D0_D3_P"
+Reference" "C_BULK_LIGHT_1V8"
+Reference" "C_BULK_LIGHT_3V3"
+Reference" "C_BULK_SENSOR_AVDD"
+Reference" "C_BULK_SENSOR_CORE"
+Reference" "C_BULK_SENSOR_VDD_IO"
+Reference" "C_BULK_V_CORE"
+Reference" "C_BULK_VDD_1V8_IO"
+Reference" "C_BULK_VDD_3V3_IO"
+Reference" "C_BULK_V_SOC_IO"
+Reference" "C_DET_BAT"
+Reference" "C_DET_VBUS_D"
+Reference" "C_HF_LIGHT_1V8"
+Reference" "C_HF_LIGHT_3V3"
+Reference" "C_HF_SENSOR_AVDD"
+Reference" "C_HF_SENSOR_CORE"
+Reference" "C_HF_SENSOR_VDD_IO"
+Reference" "C_HF_V_CORE"
+Reference" "C_HF_VDD_1V8_IO"
+Reference" "C_HF_VDD_3V3_IO"
+Reference" "C_HF_V_SOC_IO"
+Reference" "CHG_GND_STAR"
+Reference" "C_KEY_CAM"
+Reference" "C_KEY_PWR"
+Reference" "C_KEY_VM"
+Reference" "C_KEY_VP"
+Reference" "CONN_CAM"
+Reference" "CONN_LIGHT"
+Reference" "C_RST"
+Reference" "C_SUPV"
+Reference" "C_SW_IN"
+Reference" "C_SW_OUT"
+Reference" "C_TEMP"
+Reference" "C_VBUS_DEMO"
+Reference" "C_VBUS_GND"
+Reference" "C_XTAL_IN"
+Reference" "C_XTAL_OUT"
+Reference" "D_ESD_CAM"
+Reference" "D_ESD_DEMO"
+Reference" "D_ESD_LIGHT"
+
+$ 板面全部位号里是否有【存储芯片】设计ator (U* / FLASH* / NOR* / EMMC* / SD*)
+  疑似存储芯片位号 = 0 个 ⇒ 板面上没有存储芯片封装
+  板面位号总数 = 186
+  全部 U* (IC) 位号 = []
+
+$ 含 'BOOT' / 'SPI' 的板面位号
+  ['J_BOOT1', 'R_PU_BOOT_N', 'R_SER_SPI_CSn', 'R_SER_SPI_MISO', 'R_SER_SPI_MOSI', 'R_SER_SPI_SCLK', 'SW_BOOT', 'TP_BOOT']

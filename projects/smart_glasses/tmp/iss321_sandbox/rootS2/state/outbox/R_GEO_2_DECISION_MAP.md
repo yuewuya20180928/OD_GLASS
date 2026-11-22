@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/outbox/R_GEO_2_DECISION_MAP.md

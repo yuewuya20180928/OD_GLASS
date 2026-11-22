@@ -658,8 +658,8 @@ def evaluate(root, expect_footprints=EXPECTED_FOOTPRINTS, read_pm=True):
         if not fit_som["as_is"]:
             reasons.append("J_SOM 承载区原位外溢 X+%.2f / Y+%.2f mm" % (fit_som["overflow_x"], fit_som["overflow_y"]))
         if not fit_som["envelope"]:
-            reasons.append("J_SOM 承载区尺寸包络 %0.2f×%0.2f 装不进 %0.2f×%0.2f (短 X%0.2f / Y%0.2f mm)"
-                           % (fit_som["w"], fit_som["h"], W, H, -fit_som["delta_w"], -fit_som["delta_h"]))
+            reasons.append("J_SOM 承载区尺寸包络 %0.2f×%0.2f vs 框 %0.2f×%0.2f ⇒ 宽余 %+0.2f / 高差 %+0.2f mm (★负 = 装不下★)"
+                           % (fit_som["w"], fit_som["h"], W, H, fit_som["delta_w"], fit_som["delta_h"]))
         if not layers_ok:
             reasons.append("层数不一致: 帧 %d 层 vs 板实测 %d 铜层" % (f["layers"], board["copper_layer_count"]))
         if not thk_ok:
@@ -816,7 +816,7 @@ def render(rep):
                  % (pf["id"], pf["name"], pf["width_mm"], pf["height_mm"], pf["layers"],
                     pf["thickness_mm"], "  ←现役帧" if pf["is_current_frame"] else ""))
         L.append("     J1 装得下吗      : 占位并集 原位=%s (外溢 X+%0.2f/Y+%0.2f, 余量 X%0.2f/Y%0.2f) · 尺寸包络=%s | "
-                 "J_SOM 承载区 原位=%s (外溢 X+%0.2f/Y+%0.2f) · 尺寸包络=%s (差 X%0.2f/Y%0.2f)"
+                 "J_SOM 承载区 原位=%s (外溢 X+%0.2f/Y+%0.2f) · 尺寸包络=%s (宽余 %+0.2f / 高差 %+0.2f)"
                  % ("装得下" if pf["fit_all"]["as_is"] else "装不下",
                     pf["fit_all"]["overflow_x"], pf["fit_all"]["overflow_y"],
                     pf["fit_all"]["delta_w"], pf["fit_all"]["delta_h"],

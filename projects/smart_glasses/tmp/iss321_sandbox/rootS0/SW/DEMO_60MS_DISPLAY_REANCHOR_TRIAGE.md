@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/DEMO_60MS_DISPLAY_REANCHOR_TRIAGE.md

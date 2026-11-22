@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/_fix_iss137_note_rev2_20261111.py

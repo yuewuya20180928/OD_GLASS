@@ -1,0 +1,49 @@
+### ISS-353 cont1 · 自有复跑 · rknn3 config 正/反向 · 2026-11-23 04:54:07 +0800
+### python: Python 3.10.22
+
+I version: rknn3-toolkit 1.2.0(dbda2a3f9@2026-11-02T12:10:20)
+I Auto refill kvcache params for kvcache_dtype = 'Float16'
+I Auto refill kvcache param: kvcache_store_method = Normal
+I Auto refill kvcache param: kvcache_group_size = 32
+I Auto refill kvcache param: kvcache_residual_depth = 32
+I version: rknn3-toolkit 1.2.0(dbda2a3f9@2026-11-02T12:10:20)
+[1;31mE[0m [1;31mconfig: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572[0m
+I ===================== WARN(0) =====================
+Traceback (most recent call last):
+  File "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/tools/iss263_config_probe.py", line 43, in <module>
+    ret = r.config(target_platform=target)
+  File "/home/yuewuya/miniconda3/envs/rknn3/lib/python3.10/site-packages/rknn/api/rknn.py", line 94, in wrapper
+    return func(*args, **kwargs)
+  File "/home/yuewuya/miniconda3/envs/rknn3/lib/python3.10/site-packages/rknn/api/rknn.py", line 255, in config
+    return self.rknn_base.config(args)
+  File "rknn/api/rknn_base.py", line 2202, in rknn.api.rknn_base.RKNNBase.config
+  File "rknn/api/rknn_log.py", line 115, in rknn.api.rknn_log.RKNNLog.e
+ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572
+
+======================================================================
+### T0: import rknn.api.RKNN
+======================================================================
+IMPORT_OK  from rknn.api import RKNN
+rknn.__path__ = ['/home/yuewuya/miniconda3/envs/rknn3/lib/python3.10/site-packages/rknn']
+rknn.api.__file__ = /home/yuewuya/miniconda3/envs/rknn3/lib/python3.10/site-packages/rknn/api/__init__.py
+VERSION file = rknn3-toolkit 1.2.0
+dist version  = 1.2.0
+
+======================================================================
+### T1: config(target_platform='rk3572')
+======================================================================
+CONFIG_RETURN type=int repr=0
+CONFIG_OK target=rk3572 elapsed=0.015s
+
+======================================================================
+### T1: config(target_platform='rk3576')
+======================================================================
+CONFIG_EXC target=rk3576 elapsed=0.012s
+
+======================================================================
+### T2: 反向自证 —— RKNN 类方法清单 (证明 config 真读 target_platform)
+======================================================================
+RKNN methods: ['RKNN3_NPU_CORE_0', 'RKNN3_NPU_CORE_1', 'RKNN3_NPU_CORE_2', 'RKNN3_NPU_CORE_3', 'RKNN3_NPU_CORE_4', 'RKNN3_NPU_CORE_5', 'RKNN3_NPU_CORE_6', 'RKNN3_NPU_CORE_7', 'RKNN3_NPU_CORE_ALL', 'accuracy_analysis', 'alloc_kvcache_pages', 'build', 'codegen', 'config', 'disable_lora', 'enable_lora', 'eval_memory', 'eval_perf', 'export_encrypted_rknn_model', 'export_rknn', 'export_rknn_from_tmp', 'get_sdk_version', 'grow_kvcache_pages', 'hybrid_quantization_step1', 'hybrid_quantization_step2', 'inference', 'init_runtime', 'list_devices', 'load_llm', 'load_lora', 'load_onnx', 'load_rknn', 'optimize_onnx', 'profile', 'query', 'rebuild', 'reg_custom_op', 'release']
+
+CONFIG_SIG: (*args, **kwargs)
+RC_PROBE=0

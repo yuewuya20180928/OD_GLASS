@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/_apply_20261117_1550_cronfb67_verify288_open291.SUPERSEDED.py

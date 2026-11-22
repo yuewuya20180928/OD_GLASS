@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/CAMERA_WINDOW_SPEC.md

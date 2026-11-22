@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/_apply_20261116_0650_verify231_232_landfix_open233_234.py

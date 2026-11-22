@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/RK3572_PIN_TABLE/merge_pinctrl.py

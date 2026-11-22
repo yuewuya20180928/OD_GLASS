@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/ONETRIP_SW_RENAME_SAFETY.md

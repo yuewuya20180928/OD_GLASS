@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/_apply_20261116_1440_verify_iss241_open_iss243_244.py

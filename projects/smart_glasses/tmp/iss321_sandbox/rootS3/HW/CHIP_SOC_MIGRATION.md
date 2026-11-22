@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/CHIP_SOC_MIGRATION.md

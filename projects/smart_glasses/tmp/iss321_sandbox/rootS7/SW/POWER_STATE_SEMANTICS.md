@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/POWER_STATE_SEMANTICS.md

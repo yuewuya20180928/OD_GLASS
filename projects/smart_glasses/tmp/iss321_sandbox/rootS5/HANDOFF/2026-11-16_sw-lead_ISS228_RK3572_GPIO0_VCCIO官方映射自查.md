@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HANDOFF/2026-11-16_sw-lead_ISS228_RK3572_GPIO0_VCCIO官方映射自查.md

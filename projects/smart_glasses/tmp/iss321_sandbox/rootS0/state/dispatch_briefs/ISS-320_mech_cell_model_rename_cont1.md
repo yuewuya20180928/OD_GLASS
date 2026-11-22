@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/dispatch_briefs/ISS-320_mech_cell_model_rename_cont1.md

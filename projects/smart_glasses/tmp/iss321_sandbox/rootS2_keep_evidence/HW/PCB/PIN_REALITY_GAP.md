@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/PIN_REALITY_GAP.md

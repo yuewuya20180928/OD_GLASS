@@ -1,0 +1,87 @@
+=== ISS-343 · 追加式自证 (老前缀 md5 前后 + diff) ===
+--- date ---
+2026-11-23 01:13:05 CST
+
+=== [1] HW/PCB/BOARD_ONEPASS_PREFLIGHT.md ===
+--- md5 前 (tmp/iss343/pre_preflight.md) ---
+9f9743c81b977be802322b0966997ee2  tmp/iss343/pre_preflight.md
+--- md5 后 (真件) ---
+8ae70471604dcf447f43477dbada3f13  HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+--- diff (只增不删: 0 个 '-' 行) ---
+@@ -538,6 +538,17 @@
+       "step": "S6",
+       "blocked_by": "老板 (P7)",
+       "evidence": "[实测]"
++    },
++    {
++      "id": "B33_PIN_LAND_1P27",
++      "source_iss": "ISS-290",
++      "title": "`J_DEBUG`/`J_UART` 排针 land pitch 0.50→1.27mm (E-1 · 实测排针落不进 · main 11-17 18:45 拍死)",
++      "current_state": "[实测] 板读 (bash state/pcbnew_py.sh): `J_DEBUG` = pitch 0.50 / 4 脚 / 铜箔 X 142.0625..143.8375 × Y 56.1500..57.0500 (1.7750 × 0.9000); `J_UART` = pitch 0.50 / 2 脚 / 铜箔 X 18.5025..19.2775 × Y 68.1500..69.0500 (0.7750 × 0.9000); BOM/网表写 1.27mm (`HW/BOM_v1.csv:71` = `J_DEBUG` / `:77` = `J_UART`; 网表 P8 区同串) ⇒ Δ pitch 0.77 ⇒ 实物 1.27mm 排针落不进",
++      "action": "那一趟把 `J_DEBUG`(1×4) 与 `J_UART`(1×2) 的 land pitch 从 0.50 改成 1.27 (★E-1·main 2026-11-17 18:45 已拍死·归 main 不归老板★) ⇒ 与 S4 的 ESD 挪位、S6 的 `Q_PG`/`Q_AND` land 重画同一次布局里做完 ⇒ 板 md5 只许变一次",
++      "criterion": "bash state/pcbnew_py.sh -c \"import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print('; '.join('%s land pitch = %.2f'%(r,(lambda c:c[1]-c[0])(sorted(set(round(pcbnew.ToMM(p.GetPosition().x),4) for p in [f for f in b.GetFootprints() if f.GetReference()==r][0].Pads())))) for r in ('J_DEBUG','J_UART')))\" ⇒ 期望读数: J_DEBUG land pitch = 1.27 / J_UART land pitch = 1.27",
++      "step": "S6",
++      "blocked_by": "-",
++      "evidence": "[实测]"
+     }
+   ]
+ }
+--- diff 统计 ---
+删除行数(=老字被删): 0
+新增行数: 11
+
+=== [2] HW/PCB/BOARD_ONEPASS_WORKPACKET.md ===
+--- md5 前 ---
+1d4f5bed658850a8ed77dec64ed4911b  tmp/iss343/pre_workpacket.md
+--- md5 后 ---
+d651a474b55e1a0dac5dc32184663bcb  HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+--- diff (只增不删) ---
+@@ -1451,3 +1451,25 @@
+ ```
+ 
+ ★**本节边界**: ★**零写板** (板 md5 `611b869e1351` / mtime `2026-11-06 07:07:17` 前后不变) · ★**零落表** (网表 / 脚表 / BOM / 落表台账一个字节没动) · ★**零改闸** · ★**零改既有段落正文** (§1~§8.3 / ISS-304 节 一字未删, 只在文件末尾追加本节) · ★**零外发** · ★**不替老板拍板框 / 不替老板拍板厚 / 不替老板拍层数** ★
++
++---
++
++### ★§9-5 · ★★【ISS-343 追加式订正】`C-SEAT-1`/`C-SEAT-2` 的「待拍」状态作废 (★E-1 已由 main 2026-11-17 18:45 拍死★)★★
++
++★**本节 = 追加式 (★本页上面每一行老字一字未删 ★· §1~§9-4 一字未动 ★)** ★
++★**归 main 不归老板** ★ ⇒ ★**本节不新增任何老板拍板项** ★
++
++★**★病根 (main 2026-11-23 00:5x 实读 + 实跑 ★)★**: ★**`C-SEAT-1` (`J_DEBUG`) 第 332/334 行 + `C-SEAT-2` (`J_UART`) 第 348/350 行写着「④ 待拍板标记: 待 main→老板 (E-1 三选一…)」+「⑤ 状态: 待拍 (会改板)」 ⇒ 而 E-1 main 已于 2026-11-17 18:45 拍死 ⇒ 这两处的「待 main→老板」是【过期状态】⇒ ★**它把一张已经拍完的题重新挂回老板拍板面 (★白占老板一个回函位★) ⇒ 且 E-1 三选一的第 ① 项恰好就是 main 已拍的那一项** ★**
++
++★**★E-1 拍死原文 (★`state/fragments/pm.yaml` → key `main_e1_e2_board_side_rulings_20261117` → `decision` / `decided_at` / `decided_by`★)★**: ★**decision = 「E-1 = 按 1.27mm 排针定 + 板 land 并进那一趟重画」· decided_at = `2026-11-17 18:45` · decided_by = `main (项目总工 · 几何/规格取舍归 main)`** ★ ⇒ ★**同一 key 的 E-2 = 「零板改, 清死参数, 圆角不并进那一趟」 (★所以 §0.2 ③ 的第 ⑦ 项 `corner_radius` 是【零板改】⇒ 不进板侧项全集★)** ★
++
++★**★订正 (★老字保留, 现行状态以本节为准 ★)★**:
++
++| # | 位置 (★老字原样保留 ★) | 老字 (★原样 ★) | ★**现行状态 (★本节订正 ★)** ★ |
++|---|---|---|---|
++| ① | ★**`C-SEAT-1` = `J_DEBUG`** (★§C-SEAT-1 第 332 行 ④ + 第 334 行 ⑤★) | ★**④ 待拍板标记: 待 main→老板 (E-1 三选一: ① 改 land 到 1.27 ② 改选型到 2.54 (清空区 X 139.0025..146.8975, 单边间隙 1.1525) ③ 取消座体改治具探针)** ★ · ★**⑤ 状态: 待拍 (会改板)** ★ | ★**★已拍 (★进那一趟·不占老板拍板面★)★** ⇒ ★**E-1 = ① 改 land 到 1.27 (★main 2026-11-17 18:45 已拍死·★归 main 不归老板★) ⇒ 「待拍」状态作废** ★ ⇒ ★**板侧动作 = 那一趟把 `J_DEBUG`(1×4) 的 land pitch 从 0.50 改成 1.27 ⇒ 与 S4 的 ESD 挪位、S6 的 `Q_PG`/`Q_AND` land 重画同一次布局里做完 ⇒ 板 md5 只许变一次** ★ ⇒ ★**板侧项已进 `HW/PCB/BOARD_ONEPASS_PREFLIGHT.md` 的 `B33_PIN_LAND_1P27` (★ISS-343 · 2026-11-23★)** ★ ⇒ ★**结构侧后果沿用 MECH 已交付口径 (★`J_DEBUG` 清空区 X 宽 1.7750 ⇒ 4.0850 · 单边间隙 X 4.2125 ⇒ 3.0575 · 最坏 2.7575 ≥ `CRIT` 0.60 · 开口 X/Y 一字不变 · 三档 h 全过 · SoM 承载区零影响★) · 本单只引用不重算** ★ |
++| ② | ★**`C-SEAT-2` = `J_UART`** (★§C-SEAT-2 第 348 行 ④ + 第 350 行 ⑤★) | ★**④ 待拍板标记: 待 main→老板 (E-1 三选一, 与 `J_DEBUG` 同拍)** ★ · ★**⑤ 状态: 待拍 (会改板)** ★ | ★**★已拍 (★进那一趟·与 `J_DEBUG` 同拍·不占老板拍板面★)★** ⇒ ★**E-1 = ① 改 land 到 1.27 (★main 2026-11-17 18:45 已拍死★) ⇒ 「待拍」状态作废** ★ ⇒ ★**板侧动作 = 那一趟把 `J_UART`(1×2) 的 land pitch 从 0.50 改成 1.27 ⇒ 板 md5 只许变一次** ★ ⇒ ★**板侧项同样进 `B33_PIN_LAND_1P27`** ★ ⇒ ★**结构侧零连带改动 (★开口 X/Y 全不变 · 三档 h 全过★) · 本单只引用不重算** ★ |
++
++★**★本节的机器落点 (★不是散文 ★)★**: ★**① 清单页 `HW/PCB/BOARD_ONEPASS_PREFLIGHT.md` 的 items JSON 新增 `B33_PIN_LAND_1P27` (★`source_iss` = `ISS-290`·`step` = `S6`·`blocked_by` = `-`·`evidence` = `[实测]`★)** ★ · ★**② 覆盖度闸 `HW/check_onepass_preflight_coverage.py` 的 P4 加了一条判据: 「作业包 §0.2 ③ 的板侧改动清单, 每一条都必须在清单页有对应 item」⇒ ★**本单这条漏项 (★一个【不带新位号】的 land pitch 改★) 从此被机器抓住 ⇒ P4 不再假绿** ★** ★**③ `SOURCES` 增 `ISS-290` (★只增不减★)** ★
++
++★**★边界 (★本节自证★)★**: ★**零写板** (★`HW/PCB/demo_mainboard.kicad_pcb` md5 仍 = `611b869e13518c3c023fb178f91a0075` · mtime 仍 = `2026-11-06 07:07:17.362193413`★) · ★**零落表** (★`HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` / `HW/SCHEMATIC_LANDING_V1_LANDED.md` 一字未动★) · ★**零改 `MECH/`** · ★**零改 `state/fragments/pm.yaml`** (★那是 main 的分片★) · ★**零外发 (★不发电邮/询价/问询/采购★)** ★
+--- diff 统计 ---
+删除行数(=老字被删): 0
+新增行数: 22
+
+=== [3] HW/check_onepass_preflight_coverage.py (闸脚本) ===
+--- md5 前 ---
+d64f3119fad319d0f6670195e986d811  tmp/iss343/pre_gate.py
+--- md5 后 ---
+fc37ea0eee9cea6a1f2b91e3d2f581dc  HW/check_onepass_preflight_coverage.py
+--- diff 统计: 删除行 = ---
+  <            "ISS-269", "ISS-271", "ISS-274", "ISS-276", "ISS-283"}
+  <         ["     ❌ %s" % b for b in bad]
+--- MARKERS 26 个一个没删 (前后逐字对比) ---
+96ff7e771b8604a6928e2018a089a1fb  -
+96ff7e771b8604a6928e2018a089a1fb  -
+--- SOURCES 前后 ---
+SOURCES = {"ISS-239", "ISS-241", "ISS-244", "ISS-247", "ISS-266",
+           "ISS-269", "ISS-271", "ISS-274", "ISS-276", "ISS-283"}
+
+SOURCES = {"ISS-239", "ISS-241", "ISS-244", "ISS-247", "ISS-266",
+           "ISS-269", "ISS-271", "ISS-274", "ISS-276", "ISS-283",
+           "ISS-290"}
+

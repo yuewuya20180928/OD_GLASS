@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/ONETRIP_REISSUE_MANIFEST.md

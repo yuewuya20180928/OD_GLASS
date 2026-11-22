@@ -1,0 +1,120 @@
+═══ ② 反向用例: §3 表某条必需网改回 NC ⇒ 必须判红并点名 ═══
+═══ ISS-344 新闸 · 反向用例 (★只在 tmp/ 副本上做·真件不动★) ═══
+  真件     : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+  真件 md5 (开工前): 0f4bf6c083f25cea6cda240a91170049
+  副本     : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss344/rev/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+  目标网   : JTAG_TDI (★REQUIRED_SINGLE 里的必需网★)
+
+── ① 基线 (副本 = 订正后的样子) ──
+═══ SW 侧零铜网分级 ↔ 板侧真值 一致性闸 (★ISS-344·sw-lead·零写板★) ═══
+  被检文档 : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss344/rev/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+  真值源   : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/check_s8_target_list.py (★只读·AST 静态解析·未执行其代码★)
+  板侧真值 : REQUIRED_SINGLE(8) = CAM_RESET_N, LED_G_D, USB_CC2, JTAG_TDI, UART_RX, SPI_SCLK_BOOT, SPI_MOSI_BOOT, SPI_MISO_BOOT
+             FLOAT_OK(1) = FSIN_OUT
+             EXPECT_* = 必需 23 / 可悬空 1 / 待定 0
+
+── SW 页 §3/§3-1 表读出的「建议的板侧标记」 ──
+  CAM_RESET_N        行 164   ⇒ REQUIRED  REQUIRED
+  FSIN_OUT           行 151   ⇒ FLOAT     FLOAT
+  JTAG_TDI           行 152   ⇒ REQUIRED  REQUIRED
+  LED_G_D            行 165   ⇒ REQUIRED  REQUIRED
+  SPI_MISO_BOOT      行 153   ⇒ REQUIRED  REQUIRED
+  SPI_MOSI_BOOT      行 154   ⇒ REQUIRED  REQUIRED
+  SPI_SCLK_BOOT      行 155   ⇒ REQUIRED  REQUIRED
+  UART_RX            行 156   ⇒ REQUIRED  REQUIRED
+  USB_CC2            行 157   ⇒ REQUIRED  REQUIRED
+
+── SW 页订正表的「新说法」 ──
+  CAM_RESET_N        行 281   ⇒ REQUIRED  REQUIRED
+  FSIN_OUT           行 289   ⇒ FLOAT     FLOAT
+  JTAG_TDI           行 283   ⇒ REQUIRED  REQUIRED
+  LED_G_D            行 282   ⇒ REQUIRED  REQUIRED
+  SPI_MISO_BOOT      行 284   ⇒ REQUIRED  REQUIRED
+  SPI_MOSI_BOOT      行 285   ⇒ REQUIRED  REQUIRED
+  SPI_SCLK_BOOT      行 286   ⇒ REQUIRED  REQUIRED
+  UART_RX            行 287   ⇒ REQUIRED  REQUIRED
+  USB_CC2            行 288   ⇒ REQUIRED  REQUIRED
+
+── 判据逐条 ──
+  C3 REQUIRED_SINGLE 每条都在 SW 页且被判【必需】               ✔ 通过
+       └─ 缺 0 条 · 非必需 0 条
+  C1 凡判 NC 的网必须在 FLOAT_OK 里                         ✔ 通过
+       └─ 断言 NC 的网 = (无)
+  C2 凡在 REQUIRED_SINGLE 里的网判 NC 就判红并点名              ✔ 通过
+       └─ 被判 NC 的必需网 = (无)
+  C0 §3/§3-1 标记与 §7 订正表「新说法」同档                      ✔ 通过
+       └─ 比对 9 条
+  C5 必需网的固件侧改动清单已标「作废」                              ✔ 通过
+       └─ 未标作废 = 0 条
+  C9 §2 表「分级」列与 §3 标记同档 (加分项)                       ✔ 通过
+       └─ 比对 9 条
+
+★★结论: ★**全绿** ★ ⇒ SW 侧分级与板侧真值【一致】★
+  ⇒ BASELINE_RC=0 (★期望 0★)
+
+── ② 反向注入: §3 表 JTAG_TDI 的「建议的板侧标记」改回「NC (不连)」 (★改了 1 处★) ──
+═══ SW 侧零铜网分级 ↔ 板侧真值 一致性闸 (★ISS-344·sw-lead·零写板★) ═══
+  被检文档 : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss344/rev/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+  真值源   : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/check_s8_target_list.py (★只读·AST 静态解析·未执行其代码★)
+  板侧真值 : REQUIRED_SINGLE(8) = CAM_RESET_N, LED_G_D, USB_CC2, JTAG_TDI, UART_RX, SPI_SCLK_BOOT, SPI_MOSI_BOOT, SPI_MISO_BOOT
+             FLOAT_OK(1) = FSIN_OUT
+             EXPECT_* = 必需 23 / 可悬空 1 / 待定 0
+
+── SW 页 §3/§3-1 表读出的「建议的板侧标记」 ──
+  CAM_RESET_N        行 164   ⇒ REQUIRED  REQUIRED
+  FSIN_OUT           行 151   ⇒ FLOAT     FLOAT
+  JTAG_TDI           行 152   ⇒ NC        NC
+  LED_G_D            行 165   ⇒ REQUIRED  REQUIRED
+  SPI_MISO_BOOT      行 153   ⇒ REQUIRED  REQUIRED
+  SPI_MOSI_BOOT      行 154   ⇒ REQUIRED  REQUIRED
+  SPI_SCLK_BOOT      行 155   ⇒ REQUIRED  REQUIRED
+  UART_RX            行 156   ⇒ REQUIRED  REQUIRED
+  USB_CC2            行 157   ⇒ REQUIRED  REQUIRED
+
+── SW 页订正表的「新说法」 ──
+  CAM_RESET_N        行 281   ⇒ REQUIRED  REQUIRED
+  FSIN_OUT           行 289   ⇒ FLOAT     FLOAT
+  JTAG_TDI           行 283   ⇒ REQUIRED  REQUIRED
+  LED_G_D            行 282   ⇒ REQUIRED  REQUIRED
+  SPI_MISO_BOOT      行 284   ⇒ REQUIRED  REQUIRED
+  SPI_MOSI_BOOT      行 285   ⇒ REQUIRED  REQUIRED
+  SPI_SCLK_BOOT      行 286   ⇒ REQUIRED  REQUIRED
+  UART_RX            行 287   ⇒ REQUIRED  REQUIRED
+  USB_CC2            行 288   ⇒ REQUIRED  REQUIRED
+
+── 判据逐条 ──
+  C3 REQUIRED_SINGLE 每条都在 SW 页且被判【必需】               ✘ 判红
+       └─ 缺 0 条 · 非必需 1 条
+  C1 凡判 NC 的网必须在 FLOAT_OK 里                         ✘ 判红
+       └─ 断言 NC 的网 = JTAG_TDI
+  C2 凡在 REQUIRED_SINGLE 里的网判 NC 就判红并点名              ✘ 判红
+       └─ 被判 NC 的必需网 = JTAG_TDI
+  C0 §3/§3-1 标记与 §7 订正表「新说法」同档                      ✘ 判红
+       └─ 比对 9 条
+  C5 必需网的固件侧改动清单已标「作废」                              ✔ 通过
+       └─ 未标作废 = 0 条
+  C9 §2 表「分级」列与 §3 标记同档 (加分项)                       ✘ 判红
+       └─ 比对 9 条
+
+── ★★判红明细 (★逐条点名★) ──
+  ✘ [C1] JTAG_TDI 判了「NC (不连)」但不在板侧可悬空名单 FLOAT_OK 里
+  ✘ [C2] JTAG_TDI 在板侧【必需】名单 REQUIRED_SINGLE 里, 却被 SW 页判成 NC
+  ✘ [C3] JTAG_TDI 在板侧【必需】名单里, 但 SW 页把它判成 NC
+  ✘ [C0] JTAG_TDI 的 §3 标记判成 NC, 但 §7 订正表判成 REQUIRED ⇒ 两处分叉
+  ✘ [C9] §2 表「分级」列 (JTAG_TDI · 行 120) 与 §3 标记 (REQUIRED) 不同档
+
+★★结论: ★**判红 5 条** ★ ⇒ SW 侧分级与板侧真值【分叉】了 ★
+  ⇒ REVERSE_RC=1 (★期望 1=判红★)
+  ⇒ 点名了 JTAG_TDI ? ✔ 是
+
+── ③ 恢复 (副本 = 订正后的样子) ──
+  ★★结论: ★**全绿** ★ ⇒ SW 侧分级与板侧真值【一致】★
+  ⇒ RESTORE_RC=0 (★期望 0=判绿★)
+
+── ④ 真件零被动自证 ──
+  真件 md5 (开工前) = 0f4bf6c083f25cea6cda240a91170049
+  真件 md5 (跑完后) = 0f4bf6c083f25cea6cda240a91170049
+  ⇒ 真件逐字节未动 ? ✔ 是
+
+★★结论: ★**反向用例 成立 ✔ (判红并点名 JTAG_TDI·恢复后判绿·真件零被动)** ★
+REVCASE_RC=0

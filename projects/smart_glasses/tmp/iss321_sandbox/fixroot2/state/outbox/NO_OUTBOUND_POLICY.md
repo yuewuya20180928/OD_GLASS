@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/outbox/NO_OUTBOUND_POLICY.md

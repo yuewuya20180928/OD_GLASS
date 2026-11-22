@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/_apply_20261118_0110_cronfb67_zombie302_verify300_open303_304.py

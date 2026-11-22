@@ -93,8 +93,11 @@ MARKERS = ["D_ESD_CAM", "Q_AND", "Q_PG", "D_ESD_TC", "U_LDO_S28", "J_CHG",
 # ★来源单全集 (★每条 source_iss 必须落在里面 ★)
 # ★★ISS-283 · cont2: 增 ISS-283 (★本单落表带来的板侧同步项 §③ 三条的来源单★
 #   ⇒ ★★只【增来源】不【放宽判据】: 来源不明 (不在这个全集里) 照样判红★★)
+# ★★ISS-343 · 2026-11-23 01:0x (hw-lead): 增 ISS-290 (★E-1/E-2 两条板侧取舍的来源单★
+#   ⇒ ★**只加成员·一个都不减** ★★ ★**且不放宽任何判据** ★★
 SOURCES = {"ISS-239", "ISS-241", "ISS-244", "ISS-247", "ISS-266",
-           "ISS-269", "ISS-271", "ISS-274", "ISS-276", "ISS-283"}
+           "ISS-269", "ISS-271", "ISS-274", "ISS-276", "ISS-283",
+           "ISS-290"}
 
 # ★P5 现状探针 (★item_id → (命令, 抽取正则, 必须在该条 current_state 里出现的串 ★)
 PROBES = {
@@ -226,6 +229,139 @@ def check_P3(items):
         ["     ❌ %s" % b for b in bad]
 
 
+# ==============================================================================
+# ★★ISS-343 · 2026-11-23 01:0x (hw-lead): P4 加严 —— 「作业包 §0.2 ③ 的板侧改动清单,
+#   每一条都必须在清单页有对应 item」 ★★
+# ==============================================================================
+#   ★**病根**: 原 P4 只查「位号在不在清单里」+「来源单在不在全集里」⇒ ★**一条【不带新位号】的板改**
+#     (★同一个 `J_DEBUG`/`J_UART` 的 land pitch 从 0.50 改成 1.27★) ⇒ **天生查不出** ⇒ ★**P4 绿 = 假绿** ★
+#     (★真样本 = ISS-343 本单: `HW/PCB/BOARD_ONEPASS_PREFLIGHT.md` 的 32 条 item 里根本没有这一项★) ★
+#   ★**方向纪律: 只许【加严】不许【放宽】** ★ ⇒ ① P1/P2/P3/P5/P6 一字未动 ② 26 个 MARKERS 一个没删
+#     ③ SOURCES 只加成员 (ISS-290) ④ 本判据是【在 P4 里多加一块】, 不是换掉 P4 ★
+#
+#   ★**不许把 7 项写死成一个常量数组糊弄过去** (★那样下次作业包改了闸不会红★) ⇒
+#     ★**7 项的【原文】从作业包现场解析** (★见 parse_wp02_board_changes★) ★
+#     ★**覆盖判定 = 「绑定的清单 item 必须【真实存在】」+「绑定的 item 里必须能查到该子项的【覆盖令牌】」** ★
+#       ⇒ ★**作业包改了 (加子项/改子项/删子项/把零板改项改成板改) ⇒ 本判据当场红** ★
+WORKPACKET = os.path.join(PROJ, "HW", "PCB", "BOARD_ONEPASS_WORKPACKET.md")
+
+# ★作业包 §0.2 ③ 的子项 → 清单页 item id 的对照 (★ordinal → (item ids, 额外覆盖令牌)★)
+#   ★**这不是「把 7 项写死」**: 7 项的【原文 + 覆盖令牌】从作业包现场解析 (★见下★),
+#     本表只回答「哪条子项该由清单页哪个 item 覆盖」⇒ ★**作业包一改就红** ★
+WP02_BINDING = {
+    "①": (["B11_Q_PG_LAND"], []),
+    "②": (["B07_ESD_USB_D_3PIN", "B08_ESD_USB_D_NEAR"], []),
+    "③": (["B33_PIN_LAND_1P27"], []),
+    "④": (["B01_REF_SUFFIX"], ["_1", "位号"]),
+    "⑤": (["B02_C_VBUS_GND"], []),
+    "⑥": (["B07_ESD_USB_D_3PIN", "B08_ESD_USB_D_NEAR", "B09_ESD_USB_D_MINUS"], []),
+}
+
+# ★零板改项 (★【不进】板侧项全集★): 排除理由必须写清 (★出处 = pm.yaml 同一 key★)
+WP02_ZERO_BOARD_CHANGE = {
+    "⑦": "★E-2 = 零板改 (★pm.yaml key main_e1_e2_board_side_rulings_20261117 · decision 原文: E-2 = 零板改, 清死参数, 圆角不并进那一趟★) ⇒ ★它【不碰板 md5】⇒ 【不进】板侧项全集★",
+}
+
+WP02_ORDINALS = "①②③④⑤⑥⑦⑧⑨⑩"
+
+
+def workpacket_path():
+    """★作业包路径 (★每次调用都重读 env ⇒ --selftest 能在运行中换路径 ★)"""
+    return os.environ.get("PREFLIGHT_WORKPACKET") or WORKPACKET
+
+
+def parse_wp02_board_changes(wp_text):
+    """★从作业包 §0.2 ③ 那一行【现场解析】出板侧改动清单的子项 ⇒ [(ordinal, 原文)] ★
+
+    ★**只认「板侧改动清单」那一行里的 ①②③… 标记** ⇒ ★**作业包改了就解析出不一样的东西 ⇒ 闸会红** ★
+    ★**绝不接受外部传入的子项列表** (★那才是「写死」★) ★
+    """
+    for line in wp_text.split("\n"):
+        if "板侧改动清单" not in line or "①" not in line:
+            continue
+        cell = None
+        for c in line.split("|"):
+            if "①" in c:
+                cell = c
+                break
+        if cell is None:
+            continue
+        parts = re.split(r"([%s])" % WP02_ORDINALS, cell)
+        out, cur = [], None
+        for p in parts:
+            if len(p) == 1 and p in WP02_ORDINALS:
+                cur = [p, []]
+                out.append(cur)
+            elif cur is not None:
+                cur[1].append(p)
+        res = [(k, "".join(v).strip()) for k, v in out]
+        if res:
+            return res
+    return []
+
+
+def wp02_tokens(text):
+    """★从作业包子项原文里【自动】抽出「覆盖令牌」★ (★不许手工抄进代码★) ★
+
+      · 设计符: `Q_PG` / `D_ESD_USB_D` / `C_VBUS_GND` 这类下划线名 + `R4` / `R9` 这类规则号 ★
+      · 小数: `1.27` / `0.50` / `3.0` / `47.99` 这类目标值 (★整数不抽: `156→157` 是件数·不是覆盖口径★) ★
+    """
+    toks = set(re.findall(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+", text))
+    toks |= set(re.findall(r"\b[A-Z]{1,3}\d{1,3}\b", text))
+    toks |= set(re.findall(r"\d+\.\d+", text))
+    return toks
+
+
+def check_P4_workpack_coverage(items):
+    """★P4 加严块 (★ISS-343★): 作业包 §0.2 ③ 的每一条板侧改动都必须有对应 item ★"""
+    ok, bad, good = True, [], []
+    by_id = {str(it.get("id")): it for it in (items or [])}
+    wp_path = workpacket_path()
+    if not os.path.exists(wp_path):
+        return False, ["     ❌ 找不到作业包 %s ⇒ 新判据 fail-closed (★不许「查不到就算过」★)" % wp_path]
+    parsed = parse_wp02_board_changes(read_text(wp_path))
+    if not parsed:
+        return False, ["     ❌ 作业包 %s 的「板侧改动清单」那一行解析不出来 ⇒ 新判据 fail-closed" % wp_path]
+    expect = set(WP02_BINDING) | set(WP02_ZERO_BOARD_CHANGE)
+    got = set(o for o, _ in parsed)
+    if got != expect:
+        ok = False
+        bad.append("❌ 作业包 §0.2 ③ 解析出的子项集合 = %s, 而判据绑定表认识的是 %s ⇒ "
+                   "★作业包改了 / 绑定表过期 (fail-closed)★" % (sorted(got), sorted(expect)))
+    for o, text in parsed:
+        if "零板改" in text:
+            if o not in WP02_ZERO_BOARD_CHANGE:
+                ok = False
+                bad.append("❌ 作业包 §0.2 ③ 的 %s 写了「零板改」但判据没登记它的排除理由 ⇒ 漏判" % o)
+            else:
+                good.append("     ✔ 作业包 §0.2 ③ 的 %s = 零板改项 ⇒ 不进板侧项全集 (%s)"
+                            % (o, WP02_ZERO_BOARD_CHANGE[o][:48]))
+            continue
+        if o not in WP02_BINDING:
+            ok = False
+            bad.append("❌ 作业包 §0.2 ③ 的 %s = 「%s」是板改项但判据绑定表里没有它 ⇒ 漏判 (fail-closed)"
+                       % (o, text[:36]))
+            continue
+        ids, extra = WP02_BINDING[o]
+        missing = [i for i in ids if i not in by_id]
+        if missing:
+            ok = False
+            bad.append("❌ 作业包 §0.2 ③ 的 %s = 「%s」缺对应 item: %s ⇒ ★那一趟会漏做这一项 (★删清单页里的这条就红★)"
+                       % (o, text[:36], missing))
+            continue
+        blob = " ".join(json.dumps(by_id[i], ensure_ascii=False) for i in ids)
+        toks = sorted(wp02_tokens(text) | set(extra))
+        miss = [t for t in toks if t not in blob]
+        if miss:
+            ok = False
+            bad.append("❌ 作业包 §0.2 ③ 的 %s = 「%s」绑定的 item %s 里找不到覆盖令牌 %s ⇒ 覆盖对不上"
+                       % (o, text[:36], ids, miss))
+            continue
+        good.append("     ✔ 作业包 §0.2 ③ 的 %s ⇒ 命中 %s (覆盖令牌 %d 个全在)"
+                    % (o, ids, len(toks)))
+    return ok, good + bad
+
+
 def check_P4(items, txt):
     ok, bad = True, []
     if items is None:
@@ -240,8 +376,11 @@ def check_P4(items, txt):
         if s not in SOURCES:
             ok = False
             bad.append("id=%s 的 source_iss=%r 不在来源单全集里 ⇒ 来源不明" % (it.get("id"), s))
+    # ★★ISS-343 · 加严块 (★只加·不减·不改前面任何一条的判据方向★★)
+    ok2, lines2 = check_P4_workpack_coverage(items)
+    ok = ok and ok2
     return ok, ["     覆盖度: %d 个标记全部在清单里: %s" % (len(MARKERS), "✔" if ok else "❌")] + \
-        ["     ❌ %s" % b for b in bad]
+        ["     ❌ %s" % b for b in bad] + lines2
 
 
 def check_P5(items):
@@ -495,6 +634,62 @@ def run_selftest(checklist_path):
         write_variant(checklist_path, p, mut7)
         ok, _ = evaluate(p, only="P4")
         cases.append(("⑦ source_iss 改成来源不明 (ISS-999) ⇒ P4 红", ok is False))
+
+        # ★★ISS-343 · ⑧ 删掉新加的那条 (排针 land 1.27) ⇒ P4 红且【点名 ③ 排针 land 缺对应 item】★★
+        #   ★这一条 = 本单的病根样本: 一条【不带新位号】的板改 (同一个 J_DEBUG/J_UART 的 land pitch 改)
+        #     ⇒ 老 P4 的 26 个标记判它【抓不到】(J_DEBUG/J_UART 这两个标记在 B15 里也有) ⇒ 只能靠新判据抓 ★
+        p = os.path.join(tmpd, "v8.md")
+        write_variant(checklist_path, p, lambda d: d["items"].remove(
+            next(i for i in d["items"] if i["id"] == "B33_PIN_LAND_1P27")))
+        ok, lines = evaluate(p, only="P4")
+        named = [l for l in lines if "缺对应 item" in l and "③" in l]
+        cases.append(("⑧ 删掉新加的 B33_PIN_LAND_1P27 ⇒ P4 红且点名「③ 排针 land 缺对应 item」",
+                      ok is False and len(named) >= 1,
+                      "★自证改动★: 副本清单页 md5 %s → %s (★真件零动★) · 判红行: %s"
+                      % (md5(checklist_path)[:8], md5(p)[:8],
+                         named[0].strip() if named else "★没抓到点名行★")))
+
+        # ★★ISS-343 · ⑨ 把 SOURCES 里的 ISS-290 去掉 ⇒ P4 红 (★证明「来源单那一路」也没白加★) ★★
+        #   ★沙盒纪律: ★真件闸脚本一个字节都不许动★ ⇒ 改的是【副本】(★副本里还把 HERE/PROJ 指向真盘★) ★
+        gate_copy = os.path.join(tmpd, "gate_without_iss290.py")
+        gsrc = read_text(os.path.join(PROJ, "HW", "check_onepass_preflight_coverage.py"))
+        # ★只删 SOURCES 集合末尾那一个成员 (★不许误伤本文件里别的 ISS-290 字样★)
+        pat290 = re.compile(r'\n[ \t]*"ISS-290"([ \t]*\})')
+        n_iss290 = len(pat290.findall(gsrc))
+        gsrc2 = pat290.sub(r'\1', gsrc, count=1)
+        gsrc2 = gsrc2.replace("HERE = os.path.dirname(os.path.abspath(__file__))",
+                              "HERE = %r" % os.path.join(PROJ, "HW"))
+        gsrc2 = gsrc2.replace("PROJ = os.path.dirname(HERE)", "PROJ = %r" % PROJ)
+        open(gate_copy, "w", encoding="utf-8").write(gsrc2)
+        rr = subprocess.run([sys.executable, gate_copy, "--checklist", checklist_path],
+                            cwd=PROJ, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=900)
+        gout = (rr.stdout or b"").decode("utf-8", "replace")
+        src_line = next((l.strip() for l in gout.split("\n") if "来源不明" in l), "")
+        cases.append(("⑨ 把 SOURCES 里的 ISS-290 去掉 ⇒ P4 红 (★证明来源单那一路没白加★)",
+                      (rr.returncode != 0) and ("FAIL  P4" in gout) and ("来源不明" in gout) and n_iss290 == 1,
+                      "★自证改动★: 副本闸脚本里从 SOURCES 集合删掉 %d 处成员 (★真件零动★) · rc=%d · %s"
+                      % (n_iss290, rr.returncode, src_line or "★没抓到来源不明行★")))
+
+        # ★★ISS-343 · ⑩ 作业包 §0.2 ③ 的子项被改 (副本) ⇒ P4 红 (★证明 7 项是【现场解析】不是写死★) ★★
+        wp_bad = os.path.join(tmpd, "wp_drift.md")
+        wt = read_text(workpacket_path())
+        wt2 = wt.replace("`J_DEBUG`/`J_UART` 排针 land 0.50→1.27mm",
+                          "`J_DEBUG`/`J_UART` 排针 land 0.50→2.54mm")
+        n_drift = 0 if wt2 == wt else 1
+        open(wp_bad, "w", encoding="utf-8").write(wt2)
+        oldwp = os.environ.get("PREFLIGHT_WORKPACKET")
+        os.environ["PREFLIGHT_WORKPACKET"] = wp_bad
+        ok, lines = evaluate(checklist_path, only="P4")
+        drift_line = next((l.strip() for l in lines if "找不到覆盖令牌" in l), "")
+        if oldwp is None:
+            os.environ.pop("PREFLIGHT_WORKPACKET", None)
+        else:
+            os.environ["PREFLIGHT_WORKPACKET"] = oldwp
+        cases.append(("⑩ 作业包 §0.2 ③ 的「排针 land 1.27」被改成 2.54 (副本) ⇒ P4 红 (★证明 7 项是现场解析★)",
+                      ok is False and n_drift == 1,
+                      "★自证改动★: 作业包副本 md5 %s → %s (★真件零动★) · %s"
+                      % (md5(workpacket_path())[:8], md5(wp_bad)[:8],
+                         drift_line or "★没抓到覆盖令牌行★")))
 
         # ★基线: 真盘必须全绿 (否则上面那些红没意义)
         ok0, _ = evaluate(checklist_path)

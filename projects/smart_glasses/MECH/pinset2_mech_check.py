@@ -34,8 +34,21 @@ pinset2_mech_check.py —— ISS-192 结构侧独立复算 (板框 60×30 / RK35
 rc  = 0 → 全部通过 / 1 → 有 FAIL
 
 用法:
-    python3 MECH/pinset2_mech_check.py             # 复算 (FAIL 0 / WARN 2)
+    python3 MECH/pinset2_mech_check.py             # 复算 (FAIL 0 / WARN 2) —— ★默认档 F30A (60×30 / RK3576 · 历史产品板口径)★
     python3 MECH/pinset2_mech_check.py --self-test  # 反向用例: 把孔挪进逃线带 ⇒ 必须变红
+    python3 MECH/pinset2_mech_check.py --frame B160x100   # ★切档: 台架板 160×100 / RK3572-SOM 帧★
+    ★切档也可走环境变量: MECH_FRAME=B160x100 python3 MECH/pinset2_mech_check.py
+    ★★默认档 = F30A (60×30 / RK3576) —— ★本单不许自己拍默认档, 保持现状不变★ ★★
+
+★★ISS-345 双口径 (2026-11-23) ★★:
+  本脚本现在**同时支持两档** (帧 id 与 `HW/PCB/BOARD_FRAME_CALIBER.md` §2 `cal:FRAMES` 逐字一致):
+    · `F30A`      = 60×30 / 6 层 / 1.00mm / RK3576 17.20×16.10 (★默认档 · 判据与 11-11 迁版后逐字一致★)
+    · `B160x100`  = 160×100 / 8 层 / 1.60mm / RK3572-SOM 承载区 56.70×46.78 (★盘上现役台架板帧★)
+  ★★**默认档 (历史产品板口径) 的输出与迁移前逐字节相同** (★60×30 档判据方向一个字都没改★) ★★
+  ★**PIN-SET-2 孔位族 (套 A 四孔坐标) = F30A 帧专有** —— 台架板 160×100 盘上**没有**这四个孔
+    (★先例: MECH/board_frame_feasibility.py:108 `pinset_applicable: False` —— "套 A 是 F30A 帧的坐标,
+     套到台架板帧 = 口径不适用"★) ⇒ B160x100 帧跑**帧级判据** (板框 / SoM 承载区占位 / 逃线带 / 边距),
+    孔位族判据在本帧**不适用** (按先例登记, 不假装跑通)。
 
 纪律: 只写 MECH/ 下本脚本自己的两个文件; 不改任何别人的文件
       (不碰 HW/ 不碰 state/fragments/ 不碰 state/merge.py); 读 HW/ 只读。
@@ -58,15 +71,56 @@ HW_PCB60_PY = os.path.join(PROJ, "HW", "pcb60x30_check.py")
 # =====================================================================
 # 输入 —— 每行标来源; [推算] 的给公式
 # =====================================================================
-PCB_L = 60.00          # 板长 X (mm)  [官方] 10-28 项目总工裁 (板坐标 X=0 = 铰链端)
-PCB_W = 30.00          # 板宽 Y (mm)  [官方] 老板 10-29 19:16 拍板 (§0 台账 11-01 20:5x 订正)
-PCB_THK = 1.00         # 板厚 6 层 1.0mm            [官方] hw-lead proto_pcb_thickness_tier
+# ★ISS-345 双口径: 板框 / 主控 / 孔位 三组常量按【档位】取值 (★帧 id 逐字取自
+#   `HW/PCB/BOARD_FRAME_CALIBER.md` §2 `cal:FRAMES` 的三套帧 id 写法: B160x100 / F30A / P60x15
+#   (★P60x15 = 已作废的历史口径, 不可与现役板混用★)★)
+#   · ★默认档 = F30A (60×30 / RK3576) —— ★本单【不许自己拍默认档】, 保持现状不变★
+#   · 切档 = `--frame B160x100` (或环境变量 MECH_FRAME=B160x100) —— 见 §用法
+FRAMES = [
+    {
+        "fid": "F30A",
+        "name": "产品板 60×30 套 A (历史产品板口径 · 与台架板口径不可混用)",
+        "pcb_l": 60.00, "pcb_w": 30.00, "pcb_thk": 1.00, "layers": 6,
+        "soc_model": "RK3576", "soc_pkg": (17.20, 16.10),
+        "soc_x0": 15.00, "soc_x1": 32.20, "soc_y0": 6.95, "soc_y1": 23.05,
+        "soc_label": "SoC RK3576",
+        "esc": 0.80,
+        "jchg": (0.00, 3.00, 11.75, 18.25),
+        "pinset_applicable": True,
+        "banner": "ISS-192 结构侧独立复算 —— PCB 固定 PIN-SET-2 / 板 60×30 / RK3576 (mech-lead)",
+        "holeset": "套 A (Y 按中心线平移, S 孔 ±5.00 不变)",
+        "authority": "MECH/BOARD_GEOM_30MM.md (孔位仲裁结论与影响面)",
+        "scope": "F30A 60×30 套A 产品板口径 (判据族: PIN-SET-2 四孔 / 老口径失效复算 / Rev B 打印包契约 / 硬件侧孔位口径分歧 / 散热连带)",
+        "src": "MECH/BOARD_GEOM_30MM.md §0/§1/§3 (ISS-118/130) + HW/pcb60x30_check.py",
+    },
+    {
+        "fid": "B160x100",
+        "name": "台架板 160×100 (盘上现役 · RK3572-SOM 承载区形态)",
+        "pcb_l": 160.00, "pcb_w": 100.00, "pcb_thk": 1.60, "layers": 8,
+        "soc_model": "RK3572-SOM", "soc_pkg": (56.70, 46.78),
+        "soc_x0": 13.65, "soc_x1": 70.35, "soc_y0": 7.61, "soc_y1": 54.39,
+        "soc_label": "SoM RK3572-SOM",
+        "esc": 0.80,
+        "jchg": None,
+        "pinset_applicable": False,
+        "banner": "ISS-345 双口径 —— 台架板 160×100 / RK3572-SOM 承载区 (mech-lead)",
+        "holeset": "台架板无 PIN-SET-2 孔位 (口径不适用, 依 MECH/board_frame_feasibility.py:108 先例)",
+        "authority": "HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES + §3 SoM 承载区实测占位",
+        "scope": "B160x100 台架板帧 (判据族: 板框一致性 / SoM 承载区占位 / 逃线带 / 板内余量; ★PIN-SET-2 四孔族不适用★)",
+        "src": "HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES (行 150-158) + §3 SoM 承载区实测占位 (行 71-72)",
+    },
+]
+DEFAULT_FRAME_ID = "F30A"
+FRAME = FRAMES[0]      # ★当前档位 (由 _bind_frame 绑定)★
+
 CORNER_EDGE = 0.50     # 4 角工艺边 (mm)  [既有] MECH_BUDGET §5.1
 KEEPOUT_EDGE = 0.80    # 器件距板边 (mm)  [既有] MECH_BUDGET §5.1
 
-# ---- SoC RK3576 (FCCSP698L) ----
-# 封装体 17.20 (X) × 16.10 (Y); 板坐标落位 X0=15.00 / Y0=6.95 (板中线 15.00 居中)
-# 来源: HW/pcb60x30_check.py SOC_RK3576 + SOC_POS["RK3576"]
+# ---- SoC / SoM 占位 (★按档位取值, 见 FRAMES★) ----
+# F30A 档: RK3576 (FCCSP698L) 封装体 17.20 (X) × 16.10 (Y); 板坐标落位 X0=15.00 / Y0=6.95
+#           (板中线 15.00 居中) —— 来源 HW/pcb60x30_check.py SOC_RK3576 + SOC_POS["RK3576"]
+# B160x100 档: RK3572-SOM 承载区【封装外形占位】 X[13.65,70.35] × Y[7.61,54.39] = 56.70×46.78
+#           —— [实测] HW/PCB/BOARD_FRAME_CALIBER.md §3 (封装外形占位行)
 SOC_X0, SOC_X1 = 15.00, 32.20   # 封装体 X 区间  [官方] 17.20×16.10 FCCSP698L
 SOC_Y0, SOC_Y1 = 6.95, 23.05    # 封装体 Y 区间  [推算] 板中线 15.00 居中
 ESC = 0.80                       # 逃线带外扩 (mm/边) [推算] HW/SOC_PIN_BUDGET.md (ISS-081)
@@ -97,6 +151,181 @@ OLD_HOLES = [
     ("M2", "老 M1.2 螺钉孔", (25.00, 12.50), 1.40),
     ("D0", "老 ⌀2.0 H7 销孔", (25.00, 7.50), 2.00),
 ]
+
+# ---- ISS-345 双口径: 孔位族按帧取用 ----------------------------------
+# ★套 A 四孔坐标 = F30A 帧专有 (60×30 产品板)★; 台架板 160×100 盘上无这四个孔
+#   (★该板盘上唯一的 np_thru_hole 是 J_USB_C (USB-C 座) 的两个 ⌀0.762 机械焊盘, 不是板固定孔★)
+#   ⇒ 依 MECH/board_frame_feasibility.py:108 先例, B160x100 帧的 pinset_applicable = False
+HOLES_BY_FRAME = {"F30A": HOLES, "B160x100": []}
+OLD_HOLES_BY_FRAME = {"F30A": OLD_HOLES, "B160x100": []}
+
+# ---- ISS-345: 权威页 / 板面只读解析 (★160×100 档的每个数都要能指回这三处之一★) ----
+CALIB_PAGE = os.path.join(PROJ, "HW", "PCB", "BOARD_FRAME_CALIBER.md")
+CALIB_PARAMS = os.path.join(PROJ, "HW", "PCB", "demo_mainboard_params.json")
+BOARD_PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
+
+
+def read_calib_frames():
+    """读 `HW/PCB/BOARD_FRAME_CALIBER.md` §2 `cal:FRAMES` JSON 块 (★帧 id / 尺寸的唯一权威表★)
+    → (dict|None, 该页全部行)"""
+    if not os.path.isfile(CALIB_PAGE):
+        return None, []
+    with open(CALIB_PAGE, "r", encoding="utf-8") as f:
+        lines = f.read().splitlines()
+    blob = "\n".join(lines)
+    m = re.search(r"```json cal:FRAMES\s*(\{.*?\n\})\s*```", blob, re.S)
+    if not m:
+        return None, lines
+    try:
+        return json.loads(m.group(1)), lines
+    except ValueError:
+        return None, lines
+
+
+def find_lines(lines, needle):
+    """→ 包含 needle 的行号列表 (★证据要带行号, 不许只写文件名★)"""
+    return [i + 1 for i, ln in enumerate(lines) if needle in ln]
+
+
+def _sexp(txt):
+    tok = re.findall(r'\(|\)|"(?:[^"\\]|\\.)*"|[^\s()]+', txt)
+    stack = [[]]
+    for tk in tok:
+        if tk == '(':
+            stack.append([])
+        elif tk == ')':
+            cur = stack.pop()
+            stack[-1].append(cur)
+        else:
+            stack[-1].append(tk)
+    return stack[0][0]
+
+
+def _sget(node, key):
+    for x in node:
+        if isinstance(x, list) and x and x[0] == key:
+            return x
+    return None
+
+
+def read_board_som_occupancy():
+    """★只读实读盘上 4 座 SoM 座 `J_SOM_P1..P4` 的占位 (★不碰板, 只读★)
+    → dict(pad_bbox, fab_bbox, npads, sockets) —— 焊盘实体占位 / 封装外形占位 / 焊盘数 / 座数"""
+    out = {"pad_bbox": None, "fab_bbox": None, "npads": 0, "sockets": [],
+           "edge_bbox": None, "thickness": None}
+    if not os.path.isfile(BOARD_PCB):
+        return out
+    with open(BOARD_PCB, "r", encoding="utf-8", errors="ignore") as f:
+        txt = f.read()
+    try:
+        root = _sexp(txt)
+    except Exception:
+        return out
+    gen = _sget(root, "general")
+    if gen:
+        th = _sget(gen, "thickness")
+        if th and len(th) > 1:
+            try:
+                out["thickness"] = float(str(th[1]).strip('"'))
+            except ValueError:
+                pass
+    pads, fab, ex, ey = [], [], [], []
+    for fp in [x for x in root if isinstance(x, list) and x and x[0] == "footprint"]:
+        ref = None
+        for x in fp:
+            if isinstance(x, list) and x and x[0] == "property" and len(x) > 2 \
+                    and str(x[1]).strip('"') == "Reference":
+                ref = str(x[2]).strip('"')
+        at = _sget(fp, "at")
+        if at is None:
+            continue
+        ox, oy = float(at[1]), float(at[2])
+        rot = float(at[3]) if len(at) > 3 else 0.0
+        ca, sa = math.cos(math.radians(rot)), math.sin(math.radians(rot))
+
+        def g(lx, ly):
+            return lx * ca - ly * sa + ox, lx * sa + ly * ca + oy
+
+        if ref and re.match(r"J_SOM_P\d$", ref):
+            n = 0
+            for x in fp:
+                if not (isinstance(x, list) and x):
+                    continue
+                if x[0] == "pad":
+                    pa = _sget(x, "at")
+                    ps = _sget(x, "size")
+                    if pa is None or ps is None:
+                        continue
+                    lx, ly = float(pa[1]), float(pa[2])
+                    pr = float(pa[3]) if len(pa) > 3 else 0.0
+                    a = math.radians(rot + pr)
+                    gx = lx * math.cos(a) - ly * math.sin(a)
+                    gy = lx * math.sin(a) + ly * math.cos(a)
+                    px, py = gx + ox, gy + oy
+                    sx, sy = float(ps[1]), float(ps[2])
+                    if abs((rot + pr) % 180 - 90) < 1e-6:
+                        sx, sy = sy, sx
+                    pads.append((px - sx / 2, px + sx / 2, py - sy / 2, py + sy / 2))
+                    n += 1
+                elif x[0] in ("fp_line", "fp_rect"):
+                    # ★fp_line 轮廓要含【stroke 宽度的半宽外扩】 (★与 pcbnew GetBoundingBox 同语义★)
+                    w = 0.0
+                    st = _sget(x, "stroke")
+                    if st:
+                        wd = _sget(st, "width")
+                        if wd and len(wd) > 1:
+                            try:
+                                w = float(str(wd[1]).strip('"'))
+                            except ValueError:
+                                w = 0.0
+                    hw = w / 2.0
+                    for key in ("start", "end"):
+                        gg = _sget(x, key)
+                        if not gg:
+                            continue
+                        gx, gy = g(float(gg[1]), float(gg[2]))
+                        fab.append((gx - hw, gy - hw))
+                        fab.append((gx + hw, gy + hw))
+            out["sockets"].append((ref, n))
+            out["npads"] += n
+        # Edge.Cuts
+        for x in [x for x in root if isinstance(x, list) and x and x[0] == "gr_line"]:
+            ly = _sget(x, "layer")
+            if not ly or str(ly[1]).strip('"') != "Edge.Cuts":
+                continue
+            for key in ("start", "end"):
+                gg = _sget(x, key)
+                if gg:
+                    ex.append(float(gg[1]))
+                    ey.append(float(gg[2]))
+
+    def bbox4(pts4):
+        """→ (x0, x1, y0, y1) from 4-tuple pad boxes"""
+        if not pts4:
+            return None
+        return (min(p[0] for p in pts4), max(p[1] for p in pts4),
+                min(p[2] for p in pts4), max(p[3] for p in pts4))
+
+    def bbox2(pts2):
+        """→ (x0, x1, y0, y1) from 2-tuple points"""
+        if not pts2:
+            return None
+        return (min(p[0] for p in pts2), max(p[0] for p in pts2),
+                min(p[1] for p in pts2), max(p[1] for p in pts2))
+
+    def union(*bs):
+        bs = [b for b in bs if b]
+        if not bs:
+            return None
+        return (min(b[0] for b in bs), max(b[1] for b in bs),
+                min(b[2] for b in bs), max(b[3] for b in bs))
+
+    out["pad_bbox"] = bbox4(pads)
+    # ★封装外形占位 = 焊盘实体占位 ∪ 封装轮廓 (含 stroke 半宽外扩) —— 与 pcbnew GetBoundingBox 同语义★
+    out["fab_bbox"] = union(bbox4(pads), bbox2(fab))
+    if ex:
+        out["edge_bbox"] = (min(ex), max(ex), min(ey), max(ey))
+    return out
 
 # ---- 散热中间量
 K_AL = 237.0          # 铝骨架导热 [推算] MECH_BUDGET §2.3
@@ -190,10 +419,42 @@ def analyze_hw_pcb60x30(path=HW_PCB60_PY):
     return out or None
 
 
+def _bind_frame(fid: str) -> dict:
+    """★按档位把几何常量绑到模块级变量上 (★默认档 F30A ⇒ 迁移前取值逐字不变★)★
+
+    ★本单【不许自己拍默认档】⇒ 默认 = F30A (60×30 / RK3576) = 保持现状 ★
+    ★切默认档 = main 拍完 U-1 后跑 `--frame B160x100` (或 MECH_FRAME=B160x100) ★
+    """
+    global FRAME, PCB_L, PCB_W, PCB_THK
+    global SOC_X0, SOC_X1, SOC_Y0, SOC_Y1, ESC, ESC_X0, ESC_X1, ESC_Y0, ESC_Y1
+    global JCHG_X0, JCHG_X1, JCHG_Y0, JCHG_Y1
+    global HOLES, OLD_HOLES, SKEL_W, SOC_CX
+    fr = next((f for f in FRAMES if f["fid"] == fid), None)
+    if fr is None:
+        raise SystemExit("★未知帧 id %r (可选: %s)★" % (fid, ", ".join(f["fid"] for f in FRAMES)))
+    FRAME = fr
+    PCB_L, PCB_W, PCB_THK = fr["pcb_l"], fr["pcb_w"], fr["pcb_thk"]
+    SOC_X0, SOC_X1, SOC_Y0, SOC_Y1 = fr["soc_x0"], fr["soc_x1"], fr["soc_y0"], fr["soc_y1"]
+    ESC = fr["esc"]
+    ESC_X0, ESC_X1 = SOC_X0 - ESC, SOC_X1 + ESC
+    ESC_Y0, ESC_Y1 = SOC_Y0 - ESC, SOC_Y1 + ESC
+    if fr["jchg"] is None:
+        JCHG_X0 = JCHG_X1 = JCHG_Y0 = JCHG_Y1 = None
+    else:
+        JCHG_X0, JCHG_X1, JCHG_Y0, JCHG_Y1 = fr["jchg"]
+    HOLES = HOLES_BY_FRAME[fr["fid"]]
+    OLD_HOLES = OLD_HOLES_BY_FRAME[fr["fid"]]
+    SKEL_W = fr.get("skel_w", PCB_W)
+    SOC_CX = (SOC_X0 + SOC_X1) / 2.0
+    return fr
+
+
 # =====================================================================
 # ① 新孔位 (PIN-SET-2) 几何自检
 # =====================================================================
-def section_1(holes=HOLES):
+def section_1(holes=None):
+    if holes is None:
+        holes = HOLES
     esc_rect = (ESC_X0, ESC_X1, ESC_Y0, ESC_Y1)
     soc_rect = (SOC_X0, SOC_X1, SOC_Y0, SOC_Y1)
     jchg_rect = (JCHG_X0, JCHG_X1, JCHG_Y0, JCHG_Y1)
@@ -247,7 +508,9 @@ def section_1(holes=HOLES):
 # =====================================================================
 # ② 老口径失效复算 —— ★判据板宽无关化改写★
 # =====================================================================
-def section_2(old_holes=OLD_HOLES):
+def section_2(old_holes=None):
+    if old_holes is None:
+        old_holes = OLD_HOLES
     """★原判据是 15mm 语义 ("3/3 孔压逃线带 ⇒ 成立"), 60×30 下实测只压 2/3 ⇒
     结论仍成立但计数变了。本节改成三条**板宽无关**的独立判据:
       ②-1 计数无关化: ≥1/3 孔压带 ⇒ 不可用 (强度最低但板宽无关)
@@ -411,11 +674,122 @@ def section_5():
 
 
 # =====================================================================
+# ★ISS-345 双口径 · 帧级判据 (板框 / 主控占位 / 逃线带 / 板内余量)
+#   —— 只在【主控占位族不适用】的档位跑 (★PIN-SET-2 套 A 四孔 = F30A 帧专有坐标,
+#      套到台架板帧 = 口径不适用, 依 MECH/board_frame_feasibility.py:108 先例★)
+# =====================================================================
+def section_frame_level(fr):
+    """★160×100 / RK3572-SOM 档的帧级判据 (★每个数都指回 §B2 的三处权威源之一★)"""
+    cal, cal_lines = read_calib_frames()
+    frames = (cal or {}).get("frames", {})
+    brd = read_board_som_occupancy()
+    params = {}
+    if os.path.isfile(CALIB_PARAMS):
+        try:
+            with open(CALIB_PARAMS, "r", encoding="utf-8") as f:
+                params = json.load(f).get("board", {}) or {}
+        except (OSError, ValueError):
+            params = {}
+
+    # ① 板框三源一致 (权威页 cal:FRAMES / params.json / 板文件实读)
+    cf = frames.get(fr["fid"], {})
+    cal_w, cal_h = cf.get("width_mm"), cf.get("height_mm")
+    cal_lay, cal_thk = cf.get("layers"), cf.get("thickness_mm")
+    p_w, p_h = params.get("width_mm"), params.get("height_mm")
+    p_lay, p_thk = params.get("layers"), params.get("thickness_mm")
+    b_thk = brd.get("thickness")
+    cal_lines_hits = find_lines(cal_lines, '"%s": {' % fr["fid"]) or find_lines(cal_lines, fr["fid"])
+    agree = (cal_w == fr["pcb_l"] and cal_h == fr["pcb_w"]
+             and cal_lay == fr["layers"] and cal_thk == fr["pcb_thk"]
+             and p_w == fr["pcb_l"] and p_h == fr["pcb_w"]
+             and p_lay == fr["layers"] and p_thk == fr["pcb_thk"]
+             and (b_thk is None or abs(b_thk - fr["pcb_thk"]) < 1e-9))
+    chk("板框 = 权威页 cal:FRAMES %s (三源一致)" % fr["fid"], agree,
+        "cal:FRAMES: %.2f×%.2fmm / %s 层 / %.2fmm | demo_mainboard_params.json board: %s×%smm / %s 层 / %smm "
+        "| 板文件 general/thickness 实读: %smm"
+        % (cal_w or -1, cal_h or -1, cal_lay, cal_thk or -1,
+           p_w, p_h, p_lay, p_thk, b_thk),
+        "[实测] HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES (行 %s) + §1 行 23 表 + "
+        "HW/PCB/demo_mainboard_params.json board 段 + HW/PCB/demo_mainboard.kicad_pcb general/thickness "
+        "★本脚本只读不改板" % (",".join(str(x) for x in cal_lines_hits) or "?"))
+
+    # ② SoM 承载区实测占位 (焊盘实体 / 封装外形)
+    pb = brd.get("pad_bbox")
+    fb = brd.get("fab_bbox")
+    n_sock = len(brd.get("sockets", []))
+    n_pad = brd.get("npads", 0)
+    occ_ok = (pb is not None and fb is not None and n_sock == 4 and n_pad == 400
+              and abs(pb[0] - 15.10) < 5e-3 and abs(pb[1] - 68.90) < 5e-3
+              and abs(pb[2] - 7.61) < 5e-3 and abs(pb[3] - 54.39) < 5e-3
+              and abs(fb[0] - 13.65) < 5e-3 and abs(fb[1] - 70.35) < 5e-3)
+    pad_span = "X %.2f..%.2f / Y %.2f..%.2f" % (pb[0], pb[1], pb[2], pb[3]) if pb else "读不到"
+    fab_span = "X %.2f..%.2f / Y %.2f..%.2f" % (fb[0], fb[1], fb[2], fb[3]) if fb else "读不到"
+    chk("SoM 承载区实测占位 (4 座 × 100 焊盘 = 400)", occ_ok,
+        "焊盘实体占位 %s = %.2f×%.2fmm | 封装外形占位 %s = %.2f×%.2fmm | 座数 %d / 焊盘数 %d"
+        % (pad_span, (pb[1] - pb[0]) if pb else -1, (pb[3] - pb[2]) if pb else -1,
+           fab_span, (fb[1] - fb[0]) if fb else -1, (fb[3] - fb[2]) if fb else -1,
+           n_sock, n_pad),
+        "[实测] 板文件纯 python 逐焊盘解析 (J_SOM_P1..P4) + 与权威页 §3 行 71/72 逐位对拍")
+
+    # ③ SoM 承载区距板边余量 ≥ 器件边距带
+    marg = min(pb[0] - 0.0, fr["pcb_l"] - pb[1], pb[2] - 0.0, fr["pcb_w"] - pb[3]) if pb else -1
+    chk("SoM 承载区距板边余量 ≥ %.2fmm (器件边距带)" % KEEPOUT_EDGE, marg >= KEEPOUT_EDGE,
+        "最小余量 = %.2fmm (板 %0.2f×%0.2f, 承载区 %s)" % (marg, fr["pcb_l"], fr["pcb_w"], pad_span),
+        "[推算] 余量 = min(承载区到四边) = %.2fmm; 阈值 KEEPOUT_EDGE=%.2fmm (MECH_BUDGET §5.1)"
+        % (marg, KEEPOUT_EDGE))
+
+    # ④ 逃线带 (主控占位 + %.2f/边) 落在板内
+    esc = fr["esc"]
+    ex0, ex1 = fr["soc_x0"] - esc, fr["soc_x1"] + esc
+    ey0, ey1 = fr["soc_y0"] - esc, fr["soc_y1"] + esc
+    in_board = (ex0 >= -1e-9 and ey0 >= -1e-9 and ex1 <= fr["pcb_l"] + 1e-9
+                and ey1 <= fr["pcb_w"] + 1e-9)
+    chk("逃线带 (主控占位 + %.2f/边) 落在板内" % esc, in_board,
+        "逃线带 X %.2f..%.2f × Y %.2f..%.2f vs 板 %.2f×%.2f ⇒ %s"
+        % (ex0, ex1, ey0, ey1, fr["pcb_l"], fr["pcb_w"], "在内" if in_board else "★溢出★"),
+        "[推算] 逃线带 = 主控占位矩形 ± ESC (ESC=%.2f, HW/SOC_PIN_BUDGET.md ISS-081)" % esc)
+
+    # ⑤ 承载区高 vs 板高 (装得下/装不下)
+    h_occ = (pb[3] - pb[2]) if pb else -1
+    fits = 0 <= h_occ <= fr["pcb_w"] + 1e-9
+    chk("主控承载区高 ≤ 板高 (装得下)", fits,
+        "承载区高 %.2fmm vs 板高 %.2fmm ⇒ %s (对照: 60×30 板装不下, 差 %.2fmm)"
+        % (h_occ, fr["pcb_w"], "装得下" if fits else "★装不下★", h_occ - 30.00),
+        "[推算] 承载区高 = 焊盘实体占位 Y 跨度; 对照数 30.00mm 出自 §3 结论行")
+
+    # ⑥ PIN-SET-2 四孔族 = 口径不适用 (先例登记)
+    chk("PIN-SET-2 套 A 四孔族 = 本帧口径不适用", False,
+        "★本档只跑帧级判据: PIN-SET-2 套 A 四孔 (P1/P2/S1/S2) 是【60×30 套A 帧】的板坐标, "
+        "台架板 160×100 盘上没有这四个孔 (★盘上仅有的 np_thru_hole 是 J_USB_C (USB-C 座) 的 "
+        "2 个 ⌀0.762mm 机械焊盘, 不是板固定孔★) ⇒ 套到本帧 = 口径不适用",
+        "★先例: MECH/board_frame_feasibility.py:108 `pinset_applicable: False` "
+        "(★套 A 是 F30A 帧的坐标, 套到台架板帧 = 口径不适用★) ⇒ 本档【不假装跑通】",
+        level="na")
+    return {"cal": cal, "cal_lines": cal_lines, "board": brd, "params": params}
+
+
+# =====================================================================
 # 运行 (一次复算)
 # =====================================================================
-def run(holes=HOLES, old_holes=OLD_HOLES, pack=None, hw=None):
+def run(holes=None, old_holes=None, pack=None, hw=None):
     global CHECKS
     CHECKS = []
+    if holes is None:
+        holes = HOLES
+    if old_holes is None:
+        old_holes = OLD_HOLES
+    if not FRAME["pinset_applicable"]:
+        # ★非适用档 → 只跑帧级判据 (★不跑产品板专有族, 免得假绿★)
+        frame_info = section_frame_level(FRAME)
+        return {
+            "checks": CHECKS,
+            "edge_detail": [],
+            "old_fail": 0,
+            "pack": None,
+            "hw": None,
+            "thermal": ({}, {}, 0.0, {}),
+            "frame_info": frame_info,
+        }
     edge_detail = section_1(holes)
     old_fail = section_2(old_holes)
     pack_info = section_3(pack)
@@ -428,6 +802,7 @@ def run(holes=HOLES, old_holes=OLD_HOLES, pack=None, hw=None):
         "pack": pack_info,
         "hw": hw_info,
         "thermal": (rs, rs_pair, rs_hw_mix, r_seg),
+        "frame_info": None,
     }
 
 
@@ -519,9 +894,30 @@ def self_test():
 # =====================================================================
 # 主流程
 # =====================================================================
+def _pick_frame_id(argv):
+    """★切档解析: `--frame <fid>` 命令行优先, 其次环境变量 MECH_FRAME, 最后默认档 ★
+    ★默认档 = F30A (60×30 / RK3576) —— ★本单【不许自己拍默认档】★"""
+    fid = os.environ.get("MECH_FRAME", "").strip() or DEFAULT_FRAME_ID
+    for i, a in enumerate(argv):
+        if a == "--frame" and i + 1 < len(argv):
+            fid = argv[i + 1].strip()
+        elif a.startswith("--frame="):
+            fid = a.split("=", 1)[1].strip()
+    return fid or DEFAULT_FRAME_ID
+
+
 def main() -> int:
     if "--self-test" in sys.argv:
+        _bind_frame(DEFAULT_FRAME_ID)     # ★反向用例只针对 F30A 档孔位族★
         return self_test()
+
+    fid = _pick_frame_id(sys.argv[1:])
+    fr = _bind_frame(fid)
+    if fr["fid"] != DEFAULT_FRAME_ID:
+        # ★非默认档才多打一行档位说明 (★默认档输出与迁移前【逐字节相同】★)
+        print("★ 档位 = %s (%s) · 板 %.2f×%.2f×%.2fmm / %d 层 · 判据族: %s"
+              % (fr["fid"], fr["name"], fr["pcb_l"], fr["pcb_w"], fr["pcb_thk"], fr["layers"],
+                 fr["scope"]))
 
     res = run()
     CHECKS = res["checks"]
@@ -531,13 +927,16 @@ def main() -> int:
 
     out = {
         "issue": "ISS-192",
+        "frame": {"id": fr["fid"], "name": fr["name"], "is_default": fr["fid"] == DEFAULT_FRAME_ID,
+                  "layers": fr["layers"], "src": fr["src"], "scope": fr["scope"]},
         "board": {"L": PCB_L, "W": PCB_W, "thk": PCB_THK, "corner_edge": CORNER_EDGE,
                   "keepout_edge": KEEPOUT_EDGE},
-        "soc": {"name": "RK3576", "pkg": [17.20, 16.10],
+        "soc": {"name": fr["soc_model"], "pkg": list(fr["soc_pkg"]),
                 "pkg_rect": [SOC_X0, SOC_X1, SOC_Y0, SOC_Y1]},
         "escape_band": {"x": [ESC_X0, ESC_X1], "y": [ESC_Y0, ESC_Y1], "esc": ESC},
-        "jchg_keepout": {"x": [JCHG_X0, JCHG_X1], "y": [JCHG_Y0, JCHG_Y1]},
-        "holeset": "套 A (Y 按中心线平移, S 孔 ±5.00 不变)",
+        "jchg_keepout": ({"x": [JCHG_X0, JCHG_X1], "y": [JCHG_Y0, JCHG_Y1]}
+                         if JCHG_X0 is not None else None),
+        "holeset": fr["holeset"],
         "holes": [{"key": k, "fn": fn, "xy": xy, "d": d, "mate": m, "role": r}
                   for (k, fn, xy, d, m, r) in HOLES],
         "old_holes": [{"key": k, "fn": fn, "xy": xy, "d": d} for (k, fn, xy, d) in OLD_HOLES],
@@ -559,16 +958,18 @@ def main() -> int:
         json.dump(out, f, ensure_ascii=False, indent=2)
 
     print("=" * 78)
-    print("ISS-192 结构侧独立复算 —— PCB 固定 PIN-SET-2 / 板 60×30 / RK3576 (mech-lead)")
+    print(fr["banner"])
     print("=" * 78)
-    print(f"板 {PCB_L:.2f}×{PCB_W:.2f}×{PCB_THK:.2f}mm | SoC RK3576 占位 "
+    print(f"板 {PCB_L:.2f}×{PCB_W:.2f}×{PCB_THK:.2f}mm | {fr['soc_label']} 占位 "
           f"X[{SOC_X0:.2f},{SOC_X1:.2f}]×Y[{SOC_Y0:.2f},{SOC_Y1:.2f}] | 逃线带 "
           f"X[{ESC_X0:.2f},{ESC_X1:.2f}]×Y[{ESC_Y0:.2f},{ESC_Y1:.2f}] (外扩 {ESC:.2f}/边)")
     print(f"孔位口径 = {out['holeset']}: " +
-          " / ".join(f"{k}({xy[0]:.2f},{xy[1]:.2f})⌀{d:.2f}" for k, _, xy, d, _, _ in HOLES))
+          (" / ".join(f"{k}({xy[0]:.2f},{xy[1]:.2f})⌀{d:.2f}" for k, _, xy, d, _, _ in HOLES)
+           if HOLES else "★本帧无该孔位族 (口径不适用, 依 MECH/board_frame_feasibility.py:108 先例)★"))
     print("-" * 78)
     for c in CHECKS:
-        flag = "✅" if c["ok"] else ("⚠️ " if c["level"] == "warn" else "❌")
+        flag = "✅" if c["ok"] else ("⚠️ " if c["level"] == "warn" else
+                                    ("— " if c["level"] == "na" else "❌"))
         print(f"  {flag} {c['name']}")
         print(f"       {c['detail']}")
         if c.get("note"):
@@ -578,7 +979,7 @@ def main() -> int:
     print(f"机读结果: {os.path.relpath(OUT_JSON, os.path.join(HERE, '..'))}")
     print("★ 证据等级: 本脚本全部输出 = [推算] (设计态几何 + 公差栈, 非物理实测);")
     print("  打印包孔位 = [实测] (Rev B 生成器实际常量解析); 实物打印件 0 件已打 = [0数据]")
-    print("★ 权威表: MECH/BOARD_GEOM_30MM.md (孔位仲裁结论与影响面)")
+    print(f"★ 权威表: {fr['authority']}")
     print("=" * 78)
     return 1 if fail else 0
 

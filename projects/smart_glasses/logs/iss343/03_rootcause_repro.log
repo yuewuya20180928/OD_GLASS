@@ -1,0 +1,37 @@
+=== ISS-343 · §0③ 病根复现 (本机实读, 不抄任何 agent 报告) ===
+--- 命令 (python3 - <<PY ... PY) ---
+--- ① 改前 (本单动手前的真件快照 tmp/iss343/pre_preflight.md · md5 9f9743c81b977be802322b0966997ee2) ---
+文件 = tmp/iss343/pre_preflight.md
+item 总数 = 32
+id 全集 = B01_REF_SUFFIX B02_C_VBUS_GND B03_ULDO_S28_PAD3 B04_R_SUPV_DIV_DNP B05_U_EN_SW_VALUE B06_TPS7A20_VALUE B07_ESD_USB_D_3PIN B08_ESD_USB_D_NEAR B09_ESD_USB_D_MINUS B32_V2_NET_RENAME B10_Q_AND_LAND B11_Q_PG_LAND B12_Q_ENVC_LAND B13_ESD_CAM_PAD B14_S6_20_COORDS B15_SVC_PORT_SPLIT B16_LED_G_OPTO B17_DNP_43 B18_J_CHG_DISAMB B19_BAT_DET B20_LAND_8ROWS B21_C_REGN_4U7 B22_CHG_BOARD_FP B23_ESD_TC_4PAD B24_Q_PG_PART B25_UNCONNECTED B26_BASELINE B27_CHAINGATE B28_RELEASE B29_WRITEBACK B30_LED_BRIGHTNESS B31_P7_TARGET
+---- 在【items JSON 整体】里找 marker ----
+  '1.27'     -> 不在
+  'pitch'    -> 不在
+  '排针'       -> 不在
+  'E-1'      -> 不在
+  '0.50'     -> 不在
+  '1.27mm'   -> 不在
+---- 在【整页 md 全文】里找 marker ----
+  '1.27'     -> 不在
+  'pitch'    -> 不在
+  '排针'       -> 不在
+  'E-1'      -> 不在
+  '0.50'     -> 不在
+
+--- ② 改后 (真件 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md) ---
+文件 = HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+item 总数 = 33
+id 全集 = B01_REF_SUFFIX B02_C_VBUS_GND B03_ULDO_S28_PAD3 B04_R_SUPV_DIV_DNP B05_U_EN_SW_VALUE B06_TPS7A20_VALUE B07_ESD_USB_D_3PIN B08_ESD_USB_D_NEAR B09_ESD_USB_D_MINUS B32_V2_NET_RENAME B10_Q_AND_LAND B11_Q_PG_LAND B12_Q_ENVC_LAND B13_ESD_CAM_PAD B14_S6_20_COORDS B15_SVC_PORT_SPLIT B16_LED_G_OPTO B17_DNP_43 B18_J_CHG_DISAMB B19_BAT_DET B20_LAND_8ROWS B21_C_REGN_4U7 B22_CHG_BOARD_FP B23_ESD_TC_4PAD B24_Q_PG_PART B25_UNCONNECTED B26_BASELINE B27_CHAINGATE B28_RELEASE B29_WRITEBACK B30_LED_BRIGHTNESS B31_P7_TARGET B33_PIN_LAND_1P27
+---- 在【items JSON 整体】里找 marker ----
+  '1.27'     -> 在
+  'pitch'    -> 在
+  '排针'       -> 在
+  'E-1'      -> 在
+  '0.50'     -> 在
+  '1.27mm'   -> 在
+---- 在【整页 md 全文】里找 marker ----
+  '1.27'     -> 在
+  'pitch'    -> 在
+  '排针'       -> 在
+  'E-1'      -> 在
+  '0.50'     -> 在

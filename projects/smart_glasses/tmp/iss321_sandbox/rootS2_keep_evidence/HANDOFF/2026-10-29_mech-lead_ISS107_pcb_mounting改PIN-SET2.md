@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HANDOFF/2026-10-29_mech-lead_ISS107_pcb_mounting改PIN-SET2.md

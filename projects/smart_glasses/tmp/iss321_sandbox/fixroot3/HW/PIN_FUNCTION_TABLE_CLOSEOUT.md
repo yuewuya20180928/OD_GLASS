@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PIN_FUNCTION_TABLE_CLOSEOUT.md

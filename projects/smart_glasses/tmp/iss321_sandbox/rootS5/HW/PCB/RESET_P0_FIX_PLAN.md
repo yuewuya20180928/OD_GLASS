@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/RESET_P0_FIX_PLAN.md

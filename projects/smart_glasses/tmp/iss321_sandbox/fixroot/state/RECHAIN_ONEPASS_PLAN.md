@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/RECHAIN_ONEPASS_PLAN.md

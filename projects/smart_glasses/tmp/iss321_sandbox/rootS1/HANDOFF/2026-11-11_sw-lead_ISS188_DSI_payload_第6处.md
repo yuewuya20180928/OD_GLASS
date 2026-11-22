@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HANDOFF/2026-11-11_sw-lead_ISS188_DSI_payload_第6处.md

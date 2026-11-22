@@ -22,7 +22,7 @@ board_port_opening_s6_check.py —— ISS-271 板侧开口 (S6 认领用) + `D_L
   python3 MECH/board_port_opening_s6_check.py --selftest  ⇒ 反向用例 (★四个, 一条不许删★)
   python3 MECH/board_port_opening_s6_check.py --json      ⇒ 机器可读
 
-退出码: 0 = 自检一致; 非 0 = 自检不一致 (与 service_port_check.py 的 rc 语义一致)
+退出码: 0 = 自检一致; 非 0 = 自检不一致 (与 service_port_check.py 的 rc 语义一致) · ★帧 id 唯一权威: `HW/PCB/BOARD_FRAME_CALIBER.md` §6 `cal:FRAMES` = `B160x100` / `F30A` / `P60x15` (★三档坐标不可互相代入 · 60×30/60×15 属历史/作废口径, 不可混用★)★
 """
 from __future__ import annotations
 

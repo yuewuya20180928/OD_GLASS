@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/SCHEMATIC_LANDING_NEXT_BATCH_V1.md

@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/BOARD_ONEPASS_MECH_SYNC.md

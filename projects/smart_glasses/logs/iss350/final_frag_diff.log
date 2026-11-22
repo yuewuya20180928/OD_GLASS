@@ -1,0 +1,24 @@
+=== ISS-350 开工前 vs 交卷后 · sw.yaml 分片逐字段差分 ===
+  agent              ✔ 未动
+  role               ✔ 未动
+  updated_at         ✔ 未动
+  updated_by         ✔ 未动
+  status             ✔ 未动
+  artifacts          ✔ 未动
+  blockers           ✔ 未动
+  needs_from         138 -> 138   改动下标=[135, 137]  尾部新增=0
+       → key=iss338_need_boot_storage_answer  to=main
+       → key=iss346_need_board_side_storage_input  to=main
+  answers            45 -> 46   改动下标=[42]  尾部新增=1
+       → key=iss338_open_items_for_main  to=main
+       → 新增 key=iss346_q3_storage_tier_verdict_sw  to=main
+  interface_claims   304 -> 305   改动下标=[]  尾部新增=1
+       → 新增 key=iss346_q3_storage_tier_verdict_sw  to=None
+  open_questions     ✔ 未动
+  risks              ✔ 未动
+
+=== 改前/改后 item 全文 (iss338_need_boot_storage_answer) ===
+--- 改前 ---
+★P4 启动存储类型(SW/FLASH_AND_VERSION.md:359 [0数据])若最终要外挂 SPI-NOR ⇒ 3 条 SPI_*_BOOT 不可悬空, 板要重出。建议在既有问询清单补一句『主板侧启动存储焊盘位不引出(J_BOOT1 DNP)』
+--- 改后 ---
+★P4 启动存储类型(SW/FLASH_AND_VERSION.md:359 [0数据])· ★【ISS-350 订正 · sw-lead 2026-11-23 · 依据 pm.yaml → iss346_q3_storage_tier_verdict_20261123 (main 裁)】★★ ① 启动存储的 SPI boot 网 = ★**4 条**★ (SPI_SCLK_BOOT / SPI_CSn_BOOT / SPI_MOSI_BOOT / SPI_MISO_BOOT = 网表 HW/netlist_v1.csv L202 / L204 / L206 / L208 = J_BOOT1 pin1~pin4), 不是 3 条 · ★**[实测]** 板面 J_BOOT1 6 pad 实读 = pin1 SPI_SCLK_BOOT / pin2 SPI_CSn_BOOT / pin3 SPI_MOSI_BOOT / pin4 SPI_MISO_BOOT / pin5 VDD_3V3_IO / pin6 GND ② ★**『若外挂 SPI-NOR ⇒ 板要重出』不成立**★ ⇒ ★**外挂 SPI-NOR 走 J_BOOT1 焊盘位 ⇒ 板侧零动作, 不重出板**★ (J_BOOT1 焊盘位 6 pad 已在板 @126.3,58 + 4 条 0Ω 串阻位 R_SER_SPI_* 必装 ⇒ PCB 层零动作 · 不改网表 / 不改板框 / 不改板 md5 ⇒ 台架板档与产品板档都不卡) ; 只有『主板上焊 SPI-NOR 芯片』才需要改板, 而该路已被网表明写『启动存储: 只留焊盘位 + 串阻位, 不画存储芯片』否掉 ⇒ ★**Q3 存储轴 = 分档, 不再是整卡阻塞**★ ③ 问原厂那一句改成 ★**『主板侧 J_BOOT1 焊盘位与 4 条 SPI 走线已在板 (只 pin5/pin6 的 CONN 位 DNP); 请确认 SoM 侧是否引出这 4 条 SPI boot pin (我方网表侧记为 SoC_NC)』**★ ★**这一句才是真正要问原厂的 (SoM 是否引出 boot pin)**★ —— ★**零铜网分级口径不变**: 4 条里只有 3 条在零铜域 (SPI_SCLK_BOOT / SPI_MOSI_BOOT / SPI_MISO_BOOT 判【必需】·板侧不许标 NC) · SPI_CSn_BOOT 板面已有铜 31.352 mm ⇒ 本就不在零铜域 ⇒ ★**必需 23 不变**★

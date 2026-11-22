@@ -3,14 +3,29 @@
 # 流程: 刷新生成物 → rsync 项目库 → 拷贝 docs/config 映射件 → **真值反查脱敏** → commit → push → 用 GitHub API 验 blob SHA
 # 纪律: ① 仓库公开, 推前必须过真值反查 (命中 0 才推) ② 验证不许用 raw.githubusercontent (CDN 缓存旧版)
 set -u
+WS=/home/yuewuya/.openclaw/workspace
 # ★并发锁: 多个来源 (我手动 / cron 自动 / 队列) 同时推同一棵树会撞 git 锁 → 用 flock 串行化
-LOCK=/tmp/od_glass_publish.lock
+# ★★2026-11-23 04:5x (ISS-348): ★锁也落项目盘★ ⇒ ★/tmp 是带 userquota 的 tmpfs,
+#   配额打满时连锁文件都开不出来 ⇒ ★**发布链在第一步就死**★ ⇒ ★锁也一并搬走★
+LOCK=$WS/.publish_lock
+mkdir -p "$(dirname "$LOCK")" 2>/dev/null
 exec 9>"$LOCK"
 flock -w 120 9 || { echo "❌ 拿不到发布锁 (另一个发布在跑), 跳过"; exit 0; }
-WS=/home/yuewuya/.openclaw/workspace
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJ=$WS/projects/smart_glasses
-PUB=/tmp/od_glass_publish
+# ★★2026-11-23 04:5x (ISS-348) · ★★【发布暂存目录搬离 /tmp】★★
+#   ★**为什么**: ★`/tmp` 是带 **userquota** 的 tmpfs (7.5G) ⇒ ★**用户配额被打满时, 连 1 MB 写都失败 (EDQUOT)** ★
+#   ⇒ ★**2026-11-23 04:2x 实测事故**: 发布树占 4.2G ⇒ 配额打满 ⇒ `git reset --hard` 写 `.git/index.lock` 报
+#   "Disk quota exceeded" ⇒ ★**发布中止, 本轮未 commit 未 push**★ (★5 小时同步 job 那一趟就是这么挂的★)
+#   ⇒ ★**发布树挪到项目盘** ⇒ ★项目盘 468G 常年 385G 空 ⇒ ★配额打不到★ ⇒ ★**根因消失**★
+#   ★**保留旧路径兼容**: ★若项目盘不可写 ⇒ 回退 `/tmp` (★宁可慢也不停★) ★
+PUB_ROOT=$WS/.publish_staging
+if mkdir -p "$PUB_ROOT" 2>/dev/null && [ -w "$PUB_ROOT" ]; then
+  PUB=$PUB_ROOT/od_glass_publish
+else
+  PUB=/tmp/od_glass_publish
+  echo "⚠️ 项目盘发布暂存不可用 ⇒ 回退 $PUB (★/tmp 有 userquota·配额打满时可能失败★)"
+fi
 REPO=yuewuya20180928/OD_GLASS
 MSG="${1:-自动同步: 状态刷新}"
 
@@ -103,6 +118,18 @@ git config user.email "yuewuya20180928@users.noreply.github.com"
 #   → 之前推过一次 .v11_backup/ 与 HW/.iss075_bak/ (公开仓库里不该有)
 find "$PROJ" -maxdepth 3 \( -name '.*_bak' -o -name '*_backup' -o -name '.*_backup' \) -type d -exec rm -rf {} + 2>/dev/null
 find "$PUB" -maxdepth 5 \( -name '.*_bak' -o -name '*_backup' -o -name '.*_backup' \) -type d -exec rm -rf {} + 2>/dev/null
+# ★★2026-11-23 03:4x · ★★【/tmp userquota 打爆 ⇒ 发布轮次全挂】★★ (★main 本机实读 + 实写复现★)
+#   ★**病灶**: ① `.trash/` (源 3.8G) + `tmp/` (源 2.7G) 这两棵【运行时垃圾】被 rsync 整棵抄进发布树
+#     ⇒ 加上 `state/*.bak_*` 备份 (源 494M / 334 个) ⇒ **单棵发布树 ≈ 4.3G**
+#     ⇒ ★**/tmp 是 7.5G tmpfs 且带 userquota** ⇒ 抄完就把配额吃干 ⇒ `git reset --hard` 写 .git/index.lock
+#     直接报 `Disk quota exceeded` ⇒ ★**GitHub 同步 job 连败 (2026-11-22 23:0x 起)**★
+#   ★**修法 = 修在产生点 (rsync 排除 + 接收端清垃圾)**: 垃圾【不进发布树】⇒ 配额不再被吃 ⇒
+#     ★**顺带修掉「公开仓库里躺着 3.8G 回收站 + 494M 过期备份」这件更难看的事**★
+#   ★**注意**: `--exclude '.bak_*'` 只匹配【以 .bak_ 开头】的名字 ⇒ ★**匹配不到
+#     `issue_log.yaml.bak_2026xxxx` 这种【后缀式】备份** ⇒ 必须另加 `*.bak_*`
+#   ★**接收端也要清**: rsync 的 --delete 【不删被 exclude 保护的目标端文件】⇒ 老垃圾要显式清
+rm -rf "$PUB/projects/smart_glasses/.trash" "$PUB/projects/smart_glasses/tmp" 2>/dev/null
+find "$PUB/projects/smart_glasses/state" -maxdepth 1 -name '*.bak_*' -type f -delete 2>/dev/null
 # ★★2026-11-17 06:1x 实测事故 ⇒ rsync 加**尺寸上限** (--max-size):
 #   sw-lead 的 ISS250 (RKNN toolkit2 量化) 在 `logs/iss250_r6/` 留了 3 个 **245MB 的 .pkl**
 #   ⇒ 无上限的 rsync 把它们抄进发布树 ⇒ git add -A commit 进仓
@@ -115,6 +142,7 @@ rsync -a --delete --max-size=50m \
       --exclude 'BOOTSTRAP.md' --exclude '.openclaw' --exclude 'workspace-state.json' \
       --exclude '*.tmp' --exclude '.DS_Store' \
       --exclude '.*_bak' --exclude '*_backup' --exclude '.*_backup' --exclude '.bak_*' \
+      --exclude '*.bak_*' --exclude '.trash' --exclude '/.trash' --exclude '/tmp' \
       --exclude 'state/_os_snapshots/hirose_*' --exclude 'state/_os_snapshots/hirose_pages' \
       --exclude 'demo_mainboard.kicad_pcb' \
       --exclude 'production/gerbers' --exclude 'production/drill' \

@@ -1,0 +1,59 @@
+═══ ⑨ 交卷页/SW 页引用的 file:line 逐个在盘核对 (★§2⑩ 引用零假引用★) ═══
+OK   SW/FLASH_AND_VERSION.md:336
+       └─ | **S3** | **JTAG 调试器接 SoC** | bootloader 损坏 (S2 进不去) | **原厂是否提供 JTAG 引出 + 调试器 + 转接板 → 全 `[0数据]`** | `[0数据]` |
+OK   SW/FLASH_AND_VERSION.md:44
+       └─ | **5** | **救砖 4 级**: S1 看门狗+systemd 自恢复 (已在 M8-R4/R5) → S2 BOOT 模式强制重刷 → S3 JTAG → S4 返厂换板。**S2/S3 均依赖原厂未确认的工具链** → 标"待原厂确认" | 4 级 | `[实测]` (S1, A7S 
+OK   SW/FLASH_AND_VERSION.md:359
+       └─ | **P4** `BOOT_STORE` | 启动存储类型/容量/**官方分区表参考设计** | `[0数据]` | `fw_vendor_toolchain` (vendor) + `fw_boot_storage_bom` (hw-lead) | §4.5.4 校验步 + 整个 §4 分区方案
+OK   SW/FLASH_AND_VERSION.md:46
+       └─ | **7** | **本方案有 3 个决定性 0 数据**: ①启动存储容量与 rootfs 体积 ②ARS45 有无 USB Device PHY ③原厂下载工具/bootloader/fastboot 是否存在。**第 ①项是分区策略的总分叉点** —— rootfs 若 >64MB, SPI
+OK   SW/FLASH_AND_VERSION.md:527
+       └─ | **L2-4** | 半板 flash 通路 | SPI-NOR 空板 (焊 1 片 128MB NOR + 电源 + Type-C) + 烧录器 | 空板当"假 flash", 用 `flash_writer.py` 对它跑一遍写入+回读 | 15/15 通过, 且能读到写进去的 magic 
+OK   SW/EVT_TEMPLATE.md:503
+       └─ > 🔴 **硬规则**: **S2 连续失败 2 次 → 必须升级 S3 (JTAG), 不得"多刷几次试试"**。半写状态反复覆盖会制造更复杂的问题。
+OK   SW/EVT_TEMPLATE.md:250
+       └─ | E2E-05 | 光机逐帧延迟 (M-OPTIC) | 示波器法 (CH1=VSYNC/帧同步, CH2=光电二极管) 测得 Δt 记录在案; ≤5.0ms 判预算内, >5.0ms 必须回改预算表 S10 并注明 | | | | |
+OK   SW/S2_BOARD_TEST_CHECKLIST.md:393
+       └─ | ☐ | S2 失败第 2 次 → **申请升级 S3 (JTAG)** | **项目总工** | 申请理由 + 前 2 次的失败记录 |
+OK   SW/S2_BOARD_TEST_CHECKLIST.md:94
+       └─ | ☐ | USB-TTL 串口线 + 笔记本 | 能看 U-Boot / kernel 串口输出 | 执行人 | `board_test.serial.device` + `baud` |
+OK   SW/S2_VENDOR_QUESTION_LIST.md:315
+       └─ ## 4. P4 · `BOOT_STORE` — 启动存储类型/容量 + 官方分区表 (★★ 单位是本项核心)
+OK   SW/INTEGRATION_PLAN.md:717
+       └─ | IR-03 | hw-lead | 帧同步/曝光起始信号能否引出到测试点 (供 IT-P4-03 / IT-P4-05 示波器法) | 若不可引出, 端到端口径 A 只能靠高速摄影 (精度 ±4.2ms), 光机逐帧延迟只能靠高速摄影法 (精度降级), 两项均标 [实测] 但精度注明 | 202
+OK   SW/INTEGRATION_PLAN.md:844
+       └─ | B-5 | 帧同步信号能否引出未定 | 示波器法不可用 → 端到端与光机延迟精度降级到 ±4.2ms | hw-lead (IR-03) | 2026-10-28 |
+OK   SW/SW_REQUIREMENTS.md:684
+       └─ | **M-2 示波器** | LED 驱动电流 + 帧同步信号双通道示波器 | ±1ms | 一台示波器 + 探头 | ⭐ 推荐做交叉验证 |
+OK   SW/ONETRIP_SW_RENAME_SAFETY.md:31
+       └─ | ★**不动** (末字符是数字 ⇒ 一律不动) | **32** | 板侧 30 个 + 非板侧 2 个 (`R_CC1` / `R_CC2`) |
+OK   SW/SW_TIMING_REVIEW.md:274
+       └─ | 充电板 `J_TYPE_C` 的 D+/D− 要过铰链到主板 | ★**过不去** (P10 页 `USB_D_P` 只在充电板内部 A6→B6) ⇒ **充电板的数据线是死的** | **推翻** |
+OK   SW/tools/s2_board_run.sh:248
+       └─   SERDEV=$(cfg_get "board_test.serial.device")
+OK   SW/tools/s2_rescue_config.json:230
+       └─       "_readme": "板端串口 (取日志用)。device 常见 /dev/ttyUSB0 (USB-TTL) 或 /dev/ttyACM0 (CDC-ACM)。",
+OK   SW/tools/check_sw_ref_reachability.py:185
+       └─     "J_TYPE_C",
+OK   HW/netlist_v1.csv:285
+       └─ P5,CAM_RESET_N,CONN_CAM pin27,J_SOM_P1 pin54,CONN_CAM,单端,NET,必装,[官方],,"[CAM_RESET_N] ★camera 模组 RESET (pin27, 低有效) ⇒ 接 SoC GPIO (★球位号 TBD-01); 参考 Radx
+OK   HW/netlist_v1.csv:293
+       └─ P6,USB_CC1,J_TYPE_C A5,R_CC1,NET_USB_CC1,Rd 5.1k 到 GND ×2 (PD sink 时由 TPS25730 接管),NET,必装,[推算],TBD-10,方向 Type-C→PD控制器; 电平 —; 阻抗 Rd 5.1k 到 GND ×2 (PD s
+OK   HW/netlist_v1.csv:294
+       └─ P6,USB_CC2,J_TYPE_C B5,R_CC2,R_CC2,5.1k ±1%,R,必装,[推算],,[USB_CC2] Type-C Rd (非 PD 时下拉; 接 PD 控制器时由控制器接管),,CHG_BOARD,,
+OK   HW/netlist_v1.csv:356
+       └─ P7,FSIN_OUT,TP_FSIN,R_SER_FSIN,TP_FSIN,测试点,TP,必装,[推算],,测什么: 帧同步 (FSIN/VSYNC) 引出; 位置: SoC 侧 -> 回答原厂问询 Q4b.3,,MAIN_PCB,,
+OK   HW/netlist_v1.csv:392
+       └─ P8,JTAG_TDI_SOC,SoC_NC,R_JTAG_TDI,NET_JTAG_TDI_SOC,"单端, 100Ω 串阻",NET,必装,[待原厂],TBD-01,"方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测
+OK   HW/netlist_v1.csv:397
+       └─ P8,UART_TX,J_SOM_P2 pin7,J_UART pin1,NET_UART_TX,单端,NET,可选,[待原厂],TBD-01,方向 双向; 电平 3.3V [待原厂]; 阻抗 单端; 连接 同 B-19 排针 (复用脚); 测试点 TP_UART,B-20,MAIN_PCB,,
+OK   HW/netlist_v1.csv:399
+       └─ P8,UART_RX,J_UART,J_UART pin2,J_UART,1×2 1.27mm 排针 (UART),CONN,可选,[推算],,[UART_RX] 规格: UART 与 JTAG 复用同一排针 -> 本版拆成 1×2 独立排针 (原厂要求复用则再合并),,MAIN_PCB,,
+OK   HW/netlist_v1.csv:201
+       └─ P3,SPI_SCLK,SoC_NC,R_SER_SPI_SCLK,NET_SPI_SCLK,0Ω (串阻位),NET,必装,[待原厂],TBD-06,"启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 
+OK   HW/netlist_v1.csv:205
+       └─ P3,SPI_MOSI,SoC_NC,R_SER_SPI_MOSI,NET_SPI_MOSI,0Ω (串阻位),NET,必装,[待原厂],TBD-11,"启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 
+OK   HW/netlist_v1.csv:207
+       └─ P3,SPI_MISO,SoC_NC,R_SER_SPI_MISO,NET_SPI_MISO,0Ω (串阻位),NET,必装,[待原厂],TBD-11,"启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 
+OK   HW/netlist_v1.csv:304
+       └─ P7,LED_G_D,R_LED_G,D_LED_G,R_LED_G,55Ω ±1%,R,必装,[推算],,[LED_G_D] LED_G 串阻 = 55Ω ±1% (★**ISS-283 · G-5 裁决 (2026-11-17 09:49 老板拍「选项 ② = 改 R 到 20 mA 档」)★*

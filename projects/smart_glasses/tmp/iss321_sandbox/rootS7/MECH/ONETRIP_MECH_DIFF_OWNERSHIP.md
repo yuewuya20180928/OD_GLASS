@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/ONETRIP_MECH_DIFF_OWNERSHIP.md

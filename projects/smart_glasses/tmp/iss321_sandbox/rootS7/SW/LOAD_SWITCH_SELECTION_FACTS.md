@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/LOAD_SWITCH_SELECTION_FACTS.md

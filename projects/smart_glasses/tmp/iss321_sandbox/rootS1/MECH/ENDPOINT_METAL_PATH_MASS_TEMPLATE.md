@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md

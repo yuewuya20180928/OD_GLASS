@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HANDOFF/2026-10-27_hw-lead_SOC_PIN_BUDGET.md

@@ -1,0 +1,32 @@
+=== 分片整体对比 (改后 vs 改前) ===
+顶层 key 集合相同? True
+  agent              相同
+  role               相同
+  updated_at         相同
+  updated_by         相同
+  status             相同
+  artifacts          len 246 -> 246  ✔ 同数
+  blockers           len 15 -> 15  ✔ 同数
+  needs_from         len 138 -> 138  ✔ 同数
+  answers            len 45 -> 45  ✔ 同数
+  interface_claims   len 304 -> 304  ✔ 同数
+  open_questions     len 5 -> 5  ✔ 同数
+  risks              len 2 -> 2  ✔ 同数
+
+needs_from 中实际变化的条目下标 = [135]
+  key = iss338_need_boot_storage_answer | to = main | since = 2026-11-19
+  改后 item = ★P4 启动存储类型(SW/FLASH_AND_VERSION.md:359 [0数据])· ★【ISS-350 订正 · sw-lead 2026-11-23 · 依据 pm.yaml → iss346_q3_storage_tier_v ...
+
+=== 关键不变式 ===
+  needs_from key 序列不变? True
+  无重复 key? True
+  answers 条目数 = 45 (与改前 45 相同)
+  answers key 序列不变? True
+
+=== 机器可读口径自检: 新文里旧口径是否还在 ===
+  '3 条 SPI_*_BOOT'                           存在=False  期望=False  ✔
+  '4 条'                                      存在=True  期望=True  ✔
+  '板侧零动作, 不重出板'                              存在=True  期望=True  ✔
+  '主板侧启动存储焊盘位不引出'                            存在=False  期望=False  ✔
+  'SoC_NC'                                   存在=True  期望=True  ✔
+  '必需 23 不变'                                 存在=True  期望=True  ✔

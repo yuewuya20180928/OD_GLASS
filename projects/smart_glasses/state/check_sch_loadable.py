@@ -26,6 +26,11 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
+sys.path.insert(0, HERE)
+# ★★2026-11-23 04:5x (ISS-348): 临时产物一律落【项目盘】⇒ ★**/tmp 是带 userquota 的 tmpfs,
+#   配额打满时写盘 EDQUOT ⇒ KiCad 导出报 "Disk quota exceeded" ⇒ ★**闸被误读成「原理图坏了」**
+#   (★实测: /tmp 下 rc=2 而 TMPDIR=$PWD/tmp 下同一条命令 rc=0 全绿★) ⇒ ★**判据方向没改, 只改「往哪写」★**
+from tmpdir import gate_tmpdir
 SCH = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_sch")
 KC = os.path.join(HERE, "kicad.sh")
 
@@ -80,7 +85,8 @@ def main():
         fails += 1
         print("      ★修法: `state/gen_kicad_sch.py` 里少写了右括号 ⇒ 重新生成原理图")
 
-    net_out = "/tmp/_sch_loadable.net"
+    _tmpd = gate_tmpdir()   # ★ISS-348: 不落 /tmp★
+    net_out = os.path.join(_tmpd, "_sch_loadable.net")
     rc, msg = run(["bash", KC, "sch", "export", "netlist", "-o", net_out, SCH])
     ok2 = rc == 0 and os.path.exists(net_out) and os.path.getsize(net_out) > 1000
     print(f"  {'✅' if ok2 else '❌'} C2 KiCad 能加载并导出网表: rc={rc}"
@@ -89,7 +95,7 @@ def main():
         fails += 1
         print(f"      ★KiCad 报错: {msg.strip()[:200]}")
 
-    pdf_out = "/tmp/_sch_loadable.pdf"
+    pdf_out = os.path.join(_tmpd, "_sch_loadable.pdf")
     rc, msg = run(["bash", KC, "sch", "export", "pdf", "-o", pdf_out, SCH])
     ok3 = rc == 0 and os.path.exists(pdf_out) and os.path.getsize(pdf_out) > 1000
     print(f"  {'✅' if ok3 else '❌'} C3 KiCad 能导出原理图 PDF: rc={rc}"

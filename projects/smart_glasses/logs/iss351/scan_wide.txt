@@ -1,0 +1,30 @@
+=== WIDE SWEEP (storage token + any number/板宽/容量) ===
+
+--- answers[2] key=vendor_q19_boot_storage
+{"key": "vendor_q19_boot_storage", "to": "main", "value": "已并入原厂邮件问题清单第7问(内置boot storage? 容量?); 当前按无内置boot storage设计: 外挂 SPI-NOR 16-64MB, 吃镜脚空间, 板宽可能 12->15mm; 请并入第一轮跟进邮件", "ref": "HW/HARDWARE_BREAKDOWN.md#1.1(HW-03) + HANDOFF#阻塞-原厂第7问"}
+
+--- answers[13] key=fw_boot_storage_bom
+{"key": "fw_boot_storage_bom", "to": "sw-lead", "value": "64MB SPI-NOR 装不下 (分区表 90MB) ⇒ 必须 ≥128MB, 路线选 **eMMC 5.1 / ePoP** (不是 NOR)。★量产眼镜印证: 小米 AI 眼镜用 Kingston **ePoP** 存储 (52audio 拆解) ⇒ 方向一致。ARS45 侧仍按『无内置 boot storage』设计 (外挂), 脚号 TBD-06/11。★板宽已放宽到 30mm ⇒ 挂 eMMC 的面积压力解除 (旧账: 12→15mm 要 +25%)。", "ref": "HW/ONLINE_INTEL_2026-10-26.md#B3-2 + HW/netlist_v1.csv P3 行 185-190"}
+
+--- answers[15] key=sw_reset_hw_changes
+{"key": "sw_reset_hw_changes", "to": "sw-lead", "value": "9 项逐条现状 (按网表 grep 口径): **P0-1 已做** (Q_AND N-MOS 硬件 AND, P8 行 62) · **P0-3 已做** (U_SUPV CT 补上, 行 72) · **P1-4 未做** (CONN_USB 仍 4p D+/D-/GND/预留 ⇒ 要 pin4 改 GND) · **P1-5 部分** (充电板侧有 D_ESD_TC, 主板侧有 D_ESD_USB 行 442-443; Type-C 侧位置按 ≤3mm 落) · **P1-7 已做** (J_BOOT1 + 0Ω 位) · **P1-8 未做** (VBUS_DET 仍 1M+1M ⇒ 本周已出同向建议 100k/47k, 见 HW/CHARGE_STATUS_READBACK.md) · **P0-2/P1-6/P1-9 待排期** (U_SUPV 分压仍 [待选型]/TBD-12; USB pogo 未加; U_TEMP TMP117 有器件但缺物理测点 note)。★改网表要动 state/gen_netlist.py ⇒ 不在硬件总工本单边界, 已列 needs 给项目总工。", "ref": "HW/netlist_v1.csv P8 行 62/72 + HW/CHARGE_STATUS_READBACK.md#B1-4"}
+
+--- needs_from[5] key=q3_storage_and_audio
+{"key": "q3_storage_and_audio", "to": "boss", "waiting_on": "boss", "due": "2026-10-27", "since": "2026-10-25", "item": "Q3 模型/rootfs 怎么存(只ADB push是否接受外挂 SPI-NOR ≥128 MiB (1 Gbit) 起, 板宽12->15mm) + 音频到底做不做(tracker全文无音频条目, 我不擅自加也不擅自排除)"}
+
+--- needs_from[6] key=vendor_ars45_paper_q11_q16
+{"key": "vendor_ars45_paper_q11_q16", "to": "vendor", "waiting_on": "vendor", "due": "2026-10-29", "since": "2026-10-21", "item": "原厂纸面资料8问(10-21邮件已发未回, 全部经main转发): 1 FCCSP ball pitch + 完整引脚图/球位图 2 各电源域(轨名/电压/典型电流/峰值电流/上电顺序/电压容差) 3 显示TX(有无DSI TX/有无DP TX/lane数/分辨率帧率/能否与DP RX同时工作) 4 有无USB Device PHY 5 有无内置boot storage及容量 6 MCLK源+sensor RESET极性 7 SoC底面散热焊盘(整块/分块) 8 MIPI-CSI单sensor用2lane还是4lane+输入电压域1.2V/1.8V+是否需外部AC耦合电容"}
+
+--- needs_from[103] key=iss233_board_dnp_marking
+{"key": "iss233_board_dnp_marking", "to": "main", "item": "★板侧新发现 (只报, 本单不许碰板)★: HW/PCB/demo_mainboard.kicad_pcb 里 exclude_from_* / (dnp …) / (attr …) 实测 0 处 ⇒ 网表里 board=MAIN_PCB 且标 DNP 的真实器件约 41 颗 (R_BAT_DET_1/2 · C_DET_BAT · U_BATPROT · BT_432243 · Q1/Q2 · U_SUPV · U_DCDC_* · U_LDO_* · X1 · J_BOOT1 · TP_BAT …), 板上看不出任何件是『不装』 ⇒ 装配/贴片按板上位置全贴 ⇒ 必须并进『板只改一次』那一趟 (与 B-8-新 同一类; V-3 若拍方案 E, C_DET_BAT 也要一起说清) ⇒ 依据: 本单实跑 grep -c 'exclude_from|(dnp |(attr ' = 0 + netlist 的 dnp 列统计 ⇒ 受保护 md5 (板 611b869e… / .kicad_pro 3e504d2b…) 逐字节不变", "since": "2026-11-16"}
+
+--- risks[2] key=None
+{"id": "R-hw-boot-storage", "text": "若无内置 boot storage → 需外挂 SPI-NOR/eMMC (吃 PCB 面积, 板宽 12→15mm), 投板前必须 close", "severity": "high"}
+
+TOTAL = 7
+
+=== q3_storage_and_audio occurrences by field ===
+needs_from 5 {"key": "q3_storage_and_audio", "to": "boss", "waiting_on": "boss", "due": "2026-10-27", "since": "2026-10-25", "item": "Q3 模型/rootfs 怎么存(只ADB push是否接受外挂 SPI-NOR ≥128 MiB (1 Gbit) 起, 板宽12->15mm) + 音频到底做不做(tracker全文无音频条目, 我不擅自加也不擅自排除)"}
+
+artifacts 277 {"path": "logs/iss349/", "kind": "log", "version": "v1.0", "updated_at": "2026-10-25", "summary": "ISS-349 全套复现日志 (★一条命令可复现全部读数★): run_iss349.sh (★端到端跑真生成器+沙盒反向用例·绝不落 /tmp★) + run_iss349_full.log (24,394 B 完整日志) + evidence/ (page_BEFORE_ISS343_handedit.md 手改前真页存档 · evaporation_repro.txt 蒸发复现原始输出 · mksandbox.sh 沙盒构造脚本 · path_miss_check.txt 引用路径自检) + cont1/ (★2026-11-23 03:5x 续单补跑★: 01_gate_main.log 新闸主模式 rc=0 · 02_gate_selftest.log --selftest 末行 ALL TESTS PASS rc=0 · 03_frag_write.log 分片登记 · 04_path_miss_final.txt 页内引用 MISS=0 · 05_q3_item_fix_prep.log + 06_q3_item_fix_setjson.log 附项1 (q3_storage_and_audio 容量口径订正) · 07_merge_gate_check.log 交卷前必跑 · 08_final_acceptance.log 最终验收 · frag_write_iss349.sh · path_miss_check.py · q3_item_fix_prep.py · needs_from_after.json · hw.yaml.before_setjson 改前
+

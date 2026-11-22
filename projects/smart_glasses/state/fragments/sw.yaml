@@ -7,8 +7,10 @@ status:
   progress_pct: 100
   health: green
   updated_at: '2026-11-18'
-  summary: '★ISS-338 交卷: 9条零铜单端网 SW/** 网名级零引用(扫法自证 BAT_DET=121/RESET_N=52), 按功能等价物分级 = 必需2(CAM_RESET_N/LED_G_D)·可悬空候选6·待定1(USB_CC2);
-    推翻 main need-4b 默认值2条 + 另升2条; S8净效果 unc45→36 差分腿0条; 零写板/零落表/零改固件/零改闸/零外发; 板 md5 611b869e 未动'
+  summary: '★ISS-353 交卷: rk3572 目标口径清账 (纯口径·零写板·零落表·零外发·零采购·不代拍) —— 转换链已通 [实测 config rc=0 + 转换 rc=0 +
+    产物 249,360 B md5 97a34fff0b855b92681f26627dba5354 逐字节可复现; 板端仍 [0数据] ⇒ 降级 A/B/C (板到手一条命令出 PASS/FAIL)
+    ⇒ 板不来不卡 demo 路线; 新建只读闸 SW/tools/check_rk3572_target_caliber.py (selftest 反向用例 10/10) 点名 18 条结论矛盾 (本单内改写
+    3 条 + 台账 1 条由新条取代; 15 条越权交 main 一条命令清零); 板 md5 611b869e13518c3c023fb178f91a0075 前后双证未动★'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -1718,6 +1720,78 @@ artifacts:
   summary: '★ISS-338 机器原始输出 24 件★ 含 21_nine_net_reference_evidence(9条网逐条 V1/V2/V3 三跑) + 22_pcb_independent_parse(本单自写
     s-expr 解析器独立复核官方板: 18092段/433孔/零铜网24 ⇒ 与 ISS-334 逐项一致) + 23_unc_attribution(unc 45 条中本单 9 条各占 1 条
     = 20.0%)'
+- path: SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+  kind: doc
+  version: '1.1'
+  updated_at: '2026-11-23'
+  summary: '★ISS-344 追加式分级订正 (老字一字未删): 6 条 (JTAG_TDI / SPI_MISO_BOOT / SPI_MOSI_BOOT / SPI_SCLK_BOOT /
+    UART_RX / USB_CC2) 由 NC 改判【必需 · 进 S8 布线目标 · 板侧不许标 NC】; FSIN_OUT 保留可悬空但补条件 (现在不许落 NC); §0 / §2 / §3
+    / §3-1 / §4 / §5 / §6 逐处追加订正 + 文末 §7 分级订正小节; 只增不删由字符级子序列自证 (logs/iss344/03_only_additions_proof.txt)★'
+- path: SW/tools/check_sw_zero_copper_grade_consistency.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: '★ISS-344 新闸: 只读 HW/check_s8_target_list.py 的 REQUIRED_SINGLE / FLOAT_OK (AST 静态解析·不执行其代码·一字不改)
+    ⇒ 扫 SW 页 §3 / §3-1 的建议板侧标记 ⇒ C0~C9 九条判据 (凡判 NC 必须在 FLOAT_OK / 凡在 REQUIRED_SINGLE 判 NC 就判红并点名 / 必需网固件侧清单必须标作废
+    / 待定必须为 0); 反向用例: tmp 副本把 JTAG_TDI 改回 NC ⇒ 判红并点名 JTAG_TDI ⇒ 恢复判绿 ⇒ 真件零被动★'
+- path: logs/iss344/
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: '★ISS-344 机器原始输出: 01_gate_green / 02_reverse_case_red / 03_only_additions_proof / 04_diff_only_additions
+    / 05_mandatory_commands / 06_boundary_md5 / 07_refs_exist / 08_grade_lines + 一条命令复现 run_iss344.sh
+    + 订正执行器 apply_iss344_corrections.py + 自证器 check_only_additions.py + 反向用例 reverse_case.py★'
+- path: HANDOFF/2026-11-23_sw-lead_ISS344_零铜网分级口径对账.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: '★ISS-344 交卷页 (B1~B6 齐全): 结论摘要 / 验收标准逐条自评 / 证据分级 / 接口取值声明 / 未决项与卡点 / 自证复现命令; 回答 main §4 的 3
+    个问题 (6 条冲突逐条对 pm.yaml key / SW 页旧分级陈述行号 / 反向用例点名)★'
+- path: SW/STORAGE_CAPACITY_MATRIX.md
+  kind: analysis
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'Q3 存储轴可判矩阵一页(5 段): ①5×4 容量×存储矩阵, 每格贴 LAY-03/LAY-08 机器原始输出 + 每列 rootfs 上限的实跑自证 + 缩槽余量 ②rootfs
+    可判区间 [7.969MiB, 90MB] + 降级方案(真值仍[0数据]但结论不依赖它) ③零代价路径(只 ADB push ⇒ 板侧零动作 + 它的代价) ④时点结论 + 板框分档(台架板档不卡
+    / 产品板档仅 eMMC 档卡) ⑤Q3 两轴拆分(音频轴只登记互不依赖)'
+- path: SW/tools/gen_storage_capacity_matrix.py
+  kind: tool
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '矩阵生成器(裸跑 rc=0): 只读受保护配置 s2_rescue_config.example.json + 受保护检查器 flash_layout_check.py ⇒ 副本写
+    tmp/iss346/ ⇒ 逐格只改 rootfs/model_a/model_b 的 size(配置里无 offset 键, 检查器按序累加+align 4096) ⇒ 逐格调检查器收 LAY-03/LAY-08
+    ⇒ 20/20 格 + 8 条列上限自证 + 只读源 md5 前后一致断言 ⇒ 落 logs/iss346/(matrix_cells.json / matrix_table.md / cmd_manifest.txt
+    / cells/*.txt); 降级路径: 失败格显式标 ERROR 并保留 stderr, 不编结论'
+- path: HANDOFF/2026-11-23_sw-lead_ISS346_存储容量矩阵与板侧时点.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-346 交卷页 B0~B7 七块齐全: B0 一句话结论(分档) / B1 事实基线(本轮实跑原样输出) / B2 容量×存储矩阵 + 验收标准自评 / B3 rootfs
+    可判区间 + 降级方案 + 证据分级 / B4 零代价路径 + 接口取值声明 / B5 时点结论+板框依赖 + 未决项与卡点 / B6 边界自证(板 md5 前后一致 + 受保护件未动 + 必跑项
+    rc) / B7 交 main 的 3 条'
+- path: HANDOFF/2026-11-23_sw-lead_ISS353_rk3572目标口径清账.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-353 交卷页 B0~B7 七块齐全: B0 一句话结论 / B1 事实基线+逐条处置清单 / B2 闸与规则修订 / B3 板端降级 A/B/C / B4 边界自证 /
+    B5 ISS-155 结案建议(交 main 裁) / B6 必跑项原样输出+板指纹双证 / B7 交 main 的 3 条 + 残留项'
+- path: SW/tools/check_rk3572_target_caliber.py
+  kind: tool
+  version: v2.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-353 自带闸 (只读): 扫 SW/HW/state-fragments/HANDOFF/logs/REQ 全仓, 凡把旧口径当当下结论的行逐条点名 (文件+行号+原文+判定+处置通道);
+    判定三分 (结论矛盾/结论待裁/历史叙述); 带 --selftest 反向用例 10/10 (含旧版 R2 误报回归: DSI 网表行不再被误判) + 沙盒强制落项目盘 tmp/ (不写 /tmp)'
+- path: logs/iss353/apply_caliber_dispositions.py
+  kind: tool
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '越权条目的逐字替换补丁 (15 条, 默认 dry-run, 加 --apply 才真改): 每条旧片段必须精确命中且唯一否则整体中止; 补丁已在项目盘副本上实测可把闸清到 rc=0'
+- path: SW/RK3572_TARGET_COMPAT_V2.md
+  kind: note
+  version: v2.1
+  updated_at: '2026-10-25'
+  summary: '追加 §7 v2.1 (2026-11-23 · ISS-353): 当前真值三句 + 本单复跑读数 + 官方层 RK3572/RK3576 两条 runtime 证据 + 板端降级
+    A/B/C + 处置台账 + 残留项; §0~§6 零删除, 只改写被点名的 3 行 (L20/L21/L96)'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -3230,14 +3304,67 @@ needs_from:
   since: '2026-11-19'
 - key: iss338_need_boot_storage_answer
   to: main
-  item: ★P4 启动存储类型(SW/FLASH_AND_VERSION.md:359 [0数据])若最终要外挂 SPI-NOR ⇒ 3 条 SPI_*_BOOT 不可悬空, 板要重出。建议在既有问询清单补一句『主板侧启动存储焊盘位不引出(J_BOOT1
-    DNP)』
+  item: '★P4 启动存储类型(SW/FLASH_AND_VERSION.md:359 [0数据])· ★【ISS-350 订正 · sw-lead 2026-11-23 · 依据 pm.yaml
+    → iss346_q3_storage_tier_verdict_20261123 (main 裁)】★★ ① 启动存储的 SPI boot 网 = ★**4 条**★ (SPI_SCLK_BOOT
+    / SPI_CSn_BOOT / SPI_MOSI_BOOT / SPI_MISO_BOOT = 网表 HW/netlist_v1.csv L202 / L204 / L206 / L208 =
+    J_BOOT1 pin1~pin4), 不是 3 条 · ★**[实测]** 板面 J_BOOT1 6 pad 实读 = pin1 SPI_SCLK_BOOT / pin2 SPI_CSn_BOOT
+    / pin3 SPI_MOSI_BOOT / pin4 SPI_MISO_BOOT / pin5 VDD_3V3_IO / pin6 GND ② ★**『若外挂 SPI-NOR ⇒ 板要重出』不成立**★
+    ⇒ ★**外挂 SPI-NOR 走 J_BOOT1 焊盘位 ⇒ 板侧零动作, 不重出板**★ (J_BOOT1 焊盘位 6 pad 已在板 @126.3,58 + 4 条 0Ω 串阻位 R_SER_SPI_*
+    必装 ⇒ PCB 层零动作 · 不改网表 / 不改板框 / 不改板 md5 ⇒ 台架板档与产品板档都不卡) ; 只有『主板上焊 SPI-NOR 芯片』才需要改板, 而该路已被网表明写『启动存储:
+    只留焊盘位 + 串阻位, 不画存储芯片』否掉 ⇒ ★**Q3 存储轴 = 分档, 不再是整卡阻塞**★ ③ 问原厂那一句改成 ★**『主板侧 J_BOOT1 焊盘位与 4 条 SPI 走线已在板
+    (只 pin5/pin6 的 CONN 位 DNP); 请确认 SoM 侧是否引出这 4 条 SPI boot pin (我方网表侧记为 SoC_NC)』**★ ★**这一句才是真正要问原厂的 (SoM
+    是否引出 boot pin)**★ —— ★**零铜网分级口径不变**: 4 条里只有 3 条在零铜域 (SPI_SCLK_BOOT / SPI_MOSI_BOOT / SPI_MISO_BOOT
+    判【必需】·板侧不许标 NC) · SPI_CSn_BOOT 板面已有铜 31.352 mm ⇒ 本就不在零铜域 ⇒ ★**必需 23 不变**★'
   since: '2026-11-19'
 - key: iss338_need_jtag_group_decision
   to: main
   item: '★JTAG 整组处理两难: JTAG_TCK/JTAG_TMS/JTAG_TDO 都有铜, 只有 JTAG_TDI 是 0 段 ⇒ 裁 TDI 就等于接受『4 线缺 1, JTAG 实不可用』;
     保 JTAG 就得 4 线一起救 ⇒ 归 main'
   since: '2026-11-19'
+- key: iss346_need_board_side_storage_input
+  to: main
+  item: '★板侧输入(给 main, 用于回 q3_storage_and_audio): 若选 SPI-NOR ⇒ J_BOOT1 焊盘位【已在板】(实测: HW/PCB/demo_mainboard.kicad_pcb
+    L3143 Reference J_BOOT1, 6 个 SMD pad @126.3,58; 网表 L202/204/206/208 四条 0Ω 串阻位必装) ⇒ 板侧零动作, 不改网表/不改板框/不改板
+    md5 ⇒ 台架板档与产品板档都不卡『板那一趟』; 若选 eMMC ⇒ 153-ball TFBGA 11.5×13.0mm[官网] ⇒ 占板面 ⇒ 板宽 12→15mm ⇒ 产品板档必须在这一趟开工前进网表(晚进
+    = 板 md5 变第二次, 引 BOARD_ONEPASS_COMMIT_ORDER INV-1~INV-4), 而台架板档(B160x100 160mm 宽)代价≈0 ⇒ 不卡。★订正提示★:
+    sw.yaml 的 iss338_need_boot_storage_answer **原**写的是『3 条 SPI_*_BOOT』, 本单实读网表是【4 条】(SCLK/CSn/MOSI/MISO
+    = L202/204/206/208); 且其『板要重出』对『SPI-NOR 走 J_BOOT1 焊盘位』这一档不成立(走线与串阻位已在板, 未决的只是 J_BOOT1 pin5/pin6 的 CONN
+    DNP 与 SoC 侧 SoC_NC 待原厂) ⇒ 该 need 措辞需订正。 ★★【ISS-350 订正 · 2026-11-23 · sw-lead · 本条已闭环】★★ ★**该订正已由 main
+    于 2026-11-23 派回 sw-lead 执行 (ISS-350), 并已落进同一分片 needs_from 里的 iss338_need_boot_storage_answer (新措辞
+    = 4 条 SPI_*_BOOT + 『外挂 SPI-NOR ⇒ 板要重出』不成立(板侧零动作·不重出板) + 问原厂那一句改成问『SoM 侧是否引出这 4 条 SPI boot pin (我方网表侧记为
+    SoC_NC)』)★ ⇒ ★**本条订正提示到此闭环, 不用再派**★'
+  since: '2026-11-23'
+- key: iss353_need_main_apply_caliber_patch
+  to: main
+  item: '★**一条命令**: `python3 logs/iss353/apply_caliber_dispositions.py --apply` ⇒ 把 15 条越权口径条目按逐字替换文本清掉
+    (默认 dry-run; 已验 15/15 旧片段精确命中且唯一 ⇒ 补丁可干净应用; sw-lead 已在项目盘副本 tmp/iss353/patch_verify/ 上真跑过 --apply
+    ⇒ 副本上闸 rc=0, 真件零改动) ⇒ ★**为什么不由 sw-lead 直接改**: 那些文件 (HW/STEP1_LANDING_LIST.md 属 hw-lead 地界 + 其它 SW
+    文档) 不在 ISS-353 的「只写」清单里 ⇒ 越权 ⇒ 交 main 执行★'
+  since: '2026-11-23'
+- key: iss353_need_main_decide_iss155_blocker
+  to: main
+  item: '★**ISS-155 的 blocker 定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」★ = ★**交 main 裁**★ (sw-lead 只交依据 + 残留代价,
+    不代拍): 依据 = 转换链已通 [实测 config rc=0 + 转换 rc=0 + 产物逐字节可复现] + 官方两工具链平台归属 [官网] + 板端仍 [0数据]; 残留代价 = 板端 N1~N5
+    无数据 + 转换脚本未切 rknn3-toolkit; 降级后**不再阻塞 demo 路线选择** (路线由 main 定, 定路线所需事实已坐实)'
+  since: '2026-11-23'
+- key: iss353_need_followup_convert_script_rk3572
+  to: main
+  item: '★后续单 (sw-lead 自己排期, 交 main 确认优先级)★: SW/tools/rk3572_model_rebuild.sh (L13/L86/L136) 与 SW/RKNN_BENCH.md
+    §5 的转换/bench 仍是 toolkit2 + target_platform=''rk3576'' ⇒ 主路线 (rknn3-toolkit 1.2.0 + rk3572) ★**还没落到脚本上**★
+    ⇒ 需给两处加 rknn3 分支 (★注意 rknn3 产物是 .rknn + 同名 .weight 两件套, 只拷 .rknn 一定失败★) ⇒ 本单不改脚本 (不在本单允许写范围) ⇒ 交 main
+    裁排期'
+  since: '2026-11-23'
+- key: iss353_need_hw_ledger_supersede
+  to: main
+  item: '★**hw-lead 自己的分片 (state/fragments/hw.yaml) L5226/L5227 两条旧登记需要一条切题的取代标记**★ ⇒ 闸 `SW/tools/check_rk3572_target_caliber.py`
+    把它判「结论矛盾(要处置)」(内容: 『RK3572 NPU 与 RK3576 同代同架构 ⇒ 用 target_platform=''rk3576'' 转』—— 同代同架构已被 ISS-250
+    官方反证, 转换 target 已被 ISS-263 取代) ⇒ ★**hw.yaml 是 hw-lead 的地界, sw-lead 不越界改, 故交 main 转 hw-lead**★ ⇒ hw-lead
+    在自己分片里追加一条 interface_claim 即可清掉 (文本照抄): key=`iss353_hw_ledger_supersede_rk3572_target` · value=`RK3572
+    转换 target = rknn3-toolkit 1.2.0 + target_platform=''rk3572'' [实测 rc=0; 官方 README Supported Platforms
+    含 RK3572]; toolkit2 侧 rk3572 非法 [官网+实测]; 板端接受性 [0数据]` · note=`★已被 ISS-263 (rknn3-toolkit 1.2.0 支持
+    target_platform=''rk3572'') 取代·本条保留作历史留档·结论不再引用★** —— 本条取代本分片此前登记的『RK3572 NPU 与 RK3576 同代同架构 ⇒ 用 target_platform=''rk3576''
+    转』等旧条目`'
+  since: '2026-11-23'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -3667,12 +3794,72 @@ answers:
 - key: iss338_open_items_for_main
   to: main
   value: '★**本单边界与未决项交 main (不代拍)★**: ① USB_CC2 悬不悬空 ⇒ 归 main 裁 (USB-IF 条款待外部确认); ② 启动存储 P4 类型 (SW/FLASH_AND_VERSION.md:359
-    [0数据]) ⇒ 若最终外挂 SPI-NOR, 3 条 SPI_*_BOOT 不可悬空, 板要重出 ⇒ 归原厂 (经 main 既有问询清单, 不发新信); ③ JTAG 整组 (JTAG_TCK/TMS/TDO
-    都有铜, 只缺 TDI) ⇒ 裁了就等于接受『4 线缺 1, JTAG 实不可用』, 归 main; ④ 24 条零铜网的分级定稿 (need-4b) ⇒ 归 main。 ★另登记: SW/tools/check_sw_ref_reachability.py:185
-    与 check_sw_ref_reachability_v2.py:244 的 『J_TYPE_C』硬编码指向一个不在官方板上的位号 ⇒ 本单零改闸, 只登记不动手。★**固件侧降级声明本单只写清改哪一行,
-    一行未动 (本单不许改固件本体)** ⇒ 改动清单见 SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md §3。'
+    [0数据]) ⇒ ★**4 条 SPI_*_BOOT**★ (SPI_SCLK_BOOT / SPI_CSn_BOOT / SPI_MOSI_BOOT / SPI_MISO_BOOT) 不可悬空
+    (板侧不许标 NC) · ★**『若外挂 SPI-NOR ⇒ 板要重出』不成立**★ (走 J_BOOT1 焊盘位 ⇒ 板侧零动作 ⇒ 不重出板) ⇒ ★**真正要问原厂的只有一句: 主板侧 J_BOOT1
+    焊盘位与 4 条 SPI 走线已在板 (只 pin5/pin6 的 CONN 位 DNP); 请确认 SoM 侧是否引出这 4 条 SPI boot pin (我方网表侧记为 SoC_NC) —
+    归原厂**★ (经 main 既有问询清单, 不发新信) ★【ISS-350 订正 · 2026-11-23 · sw-lead · 3 条→4 条 + 板要重出不成立 + 问法改口径】★; ③
+    JTAG 整组 (JTAG_TCK/TMS/TDO 都有铜, 只缺 TDI) ⇒ 裁了就等于接受『4 线缺 1, JTAG 实不可用』, 归 main; ④ 24 条零铜网的分级定稿 (need-4b)
+    ⇒ 归 main。 ★另登记: SW/tools/check_sw_ref_reachability.py:185 与 check_sw_ref_reachability_v2.py:244 的
+    『J_TYPE_C』硬编码指向一个不在官方板上的位号 ⇒ 本单零改闸, 只登记不动手。★**固件侧降级声明本单只写清改哪一行, 一行未动 (本单不许改固件本体)** ⇒ 改动清单见 SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+    §3。'
   ref: ISS-338 · HANDOFF/2026-11-19_sw-lead_ISS338_9条单端脚固件引用.md §B4/§B5 · SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
     §3/§4
+- key: iss344_sw_grade_alignment
+  to: main
+  value: '★**ISS-344 交回 main (2026-11-23)**: ① SW 页 6 条冲突 (JTAG_TDI / SPI_MISO_BOOT / SPI_MOSI_BOOT /
+    SPI_SCLK_BOOT / UART_RX / USB_CC2) 已按你 2026-11-22 20:5x 终裁【追加式】改判为【必需 · 进 S8 布线目标 · 板侧不许标 NC】(依据逐条引
+    pm.yaml 的 4 个 key 原文); ② FSIN_OUT 保留可悬空但补上条件 (板那一趟新基线仍零铜才允许标 NC, 现在只定口径不动手 ⇒ SW 侧现在没有落任何 NC); ③ 这
+    6 条对应的固件侧降级声明条目一律标【作废】, 不是改写成新的固件侧改动 (那是板那一趟同批改的活); ④ 新建闸 SW/tools/check_sw_zero_copper_grade_consistency.py
+    (只读 HW/check_s8_target_list.py 的 REQUIRED_SINGLE / FLOAT_OK ⇒ 判 NC 的网必须在 FLOAT_OK, 在 REQUIRED_SINGLE
+    的网判 NC 就判红并点名), 反向用例已在 tmp 副本上跑通 (判红并点名 JTAG_TDI, 恢复判绿, 真件 md5 零变动); ⑤ 固件本体 / 板 / 落表 / 板侧判据 一个字节都没动;
+    零外发; 本单未新增任何老板拍板项★'
+  ref: HANDOFF/2026-11-23_sw-lead_ISS344_零铜网分级口径对账.md · SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+    §7 · logs/iss344/
+- key: iss346_storage_capacity_matrix
+  to: main
+  value: 'ISS-346 存储轴已从[0数据]变成可判矩阵(5×4, 20/20 格机器跑通; 生成器 SW/tools/gen_storage_capacity_matrix.py 裸跑 rc=0):
+    ①每格四问(LAY-03 装不装得下/槽要不要缩/是否必须eMMC/板侧后果)判据全部来自 flash_layout_check.py 实跑输出, 不抄 FLASH_AND_VERSION 旧结论;
+    ②rootfs 真值仍[0数据](板没做出来), 但结论不依赖它 —— 区间 rootfs∈[7.969MiB, 90MB], 每列上限机器自证(64MB NOR≤7.969MiB / 128MB
+    NOR≤71.969MiB / 256MB NOR≤199.969MiB; model槽 15→11MiB 再各+8MiB), 真值落哪一格就按那一格办; ③零代价路径=demo阶段只 ADB push,
+    板侧零动作, 代价=无 S2 救砖 + 无 A/B 回滚(只能重刷, 引 FLASH_AND_VERSION §4.1 方案B 降级口径); ④★分档结论★: Q3 对台架板档(B160x100,
+    160mm宽)不卡 —— eMMC 的 ~25% 板面代价≈0; Q3 对产品板档(F30A 60×30 / P60x15)仅 eMMC 档卡(板宽12→15mm); ★SPI-NOR 档两档都不卡★(J_BOOT1
+    焊盘位已在板[实测] 6 pad @(126.3,58) + 网表 L202/204/206/208 四条 0Ω 串阻位必装) ⇒ 故 Q3 的『时限型卡』应分档写回拍板页, 而非整卡挂着; ⑤仅
+    eMMC 档才需进网表(板那一趟开工前, 引 BOARD_ONEPASS_COMMIT_ORDER INV-1~INV-4), SPI-NOR 档与只 ADB push 两档零板侧动作; ⑥证据等级:
+    矩阵判定=[实测](被测对象=配置副本+检查器) 但被检 partition_layout 本身=[推算]占位值 ⇒ 结论等级=[推算]; model 产物 10,575,159B=[实测](SW/RKNN_BENCH
+    §3.2.2); NOR/eMMC 型号参数=[官网]; rootfs真值/app产物/音频=[0数据]'
+  ref: SW/STORAGE_CAPACITY_MATRIX.md + HANDOFF/2026-11-23_sw-lead_ISS346_存储容量矩阵与板侧时点.md
+- key: iss346_q3_storage_tier_verdict_sw
+  to: main
+  value: '★★【ISS-350 · SW 侧 Q3 分档口径写回 · sw-lead 2026-11-23】★★ ★Q3 存储轴 = 分档 (不再是整卡式的卡/不卡二元题)★ —— 机器判决 5×4
+    矩阵 20/20 格 · failures=0 (ISS-346 生成器裸跑 rc=0): ① 只 ADB push 档 ⇒ 板侧零动作 ⇒ 不卡 ② 外挂 SPI-NOR 档 ⇒ J_BOOT1
+    焊盘位已在板 + 4 条 0Ω 串阻位必装 ⇒ PCB 层零动作 ⇒ 台架板档与产品板档都不卡 ③ eMMC 档 ⇒ 板宽 12→15 mm ⇒ 台架板档 B160x100 板面代价≈0 ⇒ 不卡
+    ⇒ ★只有 eMMC 档 + 产品板档 (F30A / P60x15) 才卡 (时限型)★ · ★板侧时点★: eMMC 档须赶在板那一趟开工前进网表 (晚进 ⇒ 板 md5 变第二次 · 留证链/投产包作废重做);
+    SPI-NOR 档与只 ADB push 档板侧零动作零代价 ⇒ 不占板那一趟阻塞位 · ★音频轴: 音频轴与存储轴互不依赖 (存储轴的任何结论都不受音频决策影响)★ ⇒ ★音频做不做本单不判 /
+    不建议 / 不代拍★ · ★本条为登记, 不新增拍板项, 不代老板拍★'
+  ref: SW/STORAGE_CAPACITY_MATRIX.md · HANDOFF/2026-11-23_sw-lead_ISS346_存储容量矩阵与板侧时点.md · logs/iss346/matrix_cells.json
+    (20 格 · failures=0) · state/fragments/pm.yaml → iss346_q3_storage_tier_verdict_20261123 · HANDOFF/2026-11-23_sw-lead_ISS350_Q3分档口径写回SW侧.md
+- key: iss353_rk3572_target_caliber_verdict
+  to: main
+  value: '★★【ISS-353 交回 main · 2026-11-23 · sw-lead · 纯口径 · 零写板】★★ ★**rk3572 目标口径已清账: 转换链这一环已通; 板端仍 [0数据]**★
+    —— ★★**toolkit2 (2.3.2 / 2.5.0) 不支持 rk3572 target** ⇒ [官网]+[实测] ⇒ ★★**所以转换链要用 rknn3-toolkit 1.2.0**★★;
+    ★★**rknn3-toolkit 1.2.0 支持 `target_platform=''rk3572''`** ⇒ [实测] ⇒ ★★**转换链这一环已通**★★; ★★**板端接受性仍 [0数据]**
+    ⇒ 降级方案 = 板到手一条命令出 PASS/FAIL ⇒ ★★**板不来 ⇒ demo 路线不被这条卡住, 卡的是「验收何时做」, 不是「能不能做」**★★ —— ★**证据**: ① [官网]
+    rknn-toolkit2 README「Support Platform」8 系列无 RK3572 + rknn3-toolkit README「Supported Platforms: RK1820/RK1828/RK3572」+
+    CHANGELOG V1.0.4 「Added RK3572 platform support (Beta)」; ② [实测] 本单 2026-11-23 04:5x 自跑复证: config(target_platform=''rk3572'')
+    rc=0 (0.015s) · 反向 rk3576 抛 ValueError (报错串含 rk3572) · 转换 1 次 rc_config/load_onnx/build/export 全 0,
+    t_total 51.445s, 产物 249,360 B, md5 97a34fff0b855b92681f26627dba5354 (与 ISS-263 三次逐字节一致) · 板端 list_devices()=[]
+    + init_runtime rc=-1 + 192.168.2.5 ping 100% 丢包 + ARP INCOMPLETE; ③ 官方把 RK3572 (librknn3_api.so +
+    librknn3_api_native.so) 与 RK3576/RK3588 (librknn3_api.so + librknn3_api_rkcp.so) 分成两条 runtime ⇒ 跨芯片接受性官方无互换表述
+    ⇒ [0数据]★ —— ★**ISS-155 的 blocker 可从「demo 头号卡点」降为「转换链已通 / 板端待板」**: **是否降级 = 交 main 裁 (sw-lead 不代拍)**;
+    降级后**不再阻塞 demo 路线选择** (路线由 main 定, 而定路线所需的两条事实已在本单坐实); 残留代价 = 板端 N1~N5 一个数都没有 + 转换脚本 (SW/tools/rk3572_model_rebuild.sh
+    / SW/RKNN_BENCH.md) 仍是 toolkit2+rk3576 ⇒ 主路线还没落到脚本上 ⇒ 交 main 排期★ —— ★**清账**: 新建只读闸 SW/tools/check_rk3572_target_caliber.py
+    (带 --selftest 反向用例 10/10 通过) 扫全仓点名 18 条「结论矛盾(要处置)」: 本单内已改写 3 条 (SW/RK3572_TARGET_COMPAT_V2.md v2.1)
+    + 1 条台账旧条由本分片新条取代; 其余 14 条文件不在本单允许写范围 (HW/* 属 hw-lead 地界) ⇒ 越权 ⇒ 逐字替换文本 + 一键补丁 logs/iss353/apply_caliber_dispositions.py
+    (默认 dry-run, 15/15 旧片段精确命中唯一) 交 main 一条命令清零 ⇒ sw-lead 不越界改别人的文档★ —— ★**零写板 (板 md5 611b869e13518c3c023fb178f91a0075
+    前后双证一致) · 零落表 (只写本分片) · 零外发 · 零采购 · 不代老板拍**★'
+  ref: HANDOFF/2026-11-23_sw-lead_ISS353_rk3572目标口径清账.md · SW/RK3572_TARGET_COMPAT_V2.md §7 · logs/iss353/
+    (config_probe_rknn3_rerun.log / convert_rk3572_rerun.log / board_unreachable_rerun.log / official/)
+    · SW/tools/check_rk3572_target_caliber.py
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -5620,6 +5807,36 @@ interface_claims:
   value: unc 45→36 (−20.0%); 差分腿 0 条; 省 9 条(8条B桶死线)
   note: ★S8 净效果实测★ 悬空只减 unc 不救差分腿; 前提是板侧真标 no-connect
   ref: ISS-338
+- key: iss344_sw_zero_copper_grade
+  value: '必需 23 (15 条高速差分腿 + 8 条单端脚: CAM_RESET_N / LED_G_D / USB_CC2 / JTAG_TDI / UART_RX / SPI_SCLK_BOOT
+    / SPI_MOSI_BOOT / SPI_MISO_BOOT) · 可悬空 1 (FSIN_OUT, 条件式: 板那一趟新基线上仍是零铜才允许标 no-connect; 标 NC 是板那一趟的板侧动作,
+    现在只定口径不动手) · 待定 0'
+  note: '★ISS-344: SW 侧口径已对齐 main 2026-11-22 20:5x 终裁 (iss334_need4b_zero_copper_net_triage / iss338_need_jtag_group_decision
+    / iss338_need_boot_storage_answer / iss338_need_usbif_cc1_cc2_rule); 板侧真值源 = HW/check_s8_target_list.py
+    (只读·一字不许动); 本单只对齐不重判, 零外发零新增老板拍板项★'
+  ref: SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md §7 · HW/check_s8_target_list.py
+- key: iss346_q3_storage_tier_verdict_sw
+  value: q3_tier:adb=0,nor=0,emmc=pcb_only
+  note: '★★【ISS-350 登记 · sw-lead 2026-11-23 · 只登记不拍板】★★ 依据 pm.yaml → iss346_q3_storage_tier_verdict_20261123
+    (main 裁) + ISS-346 机器判决 (5×4 矩阵 20/20 格 · failures=0) ⇒ ★Q3 存储轴 = 分档, 不是整卡阻塞★: ① 只 ADB push 档 ⇒ 板侧零动作
+    ⇒ 不卡 ② 外挂 SPI-NOR 档 ⇒ J_BOOT1 焊盘位已在板 (6 pad @126.3,58) + 4 条 0Ω 串阻位 R_SER_SPI_* 必装 ⇒ PCB 层零动作 ⇒ 台架板档与产品板档都不卡
+    ③ eMMC 档 ⇒ 板宽 12→15 mm ⇒ 台架板档 B160x100 板面代价≈0 ⇒ 不卡 ⇒ ★只有 eMMC 档 + 产品板档 (F30A / P60x15) 才卡 (时限型)★ ·
+    ★板侧时点★: eMMC 档必须赶在板那一趟开工前进网表 (晚进 = 板 md5 变第二次 · 引 BOARD_ONEPASS_COMMIT_ORDER INV-1~INV-4); SPI-NOR
+    档与只 ADB push 档板侧零动作零代价 ⇒ 不占板那一趟的阻塞位 · ★音频轴★: ★音频轴与存储轴互不依赖 (存储轴的任何结论都不受音频决策影响)★ ⇒ ★音频做不做本单不判 / 不建议
+    / 不代拍★ · ★本条只登记, 不新增拍板项, 不代老板拍★ · ★板侧时点与 4 条 SPI_*_BOOT 口径的写回 = 同一单的另一条 need (iss338_need_boot_storage_answer,
+    2026-11-23 订正)★'
+  ref: ''
+- key: iss353_rk3572_target_caliber
+  value: rk3572 转换 target = rknn3-toolkit 1.2.0 + target_platform='rk3572' [实测 rc=0 + 产物 249,360 B md5
+    97a34fff0b855b92681f26627dba5354; 官方 README Supported Platforms 含 RK3572]; toolkit2 侧 rk3572 非法 target
+    [官网+实测]; 板端接受性 [0数据] ⇒ 降级 A/B/C
+  note: ★**已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★** —— 本条取代本分片此前所有『RK3572
+    上只能用 target_platform=rk3576 转 / 不存在升级就有 rk3572 的路 / RK3572 与 RK3576 同代同架构』的旧登记条目 (ISS-145 / ISS-155
+    / ISS-196 / ISS-250 各条) ⇒ ★**当前唯一口径 = 本条 + key=iss353_rk3572_target_caliber_verdict**★ ⇒ 板端接受性仍 [0数据]
+    ⇒ 走降级 A/B/C (A=板到手一条命令出 PASS/FAIL / B=板不来则 demo 不停, 登记为「待板」 / C=板端拒收则三档代价排序) ⇒ ★ISS-155 的定位是否降级 =
+    交 main 裁, sw-lead 不代拍★
+  ref: SW/RK3572_TARGET_COMPAT_V2.md §7.1 · logs/iss353/official/ (rknn-toolkit2 README / rknn3-toolkit
+    README / CHANGELOG / rknn3_model_test_demo README)
 open_questions:
 - id: SW-Q1
   to: main

@@ -1,0 +1,20 @@
+[OK] 复用开工前快照 = logs/iss351/hw.yaml.before_setjson (不覆盖)
+[OK] answers[2] 目标条目已改 (其余 72 条逐字未动)
+[OK] answers[13] 目标条目已改 (其余 72 条逐字未动)
+[OK] needs_from[5] 目标条目已改 (其余 240 条逐字未动)
+[OK] risks[2] 目标条目已改 (其余 3 条逐字未动)
+[OK] answers[2] 改动字段 = ['ref', 'value'] (to/key 逐字未动)
+[OK] answers[13] 改动字段 = ['value'] (to/key 逐字未动)
+[OK] needs_from[5] 改动字段 = ['item'] (to/due/since/waiting_on 逐字未动)
+[OK] risks[2] 改动字段 = ['text'] (id/severity 逐字未动 · severity='high' 刻意不动)
+[OK] answers 条目数 = 74 (改前 74 · 不增不减)
+[OK] needs_from 条目数 = 241 (改前 241 · 不增不减)
+[OK] risks 条目数 = 4 (改前 4 · 不增不减)
+[OK] 中间件 = logs/iss351/answers_after.json
+[OK] 中间件 = logs/iss351/needs_from_after.json
+[OK] 中间件 = logs/iss351/risks_after.json
+
+★下一步 (必须逐条跑, 顺序固定):
+  python3 state/frag_write.py --agent hw-lead --set-json /home/yuewuya/.openclaw/workspace/projects/smart_glasses/logs/iss351/answers_after.json --set-field answers
+  python3 state/frag_write.py --agent hw-lead --set-json /home/yuewuya/.openclaw/workspace/projects/smart_glasses/logs/iss351/needs_from_after.json --set-field needs_from
+  python3 state/frag_write.py --agent hw-lead --set-json /home/yuewuya/.openclaw/workspace/projects/smart_glasses/logs/iss351/risks_after.json --set-field risks

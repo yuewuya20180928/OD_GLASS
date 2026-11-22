@@ -1,0 +1,57 @@
+★ISS-349 cont1 · 最终验收 (★2026-11-23 03:5x · hw-lead★)
+$ cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+$ export TMPDIR=/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss349/tmpdir
+
+$ python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-23T03:53:25+08:00)
+   产出 746 | 阻塞 43 (高危 33) | 未闭合需求 344 | 冲突 0 | 健康度 red
+--- rc=0 ---
+
+$ python3 state/gate_check.py
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-23_hw-lead_ISS349_板侧项全集生成器回归修复.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-23_sw-lead_ISS350_Q3分档口径写回SW侧.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-23_mech-lead_ISS345_8脚本迁双口径.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '推算', '0数据']
+   sw-lead    标签: ['实测', '推算', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 1032 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 179 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 92 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 70 条需求确实还没人答 (等另一个总工)
+
+--- rc(pipeline head)=0 ---
+
+$ python3 HW/check_preflight_regen_idempotent.py --selftest  (★末行必须 ALL TESTS PASS★)
+      ★生成器 rc=0 · 闸全绿=True★
+--------------------------------------------------------------------------------------------------
+  ALL TESTS PASS
+--- rc=0 ---
+
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb ; stat -c '%y' HW/PCB/demo_mainboard.kicad_pcb
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800
+
+★期望: md5 = 611b869e13518c3c023fb178f91a0075 · mtime = 2026-11-06 07:07:17.362193413
+
+=== 四行读数 (★交卷口径★) ===
+GATE_RC=0
+SELFTEST_RC=0
+MERGE_RC=0
+BOARD_MD5=611b869e13518c3c023fb178f91a0075
+MISS_COUNT=0

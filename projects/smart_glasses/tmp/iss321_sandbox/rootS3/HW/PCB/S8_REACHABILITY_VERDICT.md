@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/S8_REACHABILITY_VERDICT.md

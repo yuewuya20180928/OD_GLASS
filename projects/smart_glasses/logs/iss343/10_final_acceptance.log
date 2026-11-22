@@ -1,0 +1,59 @@
+=== ISS-343 · 交卷前最终必跑 (★全部本机实跑★) ===
+--- date ---
+2026-11-23 01:18:27 CST
+
+--- ① TMPDIR=$PWD/tmp python3 HW/check_onepass_preflight_coverage.py ---
+     ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★
+     ✔ HW/netlist_v1.csv md5 == 落表台账登记 6aee500e60ba0732f83a9cf557ba90ab (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 9174309df1ec9411ac8e8d9e80ee386a (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/BOM_v1.csv md5 == 落表台账登记 5b9993992405904a60ac96a020b375d8 (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★板侧项全集与作业包对齐, 现状值与盘面一致 ★★
+COV_RC=0
+
+--- ② TMPDIR=$PWD/tmp python3 HW/check_workpack_state_values.py ---
+     ✔ ref_suffix         探针源 2 个
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★两份文档里的现状值 == 盘面实测, 且七类判据齐 ★★
+WPVAL_RC=0
+
+--- ③ TMPDIR=$PWD/tmp python3 state/merge.py ---
+✅ STATE.yaml 已刷新 (2026-11-23T01:18:34+08:00)
+   产出 740 | 阻塞 43 (高危 33) | 未闭合需求 343 | 冲突 0 | 健康度 red
+MERGE_RC=0
+
+--- ④ TMPDIR=$PWD/tmp python3 state/gate_check.py (★只看 Q1/Q2/Q7★) ---
+GATE_RC=0
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-23_hw-lead_ISS343_板侧项全集漏项补齐.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-23_sw-lead_ISS344_零铜网分级口径对账.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-23_mech-lead_ISS345_8脚本迁双口径.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '推算', '0数据']
+   sw-lead    标签: ['实测', '官方', '推算', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 179 条需求确实还没人答 (等另一个总工)
+
+--- ⑤ 受保护 5 件 + 板 mtime (★零写板 / 零落表★) ---
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+2026-11-06 07:07:17.362193413 +0800
+
+--- ⑥ 分片登记 ---
+grep -c iss343 state/fragments/hw.yaml = 10

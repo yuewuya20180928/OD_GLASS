@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/tools/iss263_rknn3_wheel_fetch.sh

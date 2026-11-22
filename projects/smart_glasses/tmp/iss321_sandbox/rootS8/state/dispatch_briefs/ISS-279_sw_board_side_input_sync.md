@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/dispatch_briefs/ISS-279_sw_board_side_input_sync.md

@@ -24,6 +24,11 @@ import sys
 
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HERE = os.path.join(PROJ, "state")
+sys.path.insert(0, HERE)
+# ★★2026-11-23 04:5x (ISS-348): 临时产物一律落【项目盘】⇒ ★**/tmp 是带 userquota 的 tmpfs,
+#   配额打满时写盘 EDQUOT ⇒ KiCad 导出/DRC 报 "Disk quota exceeded" ⇒ ★**闸被误读成「板子坏了」**
+#   ⇒ ★**判据方向没改, 只改「往哪写」★
+from tmpdir import gate_tmpdir
 PCB = os.path.join(PROJ, "HW", "PCB", "demo_mainboard.kicad_pcb")
 # ★★2026-11-06 01:1x **支持传入待测板路径** (★positional)
 #   ★**为什么**: 之前这个脚本**硬编码官方板** ⇒ ★**传候选板路径也会去量官方板**
@@ -98,7 +103,7 @@ def main():
     #   ★**旧版把 drill 目录写死 /tmp/_pcbchk** ⇒ 多臂并行时互相覆盖
     #   ⇒ 改成按【板文件名】唯一 ⇒ 同一块板重复跑也互不干扰
     _tag = os.path.basename(PCB).replace("/", "_").replace(" ", "_")
-    _drill_dir = "/tmp/_pcbchk_%s" % _tag
+    _drill_dir = os.path.join(gate_tmpdir(), "_pcbchk_%s" % _tag)   # ★ISS-348: 不落 /tmp★
     rc = run([KC, "pcb", "export", "drill", "--output", _drill_dir, "--format", "excellon", PCB])
     ok2 = rc.returncode == 0
     lines.append(f"  {'✅' if ok2 else '❌'} C2 图纸可被 KiCad 解析 (drill 导出 rc={rc.returncode})")
@@ -108,8 +113,8 @@ def main():
     # C3/C4 DRC
     # ★★2026-11-10 05:1x **★并行臂隔离★** ⇒ ★**DRC JSON 按板名唯一 (★旧版写死 /tmp/_pcb_drc.json ⇒ 并行臂会读到对方的 DRC★)★**
     #   ★**同时保留一个【本板专属】的稳定副本** ⇒ 便于后续脚本引用
-    out_json = "/tmp/_pcb_drc_%s.json" % _tag
-    _stable = "/tmp/_pcb_drc_latest_%s.json" % _tag
+    out_json = os.path.join(gate_tmpdir(), "_pcb_drc_%s.json" % _tag)   # ★ISS-348★
+    _stable = os.path.join(gate_tmpdir(), "_pcb_drc_latest_%s.json" % _tag)
     rc = run([KC, "pcb", "drc", "--output", out_json, "--severity-error", "--severity-warning",
               "--format", "json", PCB])
     n_viol = n_unc = -1

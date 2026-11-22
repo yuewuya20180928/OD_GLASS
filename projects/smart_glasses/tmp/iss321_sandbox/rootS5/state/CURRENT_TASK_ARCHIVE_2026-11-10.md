@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/CURRENT_TASK_ARCHIVE_2026-11-10.md

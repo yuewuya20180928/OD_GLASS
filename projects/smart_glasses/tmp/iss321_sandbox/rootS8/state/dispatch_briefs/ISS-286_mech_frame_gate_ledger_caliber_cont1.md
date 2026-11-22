@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/dispatch_briefs/ISS-286_mech_frame_gate_ledger_caliber_cont1.md

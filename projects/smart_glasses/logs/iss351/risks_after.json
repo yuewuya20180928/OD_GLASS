@@ -1,0 +1,22 @@
+[
+ {
+  "id": "R-hw-display-chain",
+  "text": "若既无 DSI TX 也无 DP TX, 则不是加颗桥芯片的事, 而是显示链不成立",
+  "severity": "high"
+ },
+ {
+  "id": "R-hw-pitch",
+  "text": "FCCSP pitch ≤0.3mm → 须 HDI → 违反 4-6 层锁死 → SoC 选型一票否决",
+  "severity": "high"
+ },
+ {
+  "id": "R-hw-boot-storage",
+  "text": "若无内置 boot storage ⇒ ★**按存储档分档 (ISS-346 / ISS-350 机器判决 · 2026-11-23 订正)**★: ① 只 ADB push 档 (demo) ⇒ 板侧零动作 ⇒ 不占板那一趟; ② 外挂 SPI-NOR 档 (≥128 MiB / 1 Gbit 起) ⇒ 走 `J_BOOT1` 焊盘位 (6 pad 已在板 @126.3,58) + 4 条 0Ω 串阻位必装 ⇒ ★**板侧零动作 · 不改板宽 · 不重出板**★ ⇒ 台架板档与产品板档都不卡; ③ eMMC 档 ⇒ 板宽 12→15 mm ⇒ 台架板档 `B160x100` (160 mm 宽) 板面代价 ≈ 0 ⇒ 不卡 (时限型降为建议型) ⇒ ★**只有产品板档 (F30A 60×30 / P60x15) 才卡 (时限型)**★ ⇒ ★**原措辞「(吃 PCB 面积, 板宽 12→15mm), 投板前必须 close」已由 ISS-346 / ISS-350 分档口径取代 · 本条保留作历史留档 · 结论不再引用**★",
+  "severity": "high"
+ },
+ {
+  "id": "R-hw-netlist-chain",
+  "text": "★ISS-153 交卷时实测: HW/netlist_v1.csv 在 11-04 03:01 加了 A2 段(SoM 4x100pin 座 + demo 板载 Type-C + F13 门控), 但 HW/netlist_v1.net 还停在 11-03 00:50 ⇒ 导出链没重跑 ⇒ gen_netlist_pins.py / check_kicad_net.py 长期 rc=1 ⇒ **HW/netlist_v1_pins.csv 出不来, PCB 工程师手上还是旧版脚级表 (TMP117 4 脚 / 挂 I2C_A)**。★具体 5 条阻塞见 HANDOFF/2026-11-04_hw-lead_ISS153.md §6 (其中 B-1: J_SOM_P2+J_SOM_P4 共 23 个 SoM 脚整条从 .net 消失 ⇒ KiCad 导入即悬空; B-2: USB D+ 串阻/ESD 双失效)。★根因: 改了网表内容没同步跑生成链 ⇒ 建议加一条\"改了 gen_netlist.py 必须重跑 gen_kicad_net → gen_netlist_pins\"的门禁",
+  "severity": "high"
+ }
+]

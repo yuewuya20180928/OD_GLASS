@@ -1,0 +1,42 @@
+=== ISS-343 · 板面读数 (只读探针·零写板) ===
+--- 命令: bash state/pcbnew_py.sh tmp/iss343_probe_pins.py ---
+--- md5/mtime 前后 ---
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800
+--- 探针原文输出 ---
+  J_DEBUG pad1 pos=(142.2000,56.6000) size=(0.2750x0.9000) net=JTAG_TCK
+  J_DEBUG pad2 pos=(142.7000,56.6000) size=(0.2750x0.9000) net=JTAG_TMS
+  J_DEBUG pad3 pos=(143.2000,56.6000) size=(0.2750x0.9000) net=JTAG_TDI
+  J_DEBUG pad4 pos=(143.7000,56.6000) size=(0.2750x0.9000) net=JTAG_TDO
+J_DEBUG: npads=4 pitch_x_centers=[142.2, 142.7, 143.2, 143.7] pitch_y_centers=[56.6] pitch=0.5
+J_DEBUG: 铜箔 X 142.0625..143.8375 (1.7750) × Y 56.1500..57.0500 (0.9000)
+  J_UART pad1 pos=(18.6400,68.6000) size=(0.2750x0.9000) net=UART_TX
+  J_UART pad2 pos=(19.1400,68.6000) size=(0.2750x0.9000) net=UART_RX
+J_UART: npads=2 pitch_x_centers=[18.64, 19.14] pitch_y_centers=[68.6] pitch=0.5
+J_UART: 铜箔 X 18.5025..19.2775 (0.7750) × Y 68.1500..69.0500 (0.9000)
+--- md5/mtime 后 (探针跑完仍不变) ---
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800
+
+=== BOM / 网表侧规格串 (1.27mm) ===
+--- HW/BOM_v1.csv:71 ---
+J_DEBUG,1,1×4 1.27mm 排针 (JTAG),CONN,必装,镜脚主 PCB,P8,[推算],,待定,,待定,待定,连接器,型号/间距/引脚编号待结构与装配复核 (★本版 pin 编号自拟)
+--- HW/BOM_v1.csv:77 ---
+J_UART,1,1×2 1.27mm 排针 (UART),CONN,可选,镜脚主 PCB,P8,[推算],,待定,,待定,待定,连接器,型号/间距/引脚编号待结构与装配复核 (★本版 pin 编号自拟)
+--- HW/netlist_v1.csv P8 区同串 ---
+388:P8,JTAG_TCK_SOC,SoC_NC,R_JTAG_TCK,NET_JTAG_TCK_SOC,"单端, 100Ω 串阻",NET,必装,[待原厂],TBD-01,"方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG",B-19,MAIN_PCB,,
+390:P8,JTAG_TMS_SOC,SoC_NC,R_JTAG_TMS,NET_JTAG_TMS_SOC,"单端, 100Ω 串阻",NET,必装,[待原厂],TBD-01,"方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG",B-19,MAIN_PCB,,
+392:P8,JTAG_TDI_SOC,SoC_NC,R_JTAG_TDI,NET_JTAG_TDI_SOC,"单端, 100Ω 串阻",NET,必装,[待原厂],TBD-01,"方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG",B-19,MAIN_PCB,,
+394:P8,JTAG_TDO_SOC,SoC_NC,R_JTAG_TDO,NET_JTAG_TDO_SOC,"单端, 100Ω 串阻",NET,必装,[待原厂],TBD-01,"方向 双向; 电平 [待原厂]; 阻抗 单端, 100Ω 串阻; 连接 1×4 1.27mm 排针 (调试用, 不装贴片); 测试点 TP_JTAG",B-19,MAIN_PCB,,
+396:P8,J_DEBUG,J_DEBUG,J_DEBUG,J_DEBUG,1×4 1.27mm 排针 (JTAG),CONN,必装,[推算],,"[INVENTORY] [J_DEBUG] JTAG 调试排针 (不装贴片, 手工可焊); pin1=TCK, 2=TMS, 3=TDI, 4=TDO",,MAIN_PCB,,
+399:P8,UART_RX,J_UART,J_UART pin2,J_UART,1×2 1.27mm 排针 (UART),CONN,可选,[推算],,[UART_RX] 规格: UART 与 JTAG 复用同一排针 -> 本版拆成 1×2 独立排针 (原厂要求复用则再合并),,MAIN_PCB,,
+
+=== E-1 拍死原文 (state/fragments/pm.yaml · 只读·零改) ===
+757:- key: main_e1_e2_board_side_rulings_20261117
+758-  to: main
+759-  item: '★★【ISS-290 的 E-1 / E-2 两条板侧取舍 ⇒ main 已拍死 (★2026-11-17 18:4x·★归 main 不归老板★)】★★ ★**E-1 排针 pitch**:
+769-    = Q_PG 三根线重画 + D_ESD_USB_D 2→3 脚并挪到 ≤3.0mm + 位号 _1 后缀 + C_VBUS_GND 下板 + R4/R9 落表 + E-1 排针 land 重画
+770-    ⇒ 板 md5 只变一次** ★
+771-  decided_at: 2026-11-17 18:45
+772-  decided_by: main (项目总工 · ★几何/规格取舍归 main★)
+773-- key: main_9gates_not_in_gate_chain_20261117

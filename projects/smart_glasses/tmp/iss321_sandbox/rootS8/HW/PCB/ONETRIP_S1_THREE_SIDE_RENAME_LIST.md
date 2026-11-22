@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md

@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/DEMO_BOARD_60MS_VERDICT_PLAN.md

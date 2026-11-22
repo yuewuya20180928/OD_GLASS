@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md

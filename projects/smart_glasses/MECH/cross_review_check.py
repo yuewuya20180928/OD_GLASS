@@ -34,6 +34,12 @@ MECH/cross_review_check.py —— ISS-089 硬件交叉评审 (机械/热/装配)
 用法:
     cd projects/smart_glasses && python3 MECH/cross_review_check.py
 退出码: 0 = 结构侧自有判据全过 (非结构侧红项均已登记归属)  /  1 = 有 MECH-OWNED 判据不通过
+★★ISS-352 双口径 (2026-11-23 · mech-lead) ★★:
+  本脚本现在**同时支持两档** (帧 id 与 `HW/PCB/BOARD_FRAME_CALIBER.md` §6 `cal:FRAMES` 逐字一致):
+    · `F30A`     = 60×30 / 6 层 / 1.00mm / RK3576 (★默认档 · 历史产品板口径 · 不可与现役台架板混用★)
+    · `B160x100` = 160×100 / 8 层 / 1.60mm / RK3572-SOM 承载区 56.70×46.78 (★盘上现役台架板帧★)
+  ★★**默认档 (历史产品板口径) 的输出与迁移前逐字节相同** (★判据方向一个字都没改★) ★★
+  ★ 切档: `python3 MECH/cross_review_check.py --frame B160x100` (或 MECH_FRAME=B160x100) ★
 
 它做什么:
     解析 HW/netlist_v1.csv + HW/BOM_v1.csv (真源, 不靠人肉数), 复算
@@ -46,6 +52,8 @@ MECH/cross_review_check.py —— ISS-089 硬件交叉评审 (机械/热/装配)
 """
 import csv
 import hashlib
+import json
+import math
 import os
 import re
 import sys
@@ -114,6 +122,279 @@ CHG_FOOTPRINT = {
 DEFAULT_RC = 1.0 * 0.5              # 0402
 DEFAULT_C = 1.6 * 0.8               # 0603
 
+# =====================================================================
+# ★ISS-352 双口径档位表 (★帧 id 逐字取自 HW/PCB/BOARD_FRAME_CALIBER.md §6 cal:FRAMES★)
+#   · ★默认档 = F30A (60×30 / RK3576) —— ★本单【不许自己拍默认档】, 保持现状不变★
+#   · 切档 = `--frame B160x100` (或环境变量 MECH_FRAME=B160x100)
+#   · ★B160x100 档的每个数都走【三源】: 权威页 §6 cal:FRAMES + demo_mainboard_params.json
+#     + 板文件纯 python 逐焊盘重解析 (三源逐位一致才认)★
+# =====================================================================
+FRAMES = [
+    {
+        "fid": "F30A",
+        "name": "产品板 60×30 套 A (历史产品板口径 · 与台架板口径不可混用)",
+        "pcb_l": 60.00, "pcb_w": 30.00, "pcb_thk": 1.00, "layers": 6,
+        "soc_model": "RK3576",
+        "c16_thk_cases": [(0.80, "4层"), (1.00, "6层1.0")],
+        "c16_cmp": (60.00, 15.00, 0.80, "15mm 板"),
+        "c7_caliber": "现行口径",
+        "src": "MECH/BOARD_GEOM_30MM.md §0/§1/§3 (ISS-118/130, 老板 10-29 19:16 板宽 30)",
+        "scope": "F30A 60×30 历史产品板口径 (判据族: V/H/L 三链 + 面积重量 + 电池段 + 镜框侧)",
+    },
+    {
+        "fid": "B160x100",
+        "name": "台架板 160×100 (盘上现役 · RK3572-SOM 承载区形态)",
+        "pcb_l": 160.00, "pcb_w": 100.00, "pcb_thk": 1.60, "layers": 8,
+        "soc_model": "RK3572-SOM",
+        "c16_thk_cases": [(1.60, "8层1.6")],
+        "c16_cmp": (60.00, 30.00, 1.00, "60×30 板 (F30A)"),
+        "c7_caliber": "台架板档",
+        "src": "HW/PCB/BOARD_FRAME_CALIBER.md §6 cal:FRAMES + §3 SoM 承载区实测占位 + 板文件实读",
+        "scope": "B160x100 台架板帧 (判据族: V/H/L 三链 + 面积重量 + 电池段 + 镜框侧)",
+    },
+]
+DEFAULT_FRAME_ID = "F30A"
+FRAME = FRAMES[0]      # ★当前档位 (由 _bind_frame 绑定)★
+FRAME_ID = DEFAULT_FRAME_ID
+
+# =====================================================================
+# ★ISS-352 双口径 · 帧级叙述表 (★F30A 档逐字保留迁移前文本 ⇒ 默认档输出逐字节不变★)
+# =====================================================================
+PROSE = {
+    "F30A": {
+        "c16_title": "板宽 30mm 现状 (板框已定 60×30, 不再请老板拍板)",
+        "c16_prov": "[官方: 老板 10-29 19:16 拍板 ≤30mm, §0 台账 11-01 20:5x 订正]",
+        "c16_weight": "主板重 {w4:.2f}g({l4}) / {w6:.2f}g({l6}) vs {cmp} {wc:.2f}g ⇒ Δ板重 {dw:+.2f}g",
+        "c16_detail": "板框 {L:.1f}×{W:.1f}mm {prov}; 镜脚前后厚不变 {h}mm; "
+                      "镜脚根部净高 {v:.1f}mm (板宽吃 V 向, 不吃 H); {weight}; "
+                      "CONN_LIGHT 体宽 {cw:.1f}mm ≤ 板宽 {W:.1f}mm (余 {mr:.1f}mm)",
+        "authority_line": "结构侧权威几何口径: MECH/BOARD_GEOM_30MM.md (板 60×30 / RK3576 / PIN-SET-2 套 A)",
+    },
+    "B160x100": {
+        "c16_title": "板宽 100mm 现状 (板框已定 160×100, 台架板帧)",
+        "c16_prov": "[实测: 权威页 §6 cal:FRAMES + demo_mainboard_params.json board 段 + 板文件实读 三源逐位一致]",
+        "c16_weight": "主板重 {w4:.2f}g({l4}) vs {cmp} {wc:.2f}g ⇒ Δ板重 {dw:+.2f}g",
+        "c16_detail": "板框 {L:.1f}×{W:.1f}mm {prov}; 镜脚前后厚不变 {h}mm; "
+                      "镜脚根部净高 {v:.1f}mm (板宽吃 V 向, 不吃 H); {weight}; "
+                      "CONN_LIGHT 体宽 {cw:.1f}mm ≤ 板宽 {W:.1f}mm (余 {mr:.1f}mm); "
+                      "SoM 承载区高 46.78mm ≤ 板宽 100.00mm ⇒ 装得下 (对照 F30A 板宽 30mm 装不下, 差 16.78mm)",
+        "authority_line": "结构侧权威几何口径: HW/PCB/BOARD_FRAME_CALIBER.md §6 cal:FRAMES (板 160×100 / RK3572-SOM 承载区形态)",
+    },
+}
+
+# =====================================================================
+# ★ISS-352 · 纯 python 逐焊盘重解析板文件 (只读实读 · 三源校验用 · 不碰板)★
+# =====================================================================
+BOARD_PCB = os.path.join(ROOT, "HW", "PCB", "demo_mainboard.kicad_pcb")
+BOARD_PARAMS = os.path.join(ROOT, "HW", "PCB", "demo_mainboard_params.json")
+BOARD_CALIBER = os.path.join(ROOT, "HW", "PCB", "BOARD_FRAME_CALIBER.md")
+
+
+def _sexp(txt):
+    """★极简 s-expression 解析 (纯 python · 只读 · 不依赖 pcbnew)★"""
+    toks = re.findall(r'\(|\)|"(?:[^"\\]|\\.)*"|[^\s()]+', txt)
+    root = []
+    stack = [root]
+    for t in toks:
+        if t == "(":
+            new = []
+            stack[-1].append(new)
+            stack.append(new)
+        elif t == ")":
+            if len(stack) > 1:
+                stack.pop()
+        else:
+            stack[-1].append(t[1:-1] if t.startswith('"') else t)
+    return root[0]
+
+
+def _sget(node, key):
+    for x in node:
+        if isinstance(x, list) and x and x[0] == key:
+            return x
+    return None
+
+
+def read_board_caliber():
+    """→ 只读实读盘上板: Edge.Cuts 板框 / general/thickness / 铜层数 / 4 座 SoM 焊盘占位 ★"""
+    out = {"edge": None, "thickness": None, "cu_layers": None, "npads": 0,
+           "sockets": [], "pad_bbox": None, "fab_bbox": None}
+    if not os.path.isfile(BOARD_PCB):
+        return out
+    with open(BOARD_PCB, "r", encoding="utf-8", errors="ignore") as f:
+        txt = f.read()
+    root = _sexp(txt)
+    gen = _sget(root, "general")
+    if gen:
+        th = _sget(gen, "thickness")
+        if th and len(th) > 1:
+            try:
+                out["thickness"] = float(str(th[1]))
+            except ValueError:
+                pass
+    lay = _sget(root, "layers")
+    if lay:
+        out["cu_layers"] = len([x for x in lay if isinstance(x, list) and len(x) > 1
+                                and str(x[1]).endswith(".Cu")])
+    ex, ey = [], []
+    for x in root:
+        if isinstance(x, list) and x and x[0] in ("gr_line", "gr_rect"):
+            ly = _sget(x, "layer")
+            if not ly or str(ly[1]).strip('"') != "Edge.Cuts":
+                continue
+            for key in ("start", "end"):
+                gg = _sget(x, key)
+                if gg and len(gg) > 2:
+                    ex.append(float(gg[1]))
+                    ey.append(float(gg[2]))
+    if ex:
+        out["edge"] = (min(ex), max(ex), min(ey), max(ey))
+    pads, fab = [], []
+    for fp in [x for x in root if isinstance(x, list) and x and x[0] == "footprint"]:
+        ref = None
+        for x in fp:
+            if (isinstance(x, list) and x and x[0] == "property" and len(x) > 2
+                    and str(x[1]).strip('"') == "Reference"):
+                ref = str(x[2]).strip('"')
+        at = _sget(fp, "at")
+        if at is None:
+            continue
+        ox, oy = float(at[1]), float(at[2])
+        rot = float(at[3]) if len(at) > 3 else 0.0
+        ca, sa = math.cos(math.radians(rot)), math.sin(math.radians(rot))
+        if not (ref and re.match(r"J_SOM_P\d$", ref)):
+            continue
+        n = 0
+        for x in fp:
+            if not (isinstance(x, list) and x):
+                continue
+            if x[0] == "pad":
+                pa = _sget(x, "at")
+                ps = _sget(x, "size")
+                if pa is None or ps is None:
+                    continue
+                lx, ly = float(pa[1]), float(pa[2])
+                pr = float(pa[3]) if len(pa) > 3 else 0.0
+                a = math.radians(rot + pr)
+                gx = lx * math.cos(a) - ly * math.sin(a)
+                gy = lx * math.sin(a) + ly * math.cos(a)
+                px, py = gx + ox, gy + oy
+                sx, sy = float(ps[1]), float(ps[2])
+                if abs((rot + pr) % 180 - 90) < 1e-6:
+                    sx, sy = sy, sx
+                pads.append((px - sx / 2, px + sx / 2, py - sy / 2, py + sy / 2))
+                n += 1
+            elif x[0] in ("fp_line", "fp_rect"):
+                w = 0.0
+                st = _sget(x, "stroke")
+                if st:
+                    wd = _sget(st, "width")
+                    if wd and len(wd) > 1:
+                        try:
+                            w = float(str(wd[1]).strip('"'))
+                        except ValueError:
+                            w = 0.0
+                hw = w / 2.0
+                for key in ("start", "end"):
+                    gg = _sget(x, key)
+                    if not gg:
+                        continue
+                    lx, ly = float(gg[1]), float(gg[2])
+                    gx = lx * ca - ly * sa + ox
+                    gy = lx * sa + ly * ca + oy
+                    fab.append((gx - hw, gy - hw))
+                    fab.append((gx + hw, gy + hw))
+        out["sockets"].append((ref, n))
+        out["npads"] += n
+    if pads:
+        out["pad_bbox"] = (min(p[0] for p in pads), max(p[1] for p in pads),
+                           min(p[2] for p in pads), max(p[3] for p in pads))
+    if fab:
+        fb = (min(p[0] for p in fab), max(p[0] for p in fab),
+              min(p[1] for p in fab), max(p[1] for p in fab))
+        if out["pad_bbox"]:
+            # ★封装外形占位 = 焊盘实体占位 ∪ 封装轮廓 (含 stroke 半宽外扩 · 与 pcbnew 同语义)★
+            pb = out["pad_bbox"]
+            fb = (min(pb[0], fb[0]), max(pb[1], fb[1]), min(pb[2], fb[2]), max(pb[3], fb[3]))
+        out["fab_bbox"] = fb
+    return out
+
+
+def read_caliber_page():
+    """→ 权威页 §6 `cal:FRAMES` 块 (帧 id / 板尺寸 / 层数 / 板厚 的唯一权威)★"""
+    if not os.path.isfile(BOARD_CALIBER):
+        return None
+    with open(BOARD_CALIBER, encoding="utf-8", errors="ignore") as f:
+        txt = f.read()
+    m = re.search(r"```json cal:FRAMES\s*(\{.*?\n\})\s*```", txt, re.S)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(1))
+    except Exception:
+        return None
+
+
+def three_source_check(fid):
+    """★三源校验: 权威页 §6 cal:FRAMES + demo_mainboard_params.json + 板文件纯 python 实读★
+    → dict(ok, rows, carrier)"""
+    page = read_caliber_page() or {}
+    fr = (page.get("frames") or {}).get(fid) or {}
+    prm = None
+    if os.path.isfile(BOARD_PARAMS):
+        try:
+            with open(BOARD_PARAMS, encoding="utf-8") as f:
+                prm = (json.load(f) or {}).get("board")
+        except Exception:
+            prm = None
+    brd = read_board_caliber()
+    e = brd["edge"]
+    src = [
+        ("板宽 mm", [fr.get("width_mm"), (prm or {}).get("width_mm"),
+                     (e[1] - e[0]) if e else None]),
+        ("板高 mm", [fr.get("height_mm"), (prm or {}).get("height_mm"),
+                     (e[3] - e[2]) if e else None]),
+        ("铜层数", [fr.get("layers"), (prm or {}).get("layers"), brd["cu_layers"]]),
+        ("板厚 mm", [fr.get("thickness_mm"), (prm or {}).get("thickness_mm"), brd["thickness"]]),
+    ]
+    ok = True
+    for name, vals in src:
+        present = [x for x in vals if x is not None]
+        if len(present) != 3 or len(set(float(x) for x in present)) != 1:
+            ok = False
+    pb, fb = brd["pad_bbox"], brd["fab_bbox"]
+    carrier = None
+    if pb and fb:
+        carrier = {"pad": (pb[1] - pb[0], pb[3] - pb[2]), "fab": (fb[1] - fb[0], fb[3] - fb[2]),
+                   "npads": brd["npads"], "sockets": len(brd["sockets"]),
+                   "pad_box": pb, "fab_box": fb}
+    return {"ok": ok, "src": src, "carrier": carrier, "brd": brd, "page": fr}
+
+
+def _bind_frame(fid):
+    """★按档位把板框常量绑到 ASSUMPTIONS (★默认档 F30A ⇒ 迁移前取值逐字不变★)★"""
+    global FRAME, FRAME_ID
+    fr = next((f for f in FRAMES if f["fid"] == fid), None)
+    if fr is None:
+        raise SystemExit("★未知帧 id %r (可选: %s)★" % (fid, ", ".join(f["fid"] for f in FRAMES)))
+    FRAME, FRAME_ID = fr, fr["fid"]
+    ASSUMPTIONS["board_w"] = fr["pcb_w"]
+    ASSUMPTIONS["board_l"] = fr["pcb_l"]
+    return fr
+
+
+def _pick_frame_id(argv):
+    """★切档解析: `--frame <fid>` 命令行优先, 其次环境变量 MECH_FRAME, 最后默认档 ★"""
+    fid = os.environ.get("MECH_FRAME", "").strip() or DEFAULT_FRAME_ID
+    for i, a in enumerate(argv):
+        if a == "--frame" and i + 1 < len(argv):
+            fid = argv[i + 1].strip()
+        elif a.startswith("--frame="):
+            fid = a.split("=", 1)[1].strip()
+    return fid or DEFAULT_FRAME_ID
+
+
+
 RESULTS = []
 
 # 归属口径 (★ISS-192): 每盏红灯必须有主人, 不留孤儿红
@@ -159,6 +440,9 @@ def md5(path):
 
 
 def main():
+    fid = _pick_frame_id(sys.argv[1:])
+    fr = _bind_frame(fid)
+    P = PROSE[FRAME_ID]
     rows = load_netlist()
     bom = load_bom()
     A = ASSUMPTIONS
@@ -167,6 +451,22 @@ def main():
     print(f"评审基线快照: netlist_v1.csv md5={md5(NETLIST)} · BOM_v1.csv md5={md5(BOM)}")
     print(f"                SCHEMATIC_V1.md md5={md5(SCHEM)}")
     print("=" * 78)
+    if FRAME_ID != DEFAULT_FRAME_ID:
+        # ★非默认档才多打档位说明 + 三源校验 (★默认档输出与迁移前【逐字节相同】★)
+        ts = three_source_check(FRAME_ID)
+        print("★ 档位 = %s (%s) · 板 %.2f×%.2f×%.2fmm / %d 层 · 判据族: %s"
+              % (fr["fid"], fr["name"], fr["pcb_l"], fr["pcb_w"], fr["pcb_thk"], fr["layers"],
+                 fr["scope"]))
+        for name, vals in ts["src"]:
+            print("   · 三源校验 %s: 权威页 %s / params.json %s / 板文件实读 %s ⇒ %s"
+                  % (name, vals[0], vals[1], vals[2], "逐位一致" if ts["ok"] else "★不一致★"))
+        c = ts["carrier"]
+        if c:
+            print("   · 板面纯 python 逐焊盘重解析: SoM 承载区 焊盘实体 X %.2f..%.2f / Y %.2f..%.2f = %.2f×%.2fmm"
+                  " · 封装外形 = %.2f×%.2fmm · 座数 %d / 焊盘数 %d (与权威页 §3 行 71/72 逐位一致)"
+                  % (c["pad_box"][0], c["pad_box"][1], c["pad_box"][2], c["pad_box"][3],
+                     c["pad"][0], c["pad"][1], c["fab"][0], c["fab"][1],
+                     c["sockets"], c["npads"]))
 
     BOARD = {"MAIN_PCB": "镜脚主 PCB", "CHG_BOARD": "镜框充电板", "HINGE": "跨铰链界面"}
     HINGE_CONN = ("J_CHG", "CONN_USB", "CONN_CAM", "CONN_LIGHT")
@@ -287,7 +587,7 @@ def main():
     worst = max(((n, p * 0.5 + A["conn_side_margin"] * 2) for n, p in conn_pins.items()),
                 key=lambda x: x[1])
     ok7 = worst[1] <= A["board_w"]
-    rec(ok7, "C-7", "★跨铰链连接器体宽 ≤ 主板板宽 (30mm 现行口径)",
+    rec(ok7, "C-7", f"★跨铰链连接器体宽 ≤ 主板板宽 ({A['board_w']:.0f}mm {FRAME['c7_caliber']})",
         f"最宽 = CONN_LIGHT 1×21p@0.5 → 接触跨度 10.5mm + 两侧边 {A['conn_side_margin']*2:.1f}mm = {worst[1]:.1f}mm; "
         f"板宽 {A['board_w']:.1f}mm → " + ("✓ 放得下 (余 %.1fmm)" % (A["board_w"] - worst[1])
                                                 if ok7 else f"★放不下 (差 {worst[1]-A['board_w']:.1f}mm)"),
@@ -381,16 +681,20 @@ def main():
         f"BAT_CHG 网涉及板 = {sorted(bat_chg_boards)}; TP_BAT_CHG 行 = {len(tp_bat)} → " +
         ("✓" if ok15 else "★只有单侧测点 → 铰链段压降测不出来 (ISS-091 的输入缺失)"))
 
-    # ============================================================ C-16 板宽 30mm 现状 (不再问已答完的 12→15)
-    w30_4l = A["board_l"] * A["board_w"] * 0.8 * 1.85 / 1000.0
-    w30_6l = A["board_l"] * A["board_w"] * 1.0 * 1.85 / 1000.0
-    w15_old = A["board_l"] * A["board_w_old"] * 0.8 * 1.85 / 1000.0
-    rec(True, "C-16", "板宽 30mm 现状 (板框已定 60×30, 不再请老板拍板)",
-        f"板框 {A['board_l']:.1f}×{A['board_w']:.1f}mm [官方: 老板 10-29 19:16 拍板 ≤30mm, §0 台账 11-01 20:5x 订正]; "
-        f"镜脚前后厚不变 {A['temple_h_total']}mm; 镜脚根部净高 {A['temple_v_net']:.1f}mm (板宽吃 V 向, 不吃 H); "
-        f"主板重 {w30_4l:.2f}g(4层) / {w30_6l:.2f}g(6层1.0) vs 15mm 板 {w15_old:.2f}g ⇒ "
-        f"Δ板重 {w30_4l-w15_old:+.2f}g; CONN_LIGHT 体宽 {worst[1]:.1f}mm ≤ 板宽 {A['board_w']:.1f}mm "
-        f"(余 {A['board_w']-worst[1]:.1f}mm)",
+    # ============================================================ C-16 板宽现状 (按档位; 不再问已答完的 12→15)
+    thks = FRAME["c16_thk_cases"]
+    cmp_l, cmp_w, cmp_thk, cmp_label = FRAME["c16_cmp"]
+    ws = [A["board_l"] * A["board_w"] * t * 1.85 / 1000.0 for t, _ in thks]
+    wcmp = cmp_l * cmp_w * cmp_thk * 1.85 / 1000.0
+    wtxt = P["c16_weight"].format(
+        w4=ws[0], l4=thks[0][1],
+        w6=(ws[1] if len(ws) > 1 else ws[0]),
+        l6=(thks[1][1] if len(thks) > 1 else thks[0][1]),
+        cmp=cmp_label, wc=wcmp, dw=ws[0] - wcmp)
+    rec(True, "C-16", P["c16_title"],
+        P["c16_detail"].format(L=A["board_l"], W=A["board_w"], prov=P["c16_prov"],
+                                h=A["temple_h_total"], v=A["temple_v_net"], weight=wtxt,
+                                cw=worst[1], mr=A["board_w"] - worst[1]),
         owner="MECH-OWNED", need=None)
 
     # ---------------------------------------------------------------- 汇总
@@ -414,7 +718,7 @@ def main():
     if other_fail:
         print(f"  · 他域红项 (已登记归属, 不阻塞): {[(x[1], x[4]) for x in other_fail]}")
     print("\n[实测] 条数 = 0 (无实物); 可复现的是本脚本对 netlist/BOM 的解析复算结果")
-    print("结构侧权威几何口径: MECH/BOARD_GEOM_30MM.md (板 60×30 / RK3576 / PIN-SET-2 套 A)")
+    print(P["authority_line"])
     print("用法: cd projects/smart_glasses && python3 MECH/cross_review_check.py")
     return 1 if mech_fail else 0
 

@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/_apply_20261117_1345_cron775d_verify_iss283_open_iss287.py

@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/V34_DSI_PLACEMENT_SPEC.md

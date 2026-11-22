@@ -44,6 +44,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
 sys.path.insert(0, "/home/yuewuya/kicad/squashfs-root/usr/lib/python3/dist-packages")
 sys.path.insert(0, "/home/yuewuya/kicad/squashfs-root/usr/lib")
+sys.path.insert(0, HERE)
+# ★★2026-11-23 04:5x (ISS-348): 临时产物一律落【项目盘】⇒ ★**/tmp 配额打满 ⇒ 闸假红** ★
+from tmpdir import gate_tmpdir
 import pcbnew  # noqa: E402
 
 NET = os.path.join(PROJ, "HW", "netlist_v1.csv")
@@ -394,7 +397,7 @@ def main():
 
 def do_selftest():
     """★故意把板上两个焊盘对调 ⇒ 门禁必须失败 (证明它不是假绿)"""
-    tmp = "/tmp/_pcb_swap_test.kicad_pcb"
+    tmp = os.path.join(gate_tmpdir(), "_pcb_swap_test.kicad_pcb")   # ★ISS-348: 不落 /tmp★
     b = pcbnew.LoadBoard(PCB)
     target = None
     for fp in list(b.GetFootprints()):

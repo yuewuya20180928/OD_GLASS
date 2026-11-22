@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/dispatch_briefs/ISS-262_hw_land_row_anchor_guard_r2.md

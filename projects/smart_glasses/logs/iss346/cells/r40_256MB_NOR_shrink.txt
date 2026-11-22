@@ -1,0 +1,169 @@
+# ISS-346 cell r40_256MB_NOR (model 槽缩到 11.0 MiB)
+# cmd: python3 SW/tools/flash_layout_check.py --config tmp/iss346/cell_r40_256MB_NOR_shrink.json --device-size 256MB
+# checker rc=0
+
+[覆盖] device_total_size = 268435456 B (256MB)
+
+{
+  "tool": "flash_layout_check.py",
+  "config": "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss346/cell_r40_256MB_NOR_shrink.json",
+  "checks": [
+    {
+      "id": "LAY-01",
+      "name": "分区起始偏移对齐",
+      "result": "PASS",
+      "failures": [],
+      "details": [
+        "PASS 全部 9 个分区偏移按 4096 对齐"
+      ]
+    },
+    {
+      "id": "LAY-02",
+      "name": "分区互不重叠",
+      "result": "PASS",
+      "failures": [],
+      "details": [
+        "PASS 按序排列 9 个分区无重叠"
+      ]
+    },
+    {
+      "id": "LAY-03",
+      "name": "分区不越界",
+      "result": "PASS",
+      "failures": [],
+      "details": [
+        "PASS 占用 92307456 / 268435456 字节 (34.4%), 未越界"
+      ]
+    },
+    {
+      "id": "LAY-04",
+      "name": "版本块存在 / 对齐 / 容量",
+      "result": "PASS",
+      "failures": [],
+      "details": [
+        "PASS 版本块 offset=92274688 size=32768 (>= 32768)"
+      ]
+    },
+    {
+      "id": "LAY-05",
+      "name": "CRC 槽位覆盖",
+      "result": "PASS",
+      "failures": [],
+      "details": [
+        "PASS 6 个 CRC 槽位全部有分区覆盖: ['bootloader', 'kernel', 'rootfs', 'app', 'model', 'isp']"
+      ]
+    },
+    {
+      "id": "LAY-06",
+      "name": "A/B 槽对称",
+      "result": "PASS",
+      "failures": [],
+      "details": [
+        "PASS 2 组 A/B 槽对称 (活动槽=a)"
+      ]
+    },
+    {
+      "id": "LAY-07",
+      "name": "版本块字段容量",
+      "result": "PASS",
+      "failures": [],
+      "details": [
+        "PASS 版本串/SN/calib/tool_ver 均在字段容量内 (版本块字段表共 14 项)"
+      ]
+    },
+    {
+      "id": "LAY-08",
+      "name": "rootfs 体积回报 (§4.1 总分叉点)",
+      "result": "PASS",
+      "failures": [],
+      "details": [
+        "PASS rootfs = 40.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR"
+      ]
+    }
+  ],
+  "summary": {
+    "device_total_size": 268435456,
+    "align": 4096,
+    "active_slot": "a",
+    "partition_offsets": {
+      "bootloader": 0,
+      "kernel": 1048576,
+      "rootfs": 9437184,
+      "app_a": 51380224,
+      "app_b": 59768832,
+      "model_a": 68157440,
+      "model_b": 79691776,
+      "isp": 91226112,
+      "version_block": 92274688
+    },
+    "crc_slots": [
+      "bootloader",
+      "kernel",
+      "rootfs",
+      "app",
+      "model",
+      "isp"
+    ],
+    "version_block_fields": {
+      "magic": {
+        "offset": 0,
+        "size": 4
+      },
+      "payload_len": {
+        "offset": 4,
+        "size": 2
+      },
+      "flags": {
+        "offset": 6,
+        "size": 1
+      },
+      "mode": {
+        "offset": 7,
+        "size": 1
+      },
+      "boot_count_a": {
+        "offset": 8,
+        "size": 4
+      },
+      "boot_count_b": {
+        "offset": 12,
+        "size": 4
+      },
+      "active_slot": {
+        "offset": 16,
+        "size": 1
+      },
+      "build_time": {
+        "offset": 18,
+        "size": 8
+      },
+      "sn": {
+        "offset": 26,
+        "size": 16
+      },
+      "calib_id": {
+        "offset": 42,
+        "size": 32
+      },
+      "tool_ver": {
+        "offset": 74,
+        "size": 16
+      },
+      "partition_crc": {
+        "offset": 96,
+        "size": 24
+      },
+      "version_str": {
+        "offset": 120,
+        "size": 512
+      },
+      "payload_crc32": {
+        "offset": 632,
+        "size": 4
+      }
+    },
+    "rootfs_mb": 40.0
+  },
+  "result": "PASS",
+  "evidence": "[实测] PC 侧静态检查; partition_layout 本身为 [推算] 占位值"
+}

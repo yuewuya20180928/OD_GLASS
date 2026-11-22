@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/dispatch_briefs/ISS-270_sw_external_dep_selfcheck.md

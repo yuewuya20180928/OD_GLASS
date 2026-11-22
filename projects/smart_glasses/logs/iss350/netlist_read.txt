@@ -1,0 +1,21 @@
+== HW/netlist_v1.csv L199~L212 (4 条 SPI_*_BOOT + SoC 侧) ==
+       1	P7,VDD_3V3_IO,R_PU_ID1,RAIL_VDD_3V3_IO,R_PU_ID1,10k ±1%,R,必装,[推算],,[VDD_3V3_IO] 板级 ID 位 1 上拉,B-24,MAIN_PCB,,
+       2	P7,GND,R_ID_JMP1,GND,R_ID_JMP1,0Ω (跳线位),R,DNP,[推算],,ID 跳线位 1 -> GND (装上 = 该位 0),B-24,MAIN_PCB,,
+       3	P3,SPI_SCLK,SoC_NC,R_SER_SPI_SCLK,NET_SPI_SCLK,0Ω (串阻位),NET,必装,[待原厂],TBD-06,"启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +25% 且板宽 12->15mm)",,MAIN_PCB,,
+       4	P3,SPI_SCLK_BOOT,R_SER_SPI_SCLK,J_BOOT1 pin1,R_SER_SPI_SCLK,0Ω (串阻位),R,必装,[待原厂],TBD-06,[SPI_SCLK_BOOT] SPI_SCLK 串阻位 (0Ω 调试用),,MAIN_PCB,,
+       5	P3,SPI_CSn,SoC_NC,R_SER_SPI_CSn,NET_SPI_CSn,0Ω (串阻位),NET,必装,[待原厂],TBD-06,"启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +25% 且板宽 12->15mm)",,MAIN_PCB,,
+       6	P3,SPI_CSn_BOOT,R_SER_SPI_CSn,J_BOOT1 pin2,R_SER_SPI_CSn,0Ω (串阻位),R,必装,[待原厂],TBD-06,[SPI_CSn_BOOT] SPI_CSn 串阻位 (0Ω 调试用),,MAIN_PCB,,
+       7	P3,SPI_MOSI,SoC_NC,R_SER_SPI_MOSI,NET_SPI_MOSI,0Ω (串阻位),NET,必装,[待原厂],TBD-11,"启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +25% 且板宽 12->15mm)",,MAIN_PCB,,
+       8	P3,SPI_MOSI_BOOT,R_SER_SPI_MOSI,J_BOOT1 pin3,R_SER_SPI_MOSI,0Ω (串阻位),R,必装,[待原厂],TBD-11,[SPI_MOSI_BOOT] SPI_MOSI 串阻位 (0Ω 调试用),,MAIN_PCB,,
+       9	P3,SPI_MISO,SoC_NC,R_SER_SPI_MISO,NET_SPI_MISO,0Ω (串阻位),NET,必装,[待原厂],TBD-11,"启动存储: **只留焊盘位 + 串阻位, 不画存储芯片** (内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认; 外挂 eMMC 方案 PCB 面积 +25% 且板宽 12->15mm)",,MAIN_PCB,,
+      10	P3,SPI_MISO_BOOT,R_SER_SPI_MISO,J_BOOT1 pin4,R_SER_SPI_MISO,0Ω (串阻位),R,必装,[待原厂],TBD-11,[SPI_MISO_BOOT] SPI_MISO 串阻位 (0Ω 调试用),,MAIN_PCB,,
+      11	P3,VDD_3V3_IO,J_BOOT1 pin5,RAIL_VDD_3V3_IO,J_BOOT1,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | [VDD_3V3_IO] ★内置 boot storage 还是外挂 SPI-NOR/eMMC 未确认 (Q19) -> 只留焊盘位; pin5/pin6 预留外挂 SPI-NOR 的 3V3/GND; ★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): rootfs ≤30MB · **flash ≥128MB** (64MB SPI-NOR 装不下) · 回原厂答复后选 ≥128MB 的 SPI-NOR 或 eMMC; 供电走 VDD_3V3_IO (200mA 够写入电流),,MAIN_PCB,,
+      12	P3,GND,J_BOOT1 pin6,GND,J_BOOT1,启动存储焊盘位 (4p 信号 + 2p 电源/GND 预留),CONN,DNP,[待原厂],TBD-06,[J_BOOT1] ★DNP: ★SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展) | 焊盘位 GND 预留 (外挂 SPI-NOR 用),,MAIN_PCB,,
+      13	P4,DSI_D0_CK_P_SRC,J_SOM_P3 pin71,R_SEL_CK_P,NET_DSI_D0_CK_P_SRC,100Ω ±10%,NET,必装,[推算],TBD-04,方向 SoC(或桥接)→光机; 电平 1.2V CML; 阻抗 100Ω ±10%; 连接 CONN_LIGHT pin6 (DSI1_CP) + R_SEL_CK 0Ω; 测试点 TP_DSI_CK_P,A-13,MAIN_PCB,,
+      14	P4,DSI_D0_CK_P,R_SEL_CK_P,CONN_LIGHT pin6,R_SEL_CK_P,0Ω,R,必装,[官方],TBD-04,"[DSI_D0_CK_P] DSI 直通位 (SoC 原生 DSI → 光机; ★方案B 已随 RK3572 删除, 此位是**唯一通路**) — ★规格位 R_SEL_* 必须拆 P/N 两颗, 单颗 0Ω 会把差分对短接",,MAIN_PCB,,
+
+== grep SPI_*_BOOT 全文行号 ==
+202:P3,SPI_SCLK_BOOT,R_SER_SPI_SCLK,J_BOOT1 pin1,R_SER_SPI_SCLK,0Ω (串阻位),R,必装,[待原厂],TBD-06,[SPI_SCLK_BOOT] SPI_SCLK 串阻位 (0Ω 调试用),,MAIN_PCB,,
+204:P3,SPI_CSn_BOOT,R_SER_SPI_CSn,J_BOOT1 pin2,R_SER_SPI_CSn,0Ω (串阻位),R,必装,[待原厂],TBD-06,[SPI_CSn_BOOT] SPI_CSn 串阻位 (0Ω 调试用),,MAIN_PCB,,
+206:P3,SPI_MOSI_BOOT,R_SER_SPI_MOSI,J_BOOT1 pin3,R_SER_SPI_MOSI,0Ω (串阻位),R,必装,[待原厂],TBD-11,[SPI_MOSI_BOOT] SPI_MOSI 串阻位 (0Ω 调试用),,MAIN_PCB,,
+208:P3,SPI_MISO_BOOT,R_SER_SPI_MISO,J_BOOT1 pin4,R_SER_SPI_MISO,0Ω (串阻位),R,必装,[待原厂],TBD-11,[SPI_MISO_BOOT] SPI_MISO 串阻位 (0Ω 调试用),,MAIN_PCB,,

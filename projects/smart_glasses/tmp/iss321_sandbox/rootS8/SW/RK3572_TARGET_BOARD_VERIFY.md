@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/RK3572_TARGET_BOARD_VERIFY.md

@@ -67,6 +67,10 @@ TABLE = os.path.join(PROJ, "HW", "netlist_v1_pins.csv")
 # ★**import 失败 ⇒ 响亮失败 (★照 advance.py 里的 decision_truth 守卫那套风格★)** ★★
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
+# ★★2026-11-23 04:5x (ISS-348): 临时产物一律落【项目盘】⇒ ★**/tmp 是带 userquota 的 tmpfs,
+#   配额打满时写盘 EDQUOT ⇒ KiCad 导出报 "Disk quota exceeded" ⇒ ★**闸被误读成「图纸坏了」**
+#   (★实测: /tmp 下 rc=2 而 TMPDIR=$PWD/tmp 下同一条命令 rc=0 全绿★) ⇒ ★**判据方向没改, 只改「往哪写」★**
+from tmpdir import gate_tmpdir
 try:
     import gen_kicad_sch as _gen
 except Exception as _e:  # noqa: BLE001
@@ -308,7 +312,8 @@ def run_gate(netlist_path=None, dnp_basis="incl"):
     if netlist_path:
         nl_path = netlist_path
     else:
-        tmp = tempfile.NamedTemporaryFile(prefix="_pinfull_", suffix=".net", delete=False)
+        tmp = tempfile.NamedTemporaryFile(prefix="_pinfull_", suffix=".net", delete=False,
+                                          dir=gate_tmpdir())   # ★ISS-348: 不落 /tmp★
         nl_path = tmp.name
         tmp.close()
     try:

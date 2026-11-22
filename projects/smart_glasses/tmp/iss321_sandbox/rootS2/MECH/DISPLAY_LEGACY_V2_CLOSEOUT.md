@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/DISPLAY_LEGACY_V2_CLOSEOUT.md

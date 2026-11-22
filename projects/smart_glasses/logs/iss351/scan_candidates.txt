@@ -1,0 +1,15 @@
+=== CANDIDATE SCAN: key-term AND (capacity-number OR 12->15mm) ===
+
+--- answers[2] key=vendor_q19_boot_storage
+{"key": "vendor_q19_boot_storage", "to": "main", "value": "已并入原厂邮件问题清单第7问(内置boot storage? 容量?); 当前按无内置boot storage设计: 外挂 SPI-NOR 16-64MB, 吃镜脚空间, 板宽可能 12->15mm; 请并入第一轮跟进邮件", "ref": "HW/HARDWARE_BREAKDOWN.md#1.1(HW-03) + HANDOFF#阻塞-原厂第7问"}
+
+--- answers[13] key=fw_boot_storage_bom
+{"key": "fw_boot_storage_bom", "to": "sw-lead", "value": "64MB SPI-NOR 装不下 (分区表 90MB) ⇒ 必须 ≥128MB, 路线选 **eMMC 5.1 / ePoP** (不是 NOR)。★量产眼镜印证: 小米 AI 眼镜用 Kingston **ePoP** 存储 (52audio 拆解) ⇒ 方向一致。ARS45 侧仍按『无内置 boot storage』设计 (外挂), 脚号 TBD-06/11。★板宽已放宽到 30mm ⇒ 挂 eMMC 的面积压力解除 (旧账: 12→15mm 要 +25%)。", "ref": "HW/ONLINE_INTEL_2026-10-26.md#B3-2 + HW/netlist_v1.csv P3 行 185-190"}
+
+--- needs_from[5] key=q3_storage_and_audio
+{"key": "q3_storage_and_audio", "to": "boss", "waiting_on": "boss", "due": "2026-10-27", "since": "2026-10-25", "item": "Q3 模型/rootfs 怎么存(只ADB push是否接受外挂 SPI-NOR ≥128 MiB (1 Gbit) 起, 板宽12->15mm) + 音频到底做不做(tracker全文无音频条目, 我不擅自加也不擅自排除)"}
+
+--- risks[2] key=None
+{"id": "R-hw-boot-storage", "text": "若无内置 boot storage → 需外挂 SPI-NOR/eMMC (吃 PCB 面积, 板宽 12→15mm), 投板前必须 close", "severity": "high"}
+
+TOTAL CANDIDATES = 4

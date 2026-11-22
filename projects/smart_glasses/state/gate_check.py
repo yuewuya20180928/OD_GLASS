@@ -269,6 +269,9 @@ PINNED_MD5_GATES = [
     (os.path.join(PROJ, "MECH", "check_board_frame_coords.py"), "钉板闸⑦ 板框坐标闸", ()),
     (os.path.join(PROJ, "MECH", "check_demo_struct_truth.py"), "钉板闸⑧ 结构真值闸", ()),
     (os.path.join(PROJ, "SW", "tools", "check_onepass_sw_sync.py"), "钉板闸⑨ SW 侧合法改板通道闸", ()),
+    # ★★2026-11-23 04:3x main 挂 (★ISS-349 cont1 交回的挂载行·原样抄★): 板侧项全集「重跑不蒸发」闸
+    #   ⇒ 守的是「清单页 == 生成器产物」这条元不变量 ⇒ 谁手改页 / 谁删生成器里的条目 ⇒ 当场红
+    (os.path.join(PROJ, "HW", "check_preflight_regen_idempotent.py"), "钉板闸⑩ 板侧项全集重跑幂等闸", ()),
 ]
 
 

@@ -60,6 +60,7 @@
 | ★**`B29_WRITEBACK`** ★ | ★ISS-266 ★ | 回写台账 + 决策页 + 分片 | ★**S13** ★ | S9~S12 | [实测] 落表台账 / 决策页 / 分片 三处待回写 (★板级结论必须落决策页 ★) | `python3 state/merge.py ⇒ rc=0 && python3 state/gate_check.py ⇒ rc=0 (Q1 18/18)` |
 | ★**`B30_LED_BRIGHTNESS`** ★ | ★ISS-271 ★ | LED 亮度档 G-5 **已拍 = 20mA 档** (R_LED_R 68Ω / R_LED_G 55Ω) ★**★已落表 (★ISS-283·12:30:23★) ⇒ 板那一趟只须重出 BOM (footprint 不变 ⇒ 不构成额外板改)★** ★ | ★**S6** ★ | ★**已拍 (★老板 2026-11-17 09:49·A5 = 20mA★) ⇒ 剩【IEC 62471 分级重算】登记给 main (★不代拍★)** ★ | [实测] G-5 已拍「选项 ② = 改 R 到 20 mA 档」⇒ 已落表: R_LED_R = 68Ω ±1% / R_LED_G = 55Ω ±1% ⇒ 单颗 ~20 mA · 功耗 2.2 mW→66 mW (★两颗 ≈ 0.13 W 进电池账★) · 亮度 ×14 ⇒ IEC 62471 分级要重算 (★已登记 need·不代拍★); ★旧 1kΩ + 3.3V ⇒ 1.10 mA ⇒ KP-2012SGC 仅 0.7~0.9 mcd ⇒ 白天看不见 (★已被 20 mA 档取代★) ★ | `python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ rc=1 且条数不变 (★20mA 档已落表; 板侧项归 §③-1~§③-3★)` |
 | ★**`B31_P7_TARGET`** ★ | ★ISS-266 ★ | P7: 画哪一块板 (160×100 台架板 vs 产品板) | ★**S6** ★ | 老板 (P7) | [实测] 现役板 = 160×100 台架板 (8 铜层 / 186 封装 / 160.10×100.10); 产品板 = 60×30 套A (★另一坐标帧 F30A, 数不可混用 ★) | `python3 HW/check_board_frame_caliber.py ⇒ rc=0 (三条帧 id B160x100 / F30A / P60x15 互不混用)` |
+| ★**`B33_PIN_LAND_1P27`** ★ | ★ISS-290 ★ | `J_DEBUG`/`J_UART` 排针 land pitch 0.50→1.27mm (E-1 · 实测排针落不进 · main 11-17 18:45 拍死) | ★**S6** ★ | - | [实测] 板读 (bash state/pcbnew_py.sh): `J_DEBUG` = pitch 0.50 / 4 脚 / 铜箔 X 142.0625..143.8375 × Y 56.1500..57.0500 (1.7750 × 0.9000); `J_UART` = pitch 0.50 / 2 脚 / 铜箔 X 18.5025..19.2775 × Y 68.1500..69.0500 (0.7750 × 0.9000); BOM/网表写 1.27mm (`HW/BOM_v1.csv:71` = `J_DEBUG` / `:77` = `J_UART`; 网表 P8 区同串·`HW/netlist_v1.csv:396` / `:399`) ⇒ Δ pitch 0.77 ⇒ 实物 1.27mm 排针落不进; ★E-1 裁决原文记的原始 land pitch = 0.50mm (main 2026-11-17 18:45·`state/fragments/pm.yaml` key `main_e1_e2_board_side_rulings_20261117`·★那个数是【改之前】的值·板那一趟做完它也不变★) | `bash state/pcbnew_py.sh -c "import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print('; '.join('%s land pitch = %.2f'%(r,(lambda c:c[1]-c[0])(sorted(set(round(pcbnew.ToMM(p.GetPosition().x),4) for p in [f for f in b.GetFootprints() if f.GetReference()==r][0].Pads())))) for r in ('J_DEBUG','J_UART')))" ⇒ 期望读数: J_DEBUG land pitch = 1.27 / J_UART land pitch = 1.27` |
 
 ---
 
@@ -102,7 +103,7 @@
 | ★**S3** ★ | ★2 ★ | ★`B05_U_EN_SW_VALUE`, `B06_TPS7A20_VALUE` ★ |
 | ★**S4** ★ | ★4 ★ | ★`B07_ESD_USB_D_3PIN`, `B08_ESD_USB_D_NEAR`, `B09_ESD_USB_D_MINUS`, `B32_V2_NET_RENAME` ★ |
 | ★**S5** ★ | ★1 ★ | ★`B19_BAT_DET` ★ |
-| ★**S6** ★ | ★9 ★ | ★`B10_Q_AND_LAND`, `B11_Q_PG_LAND`, `B12_Q_ENVC_LAND`, `B13_ESD_CAM_PAD`, `B14_S6_20_COORDS`, `B15_SVC_PORT_SPLIT`, `B16_LED_G_OPTO`, `B30_LED_BRIGHTNESS`, `B31_P7_TARGET` ★ |
+| ★**S6** ★ | ★10 ★ | ★`B10_Q_AND_LAND`, `B11_Q_PG_LAND`, `B12_Q_ENVC_LAND`, `B13_ESD_CAM_PAD`, `B14_S6_20_COORDS`, `B15_SVC_PORT_SPLIT`, `B16_LED_G_OPTO`, `B30_LED_BRIGHTNESS`, `B31_P7_TARGET`, `B33_PIN_LAND_1P27` ★ |
 | ★**S7** ★ | ★2 ★ | ★`B17_DNP_43`, `B18_J_CHG_DISAMB` ★ |
 | ★**S8** ★ | ★1 ★ | ★`B25_UNCONNECTED` ★ |
 | ★**S9** ★ | ★1 ★ | ★`B26_BASELINE` ★ |
@@ -537,6 +538,17 @@ ISS-276
       "criterion": "python3 HW/check_board_frame_caliber.py ⇒ rc=0 (三条帧 id B160x100 / F30A / P60x15 互不混用)",
       "step": "S6",
       "blocked_by": "老板 (P7)",
+      "evidence": "[实测]"
+    },
+    {
+      "id": "B33_PIN_LAND_1P27",
+      "source_iss": "ISS-290",
+      "title": "`J_DEBUG`/`J_UART` 排针 land pitch 0.50→1.27mm (E-1 · 实测排针落不进 · main 11-17 18:45 拍死)",
+      "current_state": "[实测] 板读 (bash state/pcbnew_py.sh): `J_DEBUG` = pitch 0.50 / 4 脚 / 铜箔 X 142.0625..143.8375 × Y 56.1500..57.0500 (1.7750 × 0.9000); `J_UART` = pitch 0.50 / 2 脚 / 铜箔 X 18.5025..19.2775 × Y 68.1500..69.0500 (0.7750 × 0.9000); BOM/网表写 1.27mm (`HW/BOM_v1.csv:71` = `J_DEBUG` / `:77` = `J_UART`; 网表 P8 区同串·`HW/netlist_v1.csv:396` / `:399`) ⇒ Δ pitch 0.77 ⇒ 实物 1.27mm 排针落不进; ★E-1 裁决原文记的原始 land pitch = 0.50mm (main 2026-11-17 18:45·`state/fragments/pm.yaml` key `main_e1_e2_board_side_rulings_20261117`·★那个数是【改之前】的值·板那一趟做完它也不变★)",
+      "action": "那一趟把 `J_DEBUG`(1×4) 与 `J_UART`(1×2) 的 land pitch 从 0.50 改成 1.27 (★E-1·main 2026-11-17 18:45 已拍死·归 main 不归老板★) ⇒ 与 S4 的 ESD 挪位、S6 的 `Q_PG`/`Q_AND` land 重画同一次布局里做完 ⇒ 板 md5 只许变一次",
+      "criterion": "bash state/pcbnew_py.sh -c \"import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print('; '.join('%s land pitch = %.2f'%(r,(lambda c:c[1]-c[0])(sorted(set(round(pcbnew.ToMM(p.GetPosition().x),4) for p in [f for f in b.GetFootprints() if f.GetReference()==r][0].Pads())))) for r in ('J_DEBUG','J_UART')))\" ⇒ 期望读数: J_DEBUG land pitch = 1.27 / J_UART land pitch = 1.27",
+      "step": "S6",
+      "blocked_by": "-",
       "evidence": "[实测]"
     }
   ]

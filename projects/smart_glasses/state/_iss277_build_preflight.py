@@ -4,6 +4,13 @@
 
 ★★【ISS-292 · 2026-11-17 · hw-lead】生成器与盘面页对齐 (★跑一次不许把订正冲掉★)★★
 
+★★【ISS-349 · 2026-11-23 · hw-lead】E-1 排针 land pitch 那一条【搬进生成器】★★
+★**病根**: ISS-343 把 `B33_PIN_LAND_1P27` 手写进了【本页 = 生成器产物】⇒ 重跑就蒸发 ★
+★**本单**: ① `ITEMS_RAW` 里加这一条 (★id/`source_iss` 与 ISS-343 已写的保持一致★)
+  ② 这一条的现状值【全部现读】(★板读 land pitch + BOM/网表读实物要求★) ⇒ 板那一趟改完 land
+  ⇒ 重跑生成器 ⇒ 现状值【自己】变成 1.27 ⇒ ★**一个数都不许写死** ★
+  ③ 新闸 `HW/check_preflight_regen_idempotent.py` (★表/JSON 同源 + 重跑幂等 + source_iss 在册★) ★★
+
 ★**本生成器的三条铁律 (★ISS-292 的全部意义就在这三条★)** ★★
 
 ① ★**现状值一律从真源读, 一律不许写死** ★★
@@ -31,6 +38,7 @@
 
 ★**边界** ★: ★零写板 · 零落表 · 只写 `HW/PCB/BOARD_ONEPASS_PREFLIGHT.md` 一个文件★ ★★
 """
+import csv
 import json
 import os
 import re
@@ -202,6 +210,228 @@ def read_appendix_blocks():
     return s3, app, iss304, baseline
 
 
+# ==============================================================================
+# ★★ISS-349 · 2026-11-23 (hw-lead): E-1 排针 land pitch 的真源读 (★铁律 ①★)
+# ==============================================================================
+#  ★**病根 (★ISS-349 本单的全部理由★)**: ISS-343 把 `B33_PIN_LAND_1P27` 【手写】进了
+#    【生成器产物页】`HW/PCB/BOARD_ONEPASS_PREFLIGHT.md` ⇒ ★**下次重跑生成器就静默蒸发** ⇒
+#    「板只改一次」那一趟的板侧项全集少一条 ⇒ 实物排针照样装不进 ⇒ 补做 = 板 md5 变第二次 ★
+#  ★**本节把这条搬进生成器**: ① 现状值【全部现读】(★板读 pitch + BOM/网表读实物要求★)
+#    ⇒ 板那一趟改完 land, 重跑生成器 ⇒ 这一条的现状值【自己】变成 1.27 ⇒ 不许写死任何数 ★
+#  ★**读数纪律 (★与本生成器现有两条真源读法同款★)**: 读不到 ⇒ 拒写页 (fail-closed) ★
+PINLAND_REFS = ("J_DEBUG", "J_UART")
+# ★E-1 裁决原文 (★main 2026-11-17 18:45 已拍死·归 main 不归老板★) 的出处
+PM_FRAG_REL = "state/fragments/pm.yaml"
+E1_RULING_KEY = "main_e1_e2_board_side_rulings_20261117"
+
+
+def read_board_pin_land():
+    """★J_DEBUG / J_UART 的 land pitch【现值】⇒ 现读板 (★铁律 ①·一律不许写死★)
+
+    ★**真源 = 板文件 `HW/PCB/demo_mainboard.kicad_pcb`** (★经 `state/pcbnew_py.sh` 读★) ★
+    ⇒ 返回 {ref: {pitch, npads, x0, x1, y0, y1}} · ★读不到任一位号 ⇒ 拒写页 (fail-closed) ★
+    """
+    code = "\n".join([
+        "import pcbnew",
+        "b = pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb')",
+        "for r in %r:" % (PINLAND_REFS,),
+        "    fs = [f for f in b.GetFootprints() if f.GetReference() == r]",
+        "    if not fs:",
+        "        print('%s|MISS' % r); continue",
+        "    pads = list(fs[0].Pads())",
+        "    if not pads:",
+        "        print('%s|NOPAD' % r); continue",
+        "    xs = sorted(set(round(pcbnew.ToMM(p.GetPosition().x), 4) for p in pads))",
+        "    ys = sorted(set(round(pcbnew.ToMM(p.GetPosition().y), 4) for p in pads))",
+        "    cols = xs if len(xs) > 1 else ys",
+        "    pit = (cols[1] - cols[0]) if len(cols) > 1 else None",
+        "    x0 = min(pcbnew.ToMM(p.GetBoundingBox().GetX()) for p in pads)",
+        "    x1 = max(pcbnew.ToMM(p.GetBoundingBox().GetRight()) for p in pads)",
+        "    y0 = min(pcbnew.ToMM(p.GetBoundingBox().GetY()) for p in pads)",
+        "    y1 = max(pcbnew.ToMM(p.GetBoundingBox().GetBottom()) for p in pads)",
+        "    print('%s|pitch=%s|npads=%d|x0=%.4f|x1=%.4f|y0=%.4f|y1=%.4f' % (r,"
+        " ('%.4f' % pit) if pit is not None else 'NA', len(pads), x0, x1, y0, y1))",
+    ])
+    rc, out = run(["bash", "state/pcbnew_py.sh", "-c", code])
+    d = {}
+    for line in out.splitlines():
+        if "|" not in line:
+            continue
+        parts = line.split("|")
+        if parts[0].strip() not in PINLAND_REFS:
+            continue
+        kv = dict(p.split("=", 1) for p in parts[1:] if "=" in p)
+        if "pitch" not in kv or kv.get("pitch") == "NA":
+            raise SystemExit("★板读不到 %s 的 land pitch (★rc=%d★) ⇒ 拒写页 (★fail-closed·不许猜★)\n%s"
+                             % (parts[0].strip(), rc, out[-2000:]))
+        d[parts[0].strip()] = {
+            "pitch": float(kv["pitch"]),
+            "npads": int(kv["npads"]),
+            "x0": float(kv["x0"]), "x1": float(kv["x1"]),
+            "y0": float(kv["y0"]), "y1": float(kv["y1"]),
+        }
+    miss = [r for r in PINLAND_REFS if r not in d]
+    if miss:
+        raise SystemExit("★板读数缺 %s (★rc=%d★) ⇒ 拒写页 (★fail-closed·不许猜★)\n%s"
+                         % (miss, rc, out[-2000:]))
+    return d
+
+
+def read_pin_land_spec():
+    """★排针的【实物要求】(pin 数 + pitch) ⇒ BOM + 网表【双读】(★两处必须一致★)
+
+    ★**真源 = `HW/BOM_v1.csv` (采购口径) + `HW/netlist_v1.csv` (电气口径)** ★
+    ⇒ 返回 {ref: {n, pitch, bom_line, net_line}} · ★任一处读不到 / 两处不一致 ⇒ 拒写页 ★
+    """
+    spec_re = re.compile(r"(\d+)\s*[×xX*]\s*(\d+)\s+([\d.]+)\s*mm")
+    out = {}
+
+    def scan(rel, ref_col, val_col):
+        path = os.path.join(PROJ, rel)
+        if not os.path.exists(path):
+            raise SystemExit("★读不到 %s ⇒ 拒写页 (★fail-closed★)" % rel)
+        hits = {}
+        for i, line in enumerate(open(path, encoding="utf-8").read().split("\n"), 1):
+            if not line.strip():
+                continue
+            try:
+                cols = next(csv.reader([line]))
+            except Exception:
+                continue
+            if len(cols) <= max(ref_col, val_col):
+                continue
+            if cols[ref_col].strip() in PINLAND_REFS and cols[ref_col].strip() not in hits:
+                hits[cols[ref_col].strip()] = (i, cols[val_col].strip())
+        return hits
+
+    bom_hits = scan("HW/BOM_v1.csv", 0, 2)
+    net_hits = scan("HW/netlist_v1.csv", 4, 5)
+    for r in PINLAND_REFS:
+        if r not in bom_hits:
+            raise SystemExit("★BOM 里读不到 %s ⇒ 拒写页 (★fail-closed·不许猜★)" % r)
+        if r not in net_hits:
+            raise SystemExit("★网表里读不到 %s ⇒ 拒写页 (★fail-closed·不许猜★)" % r)
+        mb = spec_re.search(bom_hits[r][1])
+        mn = spec_re.search(net_hits[r][1])
+        if not mb or not mn:
+            raise SystemExit("★%s 的排针规格解析不出来 (★BOM=%r·网表=%r★) ⇒ 拒写页 (★fail-closed★)"
+                             % (r, bom_hits[r][1], net_hits[r][1]))
+        if (int(mb.group(2)), float(mb.group(3))) != (int(mn.group(2)), float(mn.group(3))):
+            raise SystemExit("★%s 的 BOM 口径 (%s×%s·%smm) 与网表口径 (%s×%s·%smm) 不一致 "
+                             "⇒ 拒写页 (★fail-closed·不许自己挑一个★)"
+                             % (r, mb.group(1), mb.group(2), mb.group(3),
+                                mn.group(1), mn.group(2), mn.group(3)))
+        out[r] = {"n": int(mb.group(2)), "pitch": float(mb.group(3)),
+                  "bom_line": bom_hits[r][0], "net_line": net_hits[r][0]}
+    return out
+
+
+def read_e1_ruling_baseline():
+    """★E-1 裁决原文里的【原始 land pitch】⇒ 从 main 的分片现读 (★fail-soft★)
+
+    ★**为什么读它**: 板那一趟做完 land 之后, 板读值会变成 1.27 ⇒ 「原始 land pitch 是多少」
+    这个数在盘上就【不存在了】 ⇒ 只剩 main 2026-11-17 18:45 的裁决原文里留着 ⇒
+    ★**从那里读 ⇒ 这个数永远在 ⇒ 页上那句「原始 land pitch = X」不会随板改而蒸发** ★
+    ⇒ ★读不到 ⇒ 返回 None (★fail-soft·只影响「原始值」这一句·不影响现状值读数★)★
+    """
+    path = os.path.join(PROJ, PM_FRAG_REL)
+    if not os.path.exists(path):
+        print("★⚠ E-1 裁决原文 %s 不存在 ⇒ 「原始 land pitch」一句降级 (★fail-soft★)" % PM_FRAG_REL)
+        return None
+    lines = open(path, encoding="utf-8").read().split("\n")
+    blk, grab = [], False
+    for l in lines:
+        if re.match(r"^\s*-\s*key:\s", l):
+            if grab:
+                break
+            grab = (E1_RULING_KEY in l)
+            continue
+        if grab:
+            blk.append(l)
+    if not blk:
+        print("★⚠ %s 里读不到 key %s ⇒ 「原始 land pitch」一句降级 (★fail-soft★)"
+              % (PM_FRAG_REL, E1_RULING_KEY))
+        return None
+    txt = "\n".join(blk)
+    mb = re.search(r"板上 land 实测\s*([\d.]+)\s*mm", txt)
+    mt = re.search(r"裁决 = 按\s*([\d.]+)\s*mm", txt)
+    if not mb or not mt:
+        print("★⚠ E-1 裁决原文里抽不出「原始 land pitch / 目标 pitch」⇒ 「原始值」一句降级 (★fail-soft★)")
+        return None
+    return {"baseline": float(mb.group(1)), "target": float(mt.group(1))}
+
+
+def build_pinland_item():
+    """★E-1 排针 land pitch 那一条 (`B33_PIN_LAND_1P27`) 的 4 个字段 (★现状值全部现读★)
+
+    ★**id 不许改** (★ISS-343 已写进 JSON 的 id 保持一致·不许重名★) · ★**`source_iss` 必须 `ISS-290`**
+    (★覆盖度闸 `HW/check_onepass_preflight_coverage.py` 的 `SOURCES` 里已有它★) ★
+    """
+    board = read_board_pin_land()
+    spec = read_pin_land_spec()
+    ruling = read_e1_ruling_baseline()
+    cur = set(round(board[r]["pitch"], 4) for r in PINLAND_REFS)
+    if len(cur) != 1:
+        raise SystemExit("★J_DEBUG / J_UART 的板读 land pitch 不一致 (%s) ⇒ 拒写页 (★fail-closed★)"
+                         % sorted(cur))
+    cur_p = round(list(cur)[0], 4)
+    tgt = set(round(spec[r]["pitch"], 4) for r in PINLAND_REFS)
+    if len(tgt) != 1:
+        raise SystemExit("★J_DEBUG / J_UART 的 BOM/网表排针间距不一致 (%s) ⇒ 拒写页 (★fail-closed★)"
+                         % sorted(tgt))
+    tgt_p = round(list(tgt)[0], 4)
+    delta = round(tgt_p - cur_p, 4)
+    if ruling and abs(ruling["target"] - tgt_p) > 1e-9:
+        print("★⚠ E-1 裁决原文的目标 pitch (%s) 与 BOM/网表 (%s) 不一致 ⇒ 以 BOM/网表为准"
+              % (ruling["target"], tgt_p))
+    if ruling and abs(ruling["baseline"] - cur_p) > 1e-9:
+        print("★⚠ E-1 裁决原文记的原始 land pitch (%s) 与现板读 (%s) 不一致 (★板可能已改过·或板读口径变过★)"
+              % (ruling["baseline"], cur_p))
+
+    def seg(r):
+        b = board[r]
+        return ("`%s` = pitch %.2f / %d 脚 / 铜箔 X %.4f..%.4f × Y %.4f..%.4f (%.4f × %.4f)"
+                % (r, b["pitch"], b["npads"], b["x0"], b["x1"], b["y0"], b["y1"],
+                   round(b["x1"] - b["x0"], 4), round(b["y1"] - b["y0"], 4)))
+
+    cur_s = "%.2f" % cur_p
+    tgt_s = "%.2f" % tgt_p
+    delta_s = "%.2f" % delta
+    state = ("[实测] 板读 (bash state/pcbnew_py.sh): %s; %s; "
+             "BOM/网表写 %smm (`HW/BOM_v1.csv:%d` = `J_DEBUG` / `:%d` = `J_UART`; "
+             "网表 P8 区同串·`HW/netlist_v1.csv:%d` / `:%d`) ⇒ Δ pitch %s ⇒ %s"
+             % (seg("J_DEBUG"), seg("J_UART"), tgt_s,
+                spec["J_DEBUG"]["bom_line"], spec["J_UART"]["bom_line"],
+                spec["J_DEBUG"]["net_line"], spec["J_UART"]["net_line"],
+                delta_s,
+                ("实物 %smm 排针落不进" % tgt_s) if delta > 1e-9
+                else "★E-1 已落地 (板读 pitch == BOM/网表要求)★"))
+    if ruling:
+        state += ("; ★E-1 裁决原文记的原始 land pitch = %.2fmm (main 2026-11-17 18:45·"
+                  "`%s` key `%s`·★那个数是【改之前】的值·板那一趟做完它也不变★)"
+                  % (ruling["baseline"], PM_FRAG_REL, E1_RULING_KEY))
+    title = ("`J_DEBUG`/`J_UART` 排针 land pitch %s→%smm (E-1 · 实测排针落不进 · main 11-17 18:45 拍死)"
+             % (cur_s, tgt_s)) if delta > 1e-9 else \
+            ("`J_DEBUG`/`J_UART` 排针 land pitch %smm (E-1 · ★板读已 == BOM/网表要求·"
+             "main 11-17 18:45 拍死的 %smm 已落板★)" % (tgt_s, tgt_s))
+    action = ("那一趟把 `J_DEBUG`(%d×%d) 与 `J_UART`(%d×%d) 的 land pitch 从 %s 改成 %s "
+              "(★E-1·main 2026-11-17 18:45 已拍死·归 main 不归老板★) ⇒ 与 S4 的 ESD 挪位、"
+              "S6 的 `Q_PG`/`Q_AND` land 重画同一次布局里做完 ⇒ 板 md5 只许变一次"
+              % (1, spec["J_DEBUG"]["n"], 1, spec["J_UART"]["n"], cur_s, tgt_s)) if delta > 1e-9 else \
+             ("★E-1 已落地 (板读 land pitch %s == BOM/网表要求 %s) ⇒ 那一趟 `J_DEBUG`/`J_UART` "
+              "这两个排针 land 不用再动 ⇒ ★**但仍要在同一次布局里核一遍** (★不许因为「读数对了」"
+              "就把这一条从板侧项全集里划掉·它还得留着当验收凭据★)" % (cur_s, tgt_s))
+    crit = ("bash state/pcbnew_py.sh -c \"import pcbnew;b=pcbnew.LoadBoard("
+            "'HW/PCB/demo_mainboard.kicad_pcb');print('; '.join('%%s land pitch = %%.2f'%%(r,"
+            "(lambda c:c[1]-c[0])(sorted(set(round(pcbnew.ToMM(p.GetPosition().x),4) for p in "
+            "[f for f in b.GetFootprints() if f.GetReference()==r][0].Pads())))) for r in "
+            "('J_DEBUG','J_UART')))\" ⇒ 期望读数: J_DEBUG land pitch = %s / J_UART land pitch = %s"
+            % (tgt_s, tgt_s))
+    print("★ISS-349 · E-1 排针 land 真源读数: 板读 pitch = %s · BOM/网表 = %s · Δ = %s · 原始 = %s"
+          % (cur_s, tgt_s, delta_s, (ruling["baseline"] if ruling else "读不到")))
+    return {"title": title, "current_state": state, "action": action, "criterion": crit}
+
+
 def build_tokens():
     """★★把真源读数变成模板占位符 (★铁律 ①★) ★★"""
     t, o, z = read_r3_a4()
@@ -255,6 +485,10 @@ def subst(text, tokens):
 # ★★真源读数 (★铁律 ①★) ⇒ 现状值占位符 ★★
 TOKENS = build_tokens()
 print("★真源读数:", TOKENS)
+
+# ★★ISS-349 · 2026-11-23 (hw-lead): E-1 排针 land 那一条的 4 个字段 (★现状值现读板 + 现读 BOM/网表★)
+#   ★**必须在 ITEMS_RAW 之前算好** (★ITEMS_RAW 是列表字面量·求值即用★) ★
+PL = build_pinland_item()
 
 # ★★条目本体 (★现状值里的 @@…@@ 占位符一律由真源读数替换·★不许写死★) ★★
 ITEMS_RAW = [
@@ -450,6 +684,13 @@ ITEMS_RAW = [
   "只列选项与代价, 不代拍 (★C4 是唯一不需动板的选项 ★)",
   "python3 HW/check_board_frame_caliber.py ⇒ rc=0 (三条帧 id B160x100 / F30A / P60x15 互不混用)",
   "S6", "老板 (P7)", "[实测]"),
+ # ★★ISS-349 · 2026-11-23 (hw-lead): E-1 排针 land pitch (★搬进生成器·现状值全部现读★)
+ #   ★**这一条原先是 ISS-343 手写进【生成器产物页】的 ⇒ 重跑就蒸发 ⇒ 本条把它长在生成器里** ★
+ #   ★**id = `B33_PIN_LAND_1P27` (★与 ISS-343 已写进 JSON 的 id 一致·不许改★) ★
+ #   ★**`source_iss` = `ISS-290` (★覆盖度闸 `SOURCES` 里已有·不许改★) ★**
+ ("B33_PIN_LAND_1P27", "ISS-290",
+  PL["title"], PL["current_state"], PL["action"], PL["criterion"],
+  "S6", "-", "[实测]"),
 ]
 
 FIELDS = ("id", "source_iss", "title", "current_state", "action",

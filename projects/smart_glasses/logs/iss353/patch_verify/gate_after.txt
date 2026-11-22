@@ -1,0 +1,1642 @@
+==============================================================================
+ISS-353 · rk3572 目标口径清账闸 · 只读扫描 (v2.0)
+==============================================================================
+root            : tmp/iss353/patch_verify/root
+扫面            : SW / HW / state/fragments / HANDOFF / logs / REQ
+扫描文本文件数  : 1997
+命中行数        : 377  (结论矛盾=2 · 结论待裁=6 · 历史叙述=369)
+
+─── ★【名单】★ 逐条: 文件 + 行号 + 原文片段 + 判定 + 处置建议 + 处置通道 ───
+(★只报数量不算交卷★ ⇒ 本表必须整份带走★)
+
+
+◆ HANDOFF/2026-11-11_sw-lead_ISS196_rknn台账与rk3572结论.md
+   L10     [C1] 历史叙述(可留)
+      原文: 1. **`rk3572` 不是 rknn-toolkit2 的合法 `target_platform`** `[实测]` (2.3.2 支持清单无它 + 全库 grep 0 命中), **[官方]** (最新 v2.5.0 的官方 Support Platform 清单同样无 RK3572) ⇒ **不存在"升级工具…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 越权·交 main 裁
+   L14     [A1] 历史叙述(可留)
+      原文: 5. **ISS-145 的 M1 (复用 A7S 的 .rknn, 零转换) 在实测下不成立** `[实测]`: ①本机**磁盘上 0 个 `.rknn`** (连产物都不在) ②`rk3572` 不是合法 target ③即便用 `rk3576` 转出来的 .rknn 能不能在 RK3572 上加载, 仍是 `[推…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L65     [B1] 历史叙述(可留)
+      原文: ⇒ ★ **官方最新版 v2.5.0 的支持平台清单里也没有 RK3572** `[官方]` ⇒ **升级工具链这条路不存在** (与项目既有记录 ISS-147 "2.5.0 同样抛 `ValueError: Invalid target_platform 「rk3572」`" 方向一致; ★但那条 2.5.0 的 …
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L186    [A1] 历史叙述(可留)
+      原文: | M1-2 | ★ **A7S 的 .rknn 是给 A7S 的 SoC 打的 target** ⇒ 本机 `rknn_bench.py` 转出来的东西用的也是 `target_platform='rk3576'` ⇒ ★**"零转换复用"与"必须重转"在实测下是同一件事** | 无捷径 | `[实测]` (本工具 …
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L188    [A1] 历史叙述(可留)
+      原文: | M1-4 | ★ **rk3576-target 的 .rknn 能不能在 RK3572 上加载, 至今 [0数据]** ⇒ 这一条**只能板端实测**, 查资料查不出 | — | `[0数据]` |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L212    [B1] 历史叙述(可留)
+      原文: > ★ **M1 与 M2 的差别已经不在"转不转", 而在"用哪个模型"**: M1 的复用对象 (A7S 的 .rknn) **本机没有** `[实测]`, 且 `rk3572` 不是合法 target `[实测]` ⇒ **M1 的"零转换"优势归零**; ★ **M2 的 PC 侧已经做完** (F1 0.29…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+
+◆ HANDOFF/2026-11-15_sw-lead_ISS207_rk3572target与验证包.md
+   L4      [A1] 历史叙述(可留)
+      原文: - [官网] 最新 rknn-toolkit2 = **v2.5.0 (2026-10-20)**; 官方 Support Platform 8 个系列**无 RK3572**, release notes 全文无 rk3572 ⇒ **"升级就有 rk3572 target"这条路不存在** ⇒ 只能 `target…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L5      [B1] 历史叙述(可留)
+      原文: - [官网]+[实测] 2.3.2 官方库自打印合法 target 11 项 (`rk3566/3568/3588/3562/3576, rv1103/1106/1103b/1106b, rk2118, rv1126b`) **无 rk3572**; `config('rk3572')`→`ValueError: In…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L6      [F1] 历史叙述(可留)
+      原文: - [0数据] ★**RK3572 BSP runtime 认不认 rk3576-target 产物: 官方无此口径** (已检索 rknn-toolkit2 README/releases/CHANGELOG/doc×12 + rknn_model_zoo + rknpu2 + PyPI) ⇒ 命题判 (b) ⇒ 只…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L21     [F1] 历史叙述(可留)
+      原文: - ★R1 板端 `load_rknn` 是否接受 rk3576-target 产物 = **[0数据]**, 待板子 (包已就绪, 一条命令出判) · R2 若 R1 为否 ⇒ 出路三条见 `SW/RK3572_TARGET_COMPAT_V2.md` §3.2/§4.1 (本单不预判) · ★**无外部依赖挂账**…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+
+◆ HANDOFF/2026-11-16_sw-lead_ISS250_rknn-toolkit2_RK3572_target查证与降级方案.md
+   L4      [D1] 历史叙述(可留)
+      原文: > ★**单号**: ISS-250 (★owner=main, severity=high, source_blocker=ISS-155 · ★根因单 ISS-155 = demo 头号卡点★)
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L14     [D1] 历史叙述(可留)
+      原文: > ★**ISS-155 这条 demo 头号卡点, 现在是「转换链已通 (官方 rknn3-toolkit 路线实测过) + 板端接受性待板」; 官方口径同时给出**反向**结论: 「rk3576 转出来的 .rknn 在 RK3572 上跑通」这件事, 官方既无先例、结构上也不对齐 ⇒ 路线① 只能当【先试】, 不…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L19     [B1] 历史叙述(可留)
+      原文: · 本机 rknn-toolkit2 2.3.2 实测枚举 28 个候选 ⇒ 合法 11 个 (`rv1103/rv1103b/rv1106/rv1106b/rv1126b/rk2118/rk3562/rk3566/rk3568/rk3576/rk3588`), `rk3572` 与 `rk3572b` **双双被拒*…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L29     [F1] 历史叙述(可留)
+      原文: · ⇒ ★**路线① (rk3576-target 产物直接上板) = 零官方背书 + 结构反证 ⇒ 保留为「先试」, 不作默认解★**
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L31     [E1] 历史叙述(可留)
+      原文: 3. ★**命题③ (RK3572 与 RK3576 的 NPU 差异) = 【不是同代同架构, 且算力差 33%】⇒ 官方反证 + 媒体实测** ★
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 越权·交 main 裁
+   L34     [E1] 历史叙述(可留)
+      原文: · ⇒ ★**ISS-155 里那句「RK3572 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2)」被【再证伪一次】: RK3576 官方是 6 TOPS, 不是 4 TOPS; 两颗芯片分属 RKNN3/native 与 RKNN2/rkcp 两个家族★**
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 越权·交 main 裁
+   L43     [B1] 历史叙述(可留)
+      原文: · `config(target_platform='rk3572')` ⇒ **rc=0** (读数 0.019 s / 0.013 s / ★**本轮 0.001 s**★) · 反向自证 `rk3576` ⇒ **ValueError: Unsupported target_platform 'rk3576'. …
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L51     [D1] 历史叙述(可留)
+      原文: ★**⇒ ISS-155 的 blocker 状态可以改写成「转换链已通 (官方 RKNN3 路线, 实测) / 板端接受性待板」; 路线选哪条 = 老板拍 (见 B5 未决项 O-1)★**
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L80     [B1] 历史叙述(可留)
+      原文: | E1 | toolkit2 合法 target 恰好 11 个, **无 rk3572 / rk3572b** | ★[实测]★ | 28 候选逐个 `config()`; 拒 `rk3572` 原文 `ValueError: Invalid target_platform 'rk3572'!` (`rknn/ap…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L88     [E1] 历史叙述(可留)
+      原文: | E9 | ★**⇒ ISS-155「同代同架构 (4 TOPS/3 核 RKNPU v2)」被证伪 ⇒ N3 的 13.30 ms 门槛 (按 RK3572≈RK3576 推算) 必须在板端实测后重估** ★ | ★[推算]★ | 推导链: E8 (算力 2/3) + `SW/DEMO_OD_TIMING_SPEC…
+      处置: ★已标注取代 (本行自带取代标记) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 越权·交 main 裁
+   L102    [C1] 历史叙述(可留)
+      原文: | `iss250_rknn3572_target_status` | ★`rk3572` 在 rknn-toolkit2 2.3.2/2.5.0 的合法 target 列表中 **【不存在】**; 官方 RK3572 路径 = `rknn3-toolkit 1.2.0` + `target_platform='rk3…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 越权·交 main 裁
+   L104    [E1] 历史叙述(可留)
+      原文: | `iss250_npu_diff_3572_vs_3576` | ★**RK3576 = 6 TOPS@INT8 [官网]** (官方 Brief Datasheet V1.2) · ★**RK3572 = 4 TOPS [媒体]** (三家交叉) ⇒ ★**差 −33%; 「同代同架构」被证伪; 归族 = RKN…
+      处置: ★已标注取代 (本行自带取代标记) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 越权·交 main 裁
+   L106    [A3] 历史叙述(可留)
+      原文: | `iss250_downgrade_routes` | ★**8 条**: C1 升级 toolkit 【❌判死·官方封死】 · C2 rk3576-target 直上板 【⚠️无官方背书·零新增成本·先试】 · C3 官方预编译模型 【❌判死·官方 zoo 里 0 个 .rknn】 · C4 换模型 M2 yol…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 路线① (rk3576-target 直上板) 已降为次要 ⇒ 主路线 = rknn3-toolkit 1.2.0 + target_platform='rk3572'
+      通道: 越权·交 main 裁
+   L116    [A3] 历史叙述(可留)
+      原文: | **O-1** | ★**路线选哪条 (R1 rk3576-target 先试 / R2 官方 rknn3 / R3 换 SoC)** ★ | ★**sw-lead 只列代价 + 量化, 不拍** ★ | ★**老板** (涉 demo 技术栈与 60 ms 生死) ★ | 阻塞: 板一通电后先跑哪条 (⇒ 但**…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 路线① (rk3576-target 直上板) 已降为次要 ⇒ 主路线 = rknn3-toolkit 1.2.0 + target_platform='rk3572'
+      通道: 越权·交 main 裁
+   L220    [D1] 历史叙述(可留)
+      原文: 1. ★**main**: 复核本交卷单 + 查证表 ⇒ 决定 ISS-155 的 blocker 状态是否从「卡死」改写成「转换链已通 (官方 RKNN3 路线实测) / 板端接受性待板」 ⇒ ★**ISS-250 本单在 issue_log 里的 status 留给 main 落 (★我没动 issue_log★)…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L251    [B1] 历史叙述(可留)
+      原文: | toolkit2 2.3.2 config 正反两面 | `rk3572` → `ValueError: Invalid target_platform 'rk3572'!` (抛点 `rknn/api/rknn_base.py:896`) · `rk3576` → `0` | ★一致 (E-02/E-03/E-0…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L252    [B1] 历史叙述(可留)
+      原文: | rknn3-toolkit 1.2.0 config 正反两面 | `rk3572` → `0` · `rk3576` / `rk3588` → `ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+
+◆ HANDOFF/2026-11-16_sw-lead_ISS250_查证表收尾与rknn3验证.md
+   L378    [B1] 历史叙述(可留)
+      原文: | **B7-1** | ★**rknn-toolkit2 这条线不管 RK3572** (★官方口径 + 本机实测双向确认★): ★**官方 README 里无 RK3572 字样**; ★**本机 2.3.2 实跑枚举 28 个候选 target ⇒ 合法 11 个** (★`rv1103` `rv1103b` `…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L391    [A3] 历史叙述(可留)
+      原文: | **① rk3576-target (维持现状)** | ★**继续用本机已装 rknn-toolkit2 2.3.2 + `target_platform='rk3576'` (★实测 ret=0★) ⇒ 产物已在盘: `SW/artifacts/models/yolov5n-sim_heads_d730e558…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 路线① (rk3576-target 直上板) 已降为次要 ⇒ 主路线 = rknn3-toolkit 1.2.0 + target_platform='rk3572'
+      通道: 越权·交 main 裁
+
+◆ HANDOFF/2026-11-17_sw-lead_ISS250_独立复核与target机器门禁.md
+   L9      [D1] 历史叙述(可留)
+      原文: | **根因单** | ★**ISS-155** (open · blocker · demo 头号卡点) ★ |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L19     [B1] 历史叙述(可留)
+      原文: ★**一句话**: ★**题面「rk3572 不是 rknn-toolkit2 合法 target」本轮独立复核成立 (不是抄别人结论); ★并且本轮把这条事实链补出了三个以前没被写成判据的硬结论 (两条工具链合法 target 交集 = ∅ / 两代产物容器 magic 不同 / 「升级 toolkit2 就有 rk…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L25     [A1] 历史叙述(可留)
+      原文: | **③** | ★**★新结论 (根因级): 两条工具链的合法 target 交集 = ∅ (空集) ⇒ 路线① (rk3576 产物) 与 路线② (rk3572 产物) 在【产物层面不可互换】★ ⇒ ★**板端验的时候必须先说清自己验的是哪一代产物, 否则 runtime 报「格式不认识」会被误判成「模型不对」…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L214    [D1] 历史叙述(可留)
+      原文: | ★**main** ★ | ★**板端数据出来后** ★ | ★**把 ISS-155 的 blocker 口径改成实测结论 (转换链已通 / 板端接受性已验或已否)**, ★**并把「rk3572 vs rk3576」的取舍连同代价表交老板拍** ★ |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ HANDOFF/2026-11-17_sw-lead_ISS250_第6轮_板可达性实测与模拟器掉点.md
+   L5      [D1] 历史叙述(可留)
+      原文: | **单号** | ★**ISS-250** (★根因单 ISS-155 · open · blocker · demo 头号卡点★) ★ |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ HANDOFF/2026-11-17_sw-lead_ISS263_rknn3_toolkit安装实测与rk3572转换.md
+   L36     [B1] 历史叙述(可留)
+      原文: 2. ★**config 过了 (且反向自证过)** ★: `config(target_platform='rk3572')` ⇒ `CONFIG_OK target=rk3572 elapsed=0.019s` (rc=0, 第2趟原始日志) / ★**第4趟独立复跑 = 0.018s (rc=0, 一致)** ★…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L49     [D1] 历史叙述(可留)
+      原文: - ★**⇒ ISS-155 的 blocker 状态可以改写成「转换链已通 / 板端待板」** ★
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L62     [B1] 历史叙述(可留)
+      原文: | 5 | ★**反向自证: 错 target `rk3576` 必报错 (证明 target 真被读)** ★ | ★**通过** ★ | ★`config_probe.log`: `CONFIG_EXC target=rk3576 elapsed=0.015s` + `ValueError: Unsupported…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L83     [B1] 历史叙述(可留)
+      原文: ⇒ ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L127    [B1] 历史叙述(可留)
+      原文: | E5 | ★错 target `rk3576` ⇒ `ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk357…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L144    [B1] 历史叙述(可留)
+      原文: | E22 | ★★**第4趟独立复跑: 反向自证 `rk3576` ⇒ 同一句 `ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, …
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L157    [A1] 历史叙述(可留)
+      原文: | `iss263_rknn3_supported_targets` | ★`gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572` ★ | ★[实测] ★**本 SDK 唯一支持的 7 个 target; `rk3576` 不在其中** ⇒ ★**本项目的 R…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L174    [A3] 历史叙述(可留)
+      原文: | U2 | ★**路线选哪条 (① rk3576-target 维持现状 / ② rknn3-toolkit / ③ 降 OD 负载或换芯片) = 老板拍** ★ | ★**老板** ★ | ★sw-lead 只交路线②的实测结论 (E1~E13), **不代拍** ★ |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 路线① (rk3576-target 直上板) 已降为次要 ⇒ 主路线 = rknn3-toolkit 1.2.0 + target_platform='rk3572'
+      通道: 越权·交 main 裁
+   L175    [D1] 历史叙述(可留)
+      原文: | U3 | ★**「转换链已通 / 板端待板」这个新措辞要不要写进 ISS-155 的 blocker 字段** ★ | ★**main** ★ | ★**ISS-155 的 issue_log 状态本单未自签 (边界: verify 留给 main)** ★ |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L294    [B1] 历史叙述(可留)
+      原文: ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x, rk1860, rk186x, rk3572
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L359    [D1] 历史叙述(可留)
+      原文: 1. ★**ISS-155 的 blocker 状态可以改写成「转换链已通 / 板端待板」** ★
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L360    [B1] 历史叙述(可留)
+      原文: 实测读数原样报: ★**`rknn3-toolkit 1.2.0` 装在 `/home/yuewuya/miniconda3/envs/rknn3` (python 3.10.22) · `config(target_platform='rk3572')` ⇒ `CONFIG_OK target=rk3572 elap…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+
+◆ HANDOFF/2026-11-17_sw-lead_ISS270_SW侧外部依赖自查.md
+   L79     [B1] 历史叙述(可留)
+      原文: | E-18 | ★ISS-263 已实测: `config('rk3572')` rc=0 · 反向自证 `rk3576` 必报错 (`ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk182…
+      处置: ★已标注取代 (本行自带取代标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+
+◆ HANDOFF/2026-11-23_sw-lead_ISS353_rk3572目标口径清账.md
+   L6      [D1] 历史叙述(可留)
+      原文: > ★**交卷一句话**: **rk3572 的转换链这一环已经通了 (rknn3-toolkit 1.2.0 + `target_platform='rk3572'`, 实测 rc=0); 板端接受性仍 [0数据]; 板不来 ⇒ demo 路线不被这条卡住; ISS-155 的 blocker 可从「demo 头号卡…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L63     [C1] 历史叙述(可留)
+      原文: | 6 | `SW/DEMO_OD_PIPELINE_SPEC.md` L184 | 结论矛盾 | 补丁 #6+#7 (同一行两处): 「不存在升级就有 rk3572」限定在 toolkit2 家族内 + 2026-11-02 替代路线标注取代 | 越权 |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L79     [A1] 历史叙述(可留)
+      原文: | `SW/RK3572_TARGET_COMPAT_V2.md` L20 | 「升级 toolkit 就有 rk3572 target 这条路 **不存在** ⇒ **只能 `target_platform='rk3576'` 转**」 | ★改写为: toolkit2 (2.3.2/2.5.0) 不支持 rk357…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L80     [A1] 历史叙述(可留)
+      原文: | `SW/RK3572_TARGET_COMPAT_V2.md` L21 | 「RK3572 BSP runtime 认不认 rk3576-target 产物」 | ★补 rk3572-target 分支 + 标明主路线已改 (★[0数据] 判定不变★) + 订正标记 |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L81     [C1] 历史叙述(可留)
+      原文: | `SW/RK3572_TARGET_COMPAT_V2.md` L96 | 「官方**根本没有 `rk3572` 这个编译目标**」 | ★限定为「官方 rknn-toolkit2 侧」+ 补 rknn3-toolkit 侧有 RK3572 [官网] + 取代标记 |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L82     [F1] 历史叙述(可留)
+      原文: | `state/fragments/sw.yaml` (旧条) | 旧登记里的「路线① (rk3576-target 产物 …)」 | ★**台账追加式** ⇒ 本单新增分片条自带切题取代标记 ⇒ 后条取代前条 (闸规则 F5/F8)★ |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L89     [A2] 历史叙述(可留)
+      原文: ★`state/fragments/hw.yaml` L5226/L5227 的内容 = 「★RK3572 NPU 与 RK3576 **同代同架构** (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform=「rk3576」` 转 + 板端 RK3572 BSP runtime 加载…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L90     [E1] 历史叙述(可留)
+      原文: ⇒ ★「同代同架构」已被 ISS-250 官方反证 (RK3576 = 6 TOPS / 归族 RKNN2-rkcp vs RK3572 = RKNN3-native)★ ⇒ 真残留。
+      处置: ★已标注取代 (本行自带取代标记) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L96     [A2] 历史叙述(可留)
+      原文: note : ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★** —— 本条取代本分片此前登记的『RK3572 NPU 与 RK3576 同代同架构 ⇒ 用 target_platform='rk357…
+      处置: ★已标注取代 (本行自带取代标记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L105    [B1] 历史叙述(可留)
+      原文: | `config(target_platform='rk3576')` (反向自证) | ★**抛 `ValueError: Unsupported target_platform 'rk3576'. Supported target_platform: gongga2, rk1820, rk1828, rk182x…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L123    [F1] 历史叙述(可留)
+      原文: | `rknn3_model_test_demo` README | 「RK3576 / RK3588: `librknn3_api.so` + `librknn3_api_rkcp.so`」/「RK3572: `librknn3_api.so` + `librknn3_api_native.so`」 ⇒ ★**官方把…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L125    [E1] 历史叙述(可留)
+      原文: ★**官方层没有「rk3572 = rk3576」的说法** ⇒ ★「RK3572 与 RK3576 同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 反证★ (本单闸仍把它当结论矛盾盯住)。
+      处置: ★已标注取代 (本行自带取代标记) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L138    [A1] 历史叙述(可留)
+      原文: | 反向用例 | `--selftest` ★**12/12 通过**★ (`logs/iss353/gate_selftest.log`) —— 含: ①故意留旧结论必须被抓 ②新口径三句不许误判 ③已标注取代⇒可留 ④历史叙述⇒可留 ⑤★旧 R2 误报回归 (DSI 网表行)★ ⑥代码行⇒可留 ⑦★省略写法回归 (…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L146    [A2] 历史叙述(可留)
+      原文: | F3 | 「用/转 rk3576 转」窗口 14 → 30 字 | 不再漏「用 `target_platform='rk3576'` 转」(24 字) (自测用例 7) |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L149    [D1] 历史叙述(可留)
+      原文: | F6 | R5 (ISS-155 = demo 头号卡点) 从「结论矛盾」改判「**结论待裁**」 | ★ISS-155 的定位是只有老板能改的状态标签, sw-lead 不代拍★ (仍逐条点名) |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L150    [F1] 历史叙述(可留)
+      原文: | F7 | 否定语境豁免 | 「官方**不存在**任何一句『rk3576-target 可被 RK3572 接受』」= 陈述官方没说过 ⇒ 事实类 ([0数据] 命题), 不是旧口径结论 |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L151    [A1] 历史叙述(可留)
+      原文: | F8 | 台账取代标记必须**切题** (含 rk3572/rk3576/target_platform/ISS-155/263/250/353) | 否则 hw.yaml 里一条**与本口径无关**的取代标记会把整份台账的历史条目误判成「已被取代」 (自测用例 11/12) |
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L176    [A1] 历史叙述(可留)
+      原文: ★**为什么板端接受性不能靠官方文档推出来**: 官方把 RK3572 (`librknn3_api_native.so`) 与 RK3576/RK3588 (`librknn3_api_rkcp.so`) 分成**两条 runtime**, 且 rknn3-toolkit README 明写 RK3588/RK357…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L188    [D1] 历史叙述(可留)
+      原文: | ★**不代拍** ★ | ISS-155 的定位 (是否从「demo 头号卡点」降级) **未落表、未改标签**, 只在 §B5 交 main 裁; 降级 C 的三条路线**只列代价与启用条件**, 不选 |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L196    [D1] 历史叙述(可留)
+      原文: ★**回答任务书那一句**: 「ISS-155 的 blocker 状态能不能降 (从「demo 头号卡点」改成「转换链已通 / 板端待板」是否成立? 降级后它还阻塞 demo 路线选择吗?)」
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L206    [A1] 历史叙述(可留)
+      原文: | ★**残留代价** ★ | ① 板端 N1~N5 一个数都没有 ⇒ 验收不能做 (只能登记「待板」) · ② ★**转换脚本还没切**: `SW/tools/rk3572_model_rebuild.sh` + `SW/RKNN_BENCH.md` 仍是 toolkit2 + `target_platform='r…
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L207    [D1] 历史叙述(可留)
+      原文: | ★**需要老板拍的那一条 (★仅此一条★)** ★ | ★**ISS-155 的台账标签是否从「demo 头号卡点」降为「转换链已通 / 板端待板」** ★ —— sw-lead 已把依据与残留代价摆平, ★**不代拍、不新增拍板项** ★ (降级 C 的路线选择不在本次拍板范围内, 到那一步再拍) |
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L336    [A2] 历史叙述(可留)
+      原文: ★**理由**: `state/fragments/hw.yaml` L5226/L5227 仍写着「RK3572 NPU 与 RK3576 同代同架构 ⇒ 用 `target_platform='rk3576'` 转」—— 同代同架构已被 ISS-250 官方反证, 转换 target 已被 ISS-263 取代 ⇒…
+      处置: ★已标注取代 (本行自带取代标记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L338    [D1] 历史叙述(可留)
+      原文: ★**③ 请拍 ISS-155 的台账标签 (★仅此一条拍板项★)** —— 是否从「demo 头号卡点」降为「转换链已通 / 板端待板」
+      处置: 交卷单 = 历史留档 (ISS-353 铁律: 历史叙述不许改) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+
+◆ SW/DEMO_BOARD_60MS_VERDICT_PLAN.md
+   L121    [F1] 历史叙述(可留)
+      原文: | **N1** | 能加载 | `load_rknn` ret == **0** (且 `init_runtime` == 0) | ★**跨平台兼容命题被否** (rk3576-target 产物 RK3572 runtime 不认) | ⇒ 走 §5 出路 3 (换 RK3576) |
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L303    [F1] 历史叙述(可留)
+      原文: ### 6.3 ★★"rk3576-target 产物在 RK3572 上的兼容风险到底压在哪一环" (★ISS-210 补充项★)
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L308    [A1] 历史叙述(可留)
+      原文: | ★**加载期** ★ | ★**RK3572 BSP runtime 认不认 rk3572-target 产物** (★主路线; rk3576-target 已降为次要路线①★) ⇒ 官方无此口径 ⇒ **只能板端判** ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_plat…
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ SW/DEMO_OD_PIPELINE_SPEC.md
+   L15     [B1] 历史叙述(可留)
+      原文: | 2 | ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2 与 2.5.0 都抛 `ValueError`) ⇒ ★**必须重转, 但转换 target 改…
+      处置: ★已标注取代 (本行自带取代标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L143    [B1] 历史叙述(可留)
+      原文: | ★★**`target_platform` (★写死)** | ★★**只能用 `'rk3572'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platfo…
+      处置: ★已标注取代 (本行自带取代标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L184    [A1] 历史叙述(可留)
+      原文: | **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** …
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ SW/EXTERNAL_DEPENDENCY_SELFCHECK.md
+   L50     [F1] 历史叙述(可留)
+      原文: | **E-4** | key `ars45_art_galaxy_sdk`<br>`state/fragments/sw.yaml:1367` ★**本单追加后行号★ | 「Art.Galaxy 工具链包 + 手册 —— ①提供形式 (docker 镜像? SDK? 需授权/NDA?) ②…」（★原 waiting_…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+
+◆ SW/MODEL_RELEASE_LIST.md
+   L85     [B1] 历史叙述(可留)
+      原文: | ★**根因** | ★**无板** —— `192.168.2.5` 不可达 (ping 100% 丢包 + ARP `INCOMPLETE`); 且 ★**toolkit2 侧 `rk3572` 不是合法 target ⇒ 板端要加载的必须是 rknn3-toolkit 1.2.0 的 `target_platf…
+      处置: ★已标注取代 (本行自带取代标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+
+◆ SW/RK3572_TARGET_BOARD_VERIFY.md
+   L1      [F1] 历史叙述(可留)
+      原文: # SW/RK3572_TARGET_BOARD_VERIFY.md — rk3576-target .rknn 在 RK3572 上能否跑通 (板端验证步骤 + 可执行判定口径)
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L3      [D1] 结论待裁(交 main 裁)
+      原文: > 版本: v1.0 (2026-11-06) · owner: sw-lead · 对应 issue: ISS-155 (demo 头号卡点) / ISS-147 (P0-1)
+      处置: ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L6      [B1] 历史叙述(可留)
+      原文: > ★**本单回答什么**: 上游单已把 **P0-1 闭死** (`rk3572` 不是任何已发布版 rknn-toolkit2 的合法
+      处置: toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L8      [A2] 历史叙述(可留)
+      原文: > "**用 rk3576 target 转出来的 .rknn, 能不能在 RK3572 板子上跑通**"——**至今 0 次实测**。
+      处置: 过去测得的记录 (含日期/实测/原文标记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 越权·交 main 裁
+   L18     [B1] 历史叙述(可留)
+      原文: **仍然抛 `ValueError: Invalid target_platform 'rk3572'!`**; 同进程 `rk3576` / `rk3588` **rc=0**
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L153    [F1] 历史叙述(可留)
+      原文: | **✅ 通过** | N1+N2+N3+N4+N5 全过 | ★**rk3576-target 路线成立** | 继续 demo 链; ★**但 60ms 仍要看 ISS-129 的实测 S5** |
+      处置: 过去测得的记录 (含日期/实测/原文标记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+
+◆ SW/RK3572_TARGET_COMPAT_V2.md
+   L3      [D1] 结论待裁(交 main 裁)
+      原文: > 版本: **v2.0** (2026-11-15) · ★**v2.1 追加 (2026-11-23 · ISS-353) ⇒ 见 §7**★ · owner: sw-lead · 对应 issue: **ISS-207** / ISS-155 (demo 头号卡点 · ★该定位是否降级 = 交 main 裁★) …
+      处置: ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L20     [A1] 历史叙述(可留)
+      原文: | 3 | ⇒ **"升级 toolkit 就有 rk3572 target" 这条路** | ★**v2.1 订正 (2026-11-23 · ISS-353): 「不存在 ⇒ 只能 `target_platform='rk3576'` 转」已被取代** —— ★**toolkit2 (2.3.2 / 2.5.0) …
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L21     [A1] 历史叙述(可留)
+      原文: | 4 | ★**RK3572 BSP runtime 认不认 rk3572-target / rk3576-target 产物** | ★**官方无此口径** ⇒ 命题判 **(b)** ⇒ 只能标 **[0数据]**, 走降级 A/B/C (★v2.1 订正: 主路线已改为 rknn3-toolkit 1.2.0 …
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L26     [F1] 历史叙述(可留)
+      原文: ★**一句话**: 官方口径查完了 —— **没有 rk3572 target, 官方也没写"rk3576-target 产物能在 RK3572 上跑"**;
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L40     [B1] 历史叙述(可留)
+      原文: | 1.6 | `config(target_platform='rk3572')` | `ValueError: Invalid target_platform 'rk3572'!` | **[实测]** | 本机 `rknn/api/rknn_base.py:896` | `/home/yuewuya/minico…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L47     [E1] 历史叙述(可留)
+      原文: | 1.13 | ★**"RK3572 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2)" 是官方结论吗** | ★**不是**。官方 RKNN 支持平台表 **没有把 RK3572 列进去**, 官方文档也**没有**说它与 RK3576 同代。⇒ ISS-155 里这句是**我们自己的 …
+      处置: 已自己否定 / 已标注 (非官方结论) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L48     [F1] 历史叙述(可留)
+      原文: | 1.14 | ★**RK3572 BSP 的 `librknnrt` 认不认 rk3576-target 产物** | ★**官方无此口径** ⇒ 命题 **(b)** | **[0数据]** | 检索范围见 §3 | 同上 |
+      处置: 过去测得的记录 (含日期/实测/原文标记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L61     [B1] 历史叙述(可留)
+      原文: | **2.3.2** | 2025-04-09 | 同族列表 (8 系列) | **11 项** (库自打印, 见 §1.5) | **否** | `ValueError: Invalid target_platform 'rk3572'!` | **[实测]** (本机 22:0x 复跑) |
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L79     [F1] 历史叙述(可留)
+      原文: ## 3. ② "RK3572 BSP runtime 认不认 rk3576-target 产物" 的官方依据 / 无依据
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L96     [C1] 历史叙述(可留)
+      原文: > 官方 rknn-toolkit2 侧**根本没有 `rk3572` 这个编译目标** ⇒ **不存在"官方用 toolkit2 为 RK3572 编译出来的 .rknn"**可以拿来对比 · ★**已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572'…
+      处置: ★已标注取代 (本行自带取代标记) | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L98     [F1] 历史叙述(可留)
+      原文: > ⇒ "rk3576-target 的产物能不能被 RK3572 的 runtime 接受" **在官方文档里没有对应条目**,
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L107    [E1] 历史叙述(可留)
+      原文: | "RK3572 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2)" | **[推算]** (ISS-155 自推) | **不能** —— 官方无对应表述 (§1.13) |
+      处置: 已自己否定 / 已标注 (非官方结论) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L160    [F1] 历史叙述(可留)
+      原文: ★**三种结局照旧** (v1.0 §4.1): ✅ 全过 ⇒ rk3576-target 路线成立 · ⚠️ N1 过但 N3 不行 ⇒ 命中 T2, 降 OD 负载 / 回 RK3576 · ❌ N1 不过 ⇒ 换 SoC 或找 RK3572 专用 BSP。
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L169    [B1] 历史叙述(可留)
+      原文: | ★**config 过了没有** ★ | ★**过了**: `config(target_platform='rk3572')` ⇒ `CONFIG_OK target=rk3572 elapsed=0.019s` (rc=0) · ★**反向自证: 错 target `rk3576` ⇒ `ValueError:…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L204    [B1] 历史叙述(可留)
+      原文: | ★**config 过了没有** ★ | ★**过了**: `CONFIG_OK target=rk3572 elapsed=0.018s` (rc=0) · ★**反向自证: 错 target `rk3576` ⇒ 同一句 `ValueError: Unsupported target_platform 'rk3…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L227    [B1] 历史叙述(可留)
+      原文: except Exception as e: print('rk3572 ->', e) # ★Invalid target_platform
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L264    [B1] 历史叙述(可留)
+      原文: | ★**config** ★ | ★**`config(target_platform='rk3572')` ⇒ rc=0, `CONFIG_OK target=rk3572 elapsed=0.019s`** ★ · ★**反向自证 `rk3576` ⇒ `ValueError: Unsupported targe…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L305    [F1] 历史叙述(可留)
+      原文: - **R1** 板端 `load_rknn` 是否接受 rk3576-target 产物 ⇒ **[0数据]**, 待板子 (验证包已就绪: `bash SW/tools/rk3572_target_smoke.sh` 一条命令出 PASS/FAIL)。
+      处置: 过去测得的记录 (含日期/实测/原文标记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L358    [B1] 历史叙述(可留)
+      原文: | ② | **rknn3-toolkit 1.2.0 支不支持 `target_platform='rk3572'`** | ★**支持** —— 官方 rknn3-toolkit README「Supported Platforms: RK1820 / RK1828 / RK3572」+「Non-coprocess…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L369    [B1] 历史叙述(可留)
+      原文: | `config(target_platform='rk3576')` (反向自证) | ★**抛 `ValueError: Unsupported target_platform 'rk3576'`** (报错串里**含 rk3572** ⇒ target 参数真被读了)★ | 同上 |
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L385    [F1] 历史叙述(可留)
+      原文: ⇒ ★**结论**: 跨芯片接受性 (「rk3576-target 的 .rknn 能不能在 RK3572 上跑」) 官方层 **[0数据]**,
+      处置: 过去测得的记录 (含日期/实测/原文标记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L400    [D1] 结论待裁(交 main 裁)
+      原文: | `SW/RK3572_TARGET_COMPAT_V2.md` L3 | 结论待裁 (ISS-155 定位) | ★**ISS-155 是否从「demo 头号卡点」降为「转换链已通 / 板端待板」= 交 main 裁** (本单不代拍) ⇒ 本行标签**原样保留** | 本单可处置 |
+      处置: ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+
+◆ SW/RKNN_BUILD_ENV_RECOVERY.md
+   L15     [B1] 历史叙述(可留)
+      原文: | 1 | ★★ **`rk3572` 不是 rknn-toolkit2 的合法 `target_platform`** —— **2.3.2 与最新版 2.5.0 都直接报 `ValueError: Invalid target_platform 'rk3572'!`** | **[实测]** §2.2 |
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L17     [A2] 历史叙述(可留)
+      原文: | 3 | ★★ **但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform='rk3576'` 转换, 板端用 RK3572 BSP 自带 runtime 加载** (★v2.1 订正 2026-11-23 ISS-353:…
+      处置: ★已标注取代 (本行自带取代标记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 越权·交 main 裁
+   L203    [B1] 历史叙述(可留)
+      原文: E config: Invalid target_platform 'rk3572'!
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L205    [B1] 历史叙述(可留)
+      原文: ValueError: Invalid target_platform 'rk3572'!
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L218    [B1] 历史叙述(可留)
+      原文: | **2.3.2** | 2025-04-09 | ★**`ValueError: Invalid target_platform 'rk3572'!`** | rc=0 | **0** |
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L219    [B1] 历史叙述(可留)
+      原文: | **2.5.0** (★**当前最新**) | 2026-10-20 | ★**`ValueError: Invalid target_platform 'rk3572'!`** | rc=0 | **0** |
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L224    [B1] 历史叙述(可留)
+      原文: E config: Invalid target_platform 'rk3572'!
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L226    [B1] 历史叙述(可留)
+      原文: ValueError: Invalid target_platform 'rk3572'!
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L246    [C1] 历史叙述(可留)
+      原文: 1. ★★ **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— 从 2.2.0 到最新 2.5.0 全部拒绝, **不存在"升级到某版本就有 rk3572"这个选项** (★**限定在 toolkit2 家族内** ★v2.1 订正 2026-11-…
+      处置: ★已标注取代 (本行自带取代标记) | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 越权·交 main 裁
+   L247    [C1] 历史叙述(可留)
+      原文: 2. ★★ **⇒ ISS-145 §1 的 M1 路线 ("直接复用 A7S 的 .rknn 产物") 前提不成立** —— 那个 .rknn 是 `target_platform='rk3576'` 编译出来的, 即使它能被 RK3572 板端加载, **我们也不能声称"RK3572 支持它"**, 因为**根本没…
+      处置: ★已标注取代 (本行自带取代标记) | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 越权·交 main 裁
+   L248    [A1] 历史叙述(可留)
+      原文: 3. ★**替代路线: 用 `target_platform='rk3576'` 转换** —— 理由是 RK3572 的 NPU 与 RK3576 **同代同架构**, 但这是**推算, 不是实测**, 必须板端验证 (见 §2.4.3)。 ★**v2.1 订正 (2026-11-23 · ISS-353): 该替代…
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L262    [A1] 历史叙述(可留)
+      原文: > ★**这些是"支持用 rk3576 target 转换"的**依据**, 不是"rk3572 = rk3576"的证据**。 ★**v2.1 订正 (2026-11-23 · ISS-353): 这组依据属于【历史】—— 主路线已改为 rknn3-toolkit 1.2.0 + `target_platform='…
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L279    [B1] 历史叙述(可留)
+      原文: | 1 | `python -c "from rknn.api import RKNN; print(RKNN.RKNN_TARGET_PLATFORM)"` | ★**这个属性在 2.3.2 里不存在** —— 实测 `hasattr(RKNN,'RKNN_TARGET_PLATFORM')` = **False**…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L561    [B1] 历史叙述(可留)
+      原文: rk3572 -> REJECTED: ValueError: Invalid target_platform 'rk3572'!
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L801    [A1] 历史叙述(可留)
+      原文: | **1** | §1 M1 = "直接复用 A7S 的 .rknn, 零转换成本" | ★**前提不成立** (§2.2: rk3572 非法 target) ⇒ **必须重转** | ★**改 M1 定义为"用 rk3576 target 重转 yolov5n"** (★v2.1 订正 2026-11-23 IS…
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L846    [B1] 历史叙述(可留)
+      原文: python -c "from rknn.api import RKNN; RKNN(verbose=False).config(target_platform='rk3572')" # => ValueError: Invalid target_platform 'rk3572'!
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+
+◆ SW/research/ISS250_r6_复核记录.md
+   L5      [D1] 结论待裁(交 main 裁)
+      原文: | 单号 | ★**ISS-250** (★根因单 ISS-155 · open · blocker · demo 头号卡点★) |
+      处置: ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L39     [A2] 历史叙述(可留)
+      原文: | ★**路线①**: 用 toolkit2 2.3.2 转 `rk3576` target 的 .rknn, 赌 RK3572 吃不吃 ★ | ★**板上零实测 (N1 未跑)**; 若 N1 FAIL, 沉没成本 = 一次转换 (★本机实测 build 34.780 s + 产物 4,989,367 B★) + 板…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 越权·交 main 裁
+
+◆ SW/research/ISS250_rknn_toolkit2_target_查证表.md
+   L17     [B1] 历史叙述(可留)
+      原文: | **E-03** | rk3572 是否在 target 列表中 | 同上 | ★**不在** ⇒ `config(target_platform='rk3572')` 抛 ★**`ValueError: Invalid target_platform 'rk3572'!`★ (★抛在 `rknn/api/rknn…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L28     [B1] 历史叙述(可留)
+      原文: | **E-12** | ★**实测 `config(target_platform='rk3572')` 在 rknn3-toolkit 下能不能过 + 能不能转出 .rknn** ★ | ★**ISS-263 实跑 (`logs/iss263/config_probe.log` · `convert_rk3572_…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L30     [A1] 历史叙述(可留)
+      原文: | **E-14** | ★**命题② 补证 (正面): 官方有没有说「rk3576 转出来的 .rknn 能在 RK3572 上跑通」** ★ | ★**本轮检索: `rknn-toolkit2` README+release notes+tree · `rknn3-toolkit` README+tree · `r…
+      处置: ★否定语境 (官方层不存在该表述 ⇒ [0数据] 命题) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L31     [E1] 历史叙述(可留)
+      原文: | **E-15** | ★**命题② 补证 (反面 · 结构证据 ①): RKNN3 官方怎么描述 RK3572 与 RK3576 的关系** ★ | ★**`airockchip/rknn3-toolkit` README (★本轮 2026-11-17 05:1x 通过 contents API 抓全文 13,1…
+      处置: 已自己否定 / 已标注 (非官方结论) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 越权·交 main 裁
+   L35     [E1] 历史叙述(可留)
+      原文: | **E-19** | ★**命题③ 补证 (二): RK3572 与 RK3576 的 NPU 算力差 (★直接决定 N3 阈值 13.30 ms 还成不成立★)** ★ | ★**RK3576: `www.rock-chips.com/uploads/pdf/2024.3.18/192/RK3576 Brief …
+      处置: 已自己否定 / 已标注 (非官方结论) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 越权·交 main 裁
+   L37     [B1] 历史叙述(可留)
+      原文: | **E-21** | ★**本轮 (2026-11-17 05:1x~05:3x) 自测复现 (两条工具链 target 集合互斥)** ★ | ★**本机两个 env 各跑一次 config 探测 (`/home/yuewuya/miniconda3/envs/rknn/bin/python` 与 `/home/…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L49     [A2] 历史叙述(可留)
+      原文: | **C2** | ★**芯片名映射写法: 用 `target_platform='rk3576'` 转, 产物直接上 RK3572** ★ | ★**⚠️ 判【无官方背书 / 高风险】, 但【零新增成本】⇒ 保留为「先试」路线①** ★ | ★**E-04/E-21 (rk3576 在 toolkit2 合法列表内…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 越权·交 main 裁
+   L53     [F1] 历史叙述(可留)
+      原文: | **R1** | ★**路线① (C2): rk3576-target 产物直接上板** ★ | ★**✅ 可执行 (零新增成本, 先试)** ★ | ★**E-04/E-21 (toolkit2 2.3.2 认 rk3576) + 产物在盘 + `SW/tools/rk3572_target_smoke.sh` …
+      处置: 过去测得的记录 (含日期/实测/原文标记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L73     [F1] 历史叙述(可留)
+      原文: ### §3.1 路线① 分支 (rk3576-target 产物 · 板端 toolkit-lite2)
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L112    [F1] 历史叙述(可留)
+      原文: | 项 | 路线① (rk3576-target) | 路线② (rknn3-toolkit, target=rk3572) |
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L154    [B1] 历史叙述(可留)
+      原文: | **E-37** | ★**本轮 (2026-11-17 05:2x) 全量复跑: ① 两条工具链 config 正反两面 ② 两道机器门禁 (正向 + 反向 selftest) ③ 板端两条分支 dry-run ④ 三道既有判据 ⑤ 合并/总门** ★ | ★**① `/home/yuewuya/minicond…
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+
+◆ SW/tools/check_iss250_rknn_target_gate.py
+   L11     [F1] 历史叙述(可留)
+      原文: ② 有没有「rk3576 转出来的 .rknn 在 RK3572 上跑得动」的官方说明/已知结论
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L46     [F1] 历史叙述(可留)
+      原文: "官方有没有说", "rk3576 转出来的 .rknn 能否在 RK3572 上跑通",
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L47     [F1] 历史叙述(可留)
+      原文: "rk3576 转出来的 .rknn 能在 RK3572 上跑通",
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+
+◆ SW/tools/check_rknn_target_compat.py
+   L7      [D1] 结论待裁(交 main 裁)
+      原文: ★ISS-155 (demo 头号卡点) 的核心事实是「rk3572 不是 rknn-toolkit2 的合法 target」★
+      处置: ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ SW/tools/rk3572_rknn3_board_smoke.sh
+   L10     [F1] 历史叙述(可留)
+      原文: # · SW/tools/rk3572_target_smoke.sh (路线① 版: rk3576-target 产物 + toolkit-lite2)
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+
+◆ SW/tools/rk3572_target_smoke.sh
+   L4      [F1] 历史叙述(可留)
+      原文: # "rk3576-target 转出来的 .rknn, 能不能在 RK3572 板上跑通" ⇒ 一条命令出 PASS/FAIL
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L502    [F1] 历史叙述(可留)
+      原文: record "N1 能加载(load_rknn+init_runtime)" PASS "load_rknn=0 init_runtime=0 ⇒ RK3572 runtime 接受 rk3576-target 产物"
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+   L606    [F1] 历史叙述(可留)
+      原文: say "★结论: N1~N5 全过 ⇒ rk3576-target 产物在 RK3572 上成立"
+      处置: 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 越权·交 main 裁
+
+◆ logs/cron775d_20261118_1700/03_issue_check.txt
+   L85     [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L87     [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L93     [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L417    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss285/sbx_base/SW/DEMO_OD_PIPELINE_SPEC.md
+   L15     [A1] 历史叙述(可留)
+      原文: | 2 | ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2 与 2.5.0 都抛 `ValueError`) ⇒ ★**必须用 `target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L143    [A1] 历史叙述(可留)
+      原文: | ★★**`target_platform` (★写死)** | ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L184    [A1] 历史叙述(可留)
+      原文: | **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** …
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ logs/iss285/sbx_work/SW/DEMO_OD_PIPELINE_SPEC.md
+   L15     [A1] 历史叙述(可留)
+      原文: | 2 | ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2 与 2.5.0 都抛 `ValueError`) ⇒ ★**必须用 `target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L143    [A1] 历史叙述(可留)
+      原文: | ★★**`target_platform` (★写死)** | ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L184    [A1] 历史叙述(可留)
+      原文: | **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** …
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ logs/iss288/sbx_base/SW/DEMO_OD_PIPELINE_SPEC.md
+   L15     [A1] 历史叙述(可留)
+      原文: | 2 | ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2 与 2.5.0 都抛 `ValueError`) ⇒ ★**必须用 `target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L143    [A1] 历史叙述(可留)
+      原文: | ★★**`target_platform` (★写死)** | ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L184    [A1] 历史叙述(可留)
+      原文: | **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** …
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ logs/iss288/sbx_before/SW/DEMO_OD_PIPELINE_SPEC.md
+   L15     [A1] 历史叙述(可留)
+      原文: | 2 | ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2 与 2.5.0 都抛 `ValueError`) ⇒ ★**必须用 `target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L143    [A1] 历史叙述(可留)
+      原文: | ★★**`target_platform` (★写死)** | ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L184    [A1] 历史叙述(可留)
+      原文: | **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** …
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ logs/iss288/sbx_cont1_base/SW/DEMO_OD_PIPELINE_SPEC.md
+   L15     [A1] 历史叙述(可留)
+      原文: | 2 | ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2 与 2.5.0 都抛 `ValueError`) ⇒ ★**必须用 `target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L143    [A1] 历史叙述(可留)
+      原文: | ★★**`target_platform` (★写死)** | ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L184    [A1] 历史叙述(可留)
+      原文: | **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** …
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ logs/iss288/sbx_cont1_work/SW/DEMO_OD_PIPELINE_SPEC.md
+   L15     [A1] 历史叙述(可留)
+      原文: | 2 | ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2 与 2.5.0 都抛 `ValueError`) ⇒ ★**必须用 `target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L143    [A1] 历史叙述(可留)
+      原文: | ★★**`target_platform` (★写死)** | ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L184    [A1] 历史叙述(可留)
+      原文: | **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** …
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ logs/iss288/sbx_pre/SW/DEMO_OD_PIPELINE_SPEC.md
+   L15     [A1] 历史叙述(可留)
+      原文: | 2 | ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2 与 2.5.0 都抛 `ValueError`) ⇒ ★**必须用 `target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L143    [A1] 历史叙述(可留)
+      原文: | ★★**`target_platform` (★写死)** | ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L184    [A1] 历史叙述(可留)
+      原文: | **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** …
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ logs/iss288/sbx_probe/SW/DEMO_OD_PIPELINE_SPEC.md
+   L15     [A1] 历史叙述(可留)
+      原文: | 2 | ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2 与 2.5.0 都抛 `ValueError`) ⇒ ★**必须用 `target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L143    [A1] 历史叙述(可留)
+      原文: | ★★**`target_platform` (★写死)** | ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L184    [A1] 历史叙述(可留)
+      原文: | **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** …
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ logs/iss288/sbx_work/SW/DEMO_OD_PIPELINE_SPEC.md
+   L15     [A1] 历史叙述(可留)
+      原文: | 2 | ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2 与 2.5.0 都抛 `ValueError`) ⇒ ★**必须用 `target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L143    [A1] 历史叙述(可留)
+      原文: | ★★**`target_platform` (★写死)** | ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platfo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L184    [A1] 历史叙述(可留)
+      原文: | **P0-1** | ★**rknn-toolkit2 2.3.2 的 `target_platform` 是否含 `rk3572`** | `SW/RKNN_BENCH.md` §5 只证过 **含 `rk3576`** (`rknn/api/rknn.py:89`), ★**没有 rk3572 的任何证据** …
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+
+◆ logs/iss289/accept_final.txt
+   L519    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L521    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L527    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L811    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss294/issue_final.txt
+   L85     [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L87     [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L93     [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L377    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss294/issue_out.txt
+   L85     [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L87     [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L93     [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L377    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss294/issue_out2.txt
+   L85     [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L87     [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L93     [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L377    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss309/15_issue_check_after.txt
+   L85     [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L87     [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L93     [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L383    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss312/09_gate_after.txt
+   L155    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L157    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L163    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L459    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss322/27_merge_gate_output.txt
+   L163    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L165    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L171    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L485    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss323/99b_cont1_zero_write_proof.txt
+   L86     [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L88     [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L94     [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L414    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss325/17_gate_chain.txt
+   L160    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L162    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L168    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L492    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss325/17b_gate_chain_cont3.txt
+   L158    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L160    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L166    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L490    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss325/17c_gate_chain_cont3_final.txt
+   L161    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L163    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L169    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L493    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss325/25_final_gate_chain.txt
+   L156    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L158    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L164    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L488    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss325/60_final_gate_chain.txt
+   L151    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L153    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L159    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L483    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss325/61_final_gate_chain.txt
+   L157    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L159    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L165    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L489    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss325/62_final_gate_chain.txt
+   L151    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L153    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L159    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L483    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss327/24_gate_chain_final.txt
+   L152    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L154    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L160    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L484    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss333/cont3_verify_run1.txt
+   L155    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L157    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L163    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L487    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss333/cont3_verify_run2.txt
+   L151    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L153    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L159    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L483    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/iss350/sw_answers_new.json
+   L23     [A1] 历史叙述(可留)
+      原文: "value": "【实测·2026-11-11 21:2x·sw-lead】结论: rk3572 不是 rknn-toolkit2 的合法 target_platform ⇒ need 的前提成立, 但 need 里写的核法本身跑不通, 已换核法。① 原核法 (python -c from rknn.api impo…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L41     [A1] 历史叙述(可留)
+      原文: "value": "【实测+官网·2026-11-15·sw-lead·零外发】ISS-207 官方口径自查完毕: ①最新 rknn-toolkit2 = v2.5.0 (2026-10-20, GitHub releases + PyPI) [官网]; ②该版官方 Support Platform 8 系列 (RK3…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 越权·交 main 裁
+   L161    [A3] 历史叙述(可留)
+      原文: "value": "★ISS-250 侧已把该 need 的选项补全 (SW 侧不拍, 只给代价+前提+谁拍+推荐默认值)★: 5 条候选逐条判死/判活 ⇒ ① 升级 toolkit 【判死·官方 v2.5.0 仍无 rk3572·净收益 0】 ② 官方预编译模型 【判死·官方两个 model zoo 均 0 个 .r…
+      处置: logs/ 原始证据留档 | 路线① (rk3576-target 直上板) 已降为次要 ⇒ 主路线 = rknn3-toolkit 1.2.0 + target_platform='rk3572'
+      通道: 越权·交 main 裁
+   L173    [B1] 历史叙述(可留)
+      原文: "value": "★已闭合 (2026-11-17 05:2x, sw-lead 第6轮复验)★ 官方独立工具链 rknn3-toolkit 1.2.0 已在本机装进独立 conda env /home/yuewuya/miniconda3/envs/rknn3 (py3.10.22), wheel 10265741…
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+
+◆ logs/iss350/sw_needs_from_new.json
+   L196    [B1] 历史叙述(可留)
+      原文: "item": "★ISS-087 转换链 B0 阻塞项 (经 main 转达, 我不单独对外): Art.Galaxy 工具链包 + 手册 —— ①提供形式 (docker 镜像? SDK? 需授权/NDA?) ②跑在 Linux x86 还是 Windows ③导入/量化/导出三条命令的完整参数 ④支持的输入格式与…
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L573    [A3] 历史叙述(可留)
+      原文: "item": "★ISS-250 降级方案选哪条 (B8 路线①/②/③): ① rk3576-target 维持现状 (新增下载 0 B, 板端接受性 [0数据], 失败则整条作废) ② rknn3-toolkit 1.2.0 独立 conda env (需 98 MB wheel + numpy>=2.0/tor…
+      处置: logs/ 原始证据留档 | 路线① (rk3576-target 直上板) 已降为次要 ⇒ 主路线 = rknn3-toolkit 1.2.0 + target_platform='rk3572'
+      通道: 越权·交 main 裁
+
+◆ logs/iss353/apply_caliber_dispositions.py
+   L44     [A2] 历史叙述(可留)
+      原文: "★**target 兼容性验证**（`rk3572` 非合法 target ⇒ 用 `rk3576` 转）",
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L50     [A1] 历史叙述(可留)
+      原文: "★**官方根本没有 `rk3572` 这个 target** (2.3.2 与 2.5.0 均无) ⇒ 只能 `target_platform='rk3576'` 转",
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L56     [A1] 历史叙述(可留)
+      原文: "★**RK3572 BSP runtime 认不认 rk3576-target 产物** ⇒ 官方无此口径 ⇒ **只能板端判**",
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L57     [A1] 历史叙述(可留)
+      原文: "★**RK3572 BSP runtime 认不认 rk3572-target 产物** (★主路线; rk3576-target 已降为次要路线①★) "
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L62     [A1] 历史叙述(可留)
+      原文: "⇒ ★**必须用 `target_platform='rk3576'` 重转** (RK3572/RK3576 同代 RKNPU v2; "
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L70     [A1b] 历史叙述(可留)
+      原文: "★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** "
+      处置: logs/ 原始证据留档 | 把 rk3576 写成唯一/必须的转换 target (裸引号写法) ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代
+      通道: 本单可处置
+   L71     [B1] 历史叙述(可留)
+      原文: "(2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platform 'rk3572'!`) ⇒ "
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L72     [A1] 历史叙述(可留)
+      原文: "★**在 RK3572 上也必须用 `target_platform='rk3576'` 转** (RK3572/RK3576 同代 RKNPU v2); "
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L74     [B1] 历史叙述(可留)
+      原文: "★★**只能用 `'rk3572'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** "
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L75     [B1] 历史叙述(可留)
+      原文: "(2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platform 'rk3572'!`) ⇒ "
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L90     [A1] 历史叙述(可留)
+      原文: "★★**ISS-155 已钉的替代路线 (2026-11-02)**: ★**用 `target_platform='rk3576'` 转, "
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L91     [E1] 历史叙述(可留)
+      原文: "板端用 RK3572 BSP 自带的 runtime 加载** (RK3572 与 RK3576 **同代同架构**: 3 核 RKNPU v2)",
+      处置: logs/ 原始证据留档 | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L92     [A1] 历史叙述(可留)
+      原文: "★★**ISS-155 当时钉的替代路线 (2026-11-02)**: ★**用 `target_platform='rk3576'` 转, "
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L93     [E1] 历史叙述(可留)
+      原文: "板端用 RK3572 BSP 自带的 runtime 加载** (RK3572 与 RK3576 **同代同架构**: 3 核 RKNPU v2 "
+      处置: logs/ 原始证据留档 | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L98     [A1] 历史叙述(可留)
+      原文: "且 `rk3572` 不是合法 target ⇒ 板端要加载的必须是用 `rk3576` target 转的产物",
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L99     [B1] 历史叙述(可留)
+      原文: "且 ★**toolkit2 侧 `rk3572` 不是合法 target ⇒ 板端要加载的必须是 rknn3-toolkit 1.2.0 的 "
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L104    [A1] 历史叙述(可留)
+      原文: "> `target_platform` ⇒ 必须用 `target_platform='rk3576'` 转换)。但**剩下的那条死结**——",
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L110    [E1] 历史叙述(可留)
+      原文: "★★ **但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ "
+      处置: logs/ 原始证据留档 | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L111    [A2] 历史叙述(可留)
+      原文: "用 `target_platform='rk3576'` 转换, 板端用 RK3572 BSP 自带 runtime 加载**",
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L112    [E1] 历史叙述(可留)
+      原文: "★★ **但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ "
+      处置: logs/ 原始证据留档 | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L113    [A2] 历史叙述(可留)
+      原文: "用 `target_platform='rk3576'` 转换, 板端用 RK3572 BSP 自带 runtime 加载** "
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L119    [B1] 历史叙述(可留)
+      原文: "★★ **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— "
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L120    [C1] 历史叙述(可留)
+      原文: "从 2.2.0 到最新 2.5.0 全部拒绝, **不存在\"升级到某版本就有 rk3572\"这个选项**。",
+      处置: logs/ 原始证据留档 | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L121    [B1] 历史叙述(可留)
+      原文: "★★ **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— "
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L122    [C1] 历史叙述(可留)
+      原文: "从 2.2.0 到最新 2.5.0 全部拒绝, **不存在\"升级到某版本就有 rk3572\"这个选项** "
+      处置: logs/ 原始证据留档 | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L129    [C1] 历史叙述(可留)
+      原文: "因为**根本没有 `rk3572` 这个编译目标**。⇒ **必须重转**。",
+      处置: logs/ 原始证据留档 | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L130    [C1] 历史叙述(可留)
+      原文: "因为**根本没有 `rk3572` 这个编译目标** (★v2.1 订正 2026-11-23 ISS-353: ★这句现在只对 toolkit2 "
+      处置: logs/ 原始证据留档 | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L136    [A1] 历史叙述(可留)
+      原文: "3. ★**替代路线: 用 `target_platform='rk3576'` 转换** —— 理由是 RK3572 的 NPU 与 RK3576 **同代同架构**, "
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L138    [A1] 历史叙述(可留)
+      原文: "3. ★**替代路线: 用 `target_platform='rk3576'` 转换** —— 理由是 RK3572 的 NPU 与 RK3576 **同代同架构**, "
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L141    [E1] 历史叙述(可留)
+      原文: "`target_platform='rk3572'` (config rc=0 [实测]); 「同代同架构」前提已被 ISS-250 官方反证**★ " + MARKER,
+      处置: ★已标注取代 (本行自带取代标记) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L145    [A2] 历史叙述(可留)
+      原文: '> ★**这些是"支持用 rk3576 target 转换"的**依据**, 不是"rk3572 = rk3576"的证据**。',
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L146    [A2] 历史叙述(可留)
+      原文: '> ★**这些是"支持用 rk3576 target 转换"的**依据**, 不是"rk3572 = rk3576"的证据**。 '
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L152    [A1] 历史叙述(可留)
+      原文: "★**改 M1 定义为\"用 rk3576 target 重转 yolov5n\"**, 转换成本 ≈ 0.5 人天 (本单已做完 80%)",
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L153    [A1] 历史叙述(可留)
+      原文: "★**改 M1 定义为\"用 rk3576 target 重转 yolov5n\"** (★v2.1 订正 2026-11-23 ISS-353: M1 的目标 target "
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+
+◆ logs/iss353/disposition_list.md
+   L14     [A2] 历史叙述(可留)
+      原文: | 1 | `HW/STEP1_LANDING_LIST.md` L203 | A2 | \| **S1** \| ★**target 兼容性验证**（`rk3572` 非合法 target ⇒ 用 `rk3576` 转） \| 🔴 **卡板子** ⇒ ★**主板回来后第一件事**（ISS-155） \| | D3 越…
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L15     [A1] 历史叙述(可留)
+      原文: | 2 | `SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` L307 | A1 | \| 编译期 \| ★**官方根本没有 `rk3572` 这个 target** (2.3.2 与 2.5.0 均无) ⇒ 只能 `target_platform='rk3576'` 转 \| 已 [官网]+[…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L16     [A1] 历史叙述(可留)
+      原文: | 3 | `SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` L308 | A1 | \| ★**加载期** ★ \| ★**RK3572 BSP runtime 认不认 rk3576-target 产物** ⇒ 官方无此口径 ⇒ **只能板端判** \| ★**N1** (`load_rknn…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L17     [B1] 历史叙述(可留)
+      原文: | 4 | `SW/DEMO_OD_PIPELINE_SPEC.md` L15 | A1 | \| 2 \| ★★**"板端模型可直接复用 A7S 的 .rknn 产物" 不成立** —— 实测 `rk3572` **不是任何已发布版 rknn-toolkit2 的合法 target_platform** (2.3.2…
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L18     [A1b] 历史叙述(可留)
+      原文: | 5 | `SW/DEMO_OD_PIPELINE_SPEC.md` L143 | A1 | \| ★★**`target_platform` (★写死)** \| ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成唯一/必须的转换 target (裸引号写法) ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代
+      通道: 本单可处置
+   L20     [A1b] 历史叙述(可留)
+      原文: | 7 | `SW/MODEL_RELEASE_LIST.md` L85 | A1 | \| ★**根因** \| ★**无板** —— `192.168.2.5` 不可达 (ping 100% 丢包 + ARP `INCOMPLETE`); 且 `rk3572` 不是合法 target ⇒ 板端要加载的必须是用 `r…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成唯一/必须的转换 target (裸引号写法) ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代
+      通道: 本单可处置
+   L21     [A1] 历史叙述(可留)
+      原文: | 8 | `SW/RK3572_TARGET_BOARD_VERIFY.md` L7 | A1 | > `target_platform` ⇒ 必须用 `target_platform='rk3576'` 转换)。但**剩下的那条死结**—— | D3 越权·交 main 裁 (附逐字替换文本) | 补丁 #9: 板…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L22     [A2] 历史叙述(可留)
+      原文: | 9 | `SW/RKNN_BUILD_ENV_RECOVERY.md` L17 | A2 | \| 3 \| ★★ **但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform='rk3576'` 转换, 板端用 RK357…
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L23     [C1] 历史叙述(可留)
+      原文: | 10 | `SW/RKNN_BUILD_ENV_RECOVERY.md` L246 | C1 | 1. ★★ **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— 从 2.2.0 到最新 2.5.0 全部拒绝, **不存在"升级到某版本就有 rk3…
+      处置: logs/ 原始证据留档 | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L25     [A1] 历史叙述(可留)
+      原文: | 12 | `SW/RKNN_BUILD_ENV_RECOVERY.md` L248 | A1 | 3. ★**替代路线: 用 `target_platform='rk3576'` 转换** —— 理由是 RK3572 的 NPU 与 RK3576 **同代同架构**, 但这是**推算, 不是实测**, 必须板端验证…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L26     [A2] 历史叙述(可留)
+      原文: | 13 | `SW/RKNN_BUILD_ENV_RECOVERY.md` L262 | A2 | > ★**这些是"支持用 rk3576 target 转换"的**依据**, 不是"rk3572 = rk3576"的证据**。 | D3 越权·交 main 裁 (附逐字替换文本) | 补丁 #14: 构建环境恢复 …
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L28     [E1] 历史叙述(可留)
+      原文: | 15 | `state/fragments/hw.yaml` L5226 | E1 | Invalid target_platform 「rk3572」!`) ⇒ ★**M1 复用 A7S 的 .rknn 不成立, 必须重转**; ★**RK3572 NPU 与 RK3576 同代同架构 | D3' 别人分片·交 …
+      处置: logs/ 原始证据留档 | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L29     [A2] 历史叙述(可留)
+      原文: | 16 | `state/fragments/hw.yaml` L5227 | A2 | (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform=「rk3576」` 转 + 板端 RK3572 BSP runtime 加载** [推算·待板端验证] ⇒ | D3' 别人分片·交 ma…
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L35     [D1] 历史叙述(可留)
+      原文: | `SW/RK3572_TARGET_BOARD_VERIFY.md` L3 | > 版本: v1.0 (2026-11-06) · owner: sw-lead · 对应 issue: ISS-155 (demo 头号卡点) / ISS-147 (P0-1) | ISS-155 的定位 = 只有老板能改的状态标签 …
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L37     [D1] 历史叙述(可留)
+      原文: | `SW/RK3572_TARGET_COMPAT_V2.md` L400 | \| `SW/RK3572_TARGET_COMPAT_V2.md` L3 \| 结论待裁 (ISS-155 定位) \| ★**ISS-155 是否从「demo 头号卡点」降为「转换链已通 / 板端待板」= 交 main 裁 | ISS…
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L38     [D1] 历史叙述(可留)
+      原文: | `SW/research/ISS250_r6_复核记录.md` L5 | \| 单号 \| ★**ISS-250** (★根因单 ISS-155 · open · blocker · demo 头号卡点★) \| | ISS-155 的定位 = 只有老板能改的状态标签 ⇒ 不判红, 但点名 |
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L39     [D1] 历史叙述(可留)
+      原文: | `SW/tools/check_rknn_target_compat.py` L7 | ★ISS-155 (demo 头号卡点) 的核心事实是「rk3572 不是 rknn-toolkit2 的合法 target」★ | ISS-155 的定位 = 只有老板能改的状态标签 ⇒ 不判红, 但点名 |
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L40     [D1] 历史叙述(可留)
+      原文: | `state/fragments/hw.yaml` L5228 | **demo 头号卡点 ISS-155**; ★本机已就绪 (conda env rknn + 转换四步 rc=0 + yolov5n INT8 5.13MiB + COCO val2017 与 | ISS-155 的定位 = 只有老板能改的状态标…
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L50     [A2] 历史叙述(可留)
+      原文: ★**target 兼容性验证**（`rk3572` 非合法 target ⇒ 用 `rk3576` 转）
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L65     [A1] 历史叙述(可留)
+      原文: ★**官方根本没有 `rk3572` 这个 target** (2.3.2 与 2.5.0 均无) ⇒ 只能 `target_platform='rk3576'` 转
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L80     [A1] 历史叙述(可留)
+      原文: ★**RK3572 BSP runtime 认不认 rk3576-target 产物** ⇒ 官方无此口径 ⇒ **只能板端判**
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L86     [A1] 历史叙述(可留)
+      原文: ★**RK3572 BSP runtime 认不认 rk3572-target 产物** (★主路线; rk3576-target 已降为次要路线①★) ⇒ 官方无此口径 ⇒ **只能板端判** ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') …
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L95     [A1] 历史叙述(可留)
+      原文: ⇒ ★**必须用 `target_platform='rk3576'` 重转** (RK3572/RK3576 同代 RKNPU v2; ★**但算力不等 4 vs 6 TOPS ⇒ 板端待验**)
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L110    [A1] 历史叙述(可留)
+      原文: ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platform 'rk3572'!`) ⇒ ★**在 RK3572 上也必须用…
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L116    [B1] 历史叙述(可留)
+      原文: ★★**只能用 `'rk3572'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platform 'rk3572'!`) ⇒ ★**转换链改走 rknn3-to…
+      处置: ★已标注取代 (本行自带取代标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L140    [A1] 历史叙述(可留)
+      原文: ★★**ISS-155 已钉的替代路线 (2026-11-02)**: ★**用 `target_platform='rk3576'` 转, 板端用 RK3572 BSP 自带的 runtime 加载** (RK3572 与 RK3576 **同代同架构**: 3 核 RKNPU v2)
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L146    [A1] 历史叙述(可留)
+      原文: ★★**ISS-155 当时钉的替代路线 (2026-11-02)**: ★**用 `target_platform='rk3576'` 转, 板端用 RK3572 BSP 自带的 runtime 加载** (RK3572 与 RK3576 **同代同架构**: 3 核 RKNPU v2 — ★该前提已被 ISS-25…
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L155    [A1] 历史叙述(可留)
+      原文: 且 `rk3572` 不是合法 target ⇒ 板端要加载的必须是用 `rk3576` target 转的产物
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L161    [B1] 历史叙述(可留)
+      原文: 且 ★**toolkit2 侧 `rk3572` 不是合法 target ⇒ 板端要加载的必须是 rknn3-toolkit 1.2.0 的 `target_platform='rk3572'` 产物**★ ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3…
+      处置: ★已标注取代 (本行自带取代标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L170    [A1] 历史叙述(可留)
+      原文: > `target_platform` ⇒ 必须用 `target_platform='rk3576'` 转换)。但**剩下的那条死结**——
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L185    [A2] 历史叙述(可留)
+      原文: ★★ **但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform='rk3576'` 转换, 板端用 RK3572 BSP 自带 runtime 加载**
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L191    [A2] 历史叙述(可留)
+      原文: ★★ **但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform='rk3576'` 转换, 板端用 RK3572 BSP 自带 runtime 加载** (★v2.1 订正 2026-11-23 ISS-353: 该前提已被…
+      处置: ★已标注取代 (本行自带取代标记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L200    [C1] 历史叙述(可留)
+      原文: ★★ **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— 从 2.2.0 到最新 2.5.0 全部拒绝, **不存在"升级到某版本就有 rk3572"这个选项**。
+      处置: logs/ 原始证据留档 | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L206    [C1] 历史叙述(可留)
+      原文: ★★ **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— 从 2.2.0 到最新 2.5.0 全部拒绝, **不存在"升级到某版本就有 rk3572"这个选项** (★**限定在 toolkit2 家族内** ★v2.1 订正 2026-11-23 …
+      处置: ★已标注取代 (本行自带取代标记) | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L215    [C1] 历史叙述(可留)
+      原文: 因为**根本没有 `rk3572` 这个编译目标**。⇒ **必须重转**。
+      处置: logs/ 原始证据留档 | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L221    [C1] 历史叙述(可留)
+      原文: 因为**根本没有 `rk3572` 这个编译目标** (★v2.1 订正 2026-11-23 ISS-353: ★这句现在只对 toolkit2 家族成立 —— rknn3-toolkit 1.2.0 有 rk3572 编译目标 [官网]+[实测]★)。⇒ **必须重转** (★转换 target = rknn3-t…
+      处置: ★已标注取代 (本行自带取代标记) | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L230    [A1] 历史叙述(可留)
+      原文: 3. ★**替代路线: 用 `target_platform='rk3576'` 转换** —— 理由是 RK3572 的 NPU 与 RK3576 **同代同架构**, 但这是**推算, 不是实测**, 必须板端验证 (见 §2.4.3)。
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L236    [A1] 历史叙述(可留)
+      原文: 3. ★**替代路线: 用 `target_platform='rk3576'` 转换** —— 理由是 RK3572 的 NPU 与 RK3576 **同代同架构**, 但这是**推算, 不是实测**, 必须板端验证 (见 §2.4.3)。 ★**v2.1 订正 (2026-11-23 · ISS-353): 该替代…
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L245    [A2] 历史叙述(可留)
+      原文: > ★**这些是"支持用 rk3576 target 转换"的**依据**, 不是"rk3572 = rk3576"的证据**。
+      处置: logs/ 原始证据留档 | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L251    [A1] 历史叙述(可留)
+      原文: > ★**这些是"支持用 rk3576 target 转换"的**依据**, 不是"rk3572 = rk3576"的证据**。 ★**v2.1 订正 (2026-11-23 · ISS-353): 这组依据属于【历史】—— 主路线已改为 rknn3-toolkit 1.2.0 + `target_platform='…
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L260    [A1] 历史叙述(可留)
+      原文: ★**改 M1 定义为"用 rk3576 target 重转 yolov5n"**, 转换成本 ≈ 0.5 人天 (本单已做完 80%)
+      处置: logs/ 原始证据留档 | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L266    [A1] 历史叙述(可留)
+      原文: ★**改 M1 定义为"用 rk3576 target 重转 yolov5n"** (★v2.1 订正 2026-11-23 ISS-353: M1 的目标 target 已改为 rknn3-toolkit 1.2.0 + `target_platform='rk3572'`★), 转换成本 ≈ 0.5 人天 (本单已…
+      处置: ★已标注取代 (本行自带取代标记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+
+◆ logs/rc_chain_20261123_0120.txt
+   L149    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L153    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L155    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L455    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ logs/rc_chain_20261123_0140.txt
+   L154    [D1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 ta
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L158    [D1] 历史叙述(可留)
+      原文: ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★*
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+   L160    [B1] 历史叙述(可留)
+      原文: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 targe
+      处置: logs/ 原始证据留档 | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L460    [D1] 历史叙述(可留)
+      原文: ★★[主线内·SW 侧·demo 头号卡点·内部活] ★★ISS-155: 「rk3572 不是 rknn-toolkit2 合法
+      处置: logs/ 原始证据留档 | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ state/fragments/hw.yaml
+   L5225   [B1] 历史叙述(可留)
+      原文: note: '★★2026-11-02 20:2x 实测: **rk3572 不是 rknn-toolkit2 的合法 target_platform** (2.3.2 与最新 2.5.0 都 `ValueError:
+      处置: 过去测得的记录 (含日期/实测/原文标记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 越权·交 main 裁
+   L5226   [E1] 结论矛盾(要处置)
+      原文: Invalid target_platform 「rk3572」!`) ⇒ ★**M1 复用 A7S 的 .rknn 不成立, 必须重转**; ★**RK3572 NPU 与 RK3576 同代同架构
+      处置: 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 越权·交 main 裁
+   L5227   [A2] 结论矛盾(要处置)
+      原文: (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform=「rk3576」` 转 + 板端 RK3572 BSP runtime 加载** [推算·待板端验证] ⇒
+      处置: 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 越权·交 main 裁
+   L5228   [D1] 结论待裁(交 main 裁)
+      原文: **demo 头号卡点 ISS-155**; ★本机已就绪 (conda env rknn + 转换四步 rc=0 + yolov5n INT8 5.13MiB + COCO val2017 与
+      处置: ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 越权·交 main 裁
+
+◆ state/fragments/sw.yaml
+   L282    [A1] 历史叙述(可留)
+      原文: rk3572 是否在 toolkit2 2.3.2 的 target_platform 内(只证过 rk3576)/板端 librknnrt 版本/本机缺工具链+模型+校准集; ③画框: ★写死画在
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L296    [B1] 历史叙述(可留)
+      原文: (§2): rk3572 不是任何已发布版 rknn-toolkit2 的合法 target_platform —— 实测 2.3.2 与最新 2.5.0 (2026-10-20) 的 config(target_platform=''rk3572'')
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L297    [B1] 历史叙述(可留)
+      原文: 均抛 ValueError: Invalid target_platform ''rk3572''! (rk3576 返 0); 源码 rknn/api/rknn.py:88-89 的 target
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L299    [C1] 历史叙述(可留)
+      原文: 亦无 RK3572 ⇒ 不存在''升级到某版本就有 rk3572''这个选项 ⇒ ★ISS-145 的 M1 (直接复用 A7S .rknn, 零转换成本) 前提不成立, 必须重转; 替代路线 =
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 「不存在升级就有 rk3572 的路」已被 rknn3-toolkit 1.2.0 证伪 (它就是那条路)
+      通道: 本单可处置
+   L300    [A2] 历史叙述(可留)
+      原文: 用 target_platform=''rk3576'' 转换 (RK3572 NPU 与 RK3576 同代同架构 RKNPU v2, 4 vs 6 TOPS 算力不等) —— ★是推算不是实测,
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L2227   [B1] 历史叙述(可留)
+      原文: rc=0 / 反向自证 `rk3576` 必报错 (`ValueError: Unsupported target_platform ''rk3576''. Supported target_platform:
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L2240   [F1] 历史叙述(可留)
+      原文: 与 `.rknn` 不匹配 ⇒ 已有出路表 (`SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` §5: ①rk3576-target ②rknn3 ③换 SoC)。
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L2826   [A3] 历史叙述(可留)
+      原文: item: '★ISS-250 降级方案选哪条 (B8 路线①/②/③): ① rk3576-target 维持现状 (新增下载 0 B, 板端接受性 [0数据], 失败则整条作废) ② rknn3-toolkit
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 路线① (rk3576-target 直上板) 已降为次要 ⇒ 主路线 = rknn3-toolkit 1.2.0 + target_platform='rk3572'
+      通道: 本单可处置
+   L3346   [D1] 历史叙述(可留)
+      原文: item: '★**ISS-155 的 blocker 定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」★ = ★**交 main 裁**★ (sw-lead 只交依据 + 残留代价,
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L3353   [A1] 历史叙述(可留)
+      原文: §5 的转换/bench 仍是 toolkit2 + target_platform=''rk3576'' ⇒ 主路线 (rknn3-toolkit 1.2.0 + rk3572) ★**还没落到脚本上**★
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L3360   [A2] 历史叙述(可留)
+      原文: 把它判「结论矛盾(要处置)」(内容: 『RK3572 NPU 与 RK3576 同代同架构 ⇒ 用 target_platform=''rk3576'' 转』—— 同代同架构已被 ISS-250
+      处置: ★已标注取代 (本行自带取代标记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L3365   [E1] 历史叙述(可留)
+      原文: target_platform=''rk3572'') 取代·本条保留作历史留档·结论不再引用★** —— 本条取代本分片此前登记的『RK3572 NPU 与 RK3576 同代同架构 ⇒ 用 target_platform=''rk3576''
+      处置: ★已标注取代 (本行自带取代标记) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L3390   [B1] 历史叙述(可留)
+      原文: value: '【实测·2026-11-11 21:2x·sw-lead】结论: rk3572 不是 rknn-toolkit2 的合法 target_platform ⇒ need 的前提成立, 但
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L3397   [A1] 历史叙述(可留)
+      原文: ⇒ 不存在升级工具链就有 rk3572 的路 ⇒ RK3572 上只能用 target_platform=rk3576 转 (同代 RKNPU v2; RK3572 NPU 4 TOPS [官方·Rockchip
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L3439   [A1] 历史叙述(可留)
+      原文: 而 config(rk3576)=rc=0 [实测] ⇒ 升级到最新版也不会有 rk3572 target, 必须用 target_platform=rk3576; ④RK3572 BSP runtime
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L3440   [F1] 历史叙述(可留)
+      原文: 认不认 rk3576-target 产物: 官方无此口径 (已检索 rknn-toolkit2 README/releases/CHANGELOG/doc 12 个 PDF + rknn_model_zoo
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L3441   [E1] 历史叙述(可留)
+      原文: + rknpu2 + PyPI) ⇒ 命题判 (b), 只能板端实测 (判据 N1) 回答 [0数据]; ⑤ISS-155 里的 同代同架构 (4TOPS/3核 RKNPU v2) 仍是我方 [推算],
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L3614   [A3] 历史叙述(可留)
+      原文: 仍无 rk3572·净收益 0】 ② 官方预编译模型 【判死·官方两个 model zoo 均 0 个 .rknn⇒不存在】 ③ 芯片名映射写法 (rk3576-target 直上板) 【无官方背书·三条结构性反证
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 路线① (rk3576-target 直上板) 已降为次要 ⇒ 主路线 = rknn3-toolkit 1.2.0 + target_platform='rk3572'
+      通道: 本单可处置
+   L3634   [B1] 历史叙述(可留)
+      原文: rc=0 (读数 0.019 s / 0.013 s / 0.001 s 三次), 反向自证 config(rk3576) 必报 ValueError: Unsupported target_platform
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L3853   [D1] 历史叙述(可留)
+      原文: ⇒ [0数据]★ —— ★**ISS-155 的 blocker 可从「demo 头号卡点」降为「转换链已通 / 板端待板」**: **是否降级 = 交 main 裁 (sw-lead 不代拍)**;
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | ISS-155 的定位是否从「demo 头号卡点」降为「转换链已通 / 板端待板」⇒ ★交 main 裁★ (sw-lead 不代拍)
+      通道: 本单可处置
+   L4355   [B1] 历史叙述(可留)
+      原文: note: '★★ISS-196 复测订正 (2026-11-11 21:2x, sw-lead; 证据分级逐句标)。【实测】**rk3572 不是 rknn-toolkit2 的合法 target_platform**:
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L4359   [A1] 历史叙述(可留)
+      原文: v2.5.0) 同样无 RK3572 ⇒ 不存在升级工具链就有 rk3572 的路 ⇒ RK3572 上只能用 target_platform=rk3576 转 (同代 RKNPU v2; RK3572
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+   L4521   [B1] 历史叙述(可留)
+      原文: value: 转换 target_platform=rk3576 (官方合法 target; rk3572 不是任何已发布版 rknn-toolkit2 的合法 target) ⇒ 官方层不存在 rk3572
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L4524   [F1] 历史叙述(可留)
+      原文: 11 项合法 target 无 rk3572; RK3572 runtime 认 rk3576-target 产物 官方无此口径 ⇒ [0数据]'
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L4934   [B1] 历史叙述(可留)
+      原文: + 修内存泄漏 ⇒ RK3572 的官方工具链路径 = rknn3-toolkit, 不是 rknn-toolkit2 (后者 11 个合法 target 实测无 rk3572, rk3572 与
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L4937   [B1] 历史叙述(可留)
+      原文: config(target_platform=''rk3572'') 抛 ValueError: Invalid target_platform ''rk3572''! (rknn/api/rknn_base.py:896)'
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L4949   [A2] 历史叙述(可留)
+      原文: value: '★ISS-250 降级方案 3 条路线 (只列代价+启用条件+谁拍, 不替老板选): ① rk3576-target 维持现状 (新增下载 0 B, 产物 4,989,367 B 已在盘,
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L4991   [B1] 历史叙述(可留)
+      原文: note: '[实测] 反向自证: 错 target rk3576 报 ValueError: Unsupported target_platform => target 参数真被读了'
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L5109   [B1] 历史叙述(可留)
+      原文: 双双被拒 (ValueError: Invalid target_platform ''rk3572''!, 抛点 rknn/api/rknn_base.py:896); 官方 README Support
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L5119   [F1] 历史叙述(可留)
+      原文: value: '★[官网]+[0数据] 官方层【不存在】任何一句『rk3576 转出来的 .rknn 能在 RK3572 上跑通』⇒ 该命题官方只能标 [0数据], 唯一能回答它的是板端 N1 (load_rknn
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L5131   [E1] 历史叙述(可留)
+      原文: ISS-155 里那句『RK3572 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2)』被再证伪: RK3576 官方是 6 TOPS 不是 4 TOPS, 且两颗分属
+      处置: ★已标注取代 (本行自带取代标记) | 「同代同架构」是 ISS-155 自推 [推算], 已被 ISS-250 官方反证 (RK3576=6 TOPS / 归族 RKNN2-rkcp vs RK3572=RKNN3-native)
+      通道: 本单可处置
+   L5140   [A3] 历史叙述(可留)
+      原文: rk3576-target 直上板 【⚠️无官方背书·新增下载 0 B·产物 4,989,367 B 已在盘·板端接受性 [0数据]】 · C3 官方预编译模型 【❌判死·官方 rknn3-model-zoo
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 路线① (rk3576-target 直上板) 已降为次要 ⇒ 主路线 = rknn3-toolkit 1.2.0 + target_platform='rk3572'
+      通道: 本单可处置
+   L5149   [A2] 历史叙述(可留)
+      原文: value: '★两条分支 + 每条一条命令 + N1~N5 量化判据 (两分支通用, 换路线不换判据): 路线① (rk3576-target 产物 + 板端 rknn-toolkit-lite2)
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 「用 rk3576 转」省略写法 ⇒ 同 A1 (已被 rknn3-toolkit 1.2.0 的 rk3572 target 取代)
+      通道: 本单可处置
+   L5174   [F1] 历史叙述(可留)
+      原文: value: ★两条工具链的合法 target 集合交集 = ∅ (toolkit2 的11个 ∩ rknn3 的7个 = 空集) ⇒ 路线① (rk3576-target 产物) 与 路线② (rk3572-target
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 跨芯片接受性仍 [0数据] ⇒ 官方 RKNN3 demo README 把 RK3572(native) 与 RK3576/RK3588(rkcp) 分成两条 runtime ⇒ 官方无互换表述
+      通道: 本单可处置
+   L5211   [B1] 历史叙述(可留)
+      原文: ValueError Invalid target_platform rk3572 (抛点 rknn/api/rknn_base.py:896), config rk3576 rc=0 ② rknn3-toolkit
+      处置: ★台账追加式 ⇒ 命中行之后 (L5833) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | toolkit2 层事实仍成立 [官网]+[实测] (2.3.2/2.5.0 无 rk3572) ⇒ 但它不是终点: 转换链走 rknn3-toolkit 1.2.0 (★补一句指向即可, 不算矛盾★)
+      通道: 本单可处置
+   L5834   [A1] 历史叙述(可留)
+      原文: 上只能用 target_platform=rk3576 转 / 不存在升级就有 rk3572 的路 / RK3572 与 RK3576 同代同架构』的旧登记条目 (ISS-145 / ISS-155
+      处置: ★否定语境 (官方层不存在该表述 ⇒ [0数据] 命题) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+
+==============================================================================
+★结论: 仍有 2 条「结论矛盾(要处置)」⇒ 旧口径没清干净 ⇒ rc=1
+  · 本单可处置残留 : 0 条
+  · 越权交 main 裁  : 2 条  (逐字替换文本见交卷页 §B1.2 + logs/iss353/apply_caliber_dispositions.py)
+  · 结论待裁(交 main 裁): 6 条 (ISS-155 定位 / 状态标签 ⇒ sw-lead 不代拍)
+==============================================================================

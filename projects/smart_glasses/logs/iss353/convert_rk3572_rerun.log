@@ -1,0 +1,470 @@
+### ISS-353 cont1 · 自有复跑 · rknn3-toolkit 1.2.0 target_platform='rk3572' 转换 1 次 · 2026-11-23 04:54:15 +0800
+I version: rknn3-toolkit 1.2.0(dbda2a3f9@2026-11-02T12:10:20)
+I Auto refill kvcache params for kvcache_dtype = 'Float16'
+I Auto refill kvcache param: kvcache_store_method = Normal
+I Auto refill kvcache param: kvcache_group_size = 32
+I Auto refill kvcache param: kvcache_residual_depth = 32
+
+==============================================================================
+### ENV
+==============================================================================
+target_platform = 'rk3572'
+onnx            = /var/tmp/iss263_rknn3/work/model_heads.onnx (7520239 B)
+dataset         = /var/tmp/iss263_rknn3/work/dataset.txt (99 行)
+python          = /home/yuewuya/miniconda3/envs/rknn3/bin/python
+toolkit         = rknn3-toolkit 1.2.0
+
+==============================================================================
+### RUN 1/1  (target_platform=rk3572)
+==============================================================================
+>>> rc_config = 0
+I Loading :   0%|                                                           | 0/125 [00:00<?, ?it/s]I Loading : 100%|██████████████████████████████████████████████| 125/125 [00:00<00:00, 33023.94it/s]
+D base_optimize ...
+/home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/tools/iss263_rknn3_convert.py:80: DeprecationWarning: label() is deprecated. Use is_required() or is_repeated() instead.
+  rc_build = r.build(do_quantization=True, dataset=DATASET)
+D base_optimize done.
+D 
+>>> rc_load_onnx = 0
+I FoldConstant :   0%|                                                      | 0/205 [00:00<?, ?it/s]I FoldConstant :   0%|▏                                             | 1/205 [00:00<00:24,  8.40it/s]I FoldConstant :  29%|████████████▉                               | 60/205 [00:00<00:00, 322.43it/s]I FoldConstant :  81%|██████████████████████████████████▊        | 166/205 [00:00<00:00, 642.83it/s]I FoldConstant : 100%|███████████████████████████████████████████| 205/205 [00:00<00:00, 560.06it/s]
+D 
+D correct_ops ...
+D correct_ops done.
+D 
+D fuse_ops ...
+D fuse_ops results:
+D     replace_exswish: remove node = ['/model.0/act/Sigmoid', '/model.0/act/Mul'], add node = ['/model.0/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.1/act/Sigmoid', '/model.1/act/Mul'], add node = ['/model.1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.2/cv1/act/Sigmoid', '/model.2/cv1/act/Mul'], add node = ['/model.2/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.2/m/m.0/cv1/act/Sigmoid', '/model.2/m/m.0/cv1/act/Mul'], add node = ['/model.2/m/m.0/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.2/m/m.0/cv2/act/Sigmoid', '/model.2/m/m.0/cv2/act/Mul'], add node = ['/model.2/m/m.0/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.2/cv2/act/Sigmoid', '/model.2/cv2/act/Mul'], add node = ['/model.2/cv2/act/Sigmoid_2swish']
+D     fuse_concat_conv: remove node = ['/model.2/Concat', '/model.2/cv3/conv/Conv'], add node = ['/model.2/m/m.0/Add_output_0_conv', '/model.2/cv2/act/Mul_output_0_conv', '/model.2/m/m.0/Add_output_0_conv_add']
+D     replace_exswish: remove node = ['/model.2/cv3/act/Sigmoid', '/model.2/cv3/act/Mul'], add node = ['/model.2/cv3/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.3/act/Sigmoid', '/model.3/act/Mul'], add node = ['/model.3/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.4/cv1/act/Sigmoid', '/model.4/cv1/act/Mul'], add node = ['/model.4/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.4/m/m.0/cv1/act/Sigmoid', '/model.4/m/m.0/cv1/act/Mul'], add node = ['/model.4/m/m.0/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.4/m/m.0/cv2/act/Sigmoid', '/model.4/m/m.0/cv2/act/Mul'], add node = ['/model.4/m/m.0/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.4/m/m.1/cv1/act/Sigmoid', '/model.4/m/m.1/cv1/act/Mul'], add node = ['/model.4/m/m.1/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.4/m/m.1/cv2/act/Sigmoid', '/model.4/m/m.1/cv2/act/Mul'], add node = ['/model.4/m/m.1/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.4/cv2/act/Sigmoid', '/model.4/cv2/act/Mul'], add node = ['/model.4/cv2/act/Sigmoid_2swish']
+D     fuse_concat_conv: remove node = ['/model.4/Concat', '/model.4/cv3/conv/Conv'], add node = ['/model.4/m/m.1/Add_output_0_conv', '/model.4/cv2/act/Mul_output_0_conv', '/model.4/m/m.1/Add_output_0_conv_add']
+D     replace_exswish: remove node = ['/model.4/cv3/act/Sigmoid', '/model.4/cv3/act/Mul'], add node = ['/model.4/cv3/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.5/act/Sigmoid', '/model.5/act/Mul'], add node = ['/model.5/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.6/cv1/act/Sigmoid', '/model.6/cv1/act/Mul'], add node = ['/model.6/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.6/m/m.0/cv1/act/Sigmoid', '/model.6/m/m.0/cv1/act/Mul'], add node = ['/model.6/m/m.0/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.6/m/m.0/cv2/act/Sigmoid', '/model.6/m/m.0/cv2/act/Mul'], add node = ['/model.6/m/m.0/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.6/m/m.1/cv1/act/Sigmoid', '/model.6/m/m.1/cv1/act/Mul'], add node = ['/model.6/m/m.1/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.6/m/m.1/cv2/act/Sigmoid', '/model.6/m/m.1/cv2/act/Mul'], add node = ['/model.6/m/m.1/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.6/m/m.2/cv1/act/Sigmoid', '/model.6/m/m.2/cv1/act/Mul'], add node = ['/model.6/m/m.2/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.6/m/m.2/cv2/act/Sigmoid', '/model.6/m/m.2/cv2/act/Mul'], add node = ['/model.6/m/m.2/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.6/cv2/act/Sigmoid', '/model.6/cv2/act/Mul'], add node = ['/model.6/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.6/cv3/act/Sigmoid', '/model.6/cv3/act/Mul'], add node = ['/model.6/cv3/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.7/act/Sigmoid', '/model.7/act/Mul'], add node = ['/model.7/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.8/cv1/act/Sigmoid', '/model.8/cv1/act/Mul'], add node = ['/model.8/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.8/m/m.0/cv1/act/Sigmoid', '/model.8/m/m.0/cv1/act/Mul'], add node = ['/model.8/m/m.0/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.8/m/m.0/cv2/act/Sigmoid', '/model.8/m/m.0/cv2/act/Mul'], add node = ['/model.8/m/m.0/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.8/cv2/act/Sigmoid', '/model.8/cv2/act/Mul'], add node = ['/model.8/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.8/cv3/act/Sigmoid', '/model.8/cv3/act/Mul'], add node = ['/model.8/cv3/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.9/cv1/act/Sigmoid', '/model.9/cv1/act/Mul'], add node = ['/model.9/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.9/cv2/act/Sigmoid', '/model.9/cv2/act/Mul'], add node = ['/model.9/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.10/act/Sigmoid', '/model.10/act/Mul'], add node = ['/model.10/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.13/cv1/act/Sigmoid', '/model.13/cv1/act/Mul'], add node = ['/model.13/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.13/m/m.0/cv1/act/Sigmoid', '/model.13/m/m.0/cv1/act/Mul'], add node = ['/model.13/m/m.0/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.13/m/m.0/cv2/act/Sigmoid', '/model.13/m/m.0/cv2/act/Mul'], add node = ['/model.13/m/m.0/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.13/cv2/act/Sigmoid', '/model.13/cv2/act/Mul'], add node = ['/model.13/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.13/cv3/act/Sigmoid', '/model.13/cv3/act/Mul'], add node = ['/model.13/cv3/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.14/act/Sigmoid', '/model.14/act/Mul'], add node = ['/model.14/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.17/cv1/act/Sigmoid', '/model.17/cv1/act/Mul'], add node = ['/model.17/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.17/m/m.0/cv1/act/Sigmoid', '/model.17/m/m.0/cv1/act/Mul'], add node = ['/model.17/m/m.0/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.17/m/m.0/cv2/act/Sigmoid', '/model.17/m/m.0/cv2/act/Mul'], add node = ['/model.17/m/m.0/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.17/cv2/act/Sigmoid', '/model.17/cv2/act/Mul'], add node = ['/model.17/cv2/act/Sigmoid_2swish']
+D     fuse_concat_conv: remove node = ['/model.17/Concat', '/model.17/cv3/conv/Conv'], add node = ['/model.17/m/m.0/cv2/act/Mul_output_0_conv', '/model.17/cv2/act/Mul_output_0_conv', '/model.17/m/m.0/cv2/act/Mul_output_0_conv_add']
+D     replace_exswish: remove node = ['/model.17/cv3/act/Sigmoid', '/model.17/cv3/act/Mul'], add node = ['/model.17/cv3/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.18/act/Sigmoid', '/model.18/act/Mul'], add node = ['/model.18/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.20/cv1/act/Sigmoid', '/model.20/cv1/act/Mul'], add node = ['/model.20/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.20/m/m.0/cv1/act/Sigmoid', '/model.20/m/m.0/cv1/act/Mul'], add node = ['/model.20/m/m.0/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.20/m/m.0/cv2/act/Sigmoid', '/model.20/m/m.0/cv2/act/Mul'], add node = ['/model.20/m/m.0/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.20/cv2/act/Sigmoid', '/model.20/cv2/act/Mul'], add node = ['/model.20/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.20/cv3/act/Sigmoid', '/model.20/cv3/act/Mul'], add node = ['/model.20/cv3/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.21/act/Sigmoid', '/model.21/act/Mul'], add node = ['/model.21/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.23/cv1/act/Sigmoid', '/model.23/cv1/act/Mul'], add node = ['/model.23/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.23/m/m.0/cv1/act/Sigmoid', '/model.23/m/m.0/cv1/act/Mul'], add node = ['/model.23/m/m.0/cv1/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.23/m/m.0/cv2/act/Sigmoid', '/model.23/m/m.0/cv2/act/Mul'], add node = ['/model.23/m/m.0/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.23/cv2/act/Sigmoid', '/model.23/cv2/act/Mul'], add node = ['/model.23/cv2/act/Sigmoid_2swish']
+D     replace_exswish: remove node = ['/model.23/cv3/act/Sigmoid', '/model.23/cv3/act/Mul'], add node = ['/model.23/cv3/act/Sigmoid_2swish']
+D fuse_ops results:
+D     squeeze_1_in_nd_transpose: remove node = [], add node = ['/model.24/Reshape_4_output_0_rs', '646-rs']
+D     squeeze_1_in_nd_transpose: remove node = [], add node = ['/model.24/Reshape_2_output_0_rs', '498-rs']
+D     squeeze_1_in_nd_transpose: remove node = [], add node = ['/model.24/Reshape_output_0_rs', '350-rs']
+D fuse_ops results:
+D     fuse_two_reshape: remove node = ['/model.24/Reshape_4'], add node = []
+D     fuse_two_reshape: remove node = ['/model.24/Reshape_2'], add node = []
+D     fuse_two_reshape: remove node = ['/model.24/Reshape'], add node = []
+I     FoldConstant :   0%|                                                  | 0/154 [00:00<?, ?it/s]I     FoldConstant :   3%|█▎                                        | 5/154 [00:00<00:03, 49.22it/s]I     FoldConstant :  20%|████████                                | 31/154 [00:00<00:00, 172.39it/s]I     FoldConstant :  55%|█████████████████████▊                  | 84/154 [00:00<00:00, 333.33it/s]I     FoldConstant :  80%|███████████████████████████████▏       | 123/154 [00:00<00:00, 354.79it/s]I     FoldConstant : 100%|███████████████████████████████████████| 154/154 [00:00<00:00, 336.02it/s]
+D fuse_ops done.
+D 
+[1;33mW[0m [1;33mbuild: found outlier value, this may affect quantization accuracy
+                        const name               abs_mean    abs_std     outlier value
+                        model.0.conv.weight      0.68        0.89        -11.603     [0m
+D sparse_weight ...
+D sparse_weight done.
+D 
+D distribute ...
+I search_dist_plan: 154/154
+D dist op split stat: op_type=Conv, weight_split=0, weight_dump=63, total=63
+D Best distribute hyper-parameters: search_from_bottom=True, search_op_order=['exPagedAttention', 'exAttention', 'exSDPAttention', 'exLinearAttention', 'exMoEFFN', 'Conv', 'exMatMul', 'exNorm', 'Gather', 'Resize', 'TopK']
+I distribute tensors
+I generate mpi nodes
+I build new graph
+D fuse_ops ...
+D fuse_ops done.
+D 
+D distribute done.
+I GraphPreparing :   0%|                                                    | 0/154 [00:00<?, ?it/s]I GraphPreparing : 100%|████████████████████████████████████████| 154/154 [00:00<00:00, 9165.54it/s]
+I FeatureCalc 1/2:   0%|                                                    | 0/154 [00:00<?, ?it/s]I FeatureCalc 1/2:   1%|▎                                           | 1/154 [00:03<08:04,  3.17s/it]I FeatureCalc 1/2:   1%|▌                                           | 2/154 [00:05<06:16,  2.48s/it]I FeatureCalc 1/2:   2%|▊                                           | 3/154 [00:05<04:04,  1.62s/it]I FeatureCalc 1/2:   3%|█▏                                          | 4/154 [00:06<03:21,  1.34s/it]I FeatureCalc 1/2:   3%|█▍                                          | 5/154 [00:06<02:14,  1.10it/s]I FeatureCalc 1/2:   4%|█▋                                          | 6/154 [00:07<01:51,  1.33it/s]I FeatureCalc 1/2:   5%|██                                          | 7/154 [00:07<01:20,  1.84it/s]I FeatureCalc 1/2:   5%|██▎                                         | 8/154 [00:07<01:18,  1.87it/s]I FeatureCalc 1/2:   6%|██▌                                         | 9/154 [00:08<01:07,  2.15it/s]I FeatureCalc 1/2:   6%|██▊                                        | 10/154 [00:08<01:05,  2.19it/s]I FeatureCalc 1/2:   8%|███▎                                       | 12/154 [00:08<00:41,  3.43it/s]I FeatureCalc 1/2:   8%|███▋                                       | 13/154 [00:08<00:35,  4.01it/s]I FeatureCalc 1/2:   9%|███▉                                       | 14/154 [00:09<00:42,  3.27it/s]I FeatureCalc 1/2:  10%|████▏                                      | 15/154 [00:09<00:37,  3.68it/s]I FeatureCalc 1/2:  10%|████▍                                      | 16/154 [00:09<00:33,  4.18it/s]I FeatureCalc 1/2:  11%|████▋                                      | 17/154 [00:10<01:00,  2.25it/s]I FeatureCalc 1/2:  12%|█████                                      | 18/154 [00:11<00:59,  2.30it/s]I FeatureCalc 1/2:  12%|█████▎                                     | 19/154 [00:11<00:57,  2.34it/s]I FeatureCalc 1/2:  14%|█████▊                                     | 21/154 [00:11<00:38,  3.43it/s]I FeatureCalc 1/2:  15%|██████▍                                    | 23/154 [00:12<00:29,  4.49it/s]I FeatureCalc 1/2:  16%|██████▋                                    | 24/154 [00:12<00:28,  4.63it/s]I FeatureCalc 1/2:  16%|██████▉                                    | 25/154 [00:12<00:27,  4.75it/s]I FeatureCalc 1/2:  18%|███████▊                                   | 28/154 [00:12<00:19,  6.36it/s]I FeatureCalc 1/2:  19%|████████                                   | 29/154 [00:13<00:22,  5.64it/s]I FeatureCalc 1/2:  19%|████████▍                                  | 30/154 [00:13<00:24,  5.14it/s]I FeatureCalc 1/2:  21%|████████▉                                  | 32/154 [00:13<00:17,  6.88it/s]I FeatureCalc 1/2:  22%|█████████▍                                 | 34/154 [00:13<00:18,  6.41it/s]I FeatureCalc 1/2:  23%|█████████▊                                 | 35/154 [00:13<00:17,  6.89it/s]I FeatureCalc 1/2:  24%|██████████▎                                | 37/154 [00:14<00:24,  4.82it/s]I FeatureCalc 1/2:  25%|██████████▌                                | 38/154 [00:14<00:30,  3.82it/s]I FeatureCalc 1/2:  25%|██████████▉                                | 39/154 [00:15<00:30,  3.79it/s]I FeatureCalc 1/2:  27%|███████████▍                               | 41/154 [00:15<00:22,  5.05it/s]I FeatureCalc 1/2:  28%|████████████                               | 43/154 [00:15<00:17,  6.33it/s]I FeatureCalc 1/2:  29%|████████████▎                              | 44/154 [00:15<00:19,  5.73it/s]I FeatureCalc 1/2:  29%|████████████▌                              | 45/154 [00:15<00:17,  6.06it/s]I FeatureCalc 1/2:  31%|█████████████▍                             | 48/154 [00:16<00:12,  8.63it/s]I FeatureCalc 1/2:  32%|█████████████▋                             | 49/154 [00:16<00:14,  7.20it/s]I FeatureCalc 1/2:  32%|█████████████▉                             | 50/154 [00:16<00:14,  7.27it/s]I FeatureCalc 1/2:  34%|██████████████▊                            | 53/154 [00:16<00:10,  9.68it/s]I FeatureCalc 1/2:  36%|███████████████▎                           | 55/154 [00:17<00:12,  7.75it/s]I FeatureCalc 1/2:  38%|████████████████▏                          | 58/154 [00:17<00:10,  9.35it/s]I FeatureCalc 1/2:  39%|████████████████▊                          | 60/154 [00:17<00:09, 10.20it/s]I FeatureCalc 1/2:  40%|█████████████████▎                         | 62/154 [00:18<00:15,  6.00it/s]I FeatureCalc 1/2:  41%|█████████████████▌                         | 63/154 [00:18<00:14,  6.20it/s]I FeatureCalc 1/2:  42%|██████████████████▏                        | 65/154 [00:18<00:11,  7.79it/s]I FeatureCalc 1/2:  44%|██████████████████▉                        | 68/154 [00:18<00:10,  8.47it/s]I FeatureCalc 1/2:  46%|███████████████████▊                       | 71/154 [00:18<00:07, 10.73it/s]I FeatureCalc 1/2:  48%|████████████████████▋                      | 74/154 [00:19<00:06, 12.05it/s]I FeatureCalc 1/2:  49%|█████████████████████▏                     | 76/154 [00:19<00:06, 11.52it/s]I FeatureCalc 1/2:  51%|██████████████████████                     | 79/154 [00:19<00:05, 14.28it/s]I FeatureCalc 1/2:  53%|██████████████████████▉                    | 82/154 [00:19<00:05, 13.51it/s]I FeatureCalc 1/2:  55%|███████████████████████▍                   | 84/154 [00:19<00:05, 12.77it/s]I FeatureCalc 1/2:  56%|████████████████████████▎                  | 87/154 [00:19<00:04, 14.22it/s]I FeatureCalc 1/2:  58%|████████████████████████▊                  | 89/154 [00:20<00:05, 12.06it/s]I FeatureCalc 1/2:  59%|█████████████████████████▍                 | 91/154 [00:20<00:05, 11.92it/s]I FeatureCalc 1/2:  60%|█████████████████████████▉                 | 93/154 [00:20<00:06,  8.75it/s]I FeatureCalc 1/2:  62%|██████████████████████████▌                | 95/154 [00:21<00:07,  8.15it/s]I FeatureCalc 1/2:  62%|██████████████████████████▊                | 96/154 [00:21<00:07,  8.21it/s]I FeatureCalc 1/2:  63%|███████████████████████████                | 97/154 [00:21<00:06,  8.16it/s]I FeatureCalc 1/2:  64%|███████████████████████████▎               | 98/154 [00:21<00:08,  6.47it/s]I FeatureCalc 1/2:  65%|███████████████████████████▎              | 100/154 [00:21<00:07,  7.52it/s]I FeatureCalc 1/2:  66%|███████████████████████████▊              | 102/154 [00:22<00:06,  7.78it/s]I FeatureCalc 1/2:  67%|████████████████████████████              | 103/154 [00:22<00:06,  7.51it/s]I FeatureCalc 1/2:  68%|████████████████████████████▎             | 104/154 [00:22<00:07,  6.26it/s]I FeatureCalc 1/2:  69%|████████████████████████████▉             | 106/154 [00:22<00:07,  6.32it/s]I FeatureCalc 1/2:  69%|█████████████████████████████▏            | 107/154 [00:22<00:08,  5.43it/s]I FeatureCalc 1/2:  70%|█████████████████████████████▍            | 108/154 [00:23<00:09,  4.78it/s]I FeatureCalc 1/2:  71%|█████████████████████████████▋            | 109/154 [00:23<00:08,  5.38it/s]I FeatureCalc 1/2:  71%|██████████████████████████████            | 110/154 [00:23<00:07,  5.65it/s]I FeatureCalc 1/2:  72%|██████████████████████████████▎           | 111/154 [00:23<00:08,  5.01it/s]I FeatureCalc 1/2:  73%|██████████████████████████████▊           | 113/154 [00:23<00:06,  6.64it/s]I FeatureCalc 1/2:  74%|███████████████████████████████           | 114/154 [00:24<00:09,  4.12it/s]I FeatureCalc 1/2:  75%|███████████████████████████████▎          | 115/154 [00:24<00:09,  3.98it/s]I FeatureCalc 1/2:  75%|███████████████████████████████▋          | 116/154 [00:24<00:08,  4.58it/s]I FeatureCalc 1/2:  77%|████████████████████████████████▍         | 119/154 [00:25<00:04,  7.04it/s]I FeatureCalc 1/2:  79%|█████████████████████████████████         | 121/154 [00:25<00:04,  8.18it/s]I FeatureCalc 1/2:  79%|█████████████████████████████████▎        | 122/154 [00:25<00:04,  7.02it/s]I FeatureCalc 1/2:  80%|█████████████████████████████████▌        | 123/154 [00:25<00:04,  7.19it/s]I FeatureCalc 1/2:  81%|██████████████████████████████████        | 125/154 [00:25<00:03,  8.18it/s]I FeatureCalc 1/2:  82%|██████████████████████████████████▋       | 127/154 [00:26<00:02,  9.54it/s]I FeatureCalc 1/2:  84%|███████████████████████████████████▏      | 129/154 [00:26<00:03,  6.53it/s]I FeatureCalc 1/2:  86%|████████████████████████████████████      | 132/154 [00:26<00:02,  9.19it/s]I FeatureCalc 1/2:  88%|████████████████████████████████████▊     | 135/154 [00:26<00:01, 11.33it/s]I FeatureCalc 1/2:  89%|█████████████████████████████████████▎    | 137/154 [00:27<00:01,  9.99it/s]I FeatureCalc 1/2:  90%|█████████████████████████████████████▉    | 139/154 [00:27<00:01, 11.27it/s]I FeatureCalc 1/2:  92%|██████████████████████████████████████▍   | 141/154 [00:27<00:01, 12.55it/s]I FeatureCalc 1/2:  93%|███████████████████████████████████████   | 143/154 [00:27<00:00, 11.23it/s]I FeatureCalc 1/2:  95%|████████████████████████████████████████  | 147/154 [00:27<00:00, 12.77it/s]I FeatureCalc 1/2:  97%|████████████████████████████████████████▋ | 149/154 [00:27<00:00, 13.02it/s]I FeatureCalc 1/2:  98%|█████████████████████████████████████████▏| 151/154 [00:28<00:00,  6.42it/s]I FeatureCalc 1/2:  99%|█████████████████████████████████████████▋| 153/154 [00:29<00:00,  4.41it/s]I FeatureCalc 1/2: 100%|██████████████████████████████████████████| 154/154 [00:29<00:00,  4.42it/s]I FeatureCalc 1/2: 100%|██████████████████████████████████████████| 154/154 [00:29<00:00,  5.17it/s]
+I FeatureCalc 2/2:   0%|                                                    | 0/154 [00:00<?, ?it/s]I FeatureCalc 2/2:   1%|▎                                           | 1/154 [00:00<01:59,  1.29it/s]I FeatureCalc 2/2:   1%|▌                                           | 2/154 [00:01<01:32,  1.64it/s]I FeatureCalc 2/2:   2%|▊                                           | 3/154 [00:01<01:01,  2.44it/s]I FeatureCalc 2/2:   3%|█▏                                          | 4/154 [00:01<00:56,  2.67it/s]I FeatureCalc 2/2:   4%|█▋                                          | 6/154 [00:01<00:32,  4.61it/s]I FeatureCalc 2/2:   5%|██▎                                         | 8/154 [00:02<00:22,  6.46it/s]I FeatureCalc 2/2:   6%|██▊                                        | 10/154 [00:02<00:19,  7.43it/s]I FeatureCalc 2/2:   9%|███▉                                       | 14/154 [00:02<00:12, 10.93it/s]I FeatureCalc 2/2:  11%|████▋                                      | 17/154 [00:02<00:13, 10.30it/s]I FeatureCalc 2/2:  12%|█████▎                                     | 19/154 [00:03<00:13,  9.74it/s]I FeatureCalc 2/2:  15%|██████▍                                    | 23/154 [00:03<00:09, 13.37it/s]I FeatureCalc 2/2:  16%|██████▉                                    | 25/154 [00:03<00:09, 14.00it/s]I FeatureCalc 2/2:  19%|████████                                   | 29/154 [00:03<00:07, 17.47it/s]I FeatureCalc 2/2:  21%|█████████▏                                 | 33/154 [00:03<00:05, 21.59it/s]I FeatureCalc 2/2:  23%|██████████                                 | 36/154 [00:03<00:05, 23.42it/s]I FeatureCalc 2/2:  25%|██████████▉                                | 39/154 [00:03<00:06, 17.61it/s]I FeatureCalc 2/2:  29%|████████████▎                              | 44/154 [00:04<00:04, 22.57it/s]I FeatureCalc 2/2:  32%|█████████████▋                             | 49/154 [00:04<00:03, 26.95it/s]I FeatureCalc 2/2:  35%|███████████████                            | 54/154 [00:04<00:03, 30.48it/s]I FeatureCalc 2/2:  39%|████████████████▊                          | 60/154 [00:04<00:02, 36.31it/s]I FeatureCalc 2/2:  42%|█████████████████▊                         | 64/154 [00:04<00:02, 30.63it/s]I FeatureCalc 2/2:  46%|███████████████████▊                       | 71/154 [00:04<00:02, 38.51it/s]I FeatureCalc 2/2:  51%|█████████████████████▊                     | 78/154 [00:04<00:01, 45.93it/s]I FeatureCalc 2/2:  55%|███████████████████████▍                   | 84/154 [00:04<00:01, 48.21it/s]I FeatureCalc 2/2:  58%|█████████████████████████▏                 | 90/154 [00:05<00:01, 45.82it/s]I FeatureCalc 2/2:  62%|██████████████████████████▌                | 95/154 [00:05<00:01, 39.96it/s]I FeatureCalc 2/2:  65%|███████████████████████████▎              | 100/154 [00:05<00:01, 38.73it/s]I FeatureCalc 2/2:  68%|████████████████████████████▋             | 105/154 [00:05<00:01, 36.75it/s]I FeatureCalc 2/2:  71%|█████████████████████████████▋            | 109/154 [00:05<00:01, 30.41it/s]I FeatureCalc 2/2:  73%|██████████████████████████████▊           | 113/154 [00:05<00:01, 30.32it/s]I FeatureCalc 2/2:  76%|███████████████████████████████▉          | 117/154 [00:06<00:01, 25.77it/s]I FeatureCalc 2/2:  79%|█████████████████████████████████▎        | 122/154 [00:06<00:01, 28.80it/s]I FeatureCalc 2/2:  82%|██████████████████████████████████▋       | 127/154 [00:06<00:00, 32.82it/s]I FeatureCalc 2/2:  85%|███████████████████████████████████▋      | 131/154 [00:06<00:00, 31.40it/s]I FeatureCalc 2/2:  89%|█████████████████████████████████████▎    | 137/154 [00:06<00:00, 37.38it/s]I FeatureCalc 2/2:  94%|███████████████████████████████████████▎  | 144/154 [00:06<00:00, 45.09it/s]I FeatureCalc 2/2:  98%|█████████████████████████████████████████▏| 151/154 [00:06<00:00, 39.98it/s]I FeatureCalc 2/2: 100%|██████████████████████████████████████████| 154/154 [00:07<00:00, 21.81it/s]
+D 
+I ConstCalc:   0%|                                                          | 0/158 [00:00<?, ?it/s]I ConstCalc: 100%|██████████████████████████████████████████████| 158/158 [00:00<00:00, 2787.91it/s]
+D 
+D quant_optimizer ...
+D quant_optimizer results:
+D     adjust_no_change_node: ['/model.9/m_2/MaxPool', '/model.9/m_1/MaxPool', '/model.9/m/MaxPool']
+D quant_optimizer done.
+D 
+Finding same consts: 0it [00:00, ?it/s]Finding same consts: 0it [00:00, ?it/s]
+[1;33mW[0m [1;33mbuild: The default input dtype of 'images' is changed from 'float32' to 'int8' in rknn model for performance!
+                       Please take care of this change when deploy rknn model with Runtime API![0m
+[1;33mW[0m [1;33mbuild: The default output dtype of '350' is changed from 'float32' to 'int8' in rknn model for performance!
+                      Please take care of this change when deploy rknn model with Runtime API![0m
+[1;33mW[0m [1;33mbuild: The default output dtype of '498' is changed from 'float32' to 'int8' in rknn model for performance!
+                      Please take care of this change when deploy rknn model with Runtime API![0m
+[1;33mW[0m [1;33mbuild: The default output dtype of '646' is changed from 'float32' to 'int8' in rknn model for performance!
+                      Please take care of this change when deploy rknn model with Runtime API![0m
+I rknn building ...
+I Split shape 0 done
+I RKNN: librknnc version: 1.2.0 (47f9394b68@2026-11-02T02:54:21)
+I RKNN: [04:55:06.650] === Stage 1/6: load model ===
+[Kload model: [>                                                 ] 0/1 (0.0%) Elapsed: 0s[Kload model: [==================================================] 1/1 (100.0%) Total: 0s
+I RKNN: [04:55:06.685] Stage load model completed successfully
+I RKNN: [04:55:06.860] === Stage 2/6: module optimization ===
+[Kmodule optimization: [>                                                 ] 0/1 (0.0%) Elapsed: 0sW RKNN: [04:55:07.124] Model initializer tensor data is empty, name: empty_placeholder_0
+D RKNN: [04:55:07.138] >>>>>> start: rknnc::RKNNAddInputOutputPass
+D RKNN: [04:55:07.138] <<<<<<<< end: rknnc::RKNNAddInputOutputPass
+D RKNN: [04:55:07.138] >>>>>> start: rknnc::RKNNConstantBroadcastPass
+D RKNN: [04:55:07.139] <<<<<<<< end: rknnc::RKNNConstantBroadcastPass
+D RKNN: [04:55:07.139] >>>>>> start: rknnc::RKNNEliminateQATDataConvert
+D RKNN: [04:55:07.140] <<<<<<<< end: rknnc::RKNNEliminateQATDataConvert
+D RKNN: [04:55:07.140] >>>>>> start: rknnc::RKNNParasMetaDatePass
+D RKNN: [04:55:07.140] <<<<<<<< end: rknnc::RKNNParasMetaDatePass
+D RKNN: [04:55:07.140] >>>>>> start: rknnc::RKNNAddIOProcNode
+D RKNN: [04:55:07.140] input_info: {"images": {"dtype": "uint8", "layout": "NHWC", "stride": [-1, -1, -1, -1], "means": [0, 0, 0], "stds": [255, 255, 255], "orders": [0, 1, 2]}}
+D RKNN: [04:55:07.142] output_info: {"350": {"dtype": "int8", "layout": "UNDEFINED", "stride": [-1, -1, -1, -1, -1]}, "498": {"dtype": "int8", "layout": "UNDEFINED", "stride": [-1, -1, -1, -1, -1]}, "646": {"dtype": "int8", "layout": "UNDEFINED", "stride": [-1, -1, -1, -1, -1]}}
+D RKNN: [04:55:07.145] <<<<<<<< end: rknnc::RKNNAddIOProcNode
+D RKNN: [04:55:07.145] >>>>>> start: rknnc::RKNNTileGroupConv
+D RKNN: [04:55:07.145] <<<<<<<< end: rknnc::RKNNTileGroupConv
+D RKNN: [04:55:07.145] >>>>>> start: rknnc::RKNNTileChannel
+D RKNN: [04:55:07.145] <<<<<<<< end: rknnc::RKNNTileChannel
+D RKNN: [04:55:07.145] <<<<<<<< end: rknnc::RKNNTileChannel
+D RKNN: [04:55:07.145] >>>>>> start: rknnc::RKNNDuplicateWeightPass
+D RKNN: [04:55:07.145] <<<<<<<< end: rknnc::RKNNDuplicateWeightPass
+D RKNN: [04:55:07.145] >>>>>> start: rknnc::RKNNAddConvBias
+D RKNN: [04:55:07.146] <<<<<<<< end: rknnc::RKNNAddConvBias
+D RKNN: [04:55:07.146] >>>>>> start: rknnc::RKNNInitRNNConst
+D RKNN: [04:55:07.146] >>>>>> start: rknnc::RKNNInitRNNConst
+D RKNN: [04:55:07.148] <<<<<<<< end: rknnc::RKNNInitRNNConst
+D RKNN: [04:55:07.148] <<<<<<<< end: rknnc::RKNNInitRNNConst
+D RKNN: [04:55:07.148] >>>>>> start: rknnc::RKNNPerChannelPrep
+D RKNN: [04:55:07.148] <<<<<<<< end: rknnc::RKNNPerChannelPrep
+D RKNN: [04:55:07.148] >>>>>> start: rknnc::RKNNBnQuant
+D RKNN: [04:55:07.148] <<<<<<<< end: rknnc::RKNNBnQuant
+D RKNN: [04:55:07.148] >>>>>> start: rknnc::RKNNFuseOptimizerPass
+D RKNN: [04:55:07.182] <<<<<<<< end: rknnc::RKNNFuseOptimizerPass
+D RKNN: [04:55:07.182] >>>>>> start: rknnc::RKNNMatMulSplitBatchPass
+D RKNN: [04:55:07.183] <<<<<<<< end: rknnc::RKNNMatMulSplitBatchPass
+D RKNN: [04:55:07.183] >>>>>> start: rknnc::RKNNTurnAutoPad
+D RKNN: [04:55:07.183] <<<<<<<< end: rknnc::RKNNTurnAutoPad
+D RKNN: [04:55:07.183] >>>>>> start: rknnc::RKNNReplaceConstantTensorPass
+D RKNN: [04:55:07.183] <<<<<<<< end: rknnc::RKNNReplaceConstantTensorPass
+D RKNN: [04:55:07.183] >>>>>> start: RKNNTensorInit, runOnModule
+D RKNN: [04:55:07.183] >>>>>> start: RKNNTensorInit, runOnComputeGraph
+D RKNN: [04:55:07.189] RKNNTensorInit: : Start LayoutMatch Process.
+D RKNN: [04:55:07.190] RKNNTensorInit: Finish LayoutMatch Process.
+D RKNN: [04:55:07.190] RKNNTensorInit: : Start AddTensorConnNode Process.
+D RKNN: [04:55:07.190] RKNNTensorInit: Finish AddTensorConnNode Process.
+D RKNN: [04:55:07.190] <<<<<<<< end: RKNNTensorInit, runOnComputeGraph
+D RKNN: [04:55:07.190] <<<<<<<< end: RKNNTensorInit, runOnModule
+D RKNN: [04:55:07.190] >>>>>> start: RKNNTensorMatch
+D RKNN: [04:55:07.193] <<<<<<<< end: RKNNTensorMatch
+D RKNN: [04:55:07.193] >>>>>> start: RKNNExpandSubgraph
+D RKNN: [04:55:07.196] <<<<<<<< end: RKNNExpandSubgraph
+D RKNN: [04:55:07.196] >>>>>> start: RKNNTensorInit, runOnModule
+D RKNN: [04:55:07.196] >>>>>> start: RKNNTensorInit, runOnComputeGraph
+D RKNN: [04:55:07.196] RKNNTensorInit: : Start LayoutMatch Process.
+D RKNN: [04:55:07.197] RKNNTensorInit: Finish LayoutMatch Process.
+D RKNN: [04:55:07.197] RKNNTensorInit: : Start AddTensorConnNode Process.
+D RKNN: [04:55:07.197] RKNNTensorInit: Finish AddTensorConnNode Process.
+D RKNN: [04:55:07.197] <<<<<<<< end: RKNNTensorInit, runOnComputeGraph
+D RKNN: [04:55:07.197] <<<<<<<< end: RKNNTensorInit, runOnModule
+D RKNN: [04:55:07.197] >>>>>> start: RKNNTensorMatch
+D RKNN: [04:55:07.198] <<<<<<<< end: RKNNTensorMatch
+D RKNN: [04:55:07.198] >>>>>> start: RKNNOpRegCheck
+D RKNN: [04:55:07.198] <<<<<<<< end: RKNNOpRegCheck
+D RKNN: [04:55:07.198] >>>>>> start: rknnc::RKNNAddSecondaryNode
+D RKNN: [04:55:07.199] <<<<<<<< end: rknnc::RKNNAddSecondaryNode
+D RKNN: [04:55:07.199] >>>>>> start: rknnc::RKNNUpdateRcclTensorPass
+D RKNN: [04:55:07.199] <<<<<<<< end: rknnc::RKNNUpdateRcclTensorPass
+[Kmodule optimization: [==================================================] 1/1 (100.0%) Total: 0s
+I RKNN: [04:55:07.199] Stage module optimization completed successfully
+D RKNN: [04:55:07.200] >>>>>> start: rknnc::RKNNUpdateRcclTensorPass
+D RKNN: [04:55:07.200] <<<<<<<< end: rknnc::RKNNUpdateRcclTensorPass
+D RKNN: [04:55:07.200] >>>>>> start: rknnc::RKNNUpdateRcclTensorPass
+D RKNN: [04:55:07.200] <<<<<<<< end: rknnc::RKNNUpdateRcclTensorPass
+I RKNN: [04:55:07.200] === Stage 3/6: register configuration ===
+[Kregister configuration: [>                                                 ] 0/1 (0.0%) Elapsed: 0sD RKNN: [04:55:07.200] >>>>>> start: RKNNOpRvRegEmit
+D RKNN: [04:55:07.201] <<<<<<<< end: RKNNOpRvRegEmit
+D RKNN: [04:55:07.201] >>>>>> start: RKNNOpRegEmit
+D RKNN: [04:55:07.209] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.209] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.210] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.210] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.211] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.211] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.212] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.212] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.212] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.212] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.214] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.214] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.214] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.214] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.216] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.216] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.217] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.217] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.217] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.217] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.218] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.218] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.219] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.219] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.219] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.219] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.220] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.220] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.221] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.221] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.221] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.221] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.227] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.227] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.228] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.228] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.229] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.229] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.230] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.230] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.233] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.233] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.234] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.234] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.237] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.237] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.238] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.238] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.241] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.241] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.243] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.243] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.265] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.265] use legacy clip/shift for int8 per-channel bias: clip=0, shift=11
+D RKNN: [04:55:07.268] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.268] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.271] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.271] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.273] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.273] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.284] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.284] use legacy clip/shift for int8 per-channel bias: clip=0, shift=12
+D RKNN: [04:55:07.291] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.291] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.294] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.294] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.306] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.306] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.309] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.309] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.312] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.312] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.314] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.314] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.315] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.315] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.318] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.318] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.319] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.319] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.320] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.321] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.321] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.321] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.322] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.322] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.323] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.323] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.324] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.324] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.324] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.324] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.324] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.324] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.326] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.326] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.330] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.330] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.331] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.331] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.332] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.332] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.333] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.333] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.336] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.336] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.338] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.338] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.340] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.340] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.351] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.351] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.354] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.354] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.357] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.357] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.359] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.359] use legacy clip/shift for int8 per-channel bias: clip=0, shift=14
+D RKNN: [04:55:07.369] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.369] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.374] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.374] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.379] use legacy clip/shift for int8 per-channel bias: clip=0
+D RKNN: [04:55:07.379] use legacy clip/shift for int8 per-channel bias: clip=0, shift=13
+D RKNN: [04:55:07.380] <<<<<<<< end: RKNNOpRegEmit
+D RKNN: [04:55:07.380] >>>>>> start: RKNNRequireBarrierPass
+D RKNN: [04:55:07.380] <<<<<<<< end: RKNNRequireBarrierPass
+D RKNN: [04:55:07.380] >>>>>> start: RKNNOpRvEmit
+D RKNN: [04:55:07.381] <<<<<<<< end: RKNNOpRvEmit
+D RKNN: [04:55:07.381] >>>>>> start: rknnc::RKNNOpRunTargetPass
+D RKNN: [04:55:07.381] <<<<<< end: rknnc::RKNNOpRunTargetPass
+[Kregister configuration: [==================================================] 1/1 (100.0%) Total: 0s
+I RKNN: [04:55:07.382] Stage register configuration completed successfully
+I RKNN: [04:55:07.382] === Stage 4/6: memory optimization ===
+[Kmemory optimization: [>                                                 ] 0/1 (0.0%) Elapsed: 0sD RKNN: [04:55:07.382] >>>>>> start: RKNNRcclBroadcastMemAlignPass
+D RKNN: [04:55:07.383] <<<<<<<< end: RKNNRcclBroadcastMemAlignPass
+D RKNN: [04:55:07.383] >>>>>> start: RKNNMemAlignPass
+D RKNN: [04:55:07.383] <<<<<<<< end: RKNNMemAlignPass
+D RKNN: [04:55:07.383] >>>>>> start: FuseInplaceValue
+D RKNN: [04:55:07.383] <<<<<<<< end: FuseInplaceValue
+D RKNN: [04:55:07.383] >>>>>> start: rknnc::RKNNBypassNodePass
+D RKNN: [04:55:07.383] <<<<<<<< end: rknnc::RKNNBypassNodePass
+D RKNN: [04:55:07.386] >>>>>> start: rknnc::RKNNUpdateMemoryPlanPass
+D RKNN: [04:55:07.386] create nbuf tensor
+D RKNN: [04:55:07.386] <<<<<<<< end: rknnc::RKNNUpdateMemoryPlanPass
+D RKNN: [04:55:07.386] >>>>>> start: RKNNCacheOpCoordPass
+D RKNN: [04:55:07.386] <<<<<<<< end: RKNNCacheOpCoordPass
+D RKNN: [04:55:07.386] >>>>>> start: RKNNSolidSymSubgraph
+D RKNN: [04:55:07.389] <<<<<<<< end: RKNNSolidSymSubgraph
+[Kmemory optimization: [==================================================] 1/1 (100.0%) Total: 0s
+I RKNN: [04:55:07.389] Stage memory optimization completed successfully
+I RKNN: [04:55:07.389] === Stage 5/6: weight sharing ===
+[Kweight sharing: [>                                                 ] 0/1 (0.0%) Elapsed: 0sD RKNN: [04:55:07.389] >>>>>> start: rknnc::RKNNMultiCoreTaskSyncPass
+D RKNN: [04:55:07.389] <<<<<<<< end: rknnc::RKNNMultiCoreTaskSyncPass (skip: non-NRV or single core)
+D RKNN: [04:55:07.389] >>>>>> start: rknnc::RKNNShareModuleMemoryPass
+D RKNN: [04:55:07.391] <<<<<<<< end: rknnc::RKNNShareModuleMemoryPass
+[Kweight sharing: [==================================================] 1/1 (100.0%) Total: 0s
+I RKNN: [04:55:07.391] Stage weight sharing completed successfully
+I RKNN: [04:55:07.392] === Stage 6/6: code generation ===
+[Kcode generation: [>                                                 ] 0/1 (0.0%) Elapsed: 0sD RKNN: [04:55:07.392] >>>>>> start: rknnc::RKNNUpdateRegAddrOfsPass
+D RKNN: [04:55:07.393] <<<<<<<< end: rknnc::RKNNUpdateRegAddrOfsPass
+D RKNN: [04:55:07.393] >>>>>> start: rknnc::RKNNTaskPartitionPass
+D RKNN: [04:55:07.393] <<<<<<<< end: rknnc::RKNNTaskPartitionPass (skip)
+D RKNN: [04:55:07.393] >>>>>> start: rknnc::RKNNRegHeadCodeGenPass
+D RKNN: [04:55:07.406] <<<<<<<< end: rknnc::RKNNRegHeadCodeGenPass
+D RKNN: [04:55:07.406] >>>>>> start: rknnc::RKNNRegFuncCodeGenPass
+D RKNN: [04:55:07.409] <<<<<<<< end: rknnc::RKNNRegFuncCodeGenPass
+D RKNN: [04:55:07.409] >>>>>> start: rknnc::RKNNModelBuildPass
+[Kcode generation: [>                                                 ] 0/1 (0.0%) Elapsed: 0s[Kcode generation: [>                                                 ] 0/1 (0.0%) Elapsed: 1s[Kcode generation: [>                                                 ] 0/1 (0.0%) Elapsed: 1s[Kcode generation: [>                                                 ] 0/1 (0.0%) Elapsed: 2sD RKNN: [04:55:09.667] <<<<<<<< end: rknnc::RKNNModelBuildPass
+D RKNN: [04:55:09.667] >>>>>> start: rknnc::RKNNModelExportPass
+D RKNN: [04:55:09.670] <<<<<<<< end: rknnc::RKNNModelExportPass
+[Kcode generation: [==================================================] 1/1 (100.0%) Total: 2s
+I RKNN: [04:55:09.670] Stage code generation completed successfully
+D RKNN: [04:55:09.705] Export RKNN model to tmp/model_build/check.rknn
+D RKNN: [04:55:09.705] Export RKNN weight to tmp/model_build/check.weight
+Export RKNN model successfully
+I rknn building done.
+I Current IO (stage: init)
+  [input-0] images
+    io_type           = 'input'
+    idx_at_full_model = 0
+    shape             = [1, 3, 640, 640]
+    src_dtype         = 'float32'
+    layout_set        = 'nchw'
+    mean              = [0, 0, 0]
+    std               = [255, 255, 255]
+    value_range       = [0, 1]
+    rgb2bgr           = False
+    origin_dynamic    = False
+
+  [output-0] 350
+    io_type           = 'output'
+    idx_at_full_model = 0
+    shape             = [1, 3, 80, 80, 85]
+    src_dtype         = 'float32'
+    layout_set        = 'nchw'
+
+  [output-1] 498
+    io_type           = 'output'
+    idx_at_full_model = 1
+    shape             = [1, 3, 40, 40, 85]
+    src_dtype         = 'float32'
+    layout_set        = 'nchw'
+
+  [output-2] 646
+    io_type           = 'output'
+    idx_at_full_model = 2
+    shape             = [1, 3, 20, 20, 85]
+    src_dtype         = 'float32'
+    layout_set        = 'nchw'
+Visualization report generated successfully!
+Please open the following link in your browser:
+
+  file:///home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/model_report.html
+
+>>> rc_build = 0
+>>> rc_export = 0
+>>> ARTIFACT /var/tmp/iss263_rknn3/work/out/yolov5n_heads_int8_rk3572_run1.rknn  bytes=249360  md5=97a34fff0b855b92681f26627dba5354
+
+==============================================================================
+### SUMMARY json
+==============================================================================
+[
+  {
+    "run": 1,
+    "target_platform": "rk3572",
+    "out": "/var/tmp/iss263_rknn3/work/out/yolov5n_heads_int8_rk3572_run1.rknn",
+    "rc_config": 0,
+    "t_config": 0.014,
+    "rc_load_onnx": 0,
+    "t_load_onnx": 0.238,
+    "rc_build": 0,
+    "t_build": 51.174,
+    "rc_export": 0,
+    "t_export": 0.019,
+    "t_total": 51.445,
+    "bytes": 249360,
+    "md5": "97a34fff0b855b92681f26627dba5354"
+  }
+]
+
+>>> CONVERT_TOTAL_S min=51.445 avg=51.445 max=51.445  (target_platform=rk3572, n=1)
+>>> RUN1 bytes=249360 md5=97a34fff0b855b92681f26627dba5354 t_total=51.445 (cfg=0.014 load=0.238 build=51.174 export=0.019)
+>>> results json -> /var/tmp/iss263_rknn3/work/results_rk3572.json
+RC_CONVERT=0

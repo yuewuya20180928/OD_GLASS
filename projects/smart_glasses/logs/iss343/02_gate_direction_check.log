@@ -1,0 +1,114 @@
+=== 各判据函数体 md5 前后对比 (★不变 = 判据方向没动★) ===
+  check_P1: 前 a4370a12d00c → 后 a4370a12d00c  ✔ 一字未动
+  check_P2: 前 d9f5a6c4234a → 后 d9f5a6c4234a  ✔ 一字未动
+  check_P3: 前 d75011ec3871 → 后 254182dce62d  ❌ 变了
+  check_P5: 前 c484e467e837 → 后 c484e467e837  ✔ 一字未动
+  check_P6: 前 ab8ecbc4e04f → 后 ab8ecbc4e04f  ✔ 一字未动
+  check_P4: 前 29bfcd62610b → 后 601a65e181b8  (★P4 = 老 P4 + 新判据块·见下★)
+
+=== P4 逐行对比 (★老判据每一行都还在, 只在末尾多出 '+ lines2'★) ===
+  ✔ 保留: def check_P4(items, txt):
+  ✔ 保留: ok, bad = True, []
+  ✔ 保留: if items is None:
+  ✔ 保留: return False, ["     ❌ 没有 items"]
+  ✔ 保留: blob = json.dumps(items, ensure_ascii=False)
+  ✔ 保留: for mk in MARKERS:
+  ✔ 保留: if mk not in blob:
+  ✔ 保留: ok = False
+  ✔ 保留: bad.append("★板侧标记 %s 在清单里找不到 ⇒ 漏项 (★它只存在于来源交卷单里 ★)" % mk)
+  ✔ 保留: for it in items:
+  ✔ 保留: s = str(it.get("source_iss", "")).strip()
+  ✔ 保留: if s not in SOURCES:
+  ✔ 保留: ok = False
+  ✔ 保留: bad.append("id=%s 的 source_iss=%r 不在来源单全集里 ⇒ 来源不明" % (it.get("id"), s))
+  ✔ 保留: return ok, ["     覆盖度: %d 个标记全部在清单里: %s" % (len(MARKERS), "✔" if ok else "❌")] + \
+  ✔ 保留: ["     ❌ %s" % b for b in bad]
+  ✔ 保留: def check_P5(items):
+  ✔ 保留: ok, bad = True, []
+  ✔ 保留: if items is None:
+  ✔ 保留: return False, ["     ❌ 没有 items"]
+  ✔ 保留: by_id = {str(it.get("id")): it for it in items}
+  ✔ 保留: for item_id, (cmd, rx) in PROBES.items():
+  ✔ 保留: it = by_id.get(item_id)
+  ✔ 保留: if it is None:
+  ✔ 保留: ok = False
+  ✔ 保留: bad.append("清单里没有探针绑定的条目 %s" % item_id)
+  ✔ 保留: continue
+  ✔ 保留: rc, out = sh(cmd)
+  ✔ 保留: m = re.search(rx, out)
+  ✔ 保留: if not m:
+  ✔ 保留: ok = False
+  ✔ 保留: bad.append("%s 的探针没抽到值 (rc=%d): %s" % (item_id, rc, rx))
+  ✔ 保留: continue
+  ✔ 保留: val = m.group(1)
+  ✔ 保留: state = str(it.get("current_state", ""))
+  ✔ 保留: if val not in state:
+  ✔ 保留: ok = False
+  ✔ 保留: bad.append("%s: 盘面实测 = %r, 但清单 current_state 里没有这个值 ⇒ 清单过期"
+  ✔ 保留: % (item_id, val))
+  ✔ 保留: return ok, ["     %d 个现状探针: 清单里的现状值 == 盘面实测: %s"
+  ✔ 保留: % (len(PROBES), "✔" if ok else "❌")] + ["     ❌ %s" % b for b in bad]
+  ✔ 保留: def check_P6():
+  ✔ 保留: ok, bad, good = True, [], []
+  ✔ 保留: pmap = protected_map()
+  ✔ 保留: for name, rel in (("板", board_reboard.PCB_REL), (".kicad_pro", board_reboard.PRO_REL)):
+  ✔ 保留: path, base = pmap[name][0], pmap[name][1]
+  ✔ 保留: if not os.path.exists(path):
+  ✔ 保留: ok = False
+  ✔ 保留: bad.append("%s 不存在: %s" % (name, path))
+  ✔ 保留: continue
+  ✔ 保留: res = board_reboard.check_file(PROJ, rel, path, base, md5fn=md5)
+  ✔ 保留: if res["ok"]:
+  ✔ 保留: good.append("     ✔ %s" % res["msg"])
+  ✔ 保留: else:
+  ✔ 保留: ok = False
+  ✔ 保留: for e in res["errs"]:
+  ✔ 保留: bad.append("%s: %s" % (name, e))
+  ✔ 保留: for name, (path, base, rel) in pmap.items():
+  ✔ 保留: if name in ("板", ".kicad_pro"):
+  ✔ 保留: continue
+  ✔ 保留: if not os.path.exists(path):
+  ✔ 保留: ok = False
+  ✔ 保留: bad.append("%s 不存在: %s" % (name, path))
+  ✔ 保留: continue
+  ✔ 保留: cur = md5(path)
+  ✔ 保留: if base is None:
+  ✔ 保留: g, msg = landing_md5.check_registered(PROJ, rel, path, md5)
+  ✔ 保留: if g:
+  ✔ 保留: good.append("     ✔ %s" % msg)
+  ✔ 保留: else:
+  ✔ 保留: ok = False
+  ✔ 保留: bad.append("%s: %s" % (name, msg))
+  ✔ 保留: continue
+  ✔ 保留: if cur != base:
+  ✔ 保留: ok = False
+  ✔ 保留: bad.append("%s md5 %s ≠ 基线 %s" % (name, cur, base))
+  ✔ 保留: else:
+  ✔ 保留: good.append("     ✔ %s md5 未变 (%s) (★基线写死·不归落表链管★)" % (name, cur))
+  ✔ 保留: return ok, ["     受保护 5 件 md5 逐字节不变: %s" % ("✔" if ok else "❌")] + good + \
+  ✔ 保留: ["     ❌ %s" % b for b in bad]
+  --- 老 P4 保留行数 = 80 / 80 ---
+  --- 新 P4 多出的行 ---
+    + ok2, lines2 = check_P4_workpack_coverage(items)
+    + ok = ok and ok2
+    + ["     ❌ %s" % b for b in bad] + lines2
+
+=== MARKERS 26 个 (前后逐字) ===
+  前 26 个 / 后 26 个 / 完全一致: True
+  后: D_ESD_CAM Q_AND Q_PG D_ESD_TC U_LDO_S28 J_CHG D_CHG_LED D_LED_G D_LED_R SW_BOOT SW_KEY_PWR SW_KEY_VM SW_KEY_VP SW_RST R_SEL_D3_P J_DEBUG J_UART R_SUPV_DIV U_SUPV TPS7A20 Q_ENVC D_ESD_USB_D C_REGN C_VBUS_GND U_EN_SW R_BAT_DET_1
+
+=== SOURCES (只许加成员) ===
+  前 10 个: ['ISS-239', 'ISS-241', 'ISS-244', 'ISS-247', 'ISS-266', 'ISS-269', 'ISS-271', 'ISS-274', 'ISS-276', 'ISS-283']
+  后 11 个: ['ISS-239', 'ISS-241', 'ISS-244', 'ISS-247', 'ISS-266', 'ISS-269', 'ISS-271', 'ISS-274', 'ISS-276', 'ISS-283', 'ISS-290']
+  只增不减: True   新增: ['ISS-290']   移除: []
+=== 各判据函数体 md5 前后对比 (★用缩进边界切函数·不含后随注释★) ===
+  check_P1: 前 df7fd3e7ef7c → 后 df7fd3e7ef7c  ✔ 一字未动
+  check_P2: 前 ce8daea588ed → 后 ce8daea588ed  ✔ 一字未动
+  check_P3: 前 b4efff6baf0c → 后 b4efff6baf0c  ✔ 一字未动
+  check_P4: 前 c0400a45a8f6 → 后 d38f2eb7b4fb  ★ 变了 (见 P4 逐行对比)
+  check_P5: 前 75d68eb924fa → 后 75d68eb924fa  ✔ 一字未动
+  check_P6: 前 ce594e73bf18 → 后 ce594e73bf18  ✔ 一字未动
+
+=== 新增函数 (本单新增·只加不减) ===
+  新增: ['check_P4_workpack_coverage', 'parse_wp02_board_changes', 'workpacket_path', 'wp02_tokens']
+  删除: []

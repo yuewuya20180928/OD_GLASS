@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/ISS121_MIC_MAGNET_POSITION.md

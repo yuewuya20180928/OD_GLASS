@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/DISPLAY_BIOSAFETY_CRITERIA_V2.md

@@ -1,0 +1,31 @@
+=== 最终盘上状态 (逐条读回) ===
+
+[answers[2] vendor_q19_boot_storage]
+  to = main
+  value = ★【ISS-351 存储轴旧口径清账 · 2026-11-23 · hw-lead】★ ★**本条已按 ISS-346 / ISS-350 机器判决改成【分档】口径; 原措辞整条作废 (三处: 容量区间旧值 / 板宽归属错位 / 外发类指令)**★ ① 容量: ★**外挂 SPI-NOR ≥128  ...
+
+[answers[13] fw_boot_storage_bom]
+  to = sw-lead
+  value = 64MB SPI-NOR 装不下 (分区表 90MB) ⇒ 必须 ≥128MB。 ★**【ISS-351 口径清账 · 2026-11-23 · hw-lead】本条原结论「路线选 eMMC 5.1 / ePoP (不是 NOR)」已由 ISS-346 / ISS-350 分档口径取代 · 本条保留 ...
+
+[needs_from[5] q3_storage_and_audio]
+  to/due/since/waiting_on = boss 2026-10-27 2026-10-25 boss
+  item = Q3 模型/rootfs 怎么存(只ADB push是否接受外挂 SPI-NOR ≥128 MiB (1 Gbit) 起 —— ★**该档板侧零动作 · 不改板宽 · 不重出板**★; ★**板宽 12→15 mm 只在【eMMC 档】成立**★) + 音频到底做不做(tracker全文无音频条目, 我不擅自加也不擅自排除)
+
+[risks[2] R-hw-boot-storage]
+  id/severity = R-hw-boot-storage high
+  text = 若无内置 boot storage ⇒ ★**按存储档分档 (ISS-346 / ISS-350 机器判决 · 2026-11-23 订正)**★: ① 只 ADB push 档 (demo) ⇒ 板侧零动作 ⇒ 不占板那一趟; ② 外挂  ...
+
+=== 陈旧串终检 (分片) ===
+  '16-64MB' -> 0
+  '板宽可能 12->15mm' -> 0
+  '板宽12->15mm' -> 0
+  '外挂 SPI-NOR 16-64' -> 0
+  '请并入第一轮跟进邮件' -> 1  (★仅 answers[4] vendor_fccsp_pitch · FCCSP 轴 · 跨轴未擅动·已上报 main★)
+
+=== 条目数 (改前 -> 改后) ===
+  answers          74 -> 74  OK
+  needs_from       241 -> 241  OK
+  risks            4 -> 4  OK
+  interface_claims 396 -> 396  OK
+  artifacts        278 -> 278  OK

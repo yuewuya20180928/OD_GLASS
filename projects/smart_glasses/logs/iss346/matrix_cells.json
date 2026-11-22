@@ -1,0 +1,939 @@
+{
+  "tool": "gen_storage_capacity_matrix.py",
+  "issue": "ISS-346",
+  "need_key": "q3_storage_and_audio",
+  "generated_by": "sw-lead",
+  "axes": {
+    "rootfs_rows_mb": [
+      20,
+      30,
+      40,
+      64,
+      128
+    ],
+    "storage_cols": [
+      "64MB NOR",
+      "128MB NOR",
+      "256MB NOR",
+      "8GB eMMC"
+    ]
+  },
+  "constants": {
+    "model_slot_base_bytes": 15728640,
+    "model_measured_bytes": 10575159,
+    "model_slot_floor_bytes": 11534336,
+    "model_measured_source": "SW/RKNN_BENCH.md §3.2.2 (yolov5s INT8 切后处理版, target=rk3576)"
+  },
+  "readonly_sources": {
+    "config": {
+      "path": "SW/tools/s2_rescue_config.example.json",
+      "md5_before": "5b9d23f7e50d67ec7474fe5bad57339b",
+      "md5_after": "5b9d23f7e50d67ec7474fe5bad57339b",
+      "unchanged": true
+    },
+    "checker": {
+      "path": "SW/tools/flash_layout_check.py",
+      "md5_before": "06d850d43e7b5cabee42c580511237d7",
+      "md5_after": "06d850d43e7b5cabee42c580511237d7",
+      "unchanged": true
+    }
+  },
+  "board_frame_tiers": {
+    "B160x100": {
+      "size_mm": "160×100",
+      "tier": "台架板 (现役)",
+      "emmc_area_cost": "≈ 0 (板宽 160 mm, eMMC 25% 板面代价可吸收)",
+      "blocks_trip": false
+    },
+    "F30A": {
+      "size_mm": "60×30",
+      "tier": "产品板",
+      "emmc_area_cost": "板宽 12→15 mm (+25%) ⇒ 与 MECH 板宽/镜脚厚度冲突",
+      "blocks_trip": true
+    },
+    "P60x15": {
+      "size_mm": "60×15",
+      "tier": "产品板 (ISS-341 已整档作废)",
+      "emmc_area_cost": "板宽 12→15 mm (+25%) ⇒ 与 MECH 板宽/镜脚厚度冲突",
+      "blocks_trip": true
+    }
+  },
+  "cells": [
+    {
+      "cell": "r20_64MB_NOR",
+      "rootfs_mb": 20,
+      "storage": "64MB NOR",
+      "device_size_arg": "64MB",
+      "device_bytes": 67108864,
+      "config_copy": "tmp/iss346/cell_r20_64MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 1,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 79724544,
+        "total_mib": 76.031,
+        "over_bytes": 12615680,
+        "over_mib": 12.031,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=79724544 > 设备容量 67108864",
+        "LAY-08": "PASS ⇒ PASS rootfs = 20.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立",
+        "LAY-03_result": "FAIL",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [
+          "最后一个分区 version_block end=79724544 > 设备容量 67108864"
+        ],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 20.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r20_64MB_NOR.txt",
+      "shrink": {
+        "rc": 1,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 71335936,
+        "total_mib": 68.031,
+        "over_bytes": 4227072,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=71335936 > 设备容量 67108864",
+        "LAY-03_result": "FAIL",
+        "config_copy": "tmp/iss346/cell_r20_64MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r20_128MB_NOR",
+      "rootfs_mb": 20,
+      "storage": "128MB NOR",
+      "device_size_arg": "128MB",
+      "device_bytes": 134217728,
+      "config_copy": "tmp/iss346/cell_r20_128MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 79724544,
+        "total_mib": 76.031,
+        "over_bytes": -54493184,
+        "over_mib": -51.969,
+        "LAY-03": "PASS ⇒ PASS 占用 79724544 / 134217728 字节 (59.4%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 20.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 20.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r20_128MB_NOR.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 71335936,
+        "total_mib": 68.031,
+        "over_bytes": -62881792,
+        "LAY-03": "PASS ⇒ PASS 占用 71335936 / 134217728 字节 (53.1%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r20_128MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r20_256MB_NOR",
+      "rootfs_mb": 20,
+      "storage": "256MB NOR",
+      "device_size_arg": "256MB",
+      "device_bytes": 268435456,
+      "config_copy": "tmp/iss346/cell_r20_256MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 79724544,
+        "total_mib": 76.031,
+        "over_bytes": -188710912,
+        "over_mib": -179.969,
+        "LAY-03": "PASS ⇒ PASS 占用 79724544 / 268435456 字节 (29.7%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 20.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 20.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r20_256MB_NOR.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 71335936,
+        "total_mib": 68.031,
+        "over_bytes": -197099520,
+        "LAY-03": "PASS ⇒ PASS 占用 71335936 / 268435456 字节 (26.6%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r20_256MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r20_8GB_eMMC",
+      "rootfs_mb": 20,
+      "storage": "8GB eMMC",
+      "device_size_arg": "8GB",
+      "device_bytes": 8589934592,
+      "config_copy": "tmp/iss346/cell_r20_8GB_eMMC.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 79724544,
+        "total_mib": 76.031,
+        "over_bytes": -8510210048,
+        "over_mib": -8115.969,
+        "LAY-03": "PASS ⇒ PASS 占用 79724544 / 8589934592 字节 (0.9%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 20.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 20.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r20_8GB_eMMC.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 71335936,
+        "total_mib": 68.031,
+        "over_bytes": -8518598656,
+        "LAY-03": "PASS ⇒ PASS 占用 71335936 / 8589934592 字节 (0.8%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r20_8GB_eMMC_shrink.json"
+      }
+    },
+    {
+      "cell": "r30_64MB_NOR",
+      "rootfs_mb": 30,
+      "storage": "64MB NOR",
+      "device_size_arg": "64MB",
+      "device_bytes": 67108864,
+      "config_copy": "tmp/iss346/cell_r30_64MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 1,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 90210304,
+        "total_mib": 86.031,
+        "over_bytes": 23101440,
+        "over_mib": 22.031,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=90210304 > 设备容量 67108864",
+        "LAY-08": "PASS ⇒ PASS rootfs = 30.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立",
+        "LAY-03_result": "FAIL",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [
+          "最后一个分区 version_block end=90210304 > 设备容量 67108864"
+        ],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 30.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r30_64MB_NOR.txt",
+      "shrink": {
+        "rc": 1,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 81821696,
+        "total_mib": 78.031,
+        "over_bytes": 14712832,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=81821696 > 设备容量 67108864",
+        "LAY-03_result": "FAIL",
+        "config_copy": "tmp/iss346/cell_r30_64MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r30_128MB_NOR",
+      "rootfs_mb": 30,
+      "storage": "128MB NOR",
+      "device_size_arg": "128MB",
+      "device_bytes": 134217728,
+      "config_copy": "tmp/iss346/cell_r30_128MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 90210304,
+        "total_mib": 86.031,
+        "over_bytes": -44007424,
+        "over_mib": -41.969,
+        "LAY-03": "PASS ⇒ PASS 占用 90210304 / 134217728 字节 (67.2%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 30.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 30.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r30_128MB_NOR.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 81821696,
+        "total_mib": 78.031,
+        "over_bytes": -52396032,
+        "LAY-03": "PASS ⇒ PASS 占用 81821696 / 134217728 字节 (61.0%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r30_128MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r30_256MB_NOR",
+      "rootfs_mb": 30,
+      "storage": "256MB NOR",
+      "device_size_arg": "256MB",
+      "device_bytes": 268435456,
+      "config_copy": "tmp/iss346/cell_r30_256MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 90210304,
+        "total_mib": 86.031,
+        "over_bytes": -178225152,
+        "over_mib": -169.969,
+        "LAY-03": "PASS ⇒ PASS 占用 90210304 / 268435456 字节 (33.6%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 30.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 30.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r30_256MB_NOR.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 81821696,
+        "total_mib": 78.031,
+        "over_bytes": -186613760,
+        "LAY-03": "PASS ⇒ PASS 占用 81821696 / 268435456 字节 (30.5%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r30_256MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r30_8GB_eMMC",
+      "rootfs_mb": 30,
+      "storage": "8GB eMMC",
+      "device_size_arg": "8GB",
+      "device_bytes": 8589934592,
+      "config_copy": "tmp/iss346/cell_r30_8GB_eMMC.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 90210304,
+        "total_mib": 86.031,
+        "over_bytes": -8499724288,
+        "over_mib": -8105.969,
+        "LAY-03": "PASS ⇒ PASS 占用 90210304 / 8589934592 字节 (1.1%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 30.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 30.0MB (<=30MB) → §4.1 条件式推荐 C (ro_rootfs+ab_app_model) 成立"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r30_8GB_eMMC.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 81821696,
+        "total_mib": 78.031,
+        "over_bytes": -8508112896,
+        "LAY-03": "PASS ⇒ PASS 占用 81821696 / 8589934592 字节 (1.0%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r30_8GB_eMMC_shrink.json"
+      }
+    },
+    {
+      "cell": "r40_64MB_NOR",
+      "rootfs_mb": 40,
+      "storage": "64MB NOR",
+      "device_size_arg": "64MB",
+      "device_bytes": 67108864,
+      "config_copy": "tmp/iss346/cell_r40_64MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 1,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 100696064,
+        "total_mib": 96.031,
+        "over_bytes": 33587200,
+        "over_mib": 32.031,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=100696064 > 设备容量 67108864",
+        "LAY-08": "PASS ⇒ PASS rootfs = 40.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR",
+        "LAY-03_result": "FAIL",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [
+          "最后一个分区 version_block end=100696064 > 设备容量 67108864"
+        ],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 40.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r40_64MB_NOR.txt",
+      "shrink": {
+        "rc": 1,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 92307456,
+        "total_mib": 88.031,
+        "over_bytes": 25198592,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=92307456 > 设备容量 67108864",
+        "LAY-03_result": "FAIL",
+        "config_copy": "tmp/iss346/cell_r40_64MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r40_128MB_NOR",
+      "rootfs_mb": 40,
+      "storage": "128MB NOR",
+      "device_size_arg": "128MB",
+      "device_bytes": 134217728,
+      "config_copy": "tmp/iss346/cell_r40_128MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 100696064,
+        "total_mib": 96.031,
+        "over_bytes": -33521664,
+        "over_mib": -31.969,
+        "LAY-03": "PASS ⇒ PASS 占用 100696064 / 134217728 字节 (75.0%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 40.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 40.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r40_128MB_NOR.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 92307456,
+        "total_mib": 88.031,
+        "over_bytes": -41910272,
+        "LAY-03": "PASS ⇒ PASS 占用 92307456 / 134217728 字节 (68.8%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r40_128MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r40_256MB_NOR",
+      "rootfs_mb": 40,
+      "storage": "256MB NOR",
+      "device_size_arg": "256MB",
+      "device_bytes": 268435456,
+      "config_copy": "tmp/iss346/cell_r40_256MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 100696064,
+        "total_mib": 96.031,
+        "over_bytes": -167739392,
+        "over_mib": -159.969,
+        "LAY-03": "PASS ⇒ PASS 占用 100696064 / 268435456 字节 (37.5%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 40.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 40.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r40_256MB_NOR.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 92307456,
+        "total_mib": 88.031,
+        "over_bytes": -176128000,
+        "LAY-03": "PASS ⇒ PASS 占用 92307456 / 268435456 字节 (34.4%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r40_256MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r40_8GB_eMMC",
+      "rootfs_mb": 40,
+      "storage": "8GB eMMC",
+      "device_size_arg": "8GB",
+      "device_bytes": 8589934592,
+      "config_copy": "tmp/iss346/cell_r40_8GB_eMMC.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 100696064,
+        "total_mib": 96.031,
+        "over_bytes": -8489238528,
+        "over_mib": -8095.969,
+        "LAY-03": "PASS ⇒ PASS 占用 100696064 / 8589934592 字节 (1.2%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 40.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 40.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r40_8GB_eMMC.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 92307456,
+        "total_mib": 88.031,
+        "over_bytes": -8497627136,
+        "LAY-03": "PASS ⇒ PASS 占用 92307456 / 8589934592 字节 (1.1%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r40_8GB_eMMC_shrink.json"
+      }
+    },
+    {
+      "cell": "r64_64MB_NOR",
+      "rootfs_mb": 64,
+      "storage": "64MB NOR",
+      "device_size_arg": "64MB",
+      "device_bytes": 67108864,
+      "config_copy": "tmp/iss346/cell_r64_64MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 1,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 125861888,
+        "total_mib": 120.031,
+        "over_bytes": 58753024,
+        "over_mib": 56.031,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=125861888 > 设备容量 67108864",
+        "LAY-08": "PASS ⇒ PASS rootfs = 64.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR",
+        "LAY-03_result": "FAIL",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [
+          "最后一个分区 version_block end=125861888 > 设备容量 67108864"
+        ],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 64.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r64_64MB_NOR.txt",
+      "shrink": {
+        "rc": 1,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 117473280,
+        "total_mib": 112.031,
+        "over_bytes": 50364416,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=117473280 > 设备容量 67108864",
+        "LAY-03_result": "FAIL",
+        "config_copy": "tmp/iss346/cell_r64_64MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r64_128MB_NOR",
+      "rootfs_mb": 64,
+      "storage": "128MB NOR",
+      "device_size_arg": "128MB",
+      "device_bytes": 134217728,
+      "config_copy": "tmp/iss346/cell_r64_128MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 125861888,
+        "total_mib": 120.031,
+        "over_bytes": -8355840,
+        "over_mib": -7.969,
+        "LAY-03": "PASS ⇒ PASS 占用 125861888 / 134217728 字节 (93.8%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 64.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 64.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r64_128MB_NOR.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 117473280,
+        "total_mib": 112.031,
+        "over_bytes": -16744448,
+        "LAY-03": "PASS ⇒ PASS 占用 117473280 / 134217728 字节 (87.5%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r64_128MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r64_256MB_NOR",
+      "rootfs_mb": 64,
+      "storage": "256MB NOR",
+      "device_size_arg": "256MB",
+      "device_bytes": 268435456,
+      "config_copy": "tmp/iss346/cell_r64_256MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 125861888,
+        "total_mib": 120.031,
+        "over_bytes": -142573568,
+        "over_mib": -135.969,
+        "LAY-03": "PASS ⇒ PASS 占用 125861888 / 268435456 字节 (46.9%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 64.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 64.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r64_256MB_NOR.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 117473280,
+        "total_mib": 112.031,
+        "over_bytes": -150962176,
+        "LAY-03": "PASS ⇒ PASS 占用 117473280 / 268435456 字节 (43.8%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r64_256MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r64_8GB_eMMC",
+      "rootfs_mb": 64,
+      "storage": "8GB eMMC",
+      "device_size_arg": "8GB",
+      "device_bytes": 8589934592,
+      "config_copy": "tmp/iss346/cell_r64_8GB_eMMC.json",
+      "status": "OK",
+      "base": {
+        "rc": 0,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 125861888,
+        "total_mib": 120.031,
+        "over_bytes": -8464072704,
+        "over_mib": -8071.969,
+        "LAY-03": "PASS ⇒ PASS 占用 125861888 / 8589934592 字节 (1.5%), 未越界",
+        "LAY-08": "PASS ⇒ PASS rootfs = 64.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "PASS",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [],
+        "LAY-08_details": [
+          "PASS rootfs = 64.0MB (30~64MB) → 需降级方案 B + 128MB SPI-NOR"
+        ]
+      },
+      "text_log": "logs/iss346/cells/r64_8GB_eMMC.txt",
+      "shrink": {
+        "rc": 0,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 117473280,
+        "total_mib": 112.031,
+        "over_bytes": -8472461312,
+        "LAY-03": "PASS ⇒ PASS 占用 117473280 / 8589934592 字节 (1.4%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r64_8GB_eMMC_shrink.json"
+      }
+    },
+    {
+      "cell": "r128_64MB_NOR",
+      "rootfs_mb": 128,
+      "storage": "64MB NOR",
+      "device_size_arg": "64MB",
+      "device_bytes": 67108864,
+      "config_copy": "tmp/iss346/cell_r128_64MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 1,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 192970752,
+        "total_mib": 184.031,
+        "over_bytes": 125861888,
+        "over_mib": 120.031,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=192970752 > 设备容量 67108864",
+        "LAY-08": "FAIL ⇒ rootfs = 128.0MB (>64MB) → SPI-NOR 方案出局, 必须 eMMC (板宽 12→15mm)",
+        "LAY-03_result": "FAIL",
+        "LAY-08_result": "FAIL",
+        "LAY-03_failures": [
+          "最后一个分区 version_block end=192970752 > 设备容量 67108864"
+        ],
+        "LAY-08_failures": [
+          "rootfs = 128.0MB (>64MB) → SPI-NOR 方案出局, 必须 eMMC (板宽 12→15mm)"
+        ],
+        "LAY-08_details": []
+      },
+      "text_log": "logs/iss346/cells/r128_64MB_NOR.txt",
+      "shrink": {
+        "rc": 1,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 184582144,
+        "total_mib": 176.031,
+        "over_bytes": 117473280,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=184582144 > 设备容量 67108864",
+        "LAY-03_result": "FAIL",
+        "config_copy": "tmp/iss346/cell_r128_64MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r128_128MB_NOR",
+      "rootfs_mb": 128,
+      "storage": "128MB NOR",
+      "device_size_arg": "128MB",
+      "device_bytes": 134217728,
+      "config_copy": "tmp/iss346/cell_r128_128MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 1,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 192970752,
+        "total_mib": 184.031,
+        "over_bytes": 58753024,
+        "over_mib": 56.031,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=192970752 > 设备容量 134217728",
+        "LAY-08": "FAIL ⇒ rootfs = 128.0MB (>64MB) → SPI-NOR 方案出局, 必须 eMMC (板宽 12→15mm)",
+        "LAY-03_result": "FAIL",
+        "LAY-08_result": "FAIL",
+        "LAY-03_failures": [
+          "最后一个分区 version_block end=192970752 > 设备容量 134217728"
+        ],
+        "LAY-08_failures": [
+          "rootfs = 128.0MB (>64MB) → SPI-NOR 方案出局, 必须 eMMC (板宽 12→15mm)"
+        ],
+        "LAY-08_details": []
+      },
+      "text_log": "logs/iss346/cells/r128_128MB_NOR.txt",
+      "shrink": {
+        "rc": 1,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 184582144,
+        "total_mib": 176.031,
+        "over_bytes": 50364416,
+        "LAY-03": "FAIL ⇒ 最后一个分区 version_block end=184582144 > 设备容量 134217728",
+        "LAY-03_result": "FAIL",
+        "config_copy": "tmp/iss346/cell_r128_128MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r128_256MB_NOR",
+      "rootfs_mb": 128,
+      "storage": "256MB NOR",
+      "device_size_arg": "256MB",
+      "device_bytes": 268435456,
+      "config_copy": "tmp/iss346/cell_r128_256MB_NOR.json",
+      "status": "OK",
+      "base": {
+        "rc": 1,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 192970752,
+        "total_mib": 184.031,
+        "over_bytes": -75464704,
+        "over_mib": -71.969,
+        "LAY-03": "PASS ⇒ PASS 占用 192970752 / 268435456 字节 (71.9%), 未越界",
+        "LAY-08": "FAIL ⇒ rootfs = 128.0MB (>64MB) → SPI-NOR 方案出局, 必须 eMMC (板宽 12→15mm)",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "FAIL",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [
+          "rootfs = 128.0MB (>64MB) → SPI-NOR 方案出局, 必须 eMMC (板宽 12→15mm)"
+        ],
+        "LAY-08_details": []
+      },
+      "text_log": "logs/iss346/cells/r128_256MB_NOR.txt",
+      "shrink": {
+        "rc": 1,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 184582144,
+        "total_mib": 176.031,
+        "over_bytes": -83853312,
+        "LAY-03": "PASS ⇒ PASS 占用 184582144 / 268435456 字节 (68.8%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r128_256MB_NOR_shrink.json"
+      }
+    },
+    {
+      "cell": "r128_8GB_eMMC",
+      "rootfs_mb": 128,
+      "storage": "8GB eMMC",
+      "device_size_arg": "8GB",
+      "device_bytes": 8589934592,
+      "config_copy": "tmp/iss346/cell_r128_8GB_eMMC.json",
+      "status": "OK",
+      "base": {
+        "rc": 1,
+        "model_slot_bytes": 15728640,
+        "total_bytes": 192970752,
+        "total_mib": 184.031,
+        "over_bytes": -8396963840,
+        "over_mib": -8007.969,
+        "LAY-03": "PASS ⇒ PASS 占用 192970752 / 8589934592 字节 (2.2%), 未越界",
+        "LAY-08": "FAIL ⇒ rootfs = 128.0MB (>64MB) → SPI-NOR 方案出局, 必须 eMMC (板宽 12→15mm)",
+        "LAY-03_result": "PASS",
+        "LAY-08_result": "FAIL",
+        "LAY-03_failures": [],
+        "LAY-08_failures": [
+          "rootfs = 128.0MB (>64MB) → SPI-NOR 方案出局, 必须 eMMC (板宽 12→15mm)"
+        ],
+        "LAY-08_details": []
+      },
+      "text_log": "logs/iss346/cells/r128_8GB_eMMC.txt",
+      "shrink": {
+        "rc": 1,
+        "model_slot_bytes": 11534336,
+        "total_bytes": 184582144,
+        "total_mib": 176.031,
+        "over_bytes": -8405352448,
+        "LAY-03": "PASS ⇒ PASS 占用 184582144 / 8589934592 字节 (2.1%), 未越界",
+        "LAY-03_result": "PASS",
+        "config_copy": "tmp/iss346/cell_r128_8GB_eMMC_shrink.json"
+      }
+    }
+  ],
+  "thresholds": [
+    {
+      "storage": "64MB NOR",
+      "device_size_arg": "64MB",
+      "device_bytes": 67108864,
+      "model_slot_bytes": 15728640,
+      "fixed_bytes": 58753024,
+      "rootfs_max_bytes": 8355840,
+      "rootfs_max_mib": 7.969,
+      "rootfs_max_raw_bytes": 8355840,
+      "align_unit": 4096,
+      "verified": {
+        "at": "rootfs=8355840B (7.969 MiB) → LAY-03 PASS",
+        "plus1MiB": "rootfs=9404416B (8.969 MiB) → LAY-03 FAIL"
+      }
+    },
+    {
+      "storage": "64MB NOR",
+      "device_size_arg": "64MB",
+      "device_bytes": 67108864,
+      "model_slot_bytes": 11534336,
+      "fixed_bytes": 50364416,
+      "rootfs_max_bytes": 16744448,
+      "rootfs_max_mib": 15.969,
+      "rootfs_max_raw_bytes": 16744448,
+      "align_unit": 4096,
+      "verified": {
+        "at": "rootfs=16744448B (15.969 MiB) → LAY-03 PASS",
+        "plus1MiB": "rootfs=17793024B (16.969 MiB) → LAY-03 FAIL"
+      }
+    },
+    {
+      "storage": "128MB NOR",
+      "device_size_arg": "128MB",
+      "device_bytes": 134217728,
+      "model_slot_bytes": 15728640,
+      "fixed_bytes": 58753024,
+      "rootfs_max_bytes": 75464704,
+      "rootfs_max_mib": 71.969,
+      "rootfs_max_raw_bytes": 75464704,
+      "align_unit": 4096,
+      "verified": {
+        "at": "rootfs=75464704B (71.969 MiB) → LAY-03 PASS",
+        "plus1MiB": "rootfs=76513280B (72.969 MiB) → LAY-03 FAIL"
+      }
+    },
+    {
+      "storage": "128MB NOR",
+      "device_size_arg": "128MB",
+      "device_bytes": 134217728,
+      "model_slot_bytes": 11534336,
+      "fixed_bytes": 50364416,
+      "rootfs_max_bytes": 83853312,
+      "rootfs_max_mib": 79.969,
+      "rootfs_max_raw_bytes": 83853312,
+      "align_unit": 4096,
+      "verified": {
+        "at": "rootfs=83853312B (79.969 MiB) → LAY-03 PASS",
+        "plus1MiB": "rootfs=84901888B (80.969 MiB) → LAY-03 FAIL"
+      }
+    },
+    {
+      "storage": "256MB NOR",
+      "device_size_arg": "256MB",
+      "device_bytes": 268435456,
+      "model_slot_bytes": 15728640,
+      "fixed_bytes": 58753024,
+      "rootfs_max_bytes": 209682432,
+      "rootfs_max_mib": 199.969,
+      "rootfs_max_raw_bytes": 209682432,
+      "align_unit": 4096,
+      "verified": {
+        "at": "rootfs=209682432B (199.969 MiB) → LAY-03 PASS",
+        "plus1MiB": "rootfs=210731008B (200.969 MiB) → LAY-03 FAIL"
+      }
+    },
+    {
+      "storage": "256MB NOR",
+      "device_size_arg": "256MB",
+      "device_bytes": 268435456,
+      "model_slot_bytes": 11534336,
+      "fixed_bytes": 50364416,
+      "rootfs_max_bytes": 218071040,
+      "rootfs_max_mib": 207.969,
+      "rootfs_max_raw_bytes": 218071040,
+      "align_unit": 4096,
+      "verified": {
+        "at": "rootfs=218071040B (207.969 MiB) → LAY-03 PASS",
+        "plus1MiB": "rootfs=219119616B (208.969 MiB) → LAY-03 FAIL"
+      }
+    },
+    {
+      "storage": "8GB eMMC",
+      "device_size_arg": "8GB",
+      "device_bytes": 8589934592,
+      "model_slot_bytes": 15728640,
+      "fixed_bytes": 58753024,
+      "rootfs_max_bytes": 8531181568,
+      "rootfs_max_mib": 8135.969,
+      "rootfs_max_raw_bytes": 8531181568,
+      "align_unit": 4096,
+      "verified": {
+        "at": "rootfs=8531181568B (8135.969 MiB) → LAY-03 PASS",
+        "plus1MiB": "rootfs=8532230144B (8136.969 MiB) → LAY-03 FAIL"
+      }
+    },
+    {
+      "storage": "8GB eMMC",
+      "device_size_arg": "8GB",
+      "device_bytes": 8589934592,
+      "model_slot_bytes": 11534336,
+      "fixed_bytes": 50364416,
+      "rootfs_max_bytes": 8539570176,
+      "rootfs_max_mib": 8143.969,
+      "rootfs_max_raw_bytes": 8539570176,
+      "align_unit": 4096,
+      "verified": {
+        "at": "rootfs=8539570176B (8143.969 MiB) → LAY-03 PASS",
+        "plus1MiB": "rootfs=8540618752B (8144.969 MiB) → LAY-03 FAIL"
+      }
+    }
+  ],
+  "failures": [],
+  "evidence": "[实测] PC 侧静态布局检查 (被测对象 = SW/tools/s2_rescue_config.example.json 的partition_layout 副本 + flash_layout_check.py 的判定逻辑); partition_layout 本身是 [推算] 占位值 ⇒ 结论等级 = [推算]"
+}

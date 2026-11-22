@@ -1,0 +1,49 @@
+=== ISS-343 · R4/R9 到底对应哪条板改 (★实读 HW/check_netlist_selfconsistency.py★) ===
+--- 命令: sed -n '1359,1378p' / '1446,1460p' HW/check_netlist_selfconsistency.py (带行号) ---
+
+--- ① R4 (USB D− 必须有 ESD) 行 1359~1378 ---
+ 1359      # ---- R4: USB D− 必须有 ESD ----
+ 1360      dminus = {"USB_D_N_SRC", "NET_USB_D_N_TYPEC"}
+ 1361      hit = []
+ 1362      for ref, info in board.items():
+ 1363          if "ESD" not in ref.upper():
+ 1364              continue
+ 1365          for _num, pnet in info.get("pads_list", []):
+ 1366              if pnet in dminus:
+ 1367                  hit.append((ref, pnet))
+ 1368                  break
+ 1369      if not hit:
+ 1370          errors.append(
+ 1371              "★R4 未落表: 板上仍然没有任何 ESD 位号挂在 D− 那条网上 "
+ 1372              "(USB_D_N_SRC / NET_USB_D_N_TYPEC) ⇒ D− 仍然裸奔")
+ 1373      if "D_ESD_USB_D" in board:
+ 1374          info = board["D_ESD_USB_D"]
+ 1375          if info["pads"] < 3 and not hit:
+ 1376              errors.append("★R4 未落表: D_ESD_USB_D 仍然只有 2 个焊盘 (D+ + GND) ⇒ 仍不是双通道")
+ 1377      if verbose:
+ 1378          report.append(f"   R4 (USB D− ESD) 检查完毕, 命中位号 = {hit}")
+
+--- ② R9 (ESD 必须真的贴到 J_USB_C ≤3.0mm) 行 1446~1460 ---
+ 1446      # ---- R9: ESD 必须真的贴到 J_USB_C (★≤3.0mm, 按 ISS-085 规矩; 原 5.0mm 作废★) ----
+ 1447      import math as _math
+ 1448      xy = _board_ref_xy(_path(root, "board"))
+ 1449      if "J_USB_C" in xy and "D_ESD_USB_D" in xy:
+ 1450          a, b = xy["J_USB_C"], xy["D_ESD_USB_D"]
+ 1451          d = _math.hypot(a[0] - b[0], a[1] - b[1])
+ 1452          if d > ESD_MAX_DIST_MM:
+ 1453              errors.append(
+ 1454                  f"★R9 未落表: D_ESD_USB_D → J_USB_C 板面距离 = {d:.2f} mm > {ESD_MAX_DIST_MM} mm "
+ 1455                  f"⇒ ESD 还是不在接口旁边")
+ 1456          if verbose:
+ 1457              report.append(f"   R9 (ESD 位置) 检查完毕, 距离 = {d:.2f} mm "
+ 1458                            f"(阈值 {ESD_MAX_DIST_MM} mm)")
+ 1459      else:
+ 1460          errors.append("★R9 未落表: 板文件里找不到 D_ESD_USB_D 或 J_USB_C 的坐标")
+
+--- ③ R4/R9 在板侧清单页里落到哪几条 item (★按 criterion 字符串实读★) ---
+  B07_ESD_USB_D_3PIN     step=S4   criterion=python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ R4: D_ESD_USB_D 焊盘数 = 3
+  B08_ESD_USB_D_NEAR     step=S4   criterion=python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ R9: D_ESD_USB_D ↔ J_USB_C 中心距 ≤ 3.0 mm
+  B09_ESD_USB_D_MINUS    step=S4   criterion=python3 HW/check_netlist_selfconsistency.py --expect-resolved ⇒ R4: D− 两张网的 ESD 位号数 ≥ 1
+
+  ⇒ R4 命中 = B07_ESD_USB_D_3PIN (焊盘数=3) + B09_ESD_USB_D_MINUS (D− 两张网的 ESD 位号数≥1)
+  ⇒ R9 命中 = B08_ESD_USB_D_NEAR (D_ESD_USB_D ↔ J_USB_C 中心距 ≤3.0mm)

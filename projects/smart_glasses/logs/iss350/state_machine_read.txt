@@ -1,0 +1,20 @@
+STATE.yaml 顶层 keys = ['meta', 'project', 'domains', 'interface_claims', 'needs_matrix', 'blockers', 'conflicts', 'needs_normalization', 'lint', 'risks', 'summary']
+domains = ['main', 'hw-lead', 'sw-lead', 'mech-lead']
+sw-lead domain keys = ['agent', 'role', 'updated_at', 'updated_by', 'status', 'artifacts', 'blockers', 'needs_from', 'answers', 'open_questions', 'risks']
+
+== STATE.yaml 里 sw-lead 的 iss338_need_boot_storage_answer (机器读到的口径) ==
+  state = answered | answered = None
+  item  = ★P4 启动存储类型(SW/FLASH_AND_VERSION.md:359 [0数据])· ★【ISS-350 订正 · sw-lead 2026-11-23 · 依据 pm.yaml → iss346_q3_storage_tier_verdict_20261123 (main 裁)】★★ ① 启动存储的 SPI boot 网 = ★**4 条**★ (SPI_SCLK_BOOT / SPI_CSn_BOOT / SPI_MOSI_BOOT / SPI_MISO_BOOT = 网表 HW/netlist_v1.csv L202 / L204 / L206 / L208 = J_BOOT1 pin1~pin4), 不是 3 条 · ★**[实测]** 板面 J_BOOT1 6 pad 实读 = pin1 SPI_SCLK_BOOT / pin2 SPI_CSn_BOOT / pin3 SPI_MOSI_BOOT / pin4 SPI_MISO_BOOT / pin5 VDD_3V3_IO / pin6 GND ② ★**『若外挂 SPI-NOR ⇒ 板要重出』不成立**★ ⇒ ★**外挂 SPI-NOR 走 J_BOOT1 焊盘位 ⇒ 板侧零动作, 不重出板**★ (J_BOOT1 焊盘位 6 pad 已在板 @126.3,58 + 4 条 0Ω 串阻位 R_SER_SPI_* 必装 ⇒ PCB 层零动作 · 不改网表 / 不改板框 / 不改板 md5 ⇒ 台架板档与产品板档都不卡) ; 只有『主板上焊 SPI-NOR 芯片』才需要改板, 而该路已被网表明写『启动存储: 只留焊盘位 + 串阻位, 不画存储芯片』否掉 ⇒ ★**Q3 存储轴 = 分档, 不再是整卡阻塞**★ ③ 问原厂那一句改成 ★**『主板侧 J_BOOT1 焊盘位与 4 条 SPI 走线已在板 (只 pin5/pin6 的 CONN 位 DNP); 请确认 SoM 侧是否引出这 4 条 SPI boot pin (我方网表侧记为 SoC_NC)』**★ ★**这一句才是真正要问原厂的 (SoM 是否引出 boot pin)**★ —— ★**零铜网分级口径不变**: 4 条里只有 3 条在零铜域 (SPI_SCLK_BOOT / SPI_MOSI_BOOT / SPI_MISO_BOOT 判【必需】·板侧不许标 NC) · SPI_CSn_BOOT 板面已有铜 31.352 mm ⇒ 本就不在零铜域 ⇒ ★**必需 23 不变**★
+
+== 旧口径残留自检 (整份 STATE.yaml) ==
+  '3 条 SPI_*_BOOT'                               在 STATE.yaml 出现次数 = 6
+  '主板侧启动存储焊盘位不引出(J_BOOT1 DNP)'                   在 STATE.yaml 出现次数 = 0
+
+== 新口径在 STATE.yaml 的落点 ==
+  '4 条'                        出现次数 = 268
+  '板侧零动作, 不重出板'                出现次数 = 1
+  'SoC_NC'                     出现次数 = 5
+  '必需 23 不变'                   出现次数 = 1
+
+== STATE.yaml interface_claims 里的新登记 ==
+  {"values": {"sw-lead": "q3_tier:adb=0,nor=0,emmc=pcb_only"}, "notes": {"sw-lead": "★★【ISS-350 登记 · sw-lead 2026-11-23 · 只登记不拍板】★★ 依据 pm.yaml → iss346_q3_storage_tier_verdict_20261123 (main 裁) + ISS-346 机器判决 (5×4 矩阵 20/20 格 · failures=0) ⇒ ★Q3 存储轴 = 分档, 不是整卡阻塞★: ① 只 ADB push 档 ⇒ 板侧零动作 ⇒ 不卡 ② 外挂 SPI-NOR 档 ⇒ J_BOOT1 焊盘位已在板 (6 pad @126.3,58) + 4 条 0Ω 串阻位 R_SER_SPI_* 必装 ⇒ PCB 层零动作 ⇒ 台架板档与产品板档都不卡 ③ eMMC 档 ⇒ 板宽 12→15 mm ⇒ 台架板档 B160x100 板面代价≈0 ⇒ 不卡 ⇒ ★只有 eMMC 档 + 产品板档 (F30A / P60x15) 才卡 (时限型)★ · ★板侧时点★: eMMC 档必须赶在板那一趟开工前进网表 (晚进 = 板 md5 变第二次 · 引 BOARD_ONEPASS_COMMIT_ORDER INV-1~INV-4); SPI-NOR 档与只 ADB push 档板侧零动作零代价 ⇒ 不占板那一趟的阻塞位 · ★音频轴★: ★音频轴与存储轴互不依赖 (存储轴的任何结论都不受音频决策影响)★ ⇒ ★音频做不做本单不判 / 不建议 / 不代拍★ · ★本条只登记, 不新增拍板项, 不代老板拍★ · ★板侧时点与 4 条 SPI_*_BOOT 口径的写回 = 同一单的另一条 need (iss338_need_boot_storage_answer, 2026-11-23 订正)★"}, "by": ["sw-lead"], "noncanonical_by": [], "conflict": false}

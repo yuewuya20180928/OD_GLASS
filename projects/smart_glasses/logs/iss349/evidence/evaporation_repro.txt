@@ -1,0 +1,37 @@
+★ISS-349 · 「重跑会蒸发 B33」的机器复现 (★证据文件·本机实跑★)
+  跑前 = ISS-343 手改后的真页 (★证据副本已存 logs/iss349/evidence/★)
+  跑后 = 沙盒里把生成器的 B33 那条删掉后重跑的产物 (★= 修生成器之前那个生成器的产物·md5 相同★)
+
+== 跑前(ISS-343 手改后的真页) ==
+   md5          = 8ae70471604dcf447f43477dbada3f13
+   §2 表行数    = 32  (唯一 id 32)
+   §7 JSON 条数 = 33  (唯一 id 33)
+   表 id 集合 == JSON id 集合 ? False
+== 跑后(沙盒重跑·生成器里没有 B33) ==
+   md5          = 9f9743c81b977be802322b0966997ee2
+   §2 表行数    = 32  (唯一 id 32)
+   §7 JSON 条数 = 32  (唯一 id 32)
+   表 id 集合 == JSON id 集合 ? True
+
+★两组差集:
+   只在跑前 §2 表里   : []
+   只在跑后 §2 表里   : []
+   只在跑前 §7 JSON里 : ['B33_PIN_LAND_1P27']
+   只在跑后 §7 JSON里 : []
+
+★跑前的页 vs 跑后的页 · diff 行数 = 14
+★(★除 B33 那 11 行消失外·其余 32 条老字一字未删★)
+    --- BEFORE
+    +++ AFTER
+    @@ -541,11 +540,0 @@
+    -    },
+    -    {
+    -      "id": "B33_PIN_LAND_1P27",
+    -      "source_iss": "ISS-290",
+    -      "title": "`J_DEBUG`/`J_UART` 排针 land pitch 0.50→1.27mm (E-1 · 实测排针落不进 · main 11-17 18:45 拍死)",
+    -      "current_state": "[实测] 板读 (bash state/pcbnew_py.sh): `J_DEBUG` = pitch 0.50 / 4 脚 / 铜箔 X 142.0625..143.8375 × Y 56.1500..57.0500 (1.7750 × 0.9000); `J_UART` = pitc
+    -      "action": "那一趟把 `J_DEBUG`(1×4) 与 `J_UART`(1×2) 的 land pitch 从 0.50 改成 1.27 (★E-1·main 2026-11-17 18:45 已拍死·归 main 不归老板★) ⇒ 与 S4 的 ESD 挪位、S6 的 `Q_PG`/`Q_AND` land 重
+    -      "criterion": "bash state/pcbnew_py.sh -c \"import pcbnew;b=pcbnew.LoadBoard('HW/PCB/demo_mainboard.kicad_pcb');print('; '.join('%s land pitch = %.2f'%(r,(lambda c:
+    -      "step": "S6",
+    -      "blocked_by": "-",
+    -      "evidence": "[实测]"

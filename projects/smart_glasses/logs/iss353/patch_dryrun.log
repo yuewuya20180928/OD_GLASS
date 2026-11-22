@@ -1,0 +1,87 @@
+### ISS-353 · 越权条目补丁 dry-run 校验 · 2026-11-23 05:10:47 +0800
+==============================================================================
+ISS-353 · 口径越权条目逐字替换补丁 · DRY-RUN
+==============================================================================
+root  : /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+条目  : 15
+
+─── 计划 (逐条) ───
+#1  HW/STEP1_LANDING_LIST.md
+    理由: Step1 落地清单 S1: 转换 target 改口径
+    旧  : ★**target 兼容性验证**（`rk3572` 非合法 target ⇒ 用 `rk3576` 转）
+    新  : ★**target 兼容性验证**（★toolkit2 侧 `rk3572` 非合法 target ⇒ 转换链走 rknn3-toolkit 1.2.0 的 `target_platform='rk3572'`★） ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target
+    md5 : 3d743c28155004e5ea10374d52e6ab40
+#2  SW/DEMO_BOARD_60MS_VERDICT_PLAN.md
+    理由: 60ms 判决页 编译期行: 转换 target 改口径
+    旧  : ★**官方根本没有 `rk3572` 这个 target** (2.3.2 与 2.5.0 均无) ⇒ 只能 `target_platform='rk3576'` 转
+    新  : ★**toolkit2 (2.3.2 与 2.5.0) 都没有 `rk3572` 这个 target** ⇒ ★**转换链走 rknn3-toolkit 1.2.0 的 `target_platform='rk3572'`** (config rc=0 [实测]) ★已被 ISS-263 (rknn
+    md5 : 6cfaf725da672dea510775808a7e0fa3
+#3  SW/DEMO_BOARD_60MS_VERDICT_PLAN.md
+    理由: 60ms 判决页 加载期行: 补 rk3572-target 分支
+    旧  : ★**RK3572 BSP runtime 认不认 rk3576-target 产物** ⇒ 官方无此口径 ⇒ **只能板端判**
+    新  : ★**RK3572 BSP runtime 认不认 rk3572-target 产物** (★主路线; rk3576-target 已降为次要路线①★) ⇒ 官方无此口径 ⇒ **只能板端判** ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform=
+    md5 : 6cfaf725da672dea510775808a7e0fa3
+#4  SW/DEMO_OD_PIPELINE_SPEC.md
+    理由: OD pipeline spec 结论表第 2 行: 转换 target 改口径
+    旧  : ⇒ ★**必须用 `target_platform='rk3576'` 重转** (RK3572/RK3576 同代 RKNPU v2; ★**但算力不等 4 vs 6 TOPS ⇒ 板端待验**)
+    新  : ⇒ ★**必须重转, 但转换 target 改为 rknn3-toolkit 1.2.0 的 `target_platform='rk3572'`** (★ISS-263 实测 config rc=0 / 转换 rc=0 / 产物 249,360 B md5 97a34fff0b855b92681f
+    md5 : fc42880ff4317cc989f440cf55d56872
+#5  SW/DEMO_OD_PIPELINE_SPEC.md
+    理由: OD pipeline spec §2.3 target_platform 写死行: 改写为 rk3572
+    旧  : ★★**只能用 `'rk3576'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platform 'rk3572'!`) ⇒ ★**在 RK
+    新  : ★★**只能用 `'rk3572'`** —— ★**`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 target** (2.3.2 与最新 2.5.0 都抛 `ValueError: Invalid target_platform 'rk3572'!`) ⇒ ★**转换链改
+    md5 : fc42880ff4317cc989f440cf55d56872
+#6  SW/DEMO_OD_PIPELINE_SPEC.md
+    理由: OD pipeline spec P0-1 行: 阻塞状态降级 (toolkit2 限定)
+    旧  : ⇒ ★**"升级到某版本就有 rk3572"这个选项不存在** ⇒ 本行不再是 [待核], 而是**已定的阻塞** ⇒ 替代路线见 ISS-155。
+    新  : ⇒ ★**"升级到某版本就有 rk3572"这个选项不存在** (★**限定在 toolkit2 家族内**★) ⇒ ★**v2.1 订正 (2026-11-23 · ISS-353): 本行的"已定的阻塞"已降级 —— 转换链已通 (rknn3-toolkit 1.2.0 支持 `target_p
+    md5 : fc42880ff4317cc989f440cf55d56872
+#7  SW/DEMO_OD_PIPELINE_SPEC.md
+    理由: OD pipeline spec P0-1 行: 2026-11-02 替代路线标注取代
+    旧  : ★★**ISS-155 已钉的替代路线 (2026-11-02)**: ★**用 `target_platform='rk3576'` 转, 板端用 RK3572 BSP 自带的 runtime 加载** (RK3572 与 RK3576 **同代同架构**: 3 核 RKNPU v2)
+    新  : ★★**ISS-155 当时钉的替代路线 (2026-11-02)**: ★**用 `target_platform='rk3576'` 转, 板端用 RK3572 BSP 自带的 runtime 加载** (RK3572 与 RK3576 **同代同架构**: 3 核 RKNPU v2 — ★该前
+    md5 : fc42880ff4317cc989f440cf55d56872
+#8  SW/MODEL_RELEASE_LIST.md
+    理由: 模型发布清单 根因行: 转换 target 改口径
+    旧  : 且 `rk3572` 不是合法 target ⇒ 板端要加载的必须是用 `rk3576` target 转的产物
+    新  : 且 ★**toolkit2 侧 `rk3572` 不是合法 target ⇒ 板端要加载的必须是 rknn3-toolkit 1.2.0 的 `target_platform='rk3572'` 产物**★ ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_pla
+    md5 : c40bb1efe394fb09526583fc61724e6f
+#9  SW/RK3572_TARGET_BOARD_VERIFY.md
+    理由: 板端验证单 摘要行: 转换 target 改口径
+    旧  : > `target_platform` ⇒ 必须用 `target_platform='rk3576'` 转换)。但**剩下的那条死结**——
+    新  : > `target_platform` ⇒ ★**v2.1 订正 (2026-11-23 · ISS-353): 转换 target 已改为 rknn3-toolkit 1.2.0 的 `target_platform='rk3572'` (config rc=0 [实测])**★ ★已被 ISS-
+    md5 : 94bd487888bfb7fc05d9d3822c81cb46
+#10 SW/RKNN_BUILD_ENV_RECOVERY.md
+    理由: 构建环境恢复 §0 摘要第 3 行: 前提反证 + 转换 target 改口径
+    旧  : ★★ **但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform='rk3576'` 转换, 板端用 RK3572 BSP 自带 runtime 加载**
+    新  : ★★ **但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform='rk3576'` 转换, 板端用 RK3572 BSP 自带 runtime 加载** (★v2.1 订正 2026-11-23 ISS-
+    md5 : ebb1c92656f76c67d9b4211b202a4d8c
+#11 SW/RKNN_BUILD_ENV_RECOVERY.md
+    理由: 构建环境恢复 §2.2 结论 1: 结论限定在 toolkit2 家族内
+    旧  : ★★ **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— 从 2.2.0 到最新 2.5.0 全部拒绝, **不存在"升级到某版本就有 rk3572"这个选项**。
+    新  : ★★ **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— 从 2.2.0 到最新 2.5.0 全部拒绝, **不存在"升级到某版本就有 rk3572"这个选项** (★**限定在 toolkit2 家族内** ★v2.1 订正 2
+    md5 : ebb1c92656f76c67d9b4211b202a4d8c
+#12 SW/RKNN_BUILD_ENV_RECOVERY.md
+    理由: 构建环境恢复 §2.2 结论 2: 「没有 rk3572 编译目标」加限定
+    旧  : 因为**根本没有 `rk3572` 这个编译目标**。⇒ **必须重转**。
+    新  : 因为**根本没有 `rk3572` 这个编译目标** (★v2.1 订正 2026-11-23 ISS-353: ★这句现在只对 toolkit2 家族成立 —— rknn3-toolkit 1.2.0 有 rk3572 编译目标 [官网]+[实测]★)。⇒ **必须重转** (★转换 target
+    md5 : ebb1c92656f76c67d9b4211b202a4d8c
+#13 SW/RKNN_BUILD_ENV_RECOVERY.md
+    理由: 构建环境恢复 §2.2 结论 3: 替代路线标注取代
+    旧  : 3. ★**替代路线: 用 `target_platform='rk3576'` 转换** —— 理由是 RK3572 的 NPU 与 RK3576 **同代同架构**, 但这是**推算, 不是实测**, 必须板端验证 (见 §2.4.3)。
+    新  : 3. ★**替代路线: 用 `target_platform='rk3576'` 转换** —— 理由是 RK3572 的 NPU 与 RK3576 **同代同架构**, 但这是**推算, 不是实测**, 必须板端验证 (见 §2.4.3)。 ★**v2.1 订正 (2026-11-23 · ISS
+    md5 : ebb1c92656f76c67d9b4211b202a4d8c
+#14 SW/RKNN_BUILD_ENV_RECOVERY.md
+    理由: 构建环境恢复 §2.4 引述行: 依据降为历史
+    旧  : > ★**这些是"支持用 rk3576 target 转换"的**依据**, 不是"rk3572 = rk3576"的证据**。
+    新  : > ★**这些是"支持用 rk3576 target 转换"的**依据**, 不是"rk3572 = rk3576"的证据**。 ★**v2.1 订正 (2026-11-23 · ISS-353): 这组依据属于【历史】—— 主路线已改为 rknn3-toolkit 1.2.0 + `target_
+    md5 : ebb1c92656f76c67d9b4211b202a4d8c
+#15 SW/RKNN_BUILD_ENV_RECOVERY.md
+    理由: 构建环境恢复 §6 降级表 M1 行: 目标 target 改口径
+    旧  : ★**改 M1 定义为"用 rk3576 target 重转 yolov5n"**, 转换成本 ≈ 0.5 人天 (本单已做完 80%)
+    新  : ★**改 M1 定义为"用 rk3576 target 重转 yolov5n"** (★v2.1 订正 2026-11-23 ISS-353: M1 的目标 target 已改为 rknn3-toolkit 1.2.0 + `target_platform='rk3572'`★), 转换成本 ≈ 0
+    md5 : ebb1c92656f76c67d9b4211b202a4d8c
+
+★DRY-RUN: 未改任何文件 (加 --apply 才真改)★
+校验结果: 15/15 条旧片段精确命中且唯一 ⇒ 补丁可干净应用
+RC_DRYRUN=0

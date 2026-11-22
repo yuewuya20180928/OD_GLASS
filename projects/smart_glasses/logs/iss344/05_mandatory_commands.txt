@@ -1,0 +1,418 @@
+═══ ⑤ 必跑命令 (任务书 §3 逐字) ═══
+═══ S8 布线归零 · 目标名单重读器 (★ISS-339·hw-lead·零写板★) ═══
+  本板   : HW/PCB/demo_mainboard.kicad_pcb
+          md5 611b869e13518c3c023fb178f91a0075
+  参照板 : state/.lastgood/best_v76mg1_clrfix.kicad_pcb (★只读·不改★)
+          md5 b5e3e3e4e6a390df19a9c4923c4ec3ac
+  必需性分级: ★main 2026-11-22 20:5x 已裁口径 (23 必需 = 15 差分腿 + 8 单端脚 / 1 可悬空 FSIN_OUT / 0 待定) ⇒ 沿用·不重开★
+  差分对备注来源: ★tools/diff_pair_audit.py PAIRS (22 对)
+  本板统计: 段数 18092 · 过孔 433 · 焊盘网 136 · 有铜网 90
+  参照统计: 段数 3304 · 过孔 471 · 焊盘网 136 · 有铜网 107
+
+── ① 目标名单 (★pad≥2 焊盘网口径·本板零铜网 24 条★) ──
+  网名                         分级         本板有铜         本板铜长mm 参照有铜           参照铜长mm  备注
+  CAM_RESET_N                [必需]       无               0.0 有                61.2  单端脚
+  CSI_D0_D0_N                [必需]       无               0.0 有                36.5  高速差分腿 (对: CSI_D0_D0_P)
+  CSI_D0_D0_N_SRC            [必需]       无               0.0 无                 0.0  高速差分腿 (对: CSI_D0_D0_P_SRC)
+  CSI_D0_D1_N                [必需]       无               0.0 有                39.7  高速差分腿 (对: CSI_D0_D1_P)
+  CSI_D0_D1_N_SRC            [必需]       无               0.0 有                39.4  高速差分腿 (对: CSI_D0_D1_P_SRC)
+  CSI_D0_D1_P                [必需]       无               0.0 有                39.7  高速差分腿 (对: CSI_D0_D1_N)
+  CSI_D0_D2_N                [必需]       无               0.0 无                 0.0  高速差分腿 (对: CSI_D0_D2_P)
+  CSI_D0_D2_P                [必需]       无               0.0 有                74.4  高速差分腿 (对: CSI_D0_D2_N)
+  CSI_D0_D3_N                [必需]       无               0.0 无                 0.0  高速差分腿 (对: CSI_D0_D3_P)
+  CSI_D0_D3_N_SRC            [必需]       无               0.0 有                15.8  高速差分腿 (对: CSI_D0_D3_P_SRC)
+  DSI_D0_D0_N_SRC            [必需]       无               0.0 有                20.5  高速差分腿 (对: DSI_D0_D0_P_SRC)
+  DSI_D0_D0_P_SRC            [必需]       无               0.0 有                20.5  高速差分腿 (对: DSI_D0_D0_N_SRC)
+  DSI_D0_D1_N_SRC            [必需]       无               0.0 有                14.5  高速差分腿 (对: DSI_D0_D1_P_SRC)
+  DSI_D0_D1_P_SRC            [必需]       无               0.0 有                14.5  高速差分腿 (对: DSI_D0_D1_N_SRC)
+  DSI_D0_D2_N_SRC            [必需]       无               0.0 有                 9.2  高速差分腿 (对: DSI_D0_D2_P_SRC)
+  DSI_D0_D3_N_SRC            [必需]       无               0.0 有                16.6  高速差分腿 (对: DSI_D0_D3_P_SRC)
+  FSIN_OUT                   [可悬空]      无               0.0 有                 3.0  板侧标 NC (★板那一趟动作·本单不定★)
+  JTAG_TDI                   [必需]       无               0.0 有                28.3  单端脚
+  LED_G_D                    [必需]       无               0.0 有                98.9  单端脚
+  SPI_MISO_BOOT              [必需]       无               0.0 有                27.1  单端脚
+  SPI_MOSI_BOOT              [必需]       无               0.0 有                21.6  单端脚
+  SPI_SCLK_BOOT              [必需]       无               0.0 有                14.6  单端脚
+  UART_RX                    [必需]       无               0.0 有                55.8  单端脚
+  USB_CC2                    [必需]       无               0.0 有                54.3  单端脚
+
+  ★分级自检: 必需 23 (期望 23) · 可悬空 1 (期望 1) · 待定 0 (期望 0) ⇒ 一致 ✔
+
+── ② 汇总 (★三行必给·不许混着写★) ──
+  ★N' = 本板 unconnected 条数 = 45  (★本板自己跑 DRC 得出·不是照抄 45★·复用现成 DRC JSON (/tmp/_pcb_drc_latest_demo_mainboard.kicad_pcb.json))
+     ★同时: DRC violations = 0
+     ★逐条 unconnected 网名 (43 个网):
+        · CSI_D0_D0_N                        2 项
+        · I2C_B_SCL                          2 项
+        · BAT_DET                            1 项
+        · CAM_RESET_N                        1 项
+        · CSI_D0_D0_N_SRC                    1 项
+        · CSI_D0_D1_N                        1 项
+        · CSI_D0_D1_N_SRC                    1 项
+        · CSI_D0_D1_P                        1 项
+        · CSI_D0_D2_N                        1 项
+        · CSI_D0_D2_P                        1 项
+        · CSI_D0_D3_N                        1 项
+        · CSI_D0_D3_N_SRC                    1 项
+        · DSI_D0_CK_N                        1 项
+        · DSI_D0_CK_P                        1 项
+        · DSI_D0_D0_N                        1 项
+        · DSI_D0_D0_N_SRC                    1 项
+        · DSI_D0_D0_P                        1 项
+        · DSI_D0_D0_P_SRC                    1 项
+        · DSI_D0_D1_N                        1 项
+        · DSI_D0_D1_N_SRC                    1 项
+        · DSI_D0_D1_P                        1 项
+        · DSI_D0_D1_P_SRC                    1 项
+        · DSI_D0_D2_N                        1 项
+        · DSI_D0_D2_N_SRC                    1 项
+        · DSI_D0_D3_N_SRC                    1 项
+        · FSIN_OUT                           1 项
+        · I2C_A_SCL                          1 项
+        · I2C_A_SDA                          1 项
+        · I2C_B_SDA                          1 项
+        · ID_DETECT_0                        1 项
+        · ID_DETECT_1                        1 项
+        · JTAG_TDI                           1 项
+        · KEY_CAM                            1 项
+        · LED_G                              1 项
+        · LED_G_D                            1 项
+        · LIGHT_3V3                          1 项
+        · LIGHT_5V                           1 项
+        · PWR_GOOD                           1 项
+        · SPI_MISO_BOOT                      1 项
+        · SPI_MOSI_BOOT                      1 项
+        · SPI_SCLK_BOOT                      1 项
+        · UART_RX                            1 项
+        · USB_CC2                            1 项
+  ★分母口径① 全部网口径 (★对照宇宙 = 两板有铜网并集·共 111 个网名★): 本板零铜 21 条
+                               参照板零铜 4 条
+  ★分母口径② pad≥2 焊盘网口径 (★板自身焊盘网·官方板实测 24★): 本板零铜 24 条
+                               参照板零铜 7 条
+  ★★**「24 条零铜网」和「45 条 unconnected」是两个东西, 不许互相替代**★
+  ★两边都零铜 (本板 ∩ 参照板 · pad≥2 口径) = 3 条: CSI_D0_D0_N_SRC / CSI_D0_D2_N / CSI_D0_D3_N
+  ★两边都零铜 (全部网口径) = 0 条: (无)
+
+── ③ 铁律 (★必须带进板那一趟★) ──
+  ★**「靶更小」≠「板子更好」** (★现役链终板自己过不了名单制闸 ⇒ 靶更小只是【工作量口径】变了★)
+  ★**判据顺序 = 先可比性 → 再名单 → 最后才看计数有没有变好**
+  ★**本单只出尺子 + 现值快照, 不许改板 / 不许跑臂 / 不许对板下判决**
+S8_RC=0
+==========================================================================
+ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
+==========================================================================
+项目根        : /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+板位号        : 186 个 (★板文件文本解析, 未 import pcbnew★)
+网表位号      : 293 个 (★三张 CSV 的 ref 列★)
+网名索引      : 654 个
+扫描文档      : 45 份 `SW/*.md` (★其中 29 份含至少一个 token★)
+抽出 token    : 127 个唯一标识符
+
+【分类统计】 (★R2★)
+   DESIGNATOR_OK            88
+   DESIGNATOR_DRIFT          0
+   DESIGNATOR_MISSING        3
+   NET_NAME                 13
+   DOC_INTERNAL             23
+
+【R3 现状基线】 `DESIGNATOR_MISSING` 实测 = 3 条 · 允许上限 = 3 条
+   ⇒ ✔ 在基线内
+
+【★真隐患 (C14)·现在就对不上的位号引用★】
+   ★基线内·已登记★ CONN_USB  (SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:518)  出现 9 次
+        理由: ★真隐患·已登记★: SW/SW_TIMING_REVIEW.md L60/L272 明写「CONN_USB 已不在网表 ⇒ 对象消失 ⇒ 推翻」 ⇒ ★它是【历史件】的遗留引用·文档自己已经知道它没了·但引用还留在文档里★
+   ★基线内·已登记★ TP_INT  (SW/BOARD_ONEPASS_SW_SYNC.md:43)  出现 16 次
+        理由: ★真隐患·但已登记★: SW/BOARD_ONEPASS_SW_SYNC.md §SW06 明写「TP_INT (触控中断) 在网表和板上都不存在 ⇒ SW 侧不许按『有触控中断』写代码」⇒ ★它是一个【被文档自己点名的空洞】★ ⇒ 板那一趟若决定接触控, 必须同批落表 + 落位 + 布线, 否则 SW 侧引用永远是空的★
+        板/网表里现在叫: TP_FSIN
+   ★基线内·已登记★ TP_TEMP  (SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:518)  出现 10 次
+        理由: ★真隐患·未登记★: SW/SW_TIMING_REVIEW.md §CR-7 (EVT 上电段) 要求「TP_TEMP 热电偶对照标定」 ⇒ ★板上 42 个 TP_* 里没有 TP_TEMP (只有 TP_USB_D_N / TP_KEY_PWR / TP_RESET 等)★ ⇒ ★EVT 测温校准步骤依赖一个不存在的测试点 ⇒ 这就是本闸今天就抓得到的真隐患★
+        板/网表里现在叫: C_TEMP
+        板/网表里现在叫: U_TEMP
+
+
+【R2 分类全表】 (★`--dump-classification` 同源★)
+   DESIGNATOR_OK        C1   BT_432243                                    现在在【板文件+网表】里能找到
+   NET_NAME             C3   CHG_BOARD                                    它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   CHG_STAT                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DESIGNATOR_OK        C1   CONN_CAM                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   CONN_LIGHT                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_MISSING   C14  CONN_USB                                     形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   C_DET_BAT                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_DET_VBUS_D                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_REGN                                       现在在【网表】里能找到
+   DESIGNATOR_OK        C1   C_RST                                        现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_SW_IN                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_SW_OUT                                     现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C7   C_User_Hardware_Manual                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DESIGNATOR_OK        C1   C_VBUS_DEMO                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_VBUS_GND                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_VBUS_OUT                                   现在在【网表】里能找到
+   DESIGNATOR_OK        C1   D_CHG_LED                                    现在在【网表】里能找到
+   DESIGNATOR_OK        C1   D_ESD_DEMO                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   D_ESD_USB_D                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   D_LED_B                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   D_LED_G                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   D_LED_R                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   FB_DEMO                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_BOOT1                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_CHG                                        现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_DEBUG                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P1                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P2                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P3                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_TYPE_C                                     现在在【网表】里能找到
+   DESIGNATOR_OK        C1   J_UART                                       现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_USB_C                                      现在在【板文件+网表】里能找到
+   NET_NAME             C3   LED_B_D                                      它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   LED_G                                        它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   LED_G_D                                      它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   LED_R_D                                      它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DOC_INTERNAL         C10  L_B                                          前缀 `L_` ∈ 物理量命名空间 (本项目板上无该前缀位号)
+   DOC_INTERNAL         C7   L_eye                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   NET_NAME             C11  PWR_CTRL                                     前缀 `PWR_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C3   PWR_GOOD                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   PWR_ON                                       它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DESIGNATOR_OK        C1   Q_AND                                        现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   Q_CHG_LED                                    现在在【网表】里能找到
+   DESIGNATOR_OK        C1   Q_ENVC                                       现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   Q_PG                                         现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C8   R_BAT_DET_                                   以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   R_BAT_DET_1                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_BAT_DET_2                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_CC1                                        现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_CC2                                        现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_CC2_D                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_CE                                         现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_CHG_LED                                    现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_EN_VCORE                                   现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C4   R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION        盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_OK        C1   R_ILIM                                       现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_JTAG_TDI                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_LED_G                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PD_ON                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PG_PULL                                    现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C8   R_PU_                                        以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   R_PU_BOOT_N                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_CHG_STAT                                现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_I2CA_SCL                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_I2CB_SCL                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_PG                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_RESET_N                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_RESET_N                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_USB_D_N                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_USB_D_P                                现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C12  R_SUPV_DIV                                   是 ≥2 个 live 位号的严格前缀 (R_SUPV_DIV1, R_SUPV_DIV2) ⇒ 文档对一组件的统称
+   DESIGNATOR_OK        C1   R_SUPV_DIV1                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SUPV_DIV2                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_VBUS_DET_D1                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_VBUS_DET_D2                                现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C7   R_conv                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_on                                         后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_skin_path                                  后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_th                                         后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C8   SW_                                          以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   SW_BOOT                                      现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C5   SW_BRIGHTNESS_API_ANCHORS                    盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
+   DOC_INTERNAL         C4   SW_BRIGHTNESS_CONTROL_POLICY                 盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DOC_INTERNAL         C5   SW_BRIGHTNESS_POLICY_ANCHORS                 盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
+   DESIGNATOR_OK        C1   SW_KEY_PWR                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   SW_KEY_VM                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   SW_KEY_VP                                    现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C5   SW_MD5_ANCHORS                               盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
+   DOC_INTERNAL         C4   SW_MD5_BASELINE_LEDGER                       盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DOC_INTERNAL         C4   SW_REQUIREMENTS                              盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_OK        C1   SW_RST                                       现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C6   SW_SYNC_NETLIST                              盘上某 .py 把它当环境变量键用 ⇒ 判据/夹具的键名
+   DOC_INTERNAL         C4   SW_TIMING_REVIEW                             盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_OK        C1   TP_BOOT                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_FSIN                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_MISSING   C14  TP_INT                                       形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   TP_JTAG                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_KEY_PWR                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_LED_G                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_PG_VCORE                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_PG_VIO                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_RESET                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_MISSING   C14  TP_TEMP                                      形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   TP_UART                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_USB_D_N                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_BATPROT                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_CHG                                        现在在【网表】里能找到
+   DOC_INTERNAL         C12  U_DCDC                                       是 ≥2 个 live 位号的严格前缀 (U_DCDC_VCORE, U_DCDC_VIO) ⇒ 文档对一组件的统称
+   DESIGNATOR_OK        C1   U_DCDC_VCORE                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_DCDC_VIO                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_EN_SW                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_IO18                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_IO33                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_L18                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_L33                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_S12                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_S18B                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_S28                                    现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C9   U_LS                                         每次出现都紧跟在 `|` 之后 ⇒ 判据正文里的 grep pattern
+   DESIGNATOR_OK        C1   U_PWR_SW                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_SUPV                                       现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_TEMP                                       现在在【板文件+网表】里能找到
+   NET_NAME             C3   VBUS_5V_CHG                                  它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   VBUS_5V_F1                                   它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   VBUS_DET                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   VBUS_DET_D                                   它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DOC_INTERNAL         C7   VBUS_DET_uA                                  后缀含小写字母 ⇒ 物理量符号 (不是位号)
+
+【判决】 ✔ 绿 (rc=0): SW 侧引用的位号全部可达, 真隐患在基线内
+REF_RC=0
+================================================================================================
+【SW 侧「板只改一次」准出汇总闸】 (ISS-335)
+================================================================================================
+  汇总根 (root) = /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+  闸数 = 10  ·  ★清单缺一道 ⇒ 汇总直接红 (不许「没跑就当过」)★
+
+  [1/10] SW/tools/check_onepass_sw_sync.py
+        名称: SW 侧板侧输入 / 合法改板闸 (ISS-279/298/321)
+        调用: check_onepass_sw_sync.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [2/10] SW/tools/check_sw_ref_reachability.py
+        名称: SW 侧位号引用可达性闸 v1 (ISS-318)
+        调用: check_sw_ref_reachability.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [3/10] SW/tools/check_landing_trace_obligation.py
+        名称: SW 侧落表留痕义务闸 (ISS-315)
+        调用: check_landing_trace_obligation.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [4/10] SW/tools/check_demo_panel_spec.py
+        名称: SW 侧面板规格 / 三方对账闸 (ISS-275/315) ★链外★
+        调用: check_demo_panel_spec.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [5/10] SW/tools/check_demo_panel_spec_r6_selftest.py
+        名称: SW 侧 R6 判决源反向用例 (ISS-309) ★裸跑★
+        调用: check_demo_panel_spec_r6_selftest.py --tmpdir /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss335_gates
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [6/10] SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py
+        名称: SW 侧 R6 链头落表单号交叉核对反向用例 (ISS-312) ★裸跑★
+        调用: check_demo_panel_spec_r6_chainjudge_selftest.py --tmpdir /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss335_gates
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [7/10] SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py
+        名称: SW 侧 R6 硬保护路径反向用例 (ISS-315) ★裸跑★
+        调用: check_demo_panel_spec_r6_hardprot_iss315_selftest.py --tmpdir /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss335_gates
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [8/10] SW/tools/check_shutdown_semantics.py
+        名称: SW 侧关机语义闸 (SW/SHUTDOWN_SEMANTICS_SPEC.md) ★链外★
+        调用: check_shutdown_semantics.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [9/10] SW/tools/check_timing_review_adc_sync.py
+        名称: SW 侧时序评审 ADC 同步闸 (SW/SW_TIMING_REVIEW.md) ★链外★
+        调用: check_timing_review_adc_sync.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: [✔] P4-VERDICT                   活结论里残留 ADC ❌/无硬件支撑 的行: 无
+
+  [10/10] SW/tools/timing_check.py
+        名称: SW 侧上电 / 复位时序预算闸 (网表 → 时序) ★链外★
+        调用: timing_check.py 
+        rc  : 0     ⇒ ✅ 绿
+        详情: verdict                            : ★按网名分别读: I2C_A = 2.2k → RAIL_VDD_1V8_IO (1.8V 域): t_r@100pF=186ns, @300pF=559ns ⇒ 标准模式(≤1000ns) ✅; I2C_B = 4.7k → RAIL_VDD_3V3_IO (3.3V 域): t_r@100pF=398ns, @300pF=1195ns ⇒ 标准模式(≤1000ns) ❌ ⇒ 最差总线 = I2C_B ⇒ I2C 速率上限按 I2C_B 定; ★旧文档写的『4.7k@I2C_A ⇒ 398ns / 1195ns 超标』**对 I2C_A 已不成立** (现为 2.2k/1.8V), 现在超标的是 I2C_B
+
+================================================================================================
+【影子道 (★默认【不参与判决】· 只跑 + 只打印读数★)】
+================================================================================================
+  [影子 1/1] SW/tools/check_sw_ref_reachability_v2.py
+        名称: SW 侧位号引用可达性闸 v2 (ISS-332) ★影子道·默认不参与判决★
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  ★影子道红了怎么办: ★**不等于板坏了**★ ⇒ ★**先看它点名的是哪条判据**★
+    · v2 比 v1 严 (ISS-332 收了 4 条洗白面) ⇒ v1 绿 / v2 红 ⇒ 通常是【v2 抓到了 v1 放过的东西】
+    · ★**默认口径下影子道不把汇总闸拉红**★ (★--shadow-strict 才参与判决★)
+    · ★**绝不许因为影子道红就去改板凑绿**★ ⇒ ★停了 · 回 main · 板 md5 只许变一次★
+
+================================================================================================
+【汇总】
+================================================================================================
+  10 道闸: 绿 10 / 红 0
+  ★汇总 rc = 0 ⇒ ★SW 侧软件可以出 Gerber★
+    (★只代表 SW 侧这 10 道闸全绿; ★不等于整条板链全绿·HW/MECH 侧的闸另算★)
+SWREL_RC=0
+✅ STATE.yaml 已刷新 (2026-11-23T01:16:05+08:00)
+   产出 734 | 阻塞 43 (高危 33) | 未闭合需求 343 | 冲突 0 | 健康度 red
+MERGE_RC=0
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-23_hw-lead_ISS343_板侧项全集漏项补齐.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-23_sw-lead_ISS344_零铜网分级口径对账.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-23_mech-lead_ISS345_8脚本迁双口径.md
+
+【Q2 证据分级率】 2/3 个总工的交付做了证据分级
+   hw-lead    标签: 无
+   sw-lead    标签: ['实测', '官方', '推算', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 1023 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    388 条
+   sw-lead    304 条
+   mech-lead  331 条
+
+【Q4 需求闭环率】
+   问方视角 (我的需求被别人答了): 112/511  ← 与 merge.py 口径一致
+   答方视角 (我登记的答复): 198 条, 其中 63 条真对上了别人的需求 key
+   hw-lead    被答 42/241 | 我答 73 条(有效 31) | 产出 269 | 阻塞 7
+   sw-lead    被答 24/137 | 我答 44 条(有效 5) | 产出 243 | 阻塞 15
+   mech-lead  被答 46/133 | 我答 81 条(有效 27) | 产出 208 | 阻塞 12
+   ├─ ⚠️ **疑似漏登记 (答案在对方文档正文里, 但没进 answers)**: 0 条  ← 需人工判定, 也有可能是 waiting_on 标错
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 59 条 | **全局 50 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 343 条**
+   ✅ 与 merge.py 自对账一致 (等外部 50 / 等总工 343)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 14 个
+      q1_latency_scope: 发起方 ['main', 'sw-lead']
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q17_display_fps: 发起方 ['main', 'sw-lead']
+      q18_highspeed_cam: 发起方 ['main', 'sw-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+
+【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    1/5 类: ['镜腿/镜脚厚度(mm)']
+   sw-lead    1/5 类: ['镜腿/镜脚厚度(mm)']
+   mech-lead  0/5 类: []
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【Q7 钉板 md5 闸链】 9/9 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 4 条
+   · hw-lead: 关键结论未做证据分级 (实测/官方/推算/0数据)
+   · hw-lead: 179 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 91 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 70 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+GATE_RC=0
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800

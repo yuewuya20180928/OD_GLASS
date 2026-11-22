@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md

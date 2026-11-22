@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/_fix_board_sec2_iss257_20261118_0430.py

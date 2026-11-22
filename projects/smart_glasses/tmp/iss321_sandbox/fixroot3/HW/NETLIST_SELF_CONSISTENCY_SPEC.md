@@ -1,1 +1,0 @@
-/home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/NETLIST_SELF_CONSISTENCY_SPEC.md

@@ -3,11 +3,14 @@ role: 硬件总工
 updated_at: '2026-11-17'
 updated_by: hw-lead
 status:
-  phase: iss340-cont1-delivered
+  phase: iss351-delivered
   progress_pct: 100
   health: green
-  summary: 'ISS-340 cont1 交付: D1 判定表 + D2 判别闸(自跑+归桶+selftest ALL TESTS PASS) + D3 一页口径 + D4 logs/分片; 零写板;
-    交卷页延后 cont2'
+  summary: 'iss351-delivered: 存储轴旧口径清账 — 改 hw.yaml answers[2] vendor_q19_boot_storage (容量旧值⇒订正为 ≥128 MiB
+    (1 Gbit) 起 + 板宽 12→15mm 归属澄清到 eMMC 档 + 外发类指令作废⇒缺口自己网上查/标证据等级/写降级方案) + §2 同型残留 3 条 (answers[13] fw_boot_storage_bom
+    / needs_from[5] q3_storage_and_audio / risks[2] R-hw-boot-storage) 全部改分档口径 ⇒ 全分片并存容量说法已清 · 逐条 sha256
+    比对: 74 answers / 241 needs_from / 4 risks 条目数不变且仅 4 条改动 · 板 md5 611b869e13518c3c023fb178f91a0075 与
+    mtime 2026-11-06 07:07:17.362193413 逐字节未动 · 零写板 · 零落表 · 零外发 · 本单新增老板拍板项 0 条'
   updated_at: '2026-11-17'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -1749,6 +1752,91 @@ artifacts:
   version: '1.0'
   updated_at: '2026-11-22'
   summary: ISS-340 · 判别闸跑当前板+当前网表的完整输出 (逐条证据 + 末尾 4 行 A/B/C 汇总) · 差异 5 条全部归桶 ⇒ rc=0
+- path: HANDOFF/2026-11-22_hw-lead_ISS340_板网表C1差异归属判定.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ISS-340 cont2 交卷页 B0~B7 (C1 5 条差异归桶 A0/B3/C2)
+- path: logs/iss340/07_cont2_required_checks.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-22'
+  summary: ISS-340 cont3 必跑项原样输出 (判别闸 --selftest ALL TESTS PASS rc=0 / 判别闸跑当前板+网表 rc=0 且 C1 差异 缺失0 多余2
+    同号异网3 归桶 A0/B3/C2 / 板 md5+mtime 跑前跑后逐字节相同 / merge.py rc=0 / gate_check.py rc=0 且 Q1=18/18)
+- path: HANDOFF/2026-11-22_hw-lead_ISS340_板网表C1差异归属判定.md
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-340 cont3 交卷页 B0~B7 (C1 5 条差异逐条归桶 A0/B3/C2 + 3 条口径订正: D_ESD_USB_D = 90Ω 差分对对内成员 / W-4
+    拓扑 11-17 09:49 已拍 / 立项 3 条待拍实测后只剩 C_VBUS_GND 1 条)'
+- path: logs/iss340/08_cont3_required_checks.log
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ISS-340 cont3 必跑项原样输出 (板 md5+mtime 前后逐字节相同 611b869e13518c3c023fb178f91a0075 / merge.py rc=0
+    / gate_check.py rc=0 且 Q1=18/18 hw-lead 6/6 缺:无 / 分片 grep -c iss340 命中数)
+- path: HANDOFF/2026-11-23_hw-lead_ISS343_板侧项全集漏项补齐.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: ISS-343 交卷页 (B1 结论摘要 / B2 验收标准逐条自评 30 条全通过 / B3 证据分级 / B4 接口取值声明 / B5 未决项与卡点 / B6 自证复现命令) ·
+    板 md5 611b869e13518c3c023fb178f91a0075 未动 · 零写板零落表零外发
+- path: logs/iss343/cov_selftest.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: ISS-343 覆盖度闸反向用例原始输出 (合计 24/24 · 含 ⑧ 删掉 B33 ⇒ P4 红并点名 ③ 排针 land 缺对应 item / ⑨ SOURCES 去 ISS-290
+    ⇒ P4 红 / ⑩ 作业包 §0.2 ③ 漂移 ⇒ P4 红 · 真件零动)
+- path: logs/iss343/01_append_only_diff.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: 'ISS-343 追加式自证: 清单页 + 作业包 + 闸脚本 md5 前后 + diff (★删除行 = 0 · 老字一字未删★)'
+- path: logs/iss343/02_gate_direction_check.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: 'ISS-343 判据方向自证: P1/P2/P3/P5/P6 函数体 md5 一字未动 + MARKERS 26 个逐字没删 + SOURCES 只增 ISS-290 (新增 1
+    移除 0) ⇒ 只许加严不许放宽'
+- path: logs/iss343/07_merge_and_gate_check.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: 'ISS-343 主线闸原始输出: merge.py rc=0 + gate_check.py rc=0 且 Q1 18/18 (hw-lead 6/6 缺 无) · 钉板闸链 9/9
+    绿'
+- path: logs/iss343/08_generator_overwrite_risk.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: 'ISS-343 未决取证: 沙盒重跑清单页生成器 state/_iss277_build_preflight.py ⇒ 输出 32 条且 B33 被冲掉 ⇒ 需 main 定 (补进生成器
+    ITEMS 或宣布生成器退役) · 新判据已能当场判红拦住'
+- path: HANDOFF/2026-11-23_hw-lead_ISS349_板侧项全集生成器回归修复.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-349 交卷页 (B0~B7 齐全): E-1 排针 land (B33_PIN_LAND_1P27) 从【手写进生成器产物页】改为【长在生成器 state/_iss277_build_preflight.py
+    里】+ 新建重跑不蒸发闸 HW/check_preflight_regen_idempotent.py (C1 表/JSON 同源 · C2 重跑幂等 · C3 来源在册 · C4 必需项) +
+    反向用例 R1~R4 (端到端跑真生成器) ⇒ 页回到表 33 行 / JSON 33 条 / id 集合逐一相等 · 零写板 (板 md5 611b869e13518c3c023fb178f91a0075
+    · mtime 2026-11-06 07:07:17.362193413 逐字节未动) · 零落表 · 零改既有闸判定逻辑 · 零外发 · 本单新增老板拍板项 0 条'
+- path: HW/check_preflight_regen_idempotent.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-349 新建闸 (499 行 · 只读 + 项目盘沙盒): C1 §2 表 id 集合 == §7 JSON id 集合 (逐个相等) · C2 真页 md5 == 沙盒重跑输出
+    md5 (零行差异 · 重跑不蒸发) · C3 每条 item 的 source_iss ∈ 覆盖度闸 SOURCES · C4 必需项 B33_PIN_LAND_1P27 在场 ⇒ 主模式 rc=0
+    全过 / rc=1 闸红 / rc=2 用法错 / rc=3 闸崩; --selftest 端到端跑真生成器 (正例 + R1 删 B33 + R2 假 pitch + R3 假 source_iss
+    + R4 板读改 1.27 ⇒ 页值跟改) 末行 ALL TESTS PASS · rc=0 · 实测耗时 ≈1.0s · 只写 tmp/iss349/ 沙盒 · 不许改既有闸判定逻辑'
+- path: logs/iss349/
+  kind: log
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-349 全套复现日志 (★一条命令可复现全部读数★): run_iss349.sh (★端到端跑真生成器+沙盒反向用例·绝不落 /tmp★) + run_iss349_full.log
+    (24,394 B 完整日志) + evidence/ (page_BEFORE_ISS343_handedit.md 手改前真页存档 · evaporation_repro.txt 蒸发复现原始输出
+    · mksandbox.sh 沙盒构造脚本 · path_miss_check.txt 引用路径自检) + cont1/ (★2026-11-23 03:5x 续单补跑★: 01_gate_main.log
+    新闸主模式 rc=0 · 02_gate_selftest.log --selftest 末行 ALL TESTS PASS rc=0 · 03_frag_write.log 分片登记 · 04_path_miss_final.txt
+    页内引用 MISS=0 · 05_q3_item_fix_prep.log + 06_q3_item_fix_setjson.log 附项1 (q3_storage_and_audio 容量口径订正)
+    · 07_merge_gate_check.log 交卷前必跑 · 08_final_acceptance.log 最终验收 · frag_write_iss349.sh · path_miss_check.py
+    · q3_item_fix_prep.py · needs_from_after.json · hw.yaml.before_setjson 改前快照)'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -1841,7 +1929,8 @@ needs_from:
   waiting_on: boss
   due: '2026-10-27'
   since: '2026-10-25'
-  item: Q3 模型/rootfs 怎么存(只ADB push是否接受外挂 SPI-NOR 16-64MB, 板宽12->15mm) + 音频到底做不做(tracker全文无音频条目, 我不擅自加也不擅自排除)
+  item: Q3 模型/rootfs 怎么存(只ADB push是否接受外挂 SPI-NOR ≥128 MiB (1 Gbit) 起 —— ★**该档板侧零动作 · 不改板宽 · 不重出板**★; ★**板宽
+    12→15 mm 只在【eMMC 档】成立**★) + 音频到底做不做(tracker全文无音频条目, 我不擅自加也不擅自排除)
 - key: vendor_ars45_paper_q11_q16
   to: vendor
   waiting_on: vendor
@@ -3677,6 +3766,12 @@ needs_from:
   item: '【板那一趟的参照板要锁死哪一块】: 全部网口径的宇宙 = 两板有铜网并集 ⇒ 换参照板数字就变 (官方板 21 是在 official-vs-v76mg1 与 official-vs-best_unc23
     两个配对上都成立的读数) ⇒ 建议锁死 state/.lastgood/best_v76mg1_clrfix.kicad_pcb 并写进板那一趟的作业包 (★不替老板拍板★)'
   since: '2026-11-22'
+- key: iss340_c_bucket_boss_decisions
+  to: boss
+  item: 'C 桶 2 条待拍: (1) C_VBUS_GND pad1/pad2 = 留位还是下板 (留位⇒ 只改网表 board 列 CHG_BOARD→MAIN_PCB, 板 md5 不动;
+    下板⇒ 进板那一趟); (2) Q_PG pad1/pad3 的 PWR_GOOD/PWR_ON 归属 (与 W-4 的 .3 极性合看)。★D_ESD_USB_D pad1 随 ESD 架构轴
+    A3/W-2 走, 另拍。'
+  since: '2026-10-25'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -3690,9 +3785,26 @@ answers:
   ref: 'HW/HARDWARE_BREAKDOWN.md#1.5(HW-19) + #4.3(S1/S2)'
 - key: vendor_q19_boot_storage
   to: main
-  value: '已并入原厂邮件问题清单第7问(内置boot storage? 容量?); 当前按无内置boot storage设计: 外挂 SPI-NOR 16-64MB, 吃镜脚空间, 板宽可能 12->15mm;
-    请并入第一轮跟进邮件'
-  ref: HW/HARDWARE_BREAKDOWN.md#1.1(HW-03) + HANDOFF#阻塞-原厂第7问
+  value: '★【ISS-351 存储轴旧口径清账 · 2026-11-23 · hw-lead】★ ★**本条已按 ISS-346 / ISS-350 机器判决改成【分档】口径; 原措辞整条作废
+    (三处: 容量区间旧值 / 板宽归属错位 / 外发类指令)**★ ① 容量: ★**外挂 SPI-NOR ≥128 MiB (1 Gbit) 起**★ —— 依据: [实测] 网表 `HW/netlist_v1.csv`
+    L209 (J_BOOT1 pin5) note 逐字「★V1.1: 容量下限已由 SW 总工锁死 (ISS-080): rootfs ≤30MB · flash ≥128MB (64MB SPI-NOR
+    装不下)」; [官网] ★**Winbond 料号里的数字是 Mbit 不是 MB**★ —— `W25Q128JV` = 128 Mbit = **16 MB** (V=2.7~3.6V) ⇒
+    ★**`W25Q64` = 64 Mbit = 8 MB, 不可当成 64 MB**★; [官网] Winbond 官方 QSPI NOR **3V** 产品线 `W25Q-JV` 16Mb~2Gb
+    / `W25Q-RV` 4Mb~2Gb ⇒ ★**1 Gbit 与 2 Gbit 两档都在官方产品线内**★, 且 2.7~3.6V 与板上 `VDD_3V3_IO` 电源域匹配 ⇒ 128 MiB
+    档买得到。 ② 板宽: ★**板宽 12→15 mm 只在【eMMC 档】成立**★ —— [官网] eMMC 153-ball TFBGA **11.5 × 13.0 × 1.2 mm** (Micron
+    `MTFC8GACAENS` 8GB) ⇒ 11.5 mm 宽的 BGA 放不进 12 mm 宽的板 ⇒ ★**外挂 SPI-NOR 档 = 板侧零动作 · 不改板宽 · 不重出板**★ —— 依据
+    [实测]: 板面 `J_BOOT1` 焊盘位已在板 (6 pad @126.3 58 · `HW/PCB/demo_mainboard.kicad_pcb` L3144) + 网表 L202/L204/L206/L208
+    4 条 0Ω 串阻位 `R_SER_SPI_SCLK/CSn/MOSI/MISO` → `J_BOOT1 pin1..pin4` 标「必装」+ `HW/BOM_v1.csv` L140~L143
+    同为「必装」+ 网表 note 逐字「只留焊盘位 + 串阻位, **不画存储芯片**」 ⇒ ★**主板上焊存储芯片这条路已被网表否掉**★ ⇒ 只有 eMMC 档才要改板框 / 改网表 / 板 md5
+    变。 ③ rootfs 真值仍 [0数据] ⇒ ★**降级方案 = 可判区间**: `rootfs ∈ [7.969 MiB, 199.969 MiB]` 内每档结论都成立 (ISS-346 每列
+    rootfs 上限机器自证: 64MB NOR 7.969 / 128MB NOR 71.969 / 256MB NOR 199.969 MiB; model 槽缩到实测下限 11 MiB 再各
+    +8 MiB) ⇒ ★**真值落在哪一格就按那一格办, 不存在「等数据出来再判」的状态**★。 ④ ★**外发类指令一律作废**★ (老板 2026-11-11 19:31 + 2026-11-12
+    02:02 起不再发信) ⇒ ★**本仓一律: 缺口自己网上查 + 标证据等级 ([官网]/[实测]/[媒体]/[推算]/[0数据]) + 查不到就写降级方案 ⇒ `state/outbox` 里的草稿一律不发**★。
+    ★**本条不新增任何拍板项**★ (Q3 怎么拍仍由老板拍, 本条只清口径)。'
+  ref: ISS-351 交卷页 HANDOFF/2026-11-23_hw-lead_ISS351_存储轴旧口径清账.md · SW/STORAGE_CAPACITY_MATRIX.md · HANDOFF/2026-11-23_sw-lead_ISS346_存储容量矩阵与板侧时点.md
+    · HANDOFF/2026-11-23_sw-lead_ISS350_Q3分档口径写回SW侧.md · state/fragments/pm.yaml#iss346_q3_storage_tier_verdict_20261123
+    · HW/netlist_v1.csv L202/L204/L206/L208/L209/L210 · HW/BOM_v1.csv L69/L140~L143 · HW/PCB/demo_mainboard.kicad_pcb
+    L3144
 - key: bridge_chip_quote
   to: main
   value: '询价规格已给全: 800x600@60 / <300mW / DSI侧lane数可控 / 交期4-8周 / 面积待镜脚空间预算; 商务走main, 我不外联; 建议并行保留原生DSI方案A为首选'
@@ -3748,9 +3860,15 @@ answers:
   ref: HW/ISS121_MIC_MAGNET_POSITION.md §3 (B3 证据分级) + HW/iss121_mic_magnet_check.py §C
 - key: fw_boot_storage_bom
   to: sw-lead
-  value: '64MB SPI-NOR 装不下 (分区表 90MB) ⇒ 必须 ≥128MB, 路线选 **eMMC 5.1 / ePoP** (不是 NOR)。★量产眼镜印证: 小米 AI 眼镜用
-    Kingston **ePoP** 存储 (52audio 拆解) ⇒ 方向一致。ARS45 侧仍按『无内置 boot storage』设计 (外挂), 脚号 TBD-06/11。★板宽已放宽到
-    30mm ⇒ 挂 eMMC 的面积压力解除 (旧账: 12→15mm 要 +25%)。'
+  value: '64MB SPI-NOR 装不下 (分区表 90MB) ⇒ 必须 ≥128MB。 ★**【ISS-351 口径清账 · 2026-11-23 · hw-lead】本条原结论「路线选 eMMC
+    5.1 / ePoP (不是 NOR)」已由 ISS-346 / ISS-350 分档口径取代 · 本条保留作历史留档 · 结论不再引用**★ ⇒ 现行口径 = ★**按存储档分档**: ① 只
+    ADB push 档 (demo) ⇒ 板侧零动作 ⇒ 不占板那一趟; ② 外挂 SPI-NOR 档 (≥128 MiB / 1 Gbit 起 · ISS-080 已锁死) ⇒ 走 `J_BOOT1`
+    焊盘位 (6 pad 已在板 @126.3,58) + 4 条 0Ω 串阻位必装 ⇒ ★**板侧零动作 · 不改板宽 · 不重出板**★ ⇒ 台架板档与产品板档都不卡; ③ eMMC 档 ⇒ 板宽
+    12→15 mm ⇒ 台架板档 `B160x100` (160 mm 宽) 板面代价 ≈ 0 ⇒ 不卡 (时限型降为建议型) ⇒ ★**只有产品板档 (F30A 60×30 / P60x15) 才卡
+    (时限型)**★。 ★量产眼镜印证 (历史留档): 小米 AI 眼镜用 Kingston **ePoP** 存储 (52audio 拆解) ⇒ 方向一致 (★**eMMC / ePoP 档的可行性印证,
+    不等于「只能走 eMMC」**★)。 ARS45 侧仍按『无内置 boot storage』设计 (外挂), 脚号 TBD-06/11。 ★板宽已放宽到 30mm ⇒ 挂 eMMC 的面积压力解除
+    (旧账: 12→15mm 要 +25% —— ★**该 12→15mm 只属 eMMC 档**★)。 ★rootfs 真值仍 [0数据] ⇒ 降级方案 = 可判区间 `rootfs ∈ [7.969
+    MiB, 199.969 MiB]` 内结论都成立 (ISS-346 每列上限机器自证) ⇒ 不存在「等数据出来再判」的状态。'
   ref: HW/ONLINE_INTEL_2026-10-26.md#B3-2 + HW/netlist_v1.csv P3 行 185-190
 - key: fw_boot_mode_hw
   to: sw-lead
@@ -4307,6 +4425,23 @@ answers:
     板改清单已写死 C_VBUS_GND 下板 (186→185), 而该 need key 未拍 ⇒ 两个数互卡; 另列关联待拍项 W-4 (Q_PG.3 极性) 与 W-1b/W-1c+W-2 (ESD
     型号轴/D-侧补不补) 供 main 裁'
   ref: ISS-340
+- key: iss340_c1_attribution_verdict
+  to: main
+  value: C1 5 条差异归桶 A0/B3/C2; A 桶=0 (板 md5 躲不掉); 3 条对应关系 1 证实 2 推翻; 老板真待拍只剩 C_VBUS_GND 留/下板 + W-4 的 .3
+    极性
+  ref: HANDOFF/2026-11-22_hw-lead_ISS340_板网表C1差异归属判定.md
+- key: iss349_preflight_b33_generator_fixed
+  to: main
+  value: '已修: E-1 排针 land (B33_PIN_LAND_1P27) 不再是【手写进生成器产物页】, 已长进生成器 state/_iss277_build_preflight.py
+    的 ITEMS_RAW (9 元组 · source_iss=ISS-290) ⇒ 重跑生成器不再蒸发这一条; 现状值全部从真源现读 (板读 pitch 用 bash state/pcbnew_py.sh
+    现读板 · BOM/网表 1.27 从 HW/BOM_v1.csv / HW/netlist_v1.csv 读 · 读不到即 fail-closed 拒写页) ⇒ 一个常量都没写死 (R4 反证:
+    沙盒里板读改 1.27 ⇒ 页里的现状值自己变成 1.27) ⇒ 板那一趟把 land 改成 1.27 之后重跑生成器, 页里的现状值会自己跟上。配新闸 HW/check_preflight_regen_idempotent.py
+    (C1 表/JSON 同源 · C2 重跑幂等 · C3 来源在册 · C4 必需项在场) 把这条元不变量机器化 ⇒ 谁手改页 / 谁删生成器里的条目 / 谁把 source_iss 改成不在册的号
+    ⇒ 当场红并点名。实测: 闸主模式 rc=0 · --selftest 末行 ALL TESTS PASS rc=0 · 页表 33 行 / JSON 33 条 / id 集合逐一相等 · 覆盖度闸
+    P4 与 ISS-289 现状值闸均 rc=0 未被本单弄红 · 板 md5 611b869e13518c3c023fb178f91a0075 与 mtime 2026-11-06 07:07:17.362193413
+    全程逐字节未动 ⇒ 零写板。★本单不新增老板拍板项 (E-1 由 main 2026-11-17 18:45 已拍死) · 零落表 · 零改既有闸判定逻辑 · 零外发。★建议 main 把新闸挂进
+    state/gate_check.py 的 PINNED_MD5_GATES 当钉板闸⑩ (挂载行见交卷页 §B4-4)'
+  ref: HW/PCB/BOARD_ONEPASS_PREFLIGHT.md + HW/check_preflight_regen_idempotent.py + state/_iss277_build_preflight.py
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -6708,6 +6843,65 @@ interface_claims:
     = 现役同工艺基线) → 最后才看计数 (unconnected / 零铜网数 / 单边零铜对数); ★靶更小≠板子更好 (现役链终板自己过不了名单制闸 ⇒ 靶更小只是工作量口径变了); ★不许拿不可比的板刷闸的结论
   note: main 21:2x 已裁口径, 本单只落实现不重开
   ref: HW/PCB/S8_TARGET_LIST_AND_COMPARABILITY.md
+- key: iss340_c1_bucket_attribution
+  value: C1 焊盘级差异 5 条归桶 = A0/B3/C2 (缺失0/多余2/同号异网3); A 桶=0 条 ⇒ 只改网表就够这一栏显式为 0 ⇒ 板 md5 611b869e13518c3c023fb178f91a0075
+    这一趟躲不掉 (唯一例外 = C 桶 2 条若拍成留位)
+  note: 'B 桶 3 条: Q_PG pad1/pad3 单端低速/电源域不触及高速差分铜 + D_ESD_USB_D pad1 = 90Ω 受控阻抗差分对成员 ⇒ DRC 必须带差分对规则且与
+    S4 的 B-3/B-4/B-5 合并成一次原子操作; C 桶 2 条 = 同一个 need key boss_c_vbus_gnd_reserve_pad_20261117, 本单不代拍'
+  ref: HANDOFF/2026-11-22_hw-lead_ISS340_板网表C1差异归属判定.md
+- key: iss340_c1_board_side_action_scope
+  value: B 桶 3 条板那一趟动什么 = ① Q_PG pad1 PWR_ON→PWR_GOOD + pad3 PWR_GOOD→PWR_ON (同一次重画 3 根线, 单端低速/电源域, 不触及高速差分铜,
+    要重跑 DRC + 重出 Gerber) ② D_ESD_USB_D pad1 USB_D_P_SRC→NET_USB_D_P_TYPEC (90Ω 受控阻抗差分对成员 ⇒ DRC 必须带差分对规则
+    + 不许破坏 D+/D− 匹配 + 必须与 S4 的 B-3/B-4/B-5 合并成一次原子操作, 不是挪一根 stub) ⇒ 板 md5 要动
+  note: '谁可照抄: main (进板那一趟作业包) / pm、sw、mech (引用桶口径即可, 不需重跑闸)'
+  ref: HANDOFF/2026-11-22_hw-lead_ISS340_板网表C1差异归属判定.md#B1
+- key: iss343_e1_pin_land_1p27_board_side
+  value: 'E-1 板侧落点 (归 main 已拍 2026-11-17 18:45 · 不归老板): 板那一趟 S6 把 J_DEBUG(1×4) 与 J_UART(1×2) 的 land pitch
+    从 0.50 改成 1.27 (板读 0.50 vs BOM/网表 1.27 ⇒ Δ0.77 ⇒ 实物落不进) ⇒ 与 S4 的 D_ESD_USB_D 挪位、S6 的 Q_PG/Q_AND land
+    重画同一次布局里做完 ⇒ 板 md5 只许变一次'
+  note: ISS-343 · pm.yaml key main_e1_e2_board_side_rulings_20261117 · 清单页 B33_PIN_LAND_1P27
+  ref: ''
+- key: iss343_preflight_item_b33
+  value: 清单页新增 item = B33_PIN_LAND_1P27 (source_iss=ISS-290 · step=S6 · blocked_by=- · evidence=[实测])
+    ⇒ 判据 = bash state/pcbnew_py.sh -c 只读探针 ⇒ 期望读数 J_DEBUG land pitch = 1.27 / J_UART land pitch = 1.27
+    (现状 0.50)
+  note: ISS-343 · 追加式 · 32 条 → 33 条 · 删除行 0
+  ref: ''
+- key: iss343_preflight_p4_workpack_coverage
+  value: '覆盖度闸 P4 新增判据: 作业包 §0.2 ③ 的板侧改动清单每一条都必须在清单页有对应 item (7 项从作业包原文现场解析 · 不写死 · ⑦ 零板改项单独排除并写明理由) ⇒
+    一条不带新位号的板改 (同一 J_DEBUG/J_UART 的 land pitch 改) 从此被机器抓住 ⇒ P4 不再假绿'
+  note: ISS-343 · P1/P2/P3/P5/P6 一字未动 · MARKERS 26 个没删 · SOURCES 只增 ISS-290
+  ref: ''
+- key: iss349_preflight_regen_idempotent
+  value: '板侧项全集页与生成器同源且重跑零差异 (已机器化 · 由新闸守) — 实测: §2 表 33 行 / §7 JSON 33 条 / id 集合逐一相等; 真页 md5 == 沙盒重跑输出
+    md5 == 581f116a6e41c6c7d6b9290874ade4c5 (零行差异); 33 条 item 的 source_iss 全在覆盖度闸 SOURCES (11 个来源单) 里;
+    必需项 B33_PIN_LAND_1P27 在场 (表 + JSON)。★反向用例 R1~R4 端到端跑真生成器全部判红并点名 ⇒ 闸不是装饰。'
+  note: '★判据冻结类 (交接口径 · §B7-4): 本单之后 生成器 state/_iss277_build_preflight.py + 新闸 HW/check_preflight_regen_idempotent.py
+    + 清单页 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md 三件【板那一趟开工后不许再改】⇒ 板那一趟期间它们给出的读数才有效 ⇒ 板改完后: 跑一次生成器 (让现状值自己变成
+    1.27) + 跑一次新闸 (C2 应当仍绿) + 跑一次覆盖度闸 (P4 应当仍绿)。★注意 REQUIRED_ITEMS 是写死的 (HW/check_preflight_regen_idempotent.py:65)
+    ⇒ 以后再加板侧项必须同一单里往里加一行并跑 --selftest。★边界: 只许加严不许放宽 · 本单一个字节未改 HW/check_onepass_preflight_coverage.py
+    / HW/check_workpack_state_values.py / state/gate_check.py。'
+  ref: ''
+- key: preflight_regen_gate_rc
+  value: 0 = 全过 · 1 = 闸红 · 2 = 用法错 · 3 = 闸崩
+  note: ★接口取值声明 · main 侧挂进 state/gate_check.py 时用★ (出处 HW/check_preflight_regen_idempotent.py:294 main
+    + :206 闸崩)
+  ref: ''
+- key: preflight_item_b33_pin_land_pitch
+  value: 板读现值 0.50mm ⇒ BOM/网表要求 1.27mm ⇒ Δ 0.77mm (现状值 · 不许任何一方当常量抄走)
+  note: '★接口取值声明 · 本单声明 (出处 state/_iss277_build_preflight.py:228 板读 + :280 BOM/网表读 ⇒ 页 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+    §7 B33_PIN_LAND_1P27) ⇒ 谁在用: 板那一趟 S6'
+  ref: ''
+- key: preflight_item_b33_source_iss
+  value: ISS-290
+  note: ★接口取值声明 · 本单声明 (出处 HW/check_onepass_preflight_coverage.py:98 的 SOURCES 含 ISS-290) ⇒ 不许改成别的号 ⇒
+    新闸 C3 判的就是这个
+  ref: ''
+- key: preflight_regen_gate_env
+  value: PREFLIGHT_PROJ / PREFLIGHT_CHECKLIST / PREFLIGHT_GEN_PROJ / PREFLIGHT_SANDBOX
+  note: ★接口取值声明 · 本单声明 (出处 HW/check_preflight_regen_idempotent.py:56~:61) ⇒ 沙盒与反向用例用 ⇒ 默认沙盒落项目盘 tmp/iss349/regen_gate
+    (绝不落 /tmp · userquota 已打满 ⇒ EDQUOT ⇒ 假读数)
+  ref: ''
 open_questions:
 - id: HW-Q1
   to: main
@@ -6726,7 +6920,11 @@ risks:
   text: FCCSP pitch ≤0.3mm → 须 HDI → 违反 4-6 层锁死 → SoC 选型一票否决
   severity: high
 - id: R-hw-boot-storage
-  text: 若无内置 boot storage → 需外挂 SPI-NOR/eMMC (吃 PCB 面积, 板宽 12→15mm), 投板前必须 close
+  text: '若无内置 boot storage ⇒ ★**按存储档分档 (ISS-346 / ISS-350 机器判决 · 2026-11-23 订正)**★: ① 只 ADB push 档 (demo)
+    ⇒ 板侧零动作 ⇒ 不占板那一趟; ② 外挂 SPI-NOR 档 (≥128 MiB / 1 Gbit 起) ⇒ 走 `J_BOOT1` 焊盘位 (6 pad 已在板 @126.3,58) + 4
+    条 0Ω 串阻位必装 ⇒ ★**板侧零动作 · 不改板宽 · 不重出板**★ ⇒ 台架板档与产品板档都不卡; ③ eMMC 档 ⇒ 板宽 12→15 mm ⇒ 台架板档 `B160x100` (160
+    mm 宽) 板面代价 ≈ 0 ⇒ 不卡 (时限型降为建议型) ⇒ ★**只有产品板档 (F30A 60×30 / P60x15) 才卡 (时限型)**★ ⇒ ★**原措辞「(吃 PCB 面积, 板宽
+    12→15mm), 投板前必须 close」已由 ISS-346 / ISS-350 分档口径取代 · 本条保留作历史留档 · 结论不再引用**★'
   severity: high
 - id: R-hw-netlist-chain
   text: '★ISS-153 交卷时实测: HW/netlist_v1.csv 在 11-04 03:01 加了 A2 段(SoM 4x100pin 座 + demo 板载 Type-C + F13

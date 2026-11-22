@@ -1,0 +1,24 @@
+== sw.yaml 全字段 · 旧口径探针命中表 ==
+  needs_from       key=iss338_need_boot_storage_answer  to=main  命中=['板要重出']
+  needs_from       key=iss346_need_board_side_storage_input  to=main  命中=['3 条 SPI_*_BOOT', '板要重出']
+  answers          key=iss338_open_items_for_main  to=main  命中=['3 条 SPI_*_BOOT', '板要重出', '不可悬空']
+
+== 具体子串上下文 ==
+  [needs_from] iss338_need_boot_storage_answer · 字段 item:
+      .../ pin4 SPI_MISO_BOOT / pin5 VDD_3V3_IO / pin6 GND ② ★**『若外挂 SPI-NOR ⇒ 板要重出』不成立**★ ⇒ ★**外挂 SPI-NOR 走 J_BOOT1 焊盘位 ⇒ 板侧零动作, 不重出板**★ (J_BOOT1 焊盘位 6 pad 已在板 @126.3,5...
+
+  [needs_from] iss346_need_board_side_storage_input · 字段 item:
+      ...0mm 宽)代价≈0 ⇒ 不卡。★订正提示★: sw.yaml 的 iss338_need_boot_storage_answer 写的是『3 条 SPI_*_BOOT』, 本单实读网表是【4 条】(SCLK/CSn/MOSI/MISO = L202/204/206/208); 且其『板要重出』对『SPI-NOR 走 ...
+
+  [needs_from] iss346_need_board_side_storage_input · 字段 item:
+      ... SPI_*_BOOT』, 本单实读网表是【4 条】(SCLK/CSn/MOSI/MISO = L202/204/206/208); 且其『板要重出』对『SPI-NOR 走 J_BOOT1 焊盘位』这一档不成立(走线与串阻位已在板, 未决的只是 J_BOOT1 pin5/pin6 的 CONN DNP 与 SoC 侧 ...
+
+  [answers] iss338_open_items_for_main · 字段 value:
+      ...认); ② 启动存储 P4 类型 (SW/FLASH_AND_VERSION.md:359 [0数据]) ⇒ 若最终外挂 SPI-NOR, 3 条 SPI_*_BOOT 不可悬空, 板要重出 ⇒ 归原厂 (经 main 既有问询清单, 不发新信); ③ JTAG 整组 (JTAG_TCK/TMS/TDO 都有铜, 只缺...
+
+  [answers] iss338_open_items_for_main · 字段 value:
+      ...FLASH_AND_VERSION.md:359 [0数据]) ⇒ 若最终外挂 SPI-NOR, 3 条 SPI_*_BOOT 不可悬空, 板要重出 ⇒ 归原厂 (经 main 既有问询清单, 不发新信); ③ JTAG 整组 (JTAG_TCK/TMS/TDO 都有铜, 只缺 TDI) ⇒ 裁了就等于接受『4 线缺 ...
+
+  [answers] iss338_open_items_for_main · 字段 value:
+      ...型 (SW/FLASH_AND_VERSION.md:359 [0数据]) ⇒ 若最终外挂 SPI-NOR, 3 条 SPI_*_BOOT 不可悬空, 板要重出 ⇒ 归原厂 (经 main 既有问询清单, 不发新信); ③ JTAG 整组 (JTAG_TCK/TMS/TDO 都有铜, 只缺 TDI) ⇒ 裁了就等于接受...
+

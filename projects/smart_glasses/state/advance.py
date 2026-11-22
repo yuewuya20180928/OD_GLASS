@@ -210,7 +210,22 @@ def main() -> int:
                 applied.append(path)
         # 派过的 issue 标 fixing
         dl_p = os.path.join(HERE, "dispatch_log.yaml")
-        dl = load_yaml(dl_p) if os.path.exists(dl_p) else {"dispatches": []}
+        # ★★2026-11-23 01:2x main 修 (★本 job 步骤 2 的落盘手段一直是坏的★):
+        #   `state/dispatch_log.yaml` 顶层是 **list** (不是 dict) ⇒ 旧代码 dl.setdefault("dispatches", [])
+        #   ⇒ AttributeError: 'list' object has no attribute 'setdefault' ⇒ **--apply 必崩**
+        #   ⇒ 后果: 「派完标 fixing + 写派活日志」这一步从来没自动跑通过 (兄弟 job fb67 只能绕开它自己原子写)
+        #   修法: 两种形状都认 (list ⇒ 直接追加; dict ⇒ dispatches 键), 写回时保持原形状
+        #   ★写回只在【真有新派活】时发生 ⇒ 空跑不重排 291 KB 的历史日志 (零 churn)★
+        dl_exists = os.path.exists(dl_p)
+        dl_raw = load_yaml(dl_p) if dl_exists else None
+        if isinstance(dl_raw, list):
+            dl_list, dl_dict, dl_shape = dl_raw, None, "list"
+        elif isinstance(dl_raw, dict):
+            dl_list = dl_raw.setdefault("dispatches", [])
+            dl_dict, dl_shape = dl_raw, "dict"
+        else:
+            dl_list, dl_dict, dl_shape = [], None, "list"
+        new_entries = []
         only = set(x.strip() for x in (args.only or "").split(",") if x.strip())
         for a in internal:
             raw = a.get("_raw") or {}
@@ -219,15 +234,42 @@ def main() -> int:
             if raw.get("status") == "open" and a.get("brief"):
                 raw["status"] = "fixing"
                 raw["dispatched_at"] = dt.date.today().isoformat()
-                dl.setdefault("dispatches", []).append({
+                entry = {
                     "issue": raw.get("id"), "agent": raw.get("owner"),
-                    "at": dt.date.today().isoformat(), "brief": a["brief"][:300]})
+                    "at": dt.date.today().isoformat(), "brief": a["brief"][:300]}
+                dl_list.append(entry)
+                new_entries.append(entry)
                 applied.append(f"ISS {raw.get('id')} → {raw.get('owner')} 标 fixing + 写派活日志")
-        with open(dl_p, "w", encoding="utf-8") as f:
-            yaml.safe_dump(dl, f, allow_unicode=True, sort_keys=False, width=200)
+        if new_entries or not dl_exists:
+            if dl_shape == "list":
+                # ★追加式写回: 保留历史字节不动 (只把新条目追加到文件尾) ⇒ 零 churn★
+                old_text = ""
+                if dl_exists:
+                    with open(dl_p, encoding="utf-8") as f:
+                        old_text = f.read()
+                chunk = yaml.safe_dump(new_entries, allow_unicode=True, sort_keys=False, width=200)
+                if old_text and not old_text.endswith("\n"):
+                    chunk = "\n" + chunk
+                with open(dl_p, "a", encoding="utf-8") as f:
+                    f.write(chunk)
+            else:
+                with open(dl_p, "w", encoding="utf-8") as f:
+                    yaml.safe_dump(dl_dict, f, allow_unicode=True, sort_keys=False, width=200)
+            # ★写回后自检: 条目数必须 = 旧数 + 新增数, 且末条就是刚写的这条★
+            _chk = load_yaml(dl_p)
+            _chk_list = _chk if isinstance(_chk, list) else (_chk or {}).get("dispatches", [])
+            if len(_chk_list) != len(dl_list):
+                sys.stderr.write("★dispatch_log 写回自检失败: 期望 %d 条, 实际 %d 条\n"
+                                 % (len(dl_list), len(_chk_list)))
+                sys.exit(2)
+            if new_entries and _chk_list[-1] != new_entries[-1]:
+                sys.stderr.write("★dispatch_log 写回自检失败: 末条与刚写的条目不一致\n")
+                sys.exit(2)
         if applied:
             with open(os.path.join(HERE, "issue_log.yaml"), "w", encoding="utf-8") as f:
-                yaml.safe_dump(log, f, allow_unicode=True, sort_keys=False, width=200)
+                # ★width=100 与本仓其它写 issue_log 的脚本一致 (★_apply_*.py 一律 width=100★)
+                #   ⇒ 避免同一份台账被两种宽度反复重排 (= 无谓的整文件 diff)
+                yaml.safe_dump(log, f, allow_unicode=True, sort_keys=False, width=100)
 
     if args.json:
         print(json.dumps({**plan, "applied": applied}, ensure_ascii=False, indent=2))
