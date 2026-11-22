@@ -1,0 +1,74 @@
+板全体: 走线 18092 段 · 过孔 433 个 · 焊盘 834 个 · 网名 137 个
+零铜网(pad≥2 且 segment=0) 全体 = 25 个; 落在 DRC 未连接网里 = 24 个
+网名                         焊盘    段      孔    长mm  类别        端点(ref.pad@x,y 层)     
+                           352   0      0    0.000     整网无铜                   J_USB_C.@(134.22,2.62 F.Cu); J_USB_C.@(145.78,2.62 F.Cu); J_USB_C.A8@(141.25,5.25 F.Cu); J_USB_C.B8@(138.25,5.25 F.Cu); J_SOM_P4.2@(34.80,54.04 F.Cu); J_SOM_P4.4@(34.40,54.04 F.Cu); J_SOM_P4.5@(34.00,50.96 F.Cu); J_SOM_P4.6@(34.00,54.04 F.Cu) ...(+344)
+CAM_RESET_N                2     0      0    0.000     整网无铜                   CONN_CAM.27@(91.90,51.40 F.Cu); J_SOM_P1.54@(58.40,11.04 F.Cu)
+CSI_D0_D0_N                3     0      0    0.000     整网无铜                   TP_CSI_D0_N.1@(63.70,55.20 F.Cu); CONN_CAM.14@(85.40,51.40 F.Cu); C_AC_CSI_D0_D0_N.2@(65.10,58.60 F.Cu)
+CSI_D0_D0_N_SRC            2     0      0    0.000     整网无铜                   J_SOM_P4.65@(22.00,50.96 F.Cu); C_AC_CSI_D0_D0_N.1@(63.50,58.60 F.Cu)
+CSI_D0_D1_N                2     0      0    0.000     整网无铜                   CONN_CAM.11@(83.90,51.40 F.Cu); C_AC_CSI_D0_D1_N.2@(55.50,58.60 F.Cu)
+CSI_D0_D1_N_SRC            2     0      0    0.000     整网无铜                   J_SOM_P4.71@(20.80,50.96 F.Cu); C_AC_CSI_D0_D1_N.1@(53.90,58.60 F.Cu)
+CSI_D0_D1_P                2     0      0    0.000     整网无铜                   C_AC_CSI_D0_D1_P.2@(50.70,58.60 F.Cu); CONN_CAM.12@(84.40,51.40 F.Cu)
+CSI_D0_D2_N                2     0      0    0.000     整网无铜                   CONN_CAM.5@(80.90,51.40 F.Cu); C_AC_CSI_D0_D2_N.2@(21.90,58.60 F.Cu)
+CSI_D0_D2_P                2     0      0    0.000     整网无铜                   CONN_CAM.6@(81.40,51.40 F.Cu); C_AC_CSI_D0_D2_P.2@(17.10,58.60 F.Cu)
+CSI_D0_D3_N                2     0      0    0.000     整网无铜                   CONN_CAM.2@(79.40,51.40 F.Cu); C_AC_CSI_D0_D3_N.2@(12.30,58.60 F.Cu)
+CSI_D0_D3_N_SRC            2     0      0    0.000     整网无铜                   C_AC_CSI_D0_D3_N.1@(10.70,58.60 F.Cu); J_SOM_P4.89@(17.20,50.96 F.Cu)
+DSI_D0_D0_N_SRC            2     0      0    0.000     整网无铜                   R_SEL_D0_N.1@(78.90,5.60 F.Cu); J_SOM_P3.57@(23.60,7.96 F.Cu)
+DSI_D0_D0_P_SRC            2     0      0    0.000     整网无铜                   R_SEL_D0_P.1@(83.70,5.60 F.Cu); J_SOM_P3.59@(23.20,7.96 F.Cu)
+DSI_D0_D1_N_SRC            2     0      0    0.000     整网无铜                   R_SEL_D1_N.1@(88.50,5.60 F.Cu); J_SOM_P3.63@(22.40,7.96 F.Cu)
+DSI_D0_D1_P_SRC            2     0      0    0.000     整网无铜                   R_SEL_D1_P.1@(93.30,5.60 F.Cu); J_SOM_P3.65@(22.00,7.96 F.Cu)
+DSI_D0_D2_N_SRC            2     0      0    0.000     整网无铜                   R_SEL_D2_N.1@(107.70,5.60 F.Cu); J_SOM_P3.75@(20.00,7.96 F.Cu)
+DSI_D0_D3_N_SRC            2     0      0    0.000     整网无铜                   R_SEL_D3_N.1@(117.30,5.60 F.Cu); J_SOM_P3.81@(18.80,7.96 F.Cu)
+FSIN_OUT                   2     0      0    0.000     整网无铜                   R_SER_FSIN.1@(93.30,46.60 F.Cu); TP_FSIN.1@(93.50,49.60 F.Cu)
+JTAG_TDI                   2     0      0    0.000     整网无铜                   R_JTAG_TDI.2@(142.90,42.60 F.Cu); J_DEBUG.3@(143.20,56.60 F.Cu)
+LED_G_D                    2     0      0    0.000     整网无铜                   R_LED_G.2@(7.50,62.60 F.Cu); D_LED_G.1@(100.80,56.60 F.Cu)
+SPI_MISO_BOOT              2     0      0    0.000     整网无铜                   J_BOOT1.4@(125.70,56.60 F.Cu); R_SER_SPI_MISO.2@(104.50,46.60 F.Cu)
+SPI_MOSI_BOOT              2     0      0    0.000     整网无铜                   J_BOOT1.3@(125.20,56.60 F.Cu); R_SER_SPI_MOSI.2@(109.30,46.60 F.Cu)
+SPI_SCLK_BOOT              2     0      0    0.000     整网无铜                   J_BOOT1.1@(124.20,56.60 F.Cu); R_SER_SPI_SCLK.2@(114.10,46.60 F.Cu)
+UART_RX                    2     0      0    0.000     整网无铜                   J_UART.2@(19.14,68.60 F.Cu); J_SOM_P2.9@(67.20,50.96 F.Cu)
+USB_CC2                    2     0      0    0.000     整网无铜                   J_USB_C.B5@(141.75,5.25 F.Cu); R_CC2_D.1@(126.90,42.60 F.Cu)
+    ·  (pad=352 seg=0 via=0)
+    · 整网无铜                 25 个
+    NET_USB_D_P_TYPEC     |NET_USB_D_N_TYPEC	P=64.826	N=64.826	双边有铜
+    USB_D_P_SRC           |USB_D_N_SRC	P=65.088	N=65.088	双边有铜
+    CSI_D0_CK_P_SRC       |CSI_D0_CK_N_SRC	P=32.245	N=32.245	双边有铜
+    CSI_D0_CK_P           |CSI_D0_CK_N	P=62.889	N=62.889	双边有铜
+    CSI_D0_D0_P_SRC       |CSI_D0_D0_N_SRC	P=44.366	N=0.000	★N边零铜
+    CSI_D0_D0_P           |CSI_D0_D0_N	P=41.217	N=0.000	★N边零铜
+    CSI_D0_D1_P_SRC       |CSI_D0_D1_N_SRC	P=32.832	N=0.000	★N边零铜
+    CSI_D0_D1_P           |CSI_D0_D1_N	P=0.000	N=0.000	★双边零铜
+    CSI_D0_D2_P_SRC       |CSI_D0_D2_N_SRC	P=13.992	N=13.992	双边有铜
+    CSI_D0_D2_P           |CSI_D0_D2_N	P=0.000	N=0.000	★双边零铜
+    CSI_D0_D3_P_SRC       |CSI_D0_D3_N_SRC	P=15.019	N=0.000	★N边零铜
+    CSI_D0_D3_P           |CSI_D0_D3_N	P=81.117	N=0.000	★N边零铜
+    DSI_D0_CK_P_SRC       |DSI_D0_CK_N_SRC	P=83.825	N=83.825	双边有铜
+    DSI_D0_CK_P           |DSI_D0_CK_N	P=84.108	N=88.705	双边有铜
+    DSI_D0_D0_P_SRC       |DSI_D0_D0_N_SRC	P=0.000	N=0.000	★双边零铜
+    DSI_D0_D0_P           |DSI_D0_D0_N	P=81.043	N=4.847	双边有铜
+    DSI_D0_D1_P_SRC       |DSI_D0_D1_N_SRC	P=0.000	N=0.000	★双边零铜
+    DSI_D0_D1_P           |DSI_D0_D1_N	P=79.485	N=78.271	双边有铜
+    DSI_D0_D2_P_SRC       |DSI_D0_D2_N_SRC	P=95.787	N=0.000	★N边零铜
+    DSI_D0_D2_P           |DSI_D0_D2_N	P=168.737	N=168.737	双边有铜
+    DSI_D0_D3_P_SRC       |DSI_D0_D3_N_SRC	P=66.275	N=0.000	★N边零铜
+    DSI_D0_D3_P           |DSI_D0_D3_N	P=142.155	N=142.155	双边有铜
+    · NET_USB_D_P_TYPEC      P零铜=False N零铜=False | 双边有铜
+    · USB_D_P_SRC            P零铜=False N零铜=False | 双边有铜
+    · CSI_D0_CK_P_SRC        P零铜=False N零铜=False | 双边有铜
+    · CSI_D0_CK_P            P零铜=False N零铜=False | 双边有铜
+    · CSI_D0_D0_P_SRC        P零铜=False N零铜=True  | ★N边零铜
+    · CSI_D0_D0_P            P零铜=False N零铜=True  | ★N边零铜
+    · CSI_D0_D1_P_SRC        P零铜=False N零铜=True  | ★N边零铜
+    · CSI_D0_D1_P            P零铜=True  N零铜=True  | ★双边零铜
+    · CSI_D0_D2_P_SRC        P零铜=False N零铜=False | 双边有铜
+    · CSI_D0_D2_P            P零铜=True  N零铜=True  | ★双边零铜
+    · CSI_D0_D3_P_SRC        P零铜=False N零铜=True  | ★N边零铜
+    · CSI_D0_D3_P            P零铜=False N零铜=True  | ★N边零铜
+    · DSI_D0_CK_P_SRC        P零铜=False N零铜=False | 双边有铜
+    · DSI_D0_CK_P            P零铜=False N零铜=False | 双边有铜
+    · DSI_D0_D0_P_SRC        P零铜=True  N零铜=True  | ★双边零铜
+    · DSI_D0_D0_P            P零铜=False N零铜=False | 双边有铜
+    · DSI_D0_D1_P_SRC        P零铜=True  N零铜=True  | ★双边零铜
+    · DSI_D0_D1_P            P零铜=False N零铜=False | 双边有铜
+    · DSI_D0_D2_P_SRC        P零铜=False N零铜=True  | ★N边零铜
+    · DSI_D0_D2_P            P零铜=False N零铜=False | 双边有铜
+    · DSI_D0_D3_P_SRC        P零铜=False N零铜=True  | ★N边零铜
+    · DSI_D0_D3_P            P零铜=False N零铜=False | 双边有铜

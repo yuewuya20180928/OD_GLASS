@@ -1,0 +1,759 @@
+{
+  "issue": "ISS-121",
+  "title": "MEMS 麦克风与检修口磁铁的磁场/位置复核 (ISS-092 I-5/I-6)",
+  "generated_by": "HW/iss121_mic_magnet_check.py",
+  "evidence_grading": {
+    "magnet_grade_params": "[官方-牌号通用值] N35 Br 1.17~1.23T (取 typ 1.20T)",
+    "magnet_geometry": "[官方-MECH 规格] N35 直径4.00x1.00 (ISS-092 §4.1 C-8)",
+    "geometry_all": "[推算] MECH 设计态几何 + 公差栈 (实物 [实测] = 0 条)",
+    "mic_magnetic_sensitivity": "[0数据] 主流 MEMS 麦克风规格书无磁场敏感度指标 (4 份实测 grep=0)",
+    "earth_field": "[官方-通用物理量] 25/50/65 µT",
+    "iec61000_4_8": "[官方-通用引用] 1/3/10/30/100 A/m (未取标准原文)"
+  },
+  "constants": {
+    "BR_TYP_T": 1.2,
+    "BR_LO_T": 1.14,
+    "BR_HI_T": 1.26,
+    "mag_d_mm": 4.0,
+    "mag_t_mm": 1.0
+  },
+  "coord_regression": {
+    "ok": true,
+    "L_offset": 40.5,
+    "rows": [
+      {
+        "case": "电芯 L0..40.5 -> 通窗",
+        "mech_mm": 49.21,
+        "recomputed_mm": 49.2,
+        "delta_mm": 0.01,
+        "pass": true
+      },
+      {
+        "case": "铰链区 L0..15 -> 通窗",
+        "mech_mm": 74.71,
+        "recomputed_mm": 74.7,
+        "delta_mm": 0.01,
+        "pass": true
+      },
+      {
+        "case": "金属骨架末端 L82.5 -> 通窗",
+        "mech_mm": 7.21,
+        "recomputed_mm": 7.2,
+        "delta_mm": 0.01,
+        "pass": true
+      },
+      {
+        "case": "逃线带末端 X31.80 -> 通窗",
+        "mech_mm": 17.41,
+        "recomputed_mm": 17.4,
+        "delta_mm": 0.01,
+        "pass": true
+      }
+    ]
+  },
+  "magnet_model_self_test": {
+    "numeric_vs_analytic_rel_err": 1.108e-06,
+    "numeric_ok": true,
+    "face_numeric_vs_analytic_rel_err": 0.010575935,
+    "B_face_center_T": 0.268328,
+    "B_face_center_G": 2683.3,
+    "mag_moment_A_m2": 0.012
+  },
+  "axis_table": [
+    {
+      "d_from_face_mm": 5,
+      "B_uT": 12123.96,
+      "B_G": 121.24,
+      "vs_earth": ">地磁上限"
+    },
+    {
+      "d_from_face_mm": 10,
+      "B_uT": 1973.54,
+      "B_G": 19.735,
+      "vs_earth": ">地磁上限"
+    },
+    {
+      "d_from_face_mm": 20,
+      "B_uT": 274.97,
+      "B_G": 2.75,
+      "vs_earth": ">地磁上限"
+    },
+    {
+      "d_from_face_mm": 30,
+      "B_uT": 84.09,
+      "B_G": 0.841,
+      "vs_earth": ">地磁上限"
+    },
+    {
+      "d_from_face_mm": 40,
+      "B_uT": 36.01,
+      "B_G": 0.36,
+      "vs_earth": "地磁量级"
+    },
+    {
+      "d_from_face_mm": 50,
+      "B_uT": 18.6,
+      "B_G": 0.186,
+      "vs_earth": "<地磁最小(25uT)"
+    },
+    {
+      "d_from_face_mm": 60,
+      "B_uT": 10.82,
+      "B_G": 0.108,
+      "vs_earth": "<地磁最小(25uT)"
+    },
+    {
+      "d_from_face_mm": 80,
+      "B_uT": 4.6,
+      "B_G": 0.046,
+      "vs_earth": "<地磁最小(25uT)"
+    }
+  ],
+  "geometry": {
+    "window": [
+      49.2,
+      59.4
+    ],
+    "cover": [
+      48.0,
+      61.2
+    ],
+    "screw_x": 60.3,
+    "magnet_x_nom": 59.8,
+    "magnet_x_lo": 48.0,
+    "jdebug": [
+      50.5,
+      55.58
+    ],
+    "juart": [
+      56.85,
+      58.12
+    ],
+    "soc": [
+      20.2,
+      31.8
+    ],
+    "conn_zone_pads_only": [
+      0.0,
+      3.0
+    ],
+    "conn_zone_full": [
+      0.0,
+      24.0
+    ],
+    "skeleton": [
+      18.0,
+      42.0
+    ],
+    "pinset": {
+      "P1": [
+        8.0,
+        15.0,
+        2.0
+      ],
+      "S1": [
+        8.0,
+        10.0,
+        1.4
+      ],
+      "P2": [
+        52.0,
+        15.0,
+        2.0
+      ],
+      "S2": [
+        52.0,
+        20.0,
+        1.4
+      ]
+    }
+  },
+  "H": {
+    "wall_out": 7.3,
+    "wall_in": 6.5,
+    "pcb_top": 2.4,
+    "pcb_bot": 1.6,
+    "skel_out": 3.4,
+    "mag_center": 6.8,
+    "mic_port": 2.95,
+    "mic_top": 3.5
+  },
+  "dz_mic_mm": 3.8499999999999996,
+  "feasible_band": {
+    "x_max_allowed": 8.0,
+    "constraint_window": 9.200000000000003,
+    "constraint_magnet_worst": 8.0,
+    "constraint_screw": 20.299999999999997,
+    "band": "X <= 8.00",
+    "conflicts": [
+      "PIN-SET-2 P1(8.00,15.00) ⌀2.0 / S1(8.00,10.00) ⌀1.4 (现行60x30套A) —— X=8.00 落在带内, 需 Y 向避让",
+      "跨铰链 4 连接器落板区 X 0..~24 (ISS-105 open, [0数据]) —— 与带内 X<=9.20 重叠"
+    ],
+    "usable_band_mm": 8.0
+  },
+  "soc_field_check": {
+    "soc_x": 31.8,
+    "gap_mm": 28.0,
+    "B_uT": 54.8,
+    "mech_claim_mm": 68.0,
+    "verdict": "ISS-092 §4.3 的 68mm 与其自身尺寸链矛盾, 实际 28.00mm; B=54.8µT < 3 倍地磁典型值 => 无功能影响, 但数字须订正"
+  },
+  "candidates": [
+    {
+      "name": "M1 铰链端",
+      "board_x": 5.0,
+      "board_y": 12.0,
+      "temple_L": 45.5,
+      "note": "唯一能同时满足『距通窗>=40』与『距磁铁>=40』的板区 (X<=9.20); 骨架外 (无骨架开窗需求)",
+      "conn_zone_clear_pads_only_mm": 2.0,
+      "conn_zone_clear_full_mm": -1.0,
+      "conn_zone_status": "情形b(占 X0..24, ISS-105 情形2) 重叠",
+      "clear_window_mm": 44.2,
+      "clear_magnet_nom_mm": 54.8,
+      "clear_magnet_worst_mm": 43.0,
+      "clear_screw_mm": 55.3,
+      "clear_cover_footprint_mm": 43.0,
+      "B_at_mic_uT_nominal": 7.3,
+      "B_at_mic_uT_worst_magnetpos": 15.12,
+      "B_at_mic_uT_Br_high": 7.67,
+      "B_vs_earth_typ": "< 地磁典型值(50uT)",
+      "pos_pass_window": true,
+      "pos_pass_magnet": true,
+      "pos_pass_screw": true,
+      "pos_pass_all": true,
+      "mag_pass": true,
+      "skeleton_over_mic": false,
+      "skeleton_cutout_needed": false,
+      "pinset_clearance_mm": 1.26,
+      "pinset_governing_hole": "S1",
+      "pinset_clearance_per_hole_mm": {
+        "P1": 1.6912,
+        "S1": 1.2602,
+        "P2": 44.6031,
+        "S2": 45.4155
+      },
+      "pinset_clearance_legacy_15mm_mm": 3.01,
+      "pinset_governing_hole_legacy_15mm": "P1",
+      "pinset_clearance_delta_vs_legacy_mm": -1.75,
+      "pinset_wall_pass_nonoverlap": true,
+      "pinset_wall_pass_board_rule": true,
+      "pinset_wall_pass_iss092_precedent": true,
+      "pinset_wall_margin_vs_iss092_mm": 0.26
+    },
+    {
+      "name": "M2 SoC 区前",
+      "board_x": 17.0,
+      "board_y": 12.0,
+      "temple_L": 57.5,
+      "note": "骨架起点前 (X18.00) 最后一格; 但距通窗仅 32.20",
+      "conn_zone_clear_pads_only_mm": 14.0,
+      "conn_zone_clear_full_mm": -1.0,
+      "conn_zone_status": "情形b(占 X0..24, ISS-105 情形2) 重叠",
+      "clear_window_mm": 32.2,
+      "clear_magnet_nom_mm": 42.8,
+      "clear_magnet_worst_mm": 31.0,
+      "clear_screw_mm": 43.3,
+      "clear_cover_footprint_mm": 31.0,
+      "B_at_mic_uT_nominal": 15.34,
+      "B_at_mic_uT_worst_magnetpos": 40.42,
+      "B_at_mic_uT_Br_high": 16.1,
+      "B_vs_earth_typ": "< 地磁典型值(50uT)",
+      "pos_pass_window": false,
+      "pos_pass_magnet": false,
+      "pos_pass_screw": true,
+      "pos_pass_all": false,
+      "mag_pass": true,
+      "skeleton_over_mic": false,
+      "skeleton_cutout_needed": false,
+      "pinset_clearance_mm": 6.86,
+      "pinset_governing_hole": "P1",
+      "pinset_clearance_per_hole_mm": {
+        "P1": 6.864,
+        "S1": 6.9448,
+        "P2": 32.6221,
+        "S2": 33.6139
+      },
+      "pinset_clearance_legacy_15mm_mm": 7.41,
+      "pinset_governing_hole_legacy_15mm": "P1",
+      "pinset_clearance_delta_vs_legacy_mm": -0.54,
+      "pinset_wall_pass_nonoverlap": true,
+      "pinset_wall_pass_board_rule": true,
+      "pinset_wall_pass_iss092_precedent": true,
+      "pinset_wall_margin_vs_iss092_mm": 5.86
+    },
+    {
+      "name": "M3 mech-lead 假设位 (根部 SoC 区)",
+      "board_x": 26.0,
+      "board_y": 12.0,
+      "temple_L": 66.5,
+      "note": "ISS-092 §8 第 10 行『导光孔 根部 SoC 区』的代表位; 也是镜脚外侧导光孔若复活时的落点",
+      "conn_zone_clear_pads_only_mm": 23.0,
+      "conn_zone_clear_full_mm": 2.0,
+      "conn_zone_status": "情形a(仅焊盘 X0..3) 净空 23.00 mm",
+      "clear_window_mm": 23.2,
+      "clear_magnet_nom_mm": 33.8,
+      "clear_magnet_worst_mm": 22.0,
+      "clear_screw_mm": 34.3,
+      "clear_cover_footprint_mm": 22.0,
+      "B_at_mic_uT_nominal": 31.17,
+      "B_at_mic_uT_worst_magnetpos": 113.31,
+      "B_at_mic_uT_Br_high": 32.73,
+      "B_vs_earth_typ": "< 地磁典型值(50uT)",
+      "pos_pass_window": false,
+      "pos_pass_magnet": false,
+      "pos_pass_screw": false,
+      "pos_pass_all": false,
+      "mag_pass": true,
+      "skeleton_over_mic": true,
+      "skeleton_cutout_needed": true,
+      "pinset_clearance_mm": 15.7,
+      "pinset_governing_hole": "P1",
+      "pinset_clearance_per_hole_mm": {
+        "P1": 15.6956,
+        "S1": 15.8934,
+        "P2": 23.6484,
+        "S2": 24.884
+      },
+      "pinset_clearance_legacy_15mm_mm": 15.96,
+      "pinset_governing_hole_legacy_15mm": "P1",
+      "pinset_clearance_delta_vs_legacy_mm": -0.26,
+      "pinset_wall_pass_nonoverlap": true,
+      "pinset_wall_pass_board_rule": true,
+      "pinset_wall_pass_iss092_precedent": true,
+      "pinset_wall_margin_vs_iss092_mm": 14.7
+    }
+  ],
+  "criteria": {
+    "pos_min_mm": 40.0,
+    "B_strong_uT": 50.0,
+    "B_loose_uT": 100.0,
+    "earth_uT": [
+      25.0,
+      50.0,
+      65.0
+    ],
+    "pinset_wall_refs_mm": {
+      "nonoverlap_hard": 0.0,
+      "board_rule_min_hole_clearance": 0.25,
+      "iss092_precedent": 1.0,
+      "self_tap_general_practice": 1.0
+    },
+    "pinset_wall_refs_sources": {
+      "nonoverlap_hard": "ISS-121 MD §3.2-4 既有口径「与 PIN-SET-2 不打架」= 净空 > 0",
+      "board_rule_min_hole_clearance": "[实测] HW/PCB/demo_mainboard.kicad_pro design_settings.rules.min_hole_clearance=0.25",
+      "iss092_precedent": "[推算] MECH/SERVICE_PORT_ISS092.md §8-11: P2 孔壁到 J_DEBUG 焊盘阵列最近 1.00mm 判通过",
+      "self_tap_general_practice": "[推算·通用] 自攻 M1.2 螺钉孔周围留 >=1.0mm (非本项目判据, 仅参考)"
+    }
+  },
+  "pinset_holes": {
+    "board": "60x30",
+    "set": "A (ISS-194 定版)",
+    "holes": {
+      "P1": [
+        8.0,
+        15.0,
+        2.0
+      ],
+      "S1": [
+        8.0,
+        10.0,
+        1.4
+      ],
+      "P2": [
+        52.0,
+        15.0,
+        2.0
+      ],
+      "S2": [
+        52.0,
+        20.0,
+        1.4
+      ]
+    },
+    "legacy_15mm_obsolete": {
+      "P1": [
+        8.0,
+        7.5,
+        2.0
+      ],
+      "S1": [
+        8.0,
+        2.5,
+        1.4
+      ],
+      "P2": [
+        52.0,
+        7.5,
+        2.0
+      ],
+      "S2": [
+        52.0,
+        12.5,
+        1.4
+      ]
+    }
+  },
+  "pinset_drift_guard": {
+    "ok": true,
+    "detail": "逐坐标一致 (4 孔)"
+  },
+  "mic_y_sensitivity": {
+    "mic_x": 5.0,
+    "y_range": [
+      0.8,
+      29.2
+    ],
+    "step": 0.01,
+    "worst": {
+      "y": 14.19,
+      "wall_mm": 0.55,
+      "governing_hole": "P1"
+    },
+    "best": {
+      "y": 29.2,
+      "wall_mm": 12.4893,
+      "governing_hole": "P1"
+    },
+    "at_current_y": [
+      12.0,
+      1.2602,
+      "S1"
+    ],
+    "bands": {
+      "nonoverlap": {
+        "ok": true,
+        "text": "[0.80..29.20]",
+        "runs": [
+          [
+            0.8,
+            29.2
+          ]
+        ]
+      },
+      "board_rule_0.25": {
+        "ok": true,
+        "text": "[0.80..29.20]",
+        "runs": [
+          [
+            0.8,
+            29.2
+          ]
+        ]
+      },
+      "iss092_1.00": {
+        "ok": true,
+        "text": "[0.80..8.50] / [11.50..12.93] / [17.07..29.20]",
+        "runs": [
+          [
+            0.8,
+            8.5
+          ],
+          [
+            11.5,
+            12.93
+          ],
+          [
+            17.07,
+            29.2
+          ]
+        ]
+      }
+    },
+    "samples": [
+      {
+        "y": 1.0,
+        "wall_mm": 7.6452,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 1.5,
+        "wall_mm": 7.1545,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 2.0,
+        "wall_mm": 6.665,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 2.5,
+        "wall_mm": 6.177,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 3.0,
+        "wall_mm": 5.6908,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 3.5,
+        "wall_mm": 5.207,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 4.0,
+        "wall_mm": 4.7261,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 4.5,
+        "wall_mm": 4.249,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 5.0,
+        "wall_mm": 3.7769,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 5.5,
+        "wall_mm": 3.3115,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 6.0,
+        "wall_mm": 2.8556,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 6.5,
+        "wall_mm": 2.4133,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 7.0,
+        "wall_mm": 1.9912,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 7.5,
+        "wall_mm": 1.6005,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 8.0,
+        "wall_mm": 1.2602,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 8.5,
+        "wall_mm": 1.0007,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 9.0,
+        "wall_mm": 0.8628,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 9.5,
+        "wall_mm": 0.85,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 10.0,
+        "wall_mm": 0.85,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 10.5,
+        "wall_mm": 0.85,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 11.0,
+        "wall_mm": 0.8628,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 11.5,
+        "wall_mm": 1.0007,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 12.0,
+        "wall_mm": 1.2602,
+        "governing_hole": "S1"
+      },
+      {
+        "y": 12.5,
+        "wall_mm": 1.3005,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 13.0,
+        "wall_mm": 0.9602,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 13.5,
+        "wall_mm": 0.7007,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 14.0,
+        "wall_mm": 0.5628,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 14.5,
+        "wall_mm": 0.55,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 15.0,
+        "wall_mm": 0.55,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 15.5,
+        "wall_mm": 0.55,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 16.0,
+        "wall_mm": 0.5628,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 16.5,
+        "wall_mm": 0.7007,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 17.0,
+        "wall_mm": 0.9602,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 17.5,
+        "wall_mm": 1.3005,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 18.0,
+        "wall_mm": 1.6912,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 18.5,
+        "wall_mm": 2.1133,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 19.0,
+        "wall_mm": 2.5556,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 19.5,
+        "wall_mm": 3.0115,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 20.0,
+        "wall_mm": 3.4769,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 20.5,
+        "wall_mm": 3.949,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 21.0,
+        "wall_mm": 4.4261,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 21.5,
+        "wall_mm": 4.907,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 22.0,
+        "wall_mm": 5.3908,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 22.5,
+        "wall_mm": 5.877,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 23.0,
+        "wall_mm": 6.365,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 23.5,
+        "wall_mm": 6.8545,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 24.0,
+        "wall_mm": 7.3452,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 24.5,
+        "wall_mm": 7.837,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 25.0,
+        "wall_mm": 8.3297,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 25.5,
+        "wall_mm": 8.8231,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 26.0,
+        "wall_mm": 9.3171,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 26.5,
+        "wall_mm": 9.8117,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 27.0,
+        "wall_mm": 10.3067,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 27.5,
+        "wall_mm": 10.8022,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 28.0,
+        "wall_mm": 11.2981,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 28.5,
+        "wall_mm": 11.7942,
+        "governing_hole": "P1"
+      },
+      {
+        "y": 29.0,
+        "wall_mm": 12.2907,
+        "governing_hole": "P1"
+      }
+    ]
+  },
+  "verdict": {
+    "magnetic": "无影响 (B 远低于地磁量级)",
+    "position_literal_40mm": "仅 X<=8.00 可行, 与 PIN-SET-2/连接器落板区冲突",
+    "position_recommended": "M1 板坐标 X=5.00 / Y=12.00 (铰链端, 骨架外, 顶进式声孔)"
+  },
+  "fails": [
+    "[已归属->ISS-105] M1 铰链端 落板区边界 [0数据]: 情形b(连接器占 X0..24) 时无合规位置"
+  ],
+  "unowned_hard_fail": false
+}

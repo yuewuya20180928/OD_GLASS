@@ -7,18 +7,8 @@ status:
   progress_pct: 100
   health: green
   updated_at: '2026-11-18'
-  summary: 'ISS-335 (2026-11-19 00:4x~00:5x) 交卷: SW 侧「板只改一次」准出汇总闸已落地 —— 一条命令 python3 SW/tools/check_onepass_sw_release.py
-    给出 SW 侧能不能出 Gerber 的结论 (主跑 rc=0, 绿 10 红 0, 逐条 rc 见 logs/iss335/01_main_run.log)。对标 MECH 侧 ISS-300
-    的 check_onepass_mech_release.py, 判定对象换成 SW 侧。清单基准 = ISS-321 实测表那 10 道 (含 4 道链外闸: check_demo_panel_spec
-    / check_shutdown_semantics / check_timing_review_adc_sync / timing_check —— 板那一趟当天它们会红而今天不在链上 ⇒ 没人会注意到),
-    少一道 ⇒ 汇总直接红。fail-closed 四条全部实测: 脚本不存在 / 跑不起来 / 超时 300s / rc 非 0 一律算闸红, 绝不没跑就当过。TMPDIR 一律指项目内 tmp/iss335_tmp
-    (本机系统临时目录配额到顶, 不指会 6 道一起假红)。三道 R6 闸必须裸跑 —— 传 --selftest 会 rc=2 usage 错误 ⇒ 汇总自己红, 自检 6b 现场实测三道都 rc=2
-    证明这条坑是真的。--selftest rc=0, 8 组反向用例全过, 真件真闸真篡改跑在沙盒副本 (SW/ 与 state/ 真拷贝), 真盘一个字节没碰。位号可达性闸列 v1 还是 v2:
-    建议默认 v1 判决 + v2 影子, 已登记 needs_from (iss335_ref_gate_v1_or_v2, to=main, waiting_on 留空) 等 main 拍, 本单不代拍也不改
-    state/gate_check.py 一个字节。交付: SW/tools/check_onepass_sw_release.py (新建) + SW/ONETRIP_SW_RELEASE_GATE_SPEC.md
-    (清单页 + 当天 SOP + 回滚三档) + HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md (B0~B6) + logs/iss335/ (机器原始输出)。零写板
-    (板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06 07:07:17.362193413 前后逐字节相同) 零落表 (网表 / 脚表
-    / BOM 三件 md5+mtime 不变) 零改既有 16 道 SW 闸 零改 gate_check.py 零改 issue_log.yaml 零改别人分片 零外发。'
+  summary: '★ISS-338 交卷: 9条零铜单端网 SW/** 网名级零引用(扫法自证 BAT_DET=121/RESET_N=52), 按功能等价物分级 = 必需2(CAM_RESET_N/LED_G_D)·可悬空候选6·待定1(USB_CC2);
+    推翻 main need-4b 默认值2条 + 另升2条; S8净效果 unc45→36 差分腿0条; 零写板/零落表/零改固件/零改闸/零外发; 板 md5 611b869e 未动'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -1710,6 +1700,24 @@ artifacts:
     07:07:17.362193413 + 网表 / 脚表 / BOM 三件 md5+mtime)·01_main_run (汇总闸主跑 10 道逐条 rc)·02_selftest (8 组反向用例原样)·03_json_run
     (机器读)·04_boundary_after (交卷前边界复查)·05_ref_gate_v2 (换 v2 进判决的实测)·06_final_verify (交卷前必跑 9 条命令)·07_gate_chain_check
     (Q1 18/18 段)
+- path: SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+  kind: report
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-338 主交付物★ 9 条零铜单端网逐条引用表(网名级三跑读数 + 引用形态四档 + 分级) + 可悬空候选清单(固件侧改哪一行只写不改) + 三问结论 + E1~E20
+    证据分级 + 边界自证
+- path: HANDOFF/2026-11-19_sw-lead_ISS338_9条单端脚固件引用.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-338 交卷单 B0~B6★ 结论/自评/证据分级/接口取值声明/未决项/复现命令 + 诚实边界 8 条
+- path: logs/iss338/
+  kind: log
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: '★ISS-338 机器原始输出 24 件★ 含 21_nine_net_reference_evidence(9条网逐条 V1/V2/V3 三跑) + 22_pcb_independent_parse(本单自写
+    s-expr 解析器独立复核官方板: 18092段/433孔/零铜网24 ⇒ 与 ISS-334 逐项一致) + 23_unc_attribution(unc 45 条中本单 9 条各占 1 条
+    = 20.0%)'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -3215,6 +3223,21 @@ needs_from:
     v2 或 --ref-gate both 或 --shadow-strict。本单零改 state/gate_check.py 一个字节, 挂链与选版都是 main 的机制地界。详见交卷页 HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md
     的 B5-1'
   since: '2026-11-19'
+- key: iss338_need_usbif_cc1_cc2_rule
+  to: main
+  item: '★USB_CC2 悬空与否取决于 USB-IF Type-C 对『USB 2.0-only 插座是否必须 CC1/CC2 双路 Rd』的条款 —— 公开来源互相矛盾(可单路 Rd vs
+    须双路 advertise Rd) ⇒ SW 侧无权单方拍。建议: 板侧默认 NC + 保留 R_CC2_D, 同时由 main 在既有问询清单里加一句(不发新信)'
+  since: '2026-11-19'
+- key: iss338_need_boot_storage_answer
+  to: main
+  item: ★P4 启动存储类型(SW/FLASH_AND_VERSION.md:359 [0数据])若最终要外挂 SPI-NOR ⇒ 3 条 SPI_*_BOOT 不可悬空, 板要重出。建议在既有问询清单补一句『主板侧启动存储焊盘位不引出(J_BOOT1
+    DNP)』
+  since: '2026-11-19'
+- key: iss338_need_jtag_group_decision
+  to: main
+  item: '★JTAG 整组处理两难: JTAG_TCK/JTAG_TMS/JTAG_TDO 都有铜, 只有 JTAG_TDI 是 0 段 ⇒ 裁 TDI 就等于接受『4 线缺 1, JTAG 实不可用』;
+    保 JTAG 就得 4 线一起救 ⇒ 归 main'
+  since: '2026-11-19'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -3606,6 +3629,50 @@ answers:
     (L222-223) 把路径换成 check_sw_ref_reachability_v2.py·args 传 () 裸跑·旧闸建议【不删文件·退出链】(回滚=改回1行)。★零写板·零落表·零改真件闸·零改
     gate_check.py·零外发·不自签 issue_log。'
   ref: HANDOFF/2026-11-18_sw-lead_ISS332_SW位号可达性闸4条洗白面收紧.md
+- key: iss338_single_end_net_fw_classification
+  to: main
+  value: '必需 2 (CAM_RESET_N · LED_G_D) · 可悬空候选 6 (FSIN_OUT · JTAG_TDI · SPI_MISO_BOOT · SPI_MOSI_BOOT
+    · SPI_SCLK_BOOT · UART_RX) · 待定 1 (USB_CC2)。9 条零铜单端网在 SW/** 全树 126 文件网名级零引用(含大小写/下划线/连字符变体), 扫法已被
+    BAT_DET=121 / RESET_N=52 自证有效; 按功能等价物逐条查完后分级。★**推翻 main need-4b 默认值 2 条**: UART_RX 必需⇒可悬空候选 (SW 侧串口实测只读
+    cat $SERDEV, 写方向命中 0 行; UART_TX 已 230 段铜日志抓取链完整; J_UART 整件 dnp=可选) · USB_CC2 必需⇒待定 (官方板上零铜端点=板载 J_USB_C.B5+R_CC2_D.1,
+    J_TYPE_C 不在板上, USB_CC1=151 段已布; 但 USB-IF 单路/双路 Rd 两条款互相矛盾需外部确认)。★另推翻 main「其余 7 条」口径 2 条: CAM_RESET_N
+    升为必需 (网表 HW/netlist_v1.csv:285 [官方]『主板必须能拉它』+ dts reset-gpios gpio1 RK_PB3 低有效 ⇒ 相机不出图则 MIPI-CSI 链死)
+    · LED_G_D 升为必需 (同族 LED_B_D=105段 / LED_R_D=169段 都有铜, 只它 0 段 ⇒ 该布没布; 且 D_LED_G 被 check_sw_ref_reachability.py:178
+    与 v2:237 硬编码进 DESIGNATOR_REGISTRY = 真代码路径)'
+  ref: ISS-338 · SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md §2/§3 · logs/iss338/21_nine_net_reference_evidence.txt
+    · logs/iss338/22_pcb_independent_parse.txt
+- key: iss338_s8_net_effect_9nets
+  to: main
+  value: '★**S8 净效果 (给 need-4b / 板那一趟的净账)★**: 悬空 9 条 ⇒ unc 45→36 (净减 9 条 = 45 的 20.0%); 【差分腿救回 0 条】(15
+    条高速差分腿占 unc 里的 23 条, 与本单 9 条无交集); 【布线工作量省 9 条】, 但其中 8 条是 ISS-334 已判定的 B 桶几何死线(出脚余量≤+0.30mm, 官方同配方
+    A* 实测『补上 0 条』) ⇒ 省的是『做不成的活』, 不是『能走通的活』。⇒ 悬空这 9 条 = 把『板那一趟为救一条调试脚去动高速差分走廊』的那一半风险直接消掉。★**前提**: 板侧须真把
+    pad 标 no-connect / 摘网, DRC 条目才消失; 只是『不连』而没标 NC, DRC 照样报这 9 条。'
+  ref: ISS-338 · logs/iss338/23_unc_attribution.txt (基于 logs/iss334/00_official_drc_fresh.json) · logs/iss334/08_astar_officialenv.log
+    · HW/PCB/ONETRIP_S8_MECHANISM_PATH.md §2-2
+- key: iss338_uart_rx_sw_usage_facts
+  to: main
+  value: '★**UART_RX 的 SW 侧用法实测**★: SW 侧串口用法 = 【只读】(SW/tools/s2_board_run.sh:248-263, s2_rescue_config.json:230
+    _readme 明写『板端串口(取日志用)』); 写方向扫描命中 0 行 (stty / > /dev/tty / write.*tty 全 0) ⇒ 主机→板方向零需求。板→主机方向完整: UART_TX
+    (J_SOM_P2.7 → TP_UART) 实测 230 段 / 4 孔已有铜; J_UART 排针整件 dnp=可选。'
+  ref: ISS-338 · logs/iss338/06_functional_scan_serial_direction.txt · logs/iss338/09_functional_scan_ledsemantics_serialwrite.txt
+    · logs/iss338/22_pcb_independent_parse.txt
+- key: iss338_usb_cc2_onboard_endpoint
+  to: main
+  value: '★**USB_CC2 的官方板端点实测 (★同名不同物, 判必需性必须按 J_USB_C 判★)★**: 官方板上零铜的 USB_CC2 端点 = 板载 Type-C 的 J_USB_C.B5
+    + R_CC2_D.1 (5.1k Rd); 充电板侧的 J_TYPE_C / R_CC2 / R_CC1 【不在官方板上】; J_USB_C 的 USB 2.0 差分 USB_D_P/N_TYPEC
+    已有铜 ⇒ 调试/供电数据通路不依赖 CC2; USB_CC1 实测 151 段已布。★**但 USB-IF Type-C 对『USB 2.0-only 插座是否必须 CC1/CC2 双路 Rd』两条公开条款互相矛盾
+    (可单路 Rd vs 须双路 advertise Rd) ⇒ SW 侧无权单方拍 ⇒ 分级『待定』, 建议板侧默认 NC + 保留 R_CC2_D, 并由 main 在既有问询清单里加一句 (不发新信)。'
+  ref: ISS-338 · logs/iss338/20_final_crosschecks.txt · logs/iss338/22_pcb_independent_parse.txt · HW/netlist_v1.csv:293/294
+    · HW/CHARGE_BOARD_SPEC.md:571/573 · HW/SCHEMATIC_V1.md:654
+- key: iss338_open_items_for_main
+  to: main
+  value: '★**本单边界与未决项交 main (不代拍)★**: ① USB_CC2 悬不悬空 ⇒ 归 main 裁 (USB-IF 条款待外部确认); ② 启动存储 P4 类型 (SW/FLASH_AND_VERSION.md:359
+    [0数据]) ⇒ 若最终外挂 SPI-NOR, 3 条 SPI_*_BOOT 不可悬空, 板要重出 ⇒ 归原厂 (经 main 既有问询清单, 不发新信); ③ JTAG 整组 (JTAG_TCK/TMS/TDO
+    都有铜, 只缺 TDI) ⇒ 裁了就等于接受『4 线缺 1, JTAG 实不可用』, 归 main; ④ 24 条零铜网的分级定稿 (need-4b) ⇒ 归 main。 ★另登记: SW/tools/check_sw_ref_reachability.py:185
+    与 check_sw_ref_reachability_v2.py:244 的 『J_TYPE_C』硬编码指向一个不在官方板上的位号 ⇒ 本单零改闸, 只登记不动手。★**固件侧降级声明本单只写清改哪一行,
+    一行未动 (本单不许改固件本体)** ⇒ 改动清单见 SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md §3。'
+  ref: ISS-338 · HANDOFF/2026-11-19_sw-lead_ISS338_9条单端脚固件引用.md §B4/§B5 · SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+    §3/§4
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -5537,6 +5604,22 @@ interface_claims:
     的 [FAIL] 与 ❌ 行当详情; 跑完 rc=0 ⇒ 闸绿。清单本身也参与判决 (少一道 ⇒ 汇总直接红)。'
   note: 自检 2 / 3 / 4 / 5 实测 (沙盒桩闸)
   ref: ''
+- key: iss338_single_end_net_fw_classification
+  value: 必需2·可悬空候选6·待定1
+  note: ★SW 侧实测分级★ 9 条零铜单端网; 推翻 main need-4b 默认值2条(UART_RX/USB_CC2) + 另升 CAM_RESET_N/LED_G_D 为必需
+  ref: ISS-338
+- key: iss338_uart_rx_usage_direction
+  value: SW 侧串口只读
+  note: ★UART_RX 降级依据★ s2_board_run.sh:248-263 只 cat; UART_TX 已 230 段铜; J_UART dnp=可选
+  ref: ISS-338
+- key: iss338_usb_cc2_endpoint
+  value: J_USB_C.B5 + R_CC2_D.1
+  note: ★USB_CC2 官方板端点★ J_TYPE_C 不在板上; USB_CC1=151段已布; USB-IF 双路 Rd 条款待确认 ⇒ 待定
+  ref: ISS-338
+- key: iss338_s8_net_effect
+  value: unc 45→36 (−20.0%); 差分腿 0 条; 省 9 条(8条B桶死线)
+  note: ★S8 净效果实测★ 悬空只减 unc 不救差分腿; 前提是板侧真标 no-connect
+  ref: ISS-338
 open_questions:
 - id: SW-Q1
   to: main

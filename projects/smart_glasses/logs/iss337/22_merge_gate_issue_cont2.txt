@@ -1,0 +1,39 @@
+============================================================================================
+★ISS-337 cont2 (2026-11-22 20:5x) · 交卷前必跑 (★逐字输出★)
+============================================================================================
+$ TMPDIR=$PWD/tmp python3 tmp/iss337/seg_parity_selfcheck.py --selftest   # ⇒ 末行 ALL TESTS PASS, rc=0
+
+ALL TESTS PASS  ⇒ ★新口径成立: 官方板与现役臂【同带】, 老口径【会把官方板自己拦掉】★
+SELFTEST_RC=0
+
+$ TMPDIR=$PWD/tmp python3 state/merge.py       ; echo "MERGE_RC=$?"
+✅ STATE.yaml 已刷新 (2026-11-22T21:02:00+08:00)
+   产出 706 | 阻塞 43 (高危 33) | 未闭合需求 341 | 冲突 0 | 健康度 red
+MERGE_RC=0
+
+$ TMPDIR=$PWD/tmp python3 state/gate_check.py   ; echo "GATE_RC=$?"  # ⇒ Q1 里 hw-lead 6/6 缺: 无
+5:【Q1 交付齐备率】 18/18 个必填验收块齐全
+6:   hw-lead    6/6  缺: 无   交接单: 2026-11-19_hw-lead_ISS337_段数追平根因定位.md
+7:   sw-lead    6/6  缺: 无   交接单: 2026-11-19_sw-lead_ISS338_9条单端脚固件引用.md
+8:   mech-lead  6/6  缺: 无   交接单: 2026-11-19_mech-lead_ISS336_板框冻结闸实现.md
+11:   hw-lead    标签: ['实测', '官方', '0数据']
+15:【Q3 接口声明率】 全员 interface_claims 共 1012 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+16:   hw-lead    382 条
+23:   hw-lead    被答 38/238 | 我答 68 条(有效 31) | 产出 253 | 阻塞 7
+33:      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+36:      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+39:   hw-lead    1/5 类: ['镜腿/镜脚厚度(mm)']
+58:   · hw-lead: 180 条需求确实还没人答 (等另一个总工)
+GATE_RC=0
+
+$ TMPDIR=$PWD/tmp python3 state/issue_check.py  ; echo "ISSUE_RC=$?"
+  🟡 ISS-329  verified  owner=main       due=2026-11-21  
+       ★4 个生成器产物被闸脚本无条件重写 ⇒ mtime 证据链被污染 (★复发型·ISS-280 之后第二次★)·★定终局方案★
+  🟡 ISS-261  verified  owner=main       due=2026-11-22  
+       ★★[门禁侧·口径缺陷·内部活] ★★`state/delivery_health.py` 的【口径①】把 `delivery.mo
+
+❌ 违规 20 条
+ISSUE_RC=1
+
+$ grep -c iss337 state/fragments/hw.yaml        # ⇒ ≥ 5
+14

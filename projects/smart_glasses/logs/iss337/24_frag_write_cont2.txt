@@ -1,0 +1,45 @@
+============================================================================================
+★ISS-337 cont2 (2026-11-22 20:5x) · 分片登记回执 (★只走 state/frag_write.py·原子写★)
+============================================================================================
+
+── 写前 md5 (★备份在 /tmp/hw.yaml.pre_iss337_cont2.bak★) ──
+e10fb13287175a9dcaa2379430696af3  /tmp/hw.yaml.pre_iss337_cont2.bak
+
+── 实际执行的命令行 (★一条命令行一次原子写·★共 3 次 frag_write 调用★) ──
+python3 state/frag_write.py --agent hw-lead --add-claim <4 条> --add-artifact <5 个> --add-need <3 条>
+  ★第 1 次尝试 (2026-11-22 20:5x 早于本文件): 因值里含空格未加内层引号 ⇒ frag_write 报「参数要写成 key=value」并退出 rc=1
+  ★⇒ 写前 md5 未变 (e10fb132…) ⇒ 零落盘 ⇒ 补引号后重跑
+
+── 第 2 次 (成功) 的 stdout 逐字回执 ──
+[frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+
+── 写后 md5 ──
+f2ccc866b25001332e58f0713d2ca127  state/fragments/hw.yaml
+
+── 落盘内容逐条核验 (★只读·★别人的 key 一条没删改·★本次只 append 4 claim + 5 artifact + 3 need★) ──
+★interface_claims 总数 = 382
+  claim : iss337_norm_caliber_v1
+     value: 归一化口径=V1(层,网,宽 + 度数=2) · 归一化段数∈[2300,3200] · 铜长∈[4600,5900]mm · 过孔∈[380,520]
+     ref  : logs/iss337/18_norm_impl_diff.txt + logs/iss337/21_band_truth_and_why_changed.txt
+  claim : iss337_no_seg_chase_baseline
+     value: 不追段数(18092是_merge_collinear坐标错位bug产物) · 改立同口径基线: 归一化段数+铜长+过孔三项区间 + 逐网铜量名单双向判据
+     ref  : HW/PCB/ONETRIP_S8_SEGMENT_PARITY_ROOTCAUSE.md §4.4 + §5.1
+  claim : iss337_main_findings_recheck
+     value: main发现①复算: 官方板136焊盘网/90有铜/24零铜 · 现役v76mg1零铜7 · v76mz零铜12 · best_unc23零铜7 ⇒ 两边都零铜只剩3条(CSI_D0_D0_N_SRC / CSI_D0_
+     ref  : logs/iss337/17_main_findings_recheck.txt
+  claim : iss337_seg_align_ne_copper
+     value: 段数对齐 ≠ 同一块铜: 官方板 vs best_unc23 两板都有铜86条 ⇒ 逐网铜长相符仅21条(±2%或1mm内) · 对不上65条 ⇒ 判据必须改成逐网铜量名单+零铜网名单双向 · 不许拿归一化段数当唯一尺子
+     ref  : logs/iss337/17_main_findings_recheck.txt
+★artifacts 新增 5 个:
+  artifact: HANDOFF/2026-11-19_hw-lead_ISS337_段数追平根因定位.md | kind= handoff
+  artifact: HW/PCB/ONETRIP_S8_SEGMENT_PARITY_ROOTCAUSE.md | kind= doc
+  artifact: tmp/iss337/seg_parity_selfcheck.py | kind= script
+  artifact: tmp/iss337/norm_impl_diff.py | kind= script
+  artifact: logs/iss337/21_band_truth_and_why_changed.txt | kind= evidence
+★needs_from 新增 3 条:
+  need   : iss337_need4b_two_way_copper_list | to= main
+  need   : iss337_band_truth_overrides_doc | to= main
+  need   : iss337_rereread_zerocopper_denominator | to= main
+
+── grep -c iss337 state/fragments/hw.yaml (★要求 ≥5★) ──
+14

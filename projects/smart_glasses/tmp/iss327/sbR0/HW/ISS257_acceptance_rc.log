@@ -1,0 +1,30 @@
+═══════════════════════════════════════════════════════════════════════════════
+ ISS-257 · G1a-7 选型落表 · 验收命令原样 rc (2026-11-16 21:2x~21:5x · 本机实跑)
+═══════════════════════════════════════════════════════════════════════════════
+命令                                               rc
+python3 state/check_netlist.py                       0   ★★本轮 P0 的靶心 (修前 rc=1 + 非法值 ['[官网]'])★★
+python3 state/check_netlist_pins.py                  0
+python3 state/check_sch_erc.py                       0   (ERC=0)
+python3 state/check_sch_pinfull.py                   0   (图上 584 脚 / 表里 584 脚 · K=0 · universe=218)
+python3 state/check_stage_g1a.py                     1   (G1a-5 ✅ / G1a-7 ✅ · G1a-4 + G1a-8 仍红 = 预期)
+python3 state/check_stage_g1a.py --selftest          0
+python3 HW/check_g1a7_selection_landed.py            0   ★本单新门禁 · 六条判据全绿★
+python3 HW/check_g1a7_selection_landed.py --selftest 0   (11/11 反向用例全抓到)
+python3 HW/check_netlist_selfconsistency.py          0   (现状守卫 · 4 条锚点跟着落表走)
+python3 HW/check_netlist_selfconsistency.py --expect-resolved 1   (仍 18 条未落表 · 一条没上升)
+python3 HW/check_netlist_contradiction_r3.py         1   (FINDINGS = 2 = F2+F3)
+python3 HW/check_netlist_contradiction_r3.py --selftest 0   (12/12)
+python3 HW/check_part_selection_matrix.py            0   (8/8)
+python3 state/merge.py                               0   (STATE.yaml 已刷新)
+python3 state/gate_check.py                          0   (Q1 18/18 · Q2 3/3)
+
+★受保护 md5 (★板 / .kicad_pro 逐字节不变★)
+e06c1dd633566aa44732762c2ff99d1c  HW/netlist_v1.csv
+287e7861a0d1007748d92d9fbecdd490  HW/netlist_v1_pins.csv
+94642d07a69e8d60dd2af57f69b93607  HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+3e504d2be83152e337949723e909be1b  HW/PCB/demo_mainboard.kicad_pro
+
+★反向自证: python3 state/_iss257_r1_sandbox_proof.py ⇒ HW/ISS257_g1a7_reverse_proof_sandbox.log
+  步骤0 绿(rc=0) ⇒ 步骤1 改回旧值 ⇒ 红(rc=1 · 非法值 ['[官网]'] · C5 FAIL) ⇒ 步骤2 装回 ⇒ 绿(rc=0) ⇒ 步骤3 真盘 md5 差异 0 处
+  ★沙盒网表 md5 步骤1 = 7dcf251a10ce748c44d467473b3f56d6 (= 真盘 20:50 旧态) ⇒ 沙盒逐字节保真★

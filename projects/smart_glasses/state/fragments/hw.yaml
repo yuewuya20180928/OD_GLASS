@@ -1663,6 +1663,31 @@ artifacts:
   version: '1.0'
   updated_at: '2026-10-25'
   summary: 'ISS-334 交卷单: B0~B7 齐全, 6条need交main/boss, 零写板零落表零改闸零外发'
+- path: HANDOFF/2026-11-19_hw-lead_ISS337_段数追平根因定位.md
+  kind: handoff
+  version: cont2
+  updated_at: '2026-10-25'
+  summary: ISS-337交卷页(B0~B7 + B4接口取值声明 + W1/W2/W3三段 + B6必跑输出)
+- path: HW/PCB/ONETRIP_S8_SEGMENT_PARITY_ROOTCAUSE.md
+  kind: doc
+  version: cont2
+  updated_at: '2026-10-25'
+  summary: ISS-337主交付物(口径段改脚本真值 + 补W1/W2/W3 + 沙盒臂[0数据])
+- path: tmp/iss337/seg_parity_selfcheck.py
+  kind: script
+  version: 2026-11-19_0236
+  updated_at: '2026-10-25'
+  summary: 段数/铜长同工艺区间自检脚本(band真值来源 L59-61 · 一个字节都不许改)
+- path: tmp/iss337/norm_impl_diff.py
+  kind: script
+  version: 2026-11-19_0235
+  updated_at: '2026-10-25'
+  summary: V1/V2/V3/V4四套归一化实现对照(V1=层,网,宽+度数=2 为口径)
+- path: logs/iss337/21_band_truth_and_why_changed.txt
+  kind: evidence
+  version: cont2
+  updated_at: '2026-10-25'
+  summary: band脚本真值+老口径为何作废的四块锚板逐条误拦对照
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -3566,6 +3591,19 @@ needs_from:
   item: 'ISS-334 need-6: 老板口径那 8 个字母 (W-2 / W-1c / A4 / W-3 / U-1 / P7 等) 要不要并进机制级路线? 问法: 机制级三桶 (A成对走廊
     / B出脚几何 / C路由器本体) 全是布线层机制, 不动器件选型与拓扑 => 与口径并行不冲突, 是否按此推进? 不答后果: 机制级做出来的板可能与老板口径打架. 建议默认值: 并行推进, 口径落定后再合并出最终板.
     建议排期: 板那一趟之前'
+  since: '2026-10-25'
+- key: iss337_need4b_two_way_copper_list
+  to: main
+  item: 'ISS-334 need-4b定稿输入: 判据改成逐网铜量名单+零铜网名单双向(段数对齐≠同一块铜 · 官方vs best_unc23 86条有铜网只相符21条) · 不许拿归一化段数当唯一尺子'
+  since: '2026-10-25'
+- key: iss337_band_truth_overrides_doc
+  to: main
+  item: band口径以tmp/iss337/seg_parity_selfcheck.py L59-61为唯一真值(归一化段数[2300,3200]·铜长[4600,5900]mm·过孔[380,520])
+    · 文档里的[2400,2900]/[5400,5900]/[380,450]已作废(按官方板单块锚定 ⇒ 误拦现役臂471/486/505)
+  since: '2026-10-25'
+- key: iss337_rereread_zerocopper_denominator
+  to: main
+  item: '布线45→0的分母必须在板那一趟的新基线上重读: 官方板24条零铜网里21条在现役链终板v76mg1上已有铜 · 两边都零铜只剩3条(CSI_D0_D0_N_SRC/CSI_D0_D2_N/CSI_D0_D3_N)'
   since: '2026-10-25'
 answers:
 - key: pcb_outline_confirm
@@ -6527,6 +6565,25 @@ interface_claims:
   value: 零新增铜
   note: '实测: 官方板上跑 pair_corridor.py 打印 落铜成功 P1段/N1段, 但段数 18,092->18,092 且几何等价 rc=0 => 1格退化路径假阳性'
   ref: ''
+- key: iss337_norm_caliber_v1
+  value: 归一化口径=V1(层,网,宽 + 度数=2) · 归一化段数∈[2300,3200] · 铜长∈[4600,5900]mm · 过孔∈[380,520]
+  note: '实测: 官方2649/433/5726.9 · 现役v76mg1 2582/471/5582.8 · v76mz 3099/486/5426.6 · best_unc23 2598/475/5591.2;
+    老口径[2400,2900]/[5400,5900]/[380,450]是按官方板单块锚定 ⇒ 会误拦现役臂 ⇒ 作废'
+  ref: logs/iss337/18_norm_impl_diff.txt + logs/iss337/21_band_truth_and_why_changed.txt
+- key: iss337_no_seg_chase_baseline
+  value: '不追段数(18092是_merge_collinear坐标错位bug产物) · 改立同口径基线: 归一化段数+铜长+过孔三项区间 + 逐网铜量名单双向判据'
+  note: '实测: 同口径归一化后官方2649 vs 现役2582 只差2.5% ⇒ 本来就在同一条带上 ⇒ 追段数是错的靶'
+  ref: HW/PCB/ONETRIP_S8_SEGMENT_PARITY_ROOTCAUSE.md §4.4 + §5.1
+- key: iss337_main_findings_recheck
+  value: 'main发现①复算: 官方板136焊盘网/90有铜/24零铜 · 现役v76mg1零铜7 · v76mz零铜12 · best_unc23零铜7 ⇒ 两边都零铜只剩3条(CSI_D0_D0_N_SRC
+    / CSI_D0_D2_N / CSI_D0_D3_N) ⇒ 布线45→0的分母必须在板那一趟的新基线上重读 · 不许拿官方板那24条当靶'
+  note: '实测: 本机独立复算(零写板)'
+  ref: logs/iss337/17_main_findings_recheck.txt
+- key: iss337_seg_align_ne_copper
+  value: '段数对齐 ≠ 同一块铜: 官方板 vs best_unc23 两板都有铜86条 ⇒ 逐网铜长相符仅21条(±2%或1mm内) · 对不上65条 ⇒ 判据必须改成逐网铜量名单+零铜网名单双向
+    · 不许拿归一化段数当唯一尺子'
+  note: '实测: 本机复算 ⇒ 本条同时是ISS-334 need-4b定稿输入'
+  ref: logs/iss337/17_main_findings_recheck.txt
 open_questions:
 - id: HW-Q1
   to: main

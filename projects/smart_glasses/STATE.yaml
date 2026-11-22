@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-19T01:38:43+08:00'
+  generated_at: '2026-11-22T21:03:45+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,9 +9,9 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 595162
-      sha1: 6cefa922b532
-      mtime_ns: 1795018574206945651
+      size: 598874
+      sha1: 89a56b48f4e9
+      mtime_ns: 1795352145740331438
     mech-lead:
       file: mech.yaml
       size: 632696
@@ -19,14 +19,14 @@ meta:
       mtime_ns: 1795022500003751875
     main:
       file: pm.yaml
-      size: 158203
-      sha1: 195c9ab4bc4b
-      mtime_ns: 1795020258059945809
+      size: 168150
+      sha1: 3c0426a144f7
+      mtime_ns: 1795351916977098906
     sw-lead:
       file: sw.yaml
-      size: 517948
-      sha1: 25147e8ee73c
-      mtime_ns: 1795020417405832452
+      size: 524452
+      sha1: 74634c7d16b6
+      mtime_ns: 1795023775909567262
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -38,8 +38,8 @@ domains:
   main:
     agent: main
     role: 项目总工
-    updated_at: '2026-11-18T10:50:00+08:00'
-    updated_by: main (项目总工 · ISS-318 三条 to=main need 的机制地界裁决 · 挂闸 + 基线处置)
+    updated_at: 2026-11-22 21:00
+    updated_by: main
     status:
       phase: in_progress
       progress_pct: 70
@@ -2184,11 +2184,97 @@ domains:
       ref: ISS-338 · HANDOFF/2026-11-18_hw-lead_ISS334_机制级换机制路线.md need-4a
     - key: iss334_need4b_zero_copper_net_triage
       to: main
-      value: '★★【main 裁 (2026-11-19 00:5x · 机制地界裁决 · 不占老板拍板面)】★★ ★**采纳你的建议默认值 (先收口径, 等 need-4a 的固件引用回来再一次性定稿)**:
-        ★**必需 = 15 条差分腿 + `USB_CC2` + `UART_RX`** ★ ⇒ ★**其余 7 条单端低速脚 (★9 条单端里去掉 USB_CC2 / UART_RX★) 一律「以固件引用为准」**
-        ⇒ ★**依赖链**: need-4a (→ ISS-338, sw-lead) 交回 ⇒ ★**由 main 把 24 条零铜网一次性分级定稿 (必需 / 可悬空 / 待定)**, ★**在那之前不许任何一条单端脚被单独标
-        NC** ★ ⇒ ★**不答的后果已消除 (口径已定, 只差一次收口)** ★'
-      ref: HW/PCB/ONETRIP_S8_MECHANISM_PATH.md 第一节第3小节 · ISS-338
+      value: '★★【main 裁 (2026-11-22 20:5x · ★need-4b 一次性分级【定稿】·★机制地界·不占老板拍板面★)】★★ ★★**依赖链已闭合**: need-4a
+        → ISS-338 (verified 2026-11-22 20:5x·★main 独立复扫: 9 条网在 `SW/**` 整词命中全 0·对照组 `BAT_DET`=10 / `RESET_N`=7
+        / `UART_TX`=1 ⇒ 扫法已被控制网自证★) ⇒ ★**下面这条 = 24 条零铜网的分级定稿** ★ ★**★★分级定稿 (★「必需 / 可悬空 / 待定」三档判据已定·名单待新基线重读·见第
+        3 条★)★★** ★ ★**A 必需 (23 条)**: ① ★**15 条高速差分腿** (★`CSI_D0_*` / `DSI_D0_*` 族·★无商量空间·必须救回★) ② ★**8
+        条单端脚**: `CAM_RESET_N` (★dts `reset-gpios gpio1 RK_PB3` ⇒ 相机不出图则 MIPI-CSI 链死★) · `LED_G_D` (★同族
+        `LED_B_D`=105 段 / `LED_R_D`=169 段都有铜·只它 0 段 ⇒ 该布没布·且 `D_LED_G` 被 2 个闸脚本硬编码 = 真代码路径★) · `USB_CC2`
+        (★[官网] USB Type-C 插座端双路 Rd 条款★) · `JTAG_TDI` (★调试口 ⇒ 「布线保留成本≈0·事后不重出板」★) · `UART_RX` (★同上·调试口★)
+        · `SPI_SCLK_BOOT` / `SPI_MOSI_BOOT` / `SPI_MISO_BOOT` (★`J_BOOT1` 焊盘位已在板 ⇒ 布线保留·**不许标 NC**·否则老板拍外挂
+        SPI-NOR 就得重出板★) ★ ★**B 可悬空 (1 条)**: `FSIN_OUT` (★条件: 在板那一趟的新基线上它仍是零铜 ⇒ 才允许标 no-connect; ★**标 NC
+        是板侧动作·只在板那一趟做·现在只定口径不定动作★) ★ ★**C 待定 (0 条)**: ★**原先的两个待定项都被消解了** ⇒ ① USB-IF 条款 → [官网] 规范自证 ⇒ 归
+        A ② 启动存储 → 「布线保留」策略消解 ⇒ 归 A ⇒ ★**⇒ 待定档已空** ★ ★**★★★【★★★必须一起读的第 3 条 (★main 2026-11-22 本机实读的独立发现·★这条比前两条都重要★★★)★★★】**:
+        ★**官方板那 24 条零铜网【不能直接当靶】** ★ ⇒ ★**[实测]** 官方板 (md5 `611b869e…`) 136 焊盘网 / 90 有铜 / **24 零铜**; ★**现役链终板
+        `v76mg1` = 7 条零铜** · `v76mz` = 12 · `best_unc23_clrfix` = 7 ⇒ ★**官方板那 24 条里, 21 条在现役链终板 v76mg1
+        上【已经有铜】·两边都零铜只剩 3 条** (`CSI_D0_D0_N_SRC` / `CSI_D0_D2_N` / `CSI_D0_D3_N`) ★ ⇒ ★**⇒ 「布线 45→0」的分母必须在【板那一趟的新基线】上重读**
+        (★S1 位号改名必然重跑生成器 ⇒ 那一趟的板本来就是现役生成器出的 ⇒ **分母可能整个是错的**★) ⇒ ★**⇒ need-4b = 【判据已定稿 · 名单待新基线重读】· 不是「24
+        条名单已定」** ★ ⇒ ★**⇒ 并派一条硬要求给板那一趟**: ★**S1 改名后、动板之前, 必须先 fresh 读出【新基线的零铜网名单】, 再用上面 A/B/C 判据逐条分级,
+        再决定哪些进 S8 布线目标·哪些允许标 NC** ★ ★**★不许拿官方板那 24 条直接当 S8 的布线目标清单 (★那 21 条在新基线上本来就通·照着做会白布 21 条或误判 21
+        条·★这正是「判据用错基线」的老坑★)★** ★ ★**★另加一条判据替换 (★main 2026-11-22 独立复算★)**: ★**「归一化段数对齐」≠「同一块铜」** ⇒ ★**[实测]**
+        官方板 vs `best_unc23_clrfix`: 两板都有铜 86 条 ⇒ ★**铜长相符只有 21/86** ★ ⇒ ★**⇒ 判据必须改成【逐网铜量名单 + 零铜网名单】双向,
+        不许拿归一化段数当唯一尺子** (★这条正是 ISS-337 cont2 要写进交卷页的 W3★) ★ ⇒ ★**⇒ 这条 need 从此闭合** ★'
+      ref: HW/PCB/ONETRIP_S8_MECHANISM_PATH.md · SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md (ISS-338)
+        · logs/iss337/17_main_findings_recheck.txt (零铜网 24→7 · 逐网铜长 21/86)
+    - key: iss335_ref_gate_v1_or_v2
+      to: sw-lead
+      value: '★★【main 裁 (2026-11-22 20:5x · 机制地界 · 不占老板拍板面)】★★ ★**采纳你的建议默认值 = 选项 A (判决清单用 v1 + v2 走影子道)**
+        ★ ⇒ ★**判决清单**: `check_sw_ref_reachability.py` (v1 · ISS-318 · 已挂链) 进判决 · ★**v2 (ISS-332) 走影子道**
+        (只跑只打印·默认不参与判决) ★ ★**切换命令留着 (哪天真要切)**: `--ref-gate v2` (判决换 v2 + v1 退影子) / `--ref-gate both` (两个都进判决)
+        / `--shadow-strict` (影子道也参与判决) ★ ★**三条理由 (都在你的 item 里·我采信)**: ① 清单完备性基准必须含 ISS-321 实测表那 10 道 ⇒
+        该表第 2 道就是 v1 ⇒ 只列 v2 会与当天必跑闸脱钩 ② v2 已 verified 但**还没挂链** ⇒ 盘上无日常链背书 ③ v2 比 v1 严 ⇒ 当天 v1 绿 v2 红时★**现场第一反应会去改板凑绿
+        ⇒ 反而放大「板 md5 变第二次」的风险** ★ ⇒ ★**且影子口径下 v2 的读数每趟照样打印** ⇒ main 想切版时手里已有 v1/v2 当天结论是否一致的实测对照·不必当天临时重跑
+        ★ ⇒ ★**⇒ 这条 need 从此闭合** ★'
+      ref: HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md B5-1 · SW/tools/check_onepass_sw_release.py (--ref-gate
+        / --shadow-strict)
+    - key: iss338_need_usbif_cc1_cc2_rule
+      to: sw-lead
+      value: '★★【main 裁 (2026-11-22 20:5x · ★机制地界 + 老板 2026-11-12 02:02「不再发信·全靠自己查资料」·★main 自己查了·不外发★)】★★
+        ★**裁决 = `USB_CC2` 判【必需】·板侧不许标 NC ⇒ 你的「板侧默认 NC + 保留 R_CC2_D」建议【不采纳】** ★ ★**[官网] 证据 (★USB Type-C
+        规范原文·★主板端是 Sink·Sink 侧必须有 Rd★)**: 「★The USB Type-C receptacle presents Rd on both of its CC pins
+        because a CC pull-down must be present for the receptacle to indicate that it wants to consume
+        VBUS current.★」 (★USB Type-C Cable and Connector Specification·usb.org 公开 PDF·R1.0/R2.0 章节文本★)
+        ⇒ ★**USB 2.0-only 插座 = 双路 Rd ⇒ CC1/CC2 都要有 Rd ⇒ CC2 不可悬空** ★ ★**[媒体] 同向旁证**: TI《A Primer on USB
+        Type-C and Power Delivery Applications》「Note that one of the CC lines may become VCONN」⇒ 另一条仍须
+        Rd 做方向检测 ★ ★**[媒体] 补充**: 网上常见的「单 Rd 省一颗电阻」做法只适用于 Source/DRP 侧 (规范原文: 「Only one of the CC1 or CC2
+        pins shall be in the SRC.Rd state」·★那是【源端】条款·不是插座端条款·★公开来源之所以「互相矛盾」就是这两条被混着引用了★)★ ★**⇒ 结论**: ★**你原来的「待定」在规范层面不成立
+        ⇒ 它不是待定项, 是必需项** ★ ⇒ ★**这一条与 need-4b 早先口径 (必需 = 15 差分腿 + `USB_CC2` + `UART_RX`) 一致 ⇒ 不冲突** ★ ★**降级方案
+        (不阻塞板那一趟)**: 若那一趟最终选了带 PD 的 Type-C 控制器芯片、且其 datasheet 明写单 Rd ⇒ 按该芯片 datasheet 复核这一条 ⇒ ★**但 `R_CC2_D`
+        已在板上 ⇒ 板子不用重出** ★ ⇒ ★**这条 need 从此闭合** ★'
+      ref: ★[官网] USB Type-C Cable and Connector Specification (usb.org 公开 PDF) · ★[媒体] TI《A Primer on
+        USB Type-C and Power Delivery Applications》 · SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+    - key: iss338_need_boot_storage_answer
+      to: sw-lead
+      value: '★★【main 裁 (2026-11-22 20:5x · 机制地界)】★★ ★**裁决 = 3 条 `SPI_*_BOOT` 判【必需】(进 S8 布线目标) · 板侧【不许】标
+        no-connect ⇒ 你的「J_BOOT1 DNP ⇒ 3 条可悬空」建议【不采纳】** ★ ★**[实测] 盘面依据**: ① 网表 `HW/netlist_v1.csv` P3 区
+        `J_BOOT1` **整件 DNP** (★原文「SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展)」·pin5/pin6 只预留 3V3/GND★)
+        ② ★**但 `J_BOOT1` 的焊盘位【已经在板上】**(★板上位号清单实读: `J_BOOT1` 在盘★) ⇒ ★**「焊盘位预留」这条已经落地了** ★ ★**⇒ 关键推理 (★这就是「板只改一次」的正确用法★)**:
+        ★**布线保留的成本 ≈ 0 (3 条单端网), 事后收益 = 不用重出板** ⇒ ★**若现在标 NC**: 将来老板拍「外挂 SPI-NOR」⇒ 必须重出板 ⇒ ★**违反「板只改一次」**
+        ★ ⇒ ★**若现在就布线**: 将来无论拍「外挂 SPI-NOR」(只需改 BOM 装件·**焊盘位已在**)还是拍「不挂」(**不装即可·多几段无用铜**) ⇒ ★**板都不用重出**
+        ⇒ ★**⇒ 必须布线** ★ ★**★这与 main 刚给 JTAG_TDI / UART_RX 定的边界是同一条**: ★**「布线保留的成本 ≈ 0, 事后不重出板」⇒ 调试口/预留位一律布线,
+        一律不许裁** ★ ★**★但有一件【必须在板那一趟开工前】拍掉的事 (★老板级·我代拍不了★)**: 网表里 Q19「内置 boot storage 还是外挂 SPI-NOR/eMMC」仍是
+        `[待原厂]` 口径 ⇒ ★**若最后拍「外挂 eMMC」⇒ 板上要多一个 eMMC footprint (网表原文: 外挂 eMMC 方案 PCB 面积 +25% 且板宽 12→15mm)
+        ⇒ 那要改网表 + 改板 ⇒ 必须赶在板那一趟开工前落进网表, 否则板 md5 变第二次** ⇒ ★**这条已挂在老板拍板面 `q3_storage_and_audio` 上 (★逾期 26
+        天★)** ⇒ ★**它不是「等外部回信」, 是「等老板一个字」** ★ ★**降级方案 (查不到/没拍时的默认)**: ★**默认按「SoM 板载 eMMC/SD」走 (⇒ 主板不挂启动存储芯片·J_BOOT1
+        不装) ⇒ 3 条 `SPI_*_BOOT` 布了但没人用·代价 = 3 段无用铜·换来板永不重出** ★ ★**⇒ 这条 need 从此闭合 (板那一趟开工前的老板前置已单独挂面)**
+        ★'
+      ref: HW/netlist_v1.csv P3 区 J_BOOT1 (DNP 口径) · 板上位号清单实读 (J_BOOT1 在盘) · ★老板拍板面 q3_storage_and_audio
+    - key: iss338_need_jtag_group_decision
+      to: sw-lead
+      value: '★★【main 裁 (2026-11-22 20:5x · 机制地界)】★★ ★**裁决 = JTAG 整组【保留】⇒ `JTAG_TDI` 判【必需】(进 S8 布线目标)
+        ⇒ 不是可悬空候选 ⇒ 你的「裁 TDI 就等于接受 JTAG 实不可用」这个两难, main 选「不裁」** ★ ★**[实测] 盘面依据**: 网表 P8 区 `R_JTAG_TCK`
+        / `R_JTAG_TMS` / `R_JTAG_TDO` / `R_JTAG_TDI` 四颗串阻**都在** + `J_DEBUG` (★1×4 1.27mm 调试排针·原文「调试用,
+        不装贴片」★) + `TP_JTAG` ⇒ ★**板上位号实读: `R_JTAG_TDI` 在盘** ⇒ ★**TDI 是「该布没布」(0 段), 不是「没人要」** ★ ★**⇒ 关键推理
+        (同一条边界)**: ★**「布线保留的成本 ≈ 0 (一条单端网), 事后收益 = 不用重出板」⇒ 调试口一律布线** ⇒ ★**裁 TDI = 装上去却只能收不能发的调试口 = 做一个摆设**
+        ⇒ 否决 ★ ★**★★main 给 SW 侧补一条口径边界 (★这条是给你的判据补漏洞·★不是挑错★)★★**: ★**「固件零引用 ⇒ 可悬空」这条判据【只适用于固件信号】, 【不适用于调试口
+        / 预留位】** ★ ⇒ ★**理由**: JTAG 与 UART 是【硬件接口】, 由调试器 / 探针驱动, 不由应用固件引用 ⇒ ★**SW/** 零引用对它不构成「可悬空」的证据**
+        ★ ⇒ ★**所以你那 9 条里 `JTAG_TDI` / `UART_RX` 的「可悬空」结论, main 不采信 (★其余 7 条不涉及调试口·不受影响★)** ★ ★**⇒ 这条 need
+        从此闭合** ★'
+      ref: HW/netlist_v1.csv P8 区 R_JTAG_TCK/TMS/TDO/TDI + J_DEBUG + TP_JTAG · 板上位号清单实读 (R_JTAG_TDI 在盘)
+    - key: iss336_mech_board_frame_freeze_gate_chain_decision
+      to: mech-lead
+      value: '★★【main 裁 (2026-11-22 20:5x · 机制地界 · 挂链是 main 的地界)】★★ ★**裁决 = 采纳你的建议: 【不挂日常链】+ 配替代机制** ★
+        ⇒ ★**① 为什么挂日常链是错的 (三条·采信你的理由)**: C7 现在必红 ⇒ 挂日常链 = 门禁链天天红 ⇒ ★**真红被淹没**; 这道闸判的是**一次性事件**「U-1 拍没拍」·与
+        EXTRA_GATES 那几道判**常态漂移**的闸生命周期不同; ★**⇒ 「不许挂进 state/gate_check.py 的日常链」这条, 现在写进 main 的口径了** ★ ★**②
+        替代机制 (★不许用「反正闸红着」当开工的理由★)**: ★**板那一趟 S1 开工前, 必须单次跑 `python3 MECH/check_board_frame_freeze_gate.py`
+        ⇒ rc 必须 0 ⇒ rc=2 (今天必红) = 【不许开工】** ★ ⇒ ★**这条由 main 单独落成「板那一趟开工前置」, 不改你的闸、不改 gate_check.py** ★
+        ★**③ U-1 落表格式 (三处缺一处闸还红·★已转写进 pm.yaml 的 answer·★board frame 三选一 (B160x100 / F30A / P60x15) 仍是老板级·main
+        不代拍★)**: ① `state/fragments/mech.yaml` 的 `needs_closed[]` 一条 `key=proto_pcb_freeze_gate` · ② `answers[]`
+        同 key 一条·value 正文逐字含 **帧 id + 板厚 + 层数** (★推荐逐字照抄: `U-1 板框冻结: 帧 id = F30A; 板厚 = 1.00 mm; 层数 = 6;
+        孔位口径 = PIN-SET-2 套 A。`★) · ③ `HW/PCB/BOARD_FRAME_CALIBER.md` §2 `cal:FRAMES.current_frame` 改成认领的帧
+        id ★**落完 ⇒ 七条全绿 rc=0** ★ ⇒ ★**⇒ 这条 need 从此闭合** ★'
+      ref: MECH/check_board_frame_freeze_gate.py (C1~C7 + RC-1~RC-6) · HANDOFF/2026-11-19_mech-lead_ISS336_板框冻结闸实现.md
+        B5-1
     open_questions:
     - id: PM-Q1
       to: sw-lead
@@ -3902,6 +3988,31 @@ domains:
       version: '1.0'
       updated_at: '2026-10-25'
       summary: 'ISS-334 交卷单: B0~B7 齐全, 6条need交main/boss, 零写板零落表零改闸零外发'
+    - path: HANDOFF/2026-11-19_hw-lead_ISS337_段数追平根因定位.md
+      kind: handoff
+      version: cont2
+      updated_at: '2026-10-25'
+      summary: ISS-337交卷页(B0~B7 + B4接口取值声明 + W1/W2/W3三段 + B6必跑输出)
+    - path: HW/PCB/ONETRIP_S8_SEGMENT_PARITY_ROOTCAUSE.md
+      kind: doc
+      version: cont2
+      updated_at: '2026-10-25'
+      summary: ISS-337主交付物(口径段改脚本真值 + 补W1/W2/W3 + 沙盒臂[0数据])
+    - path: tmp/iss337/seg_parity_selfcheck.py
+      kind: script
+      version: 2026-11-19_0236
+      updated_at: '2026-10-25'
+      summary: 段数/铜长同工艺区间自检脚本(band真值来源 L59-61 · 一个字节都不许改)
+    - path: tmp/iss337/norm_impl_diff.py
+      kind: script
+      version: 2026-11-19_0235
+      updated_at: '2026-10-25'
+      summary: V1/V2/V3/V4四套归一化实现对照(V1=层,网,宽+度数=2 为口径)
+    - path: logs/iss337/21_band_truth_and_why_changed.txt
+      kind: evidence
+      version: cont2
+      updated_at: '2026-10-25'
+      summary: band脚本真值+老口径为何作废的四块锚板逐条误拦对照
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -8261,11 +8372,28 @@ domains:
       decided_at: null
       answers:
       - by: main
-        value: '★★【main 裁 (2026-11-19 00:5x · 机制地界裁决 · 不占老板拍板面)】★★ ★**采纳你的建议默认值 (先收口径, 等 need-4a 的固件引用回来再一次性定稿)**:
-          ★**必需 = 15 条差分腿 + `USB_CC2` + `UART_RX`** ★ ⇒ ★**其余 7 条单端低速脚 (★9 条单端里去掉 USB_CC2 / UART_RX★)
-          一律「以固件引用为准」** ⇒ ★**依赖链**: need-4a (→ ISS-338, sw-lead) 交回 ⇒ ★**由 main 把 24 条零铜网一次性分级定稿 (必需 /
-          可悬空 / 待定)**, ★**在那之前不许任何一条单端脚被单独标 NC** ★ ⇒ ★**不答的后果已消除 (口径已定, 只差一次收口)** ★'
-        ref: HW/PCB/ONETRIP_S8_MECHANISM_PATH.md 第一节第3小节 · ISS-338
+        value: '★★【main 裁 (2026-11-22 20:5x · ★need-4b 一次性分级【定稿】·★机制地界·不占老板拍板面★)】★★ ★★**依赖链已闭合**: need-4a
+          → ISS-338 (verified 2026-11-22 20:5x·★main 独立复扫: 9 条网在 `SW/**` 整词命中全 0·对照组 `BAT_DET`=10 / `RESET_N`=7
+          / `UART_TX`=1 ⇒ 扫法已被控制网自证★) ⇒ ★**下面这条 = 24 条零铜网的分级定稿** ★ ★**★★分级定稿 (★「必需 / 可悬空 / 待定」三档判据已定·名单待新基线重读·见第
+          3 条★)★★** ★ ★**A 必需 (23 条)**: ① ★**15 条高速差分腿** (★`CSI_D0_*` / `DSI_D0_*` 族·★无商量空间·必须救回★) ② ★**8
+          条单端脚**: `CAM_RESET_N` (★dts `reset-gpios gpio1 RK_PB3` ⇒ 相机不出图则 MIPI-CSI 链死★) · `LED_G_D` (★同族
+          `LED_B_D`=105 段 / `LED_R_D`=169 段都有铜·只它 0 段 ⇒ 该布没布·且 `D_LED_G` 被 2 个闸脚本硬编码 = 真代码路径★) · `USB_CC2`
+          (★[官网] USB Type-C 插座端双路 Rd 条款★) · `JTAG_TDI` (★调试口 ⇒ 「布线保留成本≈0·事后不重出板」★) · `UART_RX` (★同上·调试口★)
+          · `SPI_SCLK_BOOT` / `SPI_MOSI_BOOT` / `SPI_MISO_BOOT` (★`J_BOOT1` 焊盘位已在板 ⇒ 布线保留·**不许标 NC**·否则老板拍外挂
+          SPI-NOR 就得重出板★) ★ ★**B 可悬空 (1 条)**: `FSIN_OUT` (★条件: 在板那一趟的新基线上它仍是零铜 ⇒ 才允许标 no-connect; ★**标
+          NC 是板侧动作·只在板那一趟做·现在只定口径不定动作★) ★ ★**C 待定 (0 条)**: ★**原先的两个待定项都被消解了** ⇒ ① USB-IF 条款 → [官网] 规范自证
+          ⇒ 归 A ② 启动存储 → 「布线保留」策略消解 ⇒ 归 A ⇒ ★**⇒ 待定档已空** ★ ★**★★★【★★★必须一起读的第 3 条 (★main 2026-11-22 本机实读的独立发现·★这条比前两条都重要★★★)★★★】**:
+          ★**官方板那 24 条零铜网【不能直接当靶】** ★ ⇒ ★**[实测]** 官方板 (md5 `611b869e…`) 136 焊盘网 / 90 有铜 / **24 零铜**; ★**现役链终板
+          `v76mg1` = 7 条零铜** · `v76mz` = 12 · `best_unc23_clrfix` = 7 ⇒ ★**官方板那 24 条里, 21 条在现役链终板 v76mg1
+          上【已经有铜】·两边都零铜只剩 3 条** (`CSI_D0_D0_N_SRC` / `CSI_D0_D2_N` / `CSI_D0_D3_N`) ★ ⇒ ★**⇒ 「布线 45→0」的分母必须在【板那一趟的新基线】上重读**
+          (★S1 位号改名必然重跑生成器 ⇒ 那一趟的板本来就是现役生成器出的 ⇒ **分母可能整个是错的**★) ⇒ ★**⇒ need-4b = 【判据已定稿 · 名单待新基线重读】· 不是「24
+          条名单已定」** ★ ⇒ ★**⇒ 并派一条硬要求给板那一趟**: ★**S1 改名后、动板之前, 必须先 fresh 读出【新基线的零铜网名单】, 再用上面 A/B/C 判据逐条分级,
+          再决定哪些进 S8 布线目标·哪些允许标 NC** ★ ★**★不许拿官方板那 24 条直接当 S8 的布线目标清单 (★那 21 条在新基线上本来就通·照着做会白布 21 条或误判
+          21 条·★这正是「判据用错基线」的老坑★)★** ★ ★**★另加一条判据替换 (★main 2026-11-22 独立复算★)**: ★**「归一化段数对齐」≠「同一块铜」** ⇒
+          ★**[实测]** 官方板 vs `best_unc23_clrfix`: 两板都有铜 86 条 ⇒ ★**铜长相符只有 21/86** ★ ⇒ ★**⇒ 判据必须改成【逐网铜量名单
+          + 零铜网名单】双向, 不许拿归一化段数当唯一尺子** (★这条正是 ISS-337 cont2 要写进交卷页的 W3★) ★ ⇒ ★**⇒ 这条 need 从此闭合** ★'
+        ref: HW/PCB/ONETRIP_S8_MECHANISM_PATH.md · SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md (ISS-338)
+          · logs/iss337/17_main_findings_recheck.txt (零铜网 24→7 · 逐网铜长 21/86)
       foreign_answers: []
     - key: iss334_need5_gate_reference_board
       to: main
@@ -8311,6 +8439,46 @@ domains:
           (板只改一次) ⇒ 任何一方单独落板都不许** ★ ⇒ ★**同时提醒 (不改你的交付物, 只是记口径)**: 机制级做出来的臂, 若它的读数与老板口径冲突 (★例如 D_LED_G
           落位假设 B vs W-3★), ★**一律以最终合并那一版为准** ★'
         ref: HANDOFF/2026-11-18_hw-lead_ISS334_机制级换机制路线.md · DECISION_INDEX_2026-11-18.md §A
+      foreign_answers: []
+    - key: iss337_need4b_two_way_copper_list
+      to: main
+      item: 'ISS-334 need-4b定稿输入: 判据改成逐网铜量名单+零铜网名单双向(段数对齐≠同一块铜 · 官方vs best_unc23 86条有铜网只相符21条) · 不许拿归一化段数当唯一尺子'
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss337_band_truth_overrides_doc
+      to: main
+      item: band口径以tmp/iss337/seg_parity_selfcheck.py L59-61为唯一真值(归一化段数[2300,3200]·铜长[4600,5900]mm·过孔[380,520])
+        · 文档里的[2400,2900]/[5400,5900]/[380,450]已作废(按官方板单块锚定 ⇒ 误拦现役臂471/486/505)
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss337_rereread_zerocopper_denominator
+      to: main
+      item: '布线45→0的分母必须在板那一趟的新基线上重读: 官方板24条零铜网里21条在现役链终板v76mg1上已有铜 · 两边都零铜只剩3条(CSI_D0_D0_N_SRC/CSI_D0_D2_N/CSI_D0_D3_N)'
+      since: '2026-10-25'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
       foreign_answers: []
     answers:
     - key: pcb_outline_confirm
@@ -8964,19 +9132,8 @@ domains:
       phase: delivered
       progress_pct: 100
       health: green
-      summary: 'ISS-335 (2026-11-19 00:4x~00:5x) 交卷: SW 侧「板只改一次」准出汇总闸已落地 —— 一条命令 python3 SW/tools/check_onepass_sw_release.py
-        给出 SW 侧能不能出 Gerber 的结论 (主跑 rc=0, 绿 10 红 0, 逐条 rc 见 logs/iss335/01_main_run.log)。对标 MECH 侧 ISS-300
-        的 check_onepass_mech_release.py, 判定对象换成 SW 侧。清单基准 = ISS-321 实测表那 10 道 (含 4 道链外闸: check_demo_panel_spec
-        / check_shutdown_semantics / check_timing_review_adc_sync / timing_check —— 板那一趟当天它们会红而今天不在链上
-        ⇒ 没人会注意到), 少一道 ⇒ 汇总直接红。fail-closed 四条全部实测: 脚本不存在 / 跑不起来 / 超时 300s / rc 非 0 一律算闸红, 绝不没跑就当过。TMPDIR
-        一律指项目内 tmp/iss335_tmp (本机系统临时目录配额到顶, 不指会 6 道一起假红)。三道 R6 闸必须裸跑 —— 传 --selftest 会 rc=2 usage 错误
-        ⇒ 汇总自己红, 自检 6b 现场实测三道都 rc=2 证明这条坑是真的。--selftest rc=0, 8 组反向用例全过, 真件真闸真篡改跑在沙盒副本 (SW/ 与 state/ 真拷贝),
-        真盘一个字节没碰。位号可达性闸列 v1 还是 v2: 建议默认 v1 判决 + v2 影子, 已登记 needs_from (iss335_ref_gate_v1_or_v2, to=main,
-        waiting_on 留空) 等 main 拍, 本单不代拍也不改 state/gate_check.py 一个字节。交付: SW/tools/check_onepass_sw_release.py
-        (新建) + SW/ONETRIP_SW_RELEASE_GATE_SPEC.md (清单页 + 当天 SOP + 回滚三档) + HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md
-        (B0~B6) + logs/iss335/ (机器原始输出)。零写板 (板 md5 611b869e13518c3c023fb178f91a0075 + mtime 2026-11-06
-        07:07:17.362193413 前后逐字节相同) 零落表 (网表 / 脚表 / BOM 三件 md5+mtime 不变) 零改既有 16 道 SW 闸 零改 gate_check.py
-        零改 issue_log.yaml 零改别人分片 零外发。'
+      summary: '★ISS-338 交卷: 9条零铜单端网 SW/** 网名级零引用(扫法自证 BAT_DET=121/RESET_N=52), 按功能等价物分级 = 必需2(CAM_RESET_N/LED_G_D)·可悬空候选6·待定1(USB_CC2);
+        推翻 main need-4b 默认值2条 + 另升2条; S8净效果 unc45→36 差分腿0条; 零写板/零落表/零改固件/零改闸/零外发; 板 md5 611b869e 未动'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -10701,6 +10858,24 @@ domains:
         07:07:17.362193413 + 网表 / 脚表 / BOM 三件 md5+mtime)·01_main_run (汇总闸主跑 10 道逐条 rc)·02_selftest (8
         组反向用例原样)·03_json_run (机器读)·04_boundary_after (交卷前边界复查)·05_ref_gate_v2 (换 v2 进判决的实测)·06_final_verify
         (交卷前必跑 9 条命令)·07_gate_chain_check (Q1 18/18 段)
+    - path: SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+      kind: report
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: ★ISS-338 主交付物★ 9 条零铜单端网逐条引用表(网名级三跑读数 + 引用形态四档 + 分级) + 可悬空候选清单(固件侧改哪一行只写不改) + 三问结论 + E1~E20
+        证据分级 + 边界自证
+    - path: HANDOFF/2026-11-19_sw-lead_ISS338_9条单端脚固件引用.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: ★ISS-338 交卷单 B0~B6★ 结论/自评/证据分级/接口取值声明/未决项/复现命令 + 诚实边界 8 条
+    - path: logs/iss338/
+      kind: log
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: '★ISS-338 机器原始输出 24 件★ 含 21_nine_net_reference_evidence(9条网逐条 V1/V2/V3 三跑) + 22_pcb_independent_parse(本单自写
+        s-expr 解析器独立复核官方板: 18092段/433孔/零铜网24 ⇒ 与 ISS-334 逐项一致) + 23_unc_attribution(unc 45 条中本单 9 条各占
+        1 条 = 20.0%)'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -13668,14 +13843,108 @@ domains:
         --ref-gate v2 或 --ref-gate both 或 --shadow-strict。本单零改 state/gate_check.py 一个字节, 挂链与选版都是 main
         的机制地界。详见交卷页 HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md 的 B5-1'
       since: '2026-11-19'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: main
+        value: '★★【main 裁 (2026-11-22 20:5x · 机制地界 · 不占老板拍板面)】★★ ★**采纳你的建议默认值 = 选项 A (判决清单用 v1 + v2 走影子道)**
+          ★ ⇒ ★**判决清单**: `check_sw_ref_reachability.py` (v1 · ISS-318 · 已挂链) 进判决 · ★**v2 (ISS-332) 走影子道**
+          (只跑只打印·默认不参与判决) ★ ★**切换命令留着 (哪天真要切)**: `--ref-gate v2` (判决换 v2 + v1 退影子) / `--ref-gate both`
+          (两个都进判决) / `--shadow-strict` (影子道也参与判决) ★ ★**三条理由 (都在你的 item 里·我采信)**: ① 清单完备性基准必须含 ISS-321
+          实测表那 10 道 ⇒ 该表第 2 道就是 v1 ⇒ 只列 v2 会与当天必跑闸脱钩 ② v2 已 verified 但**还没挂链** ⇒ 盘上无日常链背书 ③ v2 比 v1 严
+          ⇒ 当天 v1 绿 v2 红时★**现场第一反应会去改板凑绿 ⇒ 反而放大「板 md5 变第二次」的风险** ★ ⇒ ★**且影子口径下 v2 的读数每趟照样打印** ⇒ main 想切版时手里已有
+          v1/v2 当天结论是否一致的实测对照·不必当天临时重跑 ★ ⇒ ★**⇒ 这条 need 从此闭合** ★'
+        ref: HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md B5-1 · SW/tools/check_onepass_sw_release.py
+          (--ref-gate / --shadow-strict)
+      foreign_answers: []
+    - key: iss338_need_usbif_cc1_cc2_rule
+      to: main
+      item: '★USB_CC2 悬空与否取决于 USB-IF Type-C 对『USB 2.0-only 插座是否必须 CC1/CC2 双路 Rd』的条款 —— 公开来源互相矛盾(可单路 Rd
+        vs 须双路 advertise Rd) ⇒ SW 侧无权单方拍。建议: 板侧默认 NC + 保留 R_CC2_D, 同时由 main 在既有问询清单里加一句(不发新信)'
+      since: '2026-11-19'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: main
+        value: '★★【main 裁 (2026-11-22 20:5x · ★机制地界 + 老板 2026-11-12 02:02「不再发信·全靠自己查资料」·★main 自己查了·不外发★)】★★
+          ★**裁决 = `USB_CC2` 判【必需】·板侧不许标 NC ⇒ 你的「板侧默认 NC + 保留 R_CC2_D」建议【不采纳】** ★ ★**[官网] 证据 (★USB Type-C
+          规范原文·★主板端是 Sink·Sink 侧必须有 Rd★)**: 「★The USB Type-C receptacle presents Rd on both of its CC
+          pins because a CC pull-down must be present for the receptacle to indicate that it wants to
+          consume VBUS current.★」 (★USB Type-C Cable and Connector Specification·usb.org 公开 PDF·R1.0/R2.0
+          章节文本★) ⇒ ★**USB 2.0-only 插座 = 双路 Rd ⇒ CC1/CC2 都要有 Rd ⇒ CC2 不可悬空** ★ ★**[媒体] 同向旁证**: TI《A Primer
+          on USB Type-C and Power Delivery Applications》「Note that one of the CC lines may become VCONN」⇒
+          另一条仍须 Rd 做方向检测 ★ ★**[媒体] 补充**: 网上常见的「单 Rd 省一颗电阻」做法只适用于 Source/DRP 侧 (规范原文: 「Only one of the
+          CC1 or CC2 pins shall be in the SRC.Rd state」·★那是【源端】条款·不是插座端条款·★公开来源之所以「互相矛盾」就是这两条被混着引用了★)★
+          ★**⇒ 结论**: ★**你原来的「待定」在规范层面不成立 ⇒ 它不是待定项, 是必需项** ★ ⇒ ★**这一条与 need-4b 早先口径 (必需 = 15 差分腿 + `USB_CC2`
+          + `UART_RX`) 一致 ⇒ 不冲突** ★ ★**降级方案 (不阻塞板那一趟)**: 若那一趟最终选了带 PD 的 Type-C 控制器芯片、且其 datasheet 明写单
+          Rd ⇒ 按该芯片 datasheet 复核这一条 ⇒ ★**但 `R_CC2_D` 已在板上 ⇒ 板子不用重出** ★ ⇒ ★**这条 need 从此闭合** ★'
+        ref: ★[官网] USB Type-C Cable and Connector Specification (usb.org 公开 PDF) · ★[媒体] TI《A Primer on
+          USB Type-C and Power Delivery Applications》 · SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+      foreign_answers: []
+    - key: iss338_need_boot_storage_answer
+      to: main
+      item: ★P4 启动存储类型(SW/FLASH_AND_VERSION.md:359 [0数据])若最终要外挂 SPI-NOR ⇒ 3 条 SPI_*_BOOT 不可悬空, 板要重出。建议在既有问询清单补一句『主板侧启动存储焊盘位不引出(J_BOOT1
+        DNP)』
+      since: '2026-11-19'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: main
+        value: '★★【main 裁 (2026-11-22 20:5x · 机制地界)】★★ ★**裁决 = 3 条 `SPI_*_BOOT` 判【必需】(进 S8 布线目标) · 板侧【不许】标
+          no-connect ⇒ 你的「J_BOOT1 DNP ⇒ 3 条可悬空」建议【不采纳】** ★ ★**[实测] 盘面依据**: ① 网表 `HW/netlist_v1.csv` P3
+          区 `J_BOOT1` **整件 DNP** (★原文「SoM 板载 eMMC/SD ⇒ 主板不挂 SPI-NOR 启动存储 (焊盘位可留作扩展)」·pin5/pin6 只预留 3V3/GND★)
+          ② ★**但 `J_BOOT1` 的焊盘位【已经在板上】**(★板上位号清单实读: `J_BOOT1` 在盘★) ⇒ ★**「焊盘位预留」这条已经落地了** ★ ★**⇒ 关键推理 (★这就是「板只改一次」的正确用法★)**:
+          ★**布线保留的成本 ≈ 0 (3 条单端网), 事后收益 = 不用重出板** ⇒ ★**若现在标 NC**: 将来老板拍「外挂 SPI-NOR」⇒ 必须重出板 ⇒ ★**违反「板只改一次」**
+          ★ ⇒ ★**若现在就布线**: 将来无论拍「外挂 SPI-NOR」(只需改 BOM 装件·**焊盘位已在**)还是拍「不挂」(**不装即可·多几段无用铜**) ⇒ ★**板都不用重出**
+          ⇒ ★**⇒ 必须布线** ★ ★**★这与 main 刚给 JTAG_TDI / UART_RX 定的边界是同一条**: ★**「布线保留的成本 ≈ 0, 事后不重出板」⇒ 调试口/预留位一律布线,
+          一律不许裁** ★ ★**★但有一件【必须在板那一趟开工前】拍掉的事 (★老板级·我代拍不了★)**: 网表里 Q19「内置 boot storage 还是外挂 SPI-NOR/eMMC」仍是
+          `[待原厂]` 口径 ⇒ ★**若最后拍「外挂 eMMC」⇒ 板上要多一个 eMMC footprint (网表原文: 外挂 eMMC 方案 PCB 面积 +25% 且板宽 12→15mm)
+          ⇒ 那要改网表 + 改板 ⇒ 必须赶在板那一趟开工前落进网表, 否则板 md5 变第二次** ⇒ ★**这条已挂在老板拍板面 `q3_storage_and_audio` 上 (★逾期
+          26 天★)** ⇒ ★**它不是「等外部回信」, 是「等老板一个字」** ★ ★**降级方案 (查不到/没拍时的默认)**: ★**默认按「SoM 板载 eMMC/SD」走 (⇒ 主板不挂启动存储芯片·J_BOOT1
+          不装) ⇒ 3 条 `SPI_*_BOOT` 布了但没人用·代价 = 3 段无用铜·换来板永不重出** ★ ★**⇒ 这条 need 从此闭合 (板那一趟开工前的老板前置已单独挂面)**
+          ★'
+        ref: HW/netlist_v1.csv P3 区 J_BOOT1 (DNP 口径) · 板上位号清单实读 (J_BOOT1 在盘) · ★老板拍板面 q3_storage_and_audio
+      foreign_answers: []
+    - key: iss338_need_jtag_group_decision
+      to: main
+      item: '★JTAG 整组处理两难: JTAG_TCK/JTAG_TMS/JTAG_TDO 都有铜, 只有 JTAG_TDI 是 0 段 ⇒ 裁 TDI 就等于接受『4 线缺 1, JTAG
+        实不可用』; 保 JTAG 就得 4 线一起救 ⇒ 归 main'
+      since: '2026-11-19'
+      state: answered
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers:
+      - by: main
+        value: '★★【main 裁 (2026-11-22 20:5x · 机制地界)】★★ ★**裁决 = JTAG 整组【保留】⇒ `JTAG_TDI` 判【必需】(进 S8 布线目标)
+          ⇒ 不是可悬空候选 ⇒ 你的「裁 TDI 就等于接受 JTAG 实不可用」这个两难, main 选「不裁」** ★ ★**[实测] 盘面依据**: 网表 P8 区 `R_JTAG_TCK`
+          / `R_JTAG_TMS` / `R_JTAG_TDO` / `R_JTAG_TDI` 四颗串阻**都在** + `J_DEBUG` (★1×4 1.27mm 调试排针·原文「调试用,
+          不装贴片」★) + `TP_JTAG` ⇒ ★**板上位号实读: `R_JTAG_TDI` 在盘** ⇒ ★**TDI 是「该布没布」(0 段), 不是「没人要」** ★ ★**⇒ 关键推理
+          (同一条边界)**: ★**「布线保留的成本 ≈ 0 (一条单端网), 事后收益 = 不用重出板」⇒ 调试口一律布线** ⇒ ★**裁 TDI = 装上去却只能收不能发的调试口 = 做一个摆设**
+          ⇒ 否决 ★ ★**★★main 给 SW 侧补一条口径边界 (★这条是给你的判据补漏洞·★不是挑错★)★★**: ★**「固件零引用 ⇒ 可悬空」这条判据【只适用于固件信号】, 【不适用于调试口
+          / 预留位】** ★ ⇒ ★**理由**: JTAG 与 UART 是【硬件接口】, 由调试器 / 探针驱动, 不由应用固件引用 ⇒ ★**SW/** 零引用对它不构成「可悬空」的证据**
+          ★ ⇒ ★**所以你那 9 条里 `JTAG_TDI` / `UART_RX` 的「可悬空」结论, main 不采信 (★其余 7 条不涉及调试口·不受影响★)** ★ ★**⇒ 这条
+          need 从此闭合** ★'
+        ref: HW/netlist_v1.csv P8 区 R_JTAG_TCK/TMS/TDO/TDI + J_DEBUG + TP_JTAG · 板上位号清单实读 (R_JTAG_TDI
+          在盘)
       foreign_answers: []
     answers:
     - key: debug_port_form
@@ -14081,6 +14350,51 @@ domains:
         3 位 (L222-223) 把路径换成 check_sw_ref_reachability_v2.py·args 传 () 裸跑·旧闸建议【不删文件·退出链】(回滚=改回1行)。★零写板·零落表·零改真件闸·零改
         gate_check.py·零外发·不自签 issue_log。'
       ref: HANDOFF/2026-11-18_sw-lead_ISS332_SW位号可达性闸4条洗白面收紧.md
+    - key: iss338_single_end_net_fw_classification
+      to: main
+      value: '必需 2 (CAM_RESET_N · LED_G_D) · 可悬空候选 6 (FSIN_OUT · JTAG_TDI · SPI_MISO_BOOT · SPI_MOSI_BOOT
+        · SPI_SCLK_BOOT · UART_RX) · 待定 1 (USB_CC2)。9 条零铜单端网在 SW/** 全树 126 文件网名级零引用(含大小写/下划线/连字符变体), 扫法已被
+        BAT_DET=121 / RESET_N=52 自证有效; 按功能等价物逐条查完后分级。★**推翻 main need-4b 默认值 2 条**: UART_RX 必需⇒可悬空候选 (SW
+        侧串口实测只读 cat $SERDEV, 写方向命中 0 行; UART_TX 已 230 段铜日志抓取链完整; J_UART 整件 dnp=可选) · USB_CC2 必需⇒待定 (官方板上零铜端点=板载
+        J_USB_C.B5+R_CC2_D.1, J_TYPE_C 不在板上, USB_CC1=151 段已布; 但 USB-IF 单路/双路 Rd 两条款互相矛盾需外部确认)。★另推翻 main「其余
+        7 条」口径 2 条: CAM_RESET_N 升为必需 (网表 HW/netlist_v1.csv:285 [官方]『主板必须能拉它』+ dts reset-gpios gpio1 RK_PB3
+        低有效 ⇒ 相机不出图则 MIPI-CSI 链死) · LED_G_D 升为必需 (同族 LED_B_D=105段 / LED_R_D=169段 都有铜, 只它 0 段 ⇒ 该布没布; 且
+        D_LED_G 被 check_sw_ref_reachability.py:178 与 v2:237 硬编码进 DESIGNATOR_REGISTRY = 真代码路径)'
+      ref: ISS-338 · SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md §2/§3 · logs/iss338/21_nine_net_reference_evidence.txt
+        · logs/iss338/22_pcb_independent_parse.txt
+    - key: iss338_s8_net_effect_9nets
+      to: main
+      value: '★**S8 净效果 (给 need-4b / 板那一趟的净账)★**: 悬空 9 条 ⇒ unc 45→36 (净减 9 条 = 45 的 20.0%); 【差分腿救回 0 条】(15
+        条高速差分腿占 unc 里的 23 条, 与本单 9 条无交集); 【布线工作量省 9 条】, 但其中 8 条是 ISS-334 已判定的 B 桶几何死线(出脚余量≤+0.30mm, 官方同配方
+        A* 实测『补上 0 条』) ⇒ 省的是『做不成的活』, 不是『能走通的活』。⇒ 悬空这 9 条 = 把『板那一趟为救一条调试脚去动高速差分走廊』的那一半风险直接消掉。★**前提**: 板侧须真把
+        pad 标 no-connect / 摘网, DRC 条目才消失; 只是『不连』而没标 NC, DRC 照样报这 9 条。'
+      ref: ISS-338 · logs/iss338/23_unc_attribution.txt (基于 logs/iss334/00_official_drc_fresh.json) ·
+        logs/iss334/08_astar_officialenv.log · HW/PCB/ONETRIP_S8_MECHANISM_PATH.md §2-2
+    - key: iss338_uart_rx_sw_usage_facts
+      to: main
+      value: '★**UART_RX 的 SW 侧用法实测**★: SW 侧串口用法 = 【只读】(SW/tools/s2_board_run.sh:248-263, s2_rescue_config.json:230
+        _readme 明写『板端串口(取日志用)』); 写方向扫描命中 0 行 (stty / > /dev/tty / write.*tty 全 0) ⇒ 主机→板方向零需求。板→主机方向完整:
+        UART_TX (J_SOM_P2.7 → TP_UART) 实测 230 段 / 4 孔已有铜; J_UART 排针整件 dnp=可选。'
+      ref: ISS-338 · logs/iss338/06_functional_scan_serial_direction.txt · logs/iss338/09_functional_scan_ledsemantics_serialwrite.txt
+        · logs/iss338/22_pcb_independent_parse.txt
+    - key: iss338_usb_cc2_onboard_endpoint
+      to: main
+      value: '★**USB_CC2 的官方板端点实测 (★同名不同物, 判必需性必须按 J_USB_C 判★)★**: 官方板上零铜的 USB_CC2 端点 = 板载 Type-C 的 J_USB_C.B5
+        + R_CC2_D.1 (5.1k Rd); 充电板侧的 J_TYPE_C / R_CC2 / R_CC1 【不在官方板上】; J_USB_C 的 USB 2.0 差分 USB_D_P/N_TYPEC
+        已有铜 ⇒ 调试/供电数据通路不依赖 CC2; USB_CC1 实测 151 段已布。★**但 USB-IF Type-C 对『USB 2.0-only 插座是否必须 CC1/CC2 双路
+        Rd』两条公开条款互相矛盾 (可单路 Rd vs 须双路 advertise Rd) ⇒ SW 侧无权单方拍 ⇒ 分级『待定』, 建议板侧默认 NC + 保留 R_CC2_D, 并由 main
+        在既有问询清单里加一句 (不发新信)。'
+      ref: ISS-338 · logs/iss338/20_final_crosschecks.txt · logs/iss338/22_pcb_independent_parse.txt ·
+        HW/netlist_v1.csv:293/294 · HW/CHARGE_BOARD_SPEC.md:571/573 · HW/SCHEMATIC_V1.md:654
+    - key: iss338_open_items_for_main
+      to: main
+      value: '★**本单边界与未决项交 main (不代拍)★**: ① USB_CC2 悬不悬空 ⇒ 归 main 裁 (USB-IF 条款待外部确认); ② 启动存储 P4 类型 (SW/FLASH_AND_VERSION.md:359
+        [0数据]) ⇒ 若最终外挂 SPI-NOR, 3 条 SPI_*_BOOT 不可悬空, 板要重出 ⇒ 归原厂 (经 main 既有问询清单, 不发新信); ③ JTAG 整组 (JTAG_TCK/TMS/TDO
+        都有铜, 只缺 TDI) ⇒ 裁了就等于接受『4 线缺 1, JTAG 实不可用』, 归 main; ④ 24 条零铜网的分级定稿 (need-4b) ⇒ 归 main。 ★另登记: SW/tools/check_sw_ref_reachability.py:185
+        与 check_sw_ref_reachability_v2.py:244 的 『J_TYPE_C』硬编码指向一个不在官方板上的位号 ⇒ 本单零改闸, 只登记不动手。★**固件侧降级声明本单只写清改哪一行,
+        一行未动 (本单不许改固件本体)** ⇒ 改动清单见 SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md §3。'
+      ref: ISS-338 · HANDOFF/2026-11-19_sw-lead_ISS338_9条单端脚固件引用.md §B4/§B5 · SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+        §3/§4
     open_questions:
     - id: SW-Q1
       to: main
@@ -17631,7 +17945,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-11-19'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -17650,7 +17964,7 @@ domains:
       target_missing: false
       waiting_on: agent
       due: '2026-11-19'
-      overdue: false
+      overdue: true
       decision: null
       decided_at: null
       answers: []
@@ -18470,14 +18784,27 @@ domains:
         ⇒ 否则 C2 判红 = RC-5 同款两处各写各的) ⇒ 落完后 python3 MECH/check_board_frame_freeze_gate.py ⇒ 七条全绿 rc=0. ★板框三选一
         (B160x100/F30A/P60x15) 是老板级, 本单零代拍, 只交机器判据+落表格式★'
       since: '2026-11-19'
-      state: pending
+      state: answered
       target_missing: false
       waiting_on: agent
       due: null
       overdue: false
       decision: null
       decided_at: null
-      answers: []
+      answers:
+      - by: main
+        value: '★★【main 裁 (2026-11-22 20:5x · 机制地界 · 挂链是 main 的地界)】★★ ★**裁决 = 采纳你的建议: 【不挂日常链】+ 配替代机制**
+          ★ ⇒ ★**① 为什么挂日常链是错的 (三条·采信你的理由)**: C7 现在必红 ⇒ 挂日常链 = 门禁链天天红 ⇒ ★**真红被淹没**; 这道闸判的是**一次性事件**「U-1
+          拍没拍」·与 EXTRA_GATES 那几道判**常态漂移**的闸生命周期不同; ★**⇒ 「不许挂进 state/gate_check.py 的日常链」这条, 现在写进 main 的口径了**
+          ★ ★**② 替代机制 (★不许用「反正闸红着」当开工的理由★)**: ★**板那一趟 S1 开工前, 必须单次跑 `python3 MECH/check_board_frame_freeze_gate.py`
+          ⇒ rc 必须 0 ⇒ rc=2 (今天必红) = 【不许开工】** ★ ⇒ ★**这条由 main 单独落成「板那一趟开工前置」, 不改你的闸、不改 gate_check.py**
+          ★ ★**③ U-1 落表格式 (三处缺一处闸还红·★已转写进 pm.yaml 的 answer·★board frame 三选一 (B160x100 / F30A / P60x15)
+          仍是老板级·main 不代拍★)**: ① `state/fragments/mech.yaml` 的 `needs_closed[]` 一条 `key=proto_pcb_freeze_gate`
+          · ② `answers[]` 同 key 一条·value 正文逐字含 **帧 id + 板厚 + 层数** (★推荐逐字照抄: `U-1 板框冻结: 帧 id = F30A; 板厚
+          = 1.00 mm; 层数 = 6; 孔位口径 = PIN-SET-2 套 A。`★) · ③ `HW/PCB/BOARD_FRAME_CALIBER.md` §2 `cal:FRAMES.current_frame`
+          改成认领的帧 id ★**落完 ⇒ 七条全绿 rc=0** ★ ⇒ ★**⇒ 这条 need 从此闭合** ★'
+        ref: MECH/check_board_frame_freeze_gate.py (C1~C7 + RC-1~RC-6) · HANDOFF/2026-11-19_mech-lead_ISS336_板框冻结闸实现.md
+          B5-1
       foreign_answers: []
     answers:
     - key: pcb_outline_confirm
@@ -23710,6 +24037,49 @@ interface_claims:
       hw-lead: 零新增铜
     notes:
       hw-lead: '实测: 官方板上跑 pair_corridor.py 打印 落铜成功 P1段/N1段, 但段数 18,092->18,092 且几何等价 rc=0 => 1格退化路径假阳性'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss337_norm_caliber_v1:
+    values:
+      hw-lead: 归一化口径=V1(层,网,宽 + 度数=2) · 归一化段数∈[2300,3200] · 铜长∈[4600,5900]mm · 过孔∈[380,520]
+    notes:
+      hw-lead: '实测: 官方2649/433/5726.9 · 现役v76mg1 2582/471/5582.8 · v76mz 3099/486/5426.6 · best_unc23
+        2598/475/5591.2; 老口径[2400,2900]/[5400,5900]/[380,450]是按官方板单块锚定 ⇒ 会误拦现役臂 ⇒ 作废'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss337_no_seg_chase_baseline:
+    values:
+      hw-lead: '不追段数(18092是_merge_collinear坐标错位bug产物) · 改立同口径基线: 归一化段数+铜长+过孔三项区间 + 逐网铜量名单双向判据'
+    notes:
+      hw-lead: '实测: 同口径归一化后官方2649 vs 现役2582 只差2.5% ⇒ 本来就在同一条带上 ⇒ 追段数是错的靶'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss337_main_findings_recheck:
+    values:
+      hw-lead: 'main发现①复算: 官方板136焊盘网/90有铜/24零铜 · 现役v76mg1零铜7 · v76mz零铜12 · best_unc23零铜7 ⇒ 两边都零铜只剩3条(CSI_D0_D0_N_SRC
+        / CSI_D0_D2_N / CSI_D0_D3_N) ⇒ 布线45→0的分母必须在板那一趟的新基线上重读 · 不许拿官方板那24条当靶'
+    notes:
+      hw-lead: '实测: 本机独立复算(零写板)'
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss337_seg_align_ne_copper:
+    values:
+      hw-lead: '段数对齐 ≠ 同一块铜: 官方板 vs best_unc23 两板都有铜86条 ⇒ 逐网铜长相符仅21条(±2%或1mm内) · 对不上65条 ⇒ 判据必须改成逐网铜量名单+零铜网名单双向
+        · 不许拿归一化段数当唯一尺子'
+    notes:
+      hw-lead: '实测: 本机复算 ⇒ 本条同时是ISS-334 need-4b定稿输入'
     by:
     - hw-lead
     noncanonical_by:
@@ -30975,6 +31345,45 @@ interface_claims:
     noncanonical_by:
     - sw-lead
     conflict: false
+  iss338_single_end_net_fw_classification:
+    values:
+      sw-lead: 必需2·可悬空候选6·待定1
+    notes:
+      sw-lead: ★SW 侧实测分级★ 9 条零铜单端网; 推翻 main need-4b 默认值2条(UART_RX/USB_CC2) + 另升 CAM_RESET_N/LED_G_D 为必需
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss338_uart_rx_usage_direction:
+    values:
+      sw-lead: SW 侧串口只读
+    notes:
+      sw-lead: ★UART_RX 降级依据★ s2_board_run.sh:248-263 只 cat; UART_TX 已 230 段铜; J_UART dnp=可选
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss338_usb_cc2_endpoint:
+    values:
+      sw-lead: J_USB_C.B5 + R_CC2_D.1
+    notes:
+      sw-lead: ★USB_CC2 官方板端点★ J_TYPE_C 不在板上; USB_CC1=151段已布; USB-IF 双路 Rd 条款待确认 ⇒ 待定
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss338_s8_net_effect:
+    values:
+      sw-lead: unc 45→36 (−20.0%); 差分腿 0 条; 省 9 条(8条B桶死线)
+    notes:
+      sw-lead: ★S8 净效果实测★ 悬空只减 unc 不救差分腿; 前提是板侧真标 no-connect
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
 needs_matrix:
   pending:
   - key: soc_cost_criterion
@@ -32821,6 +33230,25 @@ needs_matrix:
     since: '2026-10-25'
     _by: hw-lead
     state: pending
+  - key: iss337_need4b_two_way_copper_list
+    to: main
+    item: 'ISS-334 need-4b定稿输入: 判据改成逐网铜量名单+零铜网名单双向(段数对齐≠同一块铜 · 官方vs best_unc23 86条有铜网只相符21条) · 不许拿归一化段数当唯一尺子'
+    since: '2026-10-25'
+    _by: hw-lead
+    state: pending
+  - key: iss337_band_truth_overrides_doc
+    to: main
+    item: band口径以tmp/iss337/seg_parity_selfcheck.py L59-61为唯一真值(归一化段数[2300,3200]·铜长[4600,5900]mm·过孔[380,520])
+      · 文档里的[2400,2900]/[5400,5900]/[380,450]已作废(按官方板单块锚定 ⇒ 误拦现役臂471/486/505)
+    since: '2026-10-25'
+    _by: hw-lead
+    state: pending
+  - key: iss337_rereread_zerocopper_denominator
+    to: main
+    item: '布线45→0的分母必须在板那一趟的新基线上重读: 官方板24条零铜网里21条在现役链终板v76mg1上已有铜 · 两边都零铜只剩3条(CSI_D0_D0_N_SRC/CSI_D0_D2_N/CSI_D0_D3_N)'
+    since: '2026-10-25'
+    _by: hw-lead
+    state: pending
   - key: fw_s2_test_gear
     to: main
     item: 'S2 无板先验 L2 层 (空板/半板) 的器材与排期 (走 main): ①逻辑分析仪 (>=8ch, >=100MS/s) 抓 BOOT/RESET 时序 ②USB 协议分析仪
@@ -33928,21 +34356,6 @@ needs_matrix:
     since: ISS-321
     _by: sw-lead
     state: pending
-  - key: iss335_ref_gate_v1_or_v2
-    to: main
-    item: '【等 main 拍·本单不代拍·不是等外部】SW 侧准出汇总闸的清单里, 位号引用可达性闸该列 v1 (ISS-318, 已挂链) 还是 v2 (ISS-332, 已 verified
-      未挂链, 本机 grep -c = 0)? 两个选项: 选项 A = 判决清单用 v1 + v2 走影子道 (只跑只打印, 默认不参与判决) —— 这是本单出厂默认值; 选项 B = 判决清单换
-      v2 (--ref-gate v2, 一条参数零改代码) + v1 退成影子; 另有选项 C = 两个都进判决 (--ref-gate both)。建议默认值 = A。依据: (1) 清单完备性基准必须含
-      ISS-321 实测表那 10 道, 该表第 2 道就是 v1 ⇒ 只列 v2 会与当天必跑闸的口径脱钩; (2) v2 已 verified 但还没挂链, 盘上无日常链背书, 而当天的判读基准是
-      ISS-321 实测表; (3) v2 比 v1 严 (ISS-332 收了 4 条洗白面), 板那一趟当天 v1 绿 v2 红是可能的, 若 v2 直接进判决, 当天会被一条没有链背书的更严判据拉红,
-      现场第一反应会去改板凑绿, 反而放大板 md5 变第二次的风险; (4) 影子口径下 v2 的读数每趟照样打印, main 想拍 v2 时手里已有 v1 与 v2 当天结论是否一致的实测对照,
-      不必当天临时重跑。不选的后果: 只列 v1 且不做影子 = v1 的 4 条洗白面当天敞开, 有可能 v1 绿其实有漂移, 假绿流到下一趟; 只列 v2 = 基准与 ISS-321 实测表脱钩
-      + v2 尚未挂链, 盘上无背书; 两者都进判决 = 最严, 但 v2 红当天会直接卡住整趟, 需 main 明确接受该风险。切换命令: python3 SW/tools/check_onepass_sw_release.py
-      --ref-gate v2 或 --ref-gate both 或 --shadow-strict。本单零改 state/gate_check.py 一个字节, 挂链与选版都是 main 的机制地界。详见交卷页
-      HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md 的 B5-1'
-    since: '2026-11-19'
-    _by: sw-lead
-    state: pending
   - key: soc_carrier_mainboard_site
     to: main
     item: ISS-084上游卡点_主板位定镜脚还是镜框(解D走不走变更流程)_载板化的全部结构结论都随它变_请裁_经项目总工转老板
@@ -34715,25 +35128,8 @@ needs_matrix:
     since: '2026-11-18'
     _by: mech-lead
     state: pending
-  - key: iss336_mech_board_frame_freeze_gate_chain_decision
-    to: main
-    item: '★ISS-336 交 main 拍两件 (★本单只交机器判据·挂链是 main 的机制地界·本单零改 state/gate_check.py★): ① 「板框冻结闸 U-1」这条闸【挂不挂
-      state/gate_check.py 的日常链·挂哪儿】⇒ mech-lead 的建议 = 【不挂日常链】, 只在「板那一趟 S1 开工前」单次跑一次 (依据: C7 现在必红 ⇒ 挂日常链
-      = 门禁链天天红 ⇒ 真红被淹没; 且这道闸判的是一次性事件「U-1 拍没拍」, 与 EXTRA_GATES 那几道判常态漂移的闸生命周期不同) ⇒ 但不挂 = 板那一趟第一前置仍只有一句人话
-      = ISS-319 §D-2-1 那个后果还在 (板 md5 第二次变 ⇒ Gerber/投产包/留证链作废重做 2-4 周 + ¥4-8K) ⇒ 建议配替代机制: HW 作业包硬顺序首行改成「板框冻结
-      (跑 python3 MECH/check_board_frame_freeze_gate.py ⇒ rc=0)」, 或等 U-1 落表闸转绿后再挂 (★若 main 决定挂, 写法 = EXTRA_GATES
-      加一行 (os.path.join(PROJ, MECH, check_board_frame_freeze_gate.py), 板框冻结闸 U-1 (ISS-336), ())·挂链前体检:
-      脚本存在能跑 rc=2 是真红不是坏 + 零写盘 + rc 语义 0/2 明确★). ② U-1 落表格式: 必须落三处缺一处闸还红 ⇒ ① state/fragments/mech.yaml
-      的 needs_closed[] 一条 key=proto_pcb_freeze_gate ② answers[] (或 pm.yaml 的 answers[]) 同 key 一条, value
-      正文逐字含 帧 id + 板厚 + 层数 (推荐逐字照抄: U-1 板框冻结: 帧 id = F30A; 板厚 = 1.00 mm; 层数 = 6; 孔位口径 = PIN-SET-2 套 A。)
-      ③ HW/PCB/BOARD_FRAME_CALIBER.md §2 cal:FRAMES 的 current_frame 改成认领的那个帧 id (★认领 F30A 就要改成 F30A★ ⇒
-      否则 C2 判红 = RC-5 同款两处各写各的) ⇒ 落完后 python3 MECH/check_board_frame_freeze_gate.py ⇒ 七条全绿 rc=0. ★板框三选一
-      (B160x100/F30A/P60x15) 是老板级, 本单零代拍, 只交机器判据+落表格式★'
-    since: '2026-11-19'
-    _by: mech-lead
-    state: pending
-  answered_count: 217
-  total: 557
+  answered_count: 222
+  total: 563
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -35973,6 +36369,45 @@ lint:
     (L222-223) 把路径换成 check_sw_ref_reachability_v2.py·args 传 () 裸跑·旧闸建议【不删文件·退出链】(回滚=改回1行)。★零写板·零落表·零改真件闸·零改
     gate_check.py·零外发·不自签 issue_log。'
   hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: sw-lead
+  key: iss338_single_end_net_fw_classification
+  value: '必需 2 (CAM_RESET_N · LED_G_D) · 可悬空候选 6 (FSIN_OUT · JTAG_TDI · SPI_MISO_BOOT · SPI_MOSI_BOOT
+    · SPI_SCLK_BOOT · UART_RX) · 待定 1 (USB_CC2)。9 条零铜单端网在 SW/** 全树 126 文件网名级零引用(含大小写/下划线/连字符变体), 扫法已被
+    BAT_DET=121 / RESET_N=52 自证有效; 按功能等价物逐条查完后分级。★**推翻 main need-4b 默认值 2 条**: UART_RX 必需⇒可悬空候选 (SW 侧串口实测只读
+    cat $SERDEV, 写方向命中 0 行; UART_TX 已 230 段铜日志抓取链完整; J_UART 整件 dnp=可选) · USB_CC2 必需⇒待定 (官方板上零铜端点=板载 J_USB_C.B5+R_CC2_D.1,
+    J_TYPE_C 不在板上, USB_CC1=151 段已布; 但 USB-IF 单路/双路 Rd 两条款互相矛盾需外部确认)。★另推翻 main「其余 7 条」口径 2 条: CAM_RESET_N
+    升为必需 (网表 HW/netlist_v1.csv:285 [官方]『主板必须能拉它』+ dts reset-gpios gpio1 RK_PB3 低有效 ⇒ 相机不出图则 MIPI-CSI 链死)
+    · LED_G_D 升为必需 (同族 LED_B_D=105段 / LED_R_D=169段 都有铜, 只它 0 段 ⇒ 该布没布; 且 D_LED_G 被 check_sw_ref_reachability.py:178
+    与 v2:237 硬编码进 DESIGNATOR_REGISTRY = 真代码路径)'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: sw-lead
+  key: iss338_s8_net_effect_9nets
+  value: '★**S8 净效果 (给 need-4b / 板那一趟的净账)★**: 悬空 9 条 ⇒ unc 45→36 (净减 9 条 = 45 的 20.0%); 【差分腿救回 0 条】(15
+    条高速差分腿占 unc 里的 23 条, 与本单 9 条无交集); 【布线工作量省 9 条】, 但其中 8 条是 ISS-334 已判定的 B 桶几何死线(出脚余量≤+0.30mm, 官方同配方
+    A* 实测『补上 0 条』) ⇒ 省的是『做不成的活』, 不是『能走通的活』。⇒ 悬空这 9 条 = 把『板那一趟为救一条调试脚去动高速差分走廊』的那一半风险直接消掉。★**前提**: 板侧须真把
+    pad 标 no-connect / 摘网, DRC 条目才消失; 只是『不连』而没标 NC, DRC 照样报这 9 条。'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: sw-lead
+  key: iss338_uart_rx_sw_usage_facts
+  value: '★**UART_RX 的 SW 侧用法实测**★: SW 侧串口用法 = 【只读】(SW/tools/s2_board_run.sh:248-263, s2_rescue_config.json:230
+    _readme 明写『板端串口(取日志用)』); 写方向扫描命中 0 行 (stty / > /dev/tty / write.*tty 全 0) ⇒ 主机→板方向零需求。板→主机方向完整: UART_TX
+    (J_SOM_P2.7 → TP_UART) 实测 230 段 / 4 孔已有铜; J_UART 排针整件 dnp=可选。'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: sw-lead
+  key: iss338_usb_cc2_onboard_endpoint
+  value: '★**USB_CC2 的官方板端点实测 (★同名不同物, 判必需性必须按 J_USB_C 判★)★**: 官方板上零铜的 USB_CC2 端点 = 板载 Type-C 的 J_USB_C.B5
+    + R_CC2_D.1 (5.1k Rd); 充电板侧的 J_TYPE_C / R_CC2 / R_CC1 【不在官方板上】; J_USB_C 的 USB 2.0 差分 USB_D_P/N_TYPEC
+    已有铜 ⇒ 调试/供电数据通路不依赖 CC2; USB_CC1 实测 151 段已布。★**但 USB-IF Type-C 对『USB 2.0-only 插座是否必须 CC1/CC2 双路 Rd』两条公开条款互相矛盾
+    (可单路 Rd vs 须双路 advertise Rd) ⇒ SW 侧无权单方拍 ⇒ 分级『待定』, 建议板侧默认 NC + 保留 R_CC2_D, 并由 main 在既有问询清单里加一句 (不发新信)。'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: sw-lead
+  key: iss338_open_items_for_main
+  value: '★**本单边界与未决项交 main (不代拍)★**: ① USB_CC2 悬不悬空 ⇒ 归 main 裁 (USB-IF 条款待外部确认); ② 启动存储 P4 类型 (SW/FLASH_AND_VERSION.md:359
+    [0数据]) ⇒ 若最终外挂 SPI-NOR, 3 条 SPI_*_BOOT 不可悬空, 板要重出 ⇒ 归原厂 (经 main 既有问询清单, 不发新信); ③ JTAG 整组 (JTAG_TCK/TMS/TDO
+    都有铜, 只缺 TDI) ⇒ 裁了就等于接受『4 线缺 1, JTAG 实不可用』, 归 main; ④ 24 条零铜网的分级定稿 (need-4b) ⇒ 归 main。 ★另登记: SW/tools/check_sw_ref_reachability.py:185
+    与 check_sw_ref_reachability_v2.py:244 的 『J_TYPE_C』硬编码指向一个不在官方板上的位号 ⇒ 本单零改闸, 只登记不动手。★**固件侧降级声明本单只写清改哪一行,
+    一行未动 (本单不许改固件本体)** ⇒ 改动清单见 SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md §3。'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: hw-lead
   key: bat_chg_rate_cap
   value: 1.0A(待电芯规格书)
@@ -37046,6 +37481,24 @@ lint:
 - agent: hw-lead
   key: iss334_pair_corridor_zero_copper
   value: 零新增铜
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss337_norm_caliber_v1
+  value: 归一化口径=V1(层,网,宽 + 度数=2) · 归一化段数∈[2300,3200] · 铜长∈[4600,5900]mm · 过孔∈[380,520]
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss337_no_seg_chase_baseline
+  value: '不追段数(18092是_merge_collinear坐标错位bug产物) · 改立同口径基线: 归一化段数+铜长+过孔三项区间 + 逐网铜量名单双向判据'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss337_main_findings_recheck
+  value: 'main发现①复算: 官方板136焊盘网/90有铜/24零铜 · 现役v76mg1零铜7 · v76mz零铜12 · best_unc23零铜7 ⇒ 两边都零铜只剩3条(CSI_D0_D0_N_SRC
+    / CSI_D0_D2_N / CSI_D0_D3_N) ⇒ 布线45→0的分母必须在板那一趟的新基线上重读 · 不许拿官方板那24条当靶'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss337_seg_align_ne_copper
+  value: '段数对齐 ≠ 同一块铜: 官方板 vs best_unc23 两板都有铜86条 ⇒ 逐网铜长相符仅21条(±2%或1mm内) · 对不上65条 ⇒ 判据必须改成逐网铜量名单+零铜网名单双向
+    · 不许拿归一化段数当唯一尺子'
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: mech-lead
   key: mech_reltest_cases
@@ -38584,6 +39037,18 @@ lint:
   value: 'fail-closed 四条语义: 脚本不存在 / 跑不起来 / 超时 300s ⇒ 一律算闸红 (rc=None, 不许静默跳过); 跑完 rc 非 0 ⇒ 算闸红并解析 stdout
     的 [FAIL] 与 ❌ 行当详情; 跑完 rc=0 ⇒ 闸绿。清单本身也参与判决 (少一道 ⇒ 汇总直接红)。'
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss338_single_end_net_fw_classification
+  value: 必需2·可悬空候选6·待定1
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss338_uart_rx_usage_direction
+  value: SW 侧串口只读
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss338_s8_net_effect
+  value: unc 45→36 (−20.0%); 差分腿 0 条; 省 9 条(8条B桶死线)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 risks:
 - id: R-dsi-unknown
   text: ARS45 显示 TX 接口未确认 (媒体二手证据) — 若既无 DSI TX 也无 DP TX, 则显示链不成立
@@ -38667,15 +39132,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 698
+  artifacts: 706
   blockers: 43
   high_blockers: 33
-  open_needs: 340
+  open_needs: 341
   waiting_external_needs: 50
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 549
+  lint: 561
   agents_reporting: 4
   incomplete_fragments: 0

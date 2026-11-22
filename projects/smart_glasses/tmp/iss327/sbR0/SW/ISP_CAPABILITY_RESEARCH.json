@@ -1,0 +1,89 @@
+{
+  "_meta": {
+    "issue": "ISS-124",
+    "sub_questions": [
+      "03a (ISP MP/s 吞吐上限)",
+      "03b' (ISP 动态功耗 vs 吞吐)"
+    ],
+    "owner": "sw-lead",
+    "generated_at": "2026-11-15",
+    "reproduce": "python3 SW/tools/isp_budget_solve.py",
+    "doc": "SW/ISP_CAPABILITY_RESEARCH.md",
+    "no_external_contact": "老板 2026-11-12 02:02: 不再发信, 全靠自己查资料 ⇒ 本单零外发",
+    "measured_count": 0,
+    "evidence_grades_used": [
+      "[官网]",
+      "[推算]",
+      "[0数据]",
+      "[媒体二手·旧芯片]",
+      "[官方口径·旧芯片]"
+    ]
+  },
+  "demand_mpps": {
+    "full_2688x1520_60": 245.1,
+    "1080p60": 124.4,
+    "640x480_60": 18.4,
+    "1280x960_15": 18.4
+  },
+  "per_frame_mpix_and_usage_vs_official_12M": {
+    "full_2688x1520_60": {
+      "mpix": 4.086,
+      "pct_of_12M": 34.05
+    },
+    "1080p60": {
+      "mpix": 2.074,
+      "pct_of_12M": 17.28
+    },
+    "_note": "★12M Pixel 是【单帧分辨率上限】, 不是【每秒处理能力】; 不得互相换算"
+  },
+  "isp_mpps_max": null,
+  "isp_mpps_source": "[0数据] RK3572 datasheet V1.1 (HW/RK3572_PIN_TABLE/RK3572_datasheet_V1.1.pdf, md5 c0e3763036e2f6a3e8a2f68f2254851d) §1.2.10 与 rock-chips.com RK3576 Brief Datasheet V1.2-20240311 (md5 76d0904d09e65c3ba7cdebb0af7ede47) 全文检索 MP/s|megapixel|throughput|pixels/s 均 0 命中 ⇒ 官方只给单帧分辨率上限 (RK3572 12M Pixel / RK3576 16M Pixel), 从未给 MP/s 吞吐上限",
+  "isp_power_mw_at_mpps": {
+    "62": 60.0,
+    "124": 120.4,
+    "245": 237.2,
+    "_grade": "[推算] 线性插值, 锚点 POWER_BUDGET_V3 §2.3 (x >= 60 mW @ 1080p30 = 62 MP/s); 敏感性带 @245.1: 180.2 (γ=0.8) ~ 312.2 (γ=1.2) mW",
+    "_delta_vs_current_model_mw": {
+      "value": 117.2,
+      "basis": "现行模型 ISP@60 项 = 2x = 120 mW @ 124.4 MP/s",
+      "band": [
+        60.2,
+        192.2
+      ]
+    }
+  },
+  "isp_ms_budget_60ms_line": {
+    "modeA": 15.095,
+    "modeB": 17.33,
+    "_basis": "[推算] 反解 HW/e2e_budget_rk3572.py 既有模型 (T_FIXED=34.00, S3=8.00, POST_MS=5.6, FRAME_MS=16.67); 基线 = RK3572 + yolov5n@640 (S5=13.30, T_od=18.91, age=2)",
+    "_isp_now_ms": 8.0,
+    "_headroom_ms": {
+      "modeA": 7.095,
+      "modeB": 9.33
+    },
+    "_multiple_of_now": {
+      "modeA": 1.887,
+      "modeB": 2.166
+    },
+    "_caveat_modeB": "模式B 的 17.33 ms 前提是 age=1 (T_od <= 16.67); 现行 yolov5n@640 的 age=2 ⇒ 模式B 本来就不成立 (67.34 ms), 与 ISP 无关"
+  },
+  "skin_redline_recheck": {
+    "redline_c": 43.0,
+    "p_redline_w": 0.16,
+    "model": "T_skin = 35.0 + 50.13 * P_W  (import 自 SW/tools/timing_check.py F7_skin_tiers)",
+    "tiers_over_redline_after_reestimate": "10/10 (含最乐观 γ=0.8)",
+    "verdict": "★43°C 结论【不翻案】: 满载本来就超 (60.1~100.7°C), ISP 重估只让它更差 (+3.0~+9.6°C); 唯一能进红线的杠杆 (待机-B 0.05W + 按需触发 41.4~42.4°C) 与 ISP 吞吐无关"
+  },
+  "caliber_collapse_findings": {
+    "D1": "延迟预算里 ISP 段的官方口径 '<10ms' 的原厂是酷芯微/ARS45 (官网 artosyn.cn + 松山湖论坛) ⇒ 换芯到 RK3572 后该 E2 已失效 ⇒ ISP 段 ms 官方口径 = [0数据]",
+    "D2": "S3 = 8.00 ms 这个占位值本身就是按【全幅 2688×1520→640×480@60】给的 (SW/SW_REQUIREMENTS.md §10.1) ⇒ 不存在'换全幅⇒ISP 时间翻倍⇒破 60ms'这条路",
+    "D3": "ISS-124 note 里的'需求降到 124.4 MP/s'只对应 1080p60 直出那一档; 现行锁定链路 (SW_REQUIREMENTS §3.4 C5 整幅 scale 硬约束) 的 ISP 输入是全幅 245.1 MP/s ⇒ 两个数都要给"
+  },
+  "alignment_with_ISP_SCALING_MODE_sec6": {
+    "250_MPps_98_1pct": "不成立 (对 RK3572): 250 是 ARS45 (酷芯微) 的能力上限, 已作废芯片",
+    "497_7_MPps_49_3pct": "不成立: 497.7 = 4K@60 视频像素率, 不是 ISP 能力 (main 2026-11-01 20:5x 已裁)",
+    "verdict": "两套口径对 RK3572 都不成立; 官方唯一口径 = 12M Pixel/帧 (单帧分辨率上限) ⇒ 全幅占 34.05%, 1080p60 占 17.28%",
+    "warning": "★12M Pixel 不能推出 MP/s ⇒ 不得用它替代 245.1 MP/s 的吞吐结论"
+  },
+  "fallback": "官方对 RK3572/RK3576 都未给 ISP MP/s 吞吐上限也未给 ISP 功耗 ⇒ 降级: ①算值用 POWER_BUDGET_V3 §2.3 锚点 (60mW@62MP/s) 按像素率线性插值 ⇒ 245.1 MP/s = 237.2 mW (带 180.2~312.2), 皮肤满载 10/10 档位仍超 43°C ⇒ 结论不翻案; ②反解既有模型 ⇒ 60ms 硬线下 ISP 段最多 15.10 ms (模式A) / 17.33 ms (模式B age=1), 现值 8.00 ms 余量 +7.09/+9.33 ms; ③实测需一块可达的 RK357x 板 + 先给 11 段表补一个 ISP 段打点, 判据 avg<=15.10ms 且实测帧率>=60fps@全幅 (即 245.1 MP/s 被官方实现确认)。"
+}
