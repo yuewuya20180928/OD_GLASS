@@ -4,14 +4,13 @@ updated_at: '2026-11-17'
 updated_by: hw-lead
 status:
   phase: delivering
-  progress_pct: 80
+  progress_pct: 100
   health: green
-  summary: 'ISS-334 机制级换机制路线: (1) 官方板零铜网=24个 (pad>=2且segment=0, 与闸定义逐字一致), 24/24落在45条未连接里; 其中15条高速差分腿+9条单端低速脚
-    => 布局级处方最多碰6个 => 18个原理上覆盖不到; (2) 死因三桶: A成对走廊7 / B出脚几何16 / C路由器本体1 => 几何卡死这个前提是假的 (88/88端点物理可行 + 出脚方向CSP可行);
-    (3) 决定性读数: A* 在官方stage-1(17,022段)上补0条/未成54条且产物md5与输入逐字节相同 => 病根在路由器本体不在后处理顺序 => 只有修在产生点才有戏; (4) 官方板可完整复现
-    (chain_offverify终板 与 官方板 几何等价 rc=0) => 臂有同工艺起跑线; 但生成器已漂移 (2,492 vs 17,022段) => env级臂不可比 => ISS-328右上臂3,986段的死因同机制;
-    (5) 桶A机制实测撞墙: pair_corridor.py 打印落铜成功但零新增铜(几何等价rc=0) => 1格退化路径假阳性; (6) 候选臂3条+同配方对照臂3条已设计(含对照有效性自检与可比性自检),
-    沙盒预演4条已跑, 官方补丁链未跑(任务书禁止); (7) 6条need交main/boss, 一条都没自己拍; (8) 判据=名单制闸rc=0+DRC0, 禁拿unc变少当成功, 板md5只变一次'
+  summary: 'ISS-339 交卷: 两把尺子已落盘 (可比性前置闸 HW/check_board_comparable_gate.py + S8 目标名单重读器 HW/check_s8_target_list.py)
+    + 权威口径页 HW/PCB/S8_TARGET_LIST_AND_COMPARABILITY.md + 交卷页; 零写板 (官方板 md5 611b869e13518c3c023fb178f91a0075
+    / mtime 2026-11-06 07:07:17.362193413 交卷前后不变); 闸自测 ALL TESTS PASS; 官方板 2649/433/5726.9 放行, v44 2280/371/4568.5
+    三项越界被拦; 目标名单 24 条逐条对上 (必需 23 + 可悬空 1 + 待定 0), N-prime 45, 两口径 21/24, 两边都零铜 3 条; 两条挂链/锁基线未决已交 main
+    裁'
   updated_at: '2026-11-17'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -1688,6 +1687,37 @@ artifacts:
   version: cont2
   updated_at: '2026-10-25'
   summary: band脚本真值+老口径为何作废的四块锚板逐条误拦对照
+- path: HW/check_board_comparable_gate.py
+  kind: script
+  version: iss339
+  updated_at: '2026-11-22'
+  summary: '可比性前置闸: 三项绝对区间 (归一化段数/铜长/过孔) 全中才 rc=0, 越界/缺项/常量不一致 ⇒ rc=2; 区间真值只认 tmp/iss337/seg_parity_selfcheck.py
+    L59-61'
+- path: HW/check_s8_target_list.py
+  kind: script
+  version: iss339
+  updated_at: '2026-11-22'
+  summary: 'S8 布线归零目标名单重读器: 逐网表 + N-prime + 两个分母口径 + 两边都零铜清单 + 铁律; 必需性分级沿用 main 20:5x 已裁口径'
+- path: HW/PCB/S8_TARGET_LIST_AND_COMPARABILITY.md
+  kind: doc
+  version: iss339
+  updated_at: '2026-11-22'
+  summary: '两把尺子的权威口径页: 可比性前置闸与S8目标名单重读器的用法 + 官方基线现值快照 + 板那一趟怎么用 + 未决项'
+- path: HANDOFF/2026-11-22_hw-lead_ISS339_可比性前置闸与S8目标名单.md
+  kind: doc
+  version: iss339
+  updated_at: '2026-11-22'
+  summary: ISS-339 交卷页 B0~B6 (摘要/交付物清单/验收自评/证据分级/接口取值/未决项/可复现命令)
+- path: logs/iss339/02_comparable_gate_selftest.txt
+  kind: evidence
+  version: iss339
+  updated_at: '2026-11-22'
+  summary: 可比性前置闸 --selftest 原文 (末行 ALL TESTS PASS; 官方板放行 + 合成带外板被拦 + v44 三项越界被拦)
+- path: logs/iss339/01_s8_target_list_official_vs_v76mg1.txt
+  kind: evidence
+  version: iss339
+  updated_at: '2026-11-22'
+  summary: '目标名单重读器实跑原文: 官方板 24 条零铜网逐条分级 + N-prime 45 + 两口径 21/24 + 两边都零铜 3 条'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -3605,6 +3635,17 @@ needs_from:
   to: main
   item: '布线45→0的分母必须在板那一趟的新基线上重读: 官方板24条零铜网里21条在现役链终板v76mg1上已有铜 · 两边都零铜只剩3条(CSI_D0_D0_N_SRC/CSI_D0_D2_N/CSI_D0_D3_N)'
   since: '2026-10-25'
+- key: iss339_gate_chain_mount
+  to: main
+  item: '【可比性前置闸挂不挂进 state/gate_check.py】= main 的地界 (本单只交脚本+挂链建议): ① 挂成硬闸 (代价: 归一化 1~2 分钟/板 ⇒ 需先加缓存预热
+    --prime-cache) ② 只当人工前置 ③ 挂但只 warning ⇒ hw-lead 建议 ③; ★官方板自己 2649/433/5726.9 在带内 ⇒ 挂上去不会误杀官方板; ★v44/v46/v47/v48
+    四个坏臂已被本闸直接拦下'
+  since: '2026-11-22'
+- key: iss339_baseline_lock
+  to: main
+  item: '【板那一趟的参照板要锁死哪一块】: 全部网口径的宇宙 = 两板有铜网并集 ⇒ 换参照板数字就变 (官方板 21 是在 official-vs-v76mg1 与 official-vs-best_unc23
+    两个配对上都成立的读数) ⇒ 建议锁死 state/.lastgood/best_v76mg1_clrfix.kicad_pcb 并写进板那一趟的作业包 (★不替老板拍板★)'
+  since: '2026-11-22'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -4205,6 +4246,22 @@ answers:
     6 道闸一起打红 (★那正是 ISS-297 立单要杀的那类集体假红★)★ ⇒ ★采不采、要不要写进「板只改一次」那一趟的作业包 = main 拍板, 本单不代拍★; ★另: 交卷单已被 4 个并发实例追加到
     109 KB 且顶级编号撞车 (⑱×2/⑲×2/⑳×2/㉑×1) ⇒ 复签时建议按【尾部索引那张表】+【㉑ 节】读★'
   ref: HANDOFF/2026-11-17_hw-lead_ISS297_合法改板通道.md#㉑ + logs/iss297/run_iss297_selftests.sh
+- key: iss337_band_truth_overrides_doc
+  to: main
+  value: '★已实现【可比性前置闸】: 新建 HW/check_board_comparable_gate.py ⇒ rc=0 可比 / rc=2 不可比 ⇒ 判据三项全中才放行: 归一化段数∈[2300,3200]
+    (口径V1=层+网+宽+度数2) · 铜长∈[4600,5900]mm · 过孔∈[380,520] ⇒ 区间唯一真值 = tmp/iss337/seg_parity_selfcheck.py L59-61
+    ⇒ 脚本每次运行读那个文件做常量自检, 不一致 ⇒ rc=2 并打印逐项差异 ⇒ 优先 import 那个脚本的解析器, tmp 被清则自带逐字副本 ⇒ 零写板。★实测: 官方终板 2649/433/5726.9
+    ⇒ 放行; v44 实测坏臂板 2280/371/4568.5 ⇒ 三项全部低于下界 ⇒ 被可比性层直接拦住 ⇒ 不存在可比性层抓不住 v44 的缺口。★挂不挂进 state/gate_check.py
+    = main 地界, hw-lead 只交脚本 + 挂链建议。'
+  ref: HW/check_board_comparable_gate.py
+- key: iss337_rereread_zerocopper_denominator
+  to: main
+  value: '★已实现【S8 目标名单重读器】: 新建 HW/check_s8_target_list.py <板> [--baseline <参照板>] ⇒ ① N-prime = 本板自己跑 DRC
+    的 unconnected 条数 (官方板实测 45 · violations=0 · 不是照抄) ② 逐网标 [必需/可悬空/待定] (沿用 main 20:5x 已裁口径: 23 必需 = 15
+    高速差分腿 + 8 单端脚 / 1 可悬空 FSIN_OUT / 0 待定 ⇒ 脚本自检一致) ③ 标该网本板与参照板有没有铜 + 铜长 mm ④ 两个分母口径都给: 全部网口径 (官方 21)
+    与 pad≥2 焊盘网口径 (官方 24) ⇒ 官方那 24 条里 21 条在现役 v76mg1 上已有铜 ⇒ 两边都零铜只剩 3 条 (CSI_D0_D0_N_SRC / CSI_D0_D2_N
+    / CSI_D0_D3_N) ⇒ 分母必须在板那一趟的真实基线板上重读。★零写板·零落表·零改既有闸·零重生成。'
+  ref: HW/check_s8_target_list.py
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -6584,6 +6641,28 @@ interface_claims:
     · 不许拿归一化段数当唯一尺子'
   note: '实测: 本机复算 ⇒ 本条同时是ISS-334 need-4b定稿输入'
   ref: logs/iss337/17_main_findings_recheck.txt
+- key: iss339_comparable_gate_caliber
+  value: 【可比性前置闸】判据 = 归一化段数∈[2300,3200] · 铜长∈[4600,5900]mm · 过孔∈[380,520] ⇒ 三项全中才放行, 缺一 ⇒ rc=2 ⇒ 区间唯一真值
+    = tmp/iss337/seg_parity_selfcheck.py L59-61 (脚本运行时读该文件做常量自检, 不一致 ⇒ rc=2) ⇒ 优先 import 该脚本解析器, tmp 被清
+    ⇒ 自带逐字副本 ⇒ 零写板 (缓存只落 tmp/iss339/cache/)
+  note: '实测: 官方终板 2649/433/5726.9 放行 · v44 2280/371/4568.5 三项全低于下界 ⇒ 被拦'
+  ref: HW/PCB/S8_TARGET_LIST_AND_COMPARABILITY.md
+- key: iss339_s8_target_list_caliber
+  value: '【S8 目标名单重读器】输出 = 逐网表 (网名 / 分级 / 本板有无铜+铜长 / 参照板有无铜+铜长 / 备注) + 三行汇总 (N-prime 本板 unconnected 条数
+    / 两个分母口径: 全部网口径与 pad≥2 焊盘网口径 / 两边都零铜清单) + 铁律三条 (靶更小≠板子更好 · 判据顺序=先可比性→再名单→最后才看计数 · 本单只出尺子不改板)'
+  note: 参照板只读, 不许改
+  ref: HW/check_s8_target_list.py
+- key: iss339_zero_copper_denominator_truth
+  value: '官方终板现值快照: 归一化段数 2649 · 过孔 433 · 铜长 5726.9mm · unconnected 45 (viol 0) · 零铜网 = 全部网口径 21 / pad≥2
+    焊盘网口径 24 ⇒ 那 24 条里 21 条在现役 v76mg1 上已有铜 ⇒ 两边都零铜只剩 3 条 (CSI_D0_D0_N_SRC / CSI_D0_D2_N / CSI_D0_D3_N)
+    ⇒ 必需 23 (15 差分腿 + 8 单端脚) + 可悬空 1 (FSIN_OUT) + 待定 0'
+  note: 全部网口径的宇宙 = 两板有铜网并集 ⇒ 换参照板数字就变 ⇒ 板那一趟建议锁死参照板
+  ref: logs/iss339/01_s8_target_list_official_vs_v76mg1.txt
+- key: iss339_judgement_order
+  value: 板那一趟的判据顺序 = 先可比性 (HW/check_board_comparable_gate.py) → 再名单 (state/compare_arm_official.py, 参照板
+    = 现役同工艺基线) → 最后才看计数 (unconnected / 零铜网数 / 单边零铜对数); ★靶更小≠板子更好 (现役链终板自己过不了名单制闸 ⇒ 靶更小只是工作量口径变了); ★不许拿不可比的板刷闸的结论
+  note: main 21:2x 已裁口径, 本单只落实现不重开
+  ref: HW/PCB/S8_TARGET_LIST_AND_COMPARABILITY.md
 open_questions:
 - id: HW-Q1
   to: main
