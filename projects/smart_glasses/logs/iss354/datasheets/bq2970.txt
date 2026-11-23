@@ -1,0 +1,2005 @@
+                                                                                                                                           BQ2970, BQ2971, BQ2972, BQ2973
+                                                                                                                                    SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+BQ297xx Cost-Effective Voltage and Current Protection Integrated Circuit for Single-
+                       Cell Li-Ion and Li-Polymer Batteries
+1 Features                                                                   2 Applications
+•    Input voltage range pack+: VSS – 0.3V to 12V                            •            Tablet PCs
+•    FET drive:                                                              •            Mobile handsets
+     – CHG and DSG FET drive output                                          •            Handheld data terminals
+•    Voltage sensing across external FETs for
+     overcurrent protection (OCP) is within ±5mV
+                                                                             3 Description
+     (typical)                                                               The BQ2970 battery cell protection device provides
+•    Fault detection                                                         an accurate monitor and trigger threshold for
+     – Overcharge detection (OVP)                                            overcurrent protection during high discharge/charge
+     – Over-discharge detection (UVP)                                        current operation or battery overcharge conditions.
+     – Charge overcurrent detection (OCC)
+                                                                             The BQ2970 device provides the protection functions
+     – Discharge overcurrent detection (OCD)
+                                                                             for Li-ion/Li-polymer cells, and monitors across the
+     – Load short-circuit detection (SCP)
+                                                                             external power FETs for protection due to high
+•    Zero voltage charging for depleted battery
+                                                                             charge or discharge currents. In addition, there is
+•    Factory programmed fault protection thresholds
+                                                                             overcharge and depleted battery monitoring and
+     – Fault detection voltage thresholds                                    protection. These features are implemented with low
+     – Fault trigger timers                                                  current consumption in NORMAL mode operation.
+     – Fault recovery timers
+•    Modes of operation without battery charger                                                                                      Device Information
+     enabled                                                                       PART NUMBER                                             PACKAGE(1)           BODY SIZE (NOM)
+     – NORMAL mode ICC = 4µA                                                 BQ2970, BQ2971,
+                                                                                                                                            WSON (6)            1.50mm × 1.50mm
+     – Shutdown Iq = 100nA                                                   BQ2972, BQ2973
+•    Operating temperature range TA = –40°C to +85°C                         (1)                                 For all available packages, see the orderable addendum at
+•    Package:                                                                                                    the end of the data sheet.
+     – 6-pin DSE (1.50mm × 1.50mm × 0.75mm)
+    PACK +                                                                                                        0.0
+
+                                                                                                                 ±0.5
+
+
+
+
+                                                                                   OCD Detection Accuracy (mV)
+                                               NC   V–    330
+
+
+                                             COUT   BAT                                                          ±1.0
+                                             DOUT   VSS
+
+                                                            0.1 µF
+                                                                     CELLP                                       ±1.5
+              2.2k
+
+                                                                     CELLN
+                                                                                                                 ±2.0
+
+                                                                                                                 ±2.5
+    PACK–                      D
+                     S                   S
+
+                         CHG       DSG                                                                           ±3.0
+                               Simplified Schematic                                                              ±3.5
+
+                                                                                                                 ±4.0
+                                                                                                                        ±40   ±20      0     20    40     60     80   100   120
+                                                                                                                                             Temperature (ƒC)               C012
+
+
+                                                                                 OCD Detection Accuracy Versus Temperature
+
+
+
+
+         An IMPORTANT NOTICE at the end of this data sheet addresses availability, warranty, changes, use in safety-critical applications,
+         intellectual property matters and other important disclaimers. PRODUCTION DATA.
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                                                                      www.ti.com
+
+
+                                                                        Table of Contents
+1 Features............................................................................1   8 Detailed Description......................................................14
+2 Applications..................................................................... 1       8.1 Overview................................................................... 14
+3 Description.......................................................................1       8.2 Functional Block Diagram......................................... 15
+4 Device Comparison Table...............................................3                   8.3 Feature Description...................................................15
+5 Pin Configuration and Functions...................................3                       8.4 Device Functional Modes..........................................15
+  5.1 Pin Descriptions.......................................................... 4        9 Application and Implementation.................................. 18
+6 Specifications.................................................................. 4        9.1 Application Information............................................. 18
+  6.1 Absolute Maximum Ratings........................................ 4                    9.2 Typical Application.................................................... 19
+  6.2 ESD Ratings............................................................... 4          9.3 Power Supply Recommendations.............................21
+  6.3 Recommended Operating Conditions.........................5                            9.4 Layout....................................................................... 22
+  6.4 Thermal Information....................................................5            10 Device and Documentation Support..........................23
+  6.5 DC Characteristics...................................................... 5            10.1 Related Documentation.......................................... 23
+  6.6 Programmable Fault Detection Thresholds................ 6                             10.2 Support Resources................................................. 23
+  6.7 Programmable Fault Detection Timer Ranges............6                                10.3 Trademarks............................................................. 23
+  6.8 Typical Characteristics................................................ 7             10.4 Electrostatic Discharge Caution..............................23
+7 Parameter Measurement Information.......................... 10                            10.5 Glossary..................................................................23
+  7.1 Timing Charts............................................................10         11 Revision History.......................................................... 23
+  7.2 Test Circuits.............................................................. 12      12 Mechanical, Packaging, and Orderable
+  7.3 Test Circuit Diagrams................................................14               Information.................................................................... 23
+
+
+
+
+2       Submit Document Feedback                                                                                         Copyright © 2024 Texas Instruments Incorporated
+
+                                                     Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                                              BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                                                           SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+
+4 Device Comparison Table
+                                                                                                                                   OCD
+                                OVP DELAY                        UVP DELAY                      OCC DELAY                                                      SCD DELAY
+ PART NUMBER(1)      OVP (V)                      UVP (V)                           OCC (V)                         OCD (V)       DELAY         SCD (V)
+                                  (sec)                             (ms)                          (ms)                                                            (µs)
+                                                                                                                                   (ms)
+      BQ29700          4.275        1.25           2.800             144             –0.100             8             0.100         20             0.5            250
+      BQ29701          4.280        1.25           2.300             144             –0.100             8             0.125          8             0.5            250
+      BQ29702          4.350           1           2.800             96              –0.155             8             0.160         16             0.3            250
+      BQ29703          4.425        1.25           2.300             20              –0.100             8             0.160          8             0.5            250
+      BQ29704          4.425        1.25           2.500             20              –0.100             8             0.125          8             0.5            250
+      BQ29705          4.425        1.25           2.500             20              –0.100             8             0.150          8             0.5            250
+      BQ29706          3.850        1.25           2.500             144             –0.150             8             0.200          8             0.6            250
+      BQ29707          4.280           1           2.800             96              –0.090             6             0.090         16             0.3            250
+      BQ29716          4.425        1.25           2.300             20              –0.100             8             0.165          8             0.5            250
+      BQ29717          4.425        1.25           2.500             20              –0.100             8             0.130          8             0.5            250
+      BQ29718          4.425        1.25           2.500             20              –0.100             8             0.100          8             0.5            250
+      BQ29723          4.425           1           2.500             96              –0.060             4             0.100          8             0.3            250
+      BQ29728          4.280        1.25           2.800             144             –0.100             8             0.150          8             0.5            250
+      BQ29729          4.275        1.25           2.300             20              –0.100             8             0.130          8             0.5            250
+      BQ29732          4.280        1.25           2.500             144             –0.100             8             0.190          8             0.5            250
+      BQ29733          4.400        1.25           2.800             20              –0.100             8             0.120          8             0.3            250
+      BQ29737          4.250           1           2.800             96              –0.050             16            0.100         16             0.3            250
+      BQ29740          4.450           1           2.500             96              –0.100             8             0.100          8             0.3            250
+                                   0.25, 1,                      20, 96, 125,       –0.045 to                                    8, 16, 20,   0.3, 0.4, 0.5,
+      BQ297xy        3.85–4.6                     2.0–2.8                                           4, 6, 8, 16    0.090–0.200                                    250
+                                  1.25, 4.5                          144             –0.155                                          48            0.6
+
+(1)    All of the protections have a recovery delay time. The recovery timer starts as soon as the fault is triggered. The device starts to check
+       for a recovery condition only when the recovery timer expires. This is NOT a delay time between recovery condition to FETs recovery.
+       OVP recovery delay = 12ms; UVP/OCC/OCD recovery delay = 8ms.
+
+5 Pin Configuration and Functions
+
+
+                                                                  NC            1               6            V–
+
+                                                               COUT             2               5            BAT
+
+                                                               DOUT             3               4            VSS
+
+
+
+
+                                           Figure 5-1. DSE Package 6-PIN WSON Top View
+
+                                                                 Table 5-1. Pin Functions
+                      PIN
+                                                      TYPE             DESCRIPTION
+ NAME                            NO.
+ BAT                               5                       P           VDD pin
+ COUT                              2                       O           Gate Drive Output for Charge FET
+ DOUT                              3                       O           Gate Drive Output for Discharge FET
+ NC                                1                    NC             No Connection (electrically open)
+ VSS                               4                       P           Ground pin
+ V–                                6                       I/O         Input pin for charger negative voltage
+
+
+
+
+Copyright © 2024 Texas Instruments Incorporated                                                                                   Submit Document Feedback                 3
+                                              Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                                           www.ti.com
+
+5.1 Pin Descriptions
+5.1.1 Supply Input: BAT
+This pin is the input supply for the device and is connected to the positive terminal of the battery pack. A 0.1µF
+input capacitor is connected to ground for filtering noise.
+5.1.2 Cell Negative Connection: VSS
+This pin is an input to the device for cell negative ground reference. Internal circuits associated with cell voltage
+measurements and overcurrent protection input to differential amplifier for either Vds sensing or external sense
+resistor sensing will be referenced to this node.
+5.1.3 Voltage Sense Node: V–
+This is a sense node used for measuring several fault detection conditions, such as overcurrent charging or
+overcurrent discharging configured as Vds sensing for protection. This input, in conjunction with VSS, forms the
+differential measurement for the stated fault detection conditions. A 2.2kΩ resistor is connected between this
+input pin and Pack– terminal of the system in the application.
+5.1.4 Discharge FET Gate Drive Output: DOUT
+This pin is an output to control the discharge FET. The output is driven from an internal circuitry connected to the
+BAT supply. This output transitions from high to low when a fault is detected, and requires the DSG FET to turn
+OFF. A 5MΩ high impedance resistor is connected from DOUT to VSS for gate capacitance discharge when the
+FET is turned OFF.
+5.1.5 Charge FET Gate Drive Output: COUT
+This pin is an output to control the charge FET. The output is driven from an internal circuitry connected to the
+BAT supply. This output transitions from high to low when a fault is detected, and requires the CHG FET to turn
+OFF. A 5MΩ high impedance resistor is connected from COUT to Pack– for gate capacitance discharge when
+FET is turned OFF.
+6 Specifications
+6.1 Absolute Maximum Ratings
+                                                                                                             MIN(1)          MAX          UNIT
+                                Input voltage: BAT                                                            –0.3            12            V
+    Supply control and input
+                                V– pin(pack–)                                                              BAT – 28       BAT + 0.3         V
+                                DOUT (Discharge FET Output), GDSG (Discharge FET Gate Drive)               VSS – 0.3      BAT + 0.3         V
+    FET drive and protection COUT (Charge FET Output), GCHG (Charge FET Gate Drive)                        BAT – 28       BAT + 0.3         V
+                                Operating temperature: TFUNC                                                  –40             85            °C
+    Storage temperature, Tstg                                                                                 –55             150           °C
+
+(1)      Operation outside the Absolute Maximum Ratings may cause permanent device damage. Absolute Maximum Ratings do not imply
+         functional operation of the device at these or any other conditions beyond those listed under Recommended Operating Conditions. If
+         outside the Recommended Operating Conditions but within the Absolute Maximum Ratings, the device may not be fully functional, and
+         this may affect device reliability, functionality, performance, and shorten the device lifetime.
+
+6.2 ESD Ratings
+                                                                                                                               VALUE       UNIT
+                                                     Human body model (HBM), per ANSI/ESDA/JEDEC JS–001, all pins(2)            ±2000
+                        Electrostatic
+    VESD (1)                                         Charged device model (CDM), per JEDEC specification JESD22-C101, all                    V
+                        Discharge                                                                                                ±500
+                                                     pins(3)
+
+(1)      Electrostatic discharge (ESD) to measure device sensitivity and immunity to damage caused by assembly line electrostatic discharges
+         into the device.
+(2)      JEDEC document JEP155 states that 500V HBM allows safe manufacturing with a standard ESD control process. Pins listed as 1000V
+         can have higher performance.
+
+
+
+4        Submit Document Feedback                                                                    Copyright © 2024 Texas Instruments Incorporated
+
+                                                Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                    BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                                     SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+(3)       JEDEC document JEP157 states that 250V CDM allows safe manufacturing with a standard ESD control process. Pins listed as 250V
+          can have higher performance.
+
+6.3 Recommended Operating Conditions
+                                                                                                           MIN               MAX             UNIT
+                             Positive input voltage: BAT                                                   –0.3                  8            V
+ Supply control and input
+                             Negative input voltage: V–                                                  BAT – 25            BAT              V
+                             Discharge FET control: DOUT                                                   VSS               BAT              V
+ FET drive and protection
+                             Charge FET control: COUT                                                    BAT – 25            BAT              V
+                             Operating temperature: TAmb                                                   –40                   85           °C
+                             Storage temperature: TS                                                       –55               150              °C
+ Temperature Ratings
+                             Lead temperature (soldering 10s)                                                                300              °C
+                             Thermal resistance junction to ambient, θJA                                                     250             °C/W
+
+
+6.4 Thermal Information
+                                                                                                            BQ297xx
+                                           THERMAL METRIC (1)                                             DSE (WSON)                     UNIT
+                                                                                                             12 PINS
+ RθJA, High K                 Junction-to-ambient thermal resistance                                          190.5                      °C/W
+ RθJC(top)                    Junction-to-case(top) thermal resistance                                         94.9                      °C/W
+ RθJB                         Junction-to-board thermal resistance                                            149.3                      °C/W
+ ψJT                          Junction-to-top characterization parameter                                          6.4                    °C/W
+ ψJB                          Junction-to-board characterization parameter                                    152.8                      °C/W
+ RθJC(bottom)                 Junction-to-case(bottom) thermal resistance                                        N/A                     °C/W
+
+(1)       For more information about traditional and new thermal metrics, see the Semiconductor and IC Package Thermal Metrics application
+          report.
+
+
+6.5 DC Characteristics
+Typical Values stated where TA = 25°C and BAT = 3.6V. Min/Max values stated where TA = –40°C to 85°C, and BAT = 3V to
+4.2V (unless otherwise noted)
+                         PARAMETER                                          TEST CONDITIONS                  MIN          TYP         MAX    UNIT
+ Current consumption
+                                                              BAT – VSS                                       1.5                       8
+ VBAT            Device operating range                                                                                                        V
+                                                              BAT – V–                                        1.5                      28
+ INORMAL         Current consumption in NORMAL mode           BAT = 3.8V, V– = 0V                                            4         5.5    µA
+ IPower_down     Current consumption in power down mode       BAT = V– = 1.5V                                                          0.1    µA
+ FET Output, DOUT and COUT
+ VOL             Charge FET low output                        IOL = 30µA, BAT = 3.8V                                       0.4         0.5     V
+ VOH             Charge FET high output                       IOH = –30µA, BAT = 3.8V                         3.4          3.7                 V
+ VOL             Discharge FET low output                     IOL = 30µA, BAT = 2V                                         0.2         0.5     V
+ VOH             Discharge FET high output                    IOH = –30µA, BAT = 3.8V                         3.4          3.7                 V
+ Pullup Internal Resistance on V–
+ RV–D            Resistance between V– and VBAT               VBAT = 1.8V, V– = 0V                           100           300        550     kΩ
+ Current sink on V–
+ IV–S            Current sink on V– to VSS                    VBAT = 3.8V                                         8                    24     µA
+ Load short detection on V–
+                                                                                                                        VBAT –
+ Vshort          Short detection voltage                      VBAT = 3.8V and RPackN = 2.2kΩ                                                   V
+                                                                                                                         1V
+
+
+Copyright © 2024 Texas Instruments Incorporated                                                           Submit Document Feedback                  5
+                                              Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                                              www.ti.com
+
+6.5 DC Characteristics (continued)
+Typical Values stated where TA = 25°C and BAT = 3.6V. Min/Max values stated where TA = –40°C to 85°C, and BAT = 3V to
+4.2V (unless otherwise noted)
+                          PARAMETER                                          TEST CONDITIONS                       MIN       TYP      MAX     UNIT
+    0V battery charge function
+    V0CHG         0V battery charging start voltage              0V battery charging function allowed               1.7                         V
+    0V battery charge inhibit function
+    V0INH         0V battery charging inhibit voltage threshold 0V battery charging function disallowed                                0.75     V
+
+
+6.6 Programmable Fault Detection Thresholds
+                    PARAMETER                                              CONDITION                               MIN       TYP      MAX     UNIT
+                                                                                                TA = 25°C           –10                 10     mV
+                                                      Factory Device Configuration: 3.85V to
+    VOVP           Overcharge detection voltage                                                 TA = 0°C to
+                                                      4.60V in 50mV steps                                           –20                 20     mV
+                                                                                                60°C
+                   Overcharge release hysteresis 100mV and (VSS – V–) > OCC (min) for release, TA =
+    VOVP–Hys                                                                                                        –20                 20     mV
+                   voltage                       25°C
+                   Over-discharge detection           Factory Device Configuration: 2.00V to 2.80V in 50mV
+    VUVP                                                                                                            –50                 50     mV
+                   voltage                            steps, TA = 25°C
+                   Over-discharge release
+    VUVP+Hys                                          100mV and (BAT – V–) > 1V for release, TA = 25°C              –50                 50     mV
+                   hysteresis voltage
+                                                                                                TA = 25°C           –10                 10     mV
+                   Discharging overcurrent            Factory Device Configuration: 90mV to
+    VOCD                                                                                        TA = –40°C to
+                   detection voltage                  200mV in 5mV steps                                            –15                 15     mV
+                                                                                                85°C
+    Release of     Release of discharging
+                                                      Release when BAT – V– > 1V                                                1               V
+    VOCD           overcurrent detection voltage
+                                                                                         TA = 25°C                  –10                 10     mV
+                   Charging overcurrent detection Factory Device Configuration: –45mV to
+    VOCC                                                                                 TA = –40°C to
+                   voltage                        –155mV in 5mV steps                                               –15                 15     mV
+                                                                                         85°C
+    Release of     Release of overcurrent
+                                                      Release when VSS – V– ≥ OCC (min)                                        40              mV
+    VOCC           detection voltage
+                                                      Factory Device Configuration: 300mV,
+    VSCC           Short Circuit detection voltage                                              TA = 25°C         –100                 100     mV
+                                                      400mV, 500mV, 600mV
+                   Release of Short Circuit
+    VSCCR                                             Release when BAT – V– ≥ 1V                                                1               V
+                   detection voltage
+
+
+6.7 Programmable Fault Detection Timer Ranges
+                    PARAMETER                                               CONDITION                              MIN      TYP      MAX      UNIT
+      tOVPD      Overcharge detection delay time      Factory Device Configuration: 0.25s, 1s, 1.25s, 4.5s        –20%               20%        s
+                 Over-discharge detection delay       Factory Device Configuration: 20ms, 96ms, 125ms,
+      tUVPD                                                                                                       –20%               20%       ms
+                 time                                 144ms
+                 Discharging overcurrent
+      tOCDD                                           Factory Device Configuration: 8ms, 16ms, 20ms, 48ms         –20%               20%       ms
+                 detection delay time
+                 Charging overcurrent detection
+      tOCCD                                           Factory Device Configuration: 4ms, 6ms, 8ms, 16ms           –20%               20%       ms
+                 delay time
+      tSCCD      Short Circuit detection delay time 250µs (fixed)                                                 –50%               50%       µs
+
+
+
+
+6           Submit Document Feedback                                                                    Copyright © 2024 Texas Instruments Incorporated
+
+                                              Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                                                                                                                                                      BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                                                                                                                                                                     SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+
+6.8 Typical Characteristics
+
+                                                 0.050                                                                                                                                                         6
+                                                 0.045
+                                                                                                                                                                                                               5
+
+
+
+
+      Current Consumption ( A)
+                                                 0.040
+
+
+
+
+                                                                                                                                                                                    Current Consumption ( A)
+                                                 0.035
+                                                                                                                                                                                                               4
+                                                 0.030
+                                                 0.025                                                                                                                                                         3
+                                                 0.020
+                                                                                                                                                                                                               2
+                                                 0.015
+                                                 0.010
+                                                                                                                                                                                                               1
+                                                 0.005
+                                                 0.000                                                                                                                                                         0
+                                                                 ±40   ±20   0       20    40     60    80   100   120                                                                                             ±40   ±20      0     20     40      60   80   100   120
+                                                                                     Temperature (ƒC)              C001                                                                                                                 Temperature (ƒC)               C002
+
+
+                                                                       VBAT = 1.5V                                                                                                                                         VBAT = 3.9V
+
+                                                          Figure 6-1. 1.5V IBAT Versus Temperature                                                                       Figure 6-2. 3.9V IBAT Versus Temperature
+                                                          1.34                                                                                                   ±1.32
+
+
+
+
+                    Internal Oscillator Frequency (kHz)
+                                                          1.32                                                                                                   ±1.34
+
+
+
+
+                                                                                                                            V(±) ± BAT Voltage (V)
+                                                          1.30
+                                                                                                                                                                 ±1.36
+                                                          1.28
+                                                                                                                                                                 ±1.38
+                                                          1.26
+                                                                                                                                                                 ±1.40
+                                                          1.24
+                                                                                                                                                                 ±1.42
+                                                          1.22
+
+                                                          1.20                                                                                                   ±1.44
+
+                                                          1.18                                                                                                   ±1.46
+                                                                 ±40   ±20   0       20    40     60    80   100   120                                                                                             ±40   ±20      0     20     40      60   80   100   120
+                                                                                     Temperature (ƒC)              C003                                                                                                                 Temperature (ƒC)               C004
+
+
+                                                                         FOSC, Setting = 1.255kHz                                                                                                                          VBAT, Setting = 0V
+
+    Figure 6-3. Internal Oscillator Frequency Versus                                                                                                                                Figure 6-4. 0V Charging Allowed Versus
+                      Temperature                                                                                                                                                                 Temperature
+                                                          0.75                                                                                                                                                 4
+
+
+
+
+                                                                                                                                            OVP Deetction Threshold Accuracy (mV)
+                                                          0.70                                                                                                                                                 2
+
+
+
+
+                    BAT ± VSS Voltage (V)
+                                                                                                                                                                                                               0
+                                                          0.65
+                                                                                                                                                                                                        ±2
+                                                          0.60
+                                                                                                                                                                                                        ±4
+                                                          0.55
+                                                                                                                                                                                                        ±6
+                                                          0.50
+                                                                                                                                                                                                        ±8
+                                                          0.45                                                                                                                            ±10
+
+                                                          0.40                                                                                                                            ±12
+                                                                 ±40   ±20   0       20    40     60    80   100   120                                                                                             ±40   ±20      0     20     40      60   80   100   120
+                                                                                     Temperature (ƒC)              C005                                                                                                                 Temperature (ƒC)               C006
+
+
+                             Figure 6-5. 0V Charging Disallowed Versus                                                                                                                                                         OVP, Setting = 4.275V
+                                            Temperature                                                                                Figure 6-6. OVP Detection Accuracy Versus
+                                                                                                                                                      Temperature
+
+
+
+
+Copyright © 2024 Texas Instruments Incorporated                                                                                                                                                                                              Submit Document Feedback         7
+                                                                                                Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                                                                                                                                                www.ti.com
+
+                                              1350                                                                                                                                0
+
+
+
+
+                                                                                                                                        UVP Detection Accuracy Threshold (mV)
+     OVP Detection Delay Time (ms)
+                                                                                                                                                                                 ±2
+                                              1300
+
+                                                                                                                                                                                 ±4
+                                              1250
+                                                                                                                                                                                 ±6
+                                              1200
+                                                                                                                                                                                 ±8
+
+                                              1150
+                                                                                                                                                                                ±10
+
+
+                                              1100                                                                                                                              ±12
+                                                                    ±40   ±20      0     20    40      60   80   100   120                                                             ±40   ±20      0       20     40     60     80    100    120
+                                                                                         Temperature (ƒC)              C007                                                                                   Temperature (ƒC)                   C008
+
+
+                                                                            tOVPD, Setting = 1.25s                                                                                                 UVP, Setting = 2.800V
+
+         Figure 6-7. OVP Detection Dely Time Versus                                                                               Figure 6-8. UVP Detection Accuracy Versus
+                        Temperature                                                                                                              Temperature
+                                                              160                                                                                                                0.0
+
+                                                                                                                                                                                ±0.2
+
+
+
+
+                     UVP Detection Delay Time (ms)                                                                               OCC Detection Accuracy (mV)
+                                                              155
+                                                                                                                                                                                ±0.4
+
+                                                              150                                                                                                               ±0.6
+
+                                                                                                                                                                                ±0.8
+                                                              145
+                                                                                                                                                                                ±1.0
+
+                                                              140                                                                                                               ±1.2
+
+                                                                                                                                                                                ±1.4
+                                                              135
+                                                                                                                                                                                ±1.6
+
+                                                              130                                                                                                               ±1.8
+                                                                    ±40   ±20      0     20    40      60   80   100   120                                                             ±40   ±20      0       20     40     60     80    100    120
+                                                                                         Temperature (ƒC)              C009                                                                                   Temperature (ƒC)                   C010
+
+
+                                                                                tUVPD, Setting = 144ms                                                                                             VOCC, Setting = –100mV
+
+     Figure 6-9. UVP Detection Delay Time Versus                                                                                Figure 6-10. OCC Detection Accuracy Versus
+                     Temperature                                                                                                               Temperature
+                                                              8.6                                                                                                                0.0
+
+                                                              8.4                                                                                                               ±0.5
+
+
+
+
+                              OCC Detection Delay Time (ms)                                                                      OCD Detection Accuracy (mV)
+                                                              8.2                                                                                                               ±1.0
+
+                                                              8.0                                                                                                               ±1.5
+
+                                                              7.8                                                                                                               ±2.0
+
+                                                              7.6                                                                                                               ±2.5
+
+                                                              7.4                                                                                                               ±3.0
+
+                                                              7.2                                                                                                               ±3.5
+
+                                                              7.0                                                                                                               ±4.0
+                                                                    ±40   ±20      0     20    40      60   80   100   120                                                             ±40   ±20      0       20     40     60     80    100    120
+                                                                                         Temperature (ƒC)              C011                                                                                   Temperature (ƒC)                   C012
+
+
+                                                                                tOCCD, Setting = 8ms                                                                                               VOCD, Setting = 100mV
+
+    Figure 6-11. OCC Detection Delay Time Versus                                                                                Figure 6-12. OCD Detection Accuracy Versus
+                    Temperature                                                                                                                Temperature
+
+
+
+
+8                 Submit Document Feedback                                                                                                                                                                Copyright © 2024 Texas Instruments Incorporated
+
+                                                                                                    Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                                                                                                                    BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                                                                                                                                   SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+                                       22.5                                                                                                                           4.5
+
+                                       22.0                                                                                                                           4.0
+
+
+
+
+       OCD Detection Delay Time (ms)                                                                                                    SCC Detection Accuracy (mV)
+                                                                                                                                                                      3.5
+                                       21.5
+                                                                                                                                                                      3.0
+                                       21.0
+                                                                                                                                                                      2.5
+                                       20.5
+                                                                                                                                                                      2.0
+                                       20.0
+                                                                                                                                                                      1.5
+                                       19.5
+                                                                                                                                                                      1.0
+                                       19.0                                                                                                                           0.5
+
+                                       18.5                                                                                                                           0.0
+                                              ±40   ±20      0    20     40           60          80     100       120                                                      ±40        ±20      0          20     40    60    80   100   120
+                                                                  Temperature (ƒC)                                 C013                                                                                    Temperature (ƒC)              C014
+
+
+                                                          tUVPD, Setting = 20ms                                                                                                              VSCC, Setting = 500mV
+
+     Figure 6-13. OCD Detection Delay Time Versus                                                                                  Figure 6-14. SCC Detection Accuracy Versus
+                     Temperature                                                                                                                  Temperature
+                                       1.24                                                                                                    3.795
+
+                                       1.22
+
+
+
+
+       Power On Reset Threshold (V)
+                                                                                                                                               3.790
+
+                                       1.20
+                                                                                                                                               3.785
+                                       1.18
+                                                                                                                                  VOH (V)      3.780
+                                       1.16
+                                                                                                                                               3.775
+                                       1.14
+
+                                       1.12                                                                                                    3.770
+
+
+                                       1.10                                                                                                    3.765
+                                              ±40   ±20      0    20     40           60          80     100       120                                                      ±40        ±20      0          20     40    60    80   100   120
+                                                                  Temperature (ƒC)                                 C015                                                                                    Temperature (ƒC)              C016
+
+
+   Figure 6-15. Power On Reset Versus Temperature                                                                                                                                            VBAT, Setting = 3.9V
+
+                                                                                                                                Figure 6-16. COUT Versus Temperature with Ioh =
+                                                                                                                                                    –30µA
+                                                                                   3.7160
+
+
+                                                                                   3.7155
+
+
+                                                                                   3.7150
+
+                                                                         VOH (V)
+                                                                                   3.7145
+
+
+                                                                                   3.7140
+
+
+                                                                                   3.7135
+                                                                                            ±40        ±20     0          20    40                                    60          80     100        120
+                                                                                                                          Temperature (ƒC)                                                          C017
+
+
+                                                                                   VBAT, Setting = 3.9V
+
+                                                                    Figure 6-17. DOUT Versus Temperature with Ioh = –30µA
+
+
+
+
+Copyright © 2024 Texas Instruments Incorporated                                                                                                                                                                 Submit Document Feedback        9
+                                                                                   Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                              www.ti.com
+
+7 Parameter Measurement Information
+7.1 Timing Charts
+                                                                                     Over-
+                         Normal              Overcharge            Normal          Discharge                  Normal
+
+              VOVP
+            VOVP– Hys
+     BAT    VUVP – Hys
+              VUVP
+
+
+
+
+               BAT
+
+     DOUT
+
+               VSS
+
+
+
+
+     COUT
+               BAT
+
+               VSS
+
+            PACK–
+
+
+
+
+     V–        BAT
+              VOCD
+               VSS
+            PACK–
+
+
+                                                                                     t UVPD
+                                     tOVPD
+
+
+                                   Charger                             Load                                 Charger
+                                  Connected                          Connected                             Connected
+
+                            Figure 7-1. Overcharge Detection, Over-Discharge Detection
+
+
+
+
+10     Submit Document Feedback                                                         Copyright © 2024 Texas Instruments Incorporated
+
+                                        Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                 BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                               SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+                           Normal            Discharge Overcurrent      Normal        Discharge Overcurrent     Normal
+
+           VOVP
+        VOVP–Hys
+
+      BAT
+       VUVP+Hys
+              VUVP
+
+
+
+
+               BAT
+     DOUT
+
+              VSS
+
+
+
+
+      COUT
+               BAT
+
+              VSS
+
+             PACK–
+
+
+
+
+     V–        BAT
+              VSCC
+
+              VOCD
+              VSS
+
+
+                                  t OCDD                                             t SCCD
+
+
+                                       Load                 Load                        Load Short-
+                                     Connected          Disconnected                      Circuit
+
+                                            Figure 7-2. Discharge Overcurrent Detection
+
+
+
+
+Copyright © 2024 Texas Instruments Incorporated                                                       Submit Document Feedback   11
+                                             Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                           www.ti.com
+
+7.2 Test Circuits
+The following tests are referenced as follows: The COUT and DOUT outputs are “H,” which are higher than
+the threshold voltage of the external logic level FETs and regarded as ON state. “L” is less than the turn ON
+threshold for external NMOS FETs and regarded as OFF state. The COUT pin is with respect to V–, and the
+DOUT pin is with respect to VSS.
+1. Overcharge detection voltage and overcharge release voltage (Test Circuit 1):
+   The overcharge detection voltage (VOVP) is measured between the BAT and VSS pins, respectively. Once
+   V1 is increased, the over-detection is triggered, and the delay timer expires. Then, COUT transitions from a
+   high to low state and reduces the V1 voltage to check for the overcharge hysteresis parameter (VOVP-Hys).
+   The delta voltage between overcharge detection voltages (VOVP) and the overcharge release occurs when
+   the CHG FET drive output goes from low to high.
+2. Over-discharge detection voltage and over-discharge release voltage (Test Circuit 2):
+   Over-discharge detection (VUVP) is defined as the voltage between BAT and VSS at which the DSG drive
+   output goes from high to low by reducing the V1 voltage. V1 is set to 3.5V and gradually reduced while V2 is
+   set to 0V. The over-discharge release voltage is defined as the voltage between BAT and VSS at which the
+   DOUT drive output transition from low to high when V1 voltage is gradually increased from a VUVP condition.
+   The overcharge hysteresis voltage is defined as the delta voltage between VUVP and the instance at which
+   the DOUT output drive goes from low to high.
+3. Discharge overcurrent detection voltage (Test Circuit 2):
+   The discharge overcurrent detection voltage (VOCD) is measured between V– and VSS pins and triggered
+   when the V2 voltage is increased above VOCD threshold with respect to VSS. This delta voltage once
+   satisfied will trigger an internal timer tOCDD before the DOUT output drive transitions from high to low.
+4. Load short circuit detection voltage (Test Circuit 2):
+   Load short-circuit detection voltage (VSCC) is measured between V– and VSS pins and triggered when the
+   V2 voltage is increased above VSCC threshold with respect to VSS within 10µs. This delta voltage, once
+   satisfied, triggers an internal timer tSCCD before the DOUT output drive transitions from high to low.
+5. Charge overcurrent detection voltage (Test Circuit 2):
+   The charge overcurrent detection voltage (VOCC) is measured between VSS and V– pins and triggered when
+   the V2 voltage is increased above VOCC threshold with respect to V–. This delta voltage, once satisfied,
+   triggers an internal timer tOCCD before the COUT output drive transitions from high to low.
+6. Operating current consumption (Test Circuit 2):
+   The operating current consumption IBNORMAL is the current measured going into the BAT pin under the
+   following conditions: V1 = 3.9V and V2 = 0V.
+7. Power down current consumption (Test Circuit 2):
+   The operating current consumption IPower_down is the current measured going into the BAT pin under the
+   following conditions: V1 = 1.5V and V2 = 1.5V.
+8. Resistance between V– and BAT pin (Test Circuit 3):
+   Measure the resistance (RV_D) between V– and BAT pins by setting the following conditions: V1 = 1.8V and
+   V2 = 0V.
+9. Current sink between V– and VSS (Test Circuit 3):
+    Measure the current sink IV–S between V– and VSS pins by setting the following condition: V1 = 4V.
+10. COUT current source when activated High (Test Circuit 4):
+    Measure ICOUT current source on the COUT pin by setting the following conditions: V1 = 3.9V, V2 = 0V, and
+    V3 = 3.4V.
+11. COUT current sink when activated Low (Test Circuit 4):
+    Measure ICOUT current sink on COUT pin by setting the following conditions: V1 = 4.5V, V2 = 0V, and V3 =
+    0.5V.
+12. DOUT current source when activated High (Test Circuit 4):
+
+12    Submit Document Feedback                                                       Copyright © 2024 Texas Instruments Incorporated
+
+                                     Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                 BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                              SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+    Measure IDOUT current source on DOUT pin by setting the following conditions: V1 = 3.9V, V2 = 0V, and V3 =
+    3.4V.
+13. DOUT current sink when activated Low (Test Circuit 4):
+    Measure IDOUT current sink on DOUT pin by setting the following conditions: V1 = 2.0V, V2 = 0V, and V3 =
+    0.4V.
+14. Overcharge detection delay (Test Circuit 5):
+    The overcharge detection delay time tOVPD is the time delay before the COUT drive output transitions from
+    high to low once the voltage on V1 exceeds the VOVP threshold. Set V2 = 0V and then increase V1 until BAT
+    input exceeds the VOVP threshold, then check the time for when COUT goes from high to low.
+15. Over-discharge detection delay (Test Circuit 5):
+    The over-discharge detection delay time tUVPD is the time delay before the DOUT drive output transitions
+    from high to low once the voltage on V1 decreases to VUVP threshold. Set V2 = 0V and then decrease V1
+    until BAT input reduces to the VUVPthreshold, then check the time of when DOUT goes from high to low.
+16. Discharge overcurrent detection delay (Test Circuit 5):
+    The discharge overcurrent detection delay time tOCDD is the time for DOUT drive output to transition from
+    high to low after the voltage on V2 is increased from 0V to 0.35V. V1 = 3.5V and V2 starts from 0V and
+    increases to trigger threshold.
+17. Load short circuit detection delay (Test Circuit 5):
+    The load short-circuit detection delay time tSCCD is the time for DOUT drive output to transition from high to
+    low after the voltage on V2 is increased from 0V to V1 – 1V. V1 = 3.5V and V2 starts from 0V and increases
+    to trigger threshold.
+18. Charge overcurrent detection delay (Test Circuit 5):
+    The charge overcurrent detection delay time tOCCD is the time for COUT drive output to transition from
+    high to low after the voltage on V2 is decreased from 0V to –0.3V. V1 = 3.5V and V2 starts from 0V and
+    decreases to trigger threshold.
+19. 0V battery charge starting charger voltage (Test Circuit 2):
+    The 0V charge for start charging voltage V0CHA is defined as the voltage between BAT and V– pins at which
+    COUT goes high when voltage on V2 is gradually decreased from a condition of V1 = V2 = 0V.
+20. 0V battery charge inhibition battery voltage (Test Circuit 2):
+      The 0V charge inhibit for charger voltage V0INH is defined as the voltage between BAT and VSS pins at
+      which COUT should go low as V1 is gradually decreased from V1 = 2V and V2 = –4V.
+
+
+
+
+Copyright © 2024 Texas Instruments Incorporated                                                      Submit Document Feedback   13
+                                             Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                                                                                   www.ti.com
+
+7.3 Test Circuit Diagrams
+
+                                        1   NC                V-          6                                                        1   NC                 V-   6
+
+                                                                               220Ω                                                                                  IBAT
+                                                                                                                                                                                V2
+                                        2   COUT              BAT         5                                                        2   COUT              BAT   5      A
+
+
+           VCOUT   V                    3   DOUT              VSS         4                         V
+                                                                                                    COUT    V                      3   DOUT              VSS   4
+                                                                                V1                                                                                       V1
+                           V V   DOUT                                                                           V V         DOUT
+
+
+
+
+                            Figure 7-3. Test Circuit 1                                                                      Figure 7-4. Test Circuit 2
+                                                                    IV-
+
+
+
+                       1   NC                       V-    6         A                                                              1   NC                 V-   6
+
+                                                                                                                I   COUT
+                                                                    I
+                                                                    BAT
+                                                                                V2                                                                                             V2
+                       2 COUT                       BAT   5                                                     A                  2   COUT              BAT   5
+                                                                     A
+                                                                                                                I
+                                                                                                                DOUT
+
+
+
+                       3 DOUT                       VSS   4                                         V3          A                  3   DOUT              VSS   4
+                                                                        V1                                                                                               V1
+                                                                                                                           V4
+
+
+
+
+                            Figure 7-5. Test Circuit 3                                                                      Figure 7-6. Test Circuit 4
+
+                                                                                 1    NC       V-       6
+
+                                                                Oscilloscope                                                           V2
+                                                                                 2 COUT       BAT       5
+
+                                                                Oscilloscope
+                                                                                 3 DOUT       VSS       4
+                                                                                                                    V1
+
+
+
+
+                                                                               Figure 7-7. Test Circuit 5
+
+8 Detailed Description
+8.1 Overview
+This BQ2970 device is a primary protector for a single-cell Li-ion/Li-polymer battery pack. The device uses a
+minimum number of external components to protect for overcurrent conditions due to high discharge/charge
+currents in the application. In addition, it monitors and helps to protect against battery pack overcharging or
+depletion of energy in the pack. The BQ2970 device is capable of having an input voltage of 8V from a charging
+adapter and can tolerate a voltage of BAT – 25V across the two input pins. In the condition when a fault is
+triggered, there are timer delays before the appropriate action is taken to turn OFF either the CHG or DSG
+FETs. The recovery period also has a timer delay once the threshold for recovery condition is satisfied. These
+parameters are fixed once they are programmed. There is also a feature called zero voltage charging that
+enables depleted cells to be charged to an acceptable level before the battery pack can be used for normal
+operation. Zero voltage charging is allowed if the charger voltage is above 1.7V. For Factory Programmable
+Options, see Table 8-1.
+                                                              Table 8-1. Factory Programmable Options
+                                                 PARAMETER                                                                 FACTORY DEVICE CONFIGURATION
+ VOVP              Overcharge detection voltage                                               3.85V to 4.60V in 50mV steps
+ VUVP              Over-discharge detection voltage                                           2.00V to 2.80V in 50mV steps
+ VOCD              Discharging overcurrent detection voltage                                  90mV to 200mV in 5mV steps
+ VOCC              Charging overcurrent detection voltage                                     –45mV to –155mV in 5mV steps
+ VSCC              Short Circuit detection voltage                                            300mV, 400mV, 500mV, 600mV
+ tOVPD             Overcharge detection delay time                                            0.25s, 1.00s, 1.25s, 4.50s
+ tUVPD             Over-discharge detection delay time                                        20ms, 96ms, 125ms, 144ms
+
+
+14       Submit Document Feedback                                                                                                           Copyright © 2024 Texas Instruments Incorporated
+
+                                                              Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                      BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                                     SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+                                     Table 8-1. Factory Programmable Options (continued)
+                                PARAMETER                                                  FACTORY DEVICE CONFIGURATION
+ tOCDD         Discharging overcurrent detection delay time                8ms, 16ms, 20ms, 48ms
+ tOCCD         Charging overcurrent detection delay time                   4ms, 6ms, 8ms, 16ms
+ tSCCD         Short Circuit detection delay time                          250µs (fixed)
+
+
+For available released devices, see the Released Device Configurations table.
+8.2 Functional Block Diagram
+
+                                                                                                            Charger
+                                                                                                            Detection
+                                                                                                             Circuit
+                                             Oscillator          Counter
+
+
+
+                                                                                            Logic circuit
+                         Overcharge
+  BAT 5                Comparator (OVP)                                                                                            2 COUT
+                          with Hys                            Overcharge
+                                                                Current
+                                                              Comparator
+                                                                                            Delay
+                                                                                                                    Short Detect
+
+
+                       Over-Discharge
+                      Comparator (UVP)                                                      Logic circuit
+                         with Hys
+                                                             Over-Discharge                                                        3 DOUT
+                                                           Current Comparator
+
+
+                                                                                                                   BAT
+                                                                                                    R V–D
+  VSS 4                                                                                                                            6 V–
+                                                                           IV–S
+
+
+8.3 Feature Description
+The BQ2970 family of devices measures voltage drops across several input pins for monitoring and detection
+of the following faults: OCC, OCD, OVP, and UVP. An internal oscillator initiates a timer to the fixed delays
+associated with each parameter once the fault is triggered. Once the timer expires due to a fault condition, the
+appropriate FET drive output (COUT or DOUT) is activated to turn OFF the external FET. The same method is
+applicable for the recovery feature once the system fault is removed and the recovery parameter is satisfied,
+then the recovery timer is initiated. If there are no reoccurrences of this fault during this period, the appropriate
+gate drive is activated to turn ON the appropriate external FET.
+8.4 Device Functional Modes
+8.4.1 Normal Operation
+This device monitors the voltage of the battery connected between BAT pin and VSS pin and the differential
+voltage between V– pin and VSS pin to control charging and discharging. The system is operating in NORMAL
+mode when the battery voltage range is between the over-discharge detection threshold (VUVP) and the
+overcharge detection threshold (VOVP), and the V– pin voltage is within the range for charge overcurrent
+threshold (VOCC) to over-discharge current threshold (VOCD) when measured with respect to VSS. If these
+conditions are satisfied, the device turns ON the drive for COUT and DOUT FET control.
+
+
+
+
+Copyright © 2024 Texas Instruments Incorporated                                                             Submit Document Feedback      15
+                                             Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                           www.ti.com
+
+
+                                                       CAUTION
+       When the battery is connected for the first time, the discharging circuit might not be enabled. In this
+       case, short the V– pin to the VSS pin.
+       Alternatively, connect the charger between the Pack+ and Pack– terminals in the system.
+
+8.4.2 Overcharge Status
+This mode is detected when the battery voltage measured is higher than the overcharge detection threshold
+(VOVP) during charging. If this condition exists for a period greater than the overcharge detection delay (tOVPD) or
+longer, the COUT output signal is driven low to turn OFF the charging FET to prevent any further charging of the
+battery.
+The overcharge condition is released if one of the following conditions occurs:
+•    If the V– pin is higher than the overcharge detection voltage (VOCC_Min), the device releases the overcharge
+     status when the battery voltage drops below the overcharge release voltage (VOVP-Hys).
+•    If the V– pin is higher than or equal to the over-discharge detection voltage (VOCD), the device releases the
+     overcharge status when the battery voltage drops below the overcharge detection voltage (VOVP).
+The discharge is initiated by connecting a load after the overcharge detection. The V– pin rises to a voltage
+greater than VSS due to the parasitic diode of the charge FET conducting to support the load. If the V– pin
+voltage is higher than or equal to the discharge overcurrent detection threshold (VOCD), the overcurrent condition
+status is released only if the battery voltage drops lower than or equal to the overcharge detection voltage
+(VOVP).
+
+                                                      CAUTION
+       1. If the battery is overcharged to a level greater than overcharge detection (VOVP) and the
+          battery voltage does not drop below the overcharge detection voltage (VOVP) with a heavy load
+          connected, the discharge overcurrent and load short-circuit detection features do not function
+          until the battery voltage drops below the overcharge detection voltage (VOVP). The internal
+          impedance of a battery is in the order of tens of mΩ, so application of a heavy load on the output
+          should allow the battery voltage to drop immediately, enabling discharge overcurrent detection
+          and load short-circuit detection features after an overcharge release delay.
+       2. When a charger is connected after an overcharge detection, the overcharge status does
+          not release even if the battery voltage drops below the overcharge release threshold. The
+          overcharge status is released when the V– pin voltage exceeds the overcurrent detection
+          voltage (VOCD) by removing the charger.
+
+
+8.4.3 Over-Discharge Status
+If the battery voltage drops below the over-discharge detection voltage (VUVP) for a time greater than (tUVPD)
+the discharge control output, DOUT is switched to a low state and the discharge FET is turned OFF to prevent
+further discharging of the battery. This is referred to as an over-discharge detection status. In this condition, the
+V– pin is internally pulled up to BAT by the resistor RV–D. When this occurs, the voltage difference between
+V– and BAT pins is 1.3V or lower, and the current consumption of the device is reduced to power-down level
+ISTANDBY. The current sink IV–S is not active in power-down state or over-discharge state. The power-down state
+is released when a charger is connected and the voltage delta between V– and BAT pins is greater than 1.3V.
+If a charger is connected to a battery in over-discharge state and the voltage detected at the V– is lower than
+–0.7V, the device releases the over-discharge state and allows the DOUT pin to go high and turn ON the
+discharge FET once the battery voltage exceeds over-discharge detection voltage (VUVP).
+If a charger is connected to a battery in over-discharge state and the voltage detected at the V– is higher
+than –0.7V, the device releases the over-discharge state and allows the DOUT pin to go high and turn
+
+
+
+16    Submit Document Feedback                                                       Copyright © 2024 Texas Instruments Incorporated
+
+                                     Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                 BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                              SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+
+ON the discharge FET once the battery voltage exceeds over-discharge detection release hysteresis voltage
+(VUVP +Hys).
+8.4.4 Discharge Overcurrent Status (Discharge Overcurrent, Load Short-Circuit)
+When a battery is in normal operation and the V– pin is equal to or higher than the discharge overcurrent
+threshold for a time greater than the discharge overcurrent detection delay, the DOUT pin is pulled low to turn
+OFF the discharge FET and prevent further discharge of the battery. This is known as the discharge overcurrent
+status. In the discharge overcurrent status, the V– and VSS pins are connected by a constant current sink IV–S.
+When this occurs and a load is connected, the V– pin is at BAT potential. If the load is disconnected, the V– pin
+goes to VSS (BAT/2) potential.
+This device detects the status when the impedance between Pack+ and Pack– (see Figure 26) increases and
+is equal to the impedance that enables the voltage at the V– pin to return to BAT – 1V or lower. The discharge
+overcurrent status is restored to the normal status.
+Alternatively, by connecting the charger to the system, the device returns to normal status from discharge
+overcurrent detection status, because the voltage at the V– pin drops to BAT – 1V or lower.
+The resistance RV–D between V– and BAT is not connected in the discharge overcurrent detection status.
+8.4.5 Charge Overcurrent Status
+When a battery is in normal operation status and the voltage at V– pin is lower than the charge overcurrent
+detection due to high charge current for a time greater than charge overcurrent detection delay, the COUT pin
+is pulled low to turn OFF the charge FET and prevent further charging to continue. This is known as charge
+overcurrent status.
+The device is restored to normal status from charge overcurrent status when the voltage at the V– pin returns to
+charge overcurrent detection voltage or higher by removing the charger from the system.
+The charge overcurrent detection feature does not work in the over-discharge status.
+The resistance RV–D between V– and BAT and the current sink IV–S is not connected in the charge overcurrent
+status.
+8.4.6 0V Charging Function Enabled
+This feature enables recharging a connected battery that has very low voltage due to self-discharge. When the
+charger applies a voltage greater than or equal to V0CHG to Pack+ and Pack– connections, the COUT pin gate
+drive is fixed by the BAT pin voltage.
+Once the voltage between the gate and the source of the charging FET becomes equal to or greater than the
+turn ON voltage due to the charger voltage, the charging FET is ON and the battery is charged with current flow
+through the charging FET and the internal parasitic diode of the discharging FET. Once the battery voltage is
+equal to or higher than the over-discharge release voltage, the device enters normal status.
+
+                                                      CAUTION
+        1. Some battery providers do not recommend charging a depleted (self-discharged) battery.
+           Consult the battery supplier to determine whether to have the 0V battery charger function.
+        2. The 0V battery charge feature has a higher priority than the charge overcurrent detection
+           function. In this case, the 0V charging will be allowed and the battery charges forcibly, which
+           results in charge overcurrent detection being disabled if the battery voltage is lower than the
+           over-discharge detection voltage.
+
+
+8.4.7 0V Charging Inhibit Function
+This feature inhibits recharging a battery that has an internal short circuit of a 0V battery. If the battery voltage
+is below the charge inhibit voltage V0INH or lower, the charge FET control gate is fixed to the Pack– voltage to
+
+
+
+Copyright © 2024 Texas Instruments Incorporated                                                      Submit Document Feedback   17
+                                             Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                                www.ti.com
+
+
+inhibit charging. When the battery is equal to V0INH or higher, charging can be performed. The 0V charge inhibit
+function is available in all configurations of the BQ297xx device.
+
+                                                            CAUTION
+       Some battery providers do not recommend charging a depleted (self-discharged) battery. Consult
+       the battery supplier to determine whether to enable or inhibit the 0V battery charger function.
+
+8.4.8 Delay Circuit
+The detection delay timers are based from an internal clock with a frequency of 10kHz.
+
+
+                                   BAT
+
+
+
+                            DOUT                                         tD   0 ≤ tD ≤ tSCCD
+                                   VSS
+
+                                                                               Time
+
+
+                                                     tD ˂ tOCDD
+                                 VSCC
+
+                            V–
+                                 VOCD
+                                   VSS
+
+                                                                                Time
+                                                   Figure 8-1. Delay Circuit
+
+If the over-discharge current is detected, but remains below the over-discharge short circuit detection threshold,
+the over-discharge detection conditions must be valid for a time greater than or equal to over-discharge current
+delay tOCCD time before the DOUT goes low to turn OFF the discharge FET. However, during any time the
+discharge overcurrent detection exceeds the short circuit detection threshold for a time greater than or equal to
+load circuit detection delay tSCCD, the DOUT pin goes low in a faster delay for protection.
+9 Application and Implementation
+                                                                  Note
+      Information in the following applications sections is not part of the TI component specification,
+      and TI does not warrant its accuracy or completeness. TI’s customers are responsible for
+      determining suitability of components for their purposes, as well as validating and testing their design
+      implementation to confirm system functionality.
+
+9.1 Application Information
+The BQ2970 devices are a family of primary protectors used for protection of the battery pack in the application.
+The application drives two low-side NMOS FETs that are controlled to provide energy to the system loads or
+interrupt the power in the event of a fault condition.
+
+
+
+
+18    Submit Document Feedback                                                            Copyright © 2024 Texas Instruments Incorporated
+
+                                         Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                  BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                               SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+
+9.2 Typical Application
+            PACK +
+
+
+
+
+                                                                   NC                    V–                 330
+
+
+                                                                 COUT                    BAT
+
+
+                                                                 DOUT                    VSS
+
+                                                                                                               0.1 µF
+                                                                                                                        CELLP
+
+                              2.2k
+
+                                                                                                                        CELLN
+
+
+
+
+            PACK–                                  D
+                                         S                   S
+
+                                             CHG       DSG
+
+      The 5-M resistor for an external gate-source is optional.
+
+                                        Figure 9-1. Typical Application Schematic, BQ2970
+
+9.2.1 Design Requirements
+For this design example, use the parameters listed in Table 9-1.
+                                                        Table 9-1. Design Parameters
+                          DESIGN PARAMETER                                            EXAMPLE VALUE at TA = 25°C
+                            Input voltage range                                                   4.5V to 7V
+                  Maximum operating discharge current                                                7A
+                Maximum Charge Current for battery pack                                             4.5A
+                      Overvoltage Protection (OVP)                                                 4.275V
+                     Overvoltage detection delay timer                                              1.2s
+              Overvoltage Protection (OVP) release voltage                                         4.175V
+                      Undervoltage Protection (UVP)                                                 2.8V
+                   Undervoltage detection delay timer                                              150ms
+             Undervoltage Protection (UVP) release voltage                                          2.9V
+              Charge Overcurrent detection (OCC) voltage                                           –70mV
+            Charge Overcurrent Detection (OCC) delay timer                                          9ms
+            Discharge Overcurrent Detection (OCD) voltage                                          100mV
+          Discharge Overcurrent Detection (OCD) delay timer                                         18ms
+    Load Short Circuit Detection SCC) voltage, BAT to –V ≤ threshold                               500mV
+             Load Short Circuit Detection (SCC) delay timer                                         250µs
+       Load Short Circuit release voltage, BAT to –V ≥ Threshold                                     1V
+
+
+9.2.2 Detailed Design Procedure
+
+                                                                        Note
+       The external FET selection is important to ensure the battery pack protection is sufficient and
+       complies to the requirements of the system.
+
+•    FET Selection: Because the maximum desired discharge current is 7A, ensure that the Discharge
+     Overcurrent circuit does not trigger until the discharge current is above this value.
+•    The total resistance tolerated across the two external FETs (CHG + DSG) should be 100mV/7A = 14.3mΩ.
+Copyright © 2024 Texas Instruments Incorporated                                                        Submit Document Feedback   19
+                                              Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                           www.ti.com
+
+•    Based on the information of the total ON resistance of the two switches, determine what would be the Charge
+     Overcurrent Detection threshold, 14.3mΩ × 4.5A = 65mV. Selecting a device with a 70mV trigger threshold
+     for Charge Overcurrent trigger is acceptable.
+•    The total Rds ON should factor in any worst-case parameter based on the FET ON resistance, derating due
+     to temperature effects and minimum required operation, and the associated gate drive (Vgs). Therefore, the
+     FET choice should meet the following criteria:
+       Vdss = 25V
+        Each FET Rds ON = 7.5mΩ at Tj = 25°C and Vgs = 3.5V
+•    Imax > 50A to allow for short Circuit Current condition for 350µs (max delay timer). The only limiting factor
+     during this condition is Pack Voltage/(Cell Resistance + (2 × FET_RdsON) + Trace Resistance).
+•    Use the CSD16406Q3 FET for the application.
+•    An RC filter is required on the BAT for noise, and enables the device to operate during sharp negative
+     transients. The 330Ω resistor also limits the current during a reverse connection on the system.
+•    TI recommends placing a high impedance 5MΩ across the gate source of each external FET to deplete any
+     charge on the gate-source capacitance.
+
+
+
+
+20    Submit Document Feedback                                                       Copyright © 2024 Texas Instruments Incorporated
+
+                                     Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                 BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                               SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+
+9.2.3 Application Performance Plots
+
+
+
+
+       Orange Line (Channel 1) = Power Up Ramp on BAT Pin                  Orange Line (Channel 1) = Power Down Ramp on BAT Pin
+       Turquoise Line (Channel 2) = DOUT Gate Drive Output                 Turquoise Line (Channel 2) = DOUT Date Drive Output
+       DOUT goes from low to high when UVP Recovery = UVP Set              DOUT goes from high to low when UVP threshold = UVP set
+       Threshold +100mV                                                    Threshold + set delay time
+
+                    Figure 9-2. UVP Recovery                                      Figure 9-3. UVP Set Condition
+
+
+
+
+       Orange Line (Channel 1) = Power Up Ramp on BAT pin                  Orange Line (Channel 1) = Power Up Ramp on BAT Pin
+       Turquoise Line (Channel 2) = DOUT Gate Drive Output                 Turquoise Line (Channel 2) = COUT Gate Drive Output
+              Figure 9-4. Initial Power Up, DOUT                                Figure 9-5. Initial Power Up, COUT
+
+
+
+
+       Orange Line (Channel 1) = Power Up Ramp on BAT Pin
+       Turquoise Line (Channel 2) = COUT Gate Drive Output                 Orange Line (Channel 1) = Decrease Voltage on BAT Pin
+       COUT goes from high to low when OVP threshold = OVP set             Turquoise Line (Channel 2) = COUT Gate Drive Output
+       Threshold + set delay time                                          COUT goes from low to high when OVP Recovery = OVP Set
+                                                                           Threshold –100mV
+                 Figure 9-6. OVP Set Condition
+                                                                               Figure 9-7. OVP Recovery Condition
+
+9.3 Power Supply Recommendations
+The recommended power supply for this device is a maximum 8V operation on the BAT input pin.
+
+
+
+Copyright © 2024 Texas Instruments Incorporated                                                      Submit Document Feedback        21
+                                             Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+BQ2970, BQ2971, BQ2972, BQ2973
+SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024                                                                                                        www.ti.com
+
+9.4 Layout
+9.4.1 Layout Guidelines
+The following are the recommended layout guidelines:
+1. Ensure the external power FETs are adequately compensated for heat dissipation with sufficient thermal
+   heat spreader based on worst-case power delivery.
+2. The connection between the two external power FETs should be very close to ensure there is not an
+   additional drop for fault sensing.
+3. The input RC filter on the BAT pin should be close to the terminal of the IC.
+9.4.2 Layout Example
+                                                                              Power Trace Line
+
+
+
+
+                    PACK+
+                                                                                                 1   NC      V–   6
+
+
+                                                                                                 2   COUT   BAT   5
+                    PACK–
+                                                                                                 3   DOUT   VSS   4
+
+
+
+                           Power Trace Line
+                                                                                                             Power Trace Line
+                                              4   3    2    1            4       3      2        1
+                                              G    S   S     S           G       S      S        S
+
+                                               CSD16406Q3                    CSD16406Q3
+                                              D   D    D     D       D          D       D        D
+
+                                              5   6    7     8           5       6      7        8
+
+                                                           Power Trace
+
+
+
+
+                                   Via connects between two layers
+
+                                                   Figure 9-8. BQ2970 Board Layout
+
+
+
+
+22    Submit Document Feedback                                                                                    Copyright © 2024 Texas Instruments Incorporated
+
+                                              Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                   BQ2970, BQ2971, BQ2972, BQ2973
+www.ti.com                                                                                  SLUSBU9I – MARCH 2014 – REVISED AUGUST 2024
+
+
+10 Device and Documentation Support
+10.1 Related Documentation
+BQ29700 Single-Cell Li-Ion Protector EVM User's Guide (SLUUAZ3)
+10.2 Support Resources
+TI E2E™ support forums are an engineer's go-to source for fast, verified answers and design help — straight
+from the experts. Search existing answers or ask your own question to get the quick design help you need.
+Linked content is provided "AS IS" by the respective contributors. They do not constitute TI specifications and do
+not necessarily reflect TI's views; see TI's Terms of Use.
+10.3 Trademarks
+TI E2E™ is a trademark of Texas Instruments.
+All trademarks are the property of their respective owners.
+10.4 Electrostatic Discharge Caution
+                    This integrated circuit can be damaged by ESD. Texas Instruments recommends that all integrated circuits be handled
+                    with appropriate precautions. Failure to observe proper handling and installation procedures can cause damage.
+                    ESD damage can range from subtle performance degradation to complete device failure. Precision integrated circuits may
+                    be more susceptible to damage because very small parametric changes could cause the device not to meet its published
+                    specifications.
+
+
+10.5 Glossary
+ TI Glossary             This glossary lists and explains terms, acronyms, and definitions.
+
+11 Revision History
+NOTE: Page numbers for previous revisions may differ from page numbers in the current version.
+Changes from Revision H (June 2021) to Revision I (August 2024)                                                                      Page
+• Added BQ29740 to the Device Comparison Table. ...........................................................................................3
+
+
+
+Changes from Revision G (December 2018) to Revision H (June 2021)                                                        Page
+• Changed the BQ29728 and BQ29737 devices to Production Data....................................................................3
+
+
+12 Mechanical, Packaging, and Orderable Information
+The following pages include mechanical packaging and orderable information. This information is the most
+current data available for the designated devices. This data is subject to change without notice and revision of
+this document. For browser-based versions of this data sheet, refer to the left-hand navigation.
+
+
+
+
+Copyright © 2024 Texas Instruments Incorporated                                                          Submit Document Feedback         23
+                                             Product Folder Links: BQ2970 BQ2971 BQ2972 BQ2973
+                                                                                                                              PACKAGE OPTION ADDENDUM
+
+  www.ti.com                                                                                                                                                31-Oct-2025
+
+
+
+
+PACKAGING INFORMATION
+
+ Orderable part number   Status   Material type   Package | Pins   Package qty | Carrier   RoHS      Lead finish/       MSL rating/       Op temp (°C)   Part marking
+                           (1)         (2)                                                  (3)      Ball material      Peak reflow                           (6)
+                                                                                                          (4)                (5)
+
+      BQ29700DSER        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FA
+     BQ29700DSER.A       Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FA
+      BQ29700DSET        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FA
+     BQ29700DSET.A       Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FA
+    BQ29700DSETG4        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FA
+   BQ29700DSETG4.A       Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FA
+      BQ29701DSER        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FY
+     BQ29701DSER.A       Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FY
+      BQ29701DSET        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FY
+     BQ29701DSET.A       Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FY
+      BQ29702DSER        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FZ
+     BQ29702DSER.A       Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FZ
+      BQ29702DSET        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FZ
+     BQ29702DSET.A       Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FZ
+    BQ29702DSETG4        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FZ
+   BQ29702DSETG4.A       Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        FZ
+      BQ29703DSER        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F1
+     BQ29703DSER.A       Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F1
+      BQ29703DSET        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F1
+     BQ29703DSET.A       Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F1
+      BQ29704DSER        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F2
+     BQ29704DSER.A       Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F2
+      BQ29704DSET        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F2
+     BQ29704DSET.A       Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F2
+      BQ29705DSER        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F3
+     BQ29705DSER.A       Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F3
+      BQ29705DSET        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F3
+     BQ29705DSET.A       Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F3
+      BQ29706DSER        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F4
+
+
+                                                                                   Addendum-Page 1
+                                                                                                                             PACKAGE OPTION ADDENDUM
+
+www.ti.com                                                                                                                                                 31-Oct-2025
+
+
+
+
+Orderable part number   Status   Material type   Package | Pins   Package qty | Carrier   RoHS      Lead finish/       MSL rating/       Op temp (°C)   Part marking
+                          (1)         (2)                                                  (3)      Ball material      Peak reflow                           (6)
+                                                                                                         (4)                (5)
+
+   BQ29706DSER.A        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F4
+    BQ29706DSET         Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F4
+   BQ29706DSET.A        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F4
+    BQ29707DSER         Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F5
+   BQ29707DSER.A        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F5
+    BQ29707DSET         Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F5
+   BQ29707DSET.A        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F5
+  BQ29707DSETG4         Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F5
+ BQ29707DSETG4.A        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        F5
+    BQ29716DSER         Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3P
+   BQ29716DSER.A        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3P
+    BQ29716DSET         Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3P
+   BQ29716DSET.A        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3P
+    BQ29717DSER         Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3Q
+   BQ29717DSER.A        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3Q
+    BQ29717DSET         Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3Q
+   BQ29717DSET.A        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3Q
+    BQ29718DSER         Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3R
+   BQ29718DSER.A        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3R
+    BQ29718DSET         Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3R
+   BQ29718DSET.A        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3R
+    BQ29723DSER         Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3S
+   BQ29723DSER.A        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3S
+    BQ29723DSET         Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3S
+   BQ29723DSET.A        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3S
+    BQ29728DSER         Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        EJ
+   BQ29728DSER.A        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        EJ
+    BQ29728DSET         Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        EJ
+   BQ29728DSET.A        Active    Production     WSON (DSE) | 6     250 | SMALL T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        EJ
+    BQ29729DSER         Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3T
+   BQ29729DSER.A        Active    Production     WSON (DSE) | 6    3000 | LARGE T&R        Yes        NIPDAU        Level-1-260C-UNLIM     -40 to 85        3T
+
+
+                                                                                  Addendum-Page 2
+                                                                                                                                                                    PACKAGE OPTION ADDENDUM
+
+       www.ti.com                                                                                                                                                                                                    31-Oct-2025
+
+
+
+
+       Orderable part number          Status     Material type      Package | Pins     Package qty | Carrier       RoHS             Lead finish/             MSL rating/             Op temp (°C)               Part marking
+                                        (1)            (2)                                                            (3)           Ball material            Peak reflow                                              (6)
+                                                                                                                                          (4)                      (5)
+
+           BQ29729DSET                Active      Production       WSON (DSE) | 6        250 | SMALL T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     3T
+          BQ29729DSET.A               Active      Production       WSON (DSE) | 6        250 | SMALL T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     3T
+           BQ29732DSER                Active      Production       WSON (DSE) | 6       3000 | LARGE T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     3U
+          BQ29732DSER.A               Active      Production       WSON (DSE) | 6       3000 | LARGE T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     3U
+           BQ29732DSET                Active      Production       WSON (DSE) | 6        250 | SMALL T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     3U
+          BQ29732DSET.A               Active      Production       WSON (DSE) | 6        250 | SMALL T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     3U
+           BQ29733DSER                Active      Production       WSON (DSE) | 6       3000 | LARGE T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     4Q
+          BQ29733DSER.A               Active      Production       WSON (DSE) | 6       3000 | LARGE T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     4Q
+         BQ29733DSERG4                Active      Production       WSON (DSE) | 6       3000 | LARGE T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     4Q
+        BQ29733DSERG4.A               Active      Production       WSON (DSE) | 6       3000 | LARGE T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     4Q
+           BQ29733DSET                Active      Production       WSON (DSE) | 6        250 | SMALL T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     4Q
+          BQ29733DSET.A               Active      Production       WSON (DSE) | 6        250 | SMALL T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     4Q
+           BQ29737DSER                Active      Production       WSON (DSE) | 6       3000 | LARGE T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     EI
+          BQ29737DSER.A               Active      Production       WSON (DSE) | 6       3000 | LARGE T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     EI
+           BQ29737DSET                Active      Production       WSON (DSE) | 6        250 | SMALL T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     EI
+          BQ29737DSET.A               Active      Production       WSON (DSE) | 6        250 | SMALL T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                     EI
+           BQ29740DSER                Active      Production       WSON (DSE) | 6       3000 | LARGE T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                    PO
+          BQ29740DSER.A               Active      Production       WSON (DSE) | 6       3000 | LARGE T&R             Yes               NIPDAU            Level-1-260C-UNLIM             -40 to 85                    PO
+
+(1)
+      Status: For more details on status, see our product life cycle.
+
+(2)
+   Material type: When designated, preproduction parts are prototypes/experimental devices, and are not yet approved or released for full production. Testing and final process, including without limitation quality assurance,
+reliability performance testing, and/or process qualification, may not yet be complete, and this item is subject to further changes or possible discontinuation. If available for ordering, purchases will be subject to an additional
+waiver at checkout, and are intended for early internal evaluation purposes only. These items are sold without warranties of any kind.
+
+(3)
+      RoHS values: Yes, No, RoHS Exempt. See the TI RoHS Statement for additional information and value definition.
+
+(4)
+   Lead finish/Ball material: Parts may have multiple material finish options. Finish options are separated by a vertical ruled line. Lead finish/Ball material values may wrap to two lines if the finish value exceeds the maximum
+column width.
+
+(5)
+  MSL rating/Peak reflow: The moisture sensitivity level ratings and peak solder (reflow) temperatures. In the event that a part has multiple moisture sensitivity ratings, only the lowest level per JEDEC standards is shown.
+Refer to the shipping label for the actual reflow temperature that will be used to mount the part to the printed circuit board.
+
+
+
+                                                                                                         Addendum-Page 3
+                                                                                                                                                                      PACKAGE OPTION ADDENDUM
+
+       www.ti.com                                                                                                                                                                                                 31-Oct-2025
+
+
+
+
+(6)
+      Part marking: There may be an additional marking, which relates to the logo, the lot trace code information, or the environmental category of the part.
+
+Multiple part markings will be inside parentheses. Only one part marking contained in parentheses and separated by a "~" will appear on a part. If a line is indented then it is a continuation of the previous line and the two
+combined represent the entire part marking for that device.
+
+Important Information and Disclaimer:The information provided on this page represents TI's knowledge and belief as of the date that it is provided. TI bases its knowledge and belief on information provided by third parties, and
+makes no representation or warranty as to the accuracy of such information. Efforts are underway to better integrate information from third parties. TI has taken and continues to take reasonable steps to provide representative
+and accurate information but may not have conducted destructive testing or chemical analysis on incoming materials and chemicals. TI and TI suppliers consider certain information to be proprietary, and thus CAS numbers
+and other limited information may not be available for release.
+
+In no event shall TI's liability arising out of such information exceed the total purchase price of the TI part(s) at issue in this document sold by TI to Customer on an annual basis.
+
+
+
+
+                                                                                                          Addendum-Page 4
+                                                                             PACKAGE MATERIALS INFORMATION
+
+www.ti.com                                                                                                                                        22-Oct-2026
+
+
+
+TAPE AND REEL INFORMATION
+
+       REEL DIMENSIONS                                                                    TAPE DIMENSIONS
+                                                                                     K0         P1
+
+
+
+                                                                                                                       B0 W
+                                       Reel
+                                     Diameter
+                                                                                  Cavity             A0
+                                                              A0   Dimension designed to accommodate the component width
+                                                              B0   Dimension designed to accommodate the component length
+                                                              K0   Dimension designed to accommodate the component thickness
+                                                              W    Overall width of the carrier tape
+                                                              P1   Pitch between successive cavity centers
+
+
+                                      Reel Width (W1)
+                              QUADRANT ASSIGNMENTS FOR PIN 1 ORIENTATION IN TAPE
+
+                                                                                                      Sprocket Holes
+
+
+                                                Q1       Q2          Q1    Q2
+
+                                                Q3       Q4          Q3    Q4                    User Direction of Feed
+
+
+
+                                                          Pocket Quadrants
+
+
+*All dimensions are nominal
+             Device           Package Package Pins            SPQ        Reel   Reel   A0                    B0         K0     P1     W     Pin1
+                               Type Drawing                            Diameter Width (mm)                  (mm)       (mm)   (mm)   (mm) Quadrant
+                                                                         (mm) W1 (mm)
+      BQ29700DSER             WSON     DSE           6        3000        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29700DSER             WSON     DSE           6        3000        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29700DSET             WSON     DSE           6         250        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29700DSET             WSON     DSE           6         250        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+    BQ29700DSETG4             WSON     DSE           6         250        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29701DSER             WSON     DSE           6        3000        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29701DSER             WSON     DSE           6        3000        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29701DSET             WSON     DSE           6         250        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29701DSET             WSON     DSE           6         250        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29702DSER             WSON     DSE           6        3000        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29702DSET             WSON     DSE           6         250        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+    BQ29702DSETG4             WSON     DSE           6         250        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29703DSER             WSON     DSE           6        3000        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29703DSET             WSON     DSE           6         250        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29704DSER             WSON     DSE           6        3000        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+      BQ29704DSET             WSON     DSE           6         250        180.0           8.4        1.75   1.75       1.0    4.0    8.0     Q2
+
+
+
+
+                                                                     Pack Materials-Page 1
+                                                           PACKAGE MATERIALS INFORMATION
+
+www.ti.com                                                                                                          22-Oct-2026
+
+
+
+             Device   Package Package Pins   SPQ       Reel   Reel   A0            B0     K0     P1     W     Pin1
+                       Type Drawing                  Diameter Width (mm)          (mm)   (mm)   (mm)   (mm) Quadrant
+                                                       (mm) W1 (mm)
+     BQ29705DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29705DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29706DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29706DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29707DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29707DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29707DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29707DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+    BQ29707DSETG4     WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29716DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29716DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29717DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29717DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29717DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29717DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29718DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29718DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29718DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29718DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29723DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29723DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29723DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29723DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29728DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29728DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29729DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29729DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29729DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29729DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29732DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29732DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29733DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+    BQ29733DSERG4     WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29733DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29737DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29737DSET      WSON     DSE     6     250       180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+     BQ29740DSER      WSON     DSE     6     3000      180.0      8.4      1.75   1.75   1.0    4.0    8.0     Q2
+
+
+
+
+                                                   Pack Materials-Page 2
+                                                                PACKAGE MATERIALS INFORMATION
+
+www.ti.com                                                                                                              22-Oct-2026
+
+
+
+ TAPE AND REEL BOX DIMENSIONS
+
+
+
+
+                                                               Width (mm)
+                                                                              H
+
+
+
+
+                      W                                   L
+
+
+
+
+*All dimensions are nominal
+             Device           Package Type   Package Drawing   Pins         SPQ    Length (mm)   Width (mm)   Height (mm)
+      BQ29700DSER                WSON             DSE           6           3000      210.0        185.0         35.0
+      BQ29700DSER                WSON             DSE           6           3000      182.0        182.0         20.0
+      BQ29700DSET                WSON             DSE           6           250       182.0        182.0         20.0
+      BQ29700DSET                WSON             DSE           6           250       210.0        185.0         35.0
+     BQ29700DSETG4               WSON             DSE           6           250       182.0        182.0         20.0
+      BQ29701DSER                WSON             DSE           6           3000      210.0        185.0         35.0
+      BQ29701DSER                WSON             DSE           6           3000      182.0        182.0         20.0
+      BQ29701DSET                WSON             DSE           6           250       182.0        182.0         20.0
+      BQ29701DSET                WSON             DSE           6           250       210.0        185.0         35.0
+      BQ29702DSER                WSON             DSE           6           3000      182.0        182.0         20.0
+      BQ29702DSET                WSON             DSE           6           250       182.0        182.0         20.0
+     BQ29702DSETG4               WSON             DSE           6           250       182.0        182.0         20.0
+      BQ29703DSER                WSON             DSE           6           3000      182.0        182.0         20.0
+      BQ29703DSET                WSON             DSE           6           250       182.0        182.0         20.0
+      BQ29704DSER                WSON             DSE           6           3000      182.0        182.0         20.0
+      BQ29704DSET                WSON             DSE           6           250       182.0        182.0         20.0
+      BQ29705DSER                WSON             DSE           6           3000      182.0        182.0         20.0
+      BQ29705DSET                WSON             DSE           6           250       182.0        182.0         20.0
+
+
+
+
+                                                        Pack Materials-Page 3
+                                                        PACKAGE MATERIALS INFORMATION
+
+www.ti.com                                                                                                   22-Oct-2026
+
+
+
+             Device   Package Type   Package Drawing   Pins     SPQ     Length (mm)   Width (mm)   Height (mm)
+      BQ29706DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29706DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29707DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29707DSER        WSON             DSE           6       3000       210.0        185.0         35.0
+      BQ29707DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29707DSET        WSON             DSE           6       250        210.0        185.0         35.0
+    BQ29707DSETG4        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29716DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29716DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29717DSER        WSON             DSE           6       3000       210.0        185.0         35.0
+      BQ29717DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29717DSET        WSON             DSE           6       250        210.0        185.0         35.0
+      BQ29717DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29718DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29718DSER        WSON             DSE           6       3000       210.0        185.0         35.0
+      BQ29718DSET        WSON             DSE           6       250        210.0        185.0         35.0
+      BQ29718DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29723DSER        WSON             DSE           6       3000       210.0        185.0         35.0
+      BQ29723DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29723DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29723DSET        WSON             DSE           6       250        210.0        185.0         35.0
+      BQ29728DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29728DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29729DSER        WSON             DSE           6       3000       210.0        185.0         35.0
+      BQ29729DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29729DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29729DSET        WSON             DSE           6       250        210.0        185.0         35.0
+      BQ29732DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29732DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29733DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+    BQ29733DSERG4        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29733DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29737DSER        WSON             DSE           6       3000       182.0        182.0         20.0
+      BQ29737DSET        WSON             DSE           6       250        182.0        182.0         20.0
+      BQ29740DSER        WSON             DSE           6       3000       210.0        185.0         35.0
+
+
+
+
+                                                Pack Materials-Page 4
+                                                                                                                  PACKAGE OUTLINE
+DSE0006A                                                               SCALE 6.000
+                                                                                                              WSON - 0.8 mm max height
+                                                                                                                   PLASTIC SMALL OUTLINE - NO LEAD
+
+
+
+
+                                                1.55                                  A
+                              B
+                                                1.45
+
+
+
+
+                                                                                     1.55
+           PIN 1 INDEX AREA                                                          1.45
+
+
+
+
+                          0.8 MAX
+                                                                                             C
+
+                                                                                                     SEATING PLANE
+
+                                                                                                    0.08 C
+
+                                                                                                                                 (0.2) TYP
+                           0.6                                                                                    0.05
+                        5X                                                                                        0.00
+                           0.4
+
+                                    3
+                                                                   4
+
+
+
+                   2X 1
+
+                          4X 0.5
+
+                                                                   6
+                                    1
+
+                                                                                                 0.3
+                                        0.7                                                 6X
+                                                                                                 0.2
+                                        0.5             PIN 1 ID                                   0.1    C A B
+                                                                                                   0.05    C
+
+
+                                                                                                                                  4220552/B 01/2024
+
+NOTES:
+
+1. All linear dimensions are in millimeters. Any dimensions in parenthesis are for reference only. Dimensioning and tolerancing
+   per ASME Y14.5M.
+2. This drawing is subject to change without notice.
+
+
+
+
+                                                                   www.ti.com
+                                                                                   EXAMPLE BOARD LAYOUT
+DSE0006A                                                                                    WSON - 0.8 mm max height
+                                                                                                     PLASTIC SMALL OUTLINE - NO LEAD
+
+
+
+
+                                                    (0.8)             PKG              5X (0.7)
+
+                                        1
+
+                            6X (0.25)                                                                    6
+
+
+
+
+                                                                                                             SYMM
+
+
+
+                              4X 0.5
+
+
+                                                                                                         4
+                                        3
+
+                        (R0.05) TYP
+                                                                      (1.2)
+
+
+                                                      LAND PATTERN EXAMPLE
+                                                                  SCALE:40X
+
+
+
+
+                                            0.05 MAX                                                 0.05 MIN
+                                            ALL AROUND                                               ALL AROUND
+
+
+
+
+                     SOLDER MASK                       METAL                  METAL UNDER                      SOLDER MASK
+                     OPENING                                                  SOLDER MASK                      OPENING
+                                      PADS 4-6                                                  PADS 1-3
+                                  NON SOLDER MASK                                             SOLDER MASK
+                                      DEFINED                                                   DEFINED
+
+
+                                                            SOLDER MASK DETAILS
+
+
+                                                                                                                    4220552/B 01/2024
+
+NOTES: (continued)
+
+3. For more information, see Texas Instruments literature number SLUA271 (www.ti.com/lit/slua271).
+
+
+
+
+                                                                   www.ti.com
+                                                                               EXAMPLE STENCIL DESIGN
+DSE0006A                                                                                 WSON - 0.8 mm max height
+                                                                                               PLASTIC SMALL OUTLINE - NO LEAD
+
+
+
+
+                                                                   PKG
+                                                   (0.8)                            5X (0.7)
+                        6X (0.25)
+                                        1
+
+                                                                                                    6
+
+
+
+
+                                                                                                        SYMM
+
+
+
+                             4X (0.5)
+
+
+
+                                        3                                                          4
+
+
+                      (R0.05) TYP
+                                                                   (1.2)
+
+
+                                                     SOLDER PASTE EXAMPLE
+                                                   BASED ON 0.125 mm THICK STENCIL
+                                                              SCALE:40X
+
+
+
+
+NOTES: (continued)
+
+4. Laser cutting apertures with trapezoidal walls and rounded corners may offer better paste release. IPC-7525 may have alternate
+   design recommendations.
+
+
+
+
+                                                                 www.ti.com
+                                         IMPORTANT NOTICE AND DISCLAIMER
+TI PROVIDES TECHNICAL AND RELIABILITY DATA (INCLUDING DATASHEETS), DESIGN RESOURCES (INCLUDING REFERENCE
+DESIGNS), APPLICATION OR OTHER DESIGN ADVICE, WEB TOOLS, SAFETY INFORMATION, AND OTHER RESOURCES “AS IS”
+AND WITH ALL FAULTS, AND DISCLAIMS ALL WARRANTIES, EXPRESS AND IMPLIED, INCLUDING WITHOUT LIMITATION ANY
+IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT OF THIRD
+PARTY INTELLECTUAL PROPERTY RIGHTS.
+These resources are intended for skilled developers designing with TI products. You are solely responsible for (1) selecting the appropriate
+TI products for your application, (2) designing, validating and testing your application, and (3) ensuring your application meets applicable
+standards, and any other safety, security, regulatory or other requirements.
+These resources are subject to change without notice. TI grants you permission to use these resources only for development of an
+application that uses the TI products described in the resource. Other reproduction and display of these resources is prohibited. No license
+is granted to any other TI intellectual property right or to any third party intellectual property right. TI disclaims responsibility for, and you fully
+indemnify TI and its representatives against any claims, damages, costs, losses, and liabilities arising out of your use of these resources.
+TI’s products are provided subject to TI’s Terms of Sale, TI’s General Quality Guidelines, or other applicable terms available either on
+ti.com or provided in conjunction with such TI products. TI’s provision of these resources does not expand or otherwise alter TI’s applicable
+warranties or warranty disclaimers for TI products. Unless TI explicitly designates a product as custom or customer-specified, TI products
+are standard, catalog, general purpose devices.
+TI objects to and rejects any additional or different terms you may propose.
+IMPORTANT NOTICE
+
+                                                Copyright © 2026, Texas Instruments Incorporated
+                                                                Last updated 10/2025
+

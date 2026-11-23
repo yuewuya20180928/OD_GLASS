@@ -304,8 +304,8 @@ python3 HW/e2e_budget_rk3572.py --t-compose-ms <第7段实测值>
 
 | 环节 | 风险 | 判据 | 压在哪 |
 |---|---|---|---|
-| 编译期 | ★**官方根本没有 `rk3572` 这个 target** (2.3.2 与 2.5.0 均无) ⇒ 只能 `target_platform='rk3576'` 转 | 已 [官网]+[实测] 钉死 (ISS-207) | **已消除** (PC 侧) |
-| ★**加载期** ★ | ★**RK3572 BSP runtime 认不认 rk3576-target 产物** ⇒ 官方无此口径 ⇒ **只能板端判** | ★**N1** (`load_rknn` ret == 0) | ★**★风险主压在这一环★** ★ |
+| 编译期 | ★**toolkit2 (2.3.2 与 2.5.0) 都没有 `rk3572` 这个 target** ⇒ ★**转换链走 rknn3-toolkit 1.2.0 的 `target_platform='rk3572'`** (config rc=0 [实测]) ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★ | 已 [官网]+[实测] 钉死 (ISS-207) | **已消除** (PC 侧) |
+| ★**加载期** ★ | ★**RK3572 BSP runtime 认不认 rk3572-target 产物** (★主路线; rk3576-target 已降为次要路线①★) ⇒ 官方无此口径 ⇒ **只能板端判** ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★ | ★**N1** (`load_rknn` ret == 0) | ★**★风险主压在这一环★** ★ |
 | 初始化期 | 算子/DMA/内存布局在 RK3572 上不兼容 (`rknn_init_runtime` 失败) | N1 的第二返回值 | 同一环 |
 | 数值期 | 反量化路径不同 ⇒ 精度偏 ⇒ F1 掉 | **N2** (F1 ≥ 0.2427) | 精度环 (不影响 60ms) |
 | 性能期 | 纯 NPU 性能偏差 (4 TOPS 标称 sparse vs 实际) | **N3** (`t_npu` ≤ 13.30 / 20.33) | ★**T2 翻案条款这一环** ★ |

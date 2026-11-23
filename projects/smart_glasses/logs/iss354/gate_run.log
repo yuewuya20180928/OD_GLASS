@@ -1,0 +1,27 @@
+==============================================================================
+ISS-354 · demo 主板可制造性收口 · 自带闸 (只读)
+==============================================================================
+[PASS] A-0   在盘文件存在
+        HW/PCB/BOARD_ONEPASS_WORKPACKET.md / HW/PCB/ISS354_DOWNCUT_VETO_LIST.md / HW/PCB/demo_mainboard.kicad_pcb / HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+[PASS] A-1   5 个 ref 的改项清单在盘 (WORKPACKET §9-6.1): Q1, Q2, U_BATPROT, U_LDO_S28, U_SUPV
+        全部点名命中
+[PASS] A-1b  每个 ref 都写出了【官方查得的应为封装】(语义级断言, 不是只报数)
+        全部命中
+[PASS] A-2   4 类不自洽在盘 (VETO_LIST §0.5): 类-1, 类-2, 类-3, 类-4
+        全部命中
+[PASS] A-3   SoM pin1 排向的降级方案 (a)(b)(c) 在盘 (VETO_LIST §2.3)
+        全部命中
+[PASS] A-3b  降级方案同时在 WORKPACKET §9-6.2 段
+        全部命中
+[PASS] A-3c  SoM pin1 排向的实物实测判据 (V-01) 在盘
+        V-01 + pin1 关键字命中
+[PASS] A-4   下料前一票否决项在盘 (VETO_LIST §1): V-01..V-15 (15 条)
+        全部命中
+[PASS] A-5a  零写板: HW/PCB/demo_mainboard.kicad_pcb md5 == 611b869e13518c3c023fb178f91a0075
+        实测 611b869e13518c3c023fb178f91a0075
+[PASS] A-5b  零写板: 板 mtime == 2026-11-06 07:07:17.362193413
+        实测 2026-11-06 07:07:17.362193413 +0800
+[PASS] A-5c  零手改 PREFLIGHT: 含 ISS-354 段的追加块必须逐字来自生成器 sidecar (不是手改页)
+        sidecar 中 1 个含 ISS-354 段的块逐字命中 ✔ (PREFLIGHT md5 = ade0d1242ceaef979339c1254dc3e777)
+------------------------------------------------------------------------------
+★结论: 全部断言通过 ⇒ 交卷内容在盘且未改坏

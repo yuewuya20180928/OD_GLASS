@@ -1,16 +1,16 @@
 # 当前问题清单 (未闭环)
-> 生成时间 **2026-11-23 05:30** | 总登记 349 条 | 未闭合 **237** | 已关闭 97
+> 生成时间 **2026-11-23 11:51** | 总登记 354 条 | 未闭合 **242** | 已关闭 97
 > 真源: `projects/smart_glasses/state/issue_log.yaml` (由 `state/issue_check.py` 机械判定)
 
 ## 按责任方分桶
 | 责任方 | blocker | high | medium | low | 小计 |
 |---|---|---|---|---|---|
 | 👤 老板 | 0 | 9 | 0 | 0 | **9** |
-| 🔩 硬件总工 | 0 | 56 | 11 | 0 | **67** |
+| 🔩 硬件总工 | 0 | 57 | 12 | 0 | **69** |
 | 🏢 JBD | 0 | 0 | 0 | 0 | **0** |
-| 🧭 项目总工 | 6 | 19 | 8 | 2 | **35** |
-| ⚙️ 结构总工 | 0 | 40 | 19 | 0 | **59** |
-| 💻 软件总工 | 5 | 44 | 16 | 2 | **67** |
+| 🧭 项目总工 | 5 | 20 | 8 | 2 | **35** |
+| ⚙️ 结构总工 | 0 | 40 | 20 | 0 | **60** |
+| 💻 软件总工 | 5 | 45 | 17 | 2 | **69** |
 | 🏭 原厂 | 0 | 0 | 0 | 0 | **0** |
 
 ## 未闭环明细
@@ -23,7 +23,6 @@
 | ISS-145 | blocker | sw-lead | 2026-11-05 | ★★★★[demo 关键路径 #2] demo 板 OD 管线打通规格: yolov5n INT8 → RKNN → 画框 → 视涯 049 显示 |
 | ISS-162 | blocker | main | 2026-11-13 | ★★★[硬件 · 画板前必须] 网表按真实器件规格重出: FPC 座 31p/0.3mm + 40p/0.5mm + SOM 400 脚 BTB + 电源输入改 5-13V |
 | ISS-207 | blocker | sw-lead | 2026-11-18 | ★★★★[demo 头号卡点·自己查版] ISS-155 拆块: rknn-toolkit2 最新版到底支不支持 rk3572 target + RK3572 runtime 认不认 rk3576-target 产物 + 板端到手 30 分钟可跑的验证包 |
-| ISS-155 | blocker | main | 2026-11-19 | ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 target 转的 .rknn 能否在 RK3572 上跑通 (板端验证) —— 且板子当前不可达 |
 | ISS-160 | blocker | main | 2026-11-20 | ★★★[自己画图] demo 主板图纸链: KiCad 10 工具链(免 root AppImage) + 参数化生成器 + DRC 门禁(已 rc=0) ⇒ 剩下: 原理图/密集布线/打样 |
 | ISS-263 | blocker | sw-lead | 2026-11-20 | ★★[主线内·软件/工具链侧·demo 头号卡点·内部活] ★★★★[ISS-155 blocker 的 E-11/E-12] ★**官方独立工具链 `rknn3-toolkit 1.2.0` 本机安装实测 + `config(target_platform='rk3572')` 实跑 + 一次完整模型转换** ★★ ⇒ ★**把「RK3572 的 .rknn 到底能不能转出来」从 [0数据] 变成有实测数** ★ |
 | ISS-353 | blocker | sw-lead | 2026-11-24 | ★★[★新主线·PCB 线·模型链·rk3572 目标口径清账·纯口径·零写板] ★★【ISS-263 (2026-11-17) 已实测 `rknn3-toolkit 1.2.0` 支持 `config(target_platform='rk3572')` rc=0 (错 target `rk3576` 反而抛 ValueError 且报错原文含 `rk3572`) ⇒ ★**「rk3572 不是合法 target ⇒ 只能用 rk3576 target 转」这条路线已经过时** ⇒ ★**但全仓口径仍大面积停在旧口径** ⇒ 本单 = ① 全仓清账 (比名单·不许只报数) ② 板端接受性 [0数据] 的自研降级方案 (★不许用「买块 RK3572 板」来解·老板 2026-11-04 19:10 指示★) ③ 给 main 一条结案建议 (ISS-155 的 blocker 能不能降)】★★ ★**只改口径·不动板·不落表·不新增拍板项·零外发**★ |
@@ -193,6 +192,9 @@
 | ISS-348 | high | main | 2026-11-25 | ★★[★基础设施·跨 job·内部活·零写板] ★★【/tmp 是带 userquota 的 tmpfs (7.5G) 而用户配额已被打满 ⇒ 任何写 /tmp 的作业都在 EDQUOT 上失败 (★实测: 连 14 KB 的 cp 都失败·dd 20M 失败·本 job 把 issue_check 输出重定向到 /tmp 时拿到 rc=120 + 0 字节 = 假读数★) ⇒ 占用大头 = /tmp/od_glass_publish 4.1G (5 小时 GitHub 同步 job 的发布暂存目录·01:15 还在被写 ⇒ 此刻正在跑·不许此刻动) + /tmp/adv_sandbox 680M (子 agent 正在用) ⇒ 建议: 发布暂存改落项目盘或推完即清 + 子 agent 沙盒改落项目盘 (本 job 的单测已改) + 门禁输出不许重定向到 /tmp】★★ |
 | ISS-349 | high | hw-lead | 2026-11-25 | ★★[★新主线·PCB 线·板侧项全集页被手改·生成器重跑会蒸发 E-1·纯脚本改造+新建机器闸·零写板] ★★【把 `B33_PIN_LAND_1P27` (E-1 排针 land 0.50→1.27) 从「手改产物页」搬回生成器 `state/_iss277_build_preflight.py` ⇒ 重跑生成器 ⇒ §2 表 33 行 + §7 JSON 33 条 + id 集合逐一相等 ⇒ 新建 `HW/check_preflight_regen_idempotent.py` (表/JSON 同源 + 重跑幂等 + source_iss 在 SOURCES 内) + ≥3 条反向用例】★★ ★**main 2026-11-23 01:4x 实读: 页 §2 表 32 行 vs §7 JSON 33 条 (多出 `B33`) ⇒ 页与 JSON 已不同源; 生成器 ITEMS_RAW 只有 B01..B32 + sidecar 0 命中 ⇒ 重跑一次生成器 B33 即蒸发; ISS-292 交卷页写死的「页回退这条路已经堵死 (页 md5=159bf20f…)」现已失效 (现页 md5=8ae70471…) ⇒ 而 `state/_iss304_sync_state_baseline_md5.py:145` 的「落表后重锚流程 ①」每次都跑生成器 ⇒ E-1 会从「板只改一次」那一趟的板侧项全集里静默消失 ⇒ 实物排针照样装不进 ⇒ 补做 = 板 md5 变第二次**★ |
 | ISS-352 | high | mech-lead | 2026-11-25 | ★★[★新主线·PCB 线·MECH 域判定脚本迁双口径·第 2 批·零写板] ★★【ISS-345 cont1 (第 1 批 2 脚本) 已由 main 2026-11-23 04:0x 签收 ⇒ 第 2 批 = 交卷页 §B5-2 自己列的那张清单: ① `fit_check_v3_30mm.py` / `fit_check.py` 二选一 说清 ② `cross_review_check.py` 迁双口径 (默认档逐字节不变) ③ 新建闸 `MECH/check_mech_dual_caliber_gate.py` (含反向用例) ④ `BOARD_GEOM_CALIBER_STATUS.md` scope A/B 追加式订正 ⑤ 漂移闸迁后重跑回填 + 三个既有帧表脚本核对结论】★★ ★**板那一趟开工前还差「MECH 域 8 个判定脚本迁双口径」这一件 ⇒ 本单就是它的下半程**★ |
+| ISS-356 | high | hw-lead | 2026-11-25 | ★★[★新主线·PCB 线·「板那一趟」封装真值基线 (100 件必装器件的占位封装 → 真库封装映射)·纯分析/作业包·零写板] ★★【main 2026-11-23 07:5x 本机实读: BOM 165 件真实器件里 100 件必装器件的 footprint 栏 = 待定 (94 件连 OPN 也空) · 板面 186 个封装库名 100% 为空字符串 (全是自绘通用占位) · 原理图 218 个符号里 201 个 Footprint = TBD ⇒ 封装真值在源头就不存在 ⇒ 「板只改一次」那一趟画出去的板, 型号一落就得返工 (板 md5 变第二次) ⇒ 本单 = 把这条缺失的基线补出来: 族级映射表 + 逐 ref 表 + 删件候选 + 自带机器闸 · 零写板】★★ |
+| ISS-357 | high | sw-lead | 2026-11-25 | ★★[主线内·SW 侧·需求闭环类·内部活] ★★【SW 域 needs 144 条四分类处置 (waiting_on 空 118 / to=hw-lead 17 / to=mech-lead 2 / agent 4 / boss 12 / vendor 8) ⇒ 把机检缺口清单那条「98 条没人答」+ 「8 条外发依赖挂着」两笔老账一次清掉】★★ ⇒ ★**与 MECH 域同型单 ISS-313 (verified) 同一口径** ★ |
+| ISS-155 | high | main | 2026-11-27 | ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 target 转的 .rknn 能否在 RK3572 上跑通 (板端验证) —— 且板子当前不可达 ★★【2026-11-23 07:3x main 裁决 · ★★降级 · 本单不再是 demo 头号卡点 · 余项 = 转换链已通 / 板端接受性 [0数据]·待板★★】★**老题面 (rk3576 target 那条问法) 保留作历史留档·结论不再引用** ★ |
 | ISS-120 | high | sw-lead | 2026-11-30 | ★S2 救砖链路板端实测 (量产一票否决项) —— 方案+自检已闭环 (ISS-080), 待 EVT 有板后真跑 (EVT-8/BR-01) |
 | ISS-347 | high | main | 2026-11-30 | ★★[★主线·派活/门禁机制侧·内部活·零写板] ★★【`state/advance.py --apply` 的落盘路径一直是坏的: `state/dispatch_log.yaml` 顶层是 list ⇒ 旧代码 dl.setdefault('dispatches',[]) ⇒ AttributeError ⇒ 两个 cron job 的「派完标 fixing + 写派活日志」从来没自动跑通过 ⇒ 修 (两种形状都认 + 追加式写回 + 写回后自检) + 端到端单测 5/5 (含反向用例: 旧备份跑同一沙盒必须复现 AttributeError)】★★ |
 | ISS-093 | medium | main | 2026-10-29 | ★充电板 (镜框) 的完整原理图页未画全 —— 现在主网表里只有 Type-C + BQ25896 的子集 |
@@ -251,6 +253,9 @@
 | ISS-350 | medium | sw-lead | 2026-11-24 | ★★[★新主线·PCB 线·存储轴 Q3 分档口径写回 SW 侧·纯口径·零写板] ★★【ISS-346 已签收 ⇒ Q3 从「整卡」改成「分档」⇒ SW 侧自己的分片 `sw.yaml` 的措辞还是旧的 ⇒ 机器读到的还是错的口径 ⇒ 把 3 条措辞订正写回 + 补登记分档结论】★★ ★**只改措辞与登记, 不改网表真源 / 不改脚表 / 不改 BOM / 不改板 / 不代老板拍板**★ |
 | ISS-351 | medium | hw-lead | 2026-11-24 | ★★[★新主线·PCB 线·存储轴旧口径清账·纯口径·零写板] ★★【ISS-346 + ISS-350 连续两单把存储轴口径从「整卡」改成【分档】⇒ ★**但 hw.yaml 的 answer `vendor_q19_boot_storage` 还在说「外挂 SPI-NOR 16-64MB · 板宽可能 12->15mm」⇒ 这句话同时错了两处 (容量口径 / 板宽归属) ⇒ 同仓并存两个打架的容量说法 ⇒ 机器读分片会读错 ⇒ 清掉它】★★ ★**只改措辞·不动板·不落表·不新增拍板项**★ |
 | ISS-346 | medium | sw-lead | 2026-11-25 | ★★[★新主线·PCB 线·存储轴 Q3 分档可判·纯分析+机器矩阵+一页决策口径·零写板] ★★【把 Q3「模型/rootfs 怎么存」从 [0数据] 变成【可判矩阵】: 容量 × 存储 × 板框档 × 板侧动作 ⇒ 判定它对「板那一趟」到底卡不卡 (★分档才成立: SPI-NOR 档板侧零动作·eMMC 档只卡产品板档★)】★★ ★**来源 = 老板拍板页 `DECISION_ONE_PAGER_2026-11-22.md` §① 第 6 行 (need key `q3_storage_and_audio` · 决策码 Q3); 交付 `SW/STORAGE_CAPACITY_MATRIX.md` + `SW/tools/gen_storage_capacity_matrix.py` + 交卷页 B0~B7 + sw.yaml 分片**★ |
+| ISS-355 | medium | sw-lead | 2026-11-25 | ★★[★模型链·实现侧·纯脚本·零写板] ★★【ISS-353 已签收 ⇒ 口径清了, 但【实现】没改: `SW/tools/rk3572_model_rebuild.sh` (L13/L86/L136) 与 `SW/RKNN_BENCH.md` §5 仍是 toolkit2 + `target_platform='rk3576'` ⇒ 任何人按现脚本重跑, 拿到的仍是 rk3576-target 产物 ⇒ 主路线 (rknn3-toolkit 1.2.0 + rk3572) 还没落到脚本上 ⇒ 本单 = 把主路线落到脚本上 + 新建机器闸钉住】★★ ★**口径清了 ≠ 实现改了 ⇒ 这是 ISS-353 §B7 残留表里的 `iss353_need_followup_convert_script_rk3572` (登记为 to=main · 等 main 确认优先级) ⇒ 本单就是它**★ |
+| ISS-358 | medium | mech-lead | 2026-11-25 | ★★[★主线内·机制侧·分片卫生类·内部活] ★★【`state/fragments/mech.yaml` 有 4 组 answers 用同一个 key 登记了不同主题的答案 ⇒ 合并器 `state/merge.py` 对同 `_by` 的多条同 key answers 只认第一条 ⇒ 后写的对下游完全不可见 ⇒ 最要命的一条 `pcb_outline_confirm` ×5 (5 条讲 5 件完全不同的事) 又正好被 `hw.yaml` 与 `mech.yaml` 两条 need 同时问到 ⇒ 板框/尺寸这条【老板正面临的轴】的真相在合并后只剩第一条露脸 ⇒ 本单 = 拆成语义独立的 key, 一条内容都不许删】★★ ★**零写板·零落表·零外发·不替老板拍板** ★ |
+| ISS-359 | medium | hw-lead | 2026-11-25 | ★★[★主线内·机制侧·分片卫生类·内部活] ★★【`state/fragments/hw.yaml` 有 2 组 answers 与 3 组 needs_from 用了同一个 key 登记多次 ⇒ 合并器只认同 `_by` 多条 answers 的第一条 ⇒ 后写的不可见; needs_from 同 key 登记 N 次 ⇒ 台账里这一条被算成 N 条未闭合 ⇒ 最要命的 `s1_ref_rename_caliber_20261118` ×3 正是「★S1 位号改名口径必须开工前拍★」这条【老板待拍项】⇒ 同一件事占 3 个坑位 ⇒ 未闭合需求数虚高 ⇒ 本单 = 拆成语义独立的 key, 一条内容都不许删】★★ ★**零写板·零落表·零外发·不替老板拍板** ★ |
 | ISS-037 | low | sw-lead | 2026-10-29 | 模型资产与 INT8 量化管理缺失 (权重是资产, 现在散在 sw 需求里) |
 | ISS-113 | low | sw-lead | 2026-11-05 | ★RKNN_BENCH 的 B6 复现缺陷: `acc` 步单独跑会崩 (依赖 calib 步的 dataset.txt) |
 | ISS-329 | low | main | 2026-11-21 | ★4 个生成器产物被闸脚本无条件重写 ⇒ mtime 证据链被污染 (★复发型·ISS-280 之后第二次★)·★定终局方案★ |

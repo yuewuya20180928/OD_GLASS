@@ -1,0 +1,45 @@
+========================================================================================
+MECH 双口径机器闸 (ISS-352) —— 扫 /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+========================================================================================
+断言 ① 双口径标识 ② 默认档 = F30A ③ 切档开关 ④ 退役标记 ⑤ md5 钉死 ⑥ 闸自证
+----------------------------------------------------------------------------------------
+  ✅ (闸自证)                                      本闸 DEFAULT_FRAME_ID = F30A (期望 60×30 档)
+  ✅ MECH/pinset2_mech_check.py                 60×30 档 (F30A) 档标识: 命中 'F30A'
+  ✅ MECH/pinset2_mech_check.py                 160×100 档 (B160x100) 档标识: 命中 'B160x100'
+  ✅ MECH/pinset2_mech_check.py                 默认档 = F30A (期望 60×30 档 · 历史产品板口径): 读到 'F30A'
+  ✅ MECH/pinset2_mech_check.py                 切档开关存在 (--frame / MECH_FRAME)
+  ✅ MECH/skeleton_section_check.py             60×30 档 (F30A) 档标识: 命中 'F30A'
+  ✅ MECH/skeleton_section_check.py             160×100 档 (B160x100) 档标识: 命中 'B160x100'
+  ✅ MECH/skeleton_section_check.py             默认档 = F30A (期望 60×30 档 · 历史产品板口径): 读到 'F30A'
+  ✅ MECH/skeleton_section_check.py             切档开关存在 (--frame / MECH_FRAME)
+  ✅ MECH/fit_check_v3_30mm.py                  60×30 档 (F30A) 档标识: 命中 'F30A'
+  ✅ MECH/fit_check_v3_30mm.py                  160×100 档 (B160x100) 档标识: 命中 'B160x100'
+  ✅ MECH/fit_check_v3_30mm.py                  默认档 = F30A (期望 60×30 档 · 历史产品板口径): 读到 'F30A'
+  ✅ MECH/fit_check_v3_30mm.py                  切档开关存在 (--frame / MECH_FRAME)
+  ✅ MECH/fit_check.py                          60×30 档 (F30A) 档标识: 命中 'F30A'
+  ✅ MECH/fit_check.py                          160×100 档 (B160x100) 档标识: 命中 'B160x100'
+  ✅ MECH/fit_check.py                          退役标记 `MECH_CALIBER_RETIRED` 在位
+  ✅ MECH/fit_check.py                          点名接班件 `fit_check_v3_30mm.py`
+  ✅ MECH/fit_check.py                          已退役件不许自带默认档开关 (不许冒充双口径活件)
+  ✅ MECH/cross_review_check.py                 60×30 档 (F30A) 档标识: 命中 'F30A'
+  ✅ MECH/cross_review_check.py                 160×100 档 (B160x100) 档标识: 命中 'B160x100'
+  ✅ MECH/cross_review_check.py                 默认档 = F30A (期望 60×30 档 · 历史产品板口径): 读到 'F30A'
+  ✅ MECH/cross_review_check.py                 切档开关存在 (--frame / MECH_FRAME)
+  ✅ MECH/board_frame_feasibility.py            60×30 档 (F30A) 档标识: 命中 'F30A'
+  ✅ MECH/board_frame_feasibility.py            160×100 档 (B160x100) 档标识: 命中 'B160x100'
+  ✅ MECH/board_frame_feasibility.py            三档权威帧 id 齐备 (B160x100 / F30A / P60x15 · 末档已作废): 全在
+  ✅ MECH/board_frame_feasibility.py            若自带默认档则必须是 F30A: 无默认档 (三档一次跑完)
+  ✅ MECH/board_port_opening_s6_check.py        60×30 档 (F30A) 档标识: 命中 'F30A'
+  ✅ MECH/board_port_opening_s6_check.py        160×100 档 (B160x100) 档标识: 命中 'B160x100'
+  ✅ MECH/board_port_opening_s6_check.py        三档权威帧 id 齐备 (B160x100 / F30A / P60x15 · 末档已作废): 全在
+  ✅ MECH/board_port_opening_s6_check.py        若自带默认档则必须是 F30A: 无默认档 (三档一次跑完)
+  ✅ MECH/jd_y0_feasibility.py                  60×30 档 (F30A) 档标识: 命中 'F30A'
+  ✅ MECH/jd_y0_feasibility.py                  160×100 档 (B160x100) 档标识: 命中 'B160x100'
+  ✅ MECH/jd_y0_feasibility.py                  三档权威帧 id 齐备 (B160x100 / F30A / P60x15 · 末档已作废): 全在
+  ✅ MECH/jd_y0_feasibility.py                  若自带默认档则必须是 F30A: 无默认档 (三档一次跑完)
+  ✅ MECH/hw_cross_review_check.py              md5 钉死 = e521387b87b0fcdf9f22d56f14199967 (实读 e521387b87b0fcdf9f22d56f14199967)
+----------------------------------------------------------------------------------------
+判定: ✅ 全绿 (通过 35 条 / 失败 0 条)
+★ 帧 id 唯一权威: HW/PCB/BOARD_FRAME_CALIBER.md §6 `cal:FRAMES` (B160x100 / F30A / P60x15)
+★ 默认档归属: 本闸【不许自己拍默认档】⇒ 默认档恒为 F30A, 切档权归 U-1 拍完后 main
+========================================================================================

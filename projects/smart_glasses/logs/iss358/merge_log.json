@@ -1,0 +1,641 @@
+[
+ {
+  "path": "MECH/MECH_BUDGET.md",
+  "base_idx": 0,
+  "base_kind": "budget",
+  "base_version": "v1.2",
+  "base_updated_at": "2026-11-16",
+  "base_summary": "空间预算 (镜脚侧+镜框侧累加) + 电池三档位 + 散热稳态热模型 (含充电峰值场景) + 重量核算 + 摄像头窗口/FOV + 一拖二分光 + 彩虹纹专章 + P2S 工艺参数/打印vs量产; 第二轮新增 §1.4.5 / §2.3.1 / §4(d) / §5.4 / §5.5, 并更正 3 处数值 (0.23W 皮肤侧 42→46.5°C, 重量合计 49-66→50.1-74.0g, 凸出俯角 1.8→0.7-0.8°/mm)。★**ISS-216 (2026-11-16) 改**: §2.1 峰值充电行 (**0.45-0.57 W, 代表 0.50 W, 公式 Pin−Pout+P_DCR, 器件 BQ25896**) + §2.1 结构硬结论 (皮肤侧 60.0 °C, 仍超 43°C 红线 17.0 °C) + §2.3 结温行 (0.50 W ⇒ Tj ≈ 62 °C) + §2.3.1 充电峰值场景表 (60.0 / 121.2 / 136.2 °C + 端件 108.3 °C / P_max 0.21 W) + §2.4-E + §2.6-4 + §3 (重量 **0 改动** + 金属热路质量待 u8) + §6 u7 (BQ25896 已定) / u12 (耗散口径已定) ⇒ **文档 / 脚本 / 机器门禁三处一致**; 判据阈值与板框四数一个没动。",
+  "absorbed": [
+   {
+    "idx": 86,
+    "kind": "spec",
+    "version": "v1.3",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-219 改 (只改口径与追加, 结论数字一个没动): §2.3.1 与 §3 ISS-216 注的铝 6063 同几何 R 1.641→1.935 K/W (ΔT +0.82→+0.97 K, k=201 官方值 [官网]) + §5.1 金属骨架 k=237→201 + §5.5 散热骨架 k=0.2 vs 201 + §1.7 X-3 行追加第④条限定语 (原句未删: 不进皮肤热路径的前提 = 鼻梁侧热断 R_bridge ≥454.8/1101.2 K/W) + 新增 §1.9 正中区第 2 轮重排指针段。★§3 现有重量 0 改动 / 不预扣。"
+   },
+   {
+    "idx": 90,
+    "kind": "spec",
+    "version": "iss222",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-222 同步: §1.3 M6 (14×10×6 / 0.79cc → 平板 11×11×1.5 + 棱镜 2×9×9×5 / 0.9697 cc) + §1.4.5 正中区行 (追加 C-8 轴向口径 8.84, 旧值只报不改) + §3 W4 (3-6 g → 3.68-7.36 g) + §3 合计 (48.9-74.0 → 49.58-74.16 / 50.78-75.36 g) + §3.1 对标 + §3 新增 ISS-222 注 (几何变更不是预扣, 端件金属化 0 预扣) + 新增 §1.10 (C-6 / C-8 / C-7 三张表) ; 判据阈值一个没松"
+   },
+   {
+    "idx": 110,
+    "kind": "budget",
+    "version": "v1.3",
+    "updated_at": "2026-10-25",
+    "summary": "★ISS-238 (2026-11-16) 补标这一版: L71 / L94 / L849 / L944 追加 canonical 标注 已作废 (2026-11-15, ISS-134 V2) (这 4 处本已带 ISS-222 形态或裸「已作废」⇒ 两个标注并存, 语义真实) + L880 (★真漏标★) 补标注并加限定语 走鹃Ⅱ 旧口径 14×10×6 (历史口径, 已作废) ⇒ ★只动 5 行, M6 0.9697 / 平板 11×11×1.5 / W4 3.68-7.36 g / 合计 50.78-75.36 一个数字没动★ ⇒ 走鹃命中 36 行全部带 canonical, 活动口径 = 0 (display_biosafety_v2_check C1 回到 PASS)"
+   },
+   {
+    "idx": 121,
+    "kind": "doc",
+    "version": "v1.0",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-251 A/B 两组口径的文档侧落点 (本轮只核对 + 补出处行号, 原文一个字没改): L597 §2.1 峰值充电行 = 开关型 buck BQ25896 / 0.45-0.57W (代表值 0.50W) / Pin − Pout + P_DCR; L604-605 旧线性口径 0.8W 已标已判死 (历史沿革); L698-700 三档复算 0.46/0.52/0.57W + 旧温度行作废; L519 + L707 + L875 + L1017 + L1092 金属热路 k 口径统一 201 W/m·K (旧 237 只留追溯, 三家官网互证)"
+   }
+  ]
+ },
+ {
+  "path": "MECH/verify_budget.py",
+  "base_idx": 1,
+  "base_kind": "script",
+  "base_version": "v1.1",
+  "base_updated_at": "2026-11-16",
+  "base_summary": "自证脚本: 一条命令复算 热模型/充电峰值/电池三档位/重量求和/摄像头几何/截面叠层/分光公差, 并自动与文档对表 (39/39 一致); 输入参数全部显式列在文件头部。★**ISS-216 (2026-11-16) 改**: `P_CHARGE` 0.8 → **0.50** (buck 口径 Pin−Pout+P_DCR) + §2 充电峰值场景按 buck 重算 + **新增 §8 口径自检 10 组** (C1 口径标识=buck+BQ25896 · C2 常量在 0.45-0.57 区间 · C3 ≠线性 0.8 · C4 复算三档落在已定区间(含电感铜损) · C5 =门禁锚点 0.50W · C6/C7/C8 文档口径与旧标记清理 · C9 功率守恒 1.216/1.071 · C10 区间边界不许被放松) + **--selftest 10/10 反向用例** (写法照 check_demo_struct_truth.py); 数值对拍 39 → **53 项全绿**; rc: 绿=0 / 红=2。",
+  "absorbed": [
+   {
+    "idx": 87,
+    "kind": "check",
+    "version": "v1.2",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-219 改: 新增常量 K_AL_6063_T6=201.0 (官网来源 Hydro EN AW-6063 Hydro 6063_Rev.4-03/2023 + Aalco + Kaiser 三家互证) + R_AL_201/R_AL_237/R_PRINT_6063/A_MIN_R70_201 派生量 + §2b 金属热路 k 口径打印块 + 口径自检 C11 (k=201 不许漂回 237)。★53 项对表一个没加没删 + --selftest 10/10 一条没删; 口径自检 10→11 项。"
+   },
+   {
+    "idx": 92,
+    "kind": "check",
+    "version": "iss222",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-222 同步: WEIGHT_ITEMS W4 (3.0, 6.0 → 3.68, 7.36) + DOC_WEIGHT ((50.1, 74.0) → (50.78, 75.36)) + C-6 常量与口径自检 C12 (C-6 落表不许漂回); rc=0 (53/53 数值对表 + 12/12 口径自检), --selftest 11/11"
+   }
+  ]
+ },
+ {
+  "path": "MECH/fit_check.py",
+  "base_idx": 217,
+  "base_kind": "script",
+  "base_version": "v2.1",
+  "base_updated_at": "2026-10-25",
+  "base_summary": "★ISS-352 第2批 · 【明确标退役】(机器标记 MECH_CALIBER_RETIRED): 本脚本整套基线 (板宽 12mm / 板长 50mm / 板厚 0.80mm 4层) 已死, 不迁双口径 (只改 pcb_w 会造半迁移 Frankenstein 口径); 保留 = ISS-017 / ISS-042 的历史闭环记录 (可复现), 判据数字与输出一个字节都没改 (diff 空); 现行装配余量判据一律引 MECH/fit_check_v3_30mm.py (帧 F30A)★",
+  "absorbed": [
+   {
+    "idx": 4,
+    "kind": "script",
+    "version": "v1.0",
+    "updated_at": "2026-10-25",
+    "summary": "M-FIT 装配干涉检查 (设计态确定性计算, 每层厚度标 MECH_BUDGET v1.1 章节号): 镜脚侧 340mAh 档条件通过(前后余0.30mm临界) + 3项条件性不通过(叠层模型+0.80/+3.50mm, 充电板不移出+0.50mm, ⌀2.0H7打印件做不到) + 镜框侧未验(JBD/波导/形态缺口)"
+   }
+  ]
+ },
+ {
+  "path": "MECH/HINGE_POWER_CALC.md",
+  "base_idx": 102,
+  "base_kind": "calc",
+  "base_version": "v2.0",
+  "base_updated_at": "2026-11-16",
+  "base_summary": "ISS-229 口径订正留痕 + 全表重出: §0-A (一句话说明旧表整体作废 + 新系数推导 + 复现命令) + §0-A.1 旧值→新值对照表 22 行 (旧数不删) + 正文 M-1/M-3/M-4/M-6/M-7/M-8 与 §4.1/§4.2/§4.3/§5.3/§7-N8 逐处标「旧值已作废」。★**新数**: max 档 1oz 皮肤侧 300Ω 61.4 ❌ / 390Ω 50.6 ❌ (超 43 °C 红线 7.6 °C) / 470Ω 45.8 ❌ / **680Ω 40.1 ✅** (余 2.9 °C) / **1.2kΩ 36.7 ✅**; 单 pin max 0.790/0.608/0.505/0.349/0.198 A; TS 偏移 1.46/1.13/0.93/0.65/0.37 °C; 充电时间 (400 mAh 仅 CC 段) 15/20/24/34/61 min。★**旧 42.14 °C / 47.07 °C (按 0.822 算) 判为「无有效数字」** ⇒ 活档 = 680Ω / 1.2kΩ (V-4 待 main/老板拍, 本单不代拍)。",
+  "absorbed": [
+   {
+    "idx": 14,
+    "kind": "calc",
+    "version": "v1.0",
+    "updated_at": "2026-10-28",
+    "summary": "ISS-091 第2轮 跨铰链充电电流 1.0A 载流/压降/发热核算: 铰链段 R_path 37-111mΩ -> ΔV 37-111mV @1.0A (保守110.8mV), 发热 15-127mW -> 皮肤 +0.8~+6.4C (MECH_BUDGET §2.3 口径 k_eff=50.13K/W); 对 SYS 的影响 = 上限被压低30-120mV, 下限3.5V不受影响; ★R_ILIM 档位表 300/390/470/680Ω ↔ IINMAX ↔ ICHG ↔ 压降 ↔ 发热 (12行 min/typ/max, 皮肤 47.1/42.1/39.9/37.3C); 机械: J_CHG 1x10p@0.5 触点区5.0mm/FPC宽>=6.0mm, 承力余量22-75x, 加宽高度影响0.00mm; 自发现8条问题 (M-1 加厚铜箔救不了热/M-2 铜厚与弯折寿命冲突/M-3 电芯内阻是主项且贴皮/M-4 TS参考地被1A回流抬高0.44-0.99C/M-5 地平面分流回流/M-6 触点额定才是瓶颈/M-7 压降方向与不要补偿/M-8 BQ25896提前判满)"
+   }
+  ]
+ },
+ {
+  "path": "MECH/hinge_power_calc.py",
+  "base_idx": 100,
+  "base_kind": "script",
+  "base_version": "v2.0",
+  "base_updated_at": "2026-11-16",
+  "base_summary": "ISS-229 充电电流换算系数改正: ICHG_FACTOR 0.822 → **1.216 @Vbat 3.70V** / **1.071 @4.20V** (buck 功率守恒 ICHG/IIN = η·Vbus/Vbat; 旧 0.822 = (Vbat/Vbus)/η = 1.216 的【精确倒数】⇒ 方向反了 ⇒ 只留痕不参与计算, 常量 ICHG_FACTOR_VOID_LEGACY 保留) + RILIM_VALUES 增 **1.2kΩ** 候选档 + 皮肤侧温度 / 单 pin 载流 / TS 偏移 / 充电时间 全部按新系数重算。--json 出 rilim_table(15 行) / copper_vs_rilim(10 行) / rilim_full_grid(30 行)。★口径一个没动 (k_eff 50.13 K/W · R_path 口径A保守 110.78 mΩ · 基准 35 °C · R_cell 0.10 Ω · 铜厚 1oz/2oz · KILIM 320/355/390 AΩ · 红线 43 °C)。★[实测] = 脚本实跑 (rc=0), **板端 [实测] = 0 条**, 温度/发热全为 [推算]。",
+  "absorbed": [
+   {
+    "idx": 15,
+    "kind": "tool",
+    "version": "v1.0",
+    "updated_at": "2026-10-28",
+    "summary": "铰链充电电流核算脚本 (rc=0): 算 FPC 铜箔电阻 rho*L/(w*t) / 铰链段总压降发热 (口径A保守+口径B乐观双口径) / R_ILIM 4档 x min-typ-max 全表 / '加厚铜箔能否替代降R_ILIM档' 对比表 / 机械 (EI 弯折力矩 触点电流密度 堆叠高度影响) / SYS 与电芯端电压影响 + TS 参考地偏移; --json 另存 MECH/hinge_power_calc.json"
+   }
+  ]
+ },
+ {
+  "path": "MECH/FPC_FAB_NOTES.md",
+  "base_idx": 103,
+  "base_kind": "note",
+  "base_version": "v2.0",
+  "base_updated_at": "2026-11-16",
+  "base_summary": "ISS-229 同型旧数清理: §0-A 口径订正留痕 + §0-A.1 对照表 (系数 / 390Ω 档 ICHG 0.822→1.216 A / 单 pin 0.411→0.608 A / 铰链段发热 15-127 → **8.3-276.8 mW** / 300Ω 档皮肤 47.1→**61.4 °C** ❌ / 2oz 57.4 °C ❌) + §载流表 / P-4 / X-2 / 证据表逐处标旧数作废。★结论 (加厚铜箔救不了充电发热) 在改正系数下**更强**: 300Ω 档 2oz 仍超红线 14.4 °C ⇒ 唯一有效杠杆仍是 R_ILIM 换料不换板。",
+  "absorbed": [
+   {
+    "idx": 19,
+    "kind": "note",
+    "version": "v1.0",
+    "updated_at": "2026-10-28",
+    "summary": "ISS-099 跨铰链 FPC 加工图硬要求单: 6 条不可协商项 (含分段铜厚 / L2-L3 keep-out / 禁止上调终止电压补偿) + 8 条载流专项 + 7 条弯折段 + 5 条 PCB↔FPC 界面 + 5 条装配 + 4 条'不要做' + 4 条自发现 (A-1~A-4) + 3 项待厂商确认能力"
+   }
+  ]
+ },
+ {
+  "path": "MECH/hw_cross_review_check.py",
+  "base_idx": 57,
+  "base_kind": "script",
+  "base_version": "1.1",
+  "base_updated_at": "2026-11-12",
+  "base_summary": "ISS-203 板宽基线迁 30mm (pcb_w 15.00→30.00, 注释同步改掉 老板拍板15mm/[决策 10-27]); 4 条 vs 板宽的判定由写死 verdict 改为真判定 (判据仍是脚本自己的 余量≥0.60); MRG-54P 标题 54p 订正为 63p (网表实读); 新增 --self-test 反向用例 (强制回 15.00 ⇒ 读数回到迁移前基准 PASS14/FAIL17/条件8/说明15 共54项)",
+  "absorbed": [
+   {
+    "idx": 23,
+    "kind": "script",
+    "version": "1.0",
+    "updated_at": "2026-10-28",
+    "summary": "ISS-089 机械自检脚本 rc=0: 54项判定(PASS 15/FAIL 16/条件通过8/说明15), 全部数字机器复算不靠人肉数: 解析netlist_v1.csv取4连接器pin占用与board列、复算堆叠两口径两净高/径向嵌套/PCB铰链端X排布/合并可行性/框侧汇流/充电板land与开孔间隙/buck耗散与ICHG-IIN比值/装配顺序/5条公差链"
+   }
+  ]
+ },
+ {
+  "path": "MECH/skeleton_section_check.py",
+  "base_idx": 27,
+  "base_kind": "script",
+  "base_version": "v1.0",
+  "base_updated_at": "2026-10-29",
+  "base_summary": "金属骨架截面形状+重量口径+石墨H链 的独立复算 (rc=0, ISS-049 两问的可复现答复, hw-lead 明确把截面决定权交给结构侧): 独立复算**不共用 hw-lead 的代码路径**; ① V覆盖需求 15mm板 = SoC沿板宽8.00+两侧各3.50 = 15.00 = 板宽 (SoC段骨架必须满宽; 12mm板无扩散余量) ② 4候选截面重量: 满宽1.0=4.86g/对(判死) / 台阶1.0=3.62g/对(**与hw-lead报的3.62一致**) / 台阶0.8=2.89g/对(落进§2.4 B的+1-3g) / 铜0.8=9.61g/对(重) ③ 石墨0.30铺PCB内侧 -> H链4.70(骨架1.0)/4.50mm(骨架0.8), 余2.60/2.80mm; 石墨0.54g/片=1.08g/对 归 W11 不占骨架预算 ④ 骨架/石墨止于PCB段后缘X=60.00 (延伸进电池段=并联热路730->4.50 K/W) ★ 不出新的皮肤侧温度数 (要完整热模型重算 U-3), 不拍板",
+  "absorbed": [
+   {
+    "idx": 209,
+    "kind": "script",
+    "version": "v2.0",
+    "updated_at": "2026-10-25",
+    "summary": "★ISS-345 cont1 第1批 · 双口径改造: 档位表 FRAMES + 叙述表 PROSE (按档取值 ⇒ 默认档输出逐字节不变) + 切档开关 (--frame / MECH_FRAME); B160x100 台架板帧的满宽段/石墨/H链按该帧板厚 1.60 与 SoM 承载区 56.70×46.78 复算; 端段 Y 跨度判据 (依赖 F30A 帧专有四孔坐标) 在台架板帧登记为口径不适用"
+   }
+  ]
+ },
+ {
+  "path": "MECH/SERVICE_PORT_ISS092.md",
+  "base_idx": 122,
+  "base_kind": "doc",
+  "base_version": "v1.0",
+  "base_updated_at": "2026-11-16",
+  "base_summary": "ISS-251 C 组口径的文档侧落点 (本轮只核对 + 补出处行号, 原文一个字没改): L5 ISS-251 口径订正范围声明 (只订文档不碰脚本常量); L19 + L200 + L201 §5.1 V PCB 段 = 需求 36.00 / 余 +2.00 / 最坏 +1.40 (单边口径 +1.70), 镜腿三条锁死尺寸链一毫米不动; L22 + L281 + L322 夹具基准换 30mm 板套 A (P2 52.00/15.00 · S2 52.00/20.00, 不新增基准孔); L4 + L34 + L36 + L83 + L192 旧 15mm 板口径全部标已作废已订正; L89 唯一未迁项 (焊盘阵列 Y 起点 9.50 / 开口 Y 8.67..13.27) 已如实标注并登记 need",
+  "absorbed": [
+   {
+    "idx": 32,
+    "kind": "spec",
+    "version": "1.0",
+    "updated_at": "2026-10-30",
+    "summary": "ISS-092 镜脚末端检修口规格书: 开孔位置与尺寸 (外侧面, 开口 10.20x4.60, 必须清空区 7.62x2.54, 单边间隙 1.29/1.03 最坏 0.99/0.73) + 盖板方案 (磁吸 + 1xM1.6x6 自攻, 盖板 13.20x7.60x1.20, 内腔 4.90 >= 4.50) + 对镜腿厚度/重量的影响 (H/V/L 三链 Delta=0.00, +0.364 g/侧) + IP 影响 (无密封条则 IPx4 不成立, 量产加密封条+迷宫则可达) + 产线可达性 (Cortex-10 标准 pogo, 夹具基准复用 PIN-SET-2, 装前压针零新增工位) + 与电池/铰链 12 项冲突复核 + 3 条结构硬约束"
+   }
+  ]
+ },
+ {
+  "path": "MECH/service_port_check.py",
+  "base_idx": 58,
+  "base_kind": "script",
+  "base_version": "1.1",
+  "base_updated_at": "2026-11-12",
+  "base_summary": "ISS-203 板宽基线迁 30mm (pcb_w 15.00→30.00, 注释同步改掉 老板拍板15mm); 只动 V 链 PCB 段 检查 5.4 (需求 21.00/余+17.00 → 需求 36.00/余+2.00, 最坏 +1.40, 判据 0.60 未动); 运行期横幅打印 SERVICE_PORT_ISS092.md 口径漂移提示; 新增 --self-test 反向用例 (强制回 15.00 ⇒ 54/54 FAIL 0)",
+  "absorbed": [
+   {
+    "idx": 33,
+    "kind": "script",
+    "version": "1.0",
+    "updated_at": "2026-10-30",
+    "summary": "ISS-092 自证脚本: rc=0, 54/54 项一致 (H 坐标自洽 / 焊盘阵列与必须清空区 / 开口间隙 / 盖板与螺钉凸台 / 三条锁死尺寸链 / 重量 / 产线探针与夹具基准 / 冲突间距 / IP 口径 / 末端 V 净高要求)"
+   }
+  ]
+ },
+ {
+  "path": "MECH/BOARD_GEOM_30MM.md",
+  "base_idx": 206,
+  "base_kind": "note",
+  "base_version": "1.0",
+  "base_updated_at": "2026-11-22",
+  "base_summary": "iss342 追加式订正: 表头声明本表 (60×30 / RK3576 / 6 层 / 1.00mm) 非现役板框; 老字一字未删 (老前缀 md5 前后一致 bb3772888ae4445fff6c7931a54d364b)",
+  "absorbed": [
+   {
+    "idx": 46,
+    "kind": "doc",
+    "version": "1.0",
+    "updated_at": "2026-11-11",
+    "summary": "结构侧权威表 (板 60×30 / RK3576 / 逃线带 / PIN-SET-2 套 A / Y 口径仲裁结论+依据+被否方案+影响面 / 打印包契约现行值 / 六个脚本死常量逐个定性 / demo 板零安装孔复核)"
+   }
+  ]
+ },
+ {
+  "path": "MECH/pinset2_mech_check.py",
+  "base_idx": 208,
+  "base_kind": "script",
+  "base_version": "v2.0",
+  "base_updated_at": "2026-10-25",
+  "base_summary": "★ISS-345 cont1 第1批 · 双口径改造: 档位表 FRAMES (F30A 默认档 60×30/RK3576 + B160x100 台架板帧 160×100/RK3572-SOM) + 切档开关 (--frame / MECH_FRAME); F30A 档输出与迁移前【逐字节相同】(diff 空); B160x100 档跑帧级判据 (板框三源一致 / SoM 承载区实测占位 / 逃线带 / 板内余量), PIN-SET-2 四孔族按 board_frame_feasibility.py:108 先例登记为口径不适用",
+  "absorbed": [
+   {
+    "idx": 47,
+    "kind": "script",
+    "version": "2.0",
+    "updated_at": "2026-11-11",
+    "summary": "ISS-192 迁版: 结构侧独立复算 60×30 + RK3576 + PIN-SET-2 套 A; 判据板宽无关化改写 (≥1/3 压带 + 单销定位链 + 边距余量) + 打印包逐坐标一致性 (口径分歧根因防线) + 硬件侧分歧只读探测; --self-test 6/6 反向用例; 复算项 38 / FAIL 0 / WARN 2 / rc=0"
+   }
+  ]
+ },
+ {
+  "path": "MECH/cross_review_check.py",
+  "base_idx": 218,
+  "base_kind": "script",
+  "base_version": "v2.0",
+  "base_updated_at": "2026-10-25",
+  "base_summary": "★ISS-352 第2批 · 双口径改造: 档位表 FRAMES (F30A 默认档 + B160x100 台架板帧) + 帧级叙述表 PROSE + 切档开关 (--frame / MECH_FRAME) + 板面纯 python 逐焊盘重解析 (Edge.Cuts / general thickness / 铜层数 / 4 座 400 焊盘 SoM 承载区); 默认档 stdout 与迁移前【逐字节相同】(diff 空); B160x100 档跑出【三源逐位一致】校验 (权威页 §6 cal:FRAMES + demo_mainboard_params.json + 板文件实读) 与承载区 53.80×46.78 / 56.70×46.78 实测占位★",
+  "absorbed": [
+   {
+    "idx": 48,
+    "kind": "script",
+    "version": "2.0",
+    "updated_at": "2026-11-11",
+    "summary": "ISS-192 迁版: 板宽 12→30 / board_l 76→60 / 删 board_w_alt / C-16 改 30mm 现状 (不再问已答完的 12→15) / 明写『不是闸』+ 退出码只反映 MECH-OWNED + 16 项逐项标归属与 needs_from 键 (不留孤儿红); rc=0"
+   }
+  ]
+ },
+ {
+  "path": "MECH/cavity_recalc_check.py",
+  "base_idx": 68,
+  "base_kind": "check",
+  "base_version": "v1.0",
+  "base_updated_at": "2026-11-15",
+  "base_summary": "ISS-209 机器门禁: 12 项检查 (X-1/X-2 在位 / 参数表 9 行逐格一致 / C-1 冲突量 3.2 与 8.2 一致 / 判据文件 md5 未变 / ±3mm 带单独成行 / 重量重核一致 / 鼻梁热路径一致 / 4 个受保护脚本 md5 未变 / 分片 claim 25.00 / 判据阈值未松 / 分光件冲突量一致 / 边界声明齐全), rc=0 全过, 失败点名是哪一条; 带 --selftest (9 个反向用例: 改坏参数表 / 删 62 / 改坏冲突量 / 篡改判据文件 / 删一行表 / 改坏重量数 / 篡改分片 claim / 篡改受保护脚本 / 改掉 ±3 带) 全被抓; --emit-rows 原样重生成三张表。",
+  "absorbed": [
+   {
+    "idx": 85,
+    "kind": "check",
+    "version": "v1.1",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-219 扩: 既有 12 项 + 新增 5 项 = 17 项 (C13 C-6 分光件新规格 vs 光束口径 8.885 相容 / C14 C-7 候选 R_热路+ΔT+散热面 32 行逐格对拍含 k=201 / C15 鼻梁 R_bridge 反解 454.8+1101.2 / C16 X-3 限定语在位且原句未删 / C17 k=201 不许漂回 237)。--selftest 既有 9 条 + 新增 5 条 = 14 条反向用例 (脚本输出 15/15)。"
+   },
+   {
+    "idx": 91,
+    "kind": "check",
+    "version": "iss222",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-222 机器门禁扩项: 既有 17 项 + 新增 C18 (C-6 规格不许漂回 14×10×6 / 0.79cc / 3-6g) + C19 (C-8 t_s 轴向口径 8.8388 与三档 T 自洽, 活口径不许回退 6.0 / 11.0) + C20 (C-7 净可外露 3432 mm² + 三条路径逐格 + C-7b 53.60 °C) = 20/20; --selftest 既有 14 条 + 新增 3 条 = 17/17"
+   },
+   {
+    "idx": 99,
+    "kind": "script",
+    "version": "iss227",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-227 (续做) 机器门禁: 判据 21→22 项 (新增 C22 整节存在性) · 反向 21→23 条 (+基线 = 24); ★修好抓节函数只认 level>=2 真小节 (原命中 H1 ⇒ 抓到整篇文档 ⇒ 「节存在性」断言空转) + 修好反向 19 假用例 (原删的是文档头部不是 §2.5, 现加自证断言) + 新增反向 22/23 (删表行 / 改节标题); 阈值一个没动 (50 °C / k=201 / 120×30)"
+   },
+   {
+    "idx": 108,
+    "kind": "script",
+    "version": "iss237c",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-237 闭环轮 (并发会话, 同一 agent) 机器门禁: 新增 C23 (C-7c 的 W_rim 门槛两档 + W_rim 扫描表 + 背板质量与整机重量账逐格 + 阈值不许动) + 反向 24/25/26 (改门槛 / 改重量数 / 删整节) ⇒ 盘上门禁 = 23 项判据 + 27 条反向用例 (其中 ISS-227 贡献 C21/C22 + 反向 18~23)"
+   }
+  ]
+ },
+ {
+  "path": "MECH/HW_CROSS_REVIEW_TRIAGE.md",
+  "base_idx": 71,
+  "base_kind": "spec",
+  "base_version": "v1.0",
+  "base_updated_at": "2026-11-15",
+  "base_summary": "ISS-213 交卷件: 结构侧 54 项交叉复核**逐条定性表** (项号/现状判定/关键数字/demo 相关性/MECH 地界/处置/恢复条件/证据等级, 54/54 一处不漏, 处置栏无一条留空或写'待定') + **17 条 FAIL 逐条去处表** (排队等原理图定稿 6 个 id / 7 行 + 登记 need 给 main 4 条 + 出规格 6 条) + 6 个 PCB 类 id 的**排队表 + 恢复条件** + demo 板当前成立的 6 条真缺陷收口记录 (Type-C 开孔 / 印刷公差 / buck 功率守恒 / 端件温升口径 / 散热路径 / 腔体) + ISS-126 真实状态结论 (交 main 裁) + **机器可读锚点 yaml 块** (门禁按它复核, 改锚点=改判据⇒门禁红)。★关键数: 现口径 9.50×3.60 最坏单边 0.13/0.02、ISS-089 建议 10.00×4.20 最坏 0.38/0.32 (判据 0.60 ⇒ **两档现候选都判不合格, 打印包的'二选一'是假选择**) ⇒ 新出 **10.50×4.80** (FDM 直成型, 最坏 0.63/0.62) 与 **10.25×4.55** (金属·CNC ±0.05, 最坏 0.63/0.62); 端件温升按 buck 口径 0.45–0.57W ⇒ ΔT 83K ⇒ 108°C, 60°C 判据 ⇒ P_max 0.21W ⇒ 打印件 R=1944 K/W (0.5W 打进去 +972K 不可能) vs 铝 1.64 K/W (+0.82K) ⇒ **必须金属热路**; 功率守恒 ICHG/IIN = η·Vbus/Vbat = 1.216 (3.70V) / 1.071 (4.20V), 规格书 0.822/0.933 是倒数 ⇒ 390Ω 档单 pin 0.50–0.61A 超 0.5A 额定; 检修口内腔 7.30−2.60 = 4.70 ≥ cavity_req 4.50 (余 +0.20) ⇒ **ISS-126 的前提已被现口径超越**。★[实测]实物 = 0 条 (几何/热学全为 [推算])。",
+  "absorbed": [
+   {
+    "idx": 94,
+    "kind": "spec",
+    "version": "iss224",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-224 再基线: §1 锚点 fail_expect 17→16 (少的那条 = PIN-MISMATCH, 被 ISS-220 真修复) + 新增 source_ledger (网表/脚表 md5 挂到 ISS-220 落表台账, 旧值 c78f9912…→13f59a43… / 4814617e…→a600afae…) + 新增 pin_truth (J_CHG 10 / CONN_LIGHT 22 / CONN_CAM 31); §2 第 05 行 ❌FAIL→✅PASS 并写明『已由 ISS-220 落表修复 (2026-11-16 02:32) · 依据 d6』; §3 去处表 17→16 行 (F-01 故意留空不重排) + 新增 §3.1『已修复 (留痕)』节 (R-01); §7 门禁说明同步 23 组 / 14 反向用例"
+   },
+   {
+    "idx": 104,
+    "kind": "spec",
+    "version": "v2.1",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-229 MECH 闸重锚【第 2 跳】: §1 `source_ledger.entries` 跟 **ISS-233 第 3 批并发落表** 再重锚一次 —— 网表 `3215020b6d4120e1b7728227effdc6d3` → `34132f7e40a241e1fae1476be0eafbd5` (by=ISS-233, landed_at 2026-11-16 06:48:38) · 脚表 `a600afae493f5a7a6c55f46ad35ac89c` → `b21b743a7702d30729f0d653c15392df` (by=ISS-233, landed_at 2026-11-16 06:48:38) ⇒ §3.1 新增 **R-03** 行 (谁改的 / 哪个单号 / 新旧 md5 / 复现命令) · §0 Q-10 与 §7 注同步 ⇒ ★**门禁 G5b + C21 由 FAIL 回到 [OK] (rc=2 21/23 → rc=0 23/23)**, `--selftest` **14/14** 反向用例一条没删 (门禁脚本 md5 `fa9b59e5…` 未变 ⇒ 判据没被改软) · ★**HW/ 一个字节没改** (本单只重锚 MECH 侧锚点 + 留痕) · ★**没卡住/等待/干预另一个 agent 的单**"
+   },
+   {
+    "idx": 118,
+    "kind": "gate",
+    "version": "v3.0",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-246 第 3 跳重锚 (上一轮 17:43 已落, 本轮只如实记已落): §3.1 锚点 2 条 4 字段改到 ISS-243 落表后真值 (网表 611c3ba3 / 脚表 ef436a37, by=ISS-243, landed_at=2026-11-16 15:45:45) + §1 landing_records 加 ISS-243 台账位置 + §3.1 追加 R-04 留痕行 · 门禁 rc=0 23/23 · 反向自证 14/14 · 判据逻辑与阈值一个字没动"
+   }
+  ]
+ },
+ {
+  "path": "MECH/check_demo_struct_truth.py",
+  "base_idx": 72,
+  "base_kind": "check",
+  "base_version": "v1.0",
+  "base_updated_at": "2026-11-15",
+  "base_summary": "ISS-213 机器门禁: **20 组检查** (rc=0 全过 / rc=2 有红, 失败点名哪一组)。★它守的是 **'demo 板当前成立的条目', 不是'54 项全绿'** ⇒ G1/G1b **不许把红灯调没** (断言 hw_cross_review_check.py 的 FAIL 名单仍是 17 条且逐条对齐, 谁改判据/阈值/把 FAIL 抹成 PASS ⇒ 立刻红) · G2 demo 当前项**独立复算**全过 (内腔 4.70≥4.50 / 新开孔两档最坏单边 ≥0.60 / 两档现候选判不合格 / buck 温升 108°C / P_max 0.21W / 金属 vs 打印件热阻 / 功率守恒 1.216·1.071 / demo PASS 12 项) · G3/G3b 6 个 PCB 类 id **已登记排队且恢复条件非空**, 且**在 check 脚本里仍然是 FAIL** (不许修绿) · G4/G4b 板框四数 60.00/30.00/1.00/3.33g 没被改 · G5/G5b 判据阈值 (cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00) 未松 + 8 个受保护文件 md5 逐字节未变 · G6/G6b 定性表 54 项全覆盖 + 处置不留空 + 17 条 FAIL 每条都在受控词表里 · G7 分片 claim mech_hinge_stack_fixed_mm = 25.00; ★`--selftest` **8 个反向用例全被抓** (板宽/判据/开孔/耗散/FAIL 名单/排队表/板重/cavity_req 任一改坏 ⇒ 必须变红)。★**本闸是否挂每日巡检交 main 裁 —— 本单没改 state/daily_check.py**。",
+  "absorbed": [
+   {
+    "idx": 95,
+    "kind": "check",
+    "version": "iss224",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-224 门禁升级: 20→23 组检查 (G1/G1b 重锚到 16 条 + G5b 重锚到落表后 md5) + ★新增 C21 真源变更台账对账 (锚点 ↔ HW/SCHEMATIC_LANDING_V1_LANDED.md 或 HANDOFF/2026-11-16_hw-lead_ISS223_*.md ↔ 盘上真源 三方一致, 含落表单号 + 新旧两个 md5) + ★新增 C22 PIN-MISMATCH 独立复核 (自己实读 P9 页正文 + 网表, 不看 check 脚本判定) + ★新增 G8 已修复留痕必须在场; --selftest 8→14 条反向用例 (含 P9 页回退 21p / 网表回退 21p / md5 锚点回滚 / md5 锚点造假 / 落表单号改坏 / 删留痕); rc=0 (23/23 + selftest 14/14)"
+   },
+   {
+    "idx": 158,
+    "kind": "gate",
+    "version": "iss296",
+    "updated_at": "2026-11-17",
+    "summary": "★ISS-296 合法改板通道 (G5b)★ · 72,428 B · mtime 2026-11-17 20:25:32 · HARD_PROTECTED_PAIR (L101) + LEDGER_REQUIRED (L109) + LEDGER_CANON (L334) + check_hard_protected_legal_reboard (L501-640) + 调用点 L851 + G5b 标签 L879 · 主跑 rc=0 (G5b = OK) · --selftest rc=0 (末行 反向用例 28/28 抓到了) · 本单 cont2 未动此文件★"
+   }
+  ]
+ },
+ {
+  "path": "MECH/ENDPOINT_METAL_PATH_MASS_TEMPLATE.md",
+  "base_idx": 77,
+  "base_kind": "spec",
+  "base_version": "v1.0",
+  "base_updated_at": "2026-11-16",
+  "base_summary": "ISS-218 端件金属热路 u8 参数化重量账模板 (新建): §0 不预扣声明写死 (§3 现有重量 0 改动) + §1 硬指标 R_热路≤70 K/W + 铝 6063 1.641 (项目内 k=237) / 1.935 (官方 6063-T6 k=201) K/W / 打印件 PA6-CF 1944 K/W ❌ + ★反解 A≥4.22 (k=237) / 4.98 (k=201) mm² ⇒ 2.0×2.0 铝条不合格 + §2 u8∈{30,33,35,38,40} 三张表 (整条金属化 11.3~22.7g / 半高 5.7~11.3g / ★局部热桥 0.95~5.67g 推荐 3.0×3.0=1.70g) + §3 代入 MECH_BUDGET §3 的 W6/W9 归属规则与重算口径 + §4 证据分级 + §5 卡点 5 条。",
+  "absorbed": [
+   {
+    "idx": 88,
+    "kind": "spec",
+    "version": "v1.1",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-219 改 (口径同步): 项目内口径 k 237→201 (官方 Hydro/Aalco/Kaiser 三家), 同几何 R 1.641→1.935 K/W, 表 A/B/C 的 ΔT 列改按 k=201 计, 237 列标为旧口径·已订正只留追溯, §5④ 标已订正。★表里所有截面积/重量/结论数字一个没动; §3 的 W6/W9 与合计 48.9-74.0g 一个没动 (u8 未定不预扣)。"
+   },
+   {
+    "idx": 109,
+    "kind": "spec",
+    "version": "v1.2",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-237 闭环轮 (并发会话, 同一 agent) 改: 新增 §2.6 表 D『镜框上沿集热背板』参数化质量 (120×W_rim×1.0 铝 6063-T6 ⇒ m = 0.324×W_rim g = 7.18-9.72 g) + §3.2 新增 W9 归属行 (背板记 W9) + §5 五步走插入 Step 0 (先查 W_rim 门槛再查 u8) + §5.1 第 ⑥ 条; ★背板质量一个数没进 §3 合计 (与 u8 端件金属化同一规矩: W_rim 未定 ⇒ 不预扣); 出处 MECH/CENTER_CAVITY_REBALANCE_V3.md §2.6, 门禁 C23 逐格回读"
+   },
+   {
+    "idx": 123,
+    "kind": "doc",
+    "version": "v1.0",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-251 B 组口径的第三落点 (本轮只核对, 原文一个字没改): L40 铝 6063-T6 官方值 = 现项目内口径 201 W/m·K (Hydro EN AW-6063 Rev.4-03/2023 + Aalco + Kaiser 三家互证) + L41 旧项目内口径 237 已订正只留追溯 + L45 口径订正说明 (只改口径不改结论) + L55-56 A_min 4.219 / 4.975 mm² + L230 证据表 + L244 落账行"
+   }
+  ]
+ },
+ {
+  "path": "MECH/CENTER_CAVITY_REBALANCE_V3.md",
+  "base_idx": 89,
+  "base_kind": "spec",
+  "base_version": "v1.0",
+  "base_updated_at": "2026-11-16",
+  "base_summary": "ISS-222 交卷件 (新建): C-6 落表 (分光件 平板 11×11×1.5 + 棱镜 2×9×9×5 / 0.9697 cc / W4 3.68-7.36 g / FOV 折减 2.63%) + C-8 轴向口径实算 (t_s = 8.8388, 三档 T 余量 -2.64/+0.36/+2.36, 并排化降级 +2.16/+5.16/+7.16) + C-7 净可外露面积实算 (3432 mm², 硬门槛 W_rim ≥ 23.30 mm) + C-7b 新冲突 (打印件顶面 53.60 °C ❌, 铝背板 47.77 °C ✅) + 逐条落表 (改了哪个文件哪一节 / 改前改后字面值 / 算式与输入 / 证据等级 / 降级路径)",
+  "absorbed": [
+   {
+    "idx": 98,
+    "kind": "doc",
+    "version": "iss227",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-227 (续做) 落进 §2.5「C-7b 集热面口径修正」独立成节: §2.5.0 一句话口径修正 (旧→新) + §2.5.1 对比表 C7B-01~04 (旧 3 行标已修正·留痕) + §2.5.2 u8 口径 + U8-01~05 敏感度 + §2.5.3 R7B-01~03 需求侧余量 + §2.5.4 保守上界 + §2.5.5 结论 + §2.5.6 门禁漏洞留痕; 头部/§4 门禁说明同步"
+   },
+   {
+    "idx": 107,
+    "kind": "doc",
+    "version": "iss237c",
+    "updated_at": "2026-11-16",
+    "summary": "ISS-237 闭环轮 (并发会话, 同一 agent) 落进 §2.6「C-7c」: W_rim 门槛用活口径 (鳍模型) 重算成两档 (22.15 mm @0.468W / 25.63 mm @0.50W, 摄像头凸包让位, u8=30, d=15) + W7T-01~05 门槛表 (ISS-222 登记的 23.30 只报不改·留痕) + W7C-01~04 扫描表 + W7M-01~04 背板质量⇒整机重量账 (57.96-85.08 g) + §2.6.5 结论; ★判据阈值一个没动 (50 °C / k=201 / 背板 120×W_rim×1.0); ★与 ISS-227 的 C-7b 同源 (同一活口径 = 铝制集热背板)"
+   }
+  ]
+ },
+ {
+  "path": "HANDOFF/2026-11-16_mech-lead_ISS245_MECH侧H1重锚第3跳.md",
+  "base_idx": 117,
+  "base_kind": "handoff",
+  "base_version": "v1.0",
+  "base_updated_at": "2026-11-16",
+  "base_summary": "ISS-246 交卷单 (mech-lead 2026-11-16 18:4x 续做): MECH 侧 §3.1 锚点第 3 跳重锚 · 门禁 rc=0 23/23 · --selftest rc=0 14/14 · 反向自证 14/14 · 沙盒绿-红-绿三步 (stepA 23/23 → stepB 21/23 FAIL 2 → stepC 23/23) · merge+gate_check rc=0 Q1 18/18 · 受保护 5 件 md5 逐字节不变 · 本轮 0 个 MECH/HW 文件改动 · 零外发 · 零实物 · 不替老板拍板",
+  "absorbed": [
+   {
+    "idx": 131,
+    "kind": "handoff",
+    "version": "v1.1",
+    "updated_at": "2026-11-17",
+    "summary": "ISS-246 交卷单 v1.1: 在 v1.0 正文之后【追加式】补 C-1~C-6 续做复核附录 (当期真值 2026-11-17 05:07:16 实测 / 门禁 23/23 rc=0 / selftest 14/14 rc=0 / merge+gate_check rc=0 Q1 18/18 / 4 步沙盒反证 绿-红-红-绿 / 本轮动过的文件逐条自证) ⇒ B1~B6 正文一个字没改"
+   }
+  ]
+ },
+ {
+  "path": "HANDOFF/2026-11-16_mech-lead_ISS251_MECH侧三处老账收口.md",
+  "base_idx": 119,
+  "base_kind": "handoff",
+  "base_version": "v1.0",
+  "base_updated_at": "2026-11-16",
+  "base_summary": "ISS-251 交卷单 (mech-lead 2026-11-16 19:4x 续做轮): 三处老账 (A 充电耗散 buck 0.45-0.57W 代表值 0.50W / B 铝 k=201 官方保守侧 / C 检修口 60×30 套A 基准 P2 Y=15.00 S2 Y=20.00) 逐条订正表 (旧值→新值 + 文件 + 行号 + 证据等级 + 依据出处) + 新机器门禁 check_budget_caliber.py (rc=0 17/17 · selftest rc=0 13/13 反向用例四类全抓到) + 受保护 3 脚本 md5 逐字节不变 + 本轮 0 个 MECH/HW 文件改动 + 零外发 + 不替老板拍板 + 不自签 issue_log (verify 留给 main)",
+  "absorbed": [
+   {
+    "idx": 136,
+    "kind": "handoff",
+    "version": "v1.1",
+    "updated_at": "2026-11-17",
+    "summary": "ISS-251 交卷单 v1.1 (2026-11-17 05:0x 续做复核): B1-B6 六块 + 附A 三处逐条订正表 + 附B 并发说明 + 附C 边界自审 + 附D 续做复核 (交付物②的 改前/改后 实跑对比 18 行差值表 + C 组行号订正表 + 受保护 md5 漂移归属 + need 状态更新); 门禁 MECH/check_budget_caliber.py rc=0 17/17 · selftest rc=0 13/13; verify_budget.py rc=0 53/53 口径自检 12/12"
+   }
+  ]
+ },
+ {
+  "path": "HANDOFF/2026-11-17_mech-lead_ISS264_检修口常量迁30mm套A.md",
+  "base_idx": 137,
+  "base_kind": "勘误追加",
+  "base_version": "1.1",
+  "base_updated_at": "2026-11-17",
+  "base_summary": "★ISS-264 交卷单 §附 F (勘误 · 2026-11-17 05:2x 追加) + §附 G (重派后复跑记录): §0.1 第 2 条三条数订正 (上界 12.13→11.73 / 下界 3.57→1.665 / 「重叠 12.37mm」机理→检查项 2.5 判红), 老字一字未删; §0.1 第 1 条 P-5 3.23/8.53 与 开口 Y 7.835..12.435 不变; 附 G 复跑 rc: service_port_check 0 (57/57) · --selftest 0 · check_demo_struct_truth 0 (23/23) · --selftest 0 (14/14) · verify_budget 0 · check_budget_caliber 0 (17/17) · merge+gate 0 (Q1 18/18) · 沙盒文件级反向自证: 改回 7.50 ⇒ rc=1 FAIL 2 点名 p2_y/s2_y ⇒ 装回 ⇒ rc=0 md5 复原 db58ff6a… 字节级一致",
+  "absorbed": [
+   {
+    "idx": 126,
+    "kind": "note",
+    "version": "1.0",
+    "updated_at": "2026-11-17",
+    "summary": "★ISS-264 交卷单 (检修口三处常量迁 30mm 板套 A 口径 + 受保护脚本 H-1 重基线 + 补登 ISS-253 分片) —— B1~B6 六块齐全 + 验收原始日志 (rc 原样贴) + 沙盒反向自证 (改回 7.50 ⇒ 红并点名 ⇒ 装回 ⇒ 绿)★"
+   }
+  ]
+ },
+ {
+  "path": "MECH/jd_y0_feasibility.py",
+  "base_idx": 128,
+  "base_kind": "script",
+  "base_version": "v1.0",
+  "base_updated_at": "2026-11-17",
+  "base_summary": "★ISS-267 新增独立脚本 (不碰任何既有闸): 只读 import MECH/service_port_check.py 取 BASE/TOL/CRIT ⇒ 阈值零漂移; 复算 jd_y0 合法区间 (扫描 + 绑定判据定位) + 候选表 + 三套板框的 H/V/L 链复算 + 板侧落表交叉核对 (只读读 HW/PCB/demo_mainboard.kicad_pcb 的 J_DEBUG/J_UART footprint 与落表 pin 数); --selftest 4 个反向用例 (现值复算/旧15mm口径回代/jd_y0=24.50 判红/口径矛盾留痕) rc=0; --json 机器可读. ★受保护三脚本 md5 一个字节没动★",
+  "absorbed": [
+   {
+    "idx": 220,
+    "kind": "script",
+    "version": "v1.1",
+    "updated_at": "2026-10-25",
+    "summary": "★ISS-352 第2批 · 只补帧 id 标签行 (docstring 一行 · 零行为变化 · stdout 与 selftest 输出逐字节不变): 三档 FRAMES 表已在本脚本内, 本次只把权威帧 id B160x100 / F30A / P60x15 按 HW/PCB/BOARD_FRAME_CALIBER.md §6 cal:FRAMES 逐字写进抬头 ⇒ 机器闸可逐字识别三档; ★三档几何与判据方向一个字没改★"
+   }
+  ]
+ },
+ {
+  "path": "MECH/board_port_opening_s6_check.py",
+  "base_idx": 219,
+  "base_kind": "script",
+  "base_version": "v1.1",
+  "base_updated_at": "2026-10-25",
+  "base_summary": "★ISS-352 第2批 · 只补帧 id 标签行 (docstring 一行 · 零行为变化 · stdout 与 selftest 输出逐字节不变): 三档帧表已在本脚本内 (台架板 / 60×30 / 60×15), 本次只把权威帧 id B160x100 / F30A / P60x15 按 HW/PCB/BOARD_FRAME_CALIBER.md §6 cal:FRAMES 逐字写进抬头 (原表用 ①②③ 序号 + 中文名, 与权威写法不一致) ⇒ 机器闸可逐字识别三档; ★三档几何与判据方向一个字没改★",
+  "absorbed": [
+   {
+    "idx": 130,
+    "kind": "script",
+    "version": "v1.0",
+    "updated_at": "2026-11-17",
+    "summary": "ISS-271 复算器 (只读 import 受保护闸脚本 service_port_check.py 取 BASE/TOL/CRIT ⇒ 阈值零漂移; 不改任何既有 MECH 文件): 四张表 (表A 板框三套 x 开口可行性 + Edge.Cuts 实读 / 表B X 向开口区间 / 表C LED_G_D 走线 93.49mm 独立复算 93.492727 / 表D 主PCB指示灯候选可放行坐标空间 + S-3 复核) + --selftest 5 个反向用例 rc=0 + --json 机器可读"
+   }
+  ]
+ },
+ {
+  "path": "MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md",
+  "base_idx": 139,
+  "base_kind": "spec",
+  "base_version": "1.0",
+  "base_updated_at": "2026-11-17",
+  "base_summary": "★ISS-276 坐标系归一页: 一切坐标 = 帧: 160×100 台架板 (Edge.Cuts 中心线 0..160 × 0..100) ⇒ 与帧: 60×30 套A 不可互相代入★ · §2 SoM 承载区实测三口径 (铜箔 53.80×46.78 / 座体 56.60×46.20 / 保守 56.70×46.78) · §3 开口: 调试口 X 137.850..148.050 × Y 54.300..58.900 + UART 口 X 13.790..23.990 × Y 66.300..70.900 (压 SoM 焊盘全 0) + 合并开口不可行 (差 116.017mm) + J_DEBUG↔J_UART ΔX 123.56 的影响 · §4 D_LED_G: LED_G_D 93.492727mm 根因 (排版器按功能排) + 可放行空间 (整高带 X 1.550..3.450 / 最近落位带 X 6.940..8.250 × Y 63.700..67.900) + 净距敏感度 (0.00~0.50 ⇒ 走线 0.450~0.965mm) + 只给空间不定坐标 · §5 给 hw-lead 的 S6 认领句 (现役板坐标版) · §6 边界与证据分级 · 全文含机器块 (帧登记表)",
+  "absorbed": [
+   {
+    "idx": 144,
+    "kind": "caliber",
+    "version": "1.1",
+    "updated_at": "2026-11-17",
+    "summary": "★ISS-278 追加式订正 (★老字一字未删未改: 前 25766 字节与 ISS-276 原文件逐字节相同, 追加点 = 字节 25776★): 新增 §3b 检修口/调试口两条独立规格 (含合并缺口 116.0175 mm 留档) + §4b 座体高度参数化 (公式 + 三档 + 降级路径 + 三档代入表) + §6b D_LED_G 光孔两假设 + §7b 连接器占位参数对照表 (params 19 项 12 项对不上 + BOM/网表 1.27 vs 板读 0.50 出入) + §8 给 hw-lead 的 S6 认领句 (追加: 检修口与调试口是【两条】不许再合并 + 开口 Y 按公式取值不许写死 4.60) · 追加后 check_board_frame_coords.py 仍 rc=0 / --selftest 仍 rc=0★"
+   }
+  ]
+ },
+ {
+  "path": "MECH/check_board_frame_coords.py",
+  "base_idx": 145,
+  "base_kind": "gate",
+  "base_version": "1.1",
+  "base_updated_at": "2026-11-17",
+  "base_summary": "★ISS-286 坐标归一闸 C4 判决源台账化 (★只改这一件, HW/SW 零碰★): C4 对【网表 / 脚表 / BOM】三件的判决源从【写死 md5 基线】换成【落表台账 HW/SCHEMATIC_LANDING_V1_LANDED.md 的最新落表记录 (链头)】⇒ 合法落表 ⇒ 链头自动前移 ⇒ 绿 (★病根是判决源选错了, 不是真源被改了 ⇒ 修法落在取值来源上★); 板 / .kicad_pro 两行基线一字未动; fail-closed 五条全保留 (查不到登记 / 链头不唯一 / 链头无单号 / 链断或记录不在链上 / 盘上≠链头 ⇒ 全红); --selftest 12 条全抓到 (原有 5 条一条没少 + 新增 7 条台账用例) · 老闸 check_demo_struct_truth.py 23/23 rc=0 · 板与网表/脚表/BOM/台账 md5 一个字节没变",
+  "absorbed": [
+   {
+    "idx": 140,
+    "kind": "gate",
+    "version": "1.0",
+    "updated_at": "2026-11-17",
+    "summary": "★ISS-276 坐标系机器闸 (新建, 不改任何既有 MECH 判据脚本): C1 帧标签 (漏标一条即红, 词表只收能指名道姓说出是哪一套坐标的词) / C2 归一后窗口压 J_SOM_P1..P4 焊盘数必须 = 0 / C3 两套坐标不可代入负向断言 (旧矩形喂进现役坐标必须报出 56 / 10 个焊盘) / C4 受保护 5 件 md5 逐字节不变 · --compute / --json / --selftest (7 条反向用例: 改窗口角 / 抽帧标签 / 窗口挪进 SoM 区 / 旧矩形当新坐标喂 / 旧矩形挪开报 N=0 / 改受保护件 / 真件跑完自检仍不变) · 只读 import board_port_opening_s6_check.py 取 BASE/TOL/CRIT ⇒ 阈值零漂移"
+   },
+   {
+    "idx": 157,
+    "kind": "gate",
+    "version": "iss296",
+    "updated_at": "2026-11-17",
+    "summary": "★ISS-296 合法改板通道 (C4)★ · 86,674 B · mtime 2026-11-17 20:20:17 · PROTECTED (L109-112) 基线值一字未改 + LEDGER_CANON (L119) + PROTECTED_LEDGER (L121-125) + check_hard_protected_legal_reboard (L652-789) 四条判据 + 调用点 L819 · 主跑 rc=0 (末行 结论 四项全过) · --selftest rc=0 (末行 自检结论 一致) · 阈值零漂移 (CRIT 照抄 board_port_opening_s6_check) · 本单 cont2 未动此文件★"
+   }
+  ]
+ },
+ {
+  "path": "MECH/BOARD_ONEPASS_MECH_SYNC.md",
+  "base_idx": 142,
+  "base_kind": "spec",
+  "base_version": "1.0",
+  "base_updated_at": "2026-11-17",
+  "base_summary": "★ISS-278 MECH 侧板侧输入清单 (机器可读 · 新建): §1 坐标系声明 (帧 B160x100, Edge.Cuts 中心线 0..160 × 0..100) + §2 逐条表 (id/source_iss/title/current_state+证据级/spec/criterion+真命令/blocked_by/evidence 共 9 条) + §3 MECH→HW 输入清单 15 条 + §3.4 给 hw-lead 的 S6 认领句 + §4 归 main·老板拍 (亮度档 G-5 / 座体高 h 的降级路径 / 结构光孔有否 / 连接器参数) + §5 机器块 JSON (openings×2 + merged_opening + led 两假设 + connectors×19 + items×9) + §6 边界自证★",
+  "absorbed": [
+   {
+    "idx": 148,
+    "kind": "sync",
+    "version": "iss290-append",
+    "updated_at": "2026-11-17",
+    "summary": "★ISS-278 那页的【追加式】订正 (老字一字不删不改: 前 38271 字节 md5 b0a975fa4876458328477851253fdefa 前后逐字节相同)★: 新增 §9「S6 目标落位 × MECH 保留区 交叉核对」 (含给 hw-lead 的 S6 落位约束句 · 现役板坐标版) + 新增 §10「座体类器件三方对照摘要 + 排针 pitch 1.27 vs 0.50 的结构后果」 (含「改 land 到 1.27」后两条开口 / 两条必须清空区 / 净距逐项实算 + E-1~E-6 清单); ★ISS-278 的闸 MECH/check_onepass_mech_sync.py 追加后仍 rc=0 全绿★"
+   },
+   {
+    "idx": 159,
+    "kind": "note",
+    "version": "iss296",
+    "updated_at": "2026-11-17",
+    "summary": "★ISS-296-收工清单 (追加式 · 老字一字没删)★ · 96,970 B · mtime 2026-11-17 20:57 · 一节含 M0 为什么先做 / M1 落表台账那一行的接口格式 (给 main) / M2 收工后同一次重锚强制项 M2-1~M2-6 / M3 收工那天全仓 9 道钉板 md5 的闸都要绿 (含 9/9 机器清单 state/board_md5_pinned_gates.json 复核) / M4 不代拍三条 / M5 边界自证 · 本趟 cont2 只订正 M3 表里 HW 6 道的 6 个单元格 (待建 ⇒ 已建 (ISS-297) · 已留痕 · 改前副本 logs/iss296/msync_before_iss296_cont2.md 96,970 B)★"
+   }
+  ]
+ },
+ {
+  "path": "MECH/check_onepass_struct_crosscheck.py",
+  "base_idx": 164,
+  "base_kind": "gate",
+  "base_version": "ISS-303",
+  "base_updated_at": "2026-11-18",
+  "base_summary": "结构侧交叉核对闸 N6 判决源改造: 台账管理 3 件 (网表/脚表/BOM) 判决源 = 硬基线 ∪ 落表台账登记值 (读台账 · 只读调用 MECH/check_board_frame_coords.py 的 ledger_state/ledger_cover_rows/m12) · fail-closed 四条一条没弱化 · 板 2 件判据逐字不变 (ISS-296 通道没动) · --selftest 新增 ⑬~⑲ 7 条反向用例 (条数只增不减) · 主跑 rc=0 · --selftest rc=0",
+  "absorbed": [
+   {
+    "idx": 147,
+    "kind": "script",
+    "version": "v1.0",
+    "updated_at": "2026-11-17",
+    "summary": "★ISS-290 结构侧交叉核对机器闸 (新建)★: N1 帧标签 / N2 SoM 承载区零冲突 (含文档漂移对账) / N3 两条开口分别验 (h 三档逐档) / N4 必清空区净距 ≥ CRIT (CRIT 只读 import 既有判据) / N5 座体三方对照表四字段齐全 / N6 受保护 5 件 md5; 主跑 rc=0, --selftest rc=0 (8 条反向用例全抓到, 沙盒副本上跑, 真件一个字节不碰)"
+   }
+  ]
+ },
+ {
+  "path": "HANDOFF/2026-11-17_mech-lead_ISS296_合法改板机制与收工重锚.md",
+  "base_idx": 156,
+  "base_kind": "handoff",
+  "base_version": "iss296-cont2",
+  "base_updated_at": "2026-11-17",
+  "base_summary": "★ISS-296 cont2 交卷单 (26,949 B) · B1 结论摘要 (两道闸怎么接的合法改板通道 + 四条判据表 + 口径纪律自证) · B1-⑤ 同源机器证明 (IDENTICAL True · 15 组读数逐字相同) · B2 验收标准自评 + 收工后同一次重锚清单 (M0/M1/M2-1~M2-6/M3 九道闸表/M4) · B3 证据分级 + 反向用例 7 条 (⑯a/⑯b/⑰ + R10/R11a/R11b/R12) · B4 接口取值声明 + 回归 10 条 rc=0 + 受保护 5 件 md5/mtime 双重自证 · B5 未决项与卡点 4 条 (归 main/老板) · 复现清单一条一条贴 · 零写板零落表零改网表真源 · 不自签 issue_log · 零外发 · 实物 [实测] = 0 条★",
+  "absorbed": [
+   {
+    "idx": 177,
+    "kind": "handoff",
+    "version": "iss296-cont3",
+    "updated_at": "2026-11-18",
+    "summary": "★ISS-296 交卷单 (cont3 + cont3-b 追加式 · 老字一字没删)★ · §8 cont3 复核轮 = ⑩c 计数断言订正留痕 + ISS-302 真落表把 合法改板 通道在真实台账上首次跑通 · §9 cont3 最终复核轮 = 12 条命令 rc 表 + 闸 1 并发编辑留痕 · §10 cont3 + cont3-b 合并收口 = 时间线 + M3 need 事实订正 (9 道钉板闸 ①~⑨ 同一次全绿) + 最终态零写板自证 + 留给 main 的 4 条 · 前身 §B1~§B5 + §6 复现清单 + §7 最终复核轮 (2026-11-17 21:0x) 全部保留 · 大小以盘上实际为准 (★每次追加都涨★)★"
+   }
+  ]
+ },
+ {
+  "path": "MECH/BOARD_GEOM_CALIBER_STATUS.md",
+  "base_idx": 222,
+  "base_kind": "note",
+  "base_version": "v1.1",
+  "base_updated_at": "2026-10-25",
+  "base_summary": "★ISS-352 第2批 · scope A / scope B 真数【追加式】订正 (§5 新段 · §1~§4 老字一字未删 · 老前缀逐字节保留已验): scope A = 24 个命中文件 (与迁移前基线文件集合完全一致) - 6 个不计入 (1 .bak + 5 .pyc) = 真数 18 (老数 19 的分母少算 1 个 .pyc); scope B = 扫描 126 文件 / 命中 107 处 / 33 个文件 (命中数与文件数与迁移前基线【完全一致】⇒ 零新增漂移命中; 扫描文件数 +1 = 新建机器闸)★",
+  "absorbed": [
+   {
+    "idx": 205,
+    "kind": "note",
+    "version": "1.0",
+    "updated_at": "2026-11-22",
+    "summary": "iss342 结构侧权威表口径状态页: 漂移清单 (scope A 19 个需判文件 / scope B 33 个文件) + 现役真值指向 + 条件式处理方案 + 写死的不代拍声明"
+   },
+   {
+    "idx": 229,
+    "kind": "doc",
+    "version": "v1.1",
+    "updated_at": "2026-10-25",
+    "summary": "ISS-345全单闭环_scopeAB计数口径澄清追加式§6_老前缀§1到§5逐字节未删_§6.1根因派生物JSON档位依赖_§6.2本轮重读真值默认档态原始命中25不计入6真数19与迁前基线逐个一致_scopeB扫描126命中107共33文件_§6.3以后报数口径建议交main裁"
+   }
+  ]
+ },
+ {
+  "path": "HANDOFF/2026-11-23_mech-lead_ISS345_8脚本迁双口径.md",
+  "base_idx": 227,
+  "base_kind": "handoff",
+  "base_version": "v2.0",
+  "base_updated_at": "2026-10-25",
+  "base_summary": "ISS-345全单闭环交卷页_B1到B6六块齐全_8脚本全部迁完双口径_默认档五份diff全0字节_第二档每数三源一致_新闸35条断言全绿反向5of5_清单页§6追加式计数口径澄清_新发现派生物JSON是最后一跑档位的产物",
+  "absorbed": [
+   {
+    "idx": 210,
+    "kind": "handoff",
+    "version": "v1.0",
+    "updated_at": "2026-10-25",
+    "summary": "★ISS-345 cont1 第1批交卷页 (B1~B6 六块齐全)★"
+   }
+  ]
+ },
+ {
+  "path": "logs/iss352/",
+  "base_idx": 225,
+  "base_kind": "logs",
+  "base_version": "v1.1",
+  "base_updated_at": "2026-10-25",
+  "base_summary": "★ISS-352 证据目录 23 件 (★最终计数·交卷时刻实跑·上面的 v1.0 条目写 17 件是中途数·以本条为准★): 00 迁移前基线 (板指纹 / 落表三件 / md5 钉死件 / scope A 24 文件) + 00a/00b/00c 三份【迁移前 stdout 基线】(★前后对照的 diff 基准·必须同 PYTHONHASHSEED=0★) / 01 漂移闸迁移前读数 (107 处 / 33 文件) / 02-09 三个脚本迁移前后 stdout + 3 份 0 字节 diff + 2 份 B160x100 档读数 / 10-11 新闸裸跑 (35 条断言) + 自测 (5/5 ALL TESTS PASS) / 12 漂移闸迁移后读数 (107 处 / 33 文件 = 与迁移前一致) / 13 scope A 迁移后 (24 文件·集合与基线完全一致) / 14 兼容闸 rc=0 / 15 MECH 域 md5 前后对拍 (CHANGED 6 / DELETED 0 / ADDED 1) / 16 板指纹自证 + merge / 17 gate_check (Q1 18/18 · Q7 10/10) / 18 交卷页自检 (B0~B7 齐全 + 占位符 0 + 引用 MISS=0)★",
+  "absorbed": [
+   {
+    "idx": 224,
+    "kind": "logs",
+    "version": "v1.0",
+    "updated_at": "2026-10-25",
+    "summary": "★ISS-352 证据目录 17 件: 00 迁移前基线 (板指纹 / 落表三件 / md5 钉死件 / scope A 24 文件) / 01 漂移闸迁移前读数 / 02-09 三个脚本迁移前后 stdout + 3 份 0 字节 diff + 2 份 B160x100 档读数 / 10-11 新闸裸跑 + 自测 (5/5 ALL TESTS PASS) / 12 漂移闸迁移后读数 (107 处 / 33 文件) / 13 scope A 迁移后 (文件集合与基线完全一致) / 14 兼容闸 / 15 MECH 域 md5 前后对拍 (CHANGED 6 / DELETED 0 / ADDED 1) / 16 板指纹自证★"
+   }
+  ]
+ }
+]

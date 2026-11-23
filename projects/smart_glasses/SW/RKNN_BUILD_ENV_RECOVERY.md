@@ -14,7 +14,7 @@
 |---|---|---|
 | 1 | ★★ **`rk3572` 不是 rknn-toolkit2 的合法 `target_platform`** —— **2.3.2 与最新版 2.5.0 都直接报 `ValueError: Invalid target_platform 'rk3572'!`** | **[实测]** §2.2 |
 | 2 | ★★ ⇒ **ISS-145 的 M1 路线 ("直接复用 A7S 的 .rknn") 不成立**, 必须重转 | [实测] §2.3 |
-| 3 | ★★ **但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform='rk3576'` 转换, 板端用 RK3572 BSP 自带 runtime 加载** —— 这是**待板端验证**的结论, 不是"应该可以" | [推算·本文推导] §2.4 + [待核] §6 |
+| 3 | ★★ **但 RK3572 的 NPU 与 RK3576 同代同架构 (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform='rk3576'` 转换, 板端用 RK3572 BSP 自带 runtime 加载** (★v2.1 订正 2026-11-23 ISS-353: 该前提已被 ISS-250 官方反证 (RK3576=6 TOPS / RK3572=RKNN3-native) ⇒ 转换链已改走 rknn3-toolkit 1.2.0 的 `target_platform='rk3572'`★) ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★ —— 这是**待板端验证**的结论, 不是"应该可以" | [推算·本文推导] §2.4 + [待核] §6 |
 | 4 | ★**构建环境已在本机恢复**: conda env `rknn` (python 3.10.22 / rknn-toolkit2 2.3.2 / onnx 1.16.1 / numpy 1.26.4 / protobuf 4.25.4 / torch 2.4.0+cpu), 路径与 `SW/tools/rknn_bench.py` 硬编码的 `RKNN_PY` 完全一致 | [实测] §1.3 |
 | 5 | ★**转换链已跑通 (不是"应该能跑")**: `config → load_onnx → build(INT8 量化) → export_rknn` 四步全 rc=0, 产物真实落盘 | [实测] §1.4 |
 | 6 | ★**源 ONNX 已重建**: 从官方 `yolov5 v6.0` 权重重新导出 yolov5s / yolov5n @640, **算子直方图与台账里丢失的那份 245 节点 / 12 算子完全一致** | [实测] §3.2 |
@@ -243,9 +243,9 @@ GitHub releases API 实测 (最新 5 条): `v2.5.0 (2026-10-20)` / `v2.3.2 (2025
 
 #### 2.4.1 结论 (三句话)
 
-1. ★★ **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— 从 2.2.0 到最新 2.5.0 全部拒绝, **不存在"升级到某版本就有 rk3572"这个选项**。
-2. ★★ **⇒ ISS-145 §1 的 M1 路线 ("直接复用 A7S 的 .rknn 产物") 前提不成立** —— 那个 .rknn 是 `target_platform='rk3576'` 编译出来的, 即使它能被 RK3572 板端加载, **我们也不能声称"RK3572 支持它"**, 因为**根本没有 `rk3572` 这个编译目标**。⇒ **必须重转**。
-3. ★**替代路线: 用 `target_platform='rk3576'` 转换** —— 理由是 RK3572 的 NPU 与 RK3576 **同代同架构**, 但这是**推算, 不是实测**, 必须板端验证 (见 §2.4.3)。
+1. ★★ **`rk3572` 不是任何已发布版 rknn-toolkit2 的合法 `target_platform`** —— 从 2.2.0 到最新 2.5.0 全部拒绝, **不存在"升级到某版本就有 rk3572"这个选项** (★**限定在 toolkit2 家族内** ★v2.1 订正 2026-11-23 ISS-353: rknn3-toolkit 1.2.0 的 `config(target_platform='rk3572')` rc=0 [实测], 官方 README「Supported Platforms」明列 RK3572 [官网]★) ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★
+2. ★★ **⇒ ISS-145 §1 的 M1 路线 ("直接复用 A7S 的 .rknn 产物") 前提不成立** —— 那个 .rknn 是 `target_platform='rk3576'` 编译出来的, 即使它能被 RK3572 板端加载, **我们也不能声称"RK3572 支持它"**, 因为**根本没有 `rk3572` 这个编译目标** (★v2.1 订正 2026-11-23 ISS-353: ★这句现在只对 toolkit2 家族成立 —— rknn3-toolkit 1.2.0 有 rk3572 编译目标 [官网]+[实测]★)。⇒ **必须重转** (★转换 target = rknn3-toolkit 1.2.0 的 `target_platform='rk3572'`★) ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★
+3. ★**替代路线: 用 `target_platform='rk3576'` 转换** —— 理由是 RK3572 的 NPU 与 RK3576 **同代同架构**, 但这是**推算, 不是实测**, 必须板端验证 (见 §2.4.3)。 ★**v2.1 订正 (2026-11-23 · ISS-353): 该替代路线已被 ISS-263 取代 ⇒ 主路线 = rknn3-toolkit 1.2.0 + `target_platform='rk3572'` (config rc=0 [实测]); 「同代同架构」前提已被 ISS-250 官方反证**★ ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★
 
 #### 2.4.2 RK3572 vs RK3576 的硬件关系 (为什么 `rk3576` 是合理候选)
 
@@ -259,7 +259,7 @@ GitHub releases API 实测 (最新 5 条): `v2.5.0 (2026-10-20)` / `v2.3.2 (2025
 | SoM 互兼容 | ★**与 FET3576-C 引脚兼容** (Forlinx 明示 "Pin-compatible with the FET3576-C SoM") | — |
 | 出处 | Forlinx FET3572-C 产品页 / CNX Software / SBCwiki | Rockchip Brief Datasheet V1.2 |
 
-> ★**这些是"支持用 rk3576 target 转换"的**依据**, 不是"rk3572 = rk3576"的证据**。
+> ★**这些是"支持用 rk3576 target 转换"的**依据**, 不是"rk3572 = rk3576"的证据**。 ★**v2.1 订正 (2026-11-23 · ISS-353): 这组依据属于【历史】—— 主路线已改为 rknn3-toolkit 1.2.0 + `target_platform='rk3572'`**★ ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★
 > ★★ **必须说清楚的边界**: RK3572 的 NPU 是 **4 TOPS vs RK3576 的 6 TOPS** —— **算力不等** ⇒ ★**任何用 RK3576 数据推 RK3572 耗时的结论, 都是按比例的"上界估计", 不是实测** (这正是 ISS-145 §1 表格里 "RK3572 = RK3576 × 6/4 TOPS 等比换算, ★不保证等比" 的同一条纪律)。
 
 #### 2.4.3 ★ 必须板端验证的 3 件事 (本单做不了, 全部进 §6)
@@ -798,7 +798,7 @@ PY
 
 | # | ISS-145 的原结论 | 本单实测后的状态 | 建议动作 |
 |---|---|---|---|
-| **1** | §1 M1 = "直接复用 A7S 的 .rknn, 零转换成本" | ★**前提不成立** (§2.2: rk3572 非法 target) ⇒ **必须重转** | ★**改 M1 定义为"用 rk3576 target 重转 yolov5n"**, 转换成本 ≈ 0.5 人天 (本单已做完 80%) |
+| **1** | §1 M1 = "直接复用 A7S 的 .rknn, 零转换成本" | ★**前提不成立** (§2.2: rk3572 非法 target) ⇒ **必须重转** | ★**改 M1 定义为"用 rk3576 target 重转 yolov5n"** (★v2.1 订正 2026-11-23 ISS-353: M1 的目标 target 已改为 rknn3-toolkit 1.2.0 + `target_platform='rk3572'`★), 转换成本 ≈ 0.5 人天 (本单已做完 80%) ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★ |
 | **2** | §0 摘要 #2 "板端模型可以直接复用 A7S 的 .rknn 产物" | ★**作废** | 同上 |
 | **3** | §1 模型路线 M2 = yolov5n (需新拿 ONNX) | ★**障碍已清除**: ONNX 已导出 + 转换已实测 + **精度已实测 F1 0.2927** (§3.3 / §3.4.3) | ★**M2 从"待办"变成"已完成"**, 可直接进 demo 编码 |
 | **3b** | §1 表格 "yolov5n 比 yolov5s 少 ~4 点 mAP50" | ★**本项目口径实测只差 0.0090 F1** (0.2927 vs 0.3017) —— 那个 4 点是 COCO mAP 口径的引用值 | ★**以本单实测数为准**, 引用值改注来源 |

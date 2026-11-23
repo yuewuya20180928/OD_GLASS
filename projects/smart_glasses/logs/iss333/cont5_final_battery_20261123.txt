@@ -1,0 +1,78 @@
+===== ISS-333 cont5 交卷前必跑 · 串行 · 2026-11-23 05:5x =====
+--- ① merge.py ---
+✅ STATE.yaml 已刷新 (2026-11-23T05:50:53+08:00)
+   产出 778 | 阻塞 43 (高危 33) | 未闭合需求 355 | 冲突 0 | 健康度 red
+MERGE_RC=0
+
+--- ② gate_check.py ---
+【Q1 交付齐备率】 16/18 个必填验收块齐全
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
+【缺口清单】(可直接转成下一轮派活项) —— 5 条
+GATE_RC=0
+
+--- ③ issue_check.py ---
+       ★★[门禁侧·口径缺陷·内部活] ★★`state/delivery_health.py` 的【口径①】把 `delivery.mo
+
+❌ 违规 20 条
+ISSUE_RC=1
+
+--- ④ 板 md5 / mtime ---
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800
+
+--- ⑤ 闸 selftest ---
+------------------------------------------------------------------------------
+反向用例: 14/14 通过
+✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+SELFTEST_RC=0
+
+--- ⑥ 闸 live 裸跑 ---
+扫描面        : 51 份 `MECH/**/*.md` (递归) + 70 份 `MECH/**/*.py` (递归)
+抽出 token    : 249 个唯一标识符
+   DESIGNATOR_MISSING       10
+【R3 建闸日基线】 `DESIGNATOR_MISSING` 实测 = 10 条 · 允许上限 = 10 条
+【★R5-④ 判据分支自检★】 17/17 条分支全部命中 (★判据没被改岔★)
+   DESIGNATOR_MISSING   C14  CONN_USB                                     形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_MISSING   C14  C_VBUS_BULK                                  形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_MISSING   C14  D_ESD_CHG                                    形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_MISSING   C14  J_CHG_A                                      形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_MISSING   C14  J_CHG_B                                      形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_MISSING   C14  J_CHG_PWR                                    形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_MISSING   C14  J_JTAG                                       形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_MISSING   C14  J_USB                                        形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_MISSING   C14  R_PU_STAT_L                                  形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_MISSING   C14  U_SOM_RK3572                                 形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+【判决】 ✔ 绿 (rc=0): MECH 侧引用的位号全部可达, 真隐患在基线内
+GATE_LIVE_RC=0
+
+--- ⑦ 占位符自查 (脚本版) ---
+0 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HANDOFF/2026-11-18_mech-lead_ISS333_MECH侧位号可达性闸实现.md
+PLACEHOLDER_RC=0
+
+--- ⑧ 分片 iss333 计数 ---
+17
+
+--- ⑨ 沙盒软链 ---
+tmp/iss333: 0
+logs/iss333: 0
+
+--- ⑩ 闸脚本 stat (未动) ---
+56550 2026-11-18 19:36:31.669203495 +0800
+
+--- ⑪ gate_check --json 链上那道闸 ---
+extra_gates count = 8
+True | MECH 侧位号引用可达性闸 (ISS-326 设计稿 / ISS-333 实现)

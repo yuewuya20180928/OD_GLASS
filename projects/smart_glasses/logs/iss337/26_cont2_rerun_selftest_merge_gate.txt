@@ -1,0 +1,41 @@
+============================================================================================
+★ISS-337 cont2 (2026-11-23 06:2x) · 【交卷终测】交卷前必跑 6 条 (★任务书逐字·原样贴★)★★
+============================================================================================
+
+$ cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+$ TMPDIR=$PWD/tmp python3 tmp/iss337/seg_parity_selfcheck.py --selftest   # ⇒ 末行 ALL TESTS PASS, rc=0
+  ✅ 空读数必须被拦 — 段数 0 ∉ [2300,3200] (口径=归一化); 铜长 0.0 ∉ [4600,5900]mm; 过孔 0 ∉ [380,520]
+
+ALL TESTS PASS  ⇒ ★新口径成立: 官方板与现役臂【同带】, 老口径【会把官方板自己拦掉】★
+SELFTEST_RC=0
+
+─────
+$ TMPDIR=$PWD/tmp python3 state/merge.py       ; echo "MERGE_RC=$?"
+✅ STATE.yaml 已刷新 (2026-11-23T06:22:04+08:00)
+   产出 792 | 阻塞 43 (高危 33) | 未闭合需求 356 | 冲突 0 | 健康度 red
+MERGE_RC=0
+
+─────
+$ TMPDIR=$PWD/tmp python3 state/gate_check.py   ; echo "GATE_RC=$?"   # ⇒ Q1 里 hw-lead 6/6 缺: 无
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-23_hw-lead_ISS354_demo主板可制造性收口.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-23_sw-lead_ISS355_转换脚本迁主路线.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-23_mech-lead_ISS352_MECH双口径第2批.md
+GATE_RC=0
+
+─────
+$ TMPDIR=$PWD/tmp python3 state/issue_check.py  ; echo "ISSUE_RC=$?"
+  🟠 ISS-337  verified  owner=hw-lead    due=2026-11-20  
+❌ 违规 20 条
+ISSUE_RC=1
+
+─────
+$ grep -c iss337 state/fragments/hw.yaml        # ⇒ ≥ 5
+25
+
+─────
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb        # ⇒ 611b869e13518c3c023fb178f91a0075 (逐字节不许变)
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+$ stat -c '%y' HW/PCB/demo_mainboard.kicad_pcb   # ⇒ 2026-11-06 07:07:17.362193413 +0800
+2026-11-06 07:07:17.362193413 +0800

@@ -1,0 +1,569 @@
+#!/usr/bin/env python3
+"""ISS-356 cont2 · 生成 HW/FP_TRUTH_BASELINE.md (封装真值基线页)
+★只读真源 (BOM / 网表 / 板文件 / KiCad 官方库) ⇒ 只写 1 个输出: HW/FP_TRUTH_BASELINE.md
+★零写板 · 零落表 (不碰 HW/netlist_v1*.csv · HW/BOM_v1.csv · *.kicad_sch · *.kicad_pcb)
+"""
+import csv
+import hashlib
+import json
+import os
+
+ROOT = '/home/yuewuya/.openclaw/workspace/projects/smart_glasses'
+LIBROOT = '/home/yuewuya/kicad/AppDir/share/kicad/footprints'
+OUT = os.path.join(ROOT, 'HW', 'FP_TRUTH_BASELINE.md')
+
+# ---------------------------------------------------------------- 读真源
+bom = list(csv.DictReader(open(os.path.join(ROOT, 'HW/BOM_v1.csv'), encoding='utf-8')))
+pins = list(csv.DictReader(open(os.path.join(ROOT, 'HW/netlist_v1_pins.csv'), encoding='utf-8')))
+edges = list(csv.DictReader(open(os.path.join(ROOT, 'HW/netlist_v1.csv'), encoding='utf-8')))
+fps = json.load(open(os.path.join(ROOT, 'logs/iss356/board_footprints_v2.json'), encoding='utf-8'))
+byref = {f['ref']: f for f in fps}
+pm = {}
+for p in pins:
+    pm.setdefault(p['ref'], []).append(p)
+
+
+def pin_key(p):
+    s = str(p['pin'])
+    return (0, int(s)) if s.isdigit() else (1, s)
+
+
+def target_set(board):
+    return [r for r in bom
+            if r['dnp'] == '必装' and r['type'] not in ('NET', 'TP')
+            and r['footprint'] == '待定' and r['board'] == board]
+
+
+MAIN = target_set('镜脚主 PCB')      # 78
+CHG = target_set('镜框充电板')        # 22
+
+# ---------------------------------------------------------------- 库文件
+LIB_CACHE = {}
+
+
+def lib(rel):
+    """rel = 'Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod'"""
+    if rel in LIB_CACHE:
+        return LIB_CACHE[rel]
+    path = os.path.join(LIBROOT, rel)
+    ok = os.path.isfile(path)
+    md5 = hashlib.md5(open(path, 'rb').read()).hexdigest() if ok else None
+    fab = json.load(open(os.path.join(ROOT, 'logs/iss356/lib_fab_geom.json'), encoding='utf-8'))
+    LIB_CACHE[rel] = dict(rel=rel, path=path, exists=ok, md5=md5)
+    return LIB_CACHE[rel]
+
+
+def lib_geom(libname):
+    """libname = 'Resistor_SMD:R_0603_1608Metric' ⇒ (rel, md5, fab, crtyd, npad)"""
+    l, n = libname.split(':', 1)
+    rel = '%s.pretty/%s.kicad_mod' % (l, n)
+    path = os.path.join(LIBROOT, rel)
+    if not os.path.isfile(path):
+        raise SystemExit('LIB MISSING: ' + rel)
+    md5 = hashlib.md5(open(path, 'rb').read()).hexdigest()
+    g = json.load(open(os.path.join(ROOT, 'logs/iss356/lib_fab_geom.json'), encoding='utf-8'))
+    e = g.get(libname, {})
+    return rel, md5, e.get('fab_bbox'), e.get('courtyard_bbox'), e.get('npad')
+
+
+# ---------------------------------------------------------------- 族定义
+FAM = {
+    'FAM-1': dict(
+        name='FAM-1 · 2 端子 R/C 占位族',
+        lib='Resistor_SMD:R_0603_1608Metric', libc='Capacitor_SMD:C_0603_1608Metric'),
+    'FAM-2': dict(
+        name='FAM-2 · 单 land 占位族 (2 端子件只画 1 land)',
+        lib='Resistor_SMD:R_0603_1608Metric', libc='Capacitor_SMD:C_0603_1608Metric'),
+    'FAM-3': dict(
+        name='FAM-3 · LED 占位族',
+        lib='LED_SMD:LED_0805_2012Metric', libc='LED_SMD:LED_0603_1608Metric'),
+    'FAM-4': dict(
+        name='FAM-4 · 1×4 排针占位族 (JTAG)',
+        lib='Connector_PinHeader_1.27mm:PinHeader_1x04_P1.27mm_Vertical', libc=None),
+}
+
+# 族外登记 (板面同族但不在 78 靶子内)
+EXTRA1 = ['CHG_GND_STAR', 'C_KEY_CAM', 'R_NTC_BAT']
+
+# ISS-241 已核 OPN (转引, 不新选型)
+OPN_ISS241 = {
+    'R_SUPV_DIV1': 'RC0603JR-070RL (Yageo 0603 0Ω 跳线 0.1W 50V)',
+    'R_SUPV_DIV2': 'RC0603JR-070RL (Yageo 0603 0Ω 跳线 0.1W 50V)',
+    'D_LED_G': 'KP-2012SGC (Kingbright 0805 绿 λdom 568nm VF 2.2/2.5V)',
+    'D_LED_R': 'AA1608SURSK (Kingbright 0603 PLCC-2 红 λdom 630nm IV 160mcd)',
+}
+
+
+def family_of(ref):
+    f = byref[ref]
+    if f['npad'] == 1:
+        return 'FAM-2'
+    if f['npad'] == 4:
+        return 'FAM-4'
+    if f['bbox'] and abs(f['bbox'][0] - 2.7) < 0.01:
+        return 'FAM-3'
+    return 'FAM-1'
+
+
+def target_lib(ref):
+    fam = family_of(ref)
+    r = byref[ref]
+    if fam == 'FAM-1':
+        return FAM[fam]['lib'] if r['ref'].startswith('R_') else FAM[fam]['libc']
+    if fam == 'FAM-2':
+        return FAM[fam]['lib'] if r['ref'].startswith('R_') else FAM[fam]['libc']
+    if fam == 'FAM-3':
+        return FAM['FAM-3']['lib'] if ref == 'D_LED_G' else FAM['FAM-3']['libc']
+    return FAM['FAM-4']['lib']
+
+
+def pitch_of(f):
+    """实际相邻焊盘中心距 (不是首末跨度)"""
+    if len(f['pads']) < 2:
+        return None
+    xs = sorted({round(p['at'][0], 3) for p in f['pads']})
+    ys = sorted({round(p['at'][1], 3) for p in f['pads']})
+    if len(ys) == 1 and len(xs) > 1:
+        d = [round(xs[i + 1] - xs[i], 3) for i in range(len(xs) - 1)]
+        return min(d)
+    if len(xs) == 1 and len(ys) > 1:
+        d = [round(ys[i + 1] - ys[i], 3) for i in range(len(ys) - 1)]
+        return min(d)
+    return None
+
+
+def net_check(ref):
+    """焊盘数 / 网络核对结论 (实测)"""
+    f = byref[ref]
+    bn = [p['net'] for p in f['pads']]
+    nl = [p['net'] for p in sorted(pm.get(ref, []), key=pin_key)]
+    if len(bn) == len(nl) and bn == nl:
+        return '焊盘数 %d=%d 一致; pad 网络与网表脚 1..%d 逐位一致' % (len(bn), len(nl), len(nl))
+    if len(bn) == len(nl):
+        return ('焊盘数 %d=%d 一致; pad 网络集合一致但顺序与网表脚号相反 (pad1=%s / pad2=%s)'
+                % (len(bn), len(nl), bn[0], bn[1]))
+    return ('★焊盘数 %d ≠ 网表脚数 %d (板面缺 land)★ 板面 pad 网络=%s / 网表脚网络=%s'
+            % (len(bn), len(nl), '/'.join(str(x) for x in bn), '/'.join(str(x) for x in nl)))
+
+
+def layout_change(ref):
+    fam = family_of(ref)
+    if fam == 'FAM-1':
+        return ('是 · 占位 land (0.6×0.9 @1.60) 换官方 land ⇒ 焊盘尺寸/坐标变 '
+                '⇒ 该 net 走线端点要重接 + 占位 fab 外框 1.80×1.00 换官方外框')
+    if fam == 'FAM-2':
+        return ('★是 (强制) · 板面只有 1 个 land, 官方封装是 2 焊盘 ⇒ 必须新增第 2 个焊盘 '
+                '⇒ 该器件接地脚与走线全新增 ⇒ 板面 + 布线都必须改')
+    if fam == 'FAM-3':
+        return ('是 · 占位 land (0.6×0.9 @2.30) 换官方 land ⇒ 焊盘尺寸/坐标变 + '
+                'fab 外框 2.70×1.60 换官方外框 ⇒ 该 net 走线端点要重接')
+    return ('★是 · 占位 land (4×0.275 @0.50) 与官方 1.27mm 排针 land 不一致 '
+            '(官方为 4×1.0 通孔 @1.27) ⇒ land 全部重画 + 新增 4 个钻孔 ⇒ '
+            '结构开口/座体净距需 MECH 复核')
+
+
+def fallback(ref):
+    fam = family_of(ref)
+    r = byref[ref]
+    if fam == 'FAM-1':
+        if r['ref'].startswith('R_'):
+            return ('若 0603 该阻值/精度官网无现货 ⇒ 换同阻值同精度 0603 厚膜等效件 (封装不变 ⇒ 板面零改动); '
+                    '若必须缩到 0402 ⇒ land 中心距 1.60→1.02mm ⇒ 该 net 走线端点要重画 ⇒ 代价大')
+        return ('若 0603 该容值/耐压/介质官网无现货 ⇒ 换同容值同耐压 0603 X7R 等效件 (封装不变 ⇒ 板面零改动); '
+                '若必须缩到 0402 ⇒ land 中心距 1.60→0.96mm ⇒ 该 net 走线端点要重画 ⇒ 代价大')
+    if fam == 'FAM-2':
+        return ('若该件首版不装 ⇒ BOM 标 DNP 但板面仍须补第 2 land (否则将来转必装时装不上); '
+                '若整批取消 ⇒ land 与走线一起删 ⇒ 板 md5 再变一次 (⇒ 与"板只改一次"冲突 ⇒ 建议保留 land)')
+    if fam == 'FAM-3':
+        if ref == 'D_LED_G':
+            return ('若 0805 绿无官网现货 ⇒ 换同封装 0805 绿等效件 (Kingbright AP2012 系列); '
+                    '若要两颗同封装 ⇒ 两颗都改 0805 (ISS-241 §⑬ 已把"对称性"留给 main, 本单沿用不代裁) '
+                    '⇒ 代价 = 红件 OPN 要重查 + 亮度账 (G-5) 重算')
+        return ('若 0603 PLCC-2 红无官网现货 ⇒ 换同封装 0603 PLCC-2 等效件; '
+                '注意 PLCC-2 与普通 0603 chip 的引脚几何不同 ⇒ 落板批次按原厂 land 重画 (ISS-241 §⑬ 已记)')
+    return ('若板上不接受通孔 ⇒ 改 1.27mm SMD 排针 (PinHeader_1x04_P1.27mm_Vertical_SMD_Pin1Left) '
+            '⇒ 但该封装 land 是 2×2 交错而非 1×4 直排 ⇒ 结构开口/座体尺寸要重算 (MECH 域) ⇒ 代价大')
+
+
+def evidence_of(ref):
+    fam = family_of(ref)
+    if fam == 'FAM-1':
+        return '[实测]+[官网]' if ref in ('R_SUPV_DIV1', 'R_SUPV_DIV2') else '[实测]'
+    if fam == 'FAM-2':
+        return '[实测]+[推算]'
+    if fam == 'FAM-3':
+        return '[实测]+[官网]'
+    return '[实测]+[推算]'
+
+
+def opn_of(ref):
+    if ref in OPN_ISS241:
+        return OPN_ISS241[ref] + ' · [官网] (转引 ISS-241 §⑫/§⑬/S19, 本轮未重新抓官网)'
+    return '[0数据] · BOM opn 栏为空 ⇒ 落表批次按本行"目标 lib:name"回填同封装等效件 (官网参数直接满足)'
+
+
+def row(ref):
+    r = next(x for x in bom if x['ref'] == ref)
+    f = byref[ref]
+    fam = family_of(ref)
+    libname = target_lib(ref)
+    rel, md5, fab, crtyd, npad = lib_geom(libname)
+    famtag = FAM[fam]['name']
+    occ = '焊盘 %s · %s mm · fab 外框 %s×%s mm · %s' % (
+        '+'.join(p['num'] for p in f['pads']),
+        '×'.join('%.3f×%.3f' % (p['size'][0], p['size'][1]) for p in f['pads']) if len(f['pads']) == 1
+        else ('%.3f×%.3f (各脚同尺寸)' % (f['pads'][0]['size'][0], f['pads'][0]['size'][1])),
+        '%.2f' % f['bbox'][0] if f['bbox'] else '?',
+        '%.2f' % f['bbox'][1] if f['bbox'] else '?',
+        ('中心距 %.3f mm' % pitch_of(f)) if pitch_of(f) is not None else '单 land (无中心距)')
+    return '| `%s` | %s | %s | %s | %s | `%s` | `%s` md5 `%s` | %s | %s | %s | %s | %s |' % (
+        ref, r['type'], r['value'].replace('|', '/'), r['dnp'], occ + ' · ' + famtag,
+        libname, rel, md5, net_check(ref), opn_of(ref), evidence_of(ref),
+        layout_change(ref), fallback(ref))
+
+
+def fam_of_refs(refs):
+    return ', '.join('`%s`' % x for x in refs)
+
+
+# ---------------------------------------------------------------- 组装页
+def main():
+    refs = [r['ref'] for r in MAIN]
+    fams = {}
+    for r in refs:
+        fams.setdefault(family_of(r), []).append(r)
+
+    main_rows = '\n'.join(row(r) for r in refs)
+
+    extra_rows = []
+    for r in EXTRA1:
+        b = next(x for x in bom if x['ref'] == r)
+        f = byref[r]
+        libname = ('TestPoint:TestPoint_Pad_D1.0mm' if r == 'CHG_GND_STAR'
+                   else 'Resistor_SMD:R_0603_1608Metric')
+        rel, md5, fab, crtyd, npad = lib_geom(libname)
+        extra_rows.append('| `%s` | %s | %s | %s | 焊盘 1 · 0.600×0.900 mm · fab 外框 %.2f×%.2f mm · 单 land (无中心距) | `%s` | `%s` md5 `%s` | %s | %s | %s | %s | %s |' % (
+            r, b['type'], b['value'].replace('|', '/'), b['dnp'],
+            f['bbox'][0], f['bbox'][1], libname, rel, md5,
+            net_check(r), opn_of(r), '[实测]',
+            layout_change(r), fallback(r)))
+
+    chg_rows = []
+    for r in CHG:
+        b = next(x for x in bom if x['ref'] == r['ref'])
+        onb = '是' if r['ref'] in byref else '否'
+        chg_rows.append('| `%s` | %s | %s | %s | %s | %s | %s | %s | %s |' % (
+            r['ref'], r['type'], r['value'].replace('|', '/'), r['board'],
+            '待定', ('有' if r['opn'].strip() else '无'),
+            ('[官网] (转引 ISS-241, 未重查)' if r['opn'].strip() else '[0数据]'),
+            onb, '未做 (本单只登记, 不展开查库)'))
+
+    # 板面 186 占位族普查 (实测)
+    import collections
+    cl = collections.defaultdict(list)
+    for f in fps:
+        key = (tuple(p['num'] for p in f['pads']),
+               tuple(tuple(p['size']) for p in f['pads']),
+               tuple(f['bbox'] or ()))
+        cl[key].append(f['ref'])
+    census = []
+    for k, v in sorted(cl.items(), key=lambda x: -len(x[1])):
+        nums = k[0]
+        shape = '+'.join(nums) if len(nums) <= 6 else '%s..%s (%d 脚)' % (nums[0], nums[-1], len(nums))
+        census.append('| %d | %s | %s | %.2f×%.2f | %d |' % (
+            len(nums), shape, '×'.join('%.3f' % s[0] for s in k[1][:1]),
+            k[2][0], k[2][1], len(v)))
+
+    machine = {
+        'issue': 'ISS-356',
+        'title': '封装真值基线 (镜脚主 PCB 78 件)',
+        'generated': '2026-11-23',
+        'author': 'hw-lead',
+        'scope_note': '本单只锁封装真值; 不落表 (原理图 Footprint / BOM footprint / 生成器 都是落表批次的活)',
+        'counts': {
+            'target_total': len(MAIN) + len(CHG),
+            'target_main_board': len(MAIN),
+            'target_charge_board': len(CHG),
+        },
+        'records': [],
+    }
+    for r in refs:
+        libname = target_lib(r)
+        rel, md5, fab, crtyd, npad = lib_geom(libname)
+        machine['records'].append({
+            'ref': r,
+            'family': family_of(r),
+            'target_lib': libname,
+            'lib_rel_path': rel,
+            'lib_md5': md5,
+            'evidence': evidence_of(r),
+            'fallback': fallback(r),
+            'layout_change': layout_change(r),
+        })
+    machine['extra_single_pad_refs'] = EXTRA1
+    mblock = json.dumps(machine, ensure_ascii=False, indent=1)
+
+    doc = PAGE_TEMPLATE.format(
+        main_rows=main_rows,
+        extra_rows='\n'.join(extra_rows),
+        chg_rows='\n'.join(chg_rows),
+        census='\n'.join(census),
+        mblock=mblock,
+        n_main=len(MAIN), n_chg=len(CHG), n_tot=len(MAIN) + len(CHG),
+        n_fam1=len(fams.get('FAM-1', [])), n_fam2=len(fams.get('FAM-2', [])),
+        n_fam3=len(fams.get('FAM-3', [])), n_fam4=len(fams.get('FAM-4', [])),
+        fam1=fam_of_refs(fams.get('FAM-1', [])), fam2=fam_of_refs(fams.get('FAM-2', [])),
+        fam3=fam_of_refs(fams.get('FAM-3', [])), fam4=fam_of_refs(fams.get('FAM-4', [])),
+        n_census=len(census), n_fp=len(fps),
+    )
+    open(OUT, 'w', encoding='utf-8').write(doc)
+    print('wrote %s (%d bytes)' % (OUT, len(doc.encode('utf-8'))))
+    print('main=%d charge=%d total=%d' % (len(MAIN), len(CHG), len(MAIN) + len(CHG)))
+
+
+PAGE_TEMPLATE = r'''# HW · ISS-356 · 封装真值基线 (镜脚主 PCB {n_main} 件)
+
+> ★**本页是「封装真值基线」, 不是选型页** —— 它不替代 `HW/PART_SELECTION_MATRIX_2026-11-16.md`
+> (那页选**型号**, 本页锁**每个位号落到哪个真库封装**)。
+> ★**本页零写板**: 不碰 `HW/PCB/demo_mainboard.kicad_pcb` (只读), 板 md5 前后不变。
+> ★**本单不落表**: 真值要落到原理图 `Footprint` 属性 / BOM `footprint` 栏 / 板生成器, 那是**「板那一趟」的活**;
+> 本页只出**基线 + 判据**, 附带机器闸 `HW/check_fp_truth_baseline.py`。
+
+★**作者**: hw-lead · **日期**: 2026-11-23 · **单号**: ISS-356 (cont2 续做) ·
+**上游**: cont1 (08:47:16 被 50 分钟 runTimeout 掐死, 读数在盘交付物零) / cont0 (被 abort) ·
+**本轮**: 读数全部**本机实跑** (`logs/iss356/parse_board2.py` / `probe_lib_fab.py` / `extract_target78.py`),
+**未抄任何 agent 报告的结论**。
+
+---
+
+## §0 口径与实测读数 (本机实跑, 2026-11-23)
+
+| # | 项 | 本轮实测 | 复现命令 |
+|---|---|---|---|
+| M1 | BOM 总行 | **218** (R67/C51/TP45/IC13/SW12/CONN9/NET8/D6/LED4/L3) | `python3 -c "import csv,collections;print(len(list(csv.DictReader(open('HW/BOM_v1.csv')))),collections.Counter(r['type'] for r in csv.DictReader(open('HW/BOM_v1.csv'))))"` |
+| M2 | 必装 ∩ 非 NET/TP ∩ `footprint=待定` | **100** = 镜脚主 PCB **{n_main}** + 镜框充电板 **{n_chg}** | `logs/iss356/extract_target78.py` |
+| M3 | 板面封装数 / 库名非空数 | **{n_fp}** / **0** (库名 100% 空字符串 ⇒ 全是自绘通用占位) | `logs/iss356/parse_board2.py` |
+| M4 | 板面 1 焊盘封装 | **49** = `TP_*` **42** + 真实器件 **7** (`CHG_GND_STAR` `C_KEY_CAM` `C_KEY_PWR` `C_KEY_VM` `C_KEY_VP` `R_BAT_DET_2` `R_NTC_BAT`) | 同上 (`NPAD1_*` 三行) |
+| M5 | 板面 pad 带网络数 / 总 pad 数 | **482 / 834** (352 个无网 ⇒ 走线靠别处) | 同上 |
+| M6 | 板面 2 端子件 pad 网络 vs 网表脚网络 | **74/78 逐位一致**; **1 件顺序相反** (`R_PU_PG`); **4 件焊盘数不等** (`C_KEY_PWR` `C_KEY_VM` `C_KEY_VP` `R_BAT_DET_2`) | `logs/iss356/extract_target78.py` |
+| M7 | KiCad 官方库 | **155** 个 `.pretty` 库目录 / **15,468** 个 `.kicad_mod` 封装文件 | `ls -d /home/yuewuya/kicad/AppDir/share/kicad/footprints/*.pretty \| wc -l` · `find ... -name '*.kicad_mod' \| wc -l` |
+| M8 | 板指纹 (交卷前后双证) | md5 `611b869e13518c3c023fb178f91a0075` · mtime `2026-11-06 07:07:17.362193413` · 4,940,213 B | `md5sum HW/PCB/demo_mainboard.kicad_pcb` |
+| M9 | 受保护真源指纹 | 网表 `6aee500e60ba0732f83a9cf557ba90ab` · 脚表 `9174309df1ec9411ac8e8d9e80ee386a` · BOM `5b9993992405904a60ac96a020b375d8` | `md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv` |
+
+★**口径**: 本页的靶子 = **必装 ∩ 非 NET/TP ∩ `footprint=待定` ∩ board=镜脚主 PCB = {n_main} 件**;
+镜框充电板的 **{n_chg} 件**另立 §4 (只登记, 不展开查库)。★**F15「7 个占位族」是按焊盘编号集数的,
+与本轮按 (焊盘编号 + 焊盘尺寸 + fab 外框) 聚类的 {n_census} 个族不是同一套口径** ⇒ §1.0 给出两套的对照。
+
+---
+
+## §1 族级映射表 (先定族, 再逐 ref 套用)
+
+### §1.0 板面 {n_fp} 个占位封装的族普查 (本轮实测, 按 焊盘编号+焊盘尺寸+fab 外框 聚类)
+
+| 焊盘数 | 焊盘编号形态 | 焊盘宽 (mm) | fab 外框 (mm) | 件数 |
+|---|---|---|---|---|
+{census}
+
+★**与 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md` §9-6-3 (F15) 的差异 (本轮实读 ⇒ 以本轮为准)**:
+F15 按**焊盘编号集**聚类 ⇒ ('1','2') 计数 **105**、('1',) 计数 **7**; 本轮按**编号+尺寸+外框**聚类 ⇒
+('1','2') 实际 **107** 件 (见上表), 其中 ('1',) 一族实为 **49** 件 = `TP_*` **42** + 真实器件 **7**。
+★**差 2 件的来源已定位**: 板面 186 = BOM「镜脚主 PCB」184 + `C_VBUS_GND` (BOM board 栏=镜框充电板)
++ `J_CHG` (BOM board 栏=跨铰链界面) ⇒ 这就是基线里的「**多余 2**」; 本单只登记事实 (见 §4.3),
+`C_VBUS_GND` 留位/下板是老板那件, **本单不代拍**。
+
+### §1.1 FAM-1 · 2 端子 R/C 占位族 ({n_fam1} 件)
+
+| 栏 | 内容 |
+|---|---|
+| 族 (焊盘编号 + 板面焊盘尺寸) | 焊盘 '1'+'2' · 各 0.600×0.900 mm · fab 外框 1.80×1.00 mm · 焊盘中心距 **1.600 mm** |
+| 该族覆盖的 ref (全名单) | {fam1} |
+| 候选真库封装 `lib:name` | 电阻 → **`Resistor_SMD:R_0603_1608Metric`** · 电容 → **`Capacitor_SMD:C_0603_1608Metric`** |
+| 库文件实存路径 (精确相对路径 + md5) | `Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod` md5 `fa9f0fce044a12e2a675c087b781ae3d` · `Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod` md5 `0641b49cd03997f007054fc64a50c3e3` (根 = `/home/yuewuya/kicad/AppDir/share/kicad/footprints/`) |
+| 焊盘数 / 网络对得上吗 | 焊盘数 **2 = 2** ✓ · 焊盘网络: pad1↔网表脚1 / pad2↔网表脚2, **74/78 逐位一致** ✓ (`R_PU_PG` 顺序相反 ⇒ 电阻无极性, 电气无影响, 但落板批次按网表脚号对齐 pad 号) · 本体+land: 0603 本体 **1.60×0.825** ⊂ 占位 fab 外框 **1.80×1.00** ✓, land 中心距 **1.65** vs 占位 **1.60** (Δ0.025/脚) ⇒ **焊盘坐标/尺寸变 ⇒ 必触发布局布线改动** |
+| 分档依据 (每条都有依据) | ① **占位 fab 外框 1.80×1.00 与 0603 本体 1.60×0.825 吻合** —— 与 ISS-241 §R_SUPV_DIV 的同族同结论一致 ([推算], 转引) ⇒ 本族基线 **0603**; ② **占位 land 中心距 1.60 与 0603 官方 land 1.65 只差 0.05/脚** ⇒ 换封装后走线端点几乎原地 ⇒ 板只改一次代价最小; ③ **0402 官方 land 中心距 1.02** ⇒ 71 件全部走线端点重画 ⇒ 代价大 (降级档); ④ **0805 本体 2.00×1.25 超出占位 fab 外框 1.80×1.00** ⇒ 判据③不过 ⇒ 不作首选; ⑤ **10µF 大容量件 (6 件) 单列**: 0603 10µF 16V X7R 可落, 但 DC-bias 降容后有效容值可能不达标 ⇒ 见 §2 该行降级栏; ⑥ `R_SUPV_DIV1/2` 的 BOM `opn` 栏**已落** `RC0603JR-070RL` (0603) ⇒ 与本族基线自洽 ([官网], 转引 ISS-241 S19) |
+| 证据等级 | 封装几何/文件/md5/网络核对 = **[实测]**; 分档结论 = **[推算]**; 2 件 OPN = **[官网]** (转引) |
+| 降级方案 (必须项) | 同阻值/同容值/同耐压/同介质的 **0603 等效件** (官网参数直接满足) ⇒ **封装不变 ⇒ 板面零改动**; 若必须缩到 0402 ⇒ land 中心距 1.60→1.02/0.96 mm ⇒ 该 net 走线端点要重画 ⇒ 代价大; 若必须上 0805 (仅 10µF 大容量件可能) ⇒ 本体 2.00×1.25 超出占位 fab 外框 ⇒ 必改占位外框 ⇒ 布局+布线双改 ⇒ 归「板那一趟」 |
+
+### §1.2 FAM-2 · 单 land 占位族 (2 端子件只画 1 land) — ★本单最重要的发现★
+
+| 栏 | 内容 |
+|---|---|
+| 族 (焊盘编号 + 板面焊盘尺寸) | 焊盘 **只有 '1'** · 0.600×0.900 mm · fab 外框 1.80×1.00 mm (与 FAM-1 同框 ⇒ 同为 R/C 占位模板, 只是少画了一个 land) |
+| 该族覆盖的 ref (全名单) | **靶子内 4 件**: {fam2} · **靶外同族 3 件** (只登记, 见 §2.2): `CHG_GND_STAR` `C_KEY_CAM` `R_NTC_BAT` |
+| 候选真库封装 `lib:name` | 电阻 → **`Resistor_SMD:R_0603_1608Metric`** · 电容 → **`Capacitor_SMD:C_0603_1608Metric`** (★都是 **2 焊盘** 封装 ⇒ 换上去就自带第 2 个 land★) |
+| 库文件实存路径 + md5 | 同 §1.1 (0603 R/C 两个文件) |
+| 焊盘数 / 网络对得上吗 | ★**对不上**: 板面 **1** 个 pad, 网表 **2** 脚 (脚2 = GND) ⇒ 4 件的**接地脚在板面上根本没有铜** ⇒ ① 100nF 去耦电容 (C_KEY_PWR/VM/VP) 接地端悬空 ⇒ 去耦失效; ② `R_BAT_DET_2` (60k) 下臂未接 GND ⇒ BAT_DET 分压链断 ⇒ 电池检测读数无意义 ⇒ ★**这 4 件现在是"装得上但不起作用"** |
+| 分档依据 | ① 这些件在 BOM 里的 value 是**正常的 2 端子器件** (100nF±10% / 60k±1%) ⇒ 器件本身要 2 个焊盘; ② 网表脚表 `HW/netlist_v1_pins.csv` 也给的是 2 脚 (脚2=GND) ⇒ **只有板面少画了**; ③ 族几何 (fab 外框 1.80×1.00 + pad 0.6×0.9) 与 FAM-1 完全一致 ⇒ 原设计就是 R/C 占位模板 ⇒ **目标封装就是 FAM-1 的 0603**, 不需要新造族 |
+| 证据等级 | **[实测]** (板面 1 pad vs 网表 2 脚, 逐条实测) + **[推算]** (目标封装沿用 FAM-1) |
+| 降级方案 | 该件首版不装 ⇒ BOM 标 DNP 但**板面仍须补第 2 land** (否则将来转必装时装不上); 整批取消 ⇒ land + 走线一起删 ⇒ **板 md5 再变一次** ⇒ 与「板只改一次」冲突 ⇒ **建议保留 land** |
+
+★**根因 (本轮实读, 可复核)**: `HW/netlist_v1.csv` 里这 4 件的**接地行**把 `net` 栏写成了信号网名
+(如 `net=KEY_PWR node1=C_KEY_PWR node2=GND`), 而不是正常写法 `net=GND node1=REF node2=GND`
+(对照 `C_BULK_SENSOR_CORE`: 既有 `net=SENSOR_CORE` 行, 又有独立的 `net=GND` 行) ⇒
+生成器 `state/gen_pcb_netlist_board.py` 的 `derive_pads()` 按 **(器件, 网名)** 去重 ⇒ 同器件同一网名只落 1 个 land
+⇒ 这 4 件只长出 1 个焊盘。★**这条根因属"落表批次"的地界 (网表真源), 本单只登记事实 + 给封装真值, 不代拍不改网表**。
+
+### §1.3 FAM-3 · LED 占位族 ({n_fam3} 件)
+
+| 栏 | 内容 |
+|---|---|
+| 族 (焊盘编号 + 板面焊盘尺寸) | 焊盘 '1'+'2' · 各 0.600×0.900 mm · fab 外框 **2.70×1.60 mm** · 中心距 **2.300 mm** |
+| 该族覆盖的 ref (全名单) | {fam3} |
+| 候选真库封装 `lib:name` | `D_LED_G` → **`LED_SMD:LED_0805_2012Metric`** · `D_LED_R` → **`LED_SMD:LED_0603_1608Metric`** |
+| 库文件实存路径 + md5 | `LED_SMD.pretty/LED_0805_2012Metric.kicad_mod` md5 `7616eddd0b9951dec0bf5bdfc3df0a77` · `LED_SMD.pretty/LED_0603_1608Metric.kicad_mod` md5 `ac369a6895f54b78d16871a76dc9d08e` |
+| 焊盘数 / 网络对得上吗 | 焊盘数 2=2 ✓ · 网络 pad1=阳极侧 (LED_G_D / LED_R_D) / pad2=**GND=阴极** ✓ (网表 note: 阴极→GND ⇒ 极性器件, pad↔pin 序不能反) · 本体: 0805 本体 2.00×1.25 ⊂ 占位 2.70×1.60 ✓; 0603 本体 1.60×0.80 ⊂ 占位 ✓ 但**偏小 ⇒ 落板后 LED 位置略靠内** (ISS-241 §⑬ 已记) · land: 0805 官方 1.875 vs 占位 2.30 ⇒ 焊盘坐标变 ⇒ 必改 |
+| 分档依据 | ① `D_LED_G` 的 ISS-241 候选1 `KP-2012SGC` 是 **0805** (2.0×1.25) ⇒ 与占位 2.70×1.60 精确对齐 ⇒ 0805 ([官网], 转引 ISS-241 §⑫/S15); ② `D_LED_R` 的 ISS-241 推荐项 候选2 `AA1608SURSK` 是 **0603 PLCC-2** ⇒ 取 0603 ([官网], 转引 ISS-241 §⑬/S16); ③ **两颗封装不同 (0805 vs 0603) 是 ISS-241 §⑬ 已登记并"留给 main 裁"的未决项** ⇒ 本单沿用逐件推荐, **不代裁、不新增拍板项**; ④ 亮度档 G-5 已由 ISS-283 落 20mA 档 (`R_LED_G` 55Ω / `R_LED_R` 68Ω, BOM 已反映) ⇒ 本族只锁封装 |
+| 证据等级 | **[实测]** (族几何/网络/库文件/md5) + **[官网]** (器件本体尺寸, 转引 ISS-241) |
+| 降级方案 | 同封装同参数等效件 (官网) ⇒ 封装不变 ⇒ 板面零改动; 若要两颗同封装 ⇒ 两颗都 0805 ⇒ **ISS-241 §⑬ 留给 main 的未决项** ⇒ 代价 = 红件 OPN 重查 + G-5 亮度账重算 (本单不代裁) |
+
+### §1.4 FAM-4 · 1×4 排针占位族 (JTAG) ({n_fam4} 件)
+
+| 栏 | 内容 |
+|---|---|
+| 族 (焊盘编号 + 板面焊盘尺寸) | 焊盘 '1'+'2'+'3'+'4' · 各 0.275×0.900 mm · fab 外框 6.00×4.00 mm · 中心距 **0.500 mm** (1×4 直排, SMD) |
+| 该族覆盖的 ref (全名单) | {fam4} |
+| 候选真库封装 `lib:name` | **`Connector_PinHeader_1.27mm:PinHeader_1x04_P1.27mm_Vertical`** (4 焊盘通孔 @1.27mm 单排; 落板时旋转 90° 即 1×4 直排) |
+| 库文件实存路径 + md5 | `Connector_PinHeader_1.27mm.pretty/PinHeader_1x04_P1.27mm_Vertical.kicad_mod` md5 `7a5f470c1f70d4b832be258501945385` |
+| 焊盘数 / 网络对得上吗 | 焊盘数 4=4 ✓ · 网络 pad1..4 = JTAG_TCK / JTAG_TMS / JTAG_TDI / JTAG_TDO, 与网表脚 1..4 逐位一致 ✓ · ★**land 对不上**: 占位是 4×0.275 SMD @0.50, 官方是 4×1.0 通孔 @1.27 ⇒ land 全部重画 + **新增 4 个钻孔** |
+| 分档依据 | ① BOM value 栏写「1×4 **1.27mm** 排针 (JTAG)」⇒ 目标封装必须是 **1.27mm 单排** ⇒ 官方库里 `PinHeader_1x04_P1.27mm_Vertical` 是唯一的 1×4 单排 1.27mm 官方封装 (4 通孔 @1.27); ② **E-1 已由 main 2026-11-17 18:45 拍死**: "把 `J_DEBUG`(1×4) 的 land pitch 从 0.50 改成 1.27", 板侧项已登记在 ISS-343 的 `B33_PIN_LAND_1P27` ⇒ **本单不重复做该 land 改动, 只给封装真值**; ③ 官方 1.27mm 排针的 SMD 变体 (`..._Vertical_SMD_Pin1Left`) 的 land 是 **2×2 交错**, 与本板 1×4 直排占位形状不同 ⇒ 若选它结构开口/座体要重算 ⇒ 代价更大 |
+| 证据等级 | **[实测]** (板面 land 0.50mm 中心距 + 4 焊盘 + 网络 + 库文件/md5) + **[推算]** (目标封装推导 + 与 E-1/B33 的一致性) |
+| 降级方案 | 若板上不接受通孔 ⇒ 改 `Connector_PinHeader_1.27mm:PinHeader_1x04_P1.27mm_Vertical_SMD_Pin1Left` ⇒ 但 land 变 2×2 交错 ⇒ **结构开口/座体尺寸要重算 (MECH 域)** ⇒ 代价大; ★**另有一条必须交给 MECH 复核的量差 (见 §5 卡点)**: 结构侧 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md` §C-SEAT-1 的清空区是按 **1.27 pitch + 0.275 宽 pad** 算的 (**4.0850 mm**), 而官方 THT 排针 pad 宽 1.0 ⇒ 铜箔净宽 **4.81 mm** ⇒ 结构净距口径要重算 |
+
+---
+
+## §2 逐 ref 表 ({n_main} 件 = 镜脚主 PCB 必装 ∩ 非 NET/TP ∩ footprint=待定)
+
+| ref | type | value | 必装/DNP | 现占位族 (焊盘编号+尺寸+fab外框+中心距) | 目标 `lib:name` | 库文件实存路径 + md5 | 焊盘数 / 网络核对结论 (实测) | 候选 OPN | 证据等级 | 是否触发布局/布线改动 | 降级方案 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+{main_rows}
+
+### §2.1 上表的机器可读基准块 (供闸脚本解析)
+
+<!-- BEGIN ISS356 封装真值基线基准块 -->
+```json
+{mblock}
+```
+<!-- END ISS356 封装真值基线基准块 -->
+
+### §2.2 靶外同族登记 (3 件 · 不计入 {n_main} 件靶子, 但同属 §1.2 单 land 族)
+
+★这 3 件板面同样只画了 1 个 land, 但**不在**本单 78 件靶子内 (BOM 口径不同), 故**只登记不展开**:
+
+| ref | type | value | 必装/DNP | 现占位族 | 目标 `lib:name` | 库文件实存路径 + md5 | 焊盘数 / 网络核对结论 (实测) | 候选 OPN | 证据等级 | 是否触发布局/布线改动 | 降级方案 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+{extra_rows}
+
+★`CHG_GND_STAR` 的情况与另 2 件**不同**: 它在网表里只有 **1 个脚 (GND)** ⇒ 1 个 land 是**对的**
+(它是"单点汇流位", 不是 2 端子件) ⇒ 它的封装真值是 **单焊盘** (`TestPoint:TestPoint_Pad_D1.0mm`,
+md5 `cea8eb3ba9b799767624661848b00243`), **不是**要"补第 2 land"。
+★`C_KEY_CAM` / `R_NTC_BAT` 与 §1.2 的 4 件同病 (板面 1 land vs 网表 2 脚), 但 BOM 标 DNP ⇒ 首版不装。
+
+---
+
+## §3 删件候选 (只给候选与代价, **不代拍**)
+
+| 候选 | 省掉什么 | 代价 | 删了会不会改板面 |
+|---|---|---|---|
+| `TP_*` 42 个单 land 测试点占位 | 42 个 land + 42 条测试网络 | 失去生产/调试可测点 (TP 在 BOM 里是 **必装 42**) | 会: land 删掉 ⇒ 板面封装数 186→144 ⇒ **板 md5 再变一次** ⇒ 与「板只改一次」冲突 ⇒ 建议保留 |
+| `D_LED_G` `D_LED_R` + `R_LED_G` `R_LED_R` (状态指示灯 4 件) | 2 个 LED 封装 + 2 个 0603 电阻 | 失去绿/红状态指示; 且 G-5 亮度账 (ISS-283 落的 20mA 档) 作废 | land 若留着只改 BOM 则板 md5 不变; 若连 land 一起删则变 ⇒ 建议只做 DNP 不删 land |
+| `R_SUPV_DIV1` `R_SUPV_DIV2` (0Ω 跳线位 2 件) | 2 个 0603 land | 这 2 件是 BAT_DET/SUPV 分压链的跳线位, 删了分压链无下臂 (何况 `R_BAT_DET_2` 现在还没接 GND) ⇒ 实际已断 ⇒ 候选是"改成固定阻值"而不是"删掉" | 删 land ⇒ 板 md5 变 ⇒ 不建议 |
+| `C_AC_CSI_*` 10 件 (MIPI CSI-2 AC 耦合电容) | 10 个 0603 land | 若 SoM 内部已做 AC 耦合 ⇒ 外侧可省; ★**"SoM 内部是否已做 AC 耦合"本轮无证据 [0数据]** ⇒ 不能据此删 | 删 land ⇒ 板 md5 变 ⇒ 证据不足前不建议 |
+| `C_KEY_CAM` `R_NTC_BAT` (DNP 2 件) | 2 个 land | 本来就不装 | 建议保留 land (同 §1.2 逻辑) |
+
+★**本单不代拍删不删** —— 上面只给候选 + 代价 + 板面影响, 拍板留给 main / 老板。
+
+---
+
+## §4 镜框充电板 {n_chg} 件封装真值债 (★只登记, 不展开查库★)
+
+### §4.1 {n_chg} 件清单 (必装 ∩ 非 NET/TP ∩ footprint=待定 ∩ board=镜框充电板)
+
+| ref | type | value | BOM board 栏 | footprint 栏 | BOM opn 栏 | 在镜脚主 PCB 板面? | 本单状态 |
+|---|---|---|---|---|---|---|---|
+{chg_rows}
+
+★**{n_chg} 件全部不在镜脚主 PCB 板面** (本轮实测 0/{n_chg} 命中; 板面 `grep BQ25896` = **0**,
+`U_CHG` 不在板面) ⇒ 它们属**另一块板 (镜框充电板)**, 不在本页靶子里。
+★**本单对它们只做登记**: 不查库、不给 `lib:name`、不查数据手册 ⇒ 续做入口见 §5.3。
+
+### §4.2 充电板侧已可复用的现成结论 (转引, 未重查)
+
+| 件 | 已落结论出处 | 内容 |
+|---|---|---|
+| `U_CHG` (BQ25896) | ISS-112 `HANDOFF/2026-10-29_hw-lead_ISS112_BQ25896_footprint.md` | WQFN-24 4×4mm P0.5 (RTW 24) ⇒ 官方库对应 `Package_DFN_QFN:Texas_RGE0024C_VQFN-24-1EP_4x4mm_P0.5mm_EP2.1x2.1mm` (本轮已实测文件在盘, md5 `2df485f431ae4099f3a668a6084b0fdf`) |
+| `Q_CHG_LED` | ISS-241 §⑭ | `2N7002` SOT-23 ⇒ `Package_TO_SOT_SMD:SOT-23` (本轮已实测文件在盘, md5 `f8754f4dc2887bbe66484114fa63ee44`) |
+| `D_TVS_VBUS` | ISS-241 §⑬ | `SMBJ5.0A` SMB ⇒ `Diode_SMD:D_SMB` (本轮已实测文件在盘, md5 `9a4f6c4e6536902c3c4d0d4c70da7acd`) |
+| `D_ESD_TC` | ISS-241 §⑫ | `SP0503BAHT` SOT-143-4 ⇒ `Package_TO_SOT_SMD:SOT-143` (本轮已实测文件在盘, md5 `ac24bbfb907e80190f929e5a2d55d6a3`) |
+| `FB_VBUS` | ISS-241 §⑪ | `BLM31PG121SN1` 1206 ⇒ `Inductor_SMD_Wurth:L_Wurth_WE-LQSH-4020` (本轮已实测文件在盘, md5 `cc57fcb9e852a7a08af8ee92537025e3`) — ★**只登记, 本单不展开** |
+
+### §4.3 跨界件登记 (★只登记事实, **不代拍**★)
+
+| ref | BOM board 栏 | BOM dnp | 板面实况 | 登记结论 |
+|---|---|---|---|---|
+| `C_VBUS_GND` | 镜框充电板 | DNP | **在镜脚主 PCB 板面, 2 个 land (GND / VBUS_5V_CHG)** | ★这是「**多余 2**」里的第 1 件; 板侧项已登记为 ISS-343 的 `B02_C_VBUS_GND` (C_VBUS_GND 下板 186→185) ⇒ **留位/下板的答案归老板, 本单只登记事实, 不代拍** |
+| `J_CHG` | 跨铰链界面 | 必装 (type NET) | **在镜脚主 PCB 板面, 2 个 land** | 这是「**多余 2**」里的第 2 件 (跨铰链界面件, 属另一块板/另一域) |
+| `C_VBUS_OUT` | 镜框充电板 | DNP | **不在任何板面** (本轮实测 0 命中) | ★**订正一处**: 它与 `C_VBUS_GND` 同属镜框充电板 + DNP, 但**板面没有它** ⇒ 不在「多余 2」里 |
+
+---
+
+## §5 已做 / 未做 + 续做入口
+
+### §5.1 已做 (100%)
+
+1. ★**{n_main} 件靶子 (镜脚主 PCB 必装 ∩ footprint=待定) 的封装真值 100% 给出** —— §2 表 {n_main} 行, 每行都有
+   目标 `lib:name` + 库文件实存路径 + md5 + 焊盘数/网络核对结论 + 候选 OPN + 证据等级 + 是否触发布局布线改动 + 降级方案。
+2. **§1 族级映射表** ({n_census} 个占位族普查 + 4 个在靶族 + 与 F15/§9-6-3 的口径差与多余 2 的定位)。
+3. **§1.2 单 land 族 (4 件在靶 + 3 件靶外) 的根因定位** (网表 `net` 栏写法 ⇒ 生成器按 (器件,网名) 去重)。
+4. **§3 删件候选** 5 组 (只给候选与代价, 不代拍)。
+5. **§4 充电板 {n_chg} 件只登记** + §4.2 转引 5 条现成结论 + §4.3 跨界 3 件事实登记。
+6. **机器闸** `HW/check_fp_truth_baseline.py` (C1~C6 + `--selftest` 反向用例) —— 判据内容级, 不挂 md5。
+
+### §5.2 未做 (逐条 + 归属)
+
+| # | 未做的事 | 为什么 | 归属 / 续做入口 |
+|---|---|---|---|
+| U1 | 充电板 {n_chg} 件的**逐件 `lib:name`** | 本单 scope 只锁镜脚主 PCB; 充电板不在本板面 ⇒ 查库会越界 | §4.1 清单已列齐 ⇒ 续做入口: 充电板那一趟按 §4.1 逐件套 §1 同款三判据 (焊盘数/焊盘网络/本体+land 落进占位外框) |
+| U2 | **网表真源修正** (4 件接地行的 `net` 栏) | §1.2 的根因在 `HW/netlist_v1.csv` ⇒ 属落表批次地界, 本单**零落表** | 落表批次改网表 4 行 ⇒ 板生成器重跑即长出第 2 个 land ⇒ 与 §1.2 目标封装一致 |
+| U3 | **BOM `footprint` 栏回填 {n_main} 行 + 原理图 `Footprint` 属性回填** | 本单**零落表** | 落表批次按 §2 表的 `目标 lib:name` 列逐行回填 ⇒ 闸 `HW/check_fp_truth_baseline.py` 可直接当回填后的核对闸 |
+| U4 | **`J_DEBUG` land 0.50→1.27 的板侧改动** | ★**已被 ISS-343 的 `B33_PIN_LAND_1P27` 覆盖** ⇒ 本单不重复做 | 已在 `HW/PCB/BOARD_ONEPASS_PREFLIGHT.md` §7 JSON 块 |
+| U5 | **`J_DEBUG` 结构净距重算** (官方 THT pad 1.0mm ⇒ 铜箔净宽 4.81mm vs 结构侧按 0.275 算的 4.0850mm) | 属 MECH 域 | 交 MECH-lead: 核 §C-SEAT-1 清空区口径 |
+| U6 | **LED 两颗对称性** (绿 0805 / 红 0603) | ★**ISS-241 §⑬ 已登记并留给 main** ⇒ 本单沿用不代裁 | 已登记在 ISS-241; 本单只在 §1.3 与 §2 沿用 |
+| U7 | **删件拍板** (§3 的 5 组候选) | 本单不代拍 | 交 main / 老板 |
+| U8 | **`TP_*` 42 件 / `C_KEY_CAM` / `R_NTC_BAT` / `CHG_GND_STAR` 的封装真值展开** | 不在 {n_main} 件靶子内 (BOM 口径: TP / DNP / footprint 栏非待定) | §2.2 已把 3 件单 land 件登记; TP 42 件建议走 §1 同款三判据, 但属另一批落表范围 |
+
+### §5.3 续做入口 (下一趟从哪开始)
+
+1. **落表批次**: 按 §2 表 `目标 lib:name` 列回填 BOM `footprint` 栏 + 原理图 `Footprint` 属性 ({n_main} 行) ⇒
+   同步落网表 4 行修正 (§5.2 U2) ⇒ 重跑板生成器 ⇒ **板 md5 只变一次**。
+2. **充电板那一趟**: 按 §4.1 的 {n_chg} 件清单逐件查库 + 定封装 (本单只登记, 未展开)。
+3. **MECH**: 复核 §5.2 U5 (J_DEBUG 铜箔净宽口径差)。
+
+### §5.4 对「板那一趟」的影响 (点名哪些 ref 换封装后必然触发布局/布线改动)
+
+| 改动类型 | ref | 说明 |
+|---|---|---|
+| ★**焊盘数变化 (1→2)** | `C_KEY_PWR` `C_KEY_VM` `C_KEY_VP` `R_BAT_DET_2` | 板面要**新增第 2 个焊盘** + 新增接地走线 ⇒ 布局 + 布线都动 ⇒ 最重的 4 件 |
+| ★**land 全重画 + 新增钻孔** | `J_DEBUG` | 4×0.275 SMD @0.50 → 4×1.0 通孔 @1.27 ⇒ E-1/B33 已登记 (本单不重复) + 结构净距要复核 |
+| **焊盘尺寸/坐标变 (走线端点重接)** | 其余 {n_main} - 5 件 (含 `D_LED_G` `D_LED_R` 的极性 land) | 0603 land 中心距 1.65 vs 占位 1.60 ⇒ 端点几乎原地, 但 pad 尺寸变 ⇒ 每件的铜箔都要按官方 land 重画 |
+| **板面不动, 只回填表** | 全部 {n_main} 件 (就"封装名"这一步而言) | ★**本页不产生任何板改**: 板改全部发生在「板那一趟」; 本页的价值是**让那一趟只改一次** |
+
+★**页内没有"待定/TBD/待选型"当结论**: 每个靶子 ref 都有确定的 `lib:name`; 查不到型号的件走
+「候选 OPN = [0数据] + 降级方案 (同封装官网等效件)」, 不挂起。
+
+---
+
+## §6 边界声明
+
+★**零写板**: 本页生成过程只读 `HW/PCB/demo_mainboard.kicad_pcb`; 板 md5 `611b869e13518c3c023fb178f91a0075` 前后不变。
+★**零落表**: 未改 `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` / 任何 `*.kicad_sch` / `*.kicad_pro`。
+★**零外发 / 零采购**: 本页所有外部事实只**转引**已在盘的 ISS-241 / ISS-112 / ISS-243 / ISS-349 结论并标 [官网];
+本轮**未发任何询价/邮件/表单**, **未下单**; 凡本轮查不到的件一律写 [0数据] + 降级方案, **无外部等待式挂起措辞** (闸 C5 查的就是这个)。
+★**不代拍**: 删不删件 / 用哪个封装 / 型号定不定 ⇒ 只给候选 + 代价 + 依据; `C_VBUS_GND` 留位、`U-1` 画哪块板、
+ESD 架构与型号轴、LED 两颗对称性 ⇒ **都不是本单的项**, 只登记事实。
+★**证据分级**: 每行标 [官网]/[实测]/[媒体]/[推算]/[0数据] 五者之一 (可组合), 无 [官方] 写法。
+★**写盘范围**: 只写 `HW/FP_TRUTH_BASELINE.md` + `HW/check_fp_truth_baseline.py` +
+`HANDOFF/2026-11-23_hw-lead_ISS356_封装真值基线.md` + `state/fragments/hw.yaml` (走 `state/frag_write.py`) + `logs/iss356/`。
+'''
+
+if __name__ == '__main__':
+    main()

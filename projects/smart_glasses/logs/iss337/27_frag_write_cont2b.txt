@@ -1,0 +1,60 @@
+============================================================================================
+★ISS-337 cont2 (2026-11-23 06:1x) · 分片追加登记回执 (★只走 state/frag_write.py·原子写★)
+============================================================================================
+
+── 写前 md5 (★备份 /tmp/hw.yaml.pre_iss337_cont2b.bak★) ──
+1d23ebccf87da139cc111ae2ee24b01d  /tmp/hw.yaml.pre_iss337_cont2b.bak
+fcc5ae81058f4a0001ccf89603870270  state/fragments/hw.yaml
+
+── 第 1 次尝试 (★失败·零落盘★) ──
+  ★值里含空格但没加内层引号 ⇒ frag_write 报「[frag_write] 参数要写成 key=value: reload」并退出 rc=1★
+  ★⇒ 写前/失败后 md5 逐字相同 (1d23ebcc…) ⇒ 零落盘★
+
+── 第 2 次 (成功) 的 stdout 逐字回执 ──
+[frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+FRAG_RC=0
+
+── 写后 md5 ──
+fcc5ae81058f4a0001ccf89603870270  state/fragments/hw.yaml
+
+── 写前/写后 YAML 结构 diff (★只 +3 key·零删除零修改★) ──
+  artifacts: 281 -> 282
+      + logs/iss337/26_cont2_rerun_selftest_merge_gate.txt
+  interface_claims: 398 -> 400
+      + iss337_own_page_gate_6of6
+      + iss337_frag_hits_live
+  ★零 REMOVED ⇒ 别人的 key 一条没删改★
+
+── 本次追加的 3 条 (★逐条★) ──
+  claim : iss337_own_page_gate_6of6
+     value: 本单交卷页用闸自己的 check_blocks() 实测 = 6/6 缺:无 (B1..B6 全齐) · 但 2026-11-23 06:1x 闸 Q1 里 hw-lead 那行显示 2/6 缺 B1/B2/B4/B5
+             ⇒ 那是并发兄弟 job ISS-354 在 06:05 建的占位页 (全待填) 按文件名倒序顶掉了评分基准 ⇒ 不建第二份 ISS-337 交卷页 · 不碰别人文档
+     note : 实测: tmp/iss337/check_own_page.py 直接 import 闸的 check_blocks · ISS337=6/6 · ISS354=2/6
+  claim : iss337_frag_hits_live
+     value: grep -c iss337 state/fragments/hw.yaml = 25 (要求 ≥5) · 本单自己登记 = 4+2 claim + 6 artifact + 3 need (写盘当时 14)
+             ⇒ 从 14 涨到 25 是并发兄弟 job ISS-339 把 iss337_* 答复写进同一个 hw.yaml 的 answers 段 ⇒ 引用时必须带读数时刻
+     note : 实测: 2026-11-23 06:1x 本机 grep
+  artifact: logs/iss337/26_cont2_rerun_selftest_merge_gate.txt | kind=evidence
+
+── 第 3 次 (★2026-11-23 06:2x·★Q1 终测确认 18/18 之后·把第 1 次那条 claim 的读数改成终测值★) ──
+[frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+FRAG_RC=0
+★改的是 claim `iss337_own_page_gate_6of6` 的 value: 原来写「Q1 14/18 · hw-lead 2/6」(那是一次中间态),
+  现在改成终测事实: 「Q1 18/18 · hw-lead 6/6 缺:无」+ 保留中间态归因 (并发兄弟 job ISS-354 的占位页)★
+★⇒ frag_write 对同名 key 是【覆盖 value】, 不是追加重复条目 ⇒ 段内 key 数不变★
+
+── 第 4 次 (★2026-11-23 06:2x·★修掉第 3 次自己引入的同名重复 key★) ──
+[frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+FRAG_RC=0
+★★踩坑记实: ★frag_write.py 的 --add-claim 是【追加】不是【按 key 覆盖】★
+  ⇒ 第 3 次 (想用同一 key 更新 value) 结果追加出【两条 key=iss337_own_page_gate_6of6】★
+  ⇒ 实测: interface_claims 段出现该 key 重复 (idx 398 = 旧值 / idx 405 = 新值)
+  ⇒ 修法: ★只用 frag_write.py 的 --set-json + --set-field interface_claims 整段替换★
+     (★把「去掉旧的 398、保留新的 405」后的完整列表写回·★不许用 open(p,"w") 手写 YAML★)
+  ⇒ ★写前/写后全结构 diff 实测: removed=[] added=[] changed=[] ⇒ 【只有那条内容完全相同的旧条目被去掉, 别人的一条没动】★
+  ⇒ ★★注意: 这一段 --set 是【整段替换 interface_claims】(★409 条全量回写★) ⇒
+     替换前已做「写前/写后全结构 diff」复核, 确认零副作用★★
+★⇒ ★★教训: 同名 key 想改 value, 不要用 --add-claim (会追加), 要么换新 key, 要么用 --set-json 整段回写并复核★★
+
+── grep -c iss337 state/fragments/hw.yaml (★要求 ≥5★) ──
+25

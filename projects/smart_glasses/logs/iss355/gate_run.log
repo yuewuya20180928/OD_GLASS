@@ -1,0 +1,48 @@
+$ python3 SW/tools/check_iss355_convert_route.py
+==============================================================================
+ISS-355 · 转换路线实现闸 · 只读扫描 (v1.0)
+==============================================================================
+root              : /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+扫面              : SW / HW / state/fragments / HANDOFF / logs / REQ  (代码层只看 .sh/.bash/.py)
+代码文件数        : 109
+口径层交叉校验    : 复用 ISS-353 闸的 F1~F8 规则 (不重造) ⇒ 结论矛盾 2 条 (本单可处置 0 · 越权 2)
+
+─── ★【名单】★ 当下执行口径 = 旧目标的站点 (文件 + 行号 + 原文 + 处置) ───
+
+◆ SW/tools/rk3572_model_rebuild.sh
+   L48     [G2] 次要路线①(保留·已点名)
+      原文: LEGACY_TARGET_PLATFORM_DEFAULT="rk3576" # ISS355-SECONDARY-ROUTE-① (历史留档: 2026-11-15 的 2.3.2 基线)
+      处置: 脚本内显式标注为次要路线① (marker ISS355-SECONDARY-ROUTE) · 保留但已点名
+      通道: 本单可处置
+
+◆ SW/tools/rknn_bench.py
+   L131    [G2] 次要路线①(保留·已点名)
+      原文: TARGET_PLATFORM = "rk3576"
+      处置: 次要路线① 的实现 (toolkit2 2.3.2 家族固定用旧目标) · 保留作历史对照 · 板上接受性 [0数据] · ISS-355 任务书明写「旧链保留为次要路线①」
+      通道: 越权·交 main/hw-lead 裁
+
+─── 口径层 (ISS-353 闸在管) ───
+   state/fragments/hw.yaml L5230 [E1] 结论矛盾(要处置)
+      原文: Invalid target_platform 「rk3572」!`) ⇒ ★**M1 复用 A7S 的 .rknn 不成立, 必须重转**; ★**RK3572 NPU 与 RK3576 同代同架构
+   state/fragments/hw.yaml L5231 [A2] 结论矛盾(要处置)
+      原文: (4 TOPS / 3 核 RKNPU v2) ⇒ 用 `target_platform=「rk3576」` 转 + 板端 RK3572 BSP runtime 加载** [推算·待板端验证] ⇒
+
+─── 主路线入口断言 (机器读脚本里的默认值) ───
+   P1_主路线脚本在位                 PASS SW/tools/rk3572_model_rebuild.sh
+   P2_--print-route 可跑        PASS rc=0 · 读到 16 个键
+   P3_默认路线取值                  PASS route=rknn3 · target=rk3572 · rknn3-toolkit 1.2.0 · 旧链入口=legacy/rk3576
+   P4_旧链(次要路线①)仍可达            PASS ROUTE=legacy ⇒ target=rk3576 · rknn-toolkit2 2.3.2
+   P5_源码默认值交叉核对               PASS 4 个默认值字面量都在源码里 (ROUTE_DEFAULT=rknn3, TARGET_PLATFORM_DEFAULT=rk3572, TOOLKIT_PKG_DEFAULT=rknn3-toolkit, TOOLKIT_VER_DEFAULT=1.2.0)
+
+─── 两件套拷贝断言 (行为级) ───
+   C1_两件套拷贝(有 .weight)        PASS rc=0 · .rknn + .weight + 两份 sha256 sidecar 全部到位
+   C2_只拷 .rknn 必须失败           PASS rc=1 (≠0) 且没有把 .rknn 拷出去
+   C3_脚本里有 .weight 的处理        PASS 源码含 .weight 处理分支
+
+─── 旧链代价标注 ───
+   D1_旧链代价已标明                 PASS 脚本里写明了旧链在板上的接受性 = [0数据]
+
+==============================================================================
+★结论: 无「当下执行口径 = 旧目标」的站点; 主路线/两件套/代价标注 全过 ⇒ rc=0
+==============================================================================
+RC_ISS355_GATE=0

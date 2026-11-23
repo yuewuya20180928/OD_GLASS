@@ -4,7 +4,7 @@
 > 上游: `SW/RKNN_BUILD_ENV_RECOVERY.md` (2026-11-02, 环境恢复 + P0-1 闭合)
 >
 > ★**本单回答什么**: 上游单已把 **P0-1 闭死** (`rk3572` 不是任何已发布版 rknn-toolkit2 的合法
-> `target_platform` ⇒ 必须用 `target_platform='rk3576'` 转换)。但**剩下的那条死结**——
+> `target_platform` ⇒ ★**v2.1 订正 (2026-11-23 · ISS-353): 转换 target 已改为 rknn3-toolkit 1.2.0 的 `target_platform='rk3572'` (config rc=0 [实测])**★ ★已被 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代·本条保留作历史留档·结论不再引用★)。但**剩下的那条死结**——
 > "**用 rk3576 target 转出来的 .rknn, 能不能在 RK3572 板子上跑通**"——**至今 0 次实测**。
 >
 > ★**本单交的是"板端拿到就能照抄执行的验证步骤 + 判定口径"**, **不是**"验证已通过"。

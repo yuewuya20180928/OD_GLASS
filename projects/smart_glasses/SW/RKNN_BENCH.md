@@ -361,6 +361,40 @@ T_od = S4 + S5 + S6 + S7 = S5 + 6 ms
 | P1 | INT8 输出量化的实际精度 (板端跑 COCO 抽 200 张) | F1 ≥ 0.30 (量产门 G3) | 坑 3 的量化损失只有板端能定 |
 | P2 | 内存占用 (RK3576 DDR 比 512MB 大, 不是瓶颈) | — | — |
 
+### 5.4 ★★ v2.1 追加 (2026-11-23 · ISS-355) · ★转换 target 口径订正 (追加式·老行一字未删) ★★
+
+> ★**本段是追加段**: 上面 §5.1~§5.3 的**老行全部保留作历史留档**, 一行都没删、没改。
+> ★**老口径 (留档)**: §5 全篇是 **2026-10-29 在 RK3576 上**做的端到端判定 (S5 阈值 20.33 ms / 模式 A 端到端 55.0~57.0 ms / 模式 B 67.01 ms) ⇒ ★**这些性能数字属于 RK3576 芯片, 不因转换 target 改变而变化★**;
+> ★**被取代的只有「产物怎么转出来」这一环的口径** (下面第 (2) 条)★。
+
+★**(1) §5 现在的 target 口径 (实读, 2026-11-23)★:
+- §5.1/§5.2/§5.3 的**判定对象是 RK3576** (标题「RK3576 能否满足端到端 ≤60ms」) ⇒ ★**它的性能结论与本段无关, 仍然成立**;
+- ★**但 §5 隐含的转换链是 2026-10-29 那条**: 当时的产物由 `SW/tools/rknn_bench.py` 用 rknn-toolkit2 2.3.2 转出, 该脚本把转换目标固定为 `rk3576` ⇒ ★**凡拿 §5 的产物直接上 RK3572 板的做法, 其转换 target 这一环已被取代★**。
+
+★**(2) 新主路线 (2026-11-23 · ISS-355 起, [实测])★:
+| 项 | 内容 | 等级 |
+|---|---|---|
+| 工具链 | **rknn3-toolkit 1.2.0** (独立 conda env `~/miniconda3/envs/rknn3`, python 3.10.22) | [实测] |
+| 转换 target | **`target_platform='rk3572'`** | [实测] (config rc=0 / 转换四步 rc 全 0) |
+| 官方依据 | rknn3-toolkit README「Supported Platforms: RK1820 / RK1828 / **RK3572**」 | [官网] |
+| 产物 | `.rknn` **249,360 B** (md5 `97a34fff0b855b92681f26627dba5354`, 跨 3 会话 9/9 逐字节相同) | [实测] |
+| 转换耗时 | 本机 2026-11-23 05:4x 实跑: cfg 0.001 s / load 0.276 s / **build 58.878 s** / export 0.017 s / total **59.197 s** (主机负载会影响, 引用要带前提) | [实测] |
+| 脚本入口 | **`SW/tools/rk3572_model_rebuild.sh` (v2.0: 默认路线已迁到 rknn3 + rk3572)**; 机器可读: `bash SW/tools/rk3572_model_rebuild.sh --print-route` | [实测] |
+| 机器闸 | `SW/tools/check_iss355_convert_route.py` (只读 · 带 `--selftest` 反向用例 · 末行 `ALL TESTS PASS`) | [实测] |
+| 板端接受性 | RK3572 板是否接受该产物 ⇒ 仍 **[0数据]** (0 台设备) ⇒ 板到手时一条命令出 PASS/FAIL: `SW/tools/rk3572_rknn3_board_smoke.sh` | [0数据] |
+
+★**(3) 旧链的定位与代价 (留档, 降为「次要路线①」)★:
+- ★**定位**: `ROUTE=legacy bash SW/tools/rk3572_model_rebuild.sh` ⇒ 走 rknn-toolkit2 2.3.2 + `target_platform='rk3576'` ⇒ ★**只作历史对照 / 复现 2026-11-15 的 2.3.2 基线 (sha256 `1c5ff7ba…eb713`), 不作交付路线**★;
+- ★**代价 (必读)**: ★**板端 runtime 是否接受旧路线的产物 = [0数据]**★ —— 官方把 RK3572 (`librknn3_api_native.so`) 与 RK3576/RK3588 (`librknn3_api_rkcp.so`) 分成**两条 runtime**, 官方层无互换表述 ⇒ ★引用 §5 的性能数字时必须同时写明「那是 RK3576 的判定, 且 RK3572 板端数据 [0数据]」★。
+
+★**(4) 产物两件套 (★主路线特有·踩坑点★)★:
+- rknn3-toolkit 1.2.0 的 `export_rknn()` **一次产出两个文件**: `.rknn` (249,360 B) + **同名 `.weight` (1,960,448 B)** [实测];
+- 板端 API `load_rknn(model_path, weight_path)` **要两个参数** ⇒ ★**只拷 `.rknn` 一定失败**★;
+- ⇒ `SW/tools/rk3572_model_rebuild.sh` 的落盘段**强制两件套同时到位, 缺 `.weight` 直接失败退出**; 板端验证用 `SW/tools/rk3572_rknn3_board_smoke.sh --rknn … --weight … --expect-sha256 … --expect-weight-sha256 …`;
+- ⇒ 旧路线 (toolkit2) 的产物**只有 `.rknn`** (无 `.weight`), 板端走 toolkit-lite2 那套 ⇒ ★**两条路线的产物形态不同, 打包流程不能混用**★。
+
+★**(5) 取代标记★: 本段取代 §5 里「产物用 rk3576 target 转出来即可上板」的那一层口径; ★§5.1~§5.3 的性能判定数字本身保留作历史留档, 结论不再因本段而改动★。**
+
 ---
 
 ## 6. 证据分级汇总

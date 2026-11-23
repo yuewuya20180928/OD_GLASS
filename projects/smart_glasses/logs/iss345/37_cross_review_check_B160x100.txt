@@ -1,0 +1,79 @@
+==============================================================================
+评审基线快照: netlist_v1.csv md5=6aee500e60ba · BOM_v1.csv md5=5b9993992405
+                SCHEMATIC_V1.md md5=84ba13116354
+==============================================================================
+★ 档位 = B160x100 (台架板 160×100 (盘上现役 · RK3572-SOM 承载区形态)) · 板 160.00×100.00×1.60mm / 8 层 · 判据族: B160x100 台架板帧 (判据族: V/H/L 三链 + 面积重量 + 电池段 + 镜框侧)
+   · 三源校验 板宽 mm: 权威页 160.0 / params.json 160.0 / 板文件实读 160.0 ⇒ 逐位一致
+   · 三源校验 板高 mm: 权威页 100.0 / params.json 100.0 / 板文件实读 100.0 ⇒ 逐位一致
+   · 三源校验 铜层数: 权威页 8 / params.json 8 / 板文件实读 8 ⇒ 逐位一致
+   · 三源校验 板厚 mm: 权威页 1.6 / params.json 1.6 / 板文件实读 1.6 ⇒ 逐位一致
+   · 板面纯 python 逐焊盘重解析: SoM 承载区 焊盘实体 X 15.10..68.90 / Y 7.61..54.39 = 53.80×46.78mm · 封装外形 = 56.70×46.78mm · 座数 4 / 焊盘数 400 (与权威页 §3 行 71/72 逐位一致)
+[FAIL] C-1 跨板网名复用 (同名网跨两块板但无铰链通路)
+        命中 4 条: ['PGND', 'VDD_3V3_IO', 'USB_CC1', 'USB_CC2']
+[FAIL] C-2 充电板器件引用主板专有电源轨 (物理上无此轨)
+        命中 1 条: [('R_PU_CHG_STAT', 'VDD_3V3_IO', 'R_PU_CHG_STAT', 'RAIL_VDD_3V3_IO')]
+[PASS] C-3 电池 NTC 跨铰链 (电芯在镜脚 / 充电 IC 在镜框)
+        TS_BAT 行 9 条; 经铰链连接器=True (['J_CHG', 'J_CHG']); 电芯板={'MAIN_PCB'} → ✓ 通过 (V1.5 已补 J_CHG pin8)
+[PASS] C-4 J_CHG pin map: 网表 vs CHARGE_BOARD_SPEC §5.2 一致
+        0 处
+[PASS] C-5 镜脚内转换损耗 → 皮肤侧温度 (主模型)
+        7×LDO 声明最大电流合计 0mW (典型 50% 负载 0mW); DC-DC 61mW; 镜腿内 P=0.55+0.000+0.061=0.61W → 皮肤 65.6°C (典型 65.6°C) vs 43°C 红线 (43°C 只允许镜脚内 0.16W) | 
+[PASS] C-6 铰链区 4 条排线叠放几何 (竖向 + 径向)
+        竖向 (10+4+18+21)×0.5 = 26.5mm vs 净高 38.0mm (余 11.5); 径向 3.0+4×(0.2+0.15) = 4.40mm vs 可用 5.40mm (余 1.00)
+[PASS] C-7 ★跨铰链连接器体宽 ≤ 主板板宽 (100mm 台架板档)
+        最宽 = CONN_LIGHT 1×21p@0.5 → 接触跨度 10.5mm + 两侧边 2.5mm = 13.0mm; 板宽 100.0mm → ✓ 放得下 (余 87.0mm)
+[FAIL] C-8 J_DEBUG/J_UART 直插排针高度 ≤ 镜脚 H 余量
+        镜腿厚 7.3 - H 叠层已用 7.0 → 余 0.3mm; 1.27mm 直插排针塑料体高 2.54mm → ★超 2.24mm (J_DEBUG 1×4 必装) → 改贴片/开槽/挪检修口 ┃ ★**归属 = CROSS-OWNED (网表域)**: hw-lead 已答复采纳『2×5@1.27 Cortex-10 焊盘阵列 (座体 DNP)』(答案键 iss092_jdebug_cortex10_netlist); 网表改动需排期 state/gen_netlist.py (needs 键 iss092_jdebug_cortex10_netlist_fix → main) ⇒ 改完后本项自动消失 (焊盘阵列无实体高度)。★mech 侧欠: 该阵列的座体外形/footprint (hw-lead 答复里点名要结构侧给)
+[FAIL] C-9 BOM 封装 (footprint) 全部回填
+        178/218 条 footprint = 待定 → 板面积/器件高度/连接器外形全部无法核算
+[FAIL] C-10 BOM 带重量列 (整机 30-40g 目标可核)
+        重量列 = 无 → 整机重量只能靠 MECH_BUDGET 的估列 (48.9-74.0g vs 目标 30-40g)
+[FAIL] C-11 网表含安装孔/固定点/keepout
+        与机械固定相关的行数 = 0 → ★0 条 → PCB 出来没有固定孔, 装不进骨架 (PIN-SET-2: 2×⌀2.0H7 定位销 + 2×⌀1.4 压紧孔)
+[FAIL] C-12 板级归属覆盖全部物理板
+        netlist board 列 = ['CHG_BOARD', 'HINGE', 'MAIN_PCB']; 物理上还需要 ['SENSOR_BOARD'] (镜框摄像头板的载板) → ★CONN_CAM 的对端装哪块板没有口径 (装配/备料/开孔三件事无唯一口径)
+[PASS] C-13 充电板器件级占位面积 vs 25×10×0.8 外形
+        P10 位号 41 个, 估算占位 111mm² / 板面积 250mm² = 44% (扣 Type-C 座体后可用 184mm², 需求占位率 60%); 未建模件 ['USB_D_P_CHG', 'PWR_GOOD', 'BAT_CHG', 'TS_BAT', 'USB_CC1', 'NC', 'USB_D_N_CHG', 'USB_CC2', 'CHG_STAT', 'RAIL_VBUS_5V', 'J_CHG'] → ✓
+[FAIL] C-14 Type-C 座在镜框端件的局部厚度需求
+        沉板最深 2.1mm + 座体高 3.3mm = 5.4mm 局部厚度需求 vs P2S 打印件单壁 0.8mm → ★打印件单壁 0.8mm 装不下 → 端件必须局部加厚到 5.4mm + 加强筋 (承力路径 M-4) ┃ ★**归属 = CROSS-OWNED (打印包改版已登记)**: needs 键 iss089_typec_opening_and_print_pack → main (Type-C 面板试样移镜框端件 + 端件局部加厚/开口公差) + iss092_print_pack_rev → main ⇒ 这是**已登记待排期的打印包改版**, 不是没人管的红
+[PASS] C-15 跨铰链段压降测点成对 (Kelvin 双点)
+        BAT_CHG 网涉及板 = ['CHG_BOARD', 'HINGE', 'MAIN_PCB']; TP_BAT_CHG 行 = 2 → ✓
+[PASS] C-16 板宽 100mm 现状 (板框已定 160×100, 台架板帧)
+        板框 160.0×100.0mm [实测: 权威页 §6 cal:FRAMES + demo_mainboard_params.json board 段 + 板文件实读 三源逐位一致]; 镜脚前后厚不变 7.3mm; 镜脚根部净高 38.0mm (板宽吃 V 向, 不吃 H); 主板重 47.36g(8层1.6) vs 60×30 板 (F30A) 3.33g ⇒ Δ板重 +44.03g; CONN_LIGHT 体宽 13.0mm ≤ 板宽 100.0mm (余 87.0mm); SoM 承载区高 46.78mm ≤ 板宽 100.00mm ⇒ 装得下 (对照 F30A 板宽 30mm 装不下, 差 16.78mm)
+
+==============================================================================
+自检汇总: 8/16 PASS · FAIL 8 (MECH-OWNED 0 · 他域 8)
+==============================================================================
+  FAIL  C-1  [HW-OWNED] 跨板网名复用 (同名网跨两块板但无铰链通路)
+          └ 归属: netlist 域: hw-lead 自查 (非结构侧)
+  FAIL  C-2  [HW-OWNED] 充电板器件引用主板专有电源轨 (物理上无此轨)
+          └ 归属: netlist 域: hw-lead 自查 (非结构侧)
+  PASS  C-3  [HW-OWNED] 电池 NTC 跨铰链 (电芯在镜脚 / 充电 IC 在镜框)
+  PASS  C-4  [HW-OWNED] J_CHG pin map: 网表 vs CHARGE_BOARD_SPEC §5.2 一致
+  PASS  C-5  [MECH-OWNED] 镜脚内转换损耗 → 皮肤侧温度 (主模型)
+  PASS  C-6  [MECH-OWNED] 铰链区 4 条排线叠放几何 (竖向 + 径向)
+  PASS  C-7  [MECH-OWNED] ★跨铰链连接器体宽 ≤ 主板板宽 (100mm 台架板档)
+  FAIL  C-8  [CROSS-OWNED] J_DEBUG/J_UART 直插排针高度 ≤ 镜脚 H 余量
+          └ 归属: iss092_jdebug_cortex10_netlist_fix (→main) + mech 侧出座体外形/footprint
+  FAIL  C-9  [HW-OWNED] BOM 封装 (footprint) 全部回填
+          └ 归属: hw-lead 自查 (BOM 域, 非结构侧)
+  FAIL  C-10  [HW-OWNED] BOM 带重量列 (整机 30-40g 目标可核)
+          └ 归属: hw-lead 自查 (BOM 域, 非结构侧)
+  FAIL  C-11  [HW-OWNED] 网表含安装孔/固定点/keepout
+          └ 归属: ★iss192_demo_board_zero_mounting_holes_keepout (→main) + iss192_pcb60x30_holes_set_b_to_set_a (→hw-lead)
+  FAIL  C-12  [HW-OWNED] 板级归属覆盖全部物理板
+          └ 归属: hw-lead 自查 (网表 board 列, 非结构侧)
+  PASS  C-13  [MECH-OWNED] 充电板器件级占位面积 vs 25×10×0.8 外形
+  FAIL  C-14  [CROSS-OWNED] Type-C 座在镜框端件的局部厚度需求
+          └ 归属: iss089_typec_opening_and_print_pack (→main) + iss092_print_pack_rev (→main)
+  PASS  C-15  [CROSS-OWNED] 跨铰链段压降测点成对 (Kelvin 双点)
+  PASS  C-16  [MECH-OWNED] 板宽 100mm 现状 (板框已定 160×100, 台架板帧)
+
+★ 闸状态: **本脚本不是闸** (全项目调用方 = 0; 它判 16 项里只有 7 项属结构侧)。
+★ 退出码口径 (★ISS-192 改★): rc=1 **只**表示有 MECH-OWNED 判据不通过 (结构侧自己的活没做完);
+  他域 (HW-OWNED/CROSS-OWNED) 的红项**不**影响 rc —— 但每盏都带归属登记键, 不留孤儿红。
+  · 他域红项 (已登记归属, 不阻塞): [('C-1', 'HW-OWNED'), ('C-2', 'HW-OWNED'), ('C-8', 'CROSS-OWNED'), ('C-9', 'HW-OWNED'), ('C-10', 'HW-OWNED'), ('C-11', 'HW-OWNED'), ('C-12', 'HW-OWNED'), ('C-14', 'CROSS-OWNED')]
+
+[实测] 条数 = 0 (无实物); 可复现的是本脚本对 netlist/BOM 的解析复算结果
+结构侧权威几何口径: HW/PCB/BOARD_FRAME_CALIBER.md §6 cal:FRAMES (板 160×100 / RK3572-SOM 承载区形态)
+用法: cd projects/smart_glasses && python3 MECH/cross_review_check.py

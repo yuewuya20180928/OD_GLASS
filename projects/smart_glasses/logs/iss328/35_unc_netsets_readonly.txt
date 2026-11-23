@@ -1,0 +1,45 @@
+★ISS-328 cont4 · unc 网名集合 (★只读收割·未重跑任何链/臂·未写板·未改闸★)
+★口径: state/cmp_unc_sets.py 的 nets_of() ⇒ 从 DRC json 的 unconnected_items 里正则取 [网名]·排序去重★
+★出处: tmp/iss328/ru_R.drc.json + tmp/iss328/chain_iss328_s8ru/final_board.drc.json + tmp/iss328/cab/_cab__*.base.json (★臂间对照闸当时生成的那两份 DRC json·零手抄★)
+
+── ① 裸路由器产物 (排版+布线·未套链)
+   文件 = tmp/iss328/ru_R.drc.json
+   unc 条目 = 35 · DRC viol = 11 · ★unc 网名 = 34★
+     BAT_CHG BOOT_N CSI_D0_CK_N CSI_D0_D0_N CSI_D0_D0_N_SRC CSI_D0_D1_N
+     CSI_D0_D1_N_SRC CSI_D0_D2_N CSI_D0_D2_P CSI_MCLK CSI_MCLK_SRC DSI_D0_CK_N
+     DSI_D0_D0_N DSI_D0_D0_N_SRC DSI_D0_D0_P DSI_D0_D1_N DSI_D0_D2_N_SRC
+     DSI_D0_D3_N_SRC I2C_A_SCL I2C_B_SCL I2C_B_SDA KEY_CAM KEY_VOL_P LED_B LED_G
+     LIGHT_5V PWR_GOOD PWR_ON RAIL_DEMO_5V SPI_MISO_BOOT SPI_MOSI_BOOT UART_RX
+     USB_CC1 VDD_1V8_IO
+
+── ② 右上臂链终板
+   文件 = tmp/iss328/chain_iss328_s8ru/final_board.drc.json
+   unc 条目 = 29 · DRC viol = 12 · ★unc 网名 = 28★
+     BOOT_N CSI_D0_CK_N CSI_D0_D0_N CSI_D0_D0_N_SRC CSI_D0_D1_N CSI_D0_D1_N_SRC
+     CSI_D0_D2_N CSI_D0_D2_P CSI_MCLK CSI_MCLK_SRC DSI_D0_CK_N DSI_D0_D0_N
+     DSI_D0_D0_N_SRC DSI_D0_D0_P DSI_D0_D1_N DSI_D0_D2_N_SRC DSI_D0_D3_N_SRC
+     I2C_A_SCL I2C_B_SCL KEY_CAM KEY_VOL_P LED_B LED_G PWR_GOOD SPI_MISO_BOOT
+     SPI_MOSI_BOOT UART_RX USB_CC1
+
+── ③ 基线臂同链终板 (ISS-325 同日同代码对照臂)
+   文件 = tmp/iss328/cab/_cab__home_yuewuya_.openclaw_workspace_projects_smart_glasses_tmp.base.json
+   unc 条目 = 29 · DRC viol = 205 · ★unc 网名 = 27★
+     CSI_D0_CK_N CSI_D0_D0_N CSI_D0_D0_N_SRC CSI_D0_D1_N CSI_D0_D1_N_SRC
+     CSI_D0_D2_N CSI_D0_D2_P CSI_MCLK CSI_MCLK_SRC DSI_D0_CK_N DSI_D0_CK_N_SRC
+     DSI_D0_D0_N DSI_D0_D1_N DSI_D0_D3_N DSI_D0_D3_P I2C_A_SCL I2C_B_SCL
+     I2C_B_SDA ID_DETECT_1 KEY_CAM KEY_VOL_P LED_B LED_G SPI_MISO_BOOT
+     SPI_MOSI_BOOT UART_RX USB_CC1
+
+── 集合关系 (★机器算的★)
+   ①→② (裸路由器产物 → 右上臂链终板): 交集 28 · 仅①有 6 · 仅②有 0
+      ★仅①有 (被补丁链救回) = BAT_CHG I2C_B_SDA LIGHT_5V PWR_ON RAIL_DEMO_5V VDD_1V8_IO
+      ★仅②有 (补丁链新断)   = (空)
+      ★★链终网名集合 ⊂ 裸路由器网名集合? 是 (严格子集)★
+   ② vs ③ (右上臂 vs 基线臂同链终): 交集 22 · 仅②有 6 · 仅③有 5
+      ★仅②有 (候选新断) = BOOT_N DSI_D0_D0_N_SRC DSI_D0_D0_P DSI_D0_D2_N_SRC DSI_D0_D3_N_SRC PWR_GOOD
+      ★仅③有 (候选救回) = DSI_D0_CK_N_SRC DSI_D0_D3_N DSI_D0_D3_P I2C_B_SDA ID_DETECT_1
+
+── 与臂间对照闸日志 (logs/iss328/08_rightupper_arm.log L140~L152) 的一致性核对
+   日志: 基线 unc 条目 29 · 网名签名 27 · 候选 unc 条目 29 · 网名签名 28 · 交集 22 · 净账 救回 5 / 新断 6
+   本脚本: 基线 条目 29 · 网名 27 · 候选 条目 29 · 网名 28 · 交集 22 · 救回 5 / 新断 6
+   ★★逐项一致? 是 ⇒ 本收割件与链日志同口径同结果★★

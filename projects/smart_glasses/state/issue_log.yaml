@@ -7461,8 +7461,9 @@ issues:
   dispatched_at: null
 - id: ISS-155
   title: ★★★★[demo 头号卡点] rk3572 不是 rknn-toolkit2 合法 target ⇒ 用 rk3576 target 转的 .rknn 能否在 RK3572 上跑通 (板端验证)
-    —— 且板子当前不可达
-  severity: blocker
+    —— 且板子当前不可达 ★★【2026-11-23 07:3x main 裁决 · ★★降级 · 本单不再是 demo 头号卡点 · 余项 = 转换链已通 / 板端接受性 [0数据]·待板★★】★**老题面
+    (rk3576 target 那条问法) 保留作历史留档·结论不再引用** ★
+  severity: high
   source_blocker: null
   source_agent: main
   desc: '★2026-11-02 20:2x ISS-147 实测: ★**`rk3572` 不是 rknn-toolkit2 的合法 `target_platform`** (2.3.2 与最新
@@ -7479,11 +7480,12 @@ issues:
   owner: main
   reporter: main
   raised: '2026-11-02'
-  due: '2026-11-19'
+  due: '2026-11-27'
   status: open
   external: false
   need_keys: []
-  fix_ref: SW/RKNN_BUILD_ENV_RECOVERY.md §2 · HW/PART_ALTERNATIVES_REGISTRY.md §1
+  fix_ref: SW/RKNN_BUILD_ENV_RECOVERY.md §2 · HW/PART_ALTERNATIVES_REGISTRY.md §1 · state/_apply_20260723_0735_main_decide_iss155_label.py
+    · state/_apply_20260723_0720_main_sign_iss355.py · state/_apply_20260723_0535_main_sign_iss353.py
   verify_by: sw-lead
   verify_result: null
   verify_date: null
@@ -7504,7 +7506,18 @@ issues:
     判据链 + 降级结论** ⇒ ★**『等板』不再是本单的阻塞表述** ★
 
     2026-11-16 07:0x ★卡点 = rk3572 不是 rknn-toolkit2 合法 target ⇒ ★**内部可做, 不等外部 (★本条是 demo 头号卡点★) ⇒ 等 sw-lead
-    名额 (★本轮 sw-lead 在跑 ISS-234, 下一轮派★)** ⇒ due 顺延到 11-19 ★ ⇒ ★**顺延的是【催办时间】, 不是【已定时间】** ★'
+    名额 (★本轮 sw-lead 在跑 ISS-234, 下一轮派★)** ⇒ due 顺延到 11-19 ★ ⇒ ★**顺延的是【催办时间】, 不是【已定时间】** ★ ★★【2026-11-23
+    07:3x main 裁决 · 降级: 本单不再是 demo 头号卡点 · 余项 = 板端接受性 [0数据]·待板】★★ ★**① 题面已过期**: 老题面问的是「用 rk3576 target
+    转的 .rknn 在 RK3572 上能不能跑通」⇒ ★**主路线早已不用 rk3576 target** ⇒ 那条问法本身作废 (保留作历史留档·结论不再引用) ★ ★**② 转换链已通 [实测]**:
+    rknn3-toolkit 1.2.0 的 config(target_platform=rk3572) rc=0 (ISS-263) + 转换脚本默认路线已迁 (ISS-355 verified:
+    ROUTE_DEFAULT=rknn3 / TARGET_PLATFORM_DEFAULT=rk3572) + 产物真在盘 (md5 97a34fff… 249,360 B + .weight 7c04da4f…
+    1,960,448 B · mtime 2026-11-23 05:48 实跑) + 全仓旧口径已清零 (ISS-353 verified · 口径闸 rc=0) ★ ★**③ 剩下的是什么**:
+    ★**只有板端接受性 [0数据]** ⇒ 降级 A/B/C 已写死 (板到手一条命令出 PASS/FAIL · 板不来 demo 不停只登记待板 · 板端拒收三档代价) ⇒ ★**卡的是「验收何时做」,
+    不是「能不能做」** ★ ★**④ 裁决**: severity blocker → high · 题面加降级标签 · ★**status 保持 open (板端仍未验·不关单)** · ★**due
+    顺延到 2026-11-27** (★顺延的是【催办时间】不是【已定时间】· ★绑定「板到手」⇒ 与 ISS-169/ISS-354 那一趟同批★) ★ ★**⑤ 未代老板拍**: 本裁决只在 main
+    地界内 (owner=main) 改台账标签与 severity ⇒ ★**不涉及任何老板拍板项, 不新增拍板项** ★ ★**⑥ 证据**: state/_apply_20260723_0720_main_sign_iss355.py
+    (34 条验收线全绿) · state/_apply_20260723_0535_main_sign_iss353.py (33 条全绿) · HANDOFF/2026-11-23_sw-lead_ISS355_转换脚本迁主路线.md
+    · HANDOFF/2026-11-23_sw-lead_ISS353_rk3572目标口径清账.md ★'
   dispatched_at: null
 - id: ISS-156
   title: '★★[demo 供应链] 自研主板的三件前置选型: camera 模组 / 屏模组 / RK3572 核心板 (★主板的 FPC 座由模组倒逼)'
@@ -39602,14 +39615,37 @@ issues:
   dispatched_at: '2026-11-23'
   verify_by: main
   verify_date: '2026-11-23'
-  verify_result: '✅ verified (★main 2026-11-23 05:3x 本机独立复核 · 不抄 agent 报告★) ⇒ ★**签收闸 `state/_apply_20260723_0535_main_sign_iss353.py` 自跑验收线, 全绿才签 (fail-closed)★** ⇒ 交卷页存在=✅; 交卷页不是骨架 (≥ 4000 B)=✅; 交卷页 B0 块标题齐全=✅; 交卷页 B1 块标题齐全=✅; 交卷页 B2 块标题齐全=✅; 交卷页 B3 块标题齐全=✅; 交卷页 B4 块标题齐全=✅; 交卷页 B5 块标题齐全=✅; 交卷页 B6 块标题齐全=✅; 交卷页 B7 块标题齐全=✅; 交卷页占位符 = 0=✅; 交卷页引用文件逐个在盘 (0 MISS)=✅; 板指纹 md5+mtime 未动=✅; 交卷页含板指纹双证 (开工前 + 交卷后)=✅; 零落表: 受保护件 5 件 md5 逐字节未动=✅; 别人的分片 (pm/hw/mech) 零本单登记条目=✅; 自带闸 SW/tools/check_rk3572_target_caliber.py 存在=✅; 自带闸 --selftest 通过=✅; 自带闸裸跑输出带名单 (逐条 文件:行)=✅; 自带闸读数: 本单可处置残留 = 0 条=✅; 残留 16 条已标「交 main 裁」(非本单漏项)=✅; 交接补丁 logs/iss353/apply_caliber_dispositions.py 在盘=✅; 补丁干跑 rc=0 (只校验不改盘)=✅; compat 页 §0~§7 老标题一个没少=✅; compat 页 §8 追加段在盘 (v2.1)=✅; 取代标记 (ISS-263) 在盘=✅; 板端接受性降级 A/B/C 三档写死=✅; 板端接受性标 [0数据] (不许写成已验)=✅; 零外发/零采购: 无「买板/等回信/跟进邮件」的【非否定语境】表述=✅; 结案建议交 main 且不代拍 (ISS-155 标签交 main 裁)=✅; logs/iss353/ 证据在盘 (≥ 12 件)=✅; merge.py rc=0=✅; gate_check.py rc=0 且 Q1 = 18/18=✅ ★ **零写板** (板 md5 `611b869e13518c3c023fb178f91a0075` · mtime `2026-11-06 07:07:17.362193413` 逐字节未动 ⇒ **G1 仍开, 不许投板**) · 零落表 (受保护件 5 件同值) · 零改别人的分片 (pm/hw/mech 零本单登记条目) · 零外发 · 零采购 · 未替老板拍板 ★ ★ **本单 = rk3572 目标口径清账 (纯口径)**: ① 全仓清账 = 【比名单 + 逐条读原文】(不是只报数): 命中 338 行 / 结论矛盾 16 / 结论待裁 6 / 历史叙述 316; 本单地界 (sw.yaml + compat 页 3 行) 已清零, 剩余 16 条全是【越权】⇒ 交 main 裁; ② 板端接受性仍 [0数据] ⇒ 降级 A/B/C 三档写死 (板到手一条命令 PASS/FAIL · 板不来 demo 不停只登记「待板」 · 板端拒收三档代价排序); ③ 结案建议交 main (ISS-155 从「demo 头号卡点」降为「转换链已通 / 板端待板」= **交 main 裁, sw-lead 不代拍**); ④ 交接凭据 = `logs/iss353/apply_caliber_dispositions.py` (默认 dry-run · 干跑 rc=0 · 15 条旧片段唯一命中 · 已在项目盘副本上真跑过 --apply) ★ ★ **main 独立复核记录的两条** (不抄 agent 自评): ① 自带闸裸跑输出带【文件:行】级名单 (不是只报数) 且【本单可处置残留 = 0】; ② compat 页 §0~§7 老标题一个没少 + §8 追加段在盘 + 取代标记在盘 ★ **★但 main 记下一处口径瑕疵 (不构成拒签, 留痕)** ★: 交卷页自称「本单内已处置的 4 条 · 老字一字未删」⇒ ★**main 逐行看 compat 页实读: 3 行里【2 行】的原句是被【改写】而非逐字保留** (L21 的 `rk3576-target` → `rk3572-target` · L96 的「官方根本没有」 → 「官方 rknn-toolkit2 侧没有」) ⇒ ★**判据方向没错 (取代标记 + [0数据] 判定不变 + 历史留档声明都在盘), 但「老字一字未删」这句自报与盘面不符 ⇒ 已在本页登记** ★ ★★ **交 main 的 3 条 (本单未代裁)**: ① 跑 `python3 logs/iss353/apply_caliber_dispositions.py --apply` 清 15 条越权口径条目 (★含 1 条在 hw-lead 地界 `HW/STEP1_LANDING_LIST.md` ⇒ 应用前需注意域归属 + 应用后必须重跑 demo_timing_check / check_demo_panel_spec / iq_coverage_check / gate_check★) ② 转 hw-lead 处理 hw.yaml 那 2 条 (已登记 need `iss353_need_hw_ledger_supersede`) ③ 拍 ISS-155 台账标签 (need `iss353_need_main_decide_iss155_blocker`) ★ ★ 残留 followup: 转换脚本仍是 toolkit2+rk3576 (need `iss353_need_followup_convert_script_rk3572`) ⇒ 交 main 裁排期 ★'
+  verify_result: '✅ verified (★main 2026-11-23 05:3x 本机独立复核 · 不抄 agent 报告★) ⇒ ★**签收闸 `state/_apply_20260723_0535_main_sign_iss353.py`
+    自跑验收线, 全绿才签 (fail-closed)★** ⇒ 交卷页存在=✅; 交卷页不是骨架 (≥ 4000 B)=✅; 交卷页 B0 块标题齐全=✅; 交卷页 B1 块标题齐全=✅; 交卷页
+    B2 块标题齐全=✅; 交卷页 B3 块标题齐全=✅; 交卷页 B4 块标题齐全=✅; 交卷页 B5 块标题齐全=✅; 交卷页 B6 块标题齐全=✅; 交卷页 B7 块标题齐全=✅; 交卷页占位符
+    = 0=✅; 交卷页引用文件逐个在盘 (0 MISS)=✅; 板指纹 md5+mtime 未动=✅; 交卷页含板指纹双证 (开工前 + 交卷后)=✅; 零落表: 受保护件 5 件 md5 逐字节未动=✅;
+    别人的分片 (pm/hw/mech) 零本单登记条目=✅; 自带闸 SW/tools/check_rk3572_target_caliber.py 存在=✅; 自带闸 --selftest 通过=✅;
+    自带闸裸跑输出带名单 (逐条 文件:行)=✅; 自带闸读数: 本单可处置残留 = 0 条=✅; 残留 16 条已标「交 main 裁」(非本单漏项)=✅; 交接补丁 logs/iss353/apply_caliber_dispositions.py
+    在盘=✅; 补丁干跑 rc=0 (只校验不改盘)=✅; compat 页 §0~§7 老标题一个没少=✅; compat 页 §8 追加段在盘 (v2.1)=✅; 取代标记 (ISS-263) 在盘=✅;
+    板端接受性降级 A/B/C 三档写死=✅; 板端接受性标 [0数据] (不许写成已验)=✅; 零外发/零采购: 无「买板/等回信/跟进邮件」的【非否定语境】表述=✅; 结案建议交 main 且不代拍
+    (ISS-155 标签交 main 裁)=✅; logs/iss353/ 证据在盘 (≥ 12 件)=✅; merge.py rc=0=✅; gate_check.py rc=0 且 Q1 = 18/18=✅
+    ★ **零写板** (板 md5 `611b869e13518c3c023fb178f91a0075` · mtime `2026-11-06 07:07:17.362193413` 逐字节未动
+    ⇒ **G1 仍开, 不许投板**) · 零落表 (受保护件 5 件同值) · 零改别人的分片 (pm/hw/mech 零本单登记条目) · 零外发 · 零采购 · 未替老板拍板 ★ ★ **本单
+    = rk3572 目标口径清账 (纯口径)**: ① 全仓清账 = 【比名单 + 逐条读原文】(不是只报数): 命中 338 行 / 结论矛盾 16 / 结论待裁 6 / 历史叙述 316; 本单地界
+    (sw.yaml + compat 页 3 行) 已清零, 剩余 16 条全是【越权】⇒ 交 main 裁; ② 板端接受性仍 [0数据] ⇒ 降级 A/B/C 三档写死 (板到手一条命令 PASS/FAIL
+    · 板不来 demo 不停只登记「待板」 · 板端拒收三档代价排序); ③ 结案建议交 main (ISS-155 从「demo 头号卡点」降为「转换链已通 / 板端待板」= **交 main 裁,
+    sw-lead 不代拍**); ④ 交接凭据 = `logs/iss353/apply_caliber_dispositions.py` (默认 dry-run · 干跑 rc=0 · 15 条旧片段唯一命中
+    · 已在项目盘副本上真跑过 --apply) ★ ★ **main 独立复核记录的两条** (不抄 agent 自评): ① 自带闸裸跑输出带【文件:行】级名单 (不是只报数) 且【本单可处置残留
+    = 0】; ② compat 页 §0~§7 老标题一个没少 + §8 追加段在盘 + 取代标记在盘 ★ **★但 main 记下一处口径瑕疵 (不构成拒签, 留痕)** ★: 交卷页自称「本单内已处置的
+    4 条 · 老字一字未删」⇒ ★**main 逐行看 compat 页实读: 3 行里【2 行】的原句是被【改写】而非逐字保留** (L21 的 `rk3576-target` → `rk3572-target`
+    · L96 的「官方根本没有」 → 「官方 rknn-toolkit2 侧没有」) ⇒ ★**判据方向没错 (取代标记 + [0数据] 判定不变 + 历史留档声明都在盘), 但「老字一字未删」这句自报与盘面不符
+    ⇒ 已在本页登记** ★ ★★ **交 main 的 3 条 (本单未代裁)**: ① 跑 `python3 logs/iss353/apply_caliber_dispositions.py --apply`
+    清 15 条越权口径条目 (★含 1 条在 hw-lead 地界 `HW/STEP1_LANDING_LIST.md` ⇒ 应用前需注意域归属 + 应用后必须重跑 demo_timing_check
+    / check_demo_panel_spec / iq_coverage_check / gate_check★) ② 转 hw-lead 处理 hw.yaml 那 2 条 (已登记 need
+    `iss353_need_hw_ledger_supersede`) ③ 拍 ISS-155 台账标签 (need `iss353_need_main_decide_iss155_blocker`)
+    ★ ★ 残留 followup: 转换脚本仍是 toolkit2+rk3576 (need `iss353_need_followup_convert_script_rk3572`) ⇒ 交 main
+    裁排期 ★'
   note: '★★2026-11-23 04:3x · cron fb67af40 (ARS45 队列自动派活) 开单并派出 (★项目总工 main★) ★★ ★**开单依据**: ① ISS-263
     已把 「rk3572 无合法 target」这条命题在新工具链下打掉, 但 ISS-155 仍是 blocker 且全仓口径未同步 ② 板端 [0数据] 按老板 2026-11-12 02:02
     口径必须换成「自己查 + 证据等级 + 降级方案」, 不许挂成外部依赖 ★**判定**: 纯口径类 · 零写板 · 零落表 (★符合「板只改一次」纪律: 先派纯分析/作业包类★) · 零新增拍板项
     · ★**本单不动板·不动网表·不动真源**★ · 派活时刻 2026-11-23 04:3x · ★**status 落 fixing ⇒ 兄弟 job 的 advance.py --json
     看不见本单 ⇒ 不会重复派** ★'
-  fix_ref: 'state/_apply_20260723_0535_main_sign_iss353.py'
-
+  fix_ref: state/_apply_20260723_0535_main_sign_iss353.py
 - id: ISS-354
   title: ★★[★新主线·PCB 线·demo 主板可制造性收口·纯查证·零写板] ★★【ISS-169 (open, owner=main) 暴露三件「板子还不能下单」的事至今没收口 ⇒ 本单
     = ① **SoM 座 pin1「哪一排」公开资料无定论** ⇒ 出降级方案 + 下料前一票否决项 ② **5 个 ref / 4 类封装与脚号不自洽** (Q1 / Q2 / U_BATPROT
@@ -39634,7 +39670,7 @@ issues:
   reporter: main
   raised: '2026-11-23'
   due: '2026-11-24'
-  status: fixing
+  status: verified
   external: 'false'
   task_brief: '# ISS-354 · hw-lead · ★demo 主板可制造性收口 (SoM 座 pin1 排向 + 封装/脚号不自洽 + BOM 待选型)·纯查证·零写板★
 
@@ -39783,8 +39819,721 @@ issues:
     '
   dispatched_at: '2026-11-23'
   verify_by: main
-  verify_result: null
+  verify_date: '2026-11-23'
+  verify_result: '✅ verified (★main 2026-11-23 07:2x 本机独立复核 · 不抄 agent 报告★) ⇒ ★**签收闸 `state/_apply_20260723_0725_main_sign_iss354.py`
+    自跑验收线, 全绿才签 (fail-closed)★** ⇒ 交卷页存在=✅; 交卷页不是骨架 (≥ 4000 B)=✅; 交卷页 B0 块标题齐全=✅; 交卷页 B1 块标题齐全=✅; 交卷页
+    B2 块标题齐全=✅; 交卷页 B3 块标题齐全=✅; 交卷页 B4 块标题齐全=✅; 交卷页 B5 块标题齐全=✅; 交卷页 B6 块标题齐全=✅; 交卷页 B7 块标题齐全=✅; 交卷页 B8
+    块 (并发回滚事件登记) 在盘=✅; 交卷页占位符 = 0 (★语境窗口: 描述别人骨架的不计★)=✅; 交卷页引用文件逐个在盘 (0 MISS)=✅; 板指纹 md5+mtime 未动=✅; 交卷页含板指纹双证
+    (开工前 + 交卷后)=✅; 零落表: 受保护件 5 件 md5 逐字节未动=✅; 别人的分片 (pm/sw/mech) 零本单登记条目=✅; 自带闸 HW/check_iss354_manufacturability.py
+    存在=✅; 自带闸 --selftest 末行 ALL TESTS PASS=✅; 自带闸裸跑 rc=0=✅; 自带闸裸跑带名单 (V-xx / 清单)=✅; ★WORKPACKET 追加式零删除
+    (前 150637 B 与快照逐字节相同)=✅; ★PREFLIGHT 走生成器路线 (幂等闸 rc=0 · 非手改)=✅; ★PREFLIGHT 的 ISS-354 追加块逐字来自 sidecar=✅;
+    ★PREFLIGHT 含下料前一票否决项 (V-01 起)=✅; ★5 个 ref 改项清单在盘 (作业包 §9-6)=✅; ★改项清单含官方应为封装 (VSON/DQN/SOT-23 等)=✅;
+    ★SoM 降级方案 (a)(b)(c) 在盘 (预检页 + 作业包)=✅; ★BOM `opn == [0数据]` 名单 = 12 个 (main 独立读 BOM)=✅; ★BOM 名单与交卷页逐条一致=✅;
+    ★★Q1/Q2 的 pad 2 同挂 BAT_GATE (源极共用同网)=✅; ★★Q1/Q2 只有 5 个焊盘且编号 2..6 (缺 1)=✅; ★★U_BATPROT 焊盘编号 2..7 (与符号
+    1..6 错位)=✅; ★★U_LDO_S28 缺 EN(3) (板上无 3 号脚)=✅; ★★U_SUPV 缺 GND(2)+MR(3) (板上只有 1/4/5/6)=✅; ★★两只 TPS22991RAA
+    落在 4.00×5.00 通用 land (真件 UQFN-4 0.85×0.75)=✅; 并发写盘/回滚事件已登记 (§B8 + 分片登记)=✅; ISS-353 口径层闸 rc=0 且全仓无结论矛盾=✅;
+    零外发/零采购: 无「买板/等回信/等原厂确认」的非否定语境表述=✅; 不代拍: U-1 / ESD 架构轴 不在本单被拍=✅; logs/iss354/ 证据在盘 (≥ 15 件)=✅; merge.py
+    rc=0=✅; gate_check.py rc=0 且 Q1 = 18/18=✅ ★ **零写板** (板 md5 `611b869e13518c3c023fb178f91a0075` · mtime
+    `2026-11-06 07:07:17.362193413` 逐字节未动 ⇒ **G1 仍开, 不许投板**) · 零落表 (受保护件 5 件同值) · 零改别人的分片 · 零外发 · 零采购
+    · 未替老板拍板 ★ ★ **本单 = demo 主板可制造性收口 (板那一趟的改项清单输入)**: ① SoM 座 pin1「哪一排」= 无定论 ⇒ 三条降级方案 (排线转接板引出 + 样件万用表定排
+    + 1:1 治具) + 下料前一票否决项 ② 5 个 ref / 4 类封装与脚号不自洽的改项清单 (追加进 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md` §9-6)
+    ③ BOM `opn == [0数据]` 12 个 ref 的候选与代价 (不代拍) ④ 自带只读闸 `HW/check_iss354_manufacturability.py` (11 条断言
+    + 7 条反向用例) ★ ★ **main 独立复核 (★自己读板文件, 不抄 agent 报告★)**: ① Q1/Q2 的 pad 2 同挂 `BAT_GATE` (源极共用同网) 且两只都只有
+    5 个焊盘、编号 2..6 (缺 1) ② `U_BATPROT` 焊盘编号 2..7 (与符号 1..6 错位) ③ `U_LDO_S28` 只有 1/2/4/5 ⇒ 缺 EN(3) ⇒ 恒关断
+    ④ `U_SUPV` 只有 1/4/5/6 ⇒ 缺 GND(2)+MR(3) ⇒ 装了无地不工作 ⑤ `U_EN_SW`/`U_PWR_SW` 两只必装 TPS22991RAA 落在 4.00×5.00
+    通用 land, 而 BOM 写的是 UQFN-4 RAA 0.85×0.75 ⇒ 首版装机就失败 ⇒ **6 条板级硬事实全部由 main 从板文件复算命中** ★ ★ **追加式零删除**:
+    main 拿迁移前快照 (`tmp/iss354/WORKPACKET_BEFORE.md` 150,637 B / `PREFLIGHT_BEFORE.md` 76,862 B) 与现文件**逐字节对拍前缀**
+    ⇒ 零删除零改写 (★两个并发会话先后追加, 前缀仍逐字节相同★) ★ ★ **并发事件已登记 (§B8 + 分片 `iss354_concurrent_writeback_fact`)**: 06:05/06:11/06:17
+    三个时间点的并发写盘事件 + 「权威副本 = veto 清单 + 交卷页 + logs 三处」 ⇒ ★**回滚不是静默的** ★ ★ **附带完成**: hw.yaml 那 2 条 rk3576
+    旧登记已由 hw-lead 追加切题取代标记 ⇒ ★**ISS-353 口径层闸现 rc=0 且全仓无「结论矛盾」★** ★ ★ **交 main 的**: SoM pin1 排向的最终判定 (降级方案里的「样件万用表定排」⇒
+    要等样件) + BOM 选型 (12 个 ref 的候选已给, 不代拍) + 板那一趟的改项清单合批 ★'
   note: '★★2026-11-23 04:3x · cron fb67af40 (ARS45 队列自动派活) 开单并派出 (★项目总工 main★) ★★ ★**开单依据**: ISS-169 至今
     open 且无 task_brief, 内容已可拆成【纯查证/作业包类】的活 ⇒ 符合「板只改一次」纪律 (先派纯分析类, 真动板那一趟等老板拍完 9 件再一次做完) ★ ★**本单交的是器件级/几何级事实与改项清单,
     不碰板坐标/层数/尺寸 ⇒ 不因 U-1 未拍而卡住** ★ ★**判定**: 纯查证类 · 零写板 · 零落表 · 零新增拍板项 · 派活时刻 2026-11-23 04:3x · ★**status
     落 fixing ⇒ 兄弟 job 的 advance.py --json 看不见本单 ⇒ 不会重复派** ★'
+  fix_ref: state/_apply_20260723_0725_main_sign_iss354.py
+- id: ISS-355
+  title: '★★[★模型链·实现侧·纯脚本·零写板] ★★【ISS-353 已签收 ⇒ 口径清了, 但【实现】没改: `SW/tools/rk3572_model_rebuild.sh` (L13/L86/L136)
+    与 `SW/RKNN_BENCH.md` §5 仍是 toolkit2 + `target_platform=''rk3576''` ⇒ 任何人按现脚本重跑, 拿到的仍是 rk3576-target
+    产物 ⇒ 主路线 (rknn3-toolkit 1.2.0 + rk3572) 还没落到脚本上 ⇒ 本单 = 把主路线落到脚本上 + 新建机器闸钉住】★★ ★**口径清了 ≠ 实现改了 ⇒ 这是
+    ISS-353 §B7 残留表里的 `iss353_need_followup_convert_script_rk3572` (登记为 to=main · 等 main 确认优先级) ⇒ 本单就是它**★'
+  severity: medium
+  source_blocker: ISS-353
+  source_agent: main
+  desc: '★**main 2026-11-23 05:4x 本机实读 (不抄 agent 报告)★** ⇒ ★**① 上游**: ISS-353 已由 main 签收 (★33 条验收线全绿 +
+    自测 8/8·机器判决★) ⇒ 口径真值已钉死: ★**toolkit2 (2.3.2/2.5.0) 不支持 rk3572 target [官网]+[实测] ⇒ 转换链要走 rknn3-toolkit
+    1.2.0 (其 `config(target_platform=''rk3572'')` rc=0 [实测], 转换 rc=0, 产物逐字节可复现)**★ ⇒ ★**② 残留**: 全仓 16
+    条旧结论已由 main 一键补丁清掉 15 条 (文档类) · 剩 2 条在 `hw.yaml` (hw-lead 地界) ⇒ 但 `SW/tools/rk3572_model_rebuild.sh`
+    的默认路线**仍是旧链** ⇒ 口径与实现脱节 ⇒ 任何按脚本重跑的人都会拿到 rk3576-target 产物 ⇒ ★**③ 一个必须点名的坑 (ISS-353 已点出)**: rknn3-toolkit
+    1.2.0 的产物是 **`.rknn` + `.weight` 两件套** ⇒ **只拷 `.rknn` 一定失败** ⇒ 脚本的拷贝段必须两件套一起处理 ⇒ ★**④ 为什么现在做**: demo
+    路线的模型链要能一条命令重建 (板到手时的验收也要用同一套产物) ⇒ 默认路线必须先落到脚本上 ⇒ ★**⑤ 边界**: 零写板 (板 md5 `611b869e13518c3c023fb178f91a0075`
+    / mtime `2026-11-06 07:07:17.362193413` 必须逐字节不变) · 零落表 · 零外发 · 零采购 · 不替老板拍板 · 不新增拍板项 · 只写 SW/ 域 +
+    交卷页 + logs/iss355/ + sw.yaml 分片 ★'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-11-23'
+  due: '2026-11-25'
+  status: verified
+  external: 'false'
+  task_brief: '★**题**: ISS-353 交卷页 §B7 残留表第 1 行 (`iss353_need_followup_convert_script_rk3572`) ⇒ ★**口径清了
+    ≠ 实现改了**: `SW/tools/rk3572_model_rebuild.sh` (L13/L86/L136) 与 `SW/RKNN_BENCH.md` §5 仍是 toolkit2 +
+    `target_platform=''rk3576''` ⇒ **主路线 (rknn3-toolkit 1.2.0 + rk3572) 还没落到脚本上** ⇒ ★**本单只做 3 件 (不许扩项)**:
+    ① `rk3572_model_rebuild.sh` 迁主路线 (**默认路线必须改, 不许只加注释**; 旧链保留为次要路线①; **`.rknn` + `.weight` 两件套的拷贝逻辑必须处理**
+    —— 只拷 `.rknn` 一定失败) ② `SW/RKNN_BENCH.md` §5 追加式订正 (老字别删) ③ 新建只读机器闸 (扫全仓: 凡仍把「用 rk3576 转」当**当下执行口径**的
+    ⇒ 逐条点名 + 输出带名单 + rc=1; 断言脚本默认 target = rk3572 + rknn3-toolkit 1.2.0; 断言两件套拷贝在位; **必须带 `--selftest`
+    反向用例**; 末行 ALL TESTS PASS) ★ ★**必跑**: `python3 state/merge.py` (rc=0) && `python3 state/gate_check.py`
+    (★Q1 必须 18/18★) && `md5sum HW/PCB/demo_mainboard.kicad_pcb` (必须 611b869e13518c3c023fb178f91a0075)
+    ★ ★**任务书全文**: `state/dispatch_briefs/ISS-355_sw_convert_script_rk3572.md` (★`python3 state/check_brief_commands.py
+    --brief-file state/dispatch_briefs/ISS-355_sw_convert_script_rk3572.md` ⇒ rc=0★) ★'
+  dispatched_at: '2026-11-23'
+  verify_by: main
+  verify_date: '2026-11-23'
+  verify_result: '✅ verified (★main 2026-11-23 07:2x 本机独立复核 · 不抄 agent 报告★) ⇒ ★**签收闸 `state/_apply_20260723_0720_main_sign_iss355.py`
+    自跑验收线, 全绿才签 (fail-closed)★** ⇒ 交卷页存在=✅; 交卷页不是骨架 (≥ 4000 B)=✅; 交卷页 B0 块标题齐全=✅; 交卷页 B1 块标题齐全=✅; 交卷页
+    B2 块标题齐全=✅; 交卷页 B3 块标题齐全=✅; 交卷页 B4 块标题齐全=✅; 交卷页 B5 块标题齐全=✅; 交卷页 B6 块标题齐全=✅; 交卷页 B7 块标题齐全=✅; 交卷页占位符
+    = 0=✅; 交卷页引用文件逐个在盘 (0 MISS)=✅; 板指纹 md5+mtime 未动=✅; 交卷页含板指纹双证 (开工前 + 交卷后)=✅; 零落表: 受保护件 5 件 md5 逐字节未动=✅;
+    别人的分片 (pm/hw/mech) 零本单登记条目=✅; 自带闸 SW/tools/check_iss355_convert_route.py 存在=✅; 自带闸 --selftest 末行 ALL
+    TESTS PASS=✅; 自带闸裸跑带名单 (逐条 文件:行)=✅; 自带闸裸跑 rc=0 (「当下执行口径=旧目标」= 0 条)=✅; ★默认路线 = rknn3 (机器读脚本, 非注释)=✅;
+    ★默认 target_platform = rk3572 (机器读脚本)=✅; ★两件套 (.rknn + .weight) 拷贝在位=✅; ★缺 .weight ⇒ 失败路径在位 (不许只拷 .rknn)=✅;
+    旧链保留为次要路线① 且带标记 (不是死代码)=✅; 旧链仍可达 (ROUTE=legacy / --route legacy)=✅; ISS-353 口径层闸 rc=0 且结论矛盾 = 0=✅;
+    板端接受性标 [0数据] (不许写成已验)=✅; 降级 A/B/C 在盘 (板到手一条命令)=✅; 零外发/零采购: 无「买板/等回信/跟进邮件」的非否定语境表述=✅; ISS-155 台账标签不代拍
+    (交 main 裁)=✅; logs/iss355/ 证据在盘 (≥ 6 件)=✅; merge.py rc=0=✅; gate_check.py rc=0 且 Q1 = 18/18=✅ ★ **零写板**
+    (板 md5 `611b869e13518c3c023fb178f91a0075` · mtime `2026-11-06 07:07:17.362193413` 逐字节未动 ⇒ **G1 仍开,
+    不许投板**) · 零落表 (受保护件 5 件同值) · 零改别人的分片 · 零外发 · 零采购 · 未替老板拍板 · 未新增拍板项 ★ ★ **本单 = 转换脚本迁主路线 (实现侧)**: ①
+    `SW/tools/rk3572_model_rebuild.sh` 的【默认路线】从 rknn-toolkit2 2.3.2 + `target_platform=''rk3576''` 迁到
+    **rknn3-toolkit 1.2.0 + `target_platform=''rk3572''`** (机器可读: `ROUTE_DEFAULT=rknn3` / `TARGET_PLATFORM_DEFAULT=rk3572`,
+    ★main 自己 grep 脚本读的, 不看注释★) ② 落盘段强制 **`.rknn` + 同名 `.weight` 两件套成对** (缺 `.weight` ⇒ rc≠0 且不拷出任何东西 ⇒
+    「只拷 .rknn 一定失败」这条坑被机器堵死) ③ 旧链保留为次要路线① (`ROUTE=legacy` 仍可达) 并标明代价 ④ 新建只读闸 `SW/tools/check_iss355_convert_route.py`
+    (扫「当下执行口径=旧目标」逐条点名 + 默认值断言 + 两件套行为级断言; `--selftest` 反向用例含「改回旧 target ⇒ 判红并点名」) ⑤ ★**新默认路线真跑过** (rc
+    全 0 · build 50.068 s · 产物 `.rknn` 249,360 B md5 `97a34fff…` + `.weight` 1,960,448 B md5 `7c04da4f…`
+    ⇒ 与 ISS-263 产物逐字节相同) ★ ★ **main 独立复核的关键一条**: ★**默认路线由 main 自己 grep 脚本默认值确认 (ROUTE_DEFAULT=rknn3 /
+    TARGET_PLATFORM_DEFAULT=rk3572), 并独立复跑 ISS-353 口径层闸 ⇒ rc=0 且「结论矛盾 = 0」⇒ 本单没有让任何既有闸变红** ★ ★ **板端接受性仍
+    [0数据]** ⇒ 本单不解决板端 (降级 A/B/C 已在 ISS-353 §B3) ⇒ ★**ISS-155 台账标签 = 交 main 裁, 本单未代拍** ★'
+  note: '★★2026-11-23 · main 开单 (★项目总工 main★) ★★ ★**开单依据**: ISS-353 交卷页 §B7 残留表自列的 followup (`iss353_need_followup_convert_script_rk3572`
+    · 登记为 to=main ⇒ 等 main 确认优先级) ⇒ main 确认优先级 = **排在板那一趟之前做** (★模型链是 demo 路线的主链, 且改动只碰 SW 域脚本·零写板·不占老板拍板面★)
+    ★ ★**状态落 open (不落 fixing)**: 派活由队列 job (fb67af40) 执行 ⇒ 落 fixing 会造成「没人跑的僵尸 fixing」★ ⇒ ★**待派**: owner
+    = sw-lead (★sw-lead 的 ISS-353 已交卷, 槽位空出来了★) ★ ★**本单不占老板拍板面** (ISS-155 台账标签是另一件事, 交 main 裁) ★'
+  fix_ref: state/_apply_20260723_0720_main_sign_iss355.py
+- id: ISS-356
+  title: '★★[★新主线·PCB 线·「板那一趟」封装真值基线 (100 件必装器件的占位封装 → 真库封装映射)·纯分析/作业包·零写板] ★★【main 2026-11-23 07:5x 本机实读:
+    BOM 165 件真实器件里 100 件必装器件的 footprint 栏 = 待定 (94 件连 OPN 也空) · 板面 186 个封装库名 100% 为空字符串 (全是自绘通用占位) · 原理图
+    218 个符号里 201 个 Footprint = TBD ⇒ 封装真值在源头就不存在 ⇒ 「板只改一次」那一趟画出去的板, 型号一落就得返工 (板 md5 变第二次) ⇒ 本单 = 把这条缺失的基线补出来:
+    族级映射表 + 逐 ref 表 + 删件候选 + 自带机器闸 · 零写板】★★'
+  severity: high
+  source_blocker: ISS-354
+  source_agent: hw-lead
+  desc: '★**main 2026-11-23 07:3x~07:5x 本机实读 (不抄任何 agent 报告)★** ⇒ ★**① 账**: BOM `HW/BOM_v1.csv` 218 行
+    = 165 真实器件 (R67 C51 IC13 SW12 D6 LED4 L3 CONN9) + 53 NET/TP ⇒ ★**其中 129 件 `footprint` 栏 = 待定 · 123
+    件 `opn` 栏为空 · 12 件 opn = [0数据]** ⇒ ★**必装且非 NET/TP 的 124 件里, 100 件封装待定 · 94 件封装与 OPN 双空** ★ ⇒ ★**②
+    板面**: `grep -c` 匹配 `(footprint ""` = **186** (非空库名 = 0) ⇒ 全是自绘通用占位 (7 族, 见 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md`
+    §9-6-3) ★ ⇒ ★**③ 源头**: 原理图 218 个符号的 `Footprint` 属性 **201 个 = TBD** ⇒ 封装真值在源头就不存在 ⇒ ★**④ 生成器**: `state/gen_pcb_netlist_board.py`
+    全部封装走自绘 `make_footprint()` (只有 SoM / 显示 FPC / USB-C / TMP117 四个模块是官方风格) ⇒ 换真库封装 = 改生成器 (产生点), 不是手改板
+    ★ ⇒ ★**⑤ 库在盘**: KiCad 10 官方库 `/home/yuewuya/kicad/AppDir/share/kicad/footprints/` = 15,777 个 `.pretty`
+    目录 ⇒ R_0402 / C_0402 / C_0603 / C_0805 / D_SOD-523 / D_SOD-123 / LED_0805 / SW_SPST / L_0805 等实测存在
+    ★ ⇒ ★**⑥ 不重复选型页**: `HW/PART_SELECTION_MATRIX_2026-11-16.md` 覆盖 22 件 OPN 缺口, 其口径明写「封装名全是空字符串 ⇒ 一律按裸焊盘占位处理」⇒
+    它绕开了封装真值, 没建立它 ⇒ 本单做的是它没做的那一层 ★ ⇒ ★**结论**: 「板只改一次」的前提不是布线归零, 而是每个必装器件的封装名在画板前就定死 ⇒ 现状 = 100 件必装器件没有封装
+    ⇒ 这一趟画出去必返工 ★'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-11-23'
+  due: '2026-11-25'
+  status: fixing
+  external: false
+  task_brief: '# ISS-356 · hw-lead · ★「板那一趟」封装真值基线 (100 件必装器件的占位封装 → 真库封装映射) · 纯分析/作业包 · 零写板★
+
+
+    ★**题**: ★**「板只改一次」那一趟 (位号改名 + 板侧同步 + 布局修正 + 布线 45→0 + Gerber 重出) 现在被一个【没人算过的账】卡住** —— 板面 186 个封装 **全是自绘通用占位**
+    (库名全是空字符串), 而 **100 件必装器件连「用哪个封装」都还没定** ⇒ ⇒ 这一趟画出去的板, 等型号定下来还得再改一次 ⇒ ⇒ **板 md5 变第二次** ⇒ ⇒ **本单 = 把「封装真值」这条缺失的基线补出来
+    (作业包级), 一行板都不碰** ★
+
+
+    ★**这不是「再选一次型」** —— 选型另有单 (`HW/PART_SELECTION_MATRIX_2026-11-16.md` / `HW/PART_SELECTION_GAPS_CLOSEOUT.md`
+    / 闸 `HW/check_part_selection_gaps.py`), 它覆盖 22 件 OPN 缺口, 且它自己的口径明写「封装名全是空字符串 ⇒ 一律按裸焊盘占位处理」⇒ ★**它绕开了封装真值,
+    没有建立封装真值** ⇒ ★**本单做的是它没做的那一层: 每个 ref 的「目标库封装」到底是谁** ★
+
+
+    ---
+
+
+    ## ① ★main 本机实读的事实 (★2026-11-23 07:3x~07:5x 实跑, 不抄任何 agent 报告★) ★
+
+
+    ★**复现方式**: 下面每条都给了一行可重跑的读数命令; ★**你必须自己重跑一遍, 数字与本文不符时以你实读的为准, 并在交卷页写明差异** ★
+
+
+    | # | 事实 | 读数 | 复现命令 |
+
+    |---|---|---|---|
+
+    | F1 | BOM 总行数 | **218** | `python3 -c "import csv;print(len(list(csv.DictReader(open(''HW/BOM_v1.csv'')))))"`
+    |
+
+    | F2 | 其中 `NET`/`TP` (不需要 OPN 也不需要封装) | **53** (TP 45 + NET 8) | 同上按 `type` 统计 |
+
+    | F3 | **真实器件** | **165** (R 67 / C 51 / IC 13 / SW 12 / D 6 / LED 4 / L 3 / CONN 9) | 同上按 `type`
+    统计 |
+
+    | F4 | `footprint` 栏 = `待定` | **129** (R 67 / C 50 / LED 4 / CONN 3 / D 2 / L 2 / SW 1) | 同上按 `footprint`
+    统计 |
+
+    | F5 | `opn` 栏为空 | **123** | 同上按 `opn` 统计 |
+
+    | F6 | `opn` = `[0数据]` | **12** | 同上 |
+
+    | F7 | 必装且非 NET/TP | **124** | 同上 |
+
+    | F8 | ★**必装 且 `footprint` 待定** ★ | ★**100** ★ | 同上 |
+
+    | F9 | ★**必装 且 `opn` 空 且 `footprint` 待定** ★ | ★**94** ★ | 同上 |
+
+    | F10 | 板面封装 | **186 个, 库名 100% 为空字符串** (`(footprint ""` = 186, 非空 = 0) | `grep -c ''(footprint ""''
+    HW/PCB/demo_mainboard.kicad_pcb` |
+
+    | F11 | 原理图符号的 `Footprint` 属性 | **218 个里 201 个 = `TBD`** (只有 17 个有值, 且其中 12 个是描述性文字不是库封装名) | `grep
+    -ho ''(property "Footprint" "[^"]*"'' HW/PCB/demo_mainboard*.kicad_sch \| sort \| uniq -c` |
+
+    | F12 | 板生成器怎么画封装 | **全部走自绘 `make_footprint()`**; 只有 SoM 4 座 / 显示 FPC / USB-C / TMP117 四个模块画的是官方风格
+    land | 读 `state/gen_pcb_netlist_board.py` 的 `make_footprint`, 以及 `state/som_btb_footprint.py` · `state/display_fpc_footprint.py`
+    · `state/usb_c_footprint.py` · `state/tmp117_footprint.py` |
+
+    | F13 | KiCad 10 官方封装库在盘 | `/home/yuewuya/kicad/AppDir/share/kicad/footprints/` = **15,777 个 `.pretty`
+    目录** | `ls /home/yuewuya/kicad/AppDir/share/kicad/footprints/*.pretty \| wc -l` |
+
+    | F14 | 关键库封装实测存在 | `Resistor_SMD.pretty/R_0402_1005Metric.kicad_mod` · `Resistor_SMD.pretty/R_0603_1608Metric.kicad_mod`
+    · `Capacitor_SMD.pretty/C_0402_1005Metric.kicad_mod` · `Capacitor_SMD.pretty/C_0603_1608Metric.kicad_mod`
+    · `Capacitor_SMD.pretty/C_0805_2012Metric.kicad_mod` · `Diode_SMD.pretty/D_SOD-523.kicad_mod` · `Diode_SMD.pretty/D_SOD-123.kicad_mod`
+    · `LED_SMD.pretty/LED_0805_2012Metric.kicad_mod` · `Button_Switch_SMD.pretty/SW_SPST_TL3342.kicad_mod`
+    · `Inductor_SMD.pretty/L_0805_2012Metric.kicad_mod` **全部在盘** | `ls /home/yuewuya/kicad/AppDir/share/kicad/footprints/<上面的路径>`
+    |
+
+    | F15 | 占位封装的焊盘族 (板面实读) | 已被 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md` §9-6-3 记为 7 族: `(''1'',''2'')`×105
+    · `(''1'',)`×7 · `(''1''..''5'')`×6 (6 只 TPS7A20 LDO) · `(''1'',''2'',''3'')`×4 · `(''2''..''6'')`×2
+    (`Q1`/`Q2`) · `(''1''..''4'')`×3 (`U_PWR_SW`/`U_EN_SW`/`J_DEBUG`) · `(''4'',''13'',''14'',''15'')`×2
+    | ★**自己重算一遍** (按焊盘编号 + 焊盘尺寸聚类), 与 §9-6-3 不符就在交卷页点名 ★ |
+
+    | F16 | 板指纹 (开工前) | md5 `611b869e13518c3c023fb178f91a0075` · mtime `2026-11-06 07:07:17.362193413`
+    · 4,940,213 B | `md5sum HW/PCB/demo_mainboard.kicad_pcb` + `stat -c ''%y %s'' HW/PCB/demo_mainboard.kicad_pcb`
+    |
+
+    | F17 | 受保护真源 (开工前) | 网表 `HW/netlist_v1.csv` `6aee500e60ba0732f83a9cf557ba90ab` · 脚表 `HW/netlist_v1_pins.csv`
+    `9174309df1ec9411ac8e8d9e80ee386a` · BOM `HW/BOM_v1.csv` `5b9993992405904a60ac96a020b375d8` | `md5sum`
+    三个文件 |
+
+
+    ★**一句话结论 (★main 的判读, 你要验证或推翻它★)**: ★**「板只改一次」的前提不是「布线归零」, 而是「每个必装器件的封装名在画板之前就定死」** ⇒ 现状 = **100 件必装器件没有封装**
+    ⇒ ⇒ **这一趟画出去, 型号一落就得返工** ★
+
+
+    ---
+
+
+    ## ② 本单要交的东西 (★3 件, 不许扩项★)
+
+
+    ### 交付物 1 — `HW/FP_TRUTH_BASELINE.md` (★新建页★)
+
+
+    ★**页头必须写死三句**: ① 本页是**封装真值基线** (不是选型页, 不替代 `HW/PART_SELECTION_MATRIX_2026-11-16.md`) ② 本页**零写板** ③
+    ★**本单不落表**: 真值落到原理图 `Footprint` 属性 / BOM `footprint` 栏 / 生成器, 是**「板那一趟」的活**, 本单只出基线与判据 ★
+
+
+    #### §1 族级映射表 (★核心: 先定族, 再逐 ref 套用★)
+
+    ★**对 F15 那 7 个占位族, 各给一张「候选真库封装」表**, 每个候选必须写清:
+
+
+    | 栏 | 内容 |
+
+    |---|---|
+
+    | 族 (焊盘编号 + 板面焊盘尺寸) | ★自己实读 ★ |
+
+    | 该族覆盖的 ref (全名单, 不许写「等」) | ★按 type/值/功率/耐压分档 ★ |
+
+    | 候选真库封装 `lib:name` | ★**必须在 F13 的库路径下实测存在** ⇒ 给精确相对路径 ★ |
+
+    | 焊盘数 / 焊盘网络 对得上吗 | ★沿用 `HW/PART_SELECTION_MATRIX_2026-11-16.md` 的三判据 (焊盘数 / 焊盘网络 / 本体尺寸+land pattern
+    能否落进现占位 fab bbox) ⇒ **不许新造判据** ★ |
+
+    | 分档依据 | ★例: R/C 默认 0402, 电源/大电流 0805/1206, ≥X V 耐压走 Y 系列 —— 每条都要有依据 ★ |
+
+    | 证据等级 | `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` 五选一 |
+
+    | 降级方案 | ★必须项, 不是可选项 (★查不到就写降级: 选官网参数直接满足的替代型号 / 改设计路径绕开 / 实测样件定死★) |
+
+
+    ★**这一族表不许出现「待定」「TBD」「待选型」当结论** ⇒ ★**给不出来的, 要么降级方案, 要么写进 §3「删件候选」** ★
+
+
+    #### §2 逐 ref 表 (★100 件必装 + 其余 24 件必装只做核对★)
+
+    ★**每个 ref 一行**, 栏位: `ref` · `type` · `value` · `必装/DNP` · 现占位族 (焊盘编号 + 尺寸) · **目标 `lib:name`** · 库文件实存路径
+    + md5 · 焊盘数/网络核对结论 · 候选 OPN (若已有就抄, 没有就写 `[0数据]` + 降级) · 证据等级 · 是否触发布局/布线改动 (改封装 = 焊盘坐标/尺寸变 ⇒ **会**)
+
+
+    ★**优先顺序**: ★**先做完 94 件「opn + footprint 双空」的必装件** ⇒ 再补那 6 件「有 opn 无 footprint」的 ⇒ 最后核对已有 footprint
+    的 24 件 (只写「已一致 / 不一致 + 差在哪」) ★
+
+
+    #### §3 删件候选 (★只给候选与代价, 不代拍★)
+
+    ★**有些「必装」其实可以不上板** (例: 状态指示灯、测试点、预留跳线) ⇒ ★**逐个给: 删掉它省掉什么封装 / 代价是什么 / 删了会不会改板面 (占位焊盘还在 → 板 md5 变) ★**
+    ⇒ ★**不代拍删不删** ★
+
+
+    #### §4 与既有选型页的关系 (★防重复★)
+
+    ★**逐条说清**: 选型页已覆盖的 22 件 OPN 缺口 → 本页怎么引用、哪些页里的「封装兼容结论」因为本页的封装真值而**需要修订** (★点名页号/行号, 但**不许改那些页**★) ★
+
+
+    #### §5 对「板那一趟」的影响 (★给 main 的输入, 不代排期★)
+
+    ★**点名哪些 ref 换封装后必然触发布局/布线改动** (特别是: `Q1`/`Q2` 8 脚 SON · 6 只 TPS7A20 LDO · `U_PWR_SW`/`U_EN_SW` UQFN-4
+    · 5 个 4 焊盘族 · `J_DEBUG` (已被 ISS-343 的 `B33_PIN_LAND_1P27` 覆盖, 别重复做)) ★
+
+
+    ### 交付物 2 — `HW/check_fp_truth_baseline.py` (★新建闸, 自证不是装饰★)
+
+    ★**判据 (内容级, 不挂 md5 —— 沿用 `HW/check_part_selection_gaps.py` 的做法, 文档改一个字就重判★)**:
+
+    - **C1** ★每个「必装 且非 NET/TP 且 footprint 待定」的 ref, ★**必须在 `HW/FP_TRUTH_BASELINE.md` 里出现且带一个目标 `lib:name`
+    字段 ⇒ 漏一个 = 红 + 点名 ★
+
+    - **C2** ★页里写的每个 `lib:name`, ★**对应 `.kicad_mod` 文件必须在 `/home/yuewuya/kicad/AppDir/share/kicad/footprints/`
+    下实测存在** ⇒ 不存在 = 红 + 点名 ★
+
+    - **C3** ★每行必须带非空的「证据等级」且取值 ∈ `[官网]/[实测]/[媒体]/[推算]/[0数据]` 五者之一 (写 `[官方]` = 红) ★
+
+    - **C4** ★每行必须带非空的「降级方案」栏 (★查不到的件不许空着 ★)
+
+    - **C5** ★页里不许出现「等原厂回信 / 等供应商确认 / 待外部回复」这类挂起措辞 (★老板 2026-11-12 02:02 政策: 不再发信, 全靠自己查资料★) ⇒ 出现 = 红
+
+    - **C6** ★**件数自洽**: 判据自己跑 CSV 统计出「必装 ∩ 非 NET/TP ∩ footprint 待定」的件数 (★不许抄本文的 100★) ⇒ 与页内覆盖件数对不上 = 红
+
+
+    ★**`--selftest` 反向用例 ≥5 条, 每条都要自证「红的是目标那一条, 其余仍绿」**: ① 删页里某一行 ⇒ C1 红 ② 把某行的 `lib:name` 改成不存在的 ⇒ C2
+    红 ③ 清空某行证据等级 ⇒ C3 红 ④ 清空某行降级方案 ⇒ C4 红 ⑤ 正文塞一句「等原厂回信」⇒ C5 红 ⑥ 篡改件数字段 ⇒ C6 红 ★**沙盒必须在 `tmp/` 副本上做, 真件零污染**
+    ★
+
+
+    ### 交付物 3 — 分片登记 + 交卷页
+
+    - `state/fragments/hw.yaml`: ★**必须走 `state/frag_write.py`** (★禁止 `open(p,"w")`★) ⇒ ≥5 条 `iss356_`
+    记录 (artifact ×2 + claim ×N + answer/need) ⇒ `grep -c iss356 state/fragments/hw.yaml` ≥ 5
+
+    - 交卷页 `HANDOFF/2026-11-23_hw-lead_ISS356_封装真值基线.md`: ★**B1~B6 齐全** (★`state/gate_check.py` 按标题关键词判块
+    ⇒ 六个 `##` 块的标题里必须分别出现: B1 `结论` · B2 `验收标准自评` · B3 `证据分级` · B4 `接口取值声明` · B5 `未决项与卡点` · B6 `自证复现命令`★)
+    ⇒ ★**页内引用的每个路径都要在盘 (MISS=0)** ⇒ 占位符 0
+
+
+    ---
+
+
+    ## ③ 边界 (★违反了就是本单失败★)
+
+
+    - ★**零写板**: 板 md5 + mtime + size 三值开工前后完全一致 (F16) ⇒ **不许碰 `HW/PCB/demo_mainboard.kicad_pcb`**
+
+    - ★**零落表 (不许改真源)**: ★**不许改** `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` / 任何
+    `*.kicad_sch` / `*.kicad_pro` / `HW/PCB/*.md` 既有页 (★§4 里点名的那些页也不许改★)
+
+    - ★**不许跑会重写真件的生成器**: ★`state/gen_bom.py` · `state/gen_pcb_netlist_board.py` · `state/gen_kicad_sch.py`
+    · `state/gen_production_pack.sh` ★**一个都不许跑** (★它们会改网表/脚表/BOM/板/投产包★) ⇒ ★**你要的一切读数都用只读方式自己读**
+
+    - ★**零外发**: ★**不许发任何邮件 / 询价 / 问询 / 采购 / 联系供应商** (★老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料★)
+    ⇒ ★**外部事实一律自己网上查 + 标证据等级 + 查不到就写降级方案** ⇒ ★**没有「批一句可以发」这个选项** ⇒ ★**只读公开官网页面是可以的 (GET), 不许提交表单/发信/下单**
+    ★
+
+    - ★**只写这 4 处**: `HW/FP_TRUTH_BASELINE.md` (新建) · `HW/check_fp_truth_baseline.py` (新建) · `HANDOFF/2026-11-23_hw-lead_ISS356_封装真值基线.md`
+    (新建) · `state/fragments/hw.yaml` (走 `frag_write.py`) · 另可写 `logs/iss356/` 放原始读数
+
+    - ★**不许改闸源码** `state/gate_check.py` (★本单闸挂不挂链 = main 地界, 你只交脚本与路径, 在交卷页写明建议★)
+
+    - ★**不许改别人的分片** (`pm.yaml` / `sw.yaml` / `mech.yaml` / `state/issue_log.yaml`)
+
+    - ★**不代拍**: 删不删件 / 用哪个封装 / 型号定不定 ⇒ **只给候选 + 代价 + 依据**, 拍板留给 main / 老板
+
+
+    ---
+
+
+    ## ④ 交卷前必跑 (★把原样输出贴进交卷页★)
+
+
+    ```bash
+
+    cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+
+    python3 HW/check_fp_truth_baseline.py                 # rc=0
+
+    python3 HW/check_fp_truth_baseline.py --selftest       # rc=0 (末行 ALL TESTS PASS)
+
+    python3 state/merge.py                                 # rc=0
+
+    python3 state/gate_check.py                             # rc=0 (★Q1 必须 18/18★)
+
+    python3 state/frag_write.py --agent hw-lead --show     # rc=0
+
+    md5sum HW/PCB/demo_mainboard.kicad_pcb                 # 611b869e13518c3c023fb178f91a0075
+
+    stat -c ''%y'' HW/PCB/demo_mainboard.kicad_pcb            # 2026-11-06 07:07:17.362193413 +0800
+
+    ```
+
+
+    ★**`gate_check.py` 的 Q1 掉了先自查是不是你那份交卷页缺块** (★Q1 按每个总工**最新一份**交接单的 B1~B6 计分★) ⇒ ★**别去动别人的交接页** ★
+
+
+    ★**如果你这一趟做不完 100 件**: ★**不要假装做完** ⇒ 交卷页写清「已做 / 未做」分界 (★逐 ref 名单★) + 未做部分的续做入口 (★下一步从哪个族开始★) ⇒ ★**宁可交
+    40 件真件, 不要交 100 件假件** ★
+
+
+    ---
+
+
+    ## ⑤ ★自证纪律 (★本项目铁律, 别踩★)★
+
+
+    1. ★**数字自己跑, 不抄本文, 不抄别的 agent 报告** ⇒ 与本文 (F1~F17) 不一致 ⇒ **以你实读的为准, 并在交卷页点名差异**
+
+    2. ★**引用的每个路径都要在盘** (MISS = 0) ⇒ ★**每条结论都要能指出「哪个文件的哪一行 / 哪条命令的哪个输出」**
+
+    3. ★**证据分级**: `[官网]`(厂商官网/官方 datasheet) / `[实测]`(本机可复现) / `[媒体]` / `[推算]` / `[0数据]`(查不到) ⇒ ★**写 `[官方]`
+    不算数 (白名单只有上面五个)**
+
+    4. ★**查不到就写降级方案** (★不是「等回复」★) ⇒ ★**降级方案是必须项**
+
+    5. ★**不许在产物上擦, 要修在产生点**: 本单只出基线页 + 闸 ⇒ **不动任何真件** ⇒ 不存在「擦」的机会
+
+    6. ★**并发写盘**: 若你发现 `HW/FP_TRUTH_BASELINE.md` 或 `HW/check_fp_truth_baseline.py` 已存在且不是你写的 ⇒ ★**停下,
+    在交卷页写明「撞车」, 不要覆盖别人的内容**
+
+    '
+  note: '★★2026-11-23 07:5x · cron fb67af40 (ARS45 队列自动派活) 开单并派出 (★项目总工 main★) ★★ ★**开单依据**: 本轮 `advance.py
+    --json` 的 internal = 0 条 (三个总工名下 open 全为 0 ⇒ 队列真空), 而 ISS-354 §9-6-3 明写「只改 5 个 ref ⇒ 剩下 100+ 个占位封装还在
+    ⇒ 型号一定下来还得再改一次 ⇒ 板 md5 变第二次」并把它称为「本单给『板那一趟』最重要的一条」⇒ main 本机实算后确认这是一件**没人做过、且卡死「板只改一次」的基线活** ⇒ 按「先派纯分析/作业包类,
+    真动板那一趟一次做完」的 PCB 纪律开单 ⇒ ★**零写板 / 零落表 / 零外发 / 不改真件 / 不代拍** ★ ★**brief 路径**: `state/dispatch_briefs/ISS-356_hw_fp_truth_baseline.md`
+    (★命令存在性守卫 `state/check_brief_commands.py --brief-file` rc=0★) ★★【2026-11-23 08:5x main 追加登记 · 追加式·老字一字未删★】
+    ★**① 两次死亡 (main 本机实读)★**: cont0 子会话 `88277b45…` (sessionId 0381eeb2) 于 07:50:08 被 abort (★零交付物·死在刚发现还没落盘那一刻★);
+    cont1 子会话 `d4cca1cc…` (sessionId 79729395) 07:57:13→08:47:16 **恰好跑满 main 派活时给的 runTimeoutSeconds=3000
+    (50 分钟) 被掐死** ⇒ 死在【读数攒齐、还没开始写交付物】那一刻 ⇒ **但 8 件读数在盘** (board_footprints.json / lib_cand_geometry.json
+    + _v2 / probe_lib_fp.py + _v2 / f8_set_dump.txt / parse_board.py / target100_raw.txt / board_fp_families.txt)
+    ⇒ ★**status 保持 fixing, 已补派 cont2** (★brief `state/dispatch_briefs/ISS-356_hw_fp_truth_baseline_cont2.md`·命令闸
+    rc=0·dispatch_log 已记★) ★**② scope 订正 (main 本机独立读 `HW/BOM_v1.csv` + 板文件)★**: 「必装 且 footprint 待定」= 100
+    件 ⇒ 按 BOM `board` 列拆开 = **「镜脚主 PCB」78 件 + 「镜框充电板」22 件**; 且那 78 件在板面上 **78/78 真实存在** ⇒ ★**⇒ 这块板 (18092
+    走线那块的本体) 的封装真值靶子 = 78 件, 不是 100 件** ⇒ 那 22 件属另一块板 (板面 `grep BQ25896` = 0 · `U_CHG` 是充电板件) ⇒ 只登记为 §4
+    债, 不展开查库 ⇒ ★**跨界 1 件单独点名**: `C_VBUS_GND`/`C_VBUS_OUT` 的 BOM `board` 列写「镜框充电板」却出现在主 PCB 板面 ⇒ 与基线「多余
+    2」差异同源 ⇒ 归老板那件 `C_VBUS_GND` 留位/下板 的答案, 本单只登记事实不代拍 ★ ★**③ main 的三条订正已被证明有效**: KiCad 库计数 = 155 目录 /
+    15,468 文件; metric 后缀命名 (旧名按字面找不到文件); ★**上一趟两份库候选表 48/48 个 `lib:name` 的 `.kicad_mod` 文件真在盘且旧名一个没混**
+    ⇒ 这一趟不会写出不存在的封装 ★ ★**④ 本单新纪律**: 先落盘再继续 (第一件事就落 §1 族表 + 闸; §2 逐 ref 表按族分批 append; 每批跑一次闸) ⇒ 再死一次至少留得下骨架
+    ★'
+  verify_by: main
+  dispatched_at: '2026-11-23'
+- id: ISS-357
+  title: ★★[主线内·SW 侧·需求闭环类·内部活] ★★【SW 域 needs 144 条四分类处置 (waiting_on 空 118 / to=hw-lead 17 / to=mech-lead
+    2 / agent 4 / boss 12 / vendor 8) ⇒ 把机检缺口清单那条「98 条没人答」+ 「8 条外发依赖挂着」两笔老账一次清掉】★★ ⇒ ★**与 MECH 域同型单 ISS-313
+    (verified) 同一口径** ★
+  severity: high
+  source_blocker: ISS-270
+  source_agent: main
+  desc: '★**main 2026-11-23 08:1x~08:2x 本机实读 (不抄 agent 报告)★** ⇒ ★**① 机检**: `python3 state/gate_check.py`
+    (rc=0) ⇒ 缺口清单 3 条: hw-lead 179 / **sw-lead 98** / mech-lead 76 条需求确实还没人答 (★口径: `real_open = needs_total
+    − needs_answered_incoming − needs_closable_unregistered − needs_waiting_external`★) ⇒ ★**② SW 域自己的账**
+    (`state/fragments/sw.yaml` 实读): `needs_from` = 144 条 ⇒ to=main&waiting_on空 99 · to=hw-lead&空 17 ·
+    to=main&boss 12 · **to=vendor&vendor 8** · to=main&agent 4 · to=mech-lead&空 2 · to=main&sw-lead 2
+    ⇒ ★**③ 那 8 条 vendor 是【外发口径违规】**: 原文写着「走 main 发第二轮邮件 / 经 main 转达 / 请项目总工并进第二轮邮件」⇒ ★违反老板 2026-11-11
+    19:31 + 2026-11-12 02:02「不再发信, 全靠自己查资料」⇒ 其中 `model_license_yolov5sim` 本地早已查完 (AGPL-3.0, 证据链 7 环, 见
+    `SW/MODEL_LICENSE.md` §1.2) 竟还挂在 vendor 上 ⇒ ★**④ 陈旧漂移已现**: 12 条 boss 类里 `demo_od_p0_4_panel_init_code`
+    自己标了「已结 (ISS-212)」却仍挂着 need ⇒ ★**⑤ 为什么现在做**: 主线 = 绘制 PCB 图 (老板 11-17 00:43) ⇒ 板只改一次 ⇒ SW 侧待答条目里的「板框/板厚/层数/镜腿宽度/检修口净空/重量预算/位号改名/布线
+    45→0/Gerber 投产包重出/Q3 存储分档」相关项必须先清出来当板那一趟的输入 ⇒ ★**⑥ 边界**: 零写板 (板 md5 `611b869e13518c3c023fb178f91a0075`
+    / mtime `2026-11-06 07:07:17.362193413` 必须逐字节不变) · 零落表 · 零改闸 · 零改既有文档正文 · 零外发 · 不替老板拍板 · 不自签 issue_log
+    · 只写 SW/ 域新件 + 交卷页 + logs/iss357/ + sw.yaml 分片 ★'
+  owner: sw-lead
+  reporter: main
+  raised: '2026-11-23'
+  due: '2026-11-25'
+  status: verified
+  external: 'false'
+  task_brief: "# ISS-357 · sw-lead 任务书 —— ★★【SW 域 needs 144 条四分类处置 ⇒ 把「98 条没人答 + 8 条外发依赖挂着」这两笔老账一次清掉】★★\n\
+    \n> ★**派活人**: 项目总工 (main / moli) · ★**owner**: sw-lead · ★**verify_by**: main · ★**单号**: ISS-357\n\
+    > ★**job**: cron `fb67af40` (ARS45 队列自动派活) · ★**性质**: ★**内部活 · 需求闭环 / 卫生类** ★\n> ★**边界 (硬)**: ★**零写板\
+    \ · 零落表 · 零改闸 · 零改既有文档正文 · 零外发 · 不替老板拍板 · 不自签 issue_log** ★\n> ★**同型先例 (★已验证可抄★)**: ★**ISS-313 (mech-lead\
+    \ · MECH 域 needs 184 条四分类处置) = verified** ⇒ ★**MECH 分片从 184 条降到 139 条, `waiting_on=空` 113→100, `waiting_on=vendor`\
+    \ 10→0, `waiting_on=jbd` 6→0** ⇒ ★**本单照抄它的口径 / 交卷物结构 / 对账要求** ★\n\n---\n\n## ★1 · 病灶 (★main 2026-11-23\
+    \ 08:1x~08:2x 本机实跑, 不抄任何 agent 报告★) ★\n\n### ★1-1 · 机检缺口清单 (★`python3 state/gate_check.py` 实跑 · rc=0★)\n\
+    ```\n【缺口清单】(可直接转成下一轮派活项) —— 3 条\n   · hw-lead: 179 条需求确实还没人答 (等另一个总工)\n   · sw-lead:  98 条需求确实还没人答\
+    \ (等另一个总工)      ★★本单要对准的数★★\n   · mech-lead: 76 条需求确实还没人答 (等另一个总工)\n```\n★**★口径 (★`state/gate_check.py`\
+    \ 实读★)**: ★**`real_open = needs_total − needs_answered_incoming − needs_closable_unregistered − needs_waiting_external`\
+    \ ⇒ 「等另一个总工」是真·内部未闭合** ★\n⇒ ★**本单的验收判据之一 = 这条 98 必须真的降下来 (不是把 needs 删空, 是把每一条落到「已答 / 已作废 / 别人在等」的确定状态)**\
+    \ ★\n\n### ★1-2 · SW 域自己的账 (★main 08:2x 读 `state/fragments/sw.yaml` 实跑★)\n```\nsw needs_from = 144\n\
+    \   to=main       waiting_on=空        99\n   to=hw-lead    waiting_on=空        17   ★★内部·等另一个总工★★\n\
+    \   to=main       waiting_on=boss       12   ★★等老板拍板★★\n   to=vendor     waiting_on=vendor      8\
+    \   ★★外部依赖挂着 (★外发口径违规★★)\n   to=main       waiting_on=agent       4   ★★内部·等另一个总工★★\n   to=mech-lead\
+    \  waiting_on=空          2   ★★内部·等另一个总工★★\n   to=main       waiting_on=sw-lead     2\n```\n★**⇒ 本单就是冲这\
+    \ 144 条来的: 逐条归类 + 处置, 让机检那条红 (98 条) 真的降下来** ★\n\n### ★1-3 · ★★外部依赖那 8 条 (★老板 2026-11-12 02:02 政策 ·\
+    \ 本单必须执行★) ★★\n★**老板原话**: 「不再发信，全靠自己查资料」⇒ ★**不许把外部依赖挂着当阻塞项** ★\n⇒ ★**8 条 (waiting_on=vendor) 一律不许继续等回信\
+    \ ⇒ 必须【自己网上查】+ 标证据等级 + 查不到就写降级方案** ★\n\n★**★而且这 8 条的原文本身就在喊「外发」★** (★main 08:2x 逐条实读·只摘原句关键部分★):\n\
+    - `vendor_q8_q9_scope` = 「…**走 main 发第二轮邮件**, 我不单独对外」\n- `fw_vendor_toolchain` = 「原厂烧录工具链 (**经 main\
+    \ 转达**, 我不单独对外)」\n- `fw_usb_boot_phy` = 「USB 下载能力 (**经 main 转达**…)」\n- `fw_boot_entry_cond` = 「BOOT\
+    \ 模式与校验机制 (**经 main 转达**…)」\n- `sw_reset_timing_spec` = 「TBD-12 追加问 (**请项目总工并进第二轮邮件**, 我不外发)」\n- `sw_usb_phy_spec`\
+    \ = 「USB 设备控制器是 FS 还是 HS (**请项目总工并进第二轮邮件**)」\n- `sw_aon_deepsleep_spec` = 「原厂追加问 (**经项目总工并进第二轮邮件**…)」\n\
+    - `model_license_yolov5sim` = 「★ISS-087 本地已判定: yolov5s-sim 系 = ultralytics/yolov5 v6.0 release 导出物\
+    \ → 许可 = AGPL-3.0 (证据链 7 环, 见 SW/MODEL_LICENSE.md §1.2…)」★**★这一条本地已经查完了 ⇒ 它根本不该还挂在 vendor 上 ⇒ 本单必须把它落到确定状态★★**\n\
+    \n★⇒ ★**这 8 条既有「挂外部依赖」的病, 又有「措辞里留外发口」的病 ⇒ 本单一并清** ★\n\n### ★1-4 · 陈旧条目的证据 (★说明「逐条判」不是形式主义★)\n★**12\
+    \ 条 boss 类里已经有一条自己标了「已结 (ISS-212, 2026-11-15 sw-lead)」** (key = `demo_od_p0_4_panel_init_code`) ⇒\
+    \ ★**SW 域确实存在「条目本身已结、但 need 还挂着」的漂移 ⇒ 逐条判是必要的** ★\n\n---\n\n## ★2 · 本单要交的四类处置 (★逐条, 不许抽样★) ★\n\n|\
+    \ 类 | 条数 | 处置口径 (★本单给的动作★) |\n|---|---|---|\n| ★**① 内部等另一个总工 (17 + 2 + 4 = 23 条)** ★ | 23 | ★**内部活\
+    \ ⇒ 必须自己推**: 逐条判【我能答吗】⇒ ★**能答的直接写进自己的 `answers` (带 key + 出处 + 证据等级)★★ ⇒ ★**不能答的 ⇒ 写清【该谁答 + 为什么 + 一句话问法\
+    \ (★给 main 的一行 need, ★不回裸字母★)】** ★ ⇒ ★**跨域对答时, 同 key 的答案必须写回【自己那一份分片】, 答案里带对方分片的出处 key (★项目铁律: 同 key\
+    \ 的决策是全局事实, 条目住在谁的片段里不该成为退休不掉的理由★)** ★ |\n| ★**② waiting_on = boss (12 条)** ★ | 12 | ★**不代拍** ⇒ 整理成\
+    \ ★**need key + 决策码**★ 的一页 (★每个选项 + 代价 + 建议默认值 (★只作参考·不代拍★)+ 不拍的后果★) ⇒ ★**不回裸字母** ★ ⇒ ★**已经自己判完的 (如\
+    \ `demo_od_p0_4_panel_init_code` 已标已结) ⇒ 直接落到确定状态, 不要重复上报老板★** ★ |\n| ★**③ vendor (8 条)** ★ | 8 |\
+    \ ★**★按老板政策自查 (零外发)★**: ① ★**自己网上查** ★ ② 标证据等级 ★`[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` ★ ③ ★**查不到 ⇒ 写降级方案\
+    \ (★实测样件 / 选官网参数直接满足的替代型号 / 改设计路径绕开 / 用 [推算] 值并标明推算依据★)★** ⇒ ★**不许再写「等原厂回信」** ⇒ ★**不许再留「走 main 发第二轮邮件\
+    \ / 经 main 转达 / 请并进邮件」这类外发字样 (★措辞一并改掉★)** ⇒ ★**查不到也必须交 (降级方案是必须项, 不是可选项)** ★ |\n| ★**④ waiting_on\
+    \ = 空 (99 + 17 + 2 = 118 条)** ★ | 118 | 逐条判定三选一: ★**(a) 已作废** (★被哪个 ISS / 哪份文档改写 ⇒ 必须引证★) ★**(b) 已被本单答复覆盖**\
+    \ (⇒ 指到具体 answers key★) ★**(c) 真·待答** (⇒ 给 owner + 处理方式 + 是否与板那一趟相关★) ★ |\n\n★**★对账要求**: ★**交卷页必须给「关\
+    \ X 条 / 保留 Y 条 / 新答 Z 条」的对账表, 且每条关闭都要有依据行 (★不许批量清空·不许无据关闭·不许把 118 条批量标同一个结论★)** ★\n\n★**★与主线的关系 (★写进交卷页§★)★**:\
+    \ ★**老板 11-17 00:43「接下来的目标是绘制 PCB 图」⇒ 板只改一次 ⇒ ★**凡与「板框 / 板厚 / 层数 / 镜腿宽度 / 检修口净空 / 重量预算 / 位号改名 / 布线\
+    \ 45→0 / Gerber 投产包重出 / Q3 存储分档」有关的待答条目, 都要标出来 (★给板那一趟的【SW 侧输入清单】★)** ⇒ ★**SW 域已交的现成件不要重做**: `SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md`\
+    \ (7 件同批清单) · `SW/ONETRIP_SW_RENAME_SAFETY.md` (闸脚本安全性) · `SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md` (改名后闸链复活\
+    \ SOP) · `SW/MODEL_LICENSE.md` (许可证据链) ⇒ ★**本单只做【还没答的条目】** ★\n\n---\n\n## ★3 · 交卷物 (4 件) ★\n\n1. ★**新建\
+    \ `SW/SW_NEEDS_TRIAGE.md`** (★四类逐条表 · 依据行 · 对账 · 「与板那一趟相关的 SW 侧待答输入清单」· 证据分级 §★)\n2. ★**新建 `HANDOFF/2026-11-23_sw-lead_ISS357_SW未答需求分类.md`**\
+    \ (★B1~B6 齐全 · 占位符 0 · 与上面那份同源不重写★)\n3. ★**新建 `logs/iss357/`** (★逐条取数命令 + 原始输出 + 改分片前后的 md5★)\n4.\
+    \ ★**`state/fragments/sw.yaml`** (★★**必须用 `python3 state/frag_write.py --agent sw-lead` 原子写 (★禁止 open(p,\"\
+    w\")★)★** · ★**新答的进 `answers` · 关闭/改判的 `needs_from` 条目必须带依据 (★`resolved_by` / `closed_ref` / `resolved_note`\
+    \ 这类字段照 ISS-313 的写法填★)· ★**只写自己那一份, 不碰 hw.yaml / mech.yaml / pm.yaml★ ★**\n\n---\n\n## ★4 · 硬边界 (★违反即不算交卷★)\
+    \ ★\n\n- ★**零写板**: 板 `HW/PCB/demo_mainboard.kicad_pcb` 的 md5 (`611b869e13518c3c023fb178f91a0075`)\
+    \ + mtime (`2026-11-06 07:07:17.362193413`) 交卷前后逐字节相同 ⇒ **交卷页要贴这两个值** ★\n- ★**零落表** (★网表 / 脚表 / BOM\
+    \ / 落表台账 一律不动★) ★\n- ★**零改闸**: `state/gate_check.py` / `state/merge.py` / `SW/tools/` 下任何脚本 一个字不许改\
+    \ ★\n- ★**零改既有文档正文**: `SW/MODEL_LICENSE.md` / `SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md` / `SW/ONETRIP_SW_RENAME_SAFETY.md`\
+    \ / `SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md` 只读不写 ⇒ **本单只交「还没答的条目」, 不重做上面那四份已交的件** ★\n- ★**★零外发 (★老板\
+    \ 2026-11-11 19:31 + 2026-11-12 02:02★)★**: ★**不许发任何邮件 / 询价 / 问询 / 采购 / 原厂问询 / 任何对外沟通 ⇒ `state/outbox/`\
+    \ 里的草稿【一律不发】, 只作资料留档 ⇒ 没有「批一句可以发」这个选项** ★ ⇒ **8 条外部依赖必须自查 + 降级** ★\n- ★**不替老板拍板**: 12 条 boss 类一律交\
+    \ need key + 决策码, ★**不回裸字母** ★\n- ★**不自签 issue_log** (★`state/issue_log.yaml` 只由 main 改★) ★\n- ★**只写**:\
+    \ `SW/` 下本单新建文件 · `HANDOFF/` 本单交卷单 · `logs/iss357/` · `state/fragments/sw.yaml` (★经 frag_write.py★)\
+    \ ★\n\n---\n\n## ★5 · 交卷前必跑 (★把输出原样贴进回复★) ★\n\n```bash\ncd /home/yuewuya/.openclaw/workspace/projects/smart_glasses\n\
+    python3 state/merge.py && python3 state/gate_check.py    # rc 必须 0 · Q1 必须 18/18 · ★缺口清单里 sw-lead\
+    \ 那条 (98) 必须真的降下来★\nmd5sum HW/PCB/demo_mainboard.kicad_pcb SW/MODEL_LICENSE.md state/fragments/sw.yaml\n\
+    ```\n\n★**★额外纪律 (★与所有派活单同款★)★**: ① ★**写分片必须用 `state/frag_write.py` (禁止 open(p,\"w\"))** ★ ② ★**只写本任务允许的文件,\
+    \ 不碰别人的** ★ ③ ★**证据分级 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` 必须标** ★ ④ ★**不许外发任何邮件/询价/问询/采购 (老板 2026-11-11\
+    \ 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料) ⇒ 缺口一律【自己网上查】+ 标证据等级 + 查不到就写降级方案 ⇒ 没有「批一句可以发」这个选项** ★ ⑤\
+    \ ★**交卷前跑 `python3 state/merge.py` (rc 必须 0) && `python3 state/gate_check.py` (Q1 必须 18/18) 并把输出贴进回复**\
+    \ ★\n"
+  dispatched_at: '2026-11-23'
+  verify_by: main
+  verify_date: '2026-11-23'
+  verify_result: '✅ verified (★main 本机独立复核 · 不抄 agent 报告★) ⇒ ★**签收闸 `state/_apply_20260723_1005_main_sign_iss357.py` 自跑验收线, 全绿才签 (fail-closed)★** ⇒ 交卷页存在=✅; 交卷页不是骨架 (≥ 4000 B)=✅; 交卷页 B1 块标题齐全=✅; 交卷页 B2 块标题齐全=✅; 交卷页 B3 块标题齐全=✅; 交卷页 B4 块标题齐全=✅; 交卷页 B5 块标题齐全=✅; 交卷页 B6 块标题齐全=✅; 交卷页占位符 = 0 (语境窗口: 描述性引用不计)=✅; 交卷页引用文件逐个在盘 (0 MISS)=✅; 板指纹 md5+mtime 未动=✅; 交卷页含板指纹双证 (md5≥2 / mtime≥2)=✅; 零落表: 受保护件 6 件 md5 逐字节未动=✅; 别人的分片 (pm/hw/mech) 零本单登记条目=✅; 交付物 SW/SW_NEEDS_TRIAGE.md 在盘 (≥ 4000 B)=✅; logs/iss357/ 证据在盘 (≥ 8 件)=✅; ★分片计数契约 (needs_from 70 / needs_closed 74 / ledger 70 / answers 58)=✅; ★总平账: 关 74 + 留 70 = 144 (原 needs_from 144 条一条没删)=✅; ★每条 needs_closed 带 reason/evidence/evidence_level/closed_at/closed_by=✅; ★缺口清单 sw-lead ≤ 33 (派活前基线 98 ⇒ 真降下来)=✅; gate_check.py rc=0 且 Q1 = 18/18 (★交卷页 B1~B6 齐全⇒ 不许掉 Q1★)=✅; ★决策码表 11 个齐全 (S-B01~S-B10 + S-S10)=✅; merge.py rc=0=✅; 零外发: 无「等原厂回信/等回复/跟进邮件」的非否定语境表述=✅ ★ **零写板** (板 md5 `611b869e13518c3c023fb178f91a0075` · mtime `2026-11-06 07:07:17.362193413` 逐字节未动 ⇒ **G1 仍开, 不许投板**) · 零落表 · 零改别人的分片 · 零外发 · 未代老板拍板 · 未新增拍板项 ★'
+  note: '★★2026-11-23 08:2x · cron fb67af40 (ARS45 队列自动派活) 开单并派出 (★项目总工 main★) ★★ ★**开单依据**: ★**① 队列真空**:
+    `python3 state/advance.py --json` 的 internal = 0 条 (三个总工名下 open 全为 0) ⇒ sw-lead 名额空着; ★**② 但内部待办其实没断线
+    —— 断线的那一截在 needs 里**: `state/gate_check.py` 缺口清单白纸黑字 「sw-lead: 98 条需求确实还没人答」⇒ ★**这才是本 job 「让内部待办不断线」的真对象**
+    ⇒ ★**③ 有同型先例**: ISS-313 (mech-lead · MECH 域 needs 184 条四分类处置) = verified ⇒ MECH 分片 184→139 条、vendor
+    10→0、jbd 6→0 ⇒ ★**SW 域同一件事还没做 ⇒ 本单照抄那个已验证的口径 / 交卷物结构 / 对账要求** ★ ★**④ 老板外发口径的直接落点**: 那 8 条 vendor 的原文仍在喊「发第二轮邮件」⇒
+    必须改成【自己网上查 + 证据等级 + 降级方案】 ⇒ 这正是老板 2026-11-11 19:31 + 2026-11-12 02:02 的口径 ★ ★**⑤ 不占老板拍板面** (12 条 boss
+    类只整理成 need key + 决策码, 不代拍) ★ ★★**派活顺序**: ★先 `advance.py --apply --only ISS-357` 落 fixing ⇒ 再 spawn
+    (★关掉下一轮 cron 重复派的窗口★) ★★'
+  fix_ref: 'state/_apply_20260723_1005_main_sign_iss357.py'
+
+- id: ISS-358
+  title: ★★[★主线内·机制侧·分片卫生类·内部活] ★★【`state/fragments/mech.yaml` 有 4 组 answers 用同一个 key 登记了不同主题的答案 ⇒ 合并器
+    `state/merge.py` 对同 `_by` 的多条同 key answers 只认第一条 ⇒ 后写的对下游完全不可见 ⇒ 最要命的一条 `pcb_outline_confirm` ×5 (5
+    条讲 5 件完全不同的事) 又正好被 `hw.yaml` 与 `mech.yaml` 两条 need 同时问到 ⇒ 板框/尺寸这条【老板正面临的轴】的真相在合并后只剩第一条露脸 ⇒ 本单 = 拆成语义独立的
+    key, 一条内容都不许删】★★ ★**零写板·零落表·零外发·不替老板拍板** ★
+  severity: medium
+  source_blocker: ISS-333
+  source_agent: main
+  desc: '★**main 2026-11-23 09:1x 本机实读 (不抄任何 agent 报告)★** ⇒ ★**① 体检器 (main 新建, 只读): `state/check_frag_dup_keys.py
+    --agent mech-lead` ⇒ 高危 4 组: `answers[pcb_outline_confirm]` ×5 · `answers[ntc_placement]` ×3 · `answers[iss219_mech_c7_sink_area_confirm]`
+    ×2 · `answers[iss251_mech_service_port_pad_y_migrate]` ×2; 另 31 组 artifacts 重名 = 低危★ ⇒ ★**② 为什么危险
+    (机制读数)**: `state/merge.py` 用 `answers_by_key.setdefault(k, []).append(...)` 收集, 答 need 时按 `_by ==
+    ask_to` 过滤后取**第一条** ⇒ ⇒ **同 key 同作者的重复 answers = 后写的静默不可见** ⇒ ★**③ 最要命的一条**: `pcb_outline_confirm`
+    的 5 条分别是 ①PCB 50×12mm 厚 0.8/1.0 ②镜脚内腔需求 ③摄像头安装 ④散热接触路径 ⑤M-FIT 结果 ⇒ **没有一条是板框 U-1 的答案** ⇒ 而它被 `hw.yaml`
+    的 need(to=mech-lead) 与 `mech.yaml` 的 need(to=sw-lead) 同时问到 ⇒ ★**⇒ 老板正面临的板框轴, 合并后只剩第一条 (50×12mm 口径)
+    露脸 ⇒ 这很可能就是「板框口径到处飘」的根源之一** ⇒ ★**④ 边界**: 只写 mech.yaml (只走 frag_write.py) · 零写板 · 零落表 · 零外发 · 不许改 merge.py
+    / gate_check.py / frag_write.py (★根治 = 给 frag_write.py 加乐观并发断言, 那是 main 的地界·本单只清已攒下的重名★) · 不替老板拍板★'
+  owner: mech-lead
+  reporter: main
+  raised: '2026-11-23'
+  due: '2026-11-25'
+  status: fixing
+  external: 'false'
+  task_brief: '# ISS-358 · mech-lead · ★★分片重名 key 清理 (★`pcb_outline_confirm` 一条 key 承载 5 个不同主题 ⇒ 合并后只认第一条
+    ⇒ 板框真值对下游不可见★)·纯分片·零写板★
+
+
+    ★**题**: ★**`state/fragments/mech.yaml` 里 4 组 answers 用了同一个 key 登记了不同主题的答案** ⇒ ★**而合并器 `state/merge.py`
+    对「同一个 `_by` 的多条同 key answers」只认第一条** ⇒ ★**⇒ 后写的 3~4 条对下游【完全不可见】** ⇒ ★**其中最要命的一条是 `pcb_outline_confirm`
+    ×5: 5 条讲的是 5 件完全不同的事 (板尺寸/镜脚内腔/摄像头安装/散热路径/M-FIT 结果) ⇒ 而这个 key 又正好被 `hw.yaml` 的 need `pcb_outline_confirm`
+    (to=mech-lead) 和 `mech.yaml` 的 need `pcb_outline_confirm` (to=sw-lead) 同时问到** ⇒ ★**⇒ 板框/尺寸这条【老板正面临的轴】的真相,
+    在合并后的 STATE.yaml 里只剩第一条 (PCB 50×12mm 厚 0.8/1.0) 露脸** ⇒ ★**⇒ 这很可能就是「板框口径到处飘」的根源之一** ★
+
+
+    ★**main 2026-11-23 09:1x 本机实读 (不抄任何 agent 报告)★**: ★**体检器 `state/check_frag_dup_keys.py --agent mech-lead`**
+    ⇒ ★**高危 4 组**: `answers[pcb_outline_confirm]` **×5** · `answers[ntc_placement]` **×3** · `answers[iss219_mech_c7_sink_area_confirm]`
+    **×2** · `answers[iss251_mech_service_port_pad_y_migrate]` **×2** ⇒ ★**另: 31 组 artifacts 重名 = 低危 (同一路径登记两次·不影响取值·可顺手清)**
+    ★
+
+
+    ★**本单只做 3 件 (★不许扩项·零写板·零落表·零外发★)★★
+
+
+    ### (1) ★**4 组高危 answers 拆成语义独立的 key (★一条都不许删内容★)★★
+
+    - ★**做法**: ★**每条保留原 value 全文, 只换 key 名** ⇒ key 名要能自解释 (★例: `pcb_outline_confirm` ×5 ⇒ `pcb_outline_confirm_1_board_size`
+    / `_2_cavity` / `_3_camera_mount` / `_4_thermal_path` / `_5_mfit_result`; `ntc_placement` ×3 ⇒ 按各自主题拆;
+    其余两组同理) ★
+
+    - ★**★关键**: ★**改 key 之前, 先查有没有 need 在问旧 key** (★`grep` 四个分片的 `needs_from`) ⇒ ★**有 need 在问的, 必须同时在新
+    key 下补一条 answer (★value 逐字照抄★) + 把那条 need 的 key 改成新 key (★或留一条指向新 key 的 need·★二选一·在交卷页写清★)** ⇒ ★**⇒
+    不能出现「改完 key ⇒ 那个 need 没人答」的破口** ★
+
+    - ★**★`pcb_outline_confirm` 特别提醒**: ★**这 5 条里没有一条是「板框 U-1 的答案」** ⇒ ★**不许把它当板框答案用** (★板框 U-1 的真答案在
+    `DECISION_ONE_PAGER_2026-11-22.md` §⑥/§⑦ + `DECISION_INDEX_2026-11-18.md` §R·★与本单无关★) ★
+
+
+    ### (2) ★**低危 31 组 artifacts 重名去重 (★只保留信息最全的一条·★其余写进交卷页的「已删重复登记」清单★)★★
+
+    - ★**判定**: 同一 `path` 多条 ⇒ ★**留 value/summary 最全的那条, 其余登记到交卷页 (★不许静默丢·★要能追回★)** ★
+
+
+    ### (3) ★**自证 + 交卷 (★零写板★)★★
+
+    - ★**自检命令 (★交卷前跑, 原样输出贴进交卷页★)**: ★`python3 state/check_frag_dup_keys.py --agent mech-lead` ⇒ ★**rc=0
+    (高危 0 组)**, ★`python3 state/check_frag_dup_keys.py` ⇒ ★**全仓高危总数 = hw-lead 那几组 (★不在你地界·不许越界改★)** ★
+
+    - ★**必跑**: `python3 state/merge.py` (rc=0) · `python3 state/gate_check.py` (rc=0 · Q1 18/18) · `python3
+    state/frag_write.py --agent mech-lead --show` · `md5sum HW/PCB/demo_mainboard.kicad_pcb` (必须 `611b869e13518c3c023fb178f91a0075`)
+
+    - ★**交卷页**: `HANDOFF/2026-11-23_mech-lead_ISS358_分片重名key清理.md` (★B1~B6 六个 `##` 标题里必须分别出现: B1 `结论`
+    · B2 `验收标准自评` · B3 `证据分级` · B4 `接口取值声明` · B5 `未决项与卡点` · B6 `自证复现命令`) + `state/fragments/mech.yaml`
+    分片 (★只走 `state/frag_write.py`★) + `logs/iss358/`
+
+
+    ★**边界 (★一条不许越★)★★: ★**零写板** (板 md5 `611b869e13518c3c023fb178f91a0075` / mtime `2026-11-06 07:07:17.362193413`)
+    · ★**零落表** (不改网表/脚表/BOM/原理图/任何闸) · ★**只写 `state/fragments/mech.yaml`** (★只走 `state/frag_write.py`·★**不许写
+    pm.yaml / hw.yaml / sw.yaml — 那是别人的地界★**) · ★**零外发/零采购** · ★**不替老板拍板 · 不新增拍板项** (★`pcb_outline_confirm`
+    那 5 条不是板框答案★) · ★**证据分级必标** · ★**不许改 `state/merge.py` / `state/gate_check.py` / `state/frag_write.py`**
+    (★★**并发写的根治是「给 frag_write.py 加乐观并发断言」, 但那是 main 的地界·本单只清已攒下的重名, 不许自己改工具★**) · ★**不许改 `state/check_frag_dup_keys.py`**
+    (★main 的工具·只读用★) ★
+
+    ★**做不完不许假装做完**: 交卷页写清「已做 / 未做」分界 (逐组名单) ★
+
+    '
+  dispatched_at: '2026-11-23'
+  verify_by: main
+  verify_result: null
+  note: '★★2026-11-23 09:2x · main 开单 (★项目总工 main★) ★★ ★**开单依据**: 兄弟 job 09:03 播报里那条「同 agent 两会话并发写同一分片
+    ⇒ 后写覆盖前写 (ISS-333 cont1/cont3 同时写 mech.yaml)」⇒ ★**main 把它从【说法】做成了【机器可查的账】**: 新建只读体检器 `state/check_frag_dup_keys.py`
+    (自测 3/3) ⇒ 四片全扫 ⇒ ★**高危段 (answers / needs_from) 重名合计 9 组**, 其中 mech-lead 4 组最严重⇒ ★**本单只清已攒下的重名 (逐组拆
+    key, 一条内容不许删)** ⇒ ★**status 落 open (不落 fixing)**: 派活由队列 job 执行 ⇒ 落 fixing 会变成「没人跑的僵尸 fixing」★ ⇒ ★**待派**:
+    owner = mech-lead ★ ★**不占老板拍板面** ★'
+- id: ISS-359
+  title: ★★[★主线内·机制侧·分片卫生类·内部活] ★★【`state/fragments/hw.yaml` 有 2 组 answers 与 3 组 needs_from 用了同一个 key
+    登记多次 ⇒ 合并器只认同 `_by` 多条 answers 的第一条 ⇒ 后写的不可见; needs_from 同 key 登记 N 次 ⇒ 台账里这一条被算成 N 条未闭合 ⇒ 最要命的 `s1_ref_rename_caliber_20261118`
+    ×3 正是「★S1 位号改名口径必须开工前拍★」这条【老板待拍项】⇒ 同一件事占 3 个坑位 ⇒ 未闭合需求数虚高 ⇒ 本单 = 拆成语义独立的 key, 一条内容都不许删】★★ ★**零写板·零落表·零外发·不替老板拍板**
+    ★
+  severity: medium
+  source_blocker: ISS-333
+  source_agent: main
+  desc: '★**main 2026-11-23 09:1x 本机实读 (不抄任何 agent 报告)★** ⇒ ★**① 体检器 (main 新建, 只读): `state/check_frag_dup_keys.py
+    --agent hw-lead` ⇒ 高危 5 组: `answers[iss081_pin_budget_carrier]` ×2 (★**被 `mech.yaml` 的 need (to=hw-lead)
+    问到 ⇒ 合并只认第一条·另一条对下游不可见★**) · `answers[iss287_baseline_readings]` ×2 · `needs_from[iss249_h1_reanchor_netlist_md5]`
+    ×2 (★收件人不同 sw-lead / mech-lead ⇒ 本来就是两件事, 只是 key 写重了★) · `needs_from[iss249_kicad_sch_md5_not_anchor]`
+    ×2 (★同上★) · `needs_from[s1_ref_rename_caliber_20261118]` ×3 (★★2 条逐字相同 + 1 条更长含 NC 白名单方案 ⇒ 老板那边本应只看见
+    1 件事★★) ⇒ 另 24 组 artifacts 重名 = 低危★ ⇒ ★**② 机制读数**: `state/merge.py` 答 need 时按 `_by == ask_to` 过滤后取**第一条**
+    ⇒ 同 key 重复 answers = 后写的静默不可见; needs_from 重复 ⇒ 台账未闭合数虚高 ⇒ ★**③ 并发注意**: hw-lead 此刻可能还有别的会话在写 hw.yaml
+    (ISS-356 cont2 在跑) ⇒ ★**写前记 md5 基线, 写后再比; 期间被别人改过 ⇒ 停下并写进交卷页 (不要静默覆盖——这正是本单要治的病)**★ ⇒ ★**④ 边界**: 只写
+    hw.yaml (只走 frag_write.py) · 零写板 · 零落表 · 零外发 · 不许改 merge.py / gate_check.py / frag_write.py · ★**`s1_ref_rename_caliber_20261118`
+    是老板要拍的那件事·只清重名登记, 不许自己给口径**★'
+  owner: hw-lead
+  reporter: main
+  raised: '2026-11-23'
+  due: '2026-11-25'
+  status: open
+  external: 'false'
+  task_brief: '# ISS-359 · hw-lead · ★★分片重名 key 清理 (★`s1_ref_rename_caliber_20261118` 被登记 3 次 ⇒ 老板那条待拍项在台账里算成
+    3 条未闭合★)·纯分片·零写板★
+
+
+    ★**题**: ★**`state/fragments/hw.yaml` 里有 2 组 answers 与 3 组 needs_from 用了同一个 key 登记多次** ⇒ ★**合并器 `state/merge.py`
+    对「同一个 `_by` 的多条同 key answers」只认第一条 ⇒ 后写的不可见; 而 needs_from 同 key 登记 N 次 ⇒ 台账里这一条会被算成 N 条未闭合需求** ⇒ ★**其中最要命的是
+    `s1_ref_rename_caliber_20261118` ×3 —— 它正是「★S1 位号改名口径必须开工前拍★」这条【老板待拍项】⇒ 同一件事在台账里占了 3 条 ⇒ 未闭合需求数虚高,
+    且老板一眼看过去会以为有 3 件事要拍** ★
+
+
+    ★**main 2026-11-23 09:1x 本机实读 (不抄任何 agent 报告)★**: ★**体检器 `state/check_frag_dup_keys.py --agent hw-lead`**
+    ⇒ ★**高危 5 组**:
+
+    - ★`answers[iss081_pin_budget_carrier]` **×2** ⇒ ★**被 `mech.yaml` 的 need `iss081_pin_budget_carrier`
+    (to=hw-lead) 问到 ⇒ 合并只认第一条·★另一条对下游不可见★** ★
+
+    - ★`answers[iss287_baseline_readings]` **×2** ⇒ 同型 (★暂无 need 问它·但仍会污染同 key 的取值★) ★
+
+    - ★`needs_from[iss249_h1_reanchor_netlist_md5]` **×2** ⇒ ★**同一件事登记给两个不同收件人 (sw-lead / mech-lead) ⇒
+    语义上应该是 2 个不同 key** ★
+
+    - ★`needs_from[iss249_kicad_sch_md5_not_anchor]` **×2** ⇒ 同上 ★
+
+    - ★`needs_from[s1_ref_rename_caliber_20261118]` **×3** ⇒ ★**★老板待拍项被登记 3 次 (★2 条完全同文 + 1 条更长·含 NC 白名单方案★)
+    ⇒ 台账未闭合数虚高·★这正是「待拍板面 39/42 条」这类数被算歪的来源之一★** ★
+
+    ★**另: 24 组 artifacts 重名 = 低危 (同一路径登记两次·不影响取值·可顺手清)** ★
+
+
+    ★**本单只做 3 件 (★不许扩项·零写板·零落表·零外发★)★★
+
+
+    ### (1) ★**2 组高危 answers: 一条内容都不许删, 只让每个 key 唯一 (★按语义拆 key★)★★
+
+    - ★`iss081_pin_budget_carrier` ×2 ⇒ 两条讲的是不是同一件事? ★**若是 ⇒ 合并成一条 (★value 取更全的那条·★另一条的独有信息要并进去, 不许丢★)★;
+    若否 ⇒ 拆成两个语义独立的 key★** ⇒ ★**★并检查 `mech.yaml` 里那条 need 问的是哪个 key ⇒ 改完不许出现「没人答」的破口★** ★
+
+    - ★`iss287_baseline_readings` ×2 ⇒ 同上 (★先查有没有 need 问它★) ★
+
+
+    ### (2) ★**3 组 needs_from 重名: 拆 key, 别让同一条事占 N 个坑位 ★★
+
+    - ★`iss249_h1_reanchor_netlist_md5` ×2 ⇒ ★**收件人不同 (sw-lead / mech-lead) ⇒ 拆成两个 key (★例 `iss249_h1_reanchor_netlist_md5_sw`
+    / `..._mech`★)⇒ ★**内容各自指向自己那份文件 (SW/SW_MD5_BASELINE_LEDGER.md vs MECH/HW_CROSS_REVIEW_TRIAGE.md)⇒
+    本来就是两件事, 只是 key 写重了★** ★
+
+    - ★`iss249_kicad_sch_md5_not_anchor` ×2 ⇒ 同上 (★收件人不同⇒ 拆两个 key★) ★
+
+    - ★`s1_ref_rename_caliber_20261118` ×3 ⇒ ★**★3 条里 2 条逐字相同、1 条更长 (多了「NC 白名单方案」那段) ⇒ 合并成 1 条 (★value
+    = 更全的那条, ★短的那两条作为「同文重复登记」写进交卷页·不许静默丢★)⇒ ★**⇒ 台账里这一条从 3 条变回 1 条·老板那边只看见 1 件事★** ★
+
+    - ★**★改 needs_from 的 key 前必须先查: 有没有 answers 段用同名 key 答过它** ⇒ ★**有 ⇒ 两侧一起改 (★否则那个 need 变孤儿·★合并后会显示「未答复」★)**
+    ★
+
+
+    ### (3) ★**自证 + 交卷 (★零写板★)★★
+
+    - ★**自检命令 (★交卷前跑, 原样输出贴进交卷页★)**: ★`python3 state/check_frag_dup_keys.py --agent hw-lead` ⇒ ★**rc=0
+    (高危 0 组)** ★
+
+    - ★**必跑**: `python3 state/merge.py` (rc=0) · `python3 state/gate_check.py` (rc=0 · Q1 18/18) · `python3
+    state/frag_write.py --agent hw-lead --show` · `md5sum HW/PCB/demo_mainboard.kicad_pcb` (必须 `611b869e13518c3c023fb178f91a0075`)
+
+    - ★**交卷页**: `HANDOFF/2026-11-23_hw-lead_ISS359_分片重名key清理.md` (★B1~B6 六个 `##` 标题里必须分别出现: B1 `结论` ·
+    B2 `验收标准自评` · B3 `证据分级` · B4 `接口取值声明` · B5 `未决项与卡点` · B6 `自证复现命令`) + `state/fragments/hw.yaml` 分片
+    (★只走 `state/frag_write.py`★) + `logs/iss359/`
+
+    - ★**★并发注意**: ★**hw-lead 此刻可能还有别的会话在写 `hw.yaml` (★ISS-356 cont2 在跑★) ⇒ ★**★写之前先 `md5sum state/fragments/hw.yaml`
+    记下读时基线, 写完再比一次; 若期间被别人改过 ⇒ 停下并写进交卷页 (★不要静默覆盖·★这正是本单要治的病★)** ★**
+
+
+    ★**边界 (★一条不许越★)★★: ★**零写板** (板 md5 `611b869e13518c3c023fb178f91a0075` / mtime `2026-11-06 07:07:17.362193413`)
+    · ★**零落表** · ★**只写 `state/fragments/hw.yaml`** (★只走 `state/frag_write.py`·★**不许写 pm.yaml / sw.yaml
+    / mech.yaml — 别人的地界★**) · ★**零外发/零采购** · ★**不替老板拍板 · 不新增拍板项** (★`s1_ref_rename_caliber_20261118` 是【老板要拍的那件事】·★你只清重名登记,
+    不许自己给口径★) · ★**证据分级必标** · ★**不许改 `state/merge.py` / `state/gate_check.py` / `state/frag_write.py`
+    / `state/check_frag_dup_keys.py`** (★**根治 = 给 frag_write.py 加乐观并发断言, 那是 main 的地界·本单只清已攒下的重名★**) ★
+
+    ★**做不完不许假装做完**: 交卷页写清「已做 / 未做」分界 (逐组名单) ★
+
+    '
+  dispatched_at: null
+  verify_by: main
+  verify_result: null
+  note: '★★2026-11-23 09:2x · main 开单 (★项目总工 main★) ★★ ★**开单依据**: 同 ISS-358 的机制读数 (main 新建只读体检器 `state/check_frag_dup_keys.py`
+    ⇒ 高危段重名 9 组) ⇒ 本单 = hw-lead 那 5 组 ⇒ ★**status 落 open (不落 fixing)**: 派活由队列 job 执行 ⇒ 落 fixing 会变成「没人跑的僵尸
+    fixing」★ ⇒ ★**待派**: owner = hw-lead (★该 agent 此刻在跑 ISS-356 cont2 ⇒ 排队等槽位★) ★ ★**不占老板拍板面** ★'

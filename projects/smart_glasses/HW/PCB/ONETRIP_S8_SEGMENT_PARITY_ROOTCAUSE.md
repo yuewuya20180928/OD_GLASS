@@ -313,7 +313,7 @@
 |---|---|---|
 | **零写板** | 开工前 `md5sum` + `stat -c '%y'` = `611b869e13518c3c023fb178f91a0075` / `2026-11-06 07:07:17.362193413 +0800`; ★**收工后再量一次 (见交卷页 B6) ⇒ 逐字节相同 + mtime 未变** ★ | ✅ |
 | **零落表** | `HW/netlist_v1.csv` md5 `6aee500e60ba0732f83a9cf557ba90ab` · `netlist_v1_pins.csv` md5 `9174309df1ec9411ac8e8d9e80ee386a` · `BOM_v1.csv` md5 `5b9993992405904a60ac96a020b375d8` · `BOM_pseudo_refs_v1.csv` md5 `f5a1cc6d2b794faa6d1dba7e932a6b5f` ⇒ 收工后重测不变 | ✅ |
-| **零改闸** | `state/gate_check.py` md5 `5ccdcd5f6b489973a4f002408ce4dc20` · `state/compare_arm_official.py` md5 `1471bce6cd67c4b0f611541d4a4b0dfc` · `state/chain_gate.py` md5 `7644a3d356095d0770656eaf9aa38b59` · `state/daily_check.py` md5 `ddb3b0d2eab9443eb9ff82b6eae2bc12` ⇒ 收工后重测不变 | ✅ |
+| **零改闸** | ★**本单自己一个字节都没改闸** ★ (★全程只写过: 本单交卷页 / 本单主交付物 / `state/fragments/hw.yaml` (只走 `frag_write.py`) / `logs/iss337/` + `tmp/iss337/`★) · `state/compare_arm_official.py` md5 `1471bce6cd67c4b0f611541d4a4b0dfc` · `state/chain_gate.py` md5 `7644a3d356095d0770656eaf9aa38b59` · `state/daily_check.py` md5 `ddb3b0d2eab9443eb9ff82b6eae2bc12` ⇒ 收工后重测不变 · ★**⚠ `state/gate_check.py` md5 由 `5ccdcd5f…` 变为 `5f370bb8…`, 但 mtime = 2026-11-23 03:56:54 ⇒ 比本单这一趟早 1h45m ⇒ 并发兄弟 job (ISS-349) 改的, 不是本单; 详见 `logs/iss337/28_board_md5_mtime_cont2b.txt`★** | ✅ |
 | **零改真生成器** | `state/gen_pcb_routing.py` md5 `85827a210fafe943a82bfb592dc732f9` · `state/gen_pcb_netlist_board.py` md5 `e6e7e0b36003f0a129170f5172b1381a` · `state/gen_kicad_project.py` md5 `25827dbe3b3bf82db7391a93efb3573f` ⇒ 收工后重测不变 | ✅ |
 | **只写自己的分片** | 全部经 `python3 state/frag_write.py --agent hw-lead` ⇒ ★**未用 `open(p,"w")` 写分片** ★ | ✅ |
 | **零外发** | ★**本单零外发** ★ —— 未联系任何供应商/原厂; 所有缺口靠自己查 + 标证据等级 | ✅ |
@@ -346,6 +346,6 @@
 |---|---|
 | **主交付物** | `HW/PCB/ONETRIP_S8_SEGMENT_PARITY_ROOTCAUSE.md` (本文件) |
 | **交卷页** | `HANDOFF/2026-11-19_hw-lead_ISS337_段数追平根因定位.md` |
-| **证据** | `logs/iss337/` (★**交卷页 §B3 主表 13 件 + §B8 续做追加 9 件 = 盘面 22 件**★) |
-| **分片** | `state/fragments/hw.yaml` (★**`grep -c iss337` = 14**★·要求 ≥5·★只走 `frag_write.py`·4 claim + 5 artifact + 3 need★) |
-| **沙盒** | `tmp/iss337/` (★`segcount.py` / `deep.py` / `splitmerge.py` / `merge_full.py` / `l3_proof.py` / `l3_merge_test.py` / `pernet.py` / `seg_parity_selfcheck.py` / `sbx/run_sbx.sh`★) |
+| **证据** | `logs/iss337/` (★**交卷页 §B3 主表 13 件 + §B8 续做追加 13 件 = 盘面 26 件**★·★机器复核: 表列文件名集合 == 实际文件集合 ⇒ 两向都 0 差·零空指针★) |
+| **分片** | `state/fragments/hw.yaml` (★**`grep -c iss337` = 25 (2026-11-23 06:2x 本机 `grep -c`)**★·要求 ≥5·★只走 `frag_write.py`·★本单自己登记 = 4+2 claim + 6 artifact + 3 need; 其余增量来自并发兄弟 job ISS-339 写进同一文件的 `iss337_*` 答复·★引用时必须带读数时刻★★) |
+| **沙盒** | `tmp/iss337/` (★`segcount.py` / `deep.py` / `splitmerge.py` / `merge_full.py` / `l3_proof.py` / `l3_merge_test.py` / `pernet.py` / `seg_parity_selfcheck.py` / `norm_impl_diff.py` / `verify_main_findings.py` / `check_own_page.py` / `sbx/run_sbx.sh`★) |

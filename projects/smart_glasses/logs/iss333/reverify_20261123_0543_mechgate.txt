@@ -1,0 +1,60 @@
+--- [6] MECH 闸 live 跑 ---
+==============================================================================
+ISS-333 · MECH 侧位号引用可达性闸 · check_mech_ref_reachability.py
+==============================================================================
+项目根        : /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+板位号        : 186 个 (★板文件文本解析, 未 import pcbnew★)
+网表位号      : 293 个 (★三张 CSV 的 ref 列★)
+网名索引      : 654 个
+扫描面        : 51 份 `MECH/**/*.md` (递归) + 70 份 `MECH/**/*.py` (递归)
+                (★闸自身已排除: MECH/tools/check_mech_ref_reachability.py★)
+抽出 token    : 249 个唯一标识符
+
+【分类统计】 (★SW 的 14 条 + MECH 侧的 C15/C16/C17★)
+   DESIGNATOR_OK            78
+   DESIGNATOR_DRIFT          0
+   DESIGNATOR_MISSING       10
+   NET_NAME                 23
+   DOC_INTERNAL            138
+
+【R3 建闸日基线】 `DESIGNATOR_MISSING` 实测 = 10 条 · 允许上限 = 10 条
+   ⇒ ✔ 在基线内
+
+【★真隐患 (C14)·现在就对不上的位号引用★】
+   ★基线内·已登记★ CONN_USB  (MECH/FPC_FAB_NOTES.md:6)  出现 77 次
+        理由: ★真隐患·已登记★: MECH 域 77 处引用 CONN_USB (FPC_FAB_NOTES / HINGE_FPC_GEOMETRY_TRUTH / HW_CROSS_REVIEW …) ⇒ ★板上是 J_USB_C, 网表里只有 CONN_CAM / CONN_LIGHT ⇒ 「USB 连接器」这个对象在盘上已经换名/消失, MECH 侧的引用还留着 ⇒ 板那一趟若改这些位号, MECH 侧会一起漂移★
+   ★基线内·已登记★ C_VBUS_BULK  (MECH/STRUCT_REVIEW_ISS065.md:337)  出现 4 次
+        理由: ★真隐患·已登记★: MECH/STRUCT_REVIEW_ISS065.md §I-6 明写「`C_BULK`/`C_VBUS_BULK` 与 `C_VBUS_IN` 的位号在 netlist 里对不上 (脚本按 `C_VBUS_BULK` 算 1206, 但 netlist 里只有 `C_VBUS_IN`/`C_VBUS_OUT`/`C_SYS`)」⇒ ★判据脚本引用了一个盘上没有的位号★
+   ★基线内·已登记★ D_ESD_CHG  (MECH/cross_review_check.py:111)  出现 1 次
+        理由: ★真隐患·已登记★: MECH/cross_review_check.py:103 的 ESD 假设 dict 里写死 "D_ESD_CHG": 1.6 * 0.8 ⇒ ★板上/网表里的 D_ESD_* 只有 D_ESD_CAM / D_ESD_DEMO / D_ESD_LIGHT / D_ESD_TC / D_ESD_USB_D ⇒ ★判据脚本假设了一个不存在的 ESD 位号★ (★它只出现在 .py 里, ISS-326 的「py-only 粗口径」把它一起扫掉了 ⇒ 本闸口径把它捡回来★)
+   ★基线内·已登记★ J_CHG_A  (MECH/HW_CROSS_REVIEW.md:227)  出现 1 次
+        理由: ★真隐患·已登记★: MECH/HW_CROSS_REVIEW.md §R-10「`J_CHG` 实物是一对, 网表只有一行」⇒ 处置写明「拆 `J_CHG_A`/`J_CHG_B` 两个 ref」⇒ ★文档里已经写了这两个位号, 但它们还没落表 ⇒ 落表之前它们就是解析不到的★
+   ★基线内·已登记★ J_CHG_B  (MECH/HW_CROSS_REVIEW.md:227)  出现 1 次
+        理由: ★真隐患·已登记★: 同 §R-10 ⇒ ★待与 `J_CHG_A` 同批落表 (★hw-lead owner★)
+   ★基线内·已登记★ J_CHG_PWR  (MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md:272)  出现 1 次
+        理由: ★真隐患·已登记★: MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md 的位号不符表里写明「主板侧改名 (如 `J_CHG_PWR`) 并同步 BOM/网表 (触落表, 须 main 批准)」⇒ ★它是【拟用名】, 还没落表 ⇒ 现在解析不到是对的, 落表后才解析得到★
+   ★基线内·已登记★ J_JTAG  (MECH/BOARD_ONEPASS_MECH_SYNC.md:340)  出现 2 次
+        理由: ★真隐患·已登记★: MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md §位号不符表: 脚本用 `J_JTAG`, 盘上是 `J_DEBUG` ⇒ ★位号名不符 ⇒ 按 params 生成的 land pattern 找不到器件 ⇒ hw-lead owner★
+   ★基线内·已登记★ J_USB  (MECH/BOARD_ONEPASS_MECH_SYNC.md:334)  出现 2 次
+        理由: ★真隐患·已登记★: 同表: 脚本用 `J_USB`, 盘上是 `J_USB_C` ⇒ ★位号名不符 ⇒ 同上★
+   ★基线内·已登记★ R_PU_STAT_L  (MECH/STRUCT_REVIEW_ISS065.md:251)  出现 4 次
+        理由: ★真隐患·已登记★: MECH/STRUCT_REVIEW_ISS065.md §R1「充电灯的驱动 `Q_CHG_LED` 栅极 = `U_CHG pin4` (本地 STAT, 开漏) + `R_PU_STAT_L` (本地上拉到 REGN 5V)」⇒ ★MECH/iss065_check.py:374 的 T-3c 面积账也把它算进去了 ⇒ 板/网表里没有这个位号 ⇒ 真隐患★
+MECH_GATE_RC=0
+--- [7] 闸脚本 --help ---
+usage: check_mech_ref_reachability.py [-h] [--root ROOT] [--selftest]
+                                      [--dump-classification]
+                                      [--freeze-registry] [--confirm-freeze]
+                                      [--tmpdir TMPDIR] [--brief]
+
+options:
+  -h, --help            show this help message and exit
+  --root ROOT           项目根 (默认: 脚本上两级)
+  --selftest            反向用例 (14 条)
+  --dump-classification
+                        ★R2: 打印全部分类 (一条命令复现分类规则★)
+  --freeze-registry     ★重建 MECH_DESIGNATOR_REGISTRY 冻结表★
+  --confirm-freeze      ★与 --freeze-registry 一起用 (★双确认·★重建的触发条件 = 【盘面改过位号】,
+                        ★不是【闸红了就重建】★)★
+  --tmpdir TMPDIR       沙盒临时树根目录
+  --brief               不打印分类全表
+HELP_RC=0

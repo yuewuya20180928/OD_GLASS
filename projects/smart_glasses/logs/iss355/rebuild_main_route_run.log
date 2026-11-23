@@ -1,0 +1,51 @@
+==============================================================================
+ISS-355 · PC 侧 RKNN 产物一键重建 (sw-lead · 主路线迁移版 · 2026-11-23)
+==============================================================================
+生效路线    : rknn3  (target_platform=rk3572 · rknn3-toolkit 1.2.0)
+★路线定位  : 主路线 (rknn3-toolkit 1.2.0 · ISS-263 实测 rc=0 · 产物逐字节可复现)
+源 ONNX     : /home/yuewuya/Public/rknn_assets/yolov5n-sim.onnx
+校准集源    : /home/yuewuya/Public/radxa_yolo/calib_yolov5_100
+落盘目录    : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/artifacts/models   (★不许只留临时目录★)
+scratch     : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss355/rknn3   (★项目盘·不许写 /tmp★)
+★产物形态  : 主路线 = .rknn + 同名 .weight **两件套** ⇒ 落盘段强制成对, 缺一即失败
+模式        : 实跑
+==============================================================================
+
+[1/5] 找带 rknn3-toolkit 1.2.0 的 python ...
+  ✓ /home/yuewuya/miniconda3/envs/rknn3/bin/python  (rknn3-toolkit 1.2.0)
+  ✓ 源 ONNX /home/yuewuya/Public/rknn_assets/yolov5n-sim.onnx (7931774 B)
+
+[2/5] 准备 (切 head + 量化校准集) ...
+  ✓ 切好的 head 模型在位 (缓存命中): /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss355/rknn3/yolov5n-sim_heads.onnx
+  ✓ 待转 ONNX: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss355/rknn3/yolov5n-sim_heads.onnx (7520239 B)
+  ✓ 校准集清单在位 (缓存命中): /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss355/rknn3/dataset.txt (99 行)
+
+[3/5] 转换 (★主路线★: rknn3-toolkit 1.2.0 · target_platform=rk3572 · w8a8 · channel) ...
+    Please open the following link in your browser:
+    
+      file:///home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/model_report.html
+    
+    ISS355_RKNN3_JSON {"target_platform": "rk3572", "onnx": "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss355/rknn3/yolov5n-sim_heads.onnx", "dataset": "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss355/rknn3/dataset.txt", "out": "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss355/rknn3/out/yolov5n-sim_heads_rk3572_int8_heads.rknn", "rc_config": 0, "t_config": 0.001, "rc_load_onnx": 0, "t_load_onnx": 0.261, "rc_build": 0, "t_build": 50.068, "rc_export": 0, "t_export": 0.016, "t_total": 50.363, "weight": "/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss355/rknn3/out/yolov5n-sim_heads_rk3572_int8_heads.weight", "weight_exists": true, "bytes": 249360, "weight_bytes": 1960448}
+  ✓ 产物: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss355/rknn3/out/yolov5n-sim_heads_rk3572_int8_heads.rknn (249360 B) + 同名 .weight (1960448 B)
+
+[4/5] 落盘到项目库 (★两件套一起拷, 缺 .weight 直接失败★) ...
+  ✓ .rknn   /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/artifacts/models/yolov5n-sim_heads_rk3572_int8_heads.rknn (249360 B)
+  ✓ .weight /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/artifacts/models/yolov5n-sim_heads_rk3572_int8_heads.weight (1960448 B)
+  ✓ sha256  rknn=3398b626094b4db76207668068ef727544800f6f924c78be540e8fcc77cf7622
+  ✓ sha256  weight=64f01c80fd969f1fd5d75789805560f298f6a73b4999dccb8b733d88aba0c48a
+
+[5/5] 身份锚 (sha256 sidecar · 两件套各一份) ...
+  ★落地目录: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/artifacts/models
+  ★板端验证包 (ISS-250 降级 A · 板到手一条命令):
+    bash SW/tools/rk3572_rknn3_board_smoke.sh \
+      --rknn /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/artifacts/models/yolov5n-sim_heads_rk3572_int8_heads.rknn --weight /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/artifacts/models/yolov5n-sim_heads_rk3572_int8_heads.weight \
+      --expect-sha256 "$(cat /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/artifacts/models/yolov5n-sim_heads_rk3572_int8_heads.rknn.sha256)" \
+      --expect-weight-sha256 "$(cat /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/artifacts/models/yolov5n-sim_heads_rk3572_int8_heads.weight.sha256)" \
+      --power-note "<供电方式>" --out ./evidence/
+==============================================================================
+重建完成 ⇒ 落盘目录: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/artifacts/models   (下板前直接拷这两件, 不用碰临时目录)
+==============================================================================
+
+real	0m57.161s
+user	0m56.734s
+sys	0m3.188s

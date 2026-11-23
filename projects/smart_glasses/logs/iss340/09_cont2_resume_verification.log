@@ -1,0 +1,128 @@
+########################################################################
+# ISS-340 · cont2 恢复复核 (hw-lead) · 只读复核, 零写板
+# 背景: cont2 (会话 75cf0660) 于 2026-11-22 23:37:52 被连带 abort; cont3 (23:52)
+#       已把【交卷页 B0~B7】+【logs/iss340/07_cont2_required_checks.log】+【分片补登记】补齐落盘。
+# 本次 = 网关重载后恢复复核 (2026-11-23 06:0x, Asia/Shanghai):
+#   ★不重做 cont1 的任何交付物 ★不重做 cont2/cont3 已落盘的交付物 ★只做只读复核 + 追加本日志
+#   ★本单零写板: 板 md5 与基线 (cont1 logs/iss340/04_board_fingerprint.txt) 逐字节相同★
+########################################################################
+
+==================== [1/5] 板指纹 (复核时点 · 对照 cont1 基线) ====================
+### cmd: md5sum HW/PCB/demo_mainboard.kicad_pcb && stat -c '%y %s' HW/PCB/demo_mainboard.kicad_pcb
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800 4940213
+### exit=0
+--- cont1 基线 (logs/iss340/04_board_fingerprint.txt) ---
+### 板指纹 前 (ISS-340 开跑前实测基线, 22:2x)
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413  4940213 bytes
+
+### 板指纹 后 (ISS-340 全部动作落盘后实测)
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800  4940213 bytes
+
+### 其它工程文件指纹 (只读校验)
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+
+==================== [2/5] 合并 ====================
+### cmd: python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-23T06:03:42+08:00)
+   产出 780 | 阻塞 43 (高危 33) | 未闭合需求 356 | 冲突 0 | 健康度 red
+### exit=0
+
+==================== [3/5] 质量门 ====================
+### cmd: python3 state/gate_check.py
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-23_hw-lead_ISS351_存储轴旧口径清账.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-23_sw-lead_ISS355_转换脚本迁主路线.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-23_mech-lead_ISS352_MECH双口径第2批.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '官方', '推算', '0数据']
+   sw-lead    标签: ['实测', '官方', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 1045 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    398 条
+   sw-lead    309 条
+   mech-lead  338 条
+
+【Q4 需求闭环率】
+### gate exit=0
+
+==================== [4/5] 分片命中数 + 三条登记 ====================
+### cmd: grep -c iss340 state/fragments/hw.yaml
+13
+### cmd: grep -n 'iss340_c1_attribution_verdict\|iss340_c_bucket_boss_decisions' state/fragments/hw.yaml
+3773:- key: iss340_c_bucket_boss_decisions
+4432:- key: iss340_c1_attribution_verdict
+
+==================== [5/5] 边界读数 (零改闸 / 零落表 / 零改别人分片) ====================
+### cmd: md5sum HW/netlist_v1.csv HW/check_board_netlist_divergence_gate.py HW/PCB/BOARD_TRIP_NETLIST_DIVERGENCE.md state/fragments/pm.yaml state/fragments/mech.yaml state/fragments/sw.yaml state/issue_log.yaml
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+b32e55634e5b62d2443405a5b7ba5432  HW/check_board_netlist_divergence_gate.py
+d7d379aea545a9fd5f6c41969b427199  HW/PCB/BOARD_TRIP_NETLIST_DIVERGENCE.md
+3d1281327c51c49f0d1f539ced0d4bfb  state/fragments/pm.yaml
+9e0116ff9af6c46a99233d68f3e609c6  state/fragments/mech.yaml
+192669e6c1ce975e6c0cfd16b2975dc6  state/fragments/sw.yaml
+fa62d10057cda2af2850a288b441c5ef  state/issue_log.yaml
+
+=== 交卷页引用路径存在性自查 (只认含 / 的路径 ⇒ 0 行 MISS) ===
+OK   HW/check_board_comparable_gate.py
+OK   HW/check_board_netlist_divergence_gate.py
+OK   HW/check_s8_target_list.py
+OK   HW/netlist_v1.csv
+OK   HW/PCB/BOARD_TRIP_NETLIST_DIVERGENCE.md
+OK   logs/iss340/01_c1_verdict_table.md
+OK   logs/iss340/01_selftest_out.txt
+OK   logs/iss340/02_gate_current_board_netlist.txt
+OK   logs/iss340/03_check_pcb_nets_c1.txt
+OK   logs/iss340/04_board_fingerprint.txt
+OK   logs/iss340/05_merge.txt
+OK   logs/iss340/06_gate_check.txt
+OK   logs/iss340/07_cont2_required_checks.log
+OK   state/chain_gate.py
+OK   state/check_pcb_nets.py
+OK   state/compare_arm_official.py
+OK   state/dispatch_briefs/ISS-340_hw_c1_divergence_attribution_cont2.md
+OK   state/dispatch_briefs/ISS-340_hw_c1_divergence_attribution.md
+OK   state/fragments/hw.yaml
+OK   state/fragments/mech.yaml
+OK   state/fragments/pm.yaml
+OK   state/fragments/sw.yaml
+OK   state/frag_write.py
+OK   state/gate_check.py
+OK   state/gen_pcb_netlist_board.py
+OK   state/issue_log.yaml
+OK   state/merge.py
+
+==================== [6/6] 分片补登记后的终验 (merge + gate_check) ====================
+### cmd: python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-23T06:04:48+08:00)
+   产出 781 | 阻塞 43 (高危 33) | 未闭合需求 356 | 冲突 0 | 健康度 red
+### exit=0
+
+### cmd: python3 state/gate_check.py
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-23_hw-lead_ISS351_存储轴旧口径清账.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-23_sw-lead_ISS355_转换脚本迁主路线.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-23_mech-lead_ISS352_MECH双口径第2批.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '官方', '推算', '0数据']
+   sw-lead    标签: ['实测', '官方', '0数据']
+### gate exit=0
+
+### cmd: md5sum HW/PCB/demo_mainboard.kicad_pcb && stat -c '%y %s' HW/PCB/demo_mainboard.kicad_pcb  (终验后)
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800 4940213
+### cmd: grep -c iss340 state/fragments/hw.yaml
+18

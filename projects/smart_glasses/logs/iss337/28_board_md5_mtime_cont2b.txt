@@ -1,0 +1,57 @@
+============================================================================================
+★ISS-337 cont2 (2026-11-23 06:1x) · 零写板双证 (★断线后复测·交卷后终测★)
+============================================================================================
+
+── 开工前 (★2026-11-22 20:5x 之前·见 logs/iss337/23_board_md5_mtime_cont2.txt★) ──
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800
+
+── 交卷后 (★本趟 2026-11-23 06:1x 实跑·逐字★) ──
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800
+
+── 三真源 (网表/脚表/BOM) md5 · 交卷后复测 (★零落表★) ──
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+f5a1cc6d2b794faa6d1dba7e932a6b5f  HW/BOM_pseudo_refs_v1.csv
+
+── 闸与真生成器 md5 (★零改闸/零改生成器★) ──
+5f370bb8cf828473e70ccc5d6412da98  state/gate_check.py
+1471bce6cd67c4b0f611541d4a4b0dfc  state/compare_arm_official.py
+7644a3d356095d0770656eaf9aa38b59  state/chain_gate.py
+ddb3b0d2eab9443eb9ff82b6eae2bc12  state/daily_check.py
+85827a210fafe943a82bfb592dc732f9  state/gen_pcb_routing.py
+e6e7e0b36003f0a129170f5172b1381a  state/gen_pcb_netlist_board.py
+25827dbe3b3bf82db7391a93efb3573f  state/gen_kicad_project.py
+
+── 本单唯一改动的脚本 (★沙盒区·不是 state/★) ──
+f9d52b0850cc432d62f191581ca125bc  tmp/iss337/seg_parity_selfcheck.py
+f3919d3f38ccbaaad1f532eb5d3dfbc3  tmp/iss337/norm_impl_diff.py
+2026-11-19 02:36:47.810967463 +0800
+
+★结论: 板 md5 与 mtime 逐字节未变 ⇒ 零写板成立
+★seg_parity_selfcheck.py md5 f9d52b08… 与 mtime 2026-11-19 02:36:47 与 cont1 修好那版逐字同 ⇒ 脚本一个字都没改
+
+── ★★【重要更正: gate_check.py 的 md5 变了, 但【不是本单改的】★★ ──
+  ★★本单开工前 (11-22 20:5x) 读到的是 5ccdcd5f6b489973a4f002408ce4dc20
+  ★★本趟 (11-23 06:1x) 读到的是 5f370bb8cf828473e70ccc5d6412da98
+  ★★⇒ md5 确实变了。★但 state/gate_check.py 的 mtime = 2026-11-23 03:56:54 +0800
+  ★★  ⇒ 【比本单这一趟 (断线后 05:42 开工) 早 1h45m】⇒ ★是并发兄弟 job (ISS-349 那一趟) 改的, 不是本单★★
+  ★★⇒ 所以本单的诚实说法是: ★★「零改闸」指【本单自己一个字节都没改闸】★★
+  ★★  —— 而不是「闸的 md5 全程不变」(★那个说法在 03:56 之后就不成立了·不许再这么写★)
+  ★★  其余 6 个 (compare_arm_official / chain_gate / daily_check / gen_pcb_routing /
+  ★★  gen_pcb_netlist_board / gen_kicad_project) md5 与 11-22 开工前读数【逐字同】⇒ 那 6 个确实全程未变
+★★本单全程只写过 4 类文件: ★① 本单交卷页 ② 本单主交付物 ③ state/fragments/hw.yaml (只走 frag_write.py) ④ logs/iss337/ 新增件 + tmp/iss337/ 自写脚本 —— ★state/ 下其它文件一个都没碰★★
+
+── ★★【交卷后终测: 本趟 (断线后 05:42→06:2x) 实际动过的文件全集·★机器复核★★ ──
+  find . -newermt '2026-11-23 05:42' -type f  (★只筛本单范围内的★)
+  ./HANDOFF/2026-11-19_hw-lead_ISS337_段数追平根因定位.md   ★本单交卷页★
+  ./HW/PCB/ONETRIP_S8_SEGMENT_PARITY_ROOTCAUSE.md            ★本单主交付物★
+  ./state/fragments/hw.yaml                                   ★本单分片 (只走 frag_write.py)★
+  ./logs/iss337/26_cont2_rerun_selftest_merge_gate.txt        ★本单证据★
+  ./logs/iss337/27_frag_write_cont2b.txt                      ★本单证据★
+  ./logs/iss337/28_board_md5_mtime_cont2b.txt                 ★本单证据★
+  ./tmp/iss337/check_own_page.py                              ★本单自写只读脚本★
+  ⇒ ★★7 个文件, 全部在任务书允许范围内; ★板 / 网表 / 脚表 / BOM / 闸 / 真生成器 / 别人文档 一个都没碰★★
+  ⇒ ★★板 md5+mtime / 三真源 md5 / 6 个闸与生成器 md5 / selftest 脚本 md5 —— 与 11-22 开工前逐字同 (★gate_check.py 除外, 它 03:56 被并发兄弟 job 改过, 见上)★★

@@ -146,6 +146,30 @@ nohup bash tmp/iss328/run_ru_arm.sh > logs/iss328/08_rightupper_arm.log 2>&1 &
 ★**出处**: `logs/iss328/07_probe_placement.log` (裸板三项) · `logs/iss328/08_rightupper_arm.log` L17~L61 (裸路由器产物 / 链终 / clrfix) · `logs/iss328/08_rightupper_arm.log` L140~L199 (基线臂) · `state/fragments/hw.yaml` (官方板基线读数) ★
 ★★**必须记住的口径**: ★**「unc 45 → 29」这个数【不能算成功】** —— ★**官方板 18092 段 vs 本臂 3986 段 ⇒ 路由器代码已漂移 ⇒ 不同工艺 ⇒ 差值里混着工艺差** ★★ ⇒ ★**臂间比较只认「同链」那一列 (基线臂 3666 段 vs 本臂 3986 段)** ★
 
+### §2-2b ★unc 网名集合 (★读数 ①/② 的「网名集合」这一半·★逐条给全·机器收割·零手抄★)★
+
+★★**§2-2 只给了计数 (unc 条目 / 网名数)·这里把【网名集合】逐条给全 (★读数 #1 与 #2 明确要的就是这个集合★)★★**
+★★**口径**: `state/cmp_unc_sets.py` 的 `nets_of()` ⇒ 从 DRC json 的 `unconnected_items` 里正则取 `[网名]` · 排序去重 ★
+★★**出处**: `logs/iss328/35_unc_netsets_readonly.txt` (★本趟【只读】收割 · ★未重跑任何链/臂 · ★未写板 · ★未改闸 · ★收割脚本 `tmp/iss328/scripts/iss328_netsets_readonly.py`★) ★
+
+| 板 | unc 条目 | DRC viol | ★unc 网名数★ | ★unc 网名集合 (★逐条·零手抄★)★ |
+|---|---|---|---|---|
+| ★**① 裸路由器产物** (★排版+布线·未套链★) ★<br>`tmp/iss328/ru_R.drc.json` | 35 | 11 | ★**34** ★ | `BAT_CHG` `BOOT_N` `CSI_D0_CK_N` `CSI_D0_D0_N` `CSI_D0_D0_N_SRC` `CSI_D0_D1_N` `CSI_D0_D1_N_SRC` `CSI_D0_D2_N` `CSI_D0_D2_P` `CSI_MCLK` `CSI_MCLK_SRC` `DSI_D0_CK_N` `DSI_D0_D0_N` `DSI_D0_D0_N_SRC` `DSI_D0_D0_P` `DSI_D0_D1_N` `DSI_D0_D2_N_SRC` `DSI_D0_D3_N_SRC` `I2C_A_SCL` `I2C_B_SCL` `I2C_B_SDA` `KEY_CAM` `KEY_VOL_P` `LED_B` `LED_G` `LIGHT_5V` `PWR_GOOD` `PWR_ON` `RAIL_DEMO_5V` `SPI_MISO_BOOT` `SPI_MOSI_BOOT` `UART_RX` `USB_CC1` `VDD_1V8_IO` |
+| ★**② 右上臂链终板** ★<br>`tmp/iss328/chain_iss328_s8ru/final_board.drc.json` | 29 | 12 | ★**28** ★ | `BOOT_N` `CSI_D0_CK_N` `CSI_D0_D0_N` `CSI_D0_D0_N_SRC` `CSI_D0_D1_N` `CSI_D0_D1_N_SRC` `CSI_D0_D2_N` `CSI_D0_D2_P` `CSI_MCLK` `CSI_MCLK_SRC` `DSI_D0_CK_N` `DSI_D0_D0_N` `DSI_D0_D0_N_SRC` `DSI_D0_D0_P` `DSI_D0_D1_N` `DSI_D0_D2_N_SRC` `DSI_D0_D3_N_SRC` `I2C_A_SCL` `I2C_B_SCL` `KEY_CAM` `KEY_VOL_P` `LED_B` `LED_G` `PWR_GOOD` `SPI_MISO_BOOT` `SPI_MOSI_BOOT` `UART_RX` `USB_CC1` |
+| ★**③ 基线臂同链终板** (★对照臂·★ISS-325 同日同代码★) ★<br>`tmp/iss328/cab/_cab__…tmp.base.json` | 29 | 205 | ★**27** ★ | `CSI_D0_CK_N` `CSI_D0_D0_N` `CSI_D0_D0_N_SRC` `CSI_D0_D1_N` `CSI_D0_D1_N_SRC` `CSI_D0_D2_N` `CSI_D0_D2_P` `CSI_MCLK` `CSI_MCLK_SRC` `DSI_D0_CK_N` `DSI_D0_CK_N_SRC` `DSI_D0_D0_N` `DSI_D0_D1_N` `DSI_D0_D3_N` `DSI_D0_D3_P` `I2C_A_SCL` `I2C_B_SCL` `I2C_B_SDA` `ID_DETECT_1` `KEY_CAM` `KEY_VOL_P` `LED_B` `LED_G` `SPI_MISO_BOOT` `SPI_MOSI_BOOT` `UART_RX` `USB_CC1` |
+
+★★**两组集合关系 (★机器算的·★不是手抄的★)★★
+
+| 比较 | 交集 | 仅前者有 | 仅后者有 | 判定 |
+|---|---|---|---|---|
+| ★**① 裸路由器产物 → ② 右上臂链终板** ★ | **28** | ★**6** ★ = `BAT_CHG` `I2C_B_SDA` `LIGHT_5V` `PWR_ON` `RAIL_DEMO_5V` `VDD_1V8_IO` ★(★被三步补丁链救回★) ★ | ★**0** ★ | ★★**链终网名集合 ⊂ 裸路由器网名集合 (★严格子集★) ⇒ ⇒ 补丁链这一步【只救不破】** ★★ |
+| ★**② 右上臂链终板 vs ③ 基线臂同链终板** ★ | **22** | ★**6** ★ = `BOOT_N` `DSI_D0_D0_N_SRC` `DSI_D0_D0_P` `DSI_D0_D2_N_SRC` `DSI_D0_D3_N_SRC` `PWR_GOOD` ★(★候选打断★) ★ | ★**5** ★ = `DSI_D0_CK_N_SRC` `DSI_D0_D3_N` `DSI_D0_D3_P` `I2C_B_SDA` `ID_DETECT_1` ★(★候选救回★) ★ | ★★**净 +1 ⇒ 判据① 网名集合【变大】(27→28) ⇒ ❌ 不通过** ★★ |
+
+★★**与链日志逐字对账 (★两组读数互相独立地算出同一结果⇒ 口径没跑偏★)★★**: ★**臂间对照闸日志 (`08_rightupper_arm.log` L140~L152) 写的是「基线 unc 条目 29 · 网名签名 27 · 候选 unc 条目 29 · 网名签名 28 · 交集 22 · 救回 5 / 新断 6」·本收割件独立算出【逐项相同】** ★
+★★**与补丁链自检闸对账**: ★**链日志自检闸两段都写「救回 3 / 新断 0」(straight 段救回 `BAT_CHG` `I2C_B_SDA` `VDD_1V8_IO` · nostub 段救回 `LIGHT_5V` `PWR_ON` `RAIL_DEMO_5V`) ⇒ 合起来正好 6 条 = 上表「仅①有」的 6 条 ⇒ ★**链终集合是裸路由器集合的严格子集** ★**
+
+★★**★必须一起读的那一句 (★别把这条拿去当本臂通过★)★★**: ★**「补丁链只救不破 (严格子集)」这条只证明【补丁链这一步本身】没把网弄断 ⇒ 它【不等于】整条臂成立** ⇒ ★**本臂的名字制闸照样 REJECT (★退铜名单 / 差分死腿 / 逐网孤岛变多·见 §3-4★) ⇒ ★**不得拿这条去冲抵 §3 的 REJECT** ★ ★
+
 ### §2-3 全板 185 封装落位 diff (★右上臂链终 vs ★基线臂同链终★★)
 
 ★**全板 185 个封装落位 (★ref/x/y/rot 逐行比·pcbnew `GetPosition` 权威读法★)**
@@ -330,6 +354,12 @@ DSI_D0_D3  (远端)  测试点侧  P.x= 125.70  N.x= 120.70  Δx= -5.00
 
 ★**成功判据 (= 名单制闸 rc = 0 + DRC viol = 0) 的达成情况**: ★**rc = 1 ≠ 0 ⇒ 达成情况 = 不通过** ★
 
+★★**★rc 取值说明 (★日志 vs 只读复算的差异·★已在交卷页 B5 登记·★判据一个字没改★)★★**: ★
+★日志 `08_rightupper_arm.log` 两处印「★名单制闸 rc=0」·第三块外层印「★对照闸 rc=0」·但同一块里印的是「判定: REJECT」·而臂间对照闸内层印的是「闸 rc=1」★
+★**根因**: ★`tmp/iss328/run_ru_arm.sh` L132~L133 / L136~L137 用的是 `python3 … 2>&1 | tail -60` 紧跟 `echo "  ★名单制闸 rc=$?"` ⇒ ★**`$?` 取的是 `tail` 的退出码 (恒 0)·不是闸的退出码** ⇒ **那两行 rc 是 shell 管道 artifact** ★
+★对照: ★`state/compare_arm_official.py` 末行 `return 0 if verdict == "ACCEPT" else 1` ⇒ ★**REJECT ⇒ 进程退出码必为 1** ★
+★**⇒ 本页三块闸统一按【判定 = REJECT (照日志·一字未改) · rc = 1 (照只读复算 `logs/iss328/33_recalc_gate_rc.txt` 的进程退出码)】写 · ★只影响 rc 这一个字段的呈现·判据/名单/读数全部照抄日志★** ★
+
 ★★**不通过的【具体条目】(★不许只给一个结论·★逐条给★)★★
 | # | 条目 | 读数 |
 |---|---|---|
@@ -477,6 +507,7 @@ DSI_D0_D3  (远端)  测试点侧  P.x= 125.70  N.x= 120.70  Δx= -5.00
 | ⑫ | ★**归零是否可达 = [0数据]** (★盘上 11 份 DRC JSON 最低 unc = 23·无一份 = 0★) | ★**[0数据]** ★ | `state/fragments/hw.yaml` 的 `iss322_s8_zero_proven_on_disk_v2` + `logs/iss322/14_min_unc_scan.txt` |
 | ⑬ | ★**S8 真靶集 = 官方板 43 网名** (★候选臂那 22 网名靶表只交 12 条·其中 10 条官方板是连通的 = 候选臂自伤★) | ★**[实测]** ★ | `state/fragments/hw.yaml` 的 `iss308_s8_target_set_caliber` |
 | ⑭ | ★**本单不查任何外部资料** ⇒ ★本单【不得】出现 `[官网]` 或 `[媒体]` 级的断言★ | ★**[0数据]** (★外部资料一律未查★) | ★本单全程只读沙盒产物 + 项目内既有文件 ★ |
+| ★**⑮** ★ | ★**三张板的 unc 网名集合逐条给全**: 裸路由器产物 **34** 个网名 (unc 条目 35 / viol 11) · 右上臂链终板 **28** 个 (29 / 12) · 基线臂同链终板 **27** 个 (29 / 205) ⇒ ★**链终集合 ⊂ 裸路由器集合 (严格子集 · 补丁链这一步只救不破 · 救回 6 条 = `BAT_CHG` `I2C_B_SDA` `LIGHT_5V` `PWR_ON` `RAIL_DEMO_5V` `VDD_1V8_IO`) ⇒ 臂间: 交集 22 / 候选新断 6 / 候选救回 5 ⇒ 净 +1** ★ | ★**[实测]** ★ | `logs/iss328/35_unc_netsets_readonly.txt` (★脚本 `tmp/iss328/scripts/iss328_netsets_readonly.py` · ★只读·未重跑任何链/臂★) |
 
 ★**★降级方案 (★查不到项的处置★)★**: ★**① 「官方板为什么 18092 段而我们只出 3471 段」的具体原因 → [0数据]·只登记了【自校准闸 档②】这个事实·具体是哪几处代码漂移需另开单★** ★· ★**② 「为什么官方链 stage-1 是 17022 段」的历史配方细节 → [0数据]·不影响本单结论 (★结论只依赖【两者不等】这个事实★)★** ★
 ★**⇒ ⇒ 降级后本单结论【不受影响】: ★三条结论全部只依赖【盘上已存在的读数】·不依赖任何外部资料★ ★
@@ -522,6 +553,16 @@ DSI_D0_D3  (远端)  测试点侧  P.x= 125.70  N.x= 120.70  Δx= -5.00
 | `state/gate_check.py` | ★**19:33** (★31_md5_pre.txt 打的★) | ★**20:19:07** ★ | ★**本单本趟 (cont3·22:0x) 之前就被别的 lane 改过** ⇒ ★**不是本单改的** · 本单本趟只【读】它 (交卷前要跑一遍确认 rc=0) ★ |
 | `HW/PCB/ONETRIP_S1_THREE_SIDE_RENAME_LIST.md` | ★**19:33** ★ | ★**19:48:34** ★ | ★**同上·19:48 落在本单 cont3 起跑 (22:0x) 之前** ⇒ ★**不是本单改的** ★ |
 
+★★**2026-11-23 05:46 复检 (★本单 cont4 交卷时又跑一遍体检表·★结论不变·★只把被别的 lane 后续再动过的文件标出来★)★★
+| 文件 | 11-18 交卷时 md5 | 11-23 05:46 实读 md5 | mtime | 判定 |
+|---|---|---|---|---|
+| `HW/PCB/demo_mainboard.kicad_pcb` (★真板★) | `611b869e13518c3c023fb178f91a0075` | ★**同** ★ | ★**2026-11-06 07:07:17.362193413 (未动)★** | ★**SAME · ★零写板成立★** ★ |
+| `state/gate_check.py` | `9973a4f002408ce4dc20…` | `5f370bb8cf82…` | ★**2026-11-23 03:56:54** ★ | ★**DIFF · ★★本单不认领★★** ⇒ ★**11-23 03:56 落在本单 cont4 开工 (05:42) 之前 ⇒ 不是本单改的** ★ (★本单只【跑】它确认 rc=0·★一次字没改★) ★ |
+| `state/issue_log.yaml` | ★跑前基线 (★零改动·本单不自签★) ★ | ★**同** ★ (★仍非本单所写·★11-23 05:38 的变更属别的 lane★) ★ | — | ★**SAME (就本单而言)★** ★ |
+| `state/fragments/sw.yaml` / `mech.yaml` | ★跑前基线 ★ | ★**未动** ★ (★11-23 05:02 / 04:32 的变更属别的 lane·★不是本单★) ★ | — | ★**SAME (就本单而言)★** ★ |
+
+★★**⇒ ⇒ 【零改闸 / 零改生成器 / 零改既有文档】在本单名下仍然成立**: ★**本单全程只写了 5 个文件 = 交付页 / 交卷页 / `state/fragments/hw.yaml` / `logs/iss328/35_unc_netsets_readonly.txt` / `tmp/iss328/scripts/iss328_netsets_readonly.py` · 其余一个字节都没动** ★ ★
+
 ★★**⇒ ⇒ ★【零改闸 / 零改生成器 / 零改既有文档】在本单名下成立 (★本单全程只读这些文件·唯一写的三个文件是: 本交付页 / 交卷页 / `state/fragments/hw.yaml`·★日志只新增不覆盖★)★★ · ★**但 `state/gate_check.py` 与 `ONETRIP_S1_THREE_SIDE_RENAME_LIST.md` 两个文件在 19:33 之后被别的 lane 动过·本单不认领·交 main 判** ★
 ★★**工具指纹复比 (★零改生成器代码的正证·★起链时打印 vs 交卷时实读·逐字一致★)★★:
 | 工具 | 起链时 sha256 前 16 位 (L11~L13) | 交卷时实读 | 判定 |
@@ -550,7 +591,7 @@ DSI_D0_D3  (远端)  测试点侧  P.x= 125.70  N.x= 120.70  Δx= -5.00
 
 ## §7 文件清单
 
-★**(a) `logs/iss328/` (★15 件原始证据 + 2 件本趟新增收割件·★路径逐字等于磁盘★)★**
+★**(a) `logs/iss328/` (★共 **17** 件 = 上表 17 行·★`ls logs/iss328 | wc -l` 实测 = 17·★路径逐字等于磁盘·★2026-11-23 05:56 核对★)★**
 
 | # | 路径 | 内容 | 时间 |
 |---|---|---|---|
@@ -569,6 +610,8 @@ DSI_D0_D3  (远端)  测试点侧  P.x= 125.70  N.x= 120.70  Δx= -5.00
 | 13 | `logs/iss328/32b_gen_products_mtime_pre.txt` | ★跑前 mtime (★同上 6 件★) ★ | 19:35 |
 | 14 | ★`logs/iss328/33_recalc_gate_rc.txt` ★ | ★★本趟新增收割件★★ · 名单制闸 rc 复算 (★臂 vs 官方 rc=1 · clrfix 臂 vs 官方 rc=1★) ★ | 22:13 |
 | 15 | ★`logs/iss328/34_cont3_readonly_recalc.txt` ★ | ★★本趟新增收割件★★ · 只读复算读数 (★段内 P/N 翻转 20/47 + 链终几何 3919/593/4 + 落位 diff 102/51 + 零写板双证★) ★ | 22:13 |
+| ★**16** ★ | ★`logs/iss328/35_unc_netsets_readonly.txt` ★ | ★★cont4 新增收割件★★ · ★三张板的 unc 网名集合逐条给全 + 两组集合关系 (★机器收割·★脚本 `tmp/iss328/scripts/iss328_netsets_readonly.py`·★只读·未重跑任何链/臂★) ★ ⇒ §2-2b | 11-23 05:4x |
+| ★**17** ★ | ★`logs/iss328/36_cont3_final_accept.txt` ★ | ★★cont3 新增收割件★★ · ★交卷前必跑的原样输出 (★879 行·MERGE_RC=0 · GATE_RC=0 · ISSUE_RC=1★ + 19 处占位符扫描 0/0/0/0 + 零写板双证★) ★ ⇒ 交卷页 B6 | 11-23 05:54 |
 
 ★**(b) `tmp/iss328/` 沙盒产物 (★只读引用·★本单不删不清★)★**
 
@@ -585,7 +628,7 @@ DSI_D0_D3  (远端)  测试点侧  P.x= 125.70  N.x= 120.70  Δx= -5.00
 | ★**落位清单** ★ | `tmp/iss328/pos_{base,ru,rutp}.tsv` (★各 185 封装★) + `tmp/iss328/md5_{base,ru,rutp}.txt` | ★机器读的落位与 md5 ★ |
 | ★**落位 diff** ★ | `tmp/iss328/diff1_ru_vs_base.tsv` (★102 行★) · `tmp/iss328/diff2_tp_vs_notp.tsv` (★16 行★) | ★§2-3 / §4-2 的原始明细 ★ |
 | ★**脚手架 (只读)** ★ | `tmp/iss328/run_ru_arm.sh` · `chain_sbx.sh` · `clrfix_sbx.sh` · `compare_arm_baseline_sbx.sh` · `iss328_s8_rightupper_arms.sh` · `probe_placement.sh` | ★本单【未重跑】这四条链脚本 · 只引用其输出 ★ |
-| ★**只读探针** ★ | `tmp/iss328/probe_pn_order.py` · `tmp/iss328/dump_fp_pos.py` · `tmp/iss328/scripts/{probe_pn_order_cand,read_all_footprint_pos,read_part_pos_pcbnew,unc_mech_table}.py` · `tmp/iss328/build_ru_partpos.py` | ★本趟只读复算用的探针 (★未改一个字节★) ★ |
+| ★**只读探针** ★ | `tmp/iss328/probe_pn_order.py` · `tmp/iss328/dump_fp_pos.py` · `tmp/iss328/scripts/{probe_pn_order_cand,read_all_footprint_pos,read_part_pos_pcbnew,unc_mech_table,iss328_netsets_readonly}.py` · `tmp/iss328/build_ru_partpos.py` | ★本趟只读复算用的探针 (★未改一个字节★) ★ |
 | ★**其他沙盒** ★ | `tmp/iss328/ru_R.kicad_pcb` (+`.drc.json`) · `tmp/iss328/docout/` · `tmp/iss328/cab/` | ★裸路由器产物 / 生成器产物 / 几何对照产物 ★ |
 
 ★**(c) 本单写的文件 (★只有这三类·★其余一个字节都没动★)★**
@@ -595,4 +638,4 @@ DSI_D0_D3  (远端)  测试点侧  P.x= 125.70  N.x= 120.70  Δx= -5.00
 | `HW/PCB/ONETRIP_S8_RIGHTUPPER_CONTROL_ARM.md` (★本文件★) | ★**填 12 处占位符** (★§2-1 / §2-2 / §2-3 / §2-4 / §2-5 / §3-2 / §3-3 / §3-4 / §5 / §6-2 / §6-3 / §7★) ★ |
 | `HANDOFF/2026-11-18_hw-lead_ISS328_右上对照臂与TP_noop复测.md` | ★**填 7 处占位符** (★B0 / B1 / B2 / B3 / B4 / B5 / B6★) ★ |
 | `state/fragments/hw.yaml` | ★**走 `python3 state/frag_write.py --agent hw-lead` 原子写** ★ (★禁 `open(p,"w")`★) ★ |
-| `logs/iss328/33_recalc_gate_rc.txt` + `logs/iss328/34_cont3_readonly_recalc.txt` | ★**新增收割件** (★新文件名带新后缀·★未覆盖 15 件原始证据★) ★ |
+| `logs/iss328/33_recalc_gate_rc.txt` + `logs/iss328/34_cont3_readonly_recalc.txt` + `logs/iss328/35_unc_netsets_readonly.txt` + `logs/iss328/36_cont3_final_accept.txt` | ★**新增收割件** (★新文件名带新后缀·★未覆盖 15 件原始证据·★目录共 17 件★) ★ |

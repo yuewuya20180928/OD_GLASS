@@ -1,0 +1,146 @@
+==========================================================================
+ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
+==========================================================================
+项目根        : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss327/sbRT_RT-3
+板位号        : 186 个 (★板文件文本解析, 未 import pcbnew★)
+网表位号      : 293 个 (★三张 CSV 的 ref 列★)
+网名索引      : 657 个
+扫描文档      : 42 份 `SW/*.md` (★其中 27 份含至少一个 token★)
+抽出 token    : 112 个唯一标识符
+
+【分类统计】 (★R2★)
+   DESIGNATOR_OK            78
+   DESIGNATOR_DRIFT          0
+   DESIGNATOR_MISSING        3
+   NET_NAME                  9
+   DOC_INTERNAL             22
+
+【R3 现状基线】 `DESIGNATOR_MISSING` 实测 = 3 条 · 允许上限 = 3 条
+   ⇒ ✘ 超基线 (见下方 FAIL 行)
+   ★提示: 基线里的 CONN_USB 现在已经解析得到了 ⇒ ★建议把 BASELINE_COUNT 收到 3 并从 BASELINE_TOKENS 里删掉 (★收紧, 不是放宽★)★
+
+【★真隐患 (C14)·现在就对不上的位号引用★】
+   ★★超基线★★ CONN_USB_ISSX  (SW/ONETRIP_SW_RENAME_SAFETY.md:63)  出现 7 次
+        理由: ★不在建闸日基线里 ⇒ 这是新增的真隐患★
+   ★基线内·已登记★ TP_INT  (SW/BOARD_ONEPASS_SW_SYNC.md:43)  出现 14 次
+        理由: ★真隐患·但已登记★: SW/BOARD_ONEPASS_SW_SYNC.md §SW06 明写「TP_INT (触控中断) 在网表和板上都不存在 ⇒ SW 侧不许按『有触控中断』写代码」⇒ ★它是一个【被文档自己点名的空洞】★ ⇒ 板那一趟若决定接触控, 必须同批落表 + 落位 + 布线, 否则 SW 侧引用永远是空的★
+   ★基线内·已登记★ TP_TEMP  (SW/ONETRIP_SW_RENAME_SAFETY.md:63)  出现 3 次
+        理由: ★真隐患·未登记★: SW/SW_TIMING_REVIEW.md §CR-7 (EVT 上电段) 要求「TP_TEMP 热电偶对照标定」 ⇒ ★板上 42 个 TP_* 里没有 TP_TEMP (只有 TP_USB_D_N / TP_KEY_PWR / TP_RESET 等)★ ⇒ ★EVT 测温校准步骤依赖一个不存在的测试点 ⇒ 这就是本闸今天就抓得到的真隐患★
+
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): CONN_USB_ISSX @ SW/ONETRIP_SW_RENAME_SAFETY.md:63 ⇒ 板与网表里现在叫: (无近似名)
+
+【R2 分类全表】 (★`--dump-classification` 同源★)
+   DESIGNATOR_OK        C1   BT_432243                                    现在在【板文件+网表】里能找到
+   NET_NAME             C3   CHG_BOARD                                    它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   CHG_STAT                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DESIGNATOR_OK        C1   CONN_CAM_1                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   CONN_LIGHT_1                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_MISSING   C14  CONN_USB_ISSX                                形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   C_DET_BAT_1                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_DET_VBUS_D_1                               现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_REGN_1                                     现在在【网表】里能找到
+   DESIGNATOR_OK        C1   C_RST_1                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_SW_IN_1                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_SW_OUT_1                                   现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C7   C_User_Hardware_Manual                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DESIGNATOR_OK        C1   C_VBUS_DEMO_1                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_VBUS_GND_1                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_VBUS_OUT_1                                 现在在【网表】里能找到
+   DESIGNATOR_OK        C1   D_CHG_LED_1                                  现在在【网表】里能找到
+   DESIGNATOR_OK        C1   D_ESD_DEMO_1                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   D_ESD_USB_D_1                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   D_LED_B_1                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   D_LED_G_1                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   D_LED_R_1                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   FB_DEMO_1                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_CHG_1                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P1                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P2                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P3                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_TYPE_C_1                                   现在在【网表】里能找到
+   DESIGNATOR_OK        C1   J_USB_C_1                                    现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C10  L_B                                          前缀 `L_` ∈ 物理量命名空间 (本项目板上无该前缀位号)
+   DOC_INTERNAL         C7   L_eye                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   NET_NAME             C11  PWR_CTRL                                     前缀 `PWR_` ∈ 电源轨名/逻辑信号名命名空间
+   NET_NAME             C3   PWR_GOOD                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   PWR_ON                                       它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DESIGNATOR_OK        C1   Q_AND_1                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   Q_CHG_LED_1                                  现在在【网表】里能找到
+   DESIGNATOR_OK        C1   Q_ENVC_1                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   Q_PG_1                                       现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C8   R_BAT_DET_                                   以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   R_BAT_DET_1                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_BAT_DET_2                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_CC1                                        现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_CC2                                        现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_CE_1                                       现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_CHG_LED_1                                  现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_EN_VCORE_1                                 现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C4   R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION        盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_OK        C1   R_ILIM_1                                     现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_PD_ON_1                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PG_PULL_1                                  现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C8   R_PU_                                        以 `_` 结尾 ⇒ 文本被截断的前缀
+   DESIGNATOR_OK        C1   R_PU_BOOT_N_1                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_CHG_STAT_1                              现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_I2CA_SCL_1                              现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_I2CB_SCL_1                              现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_PG_1                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_PU_RESET_N_1                               现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_RESET_N_1                              现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_USB_D_N_1                              现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_USB_D_P_1                              现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C12  R_SUPV_DIV                                   是 ≥2 个 live 位号的严格前缀 (R_SUPV_DIV1, R_SUPV_DIV2) ⇒ 文档对一组件的统称
+   DESIGNATOR_OK        C1   R_SUPV_DIV1                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SUPV_DIV2                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_VBUS_DET_D1                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_VBUS_DET_D2                                现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C7   R_conv                                       后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_on                                         后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_skin_path                                  后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DOC_INTERNAL         C7   R_th                                         后缀含小写字母 ⇒ 物理量符号 (不是位号)
+   DESIGNATOR_OK        C1   SW_BOOT_1                                    现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C5   SW_BRIGHTNESS_API_ANCHORS                    盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
+   DOC_INTERNAL         C4   SW_BRIGHTNESS_CONTROL_POLICY                 盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DOC_INTERNAL         C5   SW_BRIGHTNESS_POLICY_ANCHORS                 盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
+   DESIGNATOR_OK        C1   SW_KEY_PWR_1                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   SW_KEY_VM_1                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   SW_KEY_VP_1                                  现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C5   SW_MD5_ANCHORS                               盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
+   DOC_INTERNAL         C4   SW_MD5_BASELINE_LEDGER                       盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DOC_INTERNAL         C4   SW_REQUIREMENTS                              盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_OK        C1   SW_RST_1                                     现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C6   SW_SYNC_NETLIST                              盘上某 .py 把它当环境变量键用 ⇒ 判据/夹具的键名
+   DOC_INTERNAL         C4   SW_TIMING_REVIEW                             盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_OK        C1   TP_BOOT_1                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_MISSING   C14  TP_INT                                       形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   TP_KEY_PWR_1                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_PG_VCORE_1                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_PG_VIO_1                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_RESET_1                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_MISSING   C14  TP_TEMP                                      形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   TP_USB_D_N_1                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_BATPROT_1                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_CHG_1                                      现在在【网表】里能找到
+   DOC_INTERNAL         C12  U_DCDC                                       是 ≥2 个 live 位号的严格前缀 (U_DCDC_VCORE_1, U_DCDC_VIO_1) ⇒ 文档对一组件的统称
+   DESIGNATOR_OK        C1   U_DCDC_VCORE_1                               现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_DCDC_VIO_1                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_EN_SW_1                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_IO18                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_IO33                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_L18                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_L33                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_S12                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_S18B_1                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_LDO_S28                                    现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C9   U_LS                                         每次出现都紧跟在 `|` 之后 ⇒ 判据正文里的 grep pattern
+   DESIGNATOR_OK        C1   U_PWR_SW_1                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_SUPV_1                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   U_TEMP_1                                     现在在【板文件+网表】里能找到
+   NET_NAME             C3   VBUS_5V_CHG                                  它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   VBUS_5V_F1                                   它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   VBUS_DET                                     它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   VBUS_DET_D                                   它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   DOC_INTERNAL         C7   VBUS_DET_uA                                  后缀含小写字母 ⇒ 物理量符号 (不是位号)
+
+【判决】 ✘ 红 (rc≠0)

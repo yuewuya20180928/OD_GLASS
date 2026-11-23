@@ -1,0 +1,74 @@
+[
+ {
+  "idx": 1,
+  "old_key": "pcb_outline_confirm",
+  "new_key": "pcb_outline_confirm_2_cavity",
+  "to": "hw-lead",
+  "vlen": 180,
+  "ref": "MECH/MECH_BUDGET.md#1.4.2 + #1.4.5 + HANDOFF#3.0",
+  "value": "镜脚内腔需求(下限): 前后厚>=7.3mm / 根部净高>=38mm / 内腔长>=110mm (前提: 充电板挪出镜脚, 长度需求 105.5/110/108mm); 分配: 电池+主PCB+充电板 沿长度串行 (垂直并排放不下: 22+12=34mm); 光机+分光件不在镜脚, 在镜框正中 (光学舱 14x10x6mm, 镜框正中厚需>=11.8mm)"
+ },
+ {
+  "idx": 2,
+  "old_key": "pcb_outline_confirm",
+  "new_key": "pcb_outline_confirm_3_camera_mount",
+  "to": "hw-lead",
+  "vlen": 158,
+  "ref": "MECH/MECH_BUDGET.md#1.5.2 + #1.5.1 + HANDOFF#3.0",
+  "value": "摄像头: 装镜框上沿正中, 光轴俯角<=25度 (装上沿的 20-32度偏置不可回避), 水平偏置<=10度, 凸出<=2.5mm, 凹进<=1.5mm; 对角 FOV>=100度 (100度 -> H92.2/V60.6, 16:9); 凹进5mm 吃掉上半视场31%; 镜框上沿摄像头位需局部加厚 10-12mm"
+ },
+ {
+  "idx": 3,
+  "old_key": "pcb_outline_confirm",
+  "new_key": "pcb_outline_confirm_4_thermal_path",
+  "to": "hw-lead",
+  "vlen": 190,
+  "ref": "MECH/MECH_BUDGET.md#5.1 + #2.4 + #2.5 + HANDOFF#3.0",
+  "value": "散热接触路径: SoC底面散热焊盘 -> 0.3mm导热垫 -> 铝/铜骨架(纵向延伸, 兼PCB支撑) -> 石墨(面内扩展到上表面+铰链侧) -> 对流; 路径不得有塑料隔断 (打印件k=0.2, 插进去热阻+94K/W); SoC 必须放远离皮肤侧的一侧; 上下分壳 (上壳装PCB/骨架, 下壳贴皮肤只放电池); 必须加 1 颗 NTC (贴SoC背面/骨架, 走I2C)"
+ },
+ {
+  "idx": 5,
+  "old_key": "ntc_placement",
+  "new_key": "ntc_placement_2_power_budget",
+  "to": "sw-lead",
+  "vlen": 187,
+  "ref": "MECH/MECH_BUDGET.md#2.5 + #2.3.1 + HANDOFF#B4",
+  "value": "持续功耗上限 0.16-0.21W (43°C红线对应的贴皮肤镜腿上限, 模型敏感性区间; 持续满载1.22W会到皮肤侧96.1°C/82.0°C, 必须按持续满载最保守设计); 结温4档 <70/70-85/85-95/>95C 已登记为 thermal_control_tiers; 切档须<=16.67ms; 充电场景 0.8W 充电IC耗散 -> 充电时必须禁 OD"
+ },
+ {
+  "idx": 6,
+  "old_key": "pcb_outline_confirm",
+  "new_key": "pcb_outline_confirm_5_mfit_result",
+  "to": "hw-lead",
+  "vlen": 440,
+  "ref": "MECH/fit_check.py + HANDOFF/2026-10-25_mech-lead_空间预算.md#B2-16",
+  "value": "M-FIT 结果 (设计态计算, MECH/fit_check.py): 镜脚侧 340mAh 档 前后需求 7.00mm (下壳壁0.8 + 电池4.6 + 隔热垫0.5 + 空气隙0.3 + 上壳顶壁0.8) vs 可用 7.30 → 余 0.30mm, 与 FDM 单边公差 ±0.2-0.3 同量级 → 临界, 建议镜腿做到 7.6-7.8mm; PCB/骨架区仅 4.50mm (4层) / 4.70mm (6层) → 板厚 4层/6层 都不卡空间 (但若按 §1.4.2 '电池与PCB同区叠放' 模型 → 前后干涉 0.80mm + 垂直干涉 3.50mm, v1.1 两个排列模型必须锁定一个); 长度: 电池40.5 + PCB50 + 余量15 = 105.5 ≤ 130 (充电板必须挪出镜脚, 否则 +0.50mm 干涉); Type-C 尾端截面宽需 ≥12.5mm (开口9.5 + 两侧1.5 承力壁)、高需 ≥6.6mm (可用7.3, 余0.7)"
+ },
+ {
+  "idx": 7,
+  "old_key": "ntc_placement",
+  "new_key": "ntc_placement_3_struct_constraint",
+  "to": "sw-lead",
+  "vlen": 268,
+  "ref": "MECH/fit_check.py + MECH/MECH_BUDGET.md#2.3.1",
+  "value": "结构侧本轮新增硬约束 (会限制你的 DVFS 散热方案): 镜脚前后厚余量只有 0.30mm → 导热垫 (0.3mm) 与金属骨架 (厚度 v1.1 未给, 我按 1.0mm 假设) 都加不厚; 若你要求更厚的骨架/更多散热面积来压结温, 必须同步把镜腿前后厚从 7.3 加到 7.6-7.8mm (华为 6.25 基准会进一步被突破, 需老板拍板形态)。另外: 持续满载 1.22W → 皮肤侧推算 96.1/82.0°C, 43°C 红线只允许贴皮肤镜腿持续 0.16-0.21W, 这个数字没变, 降温只能靠降功耗不能靠加散热片"
+ },
+ {
+  "idx": 37,
+  "old_key": "iss219_mech_c7_sink_area_confirm",
+  "new_key": "iss219_mech_c7_sink_area_confirm_2_live_caliber_threshold",
+  "to": "main",
+  "vlen": 405,
+  "ref": "MECH/CENTER_CAVITY_REBALANCE_V3.md §2.6 · MECH/cavity_recalc_check.py C23",
+  "value": "门槛更新 (活口径, 两档): ISS-227 把 P3 活口径从打印件顶面 (假同温) 改成铝制集热背板 120×W_rim×1.0 后, 同一条 W_rim 门槛在两个口径下不是一个数 ⇒ 用鳍模型重算: 22.15 mm @0.468 W (面板功耗) / 25.63 mm @0.50 W (ISS-216 代表负载) (摄像头凸包让位·u8=30·d=15) ⇒ ISS-222 登记的 23.30 mm 只在面板功耗下成立 (0.50 W 下 50.67 °C ❌) ⇒ 若框截面按 23.30 裁, 必须同时确认峰值功耗 ≤ 0.468 W; 净可外露面积 3432 mm² 结论不变 (面积仍不是阻塞项); 背板质量 m = 0.324 × W_rim g = 7.18-9.72 g ⇒ 整机 57.96-85.08 g (387 mAh) ⇒ 背板质量不预扣 (W_rim 为 [0数据])"
+ },
+ {
+  "idx": 40,
+  "old_key": "iss251_mech_service_port_pad_y_migrate",
+  "new_key": "iss264_mech_jd_y0_and_open_y_caliber",
+  "to": "main",
+  "vlen": 275,
+  "ref": "HANDOFF/2026-11-17_mech-lead_ISS264_检修口常量迁30mm套A.md",
+  "value": "★部分闭环 (ISS-264 已落 2/3): ① 夹具基准常量 p2_y/s2_y 已迁 30mm 板套 A (15.00 / 20.00) ② pcb_thk 1.00 只核不动 (6 层现行) ③ 焊盘阵列 Y (jd_y0=9.50) 仍未迁 ⇒ 本 need 只剩 jd_y0 一项, 要 main + hw-lead 定版★ ⇒ 迁完后已重算: P-5 最近距离 P2 3.23mm / S2 8.53mm (旧 15mm 板基准 1.00/1.03mm 已作废); 开口 Y 脚本实算 7.835..12.435 (随 jd_y0 变)"
+ }
+]

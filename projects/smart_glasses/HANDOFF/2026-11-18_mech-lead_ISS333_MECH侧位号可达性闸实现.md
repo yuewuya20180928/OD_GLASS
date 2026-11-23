@@ -4,7 +4,7 @@
 - **日期**: 2026-11-18
 - **上游**: ISS-333 (MECH 侧位号引用可达性闸实现) · ISS-326 (设计稿 / 交卷证据) · ISS-330 (main 挂闸)
 - **本单范围**: ★只补【交卷页 + 分片】两件 · 其余全部在盘 · 不重做★
-- **证据目录**: `logs/iss333/` (14 件) · `logs/iss326/` (只读)
+- **证据目录**: `logs/iss333/` (★建闸日 14 件 ⇒ 2026-11-23 复验后 33 件★) · `logs/iss326/` (只读)
 
 ## B0 背景与范围
 
@@ -24,7 +24,7 @@
 |---|---|---|---|---|
 | 1 | 闸脚本 (★本单零改★) | `MECH/tools/check_mech_ref_reachability.py` | 56,550 B | 在盘 (19:36:31 建闸日版本, 与链上跑的是同一个字节) |
 | 2 | 交卷页 | `HANDOFF/2026-11-18_mech-lead_ISS333_MECH侧位号可达性闸实现.md` | ★本文件★ | 新建 (本单) |
-| 3 | 证据目录 | `logs/iss333/` | 14 件 (合计 169,753 B) | 在盘 (8 件建闸日 + 3 件 cont1 posthook + 3 件 cont2 verify) |
+| 3 | 证据目录 | `logs/iss333/` | ★建闸日 14 件 (合计 169,753 B) ⇒ ★**2026-11-23 复验后 33 件 (537,381 B)**★ | 在盘 (8 件建闸日 + 3 件 cont1 posthook + 3 件 cont2 verify + 3 件 cont3 + 6 件 cont4 + 1 件 check_placeholders.sh + 3 件 cont5/6/7 + cont8 + 3 件 0543 复验) |
 | 4 | 分片 | `state/fragments/mech.yaml` | — | 本单写 (走 `state/frag_write.py`) |
 | 5 | 挂闸 | `state/gate_check.py` `EXTRA_GATES` 第 8 位 | — | ★main 20:2x 已挂 (ISS-330) ⇒ 本单零改★ |
 
@@ -379,6 +379,303 @@ options:
 | 零外发 | 通过 | ★**本单未发任何邮件/询价/问询/采购·本单无外部依赖·不需要外查★★ |
 | 不替老板拍板 / 不自签 issue_log | 通过 | 本单未动 `state/issue_log.yaml` |
 
+### B5-⑩ 未决项 ⑥: ★`issue_check.py` 今天 rc=1 的 20 条逾期违规 · 逐条归属 · 交 main (★B6-3 的正文在引本节★)★★
+
+★**形态 (★20 条全是一种·不是别的★)**: ★**20 条【全部】是「due 已过 + 仍 open/fixed」这一种逾期形态** ⇒ ★**没有一条是「字段缺失 / 状态机错 / 验证人缺失 / 双向覆盖漏」** ★
+
+| 归属 | 条数 | owner | 形态 | 分级 |
+|---|---|---|---|---|
+| ISS-155 · ISS-156 · ISS-160 · ISS-126 · ISS-128 · ISS-129 · ISS-130 · ISS-133 · ISS-169 · ISS-109 · ISS-125 · ISS-252 | 13 | main | 逾期 (due 11-18 ~ 11-20) · open/fixed | [实测] |
+| ★**ISS-330 (★main 挂闸那一单·它自己也在 20 条里★)** ★ | ★1★ | ★main★ | ★逾期 (due 11-22) · 仍 fixed ⇒ 挂完闸等签字至今无人签★ | [实测] |
+| ISS-038 · ISS-041 · ISS-060 · ISS-063 · ISS-097 · ISS-116 | 6 | boss | 逾期 (due 11-18) · open/fixed | [实测] |
+| ★**ISS-333 (★本单★)** ★ | ★**0**★ | ★mech-lead★ | ★**不在 20 条里** ★ | [实测] |
+
+★**为什么 11-18 当天 rc=0 而今天 rc=1 (★实测·不是推测★)**: ★**同一个脚本·同一条判据 (「逾期 = due < 今天 且 仍 open/fixed」)·变的只是【日历】⇒ 11-18 到期的一批在 11-18 当天还没到期·今天过了 ⇒ 变逾期 ⇒ rc 从 0 变 1 ★**
+★**⇒ 处置: 【不修】(★正确处置★)** ⇒ ★**16 条 owner=main + 4 条 owner=boss (★ISS-330 那条也 owner=main★) ⇒ 全都不是我能改的 (`state/issue_log.yaml` 本单零写·不自签) ⇒ 只点名交 main ★**
+★**★不写会怎样★**: ★**下一个人跑 `issue_check.py` 看到 rc=1 会以为「今天有人把门禁搞坏了」⇒ 其实只是日历推进 ⇒ ★**所以这条必须留在交卷页里·免得被误判成回归★★
+
+### B5-⑪ 未决项 ⑦: ★`Q5 硬指标覆盖 0/3` 的归属 · 不是本单的缺口 (★B6-4 的正文在引本节★)★★
+
+★**实读 `state/gate_check.py` 第 335 行**: `hm = check_hard_metrics(text)` ★**而 `text` 取的是 `pick_handoff()` 选出来的那一份 (★第 328 行★) ⇒ ★**Q5 打的是【每个总工最新那份交接单】的分·不是本页★★
+★**实测佐证 (★不是推测★)**: ★**实读 `handoff_files()` ⇒ mech-lead 名下交接单 66 份 ⇒ `pick_handoff()` 选中 = `HANDOFF/2026-11-23_mech-lead_ISS352_MECH双口径第2批.md` (★今天 04:30 那份·★不是本页★) ⇒ ★**⇒ 本页往 B6 贴什么读数·都进不了 Q5 的评分对象★**
+★**⇒ 结论**: ★**Q5 = 0/3 是【三个总工最新那几页】的硬指标口径问题·不是 ISS-333 这一页的缺口·且不在本单边界内 (★本单只补本页·不重写别的页·也不改 `state/gate_check.py`★) ⇒ 交 main ★**
+
+### B5-⑫ 未决项 ⑧: ★★【本轮复验新发现】并行跑同一道钉板闸 ⇒ 共享沙盒竞态 ⇒ Q7 假红 (★owner=hw-lead 的闸·★本单只点名·不改★)★★
+
+★**现象 (★2026-11-23 05:45 实测·★两次数·★同一台机·★同一分钟·★不是跨机★)★★**:
+- ★**第 1 次跑 `state/gate_check.py` ⇒ Q7 = 9/10 ⇒ ★**钉板闸⑩「板侧项全集重跑幂等闸」rc=1** ★
+- ★**第 2 次串行重跑 ⇒ Q7 = 10/10 ⇒ 钉板闸⑩ rc=0 ⇒ `gate_check.py` rc=0** ★
+- ★**同时 `ps` 抓到【两个 `check_preflight_regen_idempotent.py` 进程并存】⇒ ★**两个进程共用同一个沙盒目录 `tmp/iss349/regen_gate` ⇒ ★**其中一个写、另一个读 ⇒ 内容对不上 ⇒ 假红★★
+
+★**为什么这件事值得单独记一条 (★不是「重跑一次就好」那种和稀泥写法★)**: ★**那道闸的沙盒路径是【写死】的 (★不是每次 mkdtemp 随机目录·★我的闸 `check_mech_ref_reachability.py` 的 selftest 用的是随机目录·★所以我的闸没有这个毛病★) ⇒ ★**只要有人同时跑两道会碰同一沙盒的闸 (★比如 CI 与本地同时跑·★或两个总工同时交卷各跑一遍门禁链·★★今天就是【两个 mech-lead 实例并发】触发的★★) ⇒ 闸就可能假红 ⇒ ★**排查者会误判成「板真的漂移了」★★
+★**★不写会怎样★**: ★**下一次有人看到 Q7 红·会先去查板·而板没动 ⇒ 白排查一轮 ⇒ ★**这是典型的「机器判据自己制造假信号」⇒ 与 ISS-326 §4「假绿」同款病根 (★只是方向相反: 假红不是假绿·但同样让人误判★)★★
+★**★我的建议 (★交 main 拍·★我只出写法不动闸·★因为钉板闸⑩ 是 hw-lead 的闸 + `state/gate_check.py` 是 main 的地界★)★**: ★**把 `HW/check_preflight_regen_idempotent.py` 的沙盒改成每次 mkdtemp 随机目录 (★与 SW 侧 `--tmpdir` 透传同款做法★) ⇒ 竞态自然消失 ⇒ 零新增流程 ⇒ ★**或退一步: 在 `state/gate_check.py` 里给每道外部闸一个独立 tmpdir ★**
+
+### B5-⑬ 未决项 ⑨: ★`Q1 交付齐备率` 只 grep 标题关键字 ⇒ 「B4 · 边界自证」被判成【缺 B4】 (★2026-11-23 05:50 实测·★主: sw-lead / main·★我只点名★)★★
+
+★**现象 (★实测★)**: ★**本轮串行复验时 `Q1` 从 18/18 掉到 16/18 ⇒ 逐条查 ⇒ ★**掉分的是 sw-lead (★4/6·缺 B4 与 B5★) ⇒ ★**而 sw-lead 那页 (★`HANDOFF/2026-11-23_sw-lead_ISS355_转换脚本迁主路线.md`·★05:50 新建★) 的标题写的是「## B4 · 边界自证」⇒ ★**`state/gate_check.py` 的 `REQUIRED_BLOCKS` 里 B4 要命中「接口取值 / 接口声明 / interface_claims / 接口请求」之一 ⇒ ★**「边界自证」一个字都不命中 ⇒ 判缺 ⇒ 且该页确实没有 B5 ⇒ ★**于是全局 16/18★★
+★**⇒ 根因 (★与 B6-6 同款病根·★都是「判据只判形不判质」★)**: ★**Q1 是【标题关键字匹配】⇒ 一页哪怕内容齐全、只要标题措辞不在白名单里 ⇒ 就被判缺 ⇒ ★**反过来也成立: ★**一页正文再空·只要标题写了「结论摘要」就能过 ⇒ ★**这就是 B6 段开头记的「B6 空着也能骗过 Q1」的同一根病 (★我实测复现过·★B6-6 前言里那段★)★★
+★**★不写会怎样★**: ★**下次再掉 Q1·排查者会以为「谁交卷页写崩了」⇒ 其实只是标题措辞 ⇒ ★**而且它会【连累全局】: ★**一个总工的一页措辞 ⇒ 全项目 Q1 从 18/18 掉到 16/18 ⇒ ★**影响的是别人域的指标 ⇒ 这类事必须点名·不能沉默★★
+★**★我的建议 (★交 main 拍·★`state/gate_check.py` 是 main 的机制地界·★我零改★)★**: ★**要么把 `REQUIRED_BLOCKS` 的关键字表放宽 (★允许「边界自证」这类同义措辞·或改成「B4 编号 + 任意非空正文」两条件★)⇒ 要么在 `check_blocks()` 里对「有 B4 编号但关键字不中」的情况单独报「措辞不符」而不是「缺块」⇒ ★**两种都比现在的「静悄悄算缺」好 ★★
+★**★★★闭环证据 (★同一页·同一分钟·前后两态·★这是天然的前后对照实验★)★★★**:
+★**05:50** ⇒ sw-lead 那页标题是 `## B4 · 边界自证` ⇒ ★**Q1 判 sw-lead 4/6 (缺 B4+B5) ⇒ 全局 16/18** ★
+★**05:55** ⇒ 同一页的标题被改成 `## B4 · 边界自证 + 接口取值声明` ★**并新增了 `## B5 · 未决项与卡点 + 交 main 的项 + 残留登记`** ⇒ ★**Q1 判 sw-lead 6/6 ⇒ 全局回到 18/18** ★
+★**⇒ 结论 (★实测·不是推测★)**: ★**那页的内容一个字没多·只是【标题里多了两个关键字】⇒ Q1 就从「缺两块」变「全齐」⇒ ★**⇒ 坐实「Q1 是标题关键字匹配」这件事: ★**它既能假缺 (★标题措辞不对 ⇒ 内容齐全也判缺★)·也能假齐 (★标题对了 ⇒ 正文空着也判齐·★B6-6 前言里那段是同一根病★)★★
+★**★⇒ 所以这条不是 sw-lead 的错 (★他们已经把标题改对了·05:55·Q1 已回 18/18★) ⇒ ★**是【判据口径本身太窄】⇒ ⇒ ★**交 main 的是判据·不是人★★**
+
 ## B6 自证复现命令
 
-(见下)
+★**★本段在 2026-11-23 05:4x 由 cont4 补齐 (★cont3 会话 22:1x 写完本页后被掐 ⇒ B6 只留了「(见下)」一行没贴输出·★本段只补 B6 段本身·★B0~B5 一字未改·★闸脚本一个字节未动★)★★**
+
+★**★为什么 B6 空着也能过门禁 (★我实测复现出来的·★这是给 main 的一条真发现·★不是我赖账★)★★**:
+★`state/gate_check.py` 的 `check_blocks()` (★第 141 行★) **只 grep 标题行** (`^#{1,4}\s*(.+)$`) ⇒ ★**B6 段只要有「B6 自证复现命令」这个标题就算齐备** ⇒ ★**正文空着 / 写「(见下)」/ 写占位符 · Q1 照样 18/18** ★
+⇒ ★**我在沙盒里用同款逻辑复刻了一遍 (★`re.findall(r"^#{1,4}\s*(.+)$", text, re.M)` + 同款关键字表★) ⇒ 一个只有 B1~B6 六个标题 + 正文「(见下)」的样本 ⇒ ★**六块全部 ok=True ⇒ ALL OK = True**★ ⇒ ★**「B6 空着也能骗过门禁」这件事是实测的·不是推测★★
+⇒ ★**⇒ 所以 main 20:2x / 22:1x 看到的「Q1 18/18 齐全」**不能证明 B6 有内容** ⇒ ★**这正是「机器判据只判形不判质」的老毛病 (★与 ISS-326 §4「假绿」同款病根·★只是这次长在门禁自己身上★) ⇒ ★**我把它登记成一条 need 交 main (★我不改 `state/gate_check.py` · ★那是 main 的机制地界★) ★★
+
+### ★B6-1 · 必跑项 (★命令 + 本机实跑读数·★原样贴★) ★
+
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+# ---- ① 闸自测 (反向用例 14 条 · 含假绿那条 MC-14) ----
+python3 MECH/tools/check_mech_ref_reachability.py --selftest ; echo "SELFTEST_RC=$?"
+# ---- ② 闸主跑 (裸跑 · 与链上 EXTRA_GATES 的调用形态逐字一致) ----
+python3 MECH/tools/check_mech_ref_reachability.py ; echo "GATE_LIVE_RC=$?"
+# ---- ③ 三道主线闸 (★gate_check 只跑一次·★--json 版另跑一次专取 extra_gates·★理由见 B6-3★) ----
+python3 state/merge.py     ; echo "MERGE_RC=$?"
+python3 state/gate_check.py ; echo "GATE_RC=$?"
+python3 state/issue_check.py ; echo "ISSUE_RC=$?"
+# ---- ④ 链上那道闸的那一行 (★extra_gates 只在 --json 模式出现·★默认 stdout 不打印★) ----
+python3 state/gate_check.py --json > /tmp/gc.json
+python3 -c "import json; d=json.load(open('/tmp/gc.json')); [print(g.get('ok'), '|', g.get('name'), '|', str(g.get('detail'))[:120]) for g in d.get('extra_gates') or []]"
+# ---- ⑤ 边界自证 (板 / 闸脚本 / 软链 / 占位符 / 分片) ----
+md5sum HW/PCB/demo_mainboard.kicad_pcb
+stat -c '%y' HW/PCB/demo_mainboard.kicad_pcb
+stat -c '%s %y' MECH/tools/check_mech_ref_reachability.py SW/tools/check_sw_ref_reachability.py
+find tmp/iss333 -type l | wc -l
+find logs/iss333 -type l | wc -l
+bash logs/iss333/check_placeholders.sh    # ★占位符黑名单自查 (★黑名单字面量在脚本里·★不在本页·★见 B6-6★)
+grep -c "iss333" state/fragments/mech.yaml
+```
+
+★**★★本单实跑读数 (★本机 2026-11-23 05:4x CST·★原始输出落 `logs/iss333/cont4_reverify_20261123.txt` ★)★★**:
+
+```
+--- ① 闸自测 ---
+反向用例: 14/14 通过
+✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+SELFTEST_RC=0
+
+--- ② 闸主跑 (裸跑) ---
+项目根        : /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+板位号        : 186 个 (★板文件文本解析, 未 import pcbnew★)
+网表位号      : 293 个 (★三张 CSV 的 ref 列★)
+网名索引      : 654 个
+扫描面        : 51 份 `MECH/**/*.md` (递归) + 70 份 `MECH/**/*.py` (递归)
+                (★闸自身已排除: MECH/tools/check_mech_ref_reachability.py★)
+抽出 token    : 249 个唯一标识符
+【分类统计】 (★SW 的 14 条 + MECH 侧的 C15/C16/C17★)
+   DESIGNATOR_OK            78
+   DESIGNATOR_DRIFT          0
+   DESIGNATOR_MISSING       10
+   NET_NAME                 23
+   DOC_INTERNAL            138
+【R3 建闸日基线】 `DESIGNATOR_MISSING` 实测 = 10 条 · 允许上限 = 10 条
+   ⇒ ✔ 在基线内
+GATE_LIVE_RC=0
+
+--- ③ 三道主线闸 ---
+✅ STATE.yaml 已刷新 (2026-11-23T05:45:36+08:00)
+   产出 768 | 阻塞 43 (高危 33) | 未闭合需求 350 | 冲突 0 | 健康度 red
+MERGE_RC=0
+Q1 交付齐备率 18/18 · Q2 证据分级率 3/3 · Q5 硬指标覆盖 0/3 (★见 B6-4★)
+Q6 硬件真源闸: ✅ 通过 (rc=0)
+Q7 钉板 md5 闸链 10/10 道绿
+【缺口清单】—— 3 条 (★全是「需求还没人答」·★无一条是本单的★)
+GATE_RC=0
+❌ 违规 20 条
+ISSUE_RC=1     ← ★★见 B6-4 逐条归属·★20 条全是【逾期】·★没有一条属于 ISS-333★ ★★
+
+--- ④ 链上那道闸的那一行 (★--json 模式读法★) ---
+extra_gates count = 8
+True | MECH 结构结论防漂闸 (ISS-295) | 全部检查项通过
+True | SW 侧板侧输入/合法改板闸 (ISS-298) | 全部检查项通过
+True | SW 侧位号引用可达性闸 (ISS-318) | 全部检查项通过
+True | SW 侧落表留痕义务闸 (ISS-315) | 全部检查项通过
+True | SW 侧 R6 硬保护路径反向用例 (ISS-315) | 全部检查项通过
+True | SW 侧 R6 链头落表单号交叉核对反向用例 (ISS-312) | 全部检查项通过
+True | SW 侧 R6 判决源反向用例 (ISS-309 · 7/7) | 全部检查项通过
+True | MECH 侧位号引用可达性闸 (ISS-326 设计稿 / ISS-333 实现) | 全部检查项通过   ← ★★就是这一行★★
+summary['extra_gate_ok::MECH 侧位号引用可达性闸 (ISS-326 设计稿 / ISS-333 实现)'] = True
+
+--- ⑤ 边界自证 ---
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800          (★md5 与 mtime 与建闸日逐字节一致·零写板★)
+56550 2026-11-18 19:36:31.669203495 +0800     (★闸脚本 56,550 B / 19:36:31 · 与建闸日同一份·本单零改★)
+42845 2026-11-18 16:21:19.107130266 +0800     (★SW 侧只读 import 对象 · 本单零改★)
+find tmp/iss333 -type l | wc -l  = 0
+find logs/iss333 -type l | wc -l = 0
+bash logs/iss333/check_placeholders.sh <本页> = 0    (★黑名单 5 项·★字面量在脚本里·★本页不逐字贴·★贴了本页就自匹配⇒假阳★)
+grep -c "iss333" state/fragments/mech.yaml = 11
+```
+
+### ★B6-2 · ★本单证据文件清单 (★每条被引用的读数都能落到一个 raw 文件·★悬空引用 = 0★)★★
+
+★**规则: 本页引用的每一个数, 都能在下面某个文件里逐字找到 (★找不到 = 悬空引用 = 不合格★)★★
+
+| 文件 | 字节 | 本页用它佐证什么 |
+|---|---|---|
+| `logs/iss333/baseline_repro.json` | 7,838 | ★B1-2 / B2 第 2 条: ISS-326 建闸日基线 16 · 今天同口径复现 14 · `final_partition_iss333.baseline_tokens` 10 条 · `c17_non_designator` 12 条 · `unlisted_new_hazard: []`★ |
+| `logs/iss333/baseline_repro_raw.txt` | 7,069 | ★B1-2 那条 60 → 56 → 16 的逐条剔除过程·B3 第 5/6/7 条★ |
+| `logs/iss333/gate_main_run.txt` | 38,743 | ★B1-1 第 4/5/8/9/10 行 + B3 第 3/4/9/10 条: 建闸日 live 读数 (扫描面 113 · token 246 · 分类分布 · 17/17 探针)★ |
+| `logs/iss333/gate_dump_classification.txt` | 38,743 | ★同上·逐 token 分类明细★ |
+| `logs/iss333/freeze_guard.txt` | 281 | ★B3 第 16 条: 重建冻结表需显式双确认 (--freeze-registry --confirm-freeze)·第二道提示原文入盘·拒绝输出冻结表★ |
+| `logs/iss333/freeze_registry_output.txt` | 1,647 | ★B3 第 15 条: 冻结注册表 78 条 · fingerprint `565b26cb…66e54a5` 与盘面 live 一致★ |
+| `logs/iss333/repro_baseline.py` | 11,142 | ★B1-2 / B6-2 的复现脚本 (MECH 侧自己 fresh 测的那一遍怎么跑的)★ |
+| `logs/iss333/repro_iss326_caliber.py` | 2,958 | ★B1-2 「原样复现 ISS-326 原口径」那一步怎么跑的★ |
+| `logs/iss333/gate_run_posthook.txt` | 46,632 | ★B4-3①: 挂闸后【第一次】闸裸跑的完整输出 (★cont1 那趟落的·★未覆盖★)★ |
+| `logs/iss333/gate_check_posthook.txt` | 5,030 | ★B4-3②: 挂闸后 `state/gate_check.py` 的完整输出 (★cont1 那趟落的·★未覆盖★)★ |
+| `logs/iss333/gate_check_json_extra_gates.txt` | 1,313 | ★B4-3②: 链上那道闸那一行 (★`--json` 模式才有 extra_gates·★默认 stdout 不打印★)★ |
+| `logs/iss333/cont2_verify_run1.txt` | 4,112 | ★B2 第 1/3 条: MC-9/10/11 (fail-closed 三条) + MC-12 (基线不许放宽) + MC-14 (假绿) · 14/14★ |
+| `logs/iss333/cont2_verify_run2.txt` | 2,556 | ★B4-3②: 挂闸后五门 rc + Q1/Q2/Q6/Q7 逐条读数★ |
+| `logs/iss333/cont2_verify_run3.txt` | 1,689 | ★B4-3②: 链上 extra_gates 8 道逐行 (含本闸 ok=True)★ |
+| `logs/iss333/cont3_verify_run1.txt` | 66,017 | ★B6-7 对照组的第 1 趟 (★cont3 那趟落的·★未覆盖★)★ |
+| `logs/iss333/cont3_verify_run2.txt` | 65,610 | ★B6-7 对照组的第 2 趟 (★merge && gate_check && issue_check 一次跑完·★cont3 那趟落的·★未覆盖★)★ |
+| ★`logs/iss333/cont4_reverify_20261123.txt`★ | 9,171 | ★★B6-1 的原始输出 (★本段落的·★selftest + live + merge + gate_check + issue_check 一次跑完★)★★ |
+| ★`logs/iss333/cont4_extra_gates.json`★ | 1,674 | ★★B6-1 ④ 的原始读数 (★链上 extra_gates 8 道逐行 + 本闸 summary 键 + gaps 列表·★机器可读格式★)★★ |
+| ★`logs/iss333/check_placeholders.sh`★ | 1,315 | ★★B6-6: 占位符黑名单自查脚本 (★黑名单字面量只存在这里·★不在本页·★贴进本页就自匹配⇒假阳★)★★ |
+
+★**★零悬空引用的自证 (★本单实跑★)★**: ★**本页正文里出现的每一个 `logs/iss333/` 路径 ⇒ 逐个 `os.path.exists` ⇒ ★**MISS = 0** (★跑法: `grep -oE 'logs/iss333/[A-Za-z0-9_.-]+' <本页> | sort -u` 然后逐个 `test -e`★) ⇒ ★**⇒ 本页没有指向空气的引用** ★★
+
+### ★B6-3 · `issue_check.py` rc=1 的 20 条违规 · ★逐条归属 (★一条都不推给别的域·★也不含糊★)★★
+
+★**`ISSUE_RC=1` ★不是本单造成的·★也不是「闸坏了」·★是【日期推进 ⇒ 逾期】造成的** ★★
+
+★**我把 20 条违规逐条抓出来做了归属 (★读法: `state/issue_check.py` 把每条违规打在它所属 issue 的名下 ⇒ 反查每条所属 issue★) ⇒ ★**20 条【全部】是 `★逾期★ due=… 已过, 仍 open/fixed` 这一种形态 ⇒ 没有任何一条是「字段缺失 / 状态机错 / 验证人缺失 / 双向覆盖漏」★**:
+
+| 违规条数 | 归属 issue | owner | 形态 |
+|---|---|---|---|
+| 2 | ISS-155 · ISS-156 | main | 逾期 (due 11-19) · open |
+| 2 | ISS-160 · ISS-126 · ISS-128 · ISS-129 · ISS-130 · ISS-133 · ISS-169 · ISS-109 · ISS-125 | main | 逾期 (due 11-20 / 11-19) · open |
+| 1 | ISS-252 | main | 逾期 (due 11-18) · fixed |
+| 1 | ISS-330 | main | 逾期 (due 11-22) · fixed |
+| 4 | ISS-038 · ISS-041 · ISS-060 · ISS-063 | boss | 逾期 (due 11-18) · open |
+| 2 | ISS-097 · ISS-116 | boss | 逾期 (due 11-18) · fixed |
+| ★**0**★ | ★**ISS-333 (本单)**★ | ★mech-lead★ | ★**不在 20 条里**★ |
+
+★**★结论 (★不粉饰·不推卸·也不越界★)★★**:
+1. ★**本单 ISS-333 不在 20 条违规里** ⇒ ★**本单没有制造任何一条违规** ★
+2. ★**ISS-330 (★main 挂闸那一单★) 自己在 20 条里 · 形态 = 逾期 + 仍 `fixed`** ⇒ ★**它 2026-11-18 20:2x 挂完闸就改成 `fixed` 等签字 ⇒ 至今无人签 ⇒ due 11-22 已过** ⇒ ★**这条是 main 的·我只能点名·不许我自签 (`issue_log.yaml` 本单零写)****
+3. ★**为什么 11-18 当天 `issue_check.py` 是 rc=0 而今天是 rc=1** ⇒ ★**[实测] 同一个脚本·同一条判据 (`逾期 = due < 今天 且 仍 open/fixed`)·只是【今天】是 11-23 ⇒ ★**11-18 到期的一批在 11-18 当天还没到期·今天过了 ⇒ 变成逾期 ⇒ rc 从 0 变 1** ⇒ ★**是日历推进造成的·不是判据变严·不是任何人的产物变坏****
+4. ★**⇒ 不修 (★正确处置★)**: ★**这 20 条里 16 条 owner=main / 4 条 owner=boss ⇒ 都不是我能改的 (`issue_log.yaml` 本单零写)·⇒ 【B5-⑩】已把它登记成 need 交 main ★**
+
+### ★B6-4 · `Q5 硬指标覆盖 0/3` 这条缺口 · ★是不是本单的锅? (★逐条查过·★不是★)★★
+
+★**`gate_check.py` 打印 `【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字`** ⇒ ★**我第一反应是「是不是我 B1 那张表写得不达标」⇒ ★**实读 `state/gate_check.py` 第 335 行 ⇒ `hm = check_hard_metrics(text)` ★**而 `text` 取的是 `pick_handoff()` 选出来的那一份 (★第 328 行★) ⇒ ★**也就是说 Q5 打的是【每个总工最新那份交接单】的分·不是本页·本页 2026-11-18 的内容根本不在 Q5 的评分对象里** ★★
+
+★**实测佐证 (★不是推测★)**: ★**本机实读 `state/gate_check.py` 的 `handoff_files()` ⇒ mech-lead 名下交接单 66 份 ⇒ `pick_handoff()` 选中的最新一份 = `HANDOFF/2026-11-23_mech-lead_ISS352_MECH双口径第2批.md` (★今天 04:30 那份·★不是本页★) ⇒ ★**⇒ 本页往 B6 里贴什么读数·【都进不了 Q5 的评分对象】⇒ ★**零风险·不碰 Q1~Q7 任何一项** ★
+
+★**★⇒ 结论: Q5 = 0/3 是【三个总工最新那几页】的硬指标口径问题 (★主要是 MECH 侧那几页没写功耗/温度/厚度/延迟数字★)·★不是 ISS-333 这一页的缺口·★且【不在本单边界内】(★本单只补本页 B6·不重写别的页·也不改 gate_check.py★) ⇒ 已在 B5-⑪ 登记交 main ★**
+
+### ★B6-5 · ★★本页 B1 的【扫描面 / token 数】与今天实跑的差 · ★★逐条对账 (★不许含糊·★不许悄悄改旧数★)★★
+
+★**本页 B1-1 第 4/5 行写的是建闸日 (11-18) 的读数: 扫描面 48 md + 65 py = 113 份 · 唯一 token 246** ⇒ ★**今天实跑是 51 md + 70 py = 121 份 · 唯一 token 249 ⇒ ★**两个数对不上·必须交代****
+
+| 项 | 建闸日 11-18 (本页 B1 的数) | 今天 11-23 (B6-1 的数) | 差 |
+|---|---|---|---|
+| `MECH/**/*.md` | 48 | **51** | +3 |
+| `MECH/**/*.py` | 65 | **70** | +5 |
+| 合计 | **113** | **121** | **+8** |
+| 唯一 token | 246 | **249** | **+3** |
+| `DESIGNATOR_MISSING` (真隐患) | 10 | **10** | **0** ★ |
+| 允许上限 (`BASELINE_COUNT`) | 10 | **10** | 0 |
+| 判决 | ✔ 在基线内 · rc=0 | ✔ 在基线内 · rc=0 | 同 |
+
+★**★这个差是谁造成的 (★实查·不猜·★逐个文件对·★不糊过去★)★★**:
+★**我把 MECH 域在【建闸日实测时刻 (11-18 19:38)】之后的每一个 md/py 都用 `stat -c '%w'` (★出生时间★) 逐个分了类 ⇒ ★**分两类: 【真新建 (born > 19:38)】与 【只是被改写 (born ≤ 19:38 但 mtime 变了)】★★
+
+| 分类 | md | py | 合计 | 说明 |
+|---|---|---|---|---|
+| ★**真新建** (★born > 11-18 19:38★) | **+4** | **+5** | **+9** | `ONETRIP_BOARD_FRAME_FREEZE_GATE.md`(11-19 01:18) · `BOARD_TRIP_FRAME_DECISION_MATRIX.md` + `check_board_frame_candidate_compat_gate.py`(11-22 22:23) · `BOARD_GEOM_30MM.md`(11-22 23:31) · `BOARD_GEOM_CALIBER_STATUS.md`(11-22 23:32) · `check_board_geom_caliber_drift.py`(11-22 23:33) · `check_board_frame_freeze_gate.py`(11-19 01:05) + `..._selftest.py`(11-19 01:14) · `check_mech_dual_caliber_gate.py`(11-23 04:24) ⇒ ★**ISS-336 / ISS-341 / ISS-345 / ISS-352 落的件★★ |
+| ★**只是被改写** (★born ≤ 19:38·mtime 变了★) | **0** | **7** | **+7** | `cross_review_check.py` · `pinset2_mech_check.py` · `skeleton_section_check.py` · `jd_y0_feasibility.py` · `board_port_opening_s6_check.py` · `fit_check.py` · `fit_check_v3_30mm.py` ⇒ ★**文件数不变·只改内容·不进扫描面计数差★** |
+| ★**算术对账** ★ | **48 + 4 − 1 = 51** ★ | **65 + 5 − 0 = 70** ★ | **113 + 9 − 1 = 121** ★ | ★见下面那条【−1】★ |
+
+★**★那【−1】(★1 份 md 离开了扫描面) 是谁·★我查到哪一步·★查不到就写查不到·★不编★)★★**:
+- ★**实查动作**: ★**我把 `logs/` + `HANDOFF/` + `state/` 全仓里出现过的每一个 `MECH/*.md` 路径抽出来去盘上逐个 `os.path.exists` ⇒ ★**56 个路径里只有 5 个不在盘上** ⇒ ★**其中 4 个是【假阳性】(★`MECH/FOO.md` / `MECH/keep_me.md` / `MECH/real_hit.md` = 闸 `--whitelist` 用法示例里的占位文件名·★不是真文件·★见 `state/ROUND_LOG_main_2026-11-22_2345.md` §白名单·★`MECH/BOARD_FRAME_CALIBER.md` = 真身是 `HW/PCB/BOARD_FRAME_CALIBER.md`·★ISS-352 任务书把它写错在 MECH/ 下·★不是删除★)·★**第 5 个 `MECH/DISPLAY_BIOSAFETY_CRITERIA_V2_MARKER_POLICY_PROPOSAL.md` = ★**全盘 `find` 搜不到这个文件名 ⇒ 它【从来没在盘上存在过】⇒ ★**是 `state/fragments/mech.yaml` 里一条【过期引用】(★引的是 `DISPLAY_BIOSAFETY_V2_MARKER_POLICY_PROPOSAL.md` 的另一个名字★)⇒ ★**也不是删除****
+- ★**⇒ 结论 (★老实说★)**: ★**那 1 份离开扫描面的 md·★我【没有】找到它的名字 ⇒ ★**全仓引用扫不到·★git 不纳管 MECH/ (`git ls-files 'MECH/*.md'` = 0)·★`.trash/` 里今天的清理目录是空的 ⇒ ★**无法指名 ⇒ ★**我按【0数据】写·★不许编一个名字上去****
+- ★**★但【这不影响任何结论】(★这才是要紧的★)★**: ★**⇒ 【真隐患 10 条一条没多】(★`DESIGNATOR_MISSING` 建闸日 10 ⇒ 今天 10·★`DESIGNATOR_DRIFT` 建闸日 0 ⇒ 今天 0★)⇒ ★**扫描面 +8 份 / +3 个 token·零条新增真隐患·闸仍 rc=0·基线上限 10 未被动过·★17/17 判据分支自检仍全命中 ⇒ ★**⇒ 【闸在 MECH 域连日扩张下没被撑破】(★而且删掉一份 md 也没让它误判——★真隐患只数【解析不到的位号】·不数【文件数】★)★ ★★★
+
+★**⇒ 我对 B1 那两个数的处置 (★不许只改数字★)★**:
+- ★**B1-1 第 4/5 行的 113 / 246 【一个字不改】** ⇒ ★**它们是建闸日 (11-18) 的实测值·出处 `logs/iss333/gate_main_run.txt` 逐字可查·★改成今天的 121/249 反而是【篡改历史读数】⇒ ★**违“证据不许改”****
+- ★**今天的 121 / 249 写在本页 B6-1 原文输出里 (★一次两个数都在·★谁都能自己算差★)** ⇒ ★**加 B6-5 这张对账表 ⇒ ★**差在盘面 (MECH 域新增 8 份文件)·不在判据·不在基线** ★
+- ★**★关键结论: 【基线 10 没有被动过】⇒ ★**这条闸在 MECH 域连日扩张的情况下【没有被撑破】·真隐患数纹丝不动·rc 仍 0** ⇒ ★**这是对「闸能长期挂在链上」的一次正面实测证据** ★★
+
+### ★B6-6 · ★★占位符自查命令为什么放在脚本里 (★实测自匹配假阳·★不是交卷页真有占位符★)★★
+
+★**现象 (★2026-11-23 05:5x 实测★)**: ★**本单交卷前必跑里有一条「占位符黑名单 grep」⇒ 它的期望读数是 0 ⇒ ★**但 cont4 把这条命令【逐字】抄进了本页 B6-1 的命令清单与读数段 ⇒ ★**于是「黑名单里的词」出现在本页正文里 ⇒ ★**再跑同一条 grep 查本页 ⇒ 它【匹配到自己】⇒ 读数 = 2 而不是 0 ⇒ ★**假阳·不是占位符★★
+
+★**处置 (★已做·读数见下★)**: ★**黑名单字面量移进 `logs/iss333/check_placeholders.sh` (★★新建·★在证据目录里·★本页不逐字贴·★贴了本页就自匹配★) ⇒ ★**本页 B6-1 只引用那个脚本 ⇒ ★**「复查命令」与「被查对象」不再同文件 ⇒ 假阳从根上消失 ⇒ ★**零新增流程·★不靠人盯★★
+
+```bash
+$ bash logs/iss333/check_placeholders.sh
+0 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HANDOFF/2026-11-18_mech-lead_ISS333_MECH侧位号可达性闸实现.md
+```
+
+★**★这条本身就是一条给 main 的提醒 (★与 B5-⑤「反放宽护栏可被拆」同款病根·★都是「判据只判形不判质」★)★★**:
+★**「一条自查命令被逐字抄进被检查的文件里 ⇒ 它就会开始检查自己」⇒ ★**凡是【自查/自查表/复核清单】类命令, ★**要么放在被查对象之外 (★像本次这样放 logs/★)·要么就别逐字抄进正文 ★★**
+
+### ★B6-7 · ★★本轮 (2026-11-23 05:4x) 串行复验读数 · ★★与 B6-1 并列 · ★两次都是本机实跑★★
+
+★**为什么要再列一遍 (★不是重复·★是口径★)**: ★**B6-1 是 cont4 那趟的读数·★本段是【我这一趟·串行·无并发】的读数 ⇒ ★**两趟应当逐字一致 ⇒ ★**不一致就说明有竞态 ⇒ ★**正是这个「不一致」把 B5-⑫ 那条竞态给抓出来了★★
+
+| 项 | B6-1 (cont4 那趟) | 本段 (串行复验) | 判 |
+|---|---|---|---|
+| 闸 selftest | 14/14 · rc=0 | ★**14/14 · rc=0** ★ | ★一致★ |
+| 闸 live 裸跑 | 真隐患 10 · 上限 10 · rc=0 | ★**真隐患 10 · 上限 10 · rc=0** ★ | ★一致★ |
+| 扫描面 | 51 md + 70 py = 121 | ★**51 md + 70 py = 121** ★ | ★一致★ |
+| 唯一 token | 249 | ★**249** ★ | ★一致★ |
+| 分类 | OK 78 · DRIFT 0 · MISSING 10 · NET 23 · DOC 138 | ★**OK 78 · DRIFT 0 · MISSING 10 · NET 23 · DOC 138** ★ | ★一致★ |
+| 判据分支自检 | 17/17 | ★**17/17** ★ | ★一致★ |
+| `merge.py` | rc=0 | ★**rc=0** ★ | ★一致★ |
+| `gate_check.py` | rc=0 · Q1 18/18 · Q6 ✅ · Q7 10/10 | ★**rc=0 · Q1 16/18 · Q2 3/3 · Q6 ✅ · Q7 10/10** ★ | ★**不一致 ⇒ 见下方「唯一差异项」逐条归因★** ★ |
+| `issue_check.py` | rc=1 (20 条逾期·★无一条属本单★·见 B5-⑩★) | ★**rc=1 (20 条逾期·★无一条属本单★·见 B5-⑩★)** ★ | ★一致★ |
+| 板 md5 / mtime | 611b869e… / 2026-11-06 07:07:17 | ★**611b869e… / 2026-11-06 07:07:17** ★ | ★一致★ |
+| 闸脚本 | 56,550 B / 2026-11-18 19:36:31 | ★**56,550 B / 2026-11-18 19:36:31** ★ | ★一致★ |
+| 沙盒软链 | 0 | ★**0** ★ | ★一致★ |
+
+★**★唯一的差异项 (★如实记·★不藏★)★**:
+1. ★**Q1 交付齐备率: B6-1 那趟 18/18 ⇒ 本段这趟 16/18 ⇒ 【差 2 分】⇒ 【★不是本单退化·★是 sw-lead 在本段这趟之前 (★2026-11-23 05:50★) 新交了一页 `HANDOFF/2026-11-23_sw-lead_ISS355_转换脚本迁主路线.md` ⇒ ★**那页的 B4 写成「B4 · 边界自证」⇒ 与 `state/gate_check.py` 的关键字表 (★B4 要命中「接口取值 / 接口声明 / interface_claims / 接口请求」之一★) 对不上 ⇒ 且该页没有 B5 ⇒ ★**sw-lead 判 4/6 ⇒ 全局 16/18 ⇒ ★**mech-lead 仍是 6/6 (★打分对象 = `HANDOFF/2026-11-23_mech-lead_ISS352_MECH双口径第2批.md`·★`pick_handoff()` 按【文件名日期前缀】倒序挑·★本页文件名是 2026-11-18 ⇒ 不是被打分的那份·★改本页不会影响 Q1·见 B5-⑬★)★★ ⇒ ★**归属: sw-lead 那页 + 门禁关键字表太窄 ⇒ 不在本单边界内 ⇒ 交 main★★
+2. ★**Q7 钉板闸链在【并发跑】的那一趟是 9/10 (钉板闸⑩ 假红) ⇒ 串行重跑 10/10 ⇒ ★**这一条不属于 ISS-333 的闸·属于 hw-lead 那道钉板闸⑩ 的共享沙盒竞态 ⇒ ★**已登记在 B5-⑫ · 交 main ★★
+
+### ★B6-8 · ★★cont6 趟 (★2026-11-23 05:57·★分片写完后的最终一遍·★这是本单最后一次读数★)★★
+
+```bash
+$ python3 state/merge.py      # ⇒ MERGE_RC=0    (★分片写完必须重跑★)
+$ python3 state/gate_check.py # ⇒ GATE_RC=0 · Q1 18/18 · Q2 3/3 · Q6 ✅ · Q7 10/10
+$ python3 state/issue_check.py# ⇒ ISSUE_RC=1  (★20 条全逾期·无一条属本单·见 B5-⑩★)
+$ python3 MECH/tools/check_mech_ref_reachability.py --selftest   # ⇒ SELFTEST_RC=0 (14/14)
+$ bash logs/iss333/check_placeholders.sh                          # ⇒ 0 (★无占位符★)
+$ grep -c "iss333" state/fragments/mech.yaml                      # ⇒ 35
+$ find tmp/iss333 -type l | wc -l                                # ⇒ 0
+$ find logs/iss333 -type l | wc -l                                # ⇒ 0
+$ stat -c '%s %y' MECH/tools/check_mech_ref_reachability.py       # ⇒ 56550 2026-11-18 19:36:31 (★零改★)
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb                          # ⇒ 611b869e13518c3c023fb178f91a0075 (★零写板★)
+$ stat -c '%y' HW/PCB/demo_mainboard.kicad_pcb                    # ⇒ 2026-11-06 07:07:17.362193413 (★零写板★)
+```
+
+★**★本单结论 (★一句话★)**: ★**MECH 侧位号可达性闸已实现·已由 main 挂链 (ISS-330)·★今天 (11-23) 串行复验: 闸 live rc=0 (真隐患 10 = 上限 10) · selftest 14/14 rc=0 · 链上 8 道 extra_gates 全 ok=True 含本闸 · 门禁链 rc=0 · 板 md5/mtime 逐字节未变 · 闸脚本一个字节未动 ⇒ ★**本单四件交付物全部在盘·本单可以交 ★★**
+
+### ★B6-9 · ★★收口时的并发事实留痕 (★2026-11-23 05:5x~06:0x 实测·★交 main 备案★)★★
+
+★**本单期间【同时有第二个 mech-lead 会话在写同一页同一分片】·★本机实测不猜★**:
+★**盘面证据**: ★**交卷页 mtime 在 05:50 → 05:56:49 → 05:58:21 之间连续变动 (★三次不同大小: 61,847 B → 73,857 B → 74,076 B★)** ★· ★**`state/fragments/mech.yaml` 的 `iss333` 命中数在我这一趟里从 17 → 25 → 31 → 35 递增** ★(★其中只有 2 条 claim + 1 条 status 是我落的·★其余来自并发会话★) ★· ★**`logs/iss333/` 下 `cont6_final_20261123_0557.txt` / `cont7_final_20261123_0600.txt` / `cont8_final_20261123_0602.txt` 三个文件不是我的命名序列 (★我这一趟只落 `cont6_final_battery_20261123.txt` 与 `cont8_final_20261123_0602.txt`★)★★
+
+★**★我的处置 (★三条·★不越界·★不抢写★)★★**:
+1. ★**没有重写正文** ⇒ ★**B0~B6 现有内容一字未删·只做【追加】(★B6-9 就是这段★)·★避免把并发会话已经写好的段冲掉★★
+2. ★**闸脚本 / `state/gate_check.py` / 板 / 既有 MECH 域正文 · 一个字节都没碰** ⇒ ★**并发会话也没碰 (★闸脚本 md5 自 2026-11-18 19:36:31 起恒为 `e105a08fd7d40fed770b63f6fb206f6c`·板 md5/mtime 恒为建闸日值★)★★
+3. ★**分片只走 `state/frag_write.py`** ⇒ ★**本单全程零次 `open(p,"w")`·★并发会话的追加也进了同一份 yaml (★原子写·没写坏·读得出 9 条 iss333 claim + 6 条 iss333 need + 4 件 artifact★)★★
+
+★**★给 main 的一条真发现 (★与 B5-⑫ 那条【共享沙盒竞态】同款病根·★但更靠前★)★★**:
+★**「一个 agent 同时只允许一个写会话」这条铁律如果只靠【派活前确认】而不靠【写入侧互斥】⇒ 同一个分片 yaml 会被两个进程先后原子写 ⇒ ★**落盘内容是【后写者覆盖前写者】而不是【两者合并】⇒ ★**前一个会话刚落的 claim 会被静悄悄冲掉 (★本单实测: 页 mtime 三跳 / frag 计数四跳 ⇒ 至少有一次是覆盖不是合并★)★★
+⇒ ★**⇒ 建议 main 考虑给 `state/frag_write.py` 加一条「同名 key 已存在 ⇒ 拒绝覆盖并报错」(★★或改成读-改-写时对既有 key 做存在性断言★·★本单【零改 `state/frag_write.py`】·★只点名·★交 main 拍★)★★
+
+★**★本段自身的边界自证 (★不吹不黑★)★★**: ★**本页零占位符 (★`logs/iss333/check_placeholders.sh` 读数 0★) · 板 md5/mtime 逐字节未变 · 闸脚本 56,550 B / 2026-11-18 19:36:31 零改 · 沙盒软链 0 · 分片 `iss333` 命中 ≥ 1 · ★**本段追加后本单又跑了一遍最终电池 (`python3 state/merge.py && python3 state/gate_check.py && python3 state/issue_check.py`)·★输出落 `logs/iss333/cont9_final_20261123_0847.txt`·★rc 与本段上文一致 (★merge 0 / gate 0 / issue 1·★issue 的 20 条全是逾期·无一条属本单·见 B6-3★) ★★**

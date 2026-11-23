@@ -3,14 +3,12 @@ role: 硬件总工
 updated_at: '2026-11-17'
 updated_by: hw-lead
 status:
-  phase: iss351-delivered
+  phase: iss328-ru-arm-closed
   progress_pct: 100
   health: green
-  summary: 'iss351-delivered: 存储轴旧口径清账 — 改 hw.yaml answers[2] vendor_q19_boot_storage (容量旧值⇒订正为 ≥128 MiB
-    (1 Gbit) 起 + 板宽 12→15mm 归属澄清到 eMMC 档 + 外发类指令作废⇒缺口自己网上查/标证据等级/写降级方案) + §2 同型残留 3 条 (answers[13] fw_boot_storage_bom
-    / needs_from[5] q3_storage_and_audio / risks[2] R-hw-boot-storage) 全部改分档口径 ⇒ 全分片并存容量说法已清 · 逐条 sha256
-    比对: 74 answers / 241 needs_from / 4 risks 条目数不变且仅 4 条改动 · 板 md5 611b869e13518c3c023fb178f91a0075 与
-    mtime 2026-11-06 07:07:17.362193413 逐字节未动 · 零写板 · 零落表 · 零外发 · 本单新增老板拍板项 0 条'
+  summary: 'ISS-328 右上对照臂 cont3 收卷: 19 处占位符全填实; 判决 REJECT (名单制闸三块 rc 全部 = 1) ⇒ 挪器件位置这条处方被 ISS-325 左上臂
+    + ISS-328 右上臂两个臂证伪; 段数 3986 vs 官方 18092 ⇒ 路由器代码已漂移 ⇒ 同工艺才可比 ⇒ unc 45→29 不算数; TP_DSI_* 显式钉在排版阶段 diff=16
+    ⇒ 不是 no-op ⇒ P-1 20 条串一条不许删; ★新登记: 日志里印的 名单制闸 rc=0 是 shell 管道 artifact (取到 tail 的退出码) ⇒ 真实 rc=1, 判据一字未改'
   updated_at: '2026-11-17'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -1837,6 +1835,112 @@ artifacts:
     页内引用 MISS=0 · 05_q3_item_fix_prep.log + 06_q3_item_fix_setjson.log 附项1 (q3_storage_and_audio 容量口径订正)
     · 07_merge_gate_check.log 交卷前必跑 · 08_final_acceptance.log 最终验收 · frag_write_iss349.sh · path_miss_check.py
     · q3_item_fix_prep.py · needs_from_after.json · hw.yaml.before_setjson 改前快照)'
+- path: logs/iss328/35_unc_netsets_readonly.txt
+  kind: evidence
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: 'ISS-328 cont4 收割件: 三张板的 unc 网名集合逐条给全 (裸路由器 34 / 右上臂链终 28 / 基线臂同链终 27) + 两组集合关系 (①→② 严格子集·救回
+    6; ② vs ③ 交集 22·救回 5·新断 6); 只读·未重跑任何链/臂·未写板·未改闸; 脚本 tmp/iss328/scripts/iss328_netsets_readonly.py'
+- path: logs/iss340/09_cont2_resume_verification.log
+  kind: note
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-340 cont2 恢复复核 (2026-11-23 06:0x · 网关重载后): 只读复核, 板 md5 611b869e13518c3c023fb178f91a0075
+    与 cont1 基线逐字节相同 + mtime 2026-11-06 07:07:17.362193413 未变 / merge rc=0 / gate_check rc=0 且 Q1=18/18
+    hw-lead 6/6 缺:无 / 分片 grep -c iss340=13 / 交卷页引用路径 0 行真 MISS'
+- path: logs/iss340/09_cont3_final_required_checks.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: 'ISS-340 cont3 续跑 · 必跑项原样输出 (板 md5+mtime 跑前跑后逐字节相同 611b869e13518c3c023fb178f91a0075 / 2026-11-06
+    07:07:17.362193413 / 4940213 B · merge.py rc=0 (STATE.yaml 已刷新 2026-11-23T06:10:16+08:00 · 产出 783
+    · 未闭合需求 356) · gate_check.py rc=0 且 Q1=14/18 (★归因: hw-lead 计分位被另一并发单 ISS-354 半成品页顶掉 · 本页自身 check_blocks
+    实测 6/6) · 本页占位符 0 · 页内引用路径 0 MISS · 分片 grep -c iss340=20)'
+- path: logs/iss337/26_cont2_rerun_selftest_merge_gate.txt
+  kind: evidence
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★断线 (gateway reload @05:42) 后重跑交卷前必跑 3 条·逐字输出★ (selftest ALL TESTS PASS rc=0 · merge rc=0 ·
+    gate rc=0)
+- path: HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+  kind: doc
+  version: iss354-cont2
+  updated_at: '2026-10-25'
+  summary: ★ISS-354 cont2 追加段 §9-6 (含 §9-6.5 cont2 复核记录 + §9-6.6 二次更正与并发写盘登记) ★ · 本单段落落在 1476~1624 行,
+    追加前后 md5 d651a474...→a73c0892..., 行数 1475→1624, ★零删除用「前 1475 行 md5 == 落盘前快照 md5」自证★
+- path: HW/PCB/ISS354_DOWNCUT_VETO_LIST.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-354 下料前一票否决清单 (新建) ★ · §0.5 5 个 ref / 4 类不自洽分类口径 · §1 V-01..V-15 逐条判据+后果+板那一趟怎么清 · §2
+    SoM pin1 排向判定+3 条降级方案+万用表实测判据 · §3 自带闸断言表 · §4 边界自证
+- path: HW/check_iss354_manufacturability.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-354 本单自带只读闸 (新建) ★ · 11 条断言 · --selftest 7 条反向用例 (末行 ALL TESTS PASS) · 临时副本落项目盘 tmp/
+- path: logs/iss354/
+  kind: log
+  version: iss354-cont2
+  updated_at: '2026-10-25'
+  summary: ★ISS-354 证据留档 ★ · 4 份官方 datasheet 原件+文本抽取 · board_fp_measure_cont2.txt (5 个 ref 板面 land 实测)
+    · som_verify_cont2.txt (SoM 4 座 vs 官方库 400/400 + 排归属统计 + 脚表判据) · bom_zero_cont2.txt (12 个 [0数据] ref)
+    · gate_run.log + gate_selftest.log · land_workpacket_append.log (追加前后双证)
+- path: HW/PCB/ISS354_DOWNCUT_VETO_LIST.md
+  kind: veto-list
+  version: iss354-cont3
+  updated_at: '2026-10-25'
+  summary: '★一票否决清单 (cont2 起·本轮 cont3 追加 §5)★ · V-01~V-15 (cont2) + V-16 (本轮新增: 两只必装负载开关 TPS22991RAA 的
+    land 是通用模板) · SoM pin1 三条降级方案 + 万用表实测判据 · §5 = cont3 追加段 (新增 V-16 / V-05 措辞订正 / 落点由 3 变 4 / 本轮新文档与闸清单)
+    · 老字一字未删'
+- path: HW/check_iss354_mfg_closure.py
+  kind: gate
+  version: iss354-cont3
+  updated_at: '2026-10-25'
+  summary: ★本轮自带只读判定闸 (新建)★ · 判据 C1 5 个 ref 逐条点名 (现封装板文件实读 vs 应为封装作业包读; 现封装与盘面不符即判红) · C2 BOM [0数据] 名单双向比对
+    · C3 预检页含下料前一票否决项 · C4 作业包含改项清单 ⇒ 输出带名单只报数量 rc=1 · --selftest 正例绿 + 6 条反向用例全被抓出来 · 反向用例只在 tempfile
+    临时副本上做
+- path: logs/iss354/
+  kind: log
+  version: iss354-cont3
+  updated_at: '2026-10-25'
+  summary: ★ISS-354 资料留档★ · datasheets/ = 4 份 TI 原厂 datasheet 原件(bq2970/tps7a20/tps3808g01_real/csd16406q3)
+    + 文本抽取 + CSD16406Q3 Top View 渲染图(csd_topview2/csd_tv_left) ⇒ ★本轮用渲染图逐脚读出 1=S 2=S 3=S 4=G 5=D 6=D 7=D
+    8=D★ · ISS354_追加段_作业包_§9-6.md 与 ISS354_追加段_预检页_V1-V3.md = 本轮两页追加段原文 (★追加式·零删除★) · ISS354_追加段_否决清单_cont3.md
+    = 否决清单 cont3 段原文
+- path: HW/FP_TRUTH_BASELINE.md
+  kind: baseline
+  version: iss356-cont2
+  updated_at: '2026-10-25'
+  summary: ★ISS-356 封装真值基线页 (新建)★ · §1 族级映射表 (板面 186 占位封装按 焊盘编号+焊盘尺寸+fab外框 聚成 24 族, 靶子内 4 族各给候选真库封装 +
+    三判据核对 + 分档依据 + 证据等级 + 降级方案) · §2 逐 ref 表 78 件 (镜脚主PCB 必装 ∩ 非NET/TP ∩ footprint待定) 每行 12 栏含 目标lib:name
+    + 库文件路径 + md5 + 焊盘数网络核对 + 候选OPN + 证据等级 + 是否触发布局布线改动 + 降级方案 · §3 删件候选 5 组 (只给候选与代价, 不代拍) · §4 镜框充电板
+    22 件只登记 + 跨界 3 件事实 · §5 已做未做 + 续做入口 · 页头三句写死 (本页是封装真值基线不替代选型页 / 零写板 / 本单不落表) · 附机器可读基准块 (records 78
+    条)
+- path: HW/check_fp_truth_baseline.py
+  kind: gate
+  version: iss356-cont2
+  updated_at: '2026-10-25'
+  summary: '★ISS-356 本单自带只读闸 (新建)★ · C0 基准块合法JSON · C1 靶子覆盖 (口径由脚本自己跑CSV: 必装∩非NET/TP∩待定 = 100 ⇒ 主PCB 78
+    + 充电板 22; 78件须在§2带目标lib:name, 22件须在§4.1登记, 漏一个点名) · C2 每个lib:name的 .kicad_mod 文件本体实测在盘 + md5 一致 (★查文件不是只查库目录★)
+    · C3 证据等级非空且 ∈ 五级白名单 (写[官方] = 红) · C4 降级方案非空且非占位词 · C5 禁等原厂回信类挂起措辞 (5词黑名单 + skip区) · C6 件数三方自洽 (脚本实跑
+    = 基准块counts = records ref集合) · --selftest 6 条反向用例每条自证红的是目标那一条其余仍绿, 末行 ALL TESTS PASS, 沙盒落项目盘 tmp/
+    跑完即删 ⇒ 真件零污染 · ★闸自己抓到并修掉 3 个真bug (C6与C1耦合 / M3M4列索引错位 / M5探针串原本就在文档里)★'
+- path: HANDOFF/2026-11-23_hw-lead_ISS356_封装真值基线.md
+  kind: handoff
+  version: iss356-cont2
+  updated_at: '2026-10-25'
+  summary: '★ISS-356 交卷页 (新建)★ · B1 结论 (78件封装真值 100%给出 + 挖出 3 类板面硬缺陷) · B2 验收标准自评 (F1~F17 逐条自跑 + C1~C6
+    逐条 + selftest 6/6 + 6 项未验诚实登记) · B3 证据分级 (五级白名单零[官方]) · B4 接口取值声明 (12条, 只对封装层取值, 不代拍) · B5 未决项与卡点
+    (9条卡点 + ★两次死亡: cont0 被abort / cont1 08:47:16 被 50 分钟 runTimeout 掐死★ + 自我限定 5 条) · B6 自证复现命令 (7 组原样输出)'
+- path: logs/iss356/
+  kind: log
+  version: iss356-cont2
+  updated_at: '2026-10-25'
+  summary: ★ISS-356 证据留档★ · parse_board2.py (板面186封装 + pad网络 + fab外框; ★修掉 cont1 版 parse_board.py 漏采 pad.net
+    的缺陷★) · probe_lib_fab.py (库封装 F.Fab / F.CrtYd 实测) · extract_target78.py (靶子口径 + 焊盘数网络核对, D1/D2 由此出)
+    · build_fp_truth_baseline.py (基线页生成器, 只写 HW/FP_TRUTH_BASELINE.md) · board_footprints_v2.json + lib_fab_geom.json
+    + target78_facts.json
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -3772,6 +3876,57 @@ needs_from:
     下板⇒ 进板那一趟); (2) Q_PG pad1/pad3 的 PWR_GOOD/PWR_ON 归属 (与 W-4 的 .3 极性合看)。★D_ESD_USB_D pad1 随 ESD 架构轴
     A3/W-2 走, 另拍。'
   since: '2026-10-25'
+- key: iss356_netlist_4rows_gnd_fix
+  to: 落表批次
+  item: '★ISS-356 D1 根因 (落表批次地界, 本单零落表)★: HW/netlist_v1.csv 里 C_KEY_PWR / C_KEY_VM / C_KEY_VP / R_BAT_DET_2
+    这 4 件的接地行把 net 栏写成了信号网名 (如 net=KEY_PWR node1=C_KEY_PWR node2=GND), 而正常写法是独立的 net=GND 行 (对照 C_BULK_SENSOR_CORE)
+    ⇒ 板生成器 state/gen_pcb_netlist_board.py 的 derive_pads() 按 (器件, 网名) 去重 ⇒ 这 4 件只长出 1 个焊盘 ⇒ ★板面缺接地 land:
+    3 个 100nF 去耦电容接地端悬空 (去耦失效) + R_BAT_DET_2 是 BAT_DET 分压链下臂未接 GND (电池检测读数无意义)★ ⇒ ★请同批把这 4 行改成 net=GND
+    node1=REF node2=GND★ ⇒ ★注意: 只按 ISS-356 §2 表的 0603 换封装救不了这 4 件 (0603 是 2 焊盘封装, 换上去会多出 1 个无网焊盘) ⇒ 必须先修网表★'
+  since: '2026-11-23'
+- key: iss356_bom_footprint_backfill
+  to: 落表批次
+  item: '★ISS-356 交付的封装真值待回填 (本单零落表)★: 照 HW/FP_TRUTH_BASELINE.md §2 逐 ref 表的 目标 lib:name 列, 把 78 件的 BOM
+    footprint 栏 + 原理图 Footprint 属性回填 (同批改 HW/netlist_v1.csv 那 4 行, 见 iss356_netlist_4rows_gnd_fix) ⇒ 重跑板生成器
+    ⇒ 板 md5 只变一次 ⇒ ★回填时按网表脚号对齐 pad 号 (坑: R_PU_PG 板面 pad 序与网表脚序相反, 见 ISS-356 交卷页 §B1.2 D2)★ ⇒ 回填完可直接用 python3
+    HW/check_fp_truth_baseline.py 当核对闸 (它只认页里的 78 行与库文件在盘, 不认回填结果 ⇒ 回填校验另需落表批次的闸)★'
+  since: '2026-11-23'
+- key: iss356_charge_board_22_fp_truth
+  to: 落表批次
+  item: '★ISS-356 充电板 22 件封装真值债 (本单只登记, 未展开查库)★: 清单已在 HW/FP_TRUTH_BASELINE.md §4.1 逐条列出 (C_BAT / C_BST
+    / C_PMID / C_SYS / C_VBUS_IC / D_CHG_LED / D_ESD_TC / D_TVS_VBUS / FB_VBUS / L_CHG / Q_CHG_LED / R_CC1
+    / R_CC2 / R_CE / R_CHG_LED / R_ILIM / R_OTG / R_PSEL / R_PU_CHG_STAT / R_PU_SCL / R_PU_SDA / R_STAR_PGND)
+    ⇒ ★这 22 件本轮实测全部不在镜脚主 PCB 板面 (板面 grep BQ25896 = 0, U_CHG 不在板面) ⇒ 属另一块板 (镜框充电板), 不在本单靶子里★ ⇒ ★续做入口: 按
+    ISS-356 §1 同款三判据 (焊盘数 / 焊盘网络 / 本体+land 落进占位外框) 逐件查库定封装; §4.2 已转引 5 条现成结论 (U_CHG / Q_CHG_LED / D_TVS_VBUS
+    / D_ESD_TC / FB_VBUS) 可直接接续★ ⇒ 若型号同时定了 ⇒ 板 md5 第二次变的风险同主板侧, 需并进同一趟'
+  since: '2026-11-23'
+- key: iss356_jdebug_mech_clearance_recheck
+  to: mech-lead
+  item: '★ISS-356 D3 引出的结构净距口径差 (MECH 域, 本单只报量差)★: J_DEBUG 的板侧 land 改动 (0.50 → 1.27mm pitch) 已由 E-1 拍死并登记在
+    ISS-343 的 B33_PIN_LAND_1P27 ⇒ 本单不重复做, 只给封装真值 Connector_PinHeader_1.27mm:PinHeader_1x04_P1.27mm_Vertical
+    (4 通孔 @1.27, pad 1.0×1.0, 实测在盘)★ ⇒ ★但量差要核: HW/PCB/BOARD_ONEPASS_WORKPACKET.md §C-SEAT-1 的清空区是按 1.27
+    pitch + 0.275mm 宽 pad 算的 (X 宽 4.0850mm), 而官方 THT 排针 pad 宽 1.0mm ⇒ 铜箔净宽 4.81mm ⇒ 差 0.725mm ⇒ 请按官方 land
+    核清空区/开口/座体净距是否还过 (单边间隙与 CRIT 0.60 的关系)★ ⇒ 若改用 SMD 变体 (PinHeader_1x04_P1.27mm_Vertical_SMD_Pin1Left)
+    则 land 变 2×2 交错而非 1×4 直排 ⇒ 结构尺寸要重算 (本单已把这条列为降级方案)'
+  since: '2026-11-23'
+- key: iss356_dup2_and_f15_scope
+  to: main
+  item: '★ISS-356 实读与 F15/§9-6-3 的两处口径差 (只报事实, 不代裁)★: ① 「多余 2」已定位 = 板面 186 vs BOM 镜脚主PCB 184 ⇒ 多出 C_VBUS_GND
+    (BOM board 栏=镜框充电板, dnp=DNP) + J_CHG (BOM board 栏=跨铰链界面, type NET) ⇒ C_VBUS_GND 已有板侧项 B02_C_VBUS_GND,
+    J_CHG 属跨铰链界面域 ⇒ 请认这两件 (另: C_VBUS_OUT 同属镜框充电板 + DNP 但本轮实测不在任何板面 ⇒ 不在多余 2 里) ② F15 的 (1,2)=105 / (1,)=7
+    是按 焊盘编号集 聚类且只数真实器件 (排除了 42 个 TP_*) ⇒ 本轮按 焊盘编号+焊盘尺寸+fab外框 聚类 = 24 族, 同按只数编号则 (1,2)=107 / (1,)=49 ⇒
+    ★请统一口径, 否则 板面账 (186) 与族聚类账对不上, 「板只改一次」的波及面会被低估★ ③ 另: F14 的 SW_SPST_TL3342 实测不在盘 (KiCad 10 官方 Button_Switch_SMD
+    库无此封装) ⇒ 本单靶子里无按键件故零影响, 但该事实链是否要在别的页订正请你定'
+  since: '2026-11-23'
+- key: iss356_led_symmetry_and_delete_decisions
+  to: main
+  item: '★ISS-356 登记的两个不代拍项 (交 main/老板裁决, 本单只给候选与代价)★: ① LED 两颗封装不对称: 本单沿用 ISS-241 §⑬ 的逐件推荐 (D_LED_G →
+    LED_SMD:LED_0805_2012Metric, D_LED_R → LED_SMD:LED_0603_1608Metric) ⇒ 若改两颗同封装 (都 0805) ⇒ 代价 = 红件 OPN
+    要重查 (ISS-241 记 [0数据]) + G-5 亮度账要重算 + 落板批次要一套 land ⇒ ② 删件 5 组候选 (TP_* 42 个单 land 测试点 / 状态指示灯 4 件 /
+    R_SUPV_DIV1+2 跳线位 / C_AC_CSI_* 10 件 / C_KEY_CAM + R_NTC_BAT) ⇒ 每组的 省掉什么 / 代价 / 删了会不会改板面 (占位焊盘还在 ⇒
+    板 md5 再变一次) 已在 HW/FP_TRUTH_BASELINE.md §3 逐条列出 ⇒ ★注意 C_AC_CSI_* 那组的依据是 [0数据] (SoM 内部是否已做 AC 耦合本轮无证据)
+    ⇒ 证据不足前不建议删★'
+  since: '2026-11-23'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -4442,6 +4597,50 @@ answers:
     全程逐字节未动 ⇒ 零写板。★本单不新增老板拍板项 (E-1 由 main 2026-11-17 18:45 已拍死) · 零落表 · 零改既有闸判定逻辑 · 零外发。★建议 main 把新闸挂进
     state/gate_check.py 的 PINNED_MD5_GATES 当钉板闸⑩ (挂载行见交卷页 §B4-4)'
   ref: HW/PCB/BOARD_ONEPASS_PREFLIGHT.md + HW/check_preflight_regen_idempotent.py + state/_iss277_build_preflight.py
+- key: iss340_cont2_line_closed
+  to: main
+  value: 'ISS-340 cont2 闭环确认: 交卷页 B0~B7 已在盘 (cont3 版, 31071 B @ 11-22 23:54:29, 含三处口径订正: D_ESD_USB_D=90Ω
+    差分对对内成员 / W-4 拓扑 11-17 09:49 已拍 / 立项 3 条待拍实测后只剩 C_VBUS_GND 1 条) + logs/iss340/07_cont2_required_checks.log
+    必跑项在盘 + 分片 3 条登记在盘 (artifact / answer iss340_c1_attribution_verdict / need iss340_c_bucket_boss_decisions);
+    本次 06:0x 只读复核: 板 md5+mtime 未变 + merge rc=0 + gate_check Q1=18/18 ⇒ 本单可收口, 归桶结论不变 A0/B3/C2'
+  ref: HANDOFF/2026-11-22_hw-lead_ISS340_板网表C1差异归属判定.md
+- key: iss354_delivery
+  to: null
+  value: '★ISS-354 cont2 交卷 (纯查证·零写板·零落表·零外发)★ · ①SoM 座 pin1 排向: 文档判定已定=奇数脚=y小排(三处档案一致) + 实物实测仍欠账(ISS-169
+    open) ⇒ 3 条降级方案 (a)几何照走 (b)加丝印防呆(降概率) (c)镜像兼容被实测否决(46 网里 45 个单排独占) ⇒ V-01 万用表判据现成(P2 pin1=I2C2_SDA_M0
+    / pin2=GND) · ②5 个 ref / 4 类不自洽改项清单: Q1+Q2 栅挂源极+缺中心散热pad / U_BATPROT 脚号错位+1+封装族群错 / U_LDO_S28 缺 EN
+    ⇒ 永远关断(P0) / U_SUPV 缺 GND ⇒ 无地 ⇒ 连带 7 只 LDO + 3 只 TPS3808 + 6 只按键同模板要一次改 · ③BOM 12 个 [0数据] ref(10
+    个真欠选型, 5 个必装) + 候选与代价, ★不代拍★ · ④自带闸 HW/check_iss354_manufacturability.py (11 断言 + 7 反向用例 ALL TESTS
+    PASS) · ⑤V-01..V-15 下料前一票否决清单. ★★板指纹前后双证: md5 611b869e13518c3c023fb178f91a0075 / mtime 2026-11-06
+    07:07:17.362193413 未变★★ · ★★两件要 main 裁: (甲) BOARD_ONEPASS_WORKPACKET.md 现有【两个 §9-6 段】(本单在 1476~1624
+    行, 另一个并发 hw-lead 会话在 1626 行起) ⇒ 要不要并成一段; (乙) PREFLIGHT 06:11 被并发会话经【生成器 sidecar】改动(md5 581f116a→ade0d124,
+    幂等闸实测 rc=0 绿) ⇒ 本单因此把闸的 PREFLIGHT 断言从「冻结 md5」换成「追加块必须逐字来自 sidecar」★★'
+  ref: HANDOFF/2026-11-23_hw-lead_ISS354_demo主板可制造性收口.md · HW/PCB/ISS354_DOWNCUT_VETO_LIST.md
+- key: iss354_cont3_closure
+  to: main
+  value: '★ISS-354 cont3 收口 (纯查证·零写板·零落表·零外发)★: ①SoM 座 pin1 排向 ⇒ 3 条降级方案 + 4 条下料前一票否决项 (V-1/V-2/V-3/V-3b),
+    并经该页生成器自己的 sidecar 通道落进预检页 (重跑零蒸发, 被 cont2 闸 A-5c 判绿) ⇒ ★★并查明: 本机 KiCad 10.0.8 官方库已有 Connector_Hirose_DF40.pretty
+    (2026-11-03 探针的「库无 DF40」结论已过期) ⇒ 探针留的「2.38 两解读」定死为内缘间距 (两排中心距 3.08mm) ⇒ 板上的 SoM land 几何本来就是对的★★ ⇒
+    ★★且 Hirose 官方白纸黑字「Note 4: This connector is NOT polarized」⇒ 母座无防呆 ⇒ 装反会物理插进去且静默硬短 ⇒ 镜像兼容明确不可行★★ ②5
+    个 ref 改项清单 (cont2 §9-6.1 + 本轮 §9-6-1b/§9-6-2/§9-6-3) ⇒ ★★本轮 net-new: 板面 pad→net 25 脚逐脚对照 + 符号面 G-1~G-6
+    ⇒ Q1/Q2 的 BAT_GATE 挂板面 pad2 = 真件源极 ⇒ 栅网挂到源极, 且 BAT_DOUT/BAT_COUT 落在 pad5=漏 ⇒ 两只 FET 的源被短在一起 (共源, 背靠背失效)
+    ⇒ 装上必然不工作; 另查出 2 只必装负载开关 U_EN_SW/U_PWR_SW (TPS22991RAA) 的 land 也是通用模板 ⇒ 装不下 (V-16)★★ ③BOM 12 个 [0数据]
+    的候选与代价 + 3 条改设计路径建议 (不代拍) ⇒ 本轮自带闸 HW/check_iss354_mfg_closure.py (rc=0 + selftest 6 条反向用例全过) ⇒ 与 cont2
+    的 HW/check_iss354_manufacturability.py 并存两闸都 rc=0 ⇒ ★板 md5 611b869e13518c3c023fb178f91a0075 / mtime
+    2026-11-06 07:07:17.362193413 双证不变★'
+  ref: HANDOFF/2026-11-23_hw-lead_ISS354_demo主板可制造性收口.md · HW/PCB/ISS354_DOWNCUT_VETO_LIST.md §5 · HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+    §9-6
+- key: iss356_fp_truth_scope
+  to: main
+  value: '★ISS-356 答 main 的三个订正 + 一个 scope 问题★: ① 靶子口径 = 必装 ∩ 非NET/TP ∩ footprint待定 = 100 ⇒ 镜脚主PCB 78
+    + 镜框充电板 22; 本单 §2 100% 做完这 78 件, 另 22 件在 §4 只登记不展开查库 (续做入口见 §5.3) ② 本轮自己重跑了单焊盘清单: 板面 186 封装里 1 焊盘的
+    49 个 = TP_* 42 + 真实器件 7 (CHG_GND_STAR / C_KEY_CAM / C_KEY_PWR / C_KEY_VM / C_KEY_VP / R_BAT_DET_2
+    / R_NTC_BAT) ⇒ 与你给的名单逐字一致 (7/7); 其中 4 件落在 78 靶子内且是硬缺陷 (见 iss356_netlist_4rows_gnd_fix), 靶外 3 件只在 §2.2
+    登记 ③ KiCad 库计数实测 = 155 个 .pretty 目录 / 15,468 个 .kicad_mod 文件 ⇒ 与你的订正一致; 本单所有 lib:name 都逐个 test -f
+    + md5 核过 (81 处) ④ 跨界 1 件: C_VBUS_GND 确实在主 PCB 板面 (2 land: GND / VBUS_5V_CHG) 而 BOM board 栏写镜框充电板 +
+    dnp=DNP ⇒ 只登记事实, 留位/下板归老板; 另 C_VBUS_OUT 同属充电板 + DNP 但实测不在任何板面 ⇒ 不在多余 2 里; 多余 2 的第 2 件是 J_CHG (跨铰链界面)
+    ⇒ 已登记在 HW/FP_TRUTH_BASELINE.md §4.3 与交卷页 §B5 K2'
+  ref: HW/FP_TRUTH_BASELINE.md §4.3 · HANDOFF/2026-11-23_hw-lead_ISS356_封装真值基线.md §B1.2 §B5
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -6901,6 +7100,171 @@ interface_claims:
   value: PREFLIGHT_PROJ / PREFLIGHT_CHECKLIST / PREFLIGHT_GEN_PROJ / PREFLIGHT_SANDBOX
   note: ★接口取值声明 · 本单声明 (出处 HW/check_preflight_regen_idempotent.py:56~:61) ⇒ 沙盒与反向用例用 ⇒ 默认沙盒落项目盘 tmp/iss349/regen_gate
     (绝不落 /tmp · userquota 已打满 ⇒ EDQUOT ⇒ 假读数)
+  ref: ''
+- key: iss328_unc_netsets
+  value: 'unc 网名集合 (读数 ①/② 的集合那一半): 裸路由器产物 34 个网名 (unc 条目 35 / viol 11) · 右上臂链终板 28 个 (29 / 12) · 基线臂同链终板
+    27 个 (29 / 205); ①→② 交集 28 / 仅①有 6 (BAT_CHG I2C_B_SDA LIGHT_5V PWR_ON RAIL_DEMO_5V VDD_1V8_IO) / 仅②有
+    0 ⇒ 链终集合是裸路由器集合的严格子集 ⇒ 补丁链这一步只救不破; ② vs ③ 交集 22 / 候选新断 6 / 候选救回 5 ⇒ 净 +1 ⇒ 判据① 网名集合变大 (27→28) ⇒ REJECT'
+  note: '[实测] 口径=state/cmp_unc_sets.py 的 nets_of() (从 DRC json 的 unconnected_items 取 [网名]·排序去重); 与臂间对照闸日志
+    (基线 27 / 候选 28 / 交集 22 / 救回 5 / 新断 6) 逐字一致; ★注意: 严格子集只证明补丁链这一步没把网弄断, 不得拿去冲抵名单制闸的 REJECT'
+  ref: logs/iss328/35_unc_netsets_readonly.txt
+- key: iss328_ru_arm_gate_rc_artifact
+  value: '[实测] 名单制闸三块 rc 取值 = 1 (臂 vs 官方 · clrfix 臂 vs 官方 · 臂 vs 基线臂) ⇒ 判定 REJECT; ★注意: logs/iss328/08_rightupper_arm.log
+    里印的「★名单制闸 rc=0」是 shell 管道 artifact (tmp/iss328/run_ru_arm.sh L132~L133 / L136~L137 用 cmd | tail -60
+    紧跟 echo 取退出码 ⇒ 取到的是 tail 的退出码) ⇒ 真实进程退出码 = 1 (state/compare_arm_official.py 末行 return 0 if verdict==ACCEPT
+    else 1) ⇒ 本单两页统一按 rc=1 写; 判据/名单/读数全部照抄日志一字未改'
+  note: '[实测] rc 复算出处 = logs/iss328/33_recalc_gate_rc.txt (RC_FINAL_OFFICIAL=1 / RC_CLRFIX_OFFICIAL=1)
+    + 臂间对照闸 rc=1 (日志 L198); 日志原文未改; 差异已在交卷页 B5 与交付页 §3-4 登记'
+  ref: logs/iss328/33_recalc_gate_rc.txt
+- key: iss337_frag_hits_live
+  value: ★grep -c iss337 state/fragments/hw.yaml = 19 (要求 ≥5)·★本单自己登记 = 4 claim + 5 artifact + 3 need
+    (写盘当时 14)·★从 14 涨到 19 是并发兄弟 job ISS-339 把 iss337_* 答复写进同一个 hw.yaml 的 answers 段★ ⇒ 引用时必须带读数时刻★
+  note: '实测: 2026-11-23 06:1x 本机 grep'
+  ref: ''
+- key: iss354_som_pin1_row_verdict
+  value: 'SoM 座 pin1 排向: ★文档判定已定 = 奇数脚 = y 小的那一排★ (依据 HW/PCB/SOM_PIN_ROW_PROBE.md §0 + HW/PCB/HIROSE_DF40C_PINARRANGEMENT.md
+    §2 + HW/PCB/som_btb_params.json 的 pin1_row, 三处一致; Forlinx OK3572-C 手册 §2.6.1 四张引脚原理图 + 底面尺寸图 △ 落 y
+    小侧) ⇒ ★但实物实测仍欠账 (ISS-169 open)★ ⇒ 板面 4 个座封装 Value 属性自写「★pin1 所在排待实测确认」★ ⇒ ★未实测前不许冻结 Gerber★. 三条降级方案:
+    (a) 按原厂推荐焊盘图落盘 [几何零风险 · 4 座 x 100 焊盘 vs 本机 KiCad 官方库 Connector_Hirose_DF40.pretty/Hirose_DF40C-100DS-0.4V_2x50_P0.4mm
+    180° 旋转 = 400/400 逐个位置+尺寸全对] (b) 板侧加 pin1 丝印三角+缺口 [丝印从零起画 · 板面 F.SilkS 图形仅 8 处且零文字] (c) 两排镜像兼容 [★实测否决:
+    46 个唯一带网网名里 45 个单排独占, 只有 RAIL_DEMO_5V 两排都有★]. 下料前一票否决项 V-01..V-15 全文见 HW/PCB/ISS354_DOWNCUT_VETO_LIST.md
+    (★V-01 = 万用表二极判别: 官方脚表 P2 pin1=I2C2_SDA_M0(3.3V) / P2 pin2=GND ⇒ 读数≈0Ω 那根 = 偶数排, 不通那根 = 奇数排★); ★本单零手改
+    PREFLIGHT (它是生成器产物, 走生成器路线)★'
+  note: '★结论已定但放行未到: 文档判定够画板不够放行下料★ · 判据可复核: HW/PCB/FET3572C_PIN_TABLE.csv · 零写板零落表 · ★注意: cont1 把这条写成「无定论」,
+    cont2 复跑判为不准确, 已就地更正 (见 WORKPACKET §9-6.2/§9-6.5)★'
+  ref: HW/PCB/ISS354_DOWNCUT_VETO_LIST.md §1/§2 · HW/PCB/BOARD_ONEPASS_WORKPACKET.md §9-6.2 · logs/iss354/som_verify_cont2.txt
+- key: iss354_fp_pin_mismatch_change_list
+  value: '★5 个 ref 全部已定位★: Q1 / Q2 / U_BATPROT / U_LDO_S28 / U_SUPV ⇒ 板面 land 实测 vs 官方查得: (Q1,Q2) 板面 5
+    焊盘(2,3,4,5,6) @1.27mm 双排 + F.Fab 4.94x5.00 ⇒ 真件 TI CSD16406Q3 = VSON-CLIP(DQG) 8 脚 + 中心散热焊盘, 外形 3.3x3.3mm,
+    脚号 1=S/2=S/3=S/4=G/5=D/6=D/7=D/8=D, 中心 pad=D ⇒ BAT_GATE 挂板面 pad2 = 真件源极 [栅网挂到源极]; (U_BATPROT) 板面 6
+    焊盘(2..7) ⇒ 真件 TI BQ2970 = 6-pin DSE(WSON) 1.50x1.50x0.75mm, 脚号 1=NC/2=COUT/3=DOUT/4=VSS/5=BAT/6=V-
+    ⇒ 脚号整体错位+1 且板面 pad7 在真件上不存在; (U_LDO_S28) 板面 4 焊盘(1,2,4,5) ⇒ 真件 TPS7A20 = DQN(X2SON) 1.0x1.0mm 5 焊盘
+    1=OUT/2=GND/3=EN/4=IN/5=Pad ⇒ 缺 EN(3) ⇒ 内部 500k 下拉 ⇒ 芯片永远关断 [P0]; (U_SUPV) 板面 4 焊盘(1,4,5,6) ⇒ 真件 TPS3808G01
+    = SOT-23(DBV) 6 脚 1=RESET/2=GND/3=MR/4=CT/5=SENSE/6=VDD ⇒ 缺 GND(2) 芯片无地. ★4 类不自洽★: 类-1 脚数/脚号对不上 (5/5)
+    · 类-2 land 几何与封装族群不符 (5/5, 全用同一个 1.27mm 双排通用模板, 无一装得下去) · 类-3 缺关键焊盘 (3/5: U_LDO_S28 缺 EN / U_SUPV
+    缺 GND / Q1+Q2 缺中心散热焊盘) · 类-4 BOM+板面 footprint 栏只写「N 焊盘 (器件名)」不写封装族群 (5/5 ⇒ 贴片与采购拿不到 land)'
+  note: '★本单只交「改项清单」, 不出改板方案: 落哪个官方封装/落位怎么重排/网怎么重连 由 main 开板那一趟统一做★ · 本单零写板零落表 · BOM 本身一个字节未动 (V-10/V-11
+    只是事实陈述) · ★判据证据: 四份原厂 datasheet 逐字读出 (logs/iss354/*.txt) + 板面只读解析 + CSD16406Q3 第 1 页 Top View 渲染 PNG
+    逐脚读出★'
+  ref: HW/PCB/BOARD_ONEPASS_WORKPACKET.md §9-6.1 · HW/PCB/ISS354_DOWNCUT_VETO_LIST.md §0.5/§1 · logs/iss354/board_fp_measure_cont2.txt
+    · logs/iss354/fp_compare.txt
+- key: iss354_bom_pending_selection_candidates
+  value: '★HW/BOM_v1.csv 的 opn 列仍 [0数据] 的 ref 共 12 个★: BT_432243 / CHG_GND_STAR / D_ESD_LIGHT / SW_BOOT
+    / SW_KEY_CAM / SW_KEY_PWR / SW_KEY_VM / SW_KEY_VP / SW_RST / U_LDO_S28 / U_SUPV / X1 ⇒ ★其中 CHG_GND_STAR
+    是单点汇流位非器件(本就该 0 数据) + X1 因主控 XTAL 频率未定义无从选型(记 [0数据] 不猜) ⇒ 真正欠选型的是 10 个, 其中 5 个必装(SW_BOOT/SW_KEY_PWR/SW_KEY_VM/SW_KEY_VP/SW_RST)
+    ⇒ 必装件缺 land 不能靠 DNP 掩盖★. 候选+代价(★只交候选与代价, 不代拍★): U_LDO_S28 → TPS7A2028DQNR (DQN/X2SON 1.0x1.0, 备选 TPS7A2028PDQNR;
+    ★TPS7A2028PDBVR = SOT-23-5 脚号排布不同 ⇒ 不可当替代★) ⇒ 代价=land 整块重画; U_SUPV → TPS3808G01DBVR (SOT-23-6, CT
+    脚可调正合现有用法, 备选 TPS3808G01DRVR WSON-6; ★同族固定阈值档 G09/G12/G25/G30/G33/G50 无 CT ⇒ 与现有 SUPV_CT 用法不符 不适用★)
+    ⇒ 代价=换档必须重核脚号; 6 只按键 → C&K KMR221NG / Alps SKRPACE010 / Panasonic EVQ-P0 三候选 land 各不相同 ⇒ 代价=6 只 land
+    一次改 6 只; D_ESD_LIGHT → PESD5V0S1BA (SOD-323, 备选 TPD1E05U06DPYR X1SON-2; 轨 LIGHT_5V=5V ⇒ VRWM>=5V)
+    ⇒ 代价=现板 2.3mm 间距 vs SOD-323 官方 2.1mm ⇒ land 重画; BT_432243 → JST B2B-PH-K-S (2.0mm THT) ⇒ 代价=2.2mm
+    对不上 ⇒ land 重画, ★降级=DNP+整机走 Type-C ⇒ 可只留位但要写清「有意不选」还是「待选」★; X1 → 频率未定 ⇒ 只把 land 改成标准 2 脚+GND 垫片通用形状'
+  note: '★选型由板那一趟与采购决定, 本单不代拍★ · ★10 个待选型 ref 不等于 10 笔欠账: U_LDO_S28 / U_SUPV 两项已在改项清单里处理★ · ★零采购零询价零联系供应商★'
+  ref: HW/PCB/BOARD_ONEPASS_WORKPACKET.md §9-6.3 · logs/iss354/bom_zero_cont2.txt · logs/iss354/bom_cand_fit.txt
+- key: iss354_own_gate
+  value: '★本单自带闸 = HW/check_iss354_manufacturability.py (★只读判定★)★ ⇒ 断言: A-1 5 个 ref 的改项清单在盘且每个 ref 都写出了官方查得的应为封装(语义级:
+    VSON-CLIP / DSE·WSON-6 / X2SON·DQN / SOT-23) · A-2 4 类不自洽在盘 · A-3 SoM pin1 降级方案 (a)(b)(c) 在盘(按标题词匹配,
+    不用裸 (c) 防误命中) · A-4 下料前一票否决项 V-01..V-15 在盘 · A-5a/A-5b 零写板(板 md5 611b869e13518c3c023fb178f91a0075
+    + mtime 2026-11-06 07:07:17.362193413) · A-5c 零手改 PREFLIGHT(含 ISS-354 段的追加块必须逐字命中生成器 sidecar state/_iss277_preflight_appendix.md
+    ⇒ 是生成器路线不是手改页). ★--selftest 反向用例 7 条全过 (删 V-07 ⇒ 红且点名 V-07 / 篡改板 ⇒ 红且点名零写板 / 手改 PREFLIGHT 块 ⇒ 红且点名手改页
+    / 删 Q2 官方封装证据 ⇒ 红且点名 Q2 / 删降级方案(c) ⇒ 红且点名(c) / 还原后回绿 ⇒ 证明闸不是恒绿) ⇒ 末行 ALL TESTS PASS★'
+  note: ★--selftest 的临时副本一律落项目盘 tmp/iss354/selftest_sandbox (★不许写 /tmp★)★ · 闸不改既有闸, 不改任何既有闸的判据方向
+  ref: HW/check_iss354_manufacturability.py · logs/iss354/gate_run.log · logs/iss354/gate_selftest.log
+- key: iss353_hw_ledger_supersede_rk3572_target
+  value: RK3572 转换 target = rknn3-toolkit 1.2.0 + target_platform='rk3572' [实测 rc=0; 官方 README Supported
+    Platforms 含 RK3572]; toolkit2 侧 rk3572 非法 [官网+实测]; 板端接受性 [0数据]
+  note: ★已被 ISS-263 取代·本条保留作历史留档·结论不再引用★
+  ref: HANDOFF/2026-11-23_sw-lead_ISS353_rk3572目标口径清账.md · SW/tools/check_rk3572_target_caliber.py
+- key: iss337_own_page_gate_6of6
+  value: ★本单交卷页用闸自己的 check_blocks() 实测 = 6/6 缺:无★ (B1..B6 全齐)·★2026-11-23 06:1x 闸 Q1 短暂显示 14/18 (hw-lead
+    2/6) ⇒ 归因 = 并发兄弟 job ISS-354 06:05 建的空白占位页按文件名倒序顶掉评分基准★ ★06:18 终测该兄弟单填完 ⇒ Q1 已回到 18/18 · hw-lead 6/6
+    缺:无★ ⇒ 本单不建第二份交卷页 (闸只认最新一份) · 不碰别人文档 · 零改闸
+  note: '实测: tmp/iss337/check_own_page.py 直接 import 闸的 check_blocks · ISS337=6/6 · 终测 logs/iss337/26_cont2_rerun_selftest_merge_gate.txt
+    Q1=18/18'
+  ref: ''
+- key: iss354_cont3_symbol_side_gaps
+  value: '★符号/脚表侧的 6 条缺口 (★本轮 net-new·cont2 没覆盖这块★)★: G-1 ★Q1/Q2 的原理图符号 SYM_Q1/SYM_Q2 只有 pin2 一脚, 而板面上有
+    5 个带网焊盘 ⇒ 板面≠原理图面★ (真件脚号 1=S 2=S 3=S 4=G 5=D 6=D 7=D 8=D) ⇒ 板那一趟必须先重画符号再改板; G-2 ★Q1/Q2 共挂 BAT_GATE★
+    与 BQ2970 两管不可共栅冲突; G-3 U_BATPROT 缺 VSS(4)/BAT(5)/V-(6); G-4 U_LDO_S28 缺 EN(3); G-5 U_SUPV 缺 GND(2)/MR(3);
+    G-6 ★★Q1 与 Q2 的板面 pad2 同挂 BAT_GATE 而真件 pin2=S(源) ⇒ 两个 FET 的源极被同一个网短在一起 ⇒ 共源, 背靠背拓扑失效★★ ⇒ 且 BAT_DOUT/BAT_COUT
+    落在 pad5=D(漏) ⇒ 栅驱接到漏极 ⇒ 装上必然不工作'
+  note: '★零写板零落表★ · 本单只登记事实与影响, 不改符号/不改脚表/不改板 (★那是板那一趟★) · 证据: 板文件逐焊盘实读 + TI SLPS202B Top View 图'
+  ref: HW/PCB/BOARD_ONEPASS_WORKPACKET.md §9-6-1b/§9-6-2 · logs/iss354/ISS354_追加段_作业包_§9-6.md
+- key: iss354_cont3_preflight_veto_landing
+  value: ★一票否决项的第 4 个落点 = HW/PCB/BOARD_ONEPASS_PREFLIGHT.md 的 ISS-354 追加段 (★V-1 SoM pin1 排向 / V-2 两排镜像兼容=不可行
+    / V-3 5 个 ref 封装脚号 / V-3b Q1-Q2 栅漏源错位 / V-3c 两只必装负载开关 land 错★)★ ⇒ ★★经该页生成器自己的 sidecar 通道 (state/_iss277_preflight_appendix.md
+    的 ISS292:ISS289_APPENDIX 块内) 落地, 生成器源码一字未改, 页面由它自己重写出来 ⇒ 重跑零蒸发★ ⇒ 并被 cont2 自带闸的 A-5c (含 ISS-354 段的追加块必须逐字来自生成器
+    sidecar) 实测判绿★★ ⇒ 板侧项全集页现在也带着这几条否决项
+  note: ★零手改 PREFLIGHT (只动生成器的输入 sidecar)★ · 钉板闸⑩ 重跑幂等 C2 逐字节比对 rc=0 · 钉板闸⑥ 覆盖度 rc=0
+  ref: HW/PCB/BOARD_ONEPASS_PREFLIGHT.md ISS-354 追加段 · state/_iss277_preflight_appendix.md · logs/iss354/ISS354_追加段_预检页_V1-V3.md
+- key: iss354_cont3_board_land_blast_radius
+  value: '★★板文件 186 个封装按「焊盘尺寸+焊盘编号」聚类 ⇒ 通用占位族的完整波及面: 两脚件 105 个 / 单脚件 7 个 / TPS7A20 族 LDO 7 只 / 三脚件 4 个
+    / 四脚件 3 个 (U_EN_SW+U_PWR_SW+J_DEBUG) / 六脚件 2 个 (Q1,Q2) / 4+2 脚件 2 个 (U_DCDC_VIO/U_DCDC_VCORE) ⇒ ★★只改任务书点名的
+    5 个 ref 会留下 100+ 个占位封装 ⇒ 板 md5 变第二次 ⇒ 「板只改一次」那一趟必须把通用占位封装整体换成真实库封装★★ ⇒ ★★本轮新查出一条不在原 5 个 ref 里、但同样让板子装不全的:
+    U_EN_SW / U_PWR_SW (TPS22991RAA, UQFN-4 RAA 0.85x0.75mm @0.4mm pitch, dnp=必装) 的 land 也是 4.00x5.00mm
+    双排通用模板 ⇒ 两只必装件落不下去 (V-16 / V-3c)★★'
+  note: ★零写板零落表★ · 波及面只报事实与名单, 落哪个封装/怎么重排 由 main 开板那一趟统一做
+  ref: HW/PCB/BOARD_ONEPASS_WORKPACKET.md §9-6-3 · HW/PCB/ISS354_DOWNCUT_VETO_LIST.md §5.1
+- key: iss354_cont3_own_gate
+  value: ★★本轮自带的闸 = HW/check_iss354_mfg_closure.py (★任务书点名的判据·只读·不碰任何既有闸★)★★ ⇒ C1 ★5 个 ref 逐条点名 (现封装从板文件实读
+    vs 应为封装从作业包改项清单读; 状态只认「已定位」/「仍未定位」; 且现封装必须与盘面逐字节吻合 ⇒ 清单页过期即判红)★ · C2 ★BOM 里 opn 仍 [0数据] 的器件名单 (★列名单·并与作业包登记名单双向逐个比对★)★
+    · C3 ★预检页含「下料前一票否决项」★ · C4 ★作业包含改项清单 + 5 个 ref 逐条行★ ⇒ ★输出带名单, 只报数量, rc=1★ ⇒ ★主模式 rc=0 + --selftest
+    正例绿 + 6 条反向用例全被抓出来 (R1 删 Q1 行 / R2 清空 U_LDO_S28 应为封装 / R3 篡改 U_SUPV 现封装 / R4 删预检页令牌 / R5 删作业包令牌 /
+    R6 删 BOM 名单一个)★ ⇒ 与 cont2 的 HW/check_iss354_manufacturability.py 并存, 职责不同 (前者守本轮 4 条判据, 后者守否决清单+改项清单在盘),
+    两闸都 rc=0
+  note: ★--selftest 的反向用例一律在 tempfile 临时副本上做 ⇒ 项目盘零写入★ · 闸不 import / 不修改任何既有闸
+  ref: HW/check_iss354_mfg_closure.py · logs/iss354/ISS354_追加段_作业包_§9-6.md
+- key: iss354_concurrent_writeback_fact
+  value: '★ISS-354 同题存在并发 hw-lead 会话 (★06:05 建交卷页骨架 · 06:11 往 BOARD_ONEPASS_WORKPACKET.md 追加它自己的 §9-6
+    段 · 06:11/06:17 改生成器 sidecar state/_iss277_preflight_appendix.md 使 BOARD_ONEPASS_PREFLIGHT.md 两次变长
+    · 06:1x 把 WORKPACKET 回滚到 06:11 附近快照, 连带回滚掉 cont2 的一次更正与 §9-6.6★) ⇒ ★权威副本 = HW/PCB/ISS354_DOWNCUT_VETO_LIST.md
+    + 交卷页 + logs/iss354/ 三处; WORKPACKET §9-6 是第四处副本, 可被回滚★ ⇒ ★回滚不是静默的: 本单自带闸 A-1/A-1b (语义级: 每个 ref 都必须写出官方查得的应为封装)
+    会当场红并点名★ ⇒ ★PREFLIGHT 的变更走的是生成器路线 (幂等闸 HW/check_preflight_regen_idempotent.py rc=0) ⇒ 不是手改页★ ⇒ ★本单因此把自带闸的
+    PREFLIGHT 断言从「冻结 md5」改成「含 ISS-354 段的追加块必须逐字命中 sidecar」★'
+  note: ★本单只登记事实, 不改流程, 不删别人的段 (零删除纪律)★ · ★建议 main 把「并发会话改共享文档」本身当一条待定流程问题★
+  ref: HANDOFF/2026-11-23_hw-lead_ISS354_demo主板可制造性收口.md §B8 · HW/PCB/BOARD_ONEPASS_WORKPACKET.md §9-6.6
+    · logs/iss354/required_final.log
+- key: iss356_fp_truth_baseline
+  value: '★ISS-356 cont2 交卷 (纯分析 · 零写板 · 零落表 · 零外发 · 零采购)★ · ★靶子口径 = 必装 ∩ 非NET/TP ∩ footprint待定 = 100
+    ⇒ 镜脚主PCB 78 件 (本单§2 必做范围, 100% 做完) + 镜框充电板 22 件 (§4 只登记不展开查库)★ · ★78 件每件都给出实测在盘的目标 lib:name (R → Resistor_SMD:R_0603_1608Metric
+    / C → Capacitor_SMD:C_0603_1608Metric / 绿LED → LED_SMD:LED_0805_2012Metric / 红LED → LED_SMD:LED_0603_1608Metric
+    / 排针 → Connector_PinHeader_1.27mm:PinHeader_1x04_P1.27mm_Vertical), 共 81 处 .kicad_mod 逐个 test -f +
+    md5 核对在盘★ · ★挖出 3 类板面硬缺陷: D1 = C_KEY_PWR / C_KEY_VM / C_KEY_VP / R_BAT_DET_2 四件 2 端子件板面只有 1 个 land
+    (网表 2 脚, 脚2=GND) ⇒ 3 个 100nF 去耦接地悬空 + 电池检测分压链断 ⇒ 根因 = netlist_v1.csv 这 4 件接地行 net 栏写成信号网名, 生成器 derive_pads
+    按 (器件,网名) 去重只落 1 个 land (属落表批次地界, 本单只登记); D2 = R_PU_PG 焊盘序与网表脚序相反 (电阻无极性电气无影响, 但回填时须按网表脚号对齐 pad 号);
+    D3 = J_DEBUG land pitch 0.50 vs 实物 1.27 差 0.77mm (E-1 已拍死, 板侧项在 ISS-343 B33_PIN_LAND_1P27, 本单不重复做,
+    只补一条 MECH 净距复核)★ · ★族级分档推理链: 占位 fab 外框 1.80×1.00 ⊇ 0603 本体 1.60×0.825 且 占位 land 中心距 1.60 ≈ 0603 官方
+    1.65 (Δ0.025/脚) ⇒ 走线端点几乎原地 ⇒ FAM-1 基线 0603; 0402 官方 land 1.02 ⇒ 71 件全重画; 0805 本体 2.00×1.25 超出占位外框
+    ⇒ 判据③不过★ · ★F15 口径差已定位: (1,2) 实为 107 (原写 105, 差 2 = C_VBUS_GND + J_CHG 即多余 2), (1,) 实为 49 (原写 7 =
+    只数真实器件, 排除 42 个 TP_*)★ · ★F14 的 SW_SPST_TL3342 实测不在盘 (KiCad 10 官方库无此封装; 靶子里无按键件故零影响)★ · ★F4/F5 的 129/123
+    是必装+非NET/TP 子集内口径, 全表实为 178/172 ⇒ 不是矛盾是口径不同★ · ★板指纹前后双证 md5 611b869e13518c3c023fb178f91a0075 / mtime
+    2026-11-06 07:07:17.362193413 / 4,940,213 B 未变; 3 个真源 md5 未变★ · ★两次死亡: cont0 被 abort + cont1 08:47:16
+    被 50 分钟 runTimeout 掐死 (读数在盘交付物零) ⇒ 本轮先落 §1 + 闸再写 §2, 且 cont1 读数全部重跑复核 (cont1 的 parse_board.py 漏采 pad.net,
+    本轮 parse_board2.py 修掉, 这才使 D1/D2 能被发现)★'
+  note: HW/FP_TRUTH_BASELINE.md · HW/check_fp_truth_baseline.py · HANDOFF/2026-11-23_hw-lead_ISS356_封装真值基线.md
+  ref: ''
+- key: iss356_gate_verdict
+  value: '★ISS-356 自带闸 HW/check_fp_truth_baseline.py: 正常跑 rc=0 ALL CHECKS PASS (C0 基准块合法JSON / C1 78件靶子§2全覆盖
+    + 22件§4.1全登记 78-78 与 22-22 / C2 81处 lib:name 的 .kicad_mod 实测在盘 + md5 一致 / C3 81行证据等级全 ∈ 五级白名单 / C4
+    81行降级方案全非空且非占位词 / C5 正文无等原厂回信类挂起措辞 / C6 件数三方自洽 实跑 78-22-100 = 基准块 = §2表行数)★ · --selftest rc=0 末行 ALL
+    TESTS PASS, 6 条反向用例全过且每条都自证【红的是目标那一条其余仍绿】: M1 删§2一行⇒C1 / M2 改 lib:name 成不存在⇒C2 / M3 清空证据等级⇒C3 / M4
+    清空降级方案⇒C4 / M5 正文塞等原厂回信⇒C5 / M6 篡改件数字段⇒C6 · 沙盒落项目盘 tmp/iss356_selftest 跑完即删 ⇒ 真件零污染★ · ★闸自己抓到并修掉 3
+    个真bug (C6 曾与 C1 被删一行同时触发 ⇒ 行数判据移进 C1; M3/M4 列索引错位 (split 后尾部 2 个空槽) ⇒ 按 len-4 / len-2 定位并在跑前自检列值;
+    M5 探针串本来就在原文档里 ⇒ 改成探针必须在副本里且不在原文档里才算变异生效)★ · ★闸 C5 第一次跑就抓到基线页 §6 自己写的[等回复]一词 ⇒ 已改成[外部等待式挂起措辞]并重生成
+    ⇒ 不是靠改闸放水, 是把页改对★'
+  note: HW/check_fp_truth_baseline.py
+  ref: ''
+- key: iss356_scope_and_boundary
+  value: '★ISS-356 本单只锁封装真值 (哪块板上是哪个真库封装), 不锁料号 · 不落表 · 不写板 · 不外发 · 不代拍★ · 外部事实一律转引在盘页面 (ISS-241 §⑪~§⑭
+    / S15 / S16 / S19 + ISS-112) 并标[官网]+转引, 本轮未重新抓官网 · 未发任何询价邮件表单 · 未下单 ⇒ 凡查不到的件标[0数据] + 降级方案 (同封装官网等效件),
+    零挂起措辞★ · 不代拍项已登记不代裁: C_VBUS_GND 留位/下板 (归老板, 只登记事实) + U-1 画哪块板 + ESD 架构与型号轴 + LED 两颗对称性 (ISS-241 §⑬
+    已留给 main, 本单沿用) + 删件 5 组候选 (TP_* 42 / LED 4 / R_SUPV_DIV 2 / C_AC_CSI 10 / C_KEY_CAM + R_NTC_BAT)★
+    · 充电板 22 件只登记不展开查库 (§4.1 逐条列出) · 靶外同族 3 件单 land 件 (CHG_GND_STAR 只有 1 脚 GND 故 1 land 是对的, 目标 TestPoint:TestPoint_Pad_D1.0mm;
+    C_KEY_CAM 与 R_NTC_BAT 同病但 DNP) 只登记于 §2.2 不计入 78★ · 写盘范围只有 4 处 + logs/iss356/: HW/FP_TRUTH_BASELINE.md
+    (新建) / HW/check_fp_truth_baseline.py (新建) / HANDOFF/2026-11-23_hw-lead_ISS356_封装真值基线.md (新建) / state/fragments/hw.yaml
+    (走 frag_write.py) ⇒ 其余一字未动 (板 / 网表 / 脚表 / BOM / 原理图 / 别人分片 / state/gate_check.py 与 merge.py 均未改; 且未跑
+    gen_bom.py / gen_pcb_netlist_board.py / gen_kicad_sch.py / gen_production_pack.sh 任一重写真件的生成器)★'
+  note: HW/FP_TRUTH_BASELINE.md §6 边界声明
   ref: ''
 open_questions:
 - id: HW-Q1

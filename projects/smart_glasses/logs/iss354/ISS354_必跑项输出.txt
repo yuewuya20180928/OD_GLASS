@@ -1,0 +1,97 @@
+########## 3) frag_write --show (hw-lead) ##########
+agent: hw-lead
+role: 硬件总工
+updated_at: '2026-11-17'
+updated_by: hw-lead
+status:
+  phase: iss354-cont3-closed
+  progress_pct: 100
+  health: green
+  summary: '★ISS-354 cont3 收口: 纯查证/作业包类·零写板·零落表·零外发·不替老板拍板·新增拍板项=0★ · ①SoM pin1 排向
+    = 降级方案3条 + 下料前一票否决项4条, 经预检页生成器的 sidecar 通道落地(重跑零蒸发·cont2 闸 A-5c 判绿) · ②5 个 ref
+    改项清单 + pad→net 25 脚对照 + 符号面 G-1~G-6 (Q1/Q2 栅网挂到源极 + 两源被短在一起) + 波及面 186 封装聚类 (新查
+    V-16: 2 只必装负载开关 land 错) · ③BOM 12 个 [0数据] 候选与代价 + 3 条改设计路径建议 · 自带闸 HW/check_iss354_mfg_closure.py
+    (rc=0 + selftest 6 反向用例) 与 cont2 闸并存两闸都绿 · 板 md5 611b869e13518c3c023fb178f91a0075
+    + mtime 2026-11-06 07:07:17.362193413 双证不变★'
+  updated_at: '2026-11-17'
+artifacts:
+- path: HW/HARDWARE_BREAKDOWN.md
+  kind: breakdown
+  version: v1.0
+  updated_at: '2026-10-25T00:22:00+08:00'
+  summary: 26 个硬件模块 + 5 项排除项, 每项标归属/关键参数/数据来源/状态/风险; 全文 15 处标「推算」12 处标「未确认」, 零条冒充实测
+- path: HANDOFF/2026-10-25_hw-lead_硬件模块拆解.md
+  kind: handoff
+  version: v2.0
+  updated_at: '2026-10-25T09:34:00+08:00'
+  summary: '第2轮 v2 模板: B1-B6 六块 6/6 齐 + 需求闭环登记表 + 硬指标 5/5 类; 第3轮补登 5 条外部等待(waiting_on+due);
+    首轮内容一字未删'
+- path: HW/RELIABILITY_DESIGN.md
+  kind: design-review
+  version: v1.0
+  updated_at: '2026-10-26T18:42:00+08:00'
+  summary: 'ISS-023 可靠性评审: 降额表 15 器件 x 温度/电压/电流 (abs max 列 15/15 为 [0数据]) + 板级应力 弯折/振动/跌落
+    x 17 元件组 (跌落 R-F3 面接触 vs 点接触 sigma 17 vs 115MPa) + MTBF 元件级 236742h / 系统级 522510h(按需触发基)
+    假设链 12 条; 查出 R-F1 3.3V 轨 dropout 硬伤 + R-F2 充电倍率超规格; 明确不改变 MECH 46.5C 散热结论'
+- path: HW/SOC_PIN_BUDGET.md
+  kind: budget
+  version: v1.0
+  updated_at: '2026-10-27T09:10:00+08:00'
+  summary: 'ISS-081 交付: SoC 最小引脚集 C-min=41/C-base=57/C-max=91 球 (45-50 目标成立, 41<=45);
+    球数非风险 (最保守封装 68 球 >= C-base 57, 满阵列 320 球余量 3.5x); 逃线 p>=0.4mm 交错 dog-bone 够,
+    不需要 via-in-pad; 6 层够/4 层无解; 真风险只剩 引脚->功能映射 (球位图, 不可自证); 含可复现脚本'
+- path: HW/POWER_BUDGET_V3.md
+  kind: budget
+  version: v3.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-077 交付: 功耗预算 V3 (官网 250mW 口径换基准, 模型常量沿用 V2 未改)。SoC 域 400-660 -> 300-610mW
+    (中位 500 M1 / 550 M2 保守); V2 乐观分支 C 反推 s=-20mW 物理不成立 -> 作废; 下界 300mW 由 s>=50 且
+    x>=60 推出。满载整机 0.55-1.01W (无桥 中位0.82) / 0.65-1.31W (有桥 中位1.02); 皮肤两口径 镜腿内 60.1/70.1C
+    vs 整机上界 76.3/86.3C (差额16.2C = 镜框侧发热自洽); R11 维持红高。新增选型阻塞: TPS62130A Vout 0.9-6V
+    覆盖不了 V_CORE 0.65-0.9V (覆盖率28.6%), 同封装四颗皆 0.9V 起换料无解 -> 确认则换封装 (牵连 FCCSP 逃线/板宽);
+    电流侧 2.13-4.00x 宽裕。电池 1h 198-365/234-473mAh -> 镜腿 7.3mm 锁死值不变。充电域按 CHARGE_BOARD_SPEC
+    2.8 纠正: 2048mA 是 REG04 ICHG 复位默认 (非 REG00), R_ILIM=300R -> IINMAX 1.07-1.30A /
+    CC 0.88-1.07A; 充电与满载互斥 -> 0.8W 不进满载, 相对占比 65% -> 78-97% -> 充电必须摘下眼镜结论强化'
+- path: HANDOFF/2026-10-27_hw-lead_功耗预算V3_ISS077.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-077 交接单 (B1-B6 六块齐全): 结论=换基准不翻案; B5 列 8 条未决 (其中 V_CORE DVFS 档位表建议提到第二轮邮件第2位,
+    因它同时卡 DC-DC 选型与功耗账)'
+- path: HW/PCB_OUTLINE_60x15.md
+
+########## 4) 板指纹双证 ##########
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800  HW/PCB/demo_mainboard.kicad_pcb
+
+########## 5) 本单自带闸 (主模式) ##########
+  ---- C1 小计: 已定位 5 个 (Q1,Q2,U_BATPROT,U_LDO_S28,U_SUPV) / 仍未定位 0 个 (-)
+  OK    C1 通过: ★5 个 ref 全部已定位且现封装与盘面吻合★
+
+[C2] ★BOM 里 OPN 仍 `[0数据]` 的器件【名单】(★列名单·不许只报数★)★
+  ---- 盘面名单 (12 个): BT_432243, CHG_GND_STAR, D_ESD_LIGHT, SW_BOOT, SW_KEY_CAM, SW_KEY_PWR, SW_KEY_VM, SW_KEY_VP, SW_RST, U_LDO_S28, U_SUPV, X1
+  ---- 作业包登记名单 (12 个): BT_432243, CHG_GND_STAR, D_ESD_LIGHT, SW_BOOT, SW_KEY_CAM, SW_KEY_PWR, SW_KEY_VM, SW_KEY_VP, SW_RST, U_LDO_S28, U_SUPV, X1
+  OK    C2 通过: ★盘面与作业包登记的 `[0数据]` 名单逐个一致★
+
+[C3] ★预检页追加段是否含「下料前一票否决项」★
+  OK    C3 通过: ★预检页含「下料前一票否决项」(2 处)★
+
+[C4] ★作业包追加段是否含改项清单★
+  OK    C4 通过: ★作业包追加段含改项清单 + 5 个 ref 的逐条行★
+
+----------------------------------------------------------------------------------------------------
+  ✅ rc=0: ★★C1 5 个 ref 全已定位 · C2 `[0数据]` 名单一致 · C3 一票否决项在场 · C4 改项清单在场 ★★
+rc=0
+
+########## 6) 本单自带闸 (--selftest) ##########
+
+  ---- 正例: 未改坏时必须 rc=0 ⇒ ✔
+  ---- R1 删掉 `Q1` 的改项清单小节 ⇒ C1 判红                                 ⇒ rc=1  ✔ 被抓出来
+  ---- R2 清空 `U_LDO_S28` 的「应为封装」⇒ C1 判红                           ⇒ rc=1  ✔ 被抓出来
+  ---- R3 把 `U_SUPV` 的现封装改成与盘面不符 ⇒ C1 判红 (★防清单页过期★)               ⇒ rc=1  ✔ 被抓出来
+  ---- R4 删掉预检页里的「下料前一票否决项」⇒ C3 判红                                ⇒ rc=1  ✔ 被抓出来
+  ---- R5 删掉作业包里的「改项清单」⇒ C4 判红                                    ⇒ rc=1  ✔ 被抓出来
+  ---- R6 从作业包登记的 `[0数据]` 名单里删掉一个 ⇒ C2 判红                         ⇒ rc=1  ✔ 被抓出来
+
+  ✅ rc=0: ★正例绿 + 6 条反向用例全部被抓出来 (★闸不是装饰★)★
+rc=0

@@ -4,6 +4,10 @@
 > ★**上游**: ISS-317 (HW 侧改名清单) · ISS-321 / ISS-323 (SW 侧 7 件同批清单 + 判据口径) · ISS-318 (位号引用闸)
 > ★**性质**: ★**内部活 · 纯沙盒验证 + SOP 交付 + 判据设计稿** ★ ⇒ ★**零写板 · 零落表 · 零改闸 · 零外发** ★
 > ★**生成**: 2026-11-18 (Asia/Shanghai) · ★**全部数字 = 本机沙盒实跑** ★**[实测]** ★
+> ★**修订**: ★**2026-11-23 续做 (★同一单·★零写板·零落表·零改闸·零外发★)** ★
+> ★**(1) §2 步 2 的「冻结表条数」由硬编码「78 条」改成【自洽判据: 冻结表条数 == 重建前 dump 的 OK 条数】★ ★[实测·2026-11-23 真树 OK 92 ⇒ freeze 92 条·逐字相等·★恒等式不是经验值]★**
+> ★**(2) §2 步 2 ② 的贴表由「照抄 L161~L237 行号」改成【内容锚点 + 贴表器脚本 `logs/iss327/iss327_paste_registry.py`】★ ★[实测·2026-11-18 16:21 闸脚本被别的单改过 ⇒ 行号会漂★ · 贴表器护栏 3 负例 + 1 正例全测过]★**
+> ★**(3) §3 / §9 的绝对数字改成【相对判据 + 10 道闸的 md5 清单】★ ★[实测·`SW/*.md` 已从 42 份长到 46 份·★旧读数只当历史证据]★**
 
 ---
 
@@ -56,7 +60,7 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv HW/netlist_v1_pins.csv 
   | tee logs/<★板那一趟单号★>/md5_post_board.txt
 ```
 
-★**期望读数**: ★**板 md5 ≠ `611b869e13518c3c023fb178f91a0075`** (★改了板 ⇒ md5 必须变·不变就是板没改★) · ★**网表 / 脚表 / BOM 三个 md5 也都变** (★五侧同口径·§0 的造场自证: 板 156 / 网表 351 / 脚表 457 / BOM 186 处★)★
+★**期望读数**: ★**板 md5 ≠ `611b869e13518c3c023fb178f91a0075`** (★改了板 ⇒ md5 必须变·不变就是板没改★) · ★**网表 / 脚表 / BOM 三个 md5 也都变** (★五侧同口径·§0 的造场自证: 板 156 / 网表 351 / 脚表 457 / BOM 186 处·★**这四个计数是 2026-11-18 那份改名清单的实测值 ⇒ 当天以改名清单的实际输出为准★**)★
 
 ★**失败时下一步**:
 | 现象 | 动作 |
@@ -83,13 +87,13 @@ python3 logs/iss323/iss323_rename_sw_docs.py --dry-run 2>&1 | tee logs/<单号>/
 ★★ 合计: 11 份文件 · 781 处字面量替换 ★★
 ```
 
-★**同时必须逐条核对 3 个数** (★否则不许往下走★):
+★**同时必须逐条核对 3 个数** (★否则不许往下走·★但注意: 第 2/3 两个数会随文档集增长而变 ⇒ 当天只看【一致性】, 不看绝对值★):
 
 | 期望项 | 期望值 | 出处 |
 |---|---|---|
-| 改名映射条数 | ★**186 条** ★ | `logs/iss321/rename_sets.json` 的 `rename` 数组 |
-| 文档替换处数 | ★**781 处** ★ | 2026-11-18 实跑 (★ISS-321 当天是 41 份 / 671 处·★差在 ISS-321 之后新建的 2 份 md·属正常★) |
-| 命中文件数 | ★**11 份** ★ | 同上 |
+| 改名映射条数 | ★**186 条** ★ (★= 改名表里的条数·★当天以改名清单为准★) | `logs/iss321/rename_sets.json` 的 `rename` 数组 |
+| 文档替换处数 | ★**当天 dry-run 的实际值** ★ (★2026-11-18 实跑 = 781 处·★ISS-321 当天是 41 份 / 671 处·★差在 ISS-321 之后新建的 md·属正常·★⇒ 这个数会一直长, 只当量级参照, 不当判据★) | 2026-11-18 实跑 |
+| 命中文件数 | ★**当天 dry-run 的实际值** ★ (★2026-11-18 = 11 份·★同上·只当量级参照, 不当判据★) | 同上 |
 
 ★**然后 apply (★写到副本·不许直接覆盖真件★)**:
 
@@ -116,7 +120,7 @@ python3 SW/tools/check_sw_ref_reachability.py --dump-classification \
 |---|---|---|
 | `DESIGNATOR_DRIFT` | ★**0** ★ | ★>0 ⇒ 文档没同步全 (★有老名还留在文档里★) |
 | `DESIGNATOR_MISSING` | ★**3** ★ | ★>3 ⇒ ★**文档同步引入了新的假位号**★ (★★红线: 这是【回滚档 ①】的触发条件★★) |
-| `DESIGNATOR_OK` | ★**78** ★ | ≠78 ⇒ 同步漏了或改错了 |
+| `DESIGNATOR_OK` | ★**必须 == 步 2 重建出来的冻结表条数** ★ (★自洽判据·★当天不许照抄绝对数字★) | ≠冻结表条数 ⇒ 同步漏了或改错了 |
 | `DESIGNATOR_OK` 的条数 | ★**必须 = 冻结表重建后的条数** ★ | ★★这是「步 2 重建收得对」的唯一判据★★ |
 | rc | ★**0** ★ | ≠0 ⇒ 走下面的失败表 |
 
@@ -126,7 +130,7 @@ python3 SW/tools/check_sw_ref_reachability.py --dump-classification \
 |---|---|
 | `DRIFT` > 0 | ★**不许进步 2** ★ ⇒ 回步 1 ⇒ ★用 dry-run 的逐份清单找哪几份还有老名 ⇒ 补改那几份 ⇒ 重跑 ④★ |
 | `MISSING` > 3 | ★★**立刻停** ★★ ⇒ 这是「同步把某个真隐患改成了新形状」的信号 ⇒ 走 §5 的 ★**回滚档 ①** ★ |
-| `OK` ≠ 78 | ★**停** ★ ⇒ 文档同步漏改 ⇒ 回步 1 ⇒ 重跑 ④ |
+| `OK` ≠ ★冻结表条数★ | ★**停** ★ ⇒ 文档同步漏改 ⇒ 回步 1 ⇒ 重跑 ④ |
 
 ---
 
@@ -146,17 +150,50 @@ python3 SW/tools/check_sw_ref_reachability.py --freeze-registry \
 | 读数项 | ★期望值★ | 不对说明什么 |
 |---|---|---|
 | rc | ★**0** ★ | ≠0 ⇒ 盘面读不到 (★fail-closed★) |
-| 冻结表条数 | ★**78 条** ★ | ★**18 条 ⇒ 步 1 没做或没做对** (★实测: 文档未同步时重建只收得到 18 条★) |
+| 冻结表条数 | ★**必须 == 重建前 `--dump-classification` 里的 `DESIGNATOR_OK` 条数** ★ (★自洽判据·★当天不许照抄任何绝对数字★) | ★**18 条 ⇒ 步 1 没做或没做对** (★实测: 文档未同步时重建只收得到 18 条★) |
 | 表里每个 token | ★**必须都在盘上 (板∪网表) live** ★ | ★**有非 live token ⇒ 判据被污染** ★ |
 | 老名残留 | ★**0 条** ★ | ★有老名 ⇒ 步 1 没做干净★ |
 
-★**② 把整段贴回闸脚本**:
+★**★★★为什么这一格写的是「自洽判据」而不是「78 条」(★2026-11-23 续做时实测发现的坑·★SOP 初版这一格写的是 78 条, 今天已经不准了★)** ★
+★**[实测] 2026-11-18 交卷时那棵树: `--dump-classification` = `OK 78 / DRIFT 0 / MISSING 3` ⇒ `--freeze-registry` 输出 = 78 条 ⇒ 逐字相等;**
+★**[实测] 2026-11-23 本机真树 (★`SW/*.md` 已从 42 份长到 46 份★): `--dump-classification` = `OK 92 / DRIFT 0 / MISSING 3` ⇒ `--freeze-registry` 输出 = 92 条 ⇒ 仍然逐字相等。**
+★**⇒ 「78」是【2026-11-18 那棵树的读数】, 不是判据 ⇒ 板那一趟当天的树肯定不是 78 ⇒ ★当天照抄 78 会把【对的表】误判成【错的表】★ ⇒ ★当天只照抄上面那条自洽判据。** ★
+★**★为什么它必然相等 (★不是巧合·是构造·★所以它才敢当天用★)★**: ★`--freeze-registry` 收进来的每一个 token 都是【分类结果 = `DESIGNATOR_OK`】的 token ⇒ 冻结表条数【按构造】等于 dump 里的 OK 条数 ⇒ ★**这是恒等式, 不是经验值**★ ★[实测·两天两棵树各验一次·逐字相等]★
+
+★**② 把整段贴回闸脚本 (★★当天不许照抄行号★★)**:
+
+★**★为什么**: ★**行号会漂** —— ★`SW/tools/check_sw_ref_reachability.py` 会被别的单改动 (★实测: 2026-11-18 16:21 就被夹具补全改过一次★) ⇒ ★**「L161~L237」只对【某一版】成立** ⇒ ★**当天照抄行号 = 当天贴错表** ⇒ ★**必须用【内容锚点】定位: `DESIGNATOR_REGISTRY = (` … `# ★共 N 条★`** ★[实测]★
 
 ```bash
-# 从 step2_freeze_registry.out 里取 [DESIGNATOR_REGISTRY = ( … )] + 末尾那行「# ★共 N 条★」
-# 覆盖 SW/tools/check_sw_ref_reachability.py 的 L161~L237
-#   (★L161 = 'DESIGNATOR_REGISTRY = (' · L237 = '# ★共 74 条★' ★ ⇒ 整块替换·末尾注释的 N 改成新条数★)
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+# ① 先备份 (★贴表是【改判据资产】的动作 ⇒ 必须留痕·ISS-312 同款义务·见 §4-4★)
+cp -a SW/tools/check_sw_ref_reachability.py logs/<单号>/check_sw_ref_reachability.py.pre_paste.bak
+# ② 先干跑 (★不写文件·只看它认不认★)
+python3 logs/iss327/iss327_paste_registry.py \
+  --gate SW/tools/check_sw_ref_reachability.py \
+  --from logs/<单号>/step2_freeze_registry.out \
+  --dry-run
+# ③ 期望输出 (★四行·逐条对★)
+#    ★锚点: START=行<行号> END=行<行号> (★内容锚点定位·不是硬编码行号★)
+#    ★新表 token 数 = <N> · 与 freeze 输出里的「共 N 条」一致 ⇒ 是
+#    ★非 live token 数 = 0 ⇒ 判据没被污染
+#    ★--dry-run ⇒ 不写文件 (★去掉它再跑一次才是真贴★)
+# ④ 干跑全对 ⇒ 真贴 (★去掉 --dry-run★)
+python3 logs/iss327/iss327_paste_registry.py \
+  --gate SW/tools/check_sw_ref_reachability.py \
+  --from logs/<单号>/step2_freeze_registry.out \
+  --backup logs/<单号>/check_sw_ref_reachability.py.pre_paste.bak
+# ⑤ 真贴的期望输出 (★末两行★): ★备份已落: <路径>★ + ★贴完 md5 = <32 位>★
+#    ⇒ ★贴前 / 贴后两个 md5 都抄进本单留痕 (★§4-4★)
 ```
+
+★**★贴表器当场拒绝的三种情形 (★脚本自带·不许绕过★)** ★
+| 情形 | 脚本的判据 | ★实测自测★ |
+|---|---|---|
+| ★闸脚本里内容锚点出现 0 次或 ≥2 次 (★闸脚本被改过★) ★ | ★**报错退出·不写文件** ★ | ★`logs/iss327/37_paste_guard_selftest/run.log` 负例 3★ |
+| ★freeze 输出里的 token 数与「共 N 条」对不上 (★输出被截断/被手改★) ★ | ★**报错退出·不写文件** ★ | ★同上 负例 1★ |
+| ★新表里有【非 live】的 token (★板/网表里从来没有过的位号名 ⇒ 判据会被污染★) ★ | ★**报错退出·不写文件** ★ | ★同上 负例 2★ |
+| ★★正例对照 (★原始 freeze 输出 ⇒ 必须放行★)★ | —— | ★同上 正例·rc=0★ |
 
 ★**③ 验收命令**:
 
@@ -172,7 +209,7 @@ python3 SW/tools/check_sw_ref_reachability.py --dump-classification \
 |---|---|
 | `DESIGNATOR_DRIFT` | ★**0** ★ |
 | `DESIGNATOR_MISSING` | ★**3** ★ (★★**必须还是 3**★ · ★★一旦 > 3 ⇒ ★**有人在抬 MISSING 上限**★ ⇒ 走 §5 回滚档 ② / ③★) ★ |
-| `DESIGNATOR_OK` | ★**78** ★ |
+| `DESIGNATOR_OK` | ★**必须 == 重建前的 `DESIGNATOR_OK` 条数** ★ (★重建只换判决源·不改判据 ⇒ OK 集合不该变★) ★ |
 | rc | ★**0** ★ |
 
 ★**失败时下一步**:
@@ -181,7 +218,7 @@ python3 SW/tools/check_sw_ref_reachability.py --dump-classification \
 |---|---|
 | 冻结表只有 18 条 | ★**回步 1** ★ ⇒ 文档同步没做/没做干净 ⇒ 重跑步 1 的 ④ |
 | `MISSING` > 3 | ★★**停** ★★ ⇒ ★**这是「重建把改名漂移改叫真隐患」的特征 (实测: 5 → 56)★** ⇒ 走 §5 档 ② / ③ |
-| `MISSING` = 3 但 `OK` ≠ 78 | ★**停** ★ ⇒ 贴表贴错了 (★贴漏/贴多了行★) ⇒ 重贴 |
+| `MISSING` = 3 但 `OK` ≠ ★冻结表条数★ | ★**停** ★ ⇒ 贴表贴错了 (★贴漏/贴多了行★) ⇒ 重贴 |
 
 ★**★红线 (★本单实测出来的·必须写死★)★**
 ★**重建后 `MISSING` 必须仍然 = 3。** ★
@@ -350,6 +387,14 @@ python3 state/merge.py && python3 state/gate_check.py
 
 ★**★一句话: 第 8 道闸当天能不能绿, 取决于【文档有没有同步】(步 1), 不取决于【有没有重建注册表】(步 2)。★** ★**[实测]**
 
+★**★★这张表里的绝对数字 (78 / 18 / 58 / 5 / 56) 全部是【2026-11-18 那棵沙盒树】的读数 (★历史证据·★证据文件 `logs/iss327/02_postrename_gate_table.md`★) ⇒ ★当天不许照抄绝对数字★** ★
+★**[实测] 2026-11-23 本机真树已长成 46 份 `SW/*.md` ⇒ `OK 92 / DRIFT 0 / MISSING 3` ⇒ 当天该盯的仍然是【三条相对判据】:** ★
+| 相对判据 (★当天照抄这三个★) | 期望 |
+|---|---|
+| ★**冻结表条数 == 重建前 dump 的 OK 条数** ★ | ★**恒等** ★ |
+| ★**`DESIGNATOR_DRIFT` == 0** ★ | ★**恒等** ★ |
+| ★**`DESIGNATOR_MISSING` == 建闸日登记的基线 (★今天是 3·★当天若基线已被别的单更新过, 以登记的基线为准, 不许私自抬★)** ★ | ★**恒等** ★ |
+
 ---
 
 ## §4 · ★★「重建注册表」这一步的时机与判据★★
@@ -393,7 +438,7 @@ python3 state/merge.py && python3 state/gate_check.py
 | ★**文件名** ★ | `SW/tools/check_sw_ref_reachability.py` | `state/issue_log.yaml` 里那条记录 |
 | ★**新 md5** ★ | 重建后 `SW/tools/check_sw_ref_reachability.py` 的 md5 (★**贴表之前先记下旧的, 贴完再记新的**★) | 同上 |
 | ★**落表单号** ★ | 板那一趟的单号 (★**不许写「无」, 不许写「见别处」★) ★ | 同上 |
-| ★**条数变更** ★ | `74 → 78` (★**为什么变了**: 58 个老名换成新名 + 2 个新收进来·其余保留★) ★ | 同上 |
+| ★**条数变更** ★ | ★**当天实测的 `<旧条数> → <新条数>`** ★ (★2026-11-18 那一趟实测 = `74 → 78`·★当天以【实际输出的两个数】为准·★不许照抄★) (★**为什么变了**: 58 个老名换成新名 + 2 个新收进来·其余保留★) ★ | 同上 |
 
 ★**⇒ 谁负责**: ★**sw-lead 执行 + main 签** ★(★**签字是 main 的活·sw-lead 不自签**★)
 ★**⇒ 什么时候必须重建**: ★**「位号宇宙变了」的那一趟, 必须在本单号下重建并留痕; 其余时间一律不重建** ★
@@ -412,7 +457,7 @@ python3 state/merge.py && python3 state/gate_check.py
 | ★**①** ★ | ★`check_sw_ref_reachability.py` 报 `MISSING` > 3 (★**特别是 > 10**★) ★ |
 | ★**②** ★ | ★`timing_check.py` 崩在 L1113 且**按 ISS-323 §1-2 改完 17 处仍崩** ★ |
 | ★**③** ★ | ★任何一道闸的 rc=2 且**不是**「缺 `.bak` 备份」也不是「基线就不绿」两种已知形态 ★ |
-| ★**④** ★ | ★`check_sw_ref_reachability.py` 的 `OK` ≠ 78 而 `MISSING` = 3 (★**表/文档对不上**★) ★ |
+| ★**④** ★ | ★`check_sw_ref_reachability.py` 的 `OK` ≠ ★冻结表条数★ 而 `MISSING` = 3 (★**表/文档对不上**★) ★ |
 
 ★**动作 (★逐字★)**:
 
@@ -433,7 +478,7 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv HW/netlist_v1_pins.csv 
 
 | # | 现象 | ★逐字改法★ | 改完的验收命令 + 期望读数 |
 |---|---|---|---|
-| ★**2-1** ★ | ★**冻结表条数 = 18 (不是 78)** ★ ⇒ 步 1 的文档同步没做/没做干净 | ★**不许手改表** ⇒ 回步 1 重跑 `python3 logs/iss323/iss323_rename_sw_docs.py --dry-run` ⇒ 找出还有老名的文件 ⇒ 补改 ⇒ 重跑步 1 的 ④ | `python3 SW/tools/check_sw_ref_reachability.py --dump-classification` ⇒ ★`DRIFT` = 0 · `MISSING` = 3 · `OK` = 78 · rc=0★ |
+| ★**2-1** ★ | ★**冻结表条数 = 18 (不是【重建前 dump 的 OK 条数】)** ★ ⇒ 步 1 的文档同步没做/没做干净 | ★**不许手改表** ⇒ 回步 1 重跑 `python3 logs/iss323/iss323_rename_sw_docs.py --dry-run` ⇒ 找出还有老名的文件 ⇒ 补改 ⇒ 重跑步 1 的 ④ | `python3 SW/tools/check_sw_ref_reachability.py --dump-classification` ⇒ ★`DRIFT` = 0 · `MISSING` = 3 · `OK` = ★冻结表条数★ · rc=0★ |
 | ★**2-2** ★ | ★**`timing_check.py` 崩在 L1113** ★ | ★**加位号别名解析层** (★ISS-321 F-1 / ISS-323 §1-2 的 17 处原子替换★): ★`Netlist` 类里加 `actual_ref(logical)` ⇒ 逻辑位号 → 盘上真实位号 (★原名优先·查不到才试 `_1` 后缀★) ⇒ `rows_of()` / `has_ref()` 走 `actual_ref` ⇒ ★**一个调用点都不用改**★ ★**不许加「查不到就当过」的分支** ★ | `python3 SW/tools/timing_check.py` ⇒ ★rc=0 · `SELFTEST 85/85` · 无 L1113 traceback★ |
 | ★**2-3** ★ | ★**`check_onepass_sw_sync.py` 的 SW05 / SW08 探针抽不到值** ★ | ★**探针不许写死任何标签 ⇒ 从网表实读** (★ISS-321 F-2 v2★): ★位号集合用「基名 + 基名加后缀」生成 · 标签从网表实读 · 抽取正则允许可选后缀★ | `python3 SW/tools/check_onepass_sw_sync.py` ⇒ ★`W5` OK · `W1`~`W5` 全 OK★ |
 | ★**2-4** ★ | ★**三道 R6 selftest 闸 rc=2, 原文是「找不到修前的判据备份」** ★ | ★**把两份备份一起带过去**: ★`cp SW/tools/check_demo_panel_spec.py.bak_iss312 SW/tools/check_demo_panel_spec.py.bak_iss315 <临时树>/SW/tools/`★ (★**不许改闸去绕开这个自证★**) | 三道闸 ⇒ ★rc=0 · 反向用例 7/7 · 4/4 · 4/4 全通过★ |
@@ -467,8 +512,8 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv HW/netlist_v1_pins.csv 
 | ★**5** ★ | ★**BOM md5** ★ | `md5sum HW/BOM_v1.csv` | `logs/<单号>/md5_post_bom.txt` | ★**五侧同口径之三★** |
 | ★**6** ★ | ★**板文件 mtime** ★ | `stat -c '%y' HW/PCB/demo_mainboard.kicad_pcb` | `logs/<单号>/md5_post_board.txt` (★追加★) | ★**改板时间点·与 SW 侧改动时间点【背靠背】⇒ 证明同批★** |
 | ★**7** ★ | ★**文档同步计划** ★ | `python3 logs/iss323/iss323_rename_sw_docs.py --dry-run` | `logs/<单号>/step1_docsync_plan.txt` | ★**11 份 / 781 处·可复算★** |
-| ★**8** ★ | ★**冻结表重建输出** ★ | `python3 SW/tools/check_sw_ref_reachability.py --freeze-registry` | `logs/<单号>/step2_freeze_registry.out` | ★**78 条·可逐条核·每个 token 都 live★** |
-| ★**9** ★ | ★**重建前后第 8 道闸的读数** ★ | `python3 SW/tools/check_sw_ref_reachability.py --dump-classification` | `logs/<单号>/step2_reachability_after_rebuild.txt` | ★**`DRIFT`=0 · `MISSING`=3 · `OK`=78 · rc=0★** |
+| ★**8** ★ | ★**冻结表重建输出** ★ | `python3 SW/tools/check_sw_ref_reachability.py --freeze-registry` | `logs/<单号>/step2_freeze_registry.out` | ★**条数 == 重建前 dump 的 OK 条数·可逐条核·每个 token 都 live★** |
+| ★**9** ★ | ★**重建前后第 8 道闸的读数** ★ | `python3 SW/tools/check_sw_ref_reachability.py --dump-classification` | `logs/<单号>/step2_reachability_after_rebuild.txt` | ★**`DRIFT`=0 · `MISSING`=3 · `OK`=★冻结表条数★ · rc=0★** |
 | ★**10** ★ | ★**10 道闸的原始输出** ★ | ★逐道跑 (★`logs/iss327/iss327_run_gates.sh` 就是现成的跑法★) ★ | `logs/<单号>/gates/<闸名>.txt` | ★**每道闸的 rc + 关键读数★** |
 | ★**11** ★ | ★**闸脚本的 md5 (重建前后)** ★ | `md5sum SW/tools/check_sw_ref_reachability.py` | `logs/<单号>/gate_md5_before.txt` / `gate_md5_after.txt` | ★**证明「只改了冻结表那一块」⇒ 配合 `state/issue_log.yaml` 的留痕义务★** |
 | ★**12** ★ | ★**落表留痕** ★ | ★**归 main 落** ★ | `state/issue_log.yaml` (★★**SW 侧不自己签**★★) | ★**板/表新 md5 + 文件名 + 落表单号 (★ISS-312 N-2 同款口径★)** ★ |
@@ -499,7 +544,7 @@ python3 state/merge.py && python3 state/gate_check.py # ★期望 rc=0 · Q1 18/
 |---|---|---|---|
 | ★**什么时候必须重建** ★ | ★**只有「盘面位号宇宙变了」的那一趟才重建** (★改名 / 落表 / 换板★) ⇒ ★**判据: 新旧 `DESIGNATOR_OK` 集合不相等 ⇒ 重建; 相等 ⇒ 不重建** ★ | ★需要一条「集合是否变了」的机器判据 (★现在没有·得加·★归 main 拍★) ★ | ★**要么每次改名都漏一次重建 ⇒ 长期红; 要么每次跑闸都重建 ⇒ 冻结表失去「建闸日基线」的语义, 漂移判定等于没有★** ★[实测: 重建前后第 8 道闸的 rc 相同 ⇒ 「重建」不是「让闸变准」, 是「让表跟上盘面」]★ |
 | ★**谁负责** ★ | ★**sw-lead 执行 + main 签** (★**落表单号留痕义务照抄 ISS-312 N-2: 留【文件名 + 新 md5 + 落表单号】★**) ★ | ★**每次重建都要 main 签一次 ⇒ 主流程多一个卡点** ★ | ★**重建变成「谁想改谁改」⇒ 冻结表与盘面脱钩 ⇒ 判据静默失能★** |
-| ★**重建前的登记义务** ★ | ★**① 落表单号必须先在 `state/issue_log.yaml` 里有条目; ② 该条目必须留【`SW/tools/check_sw_ref_reachability.py` 的文件名 + 重建前 md5 + 重建后 md5 + 条数变更 (74→78)】; ③ 重建命令与 stdout 原样留档** ★ | ★**多 3 行留痕** ★ | ★**重建表与「哪一次盘面」脱钩 ⇒ 半年后没人说得清这张表对应哪个板 ⇒ 漂移判定只能靠人肉记忆★** |
+| ★**重建前的登记义务** ★ | ★**① 落表单号必须先在 `state/issue_log.yaml` 里有条目; ② 该条目必须留【`SW/tools/check_sw_ref_reachability.py` 的文件名 + 重建前 md5 + 重建后 md5 + 条数变更 (★当天实测的 `<旧条数> → <新条数>`·★2026-11-18 那一趟 = 74→78★)】; ③ 重建命令与 stdout 原样留档** ★ | ★**多 3 行留痕** ★ | ★**重建表与「哪一次盘面」脱钩 ⇒ 半年后没人说得清这张表对应哪个板 ⇒ 漂移判定只能靠人肉记忆★** |
 
 ### §7-2 · 「改名漂移」(`DESIGNATOR_DRIFT`) 这个分类在改名后还有意义吗?
 
@@ -595,8 +640,19 @@ cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
 # ① 占位符扫描 (★命令见交卷单 §B5·期望 0★)
 # ② 零写板 / 零落表
 md5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv
-# ③ 零改闸 (★39 份逐条比对·期望无输出★)
-md5sum SW/tools/*.py | sort | diff - logs/iss327/00_gatemd5_pre.txt && echo "★闸零改★"
+# ③ 零改闸 (★★只锁【当天的 10 道闸】·★工具目录会随别的单长新文件 ⇒ 比整个目录会假红★★)
+#    ★2026-11-23 实测: 比整个目录已经会打印 8 行差异 (★全是【别的单新增/改动】·★与本单无关★)★
+md5sum SW/tools/check_demo_panel_spec.py SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py \
+       SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py SW/tools/check_demo_panel_spec_r6_selftest.py \
+       SW/tools/check_landing_trace_obligation.py SW/tools/check_onepass_sw_sync.py \
+       SW/tools/check_shutdown_semantics.py SW/tools/check_sw_ref_reachability.py \
+       SW/tools/check_timing_review_adc_sync.py SW/tools/timing_check.py \
+  | diff - <(grep -v '^#' logs/iss327/38_gate10_md5_20261123.txt) \
+  && echo "★闸零改 (★10 道闸 md5 全对★)" || echo "★★10 道闸有 md5 变了 ⇒ 当天不许直接跑闸, 先查是谁改的★★"
+# ④ 贴表器护栏自测 (★负例 3 + 正例 1·★期望: 负例全 rc=2 · 正例 rc=0★)
+python3 logs/iss327/iss327_paste_registry.py --gate tmp/iss327/sbR3/SW/tools/check_sw_ref_reachability.py \
+        --from logs/iss327/17_sbR3_freeze_stdout.txt --dry-run        # ★正例·期望 rc=0★
+# ⑤ 冻结表自洽 (★期望: 上面这行打印的 token 数 == dump 里的 OK 条数★)
 ```
 
 ★**★本 SOP 的 §0~§9 一节不缺 · ★占位符 0 · 回滚三档全是逐字动作 (★正文里 3 处「看情况」全部是【禁止令】本身, 不是用法★)· 零外发·零改闸·零写板·零落表·零改既有文档正文★** ★**[实测]**

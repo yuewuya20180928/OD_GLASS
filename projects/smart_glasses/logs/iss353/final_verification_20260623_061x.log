@@ -1,0 +1,130 @@
+### ISS-353 最终交卷复验 (2026-11-23 06:1x) ###
+--- 1) merge.py ---
+✅ STATE.yaml 已刷新 (2026-11-23T06:08:42+08:00)
+   产出 783 | 阻塞 43 (高危 33) | 未闭合需求 356 | 冲突 0 | 健康度 red
+RC_MERGE=0
+
+--- 2) gate_check.py ---
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 14/18 个必填验收块齐全
+   hw-lead    2/6  缺: ['B1', 'B2', 'B4', 'B5']   交接单: 2026-11-23_hw-lead_ISS354_demo主板可制造性收口.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-23_sw-lead_ISS355_转换脚本迁主路线.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-23_mech-lead_ISS352_MECH双口径第2批.md
+
+【Q2 证据分级率】 2/3 个总工的交付做了证据分级
+   hw-lead    标签: 无
+   sw-lead    标签: ['实测', '官方', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 1045 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    398 条
+   sw-lead    309 条
+   mech-lead  338 条
+
+【Q4 需求闭环率】
+   问方视角 (我的需求被别人答了): 112/524  ← 与 merge.py 口径一致
+   答方视角 (我登记的答复): 205 条, 其中 63 条真对上了别人的需求 key
+   hw-lead    被答 42/241 | 我答 75 条(有效 31) | 产出 280 | 阻塞 7
+   sw-lead    被答 24/144 | 我答 49 条(有效 5) | 产出 262 | 阻塞 15
+   mech-lead  被答 46/139 | 我答 81 条(有效 27) | 产出 227 | 阻塞 12
+   ├─ ⚠️ **疑似漏登记 (答案在对方文档正文里, 但没进 answers)**: 0 条  ← 需人工判定, 也有可能是 waiting_on 标错
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 59 条 | **全局 50 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 356 条**
+   ✅ 与 merge.py 自对账一致 (等外部 50 / 等总工 356)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 14 个
+      q1_latency_scope: 发起方 ['main', 'sw-lead']
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q17_display_fps: 发起方 ['main', 'sw-lead']
+      q18_highspeed_cam: 发起方 ['main', 'sw-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+
+【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    0/5 类: []
+   sw-lead    0/5 类: []
+   mech-lead  1/5 类: ['镜腿/镜脚厚度(mm)']
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 8 条
+   · hw-lead: 交接单缺 [B1] 结论摘要
+   · hw-lead: 交接单缺 [B2] 验收标准自评 (逐条 通过/不通过/未验)
+   · hw-lead: 交接单缺 [B4] 接口取值声明 (interface_claims)
+   · hw-lead: 交接单缺 [B5] 未决项与卡点 (需要谁回答什么)
+   · hw-lead: 关键结论未做证据分级 (实测/官方/推算/0数据)
+   · hw-lead: 179 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 98 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 76 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+RC_GATE=0
+
+--- 3) frag_write --show ---
+- path: logs/iss353/apply_caliber_dispositions.py
+- key: iss353_need_main_apply_caliber_patch
+  item: '★**一条命令**: `python3 logs/iss353/apply_caliber_dispositions.py --apply` ⇒
+    tmp/iss353/patch_verify/ 上真跑过 --apply ⇒ 副本上闸 rc=0, 真件零改动) ⇒ ★**为什么不由 sw-lead 直接改**:
+- key: iss353_need_main_decide_iss155_blocker
+- key: iss353_need_followup_convert_script_rk3572
+- key: iss353_need_hw_ledger_supersede
+    ⇒ hw-lead 在自己分片里追加一条 interface_claim 即可清掉 (文本照抄): key=`iss353_hw_ledger_supersede_rk3572_target`
+  item: '★**补丁已过期·不再执行**★: logs/iss353/apply_caliber_dispositions.py —— main 2026-11-23
+    分片 ⇒ 已由 main 转 hw-lead, 不是 sw-lead 的项★。★老条目 iss353_need_main_apply_caliber_patch
+- key: iss353_rk3572_target_caliber_verdict
+    其余 14 条文件不在本单允许写范围 (HW/* 属 hw-lead 地界) ⇒ 越权 ⇒ 逐字替换文本 + 一键补丁 logs/iss353/apply_caliber_dispositions.py
+    §7 · logs/iss353/ (config_probe_rknn3_rerun.log / convert_rk3572_rerun.log / board_unreachable_rerun.log
+  value: 'ISS-353 残留项 iss353_need_followup_convert_script_rk3572 已结清: SW/tools/rk3572_model_rebuild.sh
+- key: iss353_rk3572_target_caliber
+    本条 + key=iss353_rk3572_target_caliber_verdict**★ ⇒ 板端接受性仍 [0数据] ⇒ 走降级 A/B/C (A=板到手一条命令出
+  ref: SW/RK3572_TARGET_COMPAT_V2.md §7.1 · logs/iss353/official/ (rknn-toolkit2 README
+RC_FRAG_SHOW=0
+
+--- 4) PCB md5 ---
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800
+
+--- 5) 本单自带闸 selftest ---
+### ISS-353 清账闸 · 反向自测 (沙盒落项目盘 tmp/) ###
+  ✅ 反向用例1: 故意留的旧结论被抓出来 ⇒ SW/B_stale_conclusion.md L2 (规则 A1)
+  ✅ 反向用例2: 新口径三句没被误判
+  ✅ 反向用例3: 已标注取代的行判「历史叙述(可留)」
+  ✅ 反向用例4: 历史叙述判「历史叙述(可留)」
+  ✅ 反向用例5: F1 回归 —— DSI 网表行 (RK3572…必须…) 不再被误判成结论矛盾
+  ✅ 反向用例6: 代码/脚本现状陈述判「历史叙述(可留)」
+  ✅ 反向用例7: F3 回归 —— 省略写法 (用 `target_platform='rk3576'` 转) 被抓出来 ⇒ L1
+  ✅ 反向用例8: C1 回归 —— 「不存在升级就有 rk3572 的路」被抓出来 ⇒ L1 (规则 C1)
+  ✅ 反向用例9: 删掉旧结论后 ⇒ 0 条结论矛盾 ⇒ 闸会转 rc=0 (不是恒红)
+  ✅ 反向用例10: 自测沙盒落在项目盘 (/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp) ⇒ 没写 /tmp
+  ✅ 反向用例11: F8 回归 —— 台账里的无关取代标记没把旧条目误判成已被取代 ⇒ L1
+  ✅ 反向用例12: F8 回归 —— 切题的取代标记把旧条目判成历史叙述(可留)
+SELFTEST 12/12 通过, rc=0
+RC_SELFTEST=0
+
+--- 6) 本单自带闸 复扫 ---
+      原文: 上只能用 target_platform=rk3576 转 / 不存在升级就有 rk3572 的路 / RK3572 与 RK3576 同代同架构』的旧登记条目 (ISS-145 / ISS-155
+      处置: ★台账追加式 ⇒ 命中行之后 (L5962) 已有切题取代标记 ⇒ 后条取代前条 (历史登记) | 把 rk3576 写成当下必须/唯一/默认的转换 target ⇒ 已由 ISS-263 (rknn3-toolkit 1.2.0 支持 target_platform='rk3572') 取代 ⇒ 改写成「toolkit2 不支持 rk3572 ⇒ 转换链走 rknn3-toolkit 1.2.0」
+      通道: 本单可处置
+
+==============================================================================
+★结论: 仍有 2 条「结论矛盾(要处置)」⇒ 旧口径没清干净 ⇒ rc=1
+  · 本单可处置残留 : 0 条
+  · 越权交 main 裁  : 2 条  (逐字替换文本见交卷页 §B1.2 + logs/iss353/apply_caliber_dispositions.py)
+  · 结论待裁(交 main 裁): 6 条 (ISS-155 定位 / 状态标签 ⇒ sw-lead 不代拍)
+==============================================================================
+RC_SCAN=1
