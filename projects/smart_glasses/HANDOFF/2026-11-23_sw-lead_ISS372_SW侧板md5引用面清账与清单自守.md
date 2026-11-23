@@ -1,8 +1,10 @@
 # ISS-372 · sw-lead · 「板那一趟」SW 侧板 md5 引用面清账 + 清单自守 · 交卷页
 
-★**状态: 已交付 (CONT2 收尾趟 · 2026-11-23 22:39 起 · 23:0x 收工)** ★
-★**★上一趟 21:30 failed + cont1 22:28 被 16 分钟墙掐死 + 本趟只补交卷页与分片 (★两件重产物上一趟已落·本趟零重跑扫描·零重建页·零重建闸★)** ★
-★**★本趟读数全部为本单自己 2026-11-23 22:39~23:0x 本机实跑 (★不抄 main 的读数·main 的独立复跑另行记账★)** ★
+★**状态: 已交付 (★CONT2 收尾趟 2026-11-23 22:39~23:0x + ★★CONT3 增补趟 2026-11-24 04:1x~05:0x★★)** ★
+★**★上一趟 21:30 failed + cont1 22:28 被 16 分钟墙掐死 + cont2 22:39~23:0x 补齐交卷页与分片 (★三件交付物齐·★main 22:4x 已独立复核签收 verified★) + ★★cont3 (本趟) 04:1x~05:0x = 「签收之后世界变了」的一趟★★** ★
+★**★本趟 (cont3) 读数全部为本单自己 2026-11-24 04:1x~05:0x 本机实跑 (★不抄 main 的读数·main 的独立复跑另行记账★)** ★
+
+★★**★cont3 (本趟) 一句话: ★★自守闸在签收后 4 小时就【真的红过一次】—— 因为 ISS-375/ISS-378 新落的两道闸都硬钉板 md5 且没有合法改板通道; 本趟把这 5 处新引用 + 这 2 道新闸全部登记在册, 并★**修掉了自守闸自己的一个真实检测盲区 (H4 只扫 .py 字面量 ⇒ 漏掉「页面内嵌基线类」的闸)★★**, 自守闸现回到 7/7 rc=0、--selftest 10/10 ★★** ★
 
 ---
 
@@ -16,13 +18,20 @@
 ★**⇒ 而这 3 道闸的红色原文里【没有一个字】说「这是合法改板」⇒ 现场一读就是「板改坏了」⇒ 极可能去改板凑绿 ⇒ 板 md5 变第二次 ⇒ 整趟白跑** ★
 ★**⇒ 本单交付: ① 一页清账 (逐处 47 行 + 三类归属 + 逐闸账 + 补丁规格) ② 一道自守闸 (H1~H7 + `--selftest` 8/8) ③ 跨域登记 + 未决项 6 条 (★只登记·不代拍★)** ★
 
+### ★B1-0 · ★★cont3 (本趟) 增补: 三句话 + 一条最要紧的发现★★ ★
+
+★**① 这一趟发生了什么**: ★**ISS-372 其实已经由 main 于 2026-11-23 22:4x 独立复核签收 (verified) —— 而 cont1 brief 说的「三件交付物零」是 21:30 那趟的状态, 已被 22:39~23:0x 那一趟补齐★** ⇒ ★**所以本趟不是「补三件」, 是「签收之后世界变了, 自守闸变红了, 本趟把机制补到能抓新的抓法」** ★
+★**② 世界怎么变的**: ★**签收后 4 小时内, SW 域新落了两道闸 (ISS-375 的 `check_debug_pin_order_contract.py` 02:05 + ISS-378 的 `check_debug_header_fw_impact.py` 02:45) —— 它们都硬钉板 md5, 都没有合法改板通道 ⇒ 改板当天必假红 (与 F5/G8/A-5 同款)** ★
+★**③ ★★本单自守闸【当场变红】★★: ★**cont3 开工时 `python3 SW/tools/check_sw_board_md5_rebase_readiness.py` ⇒ rc=1 (H1 红: 5 处漏登记 + H4 红: 2 道新闸不在册) ⇒ ★★「下一道新闸再硬钉板 md5 时当场被抓住」这件事, 在签收后 4 小时就真的发生了一次★★ ★[实测]
+★**④ ★★本趟最有价值的一条发现 (★原任务书里没有·★是本趟自己撞出来的★★)**: ★**ISS-378 那道闸的 .py 源码里【没有那 32 位字面量】—— 它把板 md5 的期望值写在【页面里的 JSON 机器块】(`SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md` L397) ⇒ 上一趟 H4 的检测网 (只扫 .py 字面量) 【抓不到它】⇒ 它会从清单的缝里溜过去 ⇒ 改板当天照样假红 ⇒ ★★这是本单自守闸自己的一个真实盲区, 本趟已修 (H4 扩成两个检测类)★★** ★[实测]
+
 ### B1-2 · 交了三件 (★三件·不许扩项★)
 
 | # | 交付物 | 路径 | 大小 | md5 | 状态 |
 |---|---|---|---|---|---|
-| ① | ★**清账页** ★ | `SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md` | 74,490 B | `569e684437443a91788b1679c894fed0` | ★**已落盘 (★上一趟落的·本趟一个字都没改★)** ★ |
-| ② | ★**自守闸** ★ | `SW/tools/check_sw_board_md5_rebase_readiness.py` | 24,690 B | `0f984c2ade7781afae9b40be417e0feb` | ★**已落盘 (★上一趟落的·本趟一个字都没改★)** ★ |
-| ③ | ★**交卷页 + 分片 + 留证** ★ | 本页 + `state/fragments/sw.yaml` + `logs/iss372/` (7 件) | — | 分片 `7be5198c9f15c85af6467856fbdd176d` · ★本页 md5 见 `logs/iss372/07_board_double_evidence.txt` 末段 (★不把本页自己的 md5 写进本页·免得自我引用·★)★ | ★**已落盘 (★本趟补的·★就是这两件★)** ★ |
+| ① | ★**清账页** ★ | `SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md` | ★**94,270 B** ★ | ★**`0ba9dfce5046e131465b4fbd3675614f`** ★ | ★**已落盘 (★★cont3 已增补: §1 清单重建 20/53/63 + §2 闸 F/G + §3.5 活证据 + §3.5.1 跨闸耦合 + §5.1 + §6 U8/U9/U10 + §7 E21~E30★★)** ★ |
+| ② | ★**自守闸** ★ | `SW/tools/check_sw_board_md5_rebase_readiness.py` | ★**33,655 B** ★ | ★**`2099ca42a946f64b620e896ba8d2be0b`** ★ | ★**已落盘 (★★cont3 已增补: H4 扩成两类检测 + --selftest 8→10 条★★)** ★ |
+| ③ | ★**交卷页 + 分片 + 留证** ★ | 本页 + `state/fragments/sw.yaml` + `logs/iss372/` (★15 件★) | — | ★**分片 cont3 写后 `239a1b5ce5266767e14f434ee28ca245` (★写前 `2f6d78da2a0c35ba674600b8403cabf9`·★见 §B5-5★)** · ★本页 md5 见 `logs/iss372/15_final_deliverables_cont3.txt` 末段 (★不把本页自己的 md5 写进本页·免得自我引用·★)★ | ★**已落盘 (★★cont3 增补: 本页 + 分片 + 留证 08~15 号★)** ★ |
 
 ★**★两件重产物的来历 (★本趟一字未改·所以本趟的活只有两件★)** ★
 ★**① 与 ② 是上一趟 (21:30 那趟 failed 之前) 落的 ⇒ 本趟只做「交卷页」+「分片登记」⇒ 所以 B6 的必跑命令【必须本趟自己跑一遍】(★不用重跑那 57 处扫描★)** ★
@@ -95,6 +104,13 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb                             # ★rc=0 · 
 | A17 | ★**零外发** (全靠自己查·查不到写降级方案·不许写「等原厂回信」) ★ | ★**通过** ★ | ★本单零邮件零询价零下单零问供应商; 全页无「等原厂回信」形态★ |
 | A18 | ★**不代老板拍板** ★ | ★**通过** ★ | ★未决项 6 条全部「只登记 + 给代价 + 归谁」·自守闸对 mtime/size 缺口只出规格不出结论★ |
 | A19 | ★**不自签 `state/issue_log.yaml`** ★ | ★**通过** ★ | ★`state/issue_log.yaml` 本单零写入 (对它只读不写; 零写入由 §B5-5 的写前写后 md5 对照 + 22 条边界对照共同覆盖)★ |
+| ★A20 ★ | ★**cont3: 自守闸裸跑 rc=0 · H1~H7 全绿** ★ | ★**通过** ★ | ★**7/7 PASS · rc=0** ★ (B6-4 第 1 条 · `logs/iss372/09_gate_run_cont1.txt`) ★ |
+| ★A21 ★ | ★**cont3: `--selftest` rc=0 · 10 条反向用例全过 (★上一趟 8 条 + 本趟新增 2 条类B 用例★)** ★ | ★**通过** ★ | ★**10/10 · 每条自证「红的集合 == {目标那一条}」· 末行 ALL TESTS PASS · rc=0** ★ (B6-4 第 2 条 · `logs/iss372/10_selftest_cont1.txt`) ★ |
+| ★A22 ★ | ★**cont3: §1 清单重建 = 20 个活文件 / 53 命中行 / 63 命中处 (★上一趟 17/47/57·★新增 6 处·3 个文件·2 道闸★)** ★ | ★**通过** ★ | ★`python3 tmp/iss372/gen_manifest.py` (fail-closed: 分类表覆盖不到任何一行 ⇒ rc=2) + H1 自扫 ★ |
+| ★A23 ★ | ★**cont3: 既有闸复跑仍全绿 (★含新落的两道·7 道全 rc=0★)** ★ | ★**通过** ★ | ★**7/7 rc=0**: `check_demo_panel_spec.py` / `check_onepass_sw_sync.py` / `check_fp_truth_read.py` / `check_onepass_legb_sw_impact.py` / `HW/check_iss354_manufacturability.py` / `check_debug_pin_order_contract.py` / `check_debug_header_fw_impact.py` ★ (B6-4 第 3 条 · `logs/iss372/11_existing_gates_cont1.txt`) ★ |
+| ★A24 ★ | ★**cont3: 自守闸的 H4 检测盲区已修 (★类A 字面量 + 类B 页面内嵌基线★)** ★ | ★**通过** ★ | ★`grep -c 611b869e SW/tools/check_debug_header_fw_impact.py` (= **0** ⇒ 它不在类A) ⇒ ★**只能靠类B 抓到** ★; ★H4 现在两类都扫 (B6-4 第 1 条的 H4 判据行) ★ |
+| ★A25 ★ | ★**cont3: 沙盒 7 道闸 T0~T5 读数 (★加了两道新闸·★真件零写板★)** ★ | ★**通过** ★ | ★**闸 F = 绿/红/红/红/绿/红** (★与 F5/G8/A-5 同款「没有通道」画像★) · ★**闸 G = 绿/红/红/红/红/红** ★ (`logs/iss372/08_sbx_reboard_rehearsal_7gates.txt`) ★ |
+| ★A26 ★ | ★**cont3: 零写板 / 零落表 / 零改既有闸 / 零改既有页面正文 (★15 件受保护件 md5 与 04:1x 基线逐字相同★)** ★ | ★**通过** ★ | ★板三项 `611b869e…` / `2026-11-06 07:07:17.362193413` / `4940213` 逐字节相同; ★15 件受保护 md5 全同 (B6-4 第 5 条 · `logs/iss372/12_boundary_evidence_cont1.txt`) ★ |
 | A20 | ★**扫描面 57 处逐处登记 (不许按文件归并)** ★ | ★**通过** ★ | ★清账页 §1.3 逐行 47 行 + §1.10 机器可读 JSON 双形态; 分类表覆盖不到任何一行 ⇒ 生成器 rc=2 fail-closed★ |
 | A21 | ★**§1.10 那块机器清单可再生 (不许手改)** ★ | ★**未验 (★本趟刻意不跑·不越「别重跑扫描」那条线★)** ★ | ★生成器 = `tmp/iss372/gen_manifest.py`·上一趟落盘时已跑通; ★本趟只补交卷页与分片 ⇒ 不重跑扫描 ⇒ 这条由 main 在独立复核时跑★ |
 | A22 | ★**§4 那条挂了两周的 need 要有答复** ★ | ★**通过** ★ | ★`iss249_kicad_sch_md5_not_anchor_sw` ⇒ 已在本单分片 `answers` 里答掉 (★答方 sw-lead·问方 hw-lead·同 key★)★ |
@@ -142,6 +158,21 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb                             # ★rc=0 · 
 | E20 | ★**`.kicad_sch` 的 md5 能不能当锚点 = 不能; 处置 = 结论订正 + 降级** ★ | ★[实测] ★ (★结论★) + ★[推算] ★ (★处置方式★) | 清账页 §4 + 本单分片 `answers[iss249_kicad_sch_md5_not_anchor_sw]` |
 | E21 | ★**板端实测 = 0 条** (本机无板) ★ | ★[0数据] ★ | `list_devices()` = [] (本机无设备) |
 
+### ★B3-4 · ★**cont3 (本趟) 的证据分级 (★逐条标档·可复跑★)** ★
+
+| # | 结论 | 证据等级 | 复跑命令 / 留证路径 |
+|---|---|---|---|
+| ★E21 ★ | ★**ISS-372 已于 2026-11-23 22:4x 由 main 独立复核签收 (verified) —— 而 cont1 brief 的「三件交付物零」说的是 21:30 那趟的状态** ★ | ★[实测] ★ | ★`grep -A4 'id: ISS-372' state/issue_log.yaml` (status=verified · verify_by=main · verify_date=2026-11-23) ★ |
+| ★E22 ★ | ★**签收后 4 小时内 SW 域新落 2 道硬钉板 md5 且无通道的闸: ISS-375 的 D7 (02:05) + ISS-378 的 W7 (02:45)** ★ | ★[实测] ★ | ★`ls -la --time-style=full-iso SW/tools/check_debug_*.py` + `grep -n 611b869e SW/tools/check_debug_pin_order_contract.py` ★ |
+| ★E23 ★ | ★**自守闸在 cont3 开工时当场变红 (H1 红 5 处漏登记 + H4 红 2 道新闸不在册) ⇒ 「清单过期」在野生效了一次** ★ | ★[实测] ★ | ★`logs/iss372/09_gate_run_cont1.txt` (cont3 修好前 rc=1 的读数留痕见本页 B6-4 第 1 条的注) ★ |
+| ★E24 ★ | ★**ISS-378 的闸属【页面内嵌基线类】: 它的 .py 里 32 位字面量出现 0 次 ⇒ 上一趟 H4 的单类检测网抓不到它** ★ | ★[实测] ★ | ★`grep -c 611b869e SW/tools/check_debug_header_fw_impact.py` (=0) + `grep -n board_md5 SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md` (L397) ★ |
+| ★E25 ★ | ★**§1 清单 (cont3 重建) = 20 个活文件 / 53 命中行 / 63 命中处; 三类 = 判据锚 11 / 规格页引用 17 / 历史留证 25** ★ | ★[实测] ★ | ★`python3 tmp/iss372/gen_manifest.py` + H1 自扫 ★ |
+| ★E26 ★ | ★**闸 F (D7) 在沙盒 T0~T5 = 绿/红/红/红/绿/红 ⇒ 与 F5/G8/A-5 同款「没有通道」画像** ★ | ★[实测] ★ | ★`logs/iss372/08_sbx_reboard_rehearsal_7gates.txt` (读数汇总表) ★ |
+| ★E27 ★ | ★**闸 G (W7) 在沙盒 T0~T5 = 绿/红/红/红/红/红; 且 T2b 的红原文只剩 `board_size` + `board_mtime` (md5 那条已绿) ⇒ 「S9 换基线」对这一页必须 md5 + size + mtime 三项一起换** ★ | ★[实测] ★ | ★同上 (T2b 段 G 的原文) ★ |
+| ★E28 ★ | ★**跨闸耦合 (★原任务书没有·本趟撞出来的★): 给闸 F 打 P-F ⇒ 闸 G 的 W2 当场红 —— 因为 W2 把闸 F 的【函数行号】钉进了自己的机器块 (287 ⇒ 293)** ★ | ★[实测] ★ | ★同上 (T4 段 G 的原文) + 清账页 §3.5.1 ★ |
+| ★E29 ★ | ★**H4 两类检测 + 10 条反向用例 (含 2 条类B: 未在册⇒红 / 信号消失⇒全绿) 全过** ★ | ★[实测] ★ | ★`python3 SW/tools/check_sw_board_md5_rebase_readiness.py --selftest` (10/10 · ALL TESTS PASS) ★ |
+| ★E30 ★ | ★**本趟零写板: 板 md5/mtime/size 三项与 04:1x 基线逐字节相同; 15 件受保护件 md5 逐字相同** ★ | ★[实测] ★ | ★`logs/iss372/12_boundary_evidence_cont1.txt` ★ |
+
 ### B3-3 · ★**一条必须说清的观察 (★不是本单干的·但必须留痕★)** ★
 
 ★**本单新增的两道 SW 闸 (`check_fp_truth_read.py` 2026-11-23 17:27 交付 / `check_onepass_legb_sw_impact.py` 2026-11-23 19:50 交付) + 跨域 1 道 (`HW/check_iss354_manufacturability.py` 都不在 `state/board_md5_pinned_gates.json` 里 ⇒ ★那 9 条「全部标已有 reboard 通道」是【过期口径】★ ⇒ ★不是本单造成, 是「没人守那张表的新鲜」的必然结果 ⇒ 本单只登记, 不改 (★那是 main 的域★)** ★[实测]
@@ -159,6 +190,16 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb                             # ★rc=0 · 
 | ★`iss372_pinned_gates_manifest_stale` ★ | ★**`state/board_md5_pinned_gates.json` = 2026-11-17 20:49 生成的 9 条 (SW 只 1 条) ⇒ 今天新造的 2 道 SW 闸 + 跨域 1 道不在表里; 且收集口径只收 `check_*.py` ⇒ `state/land_v_values.py` L96 (落表器自钉板 md5) 收不进去; 没有任何闸在守它的新鲜 (`state/gate_check.py` 零命中) ⇒ ★**刷新后应有的内容 = 现有 9 条 + 新增 3 条 + 口径补 1 条 (★本单只给内容·不写那两个文件★)** ★ | ★[实测] ★ |
 | ★`iss372_kicad_sch_md5_cannot_be_anchor` ★ | ★**`.kicad_sch` 的 md5 不能当锚点 (结论不变) ★但机理订正: 真正的随机源 = `state/gen_kicad_sch.py` 本身 (L119 `uuid.uuid4()`) ⇒ 跑一次它, 11 个 `.kicad_sch` 的 raw md5 11/11 全变, 归一化 (UUID + 时间戳) 后 0/11 变 (同图); `check_sch_erc.py` / `check_sch_pinfull.py` 【不改】它 ⇒ 需原文那个机理不成立 ⇒ ★**SW 域 `.kicad_sch` 的 md5 命中 = 0 处 ⇒ 该风险至今没伤到任何人 ⇒ 处置 = 结论订正 + 降级为「一条已知注意事项」(不机器化)** ★ | ★[实测] ★ |
 
+### ★B4-3 · ★**cont3 (本趟) 落进分片的 interface_claim (★键名带 `iss372` 前缀·★同 key 覆盖上一趟的旧值★)** ★
+
+| key | value (★只声明·不越界拍板★) | 登记位置 |
+|---|---|---|
+| ★`iss372_sw_board_md5_ref_surface` ★ | ★**cont3 更新: SW 域板 md5 引用面 = 20 个活文件 / 53 命中行 / 63 命中处 (★上一趟 17/47/57★); 三类归属 = 判据锚 11 行 / 规格页引用 17 行 / 历史留证 25 行; 板 md5 基线 = `611b869e13518c3c023fb178f91a0075` (mtime 2026-11-06 07:07:17.362193413 / size 4940213)** ⇒ ★**判据锚 11 行里 4 行要动 (F5/G8/D7/W7 四道无通道闸的补丁) / 规格页引用 17 行随板改那一趟换基线 / 历史留证 25 行永远不许动** ★ | `state/fragments/sw.yaml` 的 `interface_claims` (★同 key 覆盖·★不是新增重复 key★) ★ |
+| ★`iss372_board_reboard_fake_red_gates` ★ | ★**cont3 更新: 「板那一趟」改板当天会假红的闸 = SW 域 4 道 (F5 ISS-363 / G8 ISS-370 / ★D7 ISS-375★ / ★W7 ISS-378★) + 跨域 1 道 (A-5 ISS-354) = 5 道 (★这 5 道没有合法改板通道); 已有合法改板通道的 2 道 = check_demo_panel_spec.py 的 R6 + check_onepass_sw_sync.py 的 W6 ⇒ 通道存在之后 板改第二次 当场红 (纯 md5 硬保护支路没被放松) ★** ★**★D7 与 W7 是签收后 4 小时内新落的两道 (★ISS-372 自己交的自守闸在签收后 4 小时就抓到了它们★) ⇒ 缺口编号 iss372_gap_iss375_d7_reboard_channel / iss372_gap_iss378_w7_reboard_channel; 补法规格 P-C / P-D / P-E / ★P-F★ / ★P-G★** ★ | 同上 (★同 key 覆盖★) ★ |
+| ★`iss372_pinned_gates_manifest_stale` ★ | ★**cont3 更新: `state/board_md5_pinned_gates.json` = 2026-11-17 20:49 生成的 9 条 (SW 只 1 条) ⇒ 签收后新造的 2 道 SW 闸 (ISS-375 D7 02:05 / ISS-378 W7 02:45) + 之前的 2 道 (ISS-363 F5 / ISS-370 G8) + 跨域 1 道 (ISS-354 A-5) 不在表里; 且收集口径只收 `.py` 里的 32 位字面量 ⇒ ★**连 ISS-378 的 W7 那种「页面内嵌基线类」都收不进去 (★本单 H4 类B 的活证据★)** ⇒ 刷新后应有的内容 = 现有 9 条 + 新增 5 条 + 口径补 2 条 (★清账页 §5.1★)** ★ | 同上 (★同 key 覆盖★) ★ |
+| ★`iss372_kicad_sch_md5_cannot_be_anchor` ★ | ★**不变** (★结论不变: 不能当锚点; ★机理订正: 真正的随机源 = `state/gen_kicad_sch.py` 本身 (L119 `uuid.uuid4()`) ⇒ 跑一次它, 11 个 `.kicad_sch` 的 raw md5 11/11 全变, 归一化 (UUID + 时间戳) 后 0/11 变 (同图); `check_sch_erc.py` / `check_sch_pinfull.py` 不改它 ⇒ 处置 = 结论订正 + 降级为一条已知注意事项 (不机器化)★)** ★**★cont3 补一句: 本趟【没有重跑】这条实验 (★零重跑扫描的纪律·★留证仍是 `logs/iss372/03_exp1_sch_md5.txt` 与 `04_sch_md5_11files.txt`★)** ★ | 同上 (★同 key·★value 不变·★只加一句留证说明★) ★ |
+| ★`iss372_cont3_live_guard_trip` ★ (★新增★) | ★**cont3 的招牌结论: 自守闸在签收后 4 小时就真的红过一次 —— ISS-375 (02:05) / ISS-378 (02:45) 新落的两道闸都硬钉板 md5 且都没有合法改板通道 ⇒ 闸当场红 (H1 5 处漏登记 + H4 2 道新闸不在册) ⇒ ★★「下一道新闸再硬钉板 md5 时当场被抓住」不是设计, 是已经发生过的事实★★ ⇒ 并且 H4 因此暴露了自己的真实盲区 (只扫 .py 字面量 ⇒ 漏掉「页面内嵌基线类」) ⇒ 本趟已把 H4 扩成两类** ★ | `state/fragments/sw.yaml` 的 `interface_claims` (★新增 key★) ★ |
+
 ### B4-2 · ★**本单给下游的取值 (★只声明·不越界拍板★)** ★
 
 | 项 | 本单给的取值 | 谁可以用它做什么 |
@@ -174,6 +215,14 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb                             # ★rc=0 · 
 ---
 
 ## B5 · 未决项与卡点 (★需要谁回答什么★)
+
+### ★B5-0 · ★★cont3 (本趟) 的历史 (★四句话·必须让人知道这一趟为什么是「增补」而不是「重做」★★) ★
+
+★**① 21:30 那趟 failed** ⇒ ★**cont1 22:28 被 16 分钟墙掐死** ⇒ ★**cont2 22:39~23:0x 补齐了交卷页与分片 ⇒ ★★main 已于 22:4x 独立复核签收 ISS-372 (verified)★★** ★
+★**② ⇒ 所以 cont1 brief 说的「三件交付物零」是 21:30 那趟的旧状态; 本趟 (cont3) 开工时三件交付物【已全部在盘且已签收】★** ⇒ ★**本趟【没有重做】任何一件: 只改了本单自己的两件 (清账页 + 自守闸) + 本页 + 本单自己的分片★** ★
+★**③ ★★但世界在签收后 4 小时里变了★**: ★**ISS-375 (02:05) / ISS-378 (02:45) 新落两道闸, 都硬钉板 md5 且无合法改板通道 ⇒ ★★本单自守闸当场变红 (H1 + H4) ⇒ 这正是本单要防的那件事, 在自己头上发生了一次★★** ★
+★**④ ⇒ 本趟做的是三件事**: ★**(a) 把 5 处新引用 + 2 道新闸登记进 §1/§2 (清单重建: 17/47/57 → 20/53/63) ★(b) ★★修掉自守闸自己的真实检测盲区 (H4 扩成类A + 类B 两类检测)★ ★(c) 沙盒预演刷新到 7 道闸 (T0~T5) ⇒ 拿到闸 F/G 的实跑读数 + 撞出「跨闸耦合」这条新发现 ★** ★
+★**★本趟【零重跑那 57 处扫描的历史实验】★: ★**① 原理图 md5 实验 (`logs/iss372/03_exp1_sch_md5.txt`) 本趟零重跑 (★结论不变·留证仍在盘★) ② SW 域引用面的复扫是【闸自己的 H1 自扫】(★那是闸的日常动作, 不是「重跑那 57 处扫描」★) ③ 沙盒预演是【刷新到 7 道闸】(★新增 F/G 两道·★原 5 道的读数逐字未变★)** ★
 
 ### B5-1 · ★**本单的历史 (★三句话·必须让人知道这一趟为什么只做两件事★)** ★
 
@@ -192,6 +241,9 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb                             # ★rc=0 · 
 | ★U5 ★ | ★「板改第二次」的兜底预案 ★ | ★**要 main (⇒ 老板) 回答**: ★**「现场由谁当场判定『这是第二次改板』并停手? 判据能不能自动判出『第二次』?」★** | ★**没有预案 ⇒ 现场第二次改板 ⇒ 闸红着, 但没人知道那是「第二次」而不是「第一次」** ★ |
 | ★U6 ★ | ★`state/board_md5_pinned_gates.json` 的刷新时机与收集口径 ★ | ★**要 main 回答**: ★**「那张表什么时候刷新? 收集口径要不要放宽 (★把 `state/land_v_values.py` 也收进去★)?」★** —— ★**本单只给『刷新后应有的内容』(§B4-1 的 claim `iss372_pinned_gates_manifest_stale` + 清账页 §5.1)·不写那两个文件 (★那是 main 的域★)** ★ | ★**不刷新 ⇒ 那张表继续漏新闸 ⇒ 下一个新闸再硬钉板 md5 时还是没人拦** ★ |
 | ★U7 ★ | ★新闸要不要挂 `state/gate_check.py` 的 `EXTRA_GATES` ★ | ★**要 main 回答**: ★**「`SW/tools/check_sw_board_md5_rebase_readiness.py` 挂不挂 EXTRA_GATES?」★** —— ★**本单零挂链 (`state/gate_check.py` md5 前后不变)·先例 = ISS-300 (mech 出结论 / main 挂) / ISS-309 / ISS-312 / ISS-315 (四轮都只交写法没人挂)** ★ | ★**不挂 ⇒ 这道闸只活在本单交卷页里 ⇒ 下一个 agent 不读交卷页就没人知道它存在 ⇒ 「板只改一次」那道铁律在 SW 侧还是靠人记得** ★ |
+| ★U8 ★ (★cont3 新增★) | ★**【跨闸耦合】: P-C / P-D / P-E / P-F / P-G 这 5 条通道补丁【必须同批落】** ★ | ★main 回答: ★**「这 5 条补丁能不能合成一批落? 批内顺序怎么定?」★** —— ★**本单只登记 + 给代价, 不代拍** ★ | ★**不同批落** ⇒ ★**先落的那条补丁会移动【另一个闸】的函数行号 ⇒ 把那个闸当场打红** (★沙盒 T4 实测: P-F 一落 ⇒ 闸 G 的 W2 红·5 行全中·因为 W2 把闸 F 的行号钉进了自己的机器块★) ⇒ 现场又是一轮「误读成板坏了」⇒ ★**整趟白跑** ★ | ★**建议: 5 条补丁合成【一批】落; 落完立刻在沙盒重跑 §2.4 的 T0~T5 读数表做交叉验证 (★本趟已把读数表刷到 7 道闸·`logs/iss372/08_sbx_reboard_rehearsal_7gates.txt`★)** ★ |
+| ★U9 ★ (★cont3 新增★) | ★**闸 G (ISS-378) 的 W7 那条 `board_size` 判据在合法改板后怎么办** ★ | ★main (⇒ 可能要老板) 回答: ★**「reboard 四项原子要不要补 size? 或者给 W7 一条明文口径?」★** —— ★**与 U3 同款问题·建议一并拍** ★ | ★**不处理** ⇒ ★**P-G 只解决一半 (沙盒 T4 实测: 打上补丁后 W7 仍红在 `board_size`★) ⇒ 改板当天闸 G 照样红** ⇒ 现场多一次「误读成板坏了」的窗口 ★ | ★**要么给 reboard 原子补 size (★要动权威判据 ⇒ 老板拍★), 要么给 W7 一条「合法改板分支下 size 怎么判」的明文口径** ★⇒ ★**本单只登记, 不代拍** ★ |
+| ★U10 ★ (★cont3 新增★) | ★**`state/board_md5_pinned_gates.json` 的收集口径要不要从「.py 里含 32 位字面量」放宽** ★ | ★main 回答: ★**「那张表的收集口径要不要放宽到『闸自己算盘上板 md5 且期望值来自文档』?」★** —— ★**本单只给口径建议, 不写那两个文件 (★那是 main 的域★)** ★ | ★**不放宽** ⇒ ★**闸 G 那种「页面内嵌基线类」永远收不进那张表 ⇒ 下一道同类的闸照样从缝里溜过去** ★ | ★**建议: 放宽到类B (★本单 H4 的类B 判据可作口径蓝本★), 或者在表页里明写「页面内嵌基线类闸由 SW 侧自守闸 H4 类B 收」** ★ |
 
 ### B5-3 · ★**要 hw-lead 回答的 (★跨域·只登记·不越界改★)** ★
 
@@ -209,6 +261,20 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb                             # ★rc=0 · 
 | ★B2 ★ | ★**U5 的兜底流程**: 现场停手权归谁 | 沙盒 T5 (通道存在后当场红) | ★**这是流程权责 ⇒ 不是 sw-lead 能定的★** ★ |
 
 ### B5-5 · ★**分片登记的自证 (★写前写后各记一次 md5★)** ★
+
+★★**cont3 (本趟) 的分片登记自证 (★与上面 cont2 那一次并列·★两趟各记一次★)** ★
+
+| 项 | 值 |
+|---|---|
+| ★**cont3 写前 md5** ★ | ★`2f6d78da2a0c35ba674600b8403cabf9` ★ (mtime `2026-11-24 04:27:20.910393035` · size `757561`) ★ |
+| ★**cont3 写后 md5** ★ | ★`239a1b5ce5266767e14f434ee28ca245` ★ (mtime `2026-11-24 04:35:33.400272530` · size `761937`) ★ |
+| 写入方式 | ★**只走 `state/frag_write.py` 的原子写** (★本趟用它的**文档化 Python 接口** `from frag_write import update_fragment` · ★脚本 `tmp/iss372/frag_register_cont3.py`★) ★ ⇒ ★**全程没有 `open(p,"w")` 直写分片** ★ ⇒ ★**工具自带 tmp + fsync + `os.replace` 原子写** ★ |
+| ★**期间是否被别人改过** ★ | ★**否** —— 写前 (04:27:20 读数) 与写前即时复读 (04:35:0x · md5 逐字相同 `2f6d78da…`) 一致 ⇒ ★**这段时间内没有人动过这个分片**; 写后 04:35:33 变成本趟那一次原子写 ⇒ ★**没有发生「静默覆盖」, 不触发「已停止」条款** ★ (★注: 本分片在 04:1x~04:27 之间确实被【别人】写过 (★ISS-375 cont3 那趟★) ⇒ 但那是【本趟写之前】的事, 与本趟的写窗口无关 ⇒ ★**本趟的写窗口内无人改动**★) ★ |
+| ★**写后自检 (★机器判定★)** ★ | ★**增量**: `interface_claims` 4→5 条 (★4 条【同 key 覆盖】+ 1 条新增 `iss372_cont3_live_guard_trip`★) · `needs_from` 6→7 条 (★1 条新增 `iss372_need_main_batch_channel_patches` + 2 条【同 key 就地扩写】·★旧条目一条没少·★零重名 key★) · `artifacts` 3 条【同 path 就地更新】★ ⇒ ★**只有本单新增/覆盖, 旧条目一条没少** ★ |
+| ★**重名体检 (★机器判定★)** ★ | ★`python3 state/check_frag_dup_keys.py --agent sw-lead` ⇒ ★**高危段 (answers / needs_from) 重名 0 组** ★ · rc=0 ⇒ ★**本趟没有制造任何高危段重名** ★ |
+| ★**别人的分片零写入 (★机器判定★)** ★ | ★写前 → 写后 md5 逐字相同: `pm.yaml` `2f35b5e40469a0be8b7c07599cddc803` · `hw.yaml` `3865d05e845f75ec50f0034a0f682acb` · `mech.yaml` `1f529cd4367bcf2f1ea2033cb9ed0df6` ★ |
+| ★**`iss249_kicad_sch_md5_not_anchor_sw` 那条答复 (★同 key·★本趟未重答★)** ★ | ★**仍在 `answers` 里 (★key `iss249_kicad_sch_md5_not_anchor_sw` · to=hw-lead★) ⇒ ★**本趟零重跑那条实验, 答复原文一字未改, 也不重答 (★免得造一个重名 key★)** ★ ⇒ ★**它不会继续挂在 `needs_from` 里** ★ |
+
 
 | 项 | 值 |
 |---|---|
@@ -374,7 +440,93 @@ HW/check_iss354_manufacturability.py     => rc=0   (全部断言通过)
 | `state/board_md5_pinned_gates.json` | `917757c0460aee130ceda5ec49aadde1` (★main 的域·零写入★) |
 | `state/board_md5_pinned_gates.md` | `918b0969d359120d64efcf6f97beba62` (★main 的域·零写入★) |
 
-### B6-3 · ★**留证路径 (★`logs/iss372/` = 7 件★)** ★
+### ★B6-4 · ★**cont3 (本趟) 必跑命令原样输出 (★2026-11-24 04:3x~04:4x 本机实跑·★rc 逐条标出★)** ★
+
+★**★文件名说明 (★免得看糊涂★)**: ★**cont1 brief 把「本趟」叫 cont1 ⇒ 本趟落的留证文件名里带 `cont1` (09/10/11/12 号)★; 而本单的实际趟序是 21:30 failed → cont1 (22:28 掐死) → cont2 (22:39~23:0x) → ★**本趟 (cont3)★** ⇒ ★**页内正文一律称「cont3」, 留证文件名沿用 brief 的叫法 ⇒ 两者指的是同一趟★** ★
+
+★**★全部原样输出同时落 `logs/iss372/09_gate_run_cont1.txt` · `10_selftest_cont1.txt` · `11_existing_gates_cont1.txt` · `12_boundary_evidence_cont1.txt`★** ★
+
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+export TMPDIR=$PWD/tmp
+python3 SW/tools/check_sw_board_md5_rebase_readiness.py            # rc=0 · 7/7
+python3 SW/tools/check_sw_board_md5_rebase_readiness.py --selftest  # rc=0 · 10/10
+python3 state/merge.py          # rc=0
+python3 state/gate_check.py      # rc=0 · Q1 18/18
+md5sum HW/PCB/demo_mainboard.kicad_pcb   # 611b869e13518c3c023fb178f91a0075
+```
+
+★**① 自守闸裸跑 (★原样·截取末尾 12 行★)** ★
+```
+  [PASS] H1 · SW 域板 md5 引用面必须被 §1 清单逐处覆盖 (★漏一处就红★)
+  [PASS] H2 · 每一处都必须标了【三类归属】+【处置】+ 备注
+  [PASS] H3 · 【历史留证】类必须真的不许改 (★活判据不许伪装成历史留证★)
+  [PASS] H4 · SW 域每道【真钉板 md5 的判据脚本】必须登记在册 (类A 字面量 + 类B 页面内嵌基线)
+  [PASS] H5 · 每道闸要么已有合法改板通道, 要么在 §2 被登记成已知缺口
+  [PASS] H6 · 板面零写板自证 (md5 / mtime / size 三项)
+  [PASS] H7 · 证据等级五级白名单 + 正文零挂起措辞 + 零空洞词
+--------------------------------------------------------------------------------------------
+闸结果 7/7 通过, rc=0
+```
+★**rc=0** ★[实测] ★★注: ★★本趟开工时这条命令是 rc=1 (H1 红 5 处漏登记 + H4 红 2 道新闸不在册) —— 那正是「清单过期」的活证据; 本趟登记完 ⇒ 回到 rc=0★★ ★
+
+★**② `--selftest` (★原样·截取末尾 6 行★)** ★
+```
+  用例 9 · 目标 H4 · 红的集合 = ['H4'] · PASS
+        手法: 把类B 闸 SW/tools/check_debug_header_fw_impact.py (★它源码里【没有 32 位字面量】·靠页面内嵌基线钉板 md5★) 从 §2 的账里删掉 ⇒ H4 应当红
+  用例 10 · 目标 无 (★期望全绿★) · 红的集合 = [] · PASS
+        手法: 把类B 闸所读页面里的板 md5 基线换成假值 ⇒ 信号 (b) 消失 ⇒ 它不再被算作「钉板 md5 的闸」 ⇒ ★H4 应当【绿】(★反向自证: 证明 H4 的类B 判据不是宽放乱抓★)
+--------------------------------------------------------------------------------------------
+反向用例: 10/10 通过 (★每条都自证「红的集合 == {目标那一条}」★)
+ALL TESTS PASS
+```
+★**rc=0** ★[实测]
+
+★**③ 既有闸复跑 (★7 道·含新落的两道·原样★)** ★
+```
+=== cont1 · 既有闸复跑 (2026-11-24 04:4x) ===
+--- SW/tools/check_demo_panel_spec.py
+rc=0
+--- SW/tools/check_onepass_sw_sync.py
+rc=0
+--- SW/tools/check_fp_truth_read.py
+rc=0
+--- SW/tools/check_onepass_legb_sw_impact.py
+rc=0
+--- HW/check_iss354_manufacturability.py
+rc=0
+--- SW/tools/check_debug_pin_order_contract.py
+rc=0
+--- SW/tools/check_debug_header_fw_impact.py
+rc=0
+```
+★**7/7 rc=0** ★[实测] ★★注: ①★5 道是上一趟就有的 (★本趟逐字未改它们★) ②★第 6/7 道是 ISS-375/ISS-378 新落的★ ★
+
+★**④ 沙盒 7 道闸 T0~T5 读数总表 (★原样·★真件零写板★)** ★
+```
+读数汇总 (rc):
+  A  T0=0  T1=1  T2=0  T2b=0  T4=0  T5=1   权威闸 R6 (SW/tools/check_demo_panel_spec.py)
+  B  T0=0  T1=1  T2=1  T2b=0  T4=0  T5=1   SW 侧合法改板通道闸 (SW/tools/check_onepass_sw_sync.py)
+  C  T0=0  T1=1  T2=1  T2b=1  T4=0  T5=1   读封装栏闸 F5 (SW/tools/check_fp_truth_read.py)
+  D  T0=0  T1=1  T2=1  T2b=1  T4=0  T5=1   腿 B 影响面闸 G8 (SW/tools/check_onepass_legb_sw_impact.py)
+  E  T0=0  T1=1  T2=1  T2b=1  T4=0  T5=1   可制造性收口闸 A-5 (HW/check_iss354_manufacturability.py)
+  F  T0=0  T1=1  T2=1  T2b=1  T4=0  T5=1   调试排针闸 D7 (SW/tools/check_debug_pin_order_contract.py)
+  G  T0=0  T1=1  T2=1  T2b=1  T4=1  T5=1   排针换land影响面闸 W7 (SW/tools/check_debug_header_fw_impact.py)
+```
+★**★四句话读法 (★cont3 补的两条最要紧★)** ★ ★[实测]
+★**① 「改板那天会假红」的有几道? ⇒ ★cont3 复算: SW 域 4 道 (C/F5 · D/G8 · F/D7 · G/W7) + 跨域 1 道 (E/A-5) = 5 道** ★ —— ★**比上一趟的 3 道多了 2 道, 因为签收后 4 小时内又新落了两道闸** ★
+★**② 现场会不会误读成「板改坏了」? ⇒ 会** ★ —— ★**T2b 时 C/D/E/F/G 红的原文就是「板 md5 = <新值> ≠ 基线 <旧值> ⇒ 真源被改了」★ 一读就是「板坏了」★ ⇒ ★**红色原文里【没有一个字】说「这是合法改板」★★ ⇒ 现场极可能去改板凑绿 ⇒ 板 md5 变第二次 ⇒ 整趟白跑 ★
+★**③ 闸 G 的 T2b 红原文只剩 `board_size` + `board_mtime` (md5 那条已绿) ⇒ 「S9 换基线」对 ISS-378 那一页必须【md5 + size + mtime 三项一起换】★** ★
+★**④ 闸 G 的 T4 仍红, 但红的不是板 md5 (★P-G 已让 md5 那条转绿★) —— 红的是 W2 (★跨闸耦合: P-F 移动了闸 F 的行号·W2 把行号钉死了★) 与 `board_size` (★U9★)** ★
+
+★**⑤ 板双证 + 受保护 15 件 (★原样★)** ★
+```
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800 4940213
+```
+★**板三项与基线逐字节相同** ★[实测] ★★15 件受保护件 (3 道 SW 闸 + check_demo_panel_spec + timing_check + check_shutdown_semantics + check_pcb_nets + gate_check + merge + frag_write + check_sch_erc + check_sch_pinfull + HW/check_iss354_manufacturability + board_md5_pinned_gates.json/.md + 台账 + 规格页 + 复核记录) 的 md5 与 04:1x 基线**逐字相同** ★ ⇒ ★**零写板 · 零落表 · 零改既有闸 · 零改既有页面正文** ★
+
+### B6-3 · ★**留证路径 (★`logs/iss372/` = 15 件·★cont2 7 件 + cont3 8 件★)** ★
 
 | 文件 | 内容 |
 |---|---|
@@ -384,12 +536,21 @@ HW/check_iss354_manufacturability.py     => rc=0   (全部断言通过)
 | `logs/iss372/04_sch_md5_11files.txt` | ★11 个 `.kicad_sch` 的逐件读数 ★ |
 | `logs/iss372/05_sbx_reboard_rehearsal.txt` | ★★沙盒 T0~T5 六阶段全部读数 (★本单第二正题的证据源★) ★ |
 | `logs/iss372/06_existing_gates_rerun.txt` | ★既有闸复跑读数 ★ |
-| `logs/iss372/07_board_double_evidence.txt` | ★★板三项 + 22 条 md5 (受保护 20 + 板 1 + 分片 1) 的写前/写后对照 (★本趟落的★) ★ |
+| `logs/iss372/07_board_double_evidence.txt` | ★★板三项 + 22 条 md5 (受保护 20 + 板 1 + 分片 1) 的写前/写后对照 (★cont2 落的★) ★ |
+| ★`logs/iss372/08_sbx_reboard_rehearsal_7gates.txt` ★ | ★★cont3 落的: ★沙盒 7 道闸 T0~T5 全部读数 (★新增闸 F/D7 与闸 G/W7·★原 5 道读数逐字未变★)★ ⇒ ★★cont3 的招牌证据★ ★ |
+| ★`logs/iss372/09_gate_run_cont1.txt` ★ | ★cont3 落的: 自守闸裸跑原样输出 (7/7 PASS · rc=0) ★ |
+| ★`logs/iss372/10_selftest_cont1.txt` ★ | ★cont3 落的: `--selftest` 原样输出 (10/10 · ALL TESTS PASS) ★ |
+| ★`logs/iss372/11_existing_gates_cont1.txt` ★ | ★cont3 落的: 既有闸复跑 (★7 道·含新落的两道·7/7 rc=0★) ★ |
+| ★`logs/iss372/12_boundary_evidence_cont1.txt` ★ | ★cont3 落的: 板双证 + 受保护 15 件 + 零落表 3 件 + 原理图 11 件的 md5 读数 ★ |
+| ★`logs/iss372/13_merge_gate_check_cont3.txt` ★ | ★cont3 落的: `state/merge.py` (rc=0) + `state/gate_check.py` (rc=0 · Q1 18/18 · Q7 钉板闸链 10/10) 原样输出 ★ |
+| ★`logs/iss372/14_final_required_commands_cont3.txt` ★ | ★cont3 落的: ★交卷前必跑 5 条命令的原样输出 (★闸 rc=0 / --selftest rc=0 / merge rc=0 / gate_check rc=0 / 板 md5 rc=0★) ★ |
+| ★`logs/iss372/15_final_deliverables_cont3.txt` ★ | ★cont3 落的: 交卷后板双证 + 三件交付物 md5/大小 + 四个分片 md5 + 留证清单 ★ |
 
 ★**沙盒脚本 (★本趟零重跑·上一趟落的·可复跑★)**: `tmp/iss372/exp2_reboard.py` (★驱动★) · `tmp/iss372/patch_spec.py` (★补丁规格原型·9 条补丁·每条锚点必须恰好匹配 1 次★) · `tmp/iss372/legal_channel_sbx.py` (★通道原型·照 ISS-284 四项原子 + 落表台账链头★) · `tmp/iss372/gen_manifest.py` (★清单生成器·fail-closed rc=2★) · `tmp/iss372/tree/` (★沙盒树★)
 
 ---
 
 ★**本单零写板 · 零落表 · 零改既有闸 · 零改既有页面正文 · 零改 state/ 下的清单 · 零挂链 · 零外发 · 不代老板拍板 · 不自签 issue_log** ★
-★**本单自守: `SW/tools/check_sw_board_md5_rebase_readiness.py` (H1~H7 + 8 条反向用例)★** ★
-★**★本趟 (CONT2) 只补了两件: ① 本交卷页 ② `state/fragments/sw.yaml` 分片登记 (★走 `state/frag_write.py`·零重跑扫描·零重建页·零重建闸★)** ★
+★**本单自守: `SW/tools/check_sw_board_md5_rebase_readiness.py` (H1~H7 + ★10 条反向用例 (★cont3 从 8 条扩到 10 条·新增 2 条类B 用例★)·H4 两类检测 (★类A 字面量 + 类B 页面内嵌基线★))** ★
+★**★★本趟 (CONT3) 做的是三件: ① 清账页 §1/§2/§3.5/§5.1/§6/§7 增补 (★清单重建 17/47/57 → 20/53/63 + 闸 F/G 逐闸账 + 活证据 + 跨闸耦合★) ② 自守闸 H4 扩成两类检测 + 反向用例扩到 10 条 ③ 本交卷页 + `state/fragments/sw.yaml` 分片登记 (★走 `state/frag_write.py`)★** ★
+★**★本趟【零重做】已签收的三件交付物: 只改了本单自己的两件 (清账页 + 自守闸) + 本页 + 本单自己的分片; ★★零写板 · 零落表 · 零改既有闸 · 零改既有页面正文 · 零改 state/ 下的清单 · 零挂链 · 零外发 · 不代老板拍板 · 不自签 issue_log★★** ★

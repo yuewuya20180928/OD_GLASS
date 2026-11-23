@@ -12,6 +12,9 @@ ISS-372 · sw-lead · 2026-11-23 · 「板那一趟」SW 侧板 md5 引用面清
   H2 字段   : 每一条都必须标了【三类归属】+【改板那一趟的处置】 ★缺字段 / 枚举越界 ⇒ 红★
   H3 反向   : 【历史留证】类不许落在 .py 判据脚本上 ★不许把活判据塞进历史留证糊弄★
   H4 在册   : SW 域每道【真钉板 md5 的判据脚本】必须在 §2 有账 ★今天新造的那两道今天就能被抓住★
+              ★★【cont1 补的第二个检测类】★★: 上一趟 H4 只扫 .py 里的 32 位【字面量】⇒ ★漏掉「把基线写进页面
+              JSON 块、闸自己算 md5 再比」那一类 (★ISS-378 的 check_debug_header_fw_impact.py 就是这一类★) ⇒
+              ★现在 H4 扫两个类: 类A = .py 里有 32 位字面量; 类B = 闸自己算盘上板 md5 且期望值来自页面内嵌基线★
   H5 通道   : 每道这样的闸, 要么【代码级已有合法改板通道】, 要么【在 §2 登记为已知缺口 + 缺口归属
               + 谁来补 + 补法规格】 ★★「登记过的缺口」不红, 「没人知道的缺口」才红★★
   H6 板面   : 板 md5 / mtime / size 三项自证 (★零写板★) 漂移 ⇒ 红
@@ -53,6 +56,15 @@ MANIFEST_END = "<!-- ISS372-MANIFEST:END -->"
 
 CLS_ENUM = ("判据锚", "规格页引用", "历史留证")
 ACTION_ENUM = ("随板改", "不许改", "交 main 拍")
+
+# ★★类B 检测 (★cont1 补·★上一趟的 H4 只有类A⇒ 真实盲区★) ★★
+# ★★【类B = 把「盘上板 md5 的期望值」写在【页面里的机器块】, 闸自己算 md5 再比】★★
+#   ★活证据: SW/tools/check_debug_header_fw_impact.py (ISS-378) —— 它源码里【没有 32 位字面量】,
+#     钉板 md5 靠的是 SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md 的 ```json …``` 块里的 "baseline"."board_md5" ★
+# ★检测口径 (★代码级可查·不自造判据★): ★(a) 闸自己算盘上板 md5★ + ★(b) 闸读一个【页面/台账】并从中取期望值★
+#   ⇒ 两者同时成立 ⇒ 该闸【判红与否取决于盘上板 md5】⇒ 它就是一道「钉板 md5 的闸」⇒ 必须登记在册 ★
+BOARD_MD5_TOKEN = re.compile(r"(?:board|pcb)[_\-]?md5", re.I)      # ★类B 关键词 (board_md5 / BOARD_MD5 / pcb_md5)★
+PAGE_EXT = (".md", ".json")
 
 # ★证据等级五级白名单 + 禁语 (★照 SW/tools/check_fp_truth_read.py 的现成形状抄★) ★
 EV_WHITELIST = ("[官网]", "[实测]", "[媒体]", "[推算]", "[0数据]")
@@ -147,6 +159,122 @@ def has_reboard_channel(path: str) -> bool:
     if not any(t in txt for t in CHANNEL_AUTH):
         return False
     return True
+
+
+# ★★类B 检测的两个信号 (★cont1 补★) ★★
+def computes_live_board_md5(txt: str) -> bool:
+    """★信号 (a): 闸自己【算】盘上板 md5 (而不是抄一个常量)★"""
+    if re.search(r'"board_md5"\s*:\s*md5\s*\(', txt):
+        return True
+    if re.search(r"'board_md5'\s*:\s*md5\s*\(", txt):
+        return True
+    # md5(BOARD…) / md5_of(…BOARD…) / md5(RELS["board"]) 三种写法
+    for m in re.finditer(r'\bmd5(?:_of)?\s*\(\s*([^)]{0,80})\)', txt):
+        arg = m.group(1)
+        if "BOARD" in arg or 'RELS["board"]' in arg or "RELS['board']" in arg \
+           or '"board"' in arg or "'board'" in arg:
+            return True
+    return False
+
+
+def reads_doc_baseline(txt: str, root: str) -> bool:
+    """★信号 (b): 闸读一个【页面/台账】并从中取板指纹的期望值★
+    (★口径: 闸源码里出现 .md/.json 的仓库相对路径 ⇒ 读它 ⇒ 看那个文件里有没有板 md5 基线★)"""
+    for rel in _doc_paths(txt):
+        p = rel if rel.startswith(("SW/", "HW/", "state/", "MECH/")) else None
+        if p is None:
+            for pre in ("SW/", "HW/", "state/", "MECH/"):
+                if os.path.isfile(os.path.join(root, pre + rel)):
+                    p = pre + rel
+                    break
+        if p is None:
+            continue
+        doc = read_text(os.path.join(root, p))
+        if doc and FULL_MD5 in doc:
+            return True
+    return False
+
+
+def _doc_paths(txt: str) -> set:
+    """★闸源码里引用的仓库内 .md/.json 相对路径★"""
+    cands = set()
+    for m in re.finditer(r'["\']([A-Za-z0-9_./-]+\.(?:md|json))["\']', txt):
+        cands.add(m.group(1))
+    # os.path.join("SW", "X.md")
+    for m in re.finditer(r'os\.path\.join\(\s*["\']([A-Za-z0-9_]+)["\']\s*,\s*["\']([A-Za-z0-9_.-]+\.(?:md|json))["\']', txt):
+        cands.add(m.group(1) + "/" + m.group(2))
+    # os.path.join(ROOT, "SW/X.md")
+    for m in re.finditer(r'os\.path\.join\(\s*ROOT\s*,\s*["\']([A-Za-z0-9_./-]+)["\']', txt):
+        cands.add(m.group(1))
+    return cands
+
+
+def verdict_feeds_failure(txt: str) -> bool:
+    """★信号 (c): 这个比较是不是【喂给判决】(★而不是夹具自证★)★
+
+    ★★判据 (★代码级·可查★): 闸里存在一个「把盘上板 md5 与文档基线比」的比较式,
+      且该比较式所在分支把结果【累积进一个失败清单】(★errs/fails/bad/problems.append★)
+      ⇒ ★这个比较决定闸红不红 ⇒ 它就是一道【钉板 md5 的闸】★
+    ★★而【反向用例夹具】(★selftest★)里的同类比较是 `assert` ⇒ ★那是「证明夹具自己没坏」★
+      ⇒ 不决定盘上真件的判决 ⇒ 不算「钉板 md5 的闸」★★
+      (★活证据: SW/tools/check_demo_panel_spec_r6_selftest.py 的 `assert after != want`
+        是「板真被改了」的自证 ⇒ 不是判红条件★)"""
+    # 找「文档来源名」与「盘上来源名」在同一比较式里出现的行
+    doc_names = set(m.group(1) for m in re.finditer(
+        r'^\s*(\w+)\s*=.*(?:\.get\(|contract|anchors|ledger|baseline|\bbl\b|\bbl_?\w*\b)', txt, re.M))
+    live_names = set(m.group(1) for m in re.finditer(
+        r'^\s*(\w+)\s*=.*(?:\bmd5\s*\(|\bmd5_of\s*\(|board_fingerprint|\bfp\[|\bgot\b)', txt, re.M))
+    if not doc_names or not live_names:
+        return False
+    lines = txt.splitlines()
+    for i, ln in enumerate(lines):
+        m = re.search(r'\b(\w+)\s*(?:==|!=)\s*(\w+)\b', ln)
+        if not m:
+            continue
+        a, b = m.group(1), m.group(2)
+        if a == b:
+            continue
+        if not ((a in doc_names and b in live_names) or (b in doc_names and a in live_names)):
+            continue
+        # ★看这一行及其后两行: 有没有把结果喂给失败清单★
+        window = "\n".join(lines[i:i + 3])
+        if re.search(r'\b\w*(?:errs?|fails?|bad|problems?|errors?)\w*\.append\s*\(', window):
+            return True
+        # ★同一行的三元判断里直接 append 也算 (★一行写法★)
+        if re.search(r'\b\w*(?:errs?|fails?|bad|problems?|errors?)\w*\.append\s*\(', ln):
+            return True
+    return False
+
+
+def detect_pinned_gates(root: str) -> dict:
+    """★扫 SW/tools/*.py 找出【钉板 md5 的闸】(★两个检测类·fail-closed★)★
+
+    ★类A = .py 源码里含那 32 位板 md5 字面量★ (★上一趟只有这一类★)
+    ★类B = 闸自己算盘上板 md5 ★且★ 期望值来自页面/台账里的内嵌基线★
+          (★活证据: ISS-378 的 check_debug_header_fw_impact.py——它源码里没有字面量★)★
+
+    ★★本闸自己【不参与判定】★★ (★它的源码里刻意把 32 位 md5 拼成两段 ⇒ 不含字面量;
+      且它的类B 信号 (b) 会命中自己的清账页 ⇒ 若不排除, 它会把自己报成「未在册」⇒ 自噬★)★"""
+    out = {"A": {}, "B": {}}
+    tools_dir = os.path.join(root, "SW", "tools")
+    if not os.path.isdir(tools_dir):
+        return out
+    self_rel = "SW/tools/check_sw_board_md5_rebase_readiness.py"
+    for fn in sorted(os.listdir(tools_dir)):
+        if not fn.endswith(".py") or ".bak" in fn:
+            continue
+        rel = "SW/tools/" + fn
+        if rel == self_rel:
+            continue                      # ★本闸自己 ⇒ 不参与判定★
+        txt = read_text(os.path.join(root, rel))
+        if not txt:
+            continue
+        if FULL_MD5 in txt:
+            out["A"][rel] = "★.py 内 32 位字面量★"
+        if (computes_live_board_md5(txt) and reads_doc_baseline(txt, root)
+                and verdict_feeds_failure(txt)):
+            out["B"][rel] = "★自算盘上板 md5 + 期望值来自页面/台账内嵌基线 + 该比较喂给判决清单★"
+    return out
 
 
 def load_manifest(page_text: str) -> dict:
@@ -253,26 +381,21 @@ def run_checks(root: str) -> dict:
                             % (f, r.get("line")))
     add("H3", not errs, "【历史留证】类必须真的不许改 (★活判据不许伪装成历史留证★)", errs)
 
-    # ---------- H4 在册 ----------
+    # ---------- H4 在册 (★两个检测类·fail-closed★) ----------
     errs = []
     detected = []
-    tools_dir = os.path.join(root, "SW", "tools")
-    if os.path.isdir(tools_dir):
-        for fn in sorted(os.listdir(tools_dir)):
-            if not fn.endswith(".py") or ".bak" in fn:
-                continue
-            p = os.path.join(tools_dir, fn)
-            rel = "SW/tools/" + fn
-            if rel in [g.get("file") for g in gates]:
-                continue                      # ★本闸自己: 不含 32 位字面量 ⇒ 根本不会被扫到★
-            if FULL_MD5 in read_text(p):
-                detected.append(rel)
+    pin = detect_pinned_gates(root)
+    for rel, why in sorted(pin["A"].items()):
+        detected.append((rel, "类A", why))
+    for rel, why in sorted(pin["B"].items()):
+        detected.append((rel, "类B", why))
     gate_files = {str(g.get("file")) for g in gates}
-    for rel in detected:
+    for rel, kind, why in detected:
         if rel not in gate_files:
-            errs.append("★SW 域有闸 %s 硬钉了板 md5 (32 位字面量) 但它没进 §2 的账 ⇒ "
-                        "★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★" % rel)
-    add("H4", not errs, "SW 域每道【真钉板 md5 的判据脚本】必须登记在册", errs)
+            errs.append("★SW 域有闸 %s 硬钉了板 md5 (%s·%s) 但它没进 §2 的账 ⇒ "
+                        "★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★"
+                        % (rel, kind, why))
+    add("H4", not errs, "SW 域每道【真钉板 md5 的判据脚本】必须登记在册 (类A 字面量 + 类B 页面内嵌基线)", errs)
 
     # ---------- H5 通道 (本单的核心机制) ----------
     errs = []
@@ -456,9 +579,36 @@ def selftest() -> int:
         write_manifest(mp, man)
         return "把台账 SW/SW_MD5_BASELINE_LEDGER.md 加进声明式排除清单 (★想把判据锚藏起来★)"
 
+    # ---- ⑨ 把一道【类B 闸】(页面内嵌基线类) 从 §2 的账里删掉 ⇒ H4 红 (★cont1 补的检测类★) ----
+    def c9(dst):
+        mp = os.path.join(dst, PAGE_REL)
+        man = load_manifest(read_text(mp))
+        man["gates"] = [g for g in man["gates"]
+                        if g["file"] != "SW/tools/check_debug_header_fw_impact.py"]
+        write_manifest(mp, man)
+        return ("把类B 闸 SW/tools/check_debug_header_fw_impact.py (★它源码里【没有 32 位字面量】·"
+                "靠页面内嵌基线钉板 md5★) 从 §2 的账里删掉 ⇒ H4 应当红")
+
+    # ---- ⑩ 把一道【类B 闸】的页面内嵌基线拆掉 ⇒ 它就不再是「钉板 md5 的闸」⇒ H4 应当绿 (★反向自证·防误报★) ----
+    def c10(dst):
+        pg = os.path.join(dst, "SW", "BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md")
+        txt = read_text(pg)
+        txt = txt.replace(FULL_MD5, "0" * 32)       # ★把页面里的板 md5 基线换成假值 ⇒ 信号 (b) 消失★
+        with open(pg, "w", encoding="utf-8") as f:
+            f.write(txt)
+        # ★同时把 §1 清单里【这个文件的全部行】也拿掉 ⇒ 否则 H1 会因「清单过期」而红 (★那是另一个判据★)
+        mp = os.path.join(dst, PAGE_REL)
+        man = load_manifest(read_text(mp))
+        man["refs"] = [r for r in man["refs"]
+                       if r["file"] != "SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md"]
+        write_manifest(mp, man)
+        return ("把类B 闸所读页面里的板 md5 基线换成假值 ⇒ 信号 (b) 消失 ⇒ 它不再被算作「钉板 md5 的闸」"
+                " ⇒ ★H4 应当【绿】(★反向自证: 证明 H4 的类B 判据不是宽放乱抓★)")
+
     for fn, tgt, desc in ((c1, "H1", c1.__doc__), (c2, "H2", None), (c3, "H3", None),
                           (c4, "H4", None), (c5, "H5", None), (c6, "H6", None),
-                          (c7, "H7", None), (c8, "H1", None)):
+                          (c7, "H7", None), (c8, "H1", None), (c9, "H4", None),
+                          (c10, None, None)):
         cases.append((fn, tgt, desc))
 
     npass = 0
@@ -468,10 +618,11 @@ def selftest() -> int:
         what = fn(dst)
         res = run_checks(dst)
         failed = sorted(cid for cid, v in res.items() if not v.get("ok"))
-        ok = (failed == [tgt])
+        # ★tgt 为 None ⇒ 期望【一条都不红】(★反向自证用例 c10 用它: 证明 H4 的类B 判据不是宽放乱抓★)
+        ok = (failed == [] if tgt is None else (failed == [tgt]))
         npass += 1 if ok else 0
         print("  用例 %d · 目标 %s · 红的集合 = %s · %s"
-              % (idx, tgt, failed, "PASS" if ok else "FAIL"))
+              % (idx, tgt if tgt else "无 (★期望全绿★)", failed, "PASS" if ok else "FAIL"))
         print("        手法: %s" % what)
         if not ok:
             for cid, v in res.items():

@@ -34,17 +34,17 @@
 
 | 口径 | 读数 | 复跑命令 |
 |---|---|---|
-| ★**活文件数** ★ | ★**17** ★ | `python3 SW/tools/check_sw_board_md5_rebase_readiness.py` (H1 自扫) |
-| ★**命中行数** ★ | ★**47** ★ | 同上 |
-| ★**命中处数** ★ | ★**57** ★ | 同上 |
-| 三类分布 | ★判据锚 **9** 行 / 规格页引用 **17** 行 / 历史留证 **21** 行 ★ | 同上 |
+| ★**活文件数** ★ | ★**20** ★ (★cont1: 上一趟交卷时 = 17★) | `python3 SW/tools/check_sw_board_md5_rebase_readiness.py` (H1 自扫) |
+| ★**命中行数** ★ | ★**53** ★ (★上一趟 = 47★) | 同上 |
+| ★**命中处数** ★ | ★**63** ★ (★上一趟 = 57★) | 同上 |
+| 三类分布 | ★判据锚 **11** 行 / 规格页引用 **17** 行 / 历史留证 **25** 行 ★ (★上一趟 = 9 / 17 / 21★) | 同上 |
 
 ★**扫描口径 (★与上一趟那套 grep 命令有一处实质差别·见 §1.9★)** ★[实测]
 ★**逐文件遍历 + 逐行计数 (排除 `.bak` / `__pycache__`)** ⇒ ★**不用 `grep -v` 做行级过滤** ★
 
 ---
 
-## ★1 · SW 域 47 行 / 57 处 板 md5 引用逐处清单 (★本单的正题★)
+## ★1 · SW 域 53 行 / 63 处 板 md5 引用逐处清单 (★本单的正题★)
 
 ### ★1.1 · 三类归属的定义 (★判定口径·不是修辞★)
 
@@ -62,72 +62,78 @@
 | ★**不许改** ★ | 永远不许动 |
 | ★**交 main 拍** ★ | 判据方向 / 机制取舍 ⇒ 本单只登记 + 给代价, 不代拍 |
 
-### ★1.3 · 逐处清单 (★47 行·一行一行·不许按文件归并★)
+### ★1.3 · 逐处清单 (★53 行·一行一行·不许按文件归并★)
 
 ★**说明**: ★「原文」列给的是该行的**关键片段** (★全文太长 ⇒ 只截关键部分★); ★「命中处」列 = 该行里 `611b869e` 这个 8 位前缀出现的次数 (★全文 32 位 md5 一律算 1 处·带省略号的 12 位前缀写法也算 1 处★)★
 
 | # | 文件 | 行号 | 命中处 | 原文 (关键片段) | 三类归属 | 处置 | 备注 (为什么这么判/这么处置) |
 |---|---|---|---|---|---|---|---|
-| 1 | `SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md` | 164 | 1 | `…链头取代的历史值 ⇒ 不许照抄 ⇒ 退休; ★它正文里另外那 2 个 (板 611b869e / .kicad_pro 3e504d2b) 是【受保护 5 件的盘上现值…` | 规格页引用 | 随板改 | ★登记项: 板 md5 = 受保护 5 件的盘上现值 ⇒ 那一趟随板改★ |
-| 2 | `SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md` | 217 | 1 | `…1_reanchor_netlist_md5_sw \| NEED-MD5: 611b869e13518c3c023fb178f91a0075 \| PRODUCED-BY…` | 规格页引用 | 随板改 | ★NEED-KEY 登记行 (板 md5 = 盘上现值) ⇒ 那一趟随板改★ |
-| 3 | `SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md` | 14 | 1 | `…HW/PCB/demo_mainboard.kicad_pcb` ★ \| `611b869e13518c3c023fb178f91a0075` \| `2026-11-0…` | 规格页引用 | 随板改 | ★§1 清单第 1 行 (板 + md5 + mtime + size) ⇒ 它是 ISS-363 闸 F4 的被检对象 ⇒ 那一趟随板改★ |
-| 4 | `SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md` | 75 | 1 | `"board_md5": "611b869e13518c3c023fb178f91a0075",` | 规格页引用 | 随板改 | ★页里抄了判据脚本的 PROTECTED_MD5 字面量 ⇒ 那一趟随板改 (它抄的是判据, 不是判决源)★ |
-| 5 | `SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md` | 213 | 1 | `…d.kicad_pcb` \| 2026-11-06 07:07:17 \| `611b869e13518c3c023fb178f91a0075` (= 基线) \| 未动…` | 规格页引用 | 随板改 | ★现状表 (板 md5 = 基线 · 未动) ⇒ 那一趟随板改★ |
-| 6 | `SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md` | 221 | 1 | `…`HW/PCB/demo_mainboard.kicad_pcb` \| `611b869e13518c3c023fb178f91a0075` \| 4,940,213…` | 规格页引用 | 随板改 | ★板双证表 (md5 / size / mtime) ⇒ 那一趟随板改★ |
-| 7 | `SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md` | 420 | 1 | `…只发生在 `tmp/iss370_sbx/` 的副本上 \| ★板 md5 `611b869e13518c3c023fb178f91a0075` + mtime `202…` | 历史留证 | 不许改 | ★零写板自证留痕 (交卷前后逐字节相同) ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
-| 8 | `SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md` | 36 | 1 | `\| R8 \| 板 md5 / mtime \| `611b869e13518c3c023fb178f91a0075` / `2026-11-0…` | 规格页引用 | 随板改 | ★R8 判据表 (板 md5 / mtime) ⇒ 那一趟随板改★ |
-| 9 | `SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md` | 481 | 1 | `\| 零写板 \| 板 md5 `611b869e13518c3c023fb178f91a0075` · mtime `202…` | 历史留证 | 不许改 | ★零写板留痕 (未变 [实测]) ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
-| 10 | `SW/BOARD_ONEPASS_SW_SYNC.md` | 38 | 1 | `…上 = §4 三方案★) ★ \| ★**[实测]** 盘上板 md5 = `611b869e13518c3c023fb178f91a0075` · 台账 §1 `har…` | 规格页引用 | 随板改 | ★★【SW01_PCB_MD5 清单第 1 条的 current_state】⇒ 它被 SW/tools/check_onepass_sw_sync.py 的 W5 当【现状值】读 ⇒ ★那一趟不换基线 ⇒ W5 当场红 (沙盒 T2 实测: B 闸 rc=1)★ ⇒ 必须随板改★ |
-| 11 | `SW/BOARD_ONEPASS_SW_SYNC.md` | 94 | 1 | `\| SW 台账 `hard_protected` 钉死的板 md5 \| `611b869e13518c3c023fb178f91a0075` \| `SW/SW_MD5…` | 规格页引用 | 随板改 | ★现状表 (台账钉死的板 md5) ⇒ 那一趟随板改★ |
-| 12 | `SW/BOARD_ONEPASS_SW_SYNC.md` | 167 | 1 | `…"current_state": "[实测] 盘上板 md5 = 611b869e13518c3c023fb178f91a0075 · 台账 §1 hard_…` | 规格页引用 | 随板改 | ★§6 机器可读 JSON 块里的 current_state (W5 读它) ⇒ 那一趟随板改★ |
-| 13 | `SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` | 328 | 1 | `…cad_pcb HW/netlist_v1.csv           # 611b869e… / c78f9912… (逐字节未变)` | 规格页引用 | 随板改 | ★命令式复现注记 (12 位前缀) ⇒ 台账 §2 S-04 已定口径「保留 + 标注 · 命令式引用跑出来就是现值」⇒ 那一趟随板改★ |
-| 14 | `SW/LOAD_SWITCH_SELECTION_FACTS.md` | 338 | 1 | `…本单对 `HW/` 的写入量 = **0 字节** (只读)。板 md5 `611b869e…` 自始至终一字未改。` | 历史留证 | 不许改 | ★md5 漂移归属叙述 (板 md5 自始至终一字未改) ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
-| 15 | `SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md` | 18 | 1 | `…`tmp/iss327/` 的沙盒副本上做; 真件板只读 \| 板 md5 `611b869e13518c3c023fb178f91a0075` + mtime `202…` | 历史留证 | 不许改 | ★零写板留痕 (交卷前后逐字节相同) ⇒ 不许改★ |
-| 16 | `SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md` | 63 | 1 | `★**期望读数**: ★**板 md5 ≠ `611b869e13518c3c023fb178f91a0075`** (★改了板 ⇒ md…` | 规格页引用 | 随板改 | ★【期望读数: 板 md5 ≠ 611b869e…】(改了板 ⇒ md5 必须变) ⇒ 这是改板那一趟的判据式描述 ⇒ 那一趟随板改 (改成「≠ <新板 md5>」)★ |
-| 17 | `SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md` | 310 | 1 | `…的原文是 `基线就不绿: ['R6 硬保护: … (fadf2c2f… ≠ 611b869e…)', 'R6 台账链: …']` ⇒ ★**它红在步 7 (md5 重锚…` | 历史留证 | 不许改 | ★某一次实测的报错原文引用 (rc=2 的原文) ⇒ 不许改★ |
-| 18 | `SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md` | 508 | 1 | `…单号>/md5_pre_board.txt` \| ★**改前的板指纹 = `611b869e13518c3c023fb178f91a0075`★** ⇒ ★**证明「板…` | 规格页引用 | 随板改 | ★流程表「板 md5 (改前)」⇒ 那一趟的改前指纹 = 新基线 ⇒ 那一趟随板改★ |
-| 19 | `SW/ONETRIP_SW_RENAME_SAFETY.md` | 409 | 1 | `…m HW/PCB/demo_mainboard.kicad_pcb` = `611b869e13518c3c023fb178f91a0075` · mtime = `2…` | 历史留证 | 不许改 | ★零写板留痕 ⇒ 不许改★ |
-| 20 | `SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md` | 492 | 1 | `…HW/PCB/demo_mainboard.kicad_pcb (… ≠ 611b869e13518c3c023fb178f91a0075)']` | 历史留证 | 不许改 | ★反向用例的报错原文引用 ⇒ 不许改★ |
-| 21 | `SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md` | 619 | 1 | `…"current_state": "[实测] 盘上板 md5 = 611b869e13518c3c023fb178f91a0075 · 台账 §1 hard_…` | 规格页引用 | 随板改 | ★抄了清单页的 current_state (W5 同源口径) ⇒ 那一趟随板改★ |
-| 22 | `SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md` | 870 | 1 | `…/PCB/demo_mainboard.kicad_pcb` md5 = `611b869e13518c3c023fb178f91a0075` · mtime = `2…` | 历史留证 | 不许改 | ★零写板留痕 ⇒ 不许改★ |
-| 23 | `SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md` | 211 | 1 | `…b` + `stat -c '%y'` 开工前后各一次 \| ★**md5 `611b869e13518c3c023fb178f91a0075` / mtime `202…` | 历史留证 | 不许改 | ★零写板留痕 ⇒ 不许改★ |
-| 24 | `SW/SW_MD5_BASELINE_LEDGER.md` | 61 | 1 | `md5: 611b869e13518c3c023fb178f91a0075` | 判据锚 | 不许改 | ★§1 锚点块 hard_protected[板].md5 = 保护基线 ⇒ ISS-284 ④: 保护基线必须留在台账链尾 ⇒ 永远不许改★ |
-| 25 | `SW/SW_MD5_BASELINE_LEDGER.md` | 114 | 1 | `…`HW/PCB/demo_mainboard.kicad_pcb` \| `611b869e13518c3c023fb178f91a0075` \| `<新板 md5>`…` | 判据锚 | 交 main 拍 | ★§1 ISS-284 ⑥ 给 main 的落表台账行格式模板 (改前 md5 = 当次改板前的值) ⇒ 那一趟由 main 照此写新行; ★模板本身要不要换成新基线 = main 拍 (代价: 不换 = 模板永远是旧基线, 换 = 模板失去「格式样例」的恒定性与可读性)★ |
-| 26 | `SW/SW_MD5_BASELINE_LEDGER.md` | 131 | 1 | `…网表 `c78f9912…` / 脚表 `4814617e…` / 板 `611b869e…` / `.kicad_pro` `3e504d2b…` \| ★**恒红*…` | 规格页引用 | 随板改 | ★§2 S-01 行 = check_demo_panel_spec 的 PROTECTED_MD5 字面量【现状登记】⇒ 改板那一趟随板改★ |
-| 27 | `SW/SW_MD5_BASELINE_LEDGER.md` | 134 | 1 | `…PLAN.md` L328 \| ★**文档 · 复现命令注记** ★ \| `611b869e… / c78f9912…` (12 位前缀) \| 文档口径**过期** \|…` | 规格页引用 | 随板改 | ★§2 S-04 行 = DEMO_BOARD_60MS_VERDICT_PLAN L328 的【现状登记】⇒ 改板那一趟随板改★ |
-| 28 | `SW/SW_MD5_BASELINE_LEDGER.md` | 164 | 2 | `…脚表 `ef436a37…` / BOM `2a730574…` / 板 `611b869e…` / `.kicad_pro` `3e504d2b…` 四件逐字节不变…` | 历史留证 | 不许改 | ★§3 R-08 留痕行 (ISS-249 / ISS-254 第 5 跳重锚当时的事实) ⇒ 改它 = 改历史★ |
-| 29 | `SW/SW_MD5_BASELINE_LEDGER.md` | 166 | 2 | `…94642d07…` 不在 R6 的受管真源里 ⇒ 只登记不许改★; 板 `611b869e…` / `.kicad_pro` `3e504d2b…` 逐字节不变 ⇒…` | 历史留证 | 不许改 | ★§3 R-09 留痕行 (ISS-257 / ISS-258 第 6 跳重锚当时的事实) ⇒ 改它 = 改历史★ |
-| 30 | `SW/SW_MD5_BASELINE_LEDGER.md` | 168 | 2 | `…/ 网表 / 脚表 / BOM 五个 md5 交卷前后逐字节不变** (★`611b869e…` / `3e504d2b…` / `e06c1dd6…` / `287e…` | 历史留证 | 不许改 | ★§3 R-10 留痕行 (ISS-275 判决源换源当时的事实) ⇒ 改它 = 改历史★ |
-| 31 | `SW/SW_MD5_BASELINE_LEDGER.md` | 170 | 3 | `…W/PCB/demo_mainboard.kicad_pcb` (… ≠ `611b869e…`)」 ⇒ ★**「板只改一次」那一趟 (S1~S13) 合法地就要改板…` | 历史留证 | 不许改 | ★§3 R-11 留痕行 (ISS-279「设计上无路」当时的事实) ⇒ 改它 = 改历史★ |
-| 32 | `SW/SW_MD5_BASELINE_LEDGER.md` | 171 | 3 | `…W/PCB/demo_mainboard.kicad_pcb` (… ≠ `611b869e…`)」 ⇒ ★**那一趟合法改板当天 SW R6 必红, 而手改 `har…` | 历史留证 | 不许改 | ★§3 R-12 留痕行 (ISS-284 合法改板机制落地当时的事实) ⇒ 改它 = 改历史★ |
-| 33 | `SW/SW_MD5_BASELINE_LEDGER.md` | 172 | 2 | `…o` 的两个 md5 仍然一个字不许动** (★ISS-279 交卷基线 `611b869e…` / `3e504d2b…`★) ⇒ ★**「不许手改 md5 凑绿」照…` | 历史留证 | 不许改 | ★§3 R-13 留痕行 (ISS-279 收口轮 W6 基线口径订正当时的事实) ⇒ 改它 = 改历史★ |
-| 34 | `SW/SW_MD5_BASELINE_LEDGER.md` | 173 | 2 | `…个字节**★ ⇒ ★**板 / `.kicad_pro` 逐字节不变 (★`611b869e…` / `3e504d2b…★)** ★ \| ★**`python3 SW…` | 历史留证 | 不许改 | ★§3 R-14 留痕行 (ISS-279 收口轮 W6 链头判据收严当时的事实) ⇒ 改它 = 改历史★ ★★【本机新发现 ★ 上两趟那套 `grep -v '\.bak'` 的逐行清单把这一行漏掉了! ★ 原因: 这一行的正文里含 `state/.bak_iss220/…` ⇒ 被那条过滤规则【连带】过滤 ⇒ 计数 (57 处) 对, 但【逐行清单】少一行 ⇒ 本单改用逐文件遍历 + 逐行计数 (★不受该连带过滤影响★)★] |
-| 35 | `SW/SW_MD5_BASELINE_LEDGER.md` | 181 | 1 | `…7` (同批同刻, ★不在 R6 受管真源里 ⇒ 只登记不许改★); 板 `611b869e13518c3c023fb178f91a0075` / `.kicad_pr…` | 历史留证 | 不许改 | ★§3 追加段 (ISS-258 第 6 跳重锚当时的事实) ⇒ 不许改★ |
-| 36 | `SW/SW_MD5_BASELINE_LEDGER.md` | 183 | 1 | `…9b93607` (★不在 R6 受管真源里 ⇒ 只登记不许改★); 板 `611b869e13518c3c023fb178f91a0075` / `.kicad_pr…` | 历史留证 | 不许改 | ★§3 追加段 (ISS-275 判决源换源当时的事实) ⇒ 不许改★ |
-| 37 | `SW/SW_NEEDS_TRIAGE.md` | 186 | 1 | `…7f62ac3…/脚表 a4270120…/BOM 5d02bece…/板 611b869e… 四个 md5 逐字节不变) ⇒ 且该禁令被新闸 SW/tools/che…` | 历史留证 | 不许改 | ★已闭合 need 的闭环注 (四个 md5 逐字节不变) ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
-| 38 | `SW/SW_NEEDS_TRIAGE.md` | 346 | 1 | `\| 板 md5 (钉板真值) \| `611b869e13518c3c023fb178f91a0075` + mtime `202…` | 规格页引用 | 随板改 | ★判据表行「板 md5 (钉板真值)」⇒ 那一趟随板改★ |
-| 39 | `SW/SW_NEEDS_TRIAGE.md` | 359 | 1 | `\| 板 md5 `611b869e13518c3c023fb178f91a0075` + mtime `202…` | 历史留证 | 不许改 | ★证据表行 ([实测] · 交卷前后逐字节相同) ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
-| 40 | `SW/research/ISS250_r6_复核记录.md` | 25 | 1 | `….py` 实跑, 2026-11-17 05:40★)**: 板 md5 `611b869e13518c3c023fb178f91a0075` (★自 11-06 07…` | 历史留证 | 不许改 | ★★【本单唯一的「某次复核当时的读数留痕」⇒ 永远不许改】★★ 它的正文里还有板侧硬数字 (板 md5 / 18092 段走线 / 433 过孔 / unconnected=45 / 板↔网表 rc=1 / R3 矛盾 2 条 / G1 仍开) ⇒ 那都是 2026-11-17 05:40 的读数 ⇒ 一律不许改 |
-| 41 | `SW/tools/check_fp_truth_read.py` | 87 | 1 | `BOARD_BASELINE_MD5 = "611b869e13518c3c023fb178f91a0075"` | 判据锚 | 交 main 拍 | ★F5 的板 md5 硬比较目标 (ISS-363 今天 17:27 交付) ⇒ 改板当天必红 ⇒ ★手改字面量 = 挖坑 ⇒ 不许★ ⇒ 必须走 §2 补丁 P-C ⇒ 谁落/何时落 = main 排期 |
-| 42 | `SW/tools/check_onepass_legb_sw_impact.py` | 70 | 1 | `"board_md5": "611b869e13518c3c023fb178f91a0075",` | 判据锚 | 交 main 拍 | ★G8 的 PROTECTED_MD5['board_md5'] (ISS-370 今天 19:50 交付) ⇒ 改板当天必红 ⇒ ★手改字面量 = 挖坑 ⇒ 不许★ ⇒ 必须走 §2 补丁 P-D ⇒ 谁落/何时落 = main 排期 |
-| 43 | `SW/tools/check_onepass_sw_sync.py` | 109 | 1 | `…"HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",` | 判据锚 | 不许改 | ★ANCHOR_MD5 = 锚点防篡改副本 ⇒ 它的角色是【盯住台账锚点里的保护基线有没有被手改】⇒ ISS-284 语义: 锚点里的 md5 永远不许改★ (已跑通的合法改板通道闸) |
-| 44 | `SW/tools/check_onepass_sw_sync.py` | 806 | 2 | `"611b869e13518c3c023fb178f91a0075", "611b869e13…` | 判据锚 | 不许改 | ★--selftest 夹具里的假 md5 对 (基准/改后) ⇒ 是反向用例的输入, 不是判决锚★ |
-| 45 | `SW/tools/check_onepass_sw_sync.py` | 829 | 1 | `assert "611b869e13518c3c023fb178f91a0075" in t` | 判据锚 | 不许改 | ★--selftest 夹具断言 ⇒ 同上★ |
-| 46 | `SW/tools/check_onepass_sw_sync.py` | 831 | 1 | `f.write(t.replace("md5: 611b869e13518c3c023fb178f91a0075",` | 判据锚 | 不许改 | ★--selftest 夹具写入 (把基线改成假值) ⇒ 同上★ |
-| 47 | `SW/tools/check_onepass_sw_sync.py` | 832 | 1 | `"md5: 611b869e13518c3c023fb178f91a0076", 1))` | 判据锚 | 不许改 | ★--selftest 夹具写入 (假值那一侧) ⇒ 同上★ |
+| 1 | `SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md` | 328 | 1 | `…t -c '%y %s'`（开工前 / 交卷后各一次）★ \| md5 **`611b869e13518c3c023fb178f91a0075`** · mtime **…` | 历史留证 | 不许改 | ★【cont1 新增 · ISS-378 页 §7 边界自证表「零写板」那一行】★ ⇒ 记的是 2026-11-24 02:4x 交卷当时的三项读数 ⇒ 不许改★ |
+| 2 | `SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md` | 397 | 1 | `"board_md5": "611b869e13518c3c023fb178f91a0075",` | 判据锚 | 交 main 拍 | ★★【cont1 新增 · ★★本单最要紧的一条★★】★★ 这一行在 ```json iss378_contract``` 机器块的 ★"baseline"."board_md5"★ ⇒ ★它是闸 SW/tools/check_debug_header_fw_impact.py 的 W7 (w7_zero_write) 的【判决源】: W7 拿机器块里的 baseline.board_md5 跟盘上实测比 ⇒ 不等就红 ⇒ ★所以它【不是规格页引用】, 是【判据锚】★★ ⇒ ★★它是本单 H4 检测盲区的活证据: 该闸源码里【没有 32 位字面量】(它自己算 md5), 钉板 md5 靠的是【页面内嵌基线】⇒ 上一趟只扫 .py 字面量的检测网【抓不到它】★★ ⇒ 必须走 §2 补丁 P-G ⇒ 谁落/何时落 = main 排期 |
+| 3 | `SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md` | 282 | 1 | `…at -c '%y %s'`（开工前 / 交卷后各一次） \| md5 **`611b869e13518c3c023fb178f91a0075`** · mtime **…` | 历史留证 | 不许改 | ★【cont1 新增 · ISS-375 页 §4-2 边界自证表「零写板」那一行】★ ⇒ 它记的是 2026-11-24 02:0x 交卷当时的三项读数 ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
+| 4 | `SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md` | 338 | 1 | `…** (板 md5 / mtime / size 三项未动, 板指纹仍为 `611b869e13518c3c023fb178f91a0075` / `2026-11-0…` | 历史留证 | 不许改 | ★【cont1 新增 · ISS-375 页【追加式订正 (2026-11-24 02:5x)】段末的「板指纹仍为 …」】★ ⇒ 它记的是那个追加时刻的事实 ⇒ 不许改★ |
+| 5 | `SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md` | 357 | 1 | `…无冲突** (板 md5 / mtime / size 三项未动, 仍为 `611b869e13518c3c023fb178f91a0075` / `2026-11-0…` | 历史留证 | 不许改 | ★【cont1 新增 · ISS-375 页【追加式订正 (2026-11-24 04:3x · cont3)】段首的「板 md5 / mtime / size 三项未动, 仍为 …」】★ ⇒ 它记的是那个追加时刻的事实 ⇒ 不许改★ |
+| 6 | `SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md` | 164 | 1 | `…链头取代的历史值 ⇒ 不许照抄 ⇒ 退休; ★它正文里另外那 2 个 (板 611b869e / .kicad_pro 3e504d2b) 是【受保护 5 件的盘上现值…` | 规格页引用 | 随板改 | ★登记项: 板 md5 = 受保护 5 件的盘上现值 ⇒ 那一趟随板改★ |
+| 7 | `SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md` | 217 | 1 | `…1_reanchor_netlist_md5_sw \| NEED-MD5: 611b869e13518c3c023fb178f91a0075 \| PRODUCED-BY…` | 规格页引用 | 随板改 | ★NEED-KEY 登记行 (板 md5 = 盘上现值) ⇒ 那一趟随板改★ |
+| 8 | `SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md` | 14 | 1 | `…HW/PCB/demo_mainboard.kicad_pcb` ★ \| `611b869e13518c3c023fb178f91a0075` \| `2026-11-0…` | 规格页引用 | 随板改 | ★§1 清单第 1 行 (板 + md5 + mtime + size) ⇒ 它是 ISS-363 闸 F4 的被检对象 ⇒ 那一趟随板改★ |
+| 9 | `SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md` | 75 | 1 | `"board_md5": "611b869e13518c3c023fb178f91a0075",` | 规格页引用 | 随板改 | ★页里抄了判据脚本的 PROTECTED_MD5 字面量 ⇒ 那一趟随板改 (它抄的是判据, 不是判决源)★ |
+| 10 | `SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md` | 213 | 1 | `…d.kicad_pcb` \| 2026-11-06 07:07:17 \| `611b869e13518c3c023fb178f91a0075` (= 基线) \| 未动…` | 规格页引用 | 随板改 | ★现状表 (板 md5 = 基线 · 未动) ⇒ 那一趟随板改★ |
+| 11 | `SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md` | 221 | 1 | `…`HW/PCB/demo_mainboard.kicad_pcb` \| `611b869e13518c3c023fb178f91a0075` \| 4,940,213…` | 规格页引用 | 随板改 | ★板双证表 (md5 / size / mtime) ⇒ 那一趟随板改★ |
+| 12 | `SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md` | 420 | 1 | `…只发生在 `tmp/iss370_sbx/` 的副本上 \| ★板 md5 `611b869e13518c3c023fb178f91a0075` + mtime `202…` | 历史留证 | 不许改 | ★零写板自证留痕 (交卷前后逐字节相同) ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
+| 13 | `SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md` | 36 | 1 | `\| R8 \| 板 md5 / mtime \| `611b869e13518c3c023fb178f91a0075` / `2026-11-0…` | 规格页引用 | 随板改 | ★R8 判据表 (板 md5 / mtime) ⇒ 那一趟随板改★ |
+| 14 | `SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md` | 481 | 1 | `\| 零写板 \| 板 md5 `611b869e13518c3c023fb178f91a0075` · mtime `202…` | 历史留证 | 不许改 | ★零写板留痕 (未变 [实测]) ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
+| 15 | `SW/BOARD_ONEPASS_SW_SYNC.md` | 38 | 1 | `…上 = §4 三方案★) ★ \| ★**[实测]** 盘上板 md5 = `611b869e13518c3c023fb178f91a0075` · 台账 §1 `har…` | 规格页引用 | 随板改 | ★★【SW01_PCB_MD5 清单第 1 条的 current_state】⇒ 它被 SW/tools/check_onepass_sw_sync.py 的 W5 当【现状值】读 ⇒ ★那一趟不换基线 ⇒ W5 当场红 (沙盒 T2 实测: B 闸 rc=1)★ ⇒ 必须随板改★ |
+| 16 | `SW/BOARD_ONEPASS_SW_SYNC.md` | 94 | 1 | `\| SW 台账 `hard_protected` 钉死的板 md5 \| `611b869e13518c3c023fb178f91a0075` \| `SW/SW_MD5…` | 规格页引用 | 随板改 | ★现状表 (台账钉死的板 md5) ⇒ 那一趟随板改★ |
+| 17 | `SW/BOARD_ONEPASS_SW_SYNC.md` | 167 | 1 | `…"current_state": "[实测] 盘上板 md5 = 611b869e13518c3c023fb178f91a0075 · 台账 §1 hard_…` | 规格页引用 | 随板改 | ★§6 机器可读 JSON 块里的 current_state (W5 读它) ⇒ 那一趟随板改★ |
+| 18 | `SW/DEMO_BOARD_60MS_VERDICT_PLAN.md` | 328 | 1 | `…cad_pcb HW/netlist_v1.csv           # 611b869e… / c78f9912… (逐字节未变)` | 规格页引用 | 随板改 | ★命令式复现注记 (12 位前缀) ⇒ 台账 §2 S-04 已定口径「保留 + 标注 · 命令式引用跑出来就是现值」⇒ 那一趟随板改★ |
+| 19 | `SW/LOAD_SWITCH_SELECTION_FACTS.md` | 338 | 1 | `…本单对 `HW/` 的写入量 = **0 字节** (只读)。板 md5 `611b869e…` 自始至终一字未改。` | 历史留证 | 不许改 | ★md5 漂移归属叙述 (板 md5 自始至终一字未改) ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
+| 20 | `SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md` | 18 | 1 | `…`tmp/iss327/` 的沙盒副本上做; 真件板只读 \| 板 md5 `611b869e13518c3c023fb178f91a0075` + mtime `202…` | 历史留证 | 不许改 | ★零写板留痕 (交卷前后逐字节相同) ⇒ 不许改★ |
+| 21 | `SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md` | 63 | 1 | `★**期望读数**: ★**板 md5 ≠ `611b869e13518c3c023fb178f91a0075`** (★改了板 ⇒ md…` | 规格页引用 | 随板改 | ★【期望读数: 板 md5 ≠ 611b869e…】(改了板 ⇒ md5 必须变) ⇒ 这是改板那一趟的判据式描述 ⇒ 那一趟随板改 (改成「≠ <新板 md5>」)★ |
+| 22 | `SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md` | 310 | 1 | `…的原文是 `基线就不绿: ['R6 硬保护: … (fadf2c2f… ≠ 611b869e…)', 'R6 台账链: …']` ⇒ ★**它红在步 7 (md5 重锚…` | 历史留证 | 不许改 | ★某一次实测的报错原文引用 (rc=2 的原文) ⇒ 不许改★ |
+| 23 | `SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md` | 508 | 1 | `…单号>/md5_pre_board.txt` \| ★**改前的板指纹 = `611b869e13518c3c023fb178f91a0075`★** ⇒ ★**证明「板…` | 规格页引用 | 随板改 | ★流程表「板 md5 (改前)」⇒ 那一趟的改前指纹 = 新基线 ⇒ 那一趟随板改★ |
+| 24 | `SW/ONETRIP_SW_RENAME_SAFETY.md` | 409 | 1 | `…m HW/PCB/demo_mainboard.kicad_pcb` = `611b869e13518c3c023fb178f91a0075` · mtime = `2…` | 历史留证 | 不许改 | ★零写板留痕 ⇒ 不许改★ |
+| 25 | `SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md` | 492 | 1 | `…HW/PCB/demo_mainboard.kicad_pcb (… ≠ 611b869e13518c3c023fb178f91a0075)']` | 历史留证 | 不许改 | ★反向用例的报错原文引用 ⇒ 不许改★ |
+| 26 | `SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md` | 619 | 1 | `…"current_state": "[实测] 盘上板 md5 = 611b869e13518c3c023fb178f91a0075 · 台账 §1 hard_…` | 规格页引用 | 随板改 | ★抄了清单页的 current_state (W5 同源口径) ⇒ 那一趟随板改★ |
+| 27 | `SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md` | 870 | 1 | `…/PCB/demo_mainboard.kicad_pcb` md5 = `611b869e13518c3c023fb178f91a0075` · mtime = `2…` | 历史留证 | 不许改 | ★零写板留痕 ⇒ 不许改★ |
+| 28 | `SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md` | 211 | 1 | `…b` + `stat -c '%y'` 开工前后各一次 \| ★**md5 `611b869e13518c3c023fb178f91a0075` / mtime `202…` | 历史留证 | 不许改 | ★零写板留痕 ⇒ 不许改★ |
+| 29 | `SW/SW_MD5_BASELINE_LEDGER.md` | 61 | 1 | `md5: 611b869e13518c3c023fb178f91a0075` | 判据锚 | 不许改 | ★§1 锚点块 hard_protected[板].md5 = 保护基线 ⇒ ISS-284 ④: 保护基线必须留在台账链尾 ⇒ 永远不许改★ |
+| 30 | `SW/SW_MD5_BASELINE_LEDGER.md` | 114 | 1 | `…`HW/PCB/demo_mainboard.kicad_pcb` \| `611b869e13518c3c023fb178f91a0075` \| `<新板 md5>`…` | 判据锚 | 交 main 拍 | ★§1 ISS-284 ⑥ 给 main 的落表台账行格式模板 (改前 md5 = 当次改板前的值) ⇒ 那一趟由 main 照此写新行; ★模板本身要不要换成新基线 = main 拍 (代价: 不换 = 模板永远是旧基线, 换 = 模板失去「格式样例」的恒定性与可读性)★ |
+| 31 | `SW/SW_MD5_BASELINE_LEDGER.md` | 131 | 1 | `…网表 `c78f9912…` / 脚表 `4814617e…` / 板 `611b869e…` / `.kicad_pro` `3e504d2b…` \| ★**恒红*…` | 规格页引用 | 随板改 | ★§2 S-01 行 = check_demo_panel_spec 的 PROTECTED_MD5 字面量【现状登记】⇒ 改板那一趟随板改★ |
+| 32 | `SW/SW_MD5_BASELINE_LEDGER.md` | 134 | 1 | `…PLAN.md` L328 \| ★**文档 · 复现命令注记** ★ \| `611b869e… / c78f9912…` (12 位前缀) \| 文档口径**过期** \|…` | 规格页引用 | 随板改 | ★§2 S-04 行 = DEMO_BOARD_60MS_VERDICT_PLAN L328 的【现状登记】⇒ 改板那一趟随板改★ |
+| 33 | `SW/SW_MD5_BASELINE_LEDGER.md` | 164 | 2 | `…脚表 `ef436a37…` / BOM `2a730574…` / 板 `611b869e…` / `.kicad_pro` `3e504d2b…` 四件逐字节不变…` | 历史留证 | 不许改 | ★§3 R-08 留痕行 (ISS-249 / ISS-254 第 5 跳重锚当时的事实) ⇒ 改它 = 改历史★ |
+| 34 | `SW/SW_MD5_BASELINE_LEDGER.md` | 166 | 2 | `…94642d07…` 不在 R6 的受管真源里 ⇒ 只登记不许改★; 板 `611b869e…` / `.kicad_pro` `3e504d2b…` 逐字节不变 ⇒…` | 历史留证 | 不许改 | ★§3 R-09 留痕行 (ISS-257 / ISS-258 第 6 跳重锚当时的事实) ⇒ 改它 = 改历史★ |
+| 35 | `SW/SW_MD5_BASELINE_LEDGER.md` | 168 | 2 | `…/ 网表 / 脚表 / BOM 五个 md5 交卷前后逐字节不变** (★`611b869e…` / `3e504d2b…` / `e06c1dd6…` / `287e…` | 历史留证 | 不许改 | ★§3 R-10 留痕行 (ISS-275 判决源换源当时的事实) ⇒ 改它 = 改历史★ |
+| 36 | `SW/SW_MD5_BASELINE_LEDGER.md` | 170 | 3 | `…W/PCB/demo_mainboard.kicad_pcb` (… ≠ `611b869e…`)」 ⇒ ★**「板只改一次」那一趟 (S1~S13) 合法地就要改板…` | 历史留证 | 不许改 | ★§3 R-11 留痕行 (ISS-279「设计上无路」当时的事实) ⇒ 改它 = 改历史★ |
+| 37 | `SW/SW_MD5_BASELINE_LEDGER.md` | 171 | 3 | `…W/PCB/demo_mainboard.kicad_pcb` (… ≠ `611b869e…`)」 ⇒ ★**那一趟合法改板当天 SW R6 必红, 而手改 `har…` | 历史留证 | 不许改 | ★§3 R-12 留痕行 (ISS-284 合法改板机制落地当时的事实) ⇒ 改它 = 改历史★ |
+| 38 | `SW/SW_MD5_BASELINE_LEDGER.md` | 172 | 2 | `…o` 的两个 md5 仍然一个字不许动** (★ISS-279 交卷基线 `611b869e…` / `3e504d2b…`★) ⇒ ★**「不许手改 md5 凑绿」照…` | 历史留证 | 不许改 | ★§3 R-13 留痕行 (ISS-279 收口轮 W6 基线口径订正当时的事实) ⇒ 改它 = 改历史★ |
+| 39 | `SW/SW_MD5_BASELINE_LEDGER.md` | 173 | 2 | `…个字节**★ ⇒ ★**板 / `.kicad_pro` 逐字节不变 (★`611b869e…` / `3e504d2b…★)** ★ \| ★**`python3 SW…` | 历史留证 | 不许改 | ★§3 R-14 留痕行 (ISS-279 收口轮 W6 链头判据收严当时的事实) ⇒ 改它 = 改历史★ ★★【本机新发现 ★ 上两趟那套 `grep -v '\.bak'` 的逐行清单把这一行漏掉了! ★ 原因: 这一行的正文里含 `state/.bak_iss220/…` ⇒ 被那条过滤规则【连带】过滤 ⇒ 计数 (57 处) 对, 但【逐行清单】少一行 ⇒ 本单改用逐文件遍历 + 逐行计数 (★不受该连带过滤影响★)★] |
+| 40 | `SW/SW_MD5_BASELINE_LEDGER.md` | 181 | 1 | `…7` (同批同刻, ★不在 R6 受管真源里 ⇒ 只登记不许改★); 板 `611b869e13518c3c023fb178f91a0075` / `.kicad_pr…` | 历史留证 | 不许改 | ★§3 追加段 (ISS-258 第 6 跳重锚当时的事实) ⇒ 不许改★ |
+| 41 | `SW/SW_MD5_BASELINE_LEDGER.md` | 183 | 1 | `…9b93607` (★不在 R6 受管真源里 ⇒ 只登记不许改★); 板 `611b869e13518c3c023fb178f91a0075` / `.kicad_pr…` | 历史留证 | 不许改 | ★§3 追加段 (ISS-275 判决源换源当时的事实) ⇒ 不许改★ |
+| 42 | `SW/SW_NEEDS_TRIAGE.md` | 186 | 1 | `…7f62ac3…/脚表 a4270120…/BOM 5d02bece…/板 611b869e… 四个 md5 逐字节不变) ⇒ 且该禁令被新闸 SW/tools/che…` | 历史留证 | 不许改 | ★已闭合 need 的闭环注 (四个 md5 逐字节不变) ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
+| 43 | `SW/SW_NEEDS_TRIAGE.md` | 346 | 1 | `\| 板 md5 (钉板真值) \| `611b869e13518c3c023fb178f91a0075` + mtime `202…` | 规格页引用 | 随板改 | ★判据表行「板 md5 (钉板真值)」⇒ 那一趟随板改★ |
+| 44 | `SW/SW_NEEDS_TRIAGE.md` | 359 | 1 | `\| 板 md5 `611b869e13518c3c023fb178f91a0075` + mtime `202…` | 历史留证 | 不许改 | ★证据表行 ([实测] · 交卷前后逐字节相同) ⇒ 某一次交卷当时的事实 ⇒ 不许改★ |
+| 45 | `SW/research/ISS250_r6_复核记录.md` | 25 | 1 | `….py` 实跑, 2026-11-17 05:40★)**: 板 md5 `611b869e13518c3c023fb178f91a0075` (★自 11-06 07…` | 历史留证 | 不许改 | ★★【本单唯一的「某次复核当时的读数留痕」⇒ 永远不许改】★★ 它的正文里还有板侧硬数字 (板 md5 / 18092 段走线 / 433 过孔 / unconnected=45 / 板↔网表 rc=1 / R3 矛盾 2 条 / G1 仍开) ⇒ 那都是 2026-11-17 05:40 的读数 ⇒ 一律不许改 |
+| 46 | `SW/tools/check_debug_pin_order_contract.py` | 53 | 1 | `BOARD_MD5 = "611b869e13518c3c023fb178f91a0075"` | 判据锚 | 交 main 拍 | ★★【cont1 新增 · ISS-375 (2026-11-24 02:05 交付) 的闸 D7 硬钉目标】★★ BOARD_MD5/BOARD_MTIME/BOARD_SIZE 三个常量 ⇒ ★该闸 D7 判「盘上板指纹三项 == 这三个常量」⇒ 改板当天必红 ⇒ ★手改字面量 = 挖坑 ⇒ 不许★ ⇒ 必须走 §2 补丁 P-F ⇒ 谁落/何时落 = main 排期 |
+| 47 | `SW/tools/check_fp_truth_read.py` | 87 | 1 | `BOARD_BASELINE_MD5 = "611b869e13518c3c023fb178f91a0075"` | 判据锚 | 交 main 拍 | ★F5 的板 md5 硬比较目标 (ISS-363 今天 17:27 交付) ⇒ 改板当天必红 ⇒ ★手改字面量 = 挖坑 ⇒ 不许★ ⇒ 必须走 §2 补丁 P-C ⇒ 谁落/何时落 = main 排期 |
+| 48 | `SW/tools/check_onepass_legb_sw_impact.py` | 70 | 1 | `"board_md5": "611b869e13518c3c023fb178f91a0075",` | 判据锚 | 交 main 拍 | ★G8 的 PROTECTED_MD5['board_md5'] (ISS-370 今天 19:50 交付) ⇒ 改板当天必红 ⇒ ★手改字面量 = 挖坑 ⇒ 不许★ ⇒ 必须走 §2 补丁 P-D ⇒ 谁落/何时落 = main 排期 |
+| 49 | `SW/tools/check_onepass_sw_sync.py` | 109 | 1 | `…"HW/PCB/demo_mainboard.kicad_pcb": "611b869e13518c3c023fb178f91a0075",` | 判据锚 | 不许改 | ★ANCHOR_MD5 = 锚点防篡改副本 ⇒ 它的角色是【盯住台账锚点里的保护基线有没有被手改】⇒ ISS-284 语义: 锚点里的 md5 永远不许改★ (已跑通的合法改板通道闸) |
+| 50 | `SW/tools/check_onepass_sw_sync.py` | 806 | 2 | `"611b869e13518c3c023fb178f91a0075", "611b869e13…` | 判据锚 | 不许改 | ★--selftest 夹具里的假 md5 对 (基准/改后) ⇒ 是反向用例的输入, 不是判决锚★ |
+| 51 | `SW/tools/check_onepass_sw_sync.py` | 829 | 1 | `assert "611b869e13518c3c023fb178f91a0075" in t` | 判据锚 | 不许改 | ★--selftest 夹具断言 ⇒ 同上★ |
+| 52 | `SW/tools/check_onepass_sw_sync.py` | 831 | 1 | `f.write(t.replace("md5: 611b869e13518c3c023fb178f91a0075",` | 判据锚 | 不许改 | ★--selftest 夹具写入 (把基线改成假值) ⇒ 同上★ |
+| 53 | `SW/tools/check_onepass_sw_sync.py` | 832 | 1 | `"md5: 611b869e13518c3c023fb178f91a0076", 1))` | 判据锚 | 不许改 | ★--selftest 夹具写入 (假值那一侧) ⇒ 同上★ |
 
 ### ★1.4 · 三类分布与处置分布 (★机器复算★)
 
 | 三类归属 | 行数 | 其中 .py 判据脚本 | 处置「随板改」 | 处置「不许改」 | 处置「交 main 拍」 |
 |---|---|---|---|---|---|
-| 判据锚 | 9 | 7 | 0 | 6 | 3 |
+| 判据锚 | 11 | 8 | 0 | 6 | 5 |
 | 规格页引用 | 17 | 0 | 17 | 0 | 0 |
-| 历史留证 | 21 | 0 | 0 | 21 | 0 |
-| ★**合计** ★ | ★**47** ★ | ★**7** ★ | ★**17** ★ | ★**27** ★ | ★**3** ★ |
+| 历史留证 | 25 | 0 | 0 | 25 | 0 |
+| ★**合计** ★ | ★**53** ★ | ★**8** ★ | ★**17** ★ | ★**31** ★ | ★**5** ★ |
 
 ★**三条结论 (★本单的正题·一句话版★)** ★[实测]
 ★**① 「改板那天把 `611b869e` 全仓 sed 替换一遍」是错的**: 它会把 **21 行历史留证**改成假记录 (★比留着旧数更坏★) ⇒ ★**必须逐处分类, 不许一刀切** ★
-★**② 判据锚 9 行里, 只有 2 行 (那 2 道今天新造的闸) 需要动** ⇒ ★**其余 7 行一条都不许动** (台账里的保护基线 = 永远不许改; 锚点防篡改副本 = 它的存在意义就是盯住那个基线没被手改) ★
+★**② 判据锚 11 行里, 只有 4 行 (4 道【没有合法改板通道】的闸: ISS-363 的 F5 / ISS-370 的 G8 / ISS-375 的 D7 / ISS-378 的 W7) 需要动** ⇒ ★**其余 7 行一条都不许动** (台账里的保护基线 = 永远不许改; 锚点防篡改副本 = 它的存在意义就是盯住那个基线没被手改) ★
 ★**③ 规格页引用 17 行 = 改板那一趟「S9 换基线」一次改齐的清单** (★沙盒 T2b 实测: 这 17 行不改 ⇒ 已有通道的闸 W5 当场红·见 §2.4★) ★
 
 ### ★1.5 · 「随板改」那一类在改板那一趟的具体改法 (★照沙盒 T2b 实跑出来的★)
@@ -144,7 +150,7 @@
 | ★`SW/tools/check_onepass_sw_sync.py` L109 的 `ANCHOR_MD5` ★ | ★它的角色是【盯住台账锚点里的保护基线有没有被手改】⇒ 它自己一动, 盯防就失效了★ | [实测] |
 | ★`SW/research/ISS250_r6_复核记录.md` L25 ★ | ★它是某次复核当时的读数留痕 (板 md5 / 18092 段走线 / 433 过孔 / unconnected=45 / 板↔网表 rc=1 / R3 矛盾 2 条 / G1 仍开) ⇒ 改它 = 改历史★ | [实测] |
 
-### ★1.7 · 「判据锚」那一类的三类处置细分 (★9 行逐行★)
+### ★1.7 · 「判据锚」那一类的三类处置细分 (★11 行逐行★)
 
 | 行 | 是什么 | 处置 | 为什么 |
 |---|---|---|---|
@@ -198,6 +204,51 @@
   "method": "逐文件遍历 + 逐行计数 (★不用 grep·不受 grep -v 连带过滤影响★)"
  },
  "refs": [
+  {
+   "file": "SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md",
+   "line": 328,
+   "occ": 1,
+   "snippet": "…t -c '%y %s'`（开工前 / 交卷后各一次）★ | md5 **`611b869e13518c3c023fb178f91a0075`** · mtime **…",
+   "cls": "历史留证",
+   "action": "不许改",
+   "note": "★【cont1 新增 · ISS-378 页 §7 边界自证表「零写板」那一行】★ ⇒ 记的是 2026-11-24 02:4x 交卷当时的三项读数 ⇒ 不许改★"
+  },
+  {
+   "file": "SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md",
+   "line": 397,
+   "occ": 1,
+   "snippet": "\"board_md5\": \"611b869e13518c3c023fb178f91a0075\",",
+   "cls": "判据锚",
+   "action": "交 main 拍",
+   "note": "★★【cont1 新增 · ★★本单最要紧的一条★★】★★ 这一行在 ```json iss378_contract``` 机器块的 ★\"baseline\".\"board_md5\"★ ⇒ ★它是闸 SW/tools/check_debug_header_fw_impact.py 的 W7 (w7_zero_write) 的【判决源】: W7 拿机器块里的 baseline.board_md5 跟盘上实测比 ⇒ 不等就红 ⇒ ★所以它【不是规格页引用】, 是【判据锚】★★ ⇒ ★★它是本单 H4 检测盲区的活证据: 该闸源码里【没有 32 位字面量】(它自己算 md5), 钉板 md5 靠的是【页面内嵌基线】⇒ 上一趟只扫 .py 字面量的检测网【抓不到它】★★ ⇒ 必须走 §2 补丁 P-G ⇒ 谁落/何时落 = main 排期"
+  },
+  {
+   "file": "SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md",
+   "line": 282,
+   "occ": 1,
+   "snippet": "…at -c '%y %s'`（开工前 / 交卷后各一次） | md5 **`611b869e13518c3c023fb178f91a0075`** · mtime **…",
+   "cls": "历史留证",
+   "action": "不许改",
+   "note": "★【cont1 新增 · ISS-375 页 §4-2 边界自证表「零写板」那一行】★ ⇒ 它记的是 2026-11-24 02:0x 交卷当时的三项读数 ⇒ 某一次交卷当时的事实 ⇒ 不许改★"
+  },
+  {
+   "file": "SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md",
+   "line": 338,
+   "occ": 1,
+   "snippet": "…** (板 md5 / mtime / size 三项未动, 板指纹仍为 `611b869e13518c3c023fb178f91a0075` / `2026-11-0…",
+   "cls": "历史留证",
+   "action": "不许改",
+   "note": "★【cont1 新增 · ISS-375 页【追加式订正 (2026-11-24 02:5x)】段末的「板指纹仍为 …」】★ ⇒ 它记的是那个追加时刻的事实 ⇒ 不许改★"
+  },
+  {
+   "file": "SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md",
+   "line": 357,
+   "occ": 1,
+   "snippet": "…无冲突** (板 md5 / mtime / size 三项未动, 仍为 `611b869e13518c3c023fb178f91a0075` / `2026-11-0…",
+   "cls": "历史留证",
+   "action": "不许改",
+   "note": "★【cont1 新增 · ISS-375 页【追加式订正 (2026-11-24 04:3x · cont3)】段首的「板 md5 / mtime / size 三项未动, 仍为 …」】★ ⇒ 它记的是那个追加时刻的事实 ⇒ 不许改★"
+  },
   {
    "file": "SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md",
    "line": 164,
@@ -559,6 +610,15 @@
    "note": "★★【本单唯一的「某次复核当时的读数留痕」⇒ 永远不许改】★★ 它的正文里还有板侧硬数字 (板 md5 / 18092 段走线 / 433 过孔 / unconnected=45 / 板↔网表 rc=1 / R3 矛盾 2 条 / G1 仍开) ⇒ 那都是 2026-11-17 05:40 的读数 ⇒ 一律不许改"
   },
   {
+   "file": "SW/tools/check_debug_pin_order_contract.py",
+   "line": 53,
+   "occ": 1,
+   "snippet": "BOARD_MD5 = \"611b869e13518c3c023fb178f91a0075\"",
+   "cls": "判据锚",
+   "action": "交 main 拍",
+   "note": "★★【cont1 新增 · ISS-375 (2026-11-24 02:05 交付) 的闸 D7 硬钉目标】★★ BOARD_MD5/BOARD_MTIME/BOARD_SIZE 三个常量 ⇒ ★该闸 D7 判「盘上板指纹三项 == 这三个常量」⇒ 改板当天必红 ⇒ ★手改字面量 = 挖坑 ⇒ 不许★ ⇒ 必须走 §2 补丁 P-F ⇒ 谁落/何时落 = main 排期"
+  },
+  {
    "file": "SW/tools/check_fp_truth_read.py",
    "line": 87,
    "occ": 1,
@@ -670,6 +730,30 @@
    "gap_id": "iss372_gap_iss354_reboard_channel",
    "owner": "hw-lead (★SW 侧只登记 + 给补丁规格 P-E·不越界改★)",
    "spec": "P-E"
+  },
+  {
+   "file": "SW/tools/check_debug_pin_order_contract.py",
+   "line": 53,
+   "id": "D7",
+   "title": "零写板: 板指纹三项 (md5 + mtime + size) 未动",
+   "built_by": "ISS-375 (★2026-11-24 02:05 交付★)",
+   "channel": false,
+   "status": "已知缺口",
+   "gap_id": "iss372_gap_iss375_d7_reboard_channel",
+   "owner": "sw-lead 落补丁 (★但时点由 main 排期★)",
+   "spec": "P-F"
+  },
+  {
+   "file": "SW/tools/check_debug_header_fw_impact.py",
+   "line": 397,
+   "id": "W7",
+   "title": "零写板 + 零落表自证: 板指纹三项 + 网表/脚表/BOM 三件 md5 全部与基线一致",
+   "built_by": "ISS-378 (★2026-11-24 02:45 交付★)",
+   "channel": false,
+   "status": "已知缺口",
+   "gap_id": "iss372_gap_iss378_w7_reboard_channel",
+   "owner": "sw-lead 落补丁 (★但时点由 main 排期★)",
+   "spec": "P-G"
   }
  ],
  "evidence_levels": [
@@ -703,7 +787,7 @@
 | **T4** | ★**补丁规格原型化**: 只在沙盒副本上给那 3 道没通道的闸打上通道补丁 ★ | 证明补丁规格这个形状可行 |
 | **T5** | ★**板改第二次** (★通道已经存在★) | ★**纯 md5 硬保护支路没被放松 ⇒ 板改第二次当场被抓住** ★
 
-### ★2.2 · 逐闸账 (★4 道·逐道给「硬钉位置 / 判据原文 / 会不会红 / 真含义 vs 误读 / 走哪条通道」★)
+### ★2.2 · 逐闸账 (★7 道·逐道给「硬钉位置 / 判据原文 / 会不会红 / 真含义 vs 误读 / 走哪条通道」★)
 
 #### ★闸 A · 权威闸 `SW/tools/check_demo_panel_spec.py` 的 R6 (★**已有通道**★)★
 
@@ -755,7 +839,30 @@
 | 红的真含义 vs 会被误读成什么 | 同 C |
 | 该走哪条通道 | ★**缺口** ⇒ ★**补丁规格 P-E** (§2.3) · ★**本单只登记, 不越界改 (HW 域)** ★ |
 
-### ★2.3 · 补丁规格 (★给那 3 道闸的·★只出规格·不落★)★
+
+#### ★闸 F · `SW/tools/check_debug_pin_order_contract.py` 的 D7 (★**没有通道**·★ISS-375 · 2026-11-24 02:05 交付★)★
+
+| 项 | 内容 |
+|---|---|
+| 硬钉位置 | ★**L53** `BOARD_MD5 = "611b869e13518c3c023fb178f91a0075"` (★同块 L54 `BOARD_MTIME` / L55 `BOARD_SIZE`★) |
+| 判据原文 | `d7_board_fingerprint()`: `ok = (st["md5"] == BOARD_MD5 and st["size"] == BOARD_SIZE and mt == BOARD_MTIME)` ⇒ 任一不等就红 |
+| 改板当天会不会红 | ★**T0 绿 → T1 红 → T2 红 → T2b 红 → T4 (打了补丁) 绿 → T5 红** ⇒ ★**没有通道 ⇒ 合法改板当天【仍红】★** ★[实测] (★沙盒 T0~T5 六阶段读数·`logs/iss372/08_sbx_reboard_rehearsal_7gates.txt`★) |
+| 红的真含义 vs 会被误读成什么 | 真含义 = 「板被换了 (合法, 但你不知道它合法)」; ★会被误读成 = 「板改坏了」⇒ ⇒ ★**现场极可能去改板凑绿 ⇒ 板 md5 变第二次 ⇒ 整趟白跑** ★ |
+| 该走哪条通道 | ★**缺口**: 没有合法改板通道 ⇒ ★**补丁规格 P-F** (§2.3) · ★谁落 / 什么时候落 = main 排期★ |
+
+#### ★闸 G · `SW/tools/check_debug_header_fw_impact.py` 的 W7 (★**没有通道**·★ISS-378 · 2026-11-24 02:45 交付·★★「页面内嵌基线类」★)★
+
+| 项 | 内容 |
+|---|---|
+| 硬钉位置 | ★**不在 .py 里** ★ —— ★**L397 在 `SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md` 的 ```json iss378_contract``` 机器块的 `"baseline"."board_md5"`** ★ ⇒ ★**该闸自己算盘上 md5, 再跟这个页面里的基线比** ★ |
+| 判据原文 | `w7_zero_write()`: `for key, live in (("board_md5", fp["board_md5"]), ("board_size", …))`: `want = bl.get(key)` ⇒ `if str(want) != str(live): errs.append("板指纹 %s: 基线 %r vs 实测 %r")`; ★另比 mtime (纳秒级) + 网表/脚表/BOM 三件 md5★ |
+| 改板当天会不会红 | ★**T0 绿 → T1 红 → T2 红 → T2b 红 → T4 红 → T5 红** ⇒ ★**没有通道 ⇒ 合法改板当天【仍红】★** ★[实测] (★沙盒 T0~T5·`logs/iss372/08_sbx_reboard_rehearsal_7gates.txt`★) |
+| ★**T2b 的红原文 (★最要紧的一条读数★)** ★ | ★**只剩 `board_size` 与 `board_mtime` 两条; `board_md5` 那一条【已经绿了】** ★ ⇒ ★**因为 T2b 把【规格页引用】那一类换基线时, 那个页面的 `baseline.board_md5` 跟着换了 ⇒ ★★【只换 md5 不够: size + mtime 也得换】★★ ★[实测] |
+| 红的真含义 vs 会被误读成什么 | 同 F |
+| 该走哪条通道 | ★**缺口**: 没有合法改板通道 ⇒ ★**补丁规格 P-G** (§2.3) · ★谁落 / 什么时候落 = main 排期★ |
+| ★**★cont1 的核心发现 (★本单最有价值的一条★)** ★ | ★**这个闸的源码里【没有那 32 位字面量】** ⇒ ★**上一趟 H4 的检测网 (只扫 .py 字面量) 【抓不到它】⇒ 它会从清单的缝里溜过去⇒ 改板当天照样假红** ★ ⇒ ★**cont1 已把 H4 扩成两个检测类 (类A 字面量 + 类B 页面内嵌基线) ⇒ 今天它就被当场抓住** ★[实测] |
+
+### ★2.3 · 补丁规格 (★给那 5 道闸的·★只出规格·不落★)★
 
 ★**共同形状 (★照 §0.2 那张表·不自造第二套合法改板判据★)**: ★**判据方向一个字没改** —— 仍然是「盘上必须 == 期望值」; ★合法改板只是让【期望值】从「保护基线」前移到「落表台账链头」★
 ★**纯 md5 硬保护支路一条都不许松** —— ★没有合法改板记录时, 期望值 = 保护基线 (盘上必须逐字节相同)★
@@ -765,6 +872,8 @@
 | ★**P-C** ★ | `SW/tools/check_fp_truth_read.py` 的 F5 | ★把「板 md5 的期望值」从字面量改成「合法改板链头」 (★照 `check_onepass_sw_sync.py` 的形状: ★只读调用权威闸★)★ | 不变 | ★**mtime / size 两条没有跟随口径** ★ —— reboard 四项原子只带 md5, 不带 mtime/size ⇒ ★**F5 除了 md5 还比 mtime + size ⇒ 合法改板后这两条仍红** ★ ⇒ 要么给 reboard 原子补 mtime/size, 要么给 F5 一条「合法改板分支下 mtime/size 怎么判」的明文口径 ⇒ ★**判据方向要不要动 = main 拍** ★ |
 | ★**P-D** ★ | `SW/tools/check_onepass_legb_sw_impact.py` 的 G8 | ★只动 `board_md5` 那一项的期望值 (★另三件 网表/脚表/BOM 一个字都不许动★)★ | 不变 | ★**页里声明的那一处 md5 怎么办** —— G8 还比「页里声明的 md5」⇒ ★那一趟的规格页也要跟着换基线 (§1.5)★ |
 | ★**P-E** ★ | `HW/check_iss354_manufacturability.py` 的 A-5a/A-5b | ★md5 期望值同上; mtime 那条同上 ⇒ ★**跨域 ⇒ 由 hw-lead 落** ★ | 不变 | ★**mtime 同 P-C** ★ (★跨域登记给 hw-lead·见 §5★) |
+| ★**P-F** ★ | `SW/tools/check_debug_pin_order_contract.py` 的 D7 | ★把「板指纹三项的期望值」从三个常量改成「合法改板链头」 (★照 `check_onepass_sw_sync.py` 的形状: ★只读调用权威闸★)★ | 不变 | ★**mtime / size 两条没有跟随口径** (★同 P-C★) —— ★**reboard 四项原子只带 md5, 不带 mtime/size ⇒ 合法改板后这两条仍红** ★ ⇒ ★**而且补丁会移动函数行号 ⇒ 把闸 G 的 W2 打红 (★见 §3.5 的跨闸耦合★)★** ★ |
+| ★**P-G** ★ | `SW/tools/check_debug_header_fw_impact.py` 的 W7 | ★把「机器块 baseline.board_md5 的期望值」改成「合法改板链头」 (★机器块是【判决源】⇒ 判据方向一个字不许改★)★ | 不变 | ★**size 那一条补不了** (★沙盒 T4 实测: 打上补丁后 W7 仍红在 `board_size`★) ⇒ ★**要么 reboard 原子补 size, 要么给 W7 一条「合法改板分支下 size 怎么判」的明文口径 ⇒ = main 拍 (★同 U3★)** ★ |
 
 ★**沙盒原型 (★证明这个形状可行·真件那 3 个闸一个字都不许改★)**: `tmp/iss372/patch_spec.py` (★9 条补丁·每条锚点必须恰好匹配 1 次·匹配不上就 AssertionError★) + `tmp/iss372/legal_channel_sbx.py` (★通道原型·照 ISS-284 四项原子 + 落表台账链头★) ★[实测]
 
@@ -777,6 +886,8 @@
 | C F5 (ISS-363) | **0** | 1 | 1 | 1 | **0** | 1 |
 | D G8 (ISS-370) | **0** | 1 | 1 | 1 | **0** | 1 |
 | E A-5 (ISS-354) | **0** | 1 | 1 | 1 | **0** | 1 |
+| ★**F D7 (ISS-375)** ★ | **0** | 1 | 1 | 1 | **0** | 1 |
+| ★**G W7 (ISS-378)** ★ | **0** | 1 | 1 | 1 | 1 | 1 |
 
 ★**三句话读法 (★本单的招牌结论★)** ★[实测]
 ★**① 「改板那天会假红」的有几道? ⇒ SW 域 2 道 (C / D) + 跨域 1 道 (E) = 3 道** ★
@@ -812,6 +923,30 @@ grep -rn "board_md5_pinned_gates" --include=*.py .
 ★**⇒ 刷新那张表时, 光重跑生成器不够 ⇒ 要么把收集口径放宽 (★落表器也收★), 要么单独登记一行★** ⇒ ★**归 main 裁 (见 §5)★**
 
 ### ★3.4 · 本单新建的自守闸怎么补这个洞 (★指向交付物②★)
+### ★3.5 · ★★cont1 的活证据: 这张清单【签收后 4 小时就过期了】, 而且是被本单自己的闸抓到的★★
+
+★**这一节是 cont1 (2026-11-24 04:xx) 新写的 ⇒ ★它是本单最硬的一条证据★** ★[实测]
+
+| 项 | 读数 | 复跑命令 |
+|---|---|---|
+| ★**签收时刻** ★ | ★**2026-11-23 22:4x · main 独立复核签收 ISS-372 (verified)★** | `grep -A3 'id: ISS-372' state/issue_log.yaml` |
+| ★**签收后 SW 域新落的文件** ★ | ★**`SW/tools/check_debug_pin_order_contract.py` (ISS-375 · 02:05) + `SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md` (02:07) + `SW/tools/check_debug_header_fw_impact.py` (ISS-378 · 02:45) + `SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md` (02:45)** ★ | `ls -la --time-style=full-iso SW/tools/check_debug_*.py` |
+| ★**它们做了什么** ★ | ★**两道闸都硬钉板 md5, 且都没有合法改板通道** ⇒ ★**改板当天必假红** (§2.2 的闸 F / 闸 G) ★ | ★`grep -n '611b869e' SW/tools/check_debug_pin_order_contract.py`★ + ★`grep -n 'board_md5' SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md`★ |
+| ★**本单自守闸的反应 (★本单机制的活证据★)** ★ | ★**闸当场变红: H1 红 (5 处漏登记) + H4 红 (新闸不在册)** ⇒ ★**「下一道新闸再硬钉板 md5 时当场被抓住」这件事, 在签收后 4 小时就【真的发生了一次】** ★ | ★`python3 SW/tools/check_sw_board_md5_rebase_readiness.py` (cont1 开工时 rc=1·H1/H4 红) ★ |
+| ★**清单过期对 SW 域的【真实代价】** ★ | ★**上一趟交卷时: 17 个活文件 / 47 行 / 57 处 ⇒ cont1 实扫: 20 个活文件 / 53 行 / 63 处** ⇒ ★**「钉板 md5 的闸清单」和「引用面清单」都会过期, 而且过期得比人记得住的快** ★ | ★`python3 tmp/iss372/gen_manifest.py`★ |
+
+★**★⇒ 所以本单在 cont1 里做的两件事, 不是「补文档」, 是「把机制从【能抓】变成【抓得住新的抓法】」★★** ★
+★**① H4 从 1 个检测类扩成 2 个**: 类A (★.py 内 32 位字面量★) + 类B (★闸自己算盘上板 md5 且期望值来自页面/台账内嵌基线·且该比较喂给判决清单★) ⇒ ★**闸 G 正是类B ⇒ 它当场被抓住** ★
+★**② 清单页 §1.10 的机器清单重新生成** ⇒ ★**53 行 / 63 处 逐处归类 (含 6 处新增·5 处来自 ISS-375/ISS-378·1 处来自同页追加段)★** ⇒ ★**闸恢复绿 (rc=0)★**
+
+#### ★3.5.1 · ★★一个必须让 main 知道的【跨闸耦合】(★沙盒 T4 实测出来的·★不在原任务书里★)★★
+
+★**现象**: ★**给闸 F (ISS-375) 打补丁 P-F ⇒ 闸 G (ISS-378) 当场变红** ★[实测]
+★**机理**: ★**闸 G 的 W2 判据是「`SW/tools/check_debug_pin_order_contract.py` 的第 287 行或之前有没有定义 `d1_current_board`」—— ★它把【另一个闸的【行号】】钉进了自己的机器块★ ⇒ ★**P-F 在 `BOARD_SIZE` 那行后面插了 7 行 ⇒ `d1_current_board` 从 287 行挪到 293 行 ⇒ W2 立刻红** ★
+★**实测读数 (★沙盒 T4★)**: ★**闸 G 的红原文 = `✘ W2 : JTAG_TCK: 函数 d1_current_board 在 … 第 287 行或之前没有定义` (★5 行全部命中★)** ★[实测] (★`logs/iss372/08_sbx_reboard_rehearsal_7gates.txt`★)
+★**⇒ 代价**: ★**P-C/P-D/P-F/P-G/P-E 这一批补丁【必须同批落】—— 否则先落哪一个都会把另一个闸打红, 现场又是一轮「误读成板坏了」** ★ ⇒ ★**已登记成 needs_from 的 U8 (见 §6) ⇒ 归 main 排期** ★
+
+
 
 | 洞 | 补法 | 本单闸的哪一条 |
 |---|---|---|
@@ -861,6 +996,14 @@ grep -rn "board_md5_pinned_gates" --include=*.py .
 | ★3 ★ | `state/board_md5_pinned_gates.json` + `.md` | ★**main** ★ | ★**清单过期** (★11-17 的表 · 11-23 的闸★) + ★**收集口径盲区** (§3.3) ★ | ★**只给「刷新后应有的内容」, 不许自己写那两个文件** ★ | ★**什么时候刷新 + 收集口径要不要放宽** (★见下面那张「刷新后应有的内容」★) ★ |
 
 ### ★5.1 · 「刷新后应有的内容」 (★给 main 的·★本单不落★)
+★**★cont1 增补 (2026-11-24 04:xx) ⇒ 刷新后那张表应当是【现有 9 条 + 新增 5 条 + 口径补 1 条】★★** ★[实测]
+
+| 应新增条目 | 文件 | 硬钉位置 | 应标的状态 | 依据 |
+|---|---|---|---|---|
+| ★**新增 4** ★ | `SW/tools/check_debug_pin_order_contract.py` | ★L53★ | ★**已知缺口 (无 reboard 通道)**★ ⇒ 缺口编号 `iss372_gap_iss375_d7_reboard_channel` · 谁来补 = sw-lead (时点由 main 排期) · 补法规格 = **P-F** | ISS-375 · 2026-11-24 02:05 交付 · 沙盒 T2b 实测 rc=1 |
+| ★**新增 5** ★ | `SW/tools/check_debug_header_fw_impact.py` | ★★L397 在 `SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md` 的机器块里 (★★不是 .py★)★★ | ★**已知缺口 (无 reboard 通道)**★ ⇒ 缺口编号 `iss372_gap_iss378_w7_reboard_channel` · 谁来补 = sw-lead (时点由 main 排期) · 补法规格 = **P-G** | ISS-378 · 2026-11-24 02:45 交付 · 沙盒 T2b 实测 rc=1 |
+| ★**★口径补 2 (★cont1 新增·★比口径补 1 更要紧★)** ★ | ★**那张表的【收集口径】现在只收 `.py` 里含 32 位字面量的闸 ⇒ 闸 G 这种「页面内嵌基线类」压根收不进去** ★ | ★—★ | ★**要么把收集口径放宽到「闸自己算盘上板 md5 且期望值来自文档」, 要么在表页里明写「页面内嵌基线类闸由 SW 侧自守闸 (H4 类B) 收」** ★ | ★§3.5 的活证据 + 本单 H4 的类B 判据★ |
+
 
 ★**刷新后那张表应当包含 (★现有 9 条 + 新增 3 条 + 口径补 1 条★)** ★[实测]
 
@@ -885,6 +1028,8 @@ grep -rn "board_md5_pinned_gates" --include=*.py .
 | ★U4 ★ | ★历史留证那一类「永远不许改」这条禁令要不要写成机器判据 ★ | ★main ★ | §1.6 · H3 (★反向判据: 活判据不许伪装成历史留证★) | ★**不机器化** ⇒ ★下一个 agent 仍要靠人眼判断某一处是「现状值」还是「历史读数」 ⇒ ★**§1.9 那种「按文件归并」的错还会再犯** ★ | ★**本单已经把「反向判据」做进 H3 了 (活判据不许塞进历史留证)★ ⇒ ★**再加一条「历史留证不许出现在 .md 的现状表里」会误伤 ⇒ 不建议** ⇒ ★**建议维持现状 + 把本页 §1 当作唯一口径源** ★ |
 | ★U5 ★ | ★「板改第二次」的兜底预案 ★ | ★main→老板 ★ | §2.4 的 T5 (★通道存在后仍当场红★) | ★**没有预案** ⇒ 现场第二次改板 ⇒ ★**闸红着, 但没人知道那是「第二次」而不是「第一次」** ★ | ★**本单已证明「当场红」这件事本身是可靠的** ⇒ ★**兜底预案是流程问题 (谁当场判定「这是第二次」并停手)· 不是判据问题** ★ |
 | ★U6 ★ | ★`state/board_md5_pinned_gates.json` 的刷新时机与收集口径 ★ | ★main ★ | §3.1 / §3.3 | ★**不刷新** ⇒ ★**那张表继续漏新闸** ⇒ ★**下一个新闸再硬钉板 md5 时还是没人拦** ★ | ★**建议: 本单的自守闸落地后, 刷新一次 (★含 §5.1 那 3 条新增 + 1 条口径补★) ★⇒ ★**但那张表是 main 的域, 本单零写入** ★ |
+| ★U8 ★ | ★**【跨闸耦合】: P-C/P-D/P-E/P-F/P-G 这批通道补丁【必须同批落】** ★ | ★main 排期 ★ | ★§3.5.1 · 沙盒 T4 实测 ★ | ★**不同时落** ⇒ ★**先落的那个补丁会移动【另一个闸】的行号 ⇒ 把那个闸当场打红** (★实测: P-F 一落 ⇒ 闸 G 的 W2 红·5 行全中★) ⇒ 现场又是一轮「误读成板坏了」 ⇒ ★**整趟白跑** ★ | ★**建议: 5 条补丁 (P-C/P-D/P-E/P-F/P-G) 合成【一批】落, 且批内顺序与闸的依赖顺序一致; 落完立刻在沙盒重跑一次 §2.4 的 T0~T5 读数表做交叉验证** ★⇒ ★**本单只登记, 不代拍** ★ |
+| ★U9 ★ | ★**闸 G 的 W7 那条 `board_size` 判据在合法改板后怎么办** ★ | ★main (⇒ 可能要老板) ★ | ★§2.2 闸 G 的 T4 实测 (★打上 P-G 后 W7 仍红在 size★) ★ | ★**不处理** ⇒ ★**P-G 只解决一半 ⇒ 改板当天闸 G 照样红** ⇒ ★**现场又要多一次「误读成板坏了」的窗口** ★ | ★**要么给 reboard 原子补 size (★要动权威判据 ⇒ 老板拍★), 要么给 W7 一条明文口径** ★⇒ ★**与 U3 同款口径, 建议一并拍** ★ |
 
 ---
 
@@ -912,6 +1057,13 @@ grep -rn "board_md5_pinned_gates" --include=*.py .
 | E18 | ★P-C / P-D / P-E 的 mtime/size 缺口 ★ | ★[实测] ★ (★「reboard 原子不带 mtime/size」是读代码 + 沙盒 T4 原型实测★) | `tmp/iss372/patch_spec.py` + `logs/iss372/05_sbx_reboard_rehearsal.txt` |
 | E19 | ★历史留证 21 行的清单 ★ | ★[实测] ★ (★逐行人工判定 + §1.10 的机器清单双形态★) | 本页 §1.3 |
 | E20 | ★`.kicad_sch` 的 md5 能不能当锚点 = 不能; 以及 need 的正确处置 = 结论订正 + 降级 ★ | ★[实测] ★ (★结论★) + ★[推算] ★ (★处置方式★) | 本页 §4 + `state/fragments/sw.yaml` 的 `answers` |
+| E21 | ★**签收后 4 小时内 SW 域新落 2 道硬钉板 md5 且无通道的闸 (ISS-375 的 D7 / ISS-378 的 W7) ⇒ 本单自守闸当场变红 (H1 + H4)** ★ | ★[实测] ★ | ★`python3 SW/tools/check_sw_board_md5_rebase_readiness.py` (cont1 开工时 rc=1) + `logs/iss372/08_sbx_reboard_rehearsal_7gates.txt` ★ |
+| E22 | ★**SW 域板 md5 引用面 (cont1 复扫) = 20 个活文件 / 53 命中行 / 63 命中处; 三类 = 判据锚 11 / 规格页引用 17 / 历史留证 25** ★ | ★[实测] ★ | ★`python3 tmp/iss372/gen_manifest.py` + `python3 SW/tools/check_sw_board_md5_rebase_readiness.py` (H1 自扫)★ |
+| E23 | ★**闸 G (ISS-378) 属【页面内嵌基线类】: 它的 .py 里没有 32 位字面量 ⇒ 上一趟 H4 的单类检测网抓不到它 ⇒ cont1 把 H4 扩成两类** ★ | ★[实测] ★ | ★`grep -c 611b869e SW/tools/check_debug_header_fw_impact.py` (=0) + `grep -n 'board_md5' SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md` (L397) ★ |
+| E24 | ★**闸 F 在 T0~T5 的读数 = 绿/红/红/红/绿/红 ⇒ 与 F5/G8/A-5 同款「没有通道」画像** ★ | ★[实测] ★ | ★`logs/iss372/08_sbx_reboard_rehearsal_7gates.txt` (T0~T5 读数汇总表) ★ |
+| E25 | ★**闸 G 在 T0~T5 的读数 = 绿/红/红/红/红/红; 且 T2b 的红原文只剩 size + mtime (md5 那条已绿) ⇒ 「S9 换基线」对这一页必须【md5 + size + mtime 三项一起换】** ★ | ★[实测] ★ | ★同上 (T2b 段 G 的原文) ★ |
+| E26 | ★**跨闸耦合: 给闸 F 打 P-F ⇒ 闸 G 的 W2 当场红 (W2 把闸 F 的函数行号钉进了自己的机器块)** ★ | ★[实测] ★ | ★同上 (T4 段 G 的原文) + §3.5.1 ★ |
+| E27 | ★**H4 两类检测 + 10 条反向用例 (含 2 条类B: 未在册⇒红 / 信号消失⇒全绿) 全过** ★ | ★[实测] ★ | ★`python3 SW/tools/check_sw_board_md5_rebase_readiness.py --selftest` (10/10 · ALL TESTS PASS) ★ |
 
 ---
 
@@ -923,7 +1075,7 @@ grep -rn "board_md5_pinned_gates" --include=*.py .
 cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
 export TMPDIR=$PWD/tmp
 python3 SW/tools/check_sw_board_md5_rebase_readiness.py            # rc=0 · H1~H7 全绿
-python3 SW/tools/check_sw_board_md5_rebase_readiness.py --selftest  # rc=0 · 8/8 (每条自证「只红目标那一条」)
+python3 SW/tools/check_sw_board_md5_rebase_readiness.py --selftest  # rc=0 · 10/10 (每条自证「只红目标那一条」·★含 2 条类B 反向用例★)
 ```
 
 ★**★本闸【零挂链】: `state/gate_check.py` 一个字都不许动 ⇒ 本闸不进 `EXTRA_GATES`★** ★⇒ ★**要不要挂 = main 的决定 (见 §6 U2 的同款口径)** ★

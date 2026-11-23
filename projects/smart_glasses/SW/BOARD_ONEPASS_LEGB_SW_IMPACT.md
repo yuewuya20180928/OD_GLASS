@@ -57,7 +57,7 @@
     {"no": 7, "file": "SW/tools/check_demo_panel_spec.py (R6 三方对账)", "owner": "跨域 · 不是 SW 的域 · 只给改法", "timing": "必须同批", "kind": "脚本 (★本单结论: 不需要改·落表后自动绿·但必须同批复跑自证★)", "fix": "一个字不许改; R6 判【盘上真源 md5 vs 落表台账链头】⇒ 腿 B 落盘未落表 ⇒ 红 ⇒ 落表后链头前移 ⇒ 自动绿", "readback": "改前 rc=1 (R6 台账链红) ⇒ 落表后 rc=0", "evidence": "[实测]"},
     {"no": 8, "file": "SW/tools/check_onepass_sw_sync.py (W6 受保护 5 件)", "owner": "跨域 · 不是 SW 的域 · 只给改法", "timing": "必须同批", "kind": "脚本 (★本单结论: 不需要改·落表后自动绿·但必须同批复跑自证★)", "fix": "一个字不许改; W6 判【盘上 md5 在落表台账里查得到 + 盘上 md5 == 台账链头】⇒ 腿 B 落盘未落表 ⇒ 两条子错 ⇒ 落表后自动绿", "readback": "改前 rc=1 (W6 两条子错) ⇒ 落表后 rc=0", "evidence": "[实测]"},
     {"no": 9, "file": "HW/netlist_v1_pins.csv (脚表)", "owner": "跨域 · 不是 SW 的域 · 只给改法", "timing": "可板后补", "kind": "数据", "fix": "腿 B 补的 4 条行的节点在脚表里【本来就有】(补行 note 自证: 脚表 netlist_v1_pins.csv 已有该脚) ⇒ 脚表一个字不许改; mtime 被顶到 2026-11-23 19:19:15 是别的事留下的假象, 内容 md5 仍等于基线", "readback": "本单实测: 脚表 md5 = 9174309df1ec9411ac8e8d9e80ee386a (与基线逐字节相同) ⇒ 零改动成立", "evidence": "[实测]"},
-    {"no": 10, "file": "SW/tools/check_onepass_legb_sw_impact.py (本单新建闸)", "owner": "SW 域 (我)", "timing": "可板后补", "kind": "脚本", "fix": "本单已交; ★零挂链★ —— 不写进 state/gate_check.py (挂链是 main 的机制地界, ISS-330/333/362 同款)", "readback": "裸跑 rc=0 · --selftest 9/9 PASS", "evidence": "[实测]"}
+    {"no": 10, "file": "SW/tools/check_onepass_legb_sw_impact.py (本单新建闸)", "owner": "SW 域 (我)", "timing": "可板后补", "kind": "脚本", "fix": "本单已交; ★零挂链★ —— 不写进 state/gate_check.py (挂链是 main 的机制地界, ISS-330/333/362 同款)", "readback": "裸跑 rc=0 · --selftest 10/10 PASS", "evidence": "[实测]"}
   ],
   "degradation": [
     {"item": 1, "way": "沙盒验证法", "text": "若那一趟来不及加归一化层, 可退到【沙盒验证法】: 把腿 B 网表喂进 timing_check --netlist, 人工读出 13 条语义红的原文, 但★这一条只是把红项登记下来, 不等于闸绿★ ⇒ 门禁链仍是红的, 不许当解法"},
@@ -143,7 +143,7 @@ def resolve_chain_landing(nl: Netlist, r_top: str, r_bot: str) -> dict:
 | 变体 | 构造 | 读数 | 红项构成 |
 |---|---|---|---|
 | ★**R = 只改名** (196 格 · 0 补行 · 513 行) ★ | `tmp/iss370_sbx/netlist_v1_rename_only.csv` (★只读现成的·没重新生成★) | ★**71/85 · 14 条红** ★ | 13 条语义红 + 1 条落表义务红 (md5 锚点) |
-| ★**A = 只补行** (4 行 · 0 改名 · 517 行) ★ | `tmp/iss370_sbx/netlist_v1_rowadd_only.csv` (★只读现成的★) | ★**73/85 · 2 条红** ★ | ★**2 条全是落表义务红** ★ (行数锚点 + md5 锚点) |
+| ★**A = 只补行** (4 行 · 0 改名 · 517 行) ★ | `tmp/iss370_sbx/netlist_v1_rowadd_only.csv` (★只读现成的★) | ★**83/85 · 2 条红** ★ | ★**2 条全是落表义务红** ★ (行数锚点 + md5 锚点) |
 
 ★**本单自己算的三组关系 (★留证 `logs/iss370/26_CONT1_fail_sets.txt`★)**:
 - `R − A` = **13 条** = 语义红 (9 条判据红 + 4 条反向用例派生红) ⇒ ★**改名单独就造成全部语义破坏** ★
@@ -284,7 +284,7 @@ def resolve_chain_landing(nl: Netlist, r_top: str, r_bot: str) -> dict:
 | ★**7** ★ | `SW/tools/check_demo_panel_spec.py` (R6 三方对账) | ★**跨域 · 不是 SW 的域 · 只给改法** ★ | ★**必须同批** ★ | ★**脚本 (★本单结论: 不需要改·落表后自动绿·但必须同批复跑自证★)** ★ | ★一个字不许改; R6 判【盘上真源 md5 vs 落表台账链头】⇒ 腿 B 落盘未落表 ⇒ 红 ⇒ 落表后链头前移 ⇒ 自动绿; ★要改 R6 判据 = 把红项调没 = 绝对禁止★ ★ | ★**改前 rc=1** ★ (★`R6 台账链: 盘上真源 md5 HW/netlist_v1.csv = 724f0bf71cb7 ≠ 台账最新记录 6aee500e60ba`★) ⇒ ★**落表后 rc=0** ★ | ★**[实测]** ★ |
 | ★**8** ★ | `SW/tools/check_onepass_sw_sync.py` (W6 受保护 5 件) | ★**跨域 · 不是 SW 的域 · 只给改法** ★ | ★**必须同批** ★ | ★**脚本 (★本单结论: 不需要改·落表后自动绿·但必须同批复跑自证★)** ★ | ★一个字不许改; W6 判【盘上 md5 在落表台账里查得到】+【盘上 md5 == 台账链头】⇒ 腿 B 落盘未落表 ⇒ 两条子错 ⇒ 落表后自动绿; ★要改 W6 判据 = 绝对禁止★ ★ | ★**改前 rc=1** ★ (★2 条子错: ① 腿 B md5 在落表台账里查不到 ② 盘上 md5 ≠ 台账链头★) ⇒ ★**落表后 rc=0** ★ | ★**[实测]** ★ |
 | ★**9** ★ | `HW/netlist_v1_pins.csv` (脚表) | ★**跨域 · 不是 SW 的域 · 只给改法** ★ | ★**可板后补** ★ | ★**数据** ★ | ★**一个字不许改** —— 腿 B 补的 4 条行的节点在脚表里【本来就有】(★补行行的 note 自证: 脚表 `netlist_v1_pins.csv` 已有该脚·如 `R_BAT_DET_2 pin2 · net GND`★) ⇒ 脚表零改动; ★注意 mtime 被顶到 2026-11-23 19:19:15 是假象, 一律按内容 md5 判★ ★ | ★**本单实测: 脚表 md5 = 9174309df1ec9411ac8e8d9e80ee386a = 基线·逐字节相同** ★ ⇒ ★**零改动成立** ★ | ★**[实测]** ★ |
-| ★**10** ★ | `SW/tools/check_onepass_legb_sw_impact.py` (本单新建闸) | ★**SW 域 (我)** ★ | ★**可板后补** ★ | ★**脚本** ★ | ★本单已交; ★**零挂链** —— 不写进 `state/gate_check.py` (★挂链是 main 的机制地界·ISS-330/333/362 同款★); ★那一趟开跑前手工跑一次即可★ ★ | ★**裸跑 rc=0** ★ · ★**`--selftest` 9/9 PASS** ★ | ★**[实测]** ★ |
+| ★**10** ★ | `SW/tools/check_onepass_legb_sw_impact.py` (本单新建闸) | ★**SW 域 (我)** ★ | ★**可板后补** ★ | ★**脚本** ★ | ★本单已交; ★**零挂链** —— 不写进 `state/gate_check.py` (★挂链是 main 的机制地界·ISS-330/333/362 同款★); ★那一趟开跑前手工跑一次即可★ ★ | ★**裸跑 rc=0** ★ · ★**`--selftest` 10/10 PASS** ★ | ★**[实测]** ★ |
 
 ★**★跨域那几件单独点名 (★件 3 / 4 / 6 / 7 / 8 / 9★)**: ★
 ★**① 网表真源落表 (件 3) ② 落表台账链前移 (件 4) ③ issue_log 留痕 (件 6) —— 这三件是【hw-lead / main 的地界】★**
@@ -303,7 +303,7 @@ def resolve_chain_landing(nl: Netlist, r_top: str, r_bot: str) -> dict:
 | # | 自证 | 喂什么 | 期望 | ★**本单实跑读数** ★ | 结论 |
 |---|---|---|---|---|---|
 | ① | ★**只改名不补行 ⇒ 13 条语义红必须全在** ★ | `tmp/iss370_sbx/netlist_v1_rename_only.csv` (★只读现成的·没重新生成★) | 14 条红 = ★**13 条语义红 (9 判据 + 4 反向用例) + 1 条落表义务红 (md5 锚点)** ★ | ★**rc=1 · 71/85 · 14 条红** ★ · 逐条红项原文见 `logs/iss370/26_CONT1_fail_sets.txt` ★ | ★**自证成功** ★ |
-| ② | ★**只补行不改名 ⇒ 2 条落表义务红必须全在, 语义红必须全不在** ★ | `tmp/iss370_sbx/netlist_v1_rowadd_only.csv` (★只读现成的★) | ★**2 条红, 全是落表义务 (行数锚点 + md5 锚点); 13 条语义红一条都不在** ★ | ★**rc=1 · 73/85 · 2 条红** ★ (`网表锚点: 现行网表 = 513 数据行 (行数不许变)` + `网表锚点: 现行网表 md5 ∈ 落表台账登记的状态`) ★ | ★**自证成功** ★ |
+| ② | ★**只补行不改名 ⇒ 2 条落表义务红必须全在, 语义红必须全不在** ★ | `tmp/iss370_sbx/netlist_v1_rowadd_only.csv` (★只读现成的★) | ★**2 条红, 全是落表义务 (行数锚点 + md5 锚点); 13 条语义红一条都不在** ★ | ★**rc=1 · 83/85 · 2 条红** ★ (`网表锚点: 现行网表 = 513 数据行 (行数不许变)` + `网表锚点: 现行网表 md5 ∈ 落表台账登记的状态`) ★ | ★**自证成功** ★ |
 | ③ | ★**喂真网表 ⇒ 必须 85/85 全绿 (证明沙盒没污染)** ★ | ① 真项目根 `python3 SW/tools/timing_check.py` ② 镜像根 `land_root_base` (基线网表副本) ③ `--netlist` 对照组 `netlist_REAL_copy.csv` | ★**三处都 85/85 · rc=0** ★ | ★**① 85/85 rc=0 ② 85/85 rc=0 ③ 85/85 rc=0** ★ | ★**自证成功** ★ |
 
 ★**★第 ④ 条自证 (★本单加的·因为它才是真命门★)** ★
@@ -330,7 +330,7 @@ def resolve_chain_landing(nl: Netlist, r_top: str, r_bot: str) -> dict:
 | ★**7** ★ | ★**沙盒验证法** ★ | ★R6 没有等效件可替; 可退到【沙盒验证法】确认落表后链头前移 ⇒ R6 自动绿 ⇒ **不许改 R6 判据** ★ |
 | ★**8** ★ | ★**沙盒验证法** ★ | ★W6 同 R6: 不许改 W6 判据; 落表后自动绿 ★ |
 | ★**9** ★ | ★**改设计路径绕开** ★ | ★脚表零改动; 若哪天真要改脚表, 绕开路径 = 改脚表自己的落表链 (跨域) —— ★**本单实测脚表一个字不用动, 这一件本来就不需要降级方案**★ ★ |
-| ★**10** ★ | ★**沙盒验证法** ★ | ★新闸挂不挂链归 main; 本单只保证闸本身裸跑 rc=0 + selftest 9/9 全过 ⇒ 挂不挂链不影响闸的正确性 ★ |
+| ★**10** ★ | ★**沙盒验证法** ★ | ★新闸挂不挂链归 main; 本单只保证闸本身裸跑 rc=0 + selftest 10/10 全过 ⇒ 挂不挂链不影响闸的正确性 ★ |
 
 ---
 
@@ -373,7 +373,7 @@ python3 SW/tools/timing_check.py                                                
 python3 SW/tools/timing_check.py --netlist tmp/iss370_sbx/netlist_REAL_copy.csv   # ★85/85 · rc=0 ★
 python3 SW/tools/timing_check.py --netlist tmp/iss364_sbx/netlist_v1_legB.csv     # ★70/85 · 15 红 · rc=1 ★
 python3 SW/tools/timing_check.py --netlist tmp/iss370_sbx/netlist_v1_rename_only.csv  # ★71/85 · 14 红 · rc=1 ★
-python3 SW/tools/timing_check.py --netlist tmp/iss370_sbx/netlist_v1_rowadd_only.csv  # ★73/85 · 2 红 · rc=1 ★
+python3 SW/tools/timing_check.py --netlist tmp/iss370_sbx/netlist_v1_rowadd_only.csv  # ★83/85 · 2 红 · rc=1 ★
 
 # ★§0-4 / §3 红项集合逐条 (★本单自己跑的★) ★
 grep '\[FAIL\]' logs/iss370/22_CONT1_timing_legB_full.txt
@@ -407,7 +407,7 @@ PY
 
 # ★本单新建闸 ★
 python3 SW/tools/check_onepass_legb_sw_impact.py              # ★rc=0 ★
-python3 SW/tools/check_onepass_legb_sw_impact.py --selftest   # ★9/9 PASS ★
+python3 SW/tools/check_onepass_legb_sw_impact.py --selftest   # ★10/10 PASS ★
 
 # ★边界自证 (★md5 交卷前后逐字节相同★) ★
 md5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv
@@ -430,4 +430,41 @@ md5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv HW/netlist_v1_pins.csv 
 
 ---
 
-★**本页结束 · ISS-370 · sw-lead · 2026-11-23 CONT1** ★
+## §7 · ★**CONT2 独立复核附录 (2026-11-24 04:1x · gateway reload 后本机复跑)** ★
+
+★**本段是【第二个并发会话】的独立复跑读数 (★与同机另一会话的 40~52 号日志互相独立 · 本附录自己实跑 · 不抄任何会话的转述★)** ★
+
+### §7-1 · ★**五组对照 · 本附录自己实跑 (★留证 `logs/iss370/40~44_CONT2_timing_*.txt` + `*_failset.txt`★)** ★
+
+| 组 | 网表 | 本附录实跑读数 | rc |
+|---|---|---|---|
+| 基线 | `HW/netlist_v1.csv` | ★**85/85** ★ | 0 |
+| 对照组 (真内容换路径) | `tmp/iss370_sbx/netlist_REAL_copy.csv` | ★**85/85** ★ | 0 |
+| 腿 B 全量 | `tmp/iss364_sbx/netlist_v1_legB.csv` | ★**70/85 · 15 红** ★ | 1 |
+| 只改名 (196 格 / 0 补行) | `tmp/iss370_sbx/netlist_v1_rename_only.csv` | ★**71/85 · 14 红** ★ | 1 |
+| 只补行 (4 行 / 0 改名) | `tmp/iss370_sbx/netlist_v1_rowadd_only.csv` | ★**83/85 · 2 红** ★ | 1 |
+
+★**⇒ 集合关系 (本附录自己算)**: 只改名 − 只补行 = **13 条语义红** · 腿 B − 只改名 = **1 条行数锚点红** · 只改名 ∩ 只补行 = **1 条 md5 落表义务红** ⇒ ★**与 §1 的 15 条逐条分类完全对得上 (★留证 `logs/iss370/42/43/44_CONT2_timing_*_failset.txt`★)** ★
+
+### §7-2 · ★**两处 negative 结论到 2026-11-24 04:1x 已过期 (★与腿 B 无关 · 第三方改动所致 · 本单无权改第三方页/脚本★)** ★
+
+| 闸 | §0-6 写的 | 2026-11-24 04:1x 实跑 | 红因 | 归属 |
+|---|---|---|---|---|
+| `SW/tools/check_sw_ref_reachability_v2.py` | rc=0 · 不受影响 | ★**rc=1** ★ | `DESIGNATOR_MISSING` 实测 4 > 上限 3 · 第 4 条 = `SW_MD5` token (`SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md:81`) | ★**第三方页 (ISS-372 那一趟的页) · 非腿 B** ★ |
+| `SW/tools/check_sw_fp_truth_impact.py` | (不在 §0-6 表里) | ★**rc=1** ★ (H1 红) | 实测 fp 栏读者 = 1 (`SW/tools/check_debug_pin_order_contract.py` · mtime 2026-11-24 02:05) ≠ 页里登记的 0 | ★**第三方闸 (ISS-375 那一趟) · 非腿 B** ★ |
+
+★**自证「与腿 B 无关」三条 (★本附录自己实跑 · 留证 `logs/iss370/50_CONT2_reachability_realroot.txt` / `51_CONT2_reachability_no_ourpage.txt` / `60_CONT2_existing_gates.txt` / `61_CONT2_sbxroot_gates.txt`★)**: ★**① 把本单交付页从沙盒镜像根里摘掉再跑该闸 ⇒ 仍 rc=1 · 仍 4 条 MISSING (扫描文档 54 → 53) ⇒ 本单页对该闸零贡献** ★ · ★**② 在真项目根 (非沙盒) 跑同一闸 ⇒ 同样 rc=1 · 第 4 条同样是第三方页的 `SW_MD5` ⇒ 不是沙盒污染** ★ · ★**③ 本单交付页 + 本单新闸源码里 `footprint` 字面量出现次数 = 0 / 0 ⇒ 本单不可能把 H1 读者数从 0 抬到 1** ★
+
+★**⇒ 「腿 B ⇒ SW 侧受影响的闸集合」结论不变 (★变体不新增红 · 四份真源 md5 = 受保护基线 · 逐字节未变★) · 变的是【今天顺手跑这些闸会看到 rc=1】· 归因写清楚, 免得下一个人误判成腿 B 的锅** ★
+
+### §7-3 · ★**并发事实 (★本单亲历 · ★2026-11-24 04:09~04:1x 同机有第二个 sw-lead 会话同跑 ISS-370 CONT2★)** ★
+
+★**① 两会话同时写同两条交付路径 ⇒ 04:11:42 发生一次「写盘被吞」: 本单交付页一度从盘上被摘走 (04:11:30 读不到) → 04:13 归位 (md5 逐字节回 `bf234cf3…`) ⇒ ★**该页 md5 在 04:15 被第二会话按同一读数订正为 `1f180afb…` (83/85 订正)**** ★
+★**② 两会话读数互相独立且完全一致**: 本附录 5 组对照 (85/85 · 85/85 · 70/85 · 71/85 · 83/85) == 另一会话 `45~47_CONT2_timing_*.txt` 读数 (★15 条红项原文逐字一致★)** ★
+★**③ 两会话改到同一处**: 「只补行 = 73/85」⇒ 两边都订正为 **83/85** (★派活书 §0② 的 73/85 是笔误 · 红数 2 一致 · 分类结论不受影响★)** ★
+★**④ 处置**: 本附录只【追加】· 不改既有段落与 JSON 基准块; 新闸裸跑 9/9 rc=0 + `--selftest` 10/10 rc=0 复跑通过 (★留证 `logs/iss370/38/39_CONT2_gate_*.txt`★) ⇒ ★**两会话改出来的页仍过闸** ★
+★**⑤ 要 main 回答**: 派活层要不要给【同路径写互斥】或【交卷前存在性复查】⇒ ★**本单只登记 · 不代裁** ★
+
+---
+
+★**本页结束 · ISS-370 · sw-lead · 2026-11-23 CONT1 + 2026-11-24 CONT2 独立复核附录** ★

@@ -1,0 +1,165 @@
+### CMD: ISS-378 新闸裸跑
+$ python3 SW/tools/check_debug_header_fw_impact.py
+=== ISS-378 · check_debug_header_fw_impact ===
+  ✔ W0 : §1 逐网表 19 行与网表/脚表实读一致
+  ✔ W1 : 全部 19 行的变化性质都在三分类里且非空
+  ✔ W2 : 6 条「需改代码」行的 文件/行号/函数名 全部核实存在
+  ✔ W3 : §2 三条链 + 最坏结论句齐全 (最坏只剩 USB)
+  ✔ W4 : §3 三条路线 (①改口径/②改网表/③换 SoM) 齐全且各有代价
+  ✔ W5 : SoC 实测 4 行 JTAG (TCK/TMS 有 · TDI/TDO 无) + SoM 实测 0 命中 + 网表四条 SoC_NC ⇒ 结论一致
+  ✔ W6 : 证据等级五级白名单 + 零挂起措辞 + [0数据] 处都有降级方案
+  ✔ W7 : 板 md5/mtime/size 三项 + 网表/脚表/BOM 三件 md5 全部与基线一致
+  ✔ W8 : state/gate_check.py 里 check_debug_header_fw_impact 命中 0 ⇒ 零挂链
+--- 9/9 绿 ---
+rc=0
+
+### CMD: ISS-378 新闸 selftest
+$ python3 SW/tools/check_debug_header_fw_impact.py --selftest
+=== ISS-378 · check_debug_header_fw_impact --selftest ===
+  ✔ REV1_route3_deleted                    目标判据 W4 独红 · 其余全绿
+  ✔ REV2_som_conclusion_flipped            目标判据 W5 独红 · 其余全绿
+  ✔ REV3_change_file_not_exist             目标判据 W2 独红 · 其余全绿
+  ✔ REV4_net_row_deleted                   目标判据 W0 独红 · 其余全绿
+  ✔ REV5_nature_blank                      目标判据 W1 独红 · 其余全绿
+  ✔ REV6_uart_chain_dropped                目标判据 W3 独红 · 其余全绿
+  ✔ REV7_worst_case_sentence_dropped       目标判据 W3 独红 · 其余全绿
+  ✔ REV8_bad_evidence_tag                  目标判据 W6 独红 · 其余全绿
+  ✔ REV9_hanging_wording                   目标判据 W6 独红 · 其余全绿
+  ✔ REV10_board_baseline_faked             目标判据 W7 独红 · 其余全绿
+  ✔ REV11_gate_hooked                      目标判据 W8 独红 · 其余全绿
+  ✔ REV12_netlist_soc_endpoint_broken      目标判据 W5 独红 · 其余全绿
+  ✔ REV13_net_name_not_in_netlist          目标判据 W0 独红 · 其余全绿
+  ✔ REV0_control                           对照组全绿 (证明不是把灯调没了)
+SELFTEST 14/14
+ALL TESTS PASS
+rc=0
+
+### CMD: ISS-375 既有闸 (只跑不改)
+$ bash state/pcbnew_py.sh SW/tools/check_debug_pin_order_contract.py
+=== ISS-375 · check_debug_pin_order_contract ===
+  [PASS] D0   官方 land pad1 形状 (盘上实读, 不写死) 1x04: pad1=thru_hole rect / 其余=circle ⇒ 有 pin1 标记=True; 1x02: pad1=thru_hole rect / 其余=circle ⇒ 有 pin1 标记=True
+  [PASS] D1   现状板面 pad1 位置/极性标记 (实读板, 不写死) J_DEBUG: pad1@X=142.2 (X_MIN) 标记=False 形状=RECT 属性=SMD; J_UART: pad1@X=18.64 (X_MIN) 标记=False 形状=RECT 属性=SMD
+  [PASS] D2   两候选 pad→X 序 (KiCad 变换算, 须互为逆序) J_DEBUG rot90 序=['1', '2', '3', '4'] (pad1@X_MIN) / rot270 序=['4', '3', '2', '1'] (pad1@X_MAX); J_UART rot90 序=['1', '2'] (pad1@X_MIN) / rot270 序=['2', '1'] (pad1@X_MAX)
+  [PASS] D3   页同时给出两候选+裁决+落点写死值 
+  [PASS] D4   页的 pin1 朝向与 D2 实算一致 
+  [PASS] D5   网表 JTAG 四线 SoM 侧端点 (现读, 不写死) JTAG_TCK_SOC→SoC_NC; JTAG_TMS_SOC→SoC_NC; JTAG_TDI_SOC→SoC_NC; JTAG_TDO_SOC→SoC_NC
+  [PASS] D6   页 §2 与 SOM_PIN_MAPPING.md 结论不冲突 
+  [PASS] D7   板指纹三项未动 (零写板自证) md5=611b869e13518c3c023fb178f91a0075 (期望 611b869e13518c3c023fb178f91a0075) / mtime=2026-11-06 07:07:17.362193413 (期望 2026-11-06 07:07:17.362193413) / size=4940213 (期望 4940213)
+  [PASS] D8   证据等级白名单+零挂起措辞+判据/事实分开+零挂链 零挂链: state/gate_check.py 命中 0
+=== 9/9 PASS ===
+ALL CHECKS PASS
+rc=0
+
+### CMD: SoC 侧 JTAG 实读 (自己跑)
+$ bash -c grep -i jtag HW/RK3572_PIN_TABLE/rk3572_pins.csv | head -10
+B11,GPIO2_A2,UART,CAN0_RX_M0/JTAG_TCK_M0/SPI0_CSN1_M1/UART5_RTSN_M2/SAI3_LRCK_M1/DSM_AU
+1A8,GPIO2_A3,UART,CAN0_TX_M0/JTAG_TMS_M0/UART5_CTSN_M2/SAI3_SDI_M1/DSM_AUD_RN_M0/SDMMC
+U33,GPIO0_D4,UART,JTAG_TCK_M1/UART0_TX_M0/GPIO0_D4_u
+V32,GPIO0_D5,UART,JTAG_TMS_M1/UART0_RX_M0/GPIO0_D5_u
+rc=0
+
+### CMD: SoM 侧 JTAG 实读 (自己跑)
+$ bash -c grep -ic jtag HW/PCB/FET3572C_PIN_TABLE.csv
+0
+rc=1
+
+### CMD: 网表 JTAG_TDI_SOC 端点实读
+$ bash -c grep -n "JTAG_TDI_SOC" HW/netlist_v1_pins.csv | head -4
+333:R_JTAG_TDI.1,JTAG_TDI_SOC,R_JTAG_TDI,1,P8,100Ω ±1%,R,必装,MAIN_PCB,B-19,,,[推算],,[JTAG_TDI] JTAG TDI 串阻 (隔离 SoC 调试脚)
+rc=0
+
+### CMD: merge
+$ python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-24T04:21:23+08:00)
+   产出 814 | 阻塞 43 (高危 33) | 未闭合需求 348 | 冲突 0 | 健康度 red
+rc=0
+
+### CMD: gate_check
+$ python3 state/gate_check.py
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-24_hw-lead_ISS379_JUART排针换land落位可行性.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-24_sw-lead_ISS378_排针换land固件影响面与JTAG口径冲突.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-24_mech-lead_ISS377_座体净距判据同源化与座体型号自查.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '官方', '推算', '0数据']
+   sw-lead    标签: ['实测', '官方', '推算', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 1152 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    445 条
+   sw-lead    335 条
+   mech-lead  372 条
+
+【Q4 需求闭环率】
+   问方视角 (我的需求被别人答了): 118/517  ← 与 merge.py 口径一致
+   答方视角 (我登记的答复): 239 条, 其中 58 条真对上了别人的需求 key
+   hw-lead    被答 43/269 | 我答 82 条(有效 31) | 产出 314 | 阻塞 7
+   sw-lead    被答 29/87 | 我答 72 条(有效 6) | 产出 283 | 阻塞 15
+   mech-lead  被答 46/161 | 我答 85 条(有效 21) | 产出 202 | 阻塞 12
+   ├─ ⚠️ **疑似漏登记 (答案在对方文档正文里, 但没进 answers)**: 0 条  ← 需人工判定, 也有可能是 waiting_on 标错
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 51 条 | **全局 46 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 348 条**
+   ✅ 与 merge.py 自对账一致 (等外部 46 / 等总工 348)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 10 个
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+      iss105_jchg_rfq_release: 发起方 ['main', 'hw-lead']
+      iss206_mech_claim_mainboard_len_carrier_direct_scheme_choice: 发起方 ['main', 'mech-lead']
+      iss236_boss_v_decision: 发起方 ['main', 'hw-lead']
+
+【Q5 硬指标覆盖】 1/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    2/5 类: ['镜腿/镜脚厚度(mm)', 'FCCSP 球间距(pitch)']
+   sw-lead    4/5 类: ['功耗(W)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)', 'FCCSP 球间距(pitch)']
+   mech-lead  1/5 类: ['FCCSP 球间距(pitch)']
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 206 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 44 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 98 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+rc=0
+
+### CMD: brief 命令存在性守卫
+$ python3 state/check_brief_commands.py --brief-file state/dispatch_briefs/ISS-378_sw_debug_header_fw_impact.md
+rc=0
+
+### CMD: 零挂链自证 (必须 0)
+$ bash -c grep -c check_debug_header_fw_impact state/gate_check.py
+0
+rc=1
+
+### CMD: 四份真源 md5
+$ bash -c md5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+rc=0
+
+### CMD: 板 mtime/size
+$ bash -c stat -c '%y %s' HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800 4940213
+rc=0
+

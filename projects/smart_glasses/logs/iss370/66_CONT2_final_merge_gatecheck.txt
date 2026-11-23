@@ -1,0 +1,65 @@
+=== ISS-370 CONT2 · 交卷前终检 (2026-11-24 04:2x · 本会话自跑) ===
+2026-11-24 04:20:45 +0800
+
+### python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-24T04:21:05+08:00)
+   产出 814 | 阻塞 43 (高危 33) | 未闭合需求 348 | 冲突 0 | 健康度 red
+merge rc=0
+
+### python3 state/gate_check.py
+   hw-lead    2/5 类: ['镜腿/镜脚厚度(mm)', 'FCCSP 球间距(pitch)']
+   sw-lead    4/5 类: ['功耗(W)', '镜腿/镜脚厚度(mm)', '端到端延迟(ms)', 'FCCSP 球间距(pitch)']
+   mech-lead  1/5 类: ['FCCSP 球间距(pitch)']
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 206 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 44 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 98 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+gate_check rc=0
+
+### 终检 · 四份真源 + 3 件交付物 (交卷前最后一遍)
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+  HW/PCB/demo_mainboard.kicad_pcb mtime=2026-11-06 07:07:17.362193413 +0800 size=4940213
+  HW/netlist_v1.csv mtime=2026-11-18 00:21:08.701116490 +0800 size=143198
+  HW/netlist_v1_pins.csv mtime=2026-11-23 19:19:15.443437584 +0800 size=146055
+  HW/BOM_v1.csv mtime=2026-11-18 00:21:08.953119601 +0800 size=44881
+
+### 3 件交付物
+ec5ab4fa12e6a6504f0249bd3e94e9a7  SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md
+7059f19d7397bf6039d9f87c9ec8ca8f  SW/tools/check_onepass_legb_sw_impact.py
+8c82832bbbd3baa79f3c8643b3e2c01a  HANDOFF/2026-11-23_sw-lead_ISS370_腿B对SW侧影响面.md
+  SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md mtime=2026-11-24 04:19:14.375587284 +0800 size=58578
+  SW/tools/check_onepass_legb_sw_impact.py mtime=2026-11-23 19:50:08.215495499 +0800 size=24850
+  HANDOFF/2026-11-23_sw-lead_ISS370_腿B对SW侧影响面.md mtime=2026-11-24 04:20:25.326433930 +0800 size=45719
+
+### 新闸 + selftest 终跑
+  [PASS] G8 · 板/网表/脚表/BOM 四份真源 md5 逐字节等于受保护基线
+
+闸结果 9/9 通过, rc=0
+gate rc=0
+
+SELFTEST 10/10 通过
+selftest rc=0
+
+### 留证件数
+85

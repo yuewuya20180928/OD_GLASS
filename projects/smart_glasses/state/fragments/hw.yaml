@@ -3,11 +3,12 @@ role: 硬件总工
 updated_at: '2026-11-17'
 updated_by: hw-lead
 status:
-  phase: done
+  phase: fixing
   progress_pct: 100
   health: green
-  summary: 'ISS-373 交卷: 一页集合真源 + 一条 L0~L8 口径闸 + 沙盒 S0/S1/S2a/S2b 四块板副本实测; 零写板/零落表/零改既有闸/零改既有页面/零挂链/零外发;
-    等 main 裁 J_DEBUG 换不换 land'
+  summary: 'ISS-379 cont1 交卷: 闸 K2 那条红已修 (根因 = 闸侧 pad 角度被 round(...,6) 取整造成 1e-4 口径差; 第三路独立复算判定证据侧对/闸侧错;
+    已在产生点修掉, 容差未放宽, 证据未手改) ⇒ 闸 rc=0 K0~K8 全绿 + selftest 19/19 ALL TESTS PASS + merge 0 + gate_check 0
+    (Q1 18/18) + 板零写板; 权威证据归一为 logs/iss379/scan_land_fit.json; 等 main 签收 + 裁换不换 land/挪不挪/pin 顺序'
   updated_at: '2026-11-17'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -2062,6 +2063,44 @@ artifacts:
   version: '1.0'
   updated_at: '2026-11-23'
   summary: 'ISS-373 交卷页 (B1~B6 六段齐全): 第 1 条未决项 = 那一趟 J_DEBUG 换不换 land (main 裁决)'
+- path: HW/PCB/BOARD_ONEPASS_JDEBUG_LAND_FIT.md
+  kind: truth-page
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: 'ISS-376 真相页: J_DEBUG 换官方 1x04 P1.27 THT land 的落位可行性穷举 (现位放不下/可行域/最小位移/代价账); 机器块 LAND/RULES/NETMAP/ORIENT/INPLACE/FEAS/COST/BOARD/EVID'
+- path: HW/check_jdebug_land_fit.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: ISS-376 新闸 L0~L8 fail-closed + --selftest 11 条反向用例 (含 2 条针对只试一个落点); 逐格复算 48598 格 + 边界环 2954
+    格
+- path: HANDOFF/2026-11-23_hw-lead_ISS376_JDEBUG排针换land落位可行性.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: 'ISS-376 交卷页 B1~B6: 落位可行性结论 + 代价账 + 未决项 + 11 条必跑命令输出'
+- path: HW/PCB/BOARD_ONEPASS_JUART_LAND_FIT.md
+  kind: truth
+  version: iss379-cont1
+  updated_at: '2026-10-25'
+  summary: J_UART 换官方 1x02 P1.27 THT land 落位可行性穷举 (三朝向 145307 格) + §10 追加根因块 (第三路复算/判定/根因行号/改了啥/证据归一/一条新发现),
+    既有段落一字未动
+- path: HW/check_juart_land_fit.py
+  kind: gate
+  version: iss379-cont1
+  updated_at: '2026-10-25'
+  summary: 'ISS-379 落位可行性闸 K0~K8 + --selftest 19 条反向用例 (C18/C19 专打 1e-4 口径差); 本趟改: pad 角度去掉 round(...,6)
+    + C11 期望红集按实测改为 {K2,K5}'
+- path: HANDOFF/2026-11-24_hw-lead_ISS379_JUART排针换land落位可行性.md
+  kind: handoff
+  version: iss379-cont1
+  updated_at: '2026-10-25'
+  summary: 交卷页 B1~B8; B8 = cont1 收尾 (根因/改了什么/五连 rc 原样输出/与上一趟自述 6 条出入/证据归一/新发现/边界自证)
+- path: logs/iss379/scan_land_fit.json
+  kind: evidence
+  version: iss379-cont1
+  updated_at: '2026-10-25'
+  summary: 唯一权威证据 JSON (2026-11-24 04:47 盘上脚本重跑, mode A, 8,450,311 B, 逐格可行清单)
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -4166,6 +4205,20 @@ needs_from:
   item: 'ISS-373: 新闸 HW/check_onepass_s10_swap_set_truth.py (L0~L8 + 20 条反向用例) 已建, 裸跑 rc=0 全绿, 但按派活书纪律【零挂链】未挂进
     state/gate_check.py ⇒ 请 main 决定要不要挂链。'
   since: '2026-11-23'
+- key: iss376_land_swap_90_vs_91_decision
+  to: main
+  item: 'ISS-376 落位侧代价账已交: 换官方 land 需横移 >=5.7009mm (rot90) + 重接 6 段旧焊盘端点走线, 且 rot0/270 翻转 JTAG pin 顺序;
+    不换 land 则维持现位. 请裁: 那一趟换不换 land (90 件 vs 91 件)'
+  since: '2026-11-24'
+- key: iss369_button_3n_vs_1p5n_s10_blocker
+  to: main
+  item: '★ISS-369 §5 W-2 的上游原始待拍板面第 10 项 `iss364_k3_button_3n_vs_1p5n` (★矩阵 §㉞-1·★标注「卡·时限型·须在 S10 开工前」★)
+    ★本单只登记不代拍★ ⇒ 要 main / 老板拍: 5 只按键 (SW_BOOT/SW_KEY_PWR/SW_KEY_VM/SW_KEY_VP/SW_RST) 走 (a) 保留 3N ⇒ 官方
+    SW_Push_1P1T_NO_CK_KMR2 4 焊盘 (焊盘号 1,1,2,2) ⇒ 网表与脚表要给这 5 只补 2 个具名脚 (属腿 B 的活·本单零落表) ⇒ C3 绿; 还是走 (b)
+    改 1.5N ⇒ 换 2 焊盘按键封装 (SW_SPST_B3U-1000P md5 749f20c5ab898069ade01682274c7bbf / SW_SPST_CK_KXT3 md5
+    bed9b3b110e52e4ffcdc18240ef7a47c·★两者本机实测在盘★) ⇒ C3 绿但按动力度 3N→1.5N ⇒ 误触风险上升 (矩阵 §⑮~⑲ 选 3N 的理由就是防误触).
+    ★★不拍的后果: 走 (a) 而网表没补脚 ⇒ C3 当场红「板 4 脚 / 网表 2 脚」(沙盒实测不符 3 件 = SW_BOOT/SW_KEY_PWR/SW_RST) ⇒ 那一趟交不出可投产的板★★'
+  since: '2026-11-24'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -4921,6 +4974,33 @@ answers:
     靶子 100 减 C4 158】的差 (充电板 22 件不在本板 + 在板的 J_DEBUG 1 件), 与本板 96 的分桶不是一回事. ⇒ 本单 96 的分桶一律按脚本实算给 (TP 42 /
     DNP 37 / 靶内-非C4 1 / 缺口-非C4 12 / 其它 4), 并在页 §3.3 把两种口径逐条对上 ⇒ ★要 main 确认: 任务书那处括注按【笔误】归档, 还是按【另一套口径】另有含义★.'
   ref: HW/PCB/FP_LIBID_TRUTH_WORKPACKET.md §3.3
+- key: iss369_libid_reverify_20261124
+  to: main
+  value: '★ISS-369 第三次会话 (2026-11-24 04:0x) 的二次独立复核★ (★背景: 本单 2026-11-23 22:34 已交卷·派活书那句「三件交付物一个都不在盘上」是
+    20:34 那一刻的快照·cont1 趟已做完⇒ 本次不重做交付物·只做独立复核+补一处真实缺口★). ★独立复核结论 (★全部本机实跑·不采信上一趟自述★): ① v2_indep_board_probe.py
+    用 pcbnew 直读真板 ⇒ 186 封装 / lib_id 非空 0 / GetFPIDAsString() 唯一值 =  / 总焊盘 834; ② v2b_write_mechanism.py
+    复现写盘机制 ⇒ E1 python API 只改 1 行 (187044 行→差异 1 行) · E2 文本层 (footprint Lib:Name) 可用 · E3 (footprint NAME
+    (lib A B)) 与 E4a (footprint NAME (lib_id A:B)) ★LoadBoard 返回 None = 整板报废★ · E4c 裸封装名会把封装名当库名 · E8
+    库名指向不存在的库板仍能加载; ③ v3_indep_targets_verify.py 自己解析页两张表 + 自己 test -f + 重算 md5 ⇒ 90+96 = 186 与板面逐件相等
+    (不缺不漏) + 94/94 个 .kicad_mod 在盘且 md5 对得上 + 库根 155 个 .pretty / 15468 个 .kicad_mod; ④ 自己用真闸 state/check_pcb_nets.py
+    跑沙盒五轮 ⇒ S0~S4 的 C4 全部 = 158 且 S0≡S3 · S1≡S2 ⇒ ★写库名对 C1/C2/C3/C4 的贡献 = 0★. ★★补的一处真实缺口: 页 §5 的 W-2 原写「5
+    只按键的 2 脚 vs 4 焊盘」, 漏了上游真正要拍的那条「5 只按键 3N vs 1.5N」 (上游 iss364_k3_button_3n_vs_1p5n · 矩阵 §㉞-1 第 10 项·★上游标注「卡·时限型·须在
+    S10 开工前」★) ⇒ 已改成上游口径两个分支 + 误触代价 + 补 §5 编号对照 (本页 W-1~W-5 vs 上游 K1/K2/K4 vs 矩阵「老板 W-1/W-2」) ⇒ 只登记不代拍.
+    ★边界复查: 板 md5/mtime/size + 网表/脚表/BOM md5 + 9 个既有闸脚本 md5 + 6 个既有页面 md5 全部与 20:11 基线逐行相同 ⇒ 零写板·零落表·零改既有闸·零改既有页面·零挂链.'
+  ref: HANDOFF/2026-11-23_hw-lead_ISS369_板面库封装名写盘作业包.md §B5.1.1 §B6-9 · logs/iss369/6x-7x 留证
+- key: iss379_k2_red_root_cause
+  to: main
+  value: 闸 K2 红已修 · 根因 = HW/check_juart_land_fit.py 的 HELPER_SRC 里 pad 角度被 round(radians(deg),6) 取整 (90°
+    ⇒ 1.570796, 差 -3.268e-7 rad) ⇒ 有向矩形转歪 ⇒ 铜-铜距离偏 +1.25e-7 mm ⇒ rot 90 格 (7.4000,75.8000) 余量由 3.1266499666
+    被顶成 3.1266500913 ⇒ round4 由 3.1266 翻成 3.1267; 第三路独立复算 (自写 s-表达式解析 + 自写凸多边形间距, 不 import 闸也不 import
+    扫描脚本) 判定真值 = 3.1266499666 ⇒ 证据侧对/闸侧错 ⇒ 已在产生点 (原第 301 行) 删掉该取整, 容差 1e-6 未放宽, 证据 JSON 一个数都没手工改
+  ref: HW/PCB/BOARD_ONEPASS_JUART_LAND_FIT.md §10
+- key: iss379_query_radius_finding
+  to: main
+  value: '另一条发现 (与 K2 无关, 本单未改): 扫描脚本与闸都用查询半径 3.0mm (以 pad 中心为圆心) 的空间索引筛障碍, 会漏掉中心距>3.0 但边距更近的障碍 (例 TP_I2CB_SDA.1
+    @ (12.4700,75.4000) 对 rot90 格 pad2 @ (8.6700,75.8000), 中心距 3.81); 推算: 漏检不可能藏住任何违例 (违例者包围盒必与 pad 铜箔相差<0.2
+    ⇒ 必在覆盖内) ⇒ 只让余量绝对值偏乐观, 可行域判定不受影响; 改它要重跑全网并同步 §2/§3/§4 全部数字, 越本单边界 ⇒ 建议单独一单处理'
+  ref: HW/PCB/BOARD_ONEPASS_JUART_LAND_FIT.md §10.7
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -7701,6 +7781,41 @@ interface_claims:
     逐字相同)
   note: ISS-373 零写板自证; 闸 L6 机器校验
   ref: HW/PCB/BOARD_ONEPASS_S10_SWAP_SET_TRUTH.md §6
+- key: iss376_jdebug_current_land_conflict
+  value: 'J_DEBUG 现位 (origin 144.3000,58.0000 orient 0) 装官方 1x4 P1.27 THT land: rot90 pad1 孔净距 0.1271
+    (<0.25), pad3 孔净距 -0.3542 (clamp 0.0000) ⇒ 现位放不下'
+  note: 盘上 .kicad_mod + 真板 pcbnew 10.0.8 实读; 与 ISS-373 S2b 的 0.1271/0.0000 逐位一致
+  ref: HW/PCB/BOARD_ONEPASS_JDEBUG_LAND_FIT.md §1
+- key: iss376_jdebug_land_fit_region
+  value: '落位可行域 (网格 0.1mm, X 134.0..159.5 Y 42.0..78.0, 92416 候选/朝向): rot0 23285 格 X 134.0..157.9 Y 46.0..78.0;
+    rot90 12787 格 X 134.0..154.5 Y 46.0..78.0; rot270 12526 格 X 134.0..158.3 Y 46.0..78.0'
+  note: 域在 X 下侧/Y 上侧被扫描窗口截断, 已标注; 最小位移结论不受影响
+  ref: HW/PCB/BOARD_ONEPASS_JDEBUG_LAND_FIT.md §2
+- key: iss376_jdebug_optimal_landing
+  value: 最小位移落点 rot90 (150.0000, 57.9000), 位移 5.7009mm, 余量 2.3254; <=5.0mm 半径内三个朝向 0 格可行; 该落点 n_via_viol=0
+    n_cu_viol=0 ⇒ 一个过孔都不用挪
+  note: rot0 最小 6.9065mm @(150.0000,54.1000); rot270 最小 9.6005mm @(153.9000,57.9000); rot0/270 翻转 X 向
+    JTAG pin 顺序
+  ref: HW/PCB/BOARD_ONEPASS_JDEBUG_LAND_FIT.md §2.3
+- key: iss369_libid_w2_button_force_gap_fixed
+  value: fixed
+  note: ★ISS-369 页 §5 W-2 的口径缺口已补 (2026-11-24 03 补)★ ⇒ 原写「2 脚 vs 4 焊盘」漏了上游真正待拍项「5 只按键 3N vs 1.5N」 ⇒ 已按上游
+    iss364_k3_button_3n_vs_1p5n 改成 (a) 保留 3N (网表/脚表补 2 个具名脚·腿 B 的活) / (b) 改 1.5N (换 2 焊盘件 + 误触代价) 两个分支·只登记不代拍;
+    并加 §5 编号对照防止 main 把本页 W-1~W-5 与上游 K1/K2/K4 或矩阵「老板 W-1/W-2」读混. ★只改本单自己的两页 (作业包页 + 交卷页)·既有页一个字节未动★
+  ref: HW/PCB/FP_LIBID_TRUTH_WORKPACKET.md §5
+- key: iss379_land_fit_gate_green
+  value: 'ISS-379 cont1: 闸 HW/check_juart_land_fit.py rc=0 (K0~K8 九条全绿, K2 复算 145307 格 + 边界环 3010 格) +
+    --selftest rc=0 (19/19 末行 ALL TESTS PASS, 含新增 C18/C19 把权威证据争议格 margin 改 ±0.0002 ⇒ K2 必须红) + state/merge.py
+    rc=0 + state/gate_check.py rc=0 (Q1 18/18, hw-lead 6/6 缺无, Q7 钉板闸 10/10) + 板 md5 611b869e13518c3c023fb178f91a0075
+    / mtime 2026-11-06 07:07:17.362193413 / size 4940213 三项未变'
+  note: ISS-379 cont1; 权威证据 logs/iss379/scan_land_fit.json (04:47 盘上脚本重跑); 旧件归档 logs/iss379/archive/*nonauth.json
+  ref: ''
+- key: iss379_evidence_single_authority
+  value: '证据归一: 权威唯一 = logs/iss379/scan_land_fit.json (8,450,311 B @04:47, mode A, elapsed_s 449.1, 盘上脚本
+    tmp/iss379/tools/scan_land_fit.py 823 行 @04:09 重跑); 三份旧件改名归档 logs/iss379/archive/ 并标 nonauth; 新旧件
+    feas_cells/components/best/min_displacement/row_table 逐项相同 ⇒ 落位结论未变 ⇒ 页面 FEAS 块除 evidence_json 指向外无前后差'
+  note: ISS-379 cont1
+  ref: ''
 open_questions:
 - id: HW-Q1
   to: main

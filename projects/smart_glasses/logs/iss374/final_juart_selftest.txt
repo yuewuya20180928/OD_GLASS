@@ -1,0 +1,30 @@
+=== --selftest · ISS-374 反向用例 ===
+  [OK] T1   ★病根①: J_UART 那一页改名 ⇒ J5 红, 其余仍绿
+        红: J5 (期望 J5)
+  [OK] T2   ★病根②: J_UART 的 THT 铜箔宽改成 J_DEBUG 的 4.8100 ⇒ J1/J2 红
+        红: J1,J2 (期望 J1,J2)
+  [OK] T3   ★病根③: J_UART 方向结论改成与 J_DEBUG 同向 ⇒ J5 红
+        红: J5 (期望 J5)
+  [OK] T4   ★病根④: J_UART 清空区口径改成 copper_driven (套 J_DEBUG 的口径) ⇒ J5 红
+        红: J5 (期望 J5)
+  [OK] T5   官方 1×2 THT `.kicad_mod` 的 `fp_rect` 被改 (台账同步改) ⇒ J0 红
+        红: J0 (期望 J0)
+  [OK] T6   SMD `Pin1Left` 的 md5 台账写错 ⇒ J4 红
+        红: J4 (期望 J4)
+  [OK] T7   正文塞入挂起措辞「等原厂回信」⇒ J7 红
+        红: J7 (期望 J7)
+  [OK] T8   板文件被追加字节 ⇒ J6 红 (零写板自证)
+        红: J6 (期望 J6)
+  [OK] T9   THT 档 `pass_nominal` 被改成 true (掩盖不足) ⇒ J2 红
+        红: J2 (期望 J2)
+  [OK] T10  「事实句」标记被删掉 ⇒ J7 红 (判据句/事实句 两句分开的要求被破坏)
+        红: J7 (期望 J7)
+  [OK] T11  SMD 变体档的铜箔宽换成 THT 的 2.2700 ⇒ J1/J2 红
+        红: J1,J2 (期望 J1,J2)
+  [OK] T12  CRIT 真身被松 (fdm_part 0.30 → 0.10) ⇒ J3 红
+        红: J3 (期望 J3)
+---
+  [OK] 护栏: MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md 逐字节未变 (md5 ffc099397dc573df207f265bff57dffb)
+  [OK] 护栏: MECH/service_port_check.py 逐字节未变 (md5 db58ff6a2afc28b8bf517e3c57c56bc1)
+  [OK] 护栏: HW/PCB/demo_mainboard.kicad_pcb 逐字节未变 (md5 611b869e13518c3c023fb178f91a0075)
+ALL TESTS PASS (12/12)

@@ -1,0 +1,44 @@
+═══ SW 侧零铜网分级 ↔ 板侧真值 一致性闸 (★ISS-344·sw-lead·零写板★) ═══
+  被检文档 : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+  真值源   : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/check_s8_target_list.py (★只读·AST 静态解析·未执行其代码★)
+  板侧真值 : REQUIRED_SINGLE(8) = CAM_RESET_N, LED_G_D, USB_CC2, JTAG_TDI, UART_RX, SPI_SCLK_BOOT, SPI_MOSI_BOOT, SPI_MISO_BOOT
+             FLOAT_OK(1) = FSIN_OUT
+             EXPECT_* = 必需 23 / 可悬空 1 / 待定 0
+
+── SW 页 §3/§3-1 表读出的「建议的板侧标记」 ──
+  CAM_RESET_N        行 164   ⇒ REQUIRED  REQUIRED
+  FSIN_OUT           行 151   ⇒ FLOAT     FLOAT
+  JTAG_TDI           行 152   ⇒ REQUIRED  REQUIRED
+  LED_G_D            行 165   ⇒ REQUIRED  REQUIRED
+  SPI_MISO_BOOT      行 153   ⇒ REQUIRED  REQUIRED
+  SPI_MOSI_BOOT      行 154   ⇒ REQUIRED  REQUIRED
+  SPI_SCLK_BOOT      行 155   ⇒ REQUIRED  REQUIRED
+  UART_RX            行 156   ⇒ REQUIRED  REQUIRED
+  USB_CC2            行 157   ⇒ REQUIRED  REQUIRED
+
+── SW 页订正表的「新说法」 ──
+  CAM_RESET_N        行 281   ⇒ REQUIRED  REQUIRED
+  FSIN_OUT           行 289   ⇒ FLOAT     FLOAT
+  JTAG_TDI           行 283   ⇒ REQUIRED  REQUIRED
+  LED_G_D            行 282   ⇒ REQUIRED  REQUIRED
+  SPI_MISO_BOOT      行 284   ⇒ REQUIRED  REQUIRED
+  SPI_MOSI_BOOT      行 285   ⇒ REQUIRED  REQUIRED
+  SPI_SCLK_BOOT      行 286   ⇒ REQUIRED  REQUIRED
+  UART_RX            行 287   ⇒ REQUIRED  REQUIRED
+  USB_CC2            行 288   ⇒ REQUIRED  REQUIRED
+
+── 判据逐条 ──
+  C3 REQUIRED_SINGLE 每条都在 SW 页且被判【必需】               ✔ 通过
+       └─ 缺 0 条 · 非必需 0 条
+  C1 凡判 NC 的网必须在 FLOAT_OK 里                         ✔ 通过
+       └─ 断言 NC 的网 = (无)
+  C2 凡在 REQUIRED_SINGLE 里的网判 NC 就判红并点名              ✔ 通过
+       └─ 被判 NC 的必需网 = (无)
+  C0 §3/§3-1 标记与 §7 订正表「新说法」同档                      ✔ 通过
+       └─ 比对 9 条
+  C5 必需网的固件侧改动清单已标「作废」                              ✔ 通过
+       └─ 未标作废 = 0 条
+  C9 §2 表「分级」列与 §3 标记同档 (加分项)                       ✔ 通过
+       └─ 比对 9 条
+
+★★结论: ★**全绿** ★ ⇒ SW 侧分级与板侧真值【一致】★

@@ -1,0 +1,14 @@
+[FAIL] ADC 源阻抗 = 37.5k (★ISS-291: 判决对象 = BAT_DET 链 → pin38 SARADC_VIN5★)
+[FAIL] ADC tau = 3.75ms (★ISS-291 口径★)
+[FAIL] ADC 12bit 建立 33.8ms ≤ 300ms 红线 (★ISS-291 口径: 老口径的 451ms 是**假红**★)
+[FAIL] ADC 漏电偏移 37.5mV ≤ 0.4V 红线 (★ISS-291 口径: 老口径的 0.50V 是**假红**★)
+[FAIL] 网表锚点: 现行网表 md5 ∈ 落表台账登记的状态 (落表前 / 落表后)
+[FAIL] F4' 实读: ADC 判决对象 = BAT_DET 链 (落点 J_SOM_P1 pin38 = SARADC_VIN5, 1.8V 域); BAT_DET 三颗必装
+[FAIL] F4 实读: 漏电偏移 37.5mV = 2.1% FS ⇒ 与网表 L182 note 写死的数**逐字对上** (口径同源)
+[FAIL] F4 实读: 判决源 = SoM 脚表 signal 列 (落点判 SAR-ADC), 取链模式 = by_landing_pin
+[FAIL] F4 实读: ADC 节点 @4.2V = 1.575V ≤ abs-max 1.98V (FS 利用率 87.5%)
+[FAIL] F4D 实读: VBUS_DET_D 落点 = J_SOM_P1 pin100 = USB_DRD1_VBUSDET (数字脚 ⇒ 不进 ADC 判据)
+[FAIL] REV-12 反向: 把满量程 V_DET_FS 改回 3.3 (老口径) ⇒ 满量程/口径同源判据必须变红
+[FAIL] REV-13 反向: 把取链规则改回「元组第一条」⇒ 判决对象判据必须变红 (不许悄悄换回错对象)
+[FAIL] REV-14 反向: 把 BAT_DET 三颗 (R_BAT_DET_1 / R_BAT_DET_2 / C_DET_BAT) 改回 DNP ⇒ 「ADC 输入悬空」判据必须变红
+[FAIL] REV-15 反向: 把 BAT_DET 的下臂 60k 改成 100k ⇒ @4.2V 节点 2.1V > 1.98V abs-max ⇒ 过压判据必须变红

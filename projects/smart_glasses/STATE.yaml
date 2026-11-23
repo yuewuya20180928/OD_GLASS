@@ -1,6 +1,6 @@
 meta:
   version: 1
-  generated_at: '2026-11-24T00:30:20+08:00'
+  generated_at: '2026-11-24T05:27:14+08:00'
   generator: state/merge.py
   source_of_truth: PROJECT_TRACKER.md
   note: STATE.yaml 是机器可读的状态快照, 由 state/merge.py 从 state/fragments/*.yaml 合并生成, **不要手改** (会被下次合并覆盖)。决策理由
@@ -9,14 +9,14 @@ meta:
   fragments:
     hw-lead:
       file: hw.yaml
-      size: 707435
-      sha1: 3dcd6999f0ae
-      mtime_ns: 1795448209569283306
+      size: 717665
+      sha1: a7e70e0a5127
+      mtime_ns: 1795468600179649281
     mech-lead:
       file: mech.yaml
-      size: 702976
-      sha1: ee696ccc9cf9
-      mtime_ns: 1795443603556357934
+      size: 713884
+      sha1: 69c882f429d5
+      mtime_ns: 1795464822633634962
     main:
       file: pm.yaml
       size: 203932
@@ -24,9 +24,9 @@ meta:
       mtime_ns: 1795445650531746505
     sw-lead:
       file: sw.yaml
-      size: 733410
-      sha1: f84ee30ce61f
-      mtime_ns: 1795444921215093677
+      size: 761937
+      sha1: 7af39c61d261
+      mtime_ns: 1795466133400272530
   incomplete_fragments: []
 project:
   name: ARS45 智能眼镜
@@ -2629,11 +2629,12 @@ domains:
     updated_at: '2026-11-17'
     updated_by: hw-lead
     status:
-      phase: done
+      phase: fixing
       progress_pct: 100
       health: green
-      summary: 'ISS-373 交卷: 一页集合真源 + 一条 L0~L8 口径闸 + 沙盒 S0/S1/S2a/S2b 四块板副本实测; 零写板/零落表/零改既有闸/零改既有页面/零挂链/零外发;
-        等 main 裁 J_DEBUG 换不换 land'
+      summary: 'ISS-379 cont1 交卷: 闸 K2 那条红已修 (根因 = 闸侧 pad 角度被 round(...,6) 取整造成 1e-4 口径差; 第三路独立复算判定证据侧对/闸侧错;
+        已在产生点修掉, 容差未放宽, 证据未手改) ⇒ 闸 rc=0 K0~K8 全绿 + selftest 19/19 ALL TESTS PASS + merge 0 + gate_check
+        0 (Q1 18/18) + 板零写板; 权威证据归一为 logs/iss379/scan_land_fit.json; 等 main 签收 + 裁换不换 land/挪不挪/pin 顺序'
     artifacts:
     - path: HW/HARDWARE_BREAKDOWN.md
       kind: breakdown
@@ -4713,6 +4714,44 @@ domains:
       version: '1.0'
       updated_at: '2026-11-23'
       summary: 'ISS-373 交卷页 (B1~B6 六段齐全): 第 1 条未决项 = 那一趟 J_DEBUG 换不换 land (main 裁决)'
+    - path: HW/PCB/BOARD_ONEPASS_JDEBUG_LAND_FIT.md
+      kind: truth-page
+      version: v1.0
+      updated_at: '2026-11-24'
+      summary: 'ISS-376 真相页: J_DEBUG 换官方 1x04 P1.27 THT land 的落位可行性穷举 (现位放不下/可行域/最小位移/代价账); 机器块 LAND/RULES/NETMAP/ORIENT/INPLACE/FEAS/COST/BOARD/EVID'
+    - path: HW/check_jdebug_land_fit.py
+      kind: gate
+      version: v1.0
+      updated_at: '2026-11-24'
+      summary: ISS-376 新闸 L0~L8 fail-closed + --selftest 11 条反向用例 (含 2 条针对只试一个落点); 逐格复算 48598 格 + 边界环
+        2954 格
+    - path: HANDOFF/2026-11-23_hw-lead_ISS376_JDEBUG排针换land落位可行性.md
+      kind: handoff
+      version: v1.0
+      updated_at: '2026-11-24'
+      summary: 'ISS-376 交卷页 B1~B6: 落位可行性结论 + 代价账 + 未决项 + 11 条必跑命令输出'
+    - path: HW/PCB/BOARD_ONEPASS_JUART_LAND_FIT.md
+      kind: truth
+      version: iss379-cont1
+      updated_at: '2026-10-25'
+      summary: J_UART 换官方 1x02 P1.27 THT land 落位可行性穷举 (三朝向 145307 格) + §10 追加根因块 (第三路复算/判定/根因行号/改了啥/证据归一/一条新发现),
+        既有段落一字未动
+    - path: HW/check_juart_land_fit.py
+      kind: gate
+      version: iss379-cont1
+      updated_at: '2026-10-25'
+      summary: 'ISS-379 落位可行性闸 K0~K8 + --selftest 19 条反向用例 (C18/C19 专打 1e-4 口径差); 本趟改: pad 角度去掉 round(...,6)
+        + C11 期望红集按实测改为 {K2,K5}'
+    - path: HANDOFF/2026-11-24_hw-lead_ISS379_JUART排针换land落位可行性.md
+      kind: handoff
+      version: iss379-cont1
+      updated_at: '2026-10-25'
+      summary: 交卷页 B1~B8; B8 = cont1 收尾 (根因/改了什么/五连 rc 原样输出/与上一趟自述 6 条出入/证据归一/新发现/边界自证)
+    - path: logs/iss379/scan_land_fit.json
+      kind: evidence
+      version: iss379-cont1
+      updated_at: '2026-10-25'
+      summary: 唯一权威证据 JSON (2026-11-24 04:47 盘上脚本重跑, mode A, 8,450,311 B, 逐格可行清单)
     blockers:
     - id: HW-B1
       desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -9815,6 +9854,38 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss376_land_swap_90_vs_91_decision
+      to: main
+      item: 'ISS-376 落位侧代价账已交: 换官方 land 需横移 >=5.7009mm (rot90) + 重接 6 段旧焊盘端点走线, 且 rot0/270 翻转 JTAG pin
+        顺序; 不换 land 则维持现位. 请裁: 那一趟换不换 land (90 件 vs 91 件)'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss369_button_3n_vs_1p5n_s10_blocker
+      to: main
+      item: '★ISS-369 §5 W-2 的上游原始待拍板面第 10 项 `iss364_k3_button_3n_vs_1p5n` (★矩阵 §㉞-1·★标注「卡·时限型·须在 S10
+        开工前」★) ★本单只登记不代拍★ ⇒ 要 main / 老板拍: 5 只按键 (SW_BOOT/SW_KEY_PWR/SW_KEY_VM/SW_KEY_VP/SW_RST) 走 (a)
+        保留 3N ⇒ 官方 SW_Push_1P1T_NO_CK_KMR2 4 焊盘 (焊盘号 1,1,2,2) ⇒ 网表与脚表要给这 5 只补 2 个具名脚 (属腿 B 的活·本单零落表) ⇒
+        C3 绿; 还是走 (b) 改 1.5N ⇒ 换 2 焊盘按键封装 (SW_SPST_B3U-1000P md5 749f20c5ab898069ade01682274c7bbf / SW_SPST_CK_KXT3
+        md5 bed9b3b110e52e4ffcdc18240ef7a47c·★两者本机实测在盘★) ⇒ C3 绿但按动力度 3N→1.5N ⇒ 误触风险上升 (矩阵 §⑮~⑲ 选 3N 的理由就是防误触).
+        ★★不拍的后果: 走 (a) 而网表没补脚 ⇒ C3 当场红「板 4 脚 / 网表 2 脚」(沙盒实测不符 3 件 = SW_BOOT/SW_KEY_PWR/SW_RST) ⇒ 那一趟交不出可投产的板★★'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: mech-lead
@@ -10587,6 +10658,35 @@ domains:
         靶子 100 减 C4 158】的差 (充电板 22 件不在本板 + 在板的 J_DEBUG 1 件), 与本板 96 的分桶不是一回事. ⇒ 本单 96 的分桶一律按脚本实算给 (TP
         42 / DNP 37 / 靶内-非C4 1 / 缺口-非C4 12 / 其它 4), 并在页 §3.3 把两种口径逐条对上 ⇒ ★要 main 确认: 任务书那处括注按【笔误】归档, 还是按【另一套口径】另有含义★.'
       ref: HW/PCB/FP_LIBID_TRUTH_WORKPACKET.md §3.3
+    - key: iss369_libid_reverify_20261124
+      to: main
+      value: '★ISS-369 第三次会话 (2026-11-24 04:0x) 的二次独立复核★ (★背景: 本单 2026-11-23 22:34 已交卷·派活书那句「三件交付物一个都不在盘上」是
+        20:34 那一刻的快照·cont1 趟已做完⇒ 本次不重做交付物·只做独立复核+补一处真实缺口★). ★独立复核结论 (★全部本机实跑·不采信上一趟自述★): ① v2_indep_board_probe.py
+        用 pcbnew 直读真板 ⇒ 186 封装 / lib_id 非空 0 / GetFPIDAsString() 唯一值 =  / 总焊盘 834; ② v2b_write_mechanism.py
+        复现写盘机制 ⇒ E1 python API 只改 1 行 (187044 行→差异 1 行) · E2 文本层 (footprint Lib:Name) 可用 · E3 (footprint
+        NAME (lib A B)) 与 E4a (footprint NAME (lib_id A:B)) ★LoadBoard 返回 None = 整板报废★ · E4c 裸封装名会把封装名当库名
+        · E8 库名指向不存在的库板仍能加载; ③ v3_indep_targets_verify.py 自己解析页两张表 + 自己 test -f + 重算 md5 ⇒ 90+96 = 186
+        与板面逐件相等 (不缺不漏) + 94/94 个 .kicad_mod 在盘且 md5 对得上 + 库根 155 个 .pretty / 15468 个 .kicad_mod; ④ 自己用真闸
+        state/check_pcb_nets.py 跑沙盒五轮 ⇒ S0~S4 的 C4 全部 = 158 且 S0≡S3 · S1≡S2 ⇒ ★写库名对 C1/C2/C3/C4 的贡献 =
+        0★. ★★补的一处真实缺口: 页 §5 的 W-2 原写「5 只按键的 2 脚 vs 4 焊盘」, 漏了上游真正要拍的那条「5 只按键 3N vs 1.5N」 (上游 iss364_k3_button_3n_vs_1p5n
+        · 矩阵 §㉞-1 第 10 项·★上游标注「卡·时限型·须在 S10 开工前」★) ⇒ 已改成上游口径两个分支 + 误触代价 + 补 §5 编号对照 (本页 W-1~W-5 vs 上游
+        K1/K2/K4 vs 矩阵「老板 W-1/W-2」) ⇒ 只登记不代拍. ★边界复查: 板 md5/mtime/size + 网表/脚表/BOM md5 + 9 个既有闸脚本 md5 +
+        6 个既有页面 md5 全部与 20:11 基线逐行相同 ⇒ 零写板·零落表·零改既有闸·零改既有页面·零挂链.'
+      ref: HANDOFF/2026-11-23_hw-lead_ISS369_板面库封装名写盘作业包.md §B5.1.1 §B6-9 · logs/iss369/6x-7x 留证
+    - key: iss379_k2_red_root_cause
+      to: main
+      value: 闸 K2 红已修 · 根因 = HW/check_juart_land_fit.py 的 HELPER_SRC 里 pad 角度被 round(radians(deg),6) 取整
+        (90° ⇒ 1.570796, 差 -3.268e-7 rad) ⇒ 有向矩形转歪 ⇒ 铜-铜距离偏 +1.25e-7 mm ⇒ rot 90 格 (7.4000,75.8000) 余量由
+        3.1266499666 被顶成 3.1266500913 ⇒ round4 由 3.1266 翻成 3.1267; 第三路独立复算 (自写 s-表达式解析 + 自写凸多边形间距, 不 import
+        闸也不 import 扫描脚本) 判定真值 = 3.1266499666 ⇒ 证据侧对/闸侧错 ⇒ 已在产生点 (原第 301 行) 删掉该取整, 容差 1e-6 未放宽, 证据 JSON
+        一个数都没手工改
+      ref: HW/PCB/BOARD_ONEPASS_JUART_LAND_FIT.md §10
+    - key: iss379_query_radius_finding
+      to: main
+      value: '另一条发现 (与 K2 无关, 本单未改): 扫描脚本与闸都用查询半径 3.0mm (以 pad 中心为圆心) 的空间索引筛障碍, 会漏掉中心距>3.0 但边距更近的障碍 (例
+        TP_I2CB_SDA.1 @ (12.4700,75.4000) 对 rot90 格 pad2 @ (8.6700,75.8000), 中心距 3.81); 推算: 漏检不可能藏住任何违例
+        (违例者包围盒必与 pad 铜箔相差<0.2 ⇒ 必在覆盖内) ⇒ 只让余量绝对值偏乐观, 可行域判定不受影响; 改它要重跑全网并同步 §2/§3/§4 全部数字, 越本单边界 ⇒ 建议单独一单处理'
+      ref: HW/PCB/BOARD_ONEPASS_JUART_LAND_FIT.md §10.7
     open_questions:
     - id: HW-Q1
       to: main
@@ -10621,16 +10721,24 @@ domains:
   sw-lead:
     agent: sw-lead
     role: 软件总工
-    updated_at: '2026-11-23'
+    updated_at: '2026-11-24'
     updated_by: sw-lead
     status:
-      phase: delivered
-      progress_pct: 100
+      phase: fixing
+      progress_pct: 95
       health: green
-      summary: '★ISS-370 · sw-lead · 2026-11-23 · 「板那一趟」腿 B (网表节点具名 200 条) 对 SW 侧影响面查清 ⇒ 三件交付齐 (影响页 +
-        新闸 G0~G8 + 交卷页) · 自跑读数: 基线 85/85 · 腿B全量 --netlist 70/85 (15 红) · 只改名 71/85 (14 红) · 只补行 73/85
-        (2 红) · ★落表仿真 69/85 (16 红, 差的第 16 条是三方对账 — --netlist 口径结构性看不见) · 补丁后 82/85 (3 红, 13 条语义红全回绿) ·
-        新闸 9/9 绿 + --selftest 10/10 PASS · 板/网表/脚表/BOM 四份真源 md5 前后逐字节未变 · 零写板 · 零落表 · 零改既有闸 · 零挂链 · 零外发★'
+      summary: '★ISS-375 (cont3) sw-lead 2026-11-24 · 在 cont2 已落盘资产上补两件硬活: ① 【口径差写清】派活材料 §一③ 那段 pcbnew
+        代码我本机原样复跑 (留证 logs/iss375/rerun_brief_sec1_3_current_land.log) ⇒ 数字与派活材料逐字相同 (rot0 142.2/142.7/143.2/143.7
+        · rot90 全 142.9 · rot270 全 145.7) ⇒ 无差; 但那段量的是【现状 SMD land 被旋转】(实测 pad 沿局部 X 排开 步距 0.5) 而候选落点用【官方
+        THT land】(pad 沿局部 Y 步距 1.27) ⇒ 候选落点的四个 X 是 141.0450/142.3150/143.5850/144.8550, 两件事读法必须分开 已在真相页+交卷页各写一段
+        ② 【闸的 M2/M3 改成动判据自己的数据源】cont2 的 M2/M3 只改页文本 ⇒ 测不到 D2 是否真用 KiCad 变换与 D5 是否真现读网表 ⇒ cont3 改成 M2 变异本闸源码
+        (compute_candidate_orders 返回写死常数 ⇒ D2 红 + D4 真实耦合) / M3 沙盒网表副本改 SoC_NC ⇒ D5 红 ⇒ 并修变异体注入点 SyntaxError
+        (str.replace 命中前面那处同名字面量 ⇒ 改 src.rfind) · 自跑读数: 新闸裸跑 rc=0 D0~D8 9/9 PASS; --selftest rc=0 11/11
+        PASS 末行 ALL TESTS PASS (镜像类 M1/M2/M3) · merge rc=0 · gate_check rc=0 Q1 18/18 · check_brief rc=0
+        · timing_check rc=0 · zero_copper rc=0 · 零挂链 (gate_check 命中 0) · 板 md5/mtime/size 三项前后逐字节未变 (611b869e13518c3c023fb178f91a0075
+        / 2026-11-06 07:07:17.362193413 / 4940213) · 网表/脚表/BOM 四份真源 md5 未动 · 零写板 · 零落表 · 零改既有闸 (7 份既有闸
+        md5 与开工前逐字相同) · 零改既有页面正文 · 零外发 · 不自签台账 · phase=fixing 不落 open (撞车窗口 0) · ★不代 main 拍 pin1 朝向与 ISS-344
+        口径两个裁决★ ★'
     artifacts:
     - path: SW/SW_REQUIREMENTS.md
       kind: requirements
@@ -12608,21 +12716,113 @@ domains:
     - path: SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md
       kind: doc
       version: '1.0'
-      updated_at: '2026-11-23'
-      summary: 'ISS-372 清账页: SW 域板 md5 引用面 = 17 个活文件 / 47 命中行 / 57 命中处 逐处清单 (三类归属: 判据锚 9 / 规格页引用 17 /
-        历史留证 21) + 逐闸账 + 补丁规格 P-C/P-D/P-E + 未决项 6 条'
+      updated_at: '2026-11-24'
+      summary: '★SW 侧板 md5 引用面清账页 (★cont3 已增补: §1 清单重建 20 文件/53 行/63 处 + §2 新增闸 F/D7 与闸 G/W7 的逐闸账 + §2.3
+        新增 P-F/P-G 补丁规格 + §3.5 活证据「签收后 4 小时清单就过期了·自守闸当场变红」+ §3.5.1 跨闸耦合 + §5.1 刷新后应有的内容 (9+5+口径补2) + §6
+        U8/U9/U10 + §7 E21~E30★)★'
     - path: SW/tools/check_sw_board_md5_rebase_readiness.py
       kind: gate
       version: '1.0'
-      updated_at: '2026-11-23'
-      summary: 'ISS-372 自守闸: H1~H7 (漏一处就红 / 活判据不许伪装成历史留证 / 谁钉了板 md5 要在册 / 没人知道的缺口才红) + --selftest 8 条反向用例
-        (每条自证 红的集合 == 目标那一条) ⇒ 裸跑 rc=0 7/7, selftest rc=0 8/8; 零挂链 (挂不挂归 main)'
+      updated_at: '2026-11-24'
+      summary: '★SW 侧板 md5 引用面自守闸 (★cont3 已增补: H4 从 1 个检测类扩成 2 个 —— 类A .py 内 32 位字面量 + ★类B 闸自己算盘上板 md5
+        且期望值来自页面/台账内嵌基线且该比较喂给判决清单★ ⇒ ★★ISS-378 的 W7 属类B, 上一趟的盲区已被补上★★; --selftest 从 8 条扩到 10 条 (新增: 类B
+        未在册⇒H4 红 / 类B 信号消失⇒全绿反向自证) ⇒ 10/10 ALL TESTS PASS; 裸跑 7/7 rc=0★)★'
     - path: HANDOFF/2026-11-23_sw-lead_ISS372_SW侧板md5引用面清账与清单自守.md
       kind: handoff
       version: '1.0'
-      updated_at: '2026-11-23'
-      summary: 'ISS-372 交卷页 (B1~B6 六段齐全): 结论 / 验收标准自评 21 通过 0 不通过 1 未验 / 证据分级 20 条 / 接口取值声明 / 未决项 U1~U7
-        (要谁回答什么) / 自证复现命令 + 边界 18 件 md5 前后对照'
+      updated_at: '2026-11-24'
+      summary: '★ISS-372 交卷页 (★cont3 已增补: B1-0 cont3 三句话 + B2 A20~A26 验收线 + B3-4 E21~E30 证据分级 + B4-3 cont3
+        五条 claim + B5-0 cont3 四句话历史 + B5-2 U8/U9/U10 + B6-4 cont3 必跑命令原样输出 + B6-3 留证路径 12 件★)★'
+    - path: SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md
+      kind: design
+      version: '1.1'
+      updated_at: '2026-10-25'
+      summary: 'ISS-375 物理针序契约真相页 (cont1 落 32392 B; 本趟只追加式订正未重写, 现 35582 B): §0 三问 + §1 J_DEBUG(1x4)/J_UART(1x2)
+        物理针序契约表 (现状 pad1@X_MIN 且全 RECT/SMD 无 pin1 标记 + 官方 land pad1=thru_hole rect 其余 circle + rot90/rot270
+        两候选各自 pin1 朝向与线序 + 落点写死值 + 裁决建议不代拍) + §2 JTAG 链 SoM 侧真相 (网表第 388/390/392/394 行 JTAG_*_SOC 四条 SoM
+        侧端点全部 SoC_NC + 官方 399 行脚表 grep -ic JTAG=0 + 受控结论只写不落地不写信号不存在) + §3 与 ISS-344 终裁三条路的代价 + §4 证据等级与边界自证;
+        页内含机器可读契约块 json iss375_contract 供闸 D3/D4 直读'
+    - path: SW/tools/check_debug_pin_order_contract.py
+      kind: tool
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-375 新闸 (cont1 落 37257 B; 本趟修 bug 非重写): 判据 D0~D8 每条 fail-closed, D0/D1/D2/D5 全部现读盘上事实不写死。修三处
+        bug: (a) pcbnew.FootprintLoad 本机 KiCad 10.0.8 是坏的 (pcbnew.py:24225 -> plug.FootprintLoad, plug
+        无该成员) 改走 PCB_IO_MGR.FindPlugin(KICAD_SEXP).FootprintLoad; (b) 同进程第 3 次插件调用退化 (FindPlugin 返回裸 SwigPyObject
+        / FOOTPRINT.Pads() 不可迭代) 改成一个候选一个子进程隔离; (c) D7 mtime 改 st_mtime_ns 纳秒格式化 (原只到微秒 6 位, 与任务书 9 位常量永远不等
+        = 假红)。另精化两处判据: D6 只抓本页自己的断言 (引用块/转述映射页原话豁免); D8 任何方括号标签都当证据等级候选 (原只收白名单前缀 = 形同虚设)。实跑: bash state/pcbnew_py.sh
+        跑本闸 rc=0 D0~D8 9/9 全绿; --selftest rc=0 11/11 PASS 末行 ALL TESTS PASS; 零挂链 (state/gate_check.py
+        命中 0)'
+    - path: HANDOFF/2026-11-23_sw-lead_ISS375_调试排针物理针序契约与JTAG链SoM侧真相.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-375 交卷页 (B1~B6 六段齐全): B1 五条结论摘要 (闸 bug 已修 rc=0 9/9 + selftest 11/11 + 物理针序契约表 + 两候选互为镜像且几何逐字等价
+        + JTAG 四线 SoC_NC 受控结论只写不落地 + 建议 rot 90 不代拍) + B2 验收标准自评 9 条 + B3 证据分级 12 条 + B4 接口取值声明 6 条 + B5
+        未决项 (要 main 裁 pin1 朝向 / 要 main 裁 ISS-344 口径) + 边界自证 13 条 + B6 必跑 11 条命令原样输出 + 落盘清单 + 沙盒留证路径'
+    - path: SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md
+      kind: note
+      version: '1.0'
+      updated_at: '2026-11-24'
+      summary: '★ISS-378 逐网固件影响面清单页 (55,076 B @11-24 02:45 · 主产物已在盘 · 本趟零改动): 19 行逐网表 (JTAG 四线 + 四条 *_SOC
+        + UART 两线 + BOOT_N + KEY 四条 + RESET 两条 + USB 两条) + 三条救砖链 (USB=S2 / UART=仅观测 / JTAG=S3 不存在) + JTAG_TDI
+        口径冲突三条路线代价 (①改口径/②改网表/③换 SoM) + SoC 侧 4 行 JTAG mux (只有 TCK/TMS) 与 SoM 侧 399 行脚表 JTAG 命中 0 的两侧自查证
+        + 机器块 iss378_contract (闸 W0~W8 直接读) · 结论=固件本体 0 行要改 (A 层网名→pad 映射不变, B 层物理针序变) · 不代拍 pin1 朝向与
+        JTAG_TDI 终裁'
+    - path: SW/tools/check_debug_header_fw_impact.py
+      kind: gate
+      version: '1.0'
+      updated_at: '2026-11-24'
+      summary: '★ISS-378 新闸 (37,515 B @11-24 02:45 · 已在盘 · 本趟零改动): 裸跑 W0~W8 九条全绿 (W0 逐网 19 行实读一致 / W1
+        三分类非空 / W2 六条需改代码行的文件+行号+函数名核实存在 / W3 三链+最坏只剩 USB / W4 三路线+代价 / W5 SoC 4 行 TCK/TMS 无 TDI/TDO +
+        SoM 0 命中 + 网表四条 SoC_NC / W6 五级白名单+零挂起+0数据有降级 / W7 板三项指纹+三件 md5 与基线一致 / W8 gate_check 挂链命中 0) ·
+        --selftest 14/14 反向用例全过 末行 ALL TESTS PASS (REV1~REV13 + REV0 对照组) · main 已独立复跑验证 (裸跑 rc=0 + selftest
+        rc=0) ⇒ 这道闸是好的 本趟没碰 · 零挂链 (挂不挂归 main)'
+    - path: HANDOFF/2026-11-24_sw-lead_ISS378_排针换land固件影响面与JTAG口径冲突.md
+      kind: handoff
+      version: '1.0'
+      updated_at: '2026-11-24'
+      summary: '★ISS-378 (cont1 收尾) 交卷页: B1~B6 六段齐全 (六个 ## 标题含 gate_check 关键词: B1 结论摘要 / B2 验收标准自评 / B3
+        证据分级 / B4 接口取值声明 / B5 未决项与卡点 / B6 自证复现命令) · B1 照抄清单页事实与代价 (19 行逐网表 + 三条救砖链 + JTAG_TDI 三条路线代价 +
+        SoC/SoM 两侧 JTAG 自查证) · B5 写明 上一趟 cont1 被 16 分钟墙掐死 主产物已在盘 ⇒ 本趟只补交卷页与分片 · 必跑 4 条命令原样输出贴在 B6 · 不代拍
+        pin1 朝向与 JTAG_TDI 终裁'
+    - path: SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md
+      kind: impact-page
+      version: v1.1
+      updated_at: '2026-11-24'
+      summary: ★ISS-370 · sw-lead · CONT2 (2026-11-24 04:1x) · 一页影响面 v1.1 ⇒ 改正 CONT1 抄派活书的一处读数 (只补行变体
+        73/85 → 实测 83/85·85-2=83·红数 2 一致) + 一页落盘 19:49:14 早于闸脚本 19:50:08 补的第 10 条 selftest 用例 ⇒ 4 处 9/9
+        改 10/10 ⇒ 闸复跑 rc=0 9/9 · selftest 10/10 · 键 iss370_legb_sw_impact_page
+    - path: HANDOFF/2026-11-23_sw-lead_ISS370_腿B对SW侧影响面.md
+      kind: handoff
+      version: v1.1
+      updated_at: '2026-11-24'
+      summary: ★ISS-370 · sw-lead · CONT2 (2026-11-24 04:1x) · 交卷页 v1.1 ⇒ 新增 B7 段 (B7-1 结论 · B7-2 必跑命令原样
+        rc · B7-3 交付页 04:11:42 被并发写盘吞掉并逐字节还原 · B7-4 两处读数改正 · B7-5 两个既有闸漂移的对照实验 · B7-6 交卷后边界复测 · B7-7 要
+        main 知道的 3 条) · 键 iss370_legb_sw_handoff_page
+    - path: SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md
+      kind: design
+      version: '1.2'
+      updated_at: '2026-10-25'
+      summary: 'ISS-375 物理针序契约真相页 (cont1 落 32392 B · cont2 追加闸 bug 订正后 35582 B · cont3 再追加 口径差+闸 M2/M3
+        强化 后 40505 B): §0 三问 + §1 J_DEBUG(1x4)/J_UART(1x2) 物理针序契约表 (现状 pad1@X_MIN 且全 RECT/SMD 无 pin1 标记
+        + 官方 land pad1=thru_hole rect 其余 circle + rot90/rot270 两候选各自 pin1 朝向与线序 + 落点写死值 + 裁决建议不代拍) + §2
+        JTAG 链 SoM 侧真相 (网表第 388/390/392/394 行 JTAG_*_SOC 四条 SoM 侧端点全部 SoC_NC + 官方 399 行脚表 grep -ic JTAG=0
+        + 受控结论只写不落地不写信号不存在) + §3 与 ISS-344 终裁三条路的代价 + §4 证据等级与边界自证 + 【cont3 追加】派活材料 §一③ 那段 pcbnew 代码的口径差
+        (那段量的是现状 SMD land 旋转 ⇒ pad 沿局部 X 排开 ⇒ 转 90/270 全挤到同一 X 142.9/145.7; 而候选落点用官方 THT land ⇒ pad 沿局部
+        Y ⇒ 沿 X 排开 141.0450..144.8550 ⇒ 两件事读法必须分开, 数字无差) + 【cont3 追加】闸 M2/M3 改成动判据自己的数据源 (M2 变异闸源码 compute_candidate_orders
+        返回写死常数 ⇒ D2 红; M3 沙盒网表副本改 SoC_NC ⇒ D5 红); 页内含机器可读契约块 json iss375_contract 供闸 D3/D4 直读'
+    - path: SW/tools/check_debug_pin_order_contract.py
+      kind: tool
+      version: '1.1'
+      updated_at: '2026-10-25'
+      summary: 'ISS-375 新闸 (cont1 落 37257 B · cont2 修 bug 后 · cont3 强化 M2/M3): 判据 D0~D8 每条 fail-closed,
+        D0/D1/D2/D5 全部现读盘上事实不写死。cont3 三处改动: (a) M2 改成【变异本闸源码】把 compute_candidate_orders() 换成返回写死常数 ⇒ 期望
+        D2 红 (原实现只改页文本 ⇒ 测不到 D2 是否真用 KiCad 变换; 变异体让两候选同序 ⇒ 若无互逆判据就会全绿混过去); (b) M3 改成【沙盒网表副本】把四条 JTAG_*_SOC
+        的 SoC 侧端点 SoC_NC 改成别的 ⇒ 期望 D5 红 (证明 D5 是现读网表的, 不是写死常量); (c) 修变异体注入点 bug (str.replace 命中源码里前面那处同名字符串字面量
+        ⇒ SyntaxError ⇒ 改用 src.rfind 定位最后一个 __main__ 标记)。M2 期望集如实写 {D2,D4} (D4 依赖 D2 输出 ⇒ 真实耦合, 非放宽)。实跑:
+        裸跑 rc=0 D0~D8 9/9 PASS; --selftest rc=0 11/11 PASS 末行 ALL TESTS PASS (镜像类 M1/M2/M3); 零挂链 (state/gate_check.py
+        命中 0)'
     blockers:
     - id: SW-B1
       desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -14342,7 +14542,9 @@ domains:
       item: '★要 main (可能要老板) 回答: 合法改板时 mtime / size 这两条要不要进 reboard 四项原子 (by/file/prev_md5/md5)? ⇒ reboard
         原子不带 mtime/size ⇒ F5 的 mtime + size 两条在合法改板后仍红 ⇒ P-C 只解决一半 ⇒ 改板当天照样红 ⇒ 要么给 reboard 原子补 mtime/size
         (要动权威判据 check_r6_hard_protected 的形状 ⇒ 老板拍), 要么给 F5 / A-5 的 mtime 判据一条明文口径 (判据方向放宽 ⇒ 也要拍) ⇒ sw-lead
-        只登记, 不代拍 ★'
+        只登记, 不代拍 ★ ★★cont3 扩写: 这条问题现在【多了一个受影响的闸】—— 闸 G (check_debug_header_fw_impact.py 的 W7) 的 board_size
+        那一条: 沙盒 T4 实测 P-G 打上后 W7 【仍红在 board_size】⇒ ★**要么 reboard 原子补 size, 要么给 W7 一条明文口径★ ⇒ ★**与 F5 的
+        mtime/size 同款, 建议一并拍 (★清账页 §6 U9★)**★'
       since: '2026-11-23'
       state: answered
       target_missing: false
@@ -14362,7 +14564,10 @@ domains:
       to: main
       item: '★要 main 回答: state/board_md5_pinned_gates.json / .md 什么时候刷新? 收集口径要不要放宽 (把 state/land_v_values.py
         也收进去, 它 L96 也硬钉板 md5)? ⇒ 本单只给 刷新后应有的内容 (现有 9 条 + 新增 3 条 + 口径补 1 条, 见清账页 §5.1 与 claim iss372_pinned_gates_manifest_stale),
-        不写那两个文件 (那是 main 的域) ⇒ 不刷新 ⇒ 那张表继续漏新闸 ⇒ 下一个新闸再硬钉板 md5 时还是没人拦 ★'
+        不写那两个文件 (那是 main 的域) ⇒ 不刷新 ⇒ 那张表继续漏新闸 ⇒ 下一个新闸再硬钉板 md5 时还是没人拦 ★ ★★cont3 扩写: 刷新时的【收集口径】问题现在更大了 ——
+        上一版的口径只收 .py 里含 32 位字面量的闸 ⇒ ★★连 ISS-378 的 W7 那种「页面内嵌基线类」都收不进去 (★本单 H4 类B 的活证据★)★ ⇒ ★**要不要把口径放宽到「闸自己算盘上板
+        md5 且期望值来自文档」? 或者在表页里明写「页面内嵌基线类闸由 SW 侧自守闸 H4 类B 收」?★ (★清账页 §6 U10★) ★**刷新后应有的内容 = 现有 9 条 + 新增
+        5 条 + 口径补 2 条 (★清账页 §5.1★)** ★'
       since: '2026-11-23'
       state: answered
       target_missing: false
@@ -14419,6 +14624,144 @@ domains:
           / ISS-315 四轮都只交写法没人挂 ⇒ ★挂链是 main 地界·★但提前单独挂 ⇒ 闸链在中间态会红★) ⇒ ★**落盘动作随那一趟, 不在本轮动 `gate_check.py`**
           ★ ⇒ ★**挂上之后它的作用 = 把「清单过期」从【改板当天才发现】提前到【开工前就报】** ★'
         ref: state/gate_check.py EXTRA_GATES · ISS-372 交卷页 §B5
+      foreign_answers: []
+    - key: iss375_need_main_pin1_orientation
+      to: main
+      item: '★要 main 回答一句话: 那一趟 J_DEBUG/J_UART 的 pin1 朝向选 rot 90 (原点 141.0450 / 18.2550, 顺排, pad1@X_MIN)
+        还是 rot 270 (原点 144.8550 / 19.5250, 逆排, pad1@X_MAX)? ★两候选几何完全等价 (铜箔 4.8100x1.0000 与 fab 6.7262x2.2000
+        逐字相同) ⇒ 不是结构问题, 是装配与救砖线序契约问题; sw-lead 建议 rot 90 (保持现状顺排, 换 land 后线序不变) 但不代拍; 两套写死值已备好, 裁定后由闸 D2/D4
+        现场校验页与实算是否一致 ★'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss375_need_main_jtag_iss344_scope
+      to: main
+      item: '★要 main 回答: ISS-344 终裁 (JTAG_TDI 判为必需 + 板侧不许标 NC) 与网表现状 (JTAG_TDI_SOC 的 SoM 侧端点此刻就是 SoC_NC)
+        对不上, 改哪一处? ★三条路的代价已在 SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md §3-2 列全 = (a) 改裁决口径 (JTAG_TDI
+        降级为悬空候选, 与 399 行脚表一致) (b) 改网表 (SoC_NC → 某个真 SoM 脚) 但脚表无 JTAG 同名信号 ⇒ 这条路当前走不通, 要走须先定 SoM 侧 JTAG
+        引出方案 (c) 改 SoM 选型换板 (放弃 S3 救砖路径, 只剩 S4 返厂); 事实前提: JTAG 链在 SoM 侧今天就是断的, 改 pin1 朝向救不了它; sw-lead
+        不改 SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md (含 ISS-344 终裁块) 一个字, 口径修正是否往既有页面落由 main 决定 ★'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss378_need_main_pin1_orientation
+      to: main
+      item: '★要 main 回答一句话: 那一趟 J_DEBUG/J_UART 的 pin1 朝向选候选 A (rot90 · ISS-375 建议 · J_DEBUG 原点 141.0450,56.6000
+        / J_UART 18.2550,68.6000 · 顺排 pad1@X_MIN) 还是候选 B (rot270 · 144.8550,56.6000 / 19.5250,68.6000
+        · 逆排 pad1@X_MAX)? ★ISS-378 复核后结论: 换 land 对固件的影响只有 B 层物理针序这一层 (A 层网名→pad 映射逐字不变 ⇒ 固件本体 0 行要改),
+        要改的是把针序写死的 SW 侧机器件 5 处读数 (SW/tools/check_debug_pin_order_contract.py L231/L287/L312/L466/L552)
+        + 工装线序说明 ⇒ 这个裁决不依赖 SoM 侧结论 (纯落点写死) ⇒ 落晚了 = 板做了机器件还得再改 = 板改两次 ⇒ 必须在板那一趟开工前落 · sw-lead 建议候选 A (保持现状顺排
+        线序不变 只多一个 pin1 方形标记) 但不代拍'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss378_need_main_jtag_tdi_scope
+      to: main
+      item: '★要 main 裁: ISS-344 对 JTAG_TDI 的「必需 · 板侧不许标 NC」分级, 在「SoM 侧无 JTAG 引出」这个实测事实下怎么改口径 ★三条路代价已在
+        SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md §3-2 与本单 B1-6 列全 = ①改口径 (唯一板那一趟零额外动作的一条; 代价=与 ISS-344
+        终裁正面冲突需重开裁 + 6 处 ISS344-CORR 块连带改 + 4 处救砖硬规则 FLASH_AND_VERSION.md:44/:336 + EVT_TEMPLATE.md:503
+        + S2_BOARD_TEST_CHECKLIST.md:393 失去执行对象 + 救砖从 4 级降 3 级) ②改网表 (当前走不通: FET3572-C 399 行脚表 JTAG 命中
+        0 ⇒ 没有可指向的脚 ⇒ 须先出 SoM 侧 JTAG 引出方案这条独立前置工作; 且落表窗口必须早于或并入板那一趟 否则板改两次) ③换 SoM (放弃 S3 软救砖只留 S4 返厂
+        ⇒ 板面 BTB+走线全变板必须重做 ⇒ 必须赶在板那一趟之前定 ⇒ 老板级) ★事实前提: JTAG_TDI_SOC 的 SoM 侧端点此刻就是 SoC_NC (HW/netlist_v1.csv:392)
+        且 JTAG_TDI 在板面是 0 段铜 ⇒ 换 pin1 朝向救不了它; sw-lead 建议 ①+③的口径部分同一次裁决一起落 + 同时启动 ② 的前置可行性摸底 (零落表零采购零外发)
+        但不代拍; SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md 一个字都不许 sw-lead 改 订正块归 main'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss370_cont2_concurrent_write_swallow
+      to: main
+      item: '★只登记·不代拍】ISS-370 交付页 SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md 于 2026-11-24 04:11:42 被并发写盘吞掉 (同目录闸脚本
+        md5 未变·该页是 ISS-372 扫描的输入 4 处板 md5 命中) ⇒ 本单已从 tmp/iss372_sbx/tree 快照逐字节还原 (md5 = CONT1 交卷值) 并复跑闸
+        rc=0 · 要 main 回答: 派活层要不要给同路径写互斥 或 交卷前存在性复查? 备份留在 tmp/iss370_sbx/backup/'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss370_cont2_existing_gate_drift
+      to: main
+      item: '★只登记·不代拍】两个既有闸在 2026-11-23 19:5x → 2026-11-24 04:2x 之间由绿转红·经对照实验确认均非 ISS-370 回归: (a) check_sw_ref_reachability_v2.py
+        红因 = 第三方页 SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md:81 的 SW_MD5 token 未进豁免台账 (ISS-372 交付物 22:24
+        落盘) · 删掉本单页后仍红; (b) check_sw_fp_truth_impact.py H1 红因 = 第三方脚本 SW/tools/check_debug_pin_order_contract.py
+        于 2026-11-24 02:05 改动后引入 footprint 字面量 ⇒ 读者数 0→1 · 本单页与本单闸实测 footprint 出现 0 次 ⇒ 要 main 回答: 由谁修?
+        修哪一页/哪一个脚本? 本单只给归属与复现命令 (logs/iss370/50_51_52_*)'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss370_cont2_status_block_overwrite
+      to: main
+      item: '【只登记·不代裁】2026-11-24 04:13 本机实读 state/fragments/sw.yaml 的 status 块 = phase fixing / progress
+        95 / summary ISS-378 cont1 收尾; 04:1x 再读 = phase delivered / progress 100 / summary ISS-370 CONT2
+        复核完成 ⇒ status 块单块 last-writer-wins ⇒ 同 agent 多单并发时互相覆盖 (ISS-378 的 artifacts/claims/needs 仍在文件里,
+        只是 status 摘要被盖) ⇒ 要 main 回答: 派活层读 sw.yaml.status 按什么规则取? 本单只登记, 不再写 status 免得第三次覆盖 (ISS-375 /
+        ISS-379 此刻也在飞)'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss372_need_main_batch_channel_patches
+      to: main
+      item: '★要 main 回答 (★cont3 新增★): 通道补丁 P-C (check_fp_truth_read.py 的 F5) / P-D (check_onepass_legb_sw_impact.py
+        的 G8) / P-E (HW/check_iss354_manufacturability.py 的 A-5·跨域要过 hw-lead) / ★P-F (check_debug_pin_order_contract.py
+        的 D7·ISS-375) / ★P-G (check_debug_header_fw_impact.py 的 W7·ISS-378)★ 这 5 条【能不能合成一批落】? 批内顺序怎么定?
+        ⇒ ★**理由 (★沙盒 T4 实测★): 不同批落 ⇒ 先落的那条补丁会移动【另一个闸】的函数行号 ⇒ 把那个闸当场打红 (★实测: P-F 一落 ⇒ 闸 G 的 W2 红·5 行全中·因为
+        W2 把闸 F 的行号钉死了★) ⇒ 现场又是一轮「误读成板坏了」⇒ 整趟白跑★ ⇒ ★**建议: 合成一批落, 落完立刻在沙盒重跑 T0~T5 读数表做交叉验证 (★本趟已把读数表刷到
+        7 道闸·logs/iss372/08_sbx_reboard_rehearsal_7gates.txt★)★** ★ ⇒ 本单只登记, 不代拍'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
       foreign_answers: []
     answers:
     - key: debug_port_form
@@ -15201,6 +15544,12 @@ domains:
         rc=0 ⇒ md5 变化文件数 = 无)★ ⇒ 且 SW 域活文件里 .kicad_sch 的 md5 命中 = 0 处 ⇒ 该风险至今没伤到任何人 ⇒ ★处置 = 结论订正 + 降级为一条已知注意事项
         (不机器化; 本单自守闸 H3 已把反向判据 活判据不许伪装成历史留证 做进去了)★ ⇒ 本条可结'
       ref: SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md §4 + logs/iss372/03_exp1_sch_md5.txt + logs/iss372/04_sch_md5_11files.txt
+    - key: iss370_rowadd_variant_pass_count
+      to: main
+      value: ★实测订正】腿 B 只补行变体 (tmp/iss370_sbx/netlist_v1_rowadd_only.csv) 的通过数 = 83/85 (85 - 2 红) · 派活书
+        §0② 写的 73/85 是笔误 · 红数 2 一致 ⇒ 语义红/落表义务红的分类结论不受影响 · 本单两份交付物已全部改成 83/85 · 证据 logs/iss370/25_CONT1_timing_rowadd_only.txt
+        (CONT1) + 44_CONT2_timing_rowadd_only.txt (CONT2) 两次一致
+      ref: logs/iss370/44_CONT2_timing_rowadd_only.txt
     open_questions:
     - id: SW-Q1
       to: main
@@ -15235,13 +15584,13 @@ domains:
     updated_at: '2026-11-18T16:45:00+08:00'
     updated_by: mech-lead
     status:
-      phase: delivered
+      phase: fixing
       progress_pct: 100
-      health: 绿
-      summary: 'ISS-371 cont1 交卷: 结构侧净距真相页已在盘 (21 节 + §9 追加) + 新建机器闸 MECH/check_jdebug_1p27_clearance.py
-        (7 判据 rc=0 · --selftest 10 条反向用例全抓到) + 交卷页 + 分片登记; 主结论: 官方 THT land ⇒ 必须清空区 X 4.0850⇒4.8100 (每边越界
-        0.3625 ⇒ 铜箔进清空区) 且 单边间隙 2.6950 / 最坏 2.3950 仍过 CRIT 0.60 (3.99×) ⇒ 方向过阈与铜箔进清空区两句同时成立, 必须并进「板只改一次」那一趟同批改;
-        板 md5 611b869e13518c3c023fb178f91a0075 未变'
+      health: green
+      summary: 'ISS-377 cont1 交付完成: 座体净距判据同源化 (J_DEBUG 铜箔支配 vs J_UART 座体支配 -> 一条链 M=max(H,C) 逐轴 + 开口/罩住两种余量
+        + 最坏余量判 CRIT) + 座体真实型号自查 (两颗排针 0数据 + 降级方案 DP-1~DP-4); 三件交付物 MECH/BOARD_ONEPASS_CONNECTOR_CLEARANCE_CALIBER.md
+        + MECH/check_connector_clearance_caliber.py (K0~K8, selftest 13/13, 未挂链) + 本交卷页; 上一趟 02:51 被 16
+        分钟墙掐死, 本趟从已落 board_connectors.json 续做; 零写板 零落表 零改既有闸 零改已签收页 零挂链 零外发 不代拍 不自签台账'
     artifacts:
     - path: MECH/MECH_BUDGET.md
       kind: budget
@@ -16967,6 +17316,36 @@ domains:
       version: v1
       updated_at: '2026-10-25'
       summary: 'ISS-371 交卷页: B1~B6 六段齐全 + 验收线逐条判定 + 落盘清单 + 沙盒留证路径 + 必跑命令原样输出'
+    - path: MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md
+      kind: mech_truth_page
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-374 J_UART 排针 1.27mm land 结构侧净距真相页 (§0 两件并排对照表 · §1 官方 1x2 THT/SMD Pin1Left/Pin1Right
+        三变体实读 + md5 台账 · §2 现状/THT/SMD 三档量差 · §3 后果句与判据句分开 · §4 五条未决 + 两块追加式订正 · §5 复跑命令 + 重算公式 · §6 边界自证
+        + 差在哪对照表 + 机器块 · §7 2026-11-24 04:0x 重派复核记录 + fab 外框口径订正: 座体本体外框 (F.Fab 层 PCB_SHAPE 并集·不含 Reference
+        文字) S1 2.6400x2.2000 / S2 2.6400x5.1000 / S3 J_DEBUG 5.1800x2.2000; 结论数 (铜箔宽/每边余量/过不过阈) 一字未动)'
+    - path: MECH/check_juart_1p27_clearance.py
+      kind: mech_gate
+      version: '1.0'
+      updated_at: '2026-10-25'
+      summary: 'ISS-374 新闸 J0~J8 + --selftest 12 条反向用例 (含 4 条专打「拿一颗件的结论套另一颗」: T1 页改名 / T2 THT 铜箔宽换成 J_DEBUG
+        的 4.8100 / T3 方向改成同向 / T4 口径改成 copper_driven) · 零挂链 · 主跑 9/9 绿 + 自测 12/12 ALL TESTS PASS · cont2:
+        T9 变异锚点随机器块字段改名 (fab_x -> fab_body_x) 同步更新'
+    - path: MECH/BOARD_ONEPASS_CONNECTOR_CLEARANCE_CALIBER.md
+      kind: doc
+      version: iss377
+      updated_at: '2026-10-25'
+      summary: 'ISS-377 同源化总表: 把座体净距判据统一成一条链 (M = max(H_housing, C_copper) 逐轴; 开口余量 = (O-M)/2; 罩住余量 =
+        (H-C)/2; 最坏 = 余量 - TOL[fdm_part]; 最坏 >= CRIT); §1 板面 9 颗连接器逐颗一行 (口径来源逐轴标) + 4 个换官方 land 档; §2
+        四条口径冲突 (判据句/后果句分开); §3 座体真实型号自查 (J_SOM_P1..P4 = Hirose DF40C-100DS-0.4V(51), J_USB_C = GCT USB4105-16P,
+        J_DEBUG/J_UART = 0数据) + 降级方案 DP-1~DP-4; §4 未决 OI-1~OI-10; 零写板 零落表 零改既有闸 零改已签收页 零挂链 零外发 不代拍'
+    - path: MECH/check_connector_clearance_caliber.py
+      kind: check
+      version: iss377
+      updated_at: '2026-10-25'
+      summary: 'ISS-377 机器闸 (只读): 判据 K0~K8 (K0 逐格回读既有真相页 / K1 口径来源逐轴 / K2 余量与判决自洽 / K3 X-Y 两向向量 + X绿Y红实例
+        / K4 冲突条目判据句+后果句分开 / K5 证据白名单+零挂起措辞+降级方案>=3 / K6 零写板三项 / K7 已签收件 md5 不变 / K8 零挂链); --selftest
+        13 条反向用例全抓到, 末行 ALL TESTS PASS; ★未挂进 state/gate_check.py (挂不挂归 main)★'
     blockers:
     - id: MECH-B1
       desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -20129,6 +20508,183 @@ domains:
       decided_at: null
       answers: []
       foreign_answers: []
+    - key: iss374_mech_juart_must_clear_widen_to_34700
+      to: main
+      item: '座体必须清空区 X 宽要不要从 2.5400 放宽到 3.4700? —— 事实: J_UART 换官方 1x2 THT land 后铜箔 X 宽 2.2700, 座体必须清空区宽
+        2.5400 (座体支配口径·固定值), 每边余量只有 0.1350 < CRIT 0.60, 最坏 -0.1650 ⇒ 铜箔进座体必须清空区 ⇒ 结构件装不上; 放宽到 3.4700 (=2.2700+2x0.60)
+        则结构件清空区 X 改 16.960..21.620 (中心 18.890 不变·宽 +0.9300) ⇒ 结构件返工一次 + 板那一趟落点必须从 20.7400 挪到 18.2550;
+        代价: 结构件与板那一趟必须同批定, 否则撞板只改一次; 要谁回答: boss (结构口径) + mech-lead (结构件) + main (板那一趟批不批); 本单不代拍'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss374_mech_juart_land_swap_scope_decision
+      to: main
+      item: '那一趟 B33_PIN_LAND_1P27 的范围: J_UART 换不换官方 land? —— 事实: 换 ⇒ 每边余量 0.1350 < CRIT 0.60 (结构件装不上);
+        换 SMD 变体 ⇒ 余量 0.3100 仍不过, 且铜箔 Y 宽 6.0000 撞开口 Y 每边 0.7000 (更硬); 不换 ⇒ 结构件零返工, 且 B33 只动 J_DEBUG;
+        本单只给结构侧代价, 裁决权在 main; 与 ISS-373 是同一件事的两条腿, 本单是结构侧那条腿'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss374_mech_juart_status_worst_margin_shortfall
+      to: main
+      item: '现状档最坏余量 0.5825 < CRIT 0.60 (差 0.0175) 这条要不要以追加式订正块落进 MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md?
+        —— 事实: 每边余量名义 0.8825 过阈, 减去 FDM 外形公差 TOL[fdm_part] 0.30 后 0.5825 不到 0.60 ⇒ 现状本身已压在判据线上 (本单未造成);
+        本单边界=零改既有页面正文 ⇒ 订正块已写在本单真相页 §4; 要谁回答: main 决定要不要往既有页落'
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss377_oi1_housing_width_2540_or_3470
+      to: main
+      item: OI-1 J_UART 座体必须清空区 X 宽按 2.5400 还是 3.4700 出件? 真实型号 0数据 (ISS-267 F-8); 结构件返工须与板那一趟同批定
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss377_oi2_b33_scope
+      to: main
+      item: OI-2 B33_PIN_LAND_1P27 的范围是只含 J_DEBUG 还是含 J_DEBUG + J_UART? (本单只给结构侧代价与判据, 不代 main 裁)
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss377_oi3_juart_origin_move
+      to: hw-lead
+      item: OI-3 J_UART 换 land 落点挪到 (18.2550, 68.6000) 认不认? 不认则铜箔整块落在座体清空区之外 => 装配当场干涉
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss377_oi4_attach_caliber_table_to_workpacket
+      to: main
+      item: OI-4 同源总表要不要以追加块落进 HW/PCB/BOARD_ONEPASS_WORKPACKET.md? 挂不挂归 main
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss377_oi5_jdebug_must_clear_which_number
+      to: main
+      item: OI-5 J_DEBUG 的必须清空区 X 宽取 1.7750 (真相页) / 4.0850 (现页四处) / 4.8100 (官方 THT) 哪一个? 取 1.7750 则每边越界
+        1.5175, 取 4.0850 则 0.3625
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss377_oi6_model_other_7_connectors
+      to: main
+      item: OI-6 其余 7 颗连接器的座体必须清空区未建模 (口径来源 unknown), 由谁补什么时候补? 补齐前判决一律未建模
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss377_oi7_h_tiers
+      to: main
+      item: OI-7 座体真实高 h 三档 0.90/2.54/4.00 走参数化还是定版? 本单 Y 向统一用真相页固定开口 Y 4.6000, ISS-371 的 h 三档口径不混用
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss377_oi8_cover_caliber_applies_to_all
+      to: main
+      item: OI-8 罩住口径 (座体必须清空区 vs 铜箔 >= CRIT) 是否对全部连接器一律适用? 一刀切则现状 J_UART/J_DEBUG 的罩住轴都红
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss377_oi9_juart_quo_y_margin_landing
+      to: main
+      item: OI-9 J_UART 现状 Y 向罩住余量最坏 0.5200 < CRIT (ISS-374 未算) 要不要以追加块落进 PORT_OPENING §3.5? 落不落归 main
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
+    - key: iss377_oi10_vendor_part_numbers
+      to: hw-lead
+      item: OI-10 J_DEBUG / J_UART 用哪颗具体厂商型号? J_SOM_P1..P4 与 J_USB_C 的厂商 keepout 图纸从哪里补? 本单零外发只登记
+      since: '2026-11-24'
+      state: pending
+      target_missing: false
+      waiting_on: agent
+      due: null
+      overdue: false
+      decision: null
+      decided_at: null
+      answers: []
+      foreign_answers: []
     answers:
     - key: pcb_outline_confirm
       to: hw-lead
@@ -20820,6 +21376,15 @@ domains:
         本单不重复发明板侧项编号) ⑧ 新建机器闸 MECH/check_jdebug_1p27_clearance.py (7 判据 + 10 条反向用例) ⇒ rc=0; 板 md5 611b869e13518c3c023fb178f91a0075
         逐字节不变 ⇒ 零写板 ⑨ 零外发 · 零落表 · 零改既有闸 · 零改既有页面正文 · 零挂链'
       ref: MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md + HANDOFF/2026-11-23_mech-lead_ISS371_JDEBUG排针1.27净距真相.md
+    - key: iss374_mech_juart_recheck_20261124_0400
+      to: main
+      value: 'ISS-374 重派复核 (2026-11-24 04:0x) 结论: 方向不变, 仍为【不过阈】⇒ 不触发「停下报告」条款. 本机独立复算与 cont1 brief 给的七个数逐条零差:
+        现状铜箔 X 宽 0.7750 / 官方 1x2 THT 铜箔 X 宽 2.2700 / 座体必须清空区 X 宽 2.5400 / THT 档每边余量 0.1350 (< CRIT 0.60,
+        差 0.4650) / 现状每边余量 0.8825 / Δ -0.7475 / J_DEBUG THT 档每边余量 2.6950 ⇒ 两件方向相反 (一红一绿). 另订正一处口径 (非数错):
+        §2 那一列「fab 外框」在 S1/S2 原写 5.4405 ⇒ 那是 F.Fab 层含 Reference 文字的全框 ⇒ 已改为【座体本体外框】口径 (S1 2.6400x2.2000
+        / S2 2.6400x5.1000); 结论数一字未动; 闸 J0~J8 复跑仍 9/9 绿, --selftest 仍 12/12 ALL TESTS PASS; 板 md5 611b869e13518c3c023fb178f91a0075
+        三项未变.'
+      ref: HANDOFF/2026-11-23_mech-lead_ISS374_JUART排针1.27净距真相.md B3/B6
     open_questions:
     - id: MECH-Q1
       to: main
@@ -26201,6 +26766,78 @@ interface_claims:
     noncanonical_by:
     - hw-lead
     conflict: false
+  iss376_jdebug_current_land_conflict:
+    values:
+      hw-lead: 'J_DEBUG 现位 (origin 144.3000,58.0000 orient 0) 装官方 1x4 P1.27 THT land: rot90 pad1 孔净距 0.1271
+        (<0.25), pad3 孔净距 -0.3542 (clamp 0.0000) ⇒ 现位放不下'
+    notes:
+      hw-lead: 盘上 .kicad_mod + 真板 pcbnew 10.0.8 实读; 与 ISS-373 S2b 的 0.1271/0.0000 逐位一致
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss376_jdebug_land_fit_region:
+    values:
+      hw-lead: '落位可行域 (网格 0.1mm, X 134.0..159.5 Y 42.0..78.0, 92416 候选/朝向): rot0 23285 格 X 134.0..157.9
+        Y 46.0..78.0; rot90 12787 格 X 134.0..154.5 Y 46.0..78.0; rot270 12526 格 X 134.0..158.3 Y 46.0..78.0'
+    notes:
+      hw-lead: 域在 X 下侧/Y 上侧被扫描窗口截断, 已标注; 最小位移结论不受影响
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss376_jdebug_optimal_landing:
+    values:
+      hw-lead: 最小位移落点 rot90 (150.0000, 57.9000), 位移 5.7009mm, 余量 2.3254; <=5.0mm 半径内三个朝向 0 格可行; 该落点 n_via_viol=0
+        n_cu_viol=0 ⇒ 一个过孔都不用挪
+    notes:
+      hw-lead: rot0 最小 6.9065mm @(150.0000,54.1000); rot270 最小 9.6005mm @(153.9000,57.9000); rot0/270
+        翻转 X 向 JTAG pin 顺序
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss369_libid_w2_button_force_gap_fixed:
+    values:
+      hw-lead: fixed
+    notes:
+      hw-lead: ★ISS-369 页 §5 W-2 的口径缺口已补 (2026-11-24 03 补)★ ⇒ 原写「2 脚 vs 4 焊盘」漏了上游真正待拍项「5 只按键 3N vs 1.5N」
+        ⇒ 已按上游 iss364_k3_button_3n_vs_1p5n 改成 (a) 保留 3N (网表/脚表补 2 个具名脚·腿 B 的活) / (b) 改 1.5N (换 2 焊盘件 +
+        误触代价) 两个分支·只登记不代拍; 并加 §5 编号对照防止 main 把本页 W-1~W-5 与上游 K1/K2/K4 或矩阵「老板 W-1/W-2」读混. ★只改本单自己的两页 (作业包页
+        + 交卷页)·既有页一个字节未动★
+    by:
+    - hw-lead
+    noncanonical_by: []
+    conflict: false
+  iss379_land_fit_gate_green:
+    values:
+      hw-lead: 'ISS-379 cont1: 闸 HW/check_juart_land_fit.py rc=0 (K0~K8 九条全绿, K2 复算 145307 格 + 边界环 3010
+        格) + --selftest rc=0 (19/19 末行 ALL TESTS PASS, 含新增 C18/C19 把权威证据争议格 margin 改 ±0.0002 ⇒ K2 必须红)
+        + state/merge.py rc=0 + state/gate_check.py rc=0 (Q1 18/18, hw-lead 6/6 缺无, Q7 钉板闸 10/10) + 板
+        md5 611b869e13518c3c023fb178f91a0075 / mtime 2026-11-06 07:07:17.362193413 / size 4940213 三项未变'
+    notes:
+      hw-lead: ISS-379 cont1; 权威证据 logs/iss379/scan_land_fit.json (04:47 盘上脚本重跑); 旧件归档 logs/iss379/archive/*nonauth.json
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
+  iss379_evidence_single_authority:
+    values:
+      hw-lead: '证据归一: 权威唯一 = logs/iss379/scan_land_fit.json (8,450,311 B @04:47, mode A, elapsed_s 449.1,
+        盘上脚本 tmp/iss379/tools/scan_land_fit.py 823 行 @04:09 重跑); 三份旧件改名归档 logs/iss379/archive/ 并标 nonauth;
+        新旧件 feas_cells/components/best/min_displacement/row_table 逐项相同 ⇒ 落位结论未变 ⇒ 页面 FEAS 块除 evidence_json
+        指向外无前后差'
+    notes:
+      hw-lead: ISS-379 cont1
+    by:
+    - hw-lead
+    noncanonical_by:
+    - hw-lead
+    conflict: false
   temple_thickness:
     values:
       mech-lead: 7.30mm
@@ -30245,6 +30882,141 @@ interface_claims:
     noncanonical_by:
     - mech-lead
     conflict: false
+  iss377_connector_clearance_caliber_formula:
+    values:
+      mech-lead: M = max(H_housing, C_copper) per axis; margin_open = (O_opening - M)/2; margin_cover
+        = (H_housing - C_copper)/2; worst = margin - TOL[fdm_part]; pass iff worst >= CRIT
+    notes:
+      mech-lead: 同源判据链的唯一形式; CRIT 真身 MECH/service_port_check.py L126-L127 (只引用不写死)
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  iss377_caliber_source_axes_J_DEBUG:
+    values:
+      mech-lead: X=copper_driven / Y=housing_driven
+    notes:
+      mech-lead: 一颗件两个口径来源; Hx 1.7750 == Cx 1.7750 (座体宽是拿铜箔宽冒充的); Hy 2.5400 > Cy 0.9000
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  iss377_caliber_source_axes_J_UART:
+    values:
+      mech-lead: X=housing_driven / Y=housing_driven
+    notes:
+      mech-lead: 两轴同源 (座体模型假设); Hx 2.5400 > Cx 0.7750
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  iss377_must_clear_housing_J_DEBUG:
+    values:
+      mech-lead: X 1.7750 x Y 2.5400
+    notes:
+      mech-lead: PORT_OPENING_S6_FRAME_CALIBER.md L351/L183 (只读引用)
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  iss377_must_clear_housing_J_UART:
+    values:
+      mech-lead: X 2.5400 x Y 2.5400
+    notes:
+      mech-lead: PORT_OPENING_S6_FRAME_CALIBER.md L346/L196; 真实型号 0数据
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  iss377_opening_J_DEBUG_J_UART:
+    values:
+      mech-lead: both X 10.2000 x Y 4.6000
+    notes:
+      mech-lead: 帧 B160x100 台架板; PORT_OPENING L352/L353/L347/L348
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  iss377_margin_open_J_DEBUG_tht:
+    values:
+      mech-lead: 2.6950 (worst 2.3950) => 过阈
+    notes:
+      mech-lead: 与 ISS-371 §1.1 逐字相等
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  iss377_margin_cover_J_UART_tht:
+    values:
+      mech-lead: 0.1350 (worst -0.1650) => 不过阈
+    notes:
+      mech-lead: 与 ISS-374 §2 逐字相等
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  iss377_margin_cover_J_UART_status_quo_y_worst:
+    values:
+      mech-lead: 0.5200 < CRIT 0.60 => 现状 Y 轴红
+    notes:
+      mech-lead: 本单新增 (ISS-374 未算); 挂 OI-9
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  iss377_overflow_J_DEBUG_tht_per_edge:
+    values:
+      mech-lead: 1.5175 (真相页 H=1.7750 口径) / 0.3625 (现页四处理想口径)
+    notes:
+      mech-lead: 两数同向不同量, 差 4.18 倍 => 结构件返工范围取决于按哪个数出件; 挂 OI-5
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  iss377_connectors_total_vs_modeled:
+    values:
+      mech-lead: 9 颗逐颗列出 / 2 颗有净距模型 / 7 颗口径来源 unknown (未建模, 挂 OI-6)
+    notes:
+      mech-lead: 板面实读 9 个 J_ 位号; 其余 7 颗判决写未建模, 不许当绿用
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  iss377_housing_vendor_parts:
+    values:
+      mech-lead: J_SOM_P1..P4 = Hirose DF40C-100DS-0.4V(51); J_USB_C = GCT USB4105-16P; J_DEBUG / J_UART
+        = 0数据 (ISS-267 F-8)
+    notes:
+      mech-lead: 板面 value 字段实读; keepout 尺寸本机无厂商图纸; 零外发; 挂 OI-10
+    by:
+    - mech-lead
+    noncanonical_by:
+    - mech-lead
+    conflict: false
+  juart_seat_body_wh_after_tht_1x02:
+    values:
+      mech-lead: 2.6400 (X) x 2.2000 (Y)
+    notes:
+      mech-lead: 官方 1x2 THT 换上去后的【座体本体外框】= F.Fab 层 PCB_SHAPE 轮廓线并集 (含笔画·不含 Reference 文字); 与 .kicad_mod
+        的 F.Fab 本体 2.10x2.54 (局部) 旋转 90° 后 2.54x2.10 两路相等; ★不要用 5.4405 那个数 (那是 F.Fab 层含 Reference 文字的全框·不是座体)★;
+        ISS-374 cont2
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
+  juart_seat_body_wh_after_smd_1x02:
+    values:
+      mech-lead: 2.6400 (X) x 5.1000 (Y)
+    notes:
+      mech-lead: 官方 1x2 SMD (Pin1Left / Pin1Right) 换上去后的【座体本体外框】; Y 5.1000 即卧式贴片排针的 6.0 长边方向 ⇒ 与「座体高 2.54
+        竖立」的 3D 假设不同构; ISS-374 cont2
+    by:
+    - mech-lead
+    noncanonical_by: []
+    conflict: false
   display_frame_rate:
     values:
       main: 60fps
@@ -34119,11 +34891,12 @@ interface_claims:
     conflict: false
   iss372_sw_board_md5_ref_surface:
     values:
-      sw-lead: SW 域板 md5 引用面 = 17 个活文件 / 47 命中行 / 57 命中处; 三类归属 = 判据锚 9 行 / 规格页引用 17 行 / 历史留证 21 行; 板 md5
-        基线 = 611b869e13518c3c023fb178f91a0075 (mtime 2026-11-06 07:07:17.362193413 / size 4940213) ⇒ 判据锚
-        9 行一个字都不许动 / 规格页引用 17 行随板改那一趟换基线 / 历史留证 21 行永远不许动
+      sw-lead: SW 域板 md5 引用面 = 20 个活文件 / 53 命中行 / 63 命中处 (★cont3 更新·上一趟 17/47/57★); 三类归属 = 判据锚 11 行 /
+        规格页引用 17 行 / 历史留证 25 行; 板 md5 基线 = 611b869e13518c3c023fb178f91a0075 (mtime 2026-11-06 07:07:17.362193413
+        / size 4940213) ⇒ 判据锚 11 行里 4 行要动 (F5/G8/D7/W7 四道无通道闸的补丁) / 规格页引用 17 行随板改那一趟换基线 / 历史留证 25 行永远不许动
     notes:
-      sw-lead: '[实测] 本单自扫 + 逐处人工判定; 逐处清单 = 清账页 §1.3 (人读) + §1.10 (机器可读 JSON 双形态)'
+      sw-lead: '[实测] cont3 复扫 + 逐处人工判定; 逐处清单 = 清账页 §1.3 (人读) + §1.10 (机器可读 JSON 双形态) ⇒ ★★cont3 复扫时本单自守闸当场变红
+        (H1 漏 5 处 + H4 漏 2 道新闸) ⇒ 这就是「清单过期」的活证据★★'
     by:
     - sw-lead
     noncanonical_by:
@@ -34131,13 +34904,16 @@ interface_claims:
     conflict: false
   iss372_board_reboard_fake_red_gates:
     values:
-      sw-lead: 「板那一趟」改板当天会假红的闸 = SW 域 2 道 (SW/tools/check_fp_truth_read.py 的 F5 硬钉 L87 / SW/tools/check_onepass_legb_sw_impact.py
-        的 G8 硬钉 L70) + 跨域 1 道 (HW/check_iss354_manufacturability.py 的 A-5a/A-5b 硬钉 L40/L41) = 3 道 (这三道没有合法改板通道);
+      sw-lead: 「板那一趟」改板当天会假红的闸 = SW 域 4 道 (SW/tools/check_fp_truth_read.py 的 F5 ISS-363 / SW/tools/check_onepass_legb_sw_impact.py
+        的 G8 ISS-370 / ★SW/tools/check_debug_pin_order_contract.py 的 D7 ISS-375★ / ★SW/tools/check_debug_header_fw_impact.py
+        的 W7 ISS-378★) + 跨域 1 道 (HW/check_iss354_manufacturability.py 的 A-5 ISS-354) = 5 道 (★这 5 道没有合法改板通道★);
         已有合法改板通道的 2 道 = check_demo_panel_spec.py 的 R6 + check_onepass_sw_sync.py 的 W6 ⇒ 通道存在之后 板改第二次 当场红
-        (纯 md5 硬保护支路没被放松); ★那 3 道闸的红色原文里没有一个字说 这是合法改板 ⇒ 现场会误读成 板改坏了 ⇒ 板 md5 变第二次 ⇒ 整趟白跑★
+        (纯 md5 硬保护支路没被放松); ★★那 5 道闸的红色原文里没有一个字说 这是合法改板 ⇒ 现场会误读成 板改坏了 ⇒ 板 md5 变第二次 ⇒ 整趟白跑★
     notes:
-      sw-lead: '[实测] 沙盒 T0~T5 六阶段预演 (真件零写板); 缺口编号 iss372_gap_f5_reboard_channel / iss372_gap_g8_reboard_channel
-        / iss372_gap_iss354_reboard_channel; 补法规格 P-C / P-D / P-E (判据方向一个字不改: 仍是 盘上必须 == 期望值, 合法改板只让期望值从保护基线前移到落表台账链头)'
+      sw-lead: '[实测] 沙盒 T0~T5 六阶段预演 (★7 道闸·真件零写板·★闸 F = 绿/红/红/红/绿/红·闸 G = 绿/红/红/红/红/红★); 缺口编号 iss372_gap_f5_reboard_channel
+        / iss372_gap_g8_reboard_channel / iss372_gap_iss354_reboard_channel / ★iss372_gap_iss375_d7_reboard_channel
+        / iss372_gap_iss378_w7_reboard_channel★; 补法规格 P-C / P-D / P-E / ★P-F / P-G★ (判据方向一个字不改: 仍是 盘上必须
+        == 期望值, 合法改板只让期望值从保护基线前移到落表台账链头)'
     by:
     - sw-lead
     noncanonical_by:
@@ -34145,12 +34921,13 @@ interface_claims:
     conflict: false
   iss372_pinned_gates_manifest_stale:
     values:
-      sw-lead: state/board_md5_pinned_gates.json = 2026-11-17 20:49 生成的 9 条 (SW 只 1 条) ⇒ 今天新造的 2 道 SW
-        闸 (check_fp_truth_read.py 17:27 / check_onepass_legb_sw_impact.py 19:50) + 跨域 1 道 不在表里; 且收集口径只收
-        check_*.py ⇒ state/land_v_values.py L96 (落表器自钉板 md5) 收不进去; 没有任何闸在守它的新鲜 (state/gate_check.py 零命中)
-        ⇒ 刷新后应有的内容 = 现有 9 条 + 新增 3 条 + 口径补 1 条
+      sw-lead: state/board_md5_pinned_gates.json = 2026-11-17 20:49 生成的 9 条 (SW 只 1 条) ⇒ 签收后新造的 2 道 SW
+        闸 (★ISS-375 的 D7 02:05 / ISS-378 的 W7 02:45★) + 之前的 2 道 (ISS-363 的 F5 / ISS-370 的 G8) + 跨域 1 道
+        (ISS-354 的 A-5) 不在表里; 且收集口径只收 .py 里含 32 位字面量的闸 ⇒ ★★连 ISS-378 的 W7 那种「页面内嵌基线类」都收不进去★★ ⇒ 刷新后应有的内容
+        = 现有 9 条 + 新增 5 条 + 口径补 2 条 (★清账页 §5.1★)
     notes:
-      sw-lead: '[实测] 该表与 .md 是 main 的域 ⇒ 本单零写入, 只登记 刷新后应有的内容 与 三个缺口编号'
+      sw-lead: '[实测] 该表与 .md 是 main 的域 ⇒ 本单零写入, 只登记 刷新后应有的内容 与五个缺口编号; ★cont3 的活证据: 本单自守闸在签收后 4 小时就抓到了
+        2 道漏网的新闸 ⇒ 「没人知道」这件事是真的★★'
     by:
     - sw-lead
     noncanonical_by:
@@ -34163,7 +34940,207 @@ interface_claims:
         check_sch_pinfull.py 不改它 ⇒ need 原文那个机理不成立 ⇒ SW 域 .kicad_sch 的 md5 命中 = 0 处 ⇒ 该风险至今没伤到任何人 ⇒ 处置
         = 结论订正 + 降级为一条已知注意事项 (不机器化)'
     notes:
-      sw-lead: '[实测] 沙盒实跑 + 归一化对照; 本单已用同 key 在 answers 里答掉 hw-lead 的那条 need (iss249_kicad_sch_md5_not_anchor_sw)'
+      sw-lead: '[实测] 沙盒实跑 + 归一化对照; 本单已用同 key 在 answers 里答掉 hw-lead 的那条 need (iss249_kicad_sch_md5_not_anchor_sw);
+        ★★cont3 零重跑这条实验 (留证仍在 logs/iss372/03_exp1_sch_md5.txt)★★'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss375_jdebug_rot90_pad_order:
+    values:
+      sw-lead: 1,2,3,4
+    notes:
+      sw-lead: '[实测] J_DEBUG 换官方 1x4 THT land rot90 @ (141.0450, 56.6000): pad1=JTAG_TCK@X=141.0450 (X_MIN,
+        顺排 TCK->TDO) / pad2=JTAG_TMS@142.3150 / pad3=JTAG_TDI@143.5850 / pad4=JTAG_TDO@144.8550; 用 KiCad
+        自己的 FOOTPRINT.SetOrientationDegrees 算, 未手算旋转矩阵'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss375_jdebug_rot270_pad_order:
+    values:
+      sw-lead: 4,3,2,1
+    notes:
+      sw-lead: '[实测] J_DEBUG rot270 @ (144.8550, 56.6000): pad1=JTAG_TCK@X=144.8550 (X_MAX, 逆排) / pad4=JTAG_TDO@141.0450
+        / pad3=JTAG_TDI@142.3150 / pad2=JTAG_TMS@143.5850; 与 rot90 的四个 X 集合逐字相同只归属反了 = 两候选互为镜像 (互逆不是互等);
+        铜箔 4.8100x1.0000 与 fab 6.7262x2.2000 两候选逐字相同'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss375_juart_rot90_pad_order:
+    values:
+      sw-lead: 1,2
+    notes:
+      sw-lead: '[实测] J_UART 换官方 1x2 THT land rot90 @ (18.2550, 68.6000): pad1=UART_TX@X=18.2550 (X_MIN)
+        / pad2=UART_RX@19.5250; 铜箔 2.2700x1.0000 fab 5.4404x2.2000'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss375_juart_rot270_pad_order:
+    values:
+      sw-lead: 2,1
+    notes:
+      sw-lead: '[实测] J_UART rot270 @ (19.5250, 68.6000): pad1=UART_TX@X=19.5250 (X_MAX) / pad2=UART_RX@18.2550;
+        几何与 rot90 逐字相同 = 纯针序镜像'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss375_land_pin1_marker_shape:
+    values:
+      sw-lead: pad1=thru_hole rect; others=thru_hole circle
+    notes:
+      sw-lead: '[实测] 盘上官方 .kicad_mod 文本解析: PinHeader_1x04_P1.27mm_Vertical 与 PinHeader_1x02_P1.27mm_Vertical
+        两件一样 = pad1 rect 其余 circle; 换官方 land 后板面第一次出现 pin1 方形标记 (现状板面 J_DEBUG/J_UART 全 RECT 全 SMD 无标记)'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss375_jtag_soc_side_endpoint:
+    values:
+      sw-lead: SoC_NC
+    notes:
+      sw-lead: '[实测] HW/netlist_v1.csv 第 388/390/392/394 行: JTAG_TCK_SOC / JTAG_TMS_SOC / JTAG_TDI_SOC
+        / JTAG_TDO_SOC 四条网的 SoM 侧端点全部 = SoC_NC; 官方 399 行脚表 HW/PCB/FET3572C_PIN_TABLE.csv grep -ic JTAG
+        = 0; 受控结论只写 SoM 侧未落地, 不写信号不存在 (逐针表只覆盖模块引出的引脚)'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss378_fw_body_lines_to_change:
+    values:
+      sw-lead: '0'
+    notes:
+      sw-lead: '[实测] 固件本体要改的行数 = 0: JTAG_TCK/TMS/TDI/TDO + UART_TX/RX 在 SW/** 代码文件 (.py/.sh/.json) 里命中
+        0 行 (JTAG 组唯一 5 处全在 SW/tools/check_debug_pin_order_contract.py = 板针序契约闸; UART 组唯一 1 处是 ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md:125
+        自引用) + HW/netlist_v1_pins.csv:202-205,275-276 的逻辑映射逐字不变 ⇒ 换 land 后要改的是把物理针序写死的 5 处机器件读数 (L231/L287/L312/L466/L552)
+        不是固件'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss378_netname_to_pad_mapping_impact:
+    values:
+      sw-lead: none
+    notes:
+      sw-lead: '[实测] A 层 网名→pad 号 映射换 land 后不变: J_DEBUG.pin1=JTAG_TCK / pin2=TMS / pin3=TDI / pin4=TDO
+        与 J_UART.pin1=UART_TX / pin2=UART_RX (HW/netlist_v1_pins.csv:202-205,275-276) 在 rot90/rot270 两个候选下都保持
+        pad1=JTAG_TCK / pad1=UART_TX ⇒ 固件/网表/BOM/脚本一律零改动'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss378_physical_pin_order_layer_impact:
+    values:
+      sw-lead: rot90=same-order; rot270=reversed
+    notes:
+      sw-lead: '[实测] B 层 物理针序随 land 变: 候选 A (rot90 · ISS-375 建议) 与现状同向顺排 TCK→TMS→TDI→TDO ⇒ 线序说明零改动; 候选
+        B (rot270) 逆排 TDO→TDI→TMS→TCK ⇒ 全部现有 JTAG 线序描述必须反转; UART 组 rot270 时 TX/RX 物理位置互换 ⇒ 工装线序要反 · 受影响者=排线/工装/线序说明
+        + 5 处机器件读数 · 逐网 19 行表取严档'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss378_rescue_chains:
+    values:
+      sw-lead: USB(S2); UART(observation-only); JTAG(S3-absent)
+    notes:
+      sw-lead: '[实测] 三条链的救砖级归属 (SW/FLASH_AND_VERSION.md:44 四级 S1→S2→S3→S4 · :336 S3 行): USB 链=板载 Type-C
+        J_USB_C 不经过 J_DEBUG/J_UART ⇒ 对应 S2 且工具链侧已自查结案 (ISS-270 + SW/tools/boot_rescue_probe.py); UART
+        链=J_UART 1×2 只做板→主机日志观测 ⇒ 不属救砖级 (SW/tools/s2_board_run.sh:243-263 只 cat SERDEV); JTAG 链=J_DEBUG
+        1×4 + 四颗 100Ω 串阻 ⇒ 对应 S3 但 SoM 侧不落地 ⇒ 这一版 SoM 上不存在'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss378_worst_case_rescue_chain:
+    values:
+      sw-lead: USB
+    notes:
+      sw-lead: '[推算] 最坏只剩 USB (S2) 一条链: JTAG(S3) 在本版 SoM 上根本不存在 + UART 只做日志观测不做救砖; 若连 S2 也不可用 (BOOT 进不去
+        / 下载工具不认设备) ⇒ 一条链都不剩 ⇒ 只剩 S4 返厂换板 · 换 land 不改变这个结论, 只新增一种人为失效模式 (排线插反) ⇒ 最坏路径 = 插反 + S2 不可用 ⇒
+        直接 S4 ⇒ 板那一趟必须把 pin1 朝向 + 线序一次写死 (现状 J_DEBUG 4 pad 全 RECT/全 SMD 看不出哪端是 pin1, 换官方 land 后 pad1 变
+        thru_hole rect 第一次实物可见)'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss378_jtag_tdi_soc_side_endpoint:
+    values:
+      sw-lead: SoC_NC
+    notes:
+      sw-lead: '[实测] JTAG_TDI_SOC 的 SoM 侧端点 = SoC_NC (HW/netlist_v1.csv:392; 四条 JTAG_*_SOC 在 :388/390/392/394
+        全部 SoC_NC) ⇒ 与 ISS-344 终裁「JTAG_TDI=必需 · 板侧不许标 NC」(SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md:120,:152
+        + 6 处 ISS344-CORR 块) 正面冲突 ⇒ 冲突只登记 订正块归 main 本单未改该页正文一个字'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss378_som_jtag_exposure:
+    values:
+      sw-lead: none
+    notes:
+      sw-lead: '[实测] SoM 侧无 JTAG 引出: HW/PCB/FET3572C_PIN_TABLE.csv (1 表头 + 399 数据行) grep -ic jtag = 0
+        (rc=1 是 grep 无匹配退出码 不是错误) ⇒ S3 救砖链在这一版 SoM 上不存在; 官方 399 行脚表里没有 JTAG 同名信号 ⇒ HW/PCB/SOM_PIN_MAPPING.md:48-51
+        的「要么内部命名不同 要么该信号在 FET3576-C 上不存在」是二选一措辞 本单不替它选边'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss378_soc_jtag_mux_names:
+    values:
+      sw-lead: JTAG_TCK_M0;JTAG_TMS_M0;JTAG_TCK_M1;JTAG_TMS_M1
+    notes:
+      sw-lead: '[实测]+[官网]+[0数据] SoC 侧官方引脚复用表只暴露 TCK/TMS 四个 mux 名 (HW/RK3572_PIN_TABLE/rk3572_pins.csv
+        命中 4 行 = 行号 125/126/167/168); 官方 datasheet 文本层 rk3572_datasheet_V1.1.txt (2921 行 · PDF md5 c0e3763036e2f6a3e8a2f68f2254851d)
+        L247 明写 JTAG interface for debug ⇒ 芯片【有】JTAG 调试接口 ([官网] · 相对 ISS-375 的 [0数据] 是推进不是翻案); JTAG_TDI/JTAG_TDO
+        两个信号名全文档 0 命中 ⇒ 其球位 [0数据] (降级=按 SoM 不引出 JTAG 设计 · 救砖按 S1→S2→S4)'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss375_delivery_status:
+    values:
+      sw-lead: closed_reverified_2026-11-24T04:14+08:00
+    notes:
+      sw-lead: '[实测] ISS-375 三件交付物齐备且交卷后复跑仍全绿 (2026-11-24 04:14 gateway reload 后复跑): ①SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md
+        (35,625 B · §0~§4 + 机器块 iss375_contract) ②SW/tools/check_debug_pin_order_contract.py (40,958 B
+        · rc=0 D0~D8 9/9 · --selftest rc=0 11/11 含镜像类 M1/M2/M3) ③HANDOFF/2026-11-23_sw-lead_ISS375_调试排针物理针序契约与JTAG链SoM侧真相.md
+        (B1~B7 · B7 = 04:1x 复跑验证) · 沙盒 tmp/iss375_sbx/ 4 块板 md5 互不相同且都 != 真板 + logs/iss375/ 8 份读数 net
+        非空 (SetNetCode 顺序缺陷已修) · 零写板 (md5/mtime/size 三项未动) · 零落表 · 零挂链 (gate_check.py 命中 0) · merge rc=0
+        + gate_check rc=0 Q1 18/18 · 不代拍: pin1 朝向与 ISS-344 JTAG 口径仍待 main 裁'
+    by:
+    - sw-lead
+    noncanonical_by: []
+    conflict: false
+  iss370_cont2_independent_reverify:
+    values:
+      sw-lead: '【实测】第二个并发会话独立复跑 ISS-370: 五组对照 85/85 · 85/85 · 70/85(15红) · 71/85(14红) · 83/85(2红) ⇒ 与另一会话读数逐条一致
+        (含 15 条红项原文逐字一致); 新闸裸跑 9/9 rc=0 · --selftest 10/10 rc=0; merge/gate_check rc=0 · Q1 18/18; 四份真源
+        md5/mtime/size = 受保护基线 (零写板 · 零落表); 只补行变体 = 83/85 (派活书 §0② 的 73/85 是笔误)'
+    notes:
+      sw-lead: 'logs/iss370/38~64_CONT2_* (本会话自跑) · 追加位置: SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md §7 · HANDOFF/2026-11-23_sw-lead_ISS370_腿B对SW侧影响面.md
+        B7-8 / B7-9'
+    by:
+    - sw-lead
+    noncanonical_by:
+    - sw-lead
+    conflict: false
+  iss372_cont3_live_guard_trip:
+    values:
+      sw-lead: '★★cont3 的招牌结论: 本单自守闸在【签收后 4 小时】就真的红过一次★★ ⇒ ISS-372 已于 2026-11-23 22:4x 由 main 独立复核签收 (verified);
+        而签收后 4 小时内 ISS-375 (02:05) / ISS-378 (02:45) 新落两道闸, 都硬钉板 md5 且都没有合法改板通道 ⇒ 自守闸当场红 (H1 5 处漏登记 +
+        H4 2 道新闸不在册) ⇒ ★★「下一道新闸再硬钉板 md5 时当场被抓住」不是设计, 是已经发生过的事实★★; 并且 H4 因此暴露了自己的真实盲区: ★★只扫 .py 的 32 位字面量
+        ⇒ 漏掉「把基线写进页面 JSON 块、闸自己算 md5 再比」那一类 (ISS-378 的 W7 就是这一类) ⇒ 本趟已把 H4 扩成两个检测类 (类A 字面量 + 类B 页面内嵌基线),
+        并把 --selftest 从 8 条扩到 10 条 (新增 2 条类B 反向用例)★★'
+    notes:
+      sw-lead: '[实测] cont3 开工时闸 rc=1 (H1+H4 红) ⇒ 登记完回到 rc=0 (7/7) 且 --selftest 10/10 ALL TESTS PASS'
     by:
     - sw-lead
     noncanonical_by:
@@ -36211,6 +37188,24 @@ needs_matrix:
     since: '2026-11-23'
     _by: hw-lead
     state: pending
+  - key: iss376_land_swap_90_vs_91_decision
+    to: main
+    item: 'ISS-376 落位侧代价账已交: 换官方 land 需横移 >=5.7009mm (rot90) + 重接 6 段旧焊盘端点走线, 且 rot0/270 翻转 JTAG pin 顺序;
+      不换 land 则维持现位. 请裁: 那一趟换不换 land (90 件 vs 91 件)'
+    since: '2026-11-24'
+    _by: hw-lead
+    state: pending
+  - key: iss369_button_3n_vs_1p5n_s10_blocker
+    to: main
+    item: '★ISS-369 §5 W-2 的上游原始待拍板面第 10 项 `iss364_k3_button_3n_vs_1p5n` (★矩阵 §㉞-1·★标注「卡·时限型·须在 S10 开工前」★)
+      ★本单只登记不代拍★ ⇒ 要 main / 老板拍: 5 只按键 (SW_BOOT/SW_KEY_PWR/SW_KEY_VM/SW_KEY_VP/SW_RST) 走 (a) 保留 3N ⇒ 官方
+      SW_Push_1P1T_NO_CK_KMR2 4 焊盘 (焊盘号 1,1,2,2) ⇒ 网表与脚表要给这 5 只补 2 个具名脚 (属腿 B 的活·本单零落表) ⇒ C3 绿; 还是走 (b)
+      改 1.5N ⇒ 换 2 焊盘按键封装 (SW_SPST_B3U-1000P md5 749f20c5ab898069ade01682274c7bbf / SW_SPST_CK_KXT3 md5
+      bed9b3b110e52e4ffcdc18240ef7a47c·★两者本机实测在盘★) ⇒ C3 绿但按动力度 3N→1.5N ⇒ 误触风险上升 (矩阵 §⑮~⑲ 选 3N 的理由就是防误触).
+      ★★不拍的后果: 走 (a) 而网表没补脚 ⇒ C3 当场红「板 4 脚 / 网表 2 脚」(沙盒实测不符 3 件 = SW_BOOT/SW_KEY_PWR/SW_RST) ⇒ 那一趟交不出可投产的板★★'
+    since: '2026-11-24'
+    _by: hw-lead
+    state: pending
   - key: sw_poweroff_semantics
     to: main
     item: '★请项目总工裁决 3 项: ① ''关机'' 语义 = 软件深睡 (硬件无断电通路) 是否接受 —— 连带 FRAMEWORK/AFTERSALES.md 的 ''长按10s=关机''
@@ -36585,6 +37580,88 @@ needs_matrix:
       ★SW 侧本单 HW/ 下一个文件都没碰, 只给改法 + 时序 + 会红哪道闸 (timing_check 三条锚点红 + check_demo_panel_spec R6 + check_onepass_sw_sync
       W6 + 三道 R6 反向用例闸)★'
     since: '2026-11-23'
+    _by: sw-lead
+    state: pending
+  - key: iss375_need_main_pin1_orientation
+    to: main
+    item: '★要 main 回答一句话: 那一趟 J_DEBUG/J_UART 的 pin1 朝向选 rot 90 (原点 141.0450 / 18.2550, 顺排, pad1@X_MIN)
+      还是 rot 270 (原点 144.8550 / 19.5250, 逆排, pad1@X_MAX)? ★两候选几何完全等价 (铜箔 4.8100x1.0000 与 fab 6.7262x2.2000
+      逐字相同) ⇒ 不是结构问题, 是装配与救砖线序契约问题; sw-lead 建议 rot 90 (保持现状顺排, 换 land 后线序不变) 但不代拍; 两套写死值已备好, 裁定后由闸 D2/D4
+      现场校验页与实算是否一致 ★'
+    since: '2026-11-24'
+    _by: sw-lead
+    state: pending
+  - key: iss375_need_main_jtag_iss344_scope
+    to: main
+    item: '★要 main 回答: ISS-344 终裁 (JTAG_TDI 判为必需 + 板侧不许标 NC) 与网表现状 (JTAG_TDI_SOC 的 SoM 侧端点此刻就是 SoC_NC)
+      对不上, 改哪一处? ★三条路的代价已在 SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md §3-2 列全 = (a) 改裁决口径 (JTAG_TDI
+      降级为悬空候选, 与 399 行脚表一致) (b) 改网表 (SoC_NC → 某个真 SoM 脚) 但脚表无 JTAG 同名信号 ⇒ 这条路当前走不通, 要走须先定 SoM 侧 JTAG 引出方案
+      (c) 改 SoM 选型换板 (放弃 S3 救砖路径, 只剩 S4 返厂); 事实前提: JTAG 链在 SoM 侧今天就是断的, 改 pin1 朝向救不了它; sw-lead 不改 SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+      (含 ISS-344 终裁块) 一个字, 口径修正是否往既有页面落由 main 决定 ★'
+    since: '2026-11-24'
+    _by: sw-lead
+    state: pending
+  - key: iss378_need_main_pin1_orientation
+    to: main
+    item: '★要 main 回答一句话: 那一趟 J_DEBUG/J_UART 的 pin1 朝向选候选 A (rot90 · ISS-375 建议 · J_DEBUG 原点 141.0450,56.6000
+      / J_UART 18.2550,68.6000 · 顺排 pad1@X_MIN) 还是候选 B (rot270 · 144.8550,56.6000 / 19.5250,68.6000 ·
+      逆排 pad1@X_MAX)? ★ISS-378 复核后结论: 换 land 对固件的影响只有 B 层物理针序这一层 (A 层网名→pad 映射逐字不变 ⇒ 固件本体 0 行要改), 要改的是把针序写死的
+      SW 侧机器件 5 处读数 (SW/tools/check_debug_pin_order_contract.py L231/L287/L312/L466/L552) + 工装线序说明 ⇒ 这个裁决不依赖
+      SoM 侧结论 (纯落点写死) ⇒ 落晚了 = 板做了机器件还得再改 = 板改两次 ⇒ 必须在板那一趟开工前落 · sw-lead 建议候选 A (保持现状顺排 线序不变 只多一个 pin1
+      方形标记) 但不代拍'
+    since: '2026-11-24'
+    _by: sw-lead
+    state: pending
+  - key: iss378_need_main_jtag_tdi_scope
+    to: main
+    item: '★要 main 裁: ISS-344 对 JTAG_TDI 的「必需 · 板侧不许标 NC」分级, 在「SoM 侧无 JTAG 引出」这个实测事实下怎么改口径 ★三条路代价已在 SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md
+      §3-2 与本单 B1-6 列全 = ①改口径 (唯一板那一趟零额外动作的一条; 代价=与 ISS-344 终裁正面冲突需重开裁 + 6 处 ISS344-CORR 块连带改 + 4 处救砖硬规则
+      FLASH_AND_VERSION.md:44/:336 + EVT_TEMPLATE.md:503 + S2_BOARD_TEST_CHECKLIST.md:393 失去执行对象 + 救砖从
+      4 级降 3 级) ②改网表 (当前走不通: FET3572-C 399 行脚表 JTAG 命中 0 ⇒ 没有可指向的脚 ⇒ 须先出 SoM 侧 JTAG 引出方案这条独立前置工作; 且落表窗口必须早于或并入板那一趟
+      否则板改两次) ③换 SoM (放弃 S3 软救砖只留 S4 返厂 ⇒ 板面 BTB+走线全变板必须重做 ⇒ 必须赶在板那一趟之前定 ⇒ 老板级) ★事实前提: JTAG_TDI_SOC 的
+      SoM 侧端点此刻就是 SoC_NC (HW/netlist_v1.csv:392) 且 JTAG_TDI 在板面是 0 段铜 ⇒ 换 pin1 朝向救不了它; sw-lead 建议 ①+③的口径部分同一次裁决一起落
+      + 同时启动 ② 的前置可行性摸底 (零落表零采购零外发) 但不代拍; SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md 一个字都不许 sw-lead
+      改 订正块归 main'
+    since: '2026-11-24'
+    _by: sw-lead
+    state: pending
+  - key: iss370_cont2_concurrent_write_swallow
+    to: main
+    item: '★只登记·不代拍】ISS-370 交付页 SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md 于 2026-11-24 04:11:42 被并发写盘吞掉 (同目录闸脚本
+      md5 未变·该页是 ISS-372 扫描的输入 4 处板 md5 命中) ⇒ 本单已从 tmp/iss372_sbx/tree 快照逐字节还原 (md5 = CONT1 交卷值) 并复跑闸
+      rc=0 · 要 main 回答: 派活层要不要给同路径写互斥 或 交卷前存在性复查? 备份留在 tmp/iss370_sbx/backup/'
+    since: '2026-11-24'
+    _by: sw-lead
+    state: pending
+  - key: iss370_cont2_existing_gate_drift
+    to: main
+    item: '★只登记·不代拍】两个既有闸在 2026-11-23 19:5x → 2026-11-24 04:2x 之间由绿转红·经对照实验确认均非 ISS-370 回归: (a) check_sw_ref_reachability_v2.py
+      红因 = 第三方页 SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md:81 的 SW_MD5 token 未进豁免台账 (ISS-372 交付物 22:24
+      落盘) · 删掉本单页后仍红; (b) check_sw_fp_truth_impact.py H1 红因 = 第三方脚本 SW/tools/check_debug_pin_order_contract.py
+      于 2026-11-24 02:05 改动后引入 footprint 字面量 ⇒ 读者数 0→1 · 本单页与本单闸实测 footprint 出现 0 次 ⇒ 要 main 回答: 由谁修?
+      修哪一页/哪一个脚本? 本单只给归属与复现命令 (logs/iss370/50_51_52_*)'
+    since: '2026-11-24'
+    _by: sw-lead
+    state: pending
+  - key: iss370_cont2_status_block_overwrite
+    to: main
+    item: '【只登记·不代裁】2026-11-24 04:13 本机实读 state/fragments/sw.yaml 的 status 块 = phase fixing / progress
+      95 / summary ISS-378 cont1 收尾; 04:1x 再读 = phase delivered / progress 100 / summary ISS-370 CONT2
+      复核完成 ⇒ status 块单块 last-writer-wins ⇒ 同 agent 多单并发时互相覆盖 (ISS-378 的 artifacts/claims/needs 仍在文件里,
+      只是 status 摘要被盖) ⇒ 要 main 回答: 派活层读 sw.yaml.status 按什么规则取? 本单只登记, 不再写 status 免得第三次覆盖 (ISS-375 / ISS-379
+      此刻也在飞)'
+    since: '2026-11-24'
+    _by: sw-lead
+    state: pending
+  - key: iss372_need_main_batch_channel_patches
+    to: main
+    item: '★要 main 回答 (★cont3 新增★): 通道补丁 P-C (check_fp_truth_read.py 的 F5) / P-D (check_onepass_legb_sw_impact.py
+      的 G8) / P-E (HW/check_iss354_manufacturability.py 的 A-5·跨域要过 hw-lead) / ★P-F (check_debug_pin_order_contract.py
+      的 D7·ISS-375) / ★P-G (check_debug_header_fw_impact.py 的 W7·ISS-378)★ 这 5 条【能不能合成一批落】? 批内顺序怎么定? ⇒
+      ★**理由 (★沙盒 T4 实测★): 不同批落 ⇒ 先落的那条补丁会移动【另一个闸】的函数行号 ⇒ 把那个闸当场打红 (★实测: P-F 一落 ⇒ 闸 G 的 W2 红·5 行全中·因为 W2
+      把闸 F 的行号钉死了★) ⇒ 现场又是一轮「误读成板坏了」⇒ 整趟白跑★ ⇒ ★**建议: 合成一批落, 落完立刻在沙盒重跑 T0~T5 读数表做交叉验证 (★本趟已把读数表刷到 7 道闸·logs/iss372/08_sbx_reboard_rehearsal_7gates.txt★)★**
+      ★ ⇒ 本单只登记, 不代拍'
+    since: '2026-11-24'
     _by: sw-lead
     state: pending
   - key: soc_carrier_mainboard_site
@@ -37516,8 +38593,94 @@ needs_matrix:
     since: '2026-11-23'
     _by: mech-lead
     state: pending
+  - key: iss374_mech_juart_must_clear_widen_to_34700
+    to: main
+    item: '座体必须清空区 X 宽要不要从 2.5400 放宽到 3.4700? —— 事实: J_UART 换官方 1x2 THT land 后铜箔 X 宽 2.2700, 座体必须清空区宽
+      2.5400 (座体支配口径·固定值), 每边余量只有 0.1350 < CRIT 0.60, 最坏 -0.1650 ⇒ 铜箔进座体必须清空区 ⇒ 结构件装不上; 放宽到 3.4700 (=2.2700+2x0.60)
+      则结构件清空区 X 改 16.960..21.620 (中心 18.890 不变·宽 +0.9300) ⇒ 结构件返工一次 + 板那一趟落点必须从 20.7400 挪到 18.2550; 代价:
+      结构件与板那一趟必须同批定, 否则撞板只改一次; 要谁回答: boss (结构口径) + mech-lead (结构件) + main (板那一趟批不批); 本单不代拍'
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss374_mech_juart_land_swap_scope_decision
+    to: main
+    item: '那一趟 B33_PIN_LAND_1P27 的范围: J_UART 换不换官方 land? —— 事实: 换 ⇒ 每边余量 0.1350 < CRIT 0.60 (结构件装不上);
+      换 SMD 变体 ⇒ 余量 0.3100 仍不过, 且铜箔 Y 宽 6.0000 撞开口 Y 每边 0.7000 (更硬); 不换 ⇒ 结构件零返工, 且 B33 只动 J_DEBUG; 本单只给结构侧代价,
+      裁决权在 main; 与 ISS-373 是同一件事的两条腿, 本单是结构侧那条腿'
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss374_mech_juart_status_worst_margin_shortfall
+    to: main
+    item: '现状档最坏余量 0.5825 < CRIT 0.60 (差 0.0175) 这条要不要以追加式订正块落进 MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md?
+      —— 事实: 每边余量名义 0.8825 过阈, 减去 FDM 外形公差 TOL[fdm_part] 0.30 后 0.5825 不到 0.60 ⇒ 现状本身已压在判据线上 (本单未造成);
+      本单边界=零改既有页面正文 ⇒ 订正块已写在本单真相页 §4; 要谁回答: main 决定要不要往既有页落'
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss377_oi1_housing_width_2540_or_3470
+    to: main
+    item: OI-1 J_UART 座体必须清空区 X 宽按 2.5400 还是 3.4700 出件? 真实型号 0数据 (ISS-267 F-8); 结构件返工须与板那一趟同批定
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss377_oi2_b33_scope
+    to: main
+    item: OI-2 B33_PIN_LAND_1P27 的范围是只含 J_DEBUG 还是含 J_DEBUG + J_UART? (本单只给结构侧代价与判据, 不代 main 裁)
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss377_oi3_juart_origin_move
+    to: hw-lead
+    item: OI-3 J_UART 换 land 落点挪到 (18.2550, 68.6000) 认不认? 不认则铜箔整块落在座体清空区之外 => 装配当场干涉
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss377_oi4_attach_caliber_table_to_workpacket
+    to: main
+    item: OI-4 同源总表要不要以追加块落进 HW/PCB/BOARD_ONEPASS_WORKPACKET.md? 挂不挂归 main
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss377_oi5_jdebug_must_clear_which_number
+    to: main
+    item: OI-5 J_DEBUG 的必须清空区 X 宽取 1.7750 (真相页) / 4.0850 (现页四处) / 4.8100 (官方 THT) 哪一个? 取 1.7750 则每边越界
+      1.5175, 取 4.0850 则 0.3625
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss377_oi6_model_other_7_connectors
+    to: main
+    item: OI-6 其余 7 颗连接器的座体必须清空区未建模 (口径来源 unknown), 由谁补什么时候补? 补齐前判决一律未建模
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss377_oi7_h_tiers
+    to: main
+    item: OI-7 座体真实高 h 三档 0.90/2.54/4.00 走参数化还是定版? 本单 Y 向统一用真相页固定开口 Y 4.6000, ISS-371 的 h 三档口径不混用
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss377_oi8_cover_caliber_applies_to_all
+    to: main
+    item: OI-8 罩住口径 (座体必须清空区 vs 铜箔 >= CRIT) 是否对全部连接器一律适用? 一刀切则现状 J_UART/J_DEBUG 的罩住轴都红
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss377_oi9_juart_quo_y_margin_landing
+    to: main
+    item: OI-9 J_UART 现状 Y 向罩住余量最坏 0.5200 < CRIT (ISS-374 未算) 要不要以追加块落进 PORT_OPENING §3.5? 落不落归 main
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
+  - key: iss377_oi10_vendor_part_numbers
+    to: hw-lead
+    item: OI-10 J_DEBUG / J_UART 用哪颗具体厂商型号? J_SOM_P1..P4 与 J_USB_C 的厂商 keepout 图纸从哪里补? 本单零外发只登记
+    since: '2026-11-24'
+    _by: mech-lead
+    state: pending
   answered_count: 230
-  total: 556
+  total: 579
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -38250,6 +39413,33 @@ lint:
     靶子 100 减 C4 158】的差 (充电板 22 件不在本板 + 在板的 J_DEBUG 1 件), 与本板 96 的分桶不是一回事. ⇒ 本单 96 的分桶一律按脚本实算给 (TP 42 /
     DNP 37 / 靶内-非C4 1 / 缺口-非C4 12 / 其它 4), 并在页 §3.3 把两种口径逐条对上 ⇒ ★要 main 确认: 任务书那处括注按【笔误】归档, 还是按【另一套口径】另有含义★.'
   hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: hw-lead
+  key: iss369_libid_reverify_20261124
+  value: '★ISS-369 第三次会话 (2026-11-24 04:0x) 的二次独立复核★ (★背景: 本单 2026-11-23 22:34 已交卷·派活书那句「三件交付物一个都不在盘上」是
+    20:34 那一刻的快照·cont1 趟已做完⇒ 本次不重做交付物·只做独立复核+补一处真实缺口★). ★独立复核结论 (★全部本机实跑·不采信上一趟自述★): ① v2_indep_board_probe.py
+    用 pcbnew 直读真板 ⇒ 186 封装 / lib_id 非空 0 / GetFPIDAsString() 唯一值 =  / 总焊盘 834; ② v2b_write_mechanism.py
+    复现写盘机制 ⇒ E1 python API 只改 1 行 (187044 行→差异 1 行) · E2 文本层 (footprint Lib:Name) 可用 · E3 (footprint NAME
+    (lib A B)) 与 E4a (footprint NAME (lib_id A:B)) ★LoadBoard 返回 None = 整板报废★ · E4c 裸封装名会把封装名当库名 · E8
+    库名指向不存在的库板仍能加载; ③ v3_indep_targets_verify.py 自己解析页两张表 + 自己 test -f + 重算 md5 ⇒ 90+96 = 186 与板面逐件相等
+    (不缺不漏) + 94/94 个 .kicad_mod 在盘且 md5 对得上 + 库根 155 个 .pretty / 15468 个 .kicad_mod; ④ 自己用真闸 state/check_pcb_nets.py
+    跑沙盒五轮 ⇒ S0~S4 的 C4 全部 = 158 且 S0≡S3 · S1≡S2 ⇒ ★写库名对 C1/C2/C3/C4 的贡献 = 0★. ★★补的一处真实缺口: 页 §5 的 W-2 原写「5
+    只按键的 2 脚 vs 4 焊盘」, 漏了上游真正要拍的那条「5 只按键 3N vs 1.5N」 (上游 iss364_k3_button_3n_vs_1p5n · 矩阵 §㉞-1 第 10 项·★上游标注「卡·时限型·须在
+    S10 开工前」★) ⇒ 已改成上游口径两个分支 + 误触代价 + 补 §5 编号对照 (本页 W-1~W-5 vs 上游 K1/K2/K4 vs 矩阵「老板 W-1/W-2」) ⇒ 只登记不代拍.
+    ★边界复查: 板 md5/mtime/size + 网表/脚表/BOM md5 + 9 个既有闸脚本 md5 + 6 个既有页面 md5 全部与 20:11 基线逐行相同 ⇒ 零写板·零落表·零改既有闸·零改既有页面·零挂链.'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: hw-lead
+  key: iss379_k2_red_root_cause
+  value: 闸 K2 红已修 · 根因 = HW/check_juart_land_fit.py 的 HELPER_SRC 里 pad 角度被 round(radians(deg),6) 取整 (90°
+    ⇒ 1.570796, 差 -3.268e-7 rad) ⇒ 有向矩形转歪 ⇒ 铜-铜距离偏 +1.25e-7 mm ⇒ rot 90 格 (7.4000,75.8000) 余量由 3.1266499666
+    被顶成 3.1266500913 ⇒ round4 由 3.1266 翻成 3.1267; 第三路独立复算 (自写 s-表达式解析 + 自写凸多边形间距, 不 import 闸也不 import
+    扫描脚本) 判定真值 = 3.1266499666 ⇒ 证据侧对/闸侧错 ⇒ 已在产生点 (原第 301 行) 删掉该取整, 容差 1e-6 未放宽, 证据 JSON 一个数都没手工改
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: hw-lead
+  key: iss379_query_radius_finding
+  value: '另一条发现 (与 K2 无关, 本单未改): 扫描脚本与闸都用查询半径 3.0mm (以 pad 中心为圆心) 的空间索引筛障碍, 会漏掉中心距>3.0 但边距更近的障碍 (例 TP_I2CB_SDA.1
+    @ (12.4700,75.4000) 对 rot90 格 pad2 @ (8.6700,75.8000), 中心距 3.81); 推算: 漏检不可能藏住任何违例 (违例者包围盒必与 pad 铜箔相差<0.2
+    ⇒ 必在覆盖内) ⇒ 只让余量绝对值偏乐观, 可行域判定不受影响; 改它要重跑全网并同步 §2/§3/§4 全部数字, 越本单边界 ⇒ 建议单独一单处理'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: mech-lead
   key: pcb_outline_confirm_2_cavity
   value: '镜脚内腔需求(下限): 前后厚>=7.3mm / 根部净高>=38mm / 内腔长>=110mm (前提: 充电板挪出镜脚, 长度需求 105.5/110/108mm); 分配: 电池+主PCB+充电板
@@ -38630,6 +39820,15 @@ lint:
   value: '★已在 MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md 的 §1-3 段落末尾 (原 L110 之后 / 原 L112 之前) 以【追加式】新增 §1-3.1
     订正标记: 声明该建议默认值作为这一趟画哪块板的答案已被 ISS-341 机器判决推翻并作废, 仅保留作历史留档; 同时写明分层口径 (甲/乙) 与权威页指针; 老字一字未删, 未改任何数字与判据方向,
     未替老板拍板'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: mech-lead
+  key: iss374_mech_juart_recheck_20261124_0400
+  value: 'ISS-374 重派复核 (2026-11-24 04:0x) 结论: 方向不变, 仍为【不过阈】⇒ 不触发「停下报告」条款. 本机独立复算与 cont1 brief 给的七个数逐条零差:
+    现状铜箔 X 宽 0.7750 / 官方 1x2 THT 铜箔 X 宽 2.2700 / 座体必须清空区 X 宽 2.5400 / THT 档每边余量 0.1350 (< CRIT 0.60, 差
+    0.4650) / 现状每边余量 0.8825 / Δ -0.7475 / J_DEBUG THT 档每边余量 2.6950 ⇒ 两件方向相反 (一红一绿). 另订正一处口径 (非数错): §2
+    那一列「fab 外框」在 S1/S2 原写 5.4405 ⇒ 那是 F.Fab 层含 Reference 文字的全框 ⇒ 已改为【座体本体外框】口径 (S1 2.6400x2.2000 / S2
+    2.6400x5.1000); 结论数一字未动; 闸 J0~J8 复跑仍 9/9 绿, --selftest 仍 12/12 ALL TESTS PASS; 板 md5 611b869e13518c3c023fb178f91a0075
+    三项未变.'
   hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: main
   key: e01_som_balltable_selfcheck_202612
@@ -39330,6 +40529,12 @@ lint:
     前后逐字节同值 · 【反证成立】只改落点① 或只改落点② ⇒ ISS-362 闸 H4 红 + ISS-363 闸 F4 红 (三变体实跑 rc=0) · 【回滚】--apply --rollback
     ⇒ 两份页面逐字节回到落地前原文 · 回滚后 10 道 SW 闸绿 10 红 0 · 【本单不代拍】新闸挂不挂 state/gate_check.py 的 EXTRA_GATES = main 的机制地界
     (本单零挂链) · 【板与真源零改动】板 md5 611b869e… mtime 2026-11-06 07:07:17.362193413'
+  hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
+- agent: sw-lead
+  key: iss370_rowadd_variant_pass_count
+  value: ★实测订正】腿 B 只补行变体 (tmp/iss370_sbx/netlist_v1_rowadd_only.csv) 的通过数 = 83/85 (85 - 2 红) · 派活书 §0②
+    写的 73/85 是笔误 · 红数 2 一致 ⇒ 语义红/落表义务红的分类结论不受影响 · 本单两份交付物已全部改成 83/85 · 证据 logs/iss370/25_CONT1_timing_rowadd_only.txt
+    (CONT1) + 44_CONT2_timing_rowadd_only.txt (CONT2) 两次一致
   hint: 这个 answers.key 没有任何 needs_from 引用它 → 需求不会闭合, 多半是 key 写错了
 - agent: hw-lead
   key: bat_chg_rate_cap
@@ -40727,6 +41932,34 @@ lint:
   value: md5 611b869e13518c3c023fb178f91a0075 / mtime 2026-11-06 07:07:17.362193413 / size 4940213 (开工前+交卷后各打一次,
     逐字相同)
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss376_jdebug_current_land_conflict
+  value: 'J_DEBUG 现位 (origin 144.3000,58.0000 orient 0) 装官方 1x4 P1.27 THT land: rot90 pad1 孔净距 0.1271
+    (<0.25), pad3 孔净距 -0.3542 (clamp 0.0000) ⇒ 现位放不下'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss376_jdebug_land_fit_region
+  value: '落位可行域 (网格 0.1mm, X 134.0..159.5 Y 42.0..78.0, 92416 候选/朝向): rot0 23285 格 X 134.0..157.9 Y 46.0..78.0;
+    rot90 12787 格 X 134.0..154.5 Y 46.0..78.0; rot270 12526 格 X 134.0..158.3 Y 46.0..78.0'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss376_jdebug_optimal_landing
+  value: 最小位移落点 rot90 (150.0000, 57.9000), 位移 5.7009mm, 余量 2.3254; <=5.0mm 半径内三个朝向 0 格可行; 该落点 n_via_viol=0
+    n_cu_viol=0 ⇒ 一个过孔都不用挪
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss379_land_fit_gate_green
+  value: 'ISS-379 cont1: 闸 HW/check_juart_land_fit.py rc=0 (K0~K8 九条全绿, K2 复算 145307 格 + 边界环 3010 格) +
+    --selftest rc=0 (19/19 末行 ALL TESTS PASS, 含新增 C18/C19 把权威证据争议格 margin 改 ±0.0002 ⇒ K2 必须红) + state/merge.py
+    rc=0 + state/gate_check.py rc=0 (Q1 18/18, hw-lead 6/6 缺无, Q7 钉板闸 10/10) + 板 md5 611b869e13518c3c023fb178f91a0075
+    / mtime 2026-11-06 07:07:17.362193413 / size 4940213 三项未变'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: hw-lead
+  key: iss379_evidence_single_authority
+  value: '证据归一: 权威唯一 = logs/iss379/scan_land_fit.json (8,450,311 B @04:47, mode A, elapsed_s 449.1, 盘上脚本
+    tmp/iss379/tools/scan_land_fit.py 823 行 @04:09 重跑); 三份旧件改名归档 logs/iss379/archive/ 并标 nonauth; 新旧件
+    feas_cells/components/best/min_displacement/row_table 逐项相同 ⇒ 落位结论未变 ⇒ 页面 FEAS 块除 evidence_json 指向外无前后差'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: mech-lead
   key: mech_reltest_cases
   value: 12类(8必选+盐雾/温循/插拔FPC/振动)
@@ -41456,6 +42689,24 @@ lint:
   key: iss371_mech_jdebug_open_x_y_unchanged
   value: 'J_DEBUG 换官方 THT land 后: 调试口开口 X (137.850..148.050) 一字不动 + 开口 Y 三档 (4.60/4.60/5.80, 中心 56.6000)
     一字不动; 要改的只有必须清空区 X 宽 (4.0850 ⇒ 4.8100) 与必须清空区 Y 在 h=0.90 档每边 +0.0500'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: iss377_connector_clearance_caliber_formula
+  value: M = max(H_housing, C_copper) per axis; margin_open = (O_opening - M)/2; margin_cover = (H_housing
+    - C_copper)/2; worst = margin - TOL[fdm_part]; pass iff worst >= CRIT
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: iss377_overflow_J_DEBUG_tht_per_edge
+  value: 1.5175 (真相页 H=1.7750 口径) / 0.3625 (现页四处理想口径)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: iss377_connectors_total_vs_modeled
+  value: 9 颗逐颗列出 / 2 颗有净距模型 / 7 颗口径来源 unknown (未建模, 挂 OI-6)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: mech-lead
+  key: iss377_housing_vendor_parts
+  value: J_SOM_P1..P4 = Hirose DF40C-100DS-0.4V(51); J_USB_C = GCT USB4105-16P; J_DEBUG / J_UART = 0数据
+    (ISS-267 F-8)
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: main
   key: battery_location
@@ -42541,29 +43792,56 @@ lint:
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
   key: iss372_sw_board_md5_ref_surface
-  value: SW 域板 md5 引用面 = 17 个活文件 / 47 命中行 / 57 命中处; 三类归属 = 判据锚 9 行 / 规格页引用 17 行 / 历史留证 21 行; 板 md5 基线
-    = 611b869e13518c3c023fb178f91a0075 (mtime 2026-11-06 07:07:17.362193413 / size 4940213) ⇒ 判据锚 9 行一个字都不许动
-    / 规格页引用 17 行随板改那一趟换基线 / 历史留证 21 行永远不许动
+  value: SW 域板 md5 引用面 = 20 个活文件 / 53 命中行 / 63 命中处 (★cont3 更新·上一趟 17/47/57★); 三类归属 = 判据锚 11 行 / 规格页引用
+    17 行 / 历史留证 25 行; 板 md5 基线 = 611b869e13518c3c023fb178f91a0075 (mtime 2026-11-06 07:07:17.362193413
+    / size 4940213) ⇒ 判据锚 11 行里 4 行要动 (F5/G8/D7/W7 四道无通道闸的补丁) / 规格页引用 17 行随板改那一趟换基线 / 历史留证 25 行永远不许动
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
   key: iss372_board_reboard_fake_red_gates
-  value: 「板那一趟」改板当天会假红的闸 = SW 域 2 道 (SW/tools/check_fp_truth_read.py 的 F5 硬钉 L87 / SW/tools/check_onepass_legb_sw_impact.py
-    的 G8 硬钉 L70) + 跨域 1 道 (HW/check_iss354_manufacturability.py 的 A-5a/A-5b 硬钉 L40/L41) = 3 道 (这三道没有合法改板通道);
+  value: 「板那一趟」改板当天会假红的闸 = SW 域 4 道 (SW/tools/check_fp_truth_read.py 的 F5 ISS-363 / SW/tools/check_onepass_legb_sw_impact.py
+    的 G8 ISS-370 / ★SW/tools/check_debug_pin_order_contract.py 的 D7 ISS-375★ / ★SW/tools/check_debug_header_fw_impact.py
+    的 W7 ISS-378★) + 跨域 1 道 (HW/check_iss354_manufacturability.py 的 A-5 ISS-354) = 5 道 (★这 5 道没有合法改板通道★);
     已有合法改板通道的 2 道 = check_demo_panel_spec.py 的 R6 + check_onepass_sw_sync.py 的 W6 ⇒ 通道存在之后 板改第二次 当场红 (纯
-    md5 硬保护支路没被放松); ★那 3 道闸的红色原文里没有一个字说 这是合法改板 ⇒ 现场会误读成 板改坏了 ⇒ 板 md5 变第二次 ⇒ 整趟白跑★
+    md5 硬保护支路没被放松); ★★那 5 道闸的红色原文里没有一个字说 这是合法改板 ⇒ 现场会误读成 板改坏了 ⇒ 板 md5 变第二次 ⇒ 整趟白跑★
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
   key: iss372_pinned_gates_manifest_stale
-  value: state/board_md5_pinned_gates.json = 2026-11-17 20:49 生成的 9 条 (SW 只 1 条) ⇒ 今天新造的 2 道 SW 闸 (check_fp_truth_read.py
-    17:27 / check_onepass_legb_sw_impact.py 19:50) + 跨域 1 道 不在表里; 且收集口径只收 check_*.py ⇒ state/land_v_values.py
-    L96 (落表器自钉板 md5) 收不进去; 没有任何闸在守它的新鲜 (state/gate_check.py 零命中) ⇒ 刷新后应有的内容 = 现有 9 条 + 新增 3 条 + 口径补 1
-    条
+  value: state/board_md5_pinned_gates.json = 2026-11-17 20:49 生成的 9 条 (SW 只 1 条) ⇒ 签收后新造的 2 道 SW 闸 (★ISS-375
+    的 D7 02:05 / ISS-378 的 W7 02:45★) + 之前的 2 道 (ISS-363 的 F5 / ISS-370 的 G8) + 跨域 1 道 (ISS-354 的 A-5)
+    不在表里; 且收集口径只收 .py 里含 32 位字面量的闸 ⇒ ★★连 ISS-378 的 W7 那种「页面内嵌基线类」都收不进去★★ ⇒ 刷新后应有的内容 = 现有 9 条 + 新增 5 条
+    + 口径补 2 条 (★清账页 §5.1★)
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 - agent: sw-lead
   key: iss372_kicad_sch_md5_cannot_be_anchor
   value: '.kicad_sch 的 md5 不能当锚点 (结论不变) ★但机理订正: 真正的随机源 = state/gen_kicad_sch.py 本身 (L119 uuid.uuid4())
     ⇒ 跑一次它, 11 个 .kicad_sch 的 raw md5 11/11 全变, 归一化 (UUID + 时间戳) 后 0/11 变 (同图); check_sch_erc.py / check_sch_pinfull.py
     不改它 ⇒ need 原文那个机理不成立 ⇒ SW 域 .kicad_sch 的 md5 命中 = 0 处 ⇒ 该风险至今没伤到任何人 ⇒ 处置 = 结论订正 + 降级为一条已知注意事项 (不机器化)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss375_land_pin1_marker_shape
+  value: pad1=thru_hole rect; others=thru_hole circle
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss378_rescue_chains
+  value: USB(S2); UART(observation-only); JTAG(S3-absent)
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss378_soc_jtag_mux_names
+  value: JTAG_TCK_M0;JTAG_TMS_M0;JTAG_TCK_M1;JTAG_TMS_M1
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss370_cont2_independent_reverify
+  value: '【实测】第二个并发会话独立复跑 ISS-370: 五组对照 85/85 · 85/85 · 70/85(15红) · 71/85(14红) · 83/85(2红) ⇒ 与另一会话读数逐条一致
+    (含 15 条红项原文逐字一致); 新闸裸跑 9/9 rc=0 · --selftest 10/10 rc=0; merge/gate_check rc=0 · Q1 18/18; 四份真源 md5/mtime/size
+    = 受保护基线 (零写板 · 零落表); 只补行变体 = 83/85 (派活书 §0② 的 73/85 是笔误)'
+  hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
+- agent: sw-lead
+  key: iss372_cont3_live_guard_trip
+  value: '★★cont3 的招牌结论: 本单自守闸在【签收后 4 小时】就真的红过一次★★ ⇒ ISS-372 已于 2026-11-23 22:4x 由 main 独立复核签收 (verified);
+    而签收后 4 小时内 ISS-375 (02:05) / ISS-378 (02:45) 新落两道闸, 都硬钉板 md5 且都没有合法改板通道 ⇒ 自守闸当场红 (H1 5 处漏登记 + H4 2
+    道新闸不在册) ⇒ ★★「下一道新闸再硬钉板 md5 时当场被抓住」不是设计, 是已经发生过的事实★★; 并且 H4 因此暴露了自己的真实盲区: ★★只扫 .py 的 32 位字面量 ⇒ 漏掉「把基线写进页面
+    JSON 块、闸自己算 md5 再比」那一类 (ISS-378 的 W7 就是这一类) ⇒ 本趟已把 H4 扩成两个检测类 (类A 字面量 + 类B 页面内嵌基线), 并把 --selftest
+    从 8 条扩到 10 条 (新增 2 条类B 反向用例)★★'
   hint: value 必须是短规范值 (用于机器比较), 说明请写到 note
 risks:
 - id: R-dsi-unknown
@@ -42652,15 +43930,15 @@ risks:
   owner: mech-lead
 summary:
   health: red
-  artifacts: 799
+  artifacts: 820
   blockers: 43
   high_blockers: 33
-  open_needs: 326
+  open_needs: 349
   waiting_external_needs: 46
   overdue_needs: 0
   target_missing_needs: 0
   conflicts: 0
   needs_normalization: 0
-  lint: 710
+  lint: 729
   agents_reporting: 4
   incomplete_fragments: 0

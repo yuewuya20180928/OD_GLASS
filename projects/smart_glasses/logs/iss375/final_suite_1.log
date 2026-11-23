@@ -1,0 +1,35 @@
+### 板指纹 (全部命令跑之前) ###
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800 4940213
+
+### 1) 新闸 ###
+=== ISS-375 · check_debug_pin_order_contract ===
+  [PASS] D0   官方 land pad1 形状 (盘上实读, 不写死) 1x04: pad1=thru_hole rect / 其余=circle ⇒ 有 pin1 标记=True; 1x02: pad1=thru_hole rect / 其余=circle ⇒ 有 pin1 标记=True
+  [PASS] D1   现状板面 pad1 位置/极性标记 (实读板, 不写死) J_DEBUG: pad1@X=142.2 (X_MIN) 标记=False 形状=RECT 属性=SMD; J_UART: pad1@X=18.64 (X_MIN) 标记=False 形状=RECT 属性=SMD
+  [PASS] D2   两候选 pad→X 序 (KiCad 变换算, 须互为逆序) J_DEBUG rot90 序=['1', '2', '3', '4'] (pad1@X_MIN) / rot270 序=['4', '3', '2', '1'] (pad1@X_MAX); J_UART rot90 序=['1', '2'] (pad1@X_MIN) / rot270 序=['2', '1'] (pad1@X_MAX)
+  [PASS] D3   页同时给出两候选+裁决+落点写死值 
+  [PASS] D4   页的 pin1 朝向与 D2 实算一致 
+  [PASS] D5   网表 JTAG 四线 SoM 侧端点 (现读, 不写死) JTAG_TCK_SOC→SoC_NC; JTAG_TMS_SOC→SoC_NC; JTAG_TDI_SOC→SoC_NC; JTAG_TDO_SOC→SoC_NC
+  [PASS] D6   页 §2 与 SOM_PIN_MAPPING.md 结论不冲突 
+  [PASS] D7   板指纹三项未动 (零写板自证) md5=611b869e13518c3c023fb178f91a0075 (期望 611b869e13518c3c023fb178f91a0075) / mtime=2026-11-06 07:07:17.362193413 (期望 2026-11-06 07:07:17.362193413) / size=4940213 (期望 4940213)
+  [PASS] D8   证据等级白名单+零挂起措辞+判据/事实分开+零挂链 零挂链: state/gate_check.py 命中 0
+=== 9/9 PASS ===
+ALL CHECKS PASS
+[rc=0]
+
+### 2) 新闸 --selftest ###
+=== ISS-375 · check_debug_pin_order_contract --selftest ===
+  [PASS] M1       把页里的 rot 90 改成 rot 270                     期望红=D2,D3,D4     实红=D2,D3,D4     
+  [PASS] M2       把 D2 的算式改成手算常数 (变异本闸源码)                    期望红=D2,D4        实红=D2,D4         · 变异体 rc=1
+  [PASS] M3       把网表里的 SoC_NC 改成别的 (沙盒网表副本)                 期望红=D5           实红=D5            · 沙盒网表副本改了 4 行
+  [PASS] T-D0     页里把官方 land 的 pad1 形状写错                     期望红=D0           实红=D0           
+  [PASS] T-D1     页里把现状 pad1 位置写反                            期望红=D1           实红=D1           
+  [PASS] T-D3     页里删掉一个候选                                   期望红=D2,D3,D4     实红=D2,D3,D4     
+  [PASS] T-D6     页里写『已在 SoM 侧落地』                            期望红=D6           实红=D6           
+  [PASS] T-D8a    证据等级用白名单外的等级                               期望红=D8           实红=D8           
+  [PASS] T-D8b    出现挂起措辞                                     期望红=D8           实红=D8           
+  [PASS] T-D7     板指纹被动过 (临时副本)                              期望红=D7           实红=D7          
+  [PASS] T-D8c    新闸挂进 state/gate_check.py (临时副本)            期望红=D8           实红=D8          
+=== selftest 11/11 PASS (共 11 条反向用例, 其中镜像类 3 条) ===
+ALL TESTS PASS
+[rc=0]
