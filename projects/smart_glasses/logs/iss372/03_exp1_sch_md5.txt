@@ -1,0 +1,83 @@
+==============================================================================
+ISS-372 沙盒实验 1 · .kicad_sch md5 稳定性 (★真件零写·只在副本上跑★)
+==============================================================================
+沙盒树 = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree
+真件 .kicad_sch 文件数 = 11
+    REAL HW/PCB/demo_mainboard.kicad_sch          e433793b4a3ec321cc69f466d7e15de7
+    REAL HW/PCB/demo_mainboard_p1.kicad_sch       c3feaf0d92534534b89fd1e00ac9aac5
+    REAL HW/PCB/demo_mainboard_p10.kicad_sch      4ef53b3329d5f7d2bdcf00c2402b15e0
+    REAL HW/PCB/demo_mainboard_p2.kicad_sch       35ce505e581486180c5267aaa25f857c
+    REAL HW/PCB/demo_mainboard_p3.kicad_sch       2eb9b5f2fa63c506a2571bea4be918f3
+    REAL HW/PCB/demo_mainboard_p4.kicad_sch       d811f6831bfc339432c1726fbe25862d
+    REAL HW/PCB/demo_mainboard_p5.kicad_sch       8486d28d7098ff1bf1263735fb180ebd
+    REAL HW/PCB/demo_mainboard_p6.kicad_sch       dc34199f06fe61dda3d823d782b95b9d
+    REAL HW/PCB/demo_mainboard_p7.kicad_sch       5938e052d5c415c5d3d4237facc3bb01
+    REAL HW/PCB/demo_mainboard_p8.kicad_sch       09448515014ee1ba53f1388a07605552
+    REAL HW/PCB/demo_mainboard_p9.kicad_sch       68fff37f14f4da09b92121d5b7247745
+---- S0 · 沙盒初始 (★应与真件逐字节同★) ----
+  HW/PCB/demo_mainboard.kicad_sch          raw=e433793b4a3ec321cc69f466d7e15de7  norm=babd640613e5ca12c7c9e238f3843f75
+  HW/PCB/demo_mainboard_p1.kicad_sch       raw=c3feaf0d92534534b89fd1e00ac9aac5  norm=75067ab7604791ebe0599062aca04f99
+  HW/PCB/demo_mainboard_p10.kicad_sch      raw=4ef53b3329d5f7d2bdcf00c2402b15e0  norm=34576ee57bb0a76ebcb988e95eca9752
+  HW/PCB/demo_mainboard_p2.kicad_sch       raw=35ce505e581486180c5267aaa25f857c  norm=637c2550f808498426a44cb228e50efd
+  HW/PCB/demo_mainboard_p3.kicad_sch       raw=2eb9b5f2fa63c506a2571bea4be918f3  norm=6668d5f9f6f5b6efba879663dd5c80b3
+  HW/PCB/demo_mainboard_p4.kicad_sch       raw=d811f6831bfc339432c1726fbe25862d  norm=72a68bf4ceedfbb18ebfe72631d5b470
+  HW/PCB/demo_mainboard_p5.kicad_sch       raw=8486d28d7098ff1bf1263735fb180ebd  norm=967d061c33c17d2acde82bd798930a6a
+  HW/PCB/demo_mainboard_p6.kicad_sch       raw=dc34199f06fe61dda3d823d782b95b9d  norm=2aeb46f2d0cebfc74fdc81b696207187
+  HW/PCB/demo_mainboard_p7.kicad_sch       raw=5938e052d5c415c5d3d4237facc3bb01  norm=75e04dca796580787ed4be709102b7c5
+  HW/PCB/demo_mainboard_p8.kicad_sch       raw=09448515014ee1ba53f1388a07605552  norm=90e67253e83c075b768e3497152089a2
+  HW/PCB/demo_mainboard_p9.kicad_sch       raw=68fff37f14f4da09b92121d5b7247745  norm=118419e2b599cecc5c292c0011b86d88
+S0 与真件逐字节相同 = True
+### ① state/check_sch_erc.py (★need 前提①·前一半★)
+    $ (cd tmp/iss372_sbx/tree && ['/usr/bin/python3', 'state/check_sch_erc.py'])
+    rc=0
+    | ═══ 原理图 ERC 闸 (★sch_erc · HW/PCB/demo_mainboard.kicad_sch★)
+    |   ERC 违规数 = 0 (★报告自称 0★) · 分类 {}
+    |   判定: ✅ 过 (ERC=0)
+★① md5 变化的文件 = 无 ⇒ ★逐字节未变★
+### ② state/check_sch_pinfull.py (★need 前提①·后一半★)
+    $ (cd tmp/iss372_sbx/tree && ['/usr/bin/python3', 'state/check_sch_pinfull.py'])
+    rc=0
+    | ═══ 原理图脚数完整性闸 (★sch_pinfull · HW/PCB/demo_mainboard.kicad_sch★)
+    |   [口径] 表里脚数 = 含 DNP 行 (★判据口径·默认★)
+    |   总数: 图上 584 脚 / 表里 584 脚 · 不一致器件数 K=0 (universe=218)
+    |   [口径还原·ISS-205] 图上位号带数字后缀 ⇒ 186 个位号 (457 个脚) 已按【精确映射】还原成表侧 ref
+    |   (图上: 218 个器件 · 153 个网 · 584 个 node | 表里: 584 行 · 218 个 ref · 其中 DNP 行 107)
+    |   逐个点名 (ref: 图= a 表= b):
+    |   [对照口径] 去掉 DNP 行 (★main 11:5x 口径★): 图上 584 脚 / 表里 477 脚 · 不一致 46
+    |   判定: ✅ 过 (逐器件脚数全相等)
+★② md5 变化的文件 = 无 ⇒ ★逐字节未变★
+### ③ state/gen_kicad_sch.py (★直接跑·L119 = uuid.uuid4()★)
+    $ (cd tmp/iss372_sbx/tree && ['/usr/bin/python3', 'state/gen_kicad_sch.py'])
+    rc=0
+    | _mainboard_p1.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p2.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p3.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p4.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p5.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p6.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p7.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p8.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p9.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p10.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_sch.net
+★③ raw md5 变化的文件数 = 11 / 11 ⇒ ★变了★
+★③ 归一化 (UUID+日期) 后变化的文件数 = 0 / 11 ⇒ ★图是同一张★
+### ④ state/gen_kicad_sch.py 再跑一次 (★非确定性检验★)
+    $ (cd tmp/iss372_sbx/tree && ['/usr/bin/python3', 'state/gen_kicad_sch.py'])
+    rc=0
+    | _mainboard_p1.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p2.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p3.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p4.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p5.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p6.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p7.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p8.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p9.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_p10.kicad_sch
+    |       /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree/HW/PCB/demo_mainboard_sch.net
+★④ 第二次 vs 第一次: raw 变化 = 11 / 11 · 归一化后变化 = 0 / 11
+★⑤ 真件 .kicad_sch 漂移文件 = 无 ⇒ ★真件零写✓
+==============================================================================
+读数汇总: ①rc=0 变化=0 | ②rc=0 变化=0 | ③rc=0 raw变化=11 归一化变化=0 | ④raw变化=11 归一化变化=0 | 真件漂移=0
+==============================================================================

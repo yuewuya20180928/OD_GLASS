@@ -3,10 +3,11 @@ role: 硬件总工
 updated_at: '2026-11-17'
 updated_by: hw-lead
 status:
-  phase: iss364-c4-68-reachability-90-land-swap-workpacket
+  phase: done
   progress_pct: 100
   health: green
-  summary: 'ISS-364: C4 目标 68 沙盒证明可达 (腿A ΔC4=0 / 腿B ΔC4=-90) + 90 件逐件换封装作业包 + 机器闸 L0~L8 + selftest 8/8'
+  summary: 'ISS-373 交卷: 一页集合真源 + 一条 L0~L8 口径闸 + 沙盒 S0/S1/S2a/S2b 四块板副本实测; 零写板/零落表/零改既有闸/零改既有页面/零挂链/零外发;
+    等 main 裁 J_DEBUG 换不换 land'
   updated_at: '2026-11-17'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -2018,6 +2019,49 @@ artifacts:
   updated_at: '2026-10-25'
   summary: ★ISS-366 留证目录 (★实测 14 件 ≥8 达标★)★ 沙盒四组读数 (30) · 新闸 selftest + 四组表现 (40/41/42) · 既有闸 rc (20/21/22)
     · ★CONT2 生成器级复跑三件证明 (60/61/62/63) · md5 前后 (50/70/71) · 必跑命令 rc (80) · 续跑标记 (99_CONT1/CONT2)
+- path: HW/PCB/FP_LIBID_TRUTH_WORKPACKET.md
+  kind: workpacket
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: ★ISS-369 板面 186 封装库封装名写盘作业包 (新建·纯新增·不覆写任何既有页)★ §0 18 行口径与读数 (每个数字写清哪个脚本产出·怎么复跑) + §1 板面现状 (库名
+    0/186 非空·自绘占位 183 / 已落 land 3·§1.3 逐个实测 186 行) + §2 写盘机制 (本机 KiCad 10.0.8 实测 E1~E9·只认 (footprint Lib:Name)
+    一行) + §3 目标清单 (§3.1 90 件 12 字段 + §3.2 96 件逐件写/不写 + §3.3 件数对账) + §4 写库名不改语义 (沙盒五轮 C4 恒 158) + §5 未决项
+    5 条 + §6 复跑命令与边界 + §7 回滚说明
+- path: HW/check_fp_libid_truth.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: ★ISS-369 新建机器闸 (零挂链·不在 state/gate_check.py 里)★ 计划模式 L0~L8 (L1 件数脚本实算 / L4 逐个 test -f 验 .kicad_mod
+    在盘 + md5 / L5 几何与容差 pos 0.05 size 0.05 cen 0.10 fab 0.35 mm / L6 证据五级白名单 / L7 零挂起措辞 / L8 沙盒五轮 C4 恒
+    158 ⇒ 写库名对 C4 贡献 0) + 板面模式 B0~B5 (逐封装 lib_id 非空 / 库件在盘 / 焊盘数一致 / 几何容差 / 不该写的 92 件仍为空) + --selftest
+    11/11 全过
+- path: HANDOFF/2026-11-23_hw-lead_ISS369_板面库封装名写盘作业包.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: ★ISS-369 交卷页 (B1~B6 六块齐全 + 验收线 20 条逐条判定 + 落盘清单 + 沙盒留证路径 + 回滚说明)★
+- path: logs/iss369/
+  kind: evidence
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: ★ISS-369 留证目录★ 基线 md5 (00_) + 沙盒五轮 C1~C4 读数 (10_/11_/12_) + 94 个目标库件逐个 test -f + md5 复核 (20_)
+    + 全库 15468 件逐焊盘几何等价穷举含 NPTH (21_) + 作业包生成器实算快照 (22_) + 闸复跑输出 (4x_) + 全套实算脚本 (scripts/)
+- path: HW/PCB/BOARD_ONEPASS_S10_SWAP_SET_TRUTH.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: 'ISS-373「板那一趟」S10 换件集合唯一真源: §0 两套口径(90/91) + §1 四处口径逐条对表(判定 ③ 的 91 是敏感度算例而非集合定义) + §2 J_DEBUG
+    四条腿与两条路代价(沙盒 S0/S1/S2a/S2b 实测) + §3 写库名联动(94/92 与 95/91) + §4 未决项与三块追加式订正块 + §5 复跑命令 + §6 边界自证'
+- path: HW/check_onepass_s10_swap_set_truth.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: ISS-373 口径机器闸 L0~L8 + --selftest 20 条反向用例; L0/L1 集合与差集全部脚本自算(未写死 90/91/J_DEBUG); L8 零挂链自证
+- path: HANDOFF/2026-11-23_hw-lead_ISS373_S10换件集合唯一真源与口径闸.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: 'ISS-373 交卷页 (B1~B6 六段齐全): 第 1 条未决项 = 那一趟 J_DEBUG 换不换 land (main 裁决)'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -4090,6 +4134,38 @@ needs_from:
     `HW/check_netlist_selfconsistency.py`★) ⇒ 请 main 确认是路径笔误 还是 真有个 `state/` 下副本该建? ★ (★只影响交卷时的命令引用, 不影响技术结论
     —— 本单已按真身路径跑, rc=0★) ⇒ 作业包 §6-U-1.'
   since: '2026-11-23'
+- key: iss369_taskbook_96_bucket_arithmetics
+  to: main
+  item: '★ISS-369 任务书 §3 括注「其余 96 件 (TP 42 / DNP 26 / 靶内 22 / 缺口 1)」四个数之和 = 91 ≠ 96★ ⇒ 要 main 确认按【笔误】归档
+    (本单已按脚本实算给 96 的分桶并在页 §3.3 逐条对账), 还是那处另有一套含义需要本单补. ★本单不另立口径: 90 = 靶内 77 + 缺口 13 这条主线与 ISS-361 / ISS-364
+    完全一致★.'
+  since: '2026-11-23'
+- key: iss369_jsom_df40_variant_choice
+  to: main
+  item: '★ISS-369 未决项 W-4 要 main 拍板: J_SOM_P1~P4 这 4 件写哪个 DF40 变体 (a) Hirose_DF40C-100DS-0.4V_2x50_P0.4mm
+    (b) Hirose_DF40HC(3.0)-100DS-0.4V_2x50_P0.4mm★ ⇒ 两个变体的焊盘几何逐件等价 (实测 Δpad = 0.000 mm, 旋转 180 度, 容差 0.05/0.05/0.10
+    mm) ⇒ 选哪个都不改铜箔 ⇒ 这是【壳体高度 3.0 mm 的结构问题】不是电气问题 ⇒ 本单写 (a) 并把 (b) 登记为等效候选, 不代拍. ★顺带请 main 确认这 4 件要不要进板那一趟
+    (它们不在 ISS-364 的 90 件换 land 名单里, 但本单认为应该写库名).'
+  since: '2026-11-23'
+- key: iss373_jdebug_swap_or_not
+  to: main
+  item: '★ISS-373 正题: 那一趟 J_DEBUG 换不换 land (90 件口径 vs 91 件口径)? 两条路代价已算全: 路A(90) = 排针装不上 + B33 判红 + MECH
+    侧落位块数要按 2206/2243/2256/2174 重写(≠既有页的 2200); 路B(91) = B33 判绿 + MECH 2200 成立, 但 J_DEBUG 落位放不进现位(孔净距
+    0.1271/0.0000 mm ⇒ 官方 land 要挪位) + 2 个过孔要挪 + 4 条 JTAG 走线端点脱网 + 调试口开口与结构净宽(4.810 vs 4.0850, 差 0.725mm)要重算
+    + 库名名单 94/92 → 95/91。本单不代拍, 裁决权在 main。'
+  since: '2026-11-23'
+- key: iss373_s10_led_spec_sync_title_vs_row
+  to: main
+  item: 'ISS-373: MECH/BOARD_ONEPASS_S10_LED_SPEC_SYNC.md §1.6 标题写「若那一趟把 90 件全换」, 同节表行写「AFTER (全部 91 件靶子都换)
+    ⇒ 2200」; 本机复算确认该行的 2200/2237/2250/2167 是 91 件口径 (root cause: MECH/check_onepass_s10_led_spec_sync.py:301
+    allrefs=sorted(tmap.keys()), tmap=靶子78∪缺口13=91 ⇒ :311 swap_all90_n 实算 91, 变量名错)。追加式订正块已写好 (HW/PCB/BOARD_ONEPASS_S10_SWAP_SET_TRUTH.md
+    §4.2 A/B/C), 请 main 裁要不要往既有页面落; 本单既有页面一字未动。'
+  since: '2026-11-23'
+- key: iss373_new_gate_hook_to_main
+  to: main
+  item: 'ISS-373: 新闸 HW/check_onepass_s10_swap_set_truth.py (L0~L8 + 20 条反向用例) 已建, 裸跑 rc=0 全绿, 但按派活书纪律【零挂链】未挂进
+    state/gate_check.py ⇒ 请 main 决定要不要挂链。'
+  since: '2026-11-23'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -4827,6 +4903,24 @@ answers:
     ⇒ C1/C3 全绿 ⇒ ★**「板坏但闸全绿」= 最危险的组合**★. ★**⇒ 必须另立机器闸 (`HW/check_netlist_gnd_rows.py`, ★本单已建·零挂链★) 才能守住★**.
     ★**挂不挂链由 main 在签收时定** (★挂链是 main 的机制地界★).'
   ref: HW/PCB/BOARD_ONEPASS_NETLIST_ROW_FIX.md#§0.4 §4 §5-D2 · HW/check_netlist_gnd_rows.py
+- key: iss369_libid_write_pack
+  to: main
+  value: '★ISS-369 交卷★ 板面 186 个封装库封装名 0/186 非空 ⇒ 本单交【写盘作业包 + 沙盒可达性证明 + 一条机器闸】三件. ★核心结论 (实测): ① 库名只存在于
+    (footprint Lib:Name) 那一行, 本机 KiCad 10.0.8 实测 (footprint NAME (lib A B)) 与 (footprint NAME (lib_id
+    A:B)) 两种写法 LoadBoard 直接返回 None ⇒ 写了 = 板文件报废 ⇒ 只能写节点名一行; ② 全库 155 个 .pretty / 15468 个 .kicad_mod 逐焊盘几何等价穷举
+    ⇒ 只有 4/186 件 (J_SOM_P1~P4) 有几何等价件 ⇒ 其余 182 件写官方库名 = 假身份 ⇒ 不写; ③ 本单要写库名 94 件 (90 件换 land + 同时写 + 4
+    件只写身份) 不写 92 件; ④ 沙盒五轮 (S0 基线 / S1 换 land 不写名 / S2 换 land 加写名 / S3 只写名 / S4 反向对照) C4 全部 = 158 且 C1/C2/C3
+    逐字相同 ⇒ 写库名这一腿对 C4 的贡献 = 0 (别当预期换 land 会让 C4 降下来); ⑤ 板 md5 全程 611b869e13518c3c023fb178f91a0075 未动,
+    所有写盘动作只发生在 tmp/iss369/sbx/ 副本上.'
+  ref: HW/PCB/FP_LIBID_TRUTH_WORKPACKET.md §1 §2 §3 §4 · logs/iss369/10_sandbox_readings.json
+- key: iss369_libid_96_vs_90_reconcile
+  to: main
+  value: '★ISS-369 件数口径对账 (要 main 裁的一条)★ 主线口径不动: 90 = 靶内 77 + 缺口 13 (与 ISS-361 四桶 / ISS-364 台账完全一致), 96
+    = 186 - 90. ★但任务书 §3 括注写的 TP 42 / DNP 26 / 靶内 22 / 缺口 1 之和 = 91 ≠ 96★ ⇒ 本单已逐条查清: TP 42 与脚本实算逐件相等;
+    DNP 26 是【C4 四桶里的 DNP 26】, 而 96 桶里的 DNP 实算是 37 (= C4 的 26 + 不在 C4 的 11); 而 靶内 22 + 缺口 1 = 23 是【ISS-356
+    靶子 100 减 C4 158】的差 (充电板 22 件不在本板 + 在板的 J_DEBUG 1 件), 与本板 96 的分桶不是一回事. ⇒ 本单 96 的分桶一律按脚本实算给 (TP 42 /
+    DNP 37 / 靶内-非C4 1 / 缺口-非C4 12 / 其它 4), 并在页 §3.3 把两种口径逐条对上 ⇒ ★要 main 确认: 任务书那处括注按【笔误】归档, 还是按【另一套口径】另有含义★.'
+  ref: HW/PCB/FP_LIBID_TRUTH_WORKPACKET.md §3.3
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -7560,6 +7654,53 @@ interface_claims:
     板只改一次 ⇒ 代价大★). ★**本单零写板 ⇒ 沙盒板是 `PCB_SKIP_ROUTE=1` 的排版板 (无走线) ⇒ 铜面三项 (零铜 114 / 单边零铜 22) 是无走线底板的数 ⇒
     落表那趟必须实测确认没因这 4 个 land 引入新零铜网**★.
   ref: ''
+- key: iss369_libid_gate_hooks
+  value: not_hooked
+  note: '★ISS-369 新建闸 HW/check_fp_libid_truth.py 的挂链状态 = not_hooked★ ⇒ 不在 state/gate_check.py / state/daily_check.py
+    / 任何 EXTRA_GATES 里 ⇒ 零挂链 ⇒ 挂不挂由 main 在签收时定 (链机制是 main 的地界). ★建议挂链时机: 板那一趟 (换 land + 写库名) 做完之后 ⇒ 挂上后本闸成为板面库封装名的常驻守卫.
+    ★零挂链自证: grep -c check_fp_libid_truth state/gate_check.py = 0.'
+  ref: ''
+- key: iss369_libid_write_is_legb_independent
+  value: 'true'
+  note: '★写库名这一腿与【腿 B 具名脚】互相独立★ ⇒ 实测: 沙盒 S1/S2 (只差 lib_id 一行) 的 C1/C2/C3/C4 读数逐字相同, S0/S3/S4 同 ⇒ 写库名不会替腿
+    B 减掉任何 C4 ⇒ C4 从 158 到 68 仍然只能靠腿 B (网表节点具名) ⇒ 板那一趟必须【换 land + 写库名 + 腿 B 具名脚】三件同批做, 拆批 ⇒ 板 md5 多变一次.'
+  ref: HW/PCB/FP_LIBID_TRUTH_WORKPACKET.md §4
+- key: iss369_libid_kicad_write_syntax
+  value: lib_id_string_only
+  note: '★本机 KiCad 10.0.8 (pcbnew.GetBuildVersion() 实测) 写库封装名的唯一可用写法 = 改 (footprint Lib:Name) 那一行★ ⇒ (footprint
+    NAME (lib LIB NAME)) 与 (footprint NAME (lib_id LIB:NAME)) 两种写法实测 LoadBoard() 返回 None (整板读不回来) ⇒ 写了
+    = 板报废 ⇒ 严禁使用. ★另: 库名指向不存在的库时板文件仍能正常加载 (E8) ⇒ 这就是必须用机器闸逐个 test -f 验 .kicad_mod 的原因.'
+  ref: HW/PCB/FP_LIBID_TRUTH_WORKPACKET.md §2.2
+- key: iss373_s10_swap_set_90_algo
+  value: (ISS-356 靶子 ∩ C4) + 缺口 = 77 + 13 = 90 (不含 J_DEBUG)
+  note: ISS-373 本机实算; 复跑 python3 tmp/iss373_sbx/tools/probe_sets.py
+  ref: HW/PCB/BOARD_ONEPASS_S10_SWAP_SET_TRUTH.md §0
+- key: iss373_s10_swap_set_91_algo
+  value: (ISS-356 靶子全体) + 缺口 = 78 + 13 = 91 (含 J_DEBUG)
+  note: ISS-373 本机实算; 复跑 python3 tmp/iss373_sbx/tools/probe_sets.py
+  ref: HW/PCB/BOARD_ONEPASS_S10_SWAP_SET_TRUTH.md §0
+- key: iss373_s10_swap_set_diff
+  value: 恰好 1 件 = J_DEBUG (差集 = 91 − 90); 由脚本自算, 未写死
+  note: ISS-373; 闸 L1 机器校验
+  ref: HW/check_onepass_s10_swap_set_truth.py L1
+- key: iss373_s10_led_sensitivity_90
+  value: 90 件口径落位块数 = 2206 / 2243 / 2256 / 2174 (全项目首次算); 91 件口径 = 2200 / 2237 / 2250 / 2167
+  note: ISS-373 本机实算; 复跑 python3 tmp/iss373_sbx/tools/led_sensitivity_90_vs_91.py
+  ref: logs/iss373/07_led_sensitivity_90_vs_91.json
+- key: iss373_jdebug_land_after_swap
+  value: pitch 1.27 (封装须转 90°; 照抄 0° 时 B33 判据 IndexError rc=1) · 铜箔 X 宽 4.810 · fab 5.08×2.10 · 钻 0.65
+    · 落位孔净距 0.1271/0.0000 ⇒ 官方 land 放不进现位
+  note: ISS-373 沙盒 S2b 实测; 复跑 bash state/pcbnew_py.sh tmp/iss373_sbx/tools/sbx_measure.py
+  ref: logs/iss373/04_sbx_measurements.json
+- key: iss373_libid_write_count_by_path
+  value: 90 件口径 ⇒ 写库名 94 / 不写 92 (表 A/B = 90/96); 91 件口径 ⇒ 写 95 / 不写 91 (表 A/B = 91/95); C4 影响 = 0
+  note: ISS-373; 闸 L5 机器校验
+  ref: HW/PCB/BOARD_ONEPASS_S10_SWAP_SET_TRUTH.md §3
+- key: iss373_board_fingerprint
+  value: md5 611b869e13518c3c023fb178f91a0075 / mtime 2026-11-06 07:07:17.362193413 / size 4940213 (开工前+交卷后各打一次,
+    逐字相同)
+  note: ISS-373 零写板自证; 闸 L6 机器校验
+  ref: HW/PCB/BOARD_ONEPASS_S10_SWAP_SET_TRUTH.md §6
 open_questions:
 - id: HW-Q1
   to: main

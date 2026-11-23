@@ -1,0 +1,169 @@
+
+============================================================================================
+ISS-372 沙盒实验 2 · 「合法改板」预演 (★真件零写★)
+============================================================================================
+沙盒母本 = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372_sbx/tree
+工作副本 = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372/tree
+工作副本重建完毕 (★从母本重拷 ⇒ 每次跑都可复现★)
+板基线 md5 = 611b869e13518c3c023fb178f91a0075 · .kicad_pro 基线 = 3e504d2be83152e337949723e909be1b
+
+============================================================================================
+T0 · 基线 (★沙盒副本原封不动·5 道闸各自读数★)
+============================================================================================
+  [A] 权威闸 R6 (SW/tools/check_demo_panel_spec.py)           T0 rc=0
+  [B] SW 侧合法改板通道闸 (SW/tools/check_onepass_sw_sync.py)      T0 rc=0
+  [C] 读封装栏闸 F5 (SW/tools/check_fp_truth_read.py)           T0 rc=0
+        · to=sw-lead need 共 19 条 (★扫 4 个分片: hw-lead+main+mech-lead+sw-lead★) · 仍 open 4 条 · 其中引着 32 位 md5 的 0 条 · 引着的 md5 ≠ 当前链头 0 条 (红条件) · 引着的 md5 ∉ 落表链成员集 0 条 · 链头 BOM_v1.csv=5b9993992405,netlist_v1.csv=6aee
+  [D] 腿 B 影响面闸 G8 (SW/tools/check_onepass_legb_sw_impact.p T0 rc=0
+  [E] 可制造性收口闸 A-5 (HW/check_iss354_manufacturability.py)   T0 rc=0
+T0 汇总: A rc=0 · B rc=0 · C rc=0 · D rc=0 · E rc=0
+
+============================================================================================
+T1 · 朴素改板 (★只改板一个字节·不落表·不写 reboard★) ⇒ 各自红在哪
+============================================================================================
+沙盒新板 md5 = 801782db6fb26315b162a66fb4e6a479
+  [A] 权威闸 R6 (SW/tools/check_demo_panel_spec.py)           T1 rc=1
+        · ❌ ISS-212 demo 显示侧口径门禁: 1 项不通过
+        · - R6 硬保护: 受保护文件 md5 变了: HW/PCB/demo_mainboard.kicad_pcb (801782db6fb26315b162a66fb4e6a479 ≠ 611b869e13518c3c023fb178f91a0075)
+  [B] SW 侧合法改板通道闸 (SW/tools/check_onepass_sw_sync.py)      T1 rc=1
+        · FAIL  W5
+        · 8 个现状探针: 清单里的现状值 == 盘面实测: ❌
+        · ❌ SW01_PCB_MD5: 盘面实测 = '801782db6fb26315b162a66fb4e6a479', 但清单 current_state 里没有这个值 ⇒ 清单过期
+        · FAIL  W6
+  [C] 读封装栏闸 F5 (SW/tools/check_fp_truth_read.py)           T1 rc=1
+        · to=sw-lead need 共 19 条 (★扫 4 个分片: hw-lead+main+mech-lead+sw-lead★) · 仍 open 4 条 · 其中引着 32 位 md5 的 0 条 · 引着的 md5 ≠ 当前链头 0 条 (红条件) · 引着的 md5 ∉ 落表链成员集 0 条 · 链头 BOM_v1.csv=5b9993992405,netlist_v1.csv=6aee
+        · [F5] 零写板 + 零落表自证 (★板双证 + 三源台账可查★) ⇒ ❌ 红
+        · ❌ 板 md5=801782db6fb26315b162a66fb4e6a479 ≠ 基线 611b869e13518c3c023fb178f91a0075 ⇒ 判红 (★板被换过 ⇒ 零写板自证失败★)
+        · ❌ 板 mtime=2026-11-23 22:19:37.759050574 ≠ 基线 2026-11-06 07:07:17.362193413 ⇒ 判红 (★板被写过★)
+  [D] 腿 B 影响面闸 G8 (SW/tools/check_onepass_legb_sw_impact.p T1 rc=1
+        · [FAIL] G8 · 板/网表/脚表/BOM 四份真源 md5 逐字节等于受保护基线
+        · ⚠ board_md5 盘上 md5 = '801782db6fb26315b162a66fb4e6a479' ≠ 受保护基线 '611b869e13518c3c023fb178f91a0075' ⇒ 真源被改了
+  [E] 可制造性收口闸 A-5 (HW/check_iss354_manufacturability.py)   T1 rc=1
+        · [FAIL] A-5a  零写板: HW/PCB/demo_mainboard.kicad_pcb md5 == 611b869e13518c3c023fb178f91a0075
+        · 实测 801782db6fb26315b162a66fb4e6a479 ≠ 期望 611b869e13518c3c023fb178f91a0075
+        · [FAIL] A-5b  零写板: 板 mtime == 2026-11-06 07:07:17.362193413
+        · 实测 2026-11-23 22:19:37.759050574 +0800 ≠ 期望 2026-11-06 07:07:17.362193413
+T1 汇总: A rc=1 · B rc=1 · C rc=1 · D rc=1 · E rc=1
+
+============================================================================================
+T2 · 合法改板 (★ISS-284 四项原子映射 + 落表台账链头 + issue_log 留痕★)
+============================================================================================
+SW 侧锚点已写 reboard 四项 (by=ISS-372 · file=HW/PCB/demo_mainboard.kicad_pcb · prev_md5=611b869e1351 · md5=801782db6fb2)
+  [A] 权威闸 R6 (SW/tools/check_demo_panel_spec.py)           T2 rc=0
+  [B] SW 侧合法改板通道闸 (SW/tools/check_onepass_sw_sync.py)      T2 rc=1
+        · FAIL  W5
+        · 8 个现状探针: 清单里的现状值 == 盘面实测: ❌
+        · ❌ SW01_PCB_MD5: 盘面实测 = '801782db6fb26315b162a66fb4e6a479', 但清单 current_state 里没有这个值 ⇒ 清单过期
+        · ❌ rc=1: ★★SW 侧清单有漏项, 或现状值已过期 ⇒ 那一趟改完 SW 侧会漂一处 ★★
+  [C] 读封装栏闸 F5 (SW/tools/check_fp_truth_read.py)           T2 rc=1
+        · to=sw-lead need 共 19 条 (★扫 4 个分片: hw-lead+main+mech-lead+sw-lead★) · 仍 open 4 条 · 其中引着 32 位 md5 的 0 条 · 引着的 md5 ≠ 当前链头 0 条 (红条件) · 引着的 md5 ∉ 落表链成员集 0 条 · 链头 BOM_v1.csv=5b9993992405,netlist_v1.csv=6aee
+        · [F5] 零写板 + 零落表自证 (★板双证 + 三源台账可查★) ⇒ ❌ 红
+        · ❌ 板 md5=801782db6fb26315b162a66fb4e6a479 ≠ 基线 611b869e13518c3c023fb178f91a0075 ⇒ 判红 (★板被换过 ⇒ 零写板自证失败★)
+        · ❌ 板 mtime=2026-11-23 22:19:37.759050574 ≠ 基线 2026-11-06 07:07:17.362193413 ⇒ 判红 (★板被写过★)
+  [D] 腿 B 影响面闸 G8 (SW/tools/check_onepass_legb_sw_impact.p T2 rc=1
+        · [FAIL] G8 · 板/网表/脚表/BOM 四份真源 md5 逐字节等于受保护基线
+        · ⚠ board_md5 盘上 md5 = '801782db6fb26315b162a66fb4e6a479' ≠ 受保护基线 '611b869e13518c3c023fb178f91a0075' ⇒ 真源被改了
+  [E] 可制造性收口闸 A-5 (HW/check_iss354_manufacturability.py)   T2 rc=1
+        · [FAIL] A-5a  零写板: HW/PCB/demo_mainboard.kicad_pcb md5 == 611b869e13518c3c023fb178f91a0075
+        · 实测 801782db6fb26315b162a66fb4e6a479 ≠ 期望 611b869e13518c3c023fb178f91a0075
+        · [FAIL] A-5b  零写板: 板 mtime == 2026-11-06 07:07:17.362193413
+        · 实测 2026-11-23 22:19:37.759050574 +0800 ≠ 期望 2026-11-06 07:07:17.362193413
+T2 汇总: A rc=0 · B rc=1 · C rc=1 · D rc=1 · E rc=1
+
+============================================================================================
+T2b · 「S9 换基线」那一趟的动作 = 把【规格页引用】那一类一次改齐 (★台账与历史留证不动★)
+============================================================================================
+已换基线的规格页 = 12 个 (★台账 SW/SW_MD5_BASELINE_LEDGER.md 与历史留证 SW/research/ISS250_r6_复核记录.md 不在其中★)
+  [A] 权威闸 R6 (SW/tools/check_demo_panel_spec.py)           T2b rc=0
+  [B] SW 侧合法改板通道闸 (SW/tools/check_onepass_sw_sync.py)      T2b rc=0
+  [C] 读封装栏闸 F5 (SW/tools/check_fp_truth_read.py)           T2b rc=1
+        · to=sw-lead need 共 19 条 (★扫 4 个分片: hw-lead+main+mech-lead+sw-lead★) · 仍 open 4 条 · 其中引着 32 位 md5 的 0 条 · 引着的 md5 ≠ 当前链头 0 条 (红条件) · 引着的 md5 ∉ 落表链成员集 0 条 · 链头 BOM_v1.csv=5b9993992405,netlist_v1.csv=6aee
+        · [F5] 零写板 + 零落表自证 (★板双证 + 三源台账可查★) ⇒ ❌ 红
+        · ❌ 板 md5=801782db6fb26315b162a66fb4e6a479 ≠ 基线 611b869e13518c3c023fb178f91a0075 ⇒ 判红 (★板被换过 ⇒ 零写板自证失败★)
+        · ❌ 板 mtime=2026-11-23 22:19:37.759050574 ≠ 基线 2026-11-06 07:07:17.362193413 ⇒ 判红 (★板被写过★)
+  [D] 腿 B 影响面闸 G8 (SW/tools/check_onepass_legb_sw_impact.p T2b rc=1
+        · [FAIL] G8 · 板/网表/脚表/BOM 四份真源 md5 逐字节等于受保护基线
+        · ⚠ board_md5 盘上 md5 = '801782db6fb26315b162a66fb4e6a479' ≠ 受保护基线 '611b869e13518c3c023fb178f91a0075' ⇒ 真源被改了
+        · ⚠ board_md5 页里声明的 md5 '801782db6fb26315b162a66fb4e6a479' ≠ 受保护基线 '611b869e13518c3c023fb178f91a0075'
+  [E] 可制造性收口闸 A-5 (HW/check_iss354_manufacturability.py)   T2b rc=1
+        · [FAIL] A-5a  零写板: HW/PCB/demo_mainboard.kicad_pcb md5 == 611b869e13518c3c023fb178f91a0075
+        · 实测 801782db6fb26315b162a66fb4e6a479 ≠ 期望 611b869e13518c3c023fb178f91a0075
+        · [FAIL] A-5b  零写板: 板 mtime == 2026-11-06 07:07:17.362193413
+        · 实测 2026-11-23 22:19:37.759050574 +0800 ≠ 期望 2026-11-06 07:07:17.362193413
+T2b 汇总: A rc=0 · B rc=0 · C rc=1 · D rc=1 · E rc=1
+
+============================================================================================
+T3 · 【没通道】的闸在合法改板之后【仍红】⇒ 这才是要登记成缺口的那些
+============================================================================================
+  [A] 权威闸 R6 (SW/tools/check_demo_panel_spec.py)           T2b=绿
+  [B] SW 侧合法改板通道闸 (SW/tools/check_onepass_sw_sync.py)      T2b=绿
+  [C] 读封装栏闸 F5 (SW/tools/check_fp_truth_read.py)           T2b=红
+  [D] 腿 B 影响面闸 G8 (SW/tools/check_onepass_legb_sw_impact.p T2b=红
+  [E] 可制造性收口闸 A-5 (HW/check_iss354_manufacturability.py)   T2b=红
+⇒ 已有通道的 = A / B ; ★**没通道的 = C / D / E** ⇒ 这 3 道必须在 §2 登记成缺口
+
+============================================================================================
+T4 · 把本单的【补丁规格】在沙盒副本上原型化 (★真件那 3 个闸一个字都不许改★)
+============================================================================================
+=== ISS-372 · 补丁规格原型化 (★只作用于沙盒副本 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss372/tree★) ===
+  ✔ helper 落盘 SW/tools/legal_channel_sbx.py
+  ✔ helper 落盘 HW/legal_channel_sbx.py
+  ✔ SW/tools/check_fp_truth_read.py               BOARD_BASELINE_SIZE = 4940213
+  ✔ SW/tools/check_fp_truth_read.py               if b["md5"] != BOARD_BASELINE_MD5:
+  ✔ SW/tools/check_fp_truth_read.py               elif b.get("mtime_ns") != base_ns:
+  ✔ SW/tools/check_fp_truth_read.py               if b["size"] != BOARD_BASELINE_SIZE:
+  ✔ SW/tools/check_onepass_legb_sw_impact.py      PROTECTED_FILES = {
+  ✔ SW/tools/check_onepass_legb_sw_impact.py      for k, want in PROTECTED_MD5.items():
+  ✔ HW/check_iss354_manufacturability.py          EXPECT_PCB_MTIME = "2026-11-06 07:07:17.362193413"
+  ✔ HW/check_iss354_manufacturability.py          ok_pcb = (pcb_md5 == EXPECT_PCB_MD5)
+  ✔ HW/check_iss354_manufacturability.py          ok_mt = EXPECT_PCB_MTIME in pcb_mt
+=== 补丁条数 = 9 ⇒ 原型化完成 ===
+
+  [A] 权威闸 R6 (SW/tools/check_demo_panel_spec.py)           T4 rc=0
+  [B] SW 侧合法改板通道闸 (SW/tools/check_onepass_sw_sync.py)      T4 rc=0
+  [C] 读封装栏闸 F5 (SW/tools/check_fp_truth_read.py)           T4 rc=0
+        · to=sw-lead need 共 19 条 (★扫 4 个分片: hw-lead+main+mech-lead+sw-lead★) · 仍 open 4 条 · 其中引着 32 位 md5 的 0 条 · 引着的 md5 ≠ 当前链头 0 条 (红条件) · 引着的 md5 ∉ 落表链成员集 0 条 · 链头 BOM_v1.csv=5b9993992405,netlist_v1.csv=6aee
+  [D] 腿 B 影响面闸 G8 (SW/tools/check_onepass_legb_sw_impact.p T4 rc=0
+  [E] 可制造性收口闸 A-5 (HW/check_iss354_manufacturability.py)   T4 rc=0
+T4 汇总: A rc=0 · B rc=0 · C rc=0 · D rc=0 · E rc=0
+
+============================================================================================
+T5 · 「板改第二次」(★通道已存在★) ⇒ 纯 md5 硬保护支路没被放松
+============================================================================================
+沙盒板 md5 (第二次改后) = 340876b6bc557f7bdf2bb4e21ae65318
+  [A] 权威闸 R6 (SW/tools/check_demo_panel_spec.py)           T5 rc=1
+        · ❌ ISS-212 demo 显示侧口径门禁: 1 项不通过
+        · - R6 硬保护: HW/PCB/demo_mainboard.kicad_pcb 盘上 md5 340876b6bc55 ≠ 台账链头 801782db6fb2 (真源被换了或台账没更新)
+  [B] SW 侧合法改板通道闸 (SW/tools/check_onepass_sw_sync.py)      T5 rc=1
+        · FAIL  W5
+        · 8 个现状探针: 清单里的现状值 == 盘面实测: ❌
+        · ❌ SW01_PCB_MD5: 盘面实测 = '340876b6bc557f7bdf2bb4e21ae65318', 但清单 current_state 里没有这个值 ⇒ 清单过期
+        · FAIL  W6
+  [C] 读封装栏闸 F5 (SW/tools/check_fp_truth_read.py)           T5 rc=1
+        · to=sw-lead need 共 19 条 (★扫 4 个分片: hw-lead+main+mech-lead+sw-lead★) · 仍 open 4 条 · 其中引着 32 位 md5 的 0 条 · 引着的 md5 ≠ 当前链头 0 条 (红条件) · 引着的 md5 ∉ 落表链成员集 0 条 · 链头 BOM_v1.csv=5b9993992405,netlist_v1.csv=6aee
+        · [F5] 零写板 + 零落表自证 (★板双证 + 三源台账可查★) ⇒ ❌ 红
+        · ❌ 板 md5=340876b6bc557f7bdf2bb4e21ae65318 ≠ 基线 611b869e13518c3c023fb178f91a0075 ⇒ 判红 (★板被换过 ⇒ 零写板自证失败★)
+        · 结论: ❌ 有不过项 (绿 6 / 红 1)
+  [D] 腿 B 影响面闸 G8 (SW/tools/check_onepass_legb_sw_impact.p T5 rc=1
+        · [FAIL] G8 · 板/网表/脚表/BOM 四份真源 md5 逐字节等于受保护基线
+        · ⚠ board_md5 盘上 md5 = '340876b6bc557f7bdf2bb4e21ae65318' ≠ 受保护基线 '801782db6fb26315b162a66fb4e6a479' ⇒ 真源被改了
+  [E] 可制造性收口闸 A-5 (HW/check_iss354_manufacturability.py)   T5 rc=1
+        · [FAIL] A-5a  零写板: HW/PCB/demo_mainboard.kicad_pcb md5 == 611b869e13518c3c023fb178f91a0075
+        · 实测 340876b6bc557f7bdf2bb4e21ae65318 ≠ 期望 611b869e13518c3c023fb178f91a0075
+T5 汇总: A rc=1 · B rc=1 · C rc=1 · D rc=1 · E rc=1
+⇒ T5 全红 ⇒ ★合法改板通道【只让链头前移】, 不把判据放松★ ⇒ 板改第二次当场被抓住
+
+============================================================================================
+真件复核 (★零写板自证★)
+============================================================================================
+  真件板 md5   = 611b869e13518c3c023fb178f91a0075
+  真件板 stat  = 2026-11-06 07:07:17.362193413 +0800 4940213
+
+============================================================================================
+读数汇总 (rc):
+  A  T0=0  T1=1  T2=0  T2b=0  T4=0  T5=1   权威闸 R6 (SW/tools/check_demo_panel_spec.py)
+  B  T0=0  T1=1  T2=1  T2b=0  T4=0  T5=1   SW 侧合法改板通道闸 (SW/tools/check_onepass_sw_sync.py)
+  C  T0=0  T1=1  T2=1  T2b=1  T4=0  T5=1   读封装栏闸 F5 (SW/tools/check_fp_truth_read.py)
+  D  T0=0  T1=1  T2=1  T2b=1  T4=0  T5=1   腿 B 影响面闸 G8 (SW/tools/check_onepass_legb_sw_impact.py)
+  E  T0=0  T1=1  T2=1  T2b=1  T4=0  T5=1   可制造性收口闸 A-5 (HW/check_iss354_manufacturability.py)
+============================================================================================

@@ -6,14 +6,10 @@ status:
   phase: delivered
   progress_pct: 100
   health: 绿
-  summary: 'ISS-367 交卷: 「板只改一次」S10 把 D_LED_G 换成官方 0805 后的结构侧两处未收口项已同趟重算并定点改写 ⇒ 可落位块数 1992→2183 · 两条整高自由带
-    1.550..3.450 / 72.540..73.660 → 2.225..3.250 / 73.215..74.385 (带 A 宽 -0.875) · sweep 1992/2016/2031/2075
-    → 2183/2241/2253/2197 (clr=0.5 的 2197 < clr=0.2 的 2253 ⇒ 不再单调) ⇒ MECH/BOARD_ONEPASS_MECH_SYNC.md 机器块
-    + MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md 的 LED 窗口规格两处已按实算逐字改写 (diff 与改前原文留证在 logs/iss367/) ⇒
-    新建规格页 MECH/BOARD_ONEPASS_S10_LED_SPEC_SYNC.md + 新建机器闸 MECH/check_onepass_s10_led_spec_sync.py (L0~L6
-    全绿 · --selftest 7/7) ⇒ 本单机器闸 L4 的 9 条自身假红已修 (只改什么算证据等级 · 白名单方向未动) ⇒ 上一趟 3 处错值已按实算改正 ⇒ 零写板 (611b869e…
-    / mtime 2026-11-06 07:07:17) 零落表 零改既有闸 零改 BOARD_ONEPASS_STRUCT_CROSSCHECK.md 零挂链 零外发 未替老板拍板 (光孔有无
-    / 换件集合口径 只登记) ⇒ 写 5 处 = 规格页 + 新闸 + 交卷页 + logs/iss367/ + 本分片 (只走 state/frag_write.py)'
+  summary: 'ISS-371 cont1 交卷: 结构侧净距真相页已在盘 (21 节 + §9 追加) + 新建机器闸 MECH/check_jdebug_1p27_clearance.py (7
+    判据 rc=0 · --selftest 10 条反向用例全抓到) + 交卷页 + 分片登记; 主结论: 官方 THT land ⇒ 必须清空区 X 4.0850⇒4.8100 (每边越界 0.3625
+    ⇒ 铜箔进清空区) 且 单边间隙 2.6950 / 最坏 2.3950 仍过 CRIT 0.60 (3.99×) ⇒ 方向过阈与铜箔进清空区两句同时成立, 必须并进「板只改一次」那一趟同批改; 板
+    md5 611b869e13518c3c023fb178f91a0075 未变'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -1687,6 +1683,26 @@ artifacts:
   version: v1
   updated_at: '2026-10-25'
   summary: 'ISS-367 交卷页: B1~B6 六段齐全 + 20 条验收线逐条判定 + 落盘清单 + 沙盒留证路径 + 一键回滚说明'
+- path: MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md
+  kind: note
+  version: v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-371 结构侧净距真相页 (21 节 + cont1 追加块 §9): 官方 THT 真 land 实读 + 三档量差表 + 越界量 0.3625/边 + 降级方案 SMD
+    变体 + 未决项 8 条 + 证据分级 + 机器块; §9 追加: main 22:0x 复核四条 + .kicad_mod md5 台账 + KiCad 库清单 155 目录/15468 封装
+    + 判据句与事实句分开 + B33 指向'
+- path: MECH/check_jdebug_1p27_clearance.py
+  kind: gate
+  version: v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-371 新建机器闸: G1 官方 THT land 几何自解析 · G2 三档宽度与实算逐项一致 · G3 必须清空区宽 ≥ 铜箔宽 (不许越界) + 越界记账 · G4
+    单边间隙对称且 ≥ CRIT (CRIT 取自 service_port_check.py) · G5 SMD 降级方案独立实测单列 · G6 板零写板 md5/mtime/size 双证 · G7
+    证据五级白名单 + 零挂起措辞 + 判据句/事实句分开 + .kicad_mod md5 台账; --selftest 10 条反向用例 (每条自证红的集合 == {目标那一条}); ★按边界不挂
+    state/gate_check.py'
+- path: HANDOFF/2026-11-23_mech-lead_ISS371_JDEBUG排针1.27净距真相.md
+  kind: handoff
+  version: v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-371 交卷页: B1~B6 六段齐全 + 验收线逐条判定 + 落盘清单 + 沙盒留证路径 + 必跑命令原样输出'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -3083,6 +3099,19 @@ needs_from:
     ⇒ 那一趟开工当天必须先跑 python3 MECH/check_onepass_s10_led_spec_sync.py (rc≠0 就按 --compute 的读数更新)。★另 D_LED_G
     结构光孔有/无 (老板项 U-365-3) 与 按键 3N vs 1.5N 仍只登记不代拍 —— 见 MECH/BOARD_ONEPASS_S10_LED_SPEC_SYNC.md §5。★[实测]'
   since: '2026-11-23'
+- key: iss371_mech_batch_change_merge_to_main
+  to: main
+  item: '★ISS-371 要 main 拍 (本单不代拍): 把「J_DEBUG 必须清空区 X 宽 4.0850 ⇒ 4.8100 + 每边越界 0.3625 (铜箔进清空区)」并进「板只改一次」那一趟的【同批改清单】,
+    不许只改 J_DEBUG 一个 (⇒ 板 md5 只许变一次); 且那一趟开工当天必须先跑 python3 MECH/check_jdebug_1p27_clearance.py (rc≠0 ⇒
+    板侧 land 没按官方 1.27 THT 落)'
+  since: '2026-11-23'
+- key: iss371_mech_four_stale_copies_append_owner_to_main
+  to: main
+  item: '★ISS-371 登记: 旧数 4.0850/3.0575/2.7575 仍在四处同源副本 (HW/PCB/BOARD_ONEPASS_WORKPACKET.md L326+L1470
+    · MECH/BOARD_ONEPASS_MECH_SYNC.md L561-L565+L572 · MECH/BOARD_ONEPASS_MECH_CLAIMS.md L133+L280 · MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md
+    L175/L205/L211/L216/L241/L242/L1799 + 机器块 L1917-L1927); 本单按 cont1 边界【零改既有页面正文】⇒ 不动它们只登记 ⇒ 追加块归属 (谁派谁改)
+    归 main; 新闸 G3 只拦本单真相页口径不拦那四页 ⇒ 是否下一单补追加块 + 闸覆盖也归 main'
+  since: '2026-11-23'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -3744,6 +3773,20 @@ answers:
     订正标记: 声明该建议默认值作为这一趟画哪块板的答案已被 ISS-341 机器判决推翻并作废, 仅保留作历史留档; 同时写明分层口径 (甲/乙) 与权威页指针; 老字一字未删, 未改任何数字与判据方向,
     未替老板拍板'
   ref: MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md §1-3.1 (L112 起) + HANDOFF/2026-11-23_mech-lead_ISS360_板框建议默认值作废标注.md
+- key: iss356_jdebug_mech_clearance_recheck
+  to: main
+  value: '★ISS-371 答 (结构侧净距真相 · 本机官方真 land 实算 · 不抄任何 agent 报告): ① 官方 THT land = Connector_PinHeader_1.27mm:PinHeader_1x04_P1.27mm_Vertical
+    (4 通孔 @1.27, pad 1.00×1.00, Ø0.65, 环宽 0.1750; .kicad_mod md5 7a5f470c1f70d4b832be258501945385) ⇒ 铜箔
+    X 宽 = 3.81 + 1.00 = 4.8100 (不是 4.0850) ⇒ ★必须清空区 X 宽必须 4.0850 ⇒ 4.8100, 否则最外侧焊盘每边超出清空区 0.3625mm ⇒ 铜箔直接进清空区
+    (总越界 0.7250) ② 单边间隙 X 2.6950/2.6950, 最坏 2.3950 ≥ CRIT 0.60 ⇒ ★方向仍过阈 (余量 3.99×) ⇒ ★【净距方向过阈】与【铜箔不进清空区】两句同时成立,
+    不许混成一句「OK」 ③ 开口 X (137.850..148.050) 与开口 Y 三档 (4.60/4.60/5.80) 一字不动; 必须清空区 Y 只在 h=0.90 档每边 +0.0500
+    (56.1500..57.0500 ⇒ 56.1000..57.1000) ④ 落点必须挪: 居中解 rot90 ⇒ 原点 (141.0450, 56.6000), rot270 ⇒ (144.8550,
+    56.6000); 原地不动 rot90 ⇒ 铜箔越出开口右沿 0.5600, rot270 ⇒ 左右不对称 ⇒ 两条都红 ⑤ 降级方案 SMD 变体 = 2 列×4 行交错 ⇒ 铜箔 6.0000×4.4600,
+    F.CrtYd 7.00×6.08 ⇒ 现有开口三档 Y 全红 (需开口 Y ≥ 6.2600) ⇒ 与现页口径完全不可比, 必须整段重算 ⑥ 环宽下限 / 座体真实高 h / 排针实物型号 =
+    本仓 [0数据] ⇒ 只登记不代拍 ⑦ 这一条必须并进「板只改一次」那一趟同批改, 不许只改 J_DEBUG 一个 (板侧项已在 ISS-343 B33_PIN_LAND_1P27, 本单不重复发明板侧项编号)
+    ⑧ 新建机器闸 MECH/check_jdebug_1p27_clearance.py (7 判据 + 10 条反向用例) ⇒ rc=0; 板 md5 611b869e13518c3c023fb178f91a0075
+    逐字节不变 ⇒ 零写板 ⑨ 零外发 · 零落表 · 零改既有闸 · 零改既有页面正文 · 零挂链'
+  ref: MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md + HANDOFF/2026-11-23_mech-lead_ISS371_JDEBUG排针1.27净距真相.md
 interface_claims:
 - key: battery_capacity_tier
   value: 315mAh无桥/387mAh有桥
@@ -5894,6 +5937,17 @@ interface_claims:
     每条多带一个 nearest_origin 证据输出字段 (L0~L6 七条判据与比对口径一个字节没动 · --selftest 7/7 仍全抓到) ⇒ 新闸 md5 f981d34b1411051df32a2c6ee0c3fce3
     → 0575bcb0b87c97817208160783e55c3a [实测]'
   ref: ''
+- key: iss371_mech_jdebug_must_clear_x_4p8100
+  value: J_DEBUG 换官方 THT land 后的【必须清空区 X 宽】= 4.8100 (X 140.5450..145.3550, 铜箔口径, 居中解; 铜箔宽 4.8100 = 跨距
+    3.81 + pad 宽 1.00); 现页旧口径 4.0850 ⇒ 每边越界 0.3625 ⇒ 铜箔直接进清空区
+  note: '[实测] 官方 .kicad_mod 实读 (md5 7a5f470c1f70d4b832be258501945385) + 板读占位 + MECH/service_port_check.py
+    的 CRIT 0.60; 与 truth 页 §1.1/§1.2/§2.2 同源; 新闸 G3 逐次复跑'
+  ref: MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md §1.1 §1.2 §2.2
+- key: iss371_mech_jdebug_open_x_y_unchanged
+  value: 'J_DEBUG 换官方 THT land 后: 调试口开口 X (137.850..148.050) 一字不动 + 开口 Y 三档 (4.60/4.60/5.80, 中心 56.6000)
+    一字不动; 要改的只有必须清空区 X 宽 (4.0850 ⇒ 4.8100) 与必须清空区 Y 在 h=0.90 档每边 +0.0500'
+  note: '[推算] 居中解 ⇒ 铜箔中心不动 ⇒ 开口不动; 铜箔 Y 高 0.9000 ⇒ 1.0000 ⇒ h=0.90 档由铜箔支配'
+  ref: MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md §1.1 §2.3
 open_questions:
 - id: MECH-Q1
   to: main

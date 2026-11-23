@@ -1,9 +1,9 @@
 <!-- PROGRESS-BLOCK-START -->
 
-★**进展播报 2026-11-23 20:05:26** (机器读数 · 脚本自动生成)
+★**进展播报 2026-11-23 22:35:00** (机器读数 · 脚本自动生成)
 
 ```
-=== 进展播报 11-23 20:03:39 ===
+=== 进展播报 11-23 22:30:05 ===
 [板] 11-06 07:07:17 · 4.9MB · 18092 段走线 · 433 过孔
 [布线] 上次实测 unconnected=45 · DRC违规=0
 [留证] 自验时刻 2026-11-09T04:11:35 · verified_by main (verify_and_release.sh)
@@ -4083,3 +4083,11 @@ ExecStart=... /home/radxa/v31_v4l2_od_rtsp /dev/video0 640 480 2 86400 /etc/npu/
 ★★**★铁律⑩-j (★2026-11-23 20:1x 实测·签收闸自己的 bug★)★**: ★★**签收脚本第一跑红了, 红的不是产物而是【闸自己】⇒ 先修闸, 别急着怀疑产物** ★★
 - ★★**实测**: `state/_apply_20261123_2015_cron775d_sign_iss366.py` 首跑 33 项里红了 1 条「板 mtime 未动」⇒ ★**板 md5 / size / `stat -c '%y'` 全对** ⇒ ★**真因 = 我脚本用 `datetime.strftime('%Y-%m-%d %H:%M:%S')` 比 mtime ⇒ 秒级丢纳秒 ⇒ 必然误判** ★ ⇒ ★**改成 `st.st_mtime_ns == to_ns(期望串)` 后全绿** ★
 - ★★★**⇒ 铁律**: ★**凡是比较 mtime 的判据, 必须带纳秒 (★`to_ns()` 换算成整数 ns 再比★) ⇒ 秒级比较会把「同一秒内被改」漏掉, 也会把「没被改」误判成被改** ★ ⇒ ★**这是本项目第二次栽在「闸自己的口径」上 (前一次是「82 条」两个口径), 归到同一类: 【闸的口径必须自己写清, 不能想当然】** ★
+
+★★**★铁律⑩-k (★2026-11-23 20:3x 实测·cron 775d9893·【写下来的正解没被执行 ⇒ status 变成永久墓碑】★)★**: ★★**「先标 fixing 再派」不只是防撞车的顺序纪律, 它同时是【防僵尸】的保险 —— 顺序颠倒时, 一旦会话死掉, `status=fixing` 就成了没人再管的墓碑** ★★
+- ★★**实测**: 20:10 那轮两个 job 撞车派了 ISS-369 两次 (★本 job `b4ed5a3e` 53 秒被 kill · 兄弟 job fb67af40 `1ee3c278` 17.8 秒 aborted★) ⇒ 两条写会话全死、零产出 ⇒ 但 `issue_log` 里 ISS-369 的 status 还停在 `fixing` ⇒ ★**下一轮 `advance.py --json` 的 internal 段 = [] ⇒ 队列被一具尸体堵住 ⇒ 谁也不会再派它** ★
+- ★★★**⇒ 铁律①**: ★**上一轮写进 `dispatch_log` 的正解 (「先标 fixing 再派」) 必须【当场执行】, 不能只写下来就完** ★ ⇒ ★**本轮按正解执行 (status 保持 fixing 不动 → 再 spawn) ⇒ 撞车窗口 = 0** ★
+- ★★★**⇒ 铁律② (僵尸单的三重判据★)**: ★**`status=fixing` + 零 running 会话 + 交付物不在盘 ⇒ 三条同时成立才算僵尸** ★ ⇒ ★**只查前两条会误杀 (刚 spawn 完还没出活儿的会话也是零产出)** ★ ⇒ ★**本轮实测的交付物缺项: `HW/PCB/FP_LIBID_TRUTH_WORKPACKET.md` + `HW/check_fp_libid_truth.py` + `HANDOFF/...ISS369...md` 三件全缺 + `logs/iss369/` 只有 2 件 + 分片零 `iss369` 登记** ★
+- ★★★**⇒ 铁律③ (复活僵尸单的动作清单★)**: ★**① `sessions_list` + `subagents list` 双查零 running 会话 ② 核 `issue_log.status` 是不是已经 `fixing` (是 ⇒ 零写 issue_log · 零 churn · 兄弟 job 自动跳过 ⇒ 撞车窗口 0) ③ spawn 时 `agentId` 必填 ④ spawn 后核对会话键前缀 = `agent:<agentId>:` ⑤ spawn 后立刻读新会话 transcript 确认有真 tool_use (★本轮 121 行已在跑沙盒★) ⑥ `dispatch_log` 追加一条带 `redispatch_zombie: true` + `death_cause` + `partial_delivery` 的条目 ⇒ 事后查得清「这一趟是复活, 不是重复」** ★
+- ★★★**⇒ 铁律④ (★`yaml.safe_dump` 重写 379 KB 全文件的副作用★)★**: ★**追加完必须逐条比对旧条目 (本轮: 前 375 条的 issue/agent/at 差异 = 0) ⇒ 零内容丢失才可信** ★ ⇒ ★**另: `dispatch_log.yaml` 顶层是 list ⇒ 脚本要两种形状都认 (铁律⑩-e 已记·本轮再验一次)** ★
+- ★★**落盘**: `state/ROUND_LOG_775d9893_2026-11-23_2043.md` (★全 7 步账·★含僵尸单三重判据的取证★) + `state/dispatch_log.yaml` (375→376) + `DECISION_ONE_PAGER_2026-11-22.md` 追加 ㉛ (141,555→148,922 B·★老字逐字节保留★) ★

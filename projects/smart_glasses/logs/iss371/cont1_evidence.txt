@@ -1,0 +1,32 @@
+==============================================================================
+ISS-371 cont1 · 留证汇总 (只读)
+==============================================================================
+
+① 板零写板双证
+   md5   = 611b869e13518c3c023fb178f91a0075
+   mtime = 2026-11-06 07:07:17.362193413
+   size  = 4940213
+
+② KiCad 官方库清单
+   .pretty 库目录   = 155
+   .kicad_mod 文件  = 15468
+   kicad-cli        = 10.0.8
+   metric 后缀样例  = R_0402_1005Metric.kicad_mod, R_0402_1005Metric_Pad0.72x0.64mm_HandSolder.kicad_mod
+
+③ 本页引用的 .kicad_mod (test -f + md5)
+   test -f OK     /home/yuewuya/kicad/AppDir/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_1x04_P1.27mm_Vertical.kicad_mod
+        md5 = 7a5f470c1f70d4b832be258501945385
+   test -f OK     /home/yuewuya/kicad/AppDir/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_1x04_P1.27mm_Vertical_SMD_Pin1Left.kicad_mod
+        md5 = 9d6b0e63e99e6484d2cd3fa0bb28c4a5
+
+④ 判据常量真身 (MECH/service_port_check.py)
+   L126  TOL = {"fdm_part": 0.30, "fdm_feat": 0.25}
+   L127  CRIT = 2 * TOL["fdm_part"]          # 0.60mm 判据
+   L333  #   ★**判据阈值 CRIT = 0.60 一个数字没动** —— 本单是【迁常量/迁公式】, 不是【松判据】。
+
+⑤ 复算脚本 (tmp/iss371/iss371_recompute.py)
+   rc=0
+   current        铜箔宽 1.7750 · 清空区宽 1.7750 · 单边间隙 4.2125/4.2125 · 最坏 3.9125 · 过阈 True
+   page_0275      铜箔宽 4.0850 · 清空区宽 4.0850 · 单边间隙 3.0575/3.0575 · 最坏 2.7575 · 过阈 True
+   official_tht   铜箔宽 4.8100 · 清空区宽 4.8100 · 单边间隙 2.6950/2.6950 · 最坏 2.3950 · 过阈 True
+   越界: 总 0.7250 · 每边 0.3625

@@ -1949,6 +1949,24 @@ artifacts:
   updated_at: '2026-11-23'
   summary: ★ISS-370 · sw-lead · 2026-11-23 · ISS-370 交卷页 (★本单新建★) ⇒ B1~B6 六段齐全 + 20 条验收线逐条判定 + 落盘文件清单
     + 沙盒留证路径 + 要 main 裁的 3 件事 · 键 iss370_legb_sw_handoff_page
+- path: SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: 'ISS-372 清账页: SW 域板 md5 引用面 = 17 个活文件 / 47 命中行 / 57 命中处 逐处清单 (三类归属: 判据锚 9 / 规格页引用 17 / 历史留证
+    21) + 逐闸账 + 补丁规格 P-C/P-D/P-E + 未决项 6 条'
+- path: SW/tools/check_sw_board_md5_rebase_readiness.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: 'ISS-372 自守闸: H1~H7 (漏一处就红 / 活判据不许伪装成历史留证 / 谁钉了板 md5 要在册 / 没人知道的缺口才红) + --selftest 8 条反向用例
+    (每条自证 红的集合 == 目标那一条) ⇒ 裸跑 rc=0 7/7, selftest rc=0 8/8; 零挂链 (挂不挂归 main)'
+- path: HANDOFF/2026-11-23_sw-lead_ISS372_SW侧板md5引用面清账与清单自守.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-23'
+  summary: 'ISS-372 交卷页 (B1~B6 六段齐全): 结论 / 验收标准自评 21 通过 0 不通过 1 未验 / 证据分级 20 条 / 接口取值声明 / 未决项 U1~U7 (要谁回答什么)
+    / 自证复现命令 + 边界 18 件 md5 前后对照'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -2736,6 +2754,43 @@ needs_from:
     侧本单 HW/ 下一个文件都没碰, 只给改法 + 时序 + 会红哪道闸 (timing_check 三条锚点红 + check_demo_panel_spec R6 + check_onepass_sw_sync
     W6 + 三道 R6 反向用例闸)★'
   since: '2026-11-23'
+- key: iss372_need_main_decide_s9_rebase_batch
+  to: main
+  item: '★要 main 回答: 改板那一趟的 S9 换基线 这一批要不要按本单清账页 §B4-2 的四步一次改齐 (① 落表台账链前移 ② 台账锚点 reboard 四项 ③ 规格页引用那 17
+    处 ④ issue_log 留痕)? 且顺序 先落表 → 再换基线 → 最后跑闸 认不认? ⇒ 不一次改齐 ⇒ 已有通道的 check_onepass_sw_sync.py 也会红 (沙盒 T2
+    实测 rc=1) ⇒ 现场又多一次 误读成板坏了 的窗口 ★'
+  since: '2026-11-23'
+- key: iss372_need_main_schedule_pcd_patch
+  to: main
+  item: '★要 main 回答: 补丁规格 P-C (check_fp_truth_read.py 的 F5) / P-D (check_onepass_legb_sw_impact.py 的 G8)
+    / P-E (HW/check_iss354_manufacturability.py 的 A-5, 跨域要转 hw-lead) 谁来落、什么时候落? ⇒ 不落 ⇒ 改板当天那 3 道闸必红 ⇒
+    现场误读 ⇒ 板 md5 变第二次 ⇒ 整趟白跑 (这正是本单要防的那件事) ⇒ 建议与 板只改一次 那一趟同批落, 且必须早于改板当天 ★'
+  since: '2026-11-23'
+- key: iss372_need_main_decide_reboard_mtime_size
+  to: main
+  item: '★要 main (可能要老板) 回答: 合法改板时 mtime / size 这两条要不要进 reboard 四项原子 (by/file/prev_md5/md5)? ⇒ reboard
+    原子不带 mtime/size ⇒ F5 的 mtime + size 两条在合法改板后仍红 ⇒ P-C 只解决一半 ⇒ 改板当天照样红 ⇒ 要么给 reboard 原子补 mtime/size
+    (要动权威判据 check_r6_hard_protected 的形状 ⇒ 老板拍), 要么给 F5 / A-5 的 mtime 判据一条明文口径 (判据方向放宽 ⇒ 也要拍) ⇒ sw-lead
+    只登记, 不代拍 ★'
+  since: '2026-11-23'
+- key: iss372_need_main_refresh_pinned_gates_manifest
+  to: main
+  item: '★要 main 回答: state/board_md5_pinned_gates.json / .md 什么时候刷新? 收集口径要不要放宽 (把 state/land_v_values.py
+    也收进去, 它 L96 也硬钉板 md5)? ⇒ 本单只给 刷新后应有的内容 (现有 9 条 + 新增 3 条 + 口径补 1 条, 见清账页 §5.1 与 claim iss372_pinned_gates_manifest_stale),
+    不写那两个文件 (那是 main 的域) ⇒ 不刷新 ⇒ 那张表继续漏新闸 ⇒ 下一个新闸再硬钉板 md5 时还是没人拦 ★'
+  since: '2026-11-23'
+- key: iss372_need_main_decide_pcb_second_reboard_fallback
+  to: main
+  item: '★要 main (⇒老板) 回答: 板改第二次 的兜底预案 = 现场由谁当场判定 这是第二次改板 并停手? 判据能不能自动判出 第二次? ⇒ 本单已证明 当场红 这件事本身可靠 (沙盒
+    T5 全红, 纯 md5 硬保护支路没被放松) ⇒ 缺的是流程权责 (谁当场判定并停手), 不是判据 ⇒ 不定 ⇒ 现场第二次改板时闸红着, 但没人知道那是第二次而不是第一次 ★'
+  since: '2026-11-23'
+- key: iss372_need_main_hook_readiness_gate
+  to: main
+  item: '★要 main 回答: 新闸 SW/tools/check_sw_board_md5_rebase_readiness.py 挂不挂 state/gate_check.py 的 EXTRA_GATES?
+    ⇒ 本单零挂链 (gate_check.py md5 5f370bb8cf828473e70ccc5d6412da98 前后不变) ⇒ 先例 = ISS-300 mech 出结论/main 挂,
+    ISS-309 / ISS-312 / ISS-315 四轮都只交写法没人挂 ⇒ 不挂 ⇒ 这道闸只活在本单交卷页里 ⇒ 下一个 agent 不读交卷页就没人知道它存在 ⇒ 板只改一次 那道铁律在
+    SW 侧还是靠人记得 ★'
+  since: '2026-11-23'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -3486,6 +3541,14 @@ answers:
     (本单零挂链) · 【板与真源零改动】板 md5 611b869e… mtime 2026-11-06 07:07:17.362193413'
   ref: SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md · logs/iss368/check_sw09_patch_dryrun.out · logs/iss368/prove_partial_landing.out
     · logs/iss368/rollback_proof.txt
+- key: iss249_kicad_sch_md5_not_anchor_sw
+  to: hw-lead
+  value: '★结论不变: .kicad_sch 的 md5 不能当锚点 ★但机理要订正★ —— 真正的随机源 = state/gen_kicad_sch.py 本身 (L119 uuid.uuid4())
+    ⇒ 跑它一次, 11 个 .kicad_sch 的 raw md5 11/11 全变, 归一化 (UUID + 时间戳) 后 0/11 变 (同图) ⇒ ★need 原文写的「check_sch_erc.py
+    / check_sch_pinfull.py 内部会 subprocess 调 gen_kicad_sch.py ⇒ 跑这两条门禁就会重铸 UUID ⇒ 任何门禁跑完 md5 都变」这个机理【不成立】(沙盒各跑一次
+    rc=0 ⇒ md5 变化文件数 = 无)★ ⇒ 且 SW 域活文件里 .kicad_sch 的 md5 命中 = 0 处 ⇒ 该风险至今没伤到任何人 ⇒ ★处置 = 结论订正 + 降级为一条已知注意事项
+    (不机器化; 本单自守闸 H3 已把反向判据 活判据不许伪装成历史留证 做进去了)★ ⇒ 本条可结'
+  ref: SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md §4 + logs/iss372/03_exp1_sch_md5.txt + logs/iss372/04_sch_md5_11files.txt
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -5545,6 +5608,33 @@ interface_claims:
   note: logs/iss370/28_CONT1_landing_sim.txt · logs/iss370/29_CONT1_gate_battery.txt · logs/iss370/30_CONT1_g1_numbers.txt
     · logs/iss370/26_CONT1_fail_sets.txt
   ref: SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md#§2
+- key: iss372_sw_board_md5_ref_surface
+  value: SW 域板 md5 引用面 = 17 个活文件 / 47 命中行 / 57 命中处; 三类归属 = 判据锚 9 行 / 规格页引用 17 行 / 历史留证 21 行; 板 md5 基线
+    = 611b869e13518c3c023fb178f91a0075 (mtime 2026-11-06 07:07:17.362193413 / size 4940213) ⇒ 判据锚 9 行一个字都不许动
+    / 规格页引用 17 行随板改那一趟换基线 / 历史留证 21 行永远不许动
+  note: '[实测] 本单自扫 + 逐处人工判定; 逐处清单 = 清账页 §1.3 (人读) + §1.10 (机器可读 JSON 双形态)'
+  ref: SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md §1 + logs/iss372/01_scan_sw_md5_refs.txt
+- key: iss372_board_reboard_fake_red_gates
+  value: 「板那一趟」改板当天会假红的闸 = SW 域 2 道 (SW/tools/check_fp_truth_read.py 的 F5 硬钉 L87 / SW/tools/check_onepass_legb_sw_impact.py
+    的 G8 硬钉 L70) + 跨域 1 道 (HW/check_iss354_manufacturability.py 的 A-5a/A-5b 硬钉 L40/L41) = 3 道 (这三道没有合法改板通道);
+    已有合法改板通道的 2 道 = check_demo_panel_spec.py 的 R6 + check_onepass_sw_sync.py 的 W6 ⇒ 通道存在之后 板改第二次 当场红 (纯
+    md5 硬保护支路没被放松); ★那 3 道闸的红色原文里没有一个字说 这是合法改板 ⇒ 现场会误读成 板改坏了 ⇒ 板 md5 变第二次 ⇒ 整趟白跑★
+  note: '[实测] 沙盒 T0~T5 六阶段预演 (真件零写板); 缺口编号 iss372_gap_f5_reboard_channel / iss372_gap_g8_reboard_channel
+    / iss372_gap_iss354_reboard_channel; 补法规格 P-C / P-D / P-E (判据方向一个字不改: 仍是 盘上必须 == 期望值, 合法改板只让期望值从保护基线前移到落表台账链头)'
+  ref: logs/iss372/05_sbx_reboard_rehearsal.txt + SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md §2
+- key: iss372_pinned_gates_manifest_stale
+  value: state/board_md5_pinned_gates.json = 2026-11-17 20:49 生成的 9 条 (SW 只 1 条) ⇒ 今天新造的 2 道 SW 闸 (check_fp_truth_read.py
+    17:27 / check_onepass_legb_sw_impact.py 19:50) + 跨域 1 道 不在表里; 且收集口径只收 check_*.py ⇒ state/land_v_values.py
+    L96 (落表器自钉板 md5) 收不进去; 没有任何闸在守它的新鲜 (state/gate_check.py 零命中) ⇒ 刷新后应有的内容 = 现有 9 条 + 新增 3 条 + 口径补 1
+    条
+  note: '[实测] 该表与 .md 是 main 的域 ⇒ 本单零写入, 只登记 刷新后应有的内容 与 三个缺口编号'
+  ref: SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md §3 + §5.1
+- key: iss372_kicad_sch_md5_cannot_be_anchor
+  value: '.kicad_sch 的 md5 不能当锚点 (结论不变) ★但机理订正: 真正的随机源 = state/gen_kicad_sch.py 本身 (L119 uuid.uuid4())
+    ⇒ 跑一次它, 11 个 .kicad_sch 的 raw md5 11/11 全变, 归一化 (UUID + 时间戳) 后 0/11 变 (同图); check_sch_erc.py / check_sch_pinfull.py
+    不改它 ⇒ need 原文那个机理不成立 ⇒ SW 域 .kicad_sch 的 md5 命中 = 0 处 ⇒ 该风险至今没伤到任何人 ⇒ 处置 = 结论订正 + 降级为一条已知注意事项 (不机器化)'
+  note: '[实测] 沙盒实跑 + 归一化对照; 本单已用同 key 在 answers 里答掉 hw-lead 的那条 need (iss249_kicad_sch_md5_not_anchor_sw)'
+  ref: SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md §4 + logs/iss372/03_exp1_sch_md5.txt
 open_questions:
 - id: SW-Q1
   to: main
