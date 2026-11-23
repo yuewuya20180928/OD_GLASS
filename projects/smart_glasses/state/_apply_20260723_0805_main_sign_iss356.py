@@ -226,6 +226,22 @@ def check_iss356():
         out.append(("★目标 lib:name 的【封装文件】真在盘 (逐个查 .kicad_mod)",
                     len(libs) == 0 or len(missing) == 0,
                     "库 %d · 文件 %d · 不在盘 %d %s" % (len(libs), checked, len(missing), missing[:4])))
+        # ★★main 独立复算: 页里声明的 (库文件路径, md5) 对 ⇒ 逐个验【文件在盘 + md5 相符】★★
+        import hashlib as _h
+        pairs = re.findall(r"`([A-Za-z0-9_]+\.pretty/[A-Za-z0-9_.\-]+\.kicad_mod)`\s*md5\s*`([0-9a-f]{32})`", pt)
+        pmiss = []
+        pbad = []
+        for rel, want in pairs:
+            fp = os.path.join(KICAD_FP, rel)
+            if not os.path.isfile(fp):
+                pmiss.append(rel)
+                continue
+            got = _h.md5(open(fp, "rb").read()).hexdigest()
+            if got != want:
+                pbad.append(rel)
+        out.append(("★★基线页声明的 (库文件路径, md5) 对逐个复算 ⇒ 文件在盘 + md5 相符",
+                    len(pairs) > 0 and not pmiss and not pbad,
+                    "%d 对 · 不在盘 %d · md5 不符 %d %s" % (len(pairs), len(pmiss), len(pbad), (pmiss + pbad)[:3])))
         # ★库计数口径 (★main 实读: 155 个 .pretty 库目录 / 15,468 个 .kicad_mod 封装文件★)
         n_dirs = len([d for d in os.listdir(KICAD_FP) if d.endswith(".pretty")]) if os.path.isdir(KICAD_FP) else 0
         n_files = sum(len(os.listdir(os.path.join(KICAD_FP, d))) for d in os.listdir(KICAD_FP)
@@ -240,10 +256,39 @@ def check_iss356():
     else:
         out.append(("★基线页内容判据", False, "页不在盘"))
 
-    # ── 禁语 ──
-    hits = forbidden_hits(txt)
-    out.append(("零外发: 无「等原厂回信/等回复/跟进邮件」的非否定语境表述", len(hits) == 0,
+    # ── 禁语 (★2026-11-23 10:1x 实测修正: 交卷页会【引用规则本身】(★例「禁「等原厂回信」」「黑名单词全文扫」「M5 探针 = 正文首行插「等原厂回信」」★)
+    #   ⇒ 那种句子必须放过, 否则闸恒红 ⇒ ★同时: 真正要管的是【交付物基线页】里不许出现挂起措辞★) ★
+    RULE_DESC = ("黑名单", "探针", "反向", "selftest", "自测", "用例", "C5", "禁语", "禁「", "禁\"", "不许写", "挂起措辞")
+    def real_hits(body):
+        hs = []
+        for w in FORBIDDEN:
+            s = 0
+            while True:
+                i = body.find(w, s)
+                if i < 0:
+                    break
+                line_start = body.rfind("\n", 0, i) + 1
+                line_end = body.find("\n", i)
+                line = body[line_start:line_end if line_end > 0 else len(body)]
+                ctx = body[max(0, i - 80): i + len(w) + 80]
+                if any(n in ctx for n in NEG) or any(r in line for r in RULE_DESC):
+                    s = i + 1
+                    continue
+                hs.append("%s@%d" % (w, i))
+                s = i + 1
+        return hs
+    hits = real_hits(txt)
+    page_txt = ""
+    for cand in (PAGE, "HW/PCB/FP_TRUTH_BASELINE.md"):
+        fp = os.path.join(PROJ, cand)
+        if os.path.isfile(fp):
+            page_txt = open(fp, encoding="utf-8", errors="replace").read()
+            break
+    page_hits = real_hits(page_txt) if page_txt else []
+    out.append(("零外发: 交卷页无「等原厂回信/等回复」的非否定语境表述", len(hits) == 0,
                 "命中 %d %s" % (len(hits), hits[:3])))
+    out.append(("★零外发: 基线页正文无「等原厂回信/等回复」挂起措辞", len(page_hits) == 0,
+                "命中 %d %s" % (len(page_hits), page_hits[:3])))
 
     # ── 证据目录 ──
     n = len(os.listdir(os.path.join(PROJ, LOGS))) if os.path.isdir(os.path.join(PROJ, LOGS)) else 0
@@ -347,7 +392,12 @@ def main():
               + " ★ **零写板** (板 md5 `611b869e13518c3c023fb178f91a0075` · mtime `2026-11-06 07:07:17.362193413` "
                 "逐字节未动 ⇒ **G1 仍开, 不许投板**) · 零落表 · 零改别人的分片 · 零外发 · 未代老板拍板 · 未新增拍板项 ★")
         new = seg.replace("  status: fixing", "  status: verified", 1)
-        new = new.replace("  verify_result: null", "  verify_result: %r" % (vr,), 1)
+        if "  verify_result:" in new:
+            new = new.replace("  verify_result: null", "  verify_result: %r" % (vr,), 1)
+        else:
+            # ★★2026-11-23 12:1x 实测踩到: 有些开单条目【本来就没有 verify_result 键】⇒ 上面的 replace 无处可替
+            #   ⇒ 结果 status 变成 verified 但【没有签收证据】⇒ 台账里出现「空签收」⇒ 必须补一个键出来 ★
+            new = new.rstrip("\n") + "\n  verify_result: %r" % (vr,) + "\n"
         if "  verify_date:" in new:
             new = re.sub(r"^  verify_date: .*$", "  verify_date: '2026-11-23'", new, count=1, flags=re.M)
         else:

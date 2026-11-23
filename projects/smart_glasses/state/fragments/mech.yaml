@@ -6,15 +6,14 @@ status:
   phase: done
   progress_pct: 100
   health: green
-  summary: '★ISS-333 交卷两件套已全部在盘 (★2026-11-23 08:4x 最终收口·mech-lead★): ①交卷页 HANDOFF/2026-11-18_mech-lead_ISS333_MECH侧位号可达性闸实现.md
-    (★74,076 B · B0~B6 七节 + B6-1~B6-9 九段复现 · 占位符 0★) ②分片 state/fragments/mech.yaml (★走 state/frag_write.py
-    原子写·全程零次 open(p,w) · iss333_* 十条 claim + 六条 need + 四件 artifact·闸脚本/证据目录/交卷页/占位符自查脚本★) ★闸本体 MECH/tools/check_mech_ref_reachability.py
-    md5 e105a08fd7d40fed770b63f6fb206f6c / 56,550 B / 2026-11-18 19:36:31 零改 · 已由 main 于 2026-11-18 20:2x
-    挂进 state/gate_check.py EXTRA_GATES 第 8 位 (裸跑·live 内建 17/17 判据分支探针) ★读数: --selftest 14/14 rc=0 · live
-    裸跑 真隐患 10 = 上限 10 rc=0 · merge rc=0 · gate_check rc=0 (Q1 18/18 · Q2 3/3 · Q6 ✅ · Q7 10/10) · issue_check
-    rc=1 (20 条全逾期·0 条属本单·见交卷页 B6-3) · 板 md5 611b869e13518c3c023fb178f91a0075 / mtime 2026-11-06 07:07:17.362193413
-    零写板 · 沙盒软链 0 ★零改既有 MECH 域文档与脚本 · 零改 state/gate_check.py · 零改 state/frag_write.py · 零落表 · 零外发 · 不替老板拍板
-    · 不自签 issue_log'
+  summary: '★ISS-360 (2026-11-23 13:4x mech-lead) 交卷: MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md §1-3 段落末尾以追加式新增
+    §1-3.1 订正标记 (L112 起) ⇒ 板框建议默认值 (F30A 60×30 / 6 层 / 1.00mm) 作为这一趟画哪块板的答案已被 ISS-341 机器判决推翻并作废 (保留作历史留档,
+    结论不再引用), 现口径 = 分层: 第一问 boss_u1_upper_axis_board_trip_physical_product (甲 demo 台架板 ⇒ B160×100 / 8 层
+    / 1.60 / 沿用现役孔位; 乙 产品内板 ⇒ F30A 或 P60×15 ⇒ 那一趟 = 重画一块新板, 186 封装 / 45 条未连接 / S1~S13 全废, 须先拍 ISS-206
+    与主控口径); F30A 的几何数本身没算错 (ISS-341 明文), 作废的是那一栏替上位问题作答 ⇒ 老字零删除 (sed 100,110p md5 追加前后恒等 543c4d7fb001c66ea2ce6b80bebb6769)
+    ⇒ 闸 rc=0 且 --selftest 11/11 ALL TESTS PASS (独立复跑一次) ⇒ 板 md5 611b869e13518c3c023fb178f91a0075 / mtime
+    2026-11-06 07:07:17.362193413 零写板 ⇒ 零落表 零改闸 零外发零采购 未替老板拍板 ⇒ 写 4 处 = 目标页 + 交卷页 + logs/iss360/ 4 件 +
+    本分片 (只走 state/frag_write.py)'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -1607,6 +1606,34 @@ artifacts:
   version: v2.0
   updated_at: '2026-10-25'
   summary: ISS-345全单闭环证据目录21到45号共25份_漂移闸读数与自测_兼容闸与准出闸_双口径新闸裸跑与自测_反向用例四组_默认档五份diff全0字节_第二档四份读数_merge与gate_check_scopeAB重读_派生物JSON档位依赖性根因_三帧表脚本幂等_追加§6后漂移闸复跑仍107of33
+- path: MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md
+  kind: decision_pack
+  version: iss360
+  updated_at: '2026-10-25'
+  summary: '★ISS-360 追加式订正: §1-3 段落末尾新增 §1-3.1 订正标记 (L112 起), 声明板框建议默认值 (F30A / 6 层 / 1.00mm) 作为这一趟画哪块板的答案已被
+    ISS-341 机器判决推翻并作废, 并给出 甲/乙 分层口径与权威页指针; 老字零删除 (sed 100,110p md5 恒等 543c4d7fb001c66ea2ce6b80bebb6769);
+    该页原为 ISS-316 交卷页, 本单只追加不改写既有正文'
+- path: HANDOFF/2026-11-23_mech-lead_ISS360_板框建议默认值作废标注.md
+  kind: handoff
+  version: iss360
+  updated_at: '2026-10-25'
+  summary: '★ISS-360 交卷页: B1 结论 / B2 验收标准自评 / B3 证据分级 / B4 接口取值声明 / B5 未决项与卡点 / B6 自证复现命令 六节齐, 含闸输出与 grep
+    自证输出, 占位符 0'
+- path: logs/iss360/
+  kind: logs
+  version: iss360
+  updated_at: '2026-10-25'
+  summary: '★ISS-360 证据目录 4 件: 01_gate_output_rc0.txt (闸 rc=0 全输出) + 02_gate_selftest_11of11.txt (--selftest
+    rc=0 11/11 ALL TESTS PASS) + 03_target_page_append_readings.txt (追加前后 md5 / 老字恒等 / 追加位置 / 板指纹) + 04_grep_selfproof.txt
+    (旧建议句是否已带订正标记的 grep 自证)'
+- path: logs/iss360/
+  kind: logs
+  version: iss360
+  updated_at: '2026-10-25'
+  summary: '★ISS-360 证据目录 5 件 (★原登记 4 件, 补登 05·merge 与 gate_check 输出 + 收尾 4 行读数★): 01_gate_output_rc0.txt
+    (闸 rc=0 全输出) + 02_gate_selftest_11of11.txt (--selftest rc=0 11/11 ALL TESTS PASS) + 03_target_page_append_readings.txt
+    (追加前后 md5 / 老字判据恒等 / 追加位置 / 板指纹) + 04_grep_selfproof.txt (旧建议句是否已带订正标记的 grep 自证) + 05_merge_and_gate_check.txt
+    (merge rc=0 与 gate_check rc=0 Q1 18/18 输出 + 收尾读数)'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -2948,6 +2975,18 @@ needs_from:
     ⇒ ★mech-lead 仍 6/6(打分对象是 ISS352 那页·pick_handoff 按文件名日期前缀挑·本页文件名 2026-11-18 不被打分)⇒ 归属 sw-lead 那页 +
     关键字表太窄 ⇒ 建议放宽关键字表或对「有 B4 编号但不命中」单报措辞不符而非缺块 ⇒ 同一个根病: 判据只判形不判质(B6 空着也能过 Q1 同款)'
   since: '2026-10-25'
+- key: iss360_u1_layered_axis_to_main
+  to: main
+  item: '★ISS-360 交付: 板框建议默认值 (F30A 60×30 / 6层 / 1.00mm) 作为这一趟画哪块板的答案已被 ISS-341 机器判决推翻, 现口径必须分层: 第一问 =
+    上位问题 boss_u1_upper_axis_board_trip_physical_product (这一趟画甲 demo 台架板 还是 乙 产品内板); 若甲 ⇒ U-1 = B160×100
+    / 8 层 / 1.60 / 沿用现役孔位; 若乙 ⇒ F30A / P60×15 ⇒ 那一趟 = 重画一块新板 (186 封装 / 45 条未连接 / S1~S13 全废), 须先拍 ISS-206
+    与主控口径'
+  since: '2026-11-23'
+- key: iss360_zero_external_pending
+  to: main
+  item: '★ISS-360 零外发零采购: 本单无任何外发缺口, 全部事实取自本机文件与本机实跑, 未发信未询价未问供应商 (老板 2026-11-11 19:31 + 2026-11-12 02:02
+    口径)'
+  since: '2026-11-23'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -3603,6 +3642,12 @@ answers:
   to: main
   value: ISS-345全单已闭环8脚本双口径全做完_五个单口径脚本迁双口径加fit_check明确标退役_三个既有帧表脚本核对结论无需迁几何_默认档60x30五份diff全0字节判据方向未动判据已冻结可进板那一趟_切默认档命令--frame<B160x100>或MECH_FRAME=<B160x100>四个活件同款切完跑一次默认档把派生物拨回_新发现交main裁派生物JSON是最后一跑档位的产物故scopeA原始命中在24到25摆动真数19稳_建议以后统一按真数加排除清单加盘面档位报scopeA_本单不擅自改扫描器口径与派生物写盘行为_本单未拍默认档U1仍在老板队列
   ref: HANDOFF/2026-11-23_mech-lead_ISS345_8脚本迁双口径.md
+- key: iss360_board_frame_default_voided
+  to: main
+  value: '★已在 MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md 的 §1-3 段落末尾 (原 L110 之后 / 原 L112 之前) 以【追加式】新增 §1-3.1
+    订正标记: 声明该建议默认值作为这一趟画哪块板的答案已被 ISS-341 机器判决推翻并作废, 仅保留作历史留档; 同时写明分层口径 (甲/乙) 与权威页指针; 老字一字未删, 未改任何数字与判据方向,
+    未替老板拍板'
+  ref: MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md §1-3.1 (L112 起) + HANDOFF/2026-11-23_mech-lead_ISS360_板框建议默认值作废标注.md
 interface_claims:
 - key: battery_capacity_tier
   value: 315mAh无桥/387mAh有桥
@@ -5637,6 +5682,33 @@ interface_claims:
     key 存在性断言 (★本单零改该脚本·只点名·交 main 拍★)'
   note: 交卷页 §B6-9 · logs/iss333/cont9_final_20261123_0847.txt
   ref: ''
+- key: iss360_board_frame_default_voided_as_u1_answer
+  value: ★该栏答错了层, 不该替上位问题作答 ⇒ 作废 (作废的是作为这一趟画哪块板的答案, 不是 F30A 的几何数本身; ISS-341 明文 算错了吗 = 没算错)
+  note: '★证据分级 [实测]: 闸 MECH/check_board_frame_candidate_compat_gate.py rc=0 且 --selftest 11/11 ALL TESTS
+    PASS (main 已签收 + mech-lead 独立复跑一次); 闸 §8 现役板 = 160.00×100.00 / 8 铜层 / 1.60mm / 186 封装 / SOM 承载区; F30A
+    与 P60×15 判决 = 重画一块新板; 页尾铁律 板只改一次 只有框不变时成立'
+  ref: MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md §1-3.1 + logs/iss360/01_gate_output_rc0.txt + logs/iss360/02_gate_selftest_11of11.txt
+- key: iss360_u1_layered_reading
+  value: ★第一问 = boss_u1_upper_axis_board_trip_physical_product (甲 demo 台架板 vs 乙 产品内板); 若甲 ⇒ B160×100 /
+    8 层 / 1.60 / 沿用现役孔位 (同框同层同厚 ⇒ 板只改一次成立); 若乙 ⇒ F30A 或 P60×15 ⇒ 那一趟 = 重画一块新板 (186 封装 / 45 条未连接 / 作业包
+    S1~S13 全废) ⇒ 须先拍 ISS-206 与主控口径
+  note: '★证据分级 [实测]: 闸 §6 交叉核对 逐字 已落表建议默认值指向帧 F30A + 该帧机器判决 重画一块新板; 闸 §6 口径分层提醒 逐字 本闸只判该帧与现役板的相容性, 不替老板拍这一趟画台架板还是产品板这个上位问题'
+  ref: MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md §1-3.1 + DECISION_ONE_PAGER_2026-11-22.md §⑥(L89) §⑦(L131)
+    §⑬-3(L370) + DECISION_INDEX_2026-11-18.md §E-1(L177) §R(L1000) §T(L1053)
+- key: iss360_append_only_proof
+  value: '★追加式零删除: sed -n 100,110p 目标页 的 md5 在追加前后恒等 = 543c4d7fb001c66ea2ce6b80bebb6769 ⇒ §1-3 既有行 L105~L110
+    一个字节未动; 追加块整体位于 原 L110 之后 / 原 L112 之前; 旧建议句 L107 与订正标记 L112 的行号顺序自证 = ORDER_OK YES'
+  note: '★证据分级 [实测]: 追加前文件 md5 c77cff3f3cd8528f0aa30486270aeb19 (387 行 68195 B) → 追加后 cba6a2b6ea5ec3d2d5c42e8be942548f
+    (418 行 73539 B); grep -n 建议默认值 = 选项 ② 与 grep -n 订正标记 · ISS-360 输出见 logs/iss360/04_grep_selfproof.txt'
+  ref: logs/iss360/03_target_page_append_readings.txt + logs/iss360/04_grep_selfproof.txt
+- key: iss360_zero_write_board
+  value: '★零写板: HW/PCB/demo_mainboard.kicad_pcb md5 = 611b869e13518c3c023fb178f91a0075 / mtime 2026-11-06
+    07:07:17.362193413 / 4940213 B ⇒ 与本单开工前基线三值全同, 未动; 零落表 (未改 state/issue_log.yaml 任何字段, 未改 PROJECT_TRACKER.md);
+    零改闸 (未改 state/gate_check.py / merge.py / frag_write.py / MECH/check_board_frame_candidate_compat_gate.py);
+    零外发零采购'
+  note: '★证据分级 [实测]: md5sum 与 stat 实跑读数; 本单只写 4 处 = 目标页(追加式) + 交卷页 + logs/iss360/ + state/fragments/mech.yaml(只走
+    state/frag_write.py)'
+  ref: logs/iss360/03_target_page_append_readings.txt
 open_questions:
 - id: MECH-Q1
   to: main

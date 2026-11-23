@@ -1,0 +1,43 @@
+=== ISS-360 · merge.py / gate_check.py 输出 (交付最终态) ===
+
+--- python3 state/merge.py ---
+✅ STATE.yaml 已刷新 (2026-11-23T13:51:05+08:00)
+   产出 756 | 阻塞 43 (高危 33) | 未闭合需求 302 | 冲突 0 | 健康度 red
+merge rc=0
+
+--- python3 state/gate_check.py (交付最终态) ---
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-23_hw-lead_ISS359_分片重名key清理.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-23_sw-lead_ISS357_SW未答需求分类.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-23_mech-lead_ISS360_板框建议默认值作废标注.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '官方', '推算', '0数据']
+   sw-lead    标签: ['实测', '官方', '推算', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+   ... (中间 Q3/Q4/Q5 略) ...
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+【Q3 接口声明率】 全员 interface_claims 共 1065 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+【Q4 需求闭环率】
+【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+gate_check rc=0
+
+=== ISS-360 · 收尾 4 行读数 (交付最终态) ===
+交付: 目标页追加位置= MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md §1-3 段落末尾, 新增 §1-3.1 订正标记 L112~L141 (原 L110 之后 / 原 L112 之前) / 交卷页字节= 20989 / logs/iss360/ 件数= 5 / grep -c iss360 state/fragments/mech.yaml = 19
+老字判据: sed -n '100,110p' MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md | md5sum = 543c4d7fb001c66ea2ce6b80bebb6769
+板指纹: md5sum HW/PCB/demo_mainboard.kicad_pcb = 611b869e13518c3c023fb178f91a0075 / mtime=2026-11-06 07:07:17.362193413 +0800 / size=4940213
+闸: merge.py rc=0 / gate_check.py rc=0 / Q1= 18/18 / 占位符数= 0
+
+--- 目标页文件级 ---
+追加前 md5 = c77cff3f3cd8528f0aa30486270aeb19 (387 行 / 68195 B) ⇒ 追加后 md5 = cba6a2b6ea5ec3d2d5c42e8be942548f (418 行 / 73539 B)
+--- 分片 ---
+state/fragments/mech.yaml md5 = d2c509f603f952f90c2d2c02b29423b2 (★全程只走 state/frag_write.py 原子写·零次 open(p,w)★)

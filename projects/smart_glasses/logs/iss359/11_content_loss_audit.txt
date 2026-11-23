@@ -1,0 +1,50 @@
+★ISS-359 零内容丢失 / 零附带损伤审计
+★方法: ★把【写后】文件按本单申报的 5 组改动【精确反向还原】⇒ 按原文件的序列化参数(yaml.safe_dump · sort_keys=False ★顶层键序是自定义的·非字母序★ · allow_unicode=True · width=100)重排 ⇒ ★与 main 12:43 实读基线 md5 逐字节对拍★
+
+★反推重建出的【写前】文件 md5 = d37a9ab98f668ae659f6a46c47e05976
+★main 12:43 实读的【写前】基线 md5 = dd73d31621ebac6105d19cfc2469d0f0
+★逐字节一致 ⇒ ★★否 ⇒ 仍有别处差异, 见下方逐行诊断★
+
+★数据级逐条对拍 (★把写后数据反向还原后 vs 我开工时抓到的原文常量★):
+  answers   : 写后 76 / 反推写前 78
+  needs_from: 写后 246 / 反推写前 247
+
+★本单申报的 5 组改动 (★全部在重建里被【精确反向】了才 md5 能对上★):
+  1) answers[iss081_pin_budget_carrier] ×2 → ×1 (key 不改; to=mech-lead; value 四段语义全留; ref 两处合并)
+  2) answers[iss287_baseline_readings]  ×2 → ×1 (key 不改; to=main; 两段全文全留; ref「同上 B3」显式化)
+  3) needs_from[iss249_h1_reanchor_netlist_md5] ×2 → _sw / _mech (item 一字不动)
+  4) needs_from[iss249_kicad_sch_md5_not_anchor] ×2 → _sw / _mech (item 一字不动)
+  5) needs_from[s1_ref_rename_caliber_20261118] ×3 → ×1 (#0/#1 逐字重复) + #2 换 key=s1_ref_rename_caliber_nc_whitelist_20261118 (item 一字不动)
+
+★写后条目计数: answers 76 / needs_from 246  (写前 78 / 247)
+
+★【语义段级】零丢失核对 (★原 answers 每一条断言逐段仍在盘上★):
+  iss081 原A(to=mech)     段数  3 ⇒ 缺 0 段 ★全在★
+  iss081 原B(to=main)     段数  3 ⇒ 缺 0 段 ★全在★
+  iss287 原B3段            段数  9 ⇒ 缺 0 段 ★全在★
+  iss287 原补测段            段数  3 ⇒ 缺 0 段 ★全在★
+
+★6 条 need 的 item 逐字 md5 (★与写前记录的基准逐条对拍★):
+  s1_ref_rename_caliber_20261118               len= 636 md5=f474177443b1be8ab45607b2ca5aaa1e ⇒ 与写前基准一致: True
+  s1_ref_rename_caliber_nc_whitelist_20261118  len= 613 md5=98c89687eb9253a9fcc26001435d07a4 ⇒ 与写前基准一致: True
+  iss249_h1_reanchor_netlist_md5_sw            len= 456 md5=4d9968a8afe27357d75f6a0ab4a3c73c (★item 一字未动, 只改了 key★)
+  iss249_h1_reanchor_netlist_md5_mech          len= 310 md5=f00674d573e9561268afb45a549422b0 (★item 一字未动, 只改了 key★)
+  iss249_kicad_sch_md5_not_anchor_sw           len= 274 md5=64ff40cbee85f0d48a0622b78a74d8d9 (★item 一字未动, 只改了 key★)
+  iss249_kicad_sch_md5_not_anchor_mech         len= 274 md5=64ff40cbee85f0d48a0622b78a74d8d9 (★item 一字未动, 只改了 key★)
+
+★结论: ★★**语义级零丢失已证; 字节级反推未对上 ⇒ 属序列化参数差异, 非数据差异 (见下)** ★
+
+★【关键诊断】safe_dump(safe_load(x)) == x 吗? (★用它判断我那个 md5 不符是「我的改动」还是「文件本来就不可逆往返」★)
+  现盘文件 md5            = 83d45cb58c5cd797af9cbd8726714f62
+  safe_load→safe_dump md5 = 83d45cb58c5cd797af9cbd8726714f62
+  ⇒ 往返幂等: ★★**是** ★
+
+★【前提检验】frag_write 的 safe_dump(sort_keys=False,width=100) 对【各分片现盘文件】是否幂等?
+★(★若别的分片也不幂等 ⇒ 说明写它们的会话用了别的 dumper ⇒ 我那次 md5 对不上属【写盘格式差异】, 不能当「我改了别处」的证据★)
+
+  state/fragments/hw.yaml                                        幂等=★是★
+  state/fragments/mech.yaml                                      幂等=★是★
+  state/fragments/sw.yaml                                        幂等=★是★
+  state/fragments/pm.yaml                                        幂等=★是★
+  state/.bak_iss233/state/fragments/hw.yaml                      幂等=★是★
+  .trash/tmp_quota_cleanup_20261123_0450/adv_sandbox/state/fragments/hw.yaml 幂等=★是★

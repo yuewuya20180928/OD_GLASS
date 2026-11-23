@@ -1,0 +1,14 @@
+=== 基线 (真网表, 未改) ===
+  C4 占位脚号器件 = 158
+
+=== 变异 1: 只把 5 件的网表节点串改成具名 pinN (板面/land 零改动) ===
+  C4 占位脚号器件 = 153  (基线 158 ⇒ 少了 5)
+  从占位桶里消失的 = ['Q_AND', 'Q_ENVC', 'Q_PG', 'SW_BOOT', 'SW_RST']
+  ⇒ ★C4 是【网表侧节点命名】决定的, 与板面 land 无关★
+
+=== 变异 2: 板面 land 换成官方封装 (13 件) ⇒ netlist_v1.csv 零改动 ⇒ C4 读数 ===
+  C4 的输入 = state/check_pcb_nets.py 的 netlist_pads(rows), rows 来自 HW/netlist_v1.csv
+  ⇒ 板面 land 改动【不进入 C4 计算输入】 ⇒ C4 仍是 158
+  ⇒ ★ISS-356 的 78 件 land 全部做完, C4 读数仍是 158 ⇒ 那条判据【永远凑不齐】★
+
+[清理] 探测副本已删: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss361/netlist_named_probe.csv

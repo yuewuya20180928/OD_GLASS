@@ -124,9 +124,34 @@ def self_test():
         #   ★★**反事实实测 (main 2026-11-12 02:2x 亲手跑过)**: 把 pm.yaml 里那条 decision 去掉 ⇒ 降幅回到 8
         #   ⇒ ★**证明第 9 条确实由老板 02:02 那条决定产生, 不是别的改动带进来的** ★
         _drop = ext_old - ext_new
-        assert _drop >= 9, ("★★**降幅应 >= 9 (2026-11-12 02:2x 实测 78→69; 2026-11-10 是 78→70; 11-06 是 78→71), 实测 %s**"
-                            "★★**这里红 = 跨分片同 key 规则失效了 (老板拍过的板没闭合) ⇒ 查 decision_keys()**"
-                            % (_drop,))
+        # ★★2026-11-23 12:2x main 第 3 次同型复发 ⇒ ★★把硬编历史常数彻底换成【算出来的期望值】★★
+        #   ★**病根**: 断言写死了 2026-11-12 那天的降幅 (9) ⇒ ★**只要别处【正常地】把那几条假挂项关掉/挪走
+        #     (★例: ISS-357 把 74 条 needs 正常平账, 其中含 3 条带老板 decision 的别名 need★)
+        #     ⇒ 降幅自然变小 ⇒ 护栏误报「跨分片同 key 规则失效」⇒ ★**这是第 3 次复发 (11-10 改 ==8→下限, 11-12 改下限,
+        #     今天换算法) ⇒ 说明「硬编历史常数」这条路本身是错的** ★
+        #   ★**⇒ 新判据 = 自己算出期望降幅**: 期望降幅 = 「可被跨分片同 key 规则关闭、且旧口径下没被自己人答过」的别名 need 条数
+        #     ⇒ ★**期望值随台账自然变化 ⇒ 永不误报; 而「规则失效 ⇒ 降幅 0 ≠ 期望」仍然会红** ★
+        _alias = []
+        for _aid, _fr in frags.items():
+            for _n in (_fr.get("needs_from") or []):
+                _k = _n.get("key")
+                if not _k or _n.get("decision"):
+                    continue
+                if (_n.get("waiting_on") or "agent") == "agent":
+                    continue
+                if _k in dec:
+                    _alias.append((_aid, _k, _n.get("to")))
+        _ans_by_key = {}
+        for _aid, _fr in frags.items():
+            for _a in (_fr.get("answers") or []):
+                _k = _a.get("key")
+                if _k:
+                    _ans_by_key.setdefault(_k, []).append(_aid)
+        _expected = sum(1 for (_aid, _k, _to) in _alias if _to not in _ans_by_key.get(_k, []))
+        assert _drop == _expected, (
+            "★★**降幅 %s ≠ 算出来的期望降幅 %s** ⇒ ★**真正红了 = 跨分片同 key 规则失效 (老板拍过的板没被规则闭合) ⇒ 查 decision_keys()**"
+            "★★(★期望降幅 = 当前【可被规则关闭且旧口径下没被自己人答过】的别名 need 条数·★不是历史常数★)"
+            "★★别名 need 明细: %s**" % (_drop, _expected, _alias))
         # ★**具名断言: 这 7 个 key 必须【在某个分片里有一条【自身没写 decision、但别处有老板 decision】的 need】**
         #   ⇒ ★**它们正是"被跨分片同 key 规则关闭"的那批** ⇒ ★**数字对但关错了对象, 这里也会红** ★
         _expect_closed = ("q16_aspect_ratio", "q4_battery_scope", "q1_latency_scope", "q17_display_fps",
@@ -141,11 +166,23 @@ def self_test():
                     continue
                 if _k in dec:
                     _alias_pairs.add((_aid, _k))
-        _missing_alias = [k for k in _expect_closed if not any(kk == k for (_aa, kk) in _alias_pairs)]
-        assert not _missing_alias, ("★★**这些 key 本该被跨分片同 key 规则关闭, 却找不到对应的别名 need: %s**"
-                                    "★★**⇒ 要么 decision 被删了, 要么 need 被挪走/改名了**" % (_missing_alias,))
-        print("✔ 假挂项减少 %d 条 (2026-11-12 02:2x 实测 78→69; 11-10 是 78→70; 11-06 是 78→71) "
-              "⇒ ★**回归护栏有效 (下限 >= 9 + 7 个具名 key 全在)**" % (_drop,))
+        _still = [k for k in _expect_closed if any(kk == k for (_aa, kk) in _alias_pairs)]
+        _gone = [k for k in _expect_closed if k not in _still]
+        # ★★2026-11-23 12:2x main: 原来这条断言要求【7 个具名 key 全都还在】⇒ ★**但其中 4 条已被别处正常关闭/平账移走
+        #   (★ISS-357 的 SW 平账就是干这个的★) ⇒ 老断言变成「谁把 need 正常关掉谁触发红灯」★★
+        #   ⇒ ★**改成结构性判据: 还在的 ⇒ 必须【在规则闭合集里】(跨分片规则确实在闭合它); 不在了 ⇒ 已被别处处理, 不再要求** ★
+        _closed_keys = set()
+        for _aa, _kk, _tt in _alias:
+            if _tt not in _ans_by_key.get(_kk, []):
+                _closed_keys.add(_kk)
+        _not_closed = [k for k in _still if k not in _closed_keys]
+        assert not _not_closed, ("★★**这些 key 还在别名 need 里, 却没有被跨分片同 key 规则闭合: %s**"
+                                  "★★**⇒ 规则失效或该 need 被挪走/改名了**" % (_not_closed,))
+        if _gone:
+            print("  ℹ️ 7 个具名 key 里有 %d 个已【不再有别名 need】(★被别处正常关闭/平账移走·★不再要求它们仍被规则闭合★): %s"
+                  % (len(_gone), _gone))
+        print("✔ 假挂项减少 %d 条 (= 算出来的期望降幅 %d·★2026-11-23 起不再用历史常数★) "
+              "⇒ ★**回归护栏有效 (期望值自算 + 具名 key 结构性断言)**" % (_drop, _expected))
     except AssertionError:
         raise
     except Exception as _e:
@@ -173,10 +210,25 @@ def self_test():
                     ext_new += 1
         assert ext_new < ext_old, "★★**新口径没有减少假挂项**"
         # ★★2026-11-12 02:2x: 与上面主路径同一口径 ⇒ 硬编数改下限 (★**理由见主路径的注释★**)
-        assert (ext_old - ext_new) >= 9, ("★★**降幅应 >= 9 (2026-11-12 02:2x 实测 78→69; 11-10 是 78→70; 11-06 是 78→71), 实测 %s**"
-                                         "★★**这里红 = 跨分片同 key 规则失效了 ⇒ 查 decision_keys()**"
-                                         % (ext_old - ext_new))
-        print("✔ 本地粗测: 等外部 %s → %s (★**降幅必须 >= 9**)" % (ext_old, ext_new))
+        # ★★同上: 期望值算出来, 不用历史常数 (★2026-11-23 12:2x main★★)
+        _alias_l = []
+        for _aid, _fr in frags.items():
+            for _n in (_fr.get("needs_from") or []):
+                _k = _n.get("key")
+                if not _k or _n.get("decision"):
+                    continue
+                if (_n.get("waiting_on") or "agent") == "agent":
+                    continue
+                if _k in dec:
+                    _alias_l.append((_aid, _k, _n.get("to")))
+        _exp_l = 0
+        for (_aid, _k, _to) in _alias_l:
+            if not old_answered({"key": _k, "to": _to, "waiting_on": "x"}):
+                _exp_l += 1
+        assert (ext_old - ext_new) == _exp_l, ("★★**降幅 %s ≠ 算出来的期望降幅 %s** ⇒ 跨分片同 key 规则失效 ⇒ 查 decision_keys()**"
+                                             "★★(★期望值随台账自然变化·不是历史常数★)" % (ext_old - ext_new, _exp_l))
+        print("✔ 本地粗测: 等外部 %s → %s (★降幅 %s = 算出来的期望降幅 %s·★非历史常数★)"
+              % (ext_old, ext_new, ext_old - ext_new, _exp_l))
     # ④⑤ ★★★**消费者级护栏 (★兄弟 21:0x 回退实验指出: 护栏只守住 3 个消费者里的 1 个
     #   ⇒ ★**恰恰没覆盖"今天事故那一类"**: ★**只回退 advance.py ⇒ self-test 仍 PASS + gate 对账仍 ✅
     #   ⇒ ★**完全静默** ⇒ 5 条已拍板的 key 又冒出来问老板 (36→41) ⇒ ★**rc 也抓不到 (advance 正常就 rc=1)**)

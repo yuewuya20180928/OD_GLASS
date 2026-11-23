@@ -1,0 +1,139 @@
+==============================================================================
+ISS-362 只读探针 · /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+==============================================================================
+
+[1] 三份受管真源 · 盘上现值 + footprint 栏
+  HW/netlist_v1.csv          盘上 md5 = 6aee500e60ba0732f83a9cf557ba90ab
+                             台账链头  = 6aee500e60ba   链头产出单号 = ['ISS-302']
+                             链长 = 11  取不准原因 = ''
+                             链(新→旧) = 6aee500e60ba ← 37f62ac3f0b8 ← 87f2f7925135 ← 2f17650cfbef ← e06c1dd63356 ← 16ac89f77c25 ← 611c3ba3db3d ← 34132f7e40a2 …
+                             盘上==链头? True
+  HW/netlist_v1_pins.csv     盘上 md5 = 9174309df1ec9411ac8e8d9e80ee386a
+                             台账链头  = 9174309df1ec   链头产出单号 = ['ISS-302']
+                             链长 = 9  取不准原因 = ''
+                             链(新→旧) = 9174309df1ec ← a4270120454a ← 8ca46495ba03 ← 6ea65fecdf95 ← 287e7861a0d1 ← ef436a37412a ← b21b743a7702 ← a600afae493f …
+                             盘上==链头? True
+  HW/BOM_v1.csv              盘上 md5 = 5b9993992405904a60ac96a020b375d8
+                             台账链头  = 5b9993992405   链头产出单号 = ['ISS-302']
+                             链长 = 8  取不准原因 = ''
+                             链(新→旧) = 5b9993992405 ← 5d02bece9477 ← ea5f4f58e3fb ← 94642d07a69e ← 2a7305741134 ← c195a117ff17 ← 92b51580867d ← c0b335e1601c
+                             盘上==链头? True
+
+[2] footprint 栏实测 (三份真源)
+  HW/netlist_v1.csv          第 14 栏 = 'footprint'  数据行 = 513  含『待定/待选』行 = 0  含★行 = 0
+      ''                                         × 423
+      'X2SON (DQN) 1.0 x 1.0 mm'                 × 20
+      'SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高  × 18
+      'Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch  × 11
+      'WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8 × 10
+      'UQFN-4 RAA, 0.85 x 0.75 mm, 0.4 mm pitch' × 8
+  HW/netlist_v1_pins.csv     第 11 栏 = 'footprint'  数据行 = 584  含『待定/待选』行 = 0  含★行 = 0
+      ''                                         × 454
+      'X2SON (DQN) 1.0 x 1.0 mm'                 × 25
+      'WQFN-24 4x4mm P0.5 (RTW 24, 16mm², h<=0.8 × 24
+      'Hirose FH12-22S-0.5SH, 22P / 0.5mm pitch  × 22
+      'SMT 贴片 USB-C 母座, 8.64 x 6.40 mm 焊盘区, 主体高  × 17
+      'GCT USB4105-16P 自绘 land pattern (原厂图纸 Rev × 14
+  HW/BOM_v1.csv              第 10 栏 = 'footprint'  数据行 = 218  含『待定/待选』行 = 192  含★行 = 22
+      '待定'                                       × 178
+      'X2SON (DQN) 1.0 x 1.0 mm'                 × 5
+      '★板文件封装: 2 焊盘 (按键 (待选型))'                  × 4
+      '★板文件封装: 2 焊盘 (ESD 阵列 [待选型])'              × 2
+      'SON-8 Q3, 3.3 x 3.3 mm'                   × 2
+      'VQFN-16 RGT, 3.00 x 3.00 mm, 带散热焊盘'       × 2
+
+[3] SW 侧读 footprint 栏的地方 (SW/tools/*.py + SW/*.md)
+  SW/tools/*.py 命中文件 = 0 个
+  SW/*.md 命中文件 = 5 个
+      SW/BOARD_ONEPASS_SW_SYNC.md                              × 2
+      SW/LOAD_SWITCH_SELECTION_FACTS.md                        × 21
+      SW/ONETRIP_SW_RENAME_SAFETY.md                           × 1
+      SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md                   × 5
+      SW/SW_TIMING_REVIEW.md                                   × 1
+  ⇒ SW/tools/*.py 里读 footprint 栏的文件数 = 0 (★注意: 命中『footprint』字面量≠读那一栏★)
+
+[4] SW/BOARD_ONEPASS_SW_SYNC.md 的 8 条清单 · footprint 命中
+  JSON 块 items 条数 = 8
+    SW01_PCB_MD5           step=S9   含 footprint/封装 字样 = False
+    SW02_KICAD_PRO_MD5     step=S9   含 footprint/封装 字样 = True
+    SW03_LAND8_DNP         step=S10  含 footprint/封装 字样 = True
+    SW04_CHG_LED_REF       step=S10  含 footprint/封装 字样 = True
+    SW05_KEY_NETNAMES      step=S10  含 footprint/封装 字样 = False
+    SW06_TP_INT            step=S8   含 footprint/封装 字样 = False
+    SW07_C_VBUS_GND        step=S2   含 footprint/封装 字样 = True
+    SW08_ESD_USB_D         step=S4   含 footprint/封装 字样 = True
+  ⇒ 8 条里提到 footprint/封装的条目 = ['SW02_KICAD_PRO_MD5', 'SW03_LAND8_DNP', 'SW04_CHG_LED_REF', 'SW07_C_VBUS_GND', 'SW08_ESD_USB_D']
+
+[5] STATE.yaml needs_matrix.pending 里 to=sw-lead 的条目 · md5 逐条比对
+  pending 总数 = 302 ; to=sw-lead = 13
+    iss223_chg_spec7_csv_not_valid                 md5 = (无)   ← 这条一个 32 位 md5 都没引
+    iss232_no_netlist_change_anchor_ok             3215020b6d4120e1b7728227effdc6d3  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss233_sw_md5_reanchor                         3215020b6d4120e1b7728227effdc6d3  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss233_sw_md5_reanchor                         34132f7e40a241e1fae1476be0eafbd5  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss233_sw_md5_reanchor                         a600afae493f5a7a6c55f46ad35ac89c  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss233_sw_md5_reanchor                         b21b743a7702d30729f0d653c15392df  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss236_h1_reanchor                             cb477b37aa0d3ae36ed359d4b96c16a7  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss236_h1_reanchor                             b65d200080ba9abbf4c6589584546ac8  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss236_h1_reanchor                             1119c2a860c273833adaaf21af09d953  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss239_h1_reanchor_sw                          md5 = (无)   ← 这条一个 32 位 md5 都没引
+    iss249_h1_reanchor_netlist_md5_sw              611c3ba3db3dc7de7213063375b96d01  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss249_h1_reanchor_netlist_md5_sw              16ac89f77c25a3f61834cc7ebcd78a7f  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss249_h1_reanchor_netlist_md5_sw              ef436a37412ac9b6eac3c9f41f1edca4  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss249_h1_reanchor_netlist_md5_sw              2a7305741134788dfee9f13f34c656b4  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss249_h1_reanchor_netlist_md5_sw              611b869e13518c3c023fb178f91a0075  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss249_h1_reanchor_netlist_md5_sw              3e504d2be83152e337949723e909be1b  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss249_kicad_sch_md5_not_anchor_sw             md5 = (无)   ← 这条一个 32 位 md5 都没引
+    iss257_h1_reanchor_to_sw_lead                  e06c1dd633566aa44732762c2ff99d1c  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss257_h1_reanchor_to_sw_lead                  287e7861a0d1007748d92d9fbecdd490  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss257_h1_reanchor_to_sw_lead                  16ac89f77c25a3f61834cc7ebcd78a7f  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss257_h1_reanchor_to_sw_lead                  ef436a37412ac9b6eac3c9f41f1edca4  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss260_h1_reanchor_after_v2_land               02c3cec178d33fdc65e49917b575fe25  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss260_h1_reanchor_after_v2_land               2c950b675d1eb52176f00b5ba8e05152  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss260_h1_reanchor_after_v2_land               94642d07a69e8d60dd2af57f69b93607  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss260_h1_reanchor_after_v2_land               e06c1dd633566aa44732762c2ff99d1c  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss260_h1_reanchor_after_v2_land               287e7861a0d1007748d92d9fbecdd490  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss236_h1_reanchor_v2                          e06c1dd633566aa44732762c2ff99d1c  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss236_h1_reanchor_v2                          287e7861a0d1007748d92d9fbecdd490  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss236_h1_reanchor_v2                          94642d07a69e8d60dd2af57f69b93607  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss236_h1_reanchor_v2                          f617ffc1fd60e5b4a04ab911999dda17  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss236_h1_reanchor_v2                          9effa57cb827713cd6d645390ac65d72  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss236_h1_reanchor_v2                          cb830fbae560948bd10fd5780a10700a  ★ 陈旧 (既不等于盘上现值, 也不等于台账链头)
+    iss283_sw_anchor_reanchor_after_landing        md5 = (无)   ← 这条一个 32 位 md5 都没引
+    iss334_need4a_single_end_net_usage             md5 = (无)   ← 这条一个 32 位 md5 都没引
+    iss229_mech_sw_evt_pwr05_charge_current_criterion md5 = (无)   ← 这条一个 32 位 md5 都没引
+  ⇒ 陈旧 md5 条数 = 29 (涉及 need 7 条)
+      iss232_no_netlist_change_anchor_ok             3215020b6d4120e1b7728227effdc6d3  (since 2026-11-16)
+      iss233_sw_md5_reanchor                         3215020b6d4120e1b7728227effdc6d3  (since 2026-11-16)
+      iss233_sw_md5_reanchor                         34132f7e40a241e1fae1476be0eafbd5  (since 2026-11-16)
+      iss233_sw_md5_reanchor                         a600afae493f5a7a6c55f46ad35ac89c  (since 2026-11-16)
+      iss233_sw_md5_reanchor                         b21b743a7702d30729f0d653c15392df  (since 2026-11-16)
+      iss236_h1_reanchor                             cb477b37aa0d3ae36ed359d4b96c16a7  (since 2026-11-16)
+      iss236_h1_reanchor                             b65d200080ba9abbf4c6589584546ac8  (since 2026-11-16)
+      iss236_h1_reanchor                             1119c2a860c273833adaaf21af09d953  (since 2026-11-16)
+      iss249_h1_reanchor_netlist_md5_sw              611c3ba3db3dc7de7213063375b96d01  (since 2026-11-16)
+      iss249_h1_reanchor_netlist_md5_sw              16ac89f77c25a3f61834cc7ebcd78a7f  (since 2026-11-16)
+      iss249_h1_reanchor_netlist_md5_sw              ef436a37412ac9b6eac3c9f41f1edca4  (since 2026-11-16)
+      iss249_h1_reanchor_netlist_md5_sw              2a7305741134788dfee9f13f34c656b4  (since 2026-11-16)
+      iss249_h1_reanchor_netlist_md5_sw              611b869e13518c3c023fb178f91a0075  (since 2026-11-16)
+      iss249_h1_reanchor_netlist_md5_sw              3e504d2be83152e337949723e909be1b  (since 2026-11-16)
+      iss257_h1_reanchor_to_sw_lead                  e06c1dd633566aa44732762c2ff99d1c  (since 2026-11-16)
+      iss257_h1_reanchor_to_sw_lead                  287e7861a0d1007748d92d9fbecdd490  (since 2026-11-16)
+      iss257_h1_reanchor_to_sw_lead                  16ac89f77c25a3f61834cc7ebcd78a7f  (since 2026-11-16)
+      iss257_h1_reanchor_to_sw_lead                  ef436a37412ac9b6eac3c9f41f1edca4  (since 2026-11-16)
+      iss260_h1_reanchor_after_v2_land               02c3cec178d33fdc65e49917b575fe25  (since 2026-11-16)
+      iss260_h1_reanchor_after_v2_land               2c950b675d1eb52176f00b5ba8e05152  (since 2026-11-16)
+      iss260_h1_reanchor_after_v2_land               94642d07a69e8d60dd2af57f69b93607  (since 2026-11-16)
+      iss260_h1_reanchor_after_v2_land               e06c1dd633566aa44732762c2ff99d1c  (since 2026-11-16)
+      iss260_h1_reanchor_after_v2_land               287e7861a0d1007748d92d9fbecdd490  (since 2026-11-16)
+      iss236_h1_reanchor_v2                          e06c1dd633566aa44732762c2ff99d1c  (since 2026-11-17)
+      iss236_h1_reanchor_v2                          287e7861a0d1007748d92d9fbecdd490  (since 2026-11-17)
+      iss236_h1_reanchor_v2                          94642d07a69e8d60dd2af57f69b93607  (since 2026-11-17)
+      iss236_h1_reanchor_v2                          f617ffc1fd60e5b4a04ab911999dda17  (since 2026-11-17)
+      iss236_h1_reanchor_v2                          9effa57cb827713cd6d645390ac65d72  (since 2026-11-17)
+      iss236_h1_reanchor_v2                          cb830fbae560948bd10fd5780a10700a  (since 2026-11-17)
+
+[6] SW/SW_MD5_BASELINE_LEDGER.md §1 source_ledger.entries[] 现状
+    HW/netlist_v1.csv          by=ISS-257    prev=16ac89f77c25  登记 md5=e06c1dd63356
+                               盘上现值=6aee500e60ba  台账链头=6aee500e60ba  ⇒ 锚点副本落后 1 跳
+    HW/netlist_v1_pins.csv     by=ISS-257    prev=ef436a37412a  登记 md5=287e7861a0d1
+                               盘上现值=9174309df1ec  台账链头=9174309df1ec  ⇒ 锚点副本落后 1 跳

@@ -1,0 +1,27 @@
+★ISS-359 合并后取值预览 (★纯内存·零落盘·写盘前最后一眼★)
+
+=== answers[iss081_pin_budget_carrier] 合并后 (to=mech-lead) ===
+value: C-min=41/C-base=57/C-max=91; <=50脚仅C-min可行; 封装球数非风险; BTB按60位/载板16x16预留(勿因pin预算缩到40位); 建议BTB 60位+载板16x16 ★【ISS-359 清重名】原同 key 两条答复并成 1 条 (一条 to=mech-lead + 一条 to=main): 四段语义全部保留, 本条同口径亦同步 main ★
+ref  : HW/SOC_PIN_BUDGET.md#1.1 + HW/SOC_PIN_BUDGET.md
+   保留段 <=50脚仅C-min可行                              : 在
+   保留段 BTB按60位/载板16x16预留(勿因pin预算缩到40位)            : 在
+   保留段 封装球数非风险                                    : 在
+   保留段 建议BTB 60位+载板16x16                          : 在
+   保留段 C-min=41/C-base=57/C-max=91                : 在
+   原 A081_MECH 全文逐字在其中: True
+
+=== answers[iss287_baseline_readings] 合并后 (to=main) ===
+value: 官方板 186 封装 / 8 铜层 / 板框 160.10×100.10 / S6 已在目标位19 不同1(R_SEL_D3_P) 缺失0 / DNP 板上零标记 40 颗 / 位号问号 0 行 / unconnected 45 / DRC violations 0 / Gerber 32 || 同批补测: 官方板 186 封装里末字符是字母的只有 156 个 (另 30 个末字符是数字不动) ⇒ 板侧真正要加 _1 的是 156 个不是 186 个; 官方板带 _1 后缀的位号 = 1 个 (R_BAT_DET_1) ⇒ 改完 157 个 (S2 后 156); 封装数官方板 186 / 生成板 185 差 1 = C_VBUS_GND (CHG_BOARD 归属 + DNP 但官方板上有实物封装@107.70,42.50) ⇒ 动板那趟按官方板数走 开工前 186 收工后 185 ★【ISS-359 清重名】原同 key 两条答复并成 1 条 (原「同上 B3」段 + 原「同批补测」段): 两段全文保留 ★
+ref  : HANDOFF/2026-11-17_hw-lead_ISS287_沙盒干跑可行性探针.md B3 (★原 ref 逐字写作「同上 B3」⇒ 经文件实读确认指向本文档 B3 读数表★) + HANDOFF/2026-11-17_hw-lead_ISS289_作业包现状值对回盘面.md §B2
+   原 B3 段逐字在其中: True | 原 补测段逐字在其中: True
+
+=== needs_from 改 key 预览 (item 一字不动) ===
+  iss249_h1_reanchor_netlist_md5       to=sw-lead    → key=iss249_h1_reanchor_netlist_md5_sw
+  iss249_h1_reanchor_netlist_md5       to=mech-lead  → key=iss249_h1_reanchor_netlist_md5_mech
+  iss249_kicad_sch_md5_not_anchor      to=sw-lead    → key=iss249_kicad_sch_md5_not_anchor_sw
+  iss249_kicad_sch_md5_not_anchor      to=mech-lead  → key=iss249_kicad_sch_md5_not_anchor_mech
+  s1 #0 (len 636 md5 f474177443b1be8ab45607b2ca5aaa1e) 保留 key 不变, item 一字不动
+  s1 #1 (len 636 md5 f474177443b1be8ab45607b2ca5aaa1e) ★逐字重复 ⇒ 删除, 零丢失★
+  s1 #2 (len 613 md5 98c89687eb9253a9fcc26001435d07a4) → key=s1_ref_rename_caliber_nc_whitelist_20261118 (item 一字不动)
+
+★计数: answers 78 → 76 | needs_from 247 → 246 | 全局内部未闭合 301 → 300 (s1 少 1 条 pending)

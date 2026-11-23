@@ -1,0 +1,88 @@
+<!-- H3-REG:BEGIN -->
+★**H3-REG · SW 侧待办 need 里引着的过期 md5 · 逐条清理口径** ★
+
+★**机器判据 (★闸 `SW/tools/check_sw_fp_truth_impact.py` H3 逐条复核·不是靠人眼★)** ★
+
+| 判据 | 含义 |
+|---|---|
+| 落在链上 | 该 md5 是 SW 受管真源 (网表 / 脚表 / BOM) 某一跳落表产出过的值 ⇒ 已被链头取代 ⇒ 处置词必须是 **退休** |
+| 不在链上 | 该 md5 从来没落到过这三件上 (多是沙盒排练值 / 预估值) ⇒ 不是合法历史值 ⇒ 处置词必须是 **改写** |
+| 保持 | 该 md5 是受保护 5 件的**盘上现值** (板 / `.kicad_pro`) ⇒ 不是过期值 ⇒ 不许当陈旧值处理 |
+
+★**处置词的含义** ★
+
+- **退休** = 这条 need 的正文【原样留档】, 但它【不再是一条待执行的重锚指令】 ⇒ 它不再虚增未闭合需求数
+- **改写** = 这条 need 正文里那个 md5 【不许被照抄进任何锚点】 ⇒ 真要重锚只能用【落表台账链头】
+- **保持** = 这个值是当前的合法值 (板 / `.kicad_pro` 的保护基线) ⇒ 不动
+
+★**§2-1 · 逐条 need 处置表 (need 级 · 覆盖全部 9 条引着 md5 字面量 + 1 条无 md5 但同类的 to=sw-lead 待办 need)** ★
+
+| need key | since | 引了几个 md5 | 其中陈旧几个 | 处置 | 一句话理由 |
+|---|---|---|---|---|---|
+| `iss232_no_netlist_change_anchor_ok` | 2026-11-16 | 2 | 2 | **退休** | 它正文说的是【网表这一轮没改 ⇒ 锚点不用动】; 那个前提早就被后续落表推翻 ⇒ 它作为【待执行指令】已过期 ⇒ 退休; 但它正文里的脚表 8 位短写 `a600afae` 是历史值 ⇒ 不许照抄 ⇒ 改写 |
+| `iss233_sw_md5_reanchor` | 2026-11-16 | 4 | 4 | **退休** | 它要的是「按 H-1 重锚 §1 entries[] 的 md5」; ISS-275 已把判决源换成【落表台账链头】(链头自动前移·不用再追锚点) ⇒ 这条 need 作为【待执行指令】已过期 ⇒ 退休; 它正文里的 4 个值全是历史值 ⇒ 不许照抄 |
+| `iss236_h1_reanchor` | 2026-11-16 | 6 | 6 | **退休 + 改写** | 它正文里那 3 个 32 位 md5 是【V-3=E 真落之前在 /tmp 副本上排练出来的值】(它自己写明「在 /tmp 副本上实跑」) ⇒ 它们从来没落到过盘上 ⇒ 不是合法历史值 ⇒ 改写 (照抄会把锚点写到一个不存在的值上) |
+| `iss249_h1_reanchor_netlist_md5_sw` | 2026-11-16 | 6 | 4 | **退休** | 它要的 H-1 重锚早已被 ISS-275 取代 ⇒ 退休; 它正文里的 4 个 32 位 md5 都是已被链头取代的历史值 ⇒ 不许照抄 ⇒ 退休; ★它正文里另外那 2 个 (板 611b869e / .kicad_pro 3e504d2b) 是【受保护 5 件的盘上现值】⇒ 不是过期值 ⇒ 保持 |
+| `iss257_h1_reanchor_to_sw_lead` | 2026-11-16 | 4 | 4 | **退休** | 它正文里明写「本机 21:4x 实跑红点: R6 盘上 md5 e06c1dd6 ≠ 锚点 16ac89f7」—— ★那个红就是 ISS-275 要消灭的红★ ⇒ ISS-275 已把判决源换成链头 ⇒ 这条 need 作为【待执行指令】已过期 ⇒ 退休; 它正文里的 4 个值全是历史值 ⇒ 不许照抄 |
+| `iss260_h1_reanchor_after_v2_land` | 2026-11-16 | 5 | 5 | **退休 + 改写** | 它正文里明写「本单没落, 所以现在不用动」+「沙盒端到端实测的新 md5」⇒ 那 2 个 32 位 md5 是【排练值】⇒ 改写; 另外 3 个是历史值 ⇒ 退休; 整条 need 作为【待执行指令】已过期 ⇒ 退休 |
+| `iss236_h1_reanchor_v2` | 2026-11-17 | 6 | 6 | **退休 + 改写** | 它是 iss236_h1_reanchor 的订正版, 正文里 3 个 32 位 md5 是【沙盒排练实测值】(它自己写明「排练值·真盘真落后 md5 会再变·以那一遍实测为准·不许拿排练值改台账」) ⇒ ★这条 need 自己就写着「不许拿排练值改台账」★ ⇒ 改写; 另外 3 个是历史值 ⇒ 退休 |
+| `iss239_h1_reanchor_sw` | 2026-10-25 | 5 | 5 | **退休 + 改写** | 它正文里 3 个 8 位短写是【预估 / 副本排练值】(它自己写明「预估 (/tmp 副本 cp -a 整棵树实跑)」) ⇒ 改写; 另外 2 个 (34132f7e / b21b743a) 是已被取代的历史值 ⇒ 退休; 整条 need 作为【待执行指令】已过期 ⇒ 退休 |
+| `iss283_sw_anchor_reanchor_after_landing` | 2026-11-17 | 4 | 4 | **退休** | 它正文里明写「盘上已是 ISS-283 落表后的 37f62ac3 / a4270120」+「降级 = 按台账 §16.2 链头 L1353 追加一条 entries」⇒ ★它给的处置恰恰就是 ISS-275 已经换成链头判决源的那件事 ⇒ 这条 need 作为【待执行指令】已过期 ⇒ 退休; 它正文里的 4 个 8 位短写都是历史值 ⇒ 不许照抄 |
+| `iss249_kicad_sch_md5_not_anchor_sw` | 2026-11-16 | 0 | 0 | **退休** | ★这条 need 一个 md5 字面量都没有 (它说的是「.kicad_sch 的 md5 不能当锚点」) ⇒ 不在 H3 的逐条判据内 ⇒ 但它【同样已经过期】(ISS-275 之后 .kicad_sch 也不在受保护 5 件里) ⇒ 退休 (登记在本表里留档) |
+
+★**§2-2 · 逐条 md5 登记 (★机器逐条复核用 ★ 本单【不许】改 need 条目·只出建议表★)** ★
+
+★下列每一行都是机器可复核的: 【need key】+【它引的那个 md5】+【处置】三件套缺一 ⇒ H3 判红 ★
+
+- NEED-KEY: iss232_no_netlist_change_anchor_ok | NEED-MD5: 3215020b6d4120e1b7728227effdc6d3 | PRODUCED-BY: ISS-220 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 8 跳 · 链头 6aee500e60ba | SINCE: 2026-11-16
+- NEED-KEY: iss233_sw_md5_reanchor | NEED-MD5: 3215020b6d4120e1b7728227effdc6d3 | PRODUCED-BY: ISS-220 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 8 跳 · 链头 6aee500e60ba | SINCE: 2026-11-16
+- NEED-KEY: iss233_sw_md5_reanchor | NEED-MD5: 34132f7e40a241e1fae1476be0eafbd5 | PRODUCED-BY: ISS-233 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 7 跳 · 链头 6aee500e60ba | SINCE: 2026-11-16
+- NEED-KEY: iss233_sw_md5_reanchor | NEED-MD5: a600afae493f5a7a6c55f46ad35ac89c | PRODUCED-BY: ISS-220 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 7 跳 · 链头 9174309df1ec | SINCE: 2026-11-16
+- NEED-KEY: iss233_sw_md5_reanchor | NEED-MD5: b21b743a7702d30729f0d653c15392df | PRODUCED-BY: ISS-233 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 6 跳 · 链头 9174309df1ec | SINCE: 2026-11-16
+- NEED-KEY: iss236_h1_reanchor | NEED-MD5: 1119c2a860c273833adaaf21af09d953 | PRODUCED-BY: — | DISPOSITION: 改写 | WHERE: 不在任何一跳落表链上 (排练值 / 预估值) | SINCE: 2026-11-16
+- NEED-KEY: iss236_h1_reanchor | NEED-MD5: b65d200080ba9abbf4c6589584546ac8 | PRODUCED-BY: — | DISPOSITION: 改写 | WHERE: 不在任何一跳落表链上 (排练值 / 预估值) | SINCE: 2026-11-16
+- NEED-KEY: iss236_h1_reanchor | NEED-MD5: cb477b37aa0d3ae36ed359d4b96c16a7 | PRODUCED-BY: — | DISPOSITION: 改写 | WHERE: 不在任何一跳落表链上 (排练值 / 预估值) | SINCE: 2026-11-16
+- NEED-KEY: iss249_h1_reanchor_netlist_md5_sw | NEED-MD5: 16ac89f77c25a3f61834cc7ebcd78a7f | PRODUCED-BY: ISS-249 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 5 跳 · 链头 6aee500e60ba | SINCE: 2026-11-16
+- NEED-KEY: iss249_h1_reanchor_netlist_md5_sw | NEED-MD5: 2a7305741134788dfee9f13f34c656b4 | PRODUCED-BY: ISS-249 | DISPOSITION: 退休 | WHERE: BOM_v1.csv 落表链第 4 跳 · 链头 5b9993992405 | SINCE: 2026-11-16
+- NEED-KEY: iss249_h1_reanchor_netlist_md5_sw | NEED-MD5: 611c3ba3db3dc7de7213063375b96d01 | PRODUCED-BY: ISS-243 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 6 跳 · 链头 6aee500e60ba | SINCE: 2026-11-16
+- NEED-KEY: iss249_h1_reanchor_netlist_md5_sw | NEED-MD5: ef436a37412ac9b6eac3c9f41f1edca4 | PRODUCED-BY: ISS-249 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 5 跳 · 链头 9174309df1ec | SINCE: 2026-11-16
+- NEED-KEY: iss257_h1_reanchor_to_sw_lead | NEED-MD5: 16ac89f77c25a3f61834cc7ebcd78a7f | PRODUCED-BY: ISS-249 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 5 跳 · 链头 6aee500e60ba | SINCE: 2026-11-16
+- NEED-KEY: iss257_h1_reanchor_to_sw_lead | NEED-MD5: 287e7861a0d1007748d92d9fbecdd490 | PRODUCED-BY: ISS-257 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 4 跳 · 链头 9174309df1ec | SINCE: 2026-11-16
+- NEED-KEY: iss257_h1_reanchor_to_sw_lead | NEED-MD5: e06c1dd633566aa44732762c2ff99d1c | PRODUCED-BY: ISS-257 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 4 跳 · 链头 6aee500e60ba | SINCE: 2026-11-16
+- NEED-KEY: iss257_h1_reanchor_to_sw_lead | NEED-MD5: ef436a37412ac9b6eac3c9f41f1edca4 | PRODUCED-BY: ISS-249 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 5 跳 · 链头 9174309df1ec | SINCE: 2026-11-16
+- NEED-KEY: iss260_h1_reanchor_after_v2_land | NEED-MD5: 02c3cec178d33fdc65e49917b575fe25 | PRODUCED-BY: — | DISPOSITION: 改写 | WHERE: 不在任何一跳落表链上 (排练值 / 预估值) | SINCE: 2026-11-16
+- NEED-KEY: iss260_h1_reanchor_after_v2_land | NEED-MD5: 287e7861a0d1007748d92d9fbecdd490 | PRODUCED-BY: ISS-257 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 4 跳 · 链头 9174309df1ec | SINCE: 2026-11-16
+- NEED-KEY: iss260_h1_reanchor_after_v2_land | NEED-MD5: 2c950b675d1eb52176f00b5ba8e05152 | PRODUCED-BY: — | DISPOSITION: 改写 | WHERE: 不在任何一跳落表链上 (排练值 / 预估值) | SINCE: 2026-11-16
+- NEED-KEY: iss260_h1_reanchor_after_v2_land | NEED-MD5: 94642d07a69e8d60dd2af57f69b93607 | PRODUCED-BY: ISS-257 | DISPOSITION: 退休 | WHERE: BOM_v1.csv 落表链第 3 跳 · 链头 5b9993992405 | SINCE: 2026-11-16
+- NEED-KEY: iss260_h1_reanchor_after_v2_land | NEED-MD5: e06c1dd633566aa44732762c2ff99d1c | PRODUCED-BY: ISS-257 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 4 跳 · 链头 6aee500e60ba | SINCE: 2026-11-16
+- NEED-KEY: iss236_h1_reanchor_v2 | NEED-MD5: 287e7861a0d1007748d92d9fbecdd490 | PRODUCED-BY: ISS-257 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 4 跳 · 链头 9174309df1ec | SINCE: 2026-11-17
+- NEED-KEY: iss236_h1_reanchor_v2 | NEED-MD5: 94642d07a69e8d60dd2af57f69b93607 | PRODUCED-BY: ISS-257 | DISPOSITION: 退休 | WHERE: BOM_v1.csv 落表链第 3 跳 · 链头 5b9993992405 | SINCE: 2026-11-17
+- NEED-KEY: iss236_h1_reanchor_v2 | NEED-MD5: 9effa57cb827713cd6d645390ac65d72 | PRODUCED-BY: — | DISPOSITION: 改写 | WHERE: 不在任何一跳落表链上 (排练值 / 预估值) | SINCE: 2026-11-17
+- NEED-KEY: iss236_h1_reanchor_v2 | NEED-MD5: cb830fbae560948bd10fd5780a10700a | PRODUCED-BY: — | DISPOSITION: 改写 | WHERE: 不在任何一跳落表链上 (排练值 / 预估值) | SINCE: 2026-11-17
+- NEED-KEY: iss236_h1_reanchor_v2 | NEED-MD5: e06c1dd633566aa44732762c2ff99d1c | PRODUCED-BY: ISS-257 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 4 跳 · 链头 6aee500e60ba | SINCE: 2026-11-17
+- NEED-KEY: iss236_h1_reanchor_v2 | NEED-MD5: f617ffc1fd60e5b4a04ab911999dda17 | PRODUCED-BY: — | DISPOSITION: 改写 | WHERE: 不在任何一跳落表链上 (排练值 / 预估值) | SINCE: 2026-11-17
+- NEED-KEY: iss232_no_netlist_change_anchor_ok | NEED-MD5: a600afae | PRODUCED-BY: ISS-220 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 7 跳 · 链头 9174309df1ec | SINCE: 2026-11-16
+- NEED-KEY: iss236_h1_reanchor | NEED-MD5: 34132f7e | PRODUCED-BY: ISS-233 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 7 跳 · 链头 6aee500e60ba | SINCE: 2026-11-16
+- NEED-KEY: iss236_h1_reanchor | NEED-MD5: b21b743a | PRODUCED-BY: ISS-233 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 6 跳 · 链头 9174309df1ec | SINCE: 2026-11-16
+- NEED-KEY: iss236_h1_reanchor | NEED-MD5: c195a117 | PRODUCED-BY: ISS-233 | DISPOSITION: 退休 | WHERE: BOM_v1.csv 落表链第 5 跳 · 链头 5b9993992405 | SINCE: 2026-11-16
+- NEED-KEY: iss239_h1_reanchor_sw | NEED-MD5: 34132f7e | PRODUCED-BY: ISS-233 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 7 跳 · 链头 6aee500e60ba | SINCE: 2026-10-25
+- NEED-KEY: iss239_h1_reanchor_sw | NEED-MD5: 3b8cf3d9 | PRODUCED-BY: — | DISPOSITION: 改写 | WHERE: 不在任何一跳落表链上 (排练值 / 预估值) | SINCE: 2026-10-25
+- NEED-KEY: iss239_h1_reanchor_sw | NEED-MD5: b21b743a | PRODUCED-BY: ISS-233 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 6 跳 · 链头 9174309df1ec | SINCE: 2026-10-25
+- NEED-KEY: iss239_h1_reanchor_sw | NEED-MD5: 319b21f2 | PRODUCED-BY: — | DISPOSITION: 改写 | WHERE: 不在任何一跳落表链上 (排练值 / 预估值) | SINCE: 2026-10-25
+- NEED-KEY: iss239_h1_reanchor_sw | NEED-MD5: c195a117 | PRODUCED-BY: ISS-233 | DISPOSITION: 退休 | WHERE: BOM_v1.csv 落表链第 5 跳 · 链头 5b9993992405 | SINCE: 2026-10-25
+- NEED-KEY: iss283_sw_anchor_reanchor_after_landing | NEED-MD5: e06c1dd6 | PRODUCED-BY: ISS-257 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 4 跳 · 链头 6aee500e60ba | SINCE: 2026-11-17
+- NEED-KEY: iss283_sw_anchor_reanchor_after_landing | NEED-MD5: 287e7861 | PRODUCED-BY: ISS-257 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 4 跳 · 链头 9174309df1ec | SINCE: 2026-11-17
+- NEED-KEY: iss283_sw_anchor_reanchor_after_landing | NEED-MD5: 37f62ac3 | PRODUCED-BY: ISS-283 | DISPOSITION: 退休 | WHERE: netlist_v1.csv 落表链第 1 跳 · 链头 6aee500e60ba | SINCE: 2026-11-17
+- NEED-KEY: iss283_sw_anchor_reanchor_after_landing | NEED-MD5: a4270120 | PRODUCED-BY: ISS-283 | DISPOSITION: 退休 | WHERE: netlist_v1_pins.csv 落表链第 1 跳 · 链头 9174309df1ec | SINCE: 2026-11-17
+- NEED-KEY: iss249_h1_reanchor_netlist_md5_sw | NEED-MD5: 3e504d2be83152e337949723e909be1b | PRODUCED-BY: — | DISPOSITION: 保持 | WHERE: HW/PCB/demo_mainboard.kicad_pro 的盘上现值 (受保护 5 件之一) | SINCE: 2026-11-16
+- NEED-KEY: iss249_h1_reanchor_netlist_md5_sw | NEED-MD5: 611b869e13518c3c023fb178f91a0075 | PRODUCED-BY: — | DISPOSITION: 保持 | WHERE: HW/PCB/demo_mainboard.kicad_pcb 的盘上现值 (受保护 5 件之一) | SINCE: 2026-11-16
+- NEED-KEY: iss249_kicad_sch_md5_not_anchor_sw | NEED-MD5: — | PRODUCED-BY: — | DISPOSITION: 退休 | WHERE: 该 need 无 md5 字面量 (同类过期 need·手工登记) | SINCE: 2026-11-16
+
+★**§2-3 · 本单【只出建议表】的边界 (★不许直接改 `state/fragments/sw.yaml` 的 need 条目★)** ★
+
+- 本单**没有**改任何一条 need 的正文 (`state/fragments/sw.yaml` 的 need 条目一个字没动)
+- 本单**没有**改任何锚点 md5 (`SW/SW_MD5_BASELINE_LEDGER.md` §1 锚点块一个字没动)
+- 上表的处置词**只是建议** ⇒ 要不要真把某些 need 标成 closed / 改写, **归 main 裁**
+- ★**判据**: 一条 need 能不能退休, 只有一条机器判据 ⇒ ★**它要的「H-1 重锚」这件事有没有被 ISS-275 的【判决源换源】取代** ⇒ 被取代了 ⇒ 退休; 没被取代 ⇒ 不许退休 ★
+
+<!-- H3-REG:END -->

@@ -1,0 +1,32 @@
+★ISS-359 孤儿安全检查 · 4 分片实读 · 2026-11-23T12:47:57.842633
+(★改 needs_from 的 key 前必须先查: 有没有 answers 段用【同名 key】答过它★)
+
+  hw-lead    answers     idx=   5 key=iss081_pin_budget_carrier                  to=mech-lead
+  hw-lead    answers     idx=   6 key=iss081_pin_budget_carrier                  to=main
+  hw-lead    answers     idx=  51 key=iss287_baseline_readings                   to=main
+  hw-lead    answers     idx=  54 key=iss287_baseline_readings                   to=main
+  hw-lead    needs_from  idx= 122 key=iss249_h1_reanchor_netlist_md5             to=sw-lead
+  hw-lead    needs_from  idx= 123 key=iss249_h1_reanchor_netlist_md5             to=mech-lead
+  hw-lead    needs_from  idx= 124 key=iss249_kicad_sch_md5_not_anchor            to=sw-lead
+  hw-lead    needs_from  idx= 125 key=iss249_kicad_sch_md5_not_anchor            to=mech-lead
+  hw-lead    needs_from  idx= 209 key=s1_ref_rename_caliber_20261118             to=main
+  hw-lead    needs_from  idx= 210 key=s1_ref_rename_caliber_20261118             to=main
+  hw-lead    needs_from  idx= 211 key=s1_ref_rename_caliber_20261118             to=main
+  mech-lead  needs_from  idx=  11 key=iss081_pin_budget_carrier                  to=hw-lead
+
+★结论 (供交卷页 §B2 用):
+  · iss249_h1_reanchor_netlist_md5 ×2 / iss249_kicad_sch_md5_not_anchor ×2 / s1_ref_rename_caliber_20261118 ×3
+    ⇒ 全仓 4 个分片【没有任何 answers 用这三个 key】⇒ 改/拆 needs_from 的 key 不会产生孤儿 need
+  · iss081_pin_budget_carrier ⇒ mech.yaml 有 1 条 need 引用 (to=hw-lead) ⇒ hw.yaml 必须保留该 key 至少一条 answer ⇒ 不许拆成两个 key
+  · iss287_baseline_readings ⇒ 全仓【没有任何 need 引用它】⇒ 合并不产生孤儿 (两条同 key answers 本就都是孤儿 lint 条目)
+
+★逐条原文 md5 (供「零内容丢失」审计复核):
+  answers idx5  iss081 (to=mech-lead)        len=  75 md5=45be08d1ed91872cebf9f771037fe99a
+  answers idx6  iss081 (to=main)             len=  55 md5=c4b2b24bdbb6646d9623a17f0cd8dd94
+  answers idx51 iss287 (B3)                  len= 145 md5=7cabb5e1ac35eb3284cf0b92e84d30f7
+  answers idx54 iss287 (同批补测)                len= 248 md5=10deb9c5579d45c8f1913a1e502e1381
+  needs idx209 s1 #0                         len= 636 md5=f474177443b1be8ab45607b2ca5aaa1e
+  needs idx210 s1 #1                         len= 636 md5=f474177443b1be8ab45607b2ca5aaa1e
+  needs idx211 s1 #2 (NC白名单)                 len= 613 md5=98c89687eb9253a9fcc26001435d07a4
+
+  ★ s1 #0 与 #1 逐字相同: True  (len 636 == 636)

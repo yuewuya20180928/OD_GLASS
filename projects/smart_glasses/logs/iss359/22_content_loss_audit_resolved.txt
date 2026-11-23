@@ -1,0 +1,99 @@
+★ISS-359 · 零内容丢失审计 (★本会话独立复核 · 收尾版 · 取代兄弟会话 11_content_loss_audit.txt 的「★需复查★」★)
+★生成: 2026-11-23 13:0x · hw-lead subagent · ★纯只读复核·零写盘★
+================================================================================
+
+【0】为什么要做这一段 (★前情★)
+  兄弟会话 ISS-359 cont1 于 12:48:22 原子写完 state/fragments/hw.yaml 后, 自跑了一份
+  「零内容丢失自审」(logs/iss359/11_content_loss_audit.txt), 该自审的结论是:
+      ★反推重建出的【写前】文件 md5 = a5472729e9882051c073822f3f662504
+      ★main 12:43 实读的【写前】基线 md5 = dd73d31621ebac6105d19cfc2469d0f0
+      ★逐字节一致 ⇒ ★★否 ⇒ 有别处的改动, 查!!
+      ★结论: ★需复查★
+  ⇒ ★**该自审悬而未决 (「需复查」) 就交卷 = 违反「做不完不许假装做完」)** ⇒ 本段把它收口。
+
+【1】先证「反推法本身可信」 (★否则 md5 对不上也说明不了任何事★)
+  ★YAML round-trip 稳定性实测 (★load → yaml.safe_dump(sort_keys=False,width=100) → 与原文件逐字节比★):
+      state/fragments/hw.yaml   (写后)   size=666587  round-trip byte-identical = True
+      state/fragments/mech.yaml (未动)   size=672346  round-trip byte-identical = True
+      logs/iss351/hw.yaml.before_setjson  size=621578  round-trip byte-identical = True
+  ⇒ ★**frag_write.py 的写路径 = load → safe_dump(sort_keys=False,width=100) ⇒ 该序列化对这份分片是
+    【幂等且字节稳定】的 ⇒ 「反推重建后 md5 应逐字节命中写前基线」这个判据【成立】** ★
+
+【2】兄弟会话的「★需复查★」是【它自己反推方法的缺陷】, 不是真丢数据 (★本会话实测定位★)
+  ★兄弟会话 11_content_loss_audit.txt 与其仍在跑的参数扫描脚本, 反推时用了 2 处与原文件不符的写法:
+      (a) ★answers 里 re-insert 的条目, 【字典键顺序】写成 {key,to,value,ref} 的【另一种排列】★
+          ⇒ yaml.safe_dump 输出的行序不同 ⇒ md5 必不同 (★但语义完全相同★)
+      (b) ★iss287 那条的 re-insert 【位置】插在 idx 52, 而原文件里它在 idx 54 (★中间隔着 2 条★)
+          ⇒ 列表行序不同 ⇒ md5 必不同 (★但语义完全相同★)
+  ★★本会话把这两处改正后重跑反推 ⇒ ★★逐字节命中基线★★ (见 §3) ⇒ ★**零内容丢失已证★**
+
+【3】★决定性证据: 反推重建 ⇒ 逐字节复现 main 12:43 写前基线★
+  ★反推方法: ① 把【写后】文件里本单申报的 5 组改动【精确反向还原】
+              ② 按 frag_write.py 的序列化参数 yaml.safe_dump(sort_keys=False, allow_unicode=True, width=100) 重排
+              ③ 与 main 2026-11-23 12:43 本机实读基线【逐字节对拍】★
+  ★结果:
+      反推重建出的【写前】文件 md5 = dd73d31621ebac6105d19cfc2469d0f0
+      main 12:43 实读的【写前】基线 md5 = dd73d31621ebac6105d19cfc2469d0f0
+      ★逐字节一致 ⇒ True     (重建 size = 667443 B = 基线 size = 667443 B)
+  ⇒ ★★★**结论: 写后文件 = 写前文件【精确反向还原那 5 组改动】的结果 ⇒ 写盘【只动了那 5 组】,
+    其余全部条目 (artifacts 293 条 / interface_claims 413 条 / needs_from 其余 241 条 / blockers /
+    risks / open_questions / status / role / updated_at …) ★一个字节都没动★ ⇒ ★零附带损伤★★** ★
+
+【4】逐组语义段级零丢失核对 (★不依赖 md5 的第二道独立核对★)
+  ★方法: 把【本会话 12:43 对写前文件逐条读出的原文】拆成语义段, 逐段在【写后】文件里找★
+
+  answers[iss081_pin_budget_carrier] (原 ×2 → 现 ×1):
+      C-min=41/C-base=57/C-max=91                          在: True
+      <=50脚仅C-min可行                                     在: True
+      BTB按60位/载板16x16预留(勿因pin预算缩到40位)           在: True
+      封装球数非风险                                        在: True
+      建议BTB 60位+载板16x16                                在: True
+  answers[iss287_baseline_readings] (原 ×2 → 现 ×1):
+      官方板 186 封装 / 8 铜层 / 板框 160.10×100.10          在: True
+      S6 已在目标位19 不同1(R_SEL_D3_P) 缺失0                在: True
+      DNP 板上零标记 40 颗 / 位号问号 0 行 / unconnected 45   在: True
+      DRC violations 0 / Gerber 32                          在: True
+      末字符是字母的只有 156 个 (另 30 个末字符是数字不动)      在: True
+      板侧真正要加 _1 的是 156 个不是 186 个                  在: True
+      官方板带 _1 后缀的位号 = 1 个 (R_BAT_DET_1)             在: True
+      改完 157 个 (S2 后 156)                               在: True
+      封装数官方板 186 / 生成板 185 差 1 = C_VBUS_GND          在: True
+      CHG_BOARD 归属 + DNP 但官方板上有实物封装@107.70,42.50   在: True
+      动板那趟按官方板数走 开工前 186 收工后 185               在: True
+  ★answers 段缺段总数 = 0★
+
+  needs_from 6 条 item 逐字 md5 (★与兄弟会话写前记录的基准逐条对拍★):
+      s1_ref_rename_caliber_20261118              len= 636 md5=f474177443b1be8ab45607b2ca5aaa1e  ⇒ 与写前基准一致: True
+      s1_ref_rename_caliber_nc_whitelist_20261118 len= 613 md5=98c89687eb9253a9fcc26001435d07a4  ⇒ 与写前基准一致: True
+      iss249_h1_reanchor_netlist_md5_sw           len= 456 md5=4d9968a8afe27357d75f6a0ab4a3c73c  ⇒ item 一字未动, 只改了 key
+      iss249_h1_reanchor_netlist_md5_mech         len= 310 md5=f00674d573e9561268afb45a549422b0  ⇒ item 一字未动, 只改了 key
+      iss249_kicad_sch_md5_not_anchor_sw          len= 274 md5=64ff40cbee85f0d48a0622b78a74d8d9  ⇒ item 一字未动, 只改了 key
+      iss249_kicad_sch_md5_not_anchor_mech        len= 274 md5=64ff40cbee85f0d48a0622b78a74d8d9  ⇒ item 一字未动, 只改了 key
+  ★needs_from 段 item 全部逐字未动★ (★6 条, 0 差异★)
+
+【5】★孤儿安全复检 (★改 key 后有没有把别人的 need 打成孤儿★)
+  ★判据 (★与 state/merge.py L295 / state/gate_check.py L440 / state/decision_truth.py L201 三处一致★):
+    need 被闭合 ⟺ 【被问方 agent 名下】存在【同 key】的 answer (merge.py: ans=[a for a in answers_by_key[k] if a["_by"]==ask_to]) ★
+
+  ★改后逐条实测:
+    · mech.yaml 的 need `iss081_pin_budget_carrier` (to=hw-lead)
+      ⇒ 写后 hw.yaml 里该 key 的 answers = 1 条 (to=mech-lead) ⇒ _by=hw-lead == ask_to=hw-lead ⇒ ★仍闭合★
+      ⇒ ★**没有出现「没人答」的破口**★ (★这条是本单唯一有外部 need 依赖的 key ⇒ 特别核了★)
+    · 4 个新 key (iss249_h1_reanchor_netlist_md5_sw / _mech / iss249_kicad_sch_md5_not_anchor_sw / _mech)
+      ⇒ 全仓 4 分片实读: ★没有任何 answers 用这 4 个 key★ ⇒ 拆 key 不产生孤儿
+    · s1_ref_rename_caliber_20261118 与 s1_ref_rename_caliber_nc_whitelist_20261118
+      ⇒ 全仓 4 分片实读: ★没有任何 answers 用这两个 key★ ⇒ 拆 key 不产生孤儿
+  ★⇒ 无孤儿★
+
+【6】★板面零写板双证 (★本会话 12:43 与 13:0x 两次实读★)
+      HW/PCB/demo_mainboard.kicad_pcb md5 = 611b869e13518c3c023fb178f91a0075  (两次实读一致)
+      mtime = 2026-11-06 07:07:17.362193413  (未动, 17 天)
+  ⇒ ★零写板·零落表★
+
+【7】★本审计的边界声明 (★不许吹★)
+  · 本会话对 state/fragments/hw.yaml 的 ★写次数 = 0★ ⇒ 本会话只做了【只读复核 + 交卷页】★
+  · 本单实际落盘者是【兄弟会话 ISS-359 cont1】(★执行 main 2026-11-23 12:4x 订正版任务书★
+    state/dispatch_briefs/ISS-359_hw_frag_dup_keys_cleanup_cont1.md★) ⇒ 本审计是对【那一次写】的独立复核★
+  · 本审计【不】声称自己完成了落盘; 交卷页里「已做/未做」按【谁做的】分开写清楚
+  · 兄弟会话 11_content_loss_audit.txt 的「★需复查★」结论 【已被本文件 §2+§3 收口】⇒ 该文件保留作历史痕迹, 不删
+================================================================================
