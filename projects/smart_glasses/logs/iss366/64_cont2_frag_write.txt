@@ -1,0 +1,43 @@
+★写前 md5sum state/fragments/hw.yaml = 472bb03a9cef6fd3ab2849b316414b0b
+  $ frag_write.py --add-artifact path=HW/PCB/BOARD_ONEPASS_NETLIST_ROW_FIX.md kind=workpacket summary='★ISS-366 作业包一页 (★本单主交付物★)★ §0 口径与实读数 · §1 4 件 × 7 字段逐字改法映射表 (★「现写法」逐字抄自盘上★) · §2 R_PU_PG 脚序差异 (★自己判为【板面错·脚表对】★) · §
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-artifact path=HW/check_netlist_gnd_rows.py kind=gate summary='★ISS-366 新建机器闸 (★零挂链★)★ 判「网表里有没有一条独立的 net=GND 接地行」(D1~D4 四条内容级判据, ★不判 md5★) + --selftest 7 条反向用例 (★每条自证「红的是目标那一条·其余仍绿」★) · 实跑 rc=0 ·
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-artifact path=HANDOFF/2026-11-23_hw-lead_ISS366_网表4行补行作业包.md kind=handoff summary='★ISS-366 交卷页 (B1~B6 六块齐全 + B7 生成器级复跑 + B8 要 main 裁的 6 件事)★ B2/B3/B4 标题用标准口径 (★验收标准自评 / 证据分级 / 接口取值声明★) ⇒ 命中 sta
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-artifact path=logs/iss366/ kind=evidence summary='★ISS-366 留证目录 (★实测 14 件 ≥8 达标★)★ 沙盒四组读数 (30) · 新闸 selftest + 四组表现 (40/41/42) · 既有闸 rc (20/21/22) · ★CONT2 生成器级复跑三件证明 (60/61/62/63) · md5 前后 (50/
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-answer key=iss356_netlist_4rows_gnd_fix to=落表批次 value='★ISS-366 作业包已交付 (★本单零落表·真盘改动留给「板只改一次」那一趟★)★ ★**逐字改法 (生成器层面, 不是手改 CSV)**★: 改 `state/gen_netlist.py` 两处 `add()` 调用 —— L911-912 (`R_BAT_DET_2`
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-answer key=iss366_gnd_rows_fix_variant to=main value='★ISS-366 变体拍板请求★ ★**建议: 走 S3 (末尾追加) 口径**★ ⇒ ★**既有 82 条行号锚点 0 条失配 ⇒ 零连带件**★ (★双口径实测: 台账指纹 82 条口径 0 失配 + 规格页谓词 97 条口径 0 失配★) ⇒ 落表那趟不必同批改 `HW/N
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-answer key=iss366_land_regen_required to=main value='★ISS-366 落表前置条件 (★推算·但链条全实测★)★: ★**落表那趟必须同批重生成板**★ ⇒ 否则脚表已说这 4 件接 GND 而板面仍缺 4 个接地 land ⇒ 两表打架. ★**为什么 C1 抓不到**: `state/check_pcb_nets.py` 的 C
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-claim key=iss366_gnd_rows_fix_variant value=S3_append_at_end note='★ISS-366 4 件接地行补行的变体取值 = ★**S3_append_at_end**★ (★4 件接地行 = 5 条 `add()` 追加在 `state/gen_netlist.py` 的 `main()` 里 `n_p10 = build_p
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-claim key=iss366_gnd_rows_fix_scope value=C_KEY_PWR+C_KEY_VM+C_KEY_VP+R_BAT_DET_2+C_KEY_CAM note='★ISS-366 本单作业范围 = ★**4 件必装 (C_KEY_PWR / C_KEY_VM / C_KEY_VP / R_BAT_DET_2) + 1 件同根因 DNP (C_KEY_C
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-claim key=iss366_anchor_mismatch_cost value='S3⇒0_mismatch_S1⇒25_pred_38_fp' note='★ISS-366 行号锚点失配数取值 = ★**S3 ⇒ 0 条 (双口径: 台账指纹 82 条口径 0 + 规格页谓词 97 条口径 0)**★; ★**S1/S2 ⇒ 谓词口径 25 条 / 指纹口径 38 条**★ 
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-claim key=iss366_rpu_pg_truth value=board_side_wrong note='★ISS-366 `R_PU_PG` 脚序差异的判定 = ★**board_side_wrong**★ (★板面 pad1/pad2 与脚表真值相反 ⇒ ★**脚表/网表是对的, 板面把两个 pad 的网络装反了**★) ⇒ ★**改法 = 改网表侧三处为具名脚号**★
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-claim key=iss366_new_gate_hooks value=not_hooked note='★ISS-366 新建闸 `HW/check_netlist_gnd_rows.py` 的挂链状态 = ★**not_hooked**★ ⇒ ★**零挂链** (★不在 `state/gate_check.py` / `state/daily_check.py` / 任何 `E
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-claim key=iss366_land_regen_required value=true note='★ISS-366 落表那趟是否必须同批重生成板 = ★**true**★ ⇒ ★**否则板面仍缺 4 个接地 land 而脚表已说接地 ⇒ 两表打架 ⇒ C1 不会红 (两侧一起变·自洽) ⇒ 「板坏但闸全绿」= 最危险的组合**★ ⇒ ★**必须与 §1 的 4 行补行 + §
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-need key=iss366_fix_variant_decision to=main item='★ISS-366 变体拍板: 落表那趟走 S1 (原位插入) 还是 S3 (末尾追加)? ★ (★**建议 S3** ⇒ 既有 82 条行号锚点 0 条失配 ⇒ 零连带件; S1 ⇒ 连带件 = 改规格页 ANCHORS 块 + 机器重锚 EXPECT + 台账★) ★ ⇒ 作业包 §
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-need key=iss366_batch_scope_decision to=main item='★ISS-366 落表范围拍板: §1 的 4 行接地补行 与 §2 的 `R_PU_PG` 具名脚改法 同批落 还是拆批? ★ (★**建议同批** ⇒ 同批时只影响 pad 级·板一次重生成即可; 拆批 ⇒ 多一次板重生成, 板只改一次 ⇒ 代价大★) ★ ⇒ 作业包 §5-D4 
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-need key=iss366_dnp_row_decision to=main item='★ISS-366 DNP 件拍板: 同根因的 DNP 件 `C_KEY_CAM` 补不补独立 net=GND 接地行? ★ (★**本单按「同根因一起补」处理** —— 建议·非已决定★: 补了 ⇒ 板面 land 1⇒2, 电气无影响 (不装), 但网表/脚表更一致; 若要求「DNP 一律不
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-need key=iss366_gate_hook_decision to=main item='★ISS-366 新闸挂链拍板: `HW/check_netlist_gnd_rows.py` 落表后挂不挂进 `state/gate_check.py`? ★ (★**本单默认不挂 (零挂链纪律)** —— 建议落表那趟之后挂 ⇒ 挂上后本闸成为「网表↔脚表」一致性的常驻守卫★) ★ ⇒
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-need key=iss366_spec_md6_sync_decision to=main item='★ISS-366 既有页面同步拍板: `R_PU_PG` 具名脚改法落表后, `HW/FP_TRUTH_BASELINE.md` M6 那条「1 件顺序相反 (`R_PU_PG`)」的现状断言要不要同批更新? ★ (★**不改 ⇒ 规格页会留一条与现网表矛盾的现状断言 ⇒ 下一个人
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+  $ frag_write.py --add-need key=iss366_selfconsistency_path_fix to=main item='★ISS-366 任务书口径订正: 任务书写 `python3 state/check_netlist_selfconsistency.py`, 但该路径不存在 (★本机实读: 真身在 `HW/check_netlist_selfconsistency.py`★) ⇒ 请 ma
+    rc=0  [frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+
+★写后 md5sum state/fragments/hw.yaml = 8305a9b2c3240ca2c9b4b2cb659971fe
+★写前 = 472bb03a9cef6fd3ab2849b316414b0b
+★★分片写入完成 (★只走 state/frag_write.py★)★★

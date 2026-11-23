@@ -1,0 +1,45 @@
+================================================================================================
+ISS-368 · §4 回滚证明 (★逐字节反向补丁 + 回滚后 10 道 SW 闸复跑★)
+  项目根 = /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+================================================================================================
+
+---- 步骤 1 · 回滚前 (副本 = 已落地态) ----
+  SW/BOARD_ONEPASS_SW_SYNC.md                  副本 2186777965c64e6764109214e87048de | 真件 b8f935db333c16fa1051f0b06ae3e6ec | 与真件相同=False
+  SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md          副本 741a613799c375fb0764956a9c5eaf48 | 真件 17b3c38c397e9aab06c8d2cbdd7d7461 | 与真件相同=False
+  SW/tools/check_fp_truth_read.py              副本 cab7a6f17c1da35f4e54185ad8b62089 | 真件 cab7a6f17c1da35f4e54185ad8b62089 | 与真件相同=True
+
+---- 步骤 2 · 跑反向补丁 (逐字节回到落地前原文) ----
+  命令 = python3 SW/tools/apply_sw09_three_place_patch.py --apply --rollback --target-root <项目盘 tmp/ 下的副本>
+  rc = 0
+  | 编辑 15 条 · 变更 15 条 · 幂等命中(零变更) 0 条 · 异常 0 条
+  | 落点③ 新闸 md5 前后 = cab7a6f17c1da35f4e54185ad8b62089 ⇒ 未变 ★
+  | 落点③ 新闸 md5 == ISS-363 交卷基线 (cab7a6f17c1da35f4e54185ad8b62089) ⇒ 一致 ★
+  | 已写: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss368_sbx/rollback_test/SW/BOARD_ONEPASS_SW_SYNC.md · /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss368_sbx/rollback_test/SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md
+
+---- 步骤 3 · 回滚后逐字节比对 (★副本必须 == 真件落地前原文★) ----
+  SW/BOARD_ONEPASS_SW_SYNC.md                  回滚后 b8f935db333c16fa1051f0b06ae3e6ec | 真件 b8f935db333c16fa1051f0b06ae3e6ec | 逐字节相同=True
+  SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md          回滚后 17b3c38c397e9aab06c8d2cbdd7d7461 | 真件 17b3c38c397e9aab06c8d2cbdd7d7461 | 逐字节相同=True
+  SW/tools/check_fp_truth_read.py              回滚后 cab7a6f17c1da35f4e54185ad8b62089 | 真件 cab7a6f17c1da35f4e54185ad8b62089 | 逐字节相同=True
+  ★结论: 回滚是否逐字节回到落地前原文 = 是 ★
+
+---- 步骤 4 · 回滚后 10 道 SW 闸复跑 (★在回滚后的副本上逐道实跑★) ----
+    SW/tools/check_onepass_sw_sync.py                                      rc=0  2.02s
+    SW/tools/check_sw_ref_reachability.py                                  rc=0  0.51s
+    SW/tools/check_landing_trace_obligation.py                             rc=0  0.19s
+    SW/tools/check_demo_panel_spec.py                                      rc=0  0.27s
+    SW/tools/check_demo_panel_spec_r6_selftest.py                          rc=0  0.65s
+    SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py               rc=0  0.62s
+    SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py          rc=0  0.82s
+    SW/tools/check_shutdown_semantics.py                                   rc=0  0.11s
+    SW/tools/check_timing_review_adc_sync.py                               rc=0  0.15s
+    SW/tools/timing_check.py                                               rc=0  0.69s
+  ★10 道闸复跑: 绿 10 / 红 0
+
+---- 步骤 5 · 真件侧复核 (★本单全程零写真件★) ----
+  SW/BOARD_ONEPASS_SW_SYNC.md                  真件 md5 = b8f935db333c16fa1051f0b06ae3e6ec (与步骤 1 同值 = True)
+  SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md          真件 md5 = 17b3c38c397e9aab06c8d2cbdd7d7461 (与步骤 1 同值 = True)
+  SW/tools/check_fp_truth_read.py              真件 md5 = cab7a6f17c1da35f4e54185ad8b62089 (与步骤 1 同值 = True)
+
+================================================================================================
+汇总: 逐字节回滚 = 是 · 10 道闸复跑 绿 10 / 红 0
+================================================================================================

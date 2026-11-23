@@ -3,12 +3,10 @@ role: 硬件总工
 updated_at: '2026-11-17'
 updated_by: hw-lead
 status:
-  phase: iss328-ru-arm-closed
+  phase: iss364-c4-68-reachability-90-land-swap-workpacket
   progress_pct: 100
   health: green
-  summary: 'ISS-328 右上对照臂 cont3 收卷: 19 处占位符全填实; 判决 REJECT (名单制闸三块 rc 全部 = 1) ⇒ 挪器件位置这条处方被 ISS-325 左上臂
-    + ISS-328 右上臂两个臂证伪; 段数 3986 vs 官方 18092 ⇒ 路由器代码已漂移 ⇒ 同工艺才可比 ⇒ unc 45→29 不算数; TP_DSI_* 显式钉在排版阶段 diff=16
-    ⇒ 不是 no-op ⇒ P-1 20 条串一条不许删; ★新登记: 日志里印的 名单制闸 rc=0 是 shell 管道 artifact (取到 tail 的退出码) ⇒ 真实 rc=1, 判据一字未改'
+  summary: 'ISS-364: C4 目标 68 沙盒证明可达 (腿A ΔC4=0 / 腿B ΔC4=-90) + 90 件逐件换封装作业包 + 机器闸 L0~L8 + selftest 8/8'
   updated_at: '2026-11-17'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -1941,6 +1939,85 @@ artifacts:
     的缺陷★) · probe_lib_fab.py (库封装 F.Fab / F.CrtYd 实测) · extract_target78.py (靶子口径 + 焊盘数网络核对, D1/D2 由此出)
     · build_fp_truth_baseline.py (基线页生成器, 只写 HW/FP_TRUTH_BASELINE.md) · board_footprints_v2.json + lib_fab_geom.json
     + target78_facts.json
+- path: HW/PCB/FP_TRUTH_COVERAGE_GAP.md
+  kind: doc
+  version: iss361-cont1
+  updated_at: '2026-11-23'
+  summary: '★ISS-361 覆盖缺口页 (新建)★ · §0 口径与读数 14 行 (每行带复跑命令) · §1 三集合机器可读差集 (C4-158 全名单 + 归属桶 + 占位脚数 / ISS-356-100
+    全名单 / DIFF-81 全名单逐件归因) · §2 那 13 件逐件表 (12 列全字段: 目标 lib:name + 库文件实存路径 + md5 + 焊盘数网络核对 + 候选 OPN + 证据等级
+    + 布局布线改动 + 降级方案) · §3 对板那一趟判据的影响 (两条不可能 + 四桶判据建议 42/26/77/13 和=158, 建议非已改) · §4 降级方案逐件 13 行 · §5 未决项
+    5 条 + 自我限定 9 条 + 复现命令 · 全页数字由生成器 logs/iss361/build_fp_truth_coverage_gap.py 从真源实算 (零转述误差)'
+- path: HW/check_fp_truth_coverage_gap.py
+  kind: gate
+  version: iss361-cont1
+  updated_at: '2026-11-23'
+  summary: ★ISS-361 机器闸 (新建)★ G0 基准块合法JSON / G1 三集合件数自洽 (158/100/81 三数字 + 三份名单由脚本自己跑, 页里写的≠实算即红) / G2
+    缺口 13 件逐件齐全 (漏一件点名 ref) / G3 每件目标栏非空 (lib:name+路径+md5 或 [0数据]+非空降级) / G4 .kicad_mod 实测在盘 + md5 对得上
+    (查文件不是查库目录) / G5 证据五级白名单 (写[官方]=红) / G6 正文零挂起措辞 / G7 四桶目标值和==158; --selftest 7 条反向用例 (删行/改lib名/清空目标+降级/清空证据/塞挂起措辞/篡改三数字/改桶目标值)
+    每条自证「红的是目标那一条其余仍绿」; ★零 pcbnew 依赖 ⇒ 裸 python3 就能跑; 沙盒落项目盘 tmp/iss361_selftest (不落/tmp)
+- path: HANDOFF/2026-11-23_hw-lead_ISS361_封装真值覆盖缺口.md
+  kind: handoff
+  version: iss361-cont1
+  updated_at: '2026-11-23'
+  summary: ★ISS-361 交卷页 (新建)★ · B1 结论 (两条独立不可能 + 四桶建议 + 13 件缺口根因) · B2 验收标准自评 (20 条验收线逐条自跑判定 + G0~G7 逐条
+    + selftest 7/7 + 本单闸自己抓到的 3 个真 bug + 6 项未验诚实登记) · B3 证据分级 (五级白名单零[官方], 官网项全转引并标明) · B4 接口取值声明 (7 条机器可复算取值
+    + 明确列出本单不取的值) · B5 未决项与卡点 (K1 ISS-356 §2.2 表格自相矛盾 / K2 D_ESD_USB_D 随 W-1-W-2 分叉 / K3 4焊盘封装破C3 / K4
+    FB_DEMO 0命中没人排 / K5 只给封装真值不给料号) + 自我限定 9 条 · B6 自证复现命令 (含板/真源/既有闸 md5 前后双证)
+- path: logs/iss361/
+  kind: log
+  version: iss361-cont1
+  updated_at: '2026-11-23'
+  summary: '★ISS-361 留证★ · iss361_board_read.py (纯python读板 + 网表C4口径, 零pcbnew) · zz_recon_probe.py (三集合实算)
+    · zz_parse.py (纯python读板 + FP_TRUTH 靶子名单解析) · zz_c4_causality.py (★沙盒: 只改网表节点命名⇒C4 158→153, 证明 C4
+    由网表决定与 land 无关★) · zz_sandbox_4pad.py (★沙盒: 板副本改 4 焊盘⇒C3 判红「板4脚/网表2脚」★) · zz_final_targets.py (13
+    件候选封装 pad/fab/crtyd/md5 实测) · zz_lib_probe*.py (库候选量测) · zz_netstyle.py (13 件网表节点串裸节点取证) · zz_fp_geom.py
+    (官方 TestPoint 真实焊盘数=1 + 13 件板面几何) · build_fp_truth_coverage_gap.py (页面生成器) · build_iss361_handoff.py
+    (交卷页生成器) · 00~23 各步原始输出'
+- path: HW/PCB/FP_TRUTH_LAND_SWAP_WORKPACKET.md
+  kind: workpacket
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-364 换封装作业包: §0 口径12行(每个数字可复跑) + §1 90 件 12 字段逐件表(现占位几何[实测]/目标几何[实测]/几何Δ/pad↔net序/要重接net/腿B具名脚清单/证据等级/降级方案)
+    + §2 腿B 具名脚作业包(具名脚 182 只 = 改名 196 + 补行 4 = 200 条指令·按表头名定位不写死列号) + §3 板侧 5 条差异并表(另挖出第 6 条 R_PU_PG)
+    + §4 K2/K3 两条分支只登记不代拍 + §5 FB_DEMO/CHG_GND_STAR 并入建议 + §6 90 件降级方案 + §7 卡点 K1~K7 + §8 沙盒可达性证明'
+- path: HW/check_fp_truth_land_swap.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-364 机器闸 L0~L8 + --selftest 8/8 反向用例: L1 90 由脚本自算(读台账页§2/§4.1 + 缺口页§2 + BOM + 网表) L2 90
+    件齐全 L3 12 字段非空 L4 .kicad_mod 实存+md5 L5 目标几何==脚本从 .kicad_mod 实测(核心) L6 五级证据白名单 L7 零挂起措辞 L8 机制钉住(158/100/77/81/13/90
+    + 腿A ΔC4=0 + 腿B ΔC4=-90 + 具名脚总和 182)'
+- path: HANDOFF/2026-11-23_hw-lead_ISS364_C4目标68可达性与90件换封装作业包.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-364 交卷页: B1~B6 六段 + 20 条验收逐条判定 + 落盘文件清单 + 沙盒留证路径'
+- path: HW/PCB/BOARD_ONEPASS_NETLIST_ROW_FIX.md
+  kind: workpacket
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-366 作业包一页 (★本单主交付物★)★ §0 口径与实读数 · §1 4 件 × 7 字段逐字改法映射表 (★「现写法」逐字抄自盘上★) · §2 R_PU_PG 脚序差异
+    (★自己判为【板面错·脚表对】★) · §3 沙盒四组读数 (★三项铁律指标逐组报★) + §3.4 生成器级复跑 (a 逐字节相同 / b 幂等 / c 82 锚点 0 失配) · §4 机器闸
+    D1~D4 + selftest 7/7 · §5 降级方案 (每条带代价) · §6 未决项 U-1~U-6 · §7 边界自证 · ★零「待填」残留★
+- path: HW/check_netlist_gnd_rows.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-366 新建机器闸 (★零挂链★)★ 判「网表里有没有一条独立的 net=GND 接地行」(D1~D4 四条内容级判据, ★不判 md5★) + --selftest 7
+    条反向用例 (★每条自证「红的是目标那一条·其余仍绿」★) · 实跑 rc=0 · 7/7 全过 · ★不在 state/gate_check.py / state/daily_check.py
+    / 任何 EXTRA_GATES 里★
+- path: HANDOFF/2026-11-23_hw-lead_ISS366_网表4行补行作业包.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-366 交卷页 (B1~B6 六块齐全 + B7 生成器级复跑 + B8 要 main 裁的 6 件事)★ B2/B3/B4 标题用标准口径 (★验收标准自评 / 证据分级
+    / 接口取值声明★) ⇒ 命中 state/gate_check.py L49-51 关键词表 ⇒ Q1 齐备率不掉
+- path: logs/iss366/
+  kind: evidence
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ★ISS-366 留证目录 (★实测 14 件 ≥8 达标★)★ 沙盒四组读数 (30) · 新闸 selftest + 四组表现 (40/41/42) · 既有闸 rc (20/21/22)
+    · ★CONT2 生成器级复跑三件证明 (60/61/62/63) · md5 前后 (50/70/71) · 必跑命令 rc (80) · 续跑标记 (99_CONT1/CONT2)
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -3917,6 +3994,102 @@ needs_from:
     板 md5 再变一次) 已在 HW/FP_TRUTH_BASELINE.md §3 逐条列出 ⇒ ★注意 C_AC_CSI_* 那组的依据是 [0数据] (SoM 内部是否已做 AC 耦合本轮无证据)
     ⇒ 证据不足前不建议删★'
   since: '2026-11-23'
+- key: iss361_criterion_rewrite
+  to: main
+  item: '★ISS-361 请拍「板那一趟」的 C4 判据怎么改★: state/board_trip_baseline_20260723.txt 现有那条「C4 的 158 个占位脚号必须随 ISS-356
+    的封装真值基线收敛」本单实测出【两条独立的不可能】: ① 覆盖不足 (ISS-356 只交 77 件 ⇒ 81 件没目标 lib:name) ② 机制错位 (C4 数的是网表节点串 bare, 换
+    land 动不了它 ⇒ 沙盒实测只改网表命名 C4 158→153)。⇒ 本单建议改成四桶判据 (TP 42 / DNP 26 / 靶内 77 / 缺口 13, 和=158 ⇒ C4 目标读数 68),
+    逐条写在 HW/PCB/FP_TRUTH_COVERAGE_GAP.md §3。★本单零改那个文件 (你的地界), 请你决定是否采纳 + 谁落。'
+  since: '2026-11-23'
+- key: iss361_k1_chg_gnd_star_cell
+  to: main
+  item: '★ISS-361 K1: HW/FP_TRUTH_BASELINE.md §2.2 的 CHG_GND_STAR 那一行【表格自相矛盾】★ ⇒ 同表「焊盘数/网络核对结论」栏写『1=1
+    一致』而「是否触发布局布线改动」栏写『官方封装是 2 焊盘 ⇒ 必须新增第 2 个焊盘』; 同页表格下方正文又写『CHG_GND_STAR 只有 1 个脚 ⇒ 1 个 land 是对的』。★本单实测:
+    官方 TestPoint.pretty/TestPoint_Pad_D1.0mm.kicad_mod 只有 1 个焊盘 (pad "1" smd circle 1.0×1.0, md5 cea8eb3ba9b799767624661848b00243)
+    ⇒ 那一栏是错的, ★照它改板会给 CHG_GND_STAR 加一个不存在的第 2 个 land★。⇒ 本单零改既有页面正文 (只登记), 请你定由谁订正那个单元格。'
+  since: '2026-11-23'
+- key: iss361_k3_4pad_c3
+  to: main
+  item: '★ISS-361 K3: 5 只按键若换官方 KMR2 (4 个物理焊盘 1,1,2,2) ⇒ 网表必须同步给 4 个具名脚, 否则 state/check_pcb_nets.py C3
+    判红「板 4 脚 / 网表 2 脚」★ (沙盒实测, 板副本, 真板 md5 未变)。⇒ 请选: (a) 落表批次给这 5 只加 2 个具名脚 (脚表也要加行) 或 (b) 改选 2 焊盘按键封装
+    (⇒ 按动力度 3N→1.5N 的选型代价, 见 HW/PCB/FP_TRUTH_COVERAGE_GAP.md §2 各行降级方案)。★本单只登记代价不代拍。'
+  since: '2026-11-23'
+- key: iss361_k4_fb_demo_unlisted
+  to: main
+  item: '★ISS-361 K4: FB_DEMO 在 HW/PCB/BOARD_ONEPASS_WORKPACKET.md 与 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+    里各出现 0 次 (其余 12 件都出现过) ⇒ 没人排它的 land 重画★ ⇒ ★本单实测它占位是【斜置 2 land @对角 1.000mm】, 官方 0805 是【正置 @2.124mm】⇒
+    不改封装它装不上, 而那一趟清单里没有它 ⇒ 漏掉 ⇒ 板出来是坏的★。⇒ 请把它并进那一趟的 land 重画清单 (本单只登记, 不代改既有页)。'
+  since: '2026-11-23'
+- key: iss361_gate_mount
+  to: main
+  item: '★ISS-361 新闸 HW/check_fp_truth_coverage_gap.py (G0~G7 + selftest 7/7) 目前【没有挂进任何链】★ —— 零改既有闸是本单边界,
+    挂不挂是你的地界 (同 ISS-289 那次)。⇒ 新闸正常跑 rc=0 (末行 ALL CHECKS PASS), --selftest rc=0 (末行 ALL TESTS PASS), 沙盒落项目盘
+    tmp/iss361_selftest, 零 pcbnew 依赖 ⇒ 裸 python3 就能跑。⇒ 请定: 挂进 state/gate_check.py 的 EXTRA_GATES / PINNED_MD5_GATES,
+    还是只当人工前置闸?'
+  since: '2026-11-23'
+- key: iss364_k2_d_esd_usb_d_2v3_pin
+  to: boss
+  item: 'D_ESD_USB_D 最终 2 脚还是 3 脚 (W-1/W-2): 2 脚档 Package_SON:Texas_DPY0002A_0.6x1mm_P0.65mm (md5 0edfa97bd7bd277f3c05acf2bee23892)
+    沙盒实测 C1/C2/C3 全绿; 3 脚档 Package_TO_SOT_SMD:SOT-23-3 (md5 2cbbd67323e26100c49cafb6a9a881db) 沙盒实测 C3
+    红『板 3 脚 / 网表 2 脚』须脚表+网表补第 3 脚。★两档候选都已实测在盘, 本单只登记不代拍'
+  since: '2026-11-23'
+- key: iss364_k3_button_3n_vs_1p5n
+  to: boss
+  item: '5 只按键 (SW_BOOT/SW_KEY_PWR/SW_KEY_VM/SW_KEY_VP/SW_RST) 的 3N vs 1.5N: (a) 网表给这 5 只加 2 个具名脚 (脚表+网表两处都要动,
+    板 4 land / 网表 4 脚 ⇒ C3 绿); (b) 改选 2 焊盘按键封装 (SW_SPST_B3U-1000P md5 749f20c5ab898069ade01682274c7bbf
+    / SW_SPST_CK_KXT3 md5 bed9b3b110e52e4ffcdc18240ef7a47c, 板 2 land ⇒ C3 绿, 代价 = 按动力度 3N→1.5N 误触风险上升)。★沙盒量化:
+    走 (a) 而网表不补脚 ⇒ C3 红 3 件; 走 (b) ⇒ C3 绿 0 件。★本单只给两条路 + 代价, 不代拍'
+  since: '2026-11-23'
+- key: iss364_c_vbus_gnd_keep_or_drop
+  to: boss
+  item: 'C_VBUS_GND 的 2 个多余焊盘 (BOM dnp=DNP · 镜框充电板) 留位还是下板: 沙盒实测做完腿A+腿B 它仍是 C1 的『多 2』⇒ 换 land 与具名脚都够不着它
+    ⇒ 只能靠本项拍板。★不在 90 件清单 (77+13) 里, 也不进 C4 的 MAIN_PCB 口径'
+  since: '2026-11-23'
+- key: iss364_fb_demo_into_land_list
+  to: main
+  item: '把 FB_DEMO 并进『板那一趟』的 land 重画清单: 实测 HW/PCB/BOARD_ONEPASS_WORKPACKET.md 与 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+    里 FB_DEMO 命中数各 0 次 (其余 12 件都出现过), 而它的现占位是斜置 2 land @对角 1.000 mm、官方 0805 是正置 @2.125 mm ⇒ 不改封装它就装不上。★建议机器判据:
+    那两份文件里 FB_DEMO 命中数都须 ≥ 1。★本单零改那两份文件'
+  since: '2026-11-23'
+- key: iss364_chg_gnd_star_baseline_cell_fix
+  to: main
+  item: 'HW/FP_TRUTH_BASELINE.md §2.2 靶外同族登记表里 CHG_GND_STAR 那一格的『是否触发布局/布线改动』栏写『官方封装是 2 焊盘 ⇒ 必须新增第 2 个焊盘』,
+    而同页正文写『1 个 land 是对的』⇒ 自相矛盾。★本单实测官方 TestPoint.pretty/TestPoint_Pad_D1.0mm.kicad_mod 只有 1 个焊盘 (md5 cea8eb3ba9b799767624661848b00243)
+    ⇒ 照那一格改板会给它加一个不存在的第 2 个 land。★该页是 ISS-356 的签收页, 本单零改 (改了 ISS-356 签收脚本会红) ⇒ 请签收方订正那一格。★建议机器判据: 该行『焊盘数/网络核对结论』栏的
+    1=1 与目标封装实测焊盘数必须一致'
+  since: '2026-11-23'
+- key: iss366_fix_variant_decision
+  to: main
+  item: '★ISS-366 变体拍板: 落表那趟走 S1 (原位插入) 还是 S3 (末尾追加)? ★ (★**建议 S3** ⇒ 既有 82 条行号锚点 0 条失配 ⇒ 零连带件; S1 ⇒ 连带件
+    = 改规格页 ANCHORS 块 + 机器重锚 EXPECT + 台账★) ★ ⇒ 作业包 §3.3 §3.4.3 已把两条路的代价量化, 请 main 拍板.'
+  since: '2026-11-23'
+- key: iss366_batch_scope_decision
+  to: main
+  item: '★ISS-366 落表范围拍板: §1 的 4 行接地补行 与 §2 的 `R_PU_PG` 具名脚改法 同批落 还是拆批? ★ (★**建议同批** ⇒ 同批时只影响 pad 级·板一次重生成即可;
+    拆批 ⇒ 多一次板重生成, 板只改一次 ⇒ 代价大★) ★ ⇒ 作业包 §5-D4 已给代价.'
+  since: '2026-11-23'
+- key: iss366_dnp_row_decision
+  to: main
+  item: '★ISS-366 DNP 件拍板: 同根因的 DNP 件 `C_KEY_CAM` 补不补独立 net=GND 接地行? ★ (★**本单按「同根因一起补」处理** —— 建议·非已决定★:
+    补了 ⇒ 板面 land 1⇒2, 电气无影响 (不装), 但网表/脚表更一致; 若要求「DNP 一律不补」⇒ 改法要按 ref 区分, `add()` 里加 `if` 判定★) ★ ⇒ 作业包
+    §6-U-4.'
+  since: '2026-11-23'
+- key: iss366_gate_hook_decision
+  to: main
+  item: '★ISS-366 新闸挂链拍板: `HW/check_netlist_gnd_rows.py` 落表后挂不挂进 `state/gate_check.py`? ★ (★**本单默认不挂 (零挂链纪律)**
+    —— 建议落表那趟之后挂 ⇒ 挂上后本闸成为「网表↔脚表」一致性的常驻守卫★) ★ ⇒ 作业包 §5-D5 §6-U-7.'
+  since: '2026-11-23'
+- key: iss366_spec_md6_sync_decision
+  to: main
+  item: '★ISS-366 既有页面同步拍板: `R_PU_PG` 具名脚改法落表后, `HW/FP_TRUTH_BASELINE.md` M6 那条「1 件顺序相反 (`R_PU_PG`)」的现状断言要不要同批更新?
+    ★ (★**不改 ⇒ 规格页会留一条与现网表矛盾的现状断言 ⇒ 下一个人照它去查会走错**★) ★ ⇒ 作业包 §6-U-3 (★该文件是既有页面, 本单零改动★).'
+  since: '2026-11-23'
+- key: iss366_selfconsistency_path_fix
+  to: main
+  item: '★ISS-366 任务书口径订正: 任务书写 `python3 state/check_netlist_selfconsistency.py`, 但该路径不存在 (★本机实读: 真身在
+    `HW/check_netlist_selfconsistency.py`★) ⇒ 请 main 确认是路径笔误 还是 真有个 `state/` 下副本该建? ★ (★只影响交卷时的命令引用, 不影响技术结论
+    —— 本单已按真身路径跑, rc=0★) ⇒ 作业包 §6-U-1.'
+  since: '2026-11-23'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -4627,6 +4800,33 @@ answers:
     dnp=DNP ⇒ 只登记事实, 留位/下板归老板; 另 C_VBUS_OUT 同属充电板 + DNP 但实测不在任何板面 ⇒ 不在多余 2 里; 多余 2 的第 2 件是 J_CHG (跨铰链界面)
     ⇒ 已登记在 HW/FP_TRUTH_BASELINE.md §4.3 与交卷页 §B5 K2'
   ref: HW/FP_TRUTH_BASELINE.md §4.3 · HANDOFF/2026-11-23_hw-lead_ISS356_封装真值基线.md §B1.2 §B5
+- key: iss356_netlist_4rows_gnd_fix
+  to: 落表批次
+  value: '★ISS-366 作业包已交付 (★本单零落表·真盘改动留给「板只改一次」那一趟★)★ ★**逐字改法 (生成器层面, 不是手改 CSV)**★: 改 `state/gen_netlist.py`
+    两处 `add()` 调用 —— L911-912 (`R_BAT_DET_2`) 与 L1272-1275 (`C_KEY_*` 循环) —— 把 `net` 栏从信号网名改成 `GND`, 重跑
+    `gen_netlist.py` ⇒ 三张表一起重生成. ★**但本单实测出一个更优变体 (§3.3 S3 末尾追加)**: 4 行新行【追加在 `main()` 里 `n_p10 = build_p10_json()`
+    之后】⇒ ★**既有 82 条行号锚点 0 条失配 (双口径实测) ⇒ 零连带件**★ ⇒ ★**建议落表那趟按 S3 做** (★建议·非已决定★)★. ★**电气分量**: 3 颗 100nF
+    按键消抖/去耦电容接地端悬空 (去耦失效) + `R_BAT_DET_2` 是 BAT_DET 分压链下臂未接 GND (分压中点浮空 ⇒ 电池检测读数无意义) ⇒ ★**这是能出厂的坏板, 不是纸面瑕疵**★.
+    ★**落表那趟必须同批重生成板** ⇒ 否则脚表已说接地而板面仍缺 4 个 land ⇒ ★**C1 不会红 (两侧一起变·自洽) ⇒ 板坏但闸全绿 = 最危险的组合**★. ★**连带件**:
+    `R_PU_PG` 板面 pad1/pad2 与脚表真值相反 ⇒ 判为【板面错】, 改法 = 网表侧三处改具名脚号 (pin1=PWR_GOOD / pin2=VDD_3V3_IO) ⇒ C4 占位器件数
+    158⇒157, 与 §1 建议同批落 (同批时只影响 pad 级·板一次重生成即可). ★**证据**: 作业包 `HW/PCB/BOARD_ONEPASS_NETLIST_ROW_FIX.md`
+    + 新闸 `HW/check_netlist_gnd_rows.py` + 沙盒 `tmp/iss366_sbx/` + 留证 `logs/iss366/`.'
+  ref: HW/PCB/BOARD_ONEPASS_NETLIST_ROW_FIX.md#§1 §2 §3 §3.4 · HW/check_netlist_gnd_rows.py · logs/iss366/30_sandbox_three_groups.txt
+    · logs/iss366/60_cont2_genlevel_rerun.txt · logs/iss366/61_cont2_genlevel_chain.txt · logs/iss366/62_cont2_genlevel_readings.txt
+- key: iss366_gnd_rows_fix_variant
+  to: main
+  value: '★ISS-366 变体拍板请求★ ★**建议: 走 S3 (末尾追加) 口径**★ ⇒ ★**既有 82 条行号锚点 0 条失配 ⇒ 零连带件**★ (★双口径实测: 台账指纹 82
+    条口径 0 失配 + 规格页谓词 97 条口径 0 失配★) ⇒ 落表那趟不必同批改 `HW/NETLIST_SELF_CONSISTENCY_SPEC.md`. ★**代价**: CSV 4 行新行不在原器件旁边
+    (可读性下降, 但 CSV 是机器读的生成物·人读的是规格页). ★**若改选 S1 (原位插入)**: 连带件 = 改规格页 ANCHORS 块 (谓词口径 25 条) + 跑 `HW/check_land_row_anchors.py
+    --reanchor` 机器改 EXPECT 行号 + 台账 (指纹口径 38 条) ⇒ ★**多 1 个「忘了改 ⇒ 落表批次假红」的坑**★. ★**这是建议·非已决定 ⇒ 要 main 拍板**★.'
+  ref: HW/PCB/BOARD_ONEPASS_NETLIST_ROW_FIX.md#§3.3 §3.4.3 · logs/iss366/63_cont2_handedit_vs_genlevel.txt
+- key: iss366_land_regen_required
+  to: main
+  value: '★ISS-366 落表前置条件 (★推算·但链条全实测★)★: ★**落表那趟必须同批重生成板**★ ⇒ 否则脚表已说这 4 件接 GND 而板面仍缺 4 个接地 land ⇒ 两表打架.
+    ★**为什么 C1 抓不到**: `state/check_pcb_nets.py` 的 C1/C3 比的是【板面】 vs 【网表推导】, 两侧用同一套 (器件,网名) 去重规则 ⇒ 同源错误互相抵消
+    ⇒ C1/C3 全绿 ⇒ ★**「板坏但闸全绿」= 最危险的组合**★. ★**⇒ 必须另立机器闸 (`HW/check_netlist_gnd_rows.py`, ★本单已建·零挂链★) 才能守住★**.
+    ★**挂不挂链由 main 在签收时定** (★挂链是 main 的机制地界★).'
+  ref: HW/PCB/BOARD_ONEPASS_NETLIST_ROW_FIX.md#§0.4 §4 §5-D2 · HW/check_netlist_gnd_rows.py
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -7251,6 +7451,114 @@ interface_claims:
     (走 frag_write.py) ⇒ 其余一字未动 (板 / 网表 / 脚表 / BOM / 原理图 / 别人分片 / state/gate_check.py 与 merge.py 均未改; 且未跑
     gen_bom.py / gen_pcb_netlist_board.py / gen_kicad_sch.py / gen_production_pack.sh 任一重写真件的生成器)★'
   note: HW/FP_TRUTH_BASELINE.md §6 边界声明
+  ref: ''
+- key: iss361_c4_158
+  value: '板上占位脚号器件 = 158 件 (C4 口径: 网表节点串是 bare ⇒ 焊盘号按行序占位)。★实测: bash state/pcbnew_py.sh state/check_pcb_nets.py;
+    本单闸用纯 python 同口径独立实现复算得同一集合 (逐件相等)。'
+  note: HW/PCB/FP_TRUTH_COVERAGE_GAP.md §0 表第 2 行 · HW/check_fp_truth_coverage_gap.py G1
+  ref: ''
+- key: iss361_iss356_100
+  value: 'ISS-356 封装真值基线靶子 = 100 件 (镜脚主 PCB 78 + 镜框充电板 22)。★实测: python3 HW/check_fp_truth_baseline.py;
+    本单独立读 FP_TRUTH 页 §2 表 (78 行) + §4.1 表 (22 行) ⇒ 与 BOM 实算逐件相等。'
+  note: HW/PCB/FP_TRUTH_COVERAGE_GAP.md §0 表第 1 行 · HW/check_fp_truth_baseline.py
+  ref: ''
+- key: iss361_inter_77_diff_81
+  value: C4 ∩ ISS-356 = 77 件 · C4 − ISS-356 = 81 件 (TP 42 + DNP 26 + 缺口 13)。★两集合实算, 三份名单逐件在页里 (§1.1~§1.3);
+    闸 G1 逐件集合相等。
+  note: HW/PCB/FP_TRUTH_COVERAGE_GAP.md §1
+  ref: ''
+- key: iss361_gap_13
+  value: '缺口 13 件 = 必装 ∩ 非 NET/TP ∩ footprint 栏 != ''待定'' ∩ 在 C4 里; 逐件给出实测在盘的官方库封装真值 (库文件路径 + md5 + 焊盘数
+    + 板面几何 + pad↔net 映射)。★根因: 它们的 BOM footprint 栏是描述串 (★板文件封装: N 焊盘 (…)★) 不是字面量 ''待定'' ⇒ 被 ISS-356 那一个条件挡在门外。'
+  note: HW/PCB/FP_TRUTH_COVERAGE_GAP.md §2 · HW/check_fp_truth_coverage_gap.py G2/G3/G4
+  ref: ''
+- key: iss361_c4_causality
+  value: '★C4 计数由【网表节点命名】决定, 与板面 land 无关★ ⇒ 「158 随 ISS-356 封装真值基线收敛」在机制上不成立 ⇒ 那 90 件 (靶内 77 + 缺口 13) 须同时做【换官方
+    land】+【网表节点具名脚】。★沙盒实测: 只改网表 5 个节点串 ⇒ C4 158→153 (板面零改动); 反过来改 land ⇒ C4 不变 ⇒ ISS-356 那 78 件 land 全做完
+    C4 仍是 158。'
+  note: HW/PCB/FP_TRUTH_COVERAGE_GAP.md §0 表第 12 行 + §3.1 · logs/iss361/zz_c4_causality.py
+  ref: ''
+- key: iss361_4pad_breaks_c3
+  value: 官方 Button_Switch_SMD:SW_Push_1P1T_NO_CK_KMR2 有 4 个物理焊盘 (焊盘号 1,1,2,2) ⇒ 落到 2 脚网表器件上 ⇒ state/check_pcb_nets.py
+    C3 判红「板 4 脚 / 网表 2 脚」⇒ ★只改板不改网表 ⇒ 那道闸当场红★。★沙盒实测 (板副本, 真板 md5 未变)。
+  note: HW/PCB/FP_TRUTH_COVERAGE_GAP.md §0 表第 13 行 + §5 K3 · logs/iss361/zz_sandbox_4pad.py
+  ref: ''
+- key: iss361_four_buckets
+  value: '建议把那一趟的判据改成分桶判据: TP 42 / DNP 26 / 靶内 77 / 缺口 13 (★四桶目标值之和 = 158★) ⇒ TP+DNP 豁免 (单 land / 不装 ⇒
+    脚号与封装真值均无意义) ⇒ 靶内+缺口 = 90 件须换 land + 具名脚 ⇒ C4 读数目标值 = 158 − 90 = 68。★建议非已改: state/board_trip_baseline_20260723.txt
+    老字未动 (那是 main 的地界)。'
+  note: HW/PCB/FP_TRUTH_COVERAGE_GAP.md §3.2 · HW/check_fp_truth_coverage_gap.py G7
+  ref: ''
+- key: iss364_c4_target_68_reachable
+  value: C4 目标 = 68 (158 − 90 = 68) 且沙盒实测可达
+  note: '★ISS-364 2026-11-23 hw-lead 实跑: C4=158 (state/check_pcb_nets.py) · ISS-356 靶子=100 (78 主 PCB +
+    22 充电板) · 交集 77 · 差集 81 · 缺口 13 ⇒ 本单对象 90 件 = 靶内 77 + 缺口 13 ⇒ C4 目标 = 158 − 90 = 68。★沙盒四轮实测 (logs/iss364/20_sandbox_readings.json):
+    S0 真板真表 C4=158 · S1 腿A单独 C4=158 (Δ=0) · S2 腿B单独 C4=68 (Δ=−90) · S3 腿A+腿B C4=68 · S4 (K3 走 b 路) C4=68
+    且 C3 全绿。⇒ 目标 68 达得到, 但只有腿 B 能到。★依据: [实测]'
+  ref: HW/PCB/FP_TRUTH_LAND_SWAP_WORKPACKET.md#§8
+- key: iss364_leg_a_zero_leg_b_minus90
+  value: 腿A(换官方 land) ΔC4=0; 腿B(网表节点具名) ΔC4=−90
+  note: '★ISS-364 2026-11-23 hw-lead 实跑: C4 = state/check_pcb_nets.py 的 netlist_pads(rows).placeholder,
+    rows 来自 HW/netlist_v1.csv, 板在其后才被读 ⇒ 换 land 进不了 C4 的计算输入。⇒ 沙盒 S1: 板副本 90 件全换官方 land + 真网表 ⇒ C4 仍 158;
+    沙盒 S2: 真板 + 网表副本 (196 改名 + 4 补行) ⇒ C4 68。⇒ 那一趟若只换 land 不具名脚, C4==68 这条验收条件无论如何都还是红的。★依据: [实测]'
+  ref: 'HW/PCB/FP_TRUTH_LAND_SWAP_WORKPACKET.md#§0-7 + #§8'
+- key: iss364_90_pieces_workpackage
+  value: 90 件逐件可执行作业包 (77 靶内 + 13 缺口); 腿B 具名脚 182 只 = 200 条指令
+  note: '★ISS-364 2026-11-23 hw-lead: 作业包 HW/PCB/FP_TRUTH_LAND_SWAP_WORKPACKET.md §1 给 90 件 12 字段 (现占位几何[实测]/目标
+    lib:name + .kicad_mod 路径 + md5/目标几何[实测]/几何Δ/pad↔net 序/要重接 net/腿B 具名脚清单/证据等级/降级方案); §2 给腿B 逐件作业 (具名脚真值已在
+    HW/netlist_v1_pins.csv 的 pin 栏, 本单按表头名定位不写死列号; 真脚表 footprint 第 11 栏/opn 第 12 栏, 网表 footprint 第 14
+    栏); §2.2 给 200 条指令全清单 (196 改名 + 4 补行); 脚表已网表里没以节点形态出现的 GND 脚 ⇒ 那 4 件必须补行。★依据: [实测]'
+  ref: 'HW/PCB/FP_TRUTH_LAND_SWAP_WORKPACKET.md#§1 + #§2'
+- key: iss364_rpu_pg_6th_pad_order
+  value: R_PU_PG pad1/pad2 与脚表真值相反 (C1 看不见, 腿A 必须对调)
+  note: '★ISS-364 2026-11-23 hw-lead 实跑: 板面 R_PU_PG pad1=VDD_3V3_IO / pad2=PWR_GOOD, 而 HW/netlist_v1_pins.csv
+    的真值是 pin1=PWR_GOOD / pin2=VDD_3V3_IO。★电阻对称 ⇒ state/check_pcb_nets.py 的 C1 看不见 (读数仍绿) ⇒ ★但腿B 的具名脚是按脚表真值编号的
+    ⇒ 腿A 不对调 pad↔net, 那一趟的上下拉电阻脚位就是反的。⇒ 腿A 与腿B 必须同批做。★依据: [实测]'
+  ref: HW/PCB/FP_TRUTH_LAND_SWAP_WORKPACKET.md#§3-6
+- key: iss364_c_vbus_gnd_out_of_scope
+  value: C_VBUS_GND 的 2 个多余焊盘不在 90 件射程内 (做完腿A+腿B 仍是 C1 的多 2)
+  note: '★ISS-364 2026-11-23 hw-lead 实跑: C_VBUS_GND 的 BOM dnp=DNP · board=镜框充电板 · 网表 3 行全是 CHG_BOARD ⇒
+    不在 90 件清单 (77+13) 里, 也不进 C4 的 MAIN_PCB 口径。★沙盒 S3/S4 实测: 做完腿A+腿B, C1 仍是『缺 0 / 多 2 / 错 0』, 多出来的那 2 个就是它的
+    pad1=GND / pad2=VBUS_5V_CHG。⇒ 要清掉它只能靠『留位 / 下板』的拍板 (老板 B 类), 不在 S10 换封装这一趟的射程内。★依据: [实测]'
+  ref: 'HW/PCB/FP_TRUTH_LAND_SWAP_WORKPACKET.md#§3-1 + #§8'
+- key: iss366_gnd_rows_fix_variant
+  value: S3_append_at_end
+  note: '★ISS-366 4 件接地行补行的变体取值 = ★**S3_append_at_end**★ (★4 件接地行 = 5 条 `add()` 追加在 `state/gen_netlist.py`
+    的 `main()` 里 `n_p10 = build_p10_json()` 之后★) ⇒ ★**既有 82 条行号锚点 0 条失配 ⇒ 连带件 = 0**★. ★**S1 (原位插入) 的连带件**:
+    规格页谓词口径 25 条 + 台账指纹口径 38 条 ⇒ ★**建议 S3** ★ (★建议·非已决定★)★. 依据: 作业包 §3.3 §3.4.3.'
+  ref: ''
+- key: iss366_gnd_rows_fix_scope
+  value: C_KEY_PWR+C_KEY_VM+C_KEY_VP+R_BAT_DET_2+C_KEY_CAM
+  note: '★ISS-366 本单作业范围 = ★**4 件必装 (C_KEY_PWR / C_KEY_VM / C_KEY_VP / R_BAT_DET_2) + 1 件同根因 DNP (C_KEY_CAM)**★
+    ⇒ ★**不扩项**★. ★**DNP 件补不补由 main 确认** (★本单按「同根因一起补」处理 —— 建议·非已决定★★: 补了 ⇒ 板面 land 1⇒2, 电气无影响 (不装), 但网表/脚表更一致).
+    依据: 作业包 §1.1 §6-U-4.'
+  ref: ''
+- key: iss366_anchor_mismatch_cost
+  value: S3⇒0_mismatch_S1⇒25_pred_38_fp
+  note: '★ISS-366 行号锚点失配数取值 = ★**S3 ⇒ 0 条 (双口径: 台账指纹 82 条口径 0 + 规格页谓词 97 条口径 0)**★; ★**S1/S2 ⇒ 谓词口径 25
+    条 / 指纹口径 38 条**★ ⇒ ★**落表那趟若走 S1, 连带件 = 改规格页 ANCHORS 块 + 跑 `HW/check_land_row_anchors.py --reanchor`
+    机器改 EXPECT 行号 + 台账**★. ★**两个口径的差别在判定严格度, 不在谁漂了** ★ ⇒ ★**S3 结论不受口径影响**★. 依据: 作业包 §3.4.3.'
+  ref: ''
+- key: iss366_rpu_pg_truth
+  value: board_side_wrong
+  note: '★ISS-366 `R_PU_PG` 脚序差异的判定 = ★**board_side_wrong**★ (★板面 pad1/pad2 与脚表真值相反 ⇒ ★**脚表/网表是对的, 板面把两个
+    pad 的网络装反了**★) ⇒ ★**改法 = 改网表侧三处为具名脚号**★ (pin1=PWR_GOOD / pin2=VDD_3V3_IO) ⇒ ★**不是改板面**★. ★**依据 3 条**:
+    ① [官方] `HW/CHARGE_BOARD_SPEC.md:117` (BQ25896 PG 脚 10k 上拉到 3.3V ⇒ PG 端=pin1) ② [实测] 脚表 `HW/netlist_v1_pins.csv`
+    L381/L382 (pin1=PWR_GOOD) ③ [实测] pcbnew 直读盘上板 (pad1=VDD_3V3_IO/pad2=PWR_GOOD). ★**C1 抓不到它** (电阻对称)
+    ⇒ 只能靠「板面 vs 脚表」交叉比对.'
+  ref: ''
+- key: iss366_new_gate_hooks
+  value: not_hooked
+  note: '★ISS-366 新建闸 `HW/check_netlist_gnd_rows.py` 的挂链状态 = ★**not_hooked**★ ⇒ ★**零挂链** (★不在 `state/gate_check.py`
+    / `state/daily_check.py` / 任何 `EXTRA_GATES` 里★) ⇒ ★**挂不挂由 main 在签收时定** (★链机制是 main 的地界★)★. ★**建议**:
+    落表那趟之后再挂 ⇒ 挂上后本闸成为「网表↔脚表」一致性的常驻守卫 ⇒ 将来任何「脚表加了 GND 脚但网表忘了加接地行」都会被立刻抓住.'
+  ref: ''
+- key: iss366_land_regen_required
+  value: 'true'
+  note: ★ISS-366 落表那趟是否必须同批重生成板 = ★**true**★ ⇒ ★**否则板面仍缺 4 个接地 land 而脚表已说接地 ⇒ 两表打架 ⇒ C1 不会红 (两侧一起变·自洽)
+    ⇒ 「板坏但闸全绿」= 最危险的组合**★ ⇒ ★**必须与 §1 的 4 行补行 + §2 的 R_PU_PG 具名脚同批落**★ (★同批时只影响 pad 级·板一次重生成即可·拆批 ⇒ 多一次板重生成,
+    板只改一次 ⇒ 代价大★). ★**本单零写板 ⇒ 沙盒板是 `PCB_SKIP_ROUTE=1` 的排版板 (无走线) ⇒ 铜面三项 (零铜 114 / 单边零铜 22) 是无走线底板的数 ⇒
+    落表那趟必须实测确认没因这 4 个 land 引入新零铜网**★.
   ref: ''
 open_questions:
 - id: HW-Q1

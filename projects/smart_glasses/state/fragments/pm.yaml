@@ -88,6 +88,11 @@ artifacts:
   updated_at: '2026-10-25'
   summary: 'main 14:47 事故记录+恢复: ISS-327 沙盒软链写穿真件 ⇒ 真件 SW/*.md 11 份/781 处被改名 ⇒ 精确逆运算回退 ⇒ ISS-318 闸回绿 ⇒
     板/网表/脚表/BOM 四 md5 未变'
+- path: state/dispatch_briefs/ISS-363_sw_fp_truth_read_entry.md
+  kind: brief
+  version: '1'
+  updated_at: '2026-10-25'
+  summary: ★ISS-363 (sw-lead) 任务书全文 (10,295 B) ⇒ 「板那一趟」S10 那一跳的清单第9条落法 + 读封装栏机器闸 + 沙盒预演 ⇒ 真件零改★
 blockers:
 - id: PM-B1
   desc: 原厂纸面资料 (datasheet/HRM) 10-21 邮件已发, 至今未回 → 显示接口/电源域/FCCSP pinout/启动存储全部无法定稿
@@ -856,6 +861,12 @@ needs_from:
 
     ★**不答的后果**: ★**这一趟的工作量差一个数量级, 而且现在没人知道自己在画哪块板 ⇒ 下位怎么拍都是猜** ★'
   since: '2026-11-22'
+- key: iss363_b5_4_anchor_copy_reanchor_to_iss302_chain_head_20261123
+  to: main
+  item: ★把 SW/SW_MD5_BASELINE_LEDGER.md 的 §1 锚点副本跟到落表台账链头 (ISS-302)★ ⇒ ★必须走合法换源通道 (落 decision + 在链头台账留痕
+    + 刷新签收闸的 PROTECTED 期望值), 不许手改 md5 凑绿 (★ISS-275/284 红线★) ⇒ ★本条由 main 落, 不派给 agent (★改判据/改锚点 = main
+    的机制地界★)★
+  since: '2026-11-23'
 answers:
 - key: reva_stl_regen
   to: mech-lead
@@ -1720,6 +1731,32 @@ answers:
     (main 2026-11-23 03:5x 追加式) ★'
   ref: SW/STORAGE_CAPACITY_MATRIX.md · HANDOFF/2026-11-23_sw-lead_ISS346_存储容量矩阵与板侧时点.md · logs/iss346/matrix_cells.json
     (20 格 · failures=0) · DECISION_ONE_PAGER_2026-11-22.md §① 第 6 行 + §⑨
+- key: iss363_b5_1_checklist_ninth_item_verdict_20261123
+  to: sw-lead
+  value: '★加 (★但必须三处同批落地: 1) 清单 .md 的 §2表 + §2.1分布表 + §6 JSON块 加 SW09  2) ISS-362 页 H4-REG 三数字 8→9 / 0→1
+    / 4→新值  3) 本单新闸★) ⇒ ★真件落地 = main 一键动作 ⇒ ISS-363 只出补丁 + 沙盒证明, 三处真件零改★ ⇒ ★本机实测: 清单闸 REQUIRED_IDS 只判8条一条不许漏
+    ⇒ 多出的条目不判红; SOURCES 白名单 14 个 id 里没有 ISS-362/363 ⇒ SW09 的 source_iss 必须用 ISS-241+ISS-244 ⇒ 不必改既有闸;
+    ISS-362 闸 H4 是动态判据 ⇒ 加第9条后 H4 会红但不需改闸脚本, 只要同步页里三个数字★'
+  ref: state/dispatch_briefs/ISS-363_sw_fp_truth_read_entry.md
+- key: iss363_b5_2_new_fp_column_gate_verdict_20261123
+  to: sw-lead
+  value: '★加闸 (★交新脚本 SW/tools/check_fp_truth_read.py, 不挂链★) ⇒ ★挂不挂 state/gate_check.py 的 EXTRA_GATES 或
+    SW/tools/check_onepass_sw_release.py 的 MANIFEST = main 的机制地界 (ISS-330/333 同款)★ ⇒ ★H1 从「登记」变「有闸」★ ⇒
+    ★★F4 必须双态: 只判「页里登记的条数 == 本机实测」, 不判「必须0条」也不判「必须1条」 ⇒ 第9条落地那天新闸不红, 而 ISS-362 的 H4 会红 ⇒ 补丁正好是那天的落地方案,
+    不是哑弹★'
+  ref: state/dispatch_briefs/ISS-363_sw_fp_truth_read_entry.md
+- key: iss363_b5_3_need_text_rewrite_verdict_20261123
+  to: sw-lead
+  value: '★不改 need 正文 (★冻结那 9 条过期 need 的正文, 一条不许动★) ⇒ ★改用机器闸 F3 判「仍 open 的 to=sw-lead need 引着的 md5 ==
+    落表台账链头」⇒ 把人工清洗任务变成机器判据, 不等即点名 need key★ ⇒ ★理由: 改 need 正文 = 改未闭合需求口径, 而 ISS-275/284 花大力气堵掉的就是「手改 md5
+    凑绿」★'
+  ref: state/dispatch_briefs/ISS-363_sw_fp_truth_read_entry.md
+- key: iss363_b5_4_anchor_copy_verdict_20261123
+  to: sw-lead
+  value: ★SW/SW_MD5_BASELINE_LEDGER.md 的 §1 锚点副本跟到链头 (ISS-302) ⇒ ★但必须走合法换源通道 (落 decision + 留痕), 不许手改 md5
+    (★ISS-275/284 红线★) ⇒ ★ISS-363 零改那个文件 (★属受保护件 md5 83fafcf7d22d8fa999a1db74c781956d★) ⇒ ★只登记一条 need
+    给 main 去落★
+  ref: state/dispatch_briefs/ISS-363_sw_fp_truth_read_entry.md
 interface_claims:
 - key: display_frame_rate
   value: 60fps

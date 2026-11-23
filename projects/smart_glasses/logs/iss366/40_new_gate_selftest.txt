@@ -1,0 +1,20 @@
+==============================================================================
+  ISS-366 机器闸 check_netlist_gnd_rows.py --selftest
+==============================================================================
+  [PASS] M0 :: 基线网表 ⇒ D2 精确点名 5 件 (4 必装 + C_KEY_CAM)
+         ⇒ rc=1, D2=['C_KEY_CAM', 'C_KEY_PWR', 'C_KEY_VM', 'C_KEY_VP', 'R_BAT_DET_2']
+  [PASS] M1 :: ★反向: 5 件接地行 net 栏改回 GND ⇒ 全部判据清 ⇒ rc=0
+         ⇒ rc=0, 残留=[]
+  [PASS] M2 :: ★反向: 只修 C_KEY_PWR ⇒ 红的【只有】另外 4 件, C_KEY_PWR 已绿
+         ⇒ rc=1, D2=['C_KEY_CAM', 'C_KEY_VM', 'C_KEY_VP', 'R_BAT_DET_2']
+  [PASS] M3 :: ★反向: 接地行声称接地 C_DET_BAT 却没写它 ⇒ D1 必红 (且不掩盖 D2)
+         ⇒ rc=1, D1 命中 1 条
+  [PASS] M4 :: ★反向: 信号网行里写 GND ⇒ D3 必红 (且 D2 仍红)
+         ⇒ rc=1, D3 命中 5 条
+  [PASS] M5 :: ★反向: 删掉 C_DET_BAT 的 net=GND 行 ⇒ D2 必点名它 (脚表仍说有 GND 脚)
+         ⇒ rc=1, D2=['C_DET_BAT', 'C_KEY_CAM', 'C_KEY_PWR', 'C_KEY_VM', 'C_KEY_VP', 'R_BAT_DET_2']
+  [PASS] M6 :: ★反向: 脚表把 C_DET_BAT 的 GND 脚改掉 ⇒ D4 必红 (网表还接地着)
+         ⇒ rc=1, D4 命中 1 条
+------------------------------------------------------------------------------
+SELFTEST 7/7 全过 (每条都自证「红的是目标那一条, 其余仍绿」)
+ALL TESTS PASS

@@ -1,0 +1,37 @@
+### ⑦ check_sw09_patch_dryrun.py
+================================================================================================
+ISS-368 · SW09 三处同批落地 · 副本 dry-run 机器闸
+  项目根 = /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+  沙盒   = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss368_sbx/patched
+  闸读数 = 缓存 (★副本未变·读数复用★)
+================================================================================================
+  [✅] F1  三处同批到位 (落点① 页内三处 + JSON 计数 == 9 + 落点③ 新闸字节未变)
+       §2 表行 1 · §2.1 S10 行 1 · §6 JSON items 9 · 落点③ md5 cab7a6f17c1da35f4e54185ad8b62089
+  [✅] F2  §H4-REG 三个登记数字 == (9/1/5)
+       H4-ITEMS=9 · H4-COVER=1 · H4-GENERIC=5
+  [✅] F3  干跑两次的 diff == 0 (幂等 · 且补丁本身必须跑得通)
+       第1遍后 md5=2186777965c6 · 第2遍后 md5=2186777965c6 · 第3遍后 md5=2186777965c6
+  [✅] F4  10 道 SW 闸全绿 (副本上逐道实跑)
+       绿 10 / 红 0
+  [✅] F5  证据等级五级白名单
+       扫 3 个文件
+  [✅] F6  正文零挂起措辞
+       扫 SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md (★围栏代码块内的引用原文不算★)
+  [✅] F7  沙盒在项目盘 tmp/ (且零软链)
+       沙盒 = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss368_sbx/patched · 软链 0 个
+------------------------------------------------------------------------------------------------
+  10 道 SW 闸逐道 rc (副本沙盒内实跑):
+    SW/tools/check_onepass_sw_sync.py                                      rc=0  1.13s (缓存)
+    SW/tools/check_sw_ref_reachability.py                                  rc=0  0.29s (缓存)
+    SW/tools/check_landing_trace_obligation.py                             rc=0  0.11s (缓存)
+    SW/tools/check_demo_panel_spec.py                                      rc=0  0.15s (缓存)
+    SW/tools/check_demo_panel_spec_r6_selftest.py                          rc=0  0.38s (缓存)
+    SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py               rc=0  0.43s (缓存)
+    SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py          rc=0  0.81s (缓存)
+    SW/tools/check_shutdown_semantics.py                                   rc=0  0.09s (缓存)
+    SW/tools/check_timing_review_adc_sync.py                               rc=0  0.13s (缓存)
+    SW/tools/timing_check.py                                               rc=0  0.62s (缓存)
+------------------------------------------------------------------------------------------------
+  结论: ✅ 全过 (绿 7 / 红 0)
+================================================================================================
+rc=0

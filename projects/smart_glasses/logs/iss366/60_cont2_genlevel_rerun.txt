@@ -1,0 +1,95 @@
+==============================================================================
+  ★ISS-366 CONT2 · 生成器级复跑 (★产生点证明★)
+==============================================================================
+
+[0] 真盘生成器基线 (写前)
+    state/gen_netlist.py            md5=aff5a6d98f473c0d65720f653a75fa22
+    state/gen_pcb_netlist_board.py  md5=e6e7e0b36003f0a129170f5172b1381a
+
+[1] 在沙盒副本上打 §3.3 追加式补丁 (★真盘一个字节不动★)
+    ★§3.3 有效 add() 调用数 = 5 (字面 2 + 循环 4) ★
+    ★补丁源 = 作业包 §3.3 代码块 (程序化抽取) ★
+      |     n_p10 = build_p10_json()
+      | 
+      |     # ★★ISS-366: 4 件接地行补独立 net=GND 行 (★追加在末尾 ⇒ 既有行号零位移★)
+      |     add("P2", "GND", "R_BAT_DET_2", "GND", "R_BAT_DET_2", "60k ±1%", "R", "必装", "[推算]", "",
+      |         "[BAT_DET] 分压下臂 地端 (60k ±1%) ★独立 net=GND 接地行 (ISS-366)", "B-08")
+      |     for _tag, _net in (("PWR", "KEY_PWR"), ("VP", "KEY_VOL_P"), ("VM", "KEY_VOL_M"),
+      |                        ("CAM", "KEY_CAM")):
+      |         add("P7", "GND", "C_KEY_%s" % _tag, "GND", "C_KEY_%s" % _tag, "100nF ±10%", "C",
+      |             "DNP" if _tag == "CAM" else "必装", "[推算]", "",
+      |             "[%s] 按键 RC 消抖电容 地端 ★独立 net=GND 接地行 (ISS-366)" % _net)
+    ★沙盒副本原像 md5 = aff5a6d98f473c0d65720f653a75fa22 (== 真盘 ⇒ 副本未被污染)
+    ★打补丁后 md5     = a34ed8a6745963f7f70c46e2d43199ed
+
+[2] 重跑生成器 (★输出落 REPRO/, ★绝不碰真盘★)
+    第 1 次跑 rc=0  md5=10a7ec2c0ddddaf14e3e6f65378a23d1
+    第 2 次跑 rc=0  md5=10a7ec2c0ddddaf14e3e6f65378a23d1
+    ★★(b) 幂等: ★★通过 (两次 md5 相同)★★
+
+[3] (a) 生成器级网表 == 上一趟 §3.2 表用的 S3 网表
+    生成器级  /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss366_sbx/REPRO/netlist_v1.csv  md5=10a7ec2c0ddddaf14e3e6f65378a23d1
+    上一趟S3  /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss366_sbx/S3/HW/netlist_v1.csv  md5=b2bdf8438ea29386e41474aec21a55c9
+    ★★(a) 不相同 ⇒ 逐条列出差异 ★★
+      行数: 生成器级=456 · 上一趟S3=519
+      L452 生成器级: P2,GND,R_BAT_DET_2,GND,R_BAT_DET_2,60k ±1%,R,必装,[推算],,[BAT_DET] 分压下臂 地端 (60k ±1%) ★独立 net=GND 接地行 (ISS-366),B-08,MAIN_PCB,,
+           上一趟 : P10,VBUS_5V,J_TYPE_C A4,D_ESD_TC,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,★USB-IF Type-C Cable and Connector Spec R2.0 (2019-08) Tabl
+      L453 生成器级: P7,GND,C_KEY_PWR,GND,C_KEY_PWR,100nF ±10%,C,必装,[推算],,[KEY_PWR] 按键 RC 消抖电容 地端 ★独立 net=GND 接地行 (ISS-366),,MAIN_PCB,,
+           上一趟 : P10,VBUS_5V,J_TYPE_C A9,D_ESD_TC,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,★USB-IF Type-C Cable and Connector Spec R2.0 (2019-08) Tabl
+      L454 生成器级: P7,GND,C_KEY_VP,GND,C_KEY_VP,100nF ±10%,C,必装,[推算],,[KEY_VOL_P] 按键 RC 消抖电容 地端 ★独立 net=GND 接地行 (ISS-366),,MAIN_PCB,,
+           上一趟 : P10,VBUS_5V,J_TYPE_C B4,D_ESD_TC,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,★USB-IF Type-C Cable and Connector Spec R2.0 (2019-08) Tabl
+      L455 生成器级: P7,GND,C_KEY_VM,GND,C_KEY_VM,100nF ±10%,C,必装,[推算],,[KEY_VOL_M] 按键 RC 消抖电容 地端 ★独立 net=GND 接地行 (ISS-366),,MAIN_PCB,,
+           上一趟 : P10,VBUS_5V,J_TYPE_C B9,D_ESD_TC,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,★USB-IF Type-C Cable and Connector Spec R2.0 (2019-08) Tabl
+      L456 生成器级: P7,GND,C_KEY_CAM,GND,C_KEY_CAM,100nF ±10%,C,DNP,[推算],,[KEY_CAM] 按键 RC 消抖电容 地端 ★独立 net=GND 接地行 (ISS-366),,MAIN_PCB,,
+           上一趟 : P10,USB_CC1,J_TYPE_C A5,R_CC1,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,"★CC1 触点: Type-C Rd 5.1kΩ ±20% 到 GND (R_CC1 已在主网表 P6 第 285/287
+      L457 生成器级: ★<缺行>★
+           上一趟 : P10,USB_CC2,J_TYPE_C B5,R_CC2,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,"★CC2 触点: Rd 5.1kΩ ±20% 到 GND (R_CC2 已在主网表 P6 第 286/288 行画出, 本
+      L458 生成器级: ★<缺行>★
+           上一趟 : P10,USB_D_P,J_TYPE_C A6,J_TYPE_C B6,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,"★D+ 双份并联 (A6+B6 同一节点): USB-IF Table 3-5 Note 2 要求并联短接线 
+      L459 生成器级: ★<缺行>★
+           上一趟 : P10,USB_D_N,J_TYPE_C A7,J_TYPE_C B7,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,"★D− 双份并联 (A7+B7 同一节点): 并联短接线 ≤3.5mm; 跨铰链那一段在 P9 第 417 行
+      L460 生成器级: ★<缺行>★
+           上一趟 : P10,GND,J_TYPE_C A1,GND,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,"★GND 四脚全并联 A1/A12/B1/B12 (USB-IF Table 3-5; 现行网表只写了 A1+A12 的合并写法, B
+      L461 生成器级: ★<缺行>★
+           上一趟 : P10,GND,J_TYPE_C A12,GND,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,"★GND 四脚全并联 A1/A12/B1/B12 (USB-IF Table 3-5; 现行网表只写了 A1+A12 的合并写法, 
+      L462 生成器级: ★<缺行>★
+           上一趟 : P10,GND,J_TYPE_C B1,GND,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,"★GND 四脚全并联 A1/A12/B1/B12 (USB-IF Table 3-5; 现行网表只写了 A1+A12 的合并写法, B
+      L463 生成器级: ★<缺行>★
+           上一趟 : P10,GND,J_TYPE_C B12,GND,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,"★GND 四脚全并联 A1/A12/B1/B12 (USB-IF Table 3-5; 现行网表只写了 A1+A12 的合并写法, 
+      L464 生成器级: ★<缺行>★
+           上一趟 : P10,NC,J_TYPE_C A8,NC,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,DNP,[官方],,"★SBU1 不接: USB-IF Table 3-5 Note 3 'Contacts A8 and B8 (SBU1 and SBU2
+      L465 生成器级: ★<缺行>★
+           上一趟 : P10,NC,J_TYPE_C B8,NC,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,DNP,[官方],,★SBU2 不接: 同 A8 (USB-IF Table 3-5 Note 3); 本机不做 Alt Mode,B-23,CHG_BOAR
+      L466 生成器级: ★<缺行>★
+           上一趟 : P10,GND,J_TYPE_C shield,GND,J_TYPE_C,"Type-C 16p 座 (充电板侧, 物理脚位 A/B 编号)",CONN,必装,[官方],,"屏蔽壳 接 GND 单点 (短粗铜皮, 不用细线); 与机壳地的接法待结构总工定 (ISS-065)",C-11,CHG_BO
+      L467 生成器级: ★<缺行>★
+           上一趟 : P10,VBUS_5V_CHG,U_CHG pin1,C_VBUS_IC,C_VBUS_IC,1µF X7R 25V,C,必装,[官方],,★BQ25896 pin1 VBUS: 'Place a 1-µF ceramic capacitor from VBUS to PGND and place 
+      L468 生成器级: ★<缺行>★
+           上一趟 : P10,PGND,C_VBUS_IC,U_CHG pin17+pin18,C_VBUS_IC,1µF X7R 25V,C,必装,[官方],,去耦地端 = BQ25896 PGND (pin17/18) 同一地网; datasheet 'A single point connection is rec
+      L469 生成器级: ★<缺行>★
+           上一趟 : P10,PMID,U_CHG pin23,C_PMID,C_PMID,10µF X7R 25V,C,必装,[官方],,"★datasheet: 'put 1µF on VBUS to PGND, and the rest capacitance on PMID to PGND' ⇒ PMID 电容不
+      L470 生成器级: ★<缺行>★
+           上一趟 : P10,PGND,C_PMID,U_CHG pin17+pin18,C_PMID,10µF X7R 25V,C,必装,[官方],,PMID 电容 地端 (PGND),C-01,CHG_BOARD,,
+      L471 生成器级: ★<缺行>★
+           上一趟 : P10,PMID,L_CHG,U_CHG pin23,L_CHG,2.2µH Isat≥1.5A DCR≤50mΩ,L,必装,[官方],,开关电感 一端接 PMID; IRIPPLE=0.29A (见上) ⇒ Isat 选 ≥1.5A; 型号待选型 (询价经项目总工),C-01,CHG_BOARD,
+      ★差异行数 = 68 ★
+
+[4] (c) 既有 82 条行号锚点 0 条失配 (★S3 追加式口径★)
+    ★锚点集 = 台账里 table∈{netlist,pins} 的条目 = 82 条 ★
+    ★生成器级 S3: 失配 3 条 ⇒ ★有失配★
+       ('d10_a497_note', 'netlist', 497, 'NO_ROW')
+       ('d11_led508_board', 'netlist', 508, 'NO_ROW')
+       ('d11_led509_board', 'netlist', 509, 'NO_ROW')
+
+[5] 四组生成器级复跑 (★S0/S1/S2/S3 各自重跑生成器 ⇒ 与盘上逐字节对拍★)
+    S0: rc=0  生成器级 md5=6aee500e60ba0732f83a9cf557ba90ab  上一趟 md5=6aee500e60ba0732f83a9cf557ba90ab  ★逐字节相同=True★  锚点失配=0
+    S1: rc=0  生成器级 md5=6c615a8dab056174948bed1b1456c5d1  上一趟 md5=6c615a8dab056174948bed1b1456c5d1  ★逐字节相同=True★  锚点失配=38
+    S2: rc=0  生成器级 md5=ddeebf930a48418a03a5b5cd20754987  上一趟 md5=ddeebf930a48418a03a5b5cd20754987  ★逐字节相同=True★  锚点失配=38
+    ★§3.3 有效 add() 调用数 = 5 (字面 2 + 循环 4) ★
+    S3: rc=0  生成器级 md5=b2bdf8438ea29386e41474aec21a55c9  上一趟 md5=b2bdf8438ea29386e41474aec21a55c9  ★逐字节相同=True★  锚点失配=0
+
+[6] 真盘生成器收工校验 (★必须逐字节不变★)
+    state/gen_netlist.py            aff5a6d98f473c0d65720f653a75fa22 → aff5a6d98f473c0d65720f653a75fa22  ★未动★
+    state/gen_pcb_netlist_board.py  e6e7e0b36003f0a129170f5172b1381a → e6e7e0b36003f0a129170f5172b1381a  ★未动★
+
+★结果 JSON → /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss366_sbx/REPRO/genlevel_result.json

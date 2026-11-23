@@ -1,0 +1,261 @@
+########################################################################
+# ISS-366 CONT2 · 必跑命令 (★全部实跑 · rc 原样★)
+# 时间: 2026-11-23 20:00:27 CST
+########################################################################
+
+=== [1] grep 4 行的现写法 (★逐字抄进作业包★) ===
+$ grep -n "C_KEY_PWR\|C_KEY_VM\|C_KEY_VP\|R_BAT_DET_2" HW/netlist_v1.csv
+181:P2,BAT_DET,R_BAT_DET_1,R_BAT_DET_2,NET_BAT_DET,100k+60k 分压 + 100nF,NET,必装,[推算],,"方向 充电板→SoC; 电平 0-1.8V (分压, SARADC_VIN5 1.8V 域); 阻抗 100k+60k 分压 + 100nF; 连接 电池 BAT → ADC; 测试点 TP_BAT",B-08,MAIN_PCB,,
+183:P2,BAT_DET,R_BAT_DET_2,GND,R_BAT_DET_2,60k ±1%,R,必装,[推算],,[BAT_DET] 分压下臂 地端 (60k ±1%),B-08,MAIN_PCB,,
+184:P2,BAT_DET,C_DET_BAT,R_BAT_DET_2,C_DET_BAT,100nF ±10%,C,必装,[推算],,"[BAT_DET] ADC 滤波电容 (★V1.2: 电池在镜脚, 本地检测, 不跨铰链)",B-08,MAIN_PCB,,
+313:P7,KEY_PWR,C_KEY_PWR,GND,C_KEY_PWR,100nF ±10%,C,必装,[推算],,"[KEY_PWR] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线)",,MAIN_PCB,,
+318:P7,KEY_VOL_P,C_KEY_VP,GND,C_KEY_VP,100nF ±10%,C,必装,[推算],,"[KEY_VOL_P] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线)",,MAIN_PCB,,
+323:P7,KEY_VOL_M,C_KEY_VM,GND,C_KEY_VM,100nF ±10%,C,必装,[推算],,"[KEY_VOL_M] 按键 RC 消抖电容 (10k 上拉 + 100nF, τ≈1ms); 是否需要消抖取决于 SoC 驱动方式 (等 SW 总工确认, 不影响本版布线)",,MAIN_PCB,,
+rc=0
+
+=== [2] 既有闸 (★不许被本单打红★) ===
+
+$ python3 HW/check_fp_truth_baseline.py
+【ISS-356 封装真值基线闸】
+  [PASS] C0 :: 基准块存在且是合法 JSON
+  [PASS] C1 :: 78 件靶子 §2 全覆盖 + 22 件 §4.1 全登记 (78/78, 22/22)
+  [PASS] C2 :: 81 处 lib:name 的 .kicad_mod 全部实测在盘 + md5 一致
+  [PASS] C3 :: 81 行证据等级全部 ∈ 五级白名单
+  [PASS] C4 :: 81 行降级方案全部非空且非占位词
+  [PASS] C5 :: 正文无「等回复/等原厂回信/待供应商确认/等原厂/等确认」类挂起措辞
+  [PASS] C6 :: 件数三方自洽 (实跑 78/22/100 = 基准块 = §2 表行数)
+  事实: 靶子(镜脚主PCB)=78 靶子(镜框充电板)=22 合计=100
+ALL CHECKS PASS
+rc=0
+
+$ python3 HW/check_fp_truth_land_swap.py --selftest
+  [PASS] M1 :: 期望红 L2 ⇒ 实得红 ['L2'] :: §1 缺 ref: Q_PG
+  [PASS] M2 :: 期望红 L5 ⇒ 实得红 ['L5'] :: Q_ENVC: 目标焊盘数 页写 9 vs 实测 3
+  [PASS] M3 :: 期望红 L4 ⇒ 实得红 ['L4'] :: Q_ENVC: md5 不符 (页写 deadbeef / 实 f8754f4d)
+  [PASS] M4 :: 期望红 L3 ⇒ 实得红 ['L3'] :: Q_ENVC: 空字段 ['降级方案']; Q_ENVC: 降级方案 栏空
+  [PASS] M5 :: 期望红 L6 ⇒ 实得红 ['L6'] :: 证据等级非法 ['[官方]']: Q_ENVC
+  [PASS] M6 :: 期望红 L7 ⇒ 实得红 ['L7'] :: 出现挂起措辞: 等原厂回信 (×1); 出现挂起措辞: 等原厂 (×1)
+  [PASS] M7 :: 期望红 L1 ⇒ 实得红 ['L1'] :: §1 标题写 89 件 ⇒ 脚本实算 90 件 (靶内 77 + 缺口 13)
+  [PASS] M8 :: 期望红 L8 ⇒ 实得红 ['L8'] :: §2.1 缺 ref: R_PU_BOOT_N; §2.1 具名脚数总和 180 != 脚表实算 182 (★腿 B 漏写 ⇒ 这里红★)
+SELFTEST 8/8 全过 (每条都自证「红的是目标那一条, 其余仍绿」)
+ALL TESTS PASS
+rc=0
+
+$ python3 HW/check_netlist_selfconsistency.py    # ★真身路径 (★任务书写 state/ 那条不存在★)
+   [报告项] D_ESD_USB_D → J_USB_C 板面距离 = 47.99 mm (★规格页 §①(4) 引的就是这个数★)
+   [加强型断言·F-3] A 组 22 条 / 已迁移 20 条: `z_diff` 非空 且 `imp` 为空 ⇒ ✅ 全过 (★A-11/A-12 单端与 A-24 那 15 条【不在】断言范围内★)
+✅ rc=0: ★现状与 HW/NETLIST_SELF_CONSISTENCY_SPEC.md 一致★
+★**注意: 门禁是【现状守卫】不是【合格证】** ⇒ ★**第 1 轮 4 条 + 第 2 轮 7 组缺陷★仍在★ ⇒ rc=0 是预期状态 ★
+★**落表作业包 (HW/SCHEMATIC_LANDING_WORKPACKET_V1.md) 完整性 + 三方对齐: 全过** (★28 条作业条目, 8 栏齐★)
+★**翻面条件见规格页 §⑤**; 落表后请改用 `--expect-resolved` ★
+rc=0
+
+$ python3 state/check_netlist_selfconsistency.py    # ★任务书写的路径 (★本机实读: 不存在★)
+python3: can't open file '/home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/check_netlist_selfconsistency.py': [Errno 2] No such file or directory
+rc=2  (★预期: No such file ⇒ 与 §6-U-1 一致★)
+
+=== [3] 合并 + 总工门禁 (★Q1 必须 18/18·rc=0★) ===
+
+$ python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-23T20:00:48+08:00)
+   产出 786 | 阻塞 43 (高危 33) | 未闭合需求 319 | 冲突 0 | 健康度 red
+rc=0
+
+$ python3 state/gate_check.py
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-23_hw-lead_ISS366_网表4行补行作业包.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-23_sw-lead_ISS370_腿B对SW侧影响面.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-23_mech-lead_ISS367_S10换封装LED窗口规格同趟重算.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '官方', '推算', '0数据']
+   sw-lead    标签: ['实测', '官方', '推算', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 1102 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    431 条
+   sw-lead    315 条
+   mech-lead  356 条
+
+【Q4 需求闭环率】
+   问方视角 (我的需求被别人答了): 111/482  ← 与 merge.py 口径一致
+   答方视角 (我登记的答复): 232 条, 其中 57 条真对上了别人的需求 key
+   hw-lead    被答 42/262 | 我答 79 条(有效 31) | 产出 304 | 阻塞 7
+   sw-lead    被答 23/74 | 我答 70 条(有效 5) | 产出 272 | 阻塞 15
+   mech-lead  被答 46/146 | 我答 83 条(有效 21) | 产出 195 | 阻塞 12
+   ├─ ⚠️ **疑似漏登记 (答案在对方文档正文里, 但没进 answers)**: 0 条  ← 需人工判定, 也有可能是 waiting_on 标错
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 51 条 | **全局 46 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 319 条**
+   ✅ 与 merge.py 自对账一致 (等外部 46 / 等总工 319)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 10 个
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+      iss105_jchg_rfq_release: 发起方 ['main', 'hw-lead']
+      iss206_mech_claim_mainboard_len_carrier_direct_scheme_choice: 发起方 ['main', 'mech-lead']
+      iss236_boss_v_decision: 发起方 ['main', 'hw-lead']
+
+【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    0/5 类: []
+   sw-lead    0/5 类: []
+   mech-lead  1/5 类: ['镜腿/镜脚厚度(mm)']
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 200 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 37 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 83 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+
+=== [4] 板双证 (★收工后★) ===
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+rc=0
+$ stat -c '%y %s' HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800 4940213
+rc=0
+
+=== [5] 零落表自证 (★网表/脚表/BOM/两个生成器★) ===
+$ md5sum HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+rc=0
+$ md5sum HW/netlist_v1.net state/gen_netlist.py state/gen_pcb_netlist_board.py state/land_v_values.py state/decision_truth.py
+843e406546518de3ae960540d8295c53  HW/netlist_v1.net
+aff5a6d98f473c0d65720f653a75fa22  state/gen_netlist.py
+e6e7e0b36003f0a129170f5172b1381a  state/gen_pcb_netlist_board.py
+4032aaf308d545179a6f8d8b7129c49d  state/land_v_values.py
+28254f1d48fd48c17628693aaa3fe0b4  state/decision_truth.py
+rc=0
+
+=== [6] 既有闸 / 既有页面 未动 (★零改既有闸 + 零改既有页面★) ===
+2fe8dba1988a56822c502bb32faeda04  HW/check_fp_truth_baseline.py
+7f809b20c87fe0457d7b4af24b849fdb  HW/check_fp_truth_land_swap.py
+5281b65dbcc9af7bccc6c79a9066812d  HW/check_netlist_selfconsistency.py
+2840271b07a9725e4d68e30bc852ab36  state/check_pcb_nets.py
+5d3135b54f4636a7a1fae37f23aa1fb3  state/check_netlist.py
+d43195ff50312f8cb3a13a39688d32c9  HW/FP_TRUTH_BASELINE.md
+1e9c93503377985dcbc8fde8d6fb6859  HW/PCB/FP_TRUTH_LAND_SWAP_WORKPACKET.md
+ae8ef08632cacd5f0aba53037d99bc95  HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+28b54fd8b36ad71af86a258724802448  HW/NETLIST_SELF_CONSISTENCY_SPEC.md
+
+=== [7] 零挂链自证 (★新闸不许进链★) ===
+state/gate_check.py:0
+state/daily_check.py:0
+
+=== [8] 其它 agent 分片未动 + issue_log / tracker 未动 ===
+389ebf7cbf6db4bffc07fe90ba601a49  state/fragments/pm.yaml
+37f8663e7b2b4ba06667012a28857351  state/fragments/sw.yaml
+0e69d44342f9a70b68c7b58f89b64b14  state/fragments/mech.yaml
+618f0e5443d079f09d514b158d2cf408  state/issue_log.yaml
+15e69827979fa41e7b7cb6719dacfff0  PROJECT_TRACKER.md
+
+=== [9] 分片 md5 前后 ===
+写前: 472bb03a9cef6fd3ab2849b316414b0b
+写后: 8305a9b2c3240ca2c9b4b2cb659971fe
+
+=== [10] 本单新建的闸 (★零挂链★) ===
+$ python3 HW/check_netlist_gnd_rows.py
+==============================================================================
+  ISS-366 网表【独立 net=GND 接地行】门禁
+  ★判据: D1 空接地行 / D2 脚表有 GND 脚但网表无接地行 / D3 信号行写 GND
+==============================================================================
+  ❌ [D2] C_KEY_CAM (CSV 第 0 行): 期望 脚表里 C_KEY_CAM 有 GND 脚 (2) ⇒ 网表须有一条 net=GND 且含 C_KEY_CAM 的行 / 实际 网表全表没有 net=GND 且含 C_KEY_CAM 的行 ⇒ 板面不会长出接地 land
+  ❌ [D2] C_KEY_PWR (CSV 第 0 行): 期望 脚表里 C_KEY_PWR 有 GND 脚 (2) ⇒ 网表须有一条 net=GND 且含 C_KEY_PWR 的行 / 实际 网表全表没有 net=GND 且含 C_KEY_PWR 的行 ⇒ 板面不会长出接地 land
+  ❌ [D2] C_KEY_VM (CSV 第 0 行): 期望 脚表里 C_KEY_VM 有 GND 脚 (2) ⇒ 网表须有一条 net=GND 且含 C_KEY_VM 的行 / 实际 网表全表没有 net=GND 且含 C_KEY_VM 的行 ⇒ 板面不会长出接地 land
+  ❌ [D2] C_KEY_VP (CSV 第 0 行): 期望 脚表里 C_KEY_VP 有 GND 脚 (2) ⇒ 网表须有一条 net=GND 且含 C_KEY_VP 的行 / 实际 网表全表没有 net=GND 且含 C_KEY_VP 的行 ⇒ 板面不会长出接地 land
+  ❌ [D2] R_BAT_DET_2 (CSV 第 0 行): 期望 脚表里 R_BAT_DET_2 有 GND 脚 (2) ⇒ 网表须有一条 net=GND 且含 R_BAT_DET_2 的行 / 实际 网表全表没有 net=GND 且含 R_BAT_DET_2 的行 ⇒ 板面不会长出接地 land
+  ❌ [D3] R_BAT_DET_2 (CSV 第 183 行): 期望 信号网 BAT_DET 的行里写了裸 GND ⇒ R_BAT_DET_2 必须另有独立的 net=GND 接地行 / 实际 R_BAT_DET_2 没有 net=GND 行 ⇒ 接地端登记不出来 (板面缺接地 land)
+  ❌ [D3] C_KEY_PWR (CSV 第 313 行): 期望 信号网 KEY_PWR 的行里写了裸 GND ⇒ C_KEY_PWR 必须另有独立的 net=GND 接地行 / 实际 C_KEY_PWR 没有 net=GND 行 ⇒ 接地端登记不出来 (板面缺接地 land)
+  ❌ [D3] C_KEY_VP (CSV 第 318 行): 期望 信号网 KEY_VOL_P 的行里写了裸 GND ⇒ C_KEY_VP 必须另有独立的 net=GND 接地行 / 实际 C_KEY_VP 没有 net=GND 行 ⇒ 接地端登记不出来 (板面缺接地 land)
+  ❌ [D3] C_KEY_VM (CSV 第 323 行): 期望 信号网 KEY_VOL_M 的行里写了裸 GND ⇒ C_KEY_VM 必须另有独立的 net=GND 接地行 / 实际 C_KEY_VM 没有 net=GND 行 ⇒ 接地端登记不出来 (板面缺接地 land)
+  ❌ [D3] C_KEY_CAM (CSV 第 328 行): 期望 信号网 KEY_CAM 的行里写了裸 GND ⇒ C_KEY_CAM 必须另有独立的 net=GND 接地行 / 实际 C_KEY_CAM 没有 net=GND 行 ⇒ 接地端登记不出来 (板面缺接地 land)
+------------------------------------------------------------------------------
+  ❌ 10 条缺陷 ⇒ ★接地 land 会在板面缺失 ⇒ 电气损伤 (去耦失效 / 分压悬浮)★
+rc=1  (★预期 1: 现行网表就该红 ★ D2/D3 点名 5 件★)
+
+$ python3 HW/check_netlist_gnd_rows.py --selftest
+==============================================================================
+  ISS-366 机器闸 check_netlist_gnd_rows.py --selftest
+==============================================================================
+  [PASS] M0 :: 基线网表 ⇒ D2 精确点名 5 件 (4 必装 + C_KEY_CAM)
+         ⇒ rc=1, D2=['C_KEY_CAM', 'C_KEY_PWR', 'C_KEY_VM', 'C_KEY_VP', 'R_BAT_DET_2']
+  [PASS] M1 :: ★反向: 5 件接地行 net 栏改回 GND ⇒ 全部判据清 ⇒ rc=0
+         ⇒ rc=0, 残留=[]
+  [PASS] M2 :: ★反向: 只修 C_KEY_PWR ⇒ 红的【只有】另外 4 件, C_KEY_PWR 已绿
+         ⇒ rc=1, D2=['C_KEY_CAM', 'C_KEY_VM', 'C_KEY_VP', 'R_BAT_DET_2']
+  [PASS] M3 :: ★反向: 接地行声称接地 C_DET_BAT 却没写它 ⇒ D1 必红 (且不掩盖 D2)
+         ⇒ rc=1, D1 命中 1 条
+  [PASS] M4 :: ★反向: 信号网行里写 GND ⇒ D3 必红 (且 D2 仍红)
+         ⇒ rc=1, D3 命中 5 条
+  [PASS] M5 :: ★反向: 删掉 C_DET_BAT 的 net=GND 行 ⇒ D2 必点名它 (脚表仍说有 GND 脚)
+         ⇒ rc=1, D2=['C_DET_BAT', 'C_KEY_CAM', 'C_KEY_PWR', 'C_KEY_VM', 'C_KEY_VP', 'R_BAT_DET_2']
+  [PASS] M6 :: ★反向: 脚表把 C_DET_BAT 的 GND 脚改掉 ⇒ D4 必红 (网表还接地着)
+         ⇒ rc=1, D4 命中 1 条
+------------------------------------------------------------------------------
+SELFTEST 7/7 全过 (每条都自证「红的是目标那一条, 其余仍绿」)
+ALL TESTS PASS
+rc=0
+
+=== [11] 回填后复跑 gate_check (★交卷页定稿后再验一次★) ===
+$ python3 state/gate_check.py --json
+rc=0
+  【Q1 交付齐备率】 18/18
+    hw-lead    6/6  缺:无  交接单:2026-11-23_hw-lead_ISS366_网表4行补行作业包.md
+    sw-lead    6/6  缺:无  交接单:2026-11-23_sw-lead_ISS370_腿B对SW侧影响面.md
+    mech-lead  6/6  缺:无  交接单:2026-11-23_mech-lead_ISS367_S10换封装LED窗口规格同趟重算.md
+  【Q2 证据分级】 3/3
+  【Q3 接口声明】 hw-lead 431 条
+  【Q6 硬件真源闸】 ok=True
+
+=== [12] ★★收工后最终双证 (★全部一次跑完★) ★★ ===
+-- 板 --
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800 4940213
+-- 零落表 --
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+843e406546518de3ae960540d8295c53  HW/netlist_v1.net
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+-- 零改生成器 --
+aff5a6d98f473c0d65720f653a75fa22  state/gen_netlist.py
+e6e7e0b36003f0a129170f5172b1381a  state/gen_pcb_netlist_board.py
+4032aaf308d545179a6f8d8b7129c49d  state/land_v_values.py
+28254f1d48fd48c17628693aaa3fe0b4  state/decision_truth.py
+-- 分片 --
+8305a9b2c3240ca2c9b4b2cb659971fe  state/fragments/hw.yaml
+-- 零挂链 --
+state/gate_check.py:0
+state/daily_check.py:0
+-- 其它分片未动 --
+389ebf7cbf6db4bffc07fe90ba601a49  state/fragments/pm.yaml
+37f8663e7b2b4ba06667012a28857351  state/fragments/sw.yaml
+0e69d44342f9a70b68c7b58f89b64b14  state/fragments/mech.yaml
+-- issue_log / tracker 未动 --
+618f0e5443d079f09d514b158d2cf408  state/issue_log.yaml
+15e69827979fa41e7b7cb6719dacfff0  PROJECT_TRACKER.md
+-- 四件交付物 --
+-rw-rw-r-- 1 yuewuya yuewuya 41434 Nov 23 20:02 HANDOFF/2026-11-23_hw-lead_ISS366_网表4行补行作业包.md
+-rw-rw-r-- 1 yuewuya yuewuya 52998 Nov 23 19:58 HW/PCB/BOARD_ONEPASS_NETLIST_ROW_FIX.md
+-rw-rw-r-- 1 yuewuya yuewuya 19456 Nov 23 19:22 HW/check_netlist_gnd_rows.py
+  logs/iss366/ = 20 件

@@ -1,0 +1,97 @@
+############################################################
+# ISS-363 cont1 · 收工面 · 全部必跑命令 · 2026-11-23 17:36:58 CST
+############################################################
+
+$ python3 SW/tools/check_fp_truth_read.py --selftest
+  ✅ ST-8   ★正向双态★ 清单加到 9 条 + 登记同步到 9/1/5 ⇒ F4 仍绿 (不许写死 8)
+      红集合 = 无 · 目标 = F4 ⇒ 一致
+
+  反向用例: 8/8 PASS (★每条自证「红的是目标那一条, 其余仍绿」★)
+
+ALL TESTS PASS
+rc=0
+
+$ python3 SW/tools/check_fp_truth_read.py
+[F1] 三份真源的封装栏可读 (★按表头名定位 · 不写死列号★) ⇒ ✅ 绿
+[F2] 落表台账链头 == 盘上现值 (三件全查 · ★复用 sw_ledger_state 口径★) ⇒ ✅ 绿
+[F3] 仍 open 的 to=sw-lead need 引着的 md5 == 链头 (★扫全部 4 个分片★) ⇒ ✅ 绿
+[F4] 清单「讲 fp 栏的条目数」登记 == 实测 (★双态: 8/0 与 9/1 都绿★) ⇒ ✅ 绿
+[F5] 零写板 + 零落表自证 (★板双证 + 三源台账可查★) ⇒ ✅ 绿
+[F6] 禁语检查 (老板 2026-11-12 02:02 政策) ⇒ ✅ 绿
+[F7] 证据等级五级白名单 ⇒ ✅ 绿
+结论: ✅ 全过 (绿 7 / 红 0)
+rc=0
+
+$ grep -c "待""填" SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md
+0
+$ grep -c "待""填" HANDOFF/2026-11-23_sw-lead_ISS363_S10清单第9条落法.md
+0
+
+$ python3 state/gate_check.py
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   sw-lead    6/6  缺: 无   交接单: 2026-11-23_sw-lead_ISS363_S10清单第9条落法.md
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+rc=0
+
+$ python3 state/merge.py
+✅ STATE.yaml 已刷新 (2026-11-23T17:37:40+08:00)
+   产出 772 | 阻塞 43 (高危 33) | 未闭合需求 308 | 冲突 0 | 健康度 red
+rc=0
+
+$ python3 state/check_frag_dup_keys.py --agent sw-lead
+★ ⇒ 高危段重名合计 **0** 组 ⇒ ★**这些是「后写覆盖前写」的受害者 ⇒ 合并取值取决于合并器顺序 ⇒ 需人工核对哪一条是对的** ★
+rc=0
+
+$ md5sum HW/PCB/demo_mainboard.kicad_pcb
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+$ stat -c '%y %s' HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800 4940213
+
+## 三份真源 md5 (收工面)
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+
+## 分片 md5 (只写 sw.yaml)
+472bb03a9cef6fd3ab2849b316414b0b  state/fragments/hw.yaml
+23262e2f1c4a30162c93b66e5aa59bcf  state/fragments/mech.yaml
+389ebf7cbf6db4bffc07fe90ba601a49  state/fragments/pm.yaml
+b75c56d9a9345b31caacc600b6f32438  state/fragments/sw.yaml
+
+## 既有闸/既有页面/落表器 md5 (零改自证)
+5f370bb8cf828473e70ccc5d6412da98  state/gate_check.py
+ddb3b0d2eab9443eb9ff82b6eae2bc12  state/daily_check.py
+3984cab48cea0201a5187abaaa4c9499  SW/tools/check_onepass_sw_sync.py
+94fa1fbb0124921df1ad391f894beacb  SW/tools/check_sw_fp_truth_impact.py
+4d9c21dd0125b3b0e1a7e567852287b8  SW/tools/check_demo_panel_spec.py
+cf09c921002937920bfa40701d523b33  SW/tools/timing_check.py
+4d7ce982965e92c78a1ebcd3e968874e  SW/tools/check_onepass_sw_release.py
+17b3c38c397e9aab06c8d2cbdd7d7461  SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md
+ebeba50492e89719fdf46b3af35b8bc8  HANDOFF/2026-11-23_sw-lead_ISS362_SW侧S10换封装影响面.md
+4032aaf308d545179a6f8d8b7129c49d  state/land_v_values.py
+28254f1d48fd48c17628693aaa3fe0b4  state/decision_truth.py
+b8f935db333c16fa1051f0b06ae3e6ec  SW/BOARD_ONEPASS_SW_SYNC.md
+b9a3e41101d5a09f7cf0756278c3448e  state/issue_log.yaml
+
+## 本单三件交付物 md5
+cab7a6f17c1da35f4e54185ad8b62089  SW/tools/check_fp_truth_read.py
+b40c3a3f5263bfd0329b7cd14da568d8  SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md
+361398f7fc69aace8bdbf10652c830a3  HANDOFF/2026-11-23_sw-lead_ISS363_S10清单第9条落法.md
+
+## 自匹配防线 (闸源码里那个字面量出现次数)
+0
+
+## 沙盒卫生: symlink 数 =
+0

@@ -1,0 +1,48 @@
+==============================================================================
+  ★ISS-366 CONT2 · (a) 手改级 vs 生成器级 对拍 ★
+==============================================================================
+  手改级 CSV (★基线 + §3.3 的 5 行逐字追加★)  /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss366_sbx/REPRO/S3_handedit_netlist_v1.csv
+    md5 = b2bdf8438ea29386e41474aec21a55c9
+  生成器级 CSV (★改生成器 → 重跑★)              /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss366_sbx/REPRO/G/S3/HW/netlist_v1.csv
+    md5 = b2bdf8438ea29386e41474aec21a55c9
+    ★★(a) 逐字节相同 ★★ ⇒ ★「改生成器重跑」与「手改 CSV」得到同一个文件★
+       ⇒ ★**落表那趟必须改生成器** (手改会被下次重跑冲掉), 但 ★**手改的【内容】是对的** ★
+
+==============================================================================
+  ★ISS-366 CONT2 · (c) 既有 82 条行号锚点 (★双口径★)
+==============================================================================
+  ★口径① 台账指纹口径 (★`HW/land_row_anchors_registry.json` 里 table∈{netlist,pins}★)
+     ★锚点集 = 82 条 ★★
+  ★口径② 规格页谓词口径 (★`HW/NETLIST_SELF_CONSISTENCY_SPEC.md` 的 ANCHORS 块★)
+     ★具体行号 + 字段谓词的锚点 = 97 条 (★按表: {'netlist': 72, 'pins': 10, 'bom': 12, 'sompins': 3}★)
+
+  组      口径① 台账指纹 (82 条)                口径② 规格页谓词                      结论            
+  S0     失配  0 条                    失配  0 条              ★★0 条失配 ⇒ 通过★★
+  S1     失配 38 条                    失配 25 条              ★有失配★
+       ① d10_a497_note netlist L497 ID_FP_DIFF
+       ① d11_led508_board netlist L508 ID_FP_DIFF
+       ① d11_led509_board netlist L509 ID_FP_DIFF
+       ① d2_a184_dnp netlist L184 ID_FP_DIFF
+       ① d2_a184_ref netlist L184 ID_FP_DIFF
+       ② d2_a184_ref netlist L184 PRED_MISS
+       ② d2_a186_node1 netlist L186 PRED_MISS
+       ② d2_a186_note netlist L186 PRED_MISS
+       ② d3_a441_type netlist L441 PRED_MISS
+       ② d3_a441_value netlist L441 PRED_MISS
+  S2     失配 38 条                    失配 25 条              ★有失配★
+       ① d10_a497_note netlist L497 ID_FP_DIFF
+       ① d11_led508_board netlist L508 ID_FP_DIFF
+       ① d11_led509_board netlist L509 ID_FP_DIFF
+       ① d2_a184_dnp netlist L184 ID_FP_DIFF
+       ① d2_a184_ref netlist L184 ID_FP_DIFF
+       ② d2_a184_ref netlist L184 PRED_MISS
+       ② d2_a186_node1 netlist L186 PRED_MISS
+       ② d2_a186_note netlist L186 PRED_MISS
+       ② d3_a441_type netlist L441 PRED_MISS
+       ② d3_a441_value netlist L441 PRED_MISS
+  S3     失配  0 条                    失配  0 条              ★★0 条失配 ⇒ 通过★★
+
+  ★★结论 (★S3 追加式口径★): S3 两个口径都是 0 条失配 ⇒ ★**既有 82 条行号锚点 0 条失配** ★★
+  ★★S1 / S2 (原位插入) 两个口径都非 0 ⇒ ★**落表那趟若走 S1, 必须同批改规格页行号锚点** ★★
+
+★结果 JSON → /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss366_sbx/REPRO/handedit_vs_genlevel.json

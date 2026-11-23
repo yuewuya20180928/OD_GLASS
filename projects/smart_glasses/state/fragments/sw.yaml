@@ -7,12 +7,10 @@ status:
   progress_pct: 100
   health: green
   updated_at: '2026-11-23'
-  summary: '★ISS-327 cont2 交卷 (续做复核 + SOP 防漂加固 · 纯沙盒/只读 · 零写板 · 零落表 · 零改闸 · 零外发): ① 交卷前 fresh 复核: 真件 10
-    道 SW 闸全 rc=0 (位号闸 92/0/3 · timing_check SELFTEST 85/85 · onepass 反向 16/16 · adc_sync 29/29) + 四 md5
-    未变 + 占位符 0; ② 反向用例套件今天重跑 ⇒ RT-1~RT-4 红/红 (真隐患没被 --freeze-registry 洗白) · RT-5~RT-8 红/绿 (C1/C7/C13/C8
-    既有判据缺陷·已报 main) · 结构性自证 非 live token 全 0; ③ SOP 加固 (今天实测发现的坑): 冻结表条数由硬编码 78 改成【自洽恒等式: 条数 == 重建前 dump
-    的 OK 条数】(今天真树 92==92) · 贴表由「照抄 L161~L237 行号」改成【内容锚点 + 贴表器脚本】(行号会随闸脚本改动漂) · §9 零改闸改成只锁 10 道闸 (比整个目录已假红)
-    · 贴表器 3 负例 + 1 正例全测过; ④ 10 道闸脚本自 11-18 交卷起 md5 逐条未变 ⇒ 11-18 的沙盒读数仍然成立。'
+  summary: '★ISS-370 · sw-lead · 2026-11-23 · 「板那一趟」腿 B (网表节点具名 200 条) 对 SW 侧影响面查清 ⇒ 三件交付齐 (影响页 + 新闸 G0~G8
+    + 交卷页) · 自跑读数: 基线 85/85 · 腿B全量 --netlist 70/85 (15 红) · 只改名 71/85 (14 红) · 只补行 73/85 (2 红) · ★落表仿真
+    69/85 (16 红, 差的第 16 条是三方对账 — --netlist 口径结构性看不见) · 补丁后 82/85 (3 红, 13 条语义红全回绿) · 新闸 9/9 绿 + --selftest
+    10/10 PASS · 板/网表/脚表/BOM 四份真源 md5 前后逐字节未变 · 零写板 · 零落表 · 零改既有闸 · 零挂链 · 零外发★'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -1876,6 +1874,81 @@ artifacts:
     verified·不在违例里★) + 汇总闸 RELEASE_RC=0 (10 道逐条 rc=0 · 绿 10 红 0 · 影子道 v2 rc=0) + --selftest RELEASE_ST_RC=0
     + 板 md5 611b869e13518c3c023fb178f91a0075 / mtime 2026-11-06 07:07:17.362193413 未变 + 网表/脚表/BOM 三件 md5+mtime
     未变 + 占位符自扫 0/0 + 模板标记 (两个 at 号) 自扫 0 + 分片 grep -c iss335 = 23 + 交付物与日志清单 (脚本本体 tmp/iss335/final_check_20261123.sh)★
+- path: SW/tools/check_fp_truth_read.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: ★ISS-363 · sw-lead · 2026-11-23 · SW 侧「读封装栏 (fp 栏)」机器闸 + 「清单第 9 条」双态校验闸 (★本单新建★) ⇒ 裸跑 rc=0
+    (F1~F7 七条全绿) + --selftest 8/8 全绿 (末行 ALL TESTS PASS) ⇒ ★**F5 假红已修 (取数精度 秒级→纳秒级 · 判据方向零改动)**★ ⇒ ★**零挂链
+    (挂不挂归 main 签收时定)**★
+  key: iss363_gate_fp_truth_read
+- path: SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md
+  kind: doc
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: ★ISS-363 · sw-lead · 2026-11-23 · 「板只改一次」清单第 9 条 (S10 换封装真值) 的落法 + 「读封装栏」机器闸登记页 (★本单新建★) ⇒
+    §0 = 12 行双证 + 两处口径订正 + 板面与三源实测 · §1 = SW09 九字段逐字段草案 · §2 = 三处同批补丁清单 (网表第 14 列 / 脚表第 11 列 / BOM 第 10
+    列) · §3 = 双态判据设计 · §4 = 六条降级方案 · §5 = 八条未决与卡点
+  key: iss363_entry_page_fp_truth_read
+- path: HANDOFF/2026-11-23_sw-lead_ISS363_S10清单第9条落法.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: ★ISS-363 · sw-lead · 2026-11-23 · ISS-363 交卷页 (★本单新建★) ⇒ B1~B6 六段齐全 (标题命中 state/gate_check.py
+    的关键词表) + 20 条验收线逐条判定 + 9 个沙盒预演 + 逐条证据分级 + 3 条 interface_claims + 边界自证 (零写板/零落表/零改既有闸/零改既有页面/零挂链/零外发/不代拍板)
+    + 要 main 裁的 9 件事
+  key: iss363_handoff_page_iss363_s10_item9
+- path: SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md
+  kind: spec
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: ★ISS-368 · sw-lead · 2026-11-23 · SW09 三处同批落地补丁一页 (★本单新建★) ⇒ §0 口径与读数 (9 条读数各写清哪个脚本产出怎么复跑)
+    / §1 三处落点逐字规格 (15 处编辑 A1~A4 + B1~B11 各给定位串+原文+新文+自证·规格由 apply 脚本 EDITS 表自动导出零手抄) / §2 幂等性 (第 2 遍第
+    3 遍逐字节 diff = 0) / §3 dry-run 证明 (副本上 10 道 SW 闸绿 10 红 0 + 新闸 F1~F7 绿 7 红 0 + 反证只改一处 H4 红 F4 红) / §4
+    回滚 (逐字节反向补丁 + 回滚命令 + 回滚后 10 道闸绿 10 红 0) / §5 未决项只登记不代拍 / §6 边界自证 / §7 复现全表 · 键 iss368_sw09_landing_patch_page
+  key: iss368_sw09_landing_patch_page
+- path: SW/tools/apply_sw09_three_place_patch.py
+  kind: tool
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: ★ISS-368 · sw-lead · 2026-11-23 · SW09 三处同批落地幂等补丁 (★本单新建★) ⇒ 默认干跑 · --apply 只许写项目盘 tmp/ 下的副本目录
+    (真件写不进去·rc=2 拒写) · 15 条编辑 (落点① 4 + 落点② 11 + 落点③ 0 只验不改) · 三种原子操作自带幂等分支 (replace / insert_after_line
+    / json_append) · --rollback 走同一套锚点反向执行 · --dry-run 显式旗标已补 (判据方向未动) · 键 iss368_sw09_apply_three_place_patch
+  key: iss368_sw09_apply_three_place_patch
+- path: SW/tools/check_sw09_patch_dryrun.py
+  kind: tool
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: ★ISS-368 · sw-lead · 2026-11-23 · SW09 补丁的副本 dry-run 机器闸 (★本单新建★) ⇒ F1 三处同批到位 / F2 H4-REG 三数字
+    9-1-5 / F3 幂等 / F4 10 道 SW 闸全绿 / F5 证据等级五级白名单 / F6 正文零挂起措辞 / F7 沙盒在项目盘 tmp/ 且零软链 ⇒ 裸跑 rc=0 (绿 7 红
+    0) + --selftest 8/8 ALL TESTS PASS · 本闸零挂链 (挂不挂 EXTRA_GATES 归 main) · 键 iss368_sw09_patch_dryrun_gate
+  key: iss368_sw09_patch_dryrun_gate
+- path: HANDOFF/2026-11-23_sw-lead_ISS368_SW09三处同批落地补丁.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: ★ISS-368 · sw-lead · 2026-11-23 · ISS-368 交卷页 (★本单新建★) ⇒ B1~B6 六段齐全 + 20 条验收线逐条判定 + 必跑命令原样
+    rc + 落盘清单 + 沙盒留证路径 + 要 main 裁的 5 件事 · 键 iss368_sw09_handoff_page
+  key: iss368_sw09_handoff_page
+- path: SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md
+  kind: impact-page
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: '★ISS-370 · sw-lead · 2026-11-23 · 「板那一趟」腿 B (网表节点具名 200 条) 对 SW 侧影响面 · §0 口径与读数 (含【落表仿真口径:
+    真落盘那天红数 = 16 不是 15】) + §1 15 条红逐条表 (语义破坏/落表义务/反向用例 三选一归类) + §1-补 第 16 条 (三方对账·只在落表仿真出现) + §2 10 件同批清单
+    (8 字段齐全·跨域件归属写明) + §3 四条反向自证 + §4 降级方案 + §5 未决项 · 键 iss370_legb_sw_impact_page'
+- path: SW/tools/check_onepass_legb_sw_impact.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: ★ISS-370 · sw-lead · 2026-11-23 · 腿 B ⇒ SW 侧影响面机器闸 · G0~G8 (内容级·不挂 md5·只核内容) + --selftest 10
+    条反向用例 (每条自证「只红目标那一条」) + 零挂链 (不写进 state/gate_check.py) · 键 iss370_legb_sw_impact_gate
+- path: HANDOFF/2026-11-23_sw-lead_ISS370_腿B对SW侧影响面.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-23'
+  summary: ★ISS-370 · sw-lead · 2026-11-23 · ISS-370 交卷页 (★本单新建★) ⇒ B1~B6 六段齐全 + 20 条验收线逐条判定 + 落盘文件清单
+    + 沙盒留证路径 + 要 main 裁的 3 件事 · 键 iss370_legb_sw_handoff_page
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -2637,6 +2710,32 @@ needs_from:
     加自检夹具 (本单建议默认值 = 甲·只加夹具不改判据逻辑) 还是 (乙) 不动 (⇒ 靠 SOP §2 步 2 的人工核对)。不拍的后果: 贴表贴漏/贴多行时人工核对容易漏, 而 MISSING
     只从 3 涨到 4 (红) 或被人为抬上限 (实测 RT-9 洗白通道)。'
   since: '2026-11-23'
+- key: iss368_sw09_extra_gates_hookup_decision
+  to: main
+  item: '【只登记·不代拍】ISS-368 交两件新脚本, 请 main 裁两件事: ① 新闸 SW/tools/check_sw09_patch_dryrun.py (F1~F7) 挂不挂 state/gate_check.py
+    的 EXTRA_GATES ⇒ 本单零挂链 (state/gate_check.py md5 5f370bb8… 前后同值) ⇒ 挂不挂由 main 定 ② 真件三处 (清单页 SW/BOARD_ONEPASS_SW_SYNC.md
+    + 影响页 SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md + 新闸 SW/tools/check_fp_truth_read.py) 的落地执行归 main 在板只改一次那一趟的一键动作
+    ⇒ 本单只交补丁 + 副本 dry-run 证明 + 回滚说明 · 真件零改'
+  since: '2026-11-23'
+- key: iss370_legb_gate_hookup_decision
+  to: main
+  item: 【只登记·不代拍】ISS-370 交一件新闸 SW/tools/check_onepass_legb_sw_impact.py (G0~G8 + --selftest 10/10), 挂不挂
+    state/gate_check.py 的 EXTRA_GATES 请 main 裁 ⇒ 本单零挂链 (state/gate_check.py md5 5f370bb8cf828473e70ccc5d6412da98
+    前后同值) ⇒ 挂不挂由 main 定
+  since: '2026-11-23'
+- key: iss370_legb_landing_ticket_and_window
+  to: main
+  item: '【只登记·不代拍】腿 B 那一跳要落表 ⇒ ① 落表单号是谁签 (落表台账链前移 + state/issue_log.yaml 留痕都要单号, 而单号是 main 签的) ② 腿 B 落表与
+    SW 侧取链归一化的先后顺序 (实测: 不做归一化 ⇒ 落表做完仍 13 条语义红; 不做落表 ⇒ 4 道闸红含 2 道 R6 反向用例闸因「基线不绿」rc=2) ③ 「板只改一次」窗口有多长 ⇒
+    本单只登记依据与代价, 不代选'
+  since: '2026-11-23'
+- key: iss370_legb_landing_atomicity
+  to: hw-lead
+  item: '【跨域·不是 SW 的域·只给改法】腿 B 落表那一跳: ① 网表写盘 (HW/netlist_v1.csv) 与落表台账链前移 (HW/SCHEMATIC_LANDING_V1_LANDED.md
+    登记新 md5 724f0bf71cb7ec6c74e389cf9cd8d3fe) 是【同一个原子动作】还是【两步】? ② 第 513 行数据行锚点改 517 属【受保护判据】变更, 谁批? ★SW
+    侧本单 HW/ 下一个文件都没碰, 只给改法 + 时序 + 会红哪道闸 (timing_check 三条锚点红 + check_demo_panel_spec R6 + check_onepass_sw_sync
+    W6 + 三道 R6 反向用例闸)★'
+  since: '2026-11-23'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -3360,6 +3459,33 @@ answers:
     追加一条 entries」恰恰就是 ISS-275 已经换成链头判决源的那件事 ⇒ 现在追加 entries 只是历史留痕·不再是判决源 ⇒ 本条作为待执行指令【退休】'
   ref: SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md#§2 · SW/tools/check_sw_fp_truth_impact.py (H3) · logs/iss362/probe_h3_set.txt
     · logs/iss362/probe_need_texts.txt · logs/iss362/h3_reg_block.txt
+- key: iss362_b5_1_sw09_manifest_item_draft
+  to: main
+  value: '★ISS-363 回覆 (sw-lead 2026-11-23) · ★ISS-362 §B5-1 (★= H4 缺口的答复★) · sw-lead 2026-11-23 · 【清单第
+    9 条 (SW09_FP_TRUTH_READ) 的九字段草案已写好】⇒ 草案全文见 SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md §1 (id / source_iss
+    / title / current_state / action / criterion / step / blocked_by / evidence 逐字段) ⇒ ★**本单没往清单里加 (★归
+    main 裁★)**★ ⇒ ★**若加: 代价 = ISS-362 闸的 H4 当天会红, 但同批同步 SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md §H4-REG 的三个数字
+    (8/0/4 → 9/1/5) 就绿, 不用改闸脚本; 且本单新闸 F4 是双态 (只判 登记==实测) ⇒ 8/0/4 与 9/1/5 都绿 (★--selftest ST-8 已沙盒实跑证明★)**★'
+  ref: SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md#§1 · SW/tools/check_fp_truth_read.py (F4) · logs/iss363/selftest_postfix.out
+- key: iss362_b5_2_fp_reader_gate_proposal
+  to: main
+  value: '★ISS-363 回覆 (sw-lead 2026-11-23) · ★ISS-362 §B5-2 (★= H1 缺口的答复★) · sw-lead 2026-11-23 · 【读封装栏的新闸已经写完并跑绿】⇒
+    SW/tools/check_fp_truth_read.py ⇒ 裸跑 rc=0 (F1~F7 七条全绿) + --selftest 8/8 全绿 (末行 ALL TESTS PASS) ⇒ ★**H1
+    的盲区在机器层面被填上 (F1 真读那一栏, 按表头名定位不写死列号)**★ ⇒ ★**但本单【零挂链】(★挂不挂归 main 签收时定★)**★ ⇒ ★**代价口径: 闸源码里那个被扫字面量必须拼接造
+    ⇒ ISS-362 的 H1-READERS 保持 0 ⇒ 那道闸复跑 rc=0 仍绿**★'
+  ref: SW/tools/check_fp_truth_read.py · SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md#§H1-REG · logs/iss363/gate_bare_postfix.out
+- key: iss368_sw09_three_place_landing_patch_delivered
+  to: main
+  value: '★ISS-368 回覆 (sw-lead 2026-11-23) · 【SW09_FP_TRUTH_READ 的三处同批落地已被做成一次可执行 · 幂等 · 可回滚 · 有沙盒证明的动作】⇒
+    交付三件: ① 一页 SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md (§0~§7) ② 幂等补丁 SW/tools/apply_sw09_three_place_patch.py
+    (默认干跑 · --apply 只许写项目盘 tmp/ 下的副本 · 真件写不进去) + 机器闸 SW/tools/check_sw09_patch_dryrun.py (裸跑 rc=0 · --selftest
+    8/8) ③ 交卷页 HANDOFF/2026-11-23_sw-lead_ISS368_SW09三处同批落地补丁.md · 【真件三处零改】SW/BOARD_ONEPASS_SW_SYNC.md
+    b8f935db… / SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md 17b3c38c… / SW/tools/check_fp_truth_read.py cab7a6f1…
+    前后逐字节同值 · 【反证成立】只改落点① 或只改落点② ⇒ ISS-362 闸 H4 红 + ISS-363 闸 F4 红 (三变体实跑 rc=0) · 【回滚】--apply --rollback
+    ⇒ 两份页面逐字节回到落地前原文 · 回滚后 10 道 SW 闸绿 10 红 0 · 【本单不代拍】新闸挂不挂 state/gate_check.py 的 EXTRA_GATES = main 的机制地界
+    (本单零挂链) · 【板与真源零改动】板 md5 611b869e… mtime 2026-11-06 07:07:17.362193413'
+  ref: SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md · logs/iss368/check_sw09_patch_dryrun.out · logs/iss368/prove_partial_landing.out
+    · logs/iss368/rollback_proof.txt
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -4976,11 +5102,20 @@ interface_claims:
     (机器闸不读 OPN) ③ A4 老表 = 关机语义 建议 C+A + HW/POWER_SHUTDOWN_V3.md 签收 (need boss_shutdown_semantics_and_loadswitch_20261117
     第①问) ⇒ 卡 G1a-8 转绿 (ISS-097 fixed→verified) ④ A5 老表 = 追认负载开关 TPS22991RAA (同 need 第②问) ⇒ 不卡 G1a-8 转绿
     (ISS-172 已 verified) 卡板那一趟开工前把网表收干净 (网表 L50 + BOM L216 仍留 ⇒ 选型口径待 A5 追认); 严格分层 = 卡 G1a 两条红转绿的 2 个
-    (①+③) + 只卡板那一趟开工的 2 个 (②+④); R3 与 R9 两条红同趟消化 零老板字母
+    (①+③) + 只卡板那一趟开工的 2 个 (②+④); R3 与 R9 两条红同趟消化 零老板字母 ★★【2026-11-23 16:58 main 派单就地订正 (★追加式 · ★上面 ①/②/③/④
+    与 N=4 原文字一字未删★)】 ★**③/④ 里的「A4 / A5」是【旧表码】** ⇒ ★**现码 = 关机语义签收 = `SD-1`** · ★**负载开关 `TPS22991RAA` 追认
+    = `LS-1`** ⇒ ★**回旧码白回一次** (★落表器 `state/land_v_values.py:2786` 的 `A_ITEM = {A1:V-3, A2:V-4, A3:V-2,
+    A4:V-5, A5:V-6}` ⇒ 回「A4」= `Q_PG` 写法 (V-5) · 回「A5」= LED 亮度档 (V-6) ⇒ rc=2 零写盘 或落错项★) ⇒ ★**本 claim 的
+    N = 4 与严格分层 (卡 G1a 两条红 = ①+③ · 只卡板那一趟开工 = ②+④) 结论一字未动 · 只补现码★**
   note: '★依据: state/fragments/pm.yaml L674-680 与 L726-730 两个 need 均无 decided_at ⇒ 仍 OPEN; issue_log ISS-181
-    note L6707-6709 写死 仍卡 ① A4/A5 关机语义+负载开关选型追认 ② ESD 型号轴 + D− 侧 (W-1b/W-1c/W-2) 还没拍 ⇒ 与 N=4 逐条对齐★'
+    note L6707-6709 写死 仍卡 ① A4/A5 关机语义+负载开关选型追认 ② ESD 型号轴 + D− 侧 (W-1b/W-1c/W-2) 还没拍 ⇒ 与 N=4 逐条对齐★ ★现码对照
+    (★2026-11-23 16:58 main 派单就地订正 · 追加式 · 老字一字未删★): 上面「① A4/A5 关机语义+负载开关选型追认」= 【旧表码】 ⇒ ★**关机语义签收 现码 =
+    `SD-1`** (need key `boss_shutdown_semantics_and_loadswitch_20261117` 第①问) · ★**负载开关 `TPS22991RAA`
+    追认 现码 = `LS-1`** (同 need 第②问) ⇒ ★**回旧码「A4」/「A5」= 白回一次 (落表器 rc=2 零写盘) 或落错项** ⇒ ★**老板回函先跑 `python3 state/board_decision_reply_mapper.py
+    --reply "<原文>"` ⇒ 撞码当场拒收** ⇒ ★**N = 4 与两条分层结论不变** ★'
   ref: HANDOFF/2026-11-18_sw-lead_ISS306_G1a两条红溯源.md §1 结论行 · state/fragments/pm.yaml:674-680,726-730
-    · state/issue_log.yaml:6707-6709
+    · state/issue_log.yaml:6707-6709 · state/board_decision_reply_mapper.py (--list 第 5/6 条 = SD-1/LS-1
+    · --reply 撞码当场拒收) · state/land_v_values.py:2786 (A_ITEM 映射 A4=V-5 / A5=V-6)
 - key: iss306_zero_write_md5_proof
   value: '★零写板零落表零改闸零外发 自证★ 交付时读数 (2026-11-18 02:06:46 本机实跑) 与 现在读数 逐字节一致: 板 HW/PCB/demo_mainboard.kicad_pcb
     = 611b869e13518c3c023fb178f91a0075 · 网表 HW/netlist_v1.csv = 6aee500e60ba0732f83a9cf557ba90ab · 脚表
@@ -5362,6 +5497,54 @@ interface_claims:
   note: logs/iss335/08_reverify_20261123.log (全文) + HANDOFF/2026-11-19_sw-lead_ISS335_SW侧准出汇总闸.md §附二
     (今日复查节)
   ref: ''
+- key: iss363_fp_col_read_gate_exists
+  value: 'SW 侧现在有一道【真读封装栏 (fp 栏)】的机器闸: SW/tools/check_fp_truth_read.py · F1 按表头名定位该栏并报出每份真源的 数据行数 / 非空条数
+    / 空条数 ⇒ ISS-362 的 H1 盲区在机器层面被填上 ⇒ 代价口径 = 源码里那个被扫字面量必须拼接造 (否则 H1-READERS 从 0 变 1 ⇒ ISS-362 的闸当场红) ⇒
+    本闸 F1 真读而 H1 仍绿 ⇒ 本闸零挂链 (挂不挂归 main)'
+  note: logs/iss363/gate_bare_postfix.out + logs/iss363/selftest_postfix.out · SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md#§H1-REG
+  ref: SW/tools/check_fp_truth_read.py (F1)
+- key: iss363_fp_truth_source_is_board_lib_name
+  value: 'S10 换封装真值的真值源 = 板面同 ref 的库封装名 ⇒ ★**该真值现在【不存在】**: 板面 186 个封装的库封装名 0/186 非空 ⇒ 三份真源 fp 栏现状 = 网表
+    423 空 / 脚表 454 空 / BOM 178 行「待定」(81.7%) ⇒ 换真值那一跳必须先等板那一趟把库封装名补上; SW 侧这一跳 = 让那一栏机器读得到 + 把真值来源钉死'
+  note: logs/iss363/probe_board_fp_truth.out + logs/iss363/probe_fp_patch_scope.out + logs/iss363/probe_fp_patch_scope2.out
+  ref: 'SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md#§0.4 · #§0.5 · #§2'
+- key: iss363_fp_col_batch_scope
+  value: 三处同批落地的范围 = 网表第 14 列 / 脚表第 11 列 / BOM 第 10 列 (★一律按表头名 footprint 定位★) ⇒ 同批换 md5 ⇒ 必须同批走一次落表 (台账留痕
+    ⇒ 链头同步变 ⇒ F2/F3 的期望跟着走) ⇒ 同批同步 SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md §H4-REG 的三个数字 (8/0/4 → 9/1/5) ⇒
+    零手改 md5 (ISS-275/284 红线) ⇒ 不许只改一处
+  note: 'SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md#§2.1 · #§2.3 · logs/iss363/probe_fp_patch_scope2.out'
+  ref: SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md#§2
+- key: iss363_fp_col_patch_scope_by_family
+  value: '换封装真值的补丁对象必须【逐族分别定来源】不许按板面一刀切: ① 网表 170 个 ref + 脚表 172 个 ref 板上有 ⇒ 真值来自 demo 主板; ② 网表 67 个 NET/RAIL
+    类 ref 板面没有 ⇒ fp 栏本该空; ③ 网表 36 个 + 脚表 29 个 CHG_BOARD 件 ⇒ 真值来自充电板规格不是主板; ④ 网表 4 个 HINGE 类 ⇒ 跨铰链条目板面无封装
+    ⇒ 另定; ⑤ BOM 178 行「待定」全要换 (另 20 条「板文件封装: N 焊盘」与板面 20/20 对得上)'
+  note: logs/iss363/probe_fp_offboard_refs.out · logs/iss363/probe_fp_patch_scope2.out
+  ref: SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md#§2.2
+- key: iss368_sw09_three_place_landing_contract
+  value: 'SW09_FP_TRUTH_READ 的真件落地是【三处同批的一个动作】不许拆成三批: ① 清单页 SW/BOARD_ONEPASS_SW_SYNC.md 的 §2 小节头 (8 条
+    ⇒ 9 条) + §2 逐条表第 9 行 (7 列齐全) + §2.1 归属步分布 S10 行 (3 ⇒ 4) + §6 机器可读 JSON 块 items[] 追加第 9 个对象 (9 字段齐全非空)
+    ② 影响页 SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md 的 §H4-REG 三个登记数字 (H4-ITEMS 8⇒9 · H4-COVER 0⇒1 · H4-GENERIC
+    4⇒5) + 块内 H4-FINDING / H4-IMPACT / H4-COUNTERMEASURE / 附注 + 页首边界句 + §1 G01 行 + §5 证据分级行 ③ 新闸 SW/tools/check_fp_truth_read.py
+    (只验不改 · md5 必须仍 cab7a6f1…) · 落地方 = main 在板只改一次那一趟的一键动作 (落表批次地界) · 落地后自证 = python3 SW/tools/check_sw09_patch_dryrun.py
+    ⇒ F1~F7 全绿 · 只改其中任一处 ⇒ H4 红 + F4 红'
+  note: logs/iss368/landings_spec_dump.md (逐字规格自动导出) · logs/iss368/check_sw09_patch_dryrun.out · logs/iss368/prove_partial_landing.out
+    · logs/iss368/rollback_proof.txt
+  ref: SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md#§1
+- key: iss370_legb_sw_landing_contract
+  value: '腿 B (网表节点具名 200 条 = 改名 196 格 + 补行 4 条) 落到 SW 侧是【一个原子动作的六步】不许拆开交班: ① 腿 B 落表 (HW/netlist_v1.csv
+    改名 196 格, 改动栏 ⊆ {node1,node2}, node1 120 格 + node2 76 格, 数据行 513→517) ② 落表台账链前移 (HW/SCHEMATIC_LANDING_V1_LANDED.md
+    登记新 md5 724f0bf71cb7ec6c74e389cf9cd8d3fe + 落表单号) ③ SW 锚点重锚 (SW/SW_MD5_BASELINE_LEDGER.md §1 锚点块, prev_md5
+    保留旧值) ④ SW 取链归一化 (SW/tools/timing_check.py resolve_chain_landing() 加 _node_ref() 剥 pinN 后缀, 判据方向一个字不改)
+    ⑤ issue_log 留痕 (state/issue_log.yaml 留【文件名 + 新 md5】) ⑥ 复跑自证 (timing_check + check_demo_panel_spec
+    + check_onepass_sw_sync + check_timing_review_adc_sync 四道全绿) ★六步之间任何一步停 ⇒ 门禁链红着交班 ⇒ ①~③ 之间停 = 3 条落表义务红
+    (行数锚点 + md5 锚点 + 三方对账) + R6 红 + W6 红 + 三道 R6 反向用例闸 rc=2; ④ 没做 = 13 条语义红 (9 条判据 + 4 条反向用例派生红) + check_timing_review_adc_sync
+    rc=2 ⇒ 两条路合计 16 条红, 不是 15 条★ ★只跑 `--netlist` 沙盒看不见第 16 条 (那条判据直接读盘上真源, timing_check.py L325) ⇒ 落表仿真的读数才是真落盘那天的读数★
+    ★板 md5 611b869e13518c3c023fb178f91a0075 / 网表 md5 6aee500e60ba0732f83a9cf557ba90ab / 脚表 md5 9174309df1ec9411ac8e8d9e80ee386a
+    / BOM md5 5b9993992405904a60ac96a020b375d8 四份真源在 SW 侧本单前后逐字节未变; 脚表 mtime 被顶到 2026-11-23 19:19:15 是假象
+    (内容 md5 = 基线) ⇒ 一律按内容 md5 判★'
+  note: logs/iss370/28_CONT1_landing_sim.txt · logs/iss370/29_CONT1_gate_battery.txt · logs/iss370/30_CONT1_g1_numbers.txt
+    · logs/iss370/26_CONT1_fail_sets.txt
+  ref: SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md#§2
 open_questions:
 - id: SW-Q1
   to: main

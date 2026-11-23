@@ -1,0 +1,16 @@
+==============================================================================
+  ISS-366 网表【独立 net=GND 接地行】门禁
+  ★判据: D1 空接地行 / D2 脚表有 GND 脚但网表无接地行 / D3 信号行写 GND
+==============================================================================
+  ❌ [D2] C_KEY_CAM (CSV 第 0 行): 期望 脚表里 C_KEY_CAM 有 GND 脚 (2) ⇒ 网表须有一条 net=GND 且含 C_KEY_CAM 的行 / 实际 网表全表没有 net=GND 且含 C_KEY_CAM 的行 ⇒ 板面不会长出接地 land
+  ❌ [D2] C_KEY_PWR (CSV 第 0 行): 期望 脚表里 C_KEY_PWR 有 GND 脚 (2) ⇒ 网表须有一条 net=GND 且含 C_KEY_PWR 的行 / 实际 网表全表没有 net=GND 且含 C_KEY_PWR 的行 ⇒ 板面不会长出接地 land
+  ❌ [D2] C_KEY_VM (CSV 第 0 行): 期望 脚表里 C_KEY_VM 有 GND 脚 (2) ⇒ 网表须有一条 net=GND 且含 C_KEY_VM 的行 / 实际 网表全表没有 net=GND 且含 C_KEY_VM 的行 ⇒ 板面不会长出接地 land
+  ❌ [D2] C_KEY_VP (CSV 第 0 行): 期望 脚表里 C_KEY_VP 有 GND 脚 (2) ⇒ 网表须有一条 net=GND 且含 C_KEY_VP 的行 / 实际 网表全表没有 net=GND 且含 C_KEY_VP 的行 ⇒ 板面不会长出接地 land
+  ❌ [D2] R_BAT_DET_2 (CSV 第 0 行): 期望 脚表里 R_BAT_DET_2 有 GND 脚 (2) ⇒ 网表须有一条 net=GND 且含 R_BAT_DET_2 的行 / 实际 网表全表没有 net=GND 且含 R_BAT_DET_2 的行 ⇒ 板面不会长出接地 land
+  ❌ [D3] R_BAT_DET_2 (CSV 第 183 行): 期望 信号网 BAT_DET 的行里写了裸 GND ⇒ R_BAT_DET_2 必须另有独立的 net=GND 接地行 / 实际 R_BAT_DET_2 没有 net=GND 行 ⇒ 接地端登记不出来 (板面缺接地 land)
+  ❌ [D3] C_KEY_PWR (CSV 第 313 行): 期望 信号网 KEY_PWR 的行里写了裸 GND ⇒ C_KEY_PWR 必须另有独立的 net=GND 接地行 / 实际 C_KEY_PWR 没有 net=GND 行 ⇒ 接地端登记不出来 (板面缺接地 land)
+  ❌ [D3] C_KEY_VP (CSV 第 318 行): 期望 信号网 KEY_VOL_P 的行里写了裸 GND ⇒ C_KEY_VP 必须另有独立的 net=GND 接地行 / 实际 C_KEY_VP 没有 net=GND 行 ⇒ 接地端登记不出来 (板面缺接地 land)
+  ❌ [D3] C_KEY_VM (CSV 第 323 行): 期望 信号网 KEY_VOL_M 的行里写了裸 GND ⇒ C_KEY_VM 必须另有独立的 net=GND 接地行 / 实际 C_KEY_VM 没有 net=GND 行 ⇒ 接地端登记不出来 (板面缺接地 land)
+  ❌ [D3] C_KEY_CAM (CSV 第 328 行): 期望 信号网 KEY_CAM 的行里写了裸 GND ⇒ C_KEY_CAM 必须另有独立的 net=GND 接地行 / 实际 C_KEY_CAM 没有 net=GND 行 ⇒ 接地端登记不出来 (板面缺接地 land)
+------------------------------------------------------------------------------
+  ❌ 10 条缺陷 ⇒ ★接地 land 会在板面缺失 ⇒ 电气损伤 (去耦失效 / 分压悬浮)★

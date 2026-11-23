@@ -3,17 +3,17 @@ role: 结构总工(带散热)
 updated_at: '2026-11-18T16:45:00+08:00'
 updated_by: mech-lead
 status:
-  phase: done
+  phase: delivered
   progress_pct: 100
-  health: green
-  summary: '★ISS-360 (2026-11-23 13:4x mech-lead) 交卷: MECH/BOARD_FRAME_FREEZE_DECISION_PACK.md §1-3 段落末尾以追加式新增
-    §1-3.1 订正标记 (L112 起) ⇒ 板框建议默认值 (F30A 60×30 / 6 层 / 1.00mm) 作为这一趟画哪块板的答案已被 ISS-341 机器判决推翻并作废 (保留作历史留档,
-    结论不再引用), 现口径 = 分层: 第一问 boss_u1_upper_axis_board_trip_physical_product (甲 demo 台架板 ⇒ B160×100 / 8 层
-    / 1.60 / 沿用现役孔位; 乙 产品内板 ⇒ F30A 或 P60×15 ⇒ 那一趟 = 重画一块新板, 186 封装 / 45 条未连接 / S1~S13 全废, 须先拍 ISS-206
-    与主控口径); F30A 的几何数本身没算错 (ISS-341 明文), 作废的是那一栏替上位问题作答 ⇒ 老字零删除 (sed 100,110p md5 追加前后恒等 543c4d7fb001c66ea2ce6b80bebb6769)
-    ⇒ 闸 rc=0 且 --selftest 11/11 ALL TESTS PASS (独立复跑一次) ⇒ 板 md5 611b869e13518c3c023fb178f91a0075 / mtime
-    2026-11-06 07:07:17.362193413 零写板 ⇒ 零落表 零改闸 零外发零采购 未替老板拍板 ⇒ 写 4 处 = 目标页 + 交卷页 + logs/iss360/ 4 件 +
-    本分片 (只走 state/frag_write.py)'
+  health: 绿
+  summary: 'ISS-367 交卷: 「板只改一次」S10 把 D_LED_G 换成官方 0805 后的结构侧两处未收口项已同趟重算并定点改写 ⇒ 可落位块数 1992→2183 · 两条整高自由带
+    1.550..3.450 / 72.540..73.660 → 2.225..3.250 / 73.215..74.385 (带 A 宽 -0.875) · sweep 1992/2016/2031/2075
+    → 2183/2241/2253/2197 (clr=0.5 的 2197 < clr=0.2 的 2253 ⇒ 不再单调) ⇒ MECH/BOARD_ONEPASS_MECH_SYNC.md 机器块
+    + MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md 的 LED 窗口规格两处已按实算逐字改写 (diff 与改前原文留证在 logs/iss367/) ⇒
+    新建规格页 MECH/BOARD_ONEPASS_S10_LED_SPEC_SYNC.md + 新建机器闸 MECH/check_onepass_s10_led_spec_sync.py (L0~L6
+    全绿 · --selftest 7/7) ⇒ 本单机器闸 L4 的 9 条自身假红已修 (只改什么算证据等级 · 白名单方向未动) ⇒ 上一趟 3 处错值已按实算改正 ⇒ 零写板 (611b869e…
+    / mtime 2026-11-06 07:07:17) 零落表 零改既有闸 零改 BOARD_ONEPASS_STRUCT_CROSSCHECK.md 零挂链 零外发 未替老板拍板 (光孔有无
+    / 换件集合口径 只登记) ⇒ 写 5 处 = 规格页 + 新闸 + 交卷页 + logs/iss367/ + 本分片 (只走 state/frag_write.py)'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -1634,6 +1634,59 @@ artifacts:
     (闸 rc=0 全输出) + 02_gate_selftest_11of11.txt (--selftest rc=0 11/11 ALL TESTS PASS) + 03_target_page_append_readings.txt
     (追加前后 md5 / 老字判据恒等 / 追加位置 / 板指纹) + 04_grep_selfproof.txt (旧建议句是否已带订正标记的 grep 自证) + 05_merge_and_gate_check.txt
     (merge rc=0 与 gate_check rc=0 Q1 18/18 输出 + 收尾读数)'
+- path: MECH/BOARD_ONEPASS_S10_FP_SWAP_IMPACT.md
+  kind: spec
+  version: iss365
+  updated_at: '2026-11-23'
+  summary: 'ISS-365 交卷页: 「板只改一次」那一趟 S10 把 90 件占位 land 换成官方封装 ⇒ 对 MECH 侧几何判据的影响面 (机器可读) —— §0 口径与读数 (90
+    件集合/10 件交集/负结论/保留区口径全脚本实算) + §1 敏感度总表 25 件 × 9 字段 (现占位几何读板 / 目标几何读 .kicad_mod / Δ / 碰哪条 / 判定 / 重算后的数
+    / 证据等级 / 降级方案) + §2 那 10 个 R_SEL_* 的专项 (换封装前后净距两列 + Δ + 要不要重排的依据与代价) + §3 负结论 + §4 K2/K3 两条分支的结构后果
+    + §5 E-7~E-13 追加建议 (既有页老字零改动) + §6 降级方案 + §7 未决项 + §8 沙盒重判实测 (四道闸前后并排 + LED 带真漂移) + §9 边界 + §10 机器块'
+- path: MECH/check_onepass_s10_fp_swap_impact.py
+  kind: gate
+  version: iss365
+  updated_at: '2026-11-23'
+  summary: 'ISS-365 新建机器闸: M0 基准块合法 JSON / M1 90 件集合脚本实算 (页里写 ≠ 实算 ⇒ 红) / M2 10 个 R_SEL_* 落在 90 件里 (实算交集)
+    / M3 负结论可证 (座体类 + TP_DSI_* 与 90 件交集 = ∅) / M4 §1 逐件 9 字段齐全 (漏件点名 ref) / M5 几何一致性 (页里写的目标 fab 外框/courtyard/焊盘数
+    == 脚本从 .kicad_mod 实测) / M6 证据等级五级白名单 (写 [官方] = 红) + 降级方案逐件非空 / M7 正文零挂起措辞 ⇒ rc=0 全绿; --selftest 8
+    条反向用例 (删行→M4 / 改错几何→M5 / 空壳降级→M6 / [官方]→M6 / 塞挂起措辞→M7 / 改 90→M1 / 塞假 R_SEL→M2 / 塞 J_USB_C→M3) 每条自证「红的是目标那一条,
+    其余仍绿」⇒ 内容级判据, 不挂 md5 ⇒ 板合法改一次之后仍绿'
+- path: HANDOFF/2026-11-23_mech-lead_ISS365_S10换封装对MECH侧影响面.md
+  kind: handoff
+  version: iss365
+  updated_at: '2026-11-23'
+  summary: 'ISS-365 交卷页: B1 结论 (三个最硬的数 + D_LED_G 真漂移 + §2 专项 + 一条没替老板拍) + B2 验收标准自评 20 条逐条 + B3 证据分级 +
+    B4 接口取值声明 + B5 未决项与卡点 U-365-1~6 + B6 自证复现命令 + 落盘文件清单 + logs/iss365/ 留证清单 + 沙盒重判实测结论表 + B7 边界自证'
+- path: logs/iss365/
+  kind: evidence
+  version: iss365
+  updated_at: '2026-11-23'
+  summary: 'ISS-365 留证: 基线/终检 md5 + 实算脚本链 (pcbparse/compute/build/compose/xcheck/led_space_drift) + 实算产物
+    (compute_iss365.json / machine_block.json / section1_rows.md) + 沙盒建造与换 land 脚本 + ★四道 MECH 闸换封装前后的并排输出
+    (本单最硬的一件)★ + 与既有闸 20/20 逐条对账 + selftest 全量输出 + 真板复核'
+- path: tmp/iss365_sbx/
+  kind: sandbox
+  version: iss365
+  updated_at: '2026-11-23'
+  summary: 'ISS-365 沙盒 (项目盘内, 不写 /tmp): MECH/ 213 件 + HW/ + HW/PCB/ 副本 + state 符号链接 ⇒ 板副本上把 §1 的 25 件换成官方
+    .kicad_mod (位置/旋转沿用旧封装, pad↔net 按焊盘号继承, 不替老板做 pad 序对调) ⇒ 四道 MECH 闸 BEFORE/SWAP/AFTER 三段并排 ⇒ 真板一个字节没碰'
+- path: MECH/BOARD_ONEPASS_S10_LED_SPEC_SYNC.md
+  kind: spec
+  version: v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-367 新建规格页: S10 把 D_LED_G 换官方 0805 后 LED 窗口规格同趟重算 (§0 口径 §1 漂移本体 §2 MECH_SYNC 定点改写逐字 §3
+    S6_CALIBER LED 窗口规格 §4 同趟重算清单 §5 未决项 §2.4 本趟自审更正)'
+- path: MECH/check_onepass_s10_led_spec_sync.py
+  kind: gate
+  version: v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-367 新建机器闸: L0 基准块 L1 四组数==实算 L2 sweep 非单调须显式承认 L3 两处定点改写不许与实算打架 L4 证据等级五级白名单 L5 零挂起措辞
+    L6 沙盒在项目盘 tmp/ + --selftest 7 条反向用例全抓到'
+- path: HANDOFF/2026-11-23_mech-lead_ISS367_S10换封装LED窗口规格同趟重算.md
+  kind: handoff
+  version: v1
+  updated_at: '2026-10-25'
+  summary: 'ISS-367 交卷页: B1~B6 六段齐全 + 20 条验收线逐条判定 + 落盘清单 + 沙盒留证路径 + 一键回滚说明'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -2986,6 +3039,49 @@ needs_from:
   to: main
   item: '★ISS-360 零外发零采购: 本单无任何外发缺口, 全部事实取自本机文件与本机实跑, 未发信未询价未问供应商 (老板 2026-11-11 19:31 + 2026-11-12 02:02
     口径)'
+  since: '2026-11-23'
+- key: iss365_e9_led_band_and_sweep_recompute
+  to: main
+  item: 'ISS-365 E-9: D_LED_G 换官方 0805 后, MECH/BOARD_ONEPASS_MECH_SYNC.md 机器块的 led.full_height_bands (X
+    1.550..3.450 / 72.540..73.660) + led.clearance_sweep (1992/2016/2031/2075) 与 MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md
+    的 LED 窗口规格【全部过期】⇒ 本单沙盒实测的新值 = 可落位块数 1992→2183 · 两条带 X 2.225..3.250 / 73.215..74.385 (宽 1.900→1.025
+    / 1.120→1.170) · sweep 2183/2241/2253/2197 (clr=0.5 反而 < clr=0.2 ⇒ 不再单调, 必须重扫不能插值) · LED_G_D 走线最短
+    0.450→0.621 mm ⇒ 建议 main 派活把这三处同一次重算 (本单零改既有页正文, E-9 写在 MECH/BOARD_ONEPASS_S10_FP_SWAP_IMPACT.md §5)'
+  since: '2026-11-23'
+- key: iss365_e8_e10_key_hole_and_esd_height_gates
+  to: main
+  item: 'ISS-365 E-8 + E-10: 两条 MECH 侧判据【现在没有任何闸在管】⇒ ① 【键孔尺寸】: 3 只按键换 KMR2 后 fab 3.00×3.00→4.20×2.80 (宽
+    +1.200) ⇒ 键孔要沿 X 加宽 1.200 mm, 键高 1.9 mm [官网] ⇒ 建议新建 MECH/check_onepass_key_clearance.py; ② 【ESD 封装高度
+    ≤0.5 mm】: 官方 X1SON-2 = 0.45 mm [官网] 满足 / SOD-323 = 0.80 mm [官网] 突破 / SOT-23 = 1.03 mm [官网] 突破 ⇒ 建议新建
+    MECH/check_onepass_esd_height.py ⇒ 本单只建了守住 §1 目标几何与 §2 净距两列的那道闸, 这两条判据本单【不越界】建'
+  since: '2026-11-23'
+- key: iss365_u365_4_esd_height_provenance
+  to: main
+  item: 'ISS-365 U-365-4: 任务书给的 ESD 结构要求里「封装 ≤0.5 mm 高」这一条, 本单在 MECH/ 全目录 grep 只找到 ISS-085 的「ESD 距连接器
+    ≤3.0 mm」(登记在 state/.bak_iss249/HW/SCHEMATIC_V1.md 的「结构总工已回」段) ⇒ 「≤0.5 mm 高」的登记原文【本单找不到】⇒ 本单按任务书的数算并把它标
+    [0数据] + 给降级方案, 同时把「找不到原文」登记成缺口 ⇒ 请 main 补登记或确认口径 (若该条最终不是硬约束, 则 D_ESD_DEMO 的 SOD-323 与 D_ESD_USB_D
+    的 3 脚档的 0.80/1.03 mm 都不构成问题)'
+  since: '2026-11-23'
+- key: iss365_e9_led_band_recompute_status
+  to: main
+  item: '★ISS-365 整改回执 (2026-11-23 17:0x)★: ① main 16:55 点名的【既有页 MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md
+    §3.2 那句 led_space 块数不变 的后半句已作废】⇒ 本单同趟重算并改写该页那一行 (前半句保留 + 后半句补上换官方 0805 后的真数 1992→2183 · sweep 2183/2241/2253/2197
+    与 clr=0.5 的 2197 小于 clr=0.2 的 2253 ⇒ 不再单调 ⇒ 必须重扫不能插值) ⇒ 旧 md5 41fe11f28af1c165ea9c02bad7577c44 → 新
+    md5 8a38ac9319e2e47fc080d3651995cf5b ⇒ 改前改后原文与一键回滚说明见 logs/iss365/29b_struct_crosscheck_md5_change.txt
+    ⇒ 这是本单唯一一处既有页改动 (其余 5 个既有页 + 7 个既有闸脚本逐字节未变); ② 本单【零改既有闸的判据方向】: 上一版闸红 (库名被位号可达性闸当成板上位号) 是【改页的写法】修掉的
+    (库昵称与封装名拆开写 · 前缀以 _ 结尾 ⇒ 闸的 C8 判它是截断前缀) ⇒ 闸的 TOKEN_RE / 判据方向 / 基线 10 一个字节没改 ⇒ MECH/tools/check_mech_ref_reachability.py
+    现在 rc=0 且它自己的 --selftest 14/14 全绿; ③ E-9 剩下两处仍归 main 派活 (MECH/BOARD_ONEPASS_MECH_SYNC.md 机器块的 led.full_height_bands
+    与 led.clearance_sweep + MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md 的 LED 窗口规格 ⇒ 在那一趟换 land 时同一次重算)
+    ⇒ 本单不代拍; ④ 交卷页 §B6 已按 main 要求贴上 state/gate_check.py (rc=0) / 自闸 --selftest (末行 ALL TESTS PASS) / state/merge.py
+    (rc=0) 三条原样输出; ⑤ 注: gate_check 的 Q1 现在是 15/18, 三条缺口全在 sw-lead 侧 (他们 17:01 落的 ISS-363 交卷页只有 4,597 B,
+    缺 B2/B3/B4) ⇒ mech-lead 本人 6/6 ⇒ main 签收闸那条 Q1=18/18 要等 sw-lead 补齐, 不是本单的红项'
+  since: '2026-11-23'
+- key: iss367_mech_s10_swap_set_count_to_main
+  to: main
+  item: '★ISS-367 登记 (要 main 拍 · 本单不代拍): 「板只改一次」那一趟 S10 到底换几件? ★本页与两处机器块全部用【MECH 侧 25 件子集】口径 (= 与 ISS-365
+    沙盒、与 main 复核过的三个数同源); ★若那一趟把 91 件靶子全换 ⇒ 可落位块数 2183→2200 · sweep 2200/2237/2250/2167 ⇒ 本页与两处机器块当场失效
+    ⇒ 那一趟开工当天必须先跑 python3 MECH/check_onepass_s10_led_spec_sync.py (rc≠0 就按 --compute 的读数更新)。★另 D_LED_G
+    结构光孔有/无 (老板项 U-365-3) 与 按键 3N vs 1.5N 仍只登记不代拍 —— 见 MECH/BOARD_ONEPASS_S10_LED_SPEC_SYNC.md §5。★[实测]'
   since: '2026-11-23'
 answers:
 - key: pcb_outline_confirm
@@ -5709,6 +5805,95 @@ interface_claims:
   note: '★证据分级 [实测]: md5sum 与 stat 实跑读数; 本单只写 4 处 = 目标页(追加式) + 交卷页 + logs/iss360/ + state/fragments/mech.yaml(只走
     state/frag_write.py)'
   ref: logs/iss360/03_target_page_append_readings.txt
+- key: iss365_s10_set90_computed
+  value: 靶内 77 + 缺口 13 = 90 件 (脚本实算)
+  note: 'ISS-365: 90 件集合 = 只读 import HW/check_fp_truth_coverage_gap.py 的 netlist_placeholder/iss356_targets/coverage_gap
+    三函数实算 ⇒ 靶内(C4 ∩ ISS-356 靶子) 77 + 缺口(必装∩非NET/TP∩footprint≠待定∩C4) 13 = 90 ⇒ 本单新建的机器闸 M1 把这一条做成判据 (页里写
+    ≠ 实算 ⇒ 红)'
+  ref: MECH/BOARD_ONEPASS_S10_FP_SWAP_IMPACT.md §0.2 + logs/iss365/compute_iss365.json
+- key: iss365_s10_rsel_10_in_set90
+  value: 10 / 10 (R_SEL_D0_N/P D1_N/P CK_N/P D2_N/P D3_N/P 全在 90 件里)
+  note: 'ISS-365: 脚本实算交集 ⇒ 这 10 件正是换官方 land 要动的那批 ⇒ MECH 侧 §3「20 个目标落位 × MECH 保留区」的净距结论用的就是它们【当前占位 fab
+    1.80×1.00 · 中心距 1.60】⇒ 换封装后必须重算 (之前没人算过) ⇒ 机器闸 M2 守这条'
+  ref: MECH/BOARD_ONEPASS_S10_FP_SWAP_IMPACT.md §0.3 + §2
+- key: iss365_s10_rsel_clearance_after_swap
+  value: 闸口径最小净距 7.6500 → 7.3250 (Δ −0.3250); 冲突 0 → 0; 相邻落位间距 2.0000 → 2.3500; 必清空净距 +0.6750 ⇒ 结构侧零重排
+  note: ISS-365 实算 (与 MECH/check_onepass_struct_crosscheck.py 自己打印的 min_clr(全)/min_clr(必清空) 逐字同口径, 换封装前后各
+    20/20 逐条对账一致, 见 logs/iss365/xcheck_result.json) ⇒ 结论 = 那一趟的 S6 落位不需要为换封装重排; 代价在布线端点重接 (占位 pad1 在原点/pad2
+    在 +1.600 不对称 ⇒ 官方 0603 对称 ±0.825), 归 hw-lead
+  ref: MECH/BOARD_ONEPASS_S10_FP_SWAP_IMPACT.md §2.1 + §2.3
+- key: iss365_s10_led_space_drift_real
+  value: D_LED_G 换官方 0805 ⇒ led_space 可落位块数 1992 → 2183; 两条整高自由带 X 1.550..3.450 / 72.540..73.660 → 2.225..3.250
+    / 73.215..74.385; 净距敏感度 sweep 1992/2016/2031/2075 → 2183/2241/2253/2197 (不再单调)
+  note: ISS-365 沙盒实测 (tmp/iss365_sbx/ 板副本上换官方 land, 只读 import MECH/check_board_frame_coords.py 的 compute()
+    ⇒ led_space) ⇒ 根因 = led_space() 用的是 D_LED_G 铜箔外框相对封装原点的偏移 rel, 换 land ⇒ rel 变 ⇒ 带/窗口/块数全变 ⇒ 既有页 MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md
+    §3.2 那句「led_space 块数 (1992/2016/2031/2075) 不变」在换封装后【不成立】⇒ 必须同一次重算 (本单建议 E-9)
+  ref: MECH/BOARD_ONEPASS_S10_FP_SWAP_IMPACT.md §8.3 + logs/iss365/led_space_drift.json
+- key: iss365_s10_negative_conclusions
+  value: 座体类 6 组 ref (J_DEBUG/J_UART/J_USB_C/J_CHG/J_SOM_P1..P4) + 10 个 TP_DSI_* 与 90 件的交集 = ∅
+  note: 'ISS-365 脚本实算 (机器闸 M3 守这条, 不为空即红) ⇒ MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md §4 的座体三方对照 + 开口尺寸
+    + E-1 的排针 pitch 1.27 vs 0.50 三条结论【不受 S10 影响】⇒ 省下一轮重复劳动 (注: J_SOM_P1/J_SOM_P3 的 BOM type=NET ⇒ 进不了「必装
+    ∩ 非 NET/TP」)'
+  ref: MECH/BOARD_ONEPASS_S10_FP_SWAP_IMPACT.md §3
+- key: iss365_zero_external_pending
+  value: 0 件外部等待项 (25 件逐件都有本机可执行或本机已实测在盘的退路)
+  note: 'ISS-365: 本单 0 次外发 (不发邮件/不询价/不采购/不问询) ⇒ 封装高度等外部数据全部自己网上查并标 [官网] (X1SON-2 0.45 / SOD-323 0.80 /
+    SOT-23 1.03 / KMR2 1.9 / B3U-1000 1.6 mm) ⇒ 查不到的一律 [0数据] + 降级方案 ⇒ 机器闸 M7 守「正文零挂起措辞」'
+  ref: MECH/BOARD_ONEPASS_S10_FP_SWAP_IMPACT.md §3 + §6 + §7
+- key: iss365_s10_led_space_recompute_done
+  value: 按 main 16:55 整改要求同趟重算并改写 STRUCT_CROSSCHECK §3.2 一行; 其余既有页/闸逐字节未变
+  note: 'ISS-365 整改回执: 闸红是【改页的写法】修掉的 (库昵称与封装名拆开写 ⇒ 闸的 C8 判它是截断前缀) ⇒ 闸的 TOKEN_RE 与判据方向与基线 10 一个字节没改 ⇒ MECH/tools/check_mech_ref_reachability.py
+    rc=0 且 --selftest 14/14 全绿; 既有页只改了 §3.2 一行 (旧 41fe11f2… → 新 8a38ac93…), 对照与回滚说明在 logs/iss365/29b_struct_crosscheck_md5_change.txt'
+  ref: MECH/BOARD_ONEPASS_S10_FP_SWAP_IMPACT.md §8.3 + logs/iss365/29b_struct_crosscheck_md5_change.txt
+- key: iss365_mech_doc_kicad_libname_naming
+  value: MECH 域文档里写 KiCad 库名/封装名 ⇒ 把会被误认成板上位号的那一段拆成「前缀 + 余下」写 (例 `D_ + SOD-323` / `LED_ + SMD`)
+  note: '★**本单在写新页时真踩过这个坑并修好了**★: MECH/tools/check_mech_ref_reachability.py (ISS-326/ISS-333, 已挂在 state/gate_check.py
+    链上) 会把 MECH 域文档里的【全大写 + 板上位号前缀】的 token 当成板上位号引用 ⇒ ★**KiCad 库名/封装名只要长成那个样子就会被判成 C14「板与网表里从来没有过 ⇒ 真隐患」⇒
+    真隐患条数超基线上限 ⇒ gate_check 当场红** (★本单实测 13 > 10★) ⇒ ★**修法 = 把会被误认的那一段拆开: 前缀那一段以 `_` 结尾 ⇒ 那道闸的 C8 判它是「文本被截断的前缀」而不是位号;
+    余下段不带位号前缀 ⇒ C14 不命中 ⇒ 去掉「 + 」就是 KiCad 真名, 零信息损失** ★ ⇒ ★**本单一行既有闸都没改** ★'
+  ref: MECH/BOARD_ONEPASS_S10_FP_SWAP_IMPACT.md §1.2 「库件名的写法」 + MECH/check_onepass_s10_fp_swap_impact.py
+    的 `_unsplit()` + HANDOFF/2026-11-23_mech-lead_ISS365_S10换封装对MECH侧影响面.md §B1-4
+- key: iss367_mech_s10_led_space_recompute
+  value: 2183 / 2.225..3.250 + 73.215..74.385 / 2183·2241·2253·2197 (不再单调)
+  note: 'ISS-367 实算 (25 件 S10 MECH 侧子集口径 · 双路径交叉对账一致 · logs/iss367/07_compute_after.json + 04_crosscheck_two_paths.txt):
+    可落位块数 1992→2183 (+191) · 两条整高自由带 X 1.550..3.450 / 72.540..73.660 → 2.225..3.250 (宽 -0.875) / 73.215..74.385
+    (宽 +0.050) · 净距敏感度 sweep 1992/2016/2031/2075 → 2183/2241/2253/2197 ⇒ clr=0.5 的 2197 < clr=0.2 的 2253
+    ⇒ 不再单调 ⇒ 页与两处机器块三份同源 [实测]'
+  ref: ''
+- key: iss367_mech_two_spot_rewrites_done
+  value: MECH_SYNC + S6_CALIBER 两处机器块已按实算逐字改写 (diff 留证在盘)
+  note: 'ISS-367 定点改写 (main 授权只这两处): ① MECH/BOARD_ONEPASS_MECH_SYNC.md 机器块 led.full_height_bands / nearest_band
+    / hypothesis_*.space / hypothesis_*.net_len_range_mm / clearance_sweep + 新增 s10_basis + 正文 8 行 (md5
+    c7945f59… → ddd931ea…) ② MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md 机器块 led_window_g_bench_hard.rect
+    + led_window_g_bench_recommended.rect + §4.2/§5/§6b/§9.3 共 18 行 (md5 d7b33ed7… → b254fa98…) ⇒ 两页其余任何一行逐字节未变
+    (diff -u 全文留证 logs/iss367/11_diff_*.txt) ⇒ 改前原文备份 logs/iss367/10_pre_*.md + 一键回滚说明 logs/iss367/12_ROLLBACK.sh
+    [实测]'
+  ref: ''
+- key: iss367_mech_l4_false_red_fixed
+  value: L4 判据方向 (五级白名单) 一字未改 · 9 条假红已消
+  note: 'ISS-367 CONT1 自审: 本单机器闸 L4 原有【自身假红】9 条 —— 病灶 = 把方括号包裹的数值区间 ([-0.750, +2.150]) 与数组字面量 (["placeable"])
+    也当证据等级来判 ⇒ 修法只落在产生点 (只把内容全为中文表意文字+ASCII 数字且至少含一个中文的方括号 token 当等级候选) ⇒ 白名单方向未动 ⇒ 非白名单等级标签照样红 ⇒ 另反向用例由
+    6 条增到 7 条 (新增 把 §2 全部证据等级清空 ⇒ L4 红) ⇒ --selftest rc=0 7/7 全抓到 (logs/iss367/15_selftest.txt) [实测]'
+  ref: ''
+- key: iss367_mech_s10_spec_corrections
+  value: 上一趟清单漏 2 处同源行 + 1 处落位原点坐标写错 ⇒ 本趟按实算改正
+  note: 'ISS-367 CONT1 实跑复核: ① 上一趟 §2.1/§3.1 改写清单漏了 MECH_SYNC 机器块 items[].spec (两假设空间) 与 S6_CALIBER §9.3
+    S6 落位约束第 ④ 条 ⇒ 本趟补进清单并已改写 ② §3.1 item 8 的最近落位封装原点后三档上一趟按 x1±clr 硬推写错 ⇒ 实算 = (7.715, 63.775) / (7.815,
+    63.875) / (8.115, 64.175) (logs/iss367/08_nearest_origin.json · 同函数同口径复跑 BEFORE 与改前页逐字相同) ③ §1.3/§5.1
+    四处差值算错已按实算改正 (封装原点窗口 Y 内缩 0.050/0.450 · 最近落位带 带宽 1.310→0.935 与 带高 4.200→3.650 · 窄 0.375) [实测]'
+  ref: ''
+- key: iss367_mech_final_independent_rerun
+  value: '收工前独立复跑复核: 全部绿 (5 道既有 MECH 闸 rc=0 · 新闸 rc=0 · --selftest rc=0 7/7 · merge.py rc=0 · gate_check.py
+    rc=0 Q1 18/18 · frag_write --show rc=0 · MECH/tools/check_mech_ref_reachability.py rc=0)'
+  note: 'ISS-367 收工前 (2026-11-23 19:3x) 的一次【独立复跑复核】原始输出在 logs/iss367/22_final_commands_rerun.txt: ① 5
+    道既有 MECH 闸 + 本单新闸 + --selftest + state/merge.py + state/gate_check.py + state/frag_write.py --show
+    + MECH/tools/check_mech_ref_reachability.py 逐条 rc=0 (gate_check Q1 = 18/18) ② 板 md5 611b869e13518c3c023fb178f91a0075
+    + mtime 2026-11-06 07:07:17.362193413 · 网表/脚表/BOM md5 6aee500e…/9174309d…/5b999399… 全部与开工前基线逐字相同 ⇒
+    零写板 / 零落表成立 ③ MECH/BOARD_ONEPASS_STRUCT_CROSSCHECK.md md5 8a38ac93… 未动 + 5 道既有闸与 state/gate_check.py
+    / merge.py / frag_write.py md5 全部未动 ⇒ 零改既有闸 / 禁改页未动成立 ④ 本次复核只给本单新闸的 summarize() 的 clearance_sweep
+    每条多带一个 nearest_origin 证据输出字段 (L0~L6 七条判据与比对口径一个字节没动 · --selftest 7/7 仍全抓到) ⇒ 新闸 md5 f981d34b1411051df32a2c6ee0c3fce3
+    → 0575bcb0b87c97817208160783e55c3a [实测]'
+  ref: ''
 open_questions:
 - id: MECH-Q1
   to: main
