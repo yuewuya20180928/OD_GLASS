@@ -1,0 +1,44 @@
+$ python3 HW/check_onepass_gate_hook_coverage.py
+==============================================================================
+  ISS-404 · 板侧闸【挂链覆盖率】闸 (★G1 闭环 / G2 幽灵闸 / G3 台账自洽 / G4 板三证 / G5 零挂链+零外发 / G6 证据分级 / G7 零写板★)
+  ★红的是现状 (★页面点名的闸没挂在链上★), 不是闸故障 ★
+==============================================================================
+  FAIL  G1 清单↔挂链 双向闭环 (★页面点名的闸必须在【挂链表】或【人工签核台账】★)
+     ❌ ★HW/check_board_frame_caliber.py 点名页 BOARD_ONEPASS_PREFLIGHT.md,BOARD_ONEPASS_WORKPACKET.md,BOARD_ONEPASS_COMMIT_ORDER.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★HW/check_iss354_manufacturability.py 点名页 BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★HW/check_iss354_mfg_closure.py 点名页 BOARD_ONEPASS_PREFLIGHT.md,BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★HW/check_netlist_contradiction_r3.py 点名页 BOARD_ONEPASS_PREFLIGHT.md,BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★HW/check_netlist_selfconsistency.py 点名页 BOARD_ONEPASS_PREFLIGHT.md,BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★HW/check_onepass_s10_manifest.py 点名页 BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★HW/check_part_selection_matrix.py 点名页 BOARD_ONEPASS_PREFLIGHT.md,BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★HW/check_pcb_generator_defaults.py 点名页 BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★HW/check_step1_parts_spec.py 点名页 BOARD_ONEPASS_PREFLIGHT.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★MECH/check_onepass_mech_sync.py 点名页 BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★MECH/check_onepass_struct_crosscheck.py 点名页 BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★state/check_pcb_drc.py 点名页 BOARD_ONEPASS_PREFLIGHT.md,BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★state/check_pcb_nets.py 点名页 BOARD_ONEPASS_PREFLIGHT.md,BOARD_ONEPASS_WORKPACKET.md · 既不在挂链表、也不在人工签核台账 ⇒ ★漏跑时没有任何机器会响★
+     ❌ ★13 道页面点名的闸既不在挂链表、也不在人工签核台账 ⇒ ★「板那一趟」当天漏跑它们 = 没有任何机器会响★
+     ℹ️ 人工签核台账 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/BOARD_ONEPASS_MANUAL_SIGNOFF_LEDGER.md 不存在 ⇒ 「人工签核」那一路为空 (★main 要不要另起页 = Q3★)
+     ℹ️ 链上 18 道闸 · 其中 6 道被三页点名 · 三页点名共 19 道
+  OK   G2 挂链表引用的脚本真实存在 (★防「幽灵闸」★)
+     ✔ 挂链表 18 条引用的脚本全部在本机存在且语法可跑
+  OK   G3 分类台账自洽 (★每道闸有且只有一个归属 · 本闸自己也要登记★)
+     ✔ 仓内 107 道闸在台账里【有且只有一个归属】
+     ✔ 本闸自身已登记 (hook_status=待 main 挂链) ⇒ 自指漏洞已封
+     ✔ 真漏挂名单 13 条与盘面派生值逐字相同
+  OK   G4 板三证不动 (★板 md5 / 网表 / 脚表 / BOM 与基线逐字相同★)
+     ✔ 板 md5 = 611b869e13518c3c023fb178f91a0075 (== 基线)
+     ✔ HW/netlist_v1.csv md5 == 落表台账登记 6aee500e60ba0732f83a9cf557ba90ab (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 9174309df1ec9411ac8e8d9e80ee386a (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/BOM_v1.csv md5 == 落表台账登记 5b9993992405904a60ac96a020b375d8 (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+  OK   G5 零挂链 + 零外发自证
+     ✔ 本闸名在 gate_check.py 里的行数 = 0 (★零挂链·台账登记状态 = 待 main 挂链★)
+     ✔ state/outbox/ 22 件与台账基线逐字相同 (★零外发★)
+  OK   G6 证据分级 (★每条结论标 [官网]/[实测]/[媒体]/[推算]/[0数据]★)
+     ✔ 台账 14 条结论全部带证据等级标签 + 「拦什么/拦不住会怎样」
+  OK   G7 零写板自证 (★md5 / mtime / size 三项与基线逐字相同★)
+     ✔ 板 md5 / mtime_ns / size 三项与基线逐字相同 (md5=611b869e13518c3c023fb178f91a0075 size=4940213)
+------------------------------------------------------------------------------
+  ❌ rc=1: ★★有页面点名的闸既不在挂链表、也不在人工签核台账 ★★
+             ⇒ ★「板那一趟」当天, 那几道闸漏跑 = 没有任何机器会响 ★★
+RC=1

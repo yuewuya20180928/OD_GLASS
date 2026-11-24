@@ -1,0 +1,126 @@
+==============================================================================================================
+HW/check_bq25896_pinout.py (448 lines)
+  ★MISS L195   if not os.path.exists(p):                                          | next: return {} / txt = open(p, encoding="utf-8").read() / out = {} / for code, name, body in re.findall(r"\(n
+  ★MISS L269   if not os.path.exists(P10JSON):                                    | next: return None / data = json.load(open(P10JSON, encoding= / return [r for r in data if r.get("ref")  / 
+==============================================================================================================
+MECH/check_mech_verdict_freshness.py (467 lines)
+  L182   except Exception:                                                        | next: return None /  / 
+  L285   except Exception:                                                        | next: got = None / if got is None or any(abs(a - b) > 1e-6  / errs.append("F6 [MSYNC] 机器块 `PORT_OPEN_U
+  ★MISS L195   if not os.path.exists(path):                                       | next: errs.append("F1 页 '%s' 不存在 ⇒ 红" % rel) / continue / texts[key] = _read(path) / if len(texts) != len(PAGES):
+==============================================================================================================
+SW/tools/check_onepass_sw_sync.py (970 lines)
+  L225   except Exception as e:                                   # pragma: no co | next: out, rc = "EXC: %s" % e, -1 / _CACHE[key] = (rc, out) / return rc, out
+  L253   except Exception:                                                        | next: return None, txt / items = data.get("items") / return (items if isinstance(items, list)
+  L400   except Exception:                       # ★读不到 ⇒ fail-closed ★           | next: _CDPS = None / return _CDPS / 
+  L410   except OSError:                                                          | next: try: / shutil.copy2(src, dst) / return True
+  L414   except OSError:                                                          | next: return False /  / 
+  L434   except Exception:                                                        | next: return None /  / 
+  L479   except Exception:                                                        | next: shutil.rmtree(tmp, ignore_errors=True) / raise / 
+  L534   except Exception as exc:                                                 | next: ok = False / bad.append("合法改板判据算不出来 (%s) ⇒ fail-close / finally:
+  L552   except Exception as exc:                                                 | next: ok = False / bad.append("%s 链头算不出来 (%s) ⇒ fail-closed / continue
+  L895   except Exception as exc:                                                 | next: cases.append(("★ISS-298★ %s ★用例本身坏了 (%s) / continue / saved = dict((k, os.environ.get(k)) for 
+  ★MISS L308   if not os.path.exists(p):                                          | next: ok = False / bad.append("id=%s 的 criterion 引用了不存在的文件: / return ok, ["     每条 criterion 的脚本文件都在盘上 / ["     ❌ %s" % b for b in bad]
+  ★MISS L496   if not os.path.exists(path):                                       | next: ok = False / bad.append("%s 不存在: %s" % (name, path)) / continue / cur = md5(path)
+  ★MISS L545   if not os.path.exists(path):                                       | next: ok = False / bad.append("%s 不存在: %s" % (name, path)) / continue / cur = md5(path)
+  ★MISS L573   if not os.path.exists(led):                                        | next: ok = False / bad.append("SW 台账不存在: %s" % led) / else: / txt = read_text(led)
+  ★MISS L947   if not os.path.exists(args.checklist):                             | next: print("❌ 用法错: 找不到清单页 %s" % args.checklis / return 2 /  / if args.selftest:
+==============================================================================================================
+SW/tools/check_sw_ref_reachability.py (880 lines)
+  L275   except OSError as exc:                                                   | next: raise InputError(f"★输入文件读不了: {path} ({ex /  / 
+  L351   except OSError as exc:                                                   | next: raise InputError(f"★SW 侧文档读不了: {rel} ({e / if not occ: / raise InputError(f"★SW 侧文档里一个 token 都没抽到
+  L378   except OSError as exc:                                                   | next: raise InputError(f"★辅助索引读不了: {rel} ({exc / for m in re.finditer(r"#\s*(?:BEGIN|END) / anchors.add(m.group(1))
+  L389   except OSError as exc:                                                   | next: raise InputError(f"★辅助索引读不了: {rel} ({exc / for m in env_pat.finditer(txt): / env_keys.add(m.group(1))
+  L680   except InputError as exc:                                                | next: return 2, [f"fail-closed: {exc}"] / detail = [] / for r in res["drift"]:
+  L818   except InputError as exc:                                                | next: print(f"[FAIL] {exc}") / return 2 / live = board_refs | netlist_refs
+  L861   except InputError as exc:                                                | next: print(f"[FAIL] fail-closed: {exc}") / print("★输入读不到 ⇒ 判红 (★不许「没读到就当过」★)") / return 2
+  L874   except InputError:                                                       | next: return set() /  / 
+==============================================================================================================
+SW/tools/check_landing_trace_obligation.py (353 lines)
+==============================================================================================================
+SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py (354 lines)
+  L109   except OSError as exc:                                                   | next: last = "%s: %s" % (root, exc) / if d: / shutil.rmtree(d, ignore_errors=True)
+  L292   except AssertionError as exc:                                            | next: print("  ❌ %-62s ⇒ 用例本身坏了: %s" % (name,  / bad += 1 / if work:
+==============================================================================================================
+SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py (445 lines)
+  L128   except OSError as exc:                                                   | next: last = "%s: %s" % (root, exc) / if d: / shutil.rmtree(d, ignore_errors=True)
+  L370   except AssertionError as exc:                                            | next: print("  ❌ %-62s ⇒ 用例本身坏了: %s" % (name,  / bad += 1 / if work:
+==============================================================================================================
+SW/tools/check_demo_panel_spec_r6_selftest.py (670 lines)
+  L138   except OSError as exc:                                                   | next: last = "%s: %s" % (root, exc) / if d: / shutil.rmtree(d, ignore_errors=True)
+  L392   except AssertionError as exc:                                            | next: print("  ❌ %-58s ⇒ 用例本身坏了: %s" % (name,  / bad += 1 / continue
+==============================================================================================================
+MECH/tools/check_mech_ref_reachability.py (1037 lines)
+  L422   except OSError as exc:                                                   | next: raise InputError(f"★MECH 侧文件读不了: {rel} ( / if not occ: / raise InputError(f"★MECH 侧一个 token 都没抽到 
+  L438   except Exception:                                   # noqa: BLE001 · 语法错 | next: continue / return names / 
+  L794   except InputError as exc:                                                | next: return 2, [f"fail-closed: {exc}"] / detail = [] / for r in res["drift"]:
+  L978   except InputError as exc:                                                | next: print(f"[FAIL] {exc}") / return 2 / live = board_refs | netlist_refs
+  L1025  except InputError as exc:                                                | next: print(f"[FAIL] fail-closed: {exc}") / print("★输入读不到 ⇒ 判红 (★不许「没读到就当过」★)") / return 2
+==============================================================================================================
+HW/check_fsin_rootcause.py (1068 lines)
+  L184   except Exception:                                                        | next: return default /  / 
+  L197   except ValueError:                                                       | next: pass / return vals / 
+  L609   except ValueError:                                                       | next: p_da = p_db = p_th = float("nan") / probs = [] / if abs(p_da - da) > TOL:
+  L659   except ValueError:                                                       | next: probs.append("锚点块 blocker_d 不是数") / # ★忽略任何别的网都还是 FAIL (⇒ 唯一挡路者)★ / others = []
+==============================================================================================================
+HW/check_g1a7_selection_landed.py (602 lines)
+  L105   except Exception as _e:  # noqa: BLE001                                  | next: sys.exit("★生成器导入失败 ⇒ 拒绝跑 (★防位号口径漂移 ⇒ 宁可直 / kicad_ref = _gen.kicad_ref / 
+  L376   except Exception as exc:  # noqa: BLE001                                 | next: return name, False, "异常: %s" % exc / finally: / shutil.rmtree(tmp, ignore_errors=True)
+  ★MISS L170   if not os.path.exists(_path(root, key)):                           | next: errors.append("★缺文件: %s" % REL[key]) / if errors: / return 2, errors / 
+==============================================================================================================
+HW/check_onepass_commit_order.py (793 lines)
+  ★MISS L295   if not os.path.exists(pcb):                                        | next: return False, "找不到板文件 %s" % pcb / cur = md5_of(pcb) / res = board_reboard.check_file(root, boa / PROTECTED_5["板"], md5fn=md5_of)
+  ★MISS L323   if not os.path.exists(pro):                                        | next: return False, "找不到 .kicad_pro %s" % pro / cur = md5_of(pro) / res = board_reboard.check_file(root, boa / PROTECTED_5[".kicad_pro"], md5fn=md5_of)
+  ★MISS L374   if not os.path.exists(apath):                                      | next: bad.append("留证产物 %s 不在盘上" % ap) / continue / if os.path.getmtime(apath) < os.path.get / bad.append("留证产物 %s 的 mtime 比板旧 (★产物不得比板
+  ★MISS L390   if not os.path.exists(wp):                                         | next: return [(k, False, "找不到作业包 %s" % wp) for /  / wp_lines = read_text(wp).splitlines() / 
+  ★MISS L399   if not os.path.exists(co):                                         | next: ok = False / msgs.append("找不到权威页 %s" % co) / else: / co_txt = read_text(co)
+  ★MISS L414   if not os.path.exists(p):                                          | next: ok = False / msgs.append("找不到 %s %s" % (label, p)) / continue / # ★★ISS-283 · ⑩-b: 网表/脚表/BOM 走「落表台账为准」的口
+  ★MISS L442   if not os.path.exists(lg):                                         | next: for k in ("D4", "D5", "D6"): / if only in (None, k): / results.append((k, False, "找不到台账 %s" % l / return results
+  ★MISS L782   if not os.path.exists(paths["workpacket"]):                        | next: print("❌ 用法错: 找不到作业包 %s" % paths["workpa / return 2 /  / results = evaluate(root, paths, only=arg
+==============================================================================================================
+HW/check_onepass_preflight_coverage.py (806 lines)
+  L137   except Exception as e:                                   # pragma: no co | next: out, rc = "EXC: %s" % e, -1 / _CACHE[key] = (rc, out) / return rc, out
+  L165   except Exception:                                                        | next: return None, txt / items = data.get("items") / return (items if isinstance(items, list)
+  ★MISS L225   if not os.path.exists(p):                                          | next: ok = False / bad.append("id=%s 的 criterion 引用了不存在的文件: / return ok, ["     每条 criterion 的脚本文件都在盘上 / ["     ❌ %s" % b for b in bad]
+  ★MISS L320   if not os.path.exists(wp_path):                                    | next: return False, ["     ❌ 找不到作业包 %s ⇒ 新判据 f / parsed = parse_wp02_board_changes(read_t / if not parsed: / return False, ["     ❌ 作业包 %s 的「板侧改动清单」那
+  ★MISS L422   if not os.path.exists(path):                                       | next: ok = False / bad.append("%s 不存在: %s" % (name, path)) / continue / res = board_reboard.check_file(PROJ, rel
+  ★MISS L436   if not os.path.exists(path):                                       | next: ok = False / bad.append("%s 不存在: %s" % (name, path)) / continue / cur = md5(path)
+  ★MISS L783   if not os.path.exists(args.checklist):                             | next: print("❌ 用法错: 找不到清单页 %s" % args.checklis / return 2 /  / if args.selftest:
+==============================================================================================================
+HW/check_pin_function_labels.py (1032 lines)
+  L811   except Exception as exc:  # noqa: BLE001                                 | next: fails.append("T9 失败: 读不到真脚表 (%s)" % exc) / real = [] / if real:
+  ★MISS L384   if not os.path.exists(path):                                       | next: out.append({ / "key": "evidence.%s" % rel, "kind": "EVI / "expected": needle, "actual": "★文件不存在★", / "reasons": ["出处文件缺失: %s" % rel],
+  ★MISS L418   if not os.path.exists(path):                                       | next: out.append({ / "key": "md5:%s" % rel, "kind": "MD5_FILE / "expected": want, "actual": "★文件不存在★", / "reasons": ["受保护文件缺失: %s" % rel],
+  ★MISS L444   if not os.path.exists(path):                                       | next: out.append({ / "key": "md5:%s" % rel, "kind": "MD5_FILE / "expected": want, "actual": "★文件不存在★", / "reasons": ["受保护文件缺失: %s" % rel],
+  ★MISS L477   if not os.path.exists(path):                                       | next: out.append({ / "key": "md5ledger:%s" % ledger_file, "ki / "expected": ledger_file, "actual": "★文件不 / "reasons": ["落表台账不存在 ⇒ 无法证明 md5 基线可追溯 (★
+==============================================================================================================
+HW/check_workpack_state_values.py (725 lines)
+  L121   except Exception as e:                                    # pragma: no c | next: out, rc = "EXC: %s" % e, -1 / _CACHE[key] = (rc, out) / return rc, out
+  L132   except Exception:                                                        | next: continue / if isinstance(data, dict) and "state_bas / return data, m.start(), m.end()
+  ★MISS L359   if not os.path.exists(path):                                       | next: ok = False / bad.append("%s 不存在: %s" % (name, path)) / continue / res = board_reboard.check_file(PROJ, rel
+  ★MISS L379   if not os.path.exists(path):                                       | next: ok = False / bad.append("%s 不存在: %s" % (name, path)) / continue / cur = md5(path)
+  ★MISS L423   if not os.path.exists(p):                                          | next: ok = False / bad.append("id=%s 的探针引用了不存在的文件: %s" % (e / srcs.setdefault(str(e.get("category")),  / for c, s in sorted(srcs.items()):
+  ★MISS L449   if not os.path.exists(p):                                          | next: continue / txt = read_text(p) / data, _s, _e = find_state_block(txt) / blocks[key] = (data, txt)
+  ★MISS L700   if not os.path.exists(doc_path(key)):                              | next: print("❌ 用法错: 找不到 %s (%s)" % (key, rel)) / return 2 /  / if args.selftest:
+==============================================================================================================
+MECH/check_board_frame_coords.py (1776 lines)
+  L223   except (TypeError, ValueError):                                          | next: sx = sy = 0.0 / pads.append({"num": num, "type": ptype, / "x": ox + float(px), "y": oy + float(py)
+  ★MISS L283   if not os.path.exists(path):                                       | next: raise SystemExit(f"[check_board_frame_co / text = open(path, "r", encoding="utf-8") / b = text.find(MACH_BEGIN) / e = text.find(MACH_END)
+  ★MISS L306   if not os.path.exists(path):                                       | next: return "" / text = open(path, "r", encoding="utf-8") / idx = text.find(APPEND_MARK) / if idx < 0:
+  ★MISS L684   if not os.path.exists(p):                                          | next: errs.append("C4 合法改板: 受保护文件不存在: %s" % re / continue / got = (md5_map or {}).get(rel) or md5_of / excl = set()
+  ★MISS L827   if not os.path.exists(p):                                          | next: errs.append(f"C4 受保护件缺失: {rel}") / continue / got = md5_of(p) / if led_text:
+==============================================================================================================
+MECH/check_demo_struct_truth.py (1336 lines)
+  ★MISS L533   if not os.path.exists(p):                                          | next: errs.append("G5b 合法改板: 受保护文件不存在: %s" % r / continue / got = (md5_map or {}).get(rel) or md5(p) / excl = set()
+==============================================================================================================
+HW/check_preflight_regen_idempotent.py (549 lines)
+  L115   except Exception:                                                        | next: items = None / return tbl, items, txt / 
+  L148   except Exception:                                                        | next: pass /  / 
+  L167   except FileNotFoundError:                                                | next: return True / except OSError: / time.sleep(0.05 * (i + 1))
+  L169   except OSError:                                                          | next: time.sleep(0.05 * (i + 1)) / shutil.rmtree(path, ignore_errors=True) / return not os.path.exists(path)
+  L353   except Exception as e:                                                   | next: print("★闸崩: %s" % e) / return 3 / 
+  ★MISS L122   if not os.path.exists(gate_path):                                  | next: raise RuntimeError("★找不到覆盖度闸 %s ⇒ 闸崩 (★f / txt = read_text(gate_path) / m = re.search(r"^SOURCES\s*=\s*\{(.*?)\} / if not m:
+  ★MISS L162   if not os.path.exists(path):                                       | next: return True / try: / shutil.rmtree(path) / return True
+  ★MISS L167   except FileNotFoundError:                                          | next: return True / except OSError: / time.sleep(0.05 * (i + 1)) / shutil.rmtree(path, ignore_errors=True)
+  ★MISS L172   return not os.path.exists(path)                                    | next:  /  / def make_sandbox(src, dst): / """★把 `src` 项目根复制成沙盒 `dst` (★只读 src·只写 d
+  ★MISS L248   if not os.path.exists(checklist):                                  | next: return False, ["     ❌ 找不到被判的清单页 %s ⇒ C2 / rc, out, page = regen(gen_proj, sandbox_ / if rc != 0 or not os.path.exists(page): / return False, ["     ❌ ★**闸崩**★: 沙盒重跑生成器
+  ★MISS L251   if rc != 0 or not os.path.exists(page):                            | next: return False, ["     ❌ ★**闸崩**★: 沙盒重跑生成器 / % rc, "     --- 生成器输出 (末尾 40 行) ---"] +  / ["     " + l for l in out.splitlines()[- / a = read_text(checklist).split("\n")

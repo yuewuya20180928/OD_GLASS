@@ -1,0 +1,43 @@
+=== [2] ISS-407 dependency gate selftest ===
+==============================================================================
+ISS-407 · check_verdict_premise_dependency · selftest
+  [PASS] POS-01 合成世界全绿 (D1~D4)
+  [PASS] POS-02 D5/D6 全绿
+  [PASS] NEG-01 D1 读不出来 ⇒ 红
+  [PASS] NEG-02 D1 登记值≠现读 ⇒ 红
+  [PASS] NEG-03 D2 孤立前提量 ⇒ 红
+  [PASS] NEG-04 D3 实扫到但没登记 ⇒ 红
+  [PASS] NEG-05 D3 登记了但没人引用 ⇒ 红
+  [PASS] NEG-06 D4 矩阵多一格 ⇒ 红
+  [PASS] NEG-07 D5 md5 不符 ⇒ 红
+  [PASS] NEG-12 D5 实读缺件 ⇒ 红
+  [PASS] NEG-08 D6 挂链数≠0 ⇒ 红
+  [PASS] NEG-09 D6 outbox 动了 ⇒ 红
+  [PASS] NEG-10 D6 证据等级不在白名单 ⇒ 红
+  [PASS] NEG-11 D3 登记了但实扫不到 ⇒ 红
+------------------------------------------------------------------------------
+正向 2 条 · 反向 12 条
+ALL TESTS PASS
+RC_DEP=0
+
+=== [3] hook coverage gate ===
+======================================================================================================================
+【ISS-405 · MECH 域闸挂链覆盖率闸 · 判定结果】
+======================================================================================================================
+  根目录: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+  ★红 = 现状有问题, 不是闸故障★
+[PASS] M0 :: 板 md5/size/mtime 三项与基线逐字相同
+[PASS] M0-TBL :: 网表/脚表/BOM 三表 md5 与基线逐字相同
+[FAIL] M1 :: ★盘上未登记的闸 2 道: MECH/check_premise_tier_decision.py, MECH/check_verdict_premise_dependency.py
+[FAIL] M2 :: ★10 道必挂闸【既不在门禁链、也不在人工签核台账】⇒ 没人跑也没人知道: MECH/check_debug_seat_3d_fit.py, MECH/check_debug_seat_rework_spec.py, MECH/check_fts_seat_body_geometry.py, MECH/check_fts_seat_sample_plan.py, MECH/check_fts_vs_generic_courtyard_delta.py, MECH/check_jdebug_1p27_clearance.py, MECH/check_juart_1p27_clearance.py, MECH/check_machine_block_pointer_resolvable.py, MECH/check_onepass_mech_release.py, MECH/check_pad_size_coupling_closed.py
+[PASS] M3 :: ★门禁链引用的 4 道 MECH 闸全部真实存在
+[PASS] M4 :: ★7 道判决链闸 + 准出汇总闸全部被显式登记, 无「未分类」
+[PASS] M5 :: ★板 / 网表 / 脚表 / BOM 四项 md5 与基线逐字相同
+[PASS] M6-HOOK :: ★零挂链自证: `check_mech_gate_hook_coverage.py` 在 state/gate_check.py 出现 0 次 (=0)
+[PASS] M6-OUTBOX :: ★零外发自证: state/outbox/ 22 个文件逐文件 md5 汇总摘要未动
+[PASS] M7 :: ★证据纪律: 五级白名单 + 零挂起 + 零空洞 + 判据/事实分开 + 10p 回答带等级
+----------------------------------------------------------------------------------------------------------------------
+合计: 8/10 条判据通过
+★红 2 条 ⇒ rc=1 ★
+★红的那一条正是【现状】: 必挂闸既不在门禁链、也不在人工签核台账 ⇒ 没人跑也没人知道★
+RC_HOOK=1

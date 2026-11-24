@@ -1,0 +1,37 @@
+$ python3 HW/check_onepass_gate_hook_coverage.py --selftest
+==============================================================================
+  ISS-404 · 反向用例 (★每条都自证「真的改到了目标」 ★)
+==============================================================================
+  ✔  ★正向: 沙盒基线 (页面点名的三道闸全在挂链表里) ⇒ 全绿 rc=0
+       ★自证改动★: 沙盒 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss404/selftest_2268544 · 三页点名的 check_beta / check_gamma / check_delta 全挂链
+  ✔  ① 页面点名的 check_beta.py 不在挂链表 ⇒ G1 红
+       ★自证改动★: 沙盒 gate_check.py 的 EXTRA_GATES 去掉 check_beta.py
+  ✔  ② 挂链表里写一个不存在的脚本 ⇒ G2 红 (★幽灵闸★)
+       ★自证改动★: 沙盒 gate_check.py 指向 check_ghost_missing.py (盘上无此文件)
+  ✔  ③ 台账漏登记一道闸 ⇒ G3 红 (★仓内每道闸必须有且只有一个归属★)
+       ★自证改动★: 台账 classification 删掉 MECH/check_delta.py
+  ✔  ④ 台账把没挂链的闸声明成「已挂链」⇒ G3 红 (★幽灵闸★)
+       ★自证改动★: 台账里 HW/check_eta_selftest.py 的 cat 改成 A_已挂链 (但链上没有)
+  ✔  ⑤ 台账真漏挂名单多一条 (盘面没有) ⇒ G3 红 (★名单必须与盘面派生值逐字相同★)
+       ★自证改动★: 台账 must_hook_missing 多塞 HW/check_alpha.py
+  ✔  ⑥ 台账删掉「本闸自身」的登记 ⇒ G3 红 (★防自指漏洞★)
+       ★自证改动★: 台账 self 段清空
+  ✔  ⑦ 板被改一个字节 ⇒ G4 红 且 G7 红 (★零写板自证★)
+       ★自证改动★: 沙盒板文件尾部加一行
+  ✔  ⑧ 网表被改一个字节 ⇒ G4 红 (★走落表台账口径·不是写死基线★)
+       ★自证改动★: 沙盒 HW/netlist_v1.csv 尾部加一行
+  ✔  ⑨ state/outbox/ 多一个文件 ⇒ G5 红 (★零外发自证★)
+       ★自证改动★: 沙盒 outbox 里塞 smuggled.md
+  ✔  ⑩ 本闸被挂进链但台账仍写「待 main 挂链」⇒ G5 红 (★自指悖论的可翻转机制★)
+       ★自证改动★: 沙盒 gate_check.py 把本闸挂进 EXTRA_GATES, 台账不动
+  ✔  ⑪ 台账某条结论缺证据等级标签 ⇒ G6 红
+       ★自证改动★: 台账 must_hook_missing[0] 删掉 evidence
+  ✔  ⑫ 页面点名一个不存在的脚本 ⇒ G1 红 (★fail-closed·不许「查不到就算过」★)
+       ★自证改动★: 沙盒预检清单点名 HW/check_not_exist_zzz.py
+  ✔  ⑬ 人工签核台账登记了 check_beta.py ⇒ G1 转绿 (★台账那一路有效★)
+       ★自证改动★: 沙盒新建人工签核台账页并登记 check_beta.py (★注意: 台账真漏挂名单没同步 ⇒ G3 仍红·这是设计内的双写纪律★)
+------------------------------------------------------------------------------
+  反向用例 14/14 通过 (★正向 1 条 + 反向 13 条★)
+  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)
+ALL TESTS PASS
+RC=0

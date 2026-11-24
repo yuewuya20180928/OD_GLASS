@@ -1,0 +1,107 @@
+### 候选文件数 = 50 (下限 8)
+
+### 逐文件 (kind 计数)
+  HW/check_onepass_gate_hook_coverage.py                                   {'doc': 1}  unparsed=False
+  HW/check_onepass_gate_teeth.py                                           {'doc': 7}  unparsed=False
+  HW/check_onepass_preflight_coverage.py                                   {'doc': 1}  unparsed=False
+  HW/check_s8_target_list.py                                               {'doc': 1}  unparsed=False
+  state/.gen_src_v36S_v37R.py                                              {'doc': 1}  unparsed=False
+  state/.gen_src_v39.py                                                    {'doc': 1}  unparsed=False
+  state/.gen_src_v42.py                                                    {'doc': 1}  unparsed=False
+  state/.gen_src_v43.py                                                    {'doc': 1}  unparsed=False
+  state/_add_need_9gates_20261117.py                                       {'doc': 1}  unparsed=False
+  state/_append_decision_page_20261117_0800_r50.py                         {'doc': 1}  unparsed=False
+  state/_append_decision_page_20261117_2055_r61.py                         {'doc': 1}  unparsed=False
+  state/_apply_20260723_0600_main_sign_iss348.py                           {'doc': 2}  unparsed=False
+  state/_apply_20260725_0250_cronfb67af40_sign406_407_408_open409_410_411.py {'doc': 2}  unparsed=False
+  state/_apply_20261117_0815_main_verify277_unlock278_279.py               {'doc': 1}  unparsed=False
+  state/_apply_20261117_0850_main_verify279_280.py                         {'doc': 1}  unparsed=False
+  state/_apply_20261117_1345_cron775d_verify_iss283_open_iss287.py         {'doc': 1}  unparsed=False
+  state/_apply_20261117_1350_cronfb67_zombie_iss287_rollback.py            {'doc': 1}  unparsed=False
+  state/_apply_20261118_0430_cronfb67_open_iss308.py                       {'doc': 3}  unparsed=False
+  state/_apply_20261118_1105_cronfb67_land317_open322.py                   {'doc': 1}  unparsed=False
+  state/_apply_20261118_1426_cronfb67_iss325_cont1_log.py                  {'doc': 1}  unparsed=False
+  state/_apply_20261118_1700_main_fix_gen_writeback.py                     {'doc': 2}  unparsed=False
+  state/_apply_20261118_1715_main_writeback_invariant.py                   {'doc': 4}  unparsed=False
+  state/_apply_20261118_1730_main_land_iss329.py                           {'doc': 4}  unparsed=False
+  state/_apply_20261119_0230_cronfb67_dispatch_iss337_cont1.py             {'doc': 1}  unparsed=False
+  state/_apply_20261122_2125_main_sign_iss337_answer_3needs.py             {'doc': 1}  unparsed=False
+  state/_apply_20261122_2150_cronfb67_sign_iss339.py                       {'unparsed': 1}  unparsed=True
+  state/_apply_20261122_2155_cronfb67_signoff_logged.py                    {'doc': 1}  unparsed=False
+  state/_apply_20261125_0120_cronfb67af40_sign402_403_open404_405.py       {'doc': 3}  unparsed=False
+  state/_apply_20261125_0200_cronfb67af40_sign404_405_open406_407_408.py   {'doc': 3}  unparsed=False
+  state/_apply_iss191_verify_20261111.py                                   {'doc': 1}  unparsed=False
+  state/_iss277_build_preflight.py                                         {'doc': 2}  unparsed=False
+  state/_land_20261103_b.py                                                {'doc': 3}  unparsed=False
+  state/_land_iss162.py                                                    {'doc': 2}  unparsed=False
+  state/_land_iss165_progress.py                                           {'doc': 1}  unparsed=False
+  state/_test_gen_writeback_guard.py                                       {'doc': 1}  unparsed=False
+  state/auto_release_if_ready.sh                                           {'loggrep': 1}  unparsed=False
+  state/board_report.sh                                                    {'invoke': 1, 'label': 1}  unparsed=False
+  state/chain_gate.py                                                      {'doc': 1, 'invoke': 1}  unparsed=False
+  state/chain_next_round.sh                                                {'loggrep': 2}  unparsed=False
+  state/chain_tool_stamp.py                                                {'doc': 2}  unparsed=False
+  state/daily_check.py                                                     {'invoke': 1, 'doc': 2}  unparsed=False
+  state/finish_line.sh                                                     {'loggrep': 1}  unparsed=False
+  state/gen_kicad_project.py                                               {'comment': 1}  unparsed=False
+  state/gen_pcb_components.py                                              {'doc': 1}  unparsed=False
+  state/gen_pcb_netlist_board.py                                           {'doc': 1}  unparsed=False
+  state/replay_patch_chain.sh                                              {'invoke': 1}  unparsed=False
+  state/run_grid_ladder.sh                                                 {'invoke': 1}  unparsed=False
+  state/verify_and_release.sh                                              {'invoke': 1, 'label': 1}  unparsed=False
+  state/verify_candidate.sh                                                {'invoke': 1}  unparsed=False
+  state/watch_v25.sh                                                       {'loggrep': 1}  unparsed=False
+
+### 调用点 (invoke / loggrep / label) 共 14 条
+  loggrep  state/auto_release_if_ready.sh           L151   strict=False | grep -E "DRC violations|unconnected items|C3 DRC|C4 unconnected|check_pcb_nets rc|check_pcb_drc|chain_gate rc|
+  invoke   state/board_report.sh                    L59    strict=False | bash state/pcbnew_py.sh state/check_pcb_drc.py "$PCB" >/tmp/_c2.log 2>
+  label    state/board_report.sh                    L59    strict=False | echo "  check_pcb_drc   rc=$?"
+  invoke   state/chain_gate.py                      L296   strict=False | run(state/check_pcb_drc.py)
+  loggrep  state/chain_next_round.sh                L61    strict=False | grep -E "DRC violations|unconnected items|C3 DRC|C4 unconnected|check_pcb_nets rc|check_pcb_drc|chain_gate rc|
+  loggrep  state/chain_next_round.sh                L65    strict=False | grep -E "DRC violations|unconnected items|check_pcb_nets rc|check_pcb_drc|chain_gate rc|stage_gate rc|★缺失|★多余"
+  invoke   state/daily_check.py                     L344   strict=False | run(check_pcb_drc.py)
+  loggrep  state/finish_line.sh                     L102   strict=False | grep -E "unconnected items|DRC violations|check_pcb_nets rc|check_pcb_drc|chain_gate rc|stage_gate rc|G1|放行" /
+  invoke   state/replay_patch_chain.sh              L240   strict=False | bash state/pcbnew_py.sh state/check_pcb_drc.py "$WORK/final_chain.kicad_pcb" 2>
+  invoke   state/run_grid_ladder.sh                 L44    strict=False | bash state/pcbnew_py.sh state/check_pcb_drc.py "$OUT" 2>
+  invoke   state/verify_and_release.sh              L53    strict=True  | python3 state/check_pcb_drc.py --strict
+  label    state/verify_and_release.sh              L53    strict=True  | echo "  check_pcb_drc(--strict) rc=$_rc"
+  invoke   state/verify_candidate.sh                L26    strict=False | bash "$PROJ/state/pcbnew_py.sh" "$PROJ/state/check_pcb_drc.py" "$CAND" 2>
+  loggrep  state/watch_v25.sh                       L57    strict=False | grep -E "unconnected items|DRC violations|check_pcb_nets rc|check_pcb_drc|chain_gate rc|stage_gate rc|单边零铜|Δ>0
+
+### 解析失败 1
+   state/_apply_20261122_2150_cronfb67_sign_iss339.py -> AST parse failed: invalid decimal literal (_apply_20261122_2150_cronfb67_sign_iss339.py, line 11)
+
+### 假绿标记串命中 (工具本体之外) = 33
+   ('state/_apply_20260725_0250_cronfb67af40_sign406_407_408_open409_410_411.py', 120, '图纸可下单')
+   ('state/_apply_20260725_0250_cronfb67af40_sign406_407_408_open409_410_411.py', 120, '✅ 全过')
+   ('state/_apply_iss223_f1_f5_workpacket.py', 117, '✅ 全过')
+   ('state/_apply_iss223_f1_f5_workpacket.py', 121, '✅ 全过')
+   ('state/_fix_pm_dsi_payload_20261111.py', 89, '✅ 全过')
+   ('state/_iss308_s8_reachability_check.py', 399, '✅ 全过')
+   ('state/check_kicad_net.py', 161, '✅ 全过')
+   ('state/check_memory_sync.py', 65, '✅ 全过')
+   ('state/check_netlist.py', 356, '✅ 全过')
+   ('state/check_netlist_pins.py', 365, '✅ 全过')
+   ('state/check_pcb_nets.py', 394, '✅ 全过')
+   ('state/check_sch_loadable.py', 111, '✅ 全过')
+   ('state/check_schematic_slots.py', 170, '✅ 全过')
+   ('state/daily_check.py', 98, '✅ 全过')
+   ('state/daily_check.py', 480, '✅ 全过')
+   ('state/delivery_truth.py', 413, '✅ 全过')
+   ('state/gen_netlist_pins.py', 254, '✅ 全过')
+   ('state/.bak_iss230/state_check_netlist.py', 324, '✅ 全过')
+   ('state/.bak_iss233/HW/check_netlist_selfconsistency.py', 1119, '✅ 全过')
+   ('state/.bak_land_v_values_v_20261117-095506/HW/check_netlist_selfconsistency.py', 1126, '✅ 全过')
+   ('state/.bak_land_v_values_v_20261117-095815/HW/check_netlist_selfconsistency.py', 1126, '✅ 全过')
+   ('state/.bak_land_v_values_v_20261117-121608/HW/check_netlist_selfconsistency.py', 1126, '✅ 全过')
+   ('state/.bak_land_v_values_v_20261117-121239/HW/check_netlist_selfconsistency.py', 1126, '✅ 全过')
+   ('state/.bak_land_v_values_v_20261117-123022/HW/check_netlist_selfconsistency.py', 1126, '✅ 全过')
+   ('state/.bak_iss257/check_netlist_selfconsistency.py', 1119, '✅ 全过')
+   ('HW/check_netlist_gnd_rows.py', 396, '✅ 全过')
+   ('HW/check_netlist_selfconsistency.py', 1126, '✅ 全过')
+   ('HW/check_onepass_gate_teeth.py', 22, '图纸可下单')
+   ('HW/check_onepass_gate_teeth.py', 22, '✅ 全过')
+   ('SW/tools/check_fp_truth_read.py', 744, '✅ 全过')
+   ('SW/tools/check_sw09_patch_dryrun.py', 716, '✅ 全过')
+   ('SW/tools/model_asset_check.py', 1037, '✅ 全过')
+   ('MECH/hinge_usb_check.py', 336, '✅ 全过')

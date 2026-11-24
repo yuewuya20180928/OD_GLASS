@@ -1,0 +1,51 @@
+TOTAL ENTRIES = 19
+DISTINCT GATE SCRIPTS = 18
+DUPLICATED ENTRIES = {"SW/tools/check_onepass_sw_sync.py": ["EXTRA_GATES", "PINNED_MD5_GATES"]}
+
+ 1 HW_PINOUT_GATE   HW/check_bq25896_pinout.py                           argv=[]                                             exists=True
+ 2 EXTRA_GATES      MECH/check_mech_verdict_freshness.py                 argv=[]                                             exists=True
+ 3 EXTRA_GATES      SW/tools/check_onepass_sw_sync.py                    argv=[]                                             exists=True
+ 4 EXTRA_GATES      SW/tools/check_sw_ref_reachability.py                argv=[]                                             exists=True
+ 5 EXTRA_GATES      SW/tools/check_landing_trace_obligation.py           argv=[]                                             exists=True
+ 6 EXTRA_GATES      SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py argv=['<?>']                                        exists=True
+ 7 EXTRA_GATES      SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py argv=['<?>']                                        exists=True
+ 8 EXTRA_GATES      SW/tools/check_demo_panel_spec_r6_selftest.py        argv=['<?>']                                        exists=True
+ 9 EXTRA_GATES      MECH/tools/check_mech_ref_reachability.py            argv=[]                                             exists=True
+10 PINNED_MD5_GATES HW/check_fsin_rootcause.py                           argv=[]                                             exists=True
+11 PINNED_MD5_GATES HW/check_g1a7_selection_landed.py                    argv=[]                                             exists=True
+12 PINNED_MD5_GATES HW/check_onepass_commit_order.py                     argv=[]                                             exists=True
+13 PINNED_MD5_GATES HW/check_onepass_preflight_coverage.py               argv=[]                                             exists=True
+14 PINNED_MD5_GATES HW/check_pin_function_labels.py                      argv=['--expect-known']                             exists=True
+15 PINNED_MD5_GATES HW/check_workpack_state_values.py                    argv=[]                                             exists=True
+16 PINNED_MD5_GATES MECH/check_board_frame_coords.py                     argv=[]                                             exists=True
+17 PINNED_MD5_GATES MECH/check_demo_struct_truth.py                      argv=[]                                             exists=True
+18 PINNED_MD5_GATES SW/tools/check_onepass_sw_sync.py                    argv=[]                                             exists=True
+19 PINNED_MD5_GATES HW/check_preflight_regen_idempotent.py               argv=[]                                             exists=True
+
+=== gate_check.py run_external_gate 调用形态 ===
+    p = subprocess.run([sys.executable, HW_PINOUT_GATE],
+def run_external_gate(path: str, name: str, args=()) -> dict:
+    """通用 fail-closed 外部闸 (★抄 HW pinout 闸的语义, 不另发明★)
+
+    ★2026-11-17 22:1x (main): 加 per-gate 参数 `args` (★tuple★)
+      ⇒ ★**为什么**: 不同闸的「绿」口径不同 (★例: `check_pin_function_labels.py` 裸跑 rc=1 是因为
+        「15 条脚表功能缺陷」是**冻结快照**不是回归 ⇒ 必须 `--expect-known` 才绿★)
+      ⇒ ★**不许**为了挂上去绿而改闸本体 (★那是 agent 的地界★) ⇒ 参数是唯一正确的适配手段★
+    """
+    if not os.path.exists(path):
+        return {"ok": False, "rc": None, "name": name,
+                "detail": f"★闸脚本不存在: {path} ⇒ 视为闸红 (不许静默跳过)"}
+    cmd = [sys.executable, path] + list(args)
+    try:
+        p = subprocess.run(cmd, cwd=PROJ, capture_output=True,
+                           text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "rc": None, "name": name, "detail": "★闸脚本超时 (300s) ⇒ 视为闸红"}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "rc": None, "name": name, "detail": f"★闸脚本跑不起来: {e} ⇒ 视为闸红"}
+    out = p.stdout or ""
+    fails = [ln.strip() for ln in out.splitlines() if ln.strip().startswith("[FAIL]")]
+    detail = ("; ".join(fails) if fails else "全部检查项通过")
+    if p.returncode != 0 and not fails:
+        detail = f"rc={p.returncode} 但未解析出 FAIL 行: " + (p.stderr or out).strip()[-300:]
+    return {"ok": p.returncode == 0, "rc": p.returncode, "name": name, "detail": detail}

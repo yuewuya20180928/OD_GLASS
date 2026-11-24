@@ -1,0 +1,813 @@
+{
+ "ledger_id": "ISS-404 · 「板只改一次」板侧闸【挂链覆盖率】分类台账",
+ "version": "1.0",
+ "issue": "ISS-404",
+ "created_at": "2026-11-25",
+ "created_by": "hw-lead",
+ "evidence_tags_allowed": [
+  "[官网]",
+  "[实测]",
+  "[媒体]",
+  "[推算]",
+  "[0数据]"
+ ],
+ "scope": {
+  "gate_check": "state/gate_check.py",
+  "repo_gate_scan_dirs": [
+   "HW",
+   "MECH",
+   "SW"
+  ],
+  "repo_gate_scan_note": "★递归扫 (含 HW/tools · MECH/tools · SW/tools) · 只扫顶层会漏 14 道★",
+  "repo_gate_count_at_issue_open": 105,
+  "repo_gate_count_after_iss404": 107,
+  "pages": [
+   "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+   "HW/PCB/BOARD_ONEPASS_WORKPACKET.md",
+   "HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md"
+  ],
+  "manual_signoff_ledger": "HW/PCB/BOARD_ONEPASS_MANUAL_SIGNOFF_LEDGER.md",
+  "manual_signoff_ledger_state": "★不存在 (2026-11-25 实读) ⇒ G1 的「人工签核台账」那一路为空 ⇒ 未挂链的闸全红★"
+ },
+ "self": {
+  "gate": "HW/check_onepass_gate_hook_coverage.py",
+  "cat": "本闸自身",
+  "hook_status": "待 main 挂链",
+  "evidence": "[实测]",
+  "note": "★自指悖论 (★不自拍·交 main 拍★): G1 要求「页面点名的闸都要在链上或台账里」⇒ 本闸自己也不在链上 ⇒ 逻辑上它也该被登记 ⇒ 登记动作 = 挂链 = main 的机制地界 ⇒ 本行只登记状态, 不自拍。★main 若决定挂本闸: ① 改本行 hook_status = 已挂链 ② 把本闸加进 state/gate_check.py (任一张挂链表) ⇒ 本闸的 G5 会自动从「期望 grep=0」翻成「期望 grep≥1」★"
+ },
+ "board_baseline": {
+  "path": "HW/PCB/demo_mainboard.kicad_pcb",
+  "md5": "611b869e13518c3c023fb178f91a0075",
+  "size": 4940213,
+  "mtime_ns": 1793920037362193413,
+  "evidence": "[实测]"
+ },
+ "outbox_baseline": {
+  "NO_OUTBOUND_POLICY.md": {
+   "md5": "ee23fba8b708b3535f2e8bc4ff60006b",
+   "size": 1006
+  },
+  "README.md": {
+   "md5": "bb415a7948346afd3d8e429b80f0aabf",
+   "size": 11110
+  },
+  "R_GEO_2_DECISION_MAP.md": {
+   "md5": "8e70d17a7cadd79c76175fe81a91546f",
+   "size": 30223
+  },
+  "bridge_chip_rfq.md": {
+   "md5": "f174665e3ef10713c0366eb12d2fa4bb",
+   "size": 5082
+  },
+  "j_chg_rfq.md": {
+   "md5": "79ec574be6f9f1e44f1000f65b570a90",
+   "size": 4454
+  },
+  "jbd_query.md": {
+   "md5": "b62675dda43fc84861bb9065ad7c6929",
+   "size": 6597
+  },
+  "jbd_query_addendum.md": {
+   "md5": "687ac2e080fb4a43b85c87aa125ac492",
+   "size": 2928
+  },
+  "lens_rfq_rgeo2_addendum.md": {
+   "md5": "c95a53b13823fa7a939e7a0ee0faa10b",
+   "size": 13426
+  },
+  "onsemi_ar0234cs_query.md": {
+   "md5": "009c645108d22a594fa9b0e9ed745a6a",
+   "size": 7365
+  },
+  "pcb_foundry_layer_query.md": {
+   "md5": "1f8105e7efd5b48f1ca4d4fd4229df43",
+   "size": 4502
+  },
+  "s2_rk3576_module_vendor_query.md": {
+   "md5": "963395a7f9cff7d9721909262d03ed7a",
+   "size": 40291
+  },
+  "som_balltable_inquiry.md": {
+   "md5": "1c39347cb28432b687e055ed8f1f5ab9",
+   "size": 4240
+  },
+  "ti_bq25896_query.md": {
+   "md5": "0cf06881ef22d9aa2bcc374250f89ccc",
+   "size": 3838
+  },
+  "vendor_round2_email.md": {
+   "md5": "9a55d233b91cf6c997979d5879039777",
+   "size": 15026
+  },
+  "vendor_round3_addendum.md": {
+   "md5": "c367984dbcf4065236ea48b1b1a70a8e",
+   "size": 6502
+  },
+  "vendor_round4_geo_isp_addendum.md": {
+   "md5": "dae237af315f12065f057e6578117eda",
+   "size": 14522
+  },
+  "vendor_via_agent_email.md": {
+   "md5": "25334d43acf7ea3945a32930b6b2d44f",
+   "size": 7604
+  },
+  "visionox_display_dsc_mode_query.md": {
+   "md5": "f126785d5fd8f902b66648767c86759a",
+   "size": 1895
+  },
+  "visionox_display_inquiry.md": {
+   "md5": "1e6ebdc4ceff247a2b380491c57c6c0d",
+   "size": 9470
+  },
+  "attach/01_ARS45_技术确认项_21条.md": {
+   "md5": "d38566a2a774e23847d6abc9c6f94e75",
+   "size": 7832
+  },
+  "attach/02_第二轮问询全文.md": {
+   "md5": "d997d35a04b841db8f948ae4e4c451f3",
+   "size": 15022
+  },
+  "attach/README.md": {
+   "md5": "e62b5f1e71fe9f1e208a8c0cfa7a8a4b",
+   "size": 1195
+  }
+ },
+ "classification": {
+  "HW/check_board_comparable_gate.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_board_frame_caliber.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md",
+    "HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md"
+   ]
+  },
+  "HW/check_board_netlist_divergence_gate.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_bq25896_pinout.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "HW_PINOUT_GATE"
+   ],
+   "hook_label": [
+    "HW pinout 真源闸"
+   ]
+  },
+  "HW/check_charge_current_live_value.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_chg_spec7_vs_netlist.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_debug_uart_seat_alignment.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_debug_uart_seat_truth.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_fp_libid_truth.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_fp_truth_baseline.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_fp_truth_coverage_gap.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_fp_truth_land_swap.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_fsin_rootcause.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "PINNED_MD5_GATES"
+   ],
+   "hook_label": [
+    "钉板闸① FSIN 根因闸"
+   ]
+  },
+  "HW/check_fts_land_drill_same_batch.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_fts_land_drill_same_batch_sbx.py": {
+   "cat": "C_一次性沙盒件"
+  },
+  "HW/check_fts_single_row_land_truth.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_g1a7_selection_landed.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "PINNED_MD5_GATES"
+   ],
+   "hook_label": [
+    "钉板闸② G1a-7 选型落表闸"
+   ]
+  },
+  "HW/check_gate10_concurrency_safety.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_generator_value_drift_closed.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_hw_external_dep_closed.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_iss243_cregn.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_iss247_f1_landed.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_iss354_manufacturability.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ]
+  },
+  "HW/check_iss354_mfg_closure.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ]
+  },
+  "HW/check_jdebug_land_fit.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_juart_land_fit.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_land_row_anchors.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_netlist_contradiction_r3.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ]
+  },
+  "HW/check_netlist_gnd_rows.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_netlist_selfconsistency.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ]
+  },
+  "HW/check_onepass_commit_order.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "PINNED_MD5_GATES"
+   ],
+   "hook_label": [
+    "钉板闸③ 改板提交顺序闸"
+   ]
+  },
+  "HW/check_onepass_gate_hook_coverage.py": {
+   "cat": "本闸自身",
+   "hook": [],
+   "hook_label": [],
+   "named_by": [],
+   "note": "★ISS-404 本闸自己 · 零挂链 (挂链是 main 的机制地界) · 状态 = 待 main 挂链★"
+  },
+  "HW/check_onepass_preflight_coverage.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "PINNED_MD5_GATES"
+   ],
+   "hook_label": [
+    "钉板闸④ 作业包覆盖度闸"
+   ]
+  },
+  "HW/check_onepass_s10_manifest.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ]
+  },
+  "HW/check_onepass_s10_swap_set_truth.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_part_selection_gaps.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_part_selection_landed_crosscheck.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_part_selection_matrix.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ]
+  },
+  "HW/check_pcb_generator_defaults.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ]
+  },
+  "HW/check_pin_function_labels.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "PINNED_MD5_GATES"
+   ],
+   "hook_label": [
+    "钉板闸⑤ 脚表功能标签闸"
+   ]
+  },
+  "HW/check_preflight_regen_idempotent.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "PINNED_MD5_GATES"
+   ],
+   "hook_label": [
+    "钉板闸⑩ 板侧项全集重跑幂等闸"
+   ]
+  },
+  "HW/check_s8_target_list.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_seat_part_verdict_propagation.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_step1_parts_spec.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md"
+   ]
+  },
+  "HW/check_tp_int_gap.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "HW/check_workpack_state_values.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "PINNED_MD5_GATES"
+   ],
+   "hook_label": [
+    "钉板闸⑥ 作业包现状值闸"
+   ]
+  },
+  "MECH/check_board_frame_candidate_compat_gate.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_board_frame_coords.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "PINNED_MD5_GATES"
+   ],
+   "hook_label": [
+    "钉板闸⑦ 板框坐标闸"
+   ]
+  },
+  "MECH/check_board_frame_freeze_gate.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_board_frame_freeze_gate_selftest.py": {
+   "cat": "D_selftest辅助件"
+  },
+  "MECH/check_board_geom_caliber_drift.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_budget_caliber.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_connector_clearance_caliber.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_debug_seat_3d_fit.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_debug_seat_rework_spec.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_demo_struct_truth.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "PINNED_MD5_GATES"
+   ],
+   "hook_label": [
+    "钉板闸⑧ 结构真值闸"
+   ]
+  },
+  "MECH/check_fts_seat_body_geometry.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_fts_seat_sample_plan.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_fts_vs_generic_courtyard_delta.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_hinge_fpc_truth.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_jdebug_1p27_clearance.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_jdebug_arrangement_truth.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_juart_1p27_clearance.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_machine_block_pointer_resolvable.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_mech_dual_caliber_gate.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_mech_gate_hook_coverage.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_mech_signed_append_ledger.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_mech_verdict_freshness.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "EXTRA_GATES"
+   ],
+   "hook_label": [
+    "MECH 结构结论防漂闸 (ISS-295)"
+   ]
+  },
+  "MECH/check_onepass_mech_release.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_onepass_mech_sync.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ]
+  },
+  "MECH/check_onepass_s10_fp_swap_impact.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_onepass_s10_led_spec_sync.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_onepass_struct_crosscheck.py": {
+   "cat": "B_必挂但漏挂",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ]
+  },
+  "MECH/check_pad_size_coupling_closed.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/check_zoujuan_marker_consistency.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "MECH/tools/check_mech_ref_reachability.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "EXTRA_GATES"
+   ],
+   "hook_label": [
+    "MECH 侧位号引用可达性闸 (ISS-326 设计稿 / ISS-333 实现)"
+   ]
+  },
+  "SW/check_evt_charge_current_criterion.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_brightness_biosafety.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_debug_header_fw_impact.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_debug_pin_order_contract.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_demo_panel_spec.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "EXTRA_GATES"
+   ],
+   "hook_label": [
+    "SW 侧 R6 链头落表单号交叉核对反向用例 (ISS-312)"
+   ]
+  },
+  "SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "EXTRA_GATES"
+   ],
+   "hook_label": [
+    "SW 侧 R6 硬保护路径反向用例 (ISS-315)"
+   ]
+  },
+  "SW/tools/check_demo_panel_spec_r6_selftest.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "EXTRA_GATES"
+   ],
+   "hook_label": [
+    "SW 侧 R6 判决源反向用例 (ISS-309 · 7/7)"
+   ]
+  },
+  "SW/tools/check_fp_truth_read.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_iss250_rknn_target_gate.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_iss355_convert_route.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_landing_trace_obligation.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "EXTRA_GATES"
+   ],
+   "hook_label": [
+    "SW 侧落表留痕义务闸 (ISS-315)"
+   ]
+  },
+  "SW/tools/check_load_switch_selection.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_onepass_legb_sw_impact.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_onepass_sw_release.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_onepass_sw_sync.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "EXTRA_GATES",
+    "PINNED_MD5_GATES"
+   ],
+   "hook_label": [
+    "SW 侧板侧输入/合法改板闸 (ISS-298)",
+    "钉板闸⑨ SW 侧合法改板通道闸"
+   ]
+  },
+  "SW/tools/check_rk3572_target_caliber.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_rk3572_vccio_domain.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_rknn_target_compat.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_shutdown_semantics.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_sw09_patch_dryrun.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_sw_board_md5_rebase_readiness.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_sw_false_connectivity_gate.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_sw_fp_truth_impact.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_sw_gate_chain_coverage.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_sw_gate_health.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_sw_ref_reachability.py": {
+   "cat": "A_已挂链",
+   "hook": [
+    "EXTRA_GATES"
+   ],
+   "hook_label": [
+    "SW 侧位号引用可达性闸 (ISS-318)"
+   ]
+  },
+  "SW/tools/check_sw_ref_reachability_v2.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_sw_ref_reachability_v2_selftest.py": {
+   "cat": "D_selftest辅助件"
+  },
+  "SW/tools/check_sw_zero_copper_grade_consistency.py": {
+   "cat": "E_域内常驻闸"
+  },
+  "SW/tools/check_timing_review_adc_sync.py": {
+   "cat": "E_域内常驻闸"
+  }
+ },
+ "must_hook_missing": [
+  {
+   "gate": "state/check_pcb_nets.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "命门",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md",
+    "HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md"
+   ],
+   "blocks": "C1 焊盘级等价 (ref,焊盘号)→网络 ⇒ 板面与网表逐焊盘对拍",
+   "consequence": "★板面多一个焊盘 / 脚位对调 ⇒ 网表与板不等价 ⇒ 投出去的板是错的 (要么板改第二次 2-4 周 + 一批板的钱, 要么流到用户手里)",
+   "current_reading": "rc=1 ★C1 红: 缺失 0 · 多余 2 · 同号异网 3 (C_VBUS_GND pad1=GND / pad2=VBUS_5V_CHG; Q_PG pad1↔pad3 互换; D_ESD_USB_D pad1 异网)",
+   "evidence": "[实测]",
+   "recommended_batch": "B1",
+   "note": "★它就是 ISS-402 §3 掉板机理的同一件事 (C_VBUS_GND 多余 2) ⇒ 今天就红, 且不在链上"
+  },
+  {
+   "gate": "state/check_pcb_drc.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "命门",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md",
+    "HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md"
+   ],
+   "blocks": "C3 DRC violations = 0 + C4 unconnected = 0 (--strict) + C6 生产文件齐 (Gerber 32 个) ⇒ 投板前最后一道图面闸",
+   "consequence": "★DRC 不干净 / 未布线 45 项 / 生产文件不齐 ⇒ 投板 = 板改第二次或废板",
+   "current_reading": "rc=0 (默认口径) ★但 --strict 下 rc=1 (C4 unconnected items = 45) ⇒ ★挂链必须带 --strict, 否则挂上去是【假绿】★",
+   "evidence": "[实测]",
+   "recommended_batch": "B1",
+   "note": "★它是预检清单 B25 (unconnected 45→0) 与 B28 (留证链/盖章/发布闸) 的判据命令"
+  },
+  {
+   "gate": "HW/check_netlist_selfconsistency.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "高",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ],
+   "blocks": "网表自身一致性 4 处 + 7 组缺陷的「现状守卫」 (I2C_A 上拉 / BAT_DET 全 DNP / U_EN_SW 无本体行 / USB D− 无 ESD / USB 串阻双值 / CONN_LIGHT 21p vs 22p / SARADC 分压比 …)",
+   "consequence": "★网表内部自相矛盾复发 ⇒ 板面照抄 ⇒ 板改第二次",
+   "current_reading": "rc=0 (★现状与 HW/NETLIST_SELF_CONSISTENCY_SPEC.md 一致★)",
+   "evidence": "[实测]",
+   "recommended_batch": "B1",
+   "note": "★它是【现状守卫】不是【找错】⇒ 落表改动若不更新规格 ⇒ 守卫变红 ⇒ 挂上去才有意义★"
+  },
+  {
+   "gate": "HW/check_part_selection_matrix.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "高",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ],
+   "blocks": "BOM 待选型件 OPN 选型证据矩阵 (★每颗待选型件的 OPN 证据齐不齐★)",
+   "consequence": "★带着没有证据的 OPN 投板 ⇒ 买回来的料不是图纸上那颗 ⇒ 板是废的 (不是改板, 是退料)",
+   "current_reading": "rc=0",
+   "evidence": "[实测]",
+   "recommended_batch": "B1",
+   "note": "★它判的是【买回来的对不对】, 与 DRC/网表是正交的一条防线"
+  },
+  {
+   "gate": "HW/check_netlist_contradiction_r3.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "高",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ],
+   "blocks": "网表 / 板 第 3 轮自相矛盾机器门禁 (F2 板级封装名空 186 · F3 DNP 位号在板文件里零标记 40)",
+   "consequence": "★DNP 位号在板文件里零标记 ⇒ 贴片坐标把它当必装 ⇒ 白贴 40 颗料 ⇒ 成本 + 工艺缺陷",
+   "current_reading": "rc=1 ★FINDINGS = 2 (F2 + F3)★ (★闸的语义 = 有 findings 就 rc=1★)",
+   "evidence": "[实测]",
+   "recommended_batch": "B2",
+   "note": "★它今天就是红的 ⇒ 挂链时机要考虑 (与 C1 修复同批?)★"
+  },
+  {
+   "gate": "HW/check_board_frame_caliber.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "高",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md",
+    "HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md"
+   ],
+   "blocks": "板框 / 坐标系口径机器闸 (C1~C6) ⇒ 那一趟 S1~S13 用的坐标口径必须单一自洽",
+   "consequence": "★三套基线搅乱 ⇒ 落位撞 SoM 座 / 重复计算坐标 ⇒ 板改第二次",
+   "current_reading": "rc=0",
+   "evidence": "[实测]",
+   "recommended_batch": "B2",
+   "note": "★三页都点它 ⇒ 它是覆盖面最广的一道漏挂闸★"
+  },
+  {
+   "gate": "HW/check_onepass_s10_manifest.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "高",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ],
+   "blocks": "S10 投产包 md5 清单 (MANIFEST.md5) ⇒ 「这一包确实是这一版板出的」",
+   "consequence": "★投产包不是这一版板出的 (旧包/混包) ⇒ 投出去的板与图面不一致 ⇒ 板改第二次",
+   "current_reading": "rc=0 ★M2 清单 BOARD_MD5 611b869e13518c3c023fb178f91a0075 == 盘上板 md5 · M4 FILE_COUNT 74 == 盘面 74★",
+   "evidence": "[实测]",
+   "recommended_batch": "B2",
+   "note": "★chain_gate.py (S11) 判不了这一条 (它只判 mtime 新旧) ⇒ 本闸不可替代★"
+  },
+  {
+   "gate": "HW/check_pcb_generator_defaults.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "中",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ],
+   "blocks": "板生成器默认值闸 (C1 层数默认 8 = 盘上铜层数 · 三条默认值都钉死)",
+   "consequence": "★生成器默认值漂了 ⇒ 重跑生成器 ⇒ 板 md5 变第二次",
+   "current_reading": "rc=0",
+   "evidence": "[实测]",
+   "recommended_batch": "B3",
+   "note": "★它守的是【生成器】不是【板】★"
+  },
+  {
+   "gate": "HW/check_step1_parts_spec.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "中",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md"
+   ],
+   "blocks": "ISS-237 「P2 屏口径收死」⇒ display 座口径 (40p/0.5mm + 背光 12V BOOST vs 现行 22p/0.5mm) 单一事实源",
+   "consequence": "★照旧文档画板 ⇒ 投板前返工 (文档自己写的代价: 2-4 周 + ¥4-8K/批)★",
+   "current_reading": "rc=0",
+   "evidence": "[实测]",
+   "recommended_batch": "B3",
+   "note": "★闸注释里自报代价: 2-4 周 + ¥4-8K/批★"
+  },
+  {
+   "gate": "HW/check_iss354_mfg_closure.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "中",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_PREFLIGHT.md",
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md",
+    "HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md"
+   ],
+   "blocks": "ISS-354 可制造性收口只读判定 (C1 5 个 ref 逐条点名 · C2 [0数据] 名单一致 · C3 一票否决项在场 · C4 改项清单在场)",
+   "consequence": "★收口没落到文档 ⇒ 那一趟照着没有的清单开工 ⇒ 漏项 ⇒ 板改第二次",
+   "current_reading": "rc=0",
+   "evidence": "[实测]",
+   "recommended_batch": "B3",
+   "note": ""
+  },
+  {
+   "gate": "HW/check_iss354_manufacturability.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "中",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ],
+   "blocks": "ISS-354 5 件在盘 (A-1 5 个 ref 改项清单 · A-2 4 类不自洽 · A-3 SoM pin1 排向降级方案 …)",
+   "consequence": "★交卷件被误删 / 改坏 ⇒ 那一趟的输入没了 ⇒ 停工或照猜的画",
+   "current_reading": "rc=0",
+   "evidence": "[实测]",
+   "recommended_batch": "B3",
+   "note": ""
+  },
+  {
+   "gate": "MECH/check_onepass_mech_sync.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "高",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ],
+   "blocks": "M1 帧标签齐全 · M2 两条开口各自不压 SoM 座 · M3 座体高度参数式自洽 · M4 判据命令真存在",
+   "consequence": "★检修口/调试口被当成一个开口 ⇒ 照抄合并的错值 ⇒ 板改第二次 (★ISS-267/271 的病根★)",
+   "current_reading": "rc=0",
+   "evidence": "[实测]",
+   "recommended_batch": "B1",
+   "note": "★它是 ISS-267/271 病根的直接闸 ⇒ 漏挂 = 病根复发窗口一直开着★"
+  },
+  {
+   "gate": "MECH/check_onepass_struct_crosscheck.py",
+   "cat": "B_必挂但漏挂",
+   "severity": "高",
+   "named_by": [
+    "HW/PCB/BOARD_ONEPASS_WORKPACKET.md"
+   ],
+   "blocks": "N2/N3/N4 (S6 的 20 个目标落位 × MECH 保留区) · N5 (座体类器件 BOM/网表 ↔ land pattern ↔ 结构占位 三方对照) · corner_radius 贴角 keep-out 口径",
+   "consequence": "★hw-lead 的闸不查结构保留区 + MECH 的闸不碰 S6 目标落位 ⇒ 两边各自绿 ⇒ 合起来撞 ⇒ S6 一跑就撞 ⇒ 板 md5 变第二次",
+   "current_reading": "rc=0",
+   "evidence": "[实测]",
+   "recommended_batch": "B1",
+   "note": "★它是唯一补【两边各自绿、合起来撞】这段缝的闸★"
+  }
+ ],
+ "notes": [
+  "★本台账是 G3 的判决源: 仓内每道闸在 classification 里【有且只有一个归属】★",
+  "★分类优先级 (★不许换★): A(已挂链) > B(页面点名且未挂链) > C(_sbx 沙盒件) > D(selftest 辅助件) > E(其余域内常驻闸)★",
+  "★main 挂链后必须【两处写】: ① state/gate_check.py ② 本台账 must_hook_missing 里删掉那一条 (★否则 G3 会红并点名★)★",
+  "★分类是【规则派生】的 ⇒ main 挂链不会让台账过期 (只有 must_hook_missing 这一份【名单】需要同步)★"
+ ]
+}

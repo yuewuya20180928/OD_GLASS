@@ -1,0 +1,56 @@
+==============================================================================
+  ISS-406 · 验收链【牙齿】闸 (★T1 台账自洽 / T2 宽松档 / T3 fail-open+严格档 / T4 板三证 / T5 零挂链+零外发 / T6 证据分级 / T7 零写板★)
+  ★红的是现状 (★链上有闸跑在宽松档 + 投板前必跑闸的文档化调用丢了严格档★), 不是闸故障 ★
+==============================================================================
+  OK   T1 链上闸逐道台账自洽 (★argv 由 AST 解析·不许手抄★)
+     ✔ 链上 19 个挂链槽位 (★18 个不同脚本★) 在台账里【有且只有一行】
+     ✔ 每行的闸路径 + argv 与 AST 解析值逐字相同 (★argv 不许手抄★)
+  FAIL  T2 宽松档识别 (★链上用宽松档的闸必须被点名 + 写清放宽了哪条 + main 签核★)
+     ℹ️ HW/check_fsin_rootcause.py 源码有宽松档开关 ['--only'] · ★链上一个都没用 (跑的是全量档)★
+     ℹ️ HW/check_onepass_commit_order.py 源码有宽松档开关 ['--only'] · ★链上一个都没用 (跑的是全量档)★
+     ❌ ★PINNED_MD5_GATES[4] 在宽松档 ['--expect-known'] 下跑, 但台账 lenient_acceptance='未签核' (★只有 main 签核写成 '已接受(main 签核)' 才放行·本闸不代拍★)
+  FAIL  T3 fail-open 嫌疑自证 (★行号级证据★) + T3b 投板前必跑闸必须带严格档
+     ✔ HW/check_bq25896_pinout.py fail-open: 不会
+     ✔ MECH/check_mech_verdict_freshness.py fail-open: 不会
+     ✔ SW/tools/check_onepass_sw_sync.py fail-open: 不会
+     ✔ SW/tools/check_sw_ref_reachability.py fail-open: 不会
+     ✔ SW/tools/check_landing_trace_obligation.py fail-open: 不会
+     ✔ SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py fail-open: 不会
+     ✔ SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py fail-open: 不会
+     ✔ SW/tools/check_demo_panel_spec_r6_selftest.py fail-open: 不会
+     ✔ MECH/tools/check_mech_ref_reachability.py fail-open: 不会
+     ✔ HW/check_fsin_rootcause.py fail-open: 不会
+     ✔ HW/check_g1a7_selection_landed.py fail-open: 不会
+     ✔ HW/check_onepass_commit_order.py fail-open: 不会
+     ✔ HW/check_onepass_preflight_coverage.py fail-open: 不会
+     ✔ HW/check_pin_function_labels.py fail-open: 不会
+     ✔ HW/check_workpack_state_values.py fail-open: 不会
+     ✔ MECH/check_board_frame_coords.py fail-open: 不会
+     ✔ MECH/check_demo_struct_truth.py fail-open: 不会
+     ✔ SW/tools/check_onepass_sw_sync.py fail-open: 不会
+     ✔ HW/check_preflight_regen_idempotent.py fail-open: 不会
+     ❌ ★state/check_pcb_drc.py 在 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md L56 的文档化调用方式【python3 state/check_pcb_drc.py ⇒ unconnected items = 0 · DRC 违规 = 0】不含严格档 --strict ⇒ ★**这条命令证明不了它自己声明的判据**★
+     ❌ ★state/check_pcb_drc.py 在 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md L59 的文档化调用方式【python3 state/check_pcb_drc.py ⇒ C6 生产文件齐 · rc=0】不含严格档 --strict ⇒ ★**这条命令证明不了它自己声明的判据**★
+     ❌ ★state/check_pcb_drc.py 在 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md L472 的文档化调用方式【"criterion": "python3 state/check_pcb_drc.py ⇒ unconnected items = 0 ·】不含严格档 --strict ⇒ ★**这条命令证明不了它自己声明的判据**★
+     ❌ ★state/check_pcb_drc.py 在 HW/PCB/BOARD_ONEPASS_PREFLIGHT.md L505 的文档化调用方式【"criterion": "python3 state/check_pcb_drc.py ⇒ C6 生产文件齐 · rc=0",】不含严格档 --strict ⇒ ★**这条命令证明不了它自己声明的判据**★
+     ❌ ★state/check_pcb_drc.py 在 HW/PCB/BOARD_ONEPASS_WORKPACKET.md L64 的文档化调用方式【python3 state/check_pcb_drc.py】不含严格档 --strict ⇒ ★**这条命令证明不了它自己声明的判据**★
+     ❌ ★state/check_pcb_drc.py 在 HW/PCB/BOARD_ONEPASS_WORKPACKET.md L86 的文档化调用方式【python3 state/check_pcb_drc.py】不含严格档 --strict ⇒ ★**这条命令证明不了它自己声明的判据**★
+     ❌ ★state/check_pcb_drc.py 在 HW/PCB/BOARD_ONEPASS_WORKPACKET.md L504 的文档化调用方式【python3 state/check_pcb_drc.py】不含严格档 --strict ⇒ ★**这条命令证明不了它自己声明的判据**★
+     ❌ ★state/check_pcb_drc.py 在 HW/PCB/BOARD_ONEPASS_WORKPACKET.md L569 的文档化调用方式【python3 state/check_pcb_drc.py】不含严格档 --strict ⇒ ★**这条命令证明不了它自己声明的判据**★
+     ❌ ★state/check_pcb_drc.py 在 HW/PCB/BOARD_ONEPASS_WORKPACKET.md L573 的文档化调用方式【python3 state/check_pcb_drc.py】不含严格档 --strict ⇒ ★**这条命令证明不了它自己声明的判据**★
+     ✔ state/check_pcb_nets.py  作业面页上的 8 处文档化调用方式全部带 (无严格档开关 · 本闸没有宽松档)
+  OK   T4 板三证不动 (★板 / 网表 / 脚表 / BOM md5 与基线逐字相同★)
+     ✔ 板 md5 = 611b869e13518c3c023fb178f91a0075 (== 基线)
+     ✔ HW/netlist_v1.csv = 6aee500e60ba0732f83a9cf557ba90ab
+     ✔ HW/netlist_v1_pins.csv = 9174309df1ec9411ac8e8d9e80ee386a
+     ✔ HW/BOM_v1.csv = 5b9993992405904a60ac96a020b375d8
+  OK   T5 零挂链 + 零外发自证
+     ✔ 本闸名在 gate_check.py 里的行数 = 0 (★零挂链·台账登记状态 = 待 main 挂链★)
+     ✔ state/outbox/ 22 件与台账基线逐字相同 (★零外发★)
+  OK   T6 证据分级 (★每条结论标 [官网]/[实测]/[媒体]/[推算]/[0数据]★)
+     ✔ 台账 22 条结论全部带证据等级标签
+  OK   T7 零写板自证 (★md5 / mtime / size 三项与基线逐字相同★)
+     ✔ 板 md5 / mtime_ns / size 三项与基线逐字相同 (md5=611b869e13518c3c023fb178f91a0075 size=4940213)
+------------------------------------------------------------------------------
+  ❌ rc=1: ★★链上还有闸跑在宽松档 / 投板前必跑闸的文档化调用方式证明不了它自己 声明的判据 ★★
+             ⇒ ★「板那一趟」当天照着作业面页跑 ⇒ 拿到的绿是假绿 ⇒ 板改第二次 ★★

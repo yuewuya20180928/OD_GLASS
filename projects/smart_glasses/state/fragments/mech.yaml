@@ -1,18 +1,16 @@
 agent: mech-lead
 role: 结构总工(带散热)
-updated_at: '2026-11-24T08:40:00+08:00'
-updated_by: mech-lead
+updated_at: '2026-11-25'
+updated_by: mech-lead (ISS-410)
 status:
-  phase: done
-  progress_pct: 100
+  phase: P1
+  progress_pct: 76
   health: yellow
-  summary: 'iss400 交卷完成 (mech-lead · 2026-11-24 23:0x): 全仓机器块指针可解析性清账 + 新建一道机器闸 + 把三条死指针的逐字改法写好交 main。真相页
-    MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md (主范围 115 条指针 ⇒ A 64/B 9/C 3/D 19/E 20; 已知 3 条死指针
-    L176/L177/L178 全部命中; 真槽登记表 = 全仓唯一 three_quantities.*.measured_value 且只有 check_fts_seat_sample_plan.py
-    读它; T1/T2 两个落点无闸读) + 新闸 MECH/check_machine_block_pointer_resolvable.py (P1~P7; 裸跑预期 rc=1 = 红的是现状 51
-    条不是闸故障; --selftest rc=0 末行 ALL TESTS PASS 正向3+反向9=12 条; 零挂链零写板) + 交卷页 HANDOFF/2026-11-24_mech-lead_ISS400_机器块指针可解析性清账.md
-    (B1~B7 齐全; 6 条问句交 main 一条不代拍; 自曝对自家闸做过 6 处修正) + 留证 logs/iss400/ 13 个文件。零写板 零落表 零改既有页正文与既有闸判据源码 零挂链
-    零外发 不代拍 不自签台账 只写 state/fragments/mech.yaml'
+  summary: 'ISS-410 交卷: MECH 焊盘前提量【四档选档 ⇒ 下游作废传播】机器可判决策表 + 闸 —— 新建真相页 (三张表: 四档×七数 28 格全对拍 / 四来源「记没记·记哪一档」逐源实读
+    / 板厂工艺能力自己查+降级方案 + 每档「必须重算10数·必须重跑9闸·必须重签7页」清单) + 新闸 MECH/check_premise_tier_decision.py (裸跑 rc=1
+    红的是现状: T1 四来源只有 1/4 记着 + T2 板面是 SMD 占位判定不出档位; --selftest rc=0 末行 ALL TESTS PASS 正向1+反向19); 6 条问句交
+    main (一条都不代拍 · 机器块 decision_taken_here=not_decided_here); 零写板 零落表(除自有分片) 零改既有闸 零改既有页正文 零挂链 零外发 不代拍
+    不自签'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -1934,6 +1932,87 @@ artifacts:
     + 比任务书多找到的 6 条) + B2 独立复核自证 (§2 八条我自己跑的结果, 含题面第 6 条算术少 1 的如实披露) + B3 证据分级逐条标 + B4 边界自证 (板三项指纹/三表/三页/11
     闸 md5/零挂链 grep/不自签 issue_log/只写自己分片) + B5 留给 main 的 6 条问句 (每条带问法+建议默认值+不答后果+代价+归属) + B6 复现命令与 rc (logs/iss400/)
     + B7 本单对新闸做过的 6 处修正全部主动交代。'
+- path: MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md
+  kind: truth-page
+  version: iss403
+  updated_at: '2026-11-25'
+  summary: 'ISS-403 新建真相页 (纯分析·零写板·零改既有页正文·零挂链): 「板那一趟」焊盘尺寸 ⇄ MECH 判决链 7 个数的耦合清账。含 4 档 pad × 7 数全矩阵 (本机自算·现状档
+    7/7 与既有已签收页逐字对拍)、5 道盲闸逐道点名+盲在哪一行 (本机 A/B 实测·两臂 stdout md5 逐字相同)、parse_footprint_copper() 死代码的代码级 grep
+    证据、7 道 MECH 闸零挂链证据、机器块、三档 pad 选项+代价 (不代拍)。'
+- path: MECH/check_pad_size_coupling_closed.py
+  kind: gate
+  version: iss403
+  updated_at: '2026-11-25'
+  summary: 'ISS-403 新建机器闸 (零挂链·零改既有闸·零改既有阈值): 判「焊盘尺寸一旦被放大, MECH 判决链 7 个数会不会被自动发现并重新推导」。P1 pad 档位从 .kicad_mod
+    现读 / P2 7 个数由档位推导不许写死 / P3 判决链消费的数与 .kicad_mod 实算逐格一致 / P4 盲闸名单不许凭空 (在盘+实跑+静态盲证+不重不漏) / P5 零挂链自证 /
+    P6 证据分级五级+零挂起措辞+两句分开+不代拍 / P7 零写板三项 / P8 零外发树摘要。裸跑 rc=0 (= 现状自洽, 不是闸坏了); --selftest rc=0 末行逐字 ALL
+    TESTS PASS (正向 1 + 反向 14, 每条自证只红目标那一条)。'
+- path: HANDOFF/2026-11-25_mech-lead_ISS403_焊盘尺寸耦合盲区清账与闸.md
+  kind: handoff
+  version: iss403
+  updated_at: '2026-11-25'
+  summary: 'ISS-403 交卷页: B1 结论摘要 (含【与来件口径不一致】的三处实测订正) / B2 验收自评 (逐条对 A1~A8 + 14 条反向用例清单) / B3 证据分级五级 /
+    B4 接口取值声明 / B5 未决项五条 (一条不代拍·全部 to=main) / B6 复现命令+rc / B7 边界自证。'
+- path: MECH/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md
+  kind: truth
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-405真相页: MECH域29道闸×是否挂链×四分类台账(A4/B10/C14/D1/E1)×真漏挂逐条后果 + 机器块'
+- path: MECH/check_mech_gate_hook_coverage.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-405新建机器闸: M0~M7十条判据; 裸跑rc=1(红的是现状); --selftest rc=0 末行ALL TESTS PASS(1正向+13反向); 零挂链'
+- path: MECH/BOARD_ONEPASS_J_CHG_10P_GEOMETRY.md
+  kind: truth
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'J_CHG(FH12 10p)座体几何判定: X向进深6.40[官网]/Y向占宽9.10[官网](目录C)/间隙重算=干涉0.25mm + 追加式建议S1~S5'
+- path: HANDOFF/2026-11-25_mech-lead_ISS405_闸挂链覆盖率清账与闸.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-405交卷页: B1~B7全填 + Q1~Q6问句(一条都不代拍)'
+- path: MECH/BOARD_ONEPASS_VERDICT_PREMISE_DEPENDENCY.md
+  kind: truth_page
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-407 真相页: MECH 判决链前提依赖图 + 作废传播矩阵 · §0~§8 + 机器块 · 三张表 (前提量清单 17 格 / 依赖图 15 条边 / 作废传播矩阵 7
+    行) + 写死常量点实扫 26 个 (规则 HC-SCAN-v2) · 全表数值由脚本现读/实算渲染 (不许手抄)'
+- path: MECH/check_verdict_premise_dependency.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-407 新闸: 判决链前提依赖 + 作废传播机器闸 · D1~D6 六条判据 · 裸跑 rc=1 (红的是现状: PQ13/PQ14/PQ15/PQ16 四格前提无真值读取点)
+    · --selftest rc=0 末行 ALL TESTS PASS (正向 2 + 反向 12) · 零挂链 (state/gate_check.py 里 0 次)'
+- path: HANDOFF/2026-11-25_mech-lead_ISS407_判决链前提依赖与作废传播.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-407 交卷页: B1~B7 全填 (Q1 六块齐全) + 6 条问句交 main (一条都不代拍) + 自指悖论点名 + 「roster 要登记本闸」这一条本单无权代做的点名'
+- path: MECH/BOARD_ONEPASS_PREMISE_TIER_DECISION_TABLE.md
+  kind: truth_page
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-410 真相页: 焊盘前提量四档 (P1000/P1010/P1110/P1218) 选档 ⇒ 下游作废传播 · 机器可判决策表 · §0~§9 + 机器块 · 三张表:
+    (a-1) 四档×七数 28 格 [本机按公式实算 × 与 ISS-403 登记值逐格对拍 ⇒ 28/28 一致] + (a-2) 四来源 SRC_BOM/SRC_WORKPACKET/SRC_TRUTH_PAGE/SRC_BOARD_FACE
+    的「记没记·记哪一档」逐源实读 [只有 1/4 记着 = 真相页记 P1000] + (c) 板厂工艺能力自己查 [官网] JLCPCB + PCB.cn 双源环宽表 + 降级方案 (板厂名字不参与选档)
+    + (b) 每档「必须重算 10 数 / 必须重跑 9 闸 / 必须重签 7 结论页」清单 (从 ISS-407 依赖图 E01~E09 现算导出) + §5 盲闸登记 7 道 (5 盲 + 2
+    敏感) 带 stdout md5 行为腿 + AST 静态腿双漂移检测'
+- path: MECH/check_premise_tier_decision.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-410 新闸: 前提量选档 ⇒ 下游作废传播机器闸 · T1~T7 七条判据 (T1 四来源一致性 / T2 板面 footprint 实读判档位 / T3 每档三张清单逐条对得上
+    ISS-407 依赖图节点 / T4 盲闸登记+漂移 / T5 fail-closed / T6 零挂链+零外发 / T7 板指纹自证) · 裸跑 rc=1 (红的是现状: T1 四来源只 1/4
+    记着 + T2 板面是 SMD 占位 0.2750×0.9000 无钻孔 ⇒ 四档哪一档都不是) · --selftest rc=0 末行 ALL TESTS PASS (正向 1 + 反向 19)
+    · 零挂链 (state/gate_check.py 里 0 次)'
+- path: HANDOFF/2026-11-25_mech-lead_ISS410_前提量选档决策表与闸.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-410 交卷页: B1~B7 全填 (Q1 六块齐全) + 6 条问句交 main (一条都不代拍) + 边界自证逐条实测读数 + 自检命令 rc 逐条 + 「roster
+    要登记本闸 / 本闸挂不挂链」这两条本单无权代做的点名'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -3732,6 +3811,193 @@ needs_from:
     这 8 条继续挂着 ⇒ 下一趟又有人重新发现一遍 ⇒ 同一个坑重复踩 ★代价: 另开单 = 一个新单的成本; 不另开 = 8 条继续挂着 (但都不影响板那一趟) ★归属: main 派活; 执行分
     hw-lead (HW/PCB 2 条) 与 sw-lead (SW 6 条)。'
   since: '2026-11-24'
+- key: iss403_q1_pad_tier_decision
+  to: main
+  since: '2026-11-25'
+  item: 'ISS-403 未决 1 (to=main, ★本单最核心的一条★): 「落 FTS 那一趟, J_DEBUG/J_UART 的 THT 焊盘取多大?」⇒ 三档 1.010 / 1.110
+    / 1.218 已全部算好 (环宽 / 7 个数全矩阵 / 结构件代价)。建议默认值 1.110 (达多层 1oz 推荐值 0.20)。★连带一问: 「本板厂是谁、它那份能力表适用哪一行」—— 这一格至今
+    [0数据] (FAB_ORDER_NOTES.md 全文只写「板厂」从未指名); 若按 2 层做则绝对下限是 0.18 ⇒ 1.010 那一档不成立。不答的后果: 带着环宽 0.1450 (< 绝对下限
+    0.15) 投板 ⇒ 板厂退单 ⇒ 板改第二次 (2-4 周 + 一批板的钱·金额不代估) + MECH 那 7 个数在结构件出件时仍是旧的 ⇒ 装配干涉 ⇒ 结构件也要返工一次。代价: 拍 1.010
+    而板厂按 2 层 ⇒ 环宽 0.1500 < 0.18 ⇒ 退单; 拍 1.218 ⇒ J_UART 罩住余量塌到 0.0260 ⇒ 结构件返工量最大; 拍 1.110 ⇒ 结构件+镜脚侧整体重算一次
+    (2-4 周 + ¥4-8K 级·金额不代估)。归属: main。★本单一条不代拍。★'
+- key: iss403_q2_seven_numbers_landing_timing
+  to: main
+  since: '2026-11-25'
+  item: 'ISS-403 未决 2 (to=main): 「MECH 这 7 个数的新值, 跟『板那一趟』同批落, 还是提前落?」建议默认值 = 与那一趟同批 (pad 档位拍定的同一批)。理由:
+    提前落 = 中间态 = 制造假红 (板还没改 ⇒ 7 个数先变 ⇒ 页与页不一致类判据开始报 ⇒ 真红被淹; 且结构件按新数出件而板还是旧 pad ⇒ 反而多一次结构件返工)。不答的后果: 提前落
+    ⇒ 假红淹没真红 (ISS-136 同款根因); 拖到投板以后 ⇒ 装配干涉 ⇒ 板改第二次; 一直不落 ⇒ MECH 那两页的现状值型判据永远陈旧 (且陈旧本身不被任何闸拦 —— 本单新闸只管自洽性,
+    不管该不该改)。代价: 提前落 = 假红 + 多一次结构件返工; 拖后 = 装配干涉 ⇒ 板改第二次 (2-4 周 + 一批板的钱); 不落 = 判据永久陈旧。归属: main。★本单不代拍★'
+- key: iss403_q3_blind_gates_fix_or_not
+  to: main
+  since: '2026-11-25'
+  item: 'ISS-403 未决 3 (to=main): 「MECH/check_debug_seat_3d_fit.py 等 5 道盲闸, 要不要在『板那一趟』同批改成从 .kicad_mod
+    现读?」建议默认值 = 改, 但必须同批且必须重签+留痕 (改已签收件)。不答的后果: 焊盘放大时那 5 道闸照样全绿 ⇒ MECH 侧没有护栏 ⇒ 装配干涉 ⇒ 板改第二次; 且死代码 parse_footprint_copper()
+    继续留着 ⇒ 下一个读代码的人会看到 L187-L215 一个完整的现读实现 ⇒ 极易误以为主闸已经现读了 ⇒ 『现读能力已生效』的错觉本身就是一个风险。代价: 改已签收件 ⇒ 重签+留痕 (页
+    md5 台账要重刷 ⇒ check_connector_clearance_caliber.py 的 K7 那种既有 md5 漂移会再多几处) + 回归重跑 (7 道闸 + 门禁链 Q1 必须仍
+    18/18) + 结构件侧余量数跟着重算一次。逐字补丁方向本单已给全 (真相页 §4.3 行号表 + 交卷页 §B5-③): check_debug_seat_3d_fit.py 要同时改 L683/L686/L491/L746/L753
+    五处 (改一处就假绿); check_debug_seat_rework_spec.py 改 L120/L122/L579 三处 (注释 L119 已承诺现读但实现没跟上); 另 3 道压根没有库读入口
+    ⇒ 建议后置。归属: main (改已签收件 = main 的机制地界; 本单一个字节没动那 5 道闸)。'
+- key: iss403_q4_mech_gates_chain_mount
+  to: main
+  since: '2026-11-25'
+  item: 'ISS-403 未决 4 (to=main): 「7 道 MECH 闸 + 本单新建的 check_pad_size_coupling_closed.py, 要不要挂进 state/gate_check.py
+    的 EXTRA_GATES / PINNED_MD5_GATES?」建议默认值 = 挂, 但分两步: 先挂本单新建的闸 (裸跑 rc=0 = 现状自洽 ⇒ 挂上去不会假红, 且它守住的是『7 个数不许与
+    pad 脱钩』这条元不变量); 修完未决 3 之后再挂 check_debug_seat_3d_fit.py (它现在对 pad 变更完全盲 ⇒ 先挂了也不解决问题)。不答的后果: 7 道 MECH
+    闸继续不在链上 ⇒ 连『红了也没人知道』更别说它们压根不红 ⇒ 今天没有任何机器闸会响; 本单新闸也不在链上 ⇒ 闸建了等于没建的风险。代价: 改已签收件 ⇒ 重签+留痕+全链回归 (Q1 必须仍
+    18/18); 链耗时增加可忽略 (本单实测 7 道闸全跑 = 1.185s)。★注意: check_connector_clearance_caliber.py 基线就是 rc=1 (K7 既有
+    md5 漂移) ⇒ 它不能直接挂 ⇒ 要么先修 K7, 要么给它加 --expect-known 类参数 (门禁链里已有同款先例: check_pin_function_labels.py)。归属:
+    main。★本单新建的闸按纪律零挂链 ⇒ 挂不挂由 main 拍★'
+- key: iss403_q5_dead_code_parse_footprint_copper
+  to: main
+  since: '2026-11-25'
+  item: 'ISS-403 未决 5 (to=main): 「MECH/check_debug_seat_3d_fit.py L187 的 parse_footprint_copper() 死代码:
+    接上, 还是删掉/标注?」★代码级证据: 全仓 grep -rn ''parse_footprint_copper'' --include=*.py . | grep -v ''^./tmp/''
+    ⇒ 4 条命中 = 3 条开单脚本的文字 + 1 条 L187 定义行; 且文件内形如 parse_footprint_copper( 的行只有 L187 ⇒ 连『调用被注释掉』的痕迹都没有 ⇒
+    纯死代码。建议默认值 = 接上 (在未决 3 修主闸的同一批里接上), 因为它已写好正确算式 (copper_x = 跨距 + pad 宽, 与本单 §3.1 的 ①② 同源), 接上 = 把『现读的能力』从注释变成实现;
+    若这一轮不接, 至少要在 docstring 里标注『本函数当前未被调用·别以为主闸已经现读了』。不答的后果: 下一个读源码的人会看到 L187-L215 一个完整的现读实现 ⇒ 误以为主闸已经现读了
+    ⇒ 判据设计错误没人发现 (ISS-136 同款根因: 以为在查, 其实没查)。代价: 接上 = 改已签收件 ⇒ 与未决 3 同一笔成本 (重签+留痕+回归+余量数重算) ⇒ 增量成本约 0; 标注
+    = 只改一行 docstring ⇒ 成本极低但治标不治本 (只解决错觉, 不解决闸看不见 pad)。归属: main。★本单一个字节没动那 5 道既有闸★'
+- key: iss405_q1_must_hook_list
+  to: main
+  since: '2026-11-25'
+  item: '【ISS-405 Q1】MECH域「MECH侧准出必挂闸清单」取哪几道? ★建议默认值=7道判决链闸(check_debug_seat_3d_fit / check_debug_seat_rework_spec
+    / check_fts_seat_body_geometry / check_fts_vs_generic_courtyard_delta / check_fts_seat_sample_plan
+    / check_jdebug_1p27_clearance / check_juart_1p27_clearance) + 准出汇总闸 check_onepass_mech_release + ISS-400
+    的 check_machine_block_pointer_resolvable + ISS-403 的 check_pad_size_coupling_closed = 10道★ (本单已按此建议写成机器闸内建清单,
+    M2 判据防「删空清单骗绿」后门)。 ★附问: C类14道里有3道(check_onepass_struct_crosscheck / check_onepass_mech_sync / check_mech_signed_append_ledger)
+    按「那一趟当天要不要有人自动盯」的标准, 有理由升到B类, 本单未代拍★。 ★不答的后果: 结构侧护栏继续零自动防线, 「板只改一次」纪律在 MECH 侧无机器兜底★。 ★代价: 不答 ⇒ 新闸永远
+    rc=1 (红的是现状, 不是闸故障)★。'
+- key: iss405_q2_hook_timing
+  to: main
+  since: '2026-11-25'
+  item: '【ISS-405 Q2】这 10 道什么时候挂进 state/gate_check.py? ★建议默认值=与「板那一趟」同批挂, 别今天挂 —— check_fts_seat_sample_plan.py
+    与 check_machine_block_pointer_resolvable.py 现读就是 rc=1 ⇒ 今天挂 = 门禁链当场常红 = 红了被当噪音 = 等于没挂★。 ★不答的后果: 挂链时机随人,
+    红了被当噪音★。 ★代价: 现在挂 ⇒ 链常红; 不挂 ⇒ 唯一防线仍是「人记得跑」★。'
+- key: iss405_q3_manual_ledger_page
+  to: main
+  since: '2026-11-25'
+  item: '【ISS-405 Q3】「人工签核台账」要不要另起一页? ★本单先落在 MECH/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md §3 (一行没填 = 现状)★。
+    ★不答的后果: 未挂链的闸 = 没人跑也没人知道 ⇒ M2 永远红★。 ★代价: 另起页要改本闸 M2 判据的读取位置 (★改闸 = main 地界, 需 main 指派 mech-lead 执行★)★。'
+- key: iss405_q4_self_hook_paradox
+  to: main
+  since: '2026-11-25'
+  item: '【ISS-405 Q4 · 自指悖论】本闸 MECH/check_mech_gate_hook_coverage.py 自己也不在链上, 却被本闸的 M1 判据要求「必须被登记」 (已登记为
+    E_self_pending_main_hook / 待 main 挂链)。 ★本单不自己解决这条悖论 (登记/挂链是 main 地界)★。 ★不答的后果: 本闸永远零挂链 = 又是一个「没人跑」的闸★。
+    ★代价: 若 main 不挂, 建议另在人工签核台账登记一行让 M2 覆盖它 (否则本闸永久 rc=1)★。'
+- key: iss405_q5_jchg_10p_geometry
+  to: main
+  since: '2026-11-25'
+  item: '【ISS-405 Q5 · J_CHG 10p 几何】X 向进深取官网哪个字母 / Y 向占宽取官网哪个字母 / 间隙要不要重算? ★mech-lead 判定 (几何归属 = 我地界,
+    已答 hw-lead): X 向进深 = 6.40mm[官网](产品页 Connector Width, ★不取 A/B/C/D 任何字母——四列全部随位数线性增长⇒全是沿触点排方向★); Y 向占宽
+    = 9.10mm[官网](目录 C); 间隙必须重算, 结果 = 从「余 1.05mm」变「干涉 0.25mm」★。 ★三条待拍: G1 焊盘排/座体沿 Y 要不要移 (建议移: 中心 Y 7.50→8.75,
+    板宽 15 仍余 3.75); G2 M1.2/H7 孔要不要沿 X 往后移; G3 座体 X 起点 X0 谁给 (建议 mech-lead 给结构建议值 + hw-lead 落 PCB)★。 ★不答的后果:
+    HW/J_CHG_SELECTION.md §4.3 与 HW/PCB_OUTLINE_60x15.md O-2/O-3 继续按 6.50 判 ⇒ 座体外形结论错 (且错的方向是「偏乐观」)★。
+    ★代价: 拖到 PCB 冻结后 = 结构件装不进 = 板改第二次★。'
+- key: iss405_q6_jchg_landing_owner
+  to: main
+  since: '2026-11-25'
+  item: '【ISS-405 Q6】J_CHG 10p 的结论要不要落进 HW/J_CHG_SELECTION.md (追加式)? ★那是 hw-lead 的地界且已签收 ⇒ 本单只出建议 (MECH/BOARD_ONEPASS_J_CHG_10P_GEOMETRY.md
+    §6 S1~S5 五条), 由 main 指派谁改★。 ★不答的后果: 结论停在 MECH 侧页, 落表批次没人认领, §2.1/§4.3/§7 的 6.50 与 [推算] 继续留在已签收页里当活口径★。
+    ★代价: 不指派 ⇒ 错误口径继续被下游抄★。'
+- key: iss407_q1_premise_walkthrough_before_board_run
+  to: main
+  item: '【ISS-407 Q1】★「板那一趟」开工前, 要不要按依赖图逐项过一遍前提值 (真相页 §1 的 17 格: 每个前提的读取点 + 当前值 + 谁签)?★ 建议默认值: 要 —— 理由:
+    PQ13/PQ14/PQ15/PQ16 四格【没有真值读取点】(座体外形 X/Y/Z 三量 + 板厚至今 [0数据]) ⇒ 这四格一旦在那一趟被动到, 【没有人会知道】。 不答的后果: 「板那一趟」开工后,
+    前提一旦变动, 没有任何东西会响 (这正是 ISS-403 坏结局的通用版)。 代价: 开工前多花一次过表 (量级: 半天内可完, 精确工期不代估) vs 开工后返工 (沿用 ISS-387/ISS-391
+    已登记量级: 结构件+镜脚侧整体重算 2-4 周 + ¥4-8K 级, 本单不重新估价)。 归属: main。★不代拍★'
+  since: '2026-11-25'
+- key: iss407_q2_who_recomputes_7_numbers_after_pad_tier
+  to: main
+  item: '【ISS-407 Q2】★焊盘尺寸档 (1.000 / 1.010 / 1.110 / 1.218) 一旦拍下, 按依赖图 M1 行必须同批重算的那 7 个数 (一个都不例外) 是谁的活?★
+    受影响: ①j_debug_copper_x ②j_uart_copper_x ③j_debug_required_clear_x ④j_uart_required_clear_x ⑤j_uart_cover_margin_x
+    ⑥j_debug_opening_margin_x ⑦j_debug_cover_margin_y + 9 道判决链闸里 5 道完全盲 / 2 道会转红 + 4 条已签收结论过期 (ISS-385/ISS-403/ISS-405)。
+    建议默认值: mech-lead 重算 + main 落表, 且【与「板那一趟」同批】(提前落 = 中间态 = 制造假红, ISS-403 §3.2 已登记这条纪律)。 不答的后果: 结构件按旧数出件
+    ⇒ 装配干涉 ⇒ 板改第二次。代价: 同上返工量级。归属: main。★不代拍★'
+  since: '2026-11-25'
+- key: iss407_q3_hardcoded_constants_to_live_read
+  to: main
+  item: '【ISS-407 Q3】★写死常量点 (真相页 §2 的 HC-001~HC-026, 规则 HC-SCAN-v2 实扫) 要不要改成「现读板面」?★ ★17 个集中在 MECH/check_debug_seat_3d_fit.py
+    的 official/status/clear_src/clear_costs 四张表 (L108/L675/L678/L683/L686/L731~L741); 3 个在 MECH/check_debug_seat_rework_spec.py
+    (L118 REQUIRED_CLEAR_X / L120 OFFICIAL_DEBUG_COPPER_X / L122 OFFICIAL_COPPER_Y)★。 建议默认值: 先改 check_debug_seat_3d_fit.py
+    —— 它【已经写好了】parse_footprint_copper() (L187-L215) 却【一次都没被调用】⇒ 死代码, 接上它 = 零新增算法只改调用点; 再改 check_debug_seat_rework_spec.py
+    —— 其 L119 注释写着「闸从官方 .kicad_mod 实算」但代码里【一行 .kicad_mod 读取都没有】⇒ 注释是愿望, 实现是写死。 ★判据口径变更属 main 地界 (改的是已签收件
+    ⇒ 要重签 + 留痕)★。不答的后果: 下一个读这两个闸的人会以为「现读能力已生效」⇒ 这个错觉本身就是风险 (ISS-403 §5 已点名)。归属: main。★不代拍★'
+  since: '2026-11-25'
+- key: iss407_q4_matrix_as_pre_board_hard_list
+  to: main
+  item: '【ISS-407 Q4】★作废传播矩阵 (真相页 §4 的 7 行) 要不要挂成投板前的硬清单, 还是留在分析页里靠人看?★ 建议默认值: 挂成硬清单 —— 理由: 本单已把「哪个前提变
+    ⇒ 哪些格过期」做成机器可判 (D4 红项 0 条); 若只留在分析页, 它仍然靠人看, 今天的坏结局一条都不少。 ★不答的后果: 矩阵继续是【一份没人查的表】。代价: 挂进作业包 = 改 HW/
+    的件 ⇒ 本单【无权】碰 HW/ ⇒ 这件事本身就得 main 拍。归属: main。★不代拍★'
+  since: '2026-11-25'
+- key: iss407_q5_hook_this_gate_self_reference_paradox
+  to: main
+  item: '【ISS-407 Q5】★本闸自己挂不挂链 (自指悖论)?★ MECH/check_verdict_premise_dependency.py 自己也不在链上 (D6 自证 grep -c
+    check_verdict_premise_dependency state/gate_check.py = 0) ⇒ 它同样需要被登记 (在 state/gate_check.py 链上 或 人工签核台账里)
+    ⇒ ★那一步在 main 地界 (改 state/gate_check.py = 改已签收件) ⇒ 本单【不挂链】⇒ 台账里「本闸自身」这一行请写成 `待 main 挂链`★。 建议默认值: 先落人工签核台账
+    (不碰 state/gate_check.py 的已签收链), 待本闸的现状红项被 main 处理完再谈挂链。 不答的后果: 本闸和它自己说的那 5 道盲闸一样 —— 「没人跑也没人知道」(ISS-405
+    M2 点名的 10 道必挂闸的同一族病)。归属: main。★不代拍★'
+  since: '2026-11-25'
+- key: iss407_q6_roster_register_this_gate_iss405_page_is_readonly
+  to: main
+  item: '【ISS-407 Q6】★本单【无权代做】但必须点名的一件事: ISS-405 那道闸 (MECH/check_mech_gate_hook_coverage.py) 的判据 M1 是「盘上
+    MECH 闸集合 ↔ 真相页 MECH/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md 机器块 roster 双向差集」⇒ 盘上每多一道 MECH/check_*.py 就必须在
+    roster 里有一行, 否则 M1 红★ ★本单落地后的实测读数: 那道闸从【9/10 通过 (只有 M2 红)】变成【8/10 通过 (M2 红 + M1 新增一条红: 盘上未登记的闸 1 道
+    = MECH/check_verdict_premise_dependency.py)】★ ★为什么本单没有自己去登记: roster 住在 ISS-405 的已签收真相页里 ⇒ 改它 = 改既有页
+    (本单边界: 6 张页 md5 逐字未动); 纪律 ⑦ 明写「不许为了让闸变绿去改既有闸的判据/阈值或既有页的正文」⇒ 本单不代拍; 改已签收页 = 重签 + 留痕 = main 地界★ ★给 main
+    的现成一行 (抄进 roster 即可, 但请 main 自己落与签): key = "MECH/check_verdict_premise_dependency.py", 值 = {"class":
+    "E_self_pending_main_hook", "hooked": false, "hooked_in": null, "reason": "★本闸自身 (ISS-407) —— ★自指悖论:
+    零挂链, 待 main 挂链★", "last_line": "", "rc_now": null, "stdout_lines": null}★ (class 取 E_self_pending_main_hook
+    是因为 ISS-405 的闸自己就是这么登记自己的 ⇒ 口径一致, 不是本单自创) 不答的后果: 那道闸会一直红着 M1, 而且红点指向本单 ⇒ 下一轮有人查会以为本单坏了闸。代价: 落一行台账
+    (分钟级, 但要 main 落)。归属: main。★不代拍★'
+  since: '2026-11-25'
+- key: iss410_q1_which_pad_tier_to_pick
+  to: main
+  item: '【ISS-410 Q1】★焊盘前提量最终取哪一档 (P1010=1.010 / P1110=1.110 / P1218=1.218) ⇒ 本单不代拍★ 受影响: MECH 判决链 7 个数全部重算
+    + 9 道闸重跑 + 7 张已签收结论页重签 + 结构件/镜脚侧整体重算 (ISS-387/391 已登记量级 2-4 周 + ¥4-8K 级, 本单不重新估价). 建议默认值: P1110 (环宽
+    0.2000 恰达本板适用行「Multilayer 1oz 推荐值 0.20」) —— 理由: 适用行由本板自己的叠层规格 (8 层 + 外层铜 1 oz, [实测]) 决定, 不由板厂名字决定
+    ⇒ 「板厂是谁」不再是前置条件; P1010 环宽 0.1500 恰达绝对下限 0.15 但未达推荐值 0.20 且 【若板厂按 2 层做则不成立 ⇒ 需 pad≥1.070】; P1218 环宽
+    0.2540 四行全过但 J_UART 罩住余量只剩 0.0260 (最坏 -0.2740) 红得最狠 + 结构件重算量最大. 不答的后果: 「板那一趟」开工前这一格空着 ⇒ 前提量被顺手改动 ⇒
+    7 个数当场作废 ⇒ 5 道闸对它完全盲 ⇒ 结构件按旧数出件 ⇒ 装配干涉 ⇒ 板改第二次. 代价: 不拍 ⇒ 沿用上条返工量级. 归属: main. ★不代拍★'
+  since: '2026-11-25'
+- key: iss410_q2_bom_add_pad_size_column
+  to: hw-lead
+  item: '【ISS-410 Q2】★HW/BOM_v1.csv 的 J_DEBUG (L71) / J_UART (L77) 两行要不要补「焊盘边长」这一格 (值 = 本单前提量, 单位 mm)★
+    现状: 这两行【压根没有 pad 尺寸这一格】—— footprint/opn/tolerance/alt_part 四列全空或「待定」, memo 只写「型号/间距/引脚编号待结构与装配复核」⇒
+    四来源实读里 BOM = 「没记」⇒ 本单新闸 T1 现状必红 (★红的是现状, 不是闸故障★). 建议默认值: 补 —— 理由: 这是四个「前提量来源」之一, 不补 ⇒ 「现在盘上是哪一档」在四个来源之间【根本没有可比对的记录】⇒
+    谁都说不清盘上是哪一档. 不答的后果: 拍档之后 BOM 仍不记这一格 ⇒ 换档不会有人发现 ⇒ 同一坏结局. 归属: hw-lead 落表, main 拍. ★本单不代拍, 也不越界写 HW/★'
+  since: '2026-11-25'
+- key: iss410_q3_workpacket_write_dead_pad_tier
+  to: hw-lead
+  item: '【ISS-410 Q3】★HW/PCB/BOARD_ONEPASS_WORKPACKET.md L243 调试口开口段要不要把 pad 档写死进去★ 现状: 该段写的是「OPEN_X 常量
+    10.200」+ 罩住清空区 X 142.0625..143.8375 + 单边净距 X 4.2125 / Y 1.0300 ⇒ 这些数是按现状算出来的, 但那一段【没有写死 pad 档】(本机全文命中
+    1.000/1.010/1.110/1.218 的 token 数 = 0) ⇒ 前提量一改, 这段数【不会自己报警】, 而它是要被结构件照着开的. 建议默认值: 写死 —— 理由: 一句「本段按
+    pad=X.XXX 算」就能让换档时的差异被看见. 不答的后果: 作业包与结构件按旧数出件 ⇒ 装配干涉 ⇒ 板改第二次. 归属: hw-lead + main. ★本单不代拍★'
+  since: '2026-11-25'
+- key: iss410_q4_update_stale_current_value_criteria
+  to: main
+  item: '【ISS-410 Q4】★MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md 的【现状值型判据】(L54-L56 逐字: 铜箔包络
+    X 4.8100 / 铜箔包络 Y 1.0000 / 清空区 Y 需求 2.8000) 要不要随拍档同批更新★ 现状: ISS-403 已把「前提一改 ⇒ 下游作废」写死 (该页 L119 逐字),
+    且明写那两页的现状值型判据【已经陈旧】; 本单实算确认 4 档下这 3 个数全部变 (铜箔包络 X 4.8100/4.8200/4.9200/5.0280). 建议默认值: 随拍档同批更新 ——
+    理由: 与「板那一趟」同批改, 不要留中间态 (ISS-403 §3.2 已登记「提前落 = 中间态 = 制造假红」这条纪律). 不答的后果: 已签收页继续留旧数当活口径 ⇒ 下游继续抄. 归属:
+    main 落表 + mech-lead 重算. ★本单不代拍★'
+  since: '2026-11-25'
+- key: iss410_q5_hook_this_gate_on_gate_check
+  to: main
+  item: '【ISS-410 Q5】★本单新闸 MECH/check_premise_tier_decision.py 挂不挂 state/gate_check.py★ 现状: 本机实跑 grep
+    -c check_premise_tier_decision state/gate_check.py = 0 ⇒ 零挂链 (本单纪律); 后果 = 本闸和它点名的 5 道盲闸一样没人跑没人知道 ⇒
+    「前提量改了会响」这件事永远没人看得见 (自指悖论). 另外本机实跑 python3 MECH/check_mech_gate_hook_coverage.py ⇒ 合计 8/10, M1 红项现为「盘上未登记的闸
+    2 道: MECH/check_premise_tier_decision.py, MECH/check_verdict_premise_dependency.py」⇒ 本闸也上了 M1 红项 ⇒
+    ISS-405 那道闸由 9/10 变 8/10 (★本单无权代改已签收页★). 建议默认值: 挂链 + 把本闸登记进 MECH/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md
+    的 roster (class=E_self_pending_main_hook) ⇒ 理由: 不挂 ⇒ 本单的全部价值落不了地. 不答的后果: 本闸长期是又一道没人跑的闸. 归属: main.
+    ★本单无权代做★'
+  since: '2026-11-25'
+- key: iss410_q6_ab_test_two_more_gates
+  to: main
+  item: '【ISS-410 Q6】★check_fts_seat_sample_plan.py 与 check_pad_size_coupling_closed.py 这 2 道闸 要不要补 A/B
+    实测★ 现状: ISS-403 的 A/B 实测 (pad 1.110 vs 1.000, 红项集合差集 = 空) 【只覆盖 7 道】, 而 ISS-407 依赖图覆盖 9 道 ⇒ 多出的这 2
+    道挂在 PQ01/PQ02 上但【没做过 A/B】⇒ 它们的敏感性至今未实测 ⇒ 本单只登记「它们在依赖图上挂着 PQ01/PQ02」, 不谎称它们盲或不盲. 建议默认值: 补 —— 理由: 9
+    道才等于判决链全量, 7 道漏 2 道仍是盲区. 不答的后果: 登记册留两个「未实测」的空 ⇒ T4 的漂移检测对这两道只剩静态腿. 归属: main (要不要做 + 谁做). ★本单不代拍★'
+  since: '2026-11-25'
 answers:
 - key: pcb_outline_confirm
   to: hw-lead
@@ -4416,6 +4682,32 @@ answers:
     2.6400x5.1000); 结论数一字未动; 闸 J0~J8 复跑仍 9/9 绿, --selftest 仍 12/12 ALL TESTS PASS; 板 md5 611b869e13518c3c023fb178f91a0075
     三项未变.'
   ref: HANDOFF/2026-11-23_mech-lead_ISS374_JUART排针1.27净距真相.md B3/B6
+- key: iss384_jchg_10p_dims_geometry
+  to: hw-lead
+  value: 'X向进深=6.40mm[官网](Hirose产品页CL0586-0522-3-55 Connector Width 6.4mm;系列常量,10p与28p同值; ★不取A/B/C/D任何字母★——四列全部随位数N线性增长(A/A+3.6/A+4.6/A+1.07)⇒全是沿触点排方向★);
+    Y向占宽=9.10mm[官网](目录C=9.1=产品页Connector Length 9.1mm;交叉验证C(28p)=18.1=本仓既有记载); 间隙必须重算: 旧口径(触点区4.50+2x1.00=6.50)余1.05mm
+    -> 官网口径(座体Y包络[2.95,12.05] vs 孔上缘3.20)干涉0.25mm; 本仓6.50的真实身份=官网land表C(两端锚焊盘中心距), 被误当成座体外形宽; 座体X起点X0仍[0数据](官网不给,
+    属布局量)'
+  ref: MECH/BOARD_ONEPASS_J_CHG_10P_GEOMETRY.md#0-6
+- key: iss410_premise_tier_decision_table_and_gate
+  to: main
+  value: 'ISS-410 交卷 (2026-11-25): 焊盘前提量选档 ⇒ 下游作废传播 机器化完成. 核心读数: ① 本机实读板面 HW/PCB/demo_mainboard.kicad_pcb
+    ⇒ J_DEBUG (4 焊盘) / J_UART (2 焊盘) 全是自绘 SMD 占位 land (焊盘 0.2750×0.9000 · pitch 0.50 · 无钻孔 · 库名字段为空) ⇒
+    板面今天【根本没有 THT 排针焊盘】⇒ 四档 (P1000/P1010/P1110/P1218) 全部是【未来板面】的候选值, 不是现状值 ⇒ 「现在盘上是哪一档」今天无人能答. ② 四来源逐源实读:
+    SRC_BOM 没记 (HW/BOM_v1.csv:71/:77 压根没有 pad 这一格) · SRC_WORKPACKET 没记 (全文命中四档 token 数 = 0) · SRC_TRUTH_PAGE
+    记 P1000 · SRC_BOARD_FACE 没记 ⇒ 【四来源不一致 ⇒ 现状红】. ③ 四档×七数 28 格本机按公式实算 ⇒ 与 ISS-403 登记值逐格 28/28 一致. ④ 四档全部踩同一个物理下限:
+    环宽 (pad−0.71)/2 = 0.1450/0.1500/0.2000/0.2540 ⇒ 本板适用行是「Multilayer 1oz 绝对下限 0.15 / 推荐 0.20」(8 层 + 外层
+    1oz, [实测]) ⇒ P1000 (0.1450) 物理上不成立 ⇒ 「不改」这个选项本身不存在. ⑤ 板厂工艺能力本单自己查 (不外发): JLCPCB 官网能力页 + PCB.cn 官网能力页
+    双源, 环宽四行逐字一致; 适用行由本板叠层规格决定 ⇒ 板厂名字不参与选档 ⇒ 这一格不再是外部依赖; 降级方案: 要一个「不必等任何回信就能确定可制造」的档 = P1218 (环宽 0.2540
+    四行全过), 代价 = J_UART 罩住余量只剩 0.0260 (最坏 -0.2740) 红得最狠 + 结构件重算量最大; 走推荐值 0.20 口径则 P1110. ⑥ 7 道判决链闸盲感登记:
+    5 盲 (check_debug_seat_3d_fit / check_debug_seat_rework_spec / check_fts_seat_body_geometry / check_connector_clearance_caliber
+    / check_fts_vs_generic_courtyard_delta) + 2 敏感 (check_jdebug_1p27_clearance / check_juart_1p27_clearance)
+    ⇒ 本单【复核不重做】: 7 道现跑 stdout md5 与 ISS-403 登记基线逐字相同. ⑦ 新闸裸跑 rc=1 (红的是现状: T1 只 1/4 来源记着 + T2 板面判定不出档位),
+    --selftest rc=0 末行 ALL TESTS PASS (正向 1 + 反向 19). ⑧ 机器块 decision_taken_here = not_decided_here ⇒ 选档一条都没代拍.
+    ⑨ 零写板 零落表(除自有分片) 零改既有闸 零改既有页正文 零挂链 零外发 不自签 ⇒ 板 md5 611b869e13518c3c023fb178f91a0075 / mtime 2026-11-06
+    07:07:17.362193413 / size 4940213 三项与基线逐字相同.'
+  ref: MECH/BOARD_ONEPASS_PREMISE_TIER_DECISION_TABLE.md §0~§9 + MECH/check_premise_tier_decision.py +
+    HANDOFF/2026-11-25_mech-lead_ISS410_前提量选档决策表与闸.md
 interface_claims:
 - key: battery_capacity_tier
   value: 315mAh无桥/387mAh有桥
@@ -6941,6 +7233,116 @@ interface_claims:
     (全仓 grep 该标记 = 0 处, 无撞名)。'
   note: to=main | 排除是显式且有理由的, 不是把不利的条目藏起来 ⇒ 若 main 认为该排除不妥, 可拍板改扫描范围 (改 SELF_LEDGER_PAGES 一个常量, 不改判据)。
   ref: MECH/check_machine_block_pointer_resolvable.py SELF_LEDGER_PAGES / QUOTE_MARK + 真相页 §1.1
+- key: iss403_pad_tier_seven_numbers_matrix
+  value: '「板那一趟」焊盘档位 ⇒ MECH 判决链 7 个数 全矩阵 (4 档 × 7 数 = 28 格, 本机自算): P1000(pad 1.000/环宽 0.1450) = 4.8100/2.2700/6.6100/4.0700/0.1350/2.6950/0.7700;
+    P1010(1.010/0.1500) = 4.8200/2.2800/6.6200/4.0800/0.1300/2.6900/0.7650; P1110(1.110/0.2000) = 4.9200/2.3800/6.7200/4.1800/0.0800/2.6400/0.7150;
+    P1218(1.218/0.2540) = 5.0280/2.4880/6.8280/4.2880/0.0260/2.5860/0.6610。推导式: ①=3.8100+pad ②=1.2700+pad
+    ③=①+2×(CRIT+TOL)=①+1.8000 ④=②+1.8000 ⑤=(2.5400−②)/2 ⑥=(10.2000−①)/2 ⑦=(2.5400−pad)/2。★现状档 P1000 与既有已签收页
+    (ISS-371/374/377) 登记值 7/7 逐字一致 ⇒ 推导链成立。'
+  note: 'to=main | ★本单【零落表】: 这 7 个数在 pad≥1.010 下【无一例外全部要重算】⇒ 那两页的现状值型判据已经陈旧 ⇒ 「MECH 七个数一个都不用改」这个结论 (ISS-387/ISS-391
+    当时的口径) 只在 pad=1.000 下成立。不答的后果: 结构件按旧数出件 ⇒ 装配干涉 ⇒ 板改第二次。归属: main (落表归 main)。'
+  ref: MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md §3.2 / §7 机器块 seven_numbers_matrix
+- key: iss403_blind_gate_a_b_result
+  value: 'MECH 判决链 7 道闸对焊盘尺寸的 A/B 实测 (★pad 1.000 vs 1.110·只换库不换真件·--root 指向真实项目⇒零拷贝假象·本机自跑): 5 道完全盲 (check_debug_seat_3d_fit.py
+    201 条判据 / check_debug_seat_rework_spec.py / check_fts_seat_body_geometry.py / check_connector_clearance_caliber.py
+    / check_fts_vs_generic_courtyard_delta.py —— ★这 5 道两臂 stdout md5 逐字相同★); 2 道抓得到 (check_jdebug_1p27_clearance.py
+    ⇒ G1/G2/G3/G4 转红; check_juart_1p27_clearance.py ⇒ J0/J1/J5/J7 转红)。根因: check_debug_seat_3d_fit.py 的
+    official 表把铜箔宽写死成 copper.x=4.81/2.27 (L683/L686, 另 L491/L746/L753 同源) ⇒ 这两个数就是 pad=1.000 的产物; check_debug_seat_rework_spec.py
+    的 OFFICIAL_DEBUG_COPPER_X=4.8100 / OFFICIAL_COPPER_Y=1.0000 / else 2.2700 (L120/L122/L579) ⇒ 注释 L119
+    写着『闸从官方 .kicad_mod 实算』但代码里一行读取都没有。'
+  note: 'to=main | ★本单【零改既有闸】: 只出逐字补丁方向 + 代价 (见 needs_from iss403_q3)。不答的后果: 「板只改一次」纪律在 MECH 侧这一段没有护栏
+    ⇒ 焊盘放大 ⇒ 7 个数作废 ⇒ 闸全绿 ⇒ 装配干涉 ⇒ 板改第二次。归属: main。'
+  ref: MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md §4.2 / §4.3
+- key: iss403_dead_code_parse_footprint_copper
+  value: 'MECH/check_debug_seat_3d_fit.py L187-L215 的 parse_footprint_copper() 是死代码 (defined but never
+    called): 全仓 grep -rn ''parse_footprint_copper'' --include=*.py . | grep -v ''^./tmp/'' ⇒ 4 条命中 = 3
+    条开单脚本的文字 + 1 条 L187 定义行; 且文件内形如 parse_footprint_copper( 的行只有 L187 ⇒ 纯死代码不是被注释的调用。它的算式 (copper_x =
+    跨距 + pad 宽) 与本单 §3.1 的 ①② 同源 ⇒ 【现读的能力有、但没接上】。'
+  note: 'to=main | ★后果: 下一个读 check_debug_seat_3d_fit.py 的人会看到 L187-L215 一个完整的现读实现 ⇒ 极易误以为主闸已经现读了 ⇒ 『现读能力已生效』的错觉本身就是一个风险
+    (ISS-136 同款根因: 以为在查, 其实没查)。归属: main。'
+  ref: MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md §5.1
+- key: iss403_mech_gates_zero_chain_mount
+  value: '7 道 MECH 闸在 state/gate_check.py 的两张表里【一道都没挂】: EXTRA_GATES (L211 起) 里的 MECH 条目只有 check_mech_verdict_freshness.py
+    (L212) 与 tools/check_mech_ref_reachability.py (L246-L247); PINNED_MD5_GATES (L262 起) 里的 MECH 条目只有
+    check_board_frame_coords.py (L269) 与 check_demo_struct_truth.py (L270)。逐条 grep 对拍: 7 道全部 EXTRA=0 PINNED=0。'
+  note: 'to=main | ★后果: 连『盲』的那道主闸 (check_debug_seat_3d_fit.py, 201 条判据) 都不在门禁链上跑 ⇒ 红了也没人知道, 更别说它压根不红 ⇒
+    今天没有任何机器闸会响。归属: main (改门禁链 = 改已签收件 = main 的机制地界)。★另注意 check_connector_clearance_caliber.py 基线就是 rc=1
+    (K7 既有 md5 漂移) ⇒ 它不能直接挂。'
+  ref: MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md §6.1
+- key: iss403_baseline_correction_vs_brief
+  value: 'ISS-403 来件口径的【三处实测订正】(以本机读数为准): ① check_fts_vs_generic_courtyard_delta.py 的基线是 rc=0 (全绿) ——
+    来件写的 rc=1 是沙盒假读数 (该闸 L29 ROOT = dirname(dirname(abspath(__file__))) ⇒ 复制进沙盒目录后找不到真相页 ⇒ FileNotFoundError);
+    ② check_connector_clearance_caliber.py 的基线是 rc=1 但只【1 条】红 (K7: BOARD_ONEPASS_JUART_1P27_CLEARANCE.md
+    md5 f1ce54c98… ≠ 基线 ffc09939…; check_juart_1p27_clearance.py md5 daf8fa36… ≠ 基线 ea89e0dd…) —— 来件写的『3
+    条红』不准, 且该红项是既有 md5 漂移, 与本单无关 (本单零改既有文件 ⇒ 不动它, 只登记为基线); ③ check_juart_1p27_clearance.py 在 pad 1.110
+    下转红的是 J0/J1/J5/J7 【4 条】 —— 来件写的 J0/J5/J7 少一条。'
+  note: 'to=main | ★为什么要订正: 不订正就会把【沙盒假读数】当事实传下去 ⇒ 下一个人照着来件口径跑会拿到不一样的结论。不答的后果: 无 (这是事实订正, 不是问句)。归属: main
+    (知悉即可)。'
+  ref: HANDOFF/2026-11-25_mech-lead_ISS403_焊盘尺寸耦合盲区清账与闸.md §B1.5
+- key: iss407_premise_truth_read_points_are_the_single_source
+  value: MECH 判决链的 17 个前提量, 其【当前值】的【唯一真值来源】是真相页 MECH/BOARD_ONEPASS_VERDICT_PREMISE_DEPENDENCY.md 机器块 premise_quantities[].read_point
+    —— 13 格可现读 (kicad_mod 正则 / md 行区间 / py 常量 / 机器块转引), 4 格 (PQ13 座体外形宽X / PQ14 座体外形宽Y / PQ15 座体外形高Z /
+    PQ16 板厚) 无真值读取点 ⇒ [0数据]。 新闸 MECH/check_verdict_premise_dependency.py 每次跑都按这 13 个读点【现读现对拍】⇒ 读不出或对不上即判红。
+  note: ★下游任何人要引用 MECH 判决链的【当前值】, 请引这份读点表, 不要从闸源码的字面量里抄 (★闸源码里写死的 26 个常量点 HC-001~HC-026 就是 ISS-403 那 5
+    道盲闸的机械根因·★实测·★规则 HC-SCAN-v2★)
+  ref: MECH/BOARD_ONEPASS_VERDICT_PREMISE_DEPENDENCY.md §1 + MECH/check_verdict_premise_dependency.py
+- key: iss407_seven_numbers_derived_from_premises_not_copied
+  value: 'MECH 判决链消费的 7 个数, 在本单是【由 13 个前提量按推导式实算】出来的, 不是抄 ISS-403 的表: ①j_debug_copper_x=PQ05(3.8100)+PQ01(pad)
+    ②j_uart_copper_x=PQ06(1.2700)+PQ01 ③j_debug_required_clear_x=①+2×(PQ08+PQ07) ④j_uart_required_clear_x=②+2×(PQ08+PQ07)
+    ⑤j_uart_cover_margin_x=(PQ09(2.5400)−②)/2 ⑥j_debug_opening_margin_x=(PQ12(10.2000)−①)/2 ⑦j_debug_cover_margin_y=(PQ11(2.5400)−PQ01)/2
+    ⇒ pad=1.000 时得 4.8100/2.2700/6.6100/4.0700/0.1350/2.6950/0.7700 ⇒ 与 ISS-403 已签收机器块逐字一致 (7/7)。'
+  note: ★pad=1.110 时本单实算得 4.9200/2.3800/6.7200/4.1800/0.0800/2.6400/0.7150 ⇒ 与 ISS-403 §3.2 矩阵逐格一致 (7/7)
+    ⇒ 两条推导链同源, 可互为交叉验证★
+  ref: MECH/BOARD_ONEPASS_VERDICT_PREMISE_DEPENDENCY.md §1/§3 + logs/iss407/machine_block.json
+- key: iss410_four_sources_of_pad_premise
+  value: '排针焊盘前提量 (THT 焊盘 X/Y 边长, mm) 的四个来源, 本单逐源实读的「记没记 / 记的是哪一档」: SRC_BOM = 没记 (HW/BOM_v1.csv 的 J_DEBUG
+    L71 / J_UART L77 压根没有 pad 这一格, footprint/opn/tolerance/alt_part 全空或「待定」) · SRC_WORKPACKET = 没记 (HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+    全文命中 1.000/1.010/1.110/1.218 的 token 数 = 0) · SRC_TRUTH_PAGE = 记 P1000 (MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md
+    机器块 dimensions.copper_env_x_4pos.note / copper_env_y.value=1.0000 / required_clearance_y_copper.note)
+    · SRC_BOARD_FACE = 没记 (HW/PCB/demo_mainboard.kicad_pcb 实读 = SMD 占位 0.2750×0.9000 无钻孔) ⇒ 四来源不一致 = 现状红;
+    且【四来源没有一个能答「当前档位」】.'
+  note: ★下游要回答「现在盘上是哪一档」, 请跑 python3 MECH/check_premise_tier_decision.py (T1/T2 段) 现读, 不要从任何单页抄 —— 板面这一格只有跑闸才读得到★
+  ref: MECH/BOARD_ONEPASS_PREMISE_TIER_DECISION_TABLE.md §2 + MECH/check_premise_tier_decision.py
+- key: iss410_seven_numbers_matrix_recomputed_28_of_28
+  value: '焊盘前提量四档 × MECH 判决链七个数, 本单按公式【本机实算】28 格 ⇒ 与 ISS-403 交卷页 MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md
+    §7 机器块 seven_numbers_matrix 的 28 格【逐格逐字相同】(差 > 1e-9 即判红). 公式: ①j_debug_copper_x=3.8100+pad ②j_uart_copper_x=1.2700+pad
+    ③j_debug_required_clear_x=①+1.8000 ④j_uart_required_clear_x=②+1.8000 ⑤j_uart_cover_margin_x=(2.5400−②)/2
+    ⑥j_debug_opening_margin_x=(10.2000−①)/2 ⑦j_debug_cover_margin_y=(2.5400−pad)/2. 四档 ①/②/③/④/⑤/⑥/⑦:
+    P1000=4.8100/2.2700/6.6100/4.0700/0.1350/2.6950/0.7700 · P1010=4.8200/2.2800/6.6200/4.0800/0.1300/2.6900/0.7650
+    · P1110=4.9200/2.3800/6.7200/4.1800/0.0800/2.6400/0.7150 · P1218=5.0280/2.4880/6.8280/4.2880/0.0260/2.5860/0.6610.'
+  note: '★七个数【无一例外全部要重算】(①/②直接吃 pad, ③~⑦派生) ⇒ 焊盘越大越红: ⑤ 0.1350→0.0260 (最坏 -0.1650→-0.2740) · ⑦ 0.7700→0.6610
+    (最坏 0.4700→0.3610) ⇒ 放大会让两个本来就红的项红得更狠★'
+  ref: MECH/BOARD_ONEPASS_PREMISE_TIER_DECISION_TABLE.md §1
+- key: iss410_fab_annular_ring_capability_row
+  value: '排针焊盘前提量四档的物理过阈口径, 本单自己查 (不外发/不询价): 主源 JLCPCB 官方 PCB 能力页 https://jlcpcb.com/capabilities/pcb-capabilities
+    (本机 curl 现取落盘 tmp/iss410/jlcpcb_pcb_capabilities_live.html, md5 351f5f897ea1236c30d4ad2409e84311)
+    逐字: PTH annular ring 2-layer 1oz 推荐 0.25 / 绝对下限 0.18; 2-layer 2oz 0.254; Multilayer 1oz 推荐 0.20 /
+    绝对下限 0.15; Multilayer 2oz 0.254. 副源 PCB.cn 官方能力页 https://pcbcn.com/capabilities 逐字 Min Width of Annular
+    Ring 0.15mm / 6mil. 本板适用行 = Multilayer 1oz (本板 8 层, 外层铜 1 oz, HW/PCB/FAB_ORDER_NOTES.md 叠层表) ⇒ 绝对下限
+    0.15 / 推荐 0.20. 四档环宽 (pad−0.71)/2 = P1000 0.1450 ✗ · P1010 0.1500 恰达下限 ✓ · P1110 0.2000 恰达推荐 ✓ · P1218
+    0.2540 ✓ (2 层口径也全过).'
+  note: '★降级方案: 适用行由【本板自己的叠层规格】决定, 不由板厂名字决定 ⇒ 「板厂是谁」不再是选档的前置条件; 要一个不必等任何回信就能确定可制造的档 = P1218 (代价: J_UART
+    罩住余量 0.0260 最坏 -0.2740) · 走推荐值口径则 P1110★'
+  ref: MECH/BOARD_ONEPASS_PREMISE_TIER_DECISION_TABLE.md §3
+- key: iss410_tier_recompute_rework_resign_lists
+  value: 四档每一档的「必须重算 / 必须重跑 / 必须重签」三张清单, 本单从 ISS-407 依赖图 MECH/BOARD_ONEPASS_VERDICT_PREMISE_DEPENDENCY.md
+    §8 机器块 dependency_graph 里 premises ∩ {PQ01,PQ02} ≠ ∅ 的边 (E01~E09) 现算导出 ⇒ 四档清单【完全相同】(前提量一动, 依赖图上挂着的就全都过期,
+    与动多少无关). 必须重算的数 10 个 (判决链 7 个数 j_debug_copper_x / j_uart_copper_x / j_debug_required_clear_x / j_uart_required_clear_x
+    / j_uart_cover_margin_x / j_debug_opening_margin_x / j_debug_cover_margin_y + annular_ring + seven_numbers_matrix
+    + pad_tier); 必须重跑的闸 9 道; 必须重签的结论/页 7 张 (含 MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md / MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md
+    / HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md).
+  note: ★本单新闸 T3 机器判「清单条目数 ≥ (10/9/7) 且每条都能在依赖图并集里找到对应节点」⇒ 少一条判红, 不许只判清单非空★
+  ref: MECH/BOARD_ONEPASS_PREMISE_TIER_DECISION_TABLE.md §4
+- key: iss410_blind_gate_registry
+  value: '7 道 MECH 判决链闸对焊盘前提量 pad 的敏感性登记在册: 盲 5 道 = check_debug_seat_3d_fit.py (hardcoded-pad-value ·
+    lib-read 入口 0) / check_debug_seat_rework_spec.py (hardcoded-pad-value · lib-read 入口 0) / check_fts_seat_body_geometry.py
+    (no-lib-read) / check_connector_clearance_caliber.py (hardcoded-pad-value · 既有 K7 md5 漂移·与本单无关) /
+    check_fts_vs_generic_courtyard_delta.py (no-lib-read); 敏感 2 道 = check_jdebug_1p27_clearance.py (lib-read)
+    / check_juart_1p27_clearance.py (lib-read). 本单【复核不重做 A/B】: 7 道现跑 stdout md5 与 ISS-403 登记基线逐字相同 (敏感
+    2 道 ISS-403 未登记 stdout md5 ⇒ 本单首次登记).'
+  note: ★ISS-403 的 A/B 只覆盖 7 道, ISS-407 依赖图覆盖 9 道 ⇒ check_fts_seat_sample_plan.py 与 check_pad_size_coupling_closed.py
+    没做过 A/B ⇒ 本单只登记「它们挂着 PQ01/PQ02」, 不谎称它们盲或不盲★
+  ref: MECH/BOARD_ONEPASS_PREMISE_TIER_DECISION_TABLE.md §5
 open_questions:
 - id: MECH-Q1
   to: main
@@ -8665,3 +9067,57 @@ needs_open_ledger:
   board: Y
   evidence: '[实测] 本轮实跑 python3 MECH/check_demo_struct_truth.py --selftest ⇒ rc=0 (反向用例 28/28 抓到) + 主跑
     rc=0; ★板 md5 611b869e13518c3c023fb178f91a0075 / mtime 2026-11-06 07:07:17 逐字节不变'
+- key: iss407_ledger_oq1_premise_walkthrough
+  owner: main (拍板是否开工前逐项过前提)
+  why: 17 个前提量里 4 格无真值来源 (座体三量 + 板厚 [0数据]) ⇒ 前提一变没人知道
+  oneline: 'main: 请拍「板那一趟」开工前是否按 §1 依赖图逐项过一遍前提值 (含把 PQ13~PQ16 补上真源) —— 不拍 ⇒ 开工后前提一变, 没有任何东西会响'
+  board: Y
+  evidence: '[实测] 本轮实跑 MECH/check_verdict_premise_dependency.py 裸跑 rc=1, 4 条红全是 D1 的 PQ13/PQ14/PQ15/PQ16'
+- key: iss407_ledger_oq2_who_recomputes_7_numbers
+  owner: main (指派重算归属 + 落表批次)
+  why: 焊盘档一改, 7 个数全部过期, 5 道闸完全盲 ⇒ 重算没人认领就等于没发生
+  oneline: 'main: 请指派「焊盘档拍下后同批重算 7 个数」归 mech-lead 还是 hw-lead 拉, 并定落表页 —— 不指派 ⇒ 结构件按旧数出件 ⇒ 板改第二次'
+  board: Y
+  evidence: '[推算] 本单按依赖图 M1 行实算 7 个数 pad 1.000→1.110 逐格新值'
+- key: iss407_ledger_oq3_hardcoded_to_live_read
+  owner: main (判据口径变更 = 改已签收件, 要重签)
+  why: 26 个写死常量点 = ISS-403 那 5 道盲闸的机械根因; 且 parse_footprint_copper() 已写好却一次没被调用 ⇒ 现读能力有、没接上
+  oneline: 'main: 请拍「26 个写死常量点要不要改成现读板面」—— 建议先接上 check_debug_seat_3d_fit.py 的死代码 parse_footprint_copper();
+    不拍 ⇒ 下一个读闸的人会误以为现读能力已生效'
+  board: Y
+  evidence: '[实测] 规则 HC-SCAN-v2 AST 实扫 9 道判决链闸 ⇒ 26 个写死常量点; check_debug_seat_3d_fit.py L187 定义、零调用'
+- key: iss407_ledger_oq4_matrix_as_hard_list
+  owner: main (投板前硬清单归谁挂)
+  why: 矩阵已机器可判 (D4 红项 0), 但若只留在分析页仍靠人看 ⇒ 今天的坏结局一条不少
+  oneline: 'main: 请拍「作废传播矩阵要不要挂成投板前硬清单」—— 建议挂 (但挂进作业包 = 改 HW/ 的件, 本单无权碰)'
+  board: Y
+  evidence: '[实测] 本轮 D4 红项 0 条, 7 行矩阵逐格都有依赖边对应'
+- key: iss407_ledger_oq5_hook_this_gate
+  owner: main (挂链是 main 地界)
+  why: 本闸自己零挂链 ⇒ 它和它点名的 5 道盲闸一样没人跑没人知道 ⇒ 自指悖论
+  oneline: 'main: 请拍「本闸挂不挂链」—— 台账里「本闸自身」这一行本单已写成 `待 main 挂链`; 不拍 ⇒ 本闸长期是又一道没人跑的闸'
+  board: Y
+  evidence: '[实测] grep -c check_verdict_premise_dependency state/gate_check.py = 0'
+- key: iss407_ledger_oq6_roster_register_this_gate
+  owner: main (改 ISS-405 已签收页 = 重签 + 留痕)
+  why: ISS-405 那道闸的 M1 是盘上闸集合 ↔ roster 双向差集 ⇒ 本单新闸未登记 ⇒ 该闸由 9/10 变 8/10 (M1 新增一条红)
+  oneline: 'main: 请把本闸按 class=E_self_pending_main_hook 登记进 MECH/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md 的
+    roster (本单已给出现成一行·★本单无权代改已签收页★)'
+  board: Y
+  evidence: '[实测] python3 MECH/check_mech_gate_hook_coverage.py ⇒ 合计 8/10, M1 红项『盘上未登记的闸 1 道: MECH/check_verdict_premise_dependency.py』'
+- key: iss410_ledger_oq5_hook_this_gate
+  owner: main (挂链是 main 地界)
+  why: 本闸自己零挂链 ⇒ 它和它点名的 5 道盲闸一样没人跑没人知道 ⇒ 自指悖论; 且本闸已上 ISS-405 挂链覆盖率闸的 M1 红项 (盘上未登记的闸 2 道)
+  oneline: 'main: 请拍「本闸挂不挂链 + 登记进 MECH/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md 的 roster (class=E_self_pending_main_hook)」——
+    台账里「本闸自身」这一行本单已写成 待 main 挂链; 不拍 ⇒ 本闸长期是又一道没人跑的闸'
+  board: Y
+  evidence: '[实测] grep -c check_premise_tier_decision state/gate_check.py = 0; python3 MECH/check_mech_gate_hook_coverage.py
+    ⇒ 合计 8/10, M1 红「盘上未登记的闸 2 道: MECH/check_premise_tier_decision.py, MECH/check_verdict_premise_dependency.py」'
+- key: iss410_ledger_oq6_ab_test_two_more_gates
+  owner: main (要不要做 + 谁做)
+  why: ISS-403 的 A/B 实测只覆盖 7 道, ISS-407 依赖图覆盖 9 道 ⇒ 另 2 道的 pad 敏感性至今未实测 ⇒ T4 登记册对它们只剩静态腿
+  oneline: 'main: 请拍「check_fts_seat_sample_plan.py 与 check_pad_size_coupling_closed.py 要不要补 A/B 实测 (pad
+    1.110 vs 1.000)」'
+  board: Y
+  evidence: '[实测] MECH/BOARD_ONEPASS_PREMISE_TIER_DECISION_TABLE.md §5 + MECH/check_premise_tier_decision.py
+    T4 登记册'

@@ -1,0 +1,46 @@
+### cmd: /usr/bin/python3 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss403/gatesA/check_juart_1p27_clearance.py --root /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+### rc: 1
+=== MECH/check_juart_1p27_clearance.py · ISS-374 · J_UART 排针 1.27mm 净距真相 ===
+[FAIL] J0
+       · 实读 pitch=1.27 铜箔 X 宽=2.3800 (包络 [-0.555, -0.555, 1.825, 0.555])
+       · 实读环宽=0.2300
+       ✗ 页里 THT 1×2 环宽 0.175 ≠ 实算 0.23
+       ✗ 页里 THT 1×2 pad1 尺寸 [1.0, 1.0] ≠ 实读 [1.11, 1.11]
+       ✗ 页里 THT 1×2 pad2 尺寸 [1.0, 1.0] ≠ 实读 [1.11, 1.11]
+[FAIL] J1
+       · 现状 板读=0.7750 页写=0.7750
+       · smd_pin1left 实算 铜箔 X=1.9200 Y=6.0000
+       · smd_pin1right 实算 铜箔 X=1.9200 Y=6.0000
+       ✗ THT 档 铜箔 X 宽 页写 2.2700 ≠ `.kicad_mod` 实算 2.3800
+[PASS] J2
+       · 座体必须清空区 X 宽 (从 MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md 实读)=2.5400  CRIT=0.6000
+       · 现状 铜箔 X 宽 0.7750 ≤ 上限 1.3400 (2.5400 − 2×0.60)
+       · official_tht 档 余量 0.1350 < CRIT ⇒ 差 0.4650 (已记账)
+       · official_smd_pin1left 档 余量 0.3100 < CRIT ⇒ 差 0.2900 (已记账)
+       · official_smd_pin1right 档 余量 0.3100 < CRIT ⇒ 差 0.2900 (已记账)
+[PASS] J3
+       · status_quo 档 每边 0.8825 (最坏 0.5825) 过 CRIT 0.6000
+       · official_tht 档 每边 0.1350 (最坏 -0.1650) 不过 CRIT 0.6000
+       · official_smd_pin1left 档 每边 0.3100 (最坏 0.0100) 不过 CRIT 0.6000
+       · official_smd_pin1right 档 每边 0.3100 (最坏 0.0100) 不过 CRIT 0.6000
+[PASS] J4
+       · smd_pin1left md5=7f15e4a1a32059c2b8eea027edfdbd84 pad1@[-1.5, -0.635] pad2@[1.5, 0.635]
+       · smd_pin1right md5=25ab0efebb8f5df0066508b9686820d7 pad1@[1.5, -0.635] pad2@[-1.5, 0.635]
+       · Pin1Left pad1@[-1.5, -0.635] vs Pin1Right pad1@[1.5, -0.635]
+[FAIL] J5
+       · direction: J_UART='RED_structure_part_does_not_fit' / J_DEBUG='GREEN_margin_3.99x'
+       · 口径: J_UART='body_driven' / J_DEBUG='copper_driven'
+       · J_DEBUG 开口单边余量 实算=2.6950 (独立复算)
+       ✗ J_DEBUG 铜箔 X 宽 页写 4.81 ≠ 1×4 `.kicad_mod` 实算 4.9200
+[PASS] J6
+       · md5=611b869e13518c3c023fb178f91a0075
+       · mtime=2026-11-06 07:07:17.362193 (ns=1793920037362193413)
+       · size=4940213
+[FAIL] J7
+       · 证据标记 3 种
+       ✗ 页里缺 `.kicad_mod` md5 台账: PinHeader_1x02_P1.27mm_Vertical.kicad_mod = 07abee2b74e276d693f1351ef551f4d8
+       ✗ 页里缺 `.kicad_mod` md5 台账: PinHeader_1x04_P1.27mm_Vertical.kicad_mod = f94849092efa956adaef709ab96ca795
+[PASS] J8
+       · state/gate_check.py 里 `check_juart_1p27_clearance` 命中 0 次 (必须 0)
+---
+RESULT: FAIL (4 条判据不通过)

@@ -1,0 +1,117 @@
+# ★ISS-411 · sw-lead · 板那一趟【SW 侧的必改面会打掉哪些闸】—— 位号改名面 + 布线面对 31 道 SW 闸的影响面机器清账 + 闸 ★
+
+★**单号**: ISS-411 · ★**派活**: 项目总工 (main / moli) · ★**执笔**: sw-lead (软件总工) · ★**日期**: 2026-11-25
+★**性质**: ★**纯查证 + 纯分析 + 新建真相页 + 新建机器闸 + 自有分片收口** ★ ⇒ ★**零写板 · 零落表 · 零改既有闸判据 · 零改既有页正文 · 零挂链 · 零外发 · 不代拍 · 不自签 `state/issue_log.yaml`** ★
+★**主线关系**: ★老板 2026-11-17 00:43「接下来的目标是绘制 PCB 图」⇒ 本单属 ★**「板只改一次」纪律 ① (先派纯分析/作业包类, 不动板)** ★
+
+---
+
+## ★0 · 一句话题面 ★
+
+★★**「板那一趟」必改两个面: ① 位号改名 (B-1~B-8) ② 布线 45→0。main 本机实测: SW 域 31 道闸里 【8 道硬编了位号字面量】(★`check_sw_ref_reachability_v2.py` 一道就硬编 58 个★, 而这道正是 ISS-332 交出的收紧版、ISS-392 实测「v1 在链上 / v2 没挂」的那道★) ⇒ 改名一落地, 这些闸的判据【静默失效或误判】; 【17 道读板面】的闸, 布线一落地基线就漂 ⇒ 而这两件事今天【没有任何机器闸在管】⇒ 那一趟开工后, SW 侧会静默失守 ★★**
+
+---
+
+## ★★一 · 题面 (★main 2026-11-25 02:4x~02:5x 本机实读 + 本机实算, 不抄任何 agent 报告★) ★★
+
+### ★1.1 · 本机实测事实 (★全部可复现·main 自己扫的, 不是抄报告★) ★
+
+★**main 的扫法**: 对 `SW/tools/check_*.py` + `SW/check_*.py` 逐文件读源码, (a) 用位号字面量正则 (★形如 `"J_..."` / `"U_..."` / `"C_..."` / `"TP_..."` / `"R_SEL..."` / `"Q_..."` / `"L_..."` / `"D_..."` / `"FB_..."` / `"SW_..."`★) 数硬编位号; (b) 按关键词归类「输入面」(★`.kicad_pcb`/`unconnected`/`check_pcb_nets`/`pcbnew` ⇒ 读板面; `netlist_v1`/`PIN_TABLE`/`.csv` ⇒ 读脚表网表; `BOM` ⇒ 读 BOM; `.md` ⇒ 只读文档; `fragments`/`issue_log`/`STATE.yaml` ⇒ 读台账; `.c`/`.h` ⇒ 读固件源码★) ★
+
+| # | 事实 | 实测读数 | 出处 (★本机实读★) |
+|---|---|---|---|
+| ① | ★**SW 域闸总数 = 31 道** ★ | `SW/tools/check_*.py` + `SW/check_*.py` 逐个文件数 = **31** | ★**本机实扫★** |
+| ② | ★★**8 道闸硬编了位号字面量 (★改名面一落地, 判据即失效★)★★** | ★**`check_sw_ref_reachability_v2.py` = 58 处** (★样例: `"C_DET_BAT"` · `"C_DET_BAT_1"` · `"C_DET_VBUS_D"` · `"C_REGN"` · `"C_RST"` · `"C_SW_IN"`★) · ★**`check_sw_ref_reachability.py` = 55 处** · ★**`check_onepass_sw_sync.py` = 20 处** · ★**`check_sw_ref_reachability_v2_selftest.py` = 8 处** · ★**`check_shutdown_semantics.py` = 6 处** (★`"J_USB_C"` · `"Q_CHG_LED"` · `"Q_PG"` · `"U_CHG"` · `"U_EN_SW"` · `"U_PWR_SW"`★) · ★**`check_debug_pin_order_contract.py` = 2 处** (★`"J_DEBUG"` · `"J_UART"`★) · ★**`check_evt_charge_current_criterion.py` = 1 处** (★`"U_CHG"`★) · ★**`check_load_switch_selection.py` = 1 处** (★`"U_PWR_SW"`★) ★ | ★**本机实扫 (★逐文件逐处计数★)** ★ |
+| ③ | ★★★**那道最要命的: `check_sw_ref_reachability_v2.py` 硬编 58 个位号, 而它正是 ISS-332 交出的收紧版, 且 ISS-392 实测「v1 在链上 / v2 没挂」★★★ | ★**ISS-392 的 `SW/tools/check_sw_gate_chain_coverage.py` 本机实跑 rc=0 (7/7) ⇒ 输出逐字: 「★链上位号可达性闸: v1_in_chain_v2_not_hooked★」⇒ ★**在链上跑的是 v1 (硬编 55 处), 没挂的是 v2 (硬编 58 处) ⇒ ★**两个版本都硬编, 挂哪个都会在改名后失守★** ★ | ★**本机实跑 + 本机实读源码★** ★ |
+| ④ | ★★**10 道闸【一个真源都不读】, 只读真相页/账本 ⇒ 真相页一改就漂★★** | ★**`check_brightness_biosafety.py` · `check_demo_panel_spec_r6_hardprot_iss315_selftest.py` · `check_iss250_rknn_target_gate.py` · `check_iss355_convert_route.py` · `check_onepass_sw_release.py` · `check_rk3572_target_caliber.py` · `check_rknn_target_compat.py` · `check_sw09_patch_dryrun.py` · `check_sw_zero_copper_grade_consistency.py` · `check_timing_review_adc_sync.py`** ★ | ★**本机实扫 (★输入面归类为空 / 只有文档面 / 只有台账面★)** ★ |
+| ⑤ | ★**输入面分布 (31 道)** ★ | 真相页/文档 **28** 道 · 脚表/网表 **19** 道 · 板面/铜/unconnected **17** 道 · 台账/账本 **13** 道 · BOM/位号表 **11** 道 · 固件源码 **1** 道 | ★**本机实扫★** ★ |
+| ⑥ | ★**SW 域链覆盖率现状 (ISS-392 已签收)** ★ | ★**盘上 31 道 · 链内 6 道 (19.4%) · 链外 25 道** · ★**元闸盲区: ISS-388 元闸 ROSTER 只扫 13 道 · 盘上另外 18 道它看不见** ★ | ★**本机实跑 `python3 SW/tools/check_sw_gate_chain_coverage.py` ⇒ rc=0 (7/7)★** ★ |
+| ⑦ | ★**「板只改一次」那一趟的 SW 侧必改面, main 本机已定** ★ | ★**① 位号改名 (B-1~B-8·脚表/网表/BOM/板面五侧同口径) ② 布线 45→0** ⇒ ★**这两个面一改, ②②里的闸的判据输入就变了★** ★ | ★**项目口径 (★`state/CURRENT_TASK.md` 主线段 + `HW/PCB/BOARD_ONEPASS_WORKPACKET.md`★)** ★ |
+| ⑧ | ★**板 / 网表 / 脚表 / BOM 四件指纹 (★开工前基线★)** ★ | 板 `611b869e13518c3c023fb178f91a0075` · 网表 `6aee500e60ba0732f83a9cf557ba90ab` · 脚表 `9174309df1ec9411ac8e8d9e80ee386a` · BOM `5b9993992405904a60ac96a020b375d8` | ★**本机实读★** ★ |
+
+### ★1.2 · ★为什么至今零机器闸盯这一格 (★不重复 ISS-392 / ISS-388 / ISS-398★) ★
+
+- ★**ISS-392 (`check_sw_gate_chain_coverage.py`)**: 判的是「★**闸在不在链上 / 覆盖率多少 / 元闸 ROSTER 盲区★」★ ⇒ ★**它不判「这一趟要改的面会不会打掉这道闸的判据」★** ⇒ ★**覆盖率 19.4% 是「有没有接电」, 不是「接了电之后会不会被这一趟打掉」★** ★
+- ★**ISS-388 (`check_sw_gate_health.py`)**: 判的是「★**同一道闸在两个 TMPDIR 深度下读数是否相同 (环境无关性)★」★ ⇒ ★**不是「判据输入会不会被那一趟改掉」这一轴★** ★
+- ★**ISS-398 (第三道病闸 selftest 夹具)**: 判的是「★**v2 那道闸的自测夹具本身对不对★」★ ⇒ ★**不是「31 道闸的必改面影响面」这一轴★** ★
+- ⇒ ★**结论: 「必改面 → 闸的判据失效」这一轴, 全仓至今零机器闸覆盖 ⇒ 本单补这一格** ★
+
+### ★1.3 · ★坏结局 (★为什么值钱★) ★
+
+★**「板只改一次」= 板 md5 全生命周期只许变 1 次** ⇒ ★**那一趟落地之后, SW 侧要重新拿回可信度; 而可信度只能靠【闸还认得新板】来恢复** ★
+⇒ 坏结局三选一:
+① ★**改名面静默失效**: 位号加 `_1` 后缀 (★那是 KiCad BOM 问号问题的正解★) ⇒ ★**`check_sw_ref_reachability_v2.py` 那 58 处硬编位号全部对不上 ⇒ 闸要么红 (被当成真缺陷) 要么静默跳过 ⇒ SW 侧的真实可达性问题反而看不见了** ★
+② ★**布线面基线漂移**: 布线 45→0 一落地, 17 道读板面的闸读数全变 ⇒ ★**它们钉的是旧基线 (★ISS-388 元闸钉板 md5 / ISS-408 重锚定那一族★) ⇒ 不重锚就红 ⇒ 但「红了」到底是【真缺陷】还是【基线该重锚】, 没人分得清** ★
+③ ★**只读文档的闸**: 10 道闸一个真源都不读 ⇒ ★**真相页一改它们就漂, 而它们判的是「零假连通 / 亮度生物安全 / 目标兼容」这类放行级结论 ⇒ 放行级结论挂在一个自己会漂的读数上** ★
+
+---
+
+## ★★二 · 本单交付 (★5 件 · 全部零写板·零改既有文件★) ★★
+
+| # | 交付物 | 路径 | 验收口径 |
+|---|---|---|---|
+| ① | 真相页 | ★**新建** `SW/BOARD_ONEPASS_SW_MUSTCHANGE_FACE_IMPACT.md` ★ | §0~§7 + 机器块; ★**三张表**: (a) ★**31 道闸 × 输入面分类 × 硬编位号逐条清单** (★哪个闸 / 硬编了哪个位号 / 共几处 / 改完会怎样: ★判绿变判红 / 判红变判绿 / 静默跳过★—— 这三分类必须逐条给出判断依据, 不许只列清单★) ★ (b) ★**「改名面」受影响闸清单** + ★**「布线面」基线要重锚的闸清单** (★读板面的 17 道逐道列, 判「基线钉在哪 / 那一趟后会不会变 / 变了对判据意味着什么」★) ★ (c) ★**「那一趟之前必须先改 / 先重锚的闸」排序清单** (★按后果排: ★会误判放行 > 会误判阻塞 > 会静默跳过★) ★ |
+| ② | 新闸 | ★**新建** `SW/tools/check_sw_mustchange_face_impact.py` ★ | ★**裸跑 rc=1** (★红的是现状, 不是闸故障★) · `--selftest` **rc=0** · 末行逐字 `ALL TESTS PASS` (★正向 ≥1 + 反向 ≥8★) · ★**零挂链** (★`grep -c check_sw_mustchange_face_impact state/gate_check.py` = 0★) ★ |
+| ③ | 交卷页 | ★**新建** `HANDOFF/2026-11-25_sw-lead_ISS411_SW必改面影响面清账与闸.md` ★ | B1~B7 全填 (★标题用仓里规范口径, `state/gate_check.py` Q1 六块齐全★) |
+| ④ | 自有分片收口 | `state/fragments/sw.yaml` | ★**只走 `state/frag_write.py`** ★ (★禁止 `open(p,"w")`★) · 写后四项自检: 条数 / 丢 key / 多的 key / 内容有变的条 (★老条目逐字比对★) |
+| ⑤ | 留证 | `logs/iss411/` + 沙盒 `tmp/iss411/` | ★**不硬链接真件 · 不写系统 `/tmp`** ★ (★本机 `/tmp` 用户配额已打满★) |
+
+### ★2.1 · 新闸的判据骨架 (★main 给的方向, 具体实现你定, 但不许放松★) ★
+
+| 判据 | 要求 |
+|---|---|
+| ★**T1 位号字面量登记必须自洽** ★ | ★**扫 31 道 SW 闸源码里的位号字面量 ⇒ 每道的命中数必须与登记册一致 ⇒ 少登记 / 多登记 / 漏掉一道闸 ⇒ 判红** ★ ⇒ ★**判据从源码实读, 不许读登记册自己的数★** ⇒ ★**现状: 8 道有命中, 每道处数 ≥ N (★主给的口径: v2 ≥ 50 · v1 ≥ 50 · sync ≥ 15★) ⇒ 少于这个数说明你的正则漏了 ⇒ 判红** ★ |
+| ★**T2 每道闸必须标输入面** ★ | ★**31 道每一道都必须登记「它读不读板面 / 读不读脚表网表 / 读不读 BOM / 只不只读文档」⇒ 任何一道没标 ⇒ 判红** ★ |
+| ★**T3 「只读文档不读真源」的闸数必须登记** ★ | ★**现状 = 10 道 (★事实④★) ⇒ 这个数必须被登记在册; 将来它变了 (有人把闸改成真源驱动) ⇒ 闸必须能发现 ⇒ 判红并点名** ★ |
+| ★**T4 「在链上 + 硬编位号」的组合必须被点名 (★本闸命门★)** ★ | ★**链上跑的是 `check_sw_ref_reachability.py` (v1) 而它硬编 55 处 (★事实③★) ⇒ ★**这个组合必须被判红** ★ ⇒ ★**这是本闸存在的理由: 链上正在跑的那道闸, 它的判据在那一趟会被打掉★** ★ |
+| ★**T5 fail-closed** ★ | ★**闸目录扫不到 / 任一登记文件读不到 ⇒ 判红, 不许判绿** ★ |
+| ★**T6 零挂链 + 零外发自证** ★ | `grep -c` 本闸名在 `state/gate_check.py` = 0; ★`state/outbox/` 未动 ★ |
+| ★**T7 板指纹自证** ★ | ★**新闸自己不许写板** ⇒ 跑完板 md5/mtime/ssize 必须与开工前逐字相同 (★`611b869e13518c3c023fb178f91a0075` / `2026-11-06 07:07:17.362193413` / `4940213`★) ★ |
+
+### ★2.2 · ★★本单【不许做】的事 (★写死, 别越界★) ★★
+
+| ★不许★ | ★原因★ |
+|---|---|
+| ★**不许改任何一道既有 SW 闸的判据/阈值** ★ | ★**尤其不许改 `SW/tools/check_sw_ref_reachability_v2.py` (★ISS-332 已签收★) · `SW/tools/check_sw_ref_reachability.py` · `SW/tools/check_sw_gate_chain_coverage.py` (★ISS-392 已签收★) · `SW/tools/check_sw_gate_health.py` (★ISS-388 已签收★) · `SW/tools/check_sw_board_md5_rebase_readiness.py` (★ISS-408 已签收★)★** ⇒ ★**本单只出【哪几道要改 / 要改成什么 / 依据是什么】, 落改是 main 的动作★** ★ |
+| ★**不许改既有页正文** ★ | ★**真相页必须是【新建】文件; 既有页只许引用★** ★ |
+| ★**不许挂链** ★ | `state/gate_check.py` 一个字节都不许动 ★ |
+| ★**不许写 `state/issue_log.yaml`** ★ | ★**签收由 main 做★** ★ |
+| ★**不许发任何邮件 / 询价 / 问询 / 采购** ★ | ★**老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料★** ⇒ ★**缺口一律【自己网上查】+ 标证据等级 + 查不到就写降级方案 ⇒ 没有「批一句可以发」这个选项★** ★ |
+| ★**不许写 `HW/` 与 `MECH/`** ★ | ★**域交界要清 (★ISS-409 / ISS-410 同时在跑★)** ★ |
+
+---
+
+## ★★三 · 自检命令 (★交卷前必须逐条跑, 把输出贴进交卷页★) ★★
+
+```bash
+cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+python3 state/check_brief_commands.py --brief-file state/dispatch_briefs/ISS-411_sw_mustchange_face_impact.md   # 期望 rc=0
+python3 SW/tools/check_sw_gate_chain_coverage.py            # ★rc=0 · 7/7 (★ISS-392 已签收闸, 复核用·别去擦它★)
+python3 SW/tools/check_sw_board_md5_rebase_readiness.py      # ★rc=0 · 7/7 (★ISS-408 已签收闸, 复核用★)
+python3 SW/tools/check_sw_mustchange_face_impact.py          # ★裸跑 rc=1 (★红的是现状★)
+python3 SW/tools/check_sw_mustchange_face_impact.py --selftest  # ★rc=0 · 末行 ALL TESTS PASS
+python3 state/merge.py                                       # rc 必须 0
+python3 state/gate_check.py                                  # rc 必须 0 · Q1 必须 18/18
+md5sum HW/PCB/demo_mainboard.kicad_pcb                       # 必须是 611b869e13518c3c023fb178f91a0075
+```
+
+---
+
+## ★★四 · 边界自证 (★每一条都要有实测读数, 不许写「应该没碰」★) ★★
+
+| ★边界★ | ★自证方式 (★本机实跑★) ★ |
+|---|---|
+| ★**零写板** ★ | `md5sum` + `stat` 三项与开工前逐字相同 (★板 md5 `611b869e13518c3c023fb178f91a0075` / mtime `2026-11-06 07:07:17.362193413` / size `4940213`★) ★ |
+| ★**零落表** ★ | 网表 `6aee500e60ba0732f83a9cf557ba90ab` · 脚表 `9174309df1ec9411ac8e8d9e80ee386a` · BOM `5b9993992405904a60ac96a020b375d8` 三件 md5 与开工前逐字相同 ★ |
+| ★**零改既有闸判据** ★ | ★**点名 §2.2 里那 5 道闸 + 其余 26 道 SW 闸的 md5 与开工前逐字相同 (★至少点名 5 道 + 给出全量 md5 汇总★)** ★ |
+| ★**零改既有页正文** ★ | ★**你引用到的既有 SW 页 (★`SW/BOARD_ONEPASS_SW_MD5_REBASE_GATE_TRUTH.md` · `SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md` 等★) md5 对拍** ★ |
+| ★**零挂链** ★ | `grep -c check_sw_mustchange_face_impact state/gate_check.py` = 0 ★ |
+| ★**零外发** ★ | ★`state/outbox/` 全树逐文件 md5 未动 (★22 件★) ★ |
+| ★**不代拍** ★ | 机器块 `decision_taken_here` = `"not_decided_here"` (★**「哪几道闸要改 / 怎么改 / 挂不挂链」都是 main 的地界★**) ★ |
+| ★**不自签** ★ | ★**不许写 `state/issue_log.yaml`** ★ |
+| ★**只写本单允许的文件** ★ | ★**新建 3 个** (真相页 / 新闸 / 交卷页) · ★**改 1 个** (`state/fragments/sw.yaml`·走 `state/frag_write.py`·★不许写别人的分片★) · ★**留证** (`logs/iss411/` + `tmp/iss411/`) ★ |
+
+---
+
+> ★**本单零写板 · 零落表 (除自有分片) · 零改既有闸判据 · 零改既有页正文 · 零挂链 · 零外发 · 不代拍 · 不自签** ★
+> ★**真相页** = `SW/BOARD_ONEPASS_SW_MUSTCHANGE_FACE_IMPACT.md` · ★**新闸** = `SW/tools/check_sw_mustchange_face_impact.py` · ★**留证** = `logs/iss411/` + `tmp/iss411/` ★

@@ -1,0 +1,111 @@
+============================================================================================
+ISS-408 · sw-lead · 2026-11-25 · 交卷前边界终检 (原样输出)
+============================================================================================
+--- [1] 守门闸 收口后读数 ---
+============================================================================================
+ISS-372 · 「板那一趟」SW 侧板 md5 引用面清账 + 清单自守闸
+  根     = /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+  清单页 = SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md
+============================================================================================
+  [PASS] H1 · SW 域板 md5 引用面必须被 §1 清单逐处覆盖 (★漏一处就红★)
+  [PASS] H2 · 每一处都必须标了【三类归属】+【处置】+ 备注
+  [PASS] H3 · 【历史留证】类必须真的不许改 (★活判据不许伪装成历史留证★)
+  [PASS] H4 · SW 域每道【真钉板 md5 的判据脚本】必须登记在册 (类A 字面量 + 类B 页面内嵌基线)
+  [PASS] H5 · 每道闸要么已有合法改板通道, 要么在 §2 被登记成已知缺口
+  [PASS] H6 · 板面零写板自证 (md5 / mtime / size 三项)
+  [PASS] H7 · 证据等级五级白名单 + 正文零挂起措辞 + 零空洞词
+--------------------------------------------------------------------------------------------
+闸结果 7/7 通过, rc=0
+gate rc=0
+
+--- [2] 零写板三证 ---
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+mtime=2026-11-06 07:07:17.362193413 +0800 size=4940213
+基线: md5=611b869e13518c3c023fb178f91a0075 mtime=2026-11-06 07:07:17.362193413 size=4940213
+
+--- [3] 零落表三件 ---
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+
+--- [4] 被登记的内容 + 闸判据: 四件 md5 必须逐字未动 ---
+151a9fbbd0faea7166817c62b667bb4a  SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md
+185355d83b82f97953ad37d49ecbcce6  SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md
+4630948f3949cb9a588c74d6f7f69633  SW/tools/check_sw_false_connectivity_gate.py
+2099ca42a946f64b620e896ba8d2be0b  SW/tools/check_sw_board_md5_rebase_readiness.py
+基线: 151a9fbbd0faea7166817c62b667bb4a / 185355d83b82f97953ad37d49ecbcce6 / 4630948f3949cb9a588c74d6f7f69633 / 2099ca42a946f64b620e896ba8d2be0b
+
+--- [5] 零挂链 ---
+grep -c check_sw_board_md5_rebase_readiness state/gate_check.py = 0
+grep -c check_sw_false_connectivity_gate state/gate_check.py = 0
+
+--- [6] 零外发 ---
+find state/outbox/ -newermt '2026-11-25 00:00' | wc -l = 0
+
+--- [7] 不自签 issue_log (mtime = main 落单那一笔·比本单会话起点早 1 秒) ---
+mtime=2026-11-25 02:21:29.035199290 +0800  state/issue_log.yaml
+
+--- [8] 不碰别人的域: HW/ 与 MECH/ 今日被写的文件 (均非本单) ---
+00:34:00.6552562140  HW/__pycache__/check_generator_value_drift_closed.cpython-314.pyc
+01:35:12.4868932830  HW/check_onepass_gate_hook_coverage.py
+01:35:26.0915379040  HW/__pycache__/landing_md5.cpython-311.pyc
+01:43:08.4454279170  HW/PCB/BOARD_ONEPASS_GATE_HOOK_LEDGER.json
+01:44:25.2678944420  HW/PCB/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md
+01:57:17.2295292690  HW/__pycache__/check_pin_function_labels.cpython-314.pyc
+02:03:57.9799445800  HW/check_onepass_gate_teeth.py
+02:13:37.7897025500  HW/PCB/BOARD_ONEPASS_GATE_TEETH_AUDIT.md
+00:48:42.1702488120  MECH/__pycache__/check_pad_size_coupling_closed.cpython-314.pyc
+00:49:45.8294879440  MECH/check_pad_size_coupling_closed.py
+00:57:41.2029580800  MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md
+01:35:27.2856676730  MECH/__pycache__/check_board_frame_coords.cpython-311.pyc
+01:35:27.2930654570  MECH/__pycache__/board_port_opening_s6_check.cpython-311.pyc
+01:35:27.2967949670  MECH/__pycache__/service_port_check.cpython-311.pyc
+01:37:40.9076191790  MECH/BOARD_ONEPASS_J_CHG_10P_GEOMETRY.md
+01:39:05.0685978360  MECH/check_mech_gate_hook_coverage.py
+01:43:34.3347289680  MECH/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md
+01:45:41.4702710510  MECH/__pycache__/check_mech_gate_hook_coverage.cpython-314.pyc
+02:29:50.2860482410  MECH/check_verdict_premise_dependency.py
+02:29:57.1054959400  MECH/__pycache__/check_verdict_premise_dependency.cpython-314.pyc
+02:29:57.3825886850  MECH/BOARD_ONEPASS_VERDICT_PREMISE_DEPENDENCY.md
+★本单会话起点 = 02:21:30 ⇒ 上面这些全部是 hw-lead / mech-lead 各自的单子写的 ⇒ 本单零写 HW/ 与 MECH/★
+
+--- [9] 本单写过的文件清单 ---
+4ebe1050436b58d1788aaa603ab16bce  SW/BOARD_ONEPASS_SW_MD5_REBASE_GATE_TRUTH.md
+4942750e36dc3b5fe1cc745e70b35b62  SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md
+62b836c4574e0f192077d7aabd3cd6db  HANDOFF/2026-11-25_sw-lead_ISS408_板md5重锚定守门闸修可信.md
+75616104231501cb0ce6d61ebb52b2b2  state/fragments/sw.yaml
+清单页改前 md5 = 0ba9dfce5046e131465b4fbd3675614f (开工基线)
+
+--- [10] 交付物落地实况 ---
+total 60
+drwxrwxr-x   2 yuewuya yuewuya 4096 Nov 25 02:32 .
+drwxrwxr-x 142 yuewuya yuewuya 4096 Nov 25 02:03 ..
+-rw-rw-r--   1 yuewuya yuewuya 3677 Nov 25 02:33 append_only_proof.txt
+-rw-rw-r--   1 yuewuya yuewuya  394 Nov 25 01:56 baseline_md5_pre.txt
+-rw-rw-r--   1 yuewuya yuewuya  304 Nov 25 02:32 brief_cmds_before.txt
+-rw-rw-r--   1 yuewuya yuewuya 4968 Nov 25 02:34 final_boundary_proof.txt
+-rw-rw-r--   1 yuewuya yuewuya 1163 Nov 25 02:34 gate_after.txt
+-rw-rw-r--   1 yuewuya yuewuya 1988 Nov 25 01:57 gate_before.txt
+-rw-rw-r--   1 yuewuya yuewuya 3609 Nov 25 02:34 gate_check_after.txt
+-rw-rw-r--   1 yuewuya yuewuya 1403 Nov 25 02:30 gate_health_after.txt
+-rw-rw-r--   1 yuewuya yuewuya 2575 Nov 25 02:08 gate_health_before.txt
+-rw-rw-r--   1 yuewuya yuewuya 2276 Nov 25 02:26 gate_selftest_after.txt
+-rw-rw-r--   1 yuewuya yuewuya 6337 Nov 25 02:25 reverse_cases.txt
+--- tmp/iss408/ ---
+total 948
+drwxrwxr-x   2 yuewuya yuewuya   4096 Nov 25 02:30 .
+drwxrwxr-x 151 yuewuya yuewuya  12288 Nov 25 02:34 ..
+-rw-rw-r--   1 yuewuya yuewuya   6087 Nov 25 02:26 append_only_proof.py
+-rw-rw-r--   1 yuewuya yuewuya  21178 Nov 25 02:25 apply_append_only.py
+-rw-rw-r--   1 yuewuya yuewuya   8520 Nov 25 02:30 frag_iss408.sh
+-rw-rw-r--   1 yuewuya yuewuya  94270 Nov 25 02:24 readiness_pre.md
+-rw-rw-r--   1 yuewuya yuewuya   7175 Nov 25 02:25 reverse_cases.py
+-rw-------   1 yuewuya yuewuya 801716 Nov 25 02:30 sw.yaml.pre_iss408
+--- 分片登记条数 (iss408) ---
+13
+
+--- [11] merge.py + gate_check.py 最终读数 ---
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0

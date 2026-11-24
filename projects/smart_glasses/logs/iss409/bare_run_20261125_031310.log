@@ -1,0 +1,60 @@
+==============================================================================
+  ISS-409 · 「板那一趟」投产/放行链牙齿闸 · check_onepass_release_chain_teeth
+==============================================================================
+
+【T4】fail-closed (输入缺失 / 扫不到 ⇒ 判红, 不许判绿)  ⇒ ✅ 通过
+
+【T1】调用点全集自洽 (AST/逻辑行实读 · 不许手抄清单)  ⇒ ✅ 通过
+   ✅ T1a 扫描命中文件数 = 50 (≥ 8) ⇒ 扫描没漏
+   ✅ T1b 候选文件集合 ↔ 实读双向一致 (50 个)
+   ✅ T1b 调用点 (文件,行,kind) ↔ 实读双向一致 (14 条)
+   ✅ T1b 台账 strict 标记 ↔ 实读逐字一致
+   ✅ T1c 台账点名宽松档真调用点 6 个: state/board_report.sh L59, state/chain_gate.py L296, state/daily_check.py L344, state/replay_patch_chain.sh L240, state/run_grid_ladder.sh L44, state/verify_candidate.sh L26
+   ✅ T4 1 个解析失败文件已被台账登记 (kind=unparsed)
+
+【T2】放行链必须严格档 (投产准入 / 板报告 / 候选验证 / 巡检)  ⇒ ❌ 不通过
+   ❌ state/chain_gate.py 的调用点不带 `--strict` ⇒ 放行链在宽松档上 ⇒ 判红: L296
+   ❌ state/board_report.sh 的调用点不带 `--strict` ⇒ 放行链在宽松档上 ⇒ 判红: L59
+   ❌ state/verify_candidate.sh 的调用点不带 `--strict` ⇒ 放行链在宽松档上 ⇒ 判红: L26
+   ❌ state/daily_check.py 的调用点不带 `--strict` ⇒ 放行链在宽松档上 ⇒ 判红: L344
+
+【T3】假绿输出不得被当放行凭据  ⇒ ❌ 不通过
+   ✅ T3a 假绿标记串「图纸可下单」在工具本体之外的 2 处出现, 全部登记为 quoted (引述, 非对当前板的断言)
+   ✅ T3b state/board_report.sh L59 结果用途 = display
+   ✅ T3b state/chain_gate.py L296 结果用途 = judgement
+   ✅ T3b state/daily_check.py L344 结果用途 = judgement
+   ✅ T3b state/replay_patch_chain.sh L240 结果用途 = discarded
+   ✅ T3b state/run_grid_ladder.sh L44 结果用途 = discarded
+   ✅ T3b state/verify_and_release.sh L53 结果用途 = judgement
+   ✅ T3b state/verify_candidate.sh L26 结果用途 = discarded
+   ❌ T3c state/chain_gate.py L296 的结果被当成判据 (use=judgement) 却跑在宽松档 ⇒ 判红
+   ❌ T3c state/daily_check.py L344 的结果被当成判据 (use=judgement) 却跑在宽松档 ⇒ 判红
+   ✅ T3c state/verify_and_release.sh L53 use=judgement 且带 --strict
+   ✅ T3d state/auto_release_if_ready.sh L151 抄的 /tmp/auto_release.log 由 state/verify_and_release.sh 生产 (严格档) ⇒ 只是展示
+   ✅ T3d state/chain_next_round.sh L61 抄的 /tmp/chain_verify.log 由 state/verify_and_release.sh 生产 (严格档) ⇒ 只是展示
+   ✅ T3d state/chain_next_round.sh L65 抄的 /tmp/chain_verify.log 由 state/verify_and_release.sh 生产 (严格档) ⇒ 只是展示
+   ✅ T3d state/finish_line.sh L102 抄的 /tmp/verify_final.log 由 state/verify_and_release.sh 生产 (严格档) ⇒ 只是展示
+   ✅ T3d state/watch_v25.sh L57 抄的 /tmp/verify_v25.log 由 state/verify_and_release.sh 生产 (严格档) ⇒ 只是展示
+   ✅ T3e state/board_report.sh L59 登记了 2 个消费方: state/promote_arm.sh, state/finish_line.sh
+   ✅ T3e state/chain_gate.py L296 登记了 3 个消费方: state/verify_and_release.sh, state/daily_check.py, state/board_report.sh
+   ✅ T3e state/daily_check.py L344 登记了 2 个消费方: state/alignment_check.py, state/publish_github.sh
+   ✅ T3e state/verify_and_release.sh L53 登记了 6 个消费方: state/auto_release_if_ready.sh, state/finish_line.sh, state/chain_next_round.sh, state/watch_v25.sh
+   ✅ T3e state/verify_candidate.sh L26 登记了 4 个消费方: state/v74_arms.sh, state/v75_arms.sh, state/v76_arms.sh, state/v77_arms.sh
+   ✅ T3f state/replay_patch_chain.sh L240 兜底闸 state/compare_arm_official.py (在链上)
+   ✅ T3f state/run_grid_ladder.sh L44 兜底闸 state/compare_arm_official.py (在链上)
+
+【T5】零挂链 + 零外发自证  ⇒ ✅ 通过
+   ✅ 零挂链: `check_onepass_release_chain_teeth` 在 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/state/gate_check.py 里 0 行
+   ✅ 零外发: state/outbox/ 22 件逐件 md5 与基线相同
+
+【T6】板指纹自证 (零写板)  ⇒ ✅ 通过
+   ✅ 板 md5 = 611b869e13518c3c023fb178f91a0075 (与基线逐字相同)
+   ✅ 板 size = 4940213 (与基线逐字相同)
+   ✅ 板 mtime = 1793920037362193413 ns (与基线逐字相同)
+
+【T7】「未布线 ⇒ 不可下单」闸点台账  ⇒ ✅ 通过
+   ✅ 链上的绝对闸: state/check_pcb_drc.py, state/stage_gate.py, state/verify_and_release.sh
+
+------------------------------------------------------------------------------
+★**总判定: ❌ 有不通过项 (★红的是现状, 不是闸故障★)**
+------------------------------------------------------------------------------

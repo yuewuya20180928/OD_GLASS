@@ -1,0 +1,40 @@
+==============================================================================
+ISS-410 · MECH · 焊盘前提量选档 ⇒ 下游作废传播 · 机器闸
+真相页: MECH/BOARD_ONEPASS_PREMISE_TIER_DECISION_TABLE.md
+==============================================================================
+
+── 四来源实读 (T1) ─────────────────────────────────────────────
+  SRC_BOM          记没记=False 记的档=None         命中=-
+  SRC_WORKPACKET   记没记=False 记的档=None         命中=-
+  SRC_TRUTH_PAGE   记没记=True  记的档=P1000        命中={'P1000': ['1.000', '1.000', '1.000']}
+  SRC_BOARD_FACE   记没记=False 记的档=None         命中=-
+  板面实读: {"J_DEBUG": {"pad_count": 4, "tht_pad_count": 0, "pad_size_mm": [0.275, 0.9], "has_drill": false, "copper_x_mm": 1.775, "copper_y_mm": 0.9}, "J_UART": {"pad_count": 2, "tht_pad_count": 0, "pad_size_mm": [0.275, 0.9], "has_drill": false, "copper_x_mm": 0.775, "copper_y_mm": 0.9}}
+  板面判定: 板面 J_DEBUG 是 SMD 占位 land (焊盘 0.2750×0.9000 · 无钻孔) ⇒ 没有 THT 焊盘 ⇒ 四档哪一档都不是
+
+── 盲闸登记 + 漂移 (T4) ───────────────────────────────────────
+  MECH/check_debug_seat_3d_fit.py              BLIND(hardcoded-pad-value)   rc=0 md5=a64fd53091c1
+  MECH/check_debug_seat_rework_spec.py         BLIND(hardcoded-pad-value)   rc=0 md5=b86c561098d8
+  MECH/check_fts_seat_body_geometry.py         BLIND(no-lib-read)           rc=0 md5=5d17b5e23afa
+  MECH/check_connector_clearance_caliber.py    BLIND(hardcoded-pad-value)   rc=1 md5=7ade27949541
+  MECH/check_fts_vs_generic_courtyard_delta.py BLIND(no-lib-read)           rc=0 md5=7839434d7e69
+  MECH/check_jdebug_1p27_clearance.py          SENSITIVE(lib-read)          rc=0 md5=3bbd512a94a6
+  MECH/check_juart_1p27_clearance.py           SENSITIVE(lib-read)          rc=0 md5=bf3a434cd122
+
+── 边界自证 (T6/T7) ───────────────────────────────────────────
+  零挂链 grep 命中 = 0 (必须 0)
+  outbox 树摘要 = 7c5f45e922447340349a224cf05a9807 (22 件) · 基线 = 7c5f45e922447340349a224cf05a9807
+  decision_taken_here = 'not_decided_here'
+  板指纹 跑前 = 611b869e13518c3c023fb178f91a0075 / 2026-11-06 07:07:17.362193413
+  板指纹 跑后 = 611b869e13518c3c023fb178f91a0075 / 2026-11-06 07:07:17.362193413
+  板指纹 基线 = 611b869e13518c3c023fb178f91a0075 / 2026-11-06 07:07:17.362193413
+
+------------------------------------------------------------------------------
+RESULT: FAIL (5 条判据不通过)
+  [FAIL] T1 来源 SRC_BOM 【没记】前提量这一格 (⇒ 四个来源之间没有可比对的记录)
+  [FAIL] T1 来源 SRC_WORKPACKET 【没记】前提量这一格 (⇒ 四个来源之间没有可比对的记录)
+  [FAIL] T1 来源 SRC_BOARD_FACE 【没记】前提量这一格 (⇒ 四个来源之间没有可比对的记录)
+  [FAIL] T1 只有 1/4 个来源真记着这一格 (⇒ 「现在盘上是哪一档」无人能答)
+  [FAIL] T2 板面实读判定不出当前档位: 板面 J_DEBUG 是 SMD 占位 land (焊盘 0.2750×0.9000 · 无钻孔) ⇒ 没有 THT 焊盘 ⇒ 四档哪一档都不是
+------------------------------------------------------------------------------
+★★ 红的是【现状】, 不是闸故障 ★★
+现状: ① T1 四来源不一致 (BOM / 作业包 / 板面 都没记这一格, 只有真相页记 P1000) ② T2 板面是 SMD 占位 ⇒ 判定不出当前档位 ③ 档位至今没拍板

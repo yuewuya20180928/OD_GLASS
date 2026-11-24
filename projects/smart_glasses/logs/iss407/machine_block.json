@@ -1,0 +1,1441 @@
+{
+  "doc": "ISS-407 · MECH 判决链前提依赖图 + 作废传播矩阵 · 机读块",
+  "generated_by": "mech-lead · 2026-11-25 · 本机实读/实扫 (零写板/零落表/零挂链/零外发)",
+  "evidence_levels": [
+    "官网",
+    "实测",
+    "媒体",
+    "推算",
+    "0数据"
+  ],
+  "hc_scan_rule": "HC-SCAN-v2",
+  "hc_scan_gates": [
+    "MECH/check_debug_seat_3d_fit.py",
+    "MECH/check_debug_seat_rework_spec.py",
+    "MECH/check_fts_seat_body_geometry.py",
+    "MECH/check_fts_vs_generic_courtyard_delta.py",
+    "MECH/check_fts_seat_sample_plan.py",
+    "MECH/check_jdebug_1p27_clearance.py",
+    "MECH/check_juart_1p27_clearance.py",
+    "MECH/check_connector_clearance_caliber.py",
+    "MECH/check_pad_size_coupling_closed.py"
+  ],
+  "premise_quantities": [
+    {
+      "id": "PQ01",
+      "name": "排针焊盘 X 尺寸",
+      "unit": "mm",
+      "evidence": "实测",
+      "read_point": {
+        "kind": "kicad_mod_pad_x",
+        "path": "/home/yuewuya/kicad/AppDir/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_1x04_P1.27mm_Vertical.kicad_mod"
+      },
+      "note": "官方 KiCad 库 THT 排针封装",
+      "current_value": 1.0,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ02",
+      "name": "排针焊盘 Y 尺寸",
+      "unit": "mm",
+      "evidence": "实测",
+      "read_point": {
+        "kind": "kicad_mod_pad_y",
+        "path": "/home/yuewuya/kicad/AppDir/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_1x04_P1.27mm_Vertical.kicad_mod"
+      },
+      "note": "同上",
+      "current_value": 1.0,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ03",
+      "name": "库件默认钻孔",
+      "unit": "mm",
+      "evidence": "实测",
+      "read_point": {
+        "kind": "kicad_mod_drill",
+        "path": "/home/yuewuya/kicad/AppDir/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_1x04_P1.27mm_Vertical.kicad_mod"
+      },
+      "note": "第三方库件默认值, 不是厂件规格",
+      "current_value": 0.65,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ04",
+      "name": "「板那一趟」规划钻孔",
+      "unit": "mm",
+      "evidence": "官网",
+      "read_point": {
+        "kind": "md_first_number",
+        "path": "HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md",
+        "pattern": "0\\.71"
+      },
+      "note": "Samtec 官方推荐 PCB 图 `.028 0.71 (TYP)` 逐字",
+      "current_value": 0.71,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ05",
+      "name": "J_DEBUG 焊盘跨距 (Y 向)",
+      "unit": "mm",
+      "evidence": "实测",
+      "read_point": {
+        "kind": "kicad_mod_span_y",
+        "path": "/home/yuewuya/kicad/AppDir/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_1x04_P1.27mm_Vertical.kicad_mod"
+      },
+      "note": "1x04 封装 4 个 pad 的 Y 向跨距",
+      "current_value": 3.81,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ06",
+      "name": "J_UART 焊盘跨距 (Y 向)",
+      "unit": "mm",
+      "evidence": "实测",
+      "read_point": {
+        "kind": "kicad_mod_span_y",
+        "path": "/home/yuewuya/kicad/AppDir/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_1x02_P1.27mm_Vertical.kicad_mod"
+      },
+      "note": "1x02 封装 2 个 pad 的 Y 向跨距",
+      "current_value": 1.27,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ07",
+      "name": "TOL[\"fdm_part\"] (FDM 零件公差)",
+      "unit": "mm",
+      "evidence": "实测",
+      "read_point": {
+        "kind": "py_dict_value",
+        "path": "MECH/service_port_check.py",
+        "var": "TOL",
+        "key": "fdm_part"
+      },
+      "note": "MECH 口径真值表",
+      "current_value": 0.3,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ08",
+      "name": "CRIT (判决阈 = 2 × TOL[\"fdm_part\"])",
+      "unit": "mm",
+      "evidence": "推算",
+      "read_point": {
+        "kind": "py_crit",
+        "path": "MECH/service_port_check.py"
+      },
+      "note": "按源码表达式实算, 不抄常量",
+      "current_value": 0.6,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ09",
+      "name": "检修口 必须清空区 X 宽",
+      "unit": "mm",
+      "evidence": "实测",
+      "read_point": {
+        "kind": "md_range_width",
+        "path": "MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md",
+        "line_pattern": "检修口\\s*·\\s*必须清空区",
+        "range_pattern": "X\\s+([0-9.]+)\\.\\.([0-9.]+)"
+      },
+      "note": "座体支配, 固定值, 不随铜箔走",
+      "current_value": 2.54,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ10",
+      "name": "检修口 必须清空区 Y 宽",
+      "unit": "mm",
+      "evidence": "实测",
+      "read_point": {
+        "kind": "md_range_width",
+        "path": "MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md",
+        "line_pattern": "检修口\\s*·\\s*必须清空区",
+        "range_pattern": "Y\\s+([0-9.]+)\\.\\.([0-9.]+)"
+      },
+      "note": "同上",
+      "current_value": 2.54,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ11",
+      "name": "调试口 必须清空区 Y 宽",
+      "unit": "mm",
+      "evidence": "实测",
+      "read_point": {
+        "kind": "md_range_width",
+        "path": "MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md",
+        "line_pattern": "调试口\\s*·\\s*必须清空区",
+        "range_pattern": "Y\\s+([0-9.]+)\\.\\.([0-9.]+)"
+      },
+      "note": "同上",
+      "current_value": 2.54,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ12",
+      "name": "调试口 开口 X 宽",
+      "unit": "mm",
+      "evidence": "实测",
+      "read_point": {
+        "kind": "md_range_width",
+        "path": "MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md",
+        "line_pattern": "调试口\\s*·\\s*开口",
+        "range_pattern": "X\\s+([0-9.]+)\\.\\.([0-9.]+)"
+      },
+      "note": "开口 (居中解)",
+      "current_value": 10.2,
+      "read_status": "有真源",
+      "read_error": ""
+    },
+    {
+      "id": "PQ13",
+      "name": "座体外形宽 X (绝缘体)",
+      "unit": "mm",
+      "evidence": "0数据",
+      "read_point": {
+        "kind": "missing"
+      },
+      "note": "ISS-397 已登记: 三量实测档收样中 ⇒ 至今无真值来源",
+      "current_value": "[0数据]",
+      "read_status": "无真源",
+      "read_error": "无真值读取点 (kind=missing)"
+    },
+    {
+      "id": "PQ14",
+      "name": "座体外形宽 Y (绝缘体)",
+      "unit": "mm",
+      "evidence": "0数据",
+      "read_point": {
+        "kind": "missing"
+      },
+      "note": "ISS-397 同上",
+      "current_value": "[0数据]",
+      "read_status": "无真源",
+      "read_error": "无真值读取点 (kind=missing)"
+    },
+    {
+      "id": "PQ15",
+      "name": "座体外形高 Z (绝缘体)",
+      "unit": "mm",
+      "evidence": "0数据",
+      "read_point": {
+        "kind": "missing"
+      },
+      "note": "ISS-397 同上",
+      "current_value": "[0数据]",
+      "read_status": "无真源",
+      "read_error": "无真值读取点 (kind=missing)"
+    },
+    {
+      "id": "PQ16",
+      "name": "板厚",
+      "unit": "mm",
+      "evidence": "0数据",
+      "read_point": {
+        "kind": "missing"
+      },
+      "note": "本单未找到可复现的成品板厚真值读取点",
+      "current_value": "[0数据]",
+      "read_status": "无真源",
+      "read_error": "无真值读取点 (kind=missing)"
+    },
+    {
+      "id": "PQ17",
+      "name": "板厂 PTH 环宽绝对下限 (多层 1oz)",
+      "unit": "mm",
+      "evidence": "官网",
+      "read_point": {
+        "kind": "json_block_value",
+        "path": "MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md",
+        "pointer": [
+          "fab_capability",
+          "absolute_min_mm"
+        ]
+      },
+      "note": "JLCPCB 官方能力表逐字 · 经 ISS-403 已签收机器块转引",
+      "current_value": 0.15,
+      "read_status": "有真源",
+      "read_error": ""
+    }
+  ],
+  "seven_number_defs": {
+    "j_debug_copper_x": "PQ05(跨距) + PQ01(pad)",
+    "j_uart_copper_x": "PQ06(跨距) + PQ01(pad)",
+    "j_debug_required_clear_x": "j_debug_copper_x + 2*(PQ08+PQ07)",
+    "j_uart_required_clear_x": "j_uart_copper_x + 2*(PQ08+PQ07)",
+    "j_uart_cover_margin_x": "(PQ09 - j_uart_copper_x)/2",
+    "j_debug_opening_margin_x": "(PQ12 - j_debug_copper_x)/2",
+    "j_debug_cover_margin_y": "(PQ11 - PQ01)/2"
+  },
+  "seven_numbers_current": {
+    "j_debug_copper_x": 4.81,
+    "j_uart_copper_x": 2.27,
+    "j_debug_required_clear_x": 6.61,
+    "j_uart_required_clear_x": 4.07,
+    "j_uart_cover_margin_x": 0.135,
+    "j_debug_opening_margin_x": 2.695,
+    "j_debug_cover_margin_y": 0.77
+  },
+  "dependency_graph": [
+    {
+      "id": "E01",
+      "premises": [
+        "PQ01",
+        "PQ02",
+        "PQ07",
+        "PQ08",
+        "PQ09",
+        "PQ10",
+        "PQ11",
+        "PQ12",
+        "PQ13",
+        "PQ14",
+        "PQ15",
+        "PQ16"
+      ],
+      "numbers": [
+        "j_debug_copper_x",
+        "j_uart_copper_x",
+        "j_debug_cover_margin_y"
+      ],
+      "gates": [
+        "MECH/check_debug_seat_3d_fit.py"
+      ],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md",
+        "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md"
+      ],
+      "owner": "mech-lead (重算) + main (落表)",
+      "hardcoded_constant_ids": [
+        "HC-001",
+        "HC-002",
+        "HC-003",
+        "HC-004",
+        "HC-005",
+        "HC-006",
+        "HC-007",
+        "HC-008",
+        "HC-009",
+        "HC-010",
+        "HC-011",
+        "HC-012",
+        "HC-013",
+        "HC-014",
+        "HC-015",
+        "HC-016",
+        "HC-017"
+      ]
+    },
+    {
+      "id": "E02",
+      "premises": [
+        "PQ01",
+        "PQ02",
+        "PQ07",
+        "PQ08",
+        "PQ09",
+        "PQ11",
+        "PQ13",
+        "PQ14",
+        "PQ15"
+      ],
+      "numbers": [
+        "j_debug_required_clear_x",
+        "j_uart_required_clear_x"
+      ],
+      "gates": [
+        "MECH/check_debug_seat_rework_spec.py"
+      ],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
+        "MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md"
+      ],
+      "owner": "mech-lead (重算) + main (落表)",
+      "hardcoded_constant_ids": [
+        "HC-018",
+        "HC-019",
+        "HC-020"
+      ]
+    },
+    {
+      "id": "E03",
+      "premises": [
+        "PQ01",
+        "PQ02",
+        "PQ09",
+        "PQ11",
+        "PQ13",
+        "PQ14",
+        "PQ15"
+      ],
+      "numbers": [
+        "seat_clearance_x",
+        "seat_interference"
+      ],
+      "gates": [
+        "MECH/check_fts_seat_body_geometry.py"
+      ],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md"
+      ],
+      "owner": "hw-lead (收样实测) + mech-lead (重算)"
+    },
+    {
+      "id": "E04",
+      "premises": [
+        "PQ01",
+        "PQ02",
+        "PQ13",
+        "PQ14",
+        "PQ15"
+      ],
+      "numbers": [
+        "courtyard_delta_18"
+      ],
+      "gates": [
+        "MECH/check_fts_vs_generic_courtyard_delta.py"
+      ],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md"
+      ],
+      "owner": "mech-lead (重算) + main (落表)"
+    },
+    {
+      "id": "E05",
+      "premises": [
+        "PQ01",
+        "PQ02",
+        "PQ13",
+        "PQ14",
+        "PQ15"
+      ],
+      "numbers": [
+        "seat_3q_sample"
+      ],
+      "gates": [
+        "MECH/check_fts_seat_sample_plan.py"
+      ],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md"
+      ],
+      "owner": "hw-lead (收样实测) + mech-lead (重算)"
+    },
+    {
+      "id": "E06",
+      "premises": [
+        "PQ01",
+        "PQ02",
+        "PQ03",
+        "PQ04",
+        "PQ05",
+        "PQ07",
+        "PQ08",
+        "PQ11",
+        "PQ12"
+      ],
+      "numbers": [
+        "copper_w_along",
+        "per_edge_mm",
+        "annular_ring_mm"
+      ],
+      "gates": [
+        "MECH/check_jdebug_1p27_clearance.py"
+      ],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md"
+      ],
+      "owner": "mech-lead (重算) + main (落表)",
+      "hardcoded_constant_ids": [
+        "HC-021",
+        "HC-022",
+        "HC-023"
+      ]
+    },
+    {
+      "id": "E07",
+      "premises": [
+        "PQ01",
+        "PQ02",
+        "PQ03",
+        "PQ04",
+        "PQ06",
+        "PQ07",
+        "PQ08",
+        "PQ09"
+      ],
+      "numbers": [
+        "j_uart_cover_margin_x",
+        "j_debug_opening_margin_x",
+        "j_uart_required_clear_x"
+      ],
+      "gates": [
+        "MECH/check_juart_1p27_clearance.py"
+      ],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md"
+      ],
+      "owner": "mech-lead (重算) + main (落表)",
+      "hardcoded_constant_ids": [
+        "HC-024",
+        "HC-025",
+        "HC-026"
+      ]
+    },
+    {
+      "id": "E08",
+      "premises": [
+        "PQ01",
+        "PQ02",
+        "PQ07",
+        "PQ08",
+        "PQ09",
+        "PQ10",
+        "PQ11",
+        "PQ12"
+      ],
+      "numbers": [
+        "connector_clearance_caliber"
+      ],
+      "gates": [
+        "MECH/check_connector_clearance_caliber.py"
+      ],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md"
+      ],
+      "owner": "mech-lead (重算) + main (落表)"
+    },
+    {
+      "id": "E09",
+      "premises": [
+        "PQ01",
+        "PQ02",
+        "PQ03",
+        "PQ04",
+        "PQ05",
+        "PQ06",
+        "PQ07",
+        "PQ08",
+        "PQ17"
+      ],
+      "numbers": [
+        "seven_numbers_matrix",
+        "pad_tier",
+        "annular_ring"
+      ],
+      "gates": [
+        "MECH/check_pad_size_coupling_closed.py"
+      ],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md",
+        "HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md"
+      ],
+      "owner": "hw-lead (板侧) + mech-lead (重算) + main (拍档)"
+    },
+    {
+      "id": "E10",
+      "premises": [
+        "PQ03"
+      ],
+      "numbers": [
+        "annular_ring_lib"
+      ],
+      "gates": [],
+      "conclusions": [
+        "HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md"
+      ],
+      "owner": "hw-lead (板侧) + main (拍)"
+    },
+    {
+      "id": "E11",
+      "premises": [
+        "PQ05",
+        "PQ06"
+      ],
+      "numbers": [
+        "j_debug_copper_x",
+        "j_uart_copper_x"
+      ],
+      "gates": [],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md"
+      ],
+      "owner": "mech-lead (重算)"
+    },
+    {
+      "id": "E12",
+      "premises": [
+        "PQ09",
+        "PQ10",
+        "PQ11",
+        "PQ12"
+      ],
+      "numbers": [
+        "j_uart_cover_margin_x",
+        "j_debug_opening_margin_x",
+        "j_debug_cover_margin_y"
+      ],
+      "gates": [],
+      "conclusions": [
+        "MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md"
+      ],
+      "owner": "mech-lead (重算) + main (落表)"
+    },
+    {
+      "id": "E13",
+      "premises": [
+        "PQ16"
+      ],
+      "numbers": [
+        "seat_z_fit"
+      ],
+      "gates": [],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md"
+      ],
+      "owner": "mech-lead (重算) + main (拍板厚)"
+    },
+    {
+      "id": "E14",
+      "premises": [
+        "PQ17"
+      ],
+      "numbers": [
+        "fab_annular_min"
+      ],
+      "gates": [],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md"
+      ],
+      "owner": "main (定板厂/拍档) + hw-lead (落板)"
+    },
+    {
+      "id": "E15",
+      "premises": [
+        "PQ13",
+        "PQ14",
+        "PQ15"
+      ],
+      "numbers": [
+        "seat_clearance_x",
+        "seat_3q_sample",
+        "courtyard_delta_18"
+      ],
+      "gates": [],
+      "conclusions": [
+        "MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md"
+      ],
+      "owner": "hw-lead (收样) + mech-lead (重算) + main (落档)"
+    }
+  ],
+  "hardcoded_constants": [
+    {
+      "id": "HC-001",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 108,
+      "value": 1.775,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "DEBUG_CLEAR_X[0]",
+      "text": "DEBUG_CLEAR_X = (1.7750, 4.0850, 4.8100)",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-002",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 108,
+      "value": 4.085,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "DEBUG_CLEAR_X[1]",
+      "text": "DEBUG_CLEAR_X = (1.7750, 4.0850, 4.8100)",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-003",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 108,
+      "value": 4.81,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "DEBUG_CLEAR_X[2]",
+      "text": "DEBUG_CLEAR_X = (1.7750, 4.0850, 4.8100)",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-004",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 675,
+      "value": 0.9,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "status.J_DEBUG.copper.y",
+      "text": "\"J_DEBUG\": {\"copper\": {\"x\": 1.775, \"y\": 0.9},",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-005",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 675,
+      "value": 1.775,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "status.J_DEBUG.copper.x",
+      "text": "\"J_DEBUG\": {\"copper\": {\"x\": 1.775, \"y\": 0.9},",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-006",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 678,
+      "value": 0.775,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "status.J_UART.copper.x",
+      "text": "\"J_UART\": {\"copper\": {\"x\": 0.775, \"y\": 0.9},",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-007",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 678,
+      "value": 0.9,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "status.J_UART.copper.y",
+      "text": "\"J_UART\": {\"copper\": {\"x\": 0.775, \"y\": 0.9},",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-008",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 683,
+      "value": 1.0,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "official.J_DEBUG.copper.y",
+      "text": "\"J_DEBUG\": {\"copper\": {\"x\": 4.81, \"y\": 1.0},",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-009",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 683,
+      "value": 4.81,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "official.J_DEBUG.copper.x",
+      "text": "\"J_DEBUG\": {\"copper\": {\"x\": 4.81, \"y\": 1.0},",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-010",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 686,
+      "value": 1.0,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "official.J_UART.copper.y",
+      "text": "\"J_UART\": {\"copper\": {\"x\": 2.27, \"y\": 1.0},",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-011",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 686,
+      "value": 2.27,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "official.J_UART.copper.x",
+      "text": "\"J_UART\": {\"copper\": {\"x\": 2.27, \"y\": 1.0},",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-012",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 731,
+      "value": 1.775,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "clear_src.1.775",
+      "text": "1.7750: \"MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md L351 (真相页·座体宽 = 板读铜箔宽)\",",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-013",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 732,
+      "value": 4.085,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "clear_src.4.085",
+      "text": "4.0850: \"MECH/BOARD_ONEPASS_MECH_SYNC.md L561 / MECH/BOARD_ONEPASS_MECH_CLAIMS.md L50 / \"",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-014",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 734,
+      "value": 4.81,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "clear_src.4.81",
+      "text": "4.8100: \"MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md §0.1 (官方 THT 真 land·3.81 + 1.00)\",",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-015",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 737,
+      "value": 1.775,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "clear_costs.1.775",
+      "text": "1.7750: \"结构件按此数出件 ⇒ 换官方 THT 后铜箔每边超出清空区 1.5175 ⇒ 几何上当场干涉 ⇒ \"",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-016",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 739,
+      "value": 4.085,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "clear_costs.4.085",
+      "text": "4.0850: \"结构件按此数出件 ⇒ 换官方 THT 后铜箔每边超出清空区 0.3625 ⇒ 仍干涉 ⇒ \"",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-017",
+      "gate": "MECH/check_debug_seat_3d_fit.py",
+      "line": 741,
+      "value": 4.81,
+      "rules": [
+        "R2"
+      ],
+      "ctx": "clear_costs.4.81",
+      "text": "4.8100: \"结构件按此数出件 ⇒ 换官方 THT 后铜箔与清空区齐平 (每边超出 0.0000) ⇒ 几何上不干涉, \"",
+      "edge": "E01"
+    },
+    {
+      "id": "HC-018",
+      "gate": "MECH/check_debug_seat_rework_spec.py",
+      "line": 118,
+      "value": 6.61,
+      "rules": [
+        "R1"
+      ],
+      "ctx": "REQUIRED_CLEAR_X",
+      "text": "REQUIRED_CLEAR_X = 6.6100",
+      "edge": "E02"
+    },
+    {
+      "id": "HC-019",
+      "gate": "MECH/check_debug_seat_rework_spec.py",
+      "line": 120,
+      "value": 4.81,
+      "rules": [
+        "R1"
+      ],
+      "ctx": "OFFICIAL_DEBUG_COPPER_X",
+      "text": "OFFICIAL_DEBUG_COPPER_X = 4.8100",
+      "edge": "E02"
+    },
+    {
+      "id": "HC-020",
+      "gate": "MECH/check_debug_seat_rework_spec.py",
+      "line": 122,
+      "value": 1.0,
+      "rules": [
+        "R1"
+      ],
+      "ctx": "OFFICIAL_COPPER_Y",
+      "text": "OFFICIAL_COPPER_Y = 1.0000",
+      "edge": "E02"
+    },
+    {
+      "id": "HC-021",
+      "gate": "MECH/check_jdebug_1p27_clearance.py",
+      "line": 397,
+      "value": 1.27,
+      "rules": [
+        "R3'"
+      ],
+      "ctx": "near(...)",
+      "text": "if not near(geo[\"pitch\"], 1.27):",
+      "edge": "E06"
+    },
+    {
+      "id": "HC-022",
+      "gate": "MECH/check_jdebug_1p27_clearance.py",
+      "line": 399,
+      "value": 3.81,
+      "rules": [
+        "R3'"
+      ],
+      "ctx": "near(...)",
+      "text": "if not near(geo[\"span\"], 3.81):",
+      "edge": "E06"
+    },
+    {
+      "id": "HC-023",
+      "gate": "MECH/check_jdebug_1p27_clearance.py",
+      "line": 404,
+      "value": 0.65,
+      "rules": [
+        "R3'"
+      ],
+      "ctx": "near(...)",
+      "text": "if geo[\"drill\"] is None or not near(geo[\"drill\"], 0.65):",
+      "edge": "E06"
+    },
+    {
+      "id": "HC-024",
+      "gate": "MECH/check_juart_1p27_clearance.py",
+      "line": 417,
+      "value": 1.27,
+      "rules": [
+        "R3'"
+      ],
+      "ctx": "near(...)",
+      "text": "if not near(pitch, 1.27):",
+      "edge": "E07"
+    },
+    {
+      "id": "HC-025",
+      "gate": "MECH/check_juart_1p27_clearance.py",
+      "line": 837,
+      "value": 0.6,
+      "rules": [
+        "R4"
+      ],
+      "ctx": "get-default",
+      "text": "ctx[\"crit\"] = crit.get(\"crit\", 0.60)",
+      "edge": "E07"
+    },
+    {
+      "id": "HC-026",
+      "gate": "MECH/check_juart_1p27_clearance.py",
+      "line": 838,
+      "value": 0.3,
+      "rules": [
+        "R4"
+      ],
+      "ctx": "get-default",
+      "text": "ctx[\"fdm_part\"] = crit.get(\"fdm_part\", 0.30)",
+      "edge": "E07"
+    }
+  ],
+  "invalidation_matrix": [
+    {
+      "id": "M1",
+      "label": "焊盘 PQ01/PQ02  1.000 → 1.110",
+      "premise_change": {
+        "premises": [
+          "PQ01",
+          "PQ02"
+        ],
+        "from": 1.0,
+        "to": 1.11
+      },
+      "cells": [
+        {
+          "kind": "number",
+          "target": "j_debug_copper_x",
+          "status": "invalid",
+          "old_value": 4.81,
+          "new_value": 4.92
+        },
+        {
+          "kind": "number",
+          "target": "j_uart_copper_x",
+          "status": "invalid",
+          "old_value": 2.27,
+          "new_value": 2.38
+        },
+        {
+          "kind": "number",
+          "target": "j_debug_required_clear_x",
+          "status": "invalid",
+          "old_value": 6.61,
+          "new_value": 6.72
+        },
+        {
+          "kind": "number",
+          "target": "j_uart_required_clear_x",
+          "status": "invalid",
+          "old_value": 4.07,
+          "new_value": 4.18
+        },
+        {
+          "kind": "number",
+          "target": "j_uart_cover_margin_x",
+          "status": "invalid",
+          "old_value": 0.135,
+          "new_value": 0.08
+        },
+        {
+          "kind": "number",
+          "target": "j_debug_opening_margin_x",
+          "status": "invalid",
+          "old_value": 2.695,
+          "new_value": 2.64
+        },
+        {
+          "kind": "number",
+          "target": "j_debug_cover_margin_y",
+          "status": "invalid",
+          "old_value": 0.77,
+          "new_value": 0.715
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_debug_seat_3d_fit.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_debug_seat_rework_spec.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_fts_seat_body_geometry.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_fts_vs_generic_courtyard_delta.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_fts_seat_sample_plan.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_jdebug_1p27_clearance.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_juart_1p27_clearance.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_connector_clearance_caliber.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md",
+          "status": "invalid"
+        }
+      ],
+      "note": "ISS-403 已 A/B 实测 7 道闸: 5 道对焊盘尺寸【完全盲】(两臂 stdout md5 逐字相同) + 2 道会转红 (jdebug G1~G4 / juart J0/J1/J5/J7); 本单依赖图覆盖 9 道 (多出的 check_fts_seat_sample_plan.py 与 check_pad_size_coupling_closed.py 未做过 A/B)"
+    },
+    {
+      "id": "M2",
+      "label": "规划钻孔 PQ04  0.71 → 0.65",
+      "premise_change": {
+        "premises": [
+          "PQ04"
+        ],
+        "from": 0.71,
+        "to": 0.65
+      },
+      "cells": [
+        {
+          "kind": "number",
+          "target": "annular_ring",
+          "status": "invalid",
+          "new_value": 0.175
+        },
+        {
+          "kind": "number",
+          "target": "seven_numbers_matrix",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_pad_size_coupling_closed.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_jdebug_1p27_clearance.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_juart_1p27_clearance.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md",
+          "status": "invalid"
+        }
+      ],
+      "note": "环宽口径翻转: (1.000−0.71)/2=0.1450 → (1.000−0.65)/2=0.1750 ⇒ 环宽这一格由红转绿"
+    },
+    {
+      "id": "M3",
+      "label": "座体三量 PQ13/PQ14/PQ15 (实测档到手)",
+      "premise_change": {
+        "premises": [
+          "PQ13",
+          "PQ14",
+          "PQ15"
+        ],
+        "from": null,
+        "to": null
+      },
+      "cells": [
+        {
+          "kind": "number",
+          "target": "seat_clearance_x",
+          "status": "invalid"
+        },
+        {
+          "kind": "number",
+          "target": "seat_3q_sample",
+          "status": "invalid"
+        },
+        {
+          "kind": "number",
+          "target": "courtyard_delta_18",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_fts_seat_body_geometry.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_fts_seat_sample_plan.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_fts_vs_generic_courtyard_delta.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md",
+          "status": "invalid"
+        }
+      ],
+      "note": "这三道闸【第一次有真值可判】⇒ 前提从 `[0数据]` 变有源, 是【新增判据】不是【作废】"
+    },
+    {
+      "id": "M4",
+      "label": "清空区/开口 PQ09~PQ12 改一格",
+      "premise_change": {
+        "premises": [
+          "PQ09",
+          "PQ10",
+          "PQ11",
+          "PQ12"
+        ],
+        "from": null,
+        "to": null
+      },
+      "cells": [
+        {
+          "kind": "number",
+          "target": "j_uart_cover_margin_x",
+          "status": "invalid",
+          "old_value": 0.135
+        },
+        {
+          "kind": "number",
+          "target": "j_debug_opening_margin_x",
+          "status": "invalid",
+          "old_value": 2.695
+        },
+        {
+          "kind": "number",
+          "target": "j_debug_cover_margin_y",
+          "status": "invalid",
+          "old_value": 0.77
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_debug_seat_3d_fit.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_debug_seat_rework_spec.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_jdebug_1p27_clearance.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_juart_1p27_clearance.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_connector_clearance_caliber.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_PORT_OPENING_S6_FRAME_CALIBER.md",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md",
+          "status": "invalid"
+        }
+      ],
+      "note": "清空区宽是【座体支配】, 与焊盘无关 ⇒ 改焊盘不会改它, 改座体才会"
+    },
+    {
+      "id": "M5",
+      "label": "判决阈 PQ07/PQ08 改一格",
+      "premise_change": {
+        "premises": [
+          "PQ07",
+          "PQ08"
+        ],
+        "from": null,
+        "to": null
+      },
+      "cells": [
+        {
+          "kind": "number",
+          "target": "j_debug_required_clear_x",
+          "status": "invalid",
+          "old_value": 6.61
+        },
+        {
+          "kind": "number",
+          "target": "j_uart_required_clear_x",
+          "status": "invalid",
+          "old_value": 4.07
+        },
+        {
+          "kind": "number",
+          "target": "j_uart_cover_margin_x",
+          "status": "invalid",
+          "old_value": 0.135
+        },
+        {
+          "kind": "number",
+          "target": "j_debug_opening_margin_x",
+          "status": "invalid",
+          "old_value": 2.695
+        },
+        {
+          "kind": "number",
+          "target": "j_debug_cover_margin_y",
+          "status": "invalid",
+          "old_value": 0.77
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_debug_seat_3d_fit.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_debug_seat_rework_spec.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_jdebug_1p27_clearance.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_juart_1p27_clearance.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_connector_clearance_caliber.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md",
+          "status": "invalid"
+        }
+      ],
+      "note": "阈值一改 ⇒ 所有「最坏 = 余量 − TOL」的过阈结论同时重判"
+    },
+    {
+      "id": "M6",
+      "label": "板厚 PQ16 定档",
+      "premise_change": {
+        "premises": [
+          "PQ16"
+        ],
+        "from": null,
+        "to": null
+      },
+      "cells": [
+        {
+          "kind": "number",
+          "target": "seat_z_fit",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_debug_seat_3d_fit.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md",
+          "status": "invalid"
+        }
+      ],
+      "note": "Z 向基准 ⇒ 只影响 3D 装配那一道闸"
+    },
+    {
+      "id": "M7",
+      "label": "板厂能力 PQ17 改一格 (或换板厂)",
+      "premise_change": {
+        "premises": [
+          "PQ17"
+        ],
+        "from": null,
+        "to": null
+      },
+      "cells": [
+        {
+          "kind": "number",
+          "target": "fab_annular_min",
+          "status": "invalid"
+        },
+        {
+          "kind": "gate",
+          "target": "MECH/check_pad_size_coupling_closed.py",
+          "status": "invalid"
+        },
+        {
+          "kind": "conclusion",
+          "target": "MECH/BOARD_ONEPASS_PAD_SIZE_COUPLING.md",
+          "status": "invalid"
+        }
+      ],
+      "note": "这是【门限】不是【被测值】⇒ 板厂换人 ⇒ 全部 pad 档位结论重排"
+    }
+  ],
+  "baseline_files": {
+    "board": "HW/PCB/demo_mainboard.kicad_pcb",
+    "netlist": "HW/netlist_v1.csv",
+    "pinlist": "HW/netlist_v1_pins.csv",
+    "bom": "HW/BOM_v1.csv"
+  },
+  "table_baselines": {
+    "board": "611b869e13518c3c023fb178f91a0075",
+    "netlist": "6aee500e60ba0732f83a9cf557ba90ab",
+    "pinlist": "9174309df1ec9411ac8e8d9e80ee386a",
+    "bom": "5b9993992405904a60ac96a020b375d8"
+  },
+  "outbox_baseline": {
+    "tree_md5": "7c5f45e922447340349a224cf05a9807",
+    "files": 22
+  },
+  "board_baseline": {
+    "path": "HW/PCB/demo_mainboard.kicad_pcb",
+    "md5": "611b869e13518c3c023fb178f91a0075",
+    "size": 4940213,
+    "mtime": "2026-11-06 07:07:17.362193413"
+  },
+  "gate_criteria": {
+    "D1": "每个前提量的「当前值 + 真值读取点」必须能被脚本重新读出来 ⇒ 读不出来 ⇒ 判红",
+    "D2": "每个前提量至少挂到 1 条依赖边 ⇒ 孤立前提量 ⇒ 判红",
+    "D3": "AST 实扫到的写死常量点必须逐条登记且被依赖图引用 ⇒ 漏一条 ⇒ 判红",
+    "D4": "矩阵每一格必须能在依赖图里找到对应边 ⇒ 多/少一格 ⇒ 判红",
+    "D5": "板 / 网表 / 脚表 / BOM md5 与基线逐字相同",
+    "D6": "零挂链 (grep=0) + 零外发 (outbox 树摘要) + 证据分级五级白名单"
+  },
+  "open_items": {
+    "OI-407-1": "「板那一趟」开工前要不要按依赖图逐项过一遍前提值 ⇒ to=main",
+    "OI-407-2": "焊盘档拍下后必须同批重算的几个数是谁的活 ⇒ to=main",
+    "OI-407-3": "写死常量点要不要改成「现读板面」(判据口径变更) ⇒ to=main",
+    "OI-407-4": "作废传播矩阵要不要挂成投板前的硬清单 ⇒ to=main",
+    "OI-407-5": "本闸自己挂不挂链 (自指悖论) ⇒ to=main"
+  },
+  "self_reference_paradox": "本闸自身不在链上 (D6 自证 grep=0) ⇒ 需 main 登记 (链上 或 人工签核台账) ⇒ 本单不代拍",
+  "decision_taken_here": "not_decided_here"
+}

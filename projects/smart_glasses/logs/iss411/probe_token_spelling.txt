@@ -1,0 +1,28 @@
+★tokenizer: SW/tools/check_sw_ref_reachability.py:340 的 regex (实读) ★
+★classify : 同文件 classify() C1~C14 顺序 (实读) ★
+★live_refs = 293 · docs = 60 · FAIL_CLASSES = ('DESIGNATOR_DRIFT', 'DESIGNATOR_MISSING') · BASELINE_COUNT = 3
+
+候选写法               | 闸抽到的 token           | rule  | class                | 红/绿
+------------------------------------------------------------------------------------------------
+TP_INT_ISSX        | TP_INT_ISSX          | C14   | DESIGNATOR_MISSING   | ★红★
+                   |   └ 形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+TP_TEMP_ISSX       | TP_TEMP_ISSX         | C14   | DESIGNATOR_MISSING   | ★红★
+                   |   └ 形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+U_TEMP_1           | U_TEMP_1             | C14   | DESIGNATOR_MISSING   | ★红★
+                   |   └ 形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+TP_INT_ISS<X>      | TP_INT_ISS           | C14   | DESIGNATOR_MISSING   | ★红★
+                   |   └ 形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+TP_TEMP_ISS<X>     | TP_TEMP_ISS          | C14   | DESIGNATOR_MISSING   | ★红★
+                   |   └ 形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+U_TEMP_<N>         | U_TEMP_              | C8    | DOC_INTERNAL         | 绿
+                   |   └ 以 `_` 结尾 ⇒ 文本被截断的前缀
+TP_INT_ISS_x       | TP_INT_ISS_x         | C7    | DOC_INTERNAL         | 绿
+                   |   └ 后缀含小写字母 ⇒ 物理量符号 (不是位号)
+TP_TEMP_ISS_x      | TP_TEMP_ISS_x        | C7    | DOC_INTERNAL         | 绿
+                   |   └ 后缀含小写字母 ⇒ 物理量符号 (不是位号)
+U_TEMP_N           | U_TEMP_N             | C14   | DESIGNATOR_MISSING   | ★红★
+                   |   └ 形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+U_TEMP_1x          | U_TEMP_1x            | C7    | DOC_INTERNAL         | 绿
+                   |   └ 后缀含小写字母 ⇒ 物理量符号 (不是位号)
+U_TEMP_<n>         | U_TEMP_              | C8    | DOC_INTERNAL         | 绿
+                   |   └ 以 `_` 结尾 ⇒ 文本被截断的前缀

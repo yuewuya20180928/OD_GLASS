@@ -1,0 +1,36 @@
+### 零写板 (md5 / mtime / size) ###
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+2026-11-06 07:07:17.362193413 +0800 4940213
+### 零落表 (三表 md5) ###
+1f5484c06b97746d4cadbc333ce5fab9  state/fragments/hw.yaml
+40a19b239a317cddd112aeaba1e00ddf  state/fragments/sw.yaml
+b0e3f6d5b7cb6073b6898f7558626c30  state/fragments/pm.yaml
+### 零挂链 (7 道 MECH 闸 + 本单新闸) ###
+  check_debug_seat_3d_fit.py                 gate_check.py 命中=0
+  check_debug_seat_rework_spec.py            gate_check.py 命中=0
+  check_fts_seat_body_geometry.py            gate_check.py 命中=0
+  check_connector_clearance_caliber.py       gate_check.py 命中=0
+  check_fts_vs_generic_courtyard_delta.py    gate_check.py 命中=0
+  check_jdebug_1p27_clearance.py             gate_check.py 命中=0
+  check_juart_1p27_clearance.py              gate_check.py 命中=0
+  check_pad_size_coupling_closed.py          gate_check.py 命中=0
+### 死代码证据 (parse_footprint_copper) ###
+./state/_apply_20261125_0020_cronfb67af40_open_iss403.py:32:        ★**且该文件里已经写好了「从 `.kicad_mod` 现读 pad 算铜箔包络」的 `parse_footprint_copper()`
+./state/_apply_20261125_0020_cronfb67af40_open_iss403.py:123:★**★⇒ 而且该文件里其实已经写好了「从 `.kicad_mod` 现读 pad 算铜箔包络」的 `parse_footprint_copper()` (L187) —— ★**但它一次都没被调用** (★全仓 grep: 只有定义那一行★) ⇒ 【现读的能力有、但没接上】★★ ★
+./state/_apply_20261125_0020_cronfb67af40_open_iss403.py:134:★**⑦ 五条一条都不代拍 (★全交 main★)★: 焊盘档位最终取哪档 (★连带「本板厂到底是谁」这一格至今 `[0数据]`·`FAB_ORDER_NOTES.md` 只写「板厂」从未指名★) / 7 个数新值何时落 / 5 道盲闸要不要修 (★改已签收件 ⇒ 要重签+留痕★) / 7 道 MECH 闸挂不挂链 / `parse_footprint_copper()` 死代码怎么处理★ ★
+./state/_apply_20261125_0020_cronfb67af40_open_iss403.py:221:    if not got or "parse_footprint_copper" not in str(got[0].get("task_brief")):
+./MECH/check_pad_size_coupling_closed.py:324:_LIB_FN_NAMES = ("tht_geometry", "smd_geometry", "parse_mod", "parse_footprint_copper",
+./MECH/check_pad_size_coupling_closed.py:336:      ★`MECH/check_debug_seat_3d_fit.py` 里那个【死代码】 `parse_footprint_copper()` 的
+./MECH/check_debug_seat_3d_fit.py:187:def parse_footprint_copper(path: str):
+### 同上 · 文件内带括号的行 (只应是定义行) ###
+187:def parse_footprint_copper(path: str):
+### 零外发 (outbox 全树 md5 + 文件数) ###
+  files=22  outbox_tree_md5=098539a001f662415997f869d6725655
+### 既有 7 道闸源码 md5 (收工后对拍用) ###
+667e6006280cc8c0533d8ce8fa39f8be  MECH/check_debug_seat_3d_fit.py
+babadd6b073d691374051ea7409a6a1f  MECH/check_debug_seat_rework_spec.py
+1cdc6e9838419647e018c9a4c41319a2  MECH/check_fts_seat_body_geometry.py
+fc8d97d48cacafb43a1be4e1fe3a6524  MECH/check_connector_clearance_caliber.py
+8f8424a5e632fa3d223271850109c6d0  MECH/check_fts_vs_generic_courtyard_delta.py
+a9914b2c3e9f8f92f1fbb60d1d8bdd86  MECH/check_jdebug_1p27_clearance.py
+daf8fa367d89e22f6d3af3d5049bdfb6  MECH/check_juart_1p27_clearance.py

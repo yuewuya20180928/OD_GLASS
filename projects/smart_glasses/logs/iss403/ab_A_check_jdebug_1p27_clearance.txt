@@ -1,0 +1,40 @@
+### cmd: /usr/bin/python3 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss403/gatesA/check_jdebug_1p27_clearance.py --root /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+### rc: 1
+========================================================================================
+ISS-371 · `J_DEBUG` 排针 land 改 1.27mm 后的结构侧净距真相 —— 机器闸
+扫: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+========================================================================================
+
+[G1] G1 官方 THT land 几何与 .kicad_mod 实读一致 ⇒ ❌ FAIL
+    · 官方 THT 焊盘尺寸实读 1.1100×1.1100 ≠ 1.0×1.0
+    · 页内 land_tht.copper_w_along_axis_mm 写 4.81, 实算 4.92
+    · 页内 land_tht.copper_w_across_axis_mm 写 1.0, 实算 1.11
+    · 页内 land_tht.annular_ring_mm 写 0.175, 实算 0.23
+
+[G2] G2 §1 三档宽度与 G1 实算逐项一致 ⇒ ❌ FAIL
+    · calibers.official_tht.copper_w_mm 写 4.81, 实算 4.92
+    · calibers.official_tht.copper_h_mm 写 1.0, 实算 1.11
+
+[G3] G3 必须清空区宽 ≥ 铜箔 X 宽 (不许越界) + 越界记账 ⇒ ❌ FAIL
+    · ★官方 THT 口径下必须清空区宽 4.81 < 铜箔宽 4.92 ⇒ 每边越界 0.0550 ⇒ 铜箔直接进清空区★
+    · overflow.per_edge_mm 写 0.3625, 实算 0.4175
+    · overflow.total_mm 写 0.725, 实算 0.835
+    · overflow.official_copper_w_mm 写 4.81, 实算 4.92
+
+[G4] G4 单边间隙 X 对称且 ≥ CRIT (CRIT 取自真身) ⇒ ❌ FAIL
+    · calibers.official_tht.clearance_x_left 写 2.695, 实算 2.64
+    · calibers.official_tht.clearance_x_right 写 2.695, 实算 2.64
+    · calibers.official_tht.worst_clearance_x 写 2.395, 实算 2.34
+
+[G5] G5 降级方案 (SMD 变体) 几何独立实测并单列 ⇒ ✅ PASS
+
+[G6] G6 板面零写板自证 (md5/mtime/size) ⇒ ✅ PASS
+
+[G7] G7 证据等级五级白名单 + 零挂起措辞 + 两句分开 + md5 台账 ⇒ ✅ PASS
+
+----------------------------------------------------------------------------------------
+★判据方向 (判据句): 换官方 THT land 后, 调试口单边间隙 X 仍过 `CRIT` ⇒ 方向不变 ★
+★铜箔事实 (事实句): 若结构件仍按旧口径 4.0850 留 ⇒ 每边越界 0.3625 ⇒ 铜箔直接进清空区 ★
+★两句同时成立, 不许混成一句「OK / 合格」; 且必须并进「板只改一次」那一趟同批改 ★
+----------------------------------------------------------------------------------------
+合计: 3/7 条判据通过

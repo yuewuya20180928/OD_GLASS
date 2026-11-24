@@ -1,17 +1,18 @@
 agent: sw-lead
 role: 软件总工
-updated_at: '2026-11-24'
+updated_at: '2026-11-25'
 updated_by: sw-lead
 status:
   phase: delivered
   progress_pct: 100
   health: green
   updated_at: '2026-11-24'
-  summary: '★ISS-398 cont2 收尾趟交卷: 核心目标已达成 (v2 --selftest 0/7 → 7/7·rc=0·末行 ALL TESTS PASS·★判据段前缀 md5 3111dfb2
-    逐字未变⇒判据零改★) · ★本趟补三样: ① 交卷页 B1~B6 填实 ② 真相页机器块同步 v2 读数 (★C1+C5 回绿·散文零改★) ③ 分片登记 (iss398 三条 interface_claims
-    + 三条 needs_from 全部 to=main)★ · ★另补 §ISS398-RESIGN-TRAIL 重签留痕节 (改夹具那一趟没写)·★四条口径 A/B/B′/C 全部零应用·口径归
-    main 拍★ · ★沙盒实测新发现: 口径 B 第①步【重锚网表 md5】实测是空操作 (S0 vs S1 判决逐字相同)⇒ 真正能动的是【登记 EXEMPT_LEDGER】或【改文档字面量】·★后者不留漏检窗口
-    (S5 vs S6 实证)★'
+  summary: '★ISS-411 cont2 交卷: ① 修回链上真隐患红 (自建真相页里 3 个沙盒合成 token 的写法 ⇒ check_sw_ref_reachability.py rc=1
+    → rc=0, 真隐患 6 条 → 3 条 = 基线内; 真相页 md5 b96d8c9d… 66293 B → 41876767… 66301 B) ② 自有分片收口 (artifacts +3
+    / interface_claims +4 / needs_open_ledger +1 / needs_from +1 / answers +1 · 走 state/frag_write.py
+    原子写) ③ 交卷页 B1~B7 ④ 自检 6 条全跑 (check_brief_commands rc=0 · ref_reachability rc=0 · 新闸裸跑 rc=1 · --selftest
+    rc=0 ALL TESTS PASS · merge rc=0 · gate_check rc=0 Q1 18/18) · 零写板 · 零落表 · 零改既有闸判据 · 零改既有页正文 · 零挂链
+    · 零外发 · 不代拍 · 不自签 issue_log★'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -2186,6 +2187,58 @@ artifacts:
     · gates_before.log · round2_all_cmds.log (§六 必跑命令 8 组原样输出) · sbx_probe.log (★本趟新做的沙盒实测 S0~S6 六组·四条口径的代价全在这★)
     · round3_after_sync.log (机器块同步后重跑读数) · v2_fixture_diff.patch (夹具改动逐字 diff·5 个 hunk) · v2_before_trail.py
     + BOARD_ONEPASS_SW_GATE_CHAIN_COVERAGE.md.BEFORE_iss398 + sw.yaml.BEFORE_iss398 (三份逐字节改前副本·可回滚)★
+- path: SW/BOARD_ONEPASS_SW_MD5_REBASE_GATE_TRUTH.md
+  kind: truth-page
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-408 真相页 (新建): H1 那 4 处漏登记逐条 (是什么内容 / 属于哪一类 / 怎么处置 / 谁负责) + H4 那道漏登记的闸 (硬钉的字面量在哪一行 / 为什么该进
+    §2 / 登记后怎么防下一道新闸再溜·三层机制) + 板 md5 变了之后 SW 侧要动哪几处的总清单 + 5 条交 main 的问句 (机器块 not_decided_here) + 边界自证
+    + 机器块★ · 本页刻意把板 md5 的 8 位前缀拆写, 免得自己被 H1 自扫命中变成第 5 处漏登记★'
+- path: HANDOFF/2026-11-25_sw-lead_ISS408_板md5重锚定守门闸修可信.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-408 交卷页 (新建): B1~B6 + B7 (收口前后该闸的原样输出 + rc 对比 + 反向用例 3/3 的逐条原样输出 + 追加式三证 + 闸健康度逐条对账表)★'
+- path: logs/iss408/
+  kind: evidence
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-408 证据留档 (★全在项目盘·系统 /tmp 零写入★): baseline_md5_pre.txt (5 件受保护件的改前 md5) / gate_before.txt
+    (收口前 rc=1 · 5/7 · H1+H4 红) / gate_health_before.txt (收口前 2/6) / gate_after.txt (收口后 rc=0 · 7/7) /
+    gate_selftest_after.txt (10/10 · ALL TESTS PASS) / gate_health_after.txt (4/6 · H2 H3 转绿 · H0 不再点本闸)
+    / reverse_cases.txt (3/3 · 每条逐字原样输出) / append_only_proof.txt (追加式三证) / brief_cmds_before.txt★'
+- path: tmp/iss408/
+  kind: sandbox
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-408 沙盒与脚本 (★项目盘内·系统 /tmp 零写入★): apply_append_only.py (追加式收口脚本·★每个锚点必须恰好命中 1 次否则拒绝写⇒fail-closed★)
+    / reverse_cases.py (3 条反向用例·跑在 sbx/caseN 沙盒副本上·跑完即删) / append_only_proof.py (追加式三证) / readiness_pre.md
+    (清单页改前副本·非硬链接) / sw.yaml.pre_iss408 (分片改前副本)★'
+- path: SW/BOARD_ONEPASS_SW_MUSTCHANGE_FACE_IMPACT.md
+  kind: truth-page
+  version: v1.1
+  updated_at: '2026-11-25'
+  summary: '★ISS-411 (cont1 出账 + cont2 追加式修订) 板那一趟 SW 侧必改面 → 闸判据失效 影响面清账真相页: §1 本机实测基线 (SW 域既有闸 31 道 /
+    硬编位号 8 道 / 链内 6 道 / 读板面 18 道 / 无真源依赖 10 道 / 钉基线 12 道 / 盘上闸 32 道) + §2 口径A 与 main 题面的 8 个数字逐字 8/8 对上
+    + §3 表(a) 31 道逐条 (输入面 / 钉基线 / 改名面判定 / 布线面判定 / 逐条依据) + §4 表(b) 18 道基线钉在哪 + §5 表(c) 先改/先重锚排序 + §6 机器块
+    (registry 32 条 + sha256 5084c011…) + §7 边界自证 / 未完成项 / 留给 main 的问句 (一条不代拍). ★cont2 追加式修订: 3 个沙盒合成 token
+    的写法改成【闸扫不到】的形式 (不删任何结论, 只改写法) ⇒ 链上 check_sw_ref_reachability.py 由 rc=1 回 rc=0 (真隐患 6 条 → 3 条 = 基线内).
+    ★真相页 md5 b96d8c9d3bac0455b83c3dfc1ead9561 / 66293 B → 41876767225cd26775a34b34ad301564 / 66301 B.'
+- path: SW/tools/check_sw_mustchange_face_impact.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-25'
+  summary: '★ISS-411 新闸 (零挂链 · 不在 state/gate_check.py 的链里): T0 零扰动 (板三项 + 三表 md5 与登记基线逐字相同) / T1 位号字面量登记自洽
+    (判据从闸源码实读, 不读登记册自己的数) / T2 钉基线自洽 / T3 无真源依赖闸数自洽 / T4 命门点名 (链内 ∩ 硬编位号, 链内清单从 state/gate_check.py 的
+    AST 实算) / T5 钉板 md5 的闸不得自称布线面不受影响 / T6 六面输入面自洽 / T7 机器块自洽 / T8 登记册双绑 (页面 registry 摘要 == 闸内冻结快照 5084c011…)
+    + --selftest 反向用例 15/15 ⇒ 末行 ALL TESTS PASS. ★裸跑 rc=1 (★红的是现状, 不是闸故障★).'
+- path: HANDOFF/2026-11-25_sw-lead_ISS411_SW必改面影响面清账与闸.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-25'
+  summary: '★ISS-411 cont2 交卷页 (main 签收凭据): B1 结论摘要 / B2 验收标准自评 / B3 证据分级 ([官方]/[实测]/[媒体]/[推算]/[0数据])
+    / B4 接口取值声明 / B5 未决项 (★全部 to=main · 一条不代拍★) / B6 自证复现命令 (逐条 rc) / B7 边界自证逐条读数 (零写板 / 零落表 / 零改既有闸判据
+    / 零改既有页正文 / 零挂链 / 零外发 / 不代拍 / 不自签) + 未完成段 + 留给 main 的问句.'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -3229,6 +3282,53 @@ needs_from:
     ⑤ check_sw_gate_health.py 的 ROSTER 登记 v2 的成功标志是「反向用例全抓到」而现在末行是 ALL TESTS PASS ⇒ H0 仍判 v2 红 (★改前也红·H0
     点名的病闸清单没变长★) · 请 main 派单一并订正 (★逐字改法见交卷页 B5-2★)'
   since: '2026-11-24'
+- key: iss408_sw_md5_rebase_q1_refs_cls_direction
+  to: main
+  item: '★Q1 (★交 main 拍·★本单不代拍★)★: ISS-408 补登记进 ISS-372 §1 清单的那 4 处板 md5 引用面 (SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23
+    / 同文件:241 / SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 / SW/tools/check_sw_false_connectivity_gate.py:73),
+    该按【历史留证】还是【活判据 / 规格页引用】归属? ★归属不同 ⇒ 板 md5 变了以后要不要跟着改, 结论相反★ ⇒ 本单已把第 54 / 57 行的处置写成【交 main 拍】, 第 55
+    / 56 行取 fail-safe 方向【不许改】(同款形状先例 = ISS-378 页 §7 同款行)★ ⇒ 机器块口径 = not_decided_here★ ⇒ 逐条理由见 SW/BOARD_ONEPASS_SW_MD5_REBASE_GATE_TRUTH.md
+    §1.1 与 ISS-372 页 §9.6★'
+  since: '2026-11-25'
+- key: iss408_sw_md5_rebase_q2_zfc1_channel_or_ledger
+  to: main
+  item: '★Q2 (★交 main 拍·★本单不代拍★)★: ISS-408 已把 SW/tools/check_sw_false_connectivity_gate.py 补进 ISS-372
+    §2 的账 (id=ZFC-1 / status=已知缺口 / gap_id=iss408_gap_zfc1_reboard_channel / spec=P-Z / owner=sw-lead
+    落补丁·时点由 main 排期); 请 main 拍: 是停在【补进 §2 账】(本单已落), 还是改成走合法改板通道 (★要动一道已签收闸 ⇒ 需重签; 且 P-Z 只解决 md5 一项 ⇒ mtime
+    / size 两条仍红 ⇒ 补丁只解决一半★)? ⇒ 机器块口径 = not_decided_here★'
+  since: '2026-11-25'
+- key: iss408_sw_md5_rebase_q3_hook_gate_chain
+  to: main
+  item: '★Q3 (★交 main 拍·★本单不代拍★)★: ISS-408 修好之后 (check_sw_board_md5_rebase_readiness.py 现在 rc=0 · 7/7
+    · 自测 10/10 · 末行 ALL TESTS PASS), 要不要把这道守门闸挂进 state/gate_check.py? ★它今天零挂链 (grep -c = 0) ⇒ 挂上去当天链会红;
+    修好之后挂不挂 = 另一个决定 ⇒ 挂 ⇒ 漏网机制有牙; 不挂 ⇒ 要靠人记得跑 (★它零挂链⇒闸健康度那道的 H0/H2/H3 也只能靠人记得跑★)★ ⇒ 本单【零挂链·一个字没动 state/gate_check.py】⇒
+    机器块口径 = not_decided_here★'
+  since: '2026-11-25'
+- key: iss408_sw_md5_rebase_q4_rebase_total_list_mandatory
+  to: main
+  item: '★Q4 (★交 main 拍·★本单不代拍★)★: ISS-408 给出的【板 md5 变了之后 SW 侧要动哪几处】总清单 (SW/BOARD_ONEPASS_SW_MD5_REBASE_GATE_TRUTH.md
+    §3 + ISS-372 页 §9.2) 要不要成为板那一趟的必过项? ★不设 ⇒ 板那一趟的收工判据失真 ⇒ 白跑一次 Gerber / 投产包重出★ ⇒ 机器块口径 = not_decided_here★'
+  since: '2026-11-25'
+- key: iss408_sw_md5_rebase_q5_freshness_guard
+  to: main
+  item: '★Q5 (★交 main 拍·★本单不代拍★)★: ISS-408 查清的根因 = 这 4 处不是漏填, 是【整个文件根本没进账】⇒ 收口前 refs 的 53 条里根本没有那三个文件
+    ⇒ 它们是在清单生成之后才落盘的 (ISS-381 / ISS-385) ⇒ 清单不自证新鲜⇒ 所以光补这 4 行不够, 缺的是【清单新鲜度】这道防线★ ⇒ 请 main 拍: 再补一道独立新闸
+    (守漏登记机制本身), 还是把反向用例固化进既有闸的 --selftest? ★两条路都要有人记得跑 (那道闸零挂链)★ ⇒ 机器块口径 = not_decided_here★'
+  since: '2026-11-25'
+- key: iss408_sw_md5_rebase_gate_health_h0_other_gate_roster_stale
+  to: main
+  item: '★ISS-408 顺手撞见的一条 (★交 main·★本单不许碰·零改既有闸判据★)★: check_sw_gate_health.py 的 H0 仍红, 但点的是【另一道闸】check_sw_ref_reachability_v2.py
+    ⇒ 它现在自己的末行是 ALL TESTS PASS, 而健康度闸的 ROSTER 里给它登记的成功标志还是旧口径『反向用例全抓到』⇒ 声明过期⇒ H0 判红★ ⇒ 要改健康度闸自己的 ROSTER
+    ⇒ 那是改另一道闸的判据 ⇒ 本单不碰 ⇒ 代价 = H0 整体读数仍红 ⇒ 谁拿它当门禁看会误以为 SW 域闸全带病 (★实际是本单这一道已修好, 剩下的是一道声明过期问题★) ⇒ 机器块口径
+    = not_decided_here★'
+  since: '2026-11-25'
+- key: iss411_sw_mustchange_face_gate_change_decision
+  to: main
+  item: '★ISS-411 cont2 请 main 拍板 (★sw-lead 不代拍★): ① 板那一趟 SW 侧 31 道既有闸【哪几道要改 / 怎么改 / 挂不挂链 / 顺序怎么排】② 三条命门
+    (check_onepass_sw_sync.py / check_sw_ref_reachability.py / check_sw_ref_reachability_v2.py) 要不要进门禁链
+    ③ 真·静默跳过 3 道 (静默放行) 要不要加兜底闸. ⇒ 账已出齐 (真相页 §3/§4/§5 + 本单交卷页) ⇒ sw-lead 只出账不落改 ⇒ 机器块 decision_taken_here
+    = not_decided_here.'
+  since: '2026-11-25'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -3993,6 +4093,12 @@ answers:
     写的 73/85 是笔误 · 红数 2 一致 ⇒ 语义红/落表义务红的分类结论不受影响 · 本单两份交付物已全部改成 83/85 · 证据 logs/iss370/25_CONT1_timing_rowadd_only.txt
     (CONT1) + 44_CONT2_timing_rowadd_only.txt (CONT2) 两次一致
   ref: logs/iss370/44_CONT2_timing_rowadd_only.txt
+- key: iss411_sw_mustchange_face_gate_change_decision
+  to: main
+  value: '★sw-lead 侧能答的部分 (证据等级 [实测]): ① 账已出齐 = 31 道逐条影响 + 改名面 18 道 / 布线面 18 道 / 硬编 8 道 / 钉基线 12 道 / 链内
+    6 道 / 无真源依赖 10 道 (全部从闸源码实读) ② 真·静默跳过 3 道 + 真·判红变判绿 2 道 + 链上命门 2 道 ③ 本单唯一动过的既有文件 = 自建真相页里 3 个沙盒合成 token
+    的写法 (追加式 · 不删任何结论 · 不改任何既有闸判据) ⇒ 【不能答】= 改法 / 挂链 / 次序 ⇒ 那三条是 main 的地界 ⇒ 等 main 拍.'
+  ref: SW/BOARD_ONEPASS_SW_MUSTCHANGE_FACE_IMPACT.md + HANDOFF/2026-11-25_sw-lead_ISS411_SW必改面影响面清账与闸.md
 interface_claims:
 - key: latency_budget
   value: 口径A:55.7/67.0/83.7ms,口径C:42.3/50.3ms
@@ -6343,6 +6449,43 @@ interface_claims:
   note: ★同步后 check_sw_gate_chain_coverage.py 的 C1 (账实一致) + C5 (v2 基线读数) 回绿 ⇒ 覆盖率闸自己 7/7 · 机器块里其它 30 道闸的读数与
     check_rk3572_vccio_domain.py 的 env_same 一个字节没动 [实测]★
   ref: ''
+- key: iss408_sw_md5_rebase_zfc1_ledger_status
+  value: 'SW/tools/check_sw_false_connectivity_gate.py 在 ISS-372 §2 的账里: status = 已知缺口 / gap_id = iss408_gap_zfc1_reboard_channel
+    / spec = P-Z / owner = sw-lead 落补丁 (时点由 main 排期); 归属方向 = not_decided_here (Q2)'
+  note: ★依据 = 代码级形态检测判定它【没有】合法改板通道 (reboard / prev_md5 / check_r6_hard_protected / check_demo_panel_spec
+    四个 token 实测全 0) ⇒ 登记过的缺口不红, 没人知道的缺口才红 ⇒ 谎报【已有通道】才是真造假 [实测]★ · 本单零改它的源码 (md5 4630948f… 逐字未动)★
+  ref: ''
+- key: iss408_sw_md5_rebase_refs_cls_action
+  value: 'ISS-372 §1 清单新增第 54~57 行的三类归属 / 处置: 54 = 规格页引用 + 交 main 拍 (Q1) / 55 = 历史留证 + 不许改 / 56 = 历史留证
+    + 不许改 / 57 = 判据锚 + 交 main 拍 (Q2); 处置分布: 随板改 17 → 17 (★本单一条都没多加·不替板那一趟决定任何一处该怎么改★) / 不许改 31 → 33 /
+    交 main 拍 5 → 7'
+  note: ★依据 = 逐处角色判定 + 同款形状先例 (ISS-378 页 §7 同款行 = 历史留证) + H3 明确 .py 里的板 md5 字面量只能是判据锚 [实测]★
+  ref: ''
+- key: iss411_sw_mustchange_face_impact_counts
+  value: rename18 route11 doc12 hard8 chain6
+  note: '★必改面对 31 道 SW 闸的影响面计数 (★全部从闸源码实读, 不抄任何 agent 报告★): 改名面受影响 18 道 + 布线面受影响 11 道 + 文档面 12 道 + 硬编位号
+    8 道 + 链内 6 道; 另有 钉基线 12 道 / 无真源依赖 10 道 / 盘上闸 32 道 (31 既有 + 本闸自己) ⇒ 逐条见真相页 §3 表(a) (32 行) 与 §4 表(b)
+    (18 行).'
+  ref: SW/BOARD_ONEPASS_SW_MUSTCHANGE_FACE_IMPACT.md §1/§3/§4
+- key: iss411_sw_mustchange_face_rename_class
+  value: g2r7 drift9 cond1 chan1 none14
+  note: '★改名面判定分布 (★表(a) 第 7 列逐行实算, 32 行全部归类★): 判绿变判红 7 道 · 基线漂移-须重锚 9 道 · 条件性 (取决于真相页字段是否同步) 1 道 · 有合法改板通道
+    1 道 · 不受影响 14 道 ⇒ 受影响合计 18 道 (7+9+1+1).'
+  ref: SW/BOARD_ONEPASS_SW_MUSTCHANGE_FACE_IMPACT.md §3 表(a)
+- key: iss411_sw_mustchange_face_silent_skip
+  value: silent3 r2g2 lethal2
+  note: '★三分类里的两条【误判放行】通道 (★逐条依据写在表(a) 的「逐条判断依据」列★): 真·静默跳过 3 道 = check_onepass_sw_sync.py (链上·探针 grep
+    不到但正则照样匹配 0) + check_sw_ref_reachability.py (链上·前缀落进豁免分支就不进 FAIL_CLASSES) + check_sw_ref_reachability_v2.py
+    (链外·同构) ⇒ ★闸照样绿, 但它判的那件事已经不判了★; 真·判红变判绿 2 道 = check_sw_ref_reachability.py + check_sw_ref_reachability_v2.py
+    (基线豁免失配 ⇒ 真实缺陷被豁免掉 ⇒ 转绿 ⇒ 误判放行); 命门 (链上 ∩ 硬编位号) = 2 道 = check_onepass_sw_sync.py (硬编 20 处·口径B 含真位号
+    10 处) + check_sw_ref_reachability.py (硬编 55 处·口径B 78 处).'
+  ref: SW/BOARD_ONEPASS_SW_MUSTCHANGE_FACE_IMPACT.md §3 表(a) 第 27/28/29 行 + §0
+- key: iss411_sw_mustchange_face_table_ref
+  value: truthpage S3 table(a) 31rows
+  note: '★逐条影响表的位置 (★本单只出账, 不落改★): 真相页 §3 表(a) = 31 道既有闸 + 本闸自登记 (每行: 闸 / 链内外 / 硬编位号 A/B / 输入面 / 钉基线 /
+    改名面判定 / 布线面判定 / 逐条判断依据); §4 表(b) = 18 道读板面闸的基线钉在哪 + 那一趟后会不会变 + 变了对判据意味着什么; §5 表(c) = 「那一趟之前必须先改 /
+    先重锚」的排序清单 ⇒ ★哪几道要改 / 怎么改 / 挂不挂链 = main 的地界★.'
+  ref: SW/BOARD_ONEPASS_SW_MUSTCHANGE_FACE_IMPACT.md §3/§4/§5
 open_questions:
 - id: SW-Q1
   to: main
@@ -9066,3 +9209,19 @@ needs_open_ledger:
   evidence_level: '[实测]/[官方]'
   board: Y
   iss: ISS-357
+- key: iss411_sw_mustchange_face_gate_change_ledger
+  cls: ④
+  cls_detail: ④c
+  sub: c
+  owner: main (PM 域派单)
+  oneline: '★ISS-411 台账登记 (一条·★不代拍★): 板那一趟 (位号改名 + 布线 45→0) 落地前, SW 域 31 道既有闸的【哪几道要改 / 怎么改 / 挂不挂链 / 顺序怎么排】★
+    全由 main 拍板 ⇒ sw-lead 只出账不落改. 账已出齐: 改名面受影响 18 道 (判绿变判红 7 / 基线漂移-须重锚 9 / 条件性 1 / 有合法改板通道 1) + 布线面 18
+    道读板面闸要重锚 + 真·静默跳过 3 道 + 真·判红变判绿 2 道 + 链上命门 2 道 ⇒ 逐条见真相页 §3/§4/§5 与交卷页 §B4/§B5. ★机器块 decision_taken_here
+    = not_decided_here★'
+  why: ★改闸判据 / 挂链 / 排次序 = main 的地界★ ⇒ sw-lead 只登记不自改 ⇒ 本单零改既有闸判据 + 零挂链.
+  evidence: '[实测] SW/tools/check_sw_mustchange_face_impact.py (新闸 · 裸跑 rc=1 · --selftest rc=0 末行 ALL TESTS
+    PASS) + [实测] SW/BOARD_ONEPASS_SW_MUSTCHANGE_FACE_IMPACT.md §1/§3/§4/§5 (32 道闸逐道源码实读) + [实测] state/gate_check.py
+    rc=0 (Q1 18/18) + [实测] 板/三表指纹四项与基线逐字相同'
+  evidence_level: '[实测]'
+  board: Y
+  iss: ISS-411

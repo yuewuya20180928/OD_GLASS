@@ -1,0 +1,19 @@
+======================================================================================================================
+【ISS-405 · MECH 域闸挂链覆盖率闸 · 判定结果】
+======================================================================================================================
+  根目录: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+  ★红 = 现状有问题, 不是闸故障★
+[PASS] M0 :: 板 md5/size/mtime 三项与基线逐字相同
+[PASS] M0-TBL :: 网表/脚表/BOM 三表 md5 与基线逐字相同
+[PASS] M1 :: ★台账自洽: 盘上 30 道闸 ↔ 登记 30 条, 双向差集为空, 本闸自身已登记
+[FAIL] M2 :: ★10 道必挂闸【既不在门禁链、也不在人工签核台账】⇒ 没人跑也没人知道: MECH/check_debug_seat_3d_fit.py, MECH/check_debug_seat_rework_spec.py, MECH/check_fts_seat_body_geometry.py, MECH/check_fts_seat_sample_plan.py, MECH/check_fts_vs_generic_courtyard_delta.py, MECH/check_jdebug_1p27_clearance.py, MECH/check_juart_1p27_clearance.py, MECH/check_machine_block_pointer_resolvable.py, MECH/check_onepass_mech_release.py, MECH/check_pad_size_coupling_closed.py
+[PASS] M3 :: ★门禁链引用的 4 道 MECH 闸全部真实存在
+[PASS] M4 :: ★7 道判决链闸 + 准出汇总闸全部被显式登记, 无「未分类」
+[PASS] M5 :: ★板 / 网表 / 脚表 / BOM 四项 md5 与基线逐字相同
+[PASS] M6-HOOK :: ★零挂链自证: `check_mech_gate_hook_coverage.py` 在 state/gate_check.py 出现 0 次 (=0)
+[PASS] M6-OUTBOX :: ★零外发自证: state/outbox/ 22 个文件逐文件 md5 汇总摘要未动
+[PASS] M7 :: ★证据纪律: 五级白名单 + 零挂起 + 零空洞 + 判据/事实分开 + 10p 回答带等级
+----------------------------------------------------------------------------------------------------------------------
+合计: 9/10 条判据通过
+★红 1 条 ⇒ rc=1 ★
+★红的那一条正是【现状】: 必挂闸既不在门禁链、也不在人工签核台账 ⇒ 没人跑也没人知道★

@@ -3,14 +3,19 @@ role: 硬件总工
 updated_at: '2026-11-24'
 updated_by: hw-lead
 status:
-  phase: iss402-交卷完成
+  phase: iss409-交卷完成
   progress_pct: 100
-  health: 26 处 Value 漂移 + C_VBUS_GND 掉板已做成逐条台账 + fail-closed 机器闸; 新闸裸跑 D1~D7 全绿 rc=0 (开工前真相页未建时 rc=1,
-    留证 logs/iss402/gate_baseline_red.txt), --selftest 1 正向 + 9 反向 = 10 条全 PASS 末行 ALL TESTS PASS rc=0;
-    板/网表/脚表/BOM/既有页/既有闸 md5 前后逐字未动; 零挂链; 零外发; 6 条 needs_from 全部 to=main 一条不代拍
-  summary: 真相页 HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md + 新闸 HW/check_generator_value_drift_closed.py
-    + 交卷页 HANDOFF/2026-11-24_hw-lead_ISS402_生成器重跑Value漂移26处清账与闸.md; 实测差异 26 处 (A 13 + C 13) + 掉板 1 件 (C_VBUS_GND);
-    6 条 needs_from 已登记 (route_choice / 26 处以谁为准 / C_VBUS_GND 留否 / DNP 标记批次 / §3-S3 覆盖扩到 26 / 新闸挂不挂链)
+  health: '真相页 HW/PCB/BOARD_ONEPASS_RELEASE_CHAIN_TEETH_AUDIT.md + 新闸 HW/check_onepass_release_chain_teeth.py;
+    实测: 全仓真调用点 7 个, 只有 state/verify_and_release.sh L53 一个带 --strict; 投产链准入闸 state/chain_gate.py L296 跑宽松档
+    => ③PCB 环对 unconnected 零敏感 (L299 注释自写 不阻塞准出 / L309 lay_txt 不进 x3 判定位); ③PCB 今天红靠的是 C1 (check_pcb_nets
+    rc=1: 多余2/同号异网3) 不是 DRC; check_pcb_drc 宽松档 rc=0 打「✅ 全过 —— 图纸可下单」/ 严格档 rc=1; 新闸裸跑 rc=1 (红的是现状: 4 处放行链跑宽松档),
+    --selftest 1 正向 + 20 反向 = 21 条 全 PASS 末行 ALL TESTS PASS rc=0; 板/网表/脚表/BOM/既有页/既有闸 md5 前后逐字未动; 零挂链;
+    零外发; 6 条 needs_from 全部 to=main 一条不代拍'
+  summary: 'ISS-409 投产/放行链牙齿清账: 真相页 + fail-closed 机器闸 (T1~T7); 核心发现: ①投产链准入闸 check_pcb_drc.py 跑宽松档 ⇒ 板侧同步一做完
+    ③PCB 变 (绿·绿) ⇒ unconnected=45 的板照样过投产链 ⇒ Gerber 可下单 ⇒ 板改第二次; ②假绿的物理传播口是 board_report.sh (不是 finish_line/auto_release
+    —— 那两个的上游是严格档 verify_and_release.sh); ③巡检失明 (daily_check 从没看见过 unconnected=45); ④「未布线⇒不可下单」只由 verify_and_release.sh
+    严格档 + stage_gate.py 两处兜着, 现状缺 6 处 (G1~G6); 6 条 needs_from 已登记 (投产准入加不加 --strict / 板报告+巡检加不加 / 候选验证口径
+    / 本闸挂不挂链 / 出投产包要不要闸 / 臂晋级要不要布线闸)'
   updated_at: '2026-11-24'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -2348,6 +2353,80 @@ artifacts:
   updated_at: '2026-11-24'
   summary: 'ISS-402 交卷页 B1~B7: 结论摘要 / A1~A20 验收自评 / 证据分级 / interface_claims / 未决项 (6 条全 to=main) / 复现命令原样输出
     / 边界自证 + 自曝节'
+- path: HW/PCB/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md
+  kind: truth-page
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-404 真相页: §0~§7 + 机器块; 三张表 (a) 三页点名的 19 道闸×是否挂链×挂在哪张表 (b) 仓内 106 道闸的五分类台账 (c) 13 道真漏挂的逐条后果
+    (拦什么/拦不住会怎样); 含与派活单的三处精度修正 (EXTRA_GATES 实为 8 条; 仓内 105→106; check_pcb_drc.py 默认口径是绿的·只有 --strict 才红)·
+    [实测]'
+- path: HW/PCB/BOARD_ONEPASS_GATE_HOOK_LEDGER.json
+  kind: ledger
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-404 机器可读分类台账 (G3 的判决源): 106 道闸逐条分类 + 13 条真漏挂逐条后果 (带证据等级标签) + 板指纹 + outbox 基线 + 本闸自身登记
+    (待 main 挂链)· [实测]'
+- path: HW/check_onepass_gate_hook_coverage.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-404 新闸 G1~G7 (闭环/幽灵闸/台账自洽/板三证/零挂链+零外发/证据分级/零写板): 裸跑 rc=1 (红的是现状=13 道闸没挂链, 不是闸故障) · --selftest
+    rc=0 末行 ALL TESTS PASS (1 正向 + 13 反向全抓到) · 零挂链 (grep -c = 0) · [实测]'
+- path: HANDOFF/2026-11-25_hw-lead_ISS404_闸挂链覆盖率清账与闸.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-404 交卷页 (B1~B7 全填): 5 条 needs_from 全部 to=main 一条不代拍 (含自指悖论) · 8 条 interface_claims · 边界逐条自证
+    · [实测]'
+- path: HW/PCB/BOARD_ONEPASS_GATE_TEETH_AUDIT.md
+  kind: truth_page
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-406 真相页: §0~§7 + §6.1 机器块台账 + 三张表 (链上闸×argv×宽松档开关×用哪一档 / fail-open 嫌疑清单带行号证据 / 投板前必跑严格档名单)
+    · argv 全部 AST 解析不许手抄 · [实测]'
+- path: HW/check_onepass_gate_teeth.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-406 新闸 T1~T7 (台账自洽/宽松档识别/fail-open 行号证据+必跑闸必须带严格档/板三证/零挂链+零外发/证据分级/零写板): 裸跑 rc=1 (红的是现状
+    = 链上有闸跑在宽松档 + 作业面页 9 处文档化调用缺 --strict, 不是闸故障) · --selftest rc=0 末行 ALL TESTS PASS (1 正向 + 15 反向 =
+    16 条全抓到) · 零挂链 (grep -c = 0) · [实测]'
+- path: HANDOFF/2026-11-25_hw-lead_ISS406_验收链牙齿清账与闸.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-406 交卷页 (B1~B7 全填): 6 条 needs_from 全部 to=main 一条不代拍 (含自指悖论) · 6 条 interface_claims · 边界逐条自证
+    · [实测]'
+- path: logs/iss406/
+  kind: evidence
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: ISS-406 留证 8 件 (基线快照/AST 链解析/宽松档 flag 扫描/fail-open 扫描/rc 契约扫描/check_pcb_drc 宽松档+严格档两次实跑/台账生成记录/交卷前全项复查)
+    + 沙盒 tmp/iss406/ (不硬链接真件·不写系统 /tmp) · [实测]
+- path: HW/PCB/BOARD_ONEPASS_RELEASE_CHAIN_TEETH_AUDIT.md
+  kind: truth-page
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-409 真相页: 投产/放行链有没有牙齿 —— check_pcb_drc.py 全仓调用档位清账 (三张表: (a) 全仓调用点全集 x argv x 档位 x 链 x
+    假绿后果 / (b) 逐点判决表 7 个真调用点逐条必须带 --strict 还是骨架阶段故意宽松+兜底闸在不在链上 / (c) 未布线=>Gerber不可下单 必须成立在哪 9 道闸上+现状缺哪
+    6 处) + 机器块台账 (50 个候选文件 + 14 条调用点 + 2 处假绿标记 + 9 道闸 + 22 件 outbox 基线); 核心发现: 投产链准入闸 state/chain_gate.py
+    L296 跑宽松档 (argv 无 --strict) => ③PCB 环对 unconnected 零敏感, 且 L299 注释自写 不阻塞准出 / L309 lay_txt 不进 x3 判定位
+    => 板侧同步一做完 (C1 转绿) ③PCB 变 (绿·绿) => unconnected=45 的板照样过投产链 => Gerber 可下单 => 板改第二次'
+- path: HW/check_onepass_release_chain_teeth.py
+  kind: machine-gate
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-409 新机器闸 (T1~T7): T1 全仓调用点全集自洽 (AST/.sh 逻辑行实读, 不许手抄清单; 命中 50 个>=8 下限; 台账↔实读双向一致) / T2
+    放行链必须严格档 (chain_gate+board_report+verify_candidate+daily_check 四道, 现状 4/4 宽松 => 命门判据现状必红) / T3 假绿输出不得被当放行凭据
+    (T3a 假绿标记串登记制 + T3b use 用途登记制 + T3c judgement 必严格 + T3d 抄日志上游必严格 + T3e 消费方必登记 + T3f 兜底闸必在链上) / T4
+    fail-closed (输入缺失/扫不到/解析失败未登记 => 判红) / T5 零挂链+零外发 / T6 板指纹三证 / T7 未布线=>不可下单闸点台账 9 道必登记; 裸跑 rc=1 (红的是现状:
+    4 处放行链跑宽松档), --selftest rc=0 末行 ALL TESTS PASS (1 正向 + 20 反向 = 21 条全抓到); 零挂链 (gate_check.py 里 0 行)'
+- path: HANDOFF/2026-11-25_hw-lead_ISS409_放行链牙齿清账与闸.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-25'
+  summary: 'ISS-409 交卷页 (B1~B7 全填): 结论摘要 / 验收标准自评 / 证据分级 / 接口取值声明 6 条 / 未决项与卡点 6 条 (全部 to=main 一条不代拍)
+    / 自证复现命令 / 边界自证逐条 + 留证清单 logs/iss409/ 与沙盒 tmp/iss409/ (零硬链接, 不写系统 /tmp)'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -4863,6 +4942,94 @@ needs_from:
     = 0★): ★代价: 不挂 ⇒ 落板前自检不会自动跑这道闸 ⇒ 26 处漂移可能再次静默溜过 (历史已发生过一次: ISS-287 只以散文记过一次); 挂 ⇒ 闸的判据变更要走 main 的签收流程
     (本单未改任何既有闸判据·未碰 gate_check.py 一个字节). ★建议默认值: 挂, 但挂之前先由 main 过一遍 D1~D7 判据 (判据清单见真相页 §6 与闸源码)'
   since: '2026-11-24'
+- key: iss404_true_missing_hook_list
+  to: main
+  item: '★真漏挂的 13 道闸要挂哪几道? (建议优先: state/check_pcb_nets.py / state/check_pcb_drc.py / HW/check_netlist_selfconsistency.py
+    / HW/check_part_selection_matrix.py)· 不答 ⇒ 人工清单仍是唯一防线★'
+  since: '2026-10-25'
+- key: iss404_hook_order_to_main
+  to: main
+  item: ★挂链顺序? 建议与板那一趟的 C1 修复同批 (注意 check_pcb_nets.py 今天 C1 红 ⇒ 挂上去门禁链当场红; check_pcb_drc.py 必须带 --strict
+    否则是假绿)· 不答 ⇒ 挂了链=门禁链常红=红了被当噪音★
+  since: '2026-10-25'
+- key: iss404_manual_signoff_ledger_page
+  to: main
+  item: '★人工签核台账要不要另起一页 (建议: 起一页逐条写明谁在哪一步跑了它/读数是多少)· 不答 ⇒ 未挂链的 13 道闸=没人跑也没人知道★'
+  since: '2026-10-25'
+- key: iss404_self_gate_hookup_decision
+  to: main
+  item: '★本闸 HW/check_onepass_gate_hook_coverage.py 自己挂不挂链 (自指悖论; 台账里本闸自身一行现为 待 main 挂链; 机制已备好: 翻台账 self.hook_status=已挂链
+    即可, 闸脚本一字节都不用改)· 不答 ⇒ 本闸永远零挂链=又一个没人跑的闸 (同 ISS-388 病)★'
+  since: '2026-10-25'
+- key: iss404_gate_class_ledger_into_claims
+  to: main
+  item: ★仓内 106 道闸的分类台账要不要进 state/fragments/hw.yaml 的 interface_claims? · 不答 ⇒ 下一个总工又得自己数一遍★
+  since: '2026-10-25'
+- key: iss406_lenient_gate_acceptance
+  to: main
+  item: '★链上「钉板闸⑤ 脚表功能标签闸」跑在宽松档 --expect-known 下 (★HW/check_pin_function_labels.py L1016★) ⇒ 判据从「有任何缺陷就红」整条换成「实算缺陷清单必须与冻结快照
+    15 条逐字一致」⇒ 它现在是【回归闸】不是【质量闸】, 而且反向 (修好一条反而红)· 三条路: ① 改裸跑 (★当场链红·基线常量停在 ISS-257 旧值★) ② 维持现状 ③ 签核放行 (★台账
+    lenient_acceptance 改成 已接受(main 签核) ⇒ 机器闸 T2 当场转绿·闸脚本一字节都不用改★) · 不答 ⇒ 一道判「没变」而不是判「对不对」的闸继续挂在「板只改一次」那条链上★'
+  since: '2026-11-25'
+- key: iss406_pcb_drc_hook_decision
+  to: main
+  item: '★state/check_pcb_drc.py 挂不挂链? 挂的话必须带 --strict ⇒ 挂上去当天链会红 (unconnected=45) · 不挂 = 投板前最后一道闸只活在纸面上,
+    且纸面上写的是宽松档 (★本机实跑: 宽松档 rc=0 打「✅ 全过 —— 图纸可下单」· 严格档 rc=1★) · 不答 ⇒ 板那一趟照旧拿假绿去投板★'
+  since: '2026-11-25'
+- key: iss406_strict_required_manual_ledger
+  to: main
+  item: '★「投板前必须用严格档跑的闸名单」要不要成为一份人工签核台账页? (★ISS-404 交卷页 Q3 已提同一个问题·本单是加强版: 名单里每条都带「宽松档放宽了哪条判据」+「谁在哪一步跑了它/读数是多少」★)
+    · 不答 ⇒ 「那天实际用了哪一档」永远查不到 (★本单该条证据等级是 [0数据]★) ⇒ 只能查纸面上写的是哪一档, 查不到实际跑的是哪一档★'
+  since: '2026-11-25'
+- key: iss406_self_gate_hookup_decision
+  to: main
+  item: '★本闸 HW/check_onepass_gate_teeth.py 自己挂不挂链 (★自指悖论·台账里本闸自身一行现为 待 main 挂链·机制已备好: 翻台账 self.hook_status=已挂链
+    即可, 闸脚本一字节都不用改★) · 不答 ⇒ 本闸永远零挂链=又一个没人跑的闸 (同 ISS-388 病)★'
+  since: '2026-11-25'
+- key: iss406_failopen_owner
+  to: main
+  item: '★若将来有闸被改成 fail-open, 谁负责修? (★本单查完: 链上 19 个槽位在「输入缺失 ⇒ 判绿」这一条上全部阴性·全部带行号级证据 ⇒ 本单没制造新活; 但若决定挂 state/check_pcb_drc.py,
+    「缺输入 ⇒ 判红」这条要重新判一次★) · 判据口径变更属 main 地界, 本单不代拍★'
+  since: '2026-11-25'
+- key: iss406_workpackage_command_fix
+  to: main
+  item: ★作业面页 (预检清单 L56/L59/L472/L505 + 作业包 L64/L86/L504/L569/L573) 里那 9 处 python3 state/check_pcb_drc.py,
+    要不要改成带 --strict? · 改 = 照着跑的人会看到 rc=1 (★因为板真的没布完·unconnected=45★) ⇒ 那一趟会停在投板前 (★这正是「板只改一次」想要的效果★) ·
+    不改 = 机器闸 T3b 永远红, 且投板前那一趟照旧拿假绿 · 本单【没有改】(★零改既有页正文边界 + main 的机制地界★) ⇒ 只把它做成机器闸 T3b 的一条判据, 让它红着等人拍★
+  since: '2026-11-25'
+- key: iss409_chain_gate_strict_decision
+  to: main
+  item: ★投产链准入闸 state/chain_gate.py L296 要不要加 --strict?★ 加了当天 ③PCB 环会红 (unconnected=45)。不加 = 投产链准入闸对「板没布完」零敏感
+    ⇒ 板侧同步一做完 (C1 转绿) ③PCB 变 (绿·绿) ⇒ Gerber 可下单 ⇒ 板改第二次畅通无阻。★本单只出建议 (一行 argv), 落不落由 main 拍★
+  since: '2026-11-25'
+- key: iss409_board_report_daily_check_strict_decision
+  to: main
+  item: ★state/board_report.sh L59 与 state/daily_check.py L344 要不要加 --strict?★ 不加 = ① 假绿 (✅ C4 unconnected
+    items = 45) 继续被 L60 的 grep 抄进板报告, 而 state/promote_arm.sh L67 把这份报告当「臂晋级官方板后的全量取证」; ② 每日巡检继续瞎 (从来没看见过
+    unconnected=45)。★改了当天这两处会红 —— 那正是它们该报的★
+  since: '2026-11-25'
+- key: iss409_verify_candidate_semantics_decision
+  to: main
+  item: '★state/verify_candidate.sh ① 号尺子: 加 --strict (绝对 unconnected=0) 还是保留「相对官方板变好」的语义?★ 候选板的 unconnected
+    常常 > 官方板 ⇒ 简单加 --strict 会让候选验证永远红 ⇒ 这是【口径】问题不是【档位】问题; 且 L26 的 rc 现在被 | grep | tail 吃掉 ⇒ 脚本注释 L11 承诺的「unc
+    必须比官方板低」没有机器兑现。★本单不代拍, 只把两种口径的后果说清★'
+  since: '2026-11-25'
+- key: iss409_self_gate_hookup_decision
+  to: main
+  item: ★本闸 HW/check_onepass_release_chain_teeth.py 挂不挂链?★ 机制已备好 (台账 meta.hook_status 改成「已挂链」+ 把本闸加进 state/gate_check.py
+    ⇒ 闸脚本一字节都不用改)。不挂 = 又一个没人跑的闸 (同 ISS-388 病)。★零挂链是本单的硬边界, 由 main 来挂★
+  since: '2026-11-25'
+- key: iss409_gen_production_pack_gate_decision
+  to: main
+  item: ★state/gen_production_pack.sh (出 Gerber/钻孔/CPL/装配) 要不要加一道「unconnected=0 才许出包」的闸?★ 不加 = 「出包」与「可下单」在脚本层没有任何机器联系
+    ⇒ 板没布完照样出一整套投产包。★这是 G5 缺口, 落不落由 main 拍★
+  since: '2026-11-25'
+- key: iss409_promote_arm_routing_gate_decision
+  to: main
+  item: ★state/promote_arm.sh / state/promote_board_file.sh (臂→官方板) 要不要把「unconnected=0」加进晋级闸?★ 现在晋级闸只校
+    parity (check_pcb_nets), 臂板 unconnected 只打印不判 ⇒ 绝对闸只落在第 ⑨ 步 verify_and_release.sh ⇒ 一步没跑到就能把没布完的板推成官方板。★这是
+    G6 缺口★
+  since: '2026-11-25'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -8876,6 +9043,126 @@ interface_claims:
   value: 611b869e13518c3c023fb178f91a0075 / 2026-11-06 07:07:17.362193413 / 4940213
   note: '本单零写板自证: 开工前后三项指纹逐字相同'
   ref: HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md#§6
+- key: iss404_chain_slots
+  value: '19'
+  note: 门禁链挂载槽位数 = EXTRA_GATES 8 + PINNED_MD5_GATES 10 + HW_PINOUT_GATE 1 (state/gate_check.py AST 实读)·
+    唯一脚本 18 (SW/tools/check_onepass_sw_sync.py 被挂两次)· ref=state/gate_check.py
+  ref: ''
+- key: iss404_repo_gate_count
+  value: 105 (开单时) / 107 (交卷时)
+  note: HW 46 / MECH 30 / SW 31; 开单时零挂链 87 ⇒ 交卷时 107 道 / 零挂链 89 道; ★差 2 道 = 本单新闸 1 + mech-lead 并发 ISS-405
+    交卷件 1 (★落盘时刻 2026-11-25 01:39★) ⇒ ★**仓内闸数是活的** ⇒ 台账过期时 G3 会红并点名 ⇒ 重跑 `python3 tmp/iss404/gen_ledger.py`
+    即可刷新★
+  ref: ''
+- key: iss404_page_named_coverage
+  value: 19 点名 / 6 已挂 / 13 未挂 (覆盖率 31.6%)
+  note: 三份作业面文件 (BOARD_ONEPASS_PREFLIGHT.md 12 / BOARD_ONEPASS_WORKPACKET.md 18 / BOARD_ONEPASS_COMMIT_ORDER.md
+    3) 的并集 = 19 道闸· ref=HW/PCB/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md §2
+  ref: ''
+- key: iss404_true_missing_hook_list
+  value: 13 道 (见真相页 §2.1)
+  note: '既不在挂链表、也不在人工签核台账的页面点名闸: HW/check_board_frame_caliber.py · HW/check_iss354_manufacturability.py
+    · HW/check_iss354_mfg_closure.py · HW/check_netlist_contradiction_r3.py · HW/check_netlist_selfconsistency.py
+    · HW/check_onepass_s10_manifest.py · HW/check_part_selection_matrix.py · HW/check_pcb_generator_defaults.py
+    · HW/check_step1_parts_spec.py · MECH/check_onepass_mech_sync.py · MECH/check_onepass_struct_crosscheck.py
+    · state/check_pcb_drc.py · state/check_pcb_nets.py· ref=HW/PCB/BOARD_ONEPASS_GATE_HOOK_LEDGER.json'
+  ref: ''
+- key: iss404_manual_signoff_ledger_state
+  value: 不存在
+  note: HW/PCB/BOARD_ONEPASS_MANUAL_SIGNOFF_LEDGER.md 不存在 ⇒ G1 的人工签核那一路为空 ⇒ 13 道真漏挂闸今天无任何机器兜底· ref=HW/PCB/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md
+    §1
+  ref: ''
+- key: iss404_pcb_nets_reading
+  value: rc=1 (红) · C1 多余 2 · 同号异网 3
+  note: C_VBUS_GND pad1=GND / pad2=VBUS_5V_CHG (ISS-402 §3 掉板机理的同一件事) · Q_PG pad1↔pad3 互换 · D_ESD_USB_D
+    pad1 异网· ref=state/check_pcb_nets.py 实跑
+  ref: ''
+- key: iss404_pcb_drc_reading
+  value: 默认 rc=0 (绿) / --strict rc=1 (红, C4 unconnected=45)
+  note: ★挂它必须带 --strict, 否则原样挂上去就是一道永远绿的假绿闸 (比不挂更坏)· ref=state/check_pcb_drc.py 实跑两种口径
+  ref: ''
+- key: iss404_board_fingerprint
+  value: 611b869e13518c3c023fb178f91a0075 / 4940213 / 2026-11-06 07:07:17.362193413
+  note: 零写板自证 (md5 / size / mtime 三项与基线逐字相同)· ref=HW/PCB/BOARD_ONEPASS_GATE_HOOK_COVERAGE.md §7
+  ref: ''
+- key: iss404_repo_gate_count_is_live
+  value: ★活的 (★交卷时 107 道·随时会变★)
+  note: '★**仓内闸数不是常数** ★: 交卷期间别的代理会同时加闸 (★本单实测: mech-lead 的 MECH/check_mech_gate_hook_coverage.py 在 2026-11-25
+    01:39 落盘⇒ 105 → 107★) ⇒ ★**新闸的 G3 会因「台账成员集合 ≠ 仓内实扫集合」判红并逐条点名** ⇒ ★**这是设计内的 fail-closed (台账必须跟着仓走)·不是闸故障**
+    ★ ⇒ 刷新命令: `python3 tmp/iss404/gen_ledger.py` + `python3 tmp/iss404/gen_truth_page.py` + `python3 tmp/iss404/gen_handoff.py`'
+  ref: HW/PCB/BOARD_ONEPASS_GATE_HOOK_LEDGER.json
+- key: iss406_chain_slot_count
+  value: 19 槽位 / 18 个不同脚本
+  note: ★SW/tools/check_onepass_sw_sync.py 占 2 个槽位 (EXTRA_GATES[1] + PINNED_MD5_GATES[8]) ⇒ brief 里的「18
+    道闸」= 不同脚本数, 槽位数是 19★ · ref=state/gate_check.py AST 实读 (★[实测]★)
+  ref: ''
+- key: iss406_chain_lenient_slots
+  value: '1 个槽位跑在宽松档: PINNED_MD5_GATES[4] = HW/check_pin_function_labels.py --expect-known'
+  note: ★该档把判据从「有任何缺陷就红」换成「实算缺陷清单 == 冻结快照 15 条」⇒ 回归闸, 且修好一条反而红 (compare_known 把「少了一条」也判 diff)★ · ref=HW/check_pin_function_labels.py
+    L589/L632/L637/L641-L648/L1016 (★[实测]★)
+  ref: ''
+- key: iss406_pcb_drc_lenient_reading
+  value: 宽松档 rc=0 (打「✅ C4 unconnected items = 45」+「✅ 全过 —— 图纸可下单」) / 严格档 rc=1
+  note: ★C4 判据 ok4 = (n_unc == 0) if strict else True ⇒ 不带 --strict 恒真★ · ref=state/check_pcb_drc.py L135-L139
+    + 本机实跑两档 (★[实测]★)
+  ref: ''
+- key: iss406_pcb_drc_call_sites_without_strict
+  value: 6 个调用点 + 作业面页 9 处命令, 全部不带 --strict
+  note: ★HW/PCB/BOARD_ONEPASS_PREFLIGHT.md L56/L59/L472/L505 · HW/PCB/BOARD_ONEPASS_WORKPACKET.md L64/L86/L504/L569/L573
+    · state/daily_check.py L344 · state/chain_gate.py L296-298 ⇒ 假绿已经渗进巡检链/准出链/作业面页★ · ref=作业面页实扫 (★[实测]★)
+  ref: ''
+- key: iss406_chain_failopen_all_negative
+  value: 19 / 19 槽位在「输入缺失 ⇒ 判绿」这一条上全部阴性 (全部带行号级证据)
+  note: ★链的 fail-closed 语义 (脚本不存在/超时/崩 ⇒ 算闸红) 是完好的 ⇒ 缺口不在「闸跑不跑得起来」, 在「闸跑起来之后用的是哪一档」★ · ref=HW/PCB/BOARD_ONEPASS_GATE_TEETH_AUDIT.md
+    §4 表 (b) (★[实测]★)
+  ref: ''
+- key: iss406_board_fingerprint
+  value: 611b869e13518c3c023fb178f91a0075 / 4940213 / 2026-11-06 07:07:17.362193413
+  note: 零写板自证 (md5 / size / mtime 三项与基线逐字相同) · ref=HW/PCB/BOARD_ONEPASS_GATE_TEETH_AUDIT.md §6.3 (★[实测]★)
+  ref: ''
+- key: iss409_release_chain_invoke_sites
+  value: 7 个真调用点, 只有 1 个带 --strict
+  note: '★state/verify_and_release.sh L53 是全仓唯一带 --strict 的真调用点 ⇒ 放行章这条路今天有牙齿; ★其余 6 个全宽松: chain_gate.py
+    L296 (投产准入/judgement) · board_report.sh L59 (放行取证/display) · verify_candidate.sh L26 (候选验证/discarded)
+    · daily_check.py L344 (巡检/judgement) · replay_patch_chain.sh L240 (历史脚本/discarded) · run_grid_ladder.sh
+    L44 (历史脚本/discarded)★'
+  ref: HW/PCB/BOARD_ONEPASS_RELEASE_CHAIN_TEETH_AUDIT.md §2 表(a)
+- key: iss409_chain_gate_pcb_loop_lenient
+  value: state/chain_gate.py L296 跑宽松档 ⇒ ③PCB 环对 unconnected 零敏感
+  note: ★argv 逐字 run([sys.executable, "state/check_pcb_drc.py"]) (无 --strict); L299 注释自写「布线是否完成 (不阻塞准出,
+    但要报出来)」; L309 lay_txt 只拼进 stage(...) 输出字符串, 不进 x3 判定位 ⇒ 板侧同步一做完 (check_pcb_nets 转绿) ⇒ ③PCB (绿·绿) ⇒
+    unconnected=45 的板照样过投产链★
+  ref: state/chain_gate.py L296-L309
+- key: iss409_pcb_drc_lenient_reading
+  value: 宽松档 rc=0 (打「✅ C4 unconnected items = 45」+「✅ 全过 —— 图纸可下单」) / 严格档 rc=1
+  note: ★C4 判据 ok4 = (n_unc == 0) if strict else True ⇒ 不带 --strict 恒真; 本机两档各实跑一次留证于 logs/iss409/check_pcb_drc_lenient.log
+    与 check_pcb_drc_strict.log (与 ISS-406 留证独立复核一致)★
+  ref: state/check_pcb_drc.py L134-L139 + L187
+- key: iss409_c1_is_what_makes_pcb_red
+  value: ③PCB 今天红靠的是 C1 (check_pcb_nets rc=1), 不是 DRC
+  note: '★本机实跑: check_pcb_nets ⇒ 缺失 0 / 多余 2 / 同号异网 3 ⇒ rc=1; check_pcb_drc 宽松档 rc=0 ⇒ 「未布线」这一项今天完全没参与
+    ③PCB 的判定 ⇒ 今天这一格处于「没人看」的状态★'
+  ref: logs/iss409/check_pcb_nets.log
+- key: iss409_no_order_gates_ledger
+  value: '9 道闸登记: 绝对闸 3 (check_pcb_drc.py 仅 --strict 时 / verify_and_release.sh L53 / stage_gate.py L220-225)
+    · 相对闸 4 (chain_gate.py / promote_arm.sh / promote_board_file.sh / compare_arm_official.py) · 无闸 2
+    (gen_production_pack.sh / check_pcb_nets.py)'
+  note: ★「未布线 ⇒ Gerber 不可下单」今天只由 verify_and_release.sh 严格档 + stage_gate.py 两处真正兜着, 而这两处都不在【投产链准入闸】上 ⇒
+    投产链准入这一环没有牙齿; 现状缺 6 处 (G1 投产准入不判 / G2 巡检不判 / G3 板报告抄假绿 / G4 候选验证 rc 被管道吃掉 / G5 出投产包零判据 / G6 臂晋级只校
+    parity)★
+  ref: HW/PCB/BOARD_ONEPASS_RELEASE_CHAIN_TEETH_AUDIT.md §4 表(c)
+- key: iss409_board_fingerprint
+  value: 611b869e13518c3c023fb178f91a0075 / 4940213 / 2026-11-06 07:07:17.362193413 (ns 1793920037362193413)
+  note: ★零写板自证 (md5 / size / mtime_ns 三项与基线逐字相同) · 新闸 T6 每次跑都会复查这三项★
+  ref: HW/check_onepass_release_chain_teeth.py BOARD_MD5 / BOARD_SIZE / BOARD_MTIME_NS
+- key: iss409_cont1_gate_check_rc1_attribution
+  value: '交卷后 gate_check.py 终跑 rc=1 的红来自并发 agent 的 SW 页, 不是 ISS-409 (★A/B 沙盒实测: 移走那份文件 ⇒ 闸 rc=0; 放回 ⇒
+    闸 rc=1★)'
+  note: '★两次终跑对比: 03:13:31 那次 rc=0 (并发文件还不在盘) ⇒ 03:16:30 并发 agent 落 SW/BOARD_ONEPASS_SW_MUSTCHANGE_FACE_IMPACT.md
+    后 ⇒ 闸红 (3 个解析不到的位号 TP_INT_ISSX / TP_TEMP_ISSX / U_TEMP_1 + 真隐患 6 > 基线 3); ★该闸扫描范围是 SW/*.md (DOC_GLOB
+    L80) ⇒ 本单三个交付物 (HW/PCB/ · HW/ · HANDOFF/) 一个都不在范围内 ⇒ 物理上不可能触发★; ★两次 Q1 都是 18/18, hw-lead 6/6 缺: 无,
+    且交卷后「最新交接单」已切到 2026-11-25_hw-lead_ISS409_放行链牙齿清账与闸.md★; ★本单未动那个文件/那个闸/那个域任何东西★'
+  ref: HANDOFF/2026-11-25_hw-lead_ISS409_放行链牙齿清账与闸.md §B8 (★A/B 实测全文在交卷页 §B8.2★)
 open_questions:
 - id: HW-Q1
   to: main
