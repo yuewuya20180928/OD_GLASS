@@ -143,6 +143,19 @@ python3 MECH/check_jdebug_arrangement_truth.py --selftest
 >
 > ★**结论数字不变**: 降级方案铜箔包络 `6.0000 × 4.4600`、所需开口 Y `6.2600`、开口 X 余量 `2.1000 / 2.1000` (最坏 `1.8000`)、Y 余量 `0.0700 / 0.0700 / 0.6700` (rot0) 与 `−0.7000 / −0.7000 / −0.1000` (rot90)、三档 Y 全红判决 —— ★**一个数字都不改** ★ [实测]
 
+### §2.4 ★订正块落进已签收页之后, 本闸会不会新增红 (★本单自己先验过★) ★
+
+★**这是本单最容易被忽略、也最要命的一条: ★**订正块是给 main 落的, 落进【已签收页】⇒ 已签收页的 md5 会变 ⇒ 既有闸的指纹类判据 (★如 `MECH/check_connector_clearance_caliber.py` 的 `K7`★) 就会红 ⇒ ★**如果本单的新闸在落订正块那一刻也变红, 等于本单自己又制造了一处红** ★** ⇒ 所以本闸把「落订正块」当成一条【必须为绿】的用例来跑** ★
+
+| 项 | 本闸的设计 | 实测 | 证据 |
+|---|---|---|---|
+| 台账条目的 open / landed 判定 | ★按【该条的 surface 文本是否仍出现在已签收页里】判定★ ⇒ 落完订正块 ⇒ 旧 surface 消失 ⇒ 条目自动 closed ★ | ★闸的反向用例 ⑪ 实跑: 落完 7 条订正块 ⇒ 红组 `∅` ⇒ 一条红都不新增 ★ | [实测] |
+| 落订正块后的错表述 | ★落完后那 7 处与实测相符 ⇒ 不再是「与实测不符的表述」 ⇒ 台账覆盖要求归零 ★ | ★同上 (红组 `∅`) ★ | [实测] |
+| 若 main 落成【新的错值】 (★例如写成「3 列 × 4 行交错」★) | ★该表述与实测不符且不在台账里 ⇒ J3 立刻红 ★ | ★闸的反向用例 ⑥ 实跑 ⇒ J3 红 ★ | [实测] |
+| 结论值判据 J4 | ★J4 的比较【故意不读】`arrangement` 字段 ⇒ 标签怎么改都不影响结论值判定 ★ | ★J4 自证: 把 `arrangement` 换成实测 token 与换成 `9x9_staggered`, J4 的判定结果逐字相同 ★ | [实测] |
+
+★**⇒ 结论: ★**订正块可以落, 落了本闸不会新增红; 但落成错值本闸会当场红** ★ (★`--strict-open` 开关还能让本闸在「已签收页仍带未落订正的错标签」时主动报红, 供 main 看红态·★默认不判红★) ★
+
 ---
 
 ## §3 `G5` 盲区的机器判据设计 (★维数逐字对比 + 三条反向用例★)
@@ -184,6 +197,29 @@ python3 MECH/check_jdebug_arrangement_truth.py --selftest
 | 直接改 `MECH/check_jdebug_1p27_clearance.py` 的 `G5` | ★已签收件一个字节都不许动 (★ISS-371 已签收★)★ | ★**没做** ★ | [实测] |
 | 新闸独立挂 | ★本单零挂链 (★挂链是 main 的地界★)★ | ★**没做 (零挂链)** ★ | [实测] |
 | 新闸独立存在 + 给出建议 | ★由 main 裁是「改旧闸」还是「新闸独立挂」★ | ★**本单交付的是这条建议 + 完整判据 + 反向用例** ★ | [实测] |
+
+### §3.5 ★本闸把这条判据落成了什么 (★可逐条复跑★) ★
+
+| 闸内判据 | 做什么 | 反向用例 | 证据 |
+|---|---|---|---|
+| ★`J2` 机器块 `arrangement` 与实测维数逐字对比 ★ | ★规范化后与闸自己解析 `.kicad_mod` 实测出的 token 逐字相等才算绿; 不等 ⇒ 红并点名是列数差、行数差、还是交错限定词差 ★ | ★③ `2x2 staggered` / ④ `2x4` / ⑤ `9x9 staggered` 三条各红 ★ | [实测] |
+| ★`J3` 已签收页排布表述逐处扫出 ★ | ★所有「几列 × 几行 / NxM」表述逐处抠出来; 与实测不符的【一处都不许漏】⇒ 每一条都要在订正台账里登记 ★ | ★⑥ 多一处没登记的错标签 ⇒ J3 红; ⑦ 台账删掉一条 ⇒ J3 红 ★ | [实测] |
+| ★`J4` 结论值独立重算 + 判据分离自证 ★ | ★只用 `.kicad_mod` pad 坐标 + 权威开口 X/Y + `CRIT` 重算; 且【不读】标签字段 ★ | ★⑧ 结论值改错 ⇒ J4 红 ★ | [实测] |
+| ★落地用例 ⑪ ★ | ★main 落完 7 条订正块 ⇒ 本闸红组必须是 `∅` ★ | ★⑪ 实跑 ⇒ 全绿 ★ | [实测] |
+
+★**自检总账**: ★**`python3 MECH/check_jdebug_arrangement_truth.py --selftest` ⇒ 11 条用例 (10 条反向用例 + 1 条落地用例) 全抓到, 末行 `ALL TESTS PASS`** ★ [实测]
+
+### §3.6 ★盲区的【实跑证明】 (★不是断言·★是沙盒里真跑出来的★) ★
+
+★**做法**: ★**在沙盒 `tmp/iss382_sbx/blindspot/` 里, 把已签收页机器块的 `land_smd.arrangement` 改成 `9x9 staggered` (★一个凭空编出来的维数★) ⇒ 跑旧闸 `MECH/check_jdebug_1p27_clearance.py` 与本单新闸** ★
+
+| 跑哪个闸 | 读数 | 说明 | 证据 |
+|---|---|---|---|
+| ★旧闸 `G5` (ISS-371 已签收闸) ★ | ★`[G5] … ⇒ ✅ PASS` · 旧闸 rc=0 ★ | ★**旧闸照样绿** ⇒ ★**盲区是实测成立的, 不是推测** ★ | [实测] |
+| ★本单新闸 `J3` ★ | ★❌ FAIL · 逐条点名: `L392 的排布表述 '9x9' (=9列×9行) 与实测 2x4_staggered 不符, 且【不在订正台账里】⇒ 漏登记` ★ | ★**旧闸放过的, 新闸当场抓住并点名行号** ★ | [实测] |
+| ★本单新闸 `J2` (★把【本单新页】的维数改成 `9x9 staggered`★) ★ | ★❌ FAIL · 逐项点名: `列数: 声明 9 ≠ 实测 2` / `行数: 声明 9 ≠ 实测 4` ★ | ★**J2 就是旧 `G5` 缺的那一条: 声明的维数必须与实测维数逐字相等** ★ | [实测] |
+
+★**复现命令**: ★`python3 tmp/iss382_sbx/prove_g5_blindspot.py` ★ (★原始输出存 `logs/iss382/prove_g5_blindspot.log`★)
 
 ---
 
@@ -233,178 +269,175 @@ python3 state/merge.py && python3 state/gate_check.py && python3 state/check_bri
 <!-- MACHINE-BLOCK-BEGIN -->
 ```json
 {
-  "issue": "ISS-382",
-  "agent": "mech-lead",
-  "role": "结构总工",
-  "date": "2026-11-24",
-  "title": "J_DEBUG 排针排布标签 (维数) 订正真相",
-  "scope": "纯分析 + 新建闸 + 沙盒预演; 零写板 / 零落表 / 零改已签收件 / 零改既有闸 / 零挂链 / 零外发 / 不代拍",
-  "signed_page_untouched": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
-  "legacy_gate_untouched": "MECH/check_jdebug_1p27_clearance.py",
-  "new_gate": "MECH/check_jdebug_arrangement_truth.py",
-  "new_gate_selftest": "python3 MECH/check_jdebug_arrangement_truth.py --selftest",
-  "zero_hook_check": "grep -c check_jdebug_arrangement_truth state/gate_check.py => 0",
-  "mod_md5_anchor": {
-    "PinHeader_1x04_P1.27mm_Vertical.kicad_mod": "7a5f470c1f70d4b832be258501945385",
-    "PinHeader_1x04_P1.27mm_Vertical_SMD_Pin1Left.kicad_mod": "9d6b0e63e99e6484d2cd3fa0bb28c4a5",
-    "PinHeader_1x04_P1.27mm_Vertical_SMD_Pin1Right.kicad_mod": "1579ee4026795bb7a87418d0ee5f120b"
+ "issue": "ISS-382",
+ "agent": "mech-lead",
+ "role": "结构总工",
+ "date": "2026-11-24",
+ "title": "J_DEBUG 排针排布标签 (维数) 订正真相",
+ "scope": "纯分析 + 新建闸 + 沙盒预演; 零写板 / 零落表 / 零改已签收件 / 零改既有闸 / 零挂链 / 零外发 / 不代拍",
+ "signed_page_untouched": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
+ "legacy_gate_untouched": "MECH/check_jdebug_1p27_clearance.py",
+ "new_gate": "MECH/check_jdebug_arrangement_truth.py",
+ "new_gate_selftest": "python3 MECH/check_jdebug_arrangement_truth.py --selftest",
+ "zero_hook_check": "grep -c check_jdebug_arrangement_truth state/gate_check.py => 0",
+ "mod_md5_anchor": {
+  "PinHeader_1x04_P1.27mm_Vertical.kicad_mod": "7a5f470c1f70d4b832be258501945385",
+  "PinHeader_1x04_P1.27mm_Vertical_SMD_Pin1Left.kicad_mod": "9d6b0e63e99e6484d2cd3fa0bb28c4a5",
+  "PinHeader_1x04_P1.27mm_Vertical_SMD_Pin1Right.kicad_mod": "1579ee4026795bb7a87418d0ee5f120b"
+ },
+ "board_baseline": {
+  "md5": "611b869e13518c3c023fb178f91a0075",
+  "mtime": "2026-11-06 07:07:17.362193413",
+  "size": 4940213
+ },
+ "measured": {
+  "SMD_Pin1Left": {
+   "npads": 4,
+   "cols": 2,
+   "rows": 4,
+   "col_x": [
+    -1.5,
+    1.5
+   ],
+   "row_y": [
+    -1.905,
+    -0.635,
+    0.635,
+    1.905
+   ],
+   "col_seq_along_y": [
+    -1.5,
+    1.5,
+    -1.5,
+    1.5
+   ],
+   "staggered": true,
+   "arrangement": "2x4_staggered",
+   "copper_w_mm": 6.0,
+   "copper_h_mm": 4.46,
+   "evidence": "[实测]"
   },
-  "board_baseline": {
-    "md5": "611b869e13518c3c023fb178f91a0075",
-    "mtime": "2026-11-06 07:07:17.362193413",
-    "size": 4940213
+  "SMD_Pin1Right": {
+   "npads": 4,
+   "cols": 2,
+   "rows": 4,
+   "col_x": [
+    -1.5,
+    1.5
+   ],
+   "row_y": [
+    -1.905,
+    -0.635,
+    0.635,
+    1.905
+   ],
+   "col_seq_along_y": [
+    1.5,
+    -1.5,
+    1.5,
+    -1.5
+   ],
+   "staggered": true,
+   "arrangement": "2x4_staggered",
+   "copper_w_mm": 6.0,
+   "copper_h_mm": 4.46,
+   "evidence": "[实测]"
   },
-  "measured": {
-    "SMD_Pin1Left": {
-      "npads": 4, "cols": 2, "rows": 4,
-      "col_x": [-1.5, 1.5],
-      "row_y": [-1.905, -0.635, 0.635, 1.905],
-      "col_seq_along_y": [-1.5, 1.5, -1.5, 1.5],
-      "staggered": true, "arrangement": "2x4_staggered",
-      "copper_w_mm": 6.0, "copper_h_mm": 4.46,
-      "evidence": "[实测]"
-    },
-    "SMD_Pin1Right": {
-      "npads": 4, "cols": 2, "rows": 4,
-      "col_x": [-1.5, 1.5],
-      "row_y": [-1.905, -0.635, 0.635, 1.905],
-      "col_seq_along_y": [1.5, -1.5, 1.5, -1.5],
-      "staggered": true, "arrangement": "2x4_staggered",
-      "copper_w_mm": 6.0, "copper_h_mm": 4.46,
-      "evidence": "[实测]"
-    },
-    "THT_Vertical": {
-      "npads": 4, "cols": 1, "rows": 4,
-      "staggered": false, "arrangement": "1x4",
-      "evidence": "[实测]"
-    }
-  },
-  "arrangement_definition": "2x4_staggered = 列 == 2 且 行 == 4 且 沿 Y 递增排序后相邻两行的列号左右交替; 不要求第一行必须是左列",
-  "land_smd": {
-    "lib": "Connector_PinHeader_1.27mm:PinHeader_1x04_P1.27mm_Vertical_SMD_Pin1Left",
-    "arrangement": "2x4_staggered",
-    "copper_w_mm": 6.0,
-    "copper_h_mm": 4.46,
-    "required_open_y_mm": 6.26,
-    "evidence": "[实测]"
-  },
-  "conclusion_recompute": {
-    "crit": 0.6,
-    "tol": 0.3,
-    "open_x": [137.85, 148.05],
-    "open_y_center": 56.6,
-    "rot0": {
-      "copper_x": [139.95, 145.95],
-      "copper_y": [54.37, 58.83],
-      "clearance_x_left": 2.1,
-      "clearance_x_right": 2.1,
-      "worst_clearance_x": 1.8,
-      "clearance_y_by_tier": {"0.90": 0.07, "2.54": 0.07, "4.00": 0.67},
-      "worst_clearance_y_by_tier": {"0.90": -0.23, "2.54": -0.23, "4.00": 0.37},
-      "pass_crit_y_by_tier": {"0.90": false, "2.54": false, "4.00": false}
-    },
-    "rot90": {
-      "copper_x": [140.72, 145.18],
-      "copper_y": [53.6, 59.6],
-      "clearance_x_left": 2.87,
-      "clearance_x_right": 2.87,
-      "worst_clearance_x": 2.57,
-      "clearance_y_by_tier": {"0.90": -0.7, "2.54": -0.7, "4.00": -0.1},
-      "worst_clearance_y_by_tier": {"0.90": -1.0, "2.54": -1.0, "4.00": -0.4},
-      "pass_crit_y_by_tier": {"0.90": false, "2.54": false, "4.00": false}
-    },
-    "verdict": "降级方案 (SMD 变体) 三档 Y 全红; 错的是标签, 不是这些数值结论",
-    "evidence": "[实测]"
-  },
-  "arrangement_correction_ledger": [
-[
-    {
-        "file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
-        "line": 45,
-        "surface": "2 列 × 2 行",
-        "cols": 2,
-        "rows": 2,
-        "staggered": true,
-        "proposed_surface": "2 列 × 4 行",
-        "proposed": "2x4_staggered",
-        "note": "§1.1 降级方案表: 排布一栏写「2 列 × 2 行交错」",
-        "evidence": "[实测]"
-    },
-    {
-        "file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
-        "line": 203,
-        "surface": "2 列 × 2 行",
-        "cols": 2,
-        "rows": 2,
-        "staggered": true,
-        "proposed_surface": "2 列 × 4 行",
-        "proposed": "2x4_staggered",
-        "note": "§2 正文: 降级方案 SMD 变体的排布描述 (★同一句里前半的「不是 1×4 直排」是 THT 变体的否定式表述, 不是缺陷★)",
-        "evidence": "[实测]"
-    },
-    {
-        "file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
-        "line": 207,
-        "surface": "2 列 × 2 行",
-        "cols": 2,
-        "rows": 2,
-        "staggered": true,
-        "proposed_surface": "2 列 × 4 行",
-        "proposed": "2x4_staggered",
-        "note": "§2 正文: 降级方案 SMD 变体的排布描述 (与 L203 同一段落)",
-        "evidence": "[实测]"
-    },
-    {
-        "file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
-        "line": 288,
-        "surface": "2 列 × 2 行",
-        "cols": 2,
-        "rows": 2,
-        "staggered": true,
-        "proposed_surface": "2 列 × 4 行",
-        "proposed": "2x4_staggered",
-        "note": "§2 正文: 降级方案 SMD 变体的排布描述",
-        "evidence": "[实测]"
-    },
-    {
-        "file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
-        "line": 391,
-        "surface": "2x2",
-        "cols": 2,
-        "rows": 2,
-        "staggered": true,
-        "proposed_surface": "2x4_staggered",
-        "proposed": "2x4_staggered",
-        "note": "机器块 land_smd.arrangement 的字符串值",
-        "evidence": "[实测]"
-    },
-    {
-        "file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
-        "line": 471,
-        "surface": "2x2",
-        "cols": 2,
-        "rows": 2,
-        "staggered": true,
-        "proposed_surface": "2x4_staggered",
-        "proposed": "2x4_staggered",
-        "note": "机器块 land_smd.verdict 判决句里的 SMD 变体排布",
-        "evidence": "[实测]"
-    },
-    {
-        "file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md",
-        "line": 719,
-        "surface": "2x2",
-        "cols": 2,
-        "rows": 2,
-        "staggered": null,
-        "proposed_surface": "2x4_staggered",
-        "proposed": "2x4_staggered",
-        "note": "机器块根级 verdict_summary 总判决句里的 SMD 变体排布",
-        "evidence": "[实测]"
-    }
-]
+  "THT_Vertical": {
+   "npads": 4,
+   "cols": 1,
+   "rows": 4,
+   "staggered": false,
+   "arrangement": "1x4",
+   "evidence": "[实测]"
+  }
+ },
+ "arrangement_definition": "2x4_staggered = 列 == 2 且 行 == 4 且 沿 Y 递增排序后相邻两行的列号左右交替; 不要求第一行必须是左列",
+ "land_smd": {
+  "lib": "Connector_PinHeader_1.27mm:PinHeader_1x04_P1.27mm_Vertical_SMD_Pin1Left",
+  "arrangement": "2x4_staggered",
+  "copper_w_mm": 6.0,
+  "copper_h_mm": 4.46,
+  "required_open_y_mm": 6.26,
+  "evidence": "[实测]"
+ },
+ "conclusion_recompute": {
+  "crit": 0.6,
+  "tol": 0.3,
+  "open_x": [
+   137.85,
+   148.05
   ],
-  "verdict_summary": "ISS-382 结论: 错的是标签 / 维数 (2x2 => 2x4_staggered), 不是几何结论数字; 降级方案的铜箔包络与三档 Y 判决一个数字都不改; 旧闸 G5 的盲区是只查有没有写交错、从不做维数逐字对比"
+  "open_y_center": 56.6,
+  "rot0": {
+   "copper_x": [
+    139.95,
+    145.95
+   ],
+   "copper_y": [
+    54.37,
+    58.83
+   ],
+   "clearance_x_left": 2.1,
+   "clearance_x_right": 2.1,
+   "worst_clearance_x": 1.8,
+   "clearance_y_by_tier": {
+    "0.90": 0.07,
+    "2.54": 0.07,
+    "4.00": 0.67
+   },
+   "worst_clearance_y_by_tier": {
+    "0.90": -0.23,
+    "2.54": -0.23,
+    "4.00": 0.37
+   },
+   "pass_crit_y_by_tier": {
+    "0.90": false,
+    "2.54": false,
+    "4.00": false
+   }
+  },
+  "rot90": {
+   "copper_x": [
+    140.72,
+    145.18
+   ],
+   "copper_y": [
+    53.6,
+    59.6
+   ],
+   "clearance_x_left": 2.87,
+   "clearance_x_right": 2.87,
+   "worst_clearance_x": 2.57,
+   "clearance_y_by_tier": {
+    "0.90": -0.7,
+    "2.54": -0.7,
+    "4.00": -0.1
+   },
+   "worst_clearance_y_by_tier": {
+    "0.90": -1.0,
+    "2.54": -1.0,
+    "4.00": -0.4
+   },
+   "pass_crit_y_by_tier": {
+    "0.90": false,
+    "2.54": false,
+    "4.00": false
+   }
+  },
+  "verdict": "降级方案 (SMD 变体) 三档 Y 全红; 错的是标签, 不是这些数值结论",
+  "evidence": "[实测]"
+ },
+ "verdict_summary": "ISS-382 结论: 错的是标签 / 维数 (2x2 => 2x4_staggered), 不是几何结论数字; 降级方案的铜箔包络与三档 Y 判决一个数字都不改; 旧闸 G5 的盲区是只查有没有写交错、从不做维数逐字对比",
+ "arrangement_correction_ledger": [
+  {"file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md", "line": 45, "surface": "2 列 × 2 行", "cols": 2, "rows": 2, "staggered": true, "proposed_surface": "2 列 × 4 行", "proposed": "2x4_staggered", "note": "§1.1 降级方案表: 排布一栏写「2 列 × 2 行交错」", "evidence": "[实测]"},
+  {"file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md", "line": 203, "surface": "2 列 × 2 行", "cols": 2, "rows": 2, "staggered": true, "proposed_surface": "2 列 × 4 行", "proposed": "2x4_staggered", "note": "§2 正文: 降级方案 SMD 变体的排布描述 (★同一句里前半的「不是 1×4 直排」是 THT 变体的否定式表述, 不是缺陷★)", "evidence": "[实测]"},
+  {"file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md", "line": 207, "surface": "2 列 × 2 行", "cols": 2, "rows": 2, "staggered": true, "proposed_surface": "2 列 × 4 行", "proposed": "2x4_staggered", "note": "§2 正文: 降级方案 SMD 变体的排布描述 (与 L203 同一段落)", "evidence": "[实测]"},
+  {"file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md", "line": 288, "surface": "2 列 × 2 行", "cols": 2, "rows": 2, "staggered": true, "proposed_surface": "2 列 × 4 行", "proposed": "2x4_staggered", "note": "§2 正文: 降级方案 SMD 变体的排布描述", "evidence": "[实测]"},
+  {"file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md", "line": 391, "surface": "2x2", "cols": 2, "rows": 2, "staggered": true, "proposed_surface": "2x4_staggered", "proposed": "2x4_staggered", "note": "机器块 land_smd.arrangement 的字符串值", "evidence": "[实测]"},
+  {"file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md", "line": 471, "surface": "2x2", "cols": 2, "rows": 2, "staggered": true, "proposed_surface": "2x4_staggered", "proposed": "2x4_staggered", "note": "机器块 land_smd.verdict 判决句里的 SMD 变体排布", "evidence": "[实测]"},
+  {"file": "MECH/BOARD_ONEPASS_JDEBUG_1P27_CLEARANCE.md", "line": 719, "surface": "2x2", "cols": 2, "rows": 2, "staggered": null, "proposed_surface": "2x4_staggered", "proposed": "2x4_staggered", "note": "机器块根级 verdict_summary 总判决句里的 SMD 变体排布", "evidence": "[实测]"}
+ ]
 }
 ```
 <!-- MACHINE-BLOCK-END -->

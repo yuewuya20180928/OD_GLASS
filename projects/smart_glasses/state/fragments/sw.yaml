@@ -3,17 +3,12 @@ role: 软件总工
 updated_at: '2026-11-24'
 updated_by: sw-lead
 status:
-  phase: fixing
+  phase: delivered
   progress_pct: 100
   health: green
   updated_at: '2026-11-24'
-  summary: '★ISS-381 cont1 sw-lead 2026-11-24 交卷完成: 4 件交卷物齐 (真相页 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md
-    §0~§7 · 机器闸 SW/tools/check_sw_false_connectivity_gate.py K0~K6 · 交卷页 HANDOFF/2026-11-24_sw-lead_ISS381_*.md
-    B1~B6 · 分片登记 2 产出物 + 4 claim + 5 need 全部 to=main) + ★★端到端决定性实验 (真板沙盒副本): 24 条网全标 NC ⇒ unc 45→20 (−25)
-    而【新增铜 = 0.0mm/0 段】⇒ 23 条必需网铜段数仍全 0 ⇒ 同刻闸 post 相 rc=1 并点名 UART_RX; 另三刷法 (删焊盘/标NC/改名) 在真板副本层端到端全被抓住并点名
-    ⇒ 「计数 ≠ 身份」端到端证实。 ★本单口径订正: main need「unc 45→0 抓不到 UART_RX」那半句被实测证伪 (UART_RX 现在就是 45 条里的一条) ⇒ 零铜且 pad≥2
-    的网必然贡献 ≥1 条 unc item ⇒ 真洞 = 计数≠身份; 老字一字未删, 订正走新页追加块。 ★必跑命令 rc 全对: 闸裸跑 rc=0 (K0~K6 全绿) · --selftest
-    rc=0 通过17/失败0 末行 ALL TESTS PASS · check_s8_target_list rc=0 (N'
+  summary: 'ISS-388 cont1 交卷: 诊断页 + 闸健康度闸(零挂链) + 交卷页 三件在盘; 两道病闸失效已实测复现; 新闸 selftest 22/22; 五条 needs_from
+    to=main'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -2103,6 +2098,29 @@ artifacts:
   updated_at: '2026-10-25'
   summary: '★ISS-385 交卷页 (sw-lead 2026-11-24)★: B1 三问逐条答+10条机器事实+第二坑(寄存器回读不可达) / B2 验收标准自评22条逐条(通过/未验)
     / B3 证据分级五级 / B4 interface_claims 6条(全部带出处行号) / B5 未决项与卡点6条(全部可自行闭环, 零条等外部回复) / B6 自证复现命令+边界自证表(零写板/零落表/零改既有页面正文/零改既有闸/零挂链/零外发/不自签/不写别人的分片/沙盒合规)。'
+- path: SW/BOARD_ONEPASS_GATE_FAILURE_DIAGNOSIS.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-388 诊断页 §0~§7: 闸1=判据与环境耦合 (M2 变异副本 ROOT 由 __file__ 退两级反推, 沙盒落 /tmp 时 ROOT 退成 /), 闸2=账本与现实漂移
+    (H1 4 行 + H4 1 道闸 全是现实多账少), 共同失效模式=两类都不被 daily_check 看见(零挂链), 含签收当天 TMPDIR=$PWD/tmp 的三条留证'
+- path: SW/tools/check_sw_gate_health.py
+  kind: tool
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'SW 域闸健康度闸 (零挂链): H0 闸 selftest 健康度 / H1 两深度读数逐字相同 (环境无关性, 命门) / H2 钉板 md5 闸清单一致 / H3 页面引用行一致
+    / H4 板指纹+零落表+零挂链 / H5 证据分级五级白名单; selftest 22/22 PASS (含 5 条专打 H1)'
+- path: HANDOFF/2026-11-24_sw-lead_ISS388_两道签收闸失效诊断与闸健康度闸.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: ISS-388 交卷页 B1~B6 六段齐全 + 边界自证表 + 建议挂链位置与挂链后预期读数 + 五条 needs_from to=main
+- path: logs/iss388/cont1_verify.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-388 复核留证原样输出: 闸1 默认 TMPDIR 10/11 FAIL rc=1 vs TMPDIR=$PWD/tmp 11/11 PASS rc=0; 闸2 裸跑 5/7
+    rc=1 (H1 4 行 + H4); 闸2 selftest 0/10 rc=1; 板/三表指纹 PRE; 零挂链 grep=0'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -3067,6 +3085,34 @@ needs_from:
   item: '★请 main 裁: 充电链 board 域 = CHG_BOARD 这条架构事实要不要另开一单推动充电板落地★ —— ★本单只登记事实 (F1~F7: U_CHG 10 行 + R_ILIM
     2 行 board 全 CHG_BOARD, MAIN_PCB 0 行; J_TYPE_C 18 行全 CHG_BOARD; 板文件 U_CHG/R_ILIM 各 0 次; BT_432243/U_BATPROT
     均 DNP; demo 装机态 J_CHG DNP)★ ⇒ ★**要不要另开单 = main 的地界, 本单不动任何架构**★'
+  since: '2026-11-24'
+- key: iss388_ledger_drift_owner
+  to: main
+  item: '闸2 的 §1/§2 账本差集 (D-1~D-4) 归谁修: 是指派回 sw-lead 改 ISS-372 真相页的机器块, 还是 main 自己改? 两条路都要重跑闸2 的 10 条反向用例并重签
+    ISS-372. 代价=改的是已签收页必须 main 授权. 降级=本单不改账只登记差集, 闸2 保持判红(那是它的正确行为), 板只改一次那一趟必须人工复核这 4 条'
+  since: '2026-11-24'
+- key: iss388_new_gate_hook_to_main
+  to: main
+  item: 新闸 SW/tools/check_sw_gate_health.py 挂不挂 state/gate_check.py? 建议挂在 SW 域闸链那一组之后(具体行号请 main 指定).
+    挂链后的预期读数=闸结果 2/6 判红 rc=1, 红项恰为 H0/H1/H2/H3 四条, 逐条点名三处病灶 (闸1 环境耦合 / 闸2 账本漂移 / 第三道病闸 check_sw_ref_reachability_v2.py)
+    => 即挂上去之后 Q1 读数会从全绿变成有红, 这是暴露真实病灶而不是引入新缺陷. 代价=gate_check 基线读数变化需 main 接受. 降级=本单已零挂链(grep -c=0)并在此写明建议位置与预期读数
+  since: '2026-11-24'
+- key: iss388_env_sensitivity_fix_location
+  to: main
+  item: 闸1 的环境敏感在源头修还是在调用约定修? 路A 改 check_debug_pin_order_contract.py 的 ROOT 反推机制或给 mkdtemp 显式 dir=sbx_dir()
+    (属改已签收件的判据逻辑=main 地界, 代价=重签 ISS-375 + 重跑 11 条反向用例); 路B 把 所有 selftest 必须 TMPDIR=$PWD/tmp 写进 state/check_brief_commands.py
+    或任务书模板 (改调用方不动被签收件, 代价=约定靠人记会有忘的那天). 本单只摆两条路的代价不写应该 X. 降级=诊断页 §1.3 已把签收当天 TMPDIR=$PWD/tmp 写成明文, 新闸
+    H1 已在自动检测这一类
+  since: '2026-11-24'
+- key: iss388_third_sick_gate
+  to: main
+  item: '本单新闸 H0 顺带点出第三道病闸 SW/tools/check_sw_ref_reachability_v2.py: --selftest rc=1, 反向用例 0/7 通过, 末行
+    出现 有用例没抓到 => 判据可能没被真读. 它的失败模式与闸2 同类(基线先红 => 差值型自测全灭), 不在本单 brief 范围内. 是否另起一单修它? 代价=要先查它自己的基线差集. 降级=本单只登记不修'
+  since: '2026-11-24'
+- key: iss388_delta_selftest_convention
+  to: main
+  item: 差值型自测(断言 红集=={目标那一条})在基线已经漂移时会全灭, 闸自曝不可信却说不出 我不是坏了是账漂了; 闸2 是 0/10, 闸 v2 是 0/7. 是否把 基线必须先绿否则 selftest
+    结论不可读 写进闸的编写通则? 代价=属 main 的规范地界, 一次性改若干已签收闸的 selftest 口径(本单明确不许做). 降级=新闸 H0 的错误消息点名是哪个闸+它的原文末行, 让人一眼区分
   since: '2026-11-24'
 answers:
 - key: debug_port_form
@@ -6100,6 +6146,48 @@ interface_claims:
     · python3 tmp/iss381_sbx/e2e_cheat_proof.py (三刷法在真板副本层全被抓住并点名; 日志 logs/iss381/e2e_cheat_proof.txt)
     · ★两脚本只读真板、只写 tmp/iss381_sbx/cheat/ 与 logs/iss381/ · 真板 md5 611b869e13518c3c023fb178f91a0075 未动★'
   ref: ''
+- key: sw_gate_health.H0
+  value: rc=0 且 末行(跳过纯分隔行) 命中该闸自己声明的成功标志 且 全文无失败标志
+  note: SW 域闸的自测健康度口径; 每道闸的成功标志在闸内 roster 逐条声明, 避免末行不统一造成误报
+  ref: SW/tools/check_sw_gate_health.py::ROSTER
+- key: sw_gate_health.H1
+  value: 读数A ≡ 读数B; 读数=(rc, 归一后的 stdout+stderr); 归一只掩沙盒路径/绝对路径/时间戳三类天然易变字段
+  note: '本单最有价值的判据: 把 判据与环境耦合 这个失效模式从此变成可判的; 端到端反向用例 T1-4 已证它活着'
+  ref: SW/tools/check_sw_gate_health.py::judge_h1
+- key: sw_gate_health.H1_depths
+  value: A=<ROOT>/tmp (深度1, ROOT反推回ROOT) B=<ROOT>/tmp/iss388_sbx/depth_b (深度2, ROOT反推成别的)
+  note: 两个深度必须真的不同; 深度 A 恰是 ISS-375 签收当天的深度, 口径与历史对齐
+  ref: SW/tools/check_sw_gate_health.py::sbx_depths
+- key: sw_gate_health.H2
+  value: 实扫钉板 md5 的闸集合 ⊆ ISS-372 §2 的账, 且 §2 账里登着的闸文件必须还在盘上
+  note: 闸级账本一致性; 实测点名 SW/tools/check_sw_false_connectivity_gate.py (类A) 未在册
+  ref: SW/tools/check_sw_gate_health.py::judge_h2
+- key: sw_gate_health.H3
+  value: 实扫板 md5 页面引用行 ≡ ISS-372 §1 的账 (双向)
+  note: 行级账本一致性; 实测点名 3 行漏登记 (BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23/:241 与 EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215)
+  ref: SW/tools/check_sw_gate_health.py::judge_h3
+- key: sw_gate_health.H4
+  value: 板 md5/mtime/size + 网表/脚表/BOM 三件 md5 + grep -c check_sw_gate_health state/gate_check.py == 0
+  note: 零写板/零落表/零挂链; 反向用例 T4-2 已证零挂链被破坏时会红
+  ref: SW/tools/check_sw_gate_health.py::judge_h4
+- key: sw_gate_health.H5
+  value: 五级白名单 [官网]/[实测]/[媒体]/[推算]/[0数据] + 零挂起措辞 + 零空洞词
+  note: '按 ISS-372 闸的现成形状: 只有含证据等级关键词的方括号 token 才按证据等级审, 页面里的 [PASS]/[FAIL] 不被误判'
+  ref: SW/tools/check_sw_gate_health.py::judge_h5
+- key: iss388.failure_modes
+  value: 判据与环境耦合 / 账本与现实漂移 / 差值型自测在基线漂移时全灭
+  note: '第三类是本单新抽象出来的: 闸2 与闸 v2 都是基线先红 ⇒ 差值型自测全灭 ⇒ 闸自曝不可信, 反而掩盖真因'
+  ref: SW/BOARD_ONEPASS_GATE_FAILURE_DIAGNOSIS.md §3
+- key: iss388.drift_ledger
+  value: D-1 check_sw_false_connectivity_gate.py:73 / D-2 BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23
+    / D-3 同文件:241 / D-4 EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215
+  note: 全部方向都是 现实多账少, 创建者 ISS-381 / ISS-378; 本单只登记不代修 (已签收页不许改)
+  ref: SW/BOARD_ONEPASS_GATE_FAILURE_DIAGNOSIS.md §2.2
+- key: iss388.new_gate
+  value: path=SW/tools/check_sw_gate_health.py hooked_into_gate_check=false criteria=[H0,H1,H2,H3,H4,H5]
+    selftest_reverse_cases=22
+  note: 零挂链 (grep -c = 0); 挂不挂链是 main 的裁决权, 本单只写建议位置与挂链后预期读数
+  ref: HANDOFF/2026-11-24_sw-lead_ISS388_两道签收闸失效诊断与闸健康度闸.md B5/N2
 open_questions:
 - id: SW-Q1
   to: main

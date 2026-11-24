@@ -630,14 +630,10 @@ def _recompute_smd(ctx) -> dict:
     return out
 
 
-def j4_label_vs_conclusion_separate(ctx) -> dict:
-    """J4 · 「标签错」与「结论错」分开判: 降级方案的结论值独立重算 ⇒ 必须逐项相等"""
+def _j4_compare(ctx, blk) -> list:
+    """→ J4 的【纯结论值】比较 (★★故意【不读】`arrangement`·★这是「标签 ≠ 结论」的结构保证★)"""
     errs = []
     rec = ctx["recompute"]
-    blk = ctx["signed_land_smd"]
-    if not blk:
-        errs.append("已签收页机器块缺 land_smd (降级方案结论值无从比对)")
-        return _gate("J4 标签错 / 结论错 分开判 (结论值独立重算)", errs)
     # ① 铜箔包络
     for nm, got, want in (("copper_w_mm", rec["copper_w"], blk.get("copper_w_mm")),
                            ("copper_h_mm", rec["copper_h"], blk.get("copper_h_mm")),
@@ -677,13 +673,28 @@ def j4_label_vs_conclusion_separate(ctx) -> dict:
     verdict = str(blk.get("verdict") or "")
     if "红" not in verdict:
         errs.append("已签收页 land_smd.verdict 未写明『三档 Y 全红』, 现写 %r" % verdict)
-    # ④ ★**判据分离自证** ★: 维数标签【不许】混进结论值里
-    #    ⇒ 已签收页的 `arrangement` 与本闸实测【必然不等】, 而 J4 仍然必须绿
-    #    ⇒ 若有人把 J4 写成「标签也对 ⇒ 才算结论对」⇒ 本条立刻红
-    if canon_token(blk.get("arrangement")) == ctx["measured_token"]:
-        errs.append("★已签收页 arrangement 竟与实测一致 ⇒ 与 ISS-382 的实测前提矛盾 ⇒ 人工复核★")
-    ctx["j4_label_differs"] = True
-    return _gate("J4 标签错 / 结论错 分开判 (降级方案结论值独立重算)", errs)
+    return errs
+
+
+def j4_label_vs_conclusion_separate(ctx) -> dict:
+    """J4 · 「标签错」与「结论错」分开判: 降级方案的结论值独立重算 ⇒ 必须逐项相等"""
+    errs = []
+    blk = ctx["signed_land_smd"]
+    if not blk:
+        errs.append("已签收页机器块缺 land_smd (降级方案结论值无从比对)")
+        return _gate("J4 标签错 / 结论错 分开判 (结论值独立重算)", errs)
+    errs.extend(_j4_compare(ctx, blk))
+    # ④ ★**判据分离自证 (★不硬编码「已签收页现在必然是错的」★)**:
+    #    把同一个 `land_smd` 的 `arrangement` 分别换成【实测 token】与【一个错 token】,
+    #    ★**J4 的判定结果必须逐字相同** ⇒ 证明 J4 确实【不读】标签字段 ⇒
+    #    ★「标签错」永远不牵连「结论值」, 且 main 落完订正块后 J4 也不会变红** ★
+    a = dict(blk); a["arrangement"] = ctx["measured_token"]
+    b = dict(blk); b["arrangement"] = "9x9_staggered"
+    ea, eb = _j4_compare(ctx, a), _j4_compare(ctx, b)
+    if ea != eb:
+        errs.append("★J4 的判定结果随 `arrangement` 标签变化 ⇒ 判据没分开 (标签错不该牵连结论值)★")
+    ctx["j4_label_insensitive"] = (ea == eb)
+    return _gate("J4 标签错 / 结论错 分开判 (结论值独立重算)", errs)
 
 
 _EVID_TOKEN_RE = re.compile(r"\[([^\]\n]{1,14})\]")
@@ -746,10 +757,11 @@ def j5_evidence_wording_nochain(ctx) -> dict:
             errs.append("★本闸已被挂进 state/gate_check.py (%d 处) ⇒ 零挂链纪律被破★" % hit)
     ctx["hook_count"] = 0 if os.path.isfile(gc) else -1
     # 零无等级断言 (★§1 / §2 表格的每一个数据行都必须带证据等级★)
+    # ★Markdown 表格的形状是: 表头行 → 分隔行 → 数据行 ⇒ ★表头行是【分隔行的前一行】★
+    lines = text.split("\n")
     in_fence = False
     sec = ""
-    prev_was_sep = False
-    for ln in text.split("\n"):
+    for i, ln in enumerate(lines):
         if ln.strip().startswith("```"):
             in_fence = not in_fence
             continue
@@ -758,24 +770,24 @@ def j5_evidence_wording_nochain(ctx) -> dict:
         m = re.match(r"^#{1,6}\s*(.+)$", ln)
         if m:
             sec = m.group(1)
-            prev_was_sep = False
             continue
         if not (sec.startswith("§1") or sec.startswith("§2")):
             continue
         s = ln.strip()
         if not s.startswith("|"):
-            prev_was_sep = False
             continue
-        is_sep = bool(re.match(r"^\|[\s\-:|]*\|$", s))
-        if is_sep:
-            prev_was_sep = True
-            continue
-        if prev_was_sep:
-            prev_was_sep = False
-            continue        # ★分隔行下面那一行是表头 ⇒ 不算数据行★
+        if re.match(r"^\|[\s\-:|]*\|$", s):
+            continue                     # ★分隔行★
+        nxt = ""
+        for j in range(i + 1, len(lines)):
+            if lines[j].strip():
+                nxt = lines[j].strip()
+                break
+        if re.match(r"^\|[\s\-:|]*\|$", nxt):
+            continue                     # ★表头行 (★下一行是分隔行★)★
         cells = [c.strip() for c in s.strip("|").split("|")]
         if cells and re.match(r"^#?\s*$", cells[0]):
-            continue     # 空首格行
+            continue                     # 空首格行
         if not any(tk in s for tk in EVIDENCE_WHITELIST):
             errs.append("★§1/§2 表格有一个数据行没带证据等级 (无等级断言)★ 行首: %s" % s[:70])
     return _gate("J5 证据等级 + 零挂起 + 零挂链 + 判据/事实分开 + 零无等级断言", errs)
@@ -879,12 +891,52 @@ def _mut_block(text: str, old: str, new: str, which: int = 0) -> str:
     return text[:m.start(1)] + _mut(seg, old, new) + text[m.end(1):]
 
 
+def _mut_json(text: str, fn, which: int = 0) -> str:
+    """→ 在【第 which 个机器块】里按 JSON 结构改值 (★不靠字符串碰运气★)"""
+    matches = list(BLOCK_RE.finditer(text))
+    if which >= len(matches):
+        raise AssertionError("反向用例找不到第 %d 个机器块 (共 %d 个)" % (which, len(matches)))
+    m = matches[which]
+    blk = json.loads(m.group(1))
+    fn(blk)
+    new = json.dumps(blk, ensure_ascii=False, indent=2)
+    return text[:m.start(1)] + "\n" + new + "\n" + text[m.end(1):]
+
+
 def _edit_file(path: str, fn) -> None:
     with open(path, "r", encoding="utf-8") as fh:
         t = fh.read()
     t2 = fn(t)
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(t2)
+
+
+# ★★【落地用例】★★ ★**main 把订正块落进已签收页之后, 本闸【不许新增任何一条红】★★
+# ★**为什么必须有这条**: 本闸 J3 的台账按【surface 是否仍出现在已签收页】判 open/landed ⇒
+#   落完订正块 ⇒ 旧 surface 消失 ⇒ 台账条目自动 closed ⇒ 活着的错表述归零 ⇒ 本闸应当全绿
+#   ⇒ ★**若这条不成立, 就等于逼 main 落订正块时新闸当场变红 ⇒ 本单自己制造了新红** ★
+def _land_correction_block(sb: str) -> None:
+    """→ 把本单 §2.1 的 7 条订正【落】进沙盒里的已签收页 (★只在沙盒里做★)"""
+    sp = os.path.join(sb, SIGNED_PAGE_REL)
+
+    def fix(t: str) -> str:
+        # ① 正文 4 处「2 列 × 2 行交错」⇒「2 列 × 4 行交错」
+        t = t.replace("2 列 × 2 行", "2 列 × 4 行")
+        # ② 机器块: land_smd.arrangement + land_smd.verdict + 根级 verdict_summary
+        def j(b):
+            b["land_smd"]["arrangement"] = "2x4_staggered"
+            b["land_smd"]["verdict"] = str(b["land_smd"].get("verdict", "")).replace("2x2", "2x4")
+            if isinstance(b.get("verdict_summary"), str):
+                b["verdict_summary"] = b["verdict_summary"].replace("2x2", "2x4")
+        return _mut_json(t, j)
+
+    _edit_file(sp, fix)
+
+
+LANDING_CASES = [
+    ("⑪ main 落完订正块 (7 处) ⇒ 本闸【一条红都不许新增】⇒ 全绿",
+     _land_correction_block),
+]
 
 
 CASES = [
@@ -899,18 +951,15 @@ CASES = [
     ("③ 机器块 arrangement 写成 2x2 staggered ⇒ J2 红 (旧 G5 对此全绿)",
      "J2", {"J2"},
      lambda sb: _edit_file(os.path.join(sb, TRUTH_PAGE_REL),
-                            lambda t: _mut_block(t, '"arrangement": "2x4_staggered"',
-                                                 '"arrangement": "2x2 staggered"'))),
+                            lambda t: _mut_json(t, lambda b: b["land_smd"].__setitem__("arrangement", "2x2 staggered")))),
     ("④ 机器块 arrangement 写成 2x4 (丢掉交错限定词) ⇒ J2 红",
      "J2", {"J2"},
      lambda sb: _edit_file(os.path.join(sb, TRUTH_PAGE_REL),
-                            lambda t: _mut_block(t, '"arrangement": "2x4_staggered"',
-                                                 '"arrangement": "2x4"'))),
+                            lambda t: _mut_json(t, lambda b: b["land_smd"].__setitem__("arrangement", "2x4")))),
     ("⑤ 机器块 arrangement 写成 9x9 staggered ⇒ J2 红",
      "J2", {"J2"},
      lambda sb: _edit_file(os.path.join(sb, TRUTH_PAGE_REL),
-                            lambda t: _mut_block(t, '"arrangement": "2x4_staggered"',
-                                                 '"arrangement": "9x9 staggered"'))),
+                            lambda t: _mut_json(t, lambda b: b["land_smd"].__setitem__("arrangement", "9x9 staggered")))),
     ("⑥ 已签收页里多出一处没登记的错标签 ⇒ J3 红 (漏登记)",
      "J3", {"J3"},
      lambda sb: _edit_file(os.path.join(sb, SIGNED_PAGE_REL),
@@ -918,12 +967,11 @@ CASES = [
     ("⑦ 订正台账里删掉一条 ⇒ J3 红 (一处都不许漏)",
      "J3", {"J3"},
      lambda sb: _edit_file(os.path.join(sb, TRUTH_PAGE_REL),
-                            lambda t: _mut(t, '"surface": "2 列 × 2 行", "cols": 2, "rows": 2',
-                                           '"surface": "2 列 × 2 行", "cols": 2, "rows": 3'))),
+                            lambda t: _mut_json(t, lambda b: b["arrangement_correction_ledger"][0].__setitem__("rows", 3)))),
     ("⑧ 已签收页的降级方案结论值改错 ⇒ J4 红 (结论值独立重算)",
      "J4", {"J4"},
      lambda sb: _edit_file(os.path.join(sb, SIGNED_PAGE_REL),
-                            lambda t: _mut_block(t, '"copper_h_mm": 4.46,', '"copper_h_mm": 4.47,'))),
+                            lambda t: _mut_json(t, lambda b: b["land_smd"].__setitem__("copper_h_mm", 4.47)))),
     ("⑨ 证据等级写成第六级 ⇒ J5 红",
      "J5", {"J5"},
      lambda sb: _edit_file(os.path.join(sb, TRUTH_PAGE_REL),
@@ -980,10 +1028,36 @@ def selftest(root: str, libroot: str = LIBROOT) -> int:
                     print("        · %s: %s" % (k, e))
         shutil.rmtree(sb, ignore_errors=True)
 
+    # ★★【落地用例】★★ main 落订正块之后本闸不许新增红
+    for name, fn in LANDING_CASES:
+        sb = _sandbox(root, "case_landing", libroot)
+        try:
+            fn(sb)
+        except AssertionError as exc:
+            print("  ✗ %s ⇒ ★用例自身坏了: %s★" % (name, exc))
+            ok_all = False
+            continue
+        r3 = run_checks(sb, os.path.join(sb, "lib"))
+        if "__io__" in r3:
+            print("  ✗ %s ⇒ ★用例自身坏了: %s★" % (name, r3["__io__"]))
+            ok_all = False
+            continue
+        red = sorted(k for k, v in r3.items() if isinstance(v, dict) and "ok" in v and not v["ok"])
+        good = not red
+        print("  %s %s ⇒ 红组 %s (★必须为空·★落订正块不许让本闸新增红★)"
+              % ("✅" if good else "❌", name, red or "∅"))
+        if not good:
+            ok_all = False
+            for k in red:
+                for e in r3[k]["errs"][:3]:
+                    print("        · %s: %s" % (k, e))
+        shutil.rmtree(sb, ignore_errors=True)
+
     print("-" * 92)
-    n = len(CASES)
-    print("【自检结论】%s" % ("✅ %d 条反向用例全抓到 (且无额外判据被误红) ★ ALL TESTS PASS ★" % n
-                              if ok_all else "❌ 有用例没抓到 ★ TESTS FAILED ★"))
+    n = len(CASES) + len(LANDING_CASES)
+    print("【自检结论】%s" % ("✅ %d 条用例全抓到 (且无额外判据被误红)" % n
+                              if ok_all else "❌ 有用例没抓到"))
+    print("ALL TESTS PASS" if ok_all else "TESTS FAILED")
     return 0 if ok_all else 1
 
 

@@ -1,0 +1,904 @@
+{
+ "baseline_drift": {
+  "baseline_red_introduced_by_iss392": false,
+  "chain_ref_gate_state": "v1_in_chain_v2_not_hooked",
+  "note": "★v2 的 selftest 当前红是【基线漂移】(★ISS-372 那一趟引入的 SW_MD5 形状 token 把 DESIGNATOR_MISSING 顶过上限★) ⇒ ★基线红 ≠ 本单引入★ ⇒ 本单零改 v2★",
+  "v1_rel": "SW/tools/check_sw_ref_reachability.py",
+  "v2_rel": "SW/tools/check_sw_ref_reachability_v2.py",
+  "v2_selftest_last_line": "❌ 有用例没抓到 ⇒ 判据可能没被真读",
+  "v2_selftest_rc": 1
+ },
+ "blind_spot_classes": {
+  "A": [
+   "SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py",
+   "SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py",
+   "SW/tools/check_demo_panel_spec_r6_selftest.py",
+   "SW/tools/check_landing_trace_obligation.py",
+   "SW/tools/check_onepass_sw_sync.py",
+   "SW/tools/check_sw_ref_reachability.py"
+  ],
+  "B": [
+   "SW/check_evt_charge_current_criterion.py",
+   "SW/tools/check_debug_header_fw_impact.py",
+   "SW/tools/check_debug_pin_order_contract.py",
+   "SW/tools/check_demo_panel_spec.py",
+   "SW/tools/check_fp_truth_read.py",
+   "SW/tools/check_load_switch_selection.py",
+   "SW/tools/check_onepass_legb_sw_impact.py",
+   "SW/tools/check_rk3572_vccio_domain.py",
+   "SW/tools/check_shutdown_semantics.py",
+   "SW/tools/check_sw_board_md5_rebase_readiness.py",
+   "SW/tools/check_sw_false_connectivity_gate.py",
+   "SW/tools/check_sw_fp_truth_impact.py",
+   "SW/tools/check_sw_ref_reachability_v2.py",
+   "SW/tools/check_sw_ref_reachability_v2_selftest.py"
+  ],
+  "C": [],
+  "D": [
+   "SW/tools/check_brightness_biosafety.py",
+   "SW/tools/check_iss250_rknn_target_gate.py",
+   "SW/tools/check_iss355_convert_route.py",
+   "SW/tools/check_onepass_sw_release.py",
+   "SW/tools/check_rk3572_target_caliber.py",
+   "SW/tools/check_rknn_target_compat.py",
+   "SW/tools/check_sw09_patch_dryrun.py",
+   "SW/tools/check_sw_zero_copper_grade_consistency.py",
+   "SW/tools/check_timing_review_adc_sync.py"
+  ],
+  "E": [
+   "SW/tools/check_sw_gate_chain_coverage.py",
+   "SW/tools/check_sw_gate_health.py"
+  ]
+ },
+ "chain_ref_gate_state": "v1_in_chain_v2_not_hooked",
+ "class_notes": {
+  "A": "★已在链内 ⇒ 板那一趟它的判定会参与门禁 (★护栏在位★)",
+  "B": "★板敏感 + 不在链内 ⇒ 板那一趟它本该响但今天不响 ⇒ ★那天是个洞★",
+  "C": "★与板无关 + 当前读数红 ⇒ 与板无关但会因基线/账漂变红",
+  "D": "★与板无关 + 当前读数绿 ⇒ 不必进链 (辅助/自测/板无关闸)",
+  "E": "★元闸本身 ⇒ 它的盲区就是本单的对象"
+ },
+ "coverage": {
+  "chain_coverage_ratio": 0.1935,
+  "not_in_chain": 25,
+  "roster_blind_spot": 18,
+  "roster_coverage_ratio": 0.4194,
+  "sw_gates_in_chain": 6,
+  "sw_gates_in_health_roster": 13,
+  "sw_gates_on_disk": 31
+ },
+ "gate_detail": {
+  "SW/check_evt_charge_current_criterion.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_brightness_biosafety.py": {
+   "aux": false,
+   "board_sensitive": false,
+   "class": "D",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "--- SELFTEST 13/13 通过 ---",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_debug_header_fw_impact.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_debug_pin_order_contract.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": false,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_demo_panel_spec.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": true,
+   "last_line": "--- SELFTEST 22/22 通过 ---",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py": {
+   "aux": true,
+   "board_sensitive": true,
+   "class": "A",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": true,
+   "in_health_roster": false,
+   "last_line": "反向用例: 4/4 通过",
+   "mode": "tmpdir",
+   "rc": 0
+  },
+  "SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py": {
+   "aux": true,
+   "board_sensitive": false,
+   "class": "A",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": true,
+   "in_health_roster": false,
+   "last_line": "反向用例: 4/4 通过",
+   "mode": "tmpdir",
+   "rc": 0
+  },
+  "SW/tools/check_demo_panel_spec_r6_selftest.py": {
+   "aux": true,
+   "board_sensitive": true,
+   "class": "A",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": true,
+   "in_health_roster": false,
+   "last_line": "         (★ISS-309 need · 反向用例设计见交卷单 B3/B5★)",
+   "mode": "tmpdir",
+   "rc": 0
+  },
+  "SW/tools/check_fp_truth_read.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_iss250_rknn_target_gate.py": {
+   "aux": false,
+   "board_sensitive": false,
+   "class": "D",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "SELFTEST 5/5 通过, rc=0",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_iss355_convert_route.py": {
+   "aux": false,
+   "board_sensitive": false,
+   "class": "D",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_landing_trace_obligation.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "A",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": true,
+   "in_health_roster": true,
+   "last_line": "✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_load_switch_selection.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "selftest: 12/12",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_onepass_legb_sw_impact.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": true,
+   "last_line": "SELFTEST 10/10 通过",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_onepass_sw_release.py": {
+   "aux": false,
+   "board_sensitive": false,
+   "class": "D",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "【自检结论】✅ 一致 (反向用例全抓到 · 真盘一个字节不许动)",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_onepass_sw_sync.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "A",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": true,
+   "in_health_roster": true,
+   "last_line": "  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_rk3572_target_caliber.py": {
+   "aux": false,
+   "board_sensitive": false,
+   "class": "D",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "SELFTEST 12/12 通过, rc=0",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_rk3572_vccio_domain.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": false,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "--- SELFTEST 16/16 通过 ---",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_rknn_target_compat.py": {
+   "aux": false,
+   "board_sensitive": false,
+   "class": "D",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "[SELFTEST] PASS 判据抓得住坏产物",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_shutdown_semantics.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "SELFTEST 17/17 通过, rc=0",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw09_patch_dryrun.py": {
+   "aux": true,
+   "board_sensitive": false,
+   "class": "D",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_board_md5_rebase_readiness.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": true,
+   "last_line": "★有用例 FAIL ⇒ 本闸不可信 ⇒ rc=1★",
+   "mode": "selftest",
+   "rc": 1
+  },
+  "SW/tools/check_sw_false_connectivity_gate.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_fp_truth_impact.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": true,
+   "last_line": "SELFTEST 6/6 通过 ⇒ ✅ 一致 (反向用例全抓到)",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_gate_chain_coverage.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "E",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_gate_health.py": {
+   "aux": true,
+   "board_sensitive": true,
+   "class": "E",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_ref_reachability.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "A",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": true,
+   "in_health_roster": true,
+   "last_line": "✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_ref_reachability_v2.py": {
+   "aux": false,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": true,
+   "last_line": "❌ 有用例没抓到 ⇒ 判据可能没被真读",
+   "mode": "selftest",
+   "rc": 1
+  },
+  "SW/tools/check_sw_ref_reachability_v2_selftest.py": {
+   "aux": true,
+   "board_sensitive": true,
+   "class": "B",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "★自测结果: 10/15 通过 · ✘ 有不过的",
+   "mode": "bare",
+   "rc": 1
+  },
+  "SW/tools/check_sw_zero_copper_grade_consistency.py": {
+   "aux": false,
+   "board_sensitive": false,
+   "class": "D",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "★★结论: ★**全绿** ★ ⇒ SW 侧分级与板侧真值【一致】★",
+   "mode": "bare",
+   "rc": 0
+  },
+  "SW/tools/check_timing_review_adc_sync.py": {
+   "aux": false,
+   "board_sensitive": false,
+   "class": "D",
+   "env_same": true,
+   "has_main": true,
+   "in_chain": false,
+   "in_health_roster": false,
+   "last_line": "SELFTEST 4/4 通过, rc=0",
+   "mode": "selftest",
+   "rc": 0
+  }
+ },
+ "gate_readings": {
+  "SW/check_evt_charge_current_criterion.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_evt_charge_current_criterion",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_brightness_biosafety.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_brightness_biosafety",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "--- SELFTEST 13/13 通过 ---",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_debug_header_fw_impact.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_debug_header_fw_impact",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_debug_pin_order_contract.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_debug_pin_order_contract",
+   "env_rc_a": 0,
+   "env_rc_b": 1,
+   "env_same": false,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_demo_panel_spec.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_demo_panel_spec",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "--- SELFTEST 22/22 通过 ---",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py": {
+   "args": [
+    "--tmpdir",
+    "<SBX>"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_demo_panel_spec_r6_chainjudge_selftest",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "反向用例: 4/4 通过",
+   "mode": "tmpdir",
+   "rc": 0
+  },
+  "SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py": {
+   "args": [
+    "--tmpdir",
+    "<SBX>"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_demo_panel_spec_r6_hardprot_iss315_selftest",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "反向用例: 4/4 通过",
+   "mode": "tmpdir",
+   "rc": 0
+  },
+  "SW/tools/check_demo_panel_spec_r6_selftest.py": {
+   "args": [
+    "--tmpdir",
+    "<SBX>"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_demo_panel_spec_r6_selftest",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "         (★ISS-309 need · 反向用例设计见交卷单 B3/B5★)",
+   "mode": "tmpdir",
+   "rc": 0
+  },
+  "SW/tools/check_fp_truth_read.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_fp_truth_read",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_iss250_rknn_target_gate.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_iss250_rknn_target_gate",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "SELFTEST 5/5 通过, rc=0",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_iss355_convert_route.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_iss355_convert_route",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_landing_trace_obligation.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_landing_trace_obligation",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_load_switch_selection.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_load_switch_selection",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "selftest: 12/12",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_onepass_legb_sw_impact.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_onepass_legb_sw_impact",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "SELFTEST 10/10 通过",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_onepass_sw_release.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_onepass_sw_release",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "【自检结论】✅ 一致 (反向用例全抓到 · 真盘一个字节不许动)",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_onepass_sw_sync.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_onepass_sw_sync",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "  ✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_rk3572_target_caliber.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_rk3572_target_caliber",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "SELFTEST 12/12 通过, rc=0",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_rk3572_vccio_domain.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_rk3572_vccio_domain",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": false,
+   "last_line": "--- SELFTEST 16/16 通过 ---",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_rknn_target_compat.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_rknn_target_compat",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "[SELFTEST] PASS 判据抓得住坏产物",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_shutdown_semantics.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_shutdown_semantics",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "SELFTEST 17/17 通过, rc=0",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw09_patch_dryrun.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw09_patch_dryrun",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_board_md5_rebase_readiness.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw_board_md5_rebase_readiness",
+   "env_rc_a": 1,
+   "env_rc_b": 1,
+   "env_same": true,
+   "last_line": "★有用例 FAIL ⇒ 本闸不可信 ⇒ rc=1★",
+   "mode": "selftest",
+   "rc": 1
+  },
+  "SW/tools/check_sw_false_connectivity_gate.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw_false_connectivity_gate",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_fp_truth_impact.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw_fp_truth_impact",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "SELFTEST 6/6 通过 ⇒ ✅ 一致 (反向用例全抓到)",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_gate_chain_coverage.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw_gate_chain_coverage",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_gate_health.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw_gate_health",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "ALL TESTS PASS",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_ref_reachability.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw_ref_reachability",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)",
+   "mode": "selftest",
+   "rc": 0
+  },
+  "SW/tools/check_sw_ref_reachability_v2.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw_ref_reachability_v2",
+   "env_rc_a": 1,
+   "env_rc_b": 1,
+   "env_same": true,
+   "last_line": "❌ 有用例没抓到 ⇒ 判据可能没被真读",
+   "mode": "selftest",
+   "rc": 1
+  },
+  "SW/tools/check_sw_ref_reachability_v2_selftest.py": {
+   "args": [],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw_ref_reachability_v2_selftest",
+   "env_rc_a": 1,
+   "env_rc_b": 1,
+   "env_same": true,
+   "last_line": "★自测结果: 10/15 通过 · ✘ 有不过的",
+   "mode": "bare",
+   "rc": 1
+  },
+  "SW/tools/check_sw_zero_copper_grade_consistency.py": {
+   "args": [],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw_zero_copper_grade_consistency",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "★★结论: ★**全绿** ★ ⇒ SW 侧分级与板侧真值【一致】★",
+   "mode": "bare",
+   "rc": 0
+  },
+  "SW/tools/check_timing_review_adc_sync.py": {
+   "args": [
+    "--selftest"
+   ],
+   "env_depth_a": "tmp",
+   "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_timing_review_adc_sync",
+   "env_rc_a": 0,
+   "env_rc_b": 0,
+   "env_same": true,
+   "last_line": "SELFTEST 4/4 通过, rc=0",
+   "mode": "selftest",
+   "rc": 0
+  }
+ },
+ "sw_gates_in_chain": [
+  "SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py",
+  "SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py",
+  "SW/tools/check_demo_panel_spec_r6_selftest.py",
+  "SW/tools/check_landing_trace_obligation.py",
+  "SW/tools/check_onepass_sw_sync.py",
+  "SW/tools/check_sw_ref_reachability.py"
+ ],
+ "sw_gates_in_health_roster": [
+  "SW/check_evt_charge_current_criterion.py",
+  "SW/tools/check_debug_header_fw_impact.py",
+  "SW/tools/check_debug_pin_order_contract.py",
+  "SW/tools/check_demo_panel_spec.py",
+  "SW/tools/check_fp_truth_read.py",
+  "SW/tools/check_landing_trace_obligation.py",
+  "SW/tools/check_onepass_legb_sw_impact.py",
+  "SW/tools/check_onepass_sw_sync.py",
+  "SW/tools/check_sw_board_md5_rebase_readiness.py",
+  "SW/tools/check_sw_false_connectivity_gate.py",
+  "SW/tools/check_sw_fp_truth_impact.py",
+  "SW/tools/check_sw_ref_reachability.py",
+  "SW/tools/check_sw_ref_reachability_v2.py"
+ ],
+ "sw_gates_on_disk": [
+  "SW/check_evt_charge_current_criterion.py",
+  "SW/tools/check_brightness_biosafety.py",
+  "SW/tools/check_debug_header_fw_impact.py",
+  "SW/tools/check_debug_pin_order_contract.py",
+  "SW/tools/check_demo_panel_spec.py",
+  "SW/tools/check_demo_panel_spec_r6_chainjudge_selftest.py",
+  "SW/tools/check_demo_panel_spec_r6_hardprot_iss315_selftest.py",
+  "SW/tools/check_demo_panel_spec_r6_selftest.py",
+  "SW/tools/check_fp_truth_read.py",
+  "SW/tools/check_iss250_rknn_target_gate.py",
+  "SW/tools/check_iss355_convert_route.py",
+  "SW/tools/check_landing_trace_obligation.py",
+  "SW/tools/check_load_switch_selection.py",
+  "SW/tools/check_onepass_legb_sw_impact.py",
+  "SW/tools/check_onepass_sw_release.py",
+  "SW/tools/check_onepass_sw_sync.py",
+  "SW/tools/check_rk3572_target_caliber.py",
+  "SW/tools/check_rk3572_vccio_domain.py",
+  "SW/tools/check_rknn_target_compat.py",
+  "SW/tools/check_shutdown_semantics.py",
+  "SW/tools/check_sw09_patch_dryrun.py",
+  "SW/tools/check_sw_board_md5_rebase_readiness.py",
+  "SW/tools/check_sw_false_connectivity_gate.py",
+  "SW/tools/check_sw_fp_truth_impact.py",
+  "SW/tools/check_sw_gate_chain_coverage.py",
+  "SW/tools/check_sw_gate_health.py",
+  "SW/tools/check_sw_ref_reachability.py",
+  "SW/tools/check_sw_ref_reachability_v2.py",
+  "SW/tools/check_sw_ref_reachability_v2_selftest.py",
+  "SW/tools/check_sw_zero_copper_grade_consistency.py",
+  "SW/tools/check_timing_review_adc_sync.py"
+ ]
+}

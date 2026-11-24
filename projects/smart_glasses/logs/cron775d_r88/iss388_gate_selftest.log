@@ -1,0 +1,26 @@
+=== ISS-388 · check_sw_gate_health --selftest ===
+  [PASS] T0-1   基线 · 一道健康的闸 ⇒ H0 不红                                        H0 errs=0
+  [PASS] T0-2   ★H0 · 某道闸 selftest rc≠0 ⇒ 必须 H0 红                          errs=3
+  [PASS] T0-3   ★H0 · 某道闸 selftest 末行不含它声明的成功标志 ⇒ 必须 H0 红                  errs=1
+  [PASS] T0-4   ★H0 · 输出里混进失败标志 (rc 却是 0) ⇒ 必须 H0 红                        errs=1
+  [PASS] T0-5   不误伤 · 一道健康的闸 ⇒ H0 必须绿                                      errs=0
+  [PASS] T1-1   ★H1 · 两个深度读数不同 ⇒ 必须 H1 红 (★命门★)                            errs=1
+  [PASS] T1-2   不误伤 · 两个深度读数相同 ⇒ H1 必须绿                                    errs=0
+  [PASS] T1-3   ★H1 · 两个深度 rc 不同 ⇒ 必须 H1 红                                 errs=1
+  [PASS] T1-4   ★H1 端到端 · 真造一道环境敏感的夹具闸 + 真在两个深度下跑两遍 ⇒ 必须 H1 红 (★命门★)       rcA=0 rcB=1 errs=1
+  [PASS] T1-5   ★H1 深度自检 · 两个 TMPDIR 的相对深度必须真的不同                           A=tmp/iss388_sbx/h1fx_a B=tmp/iss388_sbx/h1fx_b/nested
+  [PASS] T2-1   ★H2 · 盘上多出一道钉板 md5 的闸而账里没有 ⇒ 必须 H2 红                       errs=1
+  [PASS] T2-2   不误伤 · 账与现实一致 ⇒ H2 必须绿                                      errs=0
+  [PASS] T2-3   ★H2 · 账里登着但盘上文件没了 ⇒ 必须 H2 红                                errs=1
+  [PASS] T3-1   ★H3 · 盘上多出一行引用而 §1 账里没有 ⇒ 必须 H3 红                          errs=1
+  [PASS] T3-2   不误伤 · §1 账与盘上一致 ⇒ H3 必须绿                                   errs=0
+  [PASS] T3-3   ★H3 · 账里登记的行盘上已经扫不到 ⇒ 必须 H3 红                              errs=1
+  [PASS] T4-1   不误伤 · 真实盘上板指纹未动 + 零挂链 ⇒ H4 必须绿                             errs=[]
+  [PASS] T4-2   ★H4 · 零挂链被破坏 (gate_check.py 里出现本闸) ⇒ 必须 H4 红               errs=1
+  [PASS] T5-1   不误伤 · 白名单等级 + 无禁语 ⇒ H5 必须绿                                 errs=0
+  [PASS] T5-2   ★H5 · 证据等级越界 ⇒ 必须 H5 红                                     errs=1
+  [PASS] T5-3   ★H5 · 挂起措辞 ⇒ 必须 H5 红                                       errs=1
+  [PASS] T5-4   ★H5 · 交付页缺失 ⇒ 必须 H5 红                                      errs=1
+=== selftest 22/22 通过 (共 22 条反向用例, 其中专打 H1 命门 5 条) ===
+ALL TESTS PASS
+rc=0

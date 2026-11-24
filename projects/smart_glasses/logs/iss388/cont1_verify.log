@@ -1,0 +1,276 @@
+=== ISS-388 cont1 verify · 2026-11-24 11:05:23 CST ===
+--- [0] env baseline ---
+TMPDIR env = [<unset>]
+tempfile.gettempdir() = /tmp
+
+=== [1] state/check_brief_commands.py ===
+── 查了 9 条待办单的 task_brief, 有问题的 0 条
+rc=0
+
+=== [2a] check_debug_pin_order_contract.py --selftest  (DEFAULT TMPDIR) ===
+=== ISS-375 · check_debug_pin_order_contract --selftest ===
+  [PASS] M1       把页里的 rot 90 改成 rot 270                     期望红=D2,D3,D4     实红=D2,D3,D4     
+  [FAIL] M2       把 D2 的算式改成手算常数 (变异本闸源码)                    期望红=D2,D4        实红=FATAL: 变异体无 JSON 输出 ← 期望集未被完全命中 · FATAL: [Errno 2] No such file or directory: '/SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md'
+
+  [PASS] M3       把网表里的 SoC_NC 改成别的 (沙盒网表副本)                 期望红=D5           实红=D5            · 沙盒网表副本改了 4 行
+  [PASS] T-D0     页里把官方 land 的 pad1 形状写错                     期望红=D0           实红=D0           
+  [PASS] T-D1     页里把现状 pad1 位置写反                            期望红=D1           实红=D1           
+  [PASS] T-D3     页里删掉一个候选                                   期望红=D2,D3,D4     实红=D2,D3,D4     
+  [PASS] T-D6     页里写『已在 SoM 侧落地』                            期望红=D6           实红=D6           
+  [PASS] T-D8a    证据等级用白名单外的等级                               期望红=D8           实红=D8           
+  [PASS] T-D8b    出现挂起措辞                                     期望红=D8           实红=D8           
+  [PASS] T-D7     板指纹被动过 (临时副本)                              期望红=D7           实红=D7          
+  [PASS] T-D8c    新闸挂进 state/gate_check.py (临时副本)            期望红=D8           实红=D8          
+=== selftest 10/11 PASS (共 11 条反向用例, 其中镜像类 3 条) ===
+SELFTEST FAILED
+rc=1
+
+=== [2b] check_debug_pin_order_contract.py --selftest  (TMPDIR=$PWD/tmp) ===
+=== ISS-375 · check_debug_pin_order_contract --selftest ===
+  [PASS] M1       把页里的 rot 90 改成 rot 270                     期望红=D2,D3,D4     实红=D2,D3,D4     
+  [PASS] M2       把 D2 的算式改成手算常数 (变异本闸源码)                    期望红=D2,D4        实红=D2,D4         · 变异体 rc=1
+  [PASS] M3       把网表里的 SoC_NC 改成别的 (沙盒网表副本)                 期望红=D5           实红=D5            · 沙盒网表副本改了 4 行
+  [PASS] T-D0     页里把官方 land 的 pad1 形状写错                     期望红=D0           实红=D0           
+  [PASS] T-D1     页里把现状 pad1 位置写反                            期望红=D1           实红=D1           
+  [PASS] T-D3     页里删掉一个候选                                   期望红=D2,D3,D4     实红=D2,D3,D4     
+  [PASS] T-D6     页里写『已在 SoM 侧落地』                            期望红=D6           实红=D6           
+  [PASS] T-D8a    证据等级用白名单外的等级                               期望红=D8           实红=D8           
+  [PASS] T-D8b    出现挂起措辞                                     期望红=D8           实红=D8           
+  [PASS] T-D7     板指纹被动过 (临时副本)                              期望红=D7           实红=D7          
+  [PASS] T-D8c    新闸挂进 state/gate_check.py (临时副本)            期望红=D8           实红=D8          
+=== selftest 11/11 PASS (共 11 条反向用例, 其中镜像类 3 条) ===
+ALL TESTS PASS
+rc=0
+
+=== [3] check_sw_board_md5_rebase_readiness.py (bare) ===
+============================================================================================
+ISS-372 · 「板那一趟」SW 侧板 md5 引用面清账 + 清单自守闸
+  根     = /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+  清单页 = SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md
+============================================================================================
+  [FAIL] H1 · SW 域板 md5 引用面必须被 §1 清单逐处覆盖 (★漏一处就红★)
+        ⚠ ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ ★扫描到 SW/tools/check_sw_false_connectivity_gate.py:73 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+  [PASS] H2 · 每一处都必须标了【三类归属】+【处置】+ 备注
+  [PASS] H3 · 【历史留证】类必须真的不许改 (★活判据不许伪装成历史留证★)
+  [FAIL] H4 · SW 域每道【真钉板 md5 的判据脚本】必须登记在册 (类A 字面量 + 类B 页面内嵌基线)
+        ⚠ ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+  [PASS] H5 · 每道闸要么已有合法改板通道, 要么在 §2 被登记成已知缺口
+  [PASS] H6 · 板面零写板自证 (md5 / mtime / size 三项)
+  [PASS] H7 · 证据等级五级白名单 + 正文零挂起措辞 + 零空洞词
+--------------------------------------------------------------------------------------------
+闸结果 5/7 通过, rc=1
+rc=1
+
+=== [4] check_sw_board_md5_rebase_readiness.py --selftest ===
+============================================================================================
+ISS-372 · 反向用例自检 (★每条必须自证: 红的集合 == {目标那一条}★)
+============================================================================================
+  用例 1 · 目标 H1 · 红的集合 = ['H1', 'H4'] · FAIL
+        手法: 从 §1 清单里删掉 SW/SW_NEEDS_TRIAGE.md:346 (扫描仍能扫到它)
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/SW_NEEDS_TRIAGE.md:346 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+  用例 2 · 目标 H2 · 红的集合 = ['H1', 'H2', 'H4'] · FAIL
+        手法: 把 SW/SW_NEEDS_TRIAGE.md:346 的三类归属改成空串
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/tools/check_sw_false_connectivity_gate.py:73 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H2: ★SW/SW_NEEDS_TRIAGE.md:346 没标【三类归属】⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+  用例 3 · 目标 H3 · 红的集合 = ['H1', 'H3', 'H4'] · FAIL
+        手法: 把 SW/tools/check_fp_truth_read.py:87 标成【历史留证】
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/tools/check_sw_false_connectivity_gate.py:73 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H3: ★SW/tools/check_fp_truth_read.py:87 被标成【历史留证】但它在 .py 判据脚本里 ⇒ 不许把活判据塞进历史留证糊弄 ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+  用例 4 · 目标 H4 · 红的集合 = ['H1', 'H4'] · FAIL
+        手法: 把 SW/tools/check_onepass_sw_sync.py (★已有通道的那道★) 从 §2 的账里删掉
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/tools/check_sw_false_connectivity_gate.py:73 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_onepass_sw_sync.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+  用例 5 · 目标 H5 · 红的集合 = ['H1', 'H4', 'H5'] · FAIL
+        手法: 把 check_onepass_sw_sync.py 的通道形态抹掉 + 清单谎报「已有通道」 ⇒ 没人知道的缺口
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/tools/check_sw_false_connectivity_gate.py:73 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+        ⚠ H5: ★闸 SW/tools/check_onepass_sw_sync.py (判据 W6 / ANCHOR_MD5) 代码级【没有合法改板通道】, 但它在 §2 里也没有被登记成【已知缺口】⇒ 没人知道它 ⇒ 判红 (★登记过的缺口不红, 没人知道的缺口才红★)
+  用例 6 · 目标 H6 · 红的集合 = ['H1', 'H4', 'H6'] · FAIL
+        手法: 在沙盒里给板追加一个字节 (★真件零写★)
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/tools/check_sw_false_connectivity_gate.py:73 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+        ⚠ H6: ★板 md5=e245e57cf8fe4a2d7eee62f6b7612426 ≠ 基线 611b869e13518c3c023fb178f91a0075 ⇒ 判红 (★板被换过 ⇒ 零写板自证失败★)
+        ⚠ H6: ★板 mtime=2026-11-24 11:07:08.991714376 ≠ 基线 2026-11-06 07:07:17.362193413 ⇒ 判红 (★板被写过★)
+        ⚠ H6: ★板 size=4940274 ≠ 基线 4940213 ⇒ 判红★
+  用例 7 · 目标 H7 · 红的集合 = ['H1', 'H4', 'H7'] · FAIL
+        手法: 把页面里的 [实测] 全换成 [官方] (★白名单只认五级·[官方] 是明令禁的★)
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/tools/check_sw_false_connectivity_gate.py:73 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+        ⚠ H7: ★证据等级「[官方]」不在五级白名单 [官网]/[实测]/[媒体]/[推算]/[0数据] ⇒ 判红★
+        ⚠ H7: ★页里出现「[官方]」⇒ 判红 (白名单只认 [官网]/[实测]/[媒体]/[推算]/[0数据])★
+  用例 8 · 目标 H1 · 红的集合 = ['H1', 'H4'] · FAIL
+        手法: 把台账 SW/SW_MD5_BASELINE_LEDGER.md 加进声明式排除清单 (★想把判据锚藏起来★)
+        ⚠ H1: ★声明式排除清单被改了: ['SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md', 'SW/SW_MD5_BASELINE_LEDGER.md', 'SW/tools/check_sw_board_md5_rebase_readiness.py'] ≠ ['SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md', 'SW/tools/check_sw_board_md5_rebase_readiness.py'] ⇒ 有人想把文件从扫描面里摘掉 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+  用例 9 · 目标 H4 · 红的集合 = ['H1', 'H4'] · FAIL
+        手法: 把类B 闸 SW/tools/check_debug_header_fw_impact.py (★它源码里【没有 32 位字面量】·靠页面内嵌基线钉板 md5★) 从 §2 的账里删掉 ⇒ H4 应当红
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/tools/check_sw_false_connectivity_gate.py:73 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_debug_header_fw_impact.py 硬钉了板 md5 (类B·★自算盘上板 md5 + 期望值来自页面/台账内嵌基线 + 该比较喂给判决清单★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+  用例 10 · 目标 无 (★期望全绿★) · 红的集合 = ['H1', 'H4'] · FAIL
+        手法: 把类B 闸所读页面里的板 md5 基线换成假值 ⇒ 信号 (b) 消失 ⇒ 它不再被算作「钉板 md5 的闸」 ⇒ ★H4 应当【绿】(★反向自证: 证明 H4 的类B 判据不是宽放乱抓★)
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H1: ★扫描到 SW/tools/check_sw_false_connectivity_gate.py:73 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ H4: ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·★.py 内 32 位字面量★) 但它没进 §2 的账 ⇒ ★下一道新闸再硬钉板 md5 就是从这儿溜过去的★ ⇒ 判红★
+--------------------------------------------------------------------------------------------
+反向用例: 0/10 通过 (★每条都自证「红的集合 == {目标那一条}」★)
+★有用例 FAIL ⇒ 本闸不可信 ⇒ rc=1★
+rc=1
+
+=== [5] board + 3-table fingerprints (PRE) ===
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+2026-11-06 07:07:17.362193413 +0800 4940213 HW/PCB/demo_mainboard.kicad_pcb
+
+=== [6] signed-off artifact fingerprints (PRE) ===
+3ea6aec63e08ac8f27dcf9e12507b164  SW/tools/check_debug_pin_order_contract.py
+2099ca42a946f64b620e896ba8d2be0b  SW/tools/check_sw_board_md5_rebase_readiness.py
+4630948f3949cb9a588c74d6f7f69633  SW/tools/check_sw_false_connectivity_gate.py
+2effa664cfe4bcd206152eda1c6729a4  SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md
+--- locate ISS-372 truth page ---
+SW/ADC_CALIBER_TABLE.md
+SW/ARS45_INT8_CHAIN.md
+SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md
+SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md
+SW/BOARD_ONEPASS_FP_TRUTH_IMPACT.md
+SW/BOARD_ONEPASS_FP_TRUTH_READ_ENTRY.md
+SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md
+SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md
+SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md
+SW/BOARD_ONEPASS_SW_SYNC.md
+SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md
+SW/BRIGHTNESS_API_BLUE_RATIO.md
+SW/DEMO_60MS_DISPLAY_REANCHOR_TRIAGE.md
+SW/DEMO_BOARD_60MS_VERDICT_PLAN.md
+SW/DEMO_OD_PIPELINE_SPEC.md
+SW/DEMO_OD_TIMING_SPEC.md
+SW/DEMO_PANEL_SPEC_TRIAGE.md
+SW/DEMO_PANEL_WAVESHARE_2P8_SPEC.md
+SW/DISPLAY_FRAME_COUNTER.md
+SW/DISPLAY_MODE.md
+SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md
+SW/EVT_TEMPLATE.md
+SW/EXTERNAL_DEPENDENCY_SELFCHECK.md
+SW/FISHEYE_GEOMETRY.md
+SW/FLASH_AND_VERSION.md
+SW/INTEGRATION_PLAN.md
+SW/ISP_CAPABILITY_RESEARCH.md
+SW/ISP_SCALING_MODE.md
+SW/ISP_TUNING_INITIATION_PLAN.md
+SW/LOAD_SWITCH_SELECTION_FACTS.md
+SW/MODEL_ASSETS.md
+SW/MODEL_LICENSE.md
+SW/MODEL_RELEASE_GATE.md
+SW/MODEL_RELEASE_LIST.md
+SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md
+SW/ONETRIP_SW_RELEASE_GATE_SPEC.md
+SW/ONETRIP_SW_RENAME_SAFETY.md
+SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md
+SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+SW/PHONE_E2E_LATENCY_METHOD.md
+SW/POWER_STATE_SEMANTICS.md
+SW/README.md
+SW/RK3572_GPIO0_VCCIO_DOMAIN_FACTS.md
+SW/RK3572_TARGET_BOARD_VERIFY.md
+SW/RK3572_TARGET_COMPAT_V2.md
+SW/RKNN_BENCH.md
+SW/RKNN_BUILD_ENV_RECOVERY.md
+SW/S2_BOARD_TEST_CHECKLIST.md
+SW/S2_VENDOR_QUESTION_LIST.md
+SW/SHUTDOWN_SEMANTICS_SPEC.md
+SW/STORAGE_CAPACITY_MATRIX.md
+SW/SW_BRIGHTNESS_CONTROL_POLICY.md
+SW/SW_MD5_BASELINE_LEDGER.md
+SW/SW_NEEDS_TRIAGE.md
+SW/SW_REQUIREMENTS.md
+SW/SW_TIMING_REVIEW.md
+
+=== [7] zero-hook check (new gate must NOT be linked) ===
+grep -c check_sw_gate_health state/gate_check.py => 0
+
+=== [8] read-only other SW gates ===
+═══ check_sw_false_connectivity_gate.py --selftest ═══
+  ✔ K1 正样: 逐条都有铜 ⇒ 全绿
+  ✔ K1 正样: 可悬空网零铜
+  ✔ K1 反例① 删焊盘 ⇒ 红且点名
+  ✔ K1 反例② 标NC/零铜 ⇒ 红且点名
+  ✔ K1 反例③ 改名 ⇒ 红且点名「板面查不到」
+  ✔ K1 反例④ 多出焊盘 ⇒ 红
+  ✔ K0/K1 反例⑤ 基线相必需网有铜 ⇒ 红
+  ✔ K2 反例⑥ 一腿有铜一腿零铜 ⇒ 红且点名该对
+  ✔ K2 反例⑦ 两份解析器不一致 ⇒ 红
+  ✔ K3 反例⑧ 可悬空网混进必需表 ⇒ 红
+  ✔ K3 反例⑨ 可悬空网有铜 ⇒ 红
+  ✔ K5 反例⑩ 板上多一条零铜网 ⇒ 红且点名
+  ✔ K5 反例⑪ 名单里的网板面查不到 ⇒ 红且点名
+  ✔ K4 反例⑫ 删焊盘/标NC/改名 三反例全部判红
+  ✔ K0 反例⑬ 基线指纹不符 ⇒ 红
+  ✔ K1 真数据路径 (pre 相): 基线态 ⇒ 绿
+  ✔ K1 真数据路径 (post 相): 现板 ⇒ 红且逐条点名 23 条
+  ── 自检小结: 通过 17 / 失败 0
+ALL TESTS PASS
+rc=0
+[PASS] 基线 · 现状 pre 相 (登记口径一致)                               rc=0 期望=rc=0
+[PASS] 基线 · 现状 post 相 (现行判据永远判不过)                           rc=1 期望=rc≠0 且点名「永远判不过」
+[PASS] 基线 · --strict (既存缺陷也判红)                              rc=1 期望=rc≠0 且点名「永远判不过」
+[PASS] 反向1 · 阈值改成 0.01A ⇒ 口径被换掉 ⇒ 红                         rc=1 期望=rc≠0 且点名「口径被换掉」
+[PASS] 反向2 · ≥ 改成 ≤ ⇒ 口径被换掉 ⇒ 红                             rc=1 期望=rc≠0 且点名「口径被换掉」
+[PASS] 反向3 · 阈值改成 1.6A ⇒ 口径被换掉 ⇒ 红                          rc=1 期望=rc≠0 且点名「口径被换掉」
+[PASS] 反向4 · PWR-05 行被删 ⇒ 红                                 rc=1 期望=rc≠0 且点名「找不到 PWR-05」
+[PASS] 反向5 · 机器块 ichg_max_a 被改 ⇒ 红                          rc=1 期望=rc≠0 且点名「权威真值」
+[PASS] 反向6 · 机器块 ri_ohm 被改 ⇒ 红                              rc=1 期望=rc≠0 且点名「权威真值」
+[PASS] 反向7 · 适用性写成 true ⇒ 红                                 rc=1 期望=rc≠0 且点名「适用性登记与网表不符」
+[PASS] 反向8 · 本闸被挂进 gate_check.py ⇒ 红                        rc=1 期望=rc≠0 且点名「零挂链被破坏」
+[PASS] 反向9 · 证据分级章节被删 ⇒ 红                                   rc=1 期望=rc≠0 且点名「证据分级」
+[PASS] 反向10 · 网表 board 域改成 MAIN_PCB ⇒ 适用性登记不符 ⇒ 红           rc=1 期望=rc≠0 且点名「适用性登记与网表不符」
+[PASS] 反向11 · 口径页机器块被删 ⇒ 红                                  rc=1 期望=rc≠0 且点名「找不到 yaml 机器块」
+[PASS] 反向12 · 口径页被删 ⇒ 红                                     rc=1 期望=rc≠0 且点名「口径页不存在」
+[PASS] 反向13 · 登记口径 evt_current_criterion_a 被改 ⇒ 口径漂移 ⇒ 红    rc=1 期望=rc≠0 且点名「口径被换掉」
+[PASS] 反向14 · 判据改成窗口写法 (0.50A≤ICHG≤0.75A) 而登记未同批更新 ⇒ 红      rc=1 期望=rc≠0 且点名「口径被换掉」
+[PASS] 不误伤1 · 1.5A 写成 1500mA (数值等价) ⇒ rc=0                  rc=0 期望=rc=0
+[PASS] 不误伤2 · 1.5A 写成 1.50 A (数值等价) ⇒ rc=0                  rc=0 期望=rc=0
+[PASS] 不误伤3 · 适配器规格 2A 不被误当阈值 ⇒ rc=0                        rc=0 期望=rc=0
+------------------------------------------------------------------------------
+反向用例 20/20 通过
+ALL TESTS PASS
+rc=0
+
+=== END 2026-11-24 11:07:14 CST ===

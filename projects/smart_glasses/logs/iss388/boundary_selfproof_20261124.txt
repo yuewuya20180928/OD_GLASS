@@ -1,0 +1,42 @@
+=== [1] 板 / 三表 指纹 (POST) ===
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+2026-11-06 07:07:17.362193413 +0800 4940213 HW/PCB/demo_mainboard.kicad_pcb
+
+=== [2] 既有闸 / 已签收页 md5 (POST) ===
+3ea6aec63e08ac8f27dcf9e12507b164  SW/tools/check_debug_pin_order_contract.py
+2099ca42a946f64b620e896ba8d2be0b  SW/tools/check_sw_board_md5_rebase_readiness.py
+4630948f3949cb9a588c74d6f7f69633  SW/tools/check_sw_false_connectivity_gate.py
+0ba9dfce5046e131465b4fbd3675614f  SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md
+2effa664cfe4bcd206152eda1c6729a4  SW/BOARD_ONEPASS_DEBUG_PIN_ORDER_CONTRACT.md
+151a9fbbd0faea7166817c62b667bb4a  SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md
+185355d83b82f97953ad37d49ecbcce6  SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md
+
+=== [3] 零挂链 ===
+grep -c check_sw_gate_health state/gate_check.py => 0
+
+=== [4] 本单新文件 ===
+c420c2ff126b2620a97dbd59f6e34483  SW/BOARD_ONEPASS_GATE_FAILURE_DIAGNOSIS.md
+402c545951c3319a48c662f5b754d464  SW/tools/check_sw_gate_health.py
+751d82c69caa32ec0795d105260971b1  HANDOFF/2026-11-24_sw-lead_ISS388_两道签收闸失效诊断与闸健康度闸.md
+
+=== [5] 板 md5 字面量面未被扰动 (本单三件交付物里 0 处) ===
+grep -c 611b869e 诊断页 => 0
+grep -c 611b869e 新闸 => 0
+grep -c 611b869e 交卷页 => 0
+
+=== [6] 闸 2 的红项未被本单扰动 (仍是 H1 四行 + H4 一道闸) ===
+  [FAIL] H1 · SW 域板 md5 引用面必须被 §1 清单逐处覆盖 (★漏一处就红★)
+  [PASS] H2 · 每一处都必须标了【三类归属】+【处置】+ 备注
+  [PASS] H3 · 【历史留证】类必须真的不许改 (★活判据不许伪装成历史留证★)
+  [FAIL] H4 · SW 域每道【真钉板 md5 的判据脚本】必须登记在册 (类A 字面量 + 类B 页面内嵌基线)
+  [PASS] H5 · 每道闸要么已有合法改板通道, 要么在 §2 被登记成已知缺口
+  [PASS] H6 · 板面零写板自证 (md5 / mtime / size 三项)
+  [PASS] H7 · 证据等级五级白名单 + 正文零挂起措辞 + 零空洞词
+闸结果 5/7 通过, rc=1
+
+=== [7] outbox / issue_log 未动 ===
+20
+2026-11-24 12:06:54.037996178 +0800 state/issue_log.yaml

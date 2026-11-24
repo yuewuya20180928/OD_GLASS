@@ -3,13 +3,16 @@ role: 结构总工(带散热)
 updated_at: '2026-11-24T08:40:00+08:00'
 updated_by: mech-lead
 status:
-  phase: fixing
+  phase: done
   progress_pct: 100
   health: green
-  summary: 'ISS-386 交付完成: J_DEBUG + J_UART 座体/开口/必须清空区【合一件答】—— 同一张同源主表(4 行: 两件 x 两档) + J_UART 三个候选落点逐候选实口径判决(全部
-    罩住红/开口绿) + 帧无关形式 + J_DEBUG 清空区 X 宽三个竞争值各算一遍(三者全红 ⇒ OI-5 只改返工幅度不改方向) + 两件一致性九条 + 证据分级 + 未决项; 新闸 MECH/check_debug_seat_3d_fit.py
-    (K0~K10 = 201 条判据, selftest 18/18 反向用例, 零挂链) + 交卷页; 零写板 零落表 零改已签收页 零改既有闸 零挂链 零外发 不代拍(OI-5/落点都不代答)
-    不自签台账'
+  summary: 'ISS-389 cont1 交卷完成: 要求单 MECH/BOARD_ONEPASS_DEBUG_SEAT_REWORK_SPEC.md (65,851B md5 8a56a3eb
+    正文一字未改) + 新闸 MECH/check_debug_seat_rework_spec.py (47,102B md5 babadd6b 裸跑 rc=0 判据 472 条失败 0 条 selftest
+    rc=0 17/17) + 交卷页 HANDOFF/2026-11-24_mech-lead_ISS389_两连接器座体开口清空区收口作业包.md (B1~B6 齐全) 三件在盘; 结构侧给 J_DEBUG
+    与 J_UART 两件合到一件的改件要求单 目标清空区 6.6100/4.0700 (X) 与 2.8000 (Y) 罩开口 X 10.2000 不动; 8 条 OI 全部登记进 needs_from
+    (OI-5/OI-3/OI-2/OI-12/OI-13/OI-14 归 main OI-11/OI-1 归 boss) 每条写清要谁回答什么+代价+不答的后果+答复窗口=板框上位问题同一窗口 板那一趟开工前;
+    三档 1.7750/4.0850/4.8100 只给代价不裁决 decisions 7 字段全 not_decided_here; 零写板 零落表 零改既有闸与已签收页 零挂链 零外发 不代拍 不自签台账;
+    已知基线红 check_connector_clearance_caliber.py rc=1 (K7) 前后逐字相同 非本单引入 未去改它'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -1737,19 +1740,20 @@ artifacts:
   kind: truth
   version: iss382
   updated_at: '2026-11-24'
-  summary: 'ISS-382 cont1 新建 J_DEBUG 排针排布标签(维数)订正真相页: §0 一句话结论 + §1 三变体实测表(两个官方 SMD 变体自己解析 .kicad_mod
-    ⇒ pads=4/列=2/行=4/沿Y列序左右交替 ⇒ 2x4_staggered; THT ⇒ 1x4) + §2 订正块草稿(逐处 7 处清单: L45/L203/L207/L288 的 2
-    列 × 2 行、L391/L471/L719 的 2x2; 并逐项列明哪些结论数字不因此改变: 铜箔包络 6.0000×4.4600 本来就是按 2 列×4 行算的 ⇒ 标签错≠结论错, 结论数字一个都不改)
-    + §3 旧闸 G5 盲区与机器判据设计(6 条判据 + 6 条反向用例 + 本单对新闸的 4 处修改说明) + §4 未决项 4 条(to=main, 不代拍) + §5 复跑命令; 机器块含
-    land_smd.arrangement=2x4_staggered 与 arrangement_correction_ledger 7 条逐处台账; 证据等级 [实测]/[推算]/[0数据]。'
+  summary: 'ISS-382 新建 J_DEBUG 排针排布标签(维数)订正真相页: §0 一句话结论 + §1 三变体实测表(两个官方 SMD 变体自己解析 .kicad_mod ⇒ pads=4/列=2/行=4/沿Y列序左右交替
+    ⇒ 2x4_staggered; THT ⇒ 1x4) + §2 订正块草稿(逐处 7 处清单: L45/L203/L207/L288 的 2 列 × 2 行、L391/L471/L719 的 2x2;
+    并逐项列明哪些结论数字不因此改变: 铜箔包络 6.0000×4.4600 本来就是按 2 列×4 行算的 ⇒ 标签错≠结论错, 结论数字一个都不改) + §2.4 落订正块后本闸不新增红(台账按
+    surface open/landed 判 + 落地用例 ⑪) + §3 旧闸 G5 盲区与机器判据设计(§3.1 盲区位置 / §3.2 规范化口径 4 条 / §3.3 三条反向用例 2x2·2x4·9x9
+    / §3.4 为何不改旧闸 / §3.5 本闸落成什么) + §4 未决项 4 条(to=main, 不代拍) + §5 复跑命令; 机器块含 land_smd.arrangement=2x4_staggered
+    与 arrangement_correction_ledger 7 条逐处台账; 证据等级 [实测]/[推算]/[0数据]。'
 - path: MECH/check_jdebug_arrangement_truth.py
   kind: script
   version: iss382
   updated_at: '2026-11-24'
-  summary: 'ISS-382 cont1 新建只读机器闸 J0~J5: J0 板三项指纹未动 / J1 三变体排布自己实测(不拿 md5 锚当答案) / J2 机器块 arrangement 与实测
-    token 逐字对比(旧 G5 缺的就是这条) / J3 已签收页排布表述逐处扫出且一处都不许漏 / J4 标签错与结论错分开判(结论值独立重算) / J5 证据等级+零挂起+零挂链+判据句事实句分开;
-    10 条反向用例全抓到(末行 ALL TESTS PASS); 零挂链(grep -c state/gate_check.py ⇒ 0); 本趟对闸的 4 处修改只修误报/补漏检/修崩溃, 未放松任何判据;
-    沙盒只落 tmp/iss382_sbx/selftest/。'
+  summary: 'ISS-382 新建只读机器闸 J0~J5: J0 板三项指纹未动 / J1 三变体排布自己实测(不拿 md5 锚当答案) / J2 机器块 arrangement 与实测 token
+    逐字对比(旧 G5 缺的就是这条) / J3 已签收页排布表述逐处扫出且一处都不许漏(台账按 surface 计数覆盖) / J4 标签错与结论错分开判(结论值独立重算 + 判据分离自证: J4
+    判定结果不随 arrangement 标签变化) / J5 证据等级+零挂起+零挂链+判据句事实句分开+零无等级断言; --selftest 11 条用例(10 条反向用例 + 1 条落地用例「main
+    落完订正块后红组必须为空」)全抓到, 末行 ALL TESTS PASS; 零挂链(grep -c state/gate_check.py ⇒ 0); 沙盒只落 tmp/iss382_sbx/selftest/。'
 - path: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md
   kind: truth
   version: v1.0
@@ -1777,6 +1781,48 @@ artifacts:
     / 未验 1, 含『J_UART 落点有没有被偷偷挑掉一个』与『网表/脚表/BOM md5 逐字相同』『板三项指纹逐字相同』『既有闸 md5 未变』『既有页正文未变』『新闸裸跑 rc=0』『selftest
     末行 ALL TESTS PASS』『grep -c = 0』) ; B3 证据分级 ; B4 接口取值声明(认领 9 条 + 不认领 6 条) ; B5 未决项 OI-5/OI-3/OI-2/OI-11/OI-12/OI-13/OI-14/OI-15
     ; B6 复现命令'
+- path: MECH/BOARD_ONEPASS_DEBUG_SEAT_REWORK_SPEC.md
+  kind: spec
+  version: '1.0'
+  updated_at: '2026-11-24'
+  summary: 'ISS-389 改件要求单: J_DEBUG + J_UART 座体/开口/必须清空区两件合到一件; 0-9 节齐全 (统一口径表 6 行 + 改件项 D-1~D-8 与 U-1~U-9
+    + 三档代价账 OI-5 + 四条结构侧自答 + 闸链影响 + 降级方案 DP-1~DP-6 + 机器块 14 键); 零写板 零落表 零改既有页 正文一字未改'
+- path: MECH/check_debug_seat_rework_spec.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-24'
+  summary: 'ISS-389 新机器闸: 裸跑 rc=0 判据 472 条失败 0 条; --selftest rc=0 反向用例 17/17 ALL TESTS PASS 约 1.0 秒; 零挂链
+    grep=0; 内置零写板 零落表 零代拍三个护栏; 本趟只跑未改'
+- path: HANDOFF/2026-11-24_mech-lead_ISS389_两连接器座体开口清空区收口作业包.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-24'
+  summary: 'ISS-389 交卷页: B1~B6 六段齐全 + 边界自证 11 条; B5 逐条写清 8 条 OI 的要谁回答什么 + 不答的后果 + 答复窗口; B6 贴必跑命令原样输出与
+    rc'
+- path: logs/iss389/cont1_verify.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-11-24'
+  summary: 'ISS-389 cont1 独立复核日志: 开工前指纹 + 命令存在性守卫 + 新闸裸跑与 selftest + 6 个已签收闸 12 次调用 + 8.1 复跑命令 + 沙盒 9
+    道闸 rc + 已知基线红取证'
+- path: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md
+  kind: truth-doc
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-390 真相页: FTS 直插档厂件座体外形三量 (宽 X = N x 1.27 => 5.0800 / 2.5400, 深 Y = 2.1600, 绝缘体高 Z = 0.8600,
+    全部 [官网] 出自 Samtec 官方机械图 FTS-1XX-XX-X-SX-MKT REVISION AE) + 通用 KiCad 库件 vs 厂件逐格对照 + OI-12 前提订正表 6 处
+    + 影响面十个编号 + OI-11~OI-14 关系 + 机器块'
+- path: MECH/check_fts_seat_body_geometry.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-390 机器闸: G1~G7 共 33 条断言 + 15 条反向用例 (其中 5 条专打定性: 把通用库件说成厂件; 词表弱化; 绕过; 未登记措辞), 零挂链, 沙盒落项目盘
+    tmp/iss390_sbx/selftest, 自证环境无关'
+- path: HANDOFF/2026-11-24_mech-lead_ISS390_FTS直插档座体外形与courtyard前提订正.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: 'ISS-390 交卷页: B1~B6 六段齐全 (结论摘要/验收标准自评/证据分级/接口取值声明/未决项/自证复现命令) + 边界自证表 + 复跑命令原样输出'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -3318,6 +3364,93 @@ needs_from:
   item: 'OI-15: J_UART 三候选里 pad1 位移 0.2441 的归属 —— 任务书记在 (18.4000,68.4000) 名下, ISS-379 §2.3 实为 (18.5000,68.4000)
     的值; 本页按实测距离给 (C2=0.3124, C3=0.3400)。不影响任何余量/判决, 只影响『挪多远』的账 ⇒ 要 main / hw-lead 核对任务书与 ISS-379 §2.3
     哪一处是笔误。mech-lead 只登记订正, 不改 ISS-379 页 (零改已签收件)。'
+  since: '2026-11-24'
+- key: iss389_oi2_b33_scope_window
+  to: main
+  item: 'ISS-389 OI-2 要 main 回答: 那一趟 B33_PIN_LAND_1P27 的范围含不含 J_UART? 代价两条腿结构侧已算死: 含则 J_UART 结构件同批返工 (清空区
+    2.5400x2.5400 改 4.0700x2.8000 中心随落点移 -0.9250/+0.1450/+0.0450) 且罩开口 Y 只有落点 C1/C3 不动 C2 要改到含 66.1000..70.7000;
+    不含则 J_UART 结构件零返工 但板上 BOM (HW/BOM_v1.csv:77) 与网表 (HW/netlist_v1.csv:399) 写的 1.27mm 实物排针仍落不进 0.50mm
+    pitch 的自绘占位 land (差 0.77) 即结构件零返工不等于实物装得上. 不答的后果: 与 OI-3 耦合 若先定落点 C2 再定范围 结构件要返工第二次. 答复窗口: 与板框上位问题
+    boss_u1_upper_axis_board_trip_physical_product 同一窗口 即板那一趟开工前 (结构件开模下单后不可回头)'
+  since: '2026-11-24'
+- key: iss389_oi3_juart_landing_window
+  to: main
+  item: 'ISS-389 OI-3 要 main 回答: J_UART 落点三选一 定哪个 (C1 rot 270 / C2 rot 90 / C3 rot 90)? 结构侧已实算 (沙盒 feas2.py):
+    三候选 X 向全可行; Y 向 C1 与 C3 可行 但铜箔中心允许偏心 0.0000; C2 内缩只有 1.6000 差 0.2000 不可行. 不答的后果: 座体清空区中心定不下来 (三候选差
+    -0.9250/+0.1450/+0.0450) 结构件开不了模; 且若定 C2 而没同时改罩开口 Y 要第二次返工. 注意 落点裁决已被 ISS-379 挂起 本单不重复开 只把 C2 死结量化出来.
+    答复窗口: 与板框上位问题同一窗口 即板那一趟开工前'
+  since: '2026-11-24'
+- key: iss389_oi5_clearance_x_tier_window
+  to: main
+  item: 'ISS-389 OI-5 要 main 回答: J_DEBUG 的必须清空区 X 宽以 1.7750 / 4.0850 / 4.8100 哪个为准? 结构侧只摆代价不裁决: 三档目标值完全相同
+    = 6.6100 所以选哪档只改返工幅度不改这一趟结构件要不要动 (三档全红); 结构件总宽增量分别 +4.8350 / +2.5250 / +1.8000 (三档差 3.0350). 不答的后果:
+    返工工时 工装 镜脚内腔尺寸不能在 OI-5 定之前冻结 (但改件要求单可先照 6.6100 写). 答复窗口: 与板框上位问题同一窗口 即板那一趟开工前'
+  since: '2026-11-24'
+- key: iss389_oi11_seat_height_window
+  to: boss
+  item: 'ISS-389 OI-11 要 boss 回答: 座体真实高 h 是 0数据 无实物依据 走三档参数化 0.90/2.54/4.00 还是定版一个值锁死? 结构侧已算: X 向判决与 h
+    无关 所以 OI-11 不阻塞 OI-5; 若 h 定 4.0000 则清空区 Y 变 4.0000 罩开口 Y 必需 5.8000 一次改动可顺带解掉落点 C2 的 0.2000 死结 (与 OI-13
+    同解). 不答的后果: Z 向只能沿用现行模型档 2.5400 且 Y 向零余量与 C2 死结解不开 (降级方案 DP-5 按 Z 向保守上界出件 加 1 台样件实测). 答复窗口: 与板框上位问题同一窗口
+    即板那一趟开工前'
+  since: '2026-11-24'
+- key: iss389_oi12_cover_criterion_window
+  to: main
+  item: 'ISS-389 OI-12 要 main 加 boss 回答: 5 号罩住判据 (座体必须清空区必须罩住铜箔 每边 >= CRIT) 对 THT 排针是不是过严 要不要改口径? 结构侧已给硬差额与两条路:
+    差额每边 0.2600 总宽 0.5200 (6.6100 减 6.0900 与 4.0700 减 3.5500); 路 A 判据不动 清空区需求 6.6100/4.0700 结构件每边多让 0.7650/0.7150
+    不改任何既有判据页; 路 B 改名义余量口径 需求 6.0100/3.4700 每边多让 0.4650/0.4150 但 6.0100 比 courtyard 6.0900 还小 0.0800 且
+    FDM 每边 ±0.3000 制造公差不再被扣除 装配后实际余量只剩 0.3000. 不答的后果: 口径一改 本单 1 到 4 节全部余量与三档代价要重算 结构件出件前必须定; 且与 OI-14
+    是同一个决定的两面 分开拍会得到互相矛盾的两个数. 答复窗口: 与板框上位问题同一窗口 即板那一趟开工前'
+  since: '2026-11-24'
+- key: iss389_oi13_y_zero_margin_window
+  to: main
+  item: 'ISS-389 OI-13 要 main 加 boss 回答: Y 向零制造余量接受吗 (铜箔中心允许偏心 0.0000 偏 1 微米就装不下)? 结构侧已给两条硬事实与两条路: 罩开口
+    Y 4.6000 只容清空区 Y 2.8000 每边 0.9000 最坏 0.6000 恰好等于 CRIT 一点不多; 路 A 接受零余量 开口零改动 代价是装配零容错全靠人工对位 (物理上不产生干涉
+    风险落在手工对位不落在尺寸); 路 B 开口 Y 放大 delta 0.5000 得 5.6000 或 delta 0.6000 得 5.8000 代价是罩外观缝 防水防尘 镜脚壁厚同批重做 两件同批.
+    不答的后果: 结构件开模前必须定 否则开口开出来不可回头. 答复窗口: 与板框上位问题同一窗口 即板那一趟开工前'
+  since: '2026-11-24'
+- key: iss389_oi14_dp1_correction_window
+  to: main
+  item: 'ISS-389 OI-14 要 main 回答: ISS-377 第 3.2 节 DP-1 给的 J_UART 清空区 3.4700 要不要订正为 4.0700 订正块往老页落不落? 结构侧已自答:
+    现行判据链下 3.4700 不够差 0.6000 (最坏余量 0.3000 小于 CRIT 0.6000) 那一趟会再判红 所以本单改件要求单必须按 4.0700 写 结构侧不再有技术问题; 老页是已签收件
+    本单零改老页 订正块只写在新页与机器块里. 不答的后果: 老页与新页两个数长期并存 下次还会再拍一次矛盾; 且若 OI-12 同时选路 B 则 3.4700 反而对 订正动作要撤销 两条必须一起拍.
+    答复窗口: 与板框上位问题同一窗口 即板那一趟开工前'
+  since: '2026-11-24'
+- key: iss389_oi1_housing_width_window
+  to: boss
+  item: 'ISS-389 OI-1 要 boss 回答 (结构口径): J_UART 座体必须清空区按 2.5400 还是 3.4700 出件? 结构侧已把数推到 4.0700 (现行判据链 铜箔
+    2.2700 加 2x0.9000) 且与 OI-14 同源. 不答的后果: 结构件与板上 BOM 与网表写的 1.27mm 实物排针对不上号; 若 OI-12 选路 B 则 3.4700 反而对
+    必须与 OI-14 一起拍否则互相矛盾. 答复窗口: 与板框上位问题同一窗口 即板那一趟开工前 (结构件开模下单后不可回头)'
+  since: '2026-11-24'
+- key: iss390_correction_landing
+  to: main
+  item: 'ISS-390 §4 的 6 处定性订正谁落: (1) MECH/BOARD_ONEPASS_DEBUG_SEAT_REWORK_SPEC.md L634 的 OI-12 structural_answer
+    里的 官方 land courtyard 只给每边 0.6400 (2) 同页 L149/L154 正文路径 B 段的 courtyard 措辞与 L69/L90 的 官方 1x4 / 1x2 THT
+    座体本体 (F.Fab) (3) MECH/check_debug_seat_3d_fit.py L848 与 L879 两个源码字符串 (本单零改已签收闸, 只登记) (4) MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md
+    L26/L114/L168/L193/L854 (5) 两块 clearance 页的座体本体口径 (含笔画 vs 不含笔画两个口径混用)。代价: 不落则 通用件 vs 厂件 的前提错误继续留在页上与闸源码里,
+    下一个读这页或跑那个闸的人会拿错对照物做结构判决, 且本闸 G3 未落清单永远 17 处; 本单已把每一处的文件+行号+命中的词点名列在 MECH/check_fts_seat_body_geometry.py
+    的输出里。'
+  since: '2026-11-24'
+- key: iss390_h_lock_and_test_sample
+  to: main
+  item: 'ISS-390 两问一起给: (甲) OI-11 的座体真实高 h 走三档参数化还是定版一个值锁死? 本单给的输入 = 厂件柱高 3.05 mm (官网图 TABLE 1 lead style
+    -01), 绝缘体只有 0.86 => 罩内腔板面以上那一维不能按 0.86 出件 => h=0.90 档物理上装不下, 可行档是 2.54 与 4.00 (本单不代拍)。 (乙) 落 FTS 时先打一块单板样这件事谁排期?
+    卡尺量 座体宽 X / 座体深 Y / 绝缘体高 Z 三个量, 量完填回 ISS-387 机器块 keepout_dwg 行与本页 body_geometry。代价: 不答则 h 永远 0数据,
+    Y 向判决永远跟着三档跑, 结构件出件口径定不下来; 不打样则装配前拿不到实物级座体三量, 官网图的 REF 公差始终未知, 路径乙的复核工序没有落点。'
+  since: '2026-11-24'
+- key: iss390_oi12_and_oi14_together
+  to: main
+  item: 'ISS-390: OI-12 (罩住判据对 THT 排针是否过严) 与 OI-14 (ISS-377 DP-1 的 3.4700 订正为 4.0700) 必须一起拍, 请一次给三个答案:
+    (a) 罩住判据管到铜箔还是也管到座体本体? (b) 若维持现状口径, OI-12 那个 偏紧 0.5200 的措辞怎么落 (本单结论: 0.5200 作废, 因为 6.0900 是通用 KiCad
+    库件的 F.CrtYd, 厂件 FTS 没有 courtyard 这个量)? (c) 若改口径, J_UART 的 X 需求从 4.0700 变 4.3400, OI-14 的目标值要跟着改。代价:
+    不一起拍则 OI-14 的目标值悬空 (它写 4.0700 还是 4.3400 取决于 OI-12 的口径), OI-13 也跟着悬空 (Y 向从零余量变成缺 1.1600, 第二个选项已不存在),
+    三条一起卡住, 结构件出件口径定不下来。'
+  since: '2026-11-24'
+- key: iss390_y_direction_open_question
+  to: main
+  item: 'ISS-390 新开一条待裁 OI-390-1 交 main+boss: 罩住判据要不要扩到座体本体? 厂件座体深 Y = 2.1600 mm 已知, 若也按每边 0.9000 要求,
+    清空区 Y 需 3.9600, 而罩开口 Y 4.6000 最多只容 2.8000 => 缺口 1.1600, Y 向从 零余量卡死 变成 缺 1.1600 卡死, 且 OI-13 的 接受零余量
+    选项已经不存在。可选 (a) 放大罩开口 Y 到至少 5.7600 (b) 改判据口径只罩铜箔 (c) 接受 (c) 已不存在。本单只摆账不代拍, 且这条与 OI-11 的 h 定档耦合 (h 决定清空区
+    Y 有效高)。代价: 不答则结构件要么按装不下的口径出件要么按过阈的口径出件, 装配时才发现, 而结构件一改就要动镜脚内腔与罩外观缝。'
   since: '2026-11-24'
 answers:
 - key: pcb_outline_confirm
@@ -6297,6 +6430,87 @@ interface_claims:
     口径统一后两件同为罩住红 ⇒ 不互相矛盾】; 另发现 ISS-377 DP-1 的 3.4700 缺 0.6000 (OI-14)'
   note: '[推算]; 兑现 main 的 ISS-379 签收裁决 ④⑤『合到一件答·别分两票』'
   ref: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md §4
+- key: j_debug_seat_clearance_x
+  value: '6.6100'
+  note: 'ISS-389 结构侧改件目标: J_DEBUG 座体必须清空区 X 宽 (铜箔 4.8100 + 2x0.9000); 三档返工幅度 OI-5 未裁故目标值三档同 6.6100 只改总宽增量
+    +4.8350/+2.5250/+1.8000; 裁决 not_decided_here'
+  ref: ''
+- key: j_debug_seat_clearance_y
+  value: '2.8000'
+  note: 'ISS-389 结构侧改件目标: J_DEBUG 座体必须清空区 Y 宽; 现状 2.5400 罩住余量 0.7700 最坏 0.4700 判红 CRIT 0.6000'
+  ref: ''
+- key: j_uart_seat_clearance_x
+  value: '4.0700'
+  note: 'ISS-389 结构侧改件目标: J_UART 座体必须清空区 X 宽 (铜箔 2.2700 + 2x0.9000); 落点 OI-3 未裁故中心随落点走宽度不变; 裁决 not_decided_here'
+  ref: ''
+- key: j_uart_seat_clearance_y
+  value: '2.8000'
+  note: 'ISS-389 结构侧改件目标: J_UART 座体必须清空区 Y 宽; 现状 2.5400 同 J_DEBUG 判红'
+  ref: ''
+- key: cover_opening_x
+  value: '10.2000'
+  note: 'ISS-389: 罩开口 X 一字不动 (三档下 M=max(H,C) 恒取 4.8100 故开口余量 X 恒 2.6950 最坏 2.3950)'
+  ref: ''
+- key: cover_opening_y
+  value: '4.6000'
+  note: 'ISS-389: 罩开口 Y 默认不动; 落点 C2 下 Y 向差 0.2000 不可行须改到含 66.1000..70.7000; 受 OI-3 与 OI-13 双向约束'
+  ref: ''
+- key: j_uart_landing_center
+  value: 17.9650/19.0350/18.9350
+  note: 'ISS-389: J_UART 落点 C1/C2/C3 的座体清空区中心 (Y 中心 68.6000); C2 的 Y 向不可行 (OI-3 未裁 本单只登记不裁)'
+  ref: ''
+- key: clearance_crit
+  value: '0.6000'
+  note: 'ISS-389: 判据阈值 CRIT=2xTOL.fdm_part (TOL 0.3000); 本单一个字不许动 它是全部闸的判据源头'
+  ref: ''
+- key: fts_seat_body_width_x
+  value: 5.0800 mm (N=4, FTS-104-01-F-S) / 2.5400 mm (N=2, FTS-102-01-F-S)
+  note: '[官网] 厂件座体沿排距长 = N x 1.27 mm (REF, 公差 +-0.25), 出自 Samtec 官方机械图 FTS-1XX-XX-X-SX-MKT REVISION AE
+    的 FIG 1 总长标注 (NO OF POS x .0500 [1.27]); 通用 KiCad 库件 F.Fab 恰好逐字相同但出处不同'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §2 / §7.2 body_geometry.*.seat_body_width_x_mm
+- key: fts_seat_body_depth_y
+  value: 2.1600 mm
+  note: '[官网] 厂件座体跨排距宽, 出自官方机械图 FIG 1 平面图标注 .085 2.16 REF (像素复核 24.24 pt / 4:1 = 2.138 mm, 误差 -1.0%);
+    通用 KiCad 库件 F.Fab 只有 2.1000 => 通用件比厂件窄 0.0600'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §2 / §7.2 body_geometry.*.seat_body_depth_y_mm
+- key: fts_insulator_height_z
+  value: 0.8600 mm
+  note: '[官网]+[媒体] 双证: 官方机械图 FIG 1 端视图 .034 0.86 REF (像素复核 9.84 pt = 0.868 mm) + DigiKey FTS-104-01-F-S
+    属性表 Insulation Height 0.034 inch (0.86mm)'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §2 / §7.2 body_geometry.*.insulator_height_z_mm
+- key: fts_post_height_above_board
+  value: 3.05 mm
+  note: '[官网] 本单新增接口: 官方机械图 TABLE 1 lead style -01 的 .120 [3.05] POST => 连接器在板面以上实际占高 3.05 mm (绝缘体只有 0.86,
+    柱露出 2.19) => 罩的内腔板面以上那一维不能按 0.86 出件 => 给 OI-11 的 h 一条物理下界 (0.90 档装不下); 不等于 h 的值'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §6.1
+- key: fts_tail_length_below_board
+  value: 2.29 mm
+  note: '[官网] 官方机械图 .090 2.29 (SEE NOTE 3 = SHEAR TAILS TO DIMENSION SHOWN) => 板面以下的尾脚剪切长度'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §1.4
+- key: fts_courtyard_exists
+  value: 'false'
+  note: '[实测] Samtec 厂件 FTS 没有 courtyard 这个量; 凡是把本机通用 KiCad 库件的 F.CrtYd 当成厂件 courtyard 的说法, 一律是定性错误'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §2.1 / §4
+- key: source_of_6_0900_5_0800_3_5500_2_5400
+  value: generic_kicad_lib
+  note: '[实测] 这四个数的真身 = Connector_PinHeader_1.27mm.pretty 的 PinHeader_1x04/1x02_P1.27mm_Vertical 的 F.CrtYd
+    / F.Fab (size 1 1, drill 0.65), 与 Samtec 无关; MECH 全链引用它们时必须带通用库件这个限定语'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §2.1 / §7.2 attribution
+- key: oi12_recompute_status
+  value: 需重算
+  note: '[推算] 三值之一 (不需重算/需重算/待定); 0.5200 作废 (对照物无效, 不是改成别的数); 重算后 J_DEBUG 每边多让 0.7650 (不变), J_UART 每边多让
+    0.7650 (原 0.7150, 订正 +0.0500/边); 厂件外形本身没让任何既有数变'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §5 / §6.2
+- key: oi11_h_resolved_by_iss390
+  value: 'false'
+  note: '[推算] OI-11 的 h 是罩/座体结构件的量 (三档 0.90/2.54/4.00, 决定清空区 Y 有效高), 本单的 Z=0.8600 是连接器元器件的绝缘体高, 主体不同不能顶替;
+    新增 fts_post_height_above_board=3.05 作为 h 的物理下界输入'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §6.1
+- key: body_based_criterion_gap
+  value: X 0.2700 / Y 1.1600
+  note: '[推算] 本单新算: 若罩住判据从罩住铜箔扩到罩住座体本体, 则 X 需 6.8800 / 4.3400 (各缺 0.2700), Y 需 3.9600 (缺 1.1600, 而开口 Y
+    4.6000 最多只容 2.8000) => Y 向从零余量卡死变成缺 1.1600 卡死 => OI-13 的接受零余量选项消失; 新开 OI-390-1 归 main+boss'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §5-⑧ / §6.3
 open_questions:
 - id: MECH-Q1
   to: main

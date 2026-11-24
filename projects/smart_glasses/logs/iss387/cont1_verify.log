@@ -1,0 +1,410 @@
+===== VERIFY LOG ISS-387 cont1 =====
+--- date ---
+2026-11-24 11:04:42 CST
+
+=== ① check_brief_commands.py ===
+── 查了 9 条待办单的 task_brief, 有问题的 0 条
+rc=0
+
+=== ② measure_generic_part.py ===
+=== J_DEBUG ===
+  文件      : PinHeader_1x04_P1.27mm_Vertical.kicad_mod
+  md5       : 7a5f470c1f70d4b832be258501945385
+  焊盘数    : 4   (类型: thru_hole)
+  pad 尺寸  : 1.0 x 1.0 mm
+  钻孔      : 0.65 mm  (全部焊盘一致: True)
+  排数      : 1  (焊盘中心 X 唯一值 [0.0])
+  排距      : [1.27, 1.27, 1.27] mm
+  脚排轴    : Y (KiCad 自身坐标系)
+  沿脚排跨距: 3.81 mm  (端孔中心到端孔中心)
+  铜箔包络  : 沿脚排 4.81 mm x 垂直脚排 1.0 mm
+  MECH 口径 : copper.x(沿脚排) = 4.81   copper.y(垂直脚排) = 1.0
+  F.CrtYd   : X -1.55..1.55 (3.1)  Y -1.14..4.95 (6.09)
+  F.Fab 体  : X -1.05..1.05 (2.1)  Y -0.635..5.08 (5.08)
+
+=== J_UART ===
+  文件      : PinHeader_1x02_P1.27mm_Vertical.kicad_mod
+  md5       : 47bcbf6d0f267d543e50d4b2a8dfabf5
+  焊盘数    : 2   (类型: thru_hole)
+  pad 尺寸  : 1.0 x 1.0 mm
+  钻孔      : 0.65 mm  (全部焊盘一致: True)
+  排数      : 1  (焊盘中心 X 唯一值 [0.0])
+  排距      : [1.27] mm
+  脚排轴    : Y (KiCad 自身坐标系)
+  沿脚排跨距: 1.27 mm  (端孔中心到端孔中心)
+  铜箔包络  : 沿脚排 2.27 mm x 垂直脚排 1.0 mm
+  MECH 口径 : copper.x(沿脚排) = 2.27   copper.y(垂直脚排) = 1.0
+  F.CrtYd   : X -1.55..1.55 (3.1)  Y -1.14..2.41 (3.55)
+  F.Fab 体  : X -1.05..1.05 (2.1)  Y -0.635..2.54 (2.54)
+
+注: MECH 判据坐标系 X = 沿脚排 (与 KiCad 自身坐标系的 Y 同轴), 见 MECH/check_debug_seat_3d_fit.py L683/L686。
+rc=0
+=== ⑥ 本单新闸 裸跑 ===
+── ISS-387 FTS 单排直插 land 真相页闸
+  [K0] ✔ GREEN  真相页 + 机器块在盘 / 可解析 / 无空字段
+  [K1] ✔ GREEN  positions_rows 必须 1 排 (族别辨析命门)
+  [K2] ✔ GREEN  铜箔宽: 等于通用件 或 [0数据]+降级
+  [K3] ✔ GREEN  偏离必须登记 + 影响面点名 MECH
+  [K4] ✔ GREEN  不许拿 FTSH 顶替 FTS
+  [K5] ✘ RED  证据分级 / 零挂起 / 判据与事实分开
+        · K5 本单产出面 (§6 / §7 / 机器块) 第 18 行出现挂起措辞 `待定` ⇒ 零挂起判红
+        · K5 本单产出面 (§6 / §7 / 机器块) 第 19 行出现挂起措辞 `待定` ⇒ 零挂起判红
+        · K5 本单产出面 (§6 / §7 / 机器块) 第 43 行出现挂起措辞 `待定` ⇒ 零挂起判红
+  [K6] ✔ GREEN  零写板 / 零落表 / 零挂链
+── ISS-387 FTS 单排直插 land 真相页闸: 6/7 条绿
+❌ 有 1 条判据红
+rc=1
+=== ⑥ 新闸 裸跑 (第二次) ===
+── ISS-387 FTS 单排直插 land 真相页闸
+  [K0] ✔ GREEN  真相页 + 机器块在盘 / 可解析 / 无空字段
+  [K1] ✔ GREEN  positions_rows 必须 1 排 (族别辨析命门)
+  [K2] ✔ GREEN  铜箔宽: 等于通用件 或 [0数据]+降级
+  [K3] ✔ GREEN  偏离必须登记 + 影响面点名 MECH
+  [K4] ✔ GREEN  不许拿 FTSH 顶替 FTS
+  [K5] ✔ GREEN  证据分级 / 零挂起 / 判据与事实分开
+  [K6] ✔ GREEN  零写板 / 零落表 / 零挂链
+── ISS-387 FTS 单排直插 land 真相页闸: 7/7 条绿
+✅ 全绿
+rc=0
+
+=== ⑥ 新闸 --selftest ===
+  [PASS] 正向对照 (原页面)
+        全绿 (期望) · 实际红: 无
+  [PASS] ① 把 FTS-104 的 positions_rows 从 1 排改成 2 排 ⇒ K1 红
+        期望 K1 红 · 实际红: ['K1']
+  [PASS] ② copper_x_width 改成 9.9900 且影响面抹掉 MECH 那几行 ⇒ K3 红
+        期望 K3 红 · 实际红: ['K2', 'K3']
+  [PASS] ③ deviation_vs_generic_part.status 从 registered 改掉 ⇒ K3 红
+        期望 K3 红 · 实际红: ['K3']
+  [FAIL] ④ 把 FTSH-104-01-F-DV 塞进 FTS 料号字段 ⇒ K4 红
+        期望 K4 红 · 实际红: 无
+  [PASS] ⑤ 机器块里多出 FTSH-104-01-F-DV 条目 ⇒ K4 红
+        期望 K4 红 · 实际红: ['K4']
+  [PASS] ⑥ copper_y_width 写成 2.0000 (第三种情形) ⇒ K2 红
+        期望 K2 红 · 实际红: ['K2']
+  [PASS] ⑦ copper_x_width 仍是 [0数据] 但 degrade_refs 里删掉降级条目 ⇒ K2 红
+        期望 K2 红 · 实际红: ['K2']
+  [PASS] ⑧ evidence 写成「官网(无括号)」不在白名单 ⇒ K5 红
+        期望 K5 红 · 实际红: ['K5']
+  [PASS] ⑨ §6 里塞一句「等原厂回信」⇒ K5 红
+        期望 K5 红 · 实际红: ['K5']
+  [PASS] ⑩ 判据句混进 §2 事实抄录节 ⇒ K5 红
+        期望 K5 红 · 实际红: ['K5']
+  [PASS] ⑪ 机器块 json 被改坏 ⇒ K0 红
+        期望 K0 红 · 实际红: ['K0']
+  [PASS] ⑫ 机器块里出现空字符串字段 ⇒ K0 红
+        期望 K0 红 · 实际红: ['K0']
+  [PASS] ⑬ 机器块 board_write 改成 yes ⇒ K6 红
+        期望 K6 红 · 实际红: ['K6']
+  [PASS] ⑭ 板 md5 被动过 ⇒ K6 红
+        期望 K6 红 · 实际红: ['K6']
+  [PASS] ⑮ landing_part_decision 改成 decided_fts ⇒ K5 红
+        期望 K5 红 · 实际红: ['K5']
+  [FAIL] ⑯ 官网原句锚点被从正文删掉 ⇒ K5 红
+        期望 K5 红 · 实际红: ['K1']
+── selftest: 15/17 PASS
+SELFTEST FAILED
+rc=1
+=== ⑥ 新闸 --selftest (第二次) ===
+  [PASS] 正向对照 (原页面)
+        全绿 (期望) · 实际红: 无
+  [PASS] ① 把 FTS-104 的 positions_rows 从 1 排改成 2 排 ⇒ K1 红
+        期望 K1 红 · 实际红: ['K1']
+  [PASS] ② copper_x_width 改成 9.9900 且影响面抹掉 MECH 那几行 ⇒ K3 红
+        期望 K3 红 · 实际红: ['K2', 'K3']
+  [PASS] ③ deviation_vs_generic_part.status 从 registered 改掉 ⇒ K3 红
+        期望 K3 红 · 实际红: ['K3']
+  [PASS] ④ 把 FTSH-104-01-F-DV 塞进 FTS 料号字段 ⇒ K4 红
+        期望 K4 红 · 实际红: ['K4']
+  [PASS] ⑤ 机器块里多出 FTSH-104-01-F-DV 条目 ⇒ K4 红
+        期望 K4 红 · 实际红: ['K4']
+  [PASS] ⑥ copper_y_width 写成 2.0000 (第三种情形) ⇒ K2 红
+        期望 K2 红 · 实际红: ['K2']
+  [PASS] ⑦ copper_x_width 仍是 [0数据] 但 degrade_refs 里删掉降级条目 ⇒ K2 红
+        期望 K2 红 · 实际红: ['K2']
+  [PASS] ⑧ evidence 写成「官网(无括号)」不在白名单 ⇒ K5 红
+        期望 K5 红 · 实际红: ['K5']
+  [PASS] ⑨ §6 里塞一句「等原厂回信」⇒ K5 红
+        期望 K5 红 · 实际红: ['K5']
+  [PASS] ⑩ 判据句混进 §2 事实抄录节 ⇒ K5 红
+        期望 K5 红 · 实际红: ['K5']
+  [PASS] ⑪ 机器块 json 被改坏 ⇒ K0 红
+        期望 K0 红 · 实际红: ['K0']
+  [PASS] ⑫ 机器块里出现空字符串字段 ⇒ K0 红
+        期望 K0 红 · 实际红: ['K0']
+  [PASS] ⑬ 机器块 board_write 改成 yes ⇒ K6 红
+        期望 K6 红 · 实际红: ['K6']
+  [PASS] ⑭ 板 md5 被动过 ⇒ K6 红
+        期望 K6 红 · 实际红: ['K6']
+  [PASS] ⑮ landing_part_decision 改成 decided_fts ⇒ K5 红
+        期望 K5 红 · 实际红: ['K5']
+  [FAIL] ⑯ 官网原句锚点被从正文删掉 ⇒ K5 红
+        期望 K5 红 · 实际红: 无
+── selftest: 16/17 PASS
+SELFTEST FAILED
+rc=1
+
+=== ⑥ 新闸 裸跑 (第三次) ===
+── ISS-387 FTS 单排直插 land 真相页闸
+  [K0] ✔ GREEN  真相页 + 机器块在盘 / 可解析 / 无空字段
+  [K1] ✔ GREEN  positions_rows 必须 1 排 (族别辨析命门)
+  [K2] ✔ GREEN  铜箔宽: 等于通用件 或 [0数据]+降级
+  [K3] ✔ GREEN  偏离必须登记 + 影响面点名 MECH
+  [K4] ✔ GREEN  不许拿 FTSH 顶替 FTS
+  [K5] ✔ GREEN  证据分级 / 零挂起 / 判据与事实分开
+  [K6] ✔ GREEN  零写板 / 零落表 / 零挂链
+── ISS-387 FTS 单排直插 land 真相页闸: 7/7 条绿
+✅ 全绿
+rc=0
+=== ⑥ 新闸 --selftest (第三次) ===
+  [PASS] ⑫ 机器块里出现空字符串字段 ⇒ K0 红
+        期望 K0 红 · 实际红: ['K0']
+  [PASS] ⑬ 机器块 board_write 改成 yes ⇒ K6 红
+        期望 K6 红 · 实际红: ['K6']
+  [PASS] ⑭ 板 md5 被动过 ⇒ K6 红
+        期望 K6 红 · 实际红: ['K6']
+  [PASS] ⑮ landing_part_decision 改成 decided_fts ⇒ K5 红
+        期望 K5 红 · 实际红: ['K5']
+  [PASS] ⑯ 官网原句锚点被从正文删掉 ⇒ K5 红
+        期望 K5 红 · 实际红: ['K5']
+── selftest: 17/17 PASS
+ALL TESTS PASS
+rc=0
+
+=== ⑥ 新闸 裸跑 (第四次) ===
+  [K5] ✔ GREEN  证据分级 / 零挂起 / 判据与事实分开
+  [K6] ✔ GREEN  零写板 / 零落表 / 零挂链
+── ISS-387 FTS 单排直插 land 真相页闸: 7/7 条绿
+✅ 全绿
+=== 7-2 lib md5 ===
+7a5f470c1f70d4b832be258501945385  /home/yuewuya/kicad/AppDir/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_1x04_P1.27mm_Vertical.kicad_mod
+47bcbf6d0f267d543e50d4b2a8dfabf5  /home/yuewuya/kicad/AppDir/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty/PinHeader_1x02_P1.27mm_Vertical.kicad_mod
+=== 7-5 pdf md5 ===
+fa249db9454f92c77d7e0a5ef62a0ba6  tmp/iss387/fts_catalog.pdf
+1cbe4a2bfa456d8fd030c8b76bdf8dd5  tmp/iss387/fts-1xx-xx-xx-dx-xx-footprint.pdf
+=== 7-6 MECH lines ===
+KICAD_LIB = "/home/yuewuya/kicad/AppDir/share/kicad/footprints/Connector_PinHeader_1.27mm.pretty"
+FOOTPRINT_FILE = {
+    "J_DEBUG": "PinHeader_1x04_P1.27mm_Vertical.kicad_mod",
+    "J_UART": "PinHeader_1x02_P1.27mm_Vertical.kicad_mod",
+            want_cover = r4((float(c["value"]) - 4.81) / 2.0)
+        "J_DEBUG": {"copper": {"x": 4.81, "y": 1.0},
+        "J_UART": {"copper": {"x": 2.27, "y": 1.0},
+        mc = r4((v - 4.81) / 2.0)
+=== 7-8 BOM lines ===
+J_DEBUG,1,1×4 1.27mm 排针 (JTAG),CONN,必装,镜脚主 PCB,P8,[推算],,待定,,待定,待定,连接器,型号/间距/引脚编号待结构与装配复核 (★本版 pin 编号自拟)
+J_UART,1,1×2 1.27mm 排针 (UART),CONN,可选,镜脚主 PCB,P8,[推算],,待定,,待定,待定,连接器,型号/间距/引脚编号待结构与装配复核 (★本版 pin 编号自拟)
+=== 7-9 FTS grep ===
+=== 7-3 footprint pdf text ===
+REVISION N               RECOMMENDED PCB LAYOUT FOR FTS-1XX-XX-XX-DX-XX
+
+
+
+
+                                         (NO OF POS x .050[1.27]) - .050[1.27]
+
+
+
+                                   .050 1.27 (TYP)
+                                                                                                                                .028 0.71 (TYP)
+
+
+
+
+             .050 1.27
+
+
+
+
+                                                    FIG 1
+                                      N    FTS-1XX-XX-XX-D SHOWN
+                             ALL DIMENSIONS ARE SYMMETRIC ABOUT THE CENTERLINE
+
+
+
+
+                                                                                                                 PROPRIETARY NOTE
+                                                                                                         THIS DOCUMENT CONTAINS INFORMATION
+                                                                                                         CONFIDENTIAL AND PROPRIETARY TO
+                                                                                                         SAMTEC, INC. AND SHALL NOT BE REPRODUCED
+                                                                                                         OR TRANSFERRED TO OTHER DOCUMENTS OR
+                                                                                                         DISCLOSED TO OTHERS OR USED FOR ANY
+                                                                                                                                                    520 PARK EAST BLVD, NEW ALBANY, IN 47150
+                                                                                                         PURPOSE OTHER THAN THAT WHICH IT WAS
+                                                                                                         OBTAINED WITHOUT THE EXPRESSED WRITTEN
+                                                                                                                                                    PHONE: 812-944-6733    FAX: 812-948-5047
+                                        F:\dwg\misc\mktg\footprnt\FTS-1XX-XX-XX-DX-XX-FOOTPRINT.slddrw   CONSENT OF SAMTEC, INC.                    e-Mail info@SAMTEC.com       code 55322
+                                                                                                                                                                                    SHEET 1 OF 4
+REVISION N               RECOMMENDED PCB LAYOUT FOR FTS-1XX-XX-XX-DX-XX
+=== 7-4 catalog pdf text ===
+MICRO LOW PROFILE
+TERMINAL STRIPS
+      (1.27 mm) .050" PITCH • FTS SERIES
+
+
+FTS
+Board Mates:
+CLP, FLE
+                                       FTS       -1             NO. PINS
+                                                                PER ROW               -            LEAD
+                                                                                                   STYE           -        PLATING
+                                                                                                                           OPTION          -       ROW
+                                                                                                                                                  OPTION           -             OTHER
+                                                                                                                                                                                 OPTION
+
+Cable Mates:
+FFSD                                                          02 thru 50                            –01                       –F                      –D                      (–D & –DV only)
+                                                            (except –S & –SA                  = (3.05 mm)                 = Gold flash            = Double
+                                                           option = 05 thru 46)                .120" Post                   on post,            Through-hole                       –SA
+                                                                                            (Mates with FFSD)              Matte Tin                                          = End Shroud
+    SPECIFICATIONS                                                                                                           on tail                –DV                    with Alignment Pin
+                                                                                                    –02                                          = Double                 (05 thru 46 positions.
+Insulator Material:
+Black Liquid Crystal Polymer
+                                                                                              = (1.91 mm)                     –L                Vertical SMT               Style -02 & -03 only)
+                                                                                              .075" Post                    = 10 µ"
+Terminal Material:                                                                          (Mates with FLE)               (0.25 µm)                  –S                            –S
+Phosphor Bronze                                                                                                           Gold on post,           = Single                    = End Shroud
+Operating Temp Range:
+-55 °C to +125 °C                                                                                   –03                    Matte Tin            Through-hole              (05 thru 46 positions.
+                                                                                                                                                                           Style -02 & -03 only)
+                                                                                              = (1.65 mm)                    on tail
+Plating:
+Sn or Au over 50 µ" (1.27 µm) Ni                                                               .065" Post                                            –SV                            –P
+Current Rating:                                                                             (Mates with CLP)                                      = Single
+3.4 A per pin                                                                                                                                   Vertical SMT                 = Pick & Place Pad
+(2 pins powered)                                                                                    –04                                                                      (04 positions min.)
+                                                                                               = (3.81 mm)
+                                                                                                .150" Post                                                                         –TR
+      PROCESSING                                                                             (–D & –DV only)                                                                 = Tape & Reel
+HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md:14:| 0-1 | ★**`FTS-104-01-F-S` = 4 位 / 1 排 / 直插 / 排距 1.27 mm, `FTS-102
+HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md:43:| ⑤ | ★**分销参数表** (DigiKey / Sager) | `https://www.digikey.com/en/pr
+HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md:59:## §2 `FTS-104-01-F-S` (4 位) 官网单品页逐项抄录
+HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md:130:| 3-2-① | ★**目录页 PDF 的「NO. PINS PER ROW」字段逐字写「02 thru 50 (except –
+HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md:235:| ★`J_DEBUG` (行 71) ★ | `待定` / `待定` | ★`FTS-104-01-F-S` (Samtec · 
+HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md:261:| 7-9 | `grep -rn "FTS-104-01-F-S" HW/ MECH/ SW/` | ★**本单交卷前应仍为 0 
+HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md:279:  "FTS-104-01-F-S": {
+HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md:364:   {"part": "FTS-104-01-F-S", "field": "copper_x_width", "samtec_v
+HW/check_fts_single_row_land_truth.py:254:REQUIRED_PARTS = ("FTS-104-01-F-S", "FTS-102-01-F-S")
+HW/check_fts_single_row_land_truth.py:675:    mb2["parts"]["FTS-104-01-F-S"]["copper_x_width"] = "9.9900"
+HW/check_fts_single_row_land_truth.py:677:        if d.get("part") == "FTS-104-01-F-S" and d.get("field") == "copper_x_w
+HW/check_fts_single_row_land_truth.py:699:    mb5["parts"]["FTSH-104-01-F-DV"] = dict(mb5["parts"]["FTS-104-01-F-S"])
+HW/check_fts_single_row_land_truth.py:728:        "## §2 `FTS-104-01-F-S` (4 位) 官网单品页逐项抄录",
+HW/check_fts_single_row_land_truth.py:729:        "## §2 `FTS-104-01-F-S` (4 位) 官网单品页逐项抄录\n\n"
+=== merge.py ===
+✅ STATE.yaml 已刷新 (2026-11-24T11:09:18+08:00)
+   产出 843 | 阻塞 43 (高危 33) | 未闭合需求 355 | 冲突 0 | 健康度 red
+rc=0
+
+=== gate_check.py ===
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-24_hw-lead_ISS387_FTS单排直插原厂land几何查证.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-24_sw-lead_ISS385_EVT充电电流判据口径核对与机器闸.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-24_mech-lead_ISS386_JDEBUG与JUART座体开口清空区合一件答.md
+
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '官方', '推算', '0数据']
+   sw-lead    标签: ['实测', '官方', '推算', '0数据']
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 1204 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    475 条
+   sw-lead    346 条
+   mech-lead  383 条
+
+【Q4 需求闭环率】
+   问方视角 (我的需求被别人答了): 155/560  ← 与 merge.py 口径一致
+   答方视角 (我登记的答复): 243 条, 其中 58 条真对上了别人的需求 key
+   hw-lead    被答 56/287 | 我答 86 条(有效 31) | 产出 331 | 阻塞 7
+   sw-lead    被答 41/99 | 我答 72 条(有效 6) | 产出 290 | 阻塞 15
+   mech-lead  被答 58/174 | 我答 85 条(有效 21) | 产出 207 | 阻塞 12
+   ├─ ⚠️ **疑似漏登记 (答案在对方文档正文里, 但没进 answers)**: 0 条  ← 需人工判定, 也有可能是 waiting_on 标错
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 51 条 | **全局 46 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 355 条**
+   ✅ 与 merge.py 自对账一致 (等外部 46 / 等总工 355)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 10 个
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+      iss105_jchg_rfq_release: 发起方 ['main', 'hw-lead']
+      iss206_mech_claim_mainboard_len_carrier_direct_scheme_choice: 发起方 ['main', 'mech-lead']
+      iss236_boss_v_decision: 发起方 ['main', 'hw-lead']
+
+【Q5 硬指标覆盖】 0/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    1/5 类: ['镜腿/镜脚厚度(mm)']
+   sw-lead    0/5 类: []
+   mech-lead  1/5 类: ['镜腿/镜脚厚度(mm)']
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 211 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 44 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 99 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+rc=0
+=== merge.py ===
+✅ STATE.yaml 已刷新 (2026-11-24T11:10:06+08:00)
+   产出 843 | 阻塞 43 (高危 33) | 未闭合需求 355 | 冲突 0 | 健康度 red
+rc=0
+=== gate_check.py ===
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
+=== 新闸 裸跑 ===
+  [K6] ✔ GREEN  零写板 / 零落表 / 零挂链
+── ISS-387 FTS 单排直插 land 真相页闸: 7/7 条绿
+✅ 全绿
+rc=0
+=== 新闸 selftest ===
+        期望 K5 红 · 实际红: ['K5']
+── selftest: 17/17 PASS
+ALL TESTS PASS
+rc=0
+=== 指纹 ===
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+5f370bb8cf828473e70ccc5d6412da98  state/gate_check.py
+667e6006280cc8c0533d8ce8fa39f8be  MECH/check_debug_seat_3d_fit.py
+3d0c8e7de86e0f853450dcb7404d9f44  MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md
+52e067ed99edaaced50fd565bed90042  HW/check_debug_uart_seat_alignment.py
+274f759101ca4bc131f25633dc209b0c  HW/check_debug_uart_seat_truth.py
+2026-11-06 07:07:17.362193413 +0800 4940213
+=== 真相页正文前缀 md5 (应 3e019b04…) ===
+3e019b04f469bce196529300bf374979  -
+=== 零挂链 ===
+0
+=== outbox 未动 ===
+-rw-------  1 yuewuya yuewuya   7604 2026-11-01_23:50:42 vendor_via_agent_email.md
+-rw-rw-r--  1 yuewuya yuewuya   1895 2026-11-04_01:45:37 visionox_display_dsc_mode_query.md
+-rw-rw-r--  1 yuewuya yuewuya   9470 2026-11-11_08:07:01 visionox_display_inquiry.md

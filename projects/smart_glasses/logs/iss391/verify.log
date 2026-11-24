@@ -1,0 +1,184 @@
+===== ISS-391 · hw-lead 本机实跑验证日志 (2026-11-24) =====
+--- ① check_brief_commands ---
+── 查了 11 条待办单的 task_brief, 有问题的 0 条
+rc=0
+--- ② 地界事实: 作业包 L47 ---
+| ★**③** ★ | ★**板侧改动清单 (★一次做完, 板 md5 只变一次★)** ★ | ★**① `Q_PG` 三根线重画 (★pad1↔pad3 互换: pad1=PWR_GOOD / pad2=BAT_SW / pad3=PWR_ON★) ★**② `D_ESD_USB_D` 2→3 脚 + 并到 `J_USB_C` ≤3.0mm (★现状 47.99mm★) ★**③ `J_DEBUG`/`J_UART` 排针 land 0.50→1.27mm (★E-1·实物排针落不进·main 18:4x 裁
+--- ② 地界事实: 预检 L63 (前 300 字) ---
+| ★**`B33_PIN_LAND_1P27`** ★ | ★ISS-290 ★ | `J_DEBUG`/`J_UART` 排针 land pitch 0.50→1.27mm (E-1 · 实测排针落不进 · main 11-17 18:45 拍死) | ★**S6** ★ | - | [实测] 板读 (bash state/pcbnew_py.sh): `J_DEBUG` = pitch 0.50 / 4 脚 / 铜箔 X 142.0625..143.8375 × Y 56.1500..57.0500 (1.7750 × 0.9000); `J_UART` = pitch 0.50 / 2
+--- ② 预检清单全文 grep 钻孔/0.65/0.71 (命中的全是别的器件) ---
+504:      "action": "重出 Gerber / 钻孔 / CPL / 装配 / 3D / D356 + 留证链 + 盖章 + 发布闸",
+1143:★**★用什么手段核对** ★: ① 逐条对 TI 官方 datasheet 的封装与脚号 (★本地快照在 `logs/iss354/datasheets/`★) ② 逐条对本机 KiCad 10.0.8 官方封装 (★`Pack
+1151:| `Q1` | 5 焊盘 `2..6` · 0.6×0.9 mm · 1.27 mm · 4.94×5.00 mm | ★**TI `CSD16406Q3` = Q3 (VSON-CLIP/DQG) 8 脚 SON 3.3×3.
+--- ② 覆盖度闸 WP02_BINDING ---
+251:WP02_BINDING = {
+252-    "①": (["B11_Q_PG_LAND"], []),
+253-    "②": (["B07_ESD_USB_D_3PIN", "B08_ESD_USB_D_NEAR"], []),
+254-    "③": (["B33_PIN_LAND_1P27"], []),
+255-    "④": (["B01_REF_SUFFIX"], ["_1", "位号"]),
+256-    "⑤": (["B02_C_VBUS_GND"], []),
+257-    "⑥": (["B07_ESD_USB_D_3PIN", "B08_ESD_USB_D_NEAR", "B09_ESD_USB_D_MINUS"], []),
+258-}
+259-
+--
+325:    expect = set(WP02_BINDING) | set(WP02_ZERO_BOARD_CHANGE)
+326-    got = set(o for o, _ in parsed)
+--- ② BOM L71 / L77 ---
+J_DEBUG,1,1×4 1.27mm 排针 (JTAG),CONN,必装,镜脚主 PCB,P8,[推算],,待定,,待定,待定,连接器,型号/间距/引脚编号待结构与装配复核 (★本版 pin 编号自拟)
+J_UART,1,1×2 1.27mm 排针 (UART),CONN,可选,镜脚主 PCB,P8,[推算],,待定,,待定,待定,连接器,型号/间距/引脚编号待结构与装配复核 (★本版 pin 编号自拟)
+--- ② 预检清单的生成器 (build_pinland_item + B33 条目) ---
+8:★**病根**: ISS-343 把 `B33_PIN_LAND_1P27` 手写进了【本页 = 生成器产物】⇒ 重跑就蒸发 ★
+216:#  ★**病根 (★ISS-349 本单的全部理由★)**: ISS-343 把 `B33_PIN_LAND_1P27` 【手写】进了
+365:    """★E-1 排针 land pitch 那一条 (`B33_PIN_LAND_1P27`) 的 4 个字段 (★现状值全部现读★)
+689: #   ★**id = `B33_PIN_LAND_1P27` (★与 ISS-343 已写进 JSON 的 id 一致·不许改★) ★
+691: ("B33_PIN_LAND_1P27", "ISS-290",
+--- ③ 通用库件实测 ---
+=== J_DEBUG ===
+  md5       : 7a5f470c1f70d4b832be258501945385
+  钻孔      : 0.65 mm  (全部焊盘一致: True)
+  铜箔包络  : 沿脚排 4.81 mm x 垂直脚排 1.0 mm
+  MECH 口径 : copper.x(沿脚排) = 4.81   copper.y(垂直脚排) = 1.0
+=== J_UART ===
+  md5       : 47bcbf6d0f267d543e50d4b2a8dfabf5
+  钻孔      : 0.65 mm  (全部焊盘一致: True)
+  铜箔包络  : 沿脚排 2.27 mm x 垂直脚排 1.0 mm
+  MECH 口径 : copper.x(沿脚排) = 2.27   copper.y(垂直脚排) = 1.0
+--- ③ 库件 drill 逐字 ---
+(drill 0.65)
+--- ③ 官方 PDF 文字层 (0.71) ---
+11:                                                                                                                                .028 0.71 (TYP)
+--- ③ PDF md5 ---
+1cbe4a2bfa456d8fd030c8b76bdf8dd5  tmp/iss387/fts-1xx-xx-xx-dx-xx-footprint.pdf
+--- ④ 板上现状 (SMD 无孔) ---
+J_DEBUG type=1 size=0.2750x0.9000 drill=0.0000; J_DEBUG type=1 size=0.2750x0.9000 drill=0.0000; J_DEBUG type=1 size=0.2750x0.9000 drill=0.0000; J_DEBUG type=1 size=0.2750x0.9000 drill=0.0000; J_UART type=1 size=0.2750x0.9000 drill=0.0000; J_UART type=1 size=0.2750x0.9000 drill=0.0000
+--- ⑤ 本单新闸: 正向跑 (★rc=1 且红在 D1/D2/D3 = 本单的发现★) ---
+★ ISS-391 闸 D1~D7 · 「落 FTS 排针改孔 0.65→0.71」有没有进到「板只改一次」那一趟的作业包 §0.2 ③ + 预检清单 B33_PIN_LAND_1P27 里
+★ 本闸【现场解析真文件】(路径从本闸自己推, 不看环境变量) ⇒ 真实清单里缺这一条 ⇒ 本闸当场红
+★ 红 ⇒ 那就是 §4 要 main 落的登记项 (不是本闸故障); main 落完 §4 #1/#2/#3 ⇒ 同一条命令即转绿
+── ISS-391 排针改孔同批完整性闸
+  [D1] ✘ RED  作业包 §0.2 ③ 的「③」那一项原文里有「改孔」这一条
+        · D1 作业包 §0.2 ③ 的 ③ 那一项原文里【查不到「钻孔」这件事】⇒ 「落 FTS 要改孔 0.65→0.71」这条板侧动作【不在那一趟的清单上】⇒ 不在清单 = 没人做 = 板投出去才发现排针插不进 ⇒ 【板改两次】 ★实测原文: `J_DEBUG`/`J_UART` 排针 land 0.50→1.27mm (★E-1·实物排针落不进·main 18:4x 裁决: 按 1.27 定, 板 land 改★) ★**★
+        · D1 作业包 §0.2 ③ 的 ③ 那一项原文里【查不到目标孔径 0.71】⇒ ★只写了字样没写目标值, 那一趟的人照样不知道要改成多少★
+  [D2] ✘ RED  预检清单 B33_PIN_LAND_1P27 的描述列里有「改孔」这一条
+        · D2 预检清单 B33_PIN_LAND_1P27 的【描述列】(json 项) 里【查不到「钻孔」这件事】⇒ ★清单页是那一趟的验收凭据, 它不写钻孔 ⇒ 改没改都没人查★
+        · D2 预检清单 B33_PIN_LAND_1P27 的【描述列】(表格行) 里【查不到「钻孔」这件事】⇒ ★表格是给人看的那一份, 它不写钻孔 ⇒ 人照着做也会漏★
+  [D3] ✘ RED  B33_PIN_LAND_1P27 的验收手段列里有读钻孔直径的命令
+        · D3 预检清单 B33_PIN_LAND_1P27 的【验收手段列】(json 项) 里【没有一条读钻孔直径的验收命令】⇒ ★没有验收手段 = 改没改成没人知道★
+        · D3 预检清单 B33_PIN_LAND_1P27 的【验收手段列】(表格行) 里【没有一条读钻孔直径的验收命令】
+  [D4] ✔ GREEN  两端数字自洽 (target == official != generic == 本机库件实测)
+  [D5] ✔ GREEN  MECH 侧不受影响的数名清单在位
+  [D6] ✔ GREEN  零写板 / 零落表 / 零挂链 / 已签收件 md5 同基线
+  [D7] ✔ GREEN  本闸自己与 cwd 无关 (两个深度读数一致)
+── ISS-391 排针改孔同批完整性闸: 4/7 条绿
+❌ 有 3 条判据红 (★D1/D2/D3 = 「改孔」这条板侧动作还没进清单 ⇒ 详见 HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md §4★)
+rc=1
+--- ⑤ 本单新闸: selftest ---
+  [PASS] 正向对照 (沙盒已按 §4 补登记 ⇒ D1~D7 全绿)
+        期望全绿 · 实际红: 无
+  [PASS] ① 删掉作业包 §0.2 ③ 里的「钻孔」两个字 ⇒ D1 红
+        期望【只有】D1 红 · 实际红: ['D1']
+  [PASS] ② 删掉 B33_PIN_LAND_1P27 描述列里的钻孔字样 ⇒ D2 红
+        期望【只有】D2 红 · 实际红: ['D2']
+  [PASS] ③ 删掉 B33_PIN_LAND_1P27 验收手段列里读钻孔的命令 ⇒ D3 红
+        期望【只有】D3 红 · 实际红: ['D3']
+  [PASS] ④ 机器块 drill_target 改成 0.65 (= 通用件值) ⇒ D4 红
+        期望【只有】D4 红 · 实际红: ['D4']
+  [PASS] ⑤ 机器块 mech_unaffected_numbers 清空 ⇒ D5 红
+        期望【只有】D5 红 · 实际红: ['D5']
+  [PASS] ⑥ 板 md5 被动过 ⇒ D6 红
+        期望【只有】D6 红 · 实际红: ['D6']
+  [PASS] ⑦ 零挂链被破 (chain hits = 1) ⇒ D6 红
+        期望【只有】D6 红 · 实际红: ['D6']
+  [PASS] ⑧ 机器块 drill_generic 改成 0.71 (≠ 本机库件实测 0.65) ⇒ D4 红
+        期望【只有】D4 红 · 实际红: ['D4']
+  [PASS] ⑨ 机器块 drill_target 改成 0.70 (既非 official 也非 generic) ⇒ D4 红
+        期望【只有】D4 红 · 实际红: ['D4']
+  [PASS] ⑩ 作业包 ③ 的 pitch 那一腿的 1.27 被覆盖掉 ⇒ D1 红
+        期望【只有】D1 红 · 实际红: ['D1']
+  [PASS] ⑪ 作业包 §0.2 ③ 那一整行删掉 ⇒ D1 红 (fail-closed)
+        期望【只有】D1 红 · 实际红: ['D1']
+  [PASS] ⑫ 本机库件钻孔被动过 (0.65→0.60) ⇒ D4 红
+        期望【只有】D4 红 · 实际红: ['D4']
+  [PASS] ⑬ 路径解析改成 cwd 依赖 (相对路径) ⇒ D7 红
+        期望【只有】D7 红 · 实际红: ['D7']
+  [PASS] ⑮ 预检清单页读不到 ⇒ D2 + D3 同时 fail-closed
+        期望【只有】D2+D3 红 · 实际红: ['D2', 'D3']
+  [PASS] ⑭ 机器块 landing_part_decision 被代拍 ⇒ D4 红
+        期望【只有】D4 红 · 实际红: ['D4']
+  [PASS] 自测后真文件 md5 全部未变 (板/网表/脚表/BOM/作业包/预检清单/覆盖度闸/ISS-387 闸/ISS-387 真相页)
+── selftest: 17/17 PASS
+ALL TESTS PASS
+rc=0
+--- ⑥ 既有闸 (只读对照) ---
+check_onepass_preflight_coverage rc=0
+check_fts_single_row_land_truth --selftest rc=0
+check_juart_land_fit rc=0
+--- ⑦ 零扰动指纹 ---
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+ae8ef08632cacd5f0aba53037d99bc95  HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+b5d8d5b94e09b011bb9f4bfd7ac10cde  HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+fc37ea0eee9cea6a1f2b91e3d2f581dc  HW/check_onepass_preflight_coverage.py
+5b9570fd23d6dd7125876c9110085506  HW/check_fts_single_row_land_truth.py
+a2f78e769bbe9c27c44e728539206c04  HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md
+2bc21a7e8e0de1ac169a6e3ca1145657  state/issue_log.yaml
+板 mtime=2026-11-06 07:07:17.362193413 +0800 size=4940213
+--- ⑦ 零挂链 ---
+grep -c check_fts_land_drill_same_batch state/gate_check.py => 0
+--- 沙盒落点 (只落项目盘) ---
+BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md
+BOARD_ONEPASS_PREFLIGHT.md
+BOARD_ONEPASS_WORKPACKET.md
+case01_workpacket.md
+case02_preflight.md
+case03_preflight.md
+case04_page.md
+case05_page.md
+case08_page.md
+case09_page.md
+case10_workpacket.md
+case11_preflight.md
+case11_workpacket.md
+case14_page.md
+lib
+lib_bad
+
+===== 收尾复验 (2026-11-24 12:50) =====
+--- BOM L71 / L77 的 footprint 与 opn 两栏 (本机 csv 解析实测) ---
+  File "<string>", line 8
+    print('  ★注: opn 栏是【空字符串】不是「待定」⇒ ISS-387 §5-④ 那句「两栏都是待定」不准确, 本单照实更正 (不改 ISS-387 那页)'
+         ^
+SyntaxError: '(' was never closed
+--- 新闸正向跑 (rc=1, 红在 D1/D2/D3 = 本单的发现) ---
+        · D2 预检清单 B33_PIN_LAND_1P27 的【描述列】(json 项) 里【查不到「钻孔」这件事】⇒ ★清单页是那一趟的验收凭据, 它不写钻孔 ⇒ 改没改都没人查★
+        · D2 预检清单 B33_PIN_LAND_1P27 的【描述列】(表格行) 里【查不到「钻孔」这件事】⇒ ★表格是给人看的那一份, 它不写钻孔 ⇒ 人照着做也会漏★
+  [D3] ✘ RED  B33_PIN_LAND_1P27 的验收手段列里有读钻孔直径的命令
+        · D3 预检清单 B33_PIN_LAND_1P27 的【验收手段列】(json 项) 里【没有一条读钻孔直径的验收命令】⇒ ★没有验收手段 = 改没改成没人知道★
+        · D3 预检清单 B33_PIN_LAND_1P27 的【验收手段列】(表格行) 里【没有一条读钻孔直径的验收命令】
+  [D4] ✔ GREEN  两端数字自洽 (target == official != generic == 本机库件实测)
+  [D5] ✔ GREEN  MECH 侧不受影响的数名清单在位
+  [D6] ✔ GREEN  零写板 / 零落表 / 零挂链 / 已签收件 md5 同基线
+  [D7] ✔ GREEN  本闸自己与 cwd 无关 (两个深度读数一致)
+── ISS-391 排针改孔同批完整性闸: 4/7 条绿
+❌ 有 3 条判据红 (★D1/D2/D3 = 「改孔」这条板侧动作还没进清单 ⇒ 详见 HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md §4★)
+--- 新闸 selftest ---
+  [PASS] 自测后真文件 md5 全部未变 (板/网表/脚表/BOM/作业包/预检清单/覆盖度闸/ISS-387 闸/ISS-387 真相页)
+── selftest: 17/17 PASS
+ALL TESTS PASS
+--- 最终指纹 ---
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+ae8ef08632cacd5f0aba53037d99bc95  HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+b5d8d5b94e09b011bb9f4bfd7ac10cde  HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+fc37ea0eee9cea6a1f2b91e3d2f581dc  HW/check_onepass_preflight_coverage.py
+5b9570fd23d6dd7125876c9110085506  HW/check_fts_single_row_land_truth.py
+a2f78e769bbe9c27c44e728539206c04  HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md
+2bc21a7e8e0de1ac169a6e3ca1145657  state/issue_log.yaml
+  板 mtime=2026-11-06 07:07:17.362193413 +0800 size=4940213
+  零挂链 = 0
+--- 交卷页 B1~B6 ---
+  B1:✔ | B2:✔ | B3:✔ | B4:✔ | B5:✔ | B6:✔

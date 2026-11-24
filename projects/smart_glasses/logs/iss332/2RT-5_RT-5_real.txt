@@ -5,22 +5,22 @@ ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
 板位号        : 186 个 (★板文件文本解析, 未 import pcbnew★)
 网表位号      : 293 个 (★三张 CSV 的 ref 列★)
 网名索引      : 654 个
-扫描文档      : 43 份 `SW/*.md` (★其中 28 份含至少一个 token★)
-抽出 token    : 112 个唯一标识符
+扫描文档      : 57 份 `SW/*.md` (★其中 40 份含至少一个 token★)
+抽出 token    : 166 个唯一标识符
 
 【分类统计】 (★R2★)
-   DESIGNATOR_OK            78
+   DESIGNATOR_OK           126
    DESIGNATOR_DRIFT          0
    DESIGNATOR_MISSING        2
-   NET_NAME                  9
-   DOC_INTERNAL             23
+   NET_NAME                 13
+   DOC_INTERNAL             25
 
 【R3 现状基线】 `DESIGNATOR_MISSING` 实测 = 2 条 · 允许上限 = 3 条
    ⇒ ✔ 在基线内
    ★提示: 基线里的 TP_TEMP 现在已经解析得到了 ⇒ ★建议把 BASELINE_COUNT 收到 2 并从 BASELINE_TOKENS 里删掉 (★收紧, 不是放宽★)★
 
 【★真隐患 (C14)·现在就对不上的位号引用★】
-   ★基线内·已登记★ CONN_USB  (SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:518)  出现 9 次
+   ★基线内·已登记★ CONN_USB  (SW/ONETRIP_SW_POSTRENAME_GATE_SOP.md:563)  出现 9 次
         理由: ★真隐患·已登记★: SW/SW_TIMING_REVIEW.md L60/L272 明写「CONN_USB 已不在网表 ⇒ 对象消失 ⇒ 推翻」 ⇒ ★它是【历史件】的遗留引用·文档自己已经知道它没了·但引用还留在文档里★
    ★基线内·已登记★ TP_INT  (SW/BOARD_ONEPASS_SW_SYNC.md:43)  出现 16 次
         理由: ★真隐患·但已登记★: SW/BOARD_ONEPASS_SW_SYNC.md §SW06 明写「TP_INT (触控中断) 在网表和板上都不存在 ⇒ SW 侧不许按『有触控中断』写代码」⇒ ★它是一个【被文档自己点名的空洞】★ ⇒ 板那一趟若决定接触控, 必须同批落表 + 落位 + 布线, 否则 SW 侧引用永远是空的★
@@ -34,8 +34,20 @@ ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
    DESIGNATOR_OK        C1   CONN_CAM                                     现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   CONN_LIGHT                                   现在在【板文件+网表】里能找到
    DESIGNATOR_MISSING   C14  CONN_USB                                     形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   C_AC_CSI_D0_D0_N                             现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_AC_CSI_D0_D1_N                             现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_AC_CSI_D0_D1_P                             现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_AC_CSI_D0_D2_N                             现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_AC_CSI_D0_D2_P                             现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_AC_CSI_D0_D3_N                             现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_BAT                                        现在在【网表】里能找到
+   DESIGNATOR_OK        C1   C_BST                                        现在在【网表】里能找到
    DESIGNATOR_OK        C1   C_DET_BAT                                    现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   C_DET_VBUS_D                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_KEY_CAM                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_KEY_PWR                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_KEY_VM                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   C_KEY_VP                                     现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   C_REGN                                       现在在【网表】里能找到
    DESIGNATOR_OK        C1   C_RST                                        现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   C_SW_IN                                      现在在【板文件+网表】里能找到
@@ -45,18 +57,27 @@ ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
    DESIGNATOR_OK        C1   C_VBUS_GND                                   现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   C_VBUS_OUT                                   现在在【网表】里能找到
    DESIGNATOR_OK        C1   D_CHG_LED                                    现在在【网表】里能找到
+   DESIGNATOR_OK        C1   D_ESD_CAM                                    现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   D_ESD_DEMO                                   现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   D_ESD_USB_D                                  现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   D_LED_B                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   D_LED_G                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   D_LED_R                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   FB_DEMO                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_BOOT1                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   J_CHG                                        现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_DEBUG                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   J_SOM_P1                                     现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   J_SOM_P2                                     现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   J_SOM_P3                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   J_SOM_P4                                     现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   J_TYPE_C                                     现在在【网表】里能找到
+   DESIGNATOR_OK        C1   J_UART                                       现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   J_USB_C                                      现在在【板文件+网表】里能找到
+   NET_NAME             C3   LED_B_D                                      它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   LED_G                                        它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   LED_G_D                                      它是【电源轨名 / 逻辑信号名】, 本来就不是位号
+   NET_NAME             C3   LED_R_D                                      它是【电源轨名 / 逻辑信号名】, 本来就不是位号
    DOC_INTERNAL         C10  L_B                                          前缀 `L_` ∈ 物理量命名空间 (本项目板上无该前缀位号)
    DOC_INTERNAL         C7   L_eye                                        后缀含小写字母 ⇒ 物理量符号 (不是位号)
    NET_NAME             C11  PWR_CTRL                                     前缀 `PWR_` ∈ 电源轨名/逻辑信号名命名空间
@@ -70,12 +91,23 @@ ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
    DESIGNATOR_OK        C1   R_BAT_DET_1                                  现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_BAT_DET_2                                  现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_CC1                                        现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_CC1_D                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_CC2                                        现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_CC2_D                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_CE                                         现在在【网表】里能找到
    DESIGNATOR_OK        C1   R_CHG_LED                                    现在在【网表】里能找到
    DESIGNATOR_OK        C1   R_EN_VCORE                                   现在在【板文件+网表】里能找到
    DOC_INTERNAL         C4   R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION        盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
    DESIGNATOR_OK        C1   R_ILIM                                       现在在【网表】里能找到
+   DESIGNATOR_OK        C1   R_JTAG_TCK                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_JTAG_TDI                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_JTAG_TDO                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_JTAG_TMS                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_KEY_CAM                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_KEY_PWR                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_KEY_VM                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_KEY_VP                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_LED_G                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_PD_ON                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_PG_PULL                                    现在在【板文件+网表】里能找到
    DOC_INTERNAL         C8   R_PU_                                        以 `_` 结尾 ⇒ 文本被截断的前缀
@@ -85,7 +117,18 @@ ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
    DESIGNATOR_OK        C1   R_PU_I2CB_SCL                                现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_PU_PG                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_PU_RESET_N                                 现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D0_N                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D0_P                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D1_N                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D1_P                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D2_N                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SEL_D3_N                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_FSIN                                   现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_SER_RESET_N                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_SPI_CSn                                现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_SPI_MISO                               现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_SPI_MOSI                               现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   R_SER_SPI_SCLK                               现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_SER_USB_D_N                                现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   R_SER_USB_D_P                                现在在【板文件+网表】里能找到
    DOC_INTERNAL         C12  R_SUPV_DIV                                   是 ≥2 个 live 位号的严格前缀 (R_SUPV_DIV1, R_SUPV_DIV2) ⇒ 文档对一组件的统称
@@ -102,21 +145,32 @@ ISS-318 · SW 侧位号引用可达性闸 · check_sw_ref_reachability.py
    DOC_INTERNAL         C5   SW_BRIGHTNESS_API_ANCHORS                    盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
    DOC_INTERNAL         C4   SW_BRIGHTNESS_CONTROL_POLICY                 盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
    DOC_INTERNAL         C5   SW_BRIGHTNESS_POLICY_ANCHORS                 盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
+   DESIGNATOR_OK        C1   SW_KEY_CAM                                   现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   SW_KEY_PWR                                   现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   SW_KEY_VM                                    现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   SW_KEY_VP                                    现在在【板文件+网表】里能找到
+   DOC_INTERNAL         C13  SW_MD5                                       `SW_` 开头 ⇒ SW 侧文档 / 锚点 / 环境变量键 / 条目编号
    DOC_INTERNAL         C5   SW_MD5_ANCHORS                               盘上某 .md 里有 `# BEGIN/END <token>` ⇒ 文档锚点
    DOC_INTERNAL         C4   SW_MD5_BASELINE_LEDGER                       盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DOC_INTERNAL         C4   SW_NEEDS_TRIAGE                              盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
    DOC_INTERNAL         C4   SW_REQUIREMENTS                              盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
    DESIGNATOR_OK        C1   SW_RST                                       现在在【板文件+网表】里能找到
    DOC_INTERNAL         C6   SW_SYNC_NETLIST                              盘上某 .py 把它当环境变量键用 ⇒ 判据/夹具的键名
    DOC_INTERNAL         C4   SW_TIMING_REVIEW                             盘上有一份同名文档 ⇒ 文档自己的编号 (文档互引)
+   DESIGNATOR_OK        C1   TP_BAT_CHG                                   现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   TP_BOOT                                      现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_CSI_D0_N                                  现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_FSIN                                      现在在【板文件+网表】里能找到
    DESIGNATOR_MISSING   C14  TP_INT                                       形状像位号, 但板/网表里从来没有过 ⇒ 【真隐患】
+   DESIGNATOR_OK        C1   TP_JTAG                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   TP_KEY_PWR                                   现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_KEY_VM                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_KEY_VP                                    现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_LED_G                                     现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   TP_PG_VCORE                                  现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   TP_PG_VIO                                    现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   TP_RESET                                     现在在【板文件+网表】里能找到
+   DESIGNATOR_OK        C1   TP_UART                                      现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   TP_USB_D_N                                   现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   U_BATPROT                                    现在在【板文件+网表】里能找到
    DESIGNATOR_OK        C1   U_CHG                                        现在在【网表】里能找到

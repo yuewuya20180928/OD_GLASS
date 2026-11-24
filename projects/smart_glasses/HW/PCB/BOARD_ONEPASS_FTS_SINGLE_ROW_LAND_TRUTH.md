@@ -402,3 +402,46 @@ FOOTPRINT_FILE = {
 ---
 
 > **本单边界自证**: ★**零写板** (板 md5 仍 `611b869e13518c3c023fb178f91a0075` / size `4940213` / mtime `2026-11-06 07:07:17.362193413`) · ★**零落表** (`HW/BOM_v1.csv` / `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` 一个字节未动) · ★**零改既有闸** (`MECH/check_debug_seat_3d_fit.py` / `HW/check_debug_uart_seat_alignment.py` / `HW/check_debug_uart_seat_truth.py` 一个字节未动) · ★**零改既有页面正文** (`MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md` 等一个字节未动) · ★**零挂链** (`state/gate_check.py` 未被碰, 命中数 = 0) · ★**零外发** (只读本机 + 自己上网查资料, `state/outbox/` 一个字节未动) · ★**不代拍** (`landing_part_decision = not_decided_here`) · ★**不自签台账** (`state/issue_log.yaml` 一个字节未动) · ★**没写别人的分片** (只写 `state/fragments/hw.yaml`) · ★**沙盒只落 `tmp/iss387/`** · ★**证据分级全页逐条标注** · `[实测]`
+
+---
+
+## §8 追加式补注 (★cont1 续做趟 · 2026-11-24 11:0x~11:4x · 只追加, §0~§7 正文一字未删改★)
+
+★**本块是本单【追加式补注】, §0~§7 全部正文逐字未动 (追加前 44,122 B / md5 `3e019b04f469bce196529300bf374979`; 追加后前 44,122 B 的 md5 仍为 `3e019b04f469bce196529300bf374979` ⇒ 逐字节可证)** ★
+
+### §8-① 本单新闸登记 (★闸路径 + 判据数 + 自测数★)
+| 项 | 值 | 证据等级 |
+|---|---|---|
+| ★闸路径★ | `HW/check_fts_single_row_land_truth.py` (★零挂链: `grep -c check_fts_single_row_land_truth state/gate_check.py` = **0**★) | ★`[实测]` ★ |
+| ★判据★ | **K0~K6 七条** (K0 机器块可解析无空字段 / K1 `positions_rows` 必须 1 排 / K2 铜箔宽二选一合法 / K3 偏离必须登记且影响面点名 MECH / K4 不许拿 FTSH 顶替 FTS / K5 证据分级+零挂起+判据事实分开 / K6 零写板零落表零挂链) | ★`[实测]` ★ |
+| ★裸跑★ | `python3 HW/check_fts_single_row_land_truth.py` ⇒ **7/7 绿 · rc=0** | ★`[实测]` ★ |
+| ★自测★ | `python3 HW/check_fts_single_row_land_truth.py --selftest` ⇒ **17/17 PASS · ALL TESTS PASS · rc=0** (★含 2 条专打命门: ① `positions_rows` 1→2 ⇒ K1 红; ② `copper_x_width` 改成与通用件不同的数却抹掉 MECH 影响面 ⇒ K3 红★) | ★`[实测]` ★ |
+| ★闸的数从哪来★ | ★**全部从本页 §7.2 机器块读** (通用件铜箔宽取 `generic_part_measured`, 偏离登记取 `deviation_vs_generic_part`) ⇒ ★**闸里没有写死任何一个数 ⇒ 改本页即红 (这是设计, 不是 bug)** ★ | ★`[实测]` ★ |
+| ★沙盒★ | ★`tmp/iss387_sbx/` (★项目盘内, 不依赖系统 `/tmp` 的深度★) | ★`[实测]` ★ |
+
+### §8-② §7.1 复跑命令的独立复核结果 (★cont1 本机实跑 2026-11-24 11:0x~11:3x★)
+| # | 复核结论 | 证据等级 |
+|---|---|---|
+| 7-1 | ★`python3 tmp/iss387/measure_generic_part.py` ⇒ rc=0 · `J_DEBUG` 焊盘 `1.0x1.0` / 钻孔 `0.65` / 1 排 / 排距 `[1.27,1.27,1.27]` / 铜箔包络 `4.81 x 1.0`; `J_UART` 焊盘 `1.0x1.0` / 钻孔 `0.65` / 1 排 / 排距 `[1.27]` / 铜箔包络 `2.27 x 1.0` ⇒ **与 §4 的「盘上通用件 (本机实测)」整列逐字一致** ★ | ★`[实测]` ★ |
+| 7-2 | ★两个库件 md5 = `7a5f470c1f70d4b832be258501945385` / `47bcbf6d0f267d543e50d4b2a8dfabf5` ⇒ 与 §4 一致 ★ | ★`[实测]` ★ |
+| 7-3 | ★`pdftotext` 文字层逐字含 `(NO OF POS x .050[1.27]) - .050[1.27]` / `.050 1.27 (TYP)` / `.028 0.71 (TYP)` ⇒ ★**该图只给孔位与孔径, 全文无铜箔焊盘直径** ⇒ ★§2-① / §4 的「官方直插图不给铜箔焊盘直径」这条结论【再次坐实】 ★ | ★`[官网]` + ★`[实测]` ★ |
+| 7-4 | ★`pdftotext` 文字层逐字含 `–S = Single Through-hole` / `02 thru 50 (except –S & –SA option = 05 thru 46)` / `FTS Board Mates: CLP, FLE` / `Cable Mates: FFSD` / `–01 = .120" Post (3.05 mm)` ⇒ 与 §3.2-① / §3.2-② 一致 ⇒ ★**§3.2-① 的两读歧义仍成立 (本单不代裁)** ★ | ★`[官网]` + ★`[实测]` ★ |
+| 7-5 | ★两份 PDF md5 = `fa249db9454f92c77d7e0a5ef62a0ba6` / `1cbe4a2bfa456d8fd030c8b76bdf8dd5` ⇒ 与 §7.1-7-5 的期望值一致 ★ | ★`[实测]` ★ |
+| 7-6 | ★`MECH/check_debug_seat_3d_fit.py` L491 / L683-L686 / L746 逐行原文仍写死 `4.81` / `2.27` / `copper.x` ⇒ 与 §5-① 一致 ★ | ★`[实测]` ★ |
+| 7-7 | ★`MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md` 中 `6.6100` / `4.0700` / `0.1350` / `2.6950` / `0.7700` / `OI-5` / `OI-12` 全部在位 ⇒ 与 §5-① 的影响面清单一致 ★ | ★`[实测]` ★ |
+| 7-8 | ★`HW/BOM_v1.csv` 第 71/77 行 `opn` / `footprint` 仍为 `待定` ⇒ 与 §6-③ 一致 ★ | ★`[实测]` ★ |
+| 7-9 | ★**订正 (★只在本追加块订正, 不动 §7.1 正文★)**: `grep -rn "FTS-104-01-F-S" HW/ MECH/ SW/` 的实际命中数 = **11** (★真相页自身 7 处 + 本单新闸 4 处★), 而 §7.1-7-9 原写「本页落盘后该数会变成 1 命中」⇒ ★**实际是 11, 因为【本单新建的闸】也引用了该料号 (自测用例里必须用它) ⇒ 原句的「1 命中」预期已过期** ★ ⇒ ★**命中全在本单自己的两个文件里, `HW/` / `MECH/` / `SW/` 的其他文件 0 命中 ⇒ 「本单未污染他人文档」这条仍然成立** ★ | ★`[实测]` ★ |
+| 7-10 / 7-11 | ★新闸裸跑 rc=0 (7/7 绿) · `--selftest` rc=0 (17/17 ALL TESTS PASS) ⇒ §7.1 这两行所写的预期**现已在盘, 可复现** ★ | ★`[实测]` ★ |
+
+### §8-③ 本单边界自证 (★cont1 开工前 / 交卷时两次实测同值★)
+| 边界 | 自证读数 | 证据等级 |
+|---|---|---|
+| ★零写板★ | ★板 md5 `611b869e13518c3c023fb178f91a0075` / size `4940213` / mtime `2026-11-06 07:07:17.362193413` ⇒ 前后逐字同 (★板已 18 天逐字节未动 ⇒ G1 仍开, 不许投板★) ★ | ★`[实测]` ★ |
+| ★零落表★ | ★`HW/netlist_v1.csv` `6aee500e60ba0732f83a9cf557ba90ab` · `HW/netlist_v1_pins.csv` `9174309df1ec9411ac8e8d9e80ee386a` · `HW/BOM_v1.csv` `5b9993992405904a60ac96a020b375d8` ⇒ 三件前后逐字同 ★ | ★`[实测]` ★ |
+| ★零改既有闸 / 既有页面正文★ | ★`state/gate_check.py` `5f370bb8cf828473e70ccc5d6412da98` · `MECH/check_debug_seat_3d_fit.py` `667e6006280cc8c0533d8ce8fa39f8be` · `MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md` `3d0c8e7de86e0f853450dcb7404d9f44` · `HW/check_debug_uart_seat_alignment.py` `52e067ed99edaaced50fd565bed90042` · `HW/check_debug_uart_seat_truth.py` `274f759101ca4bc131f25633dc209b0c` ⇒ 前后逐字同 ★ | ★`[实测]` ★ |
+| ★零改本页正文★ | ★本页只追加 §8 一块; §0~§7 的 44,122 B 前缀 md5 追加前后同为 `3e019b04f469bce196529300bf374979` ★ | ★`[实测]` ★ |
+| ★零挂链★ | ★`grep -c check_fts_single_row_land_truth state/gate_check.py` = **0** ⇒ ★**挂链是 main 的地界, 本单只交脚本 + 路径 + 建议** ★ | ★`[实测]` ★ |
+| ★零外发★ | ★全程只读本机 + 自己上网查资料; ★`state/outbox/` 一个字节未动; ★**未调用任何发信 / 询价 / 问询工具** ★ | ★`[实测]` ★ |
+| ★不代拍★ | ★`landing_part_decision = not_decided_here` (机器块字段, 由新闸 K5 守住); ★页面里没有「已决定 / 应采用」式裁决语 ★ | ★`[实测]` ★ |
+| ★不自签台账★ | ★`state/issue_log.yaml` 一个字节未动 ★ | ★`[实测]` ★ |
+| ★没写别人的分片★ | ★只写 `state/fragments/hw.yaml` ★ | ★`[实测]` ★ |
