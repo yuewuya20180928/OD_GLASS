@@ -5,14 +5,12 @@ updated_by: mech-lead
 status:
   phase: done
   progress_pct: 100
-  health: green
-  summary: 'ISS-389 cont1 交卷完成: 要求单 MECH/BOARD_ONEPASS_DEBUG_SEAT_REWORK_SPEC.md (65,851B md5 8a56a3eb
-    正文一字未改) + 新闸 MECH/check_debug_seat_rework_spec.py (47,102B md5 babadd6b 裸跑 rc=0 判据 472 条失败 0 条 selftest
-    rc=0 17/17) + 交卷页 HANDOFF/2026-11-24_mech-lead_ISS389_两连接器座体开口清空区收口作业包.md (B1~B6 齐全) 三件在盘; 结构侧给 J_DEBUG
-    与 J_UART 两件合到一件的改件要求单 目标清空区 6.6100/4.0700 (X) 与 2.8000 (Y) 罩开口 X 10.2000 不动; 8 条 OI 全部登记进 needs_from
-    (OI-5/OI-3/OI-2/OI-12/OI-13/OI-14 归 main OI-11/OI-1 归 boss) 每条写清要谁回答什么+代价+不答的后果+答复窗口=板框上位问题同一窗口 板那一趟开工前;
-    三档 1.7750/4.0850/4.8100 只给代价不裁决 decisions 7 字段全 not_decided_here; 零写板 零落表 零改既有闸与已签收页 零挂链 零外发 不代拍 不自签台账;
-    已知基线红 check_connector_clearance_caliber.py rc=1 (K7) 前后逐字相同 非本单引入 未去改它'
+  health: yellow
+  summary: 'iss397 交卷完成: 真相页 MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md (§1~§9 齐全 + 机器块 22 键)
+    + 新闸 MECH/check_fts_seat_sample_plan.py (A~F, ★裸跑预期 rc=1 = 红的是现状【三量实测档仍 0数据】不是闸故障★, --selftest rc=0
+    末行 ALL TESTS PASS 正向1+反向18, 零挂链) + 沙盒预演 tmp/iss397/sandbox_rehearsal.py (假数据⇒全绿 33/33, 真树⇒仅 B.6 红)
+    + 交卷页 HANDOFF/2026-11-24_mech-lead_ISS397_*.md (B1~B6 齐全); 结论 = 降级方案 D2 的作业包已成可执行文本, 收样排期/取件/重评/键名笔误/两档校准
+    五条全交 main 一条不代拍; 零写板 零落表 零改既有闸与既有页正文 零挂链 零外发 不代拍 不自签台账'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -1823,6 +1821,63 @@ artifacts:
   version: v1.0
   updated_at: '2026-10-25'
   summary: 'ISS-390 交卷页: B1~B6 六段齐全 (结论摘要/验收标准自评/证据分级/接口取值声明/未决项/自证复现命令) + 边界自证表 + 复跑命令原样输出'
+- path: MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md
+  kind: truth_page
+  version: iss393
+  updated_at: '2026-11-24'
+  summary: 'iss393 真相页: 两本对照账(50 个量逐个带 source) + A/B/C 重算清单(A 32 / B 12 / C 6) + 扩散面 18 处全仓点名 + Y 向缺 1.1600
+    两口径独立复算 + 降级方案(官网图主力路径 + 单板样卡尺量三个量) + 机器块五键 --emit 可解析; 零写板 零落表 零改既有页正文'
+- path: MECH/check_fts_vs_generic_courtyard_delta.py
+  kind: gate
+  version: iss393
+  updated_at: '2026-11-24'
+  summary: 'iss393 新机器闸: G1 source/class 齐 + G2 官方定性扫描 + G3 判决链消费量全覆盖(闸自读两个文件抽 54 个数) + G4 A/B/C 分类 +
+    G5 Y 缺口自复算 + G6 扩散面登记完整性 + G7 零扰动(板三指纹 + 三表 md5 + 零挂链 + 零挂起措辞 + 证据五级白名单); 裸跑 rc=0, --selftest 正向1+反向14
+    末行 ALL TESTS PASS, 零挂链'
+- path: HANDOFF/2026-11-24_mech-lead_ISS393_通用库件与厂件对照物差集与判决链重算.md
+  kind: handoff
+  version: iss393
+  updated_at: '2026-11-24'
+  summary: 'iss393 交卷页: B1 结论摘要 / B2 验收标准自评 / B3 证据分级 / B4 接口取值声明 / B5 未决项与卡点 / B6 自证复现命令 六段齐全, 无占位符'
+- path: tmp/iss393_sbx/build_iss393_block.py
+  kind: sandbox_script
+  version: iss393
+  updated_at: '2026-11-24'
+  summary: 'iss393 沙盒脚本: 由本机实读(两个 .kicad_mod 直读 + 厂件 PDF 文字层 + 全仓 grep)重算并重建真相页 §6 机器块, 零手抄 ⇒ 机器块与实读不会漂移'
+- path: MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md
+  kind: workpack
+  version: iss397
+  updated_at: '2026-10-25'
+  summary: 'iss397 真相页: FTS 座体三量 (绝缘体高 Z / 外形宽 X / 外形深 Y) 收样作业包, §1~§9 齐全 (口径声明含「量的是座体本体, 不是罩住轴, 不是 keepout
+    包络」/ 量具两档分辨率 0.02+0.05mm + 深度尺 + 3 次取中位数 + 极差>0.05 重测并记原因 / 双轨冲突以轨乙实物为准且差异记成一栏 / 样件为焊上厂件后的单板样 + 顺带量焊盘
+    1.000x1.000 / §5 三处回填落点逐字改法 + §6 三方分工与投板前硬约束 / §7 三条降级路径 + 不许用降级刷绿 / §8 证据等级表 / §9 五条未决项交 main) +
+    机器块 22 键可解析; 两档校准: 标称档已被 ISS-390 (main 18:17 签收) 升到 [官网] 不动, 实测档+公差档确实仍 [0数据] 守死'
+- path: MECH/check_fts_seat_sample_plan.py
+  kind: gate
+  version: iss397
+  updated_at: '2026-10-25'
+  summary: 'iss397 新机器闸: 判据 A~F (九节行首精确匹配 / B 命门=三量实测档现况 [0数据] 时必须仍写 [0数据]·闸自己实读 logs/iss397/fts_seat_sample_measurements.json
+    交叉对账·偷写 [官网]/[实测] 必红 / C 量具+容差+3次中位数+极差判据四件 / D §5 三处落点+§6 三方分工+投板前硬约束 / E §7 三条降级路径+不许用降级刷绿 / F 零写板零落表零挂链+已签收件
+    md5 同基线); ★裸跑预期 rc=1 —— 红的是【现状】(三量实测档仍 [0数据]), 不是闸故障★; --selftest 正向1+反向18 末行 ALL TESTS PASS rc=0;
+    零挂链'
+- path: tmp/iss397/sandbox_rehearsal.py
+  kind: sandbox
+  version: iss397
+  updated_at: '2026-10-25'
+  summary: 'iss397 沙盒预演脚本: 在 tmp/iss397/sbx/positive 造「三量已实测填齐」假记录+假页面 ⇒ 跑本闸正向对照全绿 (33 判据 0 失败) ⇒ 同时跑真树仍红
+    (仅 B.6) ⇒ 自证「红的是现状不是闸故障」; 假数据只落 tmp/iss397/·绝不进 MECH/ 真页面·绝不进真 logs/'
+- path: logs/iss397/verify_part1.log
+  kind: log
+  version: iss397
+  updated_at: '2026-10-25'
+  summary: 'iss397 验收自证 part1: 新闸裸跑 rc=1 (仅 B.6 现状红) + --selftest rc=0 末行 ALL TESTS PASS (正向1+反向18) +
+    沙盒预演 rc=0'
+- path: logs/iss397/verify_part2.log
+  kind: log
+  version: iss397
+  updated_at: '2026-10-25'
+  summary: 'iss397 验收自证 part2: 四道既有 MECH 闸全部 rc=0 (body_geometry / vs_generic_courtyard_delta / onepass_mech_release
+    / onepass_mech_sync) + 板与三表 md5 同基线 + 板 mtime/size 未动 + 六个已签收件 md5 同基线 + 零挂链 grep=0'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -3451,6 +3506,91 @@ needs_from:
     清空区 Y 需 3.9600, 而罩开口 Y 4.6000 最多只容 2.8000 => 缺口 1.1600, Y 向从 零余量卡死 变成 缺 1.1600 卡死, 且 OI-13 的 接受零余量
     选项已经不存在。可选 (a) 放大罩开口 Y 到至少 5.7600 (b) 改判据口径只罩铜箔 (c) 接受 (c) 已不存在。本单只摆账不代拍, 且这条与 OI-11 的 h 定档耦合 (h 决定清空区
     Y 有效高)。代价: 不答则结构件要么按装不下的口径出件要么按过阈的口径出件, 装配时才发现, 而结构件一改就要动镜脚内腔与罩外观缝。'
+  since: '2026-11-24'
+- key: iss393-n1
+  to: main
+  item: '要 main 回答: 罩住判据管到【铜箔】还是管到【座体本体】? 现状 = 罩铜箔 (公式里没有座体本体项) ⇒ 判决链一个数不用改; 若改口径 ⇒ X 需求 6.6100->6.8800
+    与 4.0700->4.3400 (各缺 0.2700) + Y 需求 2.8000->3.9600 (缺 1.1600, 装不下) ⇒ 两件结构件都要返工 (罩开口 Y 4.6000->>=5.7600)
+    ⇒ 代价 = 一轮结构件返工 + 罩体重画; 不答的后果 = 出件按哪个口径都可能白做'
+  since: '2026-10-25'
+- key: iss393-n2
+  to: main
+  item: '要 main + boss 回答: OI-12 重新裁。旧结论 判据偏紧 0.5200 已作废 (对照物 6.0900 是通用 KiCad 库件 courtyard, 不是厂件 keepout)
+    ⇒ 要重裁的是 [判据偏严] 还是 [对照物用错]; 不答的后果 = 一条错误结论继续挂在已签收页和已签收闸源码字符串里 (L848/L879), 下游每趟都会照抄'
+  since: '2026-10-25'
+- key: iss393-n3
+  to: main
+  item: '要 main + boss 回答: OI-13 Y 向零余量怎么处置。现状口径下 缺口 0.0000 (压线过阈, 零制造余量, 几何成立); 座体口径下 缺口 1.1600 ⇒ 装不下
+    ⇒ 这个选项直接消失 ⇒ 不答的后果 = 若 main 同时裁了 C-1 走座体口径, OI-13 会变成一个不存在的选项'
+  since: '2026-10-25'
+- key: iss393-n4
+  to: main
+  item: '要 main 回答: OI-14 的目标值取多少 (清空区出件目标)。不答的后果 = 结构件出件没有唯一目标, 三个竞争值 1.7750/4.0850/4.8100 只能按最坏值 6.6100
+    出, 返工幅度最大'
+  since: '2026-10-25'
+- key: iss393-n5
+  to: main
+  item: '要 main 回答: OI-11 座体真实高 h 走哪一档 (0.90/2.54/4.00)。结构侧提醒: 厂件 Z 0.8600 是连接器元器件的绝缘体高, 与罩/座体结构件的 h 是两个主体
+    ⇒ 顶替会把罩高压得更红 ⇒ 已登记为禁项; 不答的后果 = 出件高度按保守上界走, 结构件偏大'
+  since: '2026-10-25'
+- key: iss393-n6
+  to: main
+  item: '要 main 回答: §3 的 18 处订正落不落, 何时落。含已签收闸源码字符串 2 处 (MECH/check_debug_seat_3d_fit.py L848/L879) 与已签收页正文
+    15 处, 外加 HW 域 1 处 (HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md L190); 本单一处未改 ⇒ 代价 = 不落则错误措辞继续在仓里,
+    落则需同步更新新闸的注册表 (否则新闸会因登记项陈旧变红); 不答的后果 = 前提错误继续扩散'
+  since: '2026-10-25'
+- key: iss393-n7
+  to: main
+  item: '要 main 回答: 落 FTS 时板上焊盘是否仍取 1.000x1.000 (与 HW ISS-387 的 OI-387-1 同一路口)。这是 [MECH 全链余量数一个都不用改] 的唯一成立条件
+    ⇒ 拍板保持 1.000x1.000 = 零结构件返工; 不保持 = 4.8100/2.2700/6.6100/4.0700/0.1350/2.6950/0.7700 七个数全部要重算 ⇒ 结构件
+    + 镜脚侧再返工一轮'
+  since: '2026-10-25'
+- key: iss393-n8
+  to: main
+  item: '要 main 回答: 落 FTS 时先打一块单板样 + 卡尺量三个量 (座体宽 X / 座体深 Y / 绝缘体高 Z) 这个动作排进哪一趟, 谁收样。结构侧给的动作 = 板只改一次那一趟投板前,
+    mech-lead 收样量, 结果回填真相页 §6 的 dimensions.*.measured; 官网图的 REF 尺寸没给公差带 ⇒ 不量就只能一直靠推算; 不排的后果 = 座体深 Y 2.1600
+    的公差一直是 0数据'
+  since: '2026-10-25'
+- key: iss397_n1_sample_schedule
+  to: main
+  item: '要 main 回答: 落 FTS 时那趟「板只改一次」的投板前, mech-lead 收样量三量 + 回填 §5 三处, 排进哪一趟? 现在就排还是等板定版后再排? (本单只把「怎么做」做成作业包,
+    排期一条不代拍) ⇒ 建议默认值: 排进「板只改一次」那一趟的投板前 (与 HANDOFF/2026-11-24_hw-lead_ISS394_*.md §B5 N7 同批) ⇒ 不答的后果: 三量实测档与公差档永远
+    [0数据] ⇒ 落 FTS 时才发现外形与 courtyard 不合 ⇒ 【板改两次】⇒ 「板只改一次」当场破'
+  since: '2026-11-24'
+- key: iss397_n2_who_fetches
+  to: main
+  item: '要 main + hw-lead 回答: FTS-104-01-F-S + FTS-102-01-F-S 两个厂件, 以及「板只改一次」那一趟的那块单板样, 由谁取件 / 谁下单 / 谁保管?
+    (HW 侧 BOM 与采购口径 = hw-lead / main 的地界, 结构总工不碰采购; 零外发) ⇒ 建议默认值: 随「板只改一次」那一趟的板一起走 (同一批到货·同一趟收样⇒ 零额外快递等待),
+    厂件采购走 BOM 侧既有口径 ⇒ 不答的后果: 投板那天没有厂件在手 ⇒ 板已投出去而三量没量到 ⇒ 公差档永远补不回 ⇒ 那一趟的板白投'
+  since: '2026-11-24'
+- key: iss397_n3_recompute_on_delta
+  to: main
+  item: '要 main 回答: 量完若实测 X/Y/Z 与标称差 > 0.05 (例: 实测 Y ≠ 2.1600 超过 0.05), 要不要重新评 MECH 3D 判决链 (清空区 X/Y 需求
+    · 罩住余量 · Y 向缺口 1.1600 那几格)? ⇒ 建议默认值: 要 (作业包 §3.3 已定「两轨冲突以轨乙实物为准」⇒ 判决链消费的值变了 ⇒ 消费它的数该跟着重算) —— 但这是 main
+    的裁, 本单只摆代价不代拍 ⇒ 不答的后果: 判决链继续吃标称值, 实测值只躺在记录文件里 ⇒ 判决链与实物脱节 ⇒ 结构件按错的值出件 ⇒ 返工的是结构件不是板'
+  since: '2026-11-24'
+- key: iss397_n4_keyname_typo
+  to: main
+  item: '要 main 回答: MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md §5 动作表逐字写 dimensions.factory_seat_body_x_4pos.measured
+    / factory_seat_body_y.measured / factory_insulator_height_z.measured, 而同页 §6 机器块的真键是 dimensions.seat_body_x_4pos
+    / seat_body_y / insulator_height_z (本机实读: factory_ 前缀在该页机器块里【不存在】) ⇒ 要不要落一个追加式订正块把三个键名改对? ⇒ 建议默认值:
+    落追加式订正块 (老字一字未删), 且与 §5.2 的实测回填同批落 ⇒ 不答的后果: 回填的人照 §5 笔误键名写 ⇒ 写进一个不存在的键 ⇒ 闸读不到 ⇒ 等于没回填 ⇒ 三量实测档永远升不上去
+    ⇒ 本单零改既有页正文, 只登记'
+  since: '2026-11-24'
+- key: iss397_n5_tier_calibration
+  to: main
+  item: '要 main 认一下口径: ISS-397 开单前提① 写「三量 = [0数据]」; 本机实读 (2026-11-24 18:2x): 【标称档】已被 ISS-390 (main 2026-11-24
+    18:17 已签收) 升到 [官网] (X 5.0800/2.5400 · Y 2.1600 · Z 0.8600), 而【实测档】(三量至今没人量过) + 【公差档】(REF 无公差带) 确实仍是
+    [0数据] ⇒ 本单按【两档】实现: 标称档 [官网] 一字不动, 实测档守 [0数据] 直到真量到 ⇒ 这个切法认不认? ⇒ 建议默认值: 认 (它同时满足「不许把 [0数据] 偷写成 [官网]」的纪律,
+    又不推翻 ISS-390 已签收结论) ⇒ 不答的后果: 二选一 —— (甲) 按开单前提把标称档也写成 [0数据] ⇒ 推翻 ISS-390 已签收结论 ⇒ 判决链分级全乱; (乙) 按本单两档
+    ⇒ 闸的判据 B 打在实测档上 ⇒ 与开单文字字面不符 ⇒ 下一个读闸的人会误判'
+  since: '2026-11-24'
+- key: iss397_n6_gap_existing_gates
+  to: main
+  item: '要 main 回答: 已签收闸 MECH/check_fts_seat_body_geometry.py 的 G1.1 只查 body_geometry.*.value 非空, 不查 measured
+    槽位 ⇒ 谁把 measured 填成 [实测] 而没有原始读数, 这道闸抓不到 (★只登记, 本单零改既有闸源码★); 本单新闸 MECH/check_fts_seat_sample_plan.py
+    的判据 B 正是补这个洞 ⇒ 新闸要不要挂进 state/gate_check.py? ⇒ 建议默认值: 挂 (★挂链是 main 的地界, 本单零挂链·grep=0 已自证★; 挂进去后门禁链会多一道当前为红的闸,
+    红的原因是现状不是故障) ⇒ 不答的后果: 补洞的那道闸只躺在盘上没人跑 ⇒ 与 check_fts_seat_body_geometry.py 当年「rc=1 却没人跑」同一个病灶重演'
   since: '2026-11-24'
 answers:
 - key: pcb_outline_confirm
@@ -6511,6 +6651,79 @@ interface_claims:
   note: '[推算] 本单新算: 若罩住判据从罩住铜箔扩到罩住座体本体, 则 X 需 6.8800 / 4.3400 (各缺 0.2700), Y 需 3.9600 (缺 1.1600, 而开口 Y
     4.6000 最多只容 2.8000) => Y 向从零余量卡死变成缺 1.1600 卡死 => OI-13 的接受零余量选项消失; 新开 OI-390-1 归 main+boss'
   ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md §5-⑧ / §6.3
+- key: iss393-ic-1
+  value: '换厂件后判决链【不用改】的量: 铜箔包络 4.8100/2.2700/1.0000 + 清空区需求 6.6100/4.0700/2.8000 + 罩开口 Y 4.6000 + CRIT
+    0.6000 + TOL fdm_part 0.3000 + 每边判据余量 0.9000'
+  note: '现行罩铜箔口径; 理由: 铜箔包络只看焊盘 1.000x1.000, 钻孔 0.65->0.71 不进铜箔包络'
+  ref: MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md §2 A类
+- key: iss393-ic-2
+  value: '换厂件后【变了】的 8 个: 座体深 Y 2.1000->2.1600; D-6 座体上限 5.0800x2.1000->5.0800x2.1600; U-7 座体上限 2.6400x2.2000->2.5400x2.1600;
+    J_UART 每边让位 0.7150->0.7650; 钻孔 0.65->0.71; 绝缘体高 0数据->0.8600; 柱高 0数据->3.05; OI-12 判据偏紧 0.5200 作废'
+  note: 'OI-12 作废理由: 对照物 6.0900 是通用库件 courtyard, 不是厂件 keepout'
+  ref: MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md §2 B类
+- key: iss393-ic-3
+  value: '现在生效的口径 = 罩铜箔: M = max(H_housing, C_copper) 逐轴取大; margin_open = (O_opening - M)/2; margin_cover
+    = (H_housing - C_copper)/2; 公式内没有罩座体本体这一项'
+  note: 罩座体本体是待 main/boss 裁的候选口径, 不是现状; 结构侧不代拍
+  ref: MECH/check_debug_seat_3d_fit.py L890-L891
+- key: iss393-ic-4
+  value: '厂件 Samtec FTS 座体真值: 宽 X = N x 1.27 (4位 5.0800 / 2位 2.5400), 深 Y 2.1600, 绝缘体高 Z 0.8600, 柱高 3.05,
+    排距 1.2700, 钻孔 0.71'
+  note: '证据等级 官网; PDF 文字层逐字 (NO OF POS x .0500 [1.27]) / .085 2.16 REF / .034 0.86 REF / -01: .120 [3.05]
+    POST; md5 69d9415867cd642d6a6e07c6b755516b'
+  ref: MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md + tmp/iss393_sbx/fts-1xx-xx-x-sx-mkt.pdf
+- key: iss393-ic-5
+  value: 'Y 向两口径: 罩铜箔缺口 0.0000 (清空区需 2.8000 = 开口 4.6000 最多容 2.8000, 压线过阈, 零制造余量); 罩座体本体缺口 1.1600 (需 3.9600,
+    装不下), 罩开口 Y 需放大到 >= 5.7600 (现状口径只要 5.6000, 差 0.1600)'
+  note: 'OI-13 接受零余量这个选项在座体口径下消失: 零余量只能救恰好压线, 救不了差一截'
+  ref: MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md §4
+- key: iss393-ic-6
+  value: 前提错误扩散面 = 18 处, 已逐处给 文件+行号+建议新措辞; 其中 2 处在已签收闸源码字符串 (MECH/check_debug_seat_3d_fit.py L848 与 L879)
+  note: 本单一处都没改, 只登记; 落不落归 main
+  ref: MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md §3
+- key: iss393-ic-7
+  value: 'F.Fab 口径差: fp_line 笔画宽 0.1 => 含笔画外廓 = 几何 + 0.1000, 不含笔画 = 几何; J_DEBUG 页写 5.08 x 2.10 (不含笔画)
+    而 J_UART 页写 2.6400 x 2.2000 (含笔画) => 同一层两种口径'
+  note: 几何真值只有 2.5400 x 2.1000; U-7 的 2.6400 x 2.2000 是口径产物
+  ref: MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md L113/L118
+- key: iss393-ic-8
+  value: OI-11 的 h 三档 0.90/2.54/4.00 是罩/座体结构件的量; 厂件 Z 0.8600 是连接器元器件的绝缘体高, 主体不同, 不许顶替
+  note: 顶替会把罩高压得更红; 已登记为禁项
+  ref: MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md §4
+- key: iss397_c1_measured_tier_is_zero
+  value: FTS 座体三量 (绝缘体高 Z / 外形宽 X / 外形深 Y) 的【实测档】现况 = [0数据] (三量至今没有任何人用卡尺量过一只 FTS 厂件; ISS-393 机器块 dimensions.seat_body_x_4pos
+    / seat_body_y / insulator_height_z 三个 measured 槽位至今不存在, 只有 degradation.measure_fill_back 登记了它们) ⇒
+    本单新闸判据 B.6 因此判红 = 红的是现状不是闸故障
+  note: '[实测] 本机实读 MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md 机器块 (2026-11-24 18:2x) + 新闸裸跑
+    rc=1 输出'
+  ref: ''
+- key: iss397_c2_nominal_tier_is_official
+  value: 同一三量的【标称档】现况 = [官网] (X 5.0800/2.5400 · Y 2.1600 · Z 0.8600; 来源 Samtec 官方机械/营销图 FTS-1XX-XX-X-SX-MKT
+    REVISION AE md5 69d9415867cd642d6a6e07c6b755516b; ISS-390 交卷, main 2026-11-24 18:17 已签收) ⇒ 本单【不许】把它写回
+    [0数据], 也不许把标称当实测 ⇒ 标称档与实测档是两个字段两个等级
+  note: '[官网] + [实测] MECH/BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.md 机器块 body_geometry.* + ISS-390 已签收'
+  ref: ''
+- key: iss397_c3_tolerance_band_is_zero
+  value: 三量的【公差档】现况 = [0数据] (官网给的是 REF 尺寸 .085 2.16 REF / .034 0.86 REF ⇒ 未给公差带 ⇒ 座体深 Y 2.1600 与绝缘体高 Z
+    0.8600 的实际公差未知) ⇒ 这正是「不量就一直靠推算」的根源, 也是本单存在的价值
+  note: '[实测] MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md 机器块 degradation.gap 逐字'
+  ref: ''
+- key: iss397_c4_measure_method
+  value: '三量实测档升级到 [实测] 的充要条件 (作业包 §2.4): ① 量到 (3 量 x 2 料号 = 6 格, 每格 3 次读数取中位数) ② 原始 3 读数 + 中位数 + 极差 +
+    量具 + 日期 + 操作者 + 样件号 + 照片 md5 + 记录 md5 全部落在 logs/iss397/fts_seat_sample_measurements.json ③ 极差全 ≤ 0.05
+    (否则按 §2.3 重测到稳) ④ §5.1/§5.2 追加块已落 (标称档 [官网] 保留不动)'
+  note: '[推算] 本单作业包 §2.4 + 新闸 MECH/check_fts_seat_sample_plan.py 判据 B.4 实读该记录文件逐格对账'
+  ref: ''
+- key: iss397_c5_conflict_rule
+  value: '双轨冲突裁决 (作业包 §3.3): 若轨甲 (官网 REF) 与轨乙 (实物) 都做了且不一致 ⇒ 以轨乙 (实物) 为准 ⇒ 并把差异记成一栏 delta_vs_track_a,
+    不许悄悄取其一 ⇒ 差 > 0.05 时触发重评问法交 main (iss397_n3), 本单不代拍'
+  note: '[推算] 本单作业包 §3.3 + ISS-393 同款规则 (degradation.rule)'
+  ref: ''
+- key: iss397_c6_pad_cell
+  value: '板上焊盘是否仍取 1.000 x 1.000 这一格与 iss393-n7 是同一路口: 本单只量不裁 ⇒ 落 FTS 那趟的焊盘实际外形与中心距记进同一份记录的 pads 段, 裁决归
+    main'
+  note: '[实测] 本单作业包 §4.3 + MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md §2 A 类 11 条的唯一成立条件'
+  ref: ''
 open_questions:
 - id: MECH-Q1
   to: main

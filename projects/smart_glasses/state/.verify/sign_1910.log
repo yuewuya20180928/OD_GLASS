@@ -1,0 +1,66 @@
+================================================================================================
+★ main · 2026-11-24 19:1x · ISS-388 / ISS-390 / ISS-391 三单一并签 + 33 条待裁项已裁 + 自曝 L-32
+================================================================================================
+================================================================================================
+★阶段 1 · main 本机独立复核 (★不抄任何 agent 报告★)
+================================================================================================
+  ✅ 板 md5/mtime(ns)/size                                     611b869e / 1793920037362193413 ns / 4940213
+  ★★① 三单闸读数 (★TMPDIR 指项目盘·★/tmp 配额满会假红★)
+  ✅ ISS-388 闸 裸跑 rc=1 (★2/6 绿·★按设计★) + selftest ALL TESTS PASS (22/22) ★留证 state/.verify/iss388_probe.txt★
+  ✅ ISS-390 闸 裸跑 rc=0 + selftest 末行 ALL TESTS PASS + 15/15 反向用例 bare=0 selftest=0 'ALL TESTS PASS'
+  ✅ ISS-391 闸 裸跑 rc=0 (7/7 绿) + selftest 红且恰好 3 条 FAIL (①②③=登记检测) bare=0 selftest=1 FAIL条数=3 'SELFTEST FAILED'
+  ★★② 三单交付物在盘 + md5 现读 (★L-27 通则②★)
+  ✅ ISS-388 check_sw_gate_health.py                      在盘 (≥4000 B) 32327 B / 6c70606cf736
+  ✅ ISS-388 BOARD_ONEPASS_GATE_FAILURE_DIAGNOSIS.m       在盘 (≥4000 B) 20941 B / c420c2ff126b
+  ✅ ISS-388 2026-11-24_sw-lead_ISS388_两道签收闸失效诊断与闸健       在盘 (≥4000 B) 37416 B / 2238995ab55e
+  ✅ ISS-390 check_fts_seat_body_geometry.py              在盘 (≥4000 B) 41049 B / 1cdc6e983841
+  ✅ ISS-390 BOARD_ONEPASS_FTS_SEAT_BODY_GEOMETRY.m       在盘 (≥4000 B) 46898 B / 15697668d103
+  ✅ ISS-390 2026-11-24_mech-lead_ISS390_FTS直插档座体外形       在盘 (≥4000 B) 37068 B / c60af7ffede6
+  ✅ ISS-391 check_fts_land_drill_same_batch.py           在盘 (≥4000 B) 47175 B / dabc12000b6c
+  ✅ ISS-391 BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md       在盘 (≥4000 B) 48192 B / e3c652598315
+  ✅ ISS-391 2026-11-24_hw-lead_ISS391_排针改孔进板侧改动清单同       在盘 (≥4000 B) 29690 B / e7dd41e5fde5
+  ★★③ L-27 硬前置: 交付物静默
+  ✅ ISS-388 三个交付物 3 秒静默 + 最旧静默 227 分钟                        静默 227 分钟
+  ✅ ISS-390 三个交付物 3 秒静默 + 最旧静默 392 分钟                        静默 392 分钟
+  ✅ ISS-391 三个交付物 3 秒静默 + 最旧静默 58 分钟                         静默 58 分钟
+  ✅ ★零落表 + 既有闸/已签收页正文 未动 (14 件)                              动 0 []
+  ★★④ 零挂链 (★本轮不挂·★实测命中必须为 0★)
+  ✅ ISS-388 新闸零挂链 (gate_check 命中 0)                          命中 0
+  ✅ ISS-390 新闸零挂链 (gate_check 命中 0)                          命中 0
+  ✅ ISS-391 新闸零挂链 (gate_check 命中 0)                          命中 0
+  ★★⑤ ★★关键机器事实: 三道新闸各自都带【零挂链】自判据 (★⇒ 挂进去必自红★)
+  ✅ ISS-388 闸源码自带【零挂链】自判据 (hook_hits)                        ★挂它 = 它自己判自己红★
+  ✅ ISS-390 闸源码自带【零挂链】自判据 (G6.5)                             ★挂它 = 它自己判自己红★
+  ✅ ISS-391 闸源码自带【零挂链】自判据 (D6)                               ★挂它 = 它自己判自己红★
+  ✅ ISS-388 在自己的分片 (sw.yaml) 有本单登记                           命中在位
+  ✅ ISS-390 在自己的分片 (mech.yaml) 有本单登记                         命中在位
+  ✅ ISS-391 在自己的分片 (hw.yaml) 有本单登记                           命中在位
+  ★★⑥ L-26① 扫描面命中的既有闸 (★一道都不能漏★)
+  ✅ check_netlist_selfconsistency.py             (HW 域网表自洽) rc=0 rc=0
+  ✅ check_debug_uart_seat_truth.py               (ISS-380 签收闸) rc=0 rc=0
+  ✅ check_debug_uart_seat_alignment.py           (ISS-383 签收闸) rc=0 rc=0
+  ✅ check_charge_current_live_value.py           (ISS-384 签收闸) rc=0 rc=0
+  ✅ check_fts_single_row_land_truth.py           (★ISS-387 签收闸★) rc=0 rc=0
+  ✅ check_onepass_preflight_coverage.py          (★覆盖度闸 (★P4 覆盖令牌★)) rc=0 rc=0
+  ✅ check_debug_seat_3d_fit.py                   (ISS-386 签收闸) rc=0 rc=0
+  ✅ check_jdebug_arrangement_truth.py            (ISS-382 签收闸) rc=0 rc=0
+  ✅ check_onepass_struct_crosscheck.py           (MECH 结构交叉) rc=0 rc=0
+  ✅ check_onepass_mech_sync.py                   (MECH 同步) rc=0 rc=0
+  ✅ check_debug_seat_rework_spec.py              (★ISS-389 签收闸★) rc=0 rc=0
+  ✅ check_sw_false_connectivity_gate.py          (ISS-381 签收闸) rc=0 rc=0
+  ✅ check_evt_charge_current_criterion.py        (ISS-385 签收闸) rc=0 rc=0
+  ★★⑦ 官方门禁
+    merge.py           rc=0
+    gate_check.py      rc=0
+    issue_check.py     rc=1
+    stage_gate.py      rc=1
+  ✅ issue_check 违规数 = 19 (★既有老账·非本轮新增★)                      ★老账★
+  ✅ stage_gate 仍在 G1 (★按设计就该红★)                              ★G1 未开★
+  ★★⑧ ★★L-32 前提: 盘上 need key 总数 = 612 (★待落答案必须逐字命中其中★)
+
+  ⇒ 阶段 1 结论: ★全绿·可进阶段 2★
+
+================================================================================================
+★阶段 2 · 追加式落记录
+================================================================================================
+台账里没有 ISS-391-HOLD

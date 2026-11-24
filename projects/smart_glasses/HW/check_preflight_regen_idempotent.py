@@ -38,7 +38,9 @@ ISS-349 · 「板只改一次」板侧项全集页的【重跑不蒸发】机器
   PREFLIGHT_PROJ      项目根 (★默认 = 本文件的上一级目录★)
   PREFLIGHT_CHECKLIST 被判的清单页 (★默认 = PROJ/HW/PCB/BOARD_ONEPASS_PREFLIGHT.md★)
   PREFLIGHT_GEN_PROJ  ★**生成器与真源的出处**★ (★默认 = PROJ·R1 用它指向被改坏的沙盒★)
-  PREFLIGHT_SANDBOX   重跑沙盒的落点 (★默认 = PROJ/tmp/iss349/regen_gate·★绝不落 /tmp★★)
+  PREFLIGHT_SANDBOX   重跑沙盒的【基目录】 (★默认 = PROJ/tmp/iss349/regen_gate·★绝不落 /tmp★★)
+                      ★★ISS-395 (hw-lead 2026-11-24): 实际落点 = 基目录/run_<pid>_<ms>
+                      ⇒ 每次运行唯一 ⇒ 两个进程不再共享同一个 rmtree 目标 ⇒ 并发假红消失 ★★
 """
 from __future__ import annotations
 
@@ -51,13 +53,22 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.abspath(os.environ.get("PREFLIGHT_PROJ") or os.path.join(HERE, ".."))
 CHECKLIST = os.environ.get("PREFLIGHT_CHECKLIST") or os.path.join(
     PROJ, "HW", "PCB", "BOARD_ONEPASS_PREFLIGHT.md")
 GEN_PROJ = os.environ.get("PREFLIGHT_GEN_PROJ") or PROJ
-SANDBOX = os.environ.get("PREFLIGHT_SANDBOX") or os.path.join(PROJ, "tmp", "iss349", "regen_gate")
+# ★★ISS-395 (hw-lead · 2026-11-24 · ★零改判据·只改【落点唯一化】★★)
+#   ★**病根**: 旧写法落点写死 ⇒ 两个并发进程共用同一个 dst ⇒ L136 的 shutil.rmtree 在
+#     【对方正往同一个 dst 里写】时抛 `OSError: [Errno 39] Directory not empty` ⇒ 闸链判红
+#     ⇒ ★**「板漂移 ⇒ 板那一趟不许开工」这条结论是假的** ★
+#   ★**修法**: 基目录 + 每次运行唯一子目录 (pid + 毫秒) ⇒ 并发两跑各自一份沙盒 ⇒ 互不踩
+#   ★**判据 C1~C4 / REQUIRED_ITEMS / 覆盖度闸 一字未改** (★只改落点推导与 rmtree 防御★)
+SBX_BASE = os.environ.get("PREFLIGHT_SANDBOX") or os.path.join(PROJ, "tmp", "iss349", "regen_gate")
+#   ★**落点取绝对路径** (★相对路径会让沙盒里的生成器把沙盒当成相对根 ⇒ 页面写到嵌套路径 ⇒ C2 假红)
+SANDBOX = os.path.abspath(os.path.join(SBX_BASE, "run_%d_%d" % (os.getpid(), int(time.time() * 1000))))
 COVERAGE_GATE = os.path.join(PROJ, "HW", "check_onepass_preflight_coverage.py")
 
 # ★★C4 的必需项 (★ISS-349 加进来的那一条·★id 与 ISS-343 已写进 JSON 的保持一致·不许改★ ★)
@@ -126,14 +137,48 @@ SANDBOX_SKIP_DIRS = (os.path.join("HW", "PCB", "production"),
                      os.path.join("HW", "PCB", "_tmp_pi5"))
 
 
+def cleanup_run_sandbox():
+    """★ISS-395 · 跑完把自己那一份【唯一落点】清掉 (★防沙盒无限堆积·★不碰别人的目录★) ★
+
+    ★**只删自己这一份** (★`SANDBOX` 本身带 pid+ms ⇒ 天然唯一★) ⇒ 并发两跑互不干扰 ★
+    ★**清不掉也不算错** (★吞掉异常★) ⇒ 清理失败绝不影响闸的判定 ★
+    """
+    try:
+        safe_rmtree(SANDBOX)
+    except Exception:
+        pass
+
+
+def safe_rmtree(path, retries=5):
+    """★ISS-395 · 并发安全的目录删除 (★绝不抛未捕获异常★)
+
+    ★**为什么**: 旧写法 `shutil.rmtree(dst)` 在【另一个进程正往同一个 dst 里写】时
+      会抛 `OSError: [Errno 39] Directory not empty` ⇒ 闸链判红 ⇒ ★**假红** (板没动)
+    ★**做法**: ① 重试 (★给并发写方一个收尾窗口★) ② 最后一搏用 `ignore_errors=True` 吞掉
+      ⇒ ★**调用方永远不会看到一个未捕获异常** (★但【沙盒内容不一致】这件事本身仍会
+      体现在 C2 的逐字节比对上 ⇒ ★照样判红 ⇒ ★不放宽任何判据★)
+    """
+    for i in range(retries):
+        if not os.path.exists(path):
+            return True
+        try:
+            shutil.rmtree(path)
+            return True
+        except FileNotFoundError:
+            return True
+        except OSError:
+            time.sleep(0.05 * (i + 1))
+    shutil.rmtree(path, ignore_errors=True)
+    return not os.path.exists(path)
+
+
 def make_sandbox(src, dst):
     """★把 `src` 项目根复制成沙盒 `dst` (★只读 src·只写 dst★) ★
 
     ⇒ 装: `state/*.py|*.md|*.sh` + `state/fragments/pm.yaml` (★E-1 裁决原文的出处★) + `HW/` 全量
     ⇒ 不装: `HW/PCB/production` / `HW/PCB/_tmp_pi5` (★生成器不读它们·省 28M★)
     """
-    if os.path.exists(dst):
-        shutil.rmtree(dst)
+    safe_rmtree(dst)
     os.makedirs(os.path.join(dst, "state", "fragments"), exist_ok=True)
     for pat in SANDBOX_STATE_FILES:
         for fn in sorted(os.listdir(os.path.join(src, "state"))):
@@ -146,7 +191,8 @@ def make_sandbox(src, dst):
         shutil.copy2(pm, os.path.join(dst, "state", "fragments", "pm.yaml"))
     hw_src = os.path.join(src, "HW")
     shutil.copytree(hw_src, os.path.join(dst, "HW"),
-                    ignore=shutil.ignore_patterns("production", "_tmp_pi5"))
+                    ignore=shutil.ignore_patterns("production", "_tmp_pi5"),
+                    dirs_exist_ok=True)
     os.makedirs(os.path.join(dst, "tmp"), exist_ok=True)
     return dst
 
@@ -309,7 +355,9 @@ def main(argv=None):
         return 3
 
     if args.selftest:
-        return selftest(sources)
+        rc_st = selftest(sources)
+        cleanup_run_sandbox()
+        return rc_st
 
     banner()
     print("  PROJ      = %s" % PROJ)
@@ -323,6 +371,7 @@ def main(argv=None):
         for l in lines:
             print("    %s" % l)
     print("-" * 98)
+    cleanup_run_sandbox()
     if ok:
         print("  ✅ rc=0: ★★页与生成器同源 · 重跑零差异 · 来源全在册 · 必需项在场 ★★")
         return 0

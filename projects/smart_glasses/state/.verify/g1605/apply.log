@@ -1,0 +1,61 @@
+================================================================================================
+★ main · 2026-11-24 19:5x · ISS-388 + ISS-390 签收 / ISS-391 暂缓 + 16 条待裁项已裁 + 自曝 L-32
+================================================================================================
+================================================================================================
+★阶段 1 · main 本机独立复核 (★不抄任何 agent 报告★)
+================================================================================================
+  ✅ 板 md5/mtime(ns)/size                                     611b869e / 1793920037362193413 ns / 4940213
+  ★★① 两单交付物 + 闸 (★TMPDIR 指项目盘·★/tmp 配额满会假红★)
+  ✅ ISS-388 check_sw_gate_health.py 在盘 (≥4000 B)             32327 B
+  ❌ ISS-388 BOARD_ONEPASS_SW_GATE_HEALTH_DIA 在盘 (≥4000 B)    0 B
+  ✅ ISS-388 2026-11-24_sw-lead_ISS388_两道签收闸失 在盘 (≥4000 B)    37416 B
+  ❌ ISS-388 闸 裸跑 rc=1 (★按设计★)                                闸结果 2/6 通过, rc=1
+  ❌ ISS-388 闸 --selftest rc=0 且 ALL TESTS PASS (★22 条★)      读到 None 条 · 末行 'ALL TESTS PASS'
+  ✅ ISS-390 check_fts_seat_body_geometry.py 在盘 (≥4000 B)     41049 B
+  ✅ ISS-390 BOARD_ONEPASS_FTS_SEAT_BODY_GEOM 在盘 (≥4000 B)    46898 B
+  ✅ ISS-390 2026-11-24_mech-lead_ISS390_FTS直 在盘 (≥4000 B)    37068 B
+  ✅ ISS-390 闸 裸跑 rc=0 (★按设计★)                                PASS
+  ✅ ISS-390 闸 --selftest rc=0 且 ALL TESTS PASS (★15 条★)      读到 15 条 · 末行 'ALL TESTS PASS'
+  ★★② ★★ISS-391 本轮【暂缓签收】的机器依据 (★selftest 不全绿 + 判据被抽走★)
+  ✅ ★ISS-391 闸 --selftest 不全绿 (★实测 14/17·★故不可签★)             14/17
+  ❌ ★★D1 判据在「删掉改孔这一腿」后是否还抓得到 (★沙盒实测★)                        见 d1_probe.txt
+  ❌ ★零落表 + 既有闸/已签收页正文 未动 (14 件)                              动 1 ['HW/PCB/BOARD_ONEPASS_PREFLIGHT.md(192873f6≠b5d8d5b9)']
+  ★★③ 零挂链 (★本轮不挂·★必须实测命中 0★)
+  ✅ ISS-388 新闸零挂链 (gate_check 命中 0)                          命中 0
+  ✅ ISS-390 新闸零挂链 (gate_check 命中 0)                          命中 0
+  ✅ ISS-391 新闸零挂链 (gate_check 命中 0)                          命中 0
+  ✅ ISS-388 在自己的分片 (sw.yaml) 有本单登记                           命中在位
+  ✅ ISS-390 在自己的分片 (mech.yaml) 有本单登记                         命中在位
+  ✅ ISS-391 在自己的分片 (hw.yaml) 有本单登记                           命中在位
+  ★★④ L-26① 扫描面命中的既有闸 (★一道都不能漏★)
+  ✅ check_netlist_selfconsistency.py               (HW 域网表自洽) rc=0 rc=0
+  ✅ check_debug_uart_seat_truth.py                 (ISS-380 签收闸) rc=0 rc=0
+  ✅ check_debug_uart_seat_alignment.py             (ISS-383 签收闸) rc=0 rc=0
+  ✅ check_charge_current_live_value.py             (ISS-384 签收闸) rc=0 rc=0
+  ✅ check_fts_single_row_land_truth.py             (★ISS-387 本轮签收闸 (★扫 FTS land★)) rc=0 rc=0
+  ✅ check_debug_seat_3d_fit.py                     (ISS-386 签收闸) rc=0 rc=0
+  ✅ check_jdebug_arrangement_truth.py              (ISS-382 签收闸) rc=0 rc=0
+  ✅ check_onepass_struct_crosscheck.py             (MECH 结构交叉) rc=0 rc=0
+  ✅ check_onepass_mech_sync.py                     (MECH 同步) rc=0 rc=0
+  ✅ check_mech_verdict_freshness.py                (MECH 判决新鲜度) rc=0 rc=0
+  ✅ check_debug_seat_rework_spec.py                (★ISS-389 本轮签收闸 (★扫座体收口★)) rc=0 rc=0
+  ✅ check_sw_false_connectivity_gate.py            (ISS-381 签收闸) rc=0 rc=0
+  ✅ check_evt_charge_current_criterion.py          (ISS-385 签收闸) rc=0 rc=0
+  ★★⑤ ★★挂链可行性本机实测: 新闸有没有硬钉板 md5 (★决定挂进去会不会立刻造新红★)
+      · check_sw_gate_health.py                        硬钉完整板 md5 字面量: 否
+      · check_fts_seat_body_geometry.py                硬钉完整板 md5 字面量: ★是★
+      · check_fts_land_drill_same_batch.py             硬钉完整板 md5 字面量: 否
+  ★★⑥ 官方门禁 (★★本轮不挂链 ⇒ 基线读数应与上一轮一致★)
+    merge.py           rc=0
+    gate_check.py      rc=0
+    issue_check.py     rc=1
+    stage_gate.py      rc=1
+  ★★⑦ ★★自曝: 我 13:1x 那 15 条答案, 有几条逐字命中 need 的 key (★决定它们闭没闭上 need★)
+      · 我 13:1x 那批 = 14 条 · 其中逐字命中 need key 的 = 0 条
+      · ★★⇒ 那批【一条都没闭上 need】(★因为用了【自己起的改名 key】★) ⇒ ⇒ 本轮按 need 的原 key 重答
+      · merge.py 的 lint 里有【答案 key 无 need 引用】这一类 = 189 条 (★我那批 15 条全在里面★)
+
+  ⇒ 阶段 1 结论: ★有红项·fail-closed·零写盘退出★
+
+★★ fail-closed: 阶段 1 有红项 ⇒ 零写盘退出 ★★
+APPLY_RC=2

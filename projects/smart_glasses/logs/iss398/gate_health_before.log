@@ -1,0 +1,27 @@
+=== ISS-398 · 改前读数 (BEFORE) ===
+Tue Nov 24 06:28:43 PM CST 2026
+
+--- check_sw_gate_health.py ---
+============================================================================================
+ISS-388 · SW 域【闸健康度闸】 · 根 = /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+============================================================================================
+  [FAIL] H0 · SW 域闸清单在盘 + 每道闸 --selftest rc=0 + 末行命中它自己声明的成功标志 + 全文无失败标志
+        ⚠ ★闸 SW/tools/check_sw_board_md5_rebase_readiness.py 的 --selftest rc=1 (期望 rc=0) ⇒ 判红★ (★它自己坏了★)
+        ⚠ ★闸 SW/tools/check_sw_board_md5_rebase_readiness.py 的 --selftest 输出里出现失败标志 ['反向用例: 0/', '有用例 FAIL', '本闸不可信'] ⇒ 判红★
+        ⚠ ★闸 SW/tools/check_sw_board_md5_rebase_readiness.py 的 --selftest 末行 = '★有用例 FAIL ⇒ 本闸不可信 ⇒ rc=1★' 不含它自己声明的成功标志 ['ALL TESTS PASS'] ⇒ 判红★
+        ⚠ ★闸 SW/tools/check_sw_ref_reachability_v2.py 的 --selftest rc=1 (期望 rc=0) ⇒ 判红★ (★它自己坏了★)
+        ⚠ ★闸 SW/tools/check_sw_ref_reachability_v2.py 的 --selftest 输出里出现失败标志 ['❌ 有用例没抓到', '反向用例: 0/', '有用例没抓到'] ⇒ 判红★
+        ⚠ ★闸 SW/tools/check_sw_ref_reachability_v2.py 的 --selftest 末行 = '❌ 有用例没抓到 ⇒ 判据可能没被真读' 不含它自己声明的成功标志 ['反向用例全抓到'] ⇒ 判红★
+  [FAIL] H1 · ★每道被扫的闸在【两个不同深度的 TMPDIR】下 --selftest 读数必须逐字相同 (★环境无关性★)
+        ⚠ ★闸 SW/tools/check_debug_pin_order_contract.py 在两个 TMPDIR 深度下的 rc 不同 (0 vs 1) ⇒ ★判据与环境耦合★ ⇒ 判红★
+  [FAIL] H2 · 「钉板 md5 的闸」清单 (ISS-372 §2 的账) 与盘上真实存在的钉板 md5 闸必须一致
+        ⚠ ★SW 域有闸 SW/tools/check_sw_false_connectivity_gate.py 硬钉了板 md5 (类A·.py 内 32 位字面量) 但它没进 §2 的账 ⇒ ★账与现实漂移★ ⇒ 判红★
+  [FAIL] H3 · 板 md5 的【页面引用行】 (§1 的账) 与盘上真实引用行必须一致
+        ⚠ ★盘上扫到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:23 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ ★盘上扫到 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md:241 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+        ⚠ ★盘上扫到 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md:215 (命中 1 处) 但 §1 清单里没有这一行 ⇒ 漏登记 ⇒ 判红★
+  [PASS] H4 · 板三项指纹未动 + 零落表 (网表/脚表/BOM) + 零挂链
+  [PASS] H5 · 交付页证据分级五级白名单 + 零挂起措辞 + 零空洞词
+--------------------------------------------------------------------------------------------
+闸结果 2/6 通过, rc=1
+rc=1

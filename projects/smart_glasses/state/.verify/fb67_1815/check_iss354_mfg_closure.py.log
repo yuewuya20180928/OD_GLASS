@@ -1,0 +1,35 @@
+====================================================================================================
+  ISS-354 · 「demo 主板可制造性收口」只读判定闸 (★零写板·零落表·零改既有闸★)
+====================================================================================================
+  PCB        = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb
+  WORKPACKET = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/BOARD_ONEPASS_WORKPACKET.md
+  PREFLIGHT  = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/BOARD_ONEPASS_PREFLIGHT.md
+  BOM        = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/BOM_v1.csv
+
+[C1] ★5 个 ref 逐条点名 (★现封装 [实测·板文件] vs 应为封装 [查得]★)★
+  OK    Q1: 已定位 (★现封装 5 焊盘 / 编号 2,3,4,5,6 / 焊盘 [('0.6', '0.9')]·★与盘面吻合★)
+        应为封装 = ★**TI `CSD16406Q3` = `Q3` 封装 (VSON-CLIP / `DQG`) · 8 脚 SON 3.3 × 3.3 mm** ★ · 官方推荐 land: ★**8 个 0.500 × 0.630 …
+  OK    Q2: 已定位 (★现封装 5 焊盘 / 编号 2,3,4,5,6 / 焊盘 [('0.6', '0.9')]·★与盘面吻合★)
+        应为封装 = ★**同 `Q1`: `CSD16406Q3` = Q3 (VSON-CLIP / DQG) 8 脚 SON 3.3 × 3.3 mm** ★
+  OK    U_BATPROT: 已定位 (★现封装 6 焊盘 / 编号 2,3,4,5,6,7 / 焊盘 [('0.6', '0.9')]·★与盘面吻合★)
+        应为封装 = ★**TI `BQ2970DSER` = `DSE` (WSON-6, 1.50 × 1.50 × 0.75 mm)** ★ · 官方脚号 (Table 5-1): ★**1=`NC` · 2=`COUT` (充电管栅驱…
+  OK    U_LDO_S28: 已定位 (★现封装 4 焊盘 / 编号 1,2,4,5 / 焊盘 [('0.6', '0.9')]·★与盘面吻合★)
+        应为封装 = ★**TI `TPS7A2028DQNR` = `DQN` (X2SON-4, 1.0 × 1.0 mm)** ★ · 官方脚号 (X2SON): ★**1=`OUT` · 2=`GND` · 3=`EN` · 4=`I…
+  OK    U_SUPV: 已定位 (★现封装 4 焊盘 / 编号 1,4,5,6 / 焊盘 [('0.6', '0.9')]·★与盘面吻合★)
+        应为封装 = ★**TI `TPS3808G01DBVR` = `DBV` SOT-23-6 (2.90 × 1.60 mm)** ★ · 官方脚号 (Table 5-1, SOT-23 列): ★**1=`RESET` (开漏) ·…
+  ---- C1 小计: 已定位 5 个 (Q1,Q2,U_BATPROT,U_LDO_S28,U_SUPV) / 仍未定位 0 个 (-)
+  OK    C1 通过: ★5 个 ref 全部已定位且现封装与盘面吻合★
+
+[C2] ★BOM 里 OPN 仍 `[0数据]` 的器件【名单】(★列名单·不许只报数★)★
+  ---- 盘面名单 (12 个): BT_432243, CHG_GND_STAR, D_ESD_LIGHT, SW_BOOT, SW_KEY_CAM, SW_KEY_PWR, SW_KEY_VM, SW_KEY_VP, SW_RST, U_LDO_S28, U_SUPV, X1
+  ---- 作业包登记名单 (12 个): BT_432243, CHG_GND_STAR, D_ESD_LIGHT, SW_BOOT, SW_KEY_CAM, SW_KEY_PWR, SW_KEY_VM, SW_KEY_VP, SW_RST, U_LDO_S28, U_SUPV, X1
+  OK    C2 通过: ★盘面与作业包登记的 `[0数据]` 名单逐个一致★
+
+[C3] ★预检页追加段是否含「下料前一票否决项」★
+  OK    C3 通过: ★预检页含「下料前一票否决项」(2 处)★
+
+[C4] ★作业包追加段是否含改项清单★
+  OK    C4 通过: ★作业包追加段含改项清单 + 5 个 ref 的逐条行★
+
+----------------------------------------------------------------------------------------------------
+  ✅ rc=0: ★★C1 5 个 ref 全已定位 · C2 `[0数据]` 名单一致 · C3 一票否决项在场 · C4 改项清单在场 ★★

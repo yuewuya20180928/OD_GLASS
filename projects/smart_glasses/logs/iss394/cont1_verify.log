@@ -1,0 +1,74 @@
+=== ISS-394 cont1 · new gate bare run ===
+2026-11-24T15:44:04+08:00
+── ISS-394 座体选型结论传播自守闸
+  [K0] ✔ GREEN  板三项 + 三张表指纹未动
+  [K1] ✘ RED  ★命门★ 被推翻的料号不许再以「首选/真值档」身份活在活副本里
+        · K1 ★命门★ HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md L18 仍以【首选 / 板侧真值档】的身份主张被推翻的料号 ⇒ 判红 (断言标记=False 口径标记=True 无证伪标记) | | 0-1 | ★**厂商具体型号候选已查到, 每条带料号 + 官网链接**: `J_DEBUG` 侧查实 **Samtec FTSH-1xx-01-F-DV** (1.27 mm 直插排针家族) / **Samtec FTSH-105-01-L-DV-K** (2×5 Cortex-10) / *
+        · K1 ★命门★ HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md L62 仍以【首选 / 板侧真值档】的身份主张被推翻的料号 ⇒ 判红 (断言标记=True 口径标记=True 无证伪标记) | | D-1 | **Samtec** | **`FTSH-104-01-F-DV`** | https://www.samtec.com/products/ftsh (家族页) | 1.27 mm (`.050"`) 直插 THT · 垂直 · 无 shroud · 2~50 pins/row · 
+        · K1 ★命门★ HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md L67 仍以【首选 / 板侧真值档】的身份主张被推翻的料号 ⇒ 判红 (断言标记=True 口径标记=True 无证伪标记) | ★**`J_DEBUG` 侧一句话**: ★**按板侧真值 (1×4 · 1.27 mm · 直插), 唯一同时满足三要素的候选是 `FTSH-104-01-F-DV` (D-1); 若改走 Cortex-10 2×5 口径, 则 D-2 与结构侧模型自洽, 但那要改板** · `[推算]`
+        · K1 ★命门★ HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md L73 仍以【首选 / 板侧真值档】的身份主张被推翻的料号 ⇒ 判红 (断言标记=True 口径标记=True 无证伪标记) | | U-1 | **Samtec** | **`FTSH-102-01-F-DV`** | https://www.samtec.com/products/ftsh (家族页) | 1.27 mm (`.050"`) 直插 THT · 垂直 · 无 shroud · 座体高 `[0数据]` ⇒ 降级
+        · K1 ★命门★ HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md L112 仍以【首选 / 板侧真值档】的身份主张被推翻的料号 ⇒ 判红 (断言标记=False 口径标记=True 无证伪标记) | | 3-3-① | ★**选官网参数直接满足的替代型号** | ★**`J_DEBUG` → `FTSH-104-01-F-DV` (D-1) / `J_UART` → `FTSH-102-01-F-DV` (U-1)**: 二者都落在板侧真值的「1.27 mm 直插」档内 ⇒ ★**即使拿不到高度
+        · K1 ★命门★ state/fragments/hw.yaml L5271 仍以【首选 / 板侧真值档】的身份主张被推翻的料号 ⇒ 判红 (断言标记=True 口径标记=True 无证伪标记) | value: 'OI-10 已闭: J_DEBUG 首选 Samtec FTSH-104-01-F-DV (1×4 1.27mm 直插), J_UART 首选 Samtec FTSH-102-01-F-DV
+        · K1 ★命门★ state/fragments/hw.yaml L8097 仍以【首选 / 板侧真值档】的身份主张被推翻的料号 ⇒ 判红 (断言标记=True 口径标记=False 无证伪标记) | note: J_DEBUG 首选 Samtec FTSH-104-01-F-DV, J_UART 首选 Samtec FTSH-102-01-F-DV, 每条带官网链接
+        · K1 ★命门★ HW/check_debug_uart_seat_alignment.py L397 仍以【首选 / 板侧真值档】的身份主张被推翻的料号 ⇒ 判红 (断言标记=False 口径标记=True 无证伪标记) | "J_DEBUG,1,1×4 1.27mm 排针 (JTAG),CONN,必装,镜脚主 PCB,P8,[推算],,Samtec FTSH-104-01-F-DV,")
+  [K2] ✘ RED  ★命门★ 已闭 need 的答案不许指向被推翻的料号
+        · K2 ★命门★ 已闭答案 key='iss377_oi10_vendor_part_numbers' 仍指向被推翻的料号且把它当首选/真值档 ⇒ 判红 (★已决且决错比未决更危险★) | OI-10 已闭: J_DEBUG 首选 Samtec FTSH-104-01-F-DV (1×4 1.27mm 直插), J_UART 首选 Samtec FTSH-102-01-F-DV (1×2 1.27mm 直插); 另有 Cortex-10 2×5 档 FTSH-105-01-L-DV-K 与 Würth 6
+  [K3] ✘ RED  ★命门★ 未答 need 的选项里必须至少有一个满足板侧真值档
+        · K3 ★命门★ 未答 need key='iss380_board_trip_bom_part_fill' 的选项里【没有一个满足板侧真值档 (1×4/1×2 · 单排 · 直插)】 ⇒ 判红 (★这条 need 现在只能被答错★) | 候选=['FTSH-102-01-F-DV', 'FTSH-104-01-F-DV', 'FTSH-105-01-L-DV']
+  [K4] ✔ GREEN  正确结论已登记 + 带证据等级 + 全部 not_decided_here
+  [K5] ✔ GREEN  证据分级 / 零挂起 / 零挂链 / 判据与事实分开
+  [K6] ✔ GREEN  既有件零扰动 + 机器块三字段 none
+── ISS-394 座体选型结论传播自守闸: 4/7 条绿
+❌ 有 3 条判据红
+★红的是【现状】, 不是闸故障:
+  K1 = 被推翻的料号仍以「首选/真值档」身份活在活副本里 ⇒ 要 main 落订正块
+  K2 = 已闭 need 的答案仍指向被推翻的料号 ⇒ 要 main 落订正块
+  K3 = 未答 need 的选项全错 ⇒ 要 main 改选项 (改选项 ≠ 答这条 need)
+★main 落完那 5 处订正 + 把机器块 protected_files / live_copies 同步 ⇒ 同一条命令即转绿
+rc_bare=1
+
+=== ISS-394 cont1 · new gate --selftest ===
+2026-11-24T15:44:05+08:00
+  [PASS] ① (甲) 型号真相页回到「首选候选」⇒ K1 红
+        期望 K1 红 · 期望其余绿 (['K0', 'K2', 'K3', 'K4', 'K5', 'K6']) · 实际红: ['K1']
+  [PASS] ② (丁) 已签收闸源码硬编码样本回到被推翻料号 ⇒ K1 红
+        期望 K1 红 · 期望其余绿 (['K0', 'K2', 'K3', 'K4', 'K5', 'K6']) · 实际红: ['K1']
+  [PASS] ③ (乙)(戊) 已闭答案回到「首选被推翻料号」⇒ K1+K2 红 (★K1 与 K2 读同一份文本 ⇒ 同源共红★)
+        期望 K2 红 · 期望其余绿 (['K0', 'K4', 'K5', 'K6']) · 实际红: ['K1', 'K2', 'K3']
+  [PASS] ④ 未答 need 的选项被换成两个被推翻的料号 ⇒ K3 红
+        期望 K3 红 · 期望其余绿 (['K0', 'K1', 'K2', 'K4', 'K5', 'K6']) · 实际红: ['K3']
+  [PASS] ⑤ K1 宽匹配陷阱: 纯记账语境的片段必须【不红】(★放成「出现 FTSH 就红」会被这条抓住★)
+        期望 K1 【不红】 · 实际红: 无
+  [PASS] ⑥ K1 反向陷阱: 本单记账页里塞一句纯断言必须被抓住 ⇒ K1 红
+        期望 K1 红 · 期望其余绿 (['K0', 'K2', 'K3', 'K4', 'K5', 'K6']) · 实际红: ['K1']
+  [PASS] ⑦ 板 md5 被动过 ⇒ K0 红
+        期望 K0 红 · 期望其余绿 (['K1', 'K2', 'K3', 'K4', 'K5', 'K6']) · 实际红: ['K0']
+  [PASS] ⑧ BOM 被落表 ⇒ K0 红
+        期望 K0 红 · 期望其余绿 (['K1', 'K2', 'K3', 'K4', 'K5', 'K6']) · 实际红: ['K0']
+  [PASS] ⑨ 机器块 correct_parts 缺正确料号 ⇒ K4 红
+        期望 K4 红 · 期望其余绿 (['K0', 'K1', 'K2', 'K3', 'K5', 'K6']) · 实际红: ['K4']
+  [PASS] ⑩ decisions 里有一项不是 not_decided_here ⇒ K4 红
+        期望 K4 红 · 期望其余绿 (['K0', 'K1', 'K2', 'K3', 'K5', 'K6']) · 实际红: ['K4']
+  [PASS] ⑪ §5 里塞一句「等原厂回信」⇒ K5 红
+        期望 K5 红 · 期望其余绿 (['K0', 'K1', 'K2', 'K3', 'K4', 'K6']) · 实际红: ['K5']
+  [PASS] ⑫ state/gate_check.py 命中本闸 1 次 ⇒ K5 红
+        期望 K5 红 · 期望其余绿 (['K0', 'K1', 'K2', 'K3', 'K4', 'K6']) · 实际红: ['K5']
+  [PASS] ⑬ 已签收闸 md5 与基线不同 ⇒ K6 红
+        期望 K6 红 · 期望其余绿 (['K0', 'K1', 'K2', 'K3', 'K4', 'K5']) · 实际红: ['K6']
+  [PASS] ⑭ 机器块 board_write 改成 yes ⇒ K6 红
+        期望 K6 红 · 期望其余绿 (['K0', 'K1', 'K2', 'K3', 'K4', 'K5']) · 实际红: ['K6']
+  [PASS] ⑮ 判据句混进 §1 事实抄录节 ⇒ K5 红
+        期望 K5 红 · 期望其余绿 (['K0', 'K1', 'K2', 'K3', 'K4', 'K6']) · 实际红: ['K5']
+  [PASS] ⑯ 官网原句锚点被从正文删掉 ⇒ K5 红
+        期望 K5 红 · 期望其余绿 (['K0', 'K1', 'K2', 'K3', 'K4', 'K6']) · 实际红: ['K5']
+  [PASS] ⑰ 页面里冒出白名单外的证据等级标签 [官方] ⇒ K5 红
+        期望 K5 红 · 期望其余绿 (['K0', 'K1', 'K2', 'K3', 'K4', 'K6']) · 实际红: ['K5']
+  [PASS] ⑱ 台账 live_copies 指向不存在的文件 ⇒ K1 红
+        期望 K1 红 · 期望其余绿 (['K0', 'K2', 'K3', 'K4', 'K5', 'K6']) · 实际红: ['K1']
+  [PASS] ⑲ 扫描面里删掉已签收闸源码 ⇒ K1 红 (防漏扫)
+        期望 K1 红 · 期望其余绿 (['K0', 'K2', 'K3', 'K4', 'K5', 'K6']) · 实际红: ['K1']
+  [PASS] ⑳ 正向对照 (三份外部文件全换成已订正的合成件) ⇒ K1/K2/K3 全绿
+        期望全绿 · 期望其余绿 (['K1', 'K2', 'K3']) · 实际红: 无
+── selftest: 20/20 PASS
+ALL TESTS PASS
+rc_selftest=0

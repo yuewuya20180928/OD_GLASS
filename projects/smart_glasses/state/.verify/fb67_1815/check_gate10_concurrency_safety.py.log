@@ -1,0 +1,28 @@
+==================================================================================================
+  ISS-395 · 「钉板闸⑩ 并发假红」机器闸 (★K0 唯一化在位 · K1 并发双绿 · K2 落点唯一 · K3 删除不抛异常 · K4 板三项零扰动 · K5 真漂移仍判红★)
+==================================================================================================
+  PROJ        = /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+  TARGET_GATE = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/check_preflight_regen_idempotent.py
+  SANDBOX     = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss395_sbx/g10
+  BOARD       = /home/yuewuya/.openclaw/workspace/projects/smart_glasses/HW/PCB/demo_mainboard.kicad_pcb
+--------------------------------------------------------------------------------------------------
+  OK    K0 落点唯一化在位 (★静态读既有闸源码★)
+    落点唯一化: ✔ 在位 · 裸 rmtree: ✔ 无 · C1~C4 + REQUIRED_ITEMS 结构: ✔ 在位
+  OK    K1 并发两跑 ⇒ 两个进程都 rc=0 (★不许有假红★)
+    并发跑 #1: rc=0 · 落点=/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss395_sbx/g10/k1/run_2166756_1795515524238 · 末行: -------------------------------------------------------------------------------------------------- / ✅ rc=0: ★★页与生成器同源 · 重跑零差异 · 来源全在册 · 必需项在场 ★★
+    并发跑 #2: rc=0 · 落点=/home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss395_sbx/g10/k1/run_2166757_1795515524243 · 末行: -------------------------------------------------------------------------------------------------- / ✅ rc=0: ★★页与生成器同源 · 重跑零差异 · 来源全在册 · 必需项在场 ★★
+    ★两进程 rc: [0, 0] ⇒ ✔ 双绿 (★无假红★)
+  OK    K2 沙盒落点每次运行唯一 (★从真实输出解析★)
+    落点 2 个全部互不相同: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss395_sbx/g10/k1/run_2166756_1795515524238 · /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss395_sbx/g10/k1/run_2166757_1795515524243
+    落点全部在沙盒基目录 /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss395_sbx/g10 之下: ✔
+  OK    K3 同一路径被第二个进程 rmtree ⇒ 不许抛未捕获异常
+    并发写压力下调用闸里的删除函数: 无未捕获异常 ✔
+    机理复核: 朴素删除对非空目录必抛 Errno 39 (★这就是假红的成因★) ✔
+    确定性复核 (权限错误路径): 删除函数把 OSError 吞掉了 ✔ (★不抛未捕获异常★)
+  OK    K4 板三项零扰动 (★md5 / mtime / size 逐项未变 + 对基线★)
+    板三项零扰动: md5=611b869e13518c3c023fb178f91a0075 · mtime_ns=1793920037362193413 · size=4940213
+  OK    K5 真漂移仍然判红 (★不许把「红」改成「绿」★)
+    沙盒里改坏一个真源 (清单页 JSON 的 pitch 改成假值) ⇒ 既有闸 rc=1 (★真漂移仍然判红✔★)
+    既有闸输出末尾: 33 条 item 的 source_iss 全在 SOURCES (11 个来源单) 里: ✔ / OK    C4 必需项在场 (★加严块★) / 必需项 1 个: ✔ / ✔ 必需板侧项在场: B33_PIN_LAND_1P27 (§2 表 + §7 JSON) / -------------------------------------------------------------------------------------------------- / ❌ rc=1: ★★闸红 (★上面点名的那几条就是不许过的那几条★) ★★
+--------------------------------------------------------------------------------------------------
+  ✅ rc=0: ★★并发两跑双绿 · 落点每次运行唯一 · 删除不抛未捕获异常 · 板三项零扰动 · 真漂移仍然判红 ★★

@@ -61,6 +61,18 @@ APPENDIX = os.path.join(PROJ, APPENDIX_REL)
 # ★★落表台账 (★DNP 落表事件的出处★) ★★
 LEDGER_REL = "HW/SCHEMATIC_LANDING_V1_LANDED.md"
 
+# ★★ISS-396 · 2026-11-24 (hw-lead): 落 FTS 时的排针【钻孔】口径 (★规格值·不是现状值★) ★★
+#   ★**`DRILL_TARGET` = `0.71` mm = Samtec 官方推荐 PCB 图 `.028 0.71 (TYP)` (★[官网]★
+#   ★        出处 = `HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md` §1.1★
+#   ★        PDF = `https://suddendocs.samtec.com/prints/fts-1xx-xx-xx-dx-xx-footprint.pdf`★
+#   ★        本机落盘 `tmp/iss387/fts-1xx-xx-xx-dx-xx-footprint.pdf` md5 `1cbe4a2bfa456d8fd030c8b76bdf8dd5`★) ★★
+#   ★**`DRILL_GENERIC` = `0.65` mm = KiCad 通用库件 `Connector_PinHeader_1.27mm` 的默认 (★[实测]★
+#   ★        `PinHeader_1x04_P1.27mm_Vertical.kicad_mod` md5 `7a5f470c1f70d4b832be258501945385`★
+#   ★        `PinHeader_1x02_P1.27mm_Vertical.kicad_mod` md5 `47bcbf6d0f267d543e50d4b2a8dfabf5`★) ★★
+#   ★**这两个是【规格/库件默认】⇒ 写死无妨 (★铁律 ① 管的是【现状值】, 现状值仍一律现读板★)** ★★
+DRILL_TARGET = 0.71
+DRILL_GENERIC = 0.65
+
 
 # ==============================================================================
 # 真源读数 (★铁律 ①★)
@@ -249,8 +261,16 @@ def read_board_pin_land():
         "    x1 = max(pcbnew.ToMM(p.GetBoundingBox().GetRight()) for p in pads)",
         "    y0 = min(pcbnew.ToMM(p.GetBoundingBox().GetY()) for p in pads)",
         "    y1 = max(pcbnew.ToMM(p.GetBoundingBox().GetBottom()) for p in pads)",
-        "    print('%s|pitch=%s|npads=%d|x0=%.4f|x1=%.4f|y0=%.4f|y1=%.4f' % (r,"
-        " ('%.4f' % pit) if pit is not None else 'NA', len(pads), x0, x1, y0, y1))",
+        # ★★ISS-396 · 2026-11-24 (hw-lead): 钻孔/焊盘/贴装方式也要现读板 (★铁律 ① 不变★)
+        "    dr = max([pcbnew.ToMM(p.GetDrillSize().x) for p in pads] or [0.0])",
+        "    px = max([pcbnew.ToMM(p.GetSize().x) for p in pads] or [0.0])",
+        "    py = max([pcbnew.ToMM(p.GetSize().y) for p in pads] or [0.0])",
+        "    at = set(p.GetAttribute() for p in pads)",
+        "    mnt = ('THT' if at == set([pcbnew.PAD_ATTRIB_PTH]) else"
+        " ('NPTH' if at == set([pcbnew.PAD_ATTRIB_NPTH]) else 'SMD'))",
+        "    print('%s|pitch=%s|npads=%d|x0=%.4f|x1=%.4f|y0=%.4f|y1=%.4f|drill=%.4f|padx=%.4f|pady=%.4f|mount=%s' % (r,"
+        " ('%.4f' % pit) if pit is not None else 'NA', len(pads), x0, x1, y0, y1,"
+        " dr, px, py, mnt))",
     ])
     rc, out = run(["bash", "state/pcbnew_py.sh", "-c", code])
     d = {}
@@ -269,6 +289,9 @@ def read_board_pin_land():
             "npads": int(kv["npads"]),
             "x0": float(kv["x0"]), "x1": float(kv["x1"]),
             "y0": float(kv["y0"]), "y1": float(kv["y1"]),
+            # ★★ISS-396 (hw-lead): 钻孔/焊盘/贴装方式 ⇒ 现读板 (★不许写死★)
+            "drill": float(kv["drill"]), "padx": float(kv["padx"]),
+            "pady": float(kv["pady"]), "mount": kv["mount"],
         }
     miss = [r for r in PINLAND_REFS if r not in d]
     if miss:
@@ -410,10 +433,27 @@ def build_pinland_item():
         state += ("; ★E-1 裁决原文记的原始 land pitch = %.2fmm (main 2026-11-17 18:45·"
                   "`%s` key `%s`·★那个数是【改之前】的值·板那一趟做完它也不变★)"
                   % (ruling["baseline"], PM_FRAG_REL, E1_RULING_KEY))
-    title = ("`J_DEBUG`/`J_UART` 排针 land pitch %s→%smm (E-1 · 实测排针落不进 · main 11-17 18:45 拍死)"
-             % (cur_s, tgt_s)) if delta > 1e-9 else \
-            ("`J_DEBUG`/`J_UART` 排针 land pitch %smm (E-1 · ★板读已 == BOM/网表要求·"
-             "main 11-17 18:45 拍死的 %smm 已落板★)" % (tgt_s, tgt_s))
+
+    # ★★ISS-396 · 2026-11-24 (hw-lead): 钻孔这一腿 (★真相页 §4 #2/#3/#6 的逐字·追加式★)
+    #   ★**改孔与改 pitch【同属这一项的两条腿】⇒ 不可只做其一 (★真相页 §5·main 已裁「写成一条」★)** ★
+    drill_seg = (" + 钻孔 Ø%.2f→Ø%.2fmm (★ISS-391·落 FTS 官方 Ø%.2f TYP·库件默认 %.2f·不可只做 pitch★)"
+                 % (DRILL_GENERIC, DRILL_TARGET, DRILL_TARGET, DRILL_GENERIC))
+    # ★**现状钻孔 = 现读板 (★§4 #6-c·不许写死★)⇒ 板上现在是自绘 SMD land ⇒ 无钻孔★**
+    dr_cur = board["J_DEBUG"]["drill"]
+    dr_desc = ("**无钻孔**" if dr_cur <= 1e-9 else "钻孔 %.4f" % dr_cur)
+    state += ("; ★**ISS-391 追加 [实测]**: 现状板上 `J_DEBUG`/`J_UART` 是自绘 %s land "
+              "(焊盘 %.4f×%.4f · %s · pitch %.2f); E-1 那一趟换 THT 1.27mm 封装时, "
+              "若直接调用通用库件 `Connector_PinHeader_1.27mm:PinHeader_1x0{4,2}_P1.27mm_Vertical`, "
+              "新封装带来的钻孔是 **(drill %.2f)** ⇒ 比 Samtec 官方 `Ø%.2f (TYP)` 小 %.2f ⇒ "
+              "方针排针插不进 ⇒ **故孔径必须在换封装这一次动作里定成 %.2f** ⇒ "
+              "与 pitch 同属 ③, 不可只做其一"
+              % (board["J_DEBUG"]["mount"], board["J_DEBUG"]["padx"], board["J_DEBUG"]["pady"],
+                 dr_desc, cur_p, DRILL_GENERIC, DRILL_TARGET,
+                 round(DRILL_TARGET - DRILL_GENERIC, 2), DRILL_TARGET))
+    title = ("`J_DEBUG`/`J_UART` 排针 land pitch %s→%smm%s (E-1 · 实测排针落不进 · main 11-17 18:45 拍死)"
+             % (cur_s, tgt_s, drill_seg)) if delta > 1e-9 else \
+            ("`J_DEBUG`/`J_UART` 排针 land pitch %smm%s (E-1 · ★板读已 == BOM/网表要求·"
+             "main 11-17 18:45 拍死的 %smm 已落板★)" % (tgt_s, drill_seg, tgt_s))
     action = ("那一趟把 `J_DEBUG`(%d×%d) 与 `J_UART`(%d×%d) 的 land pitch 从 %s 改成 %s "
               "(★E-1·main 2026-11-17 18:45 已拍死·归 main 不归老板★) ⇒ 与 S4 的 ESD 挪位、"
               "S6 的 `Q_PG`/`Q_AND` land 重画同一次布局里做完 ⇒ 板 md5 只许变一次"
@@ -427,6 +467,13 @@ def build_pinland_item():
             "[f for f in b.GetFootprints() if f.GetReference()==r][0].Pads())))) for r in "
             "('J_DEBUG','J_UART')))\" ⇒ 期望读数: J_DEBUG land pitch = %s / J_UART land pitch = %s"
             % (tgt_s, tgt_s))
+    # ★★ISS-396: 追加一条【真能读出钻孔直径】的验收命令 (★真相页 §4 #3 逐字·GetDrillSize 口径★)
+    crit += ("; `bash state/pcbnew_py.sh -c \"import pcbnew;b=pcbnew.LoadBoard("
+             "'HW/PCB/demo_mainboard.kicad_pcb');print('; '.join('%%s drill = %%.2f'%%("
+             "f.GetReference(), pcbnew.ToMM(p.GetDrillSize().x)) for f in b.GetFootprints() "
+             "if f.GetReference() in ('J_DEBUG','J_UART') for p in f.Pads()))\"` "
+             "⇒ 期望读数: J_DEBUG drill = %.2f / J_UART drill = %.2f"
+             % (DRILL_TARGET, DRILL_TARGET))
     print("★ISS-349 · E-1 排针 land 真源读数: 板读 pitch = %s · BOM/网表 = %s · Δ = %s · 原始 = %s"
           % (cur_s, tgt_s, delta_s, (ruling["baseline"] if ruling else "读不到")))
     return {"title": title, "current_state": state, "action": action, "criterion": crit}

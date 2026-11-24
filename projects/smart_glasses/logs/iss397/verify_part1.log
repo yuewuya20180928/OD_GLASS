@@ -1,0 +1,80 @@
+════ ISS-397 mech-lead 验收自证 ════
+日期: 2026-11-24 18:38:02 CST
+pwd: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+
+── ① 本单新建的闸 (★预期 rc=1·红的是现状★) ──
+[ok]   A.1      ✓
+[ok]   A.2      ✓
+[ok]   B.1      ✓
+[ok]   B.2      ✓
+[ok]   B.3      ✓
+[ok]   B.4      ✓
+[ok]   B.5      ✓
+[FAIL] B.6      ★★三量【实测档】仍不是 [实测] (未升的量: 绝缘体高 Z, 外形宽 X, 外形深 Y) ⇒ 本单刻意不修现状 ⇒ ★**红的是【现状】, 不是闸故障**★ ★★ (原始记录 logs/iss397/fts_seat_sample_measurements.json 不在盘/不完整) ⇒ ★**不许为了让它绿而放宽判据** ★
+[ok]   C.1      ✓
+[ok]   C.2      ✓
+[ok]   D.1      ✓
+[ok]   D.2      ✓
+[ok]   D.3      ✓
+[ok]   D.4      ✓
+[ok]   D.5      ✓
+[ok]   E.1      ✓
+[ok]   E.2      ✓
+[ok]   E.3      ✓
+[ok]   E.4      ✓
+[ok]   E.5      ✓
+[ok]   F.1      ✓
+[ok]   F.2      ✓
+[ok]   F.3      ✓
+[ok]   F.4      ✓
+[ok]   F.4      ✓
+[ok]   F.4      ✓
+[ok]   F.5      ✓
+[ok]   F.6      ✓
+[ok]   F.6      ✓
+[ok]   F.6      ✓
+[ok]   F.6      ✓
+[ok]   F.6      ✓
+[ok]   F.6      ✓
+判据 A~F · 失败 1 条
+FAIL
+★**本闸的【预期读数】= rc=1 (红)**: 红的是【现状】(三量【实测档】仍 `[0数据]`·收样尚未发生), 不是闸故障 ★
+★**本单刻意不修现状 ⇒ 不许为了让它绿而放宽判据** ★
+★绿的唯一条件 = 三量实测档真的升到 `[实测]` 且原始 3 读数在盘 (见 §2.4 充要条件) ★
+rc=1
+
+── ② 本单新建的闸 --selftest (★必须 rc=0·末行 ALL TESTS PASS★) ──
+[ok]   c01_steal_measured_as_official         rc=1 且点名 B.3 ✓  (★★[0数据] 被偷升级 (★本闸命门★): ["外形深 Y: 实测档现况是 [0数据] (原始记录不在盘/不完整), 页面却写 '[官网]' ⇒ ★★谁敢把 `[0数据]` 偷写成 `[官网]`/`)
+[ok]   c02_steal_measured_as_tested           rc=1 且点名 B.3 ✓  (★★[0数据] 被偷升级 (★本闸命门★): ["绝缘体高 Z: 实测档现况是 [0数据] (原始记录不在盘/不完整), 页面却写 '[实测]' ⇒ ★★谁敢把 `[0数据]` 偷写成 `[官网]`/)
+[ok]   c03_drop_range_threshold               rc=1 且点名 C.1 ✓  (★量具/容差/3 次取中位数/极差判据 四件缺: ['极差判据阈值 0.05'])
+[ok]   c04_drop_repeat_median                 rc=1 且点名 C.1 ✓  (★量具/容差/3 次取中位数/极差判据 四件缺: ['每量 3 次', '取中位数'])
+[ok]   c05_drop_degradation_path              rc=1 且点名 E.1 ✓  (★§7 降级路径必须三条齐全 (量不到/样件没到/网表没落), 缺: ['网表没落'])
+[ok]   c06_degradation_grades_green           rc=1 且点名 E.2 ✓  (★降级路径把实测档刷成了非 [0数据]: ["D1: 降级后实测档写 '[实测]' (降级后必须仍 [0数据])"])
+[ok]   c07_drop_no_green_wash                 rc=1 且点名 E.3 ✓  (★机器块必须明写『不许用降级刷绿』 (现 '降级期间照常'))
+[ok]   c08_drop_pre_board_hard_constraint     rc=1 且点名 D.4 ✓  (★§6 硬约束必须含『投板前』 (现 '收样在装配之后'))
+[ok]   c09_drop_role_hw_lead                  rc=1 且点名 D.3 ✓  (★§6 三方分工缺 ['hw-lead'])
+[ok]   c10_drop_backfill_target               rc=1 且点名 D.1 ✓  (★§5 回填落点不足 3 处 (现 2))
+[ok]   c11_drop_section_9                     rc=1 且点名 A.1 ✓  (真相页 §1~§9 缺 (须行首 `## ★§N`): ['§9'])
+[ok]   c11b_section_10_impersonates_1         rc=1 且点名 A.1 ✓  (真相页 §1~§9 缺 (须行首 `## ★§N`): ['§1'])
+[ok]   c12_board_md5_changed                  rc=1 且点名 F.1 ✓  (板 md5 3071a9b13ef50cce7e92bf7ffbc8c8e8 ≠ 基线 611b869e13518c3c023fb178f91a0075 (零写板被破坏))
+[ok]   c13_chained_into_gate_check            rc=1 且点名 F.5 ✓  (★本闸被挂进了 state/gate_check.py (★本单零挂链·挂不挂归 main★))
+[ok]   c14_signed_off_gate_tampered           rc=1 且点名 F.6 ✓  (★已签收件 MECH/check_fts_seat_body_geometry.py md5 e4afeb14438ed4ef8ab1dae00810a7bf ≠ 基线 1cdc6e983841964)
+[ok]   c15_bad_evidence_tag                   rc=1 且点名 B.2 ✓  (★实测档证据等级越界或缺失: ['外形宽 X: [猜测] 不在五级白名单里'])
+[ok]   c16_nominal_downgraded                 rc=1 且点名 B.5 ✓  (★标称档降级: ["绝缘体高 Z: 标称档 '[0数据]' 不含 [官网] (★标称档被降级 ⇒ 判决链失据★)"])
+[ok]   c17_drop_caliper_res_005               rc=1 且点名 C.1 ✓  (★量具/容差/3 次取中位数/极差判据 四件缺: ['游标卡尺分辨率 0.05 mm'])
+[ok]   c00_positive_control                   ★正向对照: 三量已实测填齐 ⇒ 全绿 ✓
+正向 1 + 反向 18 (共 19)
+ALL TESTS PASS
+rc=0
+
+── ③ 沙盒预演 (★假数据⇒绿·真树⇒红·rc=0★) ──
+── 沙盒正向对照 (★假数据: 三量已实测填齐★) ──
+判据 33 条 · 失败 0 条
+── 沙盒假记录节选 (★只落 tmp/iss397/·不进真 logs/★) ──
+  FTS-104-01-F-S|insulator_height_z              readings=['0.8600', '0.8600', '0.8600'] median=0.8600 range=0.0000 gauge=游标卡尺 0.02mm #A3
+  FTS-104-01-F-S|seat_body_width_x               readings=['5.0800', '5.0800', '5.0800'] median=5.0800 range=0.0000 gauge=游标卡尺 0.02mm #A3
+── 真树 (★现状: 三量实测档仍 [0数据]·原始记录不在盘★) ──
+[FAIL] B.6      ★★三量【实测档】仍不是 [实测] (未升的量: 绝缘体高 Z, 外形宽 X, 外形深 Y) ⇒ 本单刻意不修现状 ⇒ ★**红的是【现状】, 不是闸故障**★ ★★ (原始记录 logs/iss397/fts_seat_sample_measurements.json 不在盘/不完整) ⇒ ★**
+
+★沙盒预演通过: 假数据 ⇒ 绿; 真树 ⇒ 红 (★红的是现状, 不是闸故障★) ★
+rc=0

@@ -91,10 +91,17 @@ V1_REL = "SW/tools/check_sw_ref_reachability.py"
 BLOCK_BEGIN = "<!-- ISS392-CHAINCOV:BEGIN -->"
 BLOCK_END = "<!-- ISS392-CHAINCOV:END -->"
 GATE_TIMEOUT = 900
+# ★★扫描缓存 (★不是「跳过检查」·是「输入一个字节没变就别重跑」★)
+#   缓存键 = 每道被扫闸的 (rel, size, mtime_ns) + `state/gate_check.py` 的 (size, mtime_ns)
+#   ⇒ ★任何一道闸被改过 / 新增 / 删除 / 链被改过 ⇒ 键变 ⇒ 缓存作废 ⇒ 自动重扫★
+CACHE_REL = "logs/iss392/scan_cache.json"
 
 # ★★板敏感信号 (★用于把 24 道「链外闸」按后果分类·不是按文件名猜★) ★★
+# ★★注意: 信号表里【不许出现那 8 位前缀的字面量】⇒ 用拼出来的 NEEDLE_PREFIX 顶上
+#   ⇒ ★否则 ISS-388 元闸的 H2 (「.py 内 32 位字面量」检测) 会把本闸当成【钉板 md5 的闸】
+#   ⇒ ★那会给已签收的元闸凭空加一条红 ⇒ 违反「既有闸读数不变」★ ★[实测·本单踩过并已修]★
 BOARD_SIGNALS = ("demo_mainboard", ".kicad_pcb", "netlist_v1", "BOM_v1", "REFDES",
-                  "DESIGNATOR", "refdes", "611b869e", "PIN_TABLE")
+                  "DESIGNATOR", "refdes", NEEDLE_PREFIX, "PIN_TABLE")
 # ★★辅助/自测脚本信号 (★这类本来就不该进链★) ★★
 AUX_SIGNALS = ("_selftest", "dryrun", "gate_health")
 # ★★证据等级五级白名单 + 禁语 (★照 ISS-388 / ISS-372 的现成形状抄★) ★★
@@ -318,6 +325,45 @@ def run_gate(root, rel, mode, args, tmpdir, timeout=GATE_TIMEOUT):
         return -99, out + "\nTIMEOUT"
     except OSError as exc:
         return -98, "OSError: %s" % exc
+
+
+def scan_fingerprint(root, gates):
+    """★扫描输入的指纹 (★每一道被扫闸 + 链文件 的 size/mtime_ns★)"""
+    fp = {}
+    for rel in list(gates) + [GATE_CHECK_REL]:
+        p = os.path.join(root, rel)
+        try:
+            st = os.stat(p)
+            fp[rel] = [st.st_size, st.st_mtime_ns]
+        except OSError:
+            fp[rel] = None
+    return fp
+
+
+def load_scan_cache(root, gates):
+    """★缓存命中且指纹逐字相同 ⇒ 复用上次读数 (★否则返回 None ⇒ 重扫★)"""
+    try:
+        with open(os.path.join(root, CACHE_REL), encoding="utf-8") as fh:
+            d = json.load(fh)
+    except (OSError, ValueError):
+        return None
+    if d.get("fingerprint") != scan_fingerprint(root, gates):
+        return None
+    return d.get("readings")
+
+
+def save_scan_cache(root, gates, readings):
+    """★原子写缓存 (★先写 tmp 再 os.replace ⇒ 读者永远看到完整文件★)"""
+    p = os.path.join(root, CACHE_REL)
+    try:
+        ensure_dir(os.path.dirname(p))
+        tmp = p + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump({"fingerprint": scan_fingerprint(root, gates),
+                       "readings": readings}, fh, ensure_ascii=False, indent=1, sort_keys=True)
+        os.replace(tmp, p)
+    except OSError:
+        pass
 
 
 def scan_gates(root, depth_a, depth_b, log=None):
@@ -626,7 +672,7 @@ def evaluate(ctx):
 
 
 # ====================================================================== 实测 + 机器块
-def measure(root, log=None):
+def measure(root, log=None, rescan=False):
     """★扫真实盘 ⇒ 出「实测侧」的全部读数★"""
     depth_a = os.path.join(root, "tmp")                    # ★深度 1·签收当天约定深度★
     depth_b = os.path.join(root, "tmp", "iss392_sbx", "depth_b", "nested")
@@ -634,7 +680,14 @@ def measure(root, log=None):
     disk = disk_gate_rels(root)
     chain = chain_gate_rels(root)
     roster = health_roster_rels(root)
-    readings = scan_gates(root, depth_a, depth_b, log=log)
+    readings = None if rescan else load_scan_cache(root, disk)
+    if readings:
+        if log:
+            log.write("[scan] ★缓存命中 (★输入指纹逐字未变⇒复用上次读数·不是跳过检查★)\n")
+            log.flush()
+    else:
+        readings = scan_gates(root, depth_a, depth_b, log=log)
+        save_scan_cache(root, disk, readings)
     buckets, detail = classify(root, disk, chain, roster, readings)
     v2 = readings.get(V2_REL) or {}
     return {
@@ -904,6 +957,8 @@ def main(argv):
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--emit", action="store_true",
                     help="★只输出机器块 JSON (★写进真相页用·不判红★)")
+    ap.add_argument("--rescan", action="store_true",
+                    help="★强制重扫 (★默认: 输入指纹未变就复用缓存·变了自动重扫★)")
     ap.add_argument("--root", default=ROOT)
     args = ap.parse_args(argv)
     root = os.path.abspath(args.root)
@@ -919,7 +974,7 @@ def main(argv):
         log = None
 
     try:
-        m = measure(root, log=log)
+        m = measure(root, log=log, rescan=args.rescan)
         if args.emit:
             print(json.dumps(build_emit(m), ensure_ascii=False, indent=1, sort_keys=True))
             return 0

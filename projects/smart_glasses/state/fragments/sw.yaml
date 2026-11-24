@@ -7,7 +7,7 @@ status:
   progress_pct: 100
   health: green
   updated_at: '2026-11-24'
-  summary: 'ISS-388 cont1 交卷: 诊断页 + 闸健康度闸(零挂链) + 交卷页 三件在盘; 两道病闸失效已实测复现; 新闸 selftest 22/22; 五条 needs_from
+  summary: 'ISS-392 交卷: 真相页+新闸(零挂链)+交卷页三件在盘; 三本账31/6/13实测; v2基线漂移实测rc=1反向0/7; 新闸selftest 25/25; 六条needs_from
     to=main'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
@@ -2121,6 +2121,38 @@ artifacts:
   updated_at: '2026-10-25'
   summary: 'ISS-388 复核留证原样输出: 闸1 默认 TMPDIR 10/11 FAIL rc=1 vs TMPDIR=$PWD/tmp 11/11 PASS rc=0; 闸2 裸跑 5/7
     rc=1 (H1 4 行 + H4); 闸2 selftest 0/10 rc=1; 板/三表指纹 PRE; 零挂链 grep=0'
+- path: SW/BOARD_ONEPASS_SW_GATE_CHAIN_COVERAGE.md
+  kind: truth-page
+  version: v1
+  updated_at: '2026-11-24'
+  summary: 'ISS-392 新建真相页: §0 一句话结论 + §1 三本账差集(盘上31道×链内6道×元闸ROSTER13道·逐道清单31行+五类后果分类) + §2 链上v1 vs 在盘v2
+    的4条洗白面差集(RT-5~RT-8·出处logs/iss332/) + §3 第三道病闸v2基线漂移证据(SW_MD5把DESIGNATOR_MISSING顶到4>上限3⇒差值型自测0/7)+闸1环境耦合三组对照
+    + §4 挂链的代价与选项(只摆代价不代拍) + §5 复跑命令 + 机器块(--emit可解析). 全节带证据等级. 零写板零落表零改既有页零挂链'
+- path: SW/tools/check_sw_gate_chain_coverage.py
+  kind: gate
+  version: v1
+  updated_at: '2026-11-24'
+  summary: 'ISS-392 新建机器闸(零挂链): 七条判据 C0零扰动(板三项+三表+零挂链) C1账实一致(盘上闸集合与机器块双向+每道闸登记读数mode/rc/末行逐字一致+分类账一致)
+    C2链内清单双向比对(覆盖率机器可判) C3收紧版挂链状态可算(不许写死v2没挂·哪天挂上自动转绿) C4元闸ROSTER盲区必须登记 C5第三道病闸v2基线读数必须登记且写明基线红≠本单引入 C6五级证据+零挂起+零空洞+判据事实分开.
+    --selftest 25条反向用例(每条自证红的是目标那一条·其余仍绿)·末行ALL TESTS PASS. 扫描带指纹校验缓存(输入未变则复用·变了自动重扫)'
+- path: HANDOFF/2026-11-24_sw-lead_ISS392_SW域闸门禁链覆盖率与第三道病闸基线漂移.md
+  kind: handoff
+  version: v1
+  updated_at: '2026-11-24'
+  summary: 'ISS-392 交卷页: B1结论(盘上31道/链内6道/覆盖率19.4%/板改完SW侧没人拦是真的) B2验收标准自评+真相页 B3证据分级+新闸(C0~C6+25条反向用例)
+    B4接口取值+边界自证(零写板零落表零改既有闸零改既有页零挂链零外发不代拍不自签台账不写别人分片) B5要main回话的四条各带代价(切不切链/挂不挂新闸/SW_MD5算不算真隐患/要不要立基线必须先绿通则·全是main地界)
+    B6必跑命令原样输出'
+- path: logs/iss392/
+  kind: evidence
+  version: v1
+  updated_at: '2026-11-24'
+  summary: 'ISS-392 证据留证: scan.log(31道闸逐道跑法/rc/两深度rc/是否逐字相同) + emit.json(机器块·与真相页同源) + v2_selftest.txt(v2反向用例0/7逐字)
+    + v2_live.txt(v2基线漂移逐字: DESIGNATOR_MISSING 4>3 + 第4条SW_MD5)'
+- path: tmp/iss392_sbx/
+  kind: sandbox
+  version: v1
+  updated_at: '2026-11-24'
+  summary: 'ISS-392 沙盒: 注入器与扫描缓存(深度A=<ROOT>/tmp·深度B=<ROOT>/tmp/iss392_sbx/depth_b/nested/<闸名>)'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -3114,6 +3146,34 @@ needs_from:
   item: 差值型自测(断言 红集=={目标那一条})在基线已经漂移时会全灭, 闸自曝不可信却说不出 我不是坏了是账漂了; 闸2 是 0/10, 闸 v2 是 0/7. 是否把 基线必须先绿否则 selftest
     结论不可读 写进闸的编写通则? 代价=属 main 的规范地界, 一次性改若干已签收闸的 selftest 口径(本单明确不许做). 降级=新闸 H0 的错误消息点名是哪个闸+它的原文末行, 让人一眼区分
   since: '2026-11-24'
+- key: iss392_n1_switch_chain_v1_to_v2
+  to: main
+  item: '切不切链: 把state/gate_check.py L222-223从旧版v1换成收紧版v2. 代价: 切=v2裸跑rc=1⇒门禁链当场常红⇒必须与N3一起拍; 不切=4条洗白面RT-5~RT-8在链上没人抓.
+    本单只给逐字写法不代拍'
+  since: '2026-10-25'
+- key: iss392_n2_hook_new_coverage_gate
+  to: main
+  item: '挂不挂本单新建的覆盖率闸SW/tools/check_sw_gate_chain_coverage.py. 代价: 挂=链上+6~7分钟(扫31道闸x2个TMPDIR深度)+任何一道闸读数漂了要重生成真相页机器块;
+    不挂=覆盖率只能靠人记得跑'
+  since: '2026-10-25'
+- key: iss392_n3_sw_md5_real_hazard_or_not
+  to: main
+  item: SW_MD5算不算真隐患. 口径A维持现状=v2长期红+差值型自测永久0/7+收紧版永远没人跑; 口径B登记进EXEMPT_LEDGER=v2回绿可挂链但留一个漏检窗口且要改已签收件v2(本单零改要main派单);
+    口径B2抬基线上限=与v2自己的执法点C冲突不建议
+  since: '2026-10-25'
+- key: iss392_n4_baseline_must_be_green_convention
+  to: main
+  item: '要不要立基线必须先绿通则(挂链前selftest必须rc=0). 代价: 立=今天3道闸selftest红不许挂链⇒覆盖率更低; 不立=链上常红闸⇒门禁链天天红⇒比没有护栏更危险; 折中=元闸层面只要求读数被登记且与实测一致(本单新闸即按此做)'
+  since: '2026-10-25'
+- key: iss392_n5_iss388_delta_selftest_convention_align
+  to: main
+  item: 本单第三道病闸基线漂移的成因已实测与ISS-388的iss388_delta_selftest_convention对齐(基线先红⇒差值型自测全灭), 但通则要不要立是main的地界, 本单不代拍.
+    关联N4
+  since: '2026-10-25'
+- key: iss392_n6_board_trip_b_class_holes
+  to: main
+  item: '板那一趟(位号改名+板侧同步+布局修正+布线45→0)当天: B类14道板敏感闸不在链内⇒一道都不会响. 要main决定哪些必须挂链(本单只登记不改任何一道闸的判据或阈值)'
+  since: '2026-10-25'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -6188,6 +6248,30 @@ interface_claims:
     selftest_reverse_cases=22
   note: 零挂链 (grep -c = 0); 挂不挂链是 main 的裁决权, 本单只写建议位置与挂链后预期读数
   ref: HANDOFF/2026-11-24_sw-lead_ISS388_两道签收闸失效诊断与闸健康度闸.md B5/N2
+- key: sw_gate_chain_coverage
+  value: 盘上31道/链内6道/覆盖率19.4%(6÷31)/链外25道
+  note: ISS-392 自扫盘不写死数字·明天新增一道闸C1当场红·元闸ROSTER13道·元闸盲区18道·开工时口径=盘上30道链内6道链外24道盲区17道
+  ref: SW/BOARD_ONEPASS_SW_GATE_CHAIN_COVERAGE.md
+- key: sw_gate_chain_in_chain
+  value: '6道: check_demo_panel_spec_r6_chainjudge_selftest.py/check_demo_panel_spec_r6_hardprot_iss315_selftest.py/check_demo_panel_spec_r6_selftest.py/check_landing_trace_obligation.py/check_onepass_sw_sync.py/check_sw_ref_reachability.py'
+  note: 从state/gate_check.py的AST抽os.path.join(PROJ,SW,...)去重·机器可判
+  ref: SW/tools/check_sw_gate_chain_coverage.py
+- key: sw_gate_chain_off_chain
+  value: 25道(开工时24道)·其中B类14道板敏感且链外=板那一趟的洞
+  note: B类逐条点名在真相页§1.3·含收紧版v2与板md5重锚就绪闸
+  ref: SW/BOARD_ONEPASS_SW_GATE_CHAIN_COVERAGE.md
+- key: sw_ref_reachability_gate_in_chain
+  value: 链上=SW/tools/check_sw_ref_reachability.py(旧版v1)·收紧版v2在盘未挂链
+  note: ISS-332已签收的4条洗白面RT-5~RT-8在链上没人抓·切链是main的机制地界·本单只给L222-223逐字写法
+  ref: logs/iss332/03_repro_with_v2.txt
+- key: sw_v2_baseline_rc
+  value: rc=1·反向用例0/7·末行=有用例没抓到⇒判据可能没被真读
+  note: '第三道病闸基线漂移: SW_MD5把DESIGNATOR_MISSING顶到4>建闸日上限3⇒破坏前就红⇒差值型自测测不了·基线红≠本单引入·本单零改v2'
+  ref: logs/iss392/v2_selftest.txt
+- key: sw_gate_health_roster_blind_spot
+  value: 18道(开工时17道)·元闸ROSTER只硬编码13道
+  note: ISS-388元闸自己看不见盘上另外18道·本单只读它不许改它·它自己的盲区=本单§4对象
+  ref: SW/tools/check_sw_gate_health.py
 open_questions:
 - id: SW-Q1
   to: main

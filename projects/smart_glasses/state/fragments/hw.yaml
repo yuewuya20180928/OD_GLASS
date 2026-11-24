@@ -3,18 +3,14 @@ role: 硬件总工
 updated_at: '2026-11-24'
 updated_by: hw-lead
 status:
-  phase: delivered
+  phase: iss396-交卷完成
   progress_pct: 100
-  health: green
-  summary: 'ISS-387 cont1 交卷 (2026-11-24 11:04~11:48): 真相页 HW/PCB/BOARD_ONEPASS_FTS_SINGLE_ROW_LAND_TRUTH.md
-    (§0~§7 定稿 + 本趟追加 §8 补注块, 前 44,122 B md5 3e019b04 逐字节未动) + 新闸 HW/check_fts_single_row_land_truth.py
-    (零挂链 grep=0, 裸跑 7/7 绿 rc=0, selftest 17/17 ALL TESTS PASS rc=0, 沙盒落项目盘 tmp/iss387_sbx 与系统 tmp 无关)
-    + 交卷页 B1~B6 + 分片 (4 产出物 / 5 interface_claims / 4 needs to=main)。三个硬结论: FTS-104-01-F-S 与 FTS-102-01-F-S
-    真实存在且单排直插 1.27mm [官网] / Samtec 官方直插图只给孔位不给铜箔焊盘直径故 MECH 全链吃的 4.8100 与 2.2700 是通用库件焊盘 1.000 算的 [官网+实测]
-    / 通用库钻孔 0.65 小于官方 0.71 必改孔但铜箔包络不变故 MECH 七个余量数一个都不用重算 [官网+实测+推算]; 族别辨析 FTSH-104-01-F-DV 是双排贴片不同族, 它的数不许顶替
-    FTS (新闸 K4 专打)。零写板 (板 md5 611b869e… mtime 2026-11-06 07:07:17 逐字未动, G1 仍开) 零落表 (网表/脚表/BOM md5 同) 零改既有闸零改既有页面正文零挂链零外发不代拍
-    (landing_part_decision=not_decided_here)。★追加: 真相页 §8-② 已订正 §7.1-7-9 的命中数预期 (原写 1 命中, 实跑 11 = 真相页 7
-    + 新闸 4, 命中全在本单自己两个文件里)。merge rc=0, gate_check rc=0, 【Q1】18/18'
+  health: 交卷页 + 真相页 §8 订正块 + 生成器 + 两页落地 + 新闸五件在盘 · 既有闸 4/7⇒7/7 rc=0 · 新闸 9/9 rc=0 · selftest 11/11 ALL
+    TESTS PASS · 覆盖度闸/提交顺序闸/重跑幂等闸/merge/gate_check 全 rc=0 · Q1 18/18 · 板+网表+脚表+BOM 四件逐字节未动 · 7 条 needs_from
+    待 main (每条带问法/不答后果/建议默认值·一条不代拍)
+  summary: 'ISS-396 交卷: ISS-391 §4 的 #1/#2/#3/#6 已按追加式落位 (页=生成器产物·页里没手写一个字) · #4 (覆盖令牌) / #5 (BOM 两栏)
+    交 main 不代拍 · 另交一道「重跑不蒸发」新闸 (零挂链) · 顺手用板厂官网能力表坐实环宽 0.1450 低于绝对下限 0.15 (⇒ 焊盘须放大·归 main) · 零写板 零落表 零改既有闸判据
+    零外发'
   updated_at: '2026-11-24'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -2223,6 +2219,77 @@ artifacts:
   summary: 'ISS-391 本机实跑验证日志 (原样输出): ①check_brief_commands rc=0 ②地界事实 (作业包 L47 / 预检 L63 / WP02_BINDING
     / BOM L71 与 L77 / 生成器 build_pinland_item) ③库件实测 0.65 + 官方 PDF 文字层 0.71 + 两侧 md5 ④板读现状 = 自绘 SMD 无钻孔
     ⑤新闸正向 rc=1 红 D1/D2/D3 与 selftest 17/17 PASS ⑥既有三闸只读对照 ⑦零扰动指纹 + 零挂链 = 0'
+- path: HW/PCB/BOARD_ONEPASS_SEAT_PART_VERDICT_PROPAGATION.md
+  kind: truth_page
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-394 真相页 (新建): §0~§6 + 机器块. 记: FTSH-104-01-F-DV / FTSH-102-01-F-DV 已被推翻 (官网单品页标题 = 8 Pin
+    2 Row SMT / 4 Pin 2 Row SMT = 双排贴片) => 不得当 1x4 / 1x2 单排直插件落表; 板侧真值档的现成件 = FTS-104-01-F-S / FTS-102-01-F-S;
+    含 5 处活副本清账表 + 每处的代价'
+- path: HW/check_seat_part_verdict_propagation.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-394 新闸 (新建, 零挂链): K0~K6. 裸跑 rc=1 = 4/7 绿 (K1/K2/K3 红 = 现状红, 非闸故障); --selftest 20/20 PASS
+    rc=0; 沙盒 tmp/iss394_sbx/'
+- path: HANDOFF/2026-11-24_hw-lead_ISS394_座体选型结论传播清账与闸.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-394 cont1 交卷页 (新建): B1 结论摘要 / B2 验收自评 / B3 证据分级+新闸读数 / B4 接口取值声明+边界自证 / B5 未决项与代价 / B6
+    复现命令+rc / B7 cont1 补记'
+- path: logs/iss394/cont1_verify.log
+  kind: log
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-394 cont1 留证 (新建): 新闸裸跑 (rc=1) + --selftest (rc=0) 原样输出'
+- path: HW/PCB/BOARD_ONEPASS_GATE10_CONCURRENCY_SAFETY.md
+  kind: truth_page
+  version: '2026-11-24'
+  updated_at: '2026-10-25'
+  summary: ISS-395 真相页 · 钉板闸⑩ 并发假红 ⇒ 把「并发⇒假红⇒板那一趟不许开工」这条因果链写成可复现的机器可判 (根因=沙盒落点写死+shutil.rmtree 撞 Errno
+    39; 板三项零漂移证据=隔离复跑 rc=0)
+- path: HW/check_gate10_concurrency_safety.py
+  kind: machine_gate
+  version: '2026-11-24'
+  updated_at: '2026-10-25'
+  summary: ISS-395 新机器闸 · 六条判据 K0 落点唯一化在位 / K1 并发两跑双绿 / K2 落点每次运行唯一 / K3 同路径 rmtree 不抛未捕获异常 / K4 板三项零扰动
+    / K5 真漂移仍判红; 裸跑 rc=0 · --selftest 5/5 ALL TESTS PASS rc=0 · 挂不挂链由 main 定
+- path: HW/check_preflight_regen_idempotent.py
+  kind: patched_existing_gate
+  version: '2026-11-24'
+  updated_at: '2026-10-25'
+  summary: 'ISS-395 对既有闸只做两类不改变判据的改动: ①落点唯一化 (写死⇒SBX_BASE/run_<pid>_<ms> 绝对路径) ②rmtree 防御 (safe_rmtree
+    重试+ignore_errors 兜底) + copytree dirs_exist_ok + 跑完自清理; 判据 C1~C4 / REQUIRED_ITEMS / 覆盖度闸逐字未动 · 改前 md5
+    24c11d31ebefb35c3cc14f79e5970711 → 改后 864a79fb10eec32444065bea1f2270f2'
+- path: HANDOFF/2026-11-24_hw-lead_ISS396_FTS改孔登记落盘.md
+  kind: handoff
+  version: '2026-11-24'
+  updated_at: '2026-11-24'
+  summary: 'ISS-396 交卷页 (B1~B6 齐全): ISS-391 §4 六条登记落地状态 (#1/#2/#3/#6 已落 · #4/#5 交 main) + 追加式机器判定 (老字真丢
+    0 行) + 新闸 S1~S9 + 环宽 0.1450 < 0.15 的坐实 (JLCPCB 官网能力表·本机 curl 直取·md5 c1441abf…) + 5 条 needs_from (每条带问法/不答后果/建议默认值·一条不代拍)'
+- path: HW/check_fts_land_drill_same_batch_sbx.py
+  kind: machine_gate
+  version: '2026-11-24'
+  updated_at: '2026-11-24'
+  summary: ISS-396 新机器闸 · S1 产物同源 (沙盒重跑生成器 == 盘上真页) / S2 重跑幂等 / S3 真页 B33 描述列+验收手段列含改孔 / S4 生成器源码里也长着同一段登记且两个数
+    == 真相页+本机库件实测 / S5 覆盖度闸 md5 同基线且 WP02_BINDING["③"] 仍绑 B33 / S6 板+三表零扰动 / S7 零挂链 / S8 cwd 无关 / S9 P4
+    令牌自检; 裸跑 rc=0 · 9/9 · --selftest rc=0 · 11/11 ALL TESTS PASS · **零挂链** (挂不挂 = main 的地界)
+- path: state/_iss277_build_preflight.py
+  kind: patched_generator
+  version: '2026-11-24'
+  updated_at: '2026-11-24'
+  summary: 'ISS-396 对预检清单生成器只做【让 B33_PIN_LAND_1P27 长出改孔这一条】的改动: build_pinland_item() 的 title (插入 "+ 钻孔
+    Ø0.65→Ø0.71mm") + current_state (追加 ISS-391 段·现状现读板) + criterion (追加 GetDrillSize 读孔命令) + read_board_pin_land()
+    加 drill/padx/pady/mount 四个现读板字段; DRILL_TARGET=0.71 / DRILL_GENERIC=0.65 带官网/实测出处注释; 改前 md5 445646e93620493b47d4a858eaf021dc
+    → 改后 30c9f8355b63f331d45999e8eb367eff · 三连跑幂等'
+- path: HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md
+  kind: truth_doc_append
+  version: '2026-11-24'
+  updated_at: '2026-11-24'
+  summary: 'ISS-391 真相页的【追加式订正块 §8】: 记录 §4 #1/#2/#3/#6 已落位 + 机器块 zero_perturbation_baseline 里 workpacket_md5
+    / preflight_md5 两行随合法落地刷新 (改前 ae8ef086…/b5d8d5b9… → 改后 00b0ea5b…/192873f6…) + 刷新理由 (D6 拿真文件 md5 比·不刷新则闸永远红)
+    + 其余 7 键未动; **本单唯一动过已签收件的地方·追认请求见交卷页 B5-N3**'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -4484,6 +4551,115 @@ needs_from:
   item: '本单新建的机器闸 HW/check_fts_land_drill_same_batch.py 要不要挂进 state/gate_check.py? 挂链是 main 的地界, 本单零挂链
     (grep -c = 0), 只交脚本 + 路径 + 建议。代价: 不挂则这道闸只有人手动跑才拦得住, 清单漏项的保护依赖人记得跑, 与 ISS-343 当初 P4 加严的同一个道理: 闸不在链上等于判据形同虚设'
   since: '2026-11-24'
+- key: iss394_live_copies_fix_decision
+  to: main
+  item: 'ISS-394: 那 5 处活副本 (甲 型号真相页 L18/L62/L67/L73/L112 · 乙 分片已闭答案 L5271-5272 · 丙 分片未答 need L4346-4347
+    · 丁 已签收闸 check_debug_uart_seat_alignment.py L397 硬编码样本 · 戊 分片 interface_claims L8097) 要不要落订正块, 什么时机落?
+    代价: 零板侧/零结构侧; 但 (丁) 改已签收闸源码 => md5 变 => 需重签+台账留痕, (甲)(戊) 需在签收台账留追加式订正痕迹; 不落的代价 = 板那一趟照『唯一同时满足三要素的那一颗』填
+    BOM => 装 8 脚双排贴片 => 板改两次. 本单只清账不修, 不代拍.'
+  since: '2026-11-24'
+- key: iss394_reopen_closed_need
+  to: main
+  item: 'ISS-394: 改一条已闭 need 的答案 (iss377_oi10_vendor_part_numbers) 要不要重开 need? 选项一: 追加式订正答案不重开 => 代价最低但『已闭』语义不干净,
+    需加 note_addendum 痕迹; 选项二: 用新 key 重开 need 把旧答案标为被取代 => 语义最干净但多一条 open need (本仓先例 = iss383_vendor_part_real_spec
+    用新 key 收窄 ISS-380 而没动旧 key); 选项三: 两条都做 => 留痕最全但必须同批落. 不做的代价 = 一条已决且决错的答案继续被当既成事实. 本单只摆代价, 不代拍.'
+  since: '2026-11-24'
+- key: iss394_unanswered_need_options
+  to: main
+  item: 'ISS-394: 未答 need (iss380_board_trip_bom_part_fill) 的选项要不要换成板侧真值档那两颗 (J_DEBUG => FTS-104-01-F-S
+    = 1x4 单排 直插 / J_UART => FTS-102-01-F-S = 1x2 单排 直插)? 代价: 零板侧, 唯一代价 = 该 need 的 item 文本变了 => 优先级要重排.
+    限定: 改选项 != 答这条 need, 落表动作仍要 main 自己拍. 不做的代价 = 这条 need 现在无论答哪一项都是答错.'
+  since: '2026-11-24'
+- key: iss394_touch_signed_gate
+  to: main
+  item: 'ISS-394: 动已签收闸 check_debug_uart_seat_alignment.py L397 那个硬编码 BOM 样本, 算不算『动已签收件』? 改的代价 = 该闸 md5
+    变 => 签收指纹过期 => 需重签+台账留痕+重跑它自己的反向用例; 不改的代价 = 那道闸的 selftest 继续教人填一颗已被推翻的料号 (闸判绿+事实错), 但本单新闸 K1 会红 =>
+    至少不是静默的. 本单只摆代价, 不代拍.'
+  since: '2026-11-24'
+- key: iss394_hook_new_gate
+  to: main
+  item: 'ISS-394: 新闸 HW/check_seat_part_verdict_propagation.py 挂不挂 state/gate_check.py? 本单零挂链 (grep -c
+    = 0). 挂链的代价 = gate_check 的基线读数会从全绿变成有红 (红项恰为 K1/K2/K3 三条) => 那是暴露真实病灶, 需 main 接受这个基线变化; 不挂的代价 = 这三条红没有任何人收到通知.
+    本单只交脚本+路径+建议, 不代拍.'
+  since: '2026-11-24'
+- key: iss394_ring_width_fab_capability
+  to: main
+  item: 'ISS-394 D4 (商务动作, 归 main/老板, 非 hw-lead): 环宽能力 [0数据] —— 板侧钻孔 Ø0.71 配通用件 1.000 焊盘 => 环宽 0.1750
+    -> 0.1450 mm; 查不到就写 [0数据] + 降级 = 投板前向板厂索取工艺能力. 本项目已定不再外发 => 这一条不由 hw-lead 外发. 不做的代价 = 投板后才发现环宽不够 =>
+    板改两次.'
+  since: '2026-11-24'
+- key: iss394_seat_outer_dimensions
+  to: main
+  item: 'ISS-394 D2 (归 mech-lead, 与板只改一次那一趟同批): 座体外形 (宽/深/总长) 维持 [0数据] => 双轨降级: (甲) 官网 3D/CAD 下载件量外形 /
+    (乙) 落件时先打单板样, 用卡尺量三个量 (绝缘体高/外形宽/外形深) 回填 keepout_dwg. 晚做的代价 = 落表后才发现外形与 courtyard 不合 => 板改两次.'
+  since: '2026-11-24'
+- key: iss395_gate10_hang_into_gatechain_decision
+  to: main
+  item: '★交 main 裁决★ ISS-395 交卷页 §B4.2 已把挂载行原文给好 (建议挂进 state/gate_check.py 的 PINNED_MD5_GATES: 钉板闸⑪ 闸⑩并发安全闸)
+    ⇒ 三个待裁: ①挂不挂 ②挂 PINNED_MD5_GATES 还是 EXTRA_GATES (Q7 计数口径会从 10/10 变 11/11) ③「板那一趟不许开工」这条结论怎么重述 (本单只证明
+    2026-11-24 15:2x 那次红是并发假红 + 板三项零扰动 + 真漂移现在仍判红 ⇒ 开工与否是 main 的地界·本单不代拍)'
+  since: '2026-11-24'
+- key: iss396_main_wp02_binding_explicit_tokens
+  to: main
+  since: '2026-11-24'
+  item: '★交 main 裁决★ ISS-391 §4 #4: 覆盖度闸 `HW/check_onepass_preflight_coverage.py` L254 的 `"③": (["B33_PIN_LAND_1P27"],
+    [])` ⇒ 要不要显式补成 `"③": (["B33_PIN_LAND_1P27"], ["0.71", "0.65"])`? 问法 = 补不补这个显式锁; 不答后果 = 本次正确性不受影响 (★§4
+    #1 落地后 wp02_tokens() 已自动抽到 0.65/0.71 ⇒ 覆盖度闸实跑「③ 覆盖令牌 7 个全在」★) ⇒ 但没有显式锁 ⇒ 以后谁把作业包 ③ 的文字改回去 P4 又变假绿
+    (ISS-343 同款洞第二次); 建议默认值 = 补 (★加严不放宽★) · ★该闸已签收·本单零改既有闸判据⇒ 只出逐字改法不代拍★'
+- key: iss396_main_bom_opn_footprint_landing
+  to: main
+  since: '2026-11-24'
+  item: '★交 main 裁决★ ISS-391 §4 #5 (★落表·本单零落表·只出逐字改法★): HW/BOM_v1.csv L71 (J_DEBUG) / L77 (J_UART) 的第
+    10 栏 footprint (现 = 待定) + 第 11 栏 opn (现 = **空字符串**, 不是「待定」) ⇒ 逐字改法: opn = FTS-104-01-F-S / FTS-102-01-F-S;
+    footprint = 指向【钻孔 0.71】的那个封装 (三选一: 通用库件名+改孔 / 项目本地副本 / 自建封装) + 偏离登记 (偏离项 = ① 铜箔焊盘直径官方无值 ② 孔径由库件默认
+    0.65 改 0.71) + evidence 栏 [推算]⇒[官网]; 问法 = ① footprint 指向哪个封装 ② 落表时机是不是 E-1 那一趟的同一次落表/重出 (走合法改板通道 ISS-297)
+    ③ memo 栏的偏离登记用哪段逐字; 不答后果 = 落 FTS 那一刻封装来源与 BOM 型号栏不同源 ⇒ 同源纪律破 ⇒ 投板后才发现 ⇒ 2-4 周返工 (ISS-387 OI-387-3
+    已算过); 建议默认值 = 项目本地副本 + 同一次落表 + 交卷页 B5-N2 的逐字'
+- key: iss396_main_truth_page_baseline_ratification
+  to: main
+  since: '2026-11-24'
+  item: '★交 main 追认★ ISS-396 唯一动过【已签收件】的地方: 真相页 HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md 的机器块 zero_perturbation_baseline
+    里 workpacket_md5 / preflight_md5 两行随本次合法落地刷新 (改前 ae8ef08632cacd5f0aba53037d99bc95 / b5d8d5b94e09b011bb9f4bfd7ac10cde
+    ⇒ 改后 00b0ea5bae70b7f663b55b9b80014d03 / 192873f6c977b376c28785824a82f9f1) + 追加了 §8 订正块 (追加式·老字一字未删);
+    问法 = 这算不算「已签收件的追加式订正」·要不要 main 再追认一次; 不答后果 = 【不改的代价更大】: ISS-391 闸的 D6 拿真文件 md5 比这两行 ⇒ 不刷新则闸永远红 ⇒ 现场会误读成「板坏了」
+    (★main 13:1x 裁决里最怕的误读★); 建议默认值 = 追认 (★§8 本身就是追加式订正块·不违「已签收件走追加式」通则★) · 回滚处置 = 两行改回旧值 + 回滚作业包/预检清单/生成器三处
+    (备份在 tmp/iss396/backup/·回滚后闸回到 4/7 红)'
+- key: iss396_main_registration_timing_vs_131x_ruling
+  to: main
+  since: '2026-11-24'
+  item: '★交 main 表态★ 时序事实 (不藏): main 2026-11-24 13:1x 的裁决 `iss391_main_gap_registration_same_batch` 写过「三处补登记……【不许提前落】」(★理由
+    = 提前落 ⇒ 中间态 ⇒ 覆盖度闸拿 0.71 去查真实板面 ⇒ 当场红 ⇒ 误读成「板坏了」★); 而 ISS-396 这张派活单 (18:2x·更晚) 明确要求「把 §4 落到位」且验收要求闸
+    7/7 ⇒ 本单按【派活单】执行; ★事实核对: 本次落地后覆盖度闸 P4 **不查板面** (只查清单页 item 的覆盖令牌·实跑 rc=0·P4「覆盖令牌 7 个全在」) ⇒ 【13:1x
+    那条顾虑在本次落地口径下不成立·板仍是零写板·板上还是无钻孔的 SMD land】; 问法 = 这次提前落算不算越界·13:1x 那条裁决的口径要不要更新成「已按 ISS-396 落位」; 不答后果
+    = owner 自行按派活单落了 main 裁决说过不许提前落的东西 ⇒ 归属不清; 建议默认值 = 认定本次落地正确 (★依据 = 派活单更晚 + P4 不查板面 + 板零写·本单实跑证据在交卷页
+    B5-N3★)'
+- key: iss396_main_pad_diameter_ring_width
+  to: main
+  since: '2026-11-24'
+  item: '★交 main 裁决★ 焊盘尺寸 (OI-387-1) 的前提条件现在【被坐实为不成立】: 官方 Ø0.71 配通用件 1.000×1.000 焊盘 ⇒ 环宽 0.1450 mm; ★本单零外发自己查到了板厂口径★:
+    JLCPCB 官网 PCB capabilities 逐字 `PTH annular ring ≧0.20mm … Multilayer: 1 oz: Recommended 0.20 mm or
+    above; absolute minimum 0.15 mm` (★本机 curl 直取·http 200·原件落盘 tmp/iss396/jlcpcb_pcb_capabilities.html·md5
+    c1441abf6a462b34a7701eba0ddf0ada★) ⇒ 本板 8 铜层 ⇒ 适用多层行 ⇒ **0.1450 < 0.15 低于绝对下限**; 问法 = ① 本板厂是不是 JLCPCB
+    (不是的话那条官网不适用·要换那家的能力表) ② 外层铜厚是不是 1 oz (.kicad_pro 无 stackup ⇒ 走板厂默认·这一格也无据可判) ③ 既然 1.000 低于绝对下限·OI-387-1「维持
+    1.000」的前提已不成立·要不要改成 pad ≥ 1.010 (够绝对下限) / 1.110 (够推荐值 0.20) / 1.218 (够 2 oz 的 0.254); 不答后果 = 按 pad
+    1.000 投板 ⇒ 板厂退单或环宽破 ⇒ 投出去才发现 ⇒ 板改第二次 (2-4 周 + 一批板的钱·金额不代估) + 连带: pad 一放大 ⇒ 铜箔包络变大 ⇒ MECH 全链七个数 (4.8100/2.2700/6.6100/4.0700/0.1350/2.6950/0.7700)
+    必须整体重算 ⇒ 结构件与镜脚侧可能返工一次; 建议默认值 = 先坐实板厂与铜厚 (零外发口径: 自己查那家的公开能力表·查不到就写降级方案·没有「等一句可以发」这个选项) ⇒ 若就是 JLCPCB
+    8 层 1 oz ⇒ pad 取 1.110 (环宽 0.2000) ⇒ MECH 七个数按 1.110 重算 (归 mech-lead); ★本单只登记孔径目标 0.71·焊盘一个字没动·BOM
+    一个字节没动·不代拍★'
+- key: iss396_main_new_gate_hook_decision
+  to: main
+  since: '2026-11-24'
+  item: '★交 main 裁决★ 新闸 HW/check_fts_land_drill_same_batch_sbx.py 挂不挂 state/gate_check.py: 问法 = 挂 EXTRA_GATES
+    还是 PINNED_MD5_GATES (★建议 EXTRA_GATES·免得 Q7 的 10/10 计数口径变 11/11 把「钉板闸」名目搞混★) + 什么时候挂 (★建议与「板只改一次」那一趟同批·★main
+    13:1x 裁决 `iss391_main_gate_hook_with_registration` 同款纪律: 闸与它要等的那一趟同批生效★); 挂载行原文见交卷页 §B4.2; 不答后果 =
+    新闸【存在但没人跑】⇒ 它的价值只在有人主动跑它的时候; 建议默认值 = 挂 EXTRA_GATES + 与那一趟同批 (★挂之前看两件事: ① 裸跑读数 = 9/9 绿 rc=0 不是假红 ②
+    它每次跑要在沙盒里跑一遍生成器 ⇒ 门禁链单次多花 3~5 秒★); ★本单零挂链·state/gate_check.py 一个字没改★'
+- key: iss396_main_iss391_gate_docstring_stale
+  to: main
+  since: '2026-11-24'
+  item: ★交 main 一句话★ 既有闸 HW/check_fts_land_drill_same_batch.py 的 docstring 头还写着「本闸现在【必然红】(rc=1) —— 那是本单的发现」⇒
+    自 ISS-396 起它已 7/7 绿 ⇒ 这句话现在过时; 问法 = 要不要让 owner 把它改成「本闸自 ISS-396 起【绿】· 改回去就红」; 不答后果 = 下一个人读源码会被这句话误导成「闸是红的」;
+    建议默认值 = 改 (★本单没改·零改既有闸★)
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -5277,6 +5453,13 @@ answers:
   value: '板侧脚数真值: J_DEBUG=4 脚 (编号自拟), J_UART=2 脚; 座体真实高度=[0数据] ⇒ 按 Z 向保守上界 4.70mm (7.30-2.60) 出件, 装配前须索取厂商机械图;
     另新发现盘上两封装实为 0.5mm 排距 SMD 占位盘 (见真相页 §3/§5)'
   ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md
+- key: iss333_pinned_gate_concurrency_sandbox_race
+  to: main
+  value: ★已由 ISS-395 做掉★ (hw-lead 2026-11-24) ⇒ HW/check_preflight_regen_idempotent.py 的沙盒落点已从写死改为【每次运行唯一】(SBX_BASE/run_<pid>_<ms>
+    绝对路径) + rmtree 加防御 (safe_rmtree 重试+ignore_errors 兜底) ⇒ 同一基目录并发两跑 实测修复前 RC_LIST=[1,0] 命中 Errno 39 ⇒
+    修复后 RC_LIST=[0,0] 零假红 ⇒ 新闸 HW/check_gate10_concurrency_safety.py (K0~K5 六条判据) 裸跑 rc=0 · --selftest
+    5/5 ALL TESTS PASS ⇒ 判据/阈值零改动 (C1~C4 与 REQUIRED_ITEMS 逐字未动) ⇒ 建议闭这条 need (闭 need 属 main 地界·本单只登记 answer)
+  ref: HW/check_gate10_concurrency_safety.py + HW/PCB/BOARD_ONEPASS_GATE10_CONCURRENCY_SAFETY.md + logs/iss395/
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -8268,6 +8451,95 @@ interface_claims:
   note: '[官网](料号)+[实测](land 与现孔径)+[实测](BOM 两栏现值) + 不代拍(具体封装来源归 main, OI-387-3); 但 孔径必须是 0.71 这条不受裁决影响;
     真相页 §4 #5'
   ref: 'HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md §4 #5'
+- key: iss394_refuted_parts
+  value: FTSH-104-01-F-DV / FTSH-102-01-F-DV —— 已被推翻 (官网单品页标题 = 8 Pin 2 Row SMT / 4 Pin 2 Row SMT = 双排贴片)
+    => 不得当 1x4 / 1x2 单排直插件落表; 病根 = 用家族页的族属性代替具体件规格
+  note: '证据等级: FTSH-104-01-F-DV = [官网]+[实测] 本单直抓 HTTP 200; FTSH-102-01-F-DV = [官网记录转述] +[实测] 本机复读已签收页
+    (直抓 2 次 HTTP 429 降级) => 两者等级不同'
+  ref: HW/PCB/BOARD_ONEPASS_SEAT_PART_VERDICT_PROPAGATION.md §1
+- key: iss394_live_copies_5
+  value: '5 处活副本 (甲=型号真相页 L18/L62/L67/L73/L112 · 乙=分片已闭答案 L5271-5272 · 丙=分片未答 need L4346-4347 · 丁=已签收闸
+    check_debug_uart_seat_alignment.py L397 硬编码样本 · 戊=分片 interface_claims L8097) => 全部尚未订正: 本单只清账不修 =>
+    新闸 K1 红 8 行 / K2 红 1 条 / K3 红 1 条'
+  note: 每条带 文件+行号+逐字原文+它错在哪+该谁修+改的动作+代价; 逐条读数见交卷页 B3.4~B3.6; 行号为 2026-11-24 15:44 读取值 (本单追加分片后行号下移, 内容逐字未变)
+  ref: HW/PCB/BOARD_ONEPASS_SEAT_PART_VERDICT_PROPAGATION.md §2
+- key: iss394_new_gate_criteria
+  value: K0 板三项+三张表指纹 (绿) / K1 活副本不得以首选身份主张被推翻料号 (红) / K2 已闭答案不得指向被推翻料号 (红) / K3 未答 need 选项须含满足板侧真值档者
+    (红) / K4 正确结论已登记+全 not_decided_here (绿) / K5 证据分级+零挂起+零挂链+判据事实分开 (绿) / K6 既有件零扰动+机器块三字段 none (绿) =>
+    4/7 绿 rc=1
+  note: '--selftest 20/20 PASS rc=0 (含 K1 双向用例: 记账语境不红 + 纯断言必红); 零挂链 grep -c = 0; 红的是现状, 不是闸故障'
+  ref: HW/check_seat_part_verdict_propagation.py
+- key: iss394_decisions_not_decided_here
+  value: 选型裁决 / 落表时机 / 5 处活副本谁修 / 改已闭答案要不要重开 need / 动已签收闸源码算不算越界 / BOM 型号栏填哪颗 / 座体高 => 七项全部 = not_decided_here
+    => 本单不代拍
+  note: 真相页机器块 decisions 字段; 新闸 K4 判这条; 改选项 != 答 need, 落表动作仍归 main+boss
+  ref: HW/PCB/BOARD_ONEPASS_SEAT_PART_VERDICT_PROPAGATION.md §6.2
+- key: iss394_evidence_grades
+  value: refutation=[官网]+[实测] (其中 FTSH-102-01-F-DV 为 429 降级转述) / correct_parts=[官网] / post_length=[官网]
+    3.05mm / insulator_material=[官网] / insulation_height=[0数据]+[媒体] 0.86 / seat_outer_dimensions=[0数据]
+    / single_row_footprint_print=[官网]+[实测] / live_copy_scan=[实测] / board_fingerprints=[实测]
+  note: DigiKey/Mouser 本轮本机未复现 (403 / Access Denied) => 该条按已签收页转述并标注未复现
+  ref: HW/PCB/BOARD_ONEPASS_SEAT_PART_VERDICT_PROPAGATION.md §3
+- key: iss395_gate10_concurrency_safety_gate_path
+  value: HW/check_gate10_concurrency_safety.py
+  note: 接口取值声明 · ISS-395 新机器闸路径 · 裸跑 rc=0 · --selftest rc=0 (5/5 ALL TESTS PASS) · 挂不挂 state/gate_check.py
+    由 main 定 · 本单零挂链
+  ref: ''
+- key: iss395_gate10_rmtree_policy
+  value: safe_rmtree 重试5次 + ignore_errors兜底
+  note: 接口取值声明 · 删除绝不抛未捕获异常 · 但沙盒内容不一致仍被 C2 逐字节比对抓出 ⇒ 零放宽判据 · 实测 K3 三条复核全过
+  ref: ''
+- key: iss395_board_baseline
+  value: 611b869e13518c3c023fb178f91a0075 / 2026-11-06 07:07:17.362193413 / 4940213
+  note: 接口取值声明 · 板三项基线 · 本单全程逐字未动 (零写板) · 新闸 K4 每跑一次都重核这三项
+  ref: ''
+- key: iss395_gate10_sandbox_landing_policy
+  value: SBX_BASE/run_<pid>_<ms>_绝对路径
+  note: 接口取值声明 · 既有闸沙盒落点从写死改为每次运行唯一 · PREFLIGHT_SANDBOX 语义现在是【基目录】 · 实测同一基目录并发两跑 修复前 RC_LIST=[1,0] 命中
+    Errno 39 ⇒ 修复后 [0,0] 零假红
+  ref: ''
+- key: iss396_drill_registration_landing_state
+  value: '§4 #1/#2/#3/#6 landed · #4/#5 pending_main'
+  note: 接口取值声明 · ISS-391 §4 六条登记的落地状态一览 (★权威登记单 = HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md §4★) ·
+    本单只落·不另写口径
+  ref: HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md §4
+- key: iss396_drill_target
+  value: '0.71'
+  note: 接口取值声明 · 目标孔径 (mm) = Samtec 官方 Ø0.71 (TYP) 原文逐字 `.028 0.71 (TYP)` [官网] · PDF md5 1cbe4a2bfa456d8fd030c8b76bdf8dd5
+    · **本单只登记·未落板**
+  ref: 'HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md §1.1 / §4 #2 / §4 #3'
+- key: iss396_drill_generic_default
+  value: '0.65'
+  note: 接口取值声明 · KiCad 通用库件 Connector_PinHeader_1.27mm 的默认孔径 (mm) [实测] · 库件 md5 7a5f470c…/47bcbf6d… ·
+    与官网目标差 0.06 mm · **第三方库件值·不是厂件规格**
+  ref: HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md §1.2
+- key: iss396_preflight_page_md5
+  value: 192873f6c977b376c28785824a82f9f1
+  note: 接口取值声明 · 预检清单页 (★生成器产物★) 落地后的 md5 · 生成器三连跑恒定 · 既有闸 C2 实跑「真页 == 沙盒重跑产物」零行差异
+  ref: HW/check_preflight_regen_idempotent.py C2
+- key: iss396_workpacket_md5
+  value: 00b0ea5bae70b7f663b55b9b80014d03
+  note: 接口取值声明 · 作业包落地后的 md5 (★§0.2 ③ 追加式·L47 一行·老字一字未删★) · 改前 ae8ef08632cacd5f0aba53037d99bc95
+  ref: HW/PCB/BOARD_ONEPASS_WORKPACKET.md §0.2
+- key: iss396_generator_md5
+  value: 30c9f8355b63f331d45999e8eb367eff
+  note: 接口取值声明 · 预检清单生成器改后 md5 · 改前 445646e93620493b47d4a858eaf021dc · 备份 tmp/iss396/backup/ · 本单对生成器只做「让
+    B33 长出改孔这一条」的改动
+  ref: state/_iss277_build_preflight.py
+- key: iss396_board_baseline
+  value: 611b869e13518c3c023fb178f91a0075 / 2026-11-06 07:07:17.362193413 / 4940213
+  note: 接口取值声明 · 板三项基线 · 本单全程逐字未动 (零写板) · 网表 6aee500e… / 脚表 9174309d… / BOM 5b999399… 同样逐字未动 (零落表)
+  ref: HW/PCB/demo_mainboard.kicad_pcb
+- key: iss396_pcb_ring_width_fab_capability
+  value: 'PTH annular ring: JLCPCB 官网 ≧0.20mm · 多层 1 oz 绝对下限 0.15mm · 本板 8 铜层 · 本组合环宽 0.1450 ⇒ 低于绝对下限'
+  note: 接口取值声明 · ★把 main 挂在 hw-lead 名下的 `iss387_main_rilim_ring_width_fab_capability` 那个缺口坐实了★ · [官网]+[实测]+[推算]
+    · 官网原件本机 curl 直取 tmp/iss396/jlcpcb_pcb_capabilities.html md5 c1441abf6a462b34a7701eba0ddf0ada · 零外发
+    · **焊盘尺寸不代拍 (OI-387-1 归 main)**
+  ref: https://jlcpcb.com/capabilities/pcb-capabilities + tmp/iss396/jlcpcb_pcb_capabilities.html
+- key: iss396_new_gate
+  value: HW/check_fts_land_drill_same_batch_sbx.py · S1~S9 · rc=0 · --selftest 11/11 ALL TESTS PASS
+  note: 接口取值声明 · 新闸 (★管「生成器重跑之后这句话还在不在」·与既有 ISS-391 闸互补不替代★) · **零挂链** (挂不挂 = main 的地界·挂载行见交卷页 §B4.2)
+  ref: HW/check_fts_land_drill_same_batch_sbx.py
 open_questions:
 - id: HW-Q1
   to: main

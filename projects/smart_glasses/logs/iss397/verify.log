@@ -1,0 +1,49 @@
+════ ISS-397 · mech-lead · 最终验收 (全部本机实跑) ════
+时间: 2026-11-24 18:44:40 CST
+
+── ① 新闸 (★预期 rc=1 · 红的是现状★) ──
+rc=1
+[FAIL] B.6      ★★三量【实测档】仍不是 [实测] (未升的量: 绝缘体高 Z, 外形宽 X, 外形深 Y) ⇒ 本单刻意不修现状 ⇒ ★**红的是【现状】, 不是闸故障**★ ★★ (原始记录 logs/iss397/fts_seat_sample_measurements.json 不在盘/不完整) ⇒ ★**不许为了让它绿而放宽判据** ★
+判据 A~F · 失败 1 条
+
+── ② 新闸 --selftest (★必须 rc=0 · 末行 ALL TESTS PASS★) ──
+rc=0
+[ok]   c00_positive_control                   ★正向对照: 三量已实测填齐 ⇒ 全绿 ✓
+正向 1 + 反向 18 (共 19)
+ALL TESTS PASS
+
+── ③ 沙盒预演 ──
+rc=0
+
+★沙盒预演通过: 假数据 ⇒ 绿; 真树 ⇒ 红 (★红的是现状, 不是闸故障★) ★
+
+── ④ 既有 MECH 闸 (★全 rc=0★) ──
+  check_fts_seat_body_geometry.py rc=0
+  check_fts_vs_generic_courtyard_delta.py rc=0
+  check_onepass_mech_release.py rc=0
+  check_onepass_mech_sync.py rc=0
+
+── ⑤ 板 / 三表指纹 ──
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+  board mtime=2026-11-06 07:07:17.362193413 +0800 size=4940213
+
+── ⑥ 零挂链 (★必须 0★) ──
+  grep -c check_fts_seat_sample_plan state/gate_check.py = 0
+
+── ⑦ merge + gate_check ──
+  merge.py rc=0
+   产出 883 | 阻塞 43 (高危 33) | 未闭合需求 412 | 冲突 0 | 健康度 red
+  gate_check.py rc=0
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+【Q2 证据分级率】 3/3 个总工的交付做了证据分级
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+
+── ⑧ 分片 (★必须 ≥1★) ──
+  grep -c iss397 state/fragments/mech.yaml = 30
+
+── ⑨ 沙盒纪律 (★不许系统 /tmp · 不许硬链接★) ──
+  find tmp/iss397 -type l | wc -l = 0
+  沙盒落点: tmp/iss397 tmp/iss397/sbx tmp/iss397/sbx/positive tmp/iss397/sbx/selftest 
