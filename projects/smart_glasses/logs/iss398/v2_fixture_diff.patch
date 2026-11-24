@@ -1,0 +1,99 @@
+--- tmp/iss398/v2_proto.py	2026-11-24 18:44:16.955290372 +0800
++++ SW/tools/check_sw_ref_reachability_v2.py	2026-11-24 21:46:19.627574955 +0800
+@@ -917,6 +917,56 @@
+     return _rc, detail
+ 
+ 
++def _sync_sandbox_baseline(sandbox: str):
++    """★ISS-398 · 基线无关化 · 让沙盒的【真患集合】与判据自带的 `BASELINE_TOKENS` 登记台账自洽★
++       ★**为什么必须有这一步 (★实测根因·2026-11-24 本机实跑★)**:
++         这道闸是【差值型】的 —— 红不红取决于「实测真患条数 vs 建闸日基线 `BASELINE_COUNT`」
++         ⇒ ★**而 SW 文档里每多出一个【形状像位号】的 token (★如 `SW_MD5`·★它只是 SW 侧
++           文档/锚点/条目编号的名字·不是位号★) ⇒ 实测真患就多一条 ⇒ 基线落后一跳
++           ⇒ 整棵沙盒树在【动手之前】就已经是红的**★
++       ★**病灶 (★这才是 0/7 的真死因★)**: 差值型自测的断言形态是
++         「★破坏前必须 rc=0 ⇒ 才叫『不是巧合自证』★」⇒ ★基线一漂 ⇒ 破坏前 rc=1
++         ⇒ RC-1~RC-7 【全部】判「用例没过」⇒ 0/7 ⇒ ★**闸自曝「本闸不可信」
++         ⇒ 反而掩盖了「我不是坏了, 是账漂了」**★
++       ★**修法 (★只动夹具·判据一个字没动★)**: 在沙盒里【动手之前】先把沙盒的基线
++         同步到判据【自带】的登记台账 `BASELINE_TOKENS` ⇒ ★**把【不在登记台账里】的
++         漂移 token 从沙盒的 `SW/*.md` 副本里摘掉 (★只动副本·真盘一个字节都不写★)**
++         ⇒ ★**破坏前必然绿 ⇒ 差值型自测恢复它本来的形状:
++           破坏前绿 (基线自洽) + 破坏后按用例期望红/绿**★
++       ★**为什么【不许】用改判据的写法「修」它**: 抬 `BASELINE_COUNT` / 把漂移 token
++         塞进 `BASELINE_TOKENS` / 登记进 `EXEMPT_LEDGER` ⇒ ★**三条全是改判据
++         (★本单零改判据·且那三条口径归 main 拍★)**★
++       ★**为什么【不是】去同步 `SW/SW_MD5_BASELINE_LEDGER.md` 的网表 md5 锚点
++         (★派单单子里建议的那条路·★本机实测: 这道闸【一个 md5 都不读】★
++         ⇒ ★`grep -c md5 SW/tools/check_sw_ref_reachability_v2.py` = **0**★
++         ⇒ ★改那个锚点对 v2 的 rc **一个字节的影响都没有**·★它压根不是这道闸的基线锚点★)★**
++         ⇒ ★**这道闸真正的基线锚点 = 判据源码里的 `BASELINE_TOKENS` 登记台账** ★
++       ★**返回值**: 摘掉的漂移 token 列表 (★供留痕/打印用·不参与判定★)"""
++    import glob as _glob
++    try:
++        res = analyze(sandbox)
++    except InputError:
++        return []          # ★沙盒读不到 ⇒ 什么都不动 ⇒ 让用例自己去暴露 fail-closed★
++    drift = sorted({r["token"] for r in res["new_missing"]})
++    if not drift:
++        return []
++    for tok in drift:
++        # ★整词匹配: 前后不许再接 [A-Za-z0-9_] ⇒ 只摘【整个 token】
++        #   ⇒ 不碰 `SW_MD5_ANCHORS` / `SW_MD5_BASELINE_LEDGER` 这类【更长的 token】★
++        pat = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(tok) + r"(?![A-Za-z0-9_])")
++        # ★替换形态: 下划线换成连字符 ⇒ 打断 `SW_`/`TP_`… 这类【前缀】⇒ 该串不再被 token 化★
++        rep = tok.replace("_", "-")
++        for d in sorted(_glob.glob(os.path.join(sandbox, DOC_GLOB))):
++            try:
++                txt = open(d, "r", encoding="utf-8", errors="replace").read()
++            except OSError:
++                continue
++            new = pat.sub(lambda _m, _r=rep: _r, txt)
++            if new != txt:
++                open(d, "w", encoding="utf-8").write(new)
++    return drift
++
++
+ def run_selftest(root: str, tmpdir: str = "") -> int:
+     root = os.path.abspath(root)
+     base = tmpdir or os.path.join(root, "tmp", "iss318_tmp")
+@@ -940,6 +990,9 @@
+     for name, expect, desc in cases:
+         sandbox = os.path.join(work, name)
+         _copy_input_surface(root, sandbox)
++        # ★ISS-398 · 基线无关化 · 【动手之前】先把沙盒基线同步到判据自带的 BASELINE_TOKENS 台账★
++        #   ⇒ 破坏前必然绿 ⇒ 差值型自测恢复本来的形状 (★判据一个字没动★)
++        synced = _sync_sandbox_baseline(sandbox)
+         # —— 「不是巧合」自证: 同一棵沙盒树, 破坏之前必须判绿 ——
+         rc_before, det_before = _gate_rc(sandbox)
+         # —— 破坏 ——
+@@ -997,7 +1050,7 @@
+             ok = (rc_after != 0) and (rc_before == 0)
+         else:
+             ok = (rc_after == 0) and (rc_before == 0)
+-        results.append((name, expect, desc, rc_before, rc_after, ok, det_before, det_after))
++        results.append((name, expect, desc, rc_before, rc_after, ok, det_before, det_after, synced))
+         shutil.rmtree(sandbox, ignore_errors=True)
+     shutil.rmtree(work, ignore_errors=True)
+ 
+@@ -1007,9 +1060,11 @@
+     print(f"沙盒根: {base}   (★真拷贝·绝不 hardlink·真盘一个字节都不写★)")
+     print("-" * 74)
+     passed = 0
+-    for name, expect, desc, rc_before, rc_after, ok, det_before, det_after in results:
++    for name, expect, desc, rc_before, rc_after, ok, det_before, det_after, synced in results:
+         mark = "✅" if ok else "❌"
+         print(f"  {mark} {name} 期望={expect:5s} 破坏前 rc={rc_before}  破坏后 rc={rc_after}  {desc}")
++        print(f"      ★基线无关化★: 沙盒基线已同步到判据自带的 BASELINE_TOKENS 台账 "
++              f"(★摘掉的漂移 token: {', '.join(synced) if synced else '无·基线本来就自洽'}★)")
+         if expect == "red":
+             print(f"      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc={rc_before} "
+                   f"(红项: {', '.join(det_before) if det_before else '无'}) ⇒ 破坏后 rc={rc_after} "
+@@ -1027,6 +1082,7 @@
+     print(f"反向用例: {passed}/{len(results)} 通过")
+     if passed == len(results):
+         print("✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)")
++        print("ALL TESTS PASS")
+         return 0
+     print("❌ 有用例没抓到 ⇒ 判据可能没被真读")
+     return 1

@@ -292,8 +292,8 @@ stat -c '%n mtime=%y size=%s' HW/PCB/demo_mainboard.kicad_pcb
   "note": "★v2 的 selftest 当前红是【基线漂移】(★ISS-372 那一趟引入的 SW_MD5 形状 token 把 DESIGNATOR_MISSING 顶过上限★) ⇒ ★基线红 ≠ 本单引入★ ⇒ 本单零改 v2★",
   "v1_rel": "SW/tools/check_sw_ref_reachability.py",
   "v2_rel": "SW/tools/check_sw_ref_reachability_v2.py",
-  "v2_selftest_last_line": "❌ 有用例没抓到 ⇒ 判据可能没被真读",
-  "v2_selftest_rc": 1
+  "v2_selftest_last_line": "ALL TESTS PASS",
+  "v2_selftest_rc": 0
  },
  "blind_spot_classes": {
   "A": [
@@ -687,9 +687,9 @@ stat -c '%n mtime=%y size=%s' HW/PCB/demo_mainboard.kicad_pcb
    "has_main": true,
    "in_chain": false,
    "in_health_roster": true,
-   "last_line": "❌ 有用例没抓到 ⇒ 判据可能没被真读",
+   "last_line": "ALL TESTS PASS",
    "mode": "selftest",
-   "rc": 1
+   "rc": 0
   },
   "SW/tools/check_sw_ref_reachability_v2_selftest.py": {
    "aux": true,
@@ -1089,12 +1089,12 @@ stat -c '%n mtime=%y size=%s' HW/PCB/demo_mainboard.kicad_pcb
    ],
    "env_depth_a": "tmp",
    "env_depth_b": "tmp/iss392_sbx/depth_b/nested/check_sw_ref_reachability_v2",
-   "env_rc_a": 1,
-   "env_rc_b": 1,
+   "env_rc_a": 0,
+   "env_rc_b": 0,
    "env_same": true,
-   "last_line": "❌ 有用例没抓到 ⇒ 判据可能没被真读",
+   "last_line": "ALL TESTS PASS",
    "mode": "selftest",
-   "rc": 1
+   "rc": 0
   },
   "SW/tools/check_sw_ref_reachability_v2_selftest.py": {
    "args": [],

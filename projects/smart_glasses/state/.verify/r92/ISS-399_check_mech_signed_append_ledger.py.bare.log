@@ -1,0 +1,19 @@
+ISS-399 · MECH 域【已签收件追加登记台账】自守闸
+==============================================================================
+[ok]   M1   MECH 域每一处【硬钉别人 md5】的 pin 必须在 §1 在册清单里 (★新闸溜过去 ⇒ 判红★)
+[FAIL] M2   每处硬钉 pin 的写死基线必须 == 盘上现值 (★现状红·★不是闸故障★)
+       · ★陈旧 pin: MECH/check_connector_clearance_caliber.py L84 钉 MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md 基线 ffc09939 ≠ 盘上现值 f1ce54c9 ⇒ 判红 (★红的是现状不是闸故障★)
+       · ★陈旧 pin: MECH/check_connector_clearance_caliber.py L86 钉 MECH/check_juart_1p27_clearance.py 基线 ea89e0dd ≠ 盘上现值 daf8fa36 ⇒ 判红 (★红的是现状不是闸故障★)
+       · ★陈旧 pin: MECH/check_zoujuan_marker_consistency.py L63 钉 MECH/check_demo_struct_truth.py 基线 fa9b59e5 ≠ 盘上现值 483d018a ⇒ 判红 (★红的是现状不是闸故障★)
+[FAIL] M3   每一处陈旧 pin 必须在台账里查到一行 (★查不到 = 来源不明 = 判红★)
+       · ★台账判决失败: 台账 MECH/SIGNED_APPEND_LEDGER.md 读不到 (★还没建·★或路径不对·★M-A 待 main 拍★) ⇒ 全部陈旧 pin 归因不到 ⇒ 判红 (★fail-closed★)
+[ok]   M4   ★不许靠改常量消红★ (★改常量必须同时在台账留一行·★否则判红★)
+[ok]   M5   板三证 (md5 / mtime / size) == 基线 (★零写板自证★)
+[ok]   M6   证据分级五级白名单 + 零挂起措辞
+[ok]   M7   零挂链 (★本闸不在官方门禁链里·★挂不挂是 main 的地界★)
+------------------------------------------------------------------------------
+枚举: 硬钉(无通道) 42 处 / 板族钉 4 处 / 台账通道钉 3 处 ⇒ 合计 49 处
+判据 M1~M7 · 失败 2 条
+FAIL
+★**本闸的【预期读数】= rc=1 (红)**: 红的是【现状】(★3 处陈旧 pin 归因不到台账·★不是闸故障★) ⇒ ★**不许为了让它绿而放宽判据** ★
+★绿的唯一条件 = ① 3 处陈旧 pin 在台账里有登记行 (单号+prev_md5+md5 四项齐全)② 台账落位 (M-A 待 main 拍) ③ §1 在册清单与盘面零差 ★

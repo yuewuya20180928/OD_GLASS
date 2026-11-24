@@ -1,0 +1,888 @@
+--- logs/iss391/check_fts_land_drill_same_batch.py.BEFORE	2026-11-24 21:49:01.941364383 +0800
++++ HW/check_fts_land_drill_same_batch.py	2026-11-24 22:48:49.537894785 +0800
+@@ -9,10 +9,12 @@
+     python3 HW/check_fts_land_drill_same_batch.py             # 正向跑
+     python3 HW/check_fts_land_drill_same_batch.py --selftest  # 自测 (反向用例, 末行 ALL TESTS PASS)
+ 
+-★**本闸现在【必然红】(rc=1) —— 那是本单的发现, 不是本闸故障** ★
+-  ⇒ 红的那几条 (D1 / D2 / D3) 就是真相页 `HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md`
+-    §4 里「要 main 落什么」的登记项 ⇒ ★**main 落完 §4 #1/#2/#3 ⇒ 同一条命令即转绿**
+-    (★selftest 的「正向对照 (沙盒已补登记)」那一格就是转绿后的样子★)
++★★当前状态 (★ISS-391 cont1 本机实测★): 裸跑 7/7 全绿 rc=0 (★ISS-396 已把登记落进真件★)
++  · ★--selftest 【改前】是 14/17 · rc=1 · 末行 SELFTEST FAILED ⇒ ★夹具的变异是空操作★
++    (★真件已被登记过 ⇒ 夹具二次注入 ⇒ 只删第一处 ⇒ 三条反向用例假绿★)
++  ⇒ ★ISS-391 cont1: 判据改成【动作腿口径】 + 夹具改成【真件现读】 ⇒ 两边一起修好★★
++  ⇒ ★红的那几条 (D1 / D2 / D3) 就是真相页 `HW/PCB/BOARD_ONEPASS_FTS_LAND_DRILL_CHANGE.md`
++    §4 里「要 main 落什么」的登记项 (★现在登记已落 ⇒ 这几条是绿的★)
+ 
+ ★纪律:
+   · fail-closed —— 任一条不满足 ⇒ 该条红 ⇒ 整体 rc=1
+@@ -30,8 +32,11 @@
+ 闸定义 (口径照抄真相页 §2 / §3 / §4 / §5 / §6):
+   D1  ★作业包 §0.2 ③ 的「③」那一项原文里必须查到「改孔」这一条板侧动作★
+       (★现场解析作业包原文, 不接受外部传入的子项列表★)
+-      判据 = 【钻孔字样 (钻孔/孔径/drill)】+【目标值 0.71】+【pitch 那一腿的 1.27 仍在】
+-      ⇒ 只做其一时 / 只有 pitch 时 / 只有 drill 时, 都判红
++      ★★判据 = 【★动作腿命中★】(★ISS-391 cont1 加固★): 【动作词 钻孔/孔径/drill】+
++        【改动作 (→ / 改成 / 换到 …)】必须绑在一起成为【一个动作】+【目标值 0.71】+
++        【pitch 那一腿的动作 (land/pitch + 改动作 + 1.27) 仍在】
++      ⇒ ★★解释性上下文 (括注 / 括号 / 官方出处 / 库件默认值) 一律【不算命中】★★
++      ⇒ 只做其一时 / 只有 pitch 时 / 只有 drill 时 / ★只留解释不留动作★ 时, 都判红
+   D2  ★预检清单 B33_PIN_LAND_1P27 的【描述列】里必须查到「改孔」这一条★
+       (★JSON 项 + 表格行两处都要★ ⇒ 少一处 = 那一趟照样漏)
+   D3  ★B33_PIN_LAND_1P27 的【验收手段】列里必须有一条【读钻孔直径】的验收命令★
+@@ -132,6 +137,205 @@
+     return bool(re.search(r"drill", text, re.I))
+ 
+ 
++# ===========================================================================
++# ★★动作腿识别 (★ISS-391 cont1 · 判据加固★) ★★
++# ===========================================================================
++# ★★旧判据 = 「关键词 / 子串命中」⇒ 【解释性括注】也能把它满足掉 ⇒ 判据被削弱 ★★
++#   (★main 的决定性实验: 删掉「钻孔 0.65→0.71」动作腿、只留那段解释括注 ⇒ 旧 D1 照样绿★)
++# ★★新判据 = 「★动作腿命中★」: 必须是【动作词】+【改动作】绑在一起的结构 ★★
++#   动作腿 := 「动作词」+【改动作】+【目标值】
++#     动作词 · 改钻孔 = 钻孔 / 孔径 / drill ;  改 pitch = land / pitch / 间距 / 脚距
++#     改动作 = 迁移箭头 (→ / -> / =>) 或 改动词 (改成/改为/改到/换成/换到/变成/变为/定成/调到)
++#   ★★解释性上下文 (括注 / 括号 / 官方出处 / 库件默认值) 一律【不算命中】★★
++#     · 括号内 (（ ） ( ) 【 】 [ ]) 的文字 ⇒ 剔掉 (★长度不变 ⇒ 偏移量可回溯到原文★)
++#     · 命中点左边一小段里出现「官方 / 官网 / 默认 / 推荐 / TYP」等出处字样 ⇒ 该命中不算
++#   ★★所以: 删掉动作腿只留解释括注 ⇒ 【必须红】★★
++# ★★目标值阈值本单【不许改】⇒ 钻孔 0.71 / pitch 1.27 与改前逐字相同 ★★
++# ===========================================================================
++_SP = r"[ \t\u3000]"
++_ARROW = r"(?:→|->|=>|➜|~>)"
++_CHANGE_VERB = r"(?:改成|改为|改到|换成|换到|变成|变为|定成|调到|取为)"
++_DRILL_VERBS = ("钻孔", "孔径", "drill")
++_PITCH_VERBS = ("land", "pitch", "间距", "脚距")
++# ★★出处 / 说明性字样 (★命中点所在的【从句】里出现 ⇒ 这个命中是【说明】不是【动作】★★)
++_EXPLAIN_MARKERS = ("官方", "官网", "默认", "推荐", "TYP", "出处", "例如", "偏小", "偏大")
++# ★★从句分隔符 (★用来定位「命中点所在的从句」★)
++_CLAUSE_BREAK = "。；;，,、\n"
++# ★★目标值阈值 (★本单【不许改阈值】★ ⇒ 与改前逐字相同: 钻孔 0.71 / pitch 1.27★★)
++DRILL_TARGET = "0.71"
++PITCH_TARGET = "1.27"
++# ★★D3: 验收手段列里的【读钻孔验收命令】识别 ★★
++DRILL_READ_RE = re.compile(r"GetDrill\w*|drill\s*=\s*%?\.?\d", re.I)
++BOARD_READ_RE = re.compile(r"pcbnew_py\.sh|LoadBoard|import\s+pcbnew", re.I)
++DRILL_EXPECT_RE = re.compile(r"drill\s*=\s*" + re.escape(DRILL_TARGET), re.I)
++_CRIT_CMD_MARK = re.compile(r"(?:\bbash\b|\bpython3?\b|state/pcbnew_py\.sh|\bpcbnew_py\.sh\b)")
++
++
++def _leg_re(verbs):
++    """★动作腿正则: 动作词 + 改动作 + 目标值 (★迁移式带原值 / 直改式带改动词★)★"""
++    alt = "|".join(re.escape(v) for v in verbs)
++    pat = (r"(?P<verb>" + alt + r")"
++           r"(?:"
++           + _SP + r"{0,3}Ø?" + _SP + r"{0,3}(?P<frm>[0-9]+(?:\.[0-9]+)?)"
++           + _SP + r"{0,2}(?:" + _ARROW + r")"
++           r"|" + _SP + r"{0,3}(?:" + _CHANGE_VERB + r")"
++           r")"
++           + _SP + r"{0,3}Ø?" + _SP + r"{0,3}(?P<to>[0-9]+(?:\.[0-9]+)?)(?P<unit>" + _SP
++           + r"{0,2}(?:mm)?)?")
++    return re.compile(pat)
++
++
++DRILL_LEG_RE = _leg_re(_DRILL_VERBS)
++PITCH_LEG_RE = _leg_re(_PITCH_VERBS)
++
++
++def strip_explanatory(text):
++    """★把【解释性上下文】(括注 / 括号) 剔掉, 只留动作上下文 (★长度不变★)★"""
++    if not text:
++        return ""
++    out = []
++    depth = 0
++    for ch in text:
++        if ch in "（(【[":
++            depth += 1
++            out.append("\x00")
++            continue
++        if ch in "）)】]":
++            if depth:
++                depth -= 1
++            out.append("\x00")
++            continue
++        out.append(ch if depth == 0 else "\x00")
++    return "".join(out)
++
++
++def find_legs(text, rx):
++    """★在【动作上下文】里找动作腿 ⇒ [{verb,frm,to,span,start,end}]★
++    ★★一条动作腿被否掉的三个理由 (★三者任一成立就不算命中★):
++      ① 它落在括注 / 括号 / 官方出处 / 库件默认值这类【解释性上下文】里
++      ② 它所在的【从句】里出现「官方 / 官网 / 默认 / 推荐 / TYP / 出处 / 例如 / 偏小 / 偏大」
++      ③ 它的结构不完整 (★动作词 + 改动作 + 目标值 三者没绑在一起★)"""
++    stripped = strip_explanatory(text or "")
++    out = []
++    for m in rx.finditer(stripped):
++        span = m.group(0)
++        if "\x00" in span:
++            continue
++        # ② 命中点所在的从句 (★从句分隔符往前找★)
++        clause = []
++        for ch in reversed(stripped[:m.start()]):
++            if ch in _CLAUSE_BREAK:
++                break
++            clause.append(ch)
++        clause = "".join(reversed(clause))
++        if any(mk in clause for mk in _EXPLAIN_MARKERS):
++            continue
++        out.append({"verb": m.group("verb"), "frm": m.group("frm"),
++                    "to": m.group("to"), "span": span,
++                    "start": m.start(), "end": m.end()})
++    return out
++
++
++def find_drill_legs(text):
++    """★【改钻孔】动作腿 ★"""
++    return find_legs(text, DRILL_LEG_RE)
++
++
++def find_pitch_legs(text):
++    """★【改 pitch】动作腿 ★"""
++    return find_legs(text, PITCH_LEG_RE)
++
++
++def strip_legs(text, rx=None):
++    """★把 text 里【该动作腿的全部出现处】剔掉 (★从真件现读派生, 不用写死常量★)★"""
++    rx = rx or DRILL_LEG_RE
++    if not text:
++        return text
++    stripped = strip_explanatory(text)
++    spans = [(m.start(), m.end()) for m in rx.finditer(stripped)
++             if "\x00" not in m.group(0)]
++    for s, e in sorted(spans, reverse=True):
++        text = text[:s] + text[e:]
++    return text
++
++
++def strip_drill_legs(text):
++    """★剔掉全部【改钻孔】动作腿 ★"""
++    return strip_legs(text, DRILL_LEG_RE)
++
++
++def criterion_segments(text):
++    """★把验收手段列切成一条条【命令段】 (★按命令起点切 · 段尾带着它的期望读数★)★"""
++    if not text:
++        return []
++    marks = list(_CRIT_CMD_MARK.finditer(text))
++    if not marks:
++        return [text]
++    segs = []
++    for k, m in enumerate(marks):
++        end = marks[k + 1].start() if k + 1 < len(marks) else len(text)
++        segs.append(text[m.start():end])
++    return segs
++
++
++def strip_drill_cmd_units(text):
++    """★把【读钻孔直径的验收命令】整段 (★命令 + 它的期望读数★) 剔掉 (★全部出现处★)★"""
++    if not text:
++        return text
++    out = text
++    for seg in reversed(criterion_segments(text)):
++        if not (DRILL_READ_RE.search(seg) and BOARD_READ_RE.search(seg)
++                and DRILL_EXPECT_RE.search(seg)):
++            continue
++        out = out.replace(seg, "")
++    return out
++
++
++# ★★D3 专用: 验收手段列里的【读钻孔直径】命令段 ★★
++_CMD_START_RE = re.compile(r"bash\s+state/pcbnew_py\.sh")
++
++
++def criterion_units(text):
++    """★把验收手段列按【命令起点】切成一条条命令段 ⇒ [(起, 止, 段)]★"""
++    if not text:
++        return []
++    marks = [m.start() for m in _CMD_START_RE.finditer(text)]
++    if not marks:
++        return [(0, len(text), text)]
++    units = []
++    for k, st in enumerate(marks):
++        en = marks[k + 1] if k + 1 < len(marks) else len(text)
++        units.append((st, en, text[st:en]))
++    return units
++
++
++def find_drill_acceptance(text):
++    """★找【读钻孔直径的验收命令】: 同一条命令里要有 ①读板 ②读钻孔 ③期望读数 0.71 ★
++    ⇒ 只出现「drill」二字 或 只出现 0.71 ⇒ 都不算命中 (★解释性文字不算★)★"""
++    for _st, _en, seg in criterion_units(text):
++        if not BOARD_READ_RE.search(seg):
++            continue
++        if not DRILL_READ_RE.search(seg):
++            continue
++        if not DRILL_EXPECT_RE.search(seg):
++            continue
++        return True
++    return False
++
++
++def strip_drill_acceptance(text):
++    """★把【读钻孔直径的验收命令】段 (★全部出现处★) 剔掉 ★"""
++    if not text:
++        return text
++    out = text
++    for st, en, seg in reversed(criterion_units(text)):
++        if not (BOARD_READ_RE.search(seg) and DRILL_READ_RE.search(seg)
++                and DRILL_EXPECT_RE.search(seg)):
++            continue
++        out = out[:st] + out[en:]
++    return out
++
++
+ def sec_body(page, start_marker, end_marker=None):
+     """从 start_marker 到下一个 '## ' (或 end_marker) 之间的正文。"""
+     i = page.find(start_marker)
+@@ -329,17 +533,31 @@
+         return ["D1 作业包 §0.2 ③ 那一行里【没有 %s 这一项】⇒ 解析到的子项 = %s ⇒ fail-closed"
+                 % (ORDINAL_OF_ITEM, sorted(parsed))]
+     text = parsed[ORDINAL_OF_ITEM]
+-    if not has_drill(text):
+-        fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【查不到「钻孔」这件事】⇒ "
+-                     "「落 FTS 要改孔 0.65→0.71」这条板侧动作【不在那一趟的清单上】⇒ "
++    # ★★动作腿口径 (★不是「出现过几个关键词」★) ★★
++    drill_legs = find_drill_legs(text)
++    ok_drill = [lg for lg in drill_legs if lg["to"] == DRILL_TARGET]
++    if not drill_legs:
++        fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【查不到【改钻孔】这个动作腿】⇒ "
++                     "★判据是动作腿: 【动作词 钻孔/孔径/drill】+【改动作 →/改成/换到…】+"
++                     "【目标值 %s】三者绑在一起才算★ ⇒ 只写「钻孔」两个字、或只在括注里解释"
++                     "「官方 Ø0.71 / 库件默认 (drill 0.65)」, 一律【不算这一条动作】⇒ "
++                     "「落 FTS 要改孔 0.65→%s」这条板侧动作【不在那一趟的清单上】⇒ "
+                      "不在清单 = 没人做 = 板投出去才发现排针插不进 ⇒ 【板改两次】 "
+-                     "★实测原文: %s★" % (ORDINAL_OF_ITEM, text[:120]))
+-    if "0.71" not in text:
+-        fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【查不到目标孔径 0.71】⇒ "
+-                     "★只写了字样没写目标值, 那一趟的人照样不知道要改成多少★" % ORDINAL_OF_ITEM)
+-    if "1.27" not in text:
+-        fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【查不到 pitch 那一腿的 1.27】⇒ "
++                     "★实测原文: %s★" % (ORDINAL_OF_ITEM, DRILL_TARGET, DRILL_TARGET,
++                                          text[:120]))
++    elif not ok_drill:
++        fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【有【改钻孔】的动作腿, 但目标值不是 %s "
++                     "(★读到 %s★)】⇒ ★写错目标值那一趟照样把孔做错★"
++                     % (ORDINAL_OF_ITEM, DRILL_TARGET, [lg["to"] for lg in drill_legs]))
++    pitch_legs = find_pitch_legs(text)
++    ok_pitch = [lg for lg in pitch_legs if lg["to"] == PITCH_TARGET]
++    if not pitch_legs:
++        fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【查不到【改 pitch】这个动作腿】⇒ "
+                      "★说明有人把 pitch 那一腿删掉/覆盖了 ⇒ 两条腿少了一条★" % ORDINAL_OF_ITEM)
++    elif not ok_pitch:
++        fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【有【改 pitch】的动作腿, 但目标值不是 %s "
++                     "(★读到 %s★)】⇒ ★pitch 那一腿的值被写错了★"
++                     % (ORDINAL_OF_ITEM, PITCH_TARGET, [lg["to"] for lg in pitch_legs]))
+     return fails
+ 
+ 
+@@ -360,21 +578,27 @@
+             fails.append("D2 预检清单页的 json 块里【没有 item %s】⇒ fail-closed" % ITEM_ID)
+     if item is not None:
+         desc = " ".join(str(item.get(k, "")) for k in ("title", "current_state", "action"))
+-        if not has_drill(desc):
+-            fails.append("D2 预检清单 %s 的【描述列】(json 项) 里【查不到「钻孔」这件事】⇒ "
+-                         "★清单页是那一趟的验收凭据, 它不写钻孔 ⇒ 改没改都没人查★" % ITEM_ID)
+-        elif "0.71" not in desc:
+-            fails.append("D2 预检清单 %s 的【描述列】(json 项) 里【查不到目标孔径 0.71】" % ITEM_ID)
++        legs = find_drill_legs(desc)
++        if not legs:
++            fails.append("D2 预检清单 %s 的【描述列】(json 项) 里【查不到【改钻孔】这个动作腿】⇒ "
++                         "★清单页是那一趟的验收凭据, 它不写这个动作 ⇒ 改没改都没人查★ "
++                         "★★只在括注里写「官方 Ø0.71 / 库件默认 (drill 0.65)」不算命中★★" % ITEM_ID)
++        elif not [lg for lg in legs if lg["to"] == DRILL_TARGET]:
++            fails.append("D2 预检清单 %s 的【描述列】(json 项) 里【有【改钻孔】的动作腿, 但目标值不是 %s "
++                         "(★读到 %s★)】" % (ITEM_ID, DRILL_TARGET, [lg["to"] for lg in legs]))
+     row = parse_preflight_md_row(ctx["pf_text"], ITEM_ID)
+     if row is None:
+         fails.append("D2 预检清单页的【表格行】里【找不到 %s 那一行】⇒ fail-closed" % ITEM_ID)
+     else:
+         desc = "%s %s" % (row[2], row[5])
+-        if not has_drill(desc):
+-            fails.append("D2 预检清单 %s 的【描述列】(表格行) 里【查不到「钻孔」这件事】⇒ "
+-                         "★表格是给人看的那一份, 它不写钻孔 ⇒ 人照着做也会漏★" % ITEM_ID)
+-        elif "0.71" not in desc:
+-            fails.append("D2 预检清单 %s 的【描述列】(表格行) 里【查不到目标孔径 0.71】" % ITEM_ID)
++        legs = find_drill_legs(desc)
++        if not legs:
++            fails.append("D2 预检清单 %s 的【描述列】(表格行) 里【查不到【改钻孔】这个动作腿】⇒ "
++                         "★表格是给人看的那一份, 它不写这个动作 ⇒ 人照着做也会漏★ "
++                         "★★只在括注里写官方出处/库件默认值不算命中★★" % ITEM_ID)
++        elif not [lg for lg in legs if lg["to"] == DRILL_TARGET]:
++            fails.append("D2 预检清单 %s 的【描述列】(表格行) 里【有【改钻孔】的动作腿, 但目标值不是 %s "
++                         "(★读到 %s★)】" % (ITEM_ID, DRILL_TARGET, [lg["to"] for lg in legs]))
+     return fails
+ 
+ 
+@@ -393,19 +617,20 @@
+         fails.append("D3 预检清单页里【拿不到 item %s 的验收手段列】⇒ fail-closed" % ITEM_ID)
+     else:
+         crit = str(item.get("criterion", ""))
+-        if not (has_drill(crit) and "0.71" in crit):
+-            fails.append("D3 预检清单 %s 的【验收手段列】(json 项) 里【没有一条读钻孔直径的验收命令】⇒ "
+-                         "★没有验收手段 = 改没改成没人知道★" % ITEM_ID)
+-        elif not ("pcbnew_py.sh" in crit or "GetDrillSize" in crit):
+-            fails.append("D3 预检清单 %s 的【验收手段列】里的钻孔命令【不是读板钻孔的命令】⇒ "
+-                         "★必须是读板 (pcbnew_py.sh / GetDrillSize)★" % ITEM_ID)
++        if not find_drill_acceptance(crit):
++            fails.append("D3 预检清单 %s 的【验收手段列】(json 项) 里【没有一条【读钻孔直径】的验收命令】"
++                         "⇒ ★没有验收手段 = 改没改成没人知道★ "
++                         "★★命令里必须同时有: ①读板 (pcbnew_py.sh/LoadBoard) ②读钻孔 "
++                         "(GetDrillSize / drill =) ③期望读数 %s★ ⇒ 只在括注里写 0.71 不算★"
++                         % (ITEM_ID, DRILL_TARGET))
+     row = parse_preflight_md_row(ctx["pf_text"], ITEM_ID)
+     if row is None:
+         fails.append("D3 预检清单页的【表格行】里【找不到 %s 那一行】⇒ fail-closed" % ITEM_ID)
+     else:
+         crit = row[6]
+-        if not (has_drill(crit) and "0.71" in crit):
+-            fails.append("D3 预检清单 %s 的【验收手段列】(表格行) 里【没有一条读钻孔直径的验收命令】"
++        if not find_drill_acceptance(crit):
++            fails.append("D3 预检清单 %s 的【验收手段列】(表格行) 里【没有一条【读钻孔直径】的验收命令】"
++                         "⇒ ★表格是给人看的那一份, 它不写怎么读 ⇒ 人照着做也查不出来★"
+                          % ITEM_ID)
+     return fails
+ 
+@@ -639,31 +864,32 @@
+ 
+ 
+ # =========================================================================
+-# 沙盒构造 (★只在沙盒副本上改, 真文件一个字节不许动★)
++# 沙盒构造 (★真件现读 · 零写死 · 全处清★)
+ # =========================================================================
+-DRILL_TITLE = ("`J_DEBUG`/`J_UART` 排针 land pitch 0.50→1.27mm + 钻孔 Ø0.65→Ø0.71mm "
+-               "(★ISS-391·落 FTS 官方 Ø0.71 TYP·库件默认 0.65·不可只做 pitch★)")
+-DRILL_STATE = ("★**ISS-391 追加 [实测]**: 落 FTS 官方 Ø0.71 TYP, 库件默认 (drill 0.65) 偏小 0.06; "
+-               "与 pitch 同属 ③, 不可只做其一")
+-DRILL_CRIT = ("; `bash state/pcbnew_py.sh -c \"import pcbnew;b=pcbnew.LoadBoard("
+-              "'HW/PCB/demo_mainboard.kicad_pcb');print('; '.join('%s drill = %.2f'%"
+-              "(f.GetReference(), pcbnew.ToMM(p.GetDrillSize().x)) for f in b.GetFootprints() "
+-              "if f.GetReference() in ('J_DEBUG','J_UART') for p in f.Pads()))\"` "
+-              "⇒ 期望读数: J_DEBUG drill = 0.71 / J_UART drill = 0.71")
+-
+-
+-WORKPACKET_DRILL_LEG = ("排针 land 0.50→1.27mm + 钻孔 0.65→0.71mm "
+-                        "(★ISS-391·落 FTS 必须用 Samtec 官方 Ø0.71 TYP·"
+-                        "库件默认 (drill 0.65) 偏小 0.06·"
+-                        "同属这一项的两条腿, 不可只做其一★)")
+-
+-
+-def make_fixed_workpacket(text):
+-    """★把作业包 §0.2 ③ 的「③」那一项补上「钻孔 0.65→0.71」这一腿 (★沙盒用★)★"""
+-    old = "排针 land 0.50→1.27mm"
+-    if old not in text:
+-        raise AssertionError("自测前提不成立: 作业包里找不到 %r" % old)
+-    return text.replace(old, WORKPACKET_DRILL_LEG, 1)
++# ★★ISS-391 cont1 · 夹具层改造 (★main 处方原文: 「夹具改成【真件现读】」★) ★★
++#   · 一切【变异】都从【真件当前原文】现场定位 + 现场清掉 ⇒ 不许用写死常量去做 replace
++#     (★旧夹具的病根: 常量与真件逐字不同 ⇒ replace 不中 ⇒ 变异是空操作 ⇒ 用例假绿★)
++#   · 变异要把该腿的【全部出现处】都干掉 (★不许只清第一处★)
++#   · 夹具要能识别【真件已经登记过】⇒ 跳过重复注入 (★沙盒里不许出现两条一样的腿★)
++#   · 唯一允许的「写死」是【模板 + 机器块派生值】⇒ 不是与真件逐字相等的常量
++
++
++def leg_span(text, rx):
++    """★从【当前原文】里取第一条动作腿的逐字文本 (★派生用 · 不写死★)★"""
++    legs = find_legs(text, rx)
++    return legs[0]["span"] if legs else ""
++
++
++def remove_all(text, span):
++    """★把该腿的【全部出现处】都干掉 (★逐字清 · 不只清第一处★)★"""
++    if not span:
++        return text
++    return text.replace(span, "")
++
++
++def wp_ordinal_cell(text):
++    """★作业包 §0.2 ③ 那一项的原文 (★现读★)★"""
++    return parse_wp02_board_changes(text).get(ORDINAL_OF_ITEM, "")
+ 
+ 
+ def set_wp_ordinal(text, ordinal, new_text):
+@@ -700,39 +926,151 @@
+     raise AssertionError("自测前提不成立: 作业包里找不到「板侧改动清单」那一行")
+ 
+ 
+-def make_fixed_preflight(text, add_desc=True, add_crit=True):
+-    """★把 B33 的描述列 + 验收手段列补上改孔 (★沙盒用★)★"""
++def wp_drop_leg(text, rx):
++    """★把作业包 §0.2 ③ 里那条动作腿【全部出现处】清掉 (★现读定位 · 逐字清★)★"""
++    cell = wp_ordinal_cell(text)
++    legs = find_legs(cell, rx)
++    if not legs:
++        raise AssertionError("自测前提不成立: 作业包 §0.2 ③ 里定位不到那条动作腿")
++    return remove_all(text, legs[0]["span"])
++
++
++def wp_only_pitch_leg(text):
++    """★把 ③ 整条改成【只剩 pitch 那一腿】(★现读派生★)★"""
++    cell = wp_ordinal_cell(text)
++    legs = find_legs(cell, PITCH_LEG_RE)
++    if not legs:
++        raise AssertionError("自测前提不成立: 作业包 §0.2 ③ 里定位不到 pitch 那一腿")
++    return set_wp_ordinal(text, ORDINAL_OF_ITEM, cell[:legs[0]["end"]])
++
++
++def _pf_row_cells(text):
++    """★定位预检清单的 B33 表格行 ⇒ (lines, 行号, cells)★"""
++    lines = text.split("\n")
++    for i, ln in enumerate(lines):
++        s = ln.strip()
++        if not s.startswith("|") or ITEM_ID not in s:
++            continue
++        cells = [c.strip() for c in s.strip("|").split("|")]
++        if len(cells) >= 7:
++            return lines, i, cells
++    return lines, -1, None
++
++
++def pf_drop_desc_leg(text):
++    """★把 B33 描述列里的【改钻孔动作腿】全部清掉 (★json 项 + 表格行 同步★)★"""
+     items = parse_preflight_json(text)
+     if items is None:
+         raise AssertionError("自测前提不成立: 预检清单 json 块解析不出来")
++    hit = 0
+     for it in items:
+         if str(it.get("id")) != ITEM_ID:
+             continue
+-        if add_desc:
+-            it["title"] = DRILL_TITLE
+-            it["current_state"] = str(it.get("current_state", "")) + " " + DRILL_STATE
+-        if add_crit:
+-            it["criterion"] = str(it.get("criterion", "")) + DRILL_CRIT
++        for k in ("title", "current_state", "action"):
++            sp = leg_span(str(it.get(k, "")), DRILL_LEG_RE)
++            if sp:
++                it[k] = remove_all(str(it.get(k, "")), sp)
++                hit += 1
+     out = replace_preflight_json(text, items)
+-    # 表格行同步
+-    lines = out.split("\n")
+-    for i, ln in enumerate(lines):
+-        s = ln.strip()
+-        if not s.startswith("|") or ITEM_ID not in s:
++    lines, i, cells = _pf_row_cells(out)
++    if cells is None:
++        raise AssertionError("自测前提不成立: 预检清单表格里找不到 %s 那一行" % ITEM_ID)
++    for k in (2, 5):
++        sp = leg_span(cells[k], DRILL_LEG_RE)
++        if sp:
++            cells[k] = remove_all(cells[k], sp)
++            hit += 1
++    lines[i] = "| " + " | ".join(cells) + " |"
++    if hit == 0:
++        raise AssertionError("自测前提不成立: 预检清单里定位不到【改钻孔动作腿】")
++    return "\n".join(lines)
++
++
++def pf_drop_crit_cmd(text):
++    """★把 B33 验收手段列里的【读钻孔验收命令】全部清掉 (★json 项 + 表格行 同步★)★"""
++    items = parse_preflight_json(text)
++    if items is None:
++        raise AssertionError("自测前提不成立: 预检清单 json 块解析不出来")
++    for it in items:
++        if str(it.get("id")) != ITEM_ID:
+             continue
+-        cells = [c.strip() for c in s.strip("|").split("|")]
+-        if len(cells) < 7:
++        it["criterion"] = strip_drill_acceptance(str(it.get("criterion", "")))
++    out = replace_preflight_json(text, items)
++    lines, i, cells = _pf_row_cells(out)
++    if cells is None:
++        raise AssertionError("自测前提不成立: 预检清单表格里找不到 %s 那一行" % ITEM_ID)
++    cells[6] = strip_drill_acceptance(cells[6])
++    lines[i] = "| " + " | ".join(cells) + " |"
++    out = "\n".join(lines)
++    items2 = parse_preflight_json(out)
++    it2 = next((x for x in (items2 or []) if str(x.get("id")) == ITEM_ID), None)
++    if it2 is not None and find_drill_acceptance(str(it2.get("criterion", ""))):
++        raise AssertionError("自测前提不成立: json 项里的读钻孔验收命令没清掉")
++    if find_drill_acceptance(cells[6]):
++        raise AssertionError("自测前提不成立: 表格行里的读钻孔验收命令没清掉")
++    return out
++
++
++def _mb_drill_values(mb):
++    """★从真相页机器块读出 (generic, target) (★不写死任何一个数★)★"""
++    gen = str((mb or {}).get("drill_generic") or "").strip()
++    tgt = str((mb or {}).get("drill_target") or "").strip()
++    if not gen or not tgt:
++        raise AssertionError("自测前提不成立: 机器块里没有 drill_generic / drill_target")
++    return gen, tgt
++
++
++def inject_wp_drill_leg(text, mb):
++    """★【真件没登记】时的兜底注入 (★按机器块派生 · 不是写死常量★)★"""
++    gen, tgt = _mb_drill_values(mb)
++    leg = "钻孔 %s→%smm" % (gen, tgt)
++    cell = wp_ordinal_cell(text)
++    legs = find_legs(cell, PITCH_LEG_RE)
++    cut = legs[0]["end"] if legs else len(cell)
++    return set_wp_ordinal(text, ORDINAL_OF_ITEM, cell[:cut] + " + " + leg + cell[cut:])
++
++
++def inject_pf_drill_leg(text, mb):
++    """★【真件没登记】时的兜底注入 (★按机器块派生 · 不是写死常量★)★"""
++    gen, tgt = _mb_drill_values(mb)
++    refs = list((mb.get("drill_action") or {}).get("refs_only") or [])
++    if not refs:
++        raise AssertionError("自测前提不成立: 机器块里没有 refs_only")
++    leg = "钻孔 Ø%s→Ø%smm" % (gen, tgt)
++    cmd = _acceptance_cmd(mb)
++    items = parse_preflight_json(text)
++    if items is None:
++        raise AssertionError("自测前提不成立: 预检清单 json 块解析不出来")
++    for it in items:
++        if str(it.get("id")) != ITEM_ID:
+             continue
+-        if add_desc:
+-            cells[2] = DRILL_TITLE
+-            cells[5] = cells[5] + " " + DRILL_STATE
+-        if add_crit:
+-            cells[6] = cells[6] + DRILL_CRIT
+-        lines[i] = "| " + " | ".join(cells) + " |"
+-        break
++        it["title"] = str(it.get("title", "")) + " " + leg
++        it["criterion"] = str(it.get("criterion", "")) + cmd
++    out = replace_preflight_json(text, items)
++    lines, i, cells = _pf_row_cells(out)
++    if cells is None:
++        raise AssertionError("自测前提不成立: 预检清单表格里找不到 %s 那一行" % ITEM_ID)
++    cells[2] = cells[2] + " " + leg
++    cells[6] = cells[6] + cmd
++    lines[i] = "| " + " | ".join(cells) + " |"
+     return "\n".join(lines)
+ 
+ 
++def _acceptance_cmd(mb):
++    """★按机器块派生一条【读钻孔直径的验收命令】(★模板 + 派生值 · 不写死★)★"""
++    tgt = str((mb or {}).get("drill_target") or "").strip()
++    refs = list(((mb or {}).get("drill_action") or {}).get("refs_only") or [])
++    if not tgt or not refs:
++        raise AssertionError("自测前提不成立: 机器块里没有 drill_target / refs_only")
++    ref_list = ", ".join("'%s'" % r for r in refs)
++    exp = " / ".join("%s drill = %s" % (r, tgt) for r in refs)
++    return ("; `bash state/pcbnew_py.sh -c \"import pcbnew;b=pcbnew.LoadBoard("
++            "'HW/PCB/demo_mainboard.kicad_pcb');print('; '.join('%%s drill = %%.2f'%%"
++            "(f.GetReference(), pcbnew.ToMM(p.GetDrillSize().x)) for f in b.GetFootprints() "
++            "if f.GetReference() in (%s) for p in f.Pads()))\"` ⇒ 期望读数: %s"
++            % (ref_list, exp))
++
++
+ def _mutate_mb(mb_text, old, new):
+     if old not in mb_text:
+         raise AssertionError("自测前提不成立: 机器块里找不到 %r" % old)
+@@ -756,7 +1094,35 @@
+                        ("page", "workpacket", "preflight", "board", "netlist",
+                         "pins", "bom", "coverage_gate", "iss387_gate", "iss387_truth")}
+ 
+-    # ---- 沙盒: 已补登记的作业包 / 预检清单 / 真相页 / 库件 -----------------
++    # ---- ★真件现读★ (★沙盒基线 = 真件当前原文的副本★) ------------------
++    real_wp_text = read_text(REAL_PATHS["workpacket"])
++    real_pf_text = read_text(REAL_PATHS["preflight"])
++    page_text = read_text(REAL_PATHS["page"])
++    base_mb, err = parse_machine_block(page_text)
++    if err:
++        print("SELFTEST ABORT: %s" % err)
++        return 1
++    base_mb_text = json.dumps(base_mb, ensure_ascii=False, indent=1)
++
++    # ★真件登记状态 (★现读判定 · 不是写死★)
++    wp_legs_real = find_legs(wp_ordinal_cell(real_wp_text), DRILL_LEG_RE)
++    pf_items_real = parse_preflight_json(real_pf_text) or []
++    pf_it_real = next((it for it in pf_items_real if str(it.get("id")) == ITEM_ID), None)
++    pf_desc_real = ""
++    if pf_it_real is not None:
++        pf_desc_real = " ".join(str(pf_it_real.get(k, ""))
++                                for k in ("title", "current_state", "action"))
++    pf_legs_real = find_legs(pf_desc_real, DRILL_LEG_RE)
++    wp_registered = bool(wp_legs_real)
++    pf_registered = bool(pf_legs_real)
++
++    wp_fixed = real_wp_text
++    pf_fixed = real_pf_text
++    if not wp_registered:
++        wp_fixed = inject_wp_drill_leg(wp_fixed, base_mb)
++    if not pf_registered:
++        pf_fixed = inject_pf_drill_leg(pf_fixed, base_mb)
++
+     sb = {
+         "workpacket": os.path.join(SANDBOX, "BOARD_ONEPASS_WORKPACKET.md"),
+         "preflight": os.path.join(SANDBOX, "BOARD_ONEPASS_PREFLIGHT.md"),
+@@ -764,13 +1130,10 @@
+         "lib_dir": os.path.join(SANDBOX, "lib"),
+     }
+     os.makedirs(sb["lib_dir"], exist_ok=True)
+-    wp_fixed = make_fixed_workpacket(read_text(REAL_PATHS["workpacket"]))
+     with open(sb["workpacket"], "w", encoding="utf-8") as fh:
+         fh.write(wp_fixed)
+-    pf_fixed = make_fixed_preflight(read_text(REAL_PATHS["preflight"]))
+     with open(sb["preflight"], "w", encoding="utf-8") as fh:
+         fh.write(pf_fixed)
+-    page_text = read_text(REAL_PATHS["page"])
+     with open(sb["page"], "w", encoding="utf-8") as fh:
+         fh.write(page_text)
+     for ref, fn in LIB_FILES.items():
+@@ -787,39 +1150,39 @@
+         "bom": REAL_PATHS["bom"],
+         "gate_check": REAL_PATHS["gate_check"],
+     })
+-    base_mb, err = parse_machine_block(page_text)
+-    if err:
+-        print("SELFTEST ABORT: %s" % err)
+-        return 1
+-    base_mb_text = json.dumps(base_mb, ensure_ascii=False, indent=1)
+ 
+     cases = []   # (用例名, 期望红的那条, paths_override 或 None, facts_override 或 None)
+ 
+-    # --- 正向对照: 沙盒已补登记 ⇒ 全绿 --------------------------------
+-    cases.append(("正向对照 (沙盒已按 §4 补登记 ⇒ D1~D7 全绿)", None, None, None))
++    # --- 正向对照: 真件现读 (★已登记 ⇒ 直接用真件, 不重复注入★) ---------
++    cases.append(("正向对照 (★真件现读 · 已登记 ⇒ 不重复注入 ⇒ D1~D7 全绿★)", None, None, None))
+ 
+-    # --- 反向用例 ①: 作业包 ③ 里的「钻孔」两个字删掉 ⇒ D1 红 -----------
+-    wp03 = parse_wp02_board_changes(wp_fixed).get(ORDINAL_OF_ITEM, "")
+-    wp_no = set_wp_ordinal(wp_fixed, ORDINAL_OF_ITEM,
+-                           wp03.replace(WORKPACKET_DRILL_LEG, "排针 land 0.50→1.27mm"))
++    # --- ★★反向用例 ①: ★★决定性实验固化★★ -----------------------------
++    #   ★★在【真件副本】里删掉「钻孔 0.65→0.71」这个【动作腿】但【保留那段解释括注】⇒ D1 必须红
++    #   ★★(★这就是 main 那个决定性实验: 旧判据下它假绿 ⇒ 把它固化进夹具, 以后谁把判据改松这条立刻红★)★★
++    wp_no = wp_drop_leg(wp_fixed, DRILL_LEG_RE)
++    wp_no_cell = wp_ordinal_cell(wp_no)
++    if find_drill_legs(wp_no_cell):
++        raise AssertionError("自测前提不成立: 用例① 的变异没清掉动作腿")
++    if "官方" not in wp_no_cell:
++        raise AssertionError("自测前提不成立: 用例① 的变异把解释括注也清了 (★要保留★)")
+     p = dict(sb)
+     p["workpacket"] = os.path.join(SANDBOX, "case01_workpacket.md")
+     with open(p["workpacket"], "w", encoding="utf-8") as fh:
+         fh.write(wp_no)
+-    cases.append(("① 删掉作业包 §0.2 ③ 里的「钻孔」两个字 ⇒ D1 红", ["D1"], p, None))
++    cases.append(("① ★★删掉作业包 §0.2 ③ 里的【改钻孔动作腿】但【保留那段解释括注】⇒ D1 红★★"
++                  "(★main 的决定性实验 · 已固化进夹具★)", ["D1"], p, None))
+ 
+-    # --- 反向用例 ②: B33 描述列里的钻孔字样删掉 ⇒ D2 红 ----------------
+-    pf_no = make_fixed_preflight(read_text(REAL_PATHS["preflight"]), add_desc=False,
+-                                 add_crit=True)
++    # --- 反向用例 ②: B33 描述列里的【改钻孔动作腿】删掉 ⇒ D2 红 ----------
++    pf_no = pf_drop_desc_leg(pf_fixed)
+     p = dict(sb)
+     p["preflight"] = os.path.join(SANDBOX, "case02_preflight.md")
+     with open(p["preflight"], "w", encoding="utf-8") as fh:
+         fh.write(pf_no)
+-    cases.append(("② 删掉 B33_PIN_LAND_1P27 描述列里的钻孔字样 ⇒ D2 红", "D2", p, None))
++    cases.append(("② 删掉 B33_PIN_LAND_1P27 描述列里的【改钻孔动作腿】(★全部出现处★) ⇒ D2 红",
++                  "D2", p, None))
+ 
+     # --- 反向用例 ③: B33 验收手段列里那条读钻孔的命令删掉 ⇒ D3 红 ----
+-    pf_no2 = make_fixed_preflight(read_text(REAL_PATHS["preflight"]), add_desc=True,
+-                                  add_crit=False)
++    pf_no2 = pf_drop_crit_cmd(pf_fixed)
+     p = dict(sb)
+     p["preflight"] = os.path.join(SANDBOX, "case03_preflight.md")
+     with open(p["preflight"], "w", encoding="utf-8") as fh:
+@@ -872,15 +1235,13 @@
+     cases.append(("⑨ 机器块 drill_target 改成 0.70 (既非 official 也非 generic) ⇒ D4 红",
+                   "D4", p, None))
+ 
+-    # --- 反向用例 ⑩: 作业包 ③ 的 pitch 那一腿被覆盖掉 ⇒ D1 红 ---------
+-    wp_leg = set_wp_ordinal(
+-        wp_fixed, ORDINAL_OF_ITEM,
+-        "`J_DEBUG`/`J_UART` 排针 land 改 + 钻孔 0.65→0.71mm (★ISS-391★)")
++    # --- 反向用例 ⑩: 作业包 ③ 的 pitch 那一腿被清掉 ⇒ D1 红 ---------
++    wp_leg = wp_drop_leg(wp_fixed, PITCH_LEG_RE)
+     p = dict(sb)
+     p["workpacket"] = os.path.join(SANDBOX, "case10_workpacket.md")
+     with open(p["workpacket"], "w", encoding="utf-8") as fh:
+         fh.write(wp_leg)
+-    cases.append(("⑩ 作业包 ③ 的 pitch 那一腿的 1.27 被覆盖掉 ⇒ D1 红", ["D1"], p, None))
++    cases.append(("⑩ 作业包 ③ 的 pitch 那一腿 (land 0.50→1.27) 被清掉 ⇒ D1 红", ["D1"], p, None))
+ 
+     # --- 反向用例 ⑪: 作业包 §0.2 ③ 那一整行删掉 ⇒ D1 红 (fail-closed) --
+     lines = [ln for ln in wp_fixed.split("\n") if "板侧改动清单" not in ln]
+@@ -921,6 +1282,18 @@
+         fh.write(_rebuild_page(page_text, t))
+     cases.append(("⑭ 机器块 landing_part_decision 被代拍 ⇒ D4 红", "D4", p, None))
+ 
++    # --- ★★反向用例 ⑯: ★★对照实验固化★★ ③ 整条只剩 pitch 那一腿 ⇒ D1 红
++    #   ★★(★main 的对照实验: 只剩 pitch 那一腿时 D1 才红 ⇒ 固化进夹具★)★★
++    wp_only = wp_only_pitch_leg(wp_fixed)
++    if find_drill_legs(wp_ordinal_cell(wp_only)):
++        raise AssertionError("自测前提不成立: 用例⑯ 的变异没把改钻孔那一腿去掉")
++    p = dict(sb)
++    p["workpacket"] = os.path.join(SANDBOX, "case16_workpacket.md")
++    with open(p["workpacket"], "w", encoding="utf-8") as fh:
++        fh.write(wp_only)
++    cases.append(("⑯ ★★作业包 ③ 整条只剩 pitch 那一腿 ⇒ D1 红★★"
++                  "(★main 的对照实验 · 已固化进夹具★)", ["D1"], p, None))
++
+     npass = 0
+     ntotal = len(cases)
+     for name, want_red, paths, facts in cases:
+@@ -940,6 +1313,28 @@
+         if ok:
+             npass += 1
+ 
++    # ---- ★★夹具自检: 真件已登记 ⇒ 沙盒里不许出现两条一样的腿 ★★ --------
++    n_real = len(wp_legs_real)
++    n_sbx = len(find_legs(wp_ordinal_cell(wp_fixed), DRILL_LEG_RE))
++    n_pf_real = len(pf_legs_real)
++    n_pf_sbx = len(find_legs(pf_desc_real, DRILL_LEG_RE))
++    if wp_registered and n_sbx != n_real:
++        npass_ok = False
++        print("  [FAIL] 夹具二次注入: 真件 ③ 里改钻孔动作腿 %d 条, 沙盒里 %d 条 ⇒ "
++              "★真件已登记过就不该再注入★" % (n_real, n_sbx))
++    elif pf_registered and n_pf_sbx != n_pf_real:
++        npass_ok = False
++        print("  [FAIL] 夹具二次注入: 真件 B33 描述列改钻孔动作腿 %d 条, 沙盒里 %d 条 ⇒ "
++              "★真件已登记过就不该再注入★" % (n_pf_real, n_pf_sbx))
++    else:
++        npass_ok = True
++        print("  [PASS] 夹具未二次注入 (真件 ③ 改钻孔动作腿 = %d 条 / 沙盒 = %d 条 · "
++              "真件 B33 描述列 = %d 条 / 沙盒 = %d 条) ★真件已登记过 ⇒ 夹具跳过注入★"
++              % (n_real, n_sbx, n_pf_real, n_pf_sbx))
++    if npass_ok:
++        npass += 1
++    ntotal += 1
++
+     # ---- 真文件 md5 复验 (★跑完自测必须复验真文件 md5 未变★) -----------
+     changed = [k for k, v in real_md5_before.items()
+                if md5_of(REAL_PATHS[k]) != v]
+@@ -962,6 +1357,134 @@
+ 
+ 
+ # =========================================================================
++# ★★★ ISS-391 cont1 · 重签留痕 (★追加式 · 老字一字未删★) ★★★
++# =========================================================================
++# ★★本节记录: ISS-391 cont1 对本闸【判据逻辑 + 自测夹具】的改动 ★★
++#   ★★改的是【已签收件】⇒ 必须重签 ⇒ ★verify_by = main (本单【不自签】)★ ★★
++#   ★★派单人: ISS-391 cont1 · 项目总工 main / moli ★★
++#   ★★审签人: main (★待签★ · ★本单不代拍★) ★★
++#   ★★证据留档路径: `logs/iss391/` (★改前 selftest_before.log / 改后 selftest_after.log ★
++#                     bare_before.log / bare_after.log / decisive_experiment.log ★
++#                     gate.diff / md5_before.txt / md5_after.txt / cont1_worknotes.md★) ★★
++#
++# -----------------------------------------------------------------------
++# ★★① 改前 / 改后 md5 ★★
++#   改前 md5 = dabc12000b6cecb1769bb16df09f1abb   (★= ISS-396 签收基线 · ★老字一字未删★★)
++#   改后 md5 = ★见 `logs/iss391/md5_after.txt` (★改后 md5 不能写在本文件里 ——
++#              写进去 md5 就变了 ⇒ 自我指涉悖论 ⇒ 落盘在同目录的 md5_after.txt★)★
++#
++# -----------------------------------------------------------------------
++# ★★② 改了哪几行 (★行号 + 改前原文 + 改后原文★) ★★
++#
++# -----------------------------------------------------------------------
++# ★★【判据层】D1 (★OLD L332-341 ⇒ NEW L536-560★) ★★
++#   改前原文 (★逐字★):
++#       if not has_drill(text):
++#           fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【查不到「钻孔」这件事】⇒ ...
++#       if "0.71" not in text:
++#           fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【查不到目标孔径 0.71】⇒ ...
++#       if "1.27" not in text:
++#           fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【查不到 pitch 那一腿的 1.27】⇒ ...
++#   改后原文 (★逐字★):
++#       drill_legs = find_drill_legs(text)
++#       ok_drill = [lg for lg in drill_legs if lg["to"] == DRILL_TARGET]
++#       if not drill_legs:
++#           fails.append("D1 作业包 §0.2 ③ 的 %s 那一项原文里【查不到【改钻孔】这个动作腿】⇒ ...
++#       elif not ok_drill:
++#           fails.append("D1 ... 【有【改钻孔】的动作腿, 但目标值不是 %s ...
++#       pitch_legs = find_pitch_legs(text)
++#       ok_pitch = [lg for lg in pitch_legs if lg["to"] == PITCH_TARGET]
++#       if not pitch_legs: ...
++#       elif not ok_pitch: ...
++#   ★★阈值 / 红线定义一个字没动: 目标值仍是 0.71 / pitch 仍是 1.27 (★常量 DRILL_TARGET / PITCH_TARGET
++#      直接取自改前写死的 "0.71" / "1.27" ⇒ 数值口径未松也未紧★) ★★
++#
++# -----------------------------------------------------------------------
++# ★★【判据层】D2 (★OLD L363-377 ⇒ NEW L581-601★) ★★
++#   改前原文: has_drill(desc) + "0.71" not in desc  (★子串命中★)
++#   改后原文: find_drill_legs(desc) + 目标值必须 == DRILL_TARGET  (★动作腿命中★)
++#   ★★json 项与表格行两处都改 (★两处都要有动作腿·少一处照样红★) ★★
++#
++# -----------------------------------------------------------------------
++# ★★【判据层】D3 (★OLD L396-408 ⇒ NEW L620-633★) ★★
++#   改前原文: has_drill(crit) + "0.71" in crit (★+ "pcbnew_py.sh"/"GetDrillSize" 二选一★)
++#   改后原文: find_drill_acceptance(crit) (★同一条命令里必须同时有 ①读板 ②读钻孔
++#              ③期望读数 0.71★ ⇒ 只在括注里写 0.71 不算命中★)
++#
++# -----------------------------------------------------------------------
++# ★★【判据层】新增动作腿识别器 (★OLD L133 后插入 ⇒ NEW L138-336★) ★★
++#   新增: _leg_re / strip_explanatory / find_legs / find_drill_legs / find_pitch_legs /
++#         strip_legs / criterion_units / find_drill_acceptance / strip_drill_acceptance
++#   ★★动作腿 = 【动作词 钻孔/孔径/drill】+【改动作 →/改成/换到…】+【目标值】三者绑在一起 ★★
++#   ★★解释性上下文 (括注 / 括号 / 官方出处 / 库件默认值) 一律【不算命中】★★
++#
++# -----------------------------------------------------------------------
++# ★★【夹具层】--selftest 改成【真件现读】 (★OLD L642-822 ⇒ NEW L867-1336★) ★★
++#   改前: 写死常量 WORKPACKET_DRILL_LEG / DRILL_TITLE / DRILL_STATE / DRILL_CRIT
++#         + make_fixed_workpacket() 无条件注入 + 反向用例只删第一处
++#   改后: ★真件现读★ ⇒ 沙盒基线 = 真件当前原文的副本
++#         · wp_drop_leg() / pf_drop_desc_leg() / pf_drop_crit_cmd() 全部【现场定位 + 现场清掉】
++#         · remove_all() 把该腿的【全部出现处】都干掉 (★不许只删第一处★)
++#         · 夹具识别【真件已登记过】⇒ 跳过重复注入 (★沙盒里不许出现两条一样的腿★)
++#         · 新增【夹具未二次注入】自检格 (★真件 1 条 / 沙盒 1 条·对不上就 FAIL★)
++#         · 新增两条【决定性实验】用例: ① 与 ⑯
++#
++# -----------------------------------------------------------------------
++# ★★③ 为什么改 (★逐字引 main 的机器依据 + 机制段★) ★★
++#
++#   ★★(甲) main 2026-11-24 19:55 的三条反向用例 FAIL (★逐字★) ★★
++#       [FAIL] ① 删掉作业包 §0.2 ③ 里的「钻孔」两个字            ⇒ 期望【只有】D1 红 · 实际红: 无
++#       [FAIL] ② 删掉 B33_PIN_LAND_1P27 描述列里的钻孔字样      ⇒ 期望【只有】D2 红 · 实际红: 无
++#       [FAIL] ③ 删掉 B33_PIN_LAND_1P27 验收手段列里读钻孔的命令 ⇒ 期望【只有】D3 红 · 实际红: 无
++#
++#   ★★(乙) main 的决定性实验 (★逐字·沙盒·真件逐字节未动★) ★★
++#       ★把真文件作业包 §0.2 ③ 里的「钻孔 0.65→0.71」这一腿真的删掉, 再跑 D1 ⇒ ★★D1 仍判绿★★
++#       ⇒ ★判据被削弱 ⇒ 不可签★
++#       对照实验: 把 ③ 整条只剩 pitch 那一腿 ⇒ ★★D1 才红★★
++#       ⇒ ★D1 原来只挡得住「整条没写」, 挡不住「只删动作腿留解释」★
++#
++#   ★★(丙) 根因两级 (★main 本机逐条查出来★) ★★
++#       【判据层】D1 的三条子判据全是关键词 / 子串命中 (has_drill() + 「0.71」子串 + 「1.27」子串)
++#                 ⇒ 而登记落盘后真件那一行带了一段解释性括注
++#                 (「通用库件默认 (drill 0.65) 偏小 0.06」+「Ø0.71 TYP」)
++#                 ⇒ 纯解释文字也满足全部三条 ⇒ 动作腿删掉照样绿 ⇒ 判据被削弱
++#       【夹具层】--selftest 靠写死的常量造反向用例, 而真文件原文与常量逐字不同 ⇒ 替换不中
++#                 ⇒ 三条用例假绿 ⇒ selftest 14/17
++#
++#   ★★(丁) 夹具二次注入的机制段 (★逐字★) ★★
++#       ★真件已经被 ISS-396 登记过 ⇒ 夹具的 make_fixed_workpacket() 是无条件把常量塞进去
++#         (text.replace("排针 land 0.50→1.27mm", WORKPACKET_DRILL_LEG, 1))
++#         ⇒ 真件已经有登记了 ⇒ 沙盒里那条腿变成【出现两次】★
++#       ★反向用例 ① 只做 wp03.replace(WORKPACKET_DRILL_LEG, "排针 land 0.50→1.27mm") (替换**第一处**)
++#         ⇒ ★真件那一处原封不动 ⇒ D1 照样查得到「钻孔」+「0.71」⇒ 仍判绿 ⇒ 用例假绿★
++#       ★② ③ 同型: make_fixed_preflight(..., add_desc=False / add_crit=False) 是在【真件基础上再改】
++#         ⇒ ★真件那一列 (ISS-396 18:32 已落) 删不掉 ⇒ D2 / D3 照样绿★
++#
++# -----------------------------------------------------------------------
++# ★★④ 改完之后的实测读数 (★全部本机实跑·★证据在 logs/iss391/★) ★★
++#   · 改前 --selftest : 14/17 · rc=1 · 末行 SELFTEST FAILED  (★logs/iss391/selftest_before.log★)
++#   · 改前 裸跑        : 7/7 全绿 · rc=0                   (★logs/iss391/bare_before.log★)
++#   · 改后 --selftest : 19/19 · rc=0 · 末行 ALL TESTS PASS   (★logs/iss391/selftest_after.log★)
++#   · 改后 裸跑        : 7/7 全绿 · rc=0                   (★logs/iss391/bare_after.log★)
++#   · ★★决定性实验独立复核 (★不经过夹具·走判据函数本身★):
++#       实验 ③  删动作腿留解释括注 ⇒ D1 红 ✔ (★logs/iss391/decisive_experiment.log★)
++#       实验 ③b ③ 整条只剩 pitch 那一腿 ⇒ D1 红 ✔
++#       对照    真件原样 ⇒ D1 绿 ✔ (★判据没被改松★)
++#
++# -----------------------------------------------------------------------
++# ★★⑤ 零扰动声明 (★逐条自证★) ★★
++#   ★★板 / 网表 / 脚表 / BOM / 既有页正文 (作业包 + 预检清单 + 覆盖度闸) 一个字未改★★
++#   ★★板三项指纹基线 (★改前改后各验一次·逐字节未动★):
++#       板   md5 611b869e13518c3c023fb178f91a0075 · size 4940213 · mtime 2026-11-06 07:07:17.362193413
++#       网表 md5 6aee500e60ba0732f83a9cf557ba90ab
++#       脚表 md5 9174309df1ec9411ac8e8d9e80ee386a
++#       BOM  md5 5b9993992405904a60ac96a020b375d8
++#   ★★本单唯一改动的已签收件 = 本文件 `HW/check_fts_land_drill_same_batch.py` ★★
++#   ★★D4 / D5 / D6 / D7 四条本趟全绿、一条未碰 (★回归: 覆盖度闸 rc=0 · 落表器自测 rc=0★) ★★
++#   ★★零写板 · 零落表 · 零挂链 · 零外发 · 不代拍 · 未自签 issue_log ★★
++
++
++# =========================================================================
+ # main
+ # =========================================================================
+ def main():

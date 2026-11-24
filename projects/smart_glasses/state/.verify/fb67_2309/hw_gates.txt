@@ -1,0 +1,43 @@
+check_board_comparable_gate rc=2       ★沙盒缓存预热 (★归一化很慢·官方板要跑几分钟⇒ 跑一次存读数★)
+check_board_frame_caliber rc=0 ------------------------------------------------------------------------------
+check_board_netlist_divergence_gate rc=0 ✅ 全部 5 条差异均已归桶 (A=0 / B=3 / C=2) ⇒ 无未解释差异
+check_bq25896_pinout rc=0 ============================================================================
+check_charge_current_live_value rc=0    · 本闸零挂链 (grep -c check_charge_current_live_value state/gate_check.py = 0)
+check_chg_spec7_vs_netlist rc=0      · ⇒ ★**本单对 §7 只改了 1 处**: CSV 合法性 (note 补引号) —— ★**那处是【格式】, 不是【语义】★**
+check_debug_uart_seat_alignment rc=0 RESULT: K0~K4 全绿 (5/5)
+check_debug_uart_seat_truth rc=0 RESULT: K0~K5 全绿 (6/6)
+check_fp_libid_truth rc=0 ALL CHECKS PASS
+check_fp_truth_baseline rc=0 ALL CHECKS PASS
+check_fp_truth_coverage_gap rc=0 ALL CHECKS PASS
+check_fp_truth_land_swap rc=0 ALL CHECKS PASS
+check_fsin_rootcause rc=0 ==============================================================================
+check_fts_land_drill_same_batch rc=0 ✅ 全绿 (★改孔这一条已经进了作业包 §0.2 ③ + 预检清单 B33_PIN_LAND_1P27★)
+check_fts_land_drill_same_batch_sbx rc=0 ✅ 全绿 (★改孔这条登记在生成器重跑之后仍在页上·且页与生成器同源·且板/三表零扰动★)
+check_fts_single_row_land_truth rc=0 ✅ 全绿
+check_g1a7_selection_landed rc=0 ✅ rc=0: ★★G1a-7 落表还在 (★14 件全落 + 脚数 584/218/K=0 + 板逐字节不变 + evidence 合白名单★)
+check_gate10_concurrency_safety rc=0   ✅ rc=0: ★★并发两跑双绿 · 落点每次运行唯一 · 删除不抛未捕获异常 · 板三项零扰动 · 真漂移仍然判红 ★★
+check_iss243_cregn rc=0   根目录: /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+check_iss247_f1_landed rc=0 ──────────────────────────────────────────────────────────────────────────────
+check_iss354_manufacturability rc=0 ★结论: 全部断言通过 ⇒ 交卷内容在盘且未改坏
+check_iss354_mfg_closure rc=0   ✅ rc=0: ★★C1 5 个 ref 全已定位 · C2 `[0数据]` 名单一致 · C3 一票否决项在场 · C4 改项清单在场 ★★
+check_jdebug_land_fit rc=0 GATE GREEN
+check_juart_land_fit rc=0 GATE GREEN
+check_land_row_anchors rc=0 ★ ✅ 全部锚点: 行号没变 + 实体没变 ⇒ 通过
+check_netlist_contradiction_r3 rc=1 ──────────────────────────────────────────────────────────────────────────────
+check_netlist_gnd_rows rc=1   ❌ 10 条缺陷 ⇒ ★接地 land 会在板面缺失 ⇒ 电气损伤 (去耦失效 / 分压悬浮)★
+check_netlist_selfconsistency rc=0 ★**翻面条件见规格页 §⑤**; 落表后请改用 `--expect-resolved` ★
+check_onepass_commit_order rc=0   ✅ 全部通过
+check_onepass_preflight_coverage rc=0   ✅ rc=0: ★★板侧项全集与作业包对齐, 现状值与盘面一致 ★★
+check_onepass_s10_manifest rc=0   ✅ 全部通过
+check_onepass_s10_swap_set_truth rc=0 ✅ 全绿 —— 「那一趟换几件」的两套口径与差集, 页里写的数与脚本实算逐项相等
+check_part_selection_gaps rc=0 --- 8/8 PASS ---
+check_part_selection_landed_crosscheck rc=0 [check_part_selection_landed_crosscheck] 完成 — ★1 项 FAIL (缺陷见上, 本脚本只报告不修); rc=0 (加 --strict ⇒ rc=1)
+check_part_selection_matrix rc=0 [check_part_selection_matrix] PASS — 选型证据矩阵门禁全过 (8/8)
+check_pcb_generator_defaults rc=0   ✅ rc=0: ★★生成器三条默认值都钉死了 (★板只改一次那一趟的前置齐了 ★)★★
+check_pin_function_labels rc=1   判定: ❌ 不过 (15 条缺陷) ⇒ ★当前是已知缺陷基线, 落表批次里修★
+check_preflight_regen_idempotent rc=0   ✅ rc=0: ★★页与生成器同源 · 重跑零差异 · 来源全在册 · 必需项在场 ★★
+check_s8_target_list rc=2       ★参照板只读, 不许改★; 不给 --baseline ⇒ 不出"参照板"两列
+check_seat_part_verdict_propagation rc=1 ★main 落完那 5 处订正 + 把机器块 protected_files / live_copies 同步 ⇒ 同一条命令即转绿
+check_step1_parts_spec rc=0 ---- 8/8 通过 ⇒ rc=0 ----
+check_tp_int_gap rc=0 ✅ rc=0: 现状与 HW/PCB/TP_INT_REMAP_SPEC.md 一致 (CONN_LIGHT 22 脚齐 / 无 TP_INT 网 / TP_RESET 仍挂 RESET_N / GPIO 池 36 脚 
+check_workpack_state_values rc=0   ✅ rc=0: ★★两份文档里的现状值 == 盘面实测, 且七类判据齐 ★★

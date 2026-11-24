@@ -1,0 +1,23 @@
+PRE snapshot saved: tmp/iss402/frag_pre_snapshot.json
+[frag_write] ✅ hw.yaml 已原子更新 → 再跑 python3 state/merge.py
+
+frag_write rc=0
+
+===== 分片四项自检 =====
+① 条数 artifacts          写前=352 写后=355 增量=+3 OK
+① 条数 needs_from         写前=317 写后=323 增量=+6 OK
+① 条数 interface_claims   写前=516 写后=524 增量=+8 OK
+② 丢 key artifacts        写前=352 写后=355 丢失=无
+② 丢 key needs_from       写前=317 写后=323 丢失=无
+② 丢 key interface_claims 写前=516 写后=524 丢失=无
+③ 多的 key artifacts        新增=3 条 ['HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md', 'HW/check_generator_value_drift_closed.py', 'HANDOFF/2026-11-24_hw-lead_ISS402_生成器重跑Value漂移26处清账与闸.md']
+③ 多的 key needs_from       新增=6 条 ['iss402_route_choice_ab_c', 'iss402_26_value_authority', 'iss402_cvbus_gnd_keep_or_remove', 'iss402_dnp_mark_batch', 'iss402_s3_scope_expand_to_26', 'iss402_gate_hookup_decision']
+③ 多的 key interface_claims 新增=8 条 ['iss402_value_drift_count', 'iss402_value_drift_type_split', 'iss402_cvbus_gnd_board_col', 'iss402_cvbus_gnd_on_board', 'iss402_generator_would_be_value_rule', 'iss402_dnp_mark_count_on_regen', 'iss402_workpacket_s3_coverage', 'iss402_board_fingerprint']
+④ 内容有变的条 artifacts    变了=3 条 ['HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md', 'HW/check_generator_value_drift_closed.py', 'HANDOFF/2026-11-24_hw-lead_ISS402_生成器重跑Value漂移26处清账与闸.md']
+④ 内容有变的条 needs_from   变了=6 条 ['iss402_route_choice_ab_c', 'iss402_26_value_authority', 'iss402_cvbus_gnd_keep_or_remove', 'iss402_dnp_mark_batch', 'iss402_s3_scope_expand_to_26', 'iss402_gate_hookup_decision']
+④ 内容有变的条 interface_claims 变了=8 条 ['iss402_value_drift_count', 'iss402_value_drift_type_split', 'iss402_cvbus_gnd_board_col', 'iss402_cvbus_gnd_on_board', 'iss402_generator_would_be_value_rule', 'iss402_dnp_mark_count_on_regen', 'iss402_workpacket_s3_coverage', 'iss402_board_fingerprint']
+· 别人分片 state/fragments/sw.yaml    未动=OK
+· 别人分片 state/fragments/mech.yaml  未动=OK
+· 别人分片 state/fragments/pm.yaml    未动=OK
+· status.phase = iss402-交卷完成
+===== 自检结论: 通过 =====

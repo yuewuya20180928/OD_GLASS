@@ -7,8 +7,11 @@ status:
   progress_pct: 100
   health: green
   updated_at: '2026-11-24'
-  summary: 'ISS-392 交卷: 真相页+新闸(零挂链)+交卷页三件在盘; 三本账31/6/13实测; v2基线漂移实测rc=1反向0/7; 新闸selftest 25/25; 六条needs_from
-    to=main'
+  summary: '★ISS-398 cont2 收尾趟交卷: 核心目标已达成 (v2 --selftest 0/7 → 7/7·rc=0·末行 ALL TESTS PASS·★判据段前缀 md5 3111dfb2
+    逐字未变⇒判据零改★) · ★本趟补三样: ① 交卷页 B1~B6 填实 ② 真相页机器块同步 v2 读数 (★C1+C5 回绿·散文零改★) ③ 分片登记 (iss398 三条 interface_claims
+    + 三条 needs_from 全部 to=main)★ · ★另补 §ISS398-RESIGN-TRAIL 重签留痕节 (改夹具那一趟没写)·★四条口径 A/B/B′/C 全部零应用·口径归
+    main 拍★ · ★沙盒实测新发现: 口径 B 第①步【重锚网表 md5】实测是空操作 (S0 vs S1 判决逐字相同)⇒ 真正能动的是【登记 EXEMPT_LEDGER】或【改文档字面量】·★后者不留漏检窗口
+    (S5 vs S6 实证)★'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -2153,6 +2156,36 @@ artifacts:
   version: v1
   updated_at: '2026-11-24'
   summary: 'ISS-392 沙盒: 注入器与扫描缓存(深度A=<ROOT>/tmp·深度B=<ROOT>/tmp/iss392_sbx/depth_b/nested/<闸名>)'
+- path: SW/tools/check_sw_ref_reachability_v2.py
+  kind: tooling
+  version: v2+ISS398-baseline-independent
+  updated_at: '2026-10-25'
+  summary: ★ISS-398 (cont2 收尾趟) · 第三道病闸 --selftest 夹具基线无关化 · ★本机实测 --selftest = 7/7 通过 · 末行 ALL TESTS
+    PASS · rc=0 (改前 0/7 · rc=1)★ · ★判据段前缀 md5 改前改后逐字相同 = 3111dfb21d8233bb137e4d694c8abc04 (offset 45580)
+    ⇒ 判据一个字未改★ · ★裸跑仍红 rc=1 (红因逐字 新增真隐患:SW_MD5 · 真患 4 > 基线 3) ⇒ 零改判据·不代拍★ · 夹具新增 _sync_sandbox_baseline()
+    (只动沙盒副本·真盘零写入) · 末尾已补 §ISS398-RESIGN-TRAIL 重签留痕节 (追加式·老字一字未删·审签人 main 待签) · 证据 logs/iss398/
+- path: HANDOFF/2026-11-24_sw-lead_ISS398_第三道病闸自测基线无关化.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: ★ISS-398 交卷页 · B1~B6 齐全 (结论摘要 / 验收自评 / 证据分级 / 接口取值声明 / 未决项 / 复现命令) · 含四条口径 A/B/B′/C 的逐字动作 +
+    沙盒实测代价 + 建议默认值 (★全部零应用·口径归 main 拍★) · 含边界逐条自证 (零写板 / 零落表 / 零改判据 / 零挂链 / 零改已签收页正文 / 零外发 / 不代拍 / 不自签
+    issue_log / 只写自己分片 / 沙盒只落项目盘) · 证据分级 [实测]/[推算]/[0数据] 三档齐★
+- path: SW/BOARD_ONEPASS_SW_GATE_CHAIN_COVERAGE.md
+  kind: truth-page
+  version: v1+ISS398-sync
+  updated_at: '2026-10-25'
+  summary: '★ISS-398 cont2: 真相页机器块同步 v2 的 rc/last_line 读数 (7 个字段: gate_detail / gate_readings / baseline_drift)
+    · ★只动机器块里 v2 自己的读数·散文正文 §1.2 / §2 / §3.1 / §4.3 / §5 一字未动★ · 改前副本 logs/iss398/BOARD_ONEPASS_SW_GATE_CHAIN_COVERAGE.md.BEFORE_iss398
+    · 动因: 改夹具后 v2 读数从 rc=1 变 rc=0 而机器块仍登记旧值 ⇒ C1 (账实一致) + C5 (v2 基线读数) 判红 ⇒ 同步后回绿★'
+- path: logs/iss398/
+  kind: evidence
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: ★ISS-398 证据留档目录 (★全在项目盘·系统 /tmp 零写入★) · selftest_before.log (改前 0/7 原样输出·18:26) · gate_health_before.log
+    · gates_before.log · round2_all_cmds.log (§六 必跑命令 8 组原样输出) · sbx_probe.log (★本趟新做的沙盒实测 S0~S6 六组·四条口径的代价全在这★)
+    · round3_after_sync.log (机器块同步后重跑读数) · v2_fixture_diff.patch (夹具改动逐字 diff·5 个 hunk) · v2_before_trail.py
+    + BOARD_ONEPASS_SW_GATE_CHAIN_COVERAGE.md.BEFORE_iss398 + sw.yaml.BEFORE_iss398 (三份逐字节改前副本·可回滚)★
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -3174,6 +3207,28 @@ needs_from:
   to: main
   item: '板那一趟(位号改名+板侧同步+布局修正+布线45→0)当天: B类14道板敏感闸不在链内⇒一道都不会响. 要main决定哪些必须挂链(本单只登记不改任何一道闸的判据或阈值)'
   since: '2026-10-25'
+- key: iss398_sw_md5_true_hazard_scope
+  to: main
+  item: '★ISS-398 口径裁决 (★本单零代拍·四条路都摆实测代价·建议默认值 = 口径 C·把文档里 14 处独立 SW_MD5 字面量写成 SW-MD5·★它是唯一【不留漏检窗口】的路·沙盒
+    S6 实证同名真位号仍被抓到★)★: ① SW_MD5 算不算真隐患 ② 走口径 A/B/B′/C 哪条 ③ 要不要立【基线红 ⇒ 先查台账·不许先改判据】通则 ④ v2 挂不挂 state/gate_check.py
+    (★建议先不挂·挂了当场红★) ⑤ 真相页 §3.1「v2 的 selftest 现在是红的·真 rc=1」已过期·要不要派单改散文 (★本单零改已签收页正文★) · 代价与建议默认值见交卷页 B5-1
+    / B5-2'
+  since: '2026-11-24'
+- key: iss398_v2_resign_trail_approval
+  to: main
+  item: '★ISS-398 重签留痕待审签★: SW/tools/check_sw_ref_reachability_v2.py 末尾 §ISS398-RESIGN-TRAIL 节 (★追加式·老字一字未删·前
+    45580 字节逐字节相同·原 1164 行逐字节相同·AST OK★) 已落盘 · 改前 md5 2e2ee5b43c85d2a472f15d7169135832 (夹具改后) · 建闸日原件
+    md5 1c4043ea26a1182b210e85f1b5130d8d (mtime 2026-11-18 21:37:24) · 判据段前缀 md5 改前改后逐字相同 3111dfb21d8233bb137e4d694c8abc04
+    ⇒ 请 main 审签 (★本单不代签★)'
+  since: '2026-11-24'
+- key: iss398_truth_page_stale_prose
+  to: main
+  item: '★ISS-398 真相页待订正 (★本单零改已签收页正文⇒交 main 落★)★: ① §3.1「① v2 自己的 selftest 现在是红的·真 rc = 1·末行 ❌ 有用例没抓到」现在过期
+    (★v2 已 7/7·rc=0·末行 ALL TESTS PASS★) ② §4.3 口径表还写着「差值型自测永久 0/7」⇒ 夹具改完之后这条已过期 ③ §1.2 表格 row 28 还登记 v2
+    的 rc=1 与旧末行 ④ 机器块里 check_rk3572_vccio_domain.py 的 env_same 账上 False 实测 True (★与本单无关·★越界改它 = 改别的闸的账·本单零改★)
+    ⑤ check_sw_gate_health.py 的 ROSTER 登记 v2 的成功标志是「反向用例全抓到」而现在末行是 ALL TESTS PASS ⇒ H0 仍判 v2 红 (★改前也红·H0
+    点名的病闸清单没变长★) · 请 main 派单一并订正 (★逐字改法见交卷页 B5-2★)'
+  since: '2026-11-24'
 answers:
 - key: debug_port_form
   to: hw-lead
@@ -6272,6 +6327,22 @@ interface_claims:
   value: 18道(开工时17道)·元闸ROSTER只硬编码13道
   note: ISS-388元闸自己看不见盘上另外18道·本单只读它不许改它·它自己的盲区=本单§4对象
   ref: SW/tools/check_sw_gate_health.py
+- key: iss398_v2_selftest_baseline_independent
+  value: 夹具基线无关化后 --selftest = 7/7 通过 · rc=0 · 末行 ALL TESTS PASS; 破坏前基线由沙盒同步到判据自带 BASELINE_TOKENS 台账
+  note: '★口径: 差值型自测的【破坏前】判定基线 = 判据源码里的 BASELINE_TOKENS 登记台账 (★不是网表 md5 锚点·★实测 v2 一个 md5 都不读 ⇒ grep -c
+    md5 = 0★) · 判据与台账零改 · 判据段前缀 md5 改前改后逐字相同 3111dfb21d8233bb137e4d694c8abc04 [实测]★'
+  ref: ''
+- key: iss398_sw_md5_true_hazard_scope
+  value: ★SW_MD5 算不算真隐患 = main 的口径地界·本单零代拍★
+  note: '★四条路的实测代价: ① 登记 EXEMPT_LEDGER ⇒ 真患 -1 但【同名真位号会一起被豁免】(沙盒 S5 实证) ② 改文档字面量 SW_MD5 → SW-MD5 ⇒ 真患
+    -1 且【同名真位号仍被抓到】(沙盒 S6 实证) ③ 抬 BASELINE_COUNT = 放宽基线 ⇒ 与 v2 执法点 C 冲突 (沙盒 S4 实测仍红) ④ 口径 B 第①步【重锚网表 md5
+    锚点】实测是空操作 (沙盒 S0 vs S1 判决段逐字相同·台账链头已是盘上现值·R6 三方对账 rc=0) ⇒ 建议默认值 = 口径 C [实测 + 推算]★'
+  ref: ''
+- key: iss398_truth_page_machine_block_sync
+  value: 真相页机器块里 v2 的 7 个读数字段 = 本机实测值 (rc=0 / ALL TESTS PASS / env_rc_a=env_rc_b=0); 散文正文零改
+  note: ★同步后 check_sw_gate_chain_coverage.py 的 C1 (账实一致) + C5 (v2 基线读数) 回绿 ⇒ 覆盖率闸自己 7/7 · 机器块里其它 30 道闸的读数与
+    check_rk3572_vccio_domain.py 的 env_same 一个字节没动 [实测]★
+  ref: ''
 open_questions:
 - id: SW-Q1
   to: main

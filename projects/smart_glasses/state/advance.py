@@ -148,10 +148,28 @@ def main() -> int:
         except Exception:  # noqa: BLE001
             continue
     _dec_keys = _dk({"f%d" % i: fr for i, (_fn, fr) in enumerate(_frags_all)})
+    # ★★2026-11-24 23:5x 【真 bug #1 + #2 · 修在产生点 · 与 merge.py 逐字同口径】★★
+    #   ★**① #1 【收集顺序】**: 原写法把 answer 收集与 need 扫描放在【同一个循环】⇒ _frags_all 按文件名排序
+    #     (hw.yaml → mech.yaml → pm.yaml → sw.yaml) ⇒ ★**靠后分片 (main/pm.yaml) 的答案来不及压掉靠前
+    #     分片 (hw.yaml) 的 need** ⇒ ★**老板清单里留着已经闭合的项** (本轮实测: q16_display_iface
+    #     已被 merge.py 判 answered, advance.py 仍列进 decisions)
+    #   ★**② #2 【闭合宽度】**: 原写法 `if k in ans_keys: continue` ⇒ ★**任何分片的任何答案都算闭合**
+    #     ⇒ ★**foreign answer 也能把老板的真待拍项抹掉** (本轮实测: iss340_c_bucket_boss_decisions
+    #     在 merge.py 里 state=pending [main 的答案是 foreign · need 的 to=boss] ⇒ advance.py 却抹了)
+    #   ★**修法 (两处一起)**: ① 先把【全部】分片的 answers 收齐成 `_ans_by_key` (key → 答方 agent id 集合);
+    #     ② 闭合判据 = ★**只有 need 自己 `to` 指定的那个 agent 的答案才算闭合**★ (与 merge.py 逐字对齐:
+    #     `ans = [a for a in answers_by_key.get(k, []) if a["_by"] == ask_to]`);
+    #     ③ 答方 agent id 取法与 merge.py 同源 = `frag.get("agent") or 文件名去 .yaml`
+    #   ★**验收 (双向)**: ★修后清单里每一条在 merge.py 快照里【都不是 answered】(反向 0 残留)
+    #     且★被抹掉的每一条在 merge.py 快照里【都是 answered】(正向 0 误伤)★
+    _ans_by_key = {}
     for _fn, _fr in _frags_all:
+        _aid = (_fr or {}).get("agent") or _fn[: -len(".yaml")]
         for a in (_fr.get("answers") or []):
-            if a.get("key"):
-                ans_keys.add(a["key"])
+            _k = a.get("key")
+            if _k:
+                _ans_by_key.setdefault(_k, set()).add(_aid)
+    for _fn, _fr in _frags_all:
         for n in (_fr.get("needs_from") or []):
             k = n.get("key")
             if not k or k in _seen_keys:
@@ -164,7 +182,10 @@ def main() -> int:
                 continue
             if not (n.get("waiting_on") == "boss" or n.get("to") == "boss"):
                 continue
-            if k in ans_keys:
+            # ★★与 merge.py 同口径: ★**只有 need 自己 `to` 指定的那个 agent 的答案才算闭合**★
+            #   (★merge.py 原句: `ans = [a for a in answers_by_key.get(k, []) if a["_by"] == ask_to]`★)
+            _ask_to = n.get("to")
+            if _ask_to and _ask_to in (_ans_by_key.get(k) or set()):
                 continue
             _seen_keys.add(k)
             dd = days_to(n.get("due"))

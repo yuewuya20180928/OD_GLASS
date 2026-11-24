@@ -1,0 +1,25 @@
+### [G0] 收口前裸跑 (用开工时的分片备份 tmp/iss401/hw.yaml.bak 复现) ###
+$ python3 HW/check_hw_external_dep_closed.py --frag tmp/iss401/hw.yaml.bak
+================================================================================================
+HW 域外部依赖自查收口 · 机器闸 (ISS-401)
+================================================================================================
+[FAIL] D1  HW 域 needs_from 里 waiting_on ∈ {vendor, jbd} 的条目 = 8 条 (要求 0)
+        · q16_display_iface (waiting_on=vendor)
+        · vendor_ars45_paper_q11_q16 (waiting_on=vendor)
+        · jbd_zoushe_dsi_spec (waiting_on=jbd)
+        · rel_vendor_absmax_rating (waiting_on=vendor)
+        · rel_battery_cell_spec (waiting_on=vendor)
+        · iss067_vendor_r_on_u1 (waiting_on=vendor)
+        · iss067_jbd_vdd_tol_u2 (waiting_on=jbd)
+        · rk3572_isp_throughput_max (waiting_on=vendor)
+[FAIL] D2  HW 域 needs_from 里 to ∈ {vendor, jbd} 的条目 = 2 条 (要求 0)
+        · vendor_ars45_paper_q11_q16 (to=vendor)
+        · jbd_zoushe_dsi_spec (to=jbd)
+[PASS] D3  网表待清行 109 行 (tbd 列) + [待原厂] 36 行 (其中 0 行在 tbd 列外) ⇒ 登记块覆盖率 100.0% (要求 100%)
+[PASS] D4  登记条目 28 条, 缺证据等级/降级方案/结论的 = 0 处 (要求 0)
+[PASS] D5  登记条目 28 条, 缺【卡/不卡/条件卡】或判据出处的 = 0 处 (要求 0)
+------------------------------------------------------------------------------------------------
+★结论: 红 2 条判据 ⇒ 【现状未收口】(这是预期中的红, 不是闸故障)
+★      判据全绿的条件见 HW/HW_EXTERNAL_DEPENDENCY_SELFCHECK_CLOSURE.md §4 登记块 + §6.1
+================================================================================================
+rc=1

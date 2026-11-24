@@ -1,0 +1,67 @@
+==============================================================================
+  ISS-289 · 「作业包 + 清单页里的现状值 == 盘面实测」漂移闸
+  (★V1 结构 / V2 追加式 / V3 订正块 / V4 现状值==实测 / V5 七类覆盖 / V6 受保护 / V7 探针真实★)
+==============================================================================
+  OK   V1
+     两份文档的登记表结构: ✔
+     ✔ workpacket 的 state_baseline 可解析 (29 条)
+     ✔ checklist 的 state_baseline 可解析 (29 条)
+     ✔ 两份文档的 29 条登记逐字一致 (★口径不许分叉★)
+  OK   V2
+     老字 (anchor) 逐条还在 (★追加式自证★): ✔
+     ✔ 29 条老字原句全部在位
+  OK   V3
+     订正块在位 + 订正句自带现值: ✔
+  OK   V4
+     现状值 == 盘面实测 (★实跑探针★): ✔
+     ✔ W01_S7_HEADING             实测 40                                 == 期望
+     ✔ W02_S7_QUANT_ZERO          实测 40                                 == 期望
+     ✔ W03_S7_QUANT_TOKEN         实测 3                                  == 期望
+     ✔ W04_S3_TABLE_S7            实测 40                                 == 期望
+     ✔ W05_S4_ACCEPT_ROW          实测 40                                 == 期望
+     ✔ W06_S2_X2_PIT              实测 40                                 == 期望
+     ✔ W14_S6_1_S7_ROW            实测 40                                 == 期望
+     ✔ W15_S8_1_3_X4              实测 40                                 == 期望
+     ✔ W16_S1_1_F3                实测 40                                 == 期望
+     ✔ W11_FOOTPRINT_COUNT        实测 186                                == 期望
+     ✔ W12_S1_BOARD_156           实测 156                                == 期望
+     ✔ W18_S1_SUFFIX_ONE          实测 1                                  == 期望
+     ✔ W19_S1_SCH_186             实测 186                                == 期望
+     ✔ W13_COPPER_COUNT           实测 8                                  == 期望
+     ✔ W13B_FRAME_BOX             实测 160.10 × 100.10 mm                 == 期望
+     ✔ W13C_FRAME_ID              实测 B160x100                           == 期望
+     ✔ W07_FINDINGS_2             实测 2                                  == 期望
+     ✔ W08_PINS_DEFECT            实测 15                                 == 期望
+     ✔ W09_SAME_PAD_NET           实测 3                                  == 期望
+     ✔ W10_MD5_NETLIST            实测 6aee500e60ba0732f83a9cf557ba90ab   == 期望
+     ✔ W10B_MD5_PINS              实测 9174309df1ec9411ac8e8d9e80ee386a   == 期望
+     ✔ W10C_MD5_BOM               实测 5b9993992405904a60ac96a020b375d8   == 期望
+     ✔ C01_B17_ZERO_MARK          实测 40                                 == 期望
+     ✔ C02_B17_ID_NAME            实测 40                                 == 期望
+     ✔ C03_B01_REF_SUFFIX         实测 156                                == 期望
+     ✔ C04_B31_FOOTPRINT_COUNT    实测 186                                == 期望
+     ✔ C05_FRAME_B160X100         实测 8                                  == 期望
+     ✔ C06_B03_DEFECT_COUNT       实测 15                                 == 期望
+     ✔ C07_B26_MD5_LEDGER         实测 6aee500e60ba0732f83a9cf557ba90ab   == 期望
+  OK   V5
+     七个必备类别覆盖 (★两份文档各须齐全 · 不许只加一条 DNP 探针★): ✔
+     ✔ workpacket  七类齐全 (29 条登记)
+     ✔ checklist   七类齐全 (29 条登记)
+  OK   V6
+     受保护 5 件 md5 逐字节不变: ✔
+     ✔ ★HW/PCB/demo_mainboard.kicad_pcb: 盘上 md5 611b869e1351 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★
+     ✔ ★HW/PCB/demo_mainboard.kicad_pro: 盘上 md5 3e504d2be831 == 保护基线 (★落表台账里没有变更行 ⇒ 纯 md5 硬保护·逐字节未变★) ⇒ 放行★
+     ✔ HW/netlist_v1.csv md5 == 落表台账登记 6aee500e60ba0732f83a9cf557ba90ab (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/netlist_v1_pins.csv md5 == 落表台账登记 9174309df1ec9411ac8e8d9e80ee386a (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+     ✔ HW/BOM_v1.csv md5 == 落表台账登记 5b9993992405904a60ac96a020b375d8 (★落表单号 ISS-302·台账 L1437·§16.2★) ⇒ 未被绕过改动
+  OK   V7
+     探针真实性 + 测量源多样性: ✔
+     ✔ copper_and_frame   探针源 1 个
+     ✔ defect_count       探针源 3 个
+     ✔ dnp_token_count    探针源 1 个
+     ✔ dnp_zero_mark      探针源 1 个
+     ✔ footprint_count    探针源 1 个
+     ✔ md5_baseline       探针源 3 个
+     ✔ ref_suffix         探针源 2 个
+------------------------------------------------------------------------------
+  ✅ rc=0: ★★两份文档里的现状值 == 盘面实测, 且七类判据齐 ★★

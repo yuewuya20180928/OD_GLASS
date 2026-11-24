@@ -1,0 +1,69 @@
+############ [S0] 基线沙盒 (★不改任何东西·作为对照★) ############
+s0 rc=1
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION @ SW/ISP_CAPABILITY_RESEARCH.md:146 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_MD5 @ SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md:453 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_SYNC_NETLIST @ SW/SW_MD5_BASELINE_LEDGER.md:173 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 真隐患条数 6 > 基线上限 3 (★基线只许收紧不许放宽★)
+【判决】 ✘ 红 (rc≠0)
+
+############ [S1] 口径 B 第①步: 重锚 ledger 的网表 md5 (★e06c1dd6→6aee500e★) ############
+  ledger 替换命中数 = 5
+s1 rc=1
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION @ SW/ISP_CAPABILITY_RESEARCH.md:146 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_MD5 @ SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md:453 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_SYNC_NETLIST @ SW/SW_MD5_BASELINE_LEDGER.md:173 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 真隐患条数 6 > 基线上限 3 (★基线只许收紧不许放宽★)
+【判决】 ✘ 红 (rc≠0)
+---- s0 vs s1 判决段逐字 diff (★空 = 两条口径完全等价★) ----
+  (逐字相同 ⇒ 重锚 md5 对 v2 rc 零影响)
+
+############ [S2] 口径 B 第③步: 把 SW_MD5 登记进 EXEMPT_LEDGER (★只改沙盒副本里的工具★) ############
+198:    "SW_MD5": "★沙盒实测用★",
+s2 rc=1
+   ⇒ ✘ 超基线 (见下方 FAIL 行)
+   ★★超基线★★ R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION  (SW/ISP_CAPABILITY_RESEARCH.md:146)  出现 2 次
+   ★★超基线★★ SW_SYNC_NETLIST  (SW/SW_MD5_BASELINE_LEDGER.md:173)  出现 1 次
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION @ SW/ISP_CAPABILITY_RESEARCH.md:146 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_SYNC_NETLIST @ SW/SW_MD5_BASELINE_LEDGER.md:173 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 真隐患条数 5 > 基线上限 3 (★基线只许收紧不许放宽★)
+【判决】 ✘ 红 (rc≠0)
+
+############ [S3] 口径 C: 把 SW 文档里独立的 SW_MD5 字面量写成 SW-MD5 (★只改沙盒副本的 SW/*.md★) ############
+  独立 SW_MD5 字面量替换 = 14 处 / 3 份文件
+s3 rc=1
+   ⇒ ✘ 超基线 (见下方 FAIL 行)
+   ★★超基线★★ R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION  (SW/ISP_CAPABILITY_RESEARCH.md:146)  出现 2 次
+   ★★超基线★★ SW_SYNC_NETLIST  (SW/SW_MD5_BASELINE_LEDGER.md:173)  出现 1 次
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION @ SW/ISP_CAPABILITY_RESEARCH.md:146 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_SYNC_NETLIST @ SW/SW_MD5_BASELINE_LEDGER.md:173 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 真隐患条数 5 > 基线上限 3 (★基线只许收紧不许放宽★)
+【判决】 ✘ 红 (rc≠0)
+
+############ [S4] 口径 B′: BASELINE_COUNT 3→4 + 把 SW_MD5 加进 BASELINE_TOKENS (★只改沙盒副本里的工具★) ############
+s4 rc=1
+   ⇒ ✘ 超基线 (见下方 FAIL 行)
+   ★★超基线★★ R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION  (SW/ISP_CAPABILITY_RESEARCH.md:146)  出现 2 次
+   ★★超基线★★ SW_SYNC_NETLIST  (SW/SW_MD5_BASELINE_LEDGER.md:173)  出现 1 次
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION @ SW/ISP_CAPABILITY_RESEARCH.md:146 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_SYNC_NETLIST @ SW/SW_MD5_BASELINE_LEDGER.md:173 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 真隐患条数 6 > 基线上限 4 (★基线只许收紧不许放宽★)
+【判决】 ✘ 红 (rc≠0)
+
+############ [S5] S2 方案的漏检窗口实证: 沙盒里造一个【真位号】叫 SW_MD5 的文档引用 ############
+s5 rc=1
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION @ SW/ISP_CAPABILITY_RESEARCH.md:146 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_SYNC_NETLIST @ SW/SW_MD5_BASELINE_LEDGER.md:173 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 真隐患条数 5 > 基线上限 3 (★基线只许收紧不许放宽★)
+【判决】 ✘ 红 (rc≠0)
+  ★若上面【没有】SW_MD5 的 FAIL 行 ⇒ 登记制确实把同名真位号一起豁免掉了 ⇒ 漏检窗口实证成立★
+
+############ [S6] 对照: S3 方案 (改文档字面量) 下同名真位号还能不能被抓到 ############
+s6 rc=1
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION @ SW/ISP_CAPABILITY_RESEARCH.md:146 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_MD5 @ SW/ZZ_FAKE_DESIGNATOR.md:2 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_SYNC_NETLIST @ SW/SW_MD5_BASELINE_LEDGER.md:173 ⇒ 板与网表里现在叫: (无近似名)
+[FAIL] 真隐患条数 6 > 基线上限 3 (★基线只许收紧不许放宽★)
+【判决】 ✘ 红 (rc≠0)
+  ★若上面【有】SW_MD5 的 FAIL 行 ⇒ 改字面量方案不留漏检窗口★
+
+############ ALL DONE ############

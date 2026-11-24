@@ -3,14 +3,14 @@ role: 硬件总工
 updated_at: '2026-11-24'
 updated_by: hw-lead
 status:
-  phase: iss396-交卷完成
+  phase: iss402-交卷完成
   progress_pct: 100
-  health: 交卷页 + 真相页 §8 订正块 + 生成器 + 两页落地 + 新闸五件在盘 · 既有闸 4/7⇒7/7 rc=0 · 新闸 9/9 rc=0 · selftest 11/11 ALL
-    TESTS PASS · 覆盖度闸/提交顺序闸/重跑幂等闸/merge/gate_check 全 rc=0 · Q1 18/18 · 板+网表+脚表+BOM 四件逐字节未动 · 7 条 needs_from
-    待 main (每条带问法/不答后果/建议默认值·一条不代拍)
-  summary: 'ISS-396 交卷: ISS-391 §4 的 #1/#2/#3/#6 已按追加式落位 (页=生成器产物·页里没手写一个字) · #4 (覆盖令牌) / #5 (BOM 两栏)
-    交 main 不代拍 · 另交一道「重跑不蒸发」新闸 (零挂链) · 顺手用板厂官网能力表坐实环宽 0.1450 低于绝对下限 0.15 (⇒ 焊盘须放大·归 main) · 零写板 零落表 零改既有闸判据
-    零外发'
+  health: 26 处 Value 漂移 + C_VBUS_GND 掉板已做成逐条台账 + fail-closed 机器闸; 新闸裸跑 D1~D7 全绿 rc=0 (开工前真相页未建时 rc=1,
+    留证 logs/iss402/gate_baseline_red.txt), --selftest 1 正向 + 9 反向 = 10 条全 PASS 末行 ALL TESTS PASS rc=0;
+    板/网表/脚表/BOM/既有页/既有闸 md5 前后逐字未动; 零挂链; 零外发; 6 条 needs_from 全部 to=main 一条不代拍
+  summary: 真相页 HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md + 新闸 HW/check_generator_value_drift_closed.py
+    + 交卷页 HANDOFF/2026-11-24_hw-lead_ISS402_生成器重跑Value漂移26处清账与闸.md; 实测差异 26 处 (A 13 + C 13) + 掉板 1 件 (C_VBUS_GND);
+    6 条 needs_from 已登记 (route_choice / 26 处以谁为准 / C_VBUS_GND 留否 / DNP 标记批次 / §3-S3 覆盖扩到 26 / 新闸挂不挂链)
   updated_at: '2026-11-24'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
@@ -2290,6 +2290,64 @@ artifacts:
   summary: 'ISS-391 真相页的【追加式订正块 §8】: 记录 §4 #1/#2/#3/#6 已落位 + 机器块 zero_perturbation_baseline 里 workpacket_md5
     / preflight_md5 两行随合法落地刷新 (改前 ae8ef086…/b5d8d5b9… → 改后 00b0ea5b…/192873f6…) + 刷新理由 (D6 拿真文件 md5 比·不刷新则闸永远红)
     + 其余 7 键未动; **本单唯一动过已签收件的地方·追认请求见交卷页 B5-N3**'
+- path: HW/check_fts_land_drill_same_batch.py
+  kind: gate
+  version: iss391-cont1
+  updated_at: '2026-11-24'
+  summary: 'ISS-391 cont1 交卷: 判据层 D1/D2/D3 从「关键词/子串命中」改成「动作腿命中」(动作词+改动作+目标值三者绑定·解释性括注不算命中·阈值0.71/1.27未动·D4~D7未碰)
+    + 夹具层 --selftest 改成「真件现读」(变异现场定位派生·该腿全部出现处同清·识别真件已登记过就跳过二次注入·main 的决定性实验与对照实验已固化进夹具) + 追加 ISS-391
+    cont1 重签留痕节; 改后 selftest 19/19 rc=0 ALL TESTS PASS·裸跑 7/7 rc=0·决定性实验三实验全成立·板/网表/脚表/BOM/既有页正文逐字节未动;
+    ★改的是已签收件判据逻辑⇒必须重签⇒本单不自签·verify_by=main'
+- path: HANDOFF/2026-11-24_hw-lead_ISS391_cont1_闸判据加固与夹具真件现读.md
+  kind: handoff
+  version: iss391-cont1
+  updated_at: '2026-11-24'
+  summary: 'ISS-391 cont1 交卷页: B1 结论(闸现在可信·决定性实验现在红) B2 24 条验收逐条通过 B3 证据分级(实测/官方/推算/0数据) B4 interface_claims
+    12 条 B5 五条未决项全部 to=main 一条不代拍 B6 复现命令+边界自证8条; ★在上一趟建的骨架页上填·未新建第二页★'
+- path: logs/iss391/
+  kind: evidence
+  version: iss391-cont1
+  updated_at: '2026-11-24'
+  summary: 'ISS-391 cont1 留证目录: selftest_before.log(改前14/17) bare_before.log(改前7/7) selftest_after.log(改后19/19)
+    bare_after.log(改后7/7) decisive_experiment.log(决定性实验独立复核·不经过夹具·三实验全成立) gate.diff(753行) md5_before.txt
+    md5_after.txt cont1_worknotes.md(过程留痕)'
+- path: HW/HW_EXTERNAL_DEPENDENCY_SELFCHECK_CLOSURE.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-401 HW 域外部依赖自查收口真相页: 8 条外部路由 (实测口径, 任务书说的 10 条是重复计数) + 7 条 blocker + 13 项 TBD 逐条给 [自己查的结果
+    + 证据等级五级 + 降级方案 + 还卡不卡板那一趟 + 判据出处 + 路由改成什么] + §4 机器可读登记块'
+- path: HW/check_hw_external_dep_closed.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-401 新建机器闸: D1 waiting_on 外部=0 / D2 to 外部=0 / D3 网表 109 行 tbd + 36 行 [待原厂] 100% 被真相页登记块覆盖
+    / D4 每条须有证据等级+降级方案+结论 / D5 每条须写卡-不卡-条件卡+判据出处; 裸跑 rc=1 (红的是现状), --selftest rc=0 末行 ALL TESTS PASS (正向1
+    + 反向11); 不判 md5, 不改既有闸阈值, 零挂链'
+- path: HANDOFF/2026-11-24_hw-lead_ISS401_HW域外部依赖自查收口.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-10-25'
+  summary: 'ISS-401 交卷页: B1~B7 全填 (含边界自证与 md5 前后对比)'
+- path: HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md
+  kind: truth-page
+  version: '1.0'
+  updated_at: '2026-11-24'
+  summary: 'ISS-402 真相页: 26 处 Value 漂移逐条清账 (板面/网表侧/BOM 三方逐字) + C_VBUS_GND 掉板机理 (三处存在性 + BOARD_FILTER 过滤链)
+    + 三条路线代价账 甲/乙/丙 (不代拍) + 机器块 generator_value_drift (26 行 + cvbus_gnd + routes + decisions 全 not_decided_here)'
+- path: HW/check_generator_value_drift_closed.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-24'
+  summary: 'ISS-402 新机器闸: D1 fail-closed 覆盖 / D2 登记值逐字 / D3 证据等级五级白名单 / D4 C_VBUS_GND 机理 / D5 三路线齐 / D6
+    零代拍 / D7 零外发零挂链零写板; 零挂链 (grep -c state/gate_check.py = 0); --selftest 1 正向 + 9 反向 = 10 条 全 PASS 末行
+    ALL TESTS PASS'
+- path: HANDOFF/2026-11-24_hw-lead_ISS402_生成器重跑Value漂移26处清账与闸.md
+  kind: handoff
+  version: '1.0'
+  updated_at: '2026-11-24'
+  summary: 'ISS-402 交卷页 B1~B7: 结论摘要 / A1~A20 验收自评 / 证据分级 / interface_claims / 未决项 (6 条全 to=main) / 复现命令原样输出
+    / 边界自证 + 自曝节'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -2359,9 +2417,15 @@ needs_from:
   due: '2026-11-05'
 - key: q16_display_iface
   to: main
-  waiting_on: vendor
+  waiting_on: boss
   due: '2026-10-29'
-  item: Q16 显示 TX 接口结论 (DSI TX / DP TX / 两者) + 宽高比 A/B/C 拍板
+  item: '★★ISS-401 自查闭 (2026-11-24, hw-lead): 显示 TX 结论 = DSI TX (4-lane) —— Forlinx FET3572-C 官方手册 §2.6.2
+    已把 MIPI_DPHY_DSI_TX_D0P/N~D3P/N + CLKP/N 逐脚引出 (P3 pin 57/59/63/65/69/71/75/77/81/83), 网表 row210-229
+    用的正是这 10 个脚 (逐针零差异) [官网]; 同表只引 HDMI_TX_*, 未引 eDP/DP TX ⇒ Q16 三选一 = DSI TX, 不是『DSI+DP 两者』; RK3572 SoC
+    级另有 DSI-1.2 4lane@2.5Gbps + eDP v1.3 (HW/RK3572_OFFICIAL_DATASHEET_FACTS.md §4) [官网] ⇒ ★原问的接口部分已答完,
+    不再等外部; ★残留只有『宽高比 A/B/C 拍板』= 老板级内部决策 (waiting_on=boss, hw-lead 不代拍)。降级方案: 双出口 R_SEL_* 0Ω 位保留 (改 0Ω
+    不改板); 若将来必须 DP 出口 ⇒ 换模组 (模组选型级, 非本单)。★还卡不卡板那一趟: 不卡 (改板=0, 板 md5 不变)。★详见 HW/HW_EXTERNAL_DEPENDENCY_SELFCHECK_CLOSURE.md
+    §1 N-1'
   since: '2026-10-25'
 - key: q16_aspect_ratio
   to: boss
@@ -2385,33 +2449,55 @@ needs_from:
   item: Q3 模型/rootfs 怎么存(只ADB push是否接受外挂 SPI-NOR ≥128 MiB (1 Gbit) 起 —— ★**该档板侧零动作 · 不改板宽 · 不重出板**★; ★**板宽
     12→15 mm 只在【eMMC 档】成立**★) + 音频到底做不做(tracker全文无音频条目, 我不擅自加也不擅自排除)
 - key: vendor_ars45_paper_q11_q16
-  to: vendor
-  waiting_on: vendor
+  to: main
   due: '2026-10-29'
   since: '2026-10-21'
-  item: '原厂纸面资料8问(10-21邮件已发未回, 全部经main转发): 1 FCCSP ball pitch + 完整引脚图/球位图 2 各电源域(轨名/电压/典型电流/峰值电流/上电顺序/电压容差)
-    3 显示TX(有无DSI TX/有无DP TX/lane数/分辨率帧率/能否与DP RX同时工作) 4 有无USB Device PHY 5 有无内置boot storage及容量 6 MCLK源+sensor
-    RESET极性 7 SoC底面散热焊盘(整块/分块) 8 MIPI-CSI单sensor用2lane还是4lane+输入电压域1.2V/1.8V+是否需外部AC耦合电容'
+  item: '★★ISS-401 判定【整条作废】(2026-11-24, hw-lead): 这 8 问问的是 ARS45/酷芯微, 而该芯片线已于老板 2026-10-29 19:20 拍板作废
+    (HW/CHIP_SOC_MIGRATION.md L53 逐字『酷芯微原厂 | 显示 TX/pitch/球位图/电源域/启动存储 | 全部作废』; HW/TI_POWER_FACTS.md §④
+    同口径) ⇒ 不是『还没查到』, 是主体已退 ⇒ 8 问逐条重定向到 RK3572/SoM 公开资料: ①FCCSP pitch=RK3572 官方 0.42/0.52/0.65mm 混合 (demo
+    板用 SoM BTB 0.4mm ⇒ 与 demo 板无关) [官网] ②电源域=官方 Table 3-1/3-2 (demo 主板不产 SoC 核心轨, U_DCDC_*=DNP) [官网] ③显示
+    TX=DSI TX (见 q16_display_iface) ④USB PHY=SoM 已引 USB_DRD1_DP/DM+VBUSDET+USB2_OTG0 [官网] ⑤boot storage=已三档化
+    (ISS-346/ISS-350 机器判决) [实测] ⑥MCLK=SoM CAM_CLK0_OUT_M0 (P2_45) [官网] ⑦散热焊盘=官方 datasheet §4 热阻四行全是 TBD
+    [官网=官方自己没给] ⑧CSI lane=IMX415 模组 2-lane, AC 耦合放模组侧 (硬判据) [官网]。降级方案: 散热焊盘降级为『导热垫+铜箔+板级皮肤温度实测』; 模组随货寄存器表/init
+    code 一律写成采购硬判据 (不发问询函)。★还卡不卡板那一趟: 不卡 (改板=0)。★详见真相页 §1 N-2'
 - key: jbd_zoushe_dsi_spec
-  to: jbd
-  waiting_on: jbd
+  to: main
   due: '2026-10-28'
   since: '2026-10-25'
-  item: '走鹃II: 1 MIPI DSI几lane/最高速率 2 800x600@60fps官方验证过吗 3 I2C做什么用+从机地址(与sensor是否冲突) 4 供电电压范围+峰值电流(电源树的一路输入)
-    — 全部经main转达'
+  item: '★★ISS-401 判定【整条作废】(2026-11-24, hw-lead): 走鹃Ⅱ 已于老板 2026-11-02 01:12 被 视涯 0.49" SiOLED 取代, demo
+    板现行为 Waveshare 2.8inch DSI LCD (SKU 22028, 22p→15p) (HW/DISPLAY_MODULE_DECISION.md §2.3 逐字『本条作废』;
+    HW/DEMO_BOARD_HW_DECISION.md §4 逐字『视涯屏 11-04 已停用, 现行为 Waveshare 2.8inch SKU 22028』) ⇒ 4 个子问在现役件上全部有公开答案:
+    ①DSI 2-lane+CK (屏侧) ⇒ SoM 侧 4-lane 不变, 变的只是『主板→屏座』那一段 ⇒ 板侧零动作 [官网] ②init sequence 公开可得 (Waveshare
+    官方 GitHub Waveshare-DSI-LCD 的 .ko/.dtbo + 树莓派官方 vc4-kms-dsi-waveshare-panel.dtbo, compatible=waveshare,2.8inch-panel)
+    ⇒ 不必问厂家 [官网] ③DDC 走 SoM 独立 I2C2 (P2_1/P2_11, 3.3V) ⇒ 与 camera I2C5 (P2_31/P2_33, 1.8V) 物理分开 ⇒ 地址冲突不成立
+    [官网] ④屏模组内从 3V3 取电无独立背光脚 ⇒ 12V BOOST 整链可砍 ⇒ 真约束是本板 3.3V 轨稳不稳 (见 iss067_vendor_r_on_u1), 不是屏的容差 [推算]。降级方案:
+    屏侧全部参数走采购硬判据 (init code + DSI 时序 + DDC 地址 + 供电/电流清单), 不发问询函; 若将来改回产品屏则这 4 问重新成为外部依赖, 但不阻塞 demo 板那一趟。★还卡不卡板那一趟:
+    不卡 (改板=0)。★详见真相页 §1 N-3'
 - key: rel_vendor_absmax_rating
   to: main
-  waiting_on: vendor
   due: '2026-10-30'
-  item: '15 个器件的 Absolute Maximum Ratings 表 (温度/电压/电流) + 可靠性数据 (FIT/MTBF/降额曲线): 现降额表 绝对最大 列 15/15 全为 [0数据],
-    降额表只能当设计约束不能当器件符合性声明; 另需 BQ25896 工作温度范围 / TMP117 供电范围 / Type-C 母座温升-电流曲线'
+  item: '★★ISS-401 部分闭 (2026-11-24, hw-lead): (a) ISS-068 已把 6 颗 TI 器件的 Absolute Maximum Ratings 表逐条转录完毕
+    (TPS62130A/SLVSAG7F §7.1 · TPS7A20/SBVS338H §5.1 · BQ25896/SLUSC76C §7 · TPS25730/SLVSGP9 · BQ2970/SBVS349
+    · TMP117/SNOSD82D) ⇒ 绝对最大/推荐工作双列齐全 = 6/15 (原 0/15) [官网] (HW/RELIABILITY_ABSMAX_DERATING_V2.md §3.1);
+    (b) 剩余 9 类的对象清单本身已过期 —— ARS45 / OV04C10 / 摄像头模组 3 类随退件作废 ⇒ 实剩 5 类 (N-MOS=DMP3098L · 1S LiPo 电芯 · Type-C
+    母座=GCT USB4105 · 无源件类 · 机械件); (c) BQ25896 推荐工作环境温度 = -40~85°C (官网 125°C 是 Tj 口径) ⇒ 设计上限 72.25°C; TMP117
+    供电范围 = V+ 1.8~5.5V (本板 3.3V 合规); (d) FIT 器件级数据源已找到 (TI 公开 estimator ti.com/quality/docs/estimator.tsp,
+    6 颗 OPN 已在页上) ⇒ 只差人工取数 ⇒ [0数据-待人工取数] (10 分钟可补); (e) Type-C 母座温升-电流曲线现有口径来自分销商系列页 (qitda.com) 非该型号规格书
+    ⇒ 仍 [0数据]。降级方案: DMP3098L / HIROSE FPC 座 + BTB 走官网自取 (不发信); FIT 人工开 TI estimator 取数; Type-C 母座温升曲线降级为『降额
+    (触点 3A 额定, 2A/3A=83.3%) + 板级实测温升』; 机械件随结构图纸; 跌落/振动/弯折/热实测 0 项属『无样机』物理事实, 已挂 HW/EVT_RELIABILITY_TEST_ITEMS.md
+    的 EVT 模板。★还卡不卡板那一趟: 不卡 (这 5 类的取值不改变板上任何连接关系 ⇒ 改板=0, 板 md5 不变)。★详见真相页 §1 N-4'
   since: '2026-10-26'
 - key: rel_battery_cell_spec
   to: main
-  waiting_on: vendor
   due: '2026-10-30'
-  item: '1S LiPo 电芯规格书: 允许充电倍率 (R-F2: 1.0A@575mAh=1.74C 超典型 1C; 340mAh@1.0A=2.94C 更差) + 循环寿命 + 内阻 + 膨胀曲线
-    + 允许充电/放电温度窗口 (电池轴降额只能按规格书判)'
+  item: '★★ISS-401 自查闭 (2026-11-24, hw-lead): demo 主板不装电池 ⇒ 电芯规格书对 demo 板那一趟零影响 —— HW/netlist_v1.csv row24
+    (U_BATPROT=BQ2970) / row26 (BT_432243) / row28 (Q2) / row29 (Q1) 全部 dnp=DNP 且 note 逐字『demo 主板用 Type-C
+    供电 ⇒ 不装电池』, HW/BOM_v1.csv BT_432243 procurement=DNP-不装, HW/CORE_MODULE_SELECTION.md L39 同口径 (老板 11-03
+    09:54) [实测]; 厚度账已用丰江 432243 (≥420mAh / 4.3mm) 算完 ⇒ 镜腿 7.3mm (名义 7.0) 锁死值不变 (HW/POWER_BUDGET_V3.md
+    §7) [实测]; R-F2 倍率口径 (1.0A@575mAh=1.74C 超 1C) 属 J3 判据 (按规格书判, 通用降额档无效) ⇒ 规格书仍 [0数据]。降级方案: demo 板电芯位
+    DNP ⇒ 不需要规格书; 产品板档把『允许充电倍率/循环寿命/内阻/膨胀曲线/允许充放电温度窗口』写成采购硬判据 (随货给, 不发问询函); 规格书到之前按最保守 1C 限充电电流 (575mAh
+    档 575mA / 340mAh 档 340mA) ⇒ 保守侧已闭合; 若 main 要把充电电流从 1.0A 降到 575mA ⇒ 属落表项 (改网表常量), 不改板。★还卡不卡板那一趟: 不卡。★详见真相页
+    §1 N-5'
   since: '2026-10-26'
 - key: rel_mount_stiffness
   to: mech-lead
@@ -2579,18 +2665,30 @@ needs_from:
 - key: iss067_vendor_r_on_u1
   to: main
   since: '2026-10-29'
-  waiting_on: vendor
   due: '2026-10-31'
-  item: 'ISS-067 需原厂回复 (外发经项目总工, 我不直接联系): TPS62130A 的高边 R_on + 推荐电感 DCR 合计值。这个数决定 UVP 能不能从 3.50V 压到 3.35V
-    (buck 100% 占空比地板 = 3.300 + 350mA x R_total)。我的假设: R_total=100mΩ => 地板 3.335V => 方案A'' 成立, 续航比方案A 多
-    +7 个点。若实测 >150mΩ => 退回 UVP 3.50V (方案A)'
+  item: '★★ISS-401 自查闭 [官网] 且证伪原假设 (2026-11-24, hw-lead): TI 官方 datasheet https://www.ti.com/lit/ds/symlink/tps62130a.pdf
+    (文档号 SLVSAG7F – NOVEMBER 2011 – REVISED NOVEMBER 2021) §6.5 Electrical Characteristics → POWER SWITCH
+    组逐字: High-side MOSFET ON-resistance = VIN≥6V 时 90 mΩ typ / 170 mΩ max; VIN=3V 时 120 mΩ typ ⇒ ★原假设『R_total=100mΩ
+    (buck 高边 R_on + 电感 DCR)』被单颗 buck 的 typ 120 mΩ 直接证伪; 正确判据 = 地板 Floor(SYS)=3.300+0.350×R_total (I33=350mA,
+    V33=3.30V, 口径同 HW/calc_rf1_3v3v_uvp.py) ⇒ 方案 A'' (UVP 3.35V) 成立的充要条件是 R_total ≤ 142.86 mΩ, 即 typ 路径下留给电感
+    DCR 的预算只剩 ≤22.9 mΩ, 而按 max 规格 (170mΩ) 则 Floor=3.3595V > 3.35V ⇒ A'' 按 max 不成立 [推算] (推理链见真相页 §1 N-6);
+    §8.2 Fig 7-3 给出 R_on 随 VIN 下降而上升; §9.2.2.2.1 + Table 9-3 推荐电感 XFL4020-102ME_/IHLP1212BZ-11 等但【不给 DCR】⇒
+    DCR=[0数据]。降级方案: 电感选型硬判据写『DCR ≤ 20 mΩ』(按最终料号官网 DCR 复核); UVP 落点挂在【板上手测】判据上 (SYS 拉到 3.35V 时实测 LIGHT_3V3
+    ≥ 3.30V); DCR 超标则改电感型号 (板位已在 ⇒ 零改板); 兜底走方案 A (UVP 3.50V ⇒ 3.451V 余量 151mV, 续航少约 7 个点 1.241h vs 1.325h)。★还卡不卡板那一趟:
+    不卡 (只决定 UVP 落点这一个数, 改板=0; 且 demo 板不装电池 ⇒ SYS 轨不存在)。★残留: 网表 U_LDO_L33/U_LDO_IO33 仍是 LDO (方案 A 未落网表)
+    ⇒ 那是【落表项】不是外部依赖。★详见真相页 §1 N-6'
 - key: iss067_jbd_vdd_tol_u2
   to: main
   since: '2026-10-29'
-  waiting_on: jbd
   due: '2026-10-31'
-  item: 'ISS-067 需 JBD 回复 (外发经项目总工): 光机 3.3V 输入电压容差与下限 (LIGHT_3V3 由新 buck 供, UVP 3.35V 时 buck 输出约 3.305V)。我的假设:
-    ±5% (3.135-3.465V) => 成立; 若要求 3.3V±2% => 3.305V 卡边, 需实测确认后再定 UVP'
+  item: '★★ISS-401 自查闭 (2026-11-24, hw-lead): 这条被【双重解掉】—— (a) 被测对象走鹃Ⅱ 已作废 (见 jbd_zoushe_dsi_spec); (b)
+    LIGHT_3V3 是本板 LDO 输出的稳压轨, 不是从 SYS 直取: 网表 LIGHT_3V3 全部消费者 = RAIL_LIGHT_3V3 / U_LDO_L33 (TPS7A20-33,
+    必装) / C_BULK_LIGHT_3V3 / C_HF_LIGHT_3V3 / CONN_LIGHT pin14+pin15 (屏座) / CONN_CAM pin28+pin29 (camera
+    模组) / TP_LIGHT_3V3 (测试点) ⇒ 屏与模组看到的永远是稳压后的 3.3V [实测] ⇒ ★屏的『3.3V 容差』不决定 buck 地板, 只决定目标电压定 3.3 还是 3.2
+    (3.3V 是逻辑标准轨 ⇒ 判据自动满足) ⇒ ★原推理『若要求 ±2% 则 3.305V 卡边』的前提错误 (±2% 是屏的指标, 不是本板的约束) ⇒ ★真约束 = iss067_vendor_r_on_u1
+    的 TPS62130A 高边 R_on ⇒ 两题合并成一题。降级方案: 按 3.3V 逻辑标准轨设计 (±5% 行业通用); 若将来换屏且其规格书写死『VDD 3.3V ±2%』⇒ 判据变为『本板
+    3.3V 轨精度/纹波 ≤ ±2%』⇒ 由稳压器精度 (TPS7A20/TPS62130A 官方 §6.5) 决定, 仍非外部依赖; TP_LIGHT_3V3 测试点已在板 ⇒ 板到手直接量 (零成本)。★还卡不卡板那一趟:
+    不卡。★详见真相页 §1 N-7'
 - key: iss121_magnet_xy_define
   to: mech-lead
   item: 'ISS-121 U-1 (经项目总工转达): 请给**磁铁 / 2×⌀1.60定位凸台 / M1.6螺钉在盖板下的确切 X/Y 坐标** —— 按 ISS-092 §4.1 C-1/C-3,
@@ -2756,11 +2854,16 @@ needs_from:
   to: main
   since: '2026-11-02'
   due: '2026-11-04'
-  waiting_on: vendor
-  item: '★给 `rk3572_official_datasheet` 的部分答复 (我这边能给的已给): ★**要求侧现在钉死了** —— demo 走 1080p60 ⇒ ISP 进线 **1920x1080@60
-    = 124.4MP/s**; 若走全分辨率 3840x2160@60 = **497.7MP/s** ⇒ 本项目一直用的『ISP 250MP/s 口径』是**媒体/模组厂口径, 不是瑞芯微官方数字**
-    ⇒ ★**仍缺官方 ISP 吞吐上限** (MP/s @ 什么位深/几路并发) 才能最终确认 250 这个数 ⇒ 请在拿到 RK3572 官方 Brief Datasheet 时一并取这个数。另:
-    ISP 进线宽高对齐规则 (驱动注释: 输入宽 16 对齐/高 8 对齐) 已满足 (1920/16=120, 1080/8=135)'
+  item: '★★ISS-401 自查闭 [官网] (2026-11-24, hw-lead): RK3572 官方 datasheet V1.1 (HW/RK3572_PIN_TABLE/rk3572_datasheet_V1.1.pdf,
+    47 页, md5 c0e3763036e2f6a3e8a2f68f2254851d, PDF Author=Rockchip) §1.2.10 Image Signal Processor V3.5
+    逐字给出: 通路=单通道 ISP (文本层 L488) · 像素能力=12M pixels (L488) · 最大输入=4096×3072 (L490) · 最小输入=264×264 (L491)
+    · VICAP raw8/10/12/14/16 (L486) ⇒ ★demo 采集链 = IMX415 窗口化出 1920×1080@60 = 2.0736 M pixel/帧 ⇒ 占官方 12M
+    帧内能力的 17.28% ⇒ 余量 82.72% ⇒ ★采集链立得住 ⇒ ★『官方 ISP 吞吐上限 (MP/s)』这条外部依赖可以撤掉: 决策输入已从『吞吐余量』换成『帧内像素能力』, 后者官方给了;
+    原口径 250 MP/s 属已作废的 ARS45 能力, 497.7 MP/s 是 4K@60 的视频像素率 (不是 ISP 能力上限) ⇒ 两者都不可比 (同 HW/R_GEO_Q03_ISP_THROUGHPUT_ADJUDICATION.md
+    B1 的口径错配裁决, 该裁决当时按 RK3576, 现在基线是 RK3572 ⇒ 那个数也不适用) [官网]+[推算]。降级方案: ISP 余量判据改为分辨率口径 (帧内像素 ≤ 12M); ★诚实残留:
+    ISP 动态功耗随吞吐走, 而官方 §4 Thermal Management 的 ψJT/θJA/θJB/θJC 四行全是 TBD ⇒ 皮肤温度结论维持 [推算] 不升格, 降级为『PM/LED
+    功耗 + 皮肤温度模型 + 板级实测温升』(HW/POWER_BUDGET_V3.md 已有模型) ⇒ 这属 HW-B7 残留, 不是外部依赖; 若将来上 4K@60 全幅 (帧内 8.29M ≤
+    12M 仍过) 才需重新问 ⇒ 归产品板档条件项。★还卡不卡板那一趟: 不卡。★详见真相页 §1 N-8'
 - key: iss144_netlist_i2c_addr_comment_0x36_to_0x10
   to: main
   item: '★ISS-144 规格 §0.2 E2 实测订正: ★AR0234CS 的 I2C 7-bit 地址是 0x10 不是 0x36 (0x36 是上一代 OV04C10 的)。证据 3 个独立来源交叉:
@@ -4660,6 +4763,106 @@ needs_from:
   item: ★交 main 一句话★ 既有闸 HW/check_fts_land_drill_same_batch.py 的 docstring 头还写着「本闸现在【必然红】(rc=1) —— 那是本单的发现」⇒
     自 ISS-396 起它已 7/7 绿 ⇒ 这句话现在过时; 问法 = 要不要让 owner 把它改成「本闸自 ISS-396 起【绿】· 改回去就红」; 不答后果 = 下一个人读源码会被这句话误导成「闸是红的」;
     建议默认值 = 改 (★本单没改·零改既有闸★)
+- key: iss391_cont1_q1_fixture_reanchor
+  to: main
+  item: '① 夹具改真件现读后, 若真件已被别人合法改过(那句话的动作腿被润色成别的写法) ⇒ 夹具要不要自动重锚? | 不答后果: 夹具会因「定位不到那条动作腿」而 abort(自测 rc=1·报「自测前提不成立」)
+    ⇒ 不是假绿是假红·闸自己停摆·停摆一次就够烦 | 建议默认值: 不自动重锚 ⇒ 夹具 fail-closed (理由: 自动重锚=夹具跟着真件漂 ⇒ 就再也测不出「真件被改坏了」; 本单已把锚点做成「现场定位动作腿」而不是写死字符串·真件只要还含一条动作腿就认得出)'
+  since: '2026-11-24'
+- key: iss391_cont1_q2_resign_timing
+  to: main
+  item: '② 改判据 ⇒ 重签由 main 何时做? | 不答后果: 闸处于「已改未签」状态 ⇒ 别人跑 --selftest 会看到 19/19 但闸本身还没被签收 ⇒ 别把它当已签收件引用 |
+    建议默认值: main 在本单读数复核后随手重签 (改的是已签收件的判据逻辑·严格说必须重签)·不设时间点·由 main 拍'
+  since: '2026-11-24'
+- key: iss391_cont1_q3_d2d3_unify_with_d1
+  to: main
+  item: '③ D2 / D3 的动作腿口径要不要跟 D1 统一? | 不答后果: 口径已统一但形态不同 —— D1/D2 认「改孔动作腿」(动作词+改动作+目标值); D3 认「读钻孔的验收命令」(①读板
+    ②读钻孔 ③期望读数 0.71) ⇒ D3 本质是「验收手段」不是「板侧动作」·形态必然不同 | 建议默认值: 维持现状 ⇒ D3 的形态就是它的语义 (若统一成同一个动作腿正则 ⇒ 把「验收手段」误当成「板侧动作」⇒
+    会漏掉验收手段本身 ⇒ 不建议)'
+  since: '2026-11-24'
+- key: iss391_cont1_q4_count_in_workpacket
+  to: main
+  item: '④ 这次改判据要不要算进「板只改一次」那一趟的作业包? | 不答后果: 作业包 §0.2 ③ 是【板侧改动清单】不是【闸的改动清单】⇒ 本单改的是闸脚本·不上板 ⇒ 不该进那一趟 | 建议默认值:
+    不进 ⇒ 本单零写板 (板三证逐字节未动·已自证); 只有 board md5 会变的那一趟才进作业包'
+  since: '2026-11-24'
+- key: iss391_cont1_q5_backfill_old_verdicts
+  to: main
+  item: '⑤ 若有人已经照旧判据的结论做过决定, 要不要回查? | 不答后果: 旧判据只会假绿不会假红 ⇒ 旧判据放行过的东西里可能藏着「只有解释没有动作」的登记 ⇒ 漏改孔 ⇒ 排针插不进 ⇒
+    板改两次 | 建议默认值: 要回查但范围很窄 —— 只查「作业包 §0.2 ③」与「预检清单 B33」两处是否含一条【改钻孔动作腿】(本单夹具用例①/⑯ 就是这条回查的机器形态)·不用全库扫'
+  since: '2026-11-24'
+- key: iss401_netlist_tbd_land_batch
+  to: main
+  item: '★ISS-401 留给 main 裁决 (2026-11-24, hw-lead): 网表 HW/netlist_v1.csv 的 109 行 tbd 标签 + 36 行 evidence=[待原厂]
+    (全部 MAIN_PCB) 要按真相页 HW/HW_EXTERNAL_DEPENDENCY_SELFCHECK_CLOSURE.md §3 的逐项结论落成实值或明确降级标注 (13 项 TBD 全部有结论,
+    覆盖率 100%) ⇒ ★这一步改网表真源 ⇒ 必须与板那一趟 (A 类步 S1~S8 同趟) 同批落, 否则板 md5 第二次变 ⇒ Gerber/投产包/留证链/盖章/发布全白跑 ⇒ ★建议:
+    同批落, 归 main 落表批次 (本单零落表)'
+  since: '2026-11-24'
+- key: iss401_usb_port_select
+  to: main
+  item: '★ISS-401 留给 main 裁决 (2026-11-24, hw-lead): TBD-10 条件卡 —— 本板 USB 用 J_SOM_P1 pin92/pin94 = USB_DRD1_DP/DM,
+    而 Forlinx 官方逐针表写的默认功能是 USB20_HOST1 (Host 侧); 官方可做 Device 的那对是 P3_18/pin20 = USB2_OTG0_DP/DM ⇒ 若本板要实现
+    USB Device, 建议改用 OTG0 ⇒ ★换脚 = 改网表 + 改板 ⇒ 必须与板那一趟同批 (板 md5 只许变一次); 若 demo 不接 PC ⇒ 不卡, 可零改板先走 (SW 侧用
+    OTG0 做 Device, HOST1 空置)。本单只给判据, 不代拍'
+  since: '2026-11-24'
+- key: iss401_usupv_board_presence
+  to: main
+  item: '★ISS-401 留给 main 裁决 (2026-11-24, hw-lead): TBD-12 条件卡 —— U_SUPV 整颗在网表里是 dnp=DNP (row74/406/407/408),
+    而 §B15 的上电时序硬件保障方案要求 U_SUPV 开漏释放 RESET_N + 2xDC-DC PG 链 ⇒ 需 main 核 U_SUPV 的封装位是否真在 demo 板上: 在板上 ⇒
+    只改 dnp 标注 (落表项, 不改板); 不在板上 ⇒ 要改板 ⇒ 必须与板那一趟同批。另: TI_POWER_FACTS.md 订正 B 已指出网表 L62/L65/L67/L71 的 PG
+    极性 note 写反了 (BQ25896 的 /PG 低有效 vs TPS62130A 的 PG 高有效), 必须在 S6 那一趟之前定死。本单零改既有页'
+  since: '2026-11-24'
+- key: iss401_erc_checklist_stale_anchor
+  to: main
+  item: '★ISS-401 顺带发现, 要改既有页 (2026-11-24, hw-lead): HW/ERC_DRC_CHECKLIST.md 0 第 4 行写 原厂 4 项闭合 = 未闭 (TBD-01/02/04/06/11),
+    D1 写 原厂 4 项闭合 ⇒ 酷芯微书面答复 ⇒ ★这是 2026-10 的口径, 已过期: 这 5 项在 demo 板口径下全部已闭 (TBD-01 由 ISS-204 官网三源交叉闭 / TBD-02
+    SoM 自带 PMIC 主 PCB 不产 SoC 核心轨 / TBD-04 SoM 官方逐针表已给 4-lane DSI TX / TBD-06+TBD-11 启动存储已三档化 ISS-346+ISS-350)
+    ⇒ ★要改既有页正文 ⇒ 归 main (本单零改既有页正文), 改的时候别把 13 项清单的口径改窄'
+  since: '2026-11-24'
+- key: iss401_demo_5v_entry_not_landed
+  to: main
+  item: '★ISS-401 顺带发现 (2026-11-24, hw-lead): 网表里 demo 板的 5V 进线还没落 —— J_TYPE_C 与 U_CHG (BQ25896) 在 CHG_BOARD
+    且 dnp=必装, 而 U_BATPROT/ BT_432243 / Q1 / Q2 全是 dnp=DNP ⇒ SYS 轨 (RAIL_SYS) 的源 = U_PWR_SW pin1 ← BAT_SW
+    ← U_BATPROT (DNP) ⇒ 在 demo 板上 SYS 无源 ⇒ 与 HW/DEMO_BOARD_HW_DECISION.md 的 demo 口径 (USB-C 5V 直供, 不装电池)
+    不一致 ⇒ ★这是落表项不是外部依赖项, 但它是板那一趟的真实待清项 ⇒ 归 main 落表批次, 与板那一趟同批 (改网表真源)'
+  since: '2026-11-24'
+- key: iss402_route_choice_ab_c
+  to: main
+  item: '★路线甲/乙/丙 选哪条★ (★本单不代拍·一条都不代拍★): 甲=不重跑只改现有板 (26 处 Value 原样保留 + C_VBUS_GND 要手工删 + 换封装类目标项做不到);
+    乙=重跑 (26 处全被覆盖 + C_VBUS_GND 掉板 186→185 + 40 个位号一次性打 DNP 标记 + 封装布线全废); 丙=重跑+落表 (网表真源要动 ⇒ 落表批次必须与板那一趟同批·不许分两趟).
+    ★代价: 不拍 ⇒ 板那一趟无法开工 ⇒ 漏改就是板 md5 第二次变 (2-4 周 + ¥4-8K). ★建议默认值: 拍乙 ⇒ 前置是 §3-S2/S3/S4/S7 的卡点全部到位; 任一卡点没到位则退甲.
+    代价账见真相页 §4'
+  since: '2026-11-24'
+- key: iss402_26_value_authority
+  to: main
+  item: '★26 处 Value 各以谁为准 (板面/网表/BOM)★ ★本单不代拍★: 类型 A 13 处板面是脚级功能串 (贴片侧拿不到料号) + 类型 C 13 处板面与 BOM 型号直接冲突
+    (例: R_BAT_DET_1 板面 1M ±1% vs BOM 100k ±1%; R_LED_G 板面 1k ±1% vs BOM 55Ω ±1%). ★代价: 不拍 ⇒ 按错口径投板 ⇒ 照板面字选料会装错
+    13 件 ⇒ 投板后才发现 (2-4 周 + ¥4-8K). ★建议默认值: A 与 C 都以网表为准 (板面随重跑刷新), 同时把 §3-S3 的覆盖面从 8 处扩到 26 条. 台账见真相页
+    §2'
+  since: '2026-11-24'
+- key: iss402_cvbus_gnd_keep_or_remove
+  to: main
+  item: '★C_VBUS_GND 留还是从主板拿掉★ ★本单不代拍★: 作业包 §3-S2 纸面口径=拿掉 (卡在谁栏=没人), 而 boss_c_vbus_gnd_reserve_pad_20261117
+    已登记 (留位与否=老板域) ⇒ 两个口径有张力. ★代价: 不拍 ⇒ 走重跑臂它会自己掉 (不可逆的板面删除), 走不重跑臂则必须手工删 ⇒ 两条路结果完全不同 ⇒ 拍错 = 板 md5 第二次变.
+    ★建议默认值: 与 §3-S2 一致 = 拿掉, 且与板那一趟同批一次做完. 机理见真相页 §3'
+  since: '2026-11-24'
+- key: iss402_dnp_mark_batch
+  to: main
+  item: '★重跑生成器会一次性给 40 个位号打上 DNP 标记 (现状板上零标记)★ 要不要在板那一趟打: ★代价: 不拍 ⇒ 重跑臂一旦执行, 40 件 (含电池座/电池保护/2 颗 MOS)
+    的贴片坐标从当必装变成当不装 ⇒ 可能是想要的结果, 也可能是投板后才发现的事故 (¥4-8K 级). ★建议默认值: 打 (R3-A4 口径: MAIN_PCB且DNP 51 颗 在板上 40
+    颗 零标记 40 颗 ⇒ 闸判红 ⇒ 本来就该打). 代价账见真相页 §4.B'
+  since: '2026-11-24'
+- key: iss402_s3_scope_expand_to_26
+  to: main
+  item: '★HW/PCB/BOARD_ONEPASS_WORKPACKET.md §3-S3 的验收判据只覆盖 8/26 处 (U_EN_SW + 7 颗 TPS7A20)★ 其余 18 处不在它的判据里:
+    ★代价: 不扩 ⇒ 那一趟即使跑完 §3-S3, 仍有 18 处 Value 与网表不一致且无人验收 ⇒ 重跑臂直接覆盖 ⇒ 又是板 md5 第二次变. ★建议默认值: 扩到 26 条 (判据 =
+    板面 Value 必须是器件身份串; 可用本单新闸 HW/check_generator_value_drift_closed.py 的 D1/D2 回算). ★注: 本单只读不改该页 (零改既有页正文)
+    ⇒ 需 main 派单. 台账见真相页 §5'
+  since: '2026-11-24'
+- key: iss402_gate_hookup_decision
+  to: main
+  item: '★新闸 HW/check_generator_value_drift_closed.py 要不要挂进 state/gate_check.py★ (★本单按派活要求零挂链, grep -c
+    = 0★): ★代价: 不挂 ⇒ 落板前自检不会自动跑这道闸 ⇒ 26 处漂移可能再次静默溜过 (历史已发生过一次: ISS-287 只以散文记过一次); 挂 ⇒ 闸的判据变更要走 main 的签收流程
+    (本单未改任何既有闸判据·未碰 gate_check.py 一个字节). ★建议默认值: 挂, 但挂之前先由 main 过一遍 D1~D7 判据 (判据清单见真相页 §6 与闸源码)'
+  since: '2026-11-24'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -5460,6 +5663,18 @@ answers:
     修复后 RC_LIST=[0,0] 零假红 ⇒ 新闸 HW/check_gate10_concurrency_safety.py (K0~K5 六条判据) 裸跑 rc=0 · --selftest
     5/5 ALL TESTS PASS ⇒ 判据/阈值零改动 (C1~C4 与 REQUIRED_ITEMS 逐字未动) ⇒ 建议闭这条 need (闭 need 属 main 地界·本单只登记 answer)
   ref: HW/check_gate10_concurrency_safety.py + HW/PCB/BOARD_ONEPASS_GATE10_CONCURRENCY_SAFETY.md + logs/iss395/
+- key: iss401_hw_external_dep_closure
+  to: main
+  value: 'HW 域外部依赖收口完成: 8 条外部路由 (waiting_on/to ∈ {vendor,jbd}) 全部转成 已自查闭 / 已作废 / 已降级 ⇒ D1/D2 转绿; 13 项
+    TBD 全部有结论 (11 不卡 + 2 条件卡), 网表 109 行 tbd + 36 行 [待原厂] 覆盖率 100%; 6 条等原厂 blocker 全部给处置建议 (可解除 3 / 降级
+    3), HW-B7 明确不是外部依赖; 板那一趟的网表真源在外部依赖维度上已可冻结 ⇒ 板 md5 仍可只变一次'
+  ref: HANDOFF/2026-11-24_hw-lead_ISS401_HW域外部依赖自查收口.md
+- key: iss401_new_gate_do_not_chain_yet
+  to: main
+  value: '新闸 HW/check_hw_external_dep_closed.py 的挂链建议: 先落完 D1/D2 再挂 (本单已把 D1/D2 收口, 收工前裸跑 rc 应为 0); 但
+    D3/D4/D5 依赖真相页登记块内容正确 ⇒ 建议 main 先裸跑一次确认全绿再挂进 state/gate_check.py / state/daily_check.py ⇒ 本单零挂链 (挂不挂是
+    main 的地界)'
+  ref: HW/check_hw_external_dep_closed.py
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -8540,6 +8755,127 @@ interface_claims:
   value: HW/check_fts_land_drill_same_batch_sbx.py · S1~S9 · rc=0 · --selftest 11/11 ALL TESTS PASS
   note: 接口取值声明 · 新闸 (★管「生成器重跑之后这句话还在不在」·与既有 ISS-391 闸互补不替代★) · **零挂链** (挂不挂 = main 的地界·挂载行见交卷页 §B4.2)
   ref: HW/check_fts_land_drill_same_batch_sbx.py
+- key: iss391_cont1_d1_judge_criterion
+  value: '动作腿命中: 【动作词 钻孔/孔径/drill】+【改动作 →/改成/换到…】+【目标值 0.71】三者绑在一起才算命中; ★解释性上下文(括注/括号/官方出处/库件默认值)一律不算命中★;
+    闸文件 NEW L536-560'
+  note: ISS-391 cont1 · D1 改后的动作腿识别口径 · 阈值0.71未动 · verify_by=main
+  ref: ''
+- key: iss391_cont1_d2_judge_criterion
+  value: '动作腿命中: json 项与表格行两处都要有改钻孔动作腿(少一处照样红) · 目标值必须==0.71 · 闸文件 NEW L581-601'
+  note: ISS-391 cont1 · D2 改后的描述列口径 · 两处判定与改前同构 · verify_by=main
+  ref: ''
+- key: iss391_cont1_d3_judge_criterion
+  value: 同一条命令里必须同时有 ①读板(pcbnew_py.sh/LoadBoard) ②读钻孔(GetDrillSize/drill=) ③期望读数0.71 ⇒ 只在括注里写0.71不算 ·
+    闸文件 NEW L620-633
+  note: ISS-391 cont1 · D3 改后的验收手段列口径 · verify_by=main
+  ref: ''
+- key: iss391_cont1_d1_pitch_leg_criterion
+  value: 'pitch 那一腿也改成动作腿: land/pitch+改动作+目标值1.27 ⇒ 删掉pitch那一腿也判红 · 闸文件 NEW L552-560'
+  note: ISS-391 cont1 · D1 的 pitch 腿口径 · verify_by=main
+  ref: ''
+- key: iss391_cont1_fixture_real_read
+  value: '夹具=真件现读: 沙盒基线=真件当前原文副本 · 变异从真件当前原文现场定位派生 · 不依赖任何与真件逐字相等的写死常量(旧常量 WORKPACKET_DRILL_LEG/DRILL_TITLE/DRILL_STATE/DRILL_CRIT
+    已删除) · 闸文件 NEW L867-1336'
+  note: ISS-391 cont1 · 夹具真件现读的派生方式 · verify_by=main
+  ref: ''
+- key: iss391_cont1_fixture_kill_all_occurrences
+  value: 变异干掉该腿的全部出现处(不再只删第一处) · 预检清单里该腿出现在json项+表格行两处⇒两处同清
+  note: ISS-391 cont1 · remove_all()/pf_drop_desc_leg()/pf_drop_crit_cmd() · verify_by=main
+  ref: ''
+- key: iss391_cont1_fixture_skip_double_inject
+  value: 夹具识别「真件已登记过」⇒跳过重复注入 · 自检格【真件③改钻孔动作腿=1条/沙盒=1条】【真件B33描述列=1条/沙盒=1条】·对不上就FAIL
+  note: ISS-391 cont1 · 夹具未二次注入自检格 · 自测输出PASS · verify_by=main
+  ref: ''
+- key: iss391_cont1_decisive_experiment_in_fixture
+  value: 'main 的决定性实验+对照实验已固化进夹具: 用例①(删「钻孔 0.65→0.71」动作腿、保留解释括注⇒D1红)+用例⑯(③整条只剩pitch那一腿⇒D1红) ⇒ 以后谁把判据改松这两条立刻红'
+  note: ISS-391 cont1 · 决定性实验已固化进夹具 · selftest用例①与⑯ · verify_by=main
+  ref: ''
+- key: iss391_cont1_evidence_paths
+  value: 'logs/iss391/: selftest_before.log(改前14/17) bare_before.log(改前7/7) selftest_after.log(改后19/19)
+    bare_after.log(改后7/7) decisive_experiment.log(决定性实验独立复核) gate.diff(753行) md5_before.txt md5_after.txt
+    cont1_worknotes.md'
+  note: ISS-391 cont1 · 证据留档路径 · 全部本机实跑 · verify_by=main
+  ref: ''
+- key: iss391_cont1_gate_md5
+  value: 改前 md5 dabc12000b6cecb1769bb16df09f1abb (=ISS-396 签收基线) ⇒ 改后 md5 131f7edd39ecedec55a61917896a3c98
+    ⇒ 追加式·老字一字未删; 改后md5因自指悖论落在 logs/iss391/md5_after.txt
+  note: ISS-391 cont1 · 闸文件重签留痕的 md5 · verify_by=main
+  ref: ''
+- key: iss391_cont1_zero_perturbation
+  value: 板/网表/脚表/BOM/既有页正文 一个字未改 · 板 611b869e13518c3c023fb178f91a0075 · 网表 6aee500e60ba0732f83a9cf557ba90ab
+    · 脚表 9174309df1ec9411ac8e8d9e80ee386a · BOM 5b9993992405904a60ac96a020b375d8 · 作业包 00b0ea5bae70b7f663b55b9b80014d03
+    · 预检清单 192873f6c977b376c28785824a82f9f1 · 覆盖度闸 fc37ea0eee9cea6a1f2b91e3d2f581dc
+  note: ISS-391 cont1 · 零扰动自证 · 板三证逐字节未动 · verify_by=main
+  ref: ''
+- key: iss391_cont1_untouched_checks
+  value: 'D4/D5/D6/D7 四条一条未碰(改前4/4绿·改后仍4/4绿) · 回归: 覆盖度闸 rc=0 · 落表器自测 rc=0 · 裸跑仍 7/7'
+  note: ISS-391 cont1 · 未触碰的四条判据 · gate.diff无这四条的判据块改动 · verify_by=main
+  ref: ''
+- key: iss401_hw_external_dep_closed
+  value: HW 域外部依赖并集 = 8 条 (waiting_on 外部 8 条; 其中 2 条同时 to=外部 ⇒ 并集 8, 不是任务书说的 10); 收口后 D1/D2 均转绿
+  note: '实测口径: state/fragments/hw.yaml needs_from 312 条; waiting_on∈{vendor,jbd} = vendor 6 + jbd 2 =
+    8; to∈{vendor,jbd} = 2 且是那 8 条的子集 ⇒ 并集 8。任务书 §1-1 的 10 条为重复计数, 已在真相页 §0.2 订正并给可复现命令'
+  ref: HW/HW_EXTERNAL_DEPENDENCY_SELFCHECK_CLOSURE.md
+- key: iss401_tbd_closure_109rows
+  value: 网表待清行 = 109 行 (tbd 列), 其中 evidence=[待原厂] 36 行全部落在 tbd 列内 ⇒ 并集 109, 不是任务书说的 145; 13 项 TBD 全部有结论,
+    覆盖率 100%
+  note: '实测口径: tbd 列非空 = 109 行; evidence 列逐字等于 [待原厂] = 36 行 (board 全 MAIN_PCB); 交集 36 ⇒ 并集 109。另: 任何字段含
+    TBD-xx = 131 行 / 含 待原厂 = 50 行 ⇒ 宽口径并集 136, 收口分母统一取 tbd 列 109'
+  ref: HW/HW_EXTERNAL_DEPENDENCY_SELFCHECK_CLOSURE.md
+- key: iss401_tps62130a_ron_verdict
+  value: TPS62130A 高边 R_on = 120 mΩ typ @VIN=3V (90 typ / 170 max @VIN>=6V) ⇒ 原假设 R_total=100mΩ 被证伪; 方案
+    A-prime (UVP 3.35V) 成立条件 = R_total <= 142.9 mΩ, typ 路径只剩 <=22.9 mΩ 给电感 DCR, 按 max 不成立
+  note: '来源: TI 官方 datasheet tps62130a.pdf (SLVSAG7F, NOV 2011 - REV NOV 2021) 6.5 Electrical Characteristics
+    / POWER SWITCH, 本机 tmp/iss401/tps62130a.txt L304-L308; 8.2 Fig 7-3; 9.2.2.2.1 + Table 9-3 (推荐电感不给
+    DCR ⇒ DCR=[0数据])。推理链与算式见真相页 1 N-6'
+  ref: HW/HW_EXTERNAL_DEPENDENCY_SELFCHECK_CLOSURE.md
+- key: iss401_q16_display_tx_verdict
+  value: 'Q16 显示 TX = DSI TX (4-lane), 不是 DSI+DP 两者: SoM 已引出 MIPI_DPHY_DSI_TX 10 脚 (P3 57/59/63/65/69/71/75/77/81/83)
+    且未引 eDP/DP TX (只引 HDMI_TX_*); 网表 row210-229 与官方逐针表零差异'
+  note: '来源: Forlinx OK3572-C User Hardware Manual 2.6.2 (经 HW/PCB/FET3572C_PIN_TABLE.csv 399 行逐格转录) +
+    RK3572 datasheet V1.1 (HW/RK3572_OFFICIAL_DATASHEET_FACTS.md 4) + HW/netlist_v1.csv row210-229 实读'
+  ref: HW/HW_EXTERNAL_DEPENDENCY_SELFCHECK_CLOSURE.md
+- key: iss402_value_drift_count
+  value: '26'
+  note: '本机现读三方真源实测: 板面 Value 与重跑生成器会写上的 Value 逐字不同的共 26 处 = 13 处 A 板面等于网表脚级功能串 + 13 处 C 板面那句在网表里根本不存在;
+    与 ISS-287 的 26 条位号集合逐条相同但分类口径不同'
+  ref: HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md#§2
+- key: iss402_value_drift_type_split
+  value: A:13/C:13
+  note: '自定分类 (不照抄 ISS-287 的 12/14): A = 板面 Value 逐字等于该 ref 某个 type=NET 行的 value; C = 板面 Value 在该 ref
+    的任何网表行 value 里都找不到; 判据机器可算'
+  ref: HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md#§2
+- key: iss402_cvbus_gnd_board_col
+  value: CHG_BOARD
+  note: HW/netlist_v1.csv:10 与 :12 两行 board 列 = CHG_BOARD ⇒ 被生成器 BOARD_FILTER=MAIN_PCB (state/gen_pcb_netlist_board.py:112
+    + :247) 过滤 ⇒ 生成板无此封装 ⇒ 重跑即掉板 (186→185)
+  ref: HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md#§3
+- key: iss402_cvbus_gnd_on_board
+  value: 107.7 42.5
+  note: 现役官方板上有实物封装 @ (107.70, 42.50), 2 个带网焊盘 pad1=GND (板文件 :8263) + pad2=VBUS_5V_CHG (板文件 :8271), 未打
+    DNP 标记; check_pcb_nets 的 C1 报 多余 2
+  ref: HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md#§3
+- key: iss402_generator_would_be_value_rule
+  value: 本体行优先(type 不等于 NET 且非空的第一条行) + 逐字截断 40 + 特殊路径写死值(J_SOM_P1..P4/CONN_LIGHT/J_USB_C/U_TEMP) + SoM
+    占位串
+  note: 闸源码 HW/check_generator_value_drift_closed.py 内独立实现一遍, 并按板级过滤 + 本体行优先 + 40 字截断 + 特殊路径写死值 + SoM
+    占位 五段口径复算
+  ref: state/gen_pcb_netlist_board.py:596-627 + :654 + :656-658; state/som_btb_footprint.py:88-89; state/display_fpc_footprint.py:83;
+    state/usb_c_footprint.py:74; state/tmp117_footprint.py:63
+- key: iss402_dnp_mark_count_on_regen
+  value: '40'
+  note: '本机实跑 HW/check_netlist_contradiction_r3.py (rc=1 既有红项) 逐字: R3-A4 MAIN_PCB且DNP 51 颗 在板上 40 颗 零标记
+    40 颗 ⇒ 重跑生成器会一次性给 40 个位号打上 DNP 标记 (现状板上零标记)'
+  ref: HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md#§4.B
+- key: iss402_workpacket_s3_coverage
+  value: 8/26
+  note: HW/PCB/BOARD_ONEPASS_WORKPACKET.md §3-S3 的验收判据只覆盖 U_EN_SW + 7 颗 TPS7A20 共 8 处; 其余 18 处不在它的判据里
+    ⇒ 本单真相页补齐到 26 条 (本单零改既有页正文)
+  ref: HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md#§5
+- key: iss402_board_fingerprint
+  value: 611b869e13518c3c023fb178f91a0075 / 2026-11-06 07:07:17.362193413 / 4940213
+  note: '本单零写板自证: 开工前后三项指纹逐字相同'
+  ref: HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md#§6
 open_questions:
 - id: HW-Q1
   to: main

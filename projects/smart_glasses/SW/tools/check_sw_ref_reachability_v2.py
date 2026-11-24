@@ -917,6 +917,56 @@ def _gate_rc(root: str):
     return _rc, detail
 
 
+def _sync_sandbox_baseline(sandbox: str):
+    """★ISS-398 · 基线无关化 · 让沙盒的【真患集合】与判据自带的 `BASELINE_TOKENS` 登记台账自洽★
+       ★**为什么必须有这一步 (★实测根因·2026-11-24 本机实跑★)**:
+         这道闸是【差值型】的 —— 红不红取决于「实测真患条数 vs 建闸日基线 `BASELINE_COUNT`」
+         ⇒ ★**而 SW 文档里每多出一个【形状像位号】的 token (★如 `SW_MD5`·★它只是 SW 侧
+           文档/锚点/条目编号的名字·不是位号★) ⇒ 实测真患就多一条 ⇒ 基线落后一跳
+           ⇒ 整棵沙盒树在【动手之前】就已经是红的**★
+       ★**病灶 (★这才是 0/7 的真死因★)**: 差值型自测的断言形态是
+         「★破坏前必须 rc=0 ⇒ 才叫『不是巧合自证』★」⇒ ★基线一漂 ⇒ 破坏前 rc=1
+         ⇒ RC-1~RC-7 【全部】判「用例没过」⇒ 0/7 ⇒ ★**闸自曝「本闸不可信」
+         ⇒ 反而掩盖了「我不是坏了, 是账漂了」**★
+       ★**修法 (★只动夹具·判据一个字没动★)**: 在沙盒里【动手之前】先把沙盒的基线
+         同步到判据【自带】的登记台账 `BASELINE_TOKENS` ⇒ ★**把【不在登记台账里】的
+         漂移 token 从沙盒的 `SW/*.md` 副本里摘掉 (★只动副本·真盘一个字节都不写★)**
+         ⇒ ★**破坏前必然绿 ⇒ 差值型自测恢复它本来的形状:
+           破坏前绿 (基线自洽) + 破坏后按用例期望红/绿**★
+       ★**为什么【不许】用改判据的写法「修」它**: 抬 `BASELINE_COUNT` / 把漂移 token
+         塞进 `BASELINE_TOKENS` / 登记进 `EXEMPT_LEDGER` ⇒ ★**三条全是改判据
+         (★本单零改判据·且那三条口径归 main 拍★)**★
+       ★**为什么【不是】去同步 `SW/SW_MD5_BASELINE_LEDGER.md` 的网表 md5 锚点
+         (★派单单子里建议的那条路·★本机实测: 这道闸【一个 md5 都不读】★
+         ⇒ ★`grep -c md5 SW/tools/check_sw_ref_reachability_v2.py` = **0**★
+         ⇒ ★改那个锚点对 v2 的 rc **一个字节的影响都没有**·★它压根不是这道闸的基线锚点★)★**
+         ⇒ ★**这道闸真正的基线锚点 = 判据源码里的 `BASELINE_TOKENS` 登记台账** ★
+       ★**返回值**: 摘掉的漂移 token 列表 (★供留痕/打印用·不参与判定★)"""
+    import glob as _glob
+    try:
+        res = analyze(sandbox)
+    except InputError:
+        return []          # ★沙盒读不到 ⇒ 什么都不动 ⇒ 让用例自己去暴露 fail-closed★
+    drift = sorted({r["token"] for r in res["new_missing"]})
+    if not drift:
+        return []
+    for tok in drift:
+        # ★整词匹配: 前后不许再接 [A-Za-z0-9_] ⇒ 只摘【整个 token】
+        #   ⇒ 不碰 `SW_MD5_ANCHORS` / `SW_MD5_BASELINE_LEDGER` 这类【更长的 token】★
+        pat = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(tok) + r"(?![A-Za-z0-9_])")
+        # ★替换形态: 下划线换成连字符 ⇒ 打断 `SW_`/`TP_`… 这类【前缀】⇒ 该串不再被 token 化★
+        rep = tok.replace("_", "-")
+        for d in sorted(_glob.glob(os.path.join(sandbox, DOC_GLOB))):
+            try:
+                txt = open(d, "r", encoding="utf-8", errors="replace").read()
+            except OSError:
+                continue
+            new = pat.sub(lambda _m, _r=rep: _r, txt)
+            if new != txt:
+                open(d, "w", encoding="utf-8").write(new)
+    return drift
+
+
 def run_selftest(root: str, tmpdir: str = "") -> int:
     root = os.path.abspath(root)
     base = tmpdir or os.path.join(root, "tmp", "iss318_tmp")
@@ -940,6 +990,9 @@ def run_selftest(root: str, tmpdir: str = "") -> int:
     for name, expect, desc in cases:
         sandbox = os.path.join(work, name)
         _copy_input_surface(root, sandbox)
+        # ★ISS-398 · 基线无关化 · 【动手之前】先把沙盒基线同步到判据自带的 BASELINE_TOKENS 台账★
+        #   ⇒ 破坏前必然绿 ⇒ 差值型自测恢复本来的形状 (★判据一个字没动★)
+        synced = _sync_sandbox_baseline(sandbox)
         # —— 「不是巧合」自证: 同一棵沙盒树, 破坏之前必须判绿 ——
         rc_before, det_before = _gate_rc(sandbox)
         # —— 破坏 ——
@@ -997,7 +1050,7 @@ def run_selftest(root: str, tmpdir: str = "") -> int:
             ok = (rc_after != 0) and (rc_before == 0)
         else:
             ok = (rc_after == 0) and (rc_before == 0)
-        results.append((name, expect, desc, rc_before, rc_after, ok, det_before, det_after))
+        results.append((name, expect, desc, rc_before, rc_after, ok, det_before, det_after, synced))
         shutil.rmtree(sandbox, ignore_errors=True)
     shutil.rmtree(work, ignore_errors=True)
 
@@ -1007,9 +1060,11 @@ def run_selftest(root: str, tmpdir: str = "") -> int:
     print(f"沙盒根: {base}   (★真拷贝·绝不 hardlink·真盘一个字节都不写★)")
     print("-" * 74)
     passed = 0
-    for name, expect, desc, rc_before, rc_after, ok, det_before, det_after in results:
+    for name, expect, desc, rc_before, rc_after, ok, det_before, det_after, synced in results:
         mark = "✅" if ok else "❌"
         print(f"  {mark} {name} 期望={expect:5s} 破坏前 rc={rc_before}  破坏后 rc={rc_after}  {desc}")
+        print(f"      ★基线无关化★: 沙盒基线已同步到判据自带的 BASELINE_TOKENS 台账 "
+              f"(★摘掉的漂移 token: {', '.join(synced) if synced else '无·基线本来就自洽'}★)")
         if expect == "red":
             print(f"      ★不是巧合自证★: 同一棵沙盒树·破坏前 rc={rc_before} "
                   f"(红项: {', '.join(det_before) if det_before else '无'}) ⇒ 破坏后 rc={rc_after} "
@@ -1027,6 +1082,7 @@ def run_selftest(root: str, tmpdir: str = "") -> int:
     print(f"反向用例: {passed}/{len(results)} 通过")
     if passed == len(results):
         print("✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)")
+        print("ALL TESTS PASS")
         return 0
     print("❌ 有用例没抓到 ⇒ 判据可能没被真读")
     return 1
@@ -1106,3 +1162,103 @@ def _live_refs(root: str) -> set:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+# =================================================================================================
+# §ISS398-RESIGN-TRAIL · 重签留痕 (★追加式 · 老字一字未删 · ★ISS-398 · sw-lead · 2026-11-24★)
+# =================================================================================================
+# ★**本节是【追加】, 上面全部老字一个字节都没删** ★ (★md5 改前 = 2e2ee5b43c85d2a472f15d7169135832·
+#   ★mtime 2026-11-24 21:46:19 · ★size 63190 · ★改夹具那一趟落下的·★本趟只在其后追加本节★)
+#
+# ★**一 · 派单与审签** ★
+#   单号       : ISS-398 (★cont1 派单 = state/dispatch_briefs/ISS-398_sw_ref_reach_v2_selftest_baseline_independent_cont1.md★)
+#   派单人     : 项目总工 main / moli (★cron 775d9893 · ★2026-11-24 21:4x 续派·★上一趟 21:44:14~21:51:49 455.0s
+#                status=timeout · ★同期 hw-lead / mech-lead 两条同秒 abort ⇒ 共因 ⇒ 与任务内容无关★)
+#   执行人     : sw-lead (★软件总工★)
+#   审签人     : ★★main · ★待签★★ (★本单不代签★)
+#   证据留档   : logs/iss398/ (★selftest_before.log / round2_all_cmds.log / sbx_probe.log /
+#                round3_after_sync.log / v2_fixture_diff.patch / v2_before_trail.py★)
+#
+# ★**二 · 改了什么 (★逐条 · 行号 + 改前原文 + 改后原文★)** ★
+#   ★**改前整文件 md5 = 2e2ee5b43c85d2a472f15d7169135832** ★
+#   ★**改后整文件 md5 = 见 `logs/iss398/round3_after_sync.log` 的 md5 行 (★追加本留痕节后重算★)** ★
+#
+#   判据段前缀 (★offset 45580 = §SELFTEST 标记的字节位置★) md5:
+#     ★**改前 = 3111dfb21d8233bb137e4d694c8abc04** ★
+#     ★**改后 = 3111dfb21d8233bb137e4d694c8abc04** ★ (★逐字相同★)
+#   ⇒ ★**★「判据一个字未改」★★ ★ (§SELFTEST 之前的阈值 / 判定逻辑 / 红线定义 / 真患算式 /
+#     EXEMPT_LEDGER 语义 / BASELINE_COUNT 全部在 45580 字节之前 · ★一个字节都没动★)
+#
+#   改动 1 (★新增函数 · 改后 L920-968★):
+#     改前: ★(此处为空 —— 该函数建闸日不存在·建闸日原件 md5 = 1c4043ea26a1182b210e85f1b5130d8d·mtime 2026-11-18 21:37:24★)
+#     改后: ★`def _sync_sandbox_baseline(sandbox: str):` + 50 行 (★全文见 logs/iss398/v2_fixture_diff.patch hunk @@ -917,6 +917,56 @@★)
+#            ★**它只动【沙盒副本】里的 SW/*.md (★真拷贝·真盘一个字节都不写★) ⇒ 把不在判据自带
+#              `BASELINE_TOKENS` 台账里的漂移 token 从副本里摘掉 ⇒ ★破坏前必然绿★** ★
+#   改动 2 (★改后 L995★):
+#     改前: ★(此处为空 —— 该调用建闸日不存在★)
+#     改后: ★`synced = _sync_sandbox_baseline(sandbox)` ★
+#            ★**位置在 `_gate_rc(sandbox)` 【破坏前判定】之前 ⇒ 这就是「动手之前先同步基线」★** ★
+#   改动 3 (★改后 L1053 + L1063★):
+#     改前: ★`results.append((name, expect, desc, rc_before, rc_after, ok, det_before, det_after))` ★
+#           ★`for name, expect, desc, rc_before, rc_after, ok, det_before, det_after in results:` ★
+#     改后: ★`results.append((name, expect, desc, rc_before, rc_after, ok, det_before, det_after, synced))` ★
+#           ★`for name, expect, desc, rc_before, rc_after, ok, det_before, det_after, synced in results:` ★
+#            ★**纯数据结构多带一个字段 · 不参与任何判定★** ★
+#   改动 4 (★改后 L1066★):
+#     改前: ★(此处为空 —— 该打印行建闸日不存在★)
+#     改后: ★`print(f"      ★基线无关化★: 沙盒基线已同步到判据自带的 BASELINE_TOKENS 台账 " ...)` ★
+#            ★**纯打印 · 不参与任何判定★** ★
+#   改动 5 (★改后 L1085★):
+#     改前: ★(此处为空 —— 该打印行建闸日不存在★)
+#     改后: ★`print("ALL TESTS PASS")` ★
+#            ★**纯打印 · ★它是 §六「必须 rc=0 · ≥7/7 · 末行 ALL TESTS PASS」的硬要求★★
+#              ★(★不改它 `check_sw_gate_chain_coverage.py` 的 C1/C5 就会拿「末行」当账对★)** ★
+#
+# ★**三 · 为什么 (★基线漂移 ⇒ 差值型自测全灭 · 逐字引 RC-5/6/7 的失败输出★)** ★
+#   这道闸是【差值型】的 —— 红不红取决于「实测真患条数 vs 建闸日基线 BASELINE_COUNT」。
+#   SW 文档里每多出一个【形状像位号】的 token (★`SW_MD5` · ★它只是 SW 侧文档/锚点/条目编号的名字·不是位号★)
+#   ⇒ 实测真患就多一条 ⇒ 基线落后一跳 ⇒ ★**整棵沙盒树在动手之前就已经是红的**★。
+#   RC-5/RC-6/RC-7 三条用例的断言形态都是「★破坏前必须 rc=0 ⇒ 才叫『不是巧合自证』★」
+#   ⇒ ★基线一漂 ⇒ 破坏前 rc=1 ⇒ 三条全灭 ⇒ 0/7 ★★⇒ 闸自曝「本闸不可信」⇒ 反而掩盖了
+#   「我不是坏了, 是账漂了」★★ ★
+#   ★**改前逐字失败输出 (★logs/iss398/selftest_before.log ★18:26 落盘★)** ★:
+#     ★`❌ RC-5 期望=red   破坏前 rc=1  破坏后 rc=2  ★网表读不到 ⇒ 必须红 (fail-closed★)` ★
+#     ★`★用例没过★ 破坏前 rc=1 (★必须 0 ⇒ 才叫「不是巧合」★) 破坏后 rc=2` ★
+#     ★`❌ RC-6 期望=green 破坏前 rc=1  破坏后 rc=1  ★板改名 + SW 文档同步改成新名 ⇒ 必须绿 (★证明判据没写死「改名方案」★)` ★
+#     ★`★用例没过★ 破坏前 rc=1 (★必须 0 ★) 破坏后 rc=1` ★
+#     ★`❌ RC-7 期望=green 破坏前 rc=1  破坏后 rc=1  ★原样不动 ⇒ 必须绿 (★正向对照·不许把闸修成永远红★)` ★
+#     ★`★用例没过★ 破坏前 rc=1 (★必须 0 ★) 破坏后 rc=1` ★
+#     ★`反向用例: 0/7 通过` ★
+#     ★`❌ 有用例没抓到 ⇒ 判据可能没被真读` ★
+#   ★**改后逐字 (★logs/iss398/round2_all_cmds.log §[1]★)** ★:
+#     ★`✅ RC-5 期望=red   破坏前 rc=0  破坏后 rc=2  ★网表读不到 ⇒ 必须红 (fail-closed★)` ★
+#     ★`✅ RC-6 期望=green 破坏前 rc=0  破坏后 rc=0  ★板改名 + SW 文档同步改成新名 ⇒ 必须绿 (★证明判据没写死「改名方案」★)` ★
+#     ★`✅ RC-7 期望=green 破坏前 rc=0  破坏后 rc=0  ★原样不动 ⇒ 必须绿 (★正向对照·不许把闸修成永远红★)` ★
+#     ★`反向用例: 7/7 通过` ★
+#     ★`✅ 反向用例全抓到 ⇒ 判据真在被读 (★不是把红灯调没 ★)` ★
+#     ★`ALL TESTS PASS` ★ (★rc=0★)
+#
+# ★**四 · ★★「判据一个字未改」逐字声明★★ ★
+#   ★**阈值 / 判定逻辑 / 红线定义 / 「真隐患」的算式 / `EXEMPT_LEDGER` 的语义 / `BASELINE_COUNT`
+#   —— 一个字都没有改。** ★
+#   ★**可判的自证 (★三条·全部本机实跑★)** ★:
+#     ① 判据段前缀 md5 改前改后逐字相同 = ★3111dfb21d8233bb137e4d694c8abc04★ (★offset 45580★)
+#     ② 全部 5 个 hunk 的位置都 ★≥ offset 45580★ (★没有一条 hunk 落在判据段里★)
+#     ③ `BASELINE_COUNT = 3` / `BASELINE_TOKENS` 三个键 (★TP_INT / TP_TEMP / CONN_USB★) / ★**`EXEMPT_LEDGER` 16 条登记★**
+#        —— 全部逐字未动 (★★`SW_MD5` 仍未登记进 `EXEMPT_LEDGER`★ ⇒ 口径 B 那条路本单零应用★)
+#   ★**改的只有【夹具怎么造沙盒】+【怎么把结果打出来】· 没改【怎么判红绿】** ★
+#
+# ★**五 · 零改判据的第三件事: 裸跑仍红 (★本单不代拍那条口径★)** ★
+#   ★**裸跑 (`python3 SW/tools/check_sw_ref_reachability_v2.py`) 改前改后都是 rc=1 · 红因逐字相同** ★:
+#     ★`[FAIL] 位号引用解析不到 (新增真隐患·超基线): SW_MD5 @ SW/BOARD_ONEPASS_LEGB_SW_IMPACT.md:453` ★
+#     ★`[FAIL] 真隐患条数 4 > 基线上限 3 (★基线只许收紧不许放宽★)` ★
+#   ★⇒ 本单【没有】把裸跑刷绿 ★⇒ ★**没有放宽判据·也没有动盘上真件 `SW/SW_MD5_BASELINE_LEDGER.md` 的锚点** ★
+#
+# ★**六 · 本单【零应用】的两条口径 (★归 main 拍·详见交卷页 B5-1★)** ★
+#   口径 A (维持现状) / 口径 B (登记进 `EXEMPT_LEDGER`) / 口径 B′ (抬 `BASELINE_COUNT`) / 口径 C (改文档字面量)
+#   —— ★**四条一条都没应用** ★ ⇒ ★**`EXEMPT_LEDGER` 与 `BASELINE_TOKENS` 本单零写入** ★
+#
+# ★**七 · 审签 (★待 main 签★)** ★
+#   ★**审签人: main · ★状态: 待签★★ ★
+#   ★★审签人确认即视为本留痕闭环; 未签之前 `SW/tools/check_sw_ref_reachability_v2.py` 处于
+#   「已改未签」状态 ⇒ ★本节即是这状态的唯一记录处★ ★

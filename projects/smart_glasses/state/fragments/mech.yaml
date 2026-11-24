@@ -6,11 +6,13 @@ status:
   phase: done
   progress_pct: 100
   health: yellow
-  summary: 'iss397 交卷完成: 真相页 MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md (§1~§9 齐全 + 机器块 22 键)
-    + 新闸 MECH/check_fts_seat_sample_plan.py (A~F, ★裸跑预期 rc=1 = 红的是现状【三量实测档仍 0数据】不是闸故障★, --selftest rc=0
-    末行 ALL TESTS PASS 正向1+反向18, 零挂链) + 沙盒预演 tmp/iss397/sandbox_rehearsal.py (假数据⇒全绿 33/33, 真树⇒仅 B.6 红)
-    + 交卷页 HANDOFF/2026-11-24_mech-lead_ISS397_*.md (B1~B6 齐全); 结论 = 降级方案 D2 的作业包已成可执行文本, 收样排期/取件/重评/键名笔误/两档校准
-    五条全交 main 一条不代拍; 零写板 零落表 零改既有闸与既有页正文 零挂链 零外发 不代拍 不自签台账'
+  summary: 'iss400 交卷完成 (mech-lead · 2026-11-24 23:0x): 全仓机器块指针可解析性清账 + 新建一道机器闸 + 把三条死指针的逐字改法写好交 main。真相页
+    MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md (主范围 115 条指针 ⇒ A 64/B 9/C 3/D 19/E 20; 已知 3 条死指针
+    L176/L177/L178 全部命中; 真槽登记表 = 全仓唯一 three_quantities.*.measured_value 且只有 check_fts_seat_sample_plan.py
+    读它; T1/T2 两个落点无闸读) + 新闸 MECH/check_machine_block_pointer_resolvable.py (P1~P7; 裸跑预期 rc=1 = 红的是现状 51
+    条不是闸故障; --selftest rc=0 末行 ALL TESTS PASS 正向3+反向9=12 条; 零挂链零写板) + 交卷页 HANDOFF/2026-11-24_mech-lead_ISS400_机器块指针可解析性清账.md
+    (B1~B7 齐全; 6 条问句交 main 一条不代拍; 自曝对自家闸做过 6 处修正) + 留证 logs/iss400/ 13 个文件。零写板 零落表 零改既有页正文与既有闸判据源码 零挂链
+    零外发 不代拍 不自签台账 只写 state/fragments/mech.yaml'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -1878,6 +1880,60 @@ artifacts:
   updated_at: '2026-10-25'
   summary: 'iss397 验收自证 part2: 四道既有 MECH 闸全部 rc=0 (body_geometry / vs_generic_courtyard_delta / onepass_mech_release
     / onepass_mech_sync) + 板与三表 md5 同基线 + 板 mtime/size 未动 + 六个已签收件 md5 同基线 + 零挂链 grep=0'
+- path: MECH/BOARD_ONEPASS_SIGNED_APPEND_LEDGER_DESIGN.md
+  kind: truth
+  version: iss399
+  updated_at: '2026-10-25'
+  summary: 'ISS-399 真相页: MECH 域【钉别人 md5】全量清账 + 三处陈旧 pin 逐条裁定 + 台账设计 + 三条逐字补丁(不应用)。§1 代码级 AST 枚举全量 49 处(P1
+    硬钉 42 / P2 板族钉 4 / P3 台账通道钉 3, 11 道闸)并给 §1.5 机器块(由新闸自己的枚举器生成⇒闸与页同源); §2 三处陈旧 pin 逐条裁定(用盘上留下的改动前副本做逐字节
+    diff: ISS-374 cont2 2026-11-24 04:12/04:13 改了 5 行表格 + 2 行 selftest 夹具, ISS-296 2026-11-17 20:25:32
+    改判决源 ⇒ 三处【没有一处是纯字节追加】⇒ house 规矩「追加式订正·老字一字未删」在这三处不成立 ⇒ 台账字段据此改成【改动性质 + 旧值是否留档 + 是否已在交卷页披露 + 结论数有没有变】);
+    §3 台账(原子记录 7 字段 + 落位建议 + fail-closed 4 条 + 判决源换法); §4 三条逐字补丁(新建只读 helper / check_connector_clearance_caliber.py
+    的 K7 / check_zoujuan_marker_consistency.py 的 K5)★本单一条都没落★; §5 挂链建议(M-C 待 main); §6 边界自证 + 本单对新闸 4
+    处实现缺陷修正的如实登记 + 一个残留缺口。零写板·零落表·零改既有闸·零改既有页正文·零挂链·零外发·不代拍。'
+- path: MECH/check_mech_signed_append_ledger.py
+  kind: script
+  version: iss399
+  updated_at: '2026-10-25'
+  summary: 'ISS-399 新建只读自守闸 M1~M7: M1 代码级 AST 枚举 MECH 域每处【硬钉别人 md5】的 pin 并要求逐处在 §1 机器块在册(新闸从缝里溜过去⇒判红)
+    / M2 陈旧检测(基线≠盘上现值⇒判红·红的是现状不是闸故障) / M3 归因可查(台账里查不到 单号+prev_md5+md5 四项齐全的一行⇒来源不明的漂移⇒判红) / M4 不许靠改常量消红(常量与
+    §1 登记基线不同却没台账行⇒判红·★本闸最核心的护栏★) / M5 板三证 md5+mtime(ns)+size / M6 证据分级五级白名单 + 零挂起措辞 / M7 零挂链(grep -c
+    state/gate_check.py ⇒ 0)。--selftest 12 条反向用例(≥8)全抓到、末行 ALL TESTS PASS, 其中 c06 专打 M4「悄悄改常量⇒必红」、c07
+    是 M4 反向自证(改常量 + 台账留一行⇒仍绿)。★裸跑预期读数 = rc=1: M2/M3 红 = 现状(3 处陈旧 pin 归因不到台账·台账还没建)⇒ 不许为了让它绿而放宽判据★。本单对它做了
+    4 处实现缺陷修正(详见真相页 §6.2: M5 纳秒比对假红 / M6 词表自命中假红 / c01 期望写法 / 沙盒未复制被钉页导致 4 条用例假通过), 4 处全是修假红, 判据与阈值常量一条没动,
+    闸整体仍红。'
+- path: HANDOFF/2026-11-24_mech-lead_ISS399_MECH域已签收件追加台账设计与自守闸.md
+  kind: handoff
+  version: iss399
+  updated_at: '2026-10-25'
+  summary: 'ISS-399 交卷页: B1 结论摘要 / B2 验收标准自评(逐条 通过·不通过·未验) / B3 证据分级 / B4 接口取值声明 / B5 未决项与卡点(M-A·M-B·M-C·M-D
+    四条 to=main·一条都不代拍·各带代价) / B6 自证复现命令(必跑命令原样输出 + rc) / B7 边界自证(含板三证与 11 道既有闸 md5)。'
+- path: MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md
+  kind: truth_page
+  version: iss400
+  updated_at: '2026-10-25'
+  summary: 'ISS-400 真相页 (本单新建 · 零改既有页正文): 全仓机器块指针可解析性清账。§0 结论摘要 (主范围 115 条指针 ⇒ A 64/B 9/C 3/D 19/E 20;
+    已知 3 条死指针 L176/L177/L178 全部命中; 板只改一次 = 动作做完但数据落不了地) + §1 扫描范围与指针形态 (主范围 MECH/ 58 页 + 旁证 HW/PCB,SW;
+    机器块识别用 json.loads 不用正则; 根段过滤把 2558 条带点号 token 收敛到 143 条) + §2 悬空/歧义/误指/无归属逐条清单 (逐条给源页+行号+指针逐字+目标页+为什么+逐字改法建议)
+    + §2.4 加分项 = 三条死指针的追加式订正块候选逐字文本 + §3 真槽登记表 (全仓唯一真槽 = ISS-397 页 three_quantities.*.measured_value;
+    全仓只有 check_fts_seat_sample_plan.py 读它; T1/T2 两个落点无人读) + §4 新闸判据 P1~P7 与 selftest 12 条用例 + §5 连带影响面
+    (两枚 md5 pin + ISS-399 清账表两处 + 指针被抄四遍) + §6 实跑留证索引。'
+- path: MECH/check_machine_block_pointer_resolvable.py
+  kind: gate
+  version: iss400
+  updated_at: '2026-10-25'
+  summary: 'ISS-400 新闸 (本单新建 · 零改既有闸判据源码 · 零挂链): 判机器块指针能不能真的解析到一个存在的槽。裸跑 rc=1 (红的是现状: 主范围 A 类之外 51 条)
+    · --selftest rc=0 末行逐字 ALL TESTS PASS (正向 3 + 反向 9 = 12 条用例全绿)。P1 扫描范围可复现 (闸自己扫, 不写死) · P2 候选识别 (P1/P2/P3/P4
+    + 明确排除 P5 自然语言引用) · P3 JSON 逐段下钻 (含 [0]/[]/*/占位/按 id 选列表元素; 全闸无一处子串命中当解析) · P4 A/B/C/D/E 五类分类输出 (每条带源页+行号+指针逐字+判定+目标页+为什么)
+    · P5 实测槽判定独立跑出 D 误指类 · P6 三条已知死指针逐条点名且 selftest 证明去掉一条条数就少一条 · P7 零写板自证。夹具纪律: 期望值一律从真文件现读现算, 不硬抄真件指针文本。'
+- path: HANDOFF/2026-11-24_mech-lead_ISS400_机器块指针可解析性清账.md
+  kind: handoff
+  version: iss400
+  updated_at: '2026-10-25'
+  summary: 'ISS-400 交卷页 (本单新建): B1 结论摘要 (B/C/D/E 分布 + 本单已知的 3 条死指针是否全部命中 + 新闸裸跑/自测读数 + 一句话对板只改一次意味着什么
+    + 比任务书多找到的 6 条) + B2 独立复核自证 (§2 八条我自己跑的结果, 含题面第 6 条算术少 1 的如实披露) + B3 证据分级逐条标 + B4 边界自证 (板三项指纹/三表/三页/11
+    闸 md5/零挂链 grep/不自签 issue_log/只写自己分片) + B5 留给 main 的 6 条问句 (每条带问法+建议默认值+不答后果+代价+归属) + B6 复现命令与 rc (logs/iss400/)
+    + B7 本单对新闸做过的 6 处修正全部主动交代。'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -3591,6 +3647,90 @@ needs_from:
     槽位 ⇒ 谁把 measured 填成 [实测] 而没有原始读数, 这道闸抓不到 (★只登记, 本单零改既有闸源码★); 本单新闸 MECH/check_fts_seat_sample_plan.py
     的判据 B 正是补这个洞 ⇒ 新闸要不要挂进 state/gate_check.py? ⇒ 建议默认值: 挂 (★挂链是 main 的地界, 本单零挂链·grep=0 已自证★; 挂进去后门禁链会多一道当前为红的闸,
     红的原因是现状不是故障) ⇒ 不答的后果: 补洞的那道闸只躺在盘上没人跑 ⇒ 与 check_fts_seat_body_geometry.py 当年「rc=1 却没人跑」同一个病灶重演'
+  since: '2026-11-24'
+- key: iss399_ledger_location
+  to: main
+  item: 'ISS-399 M-A: MECH 域【已签收件追加登记台账】放哪/叫什么/谁写? 候选 A=新建 MECH/SIGNED_APPEND_LEDGER.md / B=复用 HW/SCHEMATIC_LANDING_V1_LANDED.md
+    的 MECH 段 / C=放 state/ 下。本单建议 A(理由: B 那本是板侧落表台账, MECH 页的追加式订正不是落表, 塞进去污染板那条链; C 让闸跨域读账)。不答的后果: 台账没落位
+    ⇒ 3 处陈旧 pin 永远归不了因 ⇒ 板那一趟每一处合法追加都变成「来源不明」⇒ 收工验收的红没法判读(★本单已把 3 处的归因查清写进真相页 §2·但归因不在判决源里⇒ 下一个 agent
+    还得再查一遍★)。建议默认值: A; 新闸已按 A 实现(改一个常量即可)。'
+  since: '2026-11-24'
+- key: iss399_stale_baseline_rebase
+  to: main
+  item: 'ISS-399 M-B: 已陈旧的 3 处基线怎么追平 —— 追平到「台账登记值」还是「显式改常量 + 台账留一行」? 本单建议【走台账登记值】(与 ISS-303 N6 同形), 且必须同时落真相页
+    §4 的三条逐字补丁(硬基线 ∪ 台账链头)。不答的后果: 3 处永久红 ⇒ 每个跑这两道闸的 agent 都要自己写一句「这红不是我造成的」⇒ 噪音永续(ISS-382 已经这么写过一次)。★代价提示:
+    走台账登记值 = 台账链头成了新的合法基线 ⇒ 台账一旦被改坏就全域判红 ⇒ 台账的写权限必须比闸还紧 ⇒ 这就是 M-A「谁写」那一问的真正代价★。本单【没有】动那 11 道闸的任何一行(逐字补丁只写在真相页
+    §4)。'
+  since: '2026-11-24'
+- key: iss399_gate_hook
+  to: main
+  item: 'ISS-399 M-C: 本单新闸 MECH/check_mech_signed_append_ledger.py 挂不挂 state/gate_check.py? 本单零挂链(grep
+    -c ⇒ 0), 挂不挂归 main。建议【挂】(与 SW 侧 SW/tools/check_sw_board_md5_rebase_readiness.py 同等待遇)。不答的后果: 不挂 ⇒
+    下一个 agent 新造一道钉 md5 的闸, 照样从缝里溜过去(SW 侧 H4 抓的就是这个, MECH 域至今没有对偶)。★★挂链时机建议: 先 M-A → M-B (→ M-D) → 落台账
+    + 落补丁 → 再挂 ⇒ 否则等于往官方链上挂一道永久红的闸 ⇒ 比不挂更糟(会让人开始习惯性忽略官方链的红)★。'
+  since: '2026-11-24'
+- key: iss399_append_is_legal
+  to: main
+  item: 'ISS-399 M-D: 「追加式订正」在 MECH 域到底算不算「合法变更」? K7/K5 两条判据说【已签收件不许改】(逐字节 md5 不变), 而 house 规矩说【追加式订正·老字一字未删】也算合法。本单【本机逐字节
+    diff 的实测结论】: 三处陈旧 pin 【没有一处是纯字节追加】 —— ① ISS-374 cont2 把真相页 5 行表格就地替换(5.4404→2.6400 等)+ 尾部追加 §7 ② 同单把闸的
+    2 行 selftest 夹具字段改名 ③ ISS-296 改了 G5b 判决源 ⇒ ⇒ 「老字一字未删」这条自证【三处一条都过不了】⇒ 按它设计台账会永远判红。不答的后果: 口径不定 ⇒ 台账与判据打架
+    ⇒ 闸永远红。本单建议: 合法, 但台账必须记【改动性质 + 旧值是否留档 + 是否已在交卷页披露 + 结论数有没有变】(真相页 §3.1 已给表头) ⇒ 判据从「不许改」改成「不许【悄悄】改」。'
+  since: '2026-11-24'
+- key: iss400_q1_fix_iss393_pointer
+  to: main
+  item: 'ISS-400 问句 1 (to=main): MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md §5 动作表 L176/L177/L178
+    的三个 dimensions.factory_*.measured 要不要按追加式订正块改对? 候选逐字文本已在真相页 §2.4 写好 (本单零改那一页正文)。★建议默认值: 要改, 但必须三件事同批:
+    (a) ISS-393 页 §6 机器块 dimensions.<量> 追加 measured/measured_evidence/measured_readings (= ISS-397 §5.2
+    的 T2) (b) §5 三条指针去掉 factory_ 前缀 (c) §1 表第 N 行改成 §1 之后追加的实测档块 (§1 是标称档表, 5-6 列里没有放实测值的列) ★不答的后果: §5
+    一直把人指向不存在的格 ⇒ 三量实测永远落不了地 ⇒ 投板前必量这个前置动作永远不成立 ⇒ 板改第二次 或 那一趟永远不开工 ★代价: 不改=0 成本但把板改第二次的风险留到投板那天; 改=要同批落
+    T2 追加块 + 刷两枚 md5 pin + 刷 ISS-399 清账表两处 (见问句 2) ★归属: main。'
+  since: '2026-11-24'
+- key: iss400_q2_refresh_md5_pins
+  to: main
+  item: 'ISS-400 问句 2 (to=main): 改指针时, MECH/check_fts_seat_sample_plan.py L70/L71 那两枚 md5 pin (ISS-390
+    页 15697668d10368e971710069c9b73994 / ISS-393 页 0cb3ff2de940522b467ca3b01feda11c) 要不要同批刷新? ★建议默认值:
+    要, 且必须与订正块同一次提交, 并把新旧值逐字写进交割 ★不答的后果: 改了页不刷 pin ⇒ 收样闸当场变红且红的是 md5 pin 那条 ⇒ 与现状就该红的 B.6 混在一起 ⇒ 以后没人分得清红是现状还是红是我刚改坏的
+    ★代价: 刷 pin = 改既有闸常量 = main 地界 (本单零改既有闸判据源码); 不刷 = 一次误判的种子 ★附带请一并裁: ISS-399 真相页 §1.2 L93/L94 与 §1.5
+    L301/L307 逐字登记了这两枚 pin ⇒ 改页 ⇒ 那张清账表也要同批刷新 ★归属: main。'
+  since: '2026-11-24'
+- key: iss400_q3_answer_iss397_q94
+  to: main
+  item: 'ISS-400 问句 3 (to=main): ISS-397 页 L199 (逐字登记) + L338 (逐字问 main) 挂了两天的那条问句, 是不是就由本单的逐字改法来答? ★建议默认值:
+    是, 但问句的措辞必须一起更正 ⇒ 原问句写的是三个 factory_* 键名是笔误回填必须用真键名 ⇒ 这个措辞本身不完整 (改了键名还是填不进, 因为 measured 字段根本不存在; 且
+    ISS-393 页自己的 degradation.measure_fill_back 登记的三条槽位也不存在 ⇒ 该页自相矛盾) ⇒ 问句应改成 §5 的三条指针 + §6 的 measure_fill_back
+    三条槽位都没有开 measured 字段 ⇒ 要不要落 T2 追加块 + 指针订正块 (同批) ★不答的后果: 继续挂着 ⇒ 下一趟还会有人重新发现一遍 ⇒ 同一个坑重复踩 ★代价: 答按原措辞改键名
+    = 改到不报错但填错地方那一档 = 假绿 ★归属: main (问句在 ISS-397 页上, 本单零改那一页)。'
+  since: '2026-11-24'
+- key: iss400_q4_hook_new_gate
+  to: main
+  item: 'ISS-400 问句 4 (to=main): 新闸 MECH/check_machine_block_pointer_resolvable.py 挂不挂 state/gate_check.py?
+    本单零挂链 (grep -c = 0) ⇒ 挂不挂归 main。★建议默认值: 先不挂 ⇒ 它裸跑就是红的 (现状 51 条) ⇒ 直接挂链会让 G1 链天天红, 而红是现状这件事本身没有表达机制
+    ⇒ 建议顺序 (1) 先按问句 1/2/5 把 B/C/D/E 改到位 (2) 闸自然变绿 (3) 再挂链, 挂链后它就是指针又写歪了的守门员 (4) 若要提前挂, 必须先解决红=现状怎么在链上表达
+    ★不答的后果: 零挂链 = 红了没人知道 (ISS-398 交卷自曝的那一类) ⇒ 但挂链要占 G1 链的一个位且它裸跑就是红的 ⇒ 挂链前得先想清楚红=现状怎么表达 ★代价: 不挂 = 这次清账没有守门员
+    (下一趟还会有人写歪指针); 挂 = 若不先解决表达问题, 会把现状红与新写歪了混在一起 ★归属: main (挂链是 main 的机制地界)。'
+  since: '2026-11-24'
+- key: iss400_q5_true_slot_decision
+  to: main
+  item: 'ISS-400 问句 5 (to=main, ★本单最核心的一条★): 「量完填回哪一格」的正式答案到底是哪一格? 全仓有三个候选落点, 而唯一有闸读的那个没有任何动作表指到它 ⇒ T1
+    = ISS-390 body_geometry.<料号>.<量>_mm (无闸读 + 无 measured* 字段 ⇒ 填了会覆盖标称 value ⇒ D 误指); T2 = ISS-393 dimensions.<量>
+    (无闸读 + measured 字段还没开 ⇒ B 悬空); 真槽 = ISS-397 页 three_quantities.*.measured_value (唯一有闸读: check_fts_seat_sample_plan.py,
+    但没人被指到它) ⇒ 三个动作表 (ISS-393 §5 / ISS-390 §3.1 / ISS-397 §5) 要不要统一改指真槽? 还是保留 T1/T2 两处落点 + 另建一道读 T1/T2
+    的闸? ★建议默认值: 三个动作表统一改指真槽, T1/T2 降级为只读镜像或撤掉 ⇒ 理由: 唯一有闸读的就是它, 落点越少越不会填歪, 且 ISS-397 页 md5 无人钉 ⇒ 改它不破 pin
+    ★不答的后果: 测完的数永远落不了地 ⇒ 收样闸永远红在 B.6 ⇒ 要么被人读成还没到收样时点 (带 [0数据] 公差投板 ⇒ 板改第二次), 要么那一趟永远不许开工 ★代价: 统一指真槽 =
+    三个动作表各改一句 (全是追加式订正块, 老字不删) + ISS-390/ISS-393 两页 md5 pin 要刷; 保留 T1/T2 = 要新建一道读 T1/T2 的闸 (本单不建, 属 main
+    派活) ⇒ 工作量更大且两处落点无闸读 = 填了也没人验 ★归属: main (口径选择) + mech-lead 执行改写 (若拍统一指真槽)。'
+  since: '2026-11-24'
+- key: iss400_q6_evid_scope_followup
+  to: main
+  item: 'ISS-400 问句 6 (to=main): 旁证范围 (HW/PCB + SW) 本单只列不改, 共 8 条 ⇒ B 悬空 1 条 (SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md
+    L229 evt_current_criterion_a, 目标页 SW/EVT_TEMPLATE.md) + E 无归属 7 条 (HW/PCB/SCHEMATIC_REVIEW_READY.md
+    L198/L199 board.design_settings.rules / board.design_settings.rule_severities; SW/BOARD_ONEPASS_DEBUG_HEADER_FW_IMPACT.md
+    L201 pins.csv; SW/BOARD_ONEPASS_SW09_LANDING_PATCH.md L331/L456 items[]; SW/ONETRIP_SW_SAMEBATCH_RENAME_LIST.md
+    L564 gate.R6_TREE_FILES; SW/RK3572_TARGET_COMPAT_V2.md L270 gates.log) ⇒ 要不要另开单? 归哪个总工? ★建议默认值: 不另开单
+    ⇒ 8 条里 7 条是 E 类 (目标页没写出来 ⇒ 只是补一句全路径, 一行的事), 1 条 B 悬空是 EVT_TEMPLATE 页的键名 ⇒ 建议各域总工在自己下一次动那一页时顺手补; 若
+    main 要集中清, 建议并进 SW 侧已有的指针/引用可达性那一趟 (MECH/tools/check_mech_ref_reachability.py 已在做同形的事, 可复用其口径) ★不答的后果:
+    这 8 条继续挂着 ⇒ 下一趟又有人重新发现一遍 ⇒ 同一个坑重复踩 ★代价: 另开单 = 一个新单的成本; 不另开 = 8 条继续挂着 (但都不影响板那一趟) ★归属: main 派活; 执行分
+    hw-lead (HW/PCB 2 条) 与 sw-lead (SW 6 条)。'
   since: '2026-11-24'
 answers:
 - key: pcb_outline_confirm
@@ -6724,6 +6864,83 @@ interface_claims:
     main'
   note: '[实测] 本单作业包 §4.3 + MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md §2 A 类 11 条的唯一成立条件'
   ref: ''
+- key: mech_md5_pin_inventory_count
+  value: '49'
+  note: 【MECH 域钉别人 md5 的 pin 总数】= P1 硬钉 42 处(11 道闸) + P2 板族钉 4 处 + P3 台账通道钉 3 处。★任务书 §一 手数的那张表是 35 处(只点了
+    9 道闸)·漏了 MECH/cavity_recalc_check.py 的 5 处与 MECH/display_biosafety_v2_check.py 的 2 处★ ⇒ 下一趟别再按 35
+    数。
+  ref: MECH/BOARD_ONEPASS_SIGNED_APPEND_LEDGER_DESIGN.md §1.1/§1.4
+- key: mech_stale_pin_attribution
+  value: '3 处: ISS-374 cont2 ×2 + ISS-296 ×1'
+  note: '【MECH 域现存 3 处陈旧 pin 的归因】: ① MECH/check_connector_clearance_caliber.py L84 钉 MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md
+    (ffc09939→f1ce54c9) 与 ② 同闸 L86 钉 MECH/check_juart_1p27_clearance.py (ea89e0dd→daf8fa36) ⇒ 均为 ISS-374
+    cont2 (2026-11-24 04:12:52 / 04:13:02) 的已披露口径订正; ③ MECH/check_zoujuan_marker_consistency.py L63 钉
+    MECH/check_demo_struct_truth.py (fa9b59e5→483d018a) ⇒ ISS-296 (2026-11-17 20:25:32) 的 G5b 合法改板通道改造。★三处都已披露、都不是偷改
+    ⇒ 判红是【正确的红】; 但三处【没有一处是纯字节追加】(① 5 行表格就地替换 + 尾部追加 §7, ② 2 行 selftest 夹具字段改名, ③ 判决源改造)★ ⇒ 跑这些闸的 agent
+    不用再自己考古。'
+  ref: MECH/BOARD_ONEPASS_SIGNED_APPEND_LEDGER_DESIGN.md §2
+- key: mech_signed_append_ledger_schema
+  value: 表头 = 单号|文件|prev_md5|md5|追加类型|追加位置|自证
+  note: '【MECH 域已签收件追加登记台账】的记录格式(★本单设计·★落位与措辞待 M-A/M-B/M-D 拍板·本单一条都没代拍★): 原子记录 7 字段, append-only 只许往后加行。★第
+    5 栏「追加类型」枚举 = 纯字节追加 | 局部订正★; 第 7 栏「自证」必须含三条: ①旧值是否留档(含留档位置) ②是否已在交卷页披露(给交卷页 + md5 台账行号) ③判定结论数有没有变。★任务书原文写的「老字逐字未删」自证【三处陈旧
+    pin 一条都过不了】⇒ 已据此改为上面三条(对得上现实的自证)。记录块标记 = MECH-SIGNED-APPEND-LEDGER-RECORDS-BEGIN/END。fail-closed 4
+    条: 台账读不到 / 链断 / 链头无单号 / 链头≠盘上现值 ⇒ 判红。'
+  ref: MECH/BOARD_ONEPASS_SIGNED_APPEND_LEDGER_DESIGN.md §3.1/§3.3
+- key: mech_ledger_path_proposed
+  value: MECH/SIGNED_APPEND_LEDGER.md
+  note: '【M-A 待 main 拍的建议默认值】台账落位 = 新建 MECH/SIGNED_APPEND_LEDGER.md(理由: HW/SCHEMATIC_LANDING_V1_LANDED.md
+    是板侧落表台账, MECH 页的追加式订正不是落表, 塞进去会污染板那条链)。★本闸已按此路径实现(常量 LEDGER_REL)⇒ main 拍别的路径改这一个常量即可·不改判据★。★本单【没有】创建这个台账文件
+    ⇒ M3 因此红(现状红·等 M-A/M-B)。'
+  ref: MECH/BOARD_ONEPASS_SIGNED_APPEND_LEDGER_DESIGN.md §3.2 + MECH/check_mech_signed_append_ledger.py
+    LEDGER_REL
+- key: iss400_pointer_ledger_main_scope
+  value: 主范围 MECH/ 115 条机器块指针 ⇒ A 可解析 64 / B 悬空 9 / C 歧义 3 / D 误指 19 / E 无归属 20 ⇒ A 类之外 51 条; 旁证范围 HW-PCB+SW
+    28 条 ⇒ A 20 / B 1 / E 7 (只列不改)。本单已知的 3 条死指针 (BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md L176/L177/L178)
+    全部命中并被新闸 P6 判据逐条点名。
+  note: 'to=main | 全仓清账结果 (本机实读 · 不抄任何 agent 报告)。★板只改一次含义: 座体三量实测从量到落地的最后一米断了 ⇒ 测到的数进不了任何闸读的格子 ⇒ 收样闸永远红在
+    B.6 ⇒ 要么被人读成还没到收样时点 (带 [0数据] 公差投板 ⇒ 板改第二次), 要么那一趟永远不许开工 ⇒ 这是动作做完但数据落不了地, 不是算错。'
+  ref: MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md §0 / §2
+- key: iss400_true_slot_registry
+  value: 全仓唯一的三量实测真槽 = MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md §6 机器块 three_quantities.{insulator_height_z,
+    seat_body_width_x, seat_body_depth_y}.measured_value / measured_evidence / measured_readings (现值 null
+    / [0数据] / [])。唯一消费者 = MECH/check_fts_seat_sample_plan.py (L45 PAGE_REL / L75 QUANT_KEYS / L223 blk.get(three_quantities)
+    / L258 measured_value, 允许按料号开 dict)。★全仓 grep measured --include=*.py ⇒ 只有这一个闸读 measured_value/measured_evidence
+    ⇒ ISS-397 自己设计的 T1 (ISS-390 body_geometry.*) 与 T2 (ISS-393 dimensions.*) 两个落点没有任何闸读 ⇒ 三个候选落点没有一条通路把它们连起来。
+  note: 'to=main | ★这一条是本单最核心的结论: 唯一有闸读的槽 (真槽) 没有被任何一个动作表指到; 被指到的两个一个误指 (无 measured* 字段 ⇒ 填了会覆盖标称 value)
+    一个还不存在 (measured 字段没开) ⇒ 板那一趟量完的数进不了任何闸读的格子。'
+  ref: MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md §3.1 / §3.2 / §5.4
+- key: iss400_new_gate_criteria
+  value: '新闸 MECH/check_machine_block_pointer_resolvable.py: 裸跑 rc=1 (红的是现状 51 条) · --selftest rc=0 末行逐字
+    ALL TESTS PASS (12 条用例: 正向 3 + 反向 9, 全绿) · 零写板 (只读不写) · 零挂链 (grep -c state/gate_check.py = 0) · 反向用例覆盖:
+    去掉一条已知死指针条数就少一条 / 跨页键不存在报 B / 跨页键存在判 A / 键存在但非实测槽判 D / 坏机器块 JSON fail-closed 报错退出 / P5 自然语言引用不算指针
+    / 空目录不崩 / 表第 N 行判 C / 跨页量容器且真有 measured 字段判 A。'
+  note: 'to=main | 新闸只交卷不挂链 ⇒ 挂不挂归 main (B5 问句 4)。建议顺序: 先把 B/C/D/E 改到位 ⇒ 闸自然变绿 ⇒ 再挂链 ⇒ 否则等于往官方链上挂一道永久红的闸。'
+  ref: MECH/check_machine_block_pointer_resolvable.py + MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md
+    §4
+- key: iss400_new_findings_beyond_brief
+  value: '任务书未列、本单新找到的 6 条: (1) ISS-393 页自己的机器块 degradation.measure_fill_back 登记的三条槽位 dimensions.seat_body_x_4pos.measured
+    / seat_body_y.measured / insulator_height_z.measured 一个都不存在 ⇒ 同页 §5 写 factory_* (§6 没有) §6 写无前缀 (§6
+    也没有) ⇒ 该页自相矛盾 ⇒ ISS-397 §9-④ 那条问句即使答「改键名」也改到填不进去 (2) ISS-397 页 §1 表断言「槽位已开、内容为空」与实读不符 (槽位没开) ⇒ 已签收页里的一句假话
+    (3) ISS-390 页 §3.1 乙-3 的 degradation.fallback_b 悬空, 真键是 degradation.path_b 且 status 现值是 armed_for_preassembly_crosscheck
+    (不是 armed) ⇒ OI-387-4 永远关不掉 (4) ISS-390 页 §3.1 乙-1 的 keepout_dwg 落点是 parts.FTS-104-01-F-S.keepout_dwg,
+    值是一串官网 URL 字符串 ⇒ 在那儿逐项写 X/Y/Z 实测等于覆盖来源 URL ⇒ D 误指教科书样本 (5) 全仓只有 check_fts_seat_sample_plan.py 读 measured_*
+    ⇒ T1/T2 落点无人读 (6) ISS-397 页 md5 f977bc86b52b3a43d32d4d06d2f8ddc4 全仓无人钉 ⇒ 改指针时落点所在页是不破 pin 的那一页。'
+  note: to=main | 第 (1)(2) 条决定了 B5 问句 3 的问法本身要改 (原问句措辞只说键名笔误, 不完整) ⇒ 按原措辞改会改到不报错但填错地方那一档。
+  ref: MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md §0.2 / §2 / §3 / §5.1
+- key: iss400_md5_pin_impact
+  value: '改指针的 md5 pin 影响面: ISS-393 页现 md5 0cb3ff2de940522b467ca3b01feda11c 被 MECH/check_fts_seat_sample_plan.py
+    L71 钉; ISS-390 页现 md5 15697668d10368e971710069c9b73994 被同闸 L70 钉; MECH/BOARD_ONEPASS_SIGNED_APPEND_LEDGER_DESIGN.md
+    (ISS-399 真相页) §1.2 清账表 L93/L94 与 §1.5 机器块 L301/L307 逐字登记了这两枚 pin ⇒ 改页 ⇒ 那张清账表也要同批刷新。★ISS-397 页 md5
+    无人钉 ⇒ 落点所在页改起来不破 pin。'
+  note: 'to=main | 不答的后果: 改了页不刷 pin ⇒ 收样闸当场变红且红的是 md5 pin 那条, 与现状就该红的 B.6 混在一起 ⇒ 以后没人分得清红是现状还是红是刚改坏的。刷
+    pin 属改既有闸常量 ⇒ main 地界。'
+  ref: MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md §5.1 / §5.2
+- key: iss400_scope_exclusion_disclosure
+  value: '新闸的扫描范围排除项公开披露: 本闸把自己的账本页 MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md 排除出扫描范围, 理由是账本页必须逐字引用死指针来登记
+    ⇒ 扫它就会让悬空条数随账本改动漂移 ⇒ 违反 P6 条数不许随时间漂移 ⇒ 该排除在闸的输出头部逐字打印 (公开可审, 不是藏起来的)。另加通用机制: 任何一行末尾加 【指针登记】 即视为引文登记不计入指针统计
+    (全仓 grep 该标记 = 0 处, 无撞名)。'
+  note: to=main | 排除是显式且有理由的, 不是把不利的条目藏起来 ⇒ 若 main 认为该排除不妥, 可拍板改扫描范围 (改 SELF_LEDGER_PAGES 一个常量, 不改判据)。
+  ref: MECH/check_machine_block_pointer_resolvable.py SELF_LEDGER_PAGES / QUOTE_MARK + 真相页 §1.1
 open_questions:
 - id: MECH-Q1
   to: main

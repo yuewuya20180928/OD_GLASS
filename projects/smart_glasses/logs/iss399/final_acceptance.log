@@ -1,0 +1,275 @@
+##### $ python3 MECH/check_mech_signed_append_ledger.py
+ISS-399 · MECH 域【已签收件追加登记台账】自守闸
+==============================================================================
+[ok]   M1   MECH 域每一处【硬钉别人 md5】的 pin 必须在 §1 在册清单里 (★新闸溜过去 ⇒ 判红★)
+[FAIL] M2   每处硬钉 pin 的写死基线必须 == 盘上现值 (★现状红·★不是闸故障★)
+       · ★陈旧 pin: MECH/check_connector_clearance_caliber.py L84 钉 MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md 基线 ffc09939 ≠ 盘上现值 f1ce54c9 ⇒ 判红 (★红的是现状不是闸故障★)
+       · ★陈旧 pin: MECH/check_connector_clearance_caliber.py L86 钉 MECH/check_juart_1p27_clearance.py 基线 ea89e0dd ≠ 盘上现值 daf8fa36 ⇒ 判红 (★红的是现状不是闸故障★)
+       · ★陈旧 pin: MECH/check_zoujuan_marker_consistency.py L63 钉 MECH/check_demo_struct_truth.py 基线 fa9b59e5 ≠ 盘上现值 483d018a ⇒ 判红 (★红的是现状不是闸故障★)
+[FAIL] M3   每一处陈旧 pin 必须在台账里查到一行 (★查不到 = 来源不明 = 判红★)
+       · ★台账判决失败: 台账 MECH/SIGNED_APPEND_LEDGER.md 读不到 (★还没建·★或路径不对·★M-A 待 main 拍★) ⇒ 全部陈旧 pin 归因不到 ⇒ 判红 (★fail-closed★)
+[ok]   M4   ★不许靠改常量消红★ (★改常量必须同时在台账留一行·★否则判红★)
+[ok]   M5   板三证 (md5 / mtime / size) == 基线 (★零写板自证★)
+[ok]   M6   证据分级五级白名单 + 零挂起措辞
+[ok]   M7   零挂链 (★本闸不在官方门禁链里·★挂不挂是 main 的地界★)
+------------------------------------------------------------------------------
+枚举: 硬钉(无通道) 42 处 / 板族钉 4 处 / 台账通道钉 3 处 ⇒ 合计 49 处
+判据 M1~M7 · 失败 2 条
+FAIL
+★**本闸的【预期读数】= rc=1 (红)**: 红的是【现状】(★3 处陈旧 pin 归因不到台账·★不是闸故障★) ⇒ ★**不许为了让它绿而放宽判据** ★
+★绿的唯一条件 = ① 3 处陈旧 pin 在台账里有登记行 (单号+prev_md5+md5 四项齐全)② 台账落位 (M-A 待 main 拍) ③ §1 在册清单与盘面零差 ★
+rc=1
+
+##### $ python3 MECH/check_mech_signed_append_ledger.py --selftest
+沙盒自测 · 真实陈旧 pin 3 处 · BOARD_ONEPASS_JUART_1P27_CLEARANCE.md→f1ce54c9, check_juart_1p27_clearance.py→daf8fa36, check_demo_struct_truth.py→483d018a
+[ok]   c01    正向对照: 3 处陈旧 pin 都在台账留行 ⇒ M3/M4 应绿 (★M2 红 = 现状★)
+[ok]   c02    把台账清空 ⇒ 陈旧 pin 归因不到 ⇒ M3 应红
+[ok]   c03    台账行的单号字段抹掉 ⇒ M3 应红 (★链头无单号★)
+[ok]   c04    台账链断 (第二行 prev_md5 ≠ 第一行 md5) ⇒ M3 应红
+[ok]   c05    台账链头改成不是盘上现值 ⇒ M3 应红
+[ok]   c06    ★专打 M4★ 把闸里的基线常量悄悄改成盘上现值 (台账不动) ⇒ M4 应红
+[ok]   c07    ★M4 反向自证★ 改常量 + 台账留对应行 ⇒ M4 应绿 (★证明 M4 不是宽放乱抓★)
+[ok]   c08    在沙盒里新造一道闸硬钉一个 md5 (不在 §1 在册) ⇒ M1 应红
+[ok]   c09    把 §1 在册清单里删掉一条 ⇒ M1 应红 (★清单过期★)
+[ok]   c10    台账行的追加类型写成枚举外的词 ⇒ M3 应红
+[ok]   c11    在真相页里写入【零挂起措辞清单里的一个词】 ⇒ M6 应红 (★零挂起措辞★)
+[ok]   c12    把 §1 机器块整块删掉 ⇒ M1/M4 应 fail-closed 判红
+反向 12 条 (共 12)
+ALL TESTS PASS
+rc=0
+
+##### $ python3 MECH/check_connector_clearance_caliber.py
+=== ISS-377 · MECH/check_connector_clearance_caliber.py ===
+页: MECH/BOARD_ONEPASS_CONNECTOR_CLEARANCE_CALIBER.md
+CRIT=0.6000 (真身 MECH/service_port_check.py L126-L127) TOL[fdm_part]=0.3000
+------------------------------------------------------------------------------
+K0   PASS   §1 表逐格与既有真相页一致
+K1   PASS   口径来源逐行逐轴已标且非空
+K2   PASS   余量与判决逐行逐轴自洽
+K3   PASS   余量按 X/Y 两向向量判且有 X绿Y红 实例
+K4   PASS   §2 每条冲突都有分开的判据句/后果句
+K5   PASS   证据等级白名单 + 零挂起措辞 + 降级方案齐全
+K6   PASS   板 md5/mtime/size 三项 == 基线
+K7   FAIL   MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md md5 f1ce54c981dd1f64071a177a374df85d != 已签收基线 ffc099397dc573df207f265bff57dffb; MECH/check_juart_1p27_clearance.py md5 daf8fa367d89e22f6d3af3d5049bdfb6 != 已签收基线 ea89e0dd3b2f77828b69f06bbe76969d
+K8   PASS   零挂链 (grep -c == 0)
+------------------------------------------------------------------------------
+RESULT: FAIL (1 条不通过)
+rc=1
+
+##### $ python3 MECH/check_zoujuan_marker_consistency.py
+=== MECH/check_zoujuan_marker_consistency.py (ISS-238) ===
+  [K1] 走鹃行必须全部带 canonical 标注 (活动口径 = 0)   PASS
+        走鹃命中 36 行 ; 带 canonical 36 行 ; 活动口径 = 0 (必须 0) ; 逐文件(活动/带标注): MECH_BUDGET.md 0/28 · PROTOTYPE_PLAN.md 0/3 · SOC_CARRIER_EVAL.md 0/1 · STRUCT_REVIEW_ISS065.md 0/3 · CLEARANCE_FIX.md 0/1
+  [K2] canonical 标注串自身在位 (门禁不许自我失效)       PASS
+        canonical 标注串在位: 走鹃行 36 处 + 提案文件 + 受保护脚本 MARKER 常量一致
+  [K3] 结构侧真源不许有裸走鹃命中 (真漏标)                PASS
+        MECH/MECH_BUDGET.md 走鹃命中 28 行 ; 无标注裸命中 = 0 (必须 0)
+  [K4] 作废标注形态清单 ↔ 盘面双向一致                  PASS
+        作废标注形态 4 种, 盘上出现次数 已作废=10/已作废 (2026-11-15, ISS-134 V2)=36/已作废 (ISS-222 · 2026-11-16, C-6 落地)=1/已作废 (ISS-222 · C-6 落地)=1 ; 与提案 §5 登记清单双向一致 (白名单 4 种)
+  [K5] 受保护文件 md5 未变                       FAIL
+        受保护文件被改: MECH/check_demo_struct_truth.py md5 483d018a66d17d2ead25d1558a1f8ffe≠fa9b59e593a13408ad9505d986276f63
+结论: 4/5 项通过
+✗ 门禁不通过: K5
+rc=1
+
+##### $ python3 MECH/check_onepass_mech_release.py
+================================================================================================
+【MECH 侧「板只改一次」准出汇总闸】 (ISS-300)
+================================================================================================
+  汇总根 (root) = /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+  闸数 = 6  ·  ★清单缺一道 ⇒ 汇总直接红 (不许「没跑就当过」)★
+
+  [1/6] MECH/check_board_frame_coords.py
+        名称: 坐标系闸 (C1~C4 · ISS-276)
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [2/6] MECH/check_demo_struct_truth.py
+        名称: 结构侧真值闸 (G1~G8 / C21~C22 · ISS-213/224/273)
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [3/6] MECH/check_onepass_mech_sync.py
+        名称: MECH 侧板侧输入闸 (M1~M5 · ISS-278/286)
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [4/6] MECH/check_onepass_struct_crosscheck.py
+        名称: 结构侧交叉核对闸 (N1~N6 · ISS-290)
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [5/6] MECH/board_port_opening_s6_check.py
+        名称: S6 板侧开口复算闸 (ISS-271)
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+  [6/6] MECH/check_mech_verdict_freshness.py
+        名称: 结构结论防漂闸 (F1~F6 · ISS-295)
+        rc  : 0     ⇒ ✅ 绿
+        详情: 全部检查项通过
+
+================================================================================================
+【汇总】
+================================================================================================
+  6 道闸: 绿 6 / 红 0
+  ★汇总 rc = 0 ⇒ ★MECH 侧结构可以出 Gerber★
+    (★只代表结构侧 6 道闸全绿; ★不等于整条板链全绿·HW/SW 侧的闸另算★)
+rc=0
+
+##### $ python3 MECH/check_demo_struct_truth.py
+====================================================================================================
+ISS-213/224 结构侧真值门禁 (demo 板当前成立的条目 + 板框/阈值/红灯保护 + 真源台账对账)
+====================================================================================================
+定性表: MECH/HW_CROSS_REVIEW_TRIAGE.md  |  源: MECH/service_port_check.py + MECH/hw_cross_review_check.py + MECH/BOARD_GEOM_30MM.md + HW/netlist_v1.csv + HW/SCHEMATIC_V1.md
+----------------------------------------------------------------------------------------------------
+  [OK ] G1    不许把红灯调没 (FAIL 名单仍是 16 条)
+         实测汇总 PASS 15 / FAIL 16 / 条件通过 8 / 说明 15 (共 54)
+  [OK ] G1b   FAIL 名单逐条对齐 (一条不许少/一条不许多)
+         实测 16 条 vs 锚点 16 条; 差集 实测多=[] 锚点多=[]
+  [OK ] G2.1  检修口盖板内腔 ≥ cavity_req (ISS-126 现口径)
+         内腔 = 7.3 − 2.6 = 4.70mm vs 硬要求 4.50 (余 +0.20); 锚点写 4.7
+  [OK ] G2.2  Type-C 新开孔口径最坏单边间隙 ≥ 判据 (FDM 直成型档)
+         10.5×4.8 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.3  Type-C 金属/CNC 档最坏单边间隙 ≥ 判据 (±0.05)
+         10.25×4.55 ⇒ 最坏 X 0.63 / Y 0.62 vs 判据 0.60
+  [OK ] G2.4  两档现候选 (打印包现试样) 判不合格 —— 证明'二选一'是假选择
+         现口径: 最坏 X 0.13 / Y 0.02; ISS-089 建议: 最坏 X 0.38 / Y 0.32
+  [OK ] G2.5  端件温升按 buck 口径 (Pin−Pout+DCR), 不用 MECH_BUDGET 的 0.8W 线性口径
+         P=0.50W × R=166.67 K/W ⇒ ΔT 83.3K ⇒ 表面 108.3°C (线性口径 0.80W ⇒ ΔT 133K ⇒ 158°C)
+  [OK ] G2.6  60°C 判据 ⇒ 端件表面能吃下的最大耗散 P_max (现值必须超它 ⇒ 强制金属热路)
+         P_max = (60−25)/166.67 = 0.210W; 现耗散 0.50W ⇒ 超 2.38× ⇒ 必须金属热路
+  [OK ] G2.7  散热路径必须是金属 (打印件 R 远大于铝)
+         打印件 1944 K/W vs 铝 1.641 K/W (差 1185×) ⇒ 0.5W 打进去 +972K (打印件) vs +0.82K (铝)
+  [OK ] G2.8  buck 功率守恒 ICHG/IIN = η·Vbus/Vbat (规格书的 0.822/0.933 是倒数)
+         3.70V ⇒ 1.216 (锚点 1.216) · 4.20V ⇒ 1.071 (锚点 1.071); 规格书倒数 = 0.822 / 0.933
+  [OK ] G2.9  demo 当前成立的 PASS 项 (公差链 C1~C5 / 径向 / 堆叠余量 / 合并 14P / 拓扑 B) 全过
+         共 12 项, 不再 PASS 的 = 无
+  [OK ] G3    6 个 PCB 类 id 已登记排队且恢复条件非空 (不许静默丢弃)
+         排队表缺恢复条件的 = 无; 锚点 pcb_class_queued 缺的 = 无
+  [OK ] G3b   排队的 PCB 类 id 在 hw_cross_review_check.py 里仍然是 FAIL (不许修绿)
+         不再是 FAIL 的 = 无
+  [OK ] G4    MECH/BOARD_GEOM_30MM.md §1 四数 (60.00/30.00/1.00/3.33g) 一个没被改
+         §1 缺失项 = 无; 锚点与文档不一致 = 无
+  [OK ] G4b   板框四数与两个 check 脚本的现行口径一致 (pcb_len/pcb_w/pcb_thk)
+         脚本 pcb_len=60.0 / pcb_w=30.0 / pcb_thk=1.0 vs 锚点 60.0/30.0/1.0
+  [OK ] G5    判据阈值未松: cavity_req 4.50 / CRIT 0.60 / cav_v 38.00 / duct_v 6.00
+         service_port: cavity_req=4.5 cav_v=38.0 duct_v=6.0 CRIT=0.60; hw_cross_review: judge=0.6 cav_v_now=38.0
+  [OK ] G5b   受保护文件 md5 逐字节未变 (板/.kicad_pro 走【合法改板】通道 (ISS-296) + 4 个 check 脚本 + 网表/脚表)
+         4 个硬保护 check 脚本 全部一致 + 2 个受保护硬件件走合法改板通道 (板/.kicad_pro: HW/PCB/demo_mainboard.kicad_pcb=纯 md5 硬保护 (台账无变更行), HW/PCB/demo_mainboard.kicad_pro=纯 md5 硬保护 (台账无变更行)) + 2 个台账管理真源 = 台账最新记录 (链头: HW/netlist_v1.csv=6aee500e60ba, HW/netlist_v1_pins.csv=9174309df1ec) + 域侧锚点副本 = 历史留痕 (允许停在历史值)
+  [OK ] C21   真源变更台账对账 (盘上真源 ↔ 落表台账最新记录 (链头) ↔ 域侧锚点历史副本)
+         台账最新记录 (链头) = HW/netlist_v1.csv 6aee500e60ba (by ['ISS-302']), HW/netlist_v1_pins.csv 9174309df1ec (by ['ISS-302']); 锚点副本 = 历史留痕 (允许停在历史值, 但不许与台账对不上)
+  [OK ] C22   PIN-MISMATCH 独立复核 (P9 页声明 vs 网表实际 + d6 新旧口径)
+         网表实读 CONN_LIGHT 22p / CONN_CAM 31p / J_CHG 10p; P9 声明 CONN_LIGHT [22] / CONN_CAM [31] / J_CHG [10]; 旧口径 0 处 / 新口径 3 处
+  [OK ] G6    定性表 54 项全覆盖 (项号一个不缺) 且处置栏不留空/不写'待定'
+         表内 54 行 / 应 54; 缺项号 = 无; 多余项号 = 无; 处置留空或待定 = 无
+  [OK ] G6b   16 条 FAIL 每条都有明确去处 (修掉/出规格/登记 need 给 main/排队等原理图定稿)
+         FAIL 行 16 条; 去处不在受控词表里的 = 无
+  [OK ] G7    分片 claim `mech_hinge_stack_fixed_mm` = 25.00 (ISS-206 裁 2 的 16p/20p/4p/10p)
+         实测 value = 25.00
+  [OK ] G8    已修复的留痕必须在场 (PIN-MISMATCH 行 + §3.1「已修复 (留痕)」节)
+         §2 行在位 (判定 = ✅ PASS, 备注带 ISS-220/落表) + §3.1 已修复节在位 (列着 ['PIN-MISMATCH', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'HW/netlist_v1.csv` + `HW/netlist_v1_pins.csv` 的 md5 锚点 (门禁 **G5b / C21**)', 'MECH/service_port_check.py` 的 md5 锚点 (门禁 **G5b**)', 'MECH/check_demo_struct_truth.py` 的 md5 (门禁脚本【本体】) + ★**判决源机制本身**★'])
+----------------------------------------------------------------------------------------------------
+【结论】23/23 组检查通过 | FAIL 0 组
+口径提醒: 全部为 **设计态几何 + 公差栈** ([推算]); **实物 [实测] = 0 条**。
+          本闸守的是 **demo 板当前成立的条目**, 不是'54 项全绿'。
+          ★ 6 个 PCB 类 id 仍是 FAIL 是**正确状态** (排队等原理图定稿), 不是缺陷。
+          ★ ISS-224: `PIN-MISMATCH` 是**被 ISS-220 真修好了**, 不是被调没 ⇒ 留痕在 §2 第 05 行 + §3.1。
+====================================================================================================
+rc=0
+
+##### $ md5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv
+611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
+6aee500e60ba0732f83a9cf557ba90ab  HW/netlist_v1.csv
+9174309df1ec9411ac8e8d9e80ee386a  HW/netlist_v1_pins.csv
+5b9993992405904a60ac96a020b375d8  HW/BOM_v1.csv
+rc=0
+
+c4bf9151dd59826fb2320c34e8afbd0f  MECH/cavity_recalc_check.py
+fc8d97d48cacafb43a1be4e1fe3a6524  MECH/check_connector_clearance_caliber.py
+667e6006280cc8c0533d8ce8fa39f8be  MECH/check_debug_seat_3d_fit.py
+babadd6b073d691374051ea7409a6a1f  MECH/check_debug_seat_rework_spec.py
+483d018a66d17d2ead25d1558a1f8ffe  MECH/check_demo_struct_truth.py
+1cdc6e9838419647e018c9a4c41319a2  MECH/check_fts_seat_body_geometry.py
+7b6ae98c04d32dea87e90f9a683bcac7  MECH/check_fts_seat_sample_plan.py
+8f8424a5e632fa3d223271850109c6d0  MECH/check_fts_vs_generic_courtyard_delta.py
+c898273018eabba466a04b88402d286c  MECH/check_mech_dual_caliber_gate.py
+bcc165d7461ba8906c03b101a72f962d  MECH/check_zoujuan_marker_consistency.py
+29c77fc3fc823048b1d96c9500d28dd7  MECH/display_biosafety_v2_check.py
+
+HW/PCB/demo_mainboard.kicad_pcb md5-见上 size=4940213 mtime=2026-11-06 07:07:17.362193413 +0800
+
+grep -c iss399 state/fragments/mech.yaml = 7
+grep -c check_mech_signed_append_ledger state/gate_check.py = 0
+grep -c check_mech_signed_append_ledger state/gate_check.py ⇒ 零挂链自证完成
+##### $ python3 state/merge.py && python3 state/gate_check.py
+✅ STATE.yaml 已刷新 (2026-11-24T22:11:45+08:00)
+   产出 886 | 阻塞 43 (高危 33) | 未闭合需求 400 | 冲突 0 | 健康度 red
+merge rc=0
+
+==========================================================================
+项目总工质量门 · 3 个子模块总工交付看板
+==========================================================================
+
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-24_hw-lead_ISS396_FTS改孔登记落盘.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-24_sw-lead_ISS398_第三道病闸自测基线无关化.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-24_mech-lead_ISS399_MECH域已签收件追加台账设计与自守闸.md
+
+【Q2 证据分级率】 2/3 个总工的交付做了证据分级
+   hw-lead    标签: ['实测', '官方', '推算']
+   sw-lead    标签: 无
+   mech-lead  标签: ['实测', '官方', '推算', '0数据']
+
+【Q3 接口声明率】 全员 interface_claims 共 1281 条 (目标 ≥3 条/总工 → 冲突才能自动检出)
+   hw-lead    500 条
+   sw-lead    362 条
+   mech-lead  419 条
+
+【Q4 需求闭环率】
+   问方视角 (我的需求被别人答了): 171/621  ← 与 merge.py 口径一致
+   答方视角 (我登记的答复): 244 条, 其中 58 条真对上了别人的需求 key
+   hw-lead    被答 63/307 | 我答 87 条(有效 31) | 产出 346 | 阻塞 7
+   sw-lead    被答 46/110 | 我答 72 条(有效 6) | 产出 299 | 阻塞 15
+   mech-lead  被答 62/204 | 我答 85 条(有效 21) | 产出 226 | 阻塞 12
+   ├─ ⚠️ **疑似漏登记 (答案在对方文档正文里, 但没进 answers)**: 0 条  ← 需人工判定, 也有可能是 waiting_on 标错
+   └─ ⏳ 等外部 (老板/原厂/JBD, 不算谁的锅): 子总工 51 条 | **全局 46 条** (含 main)
+   └─ 🔵 等另一个总工 (真·内部未闭合): **全局 400 条**
+   ✅ 与 merge.py 自对账一致 (等外部 46 / 等总工 400)
+   ⚠️ 自闭合 (自己答自己 = to 写错): 0 条
+   ⚠️ key 双向重用 (配对靠 to 字段区分, 写错就闭错): 10 个
+      q4_battery_scope: 发起方 ['main', 'hw-lead', 'mech-lead']
+      q16_aspect_ratio: 发起方 ['main', 'hw-lead', 'mech-lead']
+      iss105_jchg_rfq_release: 发起方 ['main', 'hw-lead']
+      iss206_mech_claim_mainboard_len_carrier_direct_scheme_choice: 发起方 ['main', 'mech-lead']
+      iss236_boss_v_decision: 发起方 ['main', 'hw-lead']
+
+【Q5 硬指标覆盖】 1/3 个总工报出了 ≥3 类硬指标数字
+   hw-lead    2/5 类: ['镜腿/镜脚厚度(mm)', 'FCCSP 球间距(pitch)']
+   sw-lead    0/5 类: []
+   mech-lead  3/5 类: ['功耗(W)', '皮肤温度(°C)', '镜腿/镜脚厚度(mm)']
+
+【Q6 硬件真源闸】 HW pinout 真源闸: ✅ 通过 (rc=0)
+   全部检查项通过
+
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
+
+【缺口清单】(可直接转成下一轮派活项) —— 4 条
+   · hw-lead: 224 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 关键结论未做证据分级 (实测/官方/推算/0数据)
+   · sw-lead: 50 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 125 条需求确实还没人答 (等另一个总工)
+
+==========================================================================
+gate_check rc=0
+

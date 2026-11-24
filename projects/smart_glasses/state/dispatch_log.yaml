@@ -97,3 +97,80 @@
     ★**⇒ ④ 为什么卡在「板那一趟」的要害上**: 那一趟必然要追加式订正 MECH 域的一堆已签收页/闸 ⇒ 每一次合法追加 ⇒ 钉它的闸又陈旧一处 ⇒ ★**收工验收那几道 MECH 闸是红的 · 红是真的但变的原因是对的 ⇒ 现场极可能误读成「MECH 改坏了」⇒ 板白改第二遍**★ ★
 
     ★**⇒ ⑤ 先例 (不重新发明)**: ISS-296 / ISS-303 (MECH 侧·判决源换成「硬基线 ∪ 落表台账登记值」·已落进 `MECH/check_board_frame_coords.py` C4 与 `MECH/check_onepass_struct_crosscheck.py` N6) + ISS-372 (SW 侧·《钉板 md5 闸清单》自守闸 H4/H5) ⇒ ★**但 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 里这 3 个 MECH 文件 grep 全是 0 命中 ⇒ MECH 域缺的不是「换一个源」, 是【缺一本自己的台账】★ ⇒ 本单交付的自守闸 = ISS-372 的 MECH 对偶**★'
+- issue: ISS-391
+  agent: hw-lead
+  at: 2026-11-24 21:42
+  brief: '★★[续派·cont1] 钉板闸 `HW/check_fts_land_drill_same_batch.py` 的【判据加固 + 夹具改真件现读】⇒ main 19:55 暂缓签收 (★裸跑 7/7 全绿 但 `--selftest` **14/17** · 三条反向用例全 FAIL·★期望红却绿★) ⇒ 决定性实验: 删掉动作腿、保留解释括注 ⇒ D1 仍判绿 ⇒ 判据被削弱 ⇒ 不可签 ⇒ 两级根因: 夹具二次注入 (真件已被 ISS-396 提前落 ⇒ 变异成空操作) + 判据只做关键词/子串命中 ⇒ ★**纯分析 + 改一道已签收闸的判据逻辑 + 改它的夹具 · 零写板 · 零落表 · 零改既有页正文 · 零挂链 · 零外发 · 不代拍 · 不自签** ★'
+  brief_file: state/dispatch_briefs/ISS-391_fts_land_drill_gate_judge_harden_and_fixture_realread_cont1.md
+  job: 'cron fb67af40 (ARS45 队列自动派活) · ★2026-11-24 21:4x · ★**cont1 续派 (★status 保持 fixing 不动·★上一趟 12:50 已交卷: 真相页/新闸/作业包登记都在盘★·★本趟只修判据与夹具★)** · ★**命令存在性守卫 rc=0** ★'
+  status_note: ★台账 status 保持 fixing (未改) ⇒ advance.py in_flight 规则继续挡住任何 job 再派活 ⇒ 零撞车窗口★
+  task_name: queue_iss391_cont1
+  dispatched_at: 2026-11-24 21:42
+  redispatch_zombie: false
+  carried_over_from: '★**main 2026-11-24 19:55 签收台账 §三 的 6 条机器依据** · ★**处置项③ 逐字: 「ISS-391 闸的夹具改成【真件现读】(★归 owner·★修完自测全绿才谈签收★)」** ★'
+- issue: ISS-398
+  agent: sw-lead
+  at: 2026-11-24 21:42
+  brief: ★★[补派·cont1] 第三道病闸 `SW/tools/check_sw_ref_reachability_v2.py` 的 `--selftest` 实测 **0/7** ⇒ 差值型自测在【基线漂移】时全灭 ⇒ 把夹具改成基线无关型 + 交出 `SW_MD5` 基线重锚的逐字补丁 (不代拍) ★★
+  brief_file: state/dispatch_briefs/ISS-398_sw_ref_reach_v2_selftest_baseline_independent_cont1.md
+  job: cron fb67af40 (ARS45 队列自动派活) · ★2026-11-24 21:4x · ★**【补派】(★20:0x 那一趟的 spawn 从未发生★)** · ★**命令存在性守卫 rc=0** ★
+  status_note: ★台账 status 保持 fixing (未改) ⇒ advance.py in_flight 规则继续挡住任何 job 再派活 ⇒ 零撞车窗口★
+  task_name: queue_iss398_cont1
+  dispatched_at: 2026-11-24 21:42
+  redispatch_zombie: true
+  death_cause: '★★**不是超时被掐 · 不是崩溃 · 是【spawn 从未发生】**★★ · ★20:00 那一趟 (main cron fb67af40 · transcript `36cd6141-…` · 19:34:41→20:34:37) 在 「Now let me verify the in_flight guard holds, then spawn.」这句话上死掉 ⇒ `sessions_spawn` 从未执行 ⇒ ★**但它已经把 brief (20:28)、台账 (20:34:26)、dispatch_log (★两条都写着 `dispatched_at: 2026-11-24 20:0x`★) 全落了盘** ⇒ ★**台账说「已派」· dispatch_log 说「已派」· 实际一个 agent 会话都没起** ★ ★**盘上实证: sw-lead 最新会话 = 19:30 (★brief 落盘 20:28 ⇒ 晚于任何会话★) · ISS-398 交卷页不在盘 · `grep -c iss398 state/fragments/*.yaml` = 0** ★'
+  partial_delivery: 0/3 交付物在盘 (★交卷页不在盘 · 分片登记 0 条 · 闸 md5 仍 1c4043ea26a1182b210e85f1b5130d8d·mtime 11-18 21:37 ⇒ 一字未动★) · ★但【改前 0/7 原始输出 + 改前 selftest/gate_health 日志 + plan】已落盘在 `logs/iss398/` 与 `tmp/iss398/` (★直接用, 勿重跑★)
+- issue: ISS-399
+  agent: mech-lead
+  at: 2026-11-24 21:42
+  brief: ★★[补派·新开] MECH 域【闸把别人的 md5 写死成硬基线】的全量清账 (9 道闸 / 35 处 pin) + 3 处已陈旧 pin 的裁定 + 一道《已签收件追加登记台账》自守闸 ⇒ 「板那一趟」合法追加一次 ⇒ MECH 闸就陈旧一处 ⇒ 收工验收的红被误读成「MECH 改坏了」⇒ 板白改第二遍 ★★★★**纯分析 + 新建真相页 + 新建机器闸 + 出逐字补丁(不应用) · 零写板 · 零落表 · 零改既有闸的判据/阈值 · 零挂链 · 零外发 · 不代拍** ⇒ 合「板只改一次」纪律 ①★★
+  brief_file: state/dispatch_briefs/ISS-399_mech_signed_append_ledger_design.md
+  job: cron fb67af40 (ARS45 队列自动派活) · ★2026-11-24 21:4x · ★**【补派】(★20:0x 那一趟的 spawn 从未发生★)** · ★**命令存在性守卫 rc=0** ★
+  status_note: ★台账 status 保持 fixing (★20:34:26 已由那一趟落好·本趟未改★) ⇒ advance.py in_flight 规则继续挡住任何 job 再派活 ⇒ 零撞车窗口★
+  task_name: queue_iss399
+  dispatched_at: 2026-11-24 21:42
+  redispatch_zombie: true
+  death_cause: '★★**同上: spawn 从未发生**★★ · ★20:00 那一趟 (transcript `36cd6141-…` · 20:34:37 死) 在 20:32 落好 brief、20:34:26 落好台账 + dispatch_log ⇒ ★**但没起会话** ★ ★**盘上实证: mech-lead 最新会话 = 19:29 (★brief 落盘 20:32 ⇒ 晚于任何会话★) · ISS-399 交卷页不在盘 · `grep -c iss399 state/fragments/*.yaml` = 0 · `logs/iss399/` 与 `tmp/iss399/` 都不存在** ★'
+  carried_over_from: '★**开单依据 = 20:00 那一趟本机实跑 MECH 域全部 25 道闸**: ★**唯一新缺口 = MECH 域【md5 硬基线】闸这一族** ★'
+- issue: ISS-400
+  agent: mech-lead
+  at: 2026-11-24 22:5x
+  brief: ★★[新开·新派] 「板只改一次」那一趟投板前必量的三个量【回填格指针打到了不存在的键】⇒ 收样动作永远转绿不了 ⇒ 把「跨页机器块指针是否真的指向一个存在的槽」变成机器可判的闸 ★★
+  brief_file: state/dispatch_briefs/ISS-400_mech_machine_block_pointer_resolvable_audit.md
+  job: 'cron fb67af40 (ARS45 队列自动派活) · ★2026-11-24 22:5x · ★**先落 fixing 再 spawn (★铁律⑩-i ⇒ 零撞车窗口★) · ★**命令存在性守卫 `python3 state/check_brief_commands.py --brief-file` rc=0** ★ · ★**纯查证 / 纯分析 / 新建真相页 + 新建机器闸类 (零写板·零落表·零改既有闸·零改既有页正文·零挂链·零外发·不代拍) ⇒ 合「板只改一次」纪律 ①** ★ · ★**开单依据 = 本 job 本机实读: `advance.py --json` ⇒ internal 0 (台账 16 条 open 的 owner 全部 = boss/main ⇒ 不在三个总工可派域) ⇒ hw-lead `ca14678f` (989,200→1,023,147 B) + sw-lead `d35b8dd2` (1,084,866→1,193,944 B) 两采样体积在长 ⇒ **真在飞 ⇒ 不许续派**; mech-lead `753cb5df` (ISS-399 cont2) 22:14:03 已 done + 交卷报告在盘 ⇒ **槽位实际已空** ⇒ 只有 mech-lead 一个空槽位 ⇒ 逐道实跑 MECH 域 11 道闸 (留证 `state/.verify/fb67_2245/`) ⇒ 9 道 rc=0 / 2 道 rc=1 (红的都是现状) ⇒ **真缺口 = 跨页机器块指针死路 (main 22:4x 逐行读页 + 全仓 grep 实测)** ★**'
+  status_note: ★台账 status 由 open 直接落 fixing (★`_apply_20261124_2245_cronfb67af40_open_iss400.py`·★先落 fixing 再 spawn·铁律⑩-i★) ⇒ advance.py 的 in_flight 规则继续挡住任何 job 再给该 agent 派活 ⇒ 零撞车窗口★
+  task_name: queue_iss400
+  dispatched_at: 2026-11-24 22:5x
+  redispatch_zombie: false
+  run_id: 4f7ec10c-63d8-4eee-b24d-5ef5a195c097
+  child_session_key: agent:mech-lead:subagent:4c5eab89-e617-4c7d-a7f9-b20b7c9e2a19
+  on_disk_session: 665ad4dd-c0aa-4e9e-85a5-428d31f49afc
+  liveness_check: '★spawn 后实测: `subagents list` ⇒ 1 active (queue_iss400 · running) · 盘上 transcript `665ad4dd-….jsonl` 76,593 B @22:51 → 174,341 B @22:51:59 (41 行, 工具在跑) ⇒ **真在飞, 不是空壳** ★'
+  carried_over_from: '★**开单依据 = main 2026-11-24 22:4x 本机逐行实读 + 全仓 grep 实测 (不抄任何 agent 报告)★**: ★① `MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md` §5 动作表 L176/L177/L178 逐字写 `dimensions.factory_seat_body_x_4pos.measured` / `factory_seat_body_y.measured` / `factory_insulator_height_z.measured` ⇒ **这三个键在同页 §6 机器块 `dimensions` 里一个都不存在** (真键 = `seat_body_x_4pos` L518 / `seat_body_y` L538 / `insulator_height_z` L548 / `factory_drill` L568) ⇒ ★**同页那三个真键又没有 `measured` 字段** ⇒ **即便改对前缀, 那一格依然不存在 ⇒ §5 指错了页, 不只是指错了键名** ★ ★② 唯一真槽在**另一页** `MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md` 机器块 `three_quantities.{insulator_height_z, seat_body_width_x, seat_body_depth_y}` (L386 起 · `measured_value: null` · **槽名拼法还与 §5 写的不同**) ⇒ ★**收样闸 `MECH/check_fts_seat_sample_plan.py` L45 `PAGE_REL` / L75 `QUANT_KEYS` / L223 `blk.get("three_quantities")` 只认那三个槽** ⇒ ★**死路径: 测完的数落不了地** ⇒ 全仓 grep `factory_seat_body|factory_insulator` 只有 5 处转述, **没有任何闸读它** ★ ★③ 为什么值钱: 座体深 Y 与绝缘体高 Z 的公差 = `[0数据]` (官网只有 REF 基准, 未给公差带) ⇒ **这两量只能靠实测升档** ⇒ **回填格指错 ⇒ 收样闸永远红在 B.6** ⇒ 坏结局二选一: ① 有人把「闸还红」读成「还没到收样时点」⇒ 带着两个 `[0数据]` 的公差放行投板 ⇒ **板改第二次**; ② 永远卡住 ⇒ 那一趟永远不许开工 ⇒ **这就是「板只改一次」纪律最怕的那类洞: 不是算错, 是【动作做完但数据落不了地】** ★ ★④ 为什么至今没人做: ISS-397 页 L199 已逐字登记 + L338 已逐字问 main「要不要落一个追加式订正块把三个键名改对?」⇒ **挂了两天没人答** ⇒ 本单把它变成【全仓清单 + 机器闸 + 逐字改法】, 零改既有页正文, 一条都不代拍 ★'
+- task_name: queue_iss401
+  dispatched_at: 2026-11-24 23:1x
+  redispatch_zombie: false
+  child_session_key: agent:hw-lead:subagent:0e5043a4-27bb-40de-b864-7ed2c66e8e4d
+  on_disk_session: 4268ade7-1f28-46dc-9a0e-8baa2a97ade1
+  liveness_check: '★spawn 后实测 (★两采样法·间隔 60 秒★): `subagents list` ⇒ 1 active (queue_iss401 · running) · 盘上 transcript `4268ade7-….jsonl` 266,319 B / 51 行 @23:19:51 → **415,576 B / 73 行 @23:20:50** (★Δ +149,257 B / +22 行·末行已在读 `HW/RELIABILITY_ABSMAX_DERATING_V2.md` ⇒ 工具在跑★) ⇒ **真在飞, 不是空壳** ★ · ★同一 hw-lead 名下无第二条运行中会话 (★`sessions_list` 实测: `ca14678f` 已 done / `4a27de2e` timeout / 其余 done|failed★) ★'
+  carried_over_from: '★**2026-11-24 23:1x cron fb67af40 (ARS45 队列自动派活) 新开并【直接落 fixing】**(★铁律⑩-i: 先落 fixing 再 spawn ⇒ 兄弟 job 775d9893 的 `advance.py --json` 看不见本单 ⇒ 零撞车窗口★) ★
+
+    ★**开单依据 (本机实读 + 实算, 不抄任何 agent 报告)★**: ① `python3 state/advance.py --json` 实跑 ⇒ `internal: []` / `approvals: []` / `waiting: []` / `decisions: 55`; ★**台账 16 条 `open` 的 owner 全部 = `boss`(5) / `main`(11) ⇒ 不在三个总工可派域** (★`state/advance.py` L33 `AGENT_ROLE = {"hw-lead","sw-lead","mech-lead"}`★) ★
+
+    ★**② 三个槽位实检 (★两采样法·★体积在长 ⇒ 真在飞★)★**: ★sw-lead `d35b8dd2` (`advance_iss398_cont2`) **running · 23:03 仍在长 ⇒ 真在飞 ⇒ 不许续派**★; ★mech-lead `665ad4dd` (ISS-400 · 22:50 本 job 派的那条) **running · 23:10 仍在长 ⇒ 真在飞 ⇒ 不许续派**★; ★hw-lead `ca14678f` (`advance_iss391_cont2`) **已 done (endedAt 23:05:44) + transcript 停在 22:59:04 静止 ⇒ 槽位实际已空** ⇒ ★**只有 hw-lead 一个空槽位**★ ★
+
+    ★**③ 真缺口 (main 23:1x 逐条实检 `state/fragments/hw.yaml`)★**: ★`needs_from` = **312 条** ⇒ `to` 分布 main 251 / mech-lead 28 / sw-lead 16 / boss 12 / 落表批次 3 / ★**vendor 1 / jbd 1**★ ⇒ `waiting_on` 分布 agent 19 / boss 11 / ★**vendor 6 / jbd 2**★ / main 1 ⇒ ★**共 10 条外部路由**★ ⇒ ★`blockers` 7 条里 ★**6 条 (HW-B1/B2/B3/B4/B5/B6) 的 `needs_from` 含 `vendor` (=「等原厂」)**★ ⇒ ★网表 `HW/netlist_v1.csv` ★**109 行带 `tbd` 标签 (TBD-01/02/03/04/06/10/11/12/13) + 36 行 `evidence=[待原厂]` (全 MAIN_PCB)**★ ⇒ ★**TBD-01..TBD-13 = 「13 项画不了清单」, 网表 CSV 里只出现 9 个标签 (TBD-05/07/08/09 只在文档里) ⇒ 收口必须以 13 项为准**★ ★
+
+    ★**④ 为什么至今没人做**: ★**SW 域已做 (ISS-270 5 条外部依赖自查 + ISS-357 needs 144 条四分类, 均 verified) · MECH 域已做 (ISS-313 needs 184 条四分类, verified) ⇒ ★**HW 域 (needs 312 条 + 6 条 blocker + 13 项 TBD) 是三域里唯一没做过的**★ ⇒ ★**违反老板 2026-11-11 19:31 + 2026-11-12 02:02 「不再发信, 全靠自己查资料」的第 ② 半 (义务侧)**★ ★
+
+    ★**⑤ 为什么在「板只改一次」的关键路径上**: ★**网表 = 板要对着画的那份真源** ⇒ ★`HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md` INV-1 明写「板 md5 全生命周期变更次数 ≤ 1」⇒ ★**今天挂着 `[待原厂]` 的 36 行 + 109 行 TBD = 板那一趟开工当天仍有 145 行可能动网表 ⇒ 动网表 ⇒ 板 md5 第二次变 ⇒ Gerber / 投产包 / 留证链 / 盖章 / 发布全部白跑** ⇒ ★**坏结局二选一: ① 开工当天才发现要落值 ⇒ 那一趟作废; ② 带着 145 行 `[待原厂]` 直接投板 ⇒ 这是一张能出厂但不该出厂的板**★ ★
+
+    ★**⑥ 派活纪律**: ★**本单是「纯查证 + 纯分析 + 新建真相页 + 新建机器闸 + 自有分片收口」类 ⇒ 合「板只改一次」纪律 ① (先派纯分析类, 不动板) ⇒ 零写板·零落表·零改既有闸阈值·零改既有页正文·零外发·不代拍·不自签** ★
+
+    ★**命令存在性守卫**: ★`python3 state/check_brief_commands.py --brief-file state/dispatch_briefs/ISS-401_hw_external_dep_selfcheck_closure.md` ⇒ **rc=0** ★'
+  run_id: fe41a9ea-c694-4322-bb07-6ce403549a73
+- issue: ISS-402
+  agent: hw-lead
+  at: '2026-11-24'
+  brief: ISS-402_hw_generator_value_drift_26_audit.md
+  run_id: cron_fb67af40_20261124_2350

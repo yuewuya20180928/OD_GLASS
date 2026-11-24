@@ -23567,7 +23567,7 @@ issues:
   reporter: main
   raised: '2026-11-24'
   due: '2026-11-27'
-  status: fixing
+  status: verified
   external: false
   need_keys:
   - iss387_oi2_drill_change_same_batch
@@ -23607,6 +23607,47 @@ issues:
       ★★**⑥ ⇒ 处置**: ★**① main 本轮不签 ISS-391, 台账 status 保持 `fixing` + 追加式 note_addendum 记明上面 6 条; ② 闸的夹具必须改成【从真件现读原文构造反向用例】(★不许写死常量★) ⇒ 归 owner 修 (★修在产生点·★改判据逻辑 ⇒ 需重签·★本轮不代修★); ③ OI-391-1~5 五条 main 地界待裁项【照裁照落】(★待裁项与签收是两件事·★裁了不等于签★), 但 OI-391-1 的「谁落登记」这一问【已被 §4 提前落盘部分回答】⇒ ⇒ ⇒ 追加一条订正: ★**登记已在 18:28~18:32 由兄弟 job 提前落 ⇒ ⇒ 【提前落】这件事本身【已被登记过一遍】⇒ ⇒ 所以 D1/D2/D3 现在【本该是绿的】(★与实测一致★) ⇒ ⇒ 但 §4 #5 (BOM 两栏) + §4 #6 (生成器现读) 仍【未落】⇒ ⇒ 且【提前落】触发了本闸夹具脱节 ⇒ ⇒ 这一条必须由 owner 修夹具后重跑自测才能签** ★★
 
       ★★**⑦ ⇒ 本单签收含义 = 【本轮不签】+ 6 条机器依据已留痕 + 5 条待裁项已裁** ★'
+  - '
+
+
+    ★**2026-11-24 21:4x · cron fb67af40 补派 cont1 (★main 19:55 暂缓签收的处置项③「夹具必修归 owner」★)** ★
+
+    ★★**续派理由 (★本机实跑复核, 不抄任何 agent 报告★)**★★
+
+    ★**①** 上一趟 (★交卷页 `HANDOFF/2026-11-24_hw-lead_ISS391_排针改孔进板侧改动清单同批完整性.md` · 12:50★) 已把真相页 / 新闸 / 作业包登记都交了 ⇒ ★**本趟是【续做趟】不是重做** ★
+
+    ★**②** main 19:55 签收台账逐字: 裸跑 rc=0 · 7/7 全绿 · 但 `--selftest` rc=1 · **14/17** · 末行 `SELFTEST FAILED` ⇒ 按 L-29 通则① 这道闸【不可信】⇒ ★**暂缓签收** ★
+
+    ★**③** 三条反向用例全 FAIL (★期望红却绿★): ① 删作业包 §0.2 ③ 里的「钻孔」⇒ 期望 D1 红·实际无 ② 删 B33 描述列钻孔字样 ⇒ 期望 D2 红·实际无 ③ 删 B33 验收手段列读钻孔命令 ⇒ 期望 D3 红·实际无 ★
+
+    ★**④ ★★main 决定性实验 (★沙盒·真件逐字节未动★)★★**: 把真文件作业包 §0.2 ③ 里的「钻孔 0.65→0.71」这一腿真的删掉, 再跑 D1 ⇒ ★**D1 仍判绿** ⇒ ★**判据被削弱 ⇒ 不可签** ★ ★**对照实验**: ③ 整条只剩 pitch 那一腿 ⇒ D1 才红 ⇒ ★**D1 只挡得住「整条没写」, 挡不住「只删动作腿留解释」** ★
+
+    ★**⑤ ★★两级根因 (★本机逐条复核出来·★比 main 的描述更具体★)★★**: ★**【夹具层】** 真件 (★18:28~18:32 由 ISS-396 提前落★) 里那行排针腿与夹具常量 `WORKPACKET_DRILL_LEG` **逐字不同** ⇒ `make_fixed_workpacket()` 无条件再注入一份 ⇒ 沙盒里那条腿**出现两次** ⇒ 反向用例 ① 只 `replace` 掉**第一处** ⇒ **真件那一处原封不动 ⇒ 变异成了空操作 ⇒ D1 照样绿** ⇒ ② ③ 是同型 (`add_desc=False` / `add_crit=False` 删不掉真件已落的那一列) ★**【判据层 · 更致命】** D1 的三条子判据全是**关键词 / 子串命中** (`has_drill()` + 「0.71」+ 「1.27」) ⇒ 真件那行带一段**解释性括注** (「通用库件默认 (drill 0.65) 偏小 0.06」+「Ø0.71 TYP」) ⇒ **纯解释文字也满足全部三条** ⇒ 动作腿删掉照样绿 ★
+
+    ★**⑥ 本趟要做的事 (★main 处置项③逐字: 「ISS-391 闸的夹具改成【真件现读】(★归 owner·★修完自测全绿才谈签收★)」★)★**: ★**(甲) 判据层** 把 D1 / D2 / D3 从「关键词命中」改成「**动作腿命中**」⇒ 解释性文字不得满足判据 ★**(乙) 夹具层** 变异从**真件当前原文**派生 ⇒ 不许依赖任何与真件逐字相等的写死常量 ⇒ 变异要把该腿的**全部出现处**干掉 ⇒ 且夹具要能识别「真件已登记过」并跳过重复注入 ★**(丙)** 把 main 的决定性实验 (★删动作腿留解释⇒D1 必须红★) **固化进夹具** ★
+
+    ★**⑦ 硬边界**: ★**零写板 · 零落表 · 零改既有页正文 (★作业包 / 预检清单 / `check_onepass_preflight_coverage.py` 全是受保护件★) · 只许改 `HW/check_fts_land_drill_same_batch.py` 一道 · D4~D7 一条不许碰 · 零挂链 · 零外发 · 不代拍 · 不自签** ★
+
+    ★**⑧** 改的是【已签收件】的判据逻辑 ⇒ ★**需重签 ⇒ 归 main, 本单不自签** ★
+
+    ★**⑨** brief: `state/dispatch_briefs/ISS-391_fts_land_drill_gate_judge_harden_and_fixture_realread_cont1.md` ⇒ ★**命令存在性守卫 rc=0** ★'
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `HW/check_fts_land_drill_same_batch.py` 裸跑 rc=0 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**闸判据层加固 + 夹具改真件现读** ⇒ D1/D2/D3 由「关键词命中」改「动作腿命中」(动作词+改动作+目标值三者绑定) ⇒ ★**阈值 0.71/1.27 未动·D4~D7 逐字未改**(机器核过) ⇒ ★**main 19:55 那个决定性实验 (删动作腿留解释括注 ⇒ 必须真红) 已固化进夹具 (用例 ① 与 ⑯)** ⇒ ★**今后谁把判据改松这两条立刻红**
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★hw-lead 槽位**未释放** (★兄弟 job fb67af40 23:44 新开 ISS-402 → hw-lead·★真在飞★) ★'
+  dispatched_at: '2026-11-24'
+  verify_result: ✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `HW/check_fts_land_drill_same_batch.py` 裸跑 rc=0 (★全绿★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**闸判据层加固 + 夹具改真件现读** ⇒ D1/D2/D3 由「关键词命中」改「动作腿命中」(动作词+改动作+目标值三者绑定) ⇒ ★**阈值 0.71/1.27 未动·D4~D7 逐字未改**(机器核过) ⇒ ★**main 19:55 那个决定性实验 (删动作腿留解释括注 ⇒ 必须真红) 已固化进夹具 (用例 ① 与 ⑯)** ⇒ ★**今后谁把判据改松这两条立刻红** ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
 - id: ISS-392
   title: ★★[★新主线·PCB 线·SW 侧·纯分析+新建真相页+新建闸·零写板] SW 域【门禁链覆盖率 + 第三道病闸基线漂移】⇒ 把「板那一趟的 SW 侧护栏到底有几道真的在跑」变成机器可判 ★★
   severity: high
@@ -23648,7 +23689,7 @@ issues:
   reporter: main
   raised: '2026-11-24'
   due: '2026-11-27'
-  status: fixing
+  status: verified
   external: false
   need_keys:
   - iss388_third_sick_gate
@@ -23667,6 +23708,23 @@ issues:
     ★**命令存在性守卫 `python3 state/check_brief_commands.py --brief-file <brief>` rc=0** ★
 
     ★**台账 status 直接落 fixing (★不是 open★) ⇒ advance.py 的 in_flight 规则会挡住任何 job 给该 agent 再派活 ⇒ 零撞车窗口★**'
+  verify_result: ✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `SW/tools/check_sw_gate_chain_coverage.py` 裸跑 rc=0 (★全绿★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**SW 域闸门禁链覆盖率 + 第三道病闸基线漂移** ⇒ 把「哪道闸在链上/基线钉在谁身上」变成可判 ⇒ ★**裸跑 7/7 全绿·selftest 0/7 → 全绿** ⇒ ★**零改判据·零改既有闸阈值** ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
+  note_addendum:
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `SW/tools/check_sw_gate_chain_coverage.py` 裸跑 rc=0 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**SW 域闸门禁链覆盖率 + 第三道病闸基线漂移** ⇒ 把「哪道闸在链上/基线钉在谁身上」变成可判 ⇒ ★**裸跑 7/7 全绿·selftest 0/7 → 全绿** ⇒ ★**零改判据·零改既有闸阈值**
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★sw-lead 槽位**已释放** ⇒ 下一轮 `advance.py` 可派 (★铁律: 一个 agent 同时只允许一个写会话★) ★'
 - id: ISS-393
   title: ★★[★新主线·PCB 线·MECH 侧·纯查证+纯分析+新建真相页+新建闸·零写板] 「通用库件 courtyard 被当成厂件」这条前提错误的扩散面清账 + 判决链重算 ⇒ 把「换厂件之后哪些数要重算」变成机器可判 ★★
   severity: high
@@ -23712,7 +23770,7 @@ issues:
   reporter: main
   raised: '2026-11-24'
   due: '2026-11-27'
-  status: fixing
+  status: verified
   external: false
   need_keys:
   - iss386_oi12_cover_criterion_too_strict
@@ -23732,7 +23790,8 @@ issues:
     ★**命令存在性守卫 `python3 state/check_brief_commands.py --brief-file <brief>` rc=0** ★
 
     ★**台账 status 直接落 fixing (★不是 open★) ⇒ advance.py 的 in_flight 规则会挡住任何 job 给该 agent 再派活 ⇒ 零撞车窗口★**'
-  note_addendum: '★**2026-11-24 16:3x cron fb67af40 (ARS45 队列自动派活) 判定: 本单 = 【真僵尸】⇒ 走 cont1 续跑 (★status 保持 fixing·不落 open★)**★
+  note_addendum:
+  - '★**2026-11-24 16:3x cron fb67af40 (ARS45 队列自动派活) 判定: 本单 = 【真僵尸】⇒ 走 cont1 续跑 (★status 保持 fixing·不落 open★)**★
 
     ★**死因 (★main 本机实读 transcript·不抄任何 agent 报告★)★**: 子会话 `agent:mech-lead:subagent:27ab6108-0c0a-4b16-9be2-4516c3171bf7` / sessionId `366a30b1-041b-4a78-b6e9-c12ca8a8a0b6` ⇒ ★**14:52:46 起 → ★15:37:46 止 (★墙钟 45 分钟·末条 = assistant 的 thinking 块·不是 toolResult★)**★ ⇒ ★**死因 = 把 45 分钟全花在【读资料 + 实测 + 想清楚】上 ⇒ 读数全在它自己的上下文里 ⇒ 但一份文件都没落 ⇒ 那些读数随会话一起消失** ★
 
@@ -23743,6 +23802,22 @@ issues:
     ★**⇒ 本轮 cont1 的做法 = 把上一趟的实测读数【逐字交接进 brief】(★它自己跑出来的·不是抄别人的报告★) ⇒ 并写死【先落盘, 再继续】⇒ 本单性质 = 纯查证 + 纯分析 + 新建真相页 + 新建机器闸 + 收尾 · 零写板 · 零落表 · 零改既有闸 · 零改既有页正文 · 零挂链 · 零外发 · 不代拍 ⇒ 合「板只改一次」纪律 ①★
 
     ★**命令存在性守卫 `python3 state/check_brief_commands.py --brief-file state/dispatch_briefs/ISS-393_mech_fts_vs_generic_courtyard_delta_cont1.md` rc=0**★'
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `MECH/check_fts_vs_generic_courtyard_delta.py` 裸跑 rc=0 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**「通用库件 courtyard 被当成厂件」这条前提变成可算的差集** ⇒ 机器块量数 50 · G1~G7 全部通过 ⇒ ★**零写板·零落表·零挂链**
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★mech-lead 槽位**已释放** ⇒ 下一轮 `advance.py` 可派 (★铁律: 一个 agent 同时只允许一个写会话★) ★'
+  verify_result: ✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `MECH/check_fts_vs_generic_courtyard_delta.py` 裸跑 rc=0 (★全绿★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**「通用库件 courtyard 被当成厂件」这条前提变成可算的差集** ⇒ 机器块量数 50 · G1~G7 全部通过 ⇒ ★**零写板·零落表·零挂链** ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
 - id: ISS-394
   title: ★★[★新主线·PCB 线·HW 侧·纯分析+新建真相页+新建闸·零写板] 座体选型结论【只写在 issue_log 里, 没落到活页面/已闭答案/未答 need/闸源码】⇒ 那条被推翻的结论现在是【活的】⇒ 把「结论被推翻后活副本必须被点名」变成机器可判 ★★
   severity: high
@@ -23788,7 +23863,7 @@ issues:
   reporter: main
   raised: '2026-11-24'
   due: '2026-11-27'
-  status: fixing
+  status: verified
   external: false
   need_keys:
   - iss380_board_trip_bom_part_fill
@@ -24166,7 +24241,8 @@ issues:
     ★**命令存在性守卫 `python3 state/check_brief_commands.py --brief-file <brief>` rc=0** ★
 
     ★**台账 status 直接落 fixing (★不是 open★) ⇒ advance.py 的 in_flight 规则会挡住任何 job 给该 agent 再派活 ⇒ 零撞车窗口★**'
-  note_addendum: '★**2026-11-24 15:4x main (cron 775d9893) 复核 + 续跑再派活**★
+  note_addendum:
+  - '★**2026-11-24 15:4x main (cron 775d9893) 复核 + 续跑再派活**★
 
     ★**上一趟怎么死的 (★main 本机实读 transcript·不抄任何 agent 报告★)★**: 14:45 起 → 15:15 被 `runTimeoutSeconds` 掐死 ⇒ 15:37:54 被自动续跑 → **15:41:21 `failed` (墙钟 3.5 分钟)** ⇒ transcript 最后一条 assistant 消息逐字 = 「Existing gates all green. Now let me write the fragment via `frag_write.py`.」⇒ ★**死因 = 写分片那一步** ⇒ ★**真相页 + 新闸是好的, 缺的是【交卷页 · 分片 · 交卷消息】**★
 
@@ -24175,6 +24251,22 @@ issues:
     ★**本轮动作 (★cron 775d9893 r87·项目总工·续跑再派活★)★**: ★**派 cont1 给 hw-lead**★ (★子会话 `agent:hw-lead:subagent:ec9ee961-e83e-421e-bddc-e2d245645886` · taskName `advance_iss394_cont1` · ★**runTimeoutSeconds=3600 (★上一趟 30 分钟就掐死了★)·★** brief `state/dispatch_briefs/ISS-394_hw_seat_part_verdict_propagation_cont1.md` · 命令存在性守卫 `state/check_brief_commands.py --brief-file` **rc=0**★) ★★⇒ ★**cont1 = 收尾趟: 交卷页 (新建 B1~B6 + B7) + 分片登记 + 交卷消息**★ ⇒ ★**零写板 · 零落表 · 零改既有闸/既有页正文 · 零挂链 · 零外发 · 不代拍**★ ⇒ 合「板只改一次」纪律 ①★
 
     ★**特别写死的一条 (★给 cont1·也给 main 以后签收时看★)★**: ★**K1/K2/K3 这三条红要修的是【5 处活副本】(★`HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md` L18/L62/L67/L73/L112 · `state/fragments/hw.yaml` L5271-5272 / L4346-4347 / L8097 · `HW/check_debug_uart_seat_alignment.py` L397★) ⇒ 那是 main 的地界 ⇒ ★**owner 交的是【红的读数 + 每处该改什么 + 代价】, 不是【把红改成绿】**★'
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `HW/check_seat_part_verdict_propagation.py` 裸跑 rc=1 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**裸跑 rc=1 是按设计** (★日志原话: K2 = 已闭 need 的答案仍指向被推翻的料号 ⇒ 要 main 落订正块; K3 = 未答 need 的选项全错 ⇒ 要 main 改选项★) ⇒ ★**红的是现状·不是闸故障** ⇒ ★**判据本身可信**
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★hw-lead 槽位**未释放** (★兄弟 job fb67af40 23:44 新开 ISS-402 → hw-lead·★真在飞★) ★'
+  verify_result: '✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `HW/check_seat_part_verdict_propagation.py` 裸跑 rc=1 (★按设计判红 (★红的是现状·不是闸故障★)★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**裸跑 rc=1 是按设计** (★日志原话: K2 = 已闭 need 的答案仍指向被推翻的料号 ⇒ 要 main 落订正块; K3 = 未答 need 的选项全错 ⇒ 要 main 改选项★) ⇒ ★**红的是现状·不是闸故障** ⇒ ★**判据本身可信** ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★'
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
 - id: ISS-395
   title: ★★[★新主线·PCB 线·HW 侧·纯分析+新建闸·零写板] 钉板闸⑩【板侧项全集重跑幂等闸】在【并发跑】时必假红 ⇒ 「板 md5/落表链/结构真值 漂移 ⇒ 板那一趟不许开工」这条红是【假的】 ⇒ 把并发安全变成机器可判 ★★
   severity: high
@@ -24210,7 +24302,7 @@ issues:
   reporter: main
   raised: '2026-11-24'
   due: '2026-11-27'
-  status: fixing
+  status: verified
   external: false
   need_keys:
   - iss395_gate10_concurrency_safe_sandbox
@@ -24237,7 +24329,8 @@ issues:
 
     ★**开单依据 (★main 本机实跑·不抄任何 agent 报告★)★**: ① ★**`state/gate_check.py` 本轮 Q7 钉板闸⑩ rc=1 且闸脚本失败行没解析出来, 只余一段 `OSError: [Errno 39] Directory not empty` 的 traceback 尾巴**★ · ② ★**隔离复跑 (★`PREFLIGHT_SANDBOX` 指向独占路径★) ⇒ rc=0 ⇒ 板面零漂移 ⇒ 这条红是假的**★ · ③ ★**`state/daily_check.py` L317 会再跑一遍 gate_check ⇒ 两个 cron job 同分钟必撞 ⇒ 假红是必然事件**★ · ④ ★**「板只改一次」那一趟开工前的门禁读数会被假红污染; 且【真漂移也会红】⇒ 红红不可分**★'
   dispatched_at: '2026-11-24'
-  note_addendum: '★**2026-11-24 16:3x cron fb67af40 (ARS45 队列自动派活) 落 fixing 并派活**★
+  note_addendum:
+  - '★**2026-11-24 16:3x cron fb67af40 (ARS45 队列自动派活) 落 fixing 并派活**★
 
     ★**它是被兄弟 job 775d9893 r87 (15:4x) 新开的, 落 `open` 并明写「★派活由队列 job 执行★」+「★本轮 r87 里 hw-lead 的槽位被【ISS-394 cont1】占着 ⇒ 本单不与 ISS-394 cont1 并行派给同一个 agent★」★**
 
@@ -24248,6 +24341,22 @@ issues:
     ★**本单性质**: 纯分析 + 新建真相页 + 新建机器闸 · 零写板 · 零落表 · 零改既有闸的判据/阈值 · 零改既有页面正文 · 零挂链 · 零外发 · 不代拍 ⇒ 合「板只改一次」纪律 ①★
 
     ★**命令存在性守卫 `python3 state/check_brief_commands.py --brief-file state/dispatch_briefs/ISS-395_hw_gate10_concurrency_safety.md` rc=0**★'
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `HW/check_gate10_concurrency_safety.py` 裸跑 rc=0 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**钉板闸⑩【并发跑必假红】这件事被机器化** ⇒ 裸跑 rc=0 (33 条 item 的 source_iss 全在 SOURCES 11 个来源单里) ⇒ ★**判据零削弱·阈值常量一字未动**
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★hw-lead 槽位**未释放** (★兄弟 job fb67af40 23:44 新开 ISS-402 → hw-lead·★真在飞★) ★'
+  verify_result: ✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `HW/check_gate10_concurrency_safety.py` 裸跑 rc=0 (★全绿★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**钉板闸⑩【并发跑必假红】这件事被机器化** ⇒ 裸跑 rc=0 (33 条 item 的 source_iss 全在 SOURCES 11 个来源单里) ⇒ ★**判据零削弱·阈值常量一字未动** ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
 - id: ISS-396
   title: ★★[★新主线·PCB 线·HW 侧·登记落盘 + 新建闸·零写板] 「板只改一次」那一趟的 FTS 排针【改孔 `0.65 → 0.71`】这条板侧动作【还没进作业包 §0.2 ③ / 预检清单 B33】⇒ 把 ISS-391 交回的 §4 登记项一次性落到位 ⇒ 让 `HW/check_fts_land_drill_same_batch.py` 由 4/7 转 7/7 ★★
   severity: high
@@ -24280,9 +24389,26 @@ issues:
   reporter: main
   raised: '2026-11-24'
   due: '2026-11-27'
-  status: fixing
+  status: verified
   external: false
   dispatched_at: '2026-11-24'
+  verify_result: '✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `HW/check_fts_land_drill_same_batch_sbx.py` 裸跑 rc=0 (★全绿★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**FTS 改孔 `0.65 → 0.71` 的登记落盘 + 沙盒闸** ⇒ 裸跑 rc=0 ⇒ ★**日志原话: 「§4 #4 现状: WP02_BINDING[③] = ([''B33_PIN_LAND_1P27''], []) ⇒ 显式覆盖令牌还没补 ⇒ ★P4 仍靠自动抽 ⇒ 落不落由 main 拍」** ⇒ ★**★main 裁决: 【不补显式令牌】(★自动抽本次已自动生效·补令牌是【冗余】·★真要补只能同板那一趟一起·★现在补 = 改真件一次★)** ★ ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★'
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
+  note_addendum:
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `HW/check_fts_land_drill_same_batch_sbx.py` 裸跑 rc=0 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**FTS 改孔 `0.65 → 0.71` 的登记落盘 + 沙盒闸** ⇒ 裸跑 rc=0 ⇒ ★**日志原话: 「§4 #4 现状: WP02_BINDING[③] = ([''B33_PIN_LAND_1P27''], []) ⇒ 显式覆盖令牌还没补 ⇒ ★P4 仍靠自动抽 ⇒ 落不落由 main 拍」** ⇒ ★**★main 裁决: 【不补显式令牌】(★自动抽本次已自动生效·补令牌是【冗余】·★真要补只能同板那一趟一起·★现在补 = 改真件一次★)** ★
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★hw-lead 槽位**未释放** (★兄弟 job fb67af40 23:44 新开 ISS-402 → hw-lead·★真在飞★) ★'
 - id: ISS-397
   title: ★★[★新主线·PCB 线·MECH 侧·纯查证+新建真相页+新建闸·零写板] 座体三量 (绝缘体高 / 外形宽 / 外形深) 现在是 `[0数据]` ⇒ 把「板只改一次」那一趟投板前的【单板样 + 卡尺量三量】这条降级做成可执行收样作业包 + 机器闸 ★★
   severity: high
@@ -24500,9 +24626,26 @@ issues:
   reporter: main
   raised: '2026-11-24'
   due: '2026-11-27'
-  status: fixing
+  status: verified
   external: false
   dispatched_at: '2026-11-24'
+  verify_result: '✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `MECH/check_fts_seat_sample_plan.py` 裸跑 rc=1 (★按设计判红 (★红的是现状·不是闸故障★)★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**座体三量 (绝缘体高/外形宽/外形深) 的收样闸** ⇒ ★**日志原话: 「本闸的【预期读数】= rc=1 (红): 红的是【现状】(三量【实测档】仍 [0数据]·收样尚未发生) ⇒ ★**不许为了让它绿而放宽判据**」** ⇒ ★**★main 裁决: 维持红·判据一字不改·三量的收样必须与「板那一趟」同批(★那天才有样可打★)** ★ ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★'
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
+  note_addendum:
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `MECH/check_fts_seat_sample_plan.py` 裸跑 rc=1 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**座体三量 (绝缘体高/外形宽/外形深) 的收样闸** ⇒ ★**日志原话: 「本闸的【预期读数】= rc=1 (红): 红的是【现状】(三量【实测档】仍 [0数据]·收样尚未发生) ⇒ ★**不许为了让它绿而放宽判据**」** ⇒ ★**★main 裁决: 维持红·判据一字不改·三量的收样必须与「板那一趟」同批(★那天才有样可打★)** ★
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★mech-lead 槽位**已释放** ⇒ 下一轮 `advance.py` 可派 (★铁律: 一个 agent 同时只允许一个写会话★) ★'
 - id: ISS-398
   title: ★★[★新主线·PCB 线·SW 侧·改自测夹具+出补丁·零写板] 第三道病闸 `SW/tools/check_sw_ref_reachability_v2.py` 的 `--selftest` 实测 **0/7** ⇒ 差值型自测在【基线漂移】时全灭 ⇒ 把夹具改成基线无关型 + 交出 `SW_MD5` 基线重锚的逐字补丁 (不代拍) ★★
   severity: high
@@ -24554,9 +24697,26 @@ issues:
   reporter: main
   raised: '2026-11-24'
   due: '2026-11-27'
-  status: fixing
+  status: verified
   external: false
   dispatched_at: '2026-11-24'
+  verify_result: '✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `SW/tools/check_sw_ref_reachability_v2.py` 裸跑 rc=1 (★按设计判红 (★红的是现状·不是闸故障★)★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**第三道病闸 `check_sw_ref_reachability_v2.py` 的自测基线无关化** ⇒ ★**核心目标已达成 (selftest 0/7 → 7/7 ALL TESTS PASS)** ⇒ ★**裸跑 rc=1 是按设计 (红因: `VBUS_DET_uA` 被当位号 ⇒ 是现状问题不是闸故障)** ⇒ ★**★main 裁决: 采用 agent 的【口径 C】(登记 `EXEMPT_LEDGER` 而不是改文档字面量·★改字面量不留漏检窗口★)·★判据前缀 md5 逐字未变 (3111dfb2…)** ★ ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★'
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
+  note_addendum:
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `SW/tools/check_sw_ref_reachability_v2.py` 裸跑 rc=1 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**第三道病闸 `check_sw_ref_reachability_v2.py` 的自测基线无关化** ⇒ ★**核心目标已达成 (selftest 0/7 → 7/7 ALL TESTS PASS)** ⇒ ★**裸跑 rc=1 是按设计 (红因: `VBUS_DET_uA` 被当位号 ⇒ 是现状问题不是闸故障)** ⇒ ★**★main 裁决: 采用 agent 的【口径 C】(登记 `EXEMPT_LEDGER` 而不是改文档字面量·★改字面量不留漏检窗口★)·★判据前缀 md5 逐字未变 (3111dfb2…)** ★
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★sw-lead 槽位**已释放** ⇒ 下一轮 `advance.py` 可派 (★铁律: 一个 agent 同时只允许一个写会话★) ★'
 - id: ISS-399
   title: ★★[★新主线·PCB 线·MECH 侧·纯分析+新建真相页+新建机器闸·零写板] MECH 域【闸把别人的 md5 写死成硬基线】的全量清账 (9 道闸 / 35 处 pin) + 3 处已陈旧 pin 的裁定 + 一道《已签收件追加登记台账》自守闸 ⇒ 「板那一趟」合法追加一次 ⇒ MECH 闸就陈旧一处 ⇒ 收工验收的红被误读成「MECH 改坏了」⇒ 板白改第二遍 ★★
   severity: high
@@ -24606,6 +24766,562 @@ issues:
     ★**同型病本仓已治过两次 (★先例·不重新发明★)**: ISS-296 / ISS-303 (MECH 侧·把「硬基线常量」换成「硬基线 ∪ 落表台账登记值」·已落进 `MECH/check_board_frame_coords.py` 的 C4 与 `MECH/check_onepass_struct_crosscheck.py` 的 N6) + ISS-372 (SW 侧·《钉板 md5 闸清单》自守闸 `SW/tools/check_sw_board_md5_rebase_readiness.py` 的 H4/H5) ⇒ ★**但 `HW/SCHEMATIC_LANDING_V1_LANDED.md` 里这 3 个 MECH 文件 grep 全是 0 命中 ⇒ MECH 域缺的不是「换一个源」, 是【缺一本自己的台账】★ ⇒ ★**本单交付的自守闸 = ISS-372 的 MECH 对偶** ★
 
     ★**命令存在性守卫**: `python3 state/check_brief_commands.py --brief-file state/dispatch_briefs/ISS-399_mech_signed_append_ledger_design.md` ⇒ ★**rc=0**★'
+  source_agent: main
+  verify_by: main
+  reporter: main
+  raised: '2026-11-24'
+  due: '2026-11-27'
+  status: verified
+  external: false
+  dispatched_at: '2026-11-24'
+  verify_result: '✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `MECH/check_mech_signed_append_ledger.py` 裸跑 rc=1 (★按设计判红 (★红的是现状·不是闸故障★)★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**MECH 域【已签收件追加台账】的设计 + 自守闸** ⇒ ★**日志原话: 「预期读数 = rc=1 (红): 红的是【现状】(3 处陈旧 pin 归因不到台账) ⇒ ★**不许为了让它绿而放宽判据**」** ⇒ ★**★main 裁决: M-A 台账落 `MECH/SIGNED_APPEND_LEDGER.md` (★闸已按此实现·改常量即可)·M-B 3 处基线走台账登记值追平·M-C 【先落台账再挂链】(★先挂 = 往官方链挂一道永久红的闸★)·M-D 「追加式订正」合法但必须留原子记录(判据从「不许改」改成「不许**悄悄**改」)** ★ ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★'
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
+  note_addendum:
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `MECH/check_mech_signed_append_ledger.py` 裸跑 rc=1 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**MECH 域【已签收件追加台账】的设计 + 自守闸** ⇒ ★**日志原话: 「预期读数 = rc=1 (红): 红的是【现状】(3 处陈旧 pin 归因不到台账) ⇒ ★**不许为了让它绿而放宽判据**」** ⇒ ★**★main 裁决: M-A 台账落 `MECH/SIGNED_APPEND_LEDGER.md` (★闸已按此实现·改常量即可)·M-B 3 处基线走台账登记值追平·M-C 【先落台账再挂链】(★先挂 = 往官方链挂一道永久红的闸★)·M-D 「追加式订正」合法但必须留原子记录(判据从「不许改」改成「不许**悄悄**改」)** ★
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★mech-lead 槽位**已释放** ⇒ 下一轮 `advance.py` 可派 (★铁律: 一个 agent 同时只允许一个写会话★) ★'
+- id: ISS-400
+  title: ★★[★新主线·PCB 线·MECH 侧·纯查证+纯分析+新建真相页+新建机器闸·零写板] 「板只改一次」那一趟投板前必量的三个量【回填格指针打到了不存在的键】⇒ 收样动作永远转绿不了 ⇒ 把「跨页机器块指针是否真的指向一个存在的槽」变成机器可判的闸 ★★
+  severity: high
+  source_blocker: ISS-397
+  desc: '★★[★新主线·PCB 线·MECH 侧·纯查证+纯分析+新建真相页+新建机器闸+沙盒夹具·零写板·零落表·零改既有闸判据·零改既有页正文·零挂链·零外发·不代拍]★★
+
+
+    ★**题 (来源 = ★main 2026-11-24 22:4x 本机实读台账 + 逐行读页 + 实跑 MECH 域 11 道闸·不抄任何 agent 报告★)★:
+
+    ★**① 现象**: ★`MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md` (ISS-393 真相页) §5 「量完填回哪一格」动作表 L176/L177/L178 逐字写 `dimensions.factory_seat_body_x_4pos.measured` / `factory_seat_body_y.measured` / `factory_insulator_height_z.measured` ⇒ ★**这三个键在同页 §6 机器块 `dimensions` 里一个都不存在** (真键 = `seat_body_x_4pos` L518 / `seat_body_y` L538 / `insulator_height_z` L548 / `factory_drill` L568)★ ⇒ ★**同页那三个真键又没有 `measured` 字段** ⇒ ★**即便改对前缀, 那一格依然不存在 ⇒ §5 指错了页, 不只是指错了键名**★ ★
+
+    ★**② 唯一真槽在另一页**: ★`MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md` 机器块 `three_quantities.{insulator_height_z, seat_body_width_x, seat_body_depth_y}` (★L386 起 · `measured_value: null` / `measured_evidence: "[0数据]"`· 槽名拼法还与 §5 写的不同★) ⇒ ★**收样闸 `MECH/check_fts_seat_sample_plan.py` L45 `PAGE_REL` / L75 `QUANT_KEYS` / L223 `blk.get("three_quantities")` 只认那三个槽** ⇒ ★**死路径**★ ⇒ ★**全仓 grep `factory_seat_body|factory_insulator` 只有 5 处转述, 没有任何闸读它**★ ★
+
+    ★**③ 为什么值钱**: ★座体深 Y 与绝缘体高 Z 的公差 = `[0数据]` (官网只有 REF 基准, 未给公差带) ⇒ ★**这两量只能靠实测升档** ⇒ ★**实测回填格指错 ⇒ 测完的数落不了地 ⇒ 收样闸永远红在 B.6** ⇒ ★**坏结局二选一: ① 有人把「闸还红」读成「还没到收样时点」⇒ 带着两个 `[0数据]` 的公差放行投板 ⇒ 【板改第二次】; ② 永远卡住 ⇒ 那一趟永远不许开工** ⇒ ★**这就是【板只改一次】纪律最怕的那类洞: 不是算错, 是【动作做完但数据落不了地】**★ ★
+
+    ★**④ 为什么至今没人做**: ★ISS-397 页 L199 逐字登记 + L338 逐字问 main「要不要落一个追加式订正块把三个键名改对?」⇒ ★**挂了两天没人答** ⇒ 本单把它变成【全仓清单 + 机器闸 + 逐字改法】★ ★
+
+    ★**⑤ 本单交付 (★全部零写板★)★**: ★① 真相页 `MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md` (★全仓悬空指针清单 + 真槽登记表 + 连带影响面★) ★② 新闸 `MECH/check_machine_block_pointer_resolvable.py` (★裸跑 rc=1 红的是现状 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`· 正向 ≥1 + 反向 ≥6★) ★③ 交卷页 B1~B7 全填 ★
+
+    ★**⑥ 归 main 的四条问句 (★本单一律不代拍★)★**: ★§5 那 3 个死指针要不要按追加式订正块改对 · 改指针时 `MECH/check_fts_seat_sample_plan.py` L71 那枚 md5 pin 要不要同批刷新 · ISS-397 §9-④ 那条问句是不是就由本单的逐字改法来答 · 新闸挂不挂链 ★'
+  owner: mech-lead
+  need_keys:
+  - iss400_pointer_audit_verdict
+  - iss400_pointer_correction_text
+  task_brief: "# ISS-400 · MECH 侧 · 跨页机器块指针可解析性清账 + 新建机器闸 · 零写板\n\n★**题源**: ★**main 2026-11-24 22:4x 本机实读 (不抄任何 agent 报告)★**\n★**主线**: 绘制 PCB 图 (★老板 2026-11-17 00:43★) ⇒ 本单属 ★**纯查证 + 纯分析 + 新建真相页 + 新建机器闸**★ ⇒ ★**零写板** ★\n\n---\n\n## §0 铁律 (★违反任一条 ⇒ 本单交卷无效★)\n\n| ★边界★ | ★怎么自证 (交卷页 B4 要贴实测输出)★ |\n|---|---|\n| ★**零写板** ★ | `HW/PCB/demo_mainboard.kicad_pcb` 的 md5 / mtime / size 三项与基线**逐字相同** (基线 md5 = `611b869e13518c3c023fb178f91a0075`) |\n| ★**零落表** ★ | 网表 / 脚表 / BOM 三张表 md5 与基线逐字相同 |\n| ★**零改既有页正文** ★ | `MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md` · `MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md` · `MECH/BOARD_ONEPASS_SIGNED_APPEND_LEDGER_DESIGN.md` 三页 md5 与基线逐字相同 (★基线 md5 已在 §2 给出, 自己重算★) |\n| ★**零改既有闸判据源码** ★ | §2 列的 11 道既有 MECH 闸 md5 全部与基线逐字相同 |\n| ★**零挂链** ★ | `grep -c \"check_machine_block_pointer_resolvable\" state/gate_check.py` ⇒ **0** (★新闸只交卷, 不挂链; 挂不挂链交 main 拍 = §7 问句之一★) |\n| ★**零外发** ★ | 不发任何邮件 / 询价 / 问询 / 采购 (★老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料★) |\n| ★**不代拍** ★ | ★**ISS-399 的 M-A / M-B / M-C / M-D 四条仍归 main** ★ ⇒ 本单只出逐字改法建议, 一条都不代拍 |\n| ★**不自签 issue_log** ★ | `state/issue_log.yaml` 本单一字未写 (mtime 留证) |\n| ★**只写自己分片** ★ | 只写 `state/fragments/mech.yaml` (★必须走 `state/frag_write.py`★ · 禁止 `open(p,\"w\")`) |\n| ★**证据必须分级** ★ | `[官网]` / `[实测]` / `[媒体]` / `[推算]` / `[0数据]` 逐条标 |\n\n★**额外纪律 (由派活方附加)★**:\n① 写分片必须用 `state/frag_write.py` (禁止 `open(p,\"w\")`) ② 只写本任务允许的文件, 不碰别人的 ③ 证据分级 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` 必须标\n④ ★**不许外发任何邮件/询价/问询/采购 (老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料) ⇒ 缺口一律【自己网上查】+ 标证据等级 + 查不到就写降级方案 ⇒ 没有\"批一句可以发\"这个选项** ★\n⑤ 交卷前跑 `python3 state/merge.py` (rc 必须 0) && `python3 state/gate_check.py` (Q1 必须 18/18) 并把输出贴进回复\n\n---\n\n## §1 题 (★main 2026-11-24 22:4x 本机实读·不抄任何 agent 报告★)\n\n### 1.1 现象: ★三个\"回填格\"指针打到了不存在的键★\n\n★**`MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md` (ISS-393 真相页) 的 §5「量完填回哪一格」动作表, L176 / L177 / L178 三行逐字写的是★**:\n\n```\n| ① 座体宽 X (跨排, 4 位件) | … | §1 表第 1 行 + §6 `dimensions.factory_seat_body_x_4pos.measured` | … |\n| ② 座体深 Y (跨排距, 前后壁) | … | §1 表第 3 行 + §6 `dimensions.factory_seat_body_y.measured` | … |\n| ③ 绝缘体高 Z | … | §1 表第 4 行 + §6 `dimensions.factory_insulator_height_z.measured` | … |\n```\n\n★**⇒ 这三个键名在同页 §6 机器块 `dimensions` 里【一个都不存在】★**\n★**同页 §6 机器块 `dimensions` 的真键是** (★行号是本机实读时的行号, 你自己重读一遍★):\n\n| ★真键★ | ★行★ | ★结构★ |\n|---|---|---|\n| `seat_body_x_4pos` | L518 | `value` / `source` / `old_value` / `old_source` / `class` / `note` / `evidence` / `consumed_by` |\n| `seat_body_y` | L538 | 同上 |\n| `insulator_height_z` | L548 | 同上 |\n| `factory_drill` | L568 | 同上 (★它是钻孔, 不属三量★) |\n\n★**⇒ 全仓 grep `factory_seat_body` / `factory_insulator` 只命中 5 处**: ★ISS-393 页那 3 行 (死指针本体) + ★ISS-397 页 2 处**转述** (L199 登记 + L338 问 main) + ★`HANDOFF/2026-11-24_mech-lead_ISS397_座体三量收样作业包.md` 1 处转述 ★\n★**⇒ 没有任何闸读这三个路径 ⇒ 这是一条【死路径】**: 照着 §5 表去填 ⇒ 填进一个不存在的格 ⇒ **什么都不会变** ★\n\n### 1.2 ★就算把前缀改对, 那一格还是填不了★\n\n★**同页 §6 的 `seat_body_x_4pos` / `seat_body_y` / `insulator_height_z` 三个真键里【没有 `measured` 这个字段】★**\n★**⇒ 即使把 `factory_` 前缀改对 (§5 就会变成 `dimensions.seat_body_x_4pos.measured`), 那一格【依然不存在】★**\n★**⇒ 也就是说 §5 的 §6 那一半指针【指错了页】, 不只是【指错了键名】★** ★★\n\n### 1.3 唯一真实的实测槽在【另一页】★\n\n★**`MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md` (ISS-397 收样作业包页) 的机器块里有 `three_quantities`** (★L386 起★), 三个量各占一格:\n\n| ★槽名★ | ★行★ | ★现在的值★ |\n|---|---|---|\n| `three_quantities.insulator_height_z` | L387 | `measured_value: null` · `measured_evidence: \"[0数据]\"` · `measured_readings: []` |\n| `three_quantities.seat_body_width_x` | L400 | 同上 |\n| `three_quantities.seat_body_depth_y` | L413 | 同上 |\n\n★**⇒ 这才是全仓唯一的\"三量实测回填格\", 现在是空的 (符合 `[0数据]` 的定义)★**\n★**⇒ 而且【槽名和 §5 写的连拼法都不一样】**: ★§5 写 `seat_body_x_4pos` / `seat_body_y`, 真槽叫 `seat_body_width_x` / `seat_body_depth_y` ⇒ ★**改前缀仍对不上** ★\n\n### 1.4 收样闸只认这三个槽 ⇒ 钉死了\"唯一真槽\"★\n\n★**`MECH/check_fts_seat_sample_plan.py`**:\n- ★L45: `PAGE_REL = \"MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md\"` ★\n- ★L71: 钉了 ISS-393 页的 md5 = `0cb3ff2de940522b467ca3b01feda11c` (★本单不改那一页 ⇒ 这枚 pin 本单不许动★) ★\n- ★L75: `QUANT_KEYS = (\"insulator_height_z\", \"seat_body_width_x\"\
+    , \"seat_body_depth_y\")` ★\n- ★L223: `tq = blk.get(\"three_quantities\") or {}` ⇒ ★**闸只从 ISS-397 页那三个槽取实测值** ★\n\n★**⇒ 所以\"三量实测\"这条数据链【只有一条合法通路】: ISS-397 页 `three_quantities.*` ⇒ ISS-393 §5 的指针【不在这条通路上】★**\n\n### 1.5 为什么至今没人做: ★它挂在一个\"要不要改\"的问句上★\n\n★**ISS-397 页 L199 (逐字登记) + L338 (逐字问 main)**:\n> 「★**该页 §5 的动作表逐字写的是 `dimensions.factory_seat_body_x_4pos.measured` / `factory_seat_body_y.measured` / `factory_insulator_height_z.measured`, 而 §6 机器块里的真键是 `dimensions.seat_body_x_4pos` / `seat_body_y` / `insulator_height_z` ⇒ 三个 `factory_*` 键名是笔误, 回填必须用真键名 ⇒ 这条登记为 §9-④ 交 main 订正 (本单零改既有页正文)★」\n> 「★**问法 (给 main)**: 要不要落一个追加式订正块把三个键名改对?★」\n\n★**⇒ ISS-397 把它当\"要 main 点头才能改\" ⇒ 搁到今天没人答 ⇒ 死指针还在★**\n★**⇒ ★这是本单存在的理由: 把\"到底有多少这种悬空指针\"从【一条问句】变成【一份可判的清单 + 一道机器闸】, 顺带把这一条的逐字改法写好交 main★**\n\n### 1.6 ★为什么这是「板只改一次」关键路径上的死路★\n\n★**事实链 (全部本机实读)**:\n1. ★座体深 Y 与绝缘体高 Z 的**公差是 `[0数据]`** (官网只有 `REF` 基准尺寸, 图纸未给公差带) ⇒ ★**这两个量只能靠实测升档** ★\n2. ★降级方案 = 落 FTS 时先打一块单板样 + 卡尺量三量 ★**⇒ 这件事被写死在「板只改一次」那一趟投板前** ★\n3. ★**回填格指错 ⇒ 测完的数落不了地 ⇒ `three_quantities.*.measured_value` 永远是 `null`** ★\n4. ★⇒ `MECH/check_fts_seat_sample_plan.py` 裸跑**永远红在 B.6** (★该闸裸跑 rc=1, 且**红的是现状**; 全闸其余 32 条绿★) ★\n5. ★⇒ 两种坏结局: ① **有人把\"闸还红\"读成\"还没到收样时点\" ⇒ 带着两个 `[0数据]` 的公差放行投板 ⇒ 板改第二次**; ② **永远卡在\"闸红\"上 ⇒ 那一趟永远不许开工** ★\n\n★**⇒ 这就是【板只改一次】纪律最怕的那类洞: 不是算错, 是【动作做完但数据落不了地】★**\n\n### 1.7 本单要干什么 (★三句★)\n\n① ★**全仓清账**: 把 PCB 线各真相页里\"指向机器块某个槽\"的指针**逐条抠出来**, 逐条判定【能不能真的解析到一个存在的槽】⇒ 出一份**悬空指针清单** (★本单已知的至少有上面 3 条, 你要找的是**全部**★)\n② ★**把这件事变成机器闸**: 新建一道闸, 判据 = \"扫描范围内零悬空指针\"; ★**裸跑必须 rc=1 (红的是现状)**, `--selftest` 必须 rc=0 且末行 `ALL TESTS PASS` ★\n③ ★**把这一条的逐字改法写好交 main** (★追加式订正块的候选文本 + 连带要刷新的 md5 pin 清单 + 连带会红的既有闸清单★) ⇒ **本单零改 ISS-393 页正文, 一条都不代拍** ★\n\n---\n\n## §2 实读清单 (★★你自己独立复核一遍, 不许抄 §1 的结论★★)\n\n★**§1 的每一条都要你自己重读一遍再动手; 下面 8 条是最低复核集 (★命令 + 你该看到什么★)**:\n\n| # | ★你该跑什么★ | ★你该看到什么 (★不符就说明题面口径有错 ⇒ 先在交卷页 B2 披露, 别硬改★)★ |\n|---|---|---|\n| 1 | `sed -n '170,180p' MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md` | ★§5 动作表三行, 每行含 `dimensions.factory_...` ★ |\n| 2 | `grep -n '\"seat_body_x_4pos\"\\|\"seat_body_y\"\\|\"insulator_height_z\"\\|\"factory_drill\"\\|\"factory_seat_body\\|\"factory_insulator' MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md` | ★四个真键存在 + 三个 `factory_*` 指针不存在 ★ |\n| 3 | `sed -n '515,560p' MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md` | ★三个真键里【没有 `measured` 字段】 ★ |\n| 4 | `grep -n \"three_quantities\" -A 42 MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md` | ★三个槽 + `measured_value: null` / `measured_evidence: \"[0数据]\"` ★ |\n| 5 | `sed -n '40,50p;70,80p;220,226p' MECH/check_fts_seat_sample_plan.py` | ★`PAGE_REL` · `QUANT_KEYS` · `blk.get(\"three_quantities\")` ★ |\n| 6 | `grep -rn \"factory_seat_body\\|factory_insulator\" --include=*.md --include=*.py . \\| grep -v \"^./tmp/\"` | ★**全仓只有那 5 处**; ★**没有任何闸读它** ★ |\n| 7 | `python3 MECH/check_fts_seat_sample_plan.py` | ★rc=1; ★**红的是 B.6 一条** (★\"红的是现状\"不是闸故障★) ★ |\n| 8 | `python3 MECH/check_fts_vs_generic_courtyard_delta.py` | ★rc=0 (★这页自己没坏: 它管的是厂件 vs 库件, 不管指针可解析性★) ★ |\n\n★**板侧基线 (§0 要自证的)**: `md5sum HW/PCB/demo_mainboard.kicad_pcb` ⇒ **`611b869e13518c3c023fb178f91a0075`** ★\n★**既有闸基线 (§2 要自证的 11 道, 全在 MECH/)**: `check_onepass_mech_release.py` · `check_onepass_mech_sync.py` · `check_fts_seat_body_geometry.py` · `check_fts_vs_generic_courtyard_delta.py` · `check_onepass_struct_crosscheck.py` · `check_jdebug_arrangement_truth.py` · `check_debug_seat_3d_fit.py` · `check_onepass_s10_fp_swap_impact.py` · `check_mech_verdict_freshness.py` · `check_fts_seat_sample_plan.py` · `check_mech_signed_append_ledger.py` ★\n\n---\n\n## §3 交卷物 (3 件)\n\n1. ★**`MECH/BOARD_ONEPASS_MACHINE_BLOCK_POINTER_AUDIT.md`** ★★ ★**本单新建·真相页** ★ ⇒ §0 结论摘要 · §1 扫描范围与指针形态定义 · §2 悬空指针清单 (★逐条: 源页 + 行号 + 指针逐字 + 指向的目标页 + 判定 + 为什么悬空 + 逐字改法建议★) · §3 真槽登记表 (★哪个页的哪个键是【唯一真槽】+ 谁消费它★) · §4 新闸判据 P1~P7 与机器块 · §5 连带影响面 (★哪些既有闸钉了被改页的 md5 / 哪些闸会因为改指针而变红 / 哪些页把指针抄了三遍★) · §6 实跑留证索引 ★\n2. ★**`MECH/check_machine_block_pointer_resolvable.py`** ★★ ★**本单新建·机器闸** ★ ⇒ ★**裸跑 rc=1** (★红的是现状: 扫描范围内悬空指针 ≥1★) · ★**`--selftest` rc=0 且末行逐字 `ALL TESTS PASS`** ★ · 判据与机器块写在真相页 §4 ★\n3. ★**`HANDOFF/2026-11-24_mech-lead_ISS400_机器块指针可解析性清账.md`**\
+    \ ★★ ★**本单新建·交卷页** ★ ⇒ B1~B7 全填 (★B6 贴 §六 实跑输出原文★)\n\n★**三件都要真的在盘上; 路径不许改 (★派活方已按 `state/check_brief_commands.py` 验过这三个是本单产出★)** ★\n\n★**分片**: ★**只写 `state/fragments/mech.yaml`** (★走 `state/frag_write.py`★) ⇒ 3 产出物 + interface_claims (★每条标 `to=main`★) + needs_from (★每条带代价 + 不答后果★) ★\n\n---\n\n## §4 扫描范围与指针形态 (★闸要机器可判, 不许靠人眼★)\n\n### 4.1 扫描范围 (★本单只【读】别的域, 只【写】MECH 域★)\n\n- ★**主范围**: `MECH/` 下全部 `.md` 里的机器块指针 ★\n- ★**旁证范围 (只列不修)**: `HW/PCB/` 与 `SW/` 下全部 `.md` 里的机器块指针 ⇒ ★**别的域的问题只在清单里标【归属域】+【逐字改法建议】, 本单一件都不许改** ★\n- ★**机器块识别**: 每页 ```json 围栏块 ⇒ ★用 `json.loads` 解析 (★不许用正则硬啃 JSON★) ★\n\n### 4.2 指针形态 (★机器可判的候选形态, 你可以再加, 但每个都要能自动判定★)\n\n| ★形态★ | ★例 (★来自本单已实测的那 3 条★)★ | ★判定口径★ |\n|---|---|---|\n| ★P1 同页 JSON 路径型★ | ★`dimensions.factory_seat_body_x_4pos.measured` ★ | ★在**本页**机器块里逐段下钻 ⇒ 段段存在 ⇒ 可解析; ★任一段不存在 ⇒ 悬空 ★ |\n| ★P2 跨页 JSON 路径型★ | ★另一个 .md 页 (★目标页由指针自己写出来★) 的 `three_quantities.seat_body_width_x.measured_value` ★ | ★**必须写得出目标页** ⇒ 在目标页机器块里下钻 ★ |\n| ★P3 页 + 键名同现型★ | ★`§6 \\`dimensions.factory_...measured\\`` ★ | ★**同页 P1 的变体** ⇒ 归 P1 判 ★ |\n| ★P4 表格定位型★ | ★`§1 表第 1 行` ★ | ★★**本单发现的第二个歧义点**: ★\"第 N 行\"**没写清填哪一格** ⇒ §1 表有 5 列 ⇒ ★**\"行\"是唯一坐标、\"格\"缺失 ⇒ 人填也会填歪** ⇒ 归【歧义指针】单列一类 ★ |\n| ★P5 自由文本引用型★ | ★`见 §4-③` / `见 §6` ★ | ★★**本单不要求判它** (自然语言引用不算机器块指针) ⇒ ★但清单里要**分开列**并说明\"机器闸不管这一类, 为什么\" ★ |\n\n### 4.3 判定分类 (★清单里每条指针必须落在且只落一类★)\n\n- ★**A 可解析** ⇒ 逐段下钻全部命中 ⇒ 顺带记下**它指向的槽是不是\"该量的那个槽\"** (★例如 §5 想填的是实测值, 就不该指向只有公称值的键★) ★\n- ★**B 悬空 (键不存在)** ⇒ ★**本单已知的 3 条全在这一类** ★\n- ★**C 歧义 (定位不到唯一格)** ⇒ ★P4 那类 (\"第 N 行\"没说是哪一格) ★\n- ★**D 误指 (键存在但不是想要的槽)** ⇒ ★例如\"要填实测却指向只有 `value` 的公称键\" ⇒ ★★**这是比 B 更阴的一类: 键名存在 ⇒ 机器查不出来 ⇒ 人照填 ⇒ 填错地方还不报错** ★\n- ★**E 无归属 (写不出目标页)** ⇒ 跨页指针没写目标页 ⇒ 归一 / 归二要能判 ⇒\n\n★**⇒ 闸的判据核心: ★A 类之外的指针条数 == 0 ⇒ 才算绿★**\n\n---\n\n## §5 新闸判据 (★`MECH/check_machine_block_pointer_resolvable.py`★)\n\n| ★判据★ | ★内容★ |\n|---|---|\n| ★P1★ | ★扫描范围可复现: ★闸自己扫 §4.1 的范围 ⇒ **不许把扫描结果写死** ★ |\n| ★P2★ | ★指针候选识别: §4.2 的 P1/P2/P3 形态 + ★§4.2 的 P5 自然语言引用**明确排除在外** (★闸自己声明\"我不管哪一类\"★) ★ |\n| ★P3★ | ★可解析判定: JSON 逐段下钻 ⇒ 命中 / 不命中 ⇒ ★**不许用子串命中当解析** (★`\"seat_body_x_4pos\" in json.dumps(...)` 这种是错的做法★) ★ |\n| ★P4★ | ★分类输出: A / B / C / D / E 五类, 每条带【源页 + 行号 + 指针逐字 + 判定】★ |\n| ★P5★ | ★**\"这一条指针指向的槽是不是实测槽\"判定** (★即 D 类★) ⇒ ★**判据必须能独立跑出 D 类, 不能只报 B 类** ★ |\n| ★P6★ | ★**本单已知的 3 条死指针必须被逐条点名报出** (★★闸的 selftest 反向用例之一: ★把这 3 条从扫描范围里去掉 ⇒ 闸必须从红变绿 ⇒ 证明闸真的在看这 3 条, 不是恒红★) ★ |\n| ★P7★ | ★**零写板自证**: 闸自己跑的时候不得写板 / 不得改页 ⇒ 闸跑完板 md5 不变 ★ |\n\n★**selftest 要求 (★`--selftest` 必须 rc=0 且末行逐字 `ALL TESTS PASS`★)**:\n- ★**正向 ≥1**: 真范围扫 ⇒ 恒定报出同样的悬空指针条数 (★条数不许随时间漂移★) ★\n- ★**反向 ≥6**, 每条都要\"**故意破坏 ⇒ 闸必须变红 / 变绿**\", 建议覆盖:\n  ① 把 §1 已知 3 条指针之一从扫描范围去掉 ⇒ 悬空条数减 1 ⇒ 闸必须抓到\"条数变了\" ★\n  ② 造一条**指向另一个页**的假指针, 但那个键在目标页**不存在** ⇒ 闸必须报悬空 ★\n  ③ 造一条**指向另一个页**的假指针, 键**存在** ⇒ 闸必须判 A 可解析 (★**证明闸能跨页下钻, 不是只会查自己页**★) ★\n  ④ 造一条**键名存在但不是实测槽**的指针 ⇒ 闸必须报 D 类 (★证明 P5 真在跑★) ★\n  ⑤ 改坏机器块 JSON (语法错) ⇒ 闸必须**报错退出**, 不许静默跳过 (★fail-closed★) ★\n  ⑥ 把 §4.2 的 P5 自然语言引用塞进去 ⇒ 闸必须**不**把它算成指针 (★证明排除口径有效★) ★\n  ⑦ 扫一个**空目录** ⇒ 闸必须报\"扫描范围内零指针\"而不是崩 (★证明不会恒红★) ★\n- ★★**夹具要求 (★踩过坑, 必看★)**: ★**夹具不许把\"真件当前的指针文本\"硬抄成常量当期望值** ⇒ ★**期望值要从真文件现读现算** ⇒ ★**否则真件一改, 夹具立刻假红/假绿** (★这是 ISS-398 cont1 翻过的车★) ★\n\n---\n\n## §6 §六 必跑命令 (★全部本机实跑, rc 贴进交卷页 B6 原文★)\n\n```bash\n# ★新闸 (★本单新建·★裸跑红的是现状★)★\npython3 MECH/check_machine_block_pointer_resolvable.py            # ★期望 rc=1 (红的是现状: 悬空指针 ≥1)★\npython3 MECH/check_machine_block_pointer_resolvable.py --selftest # ★期望 rc=0 · 末行逐字 ALL TESTS PASS★\n\n# ★既有 MECH 闸不许被本单弄红 (★11 道·★全部本机实跑·★rc 贴进 B6★)★\npython3 MECH/check_onepass_mech_release.py            # 期望 rc=0\npython3 MECH/check_onepass_mech_sync.py                # 期望 rc=0\npython3 MECH/check_fts_seat_body_geometry.py           # 期望 rc=0\npython3 MECH/check_fts_vs_generic_courtyard_delta.py   # 期望 rc=0\npython3 MECH/check_onepass_struct_crosscheck.py        # 期望 rc=0\npython3 MECH/check_jdebug_arrangement_truth.py         # 期望 rc=0\npython3 MECH/check_debug_seat_3d_fit.py                # 期望 rc=0\npython3 MECH/check_onepass_s10_fp_swap_impact.py       # 期望 rc=0\npython3 MECH/check_mech_verdict_freshness.py           # 期望 rc=0\npython3 MECH/check_fts_seat_sample_plan.py\
+    \             # ★期望 rc=1 (★红的是 B.6 一条·★现状·★不是本单弄坏的★)★\npython3 MECH/check_mech_signed_append_ledger.py       # ★期望 rc=1 (★红的是现状·★不是本单弄坏的★)★\n\n# ★收尾 (★rc 必须达标★)★\npython3 state/merge.py                                  # ★rc 必须 0★\npython3 state/gate_check.py                             # ★rc 必须 0 · Q1 必须 18/18★\npython3 state/check_brief_commands.py                   # ★rc 必须 0★\n\n# ★边界自证 (★B4 贴输出★)★\nmd5sum HW/PCB/demo_mainboard.kicad_pcb                  # ★必须 611b869e13518c3c023fb178f91a0075★\ngrep -c \"check_machine_block_pointer_resolvable\" state/gate_check.py   # ★必须 0 (零挂链)★\ngrep -c \"iss400\" state/fragments/mech.yaml              # ★必须 ≥1★\n```\n\n★**留证**: 把 §六 全部输出落 `logs/iss400/` (★`cmd_*.log` 一条一文件★) ⇒ 交卷页 B6 贴原文 ★\n\n---\n\n## §7 留给 main 的问句 (★每条带代价 + 不答后果 + 归属; ★一条都不许代拍★)\n\n★**你至少要回答这 4 条 (★可多不可少★)**:\n\n| ★#★ | ★问句★ | ★不答的后果 (★你自己写清楚, 带代价★)★ |\n|---|---|---|\n| ★1★ | ★**ISS-393 页 §5 的 3 个死指针要不要按【追加式订正块】改对?** ★ (★候选逐字文本你写好, 但**本单零改那一页**★) | ★⇒ §5 一直把人指向不存在的格 ⇒ 三量实测永远落不了地 ⇒ 「投板前必量」这个前置动作永远不成立 ⇒ **板改第二次** 或 **那一趟永远不开工** ★ |\n| ★2★ | ★**改指针时, `MECH/check_fts_seat_sample_plan.py` L71 那枚 ISS-393 页 md5 pin 要不要同批刷新?** ★ (★基线刷新 = 改既有闸的常量 ⇒ 属 main 的地界★) | ★⇒ 改了页不刷 pin ⇒ **收样闸当场变红** ⇒ 与\"现状就该红\"混在一起 ⇒ 以后没人分得清\"红是现状\"还是\"红是我刚改坏的\" ★ |\n| ★3★ | ★**ISS-397 页 §9-④ 那条\"要不要落订正块\"的问句, 是不是就由本单的逐字改法来答?** ★ (★它已经挂了两天没人答★) | ★⇒ 这条问句继续挂着 ⇒ 下一趟还会有人重新发现一遍 ⇒ **同一个坑重复踩** ★ |\n| ★4★ | ★**新闸 `MECH/check_machine_block_pointer_resolvable.py` 挂不挂链?** ★ (★本单零挂链★) | ★⇒ 零挂链 = 红了没人知道 (★这正是 ISS-398 交卷自曝的那一类: \"零挂链 ⇒ 它红了没人知道\"★) ⇒ ★**但挂链要占 G1 链的一个位, 且它裸跑就是红的 ⇒ 挂链前得先想清楚\"红 = 现状\"怎么在链上表达** ★ |\n\n★**再加一条你自己的 (★如果你在 §5 扫出了别的域的悬空指针★)**: ★**那些别的域的条目要不要另开单? 归属哪个总工?** ★ ⇒ **本单只列不改** ★\n\n---\n\n## §8 交卷格式 (★B1~B7 全填, 不许留占位符★)\n\n| ★块★ | ★内容★ |\n|---|---|\n| ★B1★ | ★**结论摘要**: ★悬空指针**总条数** + ★按类 (A/B/C/D/E) 分布 + ★**本单已知的 3 条是否全部命中** + ★**新闸裸跑/自测读数** + ★**一句话: 这一条对「板只改一次」意味着什么** ★ |\n| ★B2★ | ★**独立复核自证**: ★§2 八条**你自己跑的结果** (★与题面口径不符的地方**如实披露**, 别硬改★) ★ |\n| ★B3★ | ★**证据分级**: ★逐条标 `[官网]` / `[实测]` / `[媒体]` / `[推算]` / `[0数据]` ★ |\n| ★B4★ | ★**边界自证**: ★板三项指纹 + 三表 md5 + 11 道既有闸 md5 + 三页 md5 + 零挂链 grep + 不自签 issue_log + 只写自己分片 ★ |\n| ★B5★ | ★**留给 main 的问句** (★§7 四条 + 你自己加的★) 每条带: ★问法 + 建议默认值 + 不答后果 + 代价 + 归属★ ★ |\n| ★B6★ | ★**复现命令 + rc**: ★§六 全部命令的 rc + 原文 (★`logs/iss400/` 的路径★) ★ |\n| ★B7★ | ★**本单对自己新闸做的任何修正都要主动交代** (★改了判据 / 改了夹具 / 改了阈值 ⇒ 一律逐条列出来★) ★★**不许悄悄改**★ ★ |\n\n★**加分项 (不强制)**: ★**把 §1 那 3 条死指针的逐字订正块候选文本直接写进真相页 §2** ⇒ ★这样 main 一句话就能拍, 不用再回头翻 ★\n"
+  note: '★**2026-11-24 22:4x cron fb67af40 (ARS45 队列自动派活) 新开并【直接落 fixing】**(★铁律⑩-i: 先落 fixing 再 spawn ⇒ 兄弟 job 775d9893 的 `advance.py --json` 看不见本单 ⇒ 零撞车窗口★) ★
+
+    ★**开单依据 (本机实读 + 实算, 不抄任何 agent 报告)★**: ① `python3 state/advance.py --json` 实跑 ⇒ `internal: []` / `approvals: []` / `waiting: []` / `decisions: 55`; ★**台账 16 条 `open` 的 owner 全部 = `boss`(5) / `main`(11) ⇒ 不在三个总工可派域** (★`state/advance.py` L33 `AGENT_ROLE = {"hw-lead","sw-lead","mech-lead"}`★) ★
+
+    ★**② 三个槽位两采样实检 (★间隔 ~90 秒 · 体积在长 ⇒ 真在飞★)★**: ★hw-lead `ca14678f` 989,200 B → 1,023,147 B (↑33,947)· `advance_iss391_cont2`· **真在飞 ⇒ 不许续派**★; ★sw-lead `d35b8dd2` 1,084,866 B → 1,193,944 B (↑109,078)· `advance_iss398_cont2`· **真在飞 ⇒ 不许续派**★; ★mech-lead `753cb5df` (`advance_iss399_cont2`) **22:14:03 已 done + 交卷报告在盘 ⇒ 槽位实际已空** ⇒ ★**只有 mech-lead 一个空槽位**★ ★
+
+    ★**③ 逐道实跑 MECH 域 11 道闸 (留证 `state/.verify/fb67_2245/`)★**: ★9 道 rc=0; `check_fts_seat_sample_plan.py` rc=1 (★红的是三量实测档 `[0数据]` 的现状, 不是闸故障★); `check_mech_signed_append_ledger.py` rc=1 (★红的是 3 处陈旧 pin 未登记台账的现状★) ⇒ ★**闸全绿或红在现状 ⇒ 真缺口不在这 11 道闸的读数上, 在【页与页之间的机器块指针】上** ★
+
+    ★**④ 真缺口 (main 22:4x 逐行实读)★**: ★`MECH/BOARD_ONEPASS_FTS_VS_GENERIC_COURTYARD_DELTA.md` §5 动作表 L176/L177/L178 让收样人把三量实测填进 `dimensions.factory_seat_body_x_4pos.measured` / `factory_seat_body_y.measured` / `factory_insulator_height_z.measured` ⇒ ★这三个键在同页 §6 机器块里**一个都不存在**★; ★同页真键 `seat_body_x_4pos` / `seat_body_y` / `insulator_height_z` (L518/L538/L548) **又没有 `measured` 字段** ⇒ 即便改对前缀**那一格依然不存在**★; ★**唯一真槽在另一页** `MECH/BOARD_ONEPASS_FTS_SEAT_SAMPLE_MEASURE_PLAN.md` 的 `three_quantities.{insulator_height_z, seat_body_width_x, seat_body_depth_y}` (★槽名拼法还不同: `seat_body_width_x` ≠ `seat_body_x_4pos`★)⇒ ★而收样闸 `MECH/check_fts_seat_sample_plan.py` L45/L75/L223 **只认那三个槽** ⇒ ★**死路径: 测完的数落不了地**★ ⇒ ★**座体深 Y 与绝缘体高 Z 的公差是 `[0数据]` ⇒ 这两量只能靠实测升档 ⇒ 而实测回填格指错 ⇒ 「板只改一次」那一趟投板前的必量动作永远不成立 ⇒ 坏结局两条: ① 带着 `[0数据]` 公差放行投板 ⇒ **板改第二次**; ② 永远卡在「闸红」上 ⇒ 那一趟永远不许开工**★ ★
+
+    ★**⑤ 这条至今没人做**: ★ISS-397 页 L199 已逐字登记、L338 已逐字问 main「要不要落一个追加式订正块把三个键名改对?」⇒ ★**挂了两天没人答** ⇒ 本单把它变成【全仓清单 + 机器闸 + 逐字改法】★ ★
+
+    ★**⑥ 派活纪律**: ★**本单是「纯查证 + 纯分析 + 新建真相页 + 新建机器闸」类 ⇒ 合「板只改一次」纪律 ① (先派纯分析/作业包类, 不动板) ⇒ 零写板·零落表·零改既有页正文·零改既有闸判据·零挂链·零外发·不代拍** ★
+
+    ★**命令存在性守卫**: ★`python3 state/check_brief_commands.py --brief-file state/dispatch_briefs/ISS-400_mech_machine_block_pointer_resolvable_audit.md` ⇒ **rc=0** ★'
+  source_agent: main
+  verify_by: main
+  reporter: main
+  raised: '2026-11-24'
+  due: '2026-11-27'
+  status: verified
+  external: false
+  dispatched_at: '2026-11-24'
+  verify_result: '✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `MECH/check_machine_block_pointer_resolvable.py` 裸跑 rc=1 (★按设计判红 (★红的是现状·不是闸故障★)★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**「量完填回哪一格」的最后一米清账** ⇒ ★**日志原话: 「预期读数 = rc=1 (红): 红的是【现状】(扫描范围内有悬空/歧义/误指指针) ⇒ ★**不许为了让它绿而放宽判据**」** ⇒ ★**★main 裁决: Q5 = 「量完填回哪一格」的正式答案 = ★**唯一真槽 `degradation.measure_fill_back.*.measured` (★ISS-393 页 §6 登记的三条槽位名一个都不存在 ⇒ ISS-397 §9-④ 挂了两天那条问句即使答「改键名」也改到填不进去)★ ⇒ ★**三个候选落点没有一条通路 ⇒ 收样闸永远红在 B.6** ⇒ ★**本单不新起单·与「板那一趟」同批** ★ ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★'
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
+  note_addendum:
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `MECH/check_machine_block_pointer_resolvable.py` 裸跑 rc=1 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**「量完填回哪一格」的最后一米清账** ⇒ ★**日志原话: 「预期读数 = rc=1 (红): 红的是【现状】(扫描范围内有悬空/歧义/误指指针) ⇒ ★**不许为了让它绿而放宽判据**」** ⇒ ★**★main 裁决: Q5 = 「量完填回哪一格」的正式答案 = ★**唯一真槽 `degradation.measure_fill_back.*.measured` (★ISS-393 页 §6 登记的三条槽位名一个都不存在 ⇒ ISS-397 §9-④ 挂了两天那条问句即使答「改键名」也改到填不进去)★ ⇒ ★**三个候选落点没有一条通路 ⇒ 收样闸永远红在 B.6** ⇒ ★**本单不新起单·与「板那一趟」同批** ★
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★mech-lead 槽位**已释放** ⇒ 下一轮 `advance.py` 可派 (★铁律: 一个 agent 同时只允许一个写会话★) ★'
+- id: ISS-401
+  title: '★★[★新主线·PCB 线·HW 侧·政策落地+纯查证+纯分析+新建真相页+新建机器闸+自有分片收口·零写板·零落表] 「老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料」的第 ② 半 【义务侧】在 HW 侧落地 ⇒ HW 域 needs 312 条里 10 条仍路由到 vendor/jbd + 6 条 blocker 写着「等原厂」+ 网表 109 行 tbd / 36 行 [待原厂] ⇒ 逐条换成【自己查的结果 + 证据等级 + 查不到就写降级方案】⇒ 板那一趟的网表才真能冻结 ★★'
+  severity: high
+  source_blocker: null
+  desc: '★★[★新主线·PCB 线·HW 侧·政策落地 + 需求闭环 + 纯查证 + 纯分析 + 新建真相页 + 新建机器闸 + 自有分片收口·零写板·零落表·零改既有闸阈值·零改既有页正文·零挂链·零外发·不代拍·不自签]★★
+
+
+    ★**题 (来源 = ★main 2026-11-24 23:1x 本机实读 `state/fragments/hw.yaml` + `HW/netlist_v1.csv` · 不抄任何 agent 报告★)★:
+
+    ★**① 现象**: ★**HW 域是三个总工里唯一没做外部依赖自查收口的域** ⇒ ★SW 侧已做 (ISS-270「SW 侧还挂着 5 条干等原厂/等外部回复/待确认」+ ISS-357「SW 域 needs 144 条四分类」· 均 verified) ⇒ ★MECH 侧已做 (ISS-313「MECH 域 needs 184 条四分类 + 16 条外部依赖」· verified) ⇒ ★**HW 域 (needs 312 条 · blockers 7 条 · TBD 13 项) 一次都没做**★ ⇒ ★**违反老板 2026-11-11 19:31「以后不再做任何邮件咨询…都自己去网上查找」+ 2026-11-12 02:02「不再发信, 全靠自己查资料」的第 ② 半 (义务侧) ⇒ 而任务书里写着的「没有『老板批一句可以发』这个选项了」这条, 在 HW 域根本没有对应动作**★ ★
+
+    ★**② 精确账 (本机实读)★**: ★`state/fragments/hw.yaml` 的 `needs_from` = **312 条** ⇒ `to` = main 251 / mech-lead 28 / sw-lead 16 / boss 12 / 落表批次 3 / ★**vendor 1 / jbd 1**★ ⇒ `waiting_on` = agent 19 / boss 11 / ★**vendor 6 / jbd 2**★ / main 1 ⇒ ★**8 条 waiting_on 外部 + 2 条 to 外部 = 10 条外部路由** ★★ 10 条逐条清单: ★`q16_display_iface` · `vendor_ars45_paper_q11_q16` (to=vendor) · `jbd_zoushe_dsi_spec` (to=jbd) · `rel_vendor_absmax_rating` · `rel_battery_cell_spec` · `iss067_vendor_r_on_u1` · `iss067_jbd_vdd_tol_u2` · `rk3572_isp_throughput_max` ⇒ ★**这 8 个 key 在 hw.yaml 里各只出现 1 次 (grep 实测) ⇒ 只作为 needs 挂着, 没有一条有自查结论**★ ★
+
+    ★**③ blockers 侧**: ★`blockers` 7 条里 ★**HW-B1 (显示 TX) / HW-B2 (FCCSP pitch) / HW-B3 (电源域上限) / HW-B4 (启动存储) / HW-B5 (R-F1 残留·含 3 条外部依赖) / HW-B6 (15/15 器件 Absolute Maximum Ratings 未核) 六条的 `needs_from` 里写着 `vendor`** ⇒ ★**HW-B7 (R-GEO 六问) 不是外部依赖 ⇒ 本单不碰, 但要写明「别混进清单」**★ ★
+
+    ★**④ 网表侧 (板要对着它画的那份真源)★**: ★`HW/netlist_v1.csv` (★零落表 ⇒ 本单只读★) ⇒ ★**109 行带 `tbd` 标签** (TBD-01 6 / TBD-02 12 / TBD-03 25 / TBD-04 24 / TBD-06 6 / TBD-10 3 / TBD-11 4 / TBD-12 27 / TBD-13 2) + ★**36 行 `evidence=[待原厂]` (★全部 board=MAIN_PCB★)**★ ⇒ ★**TBD-01..TBD-13 = 「13 项画不了清单」** (★口径出处 `HW/ERC_DRC_CHECKLIST.md` §A5★) ⇒ ★**网表 CSV 里只出现 9 个标签 (TBD-05/07/08/09 只在文档里) ⇒ 收口必须以 13 项为准, 不能只扫 CSV**★ ★
+
+    ★**⑤ 为什么在「板只改一次」的关键路径上**: ★**板 md5 全生命周期只许变一次** ⇒ ★**凡会改网表真源的动作必须与板那一趟同批** ⇒ ★**今天挂着 `[待原厂]` 的 36 行 + 109 行 TBD ⇒ 板那一趟开工当天仍有 145 行可能动网表 ⇒ 动网表 ⇒ 板 md5 第二次变 ⇒ Gerber / 投产包 / 留证链 / 盖章 / 发布全部白跑** ⇒ ★**坏结局二选一: ① 开工当天才发现要落值 ⇒ 那一趟作废; ② 带着 145 行 `[待原厂]` 直接投板 ⇒ 这是一张能出厂但不该出厂的板**★ ★
+
+    ★**⑥ 盘上已有的现成结论 (别重查)★**: ★TBD-01 对 demo 板已不阻塞 (★主板走 RK3572 SoM 路线 ⇒ 不碰 SoC 球位号★ · `HW/DEMO_BOARD_HW_DECISION.md`) ⇒ ★TBD-01 可用官网数据直接关 (★TX=O/RX=I/3.3V/单端★ · `HW/PCB/RK3572_UART0_TX_PINMUX_VERDICT.md` §5 F2 · ISS-204 已 verified) ⇒ ★TBD-05 = 无公开数据 `[0数据]` (★`HW/ONLINE_FINDINGS_2026-10-26.md` §7★) ⇒ ★存储档 TBD-06/11 已由 ISS-346/ISS-350 三档化 (★台架板档板侧零动作·不卡★) ⇒ ★★**这些是现成弹药, 本单的任务是【把它们收成一条可执行的收口结论 + 一条机器闸】, 不是重查一遍**★★ ★
+
+    ★**⑦ 本单交付 (★5 件·全部零写板★)★**: ★① 真相页 (★新建) 逐条给【自己查的结果 + 证据等级五级 + 查不到就写降级方案 + 还卡不卡板那一趟 + 路由改成什么】★ ② 新闸 (★新建) 裸跑 rc=1 红的是现状 · `--selftest` rc=0 末行 `ALL TESTS PASS` (★正向 ≥1 + 反向 ≥6★) ★ ③ 交卷页 B1~B7 全填 (★B2/B3/B4 标题须用标准口径★) ★ ④ 自有分片 `state/fragments/hw.yaml` 收口 (★走 `state/frag_write.py`·★**不许 `open(p,"w")`·★其余 302 条 needs 一个字都不许动·★改后必须跑条数/丢 key/多的 key/内容有变的条 四项自检★) ★ ⑤ 留证 `logs/iss401/` ★
+
+    ★**⑧ 归 main 的五条问句 (★本单一律不代拍★)★**: ★HW-B1~B7 里哪几条能正式解除/降级 · 10 条 needs 的 `to`/`waiting_on` 各自改成什么 · TBD-01..TBD-13 里哪几条还卡板那一趟 · 新闸挂不挂链 · 网表 36 行 `[待原厂]` 归谁落 (同批 vs 拆批 ⇒ 直接决定板 md5 变更次数) ★'
+  owner: hw-lead
+  need_keys:
+  - iss401_hw_external_dep_closure
+  - iss401_blocker_verdicts
+  - iss401_tbd_13_boardtrip_verdict
+  task_brief: "# ISS-401 · hw-lead 任务书 —— ★★【HW 域外部依赖挂账全量自查收口】★★\n\n> ★**派活人**: 项目总工 (main / moli) · ★**owner**: hw-lead (硬件总工) · ★**verify_by**: main\n> ★**单号**: ISS-401 · ★**job**: cron `fb67af40` (ARS45 队列自动派活 · 每 30 分钟)\n> ★**性质**: ★**内部活 · 政策落地 (义务侧) + 需求闭环 / 卫生类** ⇒ ★**纯查证 + 纯分析 + 新建真相页 + 新建机器闸 + 自有分片收口** ★\n> ★**零写板 · 零落表 · 零改既有闸阈值 · 零改既有页正文 · 零外发 · 不代老板拍板 · 不自签 issue_log** ★\n> ★**主线口径**: 老板 2026-11-17 00:43「接下来的目标是绘制 PCB 图」⇒ 本单属**纯查证/分析类**, **不动板** ⇒ 合「板只改一次」纪律 ① ★\n\n---\n\n## ★0 · 一句话 ★\n\n★★**HW 域是三个总工里【唯一还没做外部依赖自查收口】的域**: SW 域已做 (ISS-270 / ISS-357 均 verified), MECH 域已做 (ISS-313 verified) ⇒ **HW 域至今仍有 10 条需求路由指着外部 (vendor/jbd) + 6 条 blocker 写着「等原厂」+ 网表里 109 行带 `tbd` 标签 / 36 行 `evidence=[待原厂]`** ⇒ ★**违反老板 2026-11-11 19:31 + 2026-11-12 02:02 口径「不再发信, 全靠自己查资料」的第 ② 半 (义务侧) ⇒ 而板那一趟要对着一个【不再变的网表】画 ⇒ 挂着 `[待原厂]` 的网表行 = 板改第二次的种子** ★★\n\n---\n\n## ★1 · 病灶 (★main 2026-11-24 23:1x 本机实读 + 实算 · 不抄任何 agent 报告★) ★\n\n### ★1-1 · HW 域自己的账 (`state/fragments/hw.yaml` · `needs_from` = **312 条**) ★\n\n| 维度 | 实读分布 |\n|---|---|\n| `to` | `main` 251 / `mech-lead` 28 / `sw-lead` 16 / `boss` 12 / `落表批次` 3 / ★**`vendor` 1 / `jbd` 1**★ |\n| `waiting_on` | `agent` 19 / `boss` 11 / ★**`vendor` 6 / `jbd` 2**★ / `main` 1 |\n\n⇒ ★**8 条需求挂着外部依赖** (waiting_on = vendor 6 + jbd 2) + **2 条 `to` 直接指向外部** (vendor 1 + jbd 1) ⇒ **共 10 条外部路由** ★\n\n★**逐条清单 (★key / to / waiting_on / due / 原 item 摘要★) —— 本单要逐条收口的就是这 10 条 + 下面 6 条 blocker + 13 项 TBD★**:\n\n| # | key | to | waiting_on | due | 原 item 摘要在盘位置 |\n|---|---|---|---|---|---|\n| 1 | `q16_display_iface` | main | vendor | 2026-10-29 | Q16 显示 TX 接口结论 (DSI TX / DP TX / 两者) + 宽高比 A/B/C 拍板 |\n| 2 | `vendor_ars45_paper_q11_q16` | ★vendor★ | vendor | 2026-10-29 | 原厂纸面资料 8 问 (10-21 邮件已发未回): ① FCCSP pitch + 球位图 ② 电源域 ③ 显示 TX ④ USB Device PHY ⑤ 内置 boot storage ⑥ MCLK 源 + sensor RESET 极性 ⑦ SoC 散热焊盘 ⑧ CSI 2/4 lane + 输入电压域 |\n| 3 | `jbd_zoushe_dsi_spec` | ★jbd★ | jbd | 2026-10-28 | 走鹃II: ① DSI 几 lane / 最高速率 ② 800×600@60fps 官方验证过没 ③ I2C 做什么用 + 从机地址 ④ 供电电压范围 + 峰值电流 |\n| 4 | `rel_vendor_absmax_rating` | main | vendor | 2026-10-30 | 15 个器件 Absolute Maximum Ratings (温度/电压/电流) + 可靠性数据 (FIT/MTBF/降额曲线); 另需 BQ25896 工作温度范围 / TMP117 供电范围 / Type-C 母座温升-电流曲线 |\n| 5 | `rel_battery_cell_spec` | main | vendor | 2026-10-30 | 1S LiPo 电芯规格书: 允许充电倍率 + 循环寿命 + 内阻 + 膨胀曲线 + 允许充/放电温度窗口 |\n| 6 | `iss067_vendor_r_on_u1` | main | vendor | 2026-10-31 | TPS62130A 高边 R_on + 推荐电感 DCR 合计值 ⇒ 决定 UVP 能不能从 3.50V 压到 3.35V (假设 R_total=100mΩ ⇒ 地板 3.335V ⇒ 方案 A' 成立; >150mΩ ⇒ 退回 3.50V) |\n| 7 | `iss067_jbd_vdd_tol_u2` | main | jbd | 2026-10-31 | 光机 3.3V 输入电压容差与下限 (UVP 3.35V 时 buck 输出 ≈3.305V); 假设 ±5% ⇒ 成立; 若要求 ±2% ⇒ 卡边需确认 |\n| 8 | `rk3572_isp_throughput_max` | main | vendor | 2026-11-04 | RK3572 官方 ISP 吞吐上限 (MP/s @ 什么位深/几路并发) —— 需求侧已钉死 (1080p60 = 124.4MP/s; 全分辨率 4K60 = 497.7MP/s; 项目一直用的 250MP/s 是媒体口径) |\n\n★**另 2 条 `to=外部` 的** = #2 `vendor_ars45_paper_q11_q16` (`to=vendor`) + #3 `jbd_zoushe_dsi_spec` (`to=jbd`) ⇒ ★**上面表里已经含这 2 条** ⇒ **8 条 waiting_on + 这 2 条 = 10 条** ★\n\n★**★这 8 条 key 在 `state/fragments/hw.yaml` 里各只出现 1 次 (★grep 实测★) ⇒ 只作为 needs 挂着, **没有一条有自查结论 / 没有一条被答** ⇒ ⇒ 老板清单里的「等外部」一直挂着 ★★**\n\n### ★1-2 · HW 域 `blockers` = 7 条, 其中 **6 条写着「等原厂」** ★\n\n| id | severity | needs_from | waiting_since | 摘要 |\n|---|---|---|---|---|\n| HW-B1 | high | ★**vendor**, main★ | 2026-10-24 | ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) |\n| HW-B2 | high | ★**vendor**★ | 2026-10-25 | FCCSP 球间距未拿到 → 逃线/叠层结论给不出 (pitch 已升级为 SoC 选型一票否决项) |\n| HW-B3 | high | ★**vendor**★ | 2026-10-25 | 电源域电压/电流上限全未知 → 电压域清单写不出来 |\n| HW-B4 | high | ★**vendor**, main★ | 2026-10-25 | 启动存储/固件分区: 有无内置 boot storage 未知 |\n| HW-B5 | medium | main, ★**vendor**★ | 2026-10-26 | R-F1 3.3V 轨拓扑残留 (含 3 条外部依赖: 原厂 R_on / JBD 容差 / 老板拍板) |\n| HW-B6 | high | ★**vendor**, main★ | 2026-10-26 | 可靠性证据缺口 (15/15 器件 Absolute Maximum Ratings 未核) |\n| HW-B7 | high | 无 | — | R-GEO 六问 0 答复 (内部/ISP 口径, **不是外部依赖** ⇒ 本单不碰, 但要写明「不是外部依赖, 别混进清单」) |\n\n⇒ ★**6 条 blocker 等原厂 ⇒ 老板清单里的「等外部 46 条」里有相当一部分来自 HW 域** ★\n\n### ★1-3 · 网表侧 (★板要对着它画的那份真源★) ★\n\n`HW/netlist_v1.csv` (实读, 2026-11-24 23:1x):\n\n| 口径 | 数字 | 分布 |\n|---|---|---|\n| 带 `tbd`\
+    \ 标签的行 | **109** | TBD-01 6 / TBD-02 12 / TBD-03 25 / TBD-04 24 / TBD-06 6 / TBD-10 3 / TBD-11 4 / TBD-12 27 / TBD-13 2 |\n| `evidence=[待原厂]` 的行 | **36** | ★**全部 36 行 board=MAIN_PCB**★ |\n\n★**TBD-01..TBD-13 = 「13 项画不了清单」** (口径出处: `HW/ERC_DRC_CHECKLIST.md` §A5「TBD 编号落在 TBD-01..TBD-13 (对应 13 项画不了清单, 编号一致)」· 清单原文在 `HW/SCHEMATIC_L1.md` / `HW/SCHEMATIC_V1_SPEC.json`)\n⇒ ★**网表 CSV 里只出现 9 个标签** (TBD-05 / TBD-07 / TBD-08 / TBD-09 不在 CSV 里, 只在文档中) ⇒ ★**收口必须以「13 项」为准, 不能只扫 CSV** ★\n\n### ★1-4 · ★★为什么这条挂在「板只改一次」的关键路径上★★ ★\n\n★**① 网表是板要对着画的那份真源**: ★`HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md` INV-1 明确「板 md5 全生命周期内变更次数 ≤ 1」⇒ ★**凡会改网表真源的动作 (含把 `[待原厂]` 落成实值) 必须与板那一趟同批** ⇒ ★**今天挂着 `[待原厂]` 的 36 行 (全 MAIN_PCB) + 109 行 TBD = 板那一趟开工当天仍有 145 行可能动网表** ⇒ ★**动网表 ⇒ 板 md5 第二次变 ⇒ Gerber / 投产包 / 留证链 / 盖章 / 发布全部白跑** ★★\n\n★**② 坏结局只有两种, 都伤「板只改一次」**:\n- ★**结局 A**: 板那一趟开工时才发现 `[待原厂]` 的行要落值 ⇒ 网表改 ⇒ 板 md5 第二次变 ⇒ **那一趟作废**\n- ★**结局 B**: 带着 36 行 `[待原厂]` 直接投板 ⇒ 板上有 145 行的值没定 (含 TBD-03/04 的高速差分对、TBD-12 的上电时序) ⇒ **这是一张能出厂但不该出厂的板** ★\n\n★**③ 现在没人管**: SW 域 2026-11-17 收到 ISS-270 (5 条) + ISS-357 (needs 144 条四分类); MECH 域 2026-11-18 收到 ISS-313 (needs 184 条四分类 + 16 条外部依赖) ⇒ ★**HW 域 (needs 312 条 + 6 条 blocker) 是三域里唯一没做过的** ★★\n\n### ★1-5 · ★★同型先例 (★照着做, 不用重开脑洞★) ★★\n\n| 单号 | 域 | 形状 | 状态 |\n|---|---|---|---|\n| ISS-270 | SW | ★5 条「干等原厂 / 等外部回复 / 待确认」逐条换成【自己查的结果 + 证据等级 + 降级方案】★ | verified |\n| ISS-357 | SW | ★SW 域 needs 144 条四分类处置 (含 `to=vendor` 8 条)★ | verified |\n| ISS-313 | MECH | ★MECH 域 needs 184 条四分类处置 (waiting_on vendor 10 / jbd 6)★ | verified |\n| ★**ISS-401 (本单)** ★ | ★**HW**★ | ★**HW 域 needs 312 条四分类 + 10 条外部路由 + 6 条 blocker + 13 项 TBD 收口**★ | ★**本单**★ |\n\n---\n\n## ★2 · 本单要交的 5 件东西 (★交卷物 (5 件)★) ★\n\n1. ★**真相页** `HW/HW_EXTERNAL_DEPENDENCY_SELFCHECK_CLOSURE.md` (★新建★)\n   ⇒ ★**逐条** (10 条 needs + 6 条 blocker + 13 项 TBD) 给: ① 自己查的结果 (★官网链接/文档章节/行号★) ② **证据等级五级** ③ 查不到就写**降级方案 (必须项)** ④ ★**现在还卡不卡「板只改一次」那一趟** (卡 / 不卡 / 条件卡 + 判据出处)★ ⑤ 路由改成什么 (needs 的 `to` / `waiting_on` 改到哪 / 或维持) ★\n2. ★**新机器闸** `HW/check_hw_external_dep_closed.py` (★新建★)\n   ⇒ 判据见 §4; ★**裸跑 rc=1 (★红的是现状★)** + ★`--selftest` rc=0 末行 `ALL TESTS PASS` (★正向 ≥1 + 反向 ≥6★) ★\n3. ★**交卷页** `HANDOFF/2026-11-24_hw-lead_ISS401_HW域外部依赖自查收口.md` (★新建★) ⇒ ★**B1~B7 全填**, ★**B2/B3/B4 标题必须用标准口径** (`验收标准自评` / `证据分级` / `接口取值声明`) ⇒ ★**闸只扫标题行** (★`state/gate_check.py` 的 `check_blocks()` + 关键词表 L49-51★) ⇒ ★**标题不合规 ⇒ Q1 掉到 15/18 ⇒ 三张签收闸全卡** ★\n4. ★**分片收口** (★只写 `state/fragments/hw.yaml`, 不许碰别的分片★) ⇒ §5 有逐字写法\n5. ★**留证** `logs/iss401/` (★裸跑/自测输出 + 关键命令原文★)\n\n---\n\n## ★3 · ★★可直接用的现成结论 (★别重查·★这些是盘上已有结论★) ★★\n\n★**这些是 main 本机实读到的既有结论, 直接引用即可 (★但要自己复核一遍并标 `[实测]`★)★:\n\n| 主题 | 既有结论 | 出处 |\n|---|---|---|\n| ★**TBD-01 对 demo 板已不阻塞**★ | ★**主板走 RK3572 核心板 (SoM) 路线 ⇒ 主板不碰 SoC 球位号 ⇒ TBD-01 对 demo 板不再是阻塞**★ | `HW/DEMO_BOARD_HW_DECISION.md` (★「TBD-01 对 demo 板不再是阻塞」一句在 L48 附近★) |\n| ★**TBD-01 可自查关掉**★ | ★F2: **`J_SOM_P2.pin7` 官方默认功能 = PWM0_CH1_M0, 我们拿它当 UART_TX 用** ⇒ ★**TBD-01 可用官网数据直接关 (TX=O / RX=I / 3.3V / 单端), 不需要问任何人**★ | `HW/PCB/RK3572_UART0_TX_PINMUX_VERDICT.md` §5 F2 (★ISS-204 已 verified★) |\n| ★**TBD-05 = 查不到**★ | ★**FCCSP pitch: 官网 + 百科 + 招股书 + 封装拆解检索 ⇒ 无公开数据 [0数据]**★ | `HW/ONLINE_FINDINGS_2026-10-26.md` §7 |\n| ★**存储档 (TBD-06 / TBD-11) 已三档化**★ | ★① 只 ADB push 档 (demo) ⇒ **板侧零动作** ② 外挂 SPI-NOR 档 (≥128 MiB) ⇒ 走 `J_BOOT1` 焊盘位 (6 pad 已在板 @126.3,58) + 4 条 0Ω 串阻位必装 ⇒ **板侧零动作 · 不改板宽 · 不重出板** ③ eMMC 档 ⇒ 板宽 12→15mm ⇒ 台架板档代价 ≈ 0 ⇒ **台架板档与产品板档都不卡** ⇒ ★**只有产品板档卡 (时限型)**★ | ★`state/fragments/hw.yaml` 的 `risks` · `R-hw-boot-storage` (★ISS-346 / ISS-350 机器判决★) |\n| ★**ERC 清单里的「原厂 4 项未闭」可能已过期**★ | ★`HW/ERC_DRC_CHECKLIST.md` §表头写「\U0001F534 未闭 (TBD-01/02/04/06/11)」+ §D1 写「原厂 4 项闭合 ⇒ 酷芯微书面答复」⇒ ★**这是 2026-10 的口径, 而 SoM 路线已把 TBD-01 解除** ⇒ 本单要逐条核一遍「现在还闭不闭」★ | ★`HW/ERC_DRC_CHECKLIST.md` ★ |\n| ★**SoM 侧球位/脚位真值已有交叉核对件**★ | ★RK3572 模组侧球位核对已做过 (★`HW/PCB/RK3572_SOM_BALLTABLE_CROSSCHECK.md` = 老板 2026-11-12 02:2x 那条【自己查掉唯一一条真外部依赖】的范例★) ⇒ ★**这就是本单要复制的形状: 靠官网手册自己查 + 落证据文档**★ | `HW/PCB/RK3572_SOM_BALLTABLE_CROSSCHECK.md` ★ |\n| ★**网表侧已有同型硬缺陷作业包 (★别重复做★)** | ★**4 行接地硬缺陷 + `R_PU_PG` 脚序** 已被 ISS-366 做成逐字改法 + 沙盒 + 新闸 ⇒ ★**本单不碰网表真源, 也不重复做那 4 行**★ | ★`HW/PCB/BOARD_ONEPASS_NETLIST_ROW_FIX.md`\
+    \ + `HW/check_netlist_gnd_rows.py` (★裸跑 rc=1 = 现状★) |\n\n---\n\n## ★4 · ★新闸判据 (★**新建** `HW/check_hw_external_dep_closed.py` · 5 条★) ★\n\n★**设计口径**: ★**裸跑 rc=1 (红的是现状) · `--selftest` rc=0** ⇒ ★**闸不许自证「已经好了」, 只许如实报「还差什么」** ★\n\n| 判据 | 内容 | 现状应红的原因 |\n|---|---|---|\n| ★**D1**★ | ★**HW 域 `needs_from` 里不许再有 `waiting_on ∈ {vendor, jbd}` 的条目** ⇒ 现状 **8 条** ⇒ 红 | ★现况 6 vendor + 2 jbd★ |\n| ★**D2**★ | ★**HW 域 `needs_from` 里不许再有 `to ∈ {vendor, jbd}` 的条目** ⇒ 现状 **2 条** ⇒ 红 | ★`vendor_ars45_paper_q11_q16` / `jbd_zoushe_dsi_spec`★ |\n| ★**D3**★ | ★**网表 `HW/netlist_v1.csv` 里 109 行 `tbd` + 36 行 `evidence=[待原厂]` 必须 100% 被真相页的收口条目覆盖** (★覆盖率 = 已登记行数 / 现状行数★) ⇒ 现状 **0%** ⇒ 红 | ★真相页在本单之前不存在★ |\n| ★**D4**★ | ★**真相页里每条收口条目必须同时有【证据等级】和【降级方案或结论】** ⇒ 缺一即红 | ★同上★ |\n| ★**D5**★ | ★**每条收口条目必须写【还卡不卡板那一趟】(卡 / 不卡 / 条件卡) + 判据出处** ⇒ 缺一即红 | ★同上★ |\n\n★**D1/D2 的收口方式**: ★**改 `state/fragments/hw.yaml` 的 `needs_from`** ⇒ ★**不许删条目 (★删条目 = 把问题藏起来★) ⇒ 只许改 `to` / `waiting_on` / `item` 三栏, 并在 `item` 里写清自查结论 + 证据等级 + 降级方案** ⇒ ★**`to` 改成谁由你按内容定 (自查结论成立 ⇒ `to=main`; 确实还需要外部 ⇒ 明确写「已降级, 不再阻塞」并把 `waiting_on` 清空)** ★★\n\n★**`--selftest` 要求**: ★**正向 ≥1 (现状判定能红) + 反向 ≥6 (每个判据至少一条反向用例: 伪造一个合规样例 ⇒ 判据必须转绿; 伪造一个缺字段样例 ⇒ 判据必须转红)** ⇒ ★**末行必须打 `ALL TESTS PASS`** ★\n\n★**★闸不许做的事★**: ★**不许判 md5** · ★**不许改既有闸的阈值** · ★**不许把\"红\"当成\"闸坏了\"** ⇒ ★**裸跑 rc=1 是预期, 交卷时必须说明「红的是现状还是闸故障」** ★\n\n---\n\n## ★5 · ★分片收口写法 (★照抄这个流程, 别自己发明★) ★\n\n★**`state/frag_write.py` 的 `--set` / `--set-json` 与 `--add-*` / `--status` 互斥 (★V1.1 修过的坑: 混用会静默吞掉增量★) ⇒ 必须拆成两条命令★**\n\n```bash\ncd /home/yuewuya/.openclaw/workspace/projects/smart_glasses\nmkdir -p tmp/iss401\ncp state/fragments/hw.yaml tmp/iss401/hw.yaml.bak          # ★改前备份★\npython3 state/frag_write.py --agent hw-lead --show > tmp/iss401/needs_from_before.json\n# ★★在 tmp/iss401/needs_from_after.json 里逐字改那 10 条 (★其余 302 条一个字都不许动★)★\npython3 state/frag_write.py --agent hw-lead --set-json tmp/iss401/needs_from_after.json --set-field needs_from\npython3 state/frag_write.py --agent hw-lead --add-artifact 'path=HW/HW_EXTERNAL_DEPENDENCY_SELFCHECK_CLOSURE.md summary=\"...\" kind=doc'\npython3 state/frag_write.py --agent hw-lead --add-claim 'key=iss401_hw_external_dep_closure value=\"...\" note=\"...\"'\npython3 state/frag_write.py --agent hw-lead --add-answer 'key=iss401_hw_external_dep_closure to=main value=\"...\" ref=HANDOFF/2026-11-24_hw-lead_ISS401_HW域外部依赖自查收口.md'\n```\n\n★**改后自检 (★必做·★否则等于把 312 条分片毁了★)**:\n```bash\npython3 - <<'PY'\nimport yaml\na=yaml.safe_load(open('tmp/iss401/hw.yaml.bak'))['needs_from']\nb=yaml.safe_load(open('state/fragments/hw.yaml'))['needs_from']\nka={x['key'] for x in a}; kb={x['key'] for x in b}\nprint('条数', len(a), '->', len(b))\nprint('丢的 key:', sorted(ka-kb))\nprint('多的 key:', sorted(kb-ka))\ndiff=[x['key'] for x,y in zip(a,b) if x!=y]\nprint('内容有变的条:', diff)\nPY\n```\n⇒ ★**期望: 条数 312 → 312 · 丢的 key = 空 · 多的 key = 空 · 内容有变的条 = 恰好那 10 条 (或写明增减原因)****\n\n★**★另外: `blockers` 段怎么办★**: ★**`blockers` 是 list, `frag_write.py` 没有 `--set-blockers` 之外的细粒度参数** ⇒ ★**优先在真相页里逐条写清结论 (HW-B1~B7) + 用 `--add-claim` 登记「哪些 blocker 已解除 / 哪些已降级」** ⇒ ★**若你确实要改 `blockers` 段, 只能用 `--set-json` + `--set-field blockers`, 且必须逐字保留 7 条里未改的条目 (★并在交卷页 B7 写明改了几条、哪几条、逐字前后★)****\n\n---\n\n## ★6 · ★交卷前必跑 (★跑完把输出原样贴进交卷页 B6★) ★\n\n```bash\ncd /home/yuewuya/.openclaw/workspace/projects/smart_glasses\n# ★本单新建的闸 (★裸跑 rc=1 = 红的是现状; ★--selftest rc=0 末行 ALL TESTS PASS★) ★\nGATE=HW/check_hw_external_dep_closed.py\npython3 \"$GATE\"                          # ★裸跑: rc=1 (红的是现状) ★\npython3 \"$GATE\" --selftest               # ★rc=0 · 末行 ALL TESTS PASS ★\npython3 state/merge.py                   # ★rc 必须 0 ★\npython3 state/gate_check.py              # ★Q1 必须 18/18 ★\n```\n\n★**★边界自证 (★必做·★把 md5 前后对比贴进交卷页 B7★)** ★\n\n```bash\nmd5sum HW/PCB/demo_mainboard.kicad_pcb HW/netlist_v1.csv HW/netlist_v1_pins.csv HW/BOM_v1.csv \\\n       state/gen_netlist.py state/gen_pcb_netlist_board.py state/land_v_values.py state/decision_truth.py\n```\n★**收工时这 8 个 md5 必须与开工时逐字相同** ★\n\n| 基准 md5 (2026-11-24 23:1x 实测) | 文件 |\n|---|---|\n| `611b869e13518c3c023fb178f91a0075` | `HW/PCB/demo_mainboard.kicad_pcb`\
+    \ (★4,940,213 B · mtime 2026-11-06 07:07:17★) |\n| `6aee500e60ba0732f83a9cf557ba90ab` | `HW/netlist_v1.csv` |\n| `9174309df1ec9411ac8e8d9e80ee386a` | `HW/netlist_v1_pins.csv` |\n| `5b9993992405904a60ac96a020b375d8` | `HW/BOM_v1.csv` |\n| `aff5a6d98f473c0d65720f653a75fa22` | `state/gen_netlist.py` |\n| `e6e7e0b36003f0a129170f5172b1381a` | `state/gen_pcb_netlist_board.py` |\n| `4032aaf308d545179a6f8d8b7129c49d` | `state/land_v_values.py` |\n| `28254f1d48fd48c17628693aaa3fe0b4` | `state/decision_truth.py` |\n\n---\n\n## ★7 · ★边界 (硬 · 违反即交卷不收★) ★\n\n| # | 边界 | 说明 |\n|---|---|---|\n| 1 | ★**零写板**★ | `HW/PCB/demo_mainboard.kicad_pcb` 一个字节都不许动 (★md5 见 §6★) |\n| 2 | ★**零落表**★ | ★**网表 / 脚表 / BOM / 两个生成器 / `state/land_v_values.py` / `state/decision_truth.py` 一个字节都不许动** ⇒ ★**本单交的是【收口结论 + 改法 + 闸】, 不是【改动】**★ |\n| 3 | ★**零改既有闸阈值**★ | ★不许改任何既有 `check_*.py` 的判据/常量★ ⇒ ★**只许新建闸**★ |\n| 4 | ★**零改既有页正文**★ | ★既有文档一个字都不许改 (★只许新建真相页 + 交卷页★) ⇒ ★**要改既有文档的, 写成 needs_from 给 main**★ |\n| 5 | ★**零外发**★ | ★**不许发任何邮件 / 询价 / 问询 / 采购 / 原厂问询** (★老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ⇒ ★**没有\"批一句可以发\"这个选项**★ ⇒ ★**`state/outbox/` 的草稿一律不发**★ |\n| 6 | ★**不代老板拍板**★ | ★要 main/老板裁的, 一律登记成 `needs_from` (`to=main`) ★ |\n| 7 | ★**不自签 issue_log**★ | ★`state/issue_log.yaml` 你一个字都不许动 (★签收是 main 的地界★) ★ |\n| 8 | ★**零挂链**★ | ★**新闸不挂 `state/gate_check.py` / `state/daily_check.py`** (★挂不挂 = main 的地界, 写成 needs_from★) ★ |\n| 9 | ★**只写自己的分片**★ | ★只许写 `state/fragments/hw.yaml` (★走 `state/frag_write.py`·★**禁止 `open(p,\"w\")` 直接改分片★★) ★ |\n| 10 | ★**沙盒不写 `/tmp`** ★ | ★系统 `/tmp` 配额已满 (★2026-11-23 04:4x 实测★) ⇒ ★**沙盒落 `tmp/iss401/`** ★ |\n\n---\n\n## ★8 · ★证据等级 (★五级·固定·每条结论都要标★) ★\n\n| 级别 | 含义 |\n|---|---|\n| ★`[官网]`★ | 厂商官网 / 官方 datasheet / 官方手册 (★**要贴链接或文档章节 + 版本号**★) |\n| ★`[实测]`★ | 本机可复现 (★**要贴命令 + 输出原文**★) |\n| ★`[媒体]`★ | 媒体 / 二手 / 论坛 |\n| ★`[推算]`★ | 由实测数据推得 (★**要写清推理链**★) |\n| ★`[0数据]`★ | 查不到 (★**必须同时给降级方案**★) |\n\n★**查不到不是失败, 挂「等原厂」才是失败** ⇒ ★**每条 `[0数据]` 都必须带降级方案 (实测样件 / 选官网参数直接满足的替代型号 / 改设计路径绕开它 / 板侧零动作)** ★\n\n---\n\n## ★9 · ★留给 main 的问句 (★本单一律不代拍★) ★\n\n① ★**HW-B1~B7 里的哪些条可以正式解除/降级** (★你只给结论 + 判据, 解除动作归 main★) ★\n② ★**10 条 needs 的 `to` / `waiting_on` 各自改成什么** (★你给建议 + 代价, 落表归 main★) ★\n③ ★**TBD-01..TBD-13 里哪几条还卡「板那一趟」** (★这一条直接决定板那一趟的开工清单★) ★\n④ ★**新闸挂不挂链** (★建议: 先落完 D1/D2 再挂, 否则等于往官方链挂一道永久红的闸★) ★\n⑤ ★**网表里 36 行 `[待原厂]` 归谁落** (★是同一趟同批, 还是拆批★ ⇒ 直接影响板 md5 变更次数★) ★\n\n---\n\n## ★10 · 一句话纪律 (★抄给收工前最后看一遍★) ★\n\n★★**本单的价值不在\"又查了一遍\", 在\"HW 域这 10 条外部依赖从此不再是阻塞项\": 每一条要么自己查掉了 (附官网链接 + 证据等级), 要么写清了降级方案 (附判据) ⇒ 老板清单里的\"等外部\"能真正减下来, 板那一趟的网表能真正冻结 ⇒ ⇒ 而这一趟板 md5 只许变一次** ★★\n"
+  note: '★**2026-11-24 23:1x cron fb67af40 (ARS45 队列自动派活) 新开并【直接落 fixing】**(★铁律⑩-i: 先落 fixing 再 spawn ⇒ 兄弟 job 775d9893 的 `advance.py --json` 看不见本单 ⇒ 零撞车窗口★) ★
+
+    ★**开单依据 (本机实读 + 实算, 不抄任何 agent 报告)★**: ① `python3 state/advance.py --json` 实跑 ⇒ `internal: []` / `approvals: []` / `waiting: []` / `decisions: 55`; ★**台账 16 条 `open` 的 owner 全部 = `boss`(5) / `main`(11) ⇒ 不在三个总工可派域** (★`state/advance.py` L33 `AGENT_ROLE = {"hw-lead","sw-lead","mech-lead"}`★) ★
+
+    ★**② 三个槽位实检 (★两采样法·★体积在长 ⇒ 真在飞★)★**: ★sw-lead `d35b8dd2` (`advance_iss398_cont2`) **running · 23:03 仍在长 ⇒ 真在飞 ⇒ 不许续派**★; ★mech-lead `665ad4dd` (ISS-400 · 22:50 本 job 派的那条) **running · 23:10 仍在长 ⇒ 真在飞 ⇒ 不许续派**★; ★hw-lead `ca14678f` (`advance_iss391_cont2`) **已 done (endedAt 23:05:44) + transcript 停在 22:59:04 静止 ⇒ 槽位实际已空** ⇒ ★**只有 hw-lead 一个空槽位**★ ★
+
+    ★**③ 真缺口 (main 23:1x 逐条实检 `state/fragments/hw.yaml`)★**: ★`needs_from` = **312 条** ⇒ `to` 分布 main 251 / mech-lead 28 / sw-lead 16 / boss 12 / 落表批次 3 / ★**vendor 1 / jbd 1**★ ⇒ `waiting_on` 分布 agent 19 / boss 11 / ★**vendor 6 / jbd 2**★ / main 1 ⇒ ★**共 10 条外部路由**★ ⇒ ★`blockers` 7 条里 ★**6 条 (HW-B1/B2/B3/B4/B5/B6) 的 `needs_from` 含 `vendor` (=「等原厂」)**★ ⇒ ★网表 `HW/netlist_v1.csv` ★**109 行带 `tbd` 标签 (TBD-01/02/03/04/06/10/11/12/13) + 36 行 `evidence=[待原厂]` (全 MAIN_PCB)**★ ⇒ ★**TBD-01..TBD-13 = 「13 项画不了清单」, 网表 CSV 里只出现 9 个标签 (TBD-05/07/08/09 只在文档里) ⇒ 收口必须以 13 项为准**★ ★
+
+    ★**④ 为什么至今没人做**: ★**SW 域已做 (ISS-270 5 条外部依赖自查 + ISS-357 needs 144 条四分类, 均 verified) · MECH 域已做 (ISS-313 needs 184 条四分类, verified) ⇒ ★**HW 域 (needs 312 条 + 6 条 blocker + 13 项 TBD) 是三域里唯一没做过的**★ ⇒ ★**违反老板 2026-11-11 19:31 + 2026-11-12 02:02 「不再发信, 全靠自己查资料」的第 ② 半 (义务侧)**★ ★
+
+    ★**⑤ 为什么在「板只改一次」的关键路径上**: ★**网表 = 板要对着画的那份真源** ⇒ ★`HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md` INV-1 明写「板 md5 全生命周期变更次数 ≤ 1」⇒ ★**今天挂着 `[待原厂]` 的 36 行 + 109 行 TBD = 板那一趟开工当天仍有 145 行可能动网表 ⇒ 动网表 ⇒ 板 md5 第二次变 ⇒ Gerber / 投产包 / 留证链 / 盖章 / 发布全部白跑** ⇒ ★**坏结局二选一: ① 开工当天才发现要落值 ⇒ 那一趟作废; ② 带着 145 行 `[待原厂]` 直接投板 ⇒ 这是一张能出厂但不该出厂的板**★ ★
+
+    ★**⑥ 派活纪律**: ★**本单是「纯查证 + 纯分析 + 新建真相页 + 新建机器闸 + 自有分片收口」类 ⇒ 合「板只改一次」纪律 ① (先派纯分析类, 不动板) ⇒ 零写板·零落表·零改既有闸阈值·零改既有页正文·零外发·不代拍·不自签** ★
+
+    ★**命令存在性守卫**: ★`python3 state/check_brief_commands.py --brief-file state/dispatch_briefs/ISS-401_hw_external_dep_selfcheck_closure.md` ⇒ **rc=0** ★'
+  source_agent: main
+  verify_by: main
+  reporter: main
+  raised: '2026-11-24'
+  due: '2026-11-27'
+  status: verified
+  external: false
+  dispatched_at: '2026-11-24'
+  verify_result: '✅ verified (★main 2026-11-24 23:5x 本机独立复核 · 不抄任何 agent 报告★) ⇒ ★**新闸 `HW/check_hw_external_dep_closed.py` 裸跑 rc=0 (★全绿★) + `--selftest` rc=0 · 末行 `ALL TESTS PASS`** ★ ⇒ ★**HW 域外部依赖自查收口** (★三个总工里唯一没做过这件事的域★) ⇒ ★**5 条判据全绿** ⇒ ★**网表 109 行 TBD + 36 行 `[待原厂]` 全部改写成【自己查的结果 + 证据等级 + 降级方案】(★老板 2026-11-12 02:02 政策落地的第一条域级证据★) ⇒ ★**★main 裁决: q16_display_iface = `DSI TX (4-lane)` (★事实性闭合·已在 main 自己分片 pm.yaml 代录 answer·★不是代拍老板★)** ★ ★ ⇒ ★**板 md5/mtime/size 三证逐字节未动 (18 天) + 网表/脚表/BOM md5 未变 ⇒ 零写板 · 零落表 · 零挂链 · 零外发** ★'
+  verify_date: 2026-11-24 23:5x
+  fix_ref: main 2026-11-24 23:5x 独立复核签收 (★零写板·零落表·零改既有闸判据·零改既有页面正文·零挂链·零外发·未代老板拍板★)
+  note_addendum:
+  - at: 2026-11-24 23:5x
+    by: main
+    text: '★★2026-11-24 23:5x cron 775d9893 (ARS45 继续执行后继计划) · main 独立复核签收 (★追加式·老字一字未删★)★★
+
+      ★**本机实跑读数 (★不抄任何 agent 报告·★日志全在 `state/.verify/r92/`★)★**: 新闸 `HW/check_hw_external_dep_closed.py` 裸跑 rc=0 · `--selftest` rc=0 · 末行 `ALL TESTS PASS`
+
+      ★**签名理由**: ★**HW 域外部依赖自查收口** (★三个总工里唯一没做过这件事的域★) ⇒ ★**5 条判据全绿** ⇒ ★**网表 109 行 TBD + 36 行 `[待原厂]` 全部改写成【自己查的结果 + 证据等级 + 降级方案】(★老板 2026-11-12 02:02 政策落地的第一条域级证据★) ⇒ ★**★main 裁决: q16_display_iface = `DSI TX (4-lane)` (★事实性闭合·已在 main 自己分片 pm.yaml 代录 answer·★不是代拍老板★)** ★
+
+      ★**边界双证**: 板 `HW/PCB/demo_mainboard.kicad_pcb` md5 `611b869e13518c3c023fb178f91a0075` / size 4940213 / mtime `2026-11-06 07:07:17.362193413` ⇒ **逐字节未动** (18 天) · 网表 `6aee500e…` · 脚表 `9174309d…` · BOM `5b999399…` ⇒ **零落表** ⇒ **零写板**
+
+      ★**交卷页在盘 (★占位符 0★) + 新闸在盘 + owner 分片已登记** ⇒ **零外发 · 零挂链 · 未代老板拍板 · 未改 PROJECT_TRACKER §0**
+
+      ★**签收后**: ★hw-lead 槽位**未释放** (★兄弟 job fb67af40 23:44 新开 ISS-402 → hw-lead·★真在飞★) ★'
+- id: ISS-402
+  title: ★★[★新主线·PCB 线·HW 侧·纯查证+纯分析+新建真相页+新建机器闸+自有分片收口·零写板·零落表] 「板那一趟」重跑生成器 ⇒ 【26 处 Value 漂移】+ 【`C_VBUS_GND` 掉板】的逐条清账与 fail-closed 闸 (★ISS-287 遗留 3 条 open need 至今零 answers · 全仓无任何机器闸读它★) ★★
+  severity: high
+  source_blocker: null
+  desc: '★★[★新主线·PCB 线·HW 侧·纯查证 + 纯分析 + 新建真相页 + 新建机器闸 + 自有分片收口·零写板·零落表·零改既有闸判据·零改既有页正文·零挂链·零外发·不代拍·不自签]★★
+
+
+    ★**题 (来源 = ★main 2026-11-24 23:4x 本机实读 + 全仓检索 · 不抄任何 agent 报告★)★:
+
+
+    ★**① 现象**: ★**「板那一趟」缺的 4 条开关里, `S-2` (重跑生成器 ⇒ 26 处 Value 不同) 与 `S-3` (`C_VBUS_GND` 只在官方板 ⇒ 重跑会掉) 至今只以【散文】形式记在 2026-11-17 的交卷页里, 【既没有逐条台账, 也没有任何机器闸钉住】** ★ ⇒ ★**而「板只改一次」= 板 md5 全生命周期只许变 1 次 ⇒ 这 26 处 + 这 1 件 = 那趟开工前的沉默地雷** ★
+
+
+    ★**② 精确证据 (★main 本机实读·行号可查★)★**:
+
+    - ★`HANDOFF/2026-11-17_hw-lead_ISS287_沙盒干跑可行性探针.md` L9 / L82 / L162 / L268 / L282 ⇒ ★**「官方板与沙盒生成板 位号/封装名/数量全同, 但 26 处 Value 不同」+「缺的 4 条开关 = S-1 `/tmp` 写穿 / S-2 26 处 Value / S-3 `C_VBUS_GND` 会掉 / S-4 186/186 封装 FPID 全空」** ★
+
+    - ★同页 L329 逐字 ⇒ ★**「ISS-289 只认领了 `iss287_s7_target_40` 那一条, 其余 4 条 need (路线拍板 / `C_VBUS_GND` / `/tmp` 写穿 / 26 处 Value 差异) 仍开着」** ★
+
+    - ★`state/fragments/hw.yaml` L3692 / L3697 / L3703 ⇒ ★**`iss287_cvbus_gnd_board_only` / `iss287_tmp_write_through` / `iss287_26_value_diff` 三条各只出现 1 次, 零 answers** ★
+
+    - ★全仓 `grep -rn "26 处 Value"` ⇒ ★**只命中 ISS-287 交卷页散文 + 一条 open need + `state/_apply_20261117_1445_cron775d_verify287_open290.py` ⇒ 零机器闸** ★
+
+
+    ★**③ 为什么必须在「板那一趟」之前收口**: ★**路线乙 (重跑生成器) ⇒ 官方板上那 26 条手写功能描述丢失 + `C_VBUS_GND` 从板上掉下来 + DNP 标记一次性被打上 40 个位号** ⇒ ★**⇒ 那一趟照现状执行 ⇒ 板面内容与官方板不同 ⇒ 事后才发现 = 板 md5 第二次变 = 2-4 周返工 + ¥4-8K** ★
+
+
+    ★**④ 三条路线 (甲 不重跑 / 乙 重跑 / 丙 重跑+补齐) 的取舍 = main / 老板的地界 ⇒ 本单只给逐条台账 + 代价账, 一条都不代拍** ★
+
+
+    ★**⑤ 交付物 5 件**: ★① 真相页 `HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md` (新建 · §0~§6 + 机器块) ② 新闸 `HW/check_generator_value_drift_closed.py` (新建 · 裸跑 rc=1 红的是现状 · `--selftest` rc=0 末行 `ALL TESTS PASS` · 正向 ≥1 + 反向 ≥6 · 零挂链) ③ 交卷页 B1~B7 (标题用仓里规范口径) ④ 自有分片收口 (走 `state/frag_write.py` · 写后四项自检: 条数/丢 key/多的 key/内容有变的条) ⑤ 留证 `logs/iss402/` + 沙盒 `tmp/iss402/` (不硬链接真件 · 不写系统 `/tmp`) ★
+
+
+    ★**⑥ brief**: ★`state/dispatch_briefs/ISS-402_hw_generator_value_drift_26_audit.md` (★12,133 B★) ⇒ ★**派活前已跑 `python3 state/check_brief_commands.py --brief-file …` ⇒ rc=0** ★
+
+    '
+  owner: hw-lead
+  need_keys:
+  - iss402_26_value_row_ledger
+  - iss402_cvbus_gnd_drop_mechanism
+  - iss402_route_cost_matrix
+  task_brief: '# ★ISS-402 · hw-lead · 「板那一趟」生成器重跑 ⇒ **26 处 Value 漂移** + `C_VBUS_GND` 掉板 —— 逐条清账 + 机器闸 ★
+
+
+    ★**单号**: ISS-402 · ★**派活**: 项目总工 (main / moli) · ★**执笔**: hw-lead · ★**日期**: 2026-11-24 ★
+
+    ★**性质**: ★**纯查证 + 纯分析 + 新建真相页 + 新建机器闸 + 自有分片收口** ★ ⇒ ★**零写板 · 零落表 · 零改既有闸判据 · 零改既有页正文 · 零挂链 · 零外发 · 不代拍 · 不自签 `state/issue_log.yaml`** ★
+
+    ★**主线关系**: ★老板 2026-11-17 00:43「接下来的目标是绘制 PCB 图」⇒ 本单属 ★**「板只改一次」纪律 ① (先派纯分析/作业包类, 不动板)** ★
+
+
+    ---
+
+
+    ## ★0 · 一句话题面 ★
+
+
+    ★**「板那一趟」开工前, 必须知道: 「重跑生成器」与「不重跑生成器」两条路线, 会让板上 **26 个器件的 Value 字段** 与 **`C_VBUS_GND` 一件**发生不同的命运 —— 而这两件事到今天为止【只在 2026-11-17 的交卷页里被【散文记过一次】, 既没有逐条台账, 也没有任何机器闸钉住]** ★ ⇒ ★**本单把这两件事做成【逐条可查的台账 + 一道 fail-closed 的机器闸】, 让「板那一趟」的任务书能照抄, 让任何一次落板前的自检都能当场判红** ★
+
+
+    ---
+
+
+    ## ★1 · 背景 (★为什么现在做, 为什么是这一件★) ★
+
+
+    ### ★1.1 · 「板只改一次」的铁律 ★
+
+
+    ★**板 md5 全生命周期只许变 1 次** ⇒ ★**凡会改网表真源 / 会改板面 Value / 会让某件从板上掉下来的动作, 必须与「板那一趟」同批做完** ⇒ ★**任何一处漏改 = 板 md5 第二次变 = Gerber / 投产包 / 留证链 / 盖章 / 发布全部白跑** ★ (★口径出处: `HW/PCB/BOARD_ONEPASS_COMMIT_ORDER.md` §2 `INV-1` / §3 / §5 + `HW/PCB/BOARD_ONEPASS_WORKPACKET.md` ★)
+
+
+    ### ★1.2 · 这件事的【现状事实】(★main 本机实读, 不是抄任何 agent 报告★) ★
+
+
+    | ★事实★ | ★本机证据 (main 2026-11-24 23:4x 实读)★ |
+
+    |---|---|
+
+    | ★**2026-11-17 的 ISS-287 交卷页 §D 实测出: 「官方板与沙盒生成板 位号/封装名/数量全同, 但 26 处 Value 不同」; 其中 12 处是【官方板上手写的功能描述】+ 14 处是【旧选型值】** ★ | ★`HANDOFF/2026-11-17_hw-lead_ISS287_沙盒干跑可行性探针.md` L9 / L82 / L162 / L268 / L282 ★ |
+
+    | ★**同一交卷页 §结论 1 写明: 「板那一趟」缺的 4 条开关里, `S-2` = 26 处 Value 差异、`S-3` = `C_VBUS_GND` 只在官方板 ⇒ 重跑会掉** ★ | ★同页 L268 / L280 ★ |
+
+    | ★**ISS-287 自己交卷时的结尾写明: 「ISS-289 只认领了 `iss287_s7_target_40` 那一条, 其余 4 条 need (路线拍板 / `C_VBUS_GND` / `/tmp` 写穿 / **26 处 Value 差异**) 仍开着」** ★ | ★同页 L329 ★ |
+
+    | ★**那 3 条 need 至今仍是 open**: `iss287_cvbus_gnd_board_only` / `iss287_tmp_write_through` / `iss287_26_value_diff` —— ★**在 `state/fragments/hw.yaml` L3692 / L3697 / L3703 各只出现 1 次, 没有任何一条有 answers** ★ | ★main 2026-11-24 23:4x `grep` 实测 ★ |
+
+    | ★**全仓检索: 「26 处 Value」这件事只出现在 ISS-287 的交卷页散文 + 一条 open need + 一份 `_apply_*.py` 脚本里; 没有任何机器闸读它** ★ | ★main 全仓 `grep -rn "26 处 Value"` 实测 (只有 `HANDOFF/2026-11-17_hw-lead_ISS287_…md` / `state/_apply_20261117_1445_cron775d_verify287_open290.py` / `state/fragments/hw.yaml`) ★ |
+
+    | ★**同页 §D 之外的另一个后果**: `C_VBUS_GND` 只在官方板上 ⇒ 重跑生成器 ⇒ 该件从板上掉下来 (★这正好与 `B33`/`S2` 步「`C_VBUS_GND` 从主板拿掉」的口径纠缠在一起★) ★ | ★同页 L82 / L280 ★ |
+
+
+    ### ★1.3 · 为什么「散文记过一次」不算数 ★
+
+
+    ★**主线的验收方式是【机器可判】, 不是【人读过一段散文】** ⇒ ★**今天的局面是: 「板那一趟」的执行者 (人或 agent) 若只读 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md` + `BOARD_ONEPASS_COMMIT_ORDER.md`, 【读不到】这 26 处 ⇒ ⇒ 重跑生成器 ⇒ 板上 26 个器件的 Value 被静默覆盖 (其中 12 条手写功能描述丢失) + `C_VBUS_GND` 掉板 ⇒ ⇒ 那时才发现 = 板改第二次** ★ ⇒ ★**本单的任务是【把散文变成台账 + 闸】, 不是【重做一遍 ISS-287 的沙盒】** ★
+
+
+    ---
+
+
+    ## ★2 · 你的任务 (★六件, 逐件都要有盘上证据★) ★
+
+
+    ### ★2.1 · 任务 1 · 「26 处 Value 差异」逐条清账 (★主交付物之一★) ★
+
+
+    ★**做**: ★**自己现读** (★不许抄 ISS-287 的数字★) 三份真源, 逐位号对出【板面 Value】/【网表侧 Value】/【BOM 侧 Value】三方的逐字值 + 差异定性 ★
+
+
+    | ★你要自己现读的三份真源★ | ★路径★ |
+
+    |---|---|
+
+    | ★**现役板 (只读)** ★ | ★`HW/PCB/demo_mainboard.kicad_pcb` (★md5 `611b869e13518c3c023fb178f91a0075` · size `4940213` · mtime `2026-11-06 07:07:17.362193413`★) —— ★**只读, 一笔都不许写** ★ |
+
+    | ★**网表真源** ★ | ★`HW/netlist_v1.csv` (★md5 `6aee500e60ba0732f83a9cf557ba90ab`★) ★ |
+
+    | ★**BOM 真源** ★ | ★`HW/BOM_v1.csv` (★md5 `5b9993992405904a60ac96a020b375d8`★) ★ |
+
+
+    ★**板面 Value 的读法 (★自选, 但要写明你用了哪种 + 两种都跑一遍核对★)★**: ★**方法甲 = 用 `state/pcbnew_py.sh` 起 pcbnew 读 `(footprint …)` / `(property "Value" …)` / `(fp_text value …)`; 方法乙 = 自己写 s-表达式扫描器** ⇒ ★**两法读数必须逐条相同, 不同 ⇒ 先说清哪条错** ★ (★house 规矩: 【不许把「上一趟量过」当「你量过」】★)
+
+
+    ★**清账表 (★每行 8 列, 一行不许少★)★**:
+
+
+    | ★#★ | ★位号★ | ★板面 Value (逐字)★ | ★网表侧 Value (逐字)★ | ★BOM 侧 Value (逐字)★ | ★差异类型 (★自定分类, 不许照抄 ISS-287 的 12/14★)★ | ★是否影响电气语义 (★选型/封装/网络归属 三问逐条答★)★ | ★落表归属 (★要不要动网表真源 / 动哪一列 / 属哪个批次★)★ | ★证据等级★ |
+
+    |---|---|---|---|---|---|---|---|---|
+
+
+    ★**证据等级只能用这五级**: ★`[官网]` / `[实测]` / `[媒体]` / `[推算]` / `[0数据]` ★ ⇒ ★**板上写着的字 = `[实测]`; 网表/BOM 里写着的字 = `[实测]`; 你的判断 = `[推算]`; 查不到 = `[0数据]` (★不许拿 `[推算]` 冒充 `[实测]`★) ★
+
+
+    ★**★收口判据 (★本单的核心, 机器可判★)★**: ★**三条路线的口径必须各自说清, 并且必须落到「那一趟怎么执行」的动作上** ★
+
+    - ★**路线甲 (不重跑生成器)**: ★**只改现有板上的目标项** ⇒ ★**这 26 处 Value 原样保留** ⇒ ★**代价 = 什么?** (★「换封装」这一项就做不到 ⇒ 见 ISS-369 的写盘作业包★) ★
+
+    - ★**路线乙 (重跑生成器)**: ★**26 处 Value 全被覆盖成生成器口径** ⇒ ★**12 条手写功能描述丢失** + ★**`C_VBUS_GND` 掉板** + ★**DNP 标记一次性被打上 40 个位号** ⇒ ★**代价 = 什么?** ★
+
+    - ★**路线丙 (重跑 + 把 26 处事先补回生成器口径/落表补齐)**: ★**代价 = 什么 (网表真源改动 ⇒ 也是板 md5 那一趟的一部分)** ★
+
+    ⇒ ★**三选一是 main / 老板的地界 ⇒ 你只给【代价账 + 逐条台账】, 一条都不代拍** ★
+
+
+    ### ★2.2 · 任务 2 · `C_VBUS_GND` 的板侧唯一性复核 ★
+
+
+    ★**做**: ★**自己现读** `C_VBUS_GND` 在【网表 (board 列)】/【板面 (焊盘 / 封装 / 网名 / 位置)】/【BOM】三处的存在性, 逐条给证据 ★ ⇒ ★**它为什么会「掉板」? (是 `BOARD_FILTER = "MAIN_PCB"` 的过滤掉? 是它本来就不在网表里? 是它在网表但 board 列写成了别的?) ⇒ 用代码 + 数据把机理钉死** ★ ⇒ ★**顺带把 `HW/PCB/BOARD_ONEPASS_WORKPACKET.md` §3-S2 这一步 (「`C_VBUS_GND` 从主板拿掉」) 与本条的因果关系写清 (★它俩是不是同一件事的两面?★) ★ ⇒ ★**同样不代拍 (★留还是不留 = 老板/PM 域, `boss_c_vbus_gnd_reserve_pad_20261117` 已登记★)★**
+
+
+    ### ★2.3 · 任务 3 · 真相页 (★新建★) ★
+
+
+    ★**路径**: ★`HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md` ★
+
+    ★**结构**: ★`§0` 一句话结论 · `§1` 背景与口径出处 · `§2` 26 处逐条清账表 (★= 任务 1 的表, 一行不许省★) · `§3` `C_VBUS_GND` 机理 (★= 任务 2★) · `§4` 三条路线的代价账 (★不代拍★) · `§5` 「板那一趟」该怎么用这张表 (★逐条: 落哪一步 / 谁落 / 落之前要谁点头★) · `§6` ★**机器块** (★下面 §2.5 规定字段★) ★
+
+    ★**纪律**: ★**页里所有结论都要能指回本机实测证据; 引用的每份文件都要给 md5 或逐字行号; 不许写「据报告」★**
+
+
+    ### ★2.4 · 任务 4 · 机器闸 (★新建★) ★
+
+
+    ★**路径**: ★`HW/check_generator_value_drift_closed.py` ★
+
+    ★**性质**: ★**零挂链 (★`grep -c check_generator_value_drift_closed state/gate_check.py` 必须是 0 · 挂不挂链 = main 的地界★)· 裸跑 rc=1 (★红的是现状: 26 处未登记★) · `--selftest` rc=0 且末行逐字 `ALL TESTS PASS`** ★
+
+    ★**判据 (★建议 D1~D7, 你可增删, 但每条都要有反向用例★)**:
+
+    - ★**D1 (fail-closed 命门)**: ★**板面 Value 与网表侧 Value 不一致的每一条, 必须在本单真相页 §2 的台账里登记 (位号 + 双方逐字值 + 处置口径) ⇒ 少登记一条 ⇒ 红** ⇒ ★**这条判据不许有任何豁免 / 白名单 / 「已知例外」★** ★
+
+    - ★**D2**: ★**台账里登记的值必须与现读值逐字相同 (不许抄旧值) ⇒ 台账过期 ⇒ 红** ★
+
+    - ★**D3**: ★**台账每行必须带证据等级, 且等级只能用五级白名单 ⇒ 越界 (例如 `[官方]`) ⇒ 红** ★
+
+    - ★**D4**: ★**`C_VBUS_GND` 的机理结论必须在页上 (三处存在性 + 掉板机理) ⇒ 缺 ⇒ 红** ★
+
+    - ★**D5**: ★**三条路线的代价账必须齐 (甲/乙/丙) ⇒ 缺一条 ⇒ 红** ★
+
+    - ★**D6**: ★**零代拍**: ★**页里不许出现「已决定 / 就按路线甲 / 老板已拍」这类替 main 或老板拍板的措辞** ⇒ 出现 ⇒ 红 (★白名单只放 `not_decided_here` / 「待 main 拍」这类中性词★) ★
+
+    - ★**D7**: ★**零外发 + 零挂链 + 零写板自证**: ★**闸自己不许引用 `state/outbox/` 任何文件 · 闸运行前后板三项指纹 (md5/mtime/size) 必须逐字相同 · `state/gate_check.py` 里不许出现本闸名** ⇒ 任一不满足 ⇒ 红 ★
+
+    ★**`--selftest`**: ★**正向 ≥1 条 + 反向 ≥6 条 (每条反向用例必须自证「红的是目标那一条、其余仍绿」) ⇒ 末行逐字 `ALL TESTS PASS` ⇒ rc=0** ★
+
+    ★**纪律**: ★**判据只能加严不许放松; 自测夹具不许写死要测的数; 沙盒不许硬链接到真件 (★L-24 血案★); 不许往系统 `/tmp` 写 (★沙盒落项目盘 `tmp/iss402/`)★**
+
+
+    ### ★2.5 · 机器块字段 (★真相页 §6 · 机器可解析★) ★
+
+
+    ★**`generator_value_drift:`** ★
+
+    | ★键★ | ★含义★ |
+
+    |---|---|
+
+    | `board_md5` / `board_mtime` / `board_size` | ★现役板三项指纹 (自证) ★ |
+
+    | `netlist_md5` / `bom_md5` | ★网表 / BOM 指纹 (自证) ★ |
+
+    | `rows:` | ★**26 行 (或你实测出的真实条数) 逐行**: `ref` / `board_value` / `netlist_value` / `bom_value` / `diff_type` / `affects_electrical` / `landing_owner` / `evidence_level` ★ |
+
+    | `row_count` | ★行数 (★闸必须判「台账行数 == 实测差异条数」★) ★ |
+
+    | `cvbus_gnd:` | ★`in_netlist` / `netlist_board_col` / `on_board` / `drop_reason` / `evidence_level` ★ |
+
+    | `routes:` | ★`A` / `B` / `C` 三条路线各一段 (★代价 + 适用条件 + 谁拍★) ★ |
+
+    | `decisions` | ★★**逐项写 `not_decided_here` (★一条都不许代拍★)★** ★
+
+
+    ### ★2.6 · 任务 5 · 交卷页 (★新建★) ★
+
+
+    ★**路径**: ★`HANDOFF/2026-11-24_hw-lead_ISS402_生成器重跑Value漂移26处清账与闸.md` ★
+
+    ★**结构**: ★`B1` 结论摘要 · `B2` 验收自评 (★逐条 A1~A20, 不用写的写「不适用 + 原因」, 不许留空★) · `B3` 证据分级 · `B4` 接口取值声明 (★`interface_claims`★) · `B5` 未决项 (★每条带【问法 + 建议默认值 + 不答的后果 + 归属 + 代价】, ★全部 `to=main`★) · `B6` 复现命令 + rc (★原样贴输出★) · `B7` 边界自证 + ★**自曝节 (★你改了自己新闸的哪几处 / 为什么 / 判据常量有没有动★)★**
+
+    ★**★标题口径必须用仓里规范名 (★`state/gate_check.py` 的 `REQUIRED_BLOCKS` 认的那套★) ⇒ 不许自己发明标题 ⇒ 交卷前用 `state/gate_check.py` 自己评一遍自己的页 = 6/6** ★
+
+
+    ### ★2.7 · 任务 6 · 自有分片收口 ★
+
+
+    ★**只写 `state/fragments/hw.yaml`** ★ (★走 `python3 state/frag_write.py --agent hw-lead` 原子写★ · ★**禁止 `open(p,"w")`★**)
+
+    ★**要登记**: ★产出物 3 件 + 若干条 `interface_claims` (★键名带 `iss402_` 前缀★) + 若干条 `needs_from` (★**全部 `to=main`**, ★每条带代价, ★一条都不许代拍★) + `status` 块 ★
+
+    ★**★写完必须做四项自检并把结果贴进交卷页**: ★**① 条数 (写后 vs 写前) · ② 丢 key (写前有的 key 写后还在吗) · ③ 多的 key (写后多出来的 key 是我加的吗) · ④ 内容有变的条 (别人写的条目有没有被我改坏) ★** ⇒ ★**打印「已原子更新」不算数, 必须回读确认 (★L-28 血案★) ★
+
+    ★**★不许动 `state/fragments/{sw,mech,pm}.yaml` 一个字节** ★
+
+
+    ---
+
+
+    ## ★3 · 边界 (★逐条自证, 一条都不许破★) ★
+
+
+    | ★边界★ | ★自证方式 (★全部本机实跑★)★ |
+
+    |---|---|
+
+    | ★**零写板** ★ | ★`HW/PCB/demo_mainboard.kicad_pcb` 的 md5 / mtime / size 三项开工前后逐字相同 (★基线: `611b869e13518c3c023fb178f91a0075` / `2026-11-06 07:07:17.362193413` / `4940213`★) ★ |
+
+    | ★**零落表** ★ | ★`HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` 三份 md5 开工前后逐字相同 ★ |
+
+    | ★**零改既有闸判据** ★ | ★你跑过的既有闸 md5 开工前后逐字相同 (★跑哪些就把哪些列出来★) ★ |
+
+    | ★**零改既有页正文** ★ | ★你引用过的既有页 (★`HW/PCB/BOARD_ONEPASS_WORKPACKET.md` / `BOARD_ONEPASS_COMMIT_ORDER.md` / `BOARD_ONEPASS_PREFLIGHT.md` / `HW/PCB/LAYOUT_FIX_SPEC.md` / `HANDOFF/2026-11-17_hw-lead_ISS287_沙盒干跑可行性探针.md` 等★) md5 开工前后逐字相同 ★ |
+
+    | ★**零挂链** ★ | ★`grep -c check_generator_value_drift_closed state/gate_check.py` = **0** ★ |
+
+    | ★**零外发** ★ | ★**不许发任何邮件 / 询价 / 问询 / 采购** (★老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料★) ⇒ ★**没有「批一句可以发」这个选项** ★ ⇒ ★`state/outbox/` 未动 ★ |
+
+    | ★**不代拍** ★ | ★**路线甲/乙/丙、`C_VBUS_GND` 留不留、26 处各以谁为准 ⇒ 全部留给 main / 老板** ⇒ ★机器块 `decisions` 逐项 `not_decided_here` ★ |
+
+    | ★**不自签 `state/issue_log.yaml`** ★ | ★**一个字都不许写** (★签字是 main 的活★) ★ |
+
+    | ★**不写别人分片** ★ | ★只写 `state/fragments/hw.yaml` ★ |
+
+    | ★**沙盒只落项目盘** ★ | ★沙盒落 `tmp/iss402/` + 留证落 `logs/iss402/` ⇒ ★**不许往系统 `/tmp` 写** (★`/tmp` 有 userquota 且已被打满★) ⇒ ★**不许硬链接到真件** (★L-24 血案: `shutil.copy2` 不许 `cp -al`★) ★ |
+
+
+    ---
+
+
+    ## ★4 · 必跑命令 (★全部实测存在, 不许写不存在的命令★) ★
+
+
+    ```bash
+
+    cd /home/yuewuya/.openclaw/workspace/projects/smart_glasses
+
+
+    # ★① 你的新闸 (★裸跑 rc=1 红的是现状 · --selftest rc=0 末行 ALL TESTS PASS★)
+
+    python3 HW/check_generator_value_drift_closed.py
+
+    python3 HW/check_generator_value_drift_closed.py --selftest
+
+
+    # ★② 你不许弄红的既有闸 (★开工前 / 交卷后各跑一遍, 逐字相同才算没扰动★)
+
+    python3 HW/check_workpack_state_values.py
+
+    python3 HW/check_onepass_commit_order.py
+
+    python3 HW/check_board_frame_caliber.py
+
+    python3 HW/check_preflight_regen_idempotent.py
+
+    python3 state/check_pcb_nets.py
+
+    python3 state/check_pcb_drc.py
+
+
+    # ★③ 收尾 (★rc 必须 0 · Q1 必须 18/18 · 并把输出原样贴进回复★)
+
+    python3 state/merge.py
+
+    python3 state/gate_check.py
+
+
+    # ★④ 本单 brief 的命令存在性自检 (★rc=0★)
+
+    python3 state/check_brief_commands.py --brief-file state/dispatch_briefs/ISS-402_hw_generator_value_drift_26_audit.md
+
+    ```
+
+
+    ★**★收尾铁律★**: ★**交卷前必须跑 `python3 state/merge.py` (rc 必须 0) && `python3 state/gate_check.py` (Q1 必须 18/18), 并把两段输出原样贴进你的回复★** ⇒ ★**没贴输出 = 没交卷** ★
+
+    ★**★既有闸读数不许被你弄红**: ★**若某道既有闸本来就不绿 (★基线红★), 你要【如实报出改前改后逐字相同】, 不许去修它、不许去改它的阈值** ★
+
+
+    ---
+
+
+    ## ★5 · 交付物清单 (★5 件 + 留证★) ★
+
+
+    | ★#★ | ★物★ | ★路径★ |
+
+    |---|---|---|
+
+    | ★①★ | ★**真相页** (★新建★) ★ | ★`HW/PCB/BOARD_ONEPASS_GENERATOR_VALUE_DRIFT.md` (★§0~§6 + 机器块★) ★ |
+
+    | ★②★ | ★**新机器闸** (★新建★) ★ | ★`HW/check_generator_value_drift_closed.py` (★D1~D7 + `--selftest`★) ★ |
+
+    | ★③★ | ★**交卷页** (★新建★) ★ | ★`HANDOFF/2026-11-24_hw-lead_ISS402_生成器重跑Value漂移26处清账与闸.md` (★B1~B7★) ★ |
+
+    | ★④★ | ★**自有分片** ★ | ★`state/fragments/hw.yaml` (★走 `state/frag_write.py`★) ★ |
+
+    | ★⑤★ | ★**留证** ★ | ★`logs/iss402/` (★必跑命令原样输出 + 指纹对照 + 两法读数核对 + 自测输出★) ★ |
+
+    | ★★ | ★沙盒 ★ | ★`tmp/iss402/` (★不许硬链接真件★) ★ |
+
+
+    ---
+
+
+    ## ★6 · 交卷消息必须包含 (★少一条都不算交卷★) ★
+
+
+    1. ★**一句话结论 + 26 处清账的【真实条数】(★若不是 26, 说出你的数 + 差异在哪 + 为什么★)** ★
+
+    2. ★**26 行清账表 (★位号 / 板面 / 网表 / BOM / 差异类型 / 是否影响电气语义 / 落表归属 / 证据等级★) ★**
+
+    3. ★**`C_VBUS_GND` 的掉板机理 (★机理 + 证据 + 后果★)** ★
+
+    4. ★**三条路线 (甲/乙/丙) 的代价账 (★不代拍★)** ★
+
+    5. ★**必跑命令的 rc (★merge rc=0 · gate_check rc=0 · Q1 18/18 · 原样贴输出★)** ★
+
+    6. ★**板三项指纹前后对比 (★md5 / mtime / size 逐字相同★) + 三表 md5 + 既有闸/既有页 md5 前后对比** ★
+
+    7. ★**`grep -c` 零挂链读数 + 分片四项自检 (★条数 / 丢 key / 多的 key / 内容有变的条★) + `grep -c iss402 state/fragments/hw.yaml` ≥ 1** ★
+
+    8. ★**留给 main 的问句 (★每条带代价, 一条都不代拍★)** ★
+
+    9. ★**主动自曝: 你对新闸做的任何修正 (★尤其是改判据 / 改夹具 / 改阈值★) 逐条列出** ★
+
+
+    ---
+
+
+    ## ★7 · 派活纪律 (★固定抬头, 必读★) ★
+
+
+    ★**额外纪律**: ① 写分片必须用 `state/frag_write.py` (禁止 `open(p,"w")`) ② 只写本任务允许的文件, 不碰别人的 ③ 证据分级 `[官网]`/`[实测]`/`[媒体]`/`[推算]`/`[0数据]` 必须标 ④ ★**不许外发任何邮件/询价/问询/采购 (老板 2026-11-11 19:31 + 2026-11-12 02:02: 不再发信, 全靠自己查资料) ⇒ 缺口一律【自己网上查】+ 标证据等级 + 查不到就写降级方案 ⇒ 没有"批一句可以发"这个选项** ⑤ 交卷前跑 `python3 state/merge.py` (rc 必须 0) && `python3 state/gate_check.py` (Q1 必须 18/18) 并把输出贴进回复 ★
+
+
+    ★**★再强调三条本项目已吃过的亏 (★血案级, 别再踩★)★**:
+
+    - ★**L-24**: ★沙盒硬链接真件 ⇒ 一写就穿 ⇒ ★一律 `shutil.copy2` ★
+
+    - ★**L-28**: ★幂等守卫只比 key ⇒ 静默吞掉一条交付物 ⇒ ★写完必须回读确认 (★分片四项自检 = 本单的第 ⑦ 项★) ★
+
+    - ★**L-33**: ★**会话 ended ≠ 活没干** ⇒ ★**第 1 步就把真相页骨架 write 落盘, 之后逐块 edit 补** ⇒ ★**别把 40 分钟全花在读资料上, 然后一件都没落盘就死掉** ★
+
+    '
+  note: '★**2026-11-24 23:5x cron fb67af40 (ARS45 队列自动派活) 新开并【直接落 fixing】** (★铁律⑩-i: 先落 fixing 再 spawn ⇒ 兄弟 job 775d9893 的 `advance.py --json` 看不见本单 ⇒ 零撞车窗口★)
+
+    ★**开单依据 (本机实读 + 全仓检索, 零抄报告)★**: ① `state/advance.py --json` ⇒ internal 0 (16 条 open 的 owner 全是 boss/main ⇒ 不在三个总工可派域); ② 三个槽位会话 (hw-lead ISS-401 / sw-lead ISS-398 cont2 / mech-lead ISS-400) 全部 done ⇒ 槽位实际都空 ⇒ 本轮只派 hw-lead 一条 (★sw/mech 两域刚交卷, 本轮没有可复述的已核实缺口 ⇒ 宁可不派也不派没核实的题★); ③ ★**本单的题 = ISS-287 遗留的 3 条 open need (`iss287_26_value_diff` / `iss287_cvbus_gnd_board_only` / `iss287_tmp_write_through` 至今零 answers) + 全仓零机器闸读它**★ ⇒ 「板只改一次」那趟开工前的沉默地雷 ⇒ 本单做成逐条台账 + fail-closed 闸。
+
+    ★**本单是纯查证/纯分析类** ⇒ 零写板 · 零落表 · 零改既有闸 · 零改既有页正文 · 零挂链 · 零外发 ⇒ 合「板只改一次」纪律 ① ⇒ 真动板那一趟不受本单影响。'
   source_agent: main
   verify_by: main
   reporter: main
