@@ -1,15 +1,20 @@
 agent: hw-lead
 role: 硬件总工
-updated_at: '2026-11-17'
+updated_at: '2026-11-24'
 updated_by: hw-lead
 status:
   phase: fixing
   progress_pct: 100
   health: green
-  summary: 'ISS-379 cont1 交卷: 闸 K2 那条红已修 (根因 = 闸侧 pad 角度被 round(...,6) 取整造成 1e-4 口径差; 第三路独立复算判定证据侧对/闸侧错;
-    已在产生点修掉, 容差未放宽, 证据未手改) ⇒ 闸 rc=0 K0~K8 全绿 + selftest 19/19 ALL TESTS PASS + merge 0 + gate_check 0
-    (Q1 18/18) + 板零写板; 权威证据归一为 logs/iss379/scan_land_fit.json; 等 main 签收 + 裁换不换 land/挪不挪/pin 顺序'
-  updated_at: '2026-11-17'
+  summary: 'ISS-384 交卷 (2026-11-24 08:2x-09:xx): 充电电流活值口径收口 = 真相页 HW/CHARGE_CURRENT_LIVE_VALUE_CALIBER.md
+    (§0~§5 + 机器块) + 新闸 HW/check_charge_current_live_value.py (零挂链, 裸跑 rc=0, --selftest 14/14 ALL TESTS
+    PASS) + 交卷页 B1~B6 + 三份 HW 活文档【追加式订正块】(PCB_OUTLINE 14 行 / J_CHG 16 行 / POWER_BUDGET 5 行 = 34 处活值逐处追平到
+    680Ω 落表真值 ICHG 0.697A / 单 pin 0.349A / 余量 1.43× / 系数 1.216@3.70V 与 1.071@4.20V)。关键事实: 网表 2026-11-16
+    (V-4) 已落 680Ω ⇒ 网表早对, 错的是文档; 既有闸 R10 只扫 CHARGE_BOARD_SPEC.md (已清零 ⇒ 绿) ⇒ 判定面有洞 = 机器事实, 本单另写新闸不碰既有闸。零落表
+    (网表/脚表/BOM md5 逐字同, 网表那 2 处 0.822 合法历史说明一字未动) 零写板 (板三项指纹逐字同) 零改既有闸 零挂链 (grep=0) 零外发 不代拍 (R_ILIM 档位归老板/PM
+    域)。 ★追加: main 09:3x 回覆 5 条 need 全部已收; 其中『规格页逐字条款钉进 J_CHG §7』本单已做 (70% 条款逐字原文 + 官网 0.5A + 10p 尺寸 A=4.5/B=8.1/C=9.1/D=5.57;
+    页码 [0数据] + 降级方案); 官网 10p 尺寸的几何影响已开 need 给 mech-lead (不代判)。'
+  updated_at: '2026-11-24'
 artifacts:
 - path: HW/HARDWARE_BREAKDOWN.md
   kind: breakdown
@@ -2101,6 +2106,65 @@ artifacts:
   version: iss379-cont1
   updated_at: '2026-10-25'
   summary: 唯一权威证据 JSON (2026-11-24 04:47 盘上脚本重跑, mode A, 8,450,311 B, 逐格可行清单)
+- path: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md
+  kind: evidence
+  version: v1.0
+  updated_at: '2026-11-24T06:05:00+08:00'
+  summary: 'ISS-380 真相页: §0 一句话结论 / §1 板侧真值 (16 行全 [实测]) / §2 厂商型号候选表 (J_DEBUG 4 条 + J_UART 4 条, 每条带料号+官网链接+证据等级)
+    / §3 座体真实高度 ([0数据] + 降级三件套) / §4 五个 keepout 座厂商图纸来源逐个登记 / §5 三条不自洽点只登记 (另加板侧新发现 5-④) / §6 未决项 7 条不代拍
+    / §7 复现命令 12 条'
+- path: HW/check_debug_uart_seat_truth.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-24T06:11:00+08:00'
+  summary: 'ISS-380 闸 K0~K5 (fail-closed, 每条一条反向用例): K0 板侧脚数真值三方一致 / K1 §2 候选带料号+证据等级+URL / K2 每条 [0数据]
+    配降级 / K3 §4 keepout 对象全登记 / K4 板三项指纹未动 / K5 每条断言带证据等级; 正向 rc=0, --selftest 末行 ALL TESTS PASS'
+- path: HANDOFF/2026-11-24_hw-lead_ISS380_座体厂商型号与keepout图纸自查.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-24T06:14:00+08:00'
+  summary: ISS-380 交卷页 B1~B6 齐全 (B1 结论摘要 / B2 验收标准自评 / B3 证据分级 / B4 接口取值声明 / B5 未决项与卡点 / B6 自证复现命令)
+- path: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_ALIGNMENT.md
+  kind: alignment-page
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: 'ISS-383 座体选型四方对齐作业包 §0~§6: 候选件真实规格 (D-1 FTSH-104-01-F-DV 实测 8Pin/2Row/SMT, U-1 FTSH-102-01-F-DV
+    实测 4Pin/2Row/SMT) + 库封装逐个解析 + 四方口径对齐表与冲突登记 + BOM 型号栏草案 (零落表)'
+- path: HW/check_debug_uart_seat_alignment.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: 'ISS-383 新建闸 K0~K4: K0 板三项指纹与 ISS-380 已签收件 md5 未动 + K1 四方对齐表四行逐行点名 + K2 口径冲突逐格点名且必须写清后果 + K3
+    草案料号与 §1 逐字一致且 BOM 型号栏仍待定 (防越界) + K4 证据等级零挂起零挂链判据事实分开; selftest 11 条反向用例'
+- path: HANDOFF/2026-11-24_hw-lead_ISS383_座体选型落地四方对齐.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: ISS-383 交卷页 B1~B6 齐全 (B1 结论摘要 / B2 验收标准自评 / B3 证据分级 / B4 接口取值声明 / B5 未决项与卡点 / B6 自证复现命令)
+- path: HW/CHARGE_CURRENT_LIVE_VALUE_CALIBER.md
+  kind: note
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: 'ISS-384 充电电流活值口径真相页 §0~§5 + 机器块 charge_current_live_value: (coef_main 1.216 / coef_cv 1.071
+    / 680Ω ichg_max 0.697 / per_pin_max 0.349 / margin 1.43×); 逐处订正表 35 行 (34 处活值 + 1 处数值不变说明行); 历史留痕
+    vs 活值分账表 (活值 34 / ISS-230 作废标记 2 / 网表合法历史说明 2 / 订正块留痕 35); 根因 = 0.822 是 1.216 的倒数 (方向反); 证据分级 [实测]/[推算]/[官方]/[0数据]
+    逐条标注; 未决 0 条硬阻塞 (4 条 [0数据] 均带降级方案)。零落表零写板零改既有闸零外发不代拍。 ★追加: §6 已收裁决 (main 2026-11-24 09:3x 回覆 5 条 need)
+    + §5 第 2 条由 [0数据] 升为 [官网] (规格页条款与官方参数已钉进 J_CHG §7)。'
+- path: HW/check_charge_current_live_value.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: 'ISS-384 新建闸 (零挂链, 未改任何既有闸): 扫 HW/PCB_OUTLINE_60x15.md + HW/J_CHG_SELECTION.md + HW/POWER_BUDGET_V3.md,
+    按【语境】判旧系数 0.822 / 0.411A / 1.22× / 旧充电时间 / 旧 TS 偏移是否为活值 ⇒ 判红并点名 文件:行号; 两条命门各有反向用例: ① 删 L151/L193 的
+    ISS-230 作废标记 ⇒ 变红 (不按子串判) ② 把网表/脚表/BOM/板文件加进扫描范围 ⇒ 变红 (落表真源不许被文档闸碰); 裸跑 rc=0, --selftest 14/14 末行
+    ALL TESTS PASS。'
+- path: HANDOFF/2026-11-24_hw-lead_ISS384_充电电流活值口径收口与R10判定面盲区.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: 'ISS-384 交卷页 B1~B6 齐全 (B1 结论摘要 8 条 / B2 验收标准自评 15 条逐条通过·未验·依据 + B2-1 逐处订正表 35 行 / B3 证据分级 /
+    B4 接口取值声明 12 条 / B5 未决项与卡点 5 条零外部挂起 / B6 自证复现命令); 含零落表·零写板·零改既有闸·零挂链·零外发·不代拍 全部实测读数。 ★追加: B2-2 追加块一览
+    + B5 补 main 5 条裁决的闭环 + J_CHG §7 规格页补钉块 (只补证据, 不改选型)。'
 blockers:
 - id: HW-B1
   desc: 'ARS45 显示输出接口未确认 (DSI TX? DP TX? 两者?) — 原理图对策已给: 光机侧连接器定死, SoC 侧同时留 DSI_TX/DP_TX 双出口走 0Ω/DNP'
@@ -4219,6 +4283,100 @@ needs_from:
     bed9b3b110e52e4ffcdc18240ef7a47c·★两者本机实测在盘★) ⇒ C3 绿但按动力度 3N→1.5N ⇒ 误触风险上升 (矩阵 §⑮~⑲ 选 3N 的理由就是防误触).
     ★★不拍的后果: 走 (a) 而网表没补脚 ⇒ C3 当场红「板 4 脚 / 网表 2 脚」(沙盒实测不符 3 件 = SW_BOOT/SW_KEY_PWR/SW_RST) ⇒ 那一趟交不出可投产的板★★'
   since: '2026-11-24'
+- key: iss380_board_trip_bom_part_fill
+  to: main
+  item: '板那一趟的 BOM 型号栏: J_DEBUG/J_UART 按板侧真值档 (FTSH-104-01-F-DV / FTSH-102-01-F-DV) 还是 Cortex-10 2×5 档
+    (FTSH-105-01-L-DV-K)? 另: 结构侧那三条不自洽点 (脚数 / 相对位置 / 座体真实高度) 谁去重算?'
+  since: '2026-11-24'
+- key: iss383_main_choose_single_row_1x4_criteria
+  to: main
+  item: '1x4 直插这个口径到底以谁为准 (BOM 描述栏 1.27mm 单排直插 / 板面现状 0.5mm 排距 SMD 占位盘 / 结构侧 Cortex-10 2x5 双排 三者对不上)?
+    它决定板那一趟要改的是 land、脚表 还是结构件。本单给了: 四口径乘四格对齐表 与 6 条冲突登记 与 厂商件实测 (D-1=8Pin 2Row SMT, U-1=4Pin 2Row SMT),
+    不代拍。'
+  since: '2026-11-24'
+- key: iss383_main_single_row_1p27_vendor_pn
+  to: main
+  item: 1.27mm 单排直插这一档的厂商可下单料号怎么办? Samtec 与 Wurth 两家都查不到单排件 (本单核到 8+4 个官网与分销件逐条为证)。甲 另找厂按规格书下单 (排距 1.27
+    / 单排 / 4 位与 2 位 / 直插 / 方针 0.5mm 推定 / 焊盘 1.000x1.000 / 钻孔 0.65 / post 高 3.05mm), 乙 改走双排档 (脚表与结构清空区同时要改)。本单不代拍。
+  since: '2026-11-24'
+- key: iss383_main_mech_recompute_three_inconsistencies
+  to: main
+  item: '结构侧那三条不自洽点 (ISS-380 5-1 脚数 / 5-2 相对位置 / 5-3 座体高度) 要不要跟着换料号一起重算? 执行方是 mech-lead (本单未改 MECH 一个字节)。本单给了:
+    脚表 4/2 脚 vs 结构侧 10 脚; post 高已从 0数据 收紧到 3.05mm 而 Z 向可用空间只有 4.70mm 所以开口 Z 向要按座体凸出镜脚外表面建模; J_UART 座体
+    DNP 结构侧已定本单沿用。'
+  since: '2026-11-24'
+- key: iss383_main_bom_model_column_timing
+  to: main
+  item: BOM 型号栏什么时候落? 落表 = 改网表真源, 须与板那一趟的 land 改动同一次做完 (否则要改第二次)。本单零落表, 只给草案 (§4), 闸 K3 会验 BOM 型号栏此刻仍是待定。
+  since: '2026-11-24'
+- key: iss383_main_hang_new_gate_or_not
+  to: main
+  item: '新闸 HW/check_debug_uart_seat_alignment.py 挂不挂 state/gate_check.py? 本单零挂链 (挂链是 main 的地界; 先例: 提前单独挂会出中间态红,
+    现场易误读成板坏了)。闸脚本已写好并自测通过 (K0~K4, 11 条反向用例)。挂点由 main 拍。'
+  since: '2026-11-24'
+- key: iss383_main_official_vs_custom_footprint
+  to: main
+  item: '库封装用官方通用件还是自建 Samtec 专用封装? 甲 官方通用件: PinHeader_1x04_P1.27mm_Vertical (md5 7a5f470c1f70d4b832be258501945385,
+    ISS-356 已锁) 与 PinHeader_1x02_P1.27mm_Vertical (md5 47bcbf6d0f267d543e50d4b2a8dfabf5), 代价是找一家做单排 1.27mm
+    直插的厂, 料号待落定; 乙 自建 Samtec 专用封装: 代价是 §2.4 清单里 pad 尺寸 / 焊盘间距 / 阻焊开窗 / 丝印边界 / pin1 定位 五格全是 0数据, 要先取原厂
+    land 图。本单只给两者代价, 不代裁。'
+  since: '2026-11-24'
+- key: iss383_main_register_juart_target_lib
+  to: main
+  item: 'J_UART 的 target_lib 要不要补进 HW/FP_TRUTH_BASELINE.md? 本单零落表只登记: J_UART 在该文件里 grep -c = 0, 对应件应为
+    Connector_PinHeader_1.27mm:PinHeader_1x02_P1.27mm_Vertical (md5 47bcbf6d0f267d543e50d4b2a8dfabf5)。'
+  since: '2026-11-24'
+- key: iss384_gate_hook_decision
+  to: main
+  item: 是否把新闸 HW/check_charge_current_live_value.py 挂进 state/gate_check.py。★本单按先例零挂链 (挂链 = main 的地界) ⇒
+    请 main 决定; 新闸已可裸跑 rc=0 + --selftest 14/14 随时可挂。
+  since: '2026-11-24'
+  due: '2026-11-25'
+  status: open
+  evidence: '[实测] grep -c check_charge_current_live_value state/gate_check.py = 0'
+- key: iss384_rilim_档位确认
+  to: main
+  item: R_ILIM 是否维持 680Ω (V-4 已裁且已落表 2026-11-16)。★本单不代拍, 只报『文档与已落表真值不一致已修完』。若要改档 ⇒ 走板只改一次那一趟 (换料不换板, ILIM
+    脚稳 0.8V)。
+  since: '2026-11-24'
+  due: '2026-11-25'
+  status: open
+  evidence: '[实测] HW/netlist_v1.csv L47/L48 = 680Ω; MECH §0-A.1: 390/470/300 档在 1.216 系数下全判死'
+- key: iss384_jchg_触点额定
+  to: main
+  item: 'J_CHG 座体单触点额定 ≥0.5A 的厂商书面确认 (RFQ 硬判据)。★[0数据] (规格页未核) ⇒ 降级方案: 若只拿得到 0.3A 型号, 则 680Ω 档单 pin 0.349A
+    也不合格 ⇒ 需 R_ILIM ≥790Ω 或 1.0mm pitch (MECH §M-6 已量化)。★本单零外发, 只把后果量化给 PM。'
+  since: '2026-11-24'
+  due: '2026-11-26'
+  status: open_degraded
+  evidence: '[0数据] + MECH/HINGE_POWER_CALC.md §M-6'
+- key: iss384_evt_板端实测
+  to: main
+  item: '板端 ICHG / 触点温升实测 (EVT 阶段)。★[0数据] (板端 0 条实测) ⇒ 降级方案: EVT 按 HW/EVT_RELIABILITY_TEST_ITEMS.md 实测复核;
+    在此之前所有 ICHG 数一律标 [推算]/[实测](脚本), 不冒充实测。'
+  since: '2026-11-24'
+  due: EVT 阶段
+  status: open_degraded
+  evidence: '[0数据] MECH/HINGE_POWER_CALC.md §8 证据分级汇总'
+- key: iss384_netlist_note_390ohm_residual
+  to: main
+  item: '【ISS-384 cont1 独立复核新发现 · 上一趟未登记】网表/脚表仍有 3 处【未标注作废的】390Ω 活值: HW/netlist_v1.csv L483 (R_PU_SCL
+    note: R_ILIM 390Ω 硬件封顶 IINMAX 1.00A / ICHG 0.82A)、HW/netlist_v1.csv L493 (U_CHG pin10 note: R_ILIM
+    = 390Ω ±1% 必装 ⇒ 定 390Ω)、HW/netlist_v1_pins.csv L502 (同 L493)。与元件行 L47/L48 的 680Ω (V-4 裁定 2026-11-16)
+    自相矛盾 ⇒ 谁只看 note 谁拿到 0.82A/1.00A 错数。本单地界 §三① 禁止动网表 ⇒ 不代拍。请裁: (a) 另开「网表 note 订正」单 (只订 note 文本, 不动元件值/不改板)
+    或 (b) 维持现状并在新闸外单列人工检查项。代价: 不裁 ⇒ 错数长期挂着, 下一轮读 note 者直接踩 0.822 同款方向错误。证据 [实测]。'
+  since: '2026-11-24'
+- key: iss384_jchg_10p_dims_geometry
+  to: mech-lead
+  item: '★ISS-384 §7 补钉时查到的官网 10p 尺寸 (Hirose [FH12] Series Catalog Nov.1.2026 尺寸表): FH12-10S-0.5SH() /
+    HRS No. 586-0522-3 / 10 contacts / A=4.5 / B=8.1 / C=9.1 / D=5.57 (mm) [官网]。★HW/J_CHG_SELECTION.md
+    §4.1/§4.2 现在用的是 28p 的进深 6.4mm (L199) ⇒ 10p 档若按官网 D=5.57 或 A=4.5 判, 『与 M1.2 孔① 间隙 1.05mm』与『座体 X 向进深未核
+    [推算]』两条结论可能变。★几何归属 = mech-lead 地界, hw-lead 只登记数据不判定 ⇒ 请回: 10p 的 X 向进深 / Y 向占宽各取哪个字母, 以及间隙是否要重算。证据
+    [官网] (Hirose 官网产品页 + 系列目录); 零外发。'
+  since: '2026-11-24'
+  due: '2026-11-26'
+  status: open
+  evidence: '[官网] Hirose [FH12] Series Catalog (Nov.1.2026) 尺寸表 + 官网产品页 CL0586-0522-3-55'
 answers:
 - key: pcb_outline_confirm
   to: mech-lead
@@ -5001,6 +5159,17 @@ answers:
     @ (12.4700,75.4000) 对 rot90 格 pad2 @ (8.6700,75.8000), 中心距 3.81); 推算: 漏检不可能藏住任何违例 (违例者包围盒必与 pad 铜箔相差<0.2
     ⇒ 必在覆盖内) ⇒ 只让余量绝对值偏乐观, 可行域判定不受影响; 改它要重跑全网并同步 §2/§3/§4 全部数字, 越本单边界 ⇒ 建议单独一单处理'
   ref: HW/PCB/BOARD_ONEPASS_JUART_LAND_FIT.md §10.7
+- key: iss377_oi10_vendor_part_numbers
+  to: main
+  value: 'OI-10 已闭: J_DEBUG 首选 Samtec FTSH-104-01-F-DV (1×4 1.27mm 直插), J_UART 首选 Samtec FTSH-102-01-F-DV
+    (1×2 1.27mm 直插); 另有 Cortex-10 2×5 档 FTSH-105-01-L-DV-K 与 Würth 61300411121 / 61300211121 / 62130421021
+    / 62201021121; 每条带官网链接与证据等级, 见真相页 §2'
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md
+- key: iss267_mech_debug_part_model_p1_p3
+  to: mech-lead
+  value: '板侧脚数真值: J_DEBUG=4 脚 (编号自拟), J_UART=2 脚; 座体真实高度=[0数据] ⇒ 按 Z 向保守上界 4.70mm (7.30-2.60) 出件, 装配前须索取厂商机械图;
+    另新发现盘上两封装实为 0.5mm 排距 SMD 占位盘 (见真相页 §3/§5)'
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md
 interface_claims:
 - key: pcb_outline
   value: 60x30mm
@@ -7816,6 +7985,114 @@ interface_claims:
     feas_cells/components/best/min_displacement/row_table 逐项相同 ⇒ 落位结论未变 ⇒ 页面 FEAS 块除 evidence_json 指向外无前后差'
   note: ISS-379 cont1
   ref: ''
+- key: iss380_seat_part_truth
+  value: 见真相页 §2 (厂商型号候选表) / §4 (keepout 图纸来源登记)
+  note: J_DEBUG 首选 Samtec FTSH-104-01-F-DV, J_UART 首选 Samtec FTSH-102-01-F-DV, 每条带官网链接
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md
+- key: iss380_board_pin_count_truth
+  value: J_DEBUG=1×4 四脚 (TCK/TMS/TDI/TDO, 编号自拟), J_UART=1×2 两脚 (TX/RX); 盘上两封装实为 0.5mm 排距 SMD 占位盘 (pad
+    0.275×0.900)
+  note: iss267_mech_debug_part_model 第①条板侧答复
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md §1
+- key: iss380_keepout_sources
+  value: J_SOM_P1~P4 = Hirose DF40C-100DS-0.4V(51) 原厂四件 (2D产品图/3D STEP/Guideline ETAD-H1015-00/系列目录),
+    禁布区 1.5 MAX; J_USB_C = GCT USB4105-GF-A 原厂图 Rev B3 (24/02/23) + IPC-1752-2 revB 20231024
+  note: ''
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md §4
+- key: iss380_seat_height_truth
+  value: J_DEBUG/J_UART = [0数据] ⇒ 降级三件套 (官网替代型号 / Z 向上界 4.70mm / 装配前索取机械图); J_SOM 座体高 1.45mm 对插高 1.5mm;
+    J_USB_C = [0数据]
+  note: iss267_mech_debug_part_model 第③条板侧答复
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md §3
+- key: iss380_copper_x_width_truth
+  value: J_DEBUG 1×4@1.27 ⇒ rot90/270 铜箔 X 4.8100 (现位 1.7750); J_UART 1×2@1.27 ⇒ rot90/270 铜箔 X 2.2700
+    (现位 0.7750) ⇒ J_UART 每边余量 0.8825→0.1350 < CRIT 0.60 = 结构红灯
+  note: 只引用不重拍
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_PART_TRUTH.md §1
+- key: iss383_four_way_alignment_grid
+  value: 'J_DEBUG 与 J_UART 四方对齐 = 四格 (排距/脚数/排布/型态) 乘 四口径 (BOM描述栏/板面实际封装/结构侧模型/E-1板决策); 实测判定: 排距 1.27/0.50/1.27/1.27
+    => 第二口径冲突; 脚数 4/4/10/未定 => 第三口径冲突; 排布 单排/单排/双排2x5/未定 => 第三口径冲突; 型态 直插THT/SMD占位盘/直插/未定 => 第二口径冲突'
+  note: 只登记差异不许互相迁就; 裁决归 main 与 mech-lead; 本单不代拍
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_ALIGNMENT.md 3.1
+- key: iss383_conflict_must_be_explicit
+  value: '口径冲突必须显式登记: 用机器可读的 CONFLICT 逐条登记 格 与 口径对照 与 后果; 闸 K2 逐格点名, 缺一格即红; 这道闸的作用是让冲突显形而不是让冲突消失; 冲突被解决的正确路径是裁完口径后让四口径改成一致,
+    不是把登记删掉'
+  note: 本单核心口径
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_ALIGNMENT.md 3.2
+- key: iss383_vendor_part_real_spec
+  value: D-1 FTSH-104-01-F-DV = 8Pin 2Row SMT 1.27mm (Samtec 官网单品页标题 + DigiKey 参数表 Number of Positions
+    8 / Number of Rows 2 / Surface Mount), 方针 0.41mm, post 高 3.05mm => 对板侧 1x4 单排直插四格里错三格; U-1 FTSH-102-01-F-DV
+    = 4Pin 2Row SMT => 同样错三格 => ISS-380 登记的两个首选候选件不可直接落表
+  note: 坐实 ISS-380 标 推算 的排布格, 并把 ISS-380 标 0数据 的座体高收窄到 post 3.05mm
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_ALIGNMENT.md 1.1 与 1.2
+- key: iss383_single_row_1p27_not_found
+  value: '1.27mm 单排直插这一档在 Samtec FTSH 族 (本单核到 8 个官网与分销件 Number of Rows 全部 = 2) 与 Wurth WR-PHD 1.27mm 族
+    (62202021121 20 触点 2 排 / 62202821121 28 触点 2 排 / 62130421021 双排 SMT 全部 2 Row) 均查不到对应件 => 缺的是厂商可下单料号而不是封装
+    (库侧单排 THT 现成: 1x4 md5 7a5f470c1f70d4b832be258501945385 由 ISS-356 锁定, 1x2 md5 47bcbf6d0f267d543e50d4b2a8dfabf5)'
+  note: 推算结论 建立在 8+4 条逐条实测件上
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_ALIGNMENT.md 1.4
+- key: iss383_lib_footprint_same_type_criteria
+  value: 库封装可用判定口径 = 排布 与 型态 与 方针 三者同时同型才算可用; 排距一样不构成封装可用 (库里 _SMD_Pin1Left 是 2 列交错 列距 3.00, 与 Samtec
+    双排 SMT 的 2 排 x 1.27 排中心距 不同型); 另 J_UART 在 HW/FP_TRUTH_BASELINE.md 里计数 = 0 => 它的 target_lib 尚未登记
+  note: 只登记 不落表
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_ALIGNMENT.md 2.2 与 2.3
+- key: iss383_bom_model_column_convention
+  value: BOM 型号栏写法口径 = 厂商 加 可下单完整料号 加 官网链接 加 关键参数, 不写简称 (正例 GCT USB4105-GF-A, 反例 板面现写的 USB4105-16P); 落表须与板那一趟的
+    land 改动同一次做完 => 本单零落表只给草案, 闸 K3 验 BOM 型号栏此刻仍为待定
+  note: 本单口径 落表时点归 main 裁
+  ref: HW/PCB/BOARD_ONEPASS_DEBUG_UART_SEAT_ALIGNMENT.md 4
+- key: charge_current_coef_main
+  value: '1.216'
+  note: '★ISS-384 追平: ICHG/IIN = η·(Vbus/Vbat) @ VBAT=3.70V (最坏档)。★旧值 0.822 = (Vbat/Vbus)/η = 1.216 的精确倒数
+    ⇒ 方向反了 ⇒ 已作废 (MECH/HINGE_POWER_CALC.md §0-A)。'
+  ref: HW/CHARGE_CURRENT_LIVE_VALUE_CALIBER.md#机器块 + MECH/HINGE_POWER_CALC.md §0-A
+- key: charge_current_coef_cv
+  value: '1.071'
+  note: '★ISS-384 追平: @ VBAT=4.20V (CV 段末端)。来源 HW/CHARGE_BOARD_SPEC.md §2.4 (ISS-220 第 1 批已改正)。'
+  ref: HW/CHARGE_CURRENT_LIVE_VALUE_CALIBER.md#机器块
+- key: charge_current_rilim_landed
+  value: 680Ω
+  note: '★ISS-384 只报事实不代拍: 网表 L47/L48 自 2026-11-16 (V-4 裁定) 起已落 680Ω ⇒ 本单把三份文档追平到该真值, 网表一个字节没动。是否维持/改档
+    = 老板·PM 域。'
+  ref: HW/netlist_v1.csv L47/L48 + HW/CHARGE_CURRENT_LIVE_VALUE_CALIBER.md §0
+- key: charge_current_ichg_max_680
+  value: 0.697A
+  note: '★ISS-384 追平: 680Ω 档 max (KILIM_max 390 AΩ) ⇒ ICHG = IINMAX × 1.216。已写进三份文档的追加订正块与真相页机器块。'
+  ref: MECH/hinge_power_calc.json rilim_table (680Ω max)
+- key: charge_current_per_pin_max_680
+  value: 0.349A
+  note: '★ISS-384 追平: pin1/pin2 双 pin 并联 ⇒ ÷2 ⇒ 0.349A ≤ 0.50A 触点工作上限 ⇒ 唯一成立档。'
+  ref: MECH/hinge_power_calc.json rilim_table (680Ω max)
+- key: charge_current_margin_680
+  value: 1.43×
+  note: '★ISS-384 追平: 0.50A ÷ 0.349A = 1.43× (旧值 1.22× 是 390Ω 档在错系数下的数, 已作废)。'
+  ref: MECH/HINGE_POWER_CALC.md §0-A.1 对照表
+- key: charge_current_per_pin_max_390
+  value: 0.608A
+  note: '★ISS-384 追平: 390Ω 档 max ⇒ 单 pin 0.608A ⇒ 超 0.50A 触点上限 21.6% ⇒ 该档判死 (旧值 0.411A/余量 1.22× 作废)。'
+  ref: MECH/HINGE_POWER_CALC.md §0-A.1 对照表
+- key: charge_current_per_pin_max_470
+  value: 0.505A
+  note: '★ISS-384 追平: 470Ω 档 max ⇒ 单 pin 0.505A ⇒ 超上限 1.0% ⇒ 该档判死 (旧值 0.341A/有 0.16A 余量 作废)。'
+  ref: MECH/hinge_POWER_CALC.md §0-A.1 对照表
+- key: charge_current_per_pin_max_300
+  value: 0.790A
+  note: '★ISS-384 追平: 300Ω 档 max ⇒ 单 pin 0.790A ⇒ 超上限 58% ⇒ 该档判死 (旧值 0.534A 作废)。'
+  ref: MECH/hinge_power_calc.json rilim_table (300Ω max)
+- key: ts_ref_ground_offset_680
+  value: 20.9mV / 0.65°C
+  note: '★ISS-384 追平: O-4 行「TS 参考地被 1A 回流抬高 14-32mV = 0.44-0.99°C」⇒ 按 680Ω 档 0.697A 改为 20.9mV = 0.65°C
+    (旧值作废)。'
+  ref: MECH/HINGE_POWER_CALC.md §M-4 表 (680Ω 行)
+- key: charge_time_max_680
+  value: 34.41min
+  note: '★ISS-384 追平: 680Ω 档 max 充电时间 (400mAh 口径); 旧值 51min 是错系数下的数。'
+  ref: MECH/hinge_power_calc.json rilim_table t_charge_min
+- key: charge_current_doc_green
+  value: HW/check_charge_current_live_value.py rc=0
+  note: '★ISS-384 新闸 (零挂链): 扫三份 HW 活文档, 按语境判旧系数活值 ⇒ 判红点名 文件:行号; 历史留痕 (ISS-230 L151/L193) 与落表真源 (网表/脚表/BOM)
+    均不误伤, 且各有反向用例。'
+  ref: HW/check_charge_current_live_value.py
 open_questions:
 - id: HW-Q1
   to: main

@@ -207,6 +207,22 @@
 | J_CHG 实际需要 **2 只** | **[推算]** | `MECH/HINGE_POWER_CALC.md` §1.2 (路径含 2 个界面) |
 | 价格档 (28p ≈$84 电商挂牌) | **[电商挂牌·非正式报价]** | 经销商页面, **不是报价** |
 | 10p 具体 A/B/C 尺寸 | **[0数据]** | 未核 FH12 10p 尺寸页 → 见 §2.2 待查清单 |
+### ★ 7-ISS-384 补: 规格页逐字条款 + 官方参数钉进 (★2026-11-24 · hw-lead · 追加式 · 只加不删★)
+
+> ★**起因**: ★**main 2026-11-24 09:3x 裁决 (答复 `iss384_jchg_触点额定`)**: ★**「把规格页的逐字条款 + 页码钉进 §7 ⇒ 规格页尚未逐字核这个缺口就闭合了」** ⇒ ★**本块只补证据, 不改选型 · 不改几何判定 · 零落表 · 零写板 · 零外发** ★
+> ★★**本机直连 PDF 被拦 (实测)**: `curl` 官网产品页 / 官网目录 API / Farnell 规格书 PDF ⇒ ★**hirose.com 与 farnell.com 直连本机返回 21 字节 stub (rc=0 但无内容) · Farnell PDF rc=124 超时** ⇒ ★★**⇒ 页码 = [0数据]** ⇒ ★**降级方案 = 下面这四件锚点已可复核: ① 逐字条款原文 ② 文档名 + 版本日期 ③ 小节/表名 ④ 可点 URL** ⇒ ★**下次能直连 PDF 时补页码即可, 判定结论不变** ★★
+
+| 条款 / 参数 | 逐字内容 | 等级 | 出处 (文档名 + 版本 + 小节 / URL) |
+|---|---|---|---|
+| 70% 降额条款 (逐字) | "Note 1 : When passing the current through all of the contacts, use 70% of the current rating." | **[官网]** | Hirose **[FH12] Series Catalog** (Nov.1.2026 版) · Product Specifications · "Adaptive FPC/FFC contact specifications" 表 · **Note 1** · https://www.hirose.com/en/product/series/FH12/documents |
+| FH12-10S-0.5SH(55) 额定电流 | Rated Current **0.5A** (每触点) | **[官网]** | Hirose 官网产品页 CL0586-0522-3-55 · https://www.hirose.com/en/product/p/CL0586-0522-3-55 |
+| 10p 尺寸表 (按目录原样) | FH12-10S-0.5SH() / HRS No. 586-0522-3 / No. of Contacts 10 / **A=4.5 · B=8.1 · C=9.1 · D=5.57** (mm) | **[官网]** | Hirose **[FH12] Series Catalog** (Nov.1.2026 版) · 尺寸表 (No. of Contacts / A / B / C / D) |
+| 外形宽交叉校验 | 目录 C=**9.1mm** ⇒ ★**与本页 §7 原行「FH12 10p 外形宽 ≈9.1mm [推算]」(由 28p 反推) 吻合** ⇒ ★**那条反推值被官网表坐实** | **[推算]**(交叉校验) | 同上 |
+| 其它官方参数 | 0.5mm pitch / 10 位 / L 9.1mm / H 2.0mm / W 6.4mm / FPC-FFC 0.3mm / -40~+85°C / DC50V / UL94 V-0 / ZIF / 触点镀金磷青铜 | **[官网]** | Hirose 官网产品页 CL0586-0522-3-55 |
+| ★**页码** | ★**未核** | **[0数据]** | ★**降级方案: 条款原文 + 文档名 + 版本日期 (Nov.1.2026) + 小节/表名 + 可点 URL 四件锚点已齐 ⇒ 判定「全触点导通时每触点按 0.35A 读」不受页码影响; 需补页码时由下次能直连 PDF 的那一趟补** ★ |
+
+> ★★**两条地界声明**: ★**① 尺寸字母 A/B/C/D 按官网目录原样登记, 不作解释** ⇒ ★**「哪个是座体 X 向进深 / Y 向占宽」= 几何归属 = mech-lead 地界, 本单只登记数据不判定** (★另: §4.1/§4.2 的间隙结论一律不动★) ★★; ★**② 触点额定判据本身不变** ⇒ ★**「单触点额定 ≥0.5A」仍是 RFQ 硬判据, 70% 降额条款仍按 §3.2 两种读法处理 (我们的工况只有 pin1/pin2 载流 ⇒ 条款不成立) ⇒ 选型结论零变化** ★★
+> ★★**外发纪律**: ★**本块零外发** ⇒ 全部数据来自【自己网上查到的官网快照】⇒ ★**没有「等原厂回信」这种挂起项** ★★
 
 ---
 
@@ -222,3 +238,35 @@ grep -n "J_CHG" HW/netlist_v1.csv          # pin map 与 R_ILIM 取值 (§1 / §
 - Hirose FH12 系列规格书: https://www.farnell.com/datasheets/2043906.pdf
 - Hirose 产品页: https://www.hirose-connectors.com
 - ConnectorSupplier FFC/FPC 汇总 (GCTGCT / Amphenol 参数): https://connectorsupplier.com/ffc-and-fpc-connector-product-roundup
+
+
+## ★★ ISS-384 充电电流活值订正块 (2026-11-24 · hw-lead)
+> ★★★**一句话**: 本页的【充电电流活值】仍停在旧的 `0.822` 倒数方向系数上 ⇒ ★**活值已作废**; ★**板端真值 = `R_ILIM` 680Ω (V-4 裁定 2026-11-16 · 网表/脚表/BOM 均已落表)** ⇒ **ICHG 0.697A / 单 pin 0.349A / 触点余量 1.43×**; ★**本块只把文档追平到已落表的真值, 网表一个字没动** ★★★
+> ★★**当前口径系数 (必读 · ISS-384 订正口径)**: `ICHG = IINMAX × η·(Vbus/Vbat)` = **1.216 @3.70V** (最坏档) / **1.071 @4.20V** (CV 段末端); ★**旧值 0.822 = (Vbat/Vbus)/η = 1.216 的精确倒数 ⇒ 方向反了 ⇒ 旧表电流偏小 ⇒ 触点天花板判据失效** ★★
+> ★★**订正方式**: ★**追加式订正块 · 老字一行未删** ★★ (ISS-230 的作废标记 L151 / L193 原样保留); ★**下表逐处给出 旧值 → 新值**, 下表所列行号的旧值一律视为【历史留痕】, ★**本块之外的同款旧值即为活值 ⇒ 由 `HW/check_charge_current_live_value.py` 判红** ★★
+> ★★**零落表声明 (ISS-384)**: 本单 = 纯文档口径单 ⇒ `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` / `HW/PCB/demo_mainboard.kicad_pcb` **逐字节未动**; ★**网表 L47/L48 里那 2 处 `0.822` 是【合法的历史说明】(「旧口径写的 (VBAT/VBUS)/η = 0.822 是它的倒数」) ⇒ 一个字都不许动** ★★
+> ★**唯一权威源 (只读 · 已签收)**: `MECH/HINGE_POWER_CALC.md` §0-A / §0-A.1 对照表 + `MECH/hinge_power_calc.json` 的 `rilim_table` (ISS-229 · mech-lead · 已 verified) ⇒ 复现 `python3 MECH/hinge_power_calc.py --json` (rc=0) ★
+
+### 逐处订正表 (★行号 = 本块追加前的原页行号; 锚点列 = 机器闸用的旧值 token 码★)
+
+| 行号 | 档位 / 上下文 | 旧值 (逐字) | 锚点 (闸用) | 新值 (逐字) | 权威出处 | 证据 |
+|---|---|---|---|---|---|---|
+| 15 | §1 表 第 2 行 (FH12 70% 降额条款) | 只有 pin1/pin2 载流 (0.411A) · 0.5A 可用, 余量 1.22× | T0411 / T122X | 只有 pin1/pin2 载流 (0.349A) · 0.5A 可用, 余量 1.43× (680Ω 档真值) | MECH/HINGE_POWER_CALC.md §0-A.1 + rilim_table (680Ω max 行) | [实测] |
+| 16 | §1 表 第 3 行 (选型判据) | 390Ω 档的单 pin 0.411A 就不合格, 会被迫退到 680Ω (充电 51min) · 0.411A > 0.35A | T0411 / T51M | 680Ω 档的单 pin 0.349A 合格 (充电 ~34min) · 0.349A < 0.35A (680Ω 档单 pin 0.349A vs 0.5A) | MECH/HINGE_POWER_CALC.md §0-A.1 + rilim_table (680Ω max 行) | [实测] |
+| 17 | §1 表 第 4 行 (300Ω 封死) | 单 pin 0.534A 超过任何 0.5mm pitch FPC ZIF 的 0.5A 额定上限 | T0534 | 单 pin 0.790A 超过任何 0.5mm pitch FPC ZIF 的 0.5A 额定上限 | MECH/HINGE_POWER_CALC.json rilim_table (300Ω max 行) | [实测] |
+| 32 | §2 表 C-4 (充电电流档) | R_ILIM = 390Ω → ICHG 0.822A (max) → 单 pin 0.411A | T0822 / T0411 | R_ILIM = 680Ω (V-4 裁定 2026-11-16) → ICHG 0.697A (max) → 单 pin 0.349A | 网表 R_ILIM 行 (V1.9) + MECH/HINGE_POWER_CALC.md §0-A.1 | [实测] |
+| 89 | §2 换算表 行 1 (公式) | ICHG = IINMAX × 0.822 → 0.822 A | T0822 | ICHG = IINMAX × 1.216 (η·Vbus/Vbat @VBAT=3.70V) → 0.697 A | MECH/HINGE_POWER_CALC.md §0-A + HW/CHARGE_BOARD_SPEC.md §2.4 | [实测] |
+| 90 | §2 换算表 行 2 (单 pin) | 单 pin (pin1 / pin2 并联) → 0.411 A | T0411 | 单 pin (pin1 / pin2 并联) → 0.349 A | MECH/HINGE_POWER_CALC.json rilim_table (680Ω max 行) | [实测] |
+| 91 | §2 换算表 行 3 (双 pin 合计) | 双 pin 合计 → 0.822 A | T0822 | 双 pin 合计 → 0.697 A | MECH/HINGE_POWER_CALC.json rilim_table (680Ω max 行) | [实测] |
+| 99 | §3.2 表 头 (档位列) | 390Ω 档 (0.411A) \| 300Ω 档 (0.534A) | T0411 / T0534 | 680Ω 档 (0.349A) | 390Ω 档 (0.608A) | MECH/HINGE_POWER_CALC.md §0-A.1 对照表 | [实测] |
+| 101 | §3.2 保守读法行 | ❌ 0.411 > 0.35 不合格 | T0411 | ✅ 0.349 < 0.35 合格 | MECH/HINGE_POWER_CALC.json rilim_table (680Ω max 行) | [实测] |
+| 102 | §3.2 实际工况读法行 | 只有 pin1/pin2 载流 0.411A, pin3/4 回流 0.411A ... ✅ 0.411 < 0.5, 余量 1.22× · ❌ 0.534 > 0.5 | T0411 / T0534 / T122X | 只有 pin1/pin2 载流 0.349A, pin3/4 回流 0.349A ... ✅ 0.349 < 0.5, 余量 1.43× · ❌ 0.790 > 0.5 | MECH/HINGE_POWER_CALC.md §0-A.1 + rilim_table (680Ω max 行) | [实测] |
+| 103 | §3.2 300Ω 档讨论行 | R_ILIM 300Ω → ICHG 1.069A → 单 pin 0.534A | T0534 / T1069 | R_ILIM 300Ω → ICHG 1.581A → 单 pin 0.790A | MECH/HINGE_POWER_CALC.json rilim_table (300Ω max 行) | [实测] |
+| 108 | §3.3 结论 1 (降额条款读法) | 390Ω 档就自动不合格 → 会被迫退到 680Ω (充电 51min, 而 390Ω 是 29min) | T51M / T29M2 | 680Ω 档单 pin 0.349A 合格 (充电 ~34min) ⇒ 两种读法都过, 没有解释空间 | MECH/HINGE_POWER_CALC.md §0-A.1 + rilim_table | [实测] |
+| 110 | §3.3 结论 2 (300Ω 封死) | 单 pin 0.534A 超过 0.5mm pitch FPC ZIF 的 0.5A 额定上限 | T0534 | 单 pin 0.790A 超过 0.5mm pitch FPC ZIF 的 0.5A 额定上限 | MECH/HINGE_POWER_CALC.json rilim_table (300Ω max 行) | [实测] |
+| 161 | §J-2 (70% 降额条款) | 0.5A → 70% → 0.35A, 而我们的单 pin 是 0.411A —— 恰好夹在中间 | T0411 | 0.5A → 70% → 0.35A, 而我们的单 pin 是 0.349A —— 在 0.35A 之上, 不夹中间 | MECH/HINGE_POWER_CALC.json rilim_table (680Ω max 行) | [实测] |
+| 168 | §J-2 减害段 | 300Ω 档 (单 pin 0.534A) 在 0.5mm pitch 下无解 | T0534 | 300Ω 档 (单 pin 0.790A) 在 0.5mm pitch 下无解 | MECH/HINGE_POWER_CALC.json rilim_table (300Ω max 行) | [实测] |
+| 197 | §9 汇总表 | R_ILIM = 390Ω → ICHG 0.822A → 单 pin 0.411A | T0822 / T0411 | R_ILIM = 680Ω → ICHG 0.697A → 单 pin 0.349A | 网表 R_ILIM 行 (V1.9) + MECH/HINGE_POWER_CALC.md §0-A.1 | [实测] |
+
+> ★★**本块的读法**: ★**行号 = 原文位置**; ★**锚点列的 token 码 = 该行里出现的旧值 token** (`HW/check_charge_current_live_value.py` 按它判「这行是否已被订正」); ★**若某行出现锚点表之外的旧值 token ⇒ 闸判红** ★★
+> ★★**L151 / L193 = ISS-230 留下的作废标记 (历史留痕) ⇒ 不进本表, 一个字不删** ★★

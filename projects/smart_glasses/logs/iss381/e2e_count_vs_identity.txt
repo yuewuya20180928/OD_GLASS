@@ -1,0 +1,18 @@
+★沙盒副本: /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss381_sbx/cheat/cheat4_nc_all_24.kicad_pcb
+★施加的刷法: 把 24 条网 (23 必需 + FSIN_OUT) 的全部焊盘标 no-connect
+★被清空的焊盘数 (逐网): {'CAM_RESET_N': 2, 'CSI_D0_D0_N': 3, 'CSI_D0_D0_N_SRC': 2, 'CSI_D0_D1_N': 2, 'CSI_D0_D1_N_SRC': 2, 'CSI_D0_D1_P': 2, 'CSI_D0_D2_N': 2, 'CSI_D0_D2_P': 2, 'CSI_D0_D3_N': 2, 'CSI_D0_D3_N_SRC': 2, 'DSI_D0_D0_N_SRC': 2, 'DSI_D0_D0_P_SRC': 2, 'DSI_D0_D1_N_SRC': 2, 'DSI_D0_D1_P_SRC': 2, 'DSI_D0_D2_N_SRC': 2, 'DSI_D0_D3_N_SRC': 2, 'FSIN_OUT': 2, 'JTAG_TDI': 2, 'LED_G_D': 2, 'SPI_MISO_BOOT': 2, 'SPI_MOSI_BOOT': 2, 'SPI_SCLK_BOOT': 2, 'UART_RX': 2, 'USB_CC2': 2}
+★★铜: 一个 segment / via 都没动 ⇒ 【一条铜都不加】 ★★
+
+★跑 KiCad DRC (沙盒副本) …
+
+★沙盒副本 unc 实测: unconnected items = 20 · 网名 19 个 · DRC violations = 0
+★这 24 条网在沙盒副本的 unc 计数: {'CAM_RESET_N': 0, 'CSI_D0_D0_N': 0, 'CSI_D0_D0_N_SRC': 0, 'CSI_D0_D1_N': 0, 'CSI_D0_D1_N_SRC': 0, 'CSI_D0_D1_P': 0, 'CSI_D0_D2_N': 0, 'CSI_D0_D2_P': 0, 'CSI_D0_D3_N': 0, 'CSI_D0_D3_N_SRC': 0, 'DSI_D0_D0_N_SRC': 0, 'DSI_D0_D0_P_SRC': 0, 'DSI_D0_D1_N_SRC': 0, 'DSI_D0_D1_P_SRC': 0, 'DSI_D0_D2_N_SRC': 0, 'DSI_D0_D3_N_SRC': 0, 'FSIN_OUT': 0, 'JTAG_TDI': 0, 'LED_G_D': 0, 'SPI_MISO_BOOT': 0, 'SPI_MOSI_BOOT': 0, 'SPI_SCLK_BOOT': 0, 'UART_RX': 0, 'USB_CC2': 0}
+
+★闸在沙盒副本 (post 相) rc = 1
+   ❌ UART_RX          ⇒ K1a: 板面查不到该网 (★身份缺失★) ⇒ 名单里这条在板面不存在
+
+★★决定性结论 ★★
+   真板            : unc = 45 条 (43 个网名) · 23 条必需网铜段数全 0
+   沙盒副本 (标 NC) : unc = 20 条 (19 个网名) · 23 条必需网铜段数【仍是 0】
+   ⇒ unc 计数下降 25 条, 而【新增铜 = 0.0 mm / 0 段】
+   ⇒ ⇒ 【计数 ≠ 身份】被端到端证实: 计数口径会被骗, 逐条口径能点名

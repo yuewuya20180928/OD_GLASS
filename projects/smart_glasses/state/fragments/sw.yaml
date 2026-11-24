@@ -4,21 +4,16 @@ updated_at: '2026-11-24'
 updated_by: sw-lead
 status:
   phase: fixing
-  progress_pct: 95
+  progress_pct: 100
   health: green
   updated_at: '2026-11-24'
-  summary: '★ISS-375 (cont3) sw-lead 2026-11-24 · 在 cont2 已落盘资产上补两件硬活: ① 【口径差写清】派活材料 §一③ 那段 pcbnew 代码我本机原样复跑
-    (留证 logs/iss375/rerun_brief_sec1_3_current_land.log) ⇒ 数字与派活材料逐字相同 (rot0 142.2/142.7/143.2/143.7 ·
-    rot90 全 142.9 · rot270 全 145.7) ⇒ 无差; 但那段量的是【现状 SMD land 被旋转】(实测 pad 沿局部 X 排开 步距 0.5) 而候选落点用【官方 THT
-    land】(pad 沿局部 Y 步距 1.27) ⇒ 候选落点的四个 X 是 141.0450/142.3150/143.5850/144.8550, 两件事读法必须分开 已在真相页+交卷页各写一段
-    ② 【闸的 M2/M3 改成动判据自己的数据源】cont2 的 M2/M3 只改页文本 ⇒ 测不到 D2 是否真用 KiCad 变换与 D5 是否真现读网表 ⇒ cont3 改成 M2 变异本闸源码
-    (compute_candidate_orders 返回写死常数 ⇒ D2 红 + D4 真实耦合) / M3 沙盒网表副本改 SoC_NC ⇒ D5 红 ⇒ 并修变异体注入点 SyntaxError
-    (str.replace 命中前面那处同名字面量 ⇒ 改 src.rfind) · 自跑读数: 新闸裸跑 rc=0 D0~D8 9/9 PASS; --selftest rc=0 11/11 PASS
-    末行 ALL TESTS PASS (镜像类 M1/M2/M3) · merge rc=0 · gate_check rc=0 Q1 18/18 · check_brief rc=0 · timing_check
-    rc=0 · zero_copper rc=0 · 零挂链 (gate_check 命中 0) · 板 md5/mtime/size 三项前后逐字节未变 (611b869e13518c3c023fb178f91a0075
-    / 2026-11-06 07:07:17.362193413 / 4940213) · 网表/脚表/BOM 四份真源 md5 未动 · 零写板 · 零落表 · 零改既有闸 (7 份既有闸 md5
-    与开工前逐字相同) · 零改既有页面正文 · 零外发 · 不自签台账 · phase=fixing 不落 open (撞车窗口 0) · ★不代 main 拍 pin1 朝向与 ISS-344 口径两个裁决★
-    ★'
+  summary: '★ISS-381 cont1 sw-lead 2026-11-24 交卷完成: 4 件交卷物齐 (真相页 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md
+    §0~§7 · 机器闸 SW/tools/check_sw_false_connectivity_gate.py K0~K6 · 交卷页 HANDOFF/2026-11-24_sw-lead_ISS381_*.md
+    B1~B6 · 分片登记 2 产出物 + 4 claim + 5 need 全部 to=main) + ★★端到端决定性实验 (真板沙盒副本): 24 条网全标 NC ⇒ unc 45→20 (−25)
+    而【新增铜 = 0.0mm/0 段】⇒ 23 条必需网铜段数仍全 0 ⇒ 同刻闸 post 相 rc=1 并点名 UART_RX; 另三刷法 (删焊盘/标NC/改名) 在真板副本层端到端全被抓住并点名
+    ⇒ 「计数 ≠ 身份」端到端证实。 ★本单口径订正: main need「unc 45→0 抓不到 UART_RX」那半句被实测证伪 (UART_RX 现在就是 45 条里的一条) ⇒ 零铜且 pad≥2
+    的网必然贡献 ≥1 条 unc item ⇒ 真洞 = 计数≠身份; 老字一字未删, 订正走新页追加块。 ★必跑命令 rc 全对: 闸裸跑 rc=0 (K0~K6 全绿) · --selftest
+    rc=0 通过17/失败0 末行 ALL TESTS PASS · check_s8_target_list rc=0 (N'
 artifacts:
 - path: SW/SW_REQUIREMENTS.md
   kind: requirements
@@ -2065,6 +2060,49 @@ artifacts:
     改成别的 ⇒ 期望 D5 红 (证明 D5 是现读网表的, 不是写死常量); (c) 修变异体注入点 bug (str.replace 命中源码里前面那处同名字符串字面量 ⇒ SyntaxError
     ⇒ 改用 src.rfind 定位最后一个 __main__ 标记)。M2 期望集如实写 {D2,D4} (D4 依赖 D2 输出 ⇒ 真实耦合, 非放宽)。实跑: 裸跑 rc=0 D0~D8 9/9
     PASS; --selftest rc=0 11/11 PASS 末行 ALL TESTS PASS (镜像类 M1/M2/M3); 零挂链 (state/gate_check.py 命中 0)'
+- path: SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md
+  kind: doc
+  version: '1.0'
+  updated_at: '2026-11-24'
+  summary: '★ISS-381 cont1 sw-lead 新建真相页 (★零写板·零落表·零改既有页面正文★): §0 一句话结论 + §1 板面真值 7 行 (全部 [实测]) + §2 口径订正块
+    (★main need 里「unc 抓不到 UART_RX」那半句已被实测证伪: UART_RX 现在就是 45 条 unconnected 里的一条 ⇒ 零铜且 pad≥2 的网必然贡献 ≥1
+    条 unc item ⇒ 真洞是【计数 ≠ 身份】·老字一个字没删·订正一律走追加块★) + §3 逐条列铜表 (23 条必需网 + FSIN_OUT 单列为可悬空 · 期望焊盘集合从脚表 HW/netlist_v1_pins.csv
+    读而非板面读 · 铜段数/铜长取 tmp/iss381_sbx/board_nets.json) + §3.1 差分腿成对 20 对子表 + §4 三种刷法逐条给机器判据 (删焊盘/标NC/改名)
+    + §5 未决项 5 条 (只登记不代拍) + §6 复跑命令 + §7 边界自证。'
+- path: SW/tools/check_sw_false_connectivity_gate.py
+  kind: gate
+  version: '1.0'
+  updated_at: '2026-11-24'
+  summary: '★ISS-381 cont1 sw-lead 新建机器闸 K0~K6 (★全仓第一个「必需网逐条列铜」的 fail-closed 判据★): K0 板三项指纹+既有表/闸/页指纹未动
+    · K1 逐条必需网 (存在+焊盘集合与脚表一致+铜状态, 判定逻辑抽成纯函数 judge_required_net, 红时逐条点名差在哪) · K2 差分腿成对 (两腿都有铜, ★不自造 Δ 阈值★)
+    + 两份解析器结论必须一致 · K3 可悬空名单单列 (零铜且不在必需表, 判据用 AST 静态解析 HW/check_s8_target_list.py 的 REQUIRED_SINGLE/FLOAT_OK·不
+    import 不 exec·一字未改) · K4 零假连通核心自检 (删焊盘/标NC/改名 三反例必须判红并点名) · K5 板面与名单交叉核对 (名单里缺/板上多/板上少 逐条点名) · K6
+    证据等级+零挂起+零挂链+判据事实分开。★用法: 裸跑 = --phase pre (基线相, 今天 rc=0) · --phase post = 板那一趟验收相 (今天 rc=1 且逐条点名 23
+    条零铜网) · --selftest = 17/17 通过 末行 ALL TESTS PASS · --print-table / --print-net / --data / --board。★本闸零挂链
+    (state/gate_check.py 不引用它)。★'
+- path: SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md
+  kind: caliber
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-385 真相页 (sw-lead 2026-11-24)★: PWR-05 充电电流判据口径核对 + 机器块 evt_pwr05_caliber + 三个改法候选(甲/乙/丙,
+    逐条代价, 不代拍) + 既存判据事实分账 + 证据分级表(五级齐全) + 未决项6条。★结论: 判据 ≥1.5A 在现行 R_ILIM=680Ω 档下【两个口径都达不到】(输入侧 IINMAX
+    max 0.5735A 差 2.62× / 电池侧 ICHG max 0.6974A 差 2.15×); 且该不兼容【在旧 0.822 系数 390Ω 档就已存在】(ICHG 0.822A 差 1.83×)
+    ⇒ 属既存判据缺陷, 不是 ISS-229 造成; 且 U_CHG/R_ILIM 的 board 域全 CHG_BOARD ⇒ demo 主 PCB 上无此充电链(电池座 DNP); 另查出同行的第二个坑「寄存器回读」不可达(充电
+    IC 的 I2C 不过铰链) ⇒ 任何改法必须同时修阈值+读回方式两处。★零改 SW/EVT_TEMPLATE.md 正文(md5 773dcaf7 前后逐字相同)· 最终改成哪一条是 main/老板的地界。'
+- path: SW/check_evt_charge_current_criterion.py
+  kind: gate
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-385 新机器闸 (sw-lead 2026-11-24)★: EVT PWR-05 充电电流判据口径闸 K1~K9。★命门: 判据按【语义】判(比较符+数值+量纲 双向解析+浮点容差),
+    不按子串判 ⇒ 「≥1.5A」改「≤1.5A」/「≥0.01A」/「≥1.6A」/窗口写法 四种改写全部判红并点名, 而「1.50 A」「1500mA」同义改写不误伤, 「@5V/2A 适配器」的
+    2A 不被当阈值。★三相: pre 裸跑 rc=0(既存缺陷逐条点名不判红) / post(改判据那一趟验收相) rc=1 / --strict rc=1。★--selftest 20/20 反向用例通过,
+    末行 ALL TESTS PASS。★零挂链(gate_check.py 命中 0)· 不改任何既有闸的判据表。'
+- path: HANDOFF/2026-11-24_sw-lead_ISS385_EVT充电电流判据口径核对与机器闸.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-10-25'
+  summary: '★ISS-385 交卷页 (sw-lead 2026-11-24)★: B1 三问逐条答+10条机器事实+第二坑(寄存器回读不可达) / B2 验收标准自评22条逐条(通过/未验)
+    / B3 证据分级五级 / B4 interface_claims 6条(全部带出处行号) / B5 未决项与卡点6条(全部可自行闭环, 零条等外部回复) / B6 自证复现命令+边界自证表(零写板/零落表/零改既有页面正文/零改既有闸/零挂链/零外发/不自签/不写别人的分片/沙盒合规)。'
 blockers:
 - id: SW-B1
   desc: NPU 纯硬件耗时未知 (ARS45 从没公开跑过 YOLO) → 框龄 age 算不准 → 端到端预算有 ±16.67ms 的台阶不确定性
@@ -2958,6 +2996,77 @@ needs_from:
     (★沙盒 T4 实测★): 不同批落 ⇒ 先落的那条补丁会移动【另一个闸】的函数行号 ⇒ 把那个闸当场打红 (★实测: P-F 一落 ⇒ 闸 G 的 W2 红·5 行全中·因为 W2 把闸 F 的行号钉死了★)
     ⇒ 现场又是一轮「误读成板坏了」⇒ 整趟白跑★ ⇒ ★**建议: 合成一批落, 落完立刻在沙盒重跑 T0~T5 读数表做交叉验证 (★本趟已把读数表刷到 7 道闸·logs/iss372/08_sbx_reboard_rehearsal_7gates.txt★)★**
     ★ ⇒ 本单只登记, 不代拍'
+  since: '2026-11-24'
+- key: iss381_cont1_diff_copper_symmetry_threshold
+  to: main
+  item: '★请 main 裁差分腿【铜长对称性阈值】(Δ铜长 / Δ段数上限): iss334_need4a 一线只裁了分级, 没裁对称性。 ★本单不代拍: 新闸 SW/tools/check_sw_false_connectivity_gate.py
+    的 K2 只判「成对都有铜」, 不自造 Δ 阈值。 ★本单给的事实: 20 对差分腿的实测铜段数/铜长全部列在真相页 §3.1; 现板 11 对尚不是「两腿都有铜」(7 对一腿有铜一腿零铜: CSI_D0_D0_P_SRC/N_SRC
+    · CSI_D0_D0_P/N · CSI_D0_D1_P_SRC/N_SRC · CSI_D0_D3_P_SRC/N_SRC · CSI_D0_D3_P/N · DSI_D0_D2_P_SRC/N_SRC
+    · DSI_D0_D3_P_SRC/N_SRC; 4 对两腿都零铜: CSI_D0_D1_P/N · CSI_D0_D2_P/N · DSI_D0_D0_P_SRC/N_SRC · DSI_D0_D1_P_SRC/N_SRC)。
+    ★关键一条: 有铜 ≠ 对称 —— DSI_D0_D0_P/N 两腿都有铜但 Δ铜长 = 76.2mm (P=300段/81.0mm, N=18段/4.8mm) ⇒ 只判「成对都有铜」会放行这种腿。★'
+  since: '2026-11-24'
+- key: iss381_cont1_three_cheat_methods_policy
+  to: main
+  item: '★请 main 裁「删网 / 标 NC / 改名」三种刷法【该不该被允许】(★本单只给判据与代价, 不代裁★): ★本单给的三条机器判据 (已实跑): K1a 身份 (名单里的网名必须在板面存在)
+    · K1b 焊盘集合 (脚表期望的每个焊盘必须在板面, 少一个就红并点名) · K1c 铜状态 (必需网必须 铜段数≥1 且 铜长>0, NC 的网铜段数仍是 0 ⇒ 红) · K5 交叉核对 (板上多出的网名逐个点名)。
+    ★代价事实: 若只守 unc 计数, 三种刷法都能把 45 刷到 0 而一条铜都不加 ⇒ 验收线会给出「全接上了」的错觉。 ★相关先例: 项目里已有允许 NC 的登记 —— FSIN_OUT 被明确登记为「板侧标
+    NC 是板那一趟动作」。★本单事实: 三个反例在本单新建闸里全部判红并逐条点名 (--selftest 反例①②③ + 真数据路径)。★'
+  since: '2026-11-24'
+- key: iss381_cont1_gate_chain_mount
+  to: main
+  item: '★请 main 裁新闸【挂不挂 state/gate_check.py】(★本单零挂链·挂链是 main 的地界·本单只交脚本+路径+建议★): ★本单事实: grep -c check_sw_false_connectivity_gate
+    state/gate_check.py ⇒ 0 (零挂链已自证); 新闸默认相 = --phase pre (基线相, 今天 rc=0), 板那一趟验收相 = --phase post (今天 rc=1
+    且逐条点名 23 条)。 ★先例 (供 main 参考, 不代裁): ISS-300/309/312/315 + ISS-372 U7 同款 —— 提前单独挂 ⇒ 中间态红 ⇒ 现场误读成「板坏了」。
+    ★本闸自带 --selftest (17/17, 末行 ALL TESTS PASS), 单独跑不会污染门禁链。★'
+  since: '2026-11-24'
+- key: iss381_cont1_correction_block_into_legacy_page
+  to: main
+  item: '★请 main 裁: 本单 §2 的【口径订正块】(unc 抓不到 UART_RX 那半句已被实测证伪) 要不要落进 SW/ONETRIP_ZERO_COPPER_SINGLE_END_FW_USAGE.md
+    的末尾。 ★本单零碰既有页面正文: 该页 md5 0f4bf6c083f25cea6cda240a91170049 开工前后逐字相同, 订正一律进新页 SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md
+    §2 (追加块, 老字一个字没删)。 ★落不落、落的话是追加还是改写, 归 main。★'
+  since: '2026-11-24'
+- key: iss381_cont1_acceptance_line_single_vs_dual
+  to: main
+  item: '★请 main 裁「板那一趟」的布线验收线正式改成【逐条列铜单轨】还是【计数 + 逐条 双轨】(★本单给两个选项 + 代价, 不代拍★): ★选项 A (逐条列铜单轨): 23 条必需网逐条有铜
+    + 焊盘集合与脚表一致 + 差分腿成对都有铜 ⇒ 假连通空间最小。 ★代价: 板那一趟每加/减一条网都要重读冻结名单 (冻结名单与现板口径漂移 ⇒ K5 判红); 且 unc 计数降到 0 之后本闸仍可能红
+    (板上还有别的网悬空 ⇒ 两套数字不同步·现场要解释「哪个红」)。 ★选项 B (计数 + 逐条 双轨): 保留 unc 45→0 作【覆盖度指标】, 另加本闸作【身份闸】。 ★代价: 两套判据两套
+    rc, 但两个数字都不说谎。 ★本单事实: 两相都已实跑 (pre rc=0 / post rc=1 且逐条点名 23 条), 代价是可核的。★'
+  since: '2026-11-24'
+- key: iss385_choose_pwr05_fix_candidate
+  to: main
+  item: '★请 main / 老板裁: EVT PWR-05 最终采用哪个改法 (★本单只摆代价, 不代拍★)★ —— 真相页 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md
+    §2.4 对照表: ★甲** = 单侧降阈 (≥0.60A; ★代价: 丢失「R_ILIM 未装 ⇒ ICHG 2.048A」的鉴别力, 且对外话术不能再讲 1.5A 快充) · ★**乙** =
+    双侧窗口 (0.54~0.75A; ★代价: 判据变区间, 现场易误判, 上限依赖官方 2048mA 复位默认数) · ★**丙** = 注明 demo 主 PCB 不适用 + 移整机/充电板阶段
+    (★代价: G3 多一个未验项, 改动面最大, 单独用会留下错数) · ★**甲+丙 / 乙+丙** 组合最完整★。★判据不可达是硬事实: 两个口径都差 2.62× / 2.15×★'
+  since: '2026-11-24'
+- key: iss385_evt_template_landing_timing
+  to: main
+  item: '★请 main 定: PWR-05 判据落进 SW/EVT_TEMPLATE.md 的时机★ —— ★必须与「改板那一趟」同批★ (★判据一改 ⇒ 模板版本 v1.0 + §0.4 判据来源表
+    + 七段判定矩阵 L79~L119 三处联动★) ⇒ ★**提前单独改 = 中间态 = 制造 churn** (★同款先例: ISS-379 Q9 / ISS-381 correction block
+    都是「与那一趟同批落」★)★ ⇒ ★**本单零改 EVT_TEMPLATE.md 正文 (md5 773dcaf7432b66397a1fa3240c32c3ad 开工前后逐字相同)★**'
+  since: '2026-11-24'
+- key: iss385_update_caliber_machine_block_on_landing
+  to: main
+  item: '★请 main (执行那一趟时) 记得: 改完 EVT 页后, ★必须同批更新真相页 SW/EVT_CHARGE_CURRENT_CRITERION_CALIBER.md 机器块的 evt_current_criterion_a
+    / evt_current_criterion_max_a★ ⇒ ★**否则本单新闸 SW/check_evt_charge_current_criterion.py 立刻报「口径被换掉」** (★这正是闸的设计意图:
+    盯口径漂移, 不是盯人★)★ ⇒ 闸的报错文本含现值与登记值, 照着改即可'
+  since: '2026-11-24'
+- key: iss385_should_the_new_gate_be_hooked
+  to: main
+  item: '★请 main 裁: 新闸 SW/check_evt_charge_current_criterion.py 挂不挂进 state/gate_check.py★ —— ★**本单【零挂链】:
+    实测 grep -c check_evt_charge_current_criterion state/gate_check.py = 0** ⇒ ★**挂不挂是 main 的地界** (★先例:
+    ISS-381 同款零挂链★)★ ⇒ ★不挂的话本闸仍可人工单跑 (裸跑 rc=0 + post 相 rc=1)★'
+  since: '2026-11-24'
+- key: iss385_bat10min_rise_needs_board_measurement
+  to: main
+  item: '★请 main 知悉 (★不是等外部回复★): 判据 C4「电池电压 10min 内上升 ≥0.1V」在 ICHG 从 1.5A 降到 0.6A 后是否仍可达, ★**必须板通电后自己测**
+    (插 Type-C 前记 V0, 10min 后记 V1, 记 V1-V0)★ ⇒ ★**降级方案已写进 C4 判读法: 记 V0 不预设门槛** ⇒ ★**板不可达是物理事实, 不是阻塞项**★'
+  since: '2026-11-24'
+- key: iss385_charge_chain_board_domain_charge_board_push
+  to: main
+  item: '★请 main 裁: 充电链 board 域 = CHG_BOARD 这条架构事实要不要另开一单推动充电板落地★ —— ★本单只登记事实 (F1~F7: U_CHG 10 行 + R_ILIM
+    2 行 board 全 CHG_BOARD, MAIN_PCB 0 行; J_TYPE_C 18 行全 CHG_BOARD; 板文件 U_CHG/R_ILIM 各 0 次; BT_432243/U_BATPROT
+    均 DNP; demo 装机态 J_CHG DNP)★ ⇒ ★**要不要另开单 = main 的地界, 本单不动任何架构**★'
   since: '2026-11-24'
 answers:
 - key: debug_port_form
@@ -5924,6 +6033,73 @@ interface_claims:
   note: '[实测] cont3 开工时闸 rc=1 (H1+H4 红) ⇒ 登记完回到 rc=0 (7/7) 且 --selftest 10/10 ALL TESTS PASS'
   ref: logs/iss372/09_gate_run_cont1.txt + logs/iss372/10_selftest_cont1.txt + SW/BOARD_ONEPASS_SW_MD5_REBASE_READINESS.md
     §3.5
+- key: iss381_cont1_required_net_table_caliber
+  value: ★逐条列铜表的【必需网 23 条】冻结版真源 = SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md §3 (★板那一趟的验收线正样★); post
+    相一律读这份冻结名单 ⇒ 板那一趟做完名单不会自己缩水 (★差分腿一接上铜就从「零铜网」里消失·若每次现算名单会缩水⇒验收线会漏检★)。 分级口径沿用 HW/check_s8_target_list.py
+    已裁的 23 = 15 高速差分腿 + 8 单端脚 (★不重开·不自改·AST 静态解析取值·不 import 不 exec·一字未改★); 可悬空 1 条 = FSIN_OUT 单列, 不许混进必需表。★pre
+    相另用现板现算名单 (req_single + 现板零铜 pad≥2 差分腿) 并与冻结名单交叉核对, 漂移就红 (K5)。★
+  note: '[实测] 23/23 焊盘集合与脚表一致; 冻结名单与现板现算一致 (K5 ✔ 绿)'
+  ref: SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md §3 · HW/check_s8_target_list.py · SW/tools/check_sw_false_connectivity_gate.py
+    K1/K3/K5
+- key: iss381_cont1_expected_pad_source
+  value: '★期望焊盘集合的真源 = HW/netlist_v1_pins.csv (脚表真源), 过滤 board ∈ {空, MAIN_PCB} (★CHG_BOARD 行的 J_TYPE_C.B5
+    / R_CC2.1 属充电板·不进主板闸★), 脚号归一 pinNN→NN。 ★期望集合从脚表读, 不是从板面读 (★否则就是「用板面证明板面」★)。 ★板面实际焊盘集合/铜段数/铜长 mm 的真源
+    = 板面读数, 两条口径互为对照: tmp/iss381_sbx/board_nets.json (自写 s-expr 行级状态机) 与 tmp/iss381_sbx/board_nets_pcbnew.json
+    (pcbnew API) ⇒ K2 强制两者逐条一致 (本次 136 个网名全一致, 容差 0.05mm)。★'
+  note: '[实测] 23 条必需网期望集合 == 板面集合 (23/23)'
+  ref: HW/netlist_v1_pins.csv · tmp/iss381_sbx/board_nets.json · tmp/iss381_sbx/board_nets_pcbnew.json
+- key: iss381_cont1_count_vs_identity_caliber
+  value: '★★「计数 ≠ 身份」★★: unc 45→0 是【计数】判据 ⇒ 只能证明「板上没剩下 ratsnest 悬空连接」, 不能证明「是哪 23 条必需网被接上了」⇒ ⇒ 「45→0 全绿」与「必需网逐条真接上」是两件事。
+    ★订正 main 的 need (iss379_q6_uart_rx_zero_copper) 一处误述: 「unc 判据抓不到 UART_RX」已被实测证伪 —— UART_RX 现在就是那 45
+    条 unconnected 里的一条 (逐网计数 1 项) ⇒ 零铜且 pad≥2 的网【必然】贡献 ≥1 条 unc item ⇒ unc 判据【抓得到】零铜网, 它【抓不到】的是【身份】。★⇒
+    三种刷法都能把 45 刷到 0 而一条铜都不加: ①删网/删焊盘 (K1a 身份+K1b 焊盘集合 抓住) ②标 NC/no-connect (K1c 铜状态 抓住) ③改名/拆网 (K1a+K5
+    抓住)。 ★另: 「24 条零铜网」(pad≥2 焊盘网口径) 与「45 条 unconnected」(DRC ratsnest 条数口径) 是两个口径, 不许互相替代。★'
+  note: '[实测] UART_RX 在 45 条 unconnected 里占 1 项; 三种反例在本单新建闸里实跑全部判红并点名'
+  ref: SW/BOARD_ONEPASS_ZERO_FALSE_CONNECTIVITY.md §2/§4 · HW/check_s8_target_list.py §② 逐网 unconnected
+    名单
+- key: iss385_pwr05_measured_quantity
+  value: ★PWR-05 的「充电电流」按【电池侧充电电流 ICHG】读★ (输入侧 IIN 是另一读法, 但两者都达不到 1.5A ⇒ 结论与读法无关)
+  ref: SW/EVT_TEMPLATE.md L131 (同句并列三项全是电池侧可观测量) · HW/CHARGE_BOARD_SPEC.md §2.4 L182~L186 + §3.4 L320
+    (项目口径 ICHG = IIN×eta·Vbus/Vbat) · HW/CHARGE_CURRENT_RECHECK_2026-11-01.md L56 (1.5A 出处 = 铰链设计点 BAT_CHG)
+    · HW/INTERFACE_TABLE.md L106
+  note: '[实测]+[推算] 读法判定由证据链 E1~E5 推出; ★结论对两个口径都成立 ⇒ 不必先赌对读法★'
+- key: iss385_pwr05_hardware_truth_680
+  value: '★R_ILIM=680Ω 档真值: IINMAX min/typ/max = 0.4706/0.5221/0.5735294 A · ICHG min/typ/max = 0.5722/0.6348/0.6974118
+    A · 单 pin max = 0.3487059 A★'
+  ref: MECH/hinge_power_calc.json rilim_table (R_ILIM=680, tag=min/typ/max) ⇒ 本机实跑 python3 MECH/hinge_power_calc.py
+    --json rc=0 复算
+  note: '[实测] 数值来源可复算; 该 json 的 md5 b7c3256f39804f748aea779971944e63 与 ISS-229 交卷单记录逐字相同 ⇒ 复算幂等'
+- key: iss385_pwr05_unreachable_ratio
+  value: ★判据要求 ≥1.5A ⇒ 输入侧差 1.5/0.5735294 = 2.6154×, 电池侧差 1.5/0.6974118 = 2.1508× ⇒ 【两个口径都永远判不过】★
+  ref: 由 iss385_pwr05_hardware_truth_680 实算 (本单自算, 未抄任务书)
+  note: '[推算] 算式写明; ★两个口径都不可达 ⇒ 结论对读法不敏感★'
+- key: iss385_pwr05_applicability_demo_main_pcb
+  value: ★applicable_on_demo_main_pcb = false★ ⇒ U_CHG 10 行 + R_ILIM 2 行 board 全 = CHG_BOARD, MAIN_PCB
+    上 0 行; J_TYPE_C 18 行全 CHG_BOARD; 板文件 U_CHG/R_ILIM 各 0 次; BT_432243/U_BATPROT 均 DNP; demo 装机态 J_CHG
+    DNP
+  ref: HW/netlist_v1.csv (全表扫) · HW/BOM_v1.csv L2/L76/L204 · HW/PCB/demo_mainboard.kicad_pcb · SW/SHUTDOWN_SEMANTICS_SPEC.md
+    §0 L96
+  note: '[实测] ★本机实读 (非抄任务书)★ ⇒ PWR-05 若按字面在 demo 主 PCB 上测, 测的是一条 demo 板上不存在的链路'
+- key: iss385_pwr05_charger_register_unreachable
+  value: ★充电 IC 的 I2C_CHG_SCL/I2C_CHG_SDA 全在 CHG_BOARD, MAIN_PCB 上 0 行 ⇒ SoC 读不到 BQ25896 寄存器 ⇒ PWR-05
+    的「寄存器回读」不可达 ⇒ 读回须用 CHG_STAT GPIO + VBUS_DET ADC 双通路★
+  ref: HW/netlist_v1.csv L483/L485 · SW/SW_TIMING_REVIEW.md L441 (chg_state_source = CHG_STAT-主,PG-备,ADC-辅)
+    · HW/CHARGE_STATUS_READBACK.md B1 (fail-safe OR 判据)
+  note: '[实测]+[官方] ★与 1.5A 无关的第二个坑, 在同一行 L131 里★ ⇒ 任何改法必须同时修阈值+读回方式两处'
+- key: iss385_pwr05_defect_is_preexisting
+  value: '★该不兼容属【既存判据缺陷】, 不是 ISS-229 造成★: 旧 0.822 系数 + 390Ω 档 ICHG max = 0.822A ⇒ 1.5A 差 1.825× ⇒ 判据写下那天起就永远判不过
+    ⇒ ISS-229 只把差距从 1.83× 拉到 2.15×, 没有把它弄坏'
+  ref: HW/SCHEMATIC_LANDING_WORKPACKET_V1.md L227 (逐字引旧网表 L47/L48 value = 390Ω ICHG ≈0.82A) · MECH/hinge_power_calc.py
+    L16~L22 (系数方向修正说明) · HW/netlist_v1.csv L47 note
+  note: '[实测]+[推算] ★事实分账核心: 不许算到别人头上, 也不许藏起来★'
+- key: iss381_cont1_e2e_count_vs_identity_proof
+  value: '★端到端实测口径 (★沙盒副本·真板零写★): unc 计数可在【新增铜 = 0.0 mm / 0 段】的前提下被刷掉 ⇒ 真板 unc=45 (43 网名) ⇒ 沙盒副本把 23 必需
+    + 1 可悬空的全部焊盘标 no-connect ⇒ unc=20 (19 网名, −25) 而 23 条必需网铜段数/铜长仍全 0 / 0.0mm ⇒ 同一时刻闸 post 相 rc=1 并点名
+    UART_RX (K1a 板面查不到该网) ⇒ 计数口径被骗·逐条口径能逐条点名 ⇒ 「45→0 全绿」≠「必需网逐条真接上」★'
+  note: '★复现: python3 tmp/iss381_sbx/e2e_count_vs_identity.py (日志 logs/iss381/e2e_count_vs_identity.txt)
+    · python3 tmp/iss381_sbx/e2e_cheat_proof.py (三刷法在真板副本层全被抓住并点名; 日志 logs/iss381/e2e_cheat_proof.txt)
+    · ★两脚本只读真板、只写 tmp/iss381_sbx/cheat/ 与 logs/iss381/ · 真板 md5 611b869e13518c3c023fb178f91a0075 未动★'
+  ref: ''
 open_questions:
 - id: SW-Q1
   to: main

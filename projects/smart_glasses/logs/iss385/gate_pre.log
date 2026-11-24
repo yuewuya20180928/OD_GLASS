@@ -1,0 +1,26 @@
+==============================================================================
+ISS-385 · EVT PWR-05 充电电流判据口径闸 · pre 相
+==============================================================================
+硬件真值 (权威表 MECH/hinge_power_calc.json + 网表 HW/netlist_v1.csv):
+  R_ILIM = 680 Ω · IINMAX(min/max) = 0.4706 / 0.5735 A · ICHG(min/typ/max) = 0.5722 / 0.6348 / 0.6974 A
+  单 pin(max) = 0.3487 A · 网表 board 域 {'U_CHG': ['CHG_BOARD'], 'R_ILIM': ['CHG_BOARD']} · demo 主 PCB 上有充电链 = False
+PWR-05 (L131) 语义解析: 下限 [1.5] A · 上限 [] A · 量的口径=★未声明★ · 寄存器回读=True
+------------------------------------------------------------------------------
+[PASS] K1_truth_match         机器块真值与权威表/网表逐字相符 (R=680Ω · IINMAX(max)=0.5735A · ICHG(max)=0.6974A · 单pin(max)=0.3487A)
+[PASS] K2_registered_match    PWR-05 现状判据 (下限 1.5A) 与登记口径逐字相符
+[KNOWN] K3_reachable           PWR-05 (L131) 要求【≥ 1.5A】(下限要求) 而硬件真值 ICHG/IIN 上限只有 0.5735A (差 2.62×) ⇒ ★永远判不过★
+[KNOWN] K4_quantity_declared   PWR-05 (L131) 没声明【量哪个量】(须写明 电池侧 ICHG 或 输入侧 IIN) ⇒ 判据对象不唯一 (登记口径 = ICHG)
+[PASS] K5_applicable          适用性一致 (网表 board 域 {'U_CHG': ['CHG_BOARD'], 'R_ILIM': ['CHG_BOARD']} ⇒ demo 主 PCB 上有充电链 = False)
+[KNOWN] K5b_scope_marked       网表说充电链在 CHG_BOARD (demo 主 PCB 上不存在该链路) ⇒ PWR-05 必须标注【不适用/整机/充电板】或改判据对象
+[PASS] K6_evidence_grades     证据分级: 证据分级表 5 行, 五个等级齐全, 每行都带等级
+[PASS] K7_zero_hook           零挂链自证: state/gate_check.py 里命中 check_evt_charge_current_criterion = 0
+[PASS] K8_no_write            本闸未改 SW/EVT_TEMPLATE.md (md5 773dcaf7 运行前后逐字相同)
+[KNOWN] K9_readback_reachable  PWR-05 (L131) 写『寄存器回读』, 但充电 IC 的 I2C 不跨铰链 (I2C_CHG_* 的 board 域 = ['CHG_BOARD'], MAIN_PCB 上 0 行) ⇒ SoC 读不到充电 IC 寄存器 ⇒ 判据的读回方式不可达
+------------------------------------------------------------------------------
+★已登记的既存缺陷 (pre 相不判红, 但必须被点名; --strict / --phase post 会判红)★
+  · [K3_reachable] PWR-05 (L131) 要求【≥ 1.5A】(下限要求) 而硬件真值 ICHG/IIN 上限只有 0.5735A (差 2.62×) ⇒ ★永远判不过★
+  · [K4_quantity_declared] PWR-05 (L131) 没声明【量哪个量】(须写明 电池侧 ICHG 或 输入侧 IIN) ⇒ 判据对象不唯一 (登记口径 = ICHG)
+  · [K5b_scope_marked] 网表说充电链在 CHG_BOARD (demo 主 PCB 上不存在该链路) ⇒ PWR-05 必须标注【不适用/整机/充电板】或改判据对象
+  · [K9_readback_reachable] PWR-05 (L131) 写『寄存器回读』, 但充电 IC 的 I2C 不跨铰链 (I2C_CHG_* 的 board 域 = ['CHG_BOARD'], MAIN_PCB 上 0 行) ⇒ SoC 读不到充电 IC 寄存器 ⇒ 判据的读回方式不可达
+⇒ rc=0 (pre 相)
+★提示: --phase post = 改判据那一趟的验收相 (今天必红) · --strict = 既存缺陷也当红★

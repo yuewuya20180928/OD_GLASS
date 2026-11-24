@@ -291,3 +291,33 @@ python3 state/merge.py && python3 state/gate_check.py
 | 版本 | 日期 | 变更 | 交卷 |
 |---|---|---|---|
 | v1.0 | 2026-10-28 | 首版: 板框 60×15 定版 + 定位孔位 (ISS-049) + J_CHG 采购口径 + 充电档位 390Ω + 3 条自发现 | hw-lead (ISS-105) |
+
+
+## ★★ ISS-384 充电电流活值订正块 (2026-11-24 · hw-lead)
+> ★★★**一句话**: 本页的【充电电流活值】仍停在旧的 `0.822` 倒数方向系数上 ⇒ ★**活值已作废**; ★**板端真值 = `R_ILIM` 680Ω (V-4 裁定 2026-11-16 · 网表/脚表/BOM 均已落表)** ⇒ **ICHG 0.697A / 单 pin 0.349A / 触点余量 1.43×**; ★**本块只把文档追平到已落表的真值, 网表一个字没动** ★★★
+> ★★**当前口径系数 (必读 · ISS-384 订正口径)**: `ICHG = IINMAX × η·(Vbus/Vbat)` = **1.216 @3.70V** (最坏档) / **1.071 @4.20V** (CV 段末端); ★**旧值 0.822 = (Vbat/Vbus)/η = 1.216 的精确倒数 ⇒ 方向反了 ⇒ 旧表电流偏小 ⇒ 触点天花板判据失效** ★★
+> ★★**订正方式**: ★**追加式订正块 · 老字一行未删** ★★ (ISS-230 的作废标记 L151 / L193 原样保留); ★**下表逐处给出 旧值 → 新值**, 下表所列行号的旧值一律视为【历史留痕】, ★**本块之外的同款旧值即为活值 ⇒ 由 `HW/check_charge_current_live_value.py` 判红** ★★
+> ★★**零落表声明 (ISS-384)**: 本单 = 纯文档口径单 ⇒ `HW/netlist_v1.csv` / `HW/netlist_v1_pins.csv` / `HW/BOM_v1.csv` / `HW/PCB/demo_mainboard.kicad_pcb` **逐字节未动**; ★**网表 L47/L48 里那 2 处 `0.822` 是【合法的历史说明】(「旧口径写的 (VBAT/VBUS)/η = 0.822 是它的倒数」) ⇒ 一个字都不许动** ★★
+> ★**唯一权威源 (只读 · 已签收)**: `MECH/HINGE_POWER_CALC.md` §0-A / §0-A.1 对照表 + `MECH/hinge_power_calc.json` 的 `rilim_table` (ISS-229 · mech-lead · 已 verified) ⇒ 复现 `python3 MECH/hinge_power_calc.py --json` (rc=0) ★
+
+### 逐处订正表 (★行号 = 本块追加前的原页行号; 锚点列 = 机器闸用的旧值 token 码★)
+
+| 行号 | 档位 / 上下文 | 旧值 (逐字) | 锚点 (闸用) | 新值 (逐字) | 权威出处 | 证据 |
+|---|---|---|---|---|---|---|
+| 20 | 摘要表 第 3 行 (充电电流档位) | 充电电流档位 = R_ILIM 390Ω (IINMAX ≈1.00A / ICHG ≈0.82A / 单 pin 0.411A / 充电 ~29min); 300Ω 档正式判死 (单 pin 0.534A) | T082A / T0411 / T0534 / T29M2 | 充电电流档位 = R_ILIM 680Ω (V-4 已落表 2026-11-16) (IINMAX ≈0.57A / ICHG ≈0.697A / 单 pin 0.349A / 充电 ~34min); 390Ω 档正式判死 (单 pin 0.608A 超 0.5A 触点上限 21.6%); 300Ω 档正式判死 (单 pin 0.790A) | MECH/HINGE_POWER_CALC.md §0-A.1 对照表 + rilim_table (680Ω max 行) | [实测] |
+| 23 | 摘要表 第 6 行 ③ (电芯内阻发热) | 电芯内阻发热 (0.10Ω · 114mW @1.07A / ~45mW @0.82A) 贴皮肤侧 | T082A / T107A | 电芯内阻发热 (0.10Ω · 48.6mW @0.697A) 贴皮肤侧 (680Ω 档 max) | MECH/HINGE_POWER_CALC.md §0-A.1 对照表 (680Ω 档 max 行: 电芯发热 48.6 mW) | [实测] |
+| 132 | §3.4 C-2b 工况声明 | 0.411A/触点 余量 1.22× | T0411 / T122X | 0.349A/触点 余量 1.43× (680Ω 档真值; 390Ω 档 0.608A 超 0.5A 上限 21.6% ⇒ 判死) | MECH/HINGE_POWER_CALC.md §0-A.1 + rilim_table (680Ω max 行) | [实测] |
+| 143 | §3.4 表 300Ω 行 | 1.07 A · 0.534A · ❌ 正式判死 (单 pin > 0.5A 天花板) | T0534 / T107A | ICHG 1.581 A · 单 pin 0.790 A · ❌ 正式判死 (超 0.5A 天花板 58%) | MECH/HINGE_POWER_CALC.json rilim_table (300Ω max 行) | [实测] |
+| 144 | §3.4 表 390Ω 行 (原标「本单定版」) | 0.82 / 0.91 / 1.00 A · 0.82A · 0.411A · ✅ 余量 1.22× (对 0.5A 触点) | T082A / T0411 / T122X | 0.82 / 0.91 / 1.00 A (IINMAX 不变) · ICHG 1.216 A · 单 pin 0.608 A · ❌ 余量 0.82× (超 0.5A 触点上限 21.6%) ⇒ 390Ω 档判死 | MECH/HINGE_POWER_CALC.md §0-A.1 + rilim_table (390Ω max 行) | [实测] |
+| 146 | §3.4 表 680Ω 行 | 0.47 / 0.52 / 0.57 A · 0.47 A · 0.236A · ✅ 余量最大, 充电 ~51min | T047A / T0236 / T51M | 0.47 / 0.52 / 0.57 A (IINMAX 不变) · ICHG 0.697 A · 单 pin 0.349A · ✅ 余量 1.43× · 充电 ~34min | MECH/HINGE_POWER_CALC.json rilim_table (680Ω max 行) | [实测] |
+| 149 | §3.4 口径纪律段 (充电时间) | 390Ω max 档充电 ~29.20min / 典型 32.08min | T29M1 / T3208 | 680Ω max 档充电 ~34.41min / 典型 37.81min (390Ω 档 max 19.74min / 典型 21.68min, 但该档已判死) | MECH/HINGE_POWER_CALC.json rilim_table t_charge_min (400mAh 口径) | [实测] |
+| 154 | §3.4 为什么 390Ω 能提速 | 电流可以从 470Ω 提到 390Ω (充电 ~29min) | T29M2 | 该提速叙事作废 (390Ω 档已判死 · 单 pin 0.608A); 现行档位 = 680Ω (充电 ~34min) | MECH/HINGE_POWER_CALC.md §0-A.1 + rilim_table | [实测] |
+| 178 | §4.2 O-4 行 (TS 参考地被回流抬高) | TS 参考地被 1A 回流抬高 14-32mV = 0.44-0.99°C 停充门限偏差 | TTSMV / TTSC | TS 参考地被 0.697A 回流抬高 20.9mV = 0.65°C 停充门限偏差 (680Ω 档 max) | MECH/HINGE_POWER_CALC.md §M-4 表 (680Ω 行) | [实测] |
+| 234 | §6 计算脚本 代码块 (方向反了的公式) | iin = (320/r, 355/r, 390/r); ichg = tuple(v*0.822 for v in iin) | T0822 | iin = (320/r, 355/r, 390/r); ichg = tuple(v*1.216 for v in iin)   # ISS-384 订正: 旧系数 0.822 是 1.216 的倒数 (方向反了) ⇒ 作废; 1.216@3.70V / 1.071@4.20V | MECH/HINGE_POWER_CALC.md §0-A + HW/CHARGE_BOARD_SPEC.md §2.4 | [实测] |
+| 276 | §8 证据表 行 1 | R_ILIM 390Ω → IINMAX 0.82/0.91/1.00A, ICHG 0.82A, 单 pin 0.411A · [推算] (×0.822 换算) | T0822 / T082A / T0411 | R_ILIM 680Ω → IINMAX 0.47/0.52/0.57A, ICHG 0.697A, 单 pin 0.349A · [实测] (×1.216 换算) | MECH/HINGE_POWER_CALC.md §0-A.1 + rilim_table | [实测] |
+| 277 | §8 证据表 行 2 | 300Ω 档判死 (单 pin 0.534A > 0.5A) | T0534 | 300Ω 档判死 (单 pin 0.790A > 0.5A · 超 58%) | MECH/HINGE_POWER_CALC.json rilim_table (300Ω max 行) | [实测] |
+| 280 | §8 证据表 行 3 (触点余量) | 390Ω 档的 ICHG 触点余量 1.22× · 0.5A ÷ 0.411A | T0411 / T122X | 680Ω 档的 ICHG 触点余量 1.43× · 0.5A ÷ 0.349A | MECH/HINGE_POWER_CALC.json rilim_table (680Ω max 行) | [实测] |
+| 283 | §8 证据表 行 4 (电芯发热) | 电芯内阻 0.10Ω / 发热 45mW@0.82A | T082A | 电芯内阻 0.10Ω / 发热 48.6mW@0.697A | MECH/HINGE_POWER_CALC.md §0-A.1 (680Ω 档 max 行) | [实测] |
+
+> ★★**本块的读法**: ★**行号 = 原文位置**; ★**锚点列的 token 码 = 该行里出现的旧值 token** (`HW/check_charge_current_live_value.py` 按它判「这行是否已被订正」); ★**若某行出现锚点表之外的旧值 token ⇒ 闸判红** ★★
+> ★★**L151 / L193 = ISS-230 留下的作废标记 (历史留痕) ⇒ 不进本表, 一个字不删** ★★

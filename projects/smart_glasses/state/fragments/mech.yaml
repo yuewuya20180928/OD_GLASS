@@ -1,15 +1,15 @@
 agent: mech-lead
 role: 结构总工(带散热)
-updated_at: '2026-11-18T16:45:00+08:00'
+updated_at: '2026-11-24T08:40:00+08:00'
 updated_by: mech-lead
 status:
   phase: fixing
   progress_pct: 100
   health: green
-  summary: 'ISS-377 cont1 交付完成: 座体净距判据同源化 (J_DEBUG 铜箔支配 vs J_UART 座体支配 -> 一条链 M=max(H,C) 逐轴 + 开口/罩住两种余量
-    + 最坏余量判 CRIT) + 座体真实型号自查 (两颗排针 0数据 + 降级方案 DP-1~DP-4); 三件交付物 MECH/BOARD_ONEPASS_CONNECTOR_CLEARANCE_CALIBER.md
-    + MECH/check_connector_clearance_caliber.py (K0~K8, selftest 13/13, 未挂链) + 本交卷页; 上一趟 02:51 被 16 分钟墙掐死,
-    本趟从已落 board_connectors.json 续做; 零写板 零落表 零改既有闸 零改已签收页 零挂链 零外发 不代拍 不自签台账'
+  summary: 'ISS-386 交付完成: J_DEBUG + J_UART 座体/开口/必须清空区【合一件答】—— 同一张同源主表(4 行: 两件 x 两档) + J_UART 三个候选落点逐候选实口径判决(全部
+    罩住红/开口绿) + 帧无关形式 + J_DEBUG 清空区 X 宽三个竞争值各算一遍(三者全红 ⇒ OI-5 只改返工幅度不改方向) + 两件一致性九条 + 证据分级 + 未决项; 新闸 MECH/check_debug_seat_3d_fit.py
+    (K0~K10 = 201 条判据, selftest 18/18 反向用例, 零挂链) + 交卷页; 零写板 零落表 零改已签收页 零改既有闸 零挂链 零外发 不代拍(OI-5/落点都不代答)
+    不自签台账'
 artifacts:
 - path: MECH/MECH_BUDGET.md
   kind: budget
@@ -1733,6 +1733,50 @@ artifacts:
   summary: 'ISS-377 机器闸 (只读): 判据 K0~K8 (K0 逐格回读既有真相页 / K1 口径来源逐轴 / K2 余量与判决自洽 / K3 X-Y 两向向量 + X绿Y红实例 /
     K4 冲突条目判据句+后果句分开 / K5 证据白名单+零挂起措辞+降级方案>=3 / K6 零写板三项 / K7 已签收件 md5 不变 / K8 零挂链); --selftest 13 条反向用例全抓到,
     末行 ALL TESTS PASS; ★未挂进 state/gate_check.py (挂不挂归 main)★'
+- path: MECH/BOARD_ONEPASS_JDEBUG_ARRANGEMENT_TRUTH.md
+  kind: truth
+  version: iss382
+  updated_at: '2026-11-24'
+  summary: 'ISS-382 cont1 新建 J_DEBUG 排针排布标签(维数)订正真相页: §0 一句话结论 + §1 三变体实测表(两个官方 SMD 变体自己解析 .kicad_mod
+    ⇒ pads=4/列=2/行=4/沿Y列序左右交替 ⇒ 2x4_staggered; THT ⇒ 1x4) + §2 订正块草稿(逐处 7 处清单: L45/L203/L207/L288 的 2
+    列 × 2 行、L391/L471/L719 的 2x2; 并逐项列明哪些结论数字不因此改变: 铜箔包络 6.0000×4.4600 本来就是按 2 列×4 行算的 ⇒ 标签错≠结论错, 结论数字一个都不改)
+    + §3 旧闸 G5 盲区与机器判据设计(6 条判据 + 6 条反向用例 + 本单对新闸的 4 处修改说明) + §4 未决项 4 条(to=main, 不代拍) + §5 复跑命令; 机器块含
+    land_smd.arrangement=2x4_staggered 与 arrangement_correction_ledger 7 条逐处台账; 证据等级 [实测]/[推算]/[0数据]。'
+- path: MECH/check_jdebug_arrangement_truth.py
+  kind: script
+  version: iss382
+  updated_at: '2026-11-24'
+  summary: 'ISS-382 cont1 新建只读机器闸 J0~J5: J0 板三项指纹未动 / J1 三变体排布自己实测(不拿 md5 锚当答案) / J2 机器块 arrangement 与实测
+    token 逐字对比(旧 G5 缺的就是这条) / J3 已签收页排布表述逐处扫出且一处都不许漏 / J4 标签错与结论错分开判(结论值独立重算) / J5 证据等级+零挂起+零挂链+判据句事实句分开;
+    10 条反向用例全抓到(末行 ALL TESTS PASS); 零挂链(grep -c state/gate_check.py ⇒ 0); 本趟对闸的 4 处修改只修误报/补漏检/修崩溃, 未放松任何判据;
+    沙盒只落 tmp/iss382_sbx/selftest/。'
+- path: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md
+  kind: truth
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: 'ISS-386 真相页: J_DEBUG + J_UART 两颗排针的座体/开口/必须清空区【合一件答】—— 同一张同源主表(两件 × 两档 = 4 行, 13 列, 同判据链 ISS-377
+    §0.1, CRIT/TOL 现场从 MECH/service_port_check.py L126-L127 读) + §2 J_UART 三个候选落点(ISS-379 rot270 (18.6000,68.6000)
+    / rot90 (18.4000,68.4000) / rot90 (18.3000,68.6000))逐候选实口径判决(全部 罩住红/开口绿, 最坏 -1.0900/-0.3100/-0.2100)
+    + 帧无关形式(结论与坐标无关, 坐标随帧上位问题作废) + §3 J_DEBUG 清空区 X 宽三个竞争值(1.7750/4.0850/4.8100)各算一遍(罩住 -1.5175/-0.3625/0.0000,
+    最坏 -1.8175/-0.6625/-0.3000, 三者全红 => OI-5 只改返工幅度不改方向) + §4 两件一致性核对九条 + §5 证据分级 + §6 未决项 + §9 机器块; 零写板
+    零落表 零改已签收页 零挂链 零外发 不代拍'
+- path: MECH/check_debug_seat_3d_fit.py
+  kind: check
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: 'ISS-386 新建机器闸: 判据 K0~K10 (201 条) 覆盖 ①两连接器同表同字段(K1/K1.5 页内 markdown 行与机器块逐字对拍) ②J_UART 三候选齐全(K2)
+    ③J_DEBUG 三个清空区竞争值齐全(K1b) ④每个余量闸自己实算并与机器块对拍(K3) ⑤判决不许与实算相反(K4) ⑥CRIT/TOL 从 MECH/service_port_check.py
+    源码现场读、页内声明必须与源码一致(K5) ⑦帧 id + 坐标作废声明 + 帧无关结论(K6) ⑧证据等级(K7) ⑨零挂链措辞 + 降级方案>=3(K8) ⑩板/网表/BOM 指纹 == 基线(K9)
+    ⑪不许替 main 落点(K10) + 零挂链自检(KCHAIN); --selftest 18 条反向用例 (含删候选/改帧 id/改源码 TOL/抄错余量/翻判决/写死 CRIT/拆两表/删竞争值/偷落点/抽作废声明/抽证据/注入挂起措辞/改板/删降级方案/改网表/挂链/抽
+    OI-5/抽帧无关结论) 全部 rc=1 且点名判据, 末行 ALL TESTS PASS; --emit 可重出页内机器块'
+- path: HANDOFF/2026-11-24_mech-lead_ISS386_JDEBUG与JUART座体开口清空区合一件答.md
+  kind: handoff
+  version: v1.0
+  updated_at: '2026-11-24'
+  summary: 'ISS-386 交卷页 B1~B6: B1 结论摘要(含同源主表四行 + 三候选表 + 三竞争值表 + 三条给板那一趟的结构侧硬结论) ; B2 验收自评 16 条逐条判(通过 15
+    / 未验 1, 含『J_UART 落点有没有被偷偷挑掉一个』与『网表/脚表/BOM md5 逐字相同』『板三项指纹逐字相同』『既有闸 md5 未变』『既有页正文未变』『新闸裸跑 rc=0』『selftest
+    末行 ALL TESTS PASS』『grep -c = 0』) ; B3 证据分级 ; B4 接口取值声明(认领 9 条 + 不认领 6 条) ; B5 未决项 OI-5/OI-3/OI-2/OI-11/OI-12/OI-13/OI-14/OI-15
+    ; B6 复现命令'
 blockers:
 - id: MECH-B1
   desc: 波导未选型 → 缺 2D 外形图/耦入区/容差角/彩虹纹指标 → **镜框 3D 打印件不能开工** (卡 8 项数据, 采购周期 4-8 周; 镜框正中区 14×10×6mm 光学舱、厚度
@@ -3201,6 +3245,79 @@ needs_from:
 - key: iss377_oi10_vendor_part_numbers
   to: hw-lead
   item: OI-10 J_DEBUG / J_UART 用哪颗具体厂商型号? J_SOM_P1..P4 与 J_USB_C 的厂商 keepout 图纸从哪里补? 本单零外发只登记
+  since: '2026-11-24'
+- key: iss382_correction_block_landing
+  to: main
+  item: 'ISS-382: 订正块落在哪一页/哪一批/什么时机? 本单只起草未落: 新页 MECH/BOARD_ONEPASS_JDEBUG_ARRANGEMENT_TRUTH.md §2.1 给出
+    7 处逐处清单 (L45/L203/L207/L288 的 2 列 × 2 行 ⇒ 建议 2 列 × 4 行交错; L391 机器块 2x2 staggered ⇒ 2x4_staggered;
+    L471/L719 的 2x2 ⇒ 2x4) + §2.2 逐项列明结论数字一个都不改; 先例代价: ISS-374 cont2 追加已签收页后 MECH/check_connector_clearance_caliber.py
+    的 K7 立刻红 2 条 ⇒ 落点与时机有代价, 归 main 裁'
+  since: '2026-11-24'
+- key: iss382_g5_dimension_criterion
+  to: main
+  item: 'ISS-382: 旧闸 G5 的维数逐字对比判据怎么落进既有闸 (改旧闸 vs 新闸独立挂)? 本单零改已签收闸 MECH/check_jdebug_1p27_clearance.py
+    一个字节都没动; 已给: 新页 §3.2 判据设计 6 条 + §3.3 反向用例 6 条 (2x2/2x4/9x9 三条维数用例旧 G5 全绿) + 本单新闸 J2/J3 已实现同一口径 (零挂链,
+    可随时并入); 由 main 裁'
+  since: '2026-11-24'
+- key: iss382_label_downstream_wording
+  to: main
+  item: 'ISS-382: 标签错要不要连带改页里引用该标签的结论句? 已签收页 L471 的 verdict 与 L719 的 verdict_summary 文本里带着 2x2 字样; 本单已逐项独立重算:
+    结论数字与 2x4 相容 ⇒ 结论句本身不需要改, 但文本字样改不改由 main 裁; 本单只登记未改'
+  since: '2026-11-24'
+- key: iss382_new_gate_hook
+  to: main
+  item: 'ISS-382: 本单新闸 MECH/check_jdebug_arrangement_truth.py 要不要挂进 state/gate_check.py? 本单零挂链 (grep -c
+    ⇒ 0), 挂链会改变 Q1/Q3 计分口径, 归 main'
+  since: '2026-11-24'
+- key: iss382_jdebug_vendor_part
+  to: hw-lead
+  item: 'ISS-382: J_DEBUG 这颗排针用哪颗具体厂商型号? 厂商 keepout 图纸从哪里补? 本单零外发只做官方 KiCad 库件实测 (官方 SMD 变体 ⇒ 2x4_staggered,
+    THT ⇒ 1x4), 厂商型号本机 [0数据] 不猜不编'
+  since: '2026-11-24'
+- key: iss386_oi5_jdebug_clearance_x_pick_one
+  to: main
+  item: 'OI-5: `J_DEBUG` 的『必须清空区 X 宽』以哪个数为准 (1.7750 / 4.0850 / 4.8100)? 结构侧已把三个值各算一遍 (罩住 -1.5175 / -0.3625
+    / 0.0000, 最坏 -1.8175 / -0.6625 / -0.3000, 三者全红) ⇒ 选哪个只改返工幅度 (每边 1.5175 / 0.3625 / 0.0000) 不改方向 ⇒ 这一趟
+    J_DEBUG 结构件无论如何都要动; 要过罩住判据须清空区 X >= 6.6100。mech-lead 不代答, 等 main 一句话定死。'
+  since: '2026-11-24'
+- key: iss386_oi3_juart_landing_dependency
+  to: main
+  item: 'OI-3: `J_UART` 落点三选一 (rot 270 (18.6000,68.6000) / rot 90 (18.4000,68.4000) / rot 90 (18.3000,68.6000))
+    —— 已被 ISS-379 裁决挂起, mech-lead 不重开。结构侧已给三候选【全部】的 3D 判决 (全部 罩住红 / 全部 开口绿) ⇒ 落点裁决不被结构侧阻塞; 但结构件清空区的【中心】随落点变
+    (17.9650 / 19.0350 / 18.9350) ⇒ 结构件出件必须等落点定死 ⇒ 『板只改一次』那一趟里落点裁决必须先于结构件出件。'
+  since: '2026-11-24'
+- key: iss386_oi2_b33_land_scope
+  to: main
+  item: 'OI-2: `B33_PIN_LAND_1P27` 的范围是否含 `J_UART`? 若含, 两颗排针换官方 THT 后结构件必须同批返工 (两件罩住轴都红); 若不含, `J_UART`
+    结构件零返工但也换不成官方 land。mech-lead 只给结构侧代价与判据, 范围裁决权在 main。'
+  since: '2026-11-24'
+- key: iss386_oi11_seat_height_h
+  to: boss
+  item: 'OI-11: `J_DEBUG` / `J_UART` 座体真实高 h = [0数据] ⇒ 本单按 Z 向保守上界 4.70 参数化 (与 ISS-380 §3.3-② 同源); X 向判决与
+    h 完全无关 ⇒ 不阻塞 OI-5; Y 向判决随 h 变 (h=0.90 红 / h=2.54 红 / h=4.00 绿但开口 Y 恰好卡阈)。请 boss 定: h 走三档参数化还是定版锁死。'
+  since: '2026-11-24'
+- key: iss386_oi12_cover_criterion_too_strict
+  to: main
+  item: 'OI-12: ⑤ 罩住判据 (座体必须清空区必须罩住铜箔、每边 >= CRIT) 对 THT 排针是否过严? 事实: 要过判据, J_DEBUG 清空区 X 需 6.6100, 而官方
+    1x4 THT land 自己的 F.CrtYd 只有 6.0900 X (F.Fab 5.0800) ⇒ 判据要求比 courtyard 还大 0.5200; J_UART 同理需 4.0700
+    (现 2.5400)。口径一改, 本单 §1~§3 全部余量要重算 ⇒ 越早定越省返工。'
+  since: '2026-11-24'
+- key: iss386_oi13_y_zero_margin
+  to: main
+  item: 'OI-13: Y 向零制造余量是否接受? 事实: 两件罩住 Y 余量都 0.7700 (最坏 0.4700 红) ⇒ 要过阈需清空区 Y >= 2.8000; 而罩开口 Y 4.6000
+    恰好只容 2.8000 ⇒ 只放大清空区会把开口顶死 ⇒ 要留余量必须同时放大开口 Y (>= 5.6000, 两件同批)。'
+  since: '2026-11-24'
+- key: iss386_oi14_iss377_dp1_gap
+  to: main
+  item: 'OI-14: ISS-377 §3.2 DP-1 给的 `J_UART` 清空区 3.4700 = 2.2700 + 2 x CRIT 是【名义余量】口径; 按全链 (最坏 = 余量 -
+    TOL >= CRIT) 需要 4.0700 ⇒ 差 0.6000 ⇒ 按 3.4700 出件仍不过阈。订正块只写在 ISS-386 新页 (零改已签收件), 要不要往 MECH/BOARD_ONEPASS_CONNECTOR_CLEARANCE_CALIBER.md
+    落, 由 main 裁。'
+  since: '2026-11-24'
+- key: iss386_oi15_pad1_displacement_attribution
+  to: main
+  item: 'OI-15: J_UART 三候选里 pad1 位移 0.2441 的归属 —— 任务书记在 (18.4000,68.4000) 名下, ISS-379 §2.3 实为 (18.5000,68.4000)
+    的值; 本页按实测距离给 (C2=0.3124, C3=0.3400)。不影响任何余量/判决, 只影响『挪多远』的账 ⇒ 要 main / hw-lead 核对任务书与 ISS-379 §2.3
+    哪一处是笔误。mech-lead 只登记订正, 不改 ISS-379 页 (零改已签收件)。'
   since: '2026-11-24'
 answers:
 - key: pcb_outline_confirm
@@ -6108,6 +6225,78 @@ interface_claims:
   note: 官方 1x2 SMD (Pin1Left / Pin1Right) 换上去后的【座体本体外框】; Y 5.1000 即卧式贴片排针的 6.0 长边方向 ⇒ 与「座体高 2.54 竖立」的
     3D 假设不同构; ISS-374 cont2
   ref: MECH/BOARD_ONEPASS_JUART_1P27_CLEARANCE.md §1.3 / §2
+- key: jdebug_smd_arrangement_verdict
+  value: 2x4_staggered (2 列 × 4 行交错)
+  note: '排布判定口径: 官方两个 SMD 变体 (Pin1Left/Pin1Right) 自己解析 .kicad_mod 的 pad 坐标 ⇒ pads=4 · 列=2 (X=±1.5) · 行=4
+    (Y=±0.635/±1.905) · 沿 Y 递增时相邻两行列号左右交替 ⇒ token=2x4_staggered; 官方 THT 变体=1x4 (沿局部 Y 一列), 与 SMD 变体不是一回事;
+    任何模块引用降级方案排布一律用 2x4_staggered, 不许用 2x2; ISS-382 mech-lead 2026-11-24'
+  ref: MECH/BOARD_ONEPASS_JDEBUG_ARRANGEMENT_TRUTH.md §1
+- key: jdebug_arrangement_label_vs_conclusion
+  value: 标签 (维数) 错 ≠ 结论数字错
+  note: '判定口径: 排布标签写错时, 降级方案的铜箔包络/必须清空区 Y/开口余量/三档 Y 判决/CRIT 判定一个数字都不许跟着改 —— 本单已独立重算逐项核对全部相等 (铜箔包络 6.0000×4.4600
+    本来就是按 2 列×4 行算的); 订正块只许改标签/维数那一类表述; 判据句=声明的 token 必须与实测 token 逐字相等, 事实句=实测 token 是 2x4_staggered;
+    ISS-382 mech-lead 2026-11-24'
+  ref: MECH/BOARD_ONEPASS_JDEBUG_ARRANGEMENT_TRUTH.md §2.2 / §3.2
+- key: iss386_same_source_table_two_connectors
+  value: 'J_DEBUG 与 J_UART 两颗排针的座体/开口/必须清空区已在【同一张同源主表】里合答: 4 行 (J_DEBUG/status_quo, J_DEBUG/official_tht,
+    J_UART/status_quo, J_UART/official_tht) × 13 列, 同一判据链 M=max(H,C) 逐轴 -> 开口余量 (O-M)/2 -> 罩住余量 (H-C)/2
+    -> 最坏 = 余量 - TOL[''fdm_part''] -> 最坏 >= CRIT, CRIT/TOL 现场从 MECH/service_port_check.py L126-L127 读
+    (0.30/0.60) ⇒ 两件不互相矛盾'
+  note: 同表 + 同判据 + 同阈值取法, 三者由新闸 K1/K1.5/K5 现场对拍
+  ref: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md §1 + MECH/check_debug_seat_3d_fit.py
+- key: iss386_jdebug_official_tht_margins
+  value: 'J_DEBUG 换官方 1x4 THT (铜箔 4.8100 x 1.0000, 居中于 142.9500): 开口余量 X 2.6950 / Y 1.0300 (最坏 2.3950
+    / 0.7300, 过阈); 罩住余量 X -1.5175 / Y 0.7700 (最坏 -1.8175 / 0.4700, 红) ⇒ 判决 = 罩住红 / 开口绿; 铜箔每边超出真相页清空区 X
+    1.7750 达 1.5175 ⇒ 按现状清空区出件当场干涉'
+  note: '[实测](输入)+[推算](余量); 罩住X 在现状档是同义反复 (Hx==Cx), 换官方 land 后变成真判据'
+  ref: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md §1
+- key: iss386_juart_official_tht_margins
+  value: 'J_UART 换官方 1x2 THT (铜箔 2.2700 x 1.0000): 开口余量 X 3.8300 / Y 1.0300 (最坏 3.5300 / 0.7300, 过阈);
+    罩住余量 X 0.1350 / Y 0.7700 (最坏 -0.1650 / 0.4700, 红) ⇒ 判决 = 罩住红 / 开口绿; 铜箔比座体必须清空区 X 2.5400 每边只差 0.1350
+    ⇒ 罩不住'
+  note: '[实测](输入)+[推算](余量)'
+  ref: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md §1
+- key: iss386_juart_three_landing_candidates_3d_verdict
+  value: 'J_UART 三个候选落点逐个给 3D 判决 (实口径: 罩住带符号余量 = min(C.x0-H.x0, H.x1-C.x1, C.y0-H.y0, H.y1-C.y1); 达标线
+    CRIT+TOL = 0.9000): C1 rot270 (18.6000,68.6000) copper X 16.8300..19.1000 x Y 68.1000..69.1000 =>
+    罩住最坏 -1.0900 红 (向左伸出 0.7900) / 开口最坏 +0.7300 绿; C2 rot90 (18.4000,68.4000) copper X 17.9000..20.1700
+    x Y 67.9000..68.9000 => 罩住最坏 -0.3100 红 (向右伸出 0.0100) / 开口 +0.7300 绿; C3 rot90 (18.3000,68.6000) copper
+    X 17.8000..20.0700 x Y 68.1000..69.1000 => 罩住最坏 -0.2100 红 (四边在区内但最窄边 0.0900) / 开口 +0.7300 绿 ⇒ 三候选【全部】罩住红
+    全部开口绿 ⇒ 结论对三者均成立, 落点裁决不被结构侧阻塞'
+  note: '[实测](板侧落点·ISS-379 已签收)+[推算](3D 余量); 本单不挑落点'
+  ref: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md §2
+- key: iss386_jdebug_clearance_x_three_candidates
+  value: 'J_DEBUG 的『必须清空区 X 宽』三个竞争值各算一遍 (换官方 THT 铜箔 4.8100): 1.7750 => 罩住 -1.5175 / 最坏 -1.8175 / 每边超出
+    1.5175; 4.0850 => -0.3625 / -0.6625 / 0.3625; 4.8100 => 0.0000 / -0.3000 / 0.0000 (齐平) ⇒ 三者【全部红】⇒
+    OI-5 选哪个只改返工幅度 (每边 1.5175 / 0.3625 / 0.0000) 不改红绿方向 ⇒ 那一趟 J_DEBUG 结构件无论如何都要动; 要过判据须清空区 X >= 4.8100
+    + 2 x (CRIT+TOL) = 6.6100 (比官方 land F.CrtYd 6.0900 还大 0.5200)'
+  note: '[实测](取值出处)+[推算](余量); 本单不代答 OI-5 (裁决权在 main)'
+  ref: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md §3
+- key: iss386_frame_dependency_declaration
+  value: '帧 id = B160x100; 三个候选落点的绝对坐标挂在该帧上 ⇒ 若上位问题(板框)落乙, 三个坐标【全部作废】; 但本页全部结论写成【帧无关形式】: 罩住判据只取决于 C 宽
+    2.2700 vs H 宽 2.5400 与 CRIT+TOL (C.x 2.2700 > H.x - 2 x 0.9000 = 0.7400 ⇒ 任何落点都不可能过阈); 开口判据只取决于 (H
+    ∪ C) 是否落在 O 内缩 0.9000 的窗口 (X 14.6900..23.0900 x Y 67.2000..70.0000) ⇒ 坐标作废不影响判决'
+  note: '[推算]; 闸 K6 强制帧 id 声明 + 作废声明 + 帧无关结论三件都在'
+  ref: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md §2.1
+- key: iss386_required_clearance_widths
+  value: '要过罩住判据 (最坏 = 余量 - TOL >= CRIT ⇒ 每边名义余量 >= CRIT + TOL = 0.9000): J_DEBUG 清空区 X 宽 >= 6.6100 (中心锁
+    142.9500, 开口 X 10.2000 够用, 每边 1.7950); J_UART 清空区 X 宽 >= 4.0700 (宽度与落点无关, 中心随落点: C1 17.9650 / C2 19.0350
+    / C3 18.9350, 现中心 18.8900) ⇒ 结构件出件必须等落点定死; 两件清空区 Y 需 >= 2.8000 而罩开口 Y 4.6000 恰好只容 2.8000 ⇒ Y 向零制造余量
+    ⇒ 要留余量必须同时放大开口 Y (>= 5.6000)'
+  note: '[推算]; 与 ISS-377 §3.2 DP-1 的 3.4700 (名义余量口径) 差 0.6000, 已登记 OI-14, 不回头改老页'
+  ref: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md §0 / §2.1 / §4
+- key: iss386_criterion_source_and_tol
+  value: 判据链取自 ISS-377 §0.1 (已签收); CRIT = 0.60 / TOL['fdm_part'] = 0.30 【现场从 MECH/service_port_check.py
+    L126-L127 源码读, 页与闸都不写死】; 闸 K5 现场核对页内声明值 == 源码值, 反向用例 03 把源码 TOL 改 0.30→0.40 ⇒ 闸读数跟着变 (CRIT 变 0.80)
+    且 rc=1 点名
+  note: '[实测](源码)+[推算](余量)'
+  ref: MECH/check_debug_seat_3d_fit.py K5 + --selftest c03
+- key: iss386_consistency_two_connectors
+  value: '两件合一件的一致性核对九条结论: 同判据链 + 同 CRIT/TOL 取法; J_DEBUG 的结论隐含要求 J_UART 同改 (换官方 THT 后罩住轴全红, 结构件必须同批返工,
+    不存在只改一颗的省事方案); J_UART 同理; 【上一轮 ISS-374/ISS-377 的『一红一绿』是口径差造成的表象 (J_DEBUG 的 Hx 铜箔支配 ⇒ 罩住 X 恒 0 同义反复),
+    口径统一后两件同为罩住红 ⇒ 不互相矛盾】; 另发现 ISS-377 DP-1 的 3.4700 缺 0.6000 (OI-14)'
+  note: '[推算]; 兑现 main 的 ISS-379 签收裁决 ④⑤『合到一件答·别分两票』'
+  ref: MECH/BOARD_ONEPASS_DEBUG_SEAT_3D_FIT.md §4
 open_questions:
 - id: MECH-Q1
   to: main

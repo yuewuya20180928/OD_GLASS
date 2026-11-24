@@ -1,4 +1,4 @@
-# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-24 04:44)
+# PROGRESS_SNAPSHOT.md —— 进展快照 (自动生成 2026-11-24 09:38)
 
 > ★**这是 token 断电前的续传凭据**。会话被掐断后: 先读本文件 + `TASK_BOARD.md`, 再继续干活。
 > ★本文件由 `state/gen_progress_snapshot.py` 生成, **数字全部实时读, 不写死**。
@@ -8,12 +8,12 @@
 - 阶段门: 【总体】 阶段门 G1 ⏸️ | 健康度 red | 距通过 G1 还差 1 项 | 未闭环高危 10 条 | 逾期 223 条
 - 交付质量门: 【Q1 交付齐备率】 18/18 个必填验收块齐全
 - 门禁: merge rc=0 · issue rc=1
-- 问题单: 共 374 条 · closed=97 · deferred=15 · fixed=6 · fixing=1 · open=16 · verified=239
-- GitHub 上次推送: 2026-11-24T00:32:21+08:00
+- 问题单: 共 381 条 · closed=97 · deferred=15 · fixed=6 · open=16 · verified=247
+- GitHub 上次推送: 2026-11-24T05:29:43+08:00
 
 ## 二、执行中 (谁在干什么)
 
-- **ISS-379** · hw-lead · ★★[★新主线·PCB 线·HW 侧·「板那一趟」] `J_UART` (1×2) 换官方 P1.27 THT land 的**落位可行性* · 派出于 2026-11-24
+- (无)
 
 ## 三、待办
 

@@ -1,0 +1,27 @@
+──────────────────────────────────────────────────────────────────────────────
+★沙盒副本 : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss381_sbx/cheat/cheat1_delete_pad.kicad_pcb
+★刷法     : ① 删焊盘: 删掉 J_UART.pad
+★闸 rc     : 1  (★post 相 ⇒ 期望 1 = 判红★)
+★点名行   :
+    ❌ CAM_RESET_N      ⇒ K1c: 零铜: 铜段数=0 (★要求 ≥1★) ⇒ 这条网【没接】
+    ❌ UART_RX          ⇒ K1b: 缺期望焊盘 (1 个): J_UART.2; K1c: 零铜: 铜段数=0 (★要求 ≥1★) ⇒ 这条网【没接】
+──────────────────────────────────────────────────────────────────────────────
+★沙盒副本 : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss381_sbx/cheat/cheat2_nc.kicad_pcb
+★刷法     : ② 标 NC / no-connect: 把 2 个 UART_RX 焊盘的 net 清成 0
+★闸 rc     : 1  (★post 相 ⇒ 期望 1 = 判红★)
+★点名行   :
+    ❌ CAM_RESET_N      ⇒ K1c: 零铜: 铜段数=0 (★要求 ≥1★) ⇒ 这条网【没接】
+    ❌ UART_RX          ⇒ K1a: 板面查不到该网 (★身份缺失★) ⇒ 名单里这条在板面不存在
+──────────────────────────────────────────────────────────────────────────────
+★沙盒副本 : /home/yuewuya/.openclaw/workspace/projects/smart_glasses/tmp/iss381_sbx/cheat/cheat3_rename.kicad_pcb
+★刷法     : ③ 改名 / 拆网: UART_RX → UART_RX_NC (2 处)
+★闸 rc     : 1  (★post 相 ⇒ 期望 1 = 判红★)
+★点名行   :
+    ❌ CAM_RESET_N      ⇒ K1c: 零铜: 铜段数=0 (★要求 ≥1★) ⇒ 这条网【没接】
+    ❌ UART_RX          ⇒ K1a: 板面查不到该网 (★身份缺失★) ⇒ 名单里这条在板面不存在
+==============================================================================
+cheat1_delete_pad      rc=1  点名=2 行  ⇒ ✔ 被抓住并点名
+cheat2_nc              rc=1  点名=2 行  ⇒ ✔ 被抓住并点名
+cheat3_rename          rc=1  点名=2 行  ⇒ ✔ 被抓住并点名
+==============================================================================
+★三反例端到端 (真板副本层) 结论: 全部被抓住并点名 ✔

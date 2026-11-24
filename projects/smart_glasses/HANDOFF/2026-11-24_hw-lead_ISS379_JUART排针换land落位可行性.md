@@ -304,26 +304,82 @@ ALL TESTS PASS
 | 真相页 | ★**追加 §10** (根因 + 第三路复算 + 归一 + 一条新发现) · §0~§9 与机器块正文一字未动 (只有 `FEAS.evidence_json` 一个字段指向改了) ★ |
 | 板 `HW/PCB/demo_mainboard.kicad_pcb` | ★**未写 (md5 / mtime / size 三项前后逐字相等)** ★ |
 
-### B8.3 重跑 rc (★必跑命令原样输出★)
+### B8.3 重跑 rc (★必跑命令原样输出·最终一轮 2026-11-24 05:11~10:1x 实跑★)
 
 ```bash
 $ python3 HW/check_juart_land_fit.py
-{gate_out}
+========================================================================
+[gate] ISS-379 J_UART 落位可行性闸 · K0~K8
+========================================================================
+  K0   PASS  官方 land 几何与盘上 .kicad_mod 实读一致 (pad 2 个 / crtyd / fab / 钻孔 / 铜箔包络 / 局部跨度)
+  K1   PASS  DRC 判据与 .kicad_pro 实读一致 (min_hole_to_hole=0.25 min_hole_clearance=0.25 min_copper_edge_clearance=0.5 req_copper_clearance=0.2)
+  K2   PASS  可行域逐格复算一致: 复算 145307 格 + 边界环 3010 格 (rot 0/90/270)
+  K3   PASS  现位冲突表逐条可复算 (rot 90 · 2 pad · 5 条铜箔违例 · 孔净距全部通过)
+  K4   PASS  三朝向 (rot 0/90/270) pad 偏移 / courtyard bbox / 铜箔包络 与 SetOrientationDegrees 实算一致 (★含 rot 0↔90 铜箔包络互换宽高校验★)
+  K5   PASS  §2/§4 给出的是可行区 (每朝向『区间』+ >=2 格 + 连通域列表 + 最小位移), 且位移双口径 (原点锚点 / pad1 锚点) 都在
+  K6   PASS  §3 代价清单 5 条全部带坐标 + why, 且声明了过孔挪动结论
+  K7   PASS  板零写板自证通过 (md5/mtime/size 三项 == 611b869e…/2026-11-06 07:07:17.362193413/4940213)
+  K8   PASS  证据等级白名单 / 零挂起措辞 / 判据句事实句分区 / 零挂链 / 不越 sw-lead 地界 自证通过
+------------------------------------------------------------------------
+[gate] 9 条判据, 红 0 条 ⇒ rc=0
+GATE GREEN
 ```
 
 ```bash
 $ python3 HW/check_juart_land_fit.py --selftest
-{st_out}
+[selftest] 基线 K0~K8 全绿
+  PASS  C1 篡改 LAND pad 钻孔 ⇒ K0 红                                 ⇒ 红 K0, 其余仍绿
+  PASS  C2 篡改 RULES min_hole_to_hole ⇒ K1 红                      ⇒ 红 K1, 其余仍绿
+  PASS  C3 篡改可行域格数 ⇒ K2 红                                        ⇒ 红 K2, 其余仍绿
+  PASS  C4 篡改现位冲突表孔净距 ⇒ K3 红                                     ⇒ 红 K3, 其余仍绿
+  PASS  C5 ★现位零铜箔违例★ ⇒ K3 红                                      ⇒ 红 K3, 其余仍绿
+  PASS  C6 篡改 rot90 pad 偏移 ⇒ K4 红                                ⇒ 红 K4, 其余仍绿
+  PASS  C7 ★篡改 rot90 铜箔包络宽★ ⇒ K4 红                               ⇒ 红 K4, 其余仍绿
+  PASS  C8 篡改 rot270 courtyard bbox ⇒ K4 红                       ⇒ 红 K4, 其余仍绿
+  PASS  C9 ★只试一个落点★ rot90 区间声明改单点 ⇒ K5 红                         ⇒ 红 K5, 其余仍绿
+  PASS  C10 ★只试一个落点★ rot0 不给区间声明 ⇒ K5 红                          ⇒ 红 K5, 其余仍绿
+  PASS  C11 ★只试一个落点★ rot270 无连通域列表 ⇒ K5 红                        ⇒ 红 ('K2', 'K5'), 其余仍绿
+  PASS  C12 §3 代价条目去掉坐标 ⇒ K6 红                                   ⇒ 红 K6, 其余仍绿
+  PASS  C13 篡改页面板指纹 ⇒ K7 红                                       ⇒ 红 K7, 其余仍绿
+  PASS  C14 页面注入挂起措辞 ⇒ K8 红                                      ⇒ 红 K8, 其余仍绿
+  PASS  C15 §3 代价条目 why 写空 ⇒ K6 红                                ⇒ 红 K6, 其余仍绿
+  PASS  C16 ★删掉位移双口径之一★ ⇒ K5 红                                   ⇒ 红 K5, 其余仍绿
+  PASS  C17 ★删掉『origin 不在焊盘上』结构事实★ ⇒ K5 红                        ⇒ 红 K5, 其余仍绿
+  PASS  C18 ★证据 JSON 争议格余量 +0.0002★ ⇒ K2 红                       ⇒ 红 K2, 其余仍绿
+  PASS  C19 ★证据 JSON 争议格余量 -0.0002★ ⇒ K2 红                       ⇒ 红 K2, 其余仍绿
+[selftest] 19/19 条反向用例通过
+ALL TESTS PASS
+SELFTEST_RC=0
 ```
 
 ```bash
 $ python3 state/merge.py
-{mg_out}
+✅ STATE.yaml 已刷新 (2026-11-24T05:16:54+08:00)
+   产出 820 | 阻塞 43 (高危 33) | 未闭合需求 349 | 冲突 0 | 健康度 red
 ```
 
 ```bash
 $ python3 state/gate_check.py
-{gc_q1}
+【Q1 交付齐备率】 18/18 个必填验收块齐全
+   hw-lead    6/6  缺: 无   交接单: 2026-11-24_hw-lead_ISS384_充电电流活值口径收口与R10判定面盲区.md
+   sw-lead    6/6  缺: 无   交接单: 2026-11-24_sw-lead_ISS385_EVT充电电流判据口径核对与机器闸.md
+   mech-lead  6/6  缺: 无   交接单: 2026-11-24_mech-lead_ISS386_JDEBUG与JUART座体开口清空区合一件答.md
+   ✅ 与 merge.py 自对账一致 (等外部 46 / 等总工 350)
+【Q7 钉板 md5 闸链】 10/10 道绿 (★9 道全部 fail-closed 挂在门禁链里★)
+   ✅ 钉板闸① FSIN 根因闸: rc=0
+   ✅ 钉板闸② G1a-7 选型落表闸: rc=0
+   ✅ 钉板闸③ 改板提交顺序闸: rc=0
+   ✅ 钉板闸④ 作业包覆盖度闸: rc=0
+   ✅ 钉板闸⑤ 脚表功能标签闸: rc=0
+   ✅ 钉板闸⑥ 作业包现状值闸: rc=0
+   ✅ 钉板闸⑦ 板框坐标闸: rc=0
+   ✅ 钉板闸⑧ 结构真值闸: rc=0
+   ✅ 钉板闸⑨ SW 侧合法改板通道闸: rc=0
+   ✅ 钉板闸⑩ 板侧项全集重跑幂等闸: rc=0
+【缺口清单】(可直接转成下一轮派活项) —— 3 条
+   · hw-lead: 206 条需求确实还没人答 (等另一个总工)
+   · sw-lead: 44 条需求确实还没人答 (等另一个总工)
+   · mech-lead: 99 条需求确实还没人答 (等另一个总工)
 ```
 
 ```bash
@@ -331,7 +387,7 @@ $ md5sum HW/PCB/demo_mainboard.kicad_pcb
 611b869e13518c3c023fb178f91a0075  HW/PCB/demo_mainboard.kicad_pcb
 ```
 
-★**五连 rc**: 闸 `rc=0` (K0~K8 九条全绿) · `--selftest` `rc=0` (19/19 · 末行 `ALL TESTS PASS`) · `merge.py` `rc=0` · `gate_check.py` `rc=0` (★Q1 **18/18** · hw-lead **6/6 缺: 无** · Q7 钉板闸 **10/10** 全绿 · 缺口 3 条·全是既有项★) · 板 md5 **未变** ★
+★**五连 rc**: 闸 `rc=0` (K0~K8 九条全绿) · `--selftest` `rc=0` (19/19 · 末行 `ALL TESTS PASS`) · `merge.py` `rc=0` · `gate_check.py` `rc=0` (★Q1 **18/18** · hw-lead **6/6 缺: 无** · Q7 钉板闸 **10/10** 全绿 · 钉板闸⑩ `rc=0` · 缺口 3 条·全是既有项★) · 板 md5 **未变** ★
 
 ### B8.4 与上一趟自述的出入 (逐条)
 

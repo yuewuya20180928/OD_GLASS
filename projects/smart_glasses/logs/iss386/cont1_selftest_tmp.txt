@@ -1,0 +1,21 @@
+[ok]   c01_drop_candidate     rc=1 且点名 K2 ✓  (★`J_UART` 三个候选落点必须全部有判决: 实有 2 个 (期望 3))
+[ok]   c02_frame_id           rc=1 且点名 K6 ✓  (★机器块 frame_id 'F30A' ≠ 'B160x100' (帧 id 写错/被改))
+[ok]   c03_tol_changed        rc=1 且点名 K3 ✓  (页内声明的 CRIT 0.6 ≠ 源码实读 0.8 (阈值改了必须跟着改声明))
+[ok]   c04_wrong_margin       rc=1 且点名 K3 ✓  (同源表行 ('J_UART', 'official_tht') 的余量数与机器块不一致: 缺 ['0.5350'])
+[ok]   c05_flip_verdict       rc=1 且点名 K4 ✓  (J_UART official_tht 轴 x 判决: 页内 True ≠ 实算 False)
+[ok]   c06_crit_hardcoded     rc=1 且点名 K5 ✓  (机器块缺 CRIT/TOL 取法声明 (必须指向 MECH/service_port_check.py 源码): '0.60 (写死)')
+[ok]   c07_split_tables       rc=1 且点名 K1 ✓  (同源表缺行: 缺 [('J_UART', 'status_quo')] (实有 [('J_DEBUG', 'official_tht'), ('J_DEBUG', 'status_quo'), ('J_UART', 'o)
+[ok]   c08_drop_clear_x       rc=1 且点名 K1b ✓  (★`J_DEBUG` 清空区 X 宽三个竞争值必须齐全: 实有 [1.775, 4.085], 期望 [1.775, 4.085, 4.81])
+[ok]   c09_pick_landing       rc=1 且点名 K10 ✓  (★本页不许替 main 落点: landing_point_decision = 'rot270' (必须是 not_decided_here))
+[ok]   c10_drop_void_stmt     rc=1 且点名 K6 ✓  (页内缺『若上位问题落乙 ⇒ 三个候选坐标全部作废』的声明)
+[ok]   c11_drop_evidence      rc=1 且点名 K7 ✓  (J_DEBUG status_quo 行缺证据等级)
+[ok]   c12_pending_wording    rc=1 且点名 K8 ✓  (页内出现挂起措辞: '等原厂回信' (禁止把外部依赖挂着当阻塞项))
+[ok]   c13_board_changed      rc=1 且点名 K9 ✓  (板 md5 a1e4cd56809969686c938266909512e2 ≠ 基线 611b869e13518c3c023fb178f91a0075 (零写板被破坏))
+[ok]   c14_drop_degrade       rc=1 且点名 K8 ✓  (降级方案少于 3 条 (查不到处必须给降级方案): 2)
+[ok]   c15_netlist_changed    rc=1 且点名 K9 ✓  (HW/netlist_v1.csv md5 b53de80c17f4271c7a14fd495fa19c09 ≠ 基线 6aee500e60ba0732f83a9cf557ba90ab (零落表被破坏))
+[ok]   c16_chained            rc=1 且点名 KCHAIN ✓  (★本闸被挂进了 state/gate_check.py (本单零挂链·挂不挂归 main))
+[ok]   c17_drop_oi5           rc=1 且点名 K10 ✓  (页内未登记 OI-5 (`J_DEBUG` 清空区 X 宽以哪个数为准 ⇒ to=main))
+[ok]   c18_drop_frame_indep   rc=1 且点名 K6 ✓  (机器块缺帧无关结论 (frame_independent.statements))
+反向用例 18 条, 通过 18 条
+ALL TESTS PASS
+RC=0
